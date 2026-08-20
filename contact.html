@@ -189,11 +189,6 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="tel">携帯番号<span class="required">※必須</span></label>
-          <input class="form-input" type="tel" id="tel" name="tel" placeholder="090-1234-5678" required autocomplete="tel"/>
-        </div>
-
-        <div class="form-group">
           <label class="form-label" for="message">問い合わせ内容<span class="required">※必須</span></label>
           <textarea class="form-input" id="message" name="message" placeholder="お問い合わせ内容をご記入ください" required></textarea>
         </div>
@@ -303,13 +298,13 @@ var PV_CONTACT = {
   lang: 'ja'
 };
 
-function pvContactFallback(name, email, tel, msg){
+function pvContactFallback(name, email, msg){
   return 'mailto:info@pilot-value.com'
     + '?subject=' + encodeURIComponent('【PILOT VALUE】お問い合わせ：' + name + ' 様')
     + '&body=' + encodeURIComponent(
         '氏名：' + name + '\n' +
         'メールアドレス：' + email + '\n' +
-        '携帯番号：' + tel + '\n\n' +
+        '\n' +
         '【問い合わせ内容】\n' + msg);
 }
 
@@ -317,7 +312,6 @@ async function submitForm(e){
   e.preventDefault();
   var name  = document.getElementById('name').value.trim();
   var email = document.getElementById('email').value.trim();
-  var tel   = document.getElementById('tel').value.trim();
   var msg   = document.getElementById('message').value.trim();
 
   var btn = document.getElementById('submit-btn');
@@ -336,7 +330,7 @@ async function submitForm(e){
         'Prefer': 'return=minimal'
       },
       body: JSON.stringify({
-        name: name, email: email, tel: tel, message: msg,
+        name: name, email: email, message: msg,
         lang: PV_CONTACT.lang, user_agent: navigator.userAgent.slice(0, 300)
       })
     });
@@ -347,7 +341,7 @@ async function submitForm(e){
   } catch (ex) {
     // 「送信できたことにする」のはやらない。何が起きたかを出して、代替手段を渡す。
     err.innerHTML = '送信できませんでした。お手数ですが、'
-      + '<a href="' + pvContactFallback(name, email, tel, msg) + '">メールソフトで info@pilot-value.com へ送る</a>'
+      + '<a href="' + pvContactFallback(name, email, msg) + '">メールソフトで info@pilot-value.com へ送る</a>'
       + 'か、しばらく置いてからもう一度お試しください。';
     err.style.display = 'block';
     btn.disabled = false;

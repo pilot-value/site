@@ -189,11 +189,6 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="tel">Mobile number<span class="required">*Required</span></label>
-          <input class="form-input" type="tel" id="tel" name="tel" placeholder="090-1234-5678" required autocomplete="tel"/>
-        </div>
-
-        <div class="form-group">
           <label class="form-label" for="message">Your inquiry<span class="required">*Required</span></label>
           <textarea class="form-input" id="message" name="message" placeholder="Please describe your inquiry" required></textarea>
         </div>
@@ -303,13 +298,13 @@ var PV_CONTACT = {
   lang: 'en'
 };
 
-function pvContactFallback(name, email, tel, msg){
+function pvContactFallback(name, email, msg){
   return 'mailto:info@pilot-value.com'
     + '?subject=' + encodeURIComponent('[PILOT VALUE] Inquiry: ' + name)
     + '&body=' + encodeURIComponent(
         'Full name: ' + name + '\n' +
         'Email address: ' + email + '\n' +
-        'Mobile number: ' + tel + '\n\n' +
+        '\n' +
         '[Inquiry]\n' + msg);
 }
 
@@ -317,7 +312,6 @@ async function submitForm(e){
   e.preventDefault();
   var name  = document.getElementById('name').value.trim();
   var email = document.getElementById('email').value.trim();
-  var tel   = document.getElementById('tel').value.trim();
   var msg   = document.getElementById('message').value.trim();
 
   var btn = document.getElementById('submit-btn');
@@ -336,7 +330,7 @@ async function submitForm(e){
         'Prefer': 'return=minimal'
       },
       body: JSON.stringify({
-        name: name, email: email, tel: tel, message: msg,
+        name: name, email: email, message: msg,
         lang: PV_CONTACT.lang, user_agent: navigator.userAgent.slice(0, 300)
       })
     });
@@ -347,7 +341,7 @@ async function submitForm(e){
   } catch (ex) {
     // 「送信できたことにする」のはやらない。何が起きたかを出して、代替手段を渡す。
     err.innerHTML = 'We could not send your message. Please '
-      + '<a href="' + pvContactFallback(name, email, tel, msg) + '">email info@pilot-value.com directly</a>'
+      + '<a href="' + pvContactFallback(name, email, msg) + '">email info@pilot-value.com directly</a>'
       + ', or try again in a moment.';
     err.style.display = 'block';
     btn.disabled = false;
