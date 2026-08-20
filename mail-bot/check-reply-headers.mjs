@@ -36,11 +36,19 @@ if (!fs.existsSync(FILE)) {
   process.exit(1);
 }
 
-let fail = 0, ran = 0;
+let fail = 0, ran = 0, naCount = 0;
 const ok = (cond, name, detail = '') => {
   ran++;
   if (!cond) fail++;
   console.log(`${cond ? '✓' : '✗ FAIL'}  ${name}${detail ? `\n        → ${detail}` : ''}`);
+};
+
+/* ★ 「確かめられなかった」を ✓ にしない。合格数にも入れない。
+   送信控えでは受信側ヘッダが最初から無いので、素直に書くと
+   「無い＝合格」になり、通っていない検査が通ったように見える。 */
+const na = (name, why) => {
+  naCount++;
+  console.log(`⊘ 判定不能  ${name}\n        → ${why}`);
 };
 
 const { rules: denyRules, count: denyLoaded } = loadDenylist();
@@ -157,6 +165,14 @@ const isInbound = (n) => !OUTBOUND_FORCE.test(n) && INBOUND.test(n);
 const outboundHeaders = headers.filter((h) => !isInbound(h.name));
 const inboundHeaders  = headers.filter((h) =>  isInbound(h.name));
 
+/* ── 送信控えか、届いた控えか ─────────────────────────────────
+   Gmail の「送信済み」から落とした .eml には Received が1行も無い。
+   それは Gmail が組み立てた時点の姿で、**どのサーバから出て行ったかが写っていない。**
+   Return-Path / Sender / X-Google-Original-From は受信側で付くヘッダなので、
+   送信控えでは必ず空＝そのまま判定すると「合格」に見える。
+   ★ 2026-08-20、送信控え2通が 9/10 と出た。通っていない3項目が ✓ になっていた。 */
+const isSentCopy = !headers.some((h) => /^received$/i.test(h.name));
+
 const hits = (text, where) => {
   const out = [];
   for (const r of RULES) {
@@ -213,15 +229,25 @@ ok(/info@pilot-value\.com/i.test(from),
      元の個人アドレスを X-Google-Original-From に残し、受信側に「…経由」と表示する。
      外部 SMTP（Resend）を指定できていれば、このヘッダは付かない。 */
 const xgof = first('x-google-original-from');
-ok(xgof === '',
-   'X-Google-Original-From が無い（Gmail が差出人を書き換えていない）',
-   xgof ? `${xgof} … Gmail の送信元設定で「SMTP サーバー経由で送信」を選び直す` : '');
+if (isSentCopy) {
+  na('X-Google-Original-From が無い（Gmail が差出人を書き換えていない）',
+     'これは受信側で付くヘッダ。送信控えには最初から無いので、無いことに意味が無い');
+} else {
+  ok(xgof === '',
+     'X-Google-Original-From が無い（Gmail が差出人を書き換えていない）',
+     xgof ? `${xgof} … Gmail の送信元設定で「SMTP サーバー経由で送信」を選び直す` : '');
+}
 
 /* ── 6) Sender / Return-Path が個人でないか ─────────────────── */
 const sender = first('sender');
-ok(sender === '' || /pilot-value\.com/i.test(sender),
-   'Sender ヘッダが個人アドレスでない',
-   sender && !/pilot-value\.com/i.test(sender) ? `Sender: ${sender}` : '');
+if (isSentCopy && sender === '') {
+  na('Sender ヘッダが個人アドレスでない',
+     'Sender は送信基盤が付ける。送信控えに無いのは当たり前で、相手に何が渡るかは分からない');
+} else {
+  ok(sender === '' || /pilot-value\.com/i.test(sender),
+     'Sender ヘッダが個人アドレスでない',
+     sender && !/pilot-value\.com/i.test(sender) ? `Sender: ${sender}` : '');
+}
 
 /* ★ 送信基盤ごとに Return-Path のドメインが違う。
    実際の返信は Gmail → Brevo の SMTP リレー（smtp-relay.brevo.com）を通るので
@@ -229,18 +255,30 @@ ok(sender === '' || /pilot-value\.com/i.test(sender),
    ここを Resend だけにしていると、正しい返信を誤って落とす。 */
 const rp = first('return-path');
 const RP_OK = /(pilot-value\.com|amazonses\.com|resend\.com|brevo\.com|sendinblue\.com)/i;
-ok(rp === '' || RP_OK.test(rp),
-   'Return-Path が自ドメインか送信基盤のもの',
-   rp && !RP_OK.test(rp) ? `Return-Path: ${rp}` : '');
+if (isSentCopy && rp === '') {
+  na('Return-Path が自ドメインか送信基盤のもの',
+     '★ ここが一番大事。Gmail が自前のサーバから直接送ると Return-Path に個人アドレスが入り、'
+     + '相手に見える。送信控えには写らないので、届いた控えでしか確かめられない');
+} else {
+  ok(rp === '' || RP_OK.test(rp),
+     'Return-Path が自ドメインか送信基盤のもの',
+     rp && !RP_OK.test(rp) ? `Return-Path: ${rp}` : '');
+}
 
 /* ── 7) Message-ID の生成元 ───────────────────────────────────
    ★ 実物は <CAF…@mail.gmail.com> でサブドメインが入る。
      /@gmail\.com/ だけでは当たらない（実際に素通しした）。 */
 const mid = first('message-id');
 const MID_GMAIL = /@([\w-]+\.)*(gmail|googlemail)\.com/i;
-ok(mid === '' || !MID_GMAIL.test(mid),
-   'Message-ID が Gmail 生成でない（自前のサーバから出ていない証跡）',
-   MID_GMAIL.test(mid) ? `Message-ID: ${mid} … Gmail 自身が送っている。外部 SMTP 経由になっていない` : '');
+if (isSentCopy) {
+  na('Message-ID が Gmail 生成でない（自前のサーバから出ていない証跡）',
+     `Message-ID: ${mid || '（無し）'} … 送信控えの Message-ID は Gmail が組み立て時に付ける。`
+     + '外部 SMTP を通ったかどうかはここには写らない');
+} else {
+  ok(mid === '' || !MID_GMAIL.test(mid),
+     'Message-ID が Gmail 生成でない（自前のサーバから出ていない証跡）',
+     MID_GMAIL.test(mid) ? `Message-ID: ${mid} … Gmail 自身が送っている。外部 SMTP 経由になっていない` : '');
+}
 
 /* ── 参考情報（落とさない）──────────────────────────────────
    受信側で付くヘッダに個人アドレスが出るのは正常。相手には渡らない。 */
@@ -251,10 +289,16 @@ if (inHits.length) {
   console.log('    これは自分の受信箱へ転送された控えだから。相手が受け取る本文には含まれない。');
 }
 
-console.log(`\n==== ${ran - fail}/${ran} passed ====`);
-if (fail) {
-  console.log('\n直し方は mail-bot/README.md「返信経路」節。');
-  process.exit(1);
+console.log(`\n==== ${ran - fail}/${ran} passed${naCount ? ` ／ 判定不能 ${naCount}` : ''} ====`);
+
+if (isSentCopy) {
+  console.log('\n⚠️  これは Gmail の「送信済み」から落とした控え（Received が1行も無い）。');
+  console.log('    ここで確かめられたこと: 差出人の別名が選べている／本文と署名に身元が無い。');
+  console.log('    確かめられないこと:     どのサーバから出て行ったか（Return-Path に個人アドレスが出ないか）。');
+  console.log('    → 届いた側の控えで測り直す。mail-bot/README.md「返信経路」節。');
 }
+if (fail) console.log('\n直し方は mail-bot/README.md「返信経路」節。');
+if (fail || isSentCopy) process.exit(1);
+
 console.log('この返信は身元を漏らしていない。');
 process.exit(0);
