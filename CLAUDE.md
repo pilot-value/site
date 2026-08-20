@@ -220,6 +220,9 @@ secret を削除して共通キーへ落として復旧。現在この secret �
 - **サンプルデータに実在の氏名を使わない。** メール文面の検証用でも公開される。
   日本語の氏名が要る箇所は架空名を使う（[shot-remind.mjs](shot-remind.mjs) の `高橋 蓮` / `Alex Mercer`）。
 - **個人メールを書かない。** 連絡先は `info@pilot-value.com`、送信元は `noreply@pilot-value.com`。
+- **削除依頼・開示請求が来たときは [workflows/handle-disclosure-request.md](workflows/handle-disclosure-request.md) を先に読む。**
+  種類が4つあり、**事業者からの「開示してよいか」という照会だけは期限が数日〜2週間と短い**。
+  放置すると異議なしとして扱われ、こちらの言い分が無いまま話が進む。弁護士名義・裁判所の書類は自分で返さない。
 - **問い合わせに Gmail からそのまま返信しない。** MX は Cloudflare Email Routing ＝転送専用で、
   受信箱で「返信」を押すと個人アドレスと表示名が相手に渡る。**1通でここまでの作業が無意味になる。**
   Gmail の送信元に `info@pilot-value.com` を Resend の SMTP 経由で登録すること
