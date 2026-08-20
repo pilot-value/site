@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png"/>
+<link rel="apple-touch-icon" href="assets/favicon-180.png"/>
+  <script>(function(){var t=localStorage.getItem('pv-theme')||'light';document.documentElement.setAttribute('data-theme',t);}());</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>パイロットの口コミ最新一覧｜全航空会社 | PILOT VALUE</title>
+<!--PV-SEO-->
+<!--PV-SRC t="パイロット 口コミ 最新一覧 — 全航空会社 | PILOT VALUE" d=""-->
+<meta name="description" content="現役・元パイロットによる航空会社の口コミを最新順に掲載。待遇・勤務環境・訓練・昇格について112社ぶんの声を匿名で読めます。1件投稿すると全社の口コミが1か月開きます。"/>
+<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1"/>
+<link rel="canonical" href="https://pilot-value.com/community.html"/>
+<link rel="alternate" hreflang="ja" href="https://pilot-value.com/community.html"/>
+<link rel="alternate" hreflang="en" href="https://pilot-value.com/en/community.html"/>
+<link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/community.html"/>
+<meta property="og:title" content="パイロットの口コミ最新一覧｜全航空会社 | PILOT VALUE"/>
+<meta property="og:description" content="現役・元パイロットによる航空会社の口コミを最新順に掲載。待遇・勤務環境・訓練・昇格について112社ぶんの声を匿名で読めます。1件投稿すると全社の口コミが1か月開きます。"/>
+<meta property="og:url" content="https://pilot-value.com/community.html"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="PILOT VALUE"/>
+<meta property="og:locale" content="ja_JP"/>
+<meta property="og:locale:alternate" content="en_US"/>
+<meta property="og:image" content="https://pilot-value.com/assets/og/default-ja.jpg"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta property="og:image:alt" content="パイロットの口コミ最新一覧｜全航空会社 | PILOT VALUE"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="パイロットの口コミ最新一覧｜全航空会社 | PILOT VALUE"/>
+<meta name="twitter:description" content="現役・元パイロットによる航空会社の口コミを最新順に掲載。待遇・勤務環境・訓練・昇格について112社ぶんの声を匿名で読めます。1件投稿すると全社の口コミが1か月開きます。"/>
+<meta name="twitter:image" content="https://pilot-value.com/assets/og/default-ja.jpg"/>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"ホーム","item":"https://pilot-value.com/"},{"@type":"ListItem","position":2,"name":"パイロットの口コミ最新一覧｜全航空会社","item":"https://pilot-value.com/community.html"}]}]}</script>
+<!--/PV-SEO-->
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="review-i18n.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'"/><noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet"/></noscript>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bg:      '#0a0c0f',
+            surface: '#111620',
+            raised:  '#18212f',
+            accent:  '#3d9bff',
+            gold:    '#f5c842',
+            orange:  '#f97316',
+            text:    '#e8edf2',
+            muted:   '#6b7d93',
+          },
+          fontFamily: { sans: ['Inter', 'Noto Sans JP', 'sans-serif'] },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      background-color: #0a0c0f;
+      color: #e8edf2;
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+    body::before {
+      content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      background-size:128px; opacity:.3;
+    }
+
+    nav { position:fixed; top:0; left:0; right:0; z-index:200; transition: background 0.4s ease; }
+    nav.scrolled { background:rgba(10,12,15,0.92); backdrop-filter:blur(20px); border-bottom:1px solid rgba(255,255,255,0.06); }
+    .nav-link { color:rgba(255,255,255,0.6); font-size:.85rem; font-weight:500; letter-spacing:.04em; transition:color .2s; text-decoration:none; }
+    .nav-link:hover { color:#fff; }
+    .logo-img { height:40px; width:auto; filter:brightness(1.15) drop-shadow(0 0 8px rgba(249,115,22,.5)); transition:filter .3s; }
+
+    .glass {
+      background: rgba(17,22,32,.6);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: 16px;
+    }
+    .glass-raised {
+      background: rgba(24,33,47,.65);
+      backdrop-filter: blur(24px);
+      border: 1px solid rgba(255,255,255,.09);
+      border-radius: 16px;
+    }
+
+    .btn-orange {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 24px; border-radius: 10px; font-weight: 700; font-size: .9rem;
+      background: linear-gradient(135deg,#f97316,#f5c842);
+      color: #000; border: none; cursor: pointer;
+      transition: opacity .2s, transform .2s cubic-bezier(.16,1,.3,1);
+      text-decoration: none;
+    }
+    .btn-orange:hover { opacity:.9; transform:translateY(-1px); }
+    .btn-ghost {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 24px; border-radius: 10px; font-weight: 600; font-size: .9rem;
+      color: #e8edf2; border: 1px solid rgba(255,255,255,.15); background: transparent;
+      cursor: pointer; transition: border-color .2s, background .2s; text-decoration: none;
+    }
+    .btn-ghost:hover { border-color:rgba(255,255,255,.3); background:rgba(255,255,255,.05); }
+
+    .fade-up { opacity:0; transform:translateY(24px); transition:opacity .6s cubic-bezier(.16,1,.3,1), transform .6s cubic-bezier(.16,1,.3,1); }
+    .fade-up.visible { opacity:1; transform:none; }
+
+    /* Review card */
+    .review-card {
+      background: rgba(17,22,32,.6);
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: 14px;
+      padding: 20px;
+      transition: border-color .2s, transform .2s;
+    }
+    .review-card:hover { border-color: rgba(255,255,255,.14); transform: translateY(-1px); }
+
+    /* Stars */
+    .stars { color: #f5c842; font-size: .9rem; letter-spacing: .05em; }
+
+    /* Gate overlay */
+    .gate-overlay {
+      position: relative; overflow: hidden; border-radius: 16px;
+    }
+    .gate-overlay::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(to bottom, transparent 0%, rgba(10,12,15,.95) 55%, rgba(10,12,15,1) 100%);
+      pointer-events: none; border-radius: 16px;
+    }
+
+    /* Form inputs */
+    .form-input {
+      width: 100%; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1);
+      border-radius: 10px; padding: 11px 14px; color: #e8edf2; font-size: .9rem;
+      transition: border-color .2s, background .2s; outline: none;
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+    }
+    .form-input:focus { border-color: rgba(245,200,66,.4); background: rgba(255,255,255,.07); }
+    .form-input::placeholder { color: #6b7d93; }
+    select.form-input option { background: #111620; }
+    textarea.form-input { resize: vertical; min-height: 90px; }
+
+    .form-label { display: block; font-size: .8rem; font-weight: 600; color: #9ca3af; margin-bottom: 6px; letter-spacing: .04em; text-transform: uppercase; }
+
+    /* Privacy badge */
+    .privacy-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 12px; border-radius: 999px; font-size: .73rem; font-weight: 600;
+      background: rgba(52,211,153,.08); border: 1px solid rgba(52,211,153,.2); color: #34d399;
+    }
+
+    /* Airline filter chip */
+    .filter-chip {
+      padding: 6px 14px; border-radius: 999px; font-size: .78rem; font-weight: 600;
+      border: 1px solid rgba(255,255,255,.1); color: #6b7d93; background: transparent;
+      cursor: pointer; transition: all .15s; white-space: nowrap;
+    }
+    .filter-chip.active { color: #e8edf2; background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.18); }
+    .filter-chip:hover:not(.active) { color: #c5d5e8; border-color: rgba(255,255,255,.15); }
+
+    ::-webkit-scrollbar { width:6px; }
+    ::-webkit-scrollbar-track { background:#0a0c0f; }
+    ::-webkit-scrollbar-thumb { background:#18212f; border-radius:3px; }
+    footer { background:#060809; border-top:1px solid rgba(255,255,255,.05); }
+
+    /* Theme toggle */
+    .theme-toggle { display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.07);color:#e8edf2;border:1px solid rgba(255,255,255,.12);cursor:pointer;transition:background .2s,color .2s,border-color .2s;flex-shrink:0; }
+    [data-theme="light"] .theme-toggle { background:rgba(0,0,0,.06);color:#0f172a;border-color:rgba(0,0,0,.13); }
+
+    /* Light mode overrides */
+    [data-theme="light"] body { background:#f3f5f8 !important; color:#0f172a !important; }
+    [data-theme="light"] body::before { opacity:.03; }
+    /* Nav */
+    [data-theme="light"] nav { background:rgba(243,245,248,.95) !important; backdrop-filter:blur(16px); border-bottom:1px solid rgba(0,0,0,.07) !important; }
+    [data-theme="light"] nav.scrolled { background:rgba(243,245,248,.98) !important; }
+    [data-theme="light"] .nav-link { color:rgba(15,23,42,.55) !important; }
+    [data-theme="light"] .nav-link:hover { color:#0f172a !important; }
+    /* Hero */
+    [data-theme="light"] #hero-section { background:linear-gradient(160deg,#fff9ee 0%,#f3f5f8 60%) !important; }
+    [data-theme="light"] #hero-section h1 { color:#0f172a !important; }
+    [data-theme="light"] #hero-section .text-muted { color:#64748b !important; }
+    /* Stats bar */
+    [data-theme="light"] #stats-bar { background:#fff !important; border-top:1px solid rgba(0,0,0,.07) !important; border-bottom:1px solid rgba(0,0,0,.07) !important; }
+    [data-theme="light"] #stats-bar .text-muted { color:#64748b !important; }
+    /* Cards */
+    [data-theme="light"] .glass { background:rgba(255,255,255,.9) !important; border-color:rgba(0,0,0,.08) !important; box-shadow:0 2px 12px rgba(0,0,0,.06) !important; }
+    [data-theme="light"] .glass-raised { background:#fff !important; border-color:rgba(0,0,0,.1) !important; box-shadow:0 4px 20px rgba(0,0,0,.08) !important; }
+    /* Privacy section */
+    [data-theme="light"] .rounded-2xl[style*="rgba(52,211,153"] { background:rgba(16,185,129,.06) !important; border-color:rgba(16,185,129,.2) !important; }
+    /* Review section */
+    [data-theme="light"] #review-section { background:#eef0f4 !important; border-top:1px solid rgba(0,0,0,.07) !important; }
+    [data-theme="light"] .review-card { background:#fff !important; border-color:rgba(0,0,0,.08) !important; box-shadow:0 2px 8px rgba(0,0,0,.06) !important; }
+    [data-theme="light"] .review-card:hover { border-color:rgba(0,0,0,.14) !important; box-shadow:0 4px 16px rgba(0,0,0,.1) !important; }
+    /* Gate overlay — light version */
+    [data-theme="light"] #gate-panel { background:linear-gradient(to bottom, transparent 0%, rgba(238,240,244,.95) 40%, rgba(238,240,244,1) 100%) !important; }
+    [data-theme="light"] #gate-panel .glass-raised { background:rgba(255,255,255,.97) !important; border-color:rgba(245,200,66,.35) !important; box-shadow:0 8px 32px rgba(0,0,0,.12) !important; }
+    [data-theme="light"] #gate-panel .text-muted { color:#64748b !important; }
+    /* Chips */
+    [data-theme="light"] .filter-chip { border-color:rgba(0,0,0,.12) !important; color:#64748b !important; }
+    [data-theme="light"] .filter-chip.active { color:#0f172a !important; background:rgba(0,0,0,.07) !important; border-color:rgba(0,0,0,.18) !important; }
+    /* Form inputs */
+    [data-theme="light"] .form-input { background:rgba(0,0,0,.04) !important; border-color:rgba(0,0,0,.12) !important; color:#0f172a !important; }
+    [data-theme="light"] .form-input:focus { border-color:rgba(200,160,0,.5) !important; background:#fff !important; }
+    [data-theme="light"] .form-input::placeholder { color:#94a3b8 !important; }
+    [data-theme="light"] select.form-input option { background:#fff !important; color:#0f172a !important; }
+    /* Privacy badge */
+    [data-theme="light"] .privacy-badge { background:rgba(16,185,129,.07) !important; border-color:rgba(16,185,129,.22) !important; color:#059669 !important; }
+    /* Footer */
+    [data-theme="light"] footer { background:#e8ebf0 !important; border-top-color:rgba(0,0,0,.08) !important; }
+    [data-theme="light"] footer .text-muted { color:#64748b !important; }
+    [data-theme="light"] footer a.hover\:text-text { color:#64748b !important; }
+    /* Muted text global */
+    [data-theme="light"] .text-muted { color:#64748b !important; }
+    /* near-white .text-text(#e8edf2) のライト濃色化。index.html:526 と同型だが本ページに欠落し不可視だった
+       → ヒーロー行・匿名box5ラベル・ゲートパネルを一括で可視化 */
+    [data-theme="light"] .text-text { color:#0f172a !important; }
+    /* 口コミカードは JS 生成のインライン色でクラス override が届かない → テーマ対応クラスを用意（ライトで濃色化） */
+    .rv-body { color:#c3d0e0; }
+    .rv-meta { color:#6b7d93; }
+    .rv-pos  { background:rgba(255,255,255,.06); color:#9ca3af; }
+    [data-theme="light"] .rv-body { color:#334155 !important; }
+    [data-theme="light"] .rv-meta { color:#475569 !important; }
+    [data-theme="light"] .rv-pos  { background:rgba(15,23,42,.06) !important; color:#334155 !important; }
+
+/* ── 未解放時の本文ゲート（先頭1/8だけ素・残りはぼかす）──────────
+   本文は DOM に残したまま表示層だけで隠す。消すと各国SEOのロングテールが飛ぶ。 */
+.rv-locked-tail{
+  position:relative;margin-top:8px;border-radius:10px;overflow:hidden;
+  max-height:5.4em;
+}
+.rv-locked-tail-text{
+  filter:blur(4.5px);user-select:none;pointer-events:none;
+  opacity:.62;padding:2px 5px;
+}
+.rv-locked-tail::after{
+  content:'';position:absolute;left:0;right:0;bottom:0;height:2.6em;pointer-events:none;
+  background:linear-gradient(to bottom,rgba(17,22,32,0),rgba(17,22,32,.9));
+}
+[data-theme="light"] .rv-locked-tail::after{
+  background:linear-gradient(to bottom,rgba(255,255,255,0),rgba(255,255,255,.92));
+}
+.rv-locked-cta{
+  position:absolute;inset:0;z-index:1;
+  display:flex;align-items:center;justify-content:center;
+}
+.rv-locked-btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:8px 18px;border-radius:999px;font-weight:700;font-size:.78rem;
+  background:linear-gradient(135deg,#f97316,#f5c842);color:#000;
+  border:none;cursor:pointer;text-decoration:none;white-space:nowrap;
+  box-shadow:0 3px 14px rgba(249,115,22,.34);
+  transition:opacity .18s cubic-bezier(.2,.8,.3,1),transform .18s cubic-bezier(.2,.8,.3,1);
+}
+.rv-locked-btn:hover{opacity:.92;transform:translateY(-1px)}
+.rv-locked-btn:focus-visible{outline:2px solid #f5c842;outline-offset:3px}
+.rv-locked-btn:active{transform:translateY(0);opacity:.85}
+
+/* 年収の先頭2桁マスク（2件目以降・未解放時のみ）
+   DOM を割らず ::before の backdrop-filter で覆うので、currency.js の
+   textContent 総書き換え（通貨切替）でもマスクが消えない。
+   幅は実測で決めた（13.6px/700）: 数字は 5.9px（1）〜9.2px、桁区切りの「,」は
+   4.2〜4.6px。ここは「3,000万円」「2,500〜3,000万」のように区切りが入るので、
+   先頭2桁に到達するのに最大 22.6px 必要 → 1.7em(23.1px)。航空会社ページ側は
+   区切り無しの「2800万」なので 1.35em で、値がわざと違う。測り直さずに揃えないこと。 */
+.rv-sal-mask{position:relative;display:inline-block}
+.rv-sal-mask::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:1.7em;
+  backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);
+  border-radius:4px;pointer-events:none;
+}
+
+/* ゲートパネルのログイン導線。別端末で投稿済みの人がここで詰まないための逃げ道。 */
+.gate-login{
+  display:inline-block;margin-top:12px;font-size:.75rem;font-weight:600;
+  color:#9ca3af;text-decoration:underline;text-underline-offset:3px;
+  transition:color .18s cubic-bezier(.2,.8,.3,1),opacity .18s cubic-bezier(.2,.8,.3,1);
+}
+.gate-login:hover{color:#f5c842}
+.gate-login:focus-visible{outline:2px solid #f5c842;outline-offset:3px;border-radius:4px}
+.gate-login:active{opacity:.7}
+[data-theme="light"] .gate-login{color:#475569}
+[data-theme="light"] .gate-login:hover{color:#7a5800}
+
+  </style>
+<!-- Google tag (gtag.js) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-3XYF69VQ3X');
+</script>
+<!--PV-3P-->
+<script>
+/* 広告と解析は、表示が終わるまで読まない。async でも帯域は奪うため。
+   利用者が最初に触った時か load の、どちらか早いほうで読み込む。
+   戻すときは node defer-third-party.mjs --undo */
+(function(){
+  var done=false;
+  function boot(){
+    if(done)return; done=true;
+    [{"src":"https://www.googletagmanager.com/gtag/js?id=G-3XYF69VQ3X","cross":false}].forEach(function(it){
+      var s=document.createElement('script');
+      s.src=it.src; s.async=true;
+      if(it.cross)s.crossOrigin='anonymous';
+      document.head.appendChild(s);
+    });
+  }
+  ['pointerdown','keydown','touchstart','scroll','wheel'].forEach(function(ev){
+    addEventListener(ev,boot,{once:true,passive:true});
+  });
+  if(document.readyState==='complete')boot();
+  else addEventListener('load',boot,{once:true});
+})();
+</script>
+<!--/PV-3P-->
+<script src="pv-session.js"></script>
+</head>
+<body class="relative">
+
+<!-- NAV -->
+<nav id="main-nav">
+  <div class="max-w-7xl mx-auto px-6 flex items-center justify-between h-[68px]">
+    <a href="index.html" class="flex items-center gap-3 flex-shrink-0">
+      <img src="assets/logo.png" alt="PILOT VALUE" class="logo-img" />
+    </a>
+    <div class="hidden md:flex items-center gap-7">
+      <a href="index.html#ranking" class="nav-link">年収ランキング</a>
+      <a href="world-airlines.html" class="nav-link">世界の航空会社一覧</a>
+      <a href="community.html" class="nav-link" style="color:#f5c842">最新の口コミ</a>
+    </div>
+    <div class="flex items-center gap-3">
+      <button id="theme-toggle" class="theme-toggle" aria-label="ダーク/ライト切替"></button>
+      <a id="nav-auth-btn" href="login.html" class="btn-ghost" style="font-size:.82rem;padding:7px 14px">ログイン</a>
+      <a href="submit-review.html" class="btn-orange py-2 px-5 text-sm">匿名で口コミを投稿</a>
+    </div>
+  </div>
+</nav>
+
+
+<!-- HERO -->
+<section id="hero-section" class="pt-[68px]">
+  <div class="relative py-20 px-6 text-center overflow-hidden">
+    <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(245,200,66,.06) 0%,transparent 70%)"></div>
+    <div class="relative max-w-3xl mx-auto">
+      <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold mb-6 fade-up" style="background:rgba(245,200,66,.1);color:#f5c842;border:1px solid rgba(245,200,66,.2)">
+        <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="4" fill="#f5c842"/></svg>
+        口コミ 最新フィード
+      </div>
+      <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 fade-up" style="transition-delay:.05s">
+        全航空会社のパイロット口コミ<br>最新フィード
+      </h1>
+      <p class="text-muted text-base leading-relaxed max-w-xl mx-auto mb-8 fade-up" style="transition-delay:.1s">
+        ANA・JAL・Emirates・Deltaなど世界100社以上の現役・元パイロットによるリアルな口コミ。<br>
+        <strong class="text-text">口コミを1件投稿すれば、全社の口コミを1ヶ月間読めます。</strong>
+      </p>
+      <div class="flex flex-wrap justify-center gap-3 fade-up" style="transition-delay:.15s">
+        <span class="privacy-badge"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M5 1L1 3v3c0 2 2 3 4 3s4-1 4-3V3L5 1z" fill="none" stroke="#34d399" stroke-width="1"/></svg>完全匿名</span>
+        <span class="privacy-badge">年齢・会社名はぼかして表示</span>
+        <span class="privacy-badge">個人特定につながる情報は非表示</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- STATS BAR
+     ⚠️ ここには以前 247 / 17 / 1,203 という数字が直書きされていた。
+     JS が一度も書き換えておらず、実データと無関係だった（＝ただの嘘）。
+     口コミ件数は読み込んだ実データから入れる。登録メンバー数は匿名では読めず、
+     読めても水増しになるので出さない。 -->
+<section id="stats-bar" style="background:rgba(8,10,14,.8);border-top:1px solid rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.04)">
+  <div class="max-w-4xl mx-auto px-6 py-5 grid grid-cols-2 gap-4 text-center">
+    <div class="fade-up">
+      <div class="text-2xl font-extrabold" style="color:#f5c842" id="stat-reviews">—</div>
+      <div class="text-xs text-muted mt-0.5">口コミ件数</div>
+    </div>
+    <div class="fade-up" style="transition-delay:.05s">
+      <div class="text-2xl font-extrabold" style="color:#3d9bff" id="stat-airlines">112</div>
+      <div class="text-xs text-muted mt-0.5">掲載航空会社</div>
+    </div>
+  </div>
+</section>
+
+
+<!-- HOW IT WORKS -->
+<section class="py-16 px-6">
+  <div class="max-w-4xl mx-auto">
+    <h2 class="text-xl font-bold mb-8 fade-up">ギブ＆テイク モデル</h2>
+    <div class="grid md:grid-cols-3 gap-5">
+      <div class="glass p-6 fade-up text-center">
+        <div class="text-3xl mb-3">✍️</div>
+        <div class="font-bold mb-2">①投稿する</div>
+        <p class="text-sm text-muted">自分の航空会社・職位・機種・口コミを1件投稿。匿名で安全。正確な年齢や個人情報は不要。</p>
+      </div>
+      <div class="glass p-6 fade-up text-center" style="transition-delay:.07s">
+        <div class="text-3xl mb-3">🔓</div>
+        <div class="font-bold mb-2">②ロック解除</div>
+        <p class="text-sm text-muted">すべての口コミが<strong>1ヶ月間</strong>読めるようになります。年収データは給与明細を1枚出すと90日間開きます。</p>
+      </div>
+      <div class="glass p-6 fade-up text-center" style="transition-delay:.14s">
+        <div class="text-3xl mb-3">📊</div>
+        <div class="font-bold mb-2">③情報を得る</div>
+        <p class="text-sm text-muted">各社のリアルな職場環境・昇格速度・人間関係・待遇をチェック。キャリア判断に活かす。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- PRIVACY NOTICE -->
+<section class="py-10 px-6">
+  <div class="max-w-4xl mx-auto fade-up">
+    <div class="rounded-2xl p-6" style="background:rgba(52,211,153,.04);border:1px solid rgba(52,211,153,.12)">
+      <div class="flex items-start gap-4">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(52,211,153,.12)">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2L3 6v5c0 4 3 6.5 7 7 4-.5 7-3 7-7V6L10 2z" stroke="#34d399" stroke-width="1.5" fill="none" stroke-linejoin="round"/></svg>
+        </div>
+        <div>
+          <div class="font-bold mb-2" style="color:#34d399">匿名性・安全への取り組み</div>
+          <ul class="text-sm text-muted space-y-1.5 leading-relaxed">
+            <li>• <strong class="text-text">正確な年齢は表示しない</strong> — 「30代前半」「40代」などの区分で表示します</li>
+            <li>• <strong class="text-text">在籍会社名は選択式</strong> — 自由入力テキストで社名を特定できる表現は禁止</li>
+            <li>• <strong class="text-text">具体的な路線・基地は非表示</strong> — 「国際線」「国内線」の区分のみ掲載</li>
+            <li>• <strong class="text-text">個人を特定できる口コミは非掲載</strong> — モデレーションにより確認します</li>
+            <li>• <strong class="text-text">IPアドレスは記録しません</strong> — 匿名投稿を技術的に保証します</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- REVIEW FEED -->
+<section id="review-section" class="py-12 px-6" style="background:rgba(8,10,14,.5);border-top:1px solid rgba(255,255,255,.04)">
+  <div class="max-w-4xl mx-auto">
+
+    <div class="flex items-center justify-between mb-6 fade-up">
+      <h2 class="text-xl font-bold">最新の口コミ <span id="feed-count" class="text-sm font-normal text-muted ml-2"></span></h2>
+      <!-- 解放済みのときだけ JS が display を戻す。既定は非表示（未解放者に出さない） -->
+      <span id="unlock-badge" class="text-xs text-muted" style="display:none">
+        <span class="privacy-badge">🔓 1ヶ月アクセス有効</span>
+      </span>
+    </div>
+
+    <!-- Filter chips -->
+    <div class="flex flex-wrap gap-2 mb-6 fade-up" style="transition-delay:.05s">
+      <button class="filter-chip active" onclick="filterReviews(this,'all')">すべて</button>
+      <button class="filter-chip" onclick="filterReviews(this,'ana')">ANA</button>
+      <button class="filter-chip" onclick="filterReviews(this,'jal')">JAL</button>
+      <button class="filter-chip" onclick="filterReviews(this,'skymark')">Skymark</button>
+      <button class="filter-chip" onclick="filterReviews(this,'peach')">Peach</button>
+      <button class="filter-chip" onclick="filterReviews(this,'delta')">Delta</button>
+      <button class="filter-chip" onclick="filterReviews(this,'united')">United</button>
+      <button class="filter-chip" onclick="filterReviews(this,'southwest')">Southwest</button>
+      <button class="filter-chip" onclick="filterReviews(this,'emirates')">Emirates</button>
+      <button class="filter-chip" onclick="filterReviews(this,'qatar')">Qatar</button>
+      <button class="filter-chip" onclick="filterReviews(this,'etihad')">Etihad</button>
+      <button class="filter-chip" onclick="filterReviews(this,'singapore')">Singapore</button>
+      <button class="filter-chip" onclick="filterReviews(this,'cathay')">Cathay</button>
+      <button class="filter-chip" onclick="filterReviews(this,'lufthansa')">Lufthansa</button>
+    </div>
+
+    <!-- Gate wrapper -->
+    <div id="review-feed-wrapper" class="relative">
+
+      <!-- Reviews list (gate panel injected by JS after card[0]) -->
+      <div id="review-feed" class="space-y-4 fade-up" style="transition-delay:.1s">
+        <!-- Populated by JS -->
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+
+<!-- FOOTER -->
+<footer class="py-10">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+      <a href="index.html"><img src="assets/logo.png" alt="PILOT VALUE" class="h-7 w-auto opacity-70"/></a>
+      <div class="flex gap-6 text-sm text-muted">
+        <a href="index.html" class="hover:text-text transition-colors">ホーム</a>
+        <a href="index.html#compare" class="hover:text-text transition-colors">年収比較</a>
+        <a href="community.html" class="hover:text-text transition-colors" style="color:#f5c842">最新の口コミ</a>
+      </div>
+      <div class="text-xs text-muted">© 2026 PILOT VALUE. 掲載情報は参考値です。</div>
+    </div>
+  </div>
+<div style="border-top:1px solid rgba(255,255,255,.06);margin-top:20px;padding-top:16px;text-align:center"><div style="display:flex;flex-wrap:wrap;justify-content:center"><a href="guide.html" style="color:#6b7d93;font-size:.72rem;padding:5px 14px;text-decoration:none;border-right:1px solid rgba(255,255,255,.08);transition:color .2s" onmouseover="this.style.color='#e8edf2'" onmouseout="this.style.color='#6b7d93'">ご利用案内</a><a href="policy.html" style="color:#6b7d93;font-size:.72rem;padding:5px 14px;text-decoration:none;border-right:1px solid rgba(255,255,255,.08);transition:color .2s" onmouseover="this.style.color='#e8edf2'" onmouseout="this.style.color='#6b7d93'">運営ポリシー</a><a href="terms.html" style="color:#6b7d93;font-size:.72rem;padding:5px 14px;text-decoration:none;border-right:1px solid rgba(255,255,255,.08);transition:color .2s" onmouseover="this.style.color='#e8edf2'" onmouseout="this.style.color='#6b7d93'">利用規約</a><a href="privacy.html" style="color:#6b7d93;font-size:.72rem;padding:5px 14px;text-decoration:none;border-right:1px solid rgba(255,255,255,.08);transition:color .2s" onmouseover="this.style.color='#e8edf2'" onmouseout="this.style.color='#6b7d93'">プライバシーポリシー</a><a href="personal-data.html" style="color:#6b7d93;font-size:.72rem;padding:5px 14px;text-decoration:none;border-right:1px solid rgba(255,255,255,.08);transition:color .2s" onmouseover="this.style.color='#e8edf2'" onmouseout="this.style.color='#6b7d93'">パーソナルデータの扱い</a><a href="help.html" style="color:#6b7d93;font-size:.72rem;padding:5px 14px;text-decoration:none;border-right:1px solid rgba(255,255,255,.08);transition:color .2s" onmouseover="this.style.color='#e8edf2'" onmouseout="this.style.color='#6b7d93'">ヘルプ</a><a href="sitemap.html" style="color:#6b7d93;font-size:.72rem;padding:5px 14px;text-decoration:none;transition:color .2s" onmouseover="this.style.color='#e8edf2'" onmouseout="this.style.color='#6b7d93'">サイトマップ</a></div></div></footer>
+
+
+<script>
+// ── Nav scroll ────────────────────────────────────────────────
+window.addEventListener('scroll', () => {
+  document.getElementById('main-nav').classList.toggle('scrolled', window.scrollY > 40);
+}, { passive: true });
+
+// ── Review data ───────────────────────────────────────────────
+const AIRLINE_COLORS = {
+  ana:'#3d9bff', jal:'#e8192c', skymark:'#0095db', zipair:'#22d3ee',
+  peach:'#f96c9f', jetstar:'#f0851a', spring:'#e83030', airdo:'#003366',
+  solaseed:'#5EBD3E', starflyer:'#2B2D42', fda:'#E03A3E',
+  delta:'#003DA5', united:'#005daa', american:'#c8102e', southwest:'#f9b612', alaska:'#01426A',
+  emirates:'#C6922A', qatar:'#5C0632', etihad:'#BD8B13', 'riyadh-air':'#006B4D',
+  singapore:'#F90B24', cathay:'#006564', lufthansa:'#FFAD00',
+  'air-france':'#002157', british:'#002157', klm:'#009FDB', swiss:'#D20000',
+  turkish:'#E30A17', 'korean-air':'#003087', asiana:'#003399',
+  'air-china':'#CC0000', 'china-eastern':'#006CB8',
+  'air-canada':'#D01D2A', qantas:'#EE1C25',
+  finnair:'#003580', iberia:'#CC0000', ryanair:'#073590',
+  easyjet:'#FF6600', 'air-new-zealand':'#00005C',
+};
+
+const AIRLINE_LABELS = {
+  ana:'ANA', jal:'JAL', skymark:'Skymark', zipair:'ZIPAIR', peach:'Peach',
+  jetstar:'Jetstar Japan', spring:'Spring Japan', airdo:'AirDo',
+  solaseed:'Solaseed Air', starflyer:'StarFlyer', fda:'FDA',
+  delta:'Delta', united:'United', american:'American', southwest:'Southwest', alaska:'Alaska',
+  emirates:'Emirates', qatar:'Qatar Airways', etihad:'Etihad', 'riyadh-air':'Riyadh Air',
+  singapore:'Singapore Airlines', cathay:'Cathay Pacific', lufthansa:'Lufthansa',
+  'air-france':'Air France', british:'British Airways', klm:'KLM', swiss:'SWISS',
+  turkish:'Turkish Airlines', 'korean-air':'Korean Air', asiana:'Asiana',
+  'air-china':'Air China', 'china-eastern':'China Eastern',
+  'air-canada':'Air Canada', qantas:'Qantas',
+  finnair:'Finnair', iberia:'Iberia', ryanair:'Ryanair',
+  easyjet:'easyJet', 'air-new-zealand':'Air New Zealand',
+};
+
+// Seed reviews
+const SEED_REVIEWS = [
+  { id:1, airline:'ana', position:'captain', salaryRange:'2,700万', exp:'16年以上', rating:4,
+    comment:'機長年収は機種・年齢で大きく変わる。B777国際線で¥2,700〜2,800万が実態。各種手当含むと¥3,000万超も可能。安定性・退職金・年金は抜群。訓練費負担ゼロも大きい。', date:'2026.03' },
+  { id:2, airline:'emirates', position:'captain', salaryRange:'3,700万', exp:'8〜15年', rating:5,
+    comment:'UAE所得税ゼロが最大のメリット。住宅・子供教育費（3人まで）が実質全額支給。日本の税引後と比較すると手取り実質2倍以上。ただし砂漠の生活と英語環境への適応は必要。', date:'2026.02' },
+  { id:3, airline:'delta', position:'fo', salaryRange:'3,510万', exp:'4〜7年', rating:5,
+    comment:'Year5でも¥3,500万超。401k+利益配分で追加¥700万〜1,000万。英語と外国免許取得さえできれば、日本人でも十分狙える水準。昇格スピードは早い。', date:'2026.03' },
+  { id:4, airline:'jal', position:'captain', salaryRange:'2,700万', exp:'16年以上', rating:4,
+    comment:'給与はANAと同水準。昇格スピードは機材によって異なる。A350は比較的新しく昇格枠もある。福利厚生・退職金制度は充実。ワークライフバランスは良好。', date:'2026.01' },
+  { id:5, airline:'qatar', position:'captain', salaryRange:'2,900万', exp:'8〜15年', rating:3,
+    comment:'非課税は強力だが、スケジュールの柔軟性は低め。ドーハ拠点のため家族帯同の場合は生活費が高い。訓練体制は充実。機材はA350/A380/B777と多様。', date:'2026.02' },
+  { id:6, airline:'united', position:'captain', salaryRange:'6,320万', exp:'16年以上', rating:5,
+    comment:'B777シニア機長なら年収¥8,530万まで届く。401k、医療保険、プロフィットシェアすべて一流。スケジュールも選択肢が豊富。入社後10年でここまで到達できる環境。', date:'2026.03' },
+  { id:7, airline:'ana', position:'fo', salaryRange:'1,800万', exp:'4〜7年', rating:4,
+    comment:'副操縦士としての待遇は安定。機長昇格審査は厳しめだが、訓練費は全額会社負担。JAL比でFOの給与はやや高め。国際線配属になると手当で大きく変わる。', date:'2026.02' },
+  { id:8, airline:'singapore', position:'captain', salaryRange:'3,400万', exp:'8〜15年', rating:4,
+    comment:'シンガポールの物価は高いが所得も高い。SGDベースの給与なので円安メリットあり。ジャンプシート文化がなく機内はプロフェッショナルな雰囲気。昇格は完全年功序列。', date:'2026.01' },
+  { id:9, airline:'southwest', position:'captain', salaryRange:'4,820万', exp:'8〜15年', rating:5,
+    comment:'シニオリティ制で昇格・路線選択がすべて透明。B737専業なので機種転換不要。パスベネフィットが充実しており家族全員がほぼ無料で移動できる。医療保険・401kも優秀。', date:'2026.03' },
+  { id:10, airline:'cathay', position:'fo', salaryRange:'2,400万', exp:'6〜10年', rating:4,
+    comment:'香港の物価は高いが給与もそれに見合う水準。英語環境で多国籍クルーとのフライトが多い。訓練体制は充実しており機長昇格のパスも明確。EFは充実。', date:'2026.02' },
+  { id:11, airline:'skymark', position:'captain', salaryRange:'1,900万', exp:'8〜15年', rating:3,
+    comment:'国内中堅キャリアとしての安定感はある。給与はANA/JALより低いが、昇格スピードは早め。スケジュールの自由度はやや高い。訓練は自社訓練で標準的な水準。', date:'2026.03' },
+  { id:12, airline:'etihad', position:'captain', salaryRange:'3,400万', exp:'8〜15年', rating:4,
+    comment:'アブダビは非課税。Emirates同様の待遇水準だが、規模が小さい分フライトパターンは落ち着きやすい。住宅手当・子供教育費支給あり。中東生活への適応が鍵。', date:'2026.01' },
+  { id:13, airline:'peach', position:'fo', salaryRange:'1,400万', exp:'1〜5年', rating:3,
+    comment:'LCCとしての給与水準は低め。ただし若手が早期にステップアップできる環境はある。国内線中心でスケジュールは比較的規則的。経験を積んでから転職するパスも多い。', date:'2026.02' },
+  { id:14, airline:'lufthansa', position:'captain', salaryRange:'3,440万', exp:'8〜15年', rating:4,
+    comment:'ヨーロッパ最大規模のフルサービスキャリア。給与+年金+医療保険の総合待遇は欧州トップクラス。ドイツ語は必須ではないが社内環境はドイツ文化色が強い。', date:'2026.03' },
+];
+
+// ── Unlock system ─────────────────────────────────────────────
+function isUnlocked() {
+  const expiry = localStorage.getItem('pv_unlock_expiry');
+  if (!expiry) return false;
+  return Date.now() < parseInt(expiry, 10);
+}
+
+// 🔓バッジは既定 display:none。解放済みのときだけ戻す。
+// （旧実装は存在しないクラス hidden-when-locked / .hidden を触っていて空振りし、
+//   未解放者にも常時「1ヶ月アクセス有効」が見えていた）
+function syncUnlockBadge() {
+  const b = document.getElementById('unlock-badge');
+  if (b) b.style.display = isUnlocked() ? '' : 'none';
+}
+
+function unlockAccess() {
+  const expiry = Date.now() + 30 * 24 * 60 * 60 * 1000; // 30 days
+  localStorage.setItem('pv_unlock_expiry', expiry.toString());
+  renderReviews(currentFilter);
+  const gp = document.getElementById('gate-panel'); if (gp) gp.style.display = 'none';
+  syncUnlockBadge();
+  window.scrollTo({ top: document.getElementById('review-feed-wrapper').offsetTop - 100, behavior: 'smooth' });
+}
+
+// 本文の切れ目が金額トークンの内側に落ちないよう後ろへずらす。
+// currency.js は本文中の「¥3,500万」も換算対象にするので、そこで割ると
+// 「¥3,5」と「00万」が別々に換算され、"over $0" / ",$31K" のような
+// 存在しない金額が本文に出る（Delta の口コミで実際に再現した）。数字は盛らない。
+const PV_MONEY_CHAR = /[0-9０-９,，.．¥￥万億円MK–〜~-]/;
+function pvSafeCut(text, at) {
+  let i = at, guard = 0;
+  while (i < text.length && guard++ < 60 &&
+         PV_MONEY_CHAR.test(text[i - 1]) && PV_MONEY_CHAR.test(text[i])) i++;
+  return i;
+}
+
+// ── Render reviews ────────────────────────────────────────────
+let currentFilter = 'all';
+let sbReviewsCache = null; // Supabase全社口コミキャッシュ
+
+function filterReviews(btn, airline) {
+  document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentFilter = airline;
+  renderReviews(airline);
+}
+
+function renderReviews(filter) {
+  const feed = document.getElementById('review-feed');
+  const unlocked = isUnlocked();
+  const locked   = !unlocked;   // 未解放＝本文を先頭1/8だけ素にして残りをぼかす
+  const posLabel = { captain:'機長', fo:'副操縦士', cadet:'訓練生', former:'元乗務員' };
+
+  // 1. ローカルストレージの口コミ
+  let reviews = [];
+  try {
+    const userReviews = JSON.parse(localStorage.getItem('pv_reviews') || '[]');
+    const mapped = userReviews.filter(r => filter === 'all' || r.airline === filter).map(r => {
+      const man = (n) => (Math.floor(n/100)*100).toLocaleString('en-US');   // 桁区切り必須（currency.js の走査単位）
+      // 幅ではなく実数1本で出す（Supabase 由来の :745 と同じ形）。
+      // 「3,500万〜3,600万」のような幅は本人の申告値をぼかすだけで情報量が無い。
+      const sal = r.salary > 0 ? man(r.salary) + '万' : '非公開';
+      const rating = r.avgRating ? Math.round(r.avgRating) : (r.rating || 3);
+      const comment = [r.payText, r.evalText, r.benefitText, r.scheduleText, r.opsText].filter(Boolean).join('　') || r.comment || '';
+      return {
+        id: 'u' + r.ts, airline: r.airline, position: r.position,
+        salaryRange: sal, exp: r.years || r.experience || '—', rating, comment,
+        date: new Date(r.ts).toLocaleDateString('ja-JP', {year:'numeric',month:'2-digit'}).replace('/','.',).slice(0,7)
+      };
+    });
+    reviews = [...mapped];
+  } catch(e) {}
+
+  // 2. Supabaseキャッシュ（取得済みの場合）
+  if (sbReviewsCache) {
+    const sbFiltered = filter === 'all' ? sbReviewsCache : sbReviewsCache.filter(r => r.airline === filter);
+    reviews = [...reviews, ...sbFiltered];
+  }
+
+  // 3. シードレビュー（末尾に追加）
+  const seedFiltered = filter === 'all' ? SEED_REVIEWS : SEED_REVIEWS.filter(r => r.airline === filter);
+  reviews = [...reviews, ...seedFiltered];
+
+  // 件数表示
+  const countEl = document.getElementById('feed-count');
+  if (countEl) countEl.textContent = reviews.length + '件';
+
+  // 投稿済みなのに別端末で読めない人の逃げ道。ログイン後に pv-reunlock.js が解放を復活させる。
+  const loginHref = 'login.html?return=' + encodeURIComponent(location.pathname + location.search);
+
+  // ゲートパネルはフィードの末尾に置く（旧実装はカード[0]の直後だった）
+  const gateHTML = !unlocked ? `<div id="gate-panel" style="position:relative;margin-top:-4px;padding:56px 16px 32px;text-align:center;background:linear-gradient(to bottom,transparent 0%,rgba(10,12,15,.97) 35%,rgba(10,12,15,1) 100%)">
+    <div class="inline-block glass-raised px-8 py-6 rounded-2xl max-w-md mx-auto" style="border-color:rgba(245,200,66,.2)">
+      <div class="text-2xl mb-2">🔒</div>
+      <div class="font-bold text-lg mb-2">全ての口コミを見るには</div>
+      <p class="text-sm text-muted mb-5">口コミを1件投稿すると<br>全社の口コミを<strong class="text-text">1ヶ月間無料で</strong>読めます</p>
+      <button onclick="openModal()" class="btn-orange">匿名で口コミを投稿して解放する
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="mt-4 text-xs text-muted">完全無料・匿名・個人情報不要</div>
+      <div><a href="${loginHref}" class="gate-login">ログイン（投稿済みの方）</a></div>
+    </div>
+  </div>` : '';
+
+  const cardsHTML = reviews.map((r, i) => {
+    const color = AIRLINE_COLORS[r.airline] || '#6b7d93';
+    const label = AIRLINE_LABELS[r.airline] || r.airline.toUpperCase();
+    const stars = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
+
+    // 未解放なら本文の先頭 1/8 だけ素で見せ、残りはぼかし帯に入れる。
+    // ★ DOM からは消さない。消すと各国SEOのロングテールが飛ぶ。隠すのは表示層だけ。
+    const comment = r.comment || '';
+    const L = comment.length;
+    // 切れ目が金額トークンの内側に落ちないよう pvSafeCut で後ろへずらす（上のコメント参照）
+    const visible = pvSafeCut(comment, Math.max(30, Math.ceil(L / 8)));
+    const cut = locked && L > visible;   // 短い本文に空のぼかし帯を出さない
+    const bodyText = cut ? comment.slice(0, visible) : comment;
+    const tailHTML = cut ? `<div class="rv-locked-tail">
+        <div class="rv-locked-tail-text rv-body" style="font-size:.87rem;line-height:1.75">${PVReviewI18n.esc(comment.slice(visible))}</div>
+        <div class="rv-locked-cta"><button type="button" class="rv-locked-btn" onclick="openModal()">匿名で口コミを投稿して解放する</button></div>
+      </div>` : '';
+
+    // 年収は2件目以降だけ先頭2文字を覆う（オーナー指定）。
+    // ★数字を1文字ずつ span に割らないこと。currency.js:227(applyAll) が通貨切替のたびに
+    //   金額 span の textContent を丸ごと書き換えるので、内側の DOM はその瞬間に消える。
+    //   外側1枚のラッパ＋::before オーバーレイなら切替後も生き残る。
+    // 「非公開」には数字が無い。包むと隠すものが無いのにぼかし帯だけ浮いて見える。
+    const maskable = /\d/.test(r.salaryRange || '');
+    const salHTML = (locked && i >= 1 && maskable) ? `<span class="rv-sal-mask">${r.salaryRange}</span>` : r.salaryRange;
+
+    return `<div class="review-card fade-up" style="transition-delay:${Math.min(i,8) * 0.04}s">
+      <div class="flex items-center gap-2 flex-wrap mb-3">
+        <span style="display:inline-block;padding:3px 10px;border-radius:6px;font-size:.75rem;font-weight:700;background:${color}20;color:${color};border:1px solid ${color}40">${label}</span>
+        <span class="rv-pos" style="font-size:.75rem;padding:3px 8px;border-radius:5px">${posLabel[r.position] || r.position}</span>
+        <span style="color:#f5c842;font-size:.82rem;letter-spacing:.03em">${stars}</span>
+        <span class="rv-meta" style="font-size:.72rem;margin-left:auto">経験 ${r.exp} · ${r.date}</span>
+      </div>
+      <div style="font-size:.85rem;font-weight:700;color:${color};margin-bottom:8px">${salHTML} <span class="rv-meta" style="font-size:.72rem;font-weight:400">年収（概算）</span></div>
+      <p class="rv-body" style="font-size:.87rem;line-height:1.75;margin:0">${PVReviewI18n.esc(bodyText)}${r.translated ? PVReviewI18n.noteHTML(r.from) : ''}</p>
+      ${tailHTML}
+      ${(!locked && r.translated) ? PVReviewI18n.origHTML(r.origText) : ''}
+    </div>`;
+  }).join('');
+
+  feed.innerHTML = (cardsHTML || '<p class="rv-meta" style="font-size:.9rem;padding:20px 0">口コミがまだありません。最初の投稿者になりましょう。</p>') + gateHTML;
+
+  // 再描画のたびに通貨変換を掛け直す（currency.js の observer は innerHTML 差し替えを取りこぼす）
+  if (window.PVCurrency) { try { PVCurrency.scan(feed); PVCurrency.apply(); } catch (e) {} }
+
+  // 新要素をIntersectionObserverに登録
+  document.querySelectorAll('.review-card.fade-up:not(.visible)').forEach(el => io.observe(el));
+}
+
+// Supabaseから全社口コミを非同期取得
+async function loadSupabaseReviews() {
+  try {
+    const V2_CAT_KEYS = ['culture_score','salary_score','benefits_score','wlb_score','ops_score','training_score'];
+
+    // reviews_v2（新スキーマ）を優先取得
+    // orig_lang / translations が日↔英の出し分けを決める（review-i18n.js）。
+    // 2列がまだ無い環境では自動で外して引き直すので口コミは消えない。
+    const V2_COLS = 'id,airline,position,tenure_bucket,monthly_salary,bonus,culture_score,salary_score,benefits_score,wlb_score,ops_score,training_score,culture_comment,salary_comment,benefits_comment,wlb_comment,ops_comment,training_comment,mgmt_comment,created_at';
+    const { data: v2 } = await PVReviewI18n.fetchWithFallback(extra =>
+      _sbC.from('reviews_v2')
+        .select(V2_COLS + extra)
+        .order('created_at', { ascending: false })
+        .limit(200));
+
+    const v2Formatted = (v2 || []).map(r => {
+      const scores = V2_CAT_KEYS.map(k=>r[k]).filter(s=>s>0);
+      const avgScore = scores.length ? scores.reduce((a,b)=>a+b,0)/scores.length : 3;
+      // 英語で投稿された口コミは訳文があれば日本語で表示し、無い欄は原文に落とす
+      const body = PVReviewI18n.pick(r);
+      const total = r.monthly_salary ? r.monthly_salary*12+(r.bonus||0) : 0;
+      return {
+        id: 'v2_'+r.id, airline: r.airline||'', position: r.position||'',
+        salaryRange: total>0 ? (Math.floor(total/100)*100).toLocaleString('en-US')+'万円' : '非公開',
+        exp: r.tenure_bucket||'—',
+        rating: Math.round(avgScore),
+        comment: body.text, translated: body.translated, origText: body.origText, from: body.from,
+        date: r.created_at ? r.created_at.slice(0,7).replace('-','.') : '—',
+      };
+    });
+
+    // 旧 reviews テーブルは廃止済みのためマージしない
+    const merged = [...v2Formatted];
+    // 口コミ件数は実際に読めた行数だけを出す（0件なら 0 と出す。埋めない）
+    const statEl = document.getElementById('stat-reviews');
+    if (statEl) statEl.textContent = merged.length.toLocaleString('en-US');
+    if (merged.length > 0) {
+      sbReviewsCache = merged;
+      renderReviews(currentFilter);
+    }
+  } catch(e) {}
+}
+
+// ── 口コミ投稿ボタン（専用フォームへ誘導） ──────────────────────
+function openModal() {
+  // 口コミ投稿は専用フォーム(submit-review.html / reviews_v2)に一本化。
+  // 旧インラインモーダル(reviewsテーブルへinsert)は廃止。
+  location.href = 'submit-review.html';
+}
+
+// Supabase init
+const _sbC = supabase.createClient(
+  'https://vzgmnkrggrwtsrpqndsm.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6Z21ua3JnZ3J3dHNycHFuZHNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0MzkwOTcsImV4cCI6MjA5MDAxNTA5N30.wE4cJbqeYGCgn5ZvHd80hYWgQuySKvOMJMbsJWOvmtw'
+);
+
+// ── Theme toggle ──────────────────────────────────────────────
+const SUN_SVG_C = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
+const MOON_SVG_C = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+function applyThemeC(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('pv-theme', t);
+  const btn = document.getElementById('theme-toggle');
+  if (btn) btn.innerHTML = t === 'dark' ? SUN_SVG_C : MOON_SVG_C;
+}
+(function(){ applyThemeC(localStorage.getItem('pv-theme') || 'light'); })();
+document.getElementById('theme-toggle').addEventListener('click', function() {
+  applyThemeC(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+});
+
+// ── IntersectionObserver ──────────────────────────────────────
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+  });
+}, { threshold: 0.01, rootMargin: '0px 0px -30px 0px' });
+
+document.querySelectorAll('.fade-up').forEach(el => io.observe(el));
+setTimeout(() => { document.querySelectorAll('.fade-up:not(.visible)').forEach(el => el.classList.add('visible')); }, 300);
+
+// ── Init ──────────────────────────────────────────────────────
+renderReviews('all');
+loadSupabaseReviews(); // 全社口コミを非同期取得→再描画
+syncUnlockBadge();
+(function(){try{var u=JSON.parse(localStorage.getItem('pv_user')||'null');var b=document.getElementById('nav-auth-btn');if(!b)return;if(u&&u.name){b.textContent=u.name.replace(/[\s　].*/,'');b.href='profile.html';b.style.color='#f5c842';b.style.fontWeight='700';}}catch(e){}})();
+</script>
+
+<script src="search.js"></script>
+<script src="lang-toggle.js"></script>
+<script src="currency.js"></script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "2017年のパイロットストは51日間に及ぶ航空史上最長級で、109名が解雇された対立の歴史を背負う。組合は『会社が合意を反故にした』と不信を示し、口コミにも高圧的な管理職や恐怖の文化への指摘がある。ただ破産法脱却後は経営が安定し、匿名の心理支援Meliora等も整備、Glassdoorは3.9/5。",
+      "en": "A 51-day pilot strike in 2017 and 109 firings left deep scars, and some reviews still cite high-handed managers and a fear culture. But post-bankruptcy the company has stabilized, added mental-health support, and sits at 3.9/5 on Glassdoor."
+    },
+    "salary": {
+      "ja": "機長は月約68万〜90万円（1,700万〜2,250万COP）、副操縦士は月約28万〜50万円が目安。コロンビアの生活水準では十分良い給与だが国際基準では低く、高い所得税で手取りも目減りする。2025年の新協約で固定給＋実績・定時性・燃費連動の変動給モデルへ移行した。",
+      "en": "Captains earn roughly $4,250–5,600 a month and first officers about $1,750–3,100 — solid for Colombia's cost of living but low by global standards, with high income tax biting. A 2025 contract added performance-, punctuality- and fuel-linked variable pay."
+    },
+    "benefits": {
+      "ja": "本人・家族の無料/割引航空券、医療・生命保険、業績賞与、型式限定を含む継続訓練が揃い『同業でも最良の部類』との評価。破産法脱却で雇用も安定し、ODEAAが始めた匿名の心理支援Meliora（2025年に国際的なTTAPと統合）など、働く基盤としての安心感が増している。",
+      "en": "Free and discounted tickets for you and family, medical and life insurance, performance bonuses, and type-rating training — rated among the best in the region. Job security improved after bankruptcy, plus anonymous mental-health support (Meliora, merged with TTAP in 2025)."
+    },
+    "wlb": {
+      "ja": "勤務は月約15日・1日約7時間拘束、平均飛行は1日約3時間との報道がある一方、現役副操縦士は『1日6便飛ばしても会社は気にしない』と過密乗務を訴える。ロースターの柔軟性の低さが不満だが、2025年協約とPBS/eCrew等のデジタルツール、疲労管理の見直しで休息と予見性の改善が進む。ベースはボゴタ。",
+      "en": "Reports cite about 15 working days a month, ~7-hour duties and ~3 hours of flying a day, yet a current FO complains of up to six flights a day. Roster inflexibility is a common gripe, but a 2025 deal and PBS/eCrew tools are improving rest and predictability. Base is Bogotá."
+    },
+    "ops": {
+      "ja": "A320／A330／B787という近代的なフリートと良質な訓練が評価され、フリート5/5の高評価も出る。主要ハブはボゴタ（エルドラド）でメデジン等、Avianca El Salvadorはサンサルバドルを拠点とする。コロンビア〜中米では『最良の航空会社の一つ』と見られ、キャリアの土台としての魅力は高い。",
+      "en": "A modern A320/A330/B787 fleet and solid training earn high marks (fleet rated 5/5). The main hub is Bogotá's El Dorado, with Medellín and a San Salvador base, and it's seen as one of the best carriers in Colombia and Central America."
+    },
+    "training": {
+      "ja": "採用にはCPL/ATPL、第一種航空身体検査、ICAO英語レベル4以上、A320/A330/B787の型式限定が必要。副操縦士は最低約200時間から、機長昇格は概ね1,500時間以上と先任権・考課で決まる。自分の努力だけでは進みにくく、昇格は遅い。訓練の質は高くPilotsGlobalで訓練4/5。",
+      "en": "Entry needs a CPL/ATPL, class-1 medical, ICAO English level 4+, and an A320/A330/B787 type rating; FOs start around 200 hours. Upgrade to captain takes ~1,500 hours plus seniority, so promotion is slow. Training quality is well regarded (rated 4/5)."
+    }
+  },
+  "sources": [
+    {
+      "title": "Salario de pilotos de Avianca está $5 millones por encima del promedio — La República",
+      "url": "https://www.larepublica.co/empresas/salario-de-pilotos-de-avianca-esta-5-millones-por-encima-del-promedio-2550971"
+    },
+    {
+      "title": "How Much Does an Avianca Pilot Earn? — Global Training Aviation",
+      "url": "https://globaltrainingaviation.com/how-much-does-an-avianca-pilot-earn-discover-salaries-and-career-insights/"
+    },
+    {
+      "title": "Avianca Pilot Reviews — PilotsGlobal",
+      "url": "https://pilotsglobal.com/airlines/avianca/pilot-reviews"
+    },
+    {
+      "title": "Working at AVIANCA AIRLINES: Employee Reviews — Indeed",
+      "url": "https://www.indeed.com/cmp/Avianca-Airlines/reviews?fcountry=ALL"
+    },
+    {
+      "title": "How Much Does Avianca Pay in 2026? — Glassdoor",
+      "url": "https://www.glassdoor.com/Salary/Avianca-Salaries-E10971.htm"
+    },
+    {
+      "title": "Hechos claves que marcaron los 51 días de la huelga de pilotos — El Tiempo",
+      "url": "https://www.eltiempo.com/economia/empresas/puntos-claves-de-la-huelga-de-pilotos-de-avianca-la-mas-larga-de-la-historia-de-la-aviacion-149898"
+    },
+    {
+      "title": "ACDAC y Avianca anuncian nuevo acuerdo (convención colectiva 2025) — Semana",
+      "url": "https://www.semana.com/economia/macroeconomia/articulo/acdac-y-avianca-anuncian-nuevo-acuerdo-que-beneficiara-a-trabajadores-de-la-industria-aeronautica/202529/"
+    },
+    {
+      "title": "El acuerdo que cambió las reglas para los pilotos de Avianca: modelo de productividad (ODEAA) — Semana",
+      "url": "https://www.semana.com/hablan-las-marcas/articulo/el-acuerdo-que-cambio-las-reglas-para-los-pilotos-de-avianca-asi-opera-este-modelo-pionero-en-colombia/202600/"
+    },
+    {
+      "title": "Desde enero de 2023, Avianca pagará 100% el salario a pilotos con aumento de 10% — La República",
+      "url": "https://www.larepublica.co/empresas/desde-enero-de-2023-avianca-pagara-100-el-salario-a-pilotos-con-aumento-de-10-3391099"
+    },
+    {
+      "title": "Sindicato de pilotos de Avianca (ODEAA) denuncia que la empresa incumplió acuerdos — Bloomberg Línea",
+      "url": "https://www.bloomberglinea.com/2023/03/08/sindicato-de-pilotos-de-avianca-denuncia-que-la-empresa-incumplio-acuerdos/"
+    }
+  ]
+}

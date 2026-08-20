@@ -1,0 +1,70 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "2020年のチャプター11破綻からアポロ（PE）主導で再建。約4年間の昇給凍結を経て、経営は労働側を締め付けているとの不信が強い。ASPAは組織力が強いが経営陣とは対立的で、ストライキ予告が繰り返される。一方でデルタ航空の20%出資と大型機材投資が中長期の安定と近代化をもたらすとの見方もある。",
+      "en": "After a 2020 Chapter 11 bankruptcy and Apollo-led restructuring, four years of frozen pay left deep distrust of management, and relations with the strong ASPA union stay adversarial. Delta's 20% stake and heavy fleet investment, though, point to long-term stability and modernization."
+    },
+    "salary": {
+      "ja": "2024年協約で約20%回復（直接給7.5%＋手当12.5%、10月遡及）したが、コロナ期に総報酬を最大65%削られ数年間実質目減りした。推計年収は機長 約US$17.6万（約2,780万円）、副操縦士 約US$13.3万（約2,100万円）。基本給は控えめでボーナスと年功依存、中南米では良い方だが国際水準では見劣りする。",
+      "en": "A 2024 contract restored roughly 20% (7.5% base plus 12.5% allowances) after COVID cuts of up to 65% of total pay. Estimated pay runs about US$176k for captains and US$133k for first officers, but base salary is modest and leans heavily on bonuses and seniority."
+    },
+    "benefits": {
+      "ja": "パンデミック期に日当（viáticos）が約15%カットされ諸手当も凍結された。残業・夜間飛行・第7日手当・生産性手当まで削られ報酬は最大65%減。2024年協約で残業・休暇・出張手当・日当の一部は回復したが、失った分の完全回復には至っていない。搭乗特典やSkyTeam網は魅力。",
+      "en": "Per diems (viáticos) were cut about 15% and allowances frozen during the pandemic, with overtime, night-flying, seventh-day and productivity pay all reduced. The 2024 contract restored part of overtime, vacation, travel pay and per diems, but pilots say the full lost value has not come back."
+    },
+    "wlb": {
+      "ja": "人員不足と稚拙な計画で、乗務可能なクルー数を超える便が組まれると批判が強い。最大15時間の連続勤務、長距離ペアリングに対し休息が短く便間の休憩も少ないとの不満が目立つ。パイロットは航空法規則第82条の月90時間上限を根拠に抗議。ベースはメキシコシティ（AICM）、グアダラハラ、モンテレイ。",
+      "en": "Understaffing and poor scheduling push more flights than crews can cover, with duty periods up to 15 hours and short rest on long-haul pairings. Pilots cite the 90-hour monthly cap under Rule 82; bases are Mexico City, Guadalajara and Monterrey."
+    },
+    "ops": {
+      "ja": "機材は約130〜150機で、ボーイング787-8/-9、737-800/MAX、Connectのエンブラエル170/190を運航。737 MAXは約60機、18か月で約25機追加し2026年末に約171機を目標と拡大中。SkyTeam加盟でデルタとの共同事業網を持つ旗艦キャリアで、近代機材と成長基調が魅力に挙がる。",
+      "en": "A fleet of roughly 130-150 aircraft — Boeing 787s, 737-800/MAX and Connect's Embraer 170/190 — is expanding toward about 171 aircraft by end-2026. As Mexico's flag carrier with a SkyTeam/Delta joint-venture network, it offers modern jets and a clear growth trajectory."
+    },
+    "training": {
+      "ja": "昇格は硬直的な年功制。地域子会社のERJ/SAAB FO（3,000時間で機長）から本体737 FO→ワイドボディ787 FO→737機長へと段階を踏む。採用はASPA経由のクローズドショップで、生来のメキシコ人に限定。外国人（日本人含む）には門戸が事実上なく、海外転職先としては対象外。養成はCAEカデット（18か月）。",
+      "en": "Progression is strictly seniority-based, from regional Embraer/SAAB first officer up through 737 and 787 mainline seats, with an 18-month CAE cadet program as the entry route. Hiring is a closed shop via the ASPA union and limited to native-born Mexicans, so foreign (including Japanese) pilots are effectively shut out."
+    }
+  },
+  "sources": [
+    {
+      "title": "Aeroméxico Pilots Approve New Salary and Contract Agreement (Mexico Business News)",
+      "url": "https://mexicobusiness.news/aerospace/news/aeromexico-pilots-approve-new-salary-and-contract-agreement"
+    },
+    {
+      "title": "Aeroméxico Connect Pilots Approve Salary, Contract Proposal (Mexico Business News)",
+      "url": "https://mexicobusiness.news/aerospace/news/aeromexico-connect-pilots-approve-salary-contract-proposal"
+    },
+    {
+      "title": "Pilotos de Aeroméxico acuerdan recorte salarial de hasta el 65% por COVID-19 (El Financiero)",
+      "url": "https://www.elfinanciero.com.mx/empresas/aeromexico-acuerda-con-pilotos-bajar-sus-salarios-en-50-por-coronavirus/"
+    },
+    {
+      "title": "Este es el sueldo que percibe un piloto de Aeroméxico en 2024 (El Informador)",
+      "url": "https://www.informador.mx/economia/Este-es-el-sueldo-que-percibe-un-piloto-de-Aeromexico-en-2024-20241001-0190.html"
+    },
+    {
+      "title": "Captain Salary at Aeromexico (Salary.com)",
+      "url": "https://www.salary.com/research/company/aeromexico/captain-salary?cjid=247908"
+    },
+    {
+      "title": "Aeromexico Reviews — Pros & Cons (Glassdoor)",
+      "url": "https://www.glassdoor.com/Reviews/Aeromexico-Reviews-E10077.htm"
+    },
+    {
+      "title": "Aeromexico Cadet Program (CAE)",
+      "url": "https://www.cae.com/civil-aviation/become-a-pilot/our-pilot-training-programmes/aeromexico-cadet-program/"
+    },
+    {
+      "title": "Mexican airlines — Airline Pilot Central Forums (only Mexican nationals hired)",
+      "url": "https://www.airlinepilotforums.com/foreign/5374-mexican-airlines.html"
+    },
+    {
+      "title": "Grupo Aeromexico Successfully Completes Financial Restructuring and Emerges from Chapter 11 (GlobeNewswire)",
+      "url": "https://www.globenewswire.com/news-release/2022/03/17/2405594/0/en/GRUPO-AEROMEXICO-SUCCESSFULLY-COMPLETES-FINANCIAL-RESTRUCTURING-AND-EMERGES-FROM-CHAPTER-11-PROCESS.html"
+    },
+    {
+      "title": "Sindicato de pilotos de Aeroméxico aprueba contrato colectivo con 20% de aumento salarial (SWI swissinfo)",
+      "url": "https://www.swissinfo.ch/spa/sindicato-de-pilotos-de-aerom%C3%A9xico-aprueba-contrato-colectivo-con-20-%25-de-aumento-salarial/87949824"
+    }
+  ]
+}

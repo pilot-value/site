@@ -1,0 +1,2890 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8"/>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png"/>
+<link rel="apple-touch-icon" href="assets/favicon-180.png"/>
+<script>(function(){var t=localStorage.getItem('pv-theme')||'light';document.documentElement.setAttribute('data-theme',t);}());</script>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>給与レポートを出す｜明細から自動入力 | PILOT VALUE</title>
+<!--PV-SEO-->
+<!--PV-SRC t="給与レポートを出す | PILOT VALUE" d=""-->
+<meta name="description" content="給与明細に書いてあることだけ答えれば、年換算・時間あたり報酬・世界での位置をこちらで計算して返します。氏名も社員番号も受け取りません。"/>
+<meta name="robots" content="noindex,follow"/>
+<link rel="canonical" href="https://pilot-value.com/pay-report.html"/>
+<link rel="alternate" hreflang="ja" href="https://pilot-value.com/pay-report.html"/>
+<link rel="alternate" hreflang="en" href="https://pilot-value.com/en/pay-report.html"/>
+<link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/pay-report.html"/>
+<meta property="og:title" content="給与レポートを出す｜明細から自動入力 | PILOT VALUE"/>
+<meta property="og:description" content="給与明細に書いてあることだけ答えれば、年換算・時間あたり報酬・世界での位置をこちらで計算して返します。氏名も社員番号も受け取りません。"/>
+<meta property="og:url" content="https://pilot-value.com/pay-report.html"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="PILOT VALUE"/>
+<meta property="og:locale" content="ja_JP"/>
+<meta property="og:locale:alternate" content="en_US"/>
+<meta property="og:image" content="https://pilot-value.com/assets/og/default-ja.jpg"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta property="og:image:alt" content="給与レポートを出す｜明細から自動入力 | PILOT VALUE"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="給与レポートを出す｜明細から自動入力 | PILOT VALUE"/>
+<meta name="twitter:description" content="給与明細に書いてあることだけ答えれば、年換算・時間あたり報酬・世界での位置をこちらで計算して返します。氏名も社員番号も受け取りません。"/>
+<meta name="twitter:image" content="https://pilot-value.com/assets/og/default-ja.jpg"/>
+<!--/PV-SEO-->
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'"/><noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet"/></noscript>
+<!-- Google tag (gtag.js) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-3XYF69VQ3X');
+</script>
+<script>
+tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#18212f',accent:'#3d9bff',gold:'#f5c842',orange:'#f97316',text:'#e8edf2',muted:'#6b7d93'},fontFamily:{sans:['Inter','Noto Sans JP','sans-serif']}}}};
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:#0a0c0f;color:#e8edf2;font-family:'Inter','Noto Sans JP',sans-serif;line-height:1.7;-webkit-font-smoothing:antialiased}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");background-size:128px;opacity:.3}
+nav{position:fixed;top:0;left:0;right:0;z-index:200;transition:background .4s ease}
+nav.scrolled{background:rgba(10,12,15,.92);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.06)}
+.nav-link{color:rgba(255,255,255,.6);font-size:.85rem;font-weight:500;letter-spacing:.04em;transition:color .2s;text-decoration:none}
+.nav-link:hover{color:#fff}
+.logo-img{height:40px;width:auto;filter:brightness(1.15) drop-shadow(0 0 8px rgba(249,115,22,.5));transition:filter .3s}
+.btn-orange{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:10px;font-weight:700;font-size:.9rem;background:linear-gradient(135deg,#f97316,#f5c842);color:#000;border:none;cursor:pointer;transition:opacity .2s,transform .2s cubic-bezier(.16,1,.3,1);text-decoration:none}
+.btn-orange:hover{opacity:.9;transform:translateY(-1px)}
+.btn-orange:focus-visible{outline:2px solid rgba(245,200,66,.7);outline-offset:3px}
+.btn-orange:active{transform:translateY(1px)}
+.btn-orange:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn-ghost{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:10px;font-weight:600;font-size:.9rem;color:#e8edf2;border:1px solid rgba(255,255,255,.15);background:transparent;cursor:pointer;transition:border-color .2s,background .2s;text-decoration:none}
+.btn-ghost:hover{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.05)}
+.btn-ghost:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.card{background:rgba(17,22,32,.7);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:28px}
+.form-label{display:block;font-size:.78rem;font-weight:700;color:#9ca3af;margin-bottom:8px;letter-spacing:.05em;text-transform:uppercase}
+/* 欄の小札は3つ。★色の役割を分ける（2026-08-13 その4）。
+   これまでは「任意」だけが在り、しかもブランド最強色の金だった＝いちばん目立つ色が
+   「入れなくていい欄」に付いていた。必須の欄には印すら無かった。
+     必須 = オレンジ（.sec-tag.req と同じ色）
+     自動 = 緑（.form-input.ai-filled と同じ色＝こちらが入れた値）
+     任意 = 中立グレー（.sec-tag.opt と同じ色）
+   ★.req-tag が付く欄は「ゲートが実際に見ている欄」と一致していること。
+     ズレると画面と送信の判定が食い違う。db/test-form-contract.mjs の静的検査⑧が見張る。 */
+.opt-tag,.req-tag,.auto-tag{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:999px;font-size:.62rem;font-weight:700;letter-spacing:.04em;text-transform:none}
+.opt-tag{color:#9ca3af;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14)}
+.req-tag{color:#fb923c;background:rgba(249,115,22,.13);border:1px solid rgba(249,115,22,.3)}
+.auto-tag{color:#34d399;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.28)}
+.form-input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:11px 14px;color:#e8edf2;font-size:.9rem;transition:border-color .2s,background .2s;outline:none;font-family:'Inter','Noto Sans JP',sans-serif}
+.form-input:focus{border-color:rgba(245,200,66,.4);background:rgba(255,255,255,.07)}
+.form-input:focus-visible{outline:2px solid rgba(245,200,66,.35);outline-offset:1px}
+.form-input::placeholder{color:#6b7d93}
+.form-input:disabled{opacity:.45;cursor:not-allowed}
+/* ★読み取り専用は「無効」に見せない（opacity を落とさない）。こちらが計算した
+   数字が入るだけで、その額面はページで一番大事な数字なので読めることが要る。
+   触れないことは破線の枠とわずかに沈んだ面で示す。 */
+.form-input[readonly]{cursor:default;border-style:dashed;background:rgba(255,255,255,.03)}
+.form-input[readonly]:focus{border-color:rgba(255,255,255,.1);background:rgba(255,255,255,.03)}
+select.form-input option,select.form-input optgroup{background:#111620}
+.theme-toggle{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.07);color:#e8edf2;border:1px solid rgba(255,255,255,.12);cursor:pointer;transition:background .2s,color .2s;flex-shrink:0}
+footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:#0a0c0f}
+::-webkit-scrollbar-thumb{background:#18212f;border-radius:3px}
+.warn-row{display:flex;align-items:flex-start;gap:8px;padding:10px 16px;border-radius:10px;background:rgba(245,200,66,.05);border:1px solid rgba(245,200,66,.18);color:#f5c842;font-size:.78rem;line-height:1.65}
+/* 投稿数の1行（見出しの下）。ブランド金の丸ピル。
+   ★数字は #pay-count の1箇所だけに置く。実数を返す口ができたら、ここだけ差し替える。 */
+.pay-count{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:999px;
+  background:radial-gradient(120% 160% at 0% 50%,rgba(245,200,66,.14),transparent 70%),rgba(245,200,66,.05);
+  border:1px solid rgba(245,200,66,.24);color:#f5c842;font-size:.82rem;font-weight:700;letter-spacing:-.01em}
+/* ── セクション（必須 / 推奨 / 任意）─────────────────────── */
+.sec{margin-bottom:20px}
+.sec-head{display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap}
+.sec-title{font-size:1.02rem;font-weight:800;letter-spacing:-.015em}
+.sec-tag{font-size:.62rem;font-weight:800;padding:3px 10px;border-radius:999px;letter-spacing:.05em;white-space:nowrap}
+.sec-tag.req{background:rgba(249,115,22,.14);color:#fb923c;border:1px solid rgba(249,115,22,.32)}
+.sec-tag.rec{background:rgba(61,155,255,.12);color:#5fb0ff;border:1px solid rgba(61,155,255,.3)}
+.sec-tag.opt{background:rgba(255,255,255,.06);color:#9ca3af;border:1px solid rgba(255,255,255,.14)}
+.sec-sub{font-size:.78rem;color:#6b7d93;margin-bottom:18px;line-height:1.65}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 16px}
+/* ラベルが1行の列と2行の列が混ざると input の上端がズレる（EN で実測18px）。
+   ラベルを短く書き直す対処は、言語を足すたびに再発する。subgrid で
+   「ラベル行・入力行・注記行」を列をまたいで揃え、行の高さは中身に決めさせる。
+   row-gap を 0 にするのは、残すと label→input の間にも同じ隙間が入るため
+   （縦の間隔は .form-label の margin-bottom と .fld-hint の margin-top が持つ）。 */
+.grid2>.fld,.grid3>.fld{display:grid;grid-template-rows:subgrid;grid-row:span 3;margin-bottom:0}
+.grid2:has(>.fld),.grid3:has(>.fld){margin-bottom:16px}
+/* 国名・役職は選択肢が長い（最長「セントビンセント及びグレナディーン諸島」274px）。
+   241カ国すべてが収まる幅は存在しないので、実際に選ばれる国が読み切れる配分を優先する。
+   税率は2〜3桁、乗務日数は2桁しか入らないため狭くてよい。 */
+.grid2.tax-row{grid-template-columns:1.6fr .9fr}
+.grid3.role-row{grid-template-columns:1.5fr .75fr .75fr}
+@media(max-width:600px){.grid2,.grid3,.grid2.tax-row,.grid3.role-row{grid-template-columns:1fr}}
+.fld{margin-bottom:16px}
+.fld:last-child{margin-bottom:0}
+/* 必須の欄には左にレールを引く。埋まったら中立色に落とす（.is-done は updateSteps() が付ける）。
+   ＝列を上から眺めるだけで「まだ残っている欄」が分かる。小札だけだと、
+   埋めた欄と埋めていない欄が同じ見た目のまま並ぶ。
+   ★border ではなく擬似要素で外に出す。border+padding にすると必須の欄だけ内側にずれ、
+     隣に任意の欄が並ぶ2列組み（フライトタイム／勤務時間 など）で行がガタつく。 */
+.fld.is-req{position:relative}
+.fld.is-req::before{content:'';position:absolute;left:-12px;top:3px;bottom:3px;width:2px;border-radius:2px;
+  background:rgba(249,115,22,.32);transition:background .28s cubic-bezier(.16,1,.3,1)}
+/* ★埋まったら「消す」のではなく「緑にする」（2026-08-17 オーナー指摘）。
+   もとは中立グレーに落としていた＝印が消えるので、埋めた欄と、そもそも必須でない欄が
+   同じ見た目になっていた。残り＝オレンジ／済み＝緑 の2値にして、どちらも目に見える形にする。 */
+.fld.is-req.is-done::before{background:rgba(52,211,153,.45)}
+/* 埋まった欄の右上に小さい ✓。欄が縦に並ぶと ✓ が1列に揃うので、
+   上から眺めるだけで「まだ残っている欄」が分かる。
+   ★::before は左のレールが使っているので ::after を使う。
+   ★pointer-events:none。ラベルの上に重なるので、押せてしまうと欄が選べなくなる。 */
+.fld.is-req::after{content:'✓';position:absolute;right:0;top:-2px;width:18px;height:18px;
+  border-radius:999px;display:flex;align-items:center;justify-content:center;
+  font-size:.62rem;font-weight:800;color:#34d399;background:rgba(52,211,153,.12);
+  border:1px solid rgba(52,211,153,.3);opacity:0;transform:scale(.55);pointer-events:none;
+  transition:opacity .18s,transform .28s cubic-bezier(.34,1.56,.64,1)}
+.fld.is-req.is-done::after{opacity:1;transform:none}
+/* 埋まった欄の「必須」はもう用済み。沈めて、残っている欄のオレンジだけが目に入るようにする
+   （札そのものは消さない。HTML の req-tag が必須の唯一の出どころなので）。 */
+.fld.is-req .req-tag{transition:opacity .2s}
+.fld.is-req.is-done .req-tag{opacity:.3}
+@media (prefers-reduced-motion:reduce){.fld.is-req::before,.fld.is-req::after,.fld.is-req .req-tag{transition:none}}
+/* 段の見出しの右端に出す進み具合のゲージ。押すと最初の未入力欄へ飛ぶ。
+   ＝送信ボタンが出ない理由が、常に見出しに書いてある状態にする。
+   ★器は中立の灰、伸びるバーだけ緑（2026-08-18 オーナー決定）。
+     「まだ残っている欄」は各欄の左レールのオレンジが受け持つので、
+     ここまでオレンジにすると画面がオレンジだらけになる。 */
+.sec-prog{margin-left:auto;display:inline-flex;align-items:center;gap:7px;padding:3px 10px;border-radius:999px;
+  font-size:.62rem;font-weight:800;letter-spacing:.05em;white-space:nowrap;cursor:pointer;
+  color:#9ca3af;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.13);
+  transition:background .2s,border-color .2s,color .2s,transform .12s cubic-bezier(.16,1,.3,1)}
+.sec-prog:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.22)}
+.sec-prog:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.sec-prog:active{transform:translateY(1px)}
+.sec-prog.done{color:#34d399;background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.3);cursor:default}
+.sec-prog.done:hover{background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.3)}
+.sec-prog.done:active{transform:none}
+/* 器と、その中を伸びる緑。中身は markProgress() が1回だけ組み立てる。 */
+.sec-prog-bar{width:46px;height:5px;border-radius:999px;flex:none;overflow:hidden;background:rgba(255,255,255,.12)}
+.sec-prog-bar>i{display:block;height:100%;width:0;border-radius:999px;
+  background:linear-gradient(90deg,#34d399,#48c78e);
+  transition:width .45s cubic-bezier(.16,1,.3,1)}
+.sec-prog.done .sec-prog-bar{background:rgba(52,211,153,.22)}
+/* 桁が 0%→100% と増えても、100% で頭に ✓ が付いても、小札の幅が動かないように
+   等幅数字＋最小幅で固定する（一番長い「✓ 100%」に合わせてある）。 */
+.sec-prog-num{font-variant-numeric:tabular-nums;min-width:42px;text-align:right}
+@media (prefers-reduced-motion:reduce){.sec-prog-bar>i{transition:none}}
+.fld-hint{font-size:.72rem;color:#6b7d93;margin-top:6px;line-height:1.6}
+.fld-hint b{color:#a8b3c2;font-weight:700}
+.cur-row{display:grid;grid-template-columns:210px 1fr;gap:10px}
+@media(max-width:420px){.cur-row{grid-template-columns:1fr}}
+/* ── 年換算のライブ表示 ─────────────────────────────────── */
+.sal-total{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:15px 18px;border-radius:14px;border:1px solid rgba(245,200,66,.25);background:radial-gradient(130% 170% at 100% 0%,rgba(245,200,66,.11),transparent 60%),rgba(245,200,66,.04)}
+.sal-total-lab{font-size:.75rem;font-weight:700;color:#9ca3af;letter-spacing:.04em}
+.sal-total-val{font-size:1.7rem;font-weight:800;letter-spacing:-.02em;color:#f5c842;font-variant-numeric:tabular-nums;line-height:1.1}
+.sal-total-val .u{font-size:.8rem;font-weight:600;color:#9ca3af;margin-left:5px;letter-spacing:0}
+.sal-hint{font-size:.73rem;color:#6b7d93;margin-top:8px;line-height:1.65}
+/* ── 送信後の結果 ───────────────────────────────────────── */
+.res{border-radius:20px;border:1px solid rgba(52,211,153,.3);background:radial-gradient(130% 170% at 0% 0%,rgba(52,211,153,.12),transparent 60%),rgba(17,22,32,.7);padding:28px}
+/* 出し終わりの目印。confetti.js のクラッカーと同じ瞬間に出る。
+   ★動きを控える設定では animation だけ止める。opacity は 1 のままなので消えない。 */
+.res-pop{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-size:1.35rem;line-height:1;margin-bottom:14px;
+  background:radial-gradient(120% 120% at 30% 20%,rgba(245,200,66,.30),rgba(52,211,153,.10) 62%,transparent);
+  border:1px solid rgba(245,200,66,.34);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 6px 18px -8px rgba(245,200,66,.42),0 20px 42px -24px rgba(52,211,153,.55);
+  animation:resPop .62s cubic-bezier(.2,1.5,.32,1) both}
+@keyframes resPop{from{opacity:0;transform:scale(.4) rotate(-16deg)}to{opacity:1;transform:scale(1) rotate(0)}}
+@media (prefers-reduced-motion:reduce){.res-pop{animation:none}}
+.res-eyebrow{font-size:.72rem;font-weight:800;letter-spacing:.06em;color:#34d399;text-transform:uppercase;margin-bottom:10px}
+.res-big{font-size:2.1rem;font-weight:800;letter-spacing:-.03em;color:#34d399;font-variant-numeric:tabular-nums;line-height:1.15}
+.res-sub{font-size:.85rem;color:#9ca3af;margin-top:4px;font-variant-numeric:tabular-nums}
+.res-row{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.07)}
+.res-row:last-child{border-bottom:none}
+.res-k{color:#6b7d93;font-size:.82rem;flex:none}
+.res-v{font-weight:700;font-size:.95rem;font-variant-numeric:tabular-nums;text-align:right}
+.res-v.hi{color:#f5c842;font-size:1.15rem;font-weight:800}
+.bench{margin-top:18px;padding:18px 20px;border-radius:14px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.025)}
+.bench-bar{position:relative;height:10px;border-radius:999px;background:linear-gradient(90deg,rgba(95,176,255,.35),rgba(52,211,153,.35),rgba(245,200,66,.45));margin:16px 0 8px}
+.bench-you{position:absolute;top:-5px;width:4px;height:20px;border-radius:2px;background:#f5c842;box-shadow:0 0 0 3px rgba(245,200,66,.22);transition:left .5s cubic-bezier(.16,1,.3,1)}
+.bench-scale{display:flex;justify-content:space-between;font-size:.68rem;color:#6b7d93;font-variant-numeric:tabular-nums}
+.bench b{color:#e8edf2;font-weight:700}
+.res-note{font-size:.75rem;color:#6b7d93;margin-top:16px;line-height:1.7}
+/* ── アラート ───────────────────────────────────────────── */
+.form-alert{display:block;border:1px solid rgba(239,68,68,.45);border-left:3px solid #ef4444;background:rgba(239,68,68,.10);border-radius:12px;padding:14px 16px;color:#e8edf2;font-size:.9rem;line-height:1.7;animation:formAlertIn .22s ease-out}
+.form-alert .fa-title{display:block;font-weight:700;font-size:.95rem;color:#f87171;margin-bottom:4px;letter-spacing:.01em}
+@keyframes formAlertIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+@media (prefers-reduced-motion:reduce){.form-alert{animation:none}.bench-you{transition:none}}
+.restore-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 16px;border-radius:12px;background:rgba(61,155,255,.07);border:1px solid rgba(61,155,255,.22);color:#5fb0ff;font-size:.79rem;margin-bottom:18px}
+.restore-bar button{margin-left:auto;font-size:.74rem;font-weight:700;color:#9ca3af;background:transparent;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:4px 12px;cursor:pointer;transition:color .2s,border-color .2s}
+.restore-bar button:hover{color:#e8edf2;border-color:rgba(255,255,255,.32)}
+.restore-bar button:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+/* ── 段階表示 ── 一度出したら隠さないので、出るときだけ動かす。
+   高さは animate しない（レイアウトが跳ねる）。transform と opacity だけ。 */
+.step[hidden],.opt-fld[hidden]{display:none}
+.step-in{animation:stepIn .34s cubic-bezier(.16,1,.3,1) both}
+@keyframes stepIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.opt-fld{margin-bottom:16px}
+.opt-fld>.fld{margin-bottom:0}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;font-size:.78rem;font-weight:700;color:#a8b3c2;background:rgba(255,255,255,.04);border:1px dashed rgba(255,255,255,.18);cursor:pointer;transition:color .2s,border-color .2s,background .2s,transform .2s cubic-bezier(.16,1,.3,1)}
+.chip:hover{color:#f5c842;border-color:rgba(245,200,66,.45);background:rgba(245,200,66,.07)}
+.chip:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.chip:active{transform:translateY(1px)}
+.chip .p{font-size:.95rem;line-height:1;font-weight:800;color:#f5c842}
+@media (prefers-reduced-motion:reduce){.step-in{animation:none}}
+/* ── 手当ごとの内訳（畳んで残す）── 総支給の欄とは排他 ────────── */
+.pay-detail{margin-top:4px;border-top:1px solid rgba(255,255,255,.07);padding-top:14px}
+.pay-detail>summary{display:flex;align-items:center;gap:7px;width:fit-content;list-style:none;cursor:pointer;font-size:.79rem;font-weight:700;color:#a8b3c2;padding:6px 12px 6px 10px;border-radius:999px;border:1px dashed rgba(255,255,255,.18);background:rgba(255,255,255,.04);transition:color .2s,border-color .2s,background .2s,transform .2s cubic-bezier(.16,1,.3,1)}
+.pay-detail>summary::-webkit-details-marker{display:none}
+.pay-detail>summary:hover{color:#f5c842;border-color:rgba(245,200,66,.45);background:rgba(245,200,66,.07)}
+.pay-detail>summary:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.pay-detail>summary:active{transform:translateY(1px)}
+.pay-detail>summary .p{font-size:.95rem;line-height:1;font-weight:800;color:#f5c842;transition:transform .2s cubic-bezier(.16,1,.3,1)}
+.pay-detail[open]>summary{color:#e8edf2;border-style:solid;border-color:rgba(245,200,66,.32);margin-bottom:16px}
+.pay-detail[open]>summary .p{transform:rotate(45deg)}
+.pay-detail-b{animation:stepIn .3s cubic-bezier(.16,1,.3,1) both}
+@media (prefers-reduced-motion:reduce){.pay-detail-b{animation:none}.pay-detail>summary .p{transition:none}}
+/* ── 4. 契約と税：前月の値が入っているときは要約1行に畳む ────────── */
+.sum-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);font-size:.81rem;color:#c8d2de;line-height:1.7}
+.sum-row b{color:#e8edf2;font-weight:700}
+.sum-row button{margin-left:auto;flex:none;font-size:.74rem;font-weight:700;color:#a8b3c2;background:transparent;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:5px 12px;cursor:pointer;transition:color .2s,border-color .2s}
+.sum-row button:hover{color:#f5c842;border-color:rgba(245,200,66,.45)}
+.sum-row button:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.sum-row[hidden],#s4-body[hidden]{display:none}
+/* ── 明細から自動入力 ── 端末の中で黒塗り → 本人が見る → 送る ── */
+/* 入口の2択（明細から自動入力／手動で入力）*/
+.entry-q{font-size:.84rem;font-weight:700;color:#a8b3c2;letter-spacing:-.01em;margin:0 0 12px}
+.entry-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:6px}
+@media (max-width:640px){.entry-grid{grid-template-columns:1fr}}
+.entry-card{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:7px;width:100%;
+  text-align:left;padding:22px 18px 18px;border-radius:16px;cursor:pointer;color:#e8edf2;
+  border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.025);
+  box-shadow:0 20px 44px -32px rgba(0,0,0,.95),0 2px 6px -3px rgba(0,0,0,.55);
+  transition:border-color .22s,background .22s,box-shadow .22s,transform .3s cubic-bezier(.16,1,.3,1)}
+.entry-card.is-primary{border-color:rgba(245,200,66,.34);
+  background:radial-gradient(120% 150% at 0% 0%,rgba(245,200,66,.11),transparent 62%),rgba(245,200,66,.03);
+  box-shadow:0 24px 50px -32px rgba(245,200,66,.5),0 2px 6px -3px rgba(0,0,0,.55)}
+.entry-card:hover{transform:translateY(-2px);border-color:rgba(245,200,66,.6);
+  box-shadow:0 26px 54px -30px rgba(245,200,66,.55),0 3px 8px -3px rgba(0,0,0,.6)}
+.entry-card:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:3px}
+.entry-card:active{transform:translateY(0)}
+.entry-ico{font-size:1.45rem;line-height:1;color:#f5c842}
+.entry-t{font-size:1rem;font-weight:800;letter-spacing:-.02em}
+/* 選ぶ材料（2026-08-13 その4）。説明1行だと「明細を読ませると何が良いのか」が伝わらない。
+   ✓ は緑 ── この画面で緑は既に「安全側／こちらが入れた値」の色（.form-input.ai-filled）。 */
+.entry-benefits{display:flex;flex-direction:column;gap:5px;margin-top:1px;width:100%}
+.entry-b{display:flex;align-items:flex-start;gap:7px;font-size:.735rem;line-height:1.55;color:#a8b3c2;text-align:left}
+.entry-b[hidden]{display:none}
+.entry-b>i{flex:none;font-style:normal;font-weight:800;color:#34d399;line-height:1.55}
+.entry-b b{color:#e8edf2;font-weight:700}
+.entry-formats{margin-top:auto;padding-top:10px;font-size:.63rem;font-weight:700;letter-spacing:.09em;color:#6b7d93}
+.ps-benefits{margin-top:10px}
+/* 「暗号化＆セキュア」の横の盾（2026-08-14）。行の頭の ✓ と同じ緑にして、
+   同じ「安心の印」の仲間に見せる。文字の流れの中に置くので inline のまま。 */
+.entry-shield{flex:none;width:14px;height:14px;margin-top:2px;color:#34d399}
+.ai-legend{display:flex;align-items:center;gap:8px;margin:0 0 14px;padding:9px 14px;border-radius:10px;
+  font-size:.74rem;line-height:1.6;color:#a8b3c2;background:rgba(52,211,153,.05);border:1px solid rgba(52,211,153,.2)}
+.ai-legend>i{flex:none;font-style:normal;color:#34d399;font-size:.7rem}
+.ai-legend[hidden]{display:none}
+.entry-tag{position:absolute;top:14px;right:14px;font-size:.62rem;font-weight:800;letter-spacing:.05em;
+  padding:3px 10px;border-radius:999px;background:rgba(255,255,255,.05);color:#a8b3c2;border:1px solid rgba(255,255,255,.12)}
+.entry-card.is-primary .entry-tag{background:rgba(245,200,66,.12);color:#f5c842;border-color:rgba(245,200,66,.28)}
+.ps-step{font-size:.68rem;font-weight:800;letter-spacing:.08em;color:#f5c842;margin:0 0 8px}
+.ps-skip{display:inline-block;margin-top:10px;padding:4px 2px;font-size:.76rem;font-weight:700;
+  color:#a8b3c2;background:none;border:0;border-bottom:1px solid rgba(255,255,255,.18);cursor:pointer;
+  transition:color .2s,border-color .2s,transform .2s cubic-bezier(.16,1,.3,1)}
+.ps-skip:hover{color:#e8edf2;border-bottom-color:rgba(245,200,66,.6)}
+.ps-skip:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:3px}
+.ps-skip:active{transform:translateY(1px)}
+/* 手動で入力を選んだあと ── 明細の入口は1行の帯にして上に残す */
+.ps.is-slim .ps-step,.ps.is-slim .ps-benefits,.ps.is-slim .ps-skip,.ps.is-slim .ps-drop-txt small{display:none}
+.ps.is-slim .ps-drop{padding:11px 14px}
+.ps.is-slim .ps-drop-txt b{font-size:.82rem}
+.ps{margin-bottom:18px}
+.ps-drop{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:14px 16px;border-radius:12px;border:1px dashed rgba(245,200,66,.3);background:linear-gradient(180deg,rgba(245,200,66,.06),rgba(245,200,66,.02));color:#e8edf2;cursor:pointer;transition:border-color .2s,background .2s,transform .2s cubic-bezier(.16,1,.3,1)}
+.ps-drop:hover,.ps-drop.is-over{border-color:rgba(245,200,66,.6);background:linear-gradient(180deg,rgba(245,200,66,.12),rgba(245,200,66,.04))}
+.ps-drop:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.ps-drop:active{transform:translateY(1px)}
+/* 明細を選んだときだけ（ステップ 1/2）── ここが画面の主役なので落とす的を大きく取る。
+   帯のまま出すと、何をする画面なのかが一目で分からない。 */
+.ps:not(.is-slim) .ps-drop{flex-direction:column;align-items:center;text-align:center;gap:9px;
+  padding:34px 22px;border-radius:16px}
+.ps:not(.is-slim) .ps-ico{font-size:1.9rem}
+.ps:not(.is-slim) .ps-drop-txt{align-items:center;gap:4px}
+.ps:not(.is-slim) .ps-drop-txt b{font-size:.95rem}
+.ps-ico{font-size:1.15rem;line-height:1;flex:none}
+.ps-drop-txt{display:flex;flex-direction:column;gap:2px;min-width:0}
+.ps-drop-txt b{font-size:.86rem;font-weight:700;letter-spacing:-.01em}
+.ps-drop-txt small{font-size:.72rem;color:#a8b3c2;line-height:1.5}
+.ps-edit,.ps-res{margin-top:12px;padding:16px;border-radius:14px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.025);box-shadow:0 18px 40px -28px rgba(245,200,66,.35),0 2px 6px -2px rgba(0,0,0,.5);animation:stepIn .34s cubic-bezier(.16,1,.3,1) both}
+.ps-lead{font-size:.82rem;font-weight:700;color:#e8edf2;margin-bottom:10px}
+.ps-lead-sm{font-size:.78rem;font-weight:600;color:#f5c842;margin:10px 0 2px}
+/* ★確認画面だけ本文の段組み（max-w-2xl＝約640px）より外へ広げる。
+   ここは「本人が字を読んで確かめる」ただ一つの場所で、**読めない大きさは
+   確認していないのと同じ**。負のマージンで外へ出すので transform を使わない
+   （transform を掛けると中の position:fixed の基準がここに移ってしまう）。
+   上限 1440px は明細の実寸（長辺 MAX_EDGE=1568px）に届く手前まで。これ以上広げても
+   canvas は width:auto ＝実寸止まりで、拡大されずに余白が増えるだけ。 */
+.ps-edit{width:min(1440px,94vw);max-width:none;margin-left:calc((100% - min(1440px,94vw)) / 2)}
+.ps-stage{position:relative;display:block;width:fit-content;max-width:100%;margin:0 auto;line-height:0;border-radius:10px;overflow:hidden;background:#0b0f14;touch-action:none}
+/* ★頭打ちは「高さ」ではなく「幅」で決める。以前は max-height:62vh で、A4縦の紙は
+   高さで先に止まり、幅はカードの半分ほどしか使えなかった（＝字が読めない）。
+   縦に長い紙は画面をはみ出して縦スクロールになるが、**読めないより良い**。 */
+.ps-cv{display:block;max-width:100%;max-height:min(150vh,1500px);width:auto;height:auto}
+.ps-rect{position:absolute;z-index:2;background:#000;border:1px solid rgba(245,200,66,.75);cursor:move;touch-action:none}
+/* 送る枠。外側を暗く落とすのは box-shadow を画面いっぱいに広げるだけ（要素は1つ）。
+   本体は pointer-events:none ＝中の黒塗りをこれまで通りつまめる。 */
+.ps-frame{position:absolute;z-index:3;pointer-events:none;border:2px solid #f5c842;border-radius:3px;box-shadow:0 0 0 9999px rgba(2,6,12,.7)}
+.ps-frame-tag{position:absolute;left:0;top:0;pointer-events:auto;cursor:move;touch-action:none;background:#f5c842;color:#0b0f14;font-size:.66rem;font-weight:800;line-height:1;letter-spacing:.02em;padding:5px 8px;border-radius:0 0 7px 0;white-space:nowrap;user-select:none}
+.ps-frame-grip{position:absolute;width:18px;height:18px;pointer-events:auto;touch-action:none;background:#f5c842;border:1px solid rgba(0,0,0,.45);border-radius:3px}
+.ps-frame-grip.is-nw{left:-9px;top:-9px;cursor:nwse-resize}
+.ps-frame-grip.is-ne{right:-9px;top:-9px;cursor:nesw-resize}
+.ps-frame-grip.is-sw{left:-9px;bottom:-9px;cursor:nesw-resize}
+.ps-frame-grip.is-se{right:-9px;bottom:-9px;cursor:nwse-resize}
+.ps-rect:focus-visible{outline:2px solid #f5c842;outline-offset:2px}
+.ps-rect-del{position:absolute;top:6px;right:6px;width:22px;height:22px;line-height:1;border-radius:999px;border:1px solid rgba(0,0,0,.3);background:rgba(255,255,255,.92);color:#0f172a;font-size:.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s,border-color .2s,color .2s,transform .2s cubic-bezier(.16,1,.3,1)}
+.ps-rect-del:hover{background:#dc2626;border-color:#dc2626;color:#fff}
+.ps-rect-del:focus-visible{outline:2px solid #f5c842;outline-offset:2px}
+.ps-rect-del:active{transform:scale(.9)}
+.ps-rect-grip{position:absolute;right:3px;bottom:3px;width:16px;height:16px;border-radius:3px;background:#f5c842;border:1px solid rgba(0,0,0,.4);cursor:nwse-resize}
+.ps-hint,.ps-note{font-size:.72rem;color:#6b7d93;line-height:1.65;margin-top:8px}
+.ps-note b{color:#a8b3c2}
+.ps-bar{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.ps-btn{font-size:.78rem;font-weight:700;padding:8px 14px;border-radius:10px;cursor:pointer;transition:color .2s,border-color .2s,background .2s,transform .2s cubic-bezier(.16,1,.3,1)}
+.ps-btn:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.ps-btn:active{transform:translateY(1px)}
+.ps-btn-ghost{color:#a8b3c2;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.16)}
+.ps-btn-ghost:hover{color:#e8edf2;border-color:rgba(255,255,255,.34)}
+.ps-btn-go{display:block;width:100%;margin-top:12px;padding:13px;font-size:.9rem;font-weight:800;color:#0b0f14;background:linear-gradient(180deg,#f7d15e,#e6b52c);border:1px solid rgba(245,200,66,.9);box-shadow:0 14px 30px -18px rgba(245,200,66,.8)}
+.ps-btn-go:hover:not([disabled]){background:linear-gradient(180deg,#ffdd77,#f0c33e)}
+.ps-btn-go[disabled]{opacity:.34;filter:grayscale(.75);box-shadow:none;cursor:not-allowed}
+.ps-warn{margin-top:10px;font-size:.76rem;line-height:1.6;color:#f5c842}
+/* ★枠が画像ぜんぶになったときの警告。ふつうの注意書き（.ps-warn の小さな金色）と
+   同じ見え方だと読み飛ばされる。ここは「このまま押すと紙が丸ごと出ていく」唯一の
+   歯止めなので、フォームのエラー（.form-alert）と同じ赤い呼び方に揃えて強くする。 */
+.ps-frwarn{display:block;margin-top:12px;border:1px solid rgba(239,68,68,.45);border-left:3px solid #ef4444;background:rgba(239,68,68,.10);border-radius:12px;padding:13px 15px;color:#e8edf2;font-size:.88rem;line-height:1.7}
+.ps-frwarn b{color:#f87171;font-weight:800}
+/* ★探している間は明細そのものを出さない ────────────────────────
+   以前は明細を先に描いてから、探索の結果を**あとから**その上に乗せていた。
+   その数秒のあいだ、画面には「黒塗りの無い明細」＋「送る」ボタンが並ぶ。
+   出来上がったものだと思って押せてしまう＝そのまま氏名も口座も外へ出る。
+   送信ボタンは元から disabled だが、**disabled は見えない**。見えない歯止めは
+   歯止めとして数えない。だから見えるところから消す。
+   ★.ps-wait には JS が aspect-ratio を入れる（明細と同じ縦横比）。
+     入れないと、明細が現れた瞬間にページの高さが飛んで、読んでいた場所を失う。 */
+.ps-edit.is-wait > .ps-stage,
+.ps-edit.is-wait > .ps-lead-sm,
+.ps-edit.is-wait > .ps-frwarn,
+.ps-edit.is-wait > .ps-hint,
+.ps-edit.is-wait > .ps-bar,
+.ps-edit.is-wait > .ps-warn,
+.ps-edit.is-wait > .ps-confirm,
+.ps-edit.is-wait > .ps-btn-go,
+.ps-edit.is-wait > .ps-note{display:none !important}
+.ps-wait{display:none}
+.ps-edit.is-wait > .ps-wait{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;width:100%;margin:0 auto;padding:24px;border-radius:10px;background:#0b0f14;border:1px solid rgba(255,255,255,.08);color:#a8b3c2;font-size:.78rem;line-height:1.7;text-align:center}
+.ps-wait::before{content:"";flex:none;width:26px;height:26px;border-radius:999px;border:3px solid rgba(245,200,66,.22);border-top-color:#f5c842;animation:psSpin .7s linear infinite}
+.ps-wait b{display:block;font-size:.86rem;font-weight:800;color:#e8edf2;margin-bottom:4px}
+@media (prefers-reduced-motion:reduce){.ps-wait::before{animation:none;border-top-color:rgba(245,200,66,.22)}}
+.ps-scan{display:flex;align-items:flex-start;gap:7px;font-size:.75rem;line-height:1.6;color:#a8b3c2;margin:-4px 0 10px}
+.ps-scan.is-busy::before{content:"";flex:0 0 auto;width:11px;height:11px;margin-top:3px;border-radius:999px;border:2px solid rgba(245,200,66,.28);border-top-color:#f5c842;animation:psSpin .7s linear infinite}
+.ps-scan.is-warn{color:#f5c842}
+@keyframes psSpin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.ps-scan.is-busy::before{animation:none;border-top-color:rgba(245,200,66,.28)}}
+.ps-confirm{display:flex;align-items:flex-start;gap:9px;margin-top:14px;padding:11px 13px;border-radius:11px;border:1px solid rgba(245,200,66,.3);background:rgba(245,200,66,.06);font-size:.78rem;font-weight:700;line-height:1.55;color:#e8edf2;cursor:pointer;transition:border-color .2s,background .2s}
+.ps-confirm:hover{border-color:rgba(245,200,66,.55);background:rgba(245,200,66,.1)}
+.ps-confirm:focus-within{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.ps-confirm.is-off{opacity:.5;cursor:default}
+.ps-confirm input{flex:0 0 auto;width:17px;height:17px;margin-top:1px;accent-color:#e6b52c;cursor:pointer}
+.ps-confirm.is-off input{cursor:default}
+.ps-msg{margin-top:10px;padding:12px 14px;border-radius:12px;font-size:.8rem;line-height:1.6}
+.ps-msg-busy{color:#a8b3c2;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.03)}
+.ps-msg-warn{color:#f5c842;border:1px solid rgba(245,200,66,.32);background:rgba(245,200,66,.07)}
+.ps-res-title{font-size:.95rem;font-weight:800;letter-spacing:-.01em;color:#34d399}
+.ps-res-title.ps-sm{font-size:.82rem;color:#a8b3c2;margin-top:18px}
+.ps-res-lead{font-size:.78rem;color:#a8b3c2;line-height:1.7;margin-top:4px}
+.ps-res-lead b{color:#e8edf2}
+.ps-tbl{width:100%;margin-top:10px;border-collapse:collapse;font-size:.78rem}
+.ps-tbl th{text-align:left;font-weight:700;color:#6b7d93;font-size:.68rem;letter-spacing:.04em;padding:0 0 6px}
+.ps-tbl td{padding:7px 0;border-top:1px solid rgba(255,255,255,.07);color:#e8edf2;vertical-align:top}
+.ps-tbl .ps-to{color:#a8b3c2}
+.ps-tbl .ps-amt{text-align:right;font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}
+.ps-tbl-dim td{color:#a8b3c2}
+/* 明細の内訳を畳む札（2026-08-12）。開閉は details/summary に任せる ―
+   JS で高さを測ると、中の表が通貨切替で書き換わるたびに閉じ位置がずれる。 */
+.ps-fold{margin-top:14px;border-top:1px solid rgba(255,255,255,.07)}
+.ps-fold-s{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:11px 2px;font-size:.78rem;font-weight:700;color:#a8b3c2;transition:color .18s cubic-bezier(.16,1,.3,1),opacity .18s}
+.ps-fold-s::-webkit-details-marker{display:none}
+.ps-fold-s:hover{color:#e8edf2}
+.ps-fold-s:focus-visible{outline:2px solid rgba(245,200,66,.7);outline-offset:3px;border-radius:6px}
+.ps-fold-s:active{opacity:.72}
+.ps-fold-i{margin-left:auto;flex:none;width:9px;height:9px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg) translate(-2px,-2px);transition:transform .22s cubic-bezier(.16,1,.3,1)}
+.ps-fold[open] > .ps-fold-s > .ps-fold-i{transform:rotate(225deg) translate(-2px,-2px)}
+.ps-fold-b{padding-bottom:4px;animation:stepIn .28s cubic-bezier(.16,1,.3,1) both}
+.ps-fold-b > .ps-tbl:first-child{margin-top:0}
+.form-input.ai-filled{border-color:rgba(52,211,153,.55);background:rgba(52,211,153,.07)}
+.ps-rate{margin-bottom:16px;padding:16px 18px;border-radius:14px;border:1px solid rgba(245,200,66,.28);background:radial-gradient(130% 170% at 100% 0%,rgba(245,200,66,.10),transparent 60%),rgba(255,255,255,.025)}
+.ps-rate:empty{display:none}
+.ps-rate-t{font-size:.68rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#f5c842}
+.ps-rate-row{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.07)}
+.ps-rate-row:last-of-type{border-bottom:none}
+.ps-rate-k{font-size:.82rem;font-weight:700;color:#e8edf2}
+.ps-rate-v{flex:none;text-align:right;font-size:1.35rem;font-weight:800;letter-spacing:-.02em;color:#f5c842;font-variant-numeric:tabular-nums;line-height:1.15}
+.ps-rate-min{display:block;font-size:.68rem;font-weight:600;color:#6b7d93;letter-spacing:0}
+/* 年間ペース × 公開レンジ（payslip.js の renderAha）。時給カードの直後に出る。
+   ★時給＝黄（#f5c842）、こちら＝緑（#48c78e）で役割を分ける。同じ色にすると
+     「同じことを2回言っている」に見えて、2枚目を読まれない。 */
+.ps-aha{margin-bottom:16px;padding:16px 18px;border-radius:14px;border:1px solid rgba(72,199,142,.24);background:radial-gradient(130% 170% at 0% 0%,rgba(72,199,142,.09),transparent 62%),rgba(255,255,255,.025)}
+.ps-aha:empty{display:none}
+.ps-aha-t{font-size:.68rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#48c78e}
+.ps-aha-msg{font-size:.8rem;color:#9ca3af;line-height:1.65;margin-top:10px}
+.ps-aha-b{margin-top:12px}
+.ps-aha-pace{display:flex;align-items:baseline;justify-content:space-between;gap:14px;margin-top:10px}
+.ps-aha-pk{font-size:.82rem;font-weight:700;color:#e8edf2}
+.ps-aha-pv{font-size:1.55rem;font-weight:800;letter-spacing:-.03em;color:#48c78e;font-variant-numeric:tabular-nums;line-height:1.15}
+.ps-aha-h{font-size:.7rem;color:#6b7d93;line-height:1.55;margin-top:2px}
+.ps-aha-sec{margin-top:18px;font-size:.76rem;font-weight:700;color:#e8edf2}
+.ps-aha-bar{position:relative;height:8px;margin-top:12px;border-radius:99px;background:linear-gradient(90deg,rgba(72,199,142,.16),rgba(72,199,142,.44))}
+.ps-aha-avg{position:absolute;top:-3px;width:2px;height:14px;border-radius:2px;background:rgba(255,255,255,.5);transform:translateX(-1px)}
+.ps-aha-dot{position:absolute;top:50%;width:14px;height:14px;border-radius:50%;background:#f5c842;border:2px solid #0d1520;box-shadow:0 2px 9px rgba(245,200,66,.42);transform:translate(-50%,-50%)}
+.ps-aha-bar.is-under .ps-aha-dot,.ps-aha-bar.is-over .ps-aha-dot{box-shadow:0 0 0 3px rgba(245,200,66,.22),0 2px 9px rgba(245,200,66,.42)}
+.ps-aha-avgl{position:relative;height:1.15em;margin-top:7px}
+.ps-aha-avgl span{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap;font-size:.68rem;color:#6b7d93;font-variant-numeric:tabular-nums}
+.ps-aha-ends{display:flex;justify-content:space-between;gap:8px;margin-top:2px;font-size:.68rem;color:#6b7d93;font-variant-numeric:tabular-nums}
+.ps-aha-where{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px;margin-top:9px;font-size:.82rem;font-weight:700;color:#e8edf2}
+.ps-aha-where span{font-weight:600;font-size:.76rem;color:#9ca3af}
+.ps-aha-list{margin-top:10px}
+.ps-aha-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.07)}
+.ps-aha-row:last-child{border-bottom:none}
+.ps-aha-name{flex:1;min-width:0;font-size:.8rem;font-weight:600;color:#e8edf2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ps-aha-tf{margin-left:7px;padding:1px 6px;border-radius:99px;font-size:.6rem;font-weight:800;letter-spacing:.04em;color:#48c78e;background:rgba(72,199,142,.14)}
+.ps-aha-num{flex:none;font-size:.8rem;font-weight:700;color:#9ca3af;font-variant-numeric:tabular-nums}
+.ps-aha-gap{flex:none;min-width:5.5em;text-align:right;font-size:.8rem;font-weight:800;color:#48c78e;font-variant-numeric:tabular-nums}
+.ps-aha-rank{margin-top:11px;font-size:.72rem;color:#6b7d93}
+.ps-pd{display:inline-flex;align-items:center;gap:7px;margin-top:10px;font-size:.75rem;color:#a8b3c2;cursor:pointer}
+.ps-pd input{accent-color:#f5c842;cursor:pointer}
+.ps-tbl-edit td{padding:5px 0}
+.ps-tbl-edit .ps-amt{display:flex;align-items:center;justify-content:flex-end;gap:6px}
+.ps-cur{font-size:.66rem;font-weight:700;letter-spacing:.04em;color:#6b7d93}
+.ps-cur:empty{display:none}
+.ps-amt-in{width:9ch;min-width:74px;padding:5px 8px;border-radius:8px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04);color:#e8edf2;font:inherit;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;transition:border-color .2s,background .2s,color .2s}
+.ps-amt-in::-webkit-outer-spin-button,.ps-amt-in::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.ps-amt-in:hover{border-color:rgba(255,255,255,.3)}
+.ps-amt-in:focus{outline:none;border-color:rgba(245,200,66,.7);background:rgba(245,200,66,.07);color:#fff}
+.ps-amt-in:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:1px}
+.ps-ask{margin-top:12px;padding:12px 14px;border-radius:12px;border:1px dashed rgba(245,200,66,.34);background:rgba(245,200,66,.05)}
+.ps-ask[hidden]{display:none}
+.ps-ask-t{font-size:.8rem;font-weight:700;color:#f5c842}
+.ps-ask-l{font-size:.72rem;line-height:1.65;color:#a8b3c2;margin-top:3px}
+.ps-ask-in{display:flex;align-items:center;gap:7px;margin-top:9px}
+.ps-ask-in input{width:112px;padding:8px 10px;border-radius:9px;border:1px solid rgba(245,200,66,.4);background:rgba(0,0,0,.25);color:#e8edf2;font:inherit;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;transition:border-color .2s,background .2s}
+.ps-ask-in input:hover{border-color:rgba(245,200,66,.65)}
+.ps-ask-in input:focus{outline:none;border-color:#f5c842;background:rgba(0,0,0,.4)}
+.ps-ask-in input:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.ps-ask-in input::placeholder{color:#5c6a7d;font-weight:600;opacity:1}
+.ps-ask-in span{font-size:.78rem;font-weight:700;color:#a8b3c2}
+.ps-ask.is-filled{border-style:solid;border-color:rgba(255,255,255,.1);background:rgba(255,255,255,.03)}
+.ps-ask.is-filled .ps-ask-t{font-size:.74rem;font-weight:700;color:#a8b3c2}
+/* 「1項目だけ確認できます」（payslip.js の renderAsk）。分類できなかった行は
+   もう金額として数えてあるので、これは**答えなくてよい質問**。だから時給（黄）・
+   年収ペース（緑）より弱い面に置く。強く出すと「まだ終わっていない」に見える。 */
+.ps-q{margin-top:16px;padding:14px 16px;border-radius:12px;border:1px solid rgba(255,255,255,.09);background:radial-gradient(120% 160% at 100% 0%,rgba(245,200,66,.07),transparent 62%),rgba(255,255,255,.02)}
+.ps-q-h{display:flex;align-items:baseline;gap:12px}
+.ps-q-t{flex:1;min-width:0;font-size:.8rem;font-weight:800;letter-spacing:-.01em;color:#e8edf2}
+.ps-q-skip{flex:none;padding:4px 9px;border:0;border-radius:8px;background:none;color:#6b7d93;font:inherit;font-size:.72rem;font-weight:700;cursor:pointer;transition:color .2s,background .2s,transform .2s cubic-bezier(.16,1,.3,1)}
+.ps-q-skip:hover{color:#a8b3c2;background:rgba(255,255,255,.05)}
+.ps-q-skip:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.ps-q-skip:active{transform:translateY(1px)}
+.ps-q-l{font-size:.72rem;line-height:1.65;color:#6b7d93;margin-top:3px}
+.ps-q-row{display:flex;align-items:baseline;justify-content:space-between;gap:14px;margin-top:11px;padding:9px 11px;border-radius:9px;background:rgba(0,0,0,.22)}
+.ps-q-lb{min-width:0;font-size:.82rem;font-weight:700;color:#e8edf2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ps-q-am{flex:none;font-size:.86rem;font-weight:800;color:#f5c842;font-variant-numeric:tabular-nums}
+.ps-q-q{font-size:.76rem;font-weight:700;color:#a8b3c2;margin-top:11px}
+.ps-q-c{margin-top:9px}
+.ps-next{margin-top:16px;padding:14px 16px;border-radius:12px;border:1px solid rgba(52,211,153,.26);background:rgba(52,211,153,.06)}
+.ps-next-t{font-size:.86rem;font-weight:800;letter-spacing:-.01em;color:#34d399}
+.ps-next-l{font-size:.74rem;line-height:1.65;color:#a8b3c2;margin-top:4px}
+.ps-next .btn-orange{margin-top:11px;padding:10px 20px;font-size:.85rem}
+@media (prefers-reduced-motion:reduce){.ps-edit,.ps-res{animation:none}}
+/* ── Light mode ─────────────────────────────────────────── */
+[data-theme="light"] body{background:#f3f5f8!important;color:#0f172a!important}
+[data-theme="light"] nav{background:rgba(243,245,248,.95)!important;backdrop-filter:blur(16px);border-bottom:1px solid rgba(0,0,0,.07)!important}
+[data-theme="light"] nav.scrolled{background:rgba(243,245,248,.98)!important}
+[data-theme="light"] .nav-link{color:rgba(15,23,42,.55)!important}
+[data-theme="light"] .nav-link:hover{color:#0f172a!important}
+[data-theme="light"] .card{background:rgba(255,255,255,.85)!important;border-color:rgba(0,0,0,.08)!important}
+[data-theme="light"] .form-input{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.12);color:#0f172a}
+[data-theme="light"] .form-input:focus{border-color:rgba(200,149,0,.5);background:rgba(0,0,0,.06)}
+[data-theme="light"] .form-input[readonly],
+[data-theme="light"] .form-input[readonly]:focus{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.18)}
+[data-theme="light"] select.form-input option,[data-theme="light"] select.form-input optgroup{background:#fff}
+[data-theme="light"] .theme-toggle{background:rgba(0,0,0,.06);color:#0f172a;border-color:rgba(0,0,0,.13)}
+[data-theme="light"] .btn-ghost{color:#0f172a!important;border-color:rgba(0,0,0,.15)!important}
+[data-theme="light"] .btn-ghost:hover{border-color:rgba(0,0,0,.3)!important;background:rgba(0,0,0,.04)!important}
+[data-theme="light"] .text-text{color:#0f172a!important}
+[data-theme="light"] .pay-count{border-color:rgba(200,149,0,.32);color:#a97e00;
+  background:radial-gradient(120% 160% at 0% 50%,rgba(200,149,0,.14),transparent 70%),rgba(200,149,0,.05)}
+[data-theme="light"] .warn-row{background:rgba(200,149,0,.07);border-color:rgba(200,149,0,.3);color:#8a6600}
+/* ★白いカードの上ではオレンジ #fb923c が沈む。必須の印は読めなければ意味が無いので、
+   ライトだけ濃いオレンジに落とす（.sec-tag.req はこれまでライトの定義が無く、暗いまま置かれていた）。 */
+[data-theme="light"] .opt-tag{color:#64748b;background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.12)}
+[data-theme="light"] .req-tag,[data-theme="light"] .sec-tag.req{color:#a34a00;background:rgba(163,74,0,.08);border-color:rgba(163,74,0,.28)}
+[data-theme="light"] .auto-tag{color:#0d8a63;background:rgba(13,138,99,.08);border-color:rgba(13,138,99,.28)}
+[data-theme="light"] .fld.is-req::before{background:rgba(163,74,0,.3)}
+/* ★白の上では #34d399 が薄すぎて読めない。済みの印はライトだけ濃い緑に落とす
+   （既存の .auto-tag と同じ #0d8a63）。もとは rgba(0,0,0,.12) ＝ ほぼ見えなかった。 */
+[data-theme="light"] .fld.is-req.is-done::before{background:rgba(13,138,99,.5)}
+[data-theme="light"] .fld.is-req::after{color:#0d8a63;background:rgba(13,138,99,.1);border-color:rgba(13,138,99,.32)}
+[data-theme="light"] .sec-prog{color:#64748b;background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.11)}
+[data-theme="light"] .sec-prog:hover{background:rgba(0,0,0,.07);border-color:rgba(0,0,0,.2)}
+[data-theme="light"] .sec-prog.done,[data-theme="light"] .sec-prog.done:hover{
+  color:#0d8a63;background:rgba(13,138,99,.09);border-color:rgba(13,138,99,.3)}
+/* 明るい地では #34d399 が白に溶けるので、濃いほうの緑に差し替える。 */
+[data-theme="light"] .sec-prog-bar{background:rgba(0,0,0,.1)}
+[data-theme="light"] .sec-prog-bar>i{background:linear-gradient(90deg,#0d8a63,#12a878)}
+[data-theme="light"] .sec-prog.done .sec-prog-bar{background:rgba(13,138,99,.2)}
+[data-theme="light"] .entry-b{color:#475569}
+[data-theme="light"] .entry-b>i{color:#0d8a63}
+[data-theme="light"] .entry-b b{color:#0f172a}
+[data-theme="light"] .entry-shield{color:#0d8a63}
+[data-theme="light"] .entry-formats{color:#64748b}
+[data-theme="light"] .ai-legend{color:#475569;background:rgba(13,138,99,.06);border-color:rgba(13,138,99,.24)}
+[data-theme="light"] .ai-legend>i{color:#0d8a63}
+[data-theme="light"] .sec-sub,[data-theme="light"] .fld-hint,[data-theme="light"] .sal-hint,[data-theme="light"] .res-note{color:#64748b}
+[data-theme="light"] .fld-hint b{color:#334155}
+[data-theme="light"] .sec-tag.opt{background:rgba(0,0,0,.05);color:#64748b;border-color:rgba(0,0,0,.12)}
+[data-theme="light"] .sal-total{border-color:rgba(200,149,0,.32);background:radial-gradient(130% 170% at 100% 0%,rgba(200,149,0,.12),transparent 60%),rgba(200,149,0,.05)}
+[data-theme="light"] .sal-total-lab,[data-theme="light"] .sal-total-val .u{color:#64748b}
+[data-theme="light"] .sal-total-val{color:#a97e00}
+[data-theme="light"] .res{background:radial-gradient(130% 170% at 0% 0%,rgba(16,140,100,.12),transparent 60%),rgba(255,255,255,.88);border-color:rgba(16,140,100,.28)}
+/* 明るいテーマだと金の放射が白地に溶ける。線と影だけ濃くする（形は同じ）。 */
+[data-theme="light"] .res-pop{background:radial-gradient(120% 120% at 30% 20%,rgba(245,200,66,.45),rgba(13,138,99,.10) 62%,transparent);border-color:rgba(169,126,0,.32);box-shadow:inset 0 1px 0 rgba(255,255,255,.65),0 6px 16px -8px rgba(169,126,0,.34),0 18px 36px -24px rgba(13,138,99,.42)}
+[data-theme="light"] .res-eyebrow,[data-theme="light"] .res-big{color:#0d8a63}
+[data-theme="light"] .res-sub,[data-theme="light"] .res-k{color:#64748b}
+[data-theme="light"] .res-row{border-bottom-color:rgba(0,0,0,.08)}
+[data-theme="light"] .res-v.hi{color:#a97e00}
+[data-theme="light"] .bench{border-color:rgba(0,0,0,.08);background:rgba(0,0,0,.02)}
+[data-theme="light"] .bench-scale{color:#64748b}
+[data-theme="light"] .bench b{color:#0f172a}
+[data-theme="light"] .form-alert{background:rgba(220,38,38,.07);border-color:rgba(220,38,38,.35);border-left-color:#dc2626;color:#7f1d1d}
+[data-theme="light"] .form-alert .fa-title{color:#dc2626}
+[data-theme="light"] .restore-bar{background:rgba(37,99,235,.06);border-color:rgba(37,99,235,.22);color:#1d4ed8}
+[data-theme="light"] .restore-bar button{color:#475569;border-color:rgba(0,0,0,.15)}
+[data-theme="light"] .restore-bar button:hover{color:#0f172a;border-color:rgba(0,0,0,.32)}
+[data-theme="light"] .chip{color:#475569;background:rgba(0,0,0,.03);border-color:rgba(0,0,0,.18)}
+[data-theme="light"] .chip:hover{color:#a97e00;border-color:rgba(200,149,0,.5);background:rgba(200,149,0,.07)}
+[data-theme="light"] .chip .p{color:#a97e00}
+[data-theme="light"] .pay-detail{border-top-color:rgba(0,0,0,.08)}
+[data-theme="light"] .pay-detail>summary{color:#475569;background:rgba(0,0,0,.03);border-color:rgba(0,0,0,.18)}
+[data-theme="light"] .pay-detail>summary:hover{color:#a97e00;border-color:rgba(200,149,0,.5);background:rgba(200,149,0,.07)}
+[data-theme="light"] .pay-detail>summary .p{color:#a97e00}
+[data-theme="light"] .pay-detail[open]>summary{color:#0f172a;border-color:rgba(200,149,0,.4)}
+[data-theme="light"] .sum-row{background:rgba(0,0,0,.025);border-color:rgba(0,0,0,.08);color:#475569}
+[data-theme="light"] .sum-row b{color:#0f172a}
+[data-theme="light"] .sum-row button{color:#475569;border-color:rgba(0,0,0,.15)}
+[data-theme="light"] .sum-row button:hover{color:#a97e00;border-color:rgba(200,149,0,.5)}
+[data-theme="light"] .entry-q{color:#64748b}
+[data-theme="light"] .entry-card{color:#0f172a;border-color:rgba(0,0,0,.09);background:rgba(255,255,255,.85);
+  box-shadow:0 20px 44px -34px rgba(15,23,42,.55),0 2px 6px -3px rgba(15,23,42,.14)}
+[data-theme="light"] .entry-card.is-primary{border-color:rgba(200,149,0,.4);
+  background:radial-gradient(120% 150% at 0% 0%,rgba(200,149,0,.12),transparent 62%),rgba(255,255,255,.9);
+  box-shadow:0 24px 50px -34px rgba(200,149,0,.6),0 2px 6px -3px rgba(15,23,42,.14)}
+[data-theme="light"] .entry-card:hover{border-color:rgba(200,149,0,.7)}
+[data-theme="light"] .entry-card:focus-visible{outline-color:rgba(200,149,0,.85)}
+[data-theme="light"] .entry-ico{color:#a97e00}
+[data-theme="light"] .entry-tag{background:rgba(0,0,0,.04);color:#64748b;border-color:rgba(0,0,0,.12)}
+[data-theme="light"] .entry-card.is-primary .entry-tag{background:rgba(200,149,0,.12);color:#a97e00;border-color:rgba(200,149,0,.35)}
+[data-theme="light"] .ps-step{color:#a97e00}
+[data-theme="light"] .ps-skip{color:#475569;border-bottom-color:rgba(0,0,0,.18)}
+[data-theme="light"] .ps-skip:hover{color:#0f172a;border-bottom-color:rgba(200,149,0,.7)}
+[data-theme="light"] .ps-skip:focus-visible{outline-color:rgba(200,149,0,.85)}
+[data-theme="light"] .ps-drop{color:#0f172a;border-color:rgba(200,149,0,.4);background:linear-gradient(180deg,rgba(200,149,0,.08),rgba(200,149,0,.02))}
+[data-theme="light"] .ps-drop:hover,[data-theme="light"] .ps-drop.is-over{border-color:rgba(200,149,0,.7);background:linear-gradient(180deg,rgba(200,149,0,.14),rgba(200,149,0,.05))}
+[data-theme="light"] .ps-drop-txt small{color:#64748b}
+[data-theme="light"] .ps-fold{border-top-color:rgba(0,0,0,.09)}
+[data-theme="light"] .ps-fold-s{color:#64748b}
+[data-theme="light"] .ps-fold-s:hover{color:#0f172a}
+[data-theme="light"] .ps-fold-s:focus-visible{outline-color:rgba(200,149,0,.85)}
+[data-theme="light"] .ps-hint,[data-theme="light"] .ps-note,[data-theme="light"] .ps-rate-min{color:#64748b}
+[data-theme="light"] .ps-note b{color:#334155}
+[data-theme="light"] .ps-edit,[data-theme="light"] .ps-res{border-color:rgba(0,0,0,.09);background:rgba(255,255,255,.85);box-shadow:0 18px 40px -30px rgba(200,149,0,.45),0 2px 6px -3px rgba(15,23,42,.18)}
+[data-theme="light"] .ps-lead{color:#0f172a}
+[data-theme="light"] .ps-stage{background:#e2e8f0}
+[data-theme="light"] .ps-rect{border-color:rgba(200,149,0,.85)}
+[data-theme="light"] .ps-frame{border-color:#a97e00;box-shadow:0 0 0 9999px rgba(15,23,42,.55)}
+[data-theme="light"] .ps-frame-tag,[data-theme="light"] .ps-frame-grip{background:#a97e00;color:#fff}
+[data-theme="light"] .ps-lead-sm{color:#a97e00}
+[data-theme="light"] .ps-rect-grip{background:#a97e00}
+[data-theme="light"] .ps-btn-ghost{color:#475569;background:rgba(0,0,0,.03);border-color:rgba(0,0,0,.16)}
+[data-theme="light"] .ps-btn-ghost:hover{color:#0f172a;border-color:rgba(0,0,0,.34)}
+[data-theme="light"] .ps-btn-go{color:#3a2c00;background:linear-gradient(180deg,#f7d15e,#e0ac1e);border-color:rgba(200,149,0,.9);box-shadow:0 14px 30px -20px rgba(200,149,0,.85)}
+[data-theme="light"] .ps-btn-go:hover:not([disabled]){background:linear-gradient(180deg,#ffe083,#eaba2c)}
+[data-theme="light"] .ps-warn{color:#8a6600}
+[data-theme="light"] .ps-frwarn{background:rgba(220,38,38,.07);border-color:rgba(220,38,38,.35);border-left-color:#dc2626;color:#7f1d1d}
+[data-theme="light"] .ps-frwarn b{color:#dc2626}
+[data-theme="light"] .ps-edit.is-wait > .ps-wait{background:rgba(255,255,255,.72);border-color:rgba(15,23,42,.12);color:#64748b}
+[data-theme="light"] .ps-wait b{color:#0f172a}
+[data-theme="light"] .ps-wait::before{border-color:rgba(200,149,0,.24);border-top-color:#a97e00}
+[data-theme="light"] .ps-scan{color:#64748b}
+[data-theme="light"] .ps-scan.is-warn{color:#8a6600}
+[data-theme="light"] .ps-scan.is-busy::before{border-color:rgba(200,149,0,.28);border-top-color:#a97e00}
+[data-theme="light"] .ps-confirm{color:#0f172a;border-color:rgba(200,149,0,.4);background:rgba(200,149,0,.08)}
+[data-theme="light"] .ps-confirm:hover{border-color:rgba(200,149,0,.65);background:rgba(200,149,0,.13)}
+[data-theme="light"] .ps-msg-busy{color:#475569;border-color:rgba(0,0,0,.1);background:rgba(0,0,0,.02)}
+[data-theme="light"] .ps-msg-warn{color:#8a6600;border-color:rgba(200,149,0,.35);background:rgba(200,149,0,.07)}
+[data-theme="light"] .ps-res-title{color:#0d8a63}
+[data-theme="light"] .ps-res-title.ps-sm{color:#475569}
+[data-theme="light"] .ps-res-lead{color:#475569}
+[data-theme="light"] .ps-res-lead b{color:#0f172a}
+[data-theme="light"] .ps-tbl th{color:#64748b}
+[data-theme="light"] .ps-tbl td{color:#0f172a;border-top-color:rgba(0,0,0,.08)}
+[data-theme="light"] .ps-tbl .ps-to,[data-theme="light"] .ps-tbl-dim td{color:#475569}
+[data-theme="light"] .form-input.ai-filled{border-color:rgba(13,138,99,.5);background:rgba(13,138,99,.07)}
+[data-theme="light"] .ps-rate{border-color:rgba(200,149,0,.32);background:radial-gradient(130% 170% at 100% 0%,rgba(200,149,0,.12),transparent 60%),rgba(255,255,255,.6)}
+[data-theme="light"] .ps-rate-t,[data-theme="light"] .ps-rate-v{color:#a97e00}
+[data-theme="light"] .ps-rate-k{color:#0f172a}
+[data-theme="light"] .ps-rate-row{border-bottom-color:rgba(0,0,0,.08)}
+[data-theme="light"] .ps-aha{border-color:rgba(15,118,86,.26);background:radial-gradient(130% 170% at 0% 0%,rgba(15,118,86,.10),transparent 62%),rgba(255,255,255,.6)}
+[data-theme="light"] .ps-aha-t,[data-theme="light"] .ps-aha-pv,[data-theme="light"] .ps-aha-gap,[data-theme="light"] .ps-aha-tf{color:#0f7656}
+[data-theme="light"] .ps-aha-pk,[data-theme="light"] .ps-aha-sec,[data-theme="light"] .ps-aha-where,[data-theme="light"] .ps-aha-name{color:#0f172a}
+[data-theme="light"] .ps-aha-h,[data-theme="light"] .ps-aha-avgl span,[data-theme="light"] .ps-aha-ends,[data-theme="light"] .ps-aha-rank,[data-theme="light"] .ps-aha-msg,[data-theme="light"] .ps-aha-where span,[data-theme="light"] .ps-aha-num{color:#64748b}
+[data-theme="light"] .ps-aha-row{border-bottom-color:rgba(0,0,0,.08)}
+[data-theme="light"] .ps-aha-dot{border-color:#fff}
+[data-theme="light"] .ps-aha-avg{background:rgba(15,23,42,.42)}
+[data-theme="light"] .ps-aha-tf{background:rgba(15,118,86,.12)}
+[data-theme="light"] .ps-pd{color:#475569}
+[data-theme="light"] .ps-cur{color:#64748b}
+[data-theme="light"] .ps-amt-in{border-color:rgba(0,0,0,.14);background:#fff;color:#0f172a}
+[data-theme="light"] .ps-amt-in:hover{border-color:rgba(0,0,0,.3)}
+[data-theme="light"] .ps-amt-in:focus{border-color:rgba(200,149,0,.8);background:rgba(200,149,0,.08);color:#0f172a}
+[data-theme="light"] .ps-ask{border-color:rgba(200,149,0,.4);background:rgba(200,149,0,.07)}
+[data-theme="light"] .ps-ask-t{color:#a97e00}
+[data-theme="light"] .ps-ask-l,[data-theme="light"] .ps-ask-in span,[data-theme="light"] .ps-next-l{color:#475569}
+[data-theme="light"] .ps-ask-in input{border-color:rgba(200,149,0,.45);background:#fff;color:#0f172a}
+[data-theme="light"] .ps-ask-in input:focus{border-color:#a97e00;background:#fffdf5}
+[data-theme="light"] .ps-ask-in input::placeholder{color:#94a3b8}
+[data-theme="light"] .ps-ask.is-filled{border-color:rgba(0,0,0,.1);background:rgba(255,255,255,.7)}
+[data-theme="light"] .ps-ask.is-filled .ps-ask-t{color:#475569}
+[data-theme="light"] .ps-q{border-color:rgba(0,0,0,.09);background:radial-gradient(120% 160% at 100% 0%,rgba(200,149,0,.09),transparent 62%),rgba(255,255,255,.6)}
+[data-theme="light"] .ps-q-t,[data-theme="light"] .ps-q-lb{color:#0f172a}
+[data-theme="light"] .ps-q-l,[data-theme="light"] .ps-q-skip{color:#64748b}
+[data-theme="light"] .ps-q-skip:hover{color:#0f172a;background:rgba(0,0,0,.05)}
+[data-theme="light"] .ps-q-row{background:rgba(15,23,42,.05)}
+[data-theme="light"] .ps-q-am{color:#a97e00}
+[data-theme="light"] .ps-q-q{color:#475569}
+[data-theme="light"] .ps-next{border-color:rgba(13,138,99,.28);background:rgba(13,138,99,.06)}
+[data-theme="light"] .ps-next-t{color:#0d8a63}
+</style>
+<!--PV-3P-->
+<script>
+/* 広告と解析は、表示が終わるまで読まない。async でも帯域は奪うため。
+   利用者が最初に触った時か load の、どちらか早いほうで読み込む。
+   戻すときは node defer-third-party.mjs --undo */
+(function(){
+  var done=false;
+  function boot(){
+    if(done)return; done=true;
+    [{"src":"https://www.googletagmanager.com/gtag/js?id=G-3XYF69VQ3X","cross":false}].forEach(function(it){
+      var s=document.createElement('script');
+      s.src=it.src; s.async=true;
+      if(it.cross)s.crossOrigin='anonymous';
+      document.head.appendChild(s);
+    });
+  }
+  ['pointerdown','keydown','touchstart','scroll','wheel'].forEach(function(ev){
+    addEventListener(ev,boot,{once:true,passive:true});
+  });
+  if(document.readyState==='complete')boot();
+  else addEventListener('load',boot,{once:true});
+})();
+</script>
+<!--/PV-3P-->
+<script src="pv-session.js"></script>
+<!-- ★招待（?ref=）を受け取るところ。読み込む位置がここでなければならない。
+     下の長いインラインスクリプトは、起動した時点で window.PVReferral.claim() を
+     呼んで「招待リンクから来た人」を紹介者に結びつける。この script を
+     pv-conditions.js の並び（ファイル末尾）に置くと、そのとき window.PVReferral が
+     まだ存在せず、Google から戻ってきた人の紐づけだけが黙って落ちる。 -->
+<script src="pv-referral.js"></script>
+</head>
+<body class="relative">
+
+<!-- NAV -->
+<nav id="main-nav">
+  <div class="max-w-5xl mx-auto px-6 flex items-center justify-between h-[68px]">
+    <a href="index.html" class="flex items-center gap-3 flex-shrink-0">
+      <img src="assets/logo.png" alt="PILOT VALUE" class="logo-img"/>
+    </a>
+    <div class="flex items-center gap-3">
+      <button id="theme-toggle" class="theme-toggle" aria-label="ダーク/ライト切替"></button>
+      <a href="world-airlines.html" class="btn-ghost py-2 px-4 text-sm">← 世界の航空会社</a>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main class="relative pt-[68px] min-h-screen">
+  <div class="max-w-2xl mx-auto px-4 py-12">
+
+    <!-- Header ── 2026-08-13（その4）オーナー指摘で2行に絞った。
+         以前は 匿名ピル＋見出し＋説明文＋黄色い枠 が4段積まれ、2択に届く前に
+         注意書きを読まされていた。匿名の約束は下の2択カードの1行目に移した。 -->
+    <div class="text-center mb-9">
+      <h1 class="text-3xl font-extrabold mb-3" style="letter-spacing:-.02em">給与を追加</h1>
+      <p class="pay-count" id="pay-count">1000件以上の給与情報が提出されました！</p>
+    </div>
+
+    <!-- Form ── levels.fyi 型：埋めると下に次が生える -->
+    <div id="form-wrap">
+
+      <!-- 入口 ── どちらで入れるかを最初に選ぶ（2026-08-13 オーナー指摘）───────
+           以前は明細のカードが注意書きごと本文の途中に置いてあり、
+           「読み込ませれば埋まる」ことが伝わらないまま手入力に流れていた。
+           ★2択は毎回出す（オーナー決定）。前回の内容は「手動で入力」を押してから戻す。 -->
+      <div id="entry">
+        <p class="entry-q">どちらで入力しますか？</p>
+        <div class="entry-grid">
+          <!-- ★明細の側に所要時間を書かない（2026-08-13 オーナー指示）。
+               読み取りにかかる時間は明細の枚数と画質で変わるので、約束にならない。
+               ★「検証済み」も書かない。pay_reports.verify_level に書き込む処理が
+               まだ無く、VERIFIED-PILOT.md の「検証できないものを Verified と表示しない」に反する
+               （db/test-form-contract.mjs が現に禁止している）。本人確認が動いたら足す。
+               ★2026-08-14（オーナー指示）ここの3語は 匿名／暗号化＆セキュア／簡単。
+               それぞれ何を指すか＝
+               ・匿名 ………… 氏名・社員番号・口座は端末の中で黒塗りしてから送る
+               ・暗号化＆セキュア … 送信は HTTPS、読み取った画像は保存しない
+               ・簡単 ………… 落とすだけで金額の欄が埋まる
+               事実の要約であって、盛った言い方に書き換えない。 -->
+          <button type="button" class="entry-card is-primary" id="entry-payslip">
+            <span class="entry-ico" aria-hidden="true">📄</span>
+            <span class="entry-t">明細から自動入力</span>
+            <span class="entry-benefits">
+              <span class="entry-b"><i aria-hidden="true">✓</i>匿名</span>
+              <!-- 盾を付けるのはここだけ。3つのうちこれだけが「こちら側の仕組み」の話で、
+                   本人が画面を見ても確かめられないため、印で補う。 -->
+              <span class="entry-b"><i aria-hidden="true">✓</i>暗号化＆セキュア<svg class="entry-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5 4.5 5.6v5.6c0 4.7 3.2 9 7.5 10 4.3-1 7.5-5.3 7.5-10V5.6L12 2.5Z"/><path d="m9 12 2.2 2.2L15.4 10"/></svg></span>
+              <span class="entry-b"><i aria-hidden="true">✓</i>簡単</span>
+            </span>
+            <span class="entry-formats">PDF · PNG · JPG · WebP</span>
+          </button>
+          <button type="button" class="entry-card" id="entry-manual">
+            <span class="entry-ico" aria-hidden="true">✎</span>
+            <span class="entry-t">手動で入力</span>
+            <span class="entry-benefits">
+              <span class="entry-b"><i aria-hidden="true">✓</i>匿名</span>
+              <span class="entry-b"><i aria-hidden="true">✓</i>明細を見ながら、金額を自分で入れます</span>
+              <span class="entry-b" id="entry-prev" hidden><i aria-hidden="true">✓</i>前回の内容が入ります</span>
+            </span>
+            <span class="entry-tag">約50秒</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 明細から自動入力 ── 端末の中で黒塗り → 本人が見る → 送る -->
+      <div class="ps" id="ps" hidden>
+        <p class="ps-step" id="ps-step">ステップ 1/2 — 明細を読み込む</p>
+        <button type="button" class="ps-drop" id="ps-drop">
+          <span class="ps-ico" aria-hidden="true">📄</span>
+          <span class="ps-drop-txt">
+            <b>明細から自動入力</b>
+            <small>給与明細の画像か PDF をここに落とすか、クリックして選んでください</small>
+          </span>
+        </button>
+        <input type="file" id="ps-file" accept="application/pdf,image/png,image/jpeg,image/webp" hidden>
+        <!-- ★2026-08-13（その4）長い注意書き（.ps-priv）を消して3行に絞った。
+             塗る／枠の外を切り落とす／保存しない の説明は、実際に明細を上げた直後の
+             確認画面が payslip.js の T.redacted / T.note で出す。読ませるべきはそこ。
+             ★2026-08-13（その5）「画像は送りません」を消した。**事実でなかった。**
+             端末でやっているのは黒塗りで、読み取りは枠の中を切り出した画像を送ってやっている。
+             言い換えずに消す（オーナー判断）。送る範囲の説明は送る直前の確認画面にある。 -->
+        <!-- ★匿名／暗号化＆セキュア／簡単 の3語はここではなく、ひとつ前の
+             「明細から自動入力」のカードに置いてある（2026-08-14 オーナー指示）。
+             選ぶ前に読ませる語なので、選んだあとのこの画面で繰り返さない。 -->
+        <span class="entry-benefits ps-benefits">
+          <span class="entry-b"><i aria-hidden="true">✓</i><b>PDF のまま</b>落とすのがいちばん正確に読めます</span>
+        </span>
+        <!-- ★逃げ道。読み取りが失敗した人・PDF を持っていない人がここで行き止まりになる。 -->
+        <button type="button" class="ps-skip" id="ps-skip">読み取らずに手動で入力する →</button>
+        <div id="ps-panel"></div>
+      </div>
+
+      <!-- ★入口で選ぶまで隠す（中の段の hidden はそのまま。ここは箱ごとの出し入れ）。
+           入れ子を深くしないため、中の行はインデントを変えていない。 -->
+      <div id="form-body" hidden>
+
+      <!-- ★緑の枠が何なのかを1行で言う（2026-08-13 その4）。明細から入った欄には
+           .form-input.ai-filled が緑の枠を付けているが、その意味はどこにも書いていなかった。
+           全部上書きされたら自然に消える（payslip.js が触られた欄の印を外す）。 -->
+      <p class="ai-legend" id="ai-legend" hidden><i aria-hidden="true">■</i>緑の枠は明細から入った欄です。違っていたら上書きしてください。</p>
+
+      <div id="restore-bar" class="restore-bar" style="display:none">
+        <span>前回の内容をこの端末から復元しました。変わったところだけ直してください。</span>
+        <button type="button" id="btn-forget">保存を消す</button>
+      </div>
+
+      <div class="card sec step" id="s1">
+        <div class="sec-head">
+          <span class="sec-title">1. 会社と職務</span>
+          <span class="sec-tag req">必須</span>
+          <!-- 進み具合のゲージ。中身は markProgress() が書く。押すと最初の未入力欄へ飛ぶ。 -->
+          <button type="button" class="sec-prog" hidden></button>
+        </div>
+        <p class="sec-sub">所要 約50秒。埋めると、下に次が出てきます。</p>
+
+        <div class="fld">
+          <label class="form-label" for="f-airline">会社<span class="req-tag">必須</span></label>
+          <select id="f-airline" class="form-input">
+            <option value="">選択してください</option>
+              <optgroup label="日本">
+                <option value="ana">全日本空輸（ANA）</option>
+                <option value="jal">日本航空（JAL）</option>
+                <option value="zipair">ZIPAIR Tokyo</option>
+                <option value="jetstar-japan">ジェットスター・ジャパン</option>
+                <option value="peach">Peach Aviation</option>
+                <option value="solaseed">ソラシドエア</option>
+                <option value="spring-japan">スプリング・ジャパン</option>
+                <option value="airdo">AIRDO</option>
+                <option value="starflyer">スターフライヤー</option>
+                <option value="skymark">スカイマーク</option>
+                <option value="fda">フジドリームエアラインズ（FDA）</option>
+                <option value="airjapan">AirJapan</option>
+                <option value="amx">天草エアライン</option>
+                <option value="ana-wings">ANAウイングス</option>
+                <option value="daiichi-air">第一航空</option>
+                <option value="hac">北海道エアシステム</option>
+                <option value="ibex">IBEXエアラインズ</option>
+                <option value="j-air">ジェイエア</option>
+                <option value="jac">日本エアコミューター</option>
+                <option value="jta">日本トランスオーシャン航空</option>
+                <option value="orc">オリエンタルエアブリッジ</option>
+                <option value="rac">琉球エアーコミューター</option>
+                <option value="shin-central">新中央航空</option>
+                <option value="shin-nihon">新日本航空</option>
+                <option value="toho-air">東邦航空</option>
+                <option value="toki-air">トキエア</option>
+              </optgroup>
+              <optgroup label="中東">
+                <option value="emirates">エミレーツ</option>
+                <option value="etihad">エティハド航空</option>
+                <option value="qatar-airways">カタール航空</option>
+                <option value="gulf-air">ガルフ・エア</option>
+                <option value="kuwait-airways">クウェート航空</option>
+                <option value="oman-air">オマーン航空</option>
+                <option value="riyadh-air">リヤド航空</option>
+                <option value="royal-jordanian">ロイヤル・ヨルダン航空</option>
+                <option value="saudia">サウジア航空</option>
+              </optgroup>
+              <optgroup label="アジア">
+                <option value="cathay-pacific">キャセイパシフィック</option>
+                <option value="singapore-airlines">シンガポール航空</option>
+                <option value="korean-air">大韓航空</option>
+                <option value="asiana">アシアナ航空</option>
+                <option value="starlux">スターラックス</option>
+                <option value="china-airlines">チャイナエアライン</option>
+                <option value="thai-airways">タイ国際航空</option>
+                <option value="eva-air">エバー航空</option>
+                <option value="air-china">中国国際航空</option>
+                <option value="china-eastern">中国東方航空</option>
+                <option value="china-southern">中国南方航空</option>
+                <option value="hainan-airlines">海南航空</option>
+                <option value="root-aviation">ルート・アビエーション</option>
+                <option value="air-india">エア・インディア</option>
+                <option value="airasia">エアアジア</option>
+                <option value="bamboo-airways">バンブー・エアウェイズ</option>
+                <option value="batik-air">バティック・エア</option>
+                <option value="garuda-indonesia">ガルーダ・インドネシア航空</option>
+                <option value="hong-kong-express">香港エクスプレス航空</option>
+                <option value="indigo">インディゴ航空</option>
+                <option value="malaysia-airlines">マレーシア航空</option>
+                <option value="philippine-airlines">フィリピン航空</option>
+                <option value="scoot">スクート</option>
+                <option value="vietjet">ベトジェット航空</option>
+                <option value="vietnam-airlines">ベトナム航空</option>
+                <option value="royal-brunei">ロイヤル・ブルネイ航空</option>
+              </optgroup>
+              <optgroup label="欧州">
+                <option value="klm">KLMオランダ航空</option>
+                <option value="air-france">エールフランス</option>
+                <option value="lufthansa">ルフトハンザ</option>
+                <option value="british-airways">ブリティッシュ・エアウェイズ</option>
+                <option value="airx-charter">エアX・チャーター</option>
+                <option value="eagle-jet">イーグルジェット・インターナショナル</option>
+                <option value="turkish-airlines">ターキッシュ エアラインズ</option>
+                <option value="aegean">エーゲ航空</option>
+                <option value="aer-lingus">エア・リンガス</option>
+                <option value="austrian">オーストリア航空</option>
+                <option value="easyjet">イージージェット</option>
+                <option value="eurowings">ユーロウイングス</option>
+                <option value="finnair">フィンエアー</option>
+                <option value="iberia">イベリア航空</option>
+                <option value="icelandair">アイスランド航空</option>
+                <option value="ita-airways">ITAエアウェイズ</option>
+                <option value="lot">LOTポーランド航空</option>
+                <option value="norwegian">ノルウェー・エアシャトル</option>
+                <option value="ryanair">ライアンエアー</option>
+                <option value="sas">スカンジナビア航空</option>
+                <option value="swiss">スイス インターナショナル エアラインズ</option>
+                <option value="tap">TAPポルトガル航空</option>
+                <option value="virgin-atlantic">ヴァージン・アトランティック航空</option>
+                <option value="vueling">ブエリング航空</option>
+                <option value="wizz-air">ウィズ・エアー</option>
+              </optgroup>
+              <optgroup label="北米">
+                <option value="united">ユナイテッド航空</option>
+                <option value="delta">デルタ航空</option>
+                <option value="american">アメリカン航空</option>
+                <option value="southwest">サウスウエスト航空</option>
+                <option value="air-canada">エア・カナダ</option>
+                <option value="solairus">ソレイラス・アビエーション</option>
+                <option value="alaska-airlines">アラスカ航空</option>
+                <option value="allegiant">アレジアント航空</option>
+                <option value="breeze-airways">ブリーズ・エアウェイズ</option>
+                <option value="frontier">フロンティア航空</option>
+                <option value="jetblue">ジェットブルー航空</option>
+                <option value="porter">ポーター航空</option>
+                <option value="spirit">スピリット航空</option>
+                <option value="westjet">ウェストジェット航空</option>
+              </optgroup>
+              <optgroup label="オセアニア">
+                <option value="qantas">カンタス航空</option>
+                <option value="air-new-zealand">ニュージーランド航空</option>
+                <option value="fiji-airways">フィジー・エアウェイズ</option>
+                <option value="jetstar">ジェットスター航空</option>
+              </optgroup>
+              <optgroup label="中南米">
+                <option value="aeromexico">アエロメヒコ航空</option>
+                <option value="avianca">アビアンカ航空</option>
+                <option value="copa-airlines">コパ航空</option>
+                <option value="latam">LATAM航空</option>
+              </optgroup>
+              <optgroup label="アフリカ">
+                <option value="egyptair">エジプト航空</option>
+                <option value="ethiopian-airlines">エチオピア航空</option>
+                <option value="kenya-airways">ケニア航空</option>
+                <option value="south-african-airways">南アフリカ航空</option>
+              </optgroup>
+              <optgroup label="一覧にない会社">
+                <option value="other">その他（自分で入力）</option>
+              </optgroup>
+          </select>
+        </div>
+        <div class="fld" id="wrap-other" style="display:none">
+          <label class="form-label" for="f-airline-other">会社名（一覧にない会社）<span class="req-tag">必須</span></label>
+          <input type="text" id="f-airline-other" class="form-input" maxlength="80" placeholder="例：Wizz Air Abu Dhabi"/>
+          <p class="fld-hint">自由入力の社名は<b>公開集計に出しません</b>（社名そのものが個人の手がかりになるため）。後日、一覧の会社に名寄せします。</p>
+        </div>
+        <div class="grid2">
+          <div class="fld">
+            <label class="form-label" for="f-position">職位<span class="req-tag">必須</span></label>
+            <select id="f-position" class="form-input">
+              <option value="">選択してください</option>
+              <option value="cap">機長（CAP）</option>
+              <option value="fo">副操縦士（FO）</option>
+              <option value="cadet">訓練生</option>
+            </select>
+          </div>
+          <div class="fld">
+            <label class="form-label" for="f-fleet">機材<span class="req-tag">必須</span></label>
+            <select id="f-fleet" class="form-input">
+              <option value="">選択してください</option>
+              <optgroup label="ナローボディ（国内・近距離）">
+                <option value="a320">A320ファミリー（A319/320/321）</option>
+                <option value="b737">Boeing 737</option>
+                <option value="a220">Airbus A220（旧 CS100/300）</option>
+                <option value="b757">Boeing 757</option>
+                <option value="e-jet">Embraer E-Jet（E170/190）</option>
+              </optgroup>
+              <optgroup label="ワイドボディ（国際・長距離）">
+                <option value="b767">Boeing 767</option>
+                <option value="b777">Boeing 777</option>
+                <option value="b787">Boeing 787 Dreamliner</option>
+                <option value="b747">Boeing 747</option>
+                <option value="a330">Airbus A330</option>
+                <option value="a350">Airbus A350</option>
+                <option value="a380">Airbus A380</option>
+              </optgroup>
+              <optgroup label="リージョナル・ターボプロップ">
+                <option value="crj">CRJ シリーズ</option>
+                <option value="atr">ATR 42/72</option>
+                <option value="dhc8">DHC-8（Q400 等）</option>
+                <option value="regional">上記以外のリージョナルジェット</option>
+                <option value="turboprop">上記以外のターボプロップ</option>
+                <option value="bizjet">ビジネスジェット（Gulfstream 等）</option>
+              </optgroup>
+              <optgroup label="その他">
+                <option value="other">その他</option>
+              </optgroup>
+            </select>
+          </div>
+        </div>
+        <div class="grid2">
+        <div class="fld">
+          <!-- ★必須。印・GATE_ROLE・送信バリデーション・db/test-form-contract.mjs は同時に直す。 -->
+          <label class="form-label" for="f-jobrole">役職・区分<span class="req-tag">必須</span></label>
+          <select id="f-jobrole" class="form-input">
+            <option value="">選択してください</option>
+            <option value="line">ラインパイロット</option>
+            <option value="instructor">教官（訓練担当）</option>
+            <option value="examiner">査察操縦士</option>
+            <option value="management">管理職（部長・班長 等）</option>
+          </select>
+        </div>
+        <div class="fld">
+          <!-- ★中身は node gen-vocab.mjs が pv-vocab.mjs の AGE_BUCKETS から生成する。手で足さない。 -->
+          <label class="form-label" for="f-age">年代<span class="req-tag">必須</span></label>
+          <select id="f-age" class="form-input">
+            <option value="">選択してください</option>
+            <option value="20-29">20〜29歳</option>
+            <option value="30-39">30〜39歳</option>
+            <option value="40-49">40〜49歳</option>
+            <option value="50-59">50〜59歳</option>
+            <option value="60+">60歳以上</option>
+          </select>
+          <p class="fld-hint">年収は年齢とともに上がるので、同じ会社・同じ職位でも年代が違えば別の数字になります。10歳の幅までしか聞きません。</p>
+        </div>
+        </div>
+      </div>
+
+      <div class="card sec step" id="s2" hidden>
+        <div class="sec-head">
+          <span class="sec-title">2. 対象月と乗務</span>
+          <span class="sec-tag req">必須</span>
+          <button type="button" class="sec-prog" hidden></button>
+        </div>
+        <p class="sec-sub">明細1枚ぶんの月と、その月の乗務。</p>
+
+        <div class="fld">
+          <label class="form-label" for="f-year">対象月<span class="req-tag">必須</span></label>
+          <div class="grid2">
+            <select id="f-year" class="form-input" aria-label="対象年"></select>
+            <select id="f-month" class="form-input" aria-label="対象月"></select>
+          </div>
+          <p class="fld-hint">その明細1枚の月です。<b>毎月1件ずつ</b>出せます（同じ会社・同じ月の出し直しは訂正として上書きされます）。</p>
+        </div>
+        <!-- ★実績と保証を並べて聞く。時給の欄と一緒に隠していたので、月給制の人には
+             保証時間を聞く画面が一度も出ていなかった。中東の75〜80時間保証と、
+             保証という契約が無い日本を並べられるのは、この欄があるからこそ。
+             ただし保証は必須にしない（無い契約に数字を作らせない）。
+             ★用語は「フライトタイム／保証フライトタイム／勤務時間（Duty time）」で統一
+               （2026-08-13 オーナー指摘）。同じものを別の言い方で書かない。 -->
+        <div class="grid2">
+          <div class="fld">
+            <label class="form-label" for="f-block">フライトタイム<span class="req-tag">必須</span></label>
+            <input type="number" id="f-block" class="form-input" min="0" max="200" step="any" inputmode="decimal" placeholder="例：78.5"/>
+            <p class="fld-hint"><b>実際に飛んだ時間</b>（block hours）。時間あたり報酬の分母になります。国と会社をまたいで比較できる唯一の物差しです。<br>飛んでいない月や、時間を管理していない場合は <b>0</b> と入れてください。</p>
+          </div>
+          <div class="fld">
+            <label class="form-label" for="f-duty-h">勤務時間（Duty time）<span class="opt-tag">任意</span></label>
+            <input type="number" id="f-duty-h" class="form-input" min="0" max="400" step="any" inputmode="decimal" placeholder="例：160"/>
+            <p class="fld-hint">出頭から解散までの<b>月の合計</b>。待機・地上業務まで含むので、同じフライトタイムでも会社によって大きく違います。</p>
+          </div>
+        </div>
+        <div class="grid2">
+          <div class="fld">
+            <label class="form-label" for="f-guar">保証フライトタイム<span class="opt-tag">任意</span></label>
+            <input type="number" id="f-guar" class="form-input" min="0" max="200" step="any" inputmode="decimal" placeholder="例：75"/>
+            <p class="fld-hint">飛ばなくても<b>この時間ぶんは払う</b>、という契約上の下限（<b>Minimum Guarantee / MG</b>）。<br>日本の航空会社のように<b>契約に無ければ空欄のまま</b>で構いません。</p>
+          </div>
+          <div class="fld">
+            <label class="form-label" for="f-stay">ステイ日数<span class="req-tag">必須</span></label>
+            <input type="number" id="f-stay" class="form-input" min="0" max="31" step="1" inputmode="numeric" placeholder="例：8"/>
+            <p class="fld-hint">基地の外で泊まった<b>泊数</b>（レイオーバー）。日帰りだけの月は <b>0</b> と入れてください。<br>同じ年収でも、家に帰れない日数は会社ごとにまったく違います。</p>
+          </div>
+        </div>
+
+        <div class="opt-fld" id="opt-f-duty" hidden>
+          <div class="fld">
+            <label class="form-label" for="f-duty">乗務日数（月）<span class="opt-tag">任意</span></label>
+            <input type="number" id="f-duty" class="form-input" min="0" max="31" step="1" inputmode="numeric"/>
+          </div>
+        </div>
+        <div class="opt-fld" id="opt-f-base-iata" hidden>
+          <div class="fld">
+            <label class="form-label" for="f-base-iata">基地（IATA 3文字）<span class="opt-tag">任意</span></label>
+            <input type="text" id="f-base-iata" class="form-input" maxlength="3" style="text-transform:uppercase" placeholder="DXB"/>
+          </div>
+          <p class="fld-hint">基地は<b>公開集計に一切出しません</b>。会社・機材・職位まで絞ったうえで基地まで分かると、人数が少ない区分では個人が特定できてしまうためです。</p>
+        </div>
+        <div class="chips">
+          <button type="button" class="chip" data-open="f-duty"><span class="p">+</span>乗務日数</button>
+          <button type="button" class="chip" data-open="f-base-iata"><span class="p">+</span>基地</button>
+        </div>
+      </div>
+
+      <div class="card sec step" id="s3" hidden>
+        <div class="sec-head">
+          <span class="sec-title">3. 報酬</span>
+          <span class="sec-tag req">必須</span>
+          <button type="button" class="sec-prog" hidden></button>
+        </div>
+        <p class="sec-sub">明細に出ているとおりの額を入れてください。手当ごとに分けたい方は下で分けられます。</p>
+
+        <div class="fld">
+          <label class="form-label" for="f-currency">明細に書かれている通貨<span class="req-tag">必須</span></label>
+          <div class="cur-row">
+            <select id="f-currency" class="form-input">
+              <option value="">通貨</option>
+              <option value="USD">USD — 米ドル</option>
+              <option value="EUR">EUR — ユーロ</option>
+              <option value="JPY">JPY — 日本円</option>
+              <option value="GBP">GBP — 英ポンド</option>
+              <option value="AED">AED — UAEディルハム</option>
+              <option value="QAR">QAR — カタールリヤル</option>
+              <option value="SAR">SAR — サウジリヤル</option>
+              <option value="KWD">KWD — クウェートディナール</option>
+              <option value="BHD">BHD — バーレーンディナール</option>
+              <option value="OMR">OMR — オマーンリアル</option>
+              <option value="JOD">JOD — ヨルダンディナール</option>
+              <option value="TRY">TRY — トルコリラ</option>
+              <option value="CHF">CHF — スイスフラン</option>
+              <option value="SEK">SEK — スウェーデンクローナ</option>
+              <option value="NOK">NOK — ノルウェークローネ</option>
+              <option value="DKK">DKK — デンマーククローネ</option>
+              <option value="ISK">ISK — アイスランドクローナ</option>
+              <option value="PLN">PLN — ポーランドズロチ</option>
+              <option value="HUF">HUF — ハンガリーフォリント</option>
+              <option value="CZK">CZK — チェココルナ</option>
+              <option value="RON">RON — ルーマニアレウ</option>
+              <option value="CAD">CAD — カナダドル</option>
+              <option value="AUD">AUD — 豪ドル</option>
+              <option value="NZD">NZD — ニュージーランドドル</option>
+              <option value="FJD">FJD — フィジードル</option>
+              <option value="SGD">SGD — シンガポールドル</option>
+              <option value="HKD">HKD — 香港ドル</option>
+              <option value="TWD">TWD — 台湾ドル</option>
+              <option value="KRW">KRW — 韓国ウォン</option>
+              <option value="CNY">CNY — 中国元</option>
+              <option value="THB">THB — タイバーツ</option>
+              <option value="MYR">MYR — マレーシアリンギット</option>
+              <option value="IDR">IDR — インドネシアルピア</option>
+              <option value="PHP">PHP — フィリピンペソ</option>
+              <option value="VND">VND — ベトナムドン</option>
+              <option value="BND">BND — ブルネイドル</option>
+              <option value="INR">INR — インドルピー</option>
+              <option value="EGP">EGP — エジプトポンド</option>
+              <option value="ETB">ETB — エチオピアブル</option>
+              <option value="KES">KES — ケニアシリング</option>
+              <option value="ZAR">ZAR — 南アフリカランド</option>
+              <option value="MXN">MXN — メキシコペソ</option>
+              <option value="BRL">BRL — ブラジルレアル</option>
+              <option value="CLP">CLP — チリペソ</option>
+              <option value="COP">COP — コロンビアペソ</option>
+            </select>
+          </div>
+          <p class="fld-hint">円でもドルでも、<b>明細に書かれているそのままの通貨</b>を選んでください。円やドルへの換算はこちらで行います。</p>
+        </div>
+
+        <!-- ★「基本給」「1時間あたりの単価」「保証時間」を全員に聞くのをやめた（2026-08-12）。
+             ・「基本給って何よ」で止まる。日本の明細の「基本給」と湾岸の Basic Salary は
+               同じ言葉で中身が違い、手当をどこまで含めるかも会社ごとに違う。
+             ・時給は昼夜・国内国際で単価が割れるので「1つの数字」で答えられる人が少ない。
+             聞くのは、明細を開かずに答えられる数字1本だけにする。
+             手当ごとに分けたい人のために、下の <details> に内訳を残してある（排他）。 -->
+        <!-- ★この欄は「くわしく入れる」を開いても消さない（2026-08-13 オーナー指摘）。
+             開いている間は下の内訳の合計を映すだけの読み取り専用になる。
+             文言と placeholder の差し替え用に、両方の文をここに置いておく
+             （JS 側に日本語を持たせると EN と食い違う）。 -->
+        <div class="fld" id="pay-gross-fld">
+          <label class="form-label" for="f-gross">その月の総支給額<span class="req-tag">必須</span></label>
+          <input type="text" id="f-gross" class="form-input money" inputmode="decimal" placeholder="例：1,080,000" data-ph-sum="下の内訳の合計"/>
+          <p class="fld-hint" id="gross-hint-own">税・保険が引かれる<b>前</b>の合計です（明細の「総支給額」「Gross Pay」）。<br>手当もボーナスも含めて、<b>明細に出ているそのままの額</b>を入れてください。</p>
+          <p class="fld-hint" id="gross-hint-sum" hidden><b>下の内訳の合計</b>です。手当ごとに入れているあいだは、こちらで自動で計算します。<br>1つの数字で入れたい方は「くわしく入れる」を閉じてください（入力した総支給額が戻ります）。</p>
+        </div>
+
+        <div class="fld">
+          <label class="form-label" for="f-netpay">その月の手取り額<span class="req-tag">必須</span></label>
+          <input type="text" id="f-netpay" class="form-input money" inputmode="decimal" placeholder="例：842,000"/>
+          <p class="fld-hint">税・保険が引かれた<b>後</b>に振り込まれた額です（明細の「差引支給額」「Net Pay」）。<br>総支給との差が、そのまま<b>あなたの控除額</b>になります。</p>
+        </div>
+
+        <!-- ★ボーナスは「今月出た額」と「年間の合計」を分けて聞く（2026-08-13 オーナー指摘）。
+             総支給を明細のとおりに書いてもらう以上、ボーナスが出た月の総支給には
+             ボーナスが入っている。それを ×12 すると年収が跳ね上がる。
+             年換算＝（総支給 − 今月出たボーナス）×12 ＋ 年間ボーナス。 -->
+        <div class="grid2">
+          <div class="fld">
+            <label class="form-label" for="f-perdiem">パーディアム（その月の合計）<span class="req-tag">必須</span></label>
+            <input type="text" id="f-perdiem" class="form-input money" inputmode="decimal" placeholder="滞在手当の月合計"/>
+            <p class="fld-hint">上の総支給に含まれている<b>滞在手当の月合計</b>。<br>付かない会社・出なかった月は <b>0</b> と入れてください。</p>
+          </div>
+          <div class="fld">
+            <label class="form-label" for="f-bonus-mo">今月の賞与・ボーナス<span class="req-tag">必須</span></label>
+            <!-- ★placeholder の薄い 0 ではなく、値として 0 を入れておく（2026-08-13 オーナー指摘）。
+                 薄い 0 は「入れなくていい欄」に見え、必須なのにここで止まる。 -->
+            <input type="text" id="f-bonus-mo" class="form-input money" inputmode="decimal" value="0"/>
+            <p class="fld-hint">上の総支給に含まれている賞与・ボーナス。<b>出ていない月は 0 のまま</b>。<br>年換算するときに、この額だけ外します。</p>
+          </div>
+        </div>
+
+        <div class="grid2">
+          <div class="fld">
+            <label class="form-label" for="f-housing">住居<span class="req-tag">必須</span></label>
+            <select id="f-housing" class="form-input">
+              <option value="">選択してください</option>
+              <option value="provided">社宅・会社支給（現物）</option>
+              <option value="allowance">住宅手当（現金）</option>
+              <option value="none">なし</option>
+            </select>
+            <p class="fld-hint" id="housing-hint"><b>同じ年収でも、社宅が付くかどうかで手元に残る額が変わります。</b></p>
+          </div>
+          <div class="fld">
+            <label class="form-label" for="f-housing-amt">住宅手当（月額）<span class="req-tag">必須</span></label>
+            <input type="text" id="f-housing-amt" class="form-input money" inputmode="decimal" placeholder="現金支給の額" disabled/>
+            <p class="fld-hint" id="housing-amt-hint">左の住居で「住宅手当（現金）」を選ぶと入力できます。</p>
+          </div>
+        </div>
+
+        <div class="fld">
+          <label class="form-label" for="f-bonus">年間ボーナス<span class="opt-tag">任意</span></label>
+          <input type="text" id="f-bonus" class="form-input money" inputmode="decimal" placeholder="1年の合計"/>
+          <p class="fld-hint">1年でもらうボーナスの<b>合計</b>（見込みで構いません）。年換算にそのまま足します。</p>
+        </div>
+
+        <!-- ── 手当ごとに分ける（畳んで残す）──────────────────────
+             ★上の総支給とは排他。開いたら総支給を消し、閉じたら内訳を消す。
+               両方が入った行は「年収は総額から・支給構成は内訳から」という
+               食い違った行になる（サーバ側でも総支給を正として内訳を捨てる）。
+             ★明細を読み取ったときは、内訳が取れるので自動でこちらへ切り替わる。 -->
+        <details class="pay-detail" id="pay-detail">
+          <summary><span class="p">+</span>くわしく入れる（手当ごとに分ける）</summary>
+          <div class="pay-detail-b">
+            <p class="fld-hint" style="margin:0 0 14px">分けて入れると、レポートに<b>支給構成の内訳</b>（何が年収を作っているか）が出ます。<br>分けている間は、上の「その月の総支給額」は<b>ここの合計＋パーディアム＋住宅手当</b>が入ります（自動計算）。</p>
+            <div class="fld">
+              <label class="form-label" for="f-base">基本給（月額）<span class="req-tag">必須</span></label>
+              <input type="text" id="f-base" class="form-input money" inputmode="decimal" placeholder="例：480,000"/>
+              <p class="fld-hint">明細で<b>毎月ほぼ同じ額が出ている行</b>です（日本の明細なら「基本給」「本給」）。上で聞いたパーディアム・住宅手当は<b>ここに入れず</b>、乗務手当などは下で足してください。</p>
+            </div>
+
+            <div class="opt-fld" id="opt-f-command" hidden>
+              <div class="fld">
+                <label class="form-label" for="f-command">機長・役職手当（月）</label>
+                <input type="text" id="f-command" class="form-input money" inputmode="decimal"/>
+              </div>
+            </div>
+            <div class="opt-fld" id="opt-f-transport" hidden>
+              <div class="fld">
+                <label class="form-label" for="f-transport">交通（月）</label>
+                <input type="text" id="f-transport" class="form-input money" inputmode="decimal"/>
+              </div>
+            </div>
+            <div class="opt-fld" id="opt-f-other" hidden>
+              <div class="fld">
+                <label class="form-label" for="f-other">その他手当（月）</label>
+                <input type="text" id="f-other" class="form-input money" inputmode="decimal"/>
+              </div>
+            </div>
+            <div class="opt-fld" id="opt-f-profit" hidden>
+              <div class="fld">
+                <label class="form-label" for="f-profit">プロフィットシェア（年額）</label>
+                <input type="text" id="f-profit" class="form-input money" inputmode="decimal"/>
+              </div>
+            </div>
+            <div class="opt-fld" id="opt-f-pension" hidden>
+              <div class="fld">
+                <label class="form-label" for="f-pension">年金 会社負担（%）</label>
+                <input type="number" id="f-pension" class="form-input" min="0" max="100" step="any" inputmode="decimal"/>
+              </div>
+              <p class="fld-hint">年金の会社負担分は<b>年換算総額に含めません</b>（受け取り方が国ごとに違うため）。</p>
+            </div>
+            <div class="chips">
+              <button type="button" class="chip" data-open="f-command"><span class="p">+</span>機長・役職手当</button>
+              <button type="button" class="chip" data-open="f-transport"><span class="p">+</span>交通</button>
+              <button type="button" class="chip" data-open="f-other"><span class="p">+</span>その他手当</button>
+              <button type="button" class="chip" data-open="f-profit"><span class="p">+</span>プロフィットシェア</button>
+              <button type="button" class="chip" data-open="f-pension"><span class="p">+</span>年金 会社負担</button>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <div class="card sec step" id="s4" hidden>
+        <div class="sec-head">
+          <span class="sec-title">4. 契約と税</span>
+          <span class="sec-tag req">必須</span>
+          <button type="button" class="sec-prog" hidden></button>
+        </div>
+        <p class="sec-sub" id="s4-sub">契約形態と納税地で、同じ総支給でも手取りは大きく変わります。</p>
+
+        <!-- ★前月と同じなら毎月聞かない。ここは「契約」なので月ごとに変わらない。
+             前回の内容が入っているときは要約1行に畳み、変わった人だけ開く。
+             ＝2ヶ月目以降は「額面」と「飛んだ時間」だけで終わる。 -->
+        <div class="sum-row" id="s4-sum" hidden>
+          <span id="s4-sum-txt"></span>
+          <button type="button" id="s4-edit">変更する</button>
+        </div>
+
+        <div id="s4-body">
+        <div class="grid2">
+          <div class="fld">
+            <label class="form-label" for="f-contract">契約形態<span class="req-tag">必須</span></label>
+            <select id="f-contract" class="form-input">
+              <option value="">選択してください</option>
+              <option value="direct">直接雇用</option>
+              <option value="contract">契約（有期・自営業含む）</option>
+              <option value="agency">エージェンシー経由</option>
+            </select>
+          </div>
+          <div class="fld">
+            <label class="form-label" for="f-seniority">在籍年数<span class="req-tag">必須</span></label>
+            <input type="number" id="f-seniority" class="form-input" min="0" max="60" step="1" inputmode="numeric" placeholder="例：7"/>
+          </div>
+        </div>
+        <div class="grid2 tax-row">
+          <div class="fld">
+            <label class="form-label" for="f-taxcountry">居住国（納税地）<span class="req-tag">必須</span></label>
+            <select id="f-taxcountry" class="form-input">
+              <option value="">選択してください</option>
+              <optgroup label="よく選ばれる国" data-keep-order>
+                <option value="JP">日本</option>
+                <option value="AE">アラブ首長国連邦</option>
+                <option value="QA">カタール</option>
+                <option value="SG">シンガポール</option>
+                <option value="HK">中華人民共和国香港特別行政区</option>
+                <option value="US">アメリカ合衆国</option>
+                <option value="AU">オーストラリア</option>
+                <option value="GB">イギリス</option>
+                <option value="NZ">ニュージーランド</option>
+                <option value="CA">カナダ</option>
+                <option value="KR">韓国</option>
+                <option value="CN">中国</option>
+                <option value="TW">台湾</option>
+                <option value="TH">タイ</option>
+                <option value="VN">ベトナム</option>
+                <option value="MY">マレーシア</option>
+                <option value="ID">インドネシア</option>
+                <option value="PH">フィリピン</option>
+                <option value="IN">インド</option>
+                <option value="DE">ドイツ</option>
+                <option value="FR">フランス</option>
+                <option value="NL">オランダ</option>
+                <option value="IE">アイルランド</option>
+                <option value="CH">スイス</option>
+                <option value="ES">スペイン</option>
+                <option value="IT">イタリア</option>
+                <option value="TR">トルコ</option>
+                <option value="SA">サウジアラビア</option>
+                <option value="KW">クウェート</option>
+                <option value="BH">バーレーン</option>
+                <option value="OM">オマーン</option>
+              </optgroup>
+              <optgroup label="その他の国">
+                <option value="IS">アイスランド</option>
+                <option value="AZ">アゼルバイジャン</option>
+                <option value="AF">アフガニスタン</option>
+                <option value="DZ">アルジェリア</option>
+                <option value="AR">アルゼンチン</option>
+                <option value="AW">アルバ</option>
+                <option value="AL">アルバニア</option>
+                <option value="AM">アルメニア</option>
+                <option value="AI">アンギラ</option>
+                <option value="AO">アンゴラ</option>
+                <option value="AG">アンティグア・バーブーダ</option>
+                <option value="AD">アンドラ</option>
+                <option value="YE">イエメン</option>
+                <option value="IL">イスラエル</option>
+                <option value="IQ">イラク</option>
+                <option value="IR">イラン</option>
+                <option value="WF">ウォリス・フツナ</option>
+                <option value="UG">ウガンダ</option>
+                <option value="UA">ウクライナ</option>
+                <option value="UZ">ウズベキスタン</option>
+                <option value="UY">ウルグアイ</option>
+                <option value="EC">エクアドル</option>
+                <option value="EG">エジプト</option>
+                <option value="EE">エストニア</option>
+                <option value="SZ">エスワティニ</option>
+                <option value="ET">エチオピア</option>
+                <option value="ER">エリトリア</option>
+                <option value="SV">エルサルバドル</option>
+                <option value="AT">オーストリア</option>
+                <option value="AX">オーランド諸島</option>
+                <option value="BQ">オランダ領カリブ</option>
+                <option value="GH">ガーナ</option>
+                <option value="CV">カーボベルデ</option>
+                <option value="GG">ガーンジー</option>
+                <option value="GY">ガイアナ</option>
+                <option value="KZ">カザフスタン</option>
+                <option value="GA">ガボン</option>
+                <option value="CM">カメルーン</option>
+                <option value="GM">ガンビア</option>
+                <option value="KH">カンボジア</option>
+                <option value="GN">ギニア</option>
+                <option value="GW">ギニアビサウ</option>
+                <option value="CY">キプロス</option>
+                <option value="CU">キューバ</option>
+                <option value="CW">キュラソー</option>
+                <option value="GR">ギリシャ</option>
+                <option value="KI">キリバス</option>
+                <option value="KG">キルギス</option>
+                <option value="GT">グアテマラ</option>
+                <option value="GP">グアドループ</option>
+                <option value="GU">グアム</option>
+                <option value="CK">クック諸島</option>
+                <option value="GL">グリーンランド</option>
+                <option value="CX">クリスマス島</option>
+                <option value="GD">グレナダ</option>
+                <option value="HR">クロアチア</option>
+                <option value="KY">ケイマン諸島</option>
+                <option value="KE">ケニア</option>
+                <option value="CI">コートジボワール</option>
+                <option value="CC">ココス(キーリング)諸島</option>
+                <option value="CR">コスタリカ</option>
+                <option value="KM">コモロ</option>
+                <option value="CO">コロンビア</option>
+                <option value="CG">コンゴ共和国(ブラザビル)</option>
+                <option value="CD">コンゴ民主共和国(キンシャサ)</option>
+                <option value="WS">サモア</option>
+                <option value="BL">サン・バルテルミー</option>
+                <option value="MF">サン・マルタン</option>
+                <option value="ST">サントメ・プリンシペ</option>
+                <option value="ZM">ザンビア</option>
+                <option value="PM">サンピエール島・ミクロン島</option>
+                <option value="SM">サンマリノ</option>
+                <option value="SL">シエラレオネ</option>
+                <option value="DJ">ジブチ</option>
+                <option value="GI">ジブラルタル</option>
+                <option value="JE">ジャージー</option>
+                <option value="JM">ジャマイカ</option>
+                <option value="GE">ジョージア</option>
+                <option value="SY">シリア</option>
+                <option value="SX">シント・マールテン</option>
+                <option value="ZW">ジンバブエ</option>
+                <option value="SE">スウェーデン</option>
+                <option value="SD">スーダン</option>
+                <option value="SJ">スバールバル諸島・ヤンマイエン島</option>
+                <option value="SR">スリナム</option>
+                <option value="LK">スリランカ</option>
+                <option value="SK">スロバキア</option>
+                <option value="SI">スロベニア</option>
+                <option value="SC">セーシェル</option>
+                <option value="SN">セネガル</option>
+                <option value="RS">セルビア</option>
+                <option value="KN">セントクリストファー・ネーヴィス</option>
+                <option value="VC">セントビンセント及びグレナディーン諸島</option>
+                <option value="SH">セントヘレナ</option>
+                <option value="LC">セントルシア</option>
+                <option value="SO">ソマリア</option>
+                <option value="SB">ソロモン諸島</option>
+                <option value="TC">タークス・カイコス諸島</option>
+                <option value="TJ">タジキスタン</option>
+                <option value="TZ">タンザニア</option>
+                <option value="CZ">チェコ</option>
+                <option value="TD">チャド</option>
+                <option value="TN">チュニジア</option>
+                <option value="CL">チリ</option>
+                <option value="TV">ツバル</option>
+                <option value="DK">デンマーク</option>
+                <option value="TG">トーゴ</option>
+                <option value="TK">トケラウ</option>
+                <option value="DO">ドミニカ共和国</option>
+                <option value="DM">ドミニカ国</option>
+                <option value="TT">トリニダード・トバゴ</option>
+                <option value="TM">トルクメニスタン</option>
+                <option value="TO">トンガ</option>
+                <option value="NG">ナイジェリア</option>
+                <option value="NR">ナウル</option>
+                <option value="NA">ナミビア</option>
+                <option value="NU">ニウエ</option>
+                <option value="NI">ニカラグア</option>
+                <option value="NE">ニジェール</option>
+                <option value="NC">ニューカレドニア</option>
+                <option value="NP">ネパール</option>
+                <option value="NF">ノーフォーク島</option>
+                <option value="NO">ノルウェー</option>
+                <option value="HT">ハイチ</option>
+                <option value="PK">パキスタン</option>
+                <option value="VA">バチカン市国</option>
+                <option value="PA">パナマ</option>
+                <option value="VU">バヌアツ</option>
+                <option value="BS">バハマ</option>
+                <option value="PG">パプアニューギニア</option>
+                <option value="BM">バミューダ</option>
+                <option value="PW">パラオ</option>
+                <option value="PY">パラグアイ</option>
+                <option value="BB">バルバドス</option>
+                <option value="PS">パレスチナ自治区</option>
+                <option value="HU">ハンガリー</option>
+                <option value="BD">バングラデシュ</option>
+                <option value="FJ">フィジー</option>
+                <option value="FI">フィンランド</option>
+                <option value="BT">ブータン</option>
+                <option value="PR">プエルトリコ</option>
+                <option value="FO">フェロー諸島</option>
+                <option value="FK">フォークランド諸島</option>
+                <option value="BR">ブラジル</option>
+                <option value="BG">ブルガリア</option>
+                <option value="BF">ブルキナファソ</option>
+                <option value="BN">ブルネイ</option>
+                <option value="BI">ブルンジ</option>
+                <option value="BJ">ベナン</option>
+                <option value="VE">ベネズエラ</option>
+                <option value="BY">ベラルーシ</option>
+                <option value="BZ">ベリーズ</option>
+                <option value="PE">ペルー</option>
+                <option value="BE">ベルギー</option>
+                <option value="PL">ポーランド</option>
+                <option value="BA">ボスニア・ヘルツェゴビナ</option>
+                <option value="BW">ボツワナ</option>
+                <option value="BO">ボリビア</option>
+                <option value="PT">ポルトガル</option>
+                <option value="HN">ホンジュラス</option>
+                <option value="MH">マーシャル諸島</option>
+                <option value="MG">マダガスカル</option>
+                <option value="YT">マヨット</option>
+                <option value="MW">マラウイ</option>
+                <option value="ML">マリ</option>
+                <option value="MT">マルタ</option>
+                <option value="MQ">マルティニーク</option>
+                <option value="IM">マン島</option>
+                <option value="FM">ミクロネシア連邦</option>
+                <option value="MM">ミャンマー (ビルマ)</option>
+                <option value="MX">メキシコ</option>
+                <option value="MU">モーリシャス</option>
+                <option value="MR">モーリタニア</option>
+                <option value="MZ">モザンビーク</option>
+                <option value="MC">モナコ</option>
+                <option value="MV">モルディブ</option>
+                <option value="MD">モルドバ</option>
+                <option value="MA">モロッコ</option>
+                <option value="MN">モンゴル</option>
+                <option value="ME">モンテネグロ</option>
+                <option value="MS">モントセラト</option>
+                <option value="JO">ヨルダン</option>
+                <option value="LA">ラオス</option>
+                <option value="LV">ラトビア</option>
+                <option value="LT">リトアニア</option>
+                <option value="LY">リビア</option>
+                <option value="LI">リヒテンシュタイン</option>
+                <option value="LR">リベリア</option>
+                <option value="RO">ルーマニア</option>
+                <option value="LU">ルクセンブルク</option>
+                <option value="RW">ルワンダ</option>
+                <option value="LS">レソト</option>
+                <option value="LB">レバノン</option>
+                <option value="RE">レユニオン</option>
+                <option value="RU">ロシア</option>
+                <option value="VG">英領ヴァージン諸島</option>
+                <option value="EH">西サハラ</option>
+                <option value="GQ">赤道ギニア</option>
+                <option value="CF">中央アフリカ共和国</option>
+                <option value="MO">中華人民共和国マカオ特別行政区</option>
+                <option value="TL">東ティモール</option>
+                <option value="ZA">南アフリカ</option>
+                <option value="SS">南スーダン</option>
+                <option value="GF">仏領ギアナ</option>
+                <option value="PF">仏領ポリネシア</option>
+                <option value="VI">米領ヴァージン諸島</option>
+                <option value="AS">米領サモア</option>
+                <option value="MK">北マケドニア</option>
+                <option value="MP">北マリアナ諸島</option>
+                <option value="KP">北朝鮮</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="fld">
+            <label class="form-label" for="f-tax">所得税率（%）<span class="auto-tag">自動</span></label>
+            <input type="number" id="f-tax" class="form-input" min="0" max="100" step="any" inputmode="decimal" placeholder="例：0"/>
+          </div>
+        </div>
+        <div id="tax-warn" class="warn-row" style="display:none;margin-top:2px"></div>
+        <p class="fld-hint" style="margin-top:10px">居住国を選ぶと、その国の税率表と年収から<b>おおよその率を入れます</b>（日本・英国・米国・所得税のない国）。それ以外の国は空欄のままです。<b>あくまで目安なので、明細の数字で上書きしてください。</b>所得税率だけは空欄でも送信できます（手取りの推定が出ないだけです）。</p>
+        </div><!-- /s4-body -->
+      </div>
+
+      <!-- ── 明細から読めた値のうち、フォームに欄が無いもの ─────────────
+           payslip.js が入れて、そのまま submit_pay_report へ送る。
+           人は触らないので hidden。空なら val() が null を返して列も NULL。
+           ★手取り（f-netpay）と勤務時間（f-duty-h）は 2026-08-13 に表の欄へ出した。
+             §3・§2 にあるので、ここには置かない。 -->
+      <input type="hidden" id="f-ytd">
+      <input type="hidden" id="f-flightvar">
+      <input type="hidden" id="f-deduct">
+      <input type="hidden" id="f-night-h">
+      <input type="hidden" id="f-credit-h">
+      <input type="hidden" id="f-source">
+      <!-- ★読めた手当を1行ずつ（項目名・金額・分類）そのまま溜める。画面には出さない。
+           いまの画面は深夜割増も変動付加乗務手当も「その他手当」に合算するので、
+           送った瞬間に内訳が消える。あとで欄を分けたくなった日に遡って埋められるよう、
+           読めたものだけは残しておく。控除の内訳は入れない（組合名は極めて機微）。 -->
+      <input type="hidden" id="f-psdetail">
+      <!-- ★時給は人に聞かない（昼夜・国内国際で単価が割れるので「1つの数字」に
+           ならない）。欄は畳んだのではなく消した。列と RPC は残っているので、
+           明細から単価が読めるようになったらここへ入れれば、そのまま送られる。
+           空のままなら val() が null を返して列も NULL。 -->
+      <input type="hidden" id="f-hourly">
+
+      <div class="step" id="submit-block" hidden>
+        <div class="sal-total pv-no-cur" style="margin-bottom:8px">
+          <span class="sal-total-lab">年換算の総額<br>（あなたの入力から）</span>
+          <span class="sal-total-val" id="live-total">—</span>
+        </div>
+        <p class="sal-hint pv-no-cur" id="live-hint">（総支給 − 今月出たボーナス）×12 に、年間ボーナスとプロフィットシェアを足した額です。</p>
+
+        <!-- ログインは送信のときだけ。ここに出す（押した場所に出す）。
+             ★中身は pay-login.js が日英1枚で組む。login.html へ飛ばさない
+               （最後まで入力した人を別ページへ送ると、そこで落ちる）。 -->
+        <div id="login-gate" class="card" style="display:none;margin-top:18px">
+          <div id="pay-login"></div>
+        </div>
+
+        <div id="err" style="margin-top:18px"></div>
+
+        <div class="mt-7 flex flex-col sm:flex-row gap-3">
+          <button type="button" id="submit-btn" class="btn-orange justify-center flex-1">送信して結果を見る →</button>
+          <a href="world-airlines.html" class="btn-ghost justify-center">やめる</a>
+        </div>
+        <!-- ★「送信すると」ではない。2026-08-17 から送信の時点ではまだ開かない
+             （先にサーバへ預かり、アカウントを作った時に本棚へ入って90日が付く）。
+             ボタンのすぐ下で言っていることが1歩ずれると、そこで信用を落とす。 -->
+        <p class="sal-hint" style="text-align:center;margin-top:14px">アカウントを作ると<b>給与詳細が90日間</b>開きます。次の明細を出すたびに、そこから90日に伸びます。個人の利用は永久に無料です。</p>
+      </div>
+
+      </div><!-- /form-body -->
+
+    </div><!-- /form-wrap -->
+
+    <!-- 結果 -->
+    <div id="result-wrap" class="pv-no-cur" style="display:none"></div>
+
+  </div>
+</main>
+
+<!-- FOOTER -->
+<footer class="py-10">
+  <div class="max-w-5xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+    <a href="index.html"><img src="assets/logo.png" alt="PILOT VALUE" class="h-7 opacity-70"/></a>
+    <div class="flex gap-6 text-sm text-muted">
+      <a href="world-airlines.html" class="hover:text-text transition-colors">世界の航空会社</a>
+      <a href="privacy-pilot.html" class="hover:text-text transition-colors">匿名性の仕組み</a>
+      <a href="privacy.html" class="hover:text-text transition-colors">プライバシーポリシー</a>
+    </div>
+    <div class="text-xs text-muted">© 2026 PILOT VALUE</div>
+  </div>
+</footer>
+
+<script>
+// ── Supabase ──────────────────────────────────────────────────
+const _sb = supabase.createClient(
+  'https://vzgmnkrggrwtsrpqndsm.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6Z21ua3JnZ3J3dHNycHFuZHNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0MzkwOTcsImV4cCI6MjA5MDAxNTA5N30.wE4cJbqeYGCgn5ZvHd80hYWgQuySKvOMJMbsJWOvmtw'
+);
+
+const LANG = 'ja';
+
+/* ★手で書かない。node gen-vocab.mjs が pv-vocab.mjs から生成する。
+   CUR_META = 通貨コード → [小数桁, 記号]、TAX_ZERO = 所得税0%の国、
+   CITIZEN_TAX = 市民権課税の国（居住国が0%でも0%にならない）、
+   TAX_TABLE  = 税率表がある国だけ（無い国は税率を自動で入れない）。
+   出所URLは pv-vocab.mjs 側にある（配信対象外なので、ここには載せない）。 */
+/*BEGIN:PVMETA*/
+const CUR_META = {USD:[2,'$'],EUR:[2,'€'],JPY:[0,'¥'],GBP:[2,'£'],AED:[2,'د.إ'],QAR:[2,'ر.ق'],SAR:[2,'ر.س'],KWD:[3,'د.ك'],BHD:[3,'.د.ب'],OMR:[3,'ر.ع.'],JOD:[3,'د.ا'],TRY:[2,'₺'],CHF:[2,'CHF'],SEK:[2,'kr'],NOK:[2,'kr'],DKK:[2,'kr'],ISK:[0,'kr'],PLN:[2,'zł'],HUF:[0,'Ft'],CZK:[2,'Kč'],RON:[2,'lei'],CAD:[2,'C$'],AUD:[2,'A$'],NZD:[2,'NZ$'],FJD:[2,'FJ$'],SGD:[2,'S$'],HKD:[2,'HK$'],TWD:[2,'NT$'],KRW:[0,'₩'],CNY:[2,'¥'],THB:[2,'฿'],MYR:[2,'RM'],IDR:[0,'Rp'],PHP:[2,'₱'],VND:[0,'₫'],BND:[2,'B$'],INR:[2,'₹'],EGP:[2,'E£'],ETB:[2,'Br'],KES:[2,'KSh'],ZAR:[2,'R'],MXN:[2,'MX$'],BRL:[2,'R$'],CLP:[0,'CLP$'],COP:[2,'COL$']};
+const TAX_ZERO = ['AE','QA','KW','BH','OM','SA','BN','KY','BM','BS','MC'];
+const CITIZEN_TAX = ['US','ER'];
+const TAX_TABLE = {"JP":{"cur":"JPY","emp":[[1900000,0,650000],[3600000,0.3,80000],[6600000,0.2,440000],[8500000,0.1,1100000],[null,0,1950000]],"basic":[[1320000,950000],[3360000,580000],[4890000,680000],[6550000,630000],[23500000,580000],[24000000,480000],[24500000,320000],[25000000,160000],[null,0]],"quick":[[1950000,0.05,0],[3300000,0.1,97500],[6950000,0.2,427500],[9000000,0.23,636000],[18000000,0.33,1536000],[40000000,0.4,2796000],[null,0.45,4796000]],"surtax":0.021,"local":0.1},"GB":{"cur":"GBP","allow":12570,"taperFrom":100000,"taperRate":0.5,"bands":[[37700,0.2],[125140,0.4],[null,0.45]],"note":"gb-scotland"},"US":{"cur":"USD","std":15750,"bands":[[11925,0.1],[48475,0.12],[103350,0.22],[197300,0.24],[250525,0.32],[626350,0.35],[null,0.37]],"note":"us-state"}};
+/*END:PVMETA*/
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
+
+/* ── 計測（GA4。既存の gtag をそのまま使う。新しい業者は入れない）──────────
+   ★en/pay-report.html にも同じものが入っている。片方だけ直すと日英で数字がずれる。
+   送るのは段の名前と失敗の理由だけ。金額も社名も明細も送らない。 */
+const track = (name, params) => {
+  if (typeof gtag !== 'function') return;
+  try { gtag('event', name, params || {}); } catch (e) {}
+};
+
+/* ── ログインは「送信のとき」だけ求める ──────────────────────
+   読み込んだ瞬間にフォームごと隠していたが、それだとフォームを一度も
+   見ないまま帰る人が丸ごと落ちる。ここでは何も判定しない。
+   submitPayReport() がバリデーションを通ったあとにだけ確認する。 */
+const PENDING_KEY = 'pv_pay_pending';
+
+async function sessionUserId() {
+  const { data: { session } } = await _sb.auth.getSession();
+  return session ? session.user.id : null;
+}
+
+/* ── 預かり証 ──────────────────────────────────────────────────
+   ★ログインしていない人の入力は、送信を押した瞬間にサーバへ預ける
+     （submit_pay_report_pending）。引き換えに返るのがこの預かり証で、
+     アカウントが出来た時点で claim_pending_report に渡すと本棚（pay_reports）へ移る。
+     これで「登録できなかった人の入力が丸ごと消える」が無くなる。
+   ★配列で持つ。1枚出して登録せずに離れ、後日もう1枚出す人がいる。
+     1本で上書きすると先の1枚が永久に宙に浮く。
+   ★サーバ側も30日で移さなくなるので、同じ期限でこちらも捨てる。 */
+const CLAIM_KEY = 'pv_pay_claim';
+const CLAIM_MAX_AGE = 30 * 24 * 60 * 60 * 1000;
+function readClaims() {
+  let a = null;
+  try { a = JSON.parse(localStorage.getItem(CLAIM_KEY) || '[]'); } catch (e) {}
+  if (!Array.isArray(a)) return [];
+  return a.filter((x) => x && typeof x.t === 'string' && Date.now() - Number(x.ts || 0) < CLAIM_MAX_AGE);
+}
+function writeClaims(a) {
+  try {
+    if (a.length) localStorage.setItem(CLAIM_KEY, JSON.stringify(a.slice(-5)));
+    else localStorage.removeItem(CLAIM_KEY);
+  } catch (e) {}
+}
+let _gatePopped = false;                 // 「受け取りました」で鳴らし済みの分を移した
+/* 「この預かり分は、登録の箱でもうクラッカーを鳴らした」印。
+   ★端末に残す必要がある。Google とメール内リンクはここでページを離れるので、
+     変数に持つと戻ってきた時に消えていて、結果カードで二度目が鳴る。
+   ★預かり証の行にそのまま足す。readClaims() は t と ts しか見ないので素通りする。 */
+function markPopped(tok) {
+  const a = readClaims();
+  const it = a.find((x) => x.t === tok);
+  if (it) { it.pop = 1; writeClaims(a); }
+}
+function rememberClaim(tok) {
+  const a = readClaims().filter((x) => x.t !== tok);
+  a.push({ t: tok, ts: Date.now() });
+  writeClaims(a);
+}
+/* 預けたぶんを、いま入ったアカウントのものにする。
+   ★消すのは「サーバが答えを返した」ものだけ。通信で落ちた預かり証は残す
+     （消すと、まだサーバに眠っている行を二度と取りに行けなくなる）。
+   ★サーバが「無い・もう済んでいる」と答えたものは消す。残すと開くたびに同じ問い合わせを繰り返す。
+   返り値＝移せた中の最後の1件。そのままレポートを描く。 */
+async function claimPending() {
+  const list = readClaims();
+  if (!list.length) return null;
+  const keep = [];
+  let won = null;
+  for (const it of list) {
+    try {
+      const { data, error } = await _sb.rpc('claim_pending_report', { p_token: it.t });
+      if (error) throw error;
+      if (data && data.ok) { won = data; if (it.pop) _gatePopped = true; track('pay_report_claimed'); }
+      else track('pay_report_claim_fail', { reason: String((data && data.reason) || 'not_found').slice(0, 40) });
+    } catch (e) {
+      console.error(e);
+      keep.push(it);
+      track('pay_report_claim_fail', { reason: String((e && (e.code || e.name)) || 'error').slice(0, 40) });
+    }
+  }
+  writeClaims(keep);
+  return won;
+}
+
+/* ── 送信ボタンの文言 ──────────────────────────────────────────
+   ログインしていない人には「匿名で提出する」。押す前に、アカウントを作らなくても
+   出せることが分かる状態にする（実際この1押しでサーバへ保存が済む）。 */
+const BTN_LABEL_IN  = '送信して結果を見る →';
+const BTN_LABEL_OUT = '匿名で提出する';
+let _btnLabel = BTN_LABEL_IN;
+function setSubmitLabel(signedIn) {
+  _btnLabel = signedIn ? BTN_LABEL_IN : BTN_LABEL_OUT;
+  const b = $('submit-btn');
+  if (b && !b.disabled) b.textContent = _btnLabel;
+}
+
+/* ★ここでページを離れさせない。中身は pay-login.js が作る（日英で1枚）。
+   saved=true … もうサーバに預かってある（「受け取りました」の見出しになる）
+   saved=false … 預けそこねた。これまで通り、ログインできた所でその場から送る */
+function showGate(saved) {
+  /* ★ここで数える。PVPayLogin の中ではない（あちらは plReady で2回目を捨てるので
+     「登録の箱まで来た回数」が数えられない）。フォームを全部埋めきった人の数＝
+     このイベントの数になり、pay_login_* → pay_report_submit と1本につながる。 */
+  track('pay_login_shown', { saved: saved ? 1 : 0 });
+  mountLogin(saved, 0);
+  $('login-gate').style.display = '';
+  $('login-gate').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+/* ★pay-login.js はこの塊より後ろ（ページ末尾）で読み込まれる。ボタンを押して
+   呼ぶぶんには必ず間に合うが、ページを開いた直後にも呼ぶようになった（②の経路）ので、
+   来るまで待ってから組む。待たずに諦めると、箱が空のまま枠だけ出る。 */
+function mountLogin(saved, tries) {
+  if (typeof window.PVPayLogin === 'function') {
+    window.PVPayLogin({
+      sb: _sb, lang: LANG, mount: $('pay-login'), saved: !!saved,
+      onSignedIn: function () { afterSignedIn(); },
+    });
+    /* 丸い 🎉 もここで置く。showGate の中ではない。
+       ★戻ってきた人の経路では、ページを開いた直後にこれが呼ばれる。その時点では
+         まだ confetti.js が読めていないことがあり、showGate に置くと黙って何も出ない
+         （実際そうなった）。pay-login.js は confetti.js より後ろで読み込まれるので、
+         PVPayLogin が居るならクラッカー側も必ず居る。 */
+    if (saved && window.PVConfetti && window.PVConfetti.badge) window.PVConfetti.badge($('login-gate'));
+    return;
+  }
+  if (tries > 50) return;                                  // 5秒。ここまで来ないなら読み込み自体が失敗している
+  setTimeout(function () { mountLogin(saved, tries + 1); }, 100);
+}
+function hideGate() { $('login-gate').style.display = 'none'; }
+
+/* アカウントが出来た直後。預かり証があれば、それを本人のものへ移すだけで終わる
+   （入力し直しも再送信も要らない）。預けそこねていた人だけ、その場で送る。 */
+async function afterSignedIn() {
+  setSubmitLabel(true);
+  /* 招待リンクから来た人を紹介者に結びつける。★claimPending() より前に呼ぶ
+     ＝まだ投稿が0件のうちに帰属して、この最初の1件で成立する
+     （紹介の成立は profiles.pay_report_count > referrals.baseline_reports で導出する）。
+     冪等なので他の3か所と重なっても害は無い。落ちても給与の経路は止めない。 */
+  try { if (window.PVReferral) await window.PVReferral.claim(_sb); } catch (e) {}
+  const won = await claimPending();
+  if (won) {
+    hideGate();
+    return afterSaved(won, won.payload || {}, (won.payload || {}).airline);
+  }
+  submitPayReport();
+}
+
+/* 保存が通ったあとの後始末。ログイン済みの直接送信と、預かり分の紐付けの
+   両方がここを通る。★片方だけ直すと「90日が開かない」「メールが出ない」が起きる。 */
+function afterSaved(data, payload, airline) {
+  try { localStorage.removeItem(PENDING_KEY); } catch (e) {}
+  /* この箱から会員になった人の「メールを受け取る」を、ここで1回だけ立てる。
+     ★どの入口を通っても必ず最後にここへ来る。認証の直後に書くと、
+       ページを離れる経路（Google・メール内リンク）が抜ける。 */
+  if (window.PVPayLogin && window.PVPayLogin.claimOptIn) window.PVPayLogin.claimOptIn(_sb);
+  if (data.access_until) {
+    try { localStorage.setItem('pv_salary_unlock_expiry', String(Date.parse(data.access_until))); } catch (e) {}
+  }
+  try {
+    if (typeof gtag === 'function') {
+      gtag('event', 'pay_report_submit', { airline: airline || '', position: (payload && payload.position) || '', is_new: !!data.is_new });
+      gtag('event', 'unlock', { method: 'pay_report' });
+    }
+  } catch (e) {}
+  /* 紹介の成立の控えを押す。投げっぱなしでよい——成立そのものは
+     profiles.pay_report_count から導出するので、これが落ちても件数は狂わない。 */
+  if (window.PVReferral) window.PVReferral.settle(_sb);
+  renderResult(data, payload);
+}
+
+// ── 対象月：既定は「前月」。まだ確定していない当月を既定にしない ──
+(function () {
+  const now = new Date();
+  let y = now.getFullYear(), m = now.getMonth(); // getMonth() は0始まり＝前月の月番号
+  if (m === 0) { m = 12; y -= 1; }
+  const ys = $('f-year'), ms = $('f-month');
+  for (let i = y; i >= 2015; i--) ys.insertAdjacentHTML('beforeend', `<option value="${i}">${i}年</option>`);
+  for (let i = 1; i <= 12; i++) ms.insertAdjacentHTML('beforeend', `<option value="${i}">${i}月</option>`);
+  ys.value = String(y);
+  ms.value = String(m);
+})();
+
+// ── 国名はブラウザに出させる（和名・英名を二重管理しない）──────
+(function () {
+  let dn = null;
+  try { dn = new Intl.DisplayNames([LANG], { type: 'region' }); } catch (e) {}
+  const sel = $('f-taxcountry');
+  if (!sel || !dn) return;
+  /* ★optgroup の中だけで並べ替える。以前のように select 直下へ appendChild で
+     集め直すと、「よく選ばれる国／その他の国」の区切りが消えて241件の
+     一枚リストに戻る（appendChild は要素を optgroup の外へ移してしまう）。
+     data-keep-order が付いた段は並べ替えない——日本を先頭に置いた順番が
+     名前順に直されて消えるため。 */
+  for (const g of sel.querySelectorAll('optgroup')) {
+    const opts = Array.prototype.slice.call(g.children);
+    for (const o of opts) { const n = dn.of(o.value); if (n && n !== o.value) o.textContent = n; }
+    if (g.hasAttribute('data-keep-order')) continue;
+    opts.sort((a, b) => a.textContent.localeCompare(b.textContent, LANG));
+    for (const o of opts) g.appendChild(o);
+  }
+})();
+
+// ── URL ?airline= で会社を自動選択 ────────────────────────────
+(function () {
+  const a = new URLSearchParams(location.search).get('airline');
+  if (!a) return;
+  const sel = $('f-airline');
+  const ok = Array.prototype.some.call(sel.options, (o) => o.value === a);
+  sel.value = ok ? a : 'other';
+})();
+
+// ── 会社「その他」の自由入力 ──────────────────────────────────
+$('f-airline').addEventListener('change', () => {
+  $('wrap-other').style.display = $('f-airline').value === 'other' ? '' : 'none';
+});
+
+/* ── 住居：現金支給のときだけ金額欄を受け取る ────────────────────
+   ★2026-08-13 に住居を必須にし、現金なら額も必須にした（オーナー指摘）。
+     二重計上にはならない。総支給が入っている行では、サーバの pv_annual_total は
+     内訳を見ない（住宅手当は「総支給の中の内訳」として保存されるだけ）。 */
+$('f-housing').addEventListener('change', () => {
+  const cash = $('f-housing').value === 'allowance';
+  const amt = $('f-housing-amt');
+  amt.disabled = !cash;
+  if (!cash) amt.value = '';
+  $('housing-amt-hint').textContent = cash
+    ? '総支給に含まれている住宅手当の月額を入れてください。'
+    : '左の住居で「住宅手当（現金）」を選ぶと入力できます。';
+  recalc();
+});
+
+/* ── 総支給と内訳は排他（ただし額面の欄は消さない）──────────────
+   ★「くわしく入れる」を開いても額面の欄は残す（2026-08-13 オーナー指摘）。
+     以前は欄ごと隠していたので、開いている人には「ボーナスの前に額面を聞く欄が
+     無い」ように見えていた。開いているあいだは下の内訳の合計を映すだけの
+     読み取り専用にする（合計は recalc() が入れる）。
+   ★手で入れた額面は dataset に預かって、閉じたら戻す。消してしまうと
+     「中を見るために開いただけ」で入力が消える。
+   ★見えていない内訳の値は消す。残すと、画面に無い数字が年換算と送信に混ざる。
+     「見えているもの＝送るもの」。
+   ★送るのは片方だけ（payload で open のとき gross_monthly を null にする）。
+     両方送るとサーバ（submit_pay_report）が総支給を正として内訳を捨て、
+     手当ごとに入れた内容が黙って消える＝レポートの支給構成が出なくなる。 */
+/* ★パーディアムと住宅手当はここに入れない（2026-08-13）。全員に聞く欄へ出したので、
+     「くわしく入れる」を閉じたときに消してはいけない。 */
+const DETAIL_IDS = ['f-base','f-hourly',
+                    'f-transport','f-command','f-other','f-profit','f-pension'];
+const GROSS_PH = $('f-gross').placeholder;
+
+function updatePayMode() {
+  const detail = $('pay-detail').open;
+  const g = $('f-gross');
+  if (detail) {
+    if (!g.readOnly) g.dataset.manual = g.value;        // 手入力を預かる
+    g.readOnly = true;
+    g.placeholder = g.dataset.phSum || GROSS_PH;
+  } else {
+    /* readOnly だった＝直前まで合計を映していた。そのときだけ値を差し替える
+       （プリセット復元の初回もここを通るので、無条件に消すと復元が消える）。 */
+    if (g.readOnly) {
+      g.value = g.dataset.manual || '';
+      delete g.dataset.manual;
+      g.readOnly = false;
+    }
+    g.placeholder = GROSS_PH;
+    for (const id of DETAIL_IDS) $(id).value = '';
+  }
+  $('gross-hint-own').hidden = detail;
+  $('gross-hint-sum').hidden = !detail;
+  recalc();
+}
+$('pay-detail').addEventListener('toggle', updatePayMode);
+
+/* ── 税：居住国と年収から概算して差し出す ─────────────────────
+   ★決めつけない。入れるのは本人が触っていない間だけで、上書きは常にできる。
+   ★税率表がある国だけ計算する。無い国は空欄のまま（推測で埋めない）。 */
+
+// 段の表から「その額が当たる段」を返す。上限 null が最後＝上限なし。
+const taxBand = (tbl, v) => tbl.find((r) => r[0] === null || v <= r[0]);
+
+/* 年収（明細の通貨のまま）→ だいたいの実効税率（%）。
+   ★通貨が居住国の通貨と違うときは計算しない。ここで為替を当てにいくと、
+     レートがずれた日に税率まで一緒にずれる。稼いだ国と住む国が違う人は
+     そもそも自分で入れたほうが正しい。 */
+function estTaxPct(country, cur, gross) {
+  if (!country) return null;
+  if (TAX_ZERO.indexOf(country) >= 0) return 0;      // 年収を見るまでもなく0%
+  const t = TAX_TABLE[country];
+  if (!t || !(gross > 0) || cur !== t.cur) return null;
+
+  let tax = 0;
+  if (t.emp) {
+    // 日本方式：給与所得控除 → 基礎控除 → 速算表 → 復興特別所得税 → 住民税
+    const d = taxBand(t.emp, gross);
+    const income = gross - (gross * d[1] + d[2]);
+    const taxable = Math.max(0, income - taxBand(t.basic, income)[1]);
+    const q = taxBand(t.quick, taxable);
+    const national = Math.max(0, taxable * q[1] - q[2]);
+    tax = national * (1 + t.surtax) + taxable * t.local;
+  } else {
+    // 英米方式：定額控除（英は高所得で目減り）→ 累進バンド
+    let allow = t.std != null ? t.std : t.allow;
+    if (t.taperFrom && gross > t.taperFrom) {
+      allow = Math.max(0, allow - (gross - t.taperFrom) * t.taperRate);
+    }
+    const taxable = Math.max(0, gross - allow);
+    let prev = 0;
+    for (const [cap, rate] of t.bands) {
+      const hi = cap === null ? taxable : Math.min(taxable, cap);
+      if (hi > prev) tax += (hi - prev) * rate;
+      prev = hi;
+      if (cap !== null && taxable <= cap) break;
+    }
+  }
+  return Math.round((tax / gross) * 1000) / 10;      // 小数第1位まで
+}
+
+function updateTax() {
+  const res = $('f-taxcountry').value, box = $('tax-warn'), fld = $('f-tax');
+  const cur = $('f-currency').value;
+  const pct = estTaxPct(res, cur, annualTotal());
+  const msgs = [];
+
+  if (pct !== null && !fld.dataset.touched) fld.value = String(pct);
+
+  if (res && TAX_ZERO.indexOf(res) >= 0) {
+    msgs.push(esc(countryName(res)) + 'は給与所得への個人所得税がありません。<b>0% を入れてあります</b>（合っていなければ上書きしてください）。');
+    /* 国籍は聞かない（2026-08-12にオーナー判断で廃止）。代わりに、0%の国に
+       住んでいる人全員に一度だけ知らせる。米国籍・エリトリア国籍の人は
+       居住国が0%でも本国に申告義務があり、0%のまま送ると嘘になる。 */
+    msgs.push('<b>米国籍など、国籍に基づいて課税する国の方はご注意ください。</b>居住国が 0% でも本国への申告が残るため、実際の税率は 0% になりません。');
+  } else if (pct !== null) {
+    const t = TAX_TABLE[res] || {};
+    /* ★「国税と住民税を合わせた」と書けるのは住民税まで計算している国だけ。
+       全部に同じ文を出すと、米国で「連邦税だけ」と続けた瞬間に自分と矛盾する。 */
+    let s = esc(countryName(res)) + 'の税率表から、この年収なら<b>およそ ' + pct + '%</b>と見込まれるので入れてあります。'
+          + (t.local ? '国税と住民税を合わせた概算で、' : '国税だけの概算で、')
+          + '<b>社会保険料の控除や扶養控除は入っていません</b>（そのぶん実際より高めに出ます）。';
+    if (t.note === 'us-state') s += '<b>連邦税だけ</b>の数字です。州税は含みません。';
+    if (t.note === 'gb-scotland') s += 'イングランド・ウェールズ・北アイルランドの税率です。スコットランドは別の税率です。';
+    msgs.push(s + '明細の数字で<b>上書きしてください</b>。');
+  }
+
+  box.innerHTML = msgs.length ? '<span>⚠</span><span>' + msgs.join('<br><br>') + '</span>' : '';
+  box.style.display = msgs.length ? '' : 'none';
+}
+function countryName(code) {
+  const o = Array.prototype.find.call($('f-taxcountry').options, (x) => x.value === code);
+  return o ? o.textContent : code;
+}
+$('f-taxcountry').addEventListener('change', updateTax);
+$('f-tax').addEventListener('input', () => { $('f-tax').dataset.touched = '1'; });
+
+/* ── 金額の桁区切り（2026-08-13 オーナー指摘）────────────────────
+   1150000 は読めない。1,150,000 と出す。
+   ★<input type="number"> にはカンマを入れられない（ブラウザが値ごと捨てる）ので、
+     金額の欄だけ type="text" inputmode="decimal" にしてある（class="money"）。
+     時間・日数・％の欄は number のまま＝上限の検査が効く。
+   ★これ以降、金額の .value にはカンマが混じる。読むときは必ず unc() を通すこと
+     （生のまま payload に入れるとサーバの ::numeric が落ちる）。 */
+const unc = (s) => String(s == null ? '' : s).replace(/,/g, '');
+function grp(s) {
+  const t = unc(s).replace(/[^0-9.]/g, '');
+  const i = t.split('.')[0];
+  const d = t.indexOf('.') >= 0 ? '.' + t.split('.').slice(1).join('') : '';
+  return i.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + d;
+}
+/* 打っている最中に整形する。カンマが増えると文字数が変わるので、
+   「キャレットより前にある数字の個数」を数えて同じ位置に戻す。 */
+function fmtMoneyEl(el) {
+  const pos = el.selectionStart;
+  const keep = pos == null ? -1 : unc(el.value.slice(0, pos)).replace(/[^0-9.]/g, '').length;
+  el.value = grp(el.value);
+  if (keep < 0) return;
+  let n = 0, p = 0;
+  while (p < el.value.length && n < keep) { if (/[0-9.]/.test(el.value[p])) n++; p++; }
+  try { el.setSelectionRange(p, p); } catch (e) {}
+}
+const MONEY_EL = Array.prototype.slice.call(document.querySelectorAll('input.money'));
+for (const el of MONEY_EL) el.addEventListener('input', () => fmtMoneyEl(el));
+/* 値を代入で入れたあと（プリセット復元・先月の値・明細の読み取り）に呼ぶ */
+function fmtMoneyAll() { for (const el of MONEY_EL) if (el.value) el.value = grp(el.value); }
+
+// ── 年換算のライブ計算（DB の pv_annual_total と同じ式）──────────
+// ★式を2箇所で書いていることになるので、変えるときは必ず両方直すこと。
+//   最終的な正はサーバの返り値で、送信後はそちらで上書き表示する。
+const num = (id) => { const v = parseFloat(unc($(id).value)); return isFinite(v) && v > 0 ? v : 0; };
+
+/* 内訳から出す月額。★額面の欄に映す合計と annualTotal() が同じ式を使う
+   （2箇所で足し方が違うと、画面の額面と年換算が食い違う）。 */
+function monthlyDetail() {
+  const hours = Math.max(num('f-block'), num('f-guar'));
+  const housing = $('f-housing').value === 'allowance' ? num('f-housing-amt') : 0;
+  return num('f-base') + num('f-hourly') * hours + num('f-perdiem') + housing
+         + num('f-transport') + num('f-command') + num('f-other');
+}
+
+function annualTotal() {
+  /* ★どちらを正とするかは「くわしく入れる」が開いているかで決める。
+     開いているあいだ f-gross には合計が映っているので、「額面が入っていたら
+     内訳を見ない」だと自分の合計を読んで内訳を無視することになる。
+     サーバ側の coalesce(p_gross_monthly, 内訳の合計) と結果は同じ
+     （開いているときは gross_monthly を送らない＝サーバも内訳を足す）。 */
+  /* ★総支給は「明細のとおり」なので、ボーナスが出た月はそれが入っている。
+     ×12 する前に、その月に出たボーナスだけ外す（2026-08-13 オーナー指摘）。
+     内訳を書いている人の合計にはボーナスが入っていないので、そのまま。 */
+  const monthly = $('pay-detail').open ? monthlyDetail()
+                                       : Math.max(0, num('f-gross') - num('f-bonus-mo'));
+  return monthly * 12 + num('f-bonus') + num('f-profit');
+}
+
+function fmtCur(v, code) {
+  const meta = CUR_META[code] || [2, ''];
+  const s = new Intl.NumberFormat('en-US', { minimumFractionDigits: 0, maximumFractionDigits: meta[0] }).format(Math.round(v));
+  return (code ? code + ' ' : '') + s;
+}
+
+function recalc() {
+  const cur = $('f-currency').value;
+  /* ★くわしく入れるを開いているあいだ、額面の欄は下の内訳の合計を映す。
+     .value への代入では input イベントが出ないので、ここから再帰しない。 */
+  if ($('pay-detail').open) {
+    const m = monthlyDetail();
+    $('f-gross').value = m > 0 ? grp(+m.toFixed(2)) : '';
+  }
+  const t = annualTotal();
+  $('live-total').innerHTML = t > 0
+    ? new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Math.round(t)) + '<span class="u">' + esc(cur || '') + ' / 年</span>'
+    : '—';
+  updateTax();   // 税率は年収で変わる。金額を触るたびに引き直す
+}
+['f-gross','f-base','f-hourly','f-guar','f-block','f-perdiem','f-housing-amt','f-transport','f-command','f-other','f-bonus','f-bonus-mo','f-profit']
+  .forEach((id) => $(id).addEventListener('input', recalc));
+$('f-currency').addEventListener('change', recalc);
+
+/* ── 段階表示（levels.fyi 型）──────────────────────────────────
+   埋めると下に次が生える。★一度出したセクションは二度と隠さない。
+   （値を消したら畳む挙動は、書き直している最中に画面が跳ねるだけ。）
+   ゲートの条件は送信バリデーション（submitPayReport）と同じものを書く。
+   2箇所に違う条件を書くと必ずズレる。 */
+const filled = (id) => $(id).value.trim() !== '';
+const GATE_ROLE   = () => filled('f-airline') && ($('f-airline').value !== 'other' || filled('f-airline-other'))
+                          && filled('f-position') && filled('f-fleet') && filled('f-jobrole')
+                          && filled('f-age');
+const GATE_HOURS  = () => filled('f-block') && filled('f-stay');
+/* ★報酬が入ったかの判定は、見る場所が「くわしく入れる」の開閉で変わる。
+   開いているあいだ f-gross には内訳の合計が映るので、そこを見てしまうと
+   パーディアムだけの行でも段が開き、送信でサーバに弾かれる（手当だけの行は
+   受け取らない）。ゲートと送信バリデーションはこの1つを共有する。
+   filled は '0' も通す。実際の金額は送信時に見る。 */
+const payEntered  = () => $('pay-detail').open ? (filled('f-base') || filled('f-hourly'))
+                                               : filled('f-gross');
+/* 住居は「選んだら終わり」ではない。現金を選んだ人は額まで入って初めて揃う。 */
+const housingOk   = () => filled('f-housing')
+                          && ($('f-housing').value !== 'allowance' || filled('f-housing-amt'));
+const GATE_PAY    = () => filled('f-currency') && payEntered() && filled('f-netpay')
+                          && filled('f-bonus-mo') && filled('f-perdiem') && housingOk();
+/* ★4. 契約と税は 2026-08-13 に必須化（オーナー指摘）。所得税率だけは任意のまま
+     （税率表を持っていない国の人が、そこで詰まって送れなくなる）。 */
+const GATE_CONTRACT = () => filled('f-contract') && filled('f-taxcountry') && filled('f-seniority');
+const STEPS = [['s2', GATE_ROLE], ['s3', GATE_HOURS], ['s4', GATE_PAY]];
+
+function updateSteps(quiet) {
+  const show = (id) => {
+    const el = $(id);
+    if (!el.hidden) return;          // ★一度出したものは二度と隠さない
+    el.hidden = false;
+    if (!quiet) el.classList.add('step-in');
+  };
+  /* ★満たせない段が出たらそこで止める（間を飛ばさない）。
+     以前は「下の段が満たされていれば間も開く」にしていた。プリセットは対象月と
+     block hours を保存しない（毎月変わる値だから）ので、2回目に来た人は
+     §2 の「飛んだ時間」が空のまま §3・§4 が開き、段階表示が効いていないように見えた
+     （2026-08-13 オーナー指摘）。
+     飛ばさない代わりに、送信ボタンは全段そろったときだけ出す。これで
+     「基本給が見えないのに送信ボタンだけ生きている」という元の懸念も起きない。 */
+  let last = -1;
+  for (let i = 0; i < STEPS.length; i++) { if (!STEPS[i][1]()) break; last = i; }
+  for (let i = 0; i <= last; i++) show(STEPS[i][0]);
+  if (last === STEPS.length - 1 && GATE_CONTRACT()) show('submit-block');
+  markRequired();
+  markProgress();
+  $('ai-legend').hidden = !document.querySelector('.form-input.ai-filled');
+}
+
+/* 必須の欄の左レール（2026-08-13 その4）。埋まったら中立色に落とす。
+   ★どの欄が必須かは HTML の <span class="req-tag"> ただ1か所で決める。
+     ここで別の一覧を持つと、印とレールが別々にズレる。
+     印そのものがゲートと一致しているかは db/test-form-contract.mjs の静的検査⑧が見る。 */
+function markRequired() {
+  for (const lab of document.querySelectorAll('label.form-label:has(.req-tag)')) {
+    const fld = lab.closest('.fld');
+    if (!fld) continue;
+    fld.classList.add('is-req');
+    const el = $(lab.htmlFor);
+    fld.classList.toggle('is-done', !!el && el.value.trim() !== '');
+  }
+}
+/* 段ごとの進み具合（2026-08-17 オーナー指摘：どこが入力済みか分からない
+   → 2026-08-18 オーナー指摘：残りの個数ではなく、埋まった割合を緑のゲージで）。
+   ★「入力済み」の判定は、欄の数ではなく段のゲートそのもの＝送信を止めている条件を使う。
+     欄を数えるだけだと、「くわしく入れる」を開いて時給だけ入れた人に 100% と出たまま
+     送信ボタンが生える（基本給の欄は空のままでよいため）。画面と送信が食い違う。
+   ★数える側は「画面に出ている欄」だけ（offsetParent）。「その他」の社名欄・住宅手当の額など、
+     条件が揃うまで隠れている必須欄を数えると、開いていない欄のぶんだけ分母が増える。 */
+const SEC_GATE = [['s1', GATE_ROLE], ['s2', GATE_HOURS], ['s3', GATE_PAY], ['s4', GATE_CONTRACT]];
+const openReq = (sec) =>
+  [...sec.querySelectorAll('.fld.is-req:not(.is-done)')].filter((f) => f.offsetParent);
+const visReq = (sec) =>
+  [...sec.querySelectorAll('.fld.is-req')].filter((f) => f.offsetParent);
+
+/* ゲージの中身は「無ければ作る」で1回だけ組み立てる。
+   ★毎回 innerHTML/textContent で作り直すと width のトランジションが打鍵のたびに
+     やり直しになり、ゲージが伸びて見えない。以後は幅と数字だけ書き換える。 */
+function progParts(el) {
+  let bar = el.querySelector('.sec-prog-bar > i');
+  if (!bar) {
+    el.textContent = '';
+    const track = document.createElement('span');
+    track.className = 'sec-prog-bar';
+    bar = document.createElement('i');
+    track.appendChild(bar);
+    const num = document.createElement('span');
+    num.className = 'sec-prog-num';
+    el.append(track, num);
+  }
+  return { bar, num: el.querySelector('.sec-prog-num') };
+}
+
+function markProgress() {
+  for (const [id, gate] of SEC_GATE) {
+    const sec = $(id);
+    const el = sec.querySelector('.sec-prog');
+    if (!el) continue;
+    el.hidden = false;
+    const { bar, num } = progParts(el);
+    const done = gate();
+    let pct;
+    if (done) {
+      pct = 100;
+    } else {
+      /* ゲートが通っていない以上まだ何か足りないので、見えている欄が全部埋まっていても
+         100% にはしない（残り最低1件として分母に足す）。 */
+      const open = Math.max(openReq(sec).length, 1);
+      const filled = visReq(sec).length - openReq(sec).length;
+      pct = Math.round((filled / (filled + open)) * 100);
+    }
+    el.className = done ? 'sec-prog done' : 'sec-prog';
+    el.disabled = done;
+    bar.style.width = pct + '%';
+    num.textContent = (done ? '✓ ' : '') + pct + '%';
+    /* 見えている文字が数字だけになるので、何の割合かは読み上げ用に持たせる。 */
+    const title = (sec.querySelector('.sec-title') || {}).textContent || '';
+    el.setAttribute('aria-label', `${title} — ${pct}% 入力済み`);
+  }
+}
+/* ゲージを押したら、その段の最初の未入力欄まで運ぶ。 */
+$('form-wrap').addEventListener('click', (e) => {
+  const b = e.target.closest && e.target.closest('.sec-prog');
+  if (!b || b.disabled) return;
+  const fld = openReq(b.closest('.sec'))[0];
+  const inp = fld && fld.querySelector('.form-input');
+  if (!inp) return;
+  inp.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  inp.focus({ preventScroll: true });
+});
+$('form-wrap').addEventListener('input', () => updateSteps());
+$('form-wrap').addEventListener('change', () => updateSteps());
+
+/* ── 入口の2択（2026-08-13 オーナー指摘）──────────────────────
+   画面の出し入れはこの関数だけで行う。呼ぶのは4か所：
+   入口の2つのボタン／明細の「読み取らずに手動で入力する」／
+   明細が読めたとき（payslip.js から window.PVEnterMode）。
+   ★payslip：明細のカードをそのまま出し、フォームはまだ出さない（ステップ 1/2）。
+     読めた時点で manual に切り替わってフォームが出る（ステップ 2/2）。
+   ★manual ：明細のカードを1行の帯に縮めて上に残し、フォームを出す。 */
+function enterMode(mode) {
+  const slim = mode !== 'payslip';
+  $('entry').hidden = true;
+  $('ps').hidden = false;
+  $('ps').classList.toggle('is-slim', slim);
+  if (slim && $('form-body').hidden) {
+    $('form-body').hidden = false;
+    updateSteps(true);        // 隠れている間に復元された値の分を出す
+  }
+}
+window.PVEnterMode = enterMode;
+/* ★目印は enterMode の中ではなく、押されたボタンの側に置く。
+   読み取りに失敗したとき payslip.js が enterMode('manual') を自分で呼ぶので、
+   関数の中に置くと「本人が手入力を選んだ数」に機械の分が混ざる。 */
+$('entry-payslip').addEventListener('click', () => { track('pay_entry_payslip'); enterMode('payslip'); $('ps-drop').focus(); });
+$('entry-manual').addEventListener('click', () => { track('pay_entry_manual', { from: 'button' }); enterMode('manual'); $('f-airline').focus(); });
+$('ps-skip').addEventListener('click', () => { track('pay_entry_manual', { from: 'skip' }); enterMode('manual'); });
+
+/* ── 任意項目はチップにたたむ ─────────────────────────────────
+   常時10欄あると「まだこんなにあるのか」で止まる。押した人にだけ出す。 */
+// ★f-bonus はチップから出した（かんたん入力の5欄の1つ。年間ボーナスを聞かないと、
+//   賞与が出た月に出した人だけ年収が倍近く高く出る）。
+const CHIP_FIELDS = ['f-duty','f-base-iata','f-command','f-transport','f-other','f-profit','f-pension'];
+
+function openOpt(id, quiet) {
+  const box = $('opt-' + id);
+  if (!box || !box.hidden) return false;
+  box.hidden = false;
+  if (!quiet) box.classList.add('step-in');
+  const chip = document.querySelector('.chip[data-open="' + id + '"]');
+  if (chip) chip.remove();
+  return true;
+}
+for (const c of document.querySelectorAll('.chip[data-open]')) {
+  c.addEventListener('click', () => { openOpt(c.dataset.open); $(c.dataset.open).focus(); });
+}
+/* ?airline= で 'other' が入ったときは change が出ていないので会社名欄が
+   出ない。出ないと S2 のゲートが開かず、理由も見えないまま詰まる。 */
+$('f-airline').dispatchEvent(new Event('change'));
+
+// ── この端末へのプリセット保存（次回30秒で終わらせるため）──────
+// ★対象月は保存しない（毎回そのとき出すべき月が違う）。金額は端末内だけに残す。
+const LS_KEY = 'pv_pay_last';
+// ★f-paytype は 2026-08-12 に欄ごと廃止。f-gross（その月の額面）が入った。
+const PRESET_IDS = ['f-airline','f-airline-other','f-position','f-fleet','f-currency','f-gross','f-base','f-hourly',
+  'f-guar','f-perdiem','f-housing','f-housing-amt','f-contract','f-seniority','f-taxcountry',
+  'f-tax','f-command','f-transport','f-other','f-bonus','f-profit','f-pension','f-jobrole','f-age','f-base-iata'];
+// ★ログイン後の再送用。プリセットと違って対象月も含める（そのまま送るため）。
+const ALL_IDS = PRESET_IDS.concat(['f-year','f-month','f-block','f-duty',
+  /* ★その月にしか無い値。PRESET_IDS には入れない（翌月のフォームに持ち越すと壊れる）。 */
+  'f-stay','f-bonus-mo',
+  'f-netpay','f-ytd','f-flightvar','f-deduct','f-duty-h','f-night-h','f-credit-h','f-source','f-psdetail']);
+
+function savePreset() {
+  const o = {};
+  for (const id of PRESET_IDS) { const v = $(id).value; if (v) o[id] = v; }
+  /* ★くわしく入れるを開いていたときの額面は保存しない（内訳の合計を映しただけの
+     値で、手で入れた額面ではない）。残すと次回、合計が「手入力の額面」として
+     復元され、内訳と両方入った行が作れてしまう。 */
+  if ($('pay-detail').open) delete o['f-gross'];
+  try { localStorage.setItem(LS_KEY, JSON.stringify(o)); } catch (e) {}
+}
+function snapshot() {
+  const o = {};
+  for (const id of ALL_IDS) { const v = $(id).value; if (v) o[id] = v; }
+  return o;
+}
+function restoreInto(o) {
+  let n = 0;
+  for (const id of ALL_IDS) {
+    if (!o[id]) continue;
+    const el = $(id);
+    if (el.tagName === 'SELECT' && !Array.prototype.some.call(el.options, (x) => x.value === o[id])) continue;
+    el.value = o[id]; n++;
+  }
+  if (!n) return 0;
+  fmtMoneyAll();   // 代入では input が出ない＝桁区切りが付かないので、ここで付け直す
+  /* ★内訳が1つでも入っていたら「くわしく」側を開く。開かないまま放置すると
+     updatePayMode() が「見えていない欄は消す」で、復元した内訳を黙って捨てる。
+     （総支給の欄が入っていた人は閉じたまま＝そのまま総支給が正。） */
+  const hasDetail = DETAIL_IDS.some((id) => String(o[id] || '').trim() !== '');
+  if (hasDetail) $('pay-detail').open = true;
+  updatePayMode();      // toggle が出ないケース（既に open だった等）を拾う
+  $('f-airline').dispatchEvent(new Event('change'));
+  $('f-housing').dispatchEvent(new Event('change'));
+  recalc();   // 中で updateTax() も走る
+  for (const f of CHIP_FIELDS) if ($(f).value.trim() !== '') openOpt(f, true);
+  foldContract();
+  updateSteps(true);
+  return n;
+}
+
+/* ── 4. 契約と税：前回の内容が入っていれば要約1行に畳む ──────────
+   ★毎月聞き直す欄ではない（契約形態・納税地・在籍年数は月では変わらない）。
+     ここを毎月開いたままにすると、2ヶ月目以降も同じ4問を通らされる。
+   ★畳むのは「入っているとき」だけ。初回は開いたまま出す
+     （オーナー方針＝必ずどこかで一度は入力させる）。 */
+function foldContract() {
+  const c = $('f-contract'), t = $('f-taxcountry');
+  if (!c.value || !t.value) return;                 // 初回・空欄は開いたまま
+  const label = (sel) => {
+    const o = Array.prototype.find.call(sel.options, (x) => x.value === sel.value);
+    return o ? o.textContent : sel.value;
+  };
+  const bits = [label(c), label(t) + '在住'];
+  if ($('f-tax').value !== '') bits.push('所得税 ' + $('f-tax').value + '%');
+  if ($('f-seniority').value !== '') bits.push('在籍 ' + $('f-seniority').value + '年');
+  $('s4-sum-txt').innerHTML = '<b>' + esc(bits.join(' ／ ')) + '</b>';
+  $('s4-sum').hidden = false;
+  $('s4-body').hidden = true;
+  $('s4-sub').hidden = true;      // 畳んだら説明文も消す（要約1行だけを残す）
+}
+$('s4-edit').addEventListener('click', () => {
+  $('s4-sum').hidden = true;
+  $('s4-body').hidden = false;
+  $('s4-sub').hidden = false;
+  $('f-contract').focus();
+});
+function loadPreset() {
+  let o = null;
+  try { o = JSON.parse(localStorage.getItem(LS_KEY) || 'null'); } catch (e) {}
+  if (!o || !restoreInto(o)) return;
+  $('restore-bar').style.display = '';
+  $('entry-prev').hidden = false;   // 入口の「手動で入力」に、前回の内容があると出す
+}
+$('btn-forget').addEventListener('click', () => {
+  try { localStorage.removeItem(LS_KEY); } catch (e) {}
+  $('restore-bar').style.display = 'none';
+});
+loadPreset();
+updateSteps(true);
+
+/* ── 先月の内容をサーバから埋める ──────────────────────────────
+   ★端末の localStorage だけだと、機種変・別ブラウザ・明細から入った人に効かない。
+     ログイン済みなら本人の直近の行から埋める（my_pay_reports は本人の行しか返さない）。
+   ★持ち越さないもの：対象月と飛んだ時間（毎月変わる）、明細から読めた実額7つ
+     （その月の明細にしか無い数字。持ち越すと先月の手取りが今月の行に入る）。
+   ★サーバの値は端末の値より新しいので、食い違ったらサーバを優先する
+     （restoreInto は入っている値を上書きする）。 */
+(async function () {
+  /* ★ログイン後の再送（PENDING）が控えているときは何もしない。await をまたいで
+     フォームを書き換えると、送信中のペイロードに別の月の値が混ざる。
+     この判定は await の前に済ませる（下の PENDING の処理がキーを消す前に読む）。 */
+  try { if (localStorage.getItem(PENDING_KEY)) return; } catch (e) {}
+  if (readClaims().length) return;   // 預かり分がレポートを描く直前。その下でフォームを書き換えない
+  if (!(await sessionUserId())) return;
+  let rows = null;
+  try {
+    const { data, error } = await _sb.rpc('my_pay_reports');
+    if (error) throw error;
+    rows = data && data.reports;
+  } catch (e) { return; }                 // 埋まらないだけ。フォームは普通に使える
+  if (!Array.isArray(rows) || !rows.length) return;
+  const r = rows[rows.length - 1];        // period_ym 昇順で返るので最後が直近
+  if (!r) return;
+
+  const s = (v) => (v === null || v === undefined || v === '' ? '' : String(v));
+  const o = {
+    'f-airline': s(r.airline), 'f-airline-other': s(r.airline_other),
+    'f-position': s(r.position), 'f-fleet': s(r.fleet), 'f-jobrole': s(r.job_role),
+    'f-age': s(r.age_bucket),
+    'f-base-iata': s(r.base_iata), 'f-currency': s(r.currency),
+    'f-gross': s(r.gross_monthly), 'f-base': s(r.base_pay),
+    'f-guar': s(r.guaranteed_hours), 'f-perdiem': s(r.per_diem),
+    'f-housing': s(r.housing_type), 'f-housing-amt': s(r.housing_amount),
+    'f-transport': s(r.transport), 'f-command': s(r.command_pay),
+    'f-other': s(r.other_allowance), 'f-bonus': s(r.bonus_annual),
+    'f-profit': s(r.profit_share_annual), 'f-pension': s(r.pension_pct),
+    'f-contract': s(r.contract_type), 'f-taxcountry': s(r.tax_country),
+    'f-tax': s(r.tax_rate_pct), 'f-seniority': s(r.seniority_years),
+  };
+  for (const k of Object.keys(o)) if (!o[k]) delete o[k];
+  if (!restoreInto(o)) return;
+  /* 税率は前回の行の値。ここで touched を立てて、居住国から引き直した概算で
+     上書きされないようにする（本人が明細を見て直した数字のほうが正しい）。 */
+  if (o['f-tax']) $('f-tax').dataset.touched = '1';
+  const ym = r.period_year && r.period_month ? r.period_year + '年' + r.period_month + '月' : '前回';
+  $('restore-bar').firstElementChild.textContent =
+    ym + 'の内容で埋めました。変わったところだけ直してください。';
+  $('restore-bar').style.display = '';
+  $('entry-prev').hidden = false;
+})();
+
+/* ── 通貨の初期値をヘッダーの選択に合わせる ──────────────────
+   明細は「給与明細に印字されている通貨そのまま」が正なので、これはあくまで初期値。
+   前回値（loadPreset）や本人の選択が入っていれば絶対に触らない。
+   currency.js はページ末尾で読み込まれるので DOMContentLoaded 以降に見に行く。 */
+(function () {
+  const pick = () => {
+    const sel = $('f-currency');
+    if (!sel || sel.value) return;
+    let c = '';
+    try { c = (window.PVCurrency && window.PVCurrency.get && window.PVCurrency.get()) || ''; } catch (e) {}
+    if (!c || !Array.prototype.some.call(sel.options, (o) => o.value === c)) return;
+    sel.value = c;
+    sel.dispatchEvent(new Event('change'));
+  };
+  window.addEventListener('pv-currency-change', pick);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', pick);
+  else pick();
+})();
+
+/* ── ログインから戻ってきたら、預けた入力をそのまま送る ──────
+   ★消すのは「使える」と分かってから。以前は読んだ直後に消していたので、
+     Google を途中でやめた人・別のアカウントを選んだ人・戻り先が別のサイトに
+     なった人が次に開いた瞬間、入力が黙って捨てられて入口の2択に戻っていた。
+   ★ログインできていなくても、入力は画面に戻してフォームを出す。預けたものは
+     残す（次に送信を押したとき snapshot() が同じキーを上書きする）。
+   ★送るときだけ、呼ぶ直前に消す。送ってから消すと失敗やリロードで二重送信になる。 */
+const PENDING_MAX_AGE = 14 * 24 * 60 * 60 * 1000;   // 2週間より古い下書きは持たない
+(async function () {
+  const signedIn = !!(await sessionUserId());
+  setSubmitLabel(signedIn);
+
+  const drop = () => { try { localStorage.removeItem(PENDING_KEY); } catch (e) {} };
+  const hasClaim = readClaims().length > 0;
+  let pending = null;
+  try { pending = JSON.parse(localStorage.getItem(PENDING_KEY) || 'null'); } catch (e) {}
+  /* ★預かり証があるあいだは下書きも捨てない（預かり証は30日、下書きは14日）。
+     食い違わせると、15日目に「サーバには預かってあるのに画面には何も無い」という、
+     こちらからは説明のしようがない状態になる。 */
+  const ts = pending ? Number(pending._ts || 0) : 0;
+  const maxAge = hasClaim ? CLAIM_MAX_AGE : PENDING_MAX_AGE;
+  if (pending && ts && Date.now() - ts > maxAge) { drop(); pending = null; }
+
+  /* ★フォームへ戻すのは、預かり分を移すより先。移せたらそのままレポートを描くが、
+     描くときに会社名・機材・職位を選択肢の文字から取るので、空のフォームだと
+     見出しが空欄のレポートになる。 */
+  if (pending) {
+    if (!restoreInto(pending)) { drop(); pending = null; }
+    else {
+      enterMode('manual');   // ★入口の2択に戻さない（送るところまで済ませて帰ってきた人）
+      $('restore-bar').style.display = 'none';
+    }
+  }
+
+  /* ① 預けたぶんがあってログインも済んでいる＝Google／メール内リンクから
+        戻ってきた人。ここで本人のものへ移して終わり。入力し直しは無い。 */
+  /* 招待リンクから来た人を紹介者に結びつける。★claimPending() より前に呼ぶ
+     ＝まだ投稿が0件のうちに帰属して、この最初の1件で成立する
+     （紹介の成立は profiles.pay_report_count > referrals.baseline_reports で導出する）。
+     冪等なので他の3か所と重なっても害は無い。落ちても給与の経路は止めない。 */
+  try { if (window.PVReferral) await window.PVReferral.claim(_sb); } catch (e) {}
+
+  if (signedIn && hasClaim) {
+    const won = await claimPending();
+    if (won) {
+      drop();
+      track('pay_report_resume', { signed_in: 1, claimed: 1 });
+      return afterSaved(won, won.payload || pending || {}, (won.payload || {}).airline);
+    }
+  }
+
+  /* ② 預けたぶんはあるが、まだアカウントが無い。保存はもう済んでいるので、
+        「受け取りました」の状態のまま登録の箱へ戻す（もう一度送らせない）。
+     ★箱は入力欄の下（#submit-block）にあり、フォームを戻せていないと出ない。
+       だから pending が戻ったときだけ出す。 */
+  if (!signedIn && hasClaim && pending) {
+    track('pay_report_resume', { signed_in: 0, claimed: 0 });
+    return showGate(true);
+  }
+
+  /* ③ 預かり証が無い（預けそこねた人・古い下書き）。これまで通り。 */
+  if (!pending) return;
+  /* 戻ってきた人のうち何人がログインできずに来たか。
+     ★送るのは段の名前と 0/1 だけ。入力の中身は送らない。 */
+  track('pay_report_resume', { signed_in: signedIn ? 1 : 0 });
+  if (!signedIn) return;
+  drop();
+  submitPayReport();
+})();
+
+// ── エラー表示 ────────────────────────────────────────────────
+function showErr(msg, title) {
+  /* ★ここに来る＝「送信を押したのに先へ進めなかった」。必須の欄が約20あるので、
+     入力が多すぎて出せないのか、押してすらいないのかは、この数を見ないと分からない。
+     ★文言そのものは送らない（日英で別の文字列になるうえ、入力値が混じる余地を作らない）。 */
+  track('pay_form_blocked');
+  $('err').innerHTML = '<div class="form-alert"><span class="fa-title">' + esc(title || '送信できませんでした') + '</span>' + esc(msg) + '</div>';
+  $('err').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+function clearErr() { $('err').innerHTML = ''; }
+
+// ── 送信 ──────────────────────────────────────────────────────
+/* ★unc() を通す。金額の欄は画面に 1,150,000 と出ているので、そのまま送ると
+   サーバの ::numeric が落ちる（送るのは常に素の数字）。 */
+const val = (id) => { const v = unc($(id).value).trim(); return v === '' ? null : v; };
+
+async function submitPayReport() {
+  clearErr();
+  hideGate();
+  const btn = $('submit-btn');
+
+  const airline = val('f-airline');
+  if (!airline) return showErr('会社を選んでください。');
+  if (airline === 'other' && !val('f-airline-other')) return showErr('「一覧にない会社」を選んだ場合は、会社名を入力してください。');
+  if (!val('f-position')) return showErr('職位を選んでください。');
+  if (!val('f-fleet')) return showErr('機材を選んでください。');
+  if (!val('f-jobrole')) return showErr('役職・区分を選んでください。');
+  if (!val('f-age')) return showErr('年代を選んでください。');
+  if (!val('f-currency')) return showErr('通貨を選んでください。');
+  /* ★飛んだ時間は必須。0 は許す（地上勤務・病欠の月）。空欄だけを弾く。
+     これが無いと時間あたり報酬が出せず、国と会社をまたいだ比較ができない。 */
+  if (!val('f-block')) {
+    return showErr('フライトタイムを入れてください。飛んでいない月や、時間を管理していない場合は 0 と入れてください。');
+  }
+  if (!val('f-stay')) {
+    return showErr('ステイ日数を入れてください。基地の外で泊まらなかった月は 0 と入れてください。');
+  }
+  /* ★段のゲートと同じ payEntered() を通す（見る場所を1本にしてある）。
+     金額が 0 のときだけここで弾く。 */
+  if ($('pay-detail').open) {
+    if (num('f-base') <= 0 && num('f-hourly') <= 0) {
+      return showErr('基本給か時給を入れてください。手当だけでは、他社と比べる軸がありません。');
+    }
+  } else if (num('f-gross') <= 0) {
+    return showErr('その月の総支給額を入れてください。手当だけでは、他社と比べる軸がありません。');
+  }
+  if (!val('f-netpay')) return showErr('その月の手取り額を入れてください（明細の「差引支給額」「Net Pay」）。');
+  if (!val('f-bonus-mo')) return showErr('今月出たボーナスを入れてください。出ていない月は 0 と入れてください。');
+  if (!val('f-perdiem')) return showErr('パーディアムを入れてください。付かない会社・出なかった月は 0 と入れてください。');
+  if (!val('f-housing')) return showErr('住居を選んでください。');
+  if ($('f-housing').value === 'allowance' && !val('f-housing-amt')) {
+    return showErr('「住宅手当（現金）」を選んだ場合は、その月額も入れてください。');
+  }
+  /* ★4. 契約と税（2026-08-13 に必須化）。畳まれていても値は入っているので同じ判定で通る。 */
+  if (!val('f-contract')) return showErr('契約形態を選んでください。');
+  if (!val('f-taxcountry')) return showErr('居住国（納税地）を選んでください。');
+  if (!val('f-seniority')) return showErr('在籍年数を入れてください。');
+  if (num('f-hourly') > 0 && num('f-block') <= 0 && num('f-guar') <= 0) {
+    return showErr('時給を入れた場合は、フライトタイムか保証フライトタイムのどちらかが必要です。');
+  }
+
+  const payload = {
+    airline:             airline,
+    airline_other:       val('f-airline-other'),
+    position:            val('f-position'),
+    fleet:               val('f-fleet'),
+    job_role:            val('f-jobrole'),
+    age_bucket:          val('f-age'),
+    base_iata:           val('f-base-iata'),
+    period_year:         val('f-year'),
+    period_month:        val('f-month'),
+    currency:            val('f-currency'),
+    /* ★かんたん入力の「その月の総支給額」。下の内訳とは排他で、
+       サーバ側（submit_pay_report）も総支給を正として内訳を捨てる。
+       絶対に base_pay へ入れないこと（支給構成が「基本給100%」の嘘の図になる）。
+       ★くわしく入れるを開いているときは送らない。欄には内訳の合計が映って
+         いるだけなので、送るとサーバが内訳を捨てて支給構成が出なくなる。 */
+    gross_monthly:       $('pay-detail').open ? null : val('f-gross'),
+    base_pay:            val('f-base'),
+    hourly_rate:         val('f-hourly'),
+    guaranteed_hours:    val('f-guar'),
+    block_hours:         val('f-block'),
+    duty_days:           val('f-duty'),
+    stay_nights:         val('f-stay'),
+    per_diem:            val('f-perdiem'),
+    housing_type:        val('f-housing'),
+    housing_amount:      $('f-housing').value === 'allowance' ? val('f-housing-amt') : null,
+    transport:           val('f-transport'),
+    command_pay:         val('f-command'),
+    other_allowance:     val('f-other'),
+    bonus_annual:        val('f-bonus'),
+    /* ★総支給に含まれている「その月のボーナス」。年換算のとき ×12 の前に外す。
+       bonus_annual（1年の合計）とは別物なので、絶対に足し合わせない。 */
+    bonus_month:         val('f-bonus-mo'),
+    profit_share_annual: val('f-profit'),
+    pension_pct:         val('f-pension'),
+    contract_type:       val('f-contract'),
+    tax_country:         val('f-taxcountry'),
+    /* nationality は 2026-08-12 に聞くのをやめた（居住国だけで足りる）。
+       DB の列は残してあるので、以後の投稿は NULL で入る。 */
+    tax_rate_pct:        val('f-tax'),
+    seniority_years:     val('f-seniority'),
+
+    /* ── 明細から読めた値 ────────────────────────────────────────
+       手取り（f-netpay）と勤務時間（f-duty-h）は 2026-08-13 に表の欄へ出したので、
+       手入力の行にも入る。残りは欄が無く、明細を読んだときだけ入る。
+       ★source は「出所ラベル」でしかない。クライアント申告なので、Verified 付与・
+         解放日数・verify_level のどれもこれで分岐させてはいけない
+         （VERIFIED-PILOT 3-2 A-1：明細を1枚も出さずに 'payslip' と送れてしまう）。 */
+    net_pay_actual:      val('f-netpay'),
+    ytd_taxable:         val('f-ytd'),
+    flight_variable_pay: val('f-flightvar'),
+    deduction_total:     val('f-deduct'),
+    duty_hours:          val('f-duty-h'),
+    night_hours:         val('f-night-h'),
+    credit_hours:        val('f-credit-h'),
+    /* ★val() を通さない。unc() がカンマを全部落とすので、JSON が壊れる。
+       画面には出さない値で、送るのは payslip.js が組んだ文字列そのまま。 */
+    payslip_detail:      $('f-psdetail').value || null,
+    source:              val('f-source') || 'web',
+    lang:                LANG,
+  };
+
+  btn.disabled = true;
+  btn.textContent = '送信中…';
+
+  /* ★下書きは送る前に必ず端末へ残す。ここから先で何が起きても入力は消えない。
+     ★預けた時刻も一緒に残す。ログインせずに離れた人の下書きはそのまま残るので、
+       これが無いと何ヶ月も前の入力が次の月のフォームに載る。 */
+  try { localStorage.setItem(PENDING_KEY, JSON.stringify({ ...snapshot(), _ts: Date.now() })); } catch (e) {}
+
+  /* ── ログインしていない人：この1押しでサーバへ預かる ──────────────
+     ★今回の反転の要。保存を先に済ませ、アカウントはそのあとで作ってもらう。
+       これまでは「登録できた人の入力だけ」が保存されていて、登録が1歩でも
+       詰まった人の明細は丸ごと消えていた（会員18人に対して給与レポート0件）。
+     ★預かった時点では何も返らない（年収も比較も）。返すと登録せずに
+       結果だけ持ち帰れて、アカウントを作る理由が消える。 */
+  if (!(await sessionUserId())) {
+    try {
+      const { data, error } = await _sb.rpc('submit_pay_report_pending', { p: payload });
+      if (error) throw error;
+      if (!data || !data.ok || !data.claim_token) throw new Error('サーバから預かり証が返りませんでした');
+      rememberClaim(data.claim_token);
+      /* 出し切った瞬間をここで祝う。鳴らすのは新しく預けたこの1回だけで、
+         アカウントを作って戻ってきた結果カードでは鳴らさない（_gatePopped）。 */
+      markPopped(data.claim_token);
+      try { if (typeof window.PVConfetti === 'function') window.PVConfetti(); } catch (e) {}
+      savePreset();
+      track('pay_report_pending');
+      btn.disabled = false;
+      btn.textContent = _btnLabel;
+      return showGate(true);
+    } catch (e) {
+      console.error(e);
+      const code = String((e && e.code) || '');
+      track('pay_report_error', { reason: ('pending_' + (code || (e && e.name) || 'error')).slice(0, 40) });
+      btn.disabled = false;
+      btn.textContent = _btnLabel;
+      /* 入力そのものが受け取れない（22023）なら、その場で直してもらう。
+         ここで登録の箱を出すと、直しようのない画面でアカウントだけ作らせることになる。 */
+      if (code === '22023') return showErr(String((e && (e.message || e.hint)) || 'error'));
+      /* それ以外（通信・上限）は預かりそこねただけ。下書きは端末にあるので、
+         これまで通り「ログイン → その場で送信」に落とす。 */
+      return showGate(false);
+    }
+  }
+
+  try {
+    const { data, error } = await _sb.rpc('submit_pay_report', { p: payload });
+    if (error) throw error;
+    if (!data || !data.ok) throw new Error('サーバから結果が返りませんでした');
+
+    savePreset();
+    afterSaved(data, payload, airline);
+  } catch (e) {
+    console.error(e);
+    /* ★保存そのものが落ちているなら、ここだけが立つ（入力不足の pay_form_blocked とは別物）。
+       送るのは短い符号だけ。message には値が混じることがあるので送らない。 */
+    track('pay_report_error', { reason: String((e && (e.code || e.name)) || 'error').slice(0, 40) });
+    showErr(String((e && (e.message || e.hint)) || 'error'));
+    btn.disabled = false;
+    btn.textContent = _btnLabel;
+  }
+}
+$('submit-btn').addEventListener('click', submitPayReport);
+
+// ── 結果（★入力させずに返す。これが投稿の見返り）─────────────
+function renderResult(d, p) {
+  const cur = d.currency || p.currency;
+  const usd = (v) => '$' + new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Math.round(v));
+  const jpyMan = (v) => '¥' + new Intl.NumberFormat('ja-JP', { maximumFractionDigits: 0 }).format(Math.round(v / 10000)) + '万';
+  /* ★選択中の欄ではなく、実際に保存した payload の値から選択肢の文字を引く。
+     預かり分をあとから紐付けた人はフォームが空のことがあり、選択中を見ると
+     見出しが空欄のレポートになる。 */
+  const optText = (id, v) => {
+    const sel = $(id);
+    if (!sel) return '';
+    const o = (v != null && /^[A-Za-z0-9_-]+$/.test(String(v)))
+      ? sel.querySelector('option[value="' + v + '"]') : sel.selectedOptions[0];
+    return o ? o.textContent : String(v == null ? '' : v);
+  };
+  const airlineName = optText('f-airline', p.airline);
+  const rows = [];
+
+  if (d.annual_total_usd != null || d.annual_total_jpy != null) {
+    const parts = [];
+    if (d.annual_total_usd != null) parts.push(usd(d.annual_total_usd));
+    if (d.annual_total_jpy != null) parts.push(jpyMan(d.annual_total_jpy));
+    rows.push(['換算', parts.join(' ／ ') + (d.fx_at ? ' <span style="font-size:.72rem;color:#6b7d93">（' + esc(d.fx_at) + ' のレート）</span>' : ''), '']);
+  }
+  if (d.usd_per_block_hour != null) {
+    rows.push(['★ 時間あたり報酬', '$' + Number(d.usd_per_block_hour).toLocaleString('en-US', { maximumFractionDigits: 2 }) + ' <span style="font-size:.75rem;font-weight:600;color:#6b7d93">/ block hour</span>', 'hi']);
+  }
+  if (d.net_annual_jpy != null) rows.push(['推定手取り（年）', jpyMan(d.net_annual_jpy), '']);
+  if (d.streak_months) rows.push(['連続更新', d.streak_months + 'ヶ月', '']);
+  if (d.access_until) {
+    rows.push(['給与詳細の解放', new Date(d.access_until).toLocaleDateString('ja-JP') + ' まで', '']);
+  }
+
+  let bench = '';
+  if (d.benchmark) {
+    const b = d.benchmark;
+    const pct = Math.max(0, Math.min(100, Number(b.percentile)));
+    bench =
+      '<div class="bench">' +
+        '<div style="font-size:.78rem;font-weight:700;color:#9ca3af;margin-bottom:2px">同じ区分でのあなたの位置</div>' +
+        '<div style="font-size:.72rem;color:#6b7d93">' + esc(airlineName) + '・' + esc(optText('f-fleet', p.fleet)) + '・' + esc(optText('f-position', p.position)) + '（n=' + b.n + '）</div>' +
+        '<div class="bench-bar"><div class="bench-you" style="left:calc(' + pct + '% - 2px)"></div></div>' +
+        '<div class="bench-scale"><span>' + usd(b.p25_usd) + '<br>下位25%</span><span style="text-align:center">' + usd(b.median_usd) + '<br>中央値</span><span style="text-align:right">' + usd(b.p75_usd) + '<br>上位25%</span></div>' +
+        '<div style="margin-top:14px;font-size:.95rem;font-weight:800">上位 ' + Math.max(1, 100 - pct) + '%' +
+          (b.median_usd_per_bh != null ? '<span style="font-size:.78rem;font-weight:600;color:#9ca3af;margin-left:10px">同区分の時間あたり中央値 $' + Number(b.median_usd_per_bh).toLocaleString('en-US', { maximumFractionDigits: 2 }) + '</span>' : '') +
+        '</div>' +
+      '</div>';
+  } else {
+    /* ★この一文は「床」。pv-referral.js が読めても読めなくても、RPC が落ちても、
+       ここは必ず残る。上書きするのは mountAfterReport だけで、上書きできない
+       ときは今までどおりこの文が出る（id を1つ足す以外は1文字も変えていない）。 */
+    bench = '<div class="bench" id="bench-gap"><div style="font-size:.82rem;color:#9ca3af">この区分（会社・職位・機材・年）は<b>まだ5人に届いていません</b>。5人そろった時点で位置が出ます。個人が特定されない人数に達するまで、集計は出しません。</div></div>';
+  }
+
+  const fxNote = d.fx_missing
+    ? '<div class="warn-row" style="margin-top:16px">' + esc(cur) + ' の換算レートがまだ入っていないため、USD／円の表示は出せません。<b>入力された金額は原本のまま保存されています</b>ので、レートを入れた時点でさかのぼって計算されます。</div>'
+    : '';
+
+  $('result-wrap').innerHTML =
+    '<div class="res">' +
+      '<div class="res-pop">🎉</div>' +
+      '<div class="res-eyebrow">' + (d.is_new ? '受け取りました' : '訂正を反映しました') + '</div>' +
+      '<div class="res-big">' + esc(fmtCur(d.annual_total_orig, cur)) + '</div>' +
+      '<div class="res-sub">年換算の総額（' + esc(p.period_year) + '年' + esc(p.period_month) + '月の明細から）</div>' +
+      '<div style="margin-top:18px">' +
+        rows.map((r) => '<div class="res-row"><span class="res-k">' + esc(r[0]) + '</span><span class="res-v ' + r[2] + '">' + r[1] + '</span></div>').join('') +
+      '</div>' +
+      bench + fxNote +
+      '<div class="res-note">この内容は<b>この端末にだけ</b>保存しました。来月は変わったところを直すだけで済みます。' +
+        '次の明細を出すと、その日から90日に伸びます。<br>' +
+        '<b>「検証済み」バッジは、入力を続けても付きません。</b>本物のパイロットであることを確かめられたときだけ付きます（準備中）。</div>' +
+      '<div class="mt-6 flex flex-col sm:flex-row gap-3">' +
+        '<a href="my-value.html?new=1" class="btn-orange justify-center flex-1">マイレポートを見る →</a>' +
+        '<button type="button" class="btn-ghost justify-center" id="btn-again">別の月を出す</button>' +
+      '</div>' +
+    '</div>';
+
+  $('form-wrap').style.display = 'none';
+  $('result-wrap').style.display = '';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  /* 出し終わりを静かに終わらせない。ただし鳴らすのは新しい月のときだけ。
+     同じ月の出し直し（is_new:false＝訂正）は上書きで件数が増えないので、
+     ここで紙吹雪まで出すと「1件増えた」の合図が意味を失う。🎉 バッジは出したまま。
+     ★預かり分は「受け取りました」で既に鳴らしているので、ここでは鳴らさない。 */
+  if (d.is_new && !_gatePopped) {
+    try { if (typeof window.PVConfetti === 'function') window.PVConfetti(); } catch (e) {}
+  }
+
+  $('btn-again').addEventListener('click', () => {
+    $('result-wrap').style.display = 'none';
+    $('form-wrap').style.display = '';
+    $('submit-btn').disabled = false;
+    $('submit-btn').textContent = _btnLabel;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  profileNudge();
+
+  /* ★給与が保存され、レポートが画面に出たあとにだけ、待遇を少しだけ聞く。
+     ここに置く理由：ログイン直送も、匿名で預けたぶんの紐付け（claimPending）も、
+     必ず renderResult を通る＝経路を1本にできる。
+     ⚠️ pv-conditions.js が落ちても、ここから先のレポートには一切触らない。 */
+  if (window.PVConditions) window.PVConditions.afterReport({
+    sb: _sb, airline: p.airline, airline_other: p.airline_other, airlineName: airlineName,
+    year: p.period_year, month: p.period_month, position: p.position,
+    fleet: p.fleet, base_iata: p.base_iata, contract_type: p.contract_type });
+
+  /* 招待（データ密度）カード。★上の待遇モーダルとぶつからない：
+       ・こちらは覆いを作らない（position:fixed も role="dialog" も
+         body.style.overflow も書かない）。#bench-gap の中を書き換えるだけ。
+       ・モーダルの 700ms 待ちより先に入るので、閉じたときには既にそこに在る。
+       ・[data-pvc] を見ない・待たない＝2つのモジュールを同期させる約束が無い。
+       ・「見えた」の計測は、覆い（aria-modal）が開いている間は止まる。 */
+  if (window.PVReferral) window.PVReferral.mountAfterReport({ sb: _sb });
+}
+
+/* ── レポートのあとに、プロフィールが空の人にだけ1枚出す ──────────
+   ★会員登録のときに6項目を聞かない代わりがこれ。先にレポートを見せる。
+     レポートの保存自体はプロフィールが無くても通る（submit_pay_report が
+     profiles の行を自分で作る）ので、ここで止める理由は何も無い。
+   ★書くのは本当のことだけ。氏名を入れるとマイレポートの見出しがその名前になる
+     （my-value.js の loadName）。それ以上の効能は今のところ無いので書かない。
+   ★signup.html へ送らない。アカウントはもうあるので、二重登録に見える。 */
+async function profileNudge() {
+  try {
+    const uid = await sessionUserId();
+    if (!uid) return;
+    const { data, error } = await _sb.from('profiles').select('name').eq('id', uid).maybeSingle();
+    if (error) return;                              // 取れなければ黙って出さない
+    if (data && String(data.name || '').trim()) return;   // 埋まっている人には出さない
+    const box = document.createElement('div');
+    box.className = 'res';
+    box.style.marginTop = '18px';
+    box.innerHTML =
+      '<div style="font-size:.95rem;font-weight:800;letter-spacing:-.01em;margin-bottom:6px">プロフィールがまだ空です</div>' +
+      '<div style="font-size:.82rem;line-height:1.7;color:#a8b3c2;margin-bottom:16px">' +
+        '氏名を登録すると、マイレポートの見出しがあなたの名前になります。あとからでも設定できます。</div>' +
+      '<a href="profile.html#edit-card" class="btn-ghost justify-center">プロフィールを設定する →</a>';
+    $('result-wrap').appendChild(box);
+  } catch (e) { /* 出せなくてもレポートは出ている。黙って諦める */ }
+}
+
+// ── nav / theme ───────────────────────────────────────────────
+addEventListener('scroll', () => {
+  document.getElementById('main-nav').classList.toggle('scrolled', scrollY > 10);
+});
+(function () {
+  const btn = $('theme-toggle');
+  const ico = () => { btn.textContent = document.documentElement.getAttribute('data-theme') === 'light' ? '🌙' : '☀️'; };
+  ico();
+  btn.addEventListener('click', () => {
+    const next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('pv-theme', next);
+    ico();
+  });
+})();
+</script>
+<script src="payslip.js"></script>
+<script src="confetti.js"></script>
+<script src="pay-login.js"></script>
+<script src="lang-toggle.js"></script>
+<script src="currency.js"></script>
+<script src="pv-conditions.js"></script>
+</body>
+</html>

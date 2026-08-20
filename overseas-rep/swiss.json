@@ -1,0 +1,78 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "グループ最高益の高収益企業（2024年調整後EBIT約CHF6.8億）で雇用は安定し、財務の堅牢さとプレステージが大きな安心材料。Glassdoor総合4.0/5・推薦率76%。一方で厳格な社内ルールと書類仕事の多さ、外部委託の拡大、2025年に組合員85%が協約解約を可決した労使の緊張がモラールに影を落とす。",
+      "en": "SWISS is the most profitable airline in the Lufthansa Group (2024 adjusted EBIT ~CHF684M), so jobs feel secure and Glassdoor sits at 4.0/5 with 76% recommending. But strict rules, heavy paperwork and labor tension — 85% of union members voted to end the contract in 2025 — weigh on morale."
+    },
+    "salary": {
+      "ja": "給与は飛行時間連動ではなく勤続年数ベースの固定月給で、収入が乗務量で乱高下せず生活が読みやすい。First Officerで年約1,800万〜3,330万円（CHF10万〜18.5万）、Captainは約3,420万〜5,760万円。スイスフラン建ての絶対額は欧州トップクラスとの評価で、2023年は合計4.3%昇給。",
+      "en": "Pay is a seniority-based fixed monthly salary rather than flight-hour linked, so income doesn't swing with flying. First Officers earn roughly $114K-211K a year and Captains about $216K-365K, among the best absolute figures in Europe."
+    },
+    "benefits": {
+      "ja": "目玉は手厚い企業年金で、会社が保険料の約6割を負担し58歳から段階的な早期退職が可能。これが長く残る大きな動機になっている。長距離レイオーバーの日当は1日約5,200〜8,600円（EUR30〜50）で、長期で見た総報酬価値は同業他社より有利という評価が定着している。",
+      "en": "The standout is a generous company pension, with SWISS covering about 60% of contributions and phased early retirement available from age 58. Long-haul layover per diems run roughly $33-54 a day."
+    },
+    "wlb": {
+      "ja": "年間ブロックアワーは約580〜650時間とEASA上限900を大きく下回り、月の休日は12〜15日、パートタイムは40〜95%で選べ約4割が利用。最大の不満は勤務計画への発言権の乏しさと予見性の低さで、これが2023年協約解約の主因。給与より休みの読めなさが響いている。",
+      "en": "Annual block hours of ~580-650 sit well under the EASA 900 cap, with 12-15 days off a month and part-time from 40-95%. Still, poor say over rostering and low predictability is the top complaint and the main reason pilots voted to end the 2023 contract."
+    },
+    "ops": {
+      "ja": "短距離はA220／A320ファミリー、長距離はB777・A350・A330・A340で、拠点はチューリッヒ（メイン）とジュネーブの2つ。良好な長距離網とアルプスを望む『世界一美しいオフィス』が誇り。一方パイロット不足で2025年夏は約1,400便（約1.5%）を運休し現場は過重負荷、応募にはドイツ語B2が必要。",
+      "en": "Short-haul flies the A220 and A320 family, long-haul the B777, A350, A330 and A340, from bases in Zurich and Geneva. A pilot shortage forced ~1,400 cancellations in summer 2025, straining crews; German at B2 level is required to apply."
+    },
+    "training": {
+      "ja": "ab initio養成はチューリッヒ近郊のアカデミーで約2年・総額約CHF14万（約2,520万円）。SWISSが低利ローンで前払いし入学時の自己資金は不要だが、若手は給与から月約CHF1,000（約18万円）が返済天引きされる。機長昇格は4〜7年（機材次第で12年超の声も）で、直接機長採用はなく内部昇格のみ。",
+      "en": "Ab initio training runs about two years and ~CHF140K, pre-financed by SWISS as a low-interest loan with no upfront payment, though young pilots see ~CHF1,000/month deducted from salary. Captain upgrade takes 4-7 years (some report 12+), internal-only with no direct-entry captains."
+    }
+  },
+  "sources": [
+    {
+      "title": "SWISS Pilot Salary 2026: FO CHF 100-185K, Captain CHF 190-320K — Airmappr",
+      "url": "https://airmappr.com/articles/career/swiss-pilot-salary-guide"
+    },
+    {
+      "title": "Swiss International Air Lines | Pilot Pay, Fleet & Careers — Ready For Takeoff",
+      "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/swiss-international-air-lines"
+    },
+    {
+      "title": "So viel verdienen Piloten bei der Swiss nach der Lohnerhöhung für 2023 — 20 Minuten",
+      "url": "https://www.20min.ch/story/so-viel-verdienen-piloten-bei-der-swiss-nach-der-lohnerhoehung-fuer-2023-393109311742"
+    },
+    {
+      "title": "Swiss-Einigung: Piloten erhalten 2,3 Prozent mehr Lohn – doch es gibt einen Haken — watson.ch",
+      "url": "https://www.watson.ch/schweiz/wirtschaft/654859644-swiss-einigung-piloten-erhalten-mehr-lohn-doch-es-gibt-einen-haken"
+    },
+    {
+      "title": "«Neustart» erwünscht – Swiss-Piloten kündigen Gesamtarbeitsvertrag — SRF",
+      "url": "https://www.srf.ch/news/wirtschaft/neustart-erwuenscht-swiss-piloten-kuendigen-gesamtarbeitsvertrag"
+    },
+    {
+      "title": "AEROPERS – GAV abgelehnt / Medienmitteilung",
+      "url": "https://aeropers.ch/index.php/de-de/medien/medien-mitteilungen/89-gav-abgelehnt"
+    },
+    {
+      "title": "Swiss pilots under strain due to pilot shortage — Le News",
+      "url": "https://lenews.ch/2025/08/30/swiss-pilots-under-strain-due-to-pilot-shortage/"
+    },
+    {
+      "title": "Formation « ab initio » Pilote de ligne (H/F) — SWISS (fact sheet FR)",
+      "url": "https://www.swiss.com/content/dam/swiss/pdfs/lx_fact-sheet_pilot_FR.pdf"
+    },
+    {
+      "title": "Swiss International Air Lines Reviews / Pilot Salaries — Glassdoor",
+      "url": "https://www.glassdoor.com/Reviews/Swiss-International-Air-Lines-Switzerland-Reviews-EI_IE13979.0,29_IL.30,41_IN226.htm"
+    },
+    {
+      "title": "SWISS reports second-best-ever operating profit for 2024 — Aviation24.be",
+      "url": "https://www.aviation24.be/airlines/lufthansa-group/swiss/reports-second-best-ever-operating-profit-for-2024/"
+    },
+    {
+      "title": "Lufthansa Group Profitability Divide: SWISS 10x As Profitable As Lufthansa — One Mile at a Time",
+      "url": "https://onemileatatime.com/news/lufthansa-group-profitability-divide-swiss-lufthansa/"
+    },
+    {
+      "title": "SWISS International Air Lines Pilot Salary in 2026 — Aviation A2Z",
+      "url": "https://aviationa2z.com/index.php/2026/02/27/swiss-pilot-salary-in-2026/"
+    }
+  ]
+}

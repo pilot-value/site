@@ -1,0 +1,3479 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 自動生成: node gen-sitemap.mjs — 手で編集しない -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://pilot-value.com/africa-pilot-salary.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/africa-pilot-salary.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/africa-pilot-salary.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/africa-pilot-salary.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/asia-pilot-salary.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/asia-pilot-salary.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/asia-pilot-salary.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/asia-pilot-salary.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/community.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/community.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/community.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/community.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/contact.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/contact.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/contact.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/contact.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.95</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/europe-pilot-salary.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/europe-pilot-salary.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/europe-pilot-salary.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/europe-pilot-salary.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/guide.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/guide.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/guide.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/guide.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/help.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/help.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/help.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/help.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/latin-america-pilot-salary.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/latin-america-pilot-salary.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/latin-america-pilot-salary.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/latin-america-pilot-salary.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/middle-east-pilot-salary.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/middle-east-pilot-salary.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/middle-east-pilot-salary.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/middle-east-pilot-salary.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/north-america-pilot-salary.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/north-america-pilot-salary.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/north-america-pilot-salary.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/north-america-pilot-salary.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/oceania-pilot-salary.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/oceania-pilot-salary.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/oceania-pilot-salary.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/oceania-pilot-salary.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/pilot-salary-guide.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.95</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/pilot-salary-guide.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/pilot-salary-guide.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/pilot-salary-guide.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/pilot-tenshoku.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/pilot-tenshoku.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/pilot-tenshoku.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/pilot-tenshoku.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/pilot-vs-bengoshi.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/pilot-vs-bengoshi.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/pilot-vs-bengoshi.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/pilot-vs-bengoshi.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/pilot-vs-isha.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/pilot-vs-isha.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/pilot-vs-isha.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/pilot-vs-isha.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/pilot-vs-kochin.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/pilot-vs-kochin.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/pilot-vs-kochin.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/pilot-vs-kochin.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/policy.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/policy.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/policy.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/policy.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/privacy-pilot.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/privacy-pilot.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/privacy-pilot.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/privacy-pilot.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/privacy.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/privacy.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/privacy.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/privacy.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/sitemap.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/sitemap.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/sitemap.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/sitemap.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/terms.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/terms.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/terms.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/terms.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/world-airlines.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.95</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/world-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/world-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/world-airlines.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/aegean.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/aegean.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/aegean.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/aegean.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/aer-lingus.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/aer-lingus.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/aer-lingus.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/aer-lingus.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/aeromexico.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/aeromexico.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/aeromexico.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/aeromexico.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/air-canada.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/air-canada.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/air-canada.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/air-canada.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/air-china.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/air-china.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/air-china.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/air-china.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/air-france.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/air-france.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/air-france.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/air-france.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/air-india.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/air-india.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/air-india.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/air-india.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/air-new-zealand.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/air-new-zealand.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/air-new-zealand.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/air-new-zealand.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/airasia.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/airasia.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/airasia.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/airasia.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/airdo.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/airdo.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/airdo.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/airdo.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/airjapan.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/airjapan.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/airjapan.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/airjapan.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/airx-charter.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/airx-charter.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/airx-charter.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/airx-charter.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/alaska-airlines.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/alaska-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/alaska-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/alaska-airlines.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/allegiant.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/allegiant.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/allegiant.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/allegiant.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/american.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/american.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/american.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/american.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/amx.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/amx.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/amx.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/amx.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/ana-vs-emirates.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/ana-vs-emirates.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/ana-vs-emirates.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/ana-vs-emirates.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/ana-vs-jal.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/ana-vs-jal.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/ana-vs-jal.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/ana-vs-jal.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/ana-wings.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/ana-wings.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/ana-wings.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/ana-wings.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/ana.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/ana.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/ana.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/ana.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/asiana.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/asiana.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/asiana.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/asiana.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/austrian.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/austrian.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/austrian.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/austrian.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/avianca.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/avianca.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/avianca.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/avianca.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/bamboo-airways.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/bamboo-airways.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/bamboo-airways.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/bamboo-airways.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/batik-air.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/batik-air.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/batik-air.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/batik-air.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/breeze-airways.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/breeze-airways.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/breeze-airways.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/breeze-airways.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/british-airways.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/british-airways.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/british-airways.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/british-airways.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/cathay-pacific.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/cathay-pacific.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/cathay-pacific.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/cathay-pacific.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/china-airlines.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/china-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/china-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/china-airlines.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/china-eastern.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/china-eastern.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/china-eastern.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/china-eastern.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/china-southern.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/china-southern.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/china-southern.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/china-southern.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/copa-airlines.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/copa-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/copa-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/copa-airlines.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/daiichi-air.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/daiichi-air.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/daiichi-air.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/daiichi-air.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/delta.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/delta.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/delta.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/delta.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/eagle-jet.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/eagle-jet.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/eagle-jet.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/eagle-jet.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/easyjet.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/easyjet.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/easyjet.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/easyjet.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/egyptair.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/egyptair.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/egyptair.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/egyptair.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/emirates-vs-qatar.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/emirates-vs-qatar.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/emirates-vs-qatar.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/emirates-vs-qatar.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/emirates.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/emirates.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/emirates.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/emirates.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/ethiopian-airlines.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/ethiopian-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/ethiopian-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/ethiopian-airlines.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/etihad.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/etihad.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/etihad.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/etihad.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/eurowings.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/eurowings.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/eurowings.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/eurowings.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/eva-air.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/eva-air.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/eva-air.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/eva-air.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/fda.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/fda.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/fda.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/fda.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/fiji-airways.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/fiji-airways.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/fiji-airways.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/fiji-airways.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/finnair.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/finnair.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/finnair.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/finnair.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/frontier.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/frontier.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/frontier.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/frontier.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/gaishi-vs-nikkei.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/gaishi-vs-nikkei.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/gaishi-vs-nikkei.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/gaishi-vs-nikkei.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/garuda-indonesia.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/garuda-indonesia.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/garuda-indonesia.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/garuda-indonesia.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/gulf-air.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/gulf-air.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/gulf-air.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/gulf-air.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/hac.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/hac.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/hac.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/hac.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/hainan-airlines.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/hainan-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/hainan-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/hainan-airlines.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/hong-kong-express.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/hong-kong-express.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/hong-kong-express.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/hong-kong-express.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/iberia.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/iberia.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/iberia.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/iberia.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/ibex.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/ibex.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/ibex.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/ibex.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/icelandair.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/icelandair.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/icelandair.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/icelandair.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/indigo.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/indigo.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/indigo.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/indigo.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/ita-airways.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/ita-airways.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/ita-airways.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/ita-airways.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/j-air.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/j-air.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/j-air.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/j-air.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/jac.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/jac.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/jac.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/jac.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/jal.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/jal.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/jal.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/jal.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/jetblue.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/jetblue.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/jetblue.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/jetblue.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/jetstar-japan.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/jetstar-japan.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/jetstar-japan.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/jetstar-japan.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/jetstar.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/jetstar.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/jetstar.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/jetstar.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/jta.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/jta.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/jta.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/jta.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/kenya-airways.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/kenya-airways.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/kenya-airways.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/kenya-airways.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/klm.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/klm.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/klm.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/klm.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/korean-air.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/korean-air.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/korean-air.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/korean-air.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/kuwait-airways.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/kuwait-airways.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/kuwait-airways.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/kuwait-airways.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/latam.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/latam.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/latam.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/latam.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/lcc-hikaku.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/lcc-hikaku.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/lcc-hikaku.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/lcc-hikaku.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/lot.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/lot.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/lot.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/lot.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/lufthansa.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/lufthansa.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/lufthansa.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/lufthansa.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/malaysia-airlines.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/malaysia-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/malaysia-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/malaysia-airlines.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/norwegian.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/norwegian.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/norwegian.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/norwegian.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/oman-air.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/oman-air.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/oman-air.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/oman-air.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/orc.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/orc.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/orc.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/orc.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/peach.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/peach.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/peach.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/peach.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/philippine-airlines.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/philippine-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/philippine-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/philippine-airlines.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/porter.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/porter.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/porter.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/porter.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/qantas.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/qantas.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/qantas.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/qantas.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/qatar-airways.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/qatar-airways.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/qatar-airways.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/qatar-airways.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/rac.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/rac.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/rac.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/rac.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/riyadh-air.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/riyadh-air.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/riyadh-air.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/riyadh-air.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/root-aviation.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/root-aviation.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/root-aviation.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/root-aviation.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/royal-brunei.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/royal-brunei.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/royal-brunei.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/royal-brunei.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/royal-jordanian.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/royal-jordanian.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/royal-jordanian.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/royal-jordanian.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/ryanair.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/ryanair.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/ryanair.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/ryanair.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/sas.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/sas.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/sas.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/sas.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/saudia.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/saudia.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/saudia.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/saudia.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/scoot.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/scoot.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/scoot.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/scoot.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/shin-central.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/shin-central.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/shin-central.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/shin-central.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/shin-nihon.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/shin-nihon.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/shin-nihon.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/shin-nihon.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/singapore-airlines.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/singapore-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/singapore-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/singapore-airlines.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/skymark.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/skymark.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/skymark.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/skymark.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/solairus.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/solairus.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/solairus.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/solairus.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/solaseed.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/solaseed.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/solaseed.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/solaseed.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/south-african-airways.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/south-african-airways.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/south-african-airways.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/south-african-airways.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/southwest.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/southwest.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/southwest.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/southwest.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/spirit.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/spirit.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/spirit.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/spirit.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/spring-japan.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/spring-japan.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/spring-japan.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/spring-japan.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/starflyer.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/starflyer.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/starflyer.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/starflyer.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/starlux-tenshoku.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/starlux-tenshoku.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/starlux-tenshoku.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/starlux-tenshoku.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/starlux.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/starlux.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/starlux.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/starlux.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/swiss.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/swiss.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/swiss.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/swiss.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/tap.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/tap.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/tap.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/tap.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/thai-airways.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/thai-airways.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/thai-airways.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/thai-airways.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/toho-air.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/toho-air.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/toho-air.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/toho-air.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/toki-air.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/toki-air.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/toki-air.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/toki-air.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/turkish-airlines.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/turkish-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/turkish-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/turkish-airlines.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/united.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/united.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/united.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/united.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/vietjet.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/vietjet.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/vietjet.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/vietjet.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/vietnam-airlines.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/vietnam-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/vietnam-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/vietnam-airlines.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/virgin-atlantic.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/virgin-atlantic.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/virgin-atlantic.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/virgin-atlantic.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/vueling.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/vueling.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/vueling.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/vueling.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/westjet.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/westjet.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/westjet.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/westjet.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/wizz-air.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/wizz-air.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/wizz-air.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/wizz-air.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/zipair.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/zipair.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/zipair.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/zipair.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/australia.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/australia.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/australia.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/australia.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/austria.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/austria.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/austria.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/austria.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/bahrain.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/bahrain.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/bahrain.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/bahrain.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/brunei.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/brunei.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/brunei.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/brunei.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/canada.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/canada.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/canada.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/canada.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/chile.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/chile.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/chile.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/chile.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/china.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/china.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/china.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/china.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/colombia.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/colombia.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/colombia.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/colombia.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/egypt.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/egypt.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/egypt.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/egypt.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/ethiopia.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/ethiopia.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/ethiopia.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/ethiopia.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/fiji.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/fiji.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/fiji.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/fiji.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/finland.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/finland.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/finland.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/finland.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/france.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/france.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/france.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/france.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/germany.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/germany.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/germany.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/germany.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/greece.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/greece.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/greece.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/greece.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/hong-kong.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/hong-kong.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/hong-kong.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/hong-kong.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/iceland.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/iceland.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/iceland.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/iceland.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/india.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/india.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/india.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/india.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/indonesia.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/indonesia.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/indonesia.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/indonesia.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/ireland.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/ireland.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/ireland.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/ireland.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/italy.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/italy.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/italy.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/italy.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/japan.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/japan.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/japan.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/japan.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/jordan.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/jordan.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/jordan.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/jordan.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/kenya.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/kenya.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/kenya.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/kenya.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/kuwait.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/kuwait.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/kuwait.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/kuwait.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/malaysia.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/malaysia.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/malaysia.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/malaysia.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/malta.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/malta.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/malta.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/malta.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/mexico.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/mexico.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/mexico.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/mexico.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/netherlands.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/netherlands.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/netherlands.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/netherlands.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/new-zealand.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/new-zealand.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/new-zealand.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/new-zealand.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/norway.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/norway.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/norway.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/norway.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/oman.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/oman.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/oman.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/oman.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/panama.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/panama.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/panama.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/panama.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/philippines.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/philippines.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/philippines.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/philippines.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/poland.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/poland.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/poland.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/poland.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/portugal.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/portugal.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/portugal.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/portugal.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/qatar.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/qatar.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/qatar.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/qatar.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/saudi-arabia.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/saudi-arabia.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/saudi-arabia.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/saudi-arabia.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/singapore.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/singapore.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/singapore.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/singapore.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/south-africa.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/south-africa.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/south-africa.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/south-africa.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/south-korea.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/south-korea.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/south-korea.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/south-korea.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/spain.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/spain.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/spain.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/spain.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/sweden.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/sweden.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/sweden.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/sweden.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/switzerland.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/switzerland.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/switzerland.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/switzerland.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/taiwan.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/taiwan.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/taiwan.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/taiwan.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/thailand.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/thailand.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/thailand.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/thailand.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/turkey.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/turkey.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/turkey.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/turkey.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/uae.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/uae.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/uae.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/uae.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/united-kingdom.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/united-kingdom.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/united-kingdom.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/united-kingdom.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/united-states.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/united-states.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/united-states.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/united-states.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/countries/vietnam.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/vietnam.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/vietnam.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/vietnam.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/africa-pilot-salary.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/africa-pilot-salary.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/africa-pilot-salary.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/africa-pilot-salary.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/asia-pilot-salary.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/asia-pilot-salary.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/asia-pilot-salary.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/asia-pilot-salary.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/community.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/community.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/community.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/community.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/contact.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/contact.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/contact.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/contact.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.95</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/europe-pilot-salary.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/europe-pilot-salary.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/europe-pilot-salary.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/europe-pilot-salary.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/guide.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/guide.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/guide.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/guide.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/help.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/help.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/help.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/help.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/latin-america-pilot-salary.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/latin-america-pilot-salary.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/latin-america-pilot-salary.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/latin-america-pilot-salary.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/middle-east-pilot-salary.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/middle-east-pilot-salary.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/middle-east-pilot-salary.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/middle-east-pilot-salary.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/north-america-pilot-salary.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/north-america-pilot-salary.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/north-america-pilot-salary.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/north-america-pilot-salary.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/oceania-pilot-salary.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/oceania-pilot-salary.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/oceania-pilot-salary.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/oceania-pilot-salary.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/pilot-salary-guide.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.95</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/pilot-salary-guide.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/pilot-salary-guide.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/pilot-salary-guide.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/pilot-tenshoku.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/pilot-tenshoku.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/pilot-tenshoku.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/pilot-tenshoku.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/pilot-vs-bengoshi.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/pilot-vs-bengoshi.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/pilot-vs-bengoshi.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/pilot-vs-bengoshi.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/pilot-vs-isha.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/pilot-vs-isha.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/pilot-vs-isha.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/pilot-vs-isha.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/pilot-vs-kochin.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/pilot-vs-kochin.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/pilot-vs-kochin.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/pilot-vs-kochin.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/policy.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/policy.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/policy.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/policy.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/privacy-pilot.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/privacy-pilot.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/privacy-pilot.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/privacy-pilot.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/privacy.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/privacy.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/privacy.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/privacy.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/sitemap.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/sitemap.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/sitemap.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/sitemap.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/terms.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/terms.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/terms.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/terms.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/world-airlines.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.95</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/world-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/world-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/world-airlines.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/aegean.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/aegean.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/aegean.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/aegean.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/aer-lingus.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/aer-lingus.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/aer-lingus.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/aer-lingus.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/aeromexico.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/aeromexico.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/aeromexico.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/aeromexico.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/air-canada.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/air-canada.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/air-canada.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/air-canada.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/air-china.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/air-china.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/air-china.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/air-china.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/air-france.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/air-france.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/air-france.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/air-france.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/air-india.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/air-india.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/air-india.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/air-india.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/air-new-zealand.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/air-new-zealand.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/air-new-zealand.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/air-new-zealand.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/airasia.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/airasia.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/airasia.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/airasia.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/airdo.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/airdo.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/airdo.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/airdo.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/airjapan.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/airjapan.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/airjapan.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/airjapan.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/airx-charter.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/airx-charter.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/airx-charter.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/airx-charter.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/alaska-airlines.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/alaska-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/alaska-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/alaska-airlines.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/allegiant.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/allegiant.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/allegiant.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/allegiant.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/american.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/american.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/american.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/american.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/amx.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/amx.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/amx.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/amx.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/ana-vs-emirates.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/ana-vs-emirates.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/ana-vs-emirates.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/ana-vs-emirates.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/ana-vs-jal.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/ana-vs-jal.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/ana-vs-jal.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/ana-vs-jal.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/ana-wings.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/ana-wings.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/ana-wings.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/ana-wings.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/ana.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/ana.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/ana.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/ana.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/asiana.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/asiana.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/asiana.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/asiana.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/austrian.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/austrian.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/austrian.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/austrian.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/avianca.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/avianca.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/avianca.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/avianca.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/bamboo-airways.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/bamboo-airways.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/bamboo-airways.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/bamboo-airways.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/batik-air.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/batik-air.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/batik-air.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/batik-air.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/breeze-airways.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/breeze-airways.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/breeze-airways.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/breeze-airways.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/british-airways.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/british-airways.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/british-airways.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/british-airways.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/cathay-pacific.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/cathay-pacific.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/cathay-pacific.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/cathay-pacific.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/china-airlines.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/china-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/china-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/china-airlines.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/china-eastern.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/china-eastern.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/china-eastern.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/china-eastern.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/china-southern.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/china-southern.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/china-southern.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/china-southern.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/copa-airlines.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/copa-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/copa-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/copa-airlines.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/daiichi-air.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/daiichi-air.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/daiichi-air.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/daiichi-air.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/delta.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/delta.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/delta.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/delta.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/eagle-jet.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/eagle-jet.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/eagle-jet.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/eagle-jet.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/easyjet.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/easyjet.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/easyjet.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/easyjet.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/egyptair.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/egyptair.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/egyptair.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/egyptair.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/emirates-vs-qatar.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/emirates-vs-qatar.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/emirates-vs-qatar.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/emirates-vs-qatar.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/emirates.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/emirates.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/emirates.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/emirates.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/ethiopian-airlines.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/ethiopian-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/ethiopian-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/ethiopian-airlines.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/etihad.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/etihad.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/etihad.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/etihad.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/eurowings.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/eurowings.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/eurowings.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/eurowings.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/eva-air.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/eva-air.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/eva-air.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/eva-air.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/fda.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/fda.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/fda.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/fda.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/fiji-airways.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/fiji-airways.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/fiji-airways.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/fiji-airways.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/finnair.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/finnair.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/finnair.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/finnair.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/frontier.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/frontier.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/frontier.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/frontier.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/gaishi-vs-nikkei.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/gaishi-vs-nikkei.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/gaishi-vs-nikkei.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/gaishi-vs-nikkei.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/garuda-indonesia.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/garuda-indonesia.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/garuda-indonesia.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/garuda-indonesia.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/gulf-air.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/gulf-air.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/gulf-air.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/gulf-air.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/hac.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/hac.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/hac.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/hac.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/hainan-airlines.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/hainan-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/hainan-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/hainan-airlines.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/hong-kong-express.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/hong-kong-express.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/hong-kong-express.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/hong-kong-express.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/iberia.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/iberia.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/iberia.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/iberia.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/ibex.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/ibex.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/ibex.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/ibex.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/icelandair.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/icelandair.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/icelandair.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/icelandair.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/indigo.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/indigo.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/indigo.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/indigo.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/ita-airways.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/ita-airways.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/ita-airways.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/ita-airways.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/j-air.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/j-air.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/j-air.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/j-air.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/jac.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/jac.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/jac.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/jac.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/jal.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/jal.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/jal.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/jal.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/jetblue.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/jetblue.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/jetblue.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/jetblue.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/jetstar-japan.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/jetstar-japan.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/jetstar-japan.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/jetstar-japan.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/jetstar.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/jetstar.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/jetstar.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/jetstar.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/jta.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/jta.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/jta.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/jta.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/kenya-airways.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/kenya-airways.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/kenya-airways.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/kenya-airways.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/klm.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/klm.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/klm.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/klm.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/korean-air.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/korean-air.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/korean-air.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/korean-air.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/kuwait-airways.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/kuwait-airways.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/kuwait-airways.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/kuwait-airways.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/latam.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/latam.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/latam.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/latam.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/lcc-hikaku.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/lcc-hikaku.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/lcc-hikaku.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/lcc-hikaku.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/lot.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/lot.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/lot.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/lot.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/lufthansa.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/lufthansa.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/lufthansa.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/lufthansa.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/malaysia-airlines.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/malaysia-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/malaysia-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/malaysia-airlines.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/norwegian.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/norwegian.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/norwegian.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/norwegian.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/oman-air.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/oman-air.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/oman-air.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/oman-air.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/orc.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/orc.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/orc.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/orc.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/peach.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/peach.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/peach.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/peach.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/philippine-airlines.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/philippine-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/philippine-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/philippine-airlines.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/porter.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/porter.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/porter.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/porter.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/qantas.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/qantas.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/qantas.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/qantas.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/qatar-airways.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/qatar-airways.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/qatar-airways.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/qatar-airways.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/rac.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/rac.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/rac.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/rac.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/riyadh-air.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/riyadh-air.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/riyadh-air.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/riyadh-air.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/root-aviation.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/root-aviation.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/root-aviation.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/root-aviation.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/royal-brunei.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/royal-brunei.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/royal-brunei.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/royal-brunei.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/royal-jordanian.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/royal-jordanian.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/royal-jordanian.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/royal-jordanian.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/ryanair.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/ryanair.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/ryanair.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/ryanair.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/sas.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/sas.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/sas.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/sas.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/saudia.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/saudia.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/saudia.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/saudia.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/scoot.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/scoot.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/scoot.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/scoot.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/shin-central.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/shin-central.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/shin-central.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/shin-central.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/shin-nihon.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/shin-nihon.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/shin-nihon.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/shin-nihon.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/singapore-airlines.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/singapore-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/singapore-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/singapore-airlines.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/skymark.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/skymark.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/skymark.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/skymark.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/solairus.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/solairus.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/solairus.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/solairus.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/solaseed.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/solaseed.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/solaseed.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/solaseed.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/south-african-airways.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/south-african-airways.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/south-african-airways.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/south-african-airways.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/southwest.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/southwest.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/southwest.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/southwest.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/spirit.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/spirit.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/spirit.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/spirit.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/spring-japan.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/spring-japan.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/spring-japan.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/spring-japan.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/starflyer.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/starflyer.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/starflyer.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/starflyer.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/starlux-tenshoku.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/starlux-tenshoku.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/starlux-tenshoku.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/starlux-tenshoku.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/starlux.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/starlux.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/starlux.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/starlux.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/swiss.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/swiss.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/swiss.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/swiss.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/tap.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/tap.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/tap.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/tap.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/thai-airways.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/thai-airways.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/thai-airways.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/thai-airways.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/toho-air.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/toho-air.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/toho-air.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/toho-air.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/toki-air.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/toki-air.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/toki-air.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/toki-air.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/turkish-airlines.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/turkish-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/turkish-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/turkish-airlines.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/united.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/united.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/united.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/united.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/vietjet.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/vietjet.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/vietjet.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/vietjet.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/vietnam-airlines.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/vietnam-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/vietnam-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/vietnam-airlines.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/virgin-atlantic.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/virgin-atlantic.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/virgin-atlantic.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/virgin-atlantic.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/vueling.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/vueling.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/vueling.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/vueling.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/westjet.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/westjet.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/westjet.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/westjet.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/wizz-air.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/wizz-air.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/wizz-air.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/wizz-air.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/zipair.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/zipair.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/zipair.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/zipair.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/australia.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/australia.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/australia.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/australia.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/austria.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/austria.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/austria.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/austria.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/bahrain.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/bahrain.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/bahrain.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/bahrain.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/brunei.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/brunei.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/brunei.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/brunei.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/canada.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/canada.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/canada.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/canada.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/chile.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/chile.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/chile.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/chile.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/china.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/china.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/china.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/china.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/colombia.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/colombia.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/colombia.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/colombia.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/egypt.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/egypt.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/egypt.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/egypt.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/ethiopia.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/ethiopia.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/ethiopia.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/ethiopia.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/fiji.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/fiji.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/fiji.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/fiji.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/finland.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/finland.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/finland.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/finland.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/france.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/france.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/france.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/france.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/germany.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/germany.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/germany.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/germany.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/greece.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/greece.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/greece.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/greece.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/hong-kong.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/hong-kong.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/hong-kong.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/hong-kong.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/iceland.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/iceland.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/iceland.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/iceland.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/india.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/india.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/india.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/india.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/indonesia.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/indonesia.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/indonesia.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/indonesia.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/ireland.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/ireland.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/ireland.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/ireland.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/italy.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/italy.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/italy.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/italy.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/japan.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/japan.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/japan.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/japan.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/jordan.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/jordan.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/jordan.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/jordan.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/kenya.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/kenya.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/kenya.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/kenya.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/kuwait.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/kuwait.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/kuwait.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/kuwait.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/malaysia.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/malaysia.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/malaysia.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/malaysia.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/malta.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/malta.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/malta.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/malta.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/mexico.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/mexico.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/mexico.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/mexico.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/netherlands.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/netherlands.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/netherlands.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/netherlands.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/new-zealand.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/new-zealand.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/new-zealand.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/new-zealand.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/norway.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/norway.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/norway.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/norway.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/oman.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/oman.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/oman.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/oman.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/panama.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/panama.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/panama.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/panama.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/philippines.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/philippines.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/philippines.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/philippines.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/poland.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/poland.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/poland.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/poland.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/portugal.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/portugal.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/portugal.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/portugal.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/qatar.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/qatar.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/qatar.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/qatar.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/saudi-arabia.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/saudi-arabia.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/saudi-arabia.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/saudi-arabia.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/singapore.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/singapore.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/singapore.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/singapore.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/south-africa.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/south-africa.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/south-africa.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/south-africa.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/south-korea.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/south-korea.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/south-korea.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/south-korea.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/spain.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/spain.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/spain.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/spain.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/sweden.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/sweden.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/sweden.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/sweden.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/switzerland.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/switzerland.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/switzerland.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/switzerland.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/taiwan.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/taiwan.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/taiwan.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/taiwan.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/thailand.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/thailand.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/thailand.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/thailand.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/turkey.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/turkey.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/turkey.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/turkey.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/uae.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/uae.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/uae.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/uae.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/united-kingdom.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/united-kingdom.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/united-kingdom.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/united-kingdom.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/united-states.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/united-states.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/united-states.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/united-states.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/countries/vietnam.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/countries/vietnam.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/countries/vietnam.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/countries/vietnam.html"/>
+  </url>
+</urlset>

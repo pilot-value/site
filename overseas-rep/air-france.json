@@ -1,0 +1,74 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "無期CDI雇用とSNPLの強い協約保護で、パイロットの立場は相対的に守られている。一方、全社レビューでは頻繁な方針変更・マイクロマネジメント・えこひいき・現場軽視への不満が目立つ。低コスト子会社Transaviaへの職の外部化を巡る労使対立は根深く、2014年には14日間ストで会社に約860億円(5億ユーロ)の損失が出た。",
+      "en": "Permanent CDI contracts and strong SNPL union protection shield pilots, but company-wide reviews slam management for constant strategy shifts, micromanagement and favoritism. Labor conflict runs deep — the 2014 Transavia dispute triggered a 14-day strike costing about $545M."
+    },
+    "salary": {
+      "ja": "給与は勤続年数で決まる固定給＋飛行実績連動の飛行手当の二本柱で、固定給は機種に紐づかず機長は狭胴でも長距離機でも同額。副操縦士は入社数年で約1,000万〜1,550万円(6万〜9万ユーロ)、勤続20年級の長距離機長は約4,300万〜6,000万円に達する。欧州パイロット給与のゴールドスタンダードと評される。",
+      "en": "Pay is two-tier: a seniority-based fixed salary plus flight pay, with the base not tied to aircraft type. Junior FOs earn roughly $65-98K and senior widebody captains $270-380K — widely called Europe's gold standard for pilot pay."
+    },
+    "benefits": {
+      "ja": "契約で最も価値ある要素が乗員専用年金CRPN。55〜60歳で早期退職でき、生涯平均給与の約50〜65%を代替、拠出も手厚く『黄金の手錠』と呼ばれる。海外滞在の日当は非課税で東京・ソウルは約3.3万〜3.6万円(190〜210ユーロ)/日、長距離乗務では月約34万〜43万円が上乗せされる。利益配分やスカイチームの搭乗特典もある。",
+      "en": "The crew-only CRPN pension — early retirement at 55-60 replacing 50-65% of career-average pay — is the prized 'golden handcuff'. Tax-free per diems run about $205-230/day in Tokyo, on top of profit-sharing and SkyTeam staff travel."
+    },
+    "wlb": {
+      "ja": "休日は月12〜15日(協約で最低12日保証)、年次有給は約45日と欧州平均を大きく上回り、フォーラムでの評価も高い。月間ブロックアワーは65〜80時間。ただしベースはパリ(CDGまたはオルリー)のみで米系のような入札制度がなく、パリ圏在住が事実上必須。長距離は家族との時間が増え生活の質が良いとの声が多い。",
+      "en": "12-15 days off a month, about 45 days of annual leave, and 65-80 block hours make the roster a forum favorite, especially on longhaul. The catch: Paris (CDG/Orly) is the only base, with no bidding, so you must live near the city."
+    },
+    "ops": {
+      "ja": "入社時の機種はA220またはA320ファミリー(子会社TransaviaならB737/A320neo)。昇格・シニア化に伴いA330・A350・B777等の長距離ワイドボディへ移り、パリ・ハブから世界の長距離網を飛ぶ。A330/A350の二機種資格保持者には飛行手当に約1.02倍のボーナス係数が付く。運航はEASA基準で年間上限は約900時間。",
+      "en": "New hires start on the A220 or A320 family (or B737/A320neo at subsidiary Transavia), moving up to A330, A350 and B777 widebodies on Paris-hub longhaul. Dual-type A330/A350 holders earn a ~1.02x flight-pay bonus, with an EASA annual cap near 900 hours."
+    },
+    "training": {
+      "ja": "ab initioのカデット養成は訓練費を全額会社負担(約2,580万円/15万ユーロ相当、受験料のみ数百ユーロ)、期間24か月で選抜合格率は5%未満。未経験から自己負担ほぼゼロで就ける。機長昇格は勤続10〜15年が目安で完全に先任順位(LCP)ベース、社外からのダイレクト機長採用はなく、若手はキャリア初期の停滞を感じやすい。",
+      "en": "The ab initio Cadet program is fully company-funded (about $163K; you pay only a few hundred in exam fees) over 24 months, with under 5% admitted. Captain upgrade is purely seniority-based at 10-15 years, with no direct-entry captains from outside."
+    }
+  },
+  "sources": [
+    {
+      "title": "Air France | Pilot Salaries, Roster, Fleet and Career Guide (Ready for Take-Off)",
+      "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/air-france"
+    },
+    {
+      "title": "Air France Pilot Salary 2026: FO EUR70-170K, Captain EUR160-350K (Airmappr)",
+      "url": "https://airmappr.com/articles/career/air-france-pilot-salary-guide"
+    },
+    {
+      "title": "Air France Pilot Salary in 2026 (Aviation A2Z)",
+      "url": "https://aviationa2z.com/index.php/2026/07/12/air-france-pilot-salary-2026/"
+    },
+    {
+      "title": "Salaire pilote Air France 2025 : grille et evolution selon experience (Iteminfo)",
+      "url": "https://www.iteminfo.fr/salaire-pilote-air-france-2025-grille-et-evolution-selon-experience/"
+    },
+    {
+      "title": "Best airlines to work for as a Pilot in Europe (PPRuNe Forums)",
+      "url": "https://www.pprune.org/terms-endearment/652116-best-airlines-work-pilot-europe.html"
+    },
+    {
+      "title": "Working at Air France: Reviews (Indeed)",
+      "url": "https://www.indeed.com/cmp/Air-France/reviews"
+    },
+    {
+      "title": "Air France Reviews — Pros & Cons of Working At Air France (Glassdoor)",
+      "url": "https://www.glassdoor.com/Reviews/Air-France-Reviews-E4069.htm"
+    },
+    {
+      "title": "Pilot strike cost Air France EUR500 million (France24)",
+      "url": "https://www.france24.com/en/20141008-air-france-pilot-strike-cost-500-million-euros-business-economy"
+    },
+    {
+      "title": "Devenez pilote : la campagne de recrutement du programme Cadets Air France est ouverte (Air France Corporate)",
+      "url": "https://corporate.airfrance.com/en/news/become-pilot-applications-are-now-open-air-france-cadet-program"
+    },
+    {
+      "title": "Pilot Salary Take-Home Pay by Country 2026 (CountryTaxCalc)",
+      "url": "https://www.countrytaxcalc.com/tax-guides/pilot-salary-take-home-pay-by-country-2026/"
+    },
+    {
+      "title": "Air France Pilot Salary 2026 (Rotate)",
+      "url": "https://rotatepilot.com/airline-salary/air-france"
+    }
+  ]
+}

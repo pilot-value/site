@@ -1,0 +1,78 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "経営はB2B契約と正社員、組合と非組合を分断して扱い、従順な者に乗務を回し批判者のロスターを薄くする、と現場の不信は根深い。2018年のストでは参加者67名が即解雇。コロナ下では最大70%の賃下げ案も出た。7年務めたCEOは2026年に更迭され、労使は対立的でトップダウンな空気が残る。",
+      "en": "Management is accused of pitting B2B contractors against salaried staff and thinning the rosters of critics; the 2018 strike ended with 67 pilots fired and the long-serving CEO was ousted in 2026."
+    },
+    "salary": {
+      "ja": "大半がB2B個人事業主で、ブロック時間のみ課金・一律19%所得税。FOは年約585万〜860万円（€34,000〜50,000）、機長は約1,150万〜1,620万円（€67,000〜94,000）。787機長は月160万〜180万円に届くが西欧大手の半分程度。稼働は平均で月70ブロック時間。",
+      "en": "Most fly as B2B contractors paid on block hours only under a flat 19% tax, with first officers earning about $37k–$54k and captains about $73k–$102k a year — roughly half of Lufthansa-group pay."
+    },
+    "benefits": {
+      "ja": "B2Bでは年金・健康・社会保険を自己負担し、会社の付加給付は実質ゼロ。会社提供の失効保険（LOL）もなく私費加入が必須とされ、年金も国の制度以外はない。一方でLOT便の無制限スタッフトラベルとStar AllianceのZED運賃は入社初日から使え、そこは率直に評価が高い。",
+      "en": "Under B2B, pilots self-fund pension, health and social cover with no employer top-up and must buy private loss-of-licence insurance, though unlimited staff travel and Star Alliance ZED fares from day one are real perks."
+    },
+    "wlb": {
+      "ja": "ロスターは約2週間前に確定し、コミューター協定で希望休4日が保証、月10〜13日休める。ただし約24時間前の変更があり、待機や訓練は無給。ベースはワルシャワ1拠点のみで二次ベースはない。有給26〜29日。最低保証時間は月40→15時間に削られ、閑散期は手取りが激減する。",
+      "en": "Rosters publish about two weeks out with four guaranteed requested days off and 10–13 days off a month, but changes come on 24 hours' notice, standby and training are unpaid, and everyone is based only at Warsaw."
+    },
+    "ops": {
+      "ja": "機材はEmbraer約44機、737-800/MAX8、787-8/-9。2025年に40機のA220を発注してEmbraerを置換し、10年代末に約110機を目指す拡大局面だ。2024年は旅客1,070万人・純利益6億8,850万PLN（約275億円）と最高益。2026年は日本を含む約20新規就航を計画し、787の長距離が伸びている。",
+      "en": "A growing, modernising fleet — Embraers, 737s and 787s, with 40 A220s on order toward ~110 aircraft — plus record 2024 profit and expanding long-haul including new Japan routes give the operation real momentum."
+    },
+    "training": {
+      "ja": "公式採用なら型式限定は会社負担で、約430万〜690万円（€25,000〜40,000）の節約になる。昇格が速く狭胴機の機長まで約2〜3年、787機長で5〜8年、直接機長採用もある。半面、自社アカデミーのカデットは学費約1,030万〜1,200万円を自己負担で就職保証なし、広胴機は総飛行5,000時間級と入口は高い。",
+      "en": "Hired through official recruitment, LOT funds your type rating (worth about $27k–$43k) and command comes fast — narrowbody captain in roughly 2–3 years — while academy cadets largely self-fund with no guaranteed job."
+    }
+  },
+  "sources": [
+    {
+      "title": "LOT Polish Airlines hiring — PPRuNe Forums (pilot discussion on VAT/B2B start, hourly pay, 787 hiring)",
+      "url": "https://www.pprune.org/terms-endearment/616183-lot-polish-airlines-hiring.html"
+    },
+    {
+      "title": "LOT Polish Airlines | Pilot Conditions, Pay & Careers — Ready for Take Off",
+      "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/lot-polish-airlines"
+    },
+    {
+      "title": "LOT Polish Airlines Pilot Pay Scale — AircrewNetwork (block-hour rates, roster, no per diems)",
+      "url": "https://aircrewnetwork.com/lot-polish-airlines-pilot-pay-scale/"
+    },
+    {
+      "title": "LOT Polish Airlines Pilot CV Guide 2026 — Airmappr (B2B model, 19% tax, pay ranges)",
+      "url": "https://airmappr.com/articles/career/lot-pilot-cv-guide"
+    },
+    {
+      "title": "LOT Polish Airlines Commercial Pilot First Officer Monthly Pay — Glassdoor",
+      "url": "https://www.glassdoor.com/Monthly-Pay/LOT-Polish-Airlines-Commercial-Pilot-First-Officer-Monthly-Pay-E24177_D_KO20,50.htm"
+    },
+    {
+      "title": "LOT: Piloci na kontraktach B2B mają dość! Chcą założyć związek zawodowy — Pasazer.com",
+      "url": "https://www.pasazer.com/news/461509/lot,piloci,na,kontraktach,b2b,maja,dosc,chca,zalozyc,zwiazek,zawodowy.html"
+    },
+    {
+      "title": "Konflikt na pokładzie LOT-u. Związkowczyni: zarząd skłóca pracowników — OKO.press",
+      "url": "https://oko.press/konflikt-na-pokladzie-lot-u-zwiazkowczyni-zarzad-skloca-pracownikow-to-zagraza-bezpieczenstwu"
+    },
+    {
+      "title": "LOT Polish Airlines closes 2025 with record traffic and historic fleet expansion — Aviation24.be",
+      "url": "https://www.aviation24.be/airlines/lot-polish-airlines/lot-polish-airlines-closes-2025-with-record-traffic-and-historic-fleet-expansion/"
+    },
+    {
+      "title": "LOT Polish Airlines, PGL Fire Milczarski As CEO — Aviation Week",
+      "url": "https://aviationweek.com/air-transport/airlines-lessors/lot-polish-airlines-pgl-fire-milczarski-ceo"
+    },
+    {
+      "title": "Poland's LOT airline cancels flights amid employee strike (2018) — The Seattle Times",
+      "url": "https://www.seattletimes.com/business/polands-lot-airline-cancels-flights-amid-employee-strike/"
+    },
+    {
+      "title": "LOT Polish Airlines is hiring B787 Dreamliner First Officers (requirements) — PilotsGlobal",
+      "url": "https://pilotsglobal.com/job/B787-Dreamliner-first-officer-lot_polish_airlines-PL-b7c52324db"
+    },
+    {
+      "title": "LOT Flight Academy Review 2026 (cadet cost / self-funded type rating) — Airmappr",
+      "url": "https://airmappr.com/articles/school-reviews/lot-flight-academy-poland-review"
+    }
+  ]
+}

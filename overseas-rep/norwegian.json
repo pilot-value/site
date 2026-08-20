@@ -1,0 +1,78 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "同僚の質が高く国際的で前向きな職場という評価がある一方、経営との関係は緊張気味。26%賃上げ直後に会社は年18日の無償追加労働を『交渉の余地なし』で要求し、基地閉鎖も示唆した。パイロットを派遣会社に分割してきた歴史への不信と、2020年破綻・大量解雇の記憶も色濃く残る。",
+      "en": "Colleagues are strong and international with a relaxed, positive vibe, but labor relations run tense: right after the 26% raise, management demanded 18 unpaid extra workdays as 'non-negotiable' and hinted at base closures. Distrust from the staffing-company era and the 2020 collapse still lingers."
+    },
+    "salary": {
+      "ja": "給与はスカンジナビア最高クラスで、副操縦士はSASより5〜6割高いとされる。副操縦士は1年目で約720万円（NOK48万）、上位で1,500万円超。機長は昇格直後で約1,425万円、上位・教官職なら2,700万円超。2024年に2年で26%の大幅賃上げ。ただし限界税率約47%で手取りは大きく減る。",
+      "en": "The highest pilot pay in Scandinavia — first officers start near $50K and top out around $110K, while captains run roughly $100K to $180K+. A 26% raise over 2024-25 widened the gap over SAS, though Norway's ~47% top tax rate eats hard into take-home."
+    },
+    "benefits": {
+      "ja": "食事手当は月約15万円（NOK1万）。予定休を返上して乗務する『買い上げ休日』は1日約18万円のダブルペイと厚い。年金は確定拠出（7.1Gまで5%、超過分8%）で62歳からAFP早期退職も。ライセンス喪失補償は非課税で約6,150万円（NOK410万）、有給は最大7週間。",
+      "en": "Per diem is about $1,000/month, and giving up a rostered day off pays roughly $1,100 at double rate. A defined-contribution pension plus AFP early retirement from 62, a tax-free loss-of-licence cover near $400K, and up to seven weeks' annual leave."
+    },
+    "wlb": {
+      "ja": "5日乗務4日休の規則的なロスターで、年間休日は約184日、有給は最大7週間。年間飛行時間は約750時間とEASA上限（900〜1,000時間）より低め。ただし若手はスタンバイが多く、勤務開始・終了の直前変更や、短距離特有の早朝連続・多レグによる疲労を訴える声が目立つ。",
+      "en": "A regular 5-on/4-off roster, up to seven weeks' leave and about 184 days off a year, with annual flying near 750 hours — well below the EASA cap. Juniors, though, sit heavy standby and complain of last-minute schedule changes and short-haul early-start fatigue."
+    },
+    "ops": {
+      "ja": "機材は全機737（-800とMAX8）の単一フリートで、機種転換の複雑さがなくキャリアが読みやすい。2021年に787の長距離から撤退し、現在は欧州短距離のみ。80機のMAXを2031年までに追加発注し、2025年は営業利益率9.9%と過去最高、パイロット約1,000名で採用を拡大中。",
+      "en": "A single all-737 fleet (-800 and MAX 8) keeps career planning simple; long-haul 787 ops ended in 2021, leaving European short-haul only. With 80 more MAX on order and a record 2025 (9.9% operating margin), the airline is actively hiring."
+    },
+    "training": {
+      "ja": "多くの新規副操縦士は737型式資格を自費（約430〜600万円／€2.5〜3.5万）で取得する必要があり、入口の金銭的ハードルは高い。一方で機長昇格は約4〜5年とスカンジナビア最速級。昇格は入社初日に確定するマスター・シニオリティ・リスト（MSL）に基づく完全シニオリティ制で分かりやすい。",
+      "en": "Many new first officers must self-fund the 737 type rating (about $27-38K), a real entry hurdle, though cadets and direct-entry captains get different terms. Upgrade to captain comes in roughly 4-5 years — among Scandinavia's fastest — on a strict seniority list fixed your first day."
+    }
+  },
+  "sources": [
+    {
+      "title": "Norwegian Pilot Salary 2026 — FO €44-101K, Captain €88-166K+ (Airmappr)",
+      "url": "https://airmappr.com/articles/career/norwegian-pilot-salary-guide"
+    },
+    {
+      "title": "Norwegian Air Shuttle | Pilot Pay, Rosters & Career Outlook (Ready For Take Off)",
+      "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/norwegian-air-shuttle"
+    },
+    {
+      "title": "Norwegian Air Shuttle Pilot Salary 2026 — First Officer & Captain Pay (Rotate)",
+      "url": "https://rotatepilot.com/airline-salary/norwegian-air"
+    },
+    {
+      "title": "Norwegian Core Contract, Norway — PPRuNe Forums",
+      "url": "https://www.pprune.org/terms-endearment/601358-norwegian-core-contract-norway.html"
+    },
+    {
+      "title": "Norwegian Air Shuttle Reviews — Pros & Cons (Glassdoor)",
+      "url": "https://www.glassdoor.com/Reviews/Norwegian-Air-Shuttle-Reviews-E737824.htm"
+    },
+    {
+      "title": "Working at Norwegian Airlines: Employee Reviews (Indeed)",
+      "url": "https://www.indeed.com/cmp/Norwegian-Airlines/reviews"
+    },
+    {
+      "title": "Norwegian-piloter får 26 prosent lønnsøkning (VG)",
+      "url": "https://www.vg.no/nyheter/i/W0jqnd/norwegian-piloter-faar-26-prosent-loennsoekning"
+    },
+    {
+      "title": "Norwegian ga 26 prosent lønnsøkning til piloter: Nå må de kutte (Nettavisen)",
+      "url": "https://www.nettavisen.no/okonomi/norwegian-ga-26-prosent-lonnsokning-til-piloter-na-ma-de-kutte/s/5-95-2014088"
+    },
+    {
+      "title": "Enighet om ny tariffavtale mellom Norwegian og Norwegian Pilot Union (Norwegian pressemelding)",
+      "url": "https://media.no.norwegian.com/pressreleases/enighet-om-ny-tariffavtale-mellom-norwegian-og-norwegian-pilot-union-3187631"
+    },
+    {
+      "title": "Norwegian Crisis Continues As Four Staffing Companies Go Bankrupt (Forbes)",
+      "url": "https://www.forbes.com/sites/davidnikel/2020/04/20/norwegian-crisis-continues-as-four-staffing-companies-go-bankrupt/"
+    },
+    {
+      "title": "Here's what Norwegian pilots earn (News in English / Norway)",
+      "url": "https://www.newsinenglish.no/2015/03/05/heres-what-norwegian-pilots-earn/"
+    },
+    {
+      "title": "Norwegian Air Pilot Hiring Requirements: A Comprehensive Guide (Epic Flight Academy)",
+      "url": "https://epicflightacademy.com/hiring-requirements-norwegian-air/"
+    }
+  ]
+}

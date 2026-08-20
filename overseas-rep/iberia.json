@@ -1,0 +1,78 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "IAG傘下で財務は安定し、2025年の営業利益率16.2%は記録的水準。SEPLAの団結力とスペインの手厚い労働法が身分を守り、現場の同僚意識（compañerismo）も高い。一方で2004年以降の約10年に及ぶ給与凍結と幹部報酬の急増、低コスト子会社を巡るストなど、経営陣への不信は根深く残る。",
+      "en": "Rock-solid IAG financials (a record 16.2% operating margin in 2025) and a strong SEPLA union anchor job security, but distrust of management lingers after a roughly decade-long pay freeze while executives took 22-28% raises."
+    },
+    "salary": {
+      "ja": "シニオリティ制でレベルが上がるほど伸びる。副操縦士は新人€35,000〜45,000（約600万〜770万円）と入口が低く、BAやエールフランスに見劣りする。機長は短中距離で€90,000〜125,000、A330/A350の長距離機長は€150,000〜210,000超（約2,580万〜3,610万円）。2024年に利益分配も導入された。",
+      "en": "Seniority-based pay: first officers start low at €35,000-45,000 ($38-49K), below BA or Air France, but captains reach €90,000-125,000 and €150,000-210,000+ ($163-229K) on A330/A350 long-haul, plus new 2024 profit-sharing."
+    },
+    "benefits": {
+      "ja": "スペインの社会保障に加え、補足年金は最終給与の50〜70%相当。年次有給30日、有給育児休暇16週間と手厚い。IAG各社（BA、Aer Lingus、Vueling）とoneworldのスタッフトラベルも使える。非課税の日当は目的地により€35〜85／日（約6,000〜1万5,000円）で、長距離主体なら年€8,000〜15,000（約140万〜260万円）の上乗せになる。",
+      "en": "Spanish social security plus a supplementary pension worth 50-70% of final salary, 30 days annual leave, 16 weeks paid parental leave, and IAG/oneworld staff travel. Tax-free per diems of €35-85/day add €8,000-15,000 ($8.7-16K) a year on long-haul."
+    },
+    "wlb": {
+      "ja": "ベースはマドリード＝バラハス一択で固定。EASAのFTLで年900時間・28日100時間が上限だが、月の休日はVueling（12.5日）より少なく約8日という現役の指摘もある。可変ロースターや直前変更、ほぼ12時間に及ぶ勤務日への不満は残る一方、2024年協約でロースターの14日前公表が入り改善方向。",
+      "en": "Madrid-Barajas is the sole, fixed base. EASA FTL caps flying at 900 hours a year, but pilots note days off can run near 8 a month, fewer than Vueling's 12.5; the 2024 deal now publishes rosters 14 days ahead."
+    },
+    "ops": {
+      "ja": "機材は全Airbusで約96機。A320ファミリーにA321XLR（ローンチカスタマー）、長距離はA330とA350-900。唯一の拠点マドリードからブエノスアイレスやリマ、東京へ飛ぶ中南米中心のネットワークが魅力。Flight Plan 2030で長距離機を約48機から70機へ拡大予定で、昇格加速の可能性がある。",
+      "en": "An all-Airbus fleet of ~96 (A320 family, A321XLR launch customer, A330/A350-900 long-haul) flying an attractive Latin America-heavy network from Madrid. Flight Plan 2030 grows long-haul from ~48 to ~70 aircraft, potentially speeding upgrades."
+    },
+    "training": {
+      "ja": "自社カデットはFTEJerezの統合ATPLで費用€118,600〜129,500（約2,040万〜2,230万円）。選抜者は50%を自己負担し、会社負担分は入社後に手取りから返済する事実上のボンド。機長昇格はシニオリティ次第でナローボディ8〜12年、長距離広胴機は12〜18年以上と長い。協約で140名分の昇格枠が確保された。",
+      "en": "The in-house FTEJerez cadet path costs €118,600-129,500 ($129-141K), with trainees funding 50% and repaying the company's share from net pay — effectively a bond. Captain upgrades are seniority-gated: 8-12 years narrowbody, 12-18+ on long-haul widebodies, though the deal secured 140 upgrade slots."
+    }
+  },
+  "sources": [
+    {
+      "title": "Iberia pilot salary — PPRuNe Forums (Spanish forum thread)",
+      "url": "https://www.pprune.org/spanish-forum/605669-iberia-pilot-salary.html"
+    },
+    {
+      "title": "Iberia | Pilot Careers, Pay, Fleet, and Rosters — Ready For Take Off",
+      "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/iberia"
+    },
+    {
+      "title": "Iberia Pilot Salary 2026 — FO €35-110K, Captain €125-220K+ — Airmappr",
+      "url": "https://airmappr.com/articles/career/iberia-pilot-salary-guide"
+    },
+    {
+      "title": "Iberia Pilot Salary in 2026 — Aviation A2Z",
+      "url": "https://aviationa2z.com/index.php/2026/06/18/iberia-pilot-salary-2026/"
+    },
+    {
+      "title": "Cuánto cobra un piloto de Iberia: sueldo base y complementos — Infobae",
+      "url": "https://www.infobae.com/espana/2025/02/14/cuanto-cobra-un-piloto-de-iberia-sueldo-base-y-complementos/"
+    },
+    {
+      "title": "Los pilotos de Iberia ratifican mayoritariamente el nuevo acuerdo marco — SEPLA",
+      "url": "https://sepla.es/los-pilotos-de-iberia-los-pilotos-de-iberia-ratifican-mayoritariamente-el-nuevo-acuerdo-marco/"
+    },
+    {
+      "title": "Iberia y los pilotos sellan la paz hasta 2028: qué han acordado — Hosteltur",
+      "url": "https://www.hosteltur.com/165148_iberia-sella-la-paz-con-los-pilotos-hasta-2028.html"
+    },
+    {
+      "title": "Iberia y SEPLA alcanzan un acuerdo para compartir beneficios con los pilotos — Iberia",
+      "url": "https://grupo.iberia.com/pressrelease/details/20537"
+    },
+    {
+      "title": "Las verdaderas quejas de los pilotos de Iberia contra la compañía — El Confidencial Digital",
+      "url": "https://www.elconfidencialdigital.com/teloaclaro/articulo/curiosidades/verdaderas-quejas-pilotos-Iberia-compania/20081220010000001529.html"
+    },
+    {
+      "title": "FTE Jerez and Iberia cadet programme (training cost & bond) — Ready For Take Off",
+      "url": "https://readyfortakeoffbook.com/blogs/pilot-recruitment/fte-jerez-and-iberia-launch-latest-cadet-programme"
+    },
+    {
+      "title": "Why Pilots' Salaries at Ryanair, Iberia and Vueling Differ So Much — Russpain",
+      "url": "https://russpain.com/en/transport-3/how-much-do-pilots-in-spain-really-earn-unexpected-salary-gaps-444224/"
+    },
+    {
+      "title": "Iberia Airline Pilot Salaries / Reviews — Glassdoor",
+      "url": "https://www.glassdoor.com/Salary/Iberia-Airline-Pilot-Madrid-Salaries-EJI_IE10804.0,6_KO7,20_IL.21,27_IM1030.htm"
+    }
+  ]
+}

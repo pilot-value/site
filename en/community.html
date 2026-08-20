@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png"/>
+<link rel="apple-touch-icon" href="../assets/favicon-180.png"/>
+  <script>(function(){var t=localStorage.getItem('pv-theme')||'light';document.documentElement.setAttribute('data-theme',t);}());</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pilot Reviews — Latest from Every Airline | PILOT VALUE</title>
+<!--PV-SEO-->
+<!--PV-SRC t="Pilot Reviews — Latest Feed from Every Airline | PILOT VALUE" d=""-->
+<meta name="description" content="Reviews from current and former airline pilots, newest first — pay, rosters, training and upgrade speed at 112 airlines, anonymous. Post one review to unlock them all."/>
+<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1"/>
+<link rel="canonical" href="https://pilot-value.com/en/community.html"/>
+<link rel="alternate" hreflang="ja" href="https://pilot-value.com/community.html"/>
+<link rel="alternate" hreflang="en" href="https://pilot-value.com/en/community.html"/>
+<link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/community.html"/>
+<meta property="og:title" content="Pilot Reviews — Latest from Every Airline | PILOT VALUE"/>
+<meta property="og:description" content="Reviews from current and former airline pilots, newest first — pay, rosters, training and upgrade speed at 112 airlines, anonymous. Post one review to unlock them all."/>
+<meta property="og:url" content="https://pilot-value.com/en/community.html"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="PILOT VALUE"/>
+<meta property="og:locale" content="en_US"/>
+<meta property="og:locale:alternate" content="ja_JP"/>
+<meta property="og:image" content="https://pilot-value.com/assets/og/default-en.jpg"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta property="og:image:alt" content="Pilot Reviews — Latest from Every Airline | PILOT VALUE"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="Pilot Reviews — Latest from Every Airline | PILOT VALUE"/>
+<meta name="twitter:description" content="Reviews from current and former airline pilots, newest first — pay, rosters, training and upgrade speed at 112 airlines, anonymous. Post one review to unlock them all."/>
+<meta name="twitter:image" content="https://pilot-value.com/assets/og/default-en.jpg"/>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://pilot-value.com/en/"},{"@type":"ListItem","position":2,"name":"Pilot Reviews — Latest from Every Airline","item":"https://pilot-value.com/en/community.html"}]}]}</script>
+<!--/PV-SEO-->
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../review-i18n.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'"/><noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet"/></noscript>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bg:      '#0a0c0f',
+            surface: '#111620',
+            raised:  '#18212f',
+            accent:  '#3d9bff',
+            gold:    '#f5c842',
+            orange:  '#f97316',
+            text:    '#e8edf2',
+            muted:   '#6b7d93',
+          },
+          fontFamily: { sans: ['Inter', 'Noto Sans JP', 'sans-serif'] },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      background-color: #0a0c0f;
+      color: #e8edf2;
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+    body::before {
+      content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      background-size:128px; opacity:.3;
+    }
+
+    nav { position:fixed; top:0; left:0; right:0; z-index:200; transition: background 0.4s ease; }
+    nav.scrolled { background:rgba(10,12,15,0.92); backdrop-filter:blur(20px); border-bottom:1px solid rgba(255,255,255,0.06); }
+    .nav-link { color:rgba(255,255,255,0.6); font-size:.85rem; font-weight:500; letter-spacing:.04em; transition:color .2s; text-decoration:none; }
+    .nav-link:hover { color:#fff; }
+    .logo-img { height:40px; width:auto; filter:brightness(1.15) drop-shadow(0 0 8px rgba(249,115,22,.5)); transition:filter .3s; }
+
+    .glass {
+      background: rgba(17,22,32,.6);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: 16px;
+    }
+    .glass-raised {
+      background: rgba(24,33,47,.65);
+      backdrop-filter: blur(24px);
+      border: 1px solid rgba(255,255,255,.09);
+      border-radius: 16px;
+    }
+
+    .btn-orange {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 24px; border-radius: 10px; font-weight: 700; font-size: .9rem;
+      background: linear-gradient(135deg,#f97316,#f5c842);
+      color: #000; border: none; cursor: pointer;
+      transition: opacity .2s, transform .2s cubic-bezier(.16,1,.3,1);
+      text-decoration: none;
+    }
+    .btn-orange:hover { opacity:.9; transform:translateY(-1px); }
+    .btn-ghost {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 24px; border-radius: 10px; font-weight: 600; font-size: .9rem;
+      color: #e8edf2; border: 1px solid rgba(255,255,255,.15); background: transparent;
+      cursor: pointer; transition: border-color .2s, background .2s; text-decoration: none;
+    }
+    .btn-ghost:hover { border-color:rgba(255,255,255,.3); background:rgba(255,255,255,.05); }
+
+    .fade-up { opacity:0; transform:translateY(24px); transition:opacity .6s cubic-bezier(.16,1,.3,1), transform .6s cubic-bezier(.16,1,.3,1); }
+    .fade-up.visible { opacity:1; transform:none; }
+
+    /* Review card */
+    .review-card {
+      background: rgba(17,22,32,.6);
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: 14px;
+      padding: 20px;
+      transition: border-color .2s, transform .2s;
+    }
+    .review-card:hover { border-color: rgba(255,255,255,.14); transform: translateY(-1px); }
+
+    /* Stars */
+    .stars { color: #f5c842; font-size: .9rem; letter-spacing: .05em; }
+
+    /* Gate overlay */
+    .gate-overlay {
+      position: relative; overflow: hidden; border-radius: 16px;
+    }
+    .gate-overlay::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(to bottom, transparent 0%, rgba(10,12,15,.95) 55%, rgba(10,12,15,1) 100%);
+      pointer-events: none; border-radius: 16px;
+    }
+
+    /* Form inputs */
+    .form-input {
+      width: 100%; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1);
+      border-radius: 10px; padding: 11px 14px; color: #e8edf2; font-size: .9rem;
+      transition: border-color .2s, background .2s; outline: none;
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+    }
+    .form-input:focus { border-color: rgba(245,200,66,.4); background: rgba(255,255,255,.07); }
+    .form-input::placeholder { color: #6b7d93; }
+    select.form-input option { background: #111620; }
+    textarea.form-input { resize: vertical; min-height: 90px; }
+
+    .form-label { display: block; font-size: .8rem; font-weight: 600; color: #9ca3af; margin-bottom: 6px; letter-spacing: .04em; text-transform: uppercase; }
+
+    /* Privacy badge */
+    .privacy-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 12px; border-radius: 999px; font-size: .73rem; font-weight: 600;
+      background: rgba(52,211,153,.08); border: 1px solid rgba(52,211,153,.2); color: #34d399;
+    }
+
+    /* Airline filter chip */
+    .filter-chip {
+      padding: 6px 14px; border-radius: 999px; font-size: .78rem; font-weight: 600;
+      border: 1px solid rgba(255,255,255,.1); color: #6b7d93; background: transparent;
+      cursor: pointer; transition: all .15s; white-space: nowrap;
+    }
+    .filter-chip.active { color: #e8edf2; background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.18); }
+    .filter-chip:hover:not(.active) { color: #c5d5e8; border-color: rgba(255,255,255,.15); }
+
+    ::-webkit-scrollbar { width:6px; }
+    ::-webkit-scrollbar-track { background:#0a0c0f; }
+    ::-webkit-scrollbar-thumb { background:#18212f; border-radius:3px; }
+    footer { background:#060809; border-top:1px solid rgba(255,255,255,.05); }
+
+    /* Theme toggle */
+    .theme-toggle { display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.07);color:#e8edf2;border:1px solid rgba(255,255,255,.12);cursor:pointer;transition:background .2s,color .2s,border-color .2s;flex-shrink:0; }
+    [data-theme="light"] .theme-toggle { background:rgba(0,0,0,.06);color:#0f172a;border-color:rgba(0,0,0,.13); }
+
+    /* Light mode overrides */
+    [data-theme="light"] body { background:#f3f5f8 !important; color:#0f172a !important; }
+    [data-theme="light"] body::before { opacity:.03; }
+    /* Nav */
+    [data-theme="light"] nav { background:rgba(243,245,248,.95) !important; backdrop-filter:blur(16px); border-bottom:1px solid rgba(0,0,0,.07) !important; }
+    [data-theme="light"] nav.scrolled { background:rgba(243,245,248,.98) !important; }
+    [data-theme="light"] .nav-link { color:rgba(15,23,42,.55) !important; }
+    [data-theme="light"] .nav-link:hover { color:#0f172a !important; }
+    /* Hero */
+    [data-theme="light"] #hero-section { background:linear-gradient(160deg,#fff9ee 0%,#f3f5f8 60%) !important; }
+    [data-theme="light"] #hero-section h1 { color:#0f172a !important; }
+    [data-theme="light"] #hero-section .text-muted { color:#64748b !important; }
+    /* Stats bar */
+    [data-theme="light"] #stats-bar { background:#fff !important; border-top:1px solid rgba(0,0,0,.07) !important; border-bottom:1px solid rgba(0,0,0,.07) !important; }
+    [data-theme="light"] #stats-bar .text-muted { color:#64748b !important; }
+    /* Cards */
+    [data-theme="light"] .glass { background:rgba(255,255,255,.9) !important; border-color:rgba(0,0,0,.08) !important; box-shadow:0 2px 12px rgba(0,0,0,.06) !important; }
+    [data-theme="light"] .glass-raised { background:#fff !important; border-color:rgba(0,0,0,.1) !important; box-shadow:0 4px 20px rgba(0,0,0,.08) !important; }
+    /* Privacy section */
+    [data-theme="light"] .rounded-2xl[style*="rgba(52,211,153"] { background:rgba(16,185,129,.06) !important; border-color:rgba(16,185,129,.2) !important; }
+    /* Review section */
+    [data-theme="light"] #review-section { background:#eef0f4 !important; border-top:1px solid rgba(0,0,0,.07) !important; }
+    [data-theme="light"] .review-card { background:#fff !important; border-color:rgba(0,0,0,.08) !important; box-shadow:0 2px 8px rgba(0,0,0,.06) !important; }
+    [data-theme="light"] .review-card:hover { border-color:rgba(0,0,0,.14) !important; box-shadow:0 4px 16px rgba(0,0,0,.1) !important; }
+    /* Gate overlay — light version */
+    [data-theme="light"] #gate-panel { background:linear-gradient(to bottom, transparent 0%, rgba(238,240,244,.95) 40%, rgba(238,240,244,1) 100%) !important; }
+    [data-theme="light"] #gate-panel .glass-raised { background:rgba(255,255,255,.97) !important; border-color:rgba(245,200,66,.35) !important; box-shadow:0 8px 32px rgba(0,0,0,.12) !important; }
+    [data-theme="light"] #gate-panel .text-muted { color:#64748b !important; }
+    /* Chips */
+    [data-theme="light"] .filter-chip { border-color:rgba(0,0,0,.12) !important; color:#64748b !important; }
+    [data-theme="light"] .filter-chip.active { color:#0f172a !important; background:rgba(0,0,0,.07) !important; border-color:rgba(0,0,0,.18) !important; }
+    /* Form inputs */
+    [data-theme="light"] .form-input { background:rgba(0,0,0,.04) !important; border-color:rgba(0,0,0,.12) !important; color:#0f172a !important; }
+    [data-theme="light"] .form-input:focus { border-color:rgba(200,160,0,.5) !important; background:#fff !important; }
+    [data-theme="light"] .form-input::placeholder { color:#94a3b8 !important; }
+    [data-theme="light"] select.form-input option { background:#fff !important; color:#0f172a !important; }
+    /* Privacy badge */
+    [data-theme="light"] .privacy-badge { background:rgba(16,185,129,.07) !important; border-color:rgba(16,185,129,.22) !important; color:#059669 !important; }
+    /* Footer */
+    [data-theme="light"] footer { background:#e8ebf0 !important; border-top-color:rgba(0,0,0,.08) !important; }
+    [data-theme="light"] footer .text-muted { color:#64748b !important; }
+    [data-theme="light"] footer a.hover\:text-text { color:#64748b !important; }
+    /* Muted text global */
+    [data-theme="light"] .text-muted { color:#64748b !important; }
+    /* Darkens the near-white .text-text(#e8edf2) in light mode. Same pattern as index.html:526, but it was
+       missing on this page, which left the text invisible
+       → makes the hero line, the five anonymity labels and the gate panel visible in one go */
+    [data-theme="light"] .text-text { color:#0f172a !important; }
+    /* Review cards are generated by JS with inline colors, so class overrides never reach them
+       → theme-aware classes are provided here (darkened in light mode) */
+    .rv-body { color:#c3d0e0; }
+    .rv-meta { color:#6b7d93; }
+    .rv-pos  { background:rgba(255,255,255,.06); color:#9ca3af; }
+    [data-theme="light"] .rv-body { color:#334155 !important; }
+    [data-theme="light"] .rv-meta { color:#475569 !important; }
+    [data-theme="light"] .rv-pos  { background:rgba(15,23,42,.06) !important; color:#334155 !important; }
+
+/* ── Locked body gate (first 1/8 plain, the rest blurred) ──────────
+   The text stays in the DOM and is hidden in the presentation layer only.
+   Removing it would kill the per-country SEO long tail. */
+.rv-locked-tail{
+  position:relative;margin-top:8px;border-radius:10px;overflow:hidden;
+  max-height:5.4em;
+}
+.rv-locked-tail-text{
+  filter:blur(4.5px);user-select:none;pointer-events:none;
+  opacity:.62;padding:2px 5px;
+}
+.rv-locked-tail::after{
+  content:'';position:absolute;left:0;right:0;bottom:0;height:2.6em;pointer-events:none;
+  background:linear-gradient(to bottom,rgba(17,22,32,0),rgba(17,22,32,.9));
+}
+[data-theme="light"] .rv-locked-tail::after{
+  background:linear-gradient(to bottom,rgba(255,255,255,0),rgba(255,255,255,.92));
+}
+.rv-locked-cta{
+  position:absolute;inset:0;z-index:1;
+  display:flex;align-items:center;justify-content:center;
+}
+.rv-locked-btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:8px 18px;border-radius:999px;font-weight:700;font-size:.78rem;
+  background:linear-gradient(135deg,#f97316,#f5c842);color:#000;
+  border:none;cursor:pointer;text-decoration:none;white-space:nowrap;
+  box-shadow:0 3px 14px rgba(249,115,22,.34);
+  transition:opacity .18s cubic-bezier(.2,.8,.3,1),transform .18s cubic-bezier(.2,.8,.3,1);
+}
+.rv-locked-btn:hover{opacity:.92;transform:translateY(-1px)}
+.rv-locked-btn:focus-visible{outline:2px solid #f5c842;outline-offset:3px}
+.rv-locked-btn:active{transform:translateY(0);opacity:.85}
+
+/* Masks the first two digits of the salary (2nd card onward, locked only).
+   No per-character DOM split: a single wrapper plus a ::before backdrop-filter,
+   so the mask survives currency.js rewriting textContent on a currency switch.
+   Width measured at 13.6px/700: digits are 5.9px ("1") to 9.2px and the
+   thousands separator is 4.2-4.6px, so reaching the 2nd digit of a string like
+   "3,000万円" takes up to 22.6px -> 1.7em (23.1px). Keep in sync with
+   community.html, NOT with airlines/airline-base.css (1.35em: no separator there). */
+.rv-sal-mask{position:relative;display:inline-block}
+.rv-sal-mask::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:1.7em;
+  backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);
+  border-radius:4px;pointer-events:none;
+}
+
+/* Log-in route out of the gate panel, for contributors who posted on another device. */
+.gate-login{
+  display:inline-block;margin-top:12px;font-size:.75rem;font-weight:600;
+  color:#9ca3af;text-decoration:underline;text-underline-offset:3px;
+  transition:color .18s cubic-bezier(.2,.8,.3,1),opacity .18s cubic-bezier(.2,.8,.3,1);
+}
+.gate-login:hover{color:#f5c842}
+.gate-login:focus-visible{outline:2px solid #f5c842;outline-offset:3px;border-radius:4px}
+.gate-login:active{opacity:.7}
+[data-theme="light"] .gate-login{color:#475569}
+[data-theme="light"] .gate-login:hover{color:#7a5800}
+
+  </style>
+<!-- Google tag (gtag.js) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-3XYF69VQ3X');
+</script>
+<!--PV-3P-->
+<script>
+/* 広告と解析は、表示が終わるまで読まない。async でも帯域は奪うため。
+   利用者が最初に触った時か load の、どちらか早いほうで読み込む。
+   戻すときは node defer-third-party.mjs --undo */
+(function(){
+  var done=false;
+  function boot(){
+    if(done)return; done=true;
+    [{"src":"https://www.googletagmanager.com/gtag/js?id=G-3XYF69VQ3X","cross":false}].forEach(function(it){
+      var s=document.createElement('script');
+      s.src=it.src; s.async=true;
+      if(it.cross)s.crossOrigin='anonymous';
+      document.head.appendChild(s);
+    });
+  }
+  ['pointerdown','keydown','touchstart','scroll','wheel'].forEach(function(ev){
+    addEventListener(ev,boot,{once:true,passive:true});
+  });
+  if(document.readyState==='complete')boot();
+  else addEventListener('load',boot,{once:true});
+})();
+</script>
+<!--/PV-3P-->
+<script src="../pv-session.js"></script>
+</head>
+<body class="relative">
+
+<!-- NAV -->
+<nav id="main-nav">
+  <div class="max-w-7xl mx-auto px-6 flex items-center justify-between h-[68px]">
+    <a href="index.html" class="flex items-center gap-3 flex-shrink-0">
+      <img src="../assets/logo.png" alt="PILOT VALUE" class="logo-img" />
+    </a>
+    <div class="hidden md:flex items-center gap-7">
+      <a href="index.html#ranking" class="nav-link">Salary Rankings</a>
+      <a href="world-airlines.html" class="nav-link">World Airlines</a>
+      <a href="community.html" class="nav-link" style="color:#f5c842">Latest Reviews</a>
+    </div>
+    <div class="flex items-center gap-3">
+      <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark / light mode"></button>
+      <a id="nav-auth-btn" href="login.html" class="btn-ghost" style="font-size:.82rem;padding:7px 14px">Log in</a>
+      <a href="submit-review.html" class="btn-orange py-2 px-5 text-sm">Post a review anonymously</a>
+    </div>
+  </div>
+</nav>
+
+
+<!-- HERO -->
+<section id="hero-section" class="pt-[68px]">
+  <div class="relative py-20 px-6 text-center overflow-hidden">
+    <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(245,200,66,.06) 0%,transparent 70%)"></div>
+    <div class="relative max-w-3xl mx-auto">
+      <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold mb-6 fade-up" style="background:rgba(245,200,66,.1);color:#f5c842;border:1px solid rgba(245,200,66,.2)">
+        <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="4" fill="#f5c842"/></svg>
+        Latest Review Feed
+      </div>
+      <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 fade-up" style="transition-delay:.05s">
+        Pilot Reviews from Every Airline<br>Latest Feed
+      </h1>
+      <p class="text-muted text-base leading-relaxed max-w-xl mx-auto mb-8 fade-up" style="transition-delay:.1s">
+        Real reviews from current and former pilots at more than 100 airlines worldwide, including ANA, JAL, Emirates and Delta.<br>
+        <strong class="text-text">Post one review and you can read every airline&rsquo;s reviews for a month.</strong>
+      </p>
+      <div class="flex flex-wrap justify-center gap-3 fade-up" style="transition-delay:.15s">
+        <span class="privacy-badge"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M5 1L1 3v3c0 2 2 3 4 3s4-1 4-3V3L5 1z" fill="none" stroke="#34d399" stroke-width="1"/></svg>Fully anonymous</span>
+        <span class="privacy-badge">Age and employer shown only in broad terms</span>
+        <span class="privacy-badge">Anything that could identify you is hidden</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- STATS BAR -->
+<section id="stats-bar" style="background:rgba(8,10,14,.8);border-top:1px solid rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.04)">
+  <div class="max-w-4xl mx-auto px-6 py-5 grid grid-cols-3 gap-4 text-center">
+    <div class="fade-up">
+      <div class="text-2xl font-extrabold" style="color:#f5c842" id="stat-reviews">247</div>
+      <div class="text-xs text-muted mt-0.5">Reviews</div>
+    </div>
+    <div class="fade-up" style="transition-delay:.05s">
+      <div class="text-2xl font-extrabold" style="color:#3d9bff" id="stat-airlines">17</div>
+      <div class="text-xs text-muted mt-0.5">Airlines listed</div>
+    </div>
+    <div class="fade-up" style="transition-delay:.1s">
+      <div class="text-2xl font-extrabold" style="color:#34d399" id="stat-members">1,203</div>
+      <div class="text-xs text-muted mt-0.5">Registered members</div>
+    </div>
+  </div>
+</section>
+
+
+<!-- HOW IT WORKS -->
+<section class="py-16 px-6">
+  <div class="max-w-4xl mx-auto">
+    <h2 class="text-xl font-bold mb-8 fade-up">The Give &amp; Take Model</h2>
+    <div class="grid md:grid-cols-3 gap-5">
+      <div class="glass p-6 fade-up text-center">
+        <div class="text-3xl mb-3">✍️</div>
+        <div class="font-bold mb-2">① Post</div>
+        <p class="text-sm text-muted">Post one review covering your airline, position, aircraft type and comments. Anonymous and safe. No exact age or personal details required.</p>
+      </div>
+      <div class="glass p-6 fade-up text-center" style="transition-delay:.07s">
+        <div class="text-3xl mb-3">🔓</div>
+        <div class="font-bold mb-2">② Unlock</div>
+        <p class="text-sm text-muted">Every airline&rsquo;s reviews open up for <strong>one month</strong>. The pay data is unlocked separately, by submitting one payslip, for 90 days.</p>
+      </div>
+      <div class="glass p-6 fade-up text-center" style="transition-delay:.14s">
+        <div class="text-3xl mb-3">📊</div>
+        <div class="font-bold mb-2">③ Get the information</div>
+        <p class="text-sm text-muted">Check the real working environment, upgrade speed, workplace relationships and conditions at each airline. Put it to work in your career decisions.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- PRIVACY NOTICE -->
+<section class="py-10 px-6">
+  <div class="max-w-4xl mx-auto fade-up">
+    <div class="rounded-2xl p-6" style="background:rgba(52,211,153,.04);border:1px solid rgba(52,211,153,.12)">
+      <div class="flex items-start gap-4">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(52,211,153,.12)">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2L3 6v5c0 4 3 6.5 7 7 4-.5 7-3 7-7V6L10 2z" stroke="#34d399" stroke-width="1.5" fill="none" stroke-linejoin="round"/></svg>
+        </div>
+        <div>
+          <div class="font-bold mb-2" style="color:#34d399">How we protect your anonymity and safety</div>
+          <ul class="text-sm text-muted space-y-1.5 leading-relaxed">
+            <li>• <strong class="text-text">Exact ages are never shown</strong> — we display bands such as "early 30s" or "40s"</li>
+            <li>• <strong class="text-text">Your employer is chosen from a list</strong> — free-text wording that could identify a company is not allowed</li>
+            <li>• <strong class="text-text">Specific routes and bases are hidden</strong> — only the "international" / "domestic" distinction is published</li>
+            <li>• <strong class="text-text">Reviews that could identify an individual are not published</strong> — we check them through moderation</li>
+            <li>• <strong class="text-text">We do not log IP addresses</strong> — anonymous posting is guaranteed technically</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- REVIEW FEED -->
+<section id="review-section" class="py-12 px-6" style="background:rgba(8,10,14,.5);border-top:1px solid rgba(255,255,255,.04)">
+  <div class="max-w-4xl mx-auto">
+
+    <div class="flex items-center justify-between mb-6 fade-up">
+      <h2 class="text-xl font-bold">Latest Reviews <span id="feed-count" class="text-sm font-normal text-muted ml-2"></span></h2>
+      <!-- Hidden by default; JS restores display only when unlocked. -->
+      <span id="unlock-badge" class="text-xs text-muted" style="display:none">
+        <span class="privacy-badge">🔓 1-month access active</span>
+      </span>
+    </div>
+
+    <!-- Filter chips -->
+    <div class="flex flex-wrap gap-2 mb-6 fade-up" style="transition-delay:.05s">
+      <button class="filter-chip active" onclick="filterReviews(this,'all')">All</button>
+      <button class="filter-chip" onclick="filterReviews(this,'ana')">ANA</button>
+      <button class="filter-chip" onclick="filterReviews(this,'jal')">JAL</button>
+      <button class="filter-chip" onclick="filterReviews(this,'skymark')">Skymark</button>
+      <button class="filter-chip" onclick="filterReviews(this,'peach')">Peach</button>
+      <button class="filter-chip" onclick="filterReviews(this,'delta')">Delta</button>
+      <button class="filter-chip" onclick="filterReviews(this,'united')">United</button>
+      <button class="filter-chip" onclick="filterReviews(this,'southwest')">Southwest</button>
+      <button class="filter-chip" onclick="filterReviews(this,'emirates')">Emirates</button>
+      <button class="filter-chip" onclick="filterReviews(this,'qatar')">Qatar</button>
+      <button class="filter-chip" onclick="filterReviews(this,'etihad')">Etihad</button>
+      <button class="filter-chip" onclick="filterReviews(this,'singapore')">Singapore</button>
+      <button class="filter-chip" onclick="filterReviews(this,'cathay')">Cathay</button>
+      <button class="filter-chip" onclick="filterReviews(this,'lufthansa')">Lufthansa</button>
+    </div>
+
+    <!-- Gate wrapper -->
+    <div id="review-feed-wrapper" class="relative">
+
+      <!-- Reviews list (gate panel injected by JS after card[0]) -->
+      <div id="review-feed" class="space-y-4 fade-up" style="transition-delay:.1s">
+        <!-- Populated by JS -->
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+
+<!-- FOOTER -->
+<footer class="py-10">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+      <a href="index.html"><img src="../assets/logo.png" alt="PILOT VALUE" class="h-7 w-auto opacity-70"/></a>
+      <div class="flex gap-6 text-sm text-muted">
+        <a href="index.html" class="hover:text-text transition-colors">Home</a>
+        <a href="index.html#compare" class="hover:text-text transition-colors">Salary Comparison</a>
+        <a href="community.html" class="hover:text-text transition-colors" style="color:#f5c842">Latest Reviews</a>
+      </div>
+      <div class="text-xs text-muted">© 2026 PILOT VALUE. All figures are reference values.</div>
+    </div>
+  </div>
+<div style="border-top:1px solid rgba(255,255,255,.06);margin-top:20px;padding-top:16px;text-align:center"><div style="display:flex;flex-wrap:wrap;justify-content:center"><a href="guide.html" style="color:#6b7d93;font-size:.72rem;padding:5px 14px;text-decoration:none;border-right:1px solid rgba(255,255,255,.08);transition:color .2s" onmouseover="this.style.color='#e8edf2'" onmouseout="this.style.color='#6b7d93'">User Guide</a><a href="policy.html" style="color:#6b7d93;font-size:.72rem;padding:5px 14px;text-decoration:none;border-right:1px solid rgba(255,255,255,.08);transition:color .2s" onmouseover="this.style.color='#e8edf2'" onmouseout="this.style.color='#6b7d93'">Operating Policy</a><a href="terms.html" style="color:#6b7d93;font-size:.72rem;padding:5px 14px;text-decoration:none;border-right:1px solid rgba(255,255,255,.08);transition:color .2s" onmouseover="this.style.color='#e8edf2'" onmouseout="this.style.color='#6b7d93'">Terms of Service</a><a href="privacy.html" style="color:#6b7d93;font-size:.72rem;padding:5px 14px;text-decoration:none;border-right:1px solid rgba(255,255,255,.08);transition:color .2s" onmouseover="this.style.color='#e8edf2'" onmouseout="this.style.color='#6b7d93'">Privacy Policy</a><a href="personal-data.html" style="color:#6b7d93;font-size:.72rem;padding:5px 14px;text-decoration:none;border-right:1px solid rgba(255,255,255,.08);transition:color .2s" onmouseover="this.style.color='#e8edf2'" onmouseout="this.style.color='#6b7d93'">Handling of Personal Data</a><a href="help.html" style="color:#6b7d93;font-size:.72rem;padding:5px 14px;text-decoration:none;border-right:1px solid rgba(255,255,255,.08);transition:color .2s" onmouseover="this.style.color='#e8edf2'" onmouseout="this.style.color='#6b7d93'">Help</a><a href="sitemap.html" style="color:#6b7d93;font-size:.72rem;padding:5px 14px;text-decoration:none;transition:color .2s" onmouseover="this.style.color='#e8edf2'" onmouseout="this.style.color='#6b7d93'">Sitemap</a></div></div></footer>
+
+
+<script>
+// ── Nav scroll ────────────────────────────────────────────────
+window.addEventListener('scroll', () => {
+  document.getElementById('main-nav').classList.toggle('scrolled', window.scrollY > 40);
+}, { passive: true });
+
+// ── Review data ───────────────────────────────────────────────
+const AIRLINE_COLORS = {
+  ana:'#3d9bff', jal:'#e8192c', skymark:'#0095db', zipair:'#22d3ee',
+  peach:'#f96c9f', jetstar:'#f0851a', spring:'#e83030', airdo:'#003366',
+  solaseed:'#5EBD3E', starflyer:'#2B2D42', fda:'#E03A3E',
+  delta:'#003DA5', united:'#005daa', american:'#c8102e', southwest:'#f9b612', alaska:'#01426A',
+  emirates:'#C6922A', qatar:'#5C0632', etihad:'#BD8B13', 'riyadh-air':'#006B4D',
+  singapore:'#F90B24', cathay:'#006564', lufthansa:'#FFAD00',
+  'air-france':'#002157', british:'#002157', klm:'#009FDB', swiss:'#D20000',
+  turkish:'#E30A17', 'korean-air':'#003087', asiana:'#003399',
+  'air-china':'#CC0000', 'china-eastern':'#006CB8',
+  'air-canada':'#D01D2A', qantas:'#EE1C25',
+  finnair:'#003580', iberia:'#CC0000', ryanair:'#073590',
+  easyjet:'#FF6600', 'air-new-zealand':'#00005C',
+};
+
+const AIRLINE_LABELS = {
+  ana:'ANA', jal:'JAL', skymark:'Skymark', zipair:'ZIPAIR', peach:'Peach',
+  jetstar:'Jetstar Japan', spring:'Spring Japan', airdo:'AirDo',
+  solaseed:'Solaseed Air', starflyer:'StarFlyer', fda:'FDA',
+  delta:'Delta', united:'United', american:'American', southwest:'Southwest', alaska:'Alaska',
+  emirates:'Emirates', qatar:'Qatar Airways', etihad:'Etihad', 'riyadh-air':'Riyadh Air',
+  singapore:'Singapore Airlines', cathay:'Cathay Pacific', lufthansa:'Lufthansa',
+  'air-france':'Air France', british:'British Airways', klm:'KLM', swiss:'SWISS',
+  turkish:'Turkish Airlines', 'korean-air':'Korean Air', asiana:'Asiana',
+  'air-china':'Air China', 'china-eastern':'China Eastern',
+  'air-canada':'Air Canada', qantas:'Qantas',
+  finnair:'Finnair', iberia:'Iberia', ryanair:'Ryanair',
+  easyjet:'easyJet', 'air-new-zealand':'Air New Zealand',
+};
+
+// Seed reviews
+const SEED_REVIEWS = [
+  { id:1, airline:'ana', position:'captain', salaryRange:'2,700万', exp:'16+ years', rating:4,
+    comment:'Captain pay varies widely by aircraft type and age. On B777 international routes, ¥2,700–2,800万 is the reality. With the various allowances included, more than ¥3,000万 is achievable. Stability, the retirement package and the pension are outstanding. Paying nothing toward training costs is a big plus too.', date:'2026.03' },
+  { id:2, airline:'emirates', position:'captain', salaryRange:'3,700万', exp:'8–15 years', rating:5,
+    comment:'Zero UAE income tax is the single biggest advantage. Housing and children\'s education costs (up to three children) are effectively covered in full. Compared with after-tax pay in Japan, real take-home is more than double. You do need to adapt to life in the desert and to an English-speaking environment.', date:'2026.02' },
+  { id:3, airline:'delta', position:'fo', salaryRange:'3,510万', exp:'4–7 years', rating:5,
+    comment:'Even at Year 5 you are over ¥3,500万. The 401(k) and profit sharing add another ¥700万–1,000万. As long as you have the English and can obtain a foreign license, this is a realistic target for a Japanese pilot. Upgrades come quickly.', date:'2026.03' },
+  { id:4, airline:'jal', position:'captain', salaryRange:'2,700万', exp:'16+ years', rating:4,
+    comment:'Pay is on the same level as ANA. Upgrade speed varies by fleet. The A350 is relatively new and has upgrade slots available. Benefits and the retirement scheme are comprehensive. Work-life balance is good.', date:'2026.01' },
+  { id:5, airline:'qatar', position:'captain', salaryRange:'2,900万', exp:'8–15 years', rating:3,
+    comment:'Tax-free pay is powerful, but schedule flexibility is on the low side. With Doha as your base, living costs are high if you bring your family. Training is well resourced. The fleet is varied — A350 / A380 / B777.', date:'2026.02' },
+  { id:6, airline:'united', position:'captain', salaryRange:'6,320万', exp:'16+ years', rating:5,
+    comment:'A senior B777 captain can reach ¥8,530万 a year. The 401(k), medical insurance and profit sharing are all first class. There are plenty of schedule options as well. It is an environment where you can reach this level within 10 years of joining.', date:'2026.03' },
+  { id:7, airline:'ana', position:'fo', salaryRange:'1,800万', exp:'4–7 years', rating:4,
+    comment:'Conditions as a First Officer are stable. The captain upgrade assessment is on the tough side, but the company covers training costs in full. First Officer pay is slightly higher than at JAL. Once you are assigned to international routes, allowances change the picture considerably.', date:'2026.02' },
+  { id:8, airline:'singapore', position:'captain', salaryRange:'3,400万', exp:'8–15 years', rating:4,
+    comment:'The cost of living in Singapore is high, but so is income. Pay is SGD-based, so a weak yen works in your favor. There is no jumpseat culture and the atmosphere on board is professional. Upgrades run strictly on seniority.', date:'2026.01' },
+  { id:9, airline:'southwest', position:'captain', salaryRange:'4,820万', exp:'8–15 years', rating:5,
+    comment:'With the seniority system, upgrades and route bidding are completely transparent. It is an all-B737 operation, so no type transitions are needed. Pass benefits are generous and the whole family can travel almost free. Medical insurance and the 401(k) are excellent too.', date:'2026.03' },
+  { id:10, airline:'cathay', position:'fo', salaryRange:'2,400万', exp:'6–10 years', rating:4,
+    comment:'Hong Kong is expensive, but pay is at a level that matches it. It is an English-speaking environment with a lot of flying alongside multinational crews. Training is well resourced and the path to captain upgrade is clear. EF is generous.', date:'2026.02' },
+  { id:11, airline:'skymark', position:'captain', salaryRange:'1,900万', exp:'8–15 years', rating:3,
+    comment:'There is a solid sense of stability as a mid-size domestic carrier. Pay is lower than at ANA / JAL, but upgrades come faster. Schedule flexibility is somewhat better. Training is done in-house and is at a standard level.', date:'2026.03' },
+  { id:12, airline:'etihad', position:'captain', salaryRange:'3,400万', exp:'8–15 years', rating:4,
+    comment:'Abu Dhabi is tax-free. Conditions are at the same level as Emirates, but the smaller scale means flight patterns tend to be calmer. Housing allowance and children\'s education costs are provided. Adapting to life in the Middle East is the key.', date:'2026.01' },
+  { id:13, airline:'peach', position:'fo', salaryRange:'1,400万', exp:'1–5 years', rating:3,
+    comment:'Pay is on the low side, as you would expect from an LCC. That said, there is scope for younger pilots to step up early. Mostly domestic routes, so the schedule is relatively regular. Many people build experience here and then move on.', date:'2026.02' },
+  { id:14, airline:'lufthansa', position:'captain', salaryRange:'3,440万', exp:'8–15 years', rating:4,
+    comment:'Europe\'s largest full-service carrier. The overall package of pay, pension and medical insurance is among the best in Europe. German is not mandatory, but the internal environment has a strong German cultural flavour.', date:'2026.03' },
+];
+
+// ── Unlock system ─────────────────────────────────────────────
+function isUnlocked() {
+  const expiry = localStorage.getItem('pv_unlock_expiry');
+  if (!expiry) return false;
+  return Date.now() < parseInt(expiry, 10);
+}
+
+// The 🔓 badge is display:none by default and is only restored once unlocked.
+// (The old code toggled a class that never existed — hidden-when-locked / .hidden —
+//  so "1-month access active" was permanently visible, even to locked visitors.)
+function syncUnlockBadge() {
+  const b = document.getElementById('unlock-badge');
+  if (b) b.style.display = isUnlocked() ? '' : 'none';
+}
+
+function unlockAccess() {
+  const expiry = Date.now() + 30 * 24 * 60 * 60 * 1000; // 30 days
+  localStorage.setItem('pv_unlock_expiry', expiry.toString());
+  renderReviews(currentFilter);
+  const gp = document.getElementById('gate-panel'); if (gp) gp.style.display = 'none';
+  syncUnlockBadge();
+  window.scrollTo({ top: document.getElementById('review-feed-wrapper').offsetTop - 100, behavior: 'smooth' });
+}
+
+// Never let the 1/8 cut land inside a money token. currency.js converts
+// amounts written in the body too, so splitting "¥3,500万" into "¥3,5" and
+// "00万" makes it convert each half separately and print an amount that does
+// not exist ("over $0" / ",$31K"). We do not inflate numbers.
+// Keep this character class identical to the one in community.html.
+const PV_MONEY_CHAR = /[0-9０-９,，.．¥￥万億円MK–〜~-]/;
+function pvSafeCut(text, at) {
+  let i = at, guard = 0;
+  while (i < text.length && guard++ < 60 &&
+         PV_MONEY_CHAR.test(text[i - 1]) && PV_MONEY_CHAR.test(text[i])) i++;
+  return i;
+}
+
+// ── Render reviews ────────────────────────────────────────────
+let currentFilter = 'all';
+let sbReviewsCache = null; // Supabase cache of reviews across all airlines
+
+function filterReviews(btn, airline) {
+  document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentFilter = airline;
+  renderReviews(airline);
+}
+
+function renderReviews(filter) {
+  const feed = document.getElementById('review-feed');
+  const unlocked = isUnlocked();
+  const locked   = !unlocked;   // locked = show the first 1/8 plain and blur the rest
+  const posLabel = { captain:'Captain', fo:'First Officer', cadet:'Trainee', former:'Former crew' };
+
+  // 1. Reviews held in local storage
+  let reviews = [];
+  try {
+    const userReviews = JSON.parse(localStorage.getItem('pv_reviews') || '[]');
+    const mapped = userReviews.filter(r => filter === 'all' || r.airline === filter).map(r => {
+      const man = (n) => (Math.floor(n/100)*100).toLocaleString('en-US');   // thousands separators are required by currency.js
+      // One figure, not a band — same shape as the Supabase path below.
+      // "3,500万–3,600万" only blurs what the pilot actually reported.
+      const sal = r.salary > 0 ? man(r.salary) + '万' : 'Not disclosed';
+      const rating = r.avgRating ? Math.round(r.avgRating) : (r.rating || 3);
+      const comment = [r.payText, r.evalText, r.benefitText, r.scheduleText, r.opsText].filter(Boolean).join('　') || r.comment || '';
+      return {
+        id: 'u' + r.ts, airline: r.airline, position: r.position,
+        salaryRange: sal, exp: r.years || r.experience || '—', rating, comment,
+        date: new Date(r.ts).toLocaleDateString('ja-JP', {year:'numeric',month:'2-digit'}).replace('/','.',).slice(0,7)
+      };
+    });
+    reviews = [...mapped];
+  } catch(e) {}
+
+  // 2. Supabase cache (when already fetched)
+  if (sbReviewsCache) {
+    const sbFiltered = filter === 'all' ? sbReviewsCache : sbReviewsCache.filter(r => r.airline === filter);
+    reviews = [...reviews, ...sbFiltered];
+  }
+
+  // 3. Seed reviews (appended at the end)
+  const seedFiltered = filter === 'all' ? SEED_REVIEWS : SEED_REVIEWS.filter(r => r.airline === filter);
+  reviews = [...reviews, ...seedFiltered];
+
+  // Review count display
+  const countEl = document.getElementById('feed-count');
+  if (countEl) countEl.textContent = reviews.length + ' reviews';
+
+  // Way out for contributors who already posted but are on a different device:
+  // pv-reunlock.js restores their unlock right after they log in.
+  const loginHref = 'login.html?return=' + encodeURIComponent(location.pathname + location.search);
+
+  // The gate panel sits at the end of the feed (it used to sit right after card[0])
+  const gateHTML = !unlocked ? `<div id="gate-panel" style="position:relative;margin-top:-4px;padding:56px 16px 32px;text-align:center;background:linear-gradient(to bottom,transparent 0%,rgba(10,12,15,.97) 35%,rgba(10,12,15,1) 100%)">
+    <div class="inline-block glass-raised px-8 py-6 rounded-2xl max-w-md mx-auto" style="border-color:rgba(245,200,66,.2)">
+      <div class="text-2xl mb-2">🔒</div>
+      <div class="font-bold text-lg mb-2">To see every review</div>
+      <p class="text-sm text-muted mb-5">Post one review of your own<br>and you can read every airline&rsquo;s reviews <strong class="text-text">free for one month</strong></p>
+      <button onclick="openModal()" class="btn-orange">Post a review anonymously to unlock
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="mt-4 text-xs text-muted">Completely free · anonymous · no personal details needed</div>
+      <div><a href="${loginHref}" class="gate-login">Log in (already posted)</a></div>
+    </div>
+  </div>` : '';
+
+  const cardsHTML = reviews.map((r, i) => {
+    const color = AIRLINE_COLORS[r.airline] || '#6b7d93';
+    const label = AIRLINE_LABELS[r.airline] || r.airline.toUpperCase();
+    const stars = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
+
+    // While locked, only the first 1/8 of the body is shown plain; the rest goes into a blurred band.
+    // ★ Never drop it from the DOM — that is what carries the per-country SEO long tail.
+    //   Only the presentation layer hides it.
+    const comment = r.comment || '';
+    const L = comment.length;
+    // pvSafeCut nudges the cut past a money token so currency.js never splits one
+    const visible = pvSafeCut(comment, Math.max(30, Math.ceil(L / 8)));
+    const cut = locked && L > visible;   // never emit an empty blurred band for short bodies
+    const bodyText = cut ? comment.slice(0, visible) : comment;
+    const tailHTML = cut ? `<div class="rv-locked-tail">
+        <div class="rv-locked-tail-text rv-body" style="font-size:.87rem;line-height:1.75">${PVReviewI18n.esc(comment.slice(visible))}</div>
+        <div class="rv-locked-cta"><button type="button" class="rv-locked-btn" onclick="openModal()">Post a review anonymously to unlock</button></div>
+      </div>` : '';
+
+    // Only the 2nd card onward gets its first two characters masked (owner's call).
+    // ★ Do not split the digits into per-character spans: currency.js:227 (applyAll) rewrites
+    //   the whole textContent of each amount span on every currency switch, which would wipe
+    //   any inner DOM. A single outer wrapper with a ::before overlay survives the switch.
+    // "Not disclosed" has no digits — wrapping it leaves a blur band with nothing behind it.
+    const maskable = /\d/.test(r.salaryRange || '');
+    const salHTML = (locked && i >= 1 && maskable) ? `<span class="rv-sal-mask">${r.salaryRange}</span>` : r.salaryRange;
+
+    return `<div class="review-card fade-up" style="transition-delay:${Math.min(i,8) * 0.04}s">
+      <div class="flex items-center gap-2 flex-wrap mb-3">
+        <span style="display:inline-block;padding:3px 10px;border-radius:6px;font-size:.75rem;font-weight:700;background:${color}20;color:${color};border:1px solid ${color}40">${label}</span>
+        <span class="rv-pos" style="font-size:.75rem;padding:3px 8px;border-radius:5px">${posLabel[r.position] || r.position}</span>
+        <span style="color:#f5c842;font-size:.82rem;letter-spacing:.03em">${stars}</span>
+        <span class="rv-meta" style="font-size:.72rem;margin-left:auto">Experience ${r.exp} · ${r.date}</span>
+      </div>
+      <div style="font-size:.85rem;font-weight:700;color:${color};margin-bottom:8px">${salHTML} <span class="rv-meta" style="font-size:.72rem;font-weight:400">Annual salary (approx.)</span></div>
+      <p class="rv-body" style="font-size:.87rem;line-height:1.75;margin:0">${PVReviewI18n.esc(bodyText)}${r.translated ? PVReviewI18n.noteHTML(r.from) : ''}</p>
+      ${tailHTML}
+      ${(!locked && r.translated) ? PVReviewI18n.origHTML(r.origText) : ''}
+    </div>`;
+  }).join('');
+
+  feed.innerHTML = (cardsHTML || '<p class="rv-meta" style="font-size:.9rem;padding:20px 0">No reviews yet. Be the first to post one.</p>') + gateHTML;
+
+  // Re-apply the currency conversion after every re-render
+  // (currency.js's observer can miss a wholesale innerHTML swap)
+  if (window.PVCurrency) { try { PVCurrency.scan(feed); PVCurrency.apply(); } catch (e) {} }
+
+  // Register the new elements with the IntersectionObserver
+  document.querySelectorAll('.review-card.fade-up:not(.visible)').forEach(el => io.observe(el));
+}
+
+// Asynchronously fetch reviews for all airlines from Supabase
+async function loadSupabaseReviews() {
+  try {
+    const V2_CAT_KEYS = ['culture_score','salary_score','benefits_score','wlb_score','ops_score','training_score'];
+
+    // Fetch reviews_v2 (the new schema) first.
+    // orig_lang / translations drive the JA<->EN display (see review-i18n.js).
+    // Where those two columns do not exist yet the query is retried without them,
+    // so the feed never goes empty.
+    const V2_COLS = 'id,airline,position,tenure_bucket,monthly_salary,bonus,culture_score,salary_score,benefits_score,wlb_score,ops_score,training_score,culture_comment,salary_comment,benefits_comment,wlb_comment,ops_comment,training_comment,mgmt_comment,created_at';
+    const { data: v2 } = await PVReviewI18n.fetchWithFallback(extra =>
+      _sbC.from('reviews_v2')
+        .select(V2_COLS + extra)
+        .order('created_at', { ascending: false })
+        .limit(200));
+
+    const v2Formatted = (v2 || []).map(r => {
+      const scores = V2_CAT_KEYS.map(k=>r[k]).filter(s=>s>0);
+      const avgScore = scores.length ? scores.reduce((a,b)=>a+b,0)/scores.length : 3;
+      // Reviews posted in Japanese are shown here in English when a translation exists,
+      // and fall back to the original text field by field when it does not.
+      const body = PVReviewI18n.pick(r);
+      const total = r.monthly_salary ? r.monthly_salary*12+(r.bonus||0) : 0;
+      return {
+        id: 'v2_'+r.id, airline: r.airline||'', position: r.position||'',
+        salaryRange: total>0 ? (Math.floor(total/100)*100).toLocaleString('en-US')+'万円' : 'Not disclosed',
+        exp: r.tenure_bucket||'—',
+        rating: Math.round(avgScore),
+        comment: body.text, translated: body.translated, origText: body.origText, from: body.from,
+        date: r.created_at ? r.created_at.slice(0,7).replace('-','.') : '—',
+      };
+    });
+
+    // The legacy reviews table has been dropped, so there is nothing to merge
+    const merged = [...v2Formatted];
+    if (merged.length > 0) {
+      sbReviewsCache = merged;
+      renderReviews(currentFilter);
+    }
+  } catch(e) {}
+}
+
+// ── Review post button (sends the user to the dedicated form) ──
+function openModal() {
+  // Review posting is consolidated into the dedicated form (submit-review.html / reviews_v2).
+  // The old inline modal (which inserted into the reviews table) has been retired.
+  location.href = '../submit-review.html';
+}
+
+// Supabase init
+const _sbC = supabase.createClient(
+  'https://vzgmnkrggrwtsrpqndsm.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6Z21ua3JnZ3J3dHNycHFuZHNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0MzkwOTcsImV4cCI6MjA5MDAxNTA5N30.wE4cJbqeYGCgn5ZvHd80hYWgQuySKvOMJMbsJWOvmtw'
+);
+
+// ── Theme toggle ──────────────────────────────────────────────
+const SUN_SVG_C = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
+const MOON_SVG_C = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+function applyThemeC(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('pv-theme', t);
+  const btn = document.getElementById('theme-toggle');
+  if (btn) btn.innerHTML = t === 'dark' ? SUN_SVG_C : MOON_SVG_C;
+}
+(function(){ applyThemeC(localStorage.getItem('pv-theme') || 'light'); })();
+document.getElementById('theme-toggle').addEventListener('click', function() {
+  applyThemeC(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+});
+
+// ── IntersectionObserver ──────────────────────────────────────
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+  });
+}, { threshold: 0.01, rootMargin: '0px 0px -30px 0px' });
+
+document.querySelectorAll('.fade-up').forEach(el => io.observe(el));
+setTimeout(() => { document.querySelectorAll('.fade-up:not(.visible)').forEach(el => el.classList.add('visible')); }, 300);
+
+// ── Init ──────────────────────────────────────────────────────
+renderReviews('all');
+loadSupabaseReviews(); // fetch reviews for all airlines asynchronously → re-render
+syncUnlockBadge();
+(function(){try{var u=JSON.parse(localStorage.getItem('pv_user')||'null');var b=document.getElementById('nav-auth-btn');if(!b)return;if(u&&u.name){b.textContent=u.name.replace(/[\s　].*/,'');b.href='../profile.html';b.style.color='#f5c842';b.style.fontWeight='700';}}catch(e){}})();
+</script>
+
+<script src="../search.js"></script>
+<script src="../lang-toggle.js"></script>
+<script src="../currency.js"></script>
+</body>
+</html>

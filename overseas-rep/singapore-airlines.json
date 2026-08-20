@@ -1,0 +1,82 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "Glassdoorの総合評価は約3.9で96%が知人に勧める一方、『HRが最悪』『非効率な管理』という辛口も残る。厳格で規律ある安全・訓練文化はプロとして高く評価される。ただし操縦士労組ALPA-Sとの賃金交渉は約8か月で決裂し仲裁裁判所に持ち込まれるなど、労使の緊張は表面化している。",
+      "en": "Glassdoor rates the pilot job around 3.9/5 with 96% recommending it, and the disciplined safety and training culture earns real respect — but complaints about 'terrible HR' and inefficient management persist, and the pilots' union pay fight has dragged to arbitration."
+    },
+    "salary": {
+      "ja": "副操縦士の年収は概ねS$11万〜17万（約1,290万〜1,990万円）、機長は昇格直後で約2,750万円、上級で4,000万円超。ただし基本給は低めで給与の約半分がロースター連動の飛行手当、最低保証もない。FO初任給は月S$6,175でEmiratesの半額強にとどまり、労組は『非競争的』と主張する。",
+      "en": "First Officers earn roughly S$110k–170k (about US$81k–126k) and Captains from about S$235k up past S$355k, but base pay is thin — roughly half of pay is roster-linked flight allowance with no minimum guarantee, and the FO starting salary of S$6,175/month is barely half of Emirates'."
+    },
+    "benefits": {
+      "ja": "最大の魅力は利益分配ボーナスで、FY2024-25は基本給の約7.45か月分、前年は約7.9か月分と業界随一。最高所得税率約22%で日本の半分程度と手取り率も高く、スタッフチケットで世界を旅できる。ただしDEFO（現地採用の有期FO）には住宅・教育手当が付かない点への不満がある。",
+      "en": "The standout perk is profit-sharing worth about 7.45 months of base pay in FY2024-25 (7.9 the year before) — among the best in the industry — plus a low ~22% top tax rate and worldwide staff travel; but Direct Entry First Officers get no housing or education allowance."
+    },
+    "wlb": {
+      "ja": "長距離・夜間便が中心で体内時計の乱れやレイオーバー短縮への不満があり、GlassdoorのWLB評価は3.4と低め。一方で月10〜20日の休みや数か月先まで見える事前ロースター、CAAS新規則による週2回を超える夜勤の禁止と休息時間の強化は生活の安定に寄与している。",
+      "en": "Long-haul night flying disrupts the body clock and layovers have been trimmed, and Glassdoor scores work-life balance just 3.4/5 — but 10–20 days off a month, rosters visible months ahead, and new CAAS rules capping night flights at twice a week bring some stability."
+    },
+    "ops": {
+      "ja": "A380・A350による超長距離運航で世界トップクラスの威信と上質なプロダクトを誇る。ただしA380などの主要コックピットはシニオリティより国籍が優先され、外国人は指揮職で頭打ちになりうる。操縦士数は2011年の約2,331人から約2,000人へ減り、世界的な需要増の中で人材流出が懸念される。",
+      "en": "A380 and A350 ultra-long-haul flying carries world-class prestige and a premium product, but citizen pilots get priority for A380 cockpits over seniority, and the pilot headcount has fallen from about 2,331 in 2011 to around 2,000 amid global poaching."
+    },
+    "training": {
+      "ja": "会社は型式限定訓練などに1人あたりS$25万〜40万（約2,930万〜4,680万円）を投じ、その見返りにFO任命から7年のボンドを課す。訓練体制自体は徹底しており評価は高いが、機長昇格は平均12〜15年、長ければ20年超とLCCの3〜5年に比べ極めて遅く、年功・平等主義で実力上位者が報われにくい。",
+      "en": "The airline invests S$250k–400k per pilot in type-rating and training, backed by a 7-year bond from First Officer appointment, and its training is rigorous and respected — but seniority-based promotion to Captain averages 12–15 years (up to 20+), versus 3–5 at low-cost carriers."
+    }
+  },
+  "sources": [
+    {
+      "title": "Singapore Airlines Pilot Salary in 2026 - Aviation A2Z",
+      "url": "https://aviationa2z.com/index.php/2026/05/09/singapore-airlines-pilot-salary-2026/"
+    },
+    {
+      "title": "Singapore Airlines Pilot Salary in 2024 - Aviation A2Z",
+      "url": "https://aviationa2z.com/index.php/2025/08/30/singapore-airlines-pilot-salary/"
+    },
+    {
+      "title": "Singapore Airlines Pay Dispute Drags On After 8 Months - MustShareNews",
+      "url": "https://mustsharenews.com/singapore-airlines-pay/"
+    },
+    {
+      "title": "Singapore Airlines Pilot Reviews - Glassdoor",
+      "url": "https://www.glassdoor.com/Reviews/Singapore-Airlines-Pilot-Reviews-EI_IE3379.0,18_KO19,24.htm"
+    },
+    {
+      "title": "Pathway to Singapore Airlines Second Officer Employment - AeroCadet",
+      "url": "https://aerocadet.com/pathway_to_singapore_airlines.html"
+    },
+    {
+      "title": "It is not all glamour - Captain Ong",
+      "url": "https://captainong.com/its-not-all-glamour/"
+    },
+    {
+      "title": "Singapore Airlines Staff Pocket Huge Bonuses Worth Nearly 8 Months' Pay - Paddle Your Own Kanoo",
+      "url": "https://www.paddleyourownkanoo.com/2025/05/15/singapore-airlines-staff-pocket-huge-bonuses-worth-nearly-8-months-pay-but-trouble-may-be-looming/"
+    },
+    {
+      "title": "Singapore Airlines Employees Getting Large Profit-Sharing Bonus - AirlineGeeks",
+      "url": "https://airlinegeeks.com/2025/05/15/singapore-airlines-employees-getting-large-profit-sharing-bonus/"
+    },
+    {
+      "title": "Singapore Airlines DEFO - PPRuNe Forums",
+      "url": "https://www.pprune.org/south-asia-far-east/612542-singapore-airlines-defo.html"
+    },
+    {
+      "title": "Singapore Airlines - Airline Pilot Central Forums",
+      "url": "https://www.airlinepilotforums.com/foreign/140273-singapore-airlines.html"
+    },
+    {
+      "title": "Singapore Airlines Reserves A380 Cockpits for Citizen Pilots - AIN",
+      "url": "https://www.ainonline.com/aviation-news/air-transport/2014-05-19/singapore-airlines-reserves-a380-cockpits-citizen-pilots"
+    },
+    {
+      "title": "S'pore carriers adopt new rules to avoid crew fatigue - The Nation",
+      "url": "https://www.nationthailand.com/international/30245866"
+    },
+    {
+      "title": "シンガポール航空 年収・給与制度 - OpenWork",
+      "url": "https://www.openwork.jp/company_answer.php?m_id=a0C30000007r3LP&q_no=2"
+    }
+  ]
+}

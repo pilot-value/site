@@ -1,0 +1,74 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "マネジメントへの不満が繰り返し挙がり、手当や雇用条件を巡る労使対立が長年くすぶってきた。ただ2024年にパイロット労組GAPTUと団体労働協約を締結し、関係修復に向かうとされる。国営の小規模ベースゆえ家族的な一面もあり、Glassdoor総合は3.8/5・推薦率68%。",
+      "en": "Glassdoor sits at 3.8/5 with 68% recommending, but reviews repeatedly flag weak management and years of friction over allowances; the 2024 collective agreement with the GAPTU pilots' union has started to mend relations."
+    },
+    "salary": {
+      "ja": "給与表は非公開でオファーレター頼み。Glassdoorの総年収平均は約2,860万〜3,050万円（18.1万〜19.3万USD）で、入社時約1,710万円から最上位約5,420万円まで幅がある。非課税のBHD建てで額面がほぼ手取りだが、長期在籍者は2009年以降ベース据え置きで目減りしたと不満を漏らす。",
+      "en": "There's no public pay scale — comp rides on your offer letter — but Glassdoor pegs total pay near $181k-193k, from roughly $108k on entry to $343k at the top, all tax-free in Bahraini dinar. Long-timers gripe the base hasn't moved since 2009."
+    },
+    "benefits": {
+      "ja": "住宅は現金支給か社宅（ジュファイル/シーフ地区）、学費補助は7〜10割、社員航空券は最大9割引、家族医療保険付きとパッケージは手厚い。2024年3月以降の退職金は拠出制（当初3年4.2%・以降8.4%）。一方でボーナスや手当が今は無い、休暇が確定しないとの現場不満も残る。",
+      "en": "Housing (cash or company flats in Juffair/Seef), 70-100% school-fee support, up to 90% off staff tickets and family medical make a strong package, plus a contributory end-of-service scheme (4.2% for the first three years, then 8.4%) since 2024; some still complain of no bonus and unconfirmed leave."
+    },
+    "wlb": {
+      "ja": "予測不能なロスター変更と要員不足が繰り返し指摘され、スタンバイの吸収余力が薄い。月ブロックは約65〜85時間、休日は月8〜9日。6日連続で毎回5時間超の地上待機といった過酷な体験談もあり、家庭生活への負担が大きい。ベースはバーレーン単一で選択の余地はない。",
+      "en": "Unpredictable roster swaps and thin standby staffing draw steady criticism, with about 65-85 block hours a month and 8-9 days off; the single Bahrain base means no base choice."
+    },
+    "ops": {
+      "ja": "機材は約43機・平均機齢約7.6年（A320ファミリー約33機＋787-9が10機）と若く近代的。2025年11月のドバイエアショーで787-9を15機追加確定し、ワイドボディ最大27機体制へ拡大中。52都市・28か国に就航する国営フラッグキャリアで、長距離網の拡大が続く。",
+      "en": "A young ~43-aircraft fleet (average 7.6 years, roughly 33 A320-family plus ten 787-9s) is expanding fast — 15 more 787-9s were firmed at the November 2025 Dubai Airshow — serving 52 cities across 28 countries."
+    },
+    "training": {
+      "ja": "副操縦士から機長への昇格は通常5〜8年、飛行時間4,000〜5,000時間が目安で、昇格時はおおむね40〜50%の昇給。直入り機長も受け入れる（総5,000時間・PIC1,500時間）。型式限定訓練のボンドは3〜5年、途中離職の違約金は約10,000〜15,000BHD（約420万〜630万円）とされる。",
+      "en": "Upgrade from first officer to captain typically runs 5-8 years and 4,000-5,000 hours for a roughly 40-50% pay jump; direct-entry captains are accepted, and type-rating bonds run 3-5 years with a break penalty around 10,000-15,000 BHD."
+    }
+  },
+  "sources": [
+    {
+      "title": "Gulf Air | Pilot Careers, Pay, Fleet & Work-Life Guide — Ready For Takeoff",
+      "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/gulf-air"
+    },
+    {
+      "title": "Gulf Air Reviews (133): Pros & Cons of Working At Gulf Air — Glassdoor",
+      "url": "https://www.glassdoor.com/Reviews/Gulf-Air-Reviews-E27904.htm"
+    },
+    {
+      "title": "Gulf Air Airline Pilot Salaries in Manama — Glassdoor",
+      "url": "https://www.glassdoor.com/Salary/Gulf-Air-Airline-Pilot-Manama-Salaries-EJI_IE27904.0,8_KO9,22_IL.23,29_IM3045.htm"
+    },
+    {
+      "title": "كم راتب الطيار في البحرين؟ فرص العمل ونظام الرواتب 2026 — Culture Money",
+      "url": "https://www.culture-money.com/2026/05/pilot-salary-bahrain.html"
+    },
+    {
+      "title": "Join Gulf Air as a First Officer – Airbus A320 (official vacancy)",
+      "url": "https://gulfairgroup.sniperhire.net/vacancy/175079"
+    },
+    {
+      "title": "Gulf Air salary package - Is it enough to live on? — PPRuNe Forums",
+      "url": "https://www.pprune.org/middle-east/149491-gulf-air-salary-package-enough-live.html"
+    },
+    {
+      "title": "Gulf Air 320 Rostering!!!! — PPRuNe Forums",
+      "url": "https://www.pprune.org/middle-east/198902-gulf-air-320-rostering-2.html"
+    },
+    {
+      "title": "Gulf Air signs Collective Labour Agreement with GAPTU — Arab News",
+      "url": "https://www.arabnews.com/node/2558371/corporate-news"
+    },
+    {
+      "title": "Gulf Air downplays pilots' resignations — Gulf News",
+      "url": "https://gulfnews.com/world/gulf/bahrain/gulf-air-downplays-pilots-resignations-1.62368920"
+    },
+    {
+      "title": "Gulf Air Increases Boeing 787 Dreamliner Order (Nov 18, 2025) — Boeing",
+      "url": "https://boeing.mediaroom.com/2025-11-18-Gulf-Air-Increases-Boeing-787-Dreamliner-Order"
+    },
+    {
+      "title": "Gulf Air — PILOT CAREER CENTER (fleet & base profile)",
+      "url": "https://pilotcareercenter.com/Air-Carrier-PCC-Profile/28/Gulf-Air"
+    }
+  ]
+}

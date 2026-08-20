@@ -1,0 +1,74 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "経営を「独裁的」「有毒」と評する声が多く、パイロットは三等市民扱いで苦情窓口もメール返信もないと不満が出る。口コミ集約は20件平均2.7/5と低い。2025年12月には計画不備で約1,600便を欠航し、定時率が通常約90%から約35%へ急落、機長不足が一気に表面化した。",
+      "en": "Management is widely called authoritarian and toxic, with pilots saying they are treated as third-class citizens and that emails go unanswered; aggregate reviews sit at 2.7/5. In December 2025 a planning failure cancelled around 1,600 flights and dropped on-time performance from ~90% to ~35%, exposing a thin captain bench."
+    },
+    "salary": {
+      "ja": "固定基本給＋飛行時間手当で、副操縦士は月50時間なら約26万ルピー（約49万円）、90時間で約33万ルピー（約63万円）。機長は月5〜10ラーク（約95万〜190万円）。ただし副操縦士の初任給は2010年からほぼ据え置きで、中東勢の約4割・市場から約10年遅れとの不満が根強い。",
+      "en": "Pay is a fixed base plus per-block-hour flight pay: a first officer earns roughly USD 3,100/month at 50 hours and USD 4,000 at 90, while captains reach USD 70k-140k a year. But FO starting pay has barely moved since 2010 and sits near 40% of Gulf carriers."
+    },
+    "benefits": {
+      "ja": "本人・家族の無制限無料搭乗や保険、レイオーバー時のホテル滞在が利点とされる。住宅補助は月1.5万〜2.5万ルピー（約2.8万〜4.8万円）、飛行手当は副操縦士でブロックアワー約2,000〜2,500ルピー。ただしホテルは下位カテゴリーへ格下げされ食事・設備が悪化したとの不満が混じる。",
+      "en": "Perks include unlimited free travel for the pilot and family, insurance, and layover hotels, with a housing allowance around 15,000-25,000 rupees/month. But crews complain layover hotels have been downgraded and meals cut as costs are trimmed."
+    },
+    "wlb": {
+      "ja": "稼働最大化に最適化されたロースターで最小休息が常態化。実飛行は月60〜70時間でも拘束は140〜150時間に達し、月の大半を自宅外で過ごすとの訴えが多い。2025年11月施行の新FDTLで週休が36→48時間に拡大。ベースはデリー等約8拠点、希望は出せるが会社都合で配属される。",
+      "en": "Rosters are tuned for maximum utilization and minimum rest — pilots report 60-70 block hours of actual flying but 140-150 hours of duty per month, spending much of it away from home. New FDTL rules from November 2025 raised weekly rest from 36 to 48 hours; bases number about eight, with Delhi the main hub."
+    },
+    "ops": {
+      "ja": "機材はA320ファミリー中心で、新造機は不具合が少ないと評価される。ワイドボディA350-900を60機確定発注（2027年〜納入）し、国際線比率を2030年に4%→10〜15%へ拡大予定。一方でDGCAは不適格シミュレーター使用で約200万ルピー（約380万円）の制裁金を科し、OTP優先の運航文化への批判もある。",
+      "en": "The fleet is A320-family with newer jets and few defects, and 60 firm A350-900 orders (from 2027) will grow international flying from 4% to 10-15% by 2030. On the downside, DGCA fined IndiGo 2 million rupees for using unfit simulators, and crews say on-time performance is pushed over safety."
+    },
+    "training": {
+      "ja": "副操縦士から機長への昇格は平均8〜12年だが、機材拡張期には大きく早まる。飛行時間を貯めて海外エアラインへ移る踏み台として価値があるとの評価が多い。ただしセルフスポンサーのカデット費用は約85ラーク〜1.3クロー（約1,600万〜2,470万円）、5年ボンド＋違約金約50ラーク（約950万円）で訓練生は事実上囲い込まれる。",
+      "en": "Upgrade from first officer to captain averages 8-12 years but accelerates sharply during fleet expansion, and many pilots value IndiGo as a place to build hours and leave. The catch: the self-sponsored cadet program costs roughly USD 100k-160k with a five-year bond and a ~USD 60k break fee that locks trainees in."
+    }
+  },
+  "sources": [
+    {
+      "title": "When IndiGo ran out of pilots — Forbes India",
+      "url": "https://www.forbesindia.com/article/news/when-indigo-ran-out-of-pilots/2989617/1"
+    },
+    {
+      "title": "India: IndiGo faces operational chaos as pilot fatigue rules, planning gaps & labour unrest trigger mass flight disruption — Business & Human Rights Resource Centre",
+      "url": "https://www.business-humanrights.org/en/latest-news/india-indigo-faces-operational-chaos-as-pilot-fatigue-rules-planning-gaps-labour-unrest-trigger-mass-flight-disruption/"
+    },
+    {
+      "title": "IndiGo Pilot Reviews — PilotsGlobal",
+      "url": "https://pilotsglobal.com/airlines/indigo/pilot-reviews"
+    },
+    {
+      "title": "IndiGo Airline Pilot Reviews — Glassdoor",
+      "url": "https://www.glassdoor.co.in/Reviews/IndiGo-Airline-Pilot-Reviews-EI_IE354360.0,6_KO7,20.htm"
+    },
+    {
+      "title": "IndiGo Airlines Pilot Salary 2026: In-Hand Pay Per Month — SalaryInsight",
+      "url": "https://salaryinsight.in/indigo-pilot-salary/"
+    },
+    {
+      "title": "IndiGo Airlines Pilot Salary in 2025 — Aviation A2Z",
+      "url": "https://aviationa2z.com/index.php/2025/11/08/indigo-airlines-pilot-salary-2025/"
+    },
+    {
+      "title": "Indigo and GoAir latest T's and C's please — PPRuNe Forums (South Asia)",
+      "url": "https://www.pprune.org/south-asia-far-east/623604-indigo-goair-latest-t-s-c-s-please.html"
+    },
+    {
+      "title": "IndiGo flagged no issues before mass cancellations, failed to manage roster — Scroll.in",
+      "url": "https://scroll.in/latest/1089113/indigo-flagged-no-issues-before-mass-cancellations-failed-to-manage-roster-centre"
+    },
+    {
+      "title": "India's IndiGo fined by airline regulator for lapses in pilot training — Deccan Herald",
+      "url": "https://www.deccanherald.com/india/indias-indigo-fined-by-airline-regulator-for-lapses-in-pilot-training-3756882"
+    },
+    {
+      "title": "IndiGo Cadet Pilot Programme: Eligibility, Cost & Training — Propelld",
+      "url": "https://propelld.com/site/blog/indigo-cadet-pilot-programme"
+    },
+    {
+      "title": "IndiGo places firm order for 30 additional A350-900 Airbus aircraft — Airbus",
+      "url": "https://www.airbus.com/en/newsroom/press-releases/2025-10-indigo-places-firm-order-for-30-additional-a350-900-airbus"
+    }
+  ]
+}

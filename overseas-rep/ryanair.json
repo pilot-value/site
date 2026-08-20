@@ -1,0 +1,70 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "トップダウンでコスト最優先の社風。パイロットは「バスの運転手」扱いで人事の対応も鈍いという不満が目立つ。ただし2017年12月に約30年続いた組合拒否方針を転換して労組を承認し、以降は正式な苦情処理窓口や複数年の労使協定が整い、待遇改善は着実に進みつつある。",
+      "en": "A top-down, cost-first culture where pilots often feel treated as interchangeable 'bus drivers' with unresponsive HR. Since recognising unions in December 2017, formal grievance channels and multi-year deals have brought real if uneven gains."
+    },
+    "salary": {
+      "ja": "副操縦士は年約900万〜1,600万円（€53k〜€93k）、機長は約2,490万〜3,010万円（€145k〜€175k）。ただし総額の3〜5割はブロック時間ごとの変動「セクター給」で、基本給は低く手取りは季節や路線で大きく振れる。表示額は実感より高めという指摘が多い。",
+      "en": "First officers earn roughly $58K–$101K and captains about $158K–$191K gross, but 30–50% comes from variable per-block-hour 'sector pay,' so the low base makes take-home swing seasonally."
+    },
+    "benefits": {
+      "ja": "手当は路線外勤務プレミアムが1ブロック時間あたり約4,600円（€27）、固定手当が年約172万〜258万円（€10k〜€15k）。一方でBuzz（ポーランド）等の自営業・B2B契約者は会社負担の年金・病気手当・有給がなく、社会保障リスクを自ら負う点が根深い不満。",
+      "en": "Perks include an out-of-base premium around $29 per block hour and fixed allowances of about $11K–$16K a year, but self-employed/B2B pilots (notably at Buzz Poland) get no company pension, sick pay or holiday pay."
+    },
+    "wlb": {
+      "ja": "最大の魅力は固定の5連勤4休で計画外の泊まりがなく、通勤圏なら毎晩自宅で眠れて月13〜15日休める点。予定が立てやすい。一方で1日最大4区間・25分折り返しと激務で、ベース配属は不透明。希望地への異動は数年待ちになることもある。",
+      "en": "The big draw is a fixed 5-on/4-off roster with no planned overnights, sleeping at home most nights and 13–15 days off a month. The trade-off is intense four-sector days and an opaque base system where preferred transfers can take years."
+    },
+    "ops": {
+      "ja": "737単一機種の短距離運航に特化し、欧州に85以上のベースを展開。EASAの年900時間上限内で実際は700〜850ブロック時間、1日4区間・25分折り返しと運航は密度が高い。ワイドボディや長距離路線はなく、機長昇格後の伸びしろは限られる。",
+      "en": "A single-type (737), short-haul operation with 85-plus European bases, flying an intense 700–850 block hours a year under the EASA 900-hour cap. There is no widebody or long-haul path, so the ceiling is limited once you make captain."
+    },
+    "training": {
+      "ja": "訓練と定期審査の標準化は高評価で、副操縦士も発言しやすい低権威勾配。機長昇格は欧州最速級の約3.5〜5年（ATPLと約2,900時間が必要）。ただし型式限定は約508万円（€29,500）を5年で分割償還するボンド付きで、早期離職なら残債返済（黄金の手錠）。",
+      "en": "Standardized training and checking are well rated, with a low-authority-gradient cockpit that lets FOs speak up, and command comes fast — about 3.5–5 years. The type rating is bonded near $32K over five years, repayable if you leave early."
+    }
+  },
+  "sources": [
+    {
+      "title": "RYANAIR pilots, please share your thoughts/experience — PPRuNe Forums",
+      "url": "https://www.pprune.org/terms-endearment/654311-ryanair-pilots-please-share-your-thoughts-experience.html"
+    },
+    {
+      "title": "Ryanair Pilot Salary — PPRuNe Forums",
+      "url": "https://www.pprune.org/interviews-jobs-sponsorship/611626-ryanair-pilot-salary.html"
+    },
+    {
+      "title": "Ryanair Pilot Reviews — Glassdoor",
+      "url": "https://www.glassdoor.com/Reviews/Ryanair-Pilot-Reviews-EI_IE6965.0,7_KO8,13.htm"
+    },
+    {
+      "title": "Ryanair Pilot Reviews — PilotsGlobal",
+      "url": "https://pilotsglobal.com/airlines/ryanair/pilot-reviews"
+    },
+    {
+      "title": "Ryanair | Pilot Careers, Pay, Roster and Progression — Ready For Take Off",
+      "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/ryanair"
+    },
+    {
+      "title": "Ryanair Pilot Salary 2026 — FO €45K, Captain €175K — Airmappr",
+      "url": "https://airmappr.com/articles/career/ryanair-pilot-salary-guide"
+    },
+    {
+      "title": "'Bogus contracts' blamed for pilot fatigue and safety fears — Irish Examiner",
+      "url": "https://www.irishexaminer.com/opinion/columnists/arid-20329360.html"
+    },
+    {
+      "title": "Ryanair Signs New Five-Year Pay Deal with Pilots — AviationJobSearch",
+      "url": "https://www.aviationjobsearch.com/career-hub/articles/insights/industry-news/ryanair-signs-new-five-year-pay-deal-with-pilots"
+    },
+    {
+      "title": "Ryanair concludes 4-year pay deal with Fórsa union (Irish pilots) — Ryanair Corporate",
+      "url": "https://corporate.ryanair.com/news/ryanair-concludes-4-year-pay-deal-with-forsa-union-to-cover-its-irish-pilots/"
+    },
+    {
+      "title": "Pilot was a worker and an agency worker despite contract stating self-employment (Lutz) — DAC Beachcroft",
+      "url": "https://www.dacbeachcroft.com/en/What-we-think/Pilot-was-a-worker-and-an-agency-worker-despite-contract-stating-self-employment"
+    }
+  ]
+}

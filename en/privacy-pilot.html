@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png"/>
+<link rel="apple-touch-icon" href="../assets/favicon-180.png"/>
+<script>(function(){var t=localStorage.getItem('pv-theme')||'light';document.documentElement.setAttribute('data-theme',t);}());</script>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>How Anonymity Works — Why You Cannot Be Identified | PILOT VALUE</title>
+<!--PV-SEO-->
+<!--PV-SRC t="How Anonymity Works — Why You Cannot Be Identified | PILOT VALUE" d="How review submissions on PILOT VALUE are technically anonymous. We fully disclose what is stored in our database and what is not."-->
+<meta name="description" content="Not a promise that we will not look — a structure where we cannot. What the database stores, why a review never asks for pay, and why no post links back to its author."/>
+<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1"/>
+<link rel="canonical" href="https://pilot-value.com/en/privacy-pilot.html"/>
+<link rel="alternate" hreflang="ja" href="https://pilot-value.com/privacy-pilot.html"/>
+<link rel="alternate" hreflang="en" href="https://pilot-value.com/en/privacy-pilot.html"/>
+<link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/privacy-pilot.html"/>
+<meta property="og:title" content="How Anonymity Works — Why You Cannot Be Identified | PILOT VALUE"/>
+<meta property="og:description" content="Not a promise that we will not look — a structure where we cannot. What the database stores, why a review never asks for pay, and why no post links back to its author."/>
+<meta property="og:url" content="https://pilot-value.com/en/privacy-pilot.html"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="PILOT VALUE"/>
+<meta property="og:locale" content="en_US"/>
+<meta property="og:locale:alternate" content="ja_JP"/>
+<meta property="og:image" content="https://pilot-value.com/assets/og/default-en.jpg"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta property="og:image:alt" content="How Anonymity Works — Why You Cannot Be Identified | PILOT VALUE"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="How Anonymity Works — Why You Cannot Be Identified | PILOT VALUE"/>
+<meta name="twitter:description" content="Not a promise that we will not look — a structure where we cannot. What the database stores, why a review never asks for pay, and why no post links back to its author."/>
+<meta name="twitter:image" content="https://pilot-value.com/assets/og/default-en.jpg"/>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://pilot-value.com/en/"},{"@type":"ListItem","position":2,"name":"How Anonymity Works — Why You Cannot Be Identified","item":"https://pilot-value.com/en/privacy-pilot.html"}]}]}</script>
+<!--/PV-SEO-->
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'"/><noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet"/></noscript>
+<script>
+tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#18212f',accent:'#3d9bff',gold:'#f5c842',orange:'#f97316',text:'#e8edf2',muted:'#6b7d93'},fontFamily:{sans:['Inter','Noto Sans JP','sans-serif']}}}};
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:#0a0c0f;color:#e8edf2;font-family:'Inter','Noto Sans JP',sans-serif;line-height:1.8;-webkit-font-smoothing:antialiased}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");background-size:128px;opacity:.3}
+nav{position:fixed;top:0;left:0;right:0;z-index:200;transition:background .4s ease}
+nav.scrolled{background:rgba(10,12,15,.92);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.06)}
+.nav-link{color:rgba(255,255,255,.6);font-size:.85rem;font-weight:500;letter-spacing:.04em;transition:color .2s;text-decoration:none}
+.nav-link:hover{color:#fff}
+.logo-img{height:40px;width:auto;filter:brightness(1.15) drop-shadow(0 0 8px rgba(249,115,22,.5));transition:filter .3s}
+.btn-orange{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:10px;font-weight:700;font-size:.9rem;background:linear-gradient(135deg,#f97316,#f5c842);color:#000;border:none;cursor:pointer;transition:opacity .2s,transform .2s cubic-bezier(.16,1,.3,1);text-decoration:none}
+.btn-orange:hover{opacity:.9;transform:translateY(-1px)}
+.btn-ghost{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:10px;font-weight:600;font-size:.85rem;color:#e8edf2;border:1px solid rgba(255,255,255,.15);background:transparent;cursor:pointer;transition:border-color .2s,background .2s;text-decoration:none}
+.btn-ghost:hover{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.05)}
+.card{background:rgba(17,22,32,.7);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:32px}
+.check-row{display:flex;gap:14px;align-items:flex-start;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.check-row:last-child{border-bottom:none}
+.check-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;margin-top:2px}
+.check-ok{background:rgba(52,211,153,.15);color:#34d399;border:1px solid rgba(52,211,153,.25)}
+.check-no{background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.2)}
+.section-title{font-size:.72rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#6b7d93;margin-bottom:20px}
+.flow-step{display:flex;gap:16px;align-items:flex-start;position:relative;padding-bottom:28px}
+.flow-step:last-child{padding-bottom:0}
+.flow-step::before{content:'';position:absolute;left:19px;top:40px;bottom:0;width:1px;background:linear-gradient(to bottom,rgba(255,255,255,.15),transparent)}
+.flow-step:last-child::before{display:none}
+.flow-num{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.9rem;flex-shrink:0;background:rgba(245,200,66,.1);color:#f5c842;border:1px solid rgba(245,200,66,.25)}
+.code-block{background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:16px 20px;font-family:monospace;font-size:.82rem;color:#a8c7fa;margin:12px 0;overflow-x:auto;white-space:pre}
+.theme-toggle{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.07);color:#e8edf2;border:1px solid rgba(255,255,255,.12);cursor:pointer;transition:background .2s,color .2s;flex-shrink:0}
+footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
+/* Light mode */
+[data-theme="light"] body{background:#f3f5f8!important;color:#0f172a!important}
+[data-theme="light"] nav{background:rgba(243,245,248,.95)!important;border-bottom:1px solid rgba(0,0,0,.07)!important}
+[data-theme="light"] nav.scrolled{background:rgba(243,245,248,.98)!important}
+[data-theme="light"] .nav-link{color:rgba(15,23,42,.55)!important}
+[data-theme="light"] .nav-link:hover{color:#0f172a!important}
+[data-theme="light"] .card{background:rgba(255,255,255,.85)!important;border-color:rgba(0,0,0,.08)!important}
+[data-theme="light"] .check-row{border-bottom-color:rgba(0,0,0,.07)}
+[data-theme="light"] .code-block{background:rgba(0,0,0,.05);color:#1e40af;border-color:rgba(0,0,0,.1)}
+[data-theme="light"] .flow-step::before{background:linear-gradient(to bottom,rgba(0,0,0,.12),transparent)}
+[data-theme="light"] .theme-toggle{background:rgba(0,0,0,.06);color:#0f172a;border-color:rgba(0,0,0,.13)}
+</style>
+<script src="../pv-session.js"></script>
+</head>
+<body class="relative">
+
+<!-- NAV -->
+<nav id="main-nav">
+  <div class="max-w-4xl mx-auto px-6 flex items-center justify-between h-[68px]">
+    <a href="index.html" class="flex items-center gap-3 flex-shrink-0">
+      <img src="../assets/logo.png" alt="PILOT VALUE" class="logo-img"/>
+    </a>
+    <div class="flex items-center gap-3">
+      <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark/light mode"></button>
+      <a href="submit-review.html" class="btn-orange py-2 px-5 text-sm">Submit a review anonymously →</a>
+    </div>
+  </div>
+</nav>
+
+<main class="relative pt-[68px]">
+  <div class="max-w-3xl mx-auto px-4 py-16">
+
+    <!-- Hero -->
+    <div class="text-center mb-14">
+      <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold mb-6" style="background:rgba(52,211,153,.08);color:#34d399;border:1px solid rgba(52,211,153,.2)">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1L1 3.5v4c0 2.7 2 4.8 5 5 3-.2 5-2.3 5-5v-4L6 1z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+        Anonymity guaranteed by design
+      </div>
+      <h1 class="text-4xl font-extrabold mb-5" style="letter-spacing:-.03em;line-height:1.2">Why you <span style="color:#34d399">cannot be identified</span></h1>
+      <p class="text-muted text-base max-w-xl mx-auto">This is not a promise that we "won't look" — the system is <strong class="text-text">built so that we technically cannot</strong>. This page discloses exactly how it works.</p>
+    </div>
+
+    <!-- What is/isn't stored -->
+    <div class="card mb-8">
+      <div class="section-title">What is stored in the database — and what is not</div>
+      <div>
+        <div class="check-row">
+          <div class="check-icon check-ok">✓</div>
+          <div>
+            <div class="font-semibold">Airline, position, aircraft type, years of service, age band</div>
+            <div class="text-muted text-sm">The substance of the review. Used for aggregation. Years of service are stored in 5-year steps and age in 5-year bands — ranges only.</div>
+          </div>
+        </div>
+        <div class="check-row">
+          <div class="check-icon check-ok">✓</div>
+          <div>
+            <div class="font-semibold">Review text (optional)</div>
+            <div class="text-muted text-sm">Stored only if you write it. Our team reviews it. If it contains routes, specific operational details, or incidents that could identify an individual, we keep it unpublished.</div>
+          </div>
+        </div>
+        <div class="check-row">
+          <div class="check-icon check-ok">✓</div>
+          <div>
+            <div class="font-semibold">Proof hash (proof_hash)</div>
+            <div class="text-muted text-sm">An encrypted string used solely to prevent duplicate submissions. It cannot be reversed back to your ID (see below).</div>
+          </div>
+        </div>
+        <div class="check-row">
+          <div class="check-icon check-no">✕</div>
+          <div>
+            <div class="font-semibold" style="color:#ef4444">Name and email address</div>
+            <div class="text-muted text-sm">Never stored. These columns do not exist in the submissions table.</div>
+          </div>
+        </div>
+        <div class="check-row">
+          <div class="check-icon check-no">✕</div>
+          <div>
+            <div class="font-semibold" style="color:#ef4444">User ID</div>
+            <div class="text-muted text-sm">Review records in the database have no user_id column. Submissions are not linked to member accounts.</div>
+          </div>
+        </div>
+        <div class="check-row">
+          <div class="check-icon check-no">✕</div>
+          <div>
+            <div class="font-semibold" style="color:#ef4444">IP address and device information</div>
+            <div class="text-muted text-sm">We do not collect or store the IP address or browser information used when you submit.</div>
+          </div>
+        </div>
+        <div class="check-row">
+          <div class="check-icon check-no">✕</div>
+          <div>
+            <div class="font-semibold" style="color:#ef4444">Any pay figure, date of birth, routes</div>
+            <div class="text-muted text-sm">The form has no input fields for these in the first place. Selection menus only — 5-year age bands and 5-year tenure bands. A review never asks for pay; that is handled separately by the payslip feature.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- How proof hash works -->
+    <div class="card mb-8">
+      <div class="section-title">How the proof hash (proof_hash) works</div>
+      <p class="text-muted text-sm mb-6">A login is required for one reason only: to block spam submissions. Your user ID is not included in the submitted data. Instead, the following calculation runs <strong class="text-text">inside your own browser</strong>.</p>
+
+      <div class="flow-step">
+        <div class="flow-num">1</div>
+        <div>
+          <div class="font-semibold mb-1">Combine your user ID with the airline</div>
+          <div class="text-muted text-sm">We build a string that combines your ID (UUID) with the airline you are reviewing. This step is completed entirely inside your browser.</div>
+          <div class="code-block">userId + "::pv_anon::" + airline + "::2026"</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">2</div>
+        <div>
+          <div class="font-semibold mb-1">Hash it with SHA-256</div>
+          <div class="text-muted text-sm">The string above is converted with SHA-256 (industry-standard cryptography). Reversing it back to the original value is computationally impossible.</div>
+          <div class="code-block">crypto.subtle.digest('SHA-256', data)
+→ "a3f8c2d1e4b7..." (a 64-character string)</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">3</div>
+        <div>
+          <div class="font-semibold mb-1">Only the hash is stored in the database</div>
+          <div class="text-muted text-sm">The only thing sent to the server is this hash string. Your user ID and email address are never transmitted. Even when our team inspects the database, we cannot tell who submitted a review.</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">4</div>
+        <div>
+          <div class="font-semibold mb-1">Used for duplicate checks only</div>
+          <div class="text-muted text-sm">It is used solely to stop the same person from submitting twice for the same airline. It has no other purpose.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DB schema -->
+    <div class="card mb-8">
+      <div class="section-title">The actual database structure (reviews_v2 table)</div>
+      <p class="text-muted text-sm mb-4">Only the following is stored. There is no "user_id", "email" or "name" column.</p>
+      <div class="code-block">CREATE TABLE reviews_v2 (
+  id            uuid    PRIMARY KEY,   -- Unique submission ID
+  proof_hash    text    NOT NULL,      -- SHA-256 hash (cannot identify anyone)
+  airline       text    NOT NULL,      -- Airline code
+  position      text    NOT NULL,      -- Captain / First Officer / Trainee
+  fleet         text,                  -- Aircraft type (optional, e.g. "b787")
+  job_role      text,                  -- Role (optional, e.g. "line")
+  tenure_bucket text    NOT NULL,      -- e.g. "5-10" (years of service, 5-year steps)
+  age_bucket    text    NOT NULL,      -- e.g. "30-34" (age, 5-year bands)
+  *_score       int,                   -- Five-point rating, seven categories
+  *_comment     text,                  -- Review text, seven categories (optional)
+  created_at    timestamptz            -- Submission timestamp
+);
+-- * No user_id, email or name column exists
+-- * A review never stores a pay figure (pay is handled by the payslip feature)</div>
+    </div>
+
+    <!-- Aggregation rule -->
+    <div class="card mb-8">
+      <div class="section-title">Display rule — only aggregates with n≥3 are published</div>
+      <div style="display:flex;gap:20px;flex-wrap:wrap">
+        <div style="flex:1;min-width:220px;background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.18);border-radius:12px;padding:20px;text-align:center">
+          <div style="font-size:2rem;font-weight:800;color:#34d399;margin-bottom:8px">3 or more</div>
+          <div class="text-sm text-muted">Aggregates are published only when there are 3 or more entries for the same combination (airline × position)</div>
+        </div>
+        <div style="flex:1;min-width:220px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.18);border-radius:12px;padding:20px;text-align:center">
+          <div style="font-size:2rem;font-weight:800;color:#ef4444;margin-bottom:8px">2 or fewer</div>
+          <div class="text-sm text-muted">Shown as "Collecting data". If there is any risk of pointing to a specific individual, it stays unpublished</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Why login is needed -->
+    <div class="card mb-8">
+      <div class="section-title">Why a login is required</div>
+      <p class="text-sm text-muted mb-4">Without a login requirement, spam and false data would be submitted in bulk. We use account authentication to protect the reliability of the data. That said:</p>
+      <ul class="space-y-3 text-sm">
+        <li class="flex gap-3 items-start">
+          <span style="color:#34d399;flex-shrink:0;margin-top:2px">✓</span>
+          <span>The JWT token used at login only authenticates communication with the Supabase server.</span>
+        </li>
+        <li class="flex gap-3 items-start">
+          <span style="color:#34d399;flex-shrink:0;margin-top:2px">✓</span>
+          <span>Your user ID is never written to the submissions table.</span>
+        </li>
+        <li class="flex gap-3 items-start">
+          <span style="color:#34d399;flex-shrink:0;margin-top:2px">✓</span>
+          <span>The email address you provide at sign-up exists only in the member management table and is completely separated from the reviews table.</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- CTA -->
+    <div class="text-center py-6">
+      <p class="text-muted text-sm mb-6">Now that you know how it works, submit with confidence.</p>
+      <a href="submit-review.html" class="btn-orange text-base px-8 py-4">
+        Submit a review anonymously →
+      </a>
+    </div>
+
+  </div>
+</main>
+
+<!-- FOOTER -->
+<footer class="py-10">
+  <div class="max-w-4xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+    <a href="index.html"><img src="../assets/logo.png" alt="PILOT VALUE" class="h-7 opacity-70"/></a>
+    <div class="flex gap-6 text-sm text-muted">
+      <a href="community.html" class="hover:text-text transition-colors">All reviews</a>
+      <a href="submit-review.html" class="hover:text-text transition-colors">Submit a review</a>
+      <a href="privacy.html" class="hover:text-text transition-colors">Privacy Policy</a>
+    </div>
+    <div class="text-xs text-muted">© 2026 PILOT VALUE</div>
+  </div>
+</footer>
+
+<script>
+window.addEventListener('scroll', () => {
+  document.getElementById('main-nav').classList.toggle('scrolled', window.scrollY > 40);
+}, { passive: true });
+const SUN = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
+const MOON = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('pv-theme', t);
+  const btn = document.getElementById('theme-toggle');
+  if (btn) btn.innerHTML = t === 'dark' ? SUN : MOON;
+}
+(function(){ applyTheme(localStorage.getItem('pv-theme') || 'light'); })();
+document.getElementById('theme-toggle').addEventListener('click', function() {
+  applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+});
+</script>
+<script src="../lang-toggle.js"></script>
+<script src="../search.js"></script>
+<script src="../currency.js"></script>
+</body>
+</html>

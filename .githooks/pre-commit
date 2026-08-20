@@ -1,0 +1,43 @@
+#!/bin/sh
+# ═══════════════════════════════════════════════════════════════════
+#  pre-commit — 氏名・ローカルパス・位置情報が「履歴に入る前に」止める
+#
+#  なぜ commit の時点で止めるのか。
+#  このリポジトリは PUBLIC で、GitHub Pages が main のルートを丸ごと配信する。
+#  一度 push してしまうと、履歴を書き換えても GitHub 側の unreachable object や
+#  外部のミラー・イベントアーカイブに残る可能性があり、こちらからは消せない。
+#  「入ってから消す」は成立しない。入る前に止めるのが唯一の確実な手段。
+#
+#  ★ 有効化はローカルで1回だけ（clone や Mac の入れ替えのたびに必要）:
+#      git config core.hooksPath .githooks
+#    絶対パスで設定しないこと（.git/config は公開されないが、書く癖を作らない）。
+#
+#  ★ assert-no-pii.mjs は git ls-files ＝インデックスを読むので、
+#    git add した新規ファイルもそのまま検査される。
+#    ただし読むのは作業ツリーの中身なので、add 後に書き換えた分は次回に回る。
+#
+#  ★ どうしても通す必要があるときだけ git commit --no-verify。
+#    使ったら、その回に何を入れたかを必ず自分で確認する。
+# ═══════════════════════════════════════════════════════════════════
+set -e
+
+if ! command -v node >/dev/null 2>&1; then
+  echo "pre-commit: node が見つからないので PII 検査を実行できなかった。" >&2
+  echo "            検査せずに commit するのは危険なので中止する。" >&2
+  exit 1
+fi
+
+if ! node assert-no-pii.mjs; then
+  echo ""
+  echo "─────────────────────────────────────────────────────────────"
+  echo " commit を中止した。上の ✗ を直してから commit し直す。"
+  echo ""
+  echo "  よくある原因と直し方:"
+  echo "   ・/Users/… を書いた       → fileURLToPath(new URL('.', import.meta.url))"
+  echo "   ・個人メールを書いた      → info@pilot-value.com / noreply@pilot-value.com"
+  echo "   ・サンプルに実在の氏名    → 架空名にする"
+  echo "   ・写真に GPS が入っている → プレビュー.app で書き出し直す"
+  echo "   ・.pii-denylist が無い    → iCloud の Claude-Backup から戻す"
+  echo "─────────────────────────────────────────────────────────────"
+  exit 1
+fi

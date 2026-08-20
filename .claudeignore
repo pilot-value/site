@@ -1,0 +1,16 @@
+node_modules/
+baland_ass/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.ico
+*.svg
+*.pdf
+*.woff
+*.woff2
+*.ttf
+*.eot
+*.zip
+*.tar
+*.gz

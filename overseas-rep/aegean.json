@@ -1,0 +1,74 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "「機長中心」の組織色が強く、歴史的にパイロットへの敬意を欠き威圧的との不満が多い。GlassdoorもIndeedも総合3.1/5で管理職評価が低く、身だしなみなど些末な点を重視し本質的な労働環境が軽視されがち。労働組合の交渉力も弱めとされる。",
+      "en": "A captain-centric culture that many pilots find lacking in respect and intimidating. Glassdoor and Indeed both sit at 3.1/5, dragged down by weak management scores."
+    },
+    "salary": {
+      "ja": "基本給は西欧大手より明確に低く欧州平均以下。FO1年目は月約€1,950（約34万円）、機長1年目でも月約€3,800（約65万円）。年14回払いで夏は飛行手当が5割増だが、ギリシャの高い税・社会保険料で手取りが大きく目減りし、FOと機長の格差も大きい。",
+      "en": "Base pay is clearly below Western European majors — first-year FOs make about $2,100/month and first-year captains about $4,100, paid over 14 salaries. High Greek taxes cut take-home sharply."
+    },
+    "benefits": {
+      "ja": "正社員契約で民間医療保険・年金・ライセンス喪失保険・スターアライアンス全社の職員トラベルが付く。年間パーディエムは約€3,500（約60万円）で、勤続10年超の機長は利益配分も。ただし外国籍契約は保険等が見劣りし、FOにはコミューティング契約がないとの指摘がある。",
+      "en": "Permanent contracts with private medical, pension, loss-of-license cover and Star Alliance staff travel, plus a roughly $3,800 annual per diem. Expat packages are weaker and FOs get no commuting deal."
+    },
+    "wlb": {
+      "ja": "季節差が極端で、夏は月ブロック70〜90時間・5オン2オフ（しばしば6オン1オフ）、最低休息に早朝発が重なり疲労が問題。冬は月40〜60時間と一転して楽になる。月間休日は8〜11日。ロスターは翌月開始の2〜3日前発表で、私生活の計画が立てにくい。",
+      "en": "Seasons swing hard: 70-90 block hours a month in summer on 5-on-2-off (often 6-on-1-off), dropping to 40-60 in winter. Rosters land just 2-3 days before the month starts."
+    },
+    "ops": {
+      "ja": "全機エアバス狭胴（A320neoファミリー）で機材は新しく、2031年までにneo約60機を発注。2025年末からA321neo XLRを導入し、初の長距離としてニューデリー週5便・ムンバイ週3便を就航。スターアライアンス加盟で2024年は記録的黒字（売上約€17.8億）。",
+      "en": "An all-Airbus A320neo fleet with ~60 neos on order by 2031, plus new A321neo XLRs launching its first long-haul (New Delhi, Mumbai) in 2026. Star Alliance member with record 2024 profits."
+    },
+    "training": {
+      "ja": "手動飛行を重視した質の高い訓練と高い技量基準は評価される一方、シミュレーター審査は厳しく独特でストレスが強い。機長昇格は遅く、応募資格到達まで6〜7年、初回審査の合格率は約30%。全額会社負担のカデット制度（1人€90,000超相当）はギリシャ・キプロス国籍限定。",
+      "en": "Well-regarded manual-flying training but famously tough, stressful sim checks. Command is slow — 6-7 years to eligibility and a ~30% first-time pass rate. The fully funded cadet scheme (worth €90,000+ each) is Greek/Cypriot-only."
+    }
+  },
+  "sources": [
+    {
+      "title": "Aegean Airlines Fly for Food — PPRuNe Forums",
+      "url": "https://www.pprune.org/terms-endearment/636430-aegean-airlines-fly-food.html"
+    },
+    {
+      "title": "Aegean Airlines | Pilot Careers, Pay, Fleet & Roster — Ready For Take Off",
+      "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/aegean-airlines"
+    },
+    {
+      "title": "Aegean Airlines Pilot Reviews — PilotsGlobal",
+      "url": "https://pilotsglobal.com/airlines/aegean-airlines/pilot-reviews"
+    },
+    {
+      "title": "Aegean Airlines is hiring A320 family First Officers — PilotsGlobal",
+      "url": "https://pilotsglobal.com/job/A320-family-first-officer-aegean_airlines-GR-eb357c5d20"
+    },
+    {
+      "title": "Aegean Air Reviews — Glassdoor",
+      "url": "https://www.glassdoor.com/Reviews/Aegean-Air-Reviews-E33371.htm"
+    },
+    {
+      "title": "Ποιός είναι ο μισθός ενός πιλότου της Aegean; — E-Daily.gr",
+      "url": "https://www.e-daily.gr/themata/78184/poios-einai-o-misthos-enos-pilotou-tis-aegean"
+    },
+    {
+      "title": "Aegean Airlines Employee Reviews — Indeed (Greece)",
+      "url": "https://gr.indeed.com/cmp/Aegean-Airlines/reviews?fcountry=ALL"
+    },
+    {
+      "title": "Aegean Pilot CV Guide 2026 — Airmappr",
+      "url": "https://airmappr.com/articles/career/aegean-pilot-cv-guide"
+    },
+    {
+      "title": "AEGEAN launches a new cycle of its Scholarship Programme — About Aegean",
+      "url": "https://en.about.aegeanair.com/media-center/press-releases/2025/new-cycle-of-scholarships-pilot-programme/"
+    },
+    {
+      "title": "AEGEAN adds two new A321neo XLR aircraft, expedites 2026 India routes — Cyprus Mail",
+      "url": "https://cyprus-mail.com/2025/07/17/aegean-adds-two-new-longer-range-aircraft-to-fleet-expedites-launch-of-2026-india-routes"
+    },
+    {
+      "title": "AEGEAN Careers (official recruitment page)",
+      "url": "https://jobs.aegeanair.com/"
+    }
+  ]
+}

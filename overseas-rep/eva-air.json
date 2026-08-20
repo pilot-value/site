@@ -1,0 +1,78 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "極めて階層的で伝統的な台湾企業文化。外国人パイロットへの構造的な差別を訴える証言が複数あり、Glassdoorの企業文化評価は2.8。任意の安全報告でも報復があるとされ、問題を表沙汰にしない「隠す文化」への不信も根強い。欧米出身者には馴染みにくいという声が目立つ。",
+      "en": "A deeply hierarchical, traditional Taiwanese corporate culture; foreign pilots report structural discrimination and a 'hush culture' around safety reporting. Glassdoor rates culture around 2.8, and Western pilots often say it is hard to fit in."
+    },
+    "salary": {
+      "ja": "外籍FOの月額はおおむねNT$24万(約118万円)で税前US$7,400前後、年パッケージは約NT$288万(約1,410万円)。訓練中はNT$16.6万に下がる。正機師は2024年の昇給でNT$500万超(約2,450万円)、ベテランは700万超に達する一方、FO給与は2016年から実質据え置きとの不満が根強い。",
+      "en": "Foreign first officers earn about NT$240,000/month (~US$7,400), an annual package near US$90,000, dropping during training; captains cleared NT$5M (~US$155,000) after 2024 raises and veterans exceed NT$7M, but FO pay has been flat since 2016."
+    },
+    "benefits": {
+      "ja": "社宅か住宅手当の選択制で、損失免許保険・傷害保険付き。勤続3か月以降は年1回、自国往復の無料航空券(コミュート便のビジネス枠との現役証言も)。未消化有給は全額買取、年30日の有給病假、賞与は13か月目として過去12か月の平均給与相当。外站津貼は欧米線US$4/時で、手当・福利面は手厚いとの評価が多い。",
+      "en": "A choice of company housing or a housing allowance, loss-of-licence and accident cover, an annual free home flight after three months, full payout of unused leave, 30 paid sick days, and a 13th-month bonus. Benefits are widely seen as generous."
+    },
+    "wlb": {
+      "ja": "ベースは台湾・桃園。非コミュート契約は月8日休、コミュート契約は連続化して年116〜117日。保障飛行は月75時間。ただし直前のスケジュール変更が頻発(5〜10回の報告)し、休日出勤への圧力や疲労管理の甘さへの不満が目立つ。通勤より現地移住を勧める先輩の声もある。",
+      "en": "Based in Taoyuan, with 8 days off a month (or 116–117 consolidated days on a commuting contract) against a 75-hour monthly guarantee. Pilots complain of frequent last-minute roster changes and pressure to work rest days."
+    },
+    "ops": {
+      "ja": "機材はB777/B787のワイドボディで比較的新しく、安全性・国際的評価の高さを挙げる声が多い。外籍は約320名で全機師の約2割。ただし欧州線は台湾籍に、外籍は米国西海岸線中心という路線配分の偏りへの不満がある。契約は4年更新制、勤務ベースは桃園。",
+      "en": "A modern B777/B787 widebody fleet at a safe, internationally well-regarded carrier; foreign pilots (~320, about 20% of crews) fly mostly US West Coast routes while Europe skews to local pilots. Contracts run four years, renewable, based in Taoyuan."
+    },
+    "training": {
+      "ja": "訓練は「鍛える」より「心を折る」方向で懲罰的だとの証言が多く、787課程は不合格率が高い。PilotsGlobalの訓練評価は1/5。4年契約には約US$6万(約950万円)の訓練ボンドが付く。外籍は必ずFOから始め、制度上は最短約4年で機長だが実際は8年以上、昇格は年功ベースという声が多い。",
+      "en": "Reviews call training punitive rather than developmental, with a high 787 failure rate (PilotsGlobal rates training 1/5) and a ~US$60,000 bond on the four-year contract. Foreign pilots must start as FO; captaincy is nominally ~4 years but often takes 8+, and promotion runs on seniority."
+    }
+  },
+  "sources": [
+    {
+      "title": "EVA AIR - B787/777 TR & NTR First Officer (APAS 求人詳細・契約条件)",
+      "url": "https://www.apasnet.com/Jobs/detail.aspx?u=76"
+    },
+    {
+      "title": "Pilot Contract in Taiwan - PPRuNe Forums",
+      "url": "https://www.pprune.org/south-asia-far-east/652924-pilot-contract-taiwan.html"
+    },
+    {
+      "title": "Eva Air - Airline Pilot Central Forums",
+      "url": "https://www.airlinepilotforums.com/foreign/123237-eva-air.html"
+    },
+    {
+      "title": "Eva Air Pilot Reviews - PilotsGlobal",
+      "url": "https://pilotsglobal.com/airlines/eva-air/pilot-reviews"
+    },
+    {
+      "title": "EVA Air Reviews / Pilot Reviews - Glassdoor",
+      "url": "https://www.glassdoor.com/Reviews/EVA-Air-Pilot-Reviews-EI_IE26175.0,7_KO8,13.htm"
+    },
+    {
+      "title": "機師薪水大公開－2025各航空公司薪資比較與津貼明細全解析 (flyfttw)",
+      "url": "https://flyfttw.com/%E8%88%AA%E7%A9%BA%E5%85%AC%E5%8F%B8%E6%A9%9F%E5%B8%AB%E8%96%AA%E6%B0%B4%E7%A7%98%E5%AF%86/"
+    },
+    {
+      "title": "【長榮不罷工內幕2】正機師年薪480萬起跳 長榮華航星宇搶第一 - 鏡週刊",
+      "url": "https://www.mirrormedia.mg/story/20240205inv013"
+    },
+    {
+      "title": "〈財經主筆室〉長榮航機師鬧罷工順利落幕 - Taiwan News",
+      "url": "https://www.taiwannews.com.tw/zh/news/5090710"
+    },
+    {
+      "title": "國籍航空大量招聘外籍機師擠壓本國籍就業權 - The News Lens 關鍵評論網",
+      "url": "https://www.thenewslens.com/article/187682"
+    },
+    {
+      "title": "18萬旅客解套1／長榮機師底薪落後變老三「不罷工換加薪」 - CTWANT",
+      "url": "https://www.ctwant.com/article/314950"
+    },
+    {
+      "title": "Eva Airways Faces Pilot Strike Over Salaries and Working Conditions - 100Knots",
+      "url": "https://www.100knots.com/eva-airways-faces-pilot-strike-over-salaries-and-working-conditions/"
+    },
+    {
+      "title": "Taiwan - Individual - Taxes on personal income - PwC Tax Summaries",
+      "url": "https://taxsummaries.pwc.com/taiwan/individual/taxes-on-personal-income"
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+{
+  "type": "module",
+  "//": "Deno は本番でこれを見ない。Node（v24 の型注釈スキップ）から index.ts を import して、メール本文を実物のまま検分・撮影するためだけに置いている。ルートの package.json が type:commonjs なので、ここで上書きしないと export が読めない。"
+}

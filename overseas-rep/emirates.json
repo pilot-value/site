@@ -1,0 +1,70 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "「恐怖で管理される」「密告文化」「同僚同士の足の引っ張り合い」「国籍でHR対応が違う」といった辛辣な声が目立つ。訓練も失敗を恐れながら受ける雰囲気という指摘がある。ただしGlassdoorのパイロット層に限れば文化評価は高めで、実感は二極化している。",
+      "en": "Blunt complaints of a fear-driven, report-your-colleagues culture where HR treatment varies by nationality, and even training is done under fear of failing. Yet pilot-specific Glassdoor scores run higher — opinions are sharply split."
+    },
+    "salary": {
+      "ja": "全額非課税が最大の魅力。副操縦士は基本給＋住宅・飛行手当で年USD9.8万〜17.4万（約1,550万〜2,750万円）、標準長距離機長で約USD21万（約3,300万円）、上級機長は利益配分込みで最大USD32万超（約5,000万円超）。ただし飛行手当依存で月収の変動は大きい。",
+      "en": "Fully tax-free pay is the draw: FOs run about $98K–174K, standard long-haul captains near $210K, and senior captains past $320K with profit share. Flight-hour-based pay does make monthly income swing, though."
+    },
+    "benefits": {
+      "ja": "家具付きヴィラか月約69万円（AED16,075）の住宅手当を選択制（後から変更不可）。有給42日に家族分のビジネス/ファースト航空券、子女教育手当は最大3人で年約146万円まで、退職金にあたる会社拠出は基本給の12%（勤続10年超で15%）。家族向けパッケージは手厚い。",
+      "en": "Strong family package: a company villa or roughly $3,000/month housing allowance (locked once you choose), 42 leave days with business/first tickets, school fees for up to three kids, and a 12% employer provident-fund contribution (15% past ten years)."
+    },
+    "wlb": {
+      "ja": "すぐ最大乗務時間に達し、長距離と短距離を混ぜて時間を積み増される。月100時間超の乗務、休みが月9日程度で連休は最大2日という例も報じられる。フライト交換や希望休が通りにくく、疲労・マイクロスリープの証言もある。ドバイ在住必須でコミューティングは不可。",
+      "en": "Rosters are brutal — you hit max flight hours fast, long- and short-haul get mixed to pile on time, and some report 100+ hours a month with as few as nine days off. Dubai basing is mandatory; no commuting allowed."
+    },
+    "ops": {
+      "ja": "375機のワイドボディ受注残（2038年まで納入）とA350/B777-9の大量導入で、新しい機材と世界中への路線網が魅力。中東は世界で唯一パイロット需要が供給を上回る市場とされ、2025〜2026年で1,500名超を採用予定。総パイロット数は約4,800名で運航規模は拡大中。",
+      "en": "A 375-widebody orderbook through 2038 plus incoming A350s and 777-9s means modern metal and a global route network. The Middle East is the one market where pilot demand outstrips supply, and Emirates plans to hire 1,500+ in 2025–2026."
+    },
+    "training": {
+      "ja": "FOから機長への昇格は通常8〜12年でシニョリティ＋成績ベース、就役機種で最低2,000時間・最低30歳・EBT修了が要件。採用はDEC7,000時間以上、アクセラレイテッド・コマンド5,000時間以上、FO2,000時間以上。訓練ボンドはUSD4.2万（約660万円）／42か月。機材急拡大で昇格は加速方向。",
+      "en": "Command typically comes in 8–12 years on seniority plus merit (2,000+ hours on type, age 30, EBT). Entry needs 7,000 hours for DECs, 5,000 for accelerated command, 2,000 for FOs; the training bond is $42,000 over 42 months, and fleet growth is speeding promotions."
+    }
+  },
+  "sources": [
+    {
+      "title": "Emirates Pilot Salary in 2025 - Aviation A2Z",
+      "url": "https://aviationa2z.com/index.php/2025/11/28/emirates-pilot-salary-2025/"
+    },
+    {
+      "title": "Emirates Pilot Salary 2026: FO $146K, Captain $320K Tax-Free - Airmappr",
+      "url": "https://airmappr.com/articles/career/emirates-pilot-salary-guide"
+    },
+    {
+      "title": "Emirates Pilot Salary 2025 & Hiring Drive 2026 (1,500-Pilot Expansion) - TS2",
+      "url": "https://ts2.tech/en/emirates-pilot-salary-2025-hiring-drive-2026-pay-perks-and-jobs-in-the-airlines-1500%E2%80%91pilot-expansion/"
+    },
+    {
+      "title": "Emirates attracts pilots with better perks, higher salaries - AeroTime",
+      "url": "https://www.aerotime.aero/articles/emirates-entices-pilots-with-improved-benefits-higher-salaries-and-better-perks"
+    },
+    {
+      "title": "The Emirates Group Pilot Reviews - Glassdoor",
+      "url": "https://www.glassdoor.com/Reviews/The-Emirates-Group-Pilot-Reviews-EI_IE23433.0,18_KO19,24.htm"
+    },
+    {
+      "title": "Emirates Pilot Reviews - PilotsGlobal",
+      "url": "https://pilotsglobal.com/airlines/emirates/pilot-reviews"
+    },
+    {
+      "title": "Is fatigue a problem at Emirates? - PPRuNe Forums",
+      "url": "https://www.pprune.org/rumours-news/582543-fatigue-problem-emirates.html"
+    },
+    {
+      "title": "'Rosters are brutal': Ex-Emirates pilot on forced extra hours - RT",
+      "url": "https://www.rt.com/news/337270-emirates-pilot-brutal-roster/"
+    },
+    {
+      "title": "Middle East airlines in race to recruit as pilot shortage bites - AGBI",
+      "url": "https://www.agbi.com/analysis/aviation/2024/07/pilot-shortage-middle-east/"
+    },
+    {
+      "title": "Pilots - Emirates Group Careers (official)",
+      "url": "https://www.emiratesgroupcareers.com/pilots/"
+    }
+  ]
+}

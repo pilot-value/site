@@ -1,0 +1,82 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "2020年のCOS18で、職位により2〜6割の恒久減給を約1週間で受諾か退職か迫られた経緯への反発が今も残る。経営陣は自らの報酬を全額戻したのに乗員の減給は据え置き、との不公平感が繰り返し語られる。コロナ後の約3年で約1,000名が離職し、組合は在籍が2019年比で約48%減と主張。近年は賞与再開もあるが経営と乗員の溝は深い。",
+      "en": "Anger lingers over the 2020 COS18 permanent pay cuts of 20-60%, accepted under a roughly one-week ultimatum while management restored their own pay in full. Around 1,000 pilots left in three years, and morale and management-crew trust stay low despite recent bonuses."
+    },
+    "salary": {
+      "ja": "基本給の実額はSOで年約1,170万円（HKD58.5万〜60.8万）、FOで約1,800万〜2,600万円、長距離機なら最大約3,800万円。新任機長は約3,600万〜4,800万円、シニア機長は約5,000万〜7,600万円に届く。直接採用SOの現金月額は基本給＋生活手当で約126万円（US$8,000）。ただしCOS18の恒久減給が今も年収の基準を押し下げている。",
+      "en": "Basic pay runs about HK$585-608k (~US$75k) for a Second Officer, HK$0.9-1.3M for an FO (up to ~HK$1.9M on long-haul), and HK$2.5-3.8M for a senior captain. Direct-entry SOs get roughly US$8,000/month in cash, but COS18's permanent cuts still weigh on totals."
+    },
+    "benefits": {
+      "ja": "香港パイロット手当は月額でSO約20万円（HKD1万）から機長48万〜72万円（HKD2.4万〜3.6万）。子女教育手当は児童1人あたり年最大約200万円（最多3人）を補助し、最上級機なら手当総額が年約1,464万円に達する。医療・生命保険や搭乗割引、香港の低い所得税も魅力。一方、新規入社者の住宅補助は月約11.6万円のローン手当と薄い。",
+      "en": "Hong Kong pilot allowances range from about HK$10k/month (SO) to HK$24-36k (captain), plus up to HK$100k/child in school fees, peaking near HK$732k/year on top fleets. Medical and life cover, staff travel and low Hong Kong tax help, but new hires get only a thin ~HK$5,800/month housing loan allowance."
+    },
+    "wlb": {
+      "ja": "全パイロットのベースは香港のみで、母国・海外ベースは選べない。慢性的な人手不足で月80〜100時間飛ぶ例が増え、休日はコロナ前の月約12日から8日へ減少。給与が飛行時間連動のため疲労を押して飛ぶ「爆鐘」構造が問題視される。長距離機は生活の質が比較的良い一方、短距離の夜間往復は負担が重い。",
+      "en": "Every pilot is Hong Kong-based, with no home or overseas base option. Chronic shortages push some to 80-100 hours a month, and days off have fallen from about 12 to 8; long-haul fleets offer a better rhythm than the heavy short-haul night turns."
+    },
+    "ops": {
+      "ja": "運航機材はA321neo・A330・A350・B777で、広大な国際線ネットワークと新しい機材が魅力。2023年10月に飛行時給を実飛行時間とスケジュール時間の高い方で計算するよう改定され、速く飛ぶと減給になる逆インセンティブが解消された。短距離・地域路線は上限いっぱいの夜間往復が多く、機材による生活の差が大きい。",
+      "en": "The fleet spans the A321neo, A330, A350 and B777 across a wide global network. A 2023 pay-calc change now pays the higher of actual or scheduled block time, removing the old penalty for flying efficiently, though short-haul rotations remain demanding."
+    },
+    "training": {
+      "ja": "機長昇格の必要時間を25%削減し、従来4,000時間から3,000時間+500セクターの代替経路を新設（商用ジェット1,500時間は依然必要）。昇格訓練は約1年で、以前より早く左席に届く。SOはジェット経験不問で型式限定費用も会社負担だが、2018年以降の入社者は訓練費の約半分（約1,000万〜1,200万円）を自己負担し、入社後3年間の給与から控除される。",
+      "en": "Captain upgrade requirements were cut 25% (4,000 to 3,000 hours plus 500 sectors), with about a year of command training, so the left seat comes sooner. Second Officers need no jet time, but post-2018 hires self-fund roughly HK$500-600k of training, deducted from pay over three years."
+    }
+  },
+  "sources": [
+    {
+      "title": "Cathay Pacific Pilot Salary in 2026 - Aviation A2Z",
+      "url": "https://aviationa2z.com/index.php/2026/04/20/cathay-pacific-pilot-salary-2026/"
+    },
+    {
+      "title": "Insider Intel: The Definitive Guide to Pilot Earnings in Hong Kong's Cockpits - HKPAPA",
+      "url": "https://www.hkpapa.com/post/insider-intel-the-definitive-guide-to-pilot-earnings-in-hong-kong-s-cockpits"
+    },
+    {
+      "title": "Cathay Pacific Elevates Pilot Pay in 2026: Benefits, Layover Allowances - Travel And Tour World",
+      "url": "https://www.travelandtourworld.com/news/article/cathay-pacific-elevates-pilot-pay-in-2026-comprehensive-benefits-layover-allowances-and-hkd-3-8m-captains-why-this-matters-for-aviation-jobs/"
+    },
+    {
+      "title": "Cathay Pacific Airline Pilot Reviews | Glassdoor",
+      "url": "https://www.glassdoor.com/Reviews/Cathay-Pacific-Airline-Pilot-Reviews-EI_IE7531.0,14_KO15,28.htm"
+    },
+    {
+      "title": "Union highlights 'extremely low morale at Cathay Pacific' - Business Traveller",
+      "url": "https://www.businesstraveller.com/business-travel/2023/05/25/union-highlights-extremely-low-morale-at-cathay-pacific/"
+    },
+    {
+      "title": "Cathay Pacific pilots' union warns permanent pay cut hinders growth - Hong Kong Free Press",
+      "url": "https://hongkongfp.com/2024/03/14/hong-kongs-cathay-pacific-delays-capacity-target-to-2025-as-union-warns-permanent-pay-cut-hinders-growth/"
+    },
+    {
+      "title": "Cathay cuts flight time needed for promotion by 25% amid dearth of pilots - Gulf News",
+      "url": "https://gulfnews.com/business/aviation/cathay-cuts-flight-time-needed-for-promotion-by-25-amid-dearth-of-pilots-1.100394980"
+    },
+    {
+      "title": "Cathay pilots given ultimatum: Accept major cuts to pay, benefits or leave - World of Aviation",
+      "url": "https://worldofaviation.com/2020/10/cathay-pilots-given-ultimatum-accept-major-cuts-to-pay-benefits-or-leave/"
+    },
+    {
+      "title": "Cathay Pacific to slash housing packages for pilots - FlyerTalk Forums",
+      "url": "https://www.flyertalk.com/forum/cathay-pacific-cathay/1869638-cathay-pacific-slash-housing-packages-pilots-4.html"
+    },
+    {
+      "title": "Cathay Pacific Has Resumed Hiring Low-Hour Pilots (Second Officer) - Aerocadet",
+      "url": "https://aerocadet.com/blog/the-most-popular-employer-of-low-hour-aerocadet-graduates-cathay-pacific-has-now-opened-second-officer-application-pool/"
+    },
+    {
+      "title": "國泰10月起修改機師時薪計算法 料針對慢速滑行 - 香港01",
+      "url": "https://www.hk01.com/%E7%A4%BE%E6%9C%83%E6%96%B0%E8%81%9E/909486/"
+    },
+    {
+      "title": "【國泰危機】國泰航空上調機師津貼額 最多一年獲73.2萬元津貼 - 香港經濟日報",
+      "url": "https://inews.hket.com/article/3234466/"
+    },
+    {
+      "title": "國泰人手短缺未見曙光 機師「爆鐘頂硬上」 - Yahoo新聞香港",
+      "url": "https://hk.news.yahoo.com/%E5%9C%8B%E6%B3%B0%E4%BA%BA%E6%89%8B%E7%9F%AD%E7%BC%BA%E6%9C%AA%E8%A6%8B%E6%9B%99%E5%85%89-%E6%A9%9F%E5%B8%AB%E3%80%8C%E7%88%86%E9%90%98%E9%A0%82%E7%A1%AC%E4%B8%8A%E3%80%8D-102728249.html"
+    }
+  ]
+}

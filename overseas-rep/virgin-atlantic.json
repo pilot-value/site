@@ -1,0 +1,78 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "対外的には「最も愛される職場」表彰や進歩的な人事（タトゥー可・ジェンダーニュートラル制服）を打ち出す一方、現場の経営はトップダウンで、厳しい評では威圧的・パワハラ的。掲げるウェルビーイングと日々の実態の乖離が大きい。Glassdoorの企業文化評価は3.5/5、友人への推奨率は約53%。",
+      "en": "Publicly it markets a progressive, people-first culture and even won 'most-loved workplace' recognition, but pilots describe leadership as top-down and, at worst, toxic with a fear/bullying dynamic. Glassdoor rates culture 3.5/5, with about 53% recommending it."
+    },
+    "salary": {
+      "ja": "副操縦士は基本給が年約1,470万〜1,880万円（GBP7.3万〜9.3万）、手当込み総額で約1,920万〜2,630万円。機長は基本給約2,320万〜2,830万円、昇格直後で総額約3,540万円、上級機長は4,200万円超。年750時間契約で超過分は残業払い。英国では競争力ある水準とされる。",
+      "en": "A new First Officer starts near GBP73k base (about USD93k) and roughly GBP95-130k total; captains earn GBP115-140k base and up to GBP210-224k total (around USD270-287k). It's rated one of the more competitive UK packages, helped by long-haul allowances on a 750-hour contract."
+    },
+    "benefits": {
+      "ja": "年金は確定拠出型（従業員約6%＋会社マッチング）で、レガシー各社の確定給付ほど手厚くはない。私的医療保険とライセンス喪失補償に加え、6か月の試用後はヴァージンに加えDeltaやエールフランスKLMなどSkyTeam便のスタッフ・スタンバイ搭乗特典。選考通過者の型式限定は会社負担。",
+      "en": "The pension is defined-contribution (around 6% employee plus employer match), not the richer defined-benefit schemes of some legacy carriers. Extras include private medical, loss-of-licence cover, a company-funded type rating, and staff/standby travel on Virgin plus Delta and SkyTeam after a 6-month probation."
+    },
+    "wlb": {
+      "ja": "年間飛行は法定900時間に対し750時間上限で、生活の質の売り。月4〜5本の長距離、休日は最低約10日（平均14日前後）。ただ実際は疲弊するロスターと予定を組みにくさが響き、2023年は疲労を理由にパイロットの大半がストライキ賛成に回った。ベースはヒースロー中心でロンドンの生活費が難点。",
+      "en": "The 750-hour annual cap (against a 900-hour legal limit) is a genuine draw, with 4-5 long-haul trips a month and at least ~10 days off (averaging ~14). In practice fatiguing rosters and little schedule control undercut it, driving overwhelming strike-ballot support in 2023."
+    },
+    "ops": {
+      "ja": "全機ワイドボディの長距離専業で、ボーイング787-9を約17機、エアバスA350-1000を12〜13機、A330-900neoを8機など平均機齢7〜8年と若い。約10時間超の便は3名編成の増員クルー。ベースはヒースロー中心でマンチェスターは小規模。デルタが49%出資し大西洋線を共同運航。魅力的な長距離路線が人気。",
+      "en": "An all-widebody, long-haul-only fleet — about 17 Boeing 787-9s, 12-13 A350-1000s and 8 A330-900neos, averaging a young 7-8 years — flown mainly from Heathrow. Flights over ~10 hours use augmented three-pilot crews, and Delta owns 49% under a transatlantic joint venture."
+    },
+    "training": {
+      "ja": "機長昇格は社内のみで直接採用はなく、副操縦士→上級副操縦士→機長で約8〜10年、しかも保証はない。訓練教官には12〜20%の加給。採用はEASA/英CAAのATPL、第一種身体検査、ICAO英語レベル6が要件で、直接採用の上級FOは約2,500時間＋型式500時間。選考通過者の型式限定は会社負担。",
+      "en": "Command is internal-only (no direct-entry captains), taking roughly 8-10 years from FO to Senior FO to Captain and not guaranteed; training captains get a 12-20% uplift. Direct-entry senior FO roles want ~2,500 hours plus ~500 on type, and the company funds the type rating for selected pilots."
+    }
+  },
+  "sources": [
+    {
+      "title": "Virgin Atlantic | Pilot Pay, Rosters, Fleet & Benefits - Ready For Takeoff",
+      "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/virgin-atlantic"
+    },
+    {
+      "title": "Virgin Atlantic Pilot Salary in 2026 - Aviation A2Z",
+      "url": "https://aviationa2z.com/index.php/2026/06/11/virgin-atlantic-pilot-salary-2026/"
+    },
+    {
+      "title": "Virgin Atlantic Pilot Salary 2026: Earnings, Allowances, Requirements - NomadLawyer",
+      "url": "https://www.nomadlawyer.org/virgin-atlantic-pilot-salary-2026-earnings-allowances-requirements"
+    },
+    {
+      "title": "Virgin Atlantic Pilot Reviews | Glassdoor",
+      "url": "https://www.glassdoor.co.uk/Reviews/Virgin-Atlantic-Pilot-Reviews-EI_IE4307.0,15_KO16,21.htm"
+    },
+    {
+      "title": "Virgin Atlantic - A toxic and fatiguing environment | Glassdoor review",
+      "url": "https://www.glassdoor.co.uk/Reviews/Employee-Review-Virgin-Atlantic-E4307-RVW99629375.htm"
+    },
+    {
+      "title": "Virgin Atlantic pilots are tired and overworked, union warns as strike threat looms - CityAM",
+      "url": "https://www.cityam.com/virgin-atlantic-pilots-are-tired-and-overworked-union-warns-as-strike-threat-looms/"
+    },
+    {
+      "title": "Most Virgin Atlantic pilots have seen a tired colleague make mistakes - LBC",
+      "url": "https://www.lbc.co.uk/news/virgin-atlantic-pilots-fatigue-mistakes-strike/"
+    },
+    {
+      "title": "Virgin Atlantic Pilots Overwhelmingly Back Strike Vote Over Fatigue Inducing Rosters - Paddle Your Own Kanoo",
+      "url": "https://www.paddleyourownkanoo.com/2023/08/06/virgin-atlantic-pilots-overwhelmingly-back-strike-vote-over-fatigue-inducing-rosters/"
+    },
+    {
+      "title": "Virgin Atlantic Pilot Hiring Requirements - Epic Flight Academy",
+      "url": "https://epicflightacademy.com/hiring-requirements-virgin-atlantic/"
+    },
+    {
+      "title": "Virgin Atlantic FO payscale - PPRuNe Forums",
+      "url": "https://www.pprune.org/terms-endearment/597065-virgin-atlantic-fo-payscale.html"
+    },
+    {
+      "title": "Virgin Atlantic named UK's most-loved workplace - Virgin.com",
+      "url": "https://www.virgin.com/about-virgin/latest/virgin-atlantic-named-uks-most-loved-workplace"
+    },
+    {
+      "title": "Delta Air Lines & Virgin Atlantic Celebrate 10 Years Of Transatlantic Joint Venture - Simple Flying",
+      "url": "https://simpleflying.com/delta-air-lines-virgin-atlantic-10-years-joint-venture/"
+    }
+  ]
+}

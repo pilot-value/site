@@ -1,0 +1,90 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "経営陣への信頼は低い。2021年10月の旧アリタリア解体で約1,400人の乗員が一度整理され、労務費を約35%削減、給与ほぼ半減で再選考・再雇用された経緯が今も禍根として残る。2026年2月には24時間ストを2度実施。トップダウンで時代遅れの社風。",
+      "en": "Trust in management runs low. The 2021 Alitalia-to-ITA break forced ~1,400 pilots to reapply for far fewer seats at roughly halved pay with labour costs cut ~35%, and two 24-hour strikes hit in February 2026 amid a dated, top-down culture."
+    },
+    "salary": {
+      "ja": "初任の副操縦士は年約770〜1,030万円（€45,000〜60,000）、基本給は月約26〜29万円と低い。15年目の機長で年約1,900〜2,400万円、A330/A350のワイドボディ機長は2,580万円超。ただし飛行時間単価は€93で、ライアンエア€165等の欧州勢に大きく劣る。",
+      "en": "Entry first officers earn about $49,000-$65,000 a year on a modest base, while a 15-year captain grosses roughly $120,000-$152,000 (widebody over $163,000). Per-flight-hour pay (~EUR 93) still trails Ryanair (~EUR 165) and easyJet (~EUR 217)."
+    },
+    "benefits": {
+      "ja": "2026年7月の契約刷新で福利は改善した。年休30日、食事補助は日€10（約1,720円）、勤続ステップを7→10段階に増、年金拠出増、家族の医療保険も付帯。日当は定額制で国内€47・国際€56・北米/パリ/ロンドン€77（約1.3万円）。無期雇用でTFR（退職金）あり。",
+      "en": "The July 2026 deal lifted perks: 30 days' leave, EUR 10/day meal vouchers, seniority steps raised from 7 to 10, bigger pension contributions and family health cover, plus flat per diems of EUR 47/56/77 (about $85 for North America). Permanent contracts carry TFR severance."
+    },
+    "wlb": {
+      "ja": "ロスターの評価は低い。15年目の機長で月18乗務日・ブロック約70時間、担当路線やレイオーバー先が魅力に欠けるとの不満が強い。シフト・ローテーション問題は労使協議の継続テーマ。主要ベースはローマ・フィウミチーノ、ミラノ・リナーテが準ハブ。年休は30日に増えた。",
+      "en": "Rostering is a sore point: a senior captain flies ~18 duty days and ~70 block hours a month, and crews rate layovers and route mix poorly. Bases are Rome-Fiumicino with Milan-Linate as focus, and shift-rotation grievances remain an open union topic, though leave rose to 30 days."
+    },
+    "ops": {
+      "ja": "機材はエアバスで統一（A220、A319/320/321neo、A330、A350）、90超の路線網で主軸はローマ・フィウミチーノ。ルフトハンザが出資比率を41%→90%（約€3.25億）へ引き上げ、2027年第1四半期に完了見込み。2026年前半にスカイチーム→スターアライアンスへ移行し、マイレージもMiles & Moreへ。",
+      "en": "ITA runs an all-Airbus fleet (A220 through A350) to 90-plus destinations from its Rome-Fiumicino hub. Lufthansa is lifting its stake from 41% to 90% (~EUR 325M, closing Q1 2027), and the carrier switches from SkyTeam to Star Alliance in H1 2026."
+    },
+    "training": {
+      "ja": "2026年10月開講のMPLカデット制度は約21カ月、4年で約280人をA220/320で養成する。費用は約€135,000（約2,322万円）で半分超を銀行融資、返済は最大36カ月猶予、修了で無期雇用だが採用は保証されない。型式限定はCAEローマ。昇格目安は6〜10年目で機長だが、現役の評価では実際は遅い。",
+      "en": "A new MPL cadet scheme from October 2026 runs ~21 months and aims to train ~280 pilots over four years on the A220/A320. It costs about $147,000 (EUR 135,000, over half bank-financed) and ends in a permanent contract, though a job is not guaranteed; command usually comes at year 6-10, but crews call real upgrade prospects slow."
+    }
+  },
+  "sources": [
+    {
+      "title": "ITA Airways Pilot Salary in 2025 - Aviation A2Z",
+      "url": "https://aviationa2z.com/index.php/2025/11/04/ita-airways-pilot-salary-2025/"
+    },
+    {
+      "title": "ITA Airways Pilot Reviews - PilotsGlobal",
+      "url": "https://pilotsglobal.com/airlines/ita-airways/pilot-reviews"
+    },
+    {
+      "title": "ITA Airways: reboot, fire, rehire - European Cockpit Association",
+      "url": "https://www.eurocockpit.eu/news/ita-airways-reboot-fire-rehire"
+    },
+    {
+      "title": "ITA Airways unions in turmoil - eTurboNews",
+      "url": "https://eturbonews.com/ita-airways-unions-in-turmoil/"
+    },
+    {
+      "title": "Ecco l'effetto degli accordi tra Ita Airways e i sindacati sulle retribuzioni - Il Sole 24 ORE",
+      "url": "https://www.ilsole24ore.com/art/ecco-l-effetto-accordi-ita-airways-e-sindacati-retribuzioni-AEqRWxrC"
+    },
+    {
+      "title": "Il riallineamento contrattuale di ITA Airways - WEtravel NEWS",
+      "url": "https://www.wetravel.biz/2026/07/05/il-riallineamento-contrattuale-di-ita-airways/"
+    },
+    {
+      "title": "Ita Airways, rinnovo contratto e aumenti per i dipendenti - Sky TG24",
+      "url": "https://tg24.sky.it/economia/2026/07/07/ita-airways-rinnovo-contratto-aumenti"
+    },
+    {
+      "title": "ITA Airways Pilot Careers & Salary - Bolt Flight",
+      "url": "https://boltflight.com/ita-airways-pilot-careers-salary/"
+    },
+    {
+      "title": "ITA Airways Pilot Course: Requirements, Cost, How to Apply - MondoExpat",
+      "url": "https://www.mondoexpat.com/work/recruitment/ita-airways-pilot-course/"
+    },
+    {
+      "title": "Lufthansa Group Integrates ITA Airways - What Changes for Pilots - Airmappr",
+      "url": "https://airmappr.com/news/2026-03/lufthansa-ita-airways-integration-pilots-2026"
+    },
+    {
+      "title": "Ita Airways assume 280 piloti: come candidarsi, quanto costa - Leggo",
+      "url": "https://www.leggo.it/schede/18_luglio_2026_ita_airways_scuola_formazione_piloti_aerei_costo_requisiti_scadenze-9658901.html"
+    },
+    {
+      "title": "ITA Airways BoD approves Renewal of National Collective Labour Agreement - Avionews",
+      "url": "https://www.avionews.it/item/1270086-ita-airways-bod-approves-renewal-of-national-collective-labour-agreement-for-air-transport-and-related-company-agreements.html"
+    },
+    {
+      "title": "Trasporto Aereo: sciopero nazionale 24 ore personale Ita Airways - FIT-CISL",
+      "url": "https://www.fitcisl.org/comunicati-stampa/trasporto-aereo-sindacati-giovedi-26-febbraio-sciopero-nazionale-di-24-ore-del-personale-ita-airways-e-easyjet/"
+    },
+    {
+      "title": "Ita: al via il piano assunzioni 2023, oltre 1200 posti - PPRuNe Forums (archive)",
+      "url": "https://www.pprune.org/archive/index.php/t-650146.html"
+    },
+    {
+      "title": "ITA Airways Pilot Hiring Requirements - Epic Flight Academy",
+      "url": "https://epicflightacademy.com/hiring-requirements-for-ita-airways/"
+    }
+  ]
+}

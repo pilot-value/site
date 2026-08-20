@@ -1,0 +1,2951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png"/>
+<link rel="apple-touch-icon" href="../assets/favicon-180.png"/>
+<script>(function(){var t=localStorage.getItem('pv-theme')||'light';document.documentElement.setAttribute('data-theme',t);}());</script>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Report Your Pay — Autofill from a Payslip | PILOT VALUE</title>
+<!--PV-SEO-->
+<!--PV-SRC t="Report your pay | PILOT VALUE" d=""-->
+<meta name="description" content="Answer only what is printed on your payslip; we work out the annualised figure, your hourly rate and where you sit worldwide. We never take your name or staff number."/>
+<meta name="robots" content="noindex,follow"/>
+<link rel="canonical" href="https://pilot-value.com/en/pay-report.html"/>
+<link rel="alternate" hreflang="ja" href="https://pilot-value.com/pay-report.html"/>
+<link rel="alternate" hreflang="en" href="https://pilot-value.com/en/pay-report.html"/>
+<link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/pay-report.html"/>
+<meta property="og:title" content="Report Your Pay — Autofill from a Payslip | PILOT VALUE"/>
+<meta property="og:description" content="Answer only what is printed on your payslip; we work out the annualised figure, your hourly rate and where you sit worldwide. We never take your name or staff number."/>
+<meta property="og:url" content="https://pilot-value.com/en/pay-report.html"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="PILOT VALUE"/>
+<meta property="og:locale" content="en_US"/>
+<meta property="og:locale:alternate" content="ja_JP"/>
+<meta property="og:image" content="https://pilot-value.com/assets/og/default-en.jpg"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta property="og:image:alt" content="Report Your Pay — Autofill from a Payslip | PILOT VALUE"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="Report Your Pay — Autofill from a Payslip | PILOT VALUE"/>
+<meta name="twitter:description" content="Answer only what is printed on your payslip; we work out the annualised figure, your hourly rate and where you sit worldwide. We never take your name or staff number."/>
+<meta name="twitter:image" content="https://pilot-value.com/assets/og/default-en.jpg"/>
+<!--/PV-SEO-->
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'"/><noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet"/></noscript>
+<!-- Google tag (gtag.js) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-3XYF69VQ3X');
+</script>
+<script>
+tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#18212f',accent:'#3d9bff',gold:'#f5c842',orange:'#f97316',text:'#e8edf2',muted:'#6b7d93'},fontFamily:{sans:['Inter','Noto Sans JP','sans-serif']}}}};
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:#0a0c0f;color:#e8edf2;font-family:'Inter','Noto Sans JP',sans-serif;line-height:1.7;-webkit-font-smoothing:antialiased}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");background-size:128px;opacity:.3}
+nav{position:fixed;top:0;left:0;right:0;z-index:200;transition:background .4s ease}
+nav.scrolled{background:rgba(10,12,15,.92);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.06)}
+.nav-link{color:rgba(255,255,255,.6);font-size:.85rem;font-weight:500;letter-spacing:.04em;transition:color .2s;text-decoration:none}
+.nav-link:hover{color:#fff}
+.logo-img{height:40px;width:auto;filter:brightness(1.15) drop-shadow(0 0 8px rgba(249,115,22,.5));transition:filter .3s}
+.btn-orange{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:10px;font-weight:700;font-size:.9rem;background:linear-gradient(135deg,#f97316,#f5c842);color:#000;border:none;cursor:pointer;transition:opacity .2s,transform .2s cubic-bezier(.16,1,.3,1);text-decoration:none}
+.btn-orange:hover{opacity:.9;transform:translateY(-1px)}
+.btn-orange:focus-visible{outline:2px solid rgba(245,200,66,.7);outline-offset:3px}
+.btn-orange:active{transform:translateY(1px)}
+.btn-orange:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn-ghost{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:10px;font-weight:600;font-size:.9rem;color:#e8edf2;border:1px solid rgba(255,255,255,.15);background:transparent;cursor:pointer;transition:border-color .2s,background .2s;text-decoration:none}
+.btn-ghost:hover{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.05)}
+.btn-ghost:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.card{background:rgba(17,22,32,.7);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:28px}
+.form-label{display:block;font-size:.78rem;font-weight:700;color:#9ca3af;margin-bottom:8px;letter-spacing:.05em;text-transform:uppercase}
+/* 欄の小札は3つ。★色の役割を分ける（2026-08-13 その4）。
+   これまでは「任意」だけが在り、しかもブランド最強色の金だった＝いちばん目立つ色が
+   「入れなくていい欄」に付いていた。必須の欄には印すら無かった。
+     必須 = オレンジ（.sec-tag.req と同じ色）
+     自動 = 緑（.form-input.ai-filled と同じ色＝こちらが入れた値）
+     任意 = 中立グレー（.sec-tag.opt と同じ色）
+   ★.req-tag が付く欄は「ゲートが実際に見ている欄」と一致していること。
+     ズレると画面と送信の判定が食い違う。db/test-form-contract.mjs の静的検査⑧が見張る。 */
+.opt-tag,.req-tag,.auto-tag{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:999px;font-size:.62rem;font-weight:700;letter-spacing:.04em;text-transform:none}
+.opt-tag{color:#9ca3af;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14)}
+.req-tag{color:#fb923c;background:rgba(249,115,22,.13);border:1px solid rgba(249,115,22,.3)}
+.auto-tag{color:#34d399;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.28)}
+.form-input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:11px 14px;color:#e8edf2;font-size:.9rem;transition:border-color .2s,background .2s;outline:none;font-family:'Inter','Noto Sans JP',sans-serif}
+.form-input:focus{border-color:rgba(245,200,66,.4);background:rgba(255,255,255,.07)}
+.form-input:focus-visible{outline:2px solid rgba(245,200,66,.35);outline-offset:1px}
+.form-input::placeholder{color:#6b7d93}
+.form-input:disabled{opacity:.45;cursor:not-allowed}
+/* ★Read-only must not look disabled (no opacity drop). It holds a figure we
+   worked out, and that gross is the most important number on the page, so it
+   has to stay readable. A dashed border and a slightly recessed surface say
+   "not yours to type in". */
+.form-input[readonly]{cursor:default;border-style:dashed;background:rgba(255,255,255,.03)}
+.form-input[readonly]:focus{border-color:rgba(255,255,255,.1);background:rgba(255,255,255,.03)}
+select.form-input option,select.form-input optgroup{background:#111620}
+.theme-toggle{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.07);color:#e8edf2;border:1px solid rgba(255,255,255,.12);cursor:pointer;transition:background .2s,color .2s;flex-shrink:0}
+footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:#0a0c0f}
+::-webkit-scrollbar-thumb{background:#18212f;border-radius:3px}
+.warn-row{display:flex;align-items:flex-start;gap:8px;padding:10px 16px;border-radius:10px;background:rgba(245,200,66,.05);border:1px solid rgba(245,200,66,.18);color:#f5c842;font-size:.78rem;line-height:1.65}
+/* 投稿数の1行（見出しの下）。ブランド金の丸ピル。
+   ★数字は #pay-count の1箇所だけに置く。実数を返す口ができたら、ここだけ差し替える。 */
+.pay-count{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:999px;
+  background:radial-gradient(120% 160% at 0% 50%,rgba(245,200,66,.14),transparent 70%),rgba(245,200,66,.05);
+  border:1px solid rgba(245,200,66,.24);color:#f5c842;font-size:.82rem;font-weight:700;letter-spacing:-.01em}
+/* ── Sections (required / recommended / optional) ───────── */
+.sec{margin-bottom:20px}
+.sec-head{display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap}
+.sec-title{font-size:1.02rem;font-weight:800;letter-spacing:-.015em}
+.sec-tag{font-size:.62rem;font-weight:800;padding:3px 10px;border-radius:999px;letter-spacing:.05em;white-space:nowrap}
+.sec-tag.req{background:rgba(249,115,22,.14);color:#fb923c;border:1px solid rgba(249,115,22,.32)}
+.sec-tag.rec{background:rgba(61,155,255,.12);color:#5fb0ff;border:1px solid rgba(61,155,255,.3)}
+.sec-tag.opt{background:rgba(255,255,255,.06);color:#9ca3af;border:1px solid rgba(255,255,255,.14)}
+.sec-sub{font-size:.78rem;color:#6b7d93;margin-bottom:18px;line-height:1.65}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 16px}
+/* ラベルが1行の列と2行の列が混ざると input の上端がズレる（EN で実測18px）。
+   ラベルを短く書き直す対処は、言語を足すたびに再発する。subgrid で
+   「ラベル行・入力行・注記行」を列をまたいで揃え、行の高さは中身に決めさせる。
+   row-gap を 0 にするのは、残すと label→input の間にも同じ隙間が入るため
+   （縦の間隔は .form-label の margin-bottom と .fld-hint の margin-top が持つ）。 */
+.grid2>.fld,.grid3>.fld{display:grid;grid-template-rows:subgrid;grid-row:span 3;margin-bottom:0}
+.grid2:has(>.fld),.grid3:has(>.fld){margin-bottom:16px}
+/* 国名・役職は選択肢が長い（最長「セントビンセント及びグレナディーン諸島」274px）。
+   241カ国すべてが収まる幅は存在しないので、実際に選ばれる国が読み切れる配分を優先する。
+   税率は2〜3桁、乗務日数は2桁しか入らないため狭くてよい。 */
+.grid2.tax-row{grid-template-columns:1.6fr .9fr}
+.grid3.role-row{grid-template-columns:1.5fr .75fr .75fr}
+@media(max-width:600px){.grid2,.grid3,.grid2.tax-row,.grid3.role-row{grid-template-columns:1fr}}
+.fld{margin-bottom:16px}
+.fld:last-child{margin-bottom:0}
+/* 必須の欄には左にレールを引く。埋まったら中立色に落とす（.is-done は updateSteps() が付ける）。
+   ＝列を上から眺めるだけで「まだ残っている欄」が分かる。小札だけだと、
+   埋めた欄と埋めていない欄が同じ見た目のまま並ぶ。
+   ★border ではなく擬似要素で外に出す。border+padding にすると必須の欄だけ内側にずれ、
+     隣に任意の欄が並ぶ2列組み（フライトタイム／勤務時間 など）で行がガタつく。 */
+.fld.is-req{position:relative}
+.fld.is-req::before{content:'';position:absolute;left:-12px;top:3px;bottom:3px;width:2px;border-radius:2px;
+  background:rgba(249,115,22,.32);transition:background .28s cubic-bezier(.16,1,.3,1)}
+/* ★埋まったら「消す」のではなく「緑にする」（2026-08-17 オーナー指摘）。
+   もとは中立グレーに落としていた＝印が消えるので、埋めた欄と、そもそも必須でない欄が
+   同じ見た目になっていた。残り＝オレンジ／済み＝緑 の2値にして、どちらも目に見える形にする。 */
+.fld.is-req.is-done::before{background:rgba(52,211,153,.45)}
+/* 埋まった欄の右上に小さい ✓。欄が縦に並ぶと ✓ が1列に揃うので、
+   上から眺めるだけで「まだ残っている欄」が分かる。
+   ★::before は左のレールが使っているので ::after を使う。
+   ★pointer-events:none。ラベルの上に重なるので、押せてしまうと欄が選べなくなる。 */
+.fld.is-req::after{content:'✓';position:absolute;right:0;top:-2px;width:18px;height:18px;
+  border-radius:999px;display:flex;align-items:center;justify-content:center;
+  font-size:.62rem;font-weight:800;color:#34d399;background:rgba(52,211,153,.12);
+  border:1px solid rgba(52,211,153,.3);opacity:0;transform:scale(.55);pointer-events:none;
+  transition:opacity .18s,transform .28s cubic-bezier(.34,1.56,.64,1)}
+.fld.is-req.is-done::after{opacity:1;transform:none}
+/* 埋まった欄の「必須」はもう用済み。沈めて、残っている欄のオレンジだけが目に入るようにする
+   （札そのものは消さない。HTML の req-tag が必須の唯一の出どころなので）。 */
+.fld.is-req .req-tag{transition:opacity .2s}
+.fld.is-req.is-done .req-tag{opacity:.3}
+@media (prefers-reduced-motion:reduce){.fld.is-req::before,.fld.is-req::after,.fld.is-req .req-tag{transition:none}}
+/* 段の見出しの右端に出す進み具合のゲージ。押すと最初の未入力欄へ飛ぶ。
+   ＝送信ボタンが出ない理由が、常に見出しに書いてある状態にする。
+   ★器は中立の灰、伸びるバーだけ緑（2026-08-18 オーナー決定）。
+     「まだ残っている欄」は各欄の左レールのオレンジが受け持つので、
+     ここまでオレンジにすると画面がオレンジだらけになる。 */
+.sec-prog{margin-left:auto;display:inline-flex;align-items:center;gap:7px;padding:3px 10px;border-radius:999px;
+  font-size:.62rem;font-weight:800;letter-spacing:.05em;white-space:nowrap;cursor:pointer;
+  color:#9ca3af;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.13);
+  transition:background .2s,border-color .2s,color .2s,transform .12s cubic-bezier(.16,1,.3,1)}
+.sec-prog:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.22)}
+.sec-prog:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.sec-prog:active{transform:translateY(1px)}
+.sec-prog.done{color:#34d399;background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.3);cursor:default}
+.sec-prog.done:hover{background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.3)}
+.sec-prog.done:active{transform:none}
+/* 器と、その中を伸びる緑。中身は markProgress() が1回だけ組み立てる。 */
+.sec-prog-bar{width:46px;height:5px;border-radius:999px;flex:none;overflow:hidden;background:rgba(255,255,255,.12)}
+.sec-prog-bar>i{display:block;height:100%;width:0;border-radius:999px;
+  background:linear-gradient(90deg,#34d399,#48c78e);
+  transition:width .45s cubic-bezier(.16,1,.3,1)}
+.sec-prog.done .sec-prog-bar{background:rgba(52,211,153,.22)}
+/* 桁が 0%→100% と増えても、100% で頭に ✓ が付いても、小札の幅が動かないように
+   等幅数字＋最小幅で固定する（一番長い「✓ 100%」に合わせてある）。 */
+.sec-prog-num{font-variant-numeric:tabular-nums;min-width:42px;text-align:right}
+@media (prefers-reduced-motion:reduce){.sec-prog-bar>i{transition:none}}
+.fld-hint{font-size:.72rem;color:#6b7d93;margin-top:6px;line-height:1.6}
+.fld-hint b{color:#a8b3c2;font-weight:700}
+.cur-row{display:grid;grid-template-columns:210px 1fr;gap:10px}
+@media(max-width:420px){.cur-row{grid-template-columns:1fr}}
+/* ── Live annualised total ──────────────────────────────── */
+.sal-total{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:15px 18px;border-radius:14px;border:1px solid rgba(245,200,66,.25);background:radial-gradient(130% 170% at 100% 0%,rgba(245,200,66,.11),transparent 60%),rgba(245,200,66,.04)}
+.sal-total-lab{font-size:.75rem;font-weight:700;color:#9ca3af;letter-spacing:.04em}
+.sal-total-val{font-size:1.7rem;font-weight:800;letter-spacing:-.02em;color:#f5c842;font-variant-numeric:tabular-nums;line-height:1.1}
+.sal-total-val .u{font-size:.8rem;font-weight:600;color:#9ca3af;margin-left:5px;letter-spacing:0}
+.sal-hint{font-size:.73rem;color:#6b7d93;margin-top:8px;line-height:1.65}
+/* ── Result (returned after submit) ─────────────────────── */
+.res{border-radius:20px;border:1px solid rgba(52,211,153,.3);background:radial-gradient(130% 170% at 0% 0%,rgba(52,211,153,.12),transparent 60%),rgba(17,22,32,.7);padding:28px}
+/* The mark that closes the submission. Fires at the same moment as confetti.js.
+   ★Reduced motion only stops the animation — opacity stays 1, nothing disappears. */
+.res-pop{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-size:1.35rem;line-height:1;margin-bottom:14px;
+  background:radial-gradient(120% 120% at 30% 20%,rgba(245,200,66,.30),rgba(52,211,153,.10) 62%,transparent);
+  border:1px solid rgba(245,200,66,.34);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 6px 18px -8px rgba(245,200,66,.42),0 20px 42px -24px rgba(52,211,153,.55);
+  animation:resPop .62s cubic-bezier(.2,1.5,.32,1) both}
+@keyframes resPop{from{opacity:0;transform:scale(.4) rotate(-16deg)}to{opacity:1;transform:scale(1) rotate(0)}}
+@media (prefers-reduced-motion:reduce){.res-pop{animation:none}}
+.res-eyebrow{font-size:.72rem;font-weight:800;letter-spacing:.06em;color:#34d399;text-transform:uppercase;margin-bottom:10px}
+.res-big{font-size:2.1rem;font-weight:800;letter-spacing:-.03em;color:#34d399;font-variant-numeric:tabular-nums;line-height:1.15}
+.res-sub{font-size:.85rem;color:#9ca3af;margin-top:4px;font-variant-numeric:tabular-nums}
+.res-row{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.07)}
+.res-row:last-child{border-bottom:none}
+.res-k{color:#6b7d93;font-size:.82rem;flex:none}
+.res-v{font-weight:700;font-size:.95rem;font-variant-numeric:tabular-nums;text-align:right}
+.res-v.hi{color:#f5c842;font-size:1.15rem;font-weight:800}
+.bench{margin-top:18px;padding:18px 20px;border-radius:14px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.025)}
+.bench-bar{position:relative;height:10px;border-radius:999px;background:linear-gradient(90deg,rgba(95,176,255,.35),rgba(52,211,153,.35),rgba(245,200,66,.45));margin:16px 0 8px}
+.bench-you{position:absolute;top:-5px;width:4px;height:20px;border-radius:2px;background:#f5c842;box-shadow:0 0 0 3px rgba(245,200,66,.22);transition:left .5s cubic-bezier(.16,1,.3,1)}
+.bench-scale{display:flex;justify-content:space-between;font-size:.68rem;color:#6b7d93;font-variant-numeric:tabular-nums}
+.bench b{color:#e8edf2;font-weight:700}
+.res-note{font-size:.75rem;color:#6b7d93;margin-top:16px;line-height:1.7}
+/* ── Alerts ─────────────────────────────────────────────── */
+.form-alert{display:block;border:1px solid rgba(239,68,68,.45);border-left:3px solid #ef4444;background:rgba(239,68,68,.10);border-radius:12px;padding:14px 16px;color:#e8edf2;font-size:.9rem;line-height:1.7;animation:formAlertIn .22s ease-out}
+.form-alert .fa-title{display:block;font-weight:700;font-size:.95rem;color:#f87171;margin-bottom:4px;letter-spacing:.01em}
+@keyframes formAlertIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+@media (prefers-reduced-motion:reduce){.form-alert{animation:none}.bench-you{transition:none}}
+.restore-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 16px;border-radius:12px;background:rgba(61,155,255,.07);border:1px solid rgba(61,155,255,.22);color:#5fb0ff;font-size:.79rem;margin-bottom:18px}
+.restore-bar button{margin-left:auto;font-size:.74rem;font-weight:700;color:#9ca3af;background:transparent;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:4px 12px;cursor:pointer;transition:color .2s,border-color .2s}
+.restore-bar button:hover{color:#e8edf2;border-color:rgba(255,255,255,.32)}
+.restore-bar button:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+/* ── 段階表示 ── 一度出したら隠さないので、出るときだけ動かす。
+   高さは animate しない（レイアウトが跳ねる）。transform と opacity だけ。 */
+.step[hidden],.opt-fld[hidden]{display:none}
+.step-in{animation:stepIn .34s cubic-bezier(.16,1,.3,1) both}
+@keyframes stepIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.opt-fld{margin-bottom:16px}
+.opt-fld>.fld{margin-bottom:0}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;font-size:.78rem;font-weight:700;color:#a8b3c2;background:rgba(255,255,255,.04);border:1px dashed rgba(255,255,255,.18);cursor:pointer;transition:color .2s,border-color .2s,background .2s,transform .2s cubic-bezier(.16,1,.3,1)}
+.chip:hover{color:#f5c842;border-color:rgba(245,200,66,.45);background:rgba(245,200,66,.07)}
+.chip:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.chip:active{transform:translateY(1px)}
+.chip .p{font-size:.95rem;line-height:1;font-weight:800;color:#f5c842}
+@media (prefers-reduced-motion:reduce){.step-in{animation:none}}
+/* ── 手当ごとの内訳（畳んで残す）── 総支給の欄とは排他 ────────── */
+.pay-detail{margin-top:4px;border-top:1px solid rgba(255,255,255,.07);padding-top:14px}
+.pay-detail>summary{display:flex;align-items:center;gap:7px;width:fit-content;list-style:none;cursor:pointer;font-size:.79rem;font-weight:700;color:#a8b3c2;padding:6px 12px 6px 10px;border-radius:999px;border:1px dashed rgba(255,255,255,.18);background:rgba(255,255,255,.04);transition:color .2s,border-color .2s,background .2s,transform .2s cubic-bezier(.16,1,.3,1)}
+.pay-detail>summary::-webkit-details-marker{display:none}
+.pay-detail>summary:hover{color:#f5c842;border-color:rgba(245,200,66,.45);background:rgba(245,200,66,.07)}
+.pay-detail>summary:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.pay-detail>summary:active{transform:translateY(1px)}
+.pay-detail>summary .p{font-size:.95rem;line-height:1;font-weight:800;color:#f5c842;transition:transform .2s cubic-bezier(.16,1,.3,1)}
+.pay-detail[open]>summary{color:#e8edf2;border-style:solid;border-color:rgba(245,200,66,.32);margin-bottom:16px}
+.pay-detail[open]>summary .p{transform:rotate(45deg)}
+.pay-detail-b{animation:stepIn .3s cubic-bezier(.16,1,.3,1) both}
+@media (prefers-reduced-motion:reduce){.pay-detail-b{animation:none}.pay-detail>summary .p{transition:none}}
+/* ── 4. 契約と税：前月の値が入っているときは要約1行に畳む ────────── */
+.sum-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);font-size:.81rem;color:#c8d2de;line-height:1.7}
+.sum-row b{color:#e8edf2;font-weight:700}
+.sum-row button{margin-left:auto;flex:none;font-size:.74rem;font-weight:700;color:#a8b3c2;background:transparent;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:5px 12px;cursor:pointer;transition:color .2s,border-color .2s}
+.sum-row button:hover{color:#f5c842;border-color:rgba(245,200,66,.45)}
+.sum-row button:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.sum-row[hidden],#s4-body[hidden]{display:none}
+/* 入口の2択（明細から自動入力／手動で入力）*/
+.entry-q{font-size:.84rem;font-weight:700;color:#a8b3c2;letter-spacing:-.01em;margin:0 0 12px}
+.entry-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:6px}
+@media (max-width:640px){.entry-grid{grid-template-columns:1fr}}
+.entry-card{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:7px;width:100%;
+  text-align:left;padding:22px 18px 18px;border-radius:16px;cursor:pointer;color:#e8edf2;
+  border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.025);
+  box-shadow:0 20px 44px -32px rgba(0,0,0,.95),0 2px 6px -3px rgba(0,0,0,.55);
+  transition:border-color .22s,background .22s,box-shadow .22s,transform .3s cubic-bezier(.16,1,.3,1)}
+.entry-card.is-primary{border-color:rgba(245,200,66,.34);
+  background:radial-gradient(120% 150% at 0% 0%,rgba(245,200,66,.11),transparent 62%),rgba(245,200,66,.03);
+  box-shadow:0 24px 50px -32px rgba(245,200,66,.5),0 2px 6px -3px rgba(0,0,0,.55)}
+.entry-card:hover{transform:translateY(-2px);border-color:rgba(245,200,66,.6);
+  box-shadow:0 26px 54px -30px rgba(245,200,66,.55),0 3px 8px -3px rgba(0,0,0,.6)}
+.entry-card:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:3px}
+.entry-card:active{transform:translateY(0)}
+.entry-ico{font-size:1.45rem;line-height:1;color:#f5c842}
+.entry-t{font-size:1rem;font-weight:800;letter-spacing:-.02em}
+/* 選ぶ材料（2026-08-13 その4）。説明1行だと「明細を読ませると何が良いのか」が伝わらない。
+   ✓ は緑 ── この画面で緑は既に「安全側／こちらが入れた値」の色（.form-input.ai-filled）。 */
+.entry-benefits{display:flex;flex-direction:column;gap:5px;margin-top:1px;width:100%}
+.entry-b{display:flex;align-items:flex-start;gap:7px;font-size:.735rem;line-height:1.55;color:#a8b3c2;text-align:left}
+.entry-b[hidden]{display:none}
+.entry-b>i{flex:none;font-style:normal;font-weight:800;color:#34d399;line-height:1.55}
+.entry-b b{color:#e8edf2;font-weight:700}
+.entry-formats{margin-top:auto;padding-top:10px;font-size:.63rem;font-weight:700;letter-spacing:.09em;color:#6b7d93}
+.ps-benefits{margin-top:10px}
+/* 「暗号化＆セキュア」の横の盾（2026-08-14）。行の頭の ✓ と同じ緑にして、
+   同じ「安心の印」の仲間に見せる。文字の流れの中に置くので inline のまま。 */
+.entry-shield{flex:none;width:14px;height:14px;margin-top:2px;color:#34d399}
+.ai-legend{display:flex;align-items:center;gap:8px;margin:0 0 14px;padding:9px 14px;border-radius:10px;
+  font-size:.74rem;line-height:1.6;color:#a8b3c2;background:rgba(52,211,153,.05);border:1px solid rgba(52,211,153,.2)}
+.ai-legend>i{flex:none;font-style:normal;color:#34d399;font-size:.7rem}
+.ai-legend[hidden]{display:none}
+.entry-tag{position:absolute;top:14px;right:14px;font-size:.62rem;font-weight:800;letter-spacing:.05em;
+  padding:3px 10px;border-radius:999px;background:rgba(255,255,255,.05);color:#a8b3c2;border:1px solid rgba(255,255,255,.12)}
+.entry-card.is-primary .entry-tag{background:rgba(245,200,66,.12);color:#f5c842;border-color:rgba(245,200,66,.28)}
+.ps-step{font-size:.68rem;font-weight:800;letter-spacing:.08em;color:#f5c842;margin:0 0 8px}
+.ps-skip{display:inline-block;margin-top:10px;padding:4px 2px;font-size:.76rem;font-weight:700;
+  color:#a8b3c2;background:none;border:0;border-bottom:1px solid rgba(255,255,255,.18);cursor:pointer;
+  transition:color .2s,border-color .2s,transform .2s cubic-bezier(.16,1,.3,1)}
+.ps-skip:hover{color:#e8edf2;border-bottom-color:rgba(245,200,66,.6)}
+.ps-skip:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:3px}
+.ps-skip:active{transform:translateY(1px)}
+/* 手動で入力を選んだあと ── 明細の入口は1行の帯にして上に残す */
+.ps.is-slim .ps-step,.ps.is-slim .ps-benefits,.ps.is-slim .ps-skip,.ps.is-slim .ps-drop-txt small{display:none}
+.ps.is-slim .ps-drop{padding:11px 14px}
+.ps.is-slim .ps-drop-txt b{font-size:.82rem}
+/* ── 明細から自動入力 ── 端末の中で黒塗り → 本人が見る → 送る ── */
+.ps{margin-bottom:18px}
+.ps-drop{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:14px 16px;border-radius:12px;border:1px dashed rgba(245,200,66,.3);background:linear-gradient(180deg,rgba(245,200,66,.06),rgba(245,200,66,.02));color:#e8edf2;cursor:pointer;transition:border-color .2s,background .2s,transform .2s cubic-bezier(.16,1,.3,1)}
+.ps-drop:hover,.ps-drop.is-over{border-color:rgba(245,200,66,.6);background:linear-gradient(180deg,rgba(245,200,66,.12),rgba(245,200,66,.04))}
+.ps-drop:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.ps-drop:active{transform:translateY(1px)}
+/* Payslip mode only (step 1 of 2) — this is the whole screen, so make the target big.
+   Left as a thin band, it does not read as "drop your payslip here". */
+.ps:not(.is-slim) .ps-drop{flex-direction:column;align-items:center;text-align:center;gap:9px;
+  padding:34px 22px;border-radius:16px}
+.ps:not(.is-slim) .ps-ico{font-size:1.9rem}
+.ps:not(.is-slim) .ps-drop-txt{align-items:center;gap:4px}
+.ps:not(.is-slim) .ps-drop-txt b{font-size:.95rem}
+.ps-ico{font-size:1.15rem;line-height:1;flex:none}
+.ps-drop-txt{display:flex;flex-direction:column;gap:2px;min-width:0}
+.ps-drop-txt b{font-size:.86rem;font-weight:700;letter-spacing:-.01em}
+.ps-drop-txt small{font-size:.72rem;color:#a8b3c2;line-height:1.5}
+.ps-edit,.ps-res{margin-top:12px;padding:16px;border-radius:14px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.025);box-shadow:0 18px 40px -28px rgba(245,200,66,.35),0 2px 6px -2px rgba(0,0,0,.5);animation:stepIn .34s cubic-bezier(.16,1,.3,1) both}
+.ps-lead{font-size:.82rem;font-weight:700;color:#e8edf2;margin-bottom:10px}
+.ps-lead-sm{font-size:.78rem;font-weight:600;color:#f5c842;margin:10px 0 2px}
+/* ★確認画面だけ本文の段組み（max-w-2xl＝約640px）より外へ広げる。
+   ここは「本人が字を読んで確かめる」ただ一つの場所で、**読めない大きさは
+   確認していないのと同じ**。負のマージンで外へ出すので transform を使わない
+   （transform を掛けると中の position:fixed の基準がここに移ってしまう）。
+   上限 1440px は明細の実寸（長辺 MAX_EDGE=1568px）に届く手前まで。これ以上広げても
+   canvas は width:auto ＝実寸止まりで、拡大されずに余白が増えるだけ。 */
+.ps-edit{width:min(1440px,94vw);max-width:none;margin-left:calc((100% - min(1440px,94vw)) / 2)}
+.ps-stage{position:relative;display:block;width:fit-content;max-width:100%;margin:0 auto;line-height:0;border-radius:10px;overflow:hidden;background:#0b0f14;touch-action:none}
+/* ★頭打ちは「高さ」ではなく「幅」で決める。以前は max-height:62vh で、A4縦の紙は
+   高さで先に止まり、幅はカードの半分ほどしか使えなかった（＝字が読めない）。
+   縦に長い紙は画面をはみ出して縦スクロールになるが、**読めないより良い**。 */
+.ps-cv{display:block;max-width:100%;max-height:min(150vh,1500px);width:auto;height:auto}
+.ps-rect{position:absolute;z-index:2;background:#000;border:1px solid rgba(245,200,66,.75);cursor:move;touch-action:none}
+/* 送る枠。外側を暗く落とすのは box-shadow を画面いっぱいに広げるだけ（要素は1つ）。
+   本体は pointer-events:none ＝中の黒塗りをこれまで通りつまめる。 */
+.ps-frame{position:absolute;z-index:3;pointer-events:none;border:2px solid #f5c842;border-radius:3px;box-shadow:0 0 0 9999px rgba(2,6,12,.7)}
+.ps-frame-tag{position:absolute;left:0;top:0;pointer-events:auto;cursor:move;touch-action:none;background:#f5c842;color:#0b0f14;font-size:.66rem;font-weight:800;line-height:1;letter-spacing:.02em;padding:5px 8px;border-radius:0 0 7px 0;white-space:nowrap;user-select:none}
+.ps-frame-grip{position:absolute;width:18px;height:18px;pointer-events:auto;touch-action:none;background:#f5c842;border:1px solid rgba(0,0,0,.45);border-radius:3px}
+.ps-frame-grip.is-nw{left:-9px;top:-9px;cursor:nwse-resize}
+.ps-frame-grip.is-ne{right:-9px;top:-9px;cursor:nesw-resize}
+.ps-frame-grip.is-sw{left:-9px;bottom:-9px;cursor:nesw-resize}
+.ps-frame-grip.is-se{right:-9px;bottom:-9px;cursor:nwse-resize}
+.ps-rect:focus-visible{outline:2px solid #f5c842;outline-offset:2px}
+.ps-rect-del{position:absolute;top:6px;right:6px;width:22px;height:22px;line-height:1;border-radius:999px;border:1px solid rgba(0,0,0,.3);background:rgba(255,255,255,.92);color:#0f172a;font-size:.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s,border-color .2s,color .2s,transform .2s cubic-bezier(.16,1,.3,1)}
+.ps-rect-del:hover{background:#dc2626;border-color:#dc2626;color:#fff}
+.ps-rect-del:focus-visible{outline:2px solid #f5c842;outline-offset:2px}
+.ps-rect-del:active{transform:scale(.9)}
+.ps-rect-grip{position:absolute;right:3px;bottom:3px;width:16px;height:16px;border-radius:3px;background:#f5c842;border:1px solid rgba(0,0,0,.4);cursor:nwse-resize}
+.ps-hint,.ps-note{font-size:.72rem;color:#6b7d93;line-height:1.65;margin-top:8px}
+.ps-note b{color:#a8b3c2}
+.ps-bar{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.ps-btn{font-size:.78rem;font-weight:700;padding:8px 14px;border-radius:10px;cursor:pointer;transition:color .2s,border-color .2s,background .2s,transform .2s cubic-bezier(.16,1,.3,1)}
+.ps-btn:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.ps-btn:active{transform:translateY(1px)}
+.ps-btn-ghost{color:#a8b3c2;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.16)}
+.ps-btn-ghost:hover{color:#e8edf2;border-color:rgba(255,255,255,.34)}
+.ps-btn-go{display:block;width:100%;margin-top:12px;padding:13px;font-size:.9rem;font-weight:800;color:#0b0f14;background:linear-gradient(180deg,#f7d15e,#e6b52c);border:1px solid rgba(245,200,66,.9);box-shadow:0 14px 30px -18px rgba(245,200,66,.8)}
+.ps-btn-go:hover:not([disabled]){background:linear-gradient(180deg,#ffdd77,#f0c33e)}
+.ps-btn-go[disabled]{opacity:.34;filter:grayscale(.75);box-shadow:none;cursor:not-allowed}
+.ps-warn{margin-top:10px;font-size:.76rem;line-height:1.6;color:#f5c842}
+/* ★枠が画像ぜんぶになったときの警告。ふつうの注意書き（.ps-warn の小さな金色）と
+   同じ見え方だと読み飛ばされる。ここは「このまま押すと紙が丸ごと出ていく」唯一の
+   歯止めなので、フォームのエラー（.form-alert）と同じ赤い呼び方に揃えて強くする。 */
+.ps-frwarn{display:block;margin-top:12px;border:1px solid rgba(239,68,68,.45);border-left:3px solid #ef4444;background:rgba(239,68,68,.10);border-radius:12px;padding:13px 15px;color:#e8edf2;font-size:.88rem;line-height:1.7}
+.ps-frwarn b{color:#f87171;font-weight:800}
+/* ★探している間は明細そのものを出さない ────────────────────────
+   以前は明細を先に描いてから、探索の結果を**あとから**その上に乗せていた。
+   その数秒のあいだ、画面には「黒塗りの無い明細」＋「送る」ボタンが並ぶ。
+   出来上がったものだと思って押せてしまう＝そのまま氏名も口座も外へ出る。
+   送信ボタンは元から disabled だが、**disabled は見えない**。見えない歯止めは
+   歯止めとして数えない。だから見えるところから消す。
+   ★.ps-wait には JS が aspect-ratio を入れる（明細と同じ縦横比）。
+     入れないと、明細が現れた瞬間にページの高さが飛んで、読んでいた場所を失う。 */
+.ps-edit.is-wait > .ps-stage,
+.ps-edit.is-wait > .ps-lead-sm,
+.ps-edit.is-wait > .ps-frwarn,
+.ps-edit.is-wait > .ps-hint,
+.ps-edit.is-wait > .ps-bar,
+.ps-edit.is-wait > .ps-warn,
+.ps-edit.is-wait > .ps-confirm,
+.ps-edit.is-wait > .ps-btn-go,
+.ps-edit.is-wait > .ps-note{display:none !important}
+.ps-wait{display:none}
+.ps-edit.is-wait > .ps-wait{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;width:100%;margin:0 auto;padding:24px;border-radius:10px;background:#0b0f14;border:1px solid rgba(255,255,255,.08);color:#a8b3c2;font-size:.78rem;line-height:1.7;text-align:center}
+.ps-wait::before{content:"";flex:none;width:26px;height:26px;border-radius:999px;border:3px solid rgba(245,200,66,.22);border-top-color:#f5c842;animation:psSpin .7s linear infinite}
+.ps-wait b{display:block;font-size:.86rem;font-weight:800;color:#e8edf2;margin-bottom:4px}
+@media (prefers-reduced-motion:reduce){.ps-wait::before{animation:none;border-top-color:rgba(245,200,66,.22)}}
+.ps-scan{display:flex;align-items:flex-start;gap:7px;font-size:.75rem;line-height:1.6;color:#a8b3c2;margin:-4px 0 10px}
+.ps-scan.is-busy::before{content:"";flex:0 0 auto;width:11px;height:11px;margin-top:3px;border-radius:999px;border:2px solid rgba(245,200,66,.28);border-top-color:#f5c842;animation:psSpin .7s linear infinite}
+.ps-scan.is-warn{color:#f5c842}
+@keyframes psSpin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.ps-scan.is-busy::before{animation:none;border-top-color:rgba(245,200,66,.28)}}
+.ps-confirm{display:flex;align-items:flex-start;gap:9px;margin-top:14px;padding:11px 13px;border-radius:11px;border:1px solid rgba(245,200,66,.3);background:rgba(245,200,66,.06);font-size:.78rem;font-weight:700;line-height:1.55;color:#e8edf2;cursor:pointer;transition:border-color .2s,background .2s}
+.ps-confirm:hover{border-color:rgba(245,200,66,.55);background:rgba(245,200,66,.1)}
+.ps-confirm:focus-within{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.ps-confirm.is-off{opacity:.5;cursor:default}
+.ps-confirm input{flex:0 0 auto;width:17px;height:17px;margin-top:1px;accent-color:#e6b52c;cursor:pointer}
+.ps-confirm.is-off input{cursor:default}
+.ps-msg{margin-top:10px;padding:12px 14px;border-radius:12px;font-size:.8rem;line-height:1.6}
+.ps-msg-busy{color:#a8b3c2;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.03)}
+.ps-msg-warn{color:#f5c842;border:1px solid rgba(245,200,66,.32);background:rgba(245,200,66,.07)}
+.ps-res-title{font-size:.95rem;font-weight:800;letter-spacing:-.01em;color:#34d399}
+.ps-res-title.ps-sm{font-size:.82rem;color:#a8b3c2;margin-top:18px}
+.ps-res-lead{font-size:.78rem;color:#a8b3c2;line-height:1.7;margin-top:4px}
+.ps-res-lead b{color:#e8edf2}
+.ps-tbl{width:100%;margin-top:10px;border-collapse:collapse;font-size:.78rem}
+.ps-tbl th{text-align:left;font-weight:700;color:#6b7d93;font-size:.68rem;letter-spacing:.04em;padding:0 0 6px}
+.ps-tbl td{padding:7px 0;border-top:1px solid rgba(255,255,255,.07);color:#e8edf2;vertical-align:top}
+.ps-tbl .ps-to{color:#a8b3c2}
+.ps-tbl .ps-amt{text-align:right;font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}
+.ps-tbl-dim td{color:#a8b3c2}
+/* 明細の内訳を畳む札（2026-08-12）。開閉は details/summary に任せる ―
+   JS で高さを測ると、中の表が通貨切替で書き換わるたびに閉じ位置がずれる。 */
+.ps-fold{margin-top:14px;border-top:1px solid rgba(255,255,255,.07)}
+.ps-fold-s{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:11px 2px;font-size:.78rem;font-weight:700;color:#a8b3c2;transition:color .18s cubic-bezier(.16,1,.3,1),opacity .18s}
+.ps-fold-s::-webkit-details-marker{display:none}
+.ps-fold-s:hover{color:#e8edf2}
+.ps-fold-s:focus-visible{outline:2px solid rgba(245,200,66,.7);outline-offset:3px;border-radius:6px}
+.ps-fold-s:active{opacity:.72}
+.ps-fold-i{margin-left:auto;flex:none;width:9px;height:9px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg) translate(-2px,-2px);transition:transform .22s cubic-bezier(.16,1,.3,1)}
+.ps-fold[open] > .ps-fold-s > .ps-fold-i{transform:rotate(225deg) translate(-2px,-2px)}
+.ps-fold-b{padding-bottom:4px;animation:stepIn .28s cubic-bezier(.16,1,.3,1) both}
+.ps-fold-b > .ps-tbl:first-child{margin-top:0}
+.form-input.ai-filled{border-color:rgba(52,211,153,.55);background:rgba(52,211,153,.07)}
+.ps-rate{margin-bottom:16px;padding:16px 18px;border-radius:14px;border:1px solid rgba(245,200,66,.28);background:radial-gradient(130% 170% at 100% 0%,rgba(245,200,66,.10),transparent 60%),rgba(255,255,255,.025)}
+.ps-rate:empty{display:none}
+.ps-rate-t{font-size:.68rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#f5c842}
+.ps-rate-row{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.07)}
+.ps-rate-row:last-of-type{border-bottom:none}
+.ps-rate-k{font-size:.82rem;font-weight:700;color:#e8edf2}
+.ps-rate-v{flex:none;text-align:right;font-size:1.35rem;font-weight:800;letter-spacing:-.02em;color:#f5c842;font-variant-numeric:tabular-nums;line-height:1.15}
+.ps-rate-min{display:block;font-size:.68rem;font-weight:600;color:#6b7d93;letter-spacing:0}
+/* 年間ペース × 公開レンジ（payslip.js の renderAha）。時給カードの直後に出る。
+   ★時給＝黄（#f5c842）、こちら＝緑（#48c78e）で役割を分ける。同じ色にすると
+     「同じことを2回言っている」に見えて、2枚目を読まれない。 */
+.ps-aha{margin-bottom:16px;padding:16px 18px;border-radius:14px;border:1px solid rgba(72,199,142,.24);background:radial-gradient(130% 170% at 0% 0%,rgba(72,199,142,.09),transparent 62%),rgba(255,255,255,.025)}
+.ps-aha:empty{display:none}
+.ps-aha-t{font-size:.68rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#48c78e}
+.ps-aha-msg{font-size:.8rem;color:#9ca3af;line-height:1.65;margin-top:10px}
+.ps-aha-b{margin-top:12px}
+.ps-aha-pace{display:flex;align-items:baseline;justify-content:space-between;gap:14px;margin-top:10px}
+.ps-aha-pk{font-size:.82rem;font-weight:700;color:#e8edf2}
+.ps-aha-pv{font-size:1.55rem;font-weight:800;letter-spacing:-.03em;color:#48c78e;font-variant-numeric:tabular-nums;line-height:1.15}
+.ps-aha-h{font-size:.7rem;color:#6b7d93;line-height:1.55;margin-top:2px}
+.ps-aha-sec{margin-top:18px;font-size:.76rem;font-weight:700;color:#e8edf2}
+.ps-aha-bar{position:relative;height:8px;margin-top:12px;border-radius:99px;background:linear-gradient(90deg,rgba(72,199,142,.16),rgba(72,199,142,.44))}
+.ps-aha-avg{position:absolute;top:-3px;width:2px;height:14px;border-radius:2px;background:rgba(255,255,255,.5);transform:translateX(-1px)}
+.ps-aha-dot{position:absolute;top:50%;width:14px;height:14px;border-radius:50%;background:#f5c842;border:2px solid #0d1520;box-shadow:0 2px 9px rgba(245,200,66,.42);transform:translate(-50%,-50%)}
+.ps-aha-bar.is-under .ps-aha-dot,.ps-aha-bar.is-over .ps-aha-dot{box-shadow:0 0 0 3px rgba(245,200,66,.22),0 2px 9px rgba(245,200,66,.42)}
+.ps-aha-avgl{position:relative;height:1.15em;margin-top:7px}
+.ps-aha-avgl span{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap;font-size:.68rem;color:#6b7d93;font-variant-numeric:tabular-nums}
+.ps-aha-ends{display:flex;justify-content:space-between;gap:8px;margin-top:2px;font-size:.68rem;color:#6b7d93;font-variant-numeric:tabular-nums}
+.ps-aha-where{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px;margin-top:9px;font-size:.82rem;font-weight:700;color:#e8edf2}
+.ps-aha-where span{font-weight:600;font-size:.76rem;color:#9ca3af}
+.ps-aha-list{margin-top:10px}
+.ps-aha-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.07)}
+.ps-aha-row:last-child{border-bottom:none}
+.ps-aha-name{flex:1;min-width:0;font-size:.8rem;font-weight:600;color:#e8edf2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ps-aha-tf{margin-left:7px;padding:1px 6px;border-radius:99px;font-size:.6rem;font-weight:800;letter-spacing:.04em;color:#48c78e;background:rgba(72,199,142,.14)}
+.ps-aha-num{flex:none;font-size:.8rem;font-weight:700;color:#9ca3af;font-variant-numeric:tabular-nums}
+.ps-aha-gap{flex:none;min-width:5.5em;text-align:right;font-size:.8rem;font-weight:800;color:#48c78e;font-variant-numeric:tabular-nums}
+.ps-aha-rank{margin-top:11px;font-size:.72rem;color:#6b7d93}
+.ps-pd{display:inline-flex;align-items:center;gap:7px;margin-top:10px;font-size:.75rem;color:#a8b3c2;cursor:pointer}
+.ps-pd input{accent-color:#f5c842;cursor:pointer}
+.ps-tbl-edit td{padding:5px 0}
+.ps-tbl-edit .ps-amt{display:flex;align-items:center;justify-content:flex-end;gap:6px}
+.ps-cur{font-size:.66rem;font-weight:700;letter-spacing:.04em;color:#6b7d93}
+.ps-cur:empty{display:none}
+.ps-amt-in{width:9ch;min-width:74px;padding:5px 8px;border-radius:8px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04);color:#e8edf2;font:inherit;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;transition:border-color .2s,background .2s,color .2s}
+.ps-amt-in::-webkit-outer-spin-button,.ps-amt-in::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.ps-amt-in:hover{border-color:rgba(255,255,255,.3)}
+.ps-amt-in:focus{outline:none;border-color:rgba(245,200,66,.7);background:rgba(245,200,66,.07);color:#fff}
+.ps-amt-in:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:1px}
+.ps-ask{margin-top:12px;padding:12px 14px;border-radius:12px;border:1px dashed rgba(245,200,66,.34);background:rgba(245,200,66,.05)}
+.ps-ask[hidden]{display:none}
+.ps-ask-t{font-size:.8rem;font-weight:700;color:#f5c842}
+.ps-ask-l{font-size:.72rem;line-height:1.65;color:#a8b3c2;margin-top:3px}
+.ps-ask-in{display:flex;align-items:center;gap:7px;margin-top:9px}
+.ps-ask-in input{width:112px;padding:8px 10px;border-radius:9px;border:1px solid rgba(245,200,66,.4);background:rgba(0,0,0,.25);color:#e8edf2;font:inherit;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;transition:border-color .2s,background .2s}
+.ps-ask-in input:hover{border-color:rgba(245,200,66,.65)}
+.ps-ask-in input:focus{outline:none;border-color:#f5c842;background:rgba(0,0,0,.4)}
+.ps-ask-in input:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.ps-ask-in input::placeholder{color:#5c6a7d;font-weight:600;opacity:1}
+.ps-ask-in span{font-size:.78rem;font-weight:700;color:#a8b3c2}
+.ps-ask.is-filled{border-style:solid;border-color:rgba(255,255,255,.1);background:rgba(255,255,255,.03)}
+.ps-ask.is-filled .ps-ask-t{font-size:.74rem;font-weight:700;color:#a8b3c2}
+/* 「1項目だけ確認できます」（payslip.js の renderAsk）。分類できなかった行は
+   もう金額として数えてあるので、これは**答えなくてよい質問**。だから時給（黄）・
+   年収ペース（緑）より弱い面に置く。強く出すと「まだ終わっていない」に見える。 */
+.ps-q{margin-top:16px;padding:14px 16px;border-radius:12px;border:1px solid rgba(255,255,255,.09);background:radial-gradient(120% 160% at 100% 0%,rgba(245,200,66,.07),transparent 62%),rgba(255,255,255,.02)}
+.ps-q-h{display:flex;align-items:baseline;gap:12px}
+.ps-q-t{flex:1;min-width:0;font-size:.8rem;font-weight:800;letter-spacing:-.01em;color:#e8edf2}
+.ps-q-skip{flex:none;padding:4px 9px;border:0;border-radius:8px;background:none;color:#6b7d93;font:inherit;font-size:.72rem;font-weight:700;cursor:pointer;transition:color .2s,background .2s,transform .2s cubic-bezier(.16,1,.3,1)}
+.ps-q-skip:hover{color:#a8b3c2;background:rgba(255,255,255,.05)}
+.ps-q-skip:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.ps-q-skip:active{transform:translateY(1px)}
+.ps-q-l{font-size:.72rem;line-height:1.65;color:#6b7d93;margin-top:3px}
+.ps-q-row{display:flex;align-items:baseline;justify-content:space-between;gap:14px;margin-top:11px;padding:9px 11px;border-radius:9px;background:rgba(0,0,0,.22)}
+.ps-q-lb{min-width:0;font-size:.82rem;font-weight:700;color:#e8edf2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ps-q-am{flex:none;font-size:.86rem;font-weight:800;color:#f5c842;font-variant-numeric:tabular-nums}
+.ps-q-q{font-size:.76rem;font-weight:700;color:#a8b3c2;margin-top:11px}
+.ps-q-c{margin-top:9px}
+.ps-next{margin-top:16px;padding:14px 16px;border-radius:12px;border:1px solid rgba(52,211,153,.26);background:rgba(52,211,153,.06)}
+.ps-next-t{font-size:.86rem;font-weight:800;letter-spacing:-.01em;color:#34d399}
+.ps-next-l{font-size:.74rem;line-height:1.65;color:#a8b3c2;margin-top:4px}
+.ps-next .btn-orange{margin-top:11px;padding:10px 20px;font-size:.85rem}
+@media (prefers-reduced-motion:reduce){.ps-edit,.ps-res{animation:none}}
+/* ── Light mode ─────────────────────────────────────────── */
+[data-theme="light"] body{background:#f3f5f8!important;color:#0f172a!important}
+[data-theme="light"] nav{background:rgba(243,245,248,.95)!important;backdrop-filter:blur(16px);border-bottom:1px solid rgba(0,0,0,.07)!important}
+[data-theme="light"] nav.scrolled{background:rgba(243,245,248,.98)!important}
+[data-theme="light"] .nav-link{color:rgba(15,23,42,.55)!important}
+[data-theme="light"] .nav-link:hover{color:#0f172a!important}
+[data-theme="light"] .card{background:rgba(255,255,255,.85)!important;border-color:rgba(0,0,0,.08)!important}
+[data-theme="light"] .form-input{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.12);color:#0f172a}
+[data-theme="light"] .form-input:focus{border-color:rgba(200,149,0,.5);background:rgba(0,0,0,.06)}
+[data-theme="light"] .form-input[readonly],
+[data-theme="light"] .form-input[readonly]:focus{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.18)}
+[data-theme="light"] select.form-input option,[data-theme="light"] select.form-input optgroup{background:#fff}
+[data-theme="light"] .theme-toggle{background:rgba(0,0,0,.06);color:#0f172a;border-color:rgba(0,0,0,.13)}
+[data-theme="light"] .btn-ghost{color:#0f172a!important;border-color:rgba(0,0,0,.15)!important}
+[data-theme="light"] .btn-ghost:hover{border-color:rgba(0,0,0,.3)!important;background:rgba(0,0,0,.04)!important}
+[data-theme="light"] .text-text{color:#0f172a!important}
+[data-theme="light"] .pay-count{border-color:rgba(200,149,0,.32);color:#a97e00;
+  background:radial-gradient(120% 160% at 0% 50%,rgba(200,149,0,.14),transparent 70%),rgba(200,149,0,.05)}
+[data-theme="light"] .warn-row{background:rgba(200,149,0,.07);border-color:rgba(200,149,0,.3);color:#8a6600}
+/* ★白いカードの上ではオレンジ #fb923c が沈む。必須の印は読めなければ意味が無いので、
+   ライトだけ濃いオレンジに落とす（.sec-tag.req はこれまでライトの定義が無く、暗いまま置かれていた）。 */
+[data-theme="light"] .opt-tag{color:#64748b;background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.12)}
+[data-theme="light"] .req-tag,[data-theme="light"] .sec-tag.req{color:#a34a00;background:rgba(163,74,0,.08);border-color:rgba(163,74,0,.28)}
+[data-theme="light"] .auto-tag{color:#0d8a63;background:rgba(13,138,99,.08);border-color:rgba(13,138,99,.28)}
+[data-theme="light"] .fld.is-req::before{background:rgba(163,74,0,.3)}
+/* ★白の上では #34d399 が薄すぎて読めない。済みの印はライトだけ濃い緑に落とす
+   （既存の .auto-tag と同じ #0d8a63）。もとは rgba(0,0,0,.12) ＝ ほぼ見えなかった。 */
+[data-theme="light"] .fld.is-req.is-done::before{background:rgba(13,138,99,.5)}
+[data-theme="light"] .fld.is-req::after{color:#0d8a63;background:rgba(13,138,99,.1);border-color:rgba(13,138,99,.32)}
+[data-theme="light"] .sec-prog{color:#64748b;background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.11)}
+[data-theme="light"] .sec-prog:hover{background:rgba(0,0,0,.07);border-color:rgba(0,0,0,.2)}
+[data-theme="light"] .sec-prog.done,[data-theme="light"] .sec-prog.done:hover{
+  color:#0d8a63;background:rgba(13,138,99,.09);border-color:rgba(13,138,99,.3)}
+/* 明るい地では #34d399 が白に溶けるので、濃いほうの緑に差し替える。 */
+[data-theme="light"] .sec-prog-bar{background:rgba(0,0,0,.1)}
+[data-theme="light"] .sec-prog-bar>i{background:linear-gradient(90deg,#0d8a63,#12a878)}
+[data-theme="light"] .sec-prog.done .sec-prog-bar{background:rgba(13,138,99,.2)}
+[data-theme="light"] .entry-b{color:#475569}
+[data-theme="light"] .entry-b>i{color:#0d8a63}
+[data-theme="light"] .entry-b b{color:#0f172a}
+[data-theme="light"] .entry-shield{color:#0d8a63}
+[data-theme="light"] .entry-formats{color:#64748b}
+[data-theme="light"] .ai-legend{color:#475569;background:rgba(13,138,99,.06);border-color:rgba(13,138,99,.24)}
+[data-theme="light"] .ai-legend>i{color:#0d8a63}
+[data-theme="light"] .sec-sub,[data-theme="light"] .fld-hint,[data-theme="light"] .sal-hint,[data-theme="light"] .res-note{color:#64748b}
+[data-theme="light"] .fld-hint b{color:#334155}
+[data-theme="light"] .sec-tag.opt{background:rgba(0,0,0,.05);color:#64748b;border-color:rgba(0,0,0,.12)}
+[data-theme="light"] .sal-total{border-color:rgba(200,149,0,.32);background:radial-gradient(130% 170% at 100% 0%,rgba(200,149,0,.12),transparent 60%),rgba(200,149,0,.05)}
+[data-theme="light"] .sal-total-lab,[data-theme="light"] .sal-total-val .u{color:#64748b}
+[data-theme="light"] .sal-total-val{color:#a97e00}
+[data-theme="light"] .res{background:radial-gradient(130% 170% at 0% 0%,rgba(16,140,100,.12),transparent 60%),rgba(255,255,255,.88);border-color:rgba(16,140,100,.28)}
+/* 明るいテーマだと金の放射が白地に溶ける。線と影だけ濃くする（形は同じ）。 */
+[data-theme="light"] .res-pop{background:radial-gradient(120% 120% at 30% 20%,rgba(245,200,66,.45),rgba(13,138,99,.10) 62%,transparent);border-color:rgba(169,126,0,.32);box-shadow:inset 0 1px 0 rgba(255,255,255,.65),0 6px 16px -8px rgba(169,126,0,.34),0 18px 36px -24px rgba(13,138,99,.42)}
+[data-theme="light"] .res-eyebrow,[data-theme="light"] .res-big{color:#0d8a63}
+[data-theme="light"] .res-sub,[data-theme="light"] .res-k{color:#64748b}
+[data-theme="light"] .res-row{border-bottom-color:rgba(0,0,0,.08)}
+[data-theme="light"] .res-v.hi{color:#a97e00}
+[data-theme="light"] .bench{border-color:rgba(0,0,0,.08);background:rgba(0,0,0,.02)}
+[data-theme="light"] .bench-scale{color:#64748b}
+[data-theme="light"] .bench b{color:#0f172a}
+[data-theme="light"] .form-alert{background:rgba(220,38,38,.07);border-color:rgba(220,38,38,.35);border-left-color:#dc2626;color:#7f1d1d}
+[data-theme="light"] .form-alert .fa-title{color:#dc2626}
+[data-theme="light"] .restore-bar{background:rgba(37,99,235,.06);border-color:rgba(37,99,235,.22);color:#1d4ed8}
+[data-theme="light"] .restore-bar button{color:#475569;border-color:rgba(0,0,0,.15)}
+[data-theme="light"] .restore-bar button:hover{color:#0f172a;border-color:rgba(0,0,0,.32)}
+[data-theme="light"] .chip{color:#475569;background:rgba(0,0,0,.03);border-color:rgba(0,0,0,.18)}
+[data-theme="light"] .chip:hover{color:#a97e00;border-color:rgba(200,149,0,.5);background:rgba(200,149,0,.07)}
+[data-theme="light"] .chip .p{color:#a97e00}
+[data-theme="light"] .pay-detail{border-top-color:rgba(0,0,0,.08)}
+[data-theme="light"] .pay-detail>summary{color:#475569;background:rgba(0,0,0,.03);border-color:rgba(0,0,0,.18)}
+[data-theme="light"] .pay-detail>summary:hover{color:#a97e00;border-color:rgba(200,149,0,.5);background:rgba(200,149,0,.07)}
+[data-theme="light"] .pay-detail>summary .p{color:#a97e00}
+[data-theme="light"] .pay-detail[open]>summary{color:#0f172a;border-color:rgba(200,149,0,.4)}
+[data-theme="light"] .sum-row{background:rgba(0,0,0,.025);border-color:rgba(0,0,0,.08);color:#475569}
+[data-theme="light"] .sum-row b{color:#0f172a}
+[data-theme="light"] .sum-row button{color:#475569;border-color:rgba(0,0,0,.15)}
+[data-theme="light"] .sum-row button:hover{color:#a97e00;border-color:rgba(200,149,0,.5)}
+[data-theme="light"] .entry-q{color:#64748b}
+[data-theme="light"] .entry-card{color:#0f172a;border-color:rgba(0,0,0,.09);background:rgba(255,255,255,.85);
+  box-shadow:0 20px 44px -34px rgba(15,23,42,.55),0 2px 6px -3px rgba(15,23,42,.14)}
+[data-theme="light"] .entry-card.is-primary{border-color:rgba(200,149,0,.4);
+  background:radial-gradient(120% 150% at 0% 0%,rgba(200,149,0,.12),transparent 62%),rgba(255,255,255,.9);
+  box-shadow:0 24px 50px -34px rgba(200,149,0,.6),0 2px 6px -3px rgba(15,23,42,.14)}
+[data-theme="light"] .entry-card:hover{border-color:rgba(200,149,0,.7)}
+[data-theme="light"] .entry-card:focus-visible{outline-color:rgba(200,149,0,.85)}
+[data-theme="light"] .entry-ico{color:#a97e00}
+[data-theme="light"] .entry-tag{background:rgba(0,0,0,.04);color:#64748b;border-color:rgba(0,0,0,.12)}
+[data-theme="light"] .entry-card.is-primary .entry-tag{background:rgba(200,149,0,.12);color:#a97e00;border-color:rgba(200,149,0,.35)}
+[data-theme="light"] .ps-step{color:#a97e00}
+[data-theme="light"] .ps-skip{color:#475569;border-bottom-color:rgba(0,0,0,.18)}
+[data-theme="light"] .ps-skip:hover{color:#0f172a;border-bottom-color:rgba(200,149,0,.7)}
+[data-theme="light"] .ps-skip:focus-visible{outline-color:rgba(200,149,0,.85)}
+[data-theme="light"] .ps-drop{color:#0f172a;border-color:rgba(200,149,0,.4);background:linear-gradient(180deg,rgba(200,149,0,.08),rgba(200,149,0,.02))}
+[data-theme="light"] .ps-drop:hover,[data-theme="light"] .ps-drop.is-over{border-color:rgba(200,149,0,.7);background:linear-gradient(180deg,rgba(200,149,0,.14),rgba(200,149,0,.05))}
+[data-theme="light"] .ps-drop-txt small{color:#64748b}
+[data-theme="light"] .ps-fold{border-top-color:rgba(0,0,0,.09)}
+[data-theme="light"] .ps-fold-s{color:#64748b}
+[data-theme="light"] .ps-fold-s:hover{color:#0f172a}
+[data-theme="light"] .ps-fold-s:focus-visible{outline-color:rgba(200,149,0,.85)}
+[data-theme="light"] .ps-hint,[data-theme="light"] .ps-note,[data-theme="light"] .ps-rate-min{color:#64748b}
+[data-theme="light"] .ps-note b{color:#334155}
+[data-theme="light"] .ps-edit,[data-theme="light"] .ps-res{border-color:rgba(0,0,0,.09);background:rgba(255,255,255,.85);box-shadow:0 18px 40px -30px rgba(200,149,0,.45),0 2px 6px -3px rgba(15,23,42,.18)}
+[data-theme="light"] .ps-lead{color:#0f172a}
+[data-theme="light"] .ps-stage{background:#e2e8f0}
+[data-theme="light"] .ps-rect{border-color:rgba(200,149,0,.85)}
+[data-theme="light"] .ps-frame{border-color:#a97e00;box-shadow:0 0 0 9999px rgba(15,23,42,.55)}
+[data-theme="light"] .ps-frame-tag,[data-theme="light"] .ps-frame-grip{background:#a97e00;color:#fff}
+[data-theme="light"] .ps-lead-sm{color:#a97e00}
+[data-theme="light"] .ps-rect-grip{background:#a97e00}
+[data-theme="light"] .ps-btn-ghost{color:#475569;background:rgba(0,0,0,.03);border-color:rgba(0,0,0,.16)}
+[data-theme="light"] .ps-btn-ghost:hover{color:#0f172a;border-color:rgba(0,0,0,.34)}
+[data-theme="light"] .ps-btn-go{color:#3a2c00;background:linear-gradient(180deg,#f7d15e,#e0ac1e);border-color:rgba(200,149,0,.9);box-shadow:0 14px 30px -20px rgba(200,149,0,.85)}
+[data-theme="light"] .ps-btn-go:hover:not([disabled]){background:linear-gradient(180deg,#ffe083,#eaba2c)}
+[data-theme="light"] .ps-warn{color:#8a6600}
+[data-theme="light"] .ps-frwarn{background:rgba(220,38,38,.07);border-color:rgba(220,38,38,.35);border-left-color:#dc2626;color:#7f1d1d}
+[data-theme="light"] .ps-frwarn b{color:#dc2626}
+[data-theme="light"] .ps-edit.is-wait > .ps-wait{background:rgba(255,255,255,.72);border-color:rgba(15,23,42,.12);color:#64748b}
+[data-theme="light"] .ps-wait b{color:#0f172a}
+[data-theme="light"] .ps-wait::before{border-color:rgba(200,149,0,.24);border-top-color:#a97e00}
+[data-theme="light"] .ps-scan{color:#64748b}
+[data-theme="light"] .ps-scan.is-warn{color:#8a6600}
+[data-theme="light"] .ps-scan.is-busy::before{border-color:rgba(200,149,0,.28);border-top-color:#a97e00}
+[data-theme="light"] .ps-confirm{color:#0f172a;border-color:rgba(200,149,0,.4);background:rgba(200,149,0,.08)}
+[data-theme="light"] .ps-confirm:hover{border-color:rgba(200,149,0,.65);background:rgba(200,149,0,.13)}
+[data-theme="light"] .ps-msg-busy{color:#475569;border-color:rgba(0,0,0,.1);background:rgba(0,0,0,.02)}
+[data-theme="light"] .ps-msg-warn{color:#8a6600;border-color:rgba(200,149,0,.35);background:rgba(200,149,0,.07)}
+[data-theme="light"] .ps-res-title{color:#0d8a63}
+[data-theme="light"] .ps-res-title.ps-sm{color:#475569}
+[data-theme="light"] .ps-res-lead{color:#475569}
+[data-theme="light"] .ps-res-lead b{color:#0f172a}
+[data-theme="light"] .ps-tbl th{color:#64748b}
+[data-theme="light"] .ps-tbl td{color:#0f172a;border-top-color:rgba(0,0,0,.08)}
+[data-theme="light"] .ps-tbl .ps-to,[data-theme="light"] .ps-tbl-dim td{color:#475569}
+[data-theme="light"] .form-input.ai-filled{border-color:rgba(13,138,99,.5);background:rgba(13,138,99,.07)}
+[data-theme="light"] .ps-rate{border-color:rgba(200,149,0,.32);background:radial-gradient(130% 170% at 100% 0%,rgba(200,149,0,.12),transparent 60%),rgba(255,255,255,.6)}
+[data-theme="light"] .ps-rate-t,[data-theme="light"] .ps-rate-v{color:#a97e00}
+[data-theme="light"] .ps-rate-k{color:#0f172a}
+[data-theme="light"] .ps-rate-row{border-bottom-color:rgba(0,0,0,.08)}
+[data-theme="light"] .ps-aha{border-color:rgba(15,118,86,.26);background:radial-gradient(130% 170% at 0% 0%,rgba(15,118,86,.10),transparent 62%),rgba(255,255,255,.6)}
+[data-theme="light"] .ps-aha-t,[data-theme="light"] .ps-aha-pv,[data-theme="light"] .ps-aha-gap,[data-theme="light"] .ps-aha-tf{color:#0f7656}
+[data-theme="light"] .ps-aha-pk,[data-theme="light"] .ps-aha-sec,[data-theme="light"] .ps-aha-where,[data-theme="light"] .ps-aha-name{color:#0f172a}
+[data-theme="light"] .ps-aha-h,[data-theme="light"] .ps-aha-avgl span,[data-theme="light"] .ps-aha-ends,[data-theme="light"] .ps-aha-rank,[data-theme="light"] .ps-aha-msg,[data-theme="light"] .ps-aha-where span,[data-theme="light"] .ps-aha-num{color:#64748b}
+[data-theme="light"] .ps-aha-row{border-bottom-color:rgba(0,0,0,.08)}
+[data-theme="light"] .ps-aha-dot{border-color:#fff}
+[data-theme="light"] .ps-aha-avg{background:rgba(15,23,42,.42)}
+[data-theme="light"] .ps-aha-tf{background:rgba(15,118,86,.12)}
+[data-theme="light"] .ps-pd{color:#475569}
+[data-theme="light"] .ps-cur{color:#64748b}
+[data-theme="light"] .ps-amt-in{border-color:rgba(0,0,0,.14);background:#fff;color:#0f172a}
+[data-theme="light"] .ps-amt-in:hover{border-color:rgba(0,0,0,.3)}
+[data-theme="light"] .ps-amt-in:focus{border-color:rgba(200,149,0,.8);background:rgba(200,149,0,.08);color:#0f172a}
+[data-theme="light"] .ps-ask{border-color:rgba(200,149,0,.4);background:rgba(200,149,0,.07)}
+[data-theme="light"] .ps-ask-t{color:#a97e00}
+[data-theme="light"] .ps-ask-l,[data-theme="light"] .ps-ask-in span,[data-theme="light"] .ps-next-l{color:#475569}
+[data-theme="light"] .ps-ask-in input{border-color:rgba(200,149,0,.45);background:#fff;color:#0f172a}
+[data-theme="light"] .ps-ask-in input:focus{border-color:#a97e00;background:#fffdf5}
+[data-theme="light"] .ps-ask-in input::placeholder{color:#94a3b8}
+[data-theme="light"] .ps-ask.is-filled{border-color:rgba(0,0,0,.1);background:rgba(255,255,255,.7)}
+[data-theme="light"] .ps-ask.is-filled .ps-ask-t{color:#475569}
+[data-theme="light"] .ps-q{border-color:rgba(0,0,0,.09);background:radial-gradient(120% 160% at 100% 0%,rgba(200,149,0,.09),transparent 62%),rgba(255,255,255,.6)}
+[data-theme="light"] .ps-q-t,[data-theme="light"] .ps-q-lb{color:#0f172a}
+[data-theme="light"] .ps-q-l,[data-theme="light"] .ps-q-skip{color:#64748b}
+[data-theme="light"] .ps-q-skip:hover{color:#0f172a;background:rgba(0,0,0,.05)}
+[data-theme="light"] .ps-q-row{background:rgba(15,23,42,.05)}
+[data-theme="light"] .ps-q-am{color:#a97e00}
+[data-theme="light"] .ps-q-q{color:#475569}
+[data-theme="light"] .ps-next{border-color:rgba(13,138,99,.28);background:rgba(13,138,99,.06)}
+[data-theme="light"] .ps-next-t{color:#0d8a63}
+</style>
+<!--PV-3P-->
+<script>
+/* 広告と解析は、表示が終わるまで読まない。async でも帯域は奪うため。
+   利用者が最初に触った時か load の、どちらか早いほうで読み込む。
+   戻すときは node defer-third-party.mjs --undo */
+(function(){
+  var done=false;
+  function boot(){
+    if(done)return; done=true;
+    [{"src":"https://www.googletagmanager.com/gtag/js?id=G-3XYF69VQ3X","cross":false}].forEach(function(it){
+      var s=document.createElement('script');
+      s.src=it.src; s.async=true;
+      if(it.cross)s.crossOrigin='anonymous';
+      document.head.appendChild(s);
+    });
+  }
+  ['pointerdown','keydown','touchstart','scroll','wheel'].forEach(function(ev){
+    addEventListener(ev,boot,{once:true,passive:true});
+  });
+  if(document.readyState==='complete')boot();
+  else addEventListener('load',boot,{once:true});
+})();
+</script>
+<!--/PV-3P-->
+<script src="../pv-session.js"></script>
+<!-- ★招待（?ref=）を受け取るところ。読み込む位置がここでなければならない。
+     下の長いインラインスクリプトは、起動した時点で window.PVReferral.claim() を
+     呼んで「招待リンクから来た人」を紹介者に結びつける。この script を
+     pv-conditions.js の並び（ファイル末尾）に置くと、そのとき window.PVReferral が
+     まだ存在せず、Google から戻ってきた人の紐づけだけが黙って落ちる。 -->
+<script src="../pv-referral.js"></script>
+</head>
+<body class="relative">
+
+<!-- NAV -->
+<nav id="main-nav">
+  <div class="max-w-5xl mx-auto px-6 flex items-center justify-between h-[68px]">
+    <a href="index.html" class="flex items-center gap-3 flex-shrink-0">
+      <img src="../assets/logo.png" alt="PILOT VALUE" class="logo-img"/>
+    </a>
+    <div class="flex items-center gap-3">
+      <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark / light"></button>
+      <a href="world-airlines.html" class="btn-ghost py-2 px-4 text-sm">← World airlines</a>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main class="relative pt-[68px] min-h-screen">
+  <div class="max-w-2xl mx-auto px-4 py-12">
+
+    <!-- Header ── 2026-08-13（その4）オーナー指摘で2行に絞った。
+         以前は 匿名ピル＋見出し＋説明文＋黄色い枠 が4段積まれ、2択に届く前に
+         注意書きを読まされていた。匿名の約束は下の2択カードの1行目に移した。 -->
+    <div class="text-center mb-9">
+      <h1 class="text-3xl font-extrabold mb-3" style="letter-spacing:-.02em">Add your pay</h1>
+      <p class="pay-count" id="pay-count">Over 1,000 pay reports submitted!</p>
+    </div>
+
+    <!-- Form ── levels.fyi 型：埋めると下に次が生える -->
+    <div id="form-wrap">
+
+      <!-- 入口 ── どちらで入れるかを最初に選ぶ（2026-08-13 オーナー指摘）───────
+           以前は明細のカードが注意書きごと本文の途中に置いてあり、
+           「読み込ませれば埋まる」ことが伝わらないまま手入力に流れていた。
+           ★2択は毎回出す（オーナー決定）。前回の内容は「手動で入力」を押してから戻す。 -->
+      <div id="entry">
+        <p class="entry-q">How would you like to enter your pay?</p>
+        <div class="entry-grid">
+          <!-- ★明細の側に所要時間を書かない（2026-08-13 オーナー指示）。
+               読み取りにかかる時間は明細の枚数と画質で変わるので、約束にならない。
+               ★「検証済み」も書かない。pay_reports.verify_level に書き込む処理が
+               まだ無く、VERIFIED-PILOT.md の「検証できないものを Verified と表示しない」に反する
+               （db/test-form-contract.mjs が現に禁止している）。本人確認が動いたら足す。
+               ★2026-08-14（オーナー指示）ここの3語は 匿名／暗号化＆セキュア／簡単。
+               それぞれ何を指すか＝
+               ・Anonymous ……… 氏名・社員番号・口座は端末の中で黒塗りしてから送る
+               ・Encrypted & secure … 送信は HTTPS、読み取った画像は保存しない
+               ・Quick ………… 落とすだけで金額の欄が埋まる
+               事実の要約であって、盛った言い方に書き換えない。 -->
+          <button type="button" class="entry-card is-primary" id="entry-payslip">
+            <span class="entry-ico" aria-hidden="true">📄</span>
+            <span class="entry-t">Auto-fill from a payslip</span>
+            <span class="entry-benefits">
+              <span class="entry-b"><i aria-hidden="true">✓</i>Anonymous</span>
+              <!-- 盾を付けるのはここだけ。3つのうちこれだけが「こちら側の仕組み」の話で、
+                   本人が画面を見ても確かめられないため、印で補う。 -->
+              <span class="entry-b"><i aria-hidden="true">✓</i>Encrypted &amp; secure<svg class="entry-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5 4.5 5.6v5.6c0 4.7 3.2 9 7.5 10 4.3-1 7.5-5.3 7.5-10V5.6L12 2.5Z"/><path d="m9 12 2.2 2.2L15.4 10"/></svg></span>
+              <span class="entry-b"><i aria-hidden="true">✓</i>Quick</span>
+            </span>
+            <span class="entry-formats">PDF · PNG · JPG · WebP</span>
+          </button>
+          <button type="button" class="entry-card" id="entry-manual">
+            <span class="entry-ico" aria-hidden="true">✎</span>
+            <span class="entry-t">Enter manually</span>
+            <span class="entry-benefits">
+              <span class="entry-b"><i aria-hidden="true">✓</i>Anonymous</span>
+              <span class="entry-b"><i aria-hidden="true">✓</i>Type the figures in while looking at your payslip</span>
+              <span class="entry-b" id="entry-prev" hidden><i aria-hidden="true">✓</i>Your last answers are already filled in</span>
+            </span>
+            <span class="entry-tag">50 sec</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Auto-fill from a payslip — redacted on your device, you approve it, then it is sent -->
+      <div class="ps" id="ps" hidden>
+        <p class="ps-step" id="ps-step">STEP 1 OF 2 — READ THE PAYSLIP</p>
+        <button type="button" class="ps-drop" id="ps-drop">
+          <span class="ps-ico" aria-hidden="true">📄</span>
+          <span class="ps-drop-txt">
+            <b>Auto-fill from a payslip</b>
+            <small>Drop a PDF or an image of your payslip here, or click to choose one</small>
+          </span>
+        </button>
+        <input type="file" id="ps-file" accept="application/pdf,image/png,image/jpeg,image/webp" hidden>
+        <!-- ★2026-08-13（その4）長い注意書き（.ps-priv）を消して3行に絞った。
+             塗る／枠の外を切り落とす／保存しない の説明は、実際に明細を上げた直後の
+             確認画面が payslip.js の T.redacted / T.note で出す。読ませるべきはそこ。
+             ★2026-08-13（その5）「The image is not sent」を消した。**事実でなかった。**
+             端末でやっているのは黒塗りで、読み取りは枠の中を切り出した画像を送ってやっている。
+             言い換えずに消す（オーナー判断）。送る範囲の説明は送る直前の確認画面にある。 -->
+        <!-- ★Anonymous／Encrypted &amp; secure／Quick の3語はここではなく、ひとつ前の
+             「Auto-fill from a payslip」のカードに置いてある（2026-08-14 オーナー指示）。
+             選ぶ前に読ませる語なので、選んだあとのこの画面で繰り返さない。 -->
+        <span class="entry-benefits ps-benefits">
+          <span class="entry-b"><i aria-hidden="true">✓</i>Dropping <b>the PDF itself</b> gives the most accurate read</span>
+        </span>
+        <!-- ★逃げ道。読み取りが失敗した人・PDF を持っていない人がここで行き止まりになる。 -->
+        <button type="button" class="ps-skip" id="ps-skip">Skip this and enter manually →</button>
+        <div id="ps-panel"></div>
+      </div>
+
+      <!-- ★入口で選ぶまで隠す（中の段の hidden はそのまま。ここは箱ごとの出し入れ）。
+           入れ子を深くしないため、中の行はインデントを変えていない。 -->
+      <div id="form-body" hidden>
+
+      <!-- ★緑の枠が何なのかを1行で言う（2026-08-13 その4）。明細から入った欄には
+           .form-input.ai-filled が緑の枠を付けているが、その意味はどこにも書いていなかった。
+           全部上書きされたら自然に消える（payslip.js が触られた欄の印を外す）。 -->
+      <p class="ai-legend" id="ai-legend" hidden><i aria-hidden="true">■</i>Fields with a green outline came from your payslip. Overwrite anything that looks wrong.</p>
+
+      <div id="restore-bar" class="restore-bar" style="display:none">
+        <span>We brought back your last entry from this device. Just update what has changed.</span>
+        <button type="button" id="btn-forget">Forget it</button>
+      </div>
+
+      <div class="card sec step" id="s1">
+        <div class="sec-head">
+          <span class="sec-title">1. Company &amp; role</span>
+          <span class="sec-tag req">Required</span>
+          <!-- 進み具合のゲージ。中身は markProgress() が書く。押すと最初の未入力欄へ飛ぶ。 -->
+          <button type="button" class="sec-prog" hidden></button>
+        </div>
+        <p class="sec-sub">About 50 seconds. The next section opens up as you fill this one in.</p>
+
+        <div class="fld">
+          <label class="form-label" for="f-airline">Airline<span class="req-tag">Required</span></label>
+          <select id="f-airline" class="form-input">
+            <option value="">Select…</option>
+              <optgroup label="Middle East">
+                <option value="emirates">Emirates</option>
+                <option value="etihad">Etihad Airways</option>
+                <option value="qatar-airways">Qatar Airways</option>
+                <option value="gulf-air">Gulf Air</option>
+                <option value="kuwait-airways">Kuwait Airways</option>
+                <option value="oman-air">Oman Air</option>
+                <option value="riyadh-air">Riyadh Air</option>
+                <option value="royal-jordanian">Royal Jordanian</option>
+                <option value="saudia">Saudia</option>
+              </optgroup>
+              <optgroup label="Asia">
+                <option value="cathay-pacific">Cathay Pacific</option>
+                <option value="singapore-airlines">Singapore Airlines</option>
+                <option value="korean-air">Korean Air</option>
+                <option value="asiana">Asiana Airlines</option>
+                <option value="starlux">STARLUX Airlines</option>
+                <option value="china-airlines">China Airlines</option>
+                <option value="thai-airways">Thai Airways International</option>
+                <option value="eva-air">EVA Air</option>
+                <option value="air-china">Air China</option>
+                <option value="china-eastern">China Eastern Airlines</option>
+                <option value="china-southern">China Southern Airlines</option>
+                <option value="hainan-airlines">Hainan Airlines</option>
+                <option value="root-aviation">Root Aviation</option>
+                <option value="air-india">Air India</option>
+                <option value="airasia">AirAsia Group</option>
+                <option value="bamboo-airways">Bamboo Airways</option>
+                <option value="batik-air">Batik Air</option>
+                <option value="garuda-indonesia">Garuda Indonesia</option>
+                <option value="hong-kong-express">HK Express</option>
+                <option value="indigo">IndiGo</option>
+                <option value="malaysia-airlines">Malaysia Airlines</option>
+                <option value="philippine-airlines">Philippine Airlines</option>
+                <option value="scoot">Scoot</option>
+                <option value="vietjet">VietJet Air</option>
+                <option value="vietnam-airlines">Vietnam Airlines</option>
+                <option value="royal-brunei">Royal Brunei Airlines</option>
+              </optgroup>
+              <optgroup label="Europe">
+                <option value="klm">KLM Royal Dutch Airlines</option>
+                <option value="air-france">Air France</option>
+                <option value="lufthansa">Lufthansa</option>
+                <option value="british-airways">British Airways</option>
+                <option value="airx-charter">AirX Charter Ltd</option>
+                <option value="eagle-jet">Eagle Jet International, Inc.</option>
+                <option value="turkish-airlines">Turkish Airlines</option>
+                <option value="aegean">Aegean Airlines</option>
+                <option value="aer-lingus">Aer Lingus</option>
+                <option value="austrian">Austrian Airlines</option>
+                <option value="easyjet">easyJet</option>
+                <option value="eurowings">Eurowings</option>
+                <option value="finnair">Finnair</option>
+                <option value="iberia">Iberia</option>
+                <option value="icelandair">Icelandair</option>
+                <option value="ita-airways">ITA Airways</option>
+                <option value="lot">LOT Polish Airlines</option>
+                <option value="norwegian">Norwegian Air Shuttle (Norwegian)</option>
+                <option value="ryanair">Ryanair</option>
+                <option value="sas">SAS Scandinavian Airlines</option>
+                <option value="swiss">Swiss International Air Lines (SWISS)</option>
+                <option value="tap">TAP Air Portugal</option>
+                <option value="virgin-atlantic">Virgin Atlantic</option>
+                <option value="vueling">Vueling Airlines</option>
+                <option value="wizz-air">Wizz Air UK</option>
+              </optgroup>
+              <optgroup label="North America">
+                <option value="united">United Airlines</option>
+                <option value="delta">Delta Air Lines</option>
+                <option value="american">American Airlines</option>
+                <option value="southwest">Southwest Airlines</option>
+                <option value="air-canada">Air Canada</option>
+                <option value="solairus">Solairus Aviation</option>
+                <option value="alaska-airlines">Alaska Airlines</option>
+                <option value="allegiant">Allegiant Air</option>
+                <option value="breeze-airways">Breeze Airways</option>
+                <option value="frontier">Frontier Airlines</option>
+                <option value="jetblue">JetBlue Airways</option>
+                <option value="porter">Porter Airlines</option>
+                <option value="spirit">Spirit Airlines</option>
+                <option value="westjet">WestJet Airlines</option>
+              </optgroup>
+              <optgroup label="Oceania">
+                <option value="qantas">Qantas</option>
+                <option value="air-new-zealand">Air New Zealand</option>
+                <option value="fiji-airways">Fiji Airways</option>
+                <option value="jetstar">Jetstar Airways (Jetstar)</option>
+              </optgroup>
+              <optgroup label="Latin America">
+                <option value="aeromexico">Aeromexico</option>
+                <option value="avianca">Avianca</option>
+                <option value="copa-airlines">Copa Airlines</option>
+                <option value="latam">LATAM Airlines</option>
+              </optgroup>
+              <optgroup label="Africa">
+                <option value="egyptair">EgyptAir</option>
+                <option value="ethiopian-airlines">Ethiopian Airlines</option>
+                <option value="kenya-airways">Kenya Airways</option>
+                <option value="south-african-airways">South African Airways (SAA)</option>
+              </optgroup>
+              <optgroup label="Japan">
+                <option value="ana">All Nippon Airways (ANA)</option>
+                <option value="jal">Japan Airlines (JAL)</option>
+                <option value="zipair">ZIPAIR Tokyo</option>
+                <option value="jetstar-japan">Jetstar Japan</option>
+                <option value="peach">Peach Aviation</option>
+                <option value="solaseed">Solaseed Air</option>
+                <option value="spring-japan">Spring Japan</option>
+                <option value="airdo">AIRDO (AIR DO)</option>
+                <option value="starflyer">StarFlyer (Star Flyer)</option>
+                <option value="skymark">Skymark Airlines</option>
+                <option value="fda">Fuji Dream Airlines (FDA)</option>
+                <option value="airjapan">AirJapan</option>
+                <option value="amx">Amakusa Airlines (AMX)</option>
+                <option value="ana-wings">ANA Wings</option>
+                <option value="daiichi-air">Daiichi Aviation (Daiichi Air)</option>
+                <option value="hac">Hokkaido Air System (HAC)</option>
+                <option value="ibex">IBEX Airlines</option>
+                <option value="j-air">J-Air (J-AIR)</option>
+                <option value="jac">Japan Air Commuter (JAC)</option>
+                <option value="jta">Japan Transocean Air (JTA)</option>
+                <option value="orc">Oriental Air Bridge (ORC)</option>
+                <option value="rac">Ryukyu Air Commuter (RAC)</option>
+                <option value="shin-central">Shin Chuo Airlines (Shin Nichi Aviation)</option>
+                <option value="shin-nihon">Shin Nihon Airlines</option>
+                <option value="toho-air">Toho Air Service</option>
+                <option value="toki-air">Toki Air</option>
+              </optgroup>
+              <optgroup label="Not listed">
+                <option value="other">Other (enter manually)</option>
+              </optgroup>
+          </select>
+        </div>
+        <div class="fld" id="wrap-other" style="display:none">
+          <label class="form-label" for="f-airline-other">Airline name (not in the list)<span class="req-tag">Required</span></label>
+          <input type="text" id="f-airline-other" class="form-input" maxlength="80" placeholder="e.g. Wizz Air Abu Dhabi"/>
+          <p class="fld-hint">Free-text airline names are <b>excluded from public aggregates</b> (the name itself can identify you). We match them to a listed airline later.</p>
+        </div>
+        <div class="grid2">
+          <div class="fld">
+            <label class="form-label" for="f-position">Rank<span class="req-tag">Required</span></label>
+            <select id="f-position" class="form-input">
+              <option value="">Select…</option>
+              <option value="cap">Captain (CAP)</option>
+              <option value="fo">First Officer (FO)</option>
+              <option value="cadet">Cadet / Trainee</option>
+            </select>
+          </div>
+          <div class="fld">
+            <label class="form-label" for="f-fleet">Fleet<span class="req-tag">Required</span></label>
+            <select id="f-fleet" class="form-input">
+              <option value="">Select…</option>
+              <optgroup label="Narrowbody (domestic / short-haul)">
+                <option value="a320">A320 family (A319/320/321)</option>
+                <option value="b737">Boeing 737</option>
+                <option value="a220">Airbus A220 (ex-CSeries)</option>
+                <option value="b757">Boeing 757</option>
+                <option value="e-jet">Embraer E-Jet (E170/190)</option>
+              </optgroup>
+              <optgroup label="Widebody (international / long-haul)">
+                <option value="b767">Boeing 767</option>
+                <option value="b777">Boeing 777</option>
+                <option value="b787">Boeing 787 Dreamliner</option>
+                <option value="b747">Boeing 747</option>
+                <option value="a330">Airbus A330</option>
+                <option value="a350">Airbus A350</option>
+                <option value="a380">Airbus A380</option>
+              </optgroup>
+              <optgroup label="Regional &amp; turboprop">
+                <option value="crj">CRJ series</option>
+                <option value="atr">ATR 42/72</option>
+                <option value="dhc8">DHC-8 (Q400, etc.)</option>
+                <option value="regional">Other regional jet</option>
+                <option value="turboprop">Other turboprop</option>
+                <option value="bizjet">Business jet (Gulfstream, etc.)</option>
+              </optgroup>
+              <optgroup label="Other">
+                <option value="other">Other</option>
+              </optgroup>
+            </select>
+          </div>
+        </div>
+        <div class="grid2">
+        <div class="fld">
+          <!-- ★必須。印・GATE_ROLE・送信バリデーション・db/test-form-contract.mjs は同時に直す。 -->
+          <label class="form-label" for="f-jobrole">Role<span class="req-tag">Required</span></label>
+          <select id="f-jobrole" class="form-input">
+            <option value="">Select…</option>
+            <option value="line">Line pilot</option>
+            <option value="instructor">Instructor (training)</option>
+            <option value="examiner">Examiner</option>
+            <option value="management">Management (dept. head, etc.)</option>
+          </select>
+        </div>
+        <div class="fld">
+          <!-- ★中身は node gen-vocab.mjs が pv-vocab.mjs の AGE_BUCKETS から生成する。手で足さない。 -->
+          <label class="form-label" for="f-age">Age<span class="req-tag">Required</span></label>
+          <select id="f-age" class="form-input">
+            <option value="">Select…</option>
+            <option value="20-29">20–29</option>
+            <option value="30-39">30–39</option>
+            <option value="40-49">40–49</option>
+            <option value="50-59">50–59</option>
+            <option value="60+">60 or over</option>
+          </select>
+          <p class="fld-hint">Pay rises with age at every airline, so the same seat at the same carrier means a different number at a different age. We only ask for a 10-year band.</p>
+        </div>
+        </div>
+      </div>
+
+      <div class="card sec step" id="s2" hidden>
+        <div class="sec-head">
+          <span class="sec-title">2. Month &amp; flying</span>
+          <span class="sec-tag req">Required</span>
+          <button type="button" class="sec-prog" hidden></button>
+        </div>
+        <p class="sec-sub">The month of one payslip, and what you flew that month.</p>
+
+        <div class="fld">
+          <label class="form-label" for="f-year">Pay period<span class="req-tag">Required</span></label>
+          <div class="grid2">
+            <select id="f-year" class="form-input" aria-label="Year"></select>
+            <select id="f-month" class="form-input" aria-label="Month"></select>
+          </div>
+          <p class="fld-hint">The month of that one payslip. <b>One report per month</b> &mdash; re-filing the same airline and month is treated as a correction and overwrites it.</p>
+        </div>
+        <!-- ★Ask actual and guaranteed side by side. These used to be hidden behind
+             the hourly-pay branch, so salaried pilots were never asked about the
+             guarantee at all. A 75-80h Gulf guarantee is only comparable with a
+             Japanese contract that has none because this box exists.
+             It stays optional — never make someone invent a number they do not have.
+             ★Wording is fixed to "Flight time / Guaranteed flight time / Duty time"
+               (owner, 2026-08-13). Never call the same thing two different names. -->
+        <div class="grid2">
+          <div class="fld">
+            <label class="form-label" for="f-block">Flight time<span class="req-tag">Required</span></label>
+            <input type="number" id="f-block" class="form-input" min="0" max="200" step="any" inputmode="decimal" placeholder="e.g. 78.5"/>
+            <p class="fld-hint">What you <b>actually flew</b> that month (block hours). It is the denominator of pay per block hour &mdash; the only measure that compares across countries and airlines.<br>If you did not fly that month, or you do not track hours, enter <b>0</b>.</p>
+          </div>
+          <div class="fld">
+            <label class="form-label" for="f-duty-h">Duty time<span class="opt-tag">optional</span></label>
+            <input type="number" id="f-duty-h" class="form-input" min="0" max="400" step="any" inputmode="decimal" placeholder="e.g. 160"/>
+            <p class="fld-hint">Total hours <b>from report to release</b> for the month. It includes standby and ground duties, so the same flight time can mean very different duty at another airline.</p>
+          </div>
+        </div>
+        <div class="grid2">
+          <div class="fld">
+            <label class="form-label" for="f-guar">Guaranteed flight time<span class="opt-tag">optional</span></label>
+            <input type="number" id="f-guar" class="form-input" min="0" max="200" step="any" inputmode="decimal" placeholder="e.g. 75"/>
+            <p class="fld-hint">The contractual floor you are paid <b>even if you do not fly it</b> (<b>Minimum Guarantee / MG</b>).<br>Many carriers &mdash; Japanese ones among them &mdash; have no guarantee at all: <b>leave it blank</b>.</p>
+          </div>
+          <div class="fld">
+            <label class="form-label" for="f-stay">Layover nights<span class="req-tag">Required</span></label>
+            <input type="number" id="f-stay" class="form-input" min="0" max="31" step="1" inputmode="numeric" placeholder="e.g. 8"/>
+            <p class="fld-hint"><b>Nights spent away from base</b>. If every trip was a day return, enter <b>0</b>.<br>Two contracts can pay the same and keep you away from home a completely different number of nights.</p>
+          </div>
+        </div>
+
+        <div class="opt-fld" id="opt-f-duty" hidden>
+          <div class="fld">
+            <label class="form-label" for="f-duty">Duty days (month)<span class="opt-tag">optional</span></label>
+            <input type="number" id="f-duty" class="form-input" min="0" max="31" step="1" inputmode="numeric"/>
+          </div>
+        </div>
+        <div class="opt-fld" id="opt-f-base-iata" hidden>
+          <div class="fld">
+            <label class="form-label" for="f-base-iata">Base (3-letter IATA)<span class="opt-tag">optional</span></label>
+            <input type="text" id="f-base-iata" class="form-input" maxlength="3" style="text-transform:uppercase" placeholder="DXB"/>
+          </div>
+          <p class="fld-hint">Base <b>never appears in any public aggregate</b>. Once the data is narrowed to airline, fleet and rank, adding base would pin it to one person in any thin segment.</p>
+        </div>
+        <div class="chips">
+          <button type="button" class="chip" data-open="f-duty"><span class="p">+</span>Duty days</button>
+          <button type="button" class="chip" data-open="f-base-iata"><span class="p">+</span>Base</button>
+        </div>
+      </div>
+
+      <div class="card sec step" id="s3" hidden>
+        <div class="sec-head">
+          <span class="sec-title">3. Pay</span>
+          <span class="sec-tag req">Required</span>
+          <button type="button" class="sec-prog" hidden></button>
+        </div>
+        <p class="sec-sub">Enter the figures exactly as printed on the payslip. If you would rather split it by allowance, you can do that below.</p>
+
+        <div class="fld">
+          <label class="form-label" for="f-currency">Currency shown on your payslip<span class="req-tag">Required</span></label>
+          <div class="cur-row">
+            <select id="f-currency" class="form-input">
+              <option value="">Currency</option>
+              <option value="USD">USD — US Dollar</option>
+              <option value="EUR">EUR — Euro</option>
+              <option value="JPY">JPY — Japanese Yen</option>
+              <option value="GBP">GBP — British Pound</option>
+              <option value="AED">AED — UAE Dirham</option>
+              <option value="QAR">QAR — Qatari Riyal</option>
+              <option value="SAR">SAR — Saudi Riyal</option>
+              <option value="KWD">KWD — Kuwaiti Dinar</option>
+              <option value="BHD">BHD — Bahraini Dinar</option>
+              <option value="OMR">OMR — Omani Rial</option>
+              <option value="JOD">JOD — Jordanian Dinar</option>
+              <option value="TRY">TRY — Turkish Lira</option>
+              <option value="CHF">CHF — Swiss Franc</option>
+              <option value="SEK">SEK — Swedish Krona</option>
+              <option value="NOK">NOK — Norwegian Krone</option>
+              <option value="DKK">DKK — Danish Krone</option>
+              <option value="ISK">ISK — Icelandic Krona</option>
+              <option value="PLN">PLN — Polish Zloty</option>
+              <option value="HUF">HUF — Hungarian Forint</option>
+              <option value="CZK">CZK — Czech Koruna</option>
+              <option value="RON">RON — Romanian Leu</option>
+              <option value="CAD">CAD — Canadian Dollar</option>
+              <option value="AUD">AUD — Australian Dollar</option>
+              <option value="NZD">NZD — New Zealand Dollar</option>
+              <option value="FJD">FJD — Fijian Dollar</option>
+              <option value="SGD">SGD — Singapore Dollar</option>
+              <option value="HKD">HKD — Hong Kong Dollar</option>
+              <option value="TWD">TWD — New Taiwan Dollar</option>
+              <option value="KRW">KRW — South Korean Won</option>
+              <option value="CNY">CNY — Chinese Yuan</option>
+              <option value="THB">THB — Thai Baht</option>
+              <option value="MYR">MYR — Malaysian Ringgit</option>
+              <option value="IDR">IDR — Indonesian Rupiah</option>
+              <option value="PHP">PHP — Philippine Peso</option>
+              <option value="VND">VND — Vietnamese Dong</option>
+              <option value="BND">BND — Brunei Dollar</option>
+              <option value="INR">INR — Indian Rupee</option>
+              <option value="EGP">EGP — Egyptian Pound</option>
+              <option value="ETB">ETB — Ethiopian Birr</option>
+              <option value="KES">KES — Kenyan Shilling</option>
+              <option value="ZAR">ZAR — South African Rand</option>
+              <option value="MXN">MXN — Mexican Peso</option>
+              <option value="BRL">BRL — Brazilian Real</option>
+              <option value="CLP">CLP — Chilean Peso</option>
+              <option value="COP">COP — Colombian Peso</option>
+            </select>
+          </div>
+          <p class="fld-hint">Pick the currency <b>exactly as printed on your payslip</b> — dollars, dirhams, yen, whatever it says. We handle the conversion.</p>
+        </div>
+
+        <!-- ★Stopped asking everyone for "base pay", "rate per hour" and "guaranteed
+             hours" (2026-08-12).
+             ・"What counts as base pay?" is where people quit. A Japanese 基本給 and a
+               Gulf Basic Salary are the same words for different things, and every
+               airline draws the line between base and allowances somewhere else.
+             ・An hourly rate splits by day/night and domestic/international, so most
+               pilots cannot answer it with a single number.
+             Ask for one number that can be answered without opening the payslip.
+             The breakdown lives in the <details> below for anyone who wants it (exclusive). -->
+        <!-- ★This field is never hidden, not even while the breakdown below is open
+             (owner, 2026-08-13). While the breakdown is open it turns into a
+             read-only mirror of the sum below. Both hint texts live here so the
+             JS never carries copy (that is how ja and en drift apart). -->
+        <div class="fld" id="pay-gross-fld">
+          <label class="form-label" for="f-gross">Gross pay that month<span class="req-tag">Required</span></label>
+          <input type="text" id="f-gross" class="form-input money" inputmode="decimal" placeholder="e.g. 48,500" data-ph-sum="Sum of the breakdown below"/>
+          <p class="fld-hint" id="gross-hint-own">The <b>total before tax and deductions</b> ("Gross Pay" on your payslip).<br>Enter it <b>exactly as printed</b>, allowances and bonus included.</p>
+          <p class="fld-hint" id="gross-hint-sum" hidden>This is the <b>sum of the breakdown below</b> &mdash; we add it up for you while you are entering the items one by one.<br>To type a single number instead, close "Enter it in detail" (your own figure comes back).</p>
+        </div>
+
+        <div class="fld">
+          <label class="form-label" for="f-netpay">Net pay that month<span class="req-tag">Required</span></label>
+          <input type="text" id="f-netpay" class="form-input money" inputmode="decimal" placeholder="e.g. 41,200"/>
+          <p class="fld-hint">What actually reached your account, <b>after tax and deductions</b> ("Net Pay" on your payslip).<br>Gross minus this is <b>your total deductions</b>.</p>
+        </div>
+
+        <!-- ★Bonus is asked twice on purpose (owner, 2026-08-13): once as the amount
+             inside this month's gross, once as the full-year total. Since the gross is
+             entered exactly as printed, a bonus month carries the bonus inside it, and
+             ×12 would inflate the annual figure.
+             Annual = (gross − bonus this month) × 12 + annual bonus. -->
+        <div class="grid2">
+          <div class="fld">
+            <label class="form-label" for="f-perdiem">Per diem (total for the month)<span class="req-tag">Required</span></label>
+            <input type="text" id="f-perdiem" class="form-input money" inputmode="decimal" placeholder="Monthly total"/>
+            <p class="fld-hint">The <b>monthly total of per diem</b> included in the gross above.<br>If your airline pays none, or none was paid that month, enter <b>0</b>.</p>
+          </div>
+          <div class="fld">
+            <label class="form-label" for="f-bonus-mo">Bonus paid this month<span class="req-tag">Required</span></label>
+            <!-- ★A greyed-out placeholder 0 reads as "you can skip this". Put a real 0 in. -->
+            <input type="text" id="f-bonus-mo" class="form-input money" inputmode="decimal" value="0"/>
+            <p class="fld-hint">The bonus sitting inside the gross above. <b>Enter 0 in an ordinary month.</b><br>We take it out before annualising.</p>
+          </div>
+        </div>
+
+        <div class="grid2">
+          <div class="fld">
+            <label class="form-label" for="f-housing">Housing<span class="req-tag">Required</span></label>
+            <select id="f-housing" class="form-input">
+              <option value="">Select…</option>
+              <option value="provided">Company-provided (in kind)</option>
+              <option value="allowance">Housing allowance (cash)</option>
+              <option value="none">None</option>
+            </select>
+            <p class="fld-hint"><b>The same salary leaves a very different amount in your pocket depending on whether housing comes with it.</b></p>
+          </div>
+          <div class="fld">
+            <label class="form-label" for="f-housing-amt">Housing allowance (per month)<span class="req-tag">Required</span></label>
+            <input type="text" id="f-housing-amt" class="form-input money" inputmode="decimal" placeholder="Cash amount" disabled/>
+            <p class="fld-hint" id="housing-amt-hint">Enabled when you pick “Housing allowance (cash)” on the left.</p>
+          </div>
+        </div>
+
+        <div class="fld">
+          <label class="form-label" for="f-bonus">Annual bonus<span class="opt-tag">optional</span></label>
+          <input type="text" id="f-bonus" class="form-input money" inputmode="decimal" placeholder="Total for the year"/>
+          <p class="fld-hint">The <b>full-year total</b> of bonuses (an estimate is fine). We add it to the annual figure as it is.</p>
+        </div>
+
+        <!-- ── Split it by allowance (kept, folded away) ───────────────────
+             ★Exclusive with the gross above. Opening it clears the gross;
+               closing it clears the breakdown. A row holding both would mean
+               "annual total from one number, pay mix from another" (the server
+               also drops the breakdown and keeps the gross).
+             ★Reading a payslip switches to this side automatically — the
+               breakdown is right there in the document. -->
+        <details class="pay-detail" id="pay-detail">
+          <summary><span class="p">+</span>Split it by allowance</summary>
+          <div class="pay-detail-b">
+            <p class="fld-hint" style="margin:0 0 14px">Splitting it gives your report a <b>pay-mix breakdown</b> &mdash; what actually builds your salary.<br>While it is split, the "gross pay" box above shows <b>these plus per diem and housing allowance</b> (we add it up).</p>
+            <div class="fld">
+              <label class="form-label" for="f-base">Base pay (per month)<span class="req-tag">Required</span></label>
+              <input type="text" id="f-base" class="form-input money" inputmode="decimal" placeholder="e.g. 31,000"/>
+              <p class="fld-hint">The line that is <b>nearly the same every month</b> (usually "Basic Salary" or "Base Pay"). Per diem and housing allowance are asked above &mdash; do <b>not</b> repeat them here; flight and command pay have their own boxes below.</p>
+            </div>
+
+            <div class="opt-fld" id="opt-f-command" hidden>
+              <div class="fld">
+                <label class="form-label" for="f-command">Command pay (month)</label>
+                <input type="text" id="f-command" class="form-input money" inputmode="decimal"/>
+              </div>
+            </div>
+            <div class="opt-fld" id="opt-f-transport" hidden>
+              <div class="fld">
+                <label class="form-label" for="f-transport">Transport (month)</label>
+                <input type="text" id="f-transport" class="form-input money" inputmode="decimal"/>
+              </div>
+            </div>
+            <div class="opt-fld" id="opt-f-other" hidden>
+              <div class="fld">
+                <label class="form-label" for="f-other">Other pay (month)</label>
+                <input type="text" id="f-other" class="form-input money" inputmode="decimal"/>
+              </div>
+            </div>
+            <div class="opt-fld" id="opt-f-profit" hidden>
+              <div class="fld">
+                <label class="form-label" for="f-profit">Profit share (annual)</label>
+                <input type="text" id="f-profit" class="form-input money" inputmode="decimal"/>
+              </div>
+            </div>
+            <div class="opt-fld" id="opt-f-pension" hidden>
+              <div class="fld">
+                <label class="form-label" for="f-pension">Employer pension (%)</label>
+                <input type="number" id="f-pension" class="form-input" min="0" max="100" step="any" inputmode="decimal"/>
+              </div>
+              <p class="fld-hint">The employer contribution is <b>not added to the annualised total</b> — how it is paid out differs too much by country.</p>
+            </div>
+            <div class="chips">
+              <button type="button" class="chip" data-open="f-command"><span class="p">+</span>Command / role pay</button>
+              <button type="button" class="chip" data-open="f-transport"><span class="p">+</span>Transport</button>
+              <button type="button" class="chip" data-open="f-other"><span class="p">+</span>Other allowance</button>
+              <button type="button" class="chip" data-open="f-profit"><span class="p">+</span>Profit share</button>
+              <button type="button" class="chip" data-open="f-pension"><span class="p">+</span>Pension (employer)</button>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <div class="card sec step" id="s4" hidden>
+        <div class="sec-head">
+          <span class="sec-title">4. Contract &amp; tax</span>
+          <span class="sec-tag req">Required</span>
+          <button type="button" class="sec-prog" hidden></button>
+        </div>
+        <p class="sec-sub" id="s4-sub">Same gross, very different take-home depending on contract and where you pay tax.</p>
+
+        <!-- ★Nobody should answer this every month — contract type, tax residence and
+             seniority do not change month to month. Left open, month two makes you
+             walk the same four questions again.
+             Fold it to one line only when it is already filled in; the first time
+             it stays open (owner's rule: it has to be asked once, somewhere). -->
+        <div class="sum-row" id="s4-sum" hidden>
+          <span id="s4-sum-txt"></span>
+          <button type="button" id="s4-edit">Change</button>
+        </div>
+
+        <div id="s4-body">
+        <div class="grid2">
+          <div class="fld">
+            <label class="form-label" for="f-contract">Contract type<span class="req-tag">Required</span></label>
+            <select id="f-contract" class="form-input">
+              <option value="">Select…</option>
+              <option value="direct">Direct employment</option>
+              <option value="contract">Contract (incl. self-employed)</option>
+              <option value="agency">Via agency</option>
+            </select>
+          </div>
+          <div class="fld">
+            <label class="form-label" for="f-seniority">Years at this airline<span class="req-tag">Required</span></label>
+            <input type="number" id="f-seniority" class="form-input" min="0" max="60" step="1" inputmode="numeric" placeholder="e.g. 7"/>
+          </div>
+        </div>
+        <div class="grid2 tax-row">
+          <div class="fld">
+            <label class="form-label" for="f-taxcountry">Tax residence<span class="req-tag">Required</span></label>
+            <select id="f-taxcountry" class="form-input">
+              <option value="">Select…</option>
+              <optgroup label="Commonly selected" data-keep-order>
+                <option value="US">United States</option>
+                <option value="AE">United Arab Emirates</option>
+                <option value="QA">Qatar</option>
+                <option value="SA">Saudi Arabia</option>
+                <option value="KW">Kuwait</option>
+                <option value="BH">Bahrain</option>
+                <option value="OM">Oman</option>
+                <option value="SG">Singapore</option>
+                <option value="HK">Hong Kong SAR China</option>
+                <option value="MY">Malaysia</option>
+                <option value="TH">Thailand</option>
+                <option value="VN">Vietnam</option>
+                <option value="ID">Indonesia</option>
+                <option value="PH">Philippines</option>
+                <option value="IN">India</option>
+                <option value="JP">Japan</option>
+                <option value="KR">South Korea</option>
+                <option value="CN">China</option>
+                <option value="TW">Taiwan</option>
+                <option value="AU">Australia</option>
+                <option value="NZ">New Zealand</option>
+                <option value="CA">Canada</option>
+                <option value="GB">United Kingdom</option>
+                <option value="IE">Ireland</option>
+                <option value="DE">Germany</option>
+                <option value="FR">France</option>
+                <option value="NL">Netherlands</option>
+                <option value="CH">Switzerland</option>
+                <option value="ES">Spain</option>
+                <option value="IT">Italy</option>
+                <option value="TR">Türkiye</option>
+              </optgroup>
+              <optgroup label="All other countries">
+                <option value="AF">Afghanistan</option>
+                <option value="AX">Åland Islands</option>
+                <option value="AL">Albania</option>
+                <option value="DZ">Algeria</option>
+                <option value="AS">American Samoa</option>
+                <option value="AD">Andorra</option>
+                <option value="AO">Angola</option>
+                <option value="AI">Anguilla</option>
+                <option value="AG">Antigua &amp; Barbuda</option>
+                <option value="AR">Argentina</option>
+                <option value="AM">Armenia</option>
+                <option value="AW">Aruba</option>
+                <option value="AT">Austria</option>
+                <option value="AZ">Azerbaijan</option>
+                <option value="BS">Bahamas</option>
+                <option value="BD">Bangladesh</option>
+                <option value="BB">Barbados</option>
+                <option value="BY">Belarus</option>
+                <option value="BE">Belgium</option>
+                <option value="BZ">Belize</option>
+                <option value="BJ">Benin</option>
+                <option value="BM">Bermuda</option>
+                <option value="BT">Bhutan</option>
+                <option value="BO">Bolivia</option>
+                <option value="BA">Bosnia &amp; Herzegovina</option>
+                <option value="BW">Botswana</option>
+                <option value="BR">Brazil</option>
+                <option value="VG">British Virgin Islands</option>
+                <option value="BN">Brunei</option>
+                <option value="BG">Bulgaria</option>
+                <option value="BF">Burkina Faso</option>
+                <option value="BI">Burundi</option>
+                <option value="KH">Cambodia</option>
+                <option value="CM">Cameroon</option>
+                <option value="CV">Cape Verde</option>
+                <option value="BQ">Caribbean Netherlands</option>
+                <option value="KY">Cayman Islands</option>
+                <option value="CF">Central African Republic</option>
+                <option value="TD">Chad</option>
+                <option value="CL">Chile</option>
+                <option value="CX">Christmas Island</option>
+                <option value="CC">Cocos (Keeling) Islands</option>
+                <option value="CO">Colombia</option>
+                <option value="KM">Comoros</option>
+                <option value="CG">Congo - Brazzaville</option>
+                <option value="CD">Congo - Kinshasa</option>
+                <option value="CK">Cook Islands</option>
+                <option value="CR">Costa Rica</option>
+                <option value="CI">Côte d’Ivoire</option>
+                <option value="HR">Croatia</option>
+                <option value="CU">Cuba</option>
+                <option value="CW">Curaçao</option>
+                <option value="CY">Cyprus</option>
+                <option value="CZ">Czechia</option>
+                <option value="DK">Denmark</option>
+                <option value="DJ">Djibouti</option>
+                <option value="DM">Dominica</option>
+                <option value="DO">Dominican Republic</option>
+                <option value="EC">Ecuador</option>
+                <option value="EG">Egypt</option>
+                <option value="SV">El Salvador</option>
+                <option value="GQ">Equatorial Guinea</option>
+                <option value="ER">Eritrea</option>
+                <option value="EE">Estonia</option>
+                <option value="SZ">Eswatini</option>
+                <option value="ET">Ethiopia</option>
+                <option value="FK">Falkland Islands</option>
+                <option value="FO">Faroe Islands</option>
+                <option value="FJ">Fiji</option>
+                <option value="FI">Finland</option>
+                <option value="GF">French Guiana</option>
+                <option value="PF">French Polynesia</option>
+                <option value="GA">Gabon</option>
+                <option value="GM">Gambia</option>
+                <option value="GE">Georgia</option>
+                <option value="GH">Ghana</option>
+                <option value="GI">Gibraltar</option>
+                <option value="GR">Greece</option>
+                <option value="GL">Greenland</option>
+                <option value="GD">Grenada</option>
+                <option value="GP">Guadeloupe</option>
+                <option value="GU">Guam</option>
+                <option value="GT">Guatemala</option>
+                <option value="GG">Guernsey</option>
+                <option value="GN">Guinea</option>
+                <option value="GW">Guinea-Bissau</option>
+                <option value="GY">Guyana</option>
+                <option value="HT">Haiti</option>
+                <option value="HN">Honduras</option>
+                <option value="HU">Hungary</option>
+                <option value="IS">Iceland</option>
+                <option value="IR">Iran</option>
+                <option value="IQ">Iraq</option>
+                <option value="IM">Isle of Man</option>
+                <option value="IL">Israel</option>
+                <option value="JM">Jamaica</option>
+                <option value="JE">Jersey</option>
+                <option value="JO">Jordan</option>
+                <option value="KZ">Kazakhstan</option>
+                <option value="KE">Kenya</option>
+                <option value="KI">Kiribati</option>
+                <option value="KG">Kyrgyzstan</option>
+                <option value="LA">Laos</option>
+                <option value="LV">Latvia</option>
+                <option value="LB">Lebanon</option>
+                <option value="LS">Lesotho</option>
+                <option value="LR">Liberia</option>
+                <option value="LY">Libya</option>
+                <option value="LI">Liechtenstein</option>
+                <option value="LT">Lithuania</option>
+                <option value="LU">Luxembourg</option>
+                <option value="MO">Macao SAR China</option>
+                <option value="MG">Madagascar</option>
+                <option value="MW">Malawi</option>
+                <option value="MV">Maldives</option>
+                <option value="ML">Mali</option>
+                <option value="MT">Malta</option>
+                <option value="MH">Marshall Islands</option>
+                <option value="MQ">Martinique</option>
+                <option value="MR">Mauritania</option>
+                <option value="MU">Mauritius</option>
+                <option value="YT">Mayotte</option>
+                <option value="MX">Mexico</option>
+                <option value="FM">Micronesia</option>
+                <option value="MD">Moldova</option>
+                <option value="MC">Monaco</option>
+                <option value="MN">Mongolia</option>
+                <option value="ME">Montenegro</option>
+                <option value="MS">Montserrat</option>
+                <option value="MA">Morocco</option>
+                <option value="MZ">Mozambique</option>
+                <option value="MM">Myanmar (Burma)</option>
+                <option value="NA">Namibia</option>
+                <option value="NR">Nauru</option>
+                <option value="NP">Nepal</option>
+                <option value="NC">New Caledonia</option>
+                <option value="NI">Nicaragua</option>
+                <option value="NE">Niger</option>
+                <option value="NG">Nigeria</option>
+                <option value="NU">Niue</option>
+                <option value="NF">Norfolk Island</option>
+                <option value="KP">North Korea</option>
+                <option value="MK">North Macedonia</option>
+                <option value="MP">Northern Mariana Islands</option>
+                <option value="NO">Norway</option>
+                <option value="PK">Pakistan</option>
+                <option value="PW">Palau</option>
+                <option value="PS">Palestinian Territories</option>
+                <option value="PA">Panama</option>
+                <option value="PG">Papua New Guinea</option>
+                <option value="PY">Paraguay</option>
+                <option value="PE">Peru</option>
+                <option value="PL">Poland</option>
+                <option value="PT">Portugal</option>
+                <option value="PR">Puerto Rico</option>
+                <option value="RE">Réunion</option>
+                <option value="RO">Romania</option>
+                <option value="RU">Russia</option>
+                <option value="RW">Rwanda</option>
+                <option value="WS">Samoa</option>
+                <option value="SM">San Marino</option>
+                <option value="ST">São Tomé &amp; Príncipe</option>
+                <option value="SN">Senegal</option>
+                <option value="RS">Serbia</option>
+                <option value="SC">Seychelles</option>
+                <option value="SL">Sierra Leone</option>
+                <option value="SX">Sint Maarten</option>
+                <option value="SK">Slovakia</option>
+                <option value="SI">Slovenia</option>
+                <option value="SB">Solomon Islands</option>
+                <option value="SO">Somalia</option>
+                <option value="ZA">South Africa</option>
+                <option value="SS">South Sudan</option>
+                <option value="LK">Sri Lanka</option>
+                <option value="BL">St. Barthélemy</option>
+                <option value="SH">St. Helena</option>
+                <option value="KN">St. Kitts &amp; Nevis</option>
+                <option value="LC">St. Lucia</option>
+                <option value="MF">St. Martin</option>
+                <option value="PM">St. Pierre &amp; Miquelon</option>
+                <option value="VC">St. Vincent &amp; Grenadines</option>
+                <option value="SD">Sudan</option>
+                <option value="SR">Suriname</option>
+                <option value="SJ">Svalbard &amp; Jan Mayen</option>
+                <option value="SE">Sweden</option>
+                <option value="SY">Syria</option>
+                <option value="TJ">Tajikistan</option>
+                <option value="TZ">Tanzania</option>
+                <option value="TL">Timor-Leste</option>
+                <option value="TG">Togo</option>
+                <option value="TK">Tokelau</option>
+                <option value="TO">Tonga</option>
+                <option value="TT">Trinidad &amp; Tobago</option>
+                <option value="TN">Tunisia</option>
+                <option value="TM">Turkmenistan</option>
+                <option value="TC">Turks &amp; Caicos Islands</option>
+                <option value="TV">Tuvalu</option>
+                <option value="VI">U.S. Virgin Islands</option>
+                <option value="UG">Uganda</option>
+                <option value="UA">Ukraine</option>
+                <option value="UY">Uruguay</option>
+                <option value="UZ">Uzbekistan</option>
+                <option value="VU">Vanuatu</option>
+                <option value="VA">Vatican City</option>
+                <option value="VE">Venezuela</option>
+                <option value="WF">Wallis &amp; Futuna</option>
+                <option value="EH">Western Sahara</option>
+                <option value="YE">Yemen</option>
+                <option value="ZM">Zambia</option>
+                <option value="ZW">Zimbabwe</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="fld">
+            <label class="form-label" for="f-tax">Income tax rate (%)<span class="auto-tag">auto</span></label>
+            <input type="number" id="f-tax" class="form-input" min="0" max="100" step="any" inputmode="decimal" placeholder="e.g. 0"/>
+          </div>
+        </div>
+        <div id="tax-warn" class="warn-row" style="display:none;margin-top:2px"></div>
+        <p class="fld-hint" style="margin-top:10px">Pick your tax residence and we fill in <b>a rough rate</b> from that country's published table and your annual pay (Japan, the UK, the US, and countries with no income tax). Everywhere else stays blank. <b>It is only an estimate — overwrite it with the figure on your payslip.</b> The tax rate is the one box you can leave blank; you just do not get the take-home estimate.</p>
+        </div>
+      </div>
+
+      <!-- ── 明細から読めた値のうち、フォームに欄が無いもの ─────────────
+           payslip.js が入れて、そのまま submit_pay_report へ送る。
+           人は触らないので hidden。空なら val() が null を返して列も NULL。
+           ★手取り（f-netpay）と勤務時間（f-duty-h）は 2026-08-13 に表の欄へ出した。
+             §3・§2 にあるので、ここには置かない。 -->
+      <input type="hidden" id="f-ytd">
+      <input type="hidden" id="f-flightvar">
+      <input type="hidden" id="f-deduct">
+      <input type="hidden" id="f-night-h">
+      <input type="hidden" id="f-credit-h">
+      <input type="hidden" id="f-source">
+      <!-- ★読めた手当を1行ずつ（項目名・金額・分類）そのまま溜める。画面には出さない。
+           いまの画面は深夜割増も変動付加乗務手当も「その他手当」に合算するので、
+           送った瞬間に内訳が消える。あとで欄を分けたくなった日に遡って埋められるよう、
+           読めたものだけは残しておく。控除の内訳は入れない（組合名は極めて機微）。 -->
+      <input type="hidden" id="f-psdetail">
+      <!-- ★時給は人に聞かない（昼夜・国内国際で単価が割れるので「1つの数字」に
+           ならない）。欄は畳んだのではなく消した。列と RPC は残っているので、
+           明細から単価が読めるようになったらここへ入れれば、そのまま送られる。
+           空のままなら val() が null を返して列も NULL。 -->
+      <input type="hidden" id="f-hourly">
+
+      <div class="step" id="submit-block" hidden>
+        <div class="sal-total pv-no-cur" style="margin-bottom:8px">
+          <span class="sal-total-lab">Annualised total<br>(from what you entered)</span>
+          <span class="sal-total-val" id="live-total">—</span>
+        </div>
+        <p class="sal-hint pv-no-cur" id="live-hint">(gross &minus; bonus paid this month) &times; 12, plus the annual bonus and profit share.</p>
+
+        <!-- ログインは送信のときだけ。ここに出す（押した場所に出す）。
+             ★中身は pay-login.js が日英1枚で組む。login.html へ飛ばさない
+               （最後まで入力した人を別ページへ送ると、そこで落ちる）。 -->
+        <div id="login-gate" class="card" style="display:none;margin-top:18px">
+          <div id="pay-login"></div>
+        </div>
+
+        <div id="err" style="margin-top:18px"></div>
+
+        <div class="mt-7 flex flex-col sm:flex-row gap-3">
+          <button type="button" id="submit-btn" class="btn-orange justify-center flex-1">Submit and see the numbers →</button>
+          <a href="world-airlines.html" class="btn-ghost justify-center">Cancel</a>
+        </div>
+        <!-- ★Not "submitting". Since 2026-08-17 nothing opens at submit time —
+             the data is held server-side first, and the 90 days start when the
+             account is made and it lands on the shelf. Say otherwise right under
+             the button and that is where the trust goes. -->
+        <p class="sal-hint" style="text-align:center;margin-top:14px">Creating an account unlocks <b>full pay detail for 90 days</b>. Each new payslip you file pushes that out another 90 days. Free for individual pilots, forever.</p>
+      </div>
+
+      </div><!-- /form-body -->
+
+    </div><!-- /form-wrap -->
+
+    <!-- Result -->
+    <div id="result-wrap" class="pv-no-cur" style="display:none"></div>
+
+  </div>
+</main>
+
+<!-- FOOTER -->
+<footer class="py-10">
+  <div class="max-w-5xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+    <a href="index.html"><img src="../assets/logo.png" alt="PILOT VALUE" class="h-7 opacity-70"/></a>
+    <div class="flex gap-6 text-sm text-muted">
+      <a href="world-airlines.html" class="hover:text-text transition-colors">World airlines</a>
+      <a href="privacy-pilot.html" class="hover:text-text transition-colors">How anonymity works</a>
+      <a href="privacy.html" class="hover:text-text transition-colors">Privacy policy</a>
+    </div>
+    <div class="text-xs text-muted">© 2026 PILOT VALUE</div>
+  </div>
+</footer>
+
+<script>
+// ── Supabase ──────────────────────────────────────────────────
+const _sb = supabase.createClient(
+  'https://vzgmnkrggrwtsrpqndsm.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6Z21ua3JnZ3J3dHNycHFuZHNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0MzkwOTcsImV4cCI6MjA5MDAxNTA5N30.wE4cJbqeYGCgn5ZvHd80hYWgQuySKvOMJMbsJWOvmtw'
+);
+
+const LANG = 'en';
+
+/* ★ Do not hand-edit. node gen-vocab.mjs generates this from pv-vocab.mjs.
+   CUR_META = currency code -> [decimals, symbol], TAX_ZERO = countries with no
+   income tax, CITIZEN_TAX = citizenship-based taxation, TAX_TABLE = the countries
+   we hold a published rate table for (everywhere else is left blank, never guessed).
+   Source URLs live in pv-vocab.mjs, which is not served. */
+/*BEGIN:PVMETA*/
+const CUR_META = {USD:[2,'$'],EUR:[2,'€'],JPY:[0,'¥'],GBP:[2,'£'],AED:[2,'د.إ'],QAR:[2,'ر.ق'],SAR:[2,'ر.س'],KWD:[3,'د.ك'],BHD:[3,'.د.ب'],OMR:[3,'ر.ع.'],JOD:[3,'د.ا'],TRY:[2,'₺'],CHF:[2,'CHF'],SEK:[2,'kr'],NOK:[2,'kr'],DKK:[2,'kr'],ISK:[0,'kr'],PLN:[2,'zł'],HUF:[0,'Ft'],CZK:[2,'Kč'],RON:[2,'lei'],CAD:[2,'C$'],AUD:[2,'A$'],NZD:[2,'NZ$'],FJD:[2,'FJ$'],SGD:[2,'S$'],HKD:[2,'HK$'],TWD:[2,'NT$'],KRW:[0,'₩'],CNY:[2,'¥'],THB:[2,'฿'],MYR:[2,'RM'],IDR:[0,'Rp'],PHP:[2,'₱'],VND:[0,'₫'],BND:[2,'B$'],INR:[2,'₹'],EGP:[2,'E£'],ETB:[2,'Br'],KES:[2,'KSh'],ZAR:[2,'R'],MXN:[2,'MX$'],BRL:[2,'R$'],CLP:[0,'CLP$'],COP:[2,'COL$']};
+const TAX_ZERO = ['AE','QA','KW','BH','OM','SA','BN','KY','BM','BS','MC'];
+const CITIZEN_TAX = ['US','ER'];
+const TAX_TABLE = {"JP":{"cur":"JPY","emp":[[1900000,0,650000],[3600000,0.3,80000],[6600000,0.2,440000],[8500000,0.1,1100000],[null,0,1950000]],"basic":[[1320000,950000],[3360000,580000],[4890000,680000],[6550000,630000],[23500000,580000],[24000000,480000],[24500000,320000],[25000000,160000],[null,0]],"quick":[[1950000,0.05,0],[3300000,0.1,97500],[6950000,0.2,427500],[9000000,0.23,636000],[18000000,0.33,1536000],[40000000,0.4,2796000],[null,0.45,4796000]],"surtax":0.021,"local":0.1},"GB":{"cur":"GBP","allow":12570,"taperFrom":100000,"taperRate":0.5,"bands":[[37700,0.2],[125140,0.4],[null,0.45]],"note":"gb-scotland"},"US":{"cur":"USD","std":15750,"bands":[[11925,0.1],[48475,0.12],[103350,0.22],[197300,0.24],[250525,0.32],[626350,0.35],[null,0.37]],"note":"us-state"}};
+/*END:PVMETA*/
+
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
+
+/* ── Analytics (GA4. Reuse the existing gtag — no new vendor) ──────────────
+   ★The same block exists in pay-report.html. Change one and not the other and
+   the two languages stop counting the same thing.
+   Only step names and failure codes are sent — never amounts, airlines or payslips. */
+const track = (name, params) => {
+  if (typeof gtag !== 'function') return;
+  try { gtag('event', name, params || {}); } catch (e) {}
+};
+
+/* ── Login is asked for at SUBMIT time, not on load ───────────
+   Hiding the whole form behind a session check loses everyone who
+   would have left without ever seeing it. Nothing is checked here;
+   submitPayReport() checks only after validation has passed. */
+const PENDING_KEY = 'pv_pay_pending';
+
+async function sessionUserId() {
+  const { data: { session } } = await _sb.auth.getSession();
+  return session ? session.user.id : null;
+}
+
+/* ── The claim token ──────────────────────────────────────────
+   ★What someone types without a session is handed to the server the instant
+     they press submit (submit_pay_report_pending). What comes back is this
+     token; once an account exists, claim_pending_report moves that row onto
+     the shelf (pay_reports). Nobody's input is lost to a failed sign-up again.
+   ★Held as a list. People file one, leave without registering, and file
+     another later. A single slot would strand the first one forever.
+   ★The server stops moving them after 30 days, so drop them here on the same clock. */
+const CLAIM_KEY = 'pv_pay_claim';
+const CLAIM_MAX_AGE = 30 * 24 * 60 * 60 * 1000;
+function readClaims() {
+  let a = null;
+  try { a = JSON.parse(localStorage.getItem(CLAIM_KEY) || '[]'); } catch (e) {}
+  if (!Array.isArray(a)) return [];
+  return a.filter((x) => x && typeof x.t === 'string' && Date.now() - Number(x.ts || 0) < CLAIM_MAX_AGE);
+}
+function writeClaims(a) {
+  try {
+    if (a.length) localStorage.setItem(CLAIM_KEY, JSON.stringify(a.slice(-5)));
+    else localStorage.removeItem(CLAIM_KEY);
+  } catch (e) {}
+}
+let _gatePopped = false;                 // a hand-over that already popped was moved in
+/* The mark for "this hand-over already popped, back at the sign-up box".
+   ★It has to live on the device. Google and the email link leave the page here,
+     so a variable would be gone on return and the result card would pop twice.
+   ★Written onto the claim row itself. readClaims() only looks at t and ts. */
+function markPopped(tok) {
+  const a = readClaims();
+  const it = a.find((x) => x.t === tok);
+  if (it) { it.pop = 1; writeClaims(a); }
+}
+function rememberClaim(tok) {
+  const a = readClaims().filter((x) => x.t !== tok);
+  a.push({ t: tok, ts: Date.now() });
+  writeClaims(a);
+}
+/* Move what was handed over onto the account that just signed in.
+   ★Only drop tokens the server actually answered. One that failed on the
+     network stays (dropping it strands a row that is still sitting there).
+   ★Drop the ones the server calls gone or already done, or the page asks
+     the same question every time it opens.
+   Returns the last one that moved — that is what the report is drawn from. */
+async function claimPending() {
+  const list = readClaims();
+  if (!list.length) return null;
+  const keep = [];
+  let won = null;
+  for (const it of list) {
+    try {
+      const { data, error } = await _sb.rpc('claim_pending_report', { p_token: it.t });
+      if (error) throw error;
+      if (data && data.ok) { won = data; if (it.pop) _gatePopped = true; track('pay_report_claimed'); }
+      else track('pay_report_claim_fail', { reason: String((data && data.reason) || 'not_found').slice(0, 40) });
+    } catch (e) {
+      console.error(e);
+      keep.push(it);
+      track('pay_report_claim_fail', { reason: String((e && (e.code || e.name)) || 'error').slice(0, 40) });
+    }
+  }
+  writeClaims(keep);
+  return won;
+}
+
+/* ── The submit button's label ────────────────────────────────
+   Without a session it reads "Submit anonymously", so it is clear before the
+   press that no account is needed — that one press really does save it. */
+const BTN_LABEL_IN  = 'Submit and see the numbers →';
+const BTN_LABEL_OUT = 'Submit anonymously';
+let _btnLabel = BTN_LABEL_IN;
+function setSubmitLabel(signedIn) {
+  _btnLabel = signedIn ? BTN_LABEL_IN : BTN_LABEL_OUT;
+  const b = $('submit-btn');
+  if (b && !b.disabled) b.textContent = _btnLabel;
+}
+
+/* ★Never send them off this page. pay-login.js builds the box (one copy, JP+EN).
+   saved=true  … the server already has it (the box says "We have your pay data")
+   saved=false … handing it over failed; sign in and submit from here as before */
+function showGate(saved) {
+  /* ★ここで数える。PVPayLogin の中ではない（あちらは plReady で2回目を捨てるので
+     「登録の箱まで来た回数」が数えられない）。フォームを全部埋めきった人の数＝
+     このイベントの数になり、pay_login_* → pay_report_submit と1本につながる。 */
+  track('pay_login_shown', { saved: saved ? 1 : 0 });
+  mountLogin(saved, 0);
+  $('login-gate').style.display = '';
+  $('login-gate').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+/* ★pay-login.js loads after this block (end of the page). Coming from a button
+   press it is always there in time, but this is now called on load too (route ②),
+   so wait for it. Give up too early and the frame appears with an empty box. */
+function mountLogin(saved, tries) {
+  if (typeof window.PVPayLogin === 'function') {
+    window.PVPayLogin({
+      sb: _sb, lang: LANG, mount: $('pay-login'), saved: !!saved,
+      onSignedIn: function () { afterSignedIn(); },
+    });
+    /* The round 🎉 goes here too, not inside showGate.
+       ★On the way back this is called the moment the page opens, and confetti.js
+         may not be in yet — placed in showGate it silently drew nothing.
+         pay-login.js loads after confetti.js, so if PVPayLogin is here so is it. */
+    if (saved && window.PVConfetti && window.PVConfetti.badge) window.PVConfetti.badge($('login-gate'));
+    return;
+  }
+  if (tries > 50) return;                                  // 5s. Past this the script itself failed to load
+  setTimeout(function () { mountLogin(saved, tries + 1); }, 100);
+}
+function hideGate() { $('login-gate').style.display = 'none'; }
+
+/* Straight after the account exists. If a token is held, moving it is the whole
+   job — nothing is retyped and nothing is resent. Only those whose hand-over
+   failed submit from the form. */
+async function afterSignedIn() {
+  setSubmitLabel(true);
+  /* Attach anyone who arrived from an invite link to their inviter. ★Call this
+     BEFORE claimPending(), while the report count is still zero, so this very
+     first report counts (conversion is derived from
+     profiles.pay_report_count > referrals.baseline_reports).
+     Idempotent, so overlapping with the other three call sites is harmless.
+     Never blocks the pay flow. */
+  try { if (window.PVReferral) await window.PVReferral.claim(_sb); } catch (e) {}
+  const won = await claimPending();
+  if (won) {
+    hideGate();
+    return afterSaved(won, won.payload || {}, (won.payload || {}).airline);
+  }
+  submitPayReport();
+}
+
+/* Everything that follows a successful save. Both the signed-in submit and the
+   claim come through here. ★Fix one and not the other and you get "the 90 days
+   never opened" or "no email ever went out". */
+function afterSaved(data, payload, airline) {
+  try { localStorage.removeItem(PENDING_KEY); } catch (e) {}
+  /* Raise the "email me" flag for anyone who joined from this box, exactly once.
+     ★Every route ends up here. Written straight after auth instead, the routes
+       that leave the page (Google, the emailed link) would miss it. */
+  if (window.PVPayLogin && window.PVPayLogin.claimOptIn) window.PVPayLogin.claimOptIn(_sb);
+  if (data.access_until) {
+    try { localStorage.setItem('pv_salary_unlock_expiry', String(Date.parse(data.access_until))); } catch (e) {}
+  }
+  try {
+    if (typeof gtag === 'function') {
+      gtag('event', 'pay_report_submit', { airline: airline || '', position: (payload && payload.position) || '', is_new: !!data.is_new });
+      gtag('event', 'unlock', { method: 'pay_report' });
+    }
+  } catch (e) {}
+  /* Stamp the referral as converted. Fire and forget — conversion itself is
+     derived from profiles.pay_report_count, so a failure here changes no count. */
+  if (window.PVReferral) window.PVReferral.settle(_sb);
+  renderResult(data, payload);
+}
+
+// ── Period: defaults to LAST month. The current month is not settled yet. ──
+(function () {
+  const now = new Date();
+  let y = now.getFullYear(), m = now.getMonth(); // getMonth() is 0-based, so it already is last month
+  if (m === 0) { m = 12; y -= 1; }
+  const ys = $('f-year'), ms = $('f-month');
+  for (let i = y; i >= 2015; i--) ys.insertAdjacentHTML('beforeend', `<option value="${i}">${i}</option>`);
+  for (let i = 1; i <= 12; i++) ms.insertAdjacentHTML('beforeend', `<option value="${i}">${MONTH_NAMES[i - 1]}</option>`);
+  ys.value = String(y);
+  ms.value = String(m);
+})();
+
+// ── Country names come from the browser (never maintained twice) ──────
+(function () {
+  let dn = null;
+  try { dn = new Intl.DisplayNames([LANG], { type: 'region' }); } catch (e) {}
+  const sel = $('f-taxcountry');
+  if (!sel || !dn) return;
+  /* ★Re-sort INSIDE each optgroup. The old code appendChild'd everything back onto
+     the select, which pulls options out of their optgroup and collapses the
+     "Commonly selected / All other countries" split back into one 241-item list.
+     data-keep-order marks the top group, whose order is deliberate. */
+  for (const g of sel.querySelectorAll('optgroup')) {
+    const opts = Array.prototype.slice.call(g.children);
+    for (const o of opts) { const n = dn.of(o.value); if (n && n !== o.value) o.textContent = n; }
+    if (g.hasAttribute('data-keep-order')) continue;
+    opts.sort((a, b) => a.textContent.localeCompare(b.textContent, LANG));
+    for (const o of opts) g.appendChild(o);
+  }
+})();
+
+// ── ?airline= preselects the airline ─────────────────────────────
+(function () {
+  const a = new URLSearchParams(location.search).get('airline');
+  if (!a) return;
+  const sel = $('f-airline');
+  const ok = Array.prototype.some.call(sel.options, (o) => o.value === a);
+  sel.value = ok ? a : 'other';
+})();
+
+// ── Free-text name when “Other” is picked ────────────────────────
+$('f-airline').addEventListener('change', () => {
+  $('wrap-other').style.display = $('f-airline').value === 'other' ? '' : 'none';
+});
+
+/* ── Housing: only take an amount when it is paid in cash ─────────
+   ★Housing became required on 2026-08-13, and the amount with it when it is cash
+     (owner). It does not double-count: on a row that carries a gross, the server's
+     pv_annual_total ignores the breakdown — the housing amount is stored as a part
+     of that gross, not added on top. */
+$('f-housing').addEventListener('change', () => {
+  const cash = $('f-housing').value === 'allowance';
+  const amt = $('f-housing-amt');
+  amt.disabled = !cash;
+  if (!cash) amt.value = '';
+  $('housing-amt-hint').textContent = cash
+    ? 'Enter the monthly housing allowance included in the gross above.'
+    : 'Enabled when you pick “Housing allowance (cash)” on the left.';
+  recalc();
+});
+
+/* ── The gross and the breakdown are exclusive (but the field stays) ────
+   ★The gross field is never hidden any more (owner, 2026-08-13). Hiding it made
+     the form look like it never asks for the gross before the bonus. While the
+     breakdown is open the field becomes a read-only mirror of the sum below
+     (recalc() writes it).
+   ★The figure typed by hand is parked in dataset and comes back on close.
+     Dropping it would mean opening the breakdown out of curiosity wipes input.
+   ★Clear whatever is off screen. Leaving a value behind means a number nobody
+     can see still feeds the annualised total and the submission:
+     what you see is what you send.
+   ★Only one side is ever sent (payload sends gross_monthly as null while open).
+     Sending both makes the server (submit_pay_report) treat the gross as the
+     truth and throw the breakdown away, so the pay-composition chart vanishes. */
+/* ★Per diem and the housing amount are NOT in here (2026-08-13). They moved out to
+     boxes everyone answers, so closing the breakdown must not wipe them. */
+const DETAIL_IDS = ['f-base','f-hourly',
+                    'f-transport','f-command','f-other','f-profit','f-pension'];
+const GROSS_PH = $('f-gross').placeholder;
+
+function updatePayMode() {
+  const detail = $('pay-detail').open;
+  const g = $('f-gross');
+  if (detail) {
+    if (!g.readOnly) g.dataset.manual = g.value;        // park what was typed
+    g.readOnly = true;
+    g.placeholder = g.dataset.phSum || GROSS_PH;
+  } else {
+    /* readOnly means we were mirroring the sum until now — only then may the
+       value be swapped (the preset restore runs through here too, so clearing
+       unconditionally would wipe what was just restored). */
+    if (g.readOnly) {
+      g.value = g.dataset.manual || '';
+      delete g.dataset.manual;
+      g.readOnly = false;
+    }
+    g.placeholder = GROSS_PH;
+    for (const id of DETAIL_IDS) $(id).value = '';
+  }
+  $('gross-hint-own').hidden = detail;
+  $('gross-hint-sum').hidden = !detail;
+  recalc();
+}
+$('pay-detail').addEventListener('toggle', updatePayMode);
+
+/* ── Tax: estimated from residence + annual pay ────────────────
+   ★We never decide it. We fill it only while you have not touched the field,
+     and you can always overwrite it.
+   ★Only countries we hold a published rate table for. Everything else stays
+     blank rather than guessed. */
+
+// Pick the band an amount falls in. A null upper bound closes the table.
+const taxBand = (tbl, v) => tbl.find((r) => r[0] === null || v <= r[0]);
+
+/* Annual pay (in the payslip's own currency) -> rough effective rate (%).
+   ★If the payslip currency is not the tax country's currency we do not
+     calculate. Reaching for an FX rate here would drag the tax rate along
+     every time the rate moves, and someone earning and living in different
+     currencies is better off entering their own number. */
+function estTaxPct(country, cur, gross) {
+  if (!country) return null;
+  if (TAX_ZERO.indexOf(country) >= 0) return 0;      // 0% regardless of income
+  const t = TAX_TABLE[country];
+  if (!t || !(gross > 0) || cur !== t.cur) return null;
+
+  let tax = 0;
+  if (t.emp) {
+    // Japan: employment deduction -> basic deduction -> bands -> surtax -> local tax
+    const d = taxBand(t.emp, gross);
+    const income = gross - (gross * d[1] + d[2]);
+    const taxable = Math.max(0, income - taxBand(t.basic, income)[1]);
+    const q = taxBand(t.quick, taxable);
+    const national = Math.max(0, taxable * q[1] - q[2]);
+    tax = national * (1 + t.surtax) + taxable * t.local;
+  } else {
+    // UK / US: flat allowance (tapered in the UK for high earners) -> progressive bands
+    let allow = t.std != null ? t.std : t.allow;
+    if (t.taperFrom && gross > t.taperFrom) {
+      allow = Math.max(0, allow - (gross - t.taperFrom) * t.taperRate);
+    }
+    const taxable = Math.max(0, gross - allow);
+    let prev = 0;
+    for (const [cap, rate] of t.bands) {
+      const hi = cap === null ? taxable : Math.min(taxable, cap);
+      if (hi > prev) tax += (hi - prev) * rate;
+      prev = hi;
+      if (cap !== null && taxable <= cap) break;
+    }
+  }
+  return Math.round((tax / gross) * 1000) / 10;
+}
+
+function updateTax() {
+  const res = $('f-taxcountry').value, box = $('tax-warn'), fld = $('f-tax');
+  const cur = $('f-currency').value;
+  const pct = estTaxPct(res, cur, annualTotal());
+  const msgs = [];
+
+  if (pct !== null && !fld.dataset.touched) fld.value = String(pct);
+
+  if (res && TAX_ZERO.indexOf(res) >= 0) {
+    msgs.push(countryPhrase(res, true) + ' levies no personal income tax on employment income, so <b>0% has been filled in</b>. Overwrite it if that is not your situation.');
+    /* We stopped asking for nationality on 2026-08-12. Instead everyone resident
+       in a 0% country gets told once: US and Eritrean citizens still file at
+       home, so leaving 0% in place would be untrue for them. */
+    msgs.push('<b>If you are a citizen of a country that taxes by citizenship (notably the United States), this does not apply to you.</b> You still file at home, so your real rate is not 0%.');
+  } else if (pct !== null) {
+    const t = TAX_TABLE[res] || {};
+    /* ★"national and local" is only true where we actually compute a local tax.
+       Saying it everywhere contradicts the "federal tax only" line that follows
+       for the United States. */
+    let s = 'Based on the published rate table for ' + countryPhrase(res, false) + ', pay at this level works out at <b>roughly ' + pct + '%</b>, so that is what we filled in. '
+          + (t.local ? 'It combines national and local income tax and ' : 'It covers national income tax only and ')
+          + '<b>excludes social-insurance and dependant deductions</b> (so it reads high). ';
+    if (t.note === 'us-state') s += '<b>Federal tax only</b> — state tax is not included. ';
+    if (t.note === 'gb-scotland') s += 'England, Wales and Northern Ireland rates; Scotland differs. ';
+    msgs.push(s + '<b>Please overwrite it with the figure on your payslip.</b>');
+  }
+
+  box.innerHTML = msgs.length ? '<span>⚠</span><span>' + msgs.join('<br><br>') + '</span>' : '';
+  box.style.display = msgs.length ? '' : 'none';
+}
+function countryName(code) {
+  const o = Array.prototype.find.call($('f-taxcountry').options, (x) => x.value === code);
+  return o ? o.textContent : code;
+}
+/* Intl.DisplayNames hands back bare names ("United States"), which reads wrong
+   in running English ("for United States"). Only the countries we actually name
+   in these messages need the article, so this list stays short on purpose. */
+const NEEDS_THE = ['US', 'GB', 'AE', 'KY', 'BS', 'NL', 'PH'];
+const countryPhrase = (code, atSentenceStart) =>
+  (NEEDS_THE.indexOf(code) >= 0 ? (atSentenceStart ? 'The ' : 'the ') : '') + esc(countryName(code));
+$('f-taxcountry').addEventListener('change', updateTax);
+$('f-tax').addEventListener('input', () => { $('f-tax').dataset.touched = '1'; });
+
+/* ── Thousands separators on money boxes (owner, 2026-08-13) ──────
+   1150000 is unreadable. Show 1,150,000.
+   ★<input type="number"> cannot hold a comma (the browser throws the value away),
+     so the money boxes are type="text" inputmode="decimal" (class="money").
+     Hours / days / percent stay number, so their min-max checks keep working.
+   ★From here on, a money .value may contain commas. Always read it through
+     unc() — a raw value in the payload makes the server's ::numeric fail. */
+const unc = (s) => String(s == null ? '' : s).replace(/,/g, '');
+function grp(s) {
+  const t = unc(s).replace(/[^0-9.]/g, '');
+  const i = t.split('.')[0];
+  const d = t.indexOf('.') >= 0 ? '.' + t.split('.').slice(1).join('') : '';
+  return i.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + d;
+}
+/* Reformat while typing. Commas change the length, so count the digits before the
+   caret and put it back at the same digit. */
+function fmtMoneyEl(el) {
+  const pos = el.selectionStart;
+  const keep = pos == null ? -1 : unc(el.value.slice(0, pos)).replace(/[^0-9.]/g, '').length;
+  el.value = grp(el.value);
+  if (keep < 0) return;
+  let n = 0, p = 0;
+  while (p < el.value.length && n < keep) { if (/[0-9.]/.test(el.value[p])) n++; p++; }
+  try { el.setSelectionRange(p, p); } catch (e) {}
+}
+const MONEY_EL = Array.prototype.slice.call(document.querySelectorAll('input.money'));
+for (const el of MONEY_EL) el.addEventListener('input', () => fmtMoneyEl(el));
+/* Call after values are assigned (preset, last month, payslip read) */
+function fmtMoneyAll() { for (const el of MONEY_EL) if (el.value) el.value = grp(el.value); }
+
+// ── Live annualised total (same formula as pv_annual_total in the DB) ──
+// ★ The formula therefore lives in two places — change both, always.
+//   The server’s return value is authoritative and replaces this after submit.
+const num = (id) => { const v = parseFloat(unc($(id).value)); return isFinite(v) && v > 0 ? v : 0; };
+
+/* The monthly figure built from the breakdown. ★The mirror shown in the gross
+   field and annualTotal() share this one expression — two different ways of
+   adding it up would put a different number on screen than in the total. */
+function monthlyDetail() {
+  const hours = Math.max(num('f-block'), num('f-guar'));
+  const housing = $('f-housing').value === 'allowance' ? num('f-housing-amt') : 0;
+  return num('f-base') + num('f-hourly') * hours + num('f-perdiem') + housing
+         + num('f-transport') + num('f-command') + num('f-other');
+}
+
+function annualTotal() {
+  /* ★Which side is the truth is decided by whether the breakdown is open, not by
+     whether the gross field holds a number: while it is open that field mirrors
+     the sum, so "a gross is present, ignore the breakdown" would read our own
+     mirror and drop the items. Same result as the server's
+     coalesce(p_gross_monthly, sum of the breakdown) — while open we send no
+     gross_monthly, so the server adds the breakdown up too. */
+  /* ★The gross is entered exactly as printed, so a bonus month carries the bonus
+     inside it. Take it out before ×12 (owner, 2026-08-13). A breakdown sum never
+     contains a bonus, so that side is used as it is. */
+  const monthly = $('pay-detail').open ? monthlyDetail()
+                                       : Math.max(0, num('f-gross') - num('f-bonus-mo'));
+  return monthly * 12 + num('f-bonus') + num('f-profit');
+}
+
+function fmtCur(v, code) {
+  const meta = CUR_META[code] || [2, ''];
+  const s = new Intl.NumberFormat('en-US', { minimumFractionDigits: 0, maximumFractionDigits: meta[0] }).format(Math.round(v));
+  return (code ? code + ' ' : '') + s;
+}
+
+function recalc() {
+  const cur = $('f-currency').value;
+  /* ★While the breakdown is open, the gross field mirrors the sum below.
+     Assigning .value fires no input event, so this never recurses. */
+  if ($('pay-detail').open) {
+    const m = monthlyDetail();
+    $('f-gross').value = m > 0 ? grp(+m.toFixed(2)) : '';
+  }
+  const t = annualTotal();
+  $('live-total').innerHTML = t > 0
+    ? new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Math.round(t)) + '<span class="u">' + esc(cur || '') + ' / yr</span>'
+    : '—';
+  updateTax();   // the rate depends on annual pay, so redo it whenever a figure changes
+}
+['f-gross','f-base','f-hourly','f-guar','f-block','f-perdiem','f-housing-amt','f-transport','f-command','f-other','f-bonus','f-bonus-mo','f-profit']
+  .forEach((id) => $(id).addEventListener('input', recalc));
+$('f-currency').addEventListener('change', recalc);
+
+/* ── Progressive disclosure (the levels.fyi mechanic) ─────────
+   Fill one part, the next grows below it. ★A revealed section is
+   never hidden again (collapsing on an emptied field just makes the
+   page jump while you are still editing).
+   The gate conditions are the SAME ones submitPayReport() validates.
+   Two different copies of the condition would drift apart. */
+const filled = (id) => $(id).value.trim() !== '';
+const GATE_ROLE   = () => filled('f-airline') && ($('f-airline').value !== 'other' || filled('f-airline-other'))
+                          && filled('f-position') && filled('f-fleet') && filled('f-jobrole')
+                          && filled('f-age');
+const GATE_HOURS  = () => filled('f-block') && filled('f-stay');
+/* ★Where to look for "pay was entered" depends on whether the breakdown is open.
+   While it is, the gross field mirrors the sum, so looking there would open the
+   step for a per-diem-only row that the server then rejects (it refuses rows
+   made of allowances alone). The gate and submitPayReport() share this one.
+   filled() lets '0' through — the real amount is checked on submit. */
+const payEntered  = () => $('pay-detail').open ? (filled('f-base') || filled('f-hourly'))
+                                               : filled('f-gross');
+/* Housing is not done when it is merely picked — cash means the amount too. */
+const housingOk   = () => filled('f-housing')
+                          && ($('f-housing').value !== 'allowance' || filled('f-housing-amt'));
+const GATE_PAY    = () => filled('f-currency') && payEntered() && filled('f-netpay')
+                          && filled('f-bonus-mo') && filled('f-perdiem') && housingOk();
+/* ★4. Contract & tax became required on 2026-08-13 (owner). The tax rate itself
+     stays optional — we have no table for most countries, and requiring it would
+     dead-end everyone living in one of them. */
+const GATE_CONTRACT = () => filled('f-contract') && filled('f-taxcountry') && filled('f-seniority');
+const STEPS = [['s2', GATE_ROLE], ['s3', GATE_HOURS], ['s4', GATE_PAY]];
+
+function updateSteps(quiet) {
+  const show = (id) => {
+    const el = $(id);
+    if (!el.hidden) return;          // ★once revealed, never hidden again
+    el.hidden = false;
+    if (!quiet) el.classList.add('step-in');
+  };
+  /* ★Stop at the first gate that does not pass — never skip one.
+     It used to open every step up to the deepest passing gate. The preset
+     deliberately never stores the period or block hours (they change every
+     month), so a returning pilot saw §3 and §4 open while "hours flown" in §2
+     was still empty, which reads as no progressive disclosure at all
+     (owner, 2026-08-13).
+     Nothing is skipped now, so the submit button only appears once every gate
+     passes — which also kills the original worry (a live submit button with
+     the pilot's own base pay nowhere on screen). */
+  let last = -1;
+  for (let i = 0; i < STEPS.length; i++) { if (!STEPS[i][1]()) break; last = i; }
+  for (let i = 0; i <= last; i++) show(STEPS[i][0]);
+  if (last === STEPS.length - 1 && GATE_CONTRACT()) show('submit-block');
+  markRequired();
+  markProgress();
+  $('ai-legend').hidden = !document.querySelector('.form-input.ai-filled');
+}
+
+/* 必須の欄の左レール（2026-08-13 その4）。埋まったら中立色に落とす。
+   ★どの欄が必須かは HTML の <span class="req-tag"> ただ1か所で決める。
+     ここで別の一覧を持つと、印とレールが別々にズレる。
+     印そのものがゲートと一致しているかは db/test-form-contract.mjs の静的検査⑧が見る。 */
+function markRequired() {
+  for (const lab of document.querySelectorAll('label.form-label:has(.req-tag)')) {
+    const fld = lab.closest('.fld');
+    if (!fld) continue;
+    fld.classList.add('is-req');
+    const el = $(lab.htmlFor);
+    fld.classList.toggle('is-done', !!el && el.value.trim() !== '');
+  }
+}
+/* 段ごとの進み具合（2026-08-17 オーナー指摘：どこが入力済みか分からない
+   → 2026-08-18 オーナー指摘：残りの個数ではなく、埋まった割合を緑のゲージで）。
+   ★「入力済み」の判定は、欄の数ではなく段のゲートそのもの＝送信を止めている条件を使う。
+     欄を数えるだけだと、「くわしく入れる」を開いて時給だけ入れた人に 100% と出たまま
+     送信ボタンが生える（基本給の欄は空のままでよいため）。画面と送信が食い違う。
+   ★数える側は「画面に出ている欄」だけ（offsetParent）。「その他」の社名欄・住宅手当の額など、
+     条件が揃うまで隠れている必須欄を数えると、開いていない欄のぶんだけ分母が増える。 */
+const SEC_GATE = [['s1', GATE_ROLE], ['s2', GATE_HOURS], ['s3', GATE_PAY], ['s4', GATE_CONTRACT]];
+const openReq = (sec) =>
+  [...sec.querySelectorAll('.fld.is-req:not(.is-done)')].filter((f) => f.offsetParent);
+const visReq = (sec) =>
+  [...sec.querySelectorAll('.fld.is-req')].filter((f) => f.offsetParent);
+
+/* ゲージの中身は「無ければ作る」で1回だけ組み立てる。
+   ★毎回 innerHTML/textContent で作り直すと width のトランジションが打鍵のたびに
+     やり直しになり、ゲージが伸びて見えない。以後は幅と数字だけ書き換える。 */
+function progParts(el) {
+  let bar = el.querySelector('.sec-prog-bar > i');
+  if (!bar) {
+    el.textContent = '';
+    const track = document.createElement('span');
+    track.className = 'sec-prog-bar';
+    bar = document.createElement('i');
+    track.appendChild(bar);
+    const num = document.createElement('span');
+    num.className = 'sec-prog-num';
+    el.append(track, num);
+  }
+  return { bar, num: el.querySelector('.sec-prog-num') };
+}
+
+function markProgress() {
+  for (const [id, gate] of SEC_GATE) {
+    const sec = $(id);
+    const el = sec.querySelector('.sec-prog');
+    if (!el) continue;
+    el.hidden = false;
+    const { bar, num } = progParts(el);
+    const done = gate();
+    let pct;
+    if (done) {
+      pct = 100;
+    } else {
+      /* ゲートが通っていない以上まだ何か足りないので、見えている欄が全部埋まっていても
+         100% にはしない（残り最低1件として分母に足す）。 */
+      const open = Math.max(openReq(sec).length, 1);
+      const filled = visReq(sec).length - openReq(sec).length;
+      pct = Math.round((filled / (filled + open)) * 100);
+    }
+    el.className = done ? 'sec-prog done' : 'sec-prog';
+    el.disabled = done;
+    bar.style.width = pct + '%';
+    num.textContent = (done ? '✓ ' : '') + pct + '%';
+    /* 見えている文字が数字だけになるので、何の割合かは読み上げ用に持たせる。 */
+    const title = (sec.querySelector('.sec-title') || {}).textContent || '';
+    el.setAttribute('aria-label', `${title} — ${pct}% complete`);
+  }
+}
+/* ゲージを押したら、その段の最初の未入力欄まで運ぶ。 */
+$('form-wrap').addEventListener('click', (e) => {
+  const b = e.target.closest && e.target.closest('.sec-prog');
+  if (!b || b.disabled) return;
+  const fld = openReq(b.closest('.sec'))[0];
+  const inp = fld && fld.querySelector('.form-input');
+  if (!inp) return;
+  inp.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  inp.focus({ preventScroll: true });
+});
+$('form-wrap').addEventListener('input', () => updateSteps());
+$('form-wrap').addEventListener('change', () => updateSteps());
+
+/* ── The two-way entry screen (owner, 2026-08-13) ─────────────────
+   All show/hide happens here and nowhere else. Four callers: the two entry
+   buttons, "skip this and enter manually", and payslip.js once a slip is read
+   (window.PVEnterMode).
+   ★payslip: show the payslip card as-is, form still hidden (step 1 of 2).
+     Once it reads, we switch to manual and the form appears (step 2 of 2).
+   ★manual : shrink the payslip card to a one-line strip on top, show the form. */
+function enterMode(mode) {
+  const slim = mode !== 'payslip';
+  $('entry').hidden = true;
+  $('ps').hidden = false;
+  $('ps').classList.toggle('is-slim', slim);
+  if (slim && $('form-body').hidden) {
+    $('form-body').hidden = false;
+    updateSteps(true);        // catch up on anything restored while it was hidden
+  }
+}
+window.PVEnterMode = enterMode;
+/* ★Track on the buttons, not inside enterMode(). payslip.js calls
+   enterMode('manual') itself after a failed read, so putting it in the function
+   would mix the machine's calls into "how many people chose manual". */
+$('entry-payslip').addEventListener('click', () => { track('pay_entry_payslip'); enterMode('payslip'); $('ps-drop').focus(); });
+$('entry-manual').addEventListener('click', () => { track('pay_entry_manual', { from: 'button' }); enterMode('manual'); $('f-airline').focus(); });
+$('ps-skip').addEventListener('click', () => { track('pay_entry_manual', { from: 'skip' }); enterMode('manual'); });
+
+/* ── Optional fields fold into chips ──────────────────────────
+   Ten permanently visible boxes read as "there is still all this". */
+// ★f-bonus came out of the chips (it is one of the five simple-form boxes: without
+//   asking for the annual bonus, whoever files a bonus month reads almost twice as high).
+const CHIP_FIELDS = ['f-duty','f-base-iata','f-command','f-transport','f-other','f-profit','f-pension'];
+
+function openOpt(id, quiet) {
+  const box = $('opt-' + id);
+  if (!box || !box.hidden) return false;
+  box.hidden = false;
+  if (!quiet) box.classList.add('step-in');
+  const chip = document.querySelector('.chip[data-open="' + id + '"]');
+  if (chip) chip.remove();
+  return true;
+}
+for (const c of document.querySelectorAll('.chip[data-open]')) {
+  c.addEventListener('click', () => { openOpt(c.dataset.open); $(c.dataset.open).focus(); });
+}
+/* ?airline= can select 'other' without firing change, so the
+   free-text name box stays hidden — and then the S2 gate never opens
+   with nothing on screen to explain why. */
+$('f-airline').dispatchEvent(new Event('change'));
+
+// ── Preset saved on this device (so next month takes 30 seconds) ──────
+// ★ The period is never saved (it differs every time). Figures stay on the device.
+const LS_KEY = 'pv_pay_last';
+// ★f-paytype was removed as a field on 2026-08-12. f-gross (that month's gross) took its place.
+const PRESET_IDS = ['f-airline','f-airline-other','f-position','f-fleet','f-currency','f-gross','f-base','f-hourly',
+  'f-guar','f-perdiem','f-housing','f-housing-amt','f-contract','f-seniority','f-taxcountry',
+  'f-tax','f-command','f-transport','f-other','f-bonus','f-profit','f-pension','f-jobrole','f-age','f-base-iata'];
+// ★For re-sending after login. Unlike the preset, this includes the period.
+const ALL_IDS = PRESET_IDS.concat(['f-year','f-month','f-block','f-duty',
+  /* ★その月にしか無い値。PRESET_IDS には入れない（翌月のフォームに持ち越すと壊れる）。 */
+  'f-stay','f-bonus-mo',
+  'f-netpay','f-ytd','f-flightvar','f-deduct','f-duty-h','f-night-h','f-credit-h','f-source','f-psdetail']);
+
+function savePreset() {
+  const o = {};
+  for (const id of PRESET_IDS) { const v = $(id).value; if (v) o[id] = v; }
+  /* ★Never remember the gross while the breakdown was open — that value is the
+     mirrored sum, not a figure anyone typed. Kept, it comes back next month as a
+     hand-entered gross and builds a row holding both sides. */
+  if ($('pay-detail').open) delete o['f-gross'];
+  try { localStorage.setItem(LS_KEY, JSON.stringify(o)); } catch (e) {}
+}
+function snapshot() {
+  const o = {};
+  for (const id of ALL_IDS) { const v = $(id).value; if (v) o[id] = v; }
+  return o;
+}
+function restoreInto(o) {
+  let n = 0;
+  for (const id of ALL_IDS) {
+    if (!o[id]) continue;
+    const el = $(id);
+    if (el.tagName === 'SELECT' && !Array.prototype.some.call(el.options, (x) => x.value === o[id])) continue;
+    el.value = o[id]; n++;
+  }
+  if (!n) return 0;
+  fmtMoneyAll();   // assignment fires no input event — put the separators back on
+  /* ★If even one breakdown box came back, open the "split it" side. Left closed,
+     updatePayMode() clears what is off screen and silently drops the restored
+     breakdown. (Anyone who had a gross saved stays closed — the gross is right.) */
+  const hasDetail = DETAIL_IDS.some((id) => String(o[id] || '').trim() !== '');
+  if (hasDetail) $('pay-detail').open = true;
+  updatePayMode();      // catches the cases where no toggle event fires (already open, etc.)
+  $('f-airline').dispatchEvent(new Event('change'));
+  $('f-housing').dispatchEvent(new Event('change'));
+  recalc();   // updateTax() runs inside
+  for (const f of CHIP_FIELDS) if ($(f).value.trim() !== '') openOpt(f, true);
+  foldContract();
+  updateSteps(true);
+  return n;
+}
+
+/* ── 4. Contract & tax: fold to one line when it is already filled ─────
+   ★These are not monthly questions (contract type, tax residence and years at
+     the airline do not change month to month). Left open, month two walks the
+     same four questions again.
+   ★Fold only when filled. The first visit stays open
+     (owner's rule: it has to be asked once, somewhere). */
+function foldContract() {
+  const c = $('f-contract'), t = $('f-taxcountry');
+  if (!c.value || !t.value) return;                 // first visit / blank stays open
+  const label = (sel) => {
+    const o = Array.prototype.find.call(sel.options, (x) => x.value === sel.value);
+    return o ? o.textContent : sel.value;
+  };
+  const bits = [label(c), 'resident in ' + label(t)];
+  if ($('f-tax').value !== '') bits.push('income tax ' + $('f-tax').value + '%');
+  if ($('f-seniority').value !== '') bits.push($('f-seniority').value + ' yrs at the airline');
+  $('s4-sum-txt').innerHTML = '<b>' + esc(bits.join(' / ')) + '</b>';
+  $('s4-sum').hidden = false;
+  $('s4-body').hidden = true;
+  $('s4-sub').hidden = true;      // folded: the one-line summary is all that stays
+}
+$('s4-edit').addEventListener('click', () => {
+  $('s4-sum').hidden = true;
+  $('s4-body').hidden = false;
+  $('s4-sub').hidden = false;
+  $('f-contract').focus();
+});
+function loadPreset() {
+  let o = null;
+  try { o = JSON.parse(localStorage.getItem(LS_KEY) || 'null'); } catch (e) {}
+  if (!o || !restoreInto(o)) return;
+  $('restore-bar').style.display = '';
+  $('entry-prev').hidden = false;   // tell the "Enter manually" card that last time's answers are in
+}
+$('btn-forget').addEventListener('click', () => {
+  try { localStorage.removeItem(LS_KEY); } catch (e) {}
+  $('restore-bar').style.display = 'none';
+});
+loadPreset();
+updateSteps(true);
+
+/* ── Fill in last month from the server ────────────────────────────────
+   ★localStorage alone reaches nobody who changed phone, changed browser, or
+     arrived from a payslip. If they are signed in, fill from their own most
+     recent row (my_pay_reports only ever returns the caller's own rows).
+   ★Never carried over: the pay period and hours flown (they change monthly),
+     and the seven payslip-only figures (they exist for that one month —
+     carrying them over would put last month's take-home on this month's row).
+   ★The server's values are newer than the device's, so the server wins on a
+     conflict (restoreInto overwrites whatever is present). */
+(async function () {
+  /* ★Do nothing when a post-login re-send (PENDING) is queued. Rewriting the
+     form across an await would mix another month's values into the payload
+     being submitted. Decide this before the await (the PENDING handler below
+     clears the key). */
+  try { if (localStorage.getItem(PENDING_KEY)) return; } catch (e) {}
+  if (readClaims().length) return;   // a claim is about to draw the report; don't touch the form under it
+  if (!(await sessionUserId())) return;
+  let rows = null;
+  try {
+    const { data, error } = await _sb.rpc('my_pay_reports');
+    if (error) throw error;
+    rows = data && data.reports;
+  } catch (e) { return; }                 // it simply does not prefill; the form still works
+  if (!Array.isArray(rows) || !rows.length) return;
+  const r = rows[rows.length - 1];        // returned in ascending period_ym, so the last is newest
+  if (!r) return;
+
+  const s = (v) => (v === null || v === undefined || v === '' ? '' : String(v));
+  const o = {
+    'f-airline': s(r.airline), 'f-airline-other': s(r.airline_other),
+    'f-position': s(r.position), 'f-fleet': s(r.fleet), 'f-jobrole': s(r.job_role),
+    'f-age': s(r.age_bucket),
+    'f-base-iata': s(r.base_iata), 'f-currency': s(r.currency),
+    'f-gross': s(r.gross_monthly), 'f-base': s(r.base_pay),
+    'f-guar': s(r.guaranteed_hours), 'f-perdiem': s(r.per_diem),
+    'f-housing': s(r.housing_type), 'f-housing-amt': s(r.housing_amount),
+    'f-transport': s(r.transport), 'f-command': s(r.command_pay),
+    'f-other': s(r.other_allowance), 'f-bonus': s(r.bonus_annual),
+    'f-profit': s(r.profit_share_annual), 'f-pension': s(r.pension_pct),
+    'f-contract': s(r.contract_type), 'f-taxcountry': s(r.tax_country),
+    'f-tax': s(r.tax_rate_pct), 'f-seniority': s(r.seniority_years),
+  };
+  for (const k of Object.keys(o)) if (!o[k]) delete o[k];
+  if (!restoreInto(o)) return;
+  /* The tax rate came from the previous row. Mark it touched here so the
+     country-based estimate does not overwrite it — a figure they read off their
+     own payslip is the better number. */
+  if (o['f-tax']) $('f-tax').dataset.touched = '1';
+  const MON = ['January','February','March','April','May','June',
+               'July','August','September','October','November','December'];
+  /* 月が分からないときも文が壊れないようにする（JP の「前回」に当たる）。
+     'your last report' / 'your March 2026 report' のどちらでも同じ文に収まる形にする。 */
+  const ym = r.period_year && r.period_month
+    ? MON[r.period_month - 1] + ' ' + r.period_year
+    : 'last';
+  $('restore-bar').firstElementChild.textContent =
+    'Filled in from your ' + ym + ' report. Just update what has changed since then.';
+  $('restore-bar').style.display = '';
+  $('entry-prev').hidden = false;
+})();
+
+/* ── Start the currency select on whatever the header picker is set to ──
+   A payslip must be entered in exactly the currency printed on it, so this is only a
+   default: anything already restored by loadPreset, or picked by hand, is left alone.
+   currency.js loads at the very bottom, so look for it at DOMContentLoaded. */
+(function () {
+  const pick = () => {
+    const sel = $('f-currency');
+    if (!sel || sel.value) return;
+    let c = '';
+    try { c = (window.PVCurrency && window.PVCurrency.get && window.PVCurrency.get()) || ''; } catch (e) {}
+    if (!c || !Array.prototype.some.call(sel.options, (o) => o.value === c)) return;
+    sel.value = c;
+    sel.dispatchEvent(new Event('change'));
+  };
+  window.addEventListener('pv-currency-change', pick);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', pick);
+  else pick();
+})();
+
+/* ── Back from login: send what was held ──────────────────────
+   ★Clear the key only once we know we can use it. It used to be cleared right
+     after reading, so anyone who backed out of Google, picked a different
+     account, or landed back on a different site lost their input the moment
+     they reopened the page — straight back to the two-way entry screen.
+   ★Even without a session, put the input back on screen and show the form.
+     Keep what was held (the next submit overwrites the same key via snapshot()).
+   ★Only clear it right before sending. Clearing after would double-send on a
+     failure or a reload. */
+const PENDING_MAX_AGE = 14 * 24 * 60 * 60 * 1000;   // don't hold a draft older than 2 weeks
+(async function () {
+  const signedIn = !!(await sessionUserId());
+  setSubmitLabel(signedIn);
+
+  const drop = () => { try { localStorage.removeItem(PENDING_KEY); } catch (e) {} };
+  const hasClaim = readClaims().length > 0;
+  let pending = null;
+  try { pending = JSON.parse(localStorage.getItem(PENDING_KEY) || 'null'); } catch (e) {}
+  /* ★While a claim token is held, keep the draft too (token 30 days, draft 14).
+     Let those drift apart and on day 15 the server is holding their pay data
+     while the screen shows nothing — a state we could never explain to them. */
+  const ts = pending ? Number(pending._ts || 0) : 0;
+  const maxAge = hasClaim ? CLAIM_MAX_AGE : PENDING_MAX_AGE;
+  if (pending && ts && Date.now() - ts > maxAge) { drop(); pending = null; }
+
+  /* ★Put it back on the form before claiming, not after. A claim draws the
+     report straight away, and the report reads the airline, fleet and seat off
+     the option text — from an empty form that heading comes out blank. */
+  if (pending) {
+    if (!restoreInto(pending)) { drop(); pending = null; }
+    else {
+      enterMode('manual');   // ★don't drop them back on the two-way entry screen
+      $('restore-bar').style.display = 'none';
+    }
+  }
+
+  /* ① Something was handed over and the session exists — back from Google or
+        the emailed link. Move it onto the account and that is the whole job. */
+  /* Attach anyone who arrived from an invite link to their inviter. ★Call this
+     BEFORE claimPending(), while the report count is still zero, so this very
+     first report counts (conversion is derived from
+     profiles.pay_report_count > referrals.baseline_reports).
+     Idempotent, so overlapping with the other three call sites is harmless.
+     Never blocks the pay flow. */
+  try { if (window.PVReferral) await window.PVReferral.claim(_sb); } catch (e) {}
+
+  if (signedIn && hasClaim) {
+    const won = await claimPending();
+    if (won) {
+      drop();
+      track('pay_report_resume', { signed_in: 1, claimed: 1 });
+      return afterSaved(won, won.payload || pending || {}, (won.payload || {}).airline);
+    }
+  }
+
+  /* ② Handed over, but still no account. It is already saved, so put them back
+        in front of the box in that state rather than asking them to submit again.
+     ★The box sits below the fields (#submit-block) and only appears once the form
+       is back, so only show it when the draft was restored. */
+  if (!signedIn && hasClaim && pending) {
+    track('pay_report_resume', { signed_in: 0, claimed: 0 });
+    return showGate(true);
+  }
+
+  /* ③ No token (the hand-over failed, or this is an old draft). As before. */
+  if (!pending) return;
+  /* How many of the people who came back arrived without a session.
+     ★Step name and 0/1 only. Never what they typed. */
+  track('pay_report_resume', { signed_in: signedIn ? 1 : 0 });
+  if (!signedIn) return;
+  drop();
+  submitPayReport();
+})();
+
+// ── Errors ───────────────────────────────────────────────────────
+function showErr(msg, title) {
+  /* ★Reaching here means "pressed submit and got pushed back". There are ~20
+     required fields, so without this number we cannot tell "too much to fill in"
+     apart from "never pressed the button".
+     ★The message itself is never sent (it differs per language and could carry input). */
+  track('pay_form_blocked');
+  $('err').innerHTML = '<div class="form-alert"><span class="fa-title">' + esc(title || 'Could not submit') + '</span>' + esc(msg) + '</div>';
+  $('err').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+function clearErr() { $('err').innerHTML = ''; }
+
+// ── Submit ───────────────────────────────────────────────────────
+/* ★Goes through unc(). A money box reads 1,150,000 on screen; sent raw it
+   makes the server's ::numeric fail (we always send bare digits). */
+const val = (id) => { const v = unc($(id).value).trim(); return v === '' ? null : v; };
+
+async function submitPayReport() {
+  clearErr();
+  hideGate();
+  const btn = $('submit-btn');
+
+  const airline = val('f-airline');
+  if (!airline) return showErr('Please choose your airline.');
+  if (airline === 'other' && !val('f-airline-other')) return showErr('You picked “Other” — please type the airline name.');
+  if (!val('f-position')) return showErr('Please choose your rank.');
+  if (!val('f-fleet')) return showErr('Please choose your fleet.');
+  if (!val('f-jobrole')) return showErr('Please choose your role.');
+  if (!val('f-age')) return showErr('Please choose your age band.');
+  if (!val('f-currency')) return showErr('Please choose the currency.');
+  /* ★Hours flown is required. 0 is allowed (ground duty, sick month) — only a blank
+     is rejected. Without it there is no pay per block hour, and no way to compare
+     across countries and airlines. */
+  if (!val('f-block')) {
+    return showErr('Please enter your flight time for the month. If you did not fly, or you do not track hours, enter 0.');
+  }
+  if (!val('f-stay')) {
+    return showErr('Please enter your layover nights. If you never stayed away from base, enter 0.');
+  }
+  /* ★Same split as payEntered() used by the step gate (one place decides where to
+     look). Only the amount being 0 is caught here. */
+  if ($('pay-detail').open) {
+    if (num('f-base') <= 0 && num('f-hourly') <= 0) {
+      return showErr('Please enter your base salary or hourly rate. Allowances alone give nothing to compare against.');
+    }
+  } else if (num('f-gross') <= 0) {
+    return showErr('Please enter your gross pay for that month. Allowances alone give nothing to compare against.');
+  }
+  if (!val('f-netpay')) return showErr('Please enter your net pay for that month ("Net Pay" on your payslip).');
+  if (!val('f-bonus-mo')) return showErr('Please enter the bonus paid this month. Enter 0 if none was paid.');
+  if (!val('f-perdiem')) return showErr('Please enter your per diem for the month. Enter 0 if none was paid.');
+  if (!val('f-housing')) return showErr('Please choose your housing.');
+  if ($('f-housing').value === 'allowance' && !val('f-housing-amt')) {
+    return showErr('You picked “Housing allowance (cash)” — please enter the monthly amount as well.');
+  }
+  /* ★4. Contract & tax (required since 2026-08-13). Folded or not, the values are
+     there, so the same check works. */
+  if (!val('f-contract')) return showErr('Please choose your contract type.');
+  if (!val('f-taxcountry')) return showErr('Please choose your country of tax residence.');
+  if (!val('f-seniority')) return showErr('Please enter your years at the airline.');
+  if (num('f-hourly') > 0 && num('f-block') <= 0 && num('f-guar') <= 0) {
+    return showErr('With an hourly rate we also need flight time or guaranteed flight time.');
+  }
+
+  const payload = {
+    airline:             airline,
+    airline_other:       val('f-airline-other'),
+    position:            val('f-position'),
+    fleet:               val('f-fleet'),
+    job_role:            val('f-jobrole'),
+    age_bucket:          val('f-age'),
+    base_iata:           val('f-base-iata'),
+    period_year:         val('f-year'),
+    period_month:        val('f-month'),
+    currency:            val('f-currency'),
+    /* ★The simple form's "gross pay that month". Exclusive with the breakdown
+       below — the server (submit_pay_report) also keeps the gross and drops the
+       breakdown. NEVER put it in base_pay (the pay mix would become a false
+       "base pay 100%" doughnut).
+       ★Not sent at all while the breakdown is open: the field only mirrors the
+       sum there, and sending it would make the server drop the breakdown. */
+    gross_monthly:       $('pay-detail').open ? null : val('f-gross'),
+    base_pay:            val('f-base'),
+    hourly_rate:         val('f-hourly'),
+    guaranteed_hours:    val('f-guar'),
+    block_hours:         val('f-block'),
+    duty_days:           val('f-duty'),
+    stay_nights:         val('f-stay'),
+    per_diem:            val('f-perdiem'),
+    housing_type:        val('f-housing'),
+    housing_amount:      $('f-housing').value === 'allowance' ? val('f-housing-amt') : null,
+    transport:           val('f-transport'),
+    command_pay:         val('f-command'),
+    other_allowance:     val('f-other'),
+    bonus_annual:        val('f-bonus'),
+    /* ★The bonus sitting inside this month's gross. Taken out before ×12.
+       A different thing from bonus_annual — never add the two together. */
+    bonus_month:         val('f-bonus-mo'),
+    profit_share_annual: val('f-profit'),
+    pension_pct:         val('f-pension'),
+    contract_type:       val('f-contract'),
+    tax_country:         val('f-taxcountry'),
+    /* nationality: we stopped asking on 2026-08-12 (tax residence is enough).
+       The DB column stays, so submissions from now on land as NULL. */
+    tax_rate_pct:        val('f-tax'),
+    seniority_years:     val('f-seniority'),
+
+    /* ── 明細から読めた値 ────────────────────────────────────────
+       手取り（f-netpay）と勤務時間（f-duty-h）は 2026-08-13 に表の欄へ出したので、
+       手入力の行にも入る。残りは欄が無く、明細を読んだときだけ入る。
+       ★source は「出所ラベル」でしかない。クライアント申告なので、Verified 付与・
+         解放日数・verify_level のどれもこれで分岐させてはいけない
+         （VERIFIED-PILOT 3-2 A-1：明細を1枚も出さずに 'payslip' と送れてしまう）。 */
+    net_pay_actual:      val('f-netpay'),
+    ytd_taxable:         val('f-ytd'),
+    flight_variable_pay: val('f-flightvar'),
+    deduction_total:     val('f-deduct'),
+    duty_hours:          val('f-duty-h'),
+    night_hours:         val('f-night-h'),
+    credit_hours:        val('f-credit-h'),
+    /* ★val() を通さない。unc() がカンマを全部落とすので、JSON が壊れる。
+       画面には出さない値で、送るのは payslip.js が組んだ文字列そのまま。 */
+    payslip_detail:      $('f-psdetail').value || null,
+    source:              val('f-source') || 'web',
+    lang:                LANG,
+  };
+
+  btn.disabled = true;
+  btn.textContent = 'Submitting…';
+
+  /* ★Put the draft on the device before sending. Whatever happens from here on,
+       what they typed survives.
+     ★Stamp the time too. A draft from someone who left without signing in now
+       survives, so without this an entry from months ago would load into the
+       form for a later month. */
+  try { localStorage.setItem(PENDING_KEY, JSON.stringify({ ...snapshot(), _ts: Date.now() })); } catch (e) {}
+
+  /* ── No session: this one press hands it to the server ───────────
+     ★This is the whole point of the change. Saving happens first and the
+       account comes after. Until now only the input of people who finished
+       signing up was ever saved, and anyone who stalled one step lost the lot
+       (18 members, zero pay reports).
+     ★Nothing comes back at hand-over — no pay, no benchmark. Return those and
+       the result can be walked off with, and the reason to register is gone. */
+  if (!(await sessionUserId())) {
+    try {
+      const { data, error } = await _sb.rpc('submit_pay_report_pending', { p: payload });
+      if (error) throw error;
+      if (!data || !data.ok || !data.claim_token) throw new Error('No claim token came back from the server');
+      rememberClaim(data.claim_token);
+      /* Celebrate the moment it is all handed over. Only this one new hand-over
+         pops; the result card after signing up stays quiet (_gatePopped). */
+      markPopped(data.claim_token);
+      try { if (typeof window.PVConfetti === 'function') window.PVConfetti(); } catch (e) {}
+      savePreset();
+      track('pay_report_pending');
+      btn.disabled = false;
+      btn.textContent = _btnLabel;
+      return showGate(true);
+    } catch (e) {
+      console.error(e);
+      const code = String((e && e.code) || '');
+      track('pay_report_error', { reason: ('pending_' + (code || (e && e.name) || 'error')).slice(0, 40) });
+      btn.disabled = false;
+      btn.textContent = _btnLabel;
+      /* If the input itself cannot be accepted (22023), say so here so it can be
+         fixed. Showing the sign-up box instead means an account gets created in
+         front of a screen that cannot be put right. */
+      if (code === '22023') return showErr(String((e && (e.message || e.hint)) || 'error'));
+      /* Anything else (network, the daily cap) just means the hand-over missed.
+         The draft is on the device, so fall back to sign in → submit from here. */
+      return showGate(false);
+    }
+  }
+
+  try {
+    const { data, error } = await _sb.rpc('submit_pay_report', { p: payload });
+    if (error) throw error;
+    if (!data || !data.ok) throw new Error('No result came back from the server');
+
+    savePreset();
+    afterSaved(data, payload, airline);
+  } catch (e) {
+    console.error(e);
+    /* ★If saving itself is broken, only this fires (pay_form_blocked is the
+       missing-input case). Send the short code only — message can carry values. */
+    track('pay_report_error', { reason: String((e && (e.code || e.name)) || 'error').slice(0, 40) });
+    showErr(String((e && (e.message || e.hint)) || 'error'));
+    btn.disabled = false;
+    btn.textContent = _btnLabel;
+  }
+}
+$('submit-btn').addEventListener('click', submitPayReport);
+
+// ── Result (★ never typed in by the pilot — this is what they get back) ──
+function renderResult(d, p) {
+  const cur = d.currency || p.currency;
+  const usd = (v) => '$' + new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Math.round(v));
+  const jpyMan = (v) => '¥' + new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Math.round(v));
+  /* ★Read the option text off what was actually saved (the payload), not off
+     whatever the field happens to have selected. Anyone whose handed-over data
+     was claimed later can have an empty form, and the heading would come out blank. */
+  const optText = (id, v) => {
+    const sel = $(id);
+    if (!sel) return '';
+    const o = (v != null && /^[A-Za-z0-9_-]+$/.test(String(v)))
+      ? sel.querySelector('option[value="' + v + '"]') : sel.selectedOptions[0];
+    return o ? o.textContent : String(v == null ? '' : v);
+  };
+  const airlineName = optText('f-airline', p.airline);
+  const rows = [];
+
+  if (d.annual_total_usd != null || d.annual_total_jpy != null) {
+    const parts = [];
+    if (d.annual_total_usd != null) parts.push(usd(d.annual_total_usd));
+    if (d.annual_total_jpy != null) parts.push(jpyMan(d.annual_total_jpy));
+    rows.push(['Converted', parts.join(' / ') + (d.fx_at ? ' <span style="font-size:.72rem;color:#6b7d93">(rate of ' + esc(d.fx_at) + ')</span>' : ''), '']);
+  }
+  if (d.usd_per_block_hour != null) {
+    rows.push(['★ Pay per block hour', '$' + Number(d.usd_per_block_hour).toLocaleString('en-US', { maximumFractionDigits: 2 }) + ' <span style="font-size:.75rem;font-weight:600;color:#6b7d93">/ block hour</span>', 'hi']);
+  }
+  if (d.net_annual_jpy != null) rows.push(['Estimated take-home (yr)', jpyMan(d.net_annual_jpy), '']);
+  if (d.streak_months) rows.push(['Consecutive months', String(d.streak_months), '']);
+  if (d.access_until) {
+    rows.push(['Pay detail unlocked until', new Date(d.access_until).toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' }), '']);
+  }
+
+  let bench = '';
+  if (d.benchmark) {
+    const b = d.benchmark;
+    const pct = Math.max(0, Math.min(100, Number(b.percentile)));
+    bench =
+      '<div class="bench">' +
+        '<div style="font-size:.78rem;font-weight:700;color:#9ca3af;margin-bottom:2px">Where you sit in this segment</div>' +
+        '<div style="font-size:.72rem;color:#6b7d93">' + esc(airlineName) + ' · ' + esc(optText('f-fleet', p.fleet)) + ' · ' + esc(optText('f-position', p.position)) + ' (n=' + b.n + ')</div>' +
+        '<div class="bench-bar"><div class="bench-you" style="left:calc(' + pct + '% - 2px)"></div></div>' +
+        '<div class="bench-scale"><span>' + usd(b.p25_usd) + '<br>25th</span><span style="text-align:center">' + usd(b.median_usd) + '<br>median</span><span style="text-align:right">' + usd(b.p75_usd) + '<br>75th</span></div>' +
+        '<div style="margin-top:14px;font-size:.95rem;font-weight:800">Top ' + Math.max(1, 100 - pct) + '%' +
+          (b.median_usd_per_bh != null ? '<span style="font-size:.78rem;font-weight:600;color:#9ca3af;margin-left:10px">segment median $' + Number(b.median_usd_per_bh).toLocaleString('en-US', { maximumFractionDigits: 2 }) + '</span>' : '') +
+        '</div>' +
+      '</div>';
+  } else {
+    /* ★This sentence is the floor. It stays whether or not pv-referral.js loads
+       and whether or not the RPC answers. Only mountAfterReport replaces it; when
+       it cannot, this is what shows — unchanged apart from the added id. */
+    bench = '<div class="bench" id="bench-gap"><div style="font-size:.82rem;color:#9ca3af">This segment (airline · rank · fleet · year) <b>has not reached five pilots yet</b>. Your position appears the moment it does. We publish no aggregate until the count makes an individual unidentifiable.</div></div>';
+  }
+
+  const fxNote = d.fx_missing
+    ? '<div class="warn-row" style="margin-top:16px">We do not hold an exchange rate for ' + esc(cur) + ' yet, so USD and JPY cannot be shown. <b>Your figures are stored exactly as entered</b> and will be computed retroactively once the rate lands.</div>'
+    : '';
+
+  $('result-wrap').innerHTML =
+    '<div class="res">' +
+      '<div class="res-pop">🎉</div>' +
+      '<div class="res-eyebrow">' + (d.is_new ? 'Received' : 'Correction applied') + '</div>' +
+      '<div class="res-big">' + esc(fmtCur(d.annual_total_orig, cur)) + '</div>' +
+      '<div class="res-sub">Annualised total, from your ' + esc(MONTH_NAMES[Number(p.period_month) - 1]) + ' ' + esc(p.period_year) + ' payslip</div>' +
+      '<div style="margin-top:18px">' +
+        rows.map((r) => '<div class="res-row"><span class="res-k">' + esc(r[0]) + '</span><span class="res-v ' + r[2] + '">' + r[1] + '</span></div>').join('') +
+      '</div>' +
+      bench + fxNote +
+      '<div class="res-note">Saved <b>on this device only</b>. Next month you only update what has changed. ' +
+        'File your next slip and the unlock extends to 90 days from that date.<br>' +
+        '<b>Filing reports will never earn you a “Verified” badge.</b> That only comes from confirming you really are a pilot (coming soon).</div>' +
+      '<div class="mt-6 flex flex-col sm:flex-row gap-3">' +
+        '<a href="my-value.html?new=1" class="btn-orange justify-center flex-1">See my report →</a>' +
+        '<button type="button" class="btn-ghost justify-center" id="btn-again">Report another month</button>' +
+      '</div>' +
+    '</div>';
+
+  $('form-wrap').style.display = 'none';
+  $('result-wrap').style.display = '';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  /* Do not let the submission end in silence — but only for a new month. Re-sending the
+     same month (is_new:false = a correction) overwrites the row and adds no count, so
+     firing confetti there would drain the meaning out of it. The 🎉 badge still shows.
+     ★A hand-over already popped at "we have your pay data", so it stays quiet here. */
+  if (d.is_new && !_gatePopped) {
+    try { if (typeof window.PVConfetti === 'function') window.PVConfetti(); } catch (e) {}
+  }
+
+  $('btn-again').addEventListener('click', () => {
+    $('result-wrap').style.display = 'none';
+    $('form-wrap').style.display = '';
+    $('submit-btn').disabled = false;
+    $('submit-btn').textContent = _btnLabel;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  profileNudge();
+
+  /* ★給与が保存され、レポートが画面に出たあとにだけ、待遇を少しだけ聞く。
+     ここに置く理由：ログイン直送も、匿名で預けたぶんの紐付け（claimPending）も、
+     必ず renderResult を通る＝経路を1本にできる。
+     ⚠️ pv-conditions.js が落ちても、ここから先のレポートには一切触らない。 */
+  if (window.PVConditions) window.PVConditions.afterReport({
+    sb: _sb, airline: p.airline, airline_other: p.airline_other, airlineName: airlineName,
+    year: p.period_year, month: p.period_month, position: p.position,
+    fleet: p.fleet, base_iata: p.base_iata, contract_type: p.contract_type });
+
+  /* The referral (data-density) card. ★It cannot collide with the modal above:
+       · it builds no overlay (no position:fixed, no role="dialog", no
+         body.style.overflow) — it only rewrites what is inside #bench-gap;
+       · it lands before the modal's 700ms delay, so it is already there
+         by the time the modal is closed;
+       · it neither reads nor waits on [data-pvc] — the two share no contract;
+       · counting "seen" pauses while any overlay (aria-modal) is open. */
+  if (window.PVReferral) window.PVReferral.mountAfterReport({ sb: _sb });
+}
+
+/* ── After the report, shown only to people whose profile is empty ──────
+   ★This is what replaces asking for the six signup fields up front — the
+     report comes first. Saving the report never needed a profile anyway
+     (submit_pay_report creates the profiles row itself).
+   ★Only claim what is true: a name makes My report headed with that name
+     (my-value.js loadName). Nothing else depends on it today, so say nothing else.
+   ★Do NOT send them to signup.html — the account already exists, and landing
+     on a signup page reads as being asked to register twice. */
+async function profileNudge() {
+  try {
+    const uid = await sessionUserId();
+    if (!uid) return;
+    const { data, error } = await _sb.from('profiles').select('name').eq('id', uid).maybeSingle();
+    if (error) return;                                    // could not read → say nothing
+    if (data && String(data.name || '').trim()) return;   // already filled in
+    const box = document.createElement('div');
+    box.className = 'res';
+    box.style.marginTop = '18px';
+    box.innerHTML =
+      '<div style="font-size:.95rem;font-weight:800;letter-spacing:-.01em;margin-bottom:6px">Your profile is still empty</div>' +
+      '<div style="font-size:.82rem;line-height:1.7;color:#a8b3c2;margin-bottom:16px">' +
+        'Add your name and My report is headed with it. You can do this any time.</div>' +
+      '<a href="profile.html#edit-card" class="btn-ghost justify-center">Set up your profile →</a>';
+    $('result-wrap').appendChild(box);
+  } catch (e) { /* the report is already on screen — fail quietly */ }
+}
+
+// ── nav / theme ──────────────────────────────────────────────────
+addEventListener('scroll', () => {
+  document.getElementById('main-nav').classList.toggle('scrolled', scrollY > 10);
+});
+(function () {
+  const btn = $('theme-toggle');
+  const ico = () => { btn.textContent = document.documentElement.getAttribute('data-theme') === 'light' ? '🌙' : '☀️'; };
+  ico();
+  btn.addEventListener('click', () => {
+    const next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('pv-theme', next);
+    ico();
+  });
+})();
+</script>
+<script src="../payslip.js"></script>
+<script src="../confetti.js"></script>
+<script src="../pay-login.js"></script>
+<script src="../lang-toggle.js"></script>
+<script src="../currency.js"></script>
+<script src="../pv-conditions.js"></script>
+</body>
+</html>

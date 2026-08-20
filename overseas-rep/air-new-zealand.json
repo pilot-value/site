@@ -1,0 +1,70 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "企業文化と経営陣の評価は高く、「Kiwiのなんとかなる精神」で働きやすく、同僚に勧めるパイロットも多い。国内では魅力ある優良雇用主とされる。ただしコロナ禍でジェットパイロットが約3割の減給と大量整理（約300名）を経験し、「安定した国営系」への信頼はやや揺らいだ。",
+      "en": "Culture and management score highly, with a friendly Kiwi can-do ethos and pilots who recommend the airline. COVID pay cuts and roughly 300 layoffs dented the secure-national-carrier image."
+    },
+    "salary": {
+      "ja": "副操縦士の基本給は約864万〜1,536万円（NZ$9万〜16万）、機長は約2,016万〜3,264万円。手当や滞在費を加えると副操縦士で約2,112万円、長距離ベテラン機長で4,000万円超まで届く。ただし報酬はパッケージ中で最も弱く、豪州・米国勢に見劣りするとの声が多い。",
+      "en": "FO base runs about US$55,000–97,000 and captains US$128,000–207,000, with allowances lifting FO totals near US$134,000 and senior captains toward US$255,000. Pay is the weakest part of the deal and trails Australian and US carriers."
+    },
+    "benefits": {
+      "ja": "KiwiSaver（確定拠出年金）に会社が3〜10%拠出し政府補助も付く。医療保険や年次賞与を含め、総額は基本給比＋20〜40%とされる。型式限定は会社負担。搭乗特典は自社便のスタンバイ無制限に加え、スターアライアンス各社の割引・スタンバイ利用が本人と家族に及ぶ。",
+      "en": "KiwiSaver employer contributions of 3–10% plus a government top-up, health insurance and an annual bonus push the package 20–40% above base, with type ratings company-funded. Travel perks include unlimited Air NZ standby and discounted Star Alliance travel for family."
+    },
+    "wlb": {
+      "ja": "月65〜75ブロックアワーの乗務で、スケジュールや路線・レイオーバーの満足度は高く、生活の質を評価する声が中心。一方でロスターが上限ぎりぎりで組まれる点や人員不足・疲労を組合が問題視し、調停に至る例もある。主基地はオークランドで通勤は難しく、移住が必要になることが多い。",
+      "en": "Block hours of about 65–75 a month, good work-life balance and enjoyable long-haul layovers are recurring positives, but the union flags rosters built to maximum limits, manpower shortfalls and fatigue. Auckland is the main base with limited commutability."
+    },
+    "ops": {
+      "ja": "787やA320/A321neoに加えATR72-600・Q300を擁する新しめの混成機材で、機材面の評価は高い。ただしneoのP&W GTFや787のトレント1000のエンジン不具合で駐機・減便が生じ、乗務機会が減る局面もある。オークランドを拠点に国内・地方線から国際線まで運航する。",
+      "en": "Pilots like the modern mixed fleet — 787s and A320/A321neos alongside ATR72-600 and Q300 turboprops — though GTF and Trent 1000 engine problems have grounded jets and cut schedules. Operations run from Auckland across domestic, regional and international routes."
+    },
+    "training": {
+      "ja": "入口は地方線ターボプロップ（ATR72-600/Q300）の副操縦士が一般的で、機長昇格までは10〜12年と遅い。年功と4:1ルールで社内ターボプロップ勢が優先され、外部ジェット採用は席次最下位から始まる。Mangōpareカデット制度は約14か月で会社が大半を負担するが、自己負担ローン約514万円（NZ$5.35万）と5年間の縛りが付く。",
+      "en": "Entry is usually FO on ATR72-600/Q300 turboprops, with command upgrade a slow 10–12 years and a seniority 4:1 rule that puts external jet hires at the bottom of the list. The 14-month Mangōpare cadetship is mostly company-funded but carries a ~US$32,500 personal loan and a five-year bond."
+    }
+  },
+  "sources": [
+    {
+      "title": "Air New Zealand Airline Pilot Reviews — Glassdoor",
+      "url": "https://www.glassdoor.co.nz/Reviews/Air-New-Zealand-Airline-Pilot-Reviews-EI_IE8881.0,15_KO16,29.htm"
+    },
+    {
+      "title": "Air New Zealand Pilot Reviews — PilotsGlobal",
+      "url": "https://pilotsglobal.com/airlines/air-new-zealand/pilot-reviews"
+    },
+    {
+      "title": "Air New Zealand Pilot Career Guide 2026 — Rotate",
+      "url": "https://rotatepilot.com/airlines/air-new-zealand"
+    },
+    {
+      "title": "Air New Zealand Pilot Salary 2026 — Rotate",
+      "url": "https://rotatepilot.com/airline-salary/air-new-zealand"
+    },
+    {
+      "title": "Air New Zealand Pilot Salary in 2026 — Aviation A2Z",
+      "url": "https://aviationa2z.com/index.php/2026/04/12/air-new-zealand-pilot-salary-2026/"
+    },
+    {
+      "title": "Air New Zealand Pilot Careers & Salary: A Comprehensive Guide — Epic Flight Academy",
+      "url": "https://epicflightacademy.com/hiring-requirements-air-new-zealand-group/"
+    },
+    {
+      "title": "Launching the Mangōpare Air New Zealand Pilot Cadetship — Air NZ Newsroom",
+      "url": "https://www.airnewzealandnewsroom.com/press-release-2024-the-skys-the-limit-launching-the-mangopare-air-new-zealand-pilot-cadetship"
+    },
+    {
+      "title": "Covid 19: Air New Zealand jet pilots take 30% pay cut, 300 laid off — NZ Herald",
+      "url": "https://www.nzherald.co.nz/business/companies/airlines/covid-19-coronavirus-air-new-zealand-jet-pilots-take-30-pay-cut-300-laid-off/QTDJSTGZLICEJDQFEUJ7JVIW2U/"
+    },
+    {
+      "title": "Air New Zealand — roster safety issues (forum thread) — PPRuNe",
+      "url": "https://www.pprune.org/australia-new-zealand-pacific/653981-air-new-zealand-roster-safety-issues.html"
+    },
+    {
+      "title": "Air New Zealand — Wikipedia (ownership, Star Alliance, fleet, group carriers)",
+      "url": "https://en.wikipedia.org/wiki/Air_New_Zealand"
+    }
+  ]
+}

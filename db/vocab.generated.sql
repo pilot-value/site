@@ -1,0 +1,193 @@
+-- ════════════════════════════════════════════════════════════════
+-- db/vocab.generated.sql — ★自動生成。手で編集しない。
+--   生成元: pv-vocab.mjs（語彙）＋ currency.js（換算レート）
+--   再生成: node gen-vocab.mjs
+--
+-- pay_reports が参照する語彙マスタ。何度流しても安全（upsert）。
+-- 語彙から消えたコードは無効化するだけで消さない（過去の投稿が参照している）。
+-- ════════════════════════════════════════════════════════════════
+
+-- cat は 'other'（どれにも当てはまらない機材）だけ null を許す。
+-- salary-leveling.js の r/n/w と同じ語彙。
+create table if not exists public.pv_fleets (
+  code text primary key, cat text check (cat is null or cat in ('r','n','w')),
+  name_ja text not null, name_en text not null, active boolean not null default true
+);
+create table if not exists public.pv_positions (
+  code text primary key, name_ja text not null, name_en text not null, active boolean not null default true
+);
+create table if not exists public.pv_job_roles (
+  code text primary key, name_ja text not null, name_en text not null, active boolean not null default true
+);
+-- 年代。刻みは10歳。口コミ（reviews_v2.age_bucket）は5歳刻みで先に集めており、
+-- '20-24' + '25-29' = '20-29' のように、こちらの段へちょうど畳める形にしてある。
+create table if not exists public.pv_age_buckets (
+  code text primary key, name_ja text not null, name_en text not null, active boolean not null default true
+);
+create table if not exists public.pv_housing_types (
+  code text primary key, name_ja text not null, name_en text not null, active boolean not null default true
+);
+create table if not exists public.pv_contract_types (
+  code text primary key, name_ja text not null, name_en text not null, active boolean not null default true
+);
+create table if not exists public.pv_currencies (
+  code char(3) primary key, dec smallint not null check (dec in (0,2,3)),
+  sym text not null, name_ja text not null, name_en text not null, active boolean not null default true
+);
+
+insert into public.pv_fleets (code, cat, name_ja, name_en) values
+  ('a320', 'n', 'A320ファミリー（A319/320/321）', 'A320 family (A319/320/321)'),
+  ('b737', 'n', 'Boeing 737', 'Boeing 737'),
+  ('a220', 'n', 'Airbus A220（旧 CS100/300）', 'Airbus A220 (ex-CSeries)'),
+  ('b757', 'n', 'Boeing 757', 'Boeing 757'),
+  ('e-jet', 'n', 'Embraer E-Jet（E170/190）', 'Embraer E-Jet (E170/190)'),
+  ('b767', 'w', 'Boeing 767', 'Boeing 767'),
+  ('b777', 'w', 'Boeing 777', 'Boeing 777'),
+  ('b787', 'w', 'Boeing 787 Dreamliner', 'Boeing 787 Dreamliner'),
+  ('b747', 'w', 'Boeing 747', 'Boeing 747'),
+  ('a330', 'w', 'Airbus A330', 'Airbus A330'),
+  ('a350', 'w', 'Airbus A350', 'Airbus A350'),
+  ('a380', 'w', 'Airbus A380', 'Airbus A380'),
+  ('crj', 'r', 'CRJ シリーズ', 'CRJ series'),
+  ('atr', 'r', 'ATR 42/72', 'ATR 42/72'),
+  ('dhc8', 'r', 'DHC-8（Q400 等）', 'DHC-8 (Q400, etc.)'),
+  ('regional', 'r', '上記以外のリージョナルジェット', 'Other regional jet'),
+  ('turboprop', 'r', '上記以外のターボプロップ', 'Other turboprop'),
+  ('bizjet', 'r', 'ビジネスジェット（Gulfstream 等）', 'Business jet (Gulfstream, etc.)'),
+  ('other', null, 'その他', 'Other')
+on conflict (code) do update set cat = excluded.cat, name_ja = excluded.name_ja, name_en = excluded.name_en, active = true;
+
+insert into public.pv_positions (code, name_ja, name_en) values
+  ('cap', '機長（CAP）', 'Captain (CAP)'),
+  ('fo', '副操縦士（FO）', 'First Officer (FO)'),
+  ('cadet', '訓練生', 'Cadet / Trainee')
+on conflict (code) do update set name_ja = excluded.name_ja, name_en = excluded.name_en, active = true;
+
+insert into public.pv_job_roles (code, name_ja, name_en) values
+  ('line', 'ラインパイロット', 'Line pilot'),
+  ('instructor', '教官（訓練担当）', 'Instructor (training)'),
+  ('examiner', '査察操縦士', 'Examiner'),
+  ('management', '管理職（部長・班長 等）', 'Management (dept. head, etc.)')
+on conflict (code) do update set name_ja = excluded.name_ja, name_en = excluded.name_en, active = true;
+
+insert into public.pv_age_buckets (code, name_ja, name_en) values
+  ('20-29', '20〜29歳', '20–29'),
+  ('30-39', '30〜39歳', '30–39'),
+  ('40-49', '40〜49歳', '40–49'),
+  ('50-59', '50〜59歳', '50–59'),
+  ('60+', '60歳以上', '60 or over')
+on conflict (code) do update set name_ja = excluded.name_ja, name_en = excluded.name_en, active = true;
+
+insert into public.pv_housing_types (code, name_ja, name_en) values
+  ('provided', '社宅・会社支給（現物）', 'Company-provided (in kind)'),
+  ('allowance', '住宅手当（現金）', 'Housing allowance (cash)'),
+  ('none', 'なし', 'None')
+on conflict (code) do update set name_ja = excluded.name_ja, name_en = excluded.name_en, active = true;
+
+insert into public.pv_contract_types (code, name_ja, name_en) values
+  ('direct', '直接雇用', 'Direct employment'),
+  ('contract', '契約（有期・自営業含む）', 'Contract (incl. self-employed)'),
+  ('agency', 'エージェンシー経由', 'Via agency')
+on conflict (code) do update set name_ja = excluded.name_ja, name_en = excluded.name_en, active = true;
+
+insert into public.pv_currencies (code, dec, sym, name_ja, name_en) values
+  ('USD', 2, '$', '米ドル', 'US Dollar'),
+  ('EUR', 2, '€', 'ユーロ', 'Euro'),
+  ('JPY', 0, '¥', '日本円', 'Japanese Yen'),
+  ('GBP', 2, '£', '英ポンド', 'British Pound'),
+  ('AED', 2, 'د.إ', 'UAEディルハム', 'UAE Dirham'),
+  ('QAR', 2, 'ر.ق', 'カタールリヤル', 'Qatari Riyal'),
+  ('SAR', 2, 'ر.س', 'サウジリヤル', 'Saudi Riyal'),
+  ('KWD', 3, 'د.ك', 'クウェートディナール', 'Kuwaiti Dinar'),
+  ('BHD', 3, '.د.ب', 'バーレーンディナール', 'Bahraini Dinar'),
+  ('OMR', 3, 'ر.ع.', 'オマーンリアル', 'Omani Rial'),
+  ('JOD', 3, 'د.ا', 'ヨルダンディナール', 'Jordanian Dinar'),
+  ('TRY', 2, '₺', 'トルコリラ', 'Turkish Lira'),
+  ('CHF', 2, 'CHF', 'スイスフラン', 'Swiss Franc'),
+  ('SEK', 2, 'kr', 'スウェーデンクローナ', 'Swedish Krona'),
+  ('NOK', 2, 'kr', 'ノルウェークローネ', 'Norwegian Krone'),
+  ('DKK', 2, 'kr', 'デンマーククローネ', 'Danish Krone'),
+  ('ISK', 0, 'kr', 'アイスランドクローナ', 'Icelandic Krona'),
+  ('PLN', 2, 'zł', 'ポーランドズロチ', 'Polish Zloty'),
+  ('HUF', 0, 'Ft', 'ハンガリーフォリント', 'Hungarian Forint'),
+  ('CZK', 2, 'Kč', 'チェココルナ', 'Czech Koruna'),
+  ('RON', 2, 'lei', 'ルーマニアレウ', 'Romanian Leu'),
+  ('CAD', 2, 'C$', 'カナダドル', 'Canadian Dollar'),
+  ('AUD', 2, 'A$', '豪ドル', 'Australian Dollar'),
+  ('NZD', 2, 'NZ$', 'ニュージーランドドル', 'New Zealand Dollar'),
+  ('FJD', 2, 'FJ$', 'フィジードル', 'Fijian Dollar'),
+  ('SGD', 2, 'S$', 'シンガポールドル', 'Singapore Dollar'),
+  ('HKD', 2, 'HK$', '香港ドル', 'Hong Kong Dollar'),
+  ('TWD', 2, 'NT$', '台湾ドル', 'New Taiwan Dollar'),
+  ('KRW', 0, '₩', '韓国ウォン', 'South Korean Won'),
+  ('CNY', 2, '¥', '中国元', 'Chinese Yuan'),
+  ('THB', 2, '฿', 'タイバーツ', 'Thai Baht'),
+  ('MYR', 2, 'RM', 'マレーシアリンギット', 'Malaysian Ringgit'),
+  ('IDR', 0, 'Rp', 'インドネシアルピア', 'Indonesian Rupiah'),
+  ('PHP', 2, '₱', 'フィリピンペソ', 'Philippine Peso'),
+  ('VND', 0, '₫', 'ベトナムドン', 'Vietnamese Dong'),
+  ('BND', 2, 'B$', 'ブルネイドル', 'Brunei Dollar'),
+  ('INR', 2, '₹', 'インドルピー', 'Indian Rupee'),
+  ('EGP', 2, 'E£', 'エジプトポンド', 'Egyptian Pound'),
+  ('ETB', 2, 'Br', 'エチオピアブル', 'Ethiopian Birr'),
+  ('KES', 2, 'KSh', 'ケニアシリング', 'Kenyan Shilling'),
+  ('ZAR', 2, 'R', '南アフリカランド', 'South African Rand'),
+  ('MXN', 2, 'MX$', 'メキシコペソ', 'Mexican Peso'),
+  ('BRL', 2, 'R$', 'ブラジルレアル', 'Brazilian Real'),
+  ('CLP', 0, 'CLP$', 'チリペソ', 'Chilean Peso'),
+  ('COP', 2, 'COL$', 'コロンビアペソ', 'Colombian Peso')
+on conflict (code) do update set dec = excluded.dec, sym = excluded.sym,
+  name_ja = excluded.name_ja, name_en = excluded.name_en, active = true;
+
+update public.pv_fleets    set active = false where code not in ('a320', 'b737', 'a220', 'b757', 'e-jet', 'b767', 'b777', 'b787', 'b747', 'a330', 'a350', 'a380', 'crj', 'atr', 'dhc8', 'regional', 'turboprop', 'bizjet', 'other');
+update public.pv_positions set active = false where code not in ('cap', 'fo', 'cadet');
+update public.pv_job_roles set active = false where code not in ('line', 'instructor', 'examiner', 'management');
+update public.pv_age_buckets set active = false where code not in ('20-29', '30-39', '40-49', '50-59', '60+');
+update public.pv_housing_types  set active = false where code not in ('provided', 'allowance', 'none');
+update public.pv_contract_types set active = false where code not in ('direct', 'contract', 'agency');
+update public.pv_currencies set active = false where code not in ('USD', 'EUR', 'JPY', 'GBP', 'AED', 'QAR', 'SAR', 'KWD', 'BHD', 'OMR', 'JOD', 'TRY', 'CHF', 'SEK', 'NOK', 'DKK', 'ISK', 'PLN', 'HUF', 'CZK', 'RON', 'CAD', 'AUD', 'NZD', 'FJD', 'SGD', 'HKD', 'TWD', 'KRW', 'CNY', 'THB', 'MYR', 'IDR', 'PHP', 'VND', 'BND', 'INR', 'EGP', 'ETB', 'KES', 'ZAR', 'MXN', 'BRL', 'CLP', 'COP');
+
+-- ── 換算レート ───────────────────────────────────────────────
+-- ★ currency.js の RATES（1通貨あたりの円。USD 1 = 160 円）から生成。
+-- ★ 45 通貨のうちレートがあるのは 7 通貨だけ。
+--    残りは to_usd が無いので annual_total_usd が null になり、pay_benchmarks から外れる。
+--    原本（currency ＋ 各金額）は必ず保存されるので、レートを入れた時点で再計算できる。
+--    → レート取得は別途対応（当面はこの7通貨が集計対象）。
+create table if not exists public.fx_rates (
+  code   char(3) primary key references public.pv_currencies(code),
+  to_usd numeric(14,6) not null check (to_usd > 0),
+  to_jpy numeric(14,6) not null check (to_jpy > 0),
+  as_of  date not null default current_date
+);
+
+insert into public.fx_rates (code, to_usd, to_jpy) values
+  ('JPY', 0.006250, 1.000000),
+  ('USD', 1.000000, 160.000000),
+  ('EUR', 1.075000, 172.000000),
+  ('GBP', 1.187500, 190.000000),
+  ('AUD', 0.625000, 100.000000),
+  ('SGD', 0.700000, 112.000000),
+  ('AED', 0.255000, 40.800000)
+on conflict (code) do update
+  set to_usd = excluded.to_usd, to_jpy = excluded.to_jpy, as_of = current_date;
+
+-- 語彙は誰でも読める（フォームのラベルに使う）。書き込みポリシーは作らない。
+do $$
+declare t text;
+begin
+  foreach t in array array['pv_fleets','pv_positions','pv_job_roles','pv_age_buckets',
+                           'pv_housing_types','pv_contract_types','pv_currencies','fx_rates'] loop
+    execute format('alter table public.%I enable row level security', t);
+    execute format('drop policy if exists %I on public.%I', t || '_read', t);
+    execute format('create policy %I on public.%I for select to anon, authenticated using (true)', t || '_read', t);
+  end loop;
+end $$;
+
+-- 検算：機種19 / 職位3 / 役職4 / 年代5 / 通貨45 / レート7
+select
+  (select count(*) from public.pv_fleets     where active) as 機種,
+  (select count(*) from public.pv_positions  where active) as 職位,
+  (select count(*) from public.pv_job_roles  where active) as 役職,
+  (select count(*) from public.pv_age_buckets where active) as 年代,
+  (select count(*) from public.pv_currencies where active) as 通貨,
+  (select count(*) from public.fx_rates)                   as レート;

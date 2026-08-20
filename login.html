@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png"/>
+<link rel="apple-touch-icon" href="assets/favicon-180.png"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'"/><noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet"/></noscript>
+  <script>(function(){var t=localStorage.getItem('pv-theme')||'light';document.documentElement.setAttribute('data-theme',t);}());</script>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>ログイン｜PILOT VALUE</title>
+<!--PV-SEO-->
+<!--PV-SRC t="ログイン — PILOT VALUE" d=""-->
+<meta name="description" content="PILOT VALUE にログインします。投稿にはアカウントが必要ですが、メールアドレスが投稿データに含まれることはありません。"/>
+<meta name="robots" content="noindex,follow"/>
+<link rel="canonical" href="https://pilot-value.com/login.html"/>
+<link rel="alternate" hreflang="ja" href="https://pilot-value.com/login.html"/>
+<link rel="alternate" hreflang="en" href="https://pilot-value.com/en/login.html"/>
+<link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/login.html"/>
+<meta property="og:title" content="ログイン｜PILOT VALUE"/>
+<meta property="og:description" content="PILOT VALUE にログインします。投稿にはアカウントが必要ですが、メールアドレスが投稿データに含まれることはありません。"/>
+<meta property="og:url" content="https://pilot-value.com/login.html"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="PILOT VALUE"/>
+<meta property="og:locale" content="ja_JP"/>
+<meta property="og:locale:alternate" content="en_US"/>
+<meta property="og:image" content="https://pilot-value.com/assets/og/default-ja.jpg"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta property="og:image:alt" content="ログイン｜PILOT VALUE"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="ログイン｜PILOT VALUE"/>
+<meta name="twitter:description" content="PILOT VALUE にログインします。投稿にはアカウントが必要ですが、メールアドレスが投稿データに含まれることはありません。"/>
+<meta name="twitter:image" content="https://pilot-value.com/assets/og/default-ja.jpg"/>
+<!--/PV-SEO-->
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="pv-reunlock.js"></script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:#0a0c0f;color:#e8edf2;font-family:Inter,'Noto Sans JP',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+    body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 0%,rgba(245,200,66,.05) 0%,transparent 70%);pointer-events:none}
+    [data-theme="light"] body{background:#f3f5f8;color:#0f172a}
+    .auth-card{background:rgba(17,22,32,.95);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:44px 40px;width:100%;max-width:420px;position:relative}
+    [data-theme="light"] .auth-card{background:#fff;border-color:rgba(0,0,0,.09);box-shadow:0 8px 40px rgba(0,0,0,.12)}
+    .auth-input{width:100%;padding:13px 16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:11px;color:#e8edf2;font-size:.9rem;outline:none;transition:border-color .2s,background .2s;font-family:inherit}
+    .auth-input:focus{border-color:rgba(245,200,66,.5);background:rgba(255,255,255,.07)}
+    .auth-input::placeholder{color:#6b7d93}
+    [data-theme="light"] .auth-input{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.12);color:#0f172a}
+    [data-theme="light"] .auth-input:focus{border-color:rgba(161,114,0,.4);background:#fff}
+    .btn-login{width:100%;padding:14px;background:#e8edf2;color:#0a0c0f;border:none;border-radius:11px;font-weight:700;font-size:.92rem;cursor:pointer;transition:background .2s,transform .15s,opacity .2s;font-family:inherit}
+    .btn-login:hover:not(:disabled){background:#fff;transform:translateY(-1px)}
+    .btn-login:disabled{opacity:.6;cursor:not-allowed}
+    [data-theme="light"] .btn-login{background:#0f172a;color:#fff}
+    [data-theme="light"] .btn-login:hover:not(:disabled){background:#1e293b}
+    .btn-google{width:100%;padding:13px;background:rgba(255,255,255,.06);color:#e8edf2;border:1px solid rgba(255,255,255,.11);border-radius:11px;font-weight:600;font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:background .2s;font-family:inherit}
+    .btn-google:hover{background:rgba(255,255,255,.11)}
+    [data-theme="light"] .btn-google{background:rgba(0,0,0,.04);color:#0f172a;border-color:rgba(0,0,0,.12)}
+    .theme-toggle{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.07);color:#e8edf2;border:1px solid rgba(255,255,255,.12);cursor:pointer;transition:background .2s}
+    .theme-toggle:hover{background:rgba(255,255,255,.13)}
+    [data-theme="light"] .theme-toggle{background:rgba(0,0,0,.06);color:#0f172a;border-color:rgba(0,0,0,.13)}
+    .divider{display:flex;align-items:center;gap:12px;color:#6b7d93;font-size:.78rem;margin:4px 0}
+    .divider::before,.divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.08)}
+    [data-theme="light"] .divider::before,[data-theme="light"] .divider::after{background:rgba(0,0,0,.08)}
+    .error-msg{color:#f87171;font-size:.8rem;padding:8px 12px;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);border-radius:8px;display:none}
+    /* 同じ枠を「送りました」にも使う。ライトでは #4ade80 が白地に沈むので濃い緑に落とす。 */
+    .error-msg.is-ok{color:#4ade80;background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.22)}
+    [data-theme="light"] .error-msg.is-ok{color:#15803d;background:rgba(21,128,61,.07);border-color:rgba(21,128,61,.22)}
+    .notice{font-size:.8rem;color:#c9d4e0;line-height:1.65;padding:10px 13px;background:rgba(245,200,66,.07);border:1px solid rgba(245,200,66,.2);border-radius:10px;margin-bottom:18px;display:none}
+    [data-theme="light"] .notice{color:#3f4a5a;background:rgba(161,114,0,.07);border-color:rgba(161,114,0,.22)}
+    .otp-note{font-size:.82rem;color:#8fa0b4;line-height:1.7;margin-bottom:14px}
+    [data-theme="light"] .otp-note{color:#5a677b}
+    .step-title{font-size:1.02rem;font-weight:700;color:#e8edf2;letter-spacing:-.01em;margin-bottom:6px}
+    [data-theme="light"] .step-title{color:#0f172a}
+    .otp-code{text-align:center;letter-spacing:.45em;font-size:1.15rem;font-weight:700;text-indent:.45em}
+    /* 3本並ぶと 430px 幅で1本ずつ2行に割れて読めなくなる。語中で折らせず、行で折り返す。 */
+    .btn-link{background:none;border:none;color:#6b7d93;font-size:.8rem;cursor:pointer;font-family:inherit;padding:6px;border-radius:8px;white-space:nowrap;transition:color .2s,background .2s}
+    .btn-link:hover{color:#f5c842}
+    .btn-link:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+    .btn-link:disabled{opacity:.5;cursor:not-allowed}
+  </style>
+<!-- Google tag (gtag.js) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-3XYF69VQ3X');
+</script>
+<!--PV-3P-->
+<script>
+/* 広告と解析は、表示が終わるまで読まない。async でも帯域は奪うため。
+   利用者が最初に触った時か load の、どちらか早いほうで読み込む。
+   戻すときは node defer-third-party.mjs --undo */
+(function(){
+  var done=false;
+  function boot(){
+    if(done)return; done=true;
+    [{"src":"https://www.googletagmanager.com/gtag/js?id=G-3XYF69VQ3X","cross":false}].forEach(function(it){
+      var s=document.createElement('script');
+      s.src=it.src; s.async=true;
+      if(it.cross)s.crossOrigin='anonymous';
+      document.head.appendChild(s);
+    });
+  }
+  ['pointerdown','keydown','touchstart','scroll','wheel'].forEach(function(ev){
+    addEventListener(ev,boot,{once:true,passive:true});
+  });
+  if(document.readyState==='complete')boot();
+  else addEventListener('load',boot,{once:true});
+})();
+</script>
+<!--/PV-3P-->
+<script src="pv-session.js"></script>
+</head>
+<body>
+  <div style="position:fixed;top:16px;right:16px;z-index:10">
+    <button id="theme-toggle" class="theme-toggle" aria-label="テーマ切替"></button>
+  </div>
+  <div style="position:fixed;top:16px;left:16px;z-index:10">
+    <a href="index.html" style="font-size:.82rem;color:#6b7d93;text-decoration:none;display:flex;align-items:center;gap:5px">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M5 12l7-7M5 12l7 7"/></svg>
+      トップへ
+    </a>
+  </div>
+
+  <div class="auth-card">
+    <div style="text-align:center;margin-bottom:32px">
+      <a href="index.html"><img src="assets/logo.png" alt="PILOT VALUE" style="height:34px;margin:0 auto"/></a>
+      <div style="font-size:.75rem;color:#6b7d93;margin-top:8px;letter-spacing:.04em">世界最大級｜完全匿名｜パイロット専門｜年収・転職情報プラットフォーム</div>
+    </div>
+
+    <div class="notice" id="expired-notice">
+      安全のため自動的にログアウトしました。お手数ですが、もう一度ログインしてください。
+    </div>
+
+    <form id="login-form" onsubmit="handleLogin(event)" novalidate>
+      <div style="display:flex;flex-direction:column;gap:11px;margin-bottom:16px">
+        <input class="auth-input" type="email" id="email" placeholder="Email" autocomplete="email" required/>
+        <input class="auth-input" type="password" id="password" placeholder="Password" autocomplete="current-password" required/>
+        <div class="error-msg" id="login-error">メールアドレスまたはパスワードが正しくありません</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <button type="submit" class="btn-login" id="login-btn">ログイン</button>
+        <!-- help.html はずっと「パスワードをお忘れの方」から再設定できると案内していたのに、
+             その入口が無かった。実物を置く。押すと下の #email-step が再設定の文面で開く。 -->
+        <div style="display:flex;justify-content:flex-end">
+          <button type="button" class="btn-link" onclick="showEmailStep('reset')">パスワードをお忘れの方</button>
+        </div>
+        <div class="divider">または</div>
+        <button type="button" class="btn-google" onclick="handleGoogle()">
+          <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          Googleでログイン
+        </button>
+        <button type="button" class="btn-google" onclick="showEmailStep()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/></svg>
+          メールにコードを送る
+        </button>
+      </div>
+    </form>
+
+    <!-- ★宛先を入れる段を独立させる。
+         パスワード欄と並んだ #email をそのまま使うと、押した人からは
+         「どのアドレスに届くのか」がまったく読み取れなかった。
+         送る前に必ず宛先が目に入る形にする。 -->
+    <div id="email-step" style="display:none">
+      <div class="step-title" id="email-step-title">メールでログイン</div>
+      <div class="otp-note" id="email-step-note">
+        メールアドレスを入力してください。<br>
+        ログイン用のリンクと6桁のコードをお送りします。パスワードは要りません。
+      </div>
+      <div style="display:flex;flex-direction:column;gap:11px;margin-bottom:16px">
+        <input class="auth-input" type="email" id="otp-email" placeholder="you@example.com"
+               autocomplete="email" inputmode="email" aria-label="メールアドレス"/>
+        <div class="error-msg" id="email-error"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <button type="button" class="btn-login" id="otp-send-btn" onclick="startOtp()">確認メールを送る</button>
+        <div style="display:flex;justify-content:center">
+          <button type="button" class="btn-link" onclick="backToPassword()">別の方法でログイン</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- メールOTP：リンクと6桁コードの両方を出す。
+         リンクを別端末で開くと PKCE の code_verifier が無く必ず失敗するので、
+         端末をまたげる経路としてコード入力を必ず併記する。 -->
+    <div id="otp-step" style="display:none">
+      <div class="step-title">コードを入力</div>
+      <div class="otp-note" id="otp-note"></div>
+      <div style="display:flex;flex-direction:column;gap:11px;margin-bottom:16px">
+        <input class="auth-input otp-code" type="text" id="otp-code" inputmode="numeric" pattern="[0-9]*"
+               autocomplete="one-time-code" maxlength="6" placeholder="000000" aria-label="6桁のコード"/>
+        <div class="error-msg" id="otp-error"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <button type="button" class="btn-login" id="otp-verify-btn" onclick="verifyOtpCode()">コードで進む</button>
+        <div style="display:flex;justify-content:center;gap:6px 14px;flex-wrap:wrap">
+          <button type="button" class="btn-link" id="otp-resend-btn" onclick="startOtp()">メールを再送する</button>
+          <button type="button" class="btn-link" onclick="showEmailStep()">アドレスを変える</button>
+          <button type="button" class="btn-link" onclick="backToPassword()">別の方法でログイン</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 「パスワードをお忘れの方」から来た人だけが通る段。
+         コードで入れてしまうと、そのまま一生パスワードを思い出さないまま終わる。
+         ここで決め直してもらう。ただし口コミ投稿の途中で止めないよう逃げ道は残す。 -->
+    <div id="password-step" style="display:none">
+      <div class="step-title">新しいパスワードを設定</div>
+      <div class="otp-note">
+        コードでログインしました。<br>
+        次回からメールアドレスとパスワードでも入れるように、新しいパスワードを決めてください。
+      </div>
+      <div style="display:flex;flex-direction:column;gap:11px;margin-bottom:16px">
+        <input class="auth-input" type="password" id="pw-new" placeholder="新しいパスワード（8文字以上）"
+               autocomplete="new-password" minlength="8" aria-label="新しいパスワード"/>
+        <input class="auth-input" type="password" id="pw-confirm" placeholder="確認のためもう一度"
+               autocomplete="new-password" minlength="8" aria-label="確認のためもう一度"/>
+        <div class="error-msg" id="pw-error"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <button type="button" class="btn-login" id="pw-save-btn" onclick="savePasswordAndContinue()">保存して進む</button>
+        <div style="display:flex;justify-content:center">
+          <button type="button" class="btn-link" id="pw-skip-btn" onclick="skipPassword()">あとで設定する</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:24px;font-size:.84rem;color:#6b7d93">
+      アカウントをお持ちでない方は
+      <!-- ★既定の行き先は pay-report.html。登録は給与の送信時にその場で済む。
+           口コミなど別の意図で来た人は、下の to-signup 書き換えが signup.html?next=… に戻す。 -->
+      <a href="pay-report.html" id="to-signup" style="color:#f5c842;font-weight:700;text-decoration:none">新規登録</a>
+    </div>
+  </div>
+
+  <script>
+    const SB_URL = 'https://vzgmnkrggrwtsrpqndsm.supabase.co';
+    const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6Z21ua3JnZ3J3dHNycHFuZHNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0MzkwOTcsImV4cCI6MjA5MDAxNTA5N30.wE4cJbqeYGCgn5ZvHd80hYWgQuySKvOMJMbsJWOvmtw';
+    const sb = supabase.createClient(SB_URL, SB_KEY, {
+      auth: { flowType: 'pkce' }
+    });
+
+    const SUN = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
+    const MOON = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+    function applyTheme(t){document.documentElement.setAttribute('data-theme',t);localStorage.setItem('pv-theme',t);const b=document.getElementById('theme-toggle');if(b)b.innerHTML=t==='dark'?SUN:MOON;}
+    applyTheme(localStorage.getItem('pv-theme')||'light');
+    document.getElementById('theme-toggle').addEventListener('click',function(){applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');});
+
+    /* ★戻り先のパラメータ名がサイト内で3種類に割れている。
+         next=     … pay-report.html / submit-review.html
+         redirect= … ここが元々見ていた唯一の名前
+         return=   … airlines/ 配下（/airlines/xxx.html のようなパスで来る）
+       redirect しか読んでいなかったので、next と return で来た人は全員
+       profile.html に落ちていた。＝「ログインすると、そのまま送信されます」が
+       守られていなかった。3つとも受ける。
+
+       ★戻り先は location.href に入るので、外部サイトへ飛ばされないように
+         「同一オリジンに解決されること」を必ず確かめる。拡張子では判定しない
+         （?next=https://evil.com/x.html が .html で終わってしまうため）。 */
+    function safePath(to){
+      if (!to) return '';
+      if (/^[a-z][a-z0-9+.-]*:/i.test(to)) return '';      // http: javascript: data: …
+      if (to.startsWith('//') || to.includes('\\')) return '';
+      try {
+        const u = new URL(to, location.href);
+        return u.origin === location.origin ? u.pathname + u.search + u.hash : '';
+      } catch (e) { return ''; }
+    }
+    function getRedirect(){
+      const q = new URLSearchParams(location.search);
+      return safePath(q.get('next') || q.get('redirect') || q.get('return')) || 'profile.html';
+    }
+
+    /* ★「新規登録」へ渡すときに戻り先を落とさない。
+       口コミを書きに来た人の経路は submit-review.html → login.html?next=… → 新規登録
+       で、ここが素の signup.html だったため、その1リンクで意図が消えていた
+       （登録後は profile.html に着地し、口コミへ戻る導線が無かった）。 */
+    (function(){
+      const a = document.getElementById('to-signup');
+      if (!a) return;
+      const to = getRedirect();
+      if (to && to !== 'profile.html') a.href = 'signup.html?next=' + encodeURIComponent(to);
+    })();
+
+    // pv-session.js が期限切れで消したときの案内（一度出したら消す）
+    (function(){
+      let expired = false;
+      try { expired = sessionStorage.getItem('pv_expired') === '1'; sessionStorage.removeItem('pv_expired'); } catch(e){}
+      if (!expired) expired = new URLSearchParams(location.search).get('expired') === '1';
+      if (expired) document.getElementById('expired-notice').style.display = 'block';
+    })();
+
+    // 既にログイン済みならリダイレクト
+    (async function(){
+      const { data:{ session } } = await sb.auth.getSession();
+      if(session) window.location.href = getRedirect();
+    })();
+
+    /* ログイン成功後の後始末。パスワード・OTP のどちらから入っても同じことをする。
+       ここを2箇所に書くと、片方だけ直して解放が復活しない事故になる。 */
+    async function afterLogin(user) {
+      // プロフィール取得（プロフィール未作成でも必ずpv_userを保存）
+      const { data: profile } = await sb.from('profiles').select('*').eq('id', user.id).single();
+      const userData = profile
+        ? {...profile, email: user.email}
+        : { id: user.id, email: user.email, name: (user.email||'').split('@')[0] };
+      localStorage.setItem('pv_user', JSON.stringify(userData));
+
+      // pv-session.js の無操作カウントをここから開始する
+      try { localStorage.setItem('pv_last_active', String(Date.now()));
+            localStorage.setItem('pv_session_start', String(Date.now())); } catch(e){}
+
+      // 口コミ投稿済み確認 → 再解放（匿名 reviews_v2 を proof_hash 群で照合＋旧 reviews 後方互換）
+      try { if (window.pvCheckReunlock) await pvCheckReunlock(sb, user.id); } catch(e){}
+
+      window.location.href = getRedirect();
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const email    = document.getElementById('email').value.trim().toLowerCase();
+      const password = document.getElementById('password').value;
+      const errEl    = document.getElementById('login-error');
+      const btn      = document.getElementById('login-btn');
+      errEl.style.display = 'none';
+      btn.textContent = 'ログイン中…'; btn.disabled = true;
+
+      const { data, error } = await sb.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        errEl.textContent = 'メールアドレスまたはパスワードが正しくありません';
+        errEl.style.display = 'block';
+        btn.textContent = 'ログイン'; btn.disabled = false;
+        return;
+      }
+
+      await afterLogin(data.user);
+    }
+
+    /* ── メールOTP ──
+       signInWithOtp はメールを1通送り、その中に「リンク」と「6桁コード」の
+       両方を載せる（コードは Supabase 側のテンプレートに {{ .Token }} が要る）。
+       リンク = 同じ端末なら1タップ。コード = 別端末でも入れる唯一の経路。 */
+    let otpEmail = '';
+
+    /* ★同じ「コードを送る」仕掛けを2つの目的で使い回している。どちらで来たかを覚えておく。
+         'login' … 自分でコードログインを選んだ人。従来どおり素通しする
+                   （画面に「パスワードは要りません」と書いてあるので、ここで設定を強いない）
+         'reset' … パスワードを忘れた人。コードで入れて終わりにすると一生思い出さないので、
+                   入った直後に設定の段を挟む */
+    let otpIntent   = 'login';
+    let pendingUser = null;
+
+    const EMAIL_STEP_COPY = {
+      login: {
+        title: 'メールでログイン',
+        note:  'メールアドレスを入力してください。<br>'
+             + 'ログイン用のリンクと6桁のコードをお送りします。パスワードは要りません。',
+      },
+      reset: {
+        title: 'パスワードの再設定',
+        note:  '登録したメールアドレスを入力してください。<br>'
+             + '6桁のコードをお送りします。コードで入ったあと、その場で新しいパスワードを設定できます。',
+      },
+    };
+
+    // .error-msg は赤。再送の「送りました」だけ緑（.is-ok）にするので、次に使う前に必ず戻す。
+    function resetMsg(el) {
+      el.style.display = 'none';
+      el.classList.remove('is-ok');
+    }
+
+    /* 宛先を入れる段を出す。上のフォームに打ちかけていたら、それを引き継ぐ。
+       引数なしの呼び出し（従来の2箇所）は 'login' のまま＝挙動が変わらない。 */
+    function showEmailStep(intent) {
+      otpIntent = (intent === 'reset') ? 'reset' : 'login';
+      const copy = EMAIL_STEP_COPY[otpIntent];
+      document.getElementById('email-step-title').textContent = copy.title;
+      document.getElementById('email-step-note').innerHTML    = copy.note;
+
+      const input = document.getElementById('otp-email');
+      const typed = document.getElementById('email').value.trim();
+      if (typed && !input.value) input.value = typed;
+      resetMsg(document.getElementById('email-error'));
+      resetMsg(document.getElementById('otp-error'));
+      document.getElementById('login-form').style.display     = 'none';
+      document.getElementById('otp-step').style.display       = 'none';
+      document.getElementById('password-step').style.display  = 'none';
+      document.getElementById('email-step').style.display     = 'block';
+      input.focus();
+    }
+
+    async function startOtp() {
+      const sendBtn   = document.getElementById('otp-send-btn');
+      const resendBtn = document.getElementById('otp-resend-btn');
+      const input     = document.getElementById('otp-email');
+
+      /* ★再送はコード入力の段から押される。そのとき #email-step は隠れていて、
+           その中にある #email-error に書いても誰にも見えない。出す先を段で選ぶ。 */
+      const onOtpStep = document.getElementById('otp-step').style.display === 'block';
+      const errEl = document.getElementById(onOtpStep ? 'otp-error' : 'email-error');
+      resetMsg(errEl);
+
+      // 再送は「さっき送った宛先」に送る。入力欄を触られていても宛先は変えない。
+      const email = onOtpStep ? otpEmail : input.value.trim().toLowerCase();
+
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        errEl.textContent = 'メールアドレスを正しく入力してください';
+        errEl.style.display = 'block';
+        if (!onOtpStep) input.focus();
+        return;
+      }
+
+      const active = onOtpStep ? resendBtn : sendBtn;
+      const label  = active.innerHTML;   // 送信ボタンはアイコンを持つので innerHTML で戻す
+      active.disabled = true;
+      active.textContent = '送信中…';
+
+      /* 戻り先の作り方は handleGoogle と同じ式にする（getRedirect の同一オリジン検証を通す）。
+         ★ただし再設定のときだけは戻り先を profile.html のパスワード欄に固定する。
+           メール内の「リンク」を押した人は auth-callback.html 経由でそのまま着地し、
+           この画面には戻ってこない。ここを分けないとリンク派だけが設定画面を一度も見ない。 */
+      const to = (otpIntent === 'reset') ? 'profile.html#password-card' : getRedirect();
+      const { error } = await sb.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: 'https://pilot-value.com/auth-callback.html'
+                         + (to === 'profile.html' ? '' : '?next=' + encodeURIComponent(to)),
+          shouldCreateUser: true,
+        }
+      });
+
+      active.disabled = false;
+      active.innerHTML = label;
+
+      if (error) {
+        errEl.textContent = (error.status === 429)
+          ? '送信の間隔が短すぎます。少し時間をおいてからお試しください。'
+          : 'メールを送信できませんでした: ' + error.message;
+        errEl.style.display = 'block';
+        return;
+      }
+
+      otpEmail = email;
+      if (onOtpStep) {
+        errEl.textContent = 'メールを再送しました。';
+        errEl.classList.add('is-ok');
+        errEl.style.display = 'block';
+      }
+      document.getElementById('otp-note').innerHTML =
+        '<b>' + email.replace(/[<>&]/g, '') + '</b> にメールを送りました。<br>'
+        + 'メール内のリンクを開くか、届いた6桁のコードを入力してください。';
+      document.getElementById('login-form').style.display = 'none';
+      document.getElementById('email-step').style.display = 'none';
+      document.getElementById('otp-step').style.display   = 'block';
+      document.getElementById('otp-code').focus();
+    }
+
+    // 宛先を打ち終えて Enter でも送れるようにする（送信ボタンまで戻らせない）
+    document.getElementById('otp-email').addEventListener('keydown', function(e){
+      if (e.key === 'Enter') { e.preventDefault(); startOtp(); }
+    });
+
+    function backToPassword() {
+      otpIntent = 'login';
+      document.getElementById('otp-step').style.display      = 'none';
+      document.getElementById('email-step').style.display    = 'none';
+      document.getElementById('password-step').style.display = 'none';
+      resetMsg(document.getElementById('otp-error'));
+      resetMsg(document.getElementById('email-error'));
+      document.getElementById('login-form').style.display = 'block';
+    }
+
+    async function verifyOtpCode() {
+      const token = document.getElementById('otp-code').value.trim();
+      const errEl = document.getElementById('otp-error');
+      const btn   = document.getElementById('otp-verify-btn');
+      resetMsg(errEl);
+
+      if (!/^\d{6}$/.test(token)) {
+        errEl.textContent = '6桁の数字を入力してください';
+        errEl.style.display = 'block';
+        return;
+      }
+
+      btn.textContent = '確認中…'; btn.disabled = true;
+      const { data, error } = await sb.auth.verifyOtp({ email: otpEmail, token, type: 'email' });
+
+      if (error || !data || !data.user) {
+        errEl.textContent = 'コードが正しくないか、有効期限が切れています。再送してお試しください。';
+        errEl.style.display = 'block';
+        btn.textContent = 'コードで進む'; btn.disabled = false;
+        return;
+      }
+
+      // 忘れた人はここで止めて、パスワードを決め直してもらう。それ以外は従来どおり素通し。
+      if (otpIntent === 'reset') {
+        pendingUser = data.user;
+        btn.textContent = 'コードで進む'; btn.disabled = false;
+        showPasswordStep();
+        return;
+      }
+
+      await afterLogin(data.user);
+    }
+
+    /* ── 再設定の段 ──
+       この時点でセッションは張れている（＝ログイン済み）。afterLogin はまだ呼ばず、
+       保存かスキップのどちらかで必ず呼ぶ。afterLogin 側は一切いじらない。 */
+    function showPasswordStep() {
+      resetMsg(document.getElementById('pw-error'));
+      document.getElementById('login-form').style.display    = 'none';
+      document.getElementById('email-step').style.display    = 'none';
+      document.getElementById('otp-step').style.display      = 'none';
+      document.getElementById('password-step').style.display = 'block';
+      document.getElementById('pw-new').focus();
+    }
+
+    async function savePasswordAndContinue() {
+      const errEl = document.getElementById('pw-error');
+      const btn   = document.getElementById('pw-save-btn');
+      const pass  = document.getElementById('pw-new').value;
+      const conf  = document.getElementById('pw-confirm').value;
+      resetMsg(errEl);
+      const fail = (t) => { errEl.textContent = t; errEl.style.display = 'block'; };
+
+      if (pass.length < 8) { fail('パスワードは8文字以上で設定してください'); return; }
+      if (pass !== conf)   { fail('確認用のパスワードが一致しません'); return; }
+
+      btn.textContent = '保存中…'; btn.disabled = true;
+      const { error } = await sb.auth.updateUser({ password: pass });
+
+      if (error) {
+        const m = error.message || '';
+        btn.textContent = '保存して進む'; btn.disabled = false;
+        // profile.html の savePassword と同じ扱い。Secure password change 有効時だけ言い換える。
+        if (/reauth|nonce/i.test(m)) { fail('安全のため、一度ログインし直してからもう一度お試しください。'); return; }
+        fail(m || 'パスワードを保存できませんでした。時間をおいて再度お試しください。');
+        return;
+      }
+
+      await afterLogin(pendingUser);
+    }
+
+    // 設定しないまま進む。口コミ投稿の途中で人を止めないための逃げ道。
+    async function skipPassword() {
+      document.getElementById('pw-skip-btn').disabled = true;
+      await afterLogin(pendingUser);
+    }
+
+    // 確認欄で Enter を押したらそのまま保存する
+    document.getElementById('pw-confirm').addEventListener('keydown', function(e){
+      if (e.key === 'Enter') { e.preventDefault(); savePasswordAndContinue(); }
+    });
+
+    // 6桁そろったら自動で送る（コードは数字だけに矯正する）
+    document.getElementById('otp-code').addEventListener('input', function(){
+      this.value = this.value.replace(/\D/g, '').slice(0, 6);
+      if (this.value.length === 6) verifyOtpCode();
+    });
+
+    async function handleGoogle() {
+      /* ★戻り先を auth-callback にも引き継ぐ。ここで落としていたので
+         Google で入った人は必ず profile.html に着地していた。
+         ※redirectTo は Supabase の Redirect URLs に登録済みの本番URLのまま。
+           localhost を入れるにはダッシュボード側の許可が要るので触らない。
+
+         ★同意画面に出るドメインはここでは決まらない。
+           Google が表示するのは OAuth の redirect_uri
+           = https://<project-ref>.supabase.co/auth/v1/callback のホスト名で、
+           この redirectTo は Google から戻った「後」の Supabase 側の転送先。
+           表示を PILOT VALUE にするのは Google Cloud Console の
+           「Google Auth Platform → ブランディング」＋本番公開。ここを触っても変わらない。 */
+      const to = getRedirect();
+      await sb.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: 'https://pilot-value.com/auth-callback.html'
+                    + (to === 'profile.html' ? '' : '?next=' + encodeURIComponent(to)),
+        }
+      });
+    }
+  </script>
+<script src="lang-toggle.js"></script>
+<script src="currency.js"></script>
+</body>
+</html>

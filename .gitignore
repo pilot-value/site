@@ -1,0 +1,28 @@
+node_modules/
+temporary screenshots/
+.DS_Store
+
+# 秘密情報 — このリポジトリは PUBLIC。.env は絶対に追跡させない。
+# スラッシュを含まないパターンは全階層にマッチするので、mail-bot/.env や
+# tweet-bot/.env のような下位ディレクトリの分もここ1箇所で守れる。
+# .env.example だけは共有したいテンプレートなので明示的に除外を打ち消す。
+.env
+.env.*
+!.env.example
+
+# 出所資料の原本 — このリポジトリは PUBLIC で、main が GitHub Pages としてルート配信される。
+# ここに PDF を置くと https://pilot-value.com/sources-raw/… で誰でも落とせて検索にも載る。
+# Git に入れるのは台帳（salary-sources.mjs）だけ。原本は iCloud の Claude-Backup へ。
+# 詳細は DATA-PROVENANCE.md 5.
+sources-raw/
+
+# assert-no-pii.mjs が読む「書いてはいけない語」の一覧（氏名など）。
+# ★ この中身こそ守りたいものなので、リストそのものを絶対に追跡させない。
+# 組み込みルール（/Users/ 絶対パス・個人メールのドメイン）は語を知らなくても当たるので、
+# このファイルが無い環境でも assert-no-pii.mjs は動く。
+.pii-denylist
+
+# 勤務先が割れる語（社内の部門コード・手当の呼び名・社内指標の書式）。
+# ★ 社名は入れない。サイトは110社の航空会社を扱っていて、社名は本文にいくらでも出る。
+#   中の人しか書けない語だけを入れる。理由は pii-rules.mjs の EMPLOYER_FILE のところ。
+.employer-denylist

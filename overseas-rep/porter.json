@@ -1,0 +1,62 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "『入社した頃とは別会社』と語られるほど急成長し、現場のしわ寄せや経営・人事のコミュニケーション不足への不満がある。一方で同僚の質の高さや働きやすさを評価する声も併存する。Glassdoor総合は3.4/5と平均的で、ALPA加入を巡っても賛否が僅差に割れた。",
+      "en": "Explosive growth left many saying it's not the Porter they joined, with complaints about management communication balanced by praise for colleague quality. The overall Glassdoor rating sits around 3.4/5, and the ALPA vote split narrowly."
+    },
+    "salary": {
+      "ja": "会社主導でこの2年ほど大幅賃上げが続き、E195-E2機長は1年目でも年約2,290万円（C$19.7万）、上級で約3,210万円に届く。一方Dash8の初任副操縦士は年約800万円（C$6.9万）と依然控えめ。2026年からは年1.5%の昇給も加わる。",
+      "en": "Company-set scales jumped fast: an E195-E2 captain earns roughly US$145K in year one and about US$200K senior, while a first-year Dash 8 first officer still sits near US$50K. A 1.5% annual escalator begins in 2026."
+    },
+    "benefits": {
+      "ja": "ジャンプシートや家族向けスタンバイ、デルタ・ユナイテッド・ルフトハンザ・エミレーツ等との提携インターライン、健康・歯科、RRSPの会社マッチングと手厚い。ただし退職給付は確定給付年金ではなく確定拠出型で、老後資産は自己運用次第となる。",
+      "en": "Solid perks: jumpseat, family standby, wide interline access (Delta, United, Lufthansa, Emirates), health/dental, and an employer-matched RRSP. Note the retirement plan is defined-contribution, not a defined-benefit pension."
+    },
+    "wlb": {
+      "ja": "日帰り往復便が多く自宅に帰りやすく、休みは月10日以上・中堅で12-13日。レイオーバーはロサンゼルスやカンクン等の一部路線に限られる。ハリファックスとサンダーベイの基地閉鎖（2026年1月）で移転を迫られる者もおり、拠点の安定性には不安が残る。",
+      "en": "Frequent out-and-back day trips make getting home easy, with 10+ days off monthly (12-13 at mid-seniority). But layovers are limited, and the January 2026 closure of the Halifax and Thunder Bay bases is forcing some crews to relocate."
+    },
+    "ops": {
+      "ja": "主力はE195-E2ジェット（132席）で在籍約50機・発注75機と急拡大中、Dash8-400ターボプロップ約29機は縮小局面。カナダ国内と米北東部のポイント・トゥ・ポイント運航が中心。パイロット数は約800-910名まで増え、国内4番目の規模となった。",
+      "en": "The fleet centers on ~50 Embraer E195-E2 jets (132 seats) with 75 more on order, while the ~29 Dash 8-400 turboprops fade. Flying is point-to-point across Canada and the northeastern US, and the pilot group is now Canada's 4th largest."
+    },
+    "training": {
+      "ja": "採用は総飛行1,000時間以上・CPL/ATPLが目安で、型式限定訓練は会社負担。直接入社の機長も採用する。昇格はATPL＋型式500時間で要件を満たし、機材急拡大の追い風で実際は2-3年程度。以前のC$2万トレーニングボンドは廃止されたとの報告もある。",
+      "en": "Type-rating training is company-paid; hiring needs 1,000+ hours plus a CPL/ATPL, and direct-entry captains are welcome. Upgrade runs about 2-3 years thanks to fleet growth, and the old C$20K training bond is reportedly gone."
+    }
+  },
+  "sources": [
+    {
+      "title": "Porter Airlines | Pilot Pay, Fleet, and Careers - Ready For Takeoff",
+      "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/porter-airlines"
+    },
+    {
+      "title": "New pay scale Aug 1 Dash and E2 - AvCanada Forums",
+      "url": "http://www.avcanada.ca/forums2/viewtopic.php?t=195682"
+    },
+    {
+      "title": "Porter Airlines Inc. Pilot Salaries - Glassdoor",
+      "url": "https://www.glassdoor.ca/Salary/Porter-Airlines-Inc-Pilot-Salaries-E228501_D_KO20,25.htm"
+    },
+    {
+      "title": "Porter Airlines Pilots Choose ALPA - Air Line Pilots Association",
+      "url": "https://www.alpa.org/news-and-events/news-room/2025-08-12-porter-airlines-pilots-choose-alpa"
+    },
+    {
+      "title": "Porter Pilots Vote to Unionize - But Not Everyone's Happy About It - These Gold Wings",
+      "url": "https://www.thesegoldwings.com/porter-pilots-vote-to-unionize/"
+    },
+    {
+      "title": "Porter Airlines closing crew bases in Halifax and Thunder Bay - Skies Mag",
+      "url": "https://skiesmag.com/news/porter-airlines-closing-crew-bases-in-halifax-and-thunder-bay/"
+    },
+    {
+      "title": "Porter Airlines adding three new crew bases in Ottawa, Montreal, Vancouver - Newswire",
+      "url": "https://www.newswire.ca/news-releases/porter-airlines-adding-three-new-crew-bases-in-ottawa-montreal-vancouver-883631684.html"
+    },
+    {
+      "title": "Porter Airlines Pilot Salary and Benefits - Cabin Crew HQ",
+      "url": "https://cabincrewhq.com/porter-airlines-pilot-salary/"
+    }
+  ]
+}

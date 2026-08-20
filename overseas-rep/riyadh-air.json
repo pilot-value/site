@@ -1,0 +1,82 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "PIF（政府系ファンド）出資で資金は潤沢、機材も路線も急拡大中で、早く入れば昇格の目は大きい。一方で幹部にRyanairやeasyJet出身のLCC組が並び、コスト重視の運営に傾くのではという警戒がある。生活拠点はリヤド一択で、ドバイに比べ環境は保守的だと感じる人も多い。",
+      "en": "PIF-backed with deep pockets and fast fleet and network growth, so early joiners get strong upgrade odds. But an LCC-heavy leadership drawn from Ryanair and easyJet raises worries about a cost-cutting culture, and everyone must base in Riyadh."
+    },
+    "salary": {
+      "ja": "B787副操縦士は基本給が月US$16,000（約250万円）、住宅・乗務手当込みで月US$24,000前後（約380万円）が全額非課税で入る。機長は非課税で月US$32,000（約505万円）まで届く。若手には欧州の3倍超でガルフ最高水準だが、ベテランのワイドボディ機長はME3大手に月US$8千〜1万見劣りする。",
+      "en": "A B787 first officer's basic is about US$16,000/month, roughly US$24,000 all-in and fully tax-free; captains reach about US$32,000/month. Excellent for juniors (3x+ European pay), but senior wide-body captains trail the big ME3 carriers by US$8,000-10,000/month."
+    },
+    "benefits": {
+      "ja": "住宅は現物支給がなく月US$5,300（約84万円）の手当のみ。エミレーツやカタールと違い自分で探すため、リヤドで家族向け住居には足りないとの不満が多い。一方で年休42日、家族・友人用の往復航空券が年約20枚、子供3人までの学費補助、基本給1カ月分のラマダンボーナスと年5%昇給は手厚い。",
+      "en": "Housing is a flat ~US$5,300/month allowance with no company-provided accommodation, and many say it barely covers decent family housing in Riyadh. Upsides: 42 leave days, ~20 family and friend round-trip tickets a year, school support for three children, a Ramadan bonus and a guaranteed 5% annual raise."
+    },
+    "wlb": {
+      "ja": "乗務は月約75時間、ベースはリヤド（RUH）。欧州勢に魅力の14日勤務／14日休みのコミュート制はあるが、試用と訓練を終えた後、シーニョリティと運航都合次第で、乗務手当減額・住宅手当なしという条件付き。実際に付与されるか懐疑的な見方が多く、経営陣も本拠はあくまでリヤドだと示している。",
+      "en": "Pilots fly about 75 hours a month, all based in Riyadh (RUH). A 14-on/14-off commuting roster is advertised but locked behind probation, training and seniority with reduced flight pay and no housing allowance, and many doubt it will actually be granted during the start-up ramp-up."
+    },
+    "ops": {
+      "ja": "2023年設立のPIF系新興エアラインで、2026年6月にB787-9でリヤド〜ロンドン初便を就航したばかり。787-9を39機、A321neoを60機、A350-1000を25機と計約124機を発注し、3年で約700名のパイロット採用を掲げる。機材は最新だが乗務時間の保証は2026年末までで、立ち上げ期は実飛行が下振れするリスクがある。",
+      "en": "A 2023-founded, PIF-owned start-up that flew its first commercial service (Riyadh to London on a B787-9) only in June 2026. It has ~124 aircraft on order (39 B787-9, 60 A321neo, 25 A350-1000) and plans ~700 pilot hires in three years, but flight-hour guarantees run only through end-2026, so early rosters may fall short."
+    },
+    "training": {
+      "ja": "副操縦士は概ね2,000時間以上（B787型式保有が望ましい）、機長は6,000時間以上と指揮経験が目安。型式なしの機長も体系的な限定取得コースで受け入れる。副操縦士から機長への昇格は機材拡大次第で概ね3〜5年と早く、教官手当は基本給に+12〜14%。急成長でシート移行の道が開けやすい。",
+      "en": "Entry is roughly 2,000+ hours for first officers (B787 rating preferred) and 6,000+ hours with command time for captains, with non-type-rated captains accepted on a structured type-rating course. Upgrade to captain runs about 3-5 years thanks to fast fleet growth, and instructor roles add +12-14% to base pay."
+    }
+  },
+  "sources": [
+    {
+      "title": "Riyadh Air Pilot Terms Revealed - What the Package Actually Looks Like (airmappr)",
+      "url": "https://airmappr.com/news/2026-05/riyadh-air-pilot-salary-terms-revealed"
+    },
+    {
+      "title": "Riyadh Air Terms and Conditions - PPRuNe Forums (pilot discussion thread)",
+      "url": "https://www.pprune.org/middle-east/666943-riyadh-air-terms-conditions.html"
+    },
+    {
+      "title": "Riyadh Air Technical Panel Interview - PPRuNe Forums",
+      "url": "https://www.pprune.org/middle-east/667778-riyadh-air-technical-panel-interview.html"
+    },
+    {
+      "title": "Riyadh Air Pilot Salary in 2025 - Aviation A2Z",
+      "url": "https://aviationa2z.com/index.php/2025/05/29/riyadh-air-pilot-salary-in-2025/"
+    },
+    {
+      "title": "Riyadh Air Pilot Salary - The Aero World",
+      "url": "https://theaeroworld.com/riyadh-air-pilot-salary/"
+    },
+    {
+      "title": "Riyadh Air Pilot Jobs In 2025 Promise Exceptional Pay, Profit-Sharing - Travel And Tour World",
+      "url": "https://www.travelandtourworld.com/news/article/riyadh-air-pilot-jobs-in-2025-promise-exceptional-pay-profit-sharing-international-flight-routes-and-unmatched-career-advancement-opportunities/"
+    },
+    {
+      "title": "Riyadh Air rolls out sky-high salaries for pilots - Travel Weekly Asia",
+      "url": "https://www.travelweekly-asia.com/Travel-News/Airline-News/Riyadh-Air-rolls-out-sky-high-salaries-for-pilots"
+    },
+    {
+      "title": "Jamal Al-Tamimi on X - 2025/2026 Saudi airline pilot salary figures",
+      "url": "https://x.com/Jamal_Atamimi/status/1982242063945973805"
+    },
+    {
+      "title": "Riyadh Air careers - pilots (official)",
+      "url": "https://www.riyadhair.com/en/careers/pilots"
+    },
+    {
+      "title": "Ambitious? Riyadh Air Wants To Hire 700 Pilots Over The Next 3 Years - Simple Flying",
+      "url": "https://simpleflying.com/riyadh-air-hire-700-pilots-next-3-years/"
+    },
+    {
+      "title": "Riyadh Air Brings in Low-Cost Airline Talent (Peter Bellew appointment) - Paddle Your Own Kanoo",
+      "url": "https://www.paddleyourownkanoo.com/2023/03/14/riyadh-air-brings-in-low-cost-airline-talent-by-appointing-the-ex-chief-operating-officer-at-ryanair-and-easyjet/"
+    },
+    {
+      "title": "Riyadh Air completes first commercial flight to London Heathrow - Maaal",
+      "url": "https://maaal.com/en/news/details/riyadh-air-completes-firs/"
+    },
+    {
+      "title": "Riyadh Air Pilot: The Ultimate Guide on How to Join - PilotCareer.in",
+      "url": "https://www.pilotcareer.in/aviation-pilot-things-to-know/riyadh-air-pilot/"
+    }
+  ]
+}

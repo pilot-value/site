@@ -1,0 +1,21 @@
+{
+  "name": "pilot-value",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:sql": "node db/test-pay-reports.mjs && node db/test-conditions.mjs && node db/test-referrals.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "puppeteer": "^24.40.0",
+    "twitter-api-v2": "^1.29.0"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.4"
+  }
+}

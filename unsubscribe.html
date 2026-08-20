@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png"/>
+<link rel="apple-touch-icon" href="assets/favicon-180.png"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'"/><noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet"/></noscript>
+<script>(function(){var t=localStorage.getItem('pv-theme')||'light';document.documentElement.setAttribute('data-theme',t);}());</script>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>メール配信の解除｜PILOT VALUE</title>
+<!--PV-SEO-->
+<!--PV-SRC t="メール配信の解除 | PILOT VALUE" d=""-->
+<meta name="description" content="PILOT VALUE からのお知らせメールの配信を停止します。手続き後もサイトの利用とアカウントはそのまま続けられます。"/>
+<meta name="robots" content="noindex,follow"/>
+<link rel="canonical" href="https://pilot-value.com/unsubscribe.html"/>
+<link rel="alternate" hreflang="ja" href="https://pilot-value.com/unsubscribe.html"/>
+<link rel="alternate" hreflang="en" href="https://pilot-value.com/en/unsubscribe.html"/>
+<link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/unsubscribe.html"/>
+<meta property="og:title" content="メール配信の解除｜PILOT VALUE"/>
+<meta property="og:description" content="PILOT VALUE からのお知らせメールの配信を停止します。手続き後もサイトの利用とアカウントはそのまま続けられます。"/>
+<meta property="og:url" content="https://pilot-value.com/unsubscribe.html"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="PILOT VALUE"/>
+<meta property="og:locale" content="ja_JP"/>
+<meta property="og:locale:alternate" content="en_US"/>
+<meta property="og:image" content="https://pilot-value.com/assets/og/default-ja.jpg"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta property="og:image:alt" content="メール配信の解除｜PILOT VALUE"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="メール配信の解除｜PILOT VALUE"/>
+<meta name="twitter:description" content="PILOT VALUE からのお知らせメールの配信を停止します。手続き後もサイトの利用とアカウントはそのまま続けられます。"/>
+<meta name="twitter:image" content="https://pilot-value.com/assets/og/default-ja.jpg"/>
+<!--/PV-SEO-->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#0a0c0f;color:#e8edf2;font-family:Inter,'Noto Sans JP',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+  [data-theme="light"] body{background:#f3f5f8;color:#0f172a}
+  .card{background:rgba(17,22,32,.95);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:40px 36px;width:100%;max-width:440px;text-align:center}
+  [data-theme="light"] .card{background:#fff;border-color:rgba(0,0,0,.09);box-shadow:0 8px 40px rgba(0,0,0,.12)}
+  .icon{font-size:2.4rem;margin-bottom:14px}
+  h1{font-size:1.15rem;font-weight:800;margin-bottom:10px}
+  p{font-size:.86rem;color:#9ca3af;line-height:1.7}
+  [data-theme="light"] p{color:#475569}
+  .spinner{width:34px;height:34px;border:3px solid rgba(255,255,255,.1);border-top-color:#f5c842;border-radius:50%;animation:spin .8s linear infinite;margin:6px auto 16px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .btn{display:inline-block;margin-top:22px;padding:11px 22px;background:#f5c842;color:#000;border-radius:10px;font-size:.84rem;font-weight:800;text-decoration:none}
+  .resub{margin-top:16px;font-size:.78rem;color:#6b7d93}
+  .resub a{color:#f5c842;font-weight:700;text-decoration:none;cursor:pointer}
+</style>
+<script src="pv-session.js"></script>
+</head>
+<body>
+  <div class="card" id="card">
+    <div class="spinner" id="spin"></div>
+    <h1 id="title">配信解除を処理中…</h1>
+    <p id="msg">少々お待ちください。</p>
+  </div>
+<script>
+  const SB_URL = 'https://vzgmnkrggrwtsrpqndsm.supabase.co';
+  const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6Z21ua3JnZ3J3dHNycHFuZHNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0MzkwOTcsImV4cCI6MjA5MDAxNTA5N30.wE4cJbqeYGCgn5ZvHd80hYWgQuySKvOMJMbsJWOvmtw';
+  const sb = supabase.createClient(SB_URL, SB_KEY);
+
+  const spin = document.getElementById('spin');
+  const title = document.getElementById('title');
+  const msg = document.getElementById('msg');
+  const card = document.getElementById('card');
+
+  function render(icon, t, m, extra) {
+    spin.style.display = 'none';
+    card.innerHTML = `<div class="icon">${icon}</div><h1>${t}</h1><p>${m}</p>${extra || ''}`;
+  }
+
+  (async function () {
+    const token = new URLSearchParams(location.search).get('token');
+    if (!token) {
+      render('⚠️', 'リンクが不正です', 'このURLには解除トークンが含まれていません。メール内のリンクからもう一度お試しください。',
+        '<a class="btn" href="index.html">トップへ戻る</a>');
+      return;
+    }
+    try {
+      // security definer RPC：unsub_token 一致で email_opt_in=false（ログイン不要）
+      const { data, error } = await sb.rpc('unsubscribe', { p_token: token });
+      if (error) throw error;
+      if (data === false) {
+        render('🤔', 'リンクが見つかりません', 'すでに解除済みか、リンクが無効の可能性があります。',
+          '<a class="btn" href="index.html">トップへ戻る</a>');
+        return;
+      }
+      render('✅', '配信を解除しました', '今後、更新通知メールは届きません。ご利用ありがとうございました。',
+        '<div class="resub">気が変わったら <a onclick="resubscribe(\'' + token.replace(/'/g,'') + '\')">配信を再開</a> できます。</div>');
+    } catch (e) {
+      render('⚠️', '処理に失敗しました', '時間をおいて、メール内のリンクから再度お試しください。解決しない場合は info@pilot-value.com までご連絡ください。',
+        '<a class="btn" href="index.html">トップへ戻る</a>');
+    }
+  })();
+
+  async function resubscribe(token) {
+    try {
+      const { data, error } = await sb.rpc('resubscribe', { p_token: token });
+      if (error) throw error;
+      render('🔔', '配信を再開しました', '有益な更新をメールでお届けします。', '<a class="btn" href="index.html">トップへ戻る</a>');
+    } catch (e) {
+      render('⚠️', '再開に失敗しました', 'マイページの「メール通知」からも設定できます。', '<a class="btn" href="profile.html">マイページへ</a>');
+    }
+  }
+</script>
+<script src="pv-toggles.js"></script>
+<script src="lang-toggle.js"></script>
+<script src="currency.js"></script>
+</body>
+</html>

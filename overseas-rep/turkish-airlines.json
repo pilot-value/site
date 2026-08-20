@@ -1,0 +1,70 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "経営陣はパイロットを大事にしないとの評価が目立つ。昇進はシニョリティより人脈・コネ次第で不透明、約束や条件が守られないとの警戒感も根強い。Hava-İş労組が賃金は交渉するが、ロスター面での操縦士の交渉力は弱く、男性中心の古い組織文化が残る。",
+      "en": "Pilots say management doesn't value them and that promotion runs on connections rather than seniority. The Hava-Is union bargains pay, but crews have little leverage over rosters."
+    },
+    "salary": {
+      "ja": "給与は全額トルコリラ建てで、為替リスクは操縦士が直接負う。2026年上半期だけでリラは対ドル約15％下落した。目安は副操縦士が月₺28万〜44万（約126万〜198万円）、機長が月₺58万〜66万（約261万〜297万円）。基本給は月70時間ベースで超過分は別途扱い。",
+      "en": "Pay is 100% in Turkish lira, so pilots carry the FX risk — the lira fell about 15% against the USD in H1 2026 alone. FOs run roughly $7,000-11,000/month and captains $14,500-16,500, but in dollar terms it trails Gulf and US carriers."
+    },
+    "benefits": {
+      "ja": "乗務員食事は無料で、THY＋スターアライアンスのスタッフ航空券や家族に広げられる民間医療保険が付く。一方で湾岸系のような住宅・教育手当はなく、ライン操縦士に会社住居も住居手当も実質なし。イスタンブールで月₺5万〜12万（約23万〜54万円）の家賃は自己負担が実態。",
+      "en": "Free crew meals, Star Alliance staff tickets and family medical cover are solid perks, but there's no Gulf-style housing package. Line pilots pay their own Istanbul rent of roughly $1,100-2,600 a month."
+    },
+    "wlb": {
+      "ja": "ベースはイスタンブール空港の単一でベース入札はなし。ローカル勤務で月休約8日、コミュートは3週オン／1週オフのロスターが組める。ただし超長距離路線のレストが48時間から24時間に短縮され、休日明け深夜0:30発など回復を削る乗務パターンへの不満が強い。",
+      "en": "The only base is Istanbul with no base bidding, offering about 8 days off a month locally and a 3-weeks-on/1-week-off commuting roster. Pilots complain that ultra-long-haul rest was cut from 48 to 24 hours and that recovery gets squeezed."
+    },
+    "ops": {
+      "ja": "2026年時点で約530機超（年末570機目標）を擁し、350都市超・130超の国に就航する世界最大級の国際ネットワーク（ギネス記録）。機材・路線の多様性は経験蓄積に有利で、若手が短期間で幅広い長距離・多目的地の経験を積める点は明確な魅力だ。",
+      "en": "With 530+ aircraft (targeting 570 by year-end) serving 350+ cities across 130+ countries, it runs one of the world's largest international networks. The fleet and route variety let junior pilots build broad long-haul experience fast."
+    },
+    "training": {
+      "ja": "直接雇用でタイプレーティングは会社負担だが、費用は約3年かけて毎月給与から天引きされる実質ボンドで、早期離職時は訓練費の返済が必要。機長昇格は大量機材導入を背景に約6〜12年と欧州より速いと喧伝される一方、外国人副操縦士は昇格しにくいとの警告が繰り返される。",
+      "en": "Type ratings are company-funded but clawed back through roughly three years of salary deductions — a de facto bond, with repayment owed if you leave early. Upgrades are advertised at 6-12 years thanks to fleet growth, though foreign FOs are repeatedly warned they struggle to make captain."
+    }
+  },
+  "sources": [
+    {
+      "title": "Turkish Airlines | Pilot Pay, Rosters and Career Outlook — Ready For Takeoff",
+      "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/turkish-airlines"
+    },
+    {
+      "title": "Turkish Airlines Pilot Salary 2026: FO $73-115K, Captain $151-172K — Airmappr",
+      "url": "https://airmappr.com/articles/career/turkish-airlines-pilot-salary-guide"
+    },
+    {
+      "title": "Turkish Airlines Pilot Salary in 2026 — Aviation A2Z",
+      "url": "https://aviationa2z.com/index.php/2026/03/06/turkish-airlines-pilot-salary-2026/"
+    },
+    {
+      "title": "Turkish Airlines - Non-Type Rated B777, B737 — Airline Pilot Central Forums",
+      "url": "https://www.airlinepilotforums.com/foreign/80897-turkish-airlines-non-type-rated-b777-b737.html"
+    },
+    {
+      "title": "Turkish Airlines THY working conditions - worse than announced? — PPRuNe Forums",
+      "url": "https://www.pprune.org/archive/index.php/t-561139.html"
+    },
+    {
+      "title": "Turkish Airlines Pilot Reviews — Glassdoor",
+      "url": "https://www.glassdoor.com/Reviews/Turkish-Airlines-Pilot-Reviews-EI_IE13316.0,16_KO17,22.htm"
+    },
+    {
+      "title": "Working as a Pilot at Turkish Airlines: Employee Reviews — Indeed",
+      "url": "https://www.indeed.com/cmp/Turkish-Airlines/reviews?fcountry=ALL&fjobtitle=Pilot"
+    },
+    {
+      "title": "AJet Fast-Track To Turkish Airlines: Career Progression & Pay — Ready For Takeoff",
+      "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/anadolujet"
+    },
+    {
+      "title": "THY and THY Technic Salary Increase Rates Announced — AeroHaber",
+      "url": "https://aerohaber.com/thy-and-thy-technic-salary-increase-rates-announced/"
+    },
+    {
+      "title": "THY pilotu anlattı: İki pilotun birden uyuyakalması mümkün — soL haber",
+      "url": "https://haber.sol.org.tr/emek-sermaye/thy-pilotu-anlatti-iki-pilotun-birden-uyuyakalmasi-mumkun-237537"
+    }
+  ]
+}

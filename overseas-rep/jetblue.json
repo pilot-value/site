@@ -1,0 +1,70 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "パンデミックを含め一度も一時解雇していない『ノー・ファーロー』の歴史が誇り。多様性と相互尊重、安全最優先、職種間の対立が少ない一体感が繰り返し語られ、雇用を守った会社への忠誠心は根強い。一方で2024年4月開始の新契約交渉が約2年膠着し、経営への不満とモラール低下が影を落としている。",
+      "en": "Pilots take pride in a 'no-furlough' history — the airline has never laid off staff, even during the pandemic — alongside a friendly, safety-first, low-conflict culture. But a Section 6 contract stalled for nearly two years since April 2024 has dented morale."
+    },
+    "salary": {
+      "ja": "FO初年度は全機種一律112ドル/時で実収入は約1,340万〜1,490万円（$85,000〜$94,000）。A320機長は年収4,660万〜5,140万円規模、パイロット全体の平均は約3,430万円。2023年に計21.5%賃上げしたが、その後サウスウエストやレガシー各社が大型契約を結び、多くの席次で相対的に見劣りするようになった。",
+      "en": "First-year FOs earn a flat $112/hr (roughly $85K-94K take-home), with A320 captains around $295K-325K and an overall pilot average near $217K. The 21.5% raise in 2023 helped, but Southwest and legacy carriers have since pulled ahead at many seniority steps."
+    },
+    "benefits": {
+      "ja": "401kへ会社が17%を直接拠出（マッチではなく直接拠出で業界内では手厚い部類）。会社拠出のVEBAやライセンス喪失保険、ポジティブスペースの社員航空券も魅力で、パーディムは年約85万〜128万円（$5,400〜$8,100）の非課税加算。ただし2025年は営業赤字で利益分配はゼロに消えた。",
+      "en": "The company puts 17% directly into your 401k (a direct contribution, not a match), plus VEBA credits, loss-of-license insurance and positive-space travel. Per diem adds ~$5,400-8,100 tax-free a year, though 2025 losses wiped out profit sharing entirely."
+    },
+    "wlb": {
+      "ja": "組合が作り込んだワークルールで、収入を最大化しなくても働く量を抑えて休みを確保できる点が高評価。月休12〜13日で、投稿には月17.5日休みで年収3,950万円（$250K）超という例も。反面ジュニアはリザーブで早朝3時のショートコール（呼び出し2.5時間）に当たるなど、下位席次の負担は重い。",
+      "en": "Union-crafted work rules let you throttle your flying and still protect time off — 12-13 days off a month, with some posting $250K+ on 17.5 days off. Junior pilots, though, sit reserve with 0300 short calls and a 2.5-hour callout window."
+    },
+    "ops": {
+      "ja": "機材はほぼ全Airbus（A220-300約52機、A320約129機、A321系約100機）に退役進行中のE190が9機。拠点はBOS・JFK・FLL・MCO・LAX・EWRの6か所で2025年にサンフアンを新設。だがスピリット合併の頓挫やP&Wエンジン不具合で年平均15〜20機が地上駐機し、連続赤字と路線縮小で成長は停滞している。",
+      "en": "An almost all-Airbus fleet (A220s, ~129 A320s, ~100 A321s, plus nine retiring E190s) flies from six bases, with San Juan added in 2025. But the collapsed Spirit merger, P&W engine groundings of 15-20 jets, and repeated losses have stalled growth."
+    },
+    "training": {
+      "ja": "未経験からATPまで育てるGateway Select（CAE提携・約3.5年）やGateway University など独自の養成パイプラインを保有。機長昇格はかつて38〜42か月と速かったが、機材制約で新規採用者の現実的な見込みは8〜12年に長期化。ダイレクトエントリー機長はなく、2025年には343の機長ポジション削減（降格）も発生した。",
+      "en": "In-house pipelines like the CAE-partnered Gateway Select (~3.5 years) build pilots from zero. Upgrade once took 38-42 months but now realistically runs 8-12 years due to fleet constraints, and 2025 saw 343 captain positions cut through downgrades."
+    }
+  },
+  "sources": [
+    {
+      "title": "JetBlue Airways — Pilot Pay, Bases, Fleet, Benefits (AirlinePilotCentral)",
+      "url": "https://www.airlinepilotcentral.com/airlines/major-national-lcc/jetblue_airways"
+    },
+    {
+      "title": "JetBlue | Pilot Pay, Roster, Fleet & Career Review (Ready for Takeoff)",
+      "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/jetblue"
+    },
+    {
+      "title": "ALPA-represented JetBlue pilots win 21.5% pay raise with new contract (FlightGlobal)",
+      "url": "https://www.flightglobal.com/strategy/alpa-represented-jetblue-pilots-win-215-pay-raise-with-new-contract/151867.article"
+    },
+    {
+      "title": "JetBlue pilots approve contract extension that comes with over 21% in raises (CNBC)",
+      "url": "https://www.cnbc.com/2023/01/30/jetblue-pilots-approve-contract-extension-raises.html"
+    },
+    {
+      "title": "JetBlue Pilots Respond to Company's Disappointing Fourth Quarter Financial Results (ALPA)",
+      "url": "https://www.alpa.org/press-room/2026/01/jetblue-pilots-respond-to-companys-disappointing-fourth-quarter-financial-results"
+    },
+    {
+      "title": "After Spirit, JetBlue Will Downgrade Over 300 Flight Captains in 2025 (Aviation A2Z)",
+      "url": "https://aviationa2z.com/index.php/2024/11/23/jetblue-to-downgrade-300-captains-in-2025/"
+    },
+    {
+      "title": "JetBlue Planning To Significantly Reduce Pilot Workforce In Los Angeles (Simple Flying)",
+      "url": "https://simpleflying.com/jetblue-reducing-pilot-staffing-los-angeles/"
+    },
+    {
+      "title": "67 Pilots Leave JetBlue in Early Buyouts (AirlineGeeks)",
+      "url": "https://airlinegeeks.com/2025/04/16/67-pilots-leave-jetblue-in-early-buyouts/"
+    },
+    {
+      "title": "JetBlue reserve and commuting (Airline Pilot Central Forums)",
+      "url": "https://www.airlinepilotforums.com/major/61438-jetblue-reserve-commuting.html"
+    },
+    {
+      "title": "JetBlue Pilot Salary in 2025 (Aviation A2Z)",
+      "url": "https://aviationa2z.com/index.php/2025/11/09/jetblue-pilot-salary-2025/"
+    }
+  ]
+}

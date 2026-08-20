@@ -1,0 +1,86 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "トップダウンで階層が急、教官や機長に異議を挟みにくい。官僚的でCAAC主導、選考も6カ月超と長い。上層部の腐敗やマネージャーの無礼を挙げる辛口レビューもあり、社内政治への不満が目立つ。国有企業ゆえの雇用の安定はあるが、風通しは良くない。",
+      "en": "Steeply hierarchical and top-down, so challenging instructors or captains is hard, and the CAAC-driven bureaucracy stretches selection past six months. Some reviews flag corrupt upper management and internal politics, though state ownership brings job security."
+    },
+    "salary": {
+      "ja": "現地機長は年80万〜150万元（約1,740万〜3,270万円）で国内では高給。外国人はA350機長で総額約24万USD（約3,790万円）、江蘇A320機長は月2.2万USD＋住宅手当。基本給＋飛行時間手当＋安全奨・節油奨の構成で、宣伝の年30万USD級は最大限の超過勤務が前提。",
+      "en": "Local captains earn CNY 800k–1.5M (about $175k–330k) a year, strong for China, while an A350 expat captain packages around $240k total ($17,500/mo base plus a $30k safety bonus). The advertised ~$300k ceiling assumes maxed-out overtime."
+    },
+    "benefits": {
+      "ja": "現地は七険二金（各種社会保険＋住宅公積金＋企業年金）に社員無料航空券年2〜4枚、社宅、食事・交通・夜間手当と手厚い。外国人は住宅手当月1,000USD（約16万円）に加え、満了ボーナス3年1.8万／6年3万USD、更新ボーナス3.6万USDが後払いで付く。国有企業らしく福利は充実。",
+      "en": "Locals get full social insurance, a housing fund and corporate pension plus 2–4 free tickets a year, company housing and meal/transport/night allowances. Expats add a $1,000/mo housing allowance and back-loaded completion ($18k–30k) and renewal ($36k) bonuses."
+    },
+    "wlb": {
+      "ja": "A350機長契約で月21日勤務・年休15日と拘束は重め、ロスターは週単位の直前発表で休暇も取りにくい。レジデント契約なら年休30日。ベースは上海。通勤契約は20日オン＋移動＋10日オフで家族と離れて働く者向き。レイオーバーのホテル品質の低さは共通の不満。",
+      "en": "The A350 deal runs 21 duty days a month with just 15 days of leave, and rosters drop weekly at short notice, making time off hard to plan (residential contracts get 30 days). Low layover hotel quality is a common gripe."
+    },
+    "ops": {
+      "ja": "ライン運航は快適で、ディスパッチが書類・燃料を丁寧に確認し、現地副操縦士は規程・手順に精通と好評。本社は上海、ハブは浦東・虹橋・昆明・西安。保有約680機でA320系/A330/A350/B777/B787に国産C919も加わり就航248都市。MU5735事故後は乗務員のメンタルケアが課題に。",
+      "en": "Line flying is rated comfortable: dispatch checks paperwork and fuel carefully and local FOs know the procedures cold. The ~680-aircraft fleet spans A320s through A350, B787 and the homegrown C919 across 248 cities from Shanghai."
+    },
+    "training": {
+      "ja": "昇格は上司との関係依存で遅く不透明、副操縦士→機長に5〜10年、訓練生からは約11年かかる。外国人は機長採用が中心で現地の昇進競争とは別枠。A350機長は総PIC3,000時間・機種別500時間・上限58歳が要件。ライン機長認定までの訓練期間は月1.2万USD（約190万円）。階層が急な訓練文化。",
+      "en": "Local upgrades are slow and relationship-driven, 5–10 years FO-to-captain and ~11 from cadet, while expats are hired straight as captains (A350 needs 3,000 hrs total PIC, 500 on type, age cap 58). Training pay to line-captain sign-off is $12,000/mo."
+    }
+  },
+  "sources": [
+    {
+      "title": "A350 Captains for China Eastern Airlines - WASINC",
+      "url": "https://www.wasinc.net/job/a350-captains-for-china-eastern-airlines"
+    },
+    {
+      "title": "China Eastern Jiangsu A320 Captains - VOR Holdings",
+      "url": "https://vorholdings.com/china-eastern-jiangsu-a320-captains/"
+    },
+    {
+      "title": "China Airline Pilot Contract Comparison: Salary & Benefits - China Legal Experts",
+      "url": "https://www.chinalegalexperts.com/news/china-airline-pilot-contract-comparison"
+    },
+    {
+      "title": "Fascinating Insights Into The Lives Of Highly Paid Expat Pilots In Asia - One Mile at a Time",
+      "url": "https://onemileatatime.com/expat-pilots-in-asia/"
+    },
+    {
+      "title": "Demand for foreign pilots takes off - China Daily",
+      "url": "https://www.chinadaily.com.cn/kindle/2017-08/27/content_31182944.htm"
+    },
+    {
+      "title": "China Eastern Airlines Reviews (66): Pros & Cons - Glassdoor",
+      "url": "https://www.glassdoor.com/Reviews/China-Eastern-Airlines-Reviews-E6721.htm"
+    },
+    {
+      "title": "Working at China Eastern Airlines: Employee Reviews - Indeed",
+      "url": "https://www.indeed.com/cmp/China-Eastern-Airlines/reviews?fcountry=ALL"
+    },
+    {
+      "title": "China Eastern Airlines - PPRuNe Forums",
+      "url": "https://www.pprune.org/south-asia-far-east/568236-china-eastern-airlines.html"
+    },
+    {
+      "title": "Holding Up an Airline - CKGSB Knowledge",
+      "url": "https://english.ckgsb.edu.cn/knowledge/article/holding-up-an-airline/"
+    },
+    {
+      "title": "Foreign Pilots Placed On Unpaid Leave In China - Simple Flying",
+      "url": "https://simpleflying.com/foreign-pilots-placed-on-unpaid-leave-in-china/"
+    },
+    {
+      "title": "Salary of Commercial Pilots in China in 2024 - Aviation A2Z",
+      "url": "https://aviationa2z.com/index.php/2024/12/26/salary-of-commercial-pilots-in-china/"
+    },
+    {
+      "title": "东方航空旗下12年经验飞行员想辞职，被东航索赔540万 - 界面新闻",
+      "url": "https://m.jiemian.com/article/3199904.html"
+    },
+    {
+      "title": "冷门但待遇超好的央国企-东方航空（薪资・福利） - 知行公社",
+      "url": "https://www.zhixingqiuzhi.com/news/747.html"
+    },
+    {
+      "title": "Co-pilot 'might be responsible' for MU5735 crash is rumor - Global Times",
+      "url": "https://www.globaltimes.cn/page/202204/1259004.shtml"
+    }
+  ]
+}

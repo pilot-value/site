@@ -1,0 +1,70 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "政府が約56%を保有する国有色の強い会社で雇用は安定。Glassdoorは約4.1/5、75%が知人に推薦と全体評価は悪くない。ただ「経営が場当たり的」「リーダーシップに一貫性がない」という不満は定番で、2024〜25年は約10カ月に及ぶ協約紛争が続き、2024年12月のストでは約300便が欠航した。",
+      "en": "State-owned (the government holds ~56%), so jobs feel secure, and Glassdoor sits near 4.1/5 with 75% recommending it — but \"erratic management\" and inconsistent leadership are recurring gripes, and a ~10-month contract dispute grounded around 300 flights in a December 2024 strike."
+    },
+    "salary": {
+      "ja": "労組協約で固定基本給＋変動手当（長時間乗務プレミアム等で基本給に20〜40%上乗せ）。平均年収は約15.5万ユーロ（約2,670万円）、機長平均は20万ユーロ超（約3,440万円）、A350シニア機長は最高34万ユーロ（約5,850万円）。新人副操縦士の初任給は手当込みで年約5.4万ユーロ（約930万円）。",
+      "en": "Fixed base pay plus variable premiums that add 20-40% on top; average pilot pay is about $169k, captains average over $218k and senior A350 captains reach ~$370k, while a new first officer starts near $59k."
+    },
+    "benefits": {
+      "ja": "欧州でも手厚い部類。補足年金基金により減額付きで55歳での早期退職が可能で、法定TyEL年金（年1.5%積立）は63歳前後で満額に。年次休暇は30〜35日、レイオーバーの日当は基本給と別建てで支給。ワンワールド系の搭乗特典や車の福利も好評で、長期の生活設計に安心感がある。",
+      "en": "Generous by European standards: a supplementary pension fund allows reduced early retirement at 55 (statutory TyEL fully vests around 63), 30-35 days of annual leave, per diems paid on top of base pay, plus oneworld crew-travel perks."
+    },
+    "wlb": {
+      "ja": "ベースはヘルシンキ（HEL）1拠点のみで支ベースやアウトステーションはなし。EASA FTLに沿った構造化ロスターで月の休みは12〜14日、24〜48時間のレイオーバーを伴う複数日パターン。ただし2022年のロシア領空閉鎖でアジア路線が1〜3時間延び、休養が圧迫され疲労管理が悪化したとの声がある。",
+      "en": "A single Helsinki (HEL) base with no satellite bases; EASA-FTL rosters give roughly 12-14 days off a month with 24-48h layovers, though Russian-airspace detours since 2022 have added 1-3 hours to Asian flights and squeezed crew rest."
+    },
+    "ops": {
+      "ja": "主力はA350-900約18機＋A330-300、近距離はA319/A320/A321（老朽化で更新計画あり）。東京・シンガポール・バンコク・NY・LA等のアジア長距離路線が誇りとやりがい。ただしロシア迂回で所要が1〜3時間増。カンタス向けウェットリース争議では36名のパイロットが一時帰休（2025年9月〜）となった。",
+      "en": "The fleet centers on ~18 A350-900s plus A330-300s and aging A319/A320/A321s; the pride is long-haul Asia (Tokyo, Singapore, Bangkok) plus NY/LA, but Russia detours add 1-3 hours and a Qantas wet-lease dispute furloughed 36 pilots."
+    },
+    "training": {
+      "ja": "機長昇格は完全な先任権制で約10〜14年と欧州最遅クラス。昇格枠は主に退職の穴埋めで停滞しがち。自社養成MPLは約22カ月（前半はデンマーク・ロスキレ）でA320へ直行、修了者は採用時に5年間の優先権。ただし全パイロット職で流暢なフィンランド語が必須のため、日本人など非話者には採用ルートがほぼ閉ざされている点に注意。",
+      "en": "Captain upgrade is pure seniority at ~10-14 years, among Europe's slowest; the in-house MPL runs ~22 months (first half in Denmark) straight to the A320, but fluent Finnish is required for every pilot role, effectively closing the door to non-Finnish speakers."
+    }
+  },
+  "sources": [
+    {
+      "title": "Suomenmaa: Palta – Tällaisia summia Finnairin lentäjät tienaavat",
+      "url": "https://www.suomenmaa.fi/uutiset/palta-tallaisia-summia-finnairin-lentajat-tienaavat-tyonantajapuoli-pitaa-vaatimuksia-kohtuuttomina/"
+    },
+    {
+      "title": "Airmappr: Finnair Pilot Salary 2026 Guide",
+      "url": "https://airmappr.com/articles/career/finnair-pilot-salary-guide"
+    },
+    {
+      "title": "Aviation A2Z: Finnair Pilot Salary in 2026",
+      "url": "https://aviationa2z.com/index.php/2026/06/07/finnair-pilot-salary-in-2026/"
+    },
+    {
+      "title": "Glassdoor: Finnair Reviews (Pros & Cons of Working at Finnair)",
+      "url": "https://www.glassdoor.com/Reviews/Finnair-Reviews-E10382.htm"
+    },
+    {
+      "title": "ReadyForTakeoff: Why Finnair's State Backing and A350 Fleet Matter for Pilots",
+      "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/finnair"
+    },
+    {
+      "title": "Helsinki Times: Finnair pilots secure contract at last",
+      "url": "https://www.helsinkitimes.fi/finland/finland-news/domestic/27086-finnair-pilots-secure-contract-at-last.html"
+    },
+    {
+      "title": "FlightGlobal: Finnair furloughs pilots as labour dispute prompts cuts to Qantas wet-lease",
+      "url": "https://www.flightglobal.com/airlines/finnair-furloughs-pilots-as-labour-dispute-prompts-cuts-to-qantas-wet-lease/162772.article"
+    },
+    {
+      "title": "AeroTime: Finnair to furlough 36 pilots as Qantas A330 wet-lease deal scales back",
+      "url": "https://www.aerotime.aero/articles/finnair-furloughs-pilots-qantas-wet-lease"
+    },
+    {
+      "title": "Finnair Careers: MPL Program & Pilots",
+      "url": "https://company.finnair.com/en/careers/mpl-program"
+    },
+    {
+      "title": "Yle: Umpisolmu Finnairin lentäjien palkoista syynä satojen lentojen perumiseen",
+      "url": "https://yle.fi/a/74-20126842"
+    }
+  ]
+}

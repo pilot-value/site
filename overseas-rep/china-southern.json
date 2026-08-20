@@ -1,0 +1,98 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "訓練で約束された北米ベース（シカゴ/LA）は結局実現せず、契約中は広州前提と考えろという助言が繰り返される。訓練資料や社内運用は中国語中心で外国人には把握しづらい。現地機長は退職時に数百万元の違約金を請求され、判決後も長期「停飛」で転職できない拘束の強さも報じられ、キャリアの自由度は低い。",
+      "en": "Trainees say promised North American bases (Chicago/LA) never materialized, so assume Guangzhou for the whole contract, and Chinese-only manuals leave foreigners guessing. Local captains face multi-million-yuan exit penalties and years of grounding, so career mobility is tightly restricted."
+    },
+    "salary": {
+      "ja": "外国人機長は飛行時間ベースで年USD24万超（約3,800万円）に届く例もあるが、固定月額は手取りUSD3,060（約48万円）と低く、収入の大半が飛行手当と安全ボーナス頼み。募集広告の「年USD30万・非課税」は実態と乖離し、実勢は年約USD15万（約2,370万円）。会社が中国所得税を負担する契約が多い。",
+      "en": "Foreign captains can reach USD 240k+/year on a flight-hour model, but fixed pay is only about USD 3,060/month, so income leans heavily on hourly rates and safety bonuses. The advertised \"USD 300k tax-free\" is really around USD 150k/year, with the company often covering Chinese income tax."
+    },
+    "benefits": {
+      "ja": "多くの外国人契約で会社が中国の所得税を負担するのが実質的な最大の手当。コミュート型ロスターには月額の宿泊手当が付き、年800飛行時間超でUSD7,000（約110万円）の安全ボーナス。年休は1年目が月1日、2年目以降は年20日と初期は薄い。一方でレイオーバーホテルの質は低い。",
+      "en": "The main perk is that the company usually pays Chinese income tax, plus a monthly housing allowance on commuting rosters and a USD 7,000 safety bonus past 800 hours. Annual leave is thin early on (one day a month in year one, 20 days after), and layover hotels draw complaints."
+    },
+    "wlb": {
+      "ja": "月に約10連続日のブロック休か在宅8日オフを選べ、B777はメルボルン/ブリスベンへのリバースロスターが可能で中国屈指の人気ベース。ただし主基地は広州で、実ローテは「5日オン/36時間オフ/5日オン」と疲労が激しく在宅は月7泊未満との証言も。年間上限1,000時間、実務は月70〜90時間。",
+      "en": "You can pick roughly 10 consecutive rest days or eight days home a month, and the B777 reverse roster to Melbourne/Brisbane is one of China's most coveted postings. But the main base is Guangzhou, real rotations run \"5 on / 36hr off / 5 on\" with under seven nights home, and flying is capped at 1,000 hours a year."
+    },
+    "ops": {
+      "ja": "主力はB777で広州をハブに豪州線などを運航。排班は機械的で年間計画性に欠け、深夜帯の連続運航や遅延で休息が6〜7時間に圧縮されるとの現場不満がある。コックピット内喫煙や軽微違反への個人罰金といった運用文化のギャップも指摘される。外国人パイロット市場は2024年時点でピーク比約7割減。",
+      "en": "The fleet centers on the B777 out of Guangzhou with Australia routes as a draw, but scheduling is mechanical, night ops compress rest to 6-7 hours, and quirks like cockpit smoking and personal fines for minor violations grate. The foreign-pilot market is down about 70% from its peak as of 2024."
+    },
+    "training": {
+      "ja": "シムチェックは厳格で不合格率が高くフィードバックも乏しい。生データ＋片発NDBアプローチに複合故障を課され、不合格なら副操縦士に降格され給与がUSD6,000（約95万円）まで削られる条項もある。副操縦士から機長への昇格は5〜7年で小時費が約3倍に跳ね上がる。応募はATPL・Class1・ICAO英語Level4以上・56歳以下が要件。",
+      "en": "Sim checks are strict and wash-out-prone: raw-data single-engine NDB approaches with compound failures, sparse feedback, and a clause that busts you back to FO on about USD 6,000. Local FO-to-captain upgrade takes 5-7 years and roughly triples hourly pay; entry needs an ATPL, Class 1 medical, ICAO English Level 4, and age under 56."
+    }
+  },
+  "sources": [
+    {
+      "title": "China Southern Airlines Airline Pilot Salaries | Glassdoor",
+      "url": "https://www.glassdoor.com/Salary/China-Southern-Airlines-Airline-Pilot-Salaries-E7065_D_KO24,37.htm"
+    },
+    {
+      "title": "China Southern Airlines - PPRuNe Forums",
+      "url": "https://www.pprune.org/terms-endearment/566485-china-southern-airlines.html"
+    },
+    {
+      "title": "China southern - Airline Pilot Central Forums",
+      "url": "https://www.airlinepilotforums.com/foreign/79125-china-southern.html"
+    },
+    {
+      "title": "China southern - Airline Pilot Central Forums (post-COVID)",
+      "url": "https://www.airlinepilotforums.com/foreign/79125-china-southern-3.html"
+    },
+    {
+      "title": "Fascinating Insights Into The Lives Of Highly Paid Expat Pilots In Asia - One Mile at a Time",
+      "url": "https://onemileatatime.com/expat-pilots-in-asia/"
+    },
+    {
+      "title": "China Airline Pilot Contract Comparison: Salary & Benefits - China Legal Experts",
+      "url": "https://www.chinalegalexperts.com/news/china-airline-pilot-contract-comparison"
+    },
+    {
+      "title": "B777 Captain Pilot Jobs | China Southern Cargo (contract terms) - IAC Global",
+      "url": "https://www.iacglobal.com/aviation-and-pilot-jobs/b777-captain"
+    },
+    {
+      "title": "Longreach Aviation China (China Southern expat captain recruiting)",
+      "url": "https://www.longreachchina.com/"
+    },
+    {
+      "title": "Want to earn $300,000 tax free? Try flying a plane in China - CNN Money",
+      "url": "https://money.cnn.com/2016/11/15/news/economy/china-airlines-foreign-pilots-pay/index.html"
+    },
+    {
+      "title": "Expat pilots hoping to take off in China told their credentials are no longer a hot ticket - SCMP",
+      "url": "https://www.scmp.com/economy/china-economy/article/3352586/expat-pilots-hoping-take-china-told-their-credentials-are-no-longer-hot-ticket"
+    },
+    {
+      "title": "Foreign Pilots at Chinese Airlines Return Home on Unpaid Leave as Demand Plummets - VOA",
+      "url": "https://www.voanews.com/a/science-health_coronavirus-outbreak_foreign-pilots-chinese-airlines-return-home-unpaid-leave-demand/6184500.html"
+    },
+    {
+      "title": "浅谈国内民航飞行员的薪资收入问题 - 飞行之翼",
+      "url": "http://www.feizhiyi.com/Todayflight/details/id/1516.html"
+    },
+    {
+      "title": "南航机长工资平均增加近1/3（机长/副驾驶/教员 年收入调查）- 一览",
+      "url": "http://www.yl1001.com/zhuanti/index/?doaction=detail&act_id=8781402040325484"
+    },
+    {
+      "title": "民调统计：多家飞行员年薪超百万 - 网易",
+      "url": "https://www.163.com/dy/article/KB97CR9U0511CCIF.html"
+    },
+    {
+      "title": "南航飞行员辞职被索赔640万 判赔141万后仍难离职 - 新浪财经",
+      "url": "https://finance.sina.com.cn/chanjing/gsnews/2019-07-26/doc-ihytcitm4681604.shtml"
+    },
+    {
+      "title": "想问一下中国南方航空的工资待遇怎么样？- 知乎",
+      "url": "https://www.zhihu.com/question/284044882"
+    },
+    {
+      "title": "已有超过千名外籍机长服务中国航空公司 凭什么拿百万年薪 - 界面新闻",
+      "url": "https://www.jiemian.com/article/1824778.html"
+    }
+  ]
+}

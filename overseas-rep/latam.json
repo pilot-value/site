@@ -1,0 +1,74 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "2025年11月、1997年以来初のパイロットストが発生し、8日間で約3.1万人に影響。会社の最終案は97%が拒否した。社内には密告的な空気や経営への不信を指摘する声もあるが、現場の機長同士の関係は概ね良好で、Glassdoorの文化評価は4.0/5と悪くない。",
+      "en": "November 2025 brought LATAM's first pilot strike since 1997, with 97% rejecting management's final offer, and some pilots describe an internal culture of distrust and colleagues reporting on one another. Even so, most line captains are well liked and Glassdoor rates culture ~4.0/5."
+    },
+    "salary": {
+      "ja": "給与は固定基本給＋実飛行時間連動の変動給。チリの機長は基本給が月151万〜170万円（CLP890万〜1000万）に時間手当が加わり、副操縦士は月90万〜100万円。初年度の新人副操は手取り月34万円前後で、先任者ほど旧契約に守られ優遇される。",
+      "en": "In Chile, captains earn a monthly base of roughly US$9,600–10,800 (CLP 8.9M–10M) plus an hourly variable, first officers about US$5,700–6,300, and first-year FOs net only around US$2,200/month. Pay is fixed base plus hours flown, and senior pilots keep more favorable legacy contracts."
+    },
+    "benefits": {
+      "ja": "ブラジルでは基本給に20%の「有機補償」手当が上乗せされ、飛行の身体的負担を補う。無料スタンバイ搭乗のPasse Livreで契約ベースから離れて暮らせるのも利点。ワイドボディ便は日当が収入を底上げし、会社の健康保険や搭乗割引も付く。",
+      "en": "Brazilian pilots get a 20% 'organic compensation' uplift on base pay plus the 'Passe Livre' free standby travel that lets them live away from their base. Per diems meaningfully pad widebody trips, alongside company health insurance and travel discounts."
+    },
+    "wlb": {
+      "ja": "ナローボディのロスターが最も過酷で、4レグの深夜便や夜間往復が常態。月の勤務は15〜18日、休みは12〜15日、年の5カ月は休み7日・残りは6日。PBS入札で希望が通るのは約5割で先任ほど改善するが、ジュニアの負荷は重い。",
+      "en": "The narrowbody roster draws the most heat — four-leg red-eyes and night round-trips are standard, with 15–18 duty days and 12–15 days off a month. The PBS bid system reportedly grants only about half of requested preferences, improving with seniority."
+    },
+    "ops": {
+      "ja": "機材はA320系・A350・ボーイング767/777F/787・エンブラエルE2と幅広く、米国を除く南北アメリカ最大の航空グループ。近代的で拡大中の機材ラインは現場の誇り。ただしサンティアゴ発の787長距離路線は枠が限られる。",
+      "en": "The fleet spans the A320 family, A350, Boeing 767/777F/787 and Embraer E2 at the largest airline group in the Americas outside the US — a modern, expanding operation pilots take pride in. Long-haul 787 flying out of Santiago, however, is limited."
+    },
+    "training": {
+      "ja": "訓練は厳しいが質が高く、安全と整備を最優先する姿勢が一貫して高く評価される。機長への昇格は概ね7年（市場により6〜12年）。ブラジルのE2は直接機長採用の枠があり、A320への足がかりになる。採用要件はATPL・第1種身体・ICAO英語4以上・約1000時間。",
+      "en": "Training is demanding but well run, with safety and maintenance clearly prioritized. Upgrade to captain takes roughly seven years (6–12 depending on market), and Brazil's E2 offers direct-entry captain slots as a stepping stone to the A320."
+    }
+  },
+  "sources": [
+    {
+      "title": "LATAM Airlines Pilot Reviews - PilotsGlobal",
+      "url": "https://pilotsglobal.com/airlines/latam-airlines/pilot-reviews"
+    },
+    {
+      "title": "LATAM Reviews (364): Pros & Cons of Working At LATAM - Glassdoor",
+      "url": "https://www.glassdoor.com/Reviews/LATAM-Reviews-E723829.htm"
+    },
+    {
+      "title": "Por que sigue la huelga en Latam? Empresa propuso sueldos base de hasta $10 millones - Diario Financiero",
+      "url": "https://www.df.cl/empresas/industria/por-que-sigue-la-huelga-en-latam-empresa-propuso-a-pilotos-sueldos-base"
+    },
+    {
+      "title": "Huelga en Latam: Cuanto ganan los pilotos comerciales en Chile - Emol",
+      "url": "https://www.emol.com/noticias/Economia/2025/11/14/1183214/huelga-latam-salarios-pilotos-comerciales.html"
+    },
+    {
+      "title": "No fue oferta de hasta 10 millones: revelan el punto que llevo a huelga a pilotos de Latam - BioBioChile",
+      "url": "https://www.biobiochile.cl/noticias/economia/negocios-y-empresas/2025/11/18/no-fue-oferta-de-sueldos-de-hasta-10-millones-revelan-el-punto-que-llevo-a-huelga-a-pilotos-de-latam.shtml"
+    },
+    {
+      "title": "Finalizo la primera huelga de pilotos en Latam desde 1997 - La Prensa Austral",
+      "url": "https://laprensaaustral.cl/2025/11/20/finalizo-la-primera-huelga-de-pilotos-en-la-aerolinea-latam-desde-1997/"
+    },
+    {
+      "title": "Salario de pilotos do Embraer E2 fica definido apos novo acordo coletivo da LATAM - Aeroin",
+      "url": "https://aeroin.net/salario-de-pilotos-do-embraer-e2-fica-definido-apos-novo-acordo-coletivo-da-latam/"
+    },
+    {
+      "title": "Latam recebe nao do sindicato dos aeronautas apos propor corte de salario - IstoE Dinheiro",
+      "url": "https://www.istoedinheiro.com.br/latam-recebe-nao-do-sindicato-dos-aeronautas-apos-propor-corte-de-salario/"
+    },
+    {
+      "title": "Latam - Sindicato Nacional dos Aeronautas (SNA)",
+      "url": "https://www.aeronautas.org.br/category/noticias/latam/"
+    },
+    {
+      "title": "LATAM Airlines Group Hiring Requirements - Epic Flight Academy",
+      "url": "https://epicflightacademy.com/hiring-requirements-latam-airlines-group/"
+    },
+    {
+      "title": "160 Vagas na LATAM para pilotos com salarios atrativos - Aviacao Amazonia",
+      "url": "https://aviacaoamazonia.com.br/160-vagas-na-latam-para-pilotos/"
+    }
+  ]
+}

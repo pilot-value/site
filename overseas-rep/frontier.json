@@ -1,0 +1,82 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "経営陣がクルーを軽視するとの不信が根強い。2025年1～9月に純損失 約1.9億ドル（約300億円）を計上し株価も下落、CEO交代やSpiritとの合併観測が続く。パイロットの99%がストライキ権を承認するなどモラールは低い一方、急成長下でも家族的な文化を保とうとする面は一定の評価。",
+      "en": "Deep distrust that management undervalues crews. The airline posted a ~$190M net loss for Jan–Sep 2025 with the stock down over 28%, a CEO change, and recurring Spirit merger talk; 99% of voting pilots backed a strike authorization."
+    },
+    "salary": {
+      "ja": "給与は米国ナローボディ最安との認識が強い。副操縦士は1年目 年約9万ドル（約1,420万円）から12年目 約16.1万ドル（約2,540万円）、機長は約18.2万ドル（約2,880万円）～24.3万ドル（約3,840万円）。機長レートは業界平均比で約4割低いと組合が主張し、交渉の最大の火種になっている。",
+      "en": "Widely seen as the lowest pay among US narrowbody carriers. First officers earn roughly $90K (year 1) to $161K (year 12) and captains about $182K to $243K, with captain rates said to be ~40% below the industry average."
+    },
+    "benefits": {
+      "ja": "退職金は会社が対象給与の15%を401kへ直接拠出し、年24万ドル級のシニア機長で年約3.6万ドル（約570万円）の会社拠出になる。日当は基地外で時給約$2.15～2.20（約340円）。一方、長期障害保険（LTD）が弱いとの不満は根強い。",
+      "en": "The company puts 15% of eligible pay directly into a 401(k) — about $36K a year for a senior captain earning $240K. Per diem runs ~$2.15–2.20/hour away from base, but long-term disability coverage is seen as weak."
+    },
+    "wlb": {
+      "ja": "基地に住めば通勤負担がなく生活の質は高いが、コミューターは高稼働ULCCゆえ早朝・深夜・多レグが重い。休日はラインホルダーで月12～14日、スケジュールはPBSで決まりシニアほど希望が通る。リザーブは生活が読めず厳しく、QOLは結局シニオリティ次第。",
+      "en": "Live in base and quality of life is high; commute and it's brutal — early starts, red-eyes and many legs at a high-utilization ULCC. Line holders get about 12–14 days off a month via seniority-based bidding, while reserve life stays unpredictable."
+    },
+    "ops": {
+      "ja": "機材は全機エアバスA320ファミリー（約176機）で新しく快適、440超のノンストップ路線を展開する。パイロット集団の質も高く好意的。一方で運航はやや雑で、ディスパッチャー不足による過重労働、深夜のスケジュール変更、5時間レグで機内に水やケータリングが無いといった不満が出る。",
+      "en": "An all-Airbus A320-family fleet (~176 aircraft, new and comfortable) flying 440+ nonstops. Pilots rate the flying group highly, but operations feel rough — dispatcher shortages, overnight schedule changes, and even five-hour legs without water or catering."
+    },
+    "training": {
+      "ja": "機長昇格はFOから約2～3年と速く、機長時間を早く積める入口として魅力。ただ2024年5月から訓練費返還契約が導入され、2年以内の自主退職で約$59,190（約930万円）をプロラタ返還する。違法だとして提訴した機長もいる。CFI出身者向けの移行訓練はタイプライド合格偏重との指摘も。",
+      "en": "Upgrade to captain in about 2–3 years makes it a strong entry point. But a training-repayment bond added in May 2024 claws back a pro-rated share of ~$59,190 if you quit within two years — one captain has sued, calling it illegal."
+    }
+  },
+  "sources": [
+    {
+      "title": "Frontier Airlines | Pilot Pay, Fleet & Career Progression (Ready For Takeoff)",
+      "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/frontier-airlines"
+    },
+    {
+      "title": "Frontier Airlines Pilot Salary in 2024 - Aviation A2Z",
+      "url": "https://aviationa2z.com/index.php/2024/12/17/frontier-airlines-pilot-salary/"
+    },
+    {
+      "title": "Frontier Pilots Picket for Fair Pay and Recognition in Stalled Contract Talks - ALPA",
+      "url": "https://www.alpa.org/press-room/2024/frontier-pilots-picket"
+    },
+    {
+      "title": "Frontier Airlines (FFT) - ALPA pilot group",
+      "url": "https://fft.alpa.org/"
+    },
+    {
+      "title": "Frontier Airlines Pilots to Go on Strike If Negotiation Talk Fails - Aviation A2Z",
+      "url": "https://aviationa2z.com/index.php/2024/10/16/frontier-airlines-pilots-vote-to-strike/"
+    },
+    {
+      "title": "Frontier Airline Pilots Picket Outside Headquarters, Seek Market-Aligned Contract - Colorado Newsline",
+      "url": "https://coloradonewsline.com/briefs/frontier-airline-pilots-picket-outside-headquarters-seek-market-aligned-contract/"
+    },
+    {
+      "title": "Frontier Airlines Will Make New Hire Pilots Pay Nearly $60,000 If They Leave Within Two Years - Paddle Your Own Kanoo",
+      "url": "https://www.paddleyourownkanoo.com/2024/04/11/frontier-airlines-will-make-new-hire-pilots-pay-nearly-60000-if-they-leave-the-airline-within-two-years/"
+    },
+    {
+      "title": "Frontier's Training Repayment Contract Illegal, Pilot Says - Law360",
+      "url": "https://www.law360.com/articles/2406888/frontier-s-training-repayment-contract-illegal-pilot-says"
+    },
+    {
+      "title": "Life at Frontier - Airline Pilot Central Forums",
+      "url": "https://www.airlinepilotforums.com/frontier/143577-life-frontier.html"
+    },
+    {
+      "title": "Frontier Airlines Pilot Reviews - Glassdoor",
+      "url": "https://www.glassdoor.com/Reviews/Frontier-Airlines-Pilot-Reviews-EI_IE5144.0,17_KO18,23.htm"
+    },
+    {
+      "title": "Frontier Slows Pilot Hiring Pipeline - AirlineGeeks",
+      "url": "https://airlinegeeks.com/2024/01/24/frontier-slows-pilot-hiring-pipeline/"
+    },
+    {
+      "title": "Frontier Airlines forecasts revenue boost from Spirit collapse - CNBC",
+      "url": "https://www.cnbc.com/2026/05/05/frontier-airlines-spirit-collapse.html"
+    },
+    {
+      "title": "Frontier Airlines Pilot Salary, Crew Domiciles, Fleet Info - Pilot Bases",
+      "url": "https://www.pilotbases.com/profiles/frontier-airlines"
+    }
+  ]
+}

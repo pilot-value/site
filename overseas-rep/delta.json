@@ -1,0 +1,78 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "COVID期を含め自社都合の解雇ゼロで、約1万7,300名が「潰れない会社」という安心感を口にする。協調的な社風『Delta difference』への評価も高い。ただし2022年の運航混乱期には現役が史上初の顧客向け公開書簡で無理な増便計画と人員不足に反発し、経営への不信もなお残る。",
+      "en": "No involuntary furloughs even through COVID gives the ~17,300 pilots real job security, and the collaborative 'Delta difference' culture rates highly. But in 2022 pilots issued their first-ever public customer letter blasting overexpansion and understaffing, leaving lingering distrust of management."
+    },
+    "salary": {
+      "ja": "2023年批准の新協約で契約期間累計約34％の昇給。1年目のFOで年1,420万〜2,050万円（約9万〜13万ドル）、ワイドボディCaptainのトップは時給465ドル（約7.3万円）で年7,270万〜8,220万円に達する。米大手最高水準の総報酬という認識が定着している。",
+      "en": "The 2023 contract delivers roughly 34% in cumulative raises; first-year FOs earn about $90k-$130k while top widebody captains hit $465/hour, or $460k-$520k a year. Total comp is widely seen as the best among US majors."
+    },
+    "benefits": {
+      "ja": "401(k)は従業員の拠出有無に関係なく会社が給与の17％を自動拠出し、2026年からは18％へ引き上げ。米エアライン最高水準。加えて毎年2月14日の利益分配が名物で、2024年分は平均5週間分・個人で約316万〜790万円（2万〜5万ドル）が支給された。",
+      "en": "Delta puts 17% of pay into your 401(k) regardless of your own contributions, rising to 18% in 2026 — the richest in the US industry. The famous Valentine's Day profit sharing paid an average five weeks' pay in 2024, roughly $20k-$50k per pilot."
+    },
+    "wlb": {
+      "ja": "希望入札制（PBS）でシニアになれば月10日程度の乗務・休日18〜19日も可能。月間保証は65時間、拠点はATL・DTWなど7か所。ただし新人・リザーブは12時間コールアウトに追われ、クラッシュパッド生活や乗り遅れの出費が重く、どの拠点を選ぶかで生活の質が激変する。",
+      "en": "With PBS bidding, senior pilots can fly around 10 days a month with 18-19 days off across seven bases like ATL and DTW, on a 65-hour monthly guarantee. Junior and reserve life is rough, though — the 12-hour callout, crashpad costs, and missed commutes mean your base choice makes or breaks quality of life."
+    },
+    "ops": {
+      "ja": "A220・A320系・B737・B757/767・A330・A350など機材が多彩で、ナロー・ワイド双方に大量の発注残があり型式移行の機会が多い。一方2022年の繁忙期には記録的な残業と大量欠航で運航が破綻し、人員に見合わない増便計画への不満が噴出した。",
+      "en": "The fleet spans A220, A320s, 737, 757/767, A330 and A350 with huge orders on both narrow- and widebodies, so type-transition chances are plentiful. But the 2022 peak season broke down into record overtime and mass cancellations driven by overambitious growth."
+    },
+    "training": {
+      "ja": "Captain昇格は歴史的に8〜15年で、会社は2024年以降入社は右席約10年と説明するが機材・拠点で大きくぶれる。採用はATP・1,500時間以上と四年制学位が推奨。最大の壁はビザスポンサーが一切なく、米国での無制限就労資格が必須で日本人は実質応募できない点。",
+      "en": "Captain upgrade has historically run 8-15 years; the company cites about 10 years in the right seat for post-2024 hires, though it varies widely by fleet and base. Hiring needs an ATP with 1,500+ hours and a degree — and with zero visa sponsorship and mandatory US work authorization, Japanese applicants are effectively shut out."
+    }
+  },
+  "sources": [
+    {
+      "title": "Delta Air Lines Pilot Salary 2026 — First Officer, Captain, Top Pay | Rotate",
+      "url": "https://rotatepilot.com/airline-salary/delta-air-lines"
+    },
+    {
+      "title": "Delta Air Lines Pilot Pay & Contract Details | AirlinePilotCentral",
+      "url": "https://www.airlinepilotcentral.com/airlines/legacy/delta_air_lines"
+    },
+    {
+      "title": "Delta Pilots Approve New Contract With Huge Pay Raises | One Mile at a Time",
+      "url": "https://onemileatatime.com/news/delta-pilots-contract/"
+    },
+    {
+      "title": "United, American, Delta Pilot Pay $465/Hour — Big Three Realignment 2026 | MigFlug",
+      "url": "https://migflug.com/jetflights/united-american-delta-pilot-pay-465-hour-big-three-realignment-2026/"
+    },
+    {
+      "title": "Delta employees to receive average five weeks of pay in annual profit sharing | Delta News Hub",
+      "url": "https://news.delta.com/delta-employees-receive-average-five-weeks-pay-annual-profit-sharing"
+    },
+    {
+      "title": "Delta Air Lines sharing $1.4B in 2024 profits with employees | FOX 5 Atlanta",
+      "url": "https://www.fox5atlanta.com/news/delta-air-lines-profits-sharing-2024-employees"
+    },
+    {
+      "title": "Captain Upgrade Times? (Delta) — Airline Pilot Central Forums",
+      "url": "https://www.airlinepilotforums.com/delta/148508-captain-upgrade-times-4.html"
+    },
+    {
+      "title": "Delta pilots say they've been flying 'record amount of overtime' amid cancellations | The Hill",
+      "url": "https://thehill.com/policy/transportation/3527227-delta-pilots-say-theyve-been-flying-record-amount-of-overtime-amid-flight-cancellations/"
+    },
+    {
+      "title": "Delta Pilots Share Frustration Over Schedules and Cancellations | ALPA News Room",
+      "url": "https://www.alpa.org/news-and-events/news-room/2022-06-16-delta-pilots-share-frustration"
+    },
+    {
+      "title": "Pilot Hiring Process & FAQs | Delta Air Lines",
+      "url": "https://www.delta.com/us/en/careers/pilots/hiring-faqs"
+    },
+    {
+      "title": "Delta Airline Pilot Reviews | Glassdoor",
+      "url": "https://www.glassdoor.com/Reviews/Delta-Air-Lines-Pilot-Reviews-EI_IE197.0,15_KO16,21.htm"
+    },
+    {
+      "title": "Delta Air Lines | Pilot Salaries, Benefits & Career Guide | Ready For Takeoff",
+      "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/delta-air-lines"
+    }
+  ]
+}

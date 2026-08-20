@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/>
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png"/>
+<link rel="apple-touch-icon" href="../assets/favicon-180.png"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'"/><noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet"/></noscript>
+  <script>(function(){var t=localStorage.getItem('pv-theme')||'light';document.documentElement.setAttribute('data-theme',t);}());</script>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>My Page | PILOT VALUE</title>
+<!--PV-SEO-->
+<!--PV-SRC t="My Page — PILOT VALUE" d=""-->
+<meta name="description" content="Your account details, the reviews you have posted, your email preferences and your saved market value reports."/>
+<meta name="robots" content="noindex,follow"/>
+<link rel="canonical" href="https://pilot-value.com/en/profile.html"/>
+<link rel="alternate" hreflang="ja" href="https://pilot-value.com/profile.html"/>
+<link rel="alternate" hreflang="en" href="https://pilot-value.com/en/profile.html"/>
+<link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/profile.html"/>
+<meta property="og:title" content="My Page | PILOT VALUE"/>
+<meta property="og:description" content="Your account details, the reviews you have posted, your email preferences and your saved market value reports."/>
+<meta property="og:url" content="https://pilot-value.com/en/profile.html"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="PILOT VALUE"/>
+<meta property="og:locale" content="en_US"/>
+<meta property="og:locale:alternate" content="ja_JP"/>
+<meta property="og:image" content="https://pilot-value.com/assets/og/default-en.jpg"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta property="og:image:alt" content="My Page | PILOT VALUE"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="My Page | PILOT VALUE"/>
+<meta name="twitter:description" content="Your account details, the reviews you have posted, your email preferences and your saved market value reports."/>
+<meta name="twitter:image" content="https://pilot-value.com/assets/og/default-en.jpg"/>
+<!--/PV-SEO-->
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../pv-reunlock.js"></script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:#0a0c0f;color:#e8edf2;font-family:Inter,'Noto Sans JP',sans-serif;min-height:100vh}
+    body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 40% at 50% 0%,rgba(245,200,66,.06) 0%,transparent 65%);pointer-events:none;z-index:0}
+    [data-theme="light"] body{background:#f3f5f8;color:#0f172a}
+    nav{position:sticky;top:0;z-index:200;background:rgba(10,12,15,.96);border-bottom:1px solid rgba(255,255,255,.07);backdrop-filter:blur(20px)}
+    [data-theme="light"] nav{background:rgba(243,245,248,.97);border-bottom-color:rgba(0,0,0,.08)}
+    .nav-inner{max-width:700px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:64px}
+    .btn-ghost{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:9px;background:rgba(255,255,255,.07);color:#e8edf2;border:1px solid rgba(255,255,255,.12);cursor:pointer;font-size:.83rem;font-weight:600;text-decoration:none;transition:background .2s;font-family:inherit}
+    .btn-ghost:hover{background:rgba(255,255,255,.12)}
+    [data-theme="light"] .btn-ghost{background:rgba(0,0,0,.05);color:#0f172a;border-color:rgba(0,0,0,.12)}
+    .theme-toggle{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.07);color:#e8edf2;border:1px solid rgba(255,255,255,.12);cursor:pointer;transition:background .2s;flex-shrink:0}
+    .theme-toggle:hover{background:rgba(255,255,255,.13)}
+    [data-theme="light"] .theme-toggle{background:rgba(0,0,0,.06);color:#0f172a;border-color:rgba(0,0,0,.13)}
+    .glass{background:rgba(17,22,32,.7);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:28px}
+    [data-theme="light"] .glass{background:#fff;border-color:rgba(0,0,0,.09);box-shadow:0 2px 14px rgba(0,0,0,.07)}
+    .avatar{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#f5c842,#f97316);display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:800;color:#000;flex-shrink:0}
+    .info-row{display:grid;grid-template-columns:120px 1fr;gap:8px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.06);align-items:center}
+    .info-row:last-child{border-bottom:none}
+    [data-theme="light"] .info-row{border-bottom-color:rgba(0,0,0,.06)}
+    .info-label{font-size:.75rem;color:#6b7d93;font-weight:600;letter-spacing:.03em}
+    .info-value{font-size:.9rem;font-weight:600}
+    .pos-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:999px;font-size:.78rem;font-weight:700;letter-spacing:.04em}
+    .pos-captain{background:rgba(245,200,66,.12);color:#f5c842;border:1px solid rgba(245,200,66,.25)}
+    .pos-fo{background:rgba(99,179,237,.1);color:#63b3ed;border:1px solid rgba(99,179,237,.2)}
+    .pos-cadet{background:rgba(154,230,180,.1);color:#68d391;border:1px solid rgba(154,230,180,.2)}
+    .unlock-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:999px;font-size:.78rem;font-weight:600}
+    .unlock-active{background:rgba(72,199,142,.1);color:#48c78e;border:1px solid rgba(72,199,142,.25)}
+    .unlock-inactive{background:rgba(255,255,255,.05);color:#6b7d93;border:1px solid rgba(255,255,255,.1)}
+    [data-theme="light"] .unlock-inactive{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.1)}
+    [data-theme="light"] .unlock-active{background:rgba(13,138,99,.09);color:#0d8a63;border-color:rgba(13,138,99,.28)}
+    /* ようこそ／解放バナー。ここは色を要素に直に書いていたので、ライトテーマで
+       文字が背景に溶けていた（本文 #9ca3af が白地）。両テーマぶんをここに持つ。 */
+    .pv-b-body{color:#9ca3af}
+    .pv-b-list{color:#c9d4e0}
+    .pv-b-gold{color:#f5c842}
+    [data-theme="light"] .pv-b-body{color:#475569}
+    [data-theme="light"] .pv-b-list{color:#1e293b}
+    [data-theme="light"] .pv-b-gold{color:#a07200}
+    .pv-cta-fill{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:#f5c842;color:#000;border-radius:9px;font-size:.82rem;font-weight:800;text-decoration:none;box-shadow:0 4px 14px rgba(245,200,66,.18);transition:background .18s,box-shadow .18s,transform .12s cubic-bezier(.16,1,.3,1)}
+    .pv-cta-fill:hover{background:#f7d25e;box-shadow:0 6px 20px rgba(245,200,66,.28)}
+    .pv-cta-fill:focus-visible{outline:2px solid rgba(245,200,66,.65);outline-offset:3px}
+    .pv-cta-fill:active{transform:translateY(1px)}
+    .pv-cta-ghost{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;margin-left:8px;border:1px solid rgba(245,200,66,.35);color:#f5c842;border-radius:9px;font-size:.82rem;font-weight:700;text-decoration:none;transition:background .18s,border-color .18s,transform .12s cubic-bezier(.16,1,.3,1)}
+    .pv-cta-ghost:hover{background:rgba(245,200,66,.1);border-color:rgba(245,200,66,.6)}
+    .pv-cta-ghost:focus-visible{outline:2px solid rgba(245,200,66,.65);outline-offset:3px}
+    .pv-cta-ghost:active{transform:translateY(1px)}
+    [data-theme="light"] .pv-cta-fill{box-shadow:0 4px 14px rgba(161,114,0,.22)}
+    [data-theme="light"] .pv-cta-ghost{color:#a07200;border-color:rgba(161,114,0,.35)}
+    [data-theme="light"] .pv-cta-ghost:hover{background:rgba(161,114,0,.08);border-color:rgba(161,114,0,.55)}
+    @media (prefers-reduced-motion:reduce){.pv-cta-fill,.pv-cta-ghost{transition:none}}
+    .auth-input{width:100%;padding:10px 13px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:9px;color:#e8edf2;font-size:.87rem;outline:none;transition:border-color .2s;font-family:inherit}
+    .auth-input:focus{border-color:rgba(245,200,66,.5)}
+    .auth-input::placeholder{color:#6b7d93}
+    [data-theme="light"] .auth-input{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.12);color:#0f172a}
+    select.auth-input option{background:#111620;color:#e8edf2}
+    .radio-group{display:flex;gap:7px;flex-wrap:wrap}
+    .radio-chip input{display:none}
+    .radio-chip label{display:inline-flex;align-items:center;padding:6px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.1);font-size:.82rem;cursor:pointer;transition:border-color .2s,background .2s;color:#9ca3af}
+    .radio-chip input:checked+label{border-color:rgba(245,200,66,.5);background:rgba(245,200,66,.08);color:#f5c842;font-weight:600}
+    [data-theme="light"] .radio-chip label{border-color:rgba(0,0,0,.12);color:#64748b}
+    [data-theme="light"] .radio-chip input:checked+label{border-color:rgba(161,114,0,.4);background:rgba(161,114,0,.07);color:#a07200}
+    .field-label{font-size:.74rem;color:#9ca3af;margin-bottom:4px;font-weight:600;letter-spacing:.03em}
+    [data-theme="light"] .field-label{color:#64748b}
+    .btn-save{padding:10px 24px;background:linear-gradient(135deg,#f5c842,#f97316);color:#000;border:none;border-radius:10px;font-weight:700;font-size:.88rem;cursor:pointer;transition:opacity .2s;font-family:inherit}
+    .btn-save:hover{opacity:.88}
+    .btn-cancel{padding:10px 20px;background:rgba(255,255,255,.06);color:#9ca3af;border:1px solid rgba(255,255,255,.1);border-radius:10px;font-weight:600;font-size:.88rem;cursor:pointer;transition:background .2s;font-family:inherit}
+    .btn-cancel:hover{background:rgba(255,255,255,.1);color:#e8edf2}
+    .btn-logout{padding:9px 20px;background:rgba(248,113,113,.08);color:#f87171;border:1px solid rgba(248,113,113,.2);border-radius:10px;font-weight:600;font-size:.84rem;cursor:pointer;transition:background .2s;font-family:inherit}
+    .btn-logout:hover{background:rgba(248,113,113,.14)}
+    .success-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#111620;border:1px solid rgba(72,199,142,.3);border-radius:12px;padding:12px 24px;font-size:.85rem;font-weight:600;color:#48c78e;display:none;z-index:500;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+    /* signup.html の .error-msg と同じ見た目。赤が既定で、成功だけ .is-ok で緑にする */
+    .msg-inline{color:#f87171;font-size:.79rem;padding:8px 12px;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);border-radius:8px;display:none;line-height:1.6}
+    .msg-inline.is-ok{color:#4ade80;background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.22)}
+    [data-theme="light"] .msg-inline.is-ok{color:#15803d;background:rgba(21,128,61,.07);border-color:rgba(21,128,61,.22)}
+    .btn-save:disabled{opacity:.5;cursor:default}
+    /* メールのリンクから #password-card に着地した人に、どのカードの話か一目でわからせる。
+       動かすのは opacity だけ。リングは ::after の別レイヤーなので中身のレイアウトに触らない。 */
+    #password-card{position:relative}
+    #password-card::after{content:'';position:absolute;inset:-3px;border-radius:19px;pointer-events:none;opacity:0;
+      border:2px solid rgba(245,200,66,.85);box-shadow:0 0 0 6px rgba(245,200,66,.10),0 14px 34px -10px rgba(249,115,22,.45)}
+    #password-card.is-flash::after{animation:pw-ring 2.8s cubic-bezier(.16,1,.3,1) forwards}
+    @keyframes pw-ring{0%{opacity:0}10%{opacity:1}60%{opacity:1}100%{opacity:0}}
+    @media (prefers-reduced-motion:reduce){#password-card.is-flash::after{animation:none;opacity:1}}
+    .skeleton{background:rgba(255,255,255,.06);border-radius:6px;animation:pulse 1.5s ease-in-out infinite}
+    @keyframes pulse{0%,100%{opacity:.4}50%{opacity:.8}}
+    [data-theme="light"] .skeleton{background:rgba(0,0,0,.08)}
+  </style>
+  <!-- 明細まわりの図の見た目。pay-tracker と my-value が共有する -->
+  <link rel="stylesheet" href="../pay-viz.css">
+<!-- Google tag (gtag.js) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-3XYF69VQ3X');
+</script>
+<!--PV-3P-->
+<script>
+/* 広告と解析は、表示が終わるまで読まない。async でも帯域は奪うため。
+   利用者が最初に触った時か load の、どちらか早いほうで読み込む。
+   戻すときは node defer-third-party.mjs --undo */
+(function(){
+  var done=false;
+  function boot(){
+    if(done)return; done=true;
+    [{"src":"https://www.googletagmanager.com/gtag/js?id=G-3XYF69VQ3X","cross":false}].forEach(function(it){
+      var s=document.createElement('script');
+      s.src=it.src; s.async=true;
+      if(it.cross)s.crossOrigin='anonymous';
+      document.head.appendChild(s);
+    });
+  }
+  ['pointerdown','keydown','touchstart','scroll','wheel'].forEach(function(ev){
+    addEventListener(ev,boot,{once:true,passive:true});
+  });
+  if(document.readyState==='complete')boot();
+  else addEventListener('load',boot,{once:true});
+})();
+</script>
+<!--/PV-3P-->
+<script src="../pv-session.js"></script>
+</head>
+<body>
+  <nav>
+    <div class="nav-inner">
+      <a href="index.html"><img src="../assets/logo.png" alt="PILOT VALUE" style="height:30px"/></a>
+      <div style="display:flex;align-items:center;gap:10px">
+        <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme"></button>
+        <a href="index.html" class="btn-ghost">← Home</a>
+      </div>
+    </div>
+  </nav>
+
+  <main style="max-width:700px;margin:0 auto;padding:36px 24px 80px;position:relative;z-index:1">
+
+    <!-- Profile card -->
+    <div class="glass" id="profile-card">
+      <div style="display:flex;align-items:center;gap:18px;margin-bottom:24px;flex-wrap:wrap">
+        <div class="avatar" id="avatar-letter">…</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:1.25rem;font-weight:800;margin-bottom:4px" id="display-name">
+            <div class="skeleton" style="width:140px;height:22px"></div>
+          </div>
+          <div id="display-pos-badge"></div>
+          <div style="font-size:.78rem;color:#6b7d93;margin-top:4px" id="display-email">
+            <div class="skeleton" style="width:180px;height:14px;margin-top:6px"></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
+          <button class="btn-ghost" onclick="startEdit()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Edit
+          </button>
+          <button class="btn-logout" onclick="handleLogout()">Log out</button>
+        </div>
+      </div>
+
+      <div id="welcome-banner" style="display:none;background:linear-gradient(135deg,rgba(245,200,66,.10),rgba(249,115,22,.06));border:1px solid rgba(245,200,66,.28);border-radius:14px;padding:18px 20px;margin-bottom:20px">
+        <div style="font-size:1.02rem;font-weight:800;margin-bottom:6px">Welcome to PILOT VALUE, <span id="welcome-name">Pilot</span> ✈️</div>
+        <div class="pv-b-body" style="font-size:.8rem;line-height:1.7;margin-bottom:14px">Thanks for joining. PILOT VALUE runs on <b class="pv-b-gold">GIVE &amp; GET</b>.</div>
+        <ol class="pv-b-list" style="margin:0 0 14px;padding-left:1.1rem;font-size:.8rem;line-height:1.9">
+          <li><b>Submit one payslip</b> — every airline's <b>pay data unlocks for 90 days</b> (one photo; the image never leaves your device)</li>
+          <li><b>Post one review, anonymously</b> — every airline's <b>reviews unlock for 30 days</b> (about 3 minutes)</li>
+        </ol>
+        <a href="pay-report.html" class="pv-cta-fill">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+          Submit your first payslip anonymously →
+        </a>
+        <a href="submit-review.html" class="pv-cta-ghost">Post a review anonymously</a>
+      </div>
+
+      <!-- 鍵は2つある。年収（明細で90日）と口コミ（投稿で30日）は別物なので、
+           それぞれ今どちらなのかを出す。片方だけ出すと、明細を出した人に
+           「まだ何も解放されていない」ように見える。 -->
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px">
+        <span class="unlock-badge unlock-inactive" id="unlock-status-salary">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Pay data locked
+        </span>
+        <span class="unlock-badge unlock-inactive" id="unlock-status">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Reviews locked
+        </span>
+      </div>
+      <div id="unlock-cta" style="display:none;background:rgba(245,200,66,.06);border:1px solid rgba(245,200,66,.2);border-radius:12px;padding:16px 18px;margin-bottom:20px">
+        <div id="cta-title" class="pv-b-gold" style="font-size:.85rem;font-weight:700;margin-bottom:10px">GIVE &amp; GET</div>
+        <!-- ★何が返るのかを書く。ボタン2つだけだと「GIVE & GET」が何のことか分からない。
+             文言は上の welcome-banner と同じものを使う（新しい言い回しを増やさない）。
+             行の出し分けはボタンの出し分けと同じ条件にする。 -->
+        <ul class="pv-b-list" style="margin:0 0 14px;padding-left:1.1rem;font-size:.8rem;line-height:1.9">
+          <li id="cta-line-payslip"><b>Submit one payslip</b> — every airline's <b>pay data unlocks for 90 days</b></li>
+          <li id="cta-line-review"><b>Post one review, anonymously</b> — every airline's <b>reviews unlock for 30 days</b></li>
+        </ul>
+        <a href="pay-report.html" id="cta-payslip" class="pv-cta-fill">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+          Submit a payslip anonymously
+        </a>
+        <a href="submit-review.html" id="cta-review" class="pv-cta-ghost">Post a review anonymously</a>
+      </div>
+
+      <div id="info-rows">
+        <div class="info-row"><div class="info-label">Name</div><div class="info-value" id="v-name">—</div></div>
+        <div class="info-row"><div class="info-label">Gender</div><div class="info-value" id="v-gender">—</div></div>
+        <div class="info-row"><div class="info-label">Date of birth</div><div class="info-value" id="v-birth">—</div></div>
+        <div class="info-row"><div class="info-label">Country of residence</div><div class="info-value" id="v-country">—</div></div>
+        <div class="info-row"><div class="info-label">Employer</div><div class="info-value" id="v-company">—</div></div>
+        <div class="info-row"><div class="info-label">Position</div><div class="info-value" id="v-position">—</div></div>
+        <div class="info-row"><div class="info-label">Member since</div><div class="info-value" id="v-joined">—</div></div>
+      </div>
+
+      <!-- The one permanent way in to inviting. pv-referral.js (mountInvite)
+           draws it. The contextual cards (my report / right after a pay report)
+           only appear once you have recorded your own pay, and are rate limited.
+           Remove this line and there is no way to invite anyone at all. -->
+      <div id="pv-invite-slot"></div>
+    </div>
+
+    <!-- Secondary entry point for working conditions (pv-conditions.js).
+         Nothing is asked here until the pilot presses the button; only then does
+         the same modal open, with a single question. Hidden entirely for anyone
+         with no pay report yet, or with nothing left to ask. Fails quietly -->
+    <div id="cond-slot"></div>
+
+    <!-- Payslip tracker (rendered by pay-tracker.js) -->
+    <div class="glass pv-no-cur" id="pay-tracker" style="margin-top:20px;display:none"></div>
+    <!-- Edit form -->
+    <div class="glass" id="edit-card" style="display:none;margin-top:20px">
+      <div style="font-size:1rem;font-weight:700;margin-bottom:20px">Edit profile</div>
+      <form onsubmit="saveEdit(event)" novalidate>
+        <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:20px">
+          <div><div class="field-label">Name</div><input class="auth-input" type="text" id="e-name" required/></div>
+          <div>
+            <div class="field-label">Gender</div>
+            <div class="radio-group">
+              <div class="radio-chip"><input type="radio" name="e-gender" id="eg-male" value="male"/><label for="eg-male">Male</label></div>
+              <div class="radio-chip"><input type="radio" name="e-gender" id="eg-female" value="female"/><label for="eg-female">Female</label></div>
+              <div class="radio-chip"><input type="radio" name="e-gender" id="eg-other" value="other"/><label for="eg-other">Other</label></div>
+            </div>
+          </div>
+          <div><div class="field-label">Date of birth</div><input class="auth-input" type="date" id="e-birth" style="color-scheme:dark"/></div>
+          <div>
+            <div class="field-label">Country of residence</div>
+            <select class="auth-input" id="e-country">
+              <option value="">Select</option>
+              <option value="日本">Japan</option><option value="アメリカ">United States</option><option value="UAE">UAE</option>
+              <option value="シンガポール">Singapore</option><option value="香港">Hong Kong</option><option value="イギリス">United Kingdom</option>
+              <option value="ドイツ">Germany</option><option value="フランス">France</option><option value="オーストラリア">Australia</option>
+              <option value="カナダ">Canada</option><option value="韓国">South Korea</option><option value="中国">China</option><option value="その他">Other</option>
+            </select>
+          </div>
+          <div><div class="field-label">Employer</div><input class="auth-input" type="text" id="e-company"/></div>
+          <div>
+            <div class="field-label">Position</div>
+            <div class="radio-group">
+              <div class="radio-chip"><input type="radio" name="e-pos" id="ep-cap" value="captain"/><label for="ep-cap">Captain</label></div>
+              <div class="radio-chip"><input type="radio" name="e-pos" id="ep-fo" value="fo"/><label for="ep-fo">First Officer</label></div>
+              <div class="radio-chip"><input type="radio" name="e-pos" id="ep-cad" value="cadet"/><label for="ep-cad">Trainee</label></div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button type="submit" class="btn-save">Save</button>
+          <button type="button" class="btn-cancel" onclick="cancelEdit()">Cancel</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Notification settings -->
+    <div class="glass" id="notify-card" style="margin-top:20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:14px">
+        <div>
+          <div style="font-size:.92rem;font-weight:700;margin-bottom:4px">Email notifications</div>
+          <div style="font-size:.76rem;color:#6b7d93;line-height:1.6">We send you useful updates such as salary data refreshes, new reviews and newly added airlines. We never send advertising.</div>
+        </div>
+        <button id="optin-toggle" role="switch" aria-checked="false" aria-label="Turn email notifications on or off" onclick="toggleOptIn()" style="flex:none;width:52px;height:30px;border-radius:999px;border:none;cursor:pointer;position:relative;background:rgba(255,255,255,.14);transition:background .2s">
+          <span id="optin-knob" style="position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:transform .2s"></span>
+        </button>
+      </div>
+      <div id="optin-hint" style="font-size:.72rem;color:#6b7d93;margin-top:10px"></div>
+    </div>
+
+    <!-- Password -->
+    <div class="glass" id="password-card" style="margin-top:20px">
+      <div style="font-size:.92rem;font-weight:700;margin-bottom:4px">Password</div>
+      <div style="font-size:.76rem;color:#6b7d93;line-height:1.6;margin-bottom:16px">
+        Set a password and you can also sign in with your email address and password.
+        If you signed up with Google or a 6-digit code, you do not have one yet. If you already do, this changes it.
+      </div>
+      <form onsubmit="savePassword(event)" novalidate>
+        <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:16px">
+          <div><div class="field-label">New password (at least 8 characters)</div><input class="auth-input" type="password" id="pw-new" placeholder="••••••••" autocomplete="new-password" minlength="8"/></div>
+          <div><div class="field-label">Confirm password</div><input class="auth-input" type="password" id="pw-confirm" placeholder="••••••••" autocomplete="new-password" minlength="8"/></div>
+          <div class="msg-inline" id="pw-msg"></div>
+        </div>
+        <button type="submit" class="btn-save" id="pw-submit">Save password</button>
+      </form>
+    </div>
+
+    <!-- My reviews -->
+    <div class="glass" id="my-reviews-card" style="margin-top:20px">
+      <div style="font-size:.92rem;font-weight:700;margin-bottom:16px">Your reviews</div>
+      <div id="my-reviews-list" style="font-size:.84rem;color:#6b7d93">Loading…</div>
+    </div>
+  </main>
+
+  <div class="success-toast" id="toast">Profile saved ✓</div>
+
+  <!-- 会社コード → 表示名。待遇カードの見出しに社名を出すため -->
+  <script src="../airlines-meta.js"></script>
+  <script src="../pv-conditions.js"></script>
+  <script src="../pv-referral.js"></script>
+  <script>
+    const SB_URL = 'https://vzgmnkrggrwtsrpqndsm.supabase.co';
+    const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6Z21ua3JnZ3J3dHNycHFuZHNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0MzkwOTcsImV4cCI6MjA5MDAxNTA5N30.wE4cJbqeYGCgn5ZvHd80hYWgQuySKvOMJMbsJWOvmtw';
+    const sb = supabase.createClient(SB_URL, SB_KEY);
+
+    const SUN = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
+    const MOON = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+    function applyTheme(t){document.documentElement.setAttribute('data-theme',t);localStorage.setItem('pv-theme',t);const b=document.getElementById('theme-toggle');if(b)b.innerHTML=t==='dark'?SUN:MOON;}
+    applyTheme(localStorage.getItem('pv-theme')||'light');
+    document.getElementById('theme-toggle').addEventListener('click',function(){applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');});
+
+    const POS_LABEL = {captain:'Captain', fo:'First Officer', cadet:'Trainee'};
+    const POS_CLASS = {captain:'pos-captain', fo:'pos-fo', cadet:'pos-cadet'};
+    const GENDER_LABEL = {male:'Male', female:'Female', other:'Other'};
+
+    let currentUser = null;
+    let profile     = null;
+
+    async function init() {
+      const { data:{ session } } = await sb.auth.getSession();
+      // ★#pay-tracker を落とさない。明細を出した直後の導線がこの形で来るので、
+      //   ログインを挟んだ人だけページの一番上に着地する、という差を作らない。
+      //   en/login.html の safePath() は u.hash を残す（en/login.html:114）。
+      if (!session) {
+        window.location.href = 'login.html?redirect='
+          + encodeURIComponent('profile.html' + (window.location.hash || ''));
+        return;
+      }
+      currentUser = session.user;
+
+      // Fetch profile
+      const { data: p } = await sb.from('profiles').select('*').eq('id', currentUser.id).single();
+      profile = p || {};
+      renderProfile();
+      renderOptIn();
+
+      // This list is always empty: the legacy `reviews` table has been dropped, and the
+      // anonymous reviews_v2 table holds no user_id, so a user's own posts cannot be listed
+      // (unlock status is resolved through proof_hash instead).
+      renderReviews([]);
+
+      const isWelcome = new URLSearchParams(location.search).get('welcome') === '1';
+
+      // Restore unlocks (anonymous reviews_v2 via the proof_hash set + the payslip access_until).
+      try { if (window.pvCheckReunlock) await pvCheckReunlock(sb, currentUser.id); } catch(e) {}
+
+      // Two separate keys: pay data (90 days, earned with a payslip) and reviews
+      // (30 days, earned with a review). Never mix them. pvCheckReunlock above has
+      // already restored both — even on a new device — so we only read here.
+      const exp = (k) => { try { return parseInt(localStorage.getItem(k)||'0',10) || 0; } catch(e) { return 0; } };
+      const salaryExp = exp('pv_salary_unlock_expiry');
+      const reviewExp = exp('pv_unlock_expiry');
+      const salaryOn  = salaryExp > Date.now();
+      const reviewOn  = reviewExp > Date.now();
+
+      const OPEN_LOCK = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/></svg>';
+      const setBadge = (id, on, until, label) => {
+        const el = document.getElementById(id);
+        if (!el || !on) return;                       // still locked → leave the markup as it is
+        const d = new Date(until).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+        el.className = 'unlock-badge unlock-active';
+        el.innerHTML = `${OPEN_LOCK} ${label} unlocked (until ${d})`;
+      };
+      setBadge('unlock-status-salary', salaryOn, salaryExp, 'Pay data');
+      setBadge('unlock-status',        reviewOn, reviewExp, 'Reviews');
+
+      if (salaryOn && reviewOn) {
+        // Both tiers are open — there is nothing to ask for
+      } else if (isWelcome) {
+        // The CTA is built into the welcome banner, so the separate unlock-cta block stays hidden
+        const wn = document.getElementById('welcome-name');
+        if (wn && profile && profile.name) wn.textContent = profile.name;
+        document.getElementById('welcome-banner').style.display = 'block';
+      } else {
+        // Never ask again for what they have already given.
+        if (salaryOn) {
+          document.getElementById('cta-payslip').style.display = 'none';
+          document.getElementById('cta-line-payslip').style.display = 'none';
+          document.getElementById('cta-review').style.marginLeft = '0';
+        }
+        if (reviewOn) {
+          document.getElementById('cta-review').style.display = 'none';
+          document.getElementById('cta-line-review').style.display = 'none';
+        }
+        document.getElementById('unlock-cta').style.display = 'block';
+      }
+
+      flashPasswordCard();
+      openEditIfAsked();
+
+      /* Attach anyone who arrived from an invite link to their inviter. ★This is
+         where Google sign-up lands. Some people never pass through the pay pages,
+         so we pick them up here too. It is idempotent, so overlapping with the
+         other three call sites is harmless, and a failure never stops this page. */
+      try { if (window.PVReferral) await window.PVReferral.claim(sb); } catch (e) {}
+
+      /* Draw the permanent invite entry point. Never gated on state — it shows
+         even for someone who has not recorded any pay yet. A failure here
+         never stops this page. */
+      try {
+        if (window.PVReferral) window.PVReferral.mountInvite(
+          document.getElementById('pv-invite-slot'), { sb: sb });
+      } catch (e) {}
+
+      /* Secondary entry point. We never ask just because someone logged in —
+         asking before anything has been given back reads as a toll gate.
+         The modal only opens by itself right after a pay report (pay-report.html).
+         Here we place one card that opens it on press. */
+      if (window.PVConditions) {
+        window.PVConditions.secondaryCTA(document.getElementById('cond-slot'),
+          { sb: sb, cardClass: 'glass' });
+      }
+    }
+
+    /* 明細レポートのあとの「プロフィールを設定する」から来た人は #edit-card 付き。
+       このカードは既定で display:none なので、素のアンカーだけでは何も起きない
+       （リンクを踏んでも画面が変わらない＝壊れて見える）。ここで開く。
+       開ける処理は「編集」ボタンと同じ startEdit。中で寄せるところまでやる。 */
+    function openEditIfAsked() {
+      if (window.location.hash !== '#edit-card') return;
+      startEdit();
+    }
+
+    /* パスワード再設定のメールで「リンク」を押した人は、auth-callback 経由でここへ来る。
+       カードはページの一番下にあり、素のアンカースクロールだけだと
+       #pay-tracker が上に描かれた分だけ位置がずれて別の場所で止まる。
+       描画が落ち着いてから自分で寄せ、リングを1回光らせて場所を教える。 */
+    function flashPasswordCard() {
+      if (window.location.hash !== '#password-card') return;
+      const card = document.getElementById('password-card');
+      if (!card) return;
+      setTimeout(function () {
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        card.classList.add('is-flash');
+        const pw = document.getElementById('pw-new');
+        if (pw) pw.focus({ preventScroll: true });
+      }, 400);
+    }
+
+    function renderProfile() {
+      const letter = (profile.name || currentUser.email || '?')[0].toUpperCase();
+      document.getElementById('avatar-letter').textContent = letter;
+      document.getElementById('display-name').textContent  = profile.name || '—';
+      document.getElementById('display-email').textContent = currentUser.email || '—';
+      if (profile.position) {
+        document.getElementById('display-pos-badge').innerHTML =
+          `<span class="pos-badge ${POS_CLASS[profile.position]||''}">${POS_LABEL[profile.position]||profile.position}</span>`;
+      }
+      document.getElementById('v-name').textContent     = profile.name     || '—';
+      document.getElementById('v-gender').textContent   = GENDER_LABEL[profile.gender] || '—';
+      document.getElementById('v-birth').textContent    = profile.birthdate || '—';
+      document.getElementById('v-country').textContent  = profile.country  || '—';
+      document.getElementById('v-company').textContent  = profile.company  || '—';
+      document.getElementById('v-position').textContent = POS_LABEL[profile.position] || '—';
+      document.getElementById('v-joined').textContent   = profile.created_at
+        ? new Date(profile.created_at).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}) : '—';
+      // Update localStorage
+      localStorage.setItem('pv_user', JSON.stringify({...profile, email: currentUser.email}));
+    }
+
+    function renderOptIn() {
+      const on = !!(profile && profile.email_opt_in);
+      const t = document.getElementById('optin-toggle');
+      const k = document.getElementById('optin-knob');
+      const h = document.getElementById('optin-hint');
+      if (!t) return;
+      t.setAttribute('aria-checked', on ? 'true' : 'false');
+      t.style.background = on ? '#f5c842' : 'rgba(255,255,255,.14)';
+      k.style.transform  = on ? 'translateX(22px)' : 'translateX(0)';
+      if (h) h.textContent = on ? 'Subscribed: we only send useful updates.' : 'Currently off: no notifications about new posts or updates.';
+    }
+
+    async function toggleOptIn() {
+      const next = !(profile && profile.email_opt_in);
+      const updates = { email_opt_in: next, email_opt_in_at: next ? new Date().toISOString() : (profile.email_opt_in_at || null) };
+      const { error } = await sb.from('profiles').update(updates).eq('id', currentUser.id);
+      if (error) {
+        const h = document.getElementById('optin-hint');
+        if (h) h.textContent = 'We could not save this setting (the field may not be set up yet). Please try again later.';
+        return;
+      }
+      profile = { ...profile, ...updates };
+      localStorage.setItem('pv_user', JSON.stringify({...profile, email: currentUser.email}));
+      renderOptIn();
+      /* このページには同意のスイッチが2つある（ここ＝メール全般 / 明細トラッカー内＝月次リマインド）。
+         これをオフにすると DB のトリガー profiles_mail_consent_sync が
+         月次リマインドも落とす。下のカードにもそれを伝える
+         ＝「解除したのにオンのまま見えている」を作らない。 */
+      if (typeof window.PVRemindSync === 'function') window.PVRemindSync(next);
+      const toast = document.getElementById('toast');
+      if (toast) { toast.textContent = next ? 'Email notifications turned on ✓' : 'Email notifications turned off'; toast.style.display='block'; setTimeout(()=>{toast.style.display='none';}, 2500); }
+    }
+
+    /* 逆向き。明細トラッカーで月次リマインドをオンにすると、サーバ側で
+       親の同意（email_opt_in）も立つ（set_mail_optin）。その結果をここに反映する。
+       ★ここでは書きに行かない。DB が返した値に画面を合わせるだけ。 */
+    window.PVOptInSync = function (on) {
+      if (!profile || !!profile.email_opt_in === !!on) return;
+      profile = { ...profile, email_opt_in: !!on, email_opt_in_at: profile.email_opt_in_at || new Date().toISOString() };
+      if (currentUser) localStorage.setItem('pv_user', JSON.stringify({...profile, email: currentUser.email}));
+      renderOptIn();
+    };
+
+    function renderReviews(revs) {
+      const el = document.getElementById('my-reviews-list');
+      if (!revs.length) { el.textContent = 'You have not posted any reviews yet'; return; }
+      el.innerHTML = revs.map(r => `
+        <div style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06)">
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px">
+            <span style="font-size:.72rem;background:rgba(245,200,66,.1);color:#f5c842;border:1px solid rgba(245,200,66,.2);padding:2px 9px;border-radius:999px;font-weight:700">${r.airline||'—'}</span>
+            <span style="font-size:.72rem;color:#6b7d93">${r.created_at ? new Date(r.created_at).toLocaleDateString('ja-JP') : ''}</span>
+          </div>
+          <div style="font-size:.82rem;color:#b0c0d4;line-height:1.6">${(r.comment||'').slice(0,80)}${(r.comment||'').length>80?'…':''}</div>
+        </div>`).join('');
+    }
+
+    function startEdit() {
+      document.getElementById('edit-card').style.display = 'block';
+      document.getElementById('edit-card').scrollIntoView({behavior:'smooth',block:'nearest'});
+      document.getElementById('e-name').value    = profile.name || '';
+      document.getElementById('e-birth').value   = profile.birthdate || '';
+      document.getElementById('e-country').value = profile.country || '';
+      document.getElementById('e-company').value = profile.company || '';
+      const g = document.querySelector(`input[name="e-gender"][value="${profile.gender||'male'}"]`);
+      if(g) g.checked = true;
+      const p = document.querySelector(`input[name="e-pos"][value="${profile.position||'fo'}"]`);
+      if(p) p.checked = true;
+    }
+
+    function cancelEdit() { document.getElementById('edit-card').style.display='none'; }
+
+    async function saveEdit(e) {
+      e.preventDefault();
+      const g = document.querySelector('input[name="e-gender"]:checked');
+      const p = document.querySelector('input[name="e-pos"]:checked');
+      const updates = {
+        name:      document.getElementById('e-name').value.trim(),
+        gender:    g ? g.value : profile.gender,
+        birthdate: document.getElementById('e-birth').value,
+        country:   document.getElementById('e-country').value,
+        company:   document.getElementById('e-company').value.trim(),
+        position:  p ? p.value : profile.position,
+      };
+      await sb.from('profiles').update(updates).eq('id', currentUser.id);
+      profile = {...profile, ...updates};
+      renderProfile();
+      cancelEdit();
+      const toast = document.getElementById('toast');
+      toast.style.display='block';
+      setTimeout(()=>{toast.style.display='none';}, 2500);
+    }
+
+    /* コードやGoogleだけで登録した人はパスワードを持たない。ここで持てるようにする。
+       ★「設定」と「変更」を画面上で分けない。OTP で作られた利用者にも identities に
+         provider:'email' が入るため、パスワードの有無をクライアントから確実に見分ける
+         手段が無い。持っていない断定も、持っている断定もしない書き方にしてある。 */
+    async function savePassword(e) {
+      e.preventDefault();
+      const msg  = document.getElementById('pw-msg');
+      const btn  = document.getElementById('pw-submit');
+      const pass = document.getElementById('pw-new').value;
+      const conf = document.getElementById('pw-confirm').value;
+      msg.className = 'msg-inline';
+      msg.style.display = 'none';
+      const fail = (t) => { msg.textContent = t; msg.style.display = 'block'; };
+
+      if (pass.length < 8) { fail('Your password must be at least 8 characters'); return; }
+      if (pass !== conf)   { fail('The two passwords do not match'); return; }
+
+      const label = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Saving…';
+      const { error } = await sb.auth.updateUser({ password: pass });
+      btn.disabled = false;
+      btn.textContent = label;
+
+      if (error) {
+        const m = error.message || '';
+        /* Supabase の Secure password change を有効にしていると、
+           古いセッションからの変更は再認証（nonce）を要求されて弾かれる。 */
+        if (/reauth|nonce/i.test(m)) { fail('For your security, please sign in again and then retry.'); return; }
+        fail(m || 'We could not save your password. Please try again later.');
+        return;
+      }
+
+      document.getElementById('pw-new').value = '';
+      document.getElementById('pw-confirm').value = '';
+      msg.className = 'msg-inline is-ok';
+      msg.textContent = 'Password saved. You can now sign in with your email address and password.';
+      msg.style.display = 'block';
+    }
+
+    async function handleLogout() {
+      if (!confirm('Log out?')) return;
+      await sb.auth.signOut();
+      localStorage.removeItem('pv_user');
+      localStorage.removeItem('pv_unlock_expiry');
+      localStorage.removeItem('pv_salary_unlock_expiry');   // clear the salary key too
+      window.location.href = 'index.html';
+    }
+
+    init();
+  </script>
+<script src="../lang-toggle.js"></script>
+<script src="../currency.js"></script>
+<script src="../pay-viz.js"></script>
+<script src="../pay-tracker.js"></script>
+</body>
+</html>

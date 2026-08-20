@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/>
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png"/>
+<link rel="apple-touch-icon" href="../assets/favicon-180.png"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'"/><noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet"/></noscript>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Admin | PILOT VALUE</title>
+<!--PV-SEO-->
+<!--PV-SRC t="Admin Page — PILOT VALUE" d=""-->
+<meta name="description" content="Administration screen for PILOT VALUE. Requires administrator access."/>
+<meta name="robots" content="noindex,follow"/>
+<link rel="canonical" href="https://pilot-value.com/en/admin.html"/>
+<link rel="alternate" hreflang="ja" href="https://pilot-value.com/admin.html"/>
+<link rel="alternate" hreflang="en" href="https://pilot-value.com/en/admin.html"/>
+<link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/admin.html"/>
+<meta property="og:title" content="Admin | PILOT VALUE"/>
+<meta property="og:description" content="Administration screen for PILOT VALUE. Requires administrator access."/>
+<meta property="og:url" content="https://pilot-value.com/en/admin.html"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="PILOT VALUE"/>
+<meta property="og:locale" content="en_US"/>
+<meta property="og:locale:alternate" content="ja_JP"/>
+<meta property="og:image" content="https://pilot-value.com/assets/og/default-en.jpg"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta property="og:image:alt" content="Admin | PILOT VALUE"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="Admin | PILOT VALUE"/>
+<meta name="twitter:description" content="Administration screen for PILOT VALUE. Requires administrator access."/>
+<meta name="twitter:image" content="https://pilot-value.com/assets/og/default-en.jpg"/>
+<!--/PV-SEO-->
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:#0a0c0f;color:#e8edf2;font-family:Inter,'Noto Sans JP',sans-serif;min-height:100vh}
+    #gate{position:fixed;inset:0;background:#0a0c0f;display:flex;align-items:center;justify-content:center;z-index:100;padding:20px}
+    .gate-card{background:rgba(17,22,32,.95);border:1px solid rgba(245,200,66,.15);border-radius:16px;padding:40px;width:100%;max-width:380px;text-align:center}
+    .gate-btn{width:100%;padding:12px;margin-top:12px;background:linear-gradient(135deg,#f5c842,#f97316);color:#000;border:none;border-radius:10px;font-weight:700;font-size:.92rem;cursor:pointer;font-family:inherit}
+    #dashboard{display:none;padding:32px 28px;max-width:1200px;margin:0 auto}
+    h1{font-size:1.3rem;font-weight:800;margin-bottom:4px}
+    .sub{font-size:.8rem;color:#6b7d93;margin-bottom:28px}
+    .stats-row{display:flex;gap:14px;margin-bottom:28px;flex-wrap:wrap}
+    .stat-box{background:rgba(17,22,32,.8);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:16px 20px;min-width:130px}
+    .stat-num{font-size:1.8rem;font-weight:900;color:#f5c842;letter-spacing:-.03em}
+    .stat-lbl{font-size:.72rem;color:#6b7d93;margin-top:2px}
+    .table-wrap{background:rgba(17,22,32,.8);border:1px solid rgba(255,255,255,.08);border-radius:14px;overflow-x:auto;margin-bottom:24px}
+    table{width:100%;border-collapse:collapse;font-size:.82rem;min-width:800px}
+    thead th{padding:12px 14px;text-align:left;font-size:.72rem;color:#6b7d93;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border-bottom:1px solid rgba(255,255,255,.07);white-space:nowrap}
+    tbody td{padding:11px 14px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle}
+    tbody tr:last-child td{border-bottom:none}
+    tbody tr:hover td{background:rgba(255,255,255,.02)}
+    .pos-tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.7rem;font-weight:700}
+    .tag-cap{background:rgba(245,200,66,.12);color:#f5c842}
+    .tag-fo{background:rgba(99,179,237,.1);color:#63b3ed}
+    .tag-cad{background:rgba(154,230,180,.1);color:#68d391}
+    .action-bar{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+    .btn-csv{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;background:rgba(72,199,142,.1);color:#48c78e;border:1px solid rgba(72,199,142,.25);border-radius:9px;font-weight:600;font-size:.83rem;cursor:pointer;font-family:inherit;transition:background .2s}
+    .btn-csv:hover{background:rgba(72,199,142,.18)}
+    .btn-refresh{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;background:rgba(99,179,237,.1);color:#63b3ed;border:1px solid rgba(99,179,237,.2);border-radius:9px;font-weight:600;font-size:.83rem;cursor:pointer;font-family:inherit;transition:background .2s}
+    .btn-refresh:hover{background:rgba(99,179,237,.18)}
+    .btn-logout-a{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;background:rgba(255,255,255,.06);color:#9ca3af;border:1px solid rgba(255,255,255,.1);border-radius:9px;font-weight:600;font-size:.83rem;cursor:pointer;font-family:inherit;transition:background .2s;margin-left:auto}
+    .btn-logout-a:hover{background:rgba(255,255,255,.1);color:#e8edf2}
+    .notice{background:rgba(99,179,237,.07);border:1px solid rgba(99,179,237,.2);border-radius:12px;padding:14px 18px;margin-bottom:20px;font-size:.81rem;color:#b0c0d4;line-height:1.65}
+    .notice strong{color:#63b3ed}
+    .search-input{padding:9px 14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:9px;color:#e8edf2;font-size:.85rem;outline:none;font-family:inherit;width:220px;transition:border-color .2s}
+    .search-input:focus{border-color:rgba(245,200,66,.4)}
+    .search-input::placeholder{color:#6b7d93}
+    .loading{text-align:center;padding:40px;color:#6b7d93;font-size:.9rem}
+    .tab-btn{padding:8px 16px;background:none;border:none;border-bottom:2px solid transparent;color:rgba(255,255,255,.4);font-size:.85rem;font-weight:600;cursor:pointer;transition:color .2s,border-color .2s;font-family:inherit}
+    .tab-btn.active{color:#f5c842;border-bottom-color:#f5c842}
+    .tabs{display:flex;border-bottom:1px solid rgba(255,255,255,.07);margin-bottom:20px}
+  </style>
+<!-- Google tag (gtag.js) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-3XYF69VQ3X');
+</script>
+<!--PV-3P-->
+<script>
+/* 広告と解析は、表示が終わるまで読まない。async でも帯域は奪うため。
+   利用者が最初に触った時か load の、どちらか早いほうで読み込む。
+   戻すときは node defer-third-party.mjs --undo */
+(function(){
+  var done=false;
+  function boot(){
+    if(done)return; done=true;
+    [{"src":"https://www.googletagmanager.com/gtag/js?id=G-3XYF69VQ3X","cross":false}].forEach(function(it){
+      var s=document.createElement('script');
+      s.src=it.src; s.async=true;
+      if(it.cross)s.crossOrigin='anonymous';
+      document.head.appendChild(s);
+    });
+  }
+  ['pointerdown','keydown','touchstart','scroll','wheel'].forEach(function(ev){
+    addEventListener(ev,boot,{once:true,passive:true});
+  });
+  if(document.readyState==='complete')boot();
+  else addEventListener('load',boot,{once:true});
+})();
+</script>
+<!--/PV-3P-->
+<script src="../pv-session.js"></script>
+</head>
+<body>
+
+<div id="gate">
+  <div class="gate-card">
+    <div style="font-size:2rem;margin-bottom:12px">🛡️</div>
+    <div style="font-weight:800;font-size:1.05rem;margin-bottom:6px">Admin Page</div>
+    <div style="font-size:.8rem;color:#6b7d93;margin-bottom:20px">PILOT VALUE administrators only</div>
+    <div style="font-size:.85rem;color:#b0c0d4;line-height:1.65" id="gate-msg">Checking…</div>
+    <a class="gate-btn" id="gate-login" href="login.html?next=admin.html"
+       style="display:none;text-decoration:none;text-align:center">Log in</a>
+    <a href="index.html" style="display:inline-block;margin-top:16px;color:#6b7d93;font-size:.78rem;text-decoration:none">← Back to the site</a>
+  </div>
+</div>
+
+<div id="dashboard">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:10px">
+    <div>
+      <h1>Admin Dashboard</h1>
+      <div class="sub">PILOT VALUE — Real-time user data (Supabase)</div>
+    </div>
+    <a href="index.html" style="color:#6b7d93;font-size:.82rem;text-decoration:none">← Back to site</a>
+  </div>
+
+  <div class="notice">
+    <strong>✅ Supabase connected</strong> — Sign-up data from every device and browser is consolidated here.
+    Passwords are encrypted and managed by Supabase, so not even administrators can view them (by security design).
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-box"><div class="stat-num" id="stat-total">—</div><div class="stat-lbl">Registered users</div></div>
+    <div class="stat-box"><div class="stat-num" id="stat-reviews">—</div><div class="stat-lbl">Total reviews</div></div>
+    <div class="stat-box"><div class="stat-num" id="stat-captain">—</div><div class="stat-lbl">Captains</div></div>
+    <div class="stat-box"><div class="stat-num" id="stat-fo">—</div><div class="stat-lbl">First Officers</div></div>
+    <div class="stat-box"><div class="stat-num" id="stat-cadet">—</div><div class="stat-lbl">Trainees</div></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('users',this)">Users</button>
+    <button class="tab-btn" onclick="switchTab('reviews',this)">Reviews</button>
+  </div>
+
+  <!-- Users tab -->
+  <div id="tab-users">
+    <div class="action-bar">
+      <input class="search-input" type="text" id="search-box" placeholder="Search by name or email…" oninput="renderUsersTable()"/>
+      <button class="btn-refresh" onclick="loadData()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        Refresh
+      </button>
+      <button class="btn-csv" onclick="downloadCSV('users')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download CSV
+      </button>
+      <button class="btn-logout-a" onclick="adminLogout()">Log out</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th><th>Name</th><th>Email</th><th>Gender</th>
+            <th>Date of birth</th><th>Country of residence</th><th>Employer</th><th>Position</th>
+            <th>Registered on</th><th>Reviews</th>
+          </tr>
+        </thead>
+        <tbody id="users-tbody"><tr><td colspan="10" class="loading">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Reviews tab -->
+  <div id="tab-reviews" style="display:none">
+    <div class="action-bar">
+      <input class="search-input" type="text" id="rev-search" placeholder="Search by airline or name…" oninput="renderReviewsTable()"/>
+      <button class="btn-csv" onclick="downloadCSV('reviews')" style="margin-left:auto">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download CSV
+      </button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th><th>Type</th><th>Author</th><th>Airline</th><th>Position</th><th>Monthly (10k JPY)</th>
+            <th>Bonus (10k JPY)</th><th>Annual salary / Note</th><th>Rating</th><th>Tenure</th><th>Posted</th><th>Comment</th>
+          </tr>
+        </thead>
+        <tbody id="reviews-tbody"><tr><td colspan="12" class="loading">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  const SB_URL = 'https://vzgmnkrggrwtsrpqndsm.supabase.co';
+  const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6Z21ua3JnZ3J3dHNycHFuZHNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0MzkwOTcsImV4cCI6MjA5MDAxNTA5N30.wE4cJbqeYGCgn5ZvHd80hYWgQuySKvOMJMbsJWOvmtw';
+  const sb = supabase.createClient(SB_URL, SB_KEY);
+
+  const POS_LABEL  = {captain:'Captain', fo:'First Officer', cadet:'Trainee'};
+  const POS_CLASS  = {captain:'tag-cap', fo:'tag-fo', cadet:'tag-cad'};
+  const GENDER_LBL = {male:'Male', female:'Female', other:'Other'};
+
+  let allUsers   = [];
+  let allReviews = [];
+  let currentTab = 'users';
+
+  /* ★No password lives in this page. Anything written here is public,
+     so the check has to happen on the server. The branch below only keeps
+     an empty table from showing; it is not what protects the data.
+     The rows come from admin_list_profiles / admin_list_reviews, which
+     look at the pv_admins roster before they return anything. */
+  boot();
+
+  async function boot() {
+    const msg = document.getElementById('gate-msg');
+    const btn = document.getElementById('gate-login');
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) {
+      msg.textContent = 'You need to be logged in to view this page.';
+      btn.style.display = 'block';
+      return;
+    }
+    const { data: isAdmin, error } = await sb.rpc('pv_is_admin');
+    if (error || !isAdmin) {
+      msg.textContent = 'This account does not have administrator access.';
+      btn.textContent = 'Log in with another account';
+      btn.style.display = 'block';
+      btn.onclick = async (e) => {
+        e.preventDefault();
+        await sb.auth.signOut();
+        location.href = 'login.html?next=admin.html';
+      };
+      return;
+    }
+    showDashboard();
+  }
+
+  function showDashboard() {
+    document.getElementById('gate').style.display='none';
+    document.getElementById('dashboard').style.display='block';
+    loadData();
+  }
+
+  async function loadData() {
+    /* Never read the tables directly — the entry point decides who may read. */
+    const [usersRes, reviewsRes] = await Promise.all([
+      sb.rpc('admin_list_profiles'),
+      sb.rpc('admin_list_reviews')
+    ]);
+    if (usersRes.error || reviewsRes.error) {
+      document.getElementById('dashboard').style.display = 'none';
+      document.getElementById('gate').style.display = 'flex';
+      document.getElementById('gate-msg').textContent =
+        'Could not load the data (no access, or db/admin.sql has not been applied yet).';
+      return;
+    }
+    allUsers = usersRes.data || [];
+    const v2 = reviewsRes.data || [];
+    // Normalize reviews_v2 into the common shape, newest first (the legacy reviews table has been dropped)
+    allReviews = (v2 || []).map(r => normReview(r, 'v2'))
+      .sort((a,b) => new Date(b.created_at||0) - new Date(a.created_at||0));
+    renderStats();
+    renderUsersTable();
+    renderReviewsTable();
+  }
+
+  function _avgScores(r){
+    const s = ['culture_score','salary_score','benefits_score','wlb_score','ops_score','training_score']
+      .map(k => r[k]).filter(v => v!=null && v!=='');
+    return s.length ? +(s.reduce((a,b)=>a+(+b),0)/s.length).toFixed(1) : null;
+  }
+  function _v2Comment(r){
+    return ['culture_comment','salary_comment','benefits_comment','wlb_comment','ops_comment','training_comment','mgmt_comment']
+      .map(k => r[k]).filter(Boolean).join(' / ');
+  }
+  function normReview(r, source){
+    if (source === 'v2') return {
+      source:'v2', user_id:r.user_id||null, name:'Anonymous',
+      airline:r.airline||'', position:r.position||'',
+      monthly:(r.monthly_salary!=null?r.monthly_salary:null),
+      bonus:(r.bonus!=null?r.bonus:null),
+      salaryTotal:(r.salary_note||null),
+      rating:_avgScores(r), tenure:(r.tenure_bucket||''),
+      comment:_v2Comment(r), created_at:r.created_at
+    };
+    return {
+      source:'legacy', user_id:r.user_id||null,
+      name:((allUsers.find(u=>u.id===r.user_id)||{}).name)||'Anonymous',
+      airline:r.airline||'', position:r.position||'',
+      monthly:(r.monthly!=null?r.monthly:null),
+      bonus:(r.bonus!=null?r.bonus:null),
+      salaryTotal:(r.salary_total!=null?r.salary_total:null),
+      rating:(r.avg_rating!=null?r.avg_rating:null), tenure:(r.years||''),
+      comment:(r.comment||''), created_at:r.created_at
+    };
+  }
+
+  function renderStats() {
+    document.getElementById('stat-total').textContent   = allUsers.length;
+    document.getElementById('stat-reviews').textContent = allReviews.length;
+    document.getElementById('stat-captain').textContent = allUsers.filter(u=>u.position==='captain').length;
+    document.getElementById('stat-fo').textContent      = allUsers.filter(u=>u.position==='fo').length;
+    document.getElementById('stat-cadet').textContent   = allUsers.filter(u=>u.position==='cadet').length;
+  }
+
+  function renderUsersTable() {
+    const q   = (document.getElementById('search-box').value||'').toLowerCase();
+    const list = allUsers.filter(u =>
+      !q || (u.name||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q)
+    );
+    const tbody = document.getElementById('users-tbody');
+    if (!list.length) { tbody.innerHTML=`<tr><td colspan="10" class="loading">${q?'No results':'No users'}</td></tr>`; return; }
+    const reviewCount = id => allReviews.filter(r=>r.user_id===id).length;
+    tbody.innerHTML = list.map((u,i) => `<tr>
+      <td style="color:#6b7d93;font-size:.75rem">${i+1}</td>
+      <td style="font-weight:600">${esc(u.name||'—')}</td>
+      <td style="color:#9ca3af;font-size:.8rem">${esc(u.email||'—')}</td>
+      <td>${GENDER_LBL[u.gender]||'—'}</td>
+      <td style="white-space:nowrap">${esc(u.birthdate||'—')}</td>
+      <td>${esc(u.country||'—')}</td>
+      <td>${esc(u.company||'—')}</td>
+      <td>${u.position?`<span class="pos-tag ${POS_CLASS[u.position]||''}">${POS_LABEL[u.position]||u.position}</span>`:'—'}</td>
+      <td style="white-space:nowrap;font-size:.76rem;color:#6b7d93">${u.created_at?new Date(u.created_at).toLocaleDateString('ja-JP'):'—'}</td>
+      <td style="text-align:center">${reviewCount(u.id)>0?`<span style="color:#f5c842;font-weight:700">${reviewCount(u.id)}</span>`:'<span style="color:#6b7d93">0</span>'}</td>
+    </tr>`).join('');
+  }
+
+  function renderReviewsTable() {
+    const q    = (document.getElementById('rev-search').value||'').toLowerCase();
+    const list = allReviews.filter(r =>
+      !q || (r.airline||'').toLowerCase().includes(q) || (r.name||'').toLowerCase().includes(q)
+    );
+    const tbody = document.getElementById('reviews-tbody');
+    if (!list.length) { tbody.innerHTML=`<tr><td colspan="12" class="loading">${q?'No results':'No reviews'}</td></tr>`; return; }
+    tbody.innerHTML = list.map((r,i) => {
+      const badge = r.source==='v2'
+        ? '<span style="font-size:.66rem;padding:2px 7px;border-radius:5px;font-weight:700;background:rgba(52,211,153,.15);color:#34d399">New</span>'
+        : '<span style="font-size:.66rem;padding:2px 7px;border-radius:5px;font-weight:700;background:rgba(255,255,255,.08);color:#9daec4">Legacy</span>';
+      const cm = r.comment||'';
+      return `<tr>
+        <td style="color:#6b7d93;font-size:.75rem">${i+1}</td>
+        <td>${badge}</td>
+        <td style="font-size:.8rem">${esc(r.name||'Anonymous')}</td>
+        <td style="font-weight:600;color:#f5c842">${esc(r.airline||'—')}</td>
+        <td>${r.position?`<span class="pos-tag ${POS_CLASS[r.position]||''}">${POS_LABEL[r.position]||r.position}</span>`:'—'}</td>
+        <td>${r.monthly!=null?r.monthly:'—'}</td>
+        <td>${r.bonus!=null?r.bonus:'—'}</td>
+        <td style="font-size:.78rem">${r.salaryTotal!=null&&r.salaryTotal!==''?esc(String(r.salaryTotal)):'—'}</td>
+        <td style="color:#f5c842;font-weight:700">${r.rating!=null?r.rating:'—'}</td>
+        <td style="font-size:.76rem;color:#6b7d93">${esc(r.tenure||'—')}</td>
+        <td style="white-space:nowrap;font-size:.76rem;color:#6b7d93">${r.created_at?new Date(r.created_at).toLocaleDateString('ja-JP'):'—'}</td>
+        <td style="font-size:.74rem;color:#9daec4;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(cm)}">${esc(cm.slice(0,60))}${cm.length>60?'…':''}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  function switchTab(tab, btn) {
+    currentTab = tab;
+    document.getElementById('tab-users').style.display   = tab==='users'   ? 'block' : 'none';
+    document.getElementById('tab-reviews').style.display = tab==='reviews' ? 'block' : 'none';
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b===btn));
+  }
+
+  function downloadCSV(type) {
+    let headers, rows;
+    if (type==='users') {
+      headers = ['#','Name','Email','Gender','Date of birth','Country of residence','Employer','Position','Registered on','Reviews'];
+      rows = allUsers.map((u,i) => [
+        i+1, u.name||'', u.email||'', GENDER_LBL[u.gender]||'',
+        u.birthdate||'', u.country||'', u.company||'',
+        POS_LABEL[u.position]||u.position||'',
+        u.created_at ? new Date(u.created_at).toLocaleDateString('ja-JP') : '',
+        allReviews.filter(r=>r.user_id===u.id).length
+      ]);
+    } else {
+      headers = ['#','Type','Author','Airline','Position','Monthly (10k JPY)','Bonus (10k JPY)','Annual salary / Note','Rating','Tenure','Posted','Comment'];
+      rows = allReviews.map((r,i) => [
+        i+1, r.source==='v2'?'New':'Legacy', r.name||'', r.airline||'', POS_LABEL[r.position]||r.position||'',
+        r.monthly!=null?r.monthly:'', r.bonus!=null?r.bonus:'', r.salaryTotal!=null?r.salaryTotal:'',
+        r.rating!=null?r.rating:'', r.tenure||'',
+        r.created_at ? new Date(r.created_at).toLocaleDateString('ja-JP') : '',
+        (r.comment||'').replace(/\n/g,' ')
+      ]);
+    }
+    const csv  = [headers,...rows].map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href=url; a.download=`pilotvalue_${type}_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click(); URL.revokeObjectURL(url);
+  }
+
+  async function adminLogout() {
+    await sb.auth.signOut();
+    location.href = 'index.html';
+  }
+
+  function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+</script>
+<script src="../currency.js"></script>
+</body>
+</html>

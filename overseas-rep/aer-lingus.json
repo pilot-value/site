@@ -1,0 +1,86 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "2024年の労使紛争の傷が残る。凍結賃金を巡りIALPAが約24%を要求し、労働裁判所裁定の17.75%増で決着したが、2週間の順法闘争と8時間ストで約610便が欠航した。会社は一部パイロットに最大1,500ユーロ（約30万円）の減給制裁を科し後に撤回・返金しており、経営と組合の信頼は傷ついたまま修復途上だ。",
+      "en": "A bruising 2024 dispute still shapes morale: after a strike and work-to-rule that grounded ~610 flights, management docked some pilots up to €1,500 (~$1,600) before reversing it, and trust between management and union is still being rebuilt."
+    },
+    "salary": {
+      "ja": "副操縦士の年収は約7.2万〜17.2万ユーロ（約1,240万〜2,960万円）、機長は12.5万〜24万ユーロ（約2,150万〜4,130万円）で、上限はA330長距離が担う。ただし型式取得済み1年目FOの手取りは月4,000〜4,300ユーロ（約69万〜74万円）にとどまり、ダブリンの物価には厳しい水準だ。",
+      "en": "First Officers earn roughly €72–172K ($78–187K) and Captains €125–240K ($136–261K) by seniority and fleet, but a first-year type-rated FO nets only about €4,000–4,300 ($4,350–4,680) a month — tight for Dublin."
+    },
+    "benefits": {
+      "ja": "最大の魅力は年金だ。給与の最大21〜22%を会社が拠出する確定拠出型で、欧州でも屈指の高率とされる。セクター手当は目的地別に英国18ユーロ（約3,100円）から米西海岸150ユーロ（約2万5,800円）まで刻まれ、変動手当は年1万〜1.6万ユーロ（約172万〜275万円）。IAGとワンワールドの搭乗特典も好評だ。",
+      "en": "The standout is the pension — an employer contribution of up to ~21–22% of salary, among the best in European aviation — plus sector allowances totaling ~€10–16K/yr and valued IAG/oneworld staff travel."
+    },
+    "wlb": {
+      "ja": "A320系は5日勤務3日休みの固定パターンで、多くの競合より生活リズムが読めると好評だ。ブロック時間は月70〜75時間、年次休暇は勤続に応じ35〜51日。ただし実際は夏場の人員不足で、週前の金曜に突然ロスターが変わる「火消し」運用への不満も根強い。A330長距離は完全ランダム、ベースは実質ダブリンに集約。",
+      "en": "The A320's fixed 5-on/3-off pattern (70–75 block hours/month, 35–51 leave days) is praised as family-friendly, though pilots report summer understaffing and last-minute roster changes; the A330 runs a full random roster, and basing is effectively consolidated at Dublin."
+    },
+    "ops": {
+      "ja": "機材はオールエアバス。A320/A321neo・LR・XLRが短距離と短距離大西洋線、A330が北大西洋長距離を担い、狭胴機から広胴機まで乗り継げるキャリアパスが魅力だ。ただし北大西洋の競争は激しく、2026年第1四半期は約1億300万ユーロ（約177億円）の営業赤字。マンチェスター拠点の閉鎖報道もあり将来には不安も残る。",
+      "en": "An all-Airbus fleet — A320/A321neo/LR/XLR on short-haul and short transatlantic, A330-200/300 on the North Atlantic — offers an appealing narrow-to-widebody arc, but fierce Atlantic competition, a ~€103M ($112M) Q1 2026 operating loss and a reported Manchester base closure cloud the outlook."
+    },
+    "training": {
+      "ja": "昇格は完全に先任順で、前職の経験は一切考慮されない。直接入社組も最下位から始まり、機長昇格までおよそ10〜15年かかる。一方で全額会社負担のMPLカデット制度は貴重で、スペインFTEヘレスで約14カ月・宿舎費込み、その後ダブリンでA320型式限定。ただし早期退職時は訓練費全額返済の訓練ボンドが課され会社に縛られる。",
+      "en": "Progression is strictly seniority-based — prior experience counts for nothing and command takes ~10–15 years — while the fully funded MPL cadet scheme (14 months at FTE Jerez, accommodation covered, then an A320 type rating in Dublin) is generous but carries a training bond requiring full repayment if you leave early."
+    }
+  },
+  "sources": [
+    {
+      "title": "Aer Lingus Pilot Salary 2026 — FO €72-172K, Captain €125-240K (Airmappr)",
+      "url": "https://airmappr.com/articles/career/aer-lingus-pilot-salary-guide"
+    },
+    {
+      "title": "Aer Lingus | Pilot Careers, Pay, Roster, Fleet & Benefits (Ready For Takeoff)",
+      "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/aer-lingus"
+    },
+    {
+      "title": "Aer Lingus Pilot Career Guide 2026 (Rotate)",
+      "url": "https://rotatepilot.com/airlines/aer-lingus"
+    },
+    {
+      "title": "Aer Lingus Pilot Salary in 2025 (Aviation A2Z)",
+      "url": "https://aviationa2z.com/index.php/2025/05/07/aer-lingus-pilot-salary-2025/"
+    },
+    {
+      "title": "Aer Lingus Airline Pilot Salaries (Glassdoor Ireland)",
+      "url": "https://www.glassdoor.ie/Salary/Aer-Lingus-Airline-Pilot-Salaries-E10477_D_KO11,24.htm"
+    },
+    {
+      "title": "2023 Aer Lingus Direct Entry Pilot (PPRuNe Forums archive)",
+      "url": "https://www.pprune.org/archive/index.php/t-655425.html"
+    },
+    {
+      "title": "Aer Lingus FO thread (PPRuNe Forums)",
+      "url": "https://www.pprune.org/terms-endearment/601721-aer-lingus-fo.html"
+    },
+    {
+      "title": "Aer Lingus to reimburse pay docked from pilots during summer work-to-rule (Irish Times)",
+      "url": "https://www.irishtimes.com/business/work/2024/11/20/aer-lingus-to-reimburse-pay-docked-from-pilots-during-summer-work-to-rule/"
+    },
+    {
+      "title": "Aer Lingus pilots back pay deal and bring end to industrial action (Irish Times)",
+      "url": "https://www.irishtimes.com/business/2024/07/23/pilots-back-pay-deal-in-aer-lingus-row/"
+    },
+    {
+      "title": "Aer Lingus accepts Labour Court recommendation on pay (RTÉ)",
+      "url": "https://www.rte.ie/news/business/2024/0708/1458716-aer-lingus-ialpa/"
+    },
+    {
+      "title": "Aer Lingus pilots vote to accept pay deal (BBC News)",
+      "url": "https://feeds.bbci.co.uk/news/articles/c727md664eyo"
+    },
+    {
+      "title": "Aer Lingus pilots call off industrial action as union backs pay raise deal (AeroTime)",
+      "url": "https://www.aerotime.aero/articles/aer-lingus-pilots-call-off-industrial-action-as-union-backs-pay-raise-deal"
+    },
+    {
+      "title": "Aer Lingus opens 2024 sponsored pilot training (FLYER)",
+      "url": "https://flyer.co.uk/aer-lingus-opens-2024-sponsored-pilot-training-2/"
+    },
+    {
+      "title": "Direct Entry Pilots (Aer Lingus official careers)",
+      "url": "https://www.aerlingus.com/careers/careers-in-the-air/direct-entry-pilots/"
+    }
+  ]
+}

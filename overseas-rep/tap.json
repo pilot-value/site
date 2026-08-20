@@ -1,0 +1,94 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "国営(ポルトガル政府所有)で官僚的、経営は現場の声を聞かないという不満が目立つ。コロナ期にパイロットは全職種で最も深い最大45〜50%の減給を飲んだ経緯があり、会社の黒字は従業員のカットの上に成り立っているという感覚が残る。2025〜26年はLufthansa等への民営化(最大44.9%)が進行し、先行きは不透明。",
+      "en": "State-owned and bureaucratic, with pilots having absorbed the deepest COVID pay cuts of any group (up to 45-50%). Privatization to Lufthansa/Air France-KLM (up to 44.9%) is now underway with an uncertain outcome."
+    },
+    "salary": {
+      "ja": "基本給＋日当＋13・14ヶ月目手当＋利益ボーナス＋企業年金の構成。副操縦士1年目のA320で約770万〜950万円(€45,000〜55,000)、A320新任機長は約1,720万円(€10万)から、A330neoのシニア機長は日当・ボーナス込みで年3,400万円超(€20万超)。南欧では悪くないが湾岸勢には見劣りする。",
+      "en": "Base pay plus per diem, 13th/14th-month bonuses, profit share and a pension. A first-year A320 FO earns roughly $49-60K (€45-55K), while a senior A330neo captain can top $218K (€200K+) with per diem and bonuses."
+    },
+    "benefits": {
+      "ja": "手当は手厚く、クリスマス・休暇手当として13・14ヶ月目給(各1ヶ月分)が付く。企業年金は会社が基本給の6%、本人が1.5%を拠出。ベース外レイオーバー日当は副操縦士約9,500円(€55)、機長約1.2万円(€70)/日。健康保険や社員食堂もあり、歴史的に家族的な雰囲気が肯定的に語られる。",
+      "en": "Strong extras: 13th- and 14th-month salary (Christmas/holiday pay), a company pension (employer 6% of base, employee 1.5%), per diems of ~$60/day for FOs and ~$76/day for captains, plus health insurance and a staff canteen."
+    },
+    "wlb": {
+      "ja": "月の休みは約10〜12日、月間ブロック時間70〜85時間、年間上限は約900時間(EASA準拠)。年次有給は先任権で22〜30営業日。ロースターは変動型で早朝発・深夜着・徹夜便が混在し、健康的な生活を保ちにくいとの声。主ベースはリスボン、ポルトは限定的。長距離レイオーバーは24〜48時間。",
+      "en": "Around 10-12 days off a month, 70-85 block hours and a ~900-hour annual cap. The random roster mixes early starts, late arrivals and all-nighters, so schedule quality depends heavily on seniority; Lisbon is the main base, Porto a limited second."
+    },
+    "ops": {
+      "ja": "総勢100機超で、A320族、大西洋横断のA321LR、長距離のA330-900neo(TAPはローンチカスタマー)、子会社TAP ExpressのEmbraer E190/E195を運航。ブラジル・アフリカ・北米への独自の長距離網が魅力。一方でウェットリースや外部委託(Portugalia等)への反発が強い。",
+      "en": "A fleet of 100+ aircraft — A320 family, transatlantic A321LRs, long-haul A330-900neos (TAP was launch customer) and Embraer E190/E195s at TAP Express — with a distinctive Brazil/Africa/North America network, though pilots resent heavy wet-lease and outsourcing."
+    },
+    "training": {
+      "ja": "昇格は完全な社内先任権制で、直接雇用の機長はおらず全機長がFO出身。コマンド昇格まで推定8〜15年で、復興期には昇格が凍結された時期もある。公式選考で採用されればA320の型式限定費用は会社負担。カデットはスペインのFTEJerezと提携。過去の要件は年齢21〜40歳・CPL(A)保有。",
+      "en": "Command is strictly seniority-based with no direct-entry captains, so upgrades take an estimated 8-15 years (and were frozen during the recovery). TAP funds the A320 type rating for selected hires and runs a cadet pipeline with Spain's FTEJerez."
+    }
+  },
+  "sources": [
+    {
+      "title": "TAP Air Portugal Pilot Salary 2026 — FO €45-90K, Captain €100-180K (airmappr)",
+      "url": "https://airmappr.com/articles/career/tap-pilot-salary-guide"
+    },
+    {
+      "title": "TAP Air Portugal | Pilot Careers, Fleet & Network Overview (Ready For Take-Off)",
+      "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/tap-air-portugal"
+    },
+    {
+      "title": "TAP Air Portugal Pilot Salary in 2025 (Aviation A2Z)",
+      "url": "https://aviationa2z.com/index.php/2025/09/22/tap-air-portugal-pilot-salary-2025/"
+    },
+    {
+      "title": "TAP Portugal Airline Pilot Salaries in Portugal (Glassdoor)",
+      "url": "https://www.glassdoor.com/Salary/TAP-Portugal-Airline-Pilot-Portugal-Salaries-EJI_IE159137.0,12_KO13,26_IL.27,35_IN195.htm"
+    },
+    {
+      "title": "TAP Portugal Airline Pilot Reviews (Glassdoor)",
+      "url": "https://www.glassdoor.sg/Reviews/TAP-Portugal-Airline-Pilot-Reviews-EI_IE159137.0,12_KO13,26.htm"
+    },
+    {
+      "title": "Pilot Recruitment at TAP (PPRuNe Forums)",
+      "url": "https://www.pprune.org/interviews-jobs-sponsorship/293052-pilot-recruitment-tap.html"
+    },
+    {
+      "title": "TAP Air Portugal Faces Crew Recruitment Challenges (Simple Flying)",
+      "url": "https://simpleflying.com/tap-air-portugal-crew-recruitment-challenges/"
+    },
+    {
+      "title": "TAP Air Portugal and FTEJerez sign agreement for graduate placement",
+      "url": "https://www.ftejerez.com/news/tap-air-portugal-and-ftejerez-sign-agreement-for-graduate-placement/"
+    },
+    {
+      "title": "Pilotos da TAP aprovam novo acordo de empresa que acaba com cortes salariais (SPAC)",
+      "url": "https://spac.pt/pilotos-da-tap-aprovam-novo-acordo-de-empresa-que-acaba-com-cortes-salariais/"
+    },
+    {
+      "title": "Pilotos da TAP aprovam alterações ao acordo de empresa e adiam aumentos (Observador)",
+      "url": "https://observador.pt/2024/03/22/pilotos-da-tap-aprovam-alteracoes-ao-acordo-de-empresa-e-adiam-aumentos/"
+    },
+    {
+      "title": "TAP paga seis salários extra aos pilotos este ano para compensar recurso a voos externos (Observador)",
+      "url": "https://observador.pt/2024/05/24/tap-paga-seis-salarios-extra-aos-pilotos-este-ano-para-compensar-recurso-a-voos-externos/"
+    },
+    {
+      "title": "Pilotos da TAP ganham mais do que os da concorrência? (Polígrafo fact-check)",
+      "url": "https://poligrafo.sapo.pt/fact-check/pilotos-da-tap-ganham-mais-do-que-os-da-concorrencia/"
+    },
+    {
+      "title": "Pilotos de Portugal alertam para riscos de entrada do Grupo Lufthansa no capital da TAP (Panrotas)",
+      "url": "https://www.panrotas.com.br/aviacao/empresas/2026/04/pilotos-de-portugal-alertam-para-riscos-de-entrada-do-grupo-luthansa-no-capital-da-tap_227877.html"
+    },
+    {
+      "title": "Sindicato de pilotos portugueses alerta para riscos com Grupo Lufthansa na compra da TAP (AEROIN)",
+      "url": "https://aeroin.net/sindicato-de-pilotos-portugueses-alerta-para-riscos-com-grupo-lufthansa-na-compra-da-tap/"
+    },
+    {
+      "title": "TAP reduz em 10% corte salarial aos pilotos da companhia (ZAP/DN)",
+      "url": "https://zap.aeiou.pt/tap-reduz-10-corte-salarial-pilotos-484592"
+    },
+    {
+      "title": "TAP Air Portugal signs no-strike agreement (Eurofound)",
+      "url": "https://www.eurofound.europa.eu/en/publications/all/tap-air-portugal-signs-no-strike-agreement"
+    }
+  ]
+}

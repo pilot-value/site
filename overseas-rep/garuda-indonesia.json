@@ -1,0 +1,94 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "「社員は最高だが経営は最悪」。国有企業(BUMN)ゆえの官僚主義で同じ失敗を繰り返し、意思決定は遅い。2011年の格差スト、2018年の取締役会刷新要求、2025年の組合費天引き停止・幹部の刑事告発疑惑まで、労使対立が慢性的に再燃している。安定は魅力だが、現場のモラールは経営不信で揺れている。",
+      "en": "\"The staff are great, the management is the worst\" — heavy state-owned bureaucracy repeats the same mistakes, and labor conflict has stayed chronic from the 2011 pay strike to alleged union-busting and criminal charges against union leaders in 2025."
+    },
+    "salary": {
+      "ja": "2025年の地元パイロットは月額で副操縦士 約30〜40万円(Rp30〜40百万)、機長 約50〜70万円、上位機長は約100〜150万円。年間賞与は別に約30〜45万円。インドネシア国内では最良クラスとの声だが「アジアで良いわけではない」とはっきり限定され、あくまで国内基準での優位という位置づけ。",
+      "en": "For local pilots in 2025, FOs run roughly USD1,900-2,500/month, captains USD3,100-4,400, and top captains USD6,300-9,400, plus an annual bonus. Best pay in Indonesia, but explicitly \"not good by Asian standards.\""
+    },
+    "benefits": {
+      "ja": "過去のエキスパット契約では月給 約79万円(USD5,000)に住宅手当 約19万円・旅費手当 約8万円が含まれ、オーバーナイト日当は約5,500円。社員航空券はビジネスへのアップグレード可、保険も手厚くGlassdoorの福利厚生評価は約4/5(同業比+17%)。ただし外国人契約には年金・退職金・退職後の健康保険が付かない。",
+      "en": "Past expat packages bundled housing (~USD1,200) and travel allowances into a ~USD5,000/month deal, and staff tickets upgrade to business with solid insurance (Glassdoor benefits ~4/5) — but expat contracts carry no pension, severance, or retiree health cover."
+    },
+    "wlb": {
+      "ja": "地方路線のATR72-600採用では『8週オン/2週オフ』のコミューター型ロスターが提示された例がある。ベースは本拠ジャカルタのほか、デンパサール(バリ)など。幹線機材はより一般的なパターンだが、地方展開では長期オン・まとめ休みの生活リズムになりやすい点は要確認。",
+      "en": "Regional ATR72-600 hiring has offered an \"8 weeks on / 2 weeks off\" commuter roster, with bases in Jakarta (main hub) and Denpasar (Bali) among others."
+    },
+    "ops": {
+      "ja": "機材はB737・B777・A330と現代的で、非懲罰的な安全文化と機種の多様性は好評。一方でエキスパット経験者は、貧弱なATC・赤道直下の悪天・険しい地形により運航は本来より遥かにストレスが高いと指摘する。操縦手法に独特な考え方があり、機体損傷インシデントの多さにも言及している。",
+      "en": "The fleet is modern (B737, B777, A330) and the non-punitive safety culture rates well, but expats flag poor ATC, equatorial weather, and rugged terrain that make ops far more stressful, plus \"unusual\" handling norms and frequent aircraft-damage incidents."
+    },
+    "training": {
+      "ja": "副操縦士採用はICAOのCPL/IRまたはATPL、第一種航空身体検査、英語レベル4以上が条件で、募集により最高年齢55歳・総飛行3,000時間などの下限が課された。昇格は年功序列＋社内評価で道筋は明確だが遅く、コロナ後は機材不足で機長昇格・機種移行が長期化。インストラクターの質は高く評価される。",
+      "en": "FO hiring requires an ICAO CPL/IR or ATPL, a class-1 medical, and ICAO English level 4+, with age and hours caps (e.g. max age 55, 3,000 hours). Promotion runs on seniority plus review — clear but slow, with captain upgrades stalling post-COVID; instructor quality is well regarded."
+    }
+  },
+  "sources": [
+    {
+      "title": "Garuda Indonesia — PPRuNe Forums (Terms & Endearment)",
+      "url": "https://www.pprune.org/terms-endearment/499210-garuda-indonesia.html"
+    },
+    {
+      "title": "Garuda Indonesia — Airline Pilot Central Forums (Foreign)",
+      "url": "https://www.airlinepilotforums.com/foreign/104049-garuda-indonesia.html"
+    },
+    {
+      "title": "Why does Garuda employ foreign pilots? — ANTARA News",
+      "url": "https://en.antaranews.com/news/74077/why-does-garuda-employ-foreign-pilots"
+    },
+    {
+      "title": "Garuda Indonesia pilots end strike over pay — CAPA Centre for Aviation",
+      "url": "https://centreforaviation.com/news/garuda-indonesia-pilots-end-strike-over-pay-113694"
+    },
+    {
+      "title": "Pilots at Indonesia's state-run airline strike — Deseret News",
+      "url": "https://www.deseretnews.com/article/700166515/Pilots-at-Indonesias-state-run-airline-strike.html"
+    },
+    {
+      "title": "Garuda Indonesia pilots threaten to strike during Idul Fitri — The Jakarta Post (2018)",
+      "url": "https://www.thejakartapost.com/news/2018/06/01/garuda-indonesia-pilots-threaten-to-strike-during-idul-fitri.html"
+    },
+    {
+      "title": "Garuda Indonesia Pilot Reviews — PilotsGlobal",
+      "url": "https://pilotsglobal.com/airlines/garuda-indonesia/pilot-reviews"
+    },
+    {
+      "title": "Garuda Indonesia Airline Pilot Reviews — Glassdoor",
+      "url": "https://www.glassdoor.com/Reviews/Garuda-Indonesia-Airline-Pilot-Reviews-EI_IE7530.0,16_KO17,30.htm"
+    },
+    {
+      "title": "Garuda Indonesia Pilot Recruitment (First Officer / Captain) — Fly Gosh",
+      "url": "https://www.flygosh.com/2015/01/garuda-indonesia-pilot-recruitment.html"
+    },
+    {
+      "title": "Garuda Indonesia Pilot Recruitment (ATR 72-600) — Fly Gosh",
+      "url": "https://www.flygosh.com/2014/05/garuda-indonesia-pilot-recruitment-atr.html"
+    },
+    {
+      "title": "Berapa Gaji Pilot Garuda Indonesia? — IDN Times",
+      "url": "https://www.idntimes.com/business/economy/gaji-pilot-garuda-indonesia-q9t03-00-qftxr-800hl9"
+    },
+    {
+      "title": "Ternyata Segini Gaji dan Tunjangan Pilot Garuda Indonesia — Okezone/RCTI+",
+      "url": "https://www.rctiplus.com/news/detail/okezone/4782796/ternyata-segini-gaji-dan-tunjangan-pilot-garuda-indonesia"
+    },
+    {
+      "title": "Ternyata Segini Gaji dan Tunjangan Pilot Garuda Indonesia — Okezone Economy (2025)",
+      "url": "https://economy.okezone.com/read/2025/06/12/320/3146586/ternyata-segini-gaji-dan-tunjangan-pilot-garuda-indonesia-nbsp"
+    },
+    {
+      "title": "Dugaan Kriminalisasi dan Union Busting, Asosiasi Pilot Garuda Tuntut Presiden — Tangerang News (2025)",
+      "url": "https://www.tangerangnews.com/nasional/read/53832/Dugaan-Kriminalisasi-dan-Union-Busting-Asosiasi-Pilot-Garuda-Tuntut-Presiden-Evaluasi-Perusahaan"
+    },
+    {
+      "title": "Indonesia's Garuda airline enters restructuring to avoid bankruptcy — Financier Worldwide",
+      "url": "https://www.financierworldwide.com/indonesias-garuda-airline-enters-restructuring-to-avoid-bankruptcy"
+    },
+    {
+      "title": "Stop union busting at Garuda Airlines — ITF Aviation",
+      "url": "https://www.itfaviation.org/stop-union-busting-at-garuda-airlines/"
+    }
+  ]
+}

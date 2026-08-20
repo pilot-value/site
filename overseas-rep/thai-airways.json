@@ -1,0 +1,78 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "2020年に負債約77.5億ドル（約1.2兆円）で会社更生入りし、パイロット395名を含む大規模リストラを実施。社内政治や縁故・放漫経営への不満が残る官製色の強い旧来型カルチャー。ただ2024年に更生を脱却し、2025年の再上場を目指すなど再建は前進、待遇改善への期待もある。",
+      "en": "Thai Airways entered bankruptcy reorganization in 2020 (~$7.75B debt) and cut 395 pilots; the state-linked, politics-heavy culture drew complaints, but it exited reorganization in 2024 and aims to relist in 2025, so morale is slowly recovering."
+    },
+    "salary": {
+      "ja": "機長は年340万〜550万バーツ（約1,500万〜2,450万円）、副操縦士は150万〜260万バーツ（約660万〜1,140万円）。2019年からブロックアワー制で基本給比率が低く収入は飛行手当頼み。手当を除く月収は最大約240,000バーツで、JALやエミレーツの約半分という証言が多い。",
+      "en": "Captains earn roughly THB 3.4–5.5M (about USD 95k–155k) and first officers THB 1.5–2.6M (USD 42k–72k); a block-hour system since 2019 keeps base pay low, and monthly pay excluding allowances tops out near THB 240k — about half of JAL or Emirates."
+    },
+    "benefits": {
+      "ja": "福利は手厚めで、医療補償は平均で最大約250万バーツ（約1,100万円）、TGとスターアライアンス便のスタンバイ搭乗特典、海外滞在パーディエムが付く。ただ基本給が低いぶん、収入の多くをパーディエムと飛行手当が占める構造で、実質は変動給に近い点は割り引いて見たい。",
+      "en": "Benefits are solid — medical cover averaging up to THB 2.5M, TG and Star Alliance standby travel, and overseas per-diems; but with base pay low, those per-diems and flight allowances make up much of take-home, so income is effectively variable."
+    },
+    "wlb": {
+      "ja": "ベースはバンコク・スワンナプーム（一部プーケット）。基本給が低く収入確保に飛行時間を積む必要があり、月15〜17日乗務のコンピュータ割当で生活リズムが乱れ、家族行事を逃すとの声。一方でバンコクは生活コストが低く生活の質は高いとの評価も根強い。",
+      "en": "Based at Bangkok Suvarnabhumi (some Phuket); low base pay pushes pilots to rack up hours, and computer-assigned rosters of 15–17 flying days a month disrupt sleep and family life — though Bangkok's low cost of living and quality of life are a real plus."
+    },
+    "ops": {
+      "ja": "機材はA320／A330／A350／B777／B787で、ハブのバンコク・スワンナプームから60以上の都市へ就航。A350や787など新しめのワイドボディで欧州・豪州の長距離を飛べる点は魅力とされる。プーケットもベースの一つとして使われる。",
+      "en": "The fleet spans A320/A330/A350/B777/B787, serving 60+ destinations from the Bangkok Suvarnabhumi hub; flying newer A350s and 787s on long-haul routes to Europe and Australia is seen as a genuine draw."
+    },
+    "training": {
+      "ja": "副操縦士から機長まで最低5〜6年のシニオリティ順で、他社の半年〜1年に比べ昇格が遅い。昇格を縛る8年・約1,200万バーツ（約5,300万円）のボンドや、格上げ訓練費約87万バーツの自己負担も問題化。学生パイロット採用は2025年に再開（年約100名）だが、応募はタイ国籍・38歳未満などが条件。",
+      "en": "Reaching captain takes at least 5–6 years by seniority (versus 6–12 months at some rivals), and pilots cite an 8-year ~THB 12M bond plus self-funded upgrade training (~THB 870k); cadet intake resumed in 2025 (~100/year) but is limited to Thai nationals under 38."
+    }
+  },
+  "sources": [
+    {
+      "title": "Thai Airways Pilot Salary in 2026 - Aviation A2Z",
+      "url": "https://aviationa2z.com/index.php/2026/05/31/thai-airways-pilot-salary-2026/"
+    },
+    {
+      "title": "เปิดรายได้ นักบินการบินไทย ปี 2026 - The NX Chapter",
+      "url": "https://thenxchapter.com/thai-airways-pilot-salary-2026/"
+    },
+    {
+      "title": "Thai Airways Pilot Salaries - Glassdoor",
+      "url": "https://www.glassdoor.com/Salary/Thai-Airways-Pilot-Salaries-E7528_D_KO13,18.htm"
+    },
+    {
+      "title": "Thai Airways Pilot Hiring Requirements - Epic Flight Academy",
+      "url": "https://epicflightacademy.com/hiring-requirements-thai-airways/"
+    },
+    {
+      "title": "Thai Airways pilots - PPRuNe Forums",
+      "url": "https://www.pprune.org/questions/45354-thai-airways-pilots.html"
+    },
+    {
+      "title": "ทุกข์ของนักบินการบินไทย - Pantip",
+      "url": "https://pantip.com/topic/36889754"
+    },
+    {
+      "title": "เป็นนักบินดีไหมครับ (กระทู้พลีชีพ) - Pantip",
+      "url": "https://pantip.com/topic/31082330"
+    },
+    {
+      "title": "Thai Pilots Oppose Foreign Pilots Flying Domestic Flights and Salary Breakdown - Aviation A2Z",
+      "url": "https://aviationa2z.com/index.php/2024/12/07/thai-pilots-apposes-foreign-pilots-flying-domestic-flights/"
+    },
+    {
+      "title": "Thai Airways losing pilots over pay - Nation Thailand",
+      "url": "https://www.nationthailand.com/business/30241769"
+    },
+    {
+      "title": "THAI pilots to get higher allowances - Bangkok Post",
+      "url": "https://www.bangkokpost.com/business/general/1597242/thai-pilots-to-get-higher-allowances"
+    },
+    {
+      "title": "Thailand targets pay-to-fly scheme as new pilots face rising entry costs - Nation Thailand",
+      "url": "https://www.nationthailand.com/business/economy/40067461"
+    },
+    {
+      "title": "Thai Airways To Lay Off 395 Pilots In Restructuring Plan - Simple Flying",
+      "url": "https://simpleflying.com/thai-airways-restructuring-lay-offs/"
+    }
+  ]
+}

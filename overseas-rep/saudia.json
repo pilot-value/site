@@ -1,0 +1,70 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "操縦士935名の83.5%、副操縦士は100%がサウジ人で自国民化が徹底されている。駐在パイロットは5年前の500名超から100名以下に激減した。COVID時には駐在機長へ無給休暇か解雇を迫り、駐在FOだけが強制解雇の対象になった経緯もあり、外国人にとって新規採用も定着も期待しにくい会社。",
+      "en": "About 83.5% of pilots and 100% of co-pilots are Saudi nationals, and expat pilots have collapsed from over 500 to under 100. COVID-era forced unpaid leave and the dismissal of expat FOs still leave deep resentment among foreign crew."
+    },
+    "salary": {
+      "ja": "個人所得税ゼロで額面がほぼ手取りになる。総年収は副操縦士が約1,340万〜2,050万円（USD 85,000〜130,000）、機長が約2,600万〜4,420万円と非課税ベースでは中東上位。基本給は月75ブロックアワー基準に単価と残業を積む構造だが、エミレーツ・カタール・エティハドや新興リヤド航空の提示には届かない。",
+      "en": "Zero income tax means gross is essentially take-home; FO totals run about USD 85,000-130,000 and captains USD 165,000-280,000 tax-free. Strong for the Middle East, but below the EK/QR/EY top tier and Riyadh Air's offers."
+    },
+    "benefits": {
+      "ja": "住宅手当は駐在員でおおむね月25,000SAR（約105万円）、着任時のリロケーション一時金は約158万円（USD 10,000）。ラマダンボーナスは基本給1か月分で、教育・交通・レイオーバー手当も積み上がり、実質手取りは公表基本給より2〜4割上になる。退職金は勤続5年まで年15日分、5年超は年30日分の基本給が目安。",
+      "en": "Housing runs around 25,000 SAR/month (roughly USD 6,700) with a USD 10,000 relocation lump sum, plus a one-month Ramadan bonus. Stacked education, transport and layover allowances push real take-home 20-40% above published base."
+    },
+    "wlb": {
+      "ja": "月最低5連休を保証し、年間有給56日、月間ブロックアワー目標は75時間。主要ベースはジェッダで、ほかにリヤド・ダンマン・メディナ。ナローボディは日帰り多区間の詰まった高頻度運航、ワイドボディは3〜5日ローテと長距離レイオーバーとリズムが分かれる。プール付きコンパウンド生活は快適だが、サウジ社会の生活制約は好みが分かれる。",
+      "en": "A guaranteed five consecutive days off per month, 56 annual leave days and a 75-hour block target across Jeddah, Riyadh, Dammam and Medina bases. Jeddah narrowbody flying is packed multi-sector day trips while widebody runs 3-5 day long-haul rotations; compound life is comfortable but Saudi social constraints aren't for everyone."
+    },
+    "ops": {
+      "ja": "機材はA320/A321、A330-300、B777-300ERが主力で、Vision 2030の拡大に沿って787を49機発注済み。ジェッダ発の高頻度な国内・地域線とワイドボディの長距離国際線の両方を経験できる。Hajj・Umrahの巡礼ピークには増便が組まれ、季節ごとに運航のバラエティが大きく変わるのが特色。",
+      "en": "The fleet centers on the A320/A321, A330-300 and B777-300ER, with 49 Boeing 787s on order under Vision 2030. Hajj and Umrah peaks add seasonal flying variety, mixing high-frequency Jeddah short-haul with widebody long-haul."
+    },
+    "training": {
+      "ja": "採用はFOで最低1,500時間、ICAO英語レベル5以上、有効なATPLまたはCPL/IRが要件で、型式限定は会社が付与する。国籍者はナローボディ機長まで約5〜8年、ワイドボディ指揮まで10〜15年以上で年約120名が昇格する。一方、駐在FOは1990年代以降ほぼ機長に上がっておらず、外国人の昇格は実質閉ざされている。",
+      "en": "Hiring needs a minimum 1,500 hours, ICAO English level 5 and a valid ATPL or CPL/IR, with type ratings provided. Nationals reach narrowbody command in about 5-8 years, but expat FOs have essentially not been promoted to captain since the 1990s."
+    }
+  },
+  "sources": [
+    {
+      "title": "Saudia Pilot Salary in 2026 - Aviation A2Z",
+      "url": "https://aviationa2z.com/index.php/2026/06/09/saudia-pilot-salary-2026/"
+    },
+    {
+      "title": "Pilot Salary at Saudia 2026 — Complete Pay Guide - Rotate",
+      "url": "https://rotatepilot.com/airline-salary/saudia"
+    },
+    {
+      "title": "Saudia | Pilot Pay, Rosters, Benefits and Career Paths - Ready For Take Off",
+      "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/saudia"
+    },
+    {
+      "title": "RIA / Saudi Airlines? - PPRuNe Forums (Middle East)",
+      "url": "https://www.pprune.org/middle-east/648658-ria-saudi-airlines-15.html"
+    },
+    {
+      "title": "Saudis dirty game against its pilots - PPRuNe Forums",
+      "url": "https://www.pprune.org/middle-east/631270-saudiis-dirty-game-against-its-pilots-2.html"
+    },
+    {
+      "title": "Expats still at Saudia? - PPRuNe Forums",
+      "url": "https://www.pprune.org/middle-east/646539-expats-still-saudia.html"
+    },
+    {
+      "title": "SAUDIA says 83% pilots, 100% co-pilots are nationals - Argaam",
+      "url": "https://www.argaam.com/en/article/articledetail/id/1556146"
+    },
+    {
+      "title": "Riyadh Air Pilot Terms Revealed — What the Package Actually Looks Like - Airmappr",
+      "url": "https://airmappr.com/news/2026-05/riyadh-air-pilot-salary-terms-revealed"
+    },
+    {
+      "title": "How Much Does Saudi Arabian Airlines Pay in 2026? - Glassdoor",
+      "url": "https://www.glassdoor.com/Salary/Saudi-Arabian-Airlines-Salaries-E309269.htm"
+    },
+    {
+      "title": "Saudia Takes Flight into the Future with Transformative Fleet Expansion - Aviation Pros",
+      "url": "https://www.aviationpros.com/aircraft/press-release/55251028/saudia-takes-flight-into-the-future-with-transformative-fleet-expansion-and-modernization-efforts"
+    }
+  ]
+}

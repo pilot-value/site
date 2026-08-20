@@ -1,0 +1,78 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "疲労報告に警告書が付き昇格に響くのを恐れて申告をためらう、処罰的で責任追及型の文化への不満が多い。経営は現場より自社の利益を優先との評価で、労組はなく契約は個別・守秘。コロナ期には上級職へ25%減給、人員を約27%削減して約36,700人まで縮小した。Glassdoorのパイロット総合は約4.0だが実感は割れる。",
+      "en": "Pilots describe a punitive, blame-oriented culture where filing a fatigue report can bring a warning letter and stall promotion, and say management puts company profit ahead of the crew. There is no union, contracts are individual and confidential, and during COVID the airline imposed a 25% pay cut on senior pilots and cut headcount by about 27%."
+    },
+    "salary": {
+      "ja": "基本給＋飛行時間給の二層構造で、月75時間分を最低保証。副操縦士は基本給 月約6,500〜6,800米ドル（約103万〜107万円）、機長は月約9,100〜9,500米ドル（約144万〜150万円）。年収は副操縦士で約1,580万円から、上級ワイドボディ機長は3,000万〜4,700万円超。カタールは所得税ゼロで提示額がほぼ手取りになる点が最大の魅力。",
+      "en": "Pay is two-tier — a monthly base plus flight-hour pay with a 75-hour monthly minimum. First officers start around $100k–105k a year and senior widebody captains reach $200k–300k+, and because Qatar has zero income tax the quoted figure is essentially take-home."
+    },
+    "benefits": {
+      "ja": "会社提供住宅（副操縦士は3寝室、機長は4寝室のヴィラ/アパート）または住宅手当（副操縦士 月約3,600米ドル＝約57万円、機長 約4,100米ドル＝約65万円）。加えて交通手当 月約400米ドル、21歳までの学費補助、年次有給42日、家族分の世界医療保険、社員航空券（入社6か月でワンワールド提携社にも拡大）。家族帯同者向けの福利は手厚い。",
+      "en": "Housing is either company-provided (a 3-bedroom for FOs, 4-bedroom for captains) or an allowance of about $3,600–4,100 a month, on top of a transport allowance, school fees to age 21, 42 days of annual leave, family global medical insurance, and staff travel. Benefits are genuinely generous for those relocating with family."
+    },
+    "wlb": {
+      "ja": "東西を跨ぐペアリングと最小レスト、連続5日勤務など過酷なロスターへの不満が一貫。月の休日は最低8日が実質上限で、合間にスタンバイを挟まれ出国しづらい。全員がドーハ基地固定でコミュート制度はなく居住地は選べない。GlassdoorのワークライフバランスはFO/機長職で2.9と低く、年1,200〜1,300時間相当を飛ぶとの証言もある。",
+      "en": "Pilots consistently complain about brutal rosters — east–west pairings, minimum rest, five-day stretches — with monthly days off effectively capped around eight and standby wedged in between. Everyone is Doha-based with no commuting option, and Glassdoor scores work-life balance just 2.9 out of 5."
+    },
+    "ops": {
+      "ja": "機材はA350-900/1000、B777、B787、A330などワイドボディ中心で総数 約237機、月間ブロックアワーは概ね75〜85時間。世界規模の超長距離ネットワークと難易度の高い空港への就航で、新しく整備の行き届いた機材で操縦技量と経験を積める点は高く評価される。就航先はコロナ期を経て140都市超へ拡大した。",
+      "en": "The fleet is widebody-heavy — A350-900/1000, B777, B787, A330, roughly 237 aircraft — flying about 75–85 block hours a month across a global ultra-long-haul network. Pilots rate the modern, well-maintained aircraft and demanding destinations highly for building skill and experience."
+    },
+    "training": {
+      "ja": "型式限定訓練は会社負担だが約2〜3年のサービスボンド付き。試用は6か月、審査は6か月ごと。内部の副操縦士から機長への昇格は現状10〜11年と遅く（採用時は5〜6年と説明されがち）、年約50名の枠を外部のダイレクトエントリー機長に先取りされる。逆にDEC志望なら総6,000時間・PIC2,000時間で即ワイドボディ機長に入れる好条件。",
+      "en": "Type-rating training is company-funded but carries a 2–3 year service bond, with a six-month probation and checks every six months. Internal FO-to-captain upgrade now takes about 10–11 years (recruiters suggest 5–6) and the roughly 50 annual slots are often taken by direct-entry captains, who with 6,000 hours and 2,000 PIC can join straight onto widebodies."
+    }
+  },
+  "sources": [
+    {
+      "title": "Qatar Airways FACTS — PPRuNe Middle East forum",
+      "url": "https://www.pprune.org/middle-east/665771-qatar-airways-facts.html"
+    },
+    {
+      "title": "Qatar Airways Airline Pilot Reviews — Glassdoor",
+      "url": "https://www.glassdoor.com/Reviews/Qatar-Airways-Airline-Pilot-Reviews-EI_IE240668.0,13_KO14,27.htm"
+    },
+    {
+      "title": "Qatar Airways Pilot Reviews — PilotsGlobal",
+      "url": "https://pilotsglobal.com/airlines/qatar-airways/pilot-reviews"
+    },
+    {
+      "title": "Qatar Airways | Pilot Pay, Rosters, Fleet & Benefits — Ready For Take Off",
+      "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/qatar-airways"
+    },
+    {
+      "title": "Pilot Salary in Qatar 2026: What Qatar Airways Pays Captains — CrewDaily",
+      "url": "https://crewdaily.com/pilot-salary-in-qatar/"
+    },
+    {
+      "title": "Qatar Airways Pilot Salary in 2026 — Aviation A2Z",
+      "url": "https://aviationa2z.com/index.php/2026/06/20/qatar-airways-pilot-salary-2026/"
+    },
+    {
+      "title": "'Overtired' Qatar Airways pilots warn about safety culture — AeroTime",
+      "url": "https://www.aerotime.aero/articles/32090-fatigued-qatar-airways-pilots-warn-about-safety-culture"
+    },
+    {
+      "title": "Pilots raise alarm at Qatar Airways for doctored hours, hidden fatigue — Al Arabiya English",
+      "url": "https://english.alarabiya.net/News/gulf/2022/01/28/Pilots-raise-alarm-at-Qatar-Airways-for-doctored-hours-hidden-fatigue"
+    },
+    {
+      "title": "Qatar Airways pilots allege under-counting of work hours (incl. company comments) — Business & Human Rights Resource Centre",
+      "url": "https://www.business-humanrights.org/en/latest-news/qatar-airways-pilots-allege-national-airline-is-under-counting-work-hours-resulting-in-serious-fatigue-incl-co-comments/"
+    },
+    {
+      "title": "Statement on Pilot Fatigue Management — Qatar Airways Newsroom",
+      "url": "https://www.qatarairways.com/press-releases/en-WW/215320-statement-on-pilot-fatigue-management/"
+    },
+    {
+      "title": "Qatar Airways Direct Entry Captains — PilotCentral",
+      "url": "https://www.pilotcentral.co.uk/job/qatar-airways-direct-entry-captains/"
+    },
+    {
+      "title": "Qatar salary reductions and redundancies — PPRuNe (archive)",
+      "url": "https://www.pprune.org/archive/index.php/t-633051.html"
+    }
+  ]
+}

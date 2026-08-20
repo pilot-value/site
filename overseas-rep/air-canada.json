@@ -1,0 +1,70 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "2024年に10年ぶりの新契約を批准したが賛成は67％で約3分の1が反対、スト権も98％で確立するなど労使対立は激しかった。会社は『米国並みの給料は無理』、組合は『記録的利益なのに市場以下の待遇』と応酬。先任権が絶対でキャリアは入社日でほぼ決まり、若手には冷たいという不満も残る。",
+      "en": "The 2024 contract passed with only 67% approval after a 98% strike vote — labour relations ran hot. Seniority governs everything, and juniors feel it's a 'captain's company.'"
+    },
+    "salary": {
+      "ja": "新契約で4年累積約42％の歴史的増額を得てカナダ国内最高給水準に到達。副操縦士初年度は時給87.48カナダドル（月75時間換算で年約7.87万カナダドル＝約910万円）、機長は777最上位で年約38.2万カナダドル（約4,430万円）。ただし米大手より依然低く、上を望むなら米国へという声もある。",
+      "en": "The 2024 deal delivered a historic ~42% cumulative raise over four years. A first-year FO earns about USD 57k, while a top 777 captain reaches roughly USD 277k — strong for Canada, but still under the US majors."
+    },
+    "benefits": {
+      "ja": "年金は二層構造で、2012年8月以前入社は物価連動の確定給付、以降は確定拠出型。会社マッチングは勤続5年超で175％と手厚い。日当は税制優遇のある時間ベース精算に刷新された。本人と家族のスタッフトラベルはスターアライアンス全体で使え、駐車特典や休暇の柔軟化も新契約で拡充された。",
+      "en": "Pensions are two-tier — indexed DB for pre-2012 hires, DC after, with company match up to 175% past five years. Staff travel covers family across Star Alliance, plus revamped tax-advantaged per diems."
+    },
+    "wlb": {
+      "ja": "月間保証は75クレジット時間、実飛行75〜85時間でラインホルダーは月約16日稼働。入札はPBS方式で下位はリザーブ待機が中心。ベースはトロント・モントリオール・バンクーバー等だが先任権順で希望が通らず、住居費を避け他都市から通勤する若手も多く、駐車場にRVを停め仮眠する例まである。",
+      "en": "Lineholders work about 16 days a month against a 75-hour guarantee, but junior pilots sit reserve and commute — some sleep in RVs in the crew lot. Bases go by seniority, not preference."
+    },
+    "ops": {
+      "ja": "機材はA220・737MAX・A320・A330・787・777と幅広く、A321XLRや787-10も導入予定で昇格を後押しする。東京・香港・シドニー・サンパウロなど世界水準の長距離路線を飛べるのが魅力。ルージュも本体と単一の先任権リストを共有し、番号に応じ本体のワイドボディまで入札でき別会社に閉じ込められる心配はない。",
+      "en": "A broad fleet — A220 through 777, with A321XLR and 787-10 coming — feeds long-haul flying to Tokyo, Hong Kong and Sydney. Rouge shares one seniority list with mainline, so it's no career dead-end."
+    },
+    "training": {
+      "ja": "外国人・直接機長採用は不可で、昇格はすべて社内・先任権順。機長昇格はナローボディで約3〜5年（近年は現場で8〜10年との声）、ワイドボディは11〜15年超。就任初期は機種を問わず同一の低給で、この固定レート期間を新契約で4年から2年へ短縮した。要件はカナダATPL・約2,000時間に加え英語とフランス語の堪能さが必須。",
+      "en": "There's no direct-entry captain — every upgrade is internal by seniority, roughly 3–5 years to a narrowbody left seat and 11–15+ for widebody. Expect a Canadian ATPL, ~2,000 hours and fluency in both English and French."
+    }
+  },
+  "sources": [
+    {
+      "title": "Air Canada pilots ratify four-year labour deal that includes 42% raise — The Globe and Mail",
+      "url": "https://www.theglobeandmail.com/business/article-air-canada-pilots-ratify-four-year-labour-deal-that-includes-42-raise/"
+    },
+    {
+      "title": "How Air Canada's New Pilot Contract Compares to U.S. Counterparts — AirlineGeeks",
+      "url": "https://airlinegeeks.com/2024/10/16/how-air-canada-pilots-new-contract-compares-to-u-s-counterparts/"
+    },
+    {
+      "title": "Air Canada pilot compensation to rise under new ALPA collective agreement — Skies Mag",
+      "url": "https://skiesmag.com/news/air-canada-pilot-compensation-to-rise-46-under-new-collective-agreement-alpa/"
+    },
+    {
+      "title": "Air Canada Pilots: Canada's Broad Fleet Ladder and ALPA Representation — Ready For Takeoff",
+      "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/air-canada"
+    },
+    {
+      "title": "Air Canada Rouge Pilot Careers: Shared Seniority and Lifestyle — Ready For Takeoff",
+      "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/air-canada-rouge"
+    },
+    {
+      "title": "Low pay for junior Air Canada pilots poses possible hurdle to proposed deal — BNN Bloomberg",
+      "url": "https://www.bnnbloomberg.ca/business/company-news/2024/09/18/low-pay-for-junior-air-canada-pilots-poses-possible-hurdle-to-proposed-deal/"
+    },
+    {
+      "title": "Details of Air Canada pilot deal revealed — Benefits and Pensions Monitor",
+      "url": "https://www.benefitsandpensionsmonitor.com/news/industry-news/details-of-air-canada-pilot-deal-revealed/388581"
+    },
+    {
+      "title": "Air Canada · pay (pilot pay scales) — AVCentral",
+      "url": "https://avcentral.ca/pilot-salaries/air-canada/"
+    },
+    {
+      "title": "Commuting — AVCanada pilot forum",
+      "url": "http://www.avcanada.ca/forums2/viewtopic.php?t=220690"
+    },
+    {
+      "title": "'It's time for us to catch up to our industry peers': Air Canada pilots stage picket in Calgary — CBC",
+      "url": "https://amp.cbc.ca/lite/story/1.7011913"
+    }
+  ]
+}

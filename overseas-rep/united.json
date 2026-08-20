@@ -1,0 +1,62 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "Glassdoorのパイロット評価は約4.7/5と高く、最新鋭機材と充実した訓練、SOP重視の安全文化、クルー間の連帯感を現役が挙げる。一方で直近の機長入札の約半数（978枠）が未充足で、上級FOがあえて昇格を避ける『機長になりたくない』現象が広がっているのが実情だ。",
+      "en": "Glassdoor pilot ratings sit around 4.7/5, praised for modern aircraft, a strong SOP-driven safety culture, and crew solidarity. Yet nearly half of recent captain vacancies (978 slots) went unfilled as senior FOs choose not to upgrade."
+    },
+    "salary": {
+      "ja": "2023年のUPA契約で4年累積最大約40%の大幅昇給と遡及支給を実現し、賃金は業界最高水準に跳ね上がった。副操縦士1年目でも年約2,290万円（$144,828）、737機長は年約7,080万円、787機長は年約8,820万円に達し、金銭面の魅力は明確だ。",
+      "en": "The 2023 UPA contract delivered up to ~40% cumulative raises plus retro pay, lifting pay to the industry's top tier. A first-year FO earns about $144,828, a 737 captain roughly $448,000, and a 787 captain around $558,000."
+    },
+    "benefits": {
+      "ja": "退職金は確定拠出口座への会社直接拠出が2026年に18%へ引き上げられ、従業員負担ゼロで即時権利確定と米大手でも最高水準。利益分配は2024年に全社約7億ドル（給与の約7.6%）を分配し、スターアライアンス各社の搭乗特典も加わる。",
+      "en": "Retirement is a company-paid 18% direct 401(k) contribution in 2026, with no employee match and immediate vesting—among the best at any US major. Profit sharing paid about $713M in 2024 (~7.6% of pay), plus Star Alliance travel perks."
+    },
+    "wlb": {
+      "ja": "すべては先任順。上級者は理想的なスケジュールを組める反面、ジュニアはリザーブ中心で月12〜14日拘束され、ショートコールは3時間以内の出頭を迫られ『休日が本当の休日にならない』との不満が根強い。月間保証73時間、有給は年功で14〜42日。",
+      "en": "Everything runs on seniority: senior pilots build ideal schedules while juniors sit reserve 12-14 days a month with 3-hour short-call callouts. The monthly guarantee is 73 hours, and vacation scales from 14 to 42 days with seniority."
+    },
+    "ops": {
+      "ja": "本線機材は約1,100機で、A320neo系や737MAX、777、787など新旧の主力機を幅広く運航する。乗員ベースはシカゴやデンバーなど8か所で世界規模の国際線網を持つが、EWR/SFOはジュニア扱いで正規ライン取得まで1年以上待つこともある。",
+      "en": "The mainline fleet numbers about 1,100 aircraft—A320neo family, 737 MAX, 777, 787 and more—flown across a global network from eight domiciles. EWR and SFO are junior bases where holding a regular line can take over a year."
+    },
+    "training": {
+      "ja": "型式限定（タイプレーティング）費用は会社負担で自己負担なし。機長昇格は純粋に先任順で、狭胴機なら約1年、777/787では20〜25年待つこともある。採用にはFAA ATP（約1,500時間）と米国での就労資格が必須で、在留資格のない日本人には最大の壁となる。",
+      "en": "Type ratings are fully company-paid, and captain upgrade is purely by seniority—about a year on narrowbodies but 20-25 years on the 777/787. Hiring requires an FAA ATP (~1,500 hours) and US work authorization, the key barrier for Japanese pilots without residency."
+    }
+  },
+  "sources": [
+    {
+      "title": "United Airlines Pilots Ratify New Contract With $10 Billion In Raises - One Mile at a Time",
+      "url": "https://onemileatatime.com/news/united-airlines-pilots-contract/"
+    },
+    {
+      "title": "United Airlines Pilot Contract: Pay Raises, Retirement, and Scope - LegalClarity",
+      "url": "https://legalclarity.org/united-airlines-pilot-contract-pay-raises-retirement-and-scope/"
+    },
+    {
+      "title": "How Much Do United Airlines Pilots Make? (Actual Pay & Progression 2026) - Bandana Resources",
+      "url": "https://resources.bandana.com/resources/how-much-do-united-airlines-pilots-make-actual-pay-progression"
+    },
+    {
+      "title": "Airline Pilots Don't Want To Be Promoted To Captain, And It's A Problem - One Mile at a Time",
+      "url": "https://onemileatatime.com/news/airline-pilots-promoted-captain/"
+    },
+    {
+      "title": "United Airlines Airline Pilot Reviews - Glassdoor",
+      "url": "https://www.glassdoor.com/Reviews/United-Airlines-Airline-Pilot-Reviews-EI_IE683.0,15_KO16,29.htm"
+    },
+    {
+      "title": "How to Get Hired at United as a Pilot (2026) — Requirements, Aviate & Pay - Rotate",
+      "url": "https://rotatepilot.com/guides/how-to-get-hired-at-united-pilot"
+    },
+    {
+      "title": "United Airlines Pilot Salary 2026: FO $113-300K, Captain $320-419K - Airmappr",
+      "url": "https://airmappr.com/articles/career/united-pilot-salary-guide"
+    },
+    {
+      "title": "How experienced foreign pilots can apply for employment in the US airlines - AeroCadet",
+      "url": "https://aerocadet.com/blog/how-experienced-foreign-pilots-can-apply-for-employment-in-the-us-airlines/"
+    }
+  ]
+}

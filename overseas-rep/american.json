@@ -1,0 +1,82 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "2023年契約以降の待遇改善で現役の満足度は高く、Glassdoorの推薦率は91%に達する。ただ運航統制・乗員スケジューリング部門の経営陣更迭を組合が正式決議するほど労使関係は荒れている。大量欠航やスケジュール系統の不具合、契約を無視した一方的な対応が続き、『従業員を大事にすると言うが口先だけ』と現役は冷めている。",
+      "en": "Morale is lifted by the 2023 contract, with a 91% Glassdoor recommend rate, yet labor relations are raw: the union formally voted to demand firings in operations and crew scheduling over mass cancellations and repeated system failures."
+    },
+    "salary": {
+      "ja": "2023年の4年契約で発効時に即時約21%増、期間累計で報酬が約46%増え、業界最高水準に追いついた。副操縦士は1年目で年約1,720万円（10.9万ドル）、12年目で約3,670万円。機長は上級ワイドボディで年約6,780万円、パーディムや利益分配込みなら年50万ドル（約7,900万円）超も射程に入る。",
+      "en": "The 2023 four-year deal delivered an immediate ~21% raise and ~46% cumulative gain. First officers start near $109K and reach ~$232K by year 12; senior widebody captains hit ~$429K, with $500K+ possible including per diem and profit sharing."
+    },
+    "benefits": {
+      "ja": "退職金は確定拠出401(k)が中心で、会社の非選択拠出約18%＋最大4%マッチにより上級は合計最大約22%と手厚い。ただ利益分配はデルタ・ユナイテッドより薄く、好業績年の総拠出で数万ドル見劣りする。パーディムは国内3ドル・国際5ドル/時で非課税、無料スタンバイ搭乗やバディパス年16枚の搭乗特典もある。",
+      "en": "Retirement is 401(k)-based with up to ~22% company money (18% NEC plus 4% match), but profit sharing is thin versus Delta, leaving pilots tens of thousands behind in strong years. Per diem is tax-free ($3 domestic/$5 international per hour), plus free standby travel and 16 buddy passes yearly."
+    },
+    "wlb": {
+      "ja": "休日はナローボディで月12〜20日、ワイドボディは2〜4日行程とレイオーバー後に3〜5日休みが典型。ただ基地・機材・休日・昇格まで全てシニョリティ順で、下位のうちはリザーブや不人気枠を強いられる。パイロットの4〜5割は基地と別都市に住みジャンプシート通勤し、その無給の時間が実質の休日を削る。Indeedのワークライフバランス評価は3.7/5にとどまる。",
+      "en": "Days off run 12–20 a month on narrowbody, but seniority governs base, aircraft, schedule and days off. Around 40–50% of pilots commute from another city on jumpseats — unpaid time that eats into real rest — and Indeed's work-life score sits at 3.7/5."
+    },
+    "ops": {
+      "ja": "メインラインで約1,017機を運航し、ナローボディはB737-800/MAXとA319/320/321、ワイドボディはB777・B787。乗員基地は7拠点で、最大のDFWは便数最多かつテキサスは州所得税なしで人気が高い。整備状態は良好との評価だが、乗員スケジューリング系統の不具合が繰り返し、7月には約2,000シークエンス（約450名分）が突然ドロップした。",
+      "en": "American runs ~1,017 mainline aircraft — 737-800/MAX and A319/320/321 narrowbodies, 777s and 787s — across seven crew bases, with DFW the largest (Texas has no state income tax). Fleet upkeep draws praise, but crew-scheduling systems keep glitching; one July meltdown dropped ~2,000 sequences."
+    },
+    "training": {
+      "ja": "訓練プログラムの質は高いと評判で、新人は全員ナローボディ配属から始まり、ワイドボディ移行は厳格にシニョリティ順。年約1,500名の大量採用で昇格が加速し、2025年時点でナローボディ機長は約3〜7年、ワイドボディ機長は約10〜18年が目安。一方で生活の質を優先し、あえて上級ワイドボディ副操縦士に留まる層もいる。",
+      "en": "Training quality is well regarded; new hires all start on narrowbody, with widebody moves strictly by seniority. Hiring ~1,500 a year has sped upgrades — roughly 3–7 years to narrowbody captain, 10–18 to widebody — though some pilots stay senior widebody FO by choice for quality of life."
+    }
+  },
+  "sources": [
+    {
+      "title": "American Airlines Pilot Salary 2026 — Up to $400K Captain (Rotate)",
+      "url": "https://rotatepilot.com/airline-salary/american-airlines"
+    },
+    {
+      "title": "American Pilots Approve New Contract With Huge Pay Raises (One Mile at a Time)",
+      "url": "https://onemileatatime.com/news/american-airlines-pilots-contract/"
+    },
+    {
+      "title": "American Airlines | Pilot Pay, Fleet & Career Guide (Ready For Takeoff)",
+      "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/american-airlines"
+    },
+    {
+      "title": "American Airlines Pilot Salary: How Much First Officer and Captain Earn? (Aviation A2Z)",
+      "url": "https://aviationa2z.com/index.php/2025/09/12/american-airlines-pilot-salary-2024/"
+    },
+    {
+      "title": "Working as a Pilot at American Airlines: Reviews (Indeed)",
+      "url": "https://www.indeed.com/cmp/American-Airlines/reviews?fjobtitle=Pilot"
+    },
+    {
+      "title": "American Airlines Pilot Reviews (Glassdoor)",
+      "url": "https://www.glassdoor.com/Reviews/American-Airlines-Airline-Pilot-Reviews-EI_IE8.0,17_KO18,31.htm"
+    },
+    {
+      "title": "American Airlines pilots' union calls for terminations of management over disruptions (Fox Business)",
+      "url": "https://www.foxbusiness.com/lifestyle/american-airlines-pilots-union-management-termination-flight-disruptions"
+    },
+    {
+      "title": "American Airlines' Pilot Scheduling Glitch Fiasco (One Mile at a Time)",
+      "url": "https://onemileatatime.com/news/american-airlines-pilot-scheduling-fiasco/"
+    },
+    {
+      "title": "Pilots Say 'Broken' Scheduling Processes Leading to Fatigue (Aviation International News)",
+      "url": "https://www.ainonline.com/aviation-news/air-transport/2022-10-10/pilots-say-broken-scheduling-processes-leading-fatigue"
+    },
+    {
+      "title": "Airline Pilot Retirement Benefits Comparison: 401(k), Pension & Profit Sharing by Carrier (Pilot Advisor Match)",
+      "url": "https://financial-advisors-for-pilots.com/airline-retirement-benefits-comparison/"
+    },
+    {
+      "title": "American Airlines reaches deal with pilots that includes 401(k) contribution hikes (Pensions & Investments)",
+      "url": "https://www.pionline.com/defined-contribution/american-airlines-reaches-deal-pilots-includes-401k-contribution-hikes/"
+    },
+    {
+      "title": "American Airlines Pilots Approve New Contract (Allied Pilots Association)",
+      "url": "https://www.alliedpilots.org/Services/View-FullArticle?ArticleId=11662"
+    },
+    {
+      "title": "No one wants to be a Captain (PPRuNe Forums)",
+      "url": "https://www.pprune.org/rumours-news/653865-no-one-wants-captain.html"
+    }
+  ]
+}

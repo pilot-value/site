@@ -1,0 +1,90 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "Chapter 11破産と再建を経て、Air France-KLMが出資を19.9%から60.5%へ引き上げ子会社化が進行中（2026年後半完了見込み）。2024年にスターアライアンスを離脱しスカイチームへ移った。『昔のSASは業界No.1だった』と語る元機長は多く、在職中に威信とモラールが崩れたという実感が強い。統合後の処遇も読めない。",
+      "en": "After Chapter 11 bankruptcy and restructuring, Air France-KLM is raising its stake from 19.9% to 60.5% to take control, and SAS left Star Alliance for SkyTeam in 2024. Veterans say the airline was once the industry's number one, but its prestige and morale eroded during their careers."
+    },
+    "salary": {
+      "ja": "初任FO（型式限定なし）はデンマーク拠点で月約87〜92万円（DKK 37,900〜39,900）。機長基本は月約182〜248万円、長距離機長で年約2,900万円。だがChapter 11後に下方修正され、最上位機長は年約1,634万円（€95,000）対Norwegian約2,924万円。入口でも上位でも数万ユーロ規模で同業に見劣りする。",
+      "en": "A new first officer (no type rating) earns roughly $5,500/month in Denmark; captain base runs about $11,500–15,700/month, with long-haul captains near $185K/year. Pay was cut after Chapter 11 — a top captain's ~$103K vs Norwegian's ~$185K leaves SAS clearly behind regional rivals."
+    },
+    "benefits": {
+      "ja": "北欧型で手厚い。育児休業はデンマークで52週、年次有給42日、ロス・オブ・ライセンス保険や職域年金も完備する。型式限定（A320/E195）費用は会社負担だが、2025年4月以降採用は約36か月の研修ボンドに同意が必須。ベース近郊居住が求められ、通勤ベース（コミュート）は組みにくい。",
+      "en": "Nordic-style benefits are strong: 52 weeks of parental leave in Denmark, 42 vacation days, loss-of-license insurance and an occupational pension. Type rating (A320/E195) is company-paid, but hires from April 2025 must sign a ~36-month training bond, and you must live near your base."
+    },
+    "wlb": {
+      "ja": "勤務日数は本体で年約180〜184日、子会社Connectは183〜190日と多め。先任権を積んで固定組に入れば5オン/4オフの予測可能なパターンだが、新人が入る変動組は始業時刻が読めずQOLの主要不満。最低月間休日11日、翌月表は前月16日発行。『健康的水準を超えて最適化』と燃え尽きの声も出ている。",
+      "en": "Duty days run about 180–184/year at mainline (183–190 at subsidiary Connect). Seniority into a fixed roster gives a predictable 5-on/4-off, but junior pilots on variable rosters can't predict report times — a top QOL complaint, with burnout reported as scheduling is 'optimized well beyond healthy levels.'"
+    },
+    "ops": {
+      "ja": "運航品質は高く、2024〜25年の定時性は約99.3%で世界トップ級を掲げる。機材はA320neo（約46機）が短中距離の主力で、長距離はA321LR・A330-300（8機）・A350-900、地域線はE195。全機エアバス化を進める。拠点はコペンハーゲン・ストックホルム・オスロで、多拠点の北欧ライフスタイルが魅力。",
+      "en": "Operational quality is high — 2024–25 punctuality around 99.3%, billed as among the best of any major carrier. The fleet is going all-Airbus: A320neo (~46) for short/medium-haul, A321LR/A330-300/A350-900 long-haul and E195 regional, based in Copenhagen, Stockholm and Oslo."
+    },
+    "training": {
+      "ja": "要件はEASA ATPL・Class1・英語Level4・EU/EEA就労権で、北欧語は歓迎止まり。カデットを含めCPH/ARN/OSL/BGOで募集中、初期コースは2026年秋。型式限定は会社負担だがボンド付き。機長昇格は狭胴機4〜7年、広胴機15〜20年超。グループ統一の先任権リストだが、会社間移籍では先任権を全て失う。",
+      "en": "Requirements are EASA ATPL, Class 1, English Level 4 and EU/EEA work rights; Scandinavian languages are welcome but not required. Cadet and rated hiring is open at CPH/ARN/OSL/BGO with courses from autumn 2026; upgrade takes ~4–7 years on narrowbody and 15–20+ on widebody, and switching companies forfeits all seniority."
+    }
+  },
+  "sources": [
+    {
+      "title": "Scandinavian Airlines - lousy terms and salary (PPRuNe Forums, Terms & Endearment)",
+      "url": "https://www.pprune.org/terms-endearment/659942-scandinavian-airlines-lousy-terms-salary.html"
+    },
+    {
+      "title": "SAS Pilot Salary 2026: FO EUR43-68K, Captain EUR129-184K (airmappr)",
+      "url": "https://airmappr.com/articles/career/sas-pilot-salary-guide"
+    },
+    {
+      "title": "SAS Scandinavian Airlines | Pilot Pay, Rosters & Benefits (Ready For Take Off)",
+      "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/sas-scandinavian-airlines"
+    },
+    {
+      "title": "SAS Scandinavian Airlines Pilot Career Guide 2026 (Rotate)",
+      "url": "https://rotatepilot.com/airlines/sas-scandinavian"
+    },
+    {
+      "title": "SAS Scandinavian Airlines Pilot Recruitment 2026 (Rotate)",
+      "url": "https://rotatepilot.com/airlines/sas-scandinavian/recruitment"
+    },
+    {
+      "title": "Scandinavian Airlines Pilot Salary in 2025 (Aviation A2Z)",
+      "url": "https://aviationa2z.com/index.php/2025/12/09/scandinavian-airlines-pilot-salary-in-2025/"
+    },
+    {
+      "title": "Sa mycket tjanar piloter pa SAS 2025 - lon och villkor (Loninfo)",
+      "url": "https://xn--lninfo-wxa.se/lon-pilot-sas/sa-mycket-tjanar-piloter-pa-sas-2025-lon-och-villkor/"
+    },
+    {
+      "title": "Pilotkrise i SAS - ikke laengere piloternes foerstevalg (Fagbladet Luftfart)",
+      "url": "https://luftfart.dk/pilotkrise-i-sas-ikke-laengere-piloternes-foerstevalg/"
+    },
+    {
+      "title": "SAS' storhedstid er for laengst forbi... piloter braender ud (Kristeligt Dagblad)",
+      "url": "https://www.kristeligt-dagblad.dk/danmark/sas-storhedstid-er-laengst-forbi-piloter-kaemper-bevare-deres-gode-loen-men-mange-braender"
+    },
+    {
+      "title": "SAS-piloter har stemt ja til lavere loen og laengere arbejdstid (Arbejderen)",
+      "url": "https://arbejderen.dk/fagligt/sas-piloter-har-stemt-ja-til-lavere-loen-og-laengere-arbejdstid/"
+    },
+    {
+      "title": "Dette er vilkarene i SAS-selskapet pilotene kjemper mot (NRK)",
+      "url": "https://www.nrk.no/norge/dette-er-vilkarene-i-sas-selskapet-pilotene-kjemper-mot-1.16030485"
+    },
+    {
+      "title": "SAS sees $200 million in savings through 2026 from pilot labour deal (Reuters via AOL)",
+      "url": "https://www.aol.com/news/sas-sees-200-million-savings-153746904.html"
+    },
+    {
+      "title": "Air France-KLM initiates proceedings to take a majority stake in SAS",
+      "url": "https://www.airfranceklm.com/en/newsroom/air-france-klm-initiates-proceedings-take-majority-stake-sas"
+    },
+    {
+      "title": "Scandinavian Airlines Connect (Wikipedia)",
+      "url": "https://en.wikipedia.org/wiki/Scandinavian_Airlines_Connect"
+    },
+    {
+      "title": "CADET FIRST OFFICER Job Details (SAS Group Careers, Kastrup)",
+      "url": "https://careers.sasgroup.net/job/Kastrup-CADET-FIRST-OFFICER/1288108301/"
+    }
+  ]
+}

@@ -1,0 +1,90 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "経営と組合の対立が慢性化している。2020年に25%減給・賃金凍結・稼働22%増を受け入れて会社を支えたのに、回復の約束が守られていないという不信が根にある。2026年の争点はスコープ条項で、経営はマルタ経由の運航やウェットリースで賃金協定の外に出ようとし、組合は雇用の空洞化だと強く反発。繁忙期に協約なしで突入し欠航も出た。",
+      "en": "Management-union conflict is chronic. Pilots took a 25% pay cut and wage freeze in 2020 to save the airline but distrust runs deep, and the 2026 fight centers on a scope clause as management pushes Malta-based flying and wet-leasing outside the wage agreement."
+    },
+    "salary": {
+      "ja": "アイスランド国内では最上位。機長の平均総月収は約242万円（月210万ISK）、副操縦士は約127万円で、これに日当が月約16万円上乗せされる。基本給でもLCCのPLAYより月30万円ほど高く、実際に競合からの移籍が起きた。ただし所得税は約31.5%と高く、生活費も欧州屈指で手取り感は目減りする。",
+      "en": "Top of the Icelandic market: captains average roughly $15,300/month total and first officers about $8,000, plus ~$1,000/month in per diems, and even FO base pay (~$6,500/mo) tops LCC rival PLAY's ~$4,500 — though tax runs ~31.5%."
+    },
+    "benefits": {
+      "ja": "アイスランド最大級の民間企業でナショナルキャリアの安定感がある。型式限定まで会社が全額負担するカデット制度、社員航空券、歴史的に夏5週間・冬4週間の有給休暇と福利は手厚く、強い組合が労働条件を守ってきた。一方で所得税は自治体税＋国税で約31.5%と重く、額面の良さは割り引いて見る必要がある。",
+      "en": "As one of Iceland's largest employers and the national carrier, perks are solid: a fully funded cadet path, staff travel, and historically five weeks' summer plus four weeks' winter leave, backed by a strong union — though income tax runs about 31.5%."
+    },
+    "wlb": {
+      "ja": "ロースターと疲労への不満が最も強い。契約上の月間休日は9日だが希望の承認保証はなく、現役副操縦士が公開したロースターでは24日連続で休みゼロ、便間休息が17〜22時間と不規則でスタンバイも多い。会社が契約上の休日を「買い取って」飛ばそうとする運用に反発し、2014年以来初めて休日の売却を拒否した。",
+      "en": "Rostering and fatigue draw the loudest complaints: the contract guarantees just nine days off a month with no approval guarantee, and one FO documented 24 straight days without a day off, irregular 17-22 hour rests, and heavy standby duty."
+    },
+    "ops": {
+      "ja": "拠点はケフラヴィーク単一ハブで、60以上の就航地を結ぶ大西洋横断運航。機材はB737 MAX 8/9が約21機とA321LRが約7機で、旧757/767は2026年夏までに退役し全機ナローボディ化、2029年からA321XLRを13機導入する。パイロットは約400名で毎年20〜30名を採用、2025年は過去最高の510万人を輸送した。",
+      "en": "A single Keflavik hub feeds 60-plus transatlantic destinations on an all-narrowbody fleet — about 21 B737 MAX 8/9s and 7 A321LRs, with the 757/767s retiring by summer 2026 and 13 A321XLRs arriving from 2029."
+    },
+    "training": {
+      "ja": "会社が型式限定を含む総費用を全額負担するカデット制度があり、英国L3 Airline Academyの約18か月コースを経てB737MAXの副操縦士として入社する。機長昇格はシニオリティ順で目安8〜12年、採用の最低飛行時間は1,500時間（3,000時間以上が望ましい）。ただし応募にはアイスランド語の流暢さが事実上必須で、日本人には極めて高い壁となる。",
+      "en": "A fully funded cadet scheme covers the type rating via an 18-month L3 Airline Academy course to join as a B737 MAX first officer, and captain upgrade runs about 8-12 years by seniority — but Icelandic fluency is effectively mandatory, a steep barrier for foreign pilots."
+    }
+  },
+  "sources": [
+    {
+      "title": "Icelandair pilot pay - PPRuNe Forums",
+      "url": "https://www.pprune.org/terms-endearment/382696-icelandair-pilot-pay.html"
+    },
+    {
+      "title": "Icelandair - PPRuNe Forums (hiring, seniority, language, roster)",
+      "url": "https://www.pprune.org/terms-endearment/562412-icelandair.html"
+    },
+    {
+      "title": "How Much Does Icelandair Airline Pilot First Officer Pay (Glassdoor)",
+      "url": "https://www.glassdoor.com/Salary/Icelandair-Airline-Pilot-First-Officer-Salaries-E31035_DAO.htm?filter.jobTitleExact=Airline+Pilot+(First+Officer)"
+    },
+    {
+      "title": "Flugstjorar med 2,1 milljon a manudi ad medaltali - Visir",
+      "url": "https://www.visir.is/g/20201313829d/flugstjorar-med-2-1-milljon-a-manudi-ad-medaltali"
+    },
+    {
+      "title": "Flugmadur hja Icelandair opnar bokhaldid - Visir",
+      "url": "https://www.visir.is/g/20262891460d/flug-madur-hja-icelandair-opnar-bok-haldid"
+    },
+    {
+      "title": "14 Pilots Exit Play for Icelandair Amid Global Talent Scramble - Iceland Review",
+      "url": "https://www.icelandreview.com/news/14-pilots-exit-play-for-icelandair-amid-global-talent-scramble/"
+    },
+    {
+      "title": "Icelandair Pilot Interview Questions 2026: 12 Real Q&As - Airmappr",
+      "url": "https://airmappr.com/articles/career/icelandair-pilot-interview-guide"
+    },
+    {
+      "title": "Rangfaerslur um launamal flugmanna - FIA",
+      "url": "https://fia.overcast.is/frettir-fundagerdir/frettir/rangf%C3%A6rslur-um-launam%C3%A1l-flugmanna/"
+    },
+    {
+      "title": "Deila Icelandair vid flugmennina snyst um thetta - Visir",
+      "url": "https://www.visir.is/g/20262886062d/deila-icelandair-vid-flugmennina-snyst-um-thetta"
+    },
+    {
+      "title": "Deilan snui ekki ad launakjorum: Aratuga kverkatak - mbl.is",
+      "url": "https://www.mbl.is/frettir/innlent/2026/06/03/deilan_snui_ekki_ad_launakjorum_aratuga_kverkatak/"
+    },
+    {
+      "title": "Hreyfing i vidraedum Icelandair og flugmanna - Visir",
+      "url": "https://www.visir.is/g/20262893400d/hreyfing-i-vid-raedum-icelandair-og-flug-manna"
+    },
+    {
+      "title": "Icelandair Pilots Accused Of Undermining Cabin Crew - One Mile at a Time",
+      "url": "https://onemileatatime.com/icelandair-pilots/"
+    },
+    {
+      "title": "Icelandair launch new cadet scheme! - Travel Radar",
+      "url": "https://travelradar.aero/icelandair-cadet-scheme/"
+    },
+    {
+      "title": "Icelandair launches funded cadet pilot programme - Pilot Career News",
+      "url": "https://www.pilotcareernews.com/icelandair-launches-funded-cadet-pilot-programme/"
+    },
+    {
+      "title": "Siglir Icelandair inn i haannatima an kjarasamnings? - Vidskiptabladid",
+      "url": "https://vb.is/frettir/siglir-icelandair-inn-i-haannatima-an-kjarasamnings-/"
+    }
+  ]
+}

@@ -1,0 +1,90 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "経営文化への不満が最も深刻。CEOの「疲れていても、もう一踏ん張りを」発言を欧州操縦士協会(ECA)が公然と批判し、病欠や休日出勤拒否を理由にした解雇を示す録音の流出、労組結成への報復や拠点閉鎖を交渉カードにする姿勢が繰り返し語られる。GlassdoorのFO職総合は2.8/5、友人に薦める人は28%のみで安全文化への懸念も強い。",
+      "en": "Management culture is the loudest complaint — the CEO's \"push on even when tired\" remark drew open criticism from the ECA, and leaked dismissal recordings, anti-union retaliation and base closures used as leverage keep surfacing. The Glassdoor First Officer rating sits at 2.8/5, with only 28% recommending the job."
+    },
+    "salary": {
+      "ja": "「低い固定基本給＋変動生産給」の構造で、距離・セクター連動の変動分が総収入の5〜6割超を占める。1年目FOの固定基本給は年€12,000（約206万円）と非常に低い。総支給はFOで年約720万〜1,720万円、機長(EU)で約1,860万〜3,100万円だが、飛行時間が減ると収入が大きく落ち込む不安定さが最大の弱点。",
+      "en": "Pay is a low fixed base plus distance/sector-linked variable pay that makes up 50-65% of the total — the first-year FO fixed base is only about €12,000 ($13,700). Totals run roughly €42-100K for FOs and €108-180K for EU captains, but income falls sharply when flying hours drop."
+    },
+    "benefits": {
+      "ja": "手当は休日出勤が機長€300・FO€120（約5.2万/2.1万円）/日、ランダムロスター割増が月€400〜600（約6.9万〜10.3万円）など。定着・入社ボーナスは経験や拠点により€5,000〜50,000、3年契約の機長で最大€40,000（約690万円）。ただし年金は法定最低拠出のみでeasyJetやレガシーより弱く、社会保険の薄さも指摘される。",
+      "en": "Perks include holiday-work pay of €120-300/day and a €400-600 monthly random-roster premium, plus sign-on/retention bonuses of €5,000-50,000 (up to €40,000 for a captain). Pensions, though, are statutory-minimum only — weaker than easyJet or legacy carriers, with thin social coverage."
+    },
+    "wlb": {
+      "ja": "ロスターは固定5オン4オフ（月休約13日）や14/7コミューター等から選べるが、年間ブロック約850〜900時間で多くが2セクター以上の日。「毎月ひどいロスター」「WLBが皆無」との不満が強く、繁忙の7・8・12月は固定パターンが崩れ高稼働・疲労が常態化。休日出勤や機長裁量の延長を断りにくい圧力も語られる。",
+      "en": "Rosters can be chosen from fixed 5-on/4-off (about 13 days off a month) to 14/7 commuter patterns, but 850-900 annual block hours and mostly 2+ sector days grind pilots down. \"Terrible roster every month\" and \"no work-life balance\" are common, and July, August and December break the fixed patterns."
+    },
+    "ops": {
+      "ja": "全機Airbus A320系で機齢は欧州最若級（平均約4.7年）、262機・40拠点へ拡大中と近代的で成長性は高い。ただし拠点の開閉が激しく（アブダビ・ウィーン閉鎖、ガトウィック縮小）、GTFエンジン問題で常時30〜35機（就航機の約11%）が地上待機。運航復帰は2027年末見込みで、対象パイロットは変動給が15〜25%減る。",
+      "en": "An all-Airbus A320 fleet with one of Europe's youngest average ages (~4.7 years), 262 aircraft and growth to 40 bases makes the operation modern and expanding. But base churn is heavy, and Pratt & Whitney GTF issues keep 30-35 jets (~11% of the fleet) grounded until end-2027, cutting affected pilots' variable pay 15-25%."
+    },
+    "training": {
+      "ja": "機長への昇格は約3.5〜5年と欧州最速級で、過去経験を算入するfactorized hours制度やDECもあり、短期でキャリアを積む踏み台として高評価。要件は換算約3,000〜3,300時間。一方、自社アカデミー(WAPA)の訓練ボンドは総額€61,460（約1,060万円）で入社後5年かけ返済、型式限定持ちでもボンドは€10,000〜20,000程度かかる。",
+      "en": "Upgrade to captain in about 3.5-5 years is among Europe's fastest, aided by a \"factorized hours\" system and direct-entry captain programs — a genuine career springboard. The WAPA academy bond, however, totals €61,460 (~$70K), repaid over five years as an FO."
+    }
+  },
+  "sources": [
+    {
+      "title": "Wizzair — PPRuNe Forums (pilot discussion thread)",
+      "url": "https://www.pprune.org/terms-endearment/642354-wizzair.html"
+    },
+    {
+      "title": "Wizz Air Pilot QOL — PPRuNe Forums",
+      "url": "https://www.pprune.org/terms-endearment/printthread-419565-wizz-air-pilot-qol.html"
+    },
+    {
+      "title": "Wizz Air Pilot Reviews — Glassdoor",
+      "url": "https://www.glassdoor.com/Reviews/Wizz-Air-Pilot-Reviews-EI_IE824861.0,8_KO9,14.htm"
+    },
+    {
+      "title": "Wizz Air First Officer Reviews — Glassdoor",
+      "url": "https://www.glassdoor.com/Reviews/Wizz-Air-First-Officer-Reviews-EI_IE824861.0,8_KO9,22.htm"
+    },
+    {
+      "title": "The voice of the Transnational Pilots — The Wizz Air case (ECA survey)",
+      "url": "https://www.eurocockpit.eu/news/voice-transnational-pilots-wizz-air-case"
+    },
+    {
+      "title": "Our concerns about Wizz Air's deficient corporate and safety culture are not new (ECA)",
+      "url": "https://www.eurocockpit.eu/news/our-concerns-about-wizz-airs-deficient-corporate-and-safety-culture-are-not-new"
+    },
+    {
+      "title": "Wizz Air | Pilot Working Conditions, Pay & Career Paths — Ready For Take Off",
+      "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/wizz-air"
+    },
+    {
+      "title": "Wizz Air Pilot Reviews — PilotsGlobal",
+      "url": "https://pilotsglobal.com/airlines/wizz-air/pilot-reviews"
+    },
+    {
+      "title": "Wizz Air Pilot Salary 2026: FO €42-100K, Captain €108-210K — Airmappr",
+      "url": "https://airmappr.com/articles/career/wizz-air-pilot-salary-guide"
+    },
+    {
+      "title": "Wizz Air Hits 40 Bases, Commits A321XLR Fleet — Summer 2026 Expansion & Pilot Hiring (Airmappr)",
+      "url": "https://airmappr.com/news/2026-06/wizz-air-summer-2026-expansion-forty-bases-a321xlr-pilot-hiring"
+    },
+    {
+      "title": "Wizz Air's Decade-Long Labor Controversies (layoffs, union disputes, lawsuits)",
+      "url": "https://aviationtoday.in/romania/wizz-airs-decade-long-labor-controversies-with-unfair-layoffs-union-disputes-and-lawsuits/"
+    },
+    {
+      "title": "40 Wizz Air Airbus planes grounded due to Pratt & Whitney engine issues — Simple Flying",
+      "url": "https://simpleflying.com/40-wizz-air-airbus-planes-remain-grounded-until-2026-pratt-whitney/"
+    },
+    {
+      "title": "Wizz Air to end GTF engine groundings by 2027 — AeroTime",
+      "url": "https://www.aerotime.aero/articles/wizz-air-end-gtf-engine-groundings-2027"
+    },
+    {
+      "title": "WizzAir Pilot Academy (WAPA) brochure — costs & bond",
+      "url": "https://careers.wizzair.com/content/WAPA_Brochure/?locale=en_US"
+    },
+    {
+      "title": "Elmesélte a Wizz Air első tisztje — Pénzcentrum",
+      "url": "https://www.penzcentrum.hu/karrier/20260310/elmeselte-a-wizz-air-elso-tisztje-igy-valhat-valaki-pilotava-magyarorszagon-millios-a-fizetes-de-ez-nem-setagalopp-1194941"
+    }
+  ]
+}

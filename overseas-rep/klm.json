@@ -1,0 +1,78 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "同僚の質、裁量の大きさ、世界を飛ぶ経験を評価する声が多い一方、管理職が多く問題時に上長がつかまらない官僚性への不満も。VNVは15年以上ストなしと安定するが、2025年に地上職が待遇格差でストを打ち社内に緊張。最上位FO（約€25.4万）が新任機長（約€17.6万）より年約€7.8万（約1,342万円）多く稼ぐ逆転現象も特徴。",
+      "en": "Pilots praise the colleagues, autonomy and worldwide flying, but grumble about too many managers and bosses who are hard to reach when problems hit. The VNV pilot union hasn't struck in 15+ years, yet ground staff walked out in 2025 over pay gaps — and a top FO (EUR254K) out-earns a fresh captain (EUR176K) by ~$85K."
+    },
+    "salary": {
+      "ja": "「14ヶ月モデル」で月給12ヶ月分に5月のバカンス手当8%と12月賞与8.33%が乗り実質+16%。FO1年目グロス約€8万（約1,376万円）、最上位約€25.4万（約4,369万円）、機長は約€17.6万（約3,027万円）から最上位約€33.8万（約5,814万円）。業績連動の利益分配4〜14%も加わる。",
+      "en": "First-year FOs earn ~$87K gross (EUR80K) rising to ~$277K (EUR254K); captains start ~$192K (EUR176K) and top out near $368K (EUR338K). A \"14-month\" model layers 8% holiday pay and an 8.33% year-end bonus on top, plus 4-14% profit sharing."
+    },
+    "benefits": {
+      "ja": "年金は積立比率約160%と手厚く、雇用主拠出約11%、定年は58歳と国民年金支給の68歳より10年早い。免許喪失補償は一時金€20万（約3,440万円）に加え定年まで給与70%継続。長距離の非課税日当は月€300〜800（約5万〜14万円）ネット。入社6ヶ月でSkyTeam便のID搭乗が可能で予約便は25%割引。",
+      "en": "The pension is well-funded (~160%) with retirement at 58; loss-of-licence cover is a EUR200K (~$217K) lump sum plus 70% of salary to retirement. Tax-free per diems run EUR300-800/month net long-haul, and staff get SkyTeam ID travel after six months plus 25% off booked fares."
+    },
+    "wlb": {
+      "ja": "年次有給35日、パートタイム勤務が90/80/67/50%FTEで制度化され子育て世代にも働きやすい。父親の80%勤務（papa-dagen）はオランダ法で保護。ロスターは6週間ローリング（4週固定＋2週暫定）で入札は先任順、ベースはスキポール単一で全員同拠点。若手ほど不人気ロスターに回る不満も出る。",
+      "en": "35 days of annual leave and formal part-time options (90/80/67/50% FTE) make it family-friendly, with statutory \"papa-dagen\" father's days protected. Rosters run a 6-week rolling cycle (4 fixed + 2 provisional), bid by seniority from the single Schiphol base — so juniors get the least-wanted lines."
+    },
+    "ops": {
+      "ja": "メインラインは約126機で、発注中はA350-900が22機・A350F貨物3機・A321neo18機・A320neo9機（A350は2026年夏デリバリー開始）と刷新中。シティホッパーは全機Embraer（E175/E190/E195-E2）。全便アムステルダム・スキポール発着の単一ハブ運航で、2025年の生産性協定が増便とA350統合を後押しする。",
+      "en": "The mainline fleet is ~126 aircraft, now renewing with 22 A350-900s, 3 A350 freighters, 18 A321neos and 9 A320neos on order (A350 deliveries from summer 2026); Cityhopper flies an all-Embraer fleet. Everything operates from the single Schiphol hub."
+    },
+    "training": {
+      "ja": "自社養成KLM Flight Academyは総額約€16.35万（約2,812万円）で、条件付ローン（月€861×120回）は採用時のみ返済、5年以内に内定が出なければ債務免除。機長昇格はメインラインで8〜12年と先任順に縛られるが、シティホッパー（Embraer）なら5〜8年と速い。入社1年でオランダ語A2、機長昇格にはB1が必要。",
+      "en": "The in-house KLM Flight Academy costs ~$178K (EUR163.5K) via a conditional loan you repay only if hired, forgiven if no cockpit offer comes within five years. Captain upgrade takes 8-12 years on the mainline but just 5-8 on Cityhopper's Embraers; Dutch A2 is required within a year, B1 for command."
+    }
+  },
+  "sources": [
+    {
+      "title": "KLM Pilot Salary 2026: FO EUR80-254K, Captain EUR176-338K (Airmappr)",
+      "url": "https://airmappr.com/articles/career/klm-pilot-salary-guide"
+    },
+    {
+      "title": "KLM Cityhopper | Pilot Pay, Benefits, Fleet & Career Guide (Ready For Takeoff)",
+      "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/klm-cityhopper"
+    },
+    {
+      "title": "KLM Royal Dutch Airlines Pilot Salary in 2026 (Aviation A2Z)",
+      "url": "https://aviationa2z.com/index.php/2026/04/26/klm-pilot-salary-2026/"
+    },
+    {
+      "title": "KLM averts pilot strike action at the last minute (AeroTime)",
+      "url": "https://www.aerotime.aero/articles/klm-pilot-strike-canceled"
+    },
+    {
+      "title": "Two unions planning KLM worker strikes, rejecting airline's deal with other labor groups (NL Times)",
+      "url": "https://nltimes.nl/2025/09/04/two-unions-planning-klm-worker-strikes-rejecting-airlines-deal-labor-groups"
+    },
+    {
+      "title": "KLM-VNV agreement - work stoppage pilots cancelled (KLM News)",
+      "url": "https://news.klm.com/klm-vnv-agreement--work-stoppage-pilots-cancelled/"
+    },
+    {
+      "title": "Cockpit - KLM Careers FAQ (part-time, leave, roster)",
+      "url": "https://careers.klm.com/en/faq/cockpit/"
+    },
+    {
+      "title": "Fly for KLM no Dutch language required - PPRuNe Forums",
+      "url": "https://www.pprune.org/terms-endearment/663512-fly-klmo-no-dutch-language-required.html"
+    },
+    {
+      "title": "KLM Reviews: Pros & Cons of Working At KLM (Glassdoor)",
+      "url": "https://www.glassdoor.com/Reviews/KLM-Reviews-E3486.htm"
+    },
+    {
+      "title": "Werken bij KLM: Reviews (Indeed NL)",
+      "url": "https://nl.indeed.com/cmp/Klm/reviews"
+    },
+    {
+      "title": "Collectieve arbeidsovereenkomst voor KLM-vliegers op vleugelvliegtuigen (CAO PDF)",
+      "url": "https://content.helloflex.com/PublicCaoDocument/1204dfc3-eef1-4a81-a028-1c90e3fd817f/downloadcao.pdf"
+    },
+    {
+      "title": "Wat is het salaris van een piloot bij KLM? (Salarisinfo)",
+      "url": "https://salarisinfo.nl/wat-is-het-salaris-van-een-piloot-bij-klm/"
+    }
+  ]
+}

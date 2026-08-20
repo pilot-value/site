@@ -1,0 +1,74 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "現場からは『ただの番号扱い』『冷たく距離のある経営陣』『不透明なHR』といった声が繰り返し出る。事前申請した休暇が却下されることもあり、過去のストの背景には約束が破られたという不信があった。同僚同士の連帯は厚い一方、経営への信頼は薄いというのが率直な実感。",
+      "en": "Pilots describe feeling like 'just a number' under cold, distant management and opaque HR, with even pre-approved leave sometimes denied; crew solidarity is strong but trust in management runs low."
+    },
+    "salary": {
+      "ja": "給与は欧州LCCでも低い部類。副操縦士は総額で1年目が約4.0〜4.5万ユーロ（約690〜770万円）、機長は初任約7.0〜8.5万ユーロ（約1,200〜1,460万円）で10年超に約1,900万円へ。Glassdoorの報酬満足度は3.2/5と低く、easyJetやRyanairに見劣りする。",
+      "en": "Pay sits at the low end for European LCCs: first officers earn roughly $43-49k all-in in year one and captains start around $76-92k, and Glassdoor rates compensation just 3.2/5, below peer carriers like easyJet and Ryanair."
+    },
+    "benefits": {
+      "ja": "日当は国内約65ユーロ（約1.1万円）／国際約116ユーロ（約2万円）。飛行時間手当は機長38.18ユーロ／時（約6,600円）、副操縦士10.74ユーロ／時（約1,850円）。深夜2時以降まで勤務が延びると最大約532ユーロ（約9万円）の割増。60歳からの早期退職制度や座席確約付きの社員搭乗特典もある。",
+      "en": "Per diems run about $70/day domestic and $125 international, with flight-hour pay near $41 (captains) and $12 (first officers) and up to ~$575 extra when duty ends after 02:00; perks include age-60 pre-retirement and confirmed-seat staff travel."
+    },
+    "wlb": {
+      "ja": "月の乗務は約70〜85時間、休日は月10〜12日、年休約30日。最大の不満は直前のロステ変更とシフト交換のしづらさで、夏は1日2〜4区間・活動11時間の日もあり疲労が溜まる。新協約の5勤4休や冬季減便オプションで一部は改善傾向。主基地はバルセロナ。",
+      "en": "Expect about 70-85 block hours and 10-12 days off a month with ~30 days annual leave, but last-minute roster changes and heavy 2-4 sector summer days are the top gripe; the new 5-on/4-off pattern helps, and Barcelona is the main base."
+    },
+    "ops": {
+      "ja": "機材は全機エアバス単通路の約142機（A320ceo92／A320neo22／A321が22／A319が6）。2026年後半からは初のボーイング737 MAXを50機導入予定で、新しい型式の道が開く。主基地バルセロナに加え、ローマ・パリ（Orly）・アムステルダム・ロンドンGatwickに拠点を置く。",
+      "en": "The fleet is about 142 all-Airbus narrowbodies today, with the airline's first Boeing 737 MAX (50 on order) arriving from late 2026 to open a new type track; Barcelona anchors bases that also include Rome, Paris Orly, Amsterdam and London Gatwick."
+    },
+    "training": {
+      "ja": "2024年にPay-to-flyが廃止され、以前は型式取得に最大約4万ユーロ（約688万円）の自己負担があったが、現在は採用者の機種転換訓練を会社が負担する。機長昇格は成長次第で約5〜10年だが、昇格には海外基地への異動が必要になりがちで長年の争点。カデットはVueling MAPS（FTEJerez・CAE）経由。",
+      "en": "Pay-to-fly was scrapped in 2024 — pilots once paid up to ~$43k for the type rating, and Vueling now funds the conversion course — and captain upgrade takes about 5-10 years, though it has often meant relocating to a foreign base; cadets enter via Vueling MAPS with FTEJerez and CAE."
+    }
+  },
+  "sources": [
+    {
+      "title": "Vueling | Pilot Pay, Roster Life, Fleet & Career - Ready for Take Off",
+      "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/vueling"
+    },
+    {
+      "title": "Convenio pilotos Vueling 2025-2028: salarios y condiciones - Capitan News",
+      "url": "https://capitannews.com/convenio-pilotos-vueling-2025-2028/"
+    },
+    {
+      "title": "BOE-A-2026-5693: IV Convenio colectivo de Vueling Airlines y sus tripulantes pilotos",
+      "url": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-5693"
+    },
+    {
+      "title": "Los pilotos de Vueling tendran un nuevo convenio colectivo - SEPLA",
+      "url": "https://sepla.es/los-pilotos-de-vueling-tendran-un-nuevo-convenio-colectivo/"
+    },
+    {
+      "title": "Vueling Airlines First Officer Reviews - Glassdoor",
+      "url": "https://www.glassdoor.com/Reviews/Vueling-Airlines-First-Officer-Reviews-EI_IE42481.0,16_KO17,30.htm"
+    },
+    {
+      "title": "Vueling Airlines Pilot First Officer Salaries - Glassdoor",
+      "url": "https://www.glassdoor.com/Salary/Vueling-Airlines-Pilot-First-Officer-Salaries-E42481_DAO.htm"
+    },
+    {
+      "title": "Trabajar en VUELING: valoraciones de empleados - Indeed",
+      "url": "https://es.indeed.com/cmp/Vueling-Airlines/reviews"
+    },
+    {
+      "title": "Vueling - Conditions and Pay - PPRuNe Forums",
+      "url": "https://www.pprune.org/terms-endearment/567517-vueling-conditions-pay.html"
+    },
+    {
+      "title": "Vueling France Pilots Striking April 2024 - LoyaltyLobby",
+      "url": "https://loyaltylobby.com/2024/04/16/vueling-france-pilots-striking-february-16-18-23-25-2024/"
+    },
+    {
+      "title": "Vueling and FTEJerez launch a new edition of their cadet programme (Vueling MAPS)",
+      "url": "https://www.ftejerez.com/news/vueling-and-ftejerez-launch-a-new-edition-of-their-cadet-programme/"
+    },
+    {
+      "title": "Vueling Airlines Pilot Hiring Requirements - Epic Flight Academy",
+      "url": "https://epicflightacademy.com/hiring-requirements-vueling-airlines/"
+    }
+  ]
+}

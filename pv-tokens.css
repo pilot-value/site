@@ -1,0 +1,73 @@
+/* ════════════════════════════════════════════════════════════
+   LP V2 トークン層
+   なぜ要るか: index.html の既存スタイルはダークを基準にして
+   [data-theme="light"] 側を !important 約60行で上書きしている。
+   中にはインラインstyleの文字列を引っかける規則まである
+   （index.html の [data-theme="light"] [style*="color:#f5c842"] など）。
+   その上に新セクションを積むと必ず壊れるので、LP V2 で足した
+   セクションは以下のトークンだけを使う。既存規則には触らない。
+   サイトの既定テーマは light（各ページ先頭の bootstrap が 'light' を入れる）。
+
+   ⚠️ このファイルは index.html と my-value.html が共有する。
+      複製するとドリフトするので、値を変えるときは必ずここだけを変える。
+      --pv-* は Tailwind も他の CSS も定義しないので、
+      外部ファイルにしても記述順の勝ち負けは起きない。
+════════════════════════════════════════════════════════════ */
+:root{
+  --pv-bg:#ffffff;        --pv-bg-sub:#f7f9fc;    --pv-surface:#ffffff;
+  --pv-surface-2:#fbfcfe;
+  --pv-line:#e3e9f0;      --pv-line-soft:#eef2f7;
+  --pv-ink:#0f172a;       --pv-ink-2:#475569;     --pv-ink-3:#64748b;
+  --pv-orange:#f97316;    --pv-orange-ink:#c2410c;
+  --pv-orange-soft:rgba(249,115,22,.09);
+  --pv-gold:#f5c842;      --pv-gold-ink:#8a6e00;
+  --pv-navy:#0a1628;
+  --pv-teal:#0f766e;      --pv-teal-soft:rgba(15,118,110,.10);
+  /* 意味の色。青＝公開情報／推定、緑＝積み上がるもの・信頼、金＝口コミと評価。
+     オレンジは「実データ」と「押せるもの」に予約しているので、静的なラベルには使わない。
+     値はすべてサイト内に既にあるもの（airlines/airline-base.css の light ペア、
+     .tag-green、ライトの .tag-gold、world-airlines.html の見出しの金）。 */
+  --pv-blue:#3d9bff;      --pv-blue-ink:#1d4ed8;
+  --pv-blue-soft:rgba(37,99,235,.10);   --pv-blue-line:rgba(37,99,235,.24);
+  --pv-green:#34d399;     --pv-green-ink:#047857;
+  --pv-green-soft:rgba(5,150,105,.09);  --pv-green-line:rgba(5,150,105,.24);
+  /* ⚠️ 金だけ soft が濃い（.09 ではなく .16）。#f5c842 は明るいので .09 だと白に溶ける。
+        逆に .16 より濃くすると金の字（#8a6e00）が乗らなくなるので上げない。 */
+  --pv-gold-soft:rgba(245,200,66,.16);  --pv-gold-line:rgba(180,140,20,.32);
+  /* 星の字。#f5c842 を白に直接置くとコントラスト 1.65 でほぼ見えない。 */
+  --pv-star:#b5920a;
+  --pv-r-sm:10px;  --pv-r:14px;  --pv-r-lg:20px;
+  --pv-s-1:8px; --pv-s-2:16px; --pv-s-3:24px;
+  --pv-s-4:40px; --pv-s-5:52px; --pv-s-6:76px;
+  --pv-shadow:0 1px 2px rgba(15,23,42,.04),
+              0 8px 24px -12px rgba(15,23,42,.10),
+              0 2px 6px -2px rgba(249,115,22,.05);
+  --pv-shadow-lift:0 2px 4px rgba(15,23,42,.05),
+              0 18px 40px -18px rgba(15,23,42,.16),
+              0 4px 12px -4px rgba(249,115,22,.10);
+  --pv-ease:cubic-bezier(.16,1,.3,1);
+}
+[data-theme="dark"]{
+  --pv-bg:#0a0c0f;        --pv-bg-sub:#0d1118;    --pv-surface:#141b26;
+  --pv-surface-2:#18212f;
+  --pv-line:rgba(255,255,255,.09);  --pv-line-soft:rgba(255,255,255,.05);
+  --pv-ink:#e8edf2;       --pv-ink-2:#a8b8cc;     --pv-ink-3:#8496ad;
+  --pv-orange-ink:#fb923c;
+  --pv-orange-soft:rgba(249,115,22,.14);
+  --pv-gold-ink:#f5c842;
+  --pv-teal:#5eead4;      --pv-teal-soft:rgba(94,234,212,.12);
+  /* ⚠️ 青の soft は必ずダーク用の明るい青（#3d9bff）に切り替える。
+        #2563eb を低い不透明度で暗い面に置くと濁った紺になって青に見えない。 */
+  --pv-blue-ink:#5fb0ff;
+  --pv-blue-soft:rgba(61,155,255,.16);  --pv-blue-line:rgba(61,155,255,.28);
+  --pv-green-ink:#34d399;
+  --pv-green-soft:rgba(52,211,153,.14); --pv-green-line:rgba(52,211,153,.26);
+  --pv-gold-soft:rgba(245,200,66,.14);  --pv-gold-line:rgba(245,200,66,.28);
+  --pv-star:#f5c842;
+  --pv-shadow:0 1px 2px rgba(0,0,0,.30),
+              0 8px 24px -12px rgba(0,0,0,.55),
+              0 2px 6px -2px rgba(249,115,22,.10);
+  --pv-shadow-lift:0 2px 4px rgba(0,0,0,.35),
+              0 18px 40px -18px rgba(0,0,0,.65),
+              0 4px 12px -4px rgba(249,115,22,.16);
+}

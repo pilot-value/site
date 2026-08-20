@@ -1,0 +1,74 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "2024年以降にChapter11を二度申請し、複数回のレイオフと機長降格、基地閉鎖を経て2026年5月に運航停止・清算に至った。2010年の乗務員ウォークアウトや賃金争議での空港乱闘など労使不信の歴史も長い。ただ最終局面の破産譲歩では経営幹部も同等以上の減給に応じ、組合はこれ以上の削減を阻止した。",
+      "en": "Two Chapter 11 filings since 2024, repeated furloughs, captain downgrades and base closures ended in a May 2026 shutdown and liquidation. Labor distrust ran deep, though executives took matching pay cuts in the final concessions."
+    },
+    "salary": {
+      "ja": "2023年のALPA契約で機長は約25%、副操縦士は約43%の大幅賃上げ。A320副操縦士の時給は1年目約97ドル（約1.5万円）、機長は12年で約312ドル（約4.9万円）。年収は若手FOの約8.4万ドル（約1,330万円）から上級機長の27万ドル超（約4,270万円）まで。ただし破産譲歩で一律8%減額された。",
+      "en": "The 2023 ALPA deal lifted captain pay about 25% and FO pay about 43%; A320 FOs start near $97/hr and senior captains reach roughly $312/hr, or about $84k to over $270k a year. Bankruptcy concessions later cut all rates 8%."
+    },
+    "benefits": {
+      "ja": "福利厚生はULCCとしては手厚く、会社拠出16%の401k、包括的な医療保険、時給ベースのper diem、無制限のスタンバイ搭乗やバディパス、利益分配・業績賞与を備えた。年間有給は40時間。ただし2026年1月の破産譲歩で401k会社拠出が16%から8%へ半減し、魅力は大きく後退した。",
+      "en": "Generous for a ULCC: a 16% company 401k match, comprehensive health insurance, per diem, unlimited standby travel and buddy passes, plus profit sharing. But a January 2026 concession halved the 401k match to 8%."
+    },
+    "wlb": {
+      "ja": "月間最低保証は72時間。ラインを持てば毎月自分でスケジュールを組み替えられる『drop to zero』や、1ブロック最低連続4日休が高く評価される。一方でQOLは経営の優先事項ではなく、会社が休日規定の解釈を変え最低休日を下回る例も報告。リザーブ制度はサウスウエストに見劣りする。基地は約10カ所。",
+      "en": "A 72-hour monthly guarantee, plus prized protections like 'drop to zero' scheduling and at least four consecutive days off per block. Still, QOL wasn't a management priority, reserve rules trailed Southwest, and about 10 bases were available."
+    },
+    "ops": {
+      "ja": "機材は全機エアバスA320ファミリー（A319/A320/A321）で統一。ピーク時は200機超を運航したが、度重なる破産とレイオフ、基地閉鎖で2025〜2026年に96機まで縮小し、2026年5月2日に運航を停止した。25年ぶりに事業破綻した大手米航空会社となり、約2,000人のパイロットが職を失った。",
+      "en": "An all-Airbus A320-family fleet (A319/A320/A321) once topped 200 aircraft but shrank to 96 by 2025-26 amid bankruptcies and base closures, ceasing operations on 2 May 2026 and costing some 2,000 pilots their jobs."
+    },
+    "training": {
+      "ja": "成長期は機長昇格が速く新人に魅力だったが、Glassdoorのキャリア機会評価は3.4と低め。国際線オーバーライド8%やA321機材手当もあった。閉鎖後は移籍先で先任権がリセットされ待遇は振り出しに戻るが、ユナイテッドは条項21-Rで経済的理由のレイオフ組の優先採用に努める義務を負う。",
+      "en": "Fast upgrades in the growth years, but Glassdoor rates career opportunity a modest 3.4. After the shutdown seniority resets at the next carrier, though United's 21-R clause obliges it to prioritize furloughed ALPA pilots."
+    }
+  },
+  "sources": [
+    {
+      "title": "Spirit Airlines Airline Pilot Reviews | Glassdoor",
+      "url": "https://www.glassdoor.com/Reviews/Spirit-Airlines-Airline-Pilot-Reviews-EI_IE13683.0,15_KO16,29.htm"
+    },
+    {
+      "title": "Spirit Airlines | AirlinePilotCentral.com (pay rates, fleet, bases, contract)",
+      "url": "https://www.airlinepilotcentral.com/airlines/major-national-lcc/spirit_airlines"
+    },
+    {
+      "title": "Spirit diminishing QOL fact or rumor - Airline Pilot Central Forums",
+      "url": "https://www.airlinepilotforums.com/spirit/144075-spirit-diminishing-qol-fact-rumor.html"
+    },
+    {
+      "title": "Spirit Airlines pilots get 27% raise in new ALPA-negotiated contract | FlightGlobal",
+      "url": "https://www.flightglobal.com/strategy/spirit-airlines-pilots-get-27-raise-in-new-alpa-negotiated-contract/151296.article"
+    },
+    {
+      "title": "Spirit Airlines Pilots Approve Collective Bargaining Agreement | Simple Flying",
+      "url": "https://simpleflying.com/spirit-airlines-pilots-approve-collective-bargaining-agreement-january-2023/"
+    },
+    {
+      "title": "Spirit Pilots Set for 8% Pay Cuts | AirlineGeeks",
+      "url": "https://airlinegeeks.com/2025/11/19/spirit-pilots-set-for-8-pay-cut/"
+    },
+    {
+      "title": "Spirit Pilots Endorse Temporary Pay Cuts | AirlineGeeks",
+      "url": "https://airlinegeeks.com/2025/12/11/spirit-pilots-endorse-temporary-pay-cuts/"
+    },
+    {
+      "title": "Spirit Airlines ceases operations after escalating financial struggles | NPR",
+      "url": "https://www.npr.org/2026/05/02/nx-s1-5807933/spirit-airlines-ceases-operations-folds"
+    },
+    {
+      "title": "Spirit Airlines Pilots: After the Hardest Day, the Path Forward | Aviator Intelligence",
+      "url": "https://aviatorintelligence.com/spirit-airlines-pilots-whats-next/"
+    },
+    {
+      "title": "Benefits & Perks - Spirit careers (401k, per diem, travel benefits)",
+      "url": "https://careers.spirit.com/perks-and-benefits"
+    },
+    {
+      "title": "Spirit Airlines pilot pay dispute behind airport brawl | CBS News",
+      "url": "https://cbsnews.com/amp/news/spirit-airlines-pilot-pay-fight-flights-cancelled"
+    }
+  ]
+}

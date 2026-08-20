@@ -1,0 +1,78 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "組合に諮らず契約を一方的に変える手法にICPA・IPG両組合が反発し、約3,000名が影響を受け1,500名が嘆願書を提出。HRに尊重されないという士気低下の声がある一方、タタ新経営陣は以前の対立的な体質より対話的で、傘下の安定感を評価する見方も併存する。Glassdoor総合は約3.4/5。",
+      "en": "Both unions (ICPA and IPG) rejected the Tata-era pay changes imposed without consultation, and morale complaints about HR persist — yet the new ownership is seen as more dialogue-driven and stable. Glassdoor overall sits around 3.4/5."
+    },
+    "salary": {
+      "ja": "機長で年約USD7万〜10.5万（約1,100万〜1,660万円）、上級機長は年約USD11.5万〜14.5万（約1,820万〜2,290万円）で国内基準では安定。ただし2022年の報酬改定で保障飛行時間が70→40時間に削られ変動部分が増え、休暇・訓練・病欠がそのまま手取り減につながるのが現役最大の不満。",
+      "en": "Captains earn roughly USD 70,000-105,000/year and senior commanders USD 115,000-145,000 — solid by domestic standards. But the 2022 restructure cut guaranteed flying hours from 70 to 40, making pay more variable so leave, training or sick days directly shrink take-home."
+    },
+    "benefits": {
+      "ja": "拠点に応じた住宅手当が月INR2万〜6万（約3.5万〜10.5万円）、機種手当はナローボディ月約4.4万円・ワイドボディ月約13万円。本人・家族の無償/割引搭乗、医療保険などレガシー由来の福利は手厚く、雇用の安定性と並んでポジティブに評価される。",
+      "en": "Base-dependent housing allowance runs about INR 20,000-60,000/month, fleet allowance roughly INR 25,000 (narrow-body) to 75,000 (wide-body), and legacy perks like free/discounted family travel and medical insurance are generous — a genuine plus alongside job stability."
+    },
+    "wlb": {
+      "ja": "自動割当システム(Jeppesen)が休息を最小化し勤務を最大化する設計だと批判される。2025年の疲労報告1,578件中860件(54.5%)が却下され、Air India Expressでは12時間前通知のロースター変更・スタンバイ無補償も。新FDTL規則で週48時間休息が義務化されたが会社は当初抵抗し敗訴、80万ルピーの制裁金を受けた。",
+      "en": "Pilots say the Jeppesen auto-roster maximizes duty and minimizes rest — 860 of 1,578 fatigue reports in 2025 were rejected (54.5%), and Air India Express can change rosters on 12 hours' notice with no standby pay. The airline resisted the new 48-hour weekly-rest rule and was overruled in court."
+    },
+    "ops": {
+      "ja": "A350×40機・787追加を含む約470機の大量発注と1,000名超の採用で国際線網が急拡大し、運航機会は豊富。一方ワイドボディ要員の外国人機長には月約USD1.15万（約182万円）＋時間手当と好条件を出し、インド人現役の約4割増。国籍による待遇差だとする反発が現場に根強い。",
+      "en": "A ~470-aircraft order (40 A350s and more 787s) plus 1,000+ pilot hires are expanding international flying fast. But foreign wide-body captains get about USD 11,500/month plus hourly fees — roughly 40% more than Indian pilots — driving strong resentment over nationality-based pay gaps."
+    },
+    "training": {
+      "ja": "拡大局面で副操縦士から機長への昇格は比較的早く概ね5〜8年、現状はさらに前倒しでワイドボディ転換の機会も広い。一方カデット課程は費用がINR1億〜1.2億（約1,755万〜2,100万円）規模で約5年のボンドを伴い、型式限定ボンドも3〜5年。初期の費用負担と拘束がデメリット。",
+      "en": "Fleet growth speeds First Officer-to-Captain upgrades (typically 5-8 years, now faster) and opens wide-body conversions. But the cadet pathway costs about INR 1-1.2 crore with a ~5-year bond, and type-rating bonds run 3-5 years — a heavy upfront cost and lock-in."
+    }
+  },
+  "sources": [
+    {
+      "title": "Air India Pilot Salary in 2025 - Aviation A2Z",
+      "url": "https://aviationa2z.com/index.php/2025/10/14/air-india-pilot-salary/"
+    },
+    {
+      "title": "Air India Plans To Hire Foreign Pilots For Boeing 777s - Simple Flying",
+      "url": "https://simpleflying.com/air-india-plans-to-hire-foreign-pilots/"
+    },
+    {
+      "title": "Air India Express has Highest Number of Foreign Pilots - Aviation A2Z",
+      "url": "https://aviationa2z.com/index.php/2024/12/01/air-india-express-foreign-pilots/"
+    },
+    {
+      "title": "Air India pilots' unions reject proposed pay structure, warn of industrial unrest - National Herald",
+      "url": "https://www.nationalheraldindia.com/business/air-india-pilots-unions-reject-proposed-pay-structure-warn-of-industrial-unrest"
+    },
+    {
+      "title": "India Tightens Flight Duty Time Limits; Pilot Fatigue Reports Surge - AirInsight",
+      "url": "https://airinsight.com/india-tightens-flight-duty-time-limits-pilot-fatigue-reports-surge/"
+    },
+    {
+      "title": "Indian pilots are tired, anxious, and underpaid - ThePrint (opinion)",
+      "url": "https://theprint.in/opinion/indian-pilots-are-tired-anxious-and-underpaid/2464310/"
+    },
+    {
+      "title": "Merger pains: A-I, Vistara in churn over pilots' career progression plan - Business Standard",
+      "url": "https://www.business-standard.com/companies/news/merger-move-air-india-vistara-in-churn-over-pilot-career-progression-plan-124100901393_1.html"
+    },
+    {
+      "title": "Vistara merger: Air India pilots unhappy over differing retirement age - Business Standard",
+      "url": "https://www.business-standard.com/companies/news/vistara-merger-section-of-a-i-pilots-unhappy-over-different-retirement-age-124111000331_1.html"
+    },
+    {
+      "title": "Some Air India Pilots Worried About Possible Base Transfer - Simple Flying",
+      "url": "https://simpleflying.com/some-air-india-pilots-worried-about-possible-base-transfer/"
+    },
+    {
+      "title": "DGCA imposes Rs 80 lakh penalty on Air India for violating FDTL rules - News On Air",
+      "url": "https://www.newsonair.gov.in/dgca-imposes-rs-80-lakh-penalty-on-air-india-for-violating-fdtl-rules"
+    },
+    {
+      "title": "Air India to hire more than 1,000 pilots amid fleet expansion - Business Today",
+      "url": "https://www.businesstoday.in/latest/corporate/story/air-india-to-hire-more-than-1000-pilots-amid-fleet-expansion-379201-2023-04-27"
+    },
+    {
+      "title": "Air India Reviews - Glassdoor",
+      "url": "https://www.glassdoor.co.in/Reviews/Air-India-Reviews-E13097.htm"
+    }
+  ]
+}

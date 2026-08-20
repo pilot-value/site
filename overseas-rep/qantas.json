@@ -1,0 +1,78 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "フラッグキャリアとしての威信は高いが、労使関係は根深く対立的だ。2011年にはEBA紛争でCEOが全便を地上待機させ約3,000名をロックアウト、447便が欠航して損失は約A$194m（約200億円）に達した。以降も強硬な労務戦略とEBAの否決が繰り返され、譲歩ばかり求められて軽んじられている感覚が残る。Glassdoor評価は4.3と高い。",
+      "en": "Real prestige as the national flag carrier, but management relations are deeply adversarial — in 2011 the CEO grounded the entire fleet and locked out ~3,000 staff, canceling 447 flights. Repeated EBA rejections since leave pilots feeling taken for granted, even as Glassdoor scores sit at 4.3."
+    },
+    "salary": {
+      "ja": "額面はレガシー系として高水準。実績ベースの2019年B787平均総報酬はライン機長約4,600万円（A$445,744）、副操縦士約3,100万円、セカンドオフィサー約1,600万円。国際線ワイドボディ機長は手当込みで約4,400万〜5,400万円と突出する。ただし2年連続の賃金凍結でインフレ以下の昇給が続き、実質購買力は目減りしている。",
+      "en": "Headline pay is high for a legacy carrier — real 2019 B787 averages were ~US$290,000 for a captain, ~US$200,000 for an FO and ~US$100,000 for a second officer (total comp). But two straight years of wage freezes and below-inflation raises have eroded real purchasing power."
+    },
+    "benefits": {
+      "ja": "基本給に加え、レイオーバー・ナイトストップ・国際線乗務などの各種手当と退職年金（superannuation）拠出が上乗せされ、総額は基本給より膨らむ。カンタス／ジェットスターのスタッフトラベルや医療・保険も手厚い。一方で国内配属ゆえ住宅手当はなく、最高45%の豪州課税もあり、無税＋住宅手当の湾岸系と比べ手取りでは見劣りする。",
+      "en": "On top of base pay come layover, night-stop and international-flying allowances plus superannuation, and Qantas/Jetstar staff travel and medical benefits are solid. But there's no housing allowance and Australian tax runs up to 45%, so take-home lags the tax-free, housing-provided Gulf carriers."
+    },
+    "wlb": {
+      "ja": "主要ベースはシドニー・メルボルン・ブリスベン・パースで、一部にロサンゼルスも。国際線ゆえ時差と疲労の負担は大きく、新EBAの勤務条項が疲労対策を弱めるとの警戒が否決理由の一つになった。Project Sunriseの最大約22時間運航は専用休憩区画で対策する。評価は『家を空ける長時間勤務』と『安定した生活』で割れる。",
+      "en": "Bases are Sydney, Melbourne, Brisbane and Perth, with some LA slots. Long-haul brings heavy jet lag and fatigue — worries that the new EBA's rostering clauses weaken fatigue safeguards helped sink the deal, and views split between 'stable' and 'long hours away from home.'"
+    },
+    "ops": {
+      "ja": "国際線主力はA330×30機、A380×10機、787-9×14機で、Project Sunrise用にA350-1000ULRを導入予定。シドニー〜ロンドン／ニューヨークの最大約22時間という世界最長級の超長距離に挑む。ロンドン・LA・NY・シンガポール・東京・香港・ドバイ・バンコクなど路線網は広く、安全実績も堅牢だ。",
+      "en": "The international fleet is 30 A330s, 10 A380s and 14 787-9s, with A350-1000ULRs coming for Project Sunrise — Sydney to London/New York in up to ~22 hours, among the longest flights in the world. A broad long-haul network and a robust safety record."
+    },
+    "training": {
+      "ja": "国際線はセカンドオフィサー（巡航交代）で入社し、副操縦士まで概ね1〜2年、国際線機長は最低約5,000飛行時間が目安。ただし昇格は完全な先任順（シニョリティ）で、離職率が低く空席待ちのため機長まで10〜20年かかる。入社にはCASA ATPLと総2,500時間以上、そして制限なしの豪州就労権が必須で、ビザのスポンサーは出ない。",
+      "en": "You join long-haul as a second officer (cruise relief), reach FO in ~1-2 years and need ~5,000 hours for an international command. But upgrades run on pure seniority, so captain can take 10-20 years — and mainline entry demands a CASA ATPL, 2,500+ hours and unrestricted Australian work rights, with no visa sponsorship."
+    }
+  },
+  "sources": [
+    {
+      "title": "Qantas Pilots Salary in 2026 - Aviation A2Z",
+      "url": "https://aviationa2z.com/index.php/2026/03/23/qantas-pilots-salary-2026/"
+    },
+    {
+      "title": "Qantas moves to allay Project Sunrise fears among pilots (incl. 2019 787 pay averages) - AirlineRatings",
+      "url": "https://www.airlineratings.com/articles/qantas-moves-allay-project-sunrise-fears-among-pilots"
+    },
+    {
+      "title": "Qantas pilots approve new short-haul pay deal - Australian Aviation",
+      "url": "https://australianaviation.com.au/2025/02/qantas-pilots-approve-new-short-haul-pay-deal/"
+    },
+    {
+      "title": "Qantas long-haul pilots knock back pay deal despite union support - Australian Aviation",
+      "url": "https://australianaviation.com.au/2026/04/qantas-long-haul-pilots-knock-back-pay-deal-despite-union-support/"
+    },
+    {
+      "title": "Qantas Pilots on the Brink of Strike Action: What It Means for Travellers - The Seat in the Middle",
+      "url": "https://www.theseatinthemiddle.com/2026/07/20/qantas-pilots-on-the-brink-of-strike-action-what-it-means-for-travellers/"
+    },
+    {
+      "title": "'Too little, too late': Qantas begs pilots to stay with retention payments worth $18,000 a year - Crikey",
+      "url": "https://www.crikey.com.au/2024/05/28/qantas-network-aviation-retention-pilots-vanessa-hudson-eba/"
+    },
+    {
+      "title": "Behind the scenes of the Qantas dispute (2011 grounding/lockout) - Australian Government Solicitor",
+      "url": "https://www.ags.gov.au/areasoflaw/case-studies/behind-the-scenes-of-the-Qantas-dispute"
+    },
+    {
+      "title": "Qantas Pilot Reviews - Glassdoor",
+      "url": "https://www.glassdoor.com/Reviews/Qantas-Pilot-Reviews-EI_IE3342.0,6_KO7,12.htm"
+    },
+    {
+      "title": "Qantas Pilot Hiring Requirements: A Comprehensive Guide - Epic Flight Academy",
+      "url": "https://epicflightacademy.com/hiring-requirements-qantas/"
+    },
+    {
+      "title": "Pilots and Flight Operations (work rights / requirements) - Qantas Careers",
+      "url": "https://www.qantas.com/us/en/about-us/qantas-careers/pilots-flight-operations.html"
+    },
+    {
+      "title": "Pilot Salary Take-Home Pay by Country 2026 (Australia vs Gulf tax comparison) - CountryTaxCalc",
+      "url": "https://www.countrytaxcalc.com/tax-guides/pilot-salary-take-home-pay-by-country-2026/"
+    },
+    {
+      "title": "Inside Qantas' Pilot & Crew Rest Areas Built For 22-Hour Project Sunrise Flights - Simple Flying",
+      "url": "https://simpleflying.com/qantas-pilot-crew-rest-areas-built-22-hour-project-sunrise/"
+    }
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "同僚・訓練・整備の評価は高く現場の士気は悪くない。ただ経営陣への信頼は低く「他のパイロットには薦めない」という声もある。賃金交渉は一貫して対立的で、2024年3月には36時間ストに発展した。現場と経営の温度差が大きい会社だ。",
+      "en": "Colleagues, training and maintenance earn real praise, but management is widely distrusted and pay talks stay adversarial — friction that boiled over into a 36-hour strike in March 2024."
+    },
+    "salary": {
+      "ja": "給与はシニオリティ順で機種による差はなく、年14回払い。副操縦士は初年度約1,460万円（€85,000）、5年目約1,690万円。機長は昇格時約2,060万円、最上位で約3,290万円（€191,000）。歴史的には欧州上位だが、現役はSWISSやルフトハンザ本体に見劣りと感じている。",
+      "en": "Pay is set by seniority, not aircraft type, over 14 paychecks a year — first officers start near $92,000 and top captains reach about $208,000. Historically strong for Europe, yet crews feel it trails SWISS and Lufthansa mainline."
+    },
+    "benefits": {
+      "ja": "年14回払い（夏季賞与＋クリスマス賞与込み）に加え、ライセンス喪失保険は最終給与の33〜55%・月最大約138万円（€8,000）。ルフトハンザ・グループのID旅行特典で300以上の就航地が割引/無償、さらに3層年金、産休16週・父親休1か月が付く。",
+      "en": "On top of 14 annual paychecks, loss-of-licence cover runs 33-55% of final pay (up to roughly $8,700/month), plus Lufthansa Group ID travel across 300+ destinations, a three-tier pension, and 16 weeks of maternity leave."
+    },
+    "wlb": {
+      "ja": "ベースはウィーン一択で地理的な柔軟性は乏しい。月休は12〜15日（希望休は約6日）だが夏場は極端に少なく、1日最大4レグ、早朝と深夜が振り子のように入れ替わり6連勤も起こる。長距離レイオーバーは東欧中心で、宿泊ホテルの質が低いとの不満が強い。",
+      "en": "Vienna is the only base, and summer rosters turn brutal — up to four legs a day, early/late swings and runs like six days on, one off. Long-haul layovers cluster in Eastern Europe, in hotels crews rate poorly."
+    },
+    "ops": {
+      "ja": "保有は約68機でA320ファミリーが欧州近中距離の主力、新規入社はまずA320に乗る。Embraer195は2028年までにAir Dolomiti へ移管、B777/767は2027〜28年退役、B787-9を計12機導入予定。ルフトハンザ・グループの後ろ盾で機材刷新と雇用安定が進む。",
+      "en": "A fleet of about 68 jets is built around the A320 family, where new hires start; the Embraer 195s move to Air Dolomiti by 2028 and the B777/767s retire as up to twelve B787-9s arrive, all backed by Lufthansa Group stability."
+    },
+    "training": {
+      "ja": "型式限定訓練は正規採用者もカデットも会社負担で、明示的なボンド（返済拘束）の記載はない。機長昇格は社内昇格のみで直接採用機長はなく、通常5〜8年＋面接とシミュレーター審査を要する。最大の壁は選考がルフトハンザ共同でDLRにてドイツ語実施な点で、日本人には高いハードルだ。",
+      "en": "Type ratings are company-funded with no explicit bond, for cadets and direct hires alike, but command comes only from within — 5-8 years plus an interview and sim check, with no direct-entry captains. The real wall for outsiders: selection is run jointly with Lufthansa at the DLR in German."
+    }
+  },
+  "sources": [
+    {
+      "title": "Austrian Airlines | Pilot Pay, Rosters, Fleet and Benefits — Ready for Take Off",
+      "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/austrian-airlines"
+    },
+    {
+      "title": "Austrian Airlines Pilot Reviews — PilotsGlobal",
+      "url": "https://pilotsglobal.com/airlines/austrian-airlines/pilot-reviews"
+    },
+    {
+      "title": "Austrian Airlines Pay rates — PPRuNe Forums",
+      "url": "https://www.pprune.org/terms-endearment/138849-austrian-airlines-pay-rates.html"
+    },
+    {
+      "title": "Austrian Airlines Pilot Salaries — Glassdoor",
+      "url": "https://www.glassdoor.com/Salary/Austrian-Airlines-Airline-Pilot-Salaries-E7846_D_KO18,31.htm"
+    },
+    {
+      "title": "Austrian Airlines reaches wages deal with workers to avoid new strikes — The Local Austria",
+      "url": "https://www.thelocal.at/20240426/austrian-airlines-reaches-wages-deal-with-workers-to-avoid-new-strikes"
+    },
+    {
+      "title": "Agreement on new AUA on-board collective agreement — Aviation.Direct",
+      "url": "https://aviation.direct/en/einigung-auf-neuen-aua-bord-kollektivvertrag"
+    },
+    {
+      "title": "Was verdienen AUA Piloten? — wandernundmehr.at",
+      "url": "https://www.wandernundmehr.at/faq/was-verdienen-aua-piloten"
+    },
+    {
+      "title": "Pilot Recruitment (Future Pilots / Ready Entry) — austrianpilot.at",
+      "url": "https://www.austrianpilot.at/"
+    },
+    {
+      "title": "Austrian Airlines cadet pilots — Flightdeckfriend",
+      "url": "https://www.flightdeckfriend.com/pilot_programs/austrian-airlines-cadet-pilots/"
+    },
+    {
+      "title": "Hiring Requirements for Austrian Airlines — Epic Flight Academy",
+      "url": "https://epicflightacademy.com/hiring-requirements-for-austrian-airlines/"
+    },
+    {
+      "title": "Austrian Cockpit Association — Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Austrian_Cockpit_Association"
+    },
+    {
+      "title": "Air Dolomiti: Fast-Track Captain Upgrades on an All-Embraer Fleet (E195 transfer) — Ready for Take Off",
+      "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/air-dolomiti"
+    }
+  ]
+}

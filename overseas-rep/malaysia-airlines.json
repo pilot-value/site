@@ -1,0 +1,78 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "経営陣は上ばかり見て現場の声を聞かない、リーダーシップ不足でストレスが多い、というレガシー国営らしい不満が残る。一方で同僚は親切で職場の雰囲気は良く、国営ゆえの雇用の安定感も評価される。Glassdoorの全体評価は3.5/5、推薦率67%と決して悪くない水準にある。",
+      "en": "Crews fault leadership for pleasing the top brass while ignoring the line, and call it a stressful legacy culture. Still, colleagues are friendly and the national-carrier job feels stable, with Glassdoor at 3.5/5 and 67% recommending."
+    },
+    "salary": {
+      "ja": "基地はクアラルンプール。給与はランク別基本給＋飛行時間手当＋国際線手当の組み合わせ。副操縦士は手当込み年RM23万〜32万（約780万〜1,090万円）、機長は総額RM55万〜80万（約1,870万〜2,720万円）。2025年に全社約5%昇給したが、リンギ安もあり中東・シンガポール勢より明確に見劣りする。",
+      "en": "Rank-based pay stacks base salary with flight-hour and international allowances; FO all-in runs about USD 49k-68k and captains USD 140k-200k. A ~5% raise landed in 2025, but a weak ringgit keeps pay clearly below Gulf and Singapore carriers."
+    },
+    "benefits": {
+      "ja": "飛行手当は非課税（基本給は10%課税）で、医療・保険に加え、社員割引旅行とMH就航地への家族無料航空券が年1枚。年次休暇は21日、国際線日当は1泊約RM150〜160（約5,100〜5,400円）、国際線手当は年RM1.5万〜3万（約51万〜102万円）。福利面は総じて好意的に評価される。",
+      "en": "Flight allowances are tax-free (base is taxed at 10%), with medical and insurance cover, staff-discount travel, one free family ticket a year to MH destinations, and 21 days of leave. Layover per diem runs about RM150-160 (USD 32-34) a night; benefits are well liked."
+    },
+    "wlb": {
+      "ja": "基地はクアラルンプール。月120時間規模のスケジュールやフライト間8時間程度の最小休息で、疲労・休養不足への不満が繰り返し出る。人的要因を踏まえたロースター改善を求める声が多く、ワークライフバランス評価は3.1〜3.2/5と平均どまりにとどまっている。",
+      "en": "Based at Kuala Lumpur, pilots fly rosters around 120 hours a month with rest between duties as short as ~8 hours, and fatigue complaints recur. Work-life balance scores just 3.1-3.2/5."
+    },
+    "ops": {
+      "ja": "機材刷新が進行中で、A330neoを計20機導入（2025年12月に9号機受領、2028年まで納入継続）し路線を拡大。狭胴機・広胴機を運航し、フリート成長は副操縦士から機長への昇格ポジションを生む前向き材料。一方で熟練パイロットがシンガポール・中東勢へ流出する定着難が続く。",
+      "en": "A fleet refresh is underway - 20 A330neos on lease, the ninth delivered in December 2025 with deliveries running to 2028 - plus route growth across narrow- and widebody ops. The flip side is retention: experienced pilots keep leaving for Singapore and Gulf carriers."
+    },
+    "training": {
+      "ja": "自社養成カデットはマレーシア国籍18〜32歳などが要件で、約7〜10年の勤務ボンドを伴う。ライントレーニング約6か月を経てFO、1,500時間超でシニアFO、機長昇格は在籍シニオリティと空き次第で概ね5〜10年。直接雇用機長（A330は6,000時間）は非マレーシア人にも門戸がある。",
+      "en": "Company cadets (Malaysian, age 18-32) sign a roughly 7-10 year bond; progression runs cadet to FO, senior FO past 1,500 hours, and command in about 5-10 years depending on seniority. Direct-entry captain slots (A330 needs 6,000 hours) are open to non-Malaysians."
+    }
+  },
+  "sources": [
+    {
+      "title": "Malaysia Airlines Pilot Salary in 2026 - Aviation A2Z",
+      "url": "https://aviationa2z.com/index.php/2026/05/01/malaysia-airlines-pilot-salary-in-2026/"
+    },
+    {
+      "title": "Malaysia Airlines Pilot Salary in 2025 - Aviation A2Z",
+      "url": "https://aviationa2z.com/index.php/2025/10/27/malaysia-airlines-pilot-salary-2025/"
+    },
+    {
+      "title": "Why Malaysia Airlines struggles to narrow pay gap with rivals - The Edge Malaysia",
+      "url": "https://theedgemalaysia.com/node/726954"
+    },
+    {
+      "title": "Malaysia Airlines Pilot Salary Overview and Updates for 2025 - VisaVerge",
+      "url": "https://www.visaverge.com/guides/malaysia-airlines-pilot-salary-overview-and-updates-for-2025/"
+    },
+    {
+      "title": "RM420K/Year: Inside the High-Paying Life of a Malaysia Airlines Pilot - Wargabiz",
+      "url": "https://wargabiz.com.my/2025/08/08/rm420k-year-inside-the-high-paying-life-of-a-malaysia-airlines-pilot/"
+    },
+    {
+      "title": "Malaysia Airlines Reviews (Pros & Cons) - Glassdoor",
+      "url": "https://www.glassdoor.com/Reviews/Malaysia-Airlines-Reviews-E7529.htm"
+    },
+    {
+      "title": "Malaysia Airlines 'work life balance' Reviews - Glassdoor",
+      "url": "https://www.glassdoor.com/Reviews/Malaysia-Airlines-work-life-balance-Reviews-EI_IE7529.0,17_KH18,35.htm"
+    },
+    {
+      "title": "Malaysia Airlines - PPRuNe Forums (South Asia & Far East)",
+      "url": "https://www.pprune.org/south-asia-far-east/607297-malaysia-airlines.html"
+    },
+    {
+      "title": "Malaysia Airlines Pilot Recruitment - Direct Entry Captains (A330 & B737NG) - Fly Gosh",
+      "url": "https://www.flygosh.com/2017/08/malaysia-airlines-pilot-recruitment_5.html"
+    },
+    {
+      "title": "Malaysia Aviation Group Opens 2026 Cadet Pilot Recruitment Program - afm.aero",
+      "url": "https://afm.aero/malaysia-aviation-group-opens-2026-cadet-pilot-recruitment-program"
+    },
+    {
+      "title": "Malaysia Airlines takes delivery of ninth A330neo aircraft - AeroTime",
+      "url": "https://www.aerotime.aero/articles/malaysia-airlines-receives-ninth-a330neo-widebody-continues-fleet-expansion"
+    },
+    {
+      "title": "How Much Malaysian Commercial Pilots Earn & Ranks Explained - Pilot Visnu",
+      "url": "https://www.pilotvisnu.com/much-malaysian-commercial-pilots-paid-ranks-explained/"
+    }
+  ]
+}

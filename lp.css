@@ -1,0 +1,1000 @@
+/* PILOT VALUE — トップページ（LP V2）の見た目。日本語版 index.html と en/index.html が共有する。
+   もとは index.html のインライン <style> にあったものを 2026-08-14 にそのまま出した（中身は1文字も変えていない）。
+   ⚠️ 変数（--pv-*）は pv-tokens.css。このファイルより先に読み込むこと。
+   ⚠️ Tailwind の CDN は実行時に <style> を head へ後から入れるので、
+      「単一クラスだと Tailwind に負ける」という前提は外部ファイルにしても変わらない。
+   ⚠️ 中の url() は data:image/svg+xml のノイズだけ。相対パスの画像を足さないこと（/en/ から読むと壊れる）。*/
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background-color: #0a0c0f;
+      color: #e8edf2;
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body::before {
+      content:'';
+      position:fixed; inset:0;
+      pointer-events:none; z-index:0;
+      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      background-size:128px; opacity:.3;
+    }
+
+    nav {
+      position:fixed; top:0; left:0; right:0; z-index:200;
+      transition: background 0.4s ease, border-color 0.4s ease;
+    }
+    nav.scrolled {
+      background:rgba(10,12,15,0.92);
+      backdrop-filter:blur(20px);
+      border-bottom:1px solid rgba(255,255,255,0.06);
+    }
+    .nav-link {
+      color:rgba(255,255,255,0.6);
+      font-size:.85rem; font-weight:500;
+      letter-spacing:.04em;
+      transition:color .2s; text-decoration:none;
+    }
+    .nav-link:hover { color:#fff; }
+
+    #hero-section {
+      position:relative; width:100%; height:100vh;
+      overflow:hidden; background:#000;
+    }
+    #hero-canvas {
+      position:absolute; inset:0; width:100%; height:100%;
+      touch-action:none;
+    }
+    .hero-overlay {
+      position:absolute; inset:0; z-index:10;
+      background:linear-gradient(
+        to bottom,
+        rgba(0,0,0,0.15) 0%,
+        rgba(0,0,0,0.05) 40%,
+        rgba(0,0,0,0.45) 80%,
+        rgba(10,12,15,1) 100%
+      );
+    }
+    .hero-content {
+      position:absolute; inset:0; z-index:20;
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      text-align:center; padding:0 24px;
+    }
+
+    /* ブランド行。V3 で主役から降ろした（初見が最初に理解すべきは哲学ではなく
+       「他のパイロットの実際の給与が見られる」という価値）。金のグラデーションは維持。 */
+    .hero-en {
+      font-size: clamp(.72rem, 1.5vw, .88rem);
+      font-weight: 800;
+      line-height: 1.2;
+      letter-spacing: 0.28em;
+      background: linear-gradient(135deg, #ff9b3d 0%, #ffd53d 40%, #fff5c0 65%, #ffa040 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      background-size: 200% 200%;
+      animation: grad-shift 4s ease infinite;
+      text-shadow: none;
+      margin: 0 0 1.1rem;
+    }
+    .hero-ja {
+      font-size: clamp(1rem, 2.5vw, 1.5rem);
+      font-weight: 400;
+      color: rgba(255,245,200,0.82);
+      letter-spacing: 0.12em;
+      margin-top: 0.6em;
+    }
+    @keyframes grad-shift {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .anim-fade-up {
+      opacity:0; transform:translateY(28px);
+      animation: fade-up 0.9s cubic-bezier(.16,1,.3,1) forwards;
+    }
+    @keyframes fade-up {
+      to { opacity:1; transform:translateY(0); }
+    }
+    .delay-1 { animation-delay:.15s; }
+    .delay-2 { animation-delay:.3s; }
+    .delay-3 { animation-delay:.5s; }
+    .delay-4 { animation-delay:.7s; }
+
+    /* ★hero の見出しが入る箱だけ、透明から出さない（2026-08-15）。
+         .anim-fade-up は opacity:0 から始まる。ブラウザは「透明な要素＝まだ描いていない」
+         と数えるので、待ち時間（.delay-2 = 0.3s）＋動き 0.9s が終わるまで、
+         ページで一番大きい文字（h1）が「表示された」ことにならない。
+         これがそのまま体感の表示速度（LCP）の遅れになっていた。
+         スマホ相当（5Mbps・遅延70ms・CPU 1/4・各3回の中央値）で LCP 3,224ms → 1,024ms。
+         ★動きは残す。上下の移動だけの keyframes に差し替えて、透明度に触らないだけ。
+         見た目の最終形は同じ（1.2s / 1.5s / 3.5s のスクリーンショットで確認済み）。 */
+    @keyframes hero-up { from { transform:translateY(28px); } to { transform:translateY(0); } }
+    .hero-content .anim-fade-up.delay-2 { opacity:1; animation-name:hero-up; }
+
+    .glass {
+      background:rgba(17,22,32,0.7);
+      backdrop-filter:blur(16px);
+      border:1px solid rgba(255,255,255,0.07);
+      border-radius:16px;
+    }
+    .glass-raised {
+      background:rgba(24,33,47,0.85);
+      backdrop-filter:blur(20px);
+      border:1px solid rgba(255,255,255,0.10);
+      border-radius:16px;
+    }
+
+    .gradient-text {
+      background:linear-gradient(135deg, #ffffff 0%, #a8c8f0 60%, #3d9bff 100%);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+      background-clip:text;
+    }
+
+    .salary-bar-track {
+      height:8px; border-radius:999px;
+      background:rgba(255,255,255,0.06); overflow:hidden;
+    }
+    .salary-bar-fill {
+      height:100%; border-radius:999px;
+      transition:width 1.4s cubic-bezier(.16,1,.3,1); width:0;
+    }
+
+    /* Thick comparison bars */
+    .cmp-bar-track {
+      height:44px; border-radius:10px;
+      background:rgba(255,255,255,0.04); overflow:hidden;
+      position:relative;
+    }
+    .cmp-bar-fill {
+      height:100%; border-radius:10px;
+      transition:width 1.5s cubic-bezier(.16,1,.3,1); width:0;
+      display:flex; align-items:center; padding:0 14px;
+      font-size:.82rem; font-weight:700; white-space:nowrap;
+    }
+
+    table { width:100%; border-collapse:collapse; }
+    th {
+      font-size:.72rem; font-weight:600;
+      letter-spacing:.08em; text-transform:uppercase;
+      color:#6b7d93; padding:12px 16px; text-align:left;
+      border-bottom:1px solid rgba(255,255,255,0.07);
+    }
+    td {
+      padding:13px 16px; font-size:.875rem;
+      border-bottom:1px solid rgba(255,255,255,0.04);
+      vertical-align:middle;
+    }
+    tr:last-child td { border-bottom:none; }
+    tr:hover td { background:rgba(255,255,255,0.02); }
+
+    .tag {
+      display:inline-block; padding:3px 10px;
+      border-radius:999px; font-size:.72rem; font-weight:600;
+    }
+    .tag-blue  { background:rgba(61,155,255,.12); color:#5fb0ff; border:1px solid rgba(61,155,255,.2); }
+    .tag-gold  { background:rgba(245,200,66,.10); color:#f5c842; border:1px solid rgba(245,200,66,.2); }
+    .tag-green { background:rgba(52,211,153,.10); color:#34d399; border:1px solid rgba(52,211,153,.2); }
+    .tag-gray  { background:rgba(255,255,255,.06); color:#8899aa; border:1px solid rgba(255,255,255,.1); }
+    .tag-orange{ background:rgba(249,115,22,.12); color:#fb923c; border:1px solid rgba(249,115,22,.2); }
+    .tag-red   { background:rgba(248,113,113,.10); color:#f87171; border:1px solid rgba(248,113,113,.2); }
+
+    .btn-primary {
+      display:inline-flex; align-items:center; gap:8px;
+      padding:13px 28px; border-radius:10px;
+      background:#3d9bff; color:#fff;
+      font-size:.9rem; font-weight:600;
+      border:none; cursor:pointer; text-decoration:none;
+      transition:transform .2s cubic-bezier(.16,1,.3,1), box-shadow .2s ease, background .2s ease;
+    }
+    .btn-primary:hover { background:#5eb3ff; transform:translateY(-1px); box-shadow:0 8px 30px rgba(61,155,255,.35); }
+    .btn-primary:active { transform:translateY(0); }
+
+    .btn-ghost {
+      display:inline-flex; align-items:center; gap:8px;
+      padding:13px 28px; border-radius:10px;
+      background:rgba(255,255,255,0.07); color:#e8edf2;
+      font-size:.9rem; font-weight:600;
+      border:1px solid rgba(255,255,255,.12); cursor:pointer; text-decoration:none;
+      transition:background .2s ease, border-color .2s ease;
+    }
+    .btn-ghost:hover { background:rgba(255,255,255,0.12); border-color:rgba(255,255,255,.22); }
+
+    .btn-orange {
+      display:inline-flex; align-items:center; gap:8px;
+      padding:14px 32px; border-radius:999px;
+      background:linear-gradient(135deg,#f97316,#f5c842);
+      color:#000; font-size:1rem; font-weight:700;
+      border:none; cursor:pointer; text-decoration:none;
+      transition:transform .2s cubic-bezier(.16,1,.3,1), box-shadow .2s ease;
+    }
+    .btn-orange:hover { transform:scale(1.04); box-shadow:0 12px 40px rgba(249,115,22,.4); }
+
+    .btn-outline-amber {
+      display:inline-flex; align-items:center; gap:8px;
+      padding:14px 32px; border-radius:999px;
+      background:rgba(249,115,22,.10); color:rgba(255,245,200,.9);
+      font-size:1rem; font-weight:600;
+      border:1px solid rgba(249,115,22,.3); cursor:pointer; text-decoration:none;
+      backdrop-filter:blur(8px);
+      transition:background .2s ease, border-color .2s ease, transform .2s ease;
+    }
+    .btn-outline-amber:hover { background:rgba(249,115,22,.18); border-color:rgba(249,115,22,.5); transform:scale(1.03); }
+
+    .fade-up {
+      opacity:0; transform:translateY(24px);
+      transition:opacity .6s ease, transform .6s cubic-bezier(.16,1,.3,1);
+    }
+    .fade-up.visible { opacity:1; transform:translateY(0); }
+
+    .job-card {
+      background:rgba(17,22,32,.6);
+      border:1px solid rgba(255,255,255,.07); border-radius:14px; padding:16px 18px;
+      transition:transform .25s cubic-bezier(.16,1,.3,1), border-color .25s ease, box-shadow .25s ease;
+      cursor:pointer; text-decoration:none; display:block;
+    }
+    .job-card:hover {
+      transform:translateY(-3px);
+      border-color:rgba(61,155,255,.30);
+      box-shadow:0 12px 40px rgba(0,0,0,.4), 0 0 0 1px rgba(61,155,255,.12);
+    }
+
+    .stat-card {
+      padding:16px 14px; border-radius:14px;
+      background:rgba(17,22,32,.6); border:1px solid rgba(255,255,255,.07);
+    }
+
+    /* Airline ranking row */
+    .airline-row {
+      display:block; text-decoration:none;
+      background:rgba(17,22,32,.5);
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:12px; padding:16px 20px;
+      transition:transform .2s cubic-bezier(.16,1,.3,1), border-color .2s ease, background .2s ease;
+    }
+    .airline-row:hover {
+      transform:translateX(4px);
+      border-color:rgba(61,155,255,.25);
+      background:rgba(24,33,47,.7);
+    }
+
+    .rank-1 { background:linear-gradient(135deg,#f5c842,#ffd700); color:#000; }
+    .rank-2 { background:linear-gradient(135deg,#adb5bd,#ced4da); color:#000; }
+    .rank-3 { background:linear-gradient(135deg,#cd7f32,#e8a56a); color:#000; }
+    .rank-n { background:rgba(255,255,255,.08); color:#6b7d93; }
+
+    /* Tab */
+    .tab-btn {
+      padding:9px 20px; border-radius:8px; font-size:.82rem; font-weight:600;
+      color:#6b7d93; background:transparent; border:1px solid transparent;
+      cursor:pointer; transition:color .2s, background .2s, border-color .2s; white-space:nowrap;
+    }
+    .tab-btn.active { color:#e8edf2; background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.12); }
+    .tab-btn:hover:not(.active) { color:#c5d5e8; }
+
+    ::-webkit-scrollbar { width:6px; }
+    ::-webkit-scrollbar-track { background:#0a0c0f; }
+    ::-webkit-scrollbar-thumb { background:#18212f; border-radius:3px; }
+    ::-webkit-scrollbar-thumb:hover { background:#26364e; }
+
+    footer { background:#060809; border-top:1px solid rgba(255,255,255,.05); }
+
+
+    .hero-badge-pill {
+      display:inline-flex; align-items:center; gap:8px;
+      padding:7px 18px; border-radius:999px;
+      background:rgba(249,115,22,.10); border:1px solid rgba(249,115,22,.28);
+      font-size:.78rem; font-weight:600; color:rgba(255,200,80,.9);
+      letter-spacing:.06em; text-transform:uppercase;
+      backdrop-filter:blur(8px);
+    }
+
+    .section-badge {
+      display:inline-flex; align-items:center; gap:8px;
+      padding:6px 14px; border-radius:999px;
+      background:rgba(61,155,255,.10); border:1px solid rgba(61,155,255,.25);
+      font-size:.75rem; font-weight:600; color:#3d9bff;
+      letter-spacing:.08em; text-transform:uppercase;
+    }
+
+    .section-num {
+      display:inline-flex; align-items:center; justify-content:center;
+      width:36px; height:36px; border-radius:10px;
+      background:linear-gradient(135deg,#f97316,#f5c842);
+      color:#000; font-size:1.1rem; font-weight:900;
+      flex-shrink:0;
+    }
+
+    .logo-img {
+      height: 44px; width: auto;
+      /* ロゴ画像が届くまで幅0で、届いた瞬間に横へ広がってヘッダーがガタつく。
+         縦横比を先に教えておけば、読む前から正しい幅を空けられる。
+         228x176 は assets/logo.png の実寸。⚠️ ロゴを差し替えたらここも直す。 */
+      aspect-ratio: 228 / 176;
+      filter: brightness(1.15) drop-shadow(0 0 8px rgba(249,115,22,.5));
+      transition: filter .3s ease;
+    }
+    .logo-img:hover {
+      filter: brightness(1.3) drop-shadow(0 0 14px rgba(249,115,22,.7));
+    }
+
+    /* Big comparison visual */
+    .region-bar-row { margin-bottom: 14px; }
+    .region-bar-bg {
+      height:26px; border-radius:8px;
+      background:rgba(255,255,255,0.04);
+      overflow:hidden; position:relative;
+    }
+    .region-bar-fill {
+      height:100%; border-radius:8px;
+      transition:width 1.6s cubic-bezier(.16,1,.3,1); width:0;
+    }
+
+    /* Number counter animation */
+    @keyframes count-up { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+    /* ── THEME TOGGLE BUTTON ─────────────────────────────────────────── */
+    .theme-toggle {
+      display:inline-flex; align-items:center; justify-content:center;
+      width:38px; height:38px; border-radius:10px;
+      background:rgba(255,255,255,.07); color:#e8edf2;
+      border:1px solid rgba(255,255,255,.12); cursor:pointer;
+      transition:background .2s, color .2s, border-color .2s; flex-shrink:0;
+    }
+    .theme-toggle:hover { background:rgba(255,255,255,.14); }
+    [data-theme="light"] .theme-toggle { background:rgba(0,0,0,.06); color:#0f172a; border-color:rgba(0,0,0,.13); }
+    [data-theme="light"] .theme-toggle:hover { background:rgba(0,0,0,.11); }
+    .lang-toggle { display:inline-flex; align-items:center; gap:4px; padding:0 10px; height:38px; border-radius:10px; background:rgba(255,255,255,.07); color:#e8edf2; font-size:.75rem; font-weight:700; letter-spacing:.04em; border:1px solid rgba(255,255,255,.12); cursor:pointer; transition:background .2s; flex-shrink:0; white-space:nowrap; }
+    .lang-toggle:hover { background:rgba(255,255,255,.13); }
+    [data-theme="light"] .lang-toggle { background:rgba(0,0,0,.06); color:#0f172a; border-color:rgba(0,0,0,.13); }
+    [data-theme="light"] .lang-toggle:hover { background:rgba(0,0,0,.11); }
+
+    /* ── LIGHT MODE ──────────────────────────────────────────────────── */
+    [data-theme="light"] body { background-color:#f3f5f8; color:#0f172a; }
+    [data-theme="light"] body::before { opacity:.03; }
+    /* Nav — show light bg always so links are readable over any section */
+    [data-theme="light"] nav { background:rgba(243,245,248,.95) !important; border-bottom:1px solid rgba(0,0,0,.07) !important; backdrop-filter:blur(16px) !important; }
+    [data-theme="light"] nav.scrolled { background:rgba(243,245,248,.99) !important; border-bottom-color:rgba(0,0,0,.09) !important; }
+    [data-theme="light"] .nav-link { color:rgba(15,23,42,.6) !important; }
+    [data-theme="light"] .nav-link:hover { color:#0f172a !important; }
+    [data-theme="light"] ::-webkit-scrollbar-track { background:#f0f4f9; }
+    [data-theme="light"] ::-webkit-scrollbar-thumb { background:#c4cfdf; }
+    [data-theme="light"] ::-webkit-scrollbar-thumb:hover { background:#a8b8cc; }
+    [data-theme="light"] .gradient-text { background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 50%,#3b9eff 100%); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+    [data-theme="light"] .glass { background:rgba(255,255,255,.9) !important; border-color:rgba(0,0,0,.08) !important; }
+    [data-theme="light"] .glass-raised { background:rgba(255,255,255,.96) !important; border-color:rgba(0,0,0,.1) !important; }
+    [data-theme="light"] .stat-card { background:rgba(255,255,255,.92); border-color:rgba(0,0,0,.08); }
+    [data-theme="light"] .job-card { background:rgba(255,255,255,.85); border-color:rgba(0,0,0,.08); }
+    [data-theme="light"] .job-card:hover { border-color:rgba(61,155,255,.4); box-shadow:0 12px 40px rgba(0,0,0,.1),0 0 0 1px rgba(61,155,255,.12); }
+    [data-theme="light"] .airline-row { background:rgba(255,255,255,.8); border-color:rgba(0,0,0,.07); }
+    [data-theme="light"] .airline-row:hover { background:rgba(248,252,255,.96); border-color:rgba(61,155,255,.3); }
+    [data-theme="light"] .salary-bar-track { background:rgba(0,0,0,.07); }
+    [data-theme="light"] .cmp-bar-track { background:rgba(0,0,0,.05); }
+    [data-theme="light"] .region-bar-bg { background:rgba(0,0,0,.04); }
+    [data-theme="light"] table th { color:#4a5568; border-bottom-color:rgba(0,0,0,.08); }
+    [data-theme="light"] table td { border-bottom-color:rgba(0,0,0,.04); }
+    [data-theme="light"] table tr:hover td { background:rgba(0,0,0,.02); }
+    [data-theme="light"] .tab-btn { color:#4a5568; }
+    [data-theme="light"] .tab-btn.active { color:#0f172a; background:rgba(0,0,0,.07); border-color:rgba(0,0,0,.12); }
+    [data-theme="light"] .tab-btn:hover:not(.active) { color:#0f172a; }
+    [data-theme="light"] .tag-gray { background:rgba(0,0,0,.05); color:#4a5568; border-color:rgba(0,0,0,.1); }
+    [data-theme="light"] .btn-ghost { background:rgba(0,0,0,.06); color:#0f172a; border-color:rgba(0,0,0,.12); }
+    [data-theme="light"] .btn-ghost:hover { background:rgba(0,0,0,.1); border-color:rgba(0,0,0,.18); }
+    [data-theme="light"] footer { background:#dce4ef; border-top-color:rgba(0,0,0,.07); }
+    [data-theme="light"] footer .border-white\/\[0\.05\] { border-top-color:rgba(0,0,0,.07) !important; }
+    [data-theme="light"] .text-text { color:#0f172a !important; }
+    [data-theme="light"] .section-badge { background:rgba(37,99,235,.08); border-color:rgba(37,99,235,.2); color:#2563eb; }
+    [data-theme="light"] .hero-badge-pill { background:rgba(249,115,22,.08); border-color:rgba(249,115,22,.22); }
+    /* V3: #sec-metrics / #compare / #ranking は #salary-engine の中の div になった。
+       個別の帯色は付けず、親の1枚の面に載せる。 */
+    [data-theme="light"] #jobs { background:#eaeef5 !important; border-top:1px solid rgba(0,0,0,.07) !important; }
+    /* FAQ だけ light の上書きが無く、明るいページの中で1枚だけ黒い帯になっていた。 */
+    [data-theme="light"] #sec-faq { background:#eaeef5 !important; border-top:1px solid rgba(0,0,0,.07) !important; }
+    /* Muted text */
+    [data-theme="light"] .text-muted { color:#64748b !important; }
+    [data-theme="light"] [style*="color:#6b7d93"] { color:#64748b !important; }
+    [data-theme="light"] [style*="color:rgba(255,255,255,.4"] { color:rgba(15,23,42,.4) !important; }
+    [data-theme="light"] [style*="color:rgba(255,255,255,.5"] { color:rgba(15,23,42,.5) !important; }
+    [data-theme="light"] [style*="color:rgba(255,255,255,.6"] { color:rgba(15,23,42,.6) !important; }
+    [data-theme="light"] [style*="color:rgba(255,255,255,.7"] { color:rgba(15,23,42,.7) !important; }
+    /* #sec-community 用の light 上書きは、当のセクションを Give & Get に作り替えた時に消した */
+    /* Gold / amber text — pale on white, darken for legibility */
+    [data-theme="light"] [style*="color:#f5c842"] { color:#8a6e00 !important; }
+    [data-theme="light"] .tag-gold { color:#8a6e00 !important; background:rgba(245,200,66,.16); border-color:rgba(180,140,20,.35); }
+    [data-theme="light"] .btn-outline-amber { color:#b45309 !important; background:rgba(249,115,22,.12); border-color:rgba(249,115,22,.4); }
+    [data-theme="light"] .btn-outline-amber:hover { background:rgba(249,115,22,.2); border-color:rgba(249,115,22,.6); }
+    [data-theme="light"] .tag-gray { color:#475569 !important; background:rgba(15,23,42,.05); border-color:rgba(15,23,42,.12); }
+    /* 公開情報ブロック（V3 で leveling / metrics / compare / ranking を1枚に統合した） */
+    [data-theme="light"] #salary-engine { background:#f4f6fb !important; border-color:rgba(0,0,0,.07) !important; }
+    /* caption highlight ("箱の大きさ＝推定年収") — readable on both themes */
+    #salary-engine .lvl-cap-hl { color:#eaf1f8; font-weight:700; }
+    [data-theme="light"] #salary-engine .lvl-cap-hl { color:#0f172a; }
+    /* ランキングは既定で上位10行だけ。残りは「もっと見る」で開く（行はJS生成なのでSEO本文は元から無い）。 */
+    /* ⚠️ Tailwind CDN の .flex は後から <head> に注入されるので、
+       クラス1つ（.rank-more）だと同順位で負けて 21行とも出てしまう。id で1段上げる。 */
+    #ranking .rank-more{ display:none; }
+    #ranking.rank-open .rank-more{ display:flex; }
+    /* すべての掲載航空会社：2行カード → 1行チップ。<a href> は1本も減らさない。 */
+    #airline-chips a{ display:flex; align-items:baseline; justify-content:center;
+      gap:6px; padding:8px 10px; border-radius:10px; }
+    #airline-chips a > div{ margin-top:0 !important; }
+    #airline-chips a > div:last-child{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+    /* ── Mobile / iPhone fixes ──────────────────────── */
+    @media(max-width:767px){
+      /* Prevent horizontal overflow */
+      body,html{overflow-x:hidden;max-width:100vw}
+      /* Stat cards: single column on small phones */
+      .stat-card-grid{grid-template-columns:1fr 1fr!important}
+      /* Comparison table: horizontal scroll */
+      .compare-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+      /* Job cards: full width */
+      .job-cards-grid{grid-template-columns:1fr!important}
+      /* Section padding reduction */
+      .py-24{padding-top:3.5rem!important;padding-bottom:3.5rem!important}
+      .py-20{padding-top:3rem!important;padding-bottom:3rem!important}
+      /* Hero text fine-tuning */
+      .hero-ja{font-size:clamp(.85rem,2.2vw,1.2rem)!important;letter-spacing:.06em!important}
+    }
+    @media(max-width:480px){
+      /* Nav logo */
+      .logo-img{height:36px!important}
+      /* Footer nav links */
+      footer a[href]{font-size:.68rem!important;padding:4px 8px!important}
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       LP V2 コンポーネント
+       ヒーローを抜けた下は白のデータプロダクトUI。上のトークンだけを使う。
+       ここから下のクラスは全部 .pv- 接頭辞。既存の .glass / .stat-card 等とは
+       名前空間を分けてあるので、片方を直してももう片方に伝染しない。
+    ════════════════════════════════════════════════════════════ */
+
+    .pv-sec{ background:var(--pv-bg); color:var(--pv-ink);
+             padding:var(--pv-s-6) 0; position:relative; }
+    .pv-sec--sub{ background:var(--pv-bg-sub); }
+    .pv-sec--line{ border-top:1px solid var(--pv-line); }
+    .pv-wrap{ max-width:1180px; margin:0 auto; padding:0 var(--pv-s-3); }
+    .pv-wrap--narrow{ max-width:900px; }
+    /* 黒いヒーローの直後がいきなり純白になる段差を、上端だけ暖色で受ける。
+       色は足していない（--pv-orange-soft をそのまま縦グラデーションにしただけ）。
+       ★ヒーローの真下に来る節に付ける。2026-08-14 に Give & Get を上へ移したので、
+         この受けも #pv-value から #give-get へ移した。順番を入れ替えるときは一緒に動かす。 */
+    #give-get{ background:linear-gradient(180deg,var(--pv-orange-soft) 0,transparent 240px),
+                          var(--pv-bg); }
+    /* 信頼の節は緑。いちばん白い塊なので枠線にも通す。 */
+    #trust .pv-card{ border-color:var(--pv-green-line); }
+
+    /* 見出し */
+    .pv-eyebrow{ display:inline-flex; align-items:center; gap:7px;
+      font-size:.68rem; font-weight:800; letter-spacing:.14em; text-transform:uppercase;
+      color:var(--pv-orange-ink); background:var(--pv-orange-soft);
+      border:1px solid rgba(249,115,22,.22); border-radius:999px;
+      padding:5px 12px; margin-bottom:var(--pv-s-2); }
+    /* 眉ラベルの色違い。そのセクションが扱うデータの種類に合わせる。 */
+    .pv-eyebrow--gold { color:var(--pv-gold-ink);  background:var(--pv-gold-soft);
+      border-color:var(--pv-gold-line); }
+    .pv-eyebrow--green{ color:var(--pv-green-ink); background:var(--pv-green-soft);
+      border-color:var(--pv-green-line); }
+    .pv-h2{ font-size:clamp(1.5rem,3.2vw,2.15rem); font-weight:800;
+      letter-spacing:-.03em; line-height:1.28; color:var(--pv-ink); margin:0; }
+    .pv-h3{ font-size:clamp(1.02rem,1.9vw,1.2rem); font-weight:700;
+      letter-spacing:-.02em; line-height:1.4; color:var(--pv-ink); margin:0; }
+    .pv-lede{ font-size:.95rem; line-height:1.75; color:var(--pv-ink-2);
+      margin:var(--pv-s-2) 0 0; max-width:62ch; }
+    .pv-note{ font-size:.76rem; line-height:1.7; color:var(--pv-ink-2); }
+    .pv-head{ margin-bottom:var(--pv-s-3); }
+
+    /* カード */
+    .pv-card{ background:var(--pv-surface); border:1px solid var(--pv-line);
+      border-radius:var(--pv-r-lg); padding:var(--pv-s-3);
+      box-shadow:var(--pv-shadow); }
+    .pv-card--flat{ box-shadow:none; background:var(--pv-surface-2); }
+    a.pv-card, .pv-card--hover{
+      transition:transform .35s var(--pv-ease), box-shadow .35s var(--pv-ease),
+                 border-color .2s ease; }
+    a.pv-card:hover, .pv-card--hover:hover{
+      transform:translateY(-3px); box-shadow:var(--pv-shadow-lift);
+      border-color:rgba(249,115,22,.34); }
+    a.pv-card:focus-visible, .pv-card--hover:focus-visible{
+      outline:2px solid var(--pv-orange); outline-offset:3px; }
+    a.pv-card:active{ transform:translateY(-1px); }
+
+    /* カード頭のアイコンの下地。色でそのカードが扱うデータの種類を示す。
+       ⚠️ 名前を .tile にしない。Tailwind の CDN が後から <style> を入れるので、
+          同じ強さの単一クラスは向こうが勝つ（#ranking .rank-more で踏んだ）。 */
+    .pv-tile{ width:34px; height:34px; border-radius:var(--pv-r-sm);
+      display:flex; align-items:center; justify-content:center; margin-bottom:14px;
+      background:var(--pv-orange-soft); color:var(--pv-orange-ink); }
+    .pv-tile--teal { background:var(--pv-teal-soft);  color:var(--pv-teal); }
+    /* アイコンだけ --gold-ink(#8a6e00) ではなく --star(#b5920a)。前者は線画にすると
+       オリーブに見えて金に読めない（文字ではないので 3:1 で足りる）。 */
+    .pv-tile--gold { background:var(--pv-gold-soft);  color:var(--pv-star); }
+    .pv-tile--green{ background:var(--pv-green-soft); color:var(--pv-green-ink); }
+
+    .pv-grid{ display:grid; gap:var(--pv-s-2); }
+    .pv-grid-4{ grid-template-columns:repeat(4,1fr); }
+    .pv-grid-3{ grid-template-columns:repeat(3,1fr); }
+    .pv-grid-2{ grid-template-columns:repeat(2,1fr); }
+
+    /* 数値タイル */
+    .pv-kpi-lab{ font-size:.72rem; font-weight:600; letter-spacing:.03em;
+      color:var(--pv-ink-2); display:block; margin-bottom:5px; }
+    .pv-kpi-val{ font-size:clamp(1.4rem,3vw,1.9rem); font-weight:800;
+      letter-spacing:-.03em; line-height:1.1; color:var(--pv-ink);
+      font-variant-numeric:tabular-nums; }
+    .pv-kpi-val--hero{ font-size:clamp(2rem,5.2vw,3rem); }
+    .pv-kpi-sub{ font-size:.7rem; color:var(--pv-ink-2); margin-top:5px; }
+
+    /* バッジ */
+    .pv-badge{ display:inline-flex; align-items:center; gap:5px;
+      font-size:.66rem; font-weight:700; letter-spacing:.02em;
+      border-radius:999px; padding:3px 9px; white-space:nowrap;
+      border:1px solid transparent; }
+    /* 公開情報（＝推定）は青。 */
+    .pv-badge--pub{ color:var(--pv-blue-ink); background:var(--pv-blue-soft);
+      border-color:var(--pv-blue-line); }
+    /* ⚠️ --pub は長いあいだ2つの意味で使い回されていた。「公開情報」と、
+          Benchmark の絞り込み条件（あなたの会社／機長／n = 34）。後者は公開情報ではないので
+          灰色のまま分けた。ここを混ぜるとサンプル画面の説明が嘘になる。 */
+    .pv-badge--meta{ color:var(--pv-ink-2); background:var(--pv-line-soft);
+      border-color:var(--pv-line); }
+    .pv-badge--actual{ color:var(--pv-orange-ink); background:var(--pv-orange-soft);
+      border-color:rgba(249,115,22,.28); }
+    .pv-badge--slip{ color:var(--pv-teal); background:var(--pv-teal-soft);
+      border-color:rgba(15,118,110,.25); }
+    [data-theme="dark"] .pv-badge--slip{ border-color:rgba(94,234,212,.25); }
+    .pv-badge--soon{ color:var(--pv-ink-2); background:transparent;
+      border-color:var(--pv-line); border-style:dashed; }
+
+    /* サンプル枠 — 「これは実データではない」を1回だけ強く言う */
+    .pv-demo{ border:1.5px dashed rgba(249,115,22,.42); border-radius:var(--pv-r-lg);
+      background:linear-gradient(180deg,var(--pv-orange-soft) 0%,transparent 190px),
+                 var(--pv-surface);
+      padding:0 0 var(--pv-s-3); overflow:hidden; }
+    .pv-demo-flag{ display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 10px;
+      padding:12px var(--pv-s-3); border-bottom:1px solid var(--pv-line); }
+    .pv-demo-flag b{ font-size:.74rem; font-weight:800; letter-spacing:.1em;
+      color:var(--pv-orange-ink); }
+    .pv-demo-flag span{ font-size:.74rem; color:var(--pv-ink-2); }
+    /* V4：実物の「あなたの報酬レポート」と同じ 2列×2段
+       （1段目 累計｜今月 ／ 2段目 内訳｜Benchmark）。
+       ★ 実物の .mr-2col（my-value.css）と同じく flex。画面幅のメディアクエリで
+          畳まない ── この枠の外側の余白はページ側の都合で変わるので、
+          「枠が何 px あるか」でしか正しく畳めない＝flex-basis が唯一の正しい規則。 */
+    .pv-demo-cols{ display:flex; flex-wrap:wrap; gap:var(--pv-s-2);
+      align-items:flex-start; padding:var(--pv-s-2) var(--pv-s-3) 0; }
+    .pv-demo-cols>*{ flex:1 1 340px; min-width:0; }
+    /* 1段目だけは仕切り線（.pv-demo-flag の下辺）から少し離す */
+    .pv-demo-cols.is-first{ padding-top:var(--pv-s-3); }
+    .pv-demo-t{ font-size:.72rem; font-weight:800; letter-spacing:.06em;
+      color:var(--pv-ink-2); margin:0 0 8px; }
+    /* 枠内の小さいKPI行。狭い画面でも1列に落とさない（落とすと縦に伸びる）。 */
+    .pv-kpi-row{ display:grid; gap:12px;
+      grid-template-columns:repeat(auto-fit,minmax(112px,1fr)); }
+
+    /* ── 累計報酬（紺）─────────────────────────────────────────
+       実物の「あなたの報酬レポート」の累計カード（my-value.css の .mr-card.is-hero）
+       と同じ面・同じ色。ここが白いUIの中で唯一の暗い面で、毎月戻ってくる理由を1枚で見せる。
+       ★ 子の色は個別に書かず、トークンを差し替えるだけにする。あとで部品を1つ足したとき、
+          必ず1つ塗り忘れて紺の上に黒い字が残るため（実物側と同じ約束）。 */
+    .pv-cum{ --pv-surface:rgba(255,255,255,.05); --pv-surface-2:rgba(255,255,255,.025);
+      --pv-line:rgba(255,255,255,.13); --pv-line-soft:rgba(255,255,255,.07);
+      --pv-ink:#eaf1f8; --pv-ink-2:#adbfd4; --pv-ink-3:#8ea3bd;
+      color:var(--pv-ink); border:1px solid rgba(255,255,255,.11);
+      border-radius:var(--pv-r-lg); padding:22px 20px;
+      background:
+        radial-gradient(118% 132% at 86% -12%,rgba(245,200,66,.17) 0%,transparent 54%),
+        radial-gradient(96% 128% at 4% 112%,rgba(249,115,22,.15) 0%,transparent 48%),
+        var(--pv-navy);
+      box-shadow:0 1px 2px rgba(10,22,40,.32),
+                 0 24px 52px -22px rgba(10,22,40,.60),
+                 0 6px 16px -6px rgba(245,200,66,.12); }
+    .pv-cum-k{ display:block; font-size:.73rem; font-weight:700; color:var(--pv-ink-3);
+      letter-spacing:.06em; text-transform:uppercase; }
+    .pv-cum-s{ display:block; margin-top:9px; font-size:.75rem; color:var(--pv-ink-2); }
+    /* 累計の額だけ金。1ページで金を使うのはここだけ（多用すると意味が消える）。
+       ★ 横に「今月」を並べたので上限を下げた（2026-08-14）。実物のレポートでも
+          この額は画面の半分の幅に収まっている。 */
+    .pv-cum-v{ display:block; margin-top:10px; font-size:clamp(1.7rem,4.4vw,2.35rem);
+      font-weight:900; letter-spacing:-.035em; line-height:1;
+      font-variant-numeric:tabular-nums; color:var(--pv-gold);
+      text-shadow:0 0 30px rgba(245,200,66,.20); }
+    .pv-cum-n{ display:block; margin-top:10px; font-size:.76rem; color:var(--pv-ink-2); line-height:1.6; }
+    /* ★ grid ではなく flex。4列にすると枠が1つ余り、その穴が罫線の色のまま残って
+          「読み取れなかった枠」に見える。flex なら最終行が伸びて埋まる。 */
+    .pv-mini{ display:flex; flex-wrap:wrap; gap:1px; margin-top:18px;
+      background:var(--pv-line-soft); border:1px solid var(--pv-line-soft);
+      border-radius:var(--pv-r); overflow:hidden; }
+    .pv-mini-i{ flex:1 1 104px; background:var(--pv-surface); padding:13px 10px;
+      text-align:center; min-width:0; }
+    .pv-mini-i b{ display:block; font-size:1.02rem; font-weight:800; letter-spacing:-.02em;
+      line-height:1.2; font-variant-numeric:tabular-nums; }
+    .pv-mini-i span{ display:block; margin-top:5px; font-size:.66rem; color:var(--pv-ink-3);
+      font-weight:600; line-height:1.4; }
+    /* 折れ線の上の見出し行。★金額を SVG の <text> に入れない。currency.js は
+       文字を <span> で包むので、SVG の中に入れると通貨を切り替えた瞬間に消える
+       （実物側は図ごと pv-no-cur で走査から外している）。ここは HTML で出す。 */
+    .pv-cum-cap{ display:flex; align-items:baseline; justify-content:space-between;
+      gap:10px; margin-top:20px; font-size:.7rem; color:var(--pv-ink-3); font-weight:600; }
+    .pv-cum-cap b{ font-size:.86rem; font-weight:800; color:var(--pv-gold);
+      font-variant-numeric:tabular-nums; letter-spacing:-.02em; }
+
+    /* ── 今月の実績（紺の右隣）───────────────────────────────────
+       実物の .mr-kpis（my-value.css）の「枠が 600px 以下のときの形」＝2×2 と同じ。
+       サンプルのカードは常に半分の幅なので、実物のコンテナクエリを写す必要はなく
+       最初から2列で書く。総支給だけ字を大きくして主役を保つ（枠は他と同じ大きさ）。 */
+    .pv-mk{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+    .pv-mk-i{ background:var(--pv-surface-2); border:1px solid var(--pv-line-soft);
+      border-radius:var(--pv-r); padding:14px; min-width:0; }
+    .pv-mk-k{ display:block; font-size:.7rem; font-weight:600; color:var(--pv-ink-3);
+      line-height:1.4; }
+    .pv-mk-v{ display:block; margin-top:7px; font-size:1.12rem; font-weight:800;
+      letter-spacing:-.025em; line-height:1.15; font-variant-numeric:tabular-nums;
+      word-break:break-word; }
+    .pv-mk-i.is-lead .pv-mk-v{ font-size:1.5rem; }
+    .pv-mk-n{ display:block; margin-top:6px; font-size:.66rem; color:var(--pv-ink-3);
+      line-height:1.5; }
+    /* 増減の丸ピル。色は「向き」であって「良し悪し」ではない（実物 .mr-d と同じ）。 */
+    .pv-d{ display:inline-flex; align-items:center; margin-top:8px; padding:2px 8px;
+      border-radius:999px; font-size:.68rem; font-weight:800;
+      font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .pv-d.up{ color:var(--pv-orange-ink); background:var(--pv-orange-soft); }
+
+    /* ── 支給構成のドーナツ（実物 pay-viz.js の donut() と同じ形・同じ色）── */
+    .pv-donut-wrap{ display:flex; gap:20px; align-items:center; flex-wrap:wrap; }
+    .pv-donut{ position:relative; flex:none; width:132px; height:132px; }
+    .pv-donut-c{ position:absolute; inset:0; display:flex; align-items:center;
+      justify-content:center; }
+    .pv-donut-c b{ font-size:.9rem; font-weight:800; letter-spacing:-.02em;
+      font-variant-numeric:tabular-nums; }
+    .pv-legend{ flex:1 1 200px; min-width:0; display:flex; flex-direction:column; gap:7px; }
+    .pv-leg{ display:flex; align-items:center; gap:8px; font-size:.75rem; }
+    .pv-leg i{ width:9px; height:9px; border-radius:3px; flex:none; }
+    .pv-leg .nm{ color:var(--pv-ink-2); flex:1; min-width:0; }
+    .pv-leg .amt{ font-weight:700; font-variant-numeric:tabular-nums; }
+    .pv-leg .pct{ color:var(--pv-ink-3); width:34px; text-align:right;
+      font-variant-numeric:tabular-nums; }
+
+    /* 比較テーブル */
+    .pv-table{ width:100%; border-collapse:collapse; font-size:.84rem; }
+    .pv-table th, .pv-table td{ padding:12px 14px; text-align:left;
+      border-bottom:1px solid var(--pv-line-soft); }
+    .pv-table thead th{ font-size:.68rem; font-weight:700; letter-spacing:.08em;
+      text-transform:uppercase; color:var(--pv-ink-2);
+      border-bottom:1px solid var(--pv-line); white-space:nowrap; }
+    .pv-table td.pv-num{ text-align:right; font-variant-numeric:tabular-nums;
+      font-weight:700; color:var(--pv-ink); white-space:nowrap; }
+    .pv-table tbody tr:last-child td{ border-bottom:none; }
+    /* 2つの列を色で分ける。左＝公開情報（青・推定）、右＝実際の給与（橙・本人記録）。
+       ⚠️ セルにタグを足して色を付けない。check-salary.mjs の2パス目は
+          社名→役職→金額をタグ24文字ぶんまでしか跨げず（check-salary.mjs の GAP）、
+          ANA の行は既に16文字ぶん使っている。1つ足すとその行が黙って照合から外れる。
+       ⚠️ id を付けて書く。単一クラスだと Tailwind の CDN が後から入れる <style> に負ける。
+       ⚠️ data-label は 767px 以下で見出しの代わりに画面へ出る文字（下の .pv-table td::before）。
+          だから英語版は英語で書く必要があり、ここも日英2つ並べる。
+          英語トップの表の data-label を変えるときは、この2行も一緒に変える。 */
+    #actual-pay .pv-table td[data-label="公開情報"],
+    #actual-pay .pv-table td[data-label="Public estimate"]{ background:var(--pv-blue-soft); }
+    #actual-pay .pv-table td[data-label="実際の給与"],
+    #actual-pay .pv-table td[data-label="Actual pay"]{ background:var(--pv-orange-soft); }
+    #actual-pay .pv-table thead th:nth-child(3){ color:var(--pv-blue-ink); }
+    #actual-pay .pv-table thead th:nth-child(4){ color:var(--pv-orange-ink); }
+
+    /* 表の直上に置く2列の定義（§5）。長い前置きの代わり。 */
+    .pv-defs{ display:flex; flex-wrap:wrap; gap:6px 24px;
+      margin-bottom:var(--pv-s-2); }
+    .pv-defs p{ display:flex; align-items:center; gap:8px;
+      font-size:.76rem; line-height:1.6; color:var(--pv-ink-2); margin:0; }
+
+    /* ── Actual Pay 右列のモザイク（community.html の .rv-locked-tail と同じ考え方）──
+       ★PV_DEMO：下に敷いている数字は実在しないサンプル。2026-08-11 のオーナー判断でこのまま公開。
+       ⚠️ Tailwind CDN の JIT が後から <style> を head に入れるので、単一クラスだと負ける。
+          #actual-pay で特異性を上げる（.rank-more で1度踏んだ罠）。
+       動かすのは transform と opacity だけ。transition-all は使わない。 */
+    /* ⚠️ 鍵の文言を数字の「上」に重ねると、数字が隠れて
+          「何も無い欄」に見える（実際にそうなった）。数字を上、鍵を下の2段に分ける。 */
+    #actual-pay .pv-mask{ display:inline-flex; flex-direction:column;
+      align-items:flex-end; gap:2px; min-width:7em;
+      text-decoration:none; cursor:pointer; border-radius:7px; }
+    #actual-pay .pv-mask-v{ filter:blur(4.6px); opacity:.86; user-select:none;
+      font-weight:800; font-size:.95rem; line-height:1.4;
+      color:var(--pv-ink); letter-spacing:.02em;
+      transition:opacity .22s var(--pv-ease); }
+    #actual-pay .pv-mask-lock{ display:inline-flex; align-items:center; gap:3px;
+      font-size:.66rem; font-weight:800; white-space:nowrap; line-height:1.3;
+      color:var(--pv-orange-ink);
+      transition:transform .22s var(--pv-ease); }
+    #actual-pay .pv-mask:hover .pv-mask-lock{ transform:translateY(-1px); }
+    #actual-pay .pv-mask:hover .pv-mask-v{ opacity:1; }
+    #actual-pay .pv-mask:focus-visible{ outline:2px solid #f97316; outline-offset:3px; }
+    /* 解放後（lp.js が is-open を付ける） */
+    #actual-pay .pv-mask.is-open{ cursor:default; }
+    #actual-pay .pv-mask.is-open .pv-mask-v{ filter:none; opacity:1; }
+    #actual-pay .pv-mask.is-open .pv-mask-lock{ display:none; }
+    @media(prefers-reduced-motion:reduce){
+      #actual-pay .pv-mask-lock, #actual-pay .pv-mask-v{ transition:none; }
+    }
+
+    /* 右列が空のときの参加導線（§4）。件数は出さない。 */
+    .pv-fill{ display:flex; flex-wrap:wrap; align-items:center;
+      gap:6px var(--pv-s-3); margin-top:var(--pv-s-2);
+      padding:var(--pv-s-2) var(--pv-s-3);
+      border:1px solid rgba(249,115,22,.3); border-radius:var(--pv-r);
+      background:var(--pv-orange-soft); }
+    .pv-fill-t{ flex:0 0 100%; font-size:.94rem; font-weight:800;
+      letter-spacing:-.01em; color:var(--pv-ink); margin:0; }
+    .pv-fill-d{ flex:1 1 300px; font-size:.78rem; line-height:1.65;
+      color:var(--pv-ink-2); margin:0; }
+    .pv-fill .pv-btn{ flex:0 0 auto; }
+
+    /* 手順 (Give & Get) */
+    .pv-step{ position:relative; background:var(--pv-surface);
+      border:1px solid var(--pv-line); border-radius:var(--pv-r);
+      padding:var(--pv-s-3) var(--pv-s-2) var(--pv-s-2); }
+    .pv-step-n{ font-size:.68rem; font-weight:800; letter-spacing:.1em;
+      color:var(--pv-orange-ink); display:block; margin-bottom:6px; }
+    .pv-step-t{ font-size:.9rem; font-weight:700; color:var(--pv-ink);
+      letter-spacing:-.01em; margin-bottom:6px; }
+    .pv-step-d{ font-size:.76rem; line-height:1.7; color:var(--pv-ink-2); }
+    .pv-step--get{ border-color:rgba(249,115,22,.34); background:var(--pv-orange-soft); }
+
+    /* ボタン */
+    .pv-btn{ display:inline-flex; align-items:center; justify-content:center; gap:8px;
+      min-height:48px; padding:0 22px; border-radius:var(--pv-r-sm);
+      font-size:.88rem; font-weight:700; letter-spacing:.01em;
+      text-decoration:none; cursor:pointer; border:1px solid transparent;
+      transition:transform .3s var(--pv-ease), box-shadow .3s var(--pv-ease),
+                 background-color .2s ease, border-color .2s ease; }
+    .pv-btn--primary{ background:var(--pv-orange); color:#fff;
+      box-shadow:0 1px 2px rgba(194,65,12,.22), 0 10px 24px -12px rgba(249,115,22,.62); }
+    .pv-btn--primary:hover{ background:#ea6a0c; transform:translateY(-2px);
+      box-shadow:0 2px 4px rgba(194,65,12,.26), 0 18px 34px -14px rgba(249,115,22,.7); }
+    .pv-btn--primary:active{ transform:translateY(0); }
+    .pv-btn--ghost{ background:var(--pv-surface); color:var(--pv-ink);
+      border-color:var(--pv-line); }
+    .pv-btn--ghost:hover{ border-color:rgba(249,115,22,.45);
+      background:var(--pv-orange-soft); transform:translateY(-2px); }
+    .pv-btn:focus-visible{ outline:2px solid var(--pv-orange); outline-offset:3px; }
+    .pv-cta-row{ display:flex; flex-wrap:wrap; gap:12px; }
+
+    /* 口コミカード */
+    .pv-voice{ display:flex; flex-direction:column; gap:10px; height:100%; }
+    /* カテゴリを左、星を右。星は reviews_v2 の6項目の平均で、実データ（捏造なし）。
+       ⚠️ Tailwind CDN の JIT は後から <style> を入れるので、単一クラスだと負けることがある。
+          ここは Tailwind に同名ユーティリティが無い名前なので素のクラスのままでよい。 */
+    .pv-voice-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .pv-voice-stars{ display:inline-flex; align-items:baseline; gap:5px; flex-shrink:0; }
+    /* ⚠️ 白いカードに #f5c842 を直接置くとコントラストが 1.65 でほぼ見えない。
+          ライトでは一段落とした金（--pv-star）、ダークでは元の #f5c842 に戻る。 */
+    .pv-voice-stars i{ font-style:normal; font-size:.8rem; letter-spacing:1.5px;
+      color:var(--pv-star); line-height:1; }
+    .pv-voice-stars b{ font-size:.72rem; font-weight:800; color:var(--pv-ink-2); }
+    /* 口コミまわりは金でまとめる（評価の色）。 */
+    .pv-voice-cat{ font-size:.64rem; font-weight:800; letter-spacing:.1em;
+      color:var(--pv-gold-ink); background:var(--pv-gold-soft);
+      border:1px solid var(--pv-gold-line); border-radius:999px;
+      padding:2px 8px; }
+    .pv-voice-body{ font-size:.83rem; line-height:1.8; color:var(--pv-ink);
+      margin:0; flex:1; }
+    .pv-voice-meta{ font-size:.7rem; color:var(--pv-ink-2);
+      border-top:1px solid var(--pv-line-soft); padding-top:9px; }
+
+    /* 分布バー (Benchmark) */
+    .pv-dist{ display:flex; align-items:flex-end; gap:4px; height:96px; }
+    .pv-dist i{ flex:1; background:var(--pv-line); border-radius:3px 3px 0 0;
+      display:block; }
+    .pv-dist i.is-you{ background:var(--pv-orange); }
+
+    /* スケルトン (CLS対策: 実データが入るまで高さを保持) */
+    .pv-skel{ background:linear-gradient(90deg,var(--pv-line-soft) 25%,
+      var(--pv-line) 37%,var(--pv-line-soft) 63%);
+      background-size:400% 100%; border-radius:6px;
+      animation:pv-shimmer 1.4s ease-in-out infinite; }
+    @keyframes pv-shimmer{ 0%{background-position:100% 0} 100%{background-position:0 0} }
+    @media(prefers-reduced-motion:reduce){
+      .pv-skel{ animation:none; }
+      .pv-btn, a.pv-card, .pv-card--hover{ transition:none; }
+      /* 金のグラデーションは止めても色は残る（background-position が固定されるだけ）。 */
+      .hero-h1{ animation:none; }
+      /* ⚠️ .anim-fade-up が付いた要素に animation:none だけ書くと、初期値の opacity:0 が
+            残って要素ごと消える（PILOT DEFINES の行が丸ごと消えた）。
+            止めるときは終了状態（opacity:1 / transform:none）も一緒に書く。 */
+      .anim-fade-up{ animation:none; opacity:1; transform:none; }
+      /* ⚠️ 上の hero 用の上書きは詳細度が高いので、ここでも同じ強さで止めないと
+            「動きを減らす」設定の人だけ h1 が動いたままになる。 */
+      .hero-content .anim-fade-up.delay-2{ animation:none; opacity:1; transform:none; }
+      /* ⚠️ 帯（.hero-mq / .hero-mq-track / .hero-mq-c）を止める指定はここに書いても効かない。
+            帯の CSS はこの下（878行目〜）にあり、同じ強さなら後に書いたほうが勝つため。
+            実測で 2.5秒に 99px 動いたままだった。帯の定義の直後に置き直した。 */
+    }
+
+    /* ── Hero（ダークのまま。WebGLとシェーダーJSは無改造） ─────────
+       V3 で主従を逆転した。いちばん大きいのは h1 の「パイロットの待遇に、匿名の実データで透明性を。」。
+       PILOT DEFINES / PILOT'S VALUE は上の .hero-en に小さく残している。
+       金は .hero-en と同じ4色・同じ grad-shift。新しい色を作らない。 */
+    .hero-h1{ font-size:clamp(1.75rem,4.6vw,3.1rem); font-weight:900;
+      letter-spacing:-.035em; line-height:1.25;
+      /* ⚠️ color は消さない。background-clip:text が効かない環境で、
+         -webkit-text-fill-color:transparent だけが残ると見出しが丸ごと消える。 */
+      color:rgba(255,247,222,.97);
+      background:linear-gradient(135deg,#ff9b3d 0%,#ffd53d 40%,#fff5c0 65%,#ffa040 100%);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+      background-size:200% 200%; animation:grad-shift 4s ease infinite;
+      margin:0 0 .6rem; max-width:16em; }
+    /* ⚠️ 狭い画面だけ実測で縮める。2行目「匿名の実データで透明性を。」は13字あり、
+          28px だと 351px 要るのに本文の幅は 320px幅の端末で 280px しかない。
+          足りないと「を。」だけが3行目に落ちる（実測：320 / 360 / 390px で発生。414px 以上は2行）。
+          calc は（画面幅 − 左右の余白 40px）÷ 12.54em の直線。320px でも1行に収まる。
+          ★clamp の下限を vw にすると広い画面で max を追い越すので、@media で分けている。
+          この規則は .hero-h1 より後に置くこと（同じ強さなら後に書いたほうが勝つ）。 */
+    @media (max-width:413px){ .hero-h1{ font-size:calc(7.8vw - 3.5px); } }
+    /* ⚠️ 太さは 700 まで。128行目で読み込む Noto Sans JP は 400/500/700 しか無く、
+          800 や 900 を書くとブラウザが偽の太字を作って輪郭がにじむ。
+          （.hero-h1 の 900 は英数字が Inter なので問題が出ていない。） */
+    .hero-sub{ font-size:clamp(.82rem,1.5vw,1rem); line-height:1.7; font-weight:700;
+      letter-spacing:.01em; color:rgba(255,247,222,.94);
+      max-width:640px; margin:0 auto;
+      /* 日本語は既定でどこでも改行するので「実際の支給／額」のように語が割れる。
+         auto-phrase は文節で折る。非対応ブラウザは既定の折り返しに戻るだけ。 */
+      word-break:auto-phrase; }
+    /* ── Hero の流れる給与カード（Marit Health 型）──────────────────
+       ★PV_DEMO：カードの中身は lp.js の PV_DEMO.marquee が入れる。
+       中身は実在しないサンプル値。2026-08-11 のオーナー判断で、このまま公開する。
+       ⚠️ 中身は <div>。素の `nav {}`（218行目）が position:fixed を当てるので <nav> にしない。
+       動かすのは transform だけ。transition-all は使わない。
+       ⚠️ 全幅ぶち抜き（width:100vw）にすると横スクロールが出るので内容幅に収める。 */
+    .hero-mq{ position:relative; width:100%; max-width:1160px;
+      /* 下にあった信頼バッジを消したぶん、CTA との間隔を広げて釣り合いを取る。 */
+      margin:2.25rem auto 0; overflow:hidden;
+      /* ★カードは JS で後から入る。それまでこの帯は高さ0で、カードが入った瞬間に
+           123px 伸びる。hero は上下中央揃えなので、上の見出し全体が半分の 58px
+           ぶん跳ね上がっていた（＝画面がガタつく。CLS 0.0996 の全部がこれ）。
+           先に場所を空けておく。実測値：641px 以上で123px、640px 以下で117px。
+           ⚠️ .hero-mq-c の padding / font-size を変えたらこの数字も測り直す。 */
+      min-height:123px;
+      -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 7%,#000 93%,transparent 100%);
+              mask-image:linear-gradient(90deg,transparent 0,#000 7%,#000 93%,transparent 100%); }
+    /* トラックにはカード配列を2周ぶん入れる。-50% まで動かすと継ぎ目なしでループする。 */
+    /* 速度は 52s → 74s（速さを 0.7 倍。1周の時間は 52 ÷ 0.7 で逆に伸びる）。 */
+    .hero-mq-track{ display:flex; gap:10px; width:max-content;
+      animation:hero-mq 74s linear infinite; will-change:transform; }
+    .hero-mq:hover .hero-mq-track,
+    .hero-mq:focus-within .hero-mq-track{ animation-play-state:paused; }
+    @keyframes hero-mq{ from{ transform:translate3d(0,0,0) } to{ transform:translate3d(-50%,0,0) } }
+    .hero-mq-c{ flex:0 0 auto; width:200px; text-align:left; text-decoration:none;
+      display:flex; flex-direction:column; gap:1px; padding:12px 14px 11px;
+      border-radius:14px;
+      background:linear-gradient(155deg,rgba(255,255,255,.075),rgba(255,255,255,.028));
+      border:1px solid rgba(255,245,200,.13);
+      box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 8px 22px -12px rgba(0,0,0,.75);
+      transition:border-color .24s var(--pv-ease), transform .3s var(--pv-ease); }
+    .hero-mq-c:hover{ border-color:rgba(249,115,22,.45); transform:translateY(-2px); }
+    .hero-mq-c:focus-visible{ outline:2px solid #f97316; outline-offset:3px; }
+    .hero-mq-amt{ font-size:1.16rem; font-weight:900; letter-spacing:-.02em;
+      color:#ffcf7a; line-height:1.25; white-space:nowrap; }
+    .hero-mq-brk{ font-size:.6rem; font-weight:700; letter-spacing:.04em;
+      color:rgba(255,245,200,.42); margin-bottom:5px; }
+    .hero-mq-role{ font-size:.73rem; font-weight:800; color:rgba(255,245,200,.9); }
+    .hero-mq-air{ font-size:.68rem; font-weight:600; color:rgba(255,245,200,.6); }
+    .hero-mq-meta{ font-size:.62rem; font-weight:500; color:rgba(255,245,200,.4); margin-top:3px; }
+    /* 社名もベース名も長いものがある。折り返すとカードごとに高さが変わって帯が揃わないので
+       1行に固定し、あふれたら … で切る。 */
+    .hero-mq-role, .hero-mq-air, .hero-mq-meta{
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    @media(max-width:640px){
+      .hero-mq{ margin-top:1.75rem; min-height:117px; }   /* カードが小さくなるぶん帯も低い */
+      .hero-mq-c{ width:178px; padding:10px 12px 9px; }
+      .hero-mq-amt{ font-size:1.02rem; }
+    }
+    /* 動きを減らす設定のとき、帯は止める。代わりに手で横スクロールして読めるようにする。
+       ⚠️ 上のほう（838行目）の同じ @media に書くと、帯の定義のほうが後になって負ける。
+          必ず帯の定義より後に置くこと。 */
+    @media(prefers-reduced-motion:reduce){
+      .hero-mq{ overflow-x:auto; }
+      .hero-mq-track{ animation:none; }
+      .hero-mq-c{ transition:none; }
+    }
+    /* .hero-trust（信頼バッジ4つ）の CSS はここにあったが、バッジごと削除した。 */
+    /* 高さが足りない端末で中身が切れないよう、狭い画面では通常フローに落とす */
+    @media(max-width:900px){
+      #hero-section{ height:auto; min-height:100vh; }
+      .hero-content{ position:relative; inset:auto;
+        padding:104px 20px 64px; min-height:100vh; }
+      /* ⚠️ ここは長いあいだ効いていなかった。要素に Tailwind の `flex` が付いていて、
+            CDN の JIT が後から入れる display:flex に、同じ強さのこのルールが負けていた
+            （実測：375px でも SCROLL が出ていて、テープとの間が 11px しか無かった）。
+            id を足して強くする。#ranking .rank-more と同じ直し方。 */
+      #hero-section .hero-scroll-cue{ display:none; }
+    }
+
+    /* モバイルの一次データ導線（下に固定するバー）。
+       ⚠️ 最初これをヘッダーの右側に入れたら、search.js が後から挿す
+       ハンバーガー（767px 以下で唯一のメニュー）を画面外へ押し出した。
+       ヘッダーの右側はもう空いていない。下に置く。
+       z-index は drawer(195)/overlay(190) より下に置いて、
+       メニューを開いたときは暗幕の下に隠れるようにする。 */
+    #pv-mcta{ display:none; }
+    @media(max-width:767px){
+      #pv-mcta{ display:block; position:fixed; left:0; right:0; bottom:0; z-index:150;
+        padding:10px 14px calc(10px + env(safe-area-inset-bottom, 0px));
+        background:var(--pv-surface); border-top:1px solid var(--pv-line);
+        box-shadow:0 -1px 2px rgba(15,23,42,.04), 0 -10px 24px -14px rgba(15,23,42,.28);
+        transform:translateY(115%); visibility:hidden;
+        transition:transform .38s var(--pv-ease), visibility 0s linear .38s; }
+      /* 引っ込んでいる間は visibility:hidden にする。transform だけだと
+         画面外にいるボタンに Tab で入れてしまう。 */
+      #pv-mcta.is-on{ transform:translateY(0); visibility:visible;
+        transition:transform .38s var(--pv-ease); }
+      #pv-mcta a{ display:flex; align-items:center; justify-content:center; gap:8px;
+        height:48px; border-radius:12px; text-decoration:none;
+        font-size:.92rem; font-weight:800; letter-spacing:.01em; color:#fff;
+        background:var(--pv-orange);
+        box-shadow:0 1px 2px rgba(194,65,12,.22), 0 10px 22px -12px rgba(249,115,22,.65);
+        transition:transform .3s var(--pv-ease), background-color .2s ease; }
+      #pv-mcta a:active{ transform:scale(.985); background:#ea6a0c; }
+      #pv-mcta a:focus-visible{ outline:2px solid var(--pv-orange); outline-offset:3px; }
+    }
+    @media(prefers-reduced-motion:reduce){ #pv-mcta{ transition:none } }
+
+    .pv-hide{ display:none !important; }
+    /* スクリーンリーダー専用（チャートのテキスト代替に使う） */
+    .pv-sr{ position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+      overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+
+    @media(max-width:900px){
+      .pv-grid-4{ grid-template-columns:repeat(2,1fr); }
+      .pv-grid-3{ grid-template-columns:repeat(2,1fr); }
+      /* ★ 段組みを畳むのは flex-basis の仕事（上の注記）。ここで触るのは左右の余白だけ。 */
+      .pv-demo-cols{ padding:var(--pv-s-2) var(--pv-s-2) 0; }
+      .pv-demo-cols.is-first{ padding-top:var(--pv-s-3); }
+      /* 紺カードは狭い画面で内側の余白を詰める（詰めないと累計の額が2行に折れる） */
+      .pv-cum{ padding:20px 16px; }
+    }
+    /* ★スマホでは2列だと「¥2,000,000」が枠に入らず桁の途中で折れる（414px 以下で実測）。
+       実物の my-value.css（760px）と同じ手当て＝総支給を横1本ぶんに戻し、
+       残りの額を一段小さくする。 */
+    @media(max-width:560px){
+      .pv-mk-i.is-lead{ grid-column:1/-1; }
+      .pv-mk-v{ font-size:1.02rem; }
+      .pv-mk-i.is-lead .pv-mk-v{ font-size:1.5rem; }
+    }
+    /* いちばん狭い機種（320〜375px）では2列にすると手取りも折れる。1列に落とす。 */
+    @media(max-width:380px){
+      .pv-mk{ grid-template-columns:1fr; }
+    }
+    @media(max-width:767px){
+      .pv-sec{ padding:var(--pv-s-4) 0; }
+      .pv-head{ margin-bottom:var(--pv-s-3); }
+      .pv-btn{ width:100%; }
+      .pv-cta-row .pv-btn{ width:100%; }
+    }
+    @media(max-width:560px){
+      .pv-grid-4, .pv-grid-3, .pv-grid-2{ grid-template-columns:1fr; }
+      /* 横長テーブルは縮小せずカードに組み替える（横スクロールにしない） */
+      .pv-table, .pv-table tbody, .pv-table tr, .pv-table td{ display:block; width:100%; }
+      .pv-table thead{ display:none; }
+      .pv-table tr{ border:1px solid var(--pv-line); border-radius:var(--pv-r);
+        padding:6px 4px; margin-bottom:10px; background:var(--pv-surface); }
+      /* gap は 0。gap を入れると currency.js が割った span の間にも隙間が入って
+         「¥2,200 〜 3,500万」が三つに割れて見える。間隔は下の2つで作る。 */
+      .pv-table td{ border-bottom:none; padding:7px 12px;
+        display:flex; align-items:center; gap:0; }
+      .pv-table td .pv-badge{ margin-left:7px; }
+      /* ⚠️ ここを justify-content:space-between にしてはいけない。
+         currency.js が「¥2,200〜3,500万」を span 2個＋テキストに割るので、
+         金額の途中に隙間が空いて「¥2,200  〜  3,500万」になる。
+         ラベルだけを左へ押し出して、値は右側でひと固まりにする。 */
+      .pv-table td::before{ content:attr(data-label); margin-right:auto;
+        padding-right:12px; white-space:nowrap;
+        font-size:.7rem; font-weight:700; color:var(--pv-ink-2); }
+      .pv-table td.pv-num{ text-align:right; }
+      /* 縦積みになると td の背景が tr の角丸からはみ出して四角く見える。 */
+      #actual-pay .pv-table tr{ overflow:hidden; }
+    }

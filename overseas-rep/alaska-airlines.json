@@ -1,0 +1,74 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "財務が安定しブランド評価も高く、Glassdoorの企業文化は4.8/5と高評価。一方で労使は対立的で、契約交渉が3年以上こじれ、2022年には約1,500名が大規模ピケを実施、ストライキ権も賛成99%で承認された。経営に対しては「取れるものは日々取りに行け」という取引的な姿勢を勧める空気も残る。",
+      "en": "Financially stable with a strong brand and a 4.8/5 Glassdoor culture score, but labor relations run adversarial — a three-plus-year contract fight, a 1,500-pilot picket in 2022, and a 99% strike authorization."
+    },
+    "salary": {
+      "ja": "2023年の新契約で一律11.2%昇給、勤続によっては最大23%増を実現。機長トップは時給約331ドル（約5.2万円）まで上がり、副操縦士1年目の年収は約10万7千ドル（約1,690万円）。パイロット平均は約18万3千ドル（約2,890万円）で、現役の報酬満足度は高い。",
+      "en": "The 2023 contract delivered an 11.2% across-the-board raise (up to 23% by seniority); top captain pay reached about $331/hr, first-year FOs earn around $107k, and the pilot average sits near $183k."
+    },
+    "benefits": {
+      "ja": "会社拠出の401(k)が給与の17%と業界トップ級で、本人拠出とは別枠。プロフィットシェアは平均約7.73%で、2024年は全社で3億2,700万ドル（約517億円、給与約6週間分）を支給した。日当は国内2.55ドル、国際線3.00ドル/時。手厚い年金と分配が下位層の不満を相殺する強み。",
+      "en": "A 17%-of-pay company 401(k) contribution ranks near the industry top, and profit sharing averages about 7.73% — a company-wide $327M in 2024, roughly six weeks' pay — with per diem of $2.55/hr domestic and $3.00 international."
+    },
+    "wlb": {
+      "ja": "下位層のQOLは厳しい。月のオフは12〜14.5日程度で深夜便が多く、フォーラムでは「QOLは存在しない」との声も。トリップ交換は下位だと困難で割当便をそのまま飛ぶしかない。拠点が西海岸中心のため近郊在住なら快適だが、それ以外は通勤負担が重い。Glassdoorのワークライフは4.2/5。",
+      "en": "Junior quality of life is rough — 12 to 14.5 days off a month, heavy red-eyes, and trip trades that are hard to nearly impossible at the bottom; West Coast bases make it comfortable if you live nearby and painful if you commute (WLB 4.2/5 on Glassdoor)."
+    },
+    "ops": {
+      "ja": "メインラインは合併前まで全機ナローボディで、ボーイング737系が約243機、エアバスA321neoが約18機。2024年のハワイアン航空買収でA330/787のワイドボディと国際線が加わった。拠点はシアトルやポートランドなど西海岸中心で、2026年6月にサンディエゴが開設。統合の先任順位が最大の火種。",
+      "en": "Mainline was all narrowbody — about 243 Boeing 737s and 18 A321neos — until the 2024 Hawaiian acquisition added A330/787 widebodies and international flying; bases cluster on the West Coast, with San Diego opening June 2026."
+    },
+    "training": {
+      "ja": "新人訓練はタイプレーティング、ホテル、訓練中の日当を会社が負担し、目立った拘束金（訓練ボンド）はない。機長の直接採用はなく全員が社内昇格のため、副操縦士で入れば機長への道は確実。昇格は概ね6〜8年で、長期に続く義務退職の波が席の動きを支える。ただ大手他社より速いわけではない。",
+      "en": "Training covers the type rating, hotel, and per diem with no notable bond; there are no direct-entry captains, so upgrade is guaranteed from within and runs about six to eight years, sustained by a long retirement wave."
+    }
+  },
+  "sources": [
+    {
+      "title": "Alaska Airlines Pilots Ratify A New Contract - One Mile at a Time",
+      "url": "https://onemileatatime.com/news/alaska-airlines-pilots-contract/"
+    },
+    {
+      "title": "Alaska Airlines reaches a milestone contract deal with its pilots union - The Seattle Times",
+      "url": "https://www.seattletimes.com/business/boeing-aerospace/alaska-airlines-reaches-a-milestone-contract-with-its-pilot-union/"
+    },
+    {
+      "title": "Alaska Airlines Pilot Salary in 2025 - Aviation A2Z",
+      "url": "https://aviationa2z.com/index.php/2026/02/15/alaska-airlines-pilot-salary-2025/"
+    },
+    {
+      "title": "Alaska Airlines | Pilot Pay, Retirement & Career Guide - Ready For Takeoff",
+      "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/alaska-airlines"
+    },
+    {
+      "title": "Alaska Airlines Airline Pilot Reviews - Glassdoor",
+      "url": "https://www.glassdoor.com/Reviews/Alaska-Airlines-Airline-Pilot-Reviews-EI_IE19.0,15_KO16,29.htm"
+    },
+    {
+      "title": "Typical Schedule/QoL - Airline Pilot Central Forums",
+      "url": "https://www.airlinepilotforums.com/alaska/127676-typical-schedule-qol.html"
+    },
+    {
+      "title": "Joint Statement from Alaska and Hawaiian Airlines' Pilot Leadership on Single Operating Certificate - ALPA",
+      "url": "https://www.alpa.org/Press-Room/2025/10/Alaska-and-Hawaiian-Airlines-Single-Operating-Certificate"
+    },
+    {
+      "title": "Hawaiian Pilots Warn of Mental Stress Amid Alaska Airlines Merger - Aviation A2Z",
+      "url": "https://aviationa2z.com/index.php/2025/08/07/hawaiian-pilots-warn-of-changes-amid-alaska-airlines-merger/"
+    },
+    {
+      "title": "Alaska pilots authorize future strike if talks and mediation fail - The Seattle Times",
+      "url": "https://www.seattletimes.com/business/boeing-aerospace/alaska-pilots-authorize-future-strike-action-if-talks-and-mediation-fail/"
+    },
+    {
+      "title": "Alaska Airlines cancels dozens of flights as pilots picket over stalled contract negotiations - PBS NewsHour",
+      "url": "https://www.pbs.org/newshour/economy/alaska-airlines-cancels-dozens-of-flights-as-pilots-picket-over-stalled-contract-negotiations"
+    },
+    {
+      "title": "As major airlines hike pilot pay, Alaska Airlines boosts wages - Anchorage Daily News",
+      "url": "https://www.adn.com/business-economy/2023/08/28/as-major-airlines-hike-pilot-pay-alaska-airlines-boosts-wages/"
+    }
+  ]
+}

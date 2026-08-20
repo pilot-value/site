@@ -1,0 +1,425 @@
+{
+  "_readme": [
+    "db/eval-payslip.mjs の正解表。「読み取りは完璧か」に数字で答えるためのもの。",
+    "",
+    "★ここに並ぶ金額・時間・氏名は1つ残らず作り話。db/fixtures/make-payslips.mjs が",
+    "  この数字で合成明細を描いている。実物の明細の数字はこのリポジトリに一度も入れていない。",
+    "",
+    "採点の約束:",
+    " ・kinds は行ごとではなく kind ごとの合計で採点する。基本給が本給A/本給Bの2行に",
+    "   割れるように、分類の粒度はモデルの自由。フォームに入る値が合っていればよい。",
+    " ・0円の行（Profit Share 0.00 / VACATION 0.00）は sanitize が落とすので正解表にも無い。",
+    " ・値が配列のときは「どれでも正解」。通貨記号が印字されていない明細は、",
+    "   言語から JPY/USD/AED と推測してもよいし null と言ってもよい（どちらも嘘ではない）。",
+    " ・★『送られていない』と『読み違えた』を混ぜない。送る枠は明細の上段（氏名・社員番号・",
+    "   対象月が並ぶ行）を切り落とすので、様式によっては対象月が絵に入らない。",
+    "   絵に無いものを null と答えるのは正しい動作なので、その様式は period を配列にして",
+    "   null も正解にしてある（period_note に理由を書く）。誤った月を返すのは別で、must_not が見る。",
+    " ・must_not は「これを返したら大事故」の値。年初来の列を読んだ／単価を金額と取り違えた／",
+    "   欧州式の数字（8.450,00）を桁区切りごと落として1000分の1にした／人民元の ¥ を日本円と読んだ、",
+    "   が実際に起きうる読み違い。★このうち桁と通貨の2つは、支給の各行も印字された合計も",
+    "   同じ倍率でずれるため、こちら側の検算（Σ支給≒支給合計／支給−控除≒手取り）を両方すり抜ける。",
+    "   confidence も high のまま出てくるので、must_not に書いておかないと永久に見えない。",
+    " ・自動更新しない。退化した出力が正解になって検査が死ぬので、手で直す。"
+  ],
+
+  "slips": [
+    {
+      "id": "jp-major",
+      "file": "payslip-jp-major.png",
+      "note": "日本・大手の標準様式。支給と控除が上下、勤怠が最下段。",
+      "lang": "ja",
+      "currency": ["JPY", null],
+      "period": { "year": 2026, "month": 7 },
+      "gross_total": 911500,
+      "deductions_total": 221354,
+      "net_pay": 690146,
+      "ytd_taxable": null,
+      "kinds": {
+        "base": 420000,
+        "command": 185000,
+        "flight_variable": 186500,
+        "housing": 60000,
+        "transport": 18000,
+        "per_diem": 42000
+      },
+      "hours": { "duty": 168.5, "block": 78.2, "night": 12.0 },
+      "must_not": {
+        "kinds": { "base": 911500 },
+        "hours": { "block": 14 }
+      }
+    },
+
+    {
+      "id": "jp-twocol",
+      "file": "payslip-jp-twocol.png",
+      "note": "支給と控除が左右2段組み。★対象月が和暦「令和8年7月分」＝2026年7月。",
+      "lang": "ja",
+      "currency": ["JPY", null],
+      "period_note": "null も正解。この様式は対象月が氏名と同じ見出し行にあり、送る枠がその行ごと落とす（2026-08-14 に送信画像で確認）。絵に無いものは読めないので、月は本人が画面で選ぶ。★ただし『令和8年』を西暦の8年と読むのは大事故なので must_not に残す。",
+      "period": [{ "year": 2026, "month": 7 }, null],
+      "gross_total": 1035300,
+      "deductions_total": 283795,
+      "net_pay": 751505,
+      "ytd_taxable": null,
+      "kinds": {
+        "base": 465000,
+        "command": 210000,
+        "flight_variable": 229900,
+        "housing": 72000,
+        "per_diem": 58400
+      },
+      "hours": { "duty": 181.0, "block": 84.6, "night": 16.5 },
+      "must_not": {
+        "period": { "year": 8, "month": 7 }
+      }
+    },
+
+    {
+      "id": "jp-compact",
+      "file": "payslip-jp-compact.png",
+      "note": "実物の様式に寄せたもの。60進の時間・支給欄のマイナス行・現物給与・本給2行が同時に起きる。差引支給額は印字されていない。",
+      "lang": "ja",
+      "currency": ["JPY", null],
+      "period": { "year": 2026, "month": 7 },
+      "gross_total": 1045000,
+      "deductions_total": 375275,
+      "net_pay": null,
+      "ytd_taxable": 5400000,
+      "kinds": {
+        "base": 360000,
+        "command": 460000,
+        "housing": 8000,
+        "flight_variable": 224000,
+        "absence": -18000,
+        "notional": 9000,
+        "other": 2000
+      },
+      "hours": { "duty": 120.5, "block": 60.0, "night": 4.2 },
+      "must_not": {
+        "kinds": { "absence": 18000 },
+        "hours": { "duty": 120.3, "night": 4.12, "absence": 4 }
+      }
+    },
+
+    {
+      "id": "jp-dense",
+      "file": "payslip-jp-dense.png",
+      "note": "実物に近い密な様式（1800px）。左に個人情報・右に勤務時間表が横並び。株式積立奨励金が無いので支給合計は 1,043,000。",
+      "lang": "ja",
+      "currency": ["JPY", null],
+      "period_note": "null も正解。jp-twocol と同じで、対象月が個人情報の塊と同じ上段にあり送る枠が落とす（2026-08-14 に送信画像で確認）。",
+      "period": [{ "year": 2026, "month": 7 }, null],
+      "gross_total": 1043000,
+      "deductions_total": 342275,
+      "net_pay": 700725,
+      "ytd_taxable": null,
+      "kinds": {
+        "base": 360000,
+        "command": 460000,
+        "housing": 8000,
+        "flight_variable": 224000,
+        "absence": -18000,
+        "notional": 9000
+      },
+      "hours": { "duty": 120.5, "block": 60.0, "night": 4.2 },
+      "must_not": {
+        "kinds": { "absence": 18000 },
+        "hours": { "duty": 120.3, "absence": 4 }
+      }
+    },
+
+    {
+      "id": "gulf",
+      "file": "payslip-gulf.png",
+      "note": "湾岸・英語。時間がコロン表記（78:12）。Flying Pay のラベルに単価 210.00 が入っているのが罠。",
+      "lang": "en",
+      "currency": "AED",
+      "period": { "year": 2026, "month": 7 },
+      "gross_total": 74272,
+      "deductions_total": 1605.5,
+      "net_pay": 72666.5,
+      "ytd_taxable": null,
+      "kinds": {
+        "base": 32110,
+        "housing": 15700,
+        "flight_variable": 16422,
+        "per_diem": 6240,
+        "other": 3800
+      },
+      "hours": { "block": 78.2, "duty": 164.5, "night": 11.0 },
+      "must_not": {
+        "kinds": { "base": 74272, "flight_variable": 210 },
+        "hours": { "block": 78.12 }
+      }
+    },
+
+    {
+      "id": "gulf-side",
+      "file": "payslip-gulf-side.png",
+      "note": "湾岸・支給表が左／個人情報が右の縦帯。通貨コードが印字されていない。",
+      "lang": "en",
+      "currency": ["AED", null],
+      "period": { "year": 2026, "month": 7 },
+      "gross_total": 81180,
+      "deductions_total": 3240,
+      "net_pay": 77940,
+      "ytd_taxable": null,
+      "kinds": {
+        "base": 31400,
+        "command": 12000,
+        "housing": 16500,
+        "transport": 2100,
+        "flight_variable": 14860,
+        "per_diem": 4320
+      },
+      "hours": { "block": 80.4, "duty": 171.0, "night": 9.5 },
+      "must_not": {
+        "kinds": { "base": 81180 }
+      }
+    },
+
+    {
+      "id": "us",
+      "file": "payslip-us.png",
+      "note": "米国・等幅テキストで罫線なし。★EARNINGS / HOURS / RATE / AMOUNT の4列。金額は一番右の AMOUNT。GUARANTEE 73.00 は時間の語彙に無いので落ちる。",
+      "lang": "en",
+      "currency": ["USD", null],
+      "period": [{ "year": 2026, "month": 7 }, null],
+      "period_note": "★null も正解。対象月『JUL 2026』は表題の行にしか無く、送る枠はそこを切り落とす（実測 枠 y 0.138..0.566・表題は y 0.032）。枠の外は画像に存在しないので、モデルは読みようがない。ここで null 以外が返ったら、それは推測＝もっと悪い。",
+      "gross_total": 27076.11,
+      "deductions_total": 8914.22,
+      "net_pay": 18161.89,
+      "ytd_taxable": null,
+      "kinds": {
+        "flight_variable": 26455.51,
+        "per_diem": 620.6
+      },
+      "kinds_note": "OVERRIDE-INTL 549.58。2026-08-14 の実測で実際に command に寄った（プロンプトの command の例に『captain override』と書いてあったのが原因）。飛んだ時間に比例する割増なので flight_variable が正。プロンプト側で書き分けた。年収は変わらないので、ずれても『分類ずれ』であって金額の誤りではない。",
+      "hours": { "block": 76.3, "credit": 84.55, "duty": 158.4 },
+      "must_not": {
+        "kinds": { "flight_variable": 84.55, "per_diem": 214 },
+        "gross_total": 84.55,
+        "hours": { "block": 73 }
+      }
+    },
+
+    {
+      "id": "pdf-gulf",
+      "file": "payslip-pdf-gulf.pdf",
+      "note": "gulf と同じ中身の PDF。★画面が『PDF のまま落とすのがいちばん正確に読めます』と言っている経路そのもの。画像に焼き直す段で潰れていないかを見る。",
+      "lang": "en",
+      "currency": "AED",
+      "period": { "year": 2026, "month": 7 },
+      "gross_total": 74272,
+      "deductions_total": 1605.5,
+      "net_pay": 72666.5,
+      "ytd_taxable": null,
+      "kinds": {
+        "base": 32110,
+        "housing": 15700,
+        "flight_variable": 16422,
+        "per_diem": 6240,
+        "other": 3800
+      },
+      "hours": { "block": 78.2, "duty": 164.5, "night": 11.0 },
+      "must_not": {
+        "kinds": { "base": 74272, "flight_variable": 210 },
+        "hours": { "block": 78.12 }
+      }
+    },
+
+    {
+      "id": "eu-de",
+      "file": "payslip-eu-de.png",
+      "note": "ドイツ・独語・EUR。★小数点がコンマ、桁区切りがピリオド（8.450,00）。時間も 78,2。",
+      "lang": "en",
+      "locale": "de-DE",
+      "currency": "EUR",
+      "period": { "year": 2026, "month": 7 },
+      "gross_total": 15216.9,
+      "deductions_total": 6104.22,
+      "net_pay": 9112.68,
+      "ytd_taxable": null,
+      "kinds": {
+        "base": 8450,
+        "command": 2100,
+        "flight_variable": 3698.9,
+        "per_diem": 968
+      },
+      "kinds_note": "Funktionszulage は Kapitän の職務手当なので command。Flugstundenvergütung 3286.40 と Nachtflugzulage 412.50 を足して flight_variable 3698.90。Spesen（steuerfrei）は非課税の日当。",
+      "hours": { "block": 78.2, "duty": 164.5, "night": 11.0 },
+      "must_not": {
+        "kinds": { "base": 8.45, "command": 2.1 },
+        "gross_total": 15.216,
+        "hours": { "block": 782, "duty": 1645 }
+      }
+    },
+
+    {
+      "id": "eu-fr",
+      "file": "payslip-eu-fr.png",
+      "note": "フランス・仏語・EUR。★桁区切りが空白（7 980,00）＋ 年間累計（Cumul annuel）の列が今月の右に並ぶ。",
+      "lang": "en",
+      "locale": "fr-FR",
+      "currency": "EUR",
+      "period": [{ "year": 2026, "month": 7 }, null],
+      "period_note": "★null も正解。「Période : Juillet 2026」は氏名と同じ見出しの行にあり、送る枠はそこを切り落とす（実測 枠 y 0.173..0.608・見出しは y 0.072）。2026-08-14 の1回目は 2026/7 が返ったが、これは年間累計 55 860 ÷ 今月 7 980 = 7 からの逆算＝推測。読めた日と読めない日があるのが推測の証拠なので、null を正解に含める。",
+      "gross_total": 14382.6,
+      "deductions_total": 5613.45,
+      "net_pay": 8769.15,
+      "ytd_taxable": [100678.2, null],
+      "kinds": {
+        "base": 7980,
+        "command": 1850,
+        "flight_variable": 3528.6,
+        "per_diem": 1024
+      },
+      "kinds_note": "Indemnité de vol 3142.60 と Prime de nuit 386.00 を足して flight_variable 3528.60。Indemnités de séjour は日当。ytd_taxable は Cumul annuel の TOTAL BRUT で、課税対象そのものではないので null でも嘘ではない。",
+      "hours": { "block": 80.4, "duty": 171.0, "night": 12.5 },
+      "must_not": {
+        "kinds": { "base": 55860, "command": 12950, "flight_variable": 24700.2 },
+        "gross_total": 100678.2,
+        "hours": { "block": 804, "duty": 1710 }
+      }
+    },
+
+    {
+      "id": "cn",
+      "file": "payslip-cn.png",
+      "note": "中国・簡体字・CNY。★金額が「¥」で印字されている。日本円と同じ記号なので、記号だけで通貨を決めると年収が20分の1になる。",
+      "lang": "en",
+      "locale": "zh-CN",
+      "currency": "CNY",
+      "period": { "year": 2026, "month": 7 },
+      "gross_total": 91780,
+      "deductions_total": 18942,
+      "net_pay": 72838,
+      "ytd_taxable": null,
+      "kinds": {
+        "base": 38500,
+        "command": 12000,
+        "flight_variable": 29680,
+        "per_diem": 5600,
+        "housing": 6000
+      },
+      "kinds_note": "飞行小时费 26480 と 夜航补贴 3200 を足して flight_variable 29680。过夜补贴は滞在の日当、住房补贴は住宅手当。",
+      "hours": { "block": 76.5, "duty": 158.0, "night": 9.5 },
+      "must_not": {
+        "currency": "JPY"
+      }
+    },
+
+    {
+      "id": "kr",
+      "file": "payslip-kr.png",
+      "note": "韓国・ハングル・KRW。★桁が大きい（8,400,000）。0を1つ落としても支給合計との検算では拾えない。",
+      "lang": "en",
+      "locale": "ko-KR",
+      "currency": "KRW",
+      "period": { "year": 2026, "month": 7 },
+      "gross_total": 19140000,
+      "deductions_total": 4231500,
+      "net_pay": 14908500,
+      "ytd_taxable": null,
+      "kinds": {
+        "base": 8400000,
+        "command": 2100000,
+        "flight_variable": 6520000,
+        "per_diem": 920000,
+        "housing": 1200000
+      },
+      "kinds_note": "비행수당 5,880,000 と 야간비행수당 640,000 を足して flight_variable 6,520,000。체재비は滞在の日当、주택수당は住宅手当。",
+      "hours": { "block": 79.8, "duty": 166.0, "night": 10.2 },
+      "must_not": {
+        "currency": "JPY",
+        "kinds": { "base": 8400 },
+        "gross_total": 19140
+      }
+    },
+
+    {
+      "id": "oceania",
+      "file": "payslip-oceania.png",
+      "note": "豪州・英語・AUD。★罠が2つ。① 変動給の名前が4つとも語彙に無い（Flight Productivity Pay / Sector Pay / FDP Allowance / Flying Allowance）。② 通貨は $ としか印字していない。",
+      "lang": "en",
+      "locale": "en-AU",
+      "currency": ["AUD", null],
+      "currency_note": "$ しか印字していないので、AUD と読むのも「分からない」と言うのも正しい。USD と決めつけたら大事故（年収が約1.5倍）。根拠語として PAYG Tax / Salary Sacrifice / Superannuation を紙面に置いてある。",
+      "period": { "year": 2026, "month": 7 },
+      "gross_total": 18761.5,
+      "deductions_total": 7269.77,
+      "net_pay": 11491.73,
+      "ytd_taxable": null,
+      "kinds": {
+        "base": 9420,
+        "command": 1850,
+        "flight_variable": 6807.5,
+        "per_diem": 684
+      },
+      "kinds_note": "★この1枚の主目的。Flight Productivity Pay 3240 / Sector Pay 1485 / FDP Allowance 962.50 / Flying Allowance 1120 を足して flight_variable 6807.50 ＝ 4行とも変動給だと分かって初めて当たる。分からなかった行は unmapped に落ちて『聞き返し』に数えられる（金額は数えているので年収は正しい）。Meal & Incidentals は日当。Superannuation は雇用主拠出で総支給の外なので、どの kind にも入らない。",
+      "hours": { "block": 74.6, "duty": 152.4, "night": 8.9 },
+      "must_not": {
+        "currency": "USD",
+        "gross_total": 19794.27
+      }
+    },
+
+    {
+      "id": "latam",
+      "file": "payslip-latam.png",
+      "note": "ブラジル・ポルトガル語・BRL。★ピリオドが桁区切り・コンマが小数点（14.280,00）。時間も 77,4。",
+      "lang": "en",
+      "locale": "pt-BR",
+      "currency": "BRL",
+      "period": { "year": 2026, "month": 7 },
+      "gross_total": 29640.9,
+      "deductions_total": 8412.36,
+      "net_pay": 21228.54,
+      "ytd_taxable": null,
+      "kinds": {
+        "base": 14280,
+        "command": 3560,
+        "flight_variable": 7760.9,
+        "per_diem": 2140,
+        "housing": 1900
+      },
+      "kinds_note": "Adicional de voo 6842,50 と Adicional noturno 918,40 を足して flight_variable 7760,90。Diárias は滞在の日当、Auxílio moradia は住宅手当。",
+      "hours": { "block": 77.4, "duty": 161.2, "night": 10.6 },
+      "must_not": {
+        "currency": "USD",
+        "kinds": { "base": 14.28 },
+        "gross_total": 29.64,
+        "hours": { "block": 774, "duty": 1612 }
+      }
+    },
+
+    {
+      "id": "sea",
+      "file": "payslip-sea.png",
+      "note": "インドネシア・インドネシア語・IDR。★桁が極端に大きく小数点が無い（Rp 62.400.000）。62.4 と読むと年収が100万分の1。",
+      "lang": "en",
+      "locale": "id-ID",
+      "currency": "IDR",
+      "period": { "year": 2026, "month": 7 },
+      "gross_total": 125250000,
+      "deductions_total": 21930000,
+      "net_pay": 103320000,
+      "ytd_taxable": null,
+      "kinds": {
+        "base": 62400000,
+        "command": 14800000,
+        "flight_variable": 32370000,
+        "per_diem": 6480000,
+        "housing": 9200000
+      },
+      "kinds_note": "Tunjangan terbang 28.650.000 と Tunjangan malam 3.720.000 を足して flight_variable 32.370.000。Uang saku は日当、Tunjangan perumahan は住宅手当。",
+      "hours": { "block": 75.8, "duty": 159.4, "night": 9.7 },
+      "must_not": {
+        "currency": "USD",
+        "kinds": { "base": 62.4 },
+        "gross_total": 125.25
+      }
+    }
+  ]
+}

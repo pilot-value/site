@@ -1,0 +1,517 @@
+/* ════════════════════════════════════════════════════════════════
+   my-value.css — マイレポート（my-value.html / en/my-value.html）専用
+
+   ★ 日英2枚の HTML が同じこのファイルを読む。片方だけ直せないように、
+     見た目はここに集約する。HTML のインライン <style> には
+     「CSS が届く前に見えてしまう部分」しか置かない
+     （db/test-form-contract.mjs が .pt-top{ / .mv-row{ の書き戻しを見張っている）。
+
+   ── 中身は3層 ──────────────────────────────────────────────
+   1) .mr-*      … このページの骨格と部品（ヘッダー・サイドバー・カード・KPI）
+   2) .mv-*      … 前回との差の行（クラス名は据え置き。契約テストが .mv-c と
+                    .mv-c .d を数えている）
+   3) #pv-value .pt-*
+                 … pay-viz.css（profile.html と共有）の暗い前提を、このページの
+                    中だけライト先行に上書きする。
+                    ★ pay-viz.css を直さない。直すと profile.html が同時に動く。
+                    ★ id で始めているのは、向こうの [data-theme="light"] .pt-x
+                      （詳細度 0,2,0）に勝つため（こちらは 1,1,0）。
+                      1本書けばライトもダークも同時に上書きできる。
+
+   ── 色 ────────────────────────────────────────────────────
+   値は書かず --pv-* を使う（pv-tokens.css。トップページと共有）。
+   ここで新しいブランド色を作らない。
+   ★ 増減に緑/赤を使わない。上げ＝オレンジ、下げ＝青、同じ＝無彩色。
+     勤務時間が増えれば時間あたり報酬は下がる＝「増えた＝良い」ではないため、
+     色で良し悪しを言わない。
+   ════════════════════════════════════════════════════════════════ */
+
+/* ══ 1) 骨格 ═══════════════════════════════════════════════════ */
+
+/* 1行目は color-mix を知らないブラウザ用の素の色。順番を入れ替えないこと。 */
+.mr-top{position:sticky;top:0;z-index:200;
+        background:var(--pv-bg);
+        background:color-mix(in srgb,var(--pv-bg) 88%,transparent);
+        border-bottom:1px solid var(--pv-line-soft);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.mr-top-in{max-width:1280px;margin:0 auto;padding:0 24px;height:60px;
+           display:flex;align-items:center;justify-content:space-between;gap:16px}
+.mr-brand{display:inline-flex;align-items:center;border-radius:var(--pv-r-sm)}
+.mr-brand img{display:block;height:28px;width:auto}
+.mr-brand:focus-visible{outline:2px solid var(--pv-orange);outline-offset:4px}
+/* lang-toggle.js と currency.js が #theme-toggle の隣に自分のボタンを差し込む。
+   3つ並んでも 375px で溢れないよう、ここでは他のボタンを置かない。 */
+.mr-top-r{display:flex;align-items:center;gap:8px;flex-shrink:0}
+
+.mr-shell{max-width:1280px;margin:0 auto;padding:28px 24px 96px;
+          display:grid;grid-template-columns:208px minmax(0,1fr);gap:36px;align-items:start}
+
+.mr-side{position:sticky;top:84px;display:flex;flex-direction:column;gap:2px}
+.mr-side-a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--pv-r-sm);
+           color:var(--pv-ink-2);text-decoration:none;font-size:.84rem;font-weight:600;
+           border:1px solid transparent;
+           transition:background-color .18s var(--pv-ease),color .18s var(--pv-ease),
+                      border-color .18s var(--pv-ease)}
+.mr-side-a svg{flex:none;opacity:.7}
+.mr-side-a:hover{background:var(--pv-line-soft);color:var(--pv-ink)}
+.mr-side-a:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}
+.mr-side-a:active{background:var(--pv-line)}
+.mr-side-a.is-on{background:var(--pv-surface);color:var(--pv-ink);font-weight:700;
+                 border-color:var(--pv-line);box-shadow:var(--pv-shadow)}
+.mr-side-a.is-on svg{opacity:1;color:var(--pv-orange)}
+/* 「給与を追加」＝このサイトで一番押してほしいもの。3つの中で1つだけ色を持たせる。 */
+.mr-side-a.is-add{color:var(--pv-orange-ink);font-weight:700}
+.mr-side-a.is-add svg{opacity:1}
+.mr-side-a.is-add:hover{background:var(--pv-orange-soft);color:var(--pv-orange-ink)}
+.mr-side-note{margin-top:14px;padding:0 12px;font-size:.68rem;line-height:1.65;color:var(--pv-ink-3)}
+
+.mr-main{min-width:0}
+
+/* 読み込み中の板。opacity だけを動かす（レイアウトを起こさない）。 */
+.mr-skel{background:var(--pv-line-soft);border-radius:var(--pv-r-sm);animation:mr-pulse 1.5s ease-in-out infinite}
+@keyframes mr-pulse{0%,100%{opacity:.55}50%{opacity:1}}
+
+/* ══ 2) レポートの中身 ═════════════════════════════════════════ */
+
+/* ページ見出し。「市場価値」とは言わない（順位ではなく本人の記録が主語）。 */
+.mr-hd{margin-bottom:24px}
+.mr-hd-t{font-size:clamp(1.4rem,3.4vw,1.9rem);font-weight:800;letter-spacing:-.03em;line-height:1.25}
+.mr-hd-s{margin-top:8px;font-size:.86rem;color:var(--pv-ink-2);line-height:1.7}
+.mr-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.mr-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;
+         background:var(--pv-surface);border:1px solid var(--pv-line);
+         font-size:.71rem;font-weight:600;color:var(--pv-ink-2);white-space:nowrap}
+.mr-chip b{font-weight:700;color:var(--pv-ink)}
+
+.mr-stack{display:flex;flex-direction:column;gap:16px}
+
+/* 2枚を同じ段に置く（PC）。上段＝累計｜今月、下段＝差｜構成。
+   ★ メディアクエリで切らない。この段の左右にサイドバーが有るか無いかで
+     使える幅が変わる（1000px でサイドバーが畳まれて逆に広くなる）ので、
+     画面幅で分けると 1001px だけ極端に細い2列になる。
+     flex-basis で「1列 400px を切ったら自動で縦に落ちる」と書けば、
+     どんな幅でも正しい側に倒れる。 */
+.mr-2col{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+.mr-2col>*{flex:1 1 400px;min-width:0}
+
+/* 面の階層：ページ地＝bg-sub、カード＝surface、その中の升目＝surface-2。
+   全部を同じ高さに置かない。
+   ★ container-type を付けて「カードの幅」で中の格子を畳めるようにする。
+     画面の幅では決められない。同じ 1440px でも、全幅に置いた今月のカードは
+     940px、上段に2枚並べた今月のカードは 486px で、中身の畳み方は逆になる。
+     カードの幅は親（.mr-stack か .mr-2col の flex-basis）が決めていて
+     中身では決まらないので、inline-size の閉じ込めで壊れるものが無い。 */
+.mr-card{background:var(--pv-surface);border:1px solid var(--pv-line);
+         border-radius:var(--pv-r-lg);padding:22px;box-shadow:var(--pv-shadow);
+         container-type:inline-size}
+.mr-card-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+           flex-wrap:wrap;margin-bottom:16px}
+.mr-card-t{font-size:.94rem;font-weight:800;letter-spacing:-.01em;line-height:1.4}
+.mr-card-s{font-size:.72rem;color:var(--pv-ink-3);font-weight:600;line-height:1.5}
+
+/* 累計＝毎月戻ってくる理由。ページで唯一の暗い面にして一番上に置く。
+   ★ 色は「中でトークンを差し替える」だけにする。この中の部品（.mr-mini /
+     .pt-note / .pt-empty / .pt-svg）は全部すでに --pv-* を読んでいるので、
+     ここを塗り替えれば丸ごと追随する。子ごとに色を書くと、あとで部品を
+     1つ足したときに必ず1つ塗り忘れて、紺の上に黒い字が残る。
+   ★ 値は pv-tokens.css のダーク側と同じ考え方（新しいブランド色を作らない）。
+     面だけは不透明色を置かず白の薄がけにする＝紺が透けて1枚の板に見える。
+   ★ --pt-dot は pay-viz.js が折れ線の「通過点」の抜き色に使う。背景と
+     同じ色を入れる約束なので、紺側の値をここで渡す（既定は白 or 黒）。 */
+.mr-card.is-hero{
+  --pv-surface:rgba(255,255,255,.05);
+  --pv-surface-2:rgba(255,255,255,.025);
+  --pv-line:rgba(255,255,255,.13);
+  --pv-line-soft:rgba(255,255,255,.07);
+  --pv-ink:#eaf1f8;   --pv-ink-2:#adbfd4;   --pv-ink-3:#8ea3bd;
+  --pv-orange-ink:#fdba74;
+  --pt-dot:#0f2038;
+  padding:28px 24px;color:var(--pv-ink);border-color:rgba(255,255,255,.11);
+  background:
+    radial-gradient(118% 132% at 86% -12%,rgba(245,200,66,.17) 0%,transparent 54%),
+    radial-gradient(96% 128% at 4% 112%,rgba(249,115,22,.15) 0%,transparent 48%),
+    var(--pv-navy);
+  box-shadow:0 1px 2px rgba(10,22,40,.32),
+             0 24px 52px -22px rgba(10,22,40,.60),
+             0 6px 16px -6px rgba(245,200,66,.12)}
+.mr-total-k{display:block;font-size:.73rem;font-weight:700;color:var(--pv-ink-3);
+            letter-spacing:.06em;text-transform:uppercase}
+/* 累計の額だけ金。ページ内で金を使うのはここ1か所（多用すると意味が消える）。
+   紺の上なので #f5c842 をそのまま置ける（コントラスト約 10:1）。 */
+.mr-total-v{display:block;margin-top:10px;font-size:clamp(2.1rem,6.4vw,3.1rem);font-weight:900;
+            letter-spacing:-.035em;line-height:1;font-variant-numeric:tabular-nums;
+            color:var(--pv-gold);text-shadow:0 0 30px rgba(245,200,66,.20)}
+.mr-total-n{display:block;margin-top:10px;font-size:.76rem;color:var(--pv-ink-2);line-height:1.6}
+
+/* KPI。総支給だけ2枠ぶん取って、残りを同じ大きさで並べる。
+   全部を同じ強さにしない（§23）。 */
+.mr-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.mr-kpi{background:var(--pv-surface-2);border:1px solid var(--pv-line-soft);
+        border-radius:var(--pv-r);padding:14px;min-width:0}
+.mr-kpi.is-lead{grid-column:span 2;background:var(--pv-surface-2);border-color:var(--pv-line)}
+.mr-kpi-k{display:block;font-size:.7rem;font-weight:600;color:var(--pv-ink-3);line-height:1.4}
+.mr-kpi-v{display:block;margin-top:7px;font-size:1.12rem;font-weight:800;letter-spacing:-.025em;
+          line-height:1.15;font-variant-numeric:tabular-nums;word-break:break-word}
+.mr-kpi.is-lead .mr-kpi-v{font-size:1.6rem}
+.mr-kpi-n{display:block;margin-top:6px;font-size:.66rem;color:var(--pv-ink-3);line-height:1.5}
+
+/* 増減の丸ピル。色は「向き」であって「良し悪し」ではない。 */
+.mr-d{display:inline-flex;align-items:center;margin-top:8px;padding:2px 8px;border-radius:999px;
+      font-size:.68rem;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+.mr-d.up{color:var(--pv-orange-ink);background:var(--pv-orange-soft)}
+.mr-d.dn{color:var(--pv-blue-ink);background:var(--pv-blue-soft)}
+.mr-d.fl{color:var(--pv-ink-3);background:var(--pv-line-soft)}
+
+/* 補助の数字（勤務時間・枚数など）。KPI より一段弱く、罫線だけで区切る。
+   ★ grid ではなく flex。累計の7枠は 4列にすると必ず1つ余り、その穴が
+     罫線の色のまま残って「読み取れなかった枠」に見える。flex なら
+     最終行が伸びて埋まる＝枚数が何個でも穴が空かない。 */
+.mr-mini{display:flex;flex-wrap:wrap;gap:1px;
+         margin-top:12px;background:var(--pv-line-soft);
+         border:1px solid var(--pv-line-soft);border-radius:var(--pv-r);overflow:hidden}
+.mr-mini-i{flex:1 1 104px;background:var(--pv-surface);padding:12px 10px;text-align:center;min-width:0}
+.mr-mini-i b{display:block;font-size:1.05rem;font-weight:800;letter-spacing:-.02em;line-height:1.2;
+             font-variant-numeric:tabular-nums}
+.mr-mini-i b i{font-style:normal;font-size:.7rem;font-weight:700;margin-left:2px;opacity:.55}
+.mr-mini-i span{display:block;margin-top:5px;font-size:.66rem;color:var(--pv-ink-3);font-weight:600;line-height:1.4}
+
+/* 累計の折れ線の枠。
+   ★ .pt-chart を付けない。my-value.js の drawChart() が .pt-chart を探して
+     推移の線を描くので、同じ名前にすると累計の枠に推移の線が入る。 */
+.mr-cum{width:100%;margin-top:18px}
+
+/* ── 単純年換算（今月を12倍しただけの参考値）────────────────────
+   ★ 面も文字も一段沈めたままにする。控除の行と同じ大きさで置くと、
+     賞与の出た月にこれが「年収」に見える。 */
+.mr-ann{margin-top:14px;border:1px solid var(--pv-line-soft);
+        border-radius:var(--pv-r);overflow:hidden}
+.mr-ann>div{background:var(--pv-surface);padding:14px 16px;min-width:0}
+.mr-ann .k{display:block;font-size:.7rem;font-weight:700;color:var(--pv-ink-3);line-height:1.4}
+.mr-ann .v{display:block;margin-top:8px;font-weight:900;letter-spacing:-.03em;line-height:1.1;
+           font-variant-numeric:tabular-nums;word-break:break-word}
+.mr-ann .s{display:block;margin-top:6px;font-size:.66rem;color:var(--pv-ink-3);line-height:1.55}
+/* 面も文字も一段下げる（詳細度 0,2,0 で上の .mr-ann>div に勝たせる）。 */
+.mr-ann>.mr-ann-s{background:var(--pv-surface-2)}
+.mr-ann-s .v{font-size:1.02rem;font-weight:800;color:var(--pv-ink-2)}
+.mr-ann-s .w{display:block;margin-top:6px;font-size:.63rem;color:var(--pv-ink-3);line-height:1.55}
+
+/* ★ 上段に2枚並べるとカードは約 486px になる。5列のままだと1枠 90px で
+     「総勤務時間あたり」が3行に折れるので、2×2 に畳む。
+     総支給は枠を1つに戻して字の大きさ（1.6rem）で主役を保つ＝穴が空かない。
+     ここを画面幅で書けない理由は .mr-2col の注記と同じ。
+   ★ 本当のモバイル（下の 760px）はこの後ろに書いてあるので、そちらが勝つ。
+     375px では枠が 145px しか無く、総支給は横1本ぶん使ったほうが読める。 */
+@container (max-width:600px){
+  .mr-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .mr-kpi.is-lead{grid-column:span 1}
+}
+
+/* ── 機会（Opportunity）──────────────────────────────────────
+   ★ 大きなマイナス1つを Hero にしない。左端に「いまの条件」を置き、
+     その右に同条件の中央値との差を並べる。順位（「上位○%」）は出さない。 */
+.mr-opp-lead{font-size:.79rem;color:var(--pv-ink-2);line-height:1.75}
+
+/* 横1列のレール。はみ出したぶんは横スクロール（ページ自体は横に伸びない）。
+   ★ 主レールは「いまの条件 ＋ 候補3社 ＋ スカウト」の5枚が既定。
+     幅を固定にすると 5 枚目（スカウト）が必ず画面の外に出るので、
+     等分に伸縮させて1行に収める。min-width より狭くなる画面では
+     従来どおり横スクロールに戻る（縮めて潰さない）。
+   ★ 畳んだ先（その他の比較）は枚数が読めないので固定幅のまま。 */
+.mr-rail{display:flex;gap:12px;margin-top:16px;overflow-x:auto;overflow-y:hidden;
+         padding:2px 2px 12px;scroll-snap-type:x proximity;
+         scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+.mr-rail>.mr-opp{flex:1 1 0;min-width:170px;max-width:300px;scroll-snap-align:start}
+.mr-rail.is-more>.mr-opp{flex:0 0 236px;max-width:none}
+
+.mr-opp{display:flex;flex-direction:column;min-width:0;
+        background:var(--pv-surface-2);border:1px solid var(--pv-line);
+        border-radius:var(--pv-r);padding:16px}
+.mr-opp-tag{align-self:flex-start;margin-bottom:10px;padding:3px 8px;border-radius:999px;
+            background:var(--pv-line-soft);color:var(--pv-ink-3);
+            font-size:.6rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase}
+.mr-opp-n{font-size:.92rem;font-weight:800;letter-spacing:-.015em;line-height:1.35}
+/* ★ 社名は1行の会社と2行になる会社が混ざる（「SINGAPORE AIRLINES」）。
+     そのままだと2行の札だけ金額が一段下がり、横に並べたとき数字の高さが揃わない。
+     候補の札にかぎって社名の枠を2行ぶん確保して、金額の行を揃える。
+     「現在」と「スカウト」は作りが違う（タグ・本文）ので巻き込まない。 */
+.mr-rail>.mr-opp:not(.is-cur):not(.is-scout) .mr-opp-n{min-height:2.7em}
+.mr-opp-m{margin-top:4px;font-size:.68rem;color:var(--pv-ink-3);font-weight:600;line-height:1.5}
+.mr-opp-big{display:flex;align-items:baseline;gap:5px;flex-wrap:wrap;margin-top:14px}
+/* ★ 1行に5枚入れると1枚は約180px。¥35,912,500 は11桁あるので、
+   1.45rem のままだと札からはみ出す。桁が多い通貨（円）に合わせて落とす。 */
+.mr-opp-big b{font-size:1.3rem;font-weight:900;letter-spacing:-.035em;line-height:1;
+              color:var(--pv-ink);font-variant-numeric:tabular-nums}
+/* ★ オレンジは「いまより上がる候補」だけ。下がる側を同じ色で大きく出すと、
+   読む前に損が確定した画面になる。下がる側は無彩色のまま残す。 */
+.mr-opp-big b.is-up{color:var(--pv-orange-ink)}
+.mr-opp-big span{font-size:.72rem;font-weight:700;color:var(--pv-ink-3)}
+.mr-opp-cap{margin-top:7px;font-size:.68rem;color:var(--pv-ink-2);line-height:1.6}
+.mr-opp-r{display:flex;flex-direction:column;gap:8px;margin-top:12px;padding-top:12px;
+          border-top:1px solid var(--pv-line-soft)}
+.mr-opp-r div{min-width:0}
+.mr-opp-r .k{display:block;font-size:.65rem;color:var(--pv-ink-3);font-weight:600}
+.mr-opp-r .v{display:block;margin-top:2px;font-size:.86rem;font-weight:800;letter-spacing:-.02em;
+             font-variant-numeric:tabular-nums}
+.mr-opp-r .s{display:block;margin-top:2px;font-size:.63rem;color:var(--pv-ink-3);line-height:1.5}
+/* 件数は札の一番下に揃える（札ごとに行数が違うので margin-top:auto で押し下げる）。 */
+.mr-opp-f{margin-top:auto;padding-top:12px;font-size:.65rem;color:var(--pv-ink-3);
+          font-weight:600;line-height:1.5}
+
+/* いまの条件。★ 良し悪しを付けない。面を一段持ち上げて「基準」であることだけ示す。 */
+.mr-opp.is-cur{background:var(--pv-surface);border-color:var(--pv-line);box-shadow:var(--pv-shadow)}
+.mr-opp.is-cur .mr-opp-tag{background:var(--pv-surface-2);color:var(--pv-ink-2);border:1px solid var(--pv-line)}
+
+/* スカウトは作っていない。灰色・破線・押せないボタン＝「まだ無い」を見た目で言う。
+   ★ 主役の色（オレンジ）を使わない。hover も出さない（押せないものを押せそうにしない）。 */
+.mr-opp.is-scout{background:var(--pv-surface-2);border-style:dashed;border-color:var(--pv-line)}
+.mr-opp.is-scout .mr-opp-n{color:var(--pv-ink-2)}
+.mr-opp.is-scout .mr-opp-cap{color:var(--pv-ink-3)}
+.mr-opp-btn{margin-top:auto;align-self:flex-start;padding:8px 14px;border-radius:var(--pv-r-sm);
+            border:1px solid var(--pv-line);background:var(--pv-line-soft);color:var(--pv-ink-3);
+            font-family:inherit;font-size:.72rem;font-weight:700;cursor:not-allowed}
+
+/* その他の比較。★ 下がる候補を消さない（年間は下がるのに時間あたりは上がる、がある）。
+   ただし主役ではないので畳んでおく。 */
+.mr-more{margin-top:14px;border-top:1px solid var(--pv-line-soft);padding-top:10px}
+.mr-more>summary{display:inline-flex;align-items:center;gap:7px;padding:6px 2px;cursor:pointer;
+                 list-style:none;font-size:.76rem;font-weight:700;color:var(--pv-ink-2);
+                 border-radius:var(--pv-r-sm);
+                 transition:color .18s var(--pv-ease)}
+.mr-more>summary::-webkit-details-marker{display:none}
+.mr-more>summary::before{content:"";flex:none;width:6px;height:6px;margin-left:2px;
+  border-right:2px solid currentColor;border-bottom:2px solid currentColor;
+  transform:rotate(-45deg);transition:transform .2s var(--pv-ease)}
+.mr-more[open]>summary::before{transform:rotate(45deg)}
+.mr-more>summary:hover{color:var(--pv-ink)}
+.mr-more>summary:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}
+.mr-more>summary:active{color:var(--pv-orange-ink)}
+.mr-more-s{margin-top:4px;font-size:.7rem;color:var(--pv-ink-3);line-height:1.7}
+.mr-rail.is-more>.mr-opp{background:var(--pv-surface)}
+
+/* 札の社名からその会社のページへ。★ 既定では線を引かない（札が5枚並ぶと
+   下線だらけになる）。触れたときだけ下線を出し、キーボードには枠を出す。 */
+.mr-opp-a{color:inherit;text-decoration:none;border-radius:3px;
+          transition:color .18s var(--pv-ease)}
+.mr-opp-a:hover{color:var(--pv-orange-ink);text-decoration:underline;text-underline-offset:3px}
+.mr-opp-a:focus-visible{outline:2px solid var(--pv-orange);outline-offset:3px}
+.mr-opp-a:active{color:var(--pv-orange-ink);opacity:.75}
+
+/* ── 次の1枚で何が増えるか（ポイント制にしない）───────────────── */
+.mr-next{list-style:none;display:flex;flex-direction:column;gap:1px;
+         background:var(--pv-line-soft);border:1px solid var(--pv-line-soft);
+         border-radius:var(--pv-r);overflow:hidden}
+.mr-next li{background:var(--pv-surface);padding:12px 14px;display:flex;align-items:flex-start;gap:10px}
+.mr-next li b{display:block;font-size:.8rem;font-weight:700;line-height:1.5}
+.mr-next li span{display:block;margin-top:3px;font-size:.71rem;color:var(--pv-ink-3);line-height:1.6}
+.mr-next-i{flex:none;width:20px;height:20px;border-radius:6px;display:inline-flex;
+           align-items:center;justify-content:center;margin-top:1px;
+           background:var(--pv-orange-soft);color:var(--pv-orange-ink)}
+
+/* 記録した月数。★ 点数を配らない（§11）。返すのは「何ヶ月ぶんのレポートに
+   なるか」だけ。目盛りは等間隔で、それぞれに月数を書く
+   （6→12→24→36 を比例した軸に見せると、36 が遠すぎて手が止まる）。 */
+.mr-ml{margin-top:16px;padding:16px;border-radius:var(--pv-r);
+       background:var(--pv-surface-2);border:1px solid var(--pv-line-soft)}
+.mr-ml-h b{display:block;font-size:.88rem;font-weight:800;letter-spacing:-.02em;line-height:1.4}
+.mr-ml-h span{display:block;margin-top:4px;font-size:.72rem;color:var(--pv-ink-2);line-height:1.6}
+.mr-ml-g{list-style:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+         gap:6px;margin-top:14px}
+.mr-ml-g li{padding:9px 4px;border-radius:var(--pv-r-sm);text-align:center;
+            background:var(--pv-surface);border:1px solid var(--pv-line-soft);
+            font-size:.7rem;font-weight:700;color:var(--pv-ink-3);
+            font-variant-numeric:tabular-nums}
+.mr-ml-g li.is-on{background:var(--pv-orange-soft);border-color:var(--pv-orange);color:var(--pv-orange-ink)}
+.mr-ml-g li.is-next{border-color:var(--pv-orange);color:var(--pv-ink)}
+
+/* 記録の節目（機種・職位・会社・Base が変わった月）。新しいテーブルは要らない。 */
+.mr-ms{list-style:none;display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.mr-ms li{display:flex;align-items:baseline;gap:10px;font-size:.76rem;line-height:1.6}
+.mr-ms .ym{flex:none;width:74px;font-weight:700;color:var(--pv-ink-3);font-variant-numeric:tabular-nums}
+.mr-ms .tx b{font-weight:700}
+
+/* ══ 3) 前回の明細との差（クラス名は据え置き）════════════════════
+   1px の隙間を背景色で見せる作り。行と行の間に線を引くより軽い。 */
+.mv-cmp{display:flex;flex-direction:column;gap:1px;background:var(--pv-line-soft);
+        border:1px solid var(--pv-line-soft);border-radius:var(--pv-r);overflow:hidden}
+.mv-c{background:var(--pv-surface);padding:12px 14px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.mv-c .k{font-size:.73rem;color:var(--pv-ink-3);font-weight:600;flex:1 1 38%;min-width:96px}
+.mv-c .was{font-size:.78rem;color:var(--pv-ink-3);font-variant-numeric:tabular-nums}
+.mv-c .arw{font-size:.7rem;color:var(--pv-ink-3)}
+.mv-c .now{font-size:.87rem;font-weight:800;letter-spacing:-.015em;font-variant-numeric:tabular-nums}
+.mv-c .d{margin-left:auto;font-size:.73rem;font-weight:800;font-variant-numeric:tabular-nums;
+         padding:2px 9px;border-radius:999px;white-space:nowrap}
+.mv-c .d.up{color:var(--pv-orange-ink);background:var(--pv-orange-soft)}
+.mv-c .d.dn{color:var(--pv-blue-ink);background:var(--pv-blue-soft)}
+.mv-c .d.fl{color:var(--pv-ink-3);background:var(--pv-line-soft)}
+
+/* 「項目：値」の2列。前提（会社・機種・職位）と年換算のペースで使う。 */
+.mv-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--pv-line-soft);
+         border:1px solid var(--pv-line-soft);border-radius:var(--pv-r);overflow:hidden}
+.mv-row{background:var(--pv-surface);padding:12px 14px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.mv-row .k{font-size:.72rem;color:var(--pv-ink-3);font-weight:600;flex:none;min-width:82px}
+/* ★ flex:1（＝basis 0）にしない。0 から伸びる指定だと、項目名が長い英語版で
+     値が縮められて金額が枠の外に出る（.mv-grid が overflow:hidden なので
+     「¥8,423,5」で切れて見えた）。basis auto にすると、1行に収まらないときは
+     縮まずに次の行へ落ちる＝桁が欠けない。 */
+.mv-row .v{font-size:.85rem;font-weight:700;letter-spacing:-.015em;font-variant-numeric:tabular-nums;
+           flex:1 1 auto;min-width:0;text-align:right}
+/* 補足（「1〜6月の累計から」など）は値の作り方が違うことを言う行なので、
+   値と同じ大きさにしない。混ぜて読まれると2つのペースが同じものに見える。 */
+.mv-row .s{flex-basis:100%;font-size:.68rem;color:var(--pv-ink-3);line-height:1.5;text-align:right}
+/* 項目が奇数のとき、最後の1つの隣に空セルが開く。最後だけ横いっぱいに伸ばす。 */
+.mv-row:last-child:nth-child(odd){grid-column:1/-1}
+
+/* 固定給と変動給の割合。支給構成カードの下段。 */
+.mv-bar{display:flex;height:12px;border-radius:999px;overflow:hidden;margin-top:12px;background:var(--pv-line-soft)}
+.mv-bar i{display:block;height:100%}
+.mv-ratio{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-top:14px}
+.mv-ratio b{font-size:1.7rem;font-weight:800;letter-spacing:-.03em;color:var(--pv-ink);line-height:1;
+            font-variant-numeric:tabular-nums}
+.mv-ratio span{font-size:.74rem;color:var(--pv-ink-3);font-weight:600}
+
+/* ── 見本（明細を出すまでの空欄）──────────────────────────────
+   額面1本だけ出した人には、明細でしか作れない節が空欄で並ぶ。空欄は
+   「壊れている」に見えるので、見本をぼかして敷き、その上に札と導線を置く。
+
+   ★ index.html の .pv-mask を手本にしたが、共有しない。向こうは
+     #actual-pay で特異性を上げているので、まとめると LP が動く。
+   ★ hover でぼかしを解かない。中身は見本なので、読めても意味が無い。
+   ★ ぼかしの下は必ず薄くする。同じ濃さで重ねると、どちらが本人の
+     数字なのか分からなくなる（index.html:737 で一度踏んだ）。 */
+/* ★ 高さは「文言＋ボタン」側で決める。見本の側で決めると、行数の少ない見本
+   （手取りの2行）でボタンがはみ出して隣のカードに重なる（実際になった）。
+   見本は後ろに敷くだけ＝はみ出したぶんは overflow:hidden で捨てる。 */
+.mr-mask{position:relative;border-radius:var(--pv-r);overflow:hidden;isolation:isolate}
+.mr-mask-in{position:absolute;inset:0;filter:blur(5px);opacity:.5;
+  pointer-events:none;user-select:none}
+/* 覆いは2枚。素の面で読めるようにしてから、放射グラデーションで奥行きを足す。
+   color-mix を使わない（対応していないブラウザで覆いが消えて見本が読める）。 */
+.mr-mask-over{position:relative;min-height:158px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:8px;text-align:center;padding:20px 16px}
+.mr-mask-over::before{content:'';position:absolute;inset:0;background:var(--pv-surface);opacity:.7}
+.mr-mask-over::after{content:'';position:absolute;inset:0;
+  background:radial-gradient(84% 68% at 50% 38%,var(--pv-orange-soft) 0%,transparent 72%)}
+.mr-mask-tag,.mr-mask-t,.mr-mask-over .pt-btn{position:relative;z-index:1}
+.mr-mask-tag{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;
+  background:var(--pv-orange-soft);border:1px solid rgba(249,115,22,.32);
+  color:var(--pv-orange-ink);font-size:.62rem;font-weight:800;letter-spacing:.12em;
+  box-shadow:0 1px 2px rgba(120,45,10,.10),0 6px 16px -10px rgba(249,115,22,.45)}
+.mr-mask-t{max-width:34em;margin:0;font-size:.79rem;line-height:1.7;color:var(--pv-ink-2);font-weight:600}
+/* ★ #pv-value .pt-btn が margin-top:18px を持っている。id に勝つ形で書く
+   （クラス2つでは負けて、ボタンだけが下にずれる）。 */
+#pv-value .mr-mask-over .pt-btn{margin-top:4px;padding:10px 18px;font-size:.79rem}
+/* 見本の凡例は金額欄を持たない（.amt を出さない）。項目名と割合だけ。 */
+#pv-value .mr-mask .pt-leg .pct{color:var(--pv-ink-2)}
+
+/* ══ 4) pay-viz.css（profile.html と共有）の上書き ═══════════════
+   ★ 向こうは触らない。ここは #pv-value の中だけに効く。 */
+
+/* .pt-sec は元が margin-top:22px。カード側の gap で間隔を作るので殺す。 */
+#pv-value .pt-sec{margin-top:0}
+#pv-value .pt-h{font-size:.72rem;font-weight:700;color:var(--pv-ink-3);letter-spacing:.05em;
+                text-transform:uppercase;margin-bottom:12px}
+/* .pt-h の中に置く補足。見出しは大文字＆字間広めなので、そこから抜けさせる。 */
+#pv-value .pt-sub{margin-left:10px;font-size:.72rem;color:var(--pv-ink-3);font-weight:600;
+                  letter-spacing:0;text-transform:none}
+#pv-value .pt-note{font-size:.71rem;color:var(--pv-ink-3);line-height:1.7;margin-top:10px}
+#pv-value .pt-empty,#pv-value .pt-locked{font-size:.79rem;color:var(--pv-ink-2);line-height:1.75;
+  background:var(--pv-surface-2);border:1px dashed var(--pv-line);border-radius:var(--pv-r);padding:16px 18px}
+#pv-value .pt-svg{color:var(--pv-ink)}
+#pv-value .pt-chart{width:100%}
+
+#pv-value .pt-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+#pv-value .pt-tab{padding:6px 13px;border-radius:999px;border:1px solid var(--pv-line);
+  background:var(--pv-surface);color:var(--pv-ink-3);font-size:.73rem;font-weight:700;cursor:pointer;
+  font-family:inherit;
+  transition:color .18s var(--pv-ease),border-color .18s var(--pv-ease),background-color .18s var(--pv-ease)}
+#pv-value .pt-tab:hover{color:var(--pv-ink);border-color:var(--pv-orange)}
+#pv-value .pt-tab:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}
+#pv-value .pt-tab:active{transform:translateY(1px)}
+#pv-value .pt-tab.on{border-color:var(--pv-orange);background:var(--pv-orange-soft);color:var(--pv-orange-ink)}
+
+#pv-value .pt-donut-wrap{display:flex;gap:22px;align-items:center;flex-wrap:wrap}
+#pv-value .pt-leg{font-size:.75rem}
+#pv-value .pt-leg .nm{color:var(--pv-ink-2)}
+#pv-value .pt-leg .pct{color:var(--pv-ink-3)}
+#pv-value .pt-donut-c b{font-size:.88rem;font-weight:800;letter-spacing:-.02em;color:var(--pv-ink)}
+
+/* CTA。★ 塗りをトークンにしない：--pv-orange-ink はダークで明るいオレンジに
+   なるので、白字が読めなくなる。#c2410c は白字とのコントラスト 4.9:1 で
+   ライトでもダークでも成立する。 */
+#pv-value .pt-btn{display:inline-flex;align-items:center;gap:7px;margin-top:18px;padding:12px 22px;
+  background:#c2410c;color:#fff;border:none;border-radius:var(--pv-r-sm);
+  font-size:.85rem;font-weight:800;letter-spacing:-.01em;text-decoration:none;
+  box-shadow:0 1px 2px rgba(120,45,10,.25),0 10px 24px -12px rgba(194,65,12,.7),
+             0 3px 8px -3px rgba(249,115,22,.28);
+  transition:background-color .18s var(--pv-ease),transform .18s var(--pv-ease),
+             box-shadow .18s var(--pv-ease)}
+#pv-value .pt-btn:hover{background:#9a3412;transform:translateY(-1px);
+  box-shadow:0 2px 4px rgba(120,45,10,.28),0 16px 32px -14px rgba(194,65,12,.8),
+             0 5px 12px -4px rgba(249,115,22,.34)}
+#pv-value .pt-btn:focus-visible{outline:2px solid var(--pv-orange);outline-offset:3px}
+#pv-value .pt-btn:active{transform:translateY(0)}
+#pv-value .pt-btn.ghost{background:var(--pv-surface);color:var(--pv-ink);
+  border:1px solid var(--pv-line);box-shadow:none}
+#pv-value .pt-btn.ghost:hover{background:var(--pv-line-soft);color:var(--pv-ink);
+  box-shadow:var(--pv-shadow)}
+
+#pv-value .pt-first{background:linear-gradient(152deg,var(--pv-orange-soft) 0%,transparent 62%),var(--pv-surface);
+  border:1px solid var(--pv-line);border-radius:var(--pv-r-lg);padding:24px;box-shadow:var(--pv-shadow-lift)}
+#pv-value .pt-first-h{font-size:1.05rem;font-weight:800;letter-spacing:-.02em;line-height:1.5;margin-bottom:8px}
+#pv-value .pt-first-s{font-size:.8rem;color:var(--pv-ink-2);line-height:1.75}
+
+#pv-value .pt-remind-row{display:flex;align-items:center;justify-content:space-between;gap:14px}
+#pv-value .pt-remind-h{font-size:.84rem;font-weight:700}
+#pv-value .pt-sw{background:var(--pv-line);
+  transition:background-color .2s var(--pv-ease)}
+#pv-value .pt-sw.on{background:#c2410c}
+#pv-value .pt-sw:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}
+
+/* ══ 5) 狭い画面 ═══════════════════════════════════════════════
+   横スクロールを作らない（§24）。横長の表は元から作っていない。 */
+
+/* サイドバーを畳んで、3つを横1列のタブにする。マークアップは1つのまま。 */
+@media(max-width:1000px){
+  .mr-shell{grid-template-columns:minmax(0,1fr);gap:20px;padding-top:20px}
+  .mr-side{position:static;flex-direction:row;gap:6px;overflow:visible}
+  .mr-side-a{flex:1 1 0;justify-content:center;padding:9px 6px;font-size:.78rem;
+             background:var(--pv-surface);border-color:var(--pv-line)}
+  .mr-side-a.is-on{box-shadow:none;border-color:var(--pv-orange);background:var(--pv-orange-soft)}
+  .mr-side-a.is-on svg{color:var(--pv-orange-ink)}
+  .mr-side-note{display:none}
+}
+@media(max-width:760px){
+  .mr-top-in,.mr-shell{padding-left:16px;padding-right:16px}
+  .mr-card{padding:18px 16px;border-radius:var(--pv-r)}
+  .mr-card.is-hero{padding:22px 16px}
+  .mr-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .mr-kpi.is-lead{grid-column:1/-1}
+  .mv-grid{grid-template-columns:1fr}
+  /* 機会の札は縦積み。横スクロールを作らない（§24）。
+     ★ PC で 1 行に 5 枚収めるために付けた max-width をここで戻す。
+       戻さないと縦積みなのに札だけ 300px で左に寄る。 */
+  .mr-rail>.mr-opp,.mr-rail.is-more>.mr-opp{flex:1 1 auto;min-width:0;max-width:none}
+  .mr-rail{flex-direction:column;overflow:visible;padding:0}
+  /* 縦積みでは社名は必ず1行に収まる。揃えるための2行ぶんの枠は空白になるだけ。 */
+  .mr-rail>.mr-opp:not(.is-cur):not(.is-scout) .mr-opp-n{min-height:0}
+  .mr-opp-f{margin-top:12px}
+  /* 項目名に1行使わせて、その下に「前 → 今 ＋増減」を並べる */
+  .mv-c .k{flex:1 1 100%}
+  .mr-side-a span{font-size:.75rem}
+}
+@media(max-width:420px){
+  /* 3つ並べるとラベルが折れるので、アイコンの下に文字を置く */
+  .mr-side-a{flex-direction:column;gap:4px;padding:8px 4px}
+  .mr-ms .ym{width:100%}
+  .mr-ms li{flex-wrap:wrap;gap:2px}
+  .mr-ml-g{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+
+/* 動きを減らす設定のとき。★ 要素を display:none にしない
+   （トップページで実際に踏んだ罠。中身ごと消える）。 */
+@media(prefers-reduced-motion:reduce){
+  .mr-skel{animation:none}
+  .mr-side-a,#pv-value .pt-tab,#pv-value .pt-btn,#pv-value .pt-sw,
+  .mr-more>summary,.mr-more>summary::before{transition-duration:.01ms}
+  #pv-value .pt-btn:hover{transform:none}
+  .mr-rail{scroll-behavior:auto}
+}

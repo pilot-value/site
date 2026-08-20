@@ -1,0 +1,82 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "創業者・張國煒によるトップダウン。2025年3月の重飛SOP不遵守では機師2名が事実上解任され、ゼロトレランスの飛安管理を自ら公言した。プロ意識を評価する声と、公開処分の重圧を嫌う声が割れる。Glassdoor総合3.1/5、友人への推薦率は約35%にとどまる。",
+      "en": "Founder K.W. Chang runs a top-down, zero-tolerance operation — two pilots were effectively forced out in March 2025 over an SOP breach. Glassdoor sits at 3.1/5 with only about 35% recommending it."
+    },
+    "salary": {
+      "ja": "副操縦士の保証月収は約NT$22.5万(約110万円)で華航初任をやや上回る水準。機長初任は年約NT$480万(約2,350万円)、ベテラン機長はNT$700万(約3,430万円)超に達する。エバー流の13カ月給と月NT$5,000の保証昇給があり、給与体系は台湾大手と競える。",
+      "en": "First officers are guaranteed about NT$225k a month (~$7k) and starting captains earn roughly NT$4.8M a year (~$150k), edging China Airlines. A 13th-month salary and a fixed NT$5,000 monthly raise round out a package that competes with Taiwan's majors."
+    },
+    "benefits": {
+      "ja": "年終ボーナスが無く、13カ月目を実質1カ月分の年終とみなす扱い。エバー(約6カ月)・華航(約5カ月＋NT$20万＝約98万円)に比べ年間総額で見劣りする。有給の病気休暇枠も飛安奨金も無く、個人休暇14日は無給。外国人機長には住居提供の報告がある。",
+      "en": "There is no year-end bonus — the 13th-month pay is the only substitute, far behind EVA's ~6 months and China Airlines' ~5 months plus NT$200k. No paid sick leave or safety bonus either, though foreign captains report provided housing."
+    },
+    "wlb": {
+      "ja": "台北・桃園ベースで保証飛行時間は月75時間、特別休暇は年30日と華航と同等。全社的に残業は多くないとの声がある一方、新興企業ゆえ運用や制度は未成熟で改善途上。台北で家族と暮らせる点は台湾人パイロットには魅力とされる。",
+      "en": "Rosters run on a 75-hour monthly guarantee out of the Taipei-Taoyuan base, with 30 days of annual leave. Overtime is generally light, but a young airline's scheduling and systems are still maturing."
+    },
+    "ops": {
+      "ja": "全機が新造エアバスで約33機(A321neo・A330-900neo・A350-900/1000)、就航地は約36。さらに約39機を発注し急拡大中で、飛行時間や型式経験、将来の機長ポストを積みやすい。プレミアム志向のブランドに誇りを持てるとの声もある。",
+      "en": "The fleet is all-new Airbus — about 33 jets (A321neo, A330-900neo, A350) serving roughly 36 destinations, with around 39 more on order. Fast growth means hours, type experience, and future command slots pile up quickly."
+    },
+    "training": {
+      "ja": "自社養成は訓練費を会社が負担する代わり、7〜15年級の最低服務年限と早期退職の違約金で長期拘束され、中華民国国籍・兵役完了が要件。副操縦士から正機師までは相応の年数を要するが、機材急拡大でポストは開きやすい。経験者機長は総3,500時間・PIC700時間が必要。",
+      "en": "Cadets get company-funded training but are bonded for a 7-to-15-year minimum term with early-exit penalties, and must hold ROC nationality. Upgrade to captain takes years, though fleet growth is opening slots; experienced-hire captains need 3,500 total hours and 700 PIC."
+    }
+  },
+  "sources": [
+    {
+      "title": "Starlux - PPRuNe Forums (pilot discussion thread)",
+      "url": "https://www.pprune.org/south-asia-far-east/619626-starlux.html"
+    },
+    {
+      "title": "STARLUX Airlines Reviews - Glassdoor",
+      "url": "https://www.glassdoor.com/Reviews/STARLUX-Airlines-Reviews-E3538617.htm"
+    },
+    {
+      "title": "機師薪水大公開 2025各航空公司薪資比較與津貼明細全解析 - FTTW",
+      "url": "https://flyfttw.com/%E8%88%AA%E7%A9%BA%E5%85%AC%E5%8F%B8%E6%A9%9F%E5%B8%AB%E8%96%AA%E6%B0%B4%E7%A7%98%E5%AF%86/"
+    },
+    {
+      "title": "【長榮不罷工內幕2】正機師年薪480萬起跳 長榮華航星宇搶第一 - 鏡週刊",
+      "url": "https://www.mirrormedia.mg/story/20240205inv013"
+    },
+    {
+      "title": "星宇航空班機重飛未依規定操作 2機師自請離職 - 中央社 CNA",
+      "url": "https://www.cna.com.tw/news/ahel/202503150047.aspx"
+    },
+    {
+      "title": "〈星宇股東會〉張國煒談飛安 機師高薪有代價 - 鉅亨網",
+      "url": "https://news.cnyes.com/news/id/6021356"
+    },
+    {
+      "title": "星宇航空股份有限公司薪水情報 - 比薪水 salary.tw",
+      "url": "https://salary.tw/c/0rHR"
+    },
+    {
+      "title": "討論 星宇航空年終真的比較少嗎？數據比較(長榮、華航、虎航 vs 星宇) - Dcard",
+      "url": "https://www.dcard.tw/f/aviation/p/259160254"
+    },
+    {
+      "title": "討論 長榮華航星宇等的工作文化差異大嗎 - Dcard",
+      "url": "https://www.dcard.tw/f/aviation/p/261289565"
+    },
+    {
+      "title": "只有機師這個工作會被綁幾年約嗎？最低服務年限約款 - 法律百科",
+      "url": "https://www.legis-pedia.com/article/labor-work/591"
+    },
+    {
+      "title": "StarLux Airlines Pilot Hiring Requirements - Epic Flight Academy",
+      "url": "https://epicflightacademy.com/hiring-requirements-starlux-airlines/"
+    },
+    {
+      "title": "Pilot Your Way to Success (Experienced Pilot recruitment) - STARLUX official careers",
+      "url": "https://careers.jx-starlux.com/Pilot/ExpPilot"
+    },
+    {
+      "title": "Starlux Airlines - Wikipedia (fleet, hub, launch facts)",
+      "url": "https://en.wikipedia.org/wiki/Starlux_Airlines"
+    }
+  ]
+}

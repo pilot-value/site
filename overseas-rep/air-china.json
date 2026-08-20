@@ -1,0 +1,90 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "上意下達で形式主義的・権威主義的な階層文化。外国人からは経営陣によるハラスメント、給与計算の元になるブロックタイムの不正操作、退職時に無事故無違反の証明レターをなかなか出さないといった不満が出る。一方で日常のライン運航やディスパッチの支援は手厚く好評。Glassdoor総合3.5/5、推薦率は43%にとどまる。",
+      "en": "A top-down, formalistic and authoritarian hierarchy — expats cite management harassment, manipulated block-time (which drives pay), and foot-dragging on end-of-contract clean-record letters. Day-to-day line ops are well regarded, but Glassdoor sits at 3.5/5 with only 43% recommending."
+    },
+    "salary": {
+      "ja": "外国人機長は基本給 月US$1.65万〜2.5万（約260万〜395万円）＋飛行時間手当 約US$225/時間。上限まで飛べば年US$30万（約4,700万円）に届くとされるが、現実は月US$1.2万（約190万円）前後という指摘が多い。三大航は中国民航内では給与が低めとされ、Glassdoor平均は米大手より約43%低い。",
+      "en": "Foreign captain base pay is $16,500–25,000/month plus ~$225/flight hour, and the headline $300,000/year only appears at the overtime ceiling — most realistically clear about $12,000/month. Glassdoor pegs the average near $128,000, roughly 43% below US majors."
+    },
+    "benefits": {
+      "ja": "外国人向けの免税フリンジベネフィット（住宅・子女教育など）はデフォルトで2027年末まで延長。国有企業（央企）ゆえ五険一金＋補充医療が制度的に手厚く、倒産・レイオフの心配はほぼ無い鉄飯碗で、契約満了時には大きなボーナスが付く。ただし『免税』を謳いつつ仕組みを明示しない求人もあると指摘される。",
+      "en": "Tax-exempt fringe benefits for expats (housing, children's schooling) are extended through end-2027, and as a state-owned carrier it brings solid social insurance, near-zero layoff risk, and a large end-of-contract bonus. Some postings, though, tout 'tax-free' pay without spelling out how it works."
+    },
+    "wlb": {
+      "ja": "保証飛行時間は月約80時間。かつては海外ホームベース（バンクーバー、シドニー、メルボルン等）＋多い休日が魅力だったが、近年はロスター変更が頻発して休日が減り、短い通告でベースから外される、北京での不要な滞在、時差の合わない国内深夜便の増加といった劣化の訴えが増えている。",
+      "en": "Guaranteed flying is about 80 hours a month. Overseas home bases (Vancouver, Sydney, Melbourne) and generous days off were once the draw, but pilots now report frequent roster changes, fewer days off, short-notice base removals, and more domestic red-eyes."
+    },
+    "ops": {
+      "ja": "拠点は北京（首都・大興）、成都、上海浦東が中心。ワイドボディはA330約43機、A350約30機、B777-300約28機、B787-9約14機で、777/A330/A350経験者を中心に募集。実際のライン運航は快適との評も多く、ディスパッチが書類を丁寧に精査し天候用の追加燃料も入れる。中国人FOはSOP知識が高く協働に前向き。",
+      "en": "Based mainly out of Beijing (Daxing), Chengdu, and Shanghai Pudong, with a widebody fleet of ~43 A330s, ~30 A350s, ~28 B777-300s, and ~14 B787-9s. Line flying is often called comfortable, dispatch scrutinizes paperwork and adds weather fuel, and Chinese FOs are strong on SOPs."
+    },
+    "training": {
+      "ja": "採用要件はICAO ATPL（FAAライセンス不可）＋型式限定、直近の737NG/ワイドボディ経験、45歳未満が目安。CAAC身体検査が極めて厳格で、ほくろ除去など軽微な既往でも不合格になりうる。選考は官僚的手続きで6か月超が多い。国内は機長まで約11年で、かつての外国人機長ファストトラックの旨みは近年薄れた。",
+      "en": "Requirements include an ICAO ATPL (FAA licenses not accepted), a type rating, recent 737NG/widebody time, and age under 45; the CAAC medical is famously strict and selection often drags past six months. Progression to captain takes ~11 years, and the old expat fast-track has faded."
+    }
+  },
+  "sources": [
+    {
+      "title": "Stay away from Air China — PPRuNe Forums",
+      "url": "https://www.pprune.org/south-asia-far-east/514390-stay-away-air-china.html"
+    },
+    {
+      "title": "China Airline Pilot Contract Comparison: Salary & Benefits — China Legal Experts",
+      "url": "https://www.chinalegalexperts.com/news/china-airline-pilot-contract-comparison"
+    },
+    {
+      "title": "Air China Reviews — Glassdoor",
+      "url": "https://www.glassdoor.com/Reviews/Air-China-Reviews-E8622.htm"
+    },
+    {
+      "title": "Fascinating Insights Into The Lives Of Highly Paid Expat Pilots In Asia — One Mile at a Time",
+      "url": "https://onemileatatime.com/expat-pilots-in-asia/"
+    },
+    {
+      "title": "China's expat pilots arrived on a red carpet – now they're taking a red-eye out — South China Morning Post",
+      "url": "https://www.scmp.com/economy/china-economy/article/3342101/chinas-expat-pilots-arrived-red-carpet-now-theyre-taking-red-eye-out"
+    },
+    {
+      "title": "Expat pilots hoping to take off in China told their credentials are no longer a hot ticket — South China Morning Post",
+      "url": "https://www.scmp.com/economy/china-economy/article/3352586/expat-pilots-hoping-take-china-told-their-credentials-are-no-longer-hot-ticket"
+    },
+    {
+      "title": "Chinese airlines lure expat pilots with lucrative pay, perks — The Seattle Times",
+      "url": "https://www.seattletimes.com/business/chinese-airlines-lure-expat-pilots-with-lucrative-pay-perks/"
+    },
+    {
+      "title": "Want to earn $300,000 tax free? Try flying a plane in China — CNN Money",
+      "url": "https://money.cnn.com/2016/11/15/news/economy/china-airlines-foreign-pilots-pay/index.html"
+    },
+    {
+      "title": "Living and working in China as a pilot — AirlinePrep",
+      "url": "https://www.airlineprep.co.uk/career-guides/working-in-china-as-a-pilot/"
+    },
+    {
+      "title": "Air China Pilot Hiring Requirements — Epic Flight Academy",
+      "url": "https://epicflightacademy.com/hiring-requirements-air-china/"
+    },
+    {
+      "title": "Tax Exempt Fringe Benefits for Expats in China (Extended till End of 2027) — China Briefing",
+      "url": "https://www.china-briefing.com/news/tax-exempt-benefits-for-expatriates-in-china-extended-end-2023/"
+    },
+    {
+      "title": "都说三大航的工资在民航里面算低的，国航作为央企福利待遇有啥优势？ — 知乎",
+      "url": "https://www.zhihu.com/question/381485148"
+    },
+    {
+      "title": "扯皮、诉讼、天价索赔，为什么飞行员离职这么难？ — 界面新闻",
+      "url": "https://www.jiemian.com/article/3340998.html"
+    },
+    {
+      "title": "航司向离职机长索赔1066万，天价赔偿金能留住人才吗？ — 澎湃新闻",
+      "url": "https://www.thepaper.cn/newsDetail_forward_19164883"
+    },
+    {
+      "title": "飞行员薪酬福利 — 国航官网（招飞）",
+      "url": "https://et.airchina.com.cn/cn/about_us/recruitment/pilot_salary.shtml"
+    }
+  ]
+}

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8"/>
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png"/>
+<link rel="apple-touch-icon" href="../assets/favicon-180.png"/>
+  <script>(function(){var t=localStorage.getItem('pv-theme')||'light';document.documentElement.setAttribute('data-theme',t);}());</script>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <!-- The reader answers about their own airline. Login required, so never index it. -->
+  <title>Tell Us About Your Working Conditions | PILOT VALUE</title>
+<!--PV-SEO-->
+<!--PV-SRC t="Tell Us About Your Working Conditions" d=""-->
+<meta name="description" content="Rostering, career, leave and allowances: tell us how the system actually works at your airline. Answer only what you know. We never collect your name or staff number."/>
+<meta name="robots" content="noindex,follow"/>
+<link rel="canonical" href="https://pilot-value.com/en/airline-conditions.html"/>
+<link rel="alternate" hreflang="ja" href="https://pilot-value.com/airline-conditions.html"/>
+<link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airline-conditions.html"/>
+<link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airline-conditions.html"/>
+<meta property="og:title" content="Tell Us About Your Working Conditions | PILOT VALUE"/>
+<meta property="og:description" content="Rostering, career, leave and allowances: tell us how the system actually works at your airline. Answer only what you know. We never collect your name or staff number."/>
+<meta property="og:url" content="https://pilot-value.com/en/airline-conditions.html"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="PILOT VALUE"/>
+<meta property="og:locale" content="en_US"/>
+<meta property="og:locale:alternate" content="ja_JP"/>
+<meta property="og:image" content="https://pilot-value.com/assets/og/default-en.jpg"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta property="og:image:alt" content="Tell Us About Your Working Conditions | PILOT VALUE"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="Tell Us About Your Working Conditions | PILOT VALUE"/>
+<meta name="twitter:description" content="Rostering, career, leave and allowances: tell us how the system actually works at your airline. Answer only what you know. We never collect your name or staff number."/>
+<meta name="twitter:image" content="https://pilot-value.com/assets/og/default-en.jpg"/>
+<!--/PV-SEO-->
+
+  <!-- Keep these URLs byte-identical to my-value.html so the cache still hits. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'"/><noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet"/></noscript>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Colour / radius / spacing / shadow tokens. Without this every --pv-* is undefined. -->
+  <link rel="stylesheet" href="../pv-tokens.css">
+  <!-- Page shell (.mr-*), shared with My report and with the JP page. -->
+  <link rel="stylesheet" href="../my-value.css">
+
+  <style>
+    /* Only what would be visible before the stylesheet lands.
+       ★ Never copy the question styles (.pvcf-…) back in here. They live in
+          pv-conditions.js, which is the one place JP and EN share. */
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--pv-bg-sub);color:var(--pv-ink);
+         font-family:Inter,'Noto Sans JP',sans-serif;min-height:100vh;
+         -webkit-font-smoothing:antialiased}
+  </style>
+<!-- Google tag (gtag.js) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-3XYF69VQ3X');
+</script>
+<!--PV-3P-->
+<script>
+/* Ads and analytics wait until the page has painted (async still costs bandwidth).
+   Loaded on the first interaction or on load, whichever comes first.
+   To undo: node defer-third-party.mjs --undo */
+(function(){
+  var done=false;
+  function boot(){
+    if(done)return; done=true;
+    [{"src":"https://www.googletagmanager.com/gtag/js?id=G-3XYF69VQ3X","cross":false}].forEach(function(it){
+      var s=document.createElement('script');
+      s.src=it.src; s.async=true;
+      if(it.cross)s.crossOrigin='anonymous';
+      document.head.appendChild(s);
+    });
+  }
+  ['pointerdown','keydown','touchstart','scroll','wheel'].forEach(function(ev){
+    addEventListener(ev,boot,{once:true,passive:true});
+  });
+  if(document.readyState==='complete')boot();
+  else addEventListener('load',boot,{once:true});
+})();
+</script>
+<!--/PV-3P-->
+<script src="../pv-session.js"></script>
+</head>
+<body>
+  <header class="mr-top">
+    <div class="mr-top-in">
+      <a class="mr-brand" href="index.html" aria-label="PILOT VALUE home">
+        <img src="../assets/logo.png" alt="PILOT VALUE" height="28"/>
+      </a>
+      <!-- ★ Keep #theme-toggle. lang-toggle.js inserts its own button next to it;
+           without it that button falls to the end of the nav. -->
+      <div class="mr-top-r">
+        <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme"></button>
+      </div>
+    </div>
+  </header>
+
+  <div class="mr-shell">
+    <!-- The same three entries as My report. This page is reached from the
+         post-report modal and the settings card, so it is not added to the nav
+         (that would put this page's nav out of step with my-value.html). -->
+    <nav class="mr-side" aria-label="My page">
+      <a class="mr-side-a" href="my-value.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+        <span>My report</span>
+      </a>
+      <a class="mr-side-a is-add" href="pay-report.html#ps">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+        <span>Add pay anonymously</span>
+      </a>
+      <a class="mr-side-a" href="profile.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.2.6.77 1 1.41 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span>Settings</span>
+      </a>
+      <p class="mr-side-note">We never collect your name or staff number.</p>
+    </nav>
+
+    <main class="mr-main">
+      <!-- mountFull() in pv-conditions.js draws the contents.
+           Never copy the questions in here: two copies always drift apart. -->
+      <div id="pv-conditions">
+        <div class="mr-skel" style="height:34px;width:52%"></div>
+        <div class="mr-skel" style="height:14px;width:72%;margin-top:14px"></div>
+        <div class="mr-skel" style="height:120px;margin-top:28px"></div>
+        <div class="mr-skel" style="height:120px;margin-top:16px"></div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const SB_URL = 'https://vzgmnkrggrwtsrpqndsm.supabase.co';
+    const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6Z21ua3JnZ3J3dHNycHFuZHNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0MzkwOTcsImV4cCI6MjA5MDAxNTA5N30.wE4cJbqeYGCgn5ZvHd80hYWgQuySKvOMJMbsJWOvmtw';
+    const sb = supabase.createClient(SB_URL, SB_KEY);
+
+    const SUN = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
+    const MOON = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+    function applyTheme(t){document.documentElement.setAttribute('data-theme',t);localStorage.setItem('pv-theme',t);const b=document.getElementById('theme-toggle');if(b)b.innerHTML=t==='dark'?SUN:MOON;}
+    applyTheme(localStorage.getItem('pv-theme')||'light');
+    document.getElementById('theme-toggle').addEventListener('click',function(){applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');});
+
+    /* ★ Every answer needs a proof_hash, which needs a signed-in user. Nothing can
+         be saved while logged out, so send the reader to login instead of showing an
+         error. search and hash are carried through so ?airline=… survives
+         (login.html's safePath() returns pathname + search + hash). */
+    window.PV_SESSION = (async function () {
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) {
+        window.location.href = 'login.html?redirect='
+          + encodeURIComponent('airline-conditions.html' + (window.location.search || '') + (window.location.hash || ''));
+        return null;
+      }
+      return session;
+    }());
+
+    /* Draw only once the session is confirmed. Drawing first would flash the
+       questions at a logged-out reader before the redirect (they could not be saved).
+       ★ Wait for DOMContentLoaded too: if getSession() returns straight from cache,
+         this would run before pv-conditions.js below and window.PVConditions
+         would not exist yet. */
+    Promise.all([window.PV_SESSION, new Promise(function (done) {
+      if (document.readyState !== 'loading') done();
+      else document.addEventListener('DOMContentLoaded', function () { done(); });
+    })]).then(function (r) {
+      if (!r[0] || !window.PVConditions) return;
+      window.PVConditions.mountFull(document.getElementById('pv-conditions'), { sb: sb });
+    });
+  </script>
+
+<script src="../lang-toggle.js"></script>
+<script src="../airlines-meta.js"></script>
+<script src="../pv-conditions.js"></script>
+</body>
+</html>

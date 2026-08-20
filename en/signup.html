@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/>
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png"/>
+<link rel="apple-touch-icon" href="../assets/favicon-180.png"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'"/><noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet"/></noscript>
+  <script>(function(){var t=localStorage.getItem('pv-theme')||'light';document.documentElement.setAttribute('data-theme',t);}());</script>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Sign Up | PILOT VALUE</title>
+<!--PV-SEO-->
+<!--PV-SRC t="Sign Up — PILOT VALUE" d=""-->
+<meta name="description" content="Create a free account. Browsing salary data needs no account — registration is for posting reviews and unlocking the full data set."/>
+<meta name="robots" content="noindex,follow"/>
+<link rel="canonical" href="https://pilot-value.com/en/signup.html"/>
+<link rel="alternate" hreflang="ja" href="https://pilot-value.com/signup.html"/>
+<link rel="alternate" hreflang="en" href="https://pilot-value.com/en/signup.html"/>
+<link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/signup.html"/>
+<meta property="og:title" content="Sign Up | PILOT VALUE"/>
+<meta property="og:description" content="Create a free account. Browsing salary data needs no account — registration is for posting reviews and unlocking the full data set."/>
+<meta property="og:url" content="https://pilot-value.com/en/signup.html"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="PILOT VALUE"/>
+<meta property="og:locale" content="en_US"/>
+<meta property="og:locale:alternate" content="ja_JP"/>
+<meta property="og:image" content="https://pilot-value.com/assets/og/default-en.jpg"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta property="og:image:alt" content="Sign Up | PILOT VALUE"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="Sign Up | PILOT VALUE"/>
+<meta name="twitter:description" content="Create a free account. Browsing salary data needs no account — registration is for posting reviews and unlocking the full data set."/>
+<meta name="twitter:image" content="https://pilot-value.com/assets/og/default-en.jpg"/>
+<!--/PV-SEO-->
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:#0a0c0f;color:#e8edf2;font-family:Inter,'Noto Sans JP',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px 20px}
+    body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 0%,rgba(245,200,66,.05) 0%,transparent 70%);pointer-events:none}
+    [data-theme="light"] body{background:#f3f5f8;color:#0f172a}
+    .auth-card{background:rgba(17,22,32,.95);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:40px;width:100%;max-width:480px}
+    [data-theme="light"] .auth-card{background:#fff;border-color:rgba(0,0,0,.09);box-shadow:0 8px 40px rgba(0,0,0,.12)}
+    .step-dots{display:flex;gap:8px;justify-content:center;margin-bottom:28px}
+    .step-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.15);transition:background .3s,width .3s}
+    .step-dot.active{width:24px;border-radius:4px;background:#f5c842}
+    .step-dot.done{background:rgba(245,200,66,.4)}
+    /* .step-dot.active と詳細度が同じで後に来るため、ライトでは金色まで潰れていた。個別に戻す。 */
+    [data-theme="light"] .step-dot{background:rgba(0,0,0,.12)}
+    [data-theme="light"] .step-dot.active{background:#8a6e00}
+    [data-theme="light"] .step-dot.done{background:rgba(138,110,0,.35)}
+    .step-title{font-size:1.05rem;font-weight:700;margin-bottom:4px}
+    .step-sub{font-size:.8rem;color:#6b7d93;margin-bottom:24px}
+    .auth-input{width:100%;padding:12px 15px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#e8edf2;font-size:.88rem;outline:none;transition:border-color .2s;font-family:inherit}
+    .auth-input:focus{border-color:rgba(245,200,66,.5);background:rgba(255,255,255,.07)}
+    .auth-input::placeholder{color:#6b7d93}
+    [data-theme="light"] .auth-input{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.12);color:#0f172a}
+    [data-theme="light"] .auth-input:focus{border-color:rgba(161,114,0,.4);background:#fff}
+    select.auth-input option{background:#111620;color:#e8edf2}
+    .field-label{font-size:.76rem;color:#9ca3af;margin-bottom:5px;font-weight:600;letter-spacing:.03em}
+    [data-theme="light"] .field-label{color:#64748b}
+    .radio-group{display:flex;gap:8px;flex-wrap:wrap}
+    .radio-chip input{display:none}
+    .radio-chip label{display:inline-flex;align-items:center;padding:8px 16px;border-radius:8px;border:1px solid rgba(255,255,255,.1);font-size:.84rem;cursor:pointer;transition:border-color .2s,background .2s;color:#9ca3af}
+    .radio-chip input:checked+label{border-color:rgba(245,200,66,.5);background:rgba(245,200,66,.08);color:#f5c842;font-weight:600}
+    [data-theme="light"] .radio-chip label{border-color:rgba(0,0,0,.12);color:#64748b}
+    [data-theme="light"] .radio-chip input:checked+label{border-color:rgba(161,114,0,.4);background:rgba(161,114,0,.07);color:#a07200}
+    .btn-primary{width:100%;padding:13px;background:linear-gradient(135deg,#f5c842,#f97316);color:#000;border:none;border-radius:11px;font-weight:700;font-size:.92rem;cursor:pointer;transition:opacity .2s,transform .15s;font-family:inherit}
+    .btn-primary:hover:not(:disabled){opacity:.92;transform:translateY(-1px)}
+    .btn-primary:disabled{opacity:.5;cursor:not-allowed}
+    .btn-secondary{width:100%;padding:12px;background:rgba(255,255,255,.06);color:#9ca3af;border:1px solid rgba(255,255,255,.1);border-radius:11px;font-weight:600;font-size:.88rem;cursor:pointer;transition:background .2s;font-family:inherit}
+    .btn-secondary:hover{background:rgba(255,255,255,.1);color:#e8edf2}
+    /* ライトの指定が無く、白地に白枠＋薄グレー文字で消えていた */
+    [data-theme="light"] .btn-secondary{background:rgba(0,0,0,.04);color:#475569;border-color:rgba(0,0,0,.12)}
+    [data-theme="light"] .btn-secondary:hover{background:rgba(0,0,0,.07);color:#0f172a}
+    .theme-toggle{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.07);color:#e8edf2;border:1px solid rgba(255,255,255,.12);cursor:pointer;transition:background .2s}
+    .theme-toggle:hover{background:rgba(255,255,255,.13)}
+    [data-theme="light"] .theme-toggle{background:rgba(0,0,0,.06);color:#0f172a;border-color:rgba(0,0,0,.13)}
+    .error-msg{color:#f87171;font-size:.79rem;padding:8px 12px;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);border-radius:8px;display:none;margin-top:4px}
+    .profile-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:rgba(245,200,66,.1);border:1px solid rgba(245,200,66,.25);border-radius:999px;font-size:.73rem;color:#f5c842;font-weight:600;letter-spacing:.04em;margin-bottom:16px}
+    .success-screen{text-align:center;display:none}
+    /* インラインの #c9d4e0 を白地に置いていて読めなかった。テーマごとに出し分ける。 */
+    .optin-text{font-size:.76rem;color:#c9d4e0;line-height:1.6}
+    [data-theme="light"] .optin-text{color:#3f4a5a}
+    /* 認証方法の選択（en/login.html と同じ見た目に揃える） */
+    .btn-oauth{width:100%;padding:13px;background:rgba(255,255,255,.06);color:#e8edf2;border:1px solid rgba(255,255,255,.11);border-radius:11px;font-weight:600;font-size:.88rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:background .2s;font-family:inherit}
+    .btn-oauth:hover{background:rgba(255,255,255,.11)}
+    .btn-oauth:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+    [data-theme="light"] .btn-oauth{background:rgba(0,0,0,.04);color:#0f172a;border-color:rgba(0,0,0,.12)}
+    .divider{display:flex;align-items:center;gap:12px;color:#6b7d93;font-size:.76rem;margin:18px 0}
+    .divider::before,.divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.08)}
+    [data-theme="light"] .divider::before,[data-theme="light"] .divider::after{background:rgba(0,0,0,.08)}
+    /* 3本並ぶと語中から折れて読めなくなる。語は割らず、行で折り返す。 */
+    .btn-link{background:none;border:none;color:#6b7d93;font-size:.8rem;cursor:pointer;font-family:inherit;padding:6px;border-radius:8px;white-space:nowrap;transition:color .2s}
+    .btn-link:hover{color:#f5c842}
+    .btn-link:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+    .btn-link:disabled{opacity:.5;cursor:not-allowed}
+    .otp-code{text-align:center;letter-spacing:.45em;font-size:1.15rem;font-weight:700;text-indent:.45em}
+    /* 同じ枠を「送りました」にも使う。ライトでは #4ade80 が白地に沈むので濃い緑に落とす。 */
+    .error-msg.is-ok{color:#4ade80;background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.22)}
+    [data-theme="light"] .error-msg.is-ok{color:#15803d;background:rgba(21,128,61,.07);border-color:rgba(21,128,61,.22)}
+    /* サイト共通の扱い（en/index.html:557 と同じ）。金色は白地で 1.8:1 しか出ない。 */
+    [data-theme="light"] [style*="color:#f5c842"]{color:#8a6e00!important}
+  </style>
+<!-- Google tag (gtag.js) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-3XYF69VQ3X');
+</script>
+<!--PV-3P-->
+<script>
+/* 広告と解析は、表示が終わるまで読まない。async でも帯域は奪うため。
+   利用者が最初に触った時か load の、どちらか早いほうで読み込む。
+   戻すときは node defer-third-party.mjs --undo */
+(function(){
+  var done=false;
+  function boot(){
+    if(done)return; done=true;
+    [{"src":"https://www.googletagmanager.com/gtag/js?id=G-3XYF69VQ3X","cross":false}].forEach(function(it){
+      var s=document.createElement('script');
+      s.src=it.src; s.async=true;
+      if(it.cross)s.crossOrigin='anonymous';
+      document.head.appendChild(s);
+    });
+  }
+  ['pointerdown','keydown','touchstart','scroll','wheel'].forEach(function(ev){
+    addEventListener(ev,boot,{once:true,passive:true});
+  });
+  if(document.readyState==='complete')boot();
+  else addEventListener('load',boot,{once:true});
+})();
+</script>
+<!--/PV-3P-->
+<script src="../pv-session.js"></script>
+</head>
+<body>
+  <div style="position:fixed;top:16px;right:16px;z-index:10">
+    <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme"></button>
+  </div>
+  <div style="position:fixed;top:16px;left:16px;z-index:10">
+    <a href="login.html" style="font-size:.82rem;color:#6b7d93;text-decoration:none;display:flex;align-items:center;gap:5px">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M5 12l7-7M5 12l7 7"/></svg>
+      Back to log in
+    </a>
+  </div>
+
+  <div class="auth-card">
+    <div style="text-align:center;margin-bottom:28px">
+      <a href="index.html"><img src="../assets/logo.png" alt="PILOT VALUE" style="height:32px;margin:0 auto"/></a>
+    </div>
+    <div class="step-dots">
+      <div class="step-dot active" id="dot-1"></div>
+      <div class="step-dot" id="dot-2"></div>
+    </div>
+
+    <!-- STEP 1 -->
+    <div id="step-1">
+      <div class="step-title">Create your account</div>
+      <div class="step-sub">Choose any method. You will set up your profile next</div>
+
+      <!-- ★入口は3つ。ただしどれで認証しても必ず段2（プロフィール）へ着地させる。
+           在籍企業と職位はここでしか取れない一次データなので、入口を増やしても取りこぼさない。
+           押す回数が少ない順に置く。 -->
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <button type="button" class="btn-oauth" onclick="signupGoogle()">
+          <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          Sign up with Google
+        </button>
+        <button type="button" class="btn-oauth" onclick="showEmailStep()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/></svg>
+          Email me a code
+        </button>
+      </div>
+
+      <div class="divider">or set a password</div>
+
+      <form id="step1-form" onsubmit="goStep2(event)" novalidate>
+        <div style="display:flex;flex-direction:column;gap:11px;margin-bottom:16px">
+          <div><div class="field-label">Email address</div><input class="auth-input" type="email" id="s1-email" placeholder="pilot@example.com" autocomplete="email" required/></div>
+          <div><div class="field-label">Password (at least 8 characters)</div><input class="auth-input" type="password" id="s1-pass" placeholder="••••••••" autocomplete="new-password" required minlength="8"/></div>
+          <div><div class="field-label">Password (confirm)</div><input class="auth-input" type="password" id="s1-pass2" placeholder="••••••••" autocomplete="new-password" required/></div>
+          <div class="error-msg" id="step1-error"></div>
+        </div>
+        <button type="submit" class="btn-primary">Next → Profile setup</button>
+      </form>
+      <div style="text-align:center;margin-top:20px;font-size:.83rem;color:#6b7d93">
+        Already have an account? <a href="login.html" style="color:#f5c842;font-weight:700;text-decoration:none">Log in</a>
+      </div>
+    </div>
+
+    <!-- 宛先を入れる段。押した人に「どこに届くのか」が必ず見える形にする。 -->
+    <div id="email-step" style="display:none">
+      <div class="step-title">Sign up with email</div>
+      <div class="step-sub">We will send you a sign-in link and a 6-digit code. No password needed</div>
+      <div style="display:flex;flex-direction:column;gap:11px;margin-bottom:16px">
+        <div><div class="field-label">Email address</div>
+          <input class="auth-input" type="email" id="otp-email" placeholder="you@example.com"
+                 autocomplete="email" inputmode="email"/></div>
+        <div class="error-msg" id="email-error"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <button type="button" class="btn-primary" id="otp-send-btn" onclick="sendOtp()">Send the email</button>
+        <button type="button" class="btn-secondary" onclick="backToStep1()">← Back</button>
+      </div>
+    </div>
+
+    <!-- コード入力。リンクを別端末で開くと PKCE の code_verifier が無く必ず失敗するので、
+         端末をまたげる経路としてコードを必ず併記する。 -->
+    <div id="otp-step" style="display:none">
+      <div class="step-title">Enter your code</div>
+      <div class="step-sub" id="otp-note"></div>
+      <div style="display:flex;flex-direction:column;gap:11px;margin-bottom:16px">
+        <input class="auth-input otp-code" type="text" id="otp-code" inputmode="numeric" pattern="[0-9]*"
+               autocomplete="one-time-code" maxlength="6" placeholder="000000" aria-label="6-digit code"/>
+        <div class="error-msg" id="otp-error"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <button type="button" class="btn-primary" id="otp-verify-btn" onclick="verifyOtpCode()">Continue with code</button>
+        <div style="display:flex;justify-content:center;gap:6px 14px;flex-wrap:wrap">
+          <button type="button" class="btn-link" id="otp-resend-btn" onclick="sendOtp()">Resend the email</button>
+          <button type="button" class="btn-link" onclick="showEmailStep()">Change address</button>
+          <button type="button" class="btn-link" onclick="backToStep1()">Use another method</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div id="step-2" style="display:none">
+      <div class="profile-badge">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Profile registration required
+      </div>
+      <div class="step-title">Set up your profile</div>
+      <div class="step-sub">Required to keep reviews credible (displayed anonymously)</div>
+      <form id="step2-form" onsubmit="handleSignup(event)" novalidate>
+        <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:18px">
+          <div><div class="field-label">Full name</div><input class="auth-input" type="text" id="s2-name" placeholder="John Smith" required/></div>
+          <div>
+            <div class="field-label">Gender</div>
+            <div class="radio-group">
+              <div class="radio-chip"><input type="radio" name="gender" id="g-male" value="male"/><label for="g-male">Male</label></div>
+              <div class="radio-chip"><input type="radio" name="gender" id="g-female" value="female"/><label for="g-female">Female</label></div>
+              <div class="radio-chip"><input type="radio" name="gender" id="g-other" value="other"/><label for="g-other">Other</label></div>
+            </div>
+          </div>
+          <div><div class="field-label">Date of birth</div><input class="auth-input" type="date" id="s2-birth" required style="color-scheme:dark"/></div>
+          <div>
+            <div class="field-label">Country of residence</div>
+            <select class="auth-input" id="s2-country" required>
+              <option value="">Please select</option>
+              <option value="日本">Japan</option><option value="アメリカ">United States</option><option value="UAE">UAE</option>
+              <option value="シンガポール">Singapore</option><option value="香港">Hong Kong</option><option value="イギリス">United Kingdom</option>
+              <option value="ドイツ">Germany</option><option value="フランス">France</option><option value="オーストラリア">Australia</option>
+              <option value="カナダ">Canada</option><option value="韓国">South Korea</option><option value="中国">China</option><option value="その他">Other</option>
+            </select>
+          </div>
+          <div><div class="field-label">Current employer</div><input class="auth-input" type="text" id="s2-company" placeholder="e.g. ANA, JAL, Emirates" required/></div>
+          <div>
+            <div class="field-label">Position</div>
+            <div class="radio-group">
+              <div class="radio-chip"><input type="radio" name="position" id="p-cap" value="captain"/><label for="p-cap">Captain</label></div>
+              <div class="radio-chip"><input type="radio" name="position" id="p-fo" value="fo"/><label for="p-fo">First Officer</label></div>
+              <div class="radio-chip"><input type="radio" name="position" id="p-cad" value="cadet"/><label for="p-cad">Trainee</label></div>
+            </div>
+          </div>
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer;padding:12px 14px;background:rgba(245,200,66,.06);border:1px solid rgba(245,200,66,.18);border-radius:10px">
+            <input type="checkbox" id="s2-optin" checked style="margin-top:2px;width:16px;height:16px;accent-color:#f5c842;flex:none"/>
+            <span class="optin-text">
+              <b>Receive useful updates and the monthly payslip reminder by email</b> — annual salary data refreshes, new reviews, new airline listings and more
+              <span style="color:#6b7d93">(The reminder goes to people who have submitted a payslip: one email a month, around your own payday. No advertising emails. Unsubscribe anytime with one click.)</span>
+            </span>
+          </label>
+          <div class="error-msg" id="step2-error"></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <button type="submit" class="btn-primary" id="signup-btn">Complete registration</button>
+          <button type="button" class="btn-secondary" id="step2-back" onclick="backToStep1()">← Back</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- SUCCESS -->
+    <div class="success-screen" id="success-screen">
+      <div style="font-size:3rem;margin-bottom:16px">✈️</div>
+      <div style="font-size:1.1rem;font-weight:700;margin-bottom:8px">Registration complete!</div>
+      <!-- 次にやることを1つだけ出す。明細は端末内匿名化を挟む重い経路なので、
+           登録直後に見せない（口コミ → そのあと明細の順）。 -->
+      <p style="font-size:.84rem;color:#6b7d93;line-height:1.7;margin-bottom:24px">
+        Welcome to PILOT VALUE.<br>
+        <span id="success-lead">Post one review and <b style="color:#f5c842">every airline's reviews unlock for 30 days</b>.</span>
+      </p>
+      <div style="display:flex;flex-direction:column;gap:10px;max-width:280px;margin:0 auto">
+        <!-- ★Defaults to "write a review", but anyone who arrived via ?next= (they hit the
+             login wall on the review or payslip form and were routed into signup) is sent
+             back there. showSuccessCta() rewrites the lead line, the button label and the
+             destination — changing only the button leaves "Post one review" sitting above
+             a "Submit a payslip" button. -->
+        <button class="btn-primary" id="success-cta" onclick="window.location.href=(this.dataset.href||'submit-review.html')">Write a review anonymously (about 60s)</button>
+        <button class="btn-secondary" id="success-later" onclick="window.location.href='profile.html?welcome=1'">Later → Go to the site</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SB_URL = 'https://vzgmnkrggrwtsrpqndsm.supabase.co';
+    const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6Z21ua3JnZ3J3dHNycHFuZHNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0MzkwOTcsImV4cCI6MjA5MDAxNTA5N30.wE4cJbqeYGCgn5ZvHd80hYWgQuySKvOMJMbsJWOvmtw';
+    /* ★flowType を省くと supabase-js の既定＝implicit になり、Google が
+         #access_token= で返す。auth-callback.html は ?code= を見ているので必ず弾かれる。
+         en/login.html:205 と同じ pkce に揃える。 */
+    const sb = supabase.createClient(SB_URL, SB_KEY, {
+      auth: { flowType: 'pkce' }
+    });
+
+    const SUN = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
+    const MOON = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+    function applyTheme(t){document.documentElement.setAttribute('data-theme',t);localStorage.setItem('pv-theme',t);const b=document.getElementById('theme-toggle');if(b)b.innerHTML=t==='dark'?SUN:MOON;}
+    applyTheme(localStorage.getItem('pv-theme')||'light');
+    document.getElementById('theme-toggle').addEventListener('click',function(){applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');});
+
+    /* ★The return-destination parameter is spelled three ways across the site (same as login.html).
+         next=     … arrivals from submit-review.html / pay-report.html
+         redirect= … the only name this page used to read
+         return=   … airlines/ pages
+       Reading only `redirect` dropped everyone who came here to write a review onto
+       profile.html. Accept all three.
+
+       ★The destination goes into location.href, so it must resolve to the same origin
+         (?redirect=https://evil.com would otherwise send people off-site). */
+    function safePath(to){
+      if (!to) return '';
+      if (/^[a-z][a-z0-9+.-]*:/i.test(to)) return '';      // http: javascript: data: …
+      if (to.startsWith('//') || to.includes('\\')) return '';
+      try {
+        const u = new URL(to, location.href);
+        return u.origin === location.origin ? u.pathname + u.search + u.hash : '';
+      } catch (e) { return ''; }
+    }
+    // Only an explicitly requested destination (empty otherwise) — kept separate from the default.
+    function explicitNext(){
+      const q = new URLSearchParams(location.search);
+      return safePath(q.get('next') || q.get('redirect') || q.get('return')) || '';
+    }
+    function getRedirect(){ return explicitNext() || 'profile.html?welcome=1'; }
+
+    /* Primary button on the completion screen. People who arrived with ?next= (they hit the
+       login wall on the review or payslip form and were sent here) go back to what they
+       were doing. Hard-coding submit-review.html sent payslip arrivals to the wrong place. */
+    function showSuccessCta(){
+      const b = document.getElementById('success-cta');
+      const to = explicitNext();
+      if (!b || !to) return;
+      b.dataset.href = to;
+      // ★ファイル名だけで見る。/en/ 配下では to が '/en/pay-report.html' になるので、
+      //   パス全体で比べると英語側だけ分岐に入らない（実際に入っていなかった）。
+      const p = to.split(/[?#]/)[0].split('/').pop();
+      if (p === 'pay-report.html') {
+        b.textContent = 'Submit a payslip (about 2 min)';
+        // The salary unlock comes from payslips only (submit_pay_report pushes access_until 90 days out).
+        const lead = document.getElementById('success-lead');
+        if (lead) lead.innerHTML = 'Submit one payslip and <b style="color:#f5c842">the pay data for every airline unlocks for 90 days</b>.';
+        const later = document.getElementById('success-later');
+        if (later) later.textContent = 'Later → Go to the site';
+      } else if (p !== 'submit-review.html') {
+        b.textContent = 'Continue →';
+      }
+    }
+
+    /* ── 認証の入口は3つ、着地は1つ ──
+       'password' … まだユーザーが居ない。段2の送信で signUp する（従来の経路）
+       'session'  … Google／コードで既に認証済み。ユーザーは作らず profiles を埋める
+       どちらでも段2（プロフィール）を必ず通す。在籍企業と職位はここでしか取れない。 */
+    let authMode     = 'password';
+    let signupMethod = 'email';     // GA4 の method に入れる
+    let otpEmail     = '';
+
+    function show(id, on){ const el = document.getElementById(id); if (el) el.style.display = on ? 'block' : 'none'; }
+
+    // .error-msg は赤。再送の「送りました」だけ緑（.is-ok）にするので、次に使う前に必ず戻す。
+    function resetMsg(el){ el.style.display='none'; el.classList.remove('is-ok'); }
+
+    /* 戻り先は Google の往復をまたぐ。?redirect= を落とさないよう search ごと持ち回る。
+       auth-callback.html はルート直下にあるので、en/ を明示する。 */
+    function callbackUrl(){
+      return 'https://pilot-value.com/auth-callback.html?next='
+           + encodeURIComponent('en/signup.html' + location.search);
+    }
+
+    function goStep2(e) {
+      e.preventDefault();
+      const pass = document.getElementById('s1-pass').value;
+      const pass2= document.getElementById('s1-pass2').value;
+      const errEl= document.getElementById('step1-error');
+      errEl.style.display='none';
+      if(pass.length<8){errEl.textContent='Your password must be at least 8 characters';errEl.style.display='block';return;}
+      if(pass!==pass2){errEl.textContent='Passwords do not match';errEl.style.display='block';return;}
+      authMode = 'password'; signupMethod = 'email';
+      enterProfileStep();
+    }
+
+    function enterProfileStep() {
+      ['step-1','email-step','otp-step'].forEach(function(id){ show(id, false); });
+      show('step-2', true);
+      document.getElementById('dot-1').classList.remove('active');
+      document.getElementById('dot-1').classList.add('done');
+      document.getElementById('dot-2').classList.add('active');
+      // 認証が済んでいる人には戻り先が無い
+      show('step2-back', authMode !== 'session');
+    }
+
+    function backToStep1() {
+      ['step-2','email-step','otp-step'].forEach(function(id){ show(id, false); });
+      show('step-1', true);
+      document.getElementById('dot-2').classList.remove('active');
+      document.getElementById('dot-1').classList.remove('done');
+      document.getElementById('dot-1').classList.add('active');
+    }
+
+    /* ── ① Google ── auth-callback を経由して、この画面の段2に戻ってくる */
+    async function signupGoogle(){
+      await sb.auth.signInWithOAuth({ provider:'google', options:{ redirectTo: callbackUrl() } });
+    }
+
+    /* ── ② メールのコード ── */
+    function showEmailStep(){
+      const input = document.getElementById('otp-email');
+      const typed = document.getElementById('s1-email').value.trim();
+      if (typed && !input.value) input.value = typed;      // 下のフォームに打ちかけていたら引き継ぐ
+      resetMsg(document.getElementById('email-error'));
+      resetMsg(document.getElementById('otp-error'));
+      ['step-1','otp-step','step-2'].forEach(function(id){ show(id, false); });
+      show('email-step', true);
+      input.focus();
+    }
+
+    async function sendOtp(){
+      const sendBtn   = document.getElementById('otp-send-btn');
+      const resendBtn = document.getElementById('otp-resend-btn');
+      const input     = document.getElementById('otp-email');
+
+      /* 再送はコード入力の段から押される。そのとき #email-step は隠れていて、
+         その中の #email-error に書いても誰にも見えない。出す先を段で選ぶ。 */
+      const onOtpStep = document.getElementById('otp-step').style.display === 'block';
+      const errEl = document.getElementById(onOtpStep ? 'otp-error' : 'email-error');
+      resetMsg(errEl);
+
+      // 再送は「さっき送った宛先」に送る。入力欄を触られていても宛先は変えない。
+      const email = onOtpStep ? otpEmail : input.value.trim().toLowerCase();
+      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+        errEl.textContent='Please enter a valid email address';
+        errEl.style.display='block';
+        if(!onOtpStep) input.focus();
+        return;
+      }
+
+      const active = onOtpStep ? resendBtn : sendBtn;
+      const label  = active.innerHTML;
+      active.disabled = true; active.textContent = 'Sending…';
+
+      const { error } = await sb.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: callbackUrl(), shouldCreateUser: true }
+      });
+
+      active.disabled = false; active.innerHTML = label;
+
+      if(error){
+        errEl.textContent = (error.status === 429)
+          ? 'Too many requests. Please wait a moment and try again.'
+          : 'We could not send the email: ' + error.message;
+        errEl.style.display='block';
+        return;
+      }
+
+      otpEmail = email;
+      if(onOtpStep){
+        errEl.textContent='We sent the email again.';
+        errEl.classList.add('is-ok');
+        errEl.style.display='block';
+      }
+      document.getElementById('otp-note').innerHTML =
+        'We sent an email to <b>' + email.replace(/[<>&]/g,'') + '</b>. '
+        + 'Open the link in it, or enter the 6-digit code below.';
+      show('email-step', false);
+      show('otp-step', true);
+      document.getElementById('otp-code').focus();
+    }
+
+    document.getElementById('otp-email').addEventListener('keydown', function(e){
+      if(e.key === 'Enter'){ e.preventDefault(); sendOtp(); }
+    });
+
+    async function verifyOtpCode(){
+      const token = document.getElementById('otp-code').value.trim();
+      const errEl = document.getElementById('otp-error');
+      const btn   = document.getElementById('otp-verify-btn');
+      resetMsg(errEl);
+
+      if(!/^\d{6}$/.test(token)){
+        errEl.textContent='Please enter the 6 digits';
+        errEl.style.display='block';
+        return;
+      }
+
+      btn.textContent='Checking…'; btn.disabled=true;
+      const { data, error } = await sb.auth.verifyOtp({ email: otpEmail, token, type:'email' });
+
+      if(error || !data || !data.user){
+        errEl.textContent='That code is wrong or has expired. Please resend and try again.';
+        errEl.style.display='block';
+        btn.textContent='Continue with code'; btn.disabled=false;
+        return;
+      }
+
+      authMode = 'session'; signupMethod = 'otp';
+      prefillProfile(data.user, null);
+      enterProfileStep();
+    }
+
+    // 6桁そろったら自動で送る（数字だけに矯正する）
+    document.getElementById('otp-code').addEventListener('input', function(){
+      this.value = this.value.replace(/\D/g,'').slice(0,6);
+      if(this.value.length === 6) verifyOtpCode();
+    });
+
+    /* 既に埋まっている値は打ち直させない。Google は氏名を metadata で持ってくる。 */
+    function prefillProfile(user, profile){
+      const m = (user && user.user_metadata) || {};
+      const set = function(id, v){ if(v) document.getElementById(id).value = v; };
+      set('s2-name',    (profile && profile.name) || m.full_name || m.name);
+      set('s2-company', profile && profile.company);
+      set('s2-country', profile && profile.country);
+      set('s2-birth',   profile && profile.birthdate);
+      const g = profile && profile.gender;   if(g){ const el=document.querySelector('input[name="gender"][value="'+g+'"]');   if(el) el.checked=true; }
+      const p = profile && profile.position; if(p){ const el=document.querySelector('input[name="position"][value="'+p+'"]'); if(el) el.checked=true; }
+    }
+
+    /* Google から auth-callback 経由で戻ってきた／既にログイン済みで開いた場合の受け皿。
+       プロフィールが埋まっているなら登録済みなので、そのままサイトへ通す。 */
+    (async function(){
+      const { data:{ session } } = await sb.auth.getSession();
+      if(!session) return;
+      const { data: p } = await sb.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
+      if(p && p.name && p.company && p.position){ window.location.href = getRedirect(); return; }
+      authMode = 'session';
+      if(signupMethod === 'email') signupMethod = 'google';   // OTP は verifyOtpCode で既に立っている
+      prefillProfile(session.user, p);
+      enterProfileStep();
+    })();
+
+    async function handleSignup(e) {
+      e.preventDefault();
+      const errEl = document.getElementById('step2-error');
+      const btn   = document.getElementById('signup-btn');
+      errEl.style.display='none';
+
+      const name     = document.getElementById('s2-name').value.trim();
+      const gender   = document.querySelector('input[name="gender"]:checked');
+      const birth    = document.getElementById('s2-birth').value;
+      const country  = document.getElementById('s2-country').value;
+      const company  = document.getElementById('s2-company').value.trim();
+      const position = document.querySelector('input[name="position"]:checked');
+
+      if(!name)    {errEl.textContent='Please enter your full name';errEl.style.display='block';return;}
+      if(!gender)  {errEl.textContent='Please select your gender';errEl.style.display='block';return;}
+      if(!birth)   {errEl.textContent='Please enter your date of birth';errEl.style.display='block';return;}
+      if(!country) {errEl.textContent='Please select your country of residence';errEl.style.display='block';return;}
+      if(!company) {errEl.textContent='Please enter your current employer';errEl.style.display='block';return;}
+      if(!position){errEl.textContent='Please select your position';errEl.style.display='block';return;}
+
+      const optIn   = !!(document.getElementById('s2-optin') && document.getElementById('s2-optin').checked);
+      const optInAt = optIn ? new Date().toISOString() : null;
+      const meta = { name, gender: gender.value, birthdate: birth, country, company,
+                     position: position.value, email_opt_in: optIn, email_opt_in_at: optInAt };
+
+      btn.textContent='Registering…'; btn.disabled=true;
+
+      const fail = function(msg){
+        errEl.textContent = msg; errEl.style.display='block';
+        btn.textContent='Complete registration'; btn.disabled=false;
+      };
+
+      let userId, email;
+
+      if (authMode === 'session') {
+        // Google／コードで既に認証済み。ユーザーは作らず metadata を足すだけ。
+        // profiles の行は handle_new_user トリガーが作成済みなので、下の upsert が中身を埋める。
+        const { data: u, error: uErr } = await sb.auth.updateUser({ data: meta });
+        if (uErr || !u || !u.user) {
+          return fail('We could not save your profile: ' + ((uErr && uErr.message) || 'unknown error'));
+        }
+        userId = u.user.id;
+        email  = u.user.email;
+      } else {
+        email = document.getElementById('s1-email').value.trim().toLowerCase();
+        const pass = document.getElementById('s1-pass').value;
+
+        // 1. Create the user in Supabase auth (profile fields are passed as metadata → the trigger creates the profiles row automatically)
+        //    metadata is JSON, so unknown keys are safe. email_opt_in is written to profiles by the trigger.
+        const { data, error } = await sb.auth.signUp({ email, password: pass, options: { data: meta } });
+        if(error){
+          return fail(error.message === 'User already registered'
+            ? 'This email address is already registered'
+            : 'An error occurred: ' + error.message);
+        }
+        if(!data.user){
+          return fail('Please turn off email confirmation in the Supabase dashboard (Authentication → Sign In / Providers → Confirm email)');
+        }
+        // 2. If no session was established, sign in to obtain one
+        if(!data.session){
+          const { error: signInErr } = await sb.auth.signInWithPassword({ email, password: pass });
+          if(signInErr) return fail('Login failed: ' + signInErr.message);
+        }
+        userId = data.user.id;
+      }
+
+      const profileData = { name, gender: gender.value, birthdate: birth, country, company, position: position.value };
+      const optInCols  = { email_opt_in: optIn, email_opt_in_at: optInAt };
+
+      // 3. Save the profile to the DB (the trigger also creates it, so registration continues even if this fails due to RLS etc.)
+      //    Fall back so that registration is not blocked when the email_opt_in column has not been added yet (pre-migration).
+      let { error: upsertErr } = await sb.from('profiles').upsert({ id: userId, email, ...profileData, ...optInCols });
+      if (upsertErr && /email_opt_in/i.test((upsertErr.message||'') + (upsertErr.details||''))) {
+        ({ error: upsertErr } = await sb.from('profiles').upsert({ id: userId, email, ...profileData }));
+      }
+      if(upsertErr){ console.warn('profiles upsert failed; handle_new_user trigger will populate:', upsertErr.message); }
+
+      /* ★There are two consent flags. The upsert above only sets the parent (email_opt_in);
+         the monthly-reminder child (mail_optin) stayed false. pv_reminder_due requires BOTH,
+         which is why the recipient list was permanently empty (measured 2026-08-11:
+         mail_optin=true for 0 of 27 users, pv_reminder_due returns []).
+         Go through set_mail_optin rather than writing the column, so the parent flag and the
+         consent timestamps are set server-side too. A failure here must not block signup —
+         the consent can be set again later from the profile page. */
+      if (optIn) {
+        try { await sb.rpc('set_mail_optin', { p_on: true }); }
+        catch (e) { console.warn('set_mail_optin failed:', e && e.message); }
+      }
+
+      // 4. Also store in localStorage (for the nav display)
+      localStorage.setItem('pv_user', JSON.stringify({
+        id: userId, email, name, gender: gender.value,
+        birthdate: birth, country, company, position: position.value,
+        joinedAt: new Date().toISOString()
+      }));
+
+      // pv-session.js の無操作カウントをここから開始する（en/login.html の afterLogin と同じ）
+      try { localStorage.setItem('pv_last_active', String(Date.now()));
+            localStorage.setItem('pv_session_start', String(Date.now())); } catch(e){}
+
+      // 5. GA4 conversion tracking (sign up). どの入口が効いているかを見たいので method を分ける
+      try { if (typeof gtag === 'function') gtag('event', 'sign_up', { method: signupMethod }); } catch(e) {}
+
+      // 6. Go to the success screen
+      document.getElementById('step-2').style.display='none';
+      document.getElementById('success-screen').style.display='block';
+      showSuccessCta();
+    }
+  </script>
+<script src="../lang-toggle.js"></script>
+<script src="../currency.js"></script>
+</body>
+</html>

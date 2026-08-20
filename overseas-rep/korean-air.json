@@ -1,0 +1,90 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "財閥オーナー経営で、Glassdoorでは『同族経営で薄給』との批判も出る。韓国社会由来の強い上下関係と元軍出身者の影響で権威勾配がきつく、副操縦士が機長に物申しにくい文化が長く残った。CRM改革や機内英語化で改善は進むが、パイロット社会は保守的で狭く、目立つと不利になりやすい。",
+      "en": "Family-run chaebol governance draws 'owner-managed, underpaid' complaints on Glassdoor. A steep, historically military-influenced authority gradient long made first officers hesitant to challenge captains; CRM reform and English-standard cockpits have improved things, but the pilot community stays conservative and tight-knit."
+    },
+    "salary": {
+      "ja": "現地採用の副操縦士は手当込み総額で約1億〜1億2,500万ウォン（約1,100万〜1,375万円）、機長は約2億1,000万〜2億4,000万ウォン（約2,310万〜2,640万円）。基本給＋飛行手当＋成果給の構成で全社平均は約1億1,000万ウォン。安定はするが湾岸や東南アジア勢に比べ見劣りし、高い韓国の税率で昇給の実感は薄い。",
+      "en": "Local first officers earn roughly $73k–$91.5k all-in and captains about $154k–$176k, on a base-plus-flight-allowance-plus-performance structure (company average near KRW 110M). Steady, but behind Gulf and Southeast Asian carriers, and Korea's high tax rates blunt any raise."
+    },
+    "benefits": {
+      "ja": "外国人はソウル滞在時に仁川グランドハイアット（5つ星）、レイオーバーも最低4つ星、休日には世界の指定ベースまでビジネスクラスで無料コミュートできる。社員航空券は家族も使える。一方で退職金・企業年金はなく、医療保険も会社支給ではなくRishworth手配となる点は明確なマイナス。",
+      "en": "Expats get a five-star Seoul hotel (Grand Hyatt Incheon), minimum four-star layovers, business-class commuting to a home base, and family-usable staff tickets. But there is no retirement payout or company pension, and medical cover is arranged through Rishworth rather than the airline."
+    },
+    "wlb": {
+      "ja": "外国人は毎月自宅で連続11日のオフが保証され、加えて月最大3日の移動日が付く。年次有給は月2日累積で年24日、病気休暇は機長14日・副操縦士10日。スケジュールは機材で大きく変わり、軽い月は月3〜4日勤務のことも。この連続オフとビジネスクラス・コミュート制度が最大の魅力とされる。",
+      "en": "Expats are guaranteed 11 consecutive days off at home each month, plus up to three travel days, with 24 annual leave days a year. Rosters swing hard by fleet — a light month can be just 3–4 duty days. The block leave and business-class commute are the biggest draw."
+    },
+    "ops": {
+      "ja": "運航機材はB747-8・B777・A330で、運航55年超・保有160機超・就航120都市超/43か国の大手フラッグキャリア。長距離を多く飛べば手当は増えるが負担も重い。2026年12月17日にアシアナ航空との統合完了予定で、統合後の運航体制や序列制度をめぐる社内の緊張が続く。",
+      "en": "A modern widebody fleet of B747-8, B777 and A330 across a 55-year-old flag carrier with 160+ aircraft serving 120+ cities in 43 countries. Long-haul-heavy flying pays well but wears you down. The Asiana merger completes 17 Dec 2026, with integration and seniority tensions ongoing."
+    },
+    "training": {
+      "ja": "初期訓練はソウルで約4か月。現地採用は機長昇格まで平均8〜12年（機材拡張期は7〜8年に短縮も）。一方で外国人は原則機長へアップグレードされず、副操縦士のまま長期在籍する構造。年2回のシミュレーターチェックや定期訓練、身体検査、英語試験と継続的なチェック圧力が常にある。",
+      "en": "Initial training runs about four months in Seoul, and local pilots reach captain in roughly 8–12 years. Expats, however, are not upgraded to captain and stay first officers indefinitely. Twice-yearly sim checks, recurrent training, medicals and English tests keep the pressure constant."
+    }
+  },
+  "sources": [
+    {
+      "title": "KOREAN AIR expat pilots? - PPRuNe Forums",
+      "url": "https://www.pprune.org/south-asia-far-east/631606-korean-air-expat-pilots.html"
+    },
+    {
+      "title": "Korean Air [Archive] - PPRuNe Forums",
+      "url": "https://www.pprune.org/archive/index.php/t-364530.html"
+    },
+    {
+      "title": "Korean Air FAQ | Rishworth Aviation",
+      "url": "https://rishworthaviation.com/pilot-jobs/airline/korean-air-pilot-jobs/korean-air-frequently-asked-questions"
+    },
+    {
+      "title": "Korean Air pilot benefits | CCL",
+      "url": "https://kal-ccl.com/benefits-CCL-korean-air-pilots"
+    },
+    {
+      "title": "Korean Air Pilot Jobs benefits - Total Aviation Service (flytas)",
+      "url": "https://flytas.com/benefits/"
+    },
+    {
+      "title": "Korean Air Pilot Salary in 2026 - Aviation A2Z",
+      "url": "https://aviationa2z.com/index.php/2026/04/11/korean-air-pilot-salary-2026/"
+    },
+    {
+      "title": "Korean Air Reviews / Airline Pilot Salaries - Glassdoor",
+      "url": "https://www.glassdoor.com/Salary/Korean-Air-Airline-Pilot-Salaries-E6831_D_KO11,24.htm"
+    },
+    {
+      "title": "블라인드 | 대한항공 부기장의 삶 (Team Blind)",
+      "url": "https://www.teamblind.com/kr/post/%EB%8C%80%ED%95%9C%ED%95%AD%EA%B3%B5-%EB%B6%80%EA%B8%B0%EC%9E%A5%EC%9D%98-%EC%82%B6-44Epfe7V"
+    },
+    {
+      "title": "대한항공 연봉 2026 평균 1억 1천만원 (조종사·객실·사무직 직급별)",
+      "url": "https://goojic.com/korean-air-salary/"
+    },
+    {
+      "title": "대한항공 연봉 | 승무원 | 기장 | 사무장 연봉 (gooinjob)",
+      "url": "https://gooinjob.com/korean-air-salary/"
+    },
+    {
+      "title": "(단독)대한항공 조종사노조, 임단협 결렬…합병 앞두고 '서열 갈등' 격화 - 뉴스토마토",
+      "url": "https://www.newstomato.com/readnews.aspx?no=1295129"
+    },
+    {
+      "title": "[단독] 대한항공 파업 수순 돌입…필수인력 놓고 노동위行 - 아주경제",
+      "url": "https://www.ajunews.com/view/20260511145711264"
+    },
+    {
+      "title": "대한항공, 2026년 임단협 최종 타결…기본급 2.5% 인상·통합 특별 공로금 - 이코노믹리뷰",
+      "url": "https://www.econovill.com/news/articleView.html?idxno=744506"
+    },
+    {
+      "title": "항공업계, 조종사간 서열 싸움에 내부갈등 커진다…결국 처우 문제 - 뉴데일리",
+      "url": "https://biz.newdaily.co.kr/site/data/html/2026/04/24/2026042400140.html"
+    },
+    {
+      "title": "Thinking Beyond Cultural Legacy: The Case of Korean Air - Medium",
+      "url": "https://medium.com/@leonogas/thinking-beyond-cultural-legacy-the-case-of-korean-air-ac049b190b6d"
+    }
+  ]
+}

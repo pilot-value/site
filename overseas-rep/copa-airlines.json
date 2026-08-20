@@ -1,0 +1,86 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "定時運航を厳格に求める体育会的な社風。社内には縁故（amiguismo）や方針運用のばらつきがある。組合UNPACとの緊張は高く、2023年2月には当日朝の直前でストを回避して妥結した。パナマ人は歓迎されるが、外国人は先任順位や機長昇格で不利になりやすく、国籍が待遇に響く。",
+      "en": "A strict on-time culture with a paramilitary streak, plus amiguismo (favoritism) and uneven policy enforcement. Tension with the UNPAC union runs high — a February 2023 strike was averted only hours before it began — and foreigners are disadvantaged versus Panamanians on seniority and captain upgrades."
+    },
+    "salary": {
+      "ja": "機長は基本給が月約60万円（$3,840）を年13回、日当保証と合わせ手取り年1,340万〜1,580万円（$85K〜100K）が目安。副操縦士は760万〜870万円ほど。給料日は確実で会社も安定。ただし所得税約30%と『日当は給与に算入しない』構造で額面ほど手取りは伸びず、国際的な同業他社より見劣りする。",
+      "en": "Captains earn a base of ~$3,840/month paid 13 times a year, and with guaranteed per diem take-home runs roughly $85K–$100K; first officers land around $48K–$55K. Pay is reliable, but ~30% income tax and per diem that isn't counted as salary keep net pay below international peers."
+    },
+    "benefits": {
+      "ja": "健康・生命保険、家族向けの搭乗特典、生産性賞与（最低約2週間分、2010年は8週間分の年も）は手厚い。赴任手当は月約13万円（$800）を四半期ごと、最長2年支給。一方でレイオーバーの宿泊・機内食、ライセンス喪失保険、退職給付は手薄で、いずれも組合の交渉項目として改善が争われてきた。",
+      "en": "Health and life insurance, family travel benefits, and a productivity bonus (minimum ~2 weeks, up to 8 weeks in 2010) are solid. Relocation pay is ~$800/month quarterly for up to two years, but thin layover, loss-of-license, and retirement provisions remain union bargaining points."
+    },
+    "wlb": {
+      "ja": "月ブロック約82〜83時間・年約900時間、月の休日は9〜11日、年次有給30日と数字は悪くない。ただし連休は最大5日申請できても実際は3〜4日単位になりがち。深夜便(レッドアイ)で疲弊しやすく、コミューティング不可でパナマ在住が必須。自宅と空港間の送迎は会社が提供する。",
+      "en": "About 82–83 block hours/month (~900/year), 9–11 days off monthly, and 30 vacation days look reasonable. But long stretches of leave are hard to arrange, red-eyes wear crews down, and commuting isn't allowed — you must live in Panama City (company provides home-airport transport)."
+    },
+    "ops": {
+      "ja": "全機がボーイング737（-700/800/MAX8/9）で約107機、比較的新しい機材で揃う。ハブはパナマシティのトクメン国際空港（PTY）、スターアライアンス加盟で88都市・32か国に就航。定時性が高くオペレーションはしっかりしており、フラッグキャリアとしての格と信頼性も魅力。",
+      "en": "An all-Boeing 737 fleet (-700/800/MAX8/9), ~107 aircraft, relatively new. Based at Panama City's Tocumen hub (PTY), a Star Alliance member serving 88 cities in 32 countries, with strong on-time performance pilots speak well of."
+    },
+    "training": {
+      "ja": "副操縦士から機長までおおむね4〜5年と比較的早く、2025〜2026年に320名超を採用し、一度に52名を機長昇格させた実績もある。昇格は座学・シミュレーター・監督下飛行から成る約4か月の訓練を要する。ただし外国人は1,000時間以上やスペイン語が必要で、国籍要件で昇格が後回しになりやすい。",
+      "en": "Upgrade from first officer to captain takes roughly 4–5 years, and with 320+ hires planned for 2025–2026 (52 upgraded to captain at once) opportunity is plentiful; the captain program runs ~4 months. But foreigners need 1,000+ hours and Spanish, and nationality rules push their upgrades back."
+    }
+  },
+  "sources": [
+    {
+      "title": "Copa Airlines — PPRuNe Forums (Caribbean/Latin America) pilot discussion",
+      "url": "https://www.pprune.org/caribbean-latin-america/611023-copa-airlines.html"
+    },
+    {
+      "title": "Copa Airlines 2026 — Recruitment, working conditions and pilot experiences (PPRuNe)",
+      "url": "https://www.pprune.org/caribbean-latin-america/672955-copa-airlines-2026-recruitment-working-conditions-pilot-experiences.html"
+    },
+    {
+      "title": "Copa Airlines information — Flightinfo.com (pay structure, per diem, roster detail)",
+      "url": "https://flightinfo.com/threads/copa-airlines-information.141916/"
+    },
+    {
+      "title": "How do you apply to Copa? — Airline Pilot Central Forums (foreign pilots, seniority, taxes)",
+      "url": "https://www.airlinepilotforums.com/foreign/61536-how-do-you-apply-copa-2.html"
+    },
+    {
+      "title": "Trabajar en COPA AIRLINES: evaluaciones — Indeed (employee reviews)",
+      "url": "https://pa.indeed.com/cmp/Copa-Airlines/reviews?fcountry=ALL"
+    },
+    {
+      "title": "How Much Does Copa Airlines Pay in 2025? — Glassdoor salaries",
+      "url": "https://www.glassdoor.com/Salary/Copa-Airlines-Salaries-E25999.htm"
+    },
+    {
+      "title": "Pilotos y Copa Airlines logran acuerdo que deja sin efecto la huelga — La Prensa (Panamá)",
+      "url": "https://www.prensa.com/economia/pilotos-y-copa-airlines-logran-acuerdo-que-deja-sin-efecto-el-llamado-a-huelga/"
+    },
+    {
+      "title": "Copa Airlines prevé contratar a más de 320 pilotos entre 2025 y 2026 — La Prensa",
+      "url": "https://www.prensa.com/economia/copa-airlines-preve-contratar-a-mas-de-320-pilotos-entre-2025-y-2026/"
+    },
+    {
+      "title": "Pilotos de aerolínea panameña Copa anulan huelga por acuerdo — Infobae",
+      "url": "https://www.infobae.com/america/agencias/2023/02/02/pilotos-de-aerolinea-panamena-copa-anulan-huelga-por-acuerdo/"
+    },
+    {
+      "title": "Salarios de pilotos de Copa Airlines y Latam — Pulzo (comparativa capitán/copiloto)",
+      "url": "https://www.pulzo.com/economia/salarios-pilotos-copa-airlines-latam-PP352910"
+    },
+    {
+      "title": "Copa Airlines Pilot Hiring Requirements — Epic Flight Academy",
+      "url": "https://epicflightacademy.com/hiring-requirements-copa-airlines/"
+    },
+    {
+      "title": "Copa Airlines is hiring B737 MAX Captains — PilotsGlobal (requirements, contract, benefits)",
+      "url": "https://pilotsglobal.com/job/B737-MAX-captain-copa_airlines-PA-23f22aed2c"
+    },
+    {
+      "title": "COPA Airlines — Pilot Career Center profile (fleet, base, requirements)",
+      "url": "https://pilotcareercenter.com/Air-Carrier-PCC-Profile/2621/COPA-Airlines"
+    },
+    {
+      "title": "Copa Airlines — Wikipedia (fleet, destinations, hub, employees)",
+      "url": "https://en.wikipedia.org/wiki/Copa_Airlines"
+    }
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "多国籍の同僚は親切で、恐怖で締め付けず地域の他社より穏やかになったという近年の改善評価がある一方、マネジメントの一貫性の無さや、誰と飛ぶかで雰囲気が決まる属人的なばらつきへの不満も残る。ADQ傘下の国営で足元は最高益・拡大局面だが、コロナ期に約400名削減・給与カットを行った記憶が景気次第の警戒感として尾を引く。",
+      "en": "Multinational, friendly crews and a calmer, less fear-driven culture than regional peers, but inconsistent management and a person-dependent atmosphere. State-owned under ADQ and now posting record profits, though the ~400-pilot COVID cuts left a lasting wariness."
+    },
+    "salary": {
+      "ja": "所得税ゼロで手取りは厚い。副操縦士の年間パッケージは約1,550万〜3,100万円(AED36万〜72万)、機長はシニアの広胴機で5,000万円超に達する。ただエミレーツのボーナス約14週分に対しエティハドは約1週分とされ、住宅手当やボーナスで見劣りし湾岸トップではないとの見方が多い。",
+      "en": "FO packages run about $98–197K and senior wide-body captains clear $320K+, all tax-free. Solid Gulf pay, but bonuses (~1 week vs Emirates' ~14) keep it below the regional top."
+    },
+    "benefits": {
+      "ja": "住宅は社宅か住宅手当の選択制で、手当は機長 約731万円/年(AED17万)・FO約688万円が目安。子女教育手当は初等 最大約172万円・中等約237万円で子ども3人まで対象。退職金はUAE労働法準拠で確定給付年金は無い。湾岸他社が標準では付けないライセンス喪失補償が標準付帯なのは安心材料。",
+      "en": "Housing is company-provided or an allowance (~$46K/yr for captains), plus child-education support and a UAE end-of-service gratuity — no defined-benefit pension. Notably, loss-of-license cover is standard, unlike most Gulf rivals."
+    },
+    "wlb": {
+      "ja": "ベースはアブダビのみで第二ベースは無い。目標は月約75ブロック時間だが、実乗務は月50〜60時間という声と100時間超の声で割れる。公示ロスターの融通が利かず、交換やオフ調整で規定違反アラートが出て事実上動かせずビッドも通りにくい。一方で街は安全清潔で家族向き、レイオーバーのホテルも良質と生活面は高評価。",
+      "en": "Abu Dhabi is the only base; target flying is ~75 block hours but crews report anywhere from 50–60 to 100+. Rosters are rigid — swaps trigger rule-violation alerts and bids rarely clear — yet Abu Dhabi life is safe, family-friendly, with good layover hotels."
+    },
+    "ops": {
+      "ja": "機材はA320/A321・A350・A380・B787・B777と世界最新鋭クラスで、狭胴機から広胴機へ段階的に経験を積める設計を好む層がいる。2025年は機材29機純増と社史上最大の拡大でJourney 2030へ採用継続中。一方でセクター間の休息が短い便や疲労への懸念があり、当局(GCAA)の関与に触れる声もある。",
+      "en": "One of the youngest fleets around — A320/A321, A350, A380, B787, B777 — with a narrow- to wide-body progression Emirates lacks. Rapid growth (net +29 aircraft in 2025) toward Journey 2030, though short between-sector rest raises fatigue concerns."
+    },
+    "training": {
+      "ja": "型式限定訓練は会社負担だが2〜3年の在籍義務が付き、早期離職はプロレート返済を求められる。機長は総飛行時間約5,500時間以上、直接入社機長は7,000時間以上が目安。コマンド昇格は外部の直接入社機長と枠を奪い合うため見通しが不透明で、20〜22カ月から平均8〜11年まで振れ幅が大きい。",
+      "en": "Type rating is company-paid but carries a 2–3 year bond with pro-rated payback if you leave early. Command needs ~5,500 hours and competes with external direct-entry captains, so timelines swing wildly — from 20–22 months to 8–11 years."
+    }
+  },
+  "sources": [
+    {
+      "title": "Etihad Airways Pilots Salary in 2026 - Aviation A2Z",
+      "url": "https://aviationa2z.com/index.php/2026/03/27/etihad-airways-pilot-salary-2026/"
+    },
+    {
+      "title": "Etihad Airways Pilot Salary 2026: FO $98-195K, Captain $190-380K - Airmappr",
+      "url": "https://airmappr.com/articles/career/etihad-airways-pilot-salary-guide"
+    },
+    {
+      "title": "Etihad Airways | Pilot Salaries, Rosters & Career Paths - Ready For Takeoff",
+      "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/etihad-airways"
+    },
+    {
+      "title": "Etihad Airways Airline Pilot Reviews - Glassdoor",
+      "url": "https://www.glassdoor.com/Reviews/Etihad-Airways-Airline-Pilot-Reviews-EI_IE229909.0,14_KO15,28.htm"
+    },
+    {
+      "title": "Working at Etihad Airways: Reviews (Aviation) - Indeed",
+      "url": "https://www.indeed.com/cmp/Etihad-Airways/reviews?fjobcat=aviation"
+    },
+    {
+      "title": "Etihad - PPRuNe Forums (Middle East)",
+      "url": "https://www.pprune.org/middle-east/661762-etihad.html"
+    },
+    {
+      "title": "Etihad vs Emirates - PPRuNe Forums",
+      "url": "https://www.pprune.org/middle-east/328140-etihad-vs-emirates.html"
+    },
+    {
+      "title": "Pilot Salary in UAE 2026: Emirates, Etihad & Flydubai Pay Guide - CrewDaily",
+      "url": "https://crewdaily.com/pilot-salary-in-uae/"
+    },
+    {
+      "title": "Your life as an Etihad pilot – a career and a lifestyle - AeroTime",
+      "url": "https://www.aerotime.aero/articles/your-life-as-an-etihad-pilot"
+    },
+    {
+      "title": "Etihad Airways expected to lay off hundreds of pilots - AeroTime",
+      "url": "https://www.aerotime.aero/articles/25432-etihad-airways-expected-to-lay-off-hundreds-of-pilots"
+    },
+    {
+      "title": "Etihad Airways to hire 1,500 more employees in 2025 - Gulf News",
+      "url": "https://gulfnews.com/business/aviation/etihad-airways-to-hire-1500-more-employees-in-2025-after-major-recruitment-spree-1.500137015"
+    },
+    {
+      "title": "First Officer A320 Job Details - Etihad Airways Careers",
+      "url": "https://careers.etihad.com/job/Abu-Dhabi-First-Officer-A320/732631822/"
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "大企業ゆえの硬直性で「一人の駒（just a number）」扱いされ、個別事情に融通が利かないという不満が目立つ。重要決定を社内より先に報道で知る、社内コミュニケーションが弱いといった声も多く、ハラスメント通報が放置されたとの厳しい指摘も一部にある。訓練・機材・安全文化への評価は高いだけに、経営や現場との距離感が惜しまれる。",
+      "en": "Pilots often feel treated as 'just a number' in a rigid big-company culture, learning major decisions from the press before internal channels and citing weak internal communication. Some report harassment complaints going unaddressed, which contrasts sharply with the high marks given to training and safety."
+    },
+    "salary": {
+      "ja": "機長は基本給が初任約2,900万円（£144,000）、勤続10年で約3,350万円、総支給はセクターペイと勤続ボーナス（10年超+15%）で約3,430〜4,440万円。ファーストオフィサーは初年度約1,370万円から5年で約1,520万円へ昇給する。2024年協定で昇給を英RPI（小売物価指数）に連動させ、インフレ下でも実質賃金が守られる点は欧州LCCで唯一の強み。",
+      "en": "Captain base runs from about £144,000 to £166,000 after ten years, with total pay of £170,000–220,000 (~$217,000–281,000) once sector pay and loyalty bonuses are added; first officers go from £67,600 to about £75,400 in five years. A 2024 deal tied raises to UK retail-price inflation — unique among European LCCs — protecting real pay."
+    },
+    "benefits": {
+      "ja": "会社の年金拠出は基本給の約7%で、BA（10〜15%）より明確に見劣りし、長期では資産形成に大きな差が出るとの指摘が根強い。一方でスタッフトラベルは年8枚の無料スタンバイ券＋追加席£5（約1,000円）、ライセンス喪失保険は基本給の約120%を一時金、月最大£500（約10万円）を20%割引で買えるSAYE株式購入も用意される。",
+      "en": "The employer pension contribution is only about 7% of base — well below BA's 10–15% — which can mean a six-figure gap over a career. Perks include eight free standby tickets a year plus £5 seats, loss-of-licence cover at ~120% of base, and a 20%-discount SAYE share scheme up to £500/month."
+    },
+    "wlb": {
+      "ja": "UKは固定の5/4/5/3（5勤4休5勤3休）ローテーションで休日が年単位で先まで確定し、原則ショートホール往復・毎晩自宅・時差なし。生活リズムを組みやすい点を最大の魅力に挙げる現役が多い。有給は約25〜28日だが、この予見性と引き換えに有給約10日相当を失った経緯や、平日休み2日で週末が分断されるパターンへの不満もある。",
+      "en": "UK crews fly a fixed 5/4/5/3 pattern with days off locked in a year ahead, short-haul turns only, home every night and no jet lag — cited as the biggest draw. Leave is about 25–28 days, though some resent losing roughly 10 days of it and having weekends split by mid-week days off."
+    },
+    "ops": {
+      "ja": "全機Airbus A320ファミリーの単一型式で機材は新しく整備状態も良好、UK約10ベース＋大陸欧州約29ベースを展開する。年間ブロック時間は約800〜850時間（EASA上限900）。ただし他社より頻繁に裁量的な勤務延長（ディスクレッション）を求められ、1日最大4セクターの長い日や遅延が重なると相当疲れるうえ、遅延に追加手当が付かない点は不満点。",
+      "en": "An all-Airbus A320-family fleet, new and well maintained, is flown across about 10 UK bases plus 29 in continental Europe, with roughly 800–850 block hours a year. Pilots complain of more frequent discretionary duty extensions than at rivals, tiring four-sector days, and no extra pay for delays."
+    },
+    "training": {
+      "ja": "訓練プログラムの質は現役評価で最高水準。ただし入口は自己資金で、MPL（CAE）が約2,020〜2,420万円（£100,000〜120,000）、2026年開始のSkyborne ATPLは約2,600万円。型式限定ボンドも実質36か月天引きで600〜700万円相当。新人はまず約1年のフレキシクルー（時間給の派遣）を経て常勤化し、機長昇格は5〜7年だが人気ベースは待ち行列が長い。",
+      "en": "Training quality is rated near the top, but entry is self-funded — about £100,000–120,000 via the CAE MPL or £129,000 on the 2026 Skyborne ATPL route, plus a type-rating bond nominally £22,000 that runs closer to £30,000–35,000 in practice. New joiners start on roughly a year of hourly-paid flexi-crew before going permanent, and command comes in 5–7 years, though popular bases have long queues."
+    }
+  },
+  "sources": [
+    {
+      "title": "easyJet Europe | Pilot Careers, Pay, Roster & Benefits — Ready For Take-Off",
+      "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/easyjet-europe"
+    },
+    {
+      "title": "easyJet Pilot Salary 2026: FO £68-98K, Captain £170-220K — Airmappr",
+      "url": "https://airmappr.com/articles/career/easyjet-pilot-salary-guide"
+    },
+    {
+      "title": "easyJet Pilot Reviews — PilotsGlobal",
+      "url": "https://pilotsglobal.com/airlines/easyjet/pilot-reviews"
+    },
+    {
+      "title": "easyJet Pilot Reviews — Glassdoor",
+      "url": "https://www.glassdoor.com/Reviews/easyJet-Pilot-Reviews-EI_IE8754.0,7_KO8,13.htm"
+    },
+    {
+      "title": "easyjet pilot issues — PPRuNe Forums",
+      "url": "https://www.pprune.org/terms-endearment/598374-easyjet-pilot-issues.html"
+    },
+    {
+      "title": "EasyJet time to Command and bases — PPRuNe Forums",
+      "url": "https://www.pprune.org/terms-endearment/621633-easyjet-time-command-bases.html"
+    },
+    {
+      "title": "easyJet pilots reject pay rise in union vote — AeroTime",
+      "url": "https://www.aerotime.aero/articles/easyjet-pilots-pay-rise-balpa"
+    },
+    {
+      "title": "Breakthrough means no compulsory redundancies amongst easyJet pilots — BALPA",
+      "url": "https://www.balpa.org/2020/09/25/breakthrough-means-no-compulsory-redundancies-amongst-easyjet-pilots-following-huge-community-sacrifice/"
+    },
+    {
+      "title": "Generation easyJet Pilot Training Programme — CAE",
+      "url": "https://www.cae.com/civil-aviation/become-a-pilot/our-pilot-training-programmes/generation-easyjet-pilot-training-programme/"
+    },
+    {
+      "title": "easyJet Details 2025 Pilot Pay Structure — Aviation Analysis",
+      "url": "https://www.aviationanalysis.net/easyjet-details-2025-pilot-pay-structure-amid-continued-european-expansion/"
+    }
+  ]
+}

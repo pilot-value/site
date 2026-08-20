@@ -1,0 +1,78 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "クルーや同僚パイロットの人柄は総じて良い。ただ経営への不信は根深い。就航5年経っても初の労働協約(CBA)が未締結で、約690名が加入するALPAは2026年1月に誠実交渉義務違反で会社を提訴、5周年の5月にはピケも実施した。反組合的なトップの姿勢が最大の火種になっている。",
+      "en": "Coworkers and crews are genuinely great, but distrust of management runs deep. Five years in, the ~690 pilots still have no first contract; their ALPA union sued Breeze in January 2026 for bad-faith bargaining and picketed on the fifth anniversary."
+    },
+    "salary": {
+      "ja": "1年目の副操縦士は時給105ドル(約1.7万円)で年収の目安が約88,200ドル=約1,390万円、機長は1年目でも約17.2万〜18万ドル=2,700万〜2,840万円に届く。月間保証は70時間。平均年収はGlassdoorで約2,320万円。就航当初は機長時給117ドルと低かったが、そこから大幅に改善した。",
+      "en": "First-year FOs earn $105/hr (about $88,200/year), while first-year captains already reach roughly $172,000–180,000, on a 70-hour monthly guarantee. Glassdoor pegs the average near $146,779 — a big jump from the near-exploitative rates at the 2021 launch."
+    },
+    "benefits": {
+      "ja": "福利厚生は401k(会社マッチ)、HSAマッチ、医療・歯科・眼科保険、有給休暇、社員の搭乗旅行特典が中心。一方で明確な日当(per diem)や利益分配(profit sharing)制度は公表資料で確認できない。組合は大手並みの退職金拠出を要求しており、この点が交渉の焦点になっている。",
+      "en": "Benefits center on a 401(k) with company match, HSA match, medical/dental/vision, PTO, and travel perks. There is no clearly published per diem or profit sharing, and the union is pushing for major-airline-level retirement contributions."
+    },
+    "wlb": {
+      "ja": "乗務基地は約12拠点。ベース内に住めれば悪くないが、通勤前提だと厳しい。リザーブは早朝4時開始で前泊ホテルが要り、最終日は自宅に戻れず、ラインから予告なくリザーブへ戻される。あるパイロットはホテルと配車代で月2,000ドル(約32万円)の持ち出しとなり、昇給が帳消しと嘆いた。",
+      "en": "With about 12 bases, life is fine if you can live in base — brutal if you commute. Reserve starts at 4am and often needs a pre-night hotel, and pilots get pulled back to reserve without notice; one figured $2,000/month out of pocket on hotels and rideshares, wiping out the raise."
+    },
+    "ops": {
+      "ja": "機材は約62機で、近代的なAirbus A220-300が56機(追加34機発注)と主力。旧型E195は退役し事実上A220への単一機種化が進む。就航地は約85都市、2026年初にメキシコ・カリブ海への初の国際線を開設した。A220中心の運航は好意的に語られる一方、飛ばすこと自体は単調で退屈という声もある。",
+      "en": "The fleet is about 62 aircraft, led by 56 modern A220-300s (34 more on order) as it consolidates onto a single type. Around 85 cities are served, with first international routes to Mexico and the Caribbean opening in early 2026; pilots like the A220 but call the flying itself monotonous."
+    },
+    "training": {
+      "ja": "急成長とA220の大量発注を背景に、直接入社機長(direct-entry captain)や早期の上位シニオリティを狙いやすいのが魅力。ただし新人機長はリザーブもラインも期待値を低く持てとの忠告付き。採用はATP(またはR-ATP)とFAA第一種航空身体検査証明が要件。FO待遇が上がり、あえて昇格を望まないFOもいる。",
+      "en": "Rapid growth and a big A220 order make direct-entry captain slots and fast seniority accessible — though junior captains are warned to expect the worst of reserve and line flying. Requirements include an ATP (or R-ATP) and an FAA first-class medical; with FO pay now solid, some FOs skip upgrading."
+    }
+  },
+  "sources": [
+    {
+      "title": "Breeze Airways Pilot Salary (And How to Get a Job There) — Thrust Flight",
+      "url": "https://www.thrustflight.com/breeze-airways-pilot-salary/"
+    },
+    {
+      "title": "How Much Does Breeze Airways Pay in 2026? (333 Salaries) — Glassdoor",
+      "url": "https://www.glassdoor.com/Salary/Breeze-Airways-Salaries-E4158755.htm"
+    },
+    {
+      "title": "Pilot Salary at Breeze Airways — Salary.com",
+      "url": "https://www.salary.com/research/company/breeze-airways/pilot-salary"
+    },
+    {
+      "title": "Breeze Airways Wants To Pay Pilots How Much?! — One Mile at a Time",
+      "url": "https://onemileatatime.com/breeze-airways-pilots/"
+    },
+    {
+      "title": "ALPA Sues Breeze For Allegedly 'Obstructing Negotiations' — AirlineGeeks",
+      "url": "https://airlinegeeks.com/2026/01/20/alpa-sues-breeze-for-allegedly-obstructing-negotiations/"
+    },
+    {
+      "title": "Breeze pilots' union files lawsuit over stalled contract talks — FlightGlobal",
+      "url": "https://www.flightglobal.com/airlines/breeze-leadership-accused-of-anti-union-tactics-in-alpa-lawsuit/166003.article"
+    },
+    {
+      "title": "Breeze pilots picket at T.F. Green amid stalled union contract talks — Rhode Island Current",
+      "url": "https://rhodeislandcurrent.com/2026/05/27/breeze-pilots-picket-at-t-f-green-amid-stalled-union-contract-talks/"
+    },
+    {
+      "title": "680 Breeze Airways Pilots Still Waiting For Their First Contract After 5 Years — Simple Flying",
+      "url": "https://simpleflying.com/breeze-airways-pilots-still-waiting-1st-contract-5-years/"
+    },
+    {
+      "title": "[Breeze] Airways — Airline Pilot Central Forums (pilot discussion)",
+      "url": "https://www.airlinepilotforums.com/breeze/114461-breeze-airways-421.html"
+    },
+    {
+      "title": "Breeze Airways — Wikipedia (fleet, bases, history)",
+      "url": "https://en.wikipedia.org/wiki/Breeze_Airways"
+    },
+    {
+      "title": "Breeze Airways Pilot Salary 2026 — Rotate",
+      "url": "https://www.rotatepilot.com/airline-salary/breeze-airways"
+    },
+    {
+      "title": "Breeze Airways — ALPA pilot group page",
+      "url": "https://www.alpa.org/en/about-alpa/our-pilot-groups/pilot-groups/breeze"
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "経営への不信が根深い。親会社が失敗したリゾート事業（Sunseeker、7億ドル超を投じ約2億ドルで売却）に金を回したことを「パイロットより無駄な事業を優先した」と非難する。2016年契約は約5年塩漬けで、2024年11月にストライキ権を97%で承認。Glassdoorのパイロット評価は約2.3/5、報酬・福利は約1.4/5と低い。",
+      "en": "Deep distrust of management — pilots slam the parent's $700M+ Sunseeker resort flop (sold for ~$200M) as proof it funded failed ventures over its own crews. The 2016 contract sat unamended for ~5 years and pilots authorized a strike by 97% in 2024; Glassdoor rates it ~2.3/5."
+    },
+    "salary": {
+      "ja": "旧契約では業界屈指の低賃金。副操縦士1年目は時給約57.67ドル（年約760万〜810万円）で、Frontier約100ドル・Spirit約97ドルに大きく見劣りし、組合は市場比40〜50%低いと主張してきた。2026年7月の暫定合意で1年目は107.28ドルへ倍増、12年目機長は時給355ドル（2028年）まで引き上げ予定。",
+      "en": "Long the lowest-paying ULCC — first-year FO at ~$57.67/hr vs Frontier ~$100 and Spirit ~$97, which the union calls 40-50% below market. A July 2026 tentative deal more than doubles first-year FO pay to $107.28/hr and lifts senior captains to $355/hr by 2028."
+    },
+    "benefits": {
+      "ja": "手当は薄い。base外滞在のper diemは時給2.00ドル（約320円）どまり。一方で退職金は2027年1月から会社直接拠出15%の401k（従業員拠出不要）へ改善予定で、批准と同時に総額約3億ドルの勤続ボーナスを支払う。ただしアライアンス非加盟で、世界規模のnon-rev（社員割引搭乗）特典は乏しい。",
+      "en": "Thin per diem at just $2.00/hr away from base, but retirement improves to a 15% direct company 401k contribution (no employee match needed) from Jan 2027, plus a ~$300M retention bonus pool on ratification. With no alliance membership, non-rev travel perks are limited."
+    },
+    "wlb": {
+      "ja": "最大の魅力は生活リズム。ポイント・トゥ・ポイントの日帰り往復が中心でレイオーバーが少なく、ほぼ毎晩自宅で眠れる。月最低12日オフ、空港待機はなく自宅待機（home reserve）。ただし原則base在住が求められ、長距離コミュートは限定期間を除き推奨されない。「業界屈指に多く飛び疲弊する」との声もある。",
+      "en": "The big draw is lifestyle — point-to-point day trips mean few layovers and sleeping in your own bed most nights, with 12+ days off a month and home (not airport) reserve. The catch: you're expected to live in base, and pilots still say they fly among the most and hardest in the industry."
+    },
+    "ops": {
+      "ja": "機材はエアバスA319が約34機、A320が約78機、737 MAX 8-200が約12機で、MAXを追加50機発注済み。運航は中小都市を結ぶポイント・トゥ・ポイントが中心で、baseは約20〜22カ所と多い。過密スケジュールや12時間勤務など勤務規定の厳しさを問題視する声があり、組合はwork rulesを「搾取的」と批判している。",
+      "en": "Fleet is ~34 A319s, ~78 A320s and ~12 737 MAX 8-200s, with 50 more MAX on order, flying point-to-point between smaller cities across ~20+ bases. Pilots flag packed schedules and 12-hour duty days, and the union calls the work rules exploitative."
+    },
+    "training": {
+      "ja": "機長昇格が米国屈指に速く、概ね1〜2年、早いクラスは約10カ月との報告があり「コマンドビルダー」として使われる。型式限定（タイプレーティング）費用は会社負担で、訓練はLas Vegasで約10〜12週間。Altitudeパスウェイ経由なら勤続3年で最大5万ドル（約790万円）の訓練債務免除も。要件はATP・総飛行1,500時間等。",
+      "en": "Upgrade to captain is among the fastest in the US — roughly 1-2 years, some classes in ~10 months — so many use it as a command builder. Type rating is company-paid with ~10-12 weeks of training in Las Vegas, and the Altitude pathway forgives up to $50K of training debt after three years."
+    }
+  },
+  "sources": [
+    {
+      "title": "Allegiant Pilot Salary | How Much Does Allegiant Pay? - Thrust Flight",
+      "url": "https://www.thrustflight.com/allegiant-pilot-salary/"
+    },
+    {
+      "title": "Allegiant Air | Pilot Pay, Lifestyle, Fleet and Career Guide - Ready For Takeoff",
+      "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/allegiant-air"
+    },
+    {
+      "title": "A Look At The Salaries Of US Low-Cost Carrier Pilots In 2026 - Simple Flying",
+      "url": "https://simpleflying.com/salaries-us-lcc-pilots-2026/"
+    },
+    {
+      "title": "Allegiant Pilots Reach Tentative Agreement; Deal Includes Protections for Sun Country Pilots - Aero Crew News",
+      "url": "https://aerocrewnews.com/2026/07/11/allegiant-pilots-reach-tentative-agreement-deal-includes-protections-for-sun-country-pilots/"
+    },
+    {
+      "title": "Allegiant Pilots Demand Pay Raise, Better Schedules in Pickets at US Airports - US News/Reuters",
+      "url": "https://money.usnews.com/investing/news/articles/2025-11-18/allegiant-pilots-demand-pay-raise-better-schedules-in-pickets-at-us-airports"
+    },
+    {
+      "title": "Teamsters Pilots Question Allegiant's Priorities as Labor Dispute Looms - PR Newswire",
+      "url": "https://www.prnewswire.com/news-releases/teamsters-pilots-question-allegiants-priorities-as-labor-dispute-looms-302210485.html"
+    },
+    {
+      "title": "Allegiant Air Pilot Reviews - Glassdoor",
+      "url": "https://www.glassdoor.com/Reviews/Allegiant-Air-Pilot-Reviews-EI_IE19903.0,13_KO14,19.htm"
+    },
+    {
+      "title": "Allegiant and Sun Country Airlines to Combine - Sun Country IR",
+      "url": "https://ir.suncountry.com/news-releases/news-release-details/allegiant-and-sun-country-airlines-combine-creating-leading-more"
+    },
+    {
+      "title": "How Much Do Allegiant Pilots Make? Salary Guide - Flight Nerd Air Force",
+      "url": "https://www.flightnerdairforce.com/blog/allegiant-pilot-salaries-how-much-do-allegiant-pilots-make"
+    }
+  ]
+}

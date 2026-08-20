@@ -1,0 +1,62 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "経営への信頼は冷え込んでいる。会社はコストの安い子会社（Eurowings Discover、City Airlines）へ飛行を移そうとしており、乗員と上層部の関係は壊れていると感じる者が多い。年金問題を巡り2025〜26年にストが相次ぎ、絶対額は高いのにGlassdoorの報酬満足度は2.4/5と低く、モラールは下がっている。",
+      "en": "Trust in management is broken: crews see a strategy of shifting flying to cheaper subsidiaries like Eurowings Discover and City Airlines. Pension disputes triggered repeated 2025–26 strikes, and comp satisfaction sits at just 2.4/5 despite high headline pay."
+    },
+    "salary": {
+      "ja": "本体は欧州でも高給の部類。FO初年度は13カ月給込みで約8.3万〜8.6万ユーロ（約1,420万〜1,480万円）から始まり、シニア機長は総額30万ユーロ（約5,160万円）超に達する。給与の約85％が固定基本給で、時給依存のLCCと違い収入の安定感が段違いに高い。",
+      "en": "Mainline is among Europe's best-paid: FO year one runs about $90K (incl. 13th-month pay) and senior captains can clear $327K total, with roughly 85% of pay as fixed base — far more income security than variable-pay LCCs."
+    },
+    "benefits": {
+      "ja": "最大の不満は年金。2017年に確定給付から市場運用型の確定拠出へ移り、会社負担は月約820ユーロ（約14万円）で、組合要求の月2,400ユーロ（約41万円）に遠く及ばない。55〜60歳で早期引退できる橋渡し年金も2025年に廃止された。半面、スターアライアンス全域のID搭乗特典や非課税の日当は手厚い。",
+      "en": "Pensions are the flashpoint: the 2017 switch to a market-based DC plan leaves the employer paying ~€820/month (about $900) against the union's €2,400 demand, and the early-retirement bridge pension was scrapped in 2025 — though Star Alliance ID travel and tax-free per diems remain generous."
+    },
+    "wlb": {
+      "ja": "組合協約で月10日の休日が保証され、ロスターの安定や育児・時短も実際にキャリアを損なわず使える。ただし75ブロック時間超で残業扱いとなり、夏の繁忙期は月85〜90時間まで伸びる交代・夜間勤務で、生活リズムへの負荷は依然として重い。",
+      "en": "The union deal guarantees 10 free days a month, with genuinely usable part-time and parental leave, but it's still demanding shift and night work — block hours push 85–90 in peak summer, past the 75-hour overtime threshold."
+    },
+    "ops": {
+      "ja": "機材はA320系からA330・A340・A350・A380、B747・B777・B787まで幅広い。本体のベースはフランクフルトとミュンヘンのみの単一ハブ制で掛け持ち通勤は不可、長距離はFRAとMUCで機種を分担する。採用は活発で、2025年は本体だけで400名超を計画している。",
+      "en": "A broad fleet from A320s through A330/340/350/380 and B747/777/787, based solely at Frankfurt and Munich on a strict single-hub basis. Hiring is heavy — 400+ new mainline pilots were planned for 2025."
+    },
+    "training": {
+      "ja": "型式限定は会社負担で、直接応募は概ね総飛行1,500時間、低時間者向けのカデット制度もある。難点は昇格で、機長への昇任は完全な先任順。近年でも12〜15年、景気の弱い時期には18〜20年近くかかり、他社へ速い昇格を求めて移れば最下層からやり直しになる。",
+      "en": "Type ratings are company-funded, direct entry needs ~1,500 hours, and a cadet path exists — but command is strictly seniority-based: 12–15 years, stretching toward 18–20 in lean periods, and leaving for a faster upgrade means restarting near the bottom."
+    }
+  },
+  "sources": [
+    {
+      "title": "Lufthansa Pilot Salary 2026: FO EUR83-171K, Captain EUR164-280K (Airmappr)",
+      "url": "https://airmappr.com/articles/career/lufthansa-pilot-salary-guide"
+    },
+    {
+      "title": "Pilot-Gehalt 2026: So viel Geld verdienen Lufthansa-Piloten aktuell (Handelsblatt)",
+      "url": "https://www.handelsblatt.com/karriere/pilot-gehalt-2026-so-viel-geld-verdienen-lufthansa-piloten-aktuell/100037203.html"
+    },
+    {
+      "title": "Lufthansa Pilots Vote for a Strike in Dispute Over Pensions (Bloomberg)",
+      "url": "https://www.bloomberg.com/news/articles/2025-09-30/lufthansa-pilots-vote-for-a-strike-in-dispute-over-pensions"
+    },
+    {
+      "title": "VC kuendigt Streik bei Lufthansa und Lufthansa Cargo an (Vereinigung Cockpit)",
+      "url": "https://www.vcockpit.de/newsroom/vc-kuendigt-streik-bei-lufthansa-und-lufthansa-cargo-an/"
+    },
+    {
+      "title": "Pay Rise: Lufthansa Reaches Long-Term Deal With Pilots (Simple Flying)",
+      "url": "https://simpleflying.com/pay-rise-lufthansa-long-term-deal-pilots/"
+    },
+    {
+      "title": "Lufthansa Group Pilot Reviews (Glassdoor)",
+      "url": "https://www.glassdoor.com/Reviews/Lufthansa-Group-Pilot-Reviews-EI_IE3488.0,15_KO16,21.htm"
+    },
+    {
+      "title": "Lufthansa Pilot Hiring Requirements: A Comprehensive Guide (Epic Flight Academy)",
+      "url": "https://epicflightacademy.com/hiring-requirements-lufthansa/"
+    },
+    {
+      "title": "Lufthansa CityLine: A Lufthansa Feeder Airline at a Crossroads (Ready For Takeoff)",
+      "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/lufthansa-cityline"
+    }
+  ]
+}

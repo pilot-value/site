@@ -1,0 +1,40 @@
+# GitHub Pages（build_type: legacy ＝ Jekyll）は main のルートを丸ごと配信する。
+# 除外しないと HTML 以外も全部読める。実際に以下が 200 で落とせていた:
+#   https://pilot-value.com/shot-remind.mjs   … 検証用サンプルデータ
+#   https://pilot-value.com/db/contacts.sql   … DB スキーマ
+#   https://pilot-value.com/VISION.md         … 事業戦略
+#   https://pilot-value.com/CLAUDE.md         … リポジトリ構造の地図（他への案内板になる）
+#
+# ★ ここに足したファイルは本番から消える。サイトが実行時に読むものを入れないこと。
+#   除外して良いかは「ブラウザが fetch / script src で読むか」で決める。
+#   判定は node assert-no-pii.mjs --live（push 後に本番へ直接プローブする）。
+
+exclude:
+  # Jekyll のデフォルト exclude はこのキーで丸ごと上書きされる。明示的に復元しておく
+  - node_modules/
+  - vendor/
+  - Gemfile
+  - Gemfile.lock
+
+  # 生成・一括編集・検証スクリプト。ブラウザは1本も読まない（*.js とは別物）
+  - "*.mjs"
+
+  # 設計ドキュメント（CLAUDE.md / VISION.md / VERIFIED-PILOT.md / DATA-PROVENANCE.md）
+  - "*.md"
+
+  - db/          # スキーマ・テスト
+  - supabase/    # Edge Function のソース
+  - workflows/   # 作業手順書
+  - tweet-bot/
+  - mail-bot/
+  - baland_ass/  # ブランド資産の原本
+  - package.json
+  - package-lock.json
+
+# ── 除外してはいけないもの（削ると本番が壊れる。確認済み）────────────────
+#   *.js              currency.js / salary-leveling.js / payslip.js ほか
+#                     ＋ airlines/airline-base.js, airline-reviews-ui.js, premium-auth-lock.js
+#   salary-data.json  salary-leveling.js と payslip.js が実行時に fetch する
+#   airline-codes.json / pv-vocab.json
+#   assets/ airlines/ en/ countries/ overseas-rep/
+#   sitemap.xml robots.txt 404.html CNAME

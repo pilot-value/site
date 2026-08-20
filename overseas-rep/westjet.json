@@ -1,0 +1,82 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "Onex（PEファンド）傘下でIPO計画が進むなか、従業員オーナー的な温かい社風は薄れたという不満が古参に多い。組合との緊張も強まり、客室乗務員約4,400人は2026年7月に99.4%の圧倒的賛成でストライキ権を可決した。利益より上場を優先する姿勢への懸念が現場に広がる。",
+      "en": "Longtime staff say the famous employee-owner culture has faded under Onex private-equity ownership and a looming IPO. Union friction is rising: flight attendants voted 99.4% for a strike mandate in July 2026."
+    },
+    "salary": {
+      "ja": "2024年のALPA新協約で4年約24%増を勝ち取り、ナローボディではカナダ最高水準に到達した。787機長は12年目で年約3,724万円（CA$321,000）、737機長は初年約2,285万円、FO初年は約936万円（CA$80,700）。月77.5クレジット時間の最低保証に、約82.5時間超は150%の残業手当が付く。",
+      "en": "The 2024 ALPA deal (~24% over four years) made WestJet the highest-paid narrow-body operator in Canada. A senior 787 captain clears ~US$236k while a year-1 first officer earns ~US$59k, on a 77.5-hour monthly guarantee with overtime paid at 150%."
+    },
+    "benefits": {
+      "ja": "本線パイロットはCAAT確定給付年金に加入し、拠出は会社10%対本人1%とカナダ航空界屈指の好条件。加えて年2回の利益分配、最大約20%まで会社マッチ付きの従業員株式購入制度、格安スタンバイ搭乗も付く。DC年金しかない他社に比べ、大きな引き留め要因になっている。",
+      "en": "Mainline pilots get the CAAT defined-benefit pension with a 10% employer to 1% pilot contribution, one of Canada's best. Add twice-yearly profit sharing, a share-purchase plan with company match up to ~20%, and cheap standby travel."
+    },
+    "wlb": {
+      "ja": "ロスターは純粋な先任順ではなくエクイティ（社会性）入札で、エア・カナダより家庭に優しいと評価される。ライン保持者は月14〜16日休、4日前後のペアリングが目安。ただしスケジュールは読みにくく悪い月が急に来ることもある。ベースは入社時に確定し、通勤は生活の質を最も損なうと警告される。",
+      "en": "The equity-based bidding is seen as more family-friendly than Air Canada's strict seniority, with 14-16 days off a month and ~4-day pairings. But schedules are unpredictable, work-life scores run low, and pilots warn hard against commuting — live in base."
+    },
+    "ops": {
+      "ja": "機材は737（-700/-800/MAX8）中心に、カルガリー発の長距離を担う787-9が7機、傘下アンコールにQ400が約39機。2025年9月にはMAX10を60機と787-9を7機、計67機のボーイングを追加発注した。ベースはカルガリー（主要拠点）、トロント、バンクーバー、エドモントン、ウィニペグ、モントリオールの6か所。",
+      "en": "The fleet is 737-heavy (737-700/-800/MAX 8) plus seven 787-9s on long-haul from Calgary and ~39 Q400s at Encore, with 67 more Boeings (60 MAX 10s plus seven 787-9s) ordered in Sept 2025. There are six bases, hubbed in Calgary."
+    },
+    "training": {
+      "ja": "採用要件はカナダATPL・総飛行3,000時間超・第1種身体・RAIC適格で、型式限定はCAEでの訓練を会社が負担する。地域会社アンコールは約750時間から入れ、本線への正式なフロー制度がある。機長昇格は先任順で歴史的に8〜15年かかるが、急速な機材拡大と787展開で短縮が見込まれる。",
+      "en": "Hiring needs a Canadian ATPL, 3,000+ hours, a Class 1 medical and RAIC eligibility, with the type rating funded via CAE. Encore starts as low as ~750 hours with a formal flow to mainline; captain upgrade has run ~8-15 years but is expected to shorten."
+    }
+  },
+  "sources": [
+    {
+      "title": "WestJet Pilot Salary: exact hourly rates by year and aircraft | AVCentral",
+      "url": "https://avcentral.ca/pilot-salaries/westjet/"
+    },
+    {
+      "title": "WestJet | Pilot Working Conditions, Pay & Career Outlook | Ready For Takeoff",
+      "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/westjet"
+    },
+    {
+      "title": "WestJet Pilot Career Guide 2026 | Rotate",
+      "url": "https://rotatepilot.com/airlines/westjet"
+    },
+    {
+      "title": "WestJet tentative deal with pilots calls for 24% pay raise over 4 years | Global News",
+      "url": "https://globalnews.ca/news/9725832/westjet-pilots-pay-raise-deal/"
+    },
+    {
+      "title": "WestJet pilots deal grants 24% pay raise over four years | CBC News",
+      "url": "https://www.cbc.ca/news/canada/calgary/westjet-pilots-deal-grants-24-pay-raise-over-four-years-1.6855996"
+    },
+    {
+      "title": "WestJet Encore pilots ratify new contract with wage increases that 'set a new standard' | Skies Mag",
+      "url": "https://skiesmag.com/news/alpa-westjet-encore-pilots-ratify-new-contract-with-wage-increases-that-set-a-new-standard/"
+    },
+    {
+      "title": "QoL and Upgrade Process (WestJet pilot thread) | AvCanada Forums",
+      "url": "http://avcanada.ca/forums2/viewtopic.php?t=222516"
+    },
+    {
+      "title": "Crew Rostering/Scheduling Scheme at WestJet | AvCanada Forums",
+      "url": "http://www.avcanada.ca/forums2/viewtopic.php?t=87201"
+    },
+    {
+      "title": "WestJet Pilot Reviews | Glassdoor",
+      "url": "https://www.glassdoor.com/Reviews/WestJet-Pilot-Reviews-EI_IE11925.0,7_KO8,13.htm"
+    },
+    {
+      "title": "Union Fighting WestJet's Pilot Age Cap | AirlineGeeks",
+      "url": "https://airlinegeeks.com/2025/10/13/union-fighting-westjets-pilot-age-cap/"
+    },
+    {
+      "title": "WestJet (mainline) CAAT Pension education and FAQs | CAAT Pension Plan",
+      "url": "https://www.caatpension.ca/westjet/education-and-faqs"
+    },
+    {
+      "title": "Countdown to the Cash Grab: Onex's Plan to Take WestJet Public | Unifor for WestJet Workers",
+      "url": "https://westjet.unifor.org/_countdown_to_the_cash_grab_onex_s_two_year_plan_to_take_westjet_public"
+    },
+    {
+      "title": "WestJet flight attendants approve strike mandate as ground pay takes centre stage | Wings Magazine",
+      "url": "https://www.wingsmagazine.com/westjet-flight-attendants-approve-strike-mandate-as-ground-pay-takes-centre-stage/"
+    }
+  ]
+}

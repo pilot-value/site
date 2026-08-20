@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8"/>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png"/>
+<link rel="apple-touch-icon" href="assets/favicon-180.png"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'"/><noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet"/></noscript>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ログイン処理中｜PILOT VALUE</title>
+<!--PV-SEO-->
+<!--PV-SRC t="ログイン中… | PILOT VALUE" d=""-->
+<meta name="description" content="認証結果を確認しています。この画面は自動的に切り替わります。"/>
+<meta name="robots" content="noindex,follow"/>
+<link rel="canonical" href="https://pilot-value.com/auth-callback.html"/>
+<link rel="alternate" hreflang="ja" href="https://pilot-value.com/auth-callback.html"/>
+<link rel="alternate" hreflang="en" href="https://pilot-value.com/en/auth-callback.html"/>
+<link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/auth-callback.html"/>
+<meta property="og:title" content="ログイン処理中｜PILOT VALUE"/>
+<meta property="og:description" content="認証結果を確認しています。この画面は自動的に切り替わります。"/>
+<meta property="og:url" content="https://pilot-value.com/auth-callback.html"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="PILOT VALUE"/>
+<meta property="og:locale" content="ja_JP"/>
+<meta property="og:locale:alternate" content="en_US"/>
+<meta property="og:image" content="https://pilot-value.com/assets/og/default-ja.jpg"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta property="og:image:alt" content="ログイン処理中｜PILOT VALUE"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="ログイン処理中｜PILOT VALUE"/>
+<meta name="twitter:description" content="認証結果を確認しています。この画面は自動的に切り替わります。"/>
+<meta name="twitter:image" content="https://pilot-value.com/assets/og/default-ja.jpg"/>
+<!--/PV-SEO-->
+
+<style>
+  body{margin:0;background:#0a0c0f;color:#e8edf2;font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:16px}
+  .spinner{width:40px;height:40px;border:3px solid rgba(255,255,255,.1);border-top-color:#f5c842;border-radius:50%;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  p{color:#6b7d93;font-size:.9rem;text-align:center;max-width:320px}
+  #debug{font-size:.72rem;color:#f87171;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);border-radius:8px;padding:10px 14px;max-width:400px;display:none;line-height:1.6}
+</style>
+<script src="pv-session.js"></script>
+</head>
+<body>
+<div class="spinner"></div>
+<p id="msg">ログイン処理中…</p>
+<div id="debug"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="pv-reunlock.js"></script>
+<script>
+(async function() {
+  const SB_URL = 'https://vzgmnkrggrwtsrpqndsm.supabase.co';
+  const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6Z21ua3JnZ3J3dHNycHFuZHNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0MzkwOTcsImV4cCI6MjA5MDAxNTA5N30.wE4cJbqeYGCgn5ZvHd80hYWgQuySKvOMJMbsJWOvmtw';
+
+  function showError(msg) {
+    document.querySelector('.spinner').style.display = 'none';
+    document.getElementById('msg').textContent = 'ログインに失敗しました';
+    const d = document.getElementById('debug');
+    d.textContent = msg;
+    d.style.display = 'block';
+    setTimeout(() => { window.location.replace('login.html?error=1'); }, 4000);
+  }
+
+  const params = new URLSearchParams(location.search);
+
+  /* ★戻り方は2通りある。
+       pkce     … ?code=…          （呼び出し元が flowType:'pkce' のとき）
+       implicit … #access_token=…  （flowType を省くと supabase-js はこちらが既定）
+     以前は ?code= だけを見ていたので、呼び出し元が1枚でも pkce を指定し忘れると
+     ここで必ず「認証コードが見つかりません」に落ちた。両方受ける。 */
+  const hash = new URLSearchParams((location.hash || '').replace(/^#/, ''));
+
+  // Google 側のエラーは search にも hash にも来る
+  const urlError = params.get('error') || hash.get('error');
+  if (urlError) {
+    showError('エラー: ' + urlError + ' — ' +
+      (params.get('error_description') || hash.get('error_description') || ''));
+    return;
+  }
+
+  const code         = params.get('code');
+  const accessToken  = hash.get('access_token');
+  const refreshToken = hash.get('refresh_token');
+
+  if (!code && !accessToken) {
+    showError('認証コードが見つかりません。もう一度ログインしてください。');
+    return;
+  }
+
+  // トークンを URL バーと履歴に残さない（この時点で値は控えてある）
+  if (accessToken) {
+    try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+  }
+
+  // detectSessionInUrl: true（デフォルト）でSupabaseが自動的にPKCE交換する
+  const sb = supabase.createClient(SB_URL, SB_KEY, {
+    auth: { flowType: code ? 'pkce' : 'implicit' }
+  });
+
+  let handled = false;
+
+  async function onSuccess(session) {
+    if (handled) return;
+    handled = true;
+    const u = session.user;
+    const name = u.user_metadata?.full_name || u.user_metadata?.name || u.email?.split('@')[0] || 'User';
+    localStorage.setItem('pv_user', JSON.stringify({ id: u.id, email: u.email, name }));
+
+    try { if (window.pvCheckReunlock) await pvCheckReunlock(sb, u.id); } catch(e) {}
+
+    /* next パラメータがあればそこへ、なければprofile。
+       ★.html で終わるだけを条件にすると ?next=https://evil.com/x.html が通り、
+         ログイン直後に外部サイトへ飛ばせてしまう（オープンリダイレクト）。
+         拡張子ではなく「同一オリジンに解決されるか」で判定する。 */
+    const raw = new URLSearchParams(location.search).get('next') || '';
+    let next = '';
+    if (raw && !/^[a-z][a-z0-9+.-]*:/i.test(raw) && !raw.startsWith('//') && !raw.includes('\\')) {
+      try {
+        const u = new URL(raw, location.href);
+        if (u.origin === location.origin) next = u.pathname + u.search + u.hash;
+      } catch (e) { next = ''; }
+    }
+    window.location.replace(next || 'profile.html');
+  }
+
+  // onAuthStateChange でSIGNED_INを待つ（PKCEの自動交換後に発火）
+  sb.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN' && session) {
+      await onSuccess(session);
+    }
+  });
+
+  // implicit で戻ってきた場合は、拾ったトークンから自分でセッションを張る。
+  // detectSessionInUrl が先に食っていれば handled が立っているので二重にはならない。
+  if (accessToken && !handled) {
+    const { data, error } = await sb.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken || ''
+    });
+    if (data && data.session) { await onSuccess(data.session); return; }
+    if (error && !handled) {
+      showError('セッションを開始できませんでした: ' + error.message);
+      return;
+    }
+  }
+
+  // すでにセッションがある場合（リロード時など）
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    await onSuccess(session);
+    return;
+  }
+
+  // 15秒タイムアウト
+  setTimeout(() => {
+    if (!handled) showError('タイムアウトしました。もう一度ログインを試してください。');
+  }, 15000);
+})();
+</script>
+<script src="currency.js"></script>
+</body>
+</html>

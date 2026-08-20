@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png"/>
+<link rel="apple-touch-icon" href="../assets/favicon-180.png"/>
+<script>(function(){var t=localStorage.getItem('pv-theme')||'light';document.documentElement.setAttribute('data-theme',t);}());</script>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Submit Your Review — Fully Anonymous | PILOT VALUE</title>
+<!--PV-SEO-->
+<!--PV-SRC t="Submit Your Salary &amp; Review | PILOT VALUE" d=""-->
+<meta name="description" content="Post your airline, position, years of service, age band and a review across seven categories — anonymously. Neither your name nor your email is stored with it. One review unlocks every airline's reviews for 30 days."/>
+<meta name="robots" content="noindex,follow"/>
+<link rel="canonical" href="https://pilot-value.com/en/submit-review.html"/>
+<link rel="alternate" hreflang="ja" href="https://pilot-value.com/submit-review.html"/>
+<link rel="alternate" hreflang="en" href="https://pilot-value.com/en/submit-review.html"/>
+<link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/submit-review.html"/>
+<meta property="og:title" content="Submit Your Review — Fully Anonymous | PILOT VALUE"/>
+<meta property="og:description" content="Post your airline, position, years of service, age band and a review across seven categories — anonymously. Neither your name nor your email is stored with it. One review unlocks every airline's reviews for 30 days."/>
+<meta property="og:url" content="https://pilot-value.com/en/submit-review.html"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="PILOT VALUE"/>
+<meta property="og:locale" content="en_US"/>
+<meta property="og:locale:alternate" content="ja_JP"/>
+<meta property="og:image" content="https://pilot-value.com/assets/og/default-en.jpg"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta property="og:image:alt" content="Submit Your Review — Fully Anonymous | PILOT VALUE"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="Submit Your Review — Fully Anonymous | PILOT VALUE"/>
+<meta name="twitter:description" content="Post your airline, position, years of service, age band and a review across seven categories — anonymously. Neither your name nor your email is stored with it. One review unlocks every airline's reviews for 30 days."/>
+<meta name="twitter:image" content="https://pilot-value.com/assets/og/default-en.jpg"/>
+<!--/PV-SEO-->
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'"/><noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet"/></noscript>
+<!-- Google tag (gtag.js) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-3XYF69VQ3X');
+</script>
+<script>
+tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#18212f',accent:'#3d9bff',gold:'#f5c842',orange:'#f97316',text:'#e8edf2',muted:'#6b7d93'},fontFamily:{sans:['Inter','Noto Sans JP','sans-serif']}}}};
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:#0a0c0f;color:#e8edf2;font-family:'Inter','Noto Sans JP',sans-serif;line-height:1.7;-webkit-font-smoothing:antialiased}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");background-size:128px;opacity:.3}
+nav{position:fixed;top:0;left:0;right:0;z-index:200;transition:background .4s ease}
+nav.scrolled{background:rgba(10,12,15,.92);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.06)}
+.nav-link{color:rgba(255,255,255,.6);font-size:.85rem;font-weight:500;letter-spacing:.04em;transition:color .2s;text-decoration:none}
+.nav-link:hover{color:#fff}
+.logo-img{height:40px;width:auto;filter:brightness(1.15) drop-shadow(0 0 8px rgba(249,115,22,.5));transition:filter .3s}
+.btn-orange{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:10px;font-weight:700;font-size:.9rem;background:linear-gradient(135deg,#f97316,#f5c842);color:#000;border:none;cursor:pointer;transition:opacity .2s,transform .2s cubic-bezier(.16,1,.3,1);text-decoration:none}
+.btn-orange:hover{opacity:.9;transform:translateY(-1px)}
+.btn-orange:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn-ghost{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:10px;font-weight:600;font-size:.9rem;color:#e8edf2;border:1px solid rgba(255,255,255,.15);background:transparent;cursor:pointer;transition:border-color .2s,background .2s;text-decoration:none}
+.btn-ghost:hover{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.05)}
+.card{background:rgba(17,22,32,.7);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:32px}
+.form-label{display:block;font-size:.78rem;font-weight:700;color:#9ca3af;margin-bottom:8px;letter-spacing:.05em;text-transform:uppercase}
+.form-input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:11px 14px;color:#e8edf2;font-size:.9rem;transition:border-color .2s,background .2s;outline:none;font-family:'Inter','Noto Sans JP',sans-serif}
+.form-input:focus{border-color:rgba(245,200,66,.4);background:rgba(255,255,255,.07)}
+.form-input::placeholder{color:#6b7d93}
+select.form-input option{background:#111620}
+textarea.form-input{resize:vertical;min-height:110px}
+.chip{padding:6px 14px;border-radius:999px;font-size:.8rem;font-weight:600;border:1px solid rgba(255,255,255,.15);color:#9ca3af;background:transparent;cursor:pointer;transition:all .15s;white-space:nowrap;user-select:none}
+.chip.active{color:#f5c842;background:rgba(245,200,66,.1);border-color:rgba(245,200,66,.35)}
+.step-bar{display:flex;align-items:center;gap:0;margin-bottom:36px}
+.step-item{display:flex;align-items:center;gap:10px;flex:1}
+.step-circle{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;flex-shrink:0;transition:all .3s}
+.step-circle.done{background:#34d399;color:#000}
+.step-circle.active{background:linear-gradient(135deg,#f97316,#f5c842);color:#000}
+.step-circle.pending{background:rgba(255,255,255,.08);color:#6b7d93;border:1px solid rgba(255,255,255,.12)}
+.step-label{font-size:.75rem;font-weight:600;color:#6b7d93;white-space:nowrap}
+.step-label.active{color:#e8edf2}
+.step-line{flex:1;height:1px;background:rgba(255,255,255,.1);margin:0 8px}
+.privacy-row{display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:10px;background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.18);color:#34d399;font-size:.8rem;font-weight:600}
+.warn-row{display:flex;align-items:flex-start;gap:8px;padding:10px 16px;border-radius:10px;background:rgba(245,200,66,.05);border:1px solid rgba(245,200,66,.18);color:#f5c842;font-size:.78rem}
+.preview-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.preview-row:last-child{border-bottom:none}
+.preview-label{color:#6b7d93;font-size:.85rem}
+.preview-val{font-weight:600;font-size:.9rem}
+.theme-toggle{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.07);color:#e8edf2;border:1px solid rgba(255,255,255,.12);cursor:pointer;transition:background .2s,color .2s;flex-shrink:0}
+footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:#0a0c0f}
+::-webkit-scrollbar-thumb{background:#18212f;border-radius:3px}
+/* Star rating */
+.star-group{display:flex;gap:4px}
+.star-btn{width:36px;height:36px;border-radius:8px;border:1px solid rgba(255,255,255,.13);background:transparent;color:#6b7d93;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+.star-btn:hover,.star-btn.on{color:#f5c842;border-color:rgba(245,200,66,.35);background:rgba(245,200,66,.08)}
+.cat-block{border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:18px 20px;background:rgba(255,255,255,.02)}
+.char-total{font-size:.78rem;font-weight:600;transition:color .2s}
+.crew-note{position:relative;display:flex;gap:12px;padding:16px 18px;margin-bottom:16px;border-radius:14px;border:1px solid rgba(245,200,66,.22);border-left:3px solid rgba(245,200,66,.6);background:radial-gradient(120% 140% at 0% 0%,rgba(245,200,66,.10),transparent 60%),rgba(245,200,66,.035)}
+.crew-note-ico{flex-shrink:0;font-size:1.2rem;line-height:1.5;color:#f5c842}
+.crew-note-title{font-size:.9rem;font-weight:700;color:#f5c842;letter-spacing:-.01em;margin-bottom:4px}
+.crew-note-body{font-size:.8rem;line-height:1.7;color:#a8b3c2}
+.crew-note-body b{color:#e8edf2;font-weight:700}
+.salary-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:480px){.salary-row{grid-template-columns:1fr}}
+[data-theme="light"] .star-btn{border-color:rgba(0,0,0,.13);color:#9ca3af}
+[data-theme="light"] .star-btn:hover,[data-theme="light"] .star-btn.on{color:#c89500;border-color:rgba(200,149,0,.35);background:rgba(200,149,0,.08)}
+[data-theme="light"] .cat-block{border-color:rgba(0,0,0,.07);background:rgba(0,0,0,.02)}
+[data-theme="light"] .crew-note{border-color:rgba(200,149,0,.28);border-left-color:rgba(200,149,0,.7);background:radial-gradient(120% 140% at 0% 0%,rgba(200,149,0,.10),transparent 60%),rgba(200,149,0,.05)}
+[data-theme="light"] .crew-note-ico,[data-theme="light"] .crew-note-title{color:#a97e00}
+[data-theme="light"] .crew-note-body{color:#475569}
+[data-theme="light"] .crew-note-body b{color:#0f172a}
+/* Light mode */
+[data-theme="light"] body{background:#f3f5f8!important;color:#0f172a!important}
+[data-theme="light"] nav{background:rgba(243,245,248,.95)!important;backdrop-filter:blur(16px);border-bottom:1px solid rgba(0,0,0,.07)!important}
+[data-theme="light"] nav.scrolled{background:rgba(243,245,248,.98)!important}
+[data-theme="light"] .nav-link{color:rgba(15,23,42,.55)!important}
+[data-theme="light"] .nav-link:hover{color:#0f172a!important}
+[data-theme="light"] .card{background:rgba(255,255,255,.85)!important;border-color:rgba(0,0,0,.08)!important}
+[data-theme="light"] .form-input{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.12);color:#0f172a}
+[data-theme="light"] .form-input:focus{border-color:rgba(200,149,0,.5);background:rgba(0,0,0,.06)}
+[data-theme="light"] .chip{border-color:rgba(0,0,0,.14);color:#6b7d93}
+[data-theme="light"] .chip.active{color:#c89500;background:rgba(200,149,0,.1);border-color:rgba(200,149,0,.35)}
+[data-theme="light"] .preview-row{border-bottom-color:rgba(0,0,0,.07)}
+[data-theme="light"] .step-circle.pending{background:rgba(0,0,0,.06);border-color:rgba(0,0,0,.12);color:#6b7d93}
+/* .step-label.active は #e8edf2（ほぼ白）。ライトテーマだと今いるステップの名前だけが読めなくなる */
+[data-theme="light"] .step-label.active{color:#0f172a}
+[data-theme="light"] .step-line{background:rgba(0,0,0,.1)}
+[data-theme="light"] .theme-toggle{background:rgba(0,0,0,.06);color:#0f172a;border-color:rgba(0,0,0,.13)}
+/* near-white text/utility classes lacking a light override — invisible on white, darken */
+[data-theme="light"] .text-text{color:#0f172a!important}
+[data-theme="light"] .btn-ghost{color:#0f172a!important;border-color:rgba(0,0,0,.15)!important}
+[data-theme="light"] .btn-ghost:hover{border-color:rgba(0,0,0,.3)!important;background:rgba(0,0,0,.04)!important}
+[data-theme="light"] [style*="color:#f5c842"]{color:#a97e00!important}
+/* Alert box that highlights "cannot be submitted" feedback such as a quality rejection */
+.form-alert{display:block;border:1px solid rgba(239,68,68,.45);border-left:3px solid #ef4444;background:rgba(239,68,68,.10);border-radius:12px;padding:14px 16px;color:#e8edf2;font-size:.9rem;line-height:1.7;animation:formAlertIn .22s ease-out}
+.form-alert .fa-title{display:block;font-weight:700;font-size:.95rem;color:#f87171;margin-bottom:4px;letter-spacing:.01em}
+.form-alert .fa-hint{display:block;margin-top:8px;font-size:.82rem;opacity:.85}
+@keyframes formAlertIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+[data-theme="light"] .form-alert{background:rgba(220,38,38,.07);border-color:rgba(220,38,38,.35);border-left-color:#dc2626;color:#7f1d1d}
+[data-theme="light"] .form-alert .fa-title{color:#dc2626}
+@media (prefers-reduced-motion:reduce){.form-alert{animation:none}}
+/* Note under aircraft type / role (all that remains here after pay entry was removed) */
+.sal-hint{font-size:.73rem;color:#6b7d93;margin-top:8px;line-height:1.65}
+.sal-hint b{color:#a8b3c2;font-weight:700}
+[data-theme="light"] .sal-hint{color:#64748b}
+[data-theme="light"] .sal-hint b{color:#334155}
+</style>
+<!--PV-3P-->
+<script>
+/* 広告と解析は、表示が終わるまで読まない。async でも帯域は奪うため。
+   利用者が最初に触った時か load の、どちらか早いほうで読み込む。
+   戻すときは node defer-third-party.mjs --undo */
+(function(){
+  var done=false;
+  function boot(){
+    if(done)return; done=true;
+    [{"src":"https://www.googletagmanager.com/gtag/js?id=G-3XYF69VQ3X","cross":false}].forEach(function(it){
+      var s=document.createElement('script');
+      s.src=it.src; s.async=true;
+      if(it.cross)s.crossOrigin='anonymous';
+      document.head.appendChild(s);
+    });
+  }
+  ['pointerdown','keydown','touchstart','scroll','wheel'].forEach(function(ev){
+    addEventListener(ev,boot,{once:true,passive:true});
+  });
+  if(document.readyState==='complete')boot();
+  else addEventListener('load',boot,{once:true});
+})();
+</script>
+<!--/PV-3P-->
+<script src="../pv-session.js"></script>
+</head>
+<body class="relative">
+
+<!-- NAV -->
+<nav id="main-nav">
+  <div class="max-w-5xl mx-auto px-6 flex items-center justify-between h-[68px]">
+    <a href="index.html" class="flex items-center gap-3 flex-shrink-0">
+      <img src="../assets/logo.png" alt="PILOT VALUE" class="logo-img"/>
+    </a>
+    <div class="flex items-center gap-3">
+      <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark / light mode"></button>
+      <a href="community.html" class="btn-ghost py-2 px-4 text-sm">← Back to reviews</a>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main class="relative pt-[68px] min-h-screen">
+  <div class="max-w-2xl mx-auto px-4 py-12">
+
+    <!-- Header -->
+    <div class="text-center mb-10">
+      <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold mb-5" style="background:rgba(52,211,153,.08);color:#34d399;border:1px solid rgba(52,211,153,.2)">
+        <svg width="10" height="10" viewBox="0 0 10 10"><path d="M5 1a1 1 0 0 1 1 1v1.27A3 3 0 0 1 8 6v1h.5a.5.5 0 0 1 0 1H1.5a.5.5 0 0 1 0-1H2V6a3 3 0 0 1 2-2.73V2a1 1 0 0 1 1-1z" fill="currentColor"/></svg>
+        Anonymous — nobody can tell who you are
+      </div>
+      <h1 class="text-3xl font-extrabold mb-3" style="letter-spacing:-.02em">Submit your review</h1>
+      <p class="text-muted text-sm max-w-lg mx-auto">One review unlocks every airline's reviews for <strong class="text-text">30 days</strong>. No personally identifiable information is stored anywhere in the system.</p>
+    </div>
+
+    <!-- Login gate (shown if not logged in) -->
+    <div id="login-gate" class="card text-center" style="display:none">
+      <div style="font-size:2.5rem;margin-bottom:16px">🔐</div>
+      <h2 class="text-xl font-bold mb-2">Login required</h2>
+      <p class="text-muted text-sm mb-6">To prevent spam, an account is required in order to post.<br>Your email address is never included in the submitted data.</p>
+      <a href="login.html?next=submit-review.html" class="btn-orange justify-center">Log in and post →</a>
+    </div>
+
+    <!-- Form -->
+    <div id="form-wrap">
+
+      <!-- Step bar -->
+      <div class="step-bar">
+        <div class="step-item">
+          <div class="step-circle active" id="sc1">1</div>
+          <span class="step-label active" id="sl1">Basic info</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step-item">
+          <div class="step-circle pending" id="sc2">2</div>
+          <span class="step-label" id="sl2">Review</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step-item">
+          <div class="step-circle pending" id="sc3">3</div>
+          <span class="step-label" id="sl3">Confirm &amp; post</span>
+        </div>
+      </div>
+
+      <!-- Privacy assurance -->
+      <div class="privacy-row mb-6">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1.5L2.5 4v4c0 3.3 2.3 5.9 5.5 6.5C11.2 13.9 13.5 11.3 13.5 8V4L8 1.5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M6 8l1.5 1.5L10 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Neither your ID nor your email address is stored in the database.
+        <a href="privacy-pilot.html" target="_blank" style="color:#34d399;text-decoration:underline;margin-left:4px">See how it works</a>
+      </div>
+
+      <!-- ── STEP 1 ─────────────────────────────────────── -->
+      <div id="step1" class="card">
+        <h2 class="text-lg font-bold mb-1">Step 1 — Basic info</h2>
+        <p class="text-sm text-muted mb-6">Select your airline, position, years of service and age group.</p>
+
+        <div class="space-y-5">
+          <div>
+            <label class="form-label">Airline <span style="color:#f97316">Required</span></label>
+            <select class="form-input" id="f-airline" onchange="toggleOtherAirline()">
+              <option value="">Please select</option>
+              <optgroup label="Middle East">
+                <option value="emirates">Emirates</option>
+                <option value="etihad">Etihad Airways</option>
+                <option value="qatar-airways">Qatar Airways</option>
+                <option value="gulf-air">Gulf Air</option>
+                <option value="kuwait-airways">Kuwait Airways</option>
+                <option value="oman-air">Oman Air</option>
+                <option value="riyadh-air">Riyadh Air</option>
+                <option value="royal-jordanian">Royal Jordanian</option>
+                <option value="saudia">Saudia</option>
+              </optgroup>
+              <optgroup label="Asia">
+                <option value="cathay-pacific">Cathay Pacific</option>
+                <option value="singapore-airlines">Singapore Airlines</option>
+                <option value="korean-air">Korean Air</option>
+                <option value="asiana">Asiana Airlines</option>
+                <option value="starlux">STARLUX Airlines</option>
+                <option value="china-airlines">China Airlines</option>
+                <option value="thai-airways">Thai Airways International</option>
+                <option value="eva-air">EVA Air</option>
+                <option value="air-china">Air China</option>
+                <option value="china-eastern">China Eastern Airlines</option>
+                <option value="china-southern">China Southern Airlines</option>
+                <option value="hainan-airlines">Hainan Airlines</option>
+                <option value="root-aviation">Root Aviation</option>
+                <option value="air-india">Air India</option>
+                <option value="airasia">AirAsia Group</option>
+                <option value="bamboo-airways">Bamboo Airways</option>
+                <option value="batik-air">Batik Air</option>
+                <option value="garuda-indonesia">Garuda Indonesia</option>
+                <option value="hong-kong-express">HK Express</option>
+                <option value="indigo">IndiGo</option>
+                <option value="malaysia-airlines">Malaysia Airlines</option>
+                <option value="philippine-airlines">Philippine Airlines</option>
+                <option value="scoot">Scoot</option>
+                <option value="vietjet">VietJet Air</option>
+                <option value="vietnam-airlines">Vietnam Airlines</option>
+                <option value="royal-brunei">Royal Brunei Airlines</option>
+              </optgroup>
+              <optgroup label="Europe">
+                <option value="klm">KLM Royal Dutch Airlines</option>
+                <option value="air-france">Air France</option>
+                <option value="lufthansa">Lufthansa</option>
+                <option value="british-airways">British Airways</option>
+                <option value="airx-charter">AirX Charter Ltd</option>
+                <option value="eagle-jet">Eagle Jet International, Inc.</option>
+                <option value="turkish-airlines">Turkish Airlines</option>
+                <option value="aegean">Aegean Airlines</option>
+                <option value="aer-lingus">Aer Lingus</option>
+                <option value="austrian">Austrian Airlines</option>
+                <option value="easyjet">easyJet</option>
+                <option value="eurowings">Eurowings</option>
+                <option value="finnair">Finnair</option>
+                <option value="iberia">Iberia</option>
+                <option value="icelandair">Icelandair</option>
+                <option value="ita-airways">ITA Airways</option>
+                <option value="lot">LOT Polish Airlines</option>
+                <option value="norwegian">Norwegian Air Shuttle (Norwegian)</option>
+                <option value="ryanair">Ryanair</option>
+                <option value="sas">SAS Scandinavian Airlines</option>
+                <option value="swiss">Swiss International Air Lines (SWISS)</option>
+                <option value="tap">TAP Air Portugal</option>
+                <option value="virgin-atlantic">Virgin Atlantic</option>
+                <option value="vueling">Vueling Airlines</option>
+                <option value="wizz-air">Wizz Air UK</option>
+              </optgroup>
+              <optgroup label="North America">
+                <option value="united">United Airlines</option>
+                <option value="delta">Delta Air Lines</option>
+                <option value="american">American Airlines</option>
+                <option value="southwest">Southwest Airlines</option>
+                <option value="air-canada">Air Canada</option>
+                <option value="solairus">Solairus Aviation</option>
+                <option value="alaska-airlines">Alaska Airlines</option>
+                <option value="allegiant">Allegiant Air</option>
+                <option value="breeze-airways">Breeze Airways</option>
+                <option value="frontier">Frontier Airlines</option>
+                <option value="jetblue">JetBlue Airways</option>
+                <option value="porter">Porter Airlines</option>
+                <option value="spirit">Spirit Airlines</option>
+                <option value="westjet">WestJet Airlines</option>
+              </optgroup>
+              <optgroup label="Oceania">
+                <option value="qantas">Qantas</option>
+                <option value="air-new-zealand">Air New Zealand</option>
+                <option value="fiji-airways">Fiji Airways</option>
+                <option value="jetstar">Jetstar Airways (Jetstar)</option>
+              </optgroup>
+              <optgroup label="Latin America">
+                <option value="aeromexico">Aeromexico</option>
+                <option value="avianca">Avianca</option>
+                <option value="copa-airlines">Copa Airlines</option>
+                <option value="latam">LATAM Airlines</option>
+              </optgroup>
+              <optgroup label="Africa">
+                <option value="egyptair">EgyptAir</option>
+                <option value="ethiopian-airlines">Ethiopian Airlines</option>
+                <option value="kenya-airways">Kenya Airways</option>
+                <option value="south-african-airways">South African Airways (SAA)</option>
+              </optgroup>
+              <optgroup label="Japan">
+                <option value="ana">All Nippon Airways (ANA)</option>
+                <option value="jal">Japan Airlines (JAL)</option>
+                <option value="zipair">ZIPAIR Tokyo</option>
+                <option value="jetstar-japan">Jetstar Japan</option>
+                <option value="peach">Peach Aviation</option>
+                <option value="solaseed">Solaseed Air</option>
+                <option value="spring-japan">Spring Japan</option>
+                <option value="airdo">AIRDO (AIR DO)</option>
+                <option value="starflyer">StarFlyer (Star Flyer)</option>
+                <option value="skymark">Skymark Airlines</option>
+                <option value="fda">Fuji Dream Airlines (FDA)</option>
+                <option value="airjapan">AirJapan</option>
+                <option value="amx">Amakusa Airlines (AMX)</option>
+                <option value="ana-wings">ANA Wings</option>
+                <option value="daiichi-air">Daiichi Aviation (Daiichi Air)</option>
+                <option value="hac">Hokkaido Air System (HAC)</option>
+                <option value="ibex">IBEX Airlines</option>
+                <option value="j-air">J-Air (J-AIR)</option>
+                <option value="jac">Japan Air Commuter (JAC)</option>
+                <option value="jta">Japan Transocean Air (JTA)</option>
+                <option value="orc">Oriental Air Bridge (ORC)</option>
+                <option value="rac">Ryukyu Air Commuter (RAC)</option>
+                <option value="shin-central">Shin Chuo Airlines (Shin Nichi Aviation)</option>
+                <option value="shin-nihon">Shin Nihon Airlines</option>
+                <option value="toho-air">Toho Air Service</option>
+                <option value="toki-air">Toki Air</option>
+              </optgroup>
+              <optgroup label="Not listed">
+                <option value="other">Other (enter manually)</option>
+              </optgroup>
+            </select>
+            <input type="text" class="form-input" id="f-airline-other" maxlength="40" placeholder="Enter the airline name (required)" style="display:none;margin-top:10px"/>
+          </div>
+
+          <div>
+            <label class="form-label">Position <span style="color:#f97316">Required</span></label>
+            <div class="flex flex-wrap gap-2">
+              <label class="chip" id="chip-captain"><input type="radio" name="f-pos" value="captain" style="display:none" onchange="pickChip(this,'pos')">Captain</label>
+              <label class="chip" id="chip-fo"><input type="radio" name="f-pos" value="fo" style="display:none" onchange="pickChip(this,'pos')">First Officer</label>
+              <label class="chip" id="chip-cadet"><input type="radio" name="f-pos" value="cadet" style="display:none" onchange="pickChip(this,'pos')">Trainee</label>
+            </div>
+          </div>
+
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label class="form-label">Years of service <span style="color:#f97316">Required</span></label>
+              <select class="form-input" id="f-tenure">
+                <option value="">Please select</option>
+                <option value="1-5">1–5 years</option>
+                <option value="5-10">5–10 years</option>
+                <option value="10-15">10–15 years</option>
+                <option value="15-20">15–20 years</option>
+                <option value="20+">20 years or more</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label">Age group <span style="color:#f97316">Required</span></label>
+              <select class="form-input" id="f-age">
+                <option value="">Please select</option>
+                <option value="20-24">20–24</option>
+                <option value="25-29">25–29</option>
+                <option value="30-34">30–34</option>
+                <option value="35-39">35–39</option>
+                <option value="40-44">40–44</option>
+                <option value="45-49">45–49</option>
+                <option value="50-54">50–54</option>
+                <option value="55-59">55–59</option>
+                <option value="60+">60 or over</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div id="err1" class="text-sm mt-4" style="display:none"></div>
+        <button onclick="goStep(2)" class="btn-orange w-full justify-center mt-6 py-3 text-base">
+          Next — your review
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+
+      <!-- ── STEP 2 ─────────────────────────────────────── -->
+      <div id="step2" class="card" style="display:none">
+        <h2 class="text-lg font-bold mb-1">Step 2 — Review</h2>
+        <p class="text-sm text-muted mb-4">Give a rating out of five and a comment for each of the seven categories.</p>
+
+        <!-- Write in detail for your fellow crew (win-win) -->
+        <div class="crew-note" style="margin-bottom:24px">
+          <span class="crew-note-ico" aria-hidden="true">✈</span>
+          <div>
+            <div class="crew-note-title">For your fellow crew — please be as detailed as you can.</div>
+            <p class="crew-note-body">What you write becomes the <b>basis for the decision</b> of the next pilot who takes the leap. The more concretely you describe your own experience — how the work really is, the atmosphere in training, how close management feels — the more valuable your review becomes for the person reading it. And the more detail you share, the deeper you can read the reality at other airlines — let's make this a place where <b>everyone gains</b>.</p>
+          </div>
+        </div>
+
+        <!-- Aircraft type / role (the fields only current line pilots can fill in)
+             Pay is collected on pay-report.html (the payslip flow). We do not ask for money here. -->
+        <div class="mb-6">
+          <div class="form-label mb-3" style="font-size:.85rem">Aircraft type &amp; role <span class="text-muted" style="font-weight:400">optional</span></div>
+
+          <div class="salary-row">
+            <div>
+              <label class="form-label">Aircraft type (currently flown)</label>
+              <select class="form-input" id="f-fleet">
+                <option value="">Please select (optional)</option>
+                <optgroup label="Narrowbody (domestic / short-haul)">
+                  <option value="a320">A320 family (A319/320/321)</option>
+                  <option value="b737">Boeing 737</option>
+                  <option value="a220">Airbus A220 (ex-CSeries)</option>
+                  <option value="b757">Boeing 757</option>
+                  <option value="e-jet">Embraer E-Jet (E170/190)</option>
+                </optgroup>
+                <optgroup label="Widebody (international / long-haul)">
+                  <option value="b767">Boeing 767</option>
+                  <option value="b777">Boeing 777</option>
+                  <option value="b787">Boeing 787 Dreamliner</option>
+                  <option value="b747">Boeing 747</option>
+                  <option value="a330">Airbus A330</option>
+                  <option value="a350">Airbus A350</option>
+                  <option value="a380">Airbus A380</option>
+                </optgroup>
+                <optgroup label="Regional &amp; turboprop">
+                  <option value="crj">CRJ series</option>
+                  <option value="atr">ATR 42/72</option>
+                  <option value="dhc8">DHC-8 (Q400, etc.)</option>
+                  <option value="regional">Other regional jet</option>
+                  <option value="turboprop">Other turboprop</option>
+                  <option value="bizjet">Business jet (Gulfstream, etc.)</option>
+                </optgroup>
+                <optgroup label="Other">
+                  <option value="other">Other</option>
+                </optgroup>
+              </select>
+            </div>
+            <div>
+              <label class="form-label">Role / grade</label>
+              <select class="form-input" id="f-jobrole">
+                <option value="">Please select (optional)</option>
+                <option value="line">Line pilot</option>
+                <option value="instructor">Instructor (training)</option>
+                <option value="examiner">Examiner</option>
+                <option value="management">Management (dept. head, etc.)</option>
+              </select>
+            </div>
+          </div>
+          <p class="sal-hint">Aircraft type is <b>information only currently serving crew hold accurately</b>. The more of this you fill in, the more it helps those coming after you.</p>
+        </div>
+
+        <!-- Reviews across 7 categories -->
+        <div class="mb-2">
+          <div class="form-label mb-1" style="font-size:.85rem">Ratings &amp; reviews by category <span style="color:#f97316">Required</span></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <p class="text-xs text-muted">Give a star rating in every category. You can submit once your comments total 300 characters or more.</p>
+            <div class="char-total" id="char-total-display" style="color:#6b7d93">0 / 300 characters</div>
+          </div>
+        </div>
+
+        <div class="space-y-3" id="cat-blocks">
+          <!-- Company culture -->
+          <div class="cat-block">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <div style="font-size:.85rem;font-weight:700">Company culture</div>
+              <div class="star-group" data-cat="culture">
+                <button type="button" class="star-btn" data-v="1" onclick="setStar(this)">1</button>
+                <button type="button" class="star-btn" data-v="2" onclick="setStar(this)">2</button>
+                <button type="button" class="star-btn" data-v="3" onclick="setStar(this)">3</button>
+                <button type="button" class="star-btn" data-v="4" onclick="setStar(this)">4</button>
+                <button type="button" class="star-btn" data-v="5" onclick="setStar(this)">5</button>
+              </div>
+            </div>
+            <textarea class="form-input" id="fc-culture" rows="2" maxlength="300" placeholder="Internal culture, atmosphere, how easy it is to work here, etc." oninput="updateTotalChars()"></textarea>
+          </div>
+          <!-- Salary -->
+          <div class="cat-block">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <div style="font-size:.85rem;font-weight:700">Salary</div>
+              <div class="star-group" data-cat="salary">
+                <button type="button" class="star-btn" data-v="1" onclick="setStar(this)">1</button>
+                <button type="button" class="star-btn" data-v="2" onclick="setStar(this)">2</button>
+                <button type="button" class="star-btn" data-v="3" onclick="setStar(this)">3</button>
+                <button type="button" class="star-btn" data-v="4" onclick="setStar(this)">4</button>
+                <button type="button" class="star-btn" data-v="5" onclick="setStar(this)">5</button>
+              </div>
+            </div>
+            <textarea class="form-input" id="fc-salary" rows="2" maxlength="300" placeholder="Base pay, the share made up by allowances, the pay structure, etc." oninput="updateTotalChars()"></textarea>
+          </div>
+          <!-- Benefits -->
+          <div class="cat-block">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <div style="font-size:.85rem;font-weight:700">Benefits</div>
+              <div class="star-group" data-cat="benefits">
+                <button type="button" class="star-btn" data-v="1" onclick="setStar(this)">1</button>
+                <button type="button" class="star-btn" data-v="2" onclick="setStar(this)">2</button>
+                <button type="button" class="star-btn" data-v="3" onclick="setStar(this)">3</button>
+                <button type="button" class="star-btn" data-v="4" onclick="setStar(this)">4</button>
+                <button type="button" class="star-btn" data-v="5" onclick="setStar(this)">5</button>
+              </div>
+            </div>
+            <textarea class="form-input" id="fc-benefits" rows="2" maxlength="300" placeholder="Staff travel tickets, insurance, housing allowance, etc." oninput="updateTotalChars()"></textarea>
+          </div>
+          <!-- Work-life balance -->
+          <div class="cat-block">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <div style="font-size:.85rem;font-weight:700">Work-life balance</div>
+              <div class="star-group" data-cat="wlb">
+                <button type="button" class="star-btn" data-v="1" onclick="setStar(this)">1</button>
+                <button type="button" class="star-btn" data-v="2" onclick="setStar(this)">2</button>
+                <button type="button" class="star-btn" data-v="3" onclick="setStar(this)">3</button>
+                <button type="button" class="star-btn" data-v="4" onclick="setStar(this)">4</button>
+                <button type="button" class="star-btn" data-v="5" onclick="setStar(this)">5</button>
+              </div>
+            </div>
+            <textarea class="form-input" id="fc-wlb" rows="2" maxlength="300" placeholder="Taking leave, rostering, duty hours, etc." oninput="updateTotalChars()"></textarea>
+          </div>
+          <!-- Flight operations -->
+          <div class="cat-block">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <div style="font-size:.85rem;font-weight:700">Flight operations</div>
+              <div class="star-group" data-cat="ops">
+                <button type="button" class="star-btn" data-v="1" onclick="setStar(this)">1</button>
+                <button type="button" class="star-btn" data-v="2" onclick="setStar(this)">2</button>
+                <button type="button" class="star-btn" data-v="3" onclick="setStar(this)">3</button>
+                <button type="button" class="star-btn" data-v="4" onclick="setStar(this)">4</button>
+                <button type="button" class="star-btn" data-v="5" onclick="setStar(this)">5</button>
+              </div>
+            </div>
+            <textarea class="form-input" id="fc-ops" rows="2" maxlength="300" placeholder="Fleet, routes, operational safety standards, etc." oninput="updateTotalChars()"></textarea>
+          </div>
+          <!-- Training environment -->
+          <div class="cat-block">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <div style="font-size:.85rem;font-weight:700">Training environment</div>
+              <div class="star-group" data-cat="training">
+                <button type="button" class="star-btn" data-v="1" onclick="setStar(this)">1</button>
+                <button type="button" class="star-btn" data-v="2" onclick="setStar(this)">2</button>
+                <button type="button" class="star-btn" data-v="3" onclick="setStar(this)">3</button>
+                <button type="button" class="star-btn" data-v="4" onclick="setStar(this)">4</button>
+                <button type="button" class="star-btn" data-v="5" onclick="setStar(this)">5</button>
+              </div>
+            </div>
+            <textarea class="form-input" id="fc-training" rows="2" maxlength="300" placeholder="Simulator, check frequency, support, etc." oninput="updateTotalChars()"></textarea>
+          </div>
+          <!-- Suggestions to management -->
+          <div class="cat-block">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <div style="font-size:.85rem;font-weight:700">Suggestions to management</div>
+              <div class="star-group" data-cat="mgmt">
+                <button type="button" class="star-btn" data-v="1" onclick="setStar(this)">1</button>
+                <button type="button" class="star-btn" data-v="2" onclick="setStar(this)">2</button>
+                <button type="button" class="star-btn" data-v="3" onclick="setStar(this)">3</button>
+                <button type="button" class="star-btn" data-v="4" onclick="setStar(this)">4</button>
+                <button type="button" class="star-btn" data-v="5" onclick="setStar(this)">5</button>
+              </div>
+            </div>
+            <textarea class="form-input" id="fc-mgmt" rows="2" maxlength="300" placeholder="What you would like improved, your views on management decisions, etc." oninput="updateTotalChars()"></textarea>
+          </div>
+        </div>
+
+        <div id="err2" class="text-sm mt-4" style="display:none"></div>
+        <div class="flex gap-3 mt-6">
+          <button onclick="goStep(1)" class="btn-ghost flex-1 justify-center py-3">← Back</button>
+          <button onclick="goStep(3)" class="btn-orange flex-1 justify-center py-3">To the confirmation screen →</button>
+        </div>
+      </div>
+
+      <!-- ── STEP 3 (Preview) ──────────────────────────── -->
+      <div id="step3" class="card" style="display:none">
+        <h2 class="text-lg font-bold mb-1">Step 3 — Confirm</h2>
+        <p class="text-sm text-muted mb-6">This is what will be posted. It contains nothing that can identify you personally.</p>
+
+        <!-- What will be public -->
+        <div style="background:rgba(61,155,255,.05);border:1px solid rgba(61,155,255,.18);border-radius:12px;padding:20px;margin-bottom:20px">
+          <div class="text-xs font-bold text-muted mb-3" style="letter-spacing:.06em;text-transform:uppercase">What is stored in the database</div>
+          <div id="preview-content" class="space-y-0"></div>
+        </div>
+
+        <!-- What will NOT be saved -->
+        <div class="privacy-row mb-6">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L1.5 3.5v4c0 3.1 2.2 5.7 5.5 6 3.3-.3 5.5-2.9 5.5-6v-4L7 1z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M5 7l1.5 1.5L9 5.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Name, email address, user ID — none of them are stored
+        </div>
+
+        <div id="err3" class="text-sm mb-4" style="display:none"></div>
+        <div class="flex gap-3">
+          <button onclick="goStep(2)" class="btn-ghost flex-1 justify-center py-3">← Edit</button>
+          <button onclick="submitReview()" id="submit-btn" class="btn-orange flex-1 justify-center py-3">
+            Post and unlock 🔓
+          </button>
+        </div>
+      </div>
+
+      <!-- ── SUCCESS ───────────────────────────────────── -->
+      <div id="step-success" class="card text-center" style="display:none">
+        <h2 class="text-2xl font-extrabold mb-3">Thank you for your review!</h2>
+        <p class="text-muted text-sm mb-2">Your review has been saved.</p>
+        <p class="text-sm mb-8">Every airline&rsquo;s reviews are now open to you for <strong class="text-text" style="color:#f5c842">30 days</strong>.</p>
+        <p class="text-muted" style="font-size:.78rem;margin:-22px 0 26px">The pay data opens for 90 days when you submit one payslip.</p>
+        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+          <a href="community.html" class="btn-orange justify-center">See all reviews →</a>
+          <a href="world-airlines.html" class="btn-ghost justify-center">See the airline data</a>
+        </div>
+      </div>
+
+    </div><!-- /form-wrap -->
+  </div>
+</main>
+
+<!-- FOOTER -->
+<footer class="py-10">
+  <div class="max-w-5xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+    <a href="index.html"><img src="../assets/logo.png" alt="PILOT VALUE" class="h-7 opacity-70"/></a>
+    <div class="flex gap-6 text-sm text-muted">
+      <a href="community.html" class="hover:text-text transition-colors">Reviews</a>
+      <a href="privacy-pilot.html" class="hover:text-text transition-colors">How anonymity works</a>
+      <a href="privacy.html" class="hover:text-text transition-colors">Privacy Policy</a>
+    </div>
+    <div class="text-xs text-muted">© 2026 PILOT VALUE</div>
+  </div>
+</footer>
+
+<script>
+// ── Supabase ──────────────────────────────────────────────────
+const _sb = supabase.createClient(
+  'https://vzgmnkrggrwtsrpqndsm.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6Z21ua3JnZ3J3dHNycHFuZHNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0MzkwOTcsImV4cCI6MjA5MDAxNTA5N30.wE4cJbqeYGCgn5ZvHd80hYWgQuySKvOMJMbsJWOvmtw'
+);
+
+let currentUserId = null;
+
+// ── Auth check ────────────────────────────────────────────────
+(async function() {
+  const { data: { session } } = await _sb.auth.getSession();
+  if (!session) {
+    document.getElementById('login-gate').style.display = '';
+    document.getElementById('form-wrap').style.display = 'none';
+    // How many people arrived intending to write a review and hit the login wall.
+    // Cross-referenced with sign_up, this finally shows where wall → signup → post leaks.
+    try { if (typeof gtag === 'function') gtag('event', 'review_login_wall'); } catch (e) {}
+  } else {
+    currentUserId = session.user.id;
+    document.getElementById('login-gate').style.display = 'none';
+    document.getElementById('form-wrap').style.display = '';
+  }
+})();
+
+// ── Preselect the airline from the URL ?airline= parameter ────
+(function(){
+  const a = new URLSearchParams(location.search).get('airline');
+  if (!a) return;
+  const sel = document.getElementById('f-airline');
+  if (!sel) return;
+  const ok = Array.prototype.some.call(sel.options, o => o.value === a);
+  sel.value = ok ? a : 'other';
+})();
+
+// ── Nav scroll ────────────────────────────────────────────────
+window.addEventListener('scroll', () => {
+  document.getElementById('main-nav').classList.toggle('scrolled', window.scrollY > 40);
+}, { passive: true });
+
+// ── Theme toggle ──────────────────────────────────────────────
+const SUN = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
+const MOON = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('pv-theme', t);
+  const btn = document.getElementById('theme-toggle');
+  if (btn) btn.innerHTML = t === 'dark' ? SUN : MOON;
+}
+(function(){ applyTheme(localStorage.getItem('pv-theme') || 'light'); })();
+document.getElementById('theme-toggle').addEventListener('click', function() {
+  applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+});
+
+// ── Chip picker ───────────────────────────────────────────────
+function pickChip(radio, group) {
+  document.querySelectorAll(`input[name="f-${group}"]`).forEach(r => {
+    r.closest('label').classList.remove('active');
+  });
+  radio.closest('label').classList.add('active');
+}
+
+// ── Star rating ───────────────────────────────────────────────
+function setStar(btn) {
+  const group = btn.closest('.star-group');
+  const val = parseInt(btn.dataset.v, 10);
+  group.querySelectorAll('.star-btn').forEach(b => {
+    b.classList.toggle('on', parseInt(b.dataset.v, 10) <= val);
+  });
+  group.dataset.score = val;
+}
+
+function getStarScore(cat) {
+  const g = document.querySelector(`.star-group[data-cat="${cat}"]`);
+  return g ? (parseInt(g.dataset.score, 10) || 0) : 0;
+}
+
+// ── Total char counter ────────────────────────────────────────
+const CAT_KEYS = ['culture','salary','benefits','wlb','ops','training','mgmt'];
+function updateTotalChars() {
+  const total = CAT_KEYS.reduce((s,k) => s + (document.getElementById('fc-'+k)?.value.length||0), 0);
+  const el = document.getElementById('char-total-display');
+  if (el) {
+    el.textContent = total + ' / 300 characters';
+    el.style.color = total >= 300 ? '#34d399' : '#6b7d93';
+  }
+}
+
+// ── Step navigation ───────────────────────────────────────────
+const POS_MAP = { captain: 'Captain', fo: 'First Officer', cadet: 'Trainee' };
+/*BEGIN:LABELS*/const AIRLINE_LABELS = {
+  // ★手で書かない。node gen-airline-codes.mjs が SSOT から生成する。
+  ana: 'All Nippon Airways (ANA)',
+  jal: 'Japan Airlines (JAL)',
+  zipair: 'ZIPAIR Tokyo',
+  'jetstar-japan': 'Jetstar Japan',
+  peach: 'Peach Aviation',
+  solaseed: 'Solaseed Air',
+  'spring-japan': 'Spring Japan',
+  airdo: 'AIRDO (AIR DO)',
+  starflyer: 'StarFlyer (Star Flyer)',
+  skymark: 'Skymark Airlines',
+  fda: 'Fuji Dream Airlines (FDA)',
+  emirates: 'Emirates',
+  qantas: 'Qantas',
+  'cathay-pacific': 'Cathay Pacific',
+  'singapore-airlines': 'Singapore Airlines',
+  etihad: 'Etihad Airways',
+  'qatar-airways': 'Qatar Airways',
+  'korean-air': 'Korean Air',
+  asiana: 'Asiana Airlines',
+  starlux: 'STARLUX Airlines',
+  'china-airlines': 'China Airlines',
+  'thai-airways': 'Thai Airways International',
+  'eva-air': 'EVA Air',
+  united: 'United Airlines',
+  delta: 'Delta Air Lines',
+  american: 'American Airlines',
+  southwest: 'Southwest Airlines',
+  klm: 'KLM Royal Dutch Airlines',
+  'air-france': 'Air France',
+  lufthansa: 'Lufthansa',
+  'air-canada': 'Air Canada',
+  'british-airways': 'British Airways',
+  airjapan: 'AirJapan',
+  amx: 'Amakusa Airlines (AMX)',
+  'ana-wings': 'ANA Wings',
+  'daiichi-air': 'Daiichi Aviation (Daiichi Air)',
+  hac: 'Hokkaido Air System (HAC)',
+  ibex: 'IBEX Airlines',
+  'j-air': 'J-Air (J-AIR)',
+  jac: 'Japan Air Commuter (JAC)',
+  jta: 'Japan Transocean Air (JTA)',
+  orc: 'Oriental Air Bridge (ORC)',
+  rac: 'Ryukyu Air Commuter (RAC)',
+  'shin-central': 'Shin Chuo Airlines (Shin Nichi Aviation)',
+  'shin-nihon': 'Shin Nihon Airlines',
+  'toho-air': 'Toho Air Service',
+  'toki-air': 'Toki Air',
+  'air-china': 'Air China',
+  'china-eastern': 'China Eastern Airlines',
+  'china-southern': 'China Southern Airlines',
+  'hainan-airlines': 'Hainan Airlines',
+  'airx-charter': 'AirX Charter Ltd',
+  'eagle-jet': 'Eagle Jet International, Inc.',
+  'root-aviation': 'Root Aviation',
+  solairus: 'Solairus Aviation',
+  'air-india': 'Air India',
+  airasia: 'AirAsia Group',
+  'bamboo-airways': 'Bamboo Airways',
+  'batik-air': 'Batik Air',
+  'garuda-indonesia': 'Garuda Indonesia',
+  'hong-kong-express': 'HK Express',
+  indigo: 'IndiGo',
+  'malaysia-airlines': 'Malaysia Airlines',
+  'philippine-airlines': 'Philippine Airlines',
+  scoot: 'Scoot',
+  vietjet: 'VietJet Air',
+  'vietnam-airlines': 'Vietnam Airlines',
+  egyptair: 'EgyptAir',
+  'ethiopian-airlines': 'Ethiopian Airlines',
+  'gulf-air': 'Gulf Air',
+  'kenya-airways': 'Kenya Airways',
+  'kuwait-airways': 'Kuwait Airways',
+  'oman-air': 'Oman Air',
+  'riyadh-air': 'Riyadh Air',
+  'royal-brunei': 'Royal Brunei Airlines',
+  'royal-jordanian': 'Royal Jordanian',
+  saudia: 'Saudia',
+  'south-african-airways': 'South African Airways (SAA)',
+  'turkish-airlines': 'Turkish Airlines',
+  aegean: 'Aegean Airlines',
+  'aer-lingus': 'Aer Lingus',
+  austrian: 'Austrian Airlines',
+  easyjet: 'easyJet',
+  eurowings: 'Eurowings',
+  finnair: 'Finnair',
+  iberia: 'Iberia',
+  icelandair: 'Icelandair',
+  'ita-airways': 'ITA Airways',
+  lot: 'LOT Polish Airlines',
+  norwegian: 'Norwegian Air Shuttle (Norwegian)',
+  ryanair: 'Ryanair',
+  sas: 'SAS Scandinavian Airlines',
+  swiss: 'Swiss International Air Lines (SWISS)',
+  tap: 'TAP Air Portugal',
+  'virgin-atlantic': 'Virgin Atlantic',
+  vueling: 'Vueling Airlines',
+  'wizz-air': 'Wizz Air UK',
+  aeromexico: 'Aeromexico',
+  'air-new-zealand': 'Air New Zealand',
+  'alaska-airlines': 'Alaska Airlines',
+  allegiant: 'Allegiant Air',
+  avianca: 'Avianca',
+  'breeze-airways': 'Breeze Airways',
+  'copa-airlines': 'Copa Airlines',
+  'fiji-airways': 'Fiji Airways',
+  frontier: 'Frontier Airlines',
+  jetblue: 'JetBlue Airways',
+  jetstar: 'Jetstar Airways (Jetstar)',
+  latam: 'LATAM Airlines',
+  porter: 'Porter Airlines',
+  spirit: 'Spirit Airlines',
+  westjet: 'WestJet Airlines',
+  other: 'Other',
+};/*END:LABELS*/
+
+function getVals() {
+  return {
+    airline:      document.getElementById('f-airline').value,
+    airlineOther: (document.getElementById('f-airline-other')?.value || '').trim(),
+    pos:        document.querySelector('input[name="f-pos"]:checked')?.value || '',
+    tenure:     document.getElementById('f-tenure').value,
+    age:        document.getElementById('f-age').value,
+    fleet:      document.getElementById('f-fleet')?.value || '',
+    jobRole:    document.getElementById('f-jobrole')?.value || '',
+    cats: {
+      culture:  { score: getStarScore('culture'),  comment: (document.getElementById('fc-culture')?.value||'').trim() },
+      salary:   { score: getStarScore('salary'),   comment: (document.getElementById('fc-salary')?.value||'').trim() },
+      benefits: { score: getStarScore('benefits'), comment: (document.getElementById('fc-benefits')?.value||'').trim() },
+      wlb:      { score: getStarScore('wlb'),      comment: (document.getElementById('fc-wlb')?.value||'').trim() },
+      ops:      { score: getStarScore('ops'),      comment: (document.getElementById('fc-ops')?.value||'').trim() },
+      training: { score: getStarScore('training'), comment: (document.getElementById('fc-training')?.value||'').trim() },
+      mgmt:     { score: getStarScore('mgmt'),     comment: (document.getElementById('fc-mgmt')?.value||'').trim() },
+    },
+  };
+}
+
+function totalCommentChars(v) {
+  return Object.values(v.cats).reduce((s,c) => s + c.comment.length, 0);
+}
+
+// When "Other" is selected, the freely entered airline name becomes the effective value
+// (used for the proof_hash, for saving and for display alike)
+function effectiveAirline(v) {
+  return (v.airline === 'other' && v.airlineOther) ? v.airlineOther : v.airline;
+}
+
+// Show the free-text field only when "Other" is chosen in the airline select
+function toggleOtherAirline() {
+  const sel = document.getElementById('f-airline');
+  const other = document.getElementById('f-airline-other');
+  if (!sel || !other) return;
+  const show = sel.value === 'other';
+  other.style.display = show ? '' : 'none';
+  if (!show) other.value = '';
+  else other.focus();
+}
+
+// ── Form error display (quality rejections are highlighted in a red alert box and scrolled into view) ──
+// Every message is a fixed string from the code (no user input is mixed in), so innerHTML is safe.
+function showFormAlert(el, message, opts) {
+  if (!el) return;
+  const strong = opts && opts.strong;
+  /* ★Only successes (review_submit) were measured, so there was no way to ever count the
+     people who tried to write a review and got blocked. Identified as the blind spot on
+     2026-08-11 (between 7/28 and 8/10 the longest reviews were wrongly rejected, and that
+     damage cannot be counted after the fact). The text is never sent — only which check
+     stopped them. */
+  try {
+    if (typeof gtag === 'function' && opts && opts.code) {
+      gtag('event', 'review_blocked', { reason: opts.code });
+    }
+  } catch (e) {}
+  el.classList.add('form-alert');
+  el.innerHTML = strong
+    ? `<span class="fa-title">⚠️ This content cannot be posted</span>${message}`
+      + `<span class="fa-hint">Sorry for the trouble — please rewrite it as a specific account of your own experience.</span>`
+    : message;
+  el.style.display = '';
+  // Scroll it to the center so it is noticed even when it sits off-screen below an input
+  try { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {}
+}
+function clearFormAlert(el) {
+  if (!el) return;
+  el.style.display = 'none';
+  el.classList.remove('form-alert');
+  el.innerHTML = '';
+}
+
+// ── Automatic review-quality detection (blocks meaningless character strings, keyboard mashing and padding) ──
+// The thresholds are conservative to avoid false positives: genuine reviews pass, only mashing is rejected.
+// A pure function returning {ok:boolean, reason:string}.
+function assessReviewQuality(raw) {
+  const t = (raw || '').replace(/\s+/g, ' ').trim();
+  const len = t.length;
+  if (len === 0) return { ok: true, reason: '' };
+
+  // 1) The same character repeated (5 or more in a row), e.g. "aaaaa"
+  if (/(.)\1{4,}/u.test(t)) {
+    return { ok: false, reason: 'The same character is repeated too many times (e.g. "aaaaa"). Please write what you actually experienced.' };
+  }
+
+  // 2) The same phrase repeated (a unit of 2+ characters occurring 3+ times in a row and
+  //    making up more than half of the text), e.g. "pay at ANA is lowpay at ANA is low..."
+  const rep = t.match(/(.{2,}?)\1{2,}/u);
+  if (rep && rep[0].length >= Math.max(12, len * 0.5)) {
+    return { ok: false, reason: 'The same phrase is repeated too often (e.g. "...is low...is low..."). Please rewrite it with specific content.' };
+  }
+
+  // 3) Extremely few distinct characters = padding (40+ characters with fewer than 10 distinct ones)
+  const uniq = new Set(t.replace(/\s/g, '')).size;
+  if (len >= 40 && uniq < 10) {
+    return { ok: false, reason: 'This was judged to be padding with little actual content. Please write about your own specific experience.' };
+  }
+
+  // 4) Latin-character mashing (keyboard mashing with almost no vowels), e.g. "dkdkdm", "kfmkms",
+  //    "ksmkskd". 12 or more letters with a vowel ratio under 15% counts as mashing.
+  //    Genuine English text (vowel ratio around 38%) and a few abbreviations (EF/WLB/OJT/PBS/CA etc.) pass.
+  const latin = t.match(/[A-Za-z]/g) || [];
+  if (latin.length >= 12) {
+    const vowels = t.match(/[AEIOUaeiou]/g) || [];
+    if (vowels.length / latin.length < 0.15) {
+      return { ok: false, reason: 'This was judged to be a meaningless string of characters (keyboard mashing). Please describe your actual experience in sentences.' };
+    }
+  }
+
+  // 5) Extremely low bigram diversity = a mechanically repeating pattern such as "dkdkddkkdkdkkdk...".
+  //    ⚠️ Never divide the diversity by the total length. The number of distinct bigrams saturates
+  //    with the size of the alphabet while the denominator keeps growing, so longer genuine text
+  //    always sinks below the threshold. English has 26 letters — about 350 bigrams in practice —
+  //    and measured on real reviews the ratio dropped under 0.35 at roughly 1,100 characters
+  //    (Japanese at about 1,400). Comments must total 300+ characters, so this rejected exactly
+  //    the people who wrote the most. Measure fixed-size windows instead and judge on the worst
+  //    one, which does not depend on length.
+  //    Measured: 0.588 for English and 0.884 for Japanese at any length; mashing scores 0.02-0.08.
+  //    Mashing buried inside genuine text scores 0.020 here, against 0.277 under the old rule.
+  if (len >= 40) {
+    const ns = t.replace(/\s/g, '');
+    const WIN = 200, STEP = 100;
+    const diversity = (s) => {
+      const grams = [];
+      for (let i = 0; i < s.length - 1; i++) grams.push(s.slice(i, i + 2));
+      return grams.length >= 8 ? new Set(grams).size / grams.length : 1;
+    };
+    let worst = ns.length <= WIN ? diversity(ns) : 1;
+    for (let i = 0; i + WIN <= ns.length; i += STEP) worst = Math.min(worst, diversity(ns.slice(i, i + WIN)));
+    if (ns.length > WIN) worst = Math.min(worst, diversity(ns.slice(-WIN)));   // cover the tail the stride misses
+    if (worst < 0.35) {
+      return { ok: false, reason: 'This was judged to be a meaningless string of characters (the same pattern repeated). Please rewrite it with specific content.' };
+    }
+  }
+
+  return { ok: true, reason: '' };
+}
+
+// ── Detect the same paragraph copy-pasted across categories (against pasting identical mashing or text everywhere) ──
+// cats = {culture:{comment}, salary:{comment}, ...}. A near match (>0.8) of 20+ characters in 2 or more categories is rejected.
+function assessReviewSet(cats) {
+  const norm = s => (s || '')
+    .replace(/【[^】]*】/g, '')   // strip category labels such as 【WLB】
+    .replace(/\s+/g, '')
+    .toLowerCase();
+  const items = Object.values(cats)
+    .map(c => norm(c.comment))
+    .filter(n => n.length >= 20);
+
+  const bigrams = s => {
+    const set = new Set();
+    for (let i = 0; i < s.length - 1; i++) set.add(s.slice(i, i + 2));
+    return set;
+  };
+  const sim = (a, b) => {
+    if (a === b) return 1;
+    if (a.includes(b) || b.includes(a)) return Math.min(a.length, b.length) / Math.max(a.length, b.length);
+    const A = bigrams(a), B = bigrams(b);
+    let inter = 0;
+    for (const g of A) if (B.has(g)) inter++;
+    const uni = A.size + B.size - inter;
+    return uni ? inter / uni : 0;
+  };
+
+  for (let i = 0; i < items.length; i++) {
+    for (let j = i + 1; j < items.length; j++) {
+      if (sim(items[i], items[j]) > 0.8) {
+        return { ok: false, reason: 'The same text has been pasted into several categories. Please write each category specifically, from its own point of view.' };
+      }
+    }
+  }
+  return { ok: true, reason: '' };
+}
+
+function setStepUI(n) {
+  [1,2,3].forEach(i => {
+    document.getElementById(`step${i}`).style.display = i === n ? '' : 'none';
+  });
+  document.getElementById('step-success').style.display = 'none';
+
+  [1,2,3].forEach(i => {
+    const c = document.getElementById(`sc${i}`);
+    const l = document.getElementById(`sl${i}`);
+    if (i < n) { c.className = 'step-circle done'; c.innerHTML = '✓'; l.className = 'step-label'; }
+    else if (i === n) { c.className = 'step-circle active'; c.textContent = i; l.className = 'step-label active'; }
+    else { c.className = 'step-circle pending'; c.textContent = i; l.className = 'step-label'; }
+  });
+}
+
+function goStep(n) {
+  const v = getVals();
+
+  if (n === 2) {
+    const err = document.getElementById('err1');
+    if (!v.airline) { showFormAlert(err, 'Please select an airline.'); return; }
+    if (v.airline === 'other' && !v.airlineOther) { showFormAlert(err, 'If you chose "Other", please enter the airline name.'); return; }
+    if (!v.pos)     { showFormAlert(err, 'Please select a position.'); return; }
+    if (!v.tenure)  { showFormAlert(err, 'Please select your years of service.'); return; }
+    if (!v.age)     { showFormAlert(err, 'Please select your age group.'); return; }
+    clearFormAlert(err);
+  }
+
+  if (n === 3) {
+    const err = document.getElementById('err2');
+    const SCORE_KEYS = ['culture','salary','benefits','wlb','ops','training'];
+    const missingScore = SCORE_KEYS.find(k => v.cats[k].score === 0);
+    if (missingScore) {
+      const labels = {culture:'Company culture',salary:'Salary',benefits:'Benefits',wlb:'Work-life balance',ops:'Flight operations',training:'Training environment'};
+      showFormAlert(err, `Please select a rating (1–5) for "${labels[missingScore]}".`);
+      return;
+    }
+    const totalChars = totalCommentChars(v);
+    if (totalChars < 300) {
+      showFormAlert(err, `Your comments are too short (currently ${totalChars} characters; 300 or more are required).`, { code: 'too_short' });
+      return;
+    }
+    // Quality check: keyboard mashing, repeated phrases, padding and cross-category copy-pasting are
+    // detected automatically and blocked (checked in this order: cross-category copy, each category
+    // comment, then the whole text. Rejections are highlighted in the red alert box).
+    const setCheck = assessReviewSet(v.cats);
+    if (!setCheck.ok) { showFormAlert(err, setCheck.reason, { strong: true, code: 'set' }); return; }
+    for (const k of CAT_KEYS) {
+      const c = v.cats[k].comment;
+      if (c && c.length >= 20) {
+        const q = assessReviewQuality(c);
+        if (!q.ok) { showFormAlert(err, `Comment on "${CAT_LABELS[k]}": ${q.reason}`, { strong: true, code: 'category' }); return; }
+      }
+    }
+    const combinedComment = CAT_KEYS.map(k => v.cats[k].comment).filter(Boolean).join(' ');
+    const qc = assessReviewQuality(combinedComment);
+    if (!qc.ok) { showFormAlert(err, qc.reason, { strong: true, code: 'combined' }); return; }
+    clearFormAlert(err);
+    buildPreview(v);
+  }
+
+  setStepUI(n);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+const CAT_LABELS = {culture:'Company culture',salary:'Salary',benefits:'Benefits',wlb:'Work-life balance',ops:'Flight operations',training:'Training environment',mgmt:'Suggestions to management'};
+/*BEGIN:FLEET_LABELS*/const FLEET_LABELS = {
+  // ★手で書かない。node gen-vocab.mjs が pv-vocab.mjs から生成する。
+  a320: 'A320 family (A319/320/321)',
+  b737: 'Boeing 737',
+  a220: 'Airbus A220 (ex-CSeries)',
+  b757: 'Boeing 757',
+  'e-jet': 'Embraer E-Jet (E170/190)',
+  b767: 'Boeing 767',
+  b777: 'Boeing 777',
+  b787: 'Boeing 787 Dreamliner',
+  b747: 'Boeing 747',
+  a330: 'Airbus A330',
+  a350: 'Airbus A350',
+  a380: 'Airbus A380',
+  crj: 'CRJ series',
+  atr: 'ATR 42/72',
+  dhc8: 'DHC-8 (Q400, etc.)',
+  regional: 'Other regional jet',
+  turboprop: 'Other turboprop',
+  bizjet: 'Business jet (Gulfstream, etc.)',
+  other: 'Other',
+};/*END:FLEET_LABELS*/
+/*BEGIN:ROLE_LABELS*/const ROLE_LABELS = {
+  // ★手で書かない。node gen-vocab.mjs が pv-vocab.mjs から生成する。
+  line: 'Line pilot',
+  instructor: 'Instructor (training)',
+  examiner: 'Examiner',
+  management: 'Management (dept. head, etc.)',
+};/*END:ROLE_LABELS*/
+
+function buildPreview(v) {
+  const rows = [
+    ['Airline', v.airline === 'other' ? v.airlineOther : (AIRLINE_LABELS[v.airline] || v.airline)],
+    ['Position', POS_MAP[v.pos] || v.pos],
+    ['Years of service', v.tenure + ' years'],
+    ['Age group', v.age + ' years old'],
+  ];
+  if (v.fleet)   rows.push(['Aircraft type', FLEET_LABELS[v.fleet] || v.fleet]);
+  if (v.jobRole) rows.push(['Role / grade', ROLE_LABELS[v.jobRole] || v.jobRole]);
+
+  CAT_KEYS.forEach(k => {
+    const c = v.cats[k];
+    const val = `★${c.score} — ${c.comment ? (c.comment.length>60?c.comment.slice(0,60)+'…':c.comment) : '(No comment)'}`;
+    rows.push([CAT_LABELS[k], val]);
+  });
+
+  document.getElementById('preview-content').innerHTML = rows.map(([label, val]) => `
+    <div class="preview-row">
+      <span class="preview-label">${label}</span>
+      <span class="preview-val" style="font-size:.82rem;max-width:60%;text-align:right">${val}</span>
+    </div>
+  `).join('');
+}
+
+// ── Proof hash ────────────────────────────────────────────────
+async function makeProofHash(userId, airline) {
+  const data = new TextEncoder().encode(userId + '::pv_anon::' + airline + '::2026');
+  const buf = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+// ── Submit ────────────────────────────────────────────────────
+async function submitReview() {
+  const v = getVals();
+  const btn = document.getElementById('submit-btn');
+  const err = document.getElementById('err3');
+
+  // Re-run the quality check right before the final submission: even if the on-screen steps are
+  // skipped to bypass the gate, mashing and copy-paste never reach the insert or the 30-day
+  // unlock (pv_unlock_expiry).
+  const reject = (msg) => {
+    showFormAlert(err, msg, { strong: true, code: 'final' });
+    btn.disabled = false;
+    btn.textContent = 'Post and unlock 🔓';
+  };
+  const setCheck = assessReviewSet(v.cats);
+  if (!setCheck.ok) { reject(setCheck.reason); return; }
+  for (const k of CAT_KEYS) {
+    const c = v.cats[k].comment;
+    if (c && c.length >= 20) {
+      const q = assessReviewQuality(c);
+      if (!q.ok) { reject(`Comment on "${CAT_LABELS[k]}": ${q.reason}`); return; }
+    }
+  }
+  const combined = CAT_KEYS.map(k => v.cats[k].comment).filter(Boolean).join(' ');
+  const qc = assessReviewQuality(combined);
+  if (!qc.ok) { reject(qc.reason); return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Posting…';
+
+  try {
+    const proofHash = await makeProofHash(currentUserId, effectiveAirline(v));
+
+    // Duplicate check
+    const { data: existing } = await _sb
+      .from('reviews_v2')
+      .select('id')
+      .eq('proof_hash', proofHash)
+      .maybeSingle();
+
+    if (existing) {
+      showFormAlert(err, 'You have already posted a review for this airline. Please select a different airline.');
+      btn.disabled = false;
+      btn.textContent = 'Post and unlock 🔓';
+      return;
+    }
+
+    // No money is collected here — pay is gathered on pay-report.html (the payslip flow).
+    // reviews_v2 keeps annual_salary / base_annual / flight_allowance_annual / monthly_salary /
+    // bonus / input_currency / input_rate / salary_note as columns so older reviews still render,
+    // but new reviews do not write to them.
+    const payload = {
+      proof_hash:       proofHash,
+      airline:          effectiveAirline(v),
+      position:         v.pos,
+      tenure_bucket:    v.tenure,
+      age_bucket:       v.age,
+      fleet:            v.fleet   || null,
+      job_role:         v.jobRole || null,
+      culture_score:    v.cats.culture.score   || null,
+      culture_comment:  v.cats.culture.comment || null,
+      salary_score:     v.cats.salary.score    || null,
+      salary_comment:   v.cats.salary.comment  || null,
+      benefits_score:   v.cats.benefits.score  || null,
+      benefits_comment: v.cats.benefits.comment|| null,
+      wlb_score:        v.cats.wlb.score       || null,
+      wlb_comment:      v.cats.wlb.comment     || null,
+      ops_score:        v.cats.ops.score       || null,
+      ops_comment:      v.cats.ops.comment     || null,
+      training_score:   v.cats.training.score  || null,
+      training_comment: v.cats.training.comment|| null,
+      mgmt_score:       v.cats.mgmt.score      || null,
+      mgmt_comment:     v.cats.mgmt.comment    || null,
+    };
+    // Let the submission through even if optional columns have not been added yet: if a column
+    // name appears in the error, drop that key and retry.
+    // (Nothing breaks before db/schema-additions.sql is applied; after it is applied the values are actually saved.)
+    const OPTIONAL_COLS = ['fleet','job_role','mgmt_score'];
+    let { error } = await _sb.from('reviews_v2').insert(payload);
+    for (let guard = 0; error && guard < OPTIONAL_COLS.length; guard++) {
+      const msg = (error.message||'') + ' ' + (error.details||'') + ' ' + (error.hint||'');
+      const bad = OPTIONAL_COLS.find(c => payload[c] !== undefined && new RegExp('\\b' + c + '\\b', 'i').test(msg));
+      if (!bad) break;
+      delete payload[bad];
+      ({ error } = await _sb.from('reviews_v2').insert(payload));
+    }
+
+    if (error) throw error;
+
+    // Unlock the review tier for 30 days only. The salary tier (pv_salary_unlock_expiry) is left
+    // alone here — actual pay is for people who have submitted a payslip on pay-report.html.
+    const exp = (Date.now() + 30*24*60*60*1000).toString();
+    localStorage.setItem('pv_unlock_expiry', exp);
+
+    // GA4 conversion tracking (submission completed + unlock)
+    try {
+      if (typeof gtag === 'function') {
+        gtag('event', 'review_submit', { airline: payload.airline || '', position: payload.position || '' });
+        gtag('event', 'unlock', { method: 'review_submit' });
+      }
+    } catch(e) {}
+
+    // Show success
+    [1,2,3].forEach(i => document.getElementById(`step${i}`).style.display = 'none');
+    document.getElementById('step-success').style.display = '';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    /* Same confetti as the pay report. A review has no "same month again" case —
+       getting here always means one more review — so it fires unconditionally.
+       Anyone who asked for reduced motion gets nothing; confetti.js handles that.
+       ★The round 🎉 comes from confetti.js, and shows even with reduced motion. */
+    if (window.PVConfetti && window.PVConfetti.badge) window.PVConfetti.badge(document.getElementById('step-success'));
+    try { if (typeof window.PVConfetti === 'function') window.PVConfetti(); } catch (e) {}
+
+  } catch(e) {
+    console.error(e);
+    // e.message comes from an external source, so escape it before using innerHTML
+    const safeMsg = String(e.message || 'error').replace(/[&<>]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;' }[c]));
+    showFormAlert(err, 'The submission failed. Please try again in a little while. (' + safeMsg + ')');
+    btn.disabled = false;
+    btn.textContent = 'Post and unlock 🔓';
+  }
+}
+</script>
+<script src="../confetti.js"></script>
+<script src="../lang-toggle.js"></script>
+<script src="../currency.js"></script>
+</body>
+</html>

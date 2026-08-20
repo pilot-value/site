@@ -1,0 +1,82 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "ハーブ・ケレハーの「従業員第一」の精神が失われたとの落胆が強い。2022年末の運航崩壊では老朽スケジューリングシステムが機体・乗員を追えず手書き対応となり、上層部への信頼はゼロとの声も。2025年2月には創業以来初の大規模レイオフでコーポレート約15％・約1,750名を削減（パイロットは対象外だが象徴的転換）。エリオットの介入で経営陣も刷新され、株主偏重への懸念が募る。",
+      "en": "Many feel Herb Kelleher's employee-first culture is gone: the 2022 holiday meltdown exposed an antiquated scheduling system and left pilots with near-zero trust in management, and in February 2025 the first mass layoff in company history cut about 15% of corporate staff (~1,750 people) under activist investor Elliott's influence."
+    },
+    "salary": {
+      "ja": "2024年の新契約で5年累計約50%増（批准時に29.15%の一括賃上げ）。シニア機長は時給約364ドル（約5.7万円）、最上位機長の総報酬は年45万ドル（約7,100万円）超と、狭胴機で世界最高水準。距離ベースのTFP制で短距離を数多くこなすほど稼げる。ただし「大手3社と大差なく、人一倍働いて稼ぐだけ」という冷めた声もある。",
+      "en": "The 2024 SWAPA contract delivered a 29.15% initial raise and roughly 50% over five years; senior captains earn about $364/hr and top captains can exceed $450,000 in total annual comp — among the best pay in narrowbody flying, built on the distance-based Trip-for-Pay model."
+    },
+    "benefits": {
+      "ja": "会社が退職勘定へ約20%を拠出（B-Fundが2026年18%＋キャッシュバランス制度2%）し、シニア機長では年7万ドル（約1,100万円）超になり得る。1973年からの利益分配も強みだが、2026年は約1.1%と縮小（好調年は給与の8〜12%規模）。日当は国内約2.90ドル・国際約3.45ドル/時。米国業界でも真似しづらい手厚さと評価される。",
+      "en": "Southwest contributes about 20% of pay to retirement (an 18% B-Fund plus a 2% cash-balance plan in 2026), which can top $70,000/year for senior captains, on top of profit sharing dating to 1973 — though 2026 profit sharing shrank to roughly 1.1%."
+    },
+    "wlb": {
+      "ja": "全機737の国内ポイントトゥポイント運航で短いペアリング中心、ほぼ毎晩帰宅できる予測しやすい生活。拠点は12か所、ライン保有者の乗務は月16〜19日でトレード・スワップの自由度は高い。ただしQOLは「希望拠点でラインを取れるか」に大きく依存する。リザーブはロング/ショートコールの区別がなくRAP開始から拘束され、約4割いる通勤組には史上最も厳しいとの声も。",
+      "en": "Domestic point-to-point flying means short pairings and home most nights, with 16–19 flying days a month and strong trade/swap flexibility once you hold a line — but quality of life hinges on landing a line at your preferred base, and reserve is punishing for the roughly 40% who commute."
+    },
+    "ops": {
+      "ja": "全機ボーイング737の単一機材で、国内ポイントトゥポイント運航により約120空港へ就航。機種移行や機材入札が不要で、訓練・スケジュール・キャリア進行が単純。基本は国際線なし。ただし2025年に無料受託手荷物2個を廃止、赤目便を開始、2026年1月からは座席指定制へ移行と、従来のビジネスモデルは大きく転換しつつある。",
+      "en": "A single all-Boeing-737 fleet flying domestic point-to-point to about 120 airports means no fleet transitions or aircraft bidding, though the traditional model is shifting — free checked bags ended in 2025, red-eyes launched, and assigned seating arrives in January 2026."
+    },
+    "training": {
+      "ja": "単一機材ゆえ機種選択の入札がなく、訓練とキャリア進行は単純。機長昇格は歴史的に約10年（在籍序列60〜62%が目安）だが、2024〜2025年の採用停止と過剰人員でさらに長期化している。西海岸のETOPS拘束枠を避け、自宅近くの非ETOPS枠を待つなど、昇格の速さより通勤軽減を優先する判断も見られる。",
+      "en": "With one fleet there's no type-rating bidding and training is simple; captain upgrade historically took about 10 years (around 60–62% seniority), but the 2024–2025 hiring freeze and overstaffing have stretched it further."
+    }
+  },
+  "sources": [
+    {
+      "title": "How Southwest Airlines' 'Trip For Pay' Model Pushes Senior Boeing 737 Captains Past $450,000 In 2026 — Simple Flying",
+      "url": "https://simpleflying.com/southwest-airlines-trip-pay-model-pushes-senior-boeing-737-captains-past-450000-2026/"
+    },
+    {
+      "title": "Southwest Airlines | Pilot Careers, Pay, and Retirement — Ready For Takeoff",
+      "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/southwest-airlines"
+    },
+    {
+      "title": "Southwest Pilots Approve New Contract With Huge Raises — One Mile at a Time",
+      "url": "https://onemileatatime.com/news/southwest-pilots-contract/"
+    },
+    {
+      "title": "Upgrade times — Airline Pilot Central Forums (Southwest)",
+      "url": "https://www.airlinepilotforums.com/southwest/133641-upgrade-times.html"
+    },
+    {
+      "title": "Reserve, crash pads, and commuting at SWA — Airline Pilot Central Forums",
+      "url": "https://www.airlinepilotforums.com/southwest/137054-reserve-crash-pads-commuting-swa.html"
+    },
+    {
+      "title": "\"I'm a Southwest Airlines pilot, the airline isn't what it used to be\" — Newsweek",
+      "url": "https://www.newsweek.com/southwest-airlines-pilot-airline-not-what-it-was-1771124"
+    },
+    {
+      "title": "Southwest Airlines Pilot Reviews — Glassdoor",
+      "url": "https://www.glassdoor.com/Reviews/Southwest-Airlines-Pilot-Reviews-EI_IE611.0,18_KO19,24.htm"
+    },
+    {
+      "title": "SWAPA Holds Informational Picket Concerning A Loss Of Culture At Southwest Airlines — Simple Flying",
+      "url": "https://simpleflying.com/swapa-informational-picket-southwest-airlines-culture-loss/"
+    },
+    {
+      "title": "Southwest Airlines' Pilot Union Warns Of Flight Crew Fatigue — Simple Flying",
+      "url": "https://simpleflying.com/southwest-airlines-pilot-union-fatigue-warning/"
+    },
+    {
+      "title": "How the Southwest Airlines Layoffs Signal LUV Is Lost (Elliott Investment Management) — Texas Monthly",
+      "url": "https://www.texasmonthly.com/news-politics/southwest-airlines-layoffs-elliott-investment-management/"
+    },
+    {
+      "title": "Southwest Airlines To Reduce Pilot Hours Over Boeing Delays But Does Not Anticipate Furloughs — Simple Flying",
+      "url": "https://simpleflying.com/southwest-airlines-reduces-pilot-hours-boeing-delays/"
+    },
+    {
+      "title": "SWA Q&A — PPRuNe Forums (North America)",
+      "url": "https://www.pprune.org/north-america/585910-swa-q.html"
+    },
+    {
+      "title": "2022 Southwest Airlines scheduling crisis — Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/2022_Southwest_Airlines_scheduling_crisis"
+    }
+  ]
+}
