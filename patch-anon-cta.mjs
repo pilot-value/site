@@ -28,8 +28,10 @@ const CHECK = process.argv.includes('--check');
 /* [ファイル, いまの文字列, あとの文字列, 期待する件数（既定1）] */
 const EDITS = [
   // ── トップページ（日）
-  ['index.html', 'data-pv-ev="nav_primary_cta">給与を追加</a>', 'data-pv-ev="nav_primary_cta">匿名で給与を追加</a>'],
-  ['index.html', 'data-pv-ev="hero_primary_cta">\n        給与を追加\n', 'data-pv-ev="hero_primary_cta">\n        匿名で給与を追加\n'],
+  /* ★ヘッダーの CTA（nav_primary_cta）はこの表から外した。2026-08-22 に
+       「全ての給与データを見る」／"See all salary data" になり、出すボタンでは
+       なくなったため。匿名の約束は真下の Hero のボタン本文が持っている。 */
+  ['index.html', '<span class="pv-kata">給与を追加して、</span>', '<span class="pv-kata">匿名で給与を追加して、</span>'],
   ['index.html', 'data-pv-ev="payslip_upload_start">明細から追加</a>', 'data-pv-ev="payslip_upload_start">匿名で明細から追加</a>'],
   /* ★「匿名で手入力で追加」は「で」が2回で読めない。ここだけ言い方を変える。 */
   ['index.html', 'data-pv-ev="salary_contribution_start">手入力で追加</a>', 'data-pv-ev="salary_contribution_start">匿名で手入力して追加</a>'],
@@ -38,8 +40,8 @@ const EDITS = [
   ['index.html', 'data-pv-ev="salary_contribution_start">給与を追加</a>', 'data-pv-ev="salary_contribution_start">匿名で給与を追加</a>'],
   ['index.html', 'data-pv-ev="mobile_cta">給与を追加</a>', 'data-pv-ev="mobile_cta">匿名で給与を追加</a>'],
   // ── トップページ（英）
-  ['en/index.html', 'data-pv-ev="nav_primary_cta">Add your pay</a>', 'data-pv-ev="nav_primary_cta">Add your pay anonymously</a>'],
-  ['en/index.html', 'data-pv-ev="hero_primary_cta">\n        Add your pay and compare\n', 'data-pv-ev="hero_primary_cta">\n        Add your pay anonymously\n'],
+  /* ★ヘッダーの CTA は上と同じ理由でこの表から外してある。 */
+  ['en/index.html', '<span class="pv-kata">Share your pay,</span>', '<span class="pv-kata">Share your pay anonymously,</span>'],
   ['en/index.html', 'data-pv-ev="payslip_upload_start">Start from a payslip</a>', 'data-pv-ev="payslip_upload_start">Start from a payslip, anonymously</a>'],
   ['en/index.html', 'data-pv-ev="salary_contribution_start">Type it in instead</a>', 'data-pv-ev="salary_contribution_start">Type it in anonymously</a>'],
   /* ★尻尾の "and unlock" を落とした。付けたまま（33字）だと 390px で2行に折れ、

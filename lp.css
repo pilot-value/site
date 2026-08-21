@@ -215,6 +215,16 @@
       transition:transform .2s cubic-bezier(.16,1,.3,1), box-shadow .2s ease;
     }
     .btn-orange:hover { transform:scale(1.04); box-shadow:0 12px 40px rgba(249,115,22,.4); }
+    /* Hero の CTA は2本 → 1本になって文字が長い（日本語24字・英語46字）。
+       390px では2行に折れるので、折れても丸ゴマにならないよう行高と幅を決める。
+       ⚠️ .btn-orange 本体には触らない（他のページが使っている）。 */
+    .btn-orange--wide { max-width:min(92vw,520px); text-align:center; line-height:1.45; }
+    @media(max-width:640px){ .btn-orange--wide { padding:13px 22px; font-size:.94rem; } }
+    /* .btn-orange は inline-flex。文字を直接置くと1つの塊として折れるので、
+       390px で「全ての給与デー／タを見る」のように語の途中で切れた（実測）。
+       かたまりは必ず .pv-cta-label で1枚に包んでから中に入れる。
+       包まずに並べると2つの flex 項目になり、横並びのまま潰れる。 */
+    .pv-cta-label { min-width:0; }
 
     .btn-outline-amber {
       display:inline-flex; align-items:center; gap:8px;
@@ -462,12 +472,12 @@
     .pv-sec--line{ border-top:1px solid var(--pv-line); }
     .pv-wrap{ max-width:1180px; margin:0 auto; padding:0 var(--pv-s-3); }
     .pv-wrap--narrow{ max-width:900px; }
-    /* 黒いヒーローの直後がいきなり純白になる段差を、上端だけ暖色で受ける。
+    /* 暗い面の直後がいきなり純白になる段差を、上端だけ暖色で受ける。
        色は足していない（--pv-orange-soft をそのまま縦グラデーションにしただけ）。
-       ★ヒーローの真下に来る節に付ける。2026-08-14 に Give & Get を上へ移したので、
-         この受けも #pv-value から #give-get へ移した。順番を入れ替えるときは一緒に動かす。 */
-    #give-get{ background:linear-gradient(180deg,var(--pv-orange-soft) 0,transparent 240px),
-                          var(--pv-bg); }
+       ★暗い面の真下に来る節に付ける。2026-08-21 に暗い面が2枚（Hero と #market）に
+         なったので、受けも2か所。順番を入れ替えるときは一緒に動かす。 */
+    #why, #give-get{ background:linear-gradient(180deg,var(--pv-orange-soft) 0,transparent 240px),
+                                var(--pv-bg); }
     /* 信頼の節は緑。いちばん白い塊なので枠線にも通す。 */
     #trust .pv-card{ border-color:var(--pv-green-line); }
 
@@ -490,6 +500,134 @@
       margin:var(--pv-s-2) 0 0; max-width:62ch; }
     .pv-note{ font-size:.76rem; line-height:1.7; color:var(--pv-ink-2); }
     .pv-head{ margin-bottom:var(--pv-s-3); }
+
+    /* ── 大見出し（#why / #market / #pv-value / #give-get の顔）──────────
+       新しい書体は足さない（Hero の LCP は実測済みの弱点で、Tailwind CDN だけで
+       504ms 損している）。Inter / Noto Sans JP のまま、級数と字間だけで格を作る。
+       ⚠️ 太さは .pv-h2 と同じ 800 のまま上げない。Noto Sans JP は 400/500/700 しか
+          無いので、これ以上は偽の太字になって日本語の輪郭がにじむ。 */
+    .pv-h2--display{ font-size:clamp(1.62rem,3.9vw,2.6rem); letter-spacing:-.035em;
+      line-height:1.24;
+      /* 英語版は語が長いので、放っておくと最終行に単語1つだけ残る
+         （Choosing an airline decides the next twenty / years.）。
+         balance は行の長さを揃えてから折る。非対応ブラウザは既定の折り返しに戻るだけ。 */
+      text-wrap:balance; }
+
+    /* ── #why の見出しだけ金にする（2026-08-22 オーナー指示）──────────
+       ⚠️ 純金（#f5c842）を白地に置くとコントラスト 1.65 でほぼ読めない
+          （pv-tokens.css の --pv-star の注記と同じ罠）。読める側のトークン
+          （--pv-orange-ink / --pv-gold-ink）だけで組む。
+          白地に対して #c2410c 5.2 : #8a6e00 4.9。どちらも AA を通る。
+       ★トークン参照なので、ダークテーマでは中身が #fb923c / #f5c842 に
+          入れ替わり、Hero と同じ明るい金になる。規則は1本のまま。
+       ⚠️ 両端を同じ色にする（左右対称）。片側だけ明るくすると、モバイル幅で
+          最後の1語だけ色が浮く（.pv-tagline で実際に踏んだ）。
+       ⚠️ 使うのは #why の h2 だけ。#market / #pv-value / #give-get には付けない。
+          文字グラデがページで3か所（.hero-en ／ ここ ／ .pv-tagline）を
+          超えると署名でなくなる。 */
+    /* 日本語には語の切れ目が無いので、放っておくと「その／後」「デー／タ」のように
+       意味の途中で折れる（390px で実際に起きた）。意味のかたまりを inline-block に
+       すると、その手前が優先的に折り返し位置になる。
+       ⚠️ white-space:nowrap にはしない。もっと狭い画面でかたまりごと溢れる。
+          inline-block なら入らないときだけ中で折れて逃げ場が残る。
+       英語の行に付けても害は無い（空白で折れる位置が読点の後ろに寄るだけ）。 */
+    .pv-kata { display:inline-block; }
+
+    .pv-h2--gold{
+      color:var(--pv-orange-ink);          /* background-clip 非対応への落とし所 */
+      background-image:linear-gradient(100deg,
+        var(--pv-orange-ink) 0%, var(--pv-gold-ink) 50%, var(--pv-orange-ink) 100%);
+      -webkit-background-clip:text; background-clip:text;
+      -webkit-text-fill-color:transparent; }
+
+    /* ── #why の問い ────────────────────────────────────────────
+       問いの文字そのものが主役。装飾で埋めない。番号も振らない
+       （番号を振ると手順に見えて、自分の話でなくなる）。
+       頭のグラデーションの罫はブランドの署名（baland_ass/色.png の
+       #f97316 → #f5c842）。ページ全体でこの罫・#market の地・#market の
+       タグラインの3か所だけに使う。安売りすると署名でなくなる。 */
+    .pv-asks{ list-style:none; margin:0; padding:0;
+      display:flex; flex-direction:column; gap:var(--pv-s-2); }
+    .pv-asks li{ position:relative; padding-left:20px;
+      font-size:clamp(1.02rem,2.1vw,1.28rem); font-weight:700;
+      letter-spacing:-.015em; line-height:1.62; color:var(--pv-ink);
+      word-break:auto-phrase; }
+    .pv-asks li::before{ content:""; position:absolute; left:0; top:.42em;
+      width:3px; height:1.05em; border-radius:2px;
+      background:linear-gradient(180deg,#f97316,#f5c842); }
+    .pv-ask-close{ margin:var(--pv-s-3) 0 0; font-size:.95rem; line-height:1.85;
+      color:var(--pv-ink-2); max-width:62ch; }
+    .pv-ask-close strong{ color:var(--pv-ink); font-weight:800; }
+
+    /* ── #pv-value の4枚（英語の見出し＋日本語の説明で階層を作る）────── */
+    .pv-know-t{ font-size:clamp(.97rem,1.5vw,1.06rem); letter-spacing:-.02em;
+      line-height:1.38;
+      /* 見出しが1行の枚と2行の枚が混ざるので、下の説明の高さが揃わない。
+         2行ぶんの場所を先に取って揃える（4枚横並びのときだけ効かせる）。 */
+      min-height:2.76em; }
+    .pv-know-d{ font-size:.8rem; line-height:1.75; color:var(--pv-ink-2);
+      margin-top:10px; }
+
+    /* ── 暗い面（.pv-sec--ink）──────────────────────────────────
+       [data-theme="dark"] は使わない。ページのテーマ切替とは無関係に、
+       この節だけを暗くしたいので --pv-* をローカルに宣言し直す。
+       中の .pv-card / .pv-h2 / .pv-lede / .pv-eyebrow は自分でトークンを読むので
+       自動で反転する（pv-tokens.css の設計意図どおり）。既存規則には触らない。
+       値は pv-tokens.css の [data-theme="dark"] と同じものを写している。
+       ⚠️ 片方だけ変えるとライトとダークで色が食い違う。直すときは両方見る。 */
+    .pv-sec--ink{
+      --pv-bg:#0a0c0f;        --pv-bg-sub:#0d1118;    --pv-surface:#141b26;
+      --pv-surface-2:#18212f;
+      --pv-line:rgba(255,255,255,.09);  --pv-line-soft:rgba(255,255,255,.05);
+      --pv-ink:#e8edf2;       --pv-ink-2:#a8b8cc;     --pv-ink-3:#8496ad;
+      --pv-orange-ink:#fb923c; --pv-orange-soft:rgba(249,115,22,.14);
+      --pv-gold-ink:#f5c842;  --pv-gold-soft:rgba(245,200,66,.14);
+      --pv-gold-line:rgba(245,200,66,.28); --pv-star:#f5c842;
+      --pv-green-ink:#34d399; --pv-green-soft:rgba(52,211,153,.14);
+      --pv-green-line:rgba(52,211,153,.26);
+      --pv-teal:#5eead4;      --pv-teal-soft:rgba(94,234,212,.12);
+      color:var(--pv-ink);
+      border-top:1px solid rgba(255,255,255,.08);
+      border-bottom:1px solid rgba(255,255,255,.08);
+      /* 地はベタ塗りにしない。放射グラデーション2枚（オレンジ寄り／金寄り）に
+         SVG のノイズを重ねて粒子感を出す。外部ファイルは読まない（data: URI）。 */
+      background-color:var(--pv-bg);
+      background-image:
+        radial-gradient(1000px 460px at 14% -10%, rgba(249,115,22,.22), transparent 62%),
+        radial-gradient(820px 420px at 90% 112%, rgba(245,200,66,.15), transparent 60%),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.05'/%3E%3C/svg%3E");
+    }
+    /* ⚠️ ダークテーマではページ全体が既に #0a0c0f なので、同じ色を置くと段差が消える。
+          地だけ1段持ち上げて、暗い"板"として浮かせる。 */
+    [data-theme="dark"] .pv-sec--ink{ --pv-bg:#11161f; }
+
+    /* ── #market の4行 ──────────────────────────────────────────
+       ⚠️ 番号（01→02→03）を振らない。振った瞬間に事業説明のフローチャートになり、
+          読む人の話でなくなる。静かに積むだけ。 */
+    .pv-chain{ display:flex; flex-direction:column; gap:var(--pv-s-2); }
+    /* ⚠️ 幅を ch で切らない。ch は Inter の "0" の幅（約 .55em）で数えるので、
+          日本語だと半分の見た目幅になり、4行とも2行に折れた（実際に踏んだ）。
+          1行1文で読ませる節なので、幅は親（.pv-wrap--narrow）に任せる。
+       ⚠️ 行頭に記号も番号も置かない。置いた瞬間にフローチャートに見えて、
+          業界の事業説明になり、読む人の話でなくなる。 */
+    .pv-chain p{ margin:0; font-size:clamp(1.04rem,2.1vw,1.3rem); font-weight:700;
+      letter-spacing:-.015em; line-height:1.62; color:var(--pv-ink);
+      word-break:auto-phrase; }
+    /* 最後の1行だけ金。ここが着地点で、次のタグラインへ渡す。 */
+    .pv-chain p:last-child{ color:var(--pv-gold-ink); }
+
+    /* ── 締めのタグライン ────────────────────────────────────────
+       Hero の .hero-en で意味も分からず流し見た1行が、ここで意味を持って戻る。
+       文字自体にグラデーションを掛けるのはページでここだけ（Hero の .hero-en を除く）。 */
+    .pv-tagline{ margin:var(--pv-s-4) 0 0;
+      font-size:clamp(.86rem,2.6vw,1.66rem); font-weight:800;
+      letter-spacing:.18em; text-transform:uppercase; white-space:nowrap;
+      color:#f5c842;
+      /* ⚠️ ハイライトは金のまま（#ffdf8f）。白に寄せると（#fff2c4）
+            モバイル幅で最後の VALUE だけが白く見えて、色が揃っていないように読める。 */
+      background:linear-gradient(100deg,#fb923c 0%,#f5c842 46%,#ffdf8f 62%,#fb923c 100%);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+      background-clip:text; }
 
     /* カード */
     .pv-card{ background:var(--pv-surface); border:1px solid var(--pv-line);
@@ -844,6 +982,10 @@
       /* 日本語は既定でどこでも改行するので「実際の支給／額」のように語が割れる。
          auto-phrase は文節で折る。非対応ブラウザは既定の折り返しに戻るだけ。 */
       word-break:auto-phrase; }
+    /* 3文目（ビジョン）だけ扱いを変える。前2文は機能の説明。
+       改行して金寄りに置き、ページ末 #market の .pv-tagline と対にしている。 */
+    .hero-sub-vision{ display:block; margin-top:.35rem;
+      color:#ffd98a; letter-spacing:.02em; }
     /* ── Hero の流れる給与カード（Marit Health 型）──────────────────
        ★PV_DEMO：カードの中身は lp.js の PV_DEMO.marquee が入れる。
        中身は実在しないサンプル値。2026-08-11 のオーナー判断で、このまま公開する。
@@ -971,12 +1113,22 @@
     }
     @media(max-width:767px){
       .pv-sec{ padding:var(--pv-s-4) 0; }
+      /* 問いも連鎖も、狭い画面では本文より少しだけ大きい程度に落とす。
+         ここを詰めすぎると「問いが主役」でなくなるので、lede より下げない。 */
+      .pv-asks{ gap:var(--pv-s-2); }
       .pv-head{ margin-bottom:var(--pv-s-3); }
       .pv-btn{ width:100%; }
       .pv-cta-row .pv-btn{ width:100%; }
     }
     @media(max-width:560px){
       .pv-grid-4, .pv-grid-3, .pv-grid-2{ grid-template-columns:1fr; }
+      /* タグラインは1行で読ませたいが、狭い画面では字間ごと縮める。
+         ⚠️ white-space:nowrap のまま級数だけ下げること。折ると2行目が
+            "PILOT'S VALUE" だけになって締めに見えなくなる。 */
+      .pv-tagline{ font-size:.78rem; letter-spacing:.14em; }
+      /* ⚠️ ここは 560px。.pv-grid-4 が1列に落ちるのと同じ幅で外す。
+         767px 側に書くと 561〜767px の4列のあいだだけ高さが揃わなくなる。 */
+      .pv-know-t{ min-height:0; }
       /* 横長テーブルは縮小せずカードに組み替える（横スクロールにしない） */
       .pv-table, .pv-table tbody, .pv-table tr, .pv-table td{ display:block; width:100%; }
       .pv-table thead{ display:none; }

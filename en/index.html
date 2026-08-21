@@ -222,7 +222,7 @@
       <!-- The language toggle is injected right after #theme-toggle by lang-toggle.js
            (hardcoding it makes injectBtn() return early and breaks EN → JP) -->
       <a id="nav-auth-btn" href="login.html" class="btn-ghost hidden md:inline-flex" style="font-size:.82rem;padding:7px 14px">Log in</a>
-      <a href="pay-report.html" class="btn-primary hidden md:inline-flex py-2 px-5 text-sm" style="background:linear-gradient(135deg,#f5c842,#f97316);color:#000" data-pv-ev="nav_primary_cta">Add your pay anonymously</a>
+      <a href="pay-report.html" class="btn-primary hidden md:inline-flex py-2 px-5 text-sm" style="background:linear-gradient(135deg,#f5c842,#f97316);color:#000" data-pv-ev="nav_primary_cta">See all salary data</a>
       <!-- モバイルの「記録する」導線はここには置かない（#pv-mcta を参照）。
            ここに足すと search.js が挿すハンバーガーが画面外へ出る。 -->
     </div>
@@ -250,18 +250,24 @@
          いちばん大きいのは h1。 -->
     <div class="anim-fade-up delay-2" style="text-align:center;display:flex;flex-direction:column;align-items:center">
       <h1 class="hero-h1">REAL PAY. REAL PILOTS.<br>PRIVATE BY DESIGN.</h1>
-      <p class="hero-sub">Fully anonymous. Real pay, real conditions, real reviews.</p>
+      <!-- ★3文目だけ扱いが違う。前2文は機能の説明、3文目はビジョンで、
+           下の #market の締め（PILOT DEFINES · PILOT'S VALUE）と対にしている。
+           日本語版の .hero-sub-vision と同じ形。片方だけ消さない。 -->
+      <p class="hero-sub">Fully anonymous. Compare real pay, real conditions, real reviews. <span class="hero-sub-vision">Toward a world where pilots are valued for what they're worth.</span></p>
     </div>
 
     <!-- Hero の検索欄は削除した（ヘッダーの検索アイコン #pv-search-btn が同じ役割を持つ）。
          代わりに下の .hero-mq（流れる給与カード）を置いている。 -->
 
-    <div class="flex flex-wrap gap-4 justify-center mt-8 anim-fade-up delay-4">
-      <a href="pay-report.html" class="btn-orange" data-pv-ev="hero_primary_cta">
-        Add your pay anonymously
+    <!-- ★CTA は1本だけ（2026-08-22 オーナー指示）。日本語版と1:1。
+         以前ここに "See what pilots actually earn"（hero_salary_data）が
+         並んでいた。#actual-pay への導線はヘッダーとスクロールキューが持っている。
+         ⚠️ anonymously を落とさない。押す瞬間のいちばんの不安がそこ（2026-08-19 の方針）。 -->
+    <div class="flex justify-center mt-8 anim-fade-up delay-4">
+      <a href="pay-report.html" class="btn-orange btn-orange--wide" data-pv-ev="hero_primary_cta">
+        <span class="pv-cta-label"><span class="pv-kata">Share your pay anonymously,</span> <span class="pv-kata">see all salary data</span></span>
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </a>
-      <a href="#actual-pay" class="btn-outline-amber" data-pv-ev="hero_salary_data">See what pilots actually earn</a>
     </div>
 
     <!-- ★PV_DEMO — 流れる給与カード。中身は lp.js の PV_DEMO.marquee が入れる。
@@ -281,38 +287,305 @@
 
 
 <!-- ════════════════════════════════════
-     ❹❺❻❼ Give & Get ＋ サンプル画面（日本語版 V3 と同じ1セクション構成）
-     ★ Hero の真下＝ここから白のデータUI。「何が返ってくるか」を最初に見せてから、
-       ❷4つの価値・❸実際の給与に降りる。
-     ⚠️ 破線枠の中は全部ダミー。実在の航空会社名を出さない。
-        "Sample" は枠の上端で1回だけ宣言し、中では繰り返さない。
-        枠の外に架空の実績値を置かない。
-     ★ 欄の名前は実物（my-value.js の T.en）と同じ語を使う。サンプルだけ違う
-       呼び方をすると、記録したあとに別の画面に来たように見える。
+     ★ #why — 「自分のキャリア」の問い（2026-08-21 追加・日本語版と1:1）
+     ⚠️ 金額も社名も書かない。check-salary.mjs のパス2はサイト全 HTML から
+        「社名＋役職＋金額」を拾うので、この節は数字ゼロで設計してある。
+     ⚠️ 抽象論（information asymmetry / transparency matters）はここに書かない。
+        業界の話は下の #market が受け持つ。
 ════════════════════════════════════ -->
-<section id="give-get" class="pv-sec" data-pv-view="give_get_view" style="padding-top:var(--pv-s-5)">
+<section id="why" class="pv-sec" data-pv-view="why_view">
+  <div class="pv-wrap pv-wrap--narrow">
+    <div class="pv-head">
+      <span class="pv-eyebrow">The problem</span>
+      <h2 class="pv-h2 pv-h2--display pv-h2--gold">Choosing an airline decides the next twenty years.</h2>
+    </div>
+
+    <ul class="pv-asks">
+      <li>Higher pay, but four fewer days off a month — is that better?</li>
+      <li>What if another airline upgrades you five years sooner?</li>
+      <li>Once you factor in housing, tax and pension, who actually pays best?</li>
+      <li>Change base, and what happens to time with your family?</li>
+    </ul>
+
+    <p class="pv-ask-close">Right now none of that is in the job ad or the pay scale.<br><strong>The only people who know are the ones already flying there.</strong></p>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════
+     ❷ 4つの価値（❹Give & Get の下）
+════════════════════════════════════ -->
+<section id="pv-value" class="pv-sec pv-sec--sub pv-sec--line">
   <div class="pv-wrap">
     <div class="pv-head">
-      <h2 class="pv-h2">Give &amp; Get</h2>
-      <p class="pv-lede">Add your pay once. See what everyone else is really paid — and what yours is worth.</p>
+      <span class="pv-eyebrow">What you'll know</span>
+      <h2 class="pv-h2 pv-h2--display">Once the data is there, this is what you'll know.</h2>
+    </div>
+
+    <div class="pv-grid pv-grid-4">
+      <a href="#actual-pay" class="pv-card pv-card--know" data-pv-ev="value_card_actual">
+        <div class="pv-tile">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h16M7 16V9M12 16V5M17 16v-4"/></svg>
+        </div>
+        <h3 class="pv-h3 pv-know-t">What pilots actually earn.</h3>
+        <p class="pv-know-d">What was actually paid.</p>
+      </a>
+      <a href="#pilot-voices" class="pv-card pv-card--know" data-pv-ev="value_card_conditions">
+        <div class="pv-tile pv-tile--gold">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-8 8H4l2.3-2.3A8 8 0 1 1 21 12z"/></svg>
+        </div>
+        <h3 class="pv-h3 pv-know-t">What the job is actually like.</h3>
+        <p class="pv-know-d">Days off, roster, bidding, allowances, benefits.</p>
+      </a>
+      <a href="#give-get" class="pv-card pv-card--know" data-pv-ev="value_card_move">
+        <div class="pv-tile pv-tile--green">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 3 8-8"/><path d="M15 7h5v5"/></svg>
+        </div>
+        <h3 class="pv-h3 pv-know-t">What your next move could mean.</h3>
+        <p class="pv-know-d">How pay, life and upgrade change if you move.</p>
+      </a>
+      <a href="#salary-engine" class="pv-card pv-card--know" data-pv-ev="value_card_compare">
+        <div class="pv-tile pv-tile--teal">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>
+        </div>
+        <h3 class="pv-h3 pv-know-t">Compare airlines before you commit.</h3>
+        <p class="pv-know-d">Know before you join what you'd otherwise learn after.</p>
+      </a>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════
+     ❸ Actual Pay
+     公開情報（推定）＝Fuel と 実際の給与＝Asset を、同じ表で並べて区別する。
+     公開情報の列は SSOT(salary-data.mjs) の実値。check-salary が守る。
+     ⚠️ 社名と役職・役職と金額の隙間は 24 文字まで（check-salary の GAP）。
+        属性を足しすぎると照合から黙って外れる。
+     実際の給与の列は lp.js が pay_benchmarks から埋める（n<5 は Postgres 側で落ちる）。
+════════════════════════════════════ -->
+<section id="actual-pay" class="pv-sec pv-sec--line" data-pv-view="actual_pay_view">
+  <div class="pv-wrap">
+    <div class="pv-head">
+      <span class="pv-eyebrow">Actual pay</span>
+      <h2 class="pv-h2">What's advertised and what lands in your account are two different numbers.</h2>
+      <p class="pv-lede">On the left, our estimate from public sources. On the right, what line pilots reported actually being paid. The right-hand column opens <strong>only for pilots who have logged their own</strong> (Give &amp; Get).</p>
+    </div>
+
+    <!-- §5 2つの列が何なのかを、表の直上に1行ずつ。混ぜて1つの中央値にはしない。 -->
+    <div class="pv-defs">
+      <p><span class="pv-badge pv-badge--pub">Public estimate</span>A reference range built from official filings and job postings</p>
+      <p><span class="pv-badge pv-badge--actual">Actual Pay</span>The median of what pilots recorded actually being paid</p>
+    </div>
+
+    <div class="pv-card" style="padding:var(--pv-s-2) var(--pv-s-2) var(--pv-s-1)">
+      <table class="pv-table">
+        <caption class="pv-sr">Captain pay by airline — the public estimate range, and the median of actual pay</caption>
+        <thead>
+          <tr>
+            <th scope="col">Airline</th>
+            <th scope="col">Seat</th>
+            <th scope="col" style="text-align:right">Public estimate (range)</th>
+            <th scope="col" style="text-align:right">Actual pay (median)</th>
+          </tr>
+        </thead>
+        <tbody id="ap-tbody">
+          <tr>
+            <td data-label="Airline"><a href="airlines/ana.html" style="color:inherit;font-weight:700;text-decoration:none;border-bottom:1px solid var(--pv-line)">ANA</a></td>
+            <td data-label="Seat">Captain</td>
+            <td data-label="Public estimate" class="pv-num">¥2,200–3,500万 <span class="pv-badge pv-badge--pub">Estimate</span></td>
+            <td data-label="Actual pay" class="pv-num" data-ap-slug="ana" data-ap-role="cap"><a class="pv-mask" href="pay-report.html" data-pv-ev="actual_pay_mask_click" aria-label="See actual pay (unlocked once you log yours)"><span class="pv-mask-v">¥2,840万</span><span class="pv-mask-lock" aria-hidden="true">🔒 Log yours to see</span></a></td>
+          </tr>
+          <tr>
+            <td data-label="Airline"><a href="airlines/emirates.html" style="color:inherit;font-weight:700;text-decoration:none;border-bottom:1px solid var(--pv-line)">Emirates</a></td>
+            <td data-label="Seat">Captain</td>
+            <td data-label="Public estimate" class="pv-num">¥3,350–5,050万 <span class="pv-badge pv-badge--pub">Estimate</span></td>
+            <td data-label="Actual pay" class="pv-num" data-ap-slug="emirates" data-ap-role="cap"><a class="pv-mask" href="pay-report.html" data-pv-ev="actual_pay_mask_click" aria-label="See actual pay (unlocked once you log yours)"><span class="pv-mask-v">¥3,980万</span><span class="pv-mask-lock" aria-hidden="true">🔒 Log yours to see</span></a></td>
+          </tr>
+          <tr>
+            <td data-label="Airline"><a href="airlines/lufthansa.html" style="color:inherit;font-weight:700;text-decoration:none;border-bottom:1px solid var(--pv-line)">Lufthansa</a></td>
+            <td data-label="Seat">Captain</td>
+            <td data-label="Public estimate" class="pv-num">¥2,490–4,320万 <span class="pv-badge pv-badge--pub">Estimate</span></td>
+            <td data-label="Actual pay" class="pv-num" data-ap-slug="lufthansa" data-ap-role="cap"><a class="pv-mask" href="pay-report.html" data-pv-ev="actual_pay_mask_click" aria-label="See actual pay (unlocked once you log yours)"><span class="pv-mask-v">¥3,180万</span><span class="pv-mask-lock" aria-hidden="true">🔒 Log yours to see</span></a></td>
+          </tr>
+          <tr>
+            <td data-label="Airline"><a href="airlines/cathay-pacific.html" style="color:inherit;font-weight:700;text-decoration:none;border-bottom:1px solid var(--pv-line)">Cathay Pacific</a></td>
+            <td data-label="Seat">Captain</td>
+            <td data-label="Public estimate" class="pv-num">¥3,000–5,650万 <span class="pv-badge pv-badge--pub">Estimate</span></td>
+            <td data-label="Actual pay" class="pv-num" data-ap-slug="cathay-pacific" data-ap-role="cap"><a class="pv-mask" href="pay-report.html" data-pv-ev="actual_pay_mask_click" aria-label="See actual pay (unlocked once you log yours)"><span class="pv-mask-v">¥3,740万</span><span class="pv-mask-lock" aria-hidden="true">🔒 Log yours to see</span></a></td>
+          </tr>
+          <tr>
+            <td data-label="Airline"><a href="airlines/delta.html" style="color:inherit;font-weight:700;text-decoration:none;border-bottom:1px solid var(--pv-line)">Delta Air Lines</a></td>
+            <td data-label="Seat">Captain</td>
+            <td data-label="Public estimate" class="pv-num">¥4,950–8,690万 <span class="pv-badge pv-badge--pub">Estimate</span></td>
+            <td data-label="Actual pay" class="pv-num" data-ap-slug="delta" data-ap-role="cap"><a class="pv-mask" href="pay-report.html" data-pv-ev="actual_pay_mask_click" aria-label="See actual pay (unlocked once you log yours)"><span class="pv-mask-v">¥6,480万</span><span class="pv-mask-lock" aria-hidden="true">🔒 Log yours to see</span></a></td>
+          </tr>
+          <tr>
+            <td data-label="Airline"><a href="airlines/singapore-airlines.html" style="color:inherit;font-weight:700;text-decoration:none;border-bottom:1px solid var(--pv-line)">Singapore Airlines</a></td>
+            <td data-label="Seat">Captain</td>
+            <td data-label="Public estimate" class="pv-num">¥2,750–4,150万 <span class="pv-badge pv-badge--pub">Estimate</span></td>
+            <td data-label="Actual pay" class="pv-num" data-ap-slug="singapore-airlines" data-ap-role="cap"><a class="pv-mask" href="pay-report.html" data-pv-ev="actual_pay_mask_click" aria-label="See actual pay (unlocked once you log yours)"><span class="pv-mask-v">¥3,560万</span><span class="pv-mask-lock" aria-hidden="true">🔒 Log yours to see</span></a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- §4 右列は伏せてあるだけで「空」ではない、と見せる。
+         ⚠️ 件数（あと○件）は出さない。pay_benchmarks は having count(*) >= 5 で
+         5件未満の行が存在しないので、匿名クライアントからは n=2 と n=0 の区別がつかない。 -->
+    <div class="pv-fill">
+      <p class="pv-fill-t">To see the right-hand column.</p>
+      <p class="pv-fill-d">Upload a payslip or type your annual pay in by hand and it opens. About 30 seconds. The payslip is read for its numbers on your own device — the image is never sent.</p>
+      <a href="pay-report.html" class="pv-btn pv-btn--primary" data-pv-ev="actual_pay_contribute_cta">Add my pay anonymously</a>
+    </div>
+
+    <p class="pv-note" style="margin-top:var(--pv-s-2)">
+      <span class="pv-badge pv-badge--pub">Estimate</span> built from public sources /
+      <span class="pv-badge pv-badge--actual">Self-reported</span> typed in by the pilot /
+      <span class="pv-badge pv-badge--slip">From payslip</span> read automatically from a payslip　—　all 112 estimate ranges are <a href="#salary-engine" style="color:var(--pv-orange-ink);font-weight:700">further down the page</a>.
+    </p>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════
+     ❽ Pilot Voices — reviews_v2 の実データ。無ければ水増しせず正直に出す。
+════════════════════════════════════ -->
+<section id="pilot-voices" class="pv-sec pv-sec--sub pv-sec--line" data-pv-view="pilot_voices_view">
+  <div class="pv-wrap">
+    <div class="pv-head">
+      <span class="pv-eyebrow pv-eyebrow--gold">Pilot voices</span>
+      <h2 class="pv-h2">Some things never show up in a salary figure.</h2>
+      <p class="pv-lede">How training actually runs, what the roster looks like, whether the base is a good place to live, how long the wait for command really is. Written by current and former pilots (Japanese and English are translated both ways automatically).</p>
+    </div>
+
+    <div id="voices-grid" class="pv-grid pv-grid-4" aria-live="polite">
+      <div class="pv-card"><div class="pv-skel" style="height:13px;width:38%"></div><div class="pv-skel" style="height:11px;width:100%;margin-top:14px"></div><div class="pv-skel" style="height:11px;width:92%;margin-top:8px"></div><div class="pv-skel" style="height:10px;width:46%;margin-top:16px"></div></div>
+      <div class="pv-card"><div class="pv-skel" style="height:13px;width:38%"></div><div class="pv-skel" style="height:11px;width:100%;margin-top:14px"></div><div class="pv-skel" style="height:11px;width:92%;margin-top:8px"></div><div class="pv-skel" style="height:10px;width:46%;margin-top:16px"></div></div>
+      <div class="pv-card"><div class="pv-skel" style="height:13px;width:38%"></div><div class="pv-skel" style="height:11px;width:100%;margin-top:14px"></div><div class="pv-skel" style="height:11px;width:92%;margin-top:8px"></div><div class="pv-skel" style="height:10px;width:46%;margin-top:16px"></div></div>
+      <div class="pv-card"><div class="pv-skel" style="height:13px;width:38%"></div><div class="pv-skel" style="height:11px;width:100%;margin-top:14px"></div><div class="pv-skel" style="height:11px;width:92%;margin-top:8px"></div><div class="pv-skel" style="height:10px;width:46%;margin-top:16px"></div></div>
+    </div>
+
+    <div class="pv-cta-row" style="margin-top:var(--pv-s-3)">
+      <a href="submit-review.html" class="pv-btn pv-btn--primary" data-pv-ev="review_submit_start">Write anonymously about your own airline</a>
+      <a href="community.html" class="pv-btn pv-btn--ghost" data-pv-ev="review_view">Read every review</a>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════
+     ★ #market — 業界の Vision 回収（2026-08-21 追加・日本語版と1:1）
+     Hero で意味も分からず流し見たタグラインが、白い4枚をくぐった先でここに戻る。
+     ⚠️ 結果を約束しない。your pay will rise / guarantee は書かない。
+        書けるのは傾向だけ（Over time, that raises… のような言い方）。
+     ⚠️ 番号つきの連鎖図（01→02→03）にしない。
+     ⚠️ 数字ゼロ。check-salary.mjs のパス2の照合対象にしない。
+════════════════════════════════════ -->
+<section id="market" class="pv-sec pv-sec--ink" data-pv-view="market_view">
+  <div class="pv-wrap pv-wrap--narrow">
+    <div class="pv-head">
+      <span class="pv-eyebrow">Why it matters</span>
+      <h2 class="pv-h2 pv-h2--display">And transparency changes the industry itself.</h2>
+    </div>
+
+    <div class="pv-chain">
+      <p>Airlines that offer better conditions become visible.</p>
+      <p>Pilots get to choose the better option.</p>
+      <p>Airlines compete on conditions to attract people.</p>
+      <p>Over time, that raises the value of the profession itself.</p>
+    </div>
+
+    <p class="pv-tagline">PILOT DEFINES · PILOT'S VALUE</p>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════
+     ❹❺❻❼ Give & Get — 依頼（2026-08-21 に位置と役割を変更・日本語版と1:1）
+     ★ #market のタグラインを読んだ直後に来る「頼む場所」。
+        以前は Hero の真下にあり、サンプル画面（.pv-demo）を抱えていた。
+        サンプルは下の #pay-report-block へ降ろした。ここは依頼だけを持つ。
+        番号（❶❷❸…）は他の注記から参照しているので付け替えていない。画面の順とは一致しない。
+     ⚠️ 依頼の直前に結果を約束しない。your pay will rise / guarantee は書かない。
+        書けるのは傾向だけ（Over time, that raises… のような言い方）。
+════════════════════════════════════ -->
+<section id="give-get" class="pv-sec" data-pv-view="give_get_view">
+  <div class="pv-wrap">
+    <div class="pv-head">
+      <h2 class="pv-h2 pv-h2--display">Building this takes one report from you.</h2>
+      <p class="pv-lede">Share your pay once, anonymously, and you can see the pay other pilots have logged.</p>
     </div>
 
     <div class="pv-grid pv-grid-3" style="margin-bottom:var(--pv-s-3)">
+      <!-- ⚠️ 実際に開くものだけを書く。給与レポート1件で90日ひらくのは
+           ①この LP の実支給の列 ②112社×2言語の航空会社ページの給与詳細 ③自分の Pay Report の3つ。
+           口コミの全文解放は別通貨（口コミを書くと30日）で、
+           airlines/premium-auth-lock.js が両者を絶対に交換させない。
+           「給与を出すと口コミが読める」と書かないこと。
+           待遇の集計（airline_condition_facts）はまだ k≧3 に届いていない。 -->
       <div class="pv-step pv-step--get">
         <span class="pv-step-n">GET 01</span>
-        <div class="pv-step-t">Your own Pay Report</div>
-        <p class="pv-step-d">Where your money comes from, and what an hour of it is worth.</p>
+        <div class="pv-step-t">What other pilots are actually paid</div>
+        <p class="pv-step-d">For your airline, seat and fleet — what really lands in the account.</p>
       </div>
       <div class="pv-step pv-step--get">
         <span class="pv-step-n">GET 02</span>
-        <div class="pv-step-t">Benchmark against your peers</div>
-        <p class="pv-step-d">The median for your airline, seat and fleet — and where you sit in it.</p>
+        <div class="pv-step-t">Pay detail for 112 airlines</div>
+        <p class="pv-step-d">The full breakdown on every airline page opens for 90 days.</p>
       </div>
       <div class="pv-step pv-step--get">
         <span class="pv-step-n">GET 03</span>
-        <div class="pv-step-t">Pay History</div>
-        <p class="pv-step-d">Every month you log builds the trend and the running total.</p>
+        <div class="pv-step-t">And your own record becomes an asset</div>
+        <p class="pv-step-d">The more you log, the more your Pay Report and Pay History grow.</p>
       </div>
+    </div>
+
+    <!-- §7 記録の入口。明細が Primary、手入力が Secondary。 -->
+    <div class="pv-grid pv-grid-2" style="margin-top:var(--pv-s-3)">
+      <div class="pv-card">
+        <span class="pv-badge pv-badge--slip">From payslip</span>
+        <div class="pv-step-t" style="margin-top:10px">Upload a payslip (recommended · about 30 seconds)</div>
+        <p class="pv-step-d" style="margin-top:6px">Your name, staff number and bank details are <strong>blacked out in your browser</strong> before anything is sent. The image itself is never stored.</p>
+        <div class="pv-cta-row" style="margin-top:12px">
+          <!-- ★ #ps。pay-report.html に実在する id はこれ（#payslip は無い）。
+               綴りを変えるとページ頭に落ちて、明細の枠まで自分で探させることになる。 -->
+          <a href="pay-report.html#ps" class="pv-btn pv-btn--primary" data-pv-ev="payslip_upload_start">Start from a payslip, anonymously</a>
+        </div>
+      </div>
+      <div class="pv-card">
+        <span class="pv-badge pv-badge--actual">Self-reported</span>
+        <div class="pv-step-t" style="margin-top:10px">Type it in by hand (about 50 seconds)</div>
+        <p class="pv-step-d" style="margin-top:6px">No payslip to hand is fine. Typed-in figures and payslip-read figures are kept apart in the data.</p>
+        <div class="pv-cta-row" style="margin-top:12px">
+          <a href="pay-report.html" class="pv-btn pv-btn--ghost" data-pv-ev="salary_contribution_start">Type it in anonymously</a>
+        </div>
+      </div>
+    </div>
+    <!-- ★ここはリンクにしない。給与を出さずに登録だけして帰る道を作らないため。
+         アカウントは pay-report.html の送信時にその場で作られる。文言は安心材料として残す。 -->
+    <p class="pv-note" style="margin-top:14px">An <b>email address is all it takes</b> to create an account. No display name, no real name.</p>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════
+     ★ #pay-report-block — 「あなたの側」に返るもの（2026-08-21・日本語版と1:1）
+     この枠は Hero の真下にあり、ページ最大のブロックだった。
+     初見に給与計算サービスに見えていたのでここへ降ろした。
+     中身（.pv-demo）はそのまま移設。内側の id と data-pv-view は GA4 の
+     インプレッション計測が付いているので変えない。
+     ⚠️ 破線枠の中は全部ダミー。実在の航空会社名を出さない。
+        "Sample" は枠の上端で1回だけ宣言し、中では繰り返さない。
+     ★ 欄の名前は実物（my-value.js の T.en）と同じ語を使う。サンプルだけ違う
+       呼び方をすると、記録したあとに別の画面に来たように見える。
+════════════════════════════════════ -->
+<section id="pay-report-block" class="pv-sec pv-sec--sub pv-sec--line" data-pv-view="pay_report_block_view">
+  <div class="pv-wrap">
+    <div class="pv-head">
+      <span class="pv-eyebrow pv-eyebrow--green">And for you</span>
+      <h2 class="pv-h2">Take part, and your own pay record becomes an asset.</h2>
+      <p class="pv-lede">The one report you filed to see everyone else's becomes your own pay history.</p>
     </div>
 
     <div class="pv-demo">
@@ -472,8 +745,10 @@
               <span class="pv-badge pv-badge--meta">n = 34</span>
             </div>
             <!-- ★上の紺カードと同じ人の話にしてある。月平均 ¥1,812,250 → 年 ¥2,175万 なので、
-                 中央値 ¥2,040万 の少し上＝上位38%。片方だけ動かすと枠の中で辻褄が合わなくなる。 -->
-            <p class="pv-sr" id="bm-d">A sample distribution of annual pay for pilots on the same terms. The median is 20.4 million yen, the 25th percentile 17.8 million and the 75th percentile 23.3 million. You sit above the median, in roughly the top 38 percent.</p>
+                 中央値 ¥2,040万 の少し上。片方だけ動かすと枠の中で辻褄が合わなくなる。
+                 ⚠️ 順位（Top ◯%）は LP には出さない。給与レポートが6件しか無い今、
+                    その母集団が存在しないため。製品側（my-value.html）からは消さない。 -->
+            <p class="pv-sr" id="bm-d">A sample distribution of annual pay for pilots on the same terms. The median is 20.4 million yen, the 25th percentile 17.8 million and the 75th percentile 23.3 million. Your own position is the differently coloured bar.</p>
             <div class="pv-dist" role="img" aria-labelledby="bm-d" style="height:74px">
               <i style="height:14%"></i><i style="height:26%"></i><i style="height:44%"></i>
               <i style="height:68%"></i><i style="height:88%"></i><i style="height:100%"></i>
@@ -484,199 +759,11 @@
               <div><span class="pv-kpi-lab">25th percentile</span><span class="pv-kpi-val" style="font-size:1.05rem">¥1,780万</span></div>
               <div><span class="pv-kpi-lab">Median</span><span class="pv-kpi-val" style="font-size:1.05rem">¥2,040万</span></div>
               <div><span class="pv-kpi-lab">75th percentile</span><span class="pv-kpi-val" style="font-size:1.05rem">¥2,330万</span></div>
-              <div><span class="pv-kpi-lab">Where you sit</span><span class="pv-kpi-val" style="font-size:1.05rem;color:var(--pv-orange-ink)">Top 38%</span></div>
             </div>
             <p class="pv-note" style="margin-top:12px">Median, not mean. <strong>Below five records, this panel does not appear at all.</strong></p>
           </div>
         </div>
       </div>
-    </div>
-
-    <!-- §7 記録の入口。明細が Primary、手入力が Secondary。 -->
-    <div class="pv-grid pv-grid-2" style="margin-top:var(--pv-s-3)">
-      <div class="pv-card">
-        <span class="pv-badge pv-badge--slip">From payslip</span>
-        <div class="pv-step-t" style="margin-top:10px">Upload a payslip (recommended · about 30 seconds)</div>
-        <p class="pv-step-d" style="margin-top:6px">Your name, staff number and bank details are <strong>blacked out in your browser</strong> before anything is sent. The image itself is never stored.</p>
-        <div class="pv-cta-row" style="margin-top:12px">
-          <!-- ★ #ps。pay-report.html に実在する id はこれ（#payslip は無い）。
-               綴りを変えるとページ頭に落ちて、明細の枠まで自分で探させることになる。 -->
-          <a href="pay-report.html#ps" class="pv-btn pv-btn--primary" data-pv-ev="payslip_upload_start">Start from a payslip, anonymously</a>
-        </div>
-      </div>
-      <div class="pv-card">
-        <span class="pv-badge pv-badge--actual">Self-reported</span>
-        <div class="pv-step-t" style="margin-top:10px">Type it in by hand (about 50 seconds)</div>
-        <p class="pv-step-d" style="margin-top:6px">No payslip to hand is fine. Typed-in figures and payslip-read figures are kept apart in the data.</p>
-        <div class="pv-cta-row" style="margin-top:12px">
-          <a href="pay-report.html" class="pv-btn pv-btn--ghost" data-pv-ev="salary_contribution_start">Type it in anonymously</a>
-        </div>
-      </div>
-    </div>
-    <!-- ★ここはリンクにしない。給与を出さずに登録だけして帰る道を作らないため。
-         アカウントは pay-report.html の送信時にその場で作られる。文言は安心材料として残す。 -->
-    <p class="pv-note" style="margin-top:14px">An <b>email address is all it takes</b> to create an account. No display name, no real name.</p>
-  </div>
-</section>
-
-
-<!-- ════════════════════════════════════
-     ❷ 4つの価値（❹Give & Get の下）
-════════════════════════════════════ -->
-<section id="pv-value" class="pv-sec">
-  <div class="pv-wrap">
-    <div class="pv-head">
-      <span class="pv-eyebrow">What you get</span>
-      <h2 class="pv-h2">Stop reading estimates. Start reading what pilots actually got paid.</h2>
-    </div>
-
-    <div class="pv-grid pv-grid-4">
-      <a href="#actual-pay" class="pv-card" data-pv-ev="value_card_actual">
-        <div class="pv-tile">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h16M7 16V9M12 16V5M17 16v-4"/></svg>
-        </div>
-        <h3 class="pv-h3" style="font-size:.95rem">Actual Pay</h3>
-        <p class="pv-step-d" style="margin-top:8px">Not the advertised figure — <strong>what actually landed in the account</strong>.</p>
-      </a>
-      <a href="#pilot-voices" class="pv-card" data-pv-ev="value_card_voices">
-        <div class="pv-tile pv-tile--gold">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-8 8H4l2.3-2.3A8 8 0 1 1 21 12z"/></svg>
-        </div>
-        <h3 class="pv-h3" style="font-size:.95rem">Pilot Voices</h3>
-        <p class="pv-step-d" style="margin-top:8px">The <strong>rosters and the conditions</strong> a salary figure never shows.</p>
-      </a>
-      <a href="#give-get" class="pv-card" data-pv-ev="value_card_giveget">
-        <div class="pv-tile pv-tile--teal">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>
-        </div>
-        <h3 class="pv-h3" style="font-size:.95rem">Give &amp; Get</h3>
-        <p class="pv-step-d" style="margin-top:8px">Log your pay and get <strong>an analysis of your own</strong> back.</p>
-      </a>
-      <a href="#give-get" class="pv-card" data-pv-ev="value_card_history">
-        <div class="pv-tile pv-tile--green">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 3 8-8"/><path d="M15 7h5v5"/></svg>
-        </div>
-        <h3 class="pv-h3" style="font-size:.95rem">Pay History</h3>
-        <p class="pv-step-d" style="margin-top:8px">Every month you log, <strong>your own pay record</strong> grows.</p>
-      </a>
-    </div>
-  </div>
-</section>
-
-
-<!-- ════════════════════════════════════
-     ❸ Actual Pay
-     公開情報（推定）＝Fuel と 実際の給与＝Asset を、同じ表で並べて区別する。
-     公開情報の列は SSOT(salary-data.mjs) の実値。check-salary が守る。
-     ⚠️ 社名と役職・役職と金額の隙間は 24 文字まで（check-salary の GAP）。
-        属性を足しすぎると照合から黙って外れる。
-     実際の給与の列は lp.js が pay_benchmarks から埋める（n<5 は Postgres 側で落ちる）。
-════════════════════════════════════ -->
-<section id="actual-pay" class="pv-sec pv-sec--sub pv-sec--line" data-pv-view="actual_pay_view">
-  <div class="pv-wrap">
-    <div class="pv-head">
-      <span class="pv-eyebrow">Actual pay</span>
-      <h2 class="pv-h2">What's advertised and what lands in your account are two different numbers.</h2>
-      <p class="pv-lede">On the left, our estimate from public sources. On the right, what line pilots reported actually being paid. The right-hand column opens <strong>only for pilots who have logged their own</strong> (Give &amp; Get).</p>
-    </div>
-
-    <!-- §5 2つの列が何なのかを、表の直上に1行ずつ。混ぜて1つの中央値にはしない。 -->
-    <div class="pv-defs">
-      <p><span class="pv-badge pv-badge--pub">Public estimate</span>A reference range built from official filings and job postings</p>
-      <p><span class="pv-badge pv-badge--actual">Actual Pay</span>The median of what pilots recorded actually being paid</p>
-    </div>
-
-    <div class="pv-card" style="padding:var(--pv-s-2) var(--pv-s-2) var(--pv-s-1)">
-      <table class="pv-table">
-        <caption class="pv-sr">Captain pay by airline — the public estimate range, and the median of actual pay</caption>
-        <thead>
-          <tr>
-            <th scope="col">Airline</th>
-            <th scope="col">Seat</th>
-            <th scope="col" style="text-align:right">Public estimate (range)</th>
-            <th scope="col" style="text-align:right">Actual pay (median)</th>
-          </tr>
-        </thead>
-        <tbody id="ap-tbody">
-          <tr>
-            <td data-label="Airline"><a href="airlines/ana.html" style="color:inherit;font-weight:700;text-decoration:none;border-bottom:1px solid var(--pv-line)">ANA</a></td>
-            <td data-label="Seat">Captain</td>
-            <td data-label="Public estimate" class="pv-num">¥2,200–3,500万 <span class="pv-badge pv-badge--pub">Estimate</span></td>
-            <td data-label="Actual pay" class="pv-num" data-ap-slug="ana" data-ap-role="cap"><a class="pv-mask" href="pay-report.html" data-pv-ev="actual_pay_mask_click" aria-label="See actual pay (unlocked once you log yours)"><span class="pv-mask-v">¥2,840万</span><span class="pv-mask-lock" aria-hidden="true">🔒 Log yours to see</span></a></td>
-          </tr>
-          <tr>
-            <td data-label="Airline"><a href="airlines/jal.html" style="color:inherit;font-weight:700;text-decoration:none;border-bottom:1px solid var(--pv-line)">JAL</a></td>
-            <td data-label="Seat">Captain</td>
-            <td data-label="Public estimate" class="pv-num">¥2,200–3,500万 <span class="pv-badge pv-badge--pub">Estimate</span></td>
-            <td data-label="Actual pay" class="pv-num" data-ap-slug="jal" data-ap-role="cap"><a class="pv-mask" href="pay-report.html" data-pv-ev="actual_pay_mask_click" aria-label="See actual pay (unlocked once you log yours)"><span class="pv-mask-v">¥2,760万</span><span class="pv-mask-lock" aria-hidden="true">🔒 Log yours to see</span></a></td>
-          </tr>
-          <tr>
-            <td data-label="Airline"><a href="airlines/emirates.html" style="color:inherit;font-weight:700;text-decoration:none;border-bottom:1px solid var(--pv-line)">Emirates</a></td>
-            <td data-label="Seat">Captain</td>
-            <td data-label="Public estimate" class="pv-num">¥3,350–5,050万 <span class="pv-badge pv-badge--pub">Estimate</span></td>
-            <td data-label="Actual pay" class="pv-num" data-ap-slug="emirates" data-ap-role="cap"><a class="pv-mask" href="pay-report.html" data-pv-ev="actual_pay_mask_click" aria-label="See actual pay (unlocked once you log yours)"><span class="pv-mask-v">¥3,980万</span><span class="pv-mask-lock" aria-hidden="true">🔒 Log yours to see</span></a></td>
-          </tr>
-          <tr>
-            <td data-label="Airline"><a href="airlines/qatar-airways.html" style="color:inherit;font-weight:700;text-decoration:none;border-bottom:1px solid var(--pv-line)">Qatar Airways</a></td>
-            <td data-label="Seat">Captain</td>
-            <td data-label="Public estimate" class="pv-num">¥2,600–4,800万 <span class="pv-badge pv-badge--pub">Estimate</span></td>
-            <td data-label="Actual pay" class="pv-num" data-ap-slug="qatar-airways" data-ap-role="cap"><a class="pv-mask" href="pay-report.html" data-pv-ev="actual_pay_mask_click" aria-label="See actual pay (unlocked once you log yours)"><span class="pv-mask-v">¥3,120万</span><span class="pv-mask-lock" aria-hidden="true">🔒 Log yours to see</span></a></td>
-          </tr>
-          <tr>
-            <td data-label="Airline"><a href="airlines/singapore-airlines.html" style="color:inherit;font-weight:700;text-decoration:none;border-bottom:1px solid var(--pv-line)">Singapore Airlines</a></td>
-            <td data-label="Seat">Captain</td>
-            <td data-label="Public estimate" class="pv-num">¥2,750–4,150万 <span class="pv-badge pv-badge--pub">Estimate</span></td>
-            <td data-label="Actual pay" class="pv-num" data-ap-slug="singapore-airlines" data-ap-role="cap"><a class="pv-mask" href="pay-report.html" data-pv-ev="actual_pay_mask_click" aria-label="See actual pay (unlocked once you log yours)"><span class="pv-mask-v">¥3,560万</span><span class="pv-mask-lock" aria-hidden="true">🔒 Log yours to see</span></a></td>
-          </tr>
-          <tr>
-            <td data-label="Airline"><a href="airlines/delta.html" style="color:inherit;font-weight:700;text-decoration:none;border-bottom:1px solid var(--pv-line)">Delta Air Lines</a></td>
-            <td data-label="Seat">Captain</td>
-            <td data-label="Public estimate" class="pv-num">¥4,950–8,690万 <span class="pv-badge pv-badge--pub">Estimate</span></td>
-            <td data-label="Actual pay" class="pv-num" data-ap-slug="delta" data-ap-role="cap"><a class="pv-mask" href="pay-report.html" data-pv-ev="actual_pay_mask_click" aria-label="See actual pay (unlocked once you log yours)"><span class="pv-mask-v">¥6,480万</span><span class="pv-mask-lock" aria-hidden="true">🔒 Log yours to see</span></a></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- §4 右列は伏せてあるだけで「空」ではない、と見せる。
-         ⚠️ 件数（あと○件）は出さない。pay_benchmarks は having count(*) >= 5 で
-         5件未満の行が存在しないので、匿名クライアントからは n=2 と n=0 の区別がつかない。 -->
-    <div class="pv-fill">
-      <p class="pv-fill-t">To see the right-hand column.</p>
-      <p class="pv-fill-d">Upload a payslip or type your annual pay in by hand and it opens. About 30 seconds. The payslip is read for its numbers on your own device — the image is never sent.</p>
-      <a href="pay-report.html" class="pv-btn pv-btn--primary" data-pv-ev="actual_pay_contribute_cta">Add my pay anonymously</a>
-    </div>
-
-    <p class="pv-note" style="margin-top:var(--pv-s-2)">
-      <span class="pv-badge pv-badge--pub">Estimate</span> built from public sources /
-      <span class="pv-badge pv-badge--actual">Self-reported</span> typed in by the pilot /
-      <span class="pv-badge pv-badge--slip">From payslip</span> read automatically from a payslip　—　all 112 estimate ranges are <a href="#salary-engine" style="color:var(--pv-orange-ink);font-weight:700">further down the page</a>.
-    </p>
-  </div>
-</section>
-
-
-<!-- ════════════════════════════════════
-     ❽ Pilot Voices — reviews_v2 の実データ。無ければ水増しせず正直に出す。
-════════════════════════════════════ -->
-<section id="pilot-voices" class="pv-sec" data-pv-view="pilot_voices_view">
-  <div class="pv-wrap">
-    <div class="pv-head">
-      <span class="pv-eyebrow pv-eyebrow--gold">Pilot voices</span>
-      <h2 class="pv-h2">Some things never show up in a salary figure.</h2>
-      <p class="pv-lede">How training actually runs, what the roster looks like, whether the base is a good place to live, how long the wait for command really is. Written by current and former pilots (Japanese and English are translated both ways automatically).</p>
-    </div>
-
-    <div id="voices-grid" class="pv-grid pv-grid-4" aria-live="polite">
-      <div class="pv-card"><div class="pv-skel" style="height:13px;width:38%"></div><div class="pv-skel" style="height:11px;width:100%;margin-top:14px"></div><div class="pv-skel" style="height:11px;width:92%;margin-top:8px"></div><div class="pv-skel" style="height:10px;width:46%;margin-top:16px"></div></div>
-      <div class="pv-card"><div class="pv-skel" style="height:13px;width:38%"></div><div class="pv-skel" style="height:11px;width:100%;margin-top:14px"></div><div class="pv-skel" style="height:11px;width:92%;margin-top:8px"></div><div class="pv-skel" style="height:10px;width:46%;margin-top:16px"></div></div>
-      <div class="pv-card"><div class="pv-skel" style="height:13px;width:38%"></div><div class="pv-skel" style="height:11px;width:100%;margin-top:14px"></div><div class="pv-skel" style="height:11px;width:92%;margin-top:8px"></div><div class="pv-skel" style="height:10px;width:46%;margin-top:16px"></div></div>
-      <div class="pv-card"><div class="pv-skel" style="height:13px;width:38%"></div><div class="pv-skel" style="height:11px;width:100%;margin-top:14px"></div><div class="pv-skel" style="height:11px;width:92%;margin-top:8px"></div><div class="pv-skel" style="height:10px;width:46%;margin-top:16px"></div></div>
-    </div>
-
-    <div class="pv-cta-row" style="margin-top:var(--pv-s-3)">
-      <a href="submit-review.html" class="pv-btn pv-btn--primary" data-pv-ev="review_submit_start">Write anonymously about your own airline</a>
-      <a href="community.html" class="pv-btn pv-btn--ghost" data-pv-ev="review_view">Read every review</a>
     </div>
   </div>
 </section>
@@ -688,7 +775,7 @@
         Coming soon と明記する。異常値検知は載せない。
      ⚠️ 「Verified」の直後に「<」を置かない（db/test-form-contract.mjs が禁止している）。
 ════════════════════════════════════ -->
-<section id="trust" class="pv-sec pv-sec--sub pv-sec--line" data-pv-view="trust_view">
+<section id="trust" class="pv-sec pv-sec--line" data-pv-view="trust_view">
   <div class="pv-wrap">
     <div class="pv-head">
       <span class="pv-eyebrow pv-eyebrow--green">Trust</span>
