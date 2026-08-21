@@ -210,7 +210,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
     </div>
 
     <!-- Form -->
-    <div id="form-wrap">
+    <div id="form-wrap" style="display:none">
 
       <!-- Step bar -->
       <div class="step-bar">
@@ -678,18 +678,27 @@ let currentUserId = null;
 
 // ── Auth check ────────────────────────────────────────────────
 (async function() {
-  const { data: { session } } = await _sb.auth.getSession();
-  if (!session) {
+  // ★フォームは既定で display:none。ここが通ったときだけ出す。
+  //   逆にすると、getSession() が例外を投げたときにどちらの分岐も走らず、
+  //   フォームが開いたまま currentUserId が null で残る。その状態の投稿は
+  //   全員が同じ sha256('null::pv_anon::…') になり、持ち主不明の行が1つでき、
+  //   2人目以降は「すでに投稿済み」と誤って弾かれる。
+  const showGate = () => {
+    // 会社の指定（?airline=）をログインの往復で落とさない。
+    const link = document.querySelector('#login-gate a[href^="login.html"]');
+    if (link) link.href = 'login.html?next=' + encodeURIComponent('submit-review.html' + location.search);
     document.getElementById('login-gate').style.display = '';
     document.getElementById('form-wrap').style.display = 'none';
     // 口コミを書く気で来て、ログイン壁に当たった人の数。sign_up と突き合わせると
     // 「壁 → 登録 → 投稿」のどこで落ちているかが初めて分かる。
     try { if (typeof gtag === 'function') gtag('event', 'review_login_wall'); } catch (e) {}
-  } else {
-    currentUserId = session.user.id;
-    document.getElementById('login-gate').style.display = 'none';
-    document.getElementById('form-wrap').style.display = '';
-  }
+  };
+  let session = null;
+  try { ({ data: { session } } = await _sb.auth.getSession()); } catch (e) { session = null; }
+  if (!session) { showGate(); return; }
+  currentUserId = session.user.id;
+  document.getElementById('login-gate').style.display = 'none';
+  document.getElementById('form-wrap').style.display = '';
 })();
 
 // ── URL ?airline= で会社を自動選択 ────────────────────────────
@@ -700,6 +709,11 @@ let currentUserId = null;
   if (!sel) return;
   const ok = Array.prototype.some.call(sel.options, o => o.value === a);
   sel.value = ok ? a : 'other';
+  // 「その他」にしたら自由入力欄も出す。出さないと、次へ進めないのに
+  // 「社名を入力してください」と見えない欄を指すエラーが出る行き止まりになる。
+  // toggleOtherAirline() は focus() するので、読み込み時はここで表示だけ変える。
+  const other = document.getElementById('f-airline-other');
+  if (other) other.style.display = (sel.value === 'other') ? '' : 'none';
 })();
 
 // ── Nav scroll ────────────────────────────────────────────────
@@ -1167,6 +1181,8 @@ function buildPreview(v) {
 
 // ── Proof hash ────────────────────────────────────────────────
 async function makeProofHash(userId, airline) {
+  // 持ち主が分からないまま投稿させない。null が来ると全員が同じハッシュになる。
+  if (!userId) throw new Error('not signed in');  // makeProofHash: 持ち主が要る
   const data = new TextEncoder().encode(userId + '::pv_anon::' + airline + '::2026');
   const buf = await crypto.subtle.digest('SHA-256', data);
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
@@ -1202,7 +1218,24 @@ async function submitReview() {
   btn.textContent = '投稿中…';
 
   try {
-    const proofHash = await makeProofHash(currentUserId, effectiveAirline(v));
+    // ★ここで取り直す。ログイン確認は読み込み時の1回だけなので、そのあと
+    //   期限が切れても currentUserId は古いまま／null のまま送信されてしまう。
+    let uid = currentUserId;
+    if (!uid) {
+      try {
+        const { data: { session } } = await _sb.auth.getSession();
+        uid = session && session.user.id;
+      } catch (e) {}
+    }
+    if (!uid) {
+      document.getElementById('login-gate').style.display = '';
+      document.getElementById('form-wrap').style.display = 'none';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    currentUserId = uid;
+
+    const proofHash = await makeProofHash(uid, effectiveAirline(v));
 
     // Duplicate check
     const { data: existing } = await _sb
