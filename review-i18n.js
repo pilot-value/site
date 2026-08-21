@@ -50,6 +50,20 @@
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
+  /* 翻訳が改行を「\n」という2文字のまま返してくることがあり、そのまま出すと
+     本文に \n が見えてしまう（英語版トップの口コミカードで実際に出た）。
+     本物の改行・タブも1枚のカードでは詰めたいので、まとめて空白に均す。
+     ⚠️ ここは原文も訳文も必ず通る唯一の口で、口コミを出すページが全部これを呼ぶ。
+        直す場所を増やさない。 */
+  function flatten(s) {
+    if (!s) return s;
+    return String(s)
+      .replace(/\\[nrt]/g, ' ')        // 文字としての \n \r \t
+      .replace(/[\r\n\t]+/g, ' ')      // 本物の改行・タブ
+      .replace(/[ \u3000]{2,}/g, ' ')
+      .trim();
+  }
+
   /* 1行から表示用テキストを組み立てる。
      戻り値 { lang, from, translated, cats, text, origCats, origText } */
   function pick(row) {
@@ -61,8 +75,8 @@
     var cats = [], origCats = [], usedTranslation = false;
     for (var i = 0; i < KEYS.length; i++) {
       var k = KEYS[i];
-      var orig = row ? row[k + '_comment'] : '';
-      var t = tr && tr[k];
+      var orig = flatten(row ? row[k + '_comment'] : '');
+      var t = flatten(tr && tr[k]);
       // 訳文があるのは from !== to のときだけ。欠けている欄は原文に落とす。
       var show = (from !== to && t) ? t : orig;
       if (!show) continue;
