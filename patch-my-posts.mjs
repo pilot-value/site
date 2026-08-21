@@ -156,10 +156,14 @@ for (const [lang, t] of Object.entries(T)) {
   const before = s;
 
   // 1. review-i18n.js を読み込む（訳文の出し分けと esc / EXTRA_COLS を使う）
-  const anchor = t.i18n.replace('review-i18n.js', 'pv-reunlock.js');
+  // ★ 目印は `?v=` を含めずに探す。pv-reunlock.js の URL には配信キャッシュを
+  //   捨てさせるための版番号が付いていて、中身を直すたびに増える。ここで完全一致を
+  //   見ていると、版を上げた次の実行で「script タグが無い」と落ちる。
+  const anchorRe = new RegExp('^.*src="[^"]*pv-reunlock\\.js[^"]*"></script>$', 'm');
   if (!s.includes(t.i18n)) {
-    if (!s.includes(anchor)) throw new Error(`pv-reunlock.js の script タグが無い: ${t.file}`);
-    s = s.replace(anchor, anchor + '\n' + t.i18n);
+    const m = s.match(anchorRe);
+    if (!m) throw new Error(`pv-reunlock.js の script タグが無い: ${t.file}`);
+    s = s.replace(m[0], m[0] + '\n' + t.i18n);
   }
 
   // 2. 一覧の CSS（テーマ2つぶん）。★ライトテーマの上書きまでを1組にして持つ
