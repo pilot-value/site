@@ -310,51 +310,32 @@
 
 
 <!-- ════════════════════════════════════
-     ❷ 完成した未来で何が分かるか（#why の下）
-     ★ここが「これ完成したら、自分が航空会社を選ぶとき絶対使う」を作る場所。
-        見出しが未来形で全体を括っているので、待遇の集計（airline_condition_facts）が
-        まだ k≧3 に届いていなくても嘘にならない。
-     ⚠️ 個々のカードに「見られます」と現在形で書かない。実際に開くものは
-        #give-get の GET 3枚だけが名乗る。
-     ⚠️ フローチャートにしない。4枚は並列で、順番の意味を持たせない。
+     ★ #market — 業界の Vision 回収（2026-08-21 追加 / 2026-08-22 に位置変更）
+     2026-08-22（オーナー指示）#pv-value と入れ替えて #why の真下に上げた。
+     「自分の20年」の問い（#why）の直後に「業界がどう変わるか」を受ける形。
+     Hero で流し見たタグライン（PILOT DEFINES · PILOT'S VALUE）がここに戻ってくる。
+     ページは 暗（Hero）→白（#why）→暗（ここ）→白（以降） に挟まれる。
+     ⚠️ 結果を約束しない。「給与が上がる」「保証」「必ず」は書かない。
+        書けるのは傾向だけ（〜にくい／〜やすくなる／〜につながる／〜高めていく）。
+        因果の言い切り（あなたが出さないと、あなたの給与も上がらない）は禁止。
+     ⚠️ 番号つきの連鎖図（01→02→03）にしない。事業説明になって読む人の話でなくなる。
+     ⚠️ 数字ゼロ。check-salary.mjs のパス2の照合対象にしない。
 ════════════════════════════════════ -->
-<section id="pv-value" class="pv-sec pv-sec--sub pv-sec--line">
-  <div class="pv-wrap">
+<section id="market" class="pv-sec pv-sec--ink" data-pv-view="market_view">
+  <div class="pv-wrap pv-wrap--narrow">
     <div class="pv-head">
-      <span class="pv-eyebrow">What you'll know</span>
-      <h2 class="pv-h2 pv-h2--display">実データが集まると、これが分かる。</h2>
+      <span class="pv-eyebrow">Why it matters</span>
+      <h2 class="pv-h2 pv-h2--display">そして、透明性は業界そのものを変える。</h2>
     </div>
 
-    <div class="pv-grid pv-grid-4">
-      <a href="#actual-pay" class="pv-card pv-card--know" data-pv-ev="value_card_actual">
-        <div class="pv-tile">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h16M7 16V9M12 16V5M17 16v-4"/></svg>
-        </div>
-        <h3 class="pv-h3 pv-know-t">What pilots actually earn.</h3>
-        <p class="pv-know-d">実際に支払われた給与。</p>
-      </a>
-      <a href="#pilot-voices" class="pv-card pv-card--know" data-pv-ev="value_card_conditions">
-        <div class="pv-tile pv-tile--gold">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-8 8H4l2.3-2.3A8 8 0 1 1 21 12z"/></svg>
-        </div>
-        <h3 class="pv-h3 pv-know-t">What the job is actually like.</h3>
-        <p class="pv-know-d">休み、Roster、Bidding、手当、福利厚生。</p>
-      </a>
-      <a href="#give-get" class="pv-card pv-card--know" data-pv-ev="value_card_move">
-        <div class="pv-tile pv-tile--green">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 3 8-8"/><path d="M15 7h5v5"/></svg>
-        </div>
-        <h3 class="pv-h3 pv-know-t">What your next move could mean.</h3>
-        <p class="pv-know-d">転職したら給与・生活・昇格がどう変わるか。</p>
-      </a>
-      <a href="#salary-engine" class="pv-card pv-card--know" data-pv-ev="value_card_compare">
-        <div class="pv-tile pv-tile--teal">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>
-        </div>
-        <h3 class="pv-h3 pv-know-t">Compare airlines before you commit.</h3>
-        <p class="pv-know-d">入社してから知るはずだったことを、入社する前に知る。</p>
-      </a>
+    <div class="pv-chain">
+      <p>良い待遇を出す航空会社が、きちんと見える。</p>
+      <p>パイロットが、より良い条件を選べる。</p>
+      <p>航空会社が、人材を惹きつけるために待遇を競う。</p>
+      <p>その積み重ねが、パイロットという職業の価値を高めていく。</p>
     </div>
+
+    <p class="pv-tagline">PILOT DEFINES · PILOT'S VALUE</p>
   </div>
 </section>
 
@@ -476,30 +457,55 @@
 
 
 <!-- ════════════════════════════════════
-     ★ #market — 業界の Vision 回収（2026-08-21 追加）
-     Hero で意味も分からず流し見たタグライン（PILOT DEFINES · PILOT'S VALUE）が、
-     白い4枚をくぐった先でここに戻ってくる。ページはこれで 暗→白→暗→白 に挟まれる。
-     ⚠️ 結果を約束しない。「給与が上がる」「保証」「必ず」は書かない。
-        書けるのは傾向だけ（〜にくい／〜やすくなる／〜につながる／〜高めていく）。
-        因果の言い切り（あなたが出さないと、あなたの給与も上がらない）は禁止。
-     ⚠️ 番号つきの連鎖図（01→02→03）にしない。事業説明になって読む人の話でなくなる。
-     ⚠️ 数字ゼロ。check-salary.mjs のパス2の照合対象にしない。
+     ❷ 完成した未来で何が分かるか
+     ★2026-08-22（オーナー指示）#market と位置を入れ替えた。以前は #why の真下。
+        いまは 実際の給与 → 口コミ を見せた後に置き、その直後の #give-get の
+        「この未来を作るには、あなたの1件が必要です。」へ渡す。
+     ⚠️ 4枚のうち #actual-pay / #pilot-voices への2枚は、いまは上へ戻るリンク。
+     ★ここが「これ完成したら、自分が航空会社を選ぶとき絶対使う」を作る場所。
+        見出しが未来形で全体を括っているので、待遇の集計（airline_condition_facts）が
+        まだ k≧3 に届いていなくても嘘にならない。
+     ⚠️ 個々のカードに「見られます」と現在形で書かない。実際に開くものは
+        #give-get の GET 3枚だけが名乗る。
+     ⚠️ フローチャートにしない。4枚は並列で、順番の意味を持たせない。
 ════════════════════════════════════ -->
-<section id="market" class="pv-sec pv-sec--ink" data-pv-view="market_view">
-  <div class="pv-wrap pv-wrap--narrow">
+<section id="pv-value" class="pv-sec pv-sec--sub pv-sec--line">
+  <div class="pv-wrap">
     <div class="pv-head">
-      <span class="pv-eyebrow">Why it matters</span>
-      <h2 class="pv-h2 pv-h2--display">そして、透明性は業界そのものを変える。</h2>
+      <span class="pv-eyebrow">What you'll know</span>
+      <h2 class="pv-h2 pv-h2--display"><span class="pv-kata">実データが集まると、</span><span class="pv-kata">わかる4つのこと。</span></h2>
     </div>
 
-    <div class="pv-chain">
-      <p>良い待遇を出す航空会社が、きちんと見える。</p>
-      <p>パイロットが、より良い条件を選べる。</p>
-      <p>航空会社が、人材を惹きつけるために待遇を競う。</p>
-      <p>その積み重ねが、パイロットという職業の価値を高めていく。</p>
+    <div class="pv-grid pv-grid-4">
+      <a href="#actual-pay" class="pv-card pv-card--know" data-pv-ev="value_card_actual">
+        <div class="pv-tile">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h16M7 16V9M12 16V5M17 16v-4"/></svg>
+        </div>
+        <h3 class="pv-h3 pv-know-t">What pilots actually earn.</h3>
+        <p class="pv-know-d">実際に支払われた給与。</p>
+      </a>
+      <a href="#pilot-voices" class="pv-card pv-card--know" data-pv-ev="value_card_conditions">
+        <div class="pv-tile pv-tile--gold">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-8 8H4l2.3-2.3A8 8 0 1 1 21 12z"/></svg>
+        </div>
+        <h3 class="pv-h3 pv-know-t">What the job is actually like.</h3>
+        <p class="pv-know-d">休み、Roster、Bidding、手当、福利厚生。</p>
+      </a>
+      <a href="#give-get" class="pv-card pv-card--know" data-pv-ev="value_card_move">
+        <div class="pv-tile pv-tile--green">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 3 8-8"/><path d="M15 7h5v5"/></svg>
+        </div>
+        <h3 class="pv-h3 pv-know-t">What your next move could mean.</h3>
+        <p class="pv-know-d">転職したら給与・生活・昇格がどう変わるか。</p>
+      </a>
+      <a href="#salary-engine" class="pv-card pv-card--know" data-pv-ev="value_card_compare">
+        <div class="pv-tile pv-tile--teal">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>
+        </div>
+        <h3 class="pv-h3 pv-know-t">Compare airlines before you commit.</h3>
+        <p class="pv-know-d">入社してから知るはずだったことを、入社する前に知る。</p>
+      </a>
     </div>
-
-    <p class="pv-tagline">PILOT DEFINES · PILOT'S VALUE</p>
   </div>
 </section>
 
@@ -515,8 +521,9 @@
 ════════════════════════════════════ -->
 <section id="give-get" class="pv-sec" data-pv-view="give_get_view">
   <div class="pv-wrap">
-    <!-- ★ここは上の #market のタグラインを読んだ直後に来る。だから「見たいから払う」
-         ではなく「この未来に参加する」の言い方にしてある。
+    <!-- ★ここは上の #pv-value（実データが集まると、わかる4つのこと。）の直後に来る。
+         だから「見たいから払う」ではなく「この未来に参加する」の言い方にしてある。
+         ⚠️ 2026-08-22 まで直前は #market だった。注記だけ残して直し忘れない。
          ⚠️ 依頼の直前に結果を約束しない（給与が上がる・保証 は書かない）。
          ヘッダーのナビは「Give & Get」のままなので、pv-eyebrow に同じ語は置かない。 -->
     <div class="pv-head">
