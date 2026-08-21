@@ -233,11 +233,6 @@
   <div class="hero-overlay"></div>
 
   <div class="hero-content">
-    <div class="hero-badge-pill anim-fade-up mb-5">
-      <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="4" fill="#f97316"/></svg>
-      2026年6月 最新データ — 日本 &amp; 海外 主要航空会社
-    </div>
-
     <p class="hero-en anim-fade-up delay-1">PILOT DEFINES · PILOT'S VALUE</p>
 
     <!-- LCP 要素は H1.hero-h1（主従逆転で hero-en から移った）。
@@ -248,10 +243,7 @@
             対処は lp.css の .hero-content .anim-fade-up.delay-2（動きは残したまま）。 -->
     <div class="anim-fade-up delay-2" style="text-align:center;display:flex;flex-direction:column;align-items:center">
       <h1 class="hero-h1">パイロットの待遇に、<br>匿名の実データで透明性を。</h1>
-      <!-- ★3文目だけ扱いが違う。前2文は機能の説明、3文目はビジョンで、
-           下の #market の締め（PILOT DEFINES · PILOT'S VALUE）と対にしている。
-           .hero-sub-vision を消すと、Hero とページ末の呼応が切れる。 -->
-      <p class="hero-sub">完全匿名。実際の給与・待遇・口コミを比較。<span class="hero-sub-vision">パイロットが正しく評価される世界へ。</span></p>
+      <p class="hero-sub">完全匿名。実際の給与・待遇・口コミを比較。</p>
     </div>
 
     <!-- Hero の検索欄は削除した（ヘッダーの検索アイコン #pv-search-btn が同じ役割を持つ）。
@@ -909,7 +901,7 @@
         <!-- ⚠️ ここに通貨名を書かない。currency.js が読み手の選んだ通貨に変えるので、
              「JPY換算」と書くと、ドルに切り替えた読者には見出しと数字が食い違って見える。
              英語トップ（en/index.html）の同じ見出しも通貨名を持たせていない。 -->
-        <div class="text-xs text-muted font-semibold tracking-widest uppercase mb-6">機長 平均年収（2026年6月現在）</div>
+        <div class="text-xs text-muted font-semibold tracking-widest uppercase mb-6">機長 平均年収（2026年8月現在）</div>
 
         <!-- USA -->
         <div class="region-bar-row">

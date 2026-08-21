@@ -296,15 +296,6 @@
     footer { background:#060809; border-top:1px solid rgba(255,255,255,.05); }
 
 
-    .hero-badge-pill {
-      display:inline-flex; align-items:center; gap:8px;
-      padding:7px 18px; border-radius:999px;
-      background:rgba(249,115,22,.10); border:1px solid rgba(249,115,22,.28);
-      font-size:.78rem; font-weight:600; color:rgba(255,200,80,.9);
-      letter-spacing:.06em; text-transform:uppercase;
-      backdrop-filter:blur(8px);
-    }
-
     .section-badge {
       display:inline-flex; align-items:center; gap:8px;
       padding:6px 14px; border-radius:999px;
@@ -400,7 +391,6 @@
     [data-theme="light"] footer .border-white\/\[0\.05\] { border-top-color:rgba(0,0,0,.07) !important; }
     [data-theme="light"] .text-text { color:#0f172a !important; }
     [data-theme="light"] .section-badge { background:rgba(37,99,235,.08); border-color:rgba(37,99,235,.2); color:#2563eb; }
-    [data-theme="light"] .hero-badge-pill { background:rgba(249,115,22,.08); border-color:rgba(249,115,22,.22); }
     /* V3: #sec-metrics / #compare / #ranking は #salary-engine の中の div になった。
        個別の帯色は付けず、親の1枚の面に載せる。 */
     [data-theme="light"] #jobs { background:#eaeef5 !important; border-top:1px solid rgba(0,0,0,.07) !important; }
@@ -982,10 +972,6 @@
       /* 日本語は既定でどこでも改行するので「実際の支給／額」のように語が割れる。
          auto-phrase は文節で折る。非対応ブラウザは既定の折り返しに戻るだけ。 */
       word-break:auto-phrase; }
-    /* 3文目（ビジョン）だけ扱いを変える。前2文は機能の説明。
-       改行して金寄りに置き、ページ末 #market の .pv-tagline と対にしている。 */
-    .hero-sub-vision{ display:block; margin-top:.35rem;
-      color:#ffd98a; letter-spacing:.02em; }
     /* ── Hero の流れる給与カード（Marit Health 型）──────────────────
        ★PV_DEMO：カードの中身は lp.js の PV_DEMO.marquee が入れる。
        中身は実在しないサンプル値。2026-08-11 のオーナー判断で、このまま公開する。
