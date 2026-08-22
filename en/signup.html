@@ -194,7 +194,7 @@
     <!-- 宛先を入れる段。押した人に「どこに届くのか」が必ず見える形にする。 -->
     <div id="email-step" style="display:none">
       <div class="step-title">Sign up with email</div>
-      <div class="step-sub">We will send you a sign-in link and a 6-digit code. No password needed</div>
+      <div class="step-sub">We will send you a 6-digit sign-in code. No password needed</div>
       <div style="display:flex;flex-direction:column;gap:11px;margin-bottom:16px">
         <div><div class="field-label">Email address</div>
           <input class="auth-input" type="email" id="otp-email" placeholder="you@example.com"
@@ -207,8 +207,9 @@
       </div>
     </div>
 
-    <!-- コード入力。リンクを別端末で開くと PKCE の code_verifier が無く必ず失敗するので、
-         端末をまたげる経路としてコードを必ず併記する。 -->
+    <!-- コード入力。メールには6桁コードしか載せていない（2026-08-22 に
+         Supabase のテンプレートから {{ .ConfirmationURL }} を外した）。
+         リンクは別ブラウザを開いてしまい、給与データの預かり証を失わせるため。 -->
     <div id="otp-step" style="display:none">
       <div class="step-title">Enter your code</div>
       <div class="step-sub" id="otp-note"></div>
@@ -482,7 +483,7 @@
       }
       document.getElementById('otp-note').innerHTML =
         'We sent an email to <b>' + email.replace(/[<>&]/g,'') + '</b>. '
-        + 'Open the link in it, or enter the 6-digit code below.';
+        + 'Type the 6-digit code from that email into this screen.';
       show('email-step', false);
       show('otp-step', true);
       document.getElementById('otp-code').focus();
@@ -520,9 +521,13 @@
     }
 
     // 6桁そろったら自動で送る（数字だけに矯正する）
+    /* ★全角の１２３４５６を先に半角へ寄せる。ここを飛ばすと \D が全部消して
+         欄が空になり、貼った人には「効かない」としか見えない（pay-login.js と同じ）。 */
     document.getElementById('otp-code').addEventListener('input', function(){
-      this.value = this.value.replace(/\D/g,'').slice(0,6);
-      if(this.value.length === 6) verifyOtpCode();
+      this.value = this.value
+        .replace(/[０-９]/g, function(c){ return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); })
+        .replace(/\D/g, '').slice(0, 6);
+      if (this.value.length === 6) verifyOtpCode();
     });
 
     /* 既に埋まっている値は打ち直させない。Google は氏名を metadata で持ってくる。 */

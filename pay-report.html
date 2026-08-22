@@ -710,6 +710,11 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
      pv-conditions.js の並び（ファイル末尾）に置くと、そのとき window.PVReferral が
      まだ存在せず、Google から戻ってきた人の紐づけだけが黙って落ちる。 -->
 <script src="pv-referral.js"></script>
+<!-- ★預かり証（pv_pay_claim）の実体。日英とマイページで同じ物を使う。
+     下のインラインスクリプトが起動と同時に呼ぶので、ここで読む。
+     ファイル末尾に置くと window.PVClaimPending がまだ無く、Google・メールから
+     戻ってきた人の紐づけだけが黙って落ちる（pv-referral.js と同じ理由）。 -->
+<script src="pv-claim-pending.js"></script>
 </head>
 <body class="relative">
 
@@ -1710,66 +1715,56 @@ async function sessionUserId() {
 }
 
 /* ── 預かり証 ──────────────────────────────────────────────────
-   ★ログインしていない人の入力は、送信を押した瞬間にサーバへ預ける
-     （submit_pay_report_pending）。引き換えに返るのがこの預かり証で、
-     アカウントが出来た時点で claim_pending_report に渡すと本棚（pay_reports）へ移る。
-     これで「登録できなかった人の入力が丸ごと消える」が無くなる。
-   ★配列で持つ。1枚出して登録せずに離れ、後日もう1枚出す人がいる。
-     1本で上書きすると先の1枚が永久に宙に浮く。
-   ★サーバ側も30日で移さなくなるので、同じ期限でこちらも捨てる。 */
-const CLAIM_KEY = 'pv_pay_claim';
-const CLAIM_MAX_AGE = 30 * 24 * 60 * 60 * 1000;
-function readClaims() {
-  let a = null;
-  try { a = JSON.parse(localStorage.getItem(CLAIM_KEY) || '[]'); } catch (e) {}
-  if (!Array.isArray(a)) return [];
-  return a.filter((x) => x && typeof x.t === 'string' && Date.now() - Number(x.ts || 0) < CLAIM_MAX_AGE);
-}
-function writeClaims(a) {
-  try {
-    if (a.length) localStorage.setItem(CLAIM_KEY, JSON.stringify(a.slice(-5)));
-    else localStorage.removeItem(CLAIM_KEY);
-  } catch (e) {}
-}
+   ★実体は pv-claim-pending.js（日本語版・英語版・マイページで同じ1本を使う）。
+     ここに残すのは、このページでの呼び名との橋渡しだけ。
+   ★なぜ切り出したか：預かり証は**1つのブラウザの localStorage にしかない**。
+     ログイン用メールのリンクを押すとメールアプリの中の別のブラウザが開き、
+     そこには預かり証が無い。2026-08-22 に本番で2人ぶんが黙って消えていた。
+     メールはコードだけにし、pv-claim-pending.js が ?claim= も拾うようにした。 */
+const CLAIM_MAX_AGE = PVClaimPending.CLAIM_MAX_AGE;
+const readClaims    = () => PVClaimPending.read();
+const rememberClaim = (tok) => PVClaimPending.remember(tok);
+const markPopped    = (tok) => PVClaimPending.markPopped(tok);
+
+/* ★?claim= は「預かり分があるか」を誰かが聞くより先に URL から取り込む。
+   別のブラウザに着地した人にとって、預かり証は URL にしか無い。
+   ページを開いた直後の判定が readClaims().length を見ているので、
+   sweep の中ではなく、その手前でやらなければ間に合わない。 */
+PVClaimPending.takeFromUrl();
 let _gatePopped = false;                 // 「受け取りました」で鳴らし済みの分を移した
-/* 「この預かり分は、登録の箱でもうクラッカーを鳴らした」印。
-   ★端末に残す必要がある。Google とメール内リンクはここでページを離れるので、
-     変数に持つと戻ってきた時に消えていて、結果カードで二度目が鳴る。
-   ★預かり証の行にそのまま足す。readClaims() は t と ts しか見ないので素通りする。 */
-function markPopped(tok) {
-  const a = readClaims();
-  const it = a.find((x) => x.t === tok);
-  if (it) { it.pop = 1; writeClaims(a); }
-}
-function rememberClaim(tok) {
-  const a = readClaims().filter((x) => x.t !== tok);
-  a.push({ t: tok, ts: Date.now() });
-  writeClaims(a);
-}
+
 /* 預けたぶんを、いま入ったアカウントのものにする。
-   ★消すのは「サーバが答えを返した」ものだけ。通信で落ちた預かり証は残す
-     （消すと、まだサーバに眠っている行を二度と取りに行けなくなる）。
-   ★サーバが「無い・もう済んでいる」と答えたものは消す。残すと開くたびに同じ問い合わせを繰り返す。
+   ★戻り先URLに載せた ?claim= もここで拾う（別のブラウザに着地した人の唯一の綱）。
    返り値＝移せた中の最後の1件。そのままレポートを描く。 */
 async function claimPending() {
-  const list = readClaims();
-  if (!list.length) return null;
-  const keep = [];
-  let won = null;
-  for (const it of list) {
-    try {
-      const { data, error } = await _sb.rpc('claim_pending_report', { p_token: it.t });
-      if (error) throw error;
-      if (data && data.ok) { won = data; if (it.pop) _gatePopped = true; track('pay_report_claimed'); }
-      else track('pay_report_claim_fail', { reason: String((data && data.reason) || 'not_found').slice(0, 40) });
-    } catch (e) {
-      console.error(e);
-      keep.push(it);
-      track('pay_report_claim_fail', { reason: String((e && (e.code || e.name)) || 'error').slice(0, 40) });
-    }
-  }
-  writeClaims(keep);
+  const won = await PVClaimPending.sweep(_sb);
+  if (won && won.popped) _gatePopped = true;
   return won;
+}
+
+/* ── 受け取った中身の1行 ──────────────────────────────────────
+   「給与データを受け取りました ✓」だけだと、本当に届いたのか本人には分からない。
+   2026-08-21 20:11 と 20:17、同じ人が同じ内容を6分あけて2回送っていた。
+   ★金額は1文字も入れない。年収も比較も出さない＝ Give to Get の壁は崩さない。
+   ★選択中の文字から作る。匿名で出した直後も、開き直した直後（restoreInto で
+     フォームへ戻したあと）も、この時点では欄が埋まっている。 */
+function recapLine() {
+  const pick = (id) => {
+    const sel = $(id);
+    if (!sel || !sel.value) return '';
+    const o = sel.selectedOptions && sel.selectedOptions[0];
+    return o ? o.textContent.trim() : '';
+  };
+  const parts = [];
+  const air = $('f-airline').value === 'other'
+    ? ($('f-airline-other').value || '').trim()
+    : pick('f-airline');
+  if (air) parts.push(air);
+  const pos = pick('f-position'); if (pos) parts.push(pos);
+  const fl = pick('f-fleet');     if (fl)  parts.push(fl);
+  const ym = pick('f-year') + pick('f-month');
+  if (ym) parts.push(ym + '分');
+  return parts.join(' ／ ');
 }
 
 /* ── 送信ボタンの文言 ──────────────────────────────────────────
@@ -1804,6 +1799,11 @@ function mountLogin(saved, tries) {
     window.PVPayLogin({
       sb: _sb, lang: LANG, mount: $('pay-login'), saved: !!saved,
       onSignedIn: function () { afterSignedIn(); },
+      /* ページを離れる経路（Google・メール内リンク）で戻り先URLに載せる預かり証。
+         別のブラウザに着地しても、これがあれば給与データを持って行ける。 */
+      getClaim: function () { return PVClaimPending.latest(); },
+      /* 受け取った中身を1行だけ返す。★金額は入れない（Give to Get の壁）。 */
+      recap: saved ? recapLine() : '',
     });
     /* 丸い 🎉 もここで置く。showGate の中ではない。
        ★戻ってきた人の経路では、ページを開いた直後にこれが呼ばれる。その時点では

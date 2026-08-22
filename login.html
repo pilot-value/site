@@ -166,7 +166,7 @@
       <div class="step-title" id="email-step-title">メールでログイン</div>
       <div class="otp-note" id="email-step-note">
         メールアドレスを入力してください。<br>
-        ログイン用のリンクと6桁のコードをお送りします。パスワードは要りません。
+        6桁のログインコードをお送りします。パスワードは要りません。
       </div>
       <div style="display:flex;flex-direction:column;gap:11px;margin-bottom:16px">
         <input class="auth-input" type="email" id="otp-email" placeholder="you@example.com"
@@ -181,9 +181,12 @@
       </div>
     </div>
 
-    <!-- メールOTP：リンクと6桁コードの両方を出す。
-         リンクを別端末で開くと PKCE の code_verifier が無く必ず失敗するので、
-         端末をまたげる経路としてコード入力を必ず併記する。 -->
+    <!-- メールOTP：6桁コードだけ。
+         ★2026-08-22、Supabase のテンプレートから {{ .ConfirmationURL }} を外した。
+           リンクを押すとメールアプリの中の別ブラウザが開き、匿名で出した給与データの
+           預かり証（pv_pay_claim）を置き去りにして実際に消えた（8/21 に2件・8/18 に2件）。
+           PKCE の code_verifier も元のブラウザにしか無いので、そもそも別端末では必ず失敗する。
+           ここに「リンクを開くか」と書き戻さない。メールにリンクはもう無い。 -->
     <div id="otp-step" style="display:none">
       <div class="step-title">コードを入力</div>
       <div class="otp-note" id="otp-note"></div>
@@ -339,9 +342,11 @@
     }
 
     /* ── メールOTP ──
-       signInWithOtp はメールを1通送り、その中に「リンク」と「6桁コード」の
-       両方を載せる（コードは Supabase 側のテンプレートに {{ .Token }} が要る）。
-       リンク = 同じ端末なら1タップ。コード = 別端末でも入れる唯一の経路。 */
+       signInWithOtp はメールを1通送る。テンプレートは {{ .Token }} だけを載せ、
+       {{ .ConfirmationURL }} は出さない（2026-08-22）。リンクを押した人は
+       メールアプリの中の別ブラウザに移ってしまい、給与データの預かり証を失うため。
+       ★テンプレートは「Confirm signup（初めての人）」と「Magic Link（既存の人）」の
+         2枚ある。片方だけ直すと、そちらの人だけコードが出ない。 */
     let otpEmail = '';
 
     /* ★同じ「コードを送る」仕掛けを2つの目的で使い回している。どちらで来たかを覚えておく。
@@ -356,7 +361,7 @@
       login: {
         title: 'メールでログイン',
         note:  'メールアドレスを入力してください。<br>'
-             + 'ログイン用のリンクと6桁のコードをお送りします。パスワードは要りません。',
+             + '6桁のログインコードをお送りします。パスワードは要りません。',
       },
       reset: {
         title: 'パスワードの再設定',
@@ -419,8 +424,8 @@
 
       /* 戻り先の作り方は handleGoogle と同じ式にする（getRedirect の同一オリジン検証を通す）。
          ★ただし再設定のときだけは戻り先を profile.html のパスワード欄に固定する。
-           メール内の「リンク」を押した人は auth-callback.html 経由でそのまま着地し、
-           この画面には戻ってこない。ここを分けないとリンク派だけが設定画面を一度も見ない。 */
+           コードを打った人はこの画面に戻ってくるが、戻り先を分けておかないと
+           再設定で来た人が設定画面を一度も見ずに元の場所へ飛ばされる。 */
       const to = (otpIntent === 'reset') ? 'profile.html#password-card' : getRedirect();
       const { error } = await sb.auth.signInWithOtp({
         email,
@@ -450,7 +455,7 @@
       }
       document.getElementById('otp-note').innerHTML =
         '<b>' + email.replace(/[<>&]/g, '') + '</b> にメールを送りました。<br>'
-        + 'メール内のリンクを開くか、届いた6桁のコードを入力してください。';
+        + 'この画面に、届いた6桁のコードを入力してください。';
       document.getElementById('login-form').style.display = 'none';
       document.getElementById('email-step').style.display = 'none';
       document.getElementById('otp-step').style.display   = 'block';
@@ -555,8 +560,12 @@
     });
 
     // 6桁そろったら自動で送る（コードは数字だけに矯正する）
+    /* ★全角の１２３４５６を先に半角へ寄せる。ここを飛ばすと \D が全部消して
+         欄が空になり、貼った人には「効かない」としか見えない（pay-login.js と同じ）。 */
     document.getElementById('otp-code').addEventListener('input', function(){
-      this.value = this.value.replace(/\D/g, '').slice(0, 6);
+      this.value = this.value
+        .replace(/[０-９]/g, function(c){ return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); })
+        .replace(/\D/g, '').slice(0, 6);
       if (this.value.length === 6) verifyOtpCode();
     });
 

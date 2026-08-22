@@ -4,17 +4,22 @@
    2026-08-14 まで、ここは login.html へのリンク1本だった。明細を読ませて
    最後まで入力した人を別ページへ飛ばすので、いちばん濃い見込み客がそこで落ちていた。
 
-   ★見た目は「会員登録」と「ログイン」の2つ、動く部品は1組。
-     どちらのメール欄も signInWithOtp({ shouldCreateUser: true }) → 6桁 verifyOtp
-     という同じ経路を通る（新規かどうかは Supabase 側が決める）。
-     判定を2本書くと、必ず片方だけ直される。分けるのは見出しと導線だけ。
+   ★入口は1つ。押せるものは Google とコードの2つ、入力欄はメール1つだけ。
+     2026-08-22 まで「はじめての方」と「お持ちの方」に分かれていて、押せるものが5つ・
+     入力欄が3つあった。signInWithOtp({ shouldCreateUser: true }) → 6桁 verifyOtp は
+     新規も既存も同じ1本を通る（新規かどうかは Supabase 側が決める）ので、
+     どちらかを選ばせる必要がそもそも無い。パスワードは折りたたみの中。
 
    ★Supabase クライアントはページ側の物をそのまま受け取る（ここで createClient しない）。
      同じ localStorage を見るクライアントが2つできると認証状態が壊れる。
 
    使い方（pay-report.html / en/pay-report.html）:
      PVPayLogin({ sb: _sb, lang: 'ja', mount: document.getElementById('pay-login'),
-                  saved: true, onSignedIn: function () { afterSignedIn(); } });
+                  saved: true, onSignedIn: function () { afterSignedIn(); },
+                  getClaim: function () { return PVClaimPending.latest(); },
+                  recap: 'ANA ／ 副操縦士 ／ A320 ／ 2026年7月分' });
+   ★getClaim: ページを離れる経路で戻り先URLに載せる預かり証。無ければ '' を返す。
+   ★recap: 「受け取りました」の下に出す1行。**金額を入れないこと**（Give to Get の壁）。
    ★saved: 給与データが既にサーバへ預かってあるか。2026-08-17 から、送信を押した
      時点で保存が済むようになったので、既定はこちら（見出しが「受け取りました」になる）。
      false は預かりそこねたときだけ＝ログインできた所からその場で送り直す。
@@ -30,24 +35,28 @@
          ときの言葉なので、預かった後に出すと嘘になる（もうサーバにある）。 */
       savedTitle: '給与データを受け取りました ✓',
       savedLead: '<b>あなた専用レポートを保存する。</b>アカウントを作ると、いま提出していただいた給与データがそのままレポートになり、<b>給与詳細が90日間</b>開きます。メールアドレスはレポートに含まれません。',
-      newHead: 'はじめての方｜会員登録',
-      oldHead: 'アカウントをお持ちの方｜ログイン',
-      googleUp: 'Google で登録',
-      googleIn: 'Google でログイン',
+      /* ★入口は1つ。2026-08-22 まで「はじめての方」と「お持ちの方」の2ブロックで、
+         押せるものが5つ・入力欄が3つあった。signInWithOtp({shouldCreateUser:true}) は
+         新規も既存も同じ1本で通るので、どちらかを選ばせる意味がそもそも無い。 */
+      google: 'Google で続ける',
+      orLine: 'または',
       email: 'メールアドレス',
       password: 'パスワード',
       sendCode: 'コードを送る',
       sending: '送信中…',
       signIn: 'ログイン',
       signingIn: 'ログイン中…',
-      codeWay: 'パスワードを忘れた／コードでログイン',
-      /* 同意は「はじめての方」の側にだけ置く。ログインの側に置くと、
-         既に決めてある人の設定を、レポートを見に来ただけの操作で書き換えてしまう。 */
+      passWay: 'パスワードでログイン',
+      /* 同意はこの1つの入口に置く。既に「解除した」人には claimOptIn が触らないので
+         （下の「解除済みの人」の行）、レポートを見に来ただけの操作で設定は戻らない。 */
       optin: '年収データの更新と、<b>毎月の給与明細リマインド</b>をメールで受け取る',
       optinNote: '（リマインドはご自身の給料日ごろへ月1通。1クリックで解除できます）',
       /* ★6桁の段。宛先を必ず見せる。どこに届くか分からないまま待たせない。 */
       codeHead: function (mail) { return '<b>' + mail + '</b> にメールを送りました。'; },
-      codeNote: 'メール内のリンクを開くか、届いた6桁のコードを入力してください。',
+      /* ★リンクの話をここに書かない。メールからリンクを外した（Supabase のテンプレート）。
+         リンクを押すとメールアプリの中の別のブラウザが開き、給与データの預かり証が
+         そこには無いので丸ごと消える。2026-08-22 に実際に2人ぶん消えていた。 */
+      codeNote: 'この画面に、届いた6桁のコードを入力してください。',
       code: '6桁のコード',
       verify: 'コードで進む',
       verifying: '確認中…',
@@ -67,21 +76,19 @@
       lead: 'What you entered is <b>held on this device</b>. Sign in and it is submitted straight away. Your email address is never part of the report.',
       savedTitle: 'We have your pay data ✓',
       savedLead: '<b>Save your own report.</b> Create an account and what you just submitted becomes your report, unlocking <b>full pay detail for 90 days</b>. Your email address is never part of the report.',
-      newHead: 'New here — create an account',
-      oldHead: 'Already have an account — sign in',
-      googleUp: 'Sign up with Google',
-      googleIn: 'Sign in with Google',
+      google: 'Continue with Google',
+      orLine: 'or',
       email: 'Email address',
       password: 'Password',
       sendCode: 'Send me a code',
       sending: 'Sending…',
       signIn: 'Sign in',
       signingIn: 'Signing in…',
-      codeWay: 'Forgot your password / sign in with a code',
+      passWay: 'Sign in with a password',
       optin: 'Email me pay-data updates and a <b>monthly payslip reminder</b>',
       optinNote: '(about one a month, around your own pay day. One click to stop.)',
       codeHead: function (mail) { return 'We emailed <b>' + mail + '</b>.'; },
-      codeNote: 'Open the link in that email, or type the 6-digit code below.',
+      codeNote: 'Type the 6-digit code from that email into this screen.',
       code: '6-digit code',
       verify: 'Continue with code',
       verifying: 'Checking…',
@@ -129,6 +136,19 @@
     'color:#f87171;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.22)}',
     '.pl-msg.is-ok{color:#4ade80;background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.22)}',
     '.pl-code{letter-spacing:.35em;text-align:center;font-size:1.05rem;font-weight:700}',
+    '.pl-or{display:flex;align-items:center;gap:12px;margin:14px 0;font-size:.72rem;color:#6b7d93;',
+    'text-transform:uppercase;letter-spacing:.1em}',
+    '.pl-or::before,.pl-or::after{content:"";flex:1;height:1px;background:rgba(255,255,255,.09)}',
+    /* 受け取った中身の1行。★金額は絶対に入れない（Give to Get の壁） */
+    '.pl-recap{display:none;margin:-12px 0 20px;padding:9px 12px;border-radius:9px;font-size:.8rem;',
+    'font-weight:600;color:#f5c842;background:rgba(245,200,66,.07);border:1px solid rgba(245,200,66,.18)}',
+    '.pl-pass{margin-top:14px}',
+    '.pl-pass>summary{list-style:none;cursor:pointer;display:inline-block;font-size:.78rem;color:#a8b3c2;',
+    'text-decoration:underline;text-underline-offset:3px;transition:color .2s}',
+    '.pl-pass>summary::-webkit-details-marker{display:none}',
+    '.pl-pass>summary:hover{color:#f5c842}',
+    '.pl-pass>summary:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:3px;border-radius:4px}',
+    '.pl-pass[open]>summary{margin-bottom:12px}',
     '.pl-optin{display:flex;gap:10px;align-items:flex-start;cursor:pointer;margin-top:12px;',
     'padding:11px 13px;background:rgba(245,200,66,.06);border:1px solid rgba(245,200,66,.18);border-radius:10px}',
     '.pl-optin input{margin-top:2px;width:16px;height:16px;accent-color:#f5c842;flex:none}',
@@ -149,7 +169,12 @@
     '[data-theme="light"] .pl-optin{background:rgba(184,134,11,.07);border-color:rgba(184,134,11,.24)}',
     '[data-theme="light"] .pl-optin span{color:#334155}',
     '[data-theme="light"] .pl-optin small{color:#64748b}',
-    '@media (prefers-reduced-motion:reduce){.pl-google{transition:none}.pl-link{transition:none}}',
+    '[data-theme="light"] .pl-or{color:#64748b}',
+    '[data-theme="light"] .pl-or::before,[data-theme="light"] .pl-or::after{background:rgba(0,0,0,.1)}',
+    '[data-theme="light"] .pl-recap{color:#8a6400;background:rgba(184,134,11,.08);border-color:rgba(184,134,11,.26)}',
+    '[data-theme="light"] .pl-pass>summary{color:#475569}',
+    '[data-theme="light"] .pl-pass>summary:hover{color:#b8860b}',
+    '@media (prefers-reduced-motion:reduce){.pl-google,.pl-link,.pl-pass>summary{transition:none}}',
   ].join('');
 
   function injectCss() {
@@ -204,52 +229,67 @@
          打ちかけのメールや6桁の段を作り直さずに、状態だけ最新にするため。 */
     var head = o.saved ? t.savedTitle : t.title;
     var body = o.saved ? t.savedLead : t.lead;
+    /* ★受け取った中身を1行だけ返す。ここが無いと「届いたのか分からない」ので、
+         同じ人が同じ内容をもう一度送る（2026-08-21 20:11 と 20:17 に実際に起きた）。
+       ★金額は1つも出さない。年収も比較も出さない＝ Give to Get は崩さない。
+       ★文字列はページ側が作る（社名の語彙をここに持たせない）。 */
+    var recap = o.saved && typeof o.recap === 'string' ? o.recap : '';
     if (mount.dataset.plReady === '1') {
       var ti = document.getElementById('pl-title');
       var le = document.getElementById('pl-lead');
+      var rc = document.getElementById('pl-recap');
       if (ti) ti.textContent = head;
       if (le) le.innerHTML = body;
+      if (rc) { rc.textContent = recap; rc.style.display = recap ? 'block' : 'none'; }
       return;
     }
     mount.dataset.plReady = '1';
     injectCss();
 
-    /* ★戻り先は必ず絶対パスで書く。en/ から相対で書くと着地が壊れる。
-       Google とメール内リンクはページを離れるが、給与データは既にサーバへ
-       預かってあり、その預かり証（pv_pay_claim）が端末に残っているので、
-       戻ってきた瞬間にページ側がそれを本人のアカウントへ移す。 */
+    /* ── 戻り先 ──────────────────────────────────────────────
+       ★必ず絶対パスで書く。en/ から相対で書くと着地が壊れる。
+       ★**預かり証を URL に載せる**。ページを離れる経路（Google・メール内リンク）で
+         別のブラウザに着地すると、端末の pv_pay_claim がそこには無い。
+         2026-08-22 に本番で2人ぶん消えていたのがこれ。URL に載せた1枚が唯一の綱になる。
+       ★マウント時ではなくクリックの瞬間に組む。マウントは提出より前に走ることがあり、
+         その時点ではまだ預かり証が存在しない。 */
     var NEXT = L === 'en' ? 'en/pay-report.html' : 'pay-report.html';
-    var CALLBACK = 'https://pilot-value.com/auth-callback.html?next=' + encodeURIComponent(NEXT);
+    function callbackUrl() {
+      var next = NEXT;
+      var tok = '';
+      try { tok = typeof o.getClaim === 'function' ? String(o.getClaim() || '') : ''; } catch (e) {}
+      if (/^[0-9a-f]{48}$/i.test(tok)) next += '?claim=' + tok;
+      return 'https://pilot-value.com/auth-callback.html?next=' + encodeURIComponent(next);
+    }
 
     mount.innerHTML =
       '<div class="pl-wrap">' +
         '<div class="pl-title" id="pl-title">' + esc(head) + '</div>' +
         '<p class="pl-lead" id="pl-lead">' + body + '</p>' +
 
-        '<div id="pl-main">' +
-          '<div class="pl-block">' +
-            '<div class="pl-head">' + esc(t.newHead) + '</div>' +
-            '<button type="button" class="pl-google" id="pl-g-up">' + GOOGLE_SVG + esc(t.googleUp) + '</button>' +
-            '<div class="pl-row pl-inline">' +
-              '<input class="form-input" type="email" id="pl-up-mail" autocomplete="email" placeholder="' + esc(t.email) + '">' +
-              '<button type="button" class="btn-orange justify-center" id="pl-up-btn">' + esc(t.sendCode) + '</button>' +
-            '</div>' +
-            '<label class="pl-optin">' +
-              '<input type="checkbox" id="pl-optin" checked>' +
-              '<span>' + t.optin + '<small>' + esc(t.optinNote) + '</small></span>' +
-            '</label>' +
-          '</div>' +
+        '<div class="pl-recap" id="pl-recap"' + (recap ? ' style="display:block"' : '') + '>' + esc(recap) + '</div>' +
 
-          '<div class="pl-block">' +
-            '<div class="pl-head">' + esc(t.oldHead) + '</div>' +
-            '<button type="button" class="pl-google" id="pl-g-in">' + GOOGLE_SVG + esc(t.googleIn) + '</button>' +
+        /* ★1ブロック。押せるものは Google とコードの2つ、入力欄は1つ。
+           パスワードは折りたたみの中（使う人だけが開く）。 */
+        '<div id="pl-main">' +
+          '<button type="button" class="pl-google" id="pl-g-up">' + GOOGLE_SVG + esc(t.google) + '</button>' +
+          '<div class="pl-or">' + esc(t.orLine) + '</div>' +
+          '<div class="pl-row pl-inline">' +
+            '<input class="form-input" type="email" id="pl-up-mail" autocomplete="email" placeholder="' + esc(t.email) + '">' +
+            '<button type="button" class="btn-orange justify-center" id="pl-up-btn">' + esc(t.sendCode) + '</button>' +
+          '</div>' +
+          '<label class="pl-optin">' +
+            '<input type="checkbox" id="pl-optin" checked>' +
+            '<span>' + t.optin + '<small>' + esc(t.optinNote) + '</small></span>' +
+          '</label>' +
+          '<details class="pl-pass">' +
+            '<summary>' + esc(t.passWay) + '</summary>' +
             '<div class="pl-row">' +
               '<input class="form-input" type="email" id="pl-in-mail" autocomplete="email" placeholder="' + esc(t.email) + '">' +
               '<input class="form-input" type="password" id="pl-in-pass" autocomplete="current-password" placeholder="' + esc(t.password) + '">' +
               '<button type="button" class="btn-orange justify-center" id="pl-in-btn">' + esc(t.signIn) + '</button>' +
             '</div>' +
-            '<button type="button" class="pl-link" id="pl-to-code">' + esc(t.codeWay) + '</button>' +
-          '</div>' +
+          '</details>' +
         '</div>' +
 
         '<div id="pl-code-step" style="display:none">' +
@@ -334,10 +374,11 @@
 
     // ── Google（ページを離れる。入力は端末に預けてあるので戻れば自動送信）──
     async function google() {
-      await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: CALLBACK } });
+      await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: callbackUrl() } });
     }
-    $('pl-g-up').addEventListener('click', function () { start('google_new'); stashOptIn(); google(); });
-    $('pl-g-in').addEventListener('click', function () { start('google_existing'); google(); });
+    /* ★入口が1つになったので、既存の会員もここを通る。同意を預けてよい理由は
+       claimOptIn が「一度解除した人」に触らないから（下の「解除済みの人」の行）。 */
+    $('pl-g-up').addEventListener('click', function () { start('google'); stashOptIn(); google(); });
 
     // ── パスワードでログイン（ページ遷移なし）──
     async function passwordIn() {
@@ -372,7 +413,7 @@
       busy(btn, t.sending);
       var res = await sb.auth.signInWithOtp({
         email: mail,
-        options: { emailRedirectTo: CALLBACK, shouldCreateUser: true },
+        options: { emailRedirectTo: callbackUrl(), shouldCreateUser: true },
       });
       free(btn);
       if (res.error) {
@@ -390,24 +431,12 @@
     }
 
     $('pl-up-btn').addEventListener('click', function () {
-      start('code_new');
+      start('code');
       stashOptIn();
       sendCode($('pl-up-mail').value.trim().toLowerCase(), $('pl-up-btn'), false);
     });
     $('pl-up-mail').addEventListener('keydown', function (e) {
       if (e.key === 'Enter') { e.preventDefault(); $('pl-up-btn').click(); }
-    });
-    /* 「パスワードを忘れた／コードでログイン」。打ちかけのアドレスは引き継ぐ。 */
-    $('pl-to-code').addEventListener('click', function () {
-      start('code_existing');
-      var mail = $('pl-in-mail').value.trim().toLowerCase() || $('pl-up-mail').value.trim().toLowerCase();
-      if (!EMAIL_RE.test(mail)) {
-        clearMsg();
-        $('pl-in-mail').focus();
-        track('pay_login_code_fail', { reason: 'bad_email' });
-        return fail(esc(t.badEmail));
-      }
-      sendCode(mail, $('pl-to-code'), false);
     });
     $('pl-resend').addEventListener('click', function () { sendCode(otpMail, $('pl-resend'), true); });
     $('pl-back').addEventListener('click', function () {
@@ -434,9 +463,13 @@
       await done(res.data.user);
     }
     $('pl-verify').addEventListener('click', verify);
-    /* 6桁そろったら押さずに確認する（コードを貼った人がボタンを探さない）。 */
+    /* 6桁そろったら押さずに確認する（コードを貼った人がボタンを探さない）。
+       ★全角の数字を先に半角へ寄せる。\D は全角数字を「数字でない」として丸ごと落とすので、
+         メールから全角のまま貼った人の欄が黙って空になる。 */
     $('pl-code').addEventListener('input', function () {
-      var v = $('pl-code').value.replace(/\D/g, '').slice(0, 6);
+      var v = $('pl-code').value
+        .replace(/[０-９]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); })
+        .replace(/\D/g, '').slice(0, 6);
       if (v !== $('pl-code').value) $('pl-code').value = v;
       if (v.length === 6) verify();
     });

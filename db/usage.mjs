@@ -239,7 +239,7 @@ const reviewHash = (uid, airline) =>
   let pendTotal = null, pendOpen = null;
   console.log('\n■ 預かり（アカウントを作る前に出された給与データ）');
   try {
-    const pd = await rest('pay_reports_pending', 'select=created_at,claimed_at,airline,lang&order=created_at.desc&limit=5000');
+    const pd = await rest('pay_reports_pending', 'select=created_at,claimed_at,airline,lang,ip_day_hash&order=created_at.desc&limit=5000');
     pendTotal = pd.length;
     const done = pd.filter((r) => r.claimed_at);
     pendOpen = pd.length - done.length;
@@ -251,6 +251,33 @@ const reviewHash = (uid, airline) =>
     if (pendTotal) line('言語', Object.entries(byLang).map(([l, n]) => `${l} ${n}`).join(' / '));
     console.log('   ※ 誰の分かは切り分けられません（あなたの動作確認も同じ数に入ります）。');
     console.log('   ※ 紐付いていない分は公開の中央値には入りません（別のテーブルにあるため）。');
+
+    /* ★まだ紐付いていない分の内訳。同じ日・同じ端末から出たものをまとめて出す。
+       件数だけを見ていた間、2026-08-21 に**1人が2件出して登録まで済ませたのに
+       1件も紐付いていない**ことに気づけなかった。塊で見えれば、次に同じことが
+       起きたとき「何人ぶんが宙に浮いているか」がそのまま読める。
+       ⚠️ ip_day_hash は IP と日付から作るので**日が変わると別の値になる**。
+          日をまたいだ同じ人は別の塊として出る＝塊の数は人数の上限であって人数ではない。 */
+    const open = pd.filter((r) => !r.claimed_at);
+    if (open.length) {
+      const groups = new Map();
+      for (const r of open) {
+        const k = r.ip_day_hash || '(不明)';
+        if (!groups.has(k)) groups.set(k, []);
+        groups.get(k).push(r);
+      }
+      const blocks = [...groups.values()]
+        .map((rows) => rows.slice().sort((x, y) => String(x.created_at).localeCompare(String(y.created_at))))
+        .sort((x, y) => String(y[0].created_at).localeCompare(String(x[0].created_at)));
+      console.log(`   ── 内訳（同じ日・同じ端末でまとめています。${blocks.length}かたまり／時刻は UTC）`);
+      for (const rows of blocks) {
+        const day = String(rows[0].created_at).slice(0, 10);
+        const times = rows.map((r) => String(r.created_at).slice(11, 16)).join(' ');
+        line('  ' + day, `${rows.length}件`, `　${rows.map((r) => r.airline || '?').join(' / ')}`, `　${times}`);
+      }
+      console.log('   ※ 本人がそのブラウザでアカウントを作れば、今でもそのまま紐付きます');
+      console.log('     （預かり証は30日で切れます。db/pay-report-pending.sql:231）。');
+    }
   } catch (e) {
     /* まだ SQL を流していないだけなら、それと分かる形で出す（エラーに見せない）。 */
     if (/\b404\b|PGRST205|does not exist/i.test(e.message)) {

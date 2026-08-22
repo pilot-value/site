@@ -165,7 +165,7 @@
       <div class="step-title" id="email-step-title">Sign in with email</div>
       <div class="otp-note" id="email-step-note">
         Enter your email address.<br>
-        We'll send you a login link and a 6-digit code. No password needed.
+        We'll send you a 6-digit sign-in code. No password needed.
       </div>
       <div style="display:flex;flex-direction:column;gap:11px;margin-bottom:16px">
         <input class="auth-input" type="email" id="otp-email" placeholder="you@example.com"
@@ -180,10 +180,13 @@
       </div>
     </div>
 
-    <!-- Email OTP: we always show BOTH the link and the 6-digit code.
-         Opening the link on a different device fails because the PKCE
-         code_verifier lives in the originating browser only — the code is
-         the one path that works across devices. -->
+    <!-- Email OTP: the 6-digit code only.
+         On 2026-08-22 we removed {{ .ConfirmationURL }} from the Supabase
+         templates. Tapping the link opens the mail app's in-app browser,
+         stranding the anonymous pay-data claim token (pv_pay_claim) — that
+         really did lose four submissions. The PKCE code_verifier lives in the
+         originating browser too, so the link never worked across devices.
+         Do not write "open the link" back in. There is no link. -->
     <div id="otp-step" style="display:none">
       <div class="step-title">Enter your code</div>
       <div class="otp-note" id="otp-note"></div>
@@ -261,9 +264,15 @@
         return u.origin === location.origin ? u.pathname + u.search + u.hash : '';
       } catch (e) { return ''; }
     }
+    /* ★既定は '/en/profile.html'。'profile.html' にしない。
+         この戻り先は下で auth-callback へ ?next= として渡され、ルートの
+         /auth-callback.html から解決される。そこから見た 'profile.html' は
+         /profile.html ＝日本語のマイページで、英語版から素でログインした人が
+         いきなり日本語の画面に落ちていた（2026-08-22 修正）。
+         ?next= 付きで来た場合は safePath が /en/… の絶対パスを返すので元から正しい。 */
     function getRedirect(){
       const q = new URLSearchParams(location.search);
-      return safePath(q.get('next') || q.get('redirect') || q.get('return')) || 'profile.html';
+      return safePath(q.get('next') || q.get('redirect') || q.get('return')) || '/en/profile.html';
     }
 
     /* ★Do not drop the destination when handing off to "Sign up".
@@ -275,7 +284,7 @@
       const a = document.getElementById('to-signup');
       if (!a) return;
       const to = getRedirect();
-      if (to && to !== 'profile.html') a.href = 'signup.html?next=' + encodeURIComponent(to);
+      if (to && to !== '/en/profile.html') a.href = 'signup.html?next=' + encodeURIComponent(to);
     })();
 
     // Notice shown when pv-session.js expired the session (show once, then clear)
@@ -334,9 +343,11 @@
     }
 
     /* ── Email OTP ──
-       signInWithOtp sends ONE email carrying both a link and a 6-digit code
-       (the code needs {{ .Token }} in the Supabase email template).
-       Link = one tap on the same device. Code = the only path across devices. */
+       signInWithOtp sends ONE email. The template carries {{ .Token }} only —
+       {{ .ConfirmationURL }} was removed on 2026-08-22 because tapping it moves
+       the person into the mail app's browser and loses their pay-data claim.
+       ★There are TWO templates: "Confirm signup" (first-time) and "Magic Link"
+         (existing). Fixing only one leaves those users with no code at all. */
     let otpEmail = '';
 
     /* ★同じ「コードを送る」仕掛けを2つの目的で使い回している。どちらで来たかを覚えておく。
@@ -351,7 +362,7 @@
       login: {
         title: 'Sign in with email',
         note:  "Enter your email address.<br>"
-             + "We'll send you a login link and a 6-digit code. No password needed.",
+             + "We'll send you a 6-digit sign-in code. No password needed.",
       },
       reset: {
         title: 'Reset your password',
@@ -414,17 +425,19 @@
 
       /* Build the return URL with the same expression as handleGoogle (passes getRedirect's same-origin check).
          ★ただし再設定のときだけは戻り先を profile.html のパスワード欄に固定する。
-           メール内の「リンク」を押した人は auth-callback.html 経由でそのまま着地し、
-           この画面には戻ってこない。ここを分けないとリンク派だけが設定画面を一度も見ない。 */
+           コードを打った人はこの画面に戻ってくるが、戻り先を分けておかないと
+           再設定で来た人が設定画面を一度も見ずに元の場所へ飛ばされる。 */
       /* ★en/ 側は絶対パスで書く。emailRedirectTo が指すのは「ルートの」auth-callback.html で、
            そこは next を自分の場所 (/auth-callback.html) から解決する。
-           'profile.html' と書くと /profile.html＝日本語版に着地してしまう。 */
+           'profile.html' と書くと /profile.html＝日本語版に着地してしまう。
+           ★next を省く分岐を置かない。省くと auth-callback の既定 'profile.html' が効いて
+             やはり日本語版に落ちる。getRedirect() は必ず /en/… を返すので常に渡す。 */
       const to = (otpIntent === 'reset') ? '/en/profile.html#password-card' : getRedirect();
       const { error } = await sb.auth.signInWithOtp({
         email,
         options: {
           emailRedirectTo: 'https://pilot-value.com/auth-callback.html'
-                         + (to === 'profile.html' ? '' : '?next=' + encodeURIComponent(to)),
+                         + '?next=' + encodeURIComponent(to),
           shouldCreateUser: true,
         }
       });
@@ -448,7 +461,7 @@
       }
       document.getElementById('otp-note').innerHTML =
         'We sent an email to <b>' + email.replace(/[<>&]/g, '') + '</b>.<br>'
-        + 'Open the link in that email, or enter the 6-digit code below.';
+        + 'Type the 6-digit code from that email into this screen.';
       document.getElementById('login-form').style.display = 'none';
       document.getElementById('email-step').style.display = 'none';
       document.getElementById('otp-step').style.display   = 'block';
@@ -553,8 +566,12 @@
     });
 
     // Submit automatically once 6 digits are in (and keep the field numeric)
+    /* ★全角の１２３４５６を先に半角へ寄せる。ここを飛ばすと \D が全部消して
+         欄が空になり、貼った人には「効かない」としか見えない（pay-login.js と同じ）。 */
     document.getElementById('otp-code').addEventListener('input', function(){
-      this.value = this.value.replace(/\D/g, '').slice(0, 6);
+      this.value = this.value
+        .replace(/[０-９]/g, function(c){ return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); })
+        .replace(/\D/g, '').slice(0, 6);
       if (this.value.length === 6) verifyOtpCode();
     });
 
@@ -573,7 +590,7 @@
         provider: 'google',
         options: {
           redirectTo: 'https://pilot-value.com/auth-callback.html'
-                    + (to === 'profile.html' ? '' : '?next=' + encodeURIComponent(to)),
+                    + '?next=' + encodeURIComponent(to),
         }
       });
     }

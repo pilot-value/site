@@ -711,6 +711,11 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
      pv-conditions.js の並び（ファイル末尾）に置くと、そのとき window.PVReferral が
      まだ存在せず、Google から戻ってきた人の紐づけだけが黙って落ちる。 -->
 <script src="../pv-referral.js"></script>
+<!-- ★預かり証（pv_pay_claim）の実体。日英とマイページで同じ物を使う。
+     下のインラインスクリプトが起動と同時に呼ぶので、ここで読む。
+     ファイル末尾に置くと window.PVClaimPending がまだ無く、Google・メールから
+     戻ってきた人の紐づけだけが黙って落ちる（pv-referral.js と同じ理由）。 -->
+<script src="../pv-claim-pending.js"></script>
 </head>
 <body class="relative">
 
@@ -1723,67 +1728,58 @@ async function sessionUserId() {
 }
 
 /* ── The claim token ──────────────────────────────────────────
-   ★What someone types without a session is handed to the server the instant
-     they press submit (submit_pay_report_pending). What comes back is this
-     token; once an account exists, claim_pending_report moves that row onto
-     the shelf (pay_reports). Nobody's input is lost to a failed sign-up again.
-   ★Held as a list. People file one, leave without registering, and file
-     another later. A single slot would strand the first one forever.
-   ★The server stops moving them after 30 days, so drop them here on the same clock. */
-const CLAIM_KEY = 'pv_pay_claim';
-const CLAIM_MAX_AGE = 30 * 24 * 60 * 60 * 1000;
-function readClaims() {
-  let a = null;
-  try { a = JSON.parse(localStorage.getItem(CLAIM_KEY) || '[]'); } catch (e) {}
-  if (!Array.isArray(a)) return [];
-  return a.filter((x) => x && typeof x.t === 'string' && Date.now() - Number(x.ts || 0) < CLAIM_MAX_AGE);
-}
-function writeClaims(a) {
-  try {
-    if (a.length) localStorage.setItem(CLAIM_KEY, JSON.stringify(a.slice(-5)));
-    else localStorage.removeItem(CLAIM_KEY);
-  } catch (e) {}
-}
+   ★The real thing lives in pv-claim-pending.js — one copy shared by the
+     Japanese page, this page and the profile page. Two copies of this drifted
+     apart once already; what stays here is only the bridge to local names.
+   ★Why it matters: the token lives in ONE browser's localStorage. Tapping the
+     link inside a login email opens the mail app's own browser, which has no
+     token — on 2026-08-22 that silently lost two people's pay data. The email
+     now carries the code only, and pv-claim-pending.js also reads ?claim=. */
+const CLAIM_MAX_AGE = PVClaimPending.CLAIM_MAX_AGE;
+const readClaims    = () => PVClaimPending.read();
+const rememberClaim = (tok) => PVClaimPending.remember(tok);
+const markPopped    = (tok) => PVClaimPending.markPopped(tok);
+
+/* ★Pull ?claim= out of the URL first, before anything asks whether a claim
+   exists. Someone who landed here from another browser has the token in the
+   URL and nowhere else; the on-load block decides what to do from
+   readClaims().length, so this has to happen above it, not inside the sweep. */
+PVClaimPending.takeFromUrl();
 let _gatePopped = false;                 // a hand-over that already popped was moved in
-/* The mark for "this hand-over already popped, back at the sign-up box".
-   ★It has to live on the device. Google and the email link leave the page here,
-     so a variable would be gone on return and the result card would pop twice.
-   ★Written onto the claim row itself. readClaims() only looks at t and ts. */
-function markPopped(tok) {
-  const a = readClaims();
-  const it = a.find((x) => x.t === tok);
-  if (it) { it.pop = 1; writeClaims(a); }
-}
-function rememberClaim(tok) {
-  const a = readClaims().filter((x) => x.t !== tok);
-  a.push({ t: tok, ts: Date.now() });
-  writeClaims(a);
-}
+
 /* Move what was handed over onto the account that just signed in.
-   ★Only drop tokens the server actually answered. One that failed on the
-     network stays (dropping it strands a row that is still sitting there).
-   ★Drop the ones the server calls gone or already done, or the page asks
-     the same question every time it opens.
-   Returns the last one that moved — that is what the report is drawn from. */
+   Also picks up ?claim= — the token carried back from another browser.
+   Returns the last one that moved; that is what the report is drawn from. */
 async function claimPending() {
-  const list = readClaims();
-  if (!list.length) return null;
-  const keep = [];
-  let won = null;
-  for (const it of list) {
-    try {
-      const { data, error } = await _sb.rpc('claim_pending_report', { p_token: it.t });
-      if (error) throw error;
-      if (data && data.ok) { won = data; if (it.pop) _gatePopped = true; track('pay_report_claimed'); }
-      else track('pay_report_claim_fail', { reason: String((data && data.reason) || 'not_found').slice(0, 40) });
-    } catch (e) {
-      console.error(e);
-      keep.push(it);
-      track('pay_report_claim_fail', { reason: String((e && (e.code || e.name)) || 'error').slice(0, 40) });
-    }
-  }
-  writeClaims(keep);
+  const won = await PVClaimPending.sweep(_sb);
+  if (won && won.popped) _gatePopped = true;
   return won;
+}
+
+/* ── One line of what we took in ──────────────────────────────
+   "We have your pay data ✓" on its own leaves no way to tell it landed.
+   On 2026-08-21 the same person filed the same thing twice, six minutes apart.
+   ★Not one digit of money goes in here. No annual figure, no benchmark —
+     the Give-to-Get wall stays exactly where it is.
+   ★Built from what is selected. The fields are filled both right after an
+     anonymous submit and right after restoreInto() puts them back. */
+function recapLine() {
+  const pick = (id) => {
+    const sel = $(id);
+    if (!sel || !sel.value) return '';
+    const o = sel.selectedOptions && sel.selectedOptions[0];
+    return o ? o.textContent.trim() : '';
+  };
+  const parts = [];
+  const air = $('f-airline').value === 'other'
+    ? ($('f-airline-other').value || '').trim()
+    : pick('f-airline');
+  if (air) parts.push(air);
+  const pos = pick('f-position'); if (pos) parts.push(pos);
+  const fl = pick('f-fleet');     if (fl)  parts.push(fl);
+  const mo = pick('f-month'), yr = pick('f-year');
+  if (mo && yr) parts.push(mo + ' ' + yr);
+  return parts.join(' · ');
 }
 
 /* ── The submit button's label ────────────────────────────────
@@ -1818,6 +1814,11 @@ function mountLogin(saved, tries) {
     window.PVPayLogin({
       sb: _sb, lang: LANG, mount: $('pay-login'), saved: !!saved,
       onSignedIn: function () { afterSignedIn(); },
+      /* ページを離れる経路（Google・メール内リンク）で戻り先URLに載せる預かり証。
+         別のブラウザに着地しても、これがあれば給与データを持って行ける。 */
+      getClaim: function () { return PVClaimPending.latest(); },
+      /* 受け取った中身を1行だけ返す。★金額は入れない（Give to Get の壁）。 */
+      recap: saved ? recapLine() : '',
     });
     /* The round 🎉 goes here too, not inside showGate.
        ★On the way back this is called the moment the page opens, and confetti.js
