@@ -148,11 +148,12 @@ update public.pv_contract_types set active = false where code not in ('direct', 
 update public.pv_currencies set active = false where code not in ('USD', 'EUR', 'JPY', 'GBP', 'AED', 'QAR', 'SAR', 'KWD', 'BHD', 'OMR', 'JOD', 'TRY', 'CHF', 'SEK', 'NOK', 'DKK', 'ISK', 'PLN', 'HUF', 'CZK', 'RON', 'CAD', 'AUD', 'NZD', 'FJD', 'SGD', 'HKD', 'TWD', 'KRW', 'CNY', 'THB', 'MYR', 'IDR', 'PHP', 'VND', 'BND', 'INR', 'EGP', 'ETB', 'KES', 'ZAR', 'MXN', 'BRL', 'CLP', 'COP');
 
 -- ── 換算レート ───────────────────────────────────────────────
--- ★ currency.js の RATES（1通貨あたりの円。USD 1 = 160 円）から生成。
--- ★ 45 通貨のうちレートがあるのは 7 通貨だけ。
---    残りは to_usd が無いので annual_total_usd が null になり、pay_benchmarks から外れる。
+-- ★ fx-rates.mjs（1通貨あたりの円。USD 1 = 158.95 円）から生成。
+--    基準日 2026-08-22 / 出所 https://www.exchangerate-api.com / 取り直しは node gen-fx-rates.mjs。
+-- ★ 語彙の 45 通貨すべてにレートがある（2026-08-22 に7→45）。
+--    レートが無い通貨で出すと to_usd が無く annual_total_usd が null になり、
+--    pay_benchmarks から黙って外れる。実際にエバー航空の台湾ドルが1件外れていた。
 --    原本（currency ＋ 各金額）は必ず保存されるので、レートを入れた時点で再計算できる。
---    → レート取得は別途対応（当面はこの7通貨が集計対象）。
 create table if not exists public.fx_rates (
   code   char(3) primary key references public.pv_currencies(code),
   to_usd numeric(14,6) not null check (to_usd > 0),
@@ -161,15 +162,90 @@ create table if not exists public.fx_rates (
 );
 
 insert into public.fx_rates (code, to_usd, to_jpy) values
-  ('JPY', 0.006250, 1.000000),
-  ('USD', 1.000000, 160.000000),
-  ('EUR', 1.075000, 172.000000),
-  ('GBP', 1.187500, 190.000000),
-  ('AUD', 0.625000, 100.000000),
-  ('SGD', 0.700000, 112.000000),
-  ('AED', 0.255000, 40.800000)
+  ('USD', 1.000000, 158.950000),
+  ('EUR', 1.168229, 185.690000),
+  ('JPY', 0.006291, 1.000000),
+  ('GBP', 1.363699, 216.760000),
+  ('AED', 0.272303, 43.282500),
+  ('QAR', 0.274734, 43.668900),
+  ('SAR', 0.266675, 42.388000),
+  ('KWD', 3.273231, 520.280000),
+  ('BHD', 2.659641, 422.750000),
+  ('OMR', 2.600881, 413.410000),
+  ('JOD', 1.410506, 224.200000),
+  ('TRY', 0.020812, 3.308100),
+  ('CHF', 1.248569, 198.460000),
+  ('SEK', 0.105602, 16.785500),
+  ('NOK', 0.107543, 17.093900),
+  ('DKK', 0.156354, 24.852400),
+  ('ISK', 0.008254, 1.311900),
+  ('PLN', 0.271122, 43.094800),
+  ('HUF', 0.003219, 0.511723),
+  ('CZK', 0.048450, 7.701200),
+  ('RON', 0.222486, 35.364100),
+  ('CAD', 0.726581, 115.490000),
+  ('AUD', 0.716452, 113.880000),
+  ('NZD', 0.597909, 95.037600),
+  ('FJD', 0.455612, 72.419600),
+  ('SGD', 0.787921, 125.240000),
+  ('HKD', 0.127552, 20.274400),
+  ('TWD', 0.031435, 4.996600),
+  ('KRW', 0.000722, 0.114707),
+  ('CNY', 0.148420, 23.591300),
+  ('THB', 0.030601, 4.864000),
+  ('MYR', 0.247582, 39.353200),
+  ('IDR', 0.000057, 0.009001),
+  ('PHP', 0.016203, 2.575400),
+  ('VND', 0.000039, 0.006123),
+  ('BND', 0.787921, 125.240000),
+  ('INR', 0.010444, 1.660000),
+  ('EGP', 0.019655, 3.124100),
+  ('ETB', 0.006190, 0.983966),
+  ('KES', 0.007727, 1.228200),
+  ('ZAR', 0.062416, 9.921100),
+  ('MXN', 0.059093, 9.392900),
+  ('BRL', 0.193167, 30.703900),
+  ('CLP', 0.001222, 0.194221),
+  ('COP', 0.000273, 0.043384)
 on conflict (code) do update
   set to_usd = excluded.to_usd, to_jpy = excluded.to_jpy, as_of = current_date;
+
+-- ── レートが無くて集計から外れていた行を戻す ──────────────────
+-- レートが無い通貨で出した行は annual_total_usd が null になり、pay_benchmarks の
+-- 対象から外れる（提出は成功しているので本人には見えている）。原本の
+-- annual_total_orig と currency は残っているので、レートが入った今なら計算し直せる。
+-- ★ null の行だけを触る＝何度流しても同じ。既に入っている行のレートは書き替えない
+--   （提出時点のレートで確定させる。あとから全部を今日のレートに揃えると、
+--     過去の集計が流すたびに動いて再現しなくなる）。
+-- ★ pay_reports がまだ無い環境（語彙を先に流す）でも落ちないように包む。
+do $$
+declare n int;
+begin
+  if to_regclass('public.pay_reports') is null then
+    raise notice 'pay_reports がまだ無いので取りこぼしの復旧はしない';
+    return;
+  end if;
+
+  with fixed as (
+    update public.pay_reports r
+       set fx_to_usd = f.to_usd,
+           fx_to_jpy = f.to_jpy,
+           fx_at     = f.as_of,
+           annual_total_usd = round(r.annual_total_orig * f.to_usd, 2),
+           annual_total_jpy = round(r.annual_total_orig * f.to_jpy, 2),
+           usd_per_block_hour = case when coalesce(r.block_hours, 0) > 0
+                then round(round(r.annual_total_orig * f.to_usd, 2) / (12 * r.block_hours), 2) end,
+           net_annual_jpy = case when r.tax_rate_pct is not null
+                then round(round(r.annual_total_orig * f.to_jpy, 2) * (1 - r.tax_rate_pct / 100), 2) end
+      from public.fx_rates f
+     where f.code = r.currency
+       and r.annual_total_usd is null
+       and r.annual_total_orig is not null
+    returning 1)
+  select count(*) into n from fixed;
+
+  raise notice '取りこぼしを復旧: % 件', n;
+end $$;
 
 -- 語彙は誰でも読める（フォームのラベルに使う）。書き込みポリシーは作らない。
 do $$
@@ -183,7 +259,7 @@ begin
   end loop;
 end $$;
 
--- 検算：機種19 / 職位3 / 役職4 / 年代5 / 通貨45 / レート7
+-- 検算：機種19 / 職位3 / 役職4 / 年代5 / 通貨45 / レート45
 select
   (select count(*) from public.pv_fleets     where active) as 機種,
   (select count(*) from public.pv_positions  where active) as 職位,

@@ -88,7 +88,11 @@ ok(Number(cnt.p) === 3, `職位 3 → ${cnt.p}`);
    件数がずれたら、どちらかの刻みを動かした合図（gen-vocab.mjs が突き合わせている）。 */
 ok(Number(cnt.g) === 5, `年代 5 → ${cnt.g}`);
 ok(Number(cnt.c) === 45, `通貨 45 → ${cnt.c}`);
-ok(Number(cnt.fx) === 7, `レート 7（currency.js 由来）→ ${cnt.fx}`);
+/* ★語彙にある通貨は全部レートを持っていること。2026-08-22 まで7通貨しか無く、
+   残り38通貨で出した人は annual_total_usd が null になって集計から黙って外れていた
+   （実際にエバー航空の台湾ドルが1件）。ここが 45 未満に戻ったらまた穴が空く。 */
+ok(Number(cnt.fx) === 45, `レート 45（fx-rates.mjs 由来。語彙の通貨と同数）→ ${cnt.fx}`);
+ok(Number(cnt.fx) === Number(cnt.c), 'レートの無い通貨が1つも無い');
 
 // ── 年換算の定義 ─────────────────────────────────────────────
 console.log('\n▼ 年換算の計算');
@@ -284,13 +288,43 @@ await submit({ ...BASE, days_off: 20, sectors: 99, base_pay: 23000, period_year:
 ok(Number((await one(`select days_off d from pay_reports where days_off=20`)).d) === 20,
    '出し直すと休日数も上書きされる（この2列だけ訂正が効かない、が起きていない）');
 
-// レートの無い通貨
-console.log('\n▼ 換算レートが無い通貨');
+// 円・ドル以外の通貨（昔レートが無くて集計から落ちていた側）
+console.log('\n▼ 円・ドル以外の通貨で出す');
 await asUser(30);
 r = (await submit({ ...BASE, airline: 'qatar-airways', currency: 'QAR', period_year: 2026, period_month: 6 })).r;
-ok(r.fx_missing === true && r.annual_total_usd === null, 'QAR はレートが無いので USD が null（原本は保存される）');
+ok(r.fx_missing !== true && Number(r.annual_total_usd) > 0,
+   `QAR でも USD が付く（昔は null で集計から外れていた）→ ${r.annual_total_usd}`);
 const qar = await one(`select currency, base_pay, annual_total_orig from pay_reports where currency='QAR'`);
 ok(qar.currency === 'QAR' && Number(qar.annual_total_orig) === 651000, `原本は失われない → ${qar.currency} ${qar.annual_total_orig}`);
+
+/* ★エバー航空の台湾ドル（2026-08-21）と同じ形。語彙の45通貨すべてで
+   USD が付くことを1件ずつ確かめる。1つでも欠けると、その通貨で出した人が
+   提出は成功したのに集計から消える（本人には見えるので誰も気づかない）。 */
+const CODES = (await db.query(`select code from pv_currencies where active order by code`)).rows.map((x) => x.code);
+const noUsd = [];
+for (let i = 0; i < CODES.length; i++) {
+  // 1人1日10件までなので8件ごとに人を替える（この上限自体は別のテストが見ている）
+  if (i % 8 === 0) await asUser(200 + i / 8);
+  const rr = (await submit({ ...BASE, airline: 'eva-air', currency: CODES[i],
+                             period_year: 2025, period_month: (i % 12) + 1 })).r;
+  if (!(Number(rr.annual_total_usd) > 0)) noUsd.push(CODES[i]);
+}
+ok(noUsd.length === 0, `${CODES.length} 通貨すべてで USD が付く`, noUsd.join(' '));
+
+/* ★取りこぼしの復旧（db/vocab.generated.sql の末尾）。
+   レートが無かった時代に入った行を、原本から計算し直す。null の行だけ触る＝冪等。 */
+await db.exec(`update pay_reports set annual_total_usd = null, annual_total_jpy = null,
+                      fx_to_usd = null, fx_to_jpy = null, usd_per_block_hour = null
+                where currency = 'TWD'`);
+const before = await one(`select count(*) n from pay_reports where annual_total_usd is null`);
+await db.exec(read('db/vocab.generated.sql'));
+const after = await one(`select count(*) n from pay_reports where annual_total_usd is null`);
+ok(Number(before.n) > 0 && Number(after.n) === 0,
+   `レートが無くて落ちていた ${before.n} 件が復旧する（残り ${after.n} 件）`);
+const twd = await one(`select annual_total_orig o, annual_total_usd u, fx_to_usd f
+                         from pay_reports where currency='TWD' limit 1`);
+ok(Math.abs(Number(twd.u) - Number(twd.o) * Number(twd.f)) < 0.01,
+   `復旧した額が原本 × レートと合う → ${twd.o} × ${twd.f} = ${twd.u}`);
 
 // ── かんたん入力（その月の額面1本）───────────────────────────
 // 「基本給って何よ」で止まる人のための入力。明細を開かずに答えられる唯一の数字。

@@ -207,7 +207,7 @@
   // pay_benchmarks は USD 建て。サイトの表示レート（currency.js の RATES）で円に直す。
   // currency.js より先に走ることがあるので、無ければ同じ既定値に落とす。
   function usdToJpy(usd) {
-    var r = (w.PVCurrency && w.PVCurrency.rates && w.PVCurrency.rates.USD) || 160;
+    var r = (w.PVCurrency && w.PVCurrency.rates && w.PVCurrency.rates.USD) || 158.95;
     return usd * r;
   }
 

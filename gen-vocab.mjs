@@ -16,6 +16,7 @@ import {
   FLEETS, POSITIONS, LEGACY_POSITIONS, JOB_ROLES, AGE_BUCKETS, HOUSING, CONTRACT_TYPES, CURRENCIES,
   COUNTRIES, COUNTRIES_MAIN, TAX_DEFAULT_ZERO, CITIZENSHIP_TAXED, TAX_TABLE,
 } from './pv-vocab.mjs';
+import { JPY_PER, AS_OF as FX_AS_OF, SOURCE as FX_SOURCE } from './fx-rates.mjs';
 
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
@@ -322,22 +323,30 @@ for (const [path, lang] of [['./pay-report.html', 'ja'], ['./en/pay-report.html'
   const q = (s) => (s == null ? 'null' : `'${String(s).replace(/'/g, "''")}'`);
   const rows = (list, cols) => list.map((x) => `  (${cols.map((c) => c(x)).join(', ')})`).join(',\n');
 
-  /* 換算レートは currency.js の RATES（1通貨あたりの円）をそのまま持ってくる。
-     ここで別の数字を書くと、サイトの表示と DB の集計が食い違う。 */
+  /* 換算レートは fx-rates.mjs（node gen-fx-rates.mjs が作る45通貨）が唯一の正。
+     2026-08-22 まではここで currency.js の RATES を読んでいたが、それは
+     サイトの通貨切替に出す7通貨しか無く、残り38通貨で出した人は to_usd が
+     無いまま集計から黙って外れていた（エバー航空の台湾ドル）。 */
+  const USD_JPY = JPY_PER.USD;
+  if (!USD_JPY) throw new Error('fx-rates.mjs に USD が無い');
+  for (const c of Object.keys(JPY_PER)) {
+    if (!CURRENCIES.some((x) => x.code === c)) throw new Error(`fx-rates.mjs にあって語彙に無い通貨: ${c}`);
+  }
+  for (const c of CURRENCIES) {
+    if (!(JPY_PER[c.code] > 0)) throw new Error(`語彙にあってレートが無い通貨: ${c.code}（node gen-fx-rates.mjs）`);
+  }
+
+  /* サイトの表示（currency.js）と DB の集計（fx_rates）が同じ数字を使っていること。
+     currency.js は非ESモジュールなので import できない。数値だけ突き合わせる。 */
   const cjs = readFileSync(new URL('./currency.js', import.meta.url), 'utf8');
   const mm = cjs.match(/var RATES = \{([^}]*)\};/);
   if (!mm) throw new Error('currency.js の RATES が読めない（形が変わった？）');
-  const JPY_PER = Object.fromEntries(
-    mm[1].split(',').map((kv) => {
-      const [k, v] = kv.split(':').map((s) => s.trim());
-      if (!/^[A-Z]{3}$/.test(k) || !(Number(v) > 0)) throw new Error(`RATES の要素が変: ${kv}`);
-      return [k, Number(v)];
-    }),
-  );
-  const USD_JPY = JPY_PER.USD;
-  if (!USD_JPY) throw new Error('RATES に USD が無い');
-  for (const c of Object.keys(JPY_PER)) {
-    if (!CURRENCIES.some((x) => x.code === c)) throw new Error(`currency.js にあって語彙に無い通貨: ${c}`);
+  for (const kv of mm[1].split(',')) {
+    const [k, v] = kv.split(':').map((x) => x.trim());
+    if (!/^[A-Z]{3}$/.test(k) || !(Number(v) > 0)) throw new Error(`RATES の要素が変: ${kv}`);
+    if (Number(v) !== JPY_PER[k]) {
+      throw new Error(`currency.js の ${k}=${v} が fx-rates.mjs の ${JPY_PER[k]} と違う（node gen-fx-rates.mjs で揃える）`);
+    }
   }
 
   const fxRows = Object.entries(JPY_PER)
@@ -419,11 +428,12 @@ update public.pv_contract_types set active = false where code not in (${CONTRACT
 update public.pv_currencies set active = false where code not in (${CURRENCIES.map((x) => q(x.code)).join(', ')});
 
 -- ── 換算レート ───────────────────────────────────────────────
--- ★ currency.js の RATES（1通貨あたりの円。USD 1 = ${USD_JPY} 円）から生成。
--- ★ ${CURRENCIES.length} 通貨のうちレートがあるのは ${Object.keys(JPY_PER).length} 通貨だけ。
---    残りは to_usd が無いので annual_total_usd が null になり、pay_benchmarks から外れる。
+-- ★ fx-rates.mjs（1通貨あたりの円。USD 1 = ${USD_JPY} 円）から生成。
+--    基準日 ${FX_AS_OF} / 出所 ${FX_SOURCE} / 取り直しは node gen-fx-rates.mjs。
+-- ★ 語彙の ${CURRENCIES.length} 通貨すべてにレートがある（2026-08-22 に7→${Object.keys(JPY_PER).length}）。
+--    レートが無い通貨で出すと to_usd が無く annual_total_usd が null になり、
+--    pay_benchmarks から黙って外れる。実際にエバー航空の台湾ドルが1件外れていた。
 --    原本（currency ＋ 各金額）は必ず保存されるので、レートを入れた時点で再計算できる。
---    → レート取得は別途対応（当面はこの7通貨が集計対象）。
 create table if not exists public.fx_rates (
   code   char(3) primary key references public.pv_currencies(code),
   to_usd numeric(14,6) not null check (to_usd > 0),
@@ -435,6 +445,43 @@ insert into public.fx_rates (code, to_usd, to_jpy) values
 ${fxRows}
 on conflict (code) do update
   set to_usd = excluded.to_usd, to_jpy = excluded.to_jpy, as_of = current_date;
+
+-- ── レートが無くて集計から外れていた行を戻す ──────────────────
+-- レートが無い通貨で出した行は annual_total_usd が null になり、pay_benchmarks の
+-- 対象から外れる（提出は成功しているので本人には見えている）。原本の
+-- annual_total_orig と currency は残っているので、レートが入った今なら計算し直せる。
+-- ★ null の行だけを触る＝何度流しても同じ。既に入っている行のレートは書き替えない
+--   （提出時点のレートで確定させる。あとから全部を今日のレートに揃えると、
+--     過去の集計が流すたびに動いて再現しなくなる）。
+-- ★ pay_reports がまだ無い環境（語彙を先に流す）でも落ちないように包む。
+do $$
+declare n int;
+begin
+  if to_regclass('public.pay_reports') is null then
+    raise notice 'pay_reports がまだ無いので取りこぼしの復旧はしない';
+    return;
+  end if;
+
+  with fixed as (
+    update public.pay_reports r
+       set fx_to_usd = f.to_usd,
+           fx_to_jpy = f.to_jpy,
+           fx_at     = f.as_of,
+           annual_total_usd = round(r.annual_total_orig * f.to_usd, 2),
+           annual_total_jpy = round(r.annual_total_orig * f.to_jpy, 2),
+           usd_per_block_hour = case when coalesce(r.block_hours, 0) > 0
+                then round(round(r.annual_total_orig * f.to_usd, 2) / (12 * r.block_hours), 2) end,
+           net_annual_jpy = case when r.tax_rate_pct is not null
+                then round(round(r.annual_total_orig * f.to_jpy, 2) * (1 - r.tax_rate_pct / 100), 2) end
+      from public.fx_rates f
+     where f.code = r.currency
+       and r.annual_total_usd is null
+       and r.annual_total_orig is not null
+    returning 1)
+  select count(*) into n from fixed;
+
+  raise notice '取りこぼしを復旧: % 件', n;
+end $$;
 
 -- 語彙は誰でも読める（フォームのラベルに使う）。書き込みポリシーは作らない。
 do $$

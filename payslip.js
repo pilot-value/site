@@ -2932,7 +2932,9 @@
     if (window.PVCurrency && typeof window.PVCurrency.fmt === 'function') return window.PVCurrency.fmt(v);
     return '¥' + (v / 10000).toLocaleString('en-US') + '万';
   }
-  /* 明細の原本通貨 → 円。レートは currency.js の RATES ＝ DB の fx_rates と同じ7通貨・同じ値。
+  /* 明細の原本通貨 → 円。レートは currency.js の RATES（fx-rates.mjs から作られる）。
+     ここに出せるのは通貨切替に載せている7通貨だけ。DB の fx_rates は45通貨あるので、
+     それ以外の通貨で出した人はこの画面では円に直らないが、保存も集計もされる。
      ここで別のレートを使うと、画面の比較と送信後に保存される換算額が食い違う。 */
   function toJpy(v, cur) {
     var R = (window.PVCurrency && window.PVCurrency.rates) || { JPY: 1 };

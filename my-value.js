@@ -586,7 +586,7 @@
   }
   // pay_benchmarks は USD 建て。サイトの表示レートで円に直す（lp.js と同じ既定値）。
   function usdToJpy(usd) {
-    var r = (w.PVCurrency && w.PVCurrency.rates && w.PVCurrency.rates.USD) || 160;
+    var r = (w.PVCurrency && w.PVCurrency.rates && w.PVCurrency.rates.USD) || 158.95;
     return usd * r;
   }
   function median(list) {

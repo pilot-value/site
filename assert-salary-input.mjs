@@ -11,9 +11,11 @@
 // 通貨を往復させても保存値が動かないことが要（丸めで痩せると一次データが静かに壊れる）。
 // localhost 必須。使い方: node serve.mjs を起動してから node assert-salary-input.mjs
 import puppeteer from 'puppeteer';
+import { JPY_PER } from './fx-rates.mjs';
 
 const BASE = 'http://localhost:3000';
-const RATES = { JPY: 1, USD: 160, EUR: 172, AED: 40.8 };   // currency.js と同じ固定レート
+// レートは fx-rates.mjs が唯一の正（currency.js もそこから作られる）。ここに数字を書き写さない
+const RATES = Object.fromEntries(['JPY', 'USD', 'EUR', 'AED'].map((c) => [c, JPY_PER[c]]));
 
 let fail = 0, pass = 0;
 function check(name, got, want) {

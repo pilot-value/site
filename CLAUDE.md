@@ -26,6 +26,22 @@ baland_ass/                            ブランド資産（※ brand_assets の
 - 数字を盛らない。確認できない数値を推測で埋めない。検証できないものを「Verified」と表示しない（[VERIFIED-PILOT.md](VERIFIED-PILOT.md)）。
 - **数値の出所は [salary-sources.mjs](salary-sources.mjs)、方針は [DATA-PROVENANCE.md](DATA-PROVENANCE.md)。** 数値を変えたら出所を同じコミットで入れる。SALARY 本体に `src` を足さない（[gen-salary-json.mjs](gen-salary-json.mjs) が `{ ...d }` で展開するので出所URLが `salary-data.json` に載って公開される）。出所資料の原本は `sources-raw/`（gitignore 済み）に置き、リポジトリに commit しない。
 
+## 単一データソースの鉄則（為替）
+- 換算レートの唯一の正は [fx-rates.mjs](fx-rates.mjs) の `JPY_PER`（**45通貨・1単位あたりの円**）と `AS_OF`。手編集しない。
+- 取り直しは [gen-fx-rates.mjs](gen-fx-rates.mjs)。`fx-rates.mjs` を書き出し、[currency.js](currency.js) の `RATES` と `AS_OF` も同時に直す。
+  **⚠️ ネットを叩くのでデプロイ前チェックの一覧には入れない。** `--check` で差分だけ見られる。
+- レートは2か所で使う。**この2つは必ず同じ値でなければならない。**
+  - 画面の通貨切替 = `currency.js` の `RATES`（7通貨だけ。切替メニューに出る分）
+  - 集計 = Supabase の `fx_rates` テーブル（45通貨。`db/vocab.generated.sql` に入る）
+  ズレは [gen-vocab.mjs](gen-vocab.mjs) が検出して落とす（語彙にある通貨のレートが無いときも落ちる）。
+- **レートを取り直したら `node gen-vocab.mjs` を流し、`db/vocab.generated.sql` をオーナーが Supabase に貼る。**
+  貼るまで DB のレートは古いまま＝新しい通貨の投稿が集計から外れ続ける。
+- **`annual_total_usd` は投稿した瞬間に確定する。** レートが無い通貨は `null` のまま集計から落ちる
+  （2026-08-22 まで7通貨しか無く、台湾ドルのエバー航空1件が実際に落ちていた）。
+  `db/vocab.generated.sql` の末尾に**落ちた行を拾い直すブロック**が入っている。既に値がある行は触らないので、
+  過去の集計は投稿時のレートのまま再現できる。
+- レートは腐る。**半年に一度は `node gen-fx-rates.mjs` で取り直す。**
+
 ## 新しいスクリプトを書く前に
 - **まず既存の約49本を探す。** `ls *.mjs` して、近いものが無いか確認してから作る。
 - 実際に `patch-payslip.mjs` 〜 `patch-payslip5.mjs` と5本に増殖した前例がある。連番を足す前に、既存を直せないか考える。

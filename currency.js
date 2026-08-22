@@ -19,7 +19,7 @@
 
   // ── 固定・概算 為替レート（JPY / 1通貨単位）。オーナーが1箇所で編集可 ──
   // 概算・2026年時点。表示専用（SSOT の円は不変）。数値は後から1箇所で調整可。
-  var RATES = { JPY: 1, USD: 160, EUR: 172, GBP: 190, AUD: 100, SGD: 112, AED: 40.8 };
+  var RATES = { JPY: 1, USD: 158.95, EUR: 185.69, GBP: 216.76, AUD: 113.88, SGD: 125.24, AED: 43.2825 };
   var ORDER = ['JPY', 'USD', 'EUR', 'GBP', 'AUD', 'SGD', 'AED'];
   var SYM   = { USD: '$', EUR: '€', GBP: '£', AUD: 'A$', SGD: 'S$', AED: 'AED ' };
   // LABEL は記号と通貨コードだけなので言語で変わらない。
@@ -32,7 +32,7 @@
     ja: { JPY: '日本円', USD: '米ドル', EUR: 'ユーロ', GBP: '英ポンド', AUD: '豪ドル', SGD: 'シンガポールドル', AED: 'UAEディルハム' },
     en: { JPY: 'Japanese Yen', USD: 'US Dollar', EUR: 'Euro', GBP: 'British Pound', AUD: 'Australian Dollar', SGD: 'Singapore Dollar', AED: 'UAE Dirham' }
   };
-  var AS_OF = { ja: '2026年時点', en: 'as of 2026' };
+  var AS_OF = { ja: '2026年8月時点', en: 'as of Aug 2026' };
   var NOTE  = {
     ja: function (asOf) { return '為替は概算・固定レート（' + asOf + '）。表示は目安です。'; },
     en: function (asOf) { return 'Approximate fixed rates (' + asOf + '). Figures are indicative.'; }
