@@ -5,10 +5,19 @@
    飛んでいなかった（cron も GitHub Actions も無い）。この関数を
    Database Webhook から呼ぶことで、投稿・登録・問い合わせの瞬間に届く。
 
-   1本で3つのテーブルを捌く：
-     reviews_v2 … 新着口コミ（品質フラグ付き）
-     profiles   … 新規会員
-     contacts   … お問い合わせ（返信先を投稿者のメールに設定）
+   1本で6つのテーブルを捌く：
+     reviews_v2          … 新着口コミ（品質フラグ付き）
+     profiles            … 新規会員
+     contacts            … お問い合わせ（返信先を投稿者のメールに設定）
+     pay_reports         … 給与レポート（★金額は載せない）
+     pay_reports_pending … 会員登録せずに出した給与レポート（預かり）
+     airline_conditions  … 待遇アンケートの回答（1問＝1通）
+
+   ★ 金額をメールに載せないのは決めごと。給与レポートは user_id を持たない設計で
+     「誰がいくら」を運営側に残さない（db/pay-reports.sql）。1件単位の報酬額を
+     メールにすると、受信箱と Resend の送信ログに残る＝設計で守ったものを
+     送信で外に出すことになる。金額は Supabase の Table editor で見る。
+     手元の `node assert-admin-notify.mjs` が、漏れていないことを毎回確かめる。
 
    ── 設計上の約束（translate-review と同じ）──────────────────
    1. 本文は必ず DB から読み直す。webhook のペイロードに入っている
@@ -34,11 +43,14 @@
                          x-pv-webhook-secret として同じ値を入れる。
    SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY は Supabase が自動で入れる。
 
-   ── Webhook（オーナー作業・3本つくる）──────────────────────
-   Database → Webhooks → Create a new hook
-     Table: reviews_v2 ／ Events: Insert ／ Type: Supabase Edge Functions → notify-admin
-     Table: profiles   ／ Events: Insert ／ Type: Supabase Edge Functions → notify-admin
-     Table: contacts   ／ Events: Insert ／ Type: Supabase Edge Functions → notify-admin
+   ── Webhook（オーナー作業・6本つくる）──────────────────────
+   db/notify-admin-webhooks.sql を SQL Editor に貼って Run するのが早い（6本まとめて作る）。
+   画面から作る場合は Database → Webhooks → Create a new hook を6回。
+   いずれも Events: Insert のみ ／ Type: Supabase Edge Functions → notify-admin
+     reviews_v2 ／ profiles ／ contacts ／
+     pay_reports ／ pay_reports_pending ／ airline_conditions
+   ★ Insert のみに固定する。口コミの自動翻訳の UPDATE で二重に飛ぶのを防ぐのと、
+     給与レポートの出し直し（on conflict do update）で通知が増えないようにするため。
    ════════════════════════════════════════════════════════════════ */
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
@@ -140,6 +152,18 @@ async function sbSelect(table: string, id: string, select: string) {
   return Array.isArray(rows) ? rows[0] ?? null : null;
 }
 
+/* 任意の条件で引く。sbSelect は id=eq.<id> 固定なので、
+   「この人がこれまでに何問答えたか」のような数え上げはこちらを使う。 */
+async function sbList(table: string, query: string, select: string) {
+  const url = `${SUPABASE_URL}/rest/v1/${table}?${query}&select=${encodeURIComponent(select)}`;
+  const res = await fetch(url, {
+    headers: { apikey: SERVICE_ROLE, Authorization: `Bearer ${SERVICE_ROLE}` },
+  });
+  if (!res.ok) throw new Error(`${table} REST ${res.status}: ${(await res.text()).slice(0, 200)}`);
+  const rows = await res.json();
+  return Array.isArray(rows) ? rows : [];
+}
+
 const shell = (title: string, lead: string, inner: string) =>
   `<div style="font-family:-apple-system,'Segoe UI',sans-serif;max-width:720px;margin:0 auto;color:#111">
     <h2 style="font-size:18px;margin:0 0 4px">${title}</h2>
@@ -199,15 +223,37 @@ async function buildReview(id: string): Promise<Mail | null> {
 
 /* ── profiles ─────────────────────────────────────────────── */
 async function buildProfile(id: string): Promise<Mail | null> {
-  const r = await sbSelect('profiles', id, 'id,name,email,company,position,country,created_at');
+  const r = await sbSelect('profiles', id, 'id,name,email,company,position,country,email_opt_in,created_at');
   if (!r) return null;
+
+  // ★ email が無い行は「新規登録」ではない。
+  //   投稿・招待まわりの4つの RPC が、profiles の行が無い既存会員を救うために
+  //   `insert into public.profiles (id) values (...)` を打つ（db/pay-reports.sql:660 ほか）。
+  //   それも INSERT なので webhook が飛ぶ。本物の登録は handle_new_user が
+  //   auth.users から必ず email を入れる（db/schema-additions.sql:81-）ので、
+  //   ここが空なら補完の行だと断定できる。件名で区別しないと、中身が全部「—」の
+  //   「新規会員登録 — 氏名なし」が新規登録として届き続ける。
+  const real = typeof r.email === 'string' && r.email.includes('@');
+
+  if (!real) {
+    return {
+      subject: '【PILOT VALUE】会員情報の行を作成（新規登録ではありません）',
+      html: shell('会員情報の行が1件作られました',
+        `${esc(r.created_at)} に作られました。<b>新規登録ではありません。</b>`
+        + '既に登録済みの方が投稿・招待などをしたときに、欠けていた会員情報の行が'
+        + '補われたものです。中身が空なのは正常です。',
+        table(row('会員ID', esc(r.id)))),
+    };
+  }
+
   return {
-    subject: `【PILOT VALUE】新規会員登録 — ${r.name ?? r.email ?? '氏名なし'}`,
+    subject: `【PILOT VALUE】新規会員登録 — ${r.name ?? r.email}`,
     html: shell('新規の会員登録が1件あります', `${esc(r.created_at)} に登録されました。`, table(
       row('氏名', esc(r.name ?? '—')) +
-      row('メール', esc(r.email ?? '—')) +
+      row('メール', esc(r.email)) +
       row('在籍 / 職位', `${esc(r.company ?? '—')} / ${esc(POS[r.position] ?? r.position ?? '—')}`) +
-      row('居住国', esc(r.country ?? '—')),
+      row('居住国', esc(r.country ?? '—')) +
+      row('メール受信の同意', r.email_opt_in ? 'あり' : 'なし'),
     )),
   };
 }
@@ -232,6 +278,140 @@ async function buildContact(id: string): Promise<Mail | null> {
       )),
   };
 }
+
+/* ── pay_reports ──────────────────────────────────────────── */
+/* 給与レポート。
+   ★ 金額は1つも載せない。SELECT にすら入れない＝事故で本文に出る道を作らない。
+     明細の項目名も出さない（手当の呼び名は勤務先が割れる社内語彙になりうる）。
+   ★ 出し直し（同じ社・同じ月）は on conflict do update ＝ UPDATE なのでここには
+     来ない（下の dispatch が INSERT 以外を落とす）。新規のぶんだけ届く。
+   ★ 登録前の預かりを後から本登録したぶんも、claim_pending_report が
+     submit_pay_report を呼ぶので同じ経路で届く。 */
+async function buildPayReport(id: string): Promise<Mail | null> {
+  const r = await sbSelect('pay_reports', id,
+    'id,created_at,airline,airline_other,period_year,period_month,position,fleet,job_role,'
+    + 'currency,source,lang,payslip_detail');
+  if (!r) return null;
+
+  const ym = `${r.period_year}-${String(r.period_month).padStart(2, '0')}`;
+  const co = r.airline_other ? `${r.airline}（${r.airline_other}）` : String(r.airline ?? '—');
+  // 文言は db/usage.mjs の「入れ方」と揃える。同じものの言い方を増やさない。
+  const how = r.source === 'payslip' ? '明細から' : '手入力';
+  // 内訳は「何項目あったか」だけ。ラベルも金額も出さない。
+  const lines = Array.isArray(r.payslip_detail?.earnings) ? r.payslip_detail.earnings.length : 0;
+
+  return {
+    subject: `【PILOT VALUE】給与レポート — ${r.airline ?? '不明'} / ${ym}`,
+    html: shell('給与レポートが1件あります',
+      `${esc(r.created_at)} に提出されました。`
+      + '金額はメールに載せません（Supabase の pay_reports で確認してください）。',
+      table(
+        row('航空会社', esc(co)) +
+        row('対象月', esc(ym)) +
+        row('入れ方', esc(how)) +
+        row('職位 / 機種', `${esc(POS[r.position] ?? r.position ?? '—')} / ${esc(r.fleet ?? '—')}`) +
+        row('区分', esc(r.job_role ?? '—')) +
+        row('通貨', esc(r.currency ?? '—')) +
+        row('明細の内訳', lines ? `${lines}項目` : 'なし') +
+        row('言語', esc(r.lang === 'ja' ? '日本語' : r.lang ?? '—')),
+      )),
+  };
+}
+
+/* ── pay_reports_pending ──────────────────────────────────── */
+/* 会員登録せずに給与明細を出した人（db/pay-report-pending.sql）。
+   「出したのに登録しなかった」離脱が、この通知でしか見えない。
+   ★ payload は SELECT しない。中に金額が丸ごと入っている。 */
+async function buildPayReportPending(id: string): Promise<Mail | null> {
+  const r = await sbSelect('pay_reports_pending', id,
+    'id,created_at,airline,period_year,period_month,lang');
+  if (!r) return null;
+
+  const ym = `${r.period_year}-${String(r.period_month).padStart(2, '0')}`;
+
+  return {
+    subject: `【PILOT VALUE】給与レポート（登録前の預かり）— ${r.airline ?? '不明'} / ${ym}`,
+    html: shell('会員登録前の給与レポートが1件あります',
+      `${esc(r.created_at)} に出されました。まだ会員登録していない方です。`
+      + '<b>登録が済むと「給与レポート」の通知がもう1通届きます。</b>'
+      + '届かなければ、その方は登録せずに離脱しています。',
+      table(
+        row('航空会社', esc(r.airline)) +
+        row('対象月', esc(ym)) +
+        row('言語', esc(r.lang === 'ja' ? '日本語' : r.lang ?? '—')) +
+        row('状態', '登録待ち'),
+      )),
+  };
+}
+
+/* ── airline_conditions ───────────────────────────────────── */
+/* 待遇アンケート。1問答えるごとに1行入るので、1問ごとに1通届く。
+   ★ スキップの行では送らない。skipped_at が立っていて答えの列は全部 null
+     （db/airline-conditions.sql の ac_answer_any_ck）。これが無いと、
+     質問を飛ばすたびに中身の無いメールが飛ぶ。
+   ★ 金額の回答と自由記述は中身を出さない。answer_text はスキーマが
+     「≤300字・非公開」と書いている列。
+   ★ 選択肢のコード（yes / partial / unknown …）は日本語に直さずそのまま出す。
+     ここに対応表を書くと語彙のコピーが増えて必ず本体とずれる
+     （同じ品質判定が5か所に散って事故った前例がある）。 */
+async function buildCondition(id: string): Promise<Mail | null> {
+  const r = await sbSelect('airline_conditions', id,
+    'id,created_at,proof_hash,airline,airline_other,question_id,'
+    + 'answer_code,answer_codes,answer_num,answer_currency,answer_text,skipped_at,'
+    + 'position,fleet,lang');
+  if (!r) return null;
+  if (r.skipped_at) return null;   // スキップは通知しない
+
+  // question_id は pv_condition_questions の主キーなので、既存のヘルパがそのまま使える
+  const q = await sbSelect('pv_condition_questions', r.question_id, 'id,label_ja,kind,has_currency');
+
+  // 質問マスタが引けなかったときは「金額かもしれない」側に倒す（数値を出さない）
+  const money = q ? (q.has_currency === true || r.answer_currency != null) : true;
+
+  let ans: string;
+  if (Array.isArray(r.answer_codes) && r.answer_codes.length) ans = r.answer_codes.join(' / ');
+  else if (r.answer_code != null) ans = String(r.answer_code);
+  else if (money) ans = '金額の回答あり（メールには載せません）';
+  else if (r.answer_num != null) ans = String(r.answer_num);
+  else if (r.answer_text != null) ans = '自由記述あり（メールには載せません）';
+  else ans = '—';
+  // 選択肢に自由記述が添えられている場合も、付いている事実だけは伝える
+  if (r.answer_text != null && !ans.startsWith('自由記述')) ans += '（自由記述あり）';
+
+  // この人の累計。skipped_at が null ＝ 答えた行（ac_answer_any_ck と、
+  // 答え直しで skipped_at を null に戻す実装が保証している）。
+  // ★ 数え上げに失敗しても通知そのものは落とさない。この通知の値打ちは
+  //   「どの質問にどう答えたか」で、累計はおまけ。数えられなければ黙って省く。
+  let total = '';
+  try {
+    const done = await sbList('airline_conditions',
+      `proof_hash=eq.${encodeURIComponent(r.proof_hash)}&skipped_at=is.null`, 'id');
+    const all = await sbList('pv_condition_questions', 'active=eq.true', 'id');
+    if (all.length) total = `${done.length} / ${all.length}問`;
+  } catch (e) {
+    console.error('待遇の累計を数えられませんでした', String(e));
+  }
+
+  const co = r.airline_other ? `${r.airline}（${r.airline_other}）` : String(r.airline ?? '—');
+
+  return {
+    subject: `【PILOT VALUE】待遇アンケート — ${r.airline ?? '不明'}`,
+    html: shell('待遇アンケートに回答が1件あります',
+      `${esc(r.created_at)} に回答されました。1問ごとに1通届きます。`,
+      table(
+        row('航空会社', esc(co)) +
+        row('質問', esc(q?.label_ja ?? r.question_id)) +
+        row('答え', esc(ans)) +
+        (total ? row('この人の累計', total) : '') +
+        row('職位 / 機種', `${esc(POS[r.position] ?? r.position ?? '—')} / ${esc(r.fleet ?? '—')}`) +
+        row('言語', esc(r.lang === 'ja' ? '日本語' : r.lang ?? '—')),
+      )),
+  };
+}
+
+/* 手元の検査（assert-admin-notify.mjs）が実体をそのまま動かせるように出す。
+   translate-review/index.ts と同じ形。Deno 側では無害。 */
+export { buildReview, buildProfile, buildContact, buildPayReport, buildPayReportPending, buildCondition };
 
 async function send(mail: Mail, idemKey: string) {
   const res = await fetch('https://api.resend.com/emails', {
@@ -277,10 +457,16 @@ Deno.serve(async (req) => {
   if (!tbl || !id) return json({ ok: true, note: 'no table/id in payload' });
   if (type !== 'INSERT') return json({ ok: true, note: `ignored event ${type}` });
 
+  // ⚠️ ここに足したら db/notify-admin-webhooks.sql の表の配列にも足す。
+  //    片方だけだと「実装は正しく見えるのに一通も届かない」という静かな壊れ方をする。
+  //    assert-admin-notify.mjs が両者の顔ぶれの一致を見張っている。
   const builders: Record<string, (id: string) => Promise<Mail | null>> = {
     reviews_v2: buildReview,
     profiles: buildProfile,
     contacts: buildContact,
+    pay_reports: buildPayReport,
+    pay_reports_pending: buildPayReportPending,
+    airline_conditions: buildCondition,
   };
   const build = builders[tbl];
   if (!build) return json({ ok: true, note: `unhandled table ${tbl}` });

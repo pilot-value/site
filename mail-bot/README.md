@@ -8,9 +8,13 @@
 
 > ⚠️ **管理者通知の主役は Edge Function に移りました。**
 > 日常の通知は `supabase/functions/notify-admin/index.ts` が Database Webhook から
-> 呼ばれて**投稿・登録・問い合わせの瞬間**に飛びます（reviews_v2 / profiles / contacts の3本）。
+> 呼ばれて**投稿・登録・問い合わせの瞬間**に飛びます。2026-08-23 から**6本**です:
+> reviews_v2 / profiles / contacts / pay_reports / pay_reports_pending / airline_conditions。
 > `admin-notify.mjs` は消していません。**まとめ通知・過去分の `--backfill`・
 > `--dry-run` での下見**という手動ツールとして残しています。
+> ⚠️ ただし `admin-notify.mjs` が扱うのは **reviews_v2 と profiles の2つだけ**です。
+> 給与レポート・預かり・待遇アンケートは**この手動ツールでは出ません**（Edge Function 側だけ）。
+> 増やさないのは意図的で、ビルダーのコピーが増えると必ず本体とずれるためです。
 > 両方を動かすと同じ新着が二重に届くので、**cron には登録しないでください**
 > （Edge Function 側だけで足ります）。品質フラグのロジックは
 > `submit-review.html` / `admin-notify.mjs` / `notify-admin/index.ts` の3箇所に

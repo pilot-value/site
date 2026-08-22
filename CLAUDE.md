@@ -46,6 +46,14 @@ baland_ass/                            ブランド資産（※ brand_assets の
 - **まず既存の約49本を探す。** `ls *.mjs` して、近いものが無いか確認してから作る。
 - 実際に `patch-payslip.mjs` 〜 `patch-payslip5.mjs` と5本に増殖した前例がある。連番を足す前に、既存を直せないか考える。
 - 一括編集スクリプトは**冪等・再実行可能**に書く。手本は [patch-site-salaries.mjs](patch-site-salaries.mjs)（再ソートと pct 再計算まで含めて何度実行しても同じ結果になる）。
+- **⚠️ `String.replace(old, new)` の「新しい側」を文字列で渡さない。** 中の `$` が特殊記号として解釈される。
+  `$$` は `$` に潰れ、`$&` はマッチそのもの、`` $` `` はマッチより前全体、
+  **`$'` はマッチより後ろ全体**に化ける。
+  2026-08-23、`db/notify-admin-webhooks.sql` を一括編集して `do $$` が `do $` になり、
+  さらに `$'` がファイル末尾の確認クエリを途中に丸ごと流し込んだ（115行 → 212行）。
+  **手元の検査は全部通ったまま**で、本番の SQL Editor に貼って初めて構文エラーで気づいた。
+  必ず**関数形** `s.replace(old, () => neu)` で書く（関数形は `$` を素通しする）。
+  SQL・正規表現・シェルなど `$` を含むファイルを触るときは特に。
 
 ## ⚠️ 再実行してはいけないスクリプト
 `gen_asia.mjs` / `gen_europe.mjs` / `gen_americas.mjs` / `gen_mideast_africa.mjs` / `generate_airlines.mjs` / `generate_world_airlines.mjs` / `gen_en_airlines.mjs` / `seo-title-update.mjs` / `seo-phase2.mjs` / `seo-batch-update.mjs` / `seo-content-expand.mjs`
@@ -214,6 +222,27 @@ baland_ass/                            ブランド資産（※ brand_assets の
    本物の30日／1ヶ月（台湾のホテル・IPハッシュの保持・預かり証・ログイン最長・退会後の削除・
    有給15〜30日・口コミ本文の引用）は消さない。除外は同スクリプトと `assert-unlock.mjs` の `ALLOW` に理由つきで置く。
    **localhost が要る。本番の DB には触らない**（Supabase ごと差し替える。見た目は `node shot-unlock.mjs` が撮る）
+
+18. `node assert-admin-notify.mjs` — 管理者への通知メール（[notify-admin](supabase/functions/notify-admin/index.ts)）の検査。
+   1本の Edge Function が**6つの表**を捌く（口コミ／新規会員／問い合わせ／給与レポート／
+   登録前の預かり／待遇アンケート）。見るのは6つ:
+   ① **給与まわりのメールに金額・明細の項目名が1文字も出ないこと。**
+     給与レポートは `user_id` を持たない設計で「誰がいくら」を運営側に残さない（[db/pay-reports.sql](db/pay-reports.sql)）。
+     メールに載せると受信箱と Resend の送信ログに残る＝設計で守ったものを送信で外に出す。
+     待遇の金額回答と自由記述（スキーマが「非公開」と書いている列）も同じ扱い
+   ② **`builders` の顔ぶれと [db/notify-admin-webhooks.sql](db/notify-admin-webhooks.sql) の表の配列が一致すること。**
+     いちばん静かな壊れ方はこれ。片方だけ足すと実装は正しく見えるのに一通も届かない
+   ③ 待遇の**スキップの行では送らない**こと（スキップも本物の行として保存されるので、
+     飛ばすたびに中身の無いメールが飛ぶ）
+   ④ 「明細から／手入力」の言い方が [db/usage.mjs](db/usage.mjs) と揃っていること
+   ⑤ 待遇の**累計（n / 32問）を数えられなくても通知そのものは落ちない**こと。
+     累計はおまけで、値打ちは「どの質問にどう答えたか」の側にある。
+     数えられないときは行ごと省く（「0 / 0問」のような嘘の数字を出さない）
+   ⑥ **`db/notify-admin-webhooks.sql` が壊れていないこと**（`$$` が対・確認クエリが1つだけ）。
+     オーナーが Supabase に貼るまで構文エラーに気づけないので、ここで見る
+     （上の「新しいスクリプトを書く前に」の `String.replace` の罠を参照）
+   本体（`.ts`）を Node 24 の直読みでそのまま import し、`fetch` だけ差し替える。
+   **ネットも鍵も localhost も使わない**
 
 **`supabase/functions/` を触ったら push だけでは本番に反映されない。**
 Supabase ダッシュボード → Edge Functions → 該当関数 → コードを貼り替えて Deploy（オーナー作業）。
