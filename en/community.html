@@ -365,7 +365,7 @@
       </h1>
       <p class="text-muted text-base leading-relaxed max-w-xl mx-auto mb-8 fade-up" style="transition-delay:.1s">
         Real reviews from current and former pilots at more than 100 airlines worldwide, including ANA, JAL, Emirates and Delta.<br>
-        <strong class="text-text">Post one review and you can read every airline&rsquo;s reviews for a month.</strong>
+        <strong class="text-text">Post one review and you can read every airline&rsquo;s reviews.</strong>
       </p>
       <div class="flex flex-wrap justify-center gap-3 fade-up" style="transition-delay:.15s">
         <span class="privacy-badge"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M5 1L1 3v3c0 2 2 3 4 3s4-1 4-3V3L5 1z" fill="none" stroke="#34d399" stroke-width="1"/></svg>Fully anonymous</span>
@@ -409,7 +409,7 @@
       <div class="glass p-6 fade-up text-center" style="transition-delay:.07s">
         <div class="text-3xl mb-3">🔓</div>
         <div class="font-bold mb-2">② Unlock</div>
-        <p class="text-sm text-muted">Every airline&rsquo;s reviews open up for <strong>one month</strong>. The pay data is unlocked separately, by submitting one payslip, for 90 days.</p>
+        <p class="text-sm text-muted">Every airline&rsquo;s <strong>reviews open up</strong>. The pay data is unlocked separately, by submitting one payslip, for 90 days.</p>
       </div>
       <div class="glass p-6 fade-up text-center" style="transition-delay:.14s">
         <div class="text-3xl mb-3">📊</div>
@@ -453,7 +453,7 @@
       <h2 class="text-xl font-bold">Latest Reviews <span id="feed-count" class="text-sm font-normal text-muted ml-2"></span></h2>
       <!-- Hidden by default; JS restores display only when unlocked. -->
       <span id="unlock-badge" class="text-xs text-muted" style="display:none">
-        <span class="privacy-badge">🔓 1-month access active</span>
+        <span class="privacy-badge">🔓 Reviews unlocked</span>
       </span>
     </div>
 
@@ -590,8 +590,9 @@ function syncUnlockBadge() {
 }
 
 function unlockAccess() {
-  const expiry = Date.now() + 30 * 24 * 60 * 60 * 1000; // 30 days
-  localStorage.setItem('pv_unlock_expiry', expiry.toString());
+  // The review key never expires (pv-session.js PVUnlock is the source of truth).
+  const expiry = (window.PVUnlock && window.PVUnlock.reviewUntil) ? window.PVUnlock.reviewUntil() : Date.now() + 100 * 365 * 24 * 60 * 60 * 1000;
+  localStorage.setItem('pv_unlock_expiry', String(expiry));
   renderReviews(currentFilter);
   const gp = document.getElementById('gate-panel'); if (gp) gp.style.display = 'none';
   syncUnlockBadge();
@@ -671,7 +672,7 @@ function renderReviews(filter) {
     <div class="inline-block glass-raised px-8 py-6 rounded-2xl max-w-md mx-auto" style="border-color:rgba(245,200,66,.2)">
       <div class="text-2xl mb-2">🔒</div>
       <div class="font-bold text-lg mb-2">To see every review</div>
-      <p class="text-sm text-muted mb-5">Post one review of your own<br>and you can read every airline&rsquo;s reviews <strong class="text-text">free for one month</strong></p>
+      <p class="text-sm text-muted mb-5">Post one review of your own<br>and you can read every airline&rsquo;s reviews <strong class="text-text">for free</strong></p>
       <button onclick="openModal()" class="btn-orange">Post a review anonymously to unlock
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>

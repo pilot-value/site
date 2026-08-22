@@ -9,14 +9,14 @@
 <title>口コミを投稿する｜完全匿名 | PILOT VALUE</title>
 <!--PV-SEO-->
 <!--PV-SRC t="年収・口コミを投稿する | PILOT VALUE" d=""-->
-<meta name="description" content="所属航空会社・職位・勤務年数・年代と、7カテゴリの口コミを匿名で投稿できます。氏名もメールアドレスも投稿データには含まれません。1件の投稿で全社の口コミが30日間読めます。"/>
+<meta name="description" content="所属航空会社・職位・勤務年数・年代と、7カテゴリの口コミを匿名で投稿できます。氏名もメールアドレスも投稿データには含まれません。1件の投稿で全社の口コミが読めます。"/>
 <meta name="robots" content="noindex,follow"/>
 <link rel="canonical" href="https://pilot-value.com/submit-review.html"/>
 <link rel="alternate" hreflang="ja" href="https://pilot-value.com/submit-review.html"/>
 <link rel="alternate" hreflang="en" href="https://pilot-value.com/en/submit-review.html"/>
 <link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/submit-review.html"/>
 <meta property="og:title" content="口コミを投稿する｜完全匿名 | PILOT VALUE"/>
-<meta property="og:description" content="所属航空会社・職位・勤務年数・年代と、7カテゴリの口コミを匿名で投稿できます。氏名もメールアドレスも投稿データには含まれません。1件の投稿で全社の口コミが30日間読めます。"/>
+<meta property="og:description" content="所属航空会社・職位・勤務年数・年代と、7カテゴリの口コミを匿名で投稿できます。氏名もメールアドレスも投稿データには含まれません。1件の投稿で全社の口コミが読めます。"/>
 <meta property="og:url" content="https://pilot-value.com/submit-review.html"/>
 <meta property="og:type" content="website"/>
 <meta property="og:site_name" content="PILOT VALUE"/>
@@ -28,7 +28,7 @@
 <meta property="og:image:alt" content="口コミを投稿する｜完全匿名 | PILOT VALUE"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:title" content="口コミを投稿する｜完全匿名 | PILOT VALUE"/>
-<meta name="twitter:description" content="所属航空会社・職位・勤務年数・年代と、7カテゴリの口コミを匿名で投稿できます。氏名もメールアドレスも投稿データには含まれません。1件の投稿で全社の口コミが30日間読めます。"/>
+<meta name="twitter:description" content="所属航空会社・職位・勤務年数・年代と、7カテゴリの口コミを匿名で投稿できます。氏名もメールアドレスも投稿データには含まれません。1件の投稿で全社の口コミが読めます。"/>
 <meta name="twitter:image" content="https://pilot-value.com/assets/og/default-ja.jpg"/>
 <!--/PV-SEO-->
 
@@ -198,7 +198,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
         匿名投稿 — あなたが誰かは分かりません
       </div>
       <h1 class="text-3xl font-extrabold mb-3" style="letter-spacing:-.02em">口コミを投稿する</h1>
-      <p class="text-muted text-sm max-w-lg mx-auto">1件の投稿で、全社の口コミが<strong class="text-text">30日間</strong>読めるようになります。個人を特定できる情報はシステム上保存されません。</p>
+      <p class="text-muted text-sm max-w-lg mx-auto">1件の投稿で、全社の口コミが<strong class="text-text">読めるようになります</strong>。個人を特定できる情報はシステム上保存されません。</p>
     </div>
 
     <!-- Login gate (shown if not logged in) -->
@@ -642,7 +642,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
       <div id="step-success" class="card text-center" style="display:none">
         <h2 class="text-2xl font-extrabold mb-3">投稿ありがとうございます！</h2>
         <p class="text-muted text-sm mb-2">口コミが保存されました。</p>
-        <p class="text-sm mb-8">全社の口コミが<strong class="text-text" style="color:#f5c842">30日間</strong>読めるようになりました。</p>
+        <p class="text-sm mb-8">全社の口コミが<strong class="text-text" style="color:#f5c842">読めるようになりました</strong>。</p>
         <p class="text-muted" style="font-size:.78rem;margin:-22px 0 26px">年収データは給与明細を1枚出すと90日間開きます。</p>
         <div class="flex flex-col sm:flex-row gap-3 justify-center">
           <a href="community.html" class="btn-orange justify-center">口コミ一覧を見る →</a>
@@ -1195,7 +1195,7 @@ async function submitReview() {
   const err = document.getElementById('err3');
 
   // 最終送信前の品質再判定：画面ステップ操作でゲートを飛ばしても、
-  // 乱打・コピペは insert も 30日解放（pv_unlock_expiry）も一切させない。
+  // 乱打・コピペは insert も解放（pv_unlock_expiry）も一切させない。
   const reject = (msg) => {
     showFormAlert(err, msg, { strong: true, code: 'final' });
     btn.disabled = false;
@@ -1292,9 +1292,10 @@ async function submitReview() {
 
     if (error) throw error;
 
-    // 口コミ枠だけを30日開ける。年収枠（pv_salary_unlock_expiry）はここでは触らない
+    // 口コミ枠だけを開ける。年収枠（pv_salary_unlock_expiry）はここでは触らない
     // ＝年収は給与明細（pay-report.html）を出した人だけが見られる。
-    const exp = (Date.now() + 30*24*60*60*1000).toString();
+    // 口コミの鍵は時間で切れない（pv-session.js の PVUnlock が正）。
+    const exp = String((window.PVUnlock && window.PVUnlock.reviewUntil) ? window.PVUnlock.reviewUntil() : Date.now() + 100 * 365 * 24 * 60 * 60 * 1000);
     localStorage.setItem('pv_unlock_expiry', exp);
 
     // GA4 コンバージョン計測（投稿完了＋解放）

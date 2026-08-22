@@ -39,9 +39,27 @@
   var K_START = 'pv_session_start';
 
   // 解放の鍵。口コミ枠と年収枠は別物（口コミ→口コミ／明細→年収）。
-  var K_REVIEW = 'pv_unlock_expiry';           // 口コミが読める期限（30日）
+  var K_REVIEW = 'pv_unlock_expiry';           // 口コミが読める期限（切れない。下の PVUnlock）
   var K_SALARY = 'pv_salary_unlock_expiry';    // 年収が読める期限（明細で90日）
-  var K_GRAND  = 'pv_salary_grandfathered';    // 下の引き継ぎを済ませた目印
+
+  /* ★口コミの鍵に期限は無い。
+       サーバが覚えているのは「この人は口コミを出したことがあるか」だけで、これは
+       永久の事実（reviews_v2 の proof_hash）。localStorage 側はその写しにすぎない。
+       2026-08-22 まで 30日 を書いていたが、ログインのたび・航空会社ページを開くたびに
+       30日へ書き直されていたので、**実質はもう期限なしだった**。約束を実態に合わせた。
+     ★読み手（premium-auth-lock.js の validKey / community.html / profile.html / lp.js）は
+       今も `Date.now() < 数値` で見る。読み手を1つでも書き換えると、漏れた画面で解放が
+       消えるので、**遠い未来の時刻を書く**形にして読み手には一切触らない。
+     ★年収枠はここに来ない。あちらはサーバの access_until（90日）が正で、
+       pay-report.html / premium-auth-lock.js がその値をそのまま書く。 */
+  var REVIEW_UNLOCK_MS = 100 * 365 * 24 * 60 * 60 * 1000;   // = 実質「ずっと」
+  window.PVUnlock = {
+    REVIEW_KEY: K_REVIEW,
+    reviewUntil: function () { return Date.now() + REVIEW_UNLOCK_MS; },
+    setReview: function () {
+      try { localStorage.setItem(K_REVIEW, String(Date.now() + REVIEW_UNLOCK_MS)); } catch (e) {}
+    }
+  };
 
   // supabase-js v2 の保存キー。プロジェクト参照が入るのでパターンで拾う。
   var AUTH_RE = /^sb-.+-auth-token$/;
@@ -148,21 +166,12 @@
     try { sessionStorage.setItem('pv_expired', '1'); } catch (e) {}
   }
 
-  /* ── 一度きりの引き継ぎ（2026-09 以降はこの関数ごと削除してよい）──────
-     以前は口コミを1件出すと年収まで見えた。今は「口コミ→口コミ／明細→年収」に
-     分けたが、すでに口コミを出して年収が見えている人を、こちらの都合で期限前に
-     締め出さない。年収の鍵に「口コミの鍵と同じ期限」を書き写すだけ。
-     ★新しく30日／90日を与えない。約束した元の期限日に普通に切れる。
-     ★pv-session.js は年収ゲートを読む全ページで lp.js / premium-auth-lock.js /
-       salary-leveling.js より先に読まれるので、ここで書けば間に合う。 */
-  function grandfatherSalaryUnlock() {
-    if (get(K_GRAND)) return;                          // 引き継ぎは1回だけ
-    var exp = parseInt(get(K_REVIEW) || '0', 10);
-    if (!exp || exp <= Date.now()) return;             // 口コミの鍵が無い／もう切れている
-    var cur = parseInt(get(K_SALARY) || '0', 10);
-    if (!(cur > Date.now())) set(K_SALARY, String(exp));  // 明細で開いている人の期限は縮めない
-    set(K_GRAND, '1');
-  }
+  /* ── ここに「口コミの鍵の期限を年収の鍵へ書き写す」一度きりの引き継ぎがあった ──
+     昔は口コミ1件で年収まで見えたので、分離した際に既存の人を期限前に締め出さない
+     ための処置だった。2026-08-22、口コミの鍵の期限を外したので**削除した**。
+     残していたら「口コミ1件で年収データがずっと開く」になり、
+     出したものと返るものを一致させるという一番大事な約束が壊れる。
+     ⚠️ 戻さない。assert-unlock.mjs が復活を見張っている。 */
 
   function prefix() {
     return /^\/en\//.test(location.pathname) ? '../' : '';
@@ -201,7 +210,6 @@
   // ── 起動：まず同期で判定してから、以降の見張りを仕掛ける ──
   check();
   booted = true;
-  grandfatherSalaryUnlock();   // ← check() の後。失効で消した鍵を書き戻さないため
   if (isLoggedIn()) { sessionStart(); touch(); }
 
   ['pointerdown', 'keydown', 'scroll', 'touchstart'].forEach(function (ev) {

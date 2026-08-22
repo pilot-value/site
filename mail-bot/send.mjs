@@ -149,7 +149,7 @@ async function runWelcome() {
       <p style="margin:0 0 8px;font-weight:700">はじめの一歩</p>
       <ol style="margin:0 0 16px;padding-left:1.2em">
         <li>あなたの年収・待遇を<strong>1社ぶん匿名で投稿</strong>（所要3分・個人は特定されません）</li>
-        <li>その瞬間、<strong>全社の口コミが30日間解放</strong>されます（年収データは給与明細を1枚出すと90日間）</li>
+        <li>その瞬間、<strong>全社の口コミが解放</strong>されます（年収データは給与明細を1枚出すと90日間）</li>
       </ol>
       <p style="margin:0 0 20px"><a href="${SITE_URL}/submit-review.html" style="display:inline-block;background:#f5c842;color:#000;font-weight:800;text-decoration:none;padding:11px 22px;border-radius:9px">口コミを投稿してデータを解放する →</a></p>
       <p style="margin:0;color:#6b7280;font-size:13px">今後、年収データの更新や新着口コミ、新規エアライン情報を厳選してお届けします。不要になればいつでも下部から解除できます。</p>`;
@@ -202,7 +202,7 @@ async function runDigest() {
       <ul style="margin:0 0 14px;padding-left:1.2em;color:#374151">${listHtml}</ul>
       ${exHtml ? `<p style="margin:0 0 4px;font-weight:700">現場の声（抜粋）</p>${exHtml}` : ''}
       <p style="margin:16px 0 0"><a href="${SITE_URL}/community.html" style="display:inline-block;background:#f5c842;color:#000;font-weight:800;text-decoration:none;padding:11px 22px;border-radius:9px">最新の口コミを見る →</a></p>
-      <p style="margin:14px 0 0;color:#6b7280;font-size:13px">※ 詳細な年収データは、いずれか1社に口コミを投稿すると30日間解放されます。</p>`;
+      <p style="margin:14px 0 0;color:#6b7280;font-size:13px">※ 詳細な年収データは、給与明細を1枚出すと90日間解放されます。</p>`;
     try {
       await sendEmail(m.email, `【PILOT VALUE】新着口コミ ${reviews.length} 件のダイジェスト`, layout(inner, m.unsub_token));
       sent++;

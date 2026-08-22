@@ -12,7 +12,7 @@
    方針:
      投稿可能な全社コード（airline-codes.json ＝ SSOT salary-data.mjs から生成）
      ＋ 廃止済みの旧コードの proof_hash を計算し、分割した .in() で reviews_v2
-     を照合。1件でもヒットすれば「投稿済み」とみなし 30日間の全解放を復活。
+     を照合。1件でもヒットすれば「投稿済み」とみなし全解放を復活（期限なし）。
      匿名設計は一切壊さない。
 
    ★v1.1: 同じ総当たりの結果を捨てずに返すようにした。
@@ -31,7 +31,6 @@
 (function () {
   'use strict';
 
-  var UNLOCK_MS = 30 * 24 * 60 * 60 * 1000; // 30 days（premium-auth-lock.js と同一）
 
   // fetch 失敗時のフォールバック（airline-codes.json と同一・投稿可能セット）
   // ★ここは手で書かない。node gen-airline-codes.mjs が SSOT から書き換える。
@@ -59,8 +58,12 @@
   function setUnlock() {
     // 口コミ枠だけ。口コミフォームは金額を集めないので、口コミ＝給与提供ではない。
     // 給与枠は下の restoreSalaryUnlock() がサーバの access_until から復活させる。
+    // 口コミの鍵は時間で切れない（pv-session.js の PVUnlock が正）。
+    var until = (window.PVUnlock && window.PVUnlock.reviewUntil)
+      ? window.PVUnlock.reviewUntil()
+      : Date.now() + 100 * 365 * 24 * 60 * 60 * 1000;   // 読み込み順が崩れたときの保険
     try {
-      localStorage.setItem("pv_unlock_expiry", String(Date.now() + UNLOCK_MS));
+      localStorage.setItem("pv_unlock_expiry", String(until));
     } catch (e) {}
   }
 
@@ -185,7 +188,7 @@
 
   /**
    * ログイン済みユーザの解放を復活させる。
-   *   過去の口コミがあれば口コミ枠を30日／給与明細があれば給与枠を access_until まで。
+   *   過去の口コミがあれば口コミ枠を期限なしで／給与明細があれば給与枠を access_until まで。
    * @returns {Promise<boolean>} どちらか1つでも復活したら true
    */
   window.pvCheckReunlock = async function (sb, userId) {

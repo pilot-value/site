@@ -123,7 +123,7 @@ const COPY = {
   },
   'community.html': {
     ja: { t: 'パイロットの口コミ最新一覧｜全航空会社',
-          d: `現役・元パイロットによる航空会社の口コミを最新順に掲載。待遇・勤務環境・訓練・昇格について${N}社ぶんの声を匿名で読めます。1件投稿すると全社の口コミが1か月開きます。` },
+          d: `現役・元パイロットによる航空会社の口コミを最新順に掲載。待遇・勤務環境・訓練・昇格について${N}社ぶんの声を匿名で読めます。1件投稿すると全社の口コミが開きます。` },
     en: { t: 'Pilot Reviews — Latest from Every Airline',
           d: `Reviews from current and former airline pilots, newest first — pay, rosters, training and upgrade speed at ${N} airlines, anonymous. Post one review to unlock them all.` },
   },
@@ -177,9 +177,9 @@ const COPY = {
   },
   'submit-review.html': {
     ja: { t: '口コミを投稿する｜完全匿名',
-          d: '所属航空会社・職位・勤務年数・年代と、7カテゴリの口コミを匿名で投稿できます。氏名もメールアドレスも投稿データには含まれません。1件の投稿で全社の口コミが30日間読めます。' },
+          d: '所属航空会社・職位・勤務年数・年代と、7カテゴリの口コミを匿名で投稿できます。氏名もメールアドレスも投稿データには含まれません。1件の投稿で全社の口コミが読めます。' },
     en: { t: 'Submit Your Review — Fully Anonymous',
-          d: 'Post your airline, position, years of service, age band and a review across seven categories — anonymously. Neither your name nor your email is stored with it. One review unlocks every airline\'s reviews for 30 days.' },
+          d: 'Post your airline, position, years of service, age band and a review across seven categories — anonymously. Neither your name nor your email is stored with it. One review unlocks every airline\'s reviews.' },
   },
   /* noindex のページだが、ここを直しておかないと次に seo-normalize を流した人が
      旧タイトル（「市場価値レポート／あなたの年収は世界で何位か」）に巻き戻す。

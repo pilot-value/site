@@ -9,14 +9,14 @@
 <title>Submit Your Review — Fully Anonymous | PILOT VALUE</title>
 <!--PV-SEO-->
 <!--PV-SRC t="Submit Your Salary &amp; Review | PILOT VALUE" d=""-->
-<meta name="description" content="Post your airline, position, years of service, age band and a review across seven categories — anonymously. Neither your name nor your email is stored with it. One review unlocks every airline's reviews for 30 days."/>
+<meta name="description" content="Post your airline, position, years of service, age band and a review across seven categories — anonymously. Neither your name nor your email is stored with it. One review unlocks every airline's reviews."/>
 <meta name="robots" content="noindex,follow"/>
 <link rel="canonical" href="https://pilot-value.com/en/submit-review.html"/>
 <link rel="alternate" hreflang="ja" href="https://pilot-value.com/submit-review.html"/>
 <link rel="alternate" hreflang="en" href="https://pilot-value.com/en/submit-review.html"/>
 <link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/submit-review.html"/>
 <meta property="og:title" content="Submit Your Review — Fully Anonymous | PILOT VALUE"/>
-<meta property="og:description" content="Post your airline, position, years of service, age band and a review across seven categories — anonymously. Neither your name nor your email is stored with it. One review unlocks every airline's reviews for 30 days."/>
+<meta property="og:description" content="Post your airline, position, years of service, age band and a review across seven categories — anonymously. Neither your name nor your email is stored with it. One review unlocks every airline's reviews."/>
 <meta property="og:url" content="https://pilot-value.com/en/submit-review.html"/>
 <meta property="og:type" content="website"/>
 <meta property="og:site_name" content="PILOT VALUE"/>
@@ -28,7 +28,7 @@
 <meta property="og:image:alt" content="Submit Your Review — Fully Anonymous | PILOT VALUE"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:title" content="Submit Your Review — Fully Anonymous | PILOT VALUE"/>
-<meta name="twitter:description" content="Post your airline, position, years of service, age band and a review across seven categories — anonymously. Neither your name nor your email is stored with it. One review unlocks every airline's reviews for 30 days."/>
+<meta name="twitter:description" content="Post your airline, position, years of service, age band and a review across seven categories — anonymously. Neither your name nor your email is stored with it. One review unlocks every airline's reviews."/>
 <meta name="twitter:image" content="https://pilot-value.com/assets/og/default-en.jpg"/>
 <!--/PV-SEO-->
 
@@ -198,7 +198,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
         Anonymous — nobody can tell who you are
       </div>
       <h1 class="text-3xl font-extrabold mb-3" style="letter-spacing:-.02em">Submit your review</h1>
-      <p class="text-muted text-sm max-w-lg mx-auto">One review unlocks every airline's reviews for <strong class="text-text">30 days</strong>. No personally identifiable information is stored anywhere in the system.</p>
+      <p class="text-muted text-sm max-w-lg mx-auto">One review unlocks every airline's reviews. No personally identifiable information is stored anywhere in the system.</p>
     </div>
 
     <!-- Login gate (shown if not logged in) -->
@@ -642,7 +642,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
       <div id="step-success" class="card text-center" style="display:none">
         <h2 class="text-2xl font-extrabold mb-3">Thank you for your review!</h2>
         <p class="text-muted text-sm mb-2">Your review has been saved.</p>
-        <p class="text-sm mb-8">Every airline&rsquo;s reviews are now open to you for <strong class="text-text" style="color:#f5c842">30 days</strong>.</p>
+        <p class="text-sm mb-8">Every airline&rsquo;s reviews are now <strong class="text-text" style="color:#f5c842">open to you</strong>.</p>
         <p class="text-muted" style="font-size:.78rem;margin:-22px 0 26px">The pay data opens for 90 days when you submit one payslip.</p>
         <div class="flex flex-col sm:flex-row gap-3 justify-center">
           <a href="community.html" class="btn-orange justify-center">See all reviews →</a>
@@ -1199,7 +1199,7 @@ async function submitReview() {
   const err = document.getElementById('err3');
 
   // Re-run the quality check right before the final submission: even if the on-screen steps are
-  // skipped to bypass the gate, mashing and copy-paste never reach the insert or the 30-day
+  // skipped to bypass the gate, mashing and copy-paste never reach the insert or the review
   // unlock (pv_unlock_expiry).
   const reject = (msg) => {
     showFormAlert(err, msg, { strong: true, code: 'final' });
@@ -1298,9 +1298,10 @@ async function submitReview() {
 
     if (error) throw error;
 
-    // Unlock the review tier for 30 days only. The salary tier (pv_salary_unlock_expiry) is left
+    // Unlock the review tier only. The salary tier (pv_salary_unlock_expiry) is left
     // alone here — actual pay is for people who have submitted a payslip on pay-report.html.
-    const exp = (Date.now() + 30*24*60*60*1000).toString();
+    // The review key never expires (pv-session.js PVUnlock is the source of truth).
+    const exp = String((window.PVUnlock && window.PVUnlock.reviewUntil) ? window.PVUnlock.reviewUntil() : Date.now() + 100 * 365 * 24 * 60 * 60 * 1000);
     localStorage.setItem('pv_unlock_expiry', exp);
 
     // GA4 conversion tracking (submission completed + unlock)

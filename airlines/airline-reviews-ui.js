@@ -43,10 +43,10 @@
       // 未解放でも全件カードは出る（本文の先頭1/8だけ素で読める）ので「残りN件」ではない。
       gateAll: function (n) { return n + '件の口コミを全文で読む'; },
       lockedCta: '匿名で口コミを投稿して解放する',
-      gateDesc: '匿名の口コミを1件投稿するだけで<br>全社の口コミが30日間まるごと読めます。',
+      gateDesc: '匿名の口コミを1件投稿するだけで<br>全社の口コミがまるごと読めます。',
       gateBtn: '匿名で口コミを投稿して解放する',
       gateLogin: 'ログイン（投稿済みの方）',
-      gateFine: '完全匿名 · 名前不要 · 30日間アクセス',
+      gateFine: '完全匿名 · 名前不要',
       catFallback: '口コミ',
       pilot: 'パイロット',
       POS: { captain: '機長', fo: '副操縦士', cadet: '訓練生', former: '元乗務員', pilot: 'パイロット' },
@@ -59,7 +59,7 @@
       salaryLabels: ['年収', '月給（総額）', '残業代（月）', '賞与（年）'],
       viewReview: '口コミを見る',
       rmTitle: '続きを読むには口コミの投稿が必要です',
-      rmDesc: '口コミを1件投稿すると<br>全てのレビュー全文を<strong style="color:#e8edf2">1ヶ月間</strong>閲覧できます',
+      rmDesc: '口コミを1件投稿すると<br>全てのレビュー全文を<strong style="color:#e8edf2">閲覧できます</strong>',
       rmBtn: '匿名で口コミを投稿して解放する',
       rmLogin: '既にアカウントをお持ちの方はログイン',
       rmFine: '完全無料・匿名・個人情報不要',
@@ -67,7 +67,7 @@
       vcPro: '評価が高い点',
       vcCon: '注意・懸念点',
       vcGateTitle: 'カテゴリ別（企業文化・給与・福利厚生・ワークライフバランス・運航環境・訓練環境）の口コミをすべて閲覧',
-      vcGateDesc: '上は代表的な1件ずつのみ。口コミを1件投稿すると、全カテゴリの口コミを<strong style="color:#e8edf2">1ヶ月間無料</strong>で閲覧できます。',
+      vcGateDesc: '上は代表的な1件ずつのみ。口コミを1件投稿すると、全カテゴリの口コミを<strong style="color:#e8edf2">無料</strong>で閲覧できます。',
       vcGateBtn: '匿名で口コミを投稿して全カテゴリを開放する →',
       vcGateFine: '完全無料・匿名・個人情報不要',
       vcSrcLabel: '口コミ引用元',
@@ -100,10 +100,10 @@
       gateTitle: 'Members-only data',
       gateAll: function (n) { return 'Read all ' + n + (n === 1 ? ' review' : ' reviews') + ' in full'; },
       lockedCta: 'Post a review anonymously to unlock',
-      gateDesc: 'Post one anonymous review and every airline&rsquo;s<br>reviews open up for a full month.',
+      gateDesc: 'Post one anonymous review and every airline&rsquo;s<br>reviews open up.',
       gateBtn: 'Post a review anonymously to unlock',
       gateLogin: 'Log in (already posted)',
-      gateFine: 'Completely anonymous · No name required · 30-day access',
+      gateFine: 'Completely anonymous · No name required',
       catFallback: 'Review',
       pilot: 'Pilot',
       POS: { captain: 'Captain', fo: 'First Officer', cadet: 'Trainee', former: 'Former crew', pilot: 'Pilot' },
@@ -116,7 +116,7 @@
       salaryLabels: ['Annual', 'Monthly (gross)', 'Overtime (mo.)', 'Bonus (yr.)'],
       viewReview: 'View review',
       rmTitle: 'Post a review to keep reading',
-      rmDesc: 'Post one review of your own<br>to read every review in full for <strong style="color:#e8edf2">a month</strong>',
+      rmDesc: 'Post one review of your own<br>to read <strong style="color:#e8edf2">every review in full</strong>',
       rmBtn: 'Post a review anonymously to unlock',
       rmLogin: 'Already have an account? Log in',
       rmFine: 'Free · anonymous · no personal details',
@@ -124,7 +124,7 @@
       vcPro: 'What pilots rate highly',
       vcCon: 'Caveats and concerns',
       vcGateTitle: 'Read every review across all six categories — culture, pay, benefits, work-life balance, operations and training',
-      vcGateDesc: 'Only one review per side is shown above. Post one review of your own to read every category <strong style="color:#e8edf2">free for a month</strong>.',
+      vcGateDesc: 'Only one review per side is shown above. Post one review of your own to read every category <strong style="color:#e8edf2">for free</strong>.',
       vcGateBtn: 'Post a review anonymously to unlock every category →',
       vcGateFine: 'Free · anonymous · no personal details',
       vcSrcLabel: 'Review sources',
@@ -542,8 +542,8 @@
 
   /* カード内の onclick から呼ばれるので window に出す。
      「続きを見る」ボタンは解放済みのときしか描かなくなったので、通常は下の
-     isUnlocked() を必ず通る。残した else 側は「ページを開いたまま30日の解放が
-     切れた」ときの保険（描画済みのボタンから全文が漏れないようにする）。 */
+     isUnlocked() を必ず通る。残した else 側は「ページを開いたままログアウト等で解放が
+     消えた」ときの保険（描画済みのボタンから全文が漏れないようにする）。 */
   w.pvReadMore = function pvReadMore(uid, fullText) {
     if (isUnlocked()) {
       var el = d.getElementById(uid + '_text');

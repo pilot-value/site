@@ -5,7 +5,7 @@
    仕組み:
      1. .premium-gate.pv-locked は airline-base.css でブラー済み
      2. data-gate-key で通貨を分岐:
-          （既定 / "review"）   口コミ枠   → pv_unlock_expiry     ← 口コミ投稿で30日
+          （既定 / "review"）   口コミ枠   → pv_unlock_expiry     ← 口コミ投稿で解放（期限なし）
           "salary_detail"       給与枠     → pv_salary_unlock_expiry ← 給与明細で90日
         ※出したものと返るものを一致させる。口コミ枠の鍵で給与枠は開かない。
      3. localStorage fast-path（ゲートごとに自分のキーで判定）→ 即アンロック
@@ -29,7 +29,6 @@
   /* ── Config ──────────────────────────────────────────── */
   const SB_URL    = 'https://vzgmnkrggrwtsrpqndsm.supabase.co';
   const SB_KEY    = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6Z21ua3JnZ3J3dHNycHFuZHNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0MzkwOTcsImV4cCI6MjA5MDAxNTA5N30.wE4cJbqeYGCgn5ZvHd80hYWgQuySKvOMJMbsJWOvmtw';
-  const EXPIRY_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 
   /* 通貨キー: gate-key → localStorage キー */
   const KEY_REVIEW = 'pv_unlock_expiry';
@@ -38,7 +37,12 @@
 
   /* ── Context detection ───────────────────────────────── */
   const IS_EN     = /^\/en\//.test(location.pathname);
-  const AIRLINE   = (document.body && document.body.dataset.airline) || '';
+  /* ★関数にしてある。このファイルは日英224ページのうち222ページで <head> から
+       読まれる＝評価時点で document.body がまだ無い。定数で受けると必ず '' になり、
+       ④の reviews_v2 照合（口コミの鍵をサーバから復活させる処理）が丸ごと素通りし、
+       口コミ枠のリンクからも ?airline= が落ちる。2026-08-22 に発見。
+       checkAccess() は DOMContentLoaded 後に走るので、そこで読めば必ず取れる。 */
+  const airlineOf = () => (document.body && document.body.dataset.airline) || '';
   const RETURN    = encodeURIComponent(location.pathname + location.search);
   /* airlines/ も en/airlines/ も、それぞれの言語のトップから1階層下にある。
      日本語 /airlines/x.html + '../'    → /
@@ -46,7 +50,7 @@
      ここを '../../' にすると英語のページから日本語の pay-report.html /
      submit-review.html / login.html へ飛ぶ（英語版が全部ある）。 */
   const BASE_PATH = '../';
-  const REVIEW_URL = BASE_PATH + 'submit-review.html?airline=' + AIRLINE + '&return=' + RETURN;
+  const reviewURL = () => BASE_PATH + 'submit-review.html?airline=' + airlineOf() + '&return=' + RETURN;
   const SALARY_URL = BASE_PATH + 'pay-report.html?return=' + RETURN;
   const LOGIN_URL  = BASE_PATH + 'login.html?return=' + RETURN;
 
@@ -55,8 +59,8 @@
     lock:          '🔒',
     titleAnon:     'Members Only',
     titleLogged:   'One Step to Unlock',
-    descAnon:      'Post one anonymous review to unlock every airline\'s reviews for 30 days — completely free.',
-    descLogged:    'Post a review for this airline to unlock every airline\'s reviews for 30 days.',
+    descAnon:      'Post one anonymous review to unlock every airline\'s reviews — completely free.',
+    descLogged:    'Post a review for this airline to unlock every airline\'s reviews.',
     // salary_detail 専用
     salDescAnon:   'Submit one payslip to unlock the detailed pay data (by aircraft & rank) for 90 days — completely free.',
     salDescLogged: 'Submit a payslip to unlock the detailed pay breakdown for 90 days.',
@@ -66,13 +70,13 @@
     take:          'GET',
     ctaPost:       'Post a Review Anonymously & Unlock',
     ctaLogin:      'Log in',
-    footNote:      'Anonymous · No name required · 30-day access',
+    footNote:      'Anonymous · No name required',
   } : {
     lock:          '🔒',
     titleAnon:     'メンバー限定データ',
     titleLogged:   'あと一歩で解放',
-    descAnon:      '匿名の口コミを1件投稿するだけで\n全社の口コミが30日間読めるようになります。',
-    descLogged:    'この航空会社の口コミを投稿すると\n全社の口コミが30日間読めるようになります。',
+    descAnon:      '匿名の口コミを1件投稿するだけで\n全社の口コミが読めるようになります。',
+    descLogged:    'この航空会社の口コミを投稿すると\n全社の口コミが読めるようになります。',
     // salary_detail 専用
     salDescAnon:   '給与明細を1枚出すだけで\n詳細な給与データ（機種別・等級別）が90日間解放されます。',
     salDescLogged: '給与明細を1枚出すと\n詳細な給与データが90日間解放されます。',
@@ -82,7 +86,7 @@
     take:          'GET',
     ctaPost:       '匿名で口コミを投稿して解放する',
     ctaLogin:      'ログイン（投稿済みの方）',
-    footNote:      '完全匿名 · 名前不要 · 30日間アクセス',
+    footNote:      '完全匿名 · 名前不要',
   };
 
   /* ── Gate helpers ────────────────────────────────────── */
@@ -116,8 +120,12 @@
     if (ov) ov.remove();
   }
   // 口コミ枠だけ。給与枠は pay-report.html が access_until から立てる。
+  // 口コミの鍵は時間で切れない（pv-session.js の PVUnlock が正）。
   function setReviewExpiry() {
-    try { localStorage.setItem(KEY_REVIEW, String(Date.now() + EXPIRY_MS)); } catch (e) {}
+    var until = (window.PVUnlock && window.PVUnlock.reviewUntil)
+      ? window.PVUnlock.reviewUntil()
+      : Date.now() + 100 * 365 * 24 * 60 * 60 * 1000;   // 読み込み順が崩れたときの保険
+    try { localStorage.setItem(KEY_REVIEW, String(until)); } catch (e) {}
   }
 
   /* ── Overlay HTML（通貨に応じて文言を切替）───────────── */
@@ -129,7 +137,7 @@
     var cta   = isSalary ? T.salCta : T.ctaPost;
     // 給与枠は給与明細へ、口コミ枠は口コミフォームへ。行き先を取り違えると
     // 「入力したのに開かない」になる（口コミフォームはもう金額を集めない）。
-    var href  = isSalary ? SALARY_URL : REVIEW_URL;
+    var href  = isSalary ? SALARY_URL : reviewURL();
     var foot  = isSalary ? T.salFootNote : T.footNote;
     var secondary = loggedIn ? '' :
       '<a href="' + LOGIN_URL + '" class="pv-btn-ghost" data-pv-cta="login">' + T.ctaLogin + '</a>';
@@ -168,8 +176,8 @@
   }
 
   /* ── SHA-256 proof hash ──────────────────────────────── */
-  function proofHash(userId) {
-    var data = new TextEncoder().encode(userId + '::pv_anon::' + AIRLINE + '::2026');
+  function proofHash(userId, airline) {
+    var data = new TextEncoder().encode(userId + '::pv_anon::' + airline + '::2026');
     return crypto.subtle.digest('SHA-256', data).then(function (buf) {
       return Array.from(new Uint8Array(buf))
         .map(function (b) { return b.toString(16).padStart(2, '0'); })
@@ -234,9 +242,10 @@
     }
 
     /* ⑤ Check reviews_v2 (anonymous proof_hash)：投稿済みなら口コミ枠だけ解放 */
-    if (AIRLINE) {
+    var airline = airlineOf();
+    if (airline) {
       try {
-        var hash = await proofHash(uid);
+        var hash = await proofHash(uid, airline);
         var r2 = await sb.from('reviews_v2').select('id').eq('proof_hash', hash).limit(1);
         if (r2.data && r2.data.length > 0) {
           setReviewExpiry();

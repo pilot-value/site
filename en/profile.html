@@ -220,7 +220,7 @@
         <div class="pv-b-body" style="font-size:.8rem;line-height:1.7;margin-bottom:14px">Thanks for joining. PILOT VALUE runs on <b class="pv-b-gold">GIVE &amp; GET</b>.</div>
         <ol class="pv-b-list" style="margin:0 0 14px;padding-left:1.1rem;font-size:.8rem;line-height:1.9">
           <li><b>Submit one payslip</b> — every airline's <b>pay data unlocks for 90 days</b> (one photo; the image never leaves your device)</li>
-          <li><b>Post one review, anonymously</b> — every airline's <b>reviews unlock for 30 days</b> (about 3 minutes)</li>
+          <li><b>Post one review, anonymously</b> — every airline's <b>reviews unlock</b> (about 3 minutes)</li>
         </ol>
         <a href="pay-report.html" class="pv-cta-fill">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
@@ -229,7 +229,7 @@
         <a href="submit-review.html" class="pv-cta-ghost">Post a review anonymously</a>
       </div>
 
-      <!-- 鍵は2つある。年収（明細で90日）と口コミ（投稿で30日）は別物なので、
+      <!-- 鍵は2つある。年収（明細で90日・本当に切れる）と口コミ（投稿で解放・期限なし）は別物なので、
            それぞれ今どちらなのかを出す。片方だけ出すと、明細を出した人に
            「まだ何も解放されていない」ように見える。 -->
       <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px">
@@ -249,7 +249,7 @@
              行の出し分けはボタンの出し分けと同じ条件にする。 -->
         <ul class="pv-b-list" style="margin:0 0 14px;padding-left:1.1rem;font-size:.8rem;line-height:1.9">
           <li id="cta-line-payslip"><b>Submit one payslip</b> — every airline's <b>pay data unlocks for 90 days</b></li>
-          <li id="cta-line-review"><b>Post one review, anonymously</b> — every airline's <b>reviews unlock for 30 days</b></li>
+          <li id="cta-line-review"><b>Post one review, anonymously</b> — every airline's <b>reviews unlock</b></li>
         </ul>
         <a href="pay-report.html" id="cta-payslip" class="pv-cta-fill">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
@@ -434,8 +434,8 @@
       // 出したものを一覧にする（上と同じ proof_hash の照合結果を使う）
       renderMyPosts();
 
-      // Two separate keys: pay data (90 days, earned with a payslip) and reviews
-      // (30 days, earned with a review). Never mix them. pvCheckReunlock above has
+      // Two separate keys: pay data (90 days, earned with a payslip — this one really does
+      // run out) and reviews (earned with a review, no expiry). Never mix them. pvCheckReunlock above has
       // already restored both — even on a new device — so we only read here.
       const exp = (k) => { try { return parseInt(localStorage.getItem(k)||'0',10) || 0; } catch(e) { return 0; } };
       const salaryExp = exp('pv_salary_unlock_expiry');
@@ -444,15 +444,20 @@
       const reviewOn  = reviewExp > Date.now();
 
       const OPEN_LOCK = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/></svg>';
+      /* ★Reviews carry no date. The review key stopped expiring on 2026-08-22, so a date
+           would read "until Aug 2126". Pay data keeps its date — that one really does run out
+           (the server's access_until, 90 days). */
       const setBadge = (id, on, until, label) => {
         const el = document.getElementById(id);
         if (!el || !on) return;                       // still locked → leave the markup as it is
-        const d = new Date(until).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+        const d = until
+          ? ` (until ${new Date(until).toLocaleDateString('en-US',{month:'short',day:'numeric'})})`
+          : '';
         el.className = 'unlock-badge unlock-active';
-        el.innerHTML = `${OPEN_LOCK} ${label} unlocked (until ${d})`;
+        el.innerHTML = `${OPEN_LOCK} ${label} unlocked${d}`;
       };
       setBadge('unlock-status-salary', salaryOn, salaryExp, 'Pay data');
-      setBadge('unlock-status',        reviewOn, reviewExp, 'Reviews');
+      setBadge('unlock-status',        reviewOn, 0,         'Reviews');   // 0 = no date
 
       if (salaryOn && reviewOn) {
         // Both tiers are open — there is nothing to ask for

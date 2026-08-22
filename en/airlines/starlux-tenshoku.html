@@ -505,7 +505,7 @@ Phone: +81 00 0000 0000</div>
   <div id="gate-card" class="glass-raised">
     <div style="font-size:2.5rem;margin-bottom:16px">🔒</div>
     <h3 class="text-2xl font-bold mb-2">To read the rest</h3>
-    <p class="mb-2" style="color:#8899aa">Create an account and post a review of STARLUX Airlines to unlock<br><strong style="color:#f5c842">the remaining ~12,000 characters</strong> for 30 days</p>
+    <p class="mb-2" style="color:#8899aa">Create an account and post a review of STARLUX Airlines to unlock<br><strong style="color:#f5c842">the remaining ~12,000 characters</strong></p>
     <p class="text-xs mb-8" style="color:#6b7d93">Submissions are anonymised by bucketing. No personally identifying information is stored.</p>
 
     <div class="flex flex-col sm:flex-row gap-3 justify-center mb-10">
@@ -1192,8 +1192,8 @@ function loginAndReturn() {
   const { data } = await _sb.from('reviews_v2').select('id').eq('proof_hash', hash).limit(1);
 
   if (data && data.length > 0) {
-    // Set 30-day unlock
-    localStorage.setItem('pv_unlock_expiry', String(Date.now() + 30 * 24 * 60 * 60 * 1000));
+    // The review key never expires (pv-session.js PVUnlock is the source of truth)
+    localStorage.setItem('pv_unlock_expiry', String((window.PVUnlock && window.PVUnlock.reviewUntil) ? window.PVUnlock.reviewUntil() : Date.now() + 100 * 365 * 24 * 60 * 60 * 1000));
     unlockContent();
   }
   // If no review found, gate remains visible

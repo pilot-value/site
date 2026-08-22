@@ -91,7 +91,7 @@
       '<div class="enrv-gate-lock">🔒</div>' +
       '<div class="enrv-gate-title">Members-only data</div>' +
       '<div class="enrv-gate-remain">' + remaining + ' more review' + (remaining === 1 ? '' : 's') + '</div>' +
-      '<p class="enrv-gate-desc">Post one anonymous review and every detail<br>unlocks for a full month.</p>' +
+      '<p class="enrv-gate-desc">Post one anonymous review and every detail<br>unlocks.</p>' +
       '<a href="../submit-review.html" class="enrv-btn">Post a review anonymously to unlock</a>' +
       '<div class="enrv-gate-fine">Completely free · anonymous · no personal details needed</div>' +
     '</div>';

@@ -220,7 +220,7 @@
         <div class="pv-b-body" style="font-size:.8rem;line-height:1.7;margin-bottom:14px">登録ありがとうございます。ここは <b class="pv-b-gold">GIVE &amp; GET</b>。</div>
         <ol class="pv-b-list" style="margin:0 0 14px;padding-left:1.1rem;font-size:.8rem;line-height:1.9">
           <li><b>給与明細を1枚出す</b>と、<b>全社の年収データが90日間</b>読めます（写真1枚。画像は端末から出ません）</li>
-          <li><b>口コミを1件、匿名で投稿</b>すると、<b>全社の口コミが30日間</b>読めます（所要3分）</li>
+          <li><b>口コミを1件、匿名で投稿</b>すると、<b>全社の口コミが読めます</b>（所要3分）</li>
         </ol>
         <a href="pay-report.html" class="pv-cta-fill">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
@@ -229,7 +229,7 @@
         <a href="submit-review.html" class="pv-cta-ghost">匿名で口コミを投稿する</a>
       </div>
 
-      <!-- 鍵は2つある。年収（明細で90日）と口コミ（投稿で30日）は別物なので、
+      <!-- 鍵は2つある。年収（明細で90日・本当に切れる）と口コミ（投稿で解放・期限なし）は別物なので、
            それぞれ今どちらなのかを出す。片方だけ出すと、明細を出した人に
            「まだ何も解放されていない」ように見える。 -->
       <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px">
@@ -249,7 +249,7 @@
              行の出し分けはボタンの出し分けと同じ条件にする。 -->
         <ul class="pv-b-list" style="margin:0 0 14px;padding-left:1.1rem;font-size:.8rem;line-height:1.9">
           <li id="cta-line-payslip"><b>給与明細を1枚出す</b>と、<b>全社の年収データが90日間</b>読めます</li>
-          <li id="cta-line-review"><b>口コミを1件、匿名で投稿</b>すると、<b>全社の口コミが30日間</b>読めます</li>
+          <li id="cta-line-review"><b>口コミを1件、匿名で投稿</b>すると、<b>全社の口コミが読めます</b></li>
         </ul>
         <a href="pay-report.html" id="cta-payslip" class="pv-cta-fill">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
@@ -435,7 +435,7 @@
       // 出したものを一覧にする（上と同じ proof_hash の照合結果を使う）
       renderMyPosts();
 
-      // 鍵は2つ。年収（明細で90日）と口コミ（投稿で30日）は別物なので混ぜない。
+      // 鍵は2つ。年収（明細で90日）と口コミ（投稿で解放・期限なし）は別物なので混ぜない。
       // 上の pvCheckReunlock が別端末でも復元済みなので、ここは読むだけでよい。
       const exp = (k) => { try { return parseInt(localStorage.getItem(k)||'0',10) || 0; } catch(e) { return 0; } };
       const salaryExp = exp('pv_salary_unlock_expiry');
@@ -444,15 +444,20 @@
       const reviewOn  = reviewExp > Date.now();
 
       const OPEN_LOCK = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/></svg>';
+      /* ★口コミ枠は日付を出さない。
+           2026-08-22 に期限を外したので、日付を出すと「2126年8月まで」になる。
+           年収枠はサーバの access_until（90日）が本当に切れるので、今までどおり日付を出す。 */
       const setBadge = (id, on, until, label) => {
         const el = document.getElementById(id);
         if (!el || !on) return;                       // 未解放のときは HTML のままでよい
-        const d = new Date(until).toLocaleDateString('ja-JP',{month:'short',day:'numeric'});
+        const d = until
+          ? `（${new Date(until).toLocaleDateString('ja-JP',{month:'short',day:'numeric'})}まで）`
+          : '';
         el.className = 'unlock-badge unlock-active';
-        el.innerHTML = `${OPEN_LOCK} ${label}解放中（${d}まで）`;
+        el.innerHTML = `${OPEN_LOCK} ${label}解放中${d}`;
       };
       setBadge('unlock-status-salary', salaryOn, salaryExp, '年収データ');
-      setBadge('unlock-status',        reviewOn, reviewExp, '口コミ');
+      setBadge('unlock-status',        reviewOn, 0,         '口コミ');   // ← 0 ＝ 日付なし
 
       if (salaryOn && reviewOn) {
         // 両方開いている人に出すことは何も無い
