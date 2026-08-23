@@ -43,12 +43,12 @@
   <script src="../review-i18n.js"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    body{background:#0a0c0f;color:#e8edf2;font-family:Inter,'Noto Sans JP',sans-serif;min-height:100vh}
-    body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 40% at 50% 0%,rgba(245,200,66,.06) 0%,transparent 65%);pointer-events:none;z-index:0}
-    [data-theme="light"] body{background:#f3f5f8;color:#0f172a}
-    nav{position:sticky;top:0;z-index:200;background:rgba(10,12,15,.96);border-bottom:1px solid rgba(255,255,255,.07);backdrop-filter:blur(20px)}
-    [data-theme="light"] nav{background:rgba(243,245,248,.97);border-bottom-color:rgba(0,0,0,.08)}
-    .nav-inner{max-width:700px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:64px}
+    /* 色は pv-tokens.css の --pv-* から取る。ここで hex を作らない。
+       上部バーとサイドバーの見た目は my-value.css の .mr-* が持つ。
+       ★ .btn-ghost はここに残す。上部バーから消えても「編集」ボタンが使っている。 */
+    body{background:var(--pv-bg-sub);color:var(--pv-ink);
+         font-family:Inter,'Noto Sans JP',sans-serif;min-height:100vh;
+         -webkit-font-smoothing:antialiased}
     .btn-ghost{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:9px;background:rgba(255,255,255,.07);color:#e8edf2;border:1px solid rgba(255,255,255,.12);cursor:pointer;font-size:.83rem;font-weight:600;text-decoration:none;transition:background .2s;font-family:inherit}
     .btn-ghost:hover{background:rgba(255,255,255,.12)}
     [data-theme="light"] .btn-ghost{background:rgba(0,0,0,.05);color:#0f172a;border-color:rgba(0,0,0,.12)}
@@ -145,6 +145,12 @@
     @keyframes pulse{0%,100%{opacity:.4}50%{opacity:.8}}
     [data-theme="light"] .skeleton{background:rgba(0,0,0,.08)}
   </style>
+  <!-- 色と余白の唯一の正。下の骨格が --pv-* を読むので、必ず先に置く。 -->
+  <link rel="stylesheet" href="../pv-tokens.css">
+  <!-- マイページの骨格（.mr-top / .mr-shell / .mr-side / .mr-main）。
+       my-value / actual-pay / airline-conditions と共有する。
+       ★ 2層目の #pv-value .pt-* は id で閉じているので、このページの図には効かない。 -->
+  <link rel="stylesheet" href="../my-value.css">
   <!-- 明細まわりの図の見た目。pay-tracker と my-value が共有する -->
   <link rel="stylesheet" href="../pay-viz.css">
 <!-- Google tag (gtag.js) -->
@@ -181,17 +187,44 @@
 <script src="../pv-session.js"></script>
 </head>
 <body>
-  <nav>
-    <div class="nav-inner">
-      <a href="index.html"><img src="../assets/logo.png" alt="PILOT VALUE" style="height:30px"/></a>
-      <div style="display:flex;align-items:center;gap:10px">
+  <header class="mr-top">
+    <div class="mr-top-in">
+      <a class="mr-brand" href="index.html" aria-label="PILOT VALUE home">
+        <img src="../assets/logo.png" alt="PILOT VALUE" height="28"/>
+      </a>
+      <!-- ★ Keep #theme-toggle. lang-toggle.js and currency.js insert their own
+           buttons next to it; without it they fall to the end of the nav. -->
+      <div class="mr-top-r">
         <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme"></button>
-        <a href="index.html" class="btn-ghost">← Home</a>
       </div>
     </div>
-  </nav>
+  </header>
 
-  <main style="max-width:700px;margin:0 auto;padding:36px 24px 80px;position:relative;z-index:1">
+  <div class="mr-shell">
+    <!-- ★ patch-side-nav.mjs writes these four entries into every page. Never add one by hand
+         (assert-pay-rows.mjs checks all pages match, per language).
+         Below 1000px the sidebar becomes a single horizontal row instead (no vertical cost). -->
+    <nav class="mr-side" aria-label="My page">
+      <a class="mr-side-a" href="my-value.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+        <span>My report</span>
+      </a>
+      <a class="mr-side-a" href="actual-pay.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>What others earn</span>
+      </a>
+      <a class="mr-side-a is-add" href="pay-report.html#ps">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+        <span>Add pay anonymously</span>
+      </a>
+      <a class="mr-side-a is-on" href="profile.html" aria-current="page">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.2.6.77 1 1.41 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span>Settings</span>
+      </a>
+      <p class="mr-side-note">We never collect your name or staff number.</p>
+    </nav>
+
+    <main class="mr-main">
     <!-- FOUNDING PILOT 100. Drawn by pv-founding.js.
          It also renders for someone with no number yet (dimmed, no digits).
          Never shows a member count or how many slots are left. -->
@@ -375,7 +408,8 @@
       <div class="mine-h" style="margin-top:20px">Pay reports</div>
       <div id="my-pay-list" class="mine-empty">Loading…</div>
     </div>
-  </main>
+    </main>
+  </div>
 
   <div class="success-toast" id="toast">Profile saved ✓</div>
 

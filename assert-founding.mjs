@@ -218,7 +218,10 @@ const look = () => ({
   card:    !!document.getElementById('profile-card'),
   cardTxt: (document.getElementById('profile-card') || { innerText: '' }).innerText.length,
   invite:  !!document.querySelector('.pvr'),
-  /* 重なりを見る。板・プロフィールカード・招待カード・nav の4つ。 */
+  /* 重なりを見る。プロフィールカード・招待カード・待遇モーダル、
+     それに上部バーとサイドバー。
+     ★ 'nav' と書かない。.mr-side ができた日から querySelector('nav') は
+       サイドバーを拾い、テストは通ったまま意味だけが変わる。名指しにする。 */
   hits:    (function () {
     const p = document.querySelector('.pvf');
     if (!p) return [];
@@ -231,8 +234,11 @@ const look = () => ({
       return !(a.right <= b.left + 0.5 || a.left >= b.right - 0.5 ||
                a.bottom <= b.top + 0.5 || a.top >= b.bottom - 0.5);
     };
-    return ['nav', '#profile-card', '.pvr', '[data-pvc]'].filter(over);
+    return ['.mr-top', '.mr-side', '#profile-card', '.pvr', '[data-pvc]'].filter(over);
   })(),
+  /* ★セレクタが空振りしても over() は false を返す＝「何とも重ならない」に見える。
+       骨格の3つが本当に見つかったかを別に持つ。名前を変えた日に黙って通らないように。 */
+  frame:   ['.mr-top', '.mr-side', '#profile-card'].filter((sel) => document.querySelector(sel)),
   /* 板が <main> のいちばん上にあるか（プロフィールカードより上） */
   first:   (function () {
     const p = document.querySelector('.pvf'), c = document.getElementById('profile-card');
@@ -259,7 +265,9 @@ for (const lang of ['ja', 'en']) {
   /* ★持っている人に説明の一文を添えない（オーナー判断）。称号は説明しないから称号になる。 */
   ok(v.noteCount === 0, '★持っている人の板に説明文を足さない', String(v.noteCount));
   ok(v.first, '★プロフィールカードより上に出る（マイページのいちばん上）');
-  ok(v.hits.length === 0, '★何とも重ならない（nav・カード・招待・待遇）', v.hits.join(','));
+  ok(v.frame.length === 3, '★重なりを見る相手が本当に居る（空振りで通っていない）', v.frame.join(','));
+  ok(v.hits.length === 0, '★何とも重ならない（上部バー・サイドバー・カード・招待・待遇）',
+     v.hits.join(','));
   ok(v.pos !== 'fixed', '画面に貼り付かない', v.pos);
   ok(v.bodyOv !== 'hidden', '背後のスクロールを止めない', v.bodyOv);
   /* 番号をセリフ体にして本文と分けていたが、番号ごと外した。
@@ -298,6 +306,7 @@ for (const lang of ['ja', 'en']) {
      '入れ方だけを1行で言う', JSON.stringify(v.text));
   ok(!/(残り|あと|slots? left|remaining)/i.test(v.text), '★「残り◯枠」を書かない', JSON.stringify(v.text));
   ok(v.first, 'プロフィールカードより上に出る');
+  ok(v.frame.length === 3, '重なりを見る相手が本当に居る', v.frame.join(','));
   ok(v.hits.length === 0, '何とも重ならない', v.hits.join(','));
   ok(v.card && v.cardTxt > 40, 'プロフィールカードが今までどおり出る');
   await page.close();
