@@ -512,16 +512,33 @@ function foundingCopy(lang) {
            全員に同じ文面が届くので、どちらを書いても嘘になる人が出る。 */
       paras: [
         'PILOT VALUE のマイページに「FOUNDING PILOT 100」という欄を追加しました。',
-        'このサービスには、まだ中身がほとんど無かった時期に、見返りの保証も無いまま自分の給与や職場のことを出してくださった方がいます。いま他のパイロットが読んでいるデータは、その最初の一枚から始まっています。',
+        /* ★「見返りの保証も無いまま」と書かない（2026-08-23 オーナー判断）。
+             犠牲になってもらった話に読める。この人たちがしたのは、
+             まだ何も無いところに最初のデータを置いたことで、そちらを書く。
+           ★「最初の一枚」と数えない。14人のうち9人は口コミが最初で、
+             口コミは枚で数えない。半分以上の人にとって事実と合わない。 */
+        'まだ PILOT VALUE に十分なデータがなかった時期に、最初に自分の実データを共有してくださった方々がいます。いま他のパイロットが読んでいるデータは、そこから始まっています。',
         /* ★数字を書かない。「100」は題字の FOUNDING PILOT 100 が言っている。
            本文に素の数字を1つ許すと、次に「残り86枠」「会員31名」が入る道ができる。
            ★通し番号のことも書かない（2026-08-23 に画面から外した）。
            書くと、ログインしても番号が無い人が探すことになる。 */
-        '最初に出してくださった方に、この称号をお渡ししています。一度お渡ししたら外れません。あとから登録した方が追い越すこともありません。',
+        /* ★「あとから登録した方が追い越すこともありません」と書かない。
+             称号の話が順位争いの話になる。PILOT VALUE は競争やポイントを
+             売りにするサービスではない（2026-08-23 オーナー判断）。 */
+        '最初に出してくださった方に、この称号をお渡ししています。一度お渡ししたら外れません。残るのは、最初の100名だけです。',
         'マイページの一番上に置いています。ログインするとご覧いただけます。',
       ],
-      /* VISION の1行。ここが無いと「バッジを配りました」だけの通知になる。 */
-      vision: 'パイロットという職業の価値は、パイロット自身が持っている情報からしか上がりません。PILOT VALUE が見ているのはそこだけです。',
+      /* VISION。ここが無いと「バッジを配りました」だけの通知になる。
+         ★何を変えようとしているのかを、世界の前と後で言い切る形にする
+           （2026-08-23 オーナー判断。前の言い方は思想が伝わらなかった）。
+         ★2文めは「つくった100人です」ではなく「つくる100人に贈る称号です」。
+           いま称号を持っているのは14人で、100人ではない。完了形で書くと
+           100人がもう出したように読める＝数字を盛ったことになる。
+           称号の定義として書けば「100」の重みは落ちない。 */
+      vision: [
+        'パイロットの待遇を決める情報を、会社側だけが持つ世界から、パイロット自身も市場を知ることができる世界へ。',
+        'FOUNDING PILOT 100 は、その最初のデータをつくる100人に贈る称号です。',
+      ],
       cta: 'マイページを見る',
       /* ★オプトインで絞らずに全員へ送るので、理由を正直に書く。
            「チェックを入れた方に」と書くと、入れていない人には嘘になる。 */
@@ -535,11 +552,14 @@ function foundingCopy(lang) {
     plaqueSub: 'Founding Member',
     paras: [
       'We have added a FOUNDING PILOT 100 panel to your PILOT VALUE page.',
-      'Early on, when there was almost nothing here, some pilots shared their own pay and their own workplace with no guarantee of anything in return. Everything other pilots read today started from those first entries.',
-      'The pilots who shared first are the ones who carry it. Once given, it stays, and nobody who joins later can take it.',
+      'Before PILOT VALUE had enough data to be useful, some pilots were the first to share their own real numbers. Everything other pilots read today starts there.',
+      'The pilots who shared first are the ones who carry it. Once given, it stays, and only the first 100 will ever hold it.',
       'We have put it at the top of your page. Sign in to see it.',
     ],
-    vision: 'The value of this profession can only be raised by what pilots themselves know. That is the only thing PILOT VALUE is built for.',
+    vision: [
+      'From a world where only the companies hold the information that sets pilot pay, to a world where pilots can see the market for themselves.',
+      'FOUNDING PILOT 100 is the title given to the 100 pilots who make that first data.',
+    ],
     cta: 'Go to your page',
     why: 'This is a service notice sent to people registered with PILOT VALUE.',
     unsub: 'Unsubscribe',
@@ -575,7 +595,10 @@ export function buildFounding(p, o = {}) {
     <p style="margin:0 0 18px">${esc(t.hi)}</p>
     ${first ? foundingPlaque(t) : ''}
     ${t.paras.map((s) => `<p style="margin:0 0 16px;color:#333">${esc(s)}</p>`).join('')}
-    <p style="margin:22px 0 22px;padding:14px 16px;background:#f7f9fb;border-left:3px solid #f5c842;color:#333;font-size:13px;line-height:1.8">${esc(t.vision)}</p>
+    <p style="margin:22px 0 22px;padding:14px 16px;background:#f7f9fb;border-left:3px solid #f5c842;color:#333;font-size:13px;line-height:1.8">${
+      t.vision.map((s, i) => (i === t.vision.length - 1 && t.vision.length > 1
+        ? `<b style="color:#1a1a1a">${esc(s)}</b>`
+        : esc(s))).join('<br><br>')}</p>
     <p style="margin:0 0 4px">
       <a href="${esc(me)}" style="display:inline-block;background:#f5c842;color:#111;text-decoration:none;font-weight:800;padding:12px 22px;border-radius:10px">${esc(t.cta)}</a>
     </p>`;
@@ -584,7 +607,7 @@ export function buildFounding(p, o = {}) {
     strip(t.hi), '',
     `  ✦ FOUNDING PILOT 100 — ${strip(t.plaqueSub)}`, '',
     ...t.paras.flatMap((s) => [strip(s), '']),
-    strip(t.vision), '',
+    ...t.vision.flatMap((s) => [strip(s), '']),
     `${strip(t.cta)}: ${me}`,
   ].join('\n');
 

@@ -347,22 +347,39 @@ for (const [k, b] of FALL) {
 }
 
 /* ★番号を本文に書かない。
-   出てよい数字は題名の "FOUNDING PILOT 100" の 100 だけ。それを取り除いた残りに
-   数字が1文字も無いこと。「No.7」も「残り86枠」も「会員31名」もここで落ちる。 */
+   通す数字は 100 ひとつだけ。100 は称号の上限そのもので、題字の
+   FOUNDING PILOT 100 がすでに公にしている数だから、本文で
+   「最初の100名だけに残る」と書いても新しく漏れるものが無い
+   （2026-08-23 オーナー判断で本文にも書くことにした）。
+   ★それ以外の数字は1文字も通さない。「No.7」も「会員31名」も、
+   100 を含む「1000」も、100 を抜いた残りが digits に出るので落ちる。 */
+const bareOf = (s) => s
+  .split('FOUNDING PILOT 100').join(' ')
+  .split('100').join(' ')
+  .replace(/[^0-9]/g, '');
 for (const [k, b] of FALL) {
-  const bare = (b.subject + '\n' + b.text).split('FOUNDING PILOT 100').join(' ');
-  const digits = bare.replace(/[^0-9]/g, '');
-  ok(digits === '', `founding/${k}: 本文に数字が1つも無い（番号・人数・残り枠を書かない）`, digits);
+  const digits = bareOf(b.subject + '\n' + b.text);
+  ok(digits === '', `founding/${k}: 本文に 100 以外の数字が無い（番号・人数・残り枠を書かない）`, digits);
 }
 /* HTML 側も同じ。URL とスタイルには数字が入るので、見える文字だけを取り出して見る。 */
 for (const [k, b] of FALL) {
   const visible = b.html
     .replace(/<(script|style)[\s\S]*?<\/\1>/gi, ' ')
     .replace(/<[^>]+>/g, ' ')                    // タグごと落とす＝href も style も消える
-    .split('FOUNDING PILOT 100').join(' ')
     .replace(/&[a-z]+;/gi, ' ');
-  const digits = visible.replace(/[^0-9]/g, '');
-  ok(digits === '', `founding/${k}: HTML の見える文字にも数字が無い`, digits);
+  ok(bareOf(visible) === '', `founding/${k}: HTML の見える文字にも 100 以外の数字が無い`, bareOf(visible));
+}
+
+/* ★100 を通したぶん、守りたかったものを名指しで見張る。
+   数字の全面禁止は「残り86枠」「会員31名」を止めるためのものだった。
+   100 に穴を開けたので、会員数が外から分かる言い回しをここで止める。 */
+const COUNTS = [/残り\s*\d/, /あと\s*\d+\s*(人|名|枠)/, /現在\s*\d+\s*(人|名)/,
+  /\d+\s*(人|名)\s*が(登録|参加|投稿)/, /remaining/i, /slots? left/i,
+  /spots? left/i, /joined so far/i, /so far/i];
+for (const [k, b] of FALL) {
+  const body = b.html + '\n' + b.subject + '\n' + b.text;
+  const hit = COUNTS.find((re) => re.test(body));
+  ok(!hit, `founding/${k}: 会員数が分かる言い回しが入っていない`, hit ? String(hit) : '');
 }
 
 /* ★勧誘の言い回しが入っていないこと。
