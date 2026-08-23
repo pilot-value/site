@@ -222,7 +222,20 @@ console.log('\n市場価値レポート（my-value）');
     ok(!s.includes('class="ps-priv"'), `${f}: 明細画面の長い注意書きを出していない`);
     ok(!/<span class="ps-tag">/.test(s), `${f}: 明細の側に所要時間を書いていない`);
     ok(/<span class="entry-tag">/.test(s), `${f}: 手で入力の側には所要時間が残っている`);
-    ok(/id="pay-count"/.test(s), `${f}: 投稿数の1行は #pay-count の1箇所だけ`);
+    ok(/id="pay-count"/.test(s), `${f}: 見出しの下の1行は #pay-count の1箇所だけ`);
+    /* ★ここに数字を書かない（2026-08-23）。2026-08-23 まで
+         「1000件以上の給与情報が提出されました！」と出ていたが、実際の給与レポートは
+         2桁に届いていない。一次データを出してもらうための画面で数を盛るのは、
+         VISION の「数字を盛らない」と正面からぶつかる。実数を出しても会員数が
+         外から分かるだけなので、数そのものを置かず Give & Get を書く。 */
+    const pill = (s.match(/<p class="pay-count"[^>]*>([\s\S]*?)<\/p>/) || [])[1] || '';
+    /* 通すのは「1件共有すると」の 1 だけ。これは相手にお願いする数で、
+       たまっている数の主張ではない。それ以外の数字は1つも通さない。 */
+    const counted = (pill.match(/[0-9０-９][0-9０-９,，]*/g) || []).filter((n) => n !== '1');
+    ok(counted.length === 0, `${f}: 見出しの下の1行に投稿数を書かない`, counted.join(' / ') || pill.trim());
+    ok(!/(以上|提出されました|\bover\b|submitted)/i.test(pill),
+      `${f}: 「◯件以上が提出されました」の類を書かない`, pill.trim());
+    ok(/(見られます|you can see)/.test(pill), `${f}: 1件出すと読めること（Give & Get）を書いている`, pill.trim());
     /* 「検証済み」は書けない（pay_reports.verify_level に書き込む処理がまだ無い）。 */
     ok(!/(検証済み|Verified)</.test(s), `${f}: カードに「検証済み」と書いていない`);
     /* 匿名の約束は消したのではなく2択のカードへ移した。両方のカードに1行ずつある。 */

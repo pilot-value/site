@@ -95,11 +95,21 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 ::-webkit-scrollbar-track{background:#0a0c0f}
 ::-webkit-scrollbar-thumb{background:#18212f;border-radius:3px}
 .warn-row{display:flex;align-items:flex-start;gap:8px;padding:10px 16px;border-radius:10px;background:rgba(245,200,66,.05);border:1px solid rgba(245,200,66,.18);color:#f5c842;font-size:.78rem;line-height:1.65}
-/* 投稿数の1行（見出しの下）。ブランド金の丸ピル。
-   ★数字は #pay-count の1箇所だけに置く。実数を返す口ができたら、ここだけ差し替える。 */
+/* 見出しの下の1行。ブランド金の丸ピル。
+   ★ここに数字を書かない（2026-08-23 オーナー判断）。
+     前は「1000件以上の給与情報が提出されました！」と出ていたが、実際の
+     給与レポートは2桁に届いていない。数字を盛らないのは VISION の約束で、
+     しかもここは「一次データを出してもらう」ための画面＝いちばん盛っては
+     いけない場所だった。実数を出しても人数が外から分かるだけなので出さない。
+     代わりに Give & Get（1件出すと読める）そのものを書く。
+     数字が戻ってこないことは db/test-form-contract.mjs が見張る。 */
 .pay-count{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:999px;
   background:radial-gradient(120% 160% at 0% 50%,rgba(245,200,66,.14),transparent 70%),rgba(245,200,66,.05);
-  border:1px solid rgba(245,200,66,.24);color:#f5c842;font-size:.82rem;font-weight:700;letter-spacing:-.01em}
+  border:1px solid rgba(245,200,66,.24);color:#f5c842;font-size:.82rem;font-weight:700;letter-spacing:-.01em;
+  /* 狭い画面で2行になったとき、2行目に数文字だけ残さない。
+     auto-phrase は日本語を文節で折る（「パイロッ／ト」で切れるのを防ぐ）。
+     対応していないブラウザは balance だけが効いて、2行が均等に割れる。 */
+  text-align:center;text-wrap:balance;word-break:auto-phrase}
 /* ── セクション（必須 / 推奨 / 任意）─────────────────────── */
 .sec{margin-bottom:20px}
 .sec-head{display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap}
@@ -740,7 +750,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
          注意書きを読まされていた。匿名の約束は下の2択カードの1行目に移した。 -->
     <div class="text-center mb-9">
       <h1 class="text-3xl font-extrabold mb-3" style="letter-spacing:-.02em">給与を追加</h1>
-      <p class="pay-count" id="pay-count">1000件以上の給与情報が提出されました！</p>
+      <p class="pay-count" id="pay-count">1件共有すると、他のパイロットの実給与データが見られます</p>
     </div>
 
     <!-- Form ── levels.fyi 型：埋めると下に次が生える -->
