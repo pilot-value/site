@@ -108,6 +108,30 @@ baland_ass/                            ブランド資産（※ brand_assets の
 - 比較は具体的に。「見出しが 32px だが参照は約 24px」「カード間 16px、あるべきは 24px」のように書く。
 - 確認項目: 余白/パディング、フォントサイズ・太さ・行高、色（正確な hex）、揃え、角丸、影、画像サイズ
 
+## ページを1枚足すとき
+
+**同じ集合が4つある。1つ忘れると sitemap と robots が食い違うのに、何も赤くならない。**
+
+| 場所 | 作業 |
+|---|---|
+| [gen-sitemap.mjs](gen-sitemap.mjs) の `NOINDEX` | 検索に出さないページなら足す |
+| [seo-normalize.mjs](seo-normalize.mjs) の `NOINDEX` | 同上 |
+| [assert-seo.mjs](assert-seo.mjs) の `NOINDEX` | 同上（3つで対、と両方のコメントが書いている） |
+| [assert-links.mjs](assert-links.mjs) の `APPFLOW` | ログインの先にあるページなら足す |
+| [seo-normalize.mjs](seo-normalize.mjs) の `COPY` | 日英の `t`/`d`。**noindex でも `<title>` は出る。無いと次に流した人がタイトルを空にする** |
+| [assert-founding.mjs](assert-founding.mjs) の除外リスト | FOUNDING の板は `profile.html` の最上部だけ |
+
+そのうえで `en/` 側を置いてから **`node gen-en-manifest.mjs`**
+（[lang-toggle.js](lang-toggle.js) の `EN_PAGES` は生成物。手編集禁止）→
+`node seo-normalize.mjs` → `node gen-sitemap.mjs` の順に流す。
+
+- `noindex` は `<!--PV-SRC t="…" d="…"-->` を置いて `seo-normalize.mjs` に `<!--PV-SEO-->` を書かせる
+  （[airline-conditions.html:14](airline-conditions.html#L14) が手本）
+- `favicon` の宣言と Inter の読み込みを忘れない（`assert-links.mjs` が見ている）
+- マイページ系（`.mr-side` を持つ画面）なら [patch-side-nav.mjs](patch-side-nav.mjs) の `CURRENT` に足し、
+  空の `<nav class="mr-side" aria-label="…"></nav>` を置いてから `node patch-side-nav.mjs` を流す
+- `_config.yml` は変更不要（`.html` は元から配信される）
+
 ## デプロイ前チェック
 1. `node serve.mjs` を起動する（下の assert 系は localhost 必須）
 2. `node check-salary.mjs` — 全ページ × SSOT の整合。2パス構成:
@@ -171,7 +195,9 @@ baland_ass/                            ブランド資産（※ brand_assets の
    **localhost が要る。本番の DB には触らない**（見た目は `node shot-referral.mjs` が撮る）
 13. `npm run test:sql` — Supabase 側を触った場合。
    [db/test-referrals.mjs](db/test-referrals.mjs) もここで走る
-   （紹介者は一生1人・自己招待が通らない・2人以下の区分では数字を返さない）
+   （紹介者は一生1人・自己招待が通らない・2人以下の区分では数字を返さない）。
+   [db/test-pay-rows.mjs](db/test-pay-rows.mjs) もここ
+   （1行＝1人の読み出し口。k≧5・準識別子ゼロ・p10-p90 クリップ・有効数字2桁・30日遅延の5つ）
 14. `node assert-no-pii.mjs` — オーナーの身元が漏れていないか（下記「公開リポジトリであること」を参照）。
    6つの検査がある: A) 追跡テキスト（`.svg` 含む）の中身 B) 画像・PDF のメタデータ（GPS と作者欄）
    C) 本番で配信される拡張子のホワイトリスト D) git の作者（メール **と表示名**・設定と履歴の両方）
@@ -243,6 +269,24 @@ baland_ass/                            ブランド資産（※ brand_assets の
      （上の「新しいスクリプトを書く前に」の `String.replace` の罠を参照）
    本体（`.ts`）を Node 24 の直読みでそのまま import し、`fetch` だけ差し替える。
    **ネットも鍵も localhost も使わない**
+
+19. `node assert-pay-rows.mjs` — 「他のパイロットの実給与」（[actual-pay.html](actual-pay.html)）の検査。
+   この画面は**1行＝1人**の匿名レポートを出す。行を数えれば n≧5 の区分の人数は読めるので、
+   守りは ①k≧5 の門 ②準識別子を1つも出さない ③p10-p90 クリップ ④有効数字2桁 ⑤30日遅延 の
+   5つに全部かかっている（理由は [db/pay-rows.sql](db/pay-rows.sql) の契約ヘッダ）。見るのは:
+   - **鍵の無い人に金額が1文字も出ない**（サーバー側で止める。画面のモザイクではない）
+   - **1件も無いときに公開情報（青）だけが出て、実給与（オレンジ）と混ざらない。**
+     ①と②から1つの数を作る計算を書かない（差分・平均・%も含めて）
+   - 表示中の**すべての金額が表示通貨で有効数字2桁**
+   - 基地コード・在籍年数・年代・投稿月・原本通貨・契約形態が1つも出ない
+   - **金額での並べ替えと「✓ Verified だけ」の絞り込みが無い**
+     （前者はこの画面をランキングにする。後者は絞った行数＝検証済み人数という生カウントになる）
+   - 合計件数・カバー社数・「直近30日で +X件」を出さない（会員規模そのものが漏れる）
+   - 通貨を切り替えても **RPC を引き直さない**（データは手元に持って描き直すだけ）
+   - **サイドバーが8枚（4画面 × 日英）で1バイトも食い違わない**
+   ⚠️ サイドバーを配るのは [patch-side-nav.mjs](patch-side-nav.mjs)。**HTML に手で項目を足さない**
+   （`--check` で書かずに差分だけ見られる）。
+   **localhost が要る。本番の DB には触らない**（Supabase ごと差し替える。見た目は `node shot-actual-pay.mjs` が撮る）
 
 **`supabase/functions/` を触ったら push だけでは本番に反映されない。**
 Supabase ダッシュボード → Edge Functions → 該当関数 → コードを貼り替えて Deploy（オーナー作業）。
