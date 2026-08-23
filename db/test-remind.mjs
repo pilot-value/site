@@ -363,11 +363,27 @@ const mk = (o) => build({
 }
 
 {
-  // 氏名は本文に出る（挨拶）。★XSS ではなく「表示崩れ」の話。氏名は自由入力なので
-  //   < を書いた人が居ると本文の DOM が壊れる。esc を通していることを実物で見る。
-  const m = mk({ name: '<b>hack</b>' });
-  ok(m.html.includes('&lt;b&gt;hack&lt;/b&gt;') && !m.html.includes('<b>hack</b>'),
-    '氏名に < を入れられても本文が壊れない（エスケープしている）');
+  // ★氏名は件名にも本文にも1文字も出さない。
+  //   4f11d6c で挨拶から外した。匿名で給与と職場のことを出してもらっているのに、
+  //   こちらから氏名で呼ぶと受信箱と送信ログに「このアドレス＝この氏名」が残る。
+  //   氏名は今も言語の見当にだけ使う（ひとつ上の節）。だから build には渡っている。
+  //   渡っているものが出力に出ていないことを、組んだ実物で見る。
+  //   ★実体参照を戻してから探す。挨拶が esc(p.name) で戻ると、素の形だけを見る検査は
+  //     &lt;b&gt; を「氏名ではない」と見なして素通りする。二重に包まれても同じ。
+  const unesc = (s) => {
+    let t = String(s), prev;
+    do { prev = t; t = t.replace(/&lt;/g, () => '<').replace(/&gt;/g, () => '>')
+                       .replace(/&quot;/g, () => '"').replace(/&amp;/g, () => '&'); }
+    while (t !== prev);
+    return t;
+  };
+  const leaked = [];
+  for (const name of ['高橋 蓮', 'Alex Mercer', '<b>hack</b>']) {
+    const m = mk({ name });
+    if (unesc(m.html).includes(name) || unesc(m.subject).includes(name)) leaked.push(name);
+  }
+  ok(leaked.length === 0, '★氏名が件名にも本文にも1文字も出ない（氏名で呼びかけない）'
+    + (leaked.length ? ' — 出ていた: ' + leaked.join(' / ') : ''));
 }
 
 {
