@@ -89,23 +89,73 @@
   border-radius:var(--pv-r);box-shadow:var(--pv-shadow);overflow:hidden}
 /* 横に溢れる分は表だけがスクロールする（ページ本体は横に動かさない）。 */
 .ap-tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
-.ap-tbl{width:100%;border-collapse:collapse;font-size:.81rem}
+.ap-tbl{width:100%;border-collapse:collapse;font-size:.82rem}
 .ap-tbl th{position:sticky;top:0;z-index:1;
   background:var(--pv-surface-2);
-  padding:11px 14px;text-align:left;white-space:nowrap;
-  font-size:.68rem;font-weight:700;letter-spacing:.02em;color:var(--pv-ink-3);
+  padding:12px 16px;text-align:left;white-space:nowrap;
+  font-size:.67rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--pv-ink-3);
   border-bottom:1px solid var(--pv-line)}
-.ap-tbl td{padding:12px 14px;border-bottom:1px solid var(--pv-line-soft);
+/* 金額の列は右寄せ。桁が縦に揃わないと、丸めてあることが読み取りにくい。 */
+.ap-tbl th.ap-num,.ap-tbl td.ap-num{text-align:right}
+.ap-tbl td{padding:14px 16px;border-bottom:1px solid var(--pv-line-soft);
   line-height:1.6;vertical-align:middle}
-.ap-tbl tr:last-child td{border-bottom:0}
-.ap-air{font-weight:700;color:var(--pv-ink)}
+.ap-tbl tbody tr:last-child td{border-bottom:0}
+/* ★行は押せない（開く先が無い）。それでも目で追う助けに、なぞった行だけ淡く沈める。
+     色は付けない＝押せそうに見せない。 */
+.ap-tbl tbody tr{transition:background-color .16s var(--pv-ease)}
+.ap-tbl tbody tr:hover{background:var(--pv-line-soft)}
+
+/* 社名のセル。ロゴ＋文字。★ロゴが落ちても社名は必ず文字で残る。 */
+.ap-cell-air{display:flex;align-items:center;gap:10px;min-width:0}
+.ap-logo{flex:none;width:30px;height:30px;object-fit:contain;
+  border-radius:8px;background:#fff;padding:3px;
+  border:1px solid var(--pv-line-soft)}
+/* ロゴを持っていない社と「一覧にない会社」。頭2文字だけのグレーの札。 */
+.ap-logo--mono{display:inline-flex;align-items:center;justify-content:center;
+  padding:0;background:var(--pv-surface-2);color:var(--pv-ink-3);
+  font-size:.66rem;font-weight:800;letter-spacing:.01em}
+.ap-air{font-weight:700;color:var(--pv-ink);min-width:0}
 /* 金額は表の主役。数字は等幅の数字送りで縦に揃える。 */
 .ap-amt{font-weight:800;letter-spacing:-.02em;white-space:nowrap;
   font-variant-numeric:tabular-nums;color:var(--pv-orange-ink)}
+/* 月あたりは年収の言い換え。主役の隣で控えめに。 */
+.ap-mon{font-weight:600;white-space:nowrap;
+  font-variant-numeric:tabular-nums;color:var(--pv-ink-2)}
 .ap-vf{display:inline-flex;align-items:center;gap:4px;
   font-size:.68rem;font-weight:700;color:var(--pv-green-ink);white-space:nowrap}
 .ap-vf svg{flex:none}
-.ap-vf-no{font-size:.68rem;color:var(--pv-ink-3)}
+/* ★「本人記録」は13行が13行とも同じ札になる＝いまは情報が無い。
+   橙で塗ると画面がその1語で埋まるので、ここは灰の静かな札にする。
+   色を使うのは ✓ Verified（緑）だけ。差が出たときにだけ目が行く。
+   見出しの橙の札（.ap-badge--actual）は「この画面は全部が本人の記録」の宣言なので別物。 */
+.ap-vf-no{display:inline-flex;align-items:center;
+  font-size:.66rem;font-weight:600;white-space:nowrap;
+  border-radius:999px;padding:3px 9px;
+  color:var(--pv-ink-3);background:var(--pv-line-soft);
+  border:1px solid var(--pv-line)}
+
+/* ══ ページ送り ═══════════════════════════════════════════════════
+   ★件数もカバー社数も出さない。出すのは「今めくっている場所」だけ。
+     総数を出すと会員規模そのものが漏れる（前回やめた線）。 */
+.ap-pager{display:flex;align-items:center;justify-content:center;gap:14px;
+  padding:14px 16px;border-top:1px solid var(--pv-line);
+  background:var(--pv-surface-2)}
+.ap-pg{min-height:36px;padding:7px 16px;border-radius:999px;
+  border:1px solid var(--pv-line);background:var(--pv-surface);color:var(--pv-ink-2);
+  font-family:inherit;font-size:.76rem;font-weight:700;cursor:pointer;
+  transition:color .18s var(--pv-ease),border-color .18s var(--pv-ease),
+             transform .18s var(--pv-ease)}
+.ap-pg:hover:not(:disabled){color:var(--pv-ink);border-color:var(--pv-orange)}
+.ap-pg:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}
+.ap-pg:active:not(:disabled){transform:scale(.97)}
+.ap-pg:disabled{opacity:.4;cursor:default}
+.ap-pg-n{font-size:.72rem;font-weight:700;color:var(--pv-ink-3);
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* 表の下の注記。★ここにも金額・件数を書かない。 */
+.ap-foot{margin-top:14px;font-size:.72rem;line-height:1.75;color:var(--pv-ink-3);
+  max-width:78ch;line-break:strict;word-break:auto-phrase}
 
 /* 鍵が無いとき／まだ1行も無いとき／絞り込みで0件のとき。
    ★どれも金額を1文字も出さない。 */
@@ -128,12 +178,15 @@
 
 @media (max-width:760px){
   .ap-filter{padding:14px}
-  .ap-tbl th,.ap-tbl td{padding:10px 12px}
+  .ap-tbl th,.ap-tbl td{padding:11px 12px}
+  .ap-logo{width:26px;height:26px}
+  .ap-cell-air{gap:8px}
+  .ap-pager{gap:10px;padding:12px}
 }
 
 /* ★ 要素を display:none にしない（my-value.css と同じ約束）。
      動きを止めるだけにする。 */
 @media (prefers-reduced-motion:reduce){
-  .ap-sel,.ap-clear,.ap-cta{transition:none}
-  .ap-clear:active,.ap-cta:active{transform:none}
+  .ap-sel,.ap-clear,.ap-cta,.ap-pg,.ap-tbl tbody tr{transition:none}
+  .ap-clear:active,.ap-cta:active,.ap-pg:active{transform:none}
 }

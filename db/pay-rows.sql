@@ -2,8 +2,9 @@
 -- db/pay-rows.sql — 「他のパイロットの実給与を見る」の読み出し経路
 --
 -- 適用順：db/vocab.generated.sql → db/airlines.generated.sql →
---         db/pay-reports.sql → ★このファイル
---         （profiles.access_until と pay_reports は pay-reports.sql が作る）
+--         db/pay-reports.sql → db/pay-report-pending.sql → ★このファイル
+--         （profiles.access_until と pay_reports は pay-reports.sql が作る。
+--           pay_reports_pending と pv_annual_total も、それぞれ先に要る）
 --
 -- ────────────────────────────────────────────────────────────────────────
 -- ★★ ここはプライバシーの例外そのものなので、1文字でも変える前に必ず読む。
@@ -19,11 +20,22 @@
 --   理由は「まだ人数が少なく、門を残すと画面に1行も出ない」。
 --   ＝ 出した人が9人なら9行、その人が1人しか居ない会社でも1行出る。
 --
+-- 2026-08-23 追加（同じ日・オーナー判断）：**登録前の「預かり」も混ぜる。**
+--   給与は会員登録の前にも出せる（db/pay-report-pending.sql）。出した人の多くは
+--   そのあと登録しない＝本棚（pay_reports）に移らない。本番で実際に、
+--   出した11件のうち7件が移らないまま寝ていた。**出してくれたのに1行も出ない**のは
+--   Give & Get の約束と食い違うので、まだ移っていない預かりもこの一覧に出す。
+--   ・移した預かり（claimed_at あり）は本棚側に同じものが居るので**読まない**（二重計上）
+--   ・預かりは明細検証の経路を通らないので verified は常に false
+--   ・人の単位は ip_day_hash（同じ日・同じ回線＝同じ人とみなす）。
+--     日をまたぐと同じ人でも別の値になるので、**その人は2行に見える**。
+--     行数を人数と読まないこと（本棚側の「同じ人が2機材」も同じ）。
+--
 -- ★これで匿名性がどこまで落ちたか（正直に書いておく）
 --   会社・職位・機材の3つが分かっている同僚には、行を当てられうる。
 --   「うちの 787 の機長で去年から居るのはあいつだけ」が成り立つ規模だと、
 --   その行はその人のものだと分かる。**これは承知のうえで選んだ形。**
---   したがってこの設計を支えているのは、いま次の6つだけ。
+--   したがってこの設計を支えているのは、いま次の7つだけ。
 --
 --     ① 鍵         給与明細を1枚出した人だけ・90日（サーバ側。anon には開かない）
 --     ② 準識別子ゼロ 基地・在籍年数・年代・投稿月・原本通貨・契約形態・国籍・
@@ -31,19 +43,40 @@
 --     ③ 有効数字2桁  $183,456 は $180,000 として出る。1円まで一致する個票が存在しない
 --     ④ 1行＝1人    同じ人の複数月は年換算の中央値で1行に畳む（回数から常連が割れない）
 --     ⑤ 引数ゼロ    総当たりで区分を指定して引く面が無い
---     ⑥ 並びに時間が無い md5(proof_hash) 順。投稿順に並べない
+--     ⑥ 並びに時間が無い md5(人のキー) 順。投稿順に並べない
+--     ⑦ 常識の幅    年 $10,000 未満／$700,000 超は出さない（下の「⑦とは何か」）
 --
 --   ③を外すと個票そのものになる。④を外すと出した回数が漏れる。
---   **この6つは1つも外さないこと。**
+--   **この7つは1つも外さないこと。**
+--
+-- ★⑦とは何か（外した p10-p90 クリップとは別物）
+--   クリップは「同じ区分の実データの上下1割に寄せる」＝**本物の値を書き換える**処理で、
+--   区分が無くなったので外した。⑦は違う。**固定の常識の幅**で、
+--   実在しうるパイロットの年収は1つも落ちない。落ちるのは打ち間違いだけ。
+--   本番で実際にあった2件（2026-08-23 に読んで確認した実測値）：
+--     ・年 $0.75（＝ ¥110）… 桁を打ち損ねた行
+--     ・月額の欄に年額（¥1,200万）を入れた行 … 年 ¥1.46億 ＝ $918,486 として出る
+--   丸め（③）はこれを直せない（$0.75 は $0.75 のまま2桁）。
+--
+--   ★上限が $700,000 なのはなぜか。
+--     実在しうる最高は、米系大手の広胴機・機長・最上位号俸に利益分配が当たった年で
+--     $50万台。$70万で頭を打つ幅なら、その最高値にまだ余裕がある。
+--     一方、月額の欄に年額を打つ間違いは桁が1つ増える（上の $918,486）ので、
+--     $70万の線で落ちる。$100万にすると落ちない＝この幅が仕事をしなくなる。
+--     ⚠️ これは「絶対に本物が落ちない」保証ではなく判断。
+--        $70万を超える本物が来たら、その1件を確かめてから上限を動かすこと。
+--        逆に狭めるのも同じで、狭めると訓練生の低給と本物の高給が黙って消える。
 --
 -- ★まだ禁じていること：
 --   ・この関数に引数を足すこと（総当たりで区分を指定する面が生える）
 --   ・anon に execute を渡すこと（下の grant は authenticated だけ）
 --   ・②の列を1つでも返り値に足すこと
---   ・自由入力の社名（airline_other）を読むこと・返すこと
+--   ・自由入力の社名を読むこと・返すこと
 --     → 打ち込まれた文字列そのものが識別子。airline は 'other' のまま返し、
---        画面が「その他の航空会社」という固定の札に置き換える
+--        画面が「その他の航空会社」という固定の札に置き換える。
+--        預かり側も同じ（payload の中にその文字列が居るが、金額の欄しか読まない）
 --   ・投稿の時刻・順序が読める並びにすること（新しさは「誰が最近出したか」）
+--   ・預かりの claim_token・ip_day_hash・payload そのものを返すこと
 --
 -- ★将来この関数が重くなったときの正しい直し方：
 --   引数を足さない。結果を authenticated 限定のビューに落として PostgREST 側で絞らせる。
@@ -90,6 +123,81 @@ comment on function public.pv_sig2(numeric) is
 
 
 -- ════════════════════════════════════════════════════════════════
+-- 1-b. pv_pending_usd — 預かりの payload から年換算USDを出す
+--
+-- 本棚（pay_reports）は annual_total_usd を**列に持っている**。
+-- 預かり（pay_reports_pending）は payload を寝かせているだけで持っていない
+-- （db/pay-report-pending.sql が「ここで正規化しない」と決めているため）。
+-- 読むときに出すのがここ。
+--
+-- ★年換算の定義そのものは書き写さない。pv_annual_total（db/pay-reports.sql 4章）を呼ぶ。
+--   あれが唯一の正で、引数が増えた過去もある。書き写すと必ずいつか片方だけ直る。
+--
+-- ★それでも「payload の読み方」と「USDの掛け方」はここが2つめの実装になる。
+--   submit_pay_report の宣言部（v_gross ほか）と1文字ずつ同じにしてある：
+--     ・gross_monthly だけ nullif を二重に掛ける（'' と 0 の両方を null に倒す）
+--     ・総支給があるときは内訳（base_pay・hourly_rate・transport・command_pay・
+--       other_allowance）を見ない。per_diem と housing_amount は総支給と排他にしない
+--     ・レートの無い通貨は null を返す（本棚側の annual_total_usd と同じ振る舞い）
+--   ズレていないことは db/test-pay-rows.mjs が、**同じ payload を
+--   submit_pay_report にも通して突き合わせる**ことで毎回確かめている。
+--   片方だけ直すとそこで落ちる。
+--
+-- ★金額の欄しか読まない。社名・基地・年代・在籍年数・国籍には触れない。
+-- ════════════════════════════════════════════════════════════════
+create or replace function public.pv_pending_usd(p jsonb)
+returns numeric
+language sql
+stable
+set search_path = public, extensions
+as $$
+  select round(
+           public.pv_annual_total(
+             x.gross,
+             -- 総支給が来ている行では内訳を見ない（両方足すと二重計上）。
+             -- pv_annual_total の coalesce も同じ判断をするが、
+             -- あちらの実装に頼らず、submit_pay_report と同じ形をここにも書く。
+             case when x.gross is null then x.base   end,
+             case when x.gross is null then x.hourly end,
+             x.guar, x.bh, x.perdiem,
+             x.htype, x.hamt,
+             case when x.gross is null then x.trans end,
+             case when x.gross is null then x.cmd   end,
+             case when x.gross is null then x.othal end,
+             x.bonus_a, x.profit, x.bonus_m
+           ) * r.to_usd, 2)
+    from (
+      select nullif(nullif(p->>'gross_monthly', '')::numeric, 0) as gross,
+             nullif(p->>'base_pay',            '')::numeric      as base,
+             nullif(p->>'hourly_rate',         '')::numeric      as hourly,
+             nullif(p->>'guaranteed_hours',    '')::numeric      as guar,
+             nullif(p->>'block_hours',         '')::numeric      as bh,
+             nullif(p->>'per_diem',            '')::numeric      as perdiem,
+             nullif(btrim(p->>'housing_type'), '')               as htype,
+             nullif(p->>'housing_amount',      '')::numeric      as hamt,
+             nullif(p->>'transport',           '')::numeric      as trans,
+             nullif(p->>'command_pay',         '')::numeric      as cmd,
+             nullif(p->>'other_allowance',     '')::numeric      as othal,
+             nullif(p->>'bonus_annual',        '')::numeric      as bonus_a,
+             nullif(p->>'profit_share_annual', '')::numeric      as profit,
+             nullif(p->>'bonus_month',         '')::numeric      as bonus_m,
+             upper(nullif(btrim(p->>'currency'), ''))            as cur
+    ) x
+    -- ★join なので、レートの無い通貨は行が消える＝null が返る。
+    --   本棚側（submit_pay_report）も annual_total_usd を null のままにする。同じ扱い。
+    join public.fx_rates r on r.code = x.cur;
+$$;
+
+-- ★誰にも渡さない。呼ぶのは下の pv_pay_rows（security definer なので所有者権限で動く）だけ。
+--   単体で開けると「この payload はいくらか」を総当たりで問える面になる。
+revoke all on function public.pv_pending_usd(jsonb) from public, anon, authenticated;
+
+comment on function public.pv_pending_usd(jsonb) is
+  '登録前に預かった給与 payload の年換算USD。pv_annual_total を呼ぶ（定義は書き写さない）。'
+  '金額の欄しか読まない。誰にも grant しない＝pv_pay_rows の中からだけ使う。';
+
+
+-- ════════════════════════════════════════════════════════════════
 -- 2. pv_pay_rows — 匿名レポート一覧（1行＝1人・出した人は全員）
 --
 -- 返り値
@@ -101,6 +209,9 @@ comment on function public.pv_sig2(numeric) is
 --     airline … 航空会社コード。自由入力の社名の人は 'other' のまま
 --               （打ち込まれた文字列は返さない。画面が固定の札に置き換える）
 --     fleet   … 機材コード。'other' はそのまま「その他」として出る
+--
+-- 材料は2つ。本棚（会員が出したぶん）と、まだ移っていない預かり。
+--   ★預かりは claimed_at が null のものだけ。移したものは本棚側に同じ人が居る。
 --
 -- 同じ人の複数月は「年換算額の中央値」で1行に畳む。
 --   ★最新月を採らない。最新月は投稿の新しさと相関するので、月をまたいで並べると
@@ -134,28 +245,56 @@ begin
   end if;
 
   with src as (
+    -- ── ① 本棚（会員が出したぶん）──────────────────────────
     -- ★ここで選んだ列がすべて。増やす前に必ずファイル冒頭の②を読む。
     --   自由入力の社名の列は、ここにも下にも1度も出てこない（読まない）。
-    --   ★この行に列名そのものを書かないこと。自己点検7が「読んでいる」と誤検知する。
-    select r.proof_hash,
-           r.airline,
-           r."position" as pos,
-           r.fleet,
-           r.annual_total_usd,
-           r.verify_level
+    --   ★この行に列名そのものを書かないこと。自己点検8が「読んでいる」と誤検知する。
+    select 'r:' || r.proof_hash as pkey,
+           r.airline            as airline,
+           r."position"         as pos,
+           r.fleet              as fleet,
+           r.annual_total_usd   as usd,
+           (r.verify_level >= 1) as vf
       from public.pay_reports r
      where r.annual_total_usd is not null      -- レートの無い通貨は落ちる（6章と同じ）
        and r.created_at >= now() - interval '24 months'
+    union all
+    -- ── ② 預かり（登録前に出されたぶん。まだ本棚に移っていないものだけ）──
+    --   ★claimed_at is null が二重計上の唯一の歯止め。外さないこと。
+    --   ★人の単位は ip_day_hash。日をまたぐと同じ人でも別の値になる（＝2行に見える）。
+    --   ★読むのは airline と、金額を出すための payload だけ。
+    --     payload の中には自由入力の社名も居るが、pv_pending_usd は金額の欄しか見ない。
+    select 'p:' || q.ip_day_hash,
+           q.airline,
+           q.payload->>'position',
+           q.payload->>'fleet',
+           public.pv_pending_usd(q.payload),
+           false
+      from public.pay_reports_pending q
+     where q.claimed_at is null
+       and q.ip_day_hash is not null
+       and q.created_at >= now() - interval '24 months'
+       -- 預かりの airline には外部キーが無いので、ここで語彙に当てる。
+       -- 当たらない値は画面の辞書にも無い＝コードがそのまま出てしまう。
+       and exists (select 1 from public.pv_airlines a where a.code = q.airline)
+  ),
+  sane as (
+    -- ── ③ 常識の幅（⑦）。打ち間違いだけを落とす ────────────────
+    --   ★狭めないこと。実在しうる年収を1つも落とさない幅にしてある。
+    --     理由と実例はファイル冒頭「⑦とは何か」。
+    select * from src
+     where usd is not null
+       and usd between 10000 and 700000
   ),
   person as (
     -- ★人ごとに畳む。ここが「1行＝1人」の実体。
-    select airline, pos, fleet, proof_hash,
+    select pkey, airline, pos, fleet,
            -- ★percentile_cont は numeric を渡しても double precision で返る。
            --   round(値, 桁) は numeric にしか無いので、先に ::numeric を通す。
-           (percentile_cont(0.5) within group (order by annual_total_usd))::numeric as v,
-           max(verify_level) >= 1 as verified
-      from src
-     group by airline, pos, fleet, proof_hash
+           (percentile_cont(0.5) within group (order by usd))::numeric as v,
+           bool_or(vf) as verified
+      from sane
+     group by pkey, airline, pos, fleet
   )
   select coalesce(jsonb_agg(jsonb_build_object(
            'airline',    p.airline,
@@ -166,8 +305,8 @@ begin
          -- ★並びに時間を入れないこと。投稿順に並べると、並び順そのものが
          --   「誰が最近出したか」になる（外した30日の遅延より悪い）。
          --   md5 なので毎回同じ並びで、しかも中身とも関係が無い。
-         --   proof_hash そのものは返さない（並べるためだけに使う）。
-         ) order by md5(p.proof_hash)), '[]'::jsonb)
+         --   人のキーそのものは返さない（並べるためだけに使う）。
+         ) order by md5(p.pkey)), '[]'::jsonb)
     into v_rows
     from person p;
 
@@ -184,8 +323,10 @@ grant execute on function public.pv_pay_rows() to authenticated;
 
 comment on function public.pv_pay_rows() is
   '実給与の匿名一覧。1行＝1人（複数月は年換算の中央値で畳む）。出した人は全員出る。'
+  '本棚（pay_reports）と、まだ移っていない預かり（pay_reports_pending）の両方から作る。'
   '基地・在籍年数・年代・投稿月・原本通貨・契約形態・自由入力の社名は返さない。'
-  '金額は有効数字2桁に丸める。並びは md5(proof_hash) 順で投稿順ではない。'
+  '金額は有効数字2桁に丸め、年 $10,000〜$700,000 の外は打ち間違いとして出さない。'
+  '並びは md5(人のキー) 順で投稿順ではない。'
   '★引数を取らない＝他人の区分を狙って引く面が無い。'
   '★鍵は給与明細の access_until のみ。口コミの鍵では開かない。';
 
@@ -195,20 +336,21 @@ comment on function public.pv_pay_rows() is
 --
 -- ★1本の SELECT にしてある。Supabase の SQL Editor は複数文を流すと
 --   最後の1本の結果しか出さないので、分けて書くと上から順に消えていく。
--- 期待：14行すべて ✅。1つでも ❌ なら、そこが効いていない。
+-- 期待：19行すべて ✅。1つでも ❌ なら、そこが効いていない。
 --
--- 特に 4・11・12・13 は「静かに壊れる」種類のもの。画面には何も出ないまま、
--- 他人の個票に届く経路が開く。
+-- 特に 4・8・12・13・14・16 は「静かに壊れる」種類のもの。画面には何も出ないまま、
+-- 他人の個票に届く経路が開く（16 は逆に、同じ人が二重に出る）。
 -- ════════════════════════════════════════════════════════════════
 with f as (
-  select to_regprocedure('public.pv_pay_rows()')     as f_rows,
-         to_regprocedure('public.pv_sig2(numeric)')  as f_sig,
-         to_regclass('public.pay_benchmarks')        as bench
+  select to_regprocedure('public.pv_pay_rows()')       as f_rows,
+         to_regprocedure('public.pv_sig2(numeric)')    as f_sig,
+         to_regprocedure('public.pv_pending_usd(jsonb)') as f_pend,
+         to_regclass('public.pay_benchmarks')          as bench
 )
 select n as "#", case when ok then '✅' else '❌' end as 結果, 見るところ
 from (
-  select 1 as n, '2つの関数がある' as 見るところ,
-         (f_rows is not null and f_sig is not null) as ok from f
+  select 1 as n, '3つの関数がある' as 見るところ,
+         (f_rows is not null and f_sig is not null and f_pend is not null) as ok from f
   union all
   select 2, '一覧の関数は引数を取らない（他人の区分を狙って引けない）',
          case when f_rows is null then false
@@ -230,34 +372,41 @@ from (
          case when f_rows is null then false
               else pg_get_functiondef(f_rows) like '%access_until%' end from f
   union all
-  select 7, '自由入力の社名は読んでも返してもいない',
-         case when f_rows is null then false
-              else pg_get_functiondef(f_rows) not like '%airline_other%' end from f
+  select 7, '自由入力の社名は読んでも返してもいない（一覧・預かりの換算とも）',
+         case when f_rows is null or f_pend is null then false
+              else pg_get_functiondef(f_rows) not like '%airline_other%'
+               and pg_get_functiondef(f_pend) not like '%airline_other%' end from f
   union all
-  select 8, '金額を有効数字2桁に丸めている',
+  select 8, '準識別子を1つも読んでいない（基地・在籍年数・年代・投稿月・国籍・契約・税・原本通貨）',
+         case when f_rows is null or f_pend is null then false
+              else pg_get_functiondef(f_rows) !~
+                   '(base_iata|seniority_years|age_bucket|contract_type|tax_country|nationality|annual_total_orig|period_month)'
+               and pg_get_functiondef(f_pend) !~
+                   '(base_iata|seniority_years|age_bucket|contract_type|tax_country|nationality|period_month)'
+         end from f
+  union all
+  select 9, '金額を有効数字2桁に丸めている',
          case when f_rows is null then false
               else pg_get_functiondef(f_rows) like '%pv_sig2(%' end from f
   union all
-  select 9, '同じ人の複数月を1行に畳んでいる（proof_hash で group by）',
+  select 10, '同じ人の複数月を1行に畳んでいる（人のキーで group by）',
          case when f_rows is null then false
-              else pg_get_functiondef(f_rows) like '%group by airline, pos, fleet, proof_hash%'
+              else pg_get_functiondef(f_rows) like '%group by pkey, airline, pos, fleet%'
          end from f
   union all
-  select 10, '並びに時間が入っていない（md5 順・投稿順ではない）',
+  select 11, '並びに時間が入っていない（md5 順・投稿順ではない）',
          case when f_rows is null then false
               else pg_get_functiondef(f_rows) like '%order by md5(%'
                and pg_get_functiondef(f_rows) !~ 'order by[^;]*created_at'
          end from f
   union all
-  select 11, '準識別子を1つも読んでいない（基地・在籍年数・年代・投稿月・国籍・契約・税・原本通貨）',
-         case when f_rows is null then false
-              else pg_get_functiondef(f_rows) !~
-                   '(base_iata|seniority_years|age_bucket|contract_type|tax_country|nationality|annual_total_orig|period_month)'
-         end from f
-  union all
   select 12, '返す行に個人の同定キーが入っていない',
          case when f_rows is null then false
-              else pg_get_functiondef(f_rows) not like '%''proof_hash''%' end from f
+              else pg_get_functiondef(f_rows) not like '%''proof_hash''%'
+               and pg_get_functiondef(f_rows) not like '%''pkey''%'
+               and pg_get_functiondef(f_rows) not like '%''ip_day_hash''%'
+               and pg_get_functiondef(f_rows) not like '%claim_token%'
+         end from f
   union all
   select 13, '丸めの関数が immutable（呼ぶたびに答えが変わらない）',
          case when f_sig is null then false
@@ -266,5 +415,26 @@ from (
   select 14, '公開集計の5人未満ルールは今も生きている（このファイルは緩めていない）',
          case when bench is null then false
               else pg_get_viewdef(bench) like '%>= 5%' end from f
+  union all
+  select 15, '登録前の預かりも一覧に混ざる',
+         case when f_rows is null then false
+              else pg_get_functiondef(f_rows) like '%pay_reports_pending%' end from f
+  union all
+  select 16, '★本棚へ移した預かりは読まない（同じ人が二重に出ない）',
+         case when f_rows is null then false
+              else pg_get_functiondef(f_rows) like '%claimed_at is null%' end from f
+  union all
+  select 17, '打ち間違いの幅（年 $10,000〜$700,000）が効いている',
+         case when f_rows is null then false
+              else pg_get_functiondef(f_rows) like '%between 10000 and 700000%' end from f
+  union all
+  select 18, '預かりの換算は誰にも開いていない（pv_pay_rows の中からだけ）',
+         case when f_pend is null then false
+              else not has_function_privilege('anon', f_pend, 'execute')
+               and not has_function_privilege('authenticated', f_pend, 'execute') end from f
+  union all
+  select 19, '年換算の定義を書き写していない（pv_annual_total を呼んでいる）',
+         case when f_pend is null then false
+              else pg_get_functiondef(f_pend) like '%pv_annual_total(%' end from f
 ) t
 order by n;

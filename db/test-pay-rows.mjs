@@ -114,6 +114,20 @@ const person = async (air, pos, months) => {
   return u;
 };
 
+/* 登録前の「預かり」を1件作る。★本物の口（submit_pay_report_pending）を通す。
+   ip_day_hash は IP ヘッダから作られるが、ローカルでは取れないので null になる。
+   「同じ人」を作り分けたいので、入れてから書き換える。 */
+const pend = async (air, opts) => {
+  await asAnon();
+  const res = (await one(`select submit_pay_report_pending($1::jsonb) r`,
+    [JSON.stringify({ ...BASE, airline: air, position: opts.pos || 'cap', fleet: opts.fleet || 'b777',
+                      period_year: YEAR, period_month: opts.month, gross_monthly: opts.gross })])).r;
+  if (opts.iph !== null)
+    await db.query(`update pay_reports_pending set ip_day_hash = $2 where id = $1::uuid`,
+      [res.id, opts.iph]);
+  return res;
+};
+
 const backdateAirline = (air, days) =>
   db.query(`update pay_reports set created_at = now() - ($2 || ' days')::interval where airline = $1`,
     [air, String(days)]);
@@ -122,12 +136,15 @@ const VIEWER = 9002;
 const asViewer = () => db.query(`select set_config('pv.uid', $1, false)`, [uid(VIEWER)]);
 const payRows = async () => (await one(`select pv_pay_rows() r`)).r;
 const only = (rs, f) => rs.filter(f);
+// 画面に出るのと同じ丸め（有効数字2桁）。畳んだ額の検算に使う。
+const pv2 = (v) => Number(v.toPrecision(2));
 
 // 会社コードは語彙から取る（このテストのために特定の社名を覚えない）
 const AIR = (await rows(
-  `select code from pv_airlines where code <> 'other' and active order by code limit 8`
+  `select code from pv_airlines where code <> 'other' and active order by code limit 13`
 )).map(r => r.code);
-const [A_ONE, A_M12, A_MIX, A_OLD, A_ORD, A_VF, A_OUT, A_FOTHER] = AIR;
+const [A_ONE, A_M12, A_MIX, A_OLD, A_ORD, A_VF, A_OUT, A_FOTHER,
+       A_BAND, A_PEND, A_CLAIMED, A_NULLIP, A_CROSS] = AIR;
 
 // ════════════════════════════════════════════════════════════
 console.log('\n▼ 1. 鍵（ログインと access_until）');
@@ -185,8 +202,10 @@ await db.query(
      and proof_hash in (select proof_hash from pay_reports where airline = $1 order by created_at limit 1)`,
   [A_VF]);
 
-// (g) 中央値の10倍を出した1人＋ふつうの4人（★クリップを外したので、この人は出る）
-for (const g of [15000, 15000, 15000, 15000, 150000])
+// (g) 中央値の5倍を出した1人＋ふつうの4人（★クリップを外したので、この人は出る）
+//     ★ここで見たいのはクリップが無いことなので、5倍にしても「常識の幅」（年 $70万）
+//       に当たらない額にしてある。ふつうの4人が年 $12万、5倍の人が年 $60万。
+for (const g of [10000, 10000, 10000, 10000, 50000])
   await person(A_OUT, 'cap', [{ fleet: 'b777', month: 9, gross: g }]);
 
 // (h) 「一覧にない会社」2人（★全員出すので、この2人も出る。ただし社名は出ない）
@@ -203,6 +222,43 @@ for (let i = 0; i < 2; i++) {
    入れてから書き換える。 */
 await person(A_FOTHER, 'cap', [{ fleet: 'b737', month: 6, gross: 15000 }]);
 await db.query(`update pay_reports set fleet = 'other', fleet_cat = null where airline = $1`, [A_FOTHER]);
+
+/* (j) 常識の幅の材料。3人とも投稿としては正しいので、保存されたあとの額だけ書き換える。
+   ★桁を打ち損ねた行と、月額の欄に年額を入れた行。本番で実際にあった2つの形。 */
+for (const g of [15000, 16000, 17000])
+  await person(A_BAND, 'cap', [{ fleet: 'b777', month: 10, gross: g }]);
+await db.query(`update pay_reports set annual_total_usd = 0.75
+                 where airline = $1 and annual_total_usd = $2`, [A_BAND, 16000 * 12]);
+await db.query(`update pay_reports set annual_total_usd = 12000000
+                 where airline = $1 and annual_total_usd = $2`, [A_BAND, 17000 * 12]);
+
+/* (k) 預かり（登録前に出されたぶん）*/
+// 同じ人が同じ日に2か月ぶん出した → 1行に畳まれるはず
+await pend(A_PEND, { fleet: 'b777', month: 3, gross: 15000, iph: 'iph-aaa' });
+await pend(A_PEND, { fleet: 'b777', month: 4, gross: 17000, iph: 'iph-aaa' });
+// 別の人 → もう1行
+await pend(A_PEND, { fleet: 'b777', month: 3, gross: 20000, iph: 'iph-bbb' });
+// 語彙に無い会社コードに書き換えた行 → 出さない（画面の辞書に無い＝コードが素で出る）
+{
+  const bogus = await pend(A_PEND, { fleet: 'b777', month: 5, gross: 15000, iph: 'iph-ccc' });
+  await db.query(`update pay_reports_pending set airline = 'zzz-bogus' where id = $1::uuid`, [bogus.id]);
+}
+// 本棚へ移したぶん → 出さない（移した先に同じ人が居る＝二重計上）
+{
+  const claimed = await pend(A_CLAIMED, { fleet: 'b787', month: 3, gross: 15000, iph: 'iph-ddd' });
+  await db.query(`update pay_reports_pending set claimed_at = now() where id = $1::uuid`, [claimed.id]);
+}
+// IP が取れなかったぶん → 出さない（誰の行かまとめられないので畳めない）
+await pend(A_NULLIP, { fleet: 'b787', month: 3, gross: 15000, iph: null });
+// レートの無い通貨 → 出さない（本棚側の annual_total_usd が null になるのと同じ扱い）
+{
+  await asAnon();
+  await one(`select submit_pay_report_pending($1::jsonb) r`, [JSON.stringify({
+    ...BASE, currency: 'ZZZ', airline: A_NULLIP, position: 'cap', fleet: 'b787',
+    period_year: YEAR, period_month: 4, gross_monthly: 15000 })]);
+  await db.query(`update pay_reports_pending set ip_day_hash = 'iph-eee'
+                   where airline = $1 and payload->>'currency' = 'ZZZ'`, [A_NULLIP]);
+}
 
 await backdateAirline(A_OLD, 800);        // ★この会社だけ2年より前にする
 await asViewer();
@@ -261,8 +317,8 @@ ok((await one(`select pv_sig2(0::numeric) v`)).v === null, 'pv_sig2(0) は null'
      戻すなら pay-rows.sql の冒頭ごと直すこと。 */
   const outs = only(R, x => x.airline === A_OUT).map(x => Number(x.annual_usd));
   ok(outs.length === 5, '外れ値の会社は5人ぶん出る', `= ${outs.length}行`);
-  ok(Math.max(...outs) === 150000 * 12,
-     '★中央値の10倍の人はクリップされずに出る（丸めだけが効く）', JSON.stringify(outs));
+  ok(Math.max(...outs) === 50000 * 12,
+     '★中央値の5倍の人はクリップされずに出る（丸めだけが効く）', JSON.stringify(outs));
 }
 
 // ════════════════════════════════════════════════════════════
@@ -333,20 +389,121 @@ ok((await one(`select pg_get_viewdef('public.pay_benchmarks'::regclass) like '%>
    '★一覧の門を外しても、集計側の5人未満ルールは緩めていない');
 
 // ════════════════════════════════════════════════════════════
-console.log('\n▼ 10. 自己点検 SQL（ファイル末尾のものをそのまま流す）');
+console.log('\n▼ 10. ★常識の幅（打ち間違いだけを落とす）');
+// ════════════════════════════════════════════════════════════
+/* ★これは外した p10-p90 のクリップとは別物。クリップは「同じ区分の実データに寄せる」＝
+   本物の値を書き換える処理だった。こちらは固定の幅で、実在しうる年収は1つも落ちない。
+   落ちるのは打ち間違いだけ。幅を狭めると本物の高給・訓練生の低給が消えるので狭めないこと。 */
+{
+  const band = only(R, x => x.airline === A_BAND);
+  ok(band.length === 1, '★3人のうち、打ち間違いの2人は出ない', `= ${band.length}行`);
+  ok(Number(band[0]?.annual_usd) === 15000 * 12,
+     '　残るのは普通の額の1人だけ', JSON.stringify(band));
+  ok((await one(`select count(*)::int c from pay_reports where airline = $1`, [A_BAND])).c === 3,
+     '　（元の表には3行とも残っている＝消していない、出さないだけ）');
+  const amounts = R.map(x => Number(x.annual_usd));
+  ok(amounts.every(v => v >= 10000 && v <= 700000),
+     '★画面に出る額がすべて年 $10,000〜$700,000 の中',
+     JSON.stringify(amounts.filter(v => v < 10000 || v > 700000)));
+}
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 11. ★登録前の預かりも出る（そして二重に出ない）');
+// ════════════════════════════════════════════════════════════
+/* 給与は会員登録の前にも出せる。出した人の多くはそのあと登録しない＝本棚に移らない。
+   本番で実際に、出した11件のうち7件が移らないまま寝ていた。
+   出してくれたのに1行も出ないのは Give & Get の約束と食い違うので、ここも一覧に出す。 */
+{
+  const pd = only(R, x => x.airline === A_PEND);
+  ok(pd.length === 2, '★預かりも行になる（同じ日の同じ人は1行に畳んで2人ぶん）',
+     `= ${pd.length}行`);
+  ok((await one(`select count(*)::int c from pay_reports_pending where airline = $1`, [A_PEND])).c === 3,
+     '　（預かりの表には3行入っている＝同じ人の2件が畳まれている）');
+  const folded = pd.find(x => Number(x.annual_usd) !== 20000 * 12);
+  ok(Number(folded?.annual_usd) === pv2((15000 * 12 + 17000 * 12) / 2),
+     '　畳んだ人は2か月の中央値（どちらの月とも違う額）になる', JSON.stringify(pd.map(x => x.annual_usd)));
+  ok(pd.every(x => x.verified === false),
+     '★預かりに ✓ Verified は付かない（明細検証の経路を通っていない）');
+
+  ok(only(R, x => x.airline === A_CLAIMED).length === 0,
+     '★本棚へ移した預かりは出ない（同じ人が二重に出ない）');
+  ok(only(R, x => x.airline === A_NULLIP).length === 0,
+     '　IP が取れなかった預かりは出ない（誰の行かまとめられない）');
+  ok(only(R, x => x.airline === 'zzz-bogus').length === 0,
+     '　語彙に無い会社コードの預かりは出ない（画面の辞書に無い）');
+  ok((await one(`select count(*)::int c from pay_reports_pending`)).c === 7,
+     '　（預かりの表そのものは7行のまま＝消していない、出さないだけ）');
+
+  const raw2 = (await one(`select pv_pay_rows()::text t`)).t;
+  ok(!raw2.includes('iph-') && !raw2.includes('claim_token') && !raw2.includes('ip_day_hash'),
+     '★預かり証・回線のハッシュが返り値に1文字も無い');
+}
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 12. ★預かりの年換算が、本棚に入れたときと1円まで一致する');
+// ════════════════════════════════════════════════════════════
+/* pv_pending_usd は年換算＋USD換算の2つめの実装になる（本棚は列に持っている）。
+   定義そのもの（pv_annual_total）は共有しているが、payload の読み方と
+   レートの掛け方はここが2つめ。片方だけ直されると静かにズレるので、
+   同じ payload を submit_pay_report にも通して突き合わせる。 */
+{
+  const CROSS = [
+    { m: 1,  label: '総支給だけ',           p: { gross_monthly: 15000 } },
+    { m: 2,  label: '内訳だけ',             p: { base_pay: 9000, transport: 300, command_pay: 800,
+                                                 other_allowance: 200, bonus_annual: 20000 } },
+    { m: 3,  label: '時給＋保証時間＋実績', p: { hourly_rate: 200, guaranteed_hours: 75,
+                                                 block_hours: 82, per_diem: 1200 } },
+    { m: 4,  label: '住宅（手当）',         p: { base_pay: 9000, housing_type: 'allowance',
+                                                 housing_amount: 2500 } },
+    { m: 5,  label: '住宅（現物・足さない）', p: { base_pay: 9000, housing_type: 'provided',
+                                                 housing_amount: 2500 } },
+    { m: 6,  label: '★総支給と内訳の両方（内訳を捨てる側）',
+                                            p: { gross_monthly: 15000, base_pay: 9000, transport: 300,
+                                                 command_pay: 800, other_allowance: 200, per_diem: 1000,
+                                                 housing_type: 'allowance', housing_amount: 2000 } },
+    { m: 7,  label: 'ボーナスが出た月',     p: { gross_monthly: 40000, bonus_month: 25000 } },
+    { m: 8,  label: '利益分配',             p: { base_pay: 9000, profit_share_annual: 5000 } },
+    { m: 9,  label: '空文字が混ざる',       p: { gross_monthly: 15000, base_pay: '', transport: '',
+                                                 housing_amount: '', bonus_annual: '' } },
+    { m: 10, label: '円（レートを掛ける）', p: { currency: 'JPY', gross_monthly: 900000 } },
+    { m: 11, label: 'ユーロ',               p: { currency: 'EUR', base_pay: 9000, bonus_annual: 15000 } },
+    // ★レートの無い通貨は本棚側では作れない（currency に語彙の外部キーがある）。
+    //   預かりは payload を寝かせるだけなので作れる。だから下で片側だけ見る。
+  ];
+  const u = ++seat; await asUser(u);
+  for (const c of CROSS) {
+    const payload = { ...BASE, airline: A_CROSS, position: 'cap', fleet: 'b777',
+                      period_year: YEAR, period_month: c.m, ...c.p };
+    await submit(payload);
+    const stored = (await one(
+      `select annual_total_usd v from pay_reports where airline = $1 and period_month = $2`,
+      [A_CROSS, c.m])).v;
+    const derived = (await one(`select pv_pending_usd($1::jsonb) v`, [JSON.stringify(payload)])).v;
+    const same = (stored === null && derived === null)
+              || (stored !== null && derived !== null && Number(stored) === Number(derived));
+    ok(same, `${c.label}`, `本棚 ${stored} ≠ 預かり ${derived}`);
+  }
+  const noFx = (await one(`select pv_pending_usd($1::jsonb) v`, [JSON.stringify(
+    { ...BASE, currency: 'ZZZ', airline: A_CROSS, position: 'cap', fleet: 'b777',
+      period_year: YEAR, period_month: 1, gross_monthly: 15000 })])).v;
+  ok(noFx === null, '★レートの無い通貨は null（本棚の annual_total_usd と同じ扱い）', String(noFx));
+}
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 13. 自己点検 SQL（ファイル末尾のものをそのまま流す）');
 // ════════════════════════════════════════════════════════════
 {
   const src = read('db/pay-rows.sql');
   const q = src.slice(src.lastIndexOf('with f as ('));
   const res = await rows(q);
-  ok(res.length === 14, `自己点検が14行ぜんぶ出る（= ${res.length}行）`);
+  ok(res.length === 19, `自己点検が19行ぜんぶ出る（= ${res.length}行）`);
   for (const row of res) {
     ok(row['結果'] === '✅', `${row['#']}. ${row['見るところ']}`);
   }
 }
 
 // ════════════════════════════════════════════════════════════
-console.log('\n▼ 11. 8-20（pay_reports を読む関数が anon に開いていないこと）');
+console.log('\n▼ 14. 8-20（pay_reports を読む関数が anon に開いていないこと）');
 // ════════════════════════════════════════════════════════════
 {
   const src = read('db/pay-reports.sql');

@@ -50,11 +50,13 @@
        （pv-vocab.json は機材と職位しか持っていない）。 */
   var AIR_URL = 'salary-data.json';
   var VOCAB_URL = 'pv-vocab.json';
+  var LOGO_BASE = 'assets/airline-logos/';
   try {
     var _self = (d.currentScript && d.currentScript.src) || '';
     if (_self) {
       AIR_URL = new URL('salary-data.json', _self).href;
       VOCAB_URL = new URL('pv-vocab.json', _self).href;
+      LOGO_BASE = new URL('assets/airline-logos/', _self).href;
     }
   } catch (e) {}
 
@@ -70,9 +72,14 @@
         + '金額は有効数字2桁に丸めた額で、並び順に意味はありません。',
       all: 'すべて',
       thAir: '航空会社', thPos: '職位', thFleet: '機材',
-      thAmt: '年収（丸め）', thVf: '検証',
+      thAmt: '年収（丸め）', thMon: '月あたり', thVf: '出典',
       othAir: 'その他の航空会社',
-      vfNo: '—',
+      vfNo: '本人記録',
+      foot: 'この一覧は、給与を出したパイロットだけが読めます。'
+          + '載っているのは会社・職位・機材・丸めた金額だけです'
+          + '（月あたりはその金額を12で割った数字です）。'
+          + '基地・年代・在籍年数・投稿した月は誰の行にも入っていません。',
+      pgPrev: '前へ', pgNext: '次へ', pgOf: '{a} / {b} ページ',
       lockT: '給与明細を1枚出すと、ここが開きます',
       lockS: '他のパイロットが記録した実給与は、自分も1枚出した人だけが読めます。'
            + '氏名も社員番号も受け取りません。明細の画像は端末の中だけで処理され、サーバーには送られません。',
@@ -93,9 +100,14 @@
         + 'and the order means nothing.',
       all: 'All',
       thAir: 'Airline', thPos: 'Position', thFleet: 'Fleet',
-      thAmt: 'Annual (rounded)', thVf: 'Verified',
+      thAmt: 'Annual (rounded)', thMon: 'Per month', thVf: 'Source',
       othAir: 'Other airline',
-      vfNo: '—',
+      vfNo: 'Pilot-recorded',
+      foot: 'This list is readable only by pilots who have submitted their own pay. '
+          + 'A row carries the airline, the position, the fleet and a rounded figure '
+          + '(the monthly column is that figure divided by twelve). '
+          + 'Base, age, years of service and the month submitted appear on no row.',
+      pgPrev: 'Previous', pgNext: 'Next', pgOf: 'Page {a} of {b}',
       lockT: 'Submit one payslip and this opens',
       lockS: 'Pay recorded by other pilots is readable by people who have recorded theirs too. '
            + 'We never take your name or staff number, and payslip images are processed on your own device.',
@@ -119,8 +131,11 @@
     pos: {},          // 職位コード → 表示名
     rows: null,       // pv_pay_rows() の行（そのまま持つ）
     mode: '',         // 'locked' | 'open' | 'error'
-    fAir: '', fPos: '', fFleet: ''
+    fAir: '', fPos: '', fFleet: '',
+    page: 1           // 1始まり。絞り込みを変えたら1に戻す（行き止まりを作らない）
   };
+
+  var PER_PAGE = 10;
 
   var esc = function (s) {
     return String(s == null ? '' : s)
@@ -139,15 +154,28 @@
     return Math.round(v / p) * p;
   }
 
+  /* USD → 表示通貨に直して有効数字2桁に丸めた「数」。整形はしない。 */
+  function disp(usd) {
+    var C = w.PVCurrency;
+    if (!C || !isFinite(Number(usd))) return null;
+    var jpy = Number(usd) * (C.rates.USD || 1);   // サイト内の基準は円
+    return sig2(jpy / (C.rates[C.get()] || 1));
+  }
+
   /* USD → 表示通貨。整形はサイト共通の PVCurrency.fmt に任せる
      （「万」を出すか出さないかの判断が日英で違うので、ここで持たない）。 */
   function money(usd) {
-    var C = w.PVCurrency;
-    if (!C || !isFinite(Number(usd))) return '';
-    var cur = C.get();
-    var rate = C.rates[cur] || 1;
-    var jpy = Number(usd) * (C.rates.USD || 1);   // サイト内の基準は円
-    return C.fmt(sig2(jpy / rate) * rate);
+    var C = w.PVCurrency, n = disp(usd);
+    return n === null ? '' : C.fmt(n * (C.rates[C.get()] || 1));
+  }
+
+  /* 月あたり。★「画面に出ている年収」を12で割る。生の値から割ってはいけない。
+     生から割ると、画面の月額 × 12 が画面の年収と合わない数字になる
+     （年 $105,000 は「$110K」と出るのに、月は 105000/12 由来の「$8.8K」＝
+      年 $105.6K 相当になり、読んだ人が引き算して桁を疑う）。 */
+  function moneyMonth(usd) {
+    var C = w.PVCurrency, n = disp(usd);
+    return n === null ? '' : C.fmt(sig2(n / 12) * (C.rates[C.get()] || 1));
   }
 
   // ── 名前の引き当て ─────────────────────────────────────────────
@@ -159,6 +187,26 @@
   }
   function posName(code) { return S.pos[code] || code; }
   function fleetName(code) { return S.fleet[code] || code; }
+
+  /* 社ロゴ。airline-logos.js（window.PV_LOGOS）が「コード → 拡張子」を持っている。
+     ★salary-leveling.js の logoHtml は流用しない。あちらはブランド色（a.color）を
+       前提にしていて、salary-data.json はその色を持っていない（レベリング図が
+       自前の表から引いている）。ここは色を使わない小さい版を持つ。
+     ★alt="" にする。社名はすぐ隣に必ず文字で出るので、読み上げが二重になる。
+       画像が落ちても行は読める。
+     ★ロゴが無い社と「一覧にない会社」は、社名の頭2文字をグレーの札にする。
+       ここで出るのは**画面が持っている辞書の社名**で、本人が打ち込んだ文字列ではない
+       （'other' の名前は固定の札。サーバは打ち込まれた社名を返さない）。 */
+  function logoHtml(code) {
+    var ext = (w.PV_LOGOS || {})[code];
+    if (code !== 'other' && ext) {
+      return '<img class="ap-logo" src="' + esc(LOGO_BASE + code + '.' + ext) + '"'
+           + ' alt="" loading="lazy" decoding="async" width="30" height="30"/>';
+    }
+    var name = String(airName(code) || '');
+    var ini = name.replace(/[^0-9A-Za-z\u3040-\u30ff\u4e00-\u9fff]/g, '').slice(0, 2).toUpperCase();
+    return '<span class="ap-logo ap-logo--mono" aria-hidden="true">' + esc(ini || '·') + '</span>';
+  }
 
   // ── 表 ─────────────────────────────────────────────────────────
   function visibleRows() {
@@ -204,21 +252,48 @@
       return;
     }
 
+    /* ★ページを直す位置はここ1か所だけ。絞り込みで行が減ったあとも必ず
+         「行のあるページ」に居る＝押した先が空、という行き止まりが作れない。 */
+    var pages = Math.max(1, Math.ceil(rows.length / PER_PAGE));
+    if (S.page > pages) S.page = pages;
+    if (S.page < 1) S.page = 1;
+    var from = (S.page - 1) * PER_PAGE;
+    var page = rows.slice(from, from + PER_PAGE);
+
     var h = '<div class="ap-tw"><div class="ap-tscroll"><table class="ap-tbl">'
           + '<thead><tr><th>' + esc(T.thAir) + '</th><th>' + esc(T.thPos) + '</th>'
-          + '<th>' + esc(T.thFleet) + '</th><th>' + esc(T.thAmt) + '</th>'
+          + '<th>' + esc(T.thFleet) + '</th><th class="ap-num">' + esc(T.thAmt) + '</th>'
+          + '<th class="ap-num">' + esc(T.thMon) + '</th>'
           + '<th>' + esc(T.thVf) + '</th></tr></thead><tbody>';
-    for (var i = 0; i < rows.length; i++) {
-      var r = rows[i];
+    for (var i = 0; i < page.length; i++) {
+      var r = page[i];
       h += '<tr>'
-         + '<td><span class="ap-air">' + esc(airName(r.airline)) + '</span></td>'
+         + '<td><span class="ap-cell-air">' + logoHtml(r.airline)
+         +   '<span class="ap-air">' + esc(airName(r.airline)) + '</span></span></td>'
          + '<td>' + esc(posName(r.pos)) + '</td>'
          + '<td>' + esc(fleetName(r.fleet)) + '</td>'
-         + '<td><span class="ap-amt">' + esc(money(r.annual_usd)) + '</span></td>'
+         + '<td class="ap-num"><span class="ap-amt">' + esc(money(r.annual_usd)) + '</span></td>'
+         /* ★月あたりは画面の年収を12で割っただけ。新しい情報は1つも増えていない。 */
+         + '<td class="ap-num"><span class="ap-mon">' + esc(moneyMonth(r.annual_usd)) + '</span></td>'
          + '<td>' + (r.verified ? vfMark() : '<span class="ap-vf-no">' + esc(T.vfNo) + '</span>') + '</td>'
          + '</tr>';
     }
-    box.innerHTML = h + '</tbody></table></div></div>';
+    h += '</tbody></table></div>' + pager(pages) + '</div>';
+    box.innerHTML = h + '<p class="ap-foot">' + esc(T.foot) + '</p>';
+  }
+
+  /* ページ送り。★件数は出さない（会員規模そのものが漏れる）。
+     出すのは「何ページ目か」だけで、これは今めくっている場所の話。 */
+  function pager(pages) {
+    if (pages < 2) return '';
+    var lbl = T.pgOf.replace('{a}', String(S.page)).replace('{b}', String(pages));
+    return '<div class="ap-pager">'
+         + '<button type="button" class="ap-pg" data-ap-page="' + (S.page - 1) + '"'
+         + (S.page <= 1 ? ' disabled' : '') + '>' + esc(T.pgPrev) + '</button>'
+         + '<span class="ap-pg-n">' + esc(lbl) + '</span>'
+         + '<button type="button" class="ap-pg" data-ap-page="' + (S.page + 1) + '"'
+         + (S.page >= pages ? ' disabled' : '') + '>' + esc(T.pgNext) + '</button>'
+         + '</div>';
   }
 
   function vfMark() {
@@ -312,13 +387,25 @@
         if (id === 'ap-air') { S.fAir = s.value; S.fPos = ''; S.fFleet = ''; }
         else if (id === 'ap-pos') { S.fPos = s.value; S.fFleet = ''; }
         else S.fFleet = s.value;
+        S.page = 1;
         render();
       });
     });
     var clr = el('ap-clear');
     if (clr) clr.addEventListener('click', function () {
-      S.fAir = ''; S.fPos = ''; S.fFleet = '';
+      S.fAir = ''; S.fPos = ''; S.fFleet = ''; S.page = 1;
       render();
+    });
+
+    /* ページ送りは描き直すたびに作り直されるので、入れ物の側で受ける。 */
+    var box = el('ap-rows');
+    if (box) box.addEventListener('click', function (ev) {
+      var b = ev.target && ev.target.closest ? ev.target.closest('[data-ap-page]') : null;
+      if (!b || b.disabled) return;
+      S.page = Number(b.getAttribute('data-ap-page')) || 1;
+      render();
+      var tw = el('ap-rows');
+      if (tw && tw.scrollIntoView) tw.scrollIntoView({ block: 'start', behavior: 'smooth' });
     });
 
     /* ★通貨の切替は描き直すだけ。pv_pay_rows() を引き直さない。 */

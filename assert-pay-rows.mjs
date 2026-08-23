@@ -100,6 +100,27 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
   const iLang = html.indexOf('lang-toggle.js');
   ok(iRef > -1 && iLang > -1 && iRef < iLang,
      `${name}: pv-referral.js を lang-toggle.js より前に読む`, `${iRef} / ${iLang}`);
+
+  /* 社ロゴの対応表。★actual-pay.js より前に読まないと、全社が頭2文字の札になる
+     （落ちはしないので、絵を見ない限り誰も気づかない）。 */
+  /* ★<script src> の位置で見る。ファイル名は本文の説明にも出るので、
+     素の indexOf だと解説の一行を掴んで順番を取り違える。 */
+  const srcAt = (file) => {
+    const m = html.match(new RegExp('<script[^>]+src="[^"]*' + file + '"'));
+    return m ? html.indexOf(m[0]) : -1;
+  };
+  const iLogo = srcAt('airline-logos\\.js');
+  const iAp = srcAt('actual-pay\\.js');
+  ok(iLogo > -1, `${name}: 社ロゴの対応表（airline-logos.js）を読んでいる`);
+  ok(iAp > -1, `${name}: actual-pay.js を読んでいる`);
+  ok(iLogo > -1 && iAp > iLogo,
+     `${name}: ★airline-logos.js は actual-pay.js より前`, `${iLogo} / ${iAp}`);
+
+  /* ★戻さないと決めたもの（経験年数・提出日・レポートID・Verified だけの絞り込み）。
+     8人規模では、この4つはどれも1つ足すだけで本人に当たる。 */
+  for (const w of ['ap-exp', 'ap-date', 'ap-id', 'verified-only']) {
+    ok(!html.includes(w), `${name}: ★${w} が無い`);
+  }
 }
 
 /* ★準識別子を受け取る場所がソースに1つも無いこと。
@@ -124,6 +145,18 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
   ok(!/renderPub|ap-range|ap-plist|salaryRange/.test(j),
      '★推定レンジを描く関数が残っていない');
   ok(!/grain|ap-panel|ap-tcol/.test(j), '★2粒度と右パネルの部品が残っていない');
+  for (const w of ['ap-exp', 'ap-date', 'ap-id', 'verified-only', 'Verifiedのみ']) {
+    ok(!j.includes(w), `★actual-pay.js に ${w} が無い`);
+  }
+  /* ★ページ送りは「何ページ目か」だけを出す。総数を出すと会員規模が漏れる。 */
+  ok(/data-ap-page/.test(j), 'ページ送りがある（10件ずつ）');
+  ok(!/\.length\s*\+\s*'\s*件|件目|全\s*'\s*\+|of\s*'\s*\+\s*rows\.length/.test(j),
+     '★ページ送りに総件数を書いていない');
+  /* ★月あたりは「画面に出ている年収」から作る。生の値から割ると、
+     画面の月額 × 12 が画面の年収と合わない数字になる。 */
+  ok(!/money\(\s*r\.annual_usd\s*\/\s*12\s*\)/.test(j),
+     '★月あたりを生の年収から割っていない');
+  ok(/moneyMonth\(/.test(j), '月あたりは moneyMonth() が作る（画面の年収 ÷ 12）');
 }
 
 /* pay-viz.js が root で1回だけ持つ2式（db/test-form-contract.mjs が見張っている）。
@@ -169,10 +202,43 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
   ok(!/interval\s*'30 days'|30 day/.test(FN), '★30日の遅延が残っていない');
   ok(!/percentile_cont\(0\.[19]\)/.test(FN), '★p10-p90 のクリップが残っていない');
   ok(!/airline_other/.test(FN), '★自由入力の社名の列は読んでも返してもいない');
-  ok(/group by airline, pos, fleet, proof_hash/.test(FN), '★1行＝1人にまとめている');
+  ok(/group by pkey, airline, pos, fleet/.test(FN), '★1行＝1人にまとめている');
   /* 集計側（pay_benchmarks）の k≧5 は今も生きている。こちらを一緒に外さない。 */
   ok(/pg_get_viewdef\(bench\) like '%>= 5%'/.test(SQL),
      '★集計（pay_benchmarks）の k≧5 は今も見張っている');
+
+  /* ★登録前の預かりも混ぜる（2026-08-23）。ここを外すと、まだ会員になっていない人の
+     ぶんが1行も出ない＝「出したのに載っていない」に見える。 */
+  ok(/pay_reports_pending/.test(FN), '★登録前の預かりも読んでいる');
+  ok(/claimed_at is null/.test(FN),
+     '★本棚へ移した預かりは読まない（同じ人が二重に出ない）');
+  ok(/pv_pending_usd\(/.test(FN), '預かりの年換算は pv_pending_usd() が出す');
+  ok(!/payload->>'airline_other'/.test(FN),
+     '★預かりの payload からも自由入力の社名を読まない');
+
+  /* ★常識の幅（⑦）。k≧5 とクリップを外したので、打ち間違いを止めるのはここだけ。 */
+  ok(/usd between 10000 and 700000/.test(FN),
+     '★常識の幅（年 $10,000〜$700,000）が効いている');
+
+  /* pv_pending_usd は誰にも開かない（pv_pay_rows の中からだけ呼ぶ）。
+     開くと payload を渡して年収を計算させる面ができる。 */
+  ok(/revoke all on function public\.pv_pending_usd\(jsonb\) from public, anon, authenticated/
+       .test(SQL),
+     '★預かりの換算は誰にも開いていない');
+  ok(!/grant execute on function public\.pv_pending_usd/.test(SQL),
+     '★預かりの換算に grant が無い');
+  {
+    const j0 = SQL.indexOf('create or replace function public.pv_pending_usd(');
+    const j1 = SQL.indexOf('revoke all on function public.pv_pending_usd(');
+    const PF = j0 > -1 && j1 > j0 ? SQL.slice(j0, j1) : '';
+    ok(!!PF, 'pv_pending_usd の定義が読めた');
+    /* ★年換算の定義は pv_annual_total にしか無い。ここに式を書き写すと、
+       本棚と預かりで同じ明細から違う年収が出る。 */
+    ok(/public\.pv_annual_total\(/.test(PF),
+       '★年換算の式を書き写さず pv_annual_total() を呼んでいる');
+    ok(!/airline_other|proof_hash|ip_day_hash|claim_token/.test(PF),
+       '★換算のときも社名・同定キーを読まない');
+  }
 }
 
 /* サイドナビは patch-side-nav.mjs が1か所から書く。手で足すとドリフトする。 */
@@ -257,6 +323,15 @@ const ROWS = [
   row('other', 'fo', 'a320', 90000, false)
 ];
 
+/* ページ送りの検査用。★10件で1ページなので 23人 = 3ページ（10 / 10 / 3）。
+   会社は上の4つのまま（絞り込みの選択肢の検査とぶつからないように）。 */
+const MANY_ROWS = [];
+for (let i = 0; i < 23; i++) {
+  const a = ['ana', 'jal', 'emirates', 'other'][i % 4];
+  MANY_ROWS.push(row(a, i % 2 ? 'fo' : 'cap', i % 3 ? 'b787' : 'a320',
+                     90000 + i * 5000, false));
+}
+
 const LOCKED = { ok: true, state: 'locked', rows: [] };
 const EMPTY = { ok: true, state: 'open', rows: [] };
 const OPEN = { ok: true, state: 'open', rows: ROWS };
@@ -273,6 +348,24 @@ function isSig2(v) {
   const p = Math.pow(10, Math.floor(Math.log10(v)) - 1);
   return Math.abs(Math.round(v / p) * p - v) < p * 1e-6;
 }
+/* 表示された金額を、単位まで含めた「値」にする（amountDigits は桁だけを見る道具で、
+   $180K と $15K を比べられない。月あたりの照合にはこちらが要る）。
+     ¥2,900万 → 29000000   $180K → 180000   $9.2K → 9200   $1.9M → 1900000 */
+function amountValue(str) {
+  const s0 = String(str);
+  const m = s0.match(/[\d][\d,]*(?:\.\d+)?/);
+  if (!m) return NaN;
+  const n = Number(m[0].replace(/,/g, ''));
+  if (/万/.test(s0)) return n * 1e4;
+  if (/K/i.test(s0)) return n * 1e3;
+  if (/M/.test(s0)) return n * 1e6;
+  return n;
+}
+const sig2n = (v) => {
+  if (!isFinite(v) || v <= 0) return 0;
+  const p = Math.pow(10, Math.floor(Math.log10(v)) - 1);
+  return Math.round(v / p) * p;
+};
 
 /* 結果の入れ物に出てはいけない「金額の形をした文字」。 */
 const MONEY = /[¥$€£＄]|万|\d[\d,]{2,}/;
@@ -318,6 +411,14 @@ const SNAP = () => {
     trs: q('tbody tr', rows).length,
     tables: q('table', rows).length,
     amounts: q('.ap-amt', rows).map((e) => e.textContent),
+    mons: q('.ap-mon', rows).map((e) => e.textContent),
+    /* 社ロゴ。★画像が落ちても社名が読めること（alt は空・社名は別に文字で出す）。 */
+    logoImgs: q('.ap-logo', rows).length,
+    logoAlt: q('img.ap-logo', rows).map((e) => e.getAttribute('alt')),
+    airNames: q('.ap-air', rows).map((e) => (e.textContent || '').trim()),
+    /* ページ送り。★数は出さない。出るのは「何ページ目か」だけ。 */
+    pgBtns: q('.ap-pg', rows).map((e) => ({ t: e.textContent.trim(), off: e.disabled })),
+    pgLabel: q('.ap-pg-n', rows).map((e) => e.textContent.trim()).join(' '),
     vf: q('.ap-vf', rows).length,
     lock: q('.ap-msg--lock', rows).length,
     msg: q('.ap-msg', rows).length,
@@ -430,6 +531,36 @@ for (const lang of ['ja', 'en']) {
   const bad2 = v.amounts.filter((s) => !isSig2(amountDigits(s)));
   ok(bad2.length === 0, '★金額がすべて有効数字2桁', bad2.join(' / ') || v.amounts.join(' / '));
 
+  /* ★月あたり＝「画面に出ている年収」を12で割って2桁に丸めた数。
+     生の年収から割ると、画面の月額 × 12 が画面の年収と合わない
+     （年 $105,000 は「$110K」と出るのに月は「$8.8K」＝年 $105.6K 相当になる）。
+     読んだ人が掛け算して桁を疑う＝信用の話なので、ここで固定しておく。 */
+  ok(v.mons.length === v.amounts.length, '月あたりが年収と同じ数だけ出ている',
+     `${v.mons.length} / ${v.amounts.length}`);
+  {
+    const bad = [];
+    for (let i = 0; i < v.amounts.length; i++) {
+      const ann = amountValue(v.amounts[i]);
+      const got = amountValue(v.mons[i]);
+      const want = sig2n(ann / 12);
+      if (!(Math.abs(got - want) <= Math.max(1, want * 1e-6))) {
+        bad.push(`${v.amounts[i]} → ${v.mons[i]}（あるべきは ${want}）`);
+      }
+    }
+    ok(bad.length === 0, '★月あたり＝画面の年収 ÷ 12 を2桁に丸めた数', bad.join(' / '));
+  }
+  const badMon = v.mons.filter((s) => !isSig2(amountDigits(s)));
+  ok(badMon.length === 0, '★月あたりも有効数字2桁', badMon.join(' / '));
+
+  /* ★社ロゴ。画像は飾りなので alt は空にし、社名は必ず別に文字で出す
+     （画像が落ちても・読み上げでも、どこの会社かが分かる）。 */
+  ok(v.logoImgs === ROWS.length, '各行に社の印が1つずつ付く',
+     `${v.logoImgs} / ${ROWS.length}`);
+  ok(v.logoAlt.every((a) => a === ''), '★ロゴの alt は空（社名を二重に読ませない）',
+     JSON.stringify(v.logoAlt));
+  ok(v.airNames.length === ROWS.length && v.airNames.every((t) => t.length > 0),
+     '★社名は必ず文字でも出る（画像が落ちても読める）', JSON.stringify(v.airNames));
+
   /* ★②準識別子。行に混ぜた毒がどこにも出ていないこと。 */
   const leaked = POISON_VALUES.filter((s) => v.bodyText.includes(s));
   ok(leaked.length === 0,
@@ -446,8 +577,13 @@ for (const lang of ['ja', 'en']) {
   /* 検証済みは1人だけ。★verified の無い人に ✓ を付けない。 */
   ok(v.vf === 1, '★✓ Verified は verified:true の1人だけ', String(v.vf));
 
-  /* ★⑤数え上げ。表そのものに数え方の言葉を1つも置かない。 */
-  const tblAll = v.tblTexts.join('\n');
+  /* ★⑤数え上げ。表そのものに数え方の言葉を1つも置かない。
+     ★ただし出典の札（本人記録 / Pilot-recorded）だけは別。あれは数え方ではなく
+       「その額がどこから来たか」で、たまたま「人」「Pilot」の字を含むだけ。
+       札の文字列そのものを外してから、残りを元どおり厳しく見る。
+       外すのは札だけ＝他の場所に「3件」「5人」が出れば今までどおり落ちる。 */
+  const VF_LABELS = ['本人記録', 'Pilot-recorded'];
+  const tblAll = VF_LABELS.reduce((t, w) => t.split(w).join(' '), v.tblTexts.join('\n'));
   ok(!/(件|人|reports?|pilots?)/i.test(tblAll),
      '★表の中に「件」「人」が1つも無い', JSON.stringify(tblAll).slice(0, 160));
   const counts = (v.rowsText.match(/(\d+)\s*(件|人|reports?|pilots?)/gi) || []);
@@ -589,6 +725,87 @@ for (const lang of ['ja', 'en']) {
     return document.querySelectorAll('#ap-rows tbody tr').length;
   });
   ok(undo === ROWS.length, '★そこからも「絞り込みを解除」で戻れる', String(undo));
+  ok(errs.length === 0, 'ページのエラーが1件も出ない', errs.join(' | '));
+}
+
+// ════════════════════════════════════════════════════════════════
+// E. ページ送りが行き止まりにならない
+// ════════════════════════════════════════════════════════════════
+/* 10件で1ページ。★出すのは「何ページ目か」だけで、総件数・総人数は出さない
+   （出すと会員規模そのものが漏れる。D と同じ理由でここも総当たりする）。
+   見るのは4つ:
+     ・どのページにも1行以上ある（空のページへ行けない）
+     ・端では「前へ」「次へ」が押せなくなる（押しても何も起きない、ではなく無効）
+     ・行ったページから必ず戻れる
+     ・絞り込みを変えたら1ページ目に戻る（3ページ目のまま絞ると空に見える） */
+for (const lang of ['ja', 'en']) {
+  console.log(`\n════ ${lang} / E ページ送り ════`);
+  const { page, errs } = await open(lang, { ok: true, state: 'open', rows: MANY_ROWS });
+  const v0 = await page.evaluate(SNAP);
+
+  ok(v0.trs === 10, '1ページ目は10行', String(v0.trs));
+  ok(v0.pgBtns.length === 2, '「前へ」「次へ」が2つ', JSON.stringify(v0.pgBtns));
+  ok(v0.pgBtns[0].off === true, '★1ページ目で「前へ」は押せない', JSON.stringify(v0.pgBtns));
+  ok(v0.pgBtns[1].off === false, '1ページ目で「次へ」は押せる', JSON.stringify(v0.pgBtns));
+  ok(!/(\d+)\s*(件|人|reports?|pilots?)/i.test(v0.rowsText),
+     '★ページ送りに件数を出さない', JSON.stringify(v0.pgLabel));
+
+  /* 端まで進んで、端まで戻る。★行が0のページに立てたらそこで落ちる。 */
+  const walk = await page.evaluate(() => {
+    const rows = document.getElementById('ap-rows');
+    const n = () => rows.querySelectorAll('tbody tr').length;
+    const btn = (i) => rows.querySelectorAll('.ap-pg')[i];
+    const lbl = () => { const e = rows.querySelector('.ap-pg-n'); return e ? e.textContent.trim() : ''; };
+    const fwd = [], back = [];
+    /* 進む。★止まらないと困るので上限を置く（ここに掛かったら無限送り＝赤）。 */
+    for (let g = 0; g < 30; g++) {
+      fwd.push({ n: n(), lbl: lbl() });
+      const b = btn(1);
+      if (!b || b.disabled) break;
+      b.click();
+    }
+    for (let g = 0; g < 30; g++) {
+      back.push({ n: n(), lbl: lbl() });
+      const b = btn(0);
+      if (!b || b.disabled) break;
+      b.click();
+    }
+    const endBtns = Array.prototype.slice.call(rows.querySelectorAll('.ap-pg'))
+      .map((e) => e.disabled);
+    return { fwd: fwd, back: back, endBtns: endBtns, endN: n() };
+  });
+
+  ok(walk.fwd.length === 3, '★23人ぶんは3ページ（10 / 10 / 3）',
+     JSON.stringify(walk.fwd));
+  ok(walk.fwd.map((x) => x.n).join(',') === '10,10,3', '各ページの行数',
+     JSON.stringify(walk.fwd.map((x) => x.n)));
+  ok(walk.fwd.every((x) => x.n > 0), '★空のページへ行けない',
+     JSON.stringify(walk.fwd));
+  ok(walk.back.length === 3 && walk.back.map((x) => x.n).join(',') === '3,10,10',
+     '★最後まで行っても同じ道を戻れる', JSON.stringify(walk.back.map((x) => x.n)));
+  ok(walk.endBtns[0] === true, '★1ページ目まで戻ると「前へ」が押せなくなる',
+     JSON.stringify(walk.endBtns));
+  ok(walk.endN === 10, '戻った先は1ページ目（10行）', String(walk.endN));
+
+  /* ★3ページ目のまま会社を絞ると、その会社に3ページ目が無くて空に見える。
+     絞り込みを触ったら必ず1ページ目に戻ること。 */
+  const jump = await page.evaluate(() => {
+    const rows = document.getElementById('ap-rows');
+    const n = () => rows.querySelectorAll('tbody tr').length;
+    const next = () => { const b = rows.querySelectorAll('.ap-pg')[1]; if (b && !b.disabled) b.click(); };
+    next(); next();                         // 3ページ目へ
+    const at3 = n();
+    const s = document.getElementById('ap-air');
+    s.value = 'jal';
+    s.dispatchEvent(new Event('change', { bubbles: true }));
+    const after = n();
+    const lbl = rows.querySelector('.ap-pg-n');
+    return { at3: at3, after: after, lbl: lbl ? lbl.textContent.trim() : '(1ページだけ)' };
+  });
+  ok(jump.at3 === 3, '3ページ目まで行けた', String(jump.at3));
+  ok(jump.after > 0, '★絞り込んだ瞬間に1ページ目へ戻る（空に落ちない）',
+     JSON.stringify(jump));
+
   ok(errs.length === 0, 'ページのエラーが1件も出ない', errs.join(' | '));
 }
 
