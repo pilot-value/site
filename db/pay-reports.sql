@@ -1446,3 +1446,22 @@ select r as ロール,
 --       1行でも出たら、誰かが他人の金額の行き先を書き込めている。
 select distinct asked from public.pv_label_hints
  where asked not in ('flight_variable','night_ot','command','bonus','per_diem','other');
+
+-- 8-20. pay_reports を読む security definer 関数が anon に開いていないこと（期待：0 行）
+--       ★1行でも出たら、匿名クライアントから他人の行に届く経路がある。
+--         Postgres は関数の execute を既定で PUBLIC に渡すので、
+--         revoke を1本書き忘れただけでこうなる。画面には何も出ないまま開く。
+--       ★将来ここに関数を足した人も自動で引っかかる。これが狙い。
+--       ・pay_reports_pending は別の表なので単語境界（\M）で外す。
+--         あちらは「登録前の預かり」で、anon に開いているのが正しい。
+--       ・pay_benchmarks（ビュー）は 1行＝区分・k≧5 なので anon に開いていてよい。
+--         このクエリはビューを見ていない。関数だけを見る。
+select n.nspname || '.' || p.proname
+       || '(' || pg_get_function_identity_arguments(p.oid) || ')' as anonに開いている関数
+  from pg_proc p
+  join pg_namespace n on n.oid = p.pronamespace
+ where n.nspname = 'public'
+   and p.prosecdef
+   and pg_get_functiondef(p.oid) ~ '\mpay_reports\M'
+   and has_function_privilege('anon', p.oid, 'execute')
+ order by 1;
