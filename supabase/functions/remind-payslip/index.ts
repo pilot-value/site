@@ -141,7 +141,10 @@ export function build(p: Due) {
         : soon
           ? `【PILOT VALUE】解放はあと${left}日 — 今月の明細をどうぞ`
           : '【PILOT VALUE】今月の明細を1枚',
-      hi: p.name ? `${p.name} さん` : 'こんにちは',
+      // ★氏名で呼びかけない（2026-08-23）。匿名で明細を出してもらっているのに、
+      //   こちらから氏名で呼ぶと、受信箱と Resend の送信ログに
+      //   「このアドレス＝この氏名」が残る。下の priv と言っていることが食い違う。
+      hi: 'こんにちは',
       lead: expired
         ? 'データの解放が切れています。明細を1枚出すと、その日から90日ぶん戻ります。'
         : `給料日を過ぎました。今月の明細を1枚出すと、今月ぶんの数字がマイページに増えます。`,
@@ -167,7 +170,7 @@ export function build(p: Due) {
         : soon
           ? `PILOT VALUE — ${left} days of access left`
           : 'PILOT VALUE — time for this month\'s payslip',
-      hi: p.name ? `Hi ${p.name},` : 'Hi,',
+      hi: 'Hi,',
       lead: expired
         ? 'Your data access has lapsed. Dropping in one payslip brings back 90 days from that day.'
         : 'Your pay day has passed. Drop in one payslip and this month lands on your page.',

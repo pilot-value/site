@@ -20,6 +20,10 @@
    ③ 解除の導線が全通りに付いているか
       1通でも解除リンクが欠けると特定電子メール法に触れる。
       日本語・英語・日英ともに、の3通り全部を見る。
+
+   ④ FOUNDING PILOT 100 のお知らせ（buildFounding）
+      こちらは email_opt_in で絞らず登録者全員に送る。①〜③に加えて、
+      勧誘が1文も無いこと・受け取った人の番号が本文に無いことを見る。
    ════════════════════════════════════════════════════════════════ */
 import { readFileSync, statSync, readdirSync } from 'fs';
 import { createHash } from 'crypto';
@@ -32,7 +36,7 @@ const read = (p) => readFileSync(join(ROOT, p), 'utf8');
 let pass = 0, fail = 0;
 const ok = (c, m, x = '') => { c ? (pass++, console.log(`  ✅ ${m}`)) : (fail++, console.log(`  ❌ ${m}${x ? '\n     ' + x : ''}`)); };
 
-const { build, langModeOf, SAMPLE, IMG_VER } = await import(join(ROOT, 'mail-bot/announce-mail.mjs'));
+const { build, buildFounding, langModeOf, SAMPLE, IMG_VER } = await import(join(ROOT, 'mail-bot/announce-mail.mjs'));
 
 /* 架空の人。実在の氏名は使わない（このリポジトリは PUBLIC）。 */
 const P = {
@@ -287,15 +291,188 @@ ok(!build(P.ja, O).text.includes('変更点'), '未提出の人には「変更�
 /* 件名の長さ。受信箱の一覧で切られない範囲に収める。 */
 for (const [k, b] of ALL) ok(b.subject.length <= 78, `${k}: 件名が 78 文字以内（${b.subject.length}）`);
 
-/* 名前は必ずエスケープする。プロフィールの氏名は本人が自由に書ける欄なので、
-   そのまま差し込むと HTML が壊れる（メール本文に他人のタグが混ざる）。 */
+/* ★氏名を本文に出さない（2026-08-23 オーナー判断）。
+   匿名で給与と職場のことを出してもらっているサービスで、こちらから氏名で呼びかけると、
+   受信箱にも Resend の送信ログにも「このアドレス＝この氏名」が残る。
+   氏名は言語の判定（langOf）にだけ使う。
+   宛名に戻すと、ここが落ちる。 */
+const named = build({ name: '高橋 蓮', country: '日本', unsub_token: 't', pay_report_count: 0 }, O);
+ok(!named.html.includes('高橋') && !named.text.includes('高橋') && !named.subject.includes('高橋'),
+  '氏名が本文・件名のどこにも出ない');
+const namedEn = build({ name: 'Alex Mercer', country: 'UAE', unsub_token: 't', pay_report_count: 0 }, O);
+ok(!/Mercer/.test(namedEn.html + namedEn.text + namedEn.subject), '英語でも氏名が出ない');
+/* 差し込まないので、タグを入れられても本文に出る道が無い。 */
 const evil = build({ name: '<script>x</script>', country: '日本', unsub_token: 't', pay_report_count: 0 }, O);
-ok(!evil.html.includes('<script>'), '氏名に入れられたタグがそのまま出ない');
-ok(evil.html.includes('&lt;script&gt;'), '氏名は文字として出る');
+ok(!evil.html.includes('<script>') && !evil.html.includes('&lt;script&gt;'),
+  '氏名に入れられたタグが本文に出ない（エスケープ済みの形でも出ない）');
 
 /* 名前が無い人にも送れること（Google 登録だと空のことがある）。 */
 const anon = build({ name: null, country: null, unsub_token: 't', pay_report_count: 0 }, O);
 ok(anon.html.length > 500 && !/null|undefined/.test(anon.text), '氏名が空でも本文が壊れない');
+
+/* ════════ ④ FOUNDING PILOT 100 のお知らせ ══════════════════════════
+   buildFounding()。announce と同じ約束を継ぐが、決定的に違う点が2つある。
+
+   ・★email_opt_in で絞らずに登録者全員へ送る（オーナー判断）。
+     そのため本文に勧誘が1文でも入ると広告宣伝メールになり、
+     特定電子メール法4条の「送信者の氏名・住所」の表示義務が発生する。
+     運営者の身元を守る方針と正面からぶつかるので、勧誘を機械で見張る。
+   ・★受け取った人自身の番号を本文に書かない。
+     書くと受信箱と Resend の送信ログに「このアドレスの人は No.7」が残る。
+     番号はログインしたマイページにだけ出す。                        */
+console.log('\n── ④ FOUNDING PILOT 100 のお知らせ ──');
+
+const FP = {
+  ja:   { name: '高橋 蓮',     country: '日本', unsub_token: 'f-ja' },
+  en:   { name: 'Alex Mercer', country: 'UAE',  unsub_token: 'f-en' },
+  both: { name: 'Ren Aoki',    country: null,   unsub_token: 'f-both' },
+};
+const FALL = Object.entries(FP).map(([k, x]) => [k, buildFounding(x, O)]);
+
+/* 入れてはいけないもの。announce と同じ物差しをそのまま当てる。
+   ★こちらは見本カードが無いので stripSample を通さない＝素の本文で見る。 */
+for (const [k, b] of FALL) {
+  const body = b.html + '\n' + b.subject + '\n' + b.text;
+  const money = MONEY.find(([re]) => re.test(body));
+  ok(!money, `founding/${k}: 金額が1つも入っていない`, money ? `${money[1]} → ${body.match(money[0])[0]}` : '');
+
+  const name = NAMES.find((n) => hitsName(body, n));
+  ok(!name, `founding/${k}: 航空会社名が1つも入っていない`, name || '');
+
+  const low = body.toLowerCase();
+  const ded = DEDUCT.find((w) => low.includes(w.toLowerCase()));
+  ok(!ded, `founding/${k}: 控除の項目名が入っていない`, ded || '');
+  const slip = SLIP.find((w) => low.includes(w.toLowerCase()));
+  ok(!slip, `founding/${k}: 明細の項目名が入っていない`, slip || '');
+}
+
+/* ★番号を本文に書かない。
+   出てよい数字は題名の "FOUNDING PILOT 100" の 100 だけ。それを取り除いた残りに
+   数字が1文字も無いこと。「No.7」も「残り86枠」も「会員31名」もここで落ちる。 */
+for (const [k, b] of FALL) {
+  const bare = (b.subject + '\n' + b.text).split('FOUNDING PILOT 100').join(' ');
+  const digits = bare.replace(/[^0-9]/g, '');
+  ok(digits === '', `founding/${k}: 本文に数字が1つも無い（番号・人数・残り枠を書かない）`, digits);
+}
+/* HTML 側も同じ。URL とスタイルには数字が入るので、見える文字だけを取り出して見る。 */
+for (const [k, b] of FALL) {
+  const visible = b.html
+    .replace(/<(script|style)[\s\S]*?<\/\1>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')                    // タグごと落とす＝href も style も消える
+    .split('FOUNDING PILOT 100').join(' ')
+    .replace(/&[a-z]+;/gi, ' ');
+  const digits = visible.replace(/[^0-9]/g, '');
+  ok(digits === '', `founding/${k}: HTML の見える文字にも数字が無い`, digits);
+}
+
+/* ★勧誘の言い回しが入っていないこと。
+   ここが入ると広告宣伝メールになる（上のコメント参照）。
+   「出すと番号が入る」はマイページの沈んだ板が担当で、メールは担当しない。 */
+const SOLICIT = [
+  'ください', 'しませんか', 'お願いします', 'ぜひ', 'いかがですか',
+  'please share', 'why not', 'sign up', 'submit your', 'upload your', "don't miss",
+];
+for (const [k, b] of FALL) {
+  const low = (b.html + b.subject + b.text).toLowerCase();
+  const hit = SOLICIT.find((w) => low.includes(w.toLowerCase()));
+  ok(!hit, `founding/${k}: 勧誘の言い回しが入っていない`, hit || '');
+}
+
+/* ★「あなたには番号がある／まだ無い」と言い当てないこと。
+   全員に同じ1通が届くので、どちらを書いても嘘になる人が出る。
+   機械で確かめられるのは「入力が変わっても本文が1文字も変わらない」こと。 */
+{
+  const a = buildFounding({ name: '高橋 蓮', country: '日本', unsub_token: 'x' }, O);
+  const b = buildFounding({ name: '高橋 蓮', country: '日本', unsub_token: 'x',
+    pay_report_count: 9, review_count: 4, founding_no: 7 }, O);
+  ok(a.html === b.html && a.subject === b.subject,
+     'founding: 提出の有無や番号を渡しても本文が変わらない（1種類しか作れない）');
+}
+
+/* 解除の導線。全員に送るぶん、ここが欠けたときの傷が announce より深い。 */
+for (const [k, b] of FALL) {
+  ok(b.unsubUrl.includes(FP[k].unsub_token), `founding/${k}: 解除リンクがその人のトークンを持っている`);
+  ok(b.html.includes(b.unsubUrl), `founding/${k}: HTML 版に解除リンクがある`);
+  ok(b.text.includes(b.unsubUrl), `founding/${k}: 文字版にも解除リンクがある`);
+  ok(/functions\/v1\/remind-payslip\?u=/.test(b.oneClickUrl), `founding/${k}: ワンクリック解除の宛先がある`);
+}
+
+/* ★footer の理由書き。announce の「通知を希望した方に」を流用すると、
+   希望していない人にそれが届く＝嘘になる。別の1行を持っていること。 */
+for (const [k, b] of FALL) {
+  const t = b.text;
+  ok(!/希望|opted in|opt-in/i.test(t), `founding/${k}: 「希望した方に」と書いていない（全員に送るため）`);
+  ok(/お知らせとしてお送り|service notice/i.test(t), `founding/${k}: 全員に送る理由を正直に書いている`);
+}
+
+/* 画像を使わない。画像を止めている受信箱で称号そのものが消えないこと。 */
+for (const [k, b] of FALL) ok(!/<img/i.test(b.html), `founding/${k}: 画像を使っていない`);
+
+/* 行き先はマイページ（番号があるのはそこだけ）。 */
+ok(buildFounding(FP.ja, O).text.includes('/profile.html'), 'founding: 日本語の人はマイページへ');
+ok(buildFounding(FP.en, O).text.includes('/en/profile.html'), 'founding: 英語の人は英語のマイページへ');
+{
+  const b = buildFounding(FP.both, O).text;
+  ok(b.includes('/profile.html') && b.includes('/en/profile.html'), 'founding: 日英ともの人には両方');
+}
+
+/* ★日英ともに入れるときは英語が上、日本語が下（2026-08-23 オーナー判断）。
+   この形になるのは「言語の手がかりがまったく無い人」だけで、
+   英語しか読めない人が上の日本語を見て閉じるほうが損が大きい。
+   announce と founding で並びを変えない ―― 同じ人に届く2通で上下が
+   入れ替わると、同じサービスから来たものに見えない。 */
+for (const [nm, mk] of [['announce', () => build(P.both, O)], ['founding', () => buildFounding(FP.both, O)]]) {
+  const b = mk();
+  const t = b.text;
+  const jaAt = t.search(/[぀-ヿ一-鿿]/);
+  const enAt = t.search(/[A-Za-z]{4,}/);
+  ok(enAt >= 0 && jaAt >= 0 && enAt < jaAt, `${nm}: 日英ともは英語が上・日本語が下`,
+     `en@${enAt} ja@${jaAt}`);
+  /* 仕切りの一言も向きに合わせる。固定の "English follows." のままだと、
+     英語の上に「English follows.」が出て逆さになる。 */
+  ok(b.html.includes('日本語は下に続きます。'), `${nm}: 仕切りが「日本語は下に続きます。」`);
+  ok(!b.html.includes('English follows.'), `${nm}: 逆向きの仕切りが残っていない`);
+  /* 件名も英語が先（受信箱の一覧で最初に目に入る）。 */
+  ok(/^[\x00-\x7F]/.test(b.subject), `${nm}: 件名の頭が英語`, b.subject);
+  /* 解除リンクの行き先は、その文言の言語のページ。 */
+  ok(b.text.includes('/en/unsubscribe.html'), `${nm}: 英語の解除リンクは英語のページへ`);
+}
+/* 片方だけの人は今までどおり（英語の人に日本語を足さない・その逆も）。 */
+ok(!/[぀-ヿ一-鿿]/.test(buildFounding(FP.en, O).text), 'founding: 英語だけの人に日本語を混ぜない');
+ok(!/(English follows|日本語は下に続きます)/.test(buildFounding(FP.ja, O).html),
+   'founding: 日本語だけの人に仕切りを出さない');
+
+/* 出し分けは announce と同じ物差しを使う（同じ人に日本語と英語が別々に届かない）。 */
+for (const [k] of FALL) ok(buildFounding(FP[k], O).lang === langModeOf(FP[k]),
+  `founding/${k}: 言語の決め方が announce と同じ`);
+
+/* ★こちらも氏名を本文に出さない。理由は上の announce と同じ。 */
+{
+  for (const [k, b] of FALL) {
+    const nm = String(FP[k].name).split(/\s+/).filter((w) => w.length >= 2);
+    const hit = nm.find((w) => (b.subject + b.html + b.text).includes(w));
+    ok(!hit, `founding/${k}: 氏名が件名にも本文にも出ない`, hit || '');
+  }
+  const evil = buildFounding({ name: '<script>x</script>', country: '日本', unsub_token: 't' }, O);
+  ok(!evil.html.includes('<script>') && !evil.html.includes('&lt;script&gt;'),
+    'founding: 氏名に入れられたタグが本文に出ない');
+  const anon = buildFounding({ name: null, country: null, unsub_token: 't' }, O);
+  ok(anon.html.length > 500 && !/null|undefined/.test(anon.text), 'founding: 氏名が空でも本文が壊れない');
+}
+
+/* 件名の長さ。 */
+for (const [k, b] of FALL) ok(b.subject.length <= 78, `founding/${k}: 件名が 78 文字以内（${b.subject.length}）`);
+
+/* 称号の名前は画面と同じでなければならない（メールで見た名前がページに無い、を防ぐ）。 */
+{
+  const js = read('pv-founding.js');
+  ok(/FOUNDING PILOT 100/.test(js) && FALL.every(([, b]) => b.html.includes('FOUNDING PILOT 100')),
+     'founding: 称号の綴りが pv-founding.js と同じ');
+  ok(/創設メンバー/.test(js) && buildFounding(FP.ja, O).html.includes('創設メンバー'),
+     'founding: 日本語の副題も画面と同じ');
+  ok(/Founding Member/.test(js) && buildFounding(FP.en, O).html.includes('Founding Member'),
+     'founding: 英語の副題も画面と同じ');
+}
 
 console.log(`\n${pass} pass / ${fail} fail\n`);
 process.exit(fail ? 1 : 0);

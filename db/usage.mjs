@@ -23,6 +23,7 @@
      node db/usage.mjs --since=2026-08-11  その日から今日まで
      node db/usage.mjs --all               開設以来
      node db/usage.mjs --emails            メールをマスクしない
+     node db/usage.mjs --founding          FOUNDING PILOT 100 の番号（誰が何番か＋貼るSQL）
 
    ── 要るもの（mail-bot/.env・gitignore 済み）────────────────────
      SUPABASE_URL / SUPABASE_SERVICE_KEY … 必須
@@ -152,6 +153,125 @@ const payHash = (uid, airline, other) =>
 const reviewHash = (uid, airline) =>
   createHash('sha256').update(`${uid}::pv_anon::${airline}::2026`).digest('hex');
 
+/* ════════════════════════════════════════════════════════════════
+   --founding — FOUNDING PILOT 100（創設メンバー）の番号を出す。読むだけ。
+
+   称号の順番は「登録した順」ではなく「一次データを最初に出した順」。
+   ・登録順は使えない。profiles.created_at は移行でまとめて作られた行があり、
+     auth.users.created_at も「登録しただけの人」を先頭に並べてしまう。
+   ・出した順なら VISION.md の North Star（月間一次データ投稿数）と同じ向きを向く。
+
+   ここが出すのは2つだけ:
+     1. 誰が何番になるか（メールは既定でマスク。--emails で全部出る）
+     2. オーナーが Supabase の SQL Editor にそのまま貼れる backfill の1行
+
+   ★ uuid はリポジトリに書かない。標準出力にしか出さない（PUBLIC リポジトリ）。
+   ════════════════════════════════════════════════════════════════ */
+async function foundingReport(users, testIds, real) {
+  console.log('');
+  console.log('━━ FOUNDING PILOT 100（創設メンバー）' + '━'.repeat(24));
+  console.log('   給与レポートか口コミを**最初に出した順**に 1 番から振ります。');
+  console.log('   登録順ではありません（登録しただけの人には番号が入らない）。');
+  if (!TEST_PATTERNS.length) {
+    console.log('');
+    console.log('   ⚠️  PV_TEST_EMAILS が未設定です。このまま貼ると**動作確認用の');
+    console.log('      アカウントに番号が入ります**。mail-bot/.env に足してから流し直してください。');
+  }
+
+  const [rv, pr] = await Promise.all([
+    rest('reviews_v2', 'select=created_at,proof_hash,airline&limit=5000'),
+    rest('pay_reports', 'select=created_at,proof_hash,airline,airline_other&limit=5000'),
+  ]);
+
+  /* proof_hash は行の airline から作るので、ユーザー × 行の総当たりで突き合わせる。
+     いま 31人 × 25行。1万人になっても backfill は SQL 側でやるので、ここは確認用。 */
+  const first = new Map();                       // uid -> { at, src }
+  const put = (uid, at, src) => {
+    const cur = first.get(uid);
+    if (!cur || String(at) < String(cur.at)) first.set(uid, { at, src });
+  };
+  for (const u of users) {
+    for (const r of rv) if (reviewHash(u.id, r.airline) === r.proof_hash) put(u.id, r.created_at, 'review');
+    for (const r of pr) if (payHash(u.id, r.airline, r.airline_other) === r.proof_hash) put(u.id, r.created_at, 'pay');
+  }
+
+  const byTime = (a, b) => {
+    const x = first.get(a.id).at, y = first.get(b.id).at;
+    if (x !== y) return x < y ? -1 : 1;
+    return a.id < b.id ? -1 : 1;                 // 同時刻は uuid 順（SQL 側と同じ決め方）
+  };
+  const ranked = real.filter((u) => first.has(u.id)).sort(byTime);
+  const testContrib = [...testIds].filter((id) => first.has(id));
+
+  /* ── いま DB に入っている番号（表がまだ無ければ、まだ流していないだけ）── */
+  let awarded = null;
+  try {
+    awarded = await rest('founding_members', 'select=user_id,no,first_source,awarded_at&order=no.asc&limit=200');
+  } catch (e) {
+    if (!/\b404\b|PGRST205|does not exist/i.test(e.message)) throw e;
+  }
+  const noById = new Map((awarded ?? []).map((r) => [r.user_id, r.no]));
+
+  console.log('');
+  console.log('■ 番号が入る人（' + ranked.length + '人）');
+  if (!ranked.length) {
+    console.log('   まだ1人もいません。');
+  } else {
+    console.log('   No.   最初に出した日   入れ方   いまDBに   メール');
+    ranked.forEach((u, i) => {
+      const f = first.get(u.id);
+      const want = i + 1;
+      const got = noById.get(u.id);
+      const mark = awarded === null ? '  −  '
+        : got === undefined ? ' なし '
+        : got === want ? '  ✅ '
+        : ' ⚠️ ' + got;
+      console.log('   ' + String(want).padStart(3) + '   ' + day(f.at)
+        + '       ' + (f.src === 'review' ? '口コミ' : '給与  ')
+        + '   ' + mark + '    ' + mask(u.email));
+    });
+  }
+
+  if (testContrib.length) {
+    console.log('');
+    console.log('   （動作確認用として ' + testContrib.length + 'アカウントを番号から外しました）');
+  }
+
+  /* ── 貼る1行 ─────────────────────────────────────────────── */
+  /* ★uuid は標準出力にだけ出す。リポジトリには1文字も書かない（PUBLIC）。 */
+  const backfillLine = () => {
+    if (!testIds.size) { console.log('   select public.pv_backfill_founding();'); return; }
+    console.log('   select public.pv_backfill_founding(array[');
+    console.log([...testIds].map((id) => "     '" + id + "'").join(',\n'));
+    console.log('   ]::uuid[]);');
+  };
+
+  console.log('');
+  if (awarded === null) {
+    /* 表がまだ無い。★それでも1行は出す ―― 出さないと
+       「SQL を貼る → ここを流し直す → もう一度貼る」と2往復になる。
+       中身は表の有無に関係なく決まる（動作確認用アカウントの id だけ）。 */
+    console.log('■ まだ置き場がありません');
+    console.log('   Supabase の SQL Editor で、この順に流してください。');
+    console.log('');
+    console.log('   ① db/founding.sql を丸ごと貼って実行');
+    console.log('   ② 続けてこの1行を貼って実行（動作確認用のアカウントを外します）');
+    console.log('');
+    backfillLine();
+    console.log('');
+    console.log('   ※ ②は何度流しても同じ結果になります（すでに番号がある人は触りません）。');
+  } else if (ranked.every((u, i) => noById.get(u.id) === i + 1) && noById.size === ranked.length) {
+    console.log('■ 済んでいます（' + ranked.length + '人に番号が入っています）');
+  } else {
+    console.log('■ Supabase の SQL Editor に貼る1行（動作確認用のアカウントを外します）');
+    console.log('');
+    backfillLine();
+    console.log('');
+    console.log('   ※ 何度流しても同じ結果になります（すでに番号がある人は触りません）。');
+  }
+  console.log('');
+}
+
 (async () => {
   const [users, profiles] = await Promise.all([
     authUsers(),
@@ -161,6 +281,8 @@ const reviewHash = (uid, airline) =>
   const testIds = new Set(users.filter((u) => isTestEmail(u.email)).map((u) => u.id));
   const real = users.filter((u) => !testIds.has(u.id));
   const profById = Object.fromEntries(profiles.map((p) => [p.id, p]));
+
+  if (has('--founding')) { await foundingReport(users, testIds, real); return; }
 
   console.log('');
   console.log('━━ PILOT VALUE 利用状況 ' + '━'.repeat(30));

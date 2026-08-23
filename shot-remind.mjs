@@ -11,19 +11,21 @@
    実行: node shot-remind.mjs             … 月次リマインド6通ぶん書き出して撮る
          node shot-remind.mjs --write     … 書き出すだけ（撮らない）
          node shot-remind.mjs --announce  … お知らせメール（announce-mail.mjs）の側を撮る
+         node shot-remind.mjs --founding  … FOUNDING PILOT 100 のお知らせを撮る
 */
 import puppeteer from 'puppeteer';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { build } from './supabase/functions/remind-payslip/index.ts';
-import { build as buildAnnounce } from './mail-bot/announce-mail.mjs';
+import { build as buildAnnounce, buildFounding } from './mail-bot/announce-mail.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const outDir = path.join(__dirname, 'temporary screenshots', 'mail');
 fs.mkdirSync(outDir, { recursive: true });
 
 const ANNOUNCE = process.argv.includes('--announce');
+const FOUNDING = process.argv.includes('--founding');
 const day = (n) => new Date(Date.now() + n * 86400000).toISOString();
 
 /* 受け取る人の状態は3つに分かれる。文面と色が変わるので全部見る。 */
@@ -49,11 +51,24 @@ const ANNOUNCE_CASES = [
   { k: 'an-noname',   p: { name: null,            country: null,   pay_report_count: 0 } },
 ];
 
-const CASES = ANNOUNCE ? ANNOUNCE_CASES : REMIND_CASES;
+/* FOUNDING PILOT 100 のお知らせ。★分かれるのは言語だけ。
+   「番号がある人／まだ無い人」で文面を割らない（登録者全員に同じ1通が届く）ので、
+   ここに提出済みの場合を足そうとしたら、それは設計が変わったということ。 */
+const FOUNDING_CASES = [
+  { k: 'fd-ja',     p: { name: '高橋 蓮',     country: '日本' } },
+  { k: 'fd-en',     p: { name: 'Alex Mercer', country: 'UAE' } },
+  { k: 'fd-both',   p: { name: 'Ren Aoki',    country: null } },
+  { k: 'fd-noname', p: { name: null,          country: null } },
+];
+
+const CASES = FOUNDING ? FOUNDING_CASES : ANNOUNCE ? ANNOUNCE_CASES : REMIND_CASES;
 
 const files = [];
 for (const c of CASES) {
-  const m = ANNOUNCE
+  const m = FOUNDING
+    ? buildFounding({ id: 'x', unsub_token: '0000-token', ...c.p },
+      { supabaseUrl: 'https://example.supabase.co', siteUrl: 'http://localhost:3000' })
+    : ANNOUNCE
     /* ★siteUrl を localhost にする。お知らせメールの図は
          https://pilot-value.com/assets/mail/ の画像なので、push 前だと 404 になり
          下見が空の枠だらけになる（実際にそう見えて分からなくなる）。 */

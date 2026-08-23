@@ -44,6 +44,22 @@ export function langModeOf(p) {
   return known ? langOf(p) : 'both';
 }
 
+/* ★日英ともに入れるときは英語を上、日本語を下にする（2026-08-23 オーナー判断）。
+   この形になるのは「言語の手がかりがまったく無い人」だけ。
+   実際に見たところ、その人たちは居住国も在籍企業も空で、氏名も半分は空だった。
+   日本語しか読めない人はどのみち下まで読めるが、英語しか読めない人は
+   上が日本語だと自分宛でないと思って閉じる。読めないほうを上に置かない。
+   ★build() と buildFounding() で並びを変えない。同じ人に届く2通で
+     上下が入れ替わると、同じサービスから来たものに見えない。 */
+const BOTH_ORDER = ['en', 'ja'];
+
+/* 仕切りの一言は「次に来る言語」で決める。固定文にすると、
+   英語を上にした瞬間に「English follows.」が英語の上に出て逆さになる。 */
+const dividerFor = (nextLang) => `
+    <div style="margin:4px 0 26px;border-top:1px solid #e6e9ef"></div>
+    <p style="margin:0 0 18px;color:#9aa5b1;font-size:11px">${
+      nextLang === 'ja' ? '日本語は下に続きます。' : 'English follows.'}</p>`;
+
 const esc = (s) =>
   String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -179,7 +195,7 @@ export const SAMPLE = {
 /* ── 文面 ───────────────────────────────────────────────────
    2通り出し分ける。同じ文面を全員に送ると、既に明細を出した人に
    「できました」と言うことになり、いちばん熱心な人から解除される。 */
-function copy(lang, filed, name) {
+function copy(lang, filed) {
   if (lang === 'ja') {
     return {
       /* ★件名に【PILOT VALUE】を付けない。差出人名がすでに PILOT VALUE なので
@@ -189,7 +205,7 @@ function copy(lang, filed, name) {
       subject: filed
         ? '新機能：給与レポートの入力が短くなりました！'
         : '新機能：給与レポートが追加されました！',
-      hi: name ? `${name} さん` : 'こんにちは',
+      hi: 'こんにちは',
       /* ★書き出しで件名を言い直さない。件名で「何が起きたか」は済んでいるので、
            ここは「自分に何の得があるか」を1行目に置く。 */
       lead: filed
@@ -234,7 +250,7 @@ function copy(lang, filed, name) {
     subject: filed
       ? 'New: the pay report is quicker to fill in'
       : 'New: the pay report is live',
-    hi: name ? `Hi ${name},` : 'Hi,',
+    hi: 'Hi,',
     lead: filed
       ? 'We have rebuilt the pay report form. It takes fewer steps than before. Three things changed.'
       : 'Upload a payslip image and the money fields are filled in for you. There is almost nothing left to type by hand.',
@@ -373,37 +389,40 @@ function blockText(t, u, skipSafe) {
 }
 
 /* p = { name, country, unsub_token, pay_report_count }
-   o = { siteUrl, supabaseUrl, adminEmail, lang }  ← lang を渡すと判定を上書き */
+   o = { siteUrl, supabaseUrl, adminEmail, lang }  ← lang を渡すと判定を上書き
+
+   ★name は言語の判定（langOf）にしか使わない。宛名には出さない。
+     この人たちは匿名で給与と職場のことを出してくれている。
+     受信箱と Resend の送信ログに「このアドレス＝この氏名」を残さない。 */
 export function build(p, o = {}) {
   const opt = { ...DEFAULTS, ...o };
   const site = String(opt.siteUrl).replace(/\/+$/, '');
   const lang = opt.lang || langModeOf(p);
   const filed = Number(p?.pay_report_count || 0) > 0;
-  const langs = lang === 'both' ? ['ja', 'en'] : [lang];
+  const langs = lang === 'both' ? BOTH_ORDER : [lang];
 
   const urls = (l) => {
     const pre = l === 'en' ? 'en/' : '';
     return { payUrl: `${site}/${pre}pay-report.html`, meUrl: `${site}/${pre}my-value.html` };
   };
   /* 解除リンクは1本だけ。言語ごとに2本出すと、どちらを押しても同じ所へ行くのに
-     「2種類ある」と読めてしまう。日本語版に寄せる（解除ページ自体は日英ある）。 */
-  const unsubUrl = `${site}/${lang === 'en' ? 'en/' : ''}unsubscribe.html?token=${encodeURIComponent(p?.unsub_token || '')}`;
+     「2種類ある」と読めてしまう。★行き先は本文の先頭の言語に合わせる
+     （日英ともは英語が上なので英語の解除ページ。文言だけ英語でページが日本語、
+     という食い違いを作らない）。解除ページ自体は日英どちらにもある。 */
+  const unsubPage = (l) => `${site}/${l === 'en' ? 'en/' : ''}unsubscribe.html?token=${encodeURIComponent(p?.unsub_token || '')}`;
+  const unsubUrl = unsubPage(langs[0]);
   /* 受信箱側のワンクリック解除（RFC 8058）。remind-payslip が既に本番で
      この入口を持っているので、そこを指す（新しく作らない）。 */
   const oneClickUrl = opt.supabaseUrl
     ? `${String(opt.supabaseUrl).replace(/\/+$/, '')}/functions/v1/remind-payslip?u=${encodeURIComponent(p?.unsub_token || '')}`
     : '';
 
-  const parts = langs.map((l) => ({ l, t: copy(l, filed, p?.name), u: urls(l) }));
+  const parts = langs.map((l) => ({ l, t: copy(l, filed), u: urls(l) }));
 
-  /* 件名。両方入りのときは日本語＋短い英語（受信箱で切れない長さに収める）。 */
+  /* 件名。両方入りのときは英語＋短い日本語（受信箱で切れない長さに収める）。 */
   const subject = lang === 'both'
-    ? `${parts[0].t.subject}${filed ? ' / Quicker to fill in' : ' / The pay report is live'}`
+    ? `${parts[0].t.subject}${filed ? ' / 入力が速くなりました' : ' / 給与レポートを公開しました'}`
     : parts[0].t.subject;
-
-  const divider =
-    `<div style="margin:4px 0 26px;border-top:1px solid #e6e9ef"></div>
-     <p style="margin:0 0 18px;color:#9aa5b1;font-size:11px">English follows.</p>`;
 
   const foot = parts[0].t;
   const html =
@@ -413,7 +432,8 @@ export function build(p, o = {}) {
           <span style="color:#f5c842;font-weight:800;letter-spacing:.04em;font-size:15px">PILOT VALUE</span>
         </div>
         <div style="padding:26px 24px;color:#1f2937;font-size:14px;line-height:1.8">
-          ${parts.map((x, i) => blockHtml(x.t, x.u, i > 0, site)).join(divider)}
+          ${parts.map((x, i) => blockHtml(x.t, x.u, i > 0, site))
+            .reduce((a, b, i) => a + dividerFor(langs[i]) + b)}
         </div>
         <div style="padding:16px 24px;border-top:1px solid #eef0f4;color:#9aa5b1;font-size:11px;line-height:1.7">
           ${esc(foot.why)}<br>
@@ -431,4 +451,175 @@ export function build(p, o = {}) {
   ].join('\n');
 
   return { lang, filed, subject, html, text, unsubUrl, oneClickUrl, ...urls(langs[0]) };
+}
+
+/* ════════════════════════════════════════════════════════════════
+   FOUNDING PILOT 100 のお知らせ（buildFounding）
+
+   ── なぜ文面が1種類なのか ──────────────────────────────────
+   受け取るのは登録者**全員**で、そのうち番号を持っているのは一部。
+   にもかかわらず「番号あり用」と「まだの人用」に割らないのは、
+   後者が必ず「出せばもらえます」という**勧誘**になるから。
+   勧誘が入った時点で特定電子メール法の広告宣伝メールになり、
+   4条の「送信者の氏名・住所」の表示義務が発生する。
+   運営者の身元を守る方針（CLAUDE.md／avoid-disclosure-request-until-scale）と
+   正面からぶつかるので、文面を1種類に保って**お知らせ**の側に置く。
+   「出すと番号が入る」は、マイページの沈んだ板が黙って伝える。
+
+   ── 本文に入れないもの ──────────────────────────────────
+   ・金額・会社名・職位・機材・明細の項目名（build() と同じ約束）
+   ・★受け取った人自身の番号。「このアドレスの人は No.7」が
+     受信箱と Resend の送信ログに残る。番号はログインした画面でだけ見せる。
+   ・★人数・残り枠。会員の規模が読める（db/referrals.sql:19 と同じ約束）。
+   ・「番号を持っているか」を言い当てる書き方。全員に同じ文面が届くので、
+     「あなたには番号があります」も「まだありません」も嘘になる人が出る。
+   → db/test-announce.mjs が全部を検査して固定している。
+   ════════════════════════════════════════════════════════════════ */
+
+/* 板の見本。★数字は題名の "FOUNDING PILOT 100" だけ。
+   画像にしない ―― 画像を止めている受信箱で、称号そのものが消えるため。
+
+   ★番号の枠を描かない。画面の板は、番号が無い人にだけ「—」を出す。
+     ★2026-08-23、番号そのものを画面からも外した（オーナー判断）。
+     板は称号の名前だけを出す。 */
+function foundingPlaque(t) {
+  return `
+    <table style="border-collapse:collapse;width:100%;margin:0 0 22px;background:#14161c;border:1px solid #6b5410;border-radius:14px">
+      <tr><td style="padding:20px 22px">
+        <table style="border-collapse:collapse">
+          <tr>
+            <!-- 画面（pv-founding.js）の四芒星は SVG だが、Gmail は SVG を落とすので
+                 ここは文字の ✦（U+2726）を使う。絵文字ではない字なので色が付かない。
+                 字を持たない環境で豆腐にならないよう、記号フォントを後ろに並べておく。 -->
+            <td style="vertical-align:top;padding-right:14px;color:#f5c842;font-size:19px;line-height:1;font-family:'Apple Symbols','Segoe UI Symbol','Noto Sans Symbols 2',sans-serif">✦</td>
+            <td style="vertical-align:top">
+              <div style="color:#f5c842;font-weight:800;font-size:17px;letter-spacing:.11em">FOUNDING PILOT 100</div>
+              <div style="color:#d9b64a;font-weight:700;font-size:12px;letter-spacing:.06em;padding-top:7px">${esc(t.plaqueSub)}</div>
+            </td>
+          </tr>
+        </table>
+      </td></tr>
+    </table>`;
+}
+
+function foundingCopy(lang) {
+  if (lang === 'ja') {
+    return {
+      subject: 'マイページに「FOUNDING PILOT 100」を追加しました',
+      hi: 'こんにちは',
+      plaqueSub: '創設メンバー',
+      /* ★「あなたには番号があります／ありません」と言わない。
+           全員に同じ文面が届くので、どちらを書いても嘘になる人が出る。 */
+      paras: [
+        'PILOT VALUE のマイページに「FOUNDING PILOT 100」という欄を追加しました。',
+        'このサービスには、まだ中身がほとんど無かった時期に、見返りの保証も無いまま自分の給与や職場のことを出してくださった方がいます。いま他のパイロットが読んでいるデータは、その最初の一枚から始まっています。',
+        /* ★数字を書かない。「100」は題字の FOUNDING PILOT 100 が言っている。
+           本文に素の数字を1つ許すと、次に「残り86枠」「会員31名」が入る道ができる。
+           ★通し番号のことも書かない（2026-08-23 に画面から外した）。
+           書くと、ログインしても番号が無い人が探すことになる。 */
+        '最初に出してくださった方に、この称号をお渡ししています。一度お渡ししたら外れません。あとから登録した方が追い越すこともありません。',
+        'マイページの一番上に置いています。ログインするとご覧いただけます。',
+      ],
+      /* VISION の1行。ここが無いと「バッジを配りました」だけの通知になる。 */
+      vision: 'パイロットという職業の価値は、パイロット自身が持っている情報からしか上がりません。PILOT VALUE が見ているのはそこだけです。',
+      cta: 'マイページを見る',
+      /* ★オプトインで絞らずに全員へ送るので、理由を正直に書く。
+           「チェックを入れた方に」と書くと、入れていない人には嘘になる。 */
+      why: 'このメールは、PILOT VALUE にご登録いただいた方へ、サービスからのお知らせとしてお送りしています。',
+      unsub: '配信を停止する',
+    };
+  }
+  return {
+    subject: 'FOUNDING PILOT 100 is now on your PILOT VALUE page',
+    hi: 'Hi,',
+    plaqueSub: 'Founding Member',
+    paras: [
+      'We have added a FOUNDING PILOT 100 panel to your PILOT VALUE page.',
+      'Early on, when there was almost nothing here, some pilots shared their own pay and their own workplace with no guarantee of anything in return. Everything other pilots read today started from those first entries.',
+      'The pilots who shared first are the ones who carry it. Once given, it stays, and nobody who joins later can take it.',
+      'We have put it at the top of your page. Sign in to see it.',
+    ],
+    vision: 'The value of this profession can only be raised by what pilots themselves know. That is the only thing PILOT VALUE is built for.',
+    cta: 'Go to your page',
+    why: 'This is a service notice sent to people registered with PILOT VALUE.',
+    unsub: 'Unsubscribe',
+  };
+}
+
+/* p = { name, country, unsub_token }
+   o = { siteUrl, supabaseUrl, adminEmail, lang } */
+export function buildFounding(p, o = {}) {
+  const opt = { ...DEFAULTS, ...o };
+  const site = String(opt.siteUrl).replace(/\/+$/, '');
+  const lang = opt.lang || langModeOf(p);
+  const langs = lang === 'both' ? BOTH_ORDER : [lang];
+
+  const meUrl = (l) => `${site}/${l === 'en' ? 'en/' : ''}profile.html`;
+  /* ★こちらは日英ぶん2本出す（下の foot の理由）。それぞれ自分の言語のページへ。
+     「Unsubscribe」を押したら日本語のページが出る、という食い違いを作らない。 */
+  const unsubPage = (l) => `${site}/${l === 'en' ? 'en/' : ''}unsubscribe.html?token=${encodeURIComponent(p?.unsub_token || '')}`;
+  const unsubUrl = unsubPage(langs[0]);
+  /* 受信箱側のワンクリック解除（RFC 8058）。本番で動いている remind-payslip の
+     入口をそのまま指す（新しい解除の窓口を作らない）。 */
+  const oneClickUrl = opt.supabaseUrl
+    ? `${String(opt.supabaseUrl).replace(/\/+$/, '')}/functions/v1/remind-payslip?u=${encodeURIComponent(p?.unsub_token || '')}`
+    : '';
+
+  const parts = langs.map((l) => ({ l, t: foundingCopy(l), me: meUrl(l) }));
+
+  const subject = lang === 'both'
+    ? `${parts[0].t.subject} / マイページに追加しました`
+    : parts[0].t.subject;
+
+  const blockHtml2 = (t, me, first) => `
+    <p style="margin:0 0 18px">${esc(t.hi)}</p>
+    ${first ? foundingPlaque(t) : ''}
+    ${t.paras.map((s) => `<p style="margin:0 0 16px;color:#333">${esc(s)}</p>`).join('')}
+    <p style="margin:22px 0 22px;padding:14px 16px;background:#f7f9fb;border-left:3px solid #f5c842;color:#333;font-size:13px;line-height:1.8">${esc(t.vision)}</p>
+    <p style="margin:0 0 4px">
+      <a href="${esc(me)}" style="display:inline-block;background:#f5c842;color:#111;text-decoration:none;font-weight:800;padding:12px 22px;border-radius:10px">${esc(t.cta)}</a>
+    </p>`;
+
+  const blockText2 = (t, me) => [
+    strip(t.hi), '',
+    `  ✦ FOUNDING PILOT 100 — ${strip(t.plaqueSub)}`, '',
+    ...t.paras.flatMap((s) => [strip(s), '']),
+    strip(t.vision), '',
+    `${strip(t.cta)}: ${me}`,
+  ].join('\n');
+
+  /* ★足元は日英ともに出す。build() は先頭の言語だけを出すが、こちらは
+     オプトインで絞らず全員に送るので、解除のしかたが読めない人が出ると困る。
+     日英ともの人（言語の手がかりが無い人）は、英語しか読めない可能性がある。 */
+  const feet = parts.map((x) => x.t);
+  const unsubLink = parts
+    .map((x) => `<a href="${esc(unsubPage(x.l))}" style="color:#6b7280">${esc(x.t.unsub)}</a>`)
+    .join(' / ');
+
+  const html =
+    `<div style="background:#f3f5f8;padding:24px 12px;font-family:-apple-system,'Segoe UI','Noto Sans JP',sans-serif">
+      <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;border:1px solid #e6e9ef">
+        <div style="background:#0a0c0f;padding:18px 24px">
+          <span style="color:#f5c842;font-weight:800;letter-spacing:.04em;font-size:15px">PILOT VALUE</span>
+        </div>
+        <div style="padding:26px 24px;color:#1f2937;font-size:14px;line-height:1.8">
+          ${parts.map((x, i) => blockHtml2(x.t, x.me, i === 0))
+            .reduce((a, b, i) => a + dividerFor(langs[i]) + b)}
+        </div>
+        <div style="padding:16px 24px;border-top:1px solid #eef0f4;color:#9aa5b1;font-size:11px;line-height:1.7">
+          ${feet.map((t) => esc(t.why)).join('<br>')}<br>
+          ${unsubLink}
+          ・<a href="${esc(site)}" style="color:#6b7280">${esc(site.replace(/^https?:\/\//, ''))}</a>
+        </div>
+      </div>
+    </div>`;
+
+  const text = [
+    parts.map((x) => blockText2(x.t, x.me)).join('\n\n— — —\n\n'),
+    '', '--',
+    ...feet.map((t) => strip(t.why)),
+    ...parts.map((x) => `${strip(x.t.unsub)}: ${unsubPage(x.l)}`),
+  ].join('\n');
+
+  return { lang, subject, html, text, unsubUrl, oneClickUrl, meUrl: meUrl(langs[0]) };
 }

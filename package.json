@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "test:sql": "node db/test-pay-reports.mjs && node db/test-conditions.mjs && node db/test-referrals.mjs"
+    "test:sql": "node db/test-pay-reports.mjs && node db/test-conditions.mjs && node db/test-referrals.mjs && node db/test-founding.mjs"
   },
   "keywords": [],
   "author": "",

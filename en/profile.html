@@ -192,6 +192,10 @@
   </nav>
 
   <main style="max-width:700px;margin:0 auto;padding:36px 24px 80px;position:relative;z-index:1">
+    <!-- FOUNDING PILOT 100. Drawn by pv-founding.js.
+         It also renders for someone with no number yet (dimmed, no digits).
+         Never shows a member count or how many slots are left. -->
+    <div id="pv-founding-slot"></div>
 
     <!-- Profile card -->
     <div class="glass" id="profile-card">
@@ -379,6 +383,7 @@
   <script src="../airlines-meta.js"></script>
   <script src="../pv-conditions.js"></script>
   <script src="../pv-referral.js"></script>
+  <script src="../pv-founding.js"></script>
   <script>
     const SB_URL = 'https://vzgmnkrggrwtsrpqndsm.supabase.co';
     const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6Z21ua3JnZ3J3dHNycHFuZHNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0MzkwOTcsImV4cCI6MjA5MDAxNTA5N30.wE4cJbqeYGCgn5ZvHd80hYWgQuySKvOMJMbsJWOvmtw';
@@ -495,6 +500,14 @@
       try {
         if (window.PVReferral) window.PVReferral.mountInvite(
           document.getElementById('pv-invite-slot'), { sb: sb });
+      } catch (e) {}
+
+      /* The FOUNDING PILOT 100 plaque. It renders for people without the title too,
+         so they can see what is on offer. If the RPC does not answer we draw
+         nothing — showing "not yet" to someone who holds a number is worse. */
+      try {
+        if (window.PVFounding) window.PVFounding.mount(
+          document.getElementById('pv-founding-slot'), { sb: sb });
       } catch (e) {}
 
       /* Secondary entry point. We never ask just because someone logged in —

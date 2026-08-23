@@ -22,6 +22,10 @@
      node mail-bot/send.mjs announce --to=info@…    --send  # ★自分の受信箱で現物を見る（会員には出ない）
      node mail-bot/send.mjs announce --send                 # 本番（1人1通・二度は送らない）
 
+     node mail-bot/send.mjs founding                        # 送らない。何人に届くかだけ出る
+     node mail-bot/send.mjs founding --to=info@…   --send   # ★自分の受信箱で現物を見る
+     node mail-bot/send.mjs founding --send                 # 本番（1人1通・二度は送らない）
+
    ★ announce だけは既定が「送らない」。--dry-run を付け忘れて全員に飛ぶ事故を
      起こしようがない側に倒してある（取り消せない操作なので）。
 ════════════════════════════════════════════════════════════════ */
@@ -55,9 +59,10 @@ const langArg  = (args.find(a => a.startsWith('--lang=')) || '').split('=')[1]; 
 const toArg    = (args.find(a => a.startsWith('--to=')) || '').split('=')[1];    // 自分宛の下見だけに使う
 /* announce は「--send と書いたときだけ送る」。他のモードは従来どおり
    「--dry-run と書いたときだけ送らない」。既定を逆にしてあるのはわざと。 */
-const DRY = MODE === 'announce' ? !args.includes('--send') : args.includes('--dry-run');
+const NEEDS_SEND = MODE === 'announce' || MODE === 'founding';
+const DRY = NEEDS_SEND ? !args.includes('--send') : args.includes('--dry-run');
 
-if (!['welcome', 'digest', 'announce'].includes(MODE)) { console.error('使い方: node mail-bot/send.mjs <welcome|digest|announce> [--dry-run] [--send] [--only=ADDR] [--to=ADDR] [--backfill] [--since=ISO]'); process.exit(1); }
+if (!['welcome', 'digest', 'announce', 'founding'].includes(MODE)) { console.error('使い方: node mail-bot/send.mjs <welcome|digest|announce|founding> [--dry-run] [--send] [--only=ADDR] [--to=ADDR] [--backfill] [--since=ISO]'); process.exit(1); }
 if (!SUPABASE_URL || !SERVICE_KEY) { console.error('❌ SUPABASE_URL / SUPABASE_SERVICE_KEY 未設定'); process.exit(1); }
 if (!DRY && !RESEND_KEY) { console.error('❌ RESEND_API_KEY 未設定（実送信には必須）'); process.exit(1); }
 
@@ -119,7 +124,9 @@ function layout(inner, unsubToken) {
 const stateFile = join(__dir, '.send-state.json');
 /* announceSent は { profiles.id: 送った時刻 }。announce を二度流しても
    同じ人に二通目が行かないための控え。消すと二重送信になる。 */
-let state = { lastWelcomeAt: null, lastDigestAt: null, announceSent: {} };
+/* foundingSent は announce とは別の鍵。同じ鍵にすると、給与レポートのお知らせを
+   受け取った人が FOUNDING PILOT 100 のお知らせを受け取れない（逆も同じ）。 */
+let state = { lastWelcomeAt: null, lastDigestAt: null, announceSent: {}, foundingSent: {} };
 if (existsSync(stateFile)) { try { state = { ...state, ...JSON.parse(readFileSync(stateFile, 'utf8')) }; } catch {} }
 const saveState = () => writeFileSync(stateFile, JSON.stringify(state, null, 2));
 const nowIso = new Date().toISOString();
@@ -141,9 +148,10 @@ async function runWelcome() {
   let sent = 0, last = null;
   for (const m of members) {
     if (!m.email) continue;
-    const name = esc(m.name || 'パイロット');
+    /* ★氏名で呼びかけない。匿名で出してもらっている以上、
+         受信箱にも Resend の送信ログにも「このアドレス＝この氏名」を残さない。 */
     const inner = `
-      <p style="margin:0 0 14px">${name} さん、PILOT VALUE へのご登録ありがとうございます ✈️</p>
+      <p style="margin:0 0 14px">PILOT VALUE へのご登録ありがとうございます ✈️</p>
       <p style="margin:0 0 14px">当サイトは、日本のパイロットが<strong>世界のエアラインの年収・待遇・現場のリアル</strong>を、
       忖度なく比較して次のキャリアを判断するためのプラットフォームです。</p>
       <p style="margin:0 0 8px;font-weight:700">はじめの一歩</p>
@@ -154,7 +162,7 @@ async function runWelcome() {
       <p style="margin:0 0 20px"><a href="${SITE_URL}/submit-review.html" style="display:inline-block;background:#f5c842;color:#000;font-weight:800;text-decoration:none;padding:11px 22px;border-radius:9px">口コミを投稿してデータを解放する →</a></p>
       <p style="margin:0;color:#6b7280;font-size:13px">今後、年収データの更新や新着口コミ、新規エアライン情報を厳選してお届けします。不要になればいつでも下部から解除できます。</p>`;
     try {
-      await sendEmail(m.email, `PILOT VALUE へようこそ、${m.name || ''}さん ✈️`, layout(inner, m.unsub_token));
+      await sendEmail(m.email, 'PILOT VALUE へようこそ ✈️', layout(inner, m.unsub_token));
       sent++; last = m.created_at;
       console.log(`${DRY ? '  [dry]' : '  ✓'} welcome → ${m.email}`);
     } catch (e) { console.error(`  ❌ ${m.email}: ${e.message}`); }
@@ -195,9 +203,9 @@ async function runDigest() {
   let sent = 0;
   for (const m of recipients) {
     if (!m.email) continue;
-    const name = esc(m.name || 'パイロット');
+    /* ★ここも氏名で呼びかけない（welcome と同じ理由）。 */
     const inner = `
-      <p style="margin:0 0 14px">${name} さん、この期間の新着です。</p>
+      <p style="margin:0 0 14px">この期間の新着です。</p>
       <p style="margin:0 0 8px;font-weight:700">🆕 新着口コミ ${reviews.length} 件（航空会社別）</p>
       <ul style="margin:0 0 14px;padding-left:1.2em;color:#374151">${listHtml}</ul>
       ${exHtml ? `<p style="margin:0 0 4px;font-weight:700">現場の声（抜粋）</p>${exHtml}` : ''}
@@ -282,10 +290,94 @@ async function runAnnounce() {
   if (DRY) console.log('           本文を絵で見る: node shot-remind.mjs --announce');
 }
 
+/* ════════════════════ founding ════════════════════
+   FOUNDING PILOT 100 のお知らせ。文面は mail-bot/announce-mail.mjs の buildFounding()。
+
+   announce と違うところは1つだけ ―― ★email_opt_in で絞らない。
+   オーナー判断で登録者全員に送る。そのため文面は勧誘を1文も含まない
+   「サービスからのお知らせ」に統一してある（理由は announce-mail.mjs の
+   buildFounding の見出しコメント）。ここを勧誘の文面に差し替えると、
+   オプトインしていない人に広告を送ったことになる。差し替えない。
+
+   代わりに、動作確認用のアカウントは外す。除外は db/usage.mjs と
+   同じ PV_TEST_EMAILS（mail-bot/.env）。未設定なら警告を出して止まる
+   ―― 数を確かめるだけの usage.mjs と違い、こちらは取り消せない送信なので。 */
+
+/* db/usage.mjs:99 と同じ式。ここを直したら向こうも直す。 */
+const TEST_PATTERNS = String(process.env.PV_TEST_EMAILS ?? '')
+  .split(',').map(s => s.trim().toLowerCase()).filter(Boolean)
+  .map(pat => new RegExp('^' + pat.split('*').map(x => x.replace(/[.+?^${}()|[\]\\]/g, '\\$&')).join('.*') + '$'));
+const isTestEmail = (email) => {
+  const e = String(email ?? '').toLowerCase();
+  return !!e && TEST_PATTERNS.some(re => re.test(e));
+};
+
+async function runFounding() {
+  const { buildFounding } = await import('./announce-mail.mjs');
+
+  /* ★自分の受信箱で現物を見る逃げ道。会員には1通も出さない。 */
+  if (toArg) {
+    const me = { id: 'self-preview', email: toArg, name: null, country: null, unsub_token: 'preview-token' };
+    const b = buildFounding(me, { siteUrl: SITE_URL, supabaseUrl: SUPABASE_URL, adminEmail: ADMIN_EMAIL, lang: langArg });
+    console.log(`[founding] 自分宛のプレビュー（会員には送りません）… ${b.lang}`);
+    console.log(`           ${b.subject}`);
+    if (DRY) return console.log('           ※ 送りません。実際に送るには --send を付けてください。');
+    await sendEmail(toArg, '[preview] ' + b.subject, b.html, { text: b.text, replyTo: ADMIN_EMAIL });
+    return console.log('  ✓ 送りました');
+  }
+
+  if (TEST_PATTERNS.length === 0) {
+    console.error('❌ PV_TEST_EMAILS が mail-bot/.env にありません。');
+    console.error('   動作確認用のアカウントを外せないので止めます（送信は取り消せません）。');
+    process.exit(1);
+  }
+
+  /* ★email_opt_in を条件に入れない。全員が対象。 */
+  const people = await sbSelect('profiles', 'id,name,email,country,unsub_token',
+    [['order', 'created_at.asc']]);
+
+  const sentBefore = state.foundingSent || {};
+  let targets = people.filter(m => m.email && String(m.email).includes('@'));
+  const total = targets.length;
+  const testers = targets.filter(m => isTestEmail(m.email)).length;
+  targets = targets.filter(m => !isTestEmail(m.email));
+  const already = targets.filter(m => sentBefore[m.id]).length;
+  targets = targets.filter(m => !sentBefore[m.id]);
+  if (onlyArg) targets = targets.filter(m => String(m.email).toLowerCase() === onlyArg.toLowerCase());
+
+  console.log(`[founding] 登録 ${total} 名／動作確認 ${testers} 名を除外／送信済み ${already} 名／今回の対象 ${targets.length} 名`
+    + (onlyArg ? `（--only=${onlyArg}）` : ''));
+  if (DRY) console.log('           ※ 送りません。実際に送るには --send を付けてください。');
+  if (targets.length === 0) return;
+
+  let sent = 0;
+  for (const m of targets) {
+    const b = buildFounding(m, { siteUrl: SITE_URL, supabaseUrl: SUPABASE_URL, adminEmail: ADMIN_EMAIL, lang: langArg });
+    const headers = {
+      'List-Unsubscribe': (b.oneClickUrl ? `<${b.oneClickUrl}>, ` : '') + `<${b.unsubUrl}>, <mailto:${ADMIN_EMAIL}?subject=unsubscribe>`,
+      ...(b.oneClickUrl ? { 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' } : {}),
+    };
+    try {
+      await sendEmail(m.email, b.subject, b.html, {
+        text: b.text, headers, replyTo: ADMIN_EMAIL,
+        idempotencyKey: `pv-founding-100-${m.id}`,
+      });
+      sent++;
+      if (!DRY) { (state.foundingSent ||= {})[m.id] = nowIso; saveState(); }
+      /* 宛先は出さない。ここの出力を貼って渡すと会員のメールが漏れる。 */
+      const L = { ja: '日本語', en: '英語', both: '日英ともに' }[b.lang] || b.lang;
+      console.log(`${DRY ? '  [dry]' : '  ✓'} ${L.padEnd(5, '　')} … ${b.subject}`);
+      if (!DRY) await new Promise(r => setTimeout(r, 320));
+    } catch (e) { console.error(`  ❌ 1名ぶん失敗: ${e.message}`); }
+  }
+  console.log(`[founding] ${DRY ? 'プレビュー' : '送信'} ${sent}/${targets.length}`);
+}
+
 (async () => {
   try {
     if (MODE === 'welcome') await runWelcome();
     else if (MODE === 'announce') await runAnnounce();
+    else if (MODE === 'founding') await runFounding();
     else await runDigest();
   } catch (e) { console.error('❌', e.message); process.exit(1); }
 })();
