@@ -10,14 +10,14 @@
   <title>What Other Pilots Actually Earn | PILOT VALUE</title>
 <!--PV-SEO-->
 <!--PV-SRC t="What Other Pilots Actually Earn" d=""-->
-<meta name="description" content="Public estimated ranges and pay recorded by pilots themselves, side by side but never merged. A group appears only once five or more people share the same airline, position and fleet."/>
+<meta name="description" content="Pay recorded by pilots themselves, one row per pilot. Several months from the same pilot fold into a single row, and every figure is rounded to two significant digits."/>
 <meta name="robots" content="noindex,follow"/>
 <link rel="canonical" href="https://pilot-value.com/en/actual-pay.html"/>
 <link rel="alternate" hreflang="ja" href="https://pilot-value.com/actual-pay.html"/>
 <link rel="alternate" hreflang="en" href="https://pilot-value.com/en/actual-pay.html"/>
 <link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/actual-pay.html"/>
 <meta property="og:title" content="What Other Pilots Actually Earn | PILOT VALUE"/>
-<meta property="og:description" content="Public estimated ranges and pay recorded by pilots themselves, side by side but never merged. A group appears only once five or more people share the same airline, position and fleet."/>
+<meta property="og:description" content="Pay recorded by pilots themselves, one row per pilot. Several months from the same pilot fold into a single row, and every figure is rounded to two significant digits."/>
 <meta property="og:url" content="https://pilot-value.com/en/actual-pay.html"/>
 <meta property="og:type" content="website"/>
 <meta property="og:site_name" content="PILOT VALUE"/>
@@ -29,7 +29,7 @@
 <meta property="og:image:alt" content="What Other Pilots Actually Earn | PILOT VALUE"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:title" content="What Other Pilots Actually Earn | PILOT VALUE"/>
-<meta name="twitter:description" content="Public estimated ranges and pay recorded by pilots themselves, side by side but never merged. A group appears only once five or more people share the same airline, position and fleet."/>
+<meta name="twitter:description" content="Pay recorded by pilots themselves, one row per pilot. Several months from the same pilot fold into a single row, and every figure is rounded to two significant digits."/>
 <meta name="twitter:image" content="https://pilot-value.com/assets/og/default-en.jpg"/>
 <!--/PV-SEO-->
 
@@ -131,8 +131,9 @@
         <div class="mr-skel" style="height:14px;width:74%;margin-top:12px"></div>
       </div>
 
-      <!-- Airline and position filter both sections. Fleet lives inside section 2 — section 1 has no fleet. -->
-      <div class="ap-filter">
+      <!-- All three list only the groups that actually have rows (actual-pay.js builds
+           them from the rows). The whole bar hides when there are no rows, or no key. -->
+      <div class="ap-filter" id="ap-filter" hidden>
         <div class="ap-f">
           <label class="ap-f-l" for="ap-air">Airline</label>
           <select class="ap-sel" id="ap-air"></select>
@@ -141,47 +142,22 @@
           <label class="ap-f-l" for="ap-pos">Position</label>
           <select class="ap-sel" id="ap-pos"></select>
         </div>
+        <div class="ap-f" id="ap-fleet-wrap">
+          <label class="ap-f-l" for="ap-fleet">Fleet</label>
+          <select class="ap-sel" id="ap-fleet"></select>
+        </div>
         <button type="button" class="ap-clear" id="ap-clear">Clear filters</button>
       </div>
 
-      <!-- Section 1: public data. ★ Always populated, so the page is never blank when section 2 is empty. -->
-      <section class="ap-sec">
-        <div class="ap-sec-h">
-          <h2 class="ap-sec-t">Estimated range from public sources
-            <span class="ap-badge ap-badge--pub">Public data</span></h2>
-          <p class="ap-sec-s">Reference ranges built from official filings, job postings and press reports. Not recorded by pilots.</p>
-        </div>
-        <!-- pv-no-cur stops the currency.js auto-scan. Amounts are written through
-             PVCurrency.fmt and redrawn on pv-currency-change. -->
-        <div class="pv-no-cur" id="ap-pub">
-          <div class="mr-skel" style="height:150px"></div>
-        </div>
-        <p class="ap-foot">Sorted by airline name. Never sorted by amount. We hold no public range for cadets.</p>
-      </section>
-
-      <!-- Section 2: pilot-recorded pay. ★ Never merged into one table with section 1, never added to it. -->
-      <section class="ap-sec">
-        <div class="ap-sec-h">
-          <h2 class="ap-sec-t">Pay recorded by pilots themselves
-            <span class="ap-badge ap-badge--actual">Pilot-recorded</span></h2>
-          <p class="ap-sec-s">One row is one pilot. We show a group only once at least five people share the same airline, position and fleet, with the extremes pulled in and the figure rounded.</p>
-        </div>
-        <div class="ap-fleet" id="ap-fleet-wrap" hidden>
-          <div class="ap-f">
-            <label class="ap-f-l" for="ap-fleet">Fleet</label>
-            <select class="ap-sel" id="ap-fleet"></select>
-          </div>
-        </div>
-        <!-- pv-no-cur goes on the opening tag itself — section 2 re-rounds to two significant figures per currency. -->
-        <div class="pv-no-cur" id="ap-rows">
-          <div class="mr-skel" style="height:180px"></div>
-        </div>
-        <!-- Slot for the referral (data-density) card. ★ One slot, inside section 2,
-             directly under the table. It stays in place whether the section is locked,
-             empty or full — only #ap-rows is swapped — so the people in the thinnest
-             groups are exactly the ones who keep seeing it. -->
-        <div id="ap-ref-slot"></div>
-      </section>
+      <!-- ★ One row is one pilot. Everyone who submitted their pay is here — no headcount gate.
+           ★ Never a ranking: no sort-by-amount, no verified-only filter.
+           ★ Only one heading (actual-pay.js writes it into #ap-hd). A section heading here
+             would repeat the h1 almost word for word.
+           pv-no-cur goes on the opening tag itself — amounts are re-rounded to two
+             significant figures per currency. -->
+      <div class="pv-no-cur" id="ap-rows">
+        <div class="mr-skel" style="height:180px"></div>
+      </div>
     </main>
   </div>
 

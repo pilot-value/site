@@ -1,35 +1,37 @@
 /* assert-pay-rows.mjs — 「他のパイロットの実給与を見る」（actual-pay）の約束を機械で確かめる。
 
    この画面は、このサイトで初めて **他人の一次データを1行ずつ見せる** 場所。
-   1行＝1人なので、守りは見た目ではなく次の6つに全部かかっている：
+   1行＝1人で、しかも **給与を出した人は全員出る**（人数の門は無い）。
 
-     ① 鍵の無い人には金額が1つも出ない
-        （db/pay-rows.sql が state:'locked' を返し、画面は導線だけを出す）
-     ② ①公開情報（青）と ②本人記録（オレンジ）が混ざらない
-        1つの表に入れない・足さない・引かない。0件のときも①は必ず中身がある
-     ③ 準識別子が1つも画面に出ない
-        基地・在籍年数・年代・投稿月・原本の通貨・契約形態・国籍・本人を指す識別子。
+   ★2026-08-23、オーナー判断で次の3つが無くなった。
+       ・k≧5 の門（5人そろった区分だけ出す）
+       ・30日の遅延
+       ・公開情報からの推定レンジの節（青）と、右の「選んだ区分」パネル
+     だから守りは残る6つに全部かかっている。ここはその6つを見る：
+
+     ① 鍵の無い人には金額が1文字も出ない
+        （db/pay-rows.sql が state:'locked' を返す。画面のモザイクではない）
+     ② 準識別子が1つも画面に出ない
+        基地・在籍年数・年代・投稿月・原本の通貨・契約形態・国籍・本人を指す識別子、
+        そして**自由入力で打ち込まれた社名**。
         ★この検査では、サーバが返さないはずのこれらを **わざと混ぜた行** を流し込み、
           画面のどこにも出ないことを見る。将来 r.base_iata を1つ足した人が即座に赤くなる
-     ④ 金額はすべて有効数字2桁（②のみ）
-        ①は公開されている値そのもの（¥1,956万 など）で、こちらで丸め直すと出典と食い違う。
-        だから2桁の検査は②の中だけに掛ける
+     ③ 金額はすべて有効数字2桁（表示通貨に換算したあとも）
+     ④ 1行＝1人。表は1枚だけ
+        ⚠️ 粒度を2つに分けた形へ戻さない（同じ人が両方に出て二重に数えたように見える）
      ⑤ 数え上げを見せない
-        合計件数・カバー社数・「◯人」を②の結果の中に出さない。行を数えれば
-        n≧5 の区分の人数は読めるが、それはオーナーが承知のうえで選んだ形。
+        合計件数・カバー社数・「◯人」を結果の中に出さない。行を数えれば人数は読めるが、
         総数を明示すると会員規模そのものが出る
      ⑥ 通貨を切り替えても pv_pay_rows() を引き直さない
         （データは state に持つ。引き直すと切替のたびにサーバを叩く）
 
+   ★もう1つ、消えたものが戻っていないことを見る：
+     青のバッジ・推定レンジ・「5人」「30日」の約束・招待カードの差込口。
+     文言は特に静かに戻る（「5人そろうと出ます」は、今は嘘）。
+
    ⚠️ 偽物 Supabase の rpc は本物と同じ「then だけを持つ箱」にしてある。
       async にすると本番に無い .catch が生えて、本番だけ真っ白になる穴が開く
       （assert-referral.mjs / assert-conditions.mjs に経緯あり）。
-
-   ⚠️「②に数字が1文字も無い」は #ap-rows（結果の入れ物）に対して掛ける。
-      節の見出しには「5人以上そろった区分だけ」という説明が要り、招待カードは
-      n=3・4 のときだけ「あと2人」を出す（これは referral 側の約束で、
-      assert-referral.mjs が別に見ている）。ここで見るのは **金額の形をした文字** が
-      出ないこと。
 
    実行: node assert-pay-rows.mjs
    ⚠️ localhost が要る（node serve.mjs）。本番の DB には触らない。
@@ -47,12 +49,9 @@ const ok = (c, l, e = '') => { c ? (pass++, console.log('  ✅ ' + l)) : (fail++
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 /* CSS / JS のコメントを落としてから中身を見る。
-   ★actual-pay.css は「lp.css の .pv-badge--pub と同じ見た目だがセレクタは分ける」と
-     コメントで説明しているので、素朴に grep すると説明を書いた人が赤くなる。 */
+   ★どのファイルも「何を消したか・何を戻さないか」をコメントで説明している。
+     素朴に grep すると、説明を書いた人が赤くなる（＝説明を消すのが直し方になる）。 */
 const decomment = (s) => s.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|\s)\/\/[^\n]*/g, ' ');
-/* HTML も同じ。actual-pay.html には「★pay-viz.css は読まない」「pv-referral.js は
-   lang-toggle.js より前」という注意書きそのものが書いてあるので、素朴に探すと
-   説明を書いた人が赤くなる（＝説明を消すのが直し方になる）。実体だけを見る。 */
 const nohtmlcomment = (s) => s.replace(/<!--[\s\S]*?-->/g, ' ');
 
 // ════════════════════════════════════════════════════════════════
@@ -77,15 +76,26 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
   ok(!/pay-viz\.css/.test(html), `${name}: pay-viz.css を読まない（図を描かないので契約に触れない）`);
 
   /* 結果の入れ物は「開始タグ自体」に pv-no-cur。currency.js の自動走査に
-     金額を触らせない（②は通貨ごとに2桁へ丸め直す・①は出典どおりの値を出す）。 */
-  for (const id of ['ap-rows', 'ap-pub']) {
-    const m = html.match(new RegExp('<div[^>]*id="' + id + '"[^>]*>'));
-    ok(!!m && /\bpv-no-cur\b/.test(m[0]),
-       `${name}: #${id} の開始タグに pv-no-cur が付いている`, m ? m[0] : '(タグが無い)');
+     金額を触らせない（通貨ごとに2桁へ丸め直すのはこちらの仕事）。 */
+  const m = html.match(/<div[^>]*id="ap-rows"[^>]*>/);
+  ok(!!m && /\bpv-no-cur\b/.test(m[0]),
+     `${name}: #ap-rows の開始タグに pv-no-cur が付いている`, m ? m[0] : '(タグが無い)');
+
+  /* ★消したものが戻っていないこと。 */
+  ok(!/id="ap-pub"/.test(html), `${name}: ★公開情報からの推定レンジの節が無い`);
+  ok(!/ap-badge--pub/.test(html), `${name}: ★青（推定）のバッジが無い`);
+  ok(!/ap-ref-slot/.test(html), `${name}: ★招待カードの差込口が無い`);
+
+  /* 絞り込みは帯1つに3つ。機材だけ②の中に置く形はやめた（効く範囲が同じなので）。 */
+  ok(/id="ap-filter"[^>]*\shidden/.test(html) || /\shidden[^>]*id="ap-filter"/.test(html),
+     `${name}: 絞り込みの帯は既定で隠れている（行が無いときに空の選択肢を出さない）`);
+  for (const id of ['ap-air', 'ap-pos', 'ap-fleet', 'ap-clear']) {
+    ok(html.includes('id="' + id + '"'), `${name}: #${id} がある`);
   }
 
   /* 読み込み順。pv-referral.js が lang-toggle.js より後だと、
-     英語設定の人が /en/ へ飛ばされる時に ?ref= が丸ごと消える。 */
+     英語設定の人が /en/ へ飛ばされる時に ?ref= が丸ごと消える。
+     ★この画面にカードは出さないが、?ref= を持ち回る仕事は残っている。 */
   const iRef = html.indexOf('pv-referral.js');
   const iLang = html.indexOf('lang-toggle.js');
   ok(iRef > -1 && iLang > -1 && iRef < iLang,
@@ -101,20 +111,19 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
 }
 
 /* 金額での並べ替えと「Verified だけ」の絞り込みを作らない。
-   前者はこの画面をランキングにする。後者は絞った行数＝その区分の検証済み人数という
-   生カウントになる（区分あたり5人未満の情報が出る）。 */
+   前者はこの画面をランキングにする。後者は絞った行数＝検証済みの人数という生カウントになる。 */
 {
   const j = decomment(JS);
   ok(!/sort[^)]*annual_usd|annual_usd[^)]*sort|sortBy|data-sort/.test(j),
      '金額で並べ替える仕掛けが無い');
   ok(!/filter[^)]*\.verified|verified[^)]*filter|ap-vf-only|onlyVerified/.test(j),
      '「Verified だけ」の絞り込みが無い');
-  ok(/localeCompare/.test(j), '並びは名前順（localeCompare）である');
-  ok(/surface:\s*'actual_pay'/.test(j) && !/surface:\s*'my_value'/.test(j),
-     "★招待カードの surface は 'actual_pay'（この画面を開くだけでレポート側の勧誘が止まらない）");
-  ok(/variant:\s*'card'/.test(j), "招待カードは 'card' 姿（bench / profile はダーク固定で浮く）");
-  ok(!/mountInvite|PVReferral\.claim/.test(j),
-     '常設入口（mountInvite）も着地（claim）もこの画面には置かない');
+  ok(/localeCompare/.test(j), '絞り込みの選択肢は名前順（localeCompare）である');
+  ok(!/PVReferral|mountInvite|mountCohort/.test(j),
+     '★招待カードをこの画面に描かない（my_cohort_gap の「あと2人で見える」はもう合わない）');
+  ok(!/renderPub|ap-range|ap-plist|salaryRange/.test(j),
+     '★推定レンジを描く関数が残っていない');
+  ok(!/grain|ap-panel|ap-tcol/.test(j), '★2粒度と右パネルの部品が残っていない');
 }
 
 /* pay-viz.js が root で1回だけ持つ2式（db/test-form-contract.mjs が見張っている）。
@@ -125,28 +134,45 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
   ok(!/\bn\s*\+\s*d\b/.test(j), 'n + d を写していない');
 }
 
-/* バッジは .ap-* で持つ。lp.css の .pv-badge--pub を2ファイルで定義するとドリフトする。 */
+/* バッジは .ap-* で持つ。lp.css の .pv-badge を2ファイルで定義するとドリフトする。 */
 {
   const c = decomment(CSS);
   ok(!/\.pv-badge/.test(c), 'actual-pay.css が .pv-badge 系を再定義していない');
-  ok(/\.ap-badge--pub/.test(c) && /\.ap-badge--actual/.test(c),
-     '青（公開情報）と橙（本人記録）のバッジを .ap-* で持っている');
+  ok(/\.ap-badge--actual/.test(c), '本人記録（橙）のバッジを .ap-* で持っている');
+  ok(!/\.ap-badge--pub/.test(c) && !/--pv-blue/.test(c),
+     '★青（推定）の見た目がこの画面に1つも残っていない');
   ok(!/transition\s*:\s*all/.test(c), 'transition-all を使っていない');
-  ok(/--pv-blue-ink/.test(c) && /--pv-orange-ink/.test(c),
-     '色はトークンから取っている（ブランド色を発明していない）');
+  ok(/--pv-orange-ink/.test(c), '色はトークンから取っている（ブランド色を発明していない）');
+  /* display:flex は UA の [hidden]{display:none} に勝つ。帯と枠の両方に要る。 */
+  ok(/\.ap-filter\[hidden\]/.test(c) && /\.ap-f\[hidden\]/.test(c),
+     '★[hidden] を明示している（flex は UA の hidden に勝つ）');
 }
 
 /* サーバ側。1行＝人の粒度なので anon には絶対に開かない。 */
 {
+  const i0 = SQL.indexOf('create or replace function public.pv_pay_rows()');
+  const i1 = SQL.indexOf('revoke all on function public.pv_pay_rows()');
+  const FN = i0 > -1 && i1 > i0 ? SQL.slice(i0, i1) : '';
+  ok(!!FN, 'pv_pay_rows の定義が読めた');
   ok(/create or replace function public\.pv_pay_rows\(\)/.test(SQL),
      'pv_pay_rows は引数を1つも取らない（総当たり面を作らない）');
   ok(/grant execute on function public\.pv_pay_rows\(\) to authenticated/.test(SQL),
      'ログインした人だけが実行できる');
   ok(!/grant\s+execute[^;]*to[^;]*\banon\b/i.test(SQL),
      '★anon には1つも実行させない（pay_benchmarks と違って粒度が人なので開けない）');
-  ok(/>=\s*5/.test(SQL), 'k≧5 の門が残っている');
-  ok(/airline_other is null/.test(SQL), '自由入力の社名は出さない');
-  ok(/access_until/.test(SQL), '鍵（access_until）を見ている');
+  ok(/access_until/.test(FN), '鍵（access_until）を見ている');
+  ok(/pv_sig2\(/.test(FN), '有効数字2桁に丸めている');
+  ok(/order by md5\(/.test(FN),
+     '★並びは md5(proof_hash) 順（投稿順に並べると「誰が最近出したか」が漏れる）');
+  ok(!/order by[^;]*created_at/.test(FN), '★投稿順に並べていない');
+  ok(!/>=\s*5|having\s+count/.test(FN), '★人数の門が残っていない（全員出す）');
+  ok(!/interval\s*'30 days'|30 day/.test(FN), '★30日の遅延が残っていない');
+  ok(!/percentile_cont\(0\.[19]\)/.test(FN), '★p10-p90 のクリップが残っていない');
+  ok(!/airline_other/.test(FN), '★自由入力の社名の列は読んでも返してもいない');
+  ok(/group by airline, pos, fleet, proof_hash/.test(FN), '★1行＝1人にまとめている');
+  /* 集計側（pay_benchmarks）の k≧5 は今も生きている。こちらを一緒に外さない。 */
+  ok(/pg_get_viewdef\(bench\) like '%>= 5%'/.test(SQL),
+     '★集計（pay_benchmarks）の k≧5 は今も見張っている');
 }
 
 /* サイドナビは patch-side-nav.mjs が1か所から書く。手で足すとドリフトする。 */
@@ -163,12 +189,11 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
 // 共通：偽物 Supabase
 // ════════════════════════════════════════════════════════════════
 /* ★本物の supabase-js の rpc が返すのは「then だけを持つ箱」。catch も finally も無い。 */
-const FAKE = function (payload, gap) {
+const FAKE = function (payload) {
   window.__rpc = [];
   const UID = '00000000-0000-4000-8000-00000000a001';
   const RPC = {
     pv_pay_rows: () => payload,
-    my_cohort_gap: () => gap,
     my_referral_code: () => ({ ok: true, code: 'K7QD3XZM', invited: 0, converted: 0 }),
     pv_referral_settle: () => ({ ok: true })
   };
@@ -201,42 +226,40 @@ const FAKE = function (payload, gap) {
 
 /* ★サーバが返さないはずの列を、わざと行に混ぜておく。
    画面のどこかに出たら、その瞬間に赤くなる。
-   ZQX は実在しない3文字（実在の空港コードを使うと、たまたま本文に出て誤検知する）。 */
+   ZQX は実在しない3文字（実在の空港コードを使うと、たまたま本文に出て誤検知する）。
+   ★Somewhere Air は「自由入力で打ち込まれた社名」。これが画面に出たら、
+     その人の勤務先が本人の書いた文字列そのままで他人に見えている。 */
 const POISON = {
   base_iata: 'ZQX', seniority_years: 137, age_bucket: '40s',
   period_year: 2026, period_month: 8, created_at: '2026-08-05T00:00:00Z',
   proof_hash: 'deadbeefcafe0001', contract_type: 'direct', tax_country: 'JP',
-  nationality: 'JP', annual_total_orig: 19440000, currency: 'JPY', verify_level: 2
+  nationality: 'JP', annual_total_orig: 19440000, currency: 'JPY', verify_level: 2,
+  airline_other: 'Somewhere Air'
 };
 /* ★字面がぶつからないものを選ぶ。'17' や '2026' のような短い数字は
-   公開情報の表や年号にたまたま出るので、毒として使えない。 */
+   年号にたまたま出るので、毒として使えない。 */
 const POISON_VALUES = ['ZQX', '137', '40s', 'deadbeefcafe0001',
-                       '19,440,000', '19440000', '2026-08-05'];
+                       '19,440,000', '19440000', '2026-08-05', 'Somewhere Air'];
 
-const fleetRow = (usd, vf, extra) => Object.assign(
-  { airline: 'ana', pos: 'cap', grain: 'fleet', bucket: 'b787',
-    annual_usd: usd, verified: vf, cohort_median_usd: 180000 }, extra || {});
-const catRow = (usd, vf) => (
-  { airline: 'ana', pos: 'cap', grain: 'cat', bucket: 'w',
-    annual_usd: usd, verified: vf, cohort_median_usd: 175000 });
+const row = (airline, pos, fleet, usd, vf, extra) => Object.assign(
+  { airline: airline, pos: pos, fleet: fleet, annual_usd: usd, verified: vf }, extra || {});
 
-/* 5人ちょうどの区分。1人目にだけ毒を混ぜる。 */
-const ROWS5 = [
-  fleetRow(170000, true, POISON), fleetRow(180000, false), fleetRow(180000, true),
-  fleetRow(190000, false), fleetRow(200000, true)
+/* 本番に近い形（2026-08-23 時点は8人・全員が手入力＝verified はほぼ付かない）。
+   ★1人目にだけ毒を混ぜる。★自由入力の社名の人は airline:'other' で来る。 */
+const ROWS = [
+  row('ana', 'cap', 'b787', 180000, true, POISON),
+  row('ana', 'fo', 'b787', 120000, false),
+  row('ana', 'cap', 'b777', 190000, false),
+  row('jal', 'cap', 'a350', 170000, false),
+  row('jal', 'fo', 'b737', 110000, false),
+  row('emirates', 'cap', 'a380', 250000, false),
+  row('other', 'cap', 'b737', 130000, false, { airline_other: 'Somewhere Air' }),
+  row('other', 'fo', 'a320', 90000, false)
 ];
-/* 粒度A（機材別5人）と粒度B（機材をまとめて7人）が同時にある形。
-   同じ人が両方に出るのは設計どおり。だから2つの表に分けて、1つに混ぜない。 */
-const ROWSMIX = ROWS5.concat([
-  catRow(150000, false), catRow(160000, true), catRow(170000, false),
-  catRow(180000, true), catRow(190000, false), catRow(200000, true), catRow(210000, false)
-]);
 
 const LOCKED = { ok: true, state: 'locked', rows: [] };
 const EMPTY = { ok: true, state: 'open', rows: [] };
-const OPEN5 = { ok: true, state: 'open', rows: ROWS5 };
-const OPENMIX = { ok: true, state: 'open', rows: ROWSMIX };
-const GAP = { ok: true, state: 'near', remaining: 2, gained: 0, crossed: false };
+const OPEN = { ok: true, state: 'open', rows: ROWS };
 
 /* 表示された金額の文字から数字だけを取り出す。
    単位（万 / K / M）は 10 のべき乗なので、有効数字の桁数を変えない。
@@ -251,27 +274,25 @@ function isSig2(v) {
   return Math.abs(Math.round(v / p) * p - v) < p * 1e-6;
 }
 
-/* ②に出てはいけない「金額の形をした文字」。数字そのものは禁じない
-   （「5人そろうと」のような説明が要る）。 */
+/* 結果の入れ物に出てはいけない「金額の形をした文字」。 */
 const MONEY = /[¥$€£＄]|万|\d[\d,]{2,}/;
 
 const browser = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox'] });
 const jars = [];
-async function fresh(seed) {
+async function fresh() {
   const jar = await browser.createBrowserContext();
   jars.push(jar);
   const page = await jar.newPage();
   await page.setViewport({ width: 1360, height: 1200 });
   await page.evaluateOnNewDocument(() => { window['ga-disable-G-3XYF69VQ3X'] = true; });
-  if (seed) await page.evaluateOnNewDocument(seed);
   return page;
 }
 
-async function open(lang, payload, gap) {
+async function open(lang, payload) {
   const page = await fresh();
   const errs = [];
   page.on('pageerror', (e) => errs.push(String(e.message).slice(0, 140)));
-  await page.evaluateOnNewDocument(FAKE, payload, gap || GAP);
+  await page.evaluateOnNewDocument(FAKE, payload);
   await page.goto(BASE + (lang === 'en' ? '/en/' : '/') + 'actual-pay.html',
                   { waitUntil: 'domcontentloaded', timeout: 30000 });
   await sleep(2600);
@@ -282,49 +303,72 @@ async function open(lang, payload, gap) {
 const SNAP = () => {
   const q = (s, r) => Array.prototype.slice.call((r || document).querySelectorAll(s));
   const rows = document.getElementById('ap-rows');
-  const pub = document.getElementById('ap-pub');
-  const secs = q('.ap-sec');
+  const bar = document.getElementById('ap-filter');
+  const main = document.querySelector('.mr-main');
+  const opts = (id) => {
+    const s = document.getElementById(id);
+    return s ? Array.prototype.slice.call(s.options).map((o) => o.textContent) : [];
+  };
   const txt = (e) => (e ? e.innerText : '');
   return {
     url: location.pathname,
-    pubText: txt(pub),
-    pubRows: q('tr', pub).length,
-    pubRanges: q('.ap-range', pub).map((e) => e.textContent),
     rowsText: txt(rows),
+    mainText: txt(main),
     bodyText: document.body.innerText,
-    trs: q('.ap-tr', rows).length,
+    trs: q('tbody tr', rows).length,
     tables: q('table', rows).length,
     amounts: q('.ap-amt', rows).map((e) => e.textContent),
-    panelVals: q('.ap-panel .ap-v', rows).map((e) => e.textContent),
+    vf: q('.ap-vf', rows).length,
     lock: q('.ap-msg--lock', rows).length,
     msg: q('.ap-msg', rows).length,
     cta: q('.ap-cta', rows).map((e) => e.getAttribute('href')),
-    blueIn1: secs[0] ? q('.ap-badge--pub', secs[0]).length : -1,
-    orangeIn1: secs[0] ? q('.ap-badge--actual', secs[0]).length : -1,
-    blueIn2: secs[1] ? q('.ap-badge--pub', secs[1]).length : -1,
-    orangeIn2: secs[1] ? q('.ap-badge--actual', secs[1]).length : -1,
-    both: q('.ap-badge--pub.ap-badge--actual').length,
+    /* 消したものが実行時にも戻っていないこと。 */
+    pub: document.getElementById('ap-pub') ? 1 : 0,
+    bluePresent: q('.ap-badge--pub').length,
+    orange: q('.ap-badge--actual').length,
+    h1: q('h1').map((e) => e.innerText).join(' | '),
+    h2: q('h2').length,
+    ranges: q('.ap-range').length,
+    plist: q('.ap-plist').length,
+    panels: q('.ap-panel').length,
     pvr: q('.pvr').length,
-    /* ★pv-referral.js の card() は差込口そのものを書き換える（子を足さない）。
-       だから見るのは「#ap-ref-slot の中」ではなく「#ap-ref-slot 自身」。 */
-    slotIsCard: q('#ap-ref-slot.pvr').length,
-    refInSec2: !!(secs[1] && document.getElementById('ap-ref-slot')
-                  && secs[1].contains(document.getElementById('ap-ref-slot'))),
-    refInSec1: !!(secs[0] && document.getElementById('ap-ref-slot')
-                  && secs[0].contains(document.getElementById('ap-ref-slot'))),
-    cap: localStorage.getItem('pv_ref_cap') || '',
+    refSlot: document.getElementById('ap-ref-slot') ? 1 : 0,
+    /* 絞り込み */
+    barHidden: bar ? bar.hidden : null,
+    fleetHidden: (function () {
+      const w = document.getElementById('ap-fleet-wrap');
+      return w ? w.hidden : null;
+    })(),
+    airOpts: opts('ap-air'), posOpts: opts('ap-pos'), fleetOpts: opts('ap-fleet'),
     calls: (window.__rpc || []).map((r) => r.name),
     withArgs: (window.__rpc || []).filter((r) => r.hasArgs).map((r) => r.name),
-    tblTexts: q('table', rows).map((t) => t.innerText),
-    /* ①の「まだ下がある」の影。本当に下があるときだけ付いていること。 */
-    cue: (() => {
-      const l = document.querySelector('.ap-plist');
-      if (!l) return null;
-      return { on: l.classList.contains('is-more'),
-               over: l.scrollHeight - l.clientHeight - l.scrollTop > 2 };
-    })()
+    tblTexts: q('table', rows).map((t) => t.innerText)
   };
 };
+
+/* ★消したものが戻っていないか（全ケースで同じことを見る）。 */
+function gone(v, tag) {
+  ok(v.pub === 0 && v.bluePresent === 0 && v.ranges === 0 && v.plist === 0,
+     `${tag}: ★推定レンジの節が実行時にも無い`,
+     `${v.pub}/${v.bluePresent}/${v.ranges}/${v.plist}`);
+  ok(v.panels === 0, `${tag}: ★右の「選んだ区分」パネルが無い`, String(v.panels));
+  ok(v.pvr === 0 && v.refSlot === 0, `${tag}: ★招待カードがこの画面に出ない`,
+     `${v.pvr}/${v.refSlot}`);
+  /* ★見出しは1つ。節が1つしか無いので、h1 とほぼ同じ h2 を並べない。
+     札（本人記録）はその1つの見出しの行に付く。 */
+  ok(v.h2 === 0 && v.orange === 1, `${tag}: ★見出しは1つ・「本人記録」の札も1つ`,
+     `h2=${v.h2} / badge=${v.orange} / ${v.h1}`);
+}
+
+/* ★文言の約束。外した3つが本文に残っていると、そこだけ嘘になる。 */
+function promises(v, lang, tag) {
+  const t = v.mainText;
+  const bad = lang === 'ja'
+    ? (t.match(/5人|５人|30日|特定されません|公開情報|推定/g) || [])
+    : (t.match(/five (?:or more|records|pilots)|30 days|30-day|cannot be identified|public sources|estimate/gi) || []);
+  ok(bad.length === 0, `${tag}: ★外した約束（5人・30日・推定）が本文に残っていない`,
+     bad.join(','));
+}
 
 // ════════════════════════════════════════════════════════════════
 // A. 鍵が無い人（state:'locked'）
@@ -334,54 +378,17 @@ for (const lang of ['ja', 'en']) {
   const { page, errs } = await open(lang, LOCKED);
   const v = await page.evaluate(SNAP);
 
-  ok(v.lock === 1, '②は「明細を1枚出すと開きます」の1枚だけ', String(v.lock));
+  ok(v.lock === 1, '「明細を1枚出すと開きます」の1枚だけ', String(v.lock));
   ok(v.trs === 0 && v.amounts.length === 0, '★行も金額も1つも描かない',
      `${v.trs} 行 / ${v.amounts.length} 金額`);
-  ok(!MONEY.test(v.rowsText), '★②の中に金額の形をした文字が1つも無い',
+  ok(!MONEY.test(v.rowsText), '★結果の中に金額の形をした文字が1つも無い',
      JSON.stringify(v.rowsText).slice(0, 160));
   ok(v.cta.some((h) => /pay-report\.html#ps/.test(h)),
      'Give & Get の導線（匿名で給与を追加）が出る', v.cta.join(','));
-
-  /* ★鍵が無くても①は読める。ここが空だと画面が真っ白に見えて、
-     「何も無いサイト」として離脱する。 */
-  ok(v.pubRows > 50, '★①公開情報は鍵が無くても中身がある', String(v.pubRows));
-  ok(v.pubRanges.length > 50 && v.pubRanges.every((s) => /[¥$€£＄]/.test(s)),
-     '①はレンジ（下限〜上限）で出る', String(v.pubRanges.length));
-
-  ok(v.slotIsCard === 1 && v.pvr === 1, '招待カードは #ap-ref-slot 1枚だけ',
-     `${v.pvr} / ${v.slotIsCard}`);
-  ok(v.refInSec2 && !v.refInSec1, '★招待カードは②の中（①の隣に置くと話が混ざる）',
-     `${v.refInSec2} / ${v.refInSec1}`);
-
-  /* ★①の「まだ下がある」の影は、本当に下があるときだけ。
-       112社を 360px に収めているので既定では7社ぶんしか見えず、
-       手がかりが無いと「7社しか無い」に見える（実際にそう見えていた）。
-       ただし1社に絞ると1行しか残らないので、出しっぱなしにすると嘘になる。 */
-  ok(v.cue && v.cue.on && v.cue.over, '★全社のときは「まだ下がある」の影が出る',
-     JSON.stringify(v.cue));
-
-  const atEnd = await page.evaluate(() => {
-    const l = document.querySelector('.ap-plist');
-    l.scrollTop = l.scrollHeight;
-    l.dispatchEvent(new Event('scroll'));
-    return { on: l.classList.contains('is-more') };
-  });
-  ok(!atEnd.on, '★いちばん下まで送ると影が消える（終わったことも形で伝わる）',
-     JSON.stringify(atEnd));
-
-  const one = await page.evaluate(() => {
-    const sel = document.getElementById('ap-air');
-    sel.value = sel.options[1].value;
-    sel.dispatchEvent(new Event('change', { bubbles: true }));
-    const l = document.querySelector('.ap-plist');
-    return { rows: l.querySelectorAll('tbody tr').length,
-             on: l.classList.contains('is-more'),
-             over: l.scrollHeight - l.clientHeight > 2 };
-  });
-  ok(one.rows === 1 && !one.over && !one.on,
-     '★1社に絞って1行しか無いときは影を出さない（「もっとある」と嘘をつかない）',
-     JSON.stringify(one));
-
+  ok(v.barHidden === true, '★絞り込みの帯ごと隠れる（空の選択肢を3つ並べない）',
+     String(v.barHidden));
+  gone(v, lang);
+  promises(v, lang, lang);
   ok(errs.length === 0, 'ページのエラーが1件も出ない', errs.join(' | '));
 }
 
@@ -393,81 +400,110 @@ for (const lang of ['ja', 'en']) {
   const { page, errs } = await open(lang, EMPTY);
   const v = await page.evaluate(SNAP);
 
-  ok(v.msg === 1 && v.lock === 0, '②は「まだありません」の正直な1枚（鍵の案内ではない）',
+  ok(v.msg === 1 && v.lock === 0, '「まだ1行もありません」の正直な1枚（鍵の案内ではない）',
      `${v.msg} / ${v.lock}`);
-  ok(v.trs === 0, '空の表を出さない', String(v.trs));
-  ok(!MONEY.test(v.rowsText), '★0件のとき②に金額が1つも出ない',
+  ok(v.trs === 0 && v.tables === 0, '空の表を出さない', `${v.trs} / ${v.tables}`);
+  ok(!MONEY.test(v.rowsText), '★0件のとき金額が1つも出ない',
      JSON.stringify(v.rowsText).slice(0, 160));
   ok(!/1,?247|68社|872|直近30日/.test(v.bodyText), '★件数・カバー社数の作り話を置かない');
-  ok(v.pubRows > 50, '★②が0件でも①は満杯（画面が空にならない）', String(v.pubRows));
-  ok(v.slotIsCard === 1, '★いちばん区分が薄い人にも招待カードが出る', String(v.slotIsCard));
-  ok(v.refInSec2 && !v.refInSec1, '★0件のときも招待カードは②の中', `${v.refInSec2}`);
+  ok(v.barHidden === true, '★0件のときも絞り込みの帯は隠れる', String(v.barHidden));
   ok(v.cta.some((h) => /pay-report\.html#ps/.test(h)), '投稿への導線が出る', v.cta.join(','));
-
-  /* ①と②は別々の節。バッジが逆側に出たら、どちらの数字か読めなくなる。 */
-  ok(v.blueIn1 === 1 && v.orangeIn1 === 0, '①には青（公開情報）のバッジだけ',
-     `${v.blueIn1} / ${v.orangeIn1}`);
-  ok(v.blueIn2 === 0 && v.orangeIn2 === 1, '②には橙（本人記録）のバッジだけ',
-     `${v.blueIn2} / ${v.orangeIn2}`);
-  ok(v.both === 0, '★両方のバッジを持つ要素がゼロ（推定と実データを1つにしない）', String(v.both));
+  gone(v, lang);
+  promises(v, lang, lang);
   ok(errs.length === 0, 'ページのエラーが1件も出ない', errs.join(' | '));
 }
 
 // ════════════════════════════════════════════════════════════════
-// C. 5人ちょうどの区分（1行＝1人）
+// C. 行がある（1行＝1人・全員）
 // ════════════════════════════════════════════════════════════════
 for (const lang of ['ja', 'en']) {
-  console.log(`\n════ ${lang} / C 5人の区分 ════`);
-  const { page, errs } = await open(lang, OPEN5);
+  console.log(`\n════ ${lang} / C 行がある ════`);
+  const { page, errs } = await open(lang, OPEN);
   const v = await page.evaluate(SNAP);
 
-  ok(v.trs === 5, '5人ぶん5行が出る', String(v.trs));
-  ok(v.amounts.length === 5, '金額が5つ', String(v.amounts.length));
+  ok(v.tables === 1, '★表は1枚だけ（粒度を2つに分けない）', String(v.tables));
+  ok(v.trs === ROWS.length, `★返ってきた ${ROWS.length} 人が ${ROWS.length} 行そのまま出る`,
+     String(v.trs));
+  ok(v.amounts.length === ROWS.length, `金額が ${ROWS.length} つ`, String(v.amounts.length));
 
-  /* ★④有効数字2桁。②の中だけに掛ける（①は公開されている値そのもの）。 */
+  /* ★③有効数字2桁。 */
   const bad2 = v.amounts.filter((s) => !isSig2(amountDigits(s)));
-  ok(bad2.length === 0, '★②の金額がすべて有効数字2桁', bad2.join(' / ') || v.amounts.join(' / '));
+  ok(bad2.length === 0, '★金額がすべて有効数字2桁', bad2.join(' / ') || v.amounts.join(' / '));
 
-  /* ★③準識別子。行に混ぜた毒がどこにも出ていないこと。 */
-  const leaked = POISON_VALUES.filter((s) => v.rowsText.includes(s));
-  ok(leaked.length === 0, '★基地・在籍年数・年代・投稿月・原本額・proof_hash が画面に出ない',
+  /* ★②準識別子。行に混ぜた毒がどこにも出ていないこと。 */
+  const leaked = POISON_VALUES.filter((s) => v.bodyText.includes(s));
+  ok(leaked.length === 0,
+     '★基地・在籍年数・年代・投稿月・原本額・proof_hash・自由入力の社名が画面に出ない',
      leaked.join(','));
   ok(!/20\d\d年\s*\d+月|20\d\d-\d\d-\d\d/.test(v.rowsText), '★投稿の年月が出ない',
      JSON.stringify(v.rowsText).slice(0, 120));
 
-  /* ★⑤数え上げ。②の結果の中に人数の言い方を置かない。 */
-  /* ★⑤数え上げ。表そのものには数え方の言葉を1つも置かない。
-     節の説明にある「5人以上そろった区分」だけは、しきい値であって
-     データの数ではない（5 は db/pay-rows.sql の定数）。だから 5 だけ許す。 */
+  /* 自由入力の社名の人は、固定の札に置き換わる。 */
+  const othLabel = lang === 'en' ? 'Other airline' : 'その他の航空会社';
+  ok(v.rowsText.includes(othLabel), `★自由入力の社名は「${othLabel}」という固定の札になる`,
+     JSON.stringify(v.rowsText).slice(0, 160));
+
+  /* 検証済みは1人だけ。★verified の無い人に ✓ を付けない。 */
+  ok(v.vf === 1, '★✓ Verified は verified:true の1人だけ', String(v.vf));
+
+  /* ★⑤数え上げ。表そのものに数え方の言葉を1つも置かない。 */
   const tblAll = v.tblTexts.join('\n');
   ok(!/(件|人|reports?|pilots?)/i.test(tblAll),
      '★表の中に「件」「人」が1つも無い', JSON.stringify(tblAll).slice(0, 160));
-  const counts = (v.rowsText.match(/(\d+)\s*(件|人|reports?|pilots?)/gi) || [])
-    .map((t) => t.match(/\d+/)[0]);
-  ok(counts.every((n) => n === '5'),
-     '★②に出る数え方は しきい値の5 だけ（合計件数・カバー社数を出さない）',
-     counts.join(','));
+  const counts = (v.rowsText.match(/(\d+)\s*(件|人|reports?|pilots?)/gi) || []);
+  ok(counts.length === 0, '★合計件数・カバー社数を出さない', counts.join(','));
   ok(!/パーセンタイル|上位\s*\d|percentile|top\s*\d+\s*%/i.test(v.bodyText),
      '★「上位◯パーセンタイル」を出さない（本人を採点しない）');
 
-  /* 右のパネルは、行を選んだときにその区分の中央値だけを出す。 */
-  ok(v.panelVals.length === 0, '選ぶ前は数字を出さない', v.panelVals.join(','));
-  await page.evaluate(() => document.querySelector('.ap-tr').click());
-  await sleep(400);
-  const p = await page.evaluate(SNAP);
-  ok(p.panelVals.length === 1, '★行を選ぶと出るのは1つ＝その区分の中央値だけ',
-     p.panelVals.join(','));
-  ok(isSig2(amountDigits(p.panelVals[0] || '')), '中央値も有効数字2桁', p.panelVals[0] || '');
+  gone(v, lang);
+  promises(v, lang, lang);
+
+  /* ★絞り込みは「実際に行がある区分」だけ。112社を並べない。 */
+  ok(v.barHidden === false, '行があるときは絞り込みの帯が出る', String(v.barHidden));
+  ok(v.airOpts.length === 5, '航空会社は「すべて」＋実在する4つだけ', v.airOpts.join(','));
+  ok(v.airOpts.some((s) => s === othLabel), '「その他の航空会社」も選べる', v.airOpts.join(','));
+  ok(v.posOpts.length === 3, '職位は「すべて」＋2つ', v.posOpts.join(','));
+
+  /* 会社 → 職位 と絞ると、下の段は上の段に追随する。 */
+  const step = await page.evaluate(() => {
+    const set = (id, v) => {
+      const s = document.getElementById(id);
+      const o = Array.prototype.slice.call(s.options).find((x) => x.value === v);
+      s.value = o ? o.value : s.value;
+      s.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+    const q = (s) => Array.prototype.slice.call(document.querySelectorAll(s));
+    set('ap-air', 'ana');
+    const afterAir = { trs: q('#ap-rows tbody tr').length,
+                       pos: document.getElementById('ap-pos').options.length,
+                       fleetHidden: document.getElementById('ap-fleet-wrap').hidden };
+    set('ap-pos', 'cap');
+    const afterPos = { trs: q('#ap-rows tbody tr').length,
+                       fleet: document.getElementById('ap-fleet').options.length,
+                       fleetHidden: document.getElementById('ap-fleet-wrap').hidden };
+    document.getElementById('ap-clear').click();
+    const afterClear = { trs: q('#ap-rows tbody tr').length,
+                         air: document.getElementById('ap-air').value };
+    return { afterAir, afterPos, afterClear };
+  });
+  ok(step.afterAir.trs === 3, '会社で絞ると3行', JSON.stringify(step.afterAir));
+  ok(step.afterAir.pos === 3, '職位の選択肢はその会社にある2つ＋すべて',
+     JSON.stringify(step.afterAir));
+  ok(step.afterPos.trs === 2, '会社＋職位で絞ると2行', JSON.stringify(step.afterPos));
+  ok(step.afterPos.fleet === 3 && step.afterPos.fleetHidden === false,
+     '機材は2機種あるので選ばせる', JSON.stringify(step.afterPos));
+  ok(step.afterClear.trs === ROWS.length && step.afterClear.air === '',
+     '★解除で全員に戻る', JSON.stringify(step.afterClear));
 
   /* ⑥通貨を切り替えても引き直さない。 */
-  const before = p.calls.filter((n) => n === 'pv_pay_rows').length;
+  const before = v.calls.filter((n) => n === 'pv_pay_rows').length;
   await page.evaluate(() => window.PVCurrency.set('USD'));
   await sleep(600);
   const u = await page.evaluate(SNAP);
   ok(u.calls.filter((n) => n === 'pv_pay_rows').length === before,
      '★通貨を切り替えても pv_pay_rows() を引き直さない',
      `${before} → ${u.calls.filter((n) => n === 'pv_pay_rows').length}`);
-  ok(u.amounts.length === 5 && u.amounts.every((s) => /\$/.test(s)),
+  ok(u.amounts.length === ROWS.length && u.amounts.every((s) => /\$/.test(s)),
      '金額はドル表記に変わる', u.amounts.join(' / '));
   const badU = u.amounts.filter((s) => !isSig2(amountDigits(s)));
   ok(badU.length === 0, '★換算後も有効数字2桁（端数の残った数字を出さない）',
@@ -477,35 +513,82 @@ for (const lang of ['ja', 'en']) {
      'pv_pay_rows() は1回だけ引く', String(u.calls.filter((n) => n === 'pv_pay_rows').length));
   ok(!u.withArgs.includes('pv_pay_rows'), '★引数を渡さない（総当たり面を作らない）',
      u.withArgs.join(','));
-  ok(u.slotIsCard === 1 && u.refInSec2, '★行があるときも招待カードは②の中に残る',
-     `${u.slotIsCard} / ${u.refInSec2}`);
   ok(errs.length === 0, 'ページのエラーが1件も出ない', errs.join(' | '));
 }
 
 // ════════════════════════════════════════════════════════════════
-// D. 粒度A（機材別）と粒度B（機材をまとめた区分）が両方ある
+// D. 絞り込みが行き止まりにならない
 // ════════════════════════════════════════════════════════════════
-/* 同じ人が「b787 の5人」と「ワイドボディの7人」の両方に出るのは設計どおり
-   （フォールバックにすると、引き算で薄い機材の人数が1〜4に絞れてしまう）。
-   だから1つの表に混ぜず、2つに分けて関係を1行で説明する。 */
+/* 選択肢は「実際に行がある区分」からしか作らず、上の段を変えたら下の段は落とす。
+   だから **どう選んでも0件にはならない**。0件が出る画面は「隠されている」に見える。
+   ここでは総当たりでそれを確かめ、そのうえで
+   万一そこへ落ちたときの受け皿（絞り込み用の正直な1枚）が正しいことも見る。 */
 for (const lang of ['ja', 'en']) {
-  console.log(`\n════ ${lang} / D 2つの粒度 ════`);
-  const { page, errs } = await open(lang, OPENMIX);
-  const v = await page.evaluate(SNAP);
+  console.log(`\n════ ${lang} / D 行き止まりが無い ════`);
+  const { page, errs } = await open(lang, OPEN);
 
-  ok(v.tables === 2, '★2つの表に分かれている（1つに混ぜない）', String(v.tables));
-  ok(v.trs === 12, '機材別5行 ＋ まとめ7行', String(v.trs));
+  const sweep = await page.evaluate(() => {
+    const g = (id) => document.getElementById(id);
+    const set = (id, v) => {
+      const s = g(id); s.value = v;
+      s.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+    const vals = (id) => Array.prototype.slice.call(g(id).options).map((o) => o.value);
+    const n = () => document.querySelectorAll('#ap-rows tbody tr').length;
+    const dead = [];
+    let combos = 0;
+    for (const a of vals('ap-air')) {
+      set('ap-air', a);
+      if (!n()) dead.push('air=' + a);
+      for (const p of vals('ap-pos')) {
+        set('ap-air', a); set('ap-pos', p);
+        if (!n()) dead.push('air=' + a + ',pos=' + p);
+        for (const f of vals('ap-fleet')) {
+          set('ap-air', a); set('ap-pos', p); set('ap-fleet', f);
+          combos++;
+          if (!n()) dead.push('air=' + a + ',pos=' + p + ',fleet=' + f);
+        }
+      }
+    }
+    g('ap-clear').click();
+    return { dead: dead, combos: combos, back: n() };
+  });
+  ok(sweep.dead.length === 0,
+     `★どう絞っても0件にならない（${sweep.combos} 通り試した）`, sweep.dead.join(' / '));
+  ok(sweep.back === ROWS.length, '解除で全員に戻る', String(sweep.back));
 
-  const catLabel = lang === 'en' ? 'Wide-body' : 'ワイドボディ';
-  const t1 = v.tblTexts[0] || '', t2 = v.tblTexts[1] || '';
-  ok(/787/.test(t1) && !t1.includes(catLabel), '上の表は機材別（787）だけ', t1.slice(0, 80));
-  ok(t2.includes(catLabel) && !/787/.test(t2), '下の表はカテゴリ（ワイドボディ）だけ',
-     t2.slice(0, 80));
-  ok(/機材カテゴリ|Fleet category/.test(t2), '下の表の列名が「機材カテゴリ」である',
-     t2.slice(0, 80));
+  /* 受け皿。★選択肢に無い値を差し込んで、わざとそこへ落とす。
+     ここで「まだ1行もありません／最初の1人になれます」と言うと、
+     絞り込みのせいで空なだけなのに「誰も出していない」という嘘になる。 */
+  const net = await page.evaluate(() => {
+    const s = document.getElementById('ap-air');
+    const o = document.createElement('option');
+    o.value = 'zzz-not-an-airline'; o.textContent = 'zzz';
+    s.appendChild(o); s.value = o.value;
+    s.dispatchEvent(new Event('change', { bubbles: true }));
+    const rows = document.getElementById('ap-rows');
+    return { trs: rows.querySelectorAll('tbody tr').length,
+             msg: rows.querySelectorAll('.ap-msg').length,
+             lock: rows.querySelectorAll('.ap-msg--lock').length,
+             cta: rows.querySelectorAll('.ap-cta').length,
+             text: rows.innerText,
+             barHidden: document.getElementById('ap-filter').hidden };
+  });
+  ok(net.trs === 0 && net.msg === 1 && net.lock === 0, '正直な1枚が出る',
+     `${net.trs}/${net.msg}/${net.lock}`);
+  ok(net.barHidden === false, '★絞り込みの帯は出したまま（外せないと閉じ込めになる）',
+     String(net.barHidden));
+  const first = lang === 'en' ? 'the first' : '最初の1人';
+  ok(!net.text.includes(first) && net.cta === 0,
+     '★「最初の1人になれます」と言わない（絞り込みのせいで0件なだけ）',
+     JSON.stringify(net.text).slice(0, 160));
+  ok(!MONEY.test(net.text), '金額が1つも出ない', JSON.stringify(net.text).slice(0, 120));
 
-  const bad2 = v.amounts.filter((s) => !isSig2(amountDigits(s)));
-  ok(bad2.length === 0, '★12行すべて有効数字2桁', bad2.join(' / '));
+  const undo = await page.evaluate(() => {
+    document.getElementById('ap-clear').click();
+    return document.querySelectorAll('#ap-rows tbody tr').length;
+  });
+  ok(undo === ROWS.length, '★そこからも「絞り込みを解除」で戻れる', String(undo));
   ok(errs.length === 0, 'ページのエラーが1件も出ない', errs.join(' | '));
 }
 

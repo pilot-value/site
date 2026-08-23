@@ -13,32 +13,36 @@
 
    ── 色 ────────────────────────────────────────────────────────
    値は書かず --pv-* を使う（pv-tokens.css）。ここで新しい色を作らない。
-     青（--pv-blue-*）    ＝ 公開情報からの推定。①の節だけ
-     オレンジ（--pv-orange-*）＝ 本人が記録した実データ。②の節だけ
-   ★この2色を混ぜない。トップページ（lp.css）と同じ約束で、
-     「どっちの数字を見ているか」を色だけで分かるようにしてある。
+   この画面はオレンジ（--pv-orange-*）だけを使う。
+   ★2026-08-23、公開情報からの推定レンジの節（青）を丸ごと消した。
+     **青の系統（pv-tokens.css の blue 系トークン）をこの画面に戻さないこと。**
+     戻すということは、
+     推定と実データを同じ画面に並べるということで、そのときは
+     「①と②から1つの数を作らない」という約束から作り直すことになる。
+     トップページ（lp.css）の青／オレンジの対はそのまま生きている。
    ════════════════════════════════════════════════════════════════ */
 
 /* ══ バッジ ═══════════════════════════════════════════════════════
-   ⚠️ lp.css の .pv-badge / .pv-badge--pub / .pv-badge--actual と
-      「同じ見た目・同じトークン」だが、セレクタは分けてある。
-      lp.css は index.html だけが読むファイルで、同じセレクタを2つの
-      ファイルで定義すると必ず片方だけ直されてドリフトする。
+   ⚠️ lp.css の .pv-badge / .pv-badge--actual と「同じ見た目・同じトークン」だが、
+      セレクタは分けてある。lp.css は index.html だけが読むファイルで、
+      同じセレクタを2つのファイルで定義すると必ず片方だけ直されてドリフトする。
       色を変えるときは lp.css:663-678 と両方直すこと。 */
 .ap-badge{display:inline-flex;align-items:center;gap:5px;
   font-size:.66rem;font-weight:700;letter-spacing:.02em;
   border-radius:999px;padding:3px 9px;white-space:nowrap;
   border:1px solid transparent;vertical-align:middle}
-/* 公開情報（＝推定）は青。 */
-.ap-badge--pub{color:var(--pv-blue-ink);background:var(--pv-blue-soft);
-  border-color:var(--pv-blue-line)}
-/* 本人が記録した実データはオレンジ。 */
+/* 本人が記録した実データはオレンジ。この画面のバッジはこれ1つだけ。 */
 .ap-badge--actual{color:var(--pv-orange-ink);background:var(--pv-orange-soft);
   border-color:rgba(249,115,22,.28)}
 
 /* ══ 絞り込み ═════════════════════════════════════════════════════
-   ★ 会社と職位は①②の両方に効く。機材は②の中に置いてある（①は機材を持たない）。
-     効く範囲の違う操作を同じ列に並べない。 */
+   ★ 3つとも同じ1枚の表に効く。並ぶのは「実際に行がある区分」だけで、
+     語彙を丸ごと出さない（選べるのに0件、が起きない）。
+   ⚠️ [hidden] を先に書く。display:flex は UA の [hidden]{display:none} に勝つので、
+      JS が hidden = true にしても中身が空のまま残る。実際に、鍵の無い人の画面に
+      空っぽの「機材」プルダウンが出ていた。帯（.ap-filter）と枠（.ap-f）の両方に要る。 */
+.ap-filter[hidden]{display:none}
+.ap-f[hidden]{display:none}
 .ap-filter{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;
   margin-bottom:var(--pv-s-3);padding:16px 18px;
   background:var(--pv-surface);border:1px solid var(--pv-line);
@@ -66,69 +70,20 @@
 .ap-clear:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}
 .ap-clear:active{transform:scale(.97);background:var(--pv-line-soft)}
 
-/* ══ 節 ═══════════════════════════════════════════════════════════
-   ★ ①と②は必ず別の面。1枚の表に混ぜない。
-     混ぜた瞬間に「推定」と「実データ」が同じ強さで並ぶ。 */
-.ap-sec{margin-bottom:var(--pv-s-4)}
-.ap-sec:last-child{margin-bottom:0}
-.ap-sec-h{margin-bottom:16px}
-.ap-sec-t{display:flex;flex-wrap:wrap;align-items:center;gap:9px;
-  font-size:1.06rem;font-weight:800;letter-spacing:-.02em;line-height:1.35}
-.ap-sec-s{margin-top:7px;font-size:.79rem;line-height:1.7;color:var(--pv-ink-2);max-width:74ch}
-.ap-foot{margin-top:12px;font-size:.7rem;line-height:1.7;color:var(--pv-ink-3);max-width:80ch}
-
 /* ★日本語が語の途中で折れないようにする。
      日本語には単語の切れ目が無いので、既定だと仮名のどこでも折れる。
      実際に「訓練生の公開レンジは持っていませ／ん。」と切れていた。
      auto-phrase は文節で折る（対応していないブラウザは黙って無視する＝従来どおり）。
      max-width を ch で書くと日本語では想像より狭くなるので、上で広げてある。 */
-.ap-sec-s,.ap-foot,.ap-msg-s,.ap-grain-h,.ap-panel-s,.ap-panel-note,.ap-tbl td{
-  line-break:strict;word-break:auto-phrase}
+/* ★.mr-hd-s は my-value.css（4画面で共有）の側。値は上書きせず、折り方だけこの画面で足す。
+     既定だと仮名のどこでも折れて「丸めた額／で、」と切れていた。 */
+.mr-hd-s,.ap-msg-s,.ap-tbl td{line-break:strict;word-break:auto-phrase}
 
-/* ══ ① 公開情報 ═══════════════════════════════════════════════════
-   ★1枚の表で会社をそのまま並べる。金額で並べ替えない（並びは会社名順）。
-     この節はランキングではない。 */
-/* ★「まだ下がある」を形で見せる。
-     112社あるのに 7社で切れた表は、何の手がかりも無いと「7社しか無い」に見える。
-     注記を1行足して説明するのではなく、下端に影を置いて分からせる。
-   ★影は .is-more が付いているときだけ。付け外しは actual-pay.js がやる。
-     常に出しっぱなしにすると、1社に絞って1行しか無いときにも
-     「まだ下がある」と嘘をつく。手がかりは本当のときだけ出す。
-   ⚠️ CSS だけで済ませようとして background-attachment:local の目隠しを重ねる
-     手（いわゆる scroll-shadow）は、この形では効かない。Chrome は local の
-     背景を「スクロール原点の padding box」に置いて中身と一緒に動かすので、
-     下端に置いた目隠しは最初の1画面ぶんの下に貼り付いたまま上へ流れて消える（実測）。
-   ⚠️ scrollbar-width / scrollbar-color も書かない。
-     この2つを書くと ::-webkit-scrollbar が丸ごと無視される仕様。 */
-.ap-plist{max-height:360px;overflow:auto;-webkit-overflow-scrolling:touch}
-.ap-plist.is-more{
-  background:radial-gradient(farthest-side at 50% 100%,rgba(15,23,42,.22),rgba(15,23,42,0))
-    bottom / 100% 15px no-repeat}
-.ap-plist::-webkit-scrollbar{width:11px;height:11px}
-.ap-plist::-webkit-scrollbar-track{background:transparent}
-.ap-plist::-webkit-scrollbar-thumb{border-radius:999px;
-  background:var(--pv-line);border:3px solid transparent;background-clip:content-box}
-.ap-plist::-webkit-scrollbar-thumb:hover{background:var(--pv-ink-3);background-clip:content-box}
-.ap-range{color:var(--pv-blue-ink);font-weight:700;white-space:nowrap;
-  font-variant-numeric:tabular-nums}
-.ap-none{color:var(--pv-ink-3);font-size:.74rem}
-
-/* ══ ② 実給与 ═════════════════════════════════════════════════════ */
-/* ★[hidden] を先に書く。display:flex は UA の [hidden]{display:none} に勝つので、
-     JS が wrap.hidden = true にしても中身が空の選択肢だけが残っていた
-     （鍵の無い人の画面に、空っぽの「機材」プルダウンが出ていた）。 */
-.ap-fleet[hidden]{display:none}
-.ap-fleet{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:14px}
-.ap-fleet .ap-f{flex:0 1 260px}
-
-/* 表と詳細を横に並べる。★メディアクエリで切らない。
-   サイドバーが 1000px で畳まれて本文が逆に広くなるので、画面幅では決められない。
-   flex-basis で「表が 520px を切ったら詳細が下へ落ちる」と書く。 */
-.ap-split{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
-/* 左の列。★粒度A（機材別）と粒度B（機材カテゴリ別）を縦に積む。
-   1つの表に混ぜない — 同じ人が両方に出るので、混ぜると二重に数えたように見える。 */
-.ap-tcol{flex:1 1 520px;min-width:0;display:flex;flex-direction:column;gap:16px}
-.ap-grain-h{margin-bottom:8px;font-size:.74rem;font-weight:700;color:var(--pv-ink-3);line-height:1.6}
+/* ══ 表 ═══════════════════════════════════════════════════════════
+   ★1枚しかない。1行＝1人。全幅で置く。
+     ⚠️ 粒度を分けた2枚に戻さないこと。同じ人が両方に出て、二重に数えたように見える。
+   ★行はクリックできない。押して開く「区分の詳細」は無くした
+     （区分そのものが無いので、開く先が無い）。 */
 .ap-tw{min-width:0;
   background:var(--pv-surface);border:1px solid var(--pv-line);
   border-radius:var(--pv-r);box-shadow:var(--pv-shadow);overflow:hidden}
@@ -143,14 +98,7 @@
 .ap-tbl td{padding:12px 14px;border-bottom:1px solid var(--pv-line-soft);
   line-height:1.6;vertical-align:middle}
 .ap-tbl tr:last-child td{border-bottom:0}
-.ap-tr{cursor:pointer;
-  transition:background-color .18s var(--pv-ease)}
-.ap-tr:hover{background:var(--pv-line-soft)}
-.ap-tr:focus-visible{outline:2px solid var(--pv-orange);outline-offset:-2px}
-.ap-tr:active{background:var(--pv-line)}
-.ap-tr.is-on{background:var(--pv-orange-soft)}
 .ap-air{font-weight:700;color:var(--pv-ink)}
-.ap-sub{margin-top:2px;font-size:.7rem;color:var(--pv-ink-3);line-height:1.5}
 /* 金額は表の主役。数字は等幅の数字送りで縦に揃える。 */
 .ap-amt{font-weight:800;letter-spacing:-.02em;white-space:nowrap;
   font-variant-numeric:tabular-nums;color:var(--pv-orange-ink)}
@@ -159,20 +107,8 @@
 .ap-vf svg{flex:none}
 .ap-vf-no{font-size:.68rem;color:var(--pv-ink-3)}
 
-/* 詳細。★その区分の中央値しか出さない。個人の内訳は持たない。 */
-.ap-panel{flex:1 1 260px;min-width:0;position:sticky;top:84px;
-  background:var(--pv-surface);border:1px solid var(--pv-line);
-  border-radius:var(--pv-r);padding:18px;box-shadow:var(--pv-shadow)}
-.ap-panel-t{font-size:.86rem;font-weight:800;letter-spacing:-.01em;line-height:1.4}
-.ap-panel-s{margin-top:6px;font-size:.72rem;color:var(--pv-ink-3);line-height:1.7}
-.ap-kv{margin-top:14px;padding-top:14px;border-top:1px solid var(--pv-line-soft);
-  display:flex;flex-direction:column;gap:10px}
-.ap-k{font-size:.68rem;font-weight:700;color:var(--pv-ink-3);line-height:1.5}
-.ap-v{margin-top:3px;font-size:.95rem;font-weight:800;letter-spacing:-.02em;
-  line-height:1.35;font-variant-numeric:tabular-nums}
-.ap-panel-note{margin-top:14px;font-size:.68rem;line-height:1.7;color:var(--pv-ink-3)}
-
-/* 鍵が無いとき／まだ1行も無いとき。★どちらも金額を1文字も出さない。 */
+/* 鍵が無いとき／まだ1行も無いとき／絞り込みで0件のとき。
+   ★どれも金額を1文字も出さない。 */
 .ap-msg{background:var(--pv-surface);border:1px solid var(--pv-line);
   border-radius:var(--pv-r);padding:24px;box-shadow:var(--pv-shadow)}
 .ap-msg--lock{border-color:rgba(249,115,22,.28);
@@ -190,23 +126,14 @@
 .ap-cta:focus-visible{outline:2px solid var(--pv-orange);outline-offset:3px}
 .ap-cta:active{transform:scale(.98)}
 
-/* 招待カードの差込口。中身は pv-referral.js が描く（.pvr）。
-   ★②の中・表（または空メッセージ）の直下。①の隣に置くとどちらの話か混ざる。 */
-/* 幅は②の面いっぱい。表の列（.ap-tcol）に合わせない。
-   行があるときだけ右に詳細パネルが立つので、表に幅を合わせると
-   鍵が無いとき・0行のとき（どちらもパネルが無く .ap-msg は全幅）に
-   このカードだけが痩せる。左端はどの状態でも揃うので、そちらを優先する。 */
-#ap-ref-slot:not(:empty){margin-top:16px}
-
 @media (max-width:760px){
   .ap-filter{padding:14px}
-  .ap-panel{position:static}
   .ap-tbl th,.ap-tbl td{padding:10px 12px}
 }
 
 /* ★ 要素を display:none にしない（my-value.css と同じ約束）。
      動きを止めるだけにする。 */
 @media (prefers-reduced-motion:reduce){
-  .ap-sel,.ap-clear,.ap-tr,.ap-cta{transition:none}
+  .ap-sel,.ap-clear,.ap-cta{transition:none}
   .ap-clear:active,.ap-cta:active{transform:none}
 }

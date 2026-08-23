@@ -11,45 +11,49 @@
 -- pay_benchmarks（db/pay-reports.sql 6章）は「1行＝区分の集計」だった。
 -- この関数は違う。**1行＝1人**を返す。粒度が一段細かい。
 --
--- 2026-08-23 オーナー判断：件数バッジは出さず、条件を満たした人は全員を行にする。
---   ＝ **行を数えれば n≧5 の区分の人数はそのまま読める。** これは承知のうえで選んだ形。
---   だから匿名性は「件数を隠すこと」には一切かかっていない。かかっているのは次の5つで、
---   **5つ全部が同時に成り立っているときだけ**この設計が成立する。1つでも外すと壊れる。
+-- 2026-08-23 オーナー判断：**出した人は全員そのまま行にする。**
+--   同じ日に、次の3つを外した。
+--     ・k≧5 の門（同じ区分に5人未満なら出さない）
+--     ・30日の遅延（今出した人は翌日には出る）
+--     ・p10-p90 のクリップ（区分そのものが無くなったので、寄せる相手が居ない）
+--   理由は「まだ人数が少なく、門を残すと画面に1行も出ない」。
+--   ＝ 出した人が9人なら9行、その人が1人しか居ない会社でも1行出る。
 --
---     ① k≧5 の門       同じ区分に5人未満なら、その区分の行は1つも存在しない
---     ② 準識別子ゼロ    基地・在籍年数・年代・投稿月・原本通貨・契約形態・国籍・
---                       レポートID・提出日を1つも返さない（列にも group by にも入れない）
---     ③ p10-p90 クリップ 区分の中で極端に高い／低い1人が、そのままの額で浮かない
---     ④ 有効数字2桁     $183,456 は $180,000 として出る。1円まで一致する個票が存在しない
---     ⑤ 30日の遅延      「今出した人」が翌日に浮かない
+-- ★これで匿名性がどこまで落ちたか（正直に書いておく）
+--   会社・職位・機材の3つが分かっている同僚には、行を当てられうる。
+--   「うちの 787 の機長で去年から居るのはあいつだけ」が成り立つ規模だと、
+--   その行はその人のものだと分かる。**これは承知のうえで選んだ形。**
+--   したがってこの設計を支えているのは、いま次の6つだけ。
 --
---   ③④が効いているので、行数の差分から読めるのは「だいたい¥2,100万」までの粗さで、
---   これは pay_benchmarks が今日すでに公開している粒度と同じ。だから実害は小さいと判断した。
---   **丸めとクリップを外すと、この判断そのものが崩れる。**
+--     ① 鍵         給与明細を1枚出した人だけ・90日（サーバ側。anon には開かない）
+--     ② 準識別子ゼロ 基地・在籍年数・年代・投稿月・原本通貨・契約形態・国籍・
+--                   レポートID・提出日を1つも返さない（列にも group by にも入れない）
+--     ③ 有効数字2桁  $183,456 は $180,000 として出る。1円まで一致する個票が存在しない
+--     ④ 1行＝1人    同じ人の複数月は年換算の中央値で1行に畳む（回数から常連が割れない）
+--     ⑤ 引数ゼロ    総当たりで区分を指定して引く面が無い
+--     ⑥ 並びに時間が無い md5(proof_hash) 順。投稿順に並べない
+--
+--   ③を外すと個票そのものになる。④を外すと出した回数が漏れる。
+--   **この6つは1つも外さないこと。**
 --
 -- ★まだ禁じていること：
 --   ・この関数に引数を足すこと（総当たりで区分を指定する面が生える）
 --   ・anon に execute を渡すこと（下の grant は authenticated だけ）
---   ・having count(*) >= 5 を緩めること
 --   ・②の列を1つでも返り値に足すこと
---   ・「機材別が5人未満だったのでカテゴリに落とす」というフォールバックを書くこと
---     → 粗い行が「薄い機種の寄せ集め」になり、公開済みの機種別行と引き算すると
---        個々の機種の人数が 1〜4 に絞れる。だから粒度A・Bは**独立に**作る（下記）。
+--   ・自由入力の社名（airline_other）を読むこと・返すこと
+--     → 打ち込まれた文字列そのものが識別子。airline は 'other' のまま返し、
+--        画面が「その他の航空会社」という固定の札に置き換える
+--   ・投稿の時刻・順序が読める並びにすること（新しさは「誰が最近出したか」）
 --
 -- ★将来この関数が重くなったときの正しい直し方：
 --   引数を足さない。結果を authenticated 限定のビューに落として PostgREST 側で絞らせる。
 --   行はもう匿名化済みなので、絞り込み自体は攻撃面にならない。引数だけが攻撃面になる。
 --
--- ★既知の弱いところ（オーナー承知）：
---   ・n=5 ちょうどの区分では、その5人全員が行として出る。pay_benchmarks が同じ5人について
---     3点しか出していないのに対し5点出る。しかも percentile_cont は n=5 だと p90 が
---     最大値の側へ強く寄るので、クリップが効きにくい。人数が増えるほど強くなる種類の守り。
---   ・✓ Verified は1ビットの準識別子。区分の中で検証済みが1人だけなら手がかりになる。
---     絞り込みフィルタを作らない限り実害は小さい（画面側で「Verified だけ」を作らない）。
---     もっと堅くするなら、6章の項目別ゲートと同じく「その区分で検証済みが5人以上のときだけ
---     ✓ を出す」に締められる。今日は検証済みが0件なので、締めても列が空になるだけ。
---   ・訂正（同じ社・同じ月の出し直し）は created_at を now() に戻す。だから訂正した行は
---     30日のあいだ一覧から消える。安全側に倒れているので直さない。
+-- ★人数が増えたら締め直す余地（今日はまだ早い）：
+--   ・✓ Verified は1ビットの準識別子。検証済みが1人だけの会社では手がかりになる。
+--     画面側で「Verified だけ」の絞り込みを作らない限り実害は小さい（作らないこと）。
+--   ・行数が数百に育ったら、k≧5 の門を戻すのが素直。戻すときは having を
+--     person の上に置くだけで済むように、person は区分ごとに畳んだ形のままにしてある。
 --
 -- ★鍵を間違えないこと：
 --   ここを開けるのは **給与明細の鍵（profiles.access_until・90日）** だけ。
@@ -65,6 +69,7 @@
 --     9.53 → log10 = -0.02 → floor = -1 → round(v, 2)      → 9.53
 --
 -- ★2桁より細かくしない。1円まで一致する数字は「個票がある」という証拠になる。
+--   k≧5 の門もクリップも外した今、丸めがいちばん外側の守りになっている。
 -- ════════════════════════════════════════════════════════════════
 create or replace function public.pv_sig2(v numeric)
 returns numeric
@@ -85,28 +90,24 @@ comment on function public.pv_sig2(numeric) is
 
 
 -- ════════════════════════════════════════════════════════════════
--- 2. pv_pay_rows — 匿名レポート一覧（1行＝1人）
+-- 2. pv_pay_rows — 匿名レポート一覧（1行＝1人・出した人は全員）
 --
 -- 返り値
 --   { ok:true, state:'locked', rows:[] }   鍵が無い／切れている
 --   { ok:true, state:'open',   rows:[ … ] } 鍵がある
 --
 -- rows[] の1件
---   { airline, pos, grain, bucket, annual_usd, verified, cohort_median_usd }
---     grain  … 'fleet'（機材そのもの）／ 'cat'（機材カテゴリ r/n/w）
---     bucket … grain が 'fleet' なら機材コード、'cat' ならカテゴリコード
---
--- 粒度は2つを**独立に**作る（片方のフォールバックにしない）
---   粒度A  (会社, 職位, 機材)         に5人以上 → 機材別の行
---   粒度B  (会社, 職位, 機材カテゴリ) に5人以上 → そのカテゴリの**全員**で作り直した行
---          （Aに出ている人も含める。含めないと引き算で個々の機材の人数が割れる）
---   カテゴリの無い機材（＝「その他」）は粒度Bに乗せない。
---   会社は粗くしない（会社名がこの画面の要点）。
+--   { airline, pos, fleet, annual_usd, verified }
+--     airline … 航空会社コード。自由入力の社名の人は 'other' のまま
+--               （打ち込まれた文字列は返さない。画面が固定の札に置き換える）
+--     fleet   … 機材コード。'other' はそのまま「その他」として出る
 --
 -- 同じ人の複数月は「年換算額の中央値」で1行に畳む。
 --   ★最新月を採らない。最新月は投稿の新しさと相関するので、月をまたいで並べると
 --     個人の変化を定点観測できてしまう。中央値なら2ヶ月の人は2値の平均＝
 --     どの明細にも存在しない数になる（むしろ望ましい）。
+--   ★同じ人が 787 と 330 の両方を出していれば、機材ごとに1行ずつ出る。
+--     これは「1人が2人に見える」ということなので、行数を人数と読まないこと。
 -- ════════════════════════════════════════════════════════════════
 create or replace function public.pv_pay_rows()
 returns jsonb
@@ -134,80 +135,41 @@ begin
 
   with src as (
     -- ★ここで選んだ列がすべて。増やす前に必ずファイル冒頭の②を読む。
+    --   自由入力の社名の列は、ここにも下にも1度も出てこない（読まない）。
+    --   ★この行に列名そのものを書かないこと。自己点検7が「読んでいる」と誤検知する。
     select r.proof_hash,
            r.airline,
            r."position" as pos,
            r.fleet,
-           r.fleet_cat,
            r.annual_total_usd,
            r.verify_level
       from public.pay_reports r
      where r.annual_total_usd is not null      -- レートの無い通貨は落ちる（6章と同じ）
-       and r.airline_other is null             -- 自由入力の社名は社名そのものが識別子
-       and r.created_at <= now() - interval '30 days'
        and r.created_at >= now() - interval '24 months'
   ),
-  -- 粒度A：人ごとに畳む
-  p_fleet as (
-    select 'fleet'::text as grain,
-           airline, pos, fleet as bucket, proof_hash,
+  person as (
+    -- ★人ごとに畳む。ここが「1行＝1人」の実体。
+    select airline, pos, fleet, proof_hash,
            -- ★percentile_cont は numeric を渡しても double precision で返る。
            --   round(値, 桁) は numeric にしか無いので、先に ::numeric を通す。
            (percentile_cont(0.5) within group (order by annual_total_usd))::numeric as v,
            max(verify_level) >= 1 as verified
       from src
      group by airline, pos, fleet, proof_hash
-  ),
-  -- 粒度B：★A から作らない。src から作り直す。
-  --   A から積み上げると、同じ人が 787 と 330 を出したときカテゴリで2人に数える。
-  p_cat as (
-    select 'cat'::text as grain,
-           airline, pos, fleet_cat as bucket, proof_hash,
-           (percentile_cont(0.5) within group (order by annual_total_usd))::numeric as v,
-           max(verify_level) >= 1 as verified
-      from src
-     where fleet_cat is not null
-     group by airline, pos, fleet_cat, proof_hash
-  ),
-  person as (
-    select grain, airline, pos, bucket, proof_hash, v, verified from p_fleet
-    union all
-    select grain, airline, pos, bucket, proof_hash, v, verified from p_cat
-  ),
-  coh as (
-    select grain, airline, pos, bucket,
-           (percentile_cont(0.10) within group (order by v))::numeric as p10,
-           (percentile_cont(0.50) within group (order by v))::numeric as p50,
-           (percentile_cont(0.90) within group (order by v))::numeric as p90
-      from person
-     group by grain, airline, pos, bucket
-    having count(*) >= 5     -- ★①の門。6章の having と同じ数字。緩めないこと
   )
   select coalesce(jsonb_agg(jsonb_build_object(
-           'airline',           x.airline,
-           'pos',               x.pos,
-           'grain',             x.grain,
-           'bucket',            x.bucket,
-           'annual_usd',        x.annual_usd,
-           'verified',          x.verified,
-           'cohort_median_usd', x.cohort_median_usd
-         ) order by x.airline, x.pos, x.grain, x.bucket, x.annual_usd), '[]'::jsonb)
+           'airline',    p.airline,
+           'pos',        p.pos,
+           'fleet',      p.fleet,
+           'annual_usd', public.pv_sig2(p.v),
+           'verified',   p.verified
+         -- ★並びに時間を入れないこと。投稿順に並べると、並び順そのものが
+         --   「誰が最近出したか」になる（外した30日の遅延より悪い）。
+         --   md5 なので毎回同じ並びで、しかも中身とも関係が無い。
+         --   proof_hash そのものは返さない（並べるためだけに使う）。
+         ) order by md5(p.proof_hash)), '[]'::jsonb)
     into v_rows
-    from (
-      select p.grain, p.airline, p.pos, p.bucket, p.verified,
-             -- ★クリップしてから丸める。この順。
-             --   逆にすると端が半端な数で出て、そこだけ実額に見える。
-             public.pv_sig2(least(greatest(p.v, c.p10), c.p90)) as annual_usd,
-             public.pv_sig2(c.p50)                              as cohort_median_usd
-        from person p
-        join coh c
-          on  c.grain   = p.grain
-          and c.airline = p.airline
-          and c.pos     = p.pos
-          and c.bucket  = p.bucket
-    ) x;
-  -- ★order by に投稿の時刻を入れないこと。並び順そのものが「誰が新しいか」になる。
-  --   金額順にしてあるのは見た目のためではなく、順番から時間を消すため。
+    from person p;
 
   return jsonb_build_object('ok', true, 'state', 'open', 'rows', v_rows);
 end;
@@ -221,10 +183,10 @@ revoke all on function public.pv_pay_rows() from public, anon;
 grant execute on function public.pv_pay_rows() to authenticated;
 
 comment on function public.pv_pay_rows() is
-  '実給与の匿名一覧。1行＝1人（複数月は年換算の中央値で畳む）。'
-  '同じ区分に5人以上いるときだけ行が存在する。基地・在籍年数・年代・投稿月・'
-  '原本通貨・契約形態は返さない。金額は p10-p90 でクリップし有効数字2桁に丸める。'
-  '投稿から30日たつまで出ない。★引数を取らない＝他人の区分を狙って引く面が無い。'
+  '実給与の匿名一覧。1行＝1人（複数月は年換算の中央値で畳む）。出した人は全員出る。'
+  '基地・在籍年数・年代・投稿月・原本通貨・契約形態・自由入力の社名は返さない。'
+  '金額は有効数字2桁に丸める。並びは md5(proof_hash) 順で投稿順ではない。'
+  '★引数を取らない＝他人の区分を狙って引く面が無い。'
   '★鍵は給与明細の access_until のみ。口コミの鍵では開かない。';
 
 
@@ -233,9 +195,9 @@ comment on function public.pv_pay_rows() is
 --
 -- ★1本の SELECT にしてある。Supabase の SQL Editor は複数文を流すと
 --   最後の1本の結果しか出さないので、分けて書くと上から順に消えていく。
--- 期待：15行すべて ✅。1つでも ❌ なら、そこが効いていない。
+-- 期待：14行すべて ✅。1つでも ❌ なら、そこが効いていない。
 --
--- 特に 4・6・12・13 は「静かに壊れる」種類のもの。画面には何も出ないまま、
+-- 特に 4・11・12・13 は「静かに壊れる」種類のもの。画面には何も出ないまま、
 -- 他人の個票に届く経路が開く。
 -- ════════════════════════════════════════════════════════════════
 with f as (
@@ -264,45 +226,44 @@ from (
          case when f_rows is null then false
               else has_function_privilege('authenticated', f_rows, 'execute') end from f
   union all
-  select 6, '5人未満の区分は構造的に出ない（having が残っている）',
-         case when f_rows is null then false
-              else pg_get_functiondef(f_rows) like '%count(*) >= 5%' end from f
-  union all
-  select 7, '自由入力の社名は一覧に混ざらない',
-         case when f_rows is null then false
-              else pg_get_functiondef(f_rows) like '%airline_other is null%' end from f
-  union all
-  select 8, '給与明細の鍵（access_until）を見ている',
+  select 6, '給与明細の鍵（access_until）を見ている',
          case when f_rows is null then false
               else pg_get_functiondef(f_rows) like '%access_until%' end from f
   union all
-  select 9, '投稿から30日たつまで出ない',
+  select 7, '自由入力の社名は読んでも返してもいない',
          case when f_rows is null then false
-              else pg_get_functiondef(f_rows) like '%30 days%' end from f
+              else pg_get_functiondef(f_rows) not like '%airline_other%' end from f
   union all
-  select 10, '両端をクリップしている（極端な1人がそのまま浮かない）',
-         case when f_rows is null then false
-              else pg_get_functiondef(f_rows) like '%least(greatest(%' end from f
-  union all
-  select 11, '金額を有効数字2桁に丸めている',
+  select 8, '金額を有効数字2桁に丸めている',
          case when f_rows is null then false
               else pg_get_functiondef(f_rows) like '%pv_sig2(%' end from f
   union all
-  select 12, '準識別子を1つも読んでいない（基地・在籍年数・年代・投稿月・国籍・契約・税・原本通貨）',
+  select 9, '同じ人の複数月を1行に畳んでいる（proof_hash で group by）',
+         case when f_rows is null then false
+              else pg_get_functiondef(f_rows) like '%group by airline, pos, fleet, proof_hash%'
+         end from f
+  union all
+  select 10, '並びに時間が入っていない（md5 順・投稿順ではない）',
+         case when f_rows is null then false
+              else pg_get_functiondef(f_rows) like '%order by md5(%'
+               and pg_get_functiondef(f_rows) !~ 'order by[^;]*created_at'
+         end from f
+  union all
+  select 11, '準識別子を1つも読んでいない（基地・在籍年数・年代・投稿月・国籍・契約・税・原本通貨）',
          case when f_rows is null then false
               else pg_get_functiondef(f_rows) !~
                    '(base_iata|seniority_years|age_bucket|contract_type|tax_country|nationality|annual_total_orig|period_month)'
          end from f
   union all
-  select 13, '返す行に個人の同定キーが入っていない',
+  select 12, '返す行に個人の同定キーが入っていない',
          case when f_rows is null then false
               else pg_get_functiondef(f_rows) not like '%''proof_hash''%' end from f
   union all
-  select 14, '丸めの関数が immutable（呼ぶたびに答えが変わらない）',
+  select 13, '丸めの関数が immutable（呼ぶたびに答えが変わらない）',
          case when f_sig is null then false
               else (select p.provolatile from pg_proc p where p.oid = f.f_sig) = 'i' end from f
   union all
-  select 15, '公開集計の5人未満ルールは今も生きている（このファイルは緩めていない）',
+  select 14, '公開集計の5人未満ルールは今も生きている（このファイルは緩めていない）',
          case when bench is null then false
               else pg_get_viewdef(bench) like '%>= 5%' end from f
 ) t

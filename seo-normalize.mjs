@@ -196,9 +196,9 @@ const COPY = {
      タイトルを空にする（noindex でも <title> は出るので中身は要る）。 */
   'actual-pay.html': {
     ja: { t: '他のパイロットの実給与を見る',
-          d: '公開情報からの推定レンジと、パイロット本人が記録した実給与を別々に並べます。同じ会社・職位・機材に5人以上そろった区分だけを、丸めた金額で載せています。' },
+          d: 'パイロット本人が記録した実給与を、1行＝1人でそのまま並べます。同じ人の複数月は1行に畳み、金額は有効数字2桁に丸めています。' },
     en: { t: 'What Other Pilots Actually Earn',
-          d: 'Public estimated ranges and pay recorded by pilots themselves, side by side but never merged. A group appears only once five or more people share the same airline, position and fleet.' },
+          d: 'Pay recorded by pilots themselves, one row per pilot. Several months from the same pilot fold into a single row, and every figure is rounded to two significant digits.' },
   },
   'airline-conditions.html': {
     ja: { t: '待遇・働き方を教える',

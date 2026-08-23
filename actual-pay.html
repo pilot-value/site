@@ -10,14 +10,14 @@
   <title>他のパイロットの実給与を見る | PILOT VALUE</title>
 <!--PV-SEO-->
 <!--PV-SRC t="他のパイロットの実給与を見る" d=""-->
-<meta name="description" content="公開情報からの推定レンジと、パイロット本人が記録した実給与を別々に並べます。同じ会社・職位・機材に5人以上そろった区分だけを、丸めた金額で載せています。"/>
+<meta name="description" content="パイロット本人が記録した実給与を、1行＝1人でそのまま並べます。同じ人の複数月は1行に畳み、金額は有効数字2桁に丸めています。"/>
 <meta name="robots" content="noindex,follow"/>
 <link rel="canonical" href="https://pilot-value.com/actual-pay.html"/>
 <link rel="alternate" hreflang="ja" href="https://pilot-value.com/actual-pay.html"/>
 <link rel="alternate" hreflang="en" href="https://pilot-value.com/en/actual-pay.html"/>
 <link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/actual-pay.html"/>
 <meta property="og:title" content="他のパイロットの実給与を見る | PILOT VALUE"/>
-<meta property="og:description" content="公開情報からの推定レンジと、パイロット本人が記録した実給与を別々に並べます。同じ会社・職位・機材に5人以上そろった区分だけを、丸めた金額で載せています。"/>
+<meta property="og:description" content="パイロット本人が記録した実給与を、1行＝1人でそのまま並べます。同じ人の複数月は1行に畳み、金額は有効数字2桁に丸めています。"/>
 <meta property="og:url" content="https://pilot-value.com/actual-pay.html"/>
 <meta property="og:type" content="website"/>
 <meta property="og:site_name" content="PILOT VALUE"/>
@@ -29,7 +29,7 @@
 <meta property="og:image:alt" content="他のパイロットの実給与を見る | PILOT VALUE"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:title" content="他のパイロットの実給与を見る | PILOT VALUE"/>
-<meta name="twitter:description" content="公開情報からの推定レンジと、パイロット本人が記録した実給与を別々に並べます。同じ会社・職位・機材に5人以上そろった区分だけを、丸めた金額で載せています。"/>
+<meta name="twitter:description" content="パイロット本人が記録した実給与を、1行＝1人でそのまま並べます。同じ人の複数月は1行に畳み、金額は有効数字2桁に丸めています。"/>
 <meta name="twitter:image" content="https://pilot-value.com/assets/og/default-ja.jpg"/>
 <!--/PV-SEO-->
 
@@ -131,8 +131,9 @@
         <div class="mr-skel" style="height:14px;width:74%;margin-top:12px"></div>
       </div>
 
-      <!-- 会社と職位は①②の両方に効く。機材は②の中（①は機材を持たない）。 -->
-      <div class="ap-filter">
+      <!-- 3つとも、実際に行がある区分だけが並ぶ（actual-pay.js が rows から作る）。
+           1行も無いとき・鍵が無いときは、この帯ごと隠れる。 -->
+      <div class="ap-filter" id="ap-filter" hidden>
         <div class="ap-f">
           <label class="ap-f-l" for="ap-air">航空会社</label>
           <select class="ap-sel" id="ap-air"></select>
@@ -141,46 +142,22 @@
           <label class="ap-f-l" for="ap-pos">職位</label>
           <select class="ap-sel" id="ap-pos"></select>
         </div>
+        <div class="ap-f" id="ap-fleet-wrap">
+          <label class="ap-f-l" for="ap-fleet">機材</label>
+          <select class="ap-sel" id="ap-fleet"></select>
+        </div>
         <button type="button" class="ap-clear" id="ap-clear">絞り込みを解除</button>
       </div>
 
-      <!-- ① 公開情報。★ここは必ず中身がある（②が0件でも画面が空にならない） -->
-      <section class="ap-sec">
-        <div class="ap-sec-h">
-          <h2 class="ap-sec-t">公開情報からの推定レンジ
-            <span class="ap-badge ap-badge--pub">公開情報</span></h2>
-          <p class="ap-sec-s">公式資料・募集要項・報道から作った参考レンジです。本人の記録ではありません。</p>
-        </div>
-        <!-- pv-no-cur ＝ currency.js の自動走査を止める。
+      <!-- ★1行＝1人。給与を出した人は全員ここに出る（人数の門は無い）。
+           ★ランキングにしない。金額で並べ替える口も、検証済みだけに絞る口も作らない。
+           ★見出しは1つだけ（actual-pay.js が #ap-hd に書く）。
+             節の見出しをここに置くと、h1 とほぼ同じ文が2行並ぶ。
+           pv-no-cur ＝ currency.js の自動走査を止める。
              金額は PVCurrency.fmt を通して自前で書き、切替は pv-currency-change で描き直す。 -->
-        <div class="pv-no-cur" id="ap-pub">
-          <div class="mr-skel" style="height:150px"></div>
-        </div>
-        <p class="ap-foot">会社名順に並べています。金額では並べ替えません。訓練生の公開レンジは持っていません。</p>
-      </section>
-
-      <!-- ② 本人が記録した実給与。★①と1つの表に混ぜない・①と足さない -->
-      <section class="ap-sec">
-        <div class="ap-sec-h">
-          <h2 class="ap-sec-t">パイロット本人が記録した実給与
-            <span class="ap-badge ap-badge--actual">本人記録</span></h2>
-          <p class="ap-sec-s">1行が1人の記録です。同じ会社・職位・機材に5人以上そろった区分だけを、上下の端を寄せて丸めた金額で載せています。</p>
-        </div>
-        <div class="ap-fleet" id="ap-fleet-wrap" hidden>
-          <div class="ap-f">
-            <label class="ap-f-l" for="ap-fleet">機材</label>
-            <select class="ap-sel" id="ap-fleet"></select>
-          </div>
-        </div>
-        <!-- pv-no-cur は開始タグ自体に付ける（②は通貨ごとに2桁へ丸め直す） -->
-        <div class="pv-no-cur" id="ap-rows">
-          <div class="mr-skel" style="height:180px"></div>
-        </div>
-        <!-- 招待（データ密度）カードの差込口。★②の中・表の直下に1つだけ置く。
-             鍵が無いとき・0行のとき・行があるときのどれでも、ここは同じ場所に残る
-             （#ap-rows の中身だけを差し替えるので、区分が薄い人ほど見えなくならない）。 -->
-        <div id="ap-ref-slot"></div>
-      </section>
+      <div class="pv-no-cur" id="ap-rows">
+        <div class="mr-skel" style="height:180px"></div>
+      </div>
     </main>
   </div>
 
