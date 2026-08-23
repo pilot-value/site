@@ -104,7 +104,8 @@ console.log('\n════ ソース ════');
     /* 口コミ・給与の画面には出さない（母集団が十数人なので特定に近づく）。 */
   }
   for (const f of ['submit-review.html', 'en/submit-review.html', 'pay-report.html', 'en/pay-report.html',
-                   'my-value.html', 'en/my-value.html', 'index.html', 'en/index.html']) {
+                   'my-value.html', 'en/my-value.html', 'actual-pay.html', 'en/actual-pay.html',
+                   'index.html', 'en/index.html']) {
     ok(!read('./' + f).includes('pv-founding'),
        `★${f} に称号を出さない（母集団が小さく、投稿の横に番号が出ると書き手が絞れる）`);
   }

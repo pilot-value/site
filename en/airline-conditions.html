@@ -102,13 +102,17 @@
   </header>
 
   <div class="mr-shell">
-    <!-- The same three entries as My report. This page is reached from the
-         post-report modal and the settings card, so it is not added to the nav
-         (that would put this page's nav out of step with my-value.html). -->
+    <!-- ★ patch-side-nav.mjs writes these four entries into every page. Never add one by hand.
+         This screen is reached from a prompt (the post-report modal, the settings card),
+         so the nav highlights nothing here. -->
     <nav class="mr-side" aria-label="My page">
       <a class="mr-side-a" href="my-value.html">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
         <span>My report</span>
+      </a>
+      <a class="mr-side-a" href="actual-pay.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>What others earn</span>
       </a>
       <a class="mr-side-a is-add" href="pay-report.html#ps">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>

@@ -60,6 +60,8 @@ const NOINDEX = new Set([
   'unsubscribe.html', '404.html', 'submit-review.html',
   /* 本人が自分の会社の待遇を答える画面。ログインが要るので検索に出さない。 */
   'airline-conditions.html',
+  /* 給与明細を出した人だけが読める画面。ログインが要るので検索に出さない。 */
+  'actual-pay.html',
   /* 2026-08-15 に求人の掲載を停止した。ページは残す（外部からのリンクを
      404 にしないため）が、中身が「停止中」の1行だけなので検索には出さない。
      gen-sitemap.mjs の同名の集合と対にしてある。 */
@@ -192,6 +194,12 @@ const COPY = {
   },
   /* 同上。noindex だがここに無いと、次に seo-normalize を流した人が
      タイトルを空にする（noindex でも <title> は出るので中身は要る）。 */
+  'actual-pay.html': {
+    ja: { t: '他のパイロットの実給与を見る',
+          d: '公開情報からの推定レンジと、パイロット本人が記録した実給与を別々に並べます。同じ会社・職位・機材に5人以上そろった区分だけを、丸めた金額で載せています。' },
+    en: { t: 'What Other Pilots Actually Earn',
+          d: 'Public estimated ranges and pay recorded by pilots themselves, side by side but never merged. A group appears only once five or more people share the same airline, position and fleet.' },
+  },
   'airline-conditions.html': {
     ja: { t: '待遇・働き方を教える',
           d: '勤務スケジュール・キャリア・休暇・手当について、あなたの会社の仕組みを教えてください。答えられるところだけで構いません。氏名も社員番号も受け取りません。' },

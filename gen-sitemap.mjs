@@ -33,6 +33,8 @@ const NOINDEX = new Set([
   'unsubscribe.html', '404.html', 'submit-review.html',
   /* 本人が自分の会社の待遇を答える画面。ログインが要るので検索に出さない。 */
   'airline-conditions.html',
+  /* 給与明細を出した人だけが読める画面。ログインが要るので検索に出さない。 */
+  'actual-pay.html',
   /* 2026-08-15、求人の掲載を停止した。ページは残すが検索には出さない。 */
   'world-jobs.html',
 ]);

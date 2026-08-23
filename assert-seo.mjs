@@ -40,6 +40,8 @@ const NOINDEX = new Set([
   'unsubscribe.html', '404.html', 'submit-review.html',
   /* 本人が自分の会社の待遇を答える画面。ログインが要るので検索に出さない。 */
   'airline-conditions.html',
+  /* 給与明細を出した人だけが読める画面。ログインが要るので検索に出さない。 */
+  'actual-pay.html',
   /* 2026-08-15 に求人の掲載を停止した。ページは残す（外部からのリンクを 404 に
      しないため）が、中身が「停止中」の1行だけなので検索には出さない。
      gen-sitemap.mjs / seo-normalize.mjs の同名の集合と3つで対にしてある。 */

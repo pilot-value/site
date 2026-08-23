@@ -7,7 +7,7 @@
   <script>(function(){var t=localStorage.getItem('pv-theme')||'light';document.documentElement.setAttribute('data-theme',t);}());</script>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <!-- 本人が答える画面。ログインが要るので検索に出してはいけない -->
-  <title>待遇・働き方を教える｜PILOT VALUE</title>
+  <title>待遇・働き方を教える | PILOT VALUE</title>
 <!--PV-SEO-->
 <!--PV-SRC t="待遇・働き方を教える" d=""-->
 <meta name="description" content="勤務スケジュール・キャリア・休暇・手当について、あなたの会社の仕組みを教えてください。答えられるところだけで構いません。氏名も社員番号も受け取りません。"/>
@@ -16,7 +16,7 @@
 <link rel="alternate" hreflang="ja" href="https://pilot-value.com/airline-conditions.html"/>
 <link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airline-conditions.html"/>
 <link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airline-conditions.html"/>
-<meta property="og:title" content="待遇・働き方を教える｜PILOT VALUE"/>
+<meta property="og:title" content="待遇・働き方を教える | PILOT VALUE"/>
 <meta property="og:description" content="勤務スケジュール・キャリア・休暇・手当について、あなたの会社の仕組みを教えてください。答えられるところだけで構いません。氏名も社員番号も受け取りません。"/>
 <meta property="og:url" content="https://pilot-value.com/airline-conditions.html"/>
 <meta property="og:type" content="website"/>
@@ -26,9 +26,9 @@
 <meta property="og:image" content="https://pilot-value.com/assets/og/default-ja.jpg"/>
 <meta property="og:image:width" content="1200"/>
 <meta property="og:image:height" content="630"/>
-<meta property="og:image:alt" content="待遇・働き方を教える｜PILOT VALUE"/>
+<meta property="og:image:alt" content="待遇・働き方を教える | PILOT VALUE"/>
 <meta name="twitter:card" content="summary_large_image"/>
-<meta name="twitter:title" content="待遇・働き方を教える｜PILOT VALUE"/>
+<meta name="twitter:title" content="待遇・働き方を教える | PILOT VALUE"/>
 <meta name="twitter:description" content="勤務スケジュール・キャリア・休暇・手当について、あなたの会社の仕組みを教えてください。答えられるところだけで構いません。氏名も社員番号も受け取りません。"/>
 <meta name="twitter:image" content="https://pilot-value.com/assets/og/default-ja.jpg"/>
 <!--/PV-SEO-->
@@ -102,12 +102,17 @@
   </header>
 
   <div class="mr-shell">
-    <!-- マイレポートと同じ3つ。この画面は導線（レポート直後のモーダル・設定のカード）
-         から来るので、ナビには足さない＝my-value.html 側と食い違わせない。 -->
+    <!-- ★4項目は patch-side-nav.mjs が全ページへ配る。ここを手で足さない。
+         この画面は導線（レポート直後のモーダル・設定のカード）から来るので、
+         ナビ自身には項目を持たない＝どの項目も光らせない。 -->
     <nav class="mr-side" aria-label="マイページ">
       <a class="mr-side-a" href="my-value.html">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
         <span>マイレポート</span>
+      </a>
+      <a class="mr-side-a" href="actual-pay.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>他のパイロットの実給与</span>
       </a>
       <a class="mr-side-a is-add" href="pay-report.html#ps">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
