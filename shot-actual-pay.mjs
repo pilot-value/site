@@ -8,13 +8,14 @@
      scene = locked   鍵が無い人（金額が1つも出ない・導線だけ）
              empty    鍵はあるが1件も無い（正直な1枚）
              rows     いまの本番と同じ規模（13人・全員が手入力＝✓ は付かない）
-             many     もっと集まった状態（会社も機材もばらけている）
+             many     もっと集まった状態（2ページ目・数字のページ番号が出る）
              picked   会社で絞った状態（絞り込みが効いているところ）
-             sel      行を選んだところ（賞与20%のANA＝色が分かれる行）
-             mono     ★ほぼ1色になる行を選んだところ（zipair＝月給99%）
-             nobd     内訳を出せない行を選んだところ（静かに断る一枚）
+             find     会社を打ち込んで絞ったところ
+             nostat   ★サーバがまだ古い（stats を返さない）＝カードが2枚だけ出る
      lang  = ja | en
-     第3引数 open ＝ 撮らずに見える窓で開いたままにする
+     第3引数以降  open  撮らずに見える窓で開いたままにする
+                  dark  暗いほうで撮る
+                  w=980 幅を変えて撮る（既定 1440）。★2段組が畳まれる幅を見るのに要る
 
    ★行の中身はこのファイルが作った作り物。本番の数字ではない。
    ⚠️ localhost が要る（node serve.mjs）。本番の DB には触らない（Supabase ごと差し替える）。
@@ -29,28 +30,29 @@ const BASE  = 'http://localhost:3000';
 const scene = process.argv[2] || 'rows';
 const lang  = process.argv[3] === 'en' ? 'en' : 'ja';
 const show  = process.argv.slice(4).includes('open');
-/* ★暗いほうも撮る。図は pay-viz.css が暗い前提で、明るい側だけ actual-pay.css が上書きする。
-   どちらか一方しか見ないと、片方の配色が崩れたまま気づけない。 */
+/* ★暗いほうも撮る。カードも表も右の棒も、暗い側でだけ崩れることがある。 */
 const theme = process.argv.slice(4).includes('dark') ? 'dark' : 'light';
+/* 幅。★.ap-cols（表＋右の棒）は 1080px で1段に畳まれ、.mr-side は 960px で横並びになる。
+   どちらも「畳まれた側」を見ないと崩れに気づけない。 */
+const wArg = process.argv.slice(4).find((a) => /^w=\d+$/.test(a));
+const W = wArg ? Number(wArg.slice(2)) : 1440;
 
 const UID = '00000000-0000-4000-8000-00000000c001';
 
 /* 作り物の行。★ana / jal は実在の会社だが、この金額は作った数字。
    サーバは有効数字2桁で返すので、こちらもその形にそろえてある。
    ★1行＝1人。同じ人の複数月はサーバ側で1行に畳まれているので、ここも1人1行。
-   ★自由入力の社名の人は airline:'other' で来る（打ち込まれた文字列は来ない）。 */
-const R = (air, pos, fleet, usd, vf, comp) => ({
-  airline: air, pos: pos, fleet: fleet, annual_usd: usd, verified: !!vf,
-  comp: comp || null });
+   ★自由入力の社名の人は airline:'other' で来る（打ち込まれた文字列は来ない）。
+   ★機材（fleet）も支給の内訳（comp）も 2026-08-24 に返さなくした。
+     ここに足すと、サーバが返さないものを絵にしてしまう。 */
+const R = (air, pos, usd, vf) => ({
+  airline: air, pos: pos, annual_usd: usd, verified: !!vf });
 
-/* 支給の内訳。★サーバ（pv_pay_rows）が返すのと同じ形＝整数パーセント5本で合計100。
-   金額は1つも入らない。m 月々の支給 / b 年1回の賞与 / d パーディアム /
-   h 住宅手当 / o その他の手当。
-   ★下の数字は 2026-08-23 に本番を読んで実測した割合をそのまま写している
-     （ANA副操縦士A320 = 75/20/4/1、zipair = 99/1、air-canada = 96/4）。
-     ここを「見栄えのいい割合」に作り替えないこと。ほぼ1色になる行が本当に
-     出るかどうかを、この絵で確かめている。 */
-const C = (m, b, dd, h, o) => ({ m: m, b: b, d: dd, h: h, o: o });
+/* 数え上げ。★サーバ（pv_pay_rows）の stats と同じ形。
+   reports ＝ 提出の件数（同じ人の複数月もそれぞれ1件）、month ＝ 今月に入った件数。
+   ⚠️ 必ず reports ≧ 行数。ここを行数より小さくすると、
+      「126件なのに表は60行」の逆＝説明のつかない絵になる。 */
+const ST = (reports, month) => ({ reports: reports, month: month });
 
 /* ★いまの本番をそのまま写した13行（2026-08-23 に読んで確認した実測）。
    内訳は 本棚8人 ＋ 登録前の預かり5人。会社は7社。
@@ -60,45 +62,50 @@ const C = (m, b, dd, h, o) => ({ m: m, b: b, d: dd, h: h, o: o });
    ・10件で1ページなので、この13行で2ページ目が出る。 */
 const ROWS = [
   // ── 本棚（pay_reports・8人）
-  R('jal', 'fo', 'b737',  81000, 0, C(97, 0, 3, 0, 0)),
-  R('ana', 'fo', 'a320', 110000, 0, C(75, 20, 4, 1, 0)),   // ← 実測。色が分かれる行
-  R('ana', 'fo', 'a320', 110000, 0, C(76, 19, 4, 1, 0)),
-  R('lufthansa', 'fo', 'a320', 140000, 0, C(70, 14, 6, 6, 4)),
-  R('jal', 'fo', 'b737',  99000, 0, C(97, 0, 3, 0, 0)),
-  R('eva-air', 'cap', 'b777', 170000, 0, C(68, 22, 6, 4, 0)),
-  R('ana', 'fo', 'a320',  95000),                          // ← 内訳を出せない行（comp なし）
-  R('ana', 'cap', 'b787', 180000, 0, C(96, 0, 3, 1, 0)),   // ← 実測。ほぼ1色
+  R('jal', 'fo',  81000),
+  R('ana', 'fo', 110000),
+  R('ana', 'fo', 110000),
+  R('lufthansa', 'fo', 140000),
+  R('jal', 'fo',  99000),
+  R('eva-air', 'cap', 170000),
+  R('ana', 'fo',  95000),
+  R('ana', 'cap', 180000),
   // ── 登録前の預かり（pay_reports_pending・5人。✓ は付かない）
-  R('ana', 'fo', 'b777', 110000, 0, C(78, 17, 4, 1, 0)),
-  R('zipair', 'fo', 'a220', 82000, 0, C(99, 0, 1, 0, 0)),  // ← 実測。ほぼ1色
-  R('ana', 'fo', 'a320',  94000, 0, C(75, 20, 4, 1, 0)),
-  R('singapore-airlines', 'cap', 'b777', 330000, 0, C(62, 26, 7, 5, 0)),
-  R('air-canada', 'cap', 'a320', 240000, 0, C(96, 0, 4, 0, 0)),  // ← 実測。ほぼ1色
+  R('ana', 'fo', 110000),
+  R('zipair', 'fo', 82000),
+  R('ana', 'fo',  94000),
+  R('singapore-airlines', 'cap', 330000),
+  R('air-canada', 'cap', 240000),
 ];
 /* もっと集まったら、という絵。★並びは md5(proof_hash) 順＝会社も金額もばらける。
    会社ごとに固めて並べない（固めると「順不同」に見えない）。 */
 const MANY = [
-  R('ana', 'cap', 'b787', 180000, true, C(74, 21, 4, 1, 0)),
-  R('singapore-airlines', 'fo', 'a350', 130000, 0, C(64, 24, 7, 5, 0)),
-  R('other', 'cap', 'b737', 130000, 0, C(97, 0, 3, 0, 0)),
-  R('lufthansa', 'cap', 'a320', 160000, 0, C(69, 15, 6, 6, 4)),
-  R('jal', 'fo', 'b737', 105000, 0, C(96, 0, 4, 0, 0)),
-  R('emirates', 'cap', 'b777', 240000, 0, C(55, 9, 12, 24, 0)),   // 住宅手当の大きい形
-  R('ana', 'fo', 'b787', 120000),                                  // 内訳なし
-  R('cathay-pacific', 'cap', 'a350', 200000, 0, C(71, 16, 8, 5, 0)),
-  R('qatar-airways', 'cap', 'a380', 260000, true, C(58, 10, 11, 21, 0)),
-  R('jal', 'cap', 'b777', 190000, 0, C(95, 0, 4, 1, 0)),
-  R('other', 'fo', 'a320', 90000, 0, C(99, 0, 1, 0, 0)),
-  R('korean-air', 'fo', 'b737', 95000),                            // 内訳なし
-  R('ana', 'cap', 'b777', 195000, 0, C(73, 22, 4, 1, 0)),
-  R('emirates', 'fo', 'b777', 150000, 0, C(57, 8, 13, 22, 0)),
-  R('lufthansa', 'fo', 'a320', 110000, 0, C(70, 14, 6, 6, 4)),
-  R('jal', 'cap', 'a350', 185000, true, C(94, 0, 5, 1, 0)),
+  R('ana', 'cap', 180000, true),
+  R('singapore-airlines', 'fo', 130000),
+  R('other', 'cap', 130000),
+  R('lufthansa', 'cap', 160000),
+  R('jal', 'fo', 105000),
+  R('emirates', 'cap', 240000),
+  R('ana', 'fo', 120000),
+  R('cathay-pacific', 'cap', 200000),
+  R('qatar-airways', 'cap', 260000, true),
+  R('jal', 'cap', 190000),
+  R('other', 'fo', 90000),
+  R('korean-air', 'fo', 95000),
+  R('ana', 'cap', 195000),
+  R('emirates', 'fo', 150000),
+  R('lufthansa', 'fo', 110000),
+  R('jal', 'cap', 185000, true),
+  R('ana', 'fo', 98000),
+  R('jal', 'fo', 112000),
+  R('zipair', 'fo', 86000),
+  R('eva-air', 'fo', 105000),
+  R('korean-air', 'cap', 175000),
+  R('cathay-pacific', 'fo', 125000),
 ];
 
-/* 自分の明細（my_pay_reports が返す形）。左のドーナツの既定はこれ。
-   ★2つ用意する。本番は**ほとんどの人が総支給1本**で出していて、その場合の図は
-     灰色（内訳を入れていない分）が大半を占める。そこを絵で確かめるため。
+/* 自分の明細（my_pay_reports が返す形）。使い道は分布の「あなた」の破線ただ1つで、
+   金額も内訳もこの画面には出ない。
    ★fx_to_jpy は 1（円で出した人）。金額は作り物。 */
 const MINE_GROSS = [{
   period_year: 2026, period_month: 7, currency: 'JPY', fx_to_jpy: 1,
@@ -115,15 +122,18 @@ const MINE_FULL = [{
 }];
 
 const SCENES = {
+  /* ★鍵が無い人には stats も来ない（サーバがそう作ってある）。カードは1枚も出ない。 */
   locked: { pay: { ok: true, state: 'locked', rows: [] } },
-  empty:  { pay: { ok: true, state: 'open', rows: [] } },
-  rows:   { pay: { ok: true, state: 'open', rows: ROWS }, mine: MINE_GROSS },
-  many:   { pay: { ok: true, state: 'open', rows: MANY }, mine: MINE_FULL },
-  picked: { pay: { ok: true, state: 'open', rows: MANY }, mine: MINE_FULL, pick: 'ana' },
-  /* 行を選んだところ。番号は ROWS の並びそのもの（1ページ目に全部ある）。 */
-  sel:    { pay: { ok: true, state: 'open', rows: ROWS }, mine: MINE_GROSS, row: 1 },
-  mono:   { pay: { ok: true, state: 'open', rows: ROWS }, mine: MINE_GROSS, row: 9 },
-  nobd:   { pay: { ok: true, state: 'open', rows: ROWS }, mine: MINE_GROSS, row: 6 },
+  empty:  { pay: { ok: true, state: 'open', rows: [], stats: ST(0, 0) } },
+  rows:   { pay: { ok: true, state: 'open', rows: ROWS, stats: ST(17, 4) }, mine: MINE_GROSS },
+  many:   { pay: { ok: true, state: 'open', rows: MANY, stats: ST(58, 11) }, mine: MINE_FULL },
+  picked: { pay: { ok: true, state: 'open', rows: MANY, stats: ST(58, 11) },
+            mine: MINE_FULL, pick: 'ana' },
+  find:   { pay: { ok: true, state: 'open', rows: MANY, stats: ST(58, 11) },
+            mine: MINE_FULL, q: 'jal' },
+  /* ★サーバをまだ貼り替えていないとき。カードは「一覧のパイロット」と「航空会社」の
+     2枚だけになる。空いた分に 0 を置かない＝画面に嘘の数字を作らない、を絵で確かめる。 */
+  nostat: { pay: { ok: true, state: 'open', rows: ROWS }, mine: MINE_GROSS },
 };
 const S = SCENES[scene];
 if (!S) { console.error('scene は ' + Object.keys(SCENES).join(' / ')); process.exit(1); }
@@ -136,7 +146,7 @@ function stub(page, pay, mine) {
     localStorage.setItem('pv-theme', theme);
     const RPC = {
       pv_pay_rows: pay,
-      /* ★左のドーナツの既定＝自分の支給構成。本人の行しか返らない関数。 */
+      /* ★分布の「あなた」の破線だけに使う。本人の行しか返らない関数。 */
       my_pay_reports: { ok: true, reports: mine || [] },
       my_referral_code: { ok: true, code: 'K7QD3XZM', invited: 0, converted: 0 },
     };
@@ -167,10 +177,10 @@ function stub(page, pay, mine) {
 }
 
 const browser = await puppeteer.launch(show
-  ? { headless: false, defaultViewport: null, args: ['--window-size=1440,1100'] }
+  ? { headless: false, defaultViewport: null, args: ['--window-size=' + W + ',1100'] }
   : { headless: 'shell', args: ['--no-sandbox'] });
 const page = await browser.newPage();
-if (!show) await page.setViewport({ width: 1440, height: 1100 });
+if (!show) await page.setViewport({ width: W, height: 1100 });
 await stub(page, S.pay, S.mine);
 await page.goto(BASE + (lang === 'en' ? '/en/' : '/') + 'actual-pay.html',
                 { waitUntil: 'networkidle2', timeout: 40000 });
@@ -186,14 +196,13 @@ if (S.pick) {
   await new Promise((r) => setTimeout(r, 500));
 }
 
-if (S.row != null) {
-  const hit = await page.evaluate((i) => {
-    const tr = document.querySelector('[data-ap-row="' + i + '"]');
-    if (!tr) return false;
-    tr.click();
-    return true;
-  }, S.row);
-  if (!hit) console.error('⚠️ 行 ' + S.row + ' が見つからなかった（選ばずに撮る）');
+if (S.q) {
+  await page.evaluate((v) => {
+    const i = document.getElementById('ap-q');
+    if (!i) return;
+    i.value = v;
+    i.dispatchEvent(new Event('input', { bubbles: true }));
+  }, S.q);
   await new Promise((r) => setTimeout(r, 500));
 }
 
@@ -206,11 +215,12 @@ const dir = path.join(ROOT, 'temporary screenshots');
 if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
 const n = readdirSync(dir).filter((f) => /^screenshot-\d+/.test(f))
   .reduce((m, f) => Math.max(m, Number(f.match(/^screenshot-(\d+)/)[1])), 0) + 1;
-const out = path.join(dir, `screenshot-${n}-actualpay-${scene}-${lang}.png`);
+const out = path.join(dir,
+  `screenshot-${n}-actualpay-${scene}-${lang}${W === 1440 ? '' : '-w' + W}${theme === 'dark' ? '-dark' : ''}.png`);
 
 /* ページ全体を撮る（絞り込みの帯と表の関係が見たいので、要素で切り出さない）。 */
 const full = await page.evaluate(() => document.documentElement.scrollHeight);
-await page.setViewport({ width: 1440, height: Math.min(full, 3200) });
+await page.setViewport({ width: W, height: Math.min(full, 3200) });
 await new Promise((r) => setTimeout(r, 600));
 await page.screenshot({ path: out });
 console.log(out.replace(ROOT, ''));

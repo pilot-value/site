@@ -70,6 +70,10 @@
 .mr-side-a.is-add{color:var(--pv-orange-ink);font-weight:700}
 .mr-side-a.is-add svg{opacity:1}
 .mr-side-a.is-add:hover{background:var(--pv-orange-soft);color:var(--pv-orange-ink)}
+/* まだページが無い項目（DEEP PAY / VERIFIED PAY）。<a> ではなく <span> で出る。
+   ★名前だけ先に見せて、押せないことを見た目で言う。文字での断りは足さない。 */
+.mr-side-a.is-soon{color:var(--pv-ink-3);opacity:.55;cursor:default}
+.mr-side-a.is-soon:hover{background:none;color:var(--pv-ink-3)}
 .mr-side-note{margin-top:14px;padding:0 12px;font-size:.68rem;line-height:1.65;color:var(--pv-ink-3)}
 
 .mr-main{min-width:0}
@@ -477,11 +481,15 @@
 /* ══ 5) 狭い画面 ═══════════════════════════════════════════════
    横スクロールを作らない（§24）。横長の表は元から作っていない。 */
 
-/* サイドバーを畳んで、4つを横1列のタブにする。マークアップは1つのまま。 */
+/* サイドバーを畳んで、横並びのタブにする。マークアップは1つのまま。
+   ★2026-08-24 に項目が 4 → 6 になった（DEEP PAY / VERIFIED PAY）。
+     1行に押し込むと「匿名で給与を追加」だけが2行に折れて背が高くなるので、
+     折り返しを許して 2行に流す。 */
 @media(max-width:1000px){
   .mr-shell{grid-template-columns:minmax(0,1fr);gap:20px;padding-top:20px}
-  .mr-side{position:static;flex-direction:row;gap:6px;overflow:visible}
-  .mr-side-a{flex:1 1 0;justify-content:center;padding:9px 6px;font-size:.78rem;
+  .mr-side{position:static;flex-direction:row;flex-wrap:wrap;gap:6px;overflow:visible}
+  .mr-side-a{flex:1 1 150px;justify-content:center;padding:9px 6px;font-size:.78rem;
+             white-space:nowrap;
              background:var(--pv-surface);border-color:var(--pv-line)}
   .mr-side-a.is-on{box-shadow:none;border-color:var(--pv-orange);background:var(--pv-orange-soft)}
   .mr-side-a.is-on svg{color:var(--pv-orange-ink)}
@@ -508,7 +516,7 @@
 }
 @media(max-width:420px){
   /* 3つ並べるとラベルが折れるので、アイコンの下に文字を置く */
-  .mr-side-a{flex-direction:column;gap:4px;padding:8px 4px}
+  .mr-side-a{flex-direction:column;gap:4px;padding:8px 4px;flex:1 1 92px}
   .mr-ms .ym{width:100%}
   .mr-ms li{flex-wrap:wrap;gap:2px}
   .mr-ml-g{grid-template-columns:repeat(2,minmax(0,1fr))}

@@ -1,21 +1,16 @@
 /* ════════════════════════════════════════════════════════════════
-   actual-pay.css — 「他のパイロットの実給与を見る」
+   actual-pay.css — REAL PAY（他のパイロットの実給与）
                     （actual-pay.html / en/actual-pay.html）
 
    ★ 骨格（.mr-top / .mr-shell / .mr-side / .mr-main / .mr-card / .mr-hd …）は
      my-value.css が持っている。このファイルは骨格を1つも定義し直さない。
      読み込み順は pv-tokens.css → my-value.css → actual-pay.css。
 
-   ★ pay-viz.css を読む（2026-08-24から）。表の上のドーナツが .pt-* で出るため。
-     向こうは暗い前提なので、下の「.ap-vcard .pt-*」で明るい側に上書きしている。
-     ⚠️ pay-viz.css も my-value.css の #pv-value ブロックも直さないこと
-        （profile.html と my-value.html が同時に動く）。
-     ⚠️ 読み込み順は pv-tokens.css → my-value.css → pay-viz.css → actual-pay.css。
-        pay-viz.css の [data-theme="light"] .pt-x と詳細度が並ぶので、
-        後から読ませないと上書きが効かない。
+   ★ pay-viz.css は読まない（2026-08-24 に外した）。この画面にドーナツは無い。
+     支給の内訳は DEEP PAY の担当なので、ここには戻さない。
 
-   ★ このファイルのクラスは全部 .ap-* 。my-value.css の .mv-* /
-     pay-viz.css の .pt-* と衝突しないための約束。
+   ★ このファイルのクラスは全部 .ap-* 。my-value.css の .mv-* と
+     衝突しないための約束。
 
    ── 色 ────────────────────────────────────────────────────────
    値は書かず --pv-* を使う（pv-tokens.css）。ここで新しい色を作らない。
@@ -29,17 +24,32 @@
    ════════════════════════════════════════════════════════════════ */
 
 /* ══ バッジ ═══════════════════════════════════════════════════════
-   ⚠️ lp.css の .pv-badge / .pv-badge--actual と「同じ見た目・同じトークン」だが、
-      セレクタは分けてある。lp.css は index.html だけが読むファイルで、
-      同じセレクタを2つのファイルで定義すると必ず片方だけ直されてドリフトする。
-      色を変えるときは lp.css:663-678 と両方直すこと。 */
-.ap-badge{display:inline-flex;align-items:center;gap:5px;
-  font-size:.66rem;font-weight:700;letter-spacing:.02em;
-  border-radius:999px;padding:3px 9px;white-space:nowrap;
-  border:1px solid transparent;vertical-align:middle}
-/* 本人が記録した実データはオレンジ。この画面のバッジはこれ1つだけ。 */
-.ap-badge--actual{color:var(--pv-orange-ink);background:var(--pv-orange-soft);
-  border-color:rgba(249,115,22,.28)}
+   ★2026-08-24、見出しの橙の札（.ap-badge--actual）を消した。
+     ページ全体に「本人記録」と貼ると、出典が ✓ Verified の行と食い違う。
+     出典は行ごと（下の .ap-vf / .ap-vf-no）が持つ。ここに札を戻さない。
+   ⚠️ 青（.ap-badge--pub＝公開情報の推定）はこの画面には二度と置かない。
+      assert-pay-rows.mjs が --pv-blue ごと禁じている。 */
+
+/* ══ 数え上げのカード ═════════════════════════════════════════════
+   ★2026-08-24、オーナー判断で「本当の数字だけ出す」ことにした。
+     出した人に「今どれだけ集まっているか」が見えないと Give & Get が成立しない。
+   ★4枚のうち2枚（一覧のパイロット・航空会社）は表の行を数えているだけ。
+     残り2枚（実給与の投稿・今月）は pv_pay_rows() の stats から来る。
+   ⚠️ 数が読めないカードは JS が**そのカードごと出さない**。
+      枠だけ残して 0 を置かないこと（画面に嘘の数字が生まれる）。
+   ★絞り込みでは動かない。絞った結果の数はページ送りの「全N件中」が持つ。 */
+.ap-stats[hidden]{display:none}
+.ap-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:12px;margin-bottom:var(--pv-s-3)}
+.ap-st{min-width:0;padding:16px 18px;
+  background:var(--pv-surface);border:1px solid var(--pv-line);
+  border-radius:var(--pv-r);box-shadow:var(--pv-shadow)}
+.ap-st-n{font-size:1.5rem;font-weight:800;letter-spacing:-.03em;line-height:1.15;
+  color:var(--pv-ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ap-st-u{margin-left:2px;font-size:.78rem;font-weight:700;letter-spacing:0;
+  color:var(--pv-ink-3)}
+.ap-st-l{margin-top:5px;font-size:.7rem;font-weight:700;letter-spacing:.02em;
+  color:var(--pv-ink-3);line-break:strict;word-break:auto-phrase}
 
 /* ══ 絞り込み ═════════════════════════════════════════════════════
    ★ 3つとも同じ1枚の表に効く。並ぶのは「実際に行がある区分」だけで、
@@ -54,6 +64,8 @@
   background:var(--pv-surface);border:1px solid var(--pv-line);
   border-radius:var(--pv-r);box-shadow:var(--pv-shadow)}
 .ap-f{display:flex;flex-direction:column;gap:6px;min-width:0;flex:1 1 190px}
+/* 打ち込みの窓は少し広く取る（社名は長い）。 */
+.ap-f--q{flex:1.5 1 230px}
 .ap-f-l{font-size:.68rem;font-weight:700;letter-spacing:.02em;color:var(--pv-ink-3)}
 .ap-sel{width:100%;min-height:40px;padding:8px 32px 8px 12px;
   border:1px solid var(--pv-line);border-radius:var(--pv-r-sm);
@@ -66,6 +78,18 @@
 .ap-sel:hover{border-color:var(--pv-ink-3)}
 .ap-sel:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}
 .ap-sel:active{border-color:var(--pv-orange)}
+
+/* 会社の打ち込み。★見た目は .ap-sel と揃える（同じ帯に並ぶので）。
+   矢印は付けない（開かない窓に矢印を出さない）。 */
+.ap-q{width:100%;min-height:40px;padding:8px 12px;
+  border:1px solid var(--pv-line);border-radius:var(--pv-r-sm);
+  background:var(--pv-bg);color:var(--pv-ink);
+  font-family:inherit;font-size:.84rem;font-weight:600;line-height:1.4;
+  -webkit-appearance:none;appearance:none;
+  transition:border-color .18s var(--pv-ease),box-shadow .18s var(--pv-ease)}
+.ap-q::placeholder{color:var(--pv-ink-3);font-weight:500}
+.ap-q:hover{border-color:var(--pv-ink-3)}
+.ap-q:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}
 
 .ap-clear{min-height:40px;padding:8px 16px;border-radius:999px;
   border:1px solid var(--pv-line);background:none;color:var(--pv-ink-2);
@@ -85,12 +109,13 @@
      既定だと仮名のどこでも折れて「丸めた額／で、」と切れていた。 */
 .mr-hd-s,.ap-msg-s,.ap-tbl td{line-break:strict;word-break:auto-phrase}
 
-/* ══ 図の帯（ドーナツ ＋ 分布）═════════════════════════════════════
-   ★表の上に2枚。モックは右の鎧戸だったが、この画面の本体は 988px しかなく、
-     右へ 340px 取ると表が 630px になって6列が潰れる。
-   ★780px 以下で縦に積む。 */
-.ap-viz{display:grid;grid-template-columns:1fr 1fr;gap:var(--pv-s-2);
-  margin-bottom:var(--pv-s-3);align-items:start}
+/* ══ 図の帯（年収の分布だけ）═══════════════════════════════════════
+
+   ★**表の右横**に1枚（.ap-cols の右の列）。幅いっぱいには置かない
+     ＝ 2026-08-24 のオーナー指示。狭いときだけ表の下に回る。
+     同じ日に、左に並んでいた支給の内訳のドーナツを外した
+     （そちらは DEEP PAY の担当）。 */
+.ap-viz{margin-bottom:var(--pv-s-3)}
 .ap-vcard{min-width:0;padding:18px 20px 20px;
   background:var(--pv-surface);border:1px solid var(--pv-line);
   border-radius:var(--pv-r);box-shadow:var(--pv-shadow)}
@@ -98,19 +123,7 @@
   gap:12px;flex-wrap:wrap;margin-bottom:14px}
 .ap-vt{font-size:.72rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
   color:var(--pv-ink-3);margin:0}
-.ap-vsub,.ap-vhint{font-size:.71rem;line-height:1.7;color:var(--pv-ink-3)}
-.ap-vhint{margin-top:12px}
-.ap-vsub{margin-bottom:2px}
-
-/* 「自分に戻す」。★閉じ方の1つめ（あと2つは もう一度押す・ESC）。 */
-.ap-unsel{min-height:30px;padding:5px 13px;border-radius:999px;
-  border:1px solid var(--pv-line);background:none;color:var(--pv-ink-2);
-  font-family:inherit;font-size:.7rem;font-weight:700;cursor:pointer;
-  transition:color .18s var(--pv-ease),border-color .18s var(--pv-ease),
-             transform .18s var(--pv-ease)}
-.ap-unsel:hover{color:var(--pv-ink);border-color:var(--pv-orange)}
-.ap-unsel:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}
-.ap-unsel:active{transform:scale(.97)}
+.ap-vsub{font-size:.71rem;line-height:1.7;color:var(--pv-ink-3);margin-bottom:2px}
 
 /* 分布の棒。★人数の数字は書かない（棒の高さで目分量に読めるところまで）。 */
 .ap-plot{position:relative;display:flex;align-items:flex-end;gap:5px;
@@ -131,31 +144,31 @@
   font-size:.66rem;font-weight:700;color:var(--pv-ink-3);
   font-variant-numeric:tabular-nums}
 
-/* ── pay-viz.css の暗い前提を、このカードの中だけ明るい側へ ──────────
-   ★向こうは触らない（profile.html / my-value.html が同時に動く）。
-   ★my-value.css の #pv-value ブロックと同じ考え方だが、あちらは id で
-     始まっていてこの画面には届かない。同じ値をここにも書くしかない。 */
-.ap-vcard .pt-sec{margin-top:0}
-.ap-vcard .pt-h{font-size:.86rem;font-weight:800;letter-spacing:-.01em;
-  text-transform:none;color:var(--pv-ink);margin-bottom:14px}
-.ap-vcard .pt-note{font-size:.7rem;color:var(--pv-ink-3);line-height:1.7;margin-top:10px}
-.ap-vcard .pt-empty{font-size:.78rem;color:var(--pv-ink-2);line-height:1.75;
-  background:var(--pv-surface-2);border:1px dashed var(--pv-line);
-  border-radius:var(--pv-r-sm);padding:14px 16px}
-.ap-vcard .pt-donut-wrap{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
-.ap-vcard .pt-legend{flex:1;min-width:180px}
-.ap-vcard .pt-leg{font-size:.74rem}
-.ap-vcard .pt-leg .nm{color:var(--pv-ink-2)}
-.ap-vcard .pt-leg .amt{color:var(--pv-ink)}
-.ap-vcard .pt-leg .pct{color:var(--pv-ink-3)}
-.ap-vcard .pt-donut-c b{font-size:.86rem;font-weight:800;letter-spacing:-.02em;
-  color:var(--pv-ink)}
+/* ══ 2段組（表 ＋ 右の細い列）═══════════════════════════════════════
+   ★右に入るのは分布の棒**1枚だけ**。説明のカードは置かない（オーナー判断 2026-08-24）。
+     「幅いっぱいはいらない。表の右横に置け」というのが元の指示。
+   ★狭いときは1段に畳んで棒が表の下に回る。表が先、棒が後（読む順を変えない）。
+   ⚠️ minmax(0,1fr) を使う。1fr だけだと中身（表）の最小幅に押されて
+      右の列が潰れる。 */
+.ap-cols{display:grid;grid-template-columns:minmax(0,1fr) 272px;
+  gap:var(--pv-s-3);align-items:start}
+.ap-main{min-width:0}
+.ap-side{min-width:0}
+/* 表が長いとき、棒は画面に留める（表を下まで見ながら分布が見える）。 */
+.ap-side .ap-viz{position:sticky;top:var(--pv-s-3);margin-bottom:0}
+@media (max-width:1080px){
+  .ap-cols{grid-template-columns:minmax(0,1fr)}
+  .ap-side .ap-viz{position:static}
+  /* ★下に回ったときも幅いっぱいには広げない。8本の棒を横に引き延ばすと、
+       低い棒が「床の線」に見えて分布が読めなくなる。 */
+  .ap-side{max-width:460px}
+}
 
 /* ══ 表 ═══════════════════════════════════════════════════════════
    ★1枚しかない。1行＝1人。全幅で置く。
      ⚠️ 粒度を分けた2枚に戻さないこと。同じ人が両方に出て、二重に数えたように見える。
-   ★行はクリックできない。押して開く「区分の詳細」は無くした
-     （区分そのものが無いので、開く先が無い）。 */
+   ★行はクリックできない。押して開く先がこの画面には無い
+     （区分の詳細も、その人の支給の内訳も、ここには置いていない）。 */
 .ap-tw{min-width:0;
   background:var(--pv-surface);border:1px solid var(--pv-line);
   border-radius:var(--pv-r);box-shadow:var(--pv-shadow);overflow:hidden}
@@ -173,19 +186,7 @@
 .ap-tbl td{padding:14px 16px;border-bottom:1px solid var(--pv-line-soft);
   line-height:1.6;vertical-align:middle}
 .ap-tbl tbody tr:last-child td{border-bottom:0}
-/* ★行は押せる（2026-08-24から）。押すと上のドーナツがその人の内訳に変わる。
-     閉じ方は3つ（もう一度押す／「自分に戻す」／ESC）。
-   ★選んでいる行は aria-current="true"。aria-selected は grid の中でしか
-     正しく効かないので使わない。 */
-.ap-tbl tbody tr{cursor:pointer;
-  transition:background-color .16s var(--pv-ease)}
-.ap-tbl tbody tr:hover{background:var(--pv-line-soft)}
-.ap-tbl tbody tr:focus-visible{outline:2px solid var(--pv-orange);outline-offset:-2px}
-.ap-tbl tbody tr:active{background:var(--pv-line)}
-/* 選ばれている行。左に橙の帯を立てて、上のドーナツと結びつける。 */
-.ap-tbl tbody tr[aria-current="true"]{background:var(--pv-orange-soft)}
-.ap-tbl tbody tr[aria-current="true"] td:first-child{
-  box-shadow:inset 3px 0 0 var(--pv-orange)}
+/* ★カーソルも hover の色も付けない。押せない行を押せるように見せない。 */
 
 /* 社名のセル。ロゴ＋文字。★ロゴが落ちても社名は必ず文字で残る。 */
 .ap-cell-air{display:flex;align-items:center;gap:10px;min-width:0}
@@ -209,7 +210,7 @@
 /* ★「本人記録」は13行が13行とも同じ札になる＝いまは情報が無い。
    橙で塗ると画面がその1語で埋まるので、ここは灰の静かな札にする。
    色を使うのは ✓ Verified（緑）だけ。差が出たときにだけ目が行く。
-   見出しの橙の札（.ap-badge--actual）は「この画面は全部が本人の記録」の宣言なので別物。 */
+   ★出典を言うのはこの2つの札だけ（見出しには札を置かない）。 */
 .ap-vf-no{display:inline-flex;align-items:center;
   font-size:.66rem;font-weight:600;white-space:nowrap;
   border-radius:999px;padding:3px 9px;
@@ -217,11 +218,23 @@
   border:1px solid var(--pv-line)}
 
 /* ══ ページ送り ═══════════════════════════════════════════════════
-   ★件数もカバー社数も出さない。出すのは「今めくっている場所」だけ。
-     総数を出すと会員規模そのものが漏れる（前回やめた線）。 */
-.ap-pager{display:flex;align-items:center;justify-content:center;gap:14px;
+   ★2026-08-24、オーナー判断で**件数を出す**ことにした（「全N件中 1〜10件を表示」）。
+     N は絞り込んだ後の行数。絞り込みを解いた全体は上のカードが持っている。
+   ★数字のページ番号（1 2 3 … 13）。多いときは真ん中を … で畳む。
+   ⚠️ 押した先が空、という行き止まりを作らないこと（JS 側で頁を丸めている）。 */
+.ap-pager{display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:12px;
   padding:14px 16px;border-top:1px solid var(--pv-line);
   background:var(--pv-surface-2)}
+.ap-pgs{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+/* 数字のボタンは正方に近づける（前へ／次へと違って幅が要らない）。 */
+.ap-pg--n{min-width:36px;padding:7px 10px;
+  font-variant-numeric:tabular-nums;text-align:center}
+.ap-pg--n[aria-current="page"]{color:#fff;background:var(--pv-orange);
+  border-color:var(--pv-orange)}
+.ap-pg--n[aria-current="page"]:hover{color:#fff}
+.ap-pg-e{padding:0 2px;font-size:.76rem;font-weight:700;color:var(--pv-ink-3);
+  user-select:none}
 .ap-pg{min-height:36px;padding:7px 16px;border-radius:999px;
   border:1px solid var(--pv-line);background:var(--pv-surface);color:var(--pv-ink-2);
   font-family:inherit;font-size:.76rem;font-weight:700;cursor:pointer;
@@ -257,25 +270,24 @@
 .ap-cta:focus-visible{outline:2px solid var(--pv-orange);outline-offset:3px}
 .ap-cta:active{transform:scale(.98)}
 
-@media (max-width:780px){
-  /* ★狭いところでは縦に積む。2枚を横に並べたままだとドーナツの凡例が折り返して、
-       円が凡例より小さく見える。 */
-  .ap-viz{grid-template-columns:1fr}
-}
-
 @media (max-width:760px){
+  /* ★カードは2列に折る。4枚を横に潰すと数字が読めない。 */
+  .ap-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .ap-st{padding:14px}
+  .ap-st-n{font-size:1.28rem}
   .ap-filter{padding:14px}
   .ap-vcard{padding:16px}
   .ap-plot{height:104px;gap:4px}
   .ap-tbl th,.ap-tbl td{padding:11px 12px}
   .ap-logo{width:26px;height:26px}
   .ap-cell-air{gap:8px}
-  .ap-pager{gap:10px;padding:12px}
+  .ap-pager{gap:10px;padding:12px;justify-content:center}
+  .ap-pgs{justify-content:center}
 }
 
 /* ★ 要素を display:none にしない（my-value.css と同じ約束）。
      動きを止めるだけにする。 */
 @media (prefers-reduced-motion:reduce){
-  .ap-sel,.ap-clear,.ap-cta,.ap-pg,.ap-unsel,.ap-tbl tbody tr{transition:none}
-  .ap-clear:active,.ap-cta:active,.ap-pg:active,.ap-unsel:active{transform:none}
+  .ap-sel,.ap-q,.ap-clear,.ap-cta,.ap-pg{transition:none}
+  .ap-clear:active,.ap-cta:active,.ap-pg:active{transform:none}
 }

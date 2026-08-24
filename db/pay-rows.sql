@@ -29,18 +29,24 @@
 --   ・預かりは明細検証の経路を通らないので verified は常に false
 --   ・人の単位は ip_day_hash（同じ日・同じ回線＝同じ人とみなす）。
 --     日をまたぐと同じ人でも別の値になるので、**その人は2行に見える**。
---     行数を人数と読まないこと（本棚側の「同じ人が2機材」も同じ）。
+--     行数を人数と読まないこと。
+--
+-- 2026-08-24 オーナー判断：**機材の列を外した。**
+--   マイページを3枚（REAL PAY / DEEP PAY / VERIFIED PAY）に分けたのに合わせて、
+--   1枚目の REAL PAY からは機材を落とす。「787 の機長」まで分かると、
+--   同じ会社の同僚には1人に絞れてしまうため。
+--   ★列と絞り込みは**同時に**外すこと。列だけ消して機材で絞れる状態にすると、
+--     絞った結果から各行の機材が逆算できる（隠したことにならない）。
 --
 -- ★これで匿名性がどこまで落ちたか（正直に書いておく）
---   会社・職位・機材の3つが分かっている同僚には、行を当てられうる。
---   「うちの 787 の機長で去年から居るのはあいつだけ」が成り立つ規模だと、
---   その行はその人のものだと分かる。**これは承知のうえで選んだ形。**
+--   出るのは会社と職位だけ。それでも「うちの機長は3人しか居ない」が成り立つ規模なら、
+--   候補はそこまで絞れる。**これは承知のうえで選んだ形。**
 --   したがってこの設計を支えているのは、いま次の7つだけ。
 --
 --     ① 鍵         給与明細を1枚出した人だけ・90日（サーバ側。anon には開かない）
---     ② 内訳は割合だけ 基地・在籍年数・年代・投稿月・原本通貨・契約形態・国籍・
+--     ② 準識別子ゼロ 機材・基地・在籍年数・年代・投稿月・原本通貨・契約形態・国籍・
 --                   レポートID・提出日は1つも返さない（列にも group by にも入れない）。
---                   支給の内訳は **整数パーセントの5つ組だけ**を返す（金額は返さない）
+--                   支給の内訳も返さない（内訳は DEEP PAY の担当）
 --     ③ 有効数字2桁  $183,456 は $180,000 として出る。1円まで一致する個票が存在しない
 --     ④ 1行＝1人    同じ人の複数月は年換算の中央値で1行に畳む（回数から常連が割れない）
 --     ⑤ 引数ゼロ    総当たりで区分を指定して引く面が無い
@@ -50,24 +56,36 @@
 --   ③を外すと個票そのものになる。④を外すと出した回数が漏れる。
 --   **この7つは1つも外さないこと。**
 --
--- ★②は 2026-08-24 に「準識別子ゼロ」から緩めた。何を手放したかを正直に書く。
---   オーナーの指示は「行を選ぶとその人の支給の内訳が円グラフで見える」。
---   内訳そのもの（基本給いくら・パーディアムいくら）を返すと、
---   1人ずつの実額が並ぶ＝③の丸めをすり抜けてしまう。そこで返すのは
---   **割合だけ**にした（{m 月々の支給, b 年1回の賞与, d パーディアム,
---   h 住宅手当, o その他の手当}。整数・合計ちょうど100）。
+-- ★数え上げについて。2026-08-24 オーナー判断で**出すことにした**。
+--   画面の上に4枚の数字が並ぶ：
+--     ・給与を出したパイロット … 表の行数（画面が rows を数える。ここは前から数えれば分かった）
+--     ・実給与の投稿           … ★stats.reports（新しく外へ出る）
+--     ・航空会社               … 表に出ている会社の数（同上、前から分かった）
+--     ・今月の新規投稿         … ★stats.month（新しく外へ出る）
 --
---   それでも次のことは新たに読めるようになった：
---     ・賞与の比重が大きい人／ゼロの人が、1人ずつ分かる
---     ・パーディアムの比重、住宅手当の有無が、1人ずつ分かる
---     ・画面の年収（有効数字2桁）に割合を掛ければ、実額は ±10% ほどで逆算できる
---   逆に、次は今までどおり1つも出ない：
---     ・基地・年代・在籍年数・投稿月・原本通貨・契約形態・レポートID
+--   ★これまでは逆のことを書いていた。
+--     「合計件数・カバー社数・直近30日で +X件 を出さない（会員規模そのものが漏れる）」
+--     「ページ送りは10件ずつ。出すのは何ページ目かだけ」
+--     この2つは**運用ルール**で、下の契約①〜⑦とは別のもの。オーナー判断で外した。
 --
---   ★やめるときは、下の 'comp' を返すのをやめるだけでよい。
---     画面は comp が無ければ円グラフを出さない作りにしてある
---     （自分の支給構成と年収の分布は my_pay_reports 由来なので残る）。
---     ②の見出しも「準識別子ゼロ」に戻すこと。
+--   ★理由。この画面は「1枚出した人だけが読める」＝ Give & Get の Get の側。
+--     出した人に「今どれだけ集まっているか」が見えないと、出した意味が返ってこない。
+--
+--   ★正直に書いておく。これで新しく外へ出るのは
+--     「今どれだけ集まっているか」と「今月どれだけ増えたか」の2つ。
+--     会員数そのものではない（出していない会員は1も足されない）。
+--     契約①〜⑦は**1つも外していない**。
+--
+-- ★内訳（支給の割合）について。2026-08-24 にいったん入れて、同じ日に外した。
+--   「行を選ぶとその人の支給の内訳が円グラフで見える」形にしてみたが、
+--   オーナー判断でマイページを3枚に分けることになり、
+--   「この給与は何で構成されているか」は **DEEP PAY が複数の投稿を集計して**見せる、
+--   と役割が決まった。1人ずつの内訳を返すのは REAL PAY の仕事ではない。
+--   ＝ ここは内訳を1つも返さない。②は「準識別子ゼロ」のまま守られている。
+--
+--   ★pv_pay_comp / pv_pct5 / pv_pending_comp の3つは**定義だけ残してある**
+--     （DEEP PAY で使う）。誰にも grant していないので、今は誰からも呼べない。
+--     pv_pay_rows からは呼ばない。自己点検 22 がそれを見ている。
 --
 -- ★⑦とは何か（外した p10-p90 クリップとは別物）
 --   クリップは「同じ区分の実データの上下1割に寄せる」＝**本物の値を書き換える**処理で、
@@ -221,6 +239,11 @@ comment on function public.pv_pending_usd(jsonb) is
 -- ════════════════════════════════════════════════════════════════
 -- 1-c. 支給の内訳（割合だけ）
 --
+-- ★ここから下の3つ（pv_pay_comp / pv_pct5 / pv_pending_comp）は、
+--   いま**どこからも呼ばれていない**。DEEP PAY で使うために定義だけ置いてある。
+--   REAL PAY（pv_pay_rows）は行そのものしか返さない（ファイル冒頭②）。
+--   誰にも grant していないので、置いてあるだけでは誰からも呼べない。
+--
 -- ★なぜ「割合」なのか。
 --   金額（基本給いくら・パーディアムいくら）を1人ずつ返すと、③の
 --   「有効数字2桁」をすり抜けて実額の個票ができる。割合なら、画面に出ている
@@ -305,7 +328,8 @@ comment on function public.pv_pay_comp(
   numeric, numeric, numeric, numeric, numeric, numeric, text, numeric,
   numeric, numeric, numeric, numeric, numeric, numeric) is
   '支給の内訳を「割合」（合計1・5本）で返す。金額は返さない。'
-  '足し算は pv_annual_total と一致する。引数の並びもあれと同じ。誰にも grant しない。';
+  '足し算は pv_annual_total と一致する。引数の並びもあれと同じ。'
+  '誰にも grant しない。今はどこからも呼ばれていない（DEEP PAY 用）。';
 
 
 -- ────────────────────────────────────────────────────────────────
@@ -357,7 +381,8 @@ $$;
 revoke all on function public.pv_pct5(numeric[]) from public, anon, authenticated;
 
 comment on function public.pv_pct5(numeric[]) is
-  '割合5本を整数パーセント（合計100）にする。端数は最大の成分に寄せる。誰にも grant しない。';
+  '割合5本を整数パーセント（合計100）にする。端数は最大の成分に寄せる。'
+  '誰にも grant しない。今はどこからも呼ばれていない（DEEP PAY 用）。';
 
 
 -- ────────────────────────────────────────────────────────────────
@@ -410,7 +435,7 @@ revoke all on function public.pv_pending_comp(jsonb) from public, anon, authenti
 
 comment on function public.pv_pending_comp(jsonb) is
   '登録前に預かった給与 payload の内訳を「割合」で返す。金額もレートも使わない。'
-  '誰にも grant しない＝pv_pay_rows の中からだけ使う。';
+  '誰にも grant しない。今はどこからも呼ばれていない（DEEP PAY 用）。';
 
 
 -- ════════════════════════════════════════════════════════════════
@@ -418,13 +443,20 @@ comment on function public.pv_pending_comp(jsonb) is
 --
 -- 返り値
 --   { ok:true, state:'locked', rows:[] }   鍵が無い／切れている
---   { ok:true, state:'open',   rows:[ … ] } 鍵がある
+--   { ok:true, state:'open',   rows:[ … ], stats:{ reports, month } } 鍵がある
+--
+-- stats（2026-08-24 に足した。理由はファイル冒頭「★数え上げについて」）
+--   reports … 提出の件数。同じ人の複数月もそれぞれ1件（＝ rows の数より必ず多いか同じ）
+--   month   … そのうち今月に入ったぶん
+--   ★どちらも rows を作ったのと同じ材料（下の sane）から数える。
+--     別々に数えると「126件なのに表は60行」の説明がつかなくなる。
+--   ★鍵が無いときは stats ごと返さない（数字も鍵の内側）。
 --
 -- rows[] の1件
---   { airline, pos, fleet, annual_usd, verified }
+--   { airline, pos, annual_usd, verified }
 --     airline … 航空会社コード。自由入力の社名の人は 'other' のまま
 --               （打ち込まれた文字列は返さない。画面が固定の札に置き換える）
---     fleet   … 機材コード。'other' はそのまま「その他」として出る
+--     ★機材は返さない（2026-08-24 に外した。理由はファイル冒頭）。
 --
 -- 材料は2つ。本棚（会員が出したぶん）と、まだ移っていない預かり。
 --   ★預かりは claimed_at が null のものだけ。移したものは本棚側に同じ人が居る。
@@ -433,8 +465,8 @@ comment on function public.pv_pending_comp(jsonb) is
 --   ★最新月を採らない。最新月は投稿の新しさと相関するので、月をまたいで並べると
 --     個人の変化を定点観測できてしまう。中央値なら2ヶ月の人は2値の平均＝
 --     どの明細にも存在しない数になる（むしろ望ましい）。
---   ★同じ人が 787 と 330 の両方を出していれば、機材ごとに1行ずつ出る。
---     これは「1人が2人に見える」ということなので、行数を人数と読まないこと。
+--   ★機材を返さなくなったので、同じ人が 787 と 330 の両方を出していても
+--     1行に畳まれる（前は機材ごとに1行ずつ出ていた）。④「1行＝1人」に近づいた。
 -- ════════════════════════════════════════════════════════════════
 create or replace function public.pv_pay_rows()
 returns jsonb
@@ -446,7 +478,7 @@ as $$
 declare
   v_uid   uuid := auth.uid();
   v_until timestamptz;
-  v_rows  jsonb;
+  v_out   jsonb;
 begin
   if v_uid is null then
     raise exception 'ログインが必要です' using errcode = '42501';
@@ -465,23 +497,14 @@ begin
     -- ★ここで選んだ列がすべて。増やす前に必ずファイル冒頭の②を読む。
     --   自由入力の社名の列は、ここにも下にも1度も出てこない（読まない）。
     --   ★この行に列名そのものを書かないこと。自己点検8が「読んでいる」と誤検知する。
+    --   ★最後の1列は「いつ出されたか」。数を数えるためだけに持つ。
+    --     行として返さない・並べ替えにも使わない（契約⑥）。自己点検 26 が見ている。
     select 'r:' || r.proof_hash as pkey,
            r.airline            as airline,
            r."position"         as pos,
-           r.fleet              as fleet,
            r.annual_total_usd   as usd,
            (r.verify_level >= 1) as vf,
-           -- ★内訳。返すのは「割合」（合計1の5本）で、金額は1つも持ち出さない。
-           --   ここでの並びは m 月々の支給 / b 年1回の賞与 / d パーディアム /
-           --   h 住宅手当 / o その他の手当。中身は 1-c 章を読む。
-           public.pv_pay_comp(
-             r.gross_monthly,
-             r.base_pay, r.hourly_rate, r.guaranteed_hours,
-             r.block_hours, r.per_diem,
-             r.housing_type, r.housing_amount,
-             r.transport, r.command_pay, r.other_allowance,
-             r.bonus_annual, r.profit_share_annual,
-             r.bonus_month) as comp
+           r.created_at         as cat
       from public.pay_reports r
      where r.annual_total_usd is not null      -- レートの無い通貨は落ちる（6章と同じ）
        and r.created_at >= now() - interval '24 months'
@@ -494,10 +517,9 @@ begin
     select 'p:' || q.ip_day_hash,
            q.airline,
            q.payload->>'position',
-           q.payload->>'fleet',
            public.pv_pending_usd(q.payload),
            false,
-           public.pv_pending_comp(q.payload)
+           q.created_at
       from public.pay_reports_pending q
      where q.claimed_at is null
        and q.ip_day_hash is not null
@@ -516,41 +538,46 @@ begin
   ),
   person as (
     -- ★人ごとに畳む。ここが「1行＝1人」の実体。
-    select pkey, airline, pos, fleet,
+    select pkey, airline, pos,
            -- ★percentile_cont は numeric を渡しても double precision で返る。
            --   round(値, 桁) は numeric にしか無いので、先に ::numeric を通す。
            (percentile_cont(0.5) within group (order by usd))::numeric as v,
-           bool_or(vf) as verified,
-           -- ★内訳は「その人の月ごとの割合」を平均する。金額は足さない。
-           --   割合は通貨に依らないので、月ごとに通貨が違う人が居ても混ざらない。
-           --   1ヶ月でも割合を出せない月がある人は、内訳ぜんぶを出さない
-           --   （半分だけの円グラフを描くより、描かない方がよい）。
-           case when bool_and(comp is not null)
-                then array[avg(comp[1]), avg(comp[2]), avg(comp[3]),
-                           avg(comp[4]), avg(comp[5])]
-           end as parts
+           bool_or(vf) as verified
       from sane
-     group by pkey, airline, pos, fleet
+     group by pkey, airline, pos
+  ),
+  listed as (
+    select coalesce(jsonb_agg(jsonb_build_object(
+             'airline',    p.airline,
+             'pos',        p.pos,
+             'annual_usd', public.pv_sig2(p.v),
+             'verified',   p.verified
+           -- ★並びに時間を入れないこと。投稿順に並べると、並び順そのものが
+           --   「誰が最近出したか」になる（外した30日の遅延より悪い）。
+           --   md5 なので毎回同じ並びで、しかも中身とも関係が無い。
+           --   人のキーそのものは返さない（並べるためだけに使う）。
+           ) order by md5(p.pkey)), '[]'::jsonb) as j
+      from person p
+  ),
+  tally as (
+    -- ★数え上げ。**必ず sane から数える**（＝行と同じ材料。同じ幅・同じ期間・
+    --   同じ「移した預かりは読まない」）。別の場所から数え直すと、画面の
+    --   「◯件」と表の行数の関係が説明できなくなる。
+    --   ここで数えるのは件数だけで、誰がいつ出したかは1つも外へ出ない。
+    select count(*)::int as reports,
+           count(*) filter (where cat >= date_trunc('month', now()))::int as mo
+      from sane
   )
-  select coalesce(jsonb_agg(jsonb_build_object(
-           'airline',    p.airline,
-           'pos',        p.pos,
-           'fleet',      p.fleet,
-           'annual_usd', public.pv_sig2(p.v),
-           'verified',   p.verified,
-           -- ★整数パーセント5本（合計ちょうど100）。金額は入らない。
-           --   出せない人は null。画面は null なら円グラフを出さない。
-           --   ここを消すだけで「内訳を見せる」をやめられる（冒頭②の「やめるとき」）。
-           'comp',       public.pv_pct5(p.parts)
-         -- ★並びに時間を入れないこと。投稿順に並べると、並び順そのものが
-         --   「誰が最近出したか」になる（外した30日の遅延より悪い）。
-         --   md5 なので毎回同じ並びで、しかも中身とも関係が無い。
-         --   人のキーそのものは返さない（並べるためだけに使う）。
-         ) order by md5(p.pkey)), '[]'::jsonb)
-    into v_rows
-    from person p;
+  select jsonb_build_object(
+           'ok',    true,
+           'state', 'open',
+           'rows',  l.j,
+           'stats', jsonb_build_object('reports', t.reports, 'month', t.mo)
+         )
+    into v_out
+    from listed l cross join tally t;
 
-  return jsonb_build_object('ok', true, 'state', 'open', 'rows', v_rows);
+  return v_out;
 end;
 $$;
 
@@ -564,10 +591,11 @@ grant execute on function public.pv_pay_rows() to authenticated;
 comment on function public.pv_pay_rows() is
   '実給与の匿名一覧。1行＝1人（複数月は年換算の中央値で畳む）。出した人は全員出る。'
   '本棚（pay_reports）と、まだ移っていない預かり（pay_reports_pending）の両方から作る。'
-  '基地・在籍年数・年代・投稿月・原本通貨・契約形態・自由入力の社名は返さない。'
-  '支給の内訳は comp（m/b/d/h/o の整数パーセント・合計100）だけを返す。金額は返さない。'
+  '機材・基地・在籍年数・年代・投稿月・原本通貨・契約形態・自由入力の社名は返さない。'
+  '支給の内訳も返さない（内訳は DEEP PAY の担当）。'
   '金額は有効数字2桁に丸め、年 $10,000〜$700,000 の外は打ち間違いとして出さない。'
   '並びは md5(人のキー) 順で投稿順ではない。'
+  '2026-08-24 から stats（提出の件数・今月のぶん）も返す。行と同じ材料から数える。'
   '★引数を取らない＝他人の区分を狙って引く面が無い。'
   '★鍵は給与明細の access_until のみ。口コミの鍵では開かない。';
 
@@ -577,9 +605,9 @@ comment on function public.pv_pay_rows() is
 --
 -- ★1本の SELECT にしてある。Supabase の SQL Editor は複数文を流すと
 --   最後の1本の結果しか出さないので、分けて書くと上から順に消えていく。
--- 期待：24行すべて ✅。1つでも ❌ なら、そこが効いていない。
+-- 期待：26行すべて ✅。1つでも ❌ なら、そこが効いていない。
 --
--- 特に 4・8・12・13・14・16・22 は「静かに壊れる」種類のもの。画面には何も出ないまま、
+-- 特に 4・8・12・13・14・16・22・23 は「静かに壊れる」種類のもの。画面には何も出ないまま、
 -- 他人の個票に届く経路が開く（16 は逆に、同じ人が二重に出る）。
 -- ════════════════════════════════════════════════════════════════
 with f as (
@@ -637,7 +665,7 @@ from (
   union all
   select 10, '同じ人の複数月を1行に畳んでいる（人のキーで group by）',
          case when f_rows is null then false
-              else pg_get_functiondef(f_rows) like '%group by pkey, airline, pos, fleet%'
+              else pg_get_functiondef(f_rows) like '%group by pkey, airline, pos%'
          end from f
   union all
   select 11, '並びに時間が入っていない（md5 順・投稿順ではない）',
@@ -683,11 +711,13 @@ from (
          case when f_pend is null then false
               else pg_get_functiondef(f_pend) like '%pv_annual_total(%' end from f
   union all
-  -- ── 内訳（割合）まわり。2026-08-24 に足した ──────────────────
-  select 20, '内訳の関数が3つそろっている',
+  -- ── 内訳（割合）まわり ──────────────────────────────────────
+  -- ★この3つは DEEP PAY で使うために**定義だけ**置いてある。
+  --   REAL PAY（pv_pay_rows）からは呼ばない。22 がそれを見張っている。
+  select 20, '内訳の関数が3つそろっている（DEEP PAY 用に定義だけ置いてある）',
          (f_comp is not null and f_pct is not null and f_pcomp is not null) as ok from f
   union all
-  select 21, '内訳の関数は誰にも開いていない（pv_pay_rows の中からだけ）',
+  select 21, '内訳の関数は誰にも開いていない（今はどこからも呼ばれていない）',
          case when f_comp is null or f_pct is null or f_pcomp is null then false
               else not has_function_privilege('anon', f_comp, 'execute')
                and not has_function_privilege('authenticated', f_comp, 'execute')
@@ -697,11 +727,14 @@ from (
                and not has_function_privilege('authenticated', f_pcomp, 'execute')
          end from f
   union all
-  -- ★22 がいちばん静かに壊れる。pv_pct5 を通さずに配列や金額をそのまま
-  --   返す形にすると、画面は同じに見えるのに実額の個票が出ていく。
-  select 22, '★内訳は割合にしてから返している（金額のまま返していない）',
+  -- ★22 と 23 が「静かに戻る」2つ。どちらも画面は動いたままで、
+  --   出て行く情報だけが増える。REAL PAY は行そのものしか返さない。
+  select 22, '★REAL PAY は支給の内訳を1つも返していない（内訳は DEEP PAY の担当）',
          case when f_rows is null then false
-              else pg_get_functiondef(f_rows) like '%pv_pct5(%'
+              else pg_get_functiondef(f_rows) not like '%pv_pct5(%'
+               and pg_get_functiondef(f_rows) not like '%pv_pay_comp(%'
+               and pg_get_functiondef(f_rows) not like '%pv_pending_comp(%'
+               and pg_get_functiondef(f_rows) not like '%''comp''%'
                and pg_get_functiondef(f_rows) not like '%''base_pay''%'
                and pg_get_functiondef(f_rows) not like '%''gross_monthly''%'
                and pg_get_functiondef(f_rows) not like '%''bonus_annual''%'
@@ -709,9 +742,9 @@ from (
                and pg_get_functiondef(f_rows) not like '%''housing_amount''%'
          end from f
   union all
-  select 23, '預かりの内訳も同じ足し算から作っている（pv_pay_comp を呼んでいる）',
-         case when f_pcomp is null then false
-              else pg_get_functiondef(f_pcomp) like '%pv_pay_comp(%' end from f
+  select 23, '★REAL PAY は機材を返していない（列にも group by にも無い）',
+         case when f_rows is null then false
+              else pg_get_functiondef(f_rows) not like '%fleet%' end from f
   union all
   select 24, '内訳の関数も自由入力の社名・準識別子を読んでいない',
          case when f_comp is null or f_pcomp is null then false
@@ -721,6 +754,19 @@ from (
                    '(base_iata|seniority_years|age_bucket|contract_type|tax_country|nationality|period_month)'
                and pg_get_functiondef(f_pcomp) !~
                    '(base_iata|seniority_years|age_bucket|contract_type|tax_country|nationality|period_month)'
+         end from f
+  union all
+  -- ── 数え上げ（2026-08-24）──────────────────────────────────
+  select 25, '★数え上げは一覧と同じ材料から数えている（別々に数えていない）',
+         case when f_rows is null then false
+              else pg_get_functiondef(f_rows) like '%''stats''%'
+               and pg_get_functiondef(f_rows) like '%from sane%'
+         end from f
+  union all
+  select 26, '★数え上げに使う投稿時刻を、行としては返していない',
+         case when f_rows is null then false
+              else pg_get_functiondef(f_rows) not like '%''created_at''%'
+               and pg_get_functiondef(f_rows) not like '%''cat''%'
          end from f
 ) t
 order by n;

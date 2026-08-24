@@ -1,5 +1,5 @@
 /* ════════════════════════════════════════════════════════════════
-   actual-pay.js — 「他のパイロットの実給与を見る」
+   actual-pay.js — REAL PAY（他のパイロットの実給与）
                    （actual-pay.html / en/actual-pay.html が共有）
 
    この画面は1枚の表でできている。**1行＝1人**。
@@ -16,10 +16,15 @@
 
    ── サーバから何が返ってくるか ────────────────────────────────
    pv_pay_rows() が返すのは1行あたり
-     航空会社コード / 職位 / 機材 / 年収(USD) / 検証済みか
-   の5つだけ。基地・在籍年数・年代・投稿月・原本の通貨・契約形態・国籍・
-   本人を指す識別子は**1つも返ってこない**（db/pay-rows.sql が出さない）。
+     航空会社コード / 職位 / 年収(USD) / 検証済みか
+   の4つだけ。**機材**・基地・在籍年数・年代・投稿月・原本の通貨・契約形態・
+   国籍・本人を指す識別子は**1つも返ってこない**（db/pay-rows.sql が出さない）。
    だからこのファイルにも、それらを受け取る場所は無い。
+
+   ★機材は 2026-08-24 に外した（オーナー判断）。「787 の機長」まで分かると
+     同じ会社の同僚には1人に絞れてしまうため。
+     ★列を消すだけでは足りない。**機材で絞る口も同時に消す**こと。
+       絞れると、絞った結果から各行の機材が逆算できる（隠したことにならない）。
 
    ★自由入力の社名の人は airline が 'other' で返る（打ち込まれた文字列は来ない）。
      画面は固定の札（「その他の航空会社」）に置き換える。
@@ -39,20 +44,18 @@
    ★ ランキングにしない。金額で並べ替える口も、「検証済みだけ」に絞る口も作らない。
      前者はこの画面を序列にする。後者は「絞った行数＝検証済みの人数」という生の数になる。
 
-   ── 図（2026-08-24 追加）──────────────────────────────────────
-   表の上に2枚並べる。左＝支給の内訳（ドーナツ）、右＝年収の分布（棒）。
-   ★モックは右に鎧戸を置く形だったが、この画面の本体は 988px しかない。
-     右へ 340px 取ると表が 630px になって6列が潰れるので、表の上に置いた。
-   ★左は既定で「あなたの支給構成」。my_pay_reports() は本人の行しか返さない。
-     表の行を押すと、その人の内訳に切り替わる。
-     ★他人の内訳に金額は1つも無い。サーバ（pv_pay_rows）が返すのは
-       整数パーセント5本（comp）だけで、金額を持っていない＝凡例に出せない。
-       真ん中に置くのは表の同じ行に出ている年収そのもの＝新しい数字を作っていない。
-     ★comp が無い行を選んでも壊れない（黙って「内訳を出せません」になる）。
-       サーバが comp を返すのをやめれば、この図は自動で消える
-       （db/pay-rows.sql 冒頭の「やめるとき」）。
-   ★右の棒に人数の数字は書かない。棒の高さで目分量に読めるところまで。
-   ★どちらも通貨を切り替えたら描き直すが、pv_pay_rows() は引き直さない。
+   ── 図 ────────────────────────────────────────────────────────
+   表の上に**1枚だけ**。年収の分布（棒）と、その上の「あなた」の位置。
+   ★棒に人数の数字は書かない。棒の高さで目分量に読めるところまで。
+   ★「あなた」の位置だけは my_pay_reports() から出す（本人の行しか返さない関数）。
+     自分の年収がいまの絞り込みの外なら出さない（軸の外に置くと目盛りが嘘に見える）。
+   ★通貨を切り替えたら描き直すが、pv_pay_rows() は引き直さない。
+
+   ★2026-08-24、支給の内訳のドーナツはこの画面から外した。
+     「この給与は何で構成されているか」は **DEEP PAY** が複数の投稿を集計して見せる。
+     1人ずつの内訳を出すのは REAL PAY の仕事ではない。
+     ＝ このファイルは PVViz（pay-viz.js）を使わない。HTML も読み込んでいない。
+   ★行を選ぶ仕掛けも一緒に落ちた（選んで見せるものがもう無い）。
    ════════════════════════════════════════════════════════════════ */
 (function (w, d) {
   'use strict';
@@ -80,39 +83,24 @@
   // ── 文言 ───────────────────────────────────────────────────────
   var T = {
     ja: {
-      hd: '他のパイロットの実給与',
-      badge: '本人記録',
-      hs: 'いままでに給与を出した人を、1行ずつそのまま並べています。1行が1人で、'
-        + '同じ人が何ヶ月ぶん出していても1行になります。'
-        + '金額は有効数字2桁に丸めた額で、並び順に意味はありません。',
+      hd: 'REAL PAY',
       all: 'すべて',
-      thAir: '航空会社', thPos: '職位', thFleet: '機材',
-      thAmt: '年収（丸め）', thMon: '月あたり', thVf: '出典',
+      thAir: '航空会社', thPos: '職位',
+      thAmt: '年収', thMon: '月あたり', thVf: '出典',
       othAir: 'その他の航空会社',
       vfNo: '本人記録',
+      stPilot: '一覧のパイロット', stPilotU: '人',
+      stRep: '実給与の投稿',       stRepU: '件',
+      stAir: '航空会社',           stAirU: '社',
+      stMon: '今月の新規投稿',     stMonU: '件',
       foot: 'この一覧は、給与を出したパイロットだけが読めます。'
-          + '載っているのは会社・職位・機材・丸めた金額と、支給の内訳の割合だけです'
-          + '（月あたりはその金額を12で割った数字です。'
-          + '内訳は割合だけで、金額は入っていません）。'
-          + '基地・年代・在籍年数・投稿した月は誰の行にも入っていません。',
-      /* 表の上の図。★「金額は持っていない」と言い切る（実際に持っていない）。 */
-      vizHd: '支給の内訳',
-      vizMine: 'あなたの支給構成（1か月ぶん）',
-      vizHint: '表の行を押すと、その人の内訳に切り替わります。',
-      vizBack: '自分に戻す',
-      vizPct: '※ 割合だけを出しています。金額は持っていません。',
-      vizNo: 'この行は内訳を出せません。',
-      vizNoMine: '給与明細を1枚出すと、ここにあなたの支給構成が出ます。',
+          + '載っているのは会社・職位・丸めた金額だけです'
+          + '（月あたりはその金額を12で割った数字です）。'
+          + '機材・基地・年代・在籍年数・投稿した月は誰の行にも入っていません。',
       vizDist: '年収の分布',
       vizDistS: 'いま表に出ている行を、表示中の通貨で刻んだものです。',
       vizYou: 'あなた',
-      cM: '月々の支給', cB: '年1回の賞与', cD: 'パーディアム',
-      cH: '住宅手当', cO: 'その他の手当',
-      segBase: '基本給', segCommand: '機長・役職手当', segFlight: '乗務変動手当',
-      segOther: 'その他手当', segHousing: '住宅手当', segTransport: '交通費',
-      segPerDiem: 'パーディアム', segBonus: '今月の賞与', segRest: '内訳を入れていない分',
-      housingNote: '※ 社宅（現物支給）は現金ではないので内訳に入れていません。',
-      pgPrev: '前へ', pgNext: '次へ', pgOf: '{a} / {b} ページ',
+      pgPrev: '前へ', pgNext: '次へ', pgRange: '全{n}件中 {a}〜{b}件を表示',
       lockT: '給与明細を1枚出すと、ここが開きます',
       lockS: '他のパイロットが記録した実給与は、自分も1枚出した人だけが読めます。'
            + '氏名も社員番号も受け取りません。明細の画像は端末の中だけで処理され、サーバーには送られません。',
@@ -126,39 +114,24 @@
       errS: '時間をおいてもう一度お試しください。'
     },
     en: {
-      hd: 'What other pilots actually earn',
-      badge: 'Pilot-recorded',
-      hs: 'Everyone who has submitted their pay, one row each. Several months from the same '
-        + 'pilot fold into a single row. Figures are rounded to two significant digits, '
-        + 'and the order means nothing.',
+      hd: 'REAL PAY',
       all: 'All',
-      thAir: 'Airline', thPos: 'Position', thFleet: 'Fleet',
-      thAmt: 'Annual (rounded)', thMon: 'Per month', thVf: 'Source',
+      thAir: 'Airline', thPos: 'Position',
+      thAmt: 'Annual', thMon: 'Per month', thVf: 'Source',
       othAir: 'Other airline',
       vfNo: 'Pilot-recorded',
+      stPilot: 'Pilots listed',  stPilotU: '',
+      stRep: 'Pay records',      stRepU: '',
+      stAir: 'Airlines',         stAirU: '',
+      stMon: 'Added this month', stMonU: '',
       foot: 'This list is readable only by pilots who have submitted their own pay. '
-          + 'A row carries the airline, the position, the fleet, a rounded figure and '
-          + 'the shares that make the pay up '
-          + '(the monthly column is that figure divided by twelve; the breakdown is '
-          + 'shares only, and carries no amounts). '
-          + 'Base, age, years of service and the month submitted appear on no row.',
-      vizHd: 'How the pay is made up',
-      vizMine: 'How your own pay is made up (one month)',
-      vizHint: 'Select a row in the table to see how that pilot is paid.',
-      vizBack: 'Back to yours',
-      vizPct: '※ Shares only. No amounts are carried here.',
-      vizNo: 'No breakdown for this row.',
-      vizNoMine: 'Submit one payslip and your own breakdown appears here.',
+          + 'A row carries the airline, the position and a rounded figure '
+          + '(the monthly column is that figure divided by twelve). '
+          + 'Fleet, base, age, years of service and the month submitted appear on no row.',
       vizDist: 'How annual pay is spread',
       vizDistS: 'The rows currently listed, bucketed in the currency shown.',
       vizYou: 'You',
-      cM: 'Monthly pay', cB: 'Annual bonus', cD: 'Per diem',
-      cH: 'Housing allowance', cO: 'Other allowances',
-      segBase: 'Base pay', segCommand: 'Command / position', segFlight: 'Flight variable',
-      segOther: 'Other allowances', segHousing: 'Housing', segTransport: 'Transport',
-      segPerDiem: 'Per diem', segBonus: 'Bonus this month', segRest: 'Not broken down yet',
-      housingNote: '※ Company-provided housing is not cash, so it is left out of the breakdown.',
-      pgPrev: 'Previous', pgNext: 'Next', pgOf: 'Page {a} of {b}',
+      pgPrev: 'Previous', pgNext: 'Next', pgRange: 'Showing {a}–{b} of {n}',
       lockT: 'Submit one payslip and this opens',
       lockS: 'Pay recorded by other pilots is readable by people who have recorded theirs too. '
            + 'We never take your name or staff number, and payslip images are processed on your own device.',
@@ -178,17 +151,13 @@
   // ── 状態 ───────────────────────────────────────────────────────
   var S = {
     air: {},          // 航空会社コード → 表示名
-    fleet: {},        // 機材コード → 表示名
     pos: {},          // 職位コード → 表示名
     rows: null,       // pv_pay_rows() の行（そのまま持つ）
     mode: '',         // 'locked' | 'open' | 'error'
-    fAir: '', fPos: '', fFleet: '',
+    fAir: '', fPos: '', fQ: '',   // fQ ＝ 社名の打ち込み（絞り込みの1つ）
+    stats: null,      // サーバから来る数え上げ { reports, month }。無ければそのカードを出さない
     page: 1,          // 1始まり。絞り込みを変えたら1に戻す（行き止まりを作らない）
-    /* ★選んでいる行の番号。S.rows の並び順そのもので、本人を指す識別子ではない
-         （サーバはそれを1つも返さない）。null なら自分の内訳を出す。 */
-    sel: null,
-    mine: null,       // 自分の最新の明細（内訳のドーナツの材料）
-    mineAll: null     // 自分の明細ぜんぶ（分布の「あなた」の位置に使う）
+    mineAll: null     // 自分の明細ぜんぶ（分布の「あなた」の位置にだけ使う）
   };
 
   var PER_PAGE = 10;
@@ -247,7 +216,6 @@
     return S.air[code] || code;
   }
   function posName(code) { return S.pos[code] || code; }
-  function fleetName(code) { return S.fleet[code] || code; }
 
   /* 社ロゴ。airline-logos.js（window.PV_LOGOS）が「コード → 拡張子」を持っている。
      ★salary-leveling.js の logoHtml は流用しない。あちらはブランド色（a.color）を
@@ -270,14 +238,62 @@
   }
 
   // ── 表 ─────────────────────────────────────────────────────────
+  /* 打ち込みの正規化。大小と全角スペースを潰すだけ。
+     ★語彙を舐めない。当たるのは「画面が持っている社名」だけで、
+       本人が打ち込んだ社名はサーバから来ないので、ここに当てる相手が居ない。 */
+  function norm(s) {
+    return String(s == null ? '' : s).replace(/　/g, ' ').trim().toLowerCase();
+  }
+  function hitQ(code) {
+    if (!S.fQ) return true;
+    return norm(airName(code)).indexOf(S.fQ) >= 0 || norm(code).indexOf(S.fQ) >= 0;
+  }
+
   function visibleRows() {
     if (!S.rows) return [];
     return S.rows.filter(function (r) {
+      if (!hitQ(r.airline)) return false;
       if (S.fAir && r.airline !== S.fAir) return false;
       if (S.fPos && r.pos !== S.fPos) return false;
-      if (S.fFleet && r.fleet !== S.fFleet) return false;
       return true;
     });
+  }
+
+  /* ══ 数え上げ（画面の上に並ぶ数字）═══════════════════════════════
+     2026-08-24 オーナー判断で「本当の数字だけ出す」ことにした。
+     ★4枚のうち2枚は rows を数えるだけ（新しく出て行くものはゼロ）。
+       残り2枚は pv_pay_rows() の stats から来る。
+     ★数が読めないカードは**そのカードごと出さない**。
+       サーバがまだ古い（stats を返さない）ときは2枚だけ並ぶ。
+       埋めるために 0 を置かない＝画面に嘘の数字を作らない。
+     ★絞り込みでは動かさない。ここは「全体で今どれだけ集まっているか」で、
+       絞った結果の話は下のページ送り（全N件中…）が持っている。 */
+  function renderStats() {
+    var box = el('ap-stats');
+    if (!box) return;
+    var open = (S.mode === 'open' && S.rows && S.rows.length);
+    if (!open) { box.hidden = true; box.innerHTML = ''; return; }
+
+    var seen = {}, airs = 0;
+    S.rows.forEach(function (r) {
+      if (r.airline == null || seen[r.airline]) return;
+      seen[r.airline] = 1; airs++;
+    });
+    var st = S.stats || {};
+    var cards = [
+      { n: S.rows.length, l: T.stPilot, u: T.stPilotU },
+      { n: (typeof st.reports === 'number') ? st.reports : null, l: T.stRep, u: T.stRepU },
+      { n: airs, l: T.stAir, u: T.stAirU },
+      { n: (typeof st.month === 'number') ? st.month : null, l: T.stMon, u: T.stMonU }
+    ].filter(function (c) { return c.n != null; });
+
+    if (!cards.length) { box.hidden = true; box.innerHTML = ''; return; }
+    box.hidden = false;
+    box.innerHTML = cards.map(function (c) {
+      return '<div class="ap-st"><div class="ap-st-n">' + esc(String(c.n))
+           + (c.u ? '<span class="ap-st-u">' + esc(c.u) + '</span>' : '')
+           + '</div><div class="ap-st-l">' + esc(c.l) + '</div></div>';
+    }).join('');
   }
 
   function renderRows() {
@@ -285,7 +301,7 @@
     if (!box) return;
 
     /* ★まだ pv_pay_rows() を引けていない。骨組みのまま待つ。
-       ここで描くと、辞書（社名・職位・機材）が届いた時の描き直しで
+       ここで描くと、辞書（社名・職位）が届いた時の描き直しで
        「まだありません」が一瞬出てから行が現れる。 */
     if (!S.mode) return;
 
@@ -294,11 +310,13 @@
            この画面の一番外側の約束。 */
       box.innerHTML = msg('lock', T.lockT, T.lockS, T.lockC);
       renderFilters();
+      renderStats();
       return;
     }
     if (S.mode === 'error') {
       box.innerHTML = msg('', T.errT, T.errS, '');
       renderFilters();
+      renderStats();
       return;
     }
 
@@ -307,9 +325,10 @@
     if (!rows.length) {
       /* 絞り込みのせいで空なのか、そもそも1行も無いのかで言うことが違う。
          同じ文言にすると「まだ誰も出していない」と読める（嘘になる）。 */
-      var filtered = !!(S.fAir || S.fPos || S.fFleet);
+      var filtered = !!(S.fAir || S.fPos || S.fQ);
       box.innerHTML = filtered ? msg('', T.fEmptyT, T.fEmptyS, '')
                                : msg('', T.emptyT, T.emptyS, T.emptyC);
+      renderStats();
       return;
     }
 
@@ -321,47 +340,77 @@
     var from = (S.page - 1) * PER_PAGE;
     var page = rows.slice(from, from + PER_PAGE);
 
+    /* ★列は5つ。行は押せない（押して見せるものが無い）。
+         行に tabindex や押せる目印を置かないこと。置くと「何か起きるはず」に見える。 */
     var h = '<div class="ap-tw"><div class="ap-tscroll"><table class="ap-tbl">'
           + '<thead><tr><th>' + esc(T.thAir) + '</th><th>' + esc(T.thPos) + '</th>'
-          + '<th>' + esc(T.thFleet) + '</th><th class="ap-num">' + esc(T.thAmt) + '</th>'
+          + '<th class="ap-num">' + esc(T.thAmt) + '</th>'
           + '<th class="ap-num">' + esc(T.thMon) + '</th>'
           + '<th>' + esc(T.thVf) + '</th></tr></thead><tbody>';
     for (var i = 0; i < page.length; i++) {
       var r = page[i];
-      /* ★行は押せる（左のドーナツがその人に切り替わる）。
-           閉じ方は3つ：もう一度押す／カードの「自分に戻す」／ESC。
-         ★aria-selected は使わない。あれは grid の中でしか正しく効かない。
-           aria-current はどの要素にも置けて、意味も「今これ」で合っている。 */
-      var on = (S.sel === r._i);
-      h += '<tr data-ap-row="' + r._i + '" tabindex="0"'
-         + (on ? ' class="is-sel" aria-current="true"' : '') + '>'
+      h += '<tr>'
          + '<td><span class="ap-cell-air">' + logoHtml(r.airline)
          +   '<span class="ap-air">' + esc(airName(r.airline)) + '</span></span></td>'
          + '<td>' + esc(posName(r.pos)) + '</td>'
-         + '<td>' + esc(fleetName(r.fleet)) + '</td>'
          + '<td class="ap-num"><span class="ap-amt">' + esc(money(r.annual_usd)) + '</span></td>'
          /* ★月あたりは画面の年収を12で割っただけ。新しい情報は1つも増えていない。 */
          + '<td class="ap-num"><span class="ap-mon">' + esc(moneyMonth(r.annual_usd)) + '</span></td>'
          + '<td>' + (r.verified ? vfMark() : '<span class="ap-vf-no">' + esc(T.vfNo) + '</span>') + '</td>'
          + '</tr>';
     }
-    h += '</tbody></table></div>' + pager(pages) + '</div>';
-    /* ★図は表の上。この画面の本体は 988px しかなく、右に鎧戸を足すと6列が潰れる。 */
-    box.innerHTML = renderViz(rows) + h + '<p class="ap-foot">' + esc(T.foot) + '</p>';
+    h += '</tbody></table></div>' + pager(rows.length, pages) + '</div>';
+
+    /* ★2段組。左が表、右が分布の棒1枚。
+       右に置くのは図だけで、説明のカードは置かない（オーナー判断 2026-08-24）。
+       狭いときは CSS が1段に畳んで棒が表の下に回る。
+       ★ foot（何が載っていないかの1文）は段組の外＝表の下いっぱいに置く。 */
+    var viz = renderViz(rows);
+    box.innerHTML = '<div class="ap-cols"><div class="ap-main">' + h + '</div>'
+                  + (viz ? '<aside class="ap-side">' + viz + '</aside>' : '')
+                  + '</div><p class="ap-foot">' + esc(T.foot) + '</p>';
+    renderStats();
   }
 
-  /* ページ送り。★件数は出さない（会員規模そのものが漏れる）。
-     出すのは「何ページ目か」だけで、これは今めくっている場所の話。 */
-  function pager(pages) {
-    if (pages < 2) return '';
-    var lbl = T.pgOf.replace('{a}', String(S.page)).replace('{b}', String(pages));
-    return '<div class="ap-pager">'
+  /* ページ番号の並び。多くなったら真ん中を … で畳む（1 2 3 … 13）。 */
+  function pageList(cur, n) {
+    var out = [], i;
+    if (n <= 7) { for (i = 1; i <= n; i++) out.push(i); return out; }
+    out.push(1);
+    var a = Math.max(2, cur - 1), b = Math.min(n - 1, cur + 1);
+    if (cur <= 3) { a = 2; b = 4; }
+    if (cur >= n - 2) { a = n - 3; b = n - 1; }
+    if (a > 2) out.push('…');
+    for (i = a; i <= b; i++) out.push(i);
+    if (b < n - 1) out.push('…');
+    out.push(n);
+    return out;
+  }
+
+  /* ページ送り。★2026-08-24、オーナー判断で件数を出すことにした
+     （出した人に「今どれだけ集まっているか」が見えないと Give & Get が成立しない）。
+     出すのは**絞り込んだ後の行数**で、絞り込みを解いた数＝上のカードが持っている。 */
+  function pager(total, pages) {
+    var from = (S.page - 1) * PER_PAGE;
+    var to = Math.min(total, from + PER_PAGE);
+    var lbl = T.pgRange.replace('{n}', () => String(total))
+                       .replace('{a}', () => String(from + 1))
+                       .replace('{b}', () => String(to));
+    var h = '<div class="ap-pager"><span class="ap-pg-n">' + esc(lbl) + '</span>';
+    if (pages >= 2) {
+      h += '<div class="ap-pgs">'
          + '<button type="button" class="ap-pg" data-ap-page="' + (S.page - 1) + '"'
-         + (S.page <= 1 ? ' disabled' : '') + '>' + esc(T.pgPrev) + '</button>'
-         + '<span class="ap-pg-n">' + esc(lbl) + '</span>'
-         + '<button type="button" class="ap-pg" data-ap-page="' + (S.page + 1) + '"'
+         + (S.page <= 1 ? ' disabled' : '') + '>' + esc(T.pgPrev) + '</button>';
+      pageList(S.page, pages).forEach(function (p) {
+        if (p === '…') { h += '<span class="ap-pg-e">…</span>'; return; }
+        h += '<button type="button" class="ap-pg ap-pg--n" data-ap-page="' + p + '"'
+           + (p === S.page ? ' aria-current="page"' : '') + '>' + p + '</button>';
+      });
+      h += '<button type="button" class="ap-pg" data-ap-page="' + (S.page + 1) + '"'
          + (S.page >= pages ? ' disabled' : '') + '>' + esc(T.pgNext) + '</button>'
          + '</div>';
+    }
+    return h + '</div>';
   }
 
   function vfMark() {
@@ -378,29 +427,13 @@
          + '</div>';
   }
 
-  // ── 図（ドーナツ・分布）─────────────────────────────────────────
-  /* 名前の集合が2つある。左の図は「自分」と「他人」で材料が違うため。
-       自分 … my_pay_reports() の細かい内訳（金額つき。my-value.html と同じ呼び方）
-       他人 … pv_pay_rows() の割合5本（金額を1つも持っていない） */
-  var SEGNAME = {
-    base: T.segBase, command: T.segCommand, flight: T.segFlight,
-    other: T.segOther, housing: T.segHousing, transport: T.segTransport,
-    perdiem: T.segPerDiem, bonus: T.segBonus, rest: T.segRest
-  };
-  var COMPNAME = { m: T.cM, b: T.cB, d: T.cD, h: T.cH, o: T.cO };
-
+  // ── 図（年収の分布だけ）───────────────────────────────────────
+  /* ★この画面に描くのは分布の棒1枚だけ。支給の内訳（ドーナツ）は 2026-08-24 に
+       外した＝ PVViz（pay-viz.js）はこのファイルから1度も呼ばない。 */
   function card(title, head, body) {
     return '<section class="ap-vcard"><div class="ap-vhd">'
          + '<h2 class="ap-vt">' + esc(title) + '</h2>'
          + (head || '') + '</div>' + body + '</section>';
-  }
-
-  /* いま選ばれている行。★絞り込みで消えた行は黙って外す
-       （消えた行のドーナツが残ると、表と図が食い違う）。 */
-  function selRow(rows) {
-    if (S.sel == null) return null;
-    for (var i = 0; i < rows.length; i++) if (rows[i]._i === S.sel) return rows[i];
-    return null;
   }
 
   /* 自分の年収。★サーバと同じ畳み方（複数月は中央値）にする。
@@ -414,35 +447,9 @@
     return (v.length % 2) ? v[m] : (v[m - 1] + v[m]) / 2;
   }
 
-  /* 左＝支給の内訳。行を選んでいなければ自分、選んでいればその人。 */
-  function vizComp(rows) {
-    var V = w.PVViz;
-    if (!V) return '';                       // pay-viz.js を読んでいないページ
-    var r = selRow(rows);
-    if (r) {
-      /* ★凡例に金額を出さない（amounts:false）。サーバは割合しか返していないので、
-           ここで金額を書くには自分で作るしかない＝作らない。
-         ★真ん中は表の同じ行に出ている年収そのもの。新しい数字は増えていない。 */
-      var s = V.compSegs(r.comp);
-      var body = s ? V.donutFromSegs(s, {
-        title: airName(r.airline) + ' / ' + posName(r.pos) + ' / ' + fleetName(r.fleet),
-        name: COMPNAME, amounts: false,
-        center: money(r.annual_usd), notes: [T.vizPct]
-      }) : '<div class="pt-empty">' + esc(T.vizNo) + '</div>';
-      var back = '<button type="button" class="ap-unsel" data-ap-unsel="1">'
-               + esc(T.vizBack) + '</button>';
-      return card(T.vizHd, back, body);
-    }
-    var dn = S.mine ? V.donut(S.mine, {
-      title: T.vizMine, name: SEGNAME, notes: { housing: T.housingNote }
-    }) : '';
-    if (!dn) dn = '<div class="pt-empty">' + esc(T.vizNoMine) + '</div>';
-    return card(T.vizHd, '', dn + '<p class="ap-vhint">' + esc(T.vizHint) + '</p>');
-  }
-
   var BINS = 8;
 
-  /* 右＝年収の分布。★人数の数字は書かない（棒の高さで目分量に読めるところまで）。
+  /* 年収の分布。★人数の数字は書かない（棒の高さで目分量に読めるところまで）。
      刻むのは「画面に出ている金額」＝表示通貨の有効数字2桁。だから通貨を
      切り替えると刻み目も変わる。それでよい（新しい数字は1つも増えていない）。 */
   function vizDist(rows) {
@@ -483,19 +490,8 @@
   }
 
   function renderViz(rows) {
-    var a = vizComp(rows), b = vizDist(rows);
-    return (a || b) ? '<div class="ap-viz">' + a + b + '</div>' : '';
-  }
-
-  /* 行を選ぶ／外す。★同じ行をもう一度押したら外れる。 */
-  function pick(i) {
-    var prev = S.sel;
-    S.sel = (i == null || S.sel === i) ? null : i;
-    render();
-    /* 描き直すと焦点が消える。キーボードで選んだ人を同じ行へ戻す。 */
-    var k = (S.sel == null) ? prev : S.sel;
-    var f = (k == null) ? null : d.querySelector('[data-ap-row="' + k + '"]');
-    if (f && f.focus) f.focus();
+    var b = vizDist(rows);
+    return b ? '<div class="ap-viz">' + b + '</div>' : '';
   }
 
   // ── 絞り込み ───────────────────────────────────────────────────
@@ -508,8 +504,9 @@
      無いものを並べると「選んだのに何も出ない」が「隠されている」に見えるし、
      112社のプルダウンは8行の表には大きすぎる。
 
-     ★段を下るほど絞る（会社 → 職位 → 機材）。上の段は絞らない
-       ＝ 会社を選んだあとでも、別の会社に移れる。 */
+     ★段を下るほど絞る（会社 → 職位）。上の段は絞らない
+       ＝ 会社を選んだあとでも、別の会社に移れる。
+     ★機材で絞る口は置かない（列に出していないものを絞れると逆算できる）。 */
   function listOf(key, name, pre) {
     var seen = {}, out = [];
     (S.rows || []).forEach(function (r) {
@@ -537,18 +534,14 @@
        空のプルダウンが3つ並ぶと、何かを隠しているように見える。 */
     var has = !!(S.rows && S.rows.length);
     if (bar) bar.hidden = !has;
-    if (!has) { S.fAir = ''; S.fPos = ''; S.fFleet = ''; return; }
+    if (!has) { S.fAir = ''; S.fPos = ''; S.fQ = ''; return; }
 
-    fill('ap-air', listOf('airline', airName, function () { return true; }), S.fAir);
+    /* ★打ち込みは会社のプルダウンにも効く。打った先に残る会社だけが選択肢になる
+         ＝「選べるのに0件」がここでも起きない。 */
+    fill('ap-air', listOf('airline', airName, function (r) { return hitQ(r.airline); }), S.fAir);
     fill('ap-pos', listOf('pos', posName, function (r) {
-      return !S.fAir || r.airline === S.fAir;
+      return hitQ(r.airline) && (!S.fAir || r.airline === S.fAir);
     }), S.fPos);
-    var fw = el('ap-fleet-wrap');
-    var fl = listOf('fleet', fleetName, function (r) {
-      return (!S.fAir || r.airline === S.fAir) && (!S.fPos || r.pos === S.fPos);
-    });
-    if (fw) fw.hidden = fl.length < 2;   // 1つしか無い機材は選ばせる意味が無い
-    fill('ap-fleet', fl, S.fFleet);
   }
 
   function render() { renderRows(); }
@@ -561,32 +554,45 @@
   function boot() {
     var head = el('ap-hd');
     if (head) {
-      /* ★札は見出しの行に置く。①（公開情報＝推定）が無くなったので、
-         「本人記録」だけの節を別に立てると見出しが2つ並んで同じことを言う。 */
-      head.innerHTML = '<h1 class="mr-hd-t">' + esc(T.hd)
-                     + ' <span class="ap-badge ap-badge--actual">' + esc(T.badge) + '</span></h1>'
-                     + '<p class="mr-hd-s">' + esc(T.hs) + '</p>';
+      /* ★見出しは社名も説明も札も付けない、ただの1行にする（オーナー判断 2026-08-24）。
+         以前ここに「本人記録」の橙の札を置いていたが、**行ごとの出典と食い違う**。
+         明細の裏付けがある行は 出典 が ✓ Verified になるので、
+         画面の上で「この画面は全部が本人の記録」と言い切ると、そこだけ嘘になる。
+         出典は行ごとに 出典 の列が持っている。見出しは重ねて言わない。 */
+      head.innerHTML = '<h1 class="mr-hd-t">' + esc(T.hd) + '</h1>';
     }
-    ['ap-air', 'ap-pos', 'ap-fleet'].forEach(function (id) {
+    /* 会社の打ち込み。★語彙は舐めない（当たるのは今この画面にある社名だけ）。 */
+    var q = el('ap-q');
+    if (q) {
+      q.addEventListener('input', function () {
+        S.fQ = norm(q.value);
+        /* 打ち込みで選んでいた会社が消えたら、その選択も落とす
+           （残すと「選んだのに0件」になる）。 */
+        if (S.fAir && !hitQ(S.fAir)) { S.fAir = ''; S.fPos = ''; }
+        S.page = 1;
+        render();
+      });
+    }
+    ['ap-air', 'ap-pos'].forEach(function (id) {
       var s = el(id);
       if (!s) return;
       s.addEventListener('change', function () {
         /* 上の段を変えたら下の段は落とす（残すと「選んだのに0件」になる）。 */
-        if (id === 'ap-air') { S.fAir = s.value; S.fPos = ''; S.fFleet = ''; }
-        else if (id === 'ap-pos') { S.fPos = s.value; S.fFleet = ''; }
-        else S.fFleet = s.value;
+        if (id === 'ap-air') { S.fAir = s.value; S.fPos = ''; }
+        else S.fPos = s.value;
         S.page = 1;
-        S.sel = null;      // 選んだ行が消えることがある。図も自分に戻す
         render();
       });
     });
     var clr = el('ap-clear');
     if (clr) clr.addEventListener('click', function () {
-      S.fAir = ''; S.fPos = ''; S.fFleet = ''; S.page = 1; S.sel = null;
+      S.fAir = ''; S.fPos = ''; S.fQ = ''; S.page = 1;
+      if (q) q.value = '';
       render();
     });
 
-    /* ページ送りも行の選択も、描き直すたびに作り直される。入れ物の側で受ける。 */
+    /* ページ送りは描き直すたびに作り直される。入れ物の側で受ける。
+       ★行そのものは押せない。行に効くハンドラをここへ足さないこと。 */
     var box = el('ap-rows');
     if (box) box.addEventListener('click', function (ev) {
       var t = ev.target;
@@ -598,35 +604,15 @@
         S.page = Number(b.getAttribute('data-ap-page')) || 1;
         render();
         if (box.scrollIntoView) box.scrollIntoView({ block: 'start', behavior: 'smooth' });
-        return;
       }
-      if (q('[data-ap-unsel]')) { pick(null); return; }         // 閉じ方1：「自分に戻す」
-      var tr = q('[data-ap-row]');
-      if (tr) pick(Number(tr.getAttribute('data-ap-row')));      // 閉じ方2：もう一度押す
-    });
-
-    /* 行はキーボードでも押せる（tabindex を付けた以上、Enter と Space が要る）。 */
-    if (box) box.addEventListener('keydown', function (ev) {
-      var tr = ev.target && ev.target.closest ? ev.target.closest('[data-ap-row]') : null;
-      if (!tr) return;
-      if (ev.key !== 'Enter' && ev.key !== ' ' && ev.key !== 'Spacebar') return;
-      ev.preventDefault();                    // Space でページが飛ぶのを止める
-      pick(Number(tr.getAttribute('data-ap-row')));
-    });
-
-    /* 閉じ方3：ESC。★ここはモーダルではない。スクロールも止めないし、
-       下のページも生きたまま。閉じ込めを作らない（assert-referral と同じ考え方）。 */
-    d.addEventListener('keydown', function (ev) {
-      if (ev.key !== 'Escape' && ev.key !== 'Esc') return;
-      if (S.sel == null) return;
-      pick(null);
     });
 
     /* ★通貨の切替は描き直すだけ。pv_pay_rows() を引き直さない。 */
     w.addEventListener('pv-currency-change', function () { render(); });
 
+    /* ★語彙から読むのは職位だけ。機材の辞書はこの画面が持たない
+         （持つと「いつでも列に戻せる」形が残る）。 */
     fetch(VOCAB_URL).then(function (r) { return r.json(); }).then(function (v) {
-      (v.fleets || []).forEach(function (f) { S.fleet[f.code] = f[L] || f.ja; });
       (v.positions || []).forEach(function (p) { S.pos[p.code] = p[L] || p.ja; });
     }).catch(function () {}).then(function () {
       return fetch(AIR_URL).then(function (r) { return r.json(); });
@@ -634,7 +620,7 @@
       var a = (j && j.airlines) || {};
       Object.keys(a).forEach(function (c) { S.air[c] = a[c][L] || a[c].ja || c; });
       /* ★辞書が後から届いても描き直す。RPC のほうが先に返ると、
-           行はコードのまま（ana / cap / b787）で固まる。 */
+           行はコードのまま（ana / cap）で固まる。 */
       render();
     }).catch(function () { render(); });
 
@@ -658,25 +644,24 @@
         var v = res && res.data;
         S.mode = (v && v.state === 'open') ? 'open' : 'locked';
         S.rows = (v && v.rows) || [];
-        /* ★行の番号。選択の目印にだけ使う。サーバは本人を指す識別子を1つも
-             返さないので、ここで作る番号も「今この画面に並んでいる順」以上の
-             意味を持たない（描き直しても並びは変わらない＝番号も動かない）。 */
-        S.rows.forEach(function (r, i) { r._i = i; });
+        /* ★数え上げ。古いサーバ（stats を返さない）でも画面は止めない
+             ＝ そのカードだけ出ない（0 を置いて嘘の数字を作らない）。 */
+        S.stats = (v && v.stats) || null;
         renderRows();
         if (S.mode === 'open') loadMine(client);
       }).catch(function () { S.mode = 'error'; renderRows(); });
     });
   }
 
-  /* 自分の支給構成。★本人の行しか返さない関数（my_pay_reports）を、この画面では
-     ここ1回だけ引く。落ちても表は止めない＝左の図が案内文になるだけ。
+  /* 自分の年収。★本人の行しか返さない関数（my_pay_reports）を、この画面では
+     ここ1回だけ引く。使い道は分布の「あなた」の位置ただ1つで、
+     金額も内訳も画面には出さない。落ちても表は止めない（破線が出ないだけ）。
      ★通貨を切り替えても引き直さない（pv_pay_rows と同じ約束）。 */
   function loadMine(client) {
     Promise.resolve(client.rpc('my_pay_reports')).then(function (res) {
       var rs = (res && !res.error && res.data && res.data.reports) || [];
       if (!rs.length) return;
       S.mineAll = rs;
-      S.mine = rs[rs.length - 1];      // 内訳は最新の1枚（my-value.html と同じ）
       render();
     }).catch(function () {});
   }

@@ -44,11 +44,9 @@
   <link rel="stylesheet" href="../pv-tokens.css">
   <!-- Page shell (.mr-*), shared with My Pay Report across both languages -->
   <link rel="stylesheet" href="../my-value.css">
-  <!-- The donut (.pt-*). ★ Load it before actual-pay.css: its
-       [data-theme="light"] .pt-x rules tie on specificity, so the light
-       overrides for this page only win by coming later. -->
-  <link rel="stylesheet" href="../pay-viz.css">
-  <!-- This page only (.ap-*) -->
+  <!-- This page only (.ap-*).
+       ★ pay-viz.css is not loaded here — this page has no donut
+         (how the pay is made up belongs to DEEP PAY). -->
   <link rel="stylesheet" href="../actual-pay.css">
 
   <style>
@@ -115,8 +113,16 @@
       </a>
       <a class="mr-side-a is-on" href="actual-pay.html" aria-current="page">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        <span>What others earn</span>
+        <span>REAL PAY</span>
       </a>
+      <span class="mr-side-a is-soon" aria-disabled="true">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+        <span>DEEP PAY</span>
+      </span>
+      <span class="mr-side-a is-soon" aria-disabled="true">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+        <span>VERIFIED PAY</span>
+      </span>
       <a class="mr-side-a is-add" href="pay-report.html#ps">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
         <span>Add pay anonymously</span>
@@ -132,12 +138,23 @@
       <!-- The heading is written by actual-pay.js (one place for both languages) -->
       <div class="mr-hd" id="ap-hd">
         <div class="mr-skel" style="height:30px;width:52%"></div>
-        <div class="mr-skel" style="height:14px;width:74%;margin-top:12px"></div>
       </div>
 
-      <!-- All three list only the groups that actually have rows (actual-pay.js builds
-           them from the rows). The whole bar hides when there are no rows, or no key. -->
+      <!-- The counts. actual-pay.js fills them in.
+           ★ A card whose number cannot be read is not rendered at all (never a zero).
+           ★ Filters do not move these. The filtered count lives under the table. -->
+      <div class="ap-stats" id="ap-stats" hidden></div>
+
+      <!-- Both list only the groups that actually have rows (actual-pay.js builds
+           them from the rows). The whole bar hides when there are no rows, or no key.
+           ★ No fleet filter. Filtering by something the table does not show would let
+             anyone read each row's fleet back out of the filtered result. -->
       <div class="ap-filter" id="ap-filter" hidden>
+        <div class="ap-f ap-f--q">
+          <label class="ap-f-l" for="ap-q">Search airlines</label>
+          <input class="ap-q" id="ap-q" type="search" autocomplete="off"
+                 spellcheck="false" placeholder="Type a name">
+        </div>
         <div class="ap-f">
           <label class="ap-f-l" for="ap-air">Airline</label>
           <select class="ap-sel" id="ap-air"></select>
@@ -145,10 +162,6 @@
         <div class="ap-f">
           <label class="ap-f-l" for="ap-pos">Position</label>
           <select class="ap-sel" id="ap-pos"></select>
-        </div>
-        <div class="ap-f" id="ap-fleet-wrap">
-          <label class="ap-f-l" for="ap-fleet">Fleet</label>
-          <select class="ap-sel" id="ap-fleet"></select>
         </div>
         <button type="button" class="ap-clear" id="ap-clear">Clear filters</button>
       </div>
@@ -198,9 +211,6 @@
 <!-- 社ロゴの一覧（コード → 拡張子）。生成物なので手で足さない。
      ★actual-pay.js より前に置く。無くても落ちないが、全社が頭2文字の札になる。 -->
 <script src="../airline-logos.js"></script>
-<!-- The charts themselves (window.PVViz). ★ Load before actual-pay.js.
-     If it fails to load the table still renders; only the charts go missing. -->
-<script src="../pay-viz.js"></script>
 <script src="../actual-pay.js"></script>
 </body>
 </html>

@@ -9,6 +9,12 @@
    こそ pay-rows.sql の revoke が意味を持つ。無いと「元から権限が無いだけ」を
    「revoke が効いた」と誤読する。
 
+   ★2026-08-24、マイページを3枚に分けた（REAL PAY / DEEP PAY / VERIFIED PAY）。
+     この画面（REAL PAY）は **機材も支給の内訳も返さない**。個人特定を避けるため、
+     画面で隠すのではなく**そもそも送らない**。返るのは会社・職位・年収・検証の4つだけ。
+     pv_pay_comp / pv_pct5 / pv_pending_comp は定義だけ残してある（DEEP PAY 用）ので、
+     その3つ単体の検査は下の「▼ 7-b」に残してある。消さないこと。
+
    ★2026-08-23、オーナー判断で k≧5 の門・30日の遅延・p10-p90 のクリップを外した。
      ＝ 出した人は全員そのまま行になる。だからこのファイルが見ているのは
      「出るか出ないか」ではなく、**出たあとで何が漏れないか**に移っている。
@@ -19,6 +25,7 @@
        ・自由入力の社名が返り値に出ないこと      … 打ち込まれた文字列そのものが識別子
        ・並びが投稿順でも金額順でもないこと      … 並び順から「誰が最近出したか」が読めない
        ・pv_pay_rows('ana') が落ちること         … 引数の面が存在しないこと
+       ・fleet と comp のキーごと無いこと         … 機材と内訳は REAL PAY の役目ではない
 
    行を作るときは必ず submit_pay_report() を通す。proof_hash を手で作らない
    （式は2か所にしか無い、が CLAUDE.md の約束）。
@@ -141,10 +148,10 @@ const pv2 = (v) => Number(v.toPrecision(2));
 
 // 会社コードは語彙から取る（このテストのために特定の社名を覚えない）
 const AIR = (await rows(
-  `select code from pv_airlines where code <> 'other' and active order by code limit 14`
+  `select code from pv_airlines where code <> 'other' and active order by code limit 15`
 )).map(r => r.code);
 const [A_ONE, A_M12, A_MIX, A_OLD, A_ORD, A_VF, A_OUT, A_FOTHER,
-       A_BAND, A_PEND, A_CLAIMED, A_NULLIP, A_CROSS, A_COMP] = AIR;
+       A_BAND, A_PEND, A_CLAIMED, A_NULLIP, A_CROSS, A_COMP, A_STAT] = AIR;
 
 // ════════════════════════════════════════════════════════════
 console.log('\n▼ 1. 鍵（ログインと access_until）');
@@ -261,6 +268,7 @@ await pend(A_NULLIP, { fleet: 'b787', month: 3, gross: 15000, iph: null });
 }
 
 /* (l) 支給の内訳（割合）の材料。6人ぶん、機材で見分けられるようにしてある。
+   ★機材は「▼ 7-b」でどの行を取るかに使うだけ。返り値には機材は出ない。
    ★手計算は下の「▼ 7-b」に書いてある。ここは形を作るだけ。 */
 {
   const put = async (fleet, p) => {
@@ -323,12 +331,14 @@ ok((await one(`select count(*)::int c from pay_reports where airline = $1`, [A_M
 ok(new Set(m12.map(x => String(x.annual_usd))).size === 1,
    '　3人とも同じ12か月なので同じ額に落ちる', JSON.stringify(m12.map(x => x.annual_usd)));
 
+/* ★機材を返さなくなったので、同じ人が2機材ぶん出しても1行に畳まれる。
+   前は機材ごとに1行だった。「1人＝1行」に近づいた側の変化。 */
 const mix = only(R, x => x.airline === A_MIX);
-ok(mix.length === 2, '1人が2機材を出すと機材ごとに1行（＝2行）', `= ${mix.length}行`);
-ok(mix.map(x => x.fleet).sort().join() === 'a330,b787', '　787 と 330 が1行ずつ');
-ok(mix.find(x => x.fleet === 'b787')?.annual_usd == 10000 * 12
-   && mix.find(x => x.fleet === 'a330')?.annual_usd == 20000 * 12,
-   '　機材ごとの額が混ざっていない', JSON.stringify(mix.map(x => [x.fleet, x.annual_usd])));
+ok(mix.length === 1, '★1人が2機材を出しても1行（機材で行が割れない）', `= ${mix.length}行`);
+ok((await one(`select count(*)::int c from pay_reports where airline = $1`, [A_MIX])).c === 2,
+   '　（元の表には2行ちゃんと入っている）');
+ok(Number(mix[0]?.annual_usd) === pv2((10000 * 12 + 20000 * 12) / 2),
+   '　額は2つの中央値（どちらの機材の額とも違う）', JSON.stringify(mix.map(x => x.annual_usd)));
 
 // ════════════════════════════════════════════════════════════
 console.log('\n▼ 5. 丸め（k≧5 の門を外した今、いちばん外側の守り）');
@@ -369,17 +379,21 @@ console.log('\n▼ 6. ★並びに時間が入っていない');
 }
 {
   // 2回呼んでも同じ並び（md5 は固定。呼ぶたびに変わると「並びが乱数」＝説明できない）
-  const a = (await payRows()).rows.map(x => `${x.airline}/${x.fleet}/${x.annual_usd}`).join('|');
-  const b = (await payRows()).rows.map(x => `${x.airline}/${x.fleet}/${x.annual_usd}`).join('|');
+  const a = (await payRows()).rows.map(x => `${x.airline}/${x.pos}/${x.annual_usd}`).join('|');
+  const b = (await payRows()).rows.map(x => `${x.airline}/${x.pos}/${x.annual_usd}`).join('|');
   ok(a === b, '何度呼んでも同じ並び（md5 順で固定）');
 }
 
 // ════════════════════════════════════════════════════════════
 console.log('\n▼ 7. ★返り値に何が入っているか');
 // ════════════════════════════════════════════════════════════
-const ALLOWED = ['airline', 'pos', 'fleet', 'annual_usd', 'verified', 'comp'];
+const ALLOWED = ['airline', 'pos', 'annual_usd', 'verified'];
 const extra = [...new Set(R.flatMap(x => Object.keys(x)))].filter(k => !ALLOWED.includes(k));
-ok(extra.length === 0, '返す項目は6つだけ', JSON.stringify(extra));
+ok(extra.length === 0, '返す項目は4つだけ', JSON.stringify(extra));
+ok(R.every(x => !('fleet' in x)),
+   '★どの行にも機材のキーが無い（null ではなく、キーごと無い）');
+ok(R.every(x => !('comp' in x)),
+   '★どの行にも支給の内訳のキーが無い（内訳は DEEP PAY の役目）');
 
 const raw = (await one(`select pv_pay_rows()::text t`)).t;
 const BANNED = ['proof_hash', 'base_iata', 'seniority', 'age_bucket', 'period_month',
@@ -390,12 +404,14 @@ const hit = BANNED.filter(w => raw.includes(w));
 ok(hit.length === 0, '準識別子・個人の内訳が返り値の文字列に1つも無い', JSON.stringify(hit));
 ok(!raw.includes(OTHER_NAME) && !raw.toLowerCase().includes('somewhere'),
    '★打ち込まれた自由入力の社名が返り値に1文字も無い');
-ok(only(R, x => x.airline === 'other').every(x => x.fleet === 'b737'),
-   '　その人たちは airline が other のまま（社名の代わりに固定のコード）');
+ok(only(R, x => x.airline === 'other').every(x => Object.keys(x).length === 4),
+   '　その人たちの行にも余分な欄が1つも無い（打ち込まれた社名の置き場が無い）');
 
-ok(only(R, x => x.fleet === 'other').length === 1,
-   '機材の「その他」はそのまま other として出る（ラベルは画面が付ける）');
-ok(R.every(x => x.airline && x.pos && x.fleet), 'ラベルの無い列が1つも無い');
+ok(!raw.includes('fleet') && !raw.includes('comp') && !raw.includes('"b737"'),
+   '★返り値の文字列に機材も内訳も1語も無い');
+ok(only(R, x => x.airline === A_FOTHER).length === 1,
+   '　機材の区分が無い行も、機材を返さないので普通に1行として出る');
+ok(R.every(x => x.airline && x.pos), 'ラベルの無い列が1つも無い');
 ok(R.every(x => typeof x.verified === 'boolean'), '検証は true/false の1つだけ（段階を持たない）');
 {
   const vf = only(R, x => x.airline === A_VF);
@@ -404,26 +420,38 @@ ok(R.every(x => typeof x.verified === 'boolean'), '検証は true/false の1つ�
 }
 
 // ════════════════════════════════════════════════════════════
-console.log('\n▼ 7-b. ★支給の内訳（割合だけ。金額は返さない）');
+console.log('\n▼ 7-b. ★支給の内訳（DEEP PAY 用。REAL PAY からは呼ばれない）');
 // ════════════════════════════════════════════════════════════
-/* 2026-08-24 に足した。オーナーの指示は「行を選ぶとその人の内訳が円グラフで見える」。
-   内訳の**金額**を返すと有効数字2桁の丸めをすり抜けて実額の個票になるので、
-   返すのは割合だけにしてある（db/pay-rows.sql 冒頭の②）。
+/* 2026-08-24。内訳は REAL PAY では出さないことにしたが、pv_pay_comp / pv_pct5 の
+   **定義は残してある**（DEEP PAY で「この給与は何で構成されているか」を集計する材料）。
+   使う側が居ないと検査ごと消えて、次に使うときに誰も正しさを知らない状態になるので、
+   ここで関数を直に呼んで確かめておく。★消さないこと。
 
-   ★ここが落ちたら画面を作ってはいけない本命は3つ：
-     ・comp に金額が混ざっていないこと（値はすべて 0〜100 の整数）
+   内訳の**金額**を返すと有効数字2桁の丸めをすり抜けて実額の個票になるので、
+   返すのは割合だけ（db/pay-rows.sql の3つとも金額を1つも返さない）。
+
+   ★ここが落ちたら DEEP PAY を作ってはいけない本命は3つ：
+     ・値がすべて 0〜100 の整数であること（金額が混ざっていない）
      ・合計がちょうど 100 になること（99 や 101 だと円グラフに隙間が出る）
      ・足し算が pv_annual_total と同じであること（下の手計算） */
 {
-  const cm = (fleet) => only(R, x => x.airline === A_COMP && x.fleet === fleet)[0]?.comp;
+  /* pay_reports の1行を、そのまま pv_pay_comp → pv_pct5 に通す。
+     ★機材は「どの行を取るか」に使っているだけ。返り値には出ない。 */
+  const cmAt = async (fleet, month) => (await one(`
+    select public.pv_pct5(public.pv_pay_comp(
+             gross_monthly, base_pay, hourly_rate, guaranteed_hours, block_hours,
+             per_diem, housing_type, housing_amount, transport, command_pay,
+             other_allowance, bonus_annual, profit_share_annual, bonus_month)) c
+      from pay_reports where airline = $1 and fleet = $2 and period_month = $3`,
+    [A_COMP, fleet, month])).c;
+  const cm = (fleet) => cmAt(fleet, 1);
   const KEYS = ['m', 'b', 'd', 'h', 'o'];
   const eq = (c, e) => c !== null && c !== undefined
     && KEYS.every(k => c[k] === e[k]);
 
-  ok(R.every(x => 'comp' in x), 'すべての行に内訳の欄がある（出せない人は null）');
-
-  const comps = R.map(x => x.comp).filter(c => c !== null && c !== undefined);
-  ok(comps.length > 0, '　内訳が出ている行が実際にある', String(comps.length));
+  const comps = (await Promise.all(
+    ['b777', 'b787', 'a320', 'a350'].map(f => cm(f)))).filter(c => c !== null);
+  ok(comps.length === 4, '　内訳が出る行が実際にある', String(comps.length));
   ok(comps.every(c => Object.keys(c).length === 5
                    && KEYS.every(k => Number.isInteger(c[k]))),
      '★内訳は m/b/d/h/o の5つだけ。値は整数（金額が混ざっていない）',
@@ -435,36 +463,48 @@ console.log('\n▼ 7-b. ★支給の内訳（割合だけ。金額は返さな�
      '★合計がちょうど 100（丸めの端数を最大の成分で吸収している）',
      JSON.stringify(comps.map(c => KEYS.reduce((s, k) => s + c[k], 0)).filter(v => v !== 100)));
 
+  /* ★以下の①〜④は「1行ぶん」の手計算。前は pv_pay_rows が返す comp を見ていたが、
+     今は関数を直に呼んでいる。期待値は1つも変えていない。 */
+
   /* ① 総支給9000＋パーディアム400＋住宅手当70＋年1回の賞与26000
         年収 = 12×9000 + 26000 = 134,000（pv_annual_total と同じ）
         m = 12×(9000−400−70) = 102,360 → 76.4% → 76
         b = 26,000 → 19.4% → 19 ／ d = 4,800 → 3.6% → 4 ／ h = 840 → 0.6% → 1 */
-  ok(eq(cm('b777'), { m: 76, b: 19, d: 4, h: 1, o: 0 }),
-     '① 総支給＋パーディアム＋住宅手当＋賞与（手計算と一致）', JSON.stringify(cm('b777')));
+  ok(eq(await cm('b777'), { m: 76, b: 19, d: 4, h: 1, o: 0 }),
+     '① 総支給＋パーディアム＋住宅手当＋賞与（手計算と一致）', JSON.stringify(await cm('b777')));
 
   /* ② 内訳を全部入れた形。年収 = 12×14,000 + 25,000 = 193,000
         m = 108,000 → 56 ／ b = 25,000 → 13 ／ d = 14,400 → 7
         h = 30,000 → 16 ／ o = 12×1,300 = 15,600 → 8 */
-  ok(eq(cm('b787'), { m: 56, b: 13, d: 7, h: 16, o: 8 }),
-     '② 内訳を全部入れた形（手計算と一致）', JSON.stringify(cm('b787')));
+  ok(eq(await cm('b787'), { m: 56, b: 13, d: 7, h: 16, o: 8 }),
+     '② 内訳を全部入れた形（手計算と一致）', JSON.stringify(await cm('b787')));
 
   /* ③ 社宅が現物支給。pv_annual_total が足さないので、割合にも入らない */
-  ok(eq(cm('a320'), { m: 100, b: 0, d: 0, h: 0, o: 0 }),
+  ok(eq(await cm('a320'), { m: 100, b: 0, d: 0, h: 0, o: 0 }),
      '★③ 現物支給の社宅は住宅手当に入らない（金額に入れていないので割合にも入れない）',
-     JSON.stringify(cm('a320')));
+     JSON.stringify(await cm('a320')));
 
   /* ④ パーディアム2000 が総支給1000 を超えている＝入力違い。
         嘘の円を描くより描かない方がよい。 */
-  ok(cm('a330') === null,
-     '★④ 手当が総支給を超えている行は内訳を出さない（null）', JSON.stringify(cm('a330')));
+  ok(await cm('a330') === null,
+     '★④ 手当が総支給を超えている行は内訳を出さない（null）', JSON.stringify(await cm('a330')));
 
-  /* ⑤ 同じ人の2か月。1月は 100/0、2月は 50/50 → 平均して 75/25 */
-  ok(eq(cm('a350'), { m: 75, b: 25, d: 0, h: 0, o: 0 }),
-     '★⑤ 同じ人の複数月は割合の平均（金額を足していない）', JSON.stringify(cm('a350')));
+  /* ⑤ 同じ人の2か月。1月は 100/0、2月は 50/50。
+        ★「平均して 75/25 にする」側の足し算は pv_pay_rows の中にあったので、
+          機材と内訳を落としたときに一緒に消えた。DEEP PAY で書き直すことになる。
+          ここでは、その材料になる**月ごとの値**が正しいことだけを見ておく。 */
+  ok(eq(await cmAt('a350', 1), { m: 100, b: 0, d: 0, h: 0, o: 0 }),
+     '⑤ 同じ人の1月ぶん（賞与なし）', JSON.stringify(await cmAt('a350', 1)));
+  ok(eq(await cmAt('a350', 2), { m: 50, b: 50, d: 0, h: 0, o: 0 }),
+     '　同じ人の2月ぶん（賞与が出た月）', JSON.stringify(await cmAt('a350', 2)));
 
-  /* ⑥ 2か月のうち1か月が入力違い → 半分だけの円を描かない */
-  ok(cm('b737') === null,
-     '★⑥ 1か月でも出せない月がある人は、内訳を丸ごと出さない', JSON.stringify(cm('b737')));
+  /* ⑥ 2か月のうち1か月が入力違い。
+        ★DEEP PAY で平均するときは、この人を丸ごと落とすこと（半分だけの円を描かない）。 */
+  ok(await cmAt('b737', 3) === null,
+     '★⑥ 手当が総支給を超えている月は null（この人は丸ごと落とす材料になる）',
+     JSON.stringify(await cmAt('b737', 3)));
+  ok(eq(await cmAt('b737', 4), { m: 100, b: 0, d: 0, h: 0, o: 0 }),
+     '　同じ人のもう1か月は普通に出る（だから「丸ごと落とす」を忘れると混ざる）');
 
   /* 端数の吸収が「たまたま」でないことを、総当たりで見る。 */
   const badSum = await rows(`
@@ -496,8 +536,8 @@ console.log('\n▼ 7-b. ★支給の内訳（割合だけ。金額は返さな�
      '　全部ゼロでも null（0で割らない）');
 
   const rawC = (await one(`select pv_pay_rows()::text t`)).t;
-  ok(!/"(m|b|d|h|o)":\s*-?\d{4,}/.test(rawC),
-     '★返り値の内訳に4桁以上の数字が1つも無い（＝金額が漏れていない）');
+  ok(!/"(m|b|d|h|o)":/.test(rawC),
+     '★REAL PAY の返り値に内訳の欄が1つも無い（丸ごと DEEP PAY に移した）');
 }
 
 // ════════════════════════════════════════════════════════════
@@ -631,13 +671,81 @@ console.log('\n▼ 12. ★預かりの年換算が、本棚に入れたときと
 }
 
 // ════════════════════════════════════════════════════════════
+console.log('\n▼ 12-b. ★数え上げ（画面の上に並ぶ数字のうち、サーバから来る2つ）');
+// ════════════════════════════════════════════════════════════
+/* 2026-08-24 オーナー判断で「本当の数字だけ出す」ことになった。
+   画面の4枚のうち2枚（表の行数・会社数）は rows を数えれば出るので、
+   サーバが返すのは残り2つ（提出の件数・今月のぶん）だけ。
+
+   ★いちばん大事なのは「行と同じ材料から数えていること」。
+     別のところから数え直すと、画面に「126件」と出ているのに表が60行しかない
+     理由を誰も説明できなくなる。だから下は全部**差分**で見る。 */
+await asViewer();
+{
+  const s0 = await payRows();
+  ok(s0.stats && typeof s0.stats === 'object' && !Array.isArray(s0.stats),
+     '数え上げが返ってくる', JSON.stringify(s0.stats));
+  ok(Number.isInteger(s0.stats.reports) && Number.isInteger(s0.stats.month),
+     '2つとも整数（小数や文字列で返さない）', JSON.stringify(s0.stats));
+  ok(s0.stats.reports >= s0.rows.length,
+     '★件数は必ず表の行数以上（1人が何ヶ月ぶん出しても行は1つ）',
+     `件数 ${s0.stats.reports} / 行 ${s0.rows.length}`);
+  ok(s0.stats.reports - s0.rows.length >= 33,
+     '　複数月を出した人のぶんだけ、件数のほうが多い（36件が3行に畳まれている）',
+     `差 ${s0.stats.reports - s0.rows.length}`);
+  ok(s0.stats.month <= s0.stats.reports, '　今月のぶんは件数を超えない');
+
+  const b = { r: s0.stats.reports, m: s0.stats.month, n: s0.rows.length };
+
+  // ① 新しい1人が1か月ぶん出す → 件数 +1・行 +1
+  const U = await person(A_STAT, 'cap', [{ fleet: 'b777', month: 1, gross: 15000 }]);
+  await asViewer();
+  let t = await payRows();
+  ok(t.stats.reports === b.r + 1 && t.rows.length === b.n + 1,
+     '1人が1件出すと 件数 +1・行 +1', `件数 ${t.stats.reports} / 行 ${t.rows.length}`);
+  ok(t.stats.month === b.m + 1, '　今月のぶんも +1', String(t.stats.month));
+
+  // ② 同じ人がもう1か月ぶん出す → 件数だけ +1（行は増えない）
+  await asUser(U);
+  await submit({ ...BASE, airline: A_STAT, position: 'cap', fleet: 'b777',
+                 period_year: YEAR, period_month: 2, gross_monthly: 15000 });
+  await asViewer();
+  t = await payRows();
+  ok(t.stats.reports === b.r + 2 && t.rows.length === b.n + 1,
+     '★同じ人がもう1か月出すと 件数だけ +1（行は増えない）',
+     `件数 ${t.stats.reports} / 行 ${t.rows.length}`);
+
+  // ③ 打ち間違い（常識の幅の外）は、表からも件数からも落ちる
+  await db.query(`update pay_reports set annual_total_usd = 0.75
+                   where airline = $1 and period_month = 2`, [A_STAT]);
+  t = await payRows();
+  ok(t.stats.reports === b.r + 1,
+     '★常識の幅の外は件数からも落ちる（表と同じ材料から数えている証拠）',
+     `件数 ${t.stats.reports}`);
+
+  // ④ 24ヶ月の窓の外も同じ
+  await backdateAirline(A_STAT, 800);
+  t = await payRows();
+  ok(t.stats.reports === b.r && t.rows.length === b.n,
+     '★24ヶ月の窓の外は件数からも落ちる', `件数 ${t.stats.reports} / 行 ${t.rows.length}`);
+  ok(t.stats.month === b.m, '　今月のぶんにも入らない', String(t.stats.month));
+
+  // ⑤ 鍵が無い人には数字も返らない（数字も鍵の内側）
+  await asUser(9001);
+  const lk = await payRows();
+  ok(lk.state === 'locked' && !('stats' in lk),
+     '★鍵の無い人には数字が1つも返らない', JSON.stringify(lk));
+  await asViewer();
+}
+
+// ════════════════════════════════════════════════════════════
 console.log('\n▼ 13. 自己点検 SQL（ファイル末尾のものをそのまま流す）');
 // ════════════════════════════════════════════════════════════
 {
   const src = read('db/pay-rows.sql');
   const q = src.slice(src.lastIndexOf('with f as ('));
   const res = await rows(q);
-  ok(res.length === 24, `自己点検が24行ぜんぶ出る（= ${res.length}行）`);
+  ok(res.length === 26, `自己点検が26行ぜんぶ出る（= ${res.length}行）`);
   for (const row of res) {
     ok(row['結果'] === '✅', `${row['#']}. ${row['見るところ']}`);
   }

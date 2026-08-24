@@ -1,4 +1,4 @@
-/* assert-pay-rows.mjs — 「他のパイロットの実給与を見る」（actual-pay）の約束を機械で確かめる。
+/* assert-pay-rows.mjs — 「REAL PAY」（actual-pay）の約束を機械で確かめる。
 
    この画面は、このサイトで初めて **他人の一次データを1行ずつ見せる** 場所。
    1行＝1人で、しかも **給与を出した人は全員出る**（人数の門は無い）。
@@ -7,38 +7,47 @@
        ・k≧5 の門（5人そろった区分だけ出す）
        ・30日の遅延
        ・公開情報からの推定レンジの節（青）と、右の「選んだ区分」パネル
-     だから守りは残る6つに全部かかっている。ここはその6つを見る：
+
+   ★2026-08-24、マイページを3枚（REAL PAY / DEEP PAY / VERIFIED PAY）に分けた。
+     この画面は REAL PAY ＝「他のパイロットの実給与」だけを持つ。
+       ・**機材（fleet）を返すのをやめた**（個人特定を避ける。契約②が元に戻った）
+       ・**支給の内訳（ドーナツ）を DEEP PAY へ移した**。この画面は1度も描かない
+       ・逆に、**数え上げ（今どれだけ集まっているか）を出すことにした**。
+         出した人に「どれだけ集まっているか」が見えないと Give & Get が成立しない、
+         というオーナー判断。新しく外へ出るのは
+         **「今どれだけ集まっているか」と「今月どれだけ増えたか」**の2つだけ
+
+   ここで見るのは7つ：
 
      ① 鍵の無い人には金額が1文字も出ない
         （db/pay-rows.sql が state:'locked' を返す。画面のモザイクではない）
-     ② 内訳は割合だけ（金額は返さない）＋ 準識別子は1つも画面に出ない
-        ★2026-08-24、オーナー判断で「行を押すとその人の内訳（ドーナツ）」を足した。
-          だから②は「準識別子ゼロ」ではなくなった。サーバが返すのは comp＝
-          m/b/d/h/o の**整数パーセント5つだけ**で、金額は1つも返さない。
-          画面の年収（有効数字2桁）に掛ければ ±10% ほどで実額は逆算できる。
-          ここではその線を守る：**他人のドーナツに通貨記号が1文字も出ないこと**。
-        そのうえで、基地・在籍年数・年代・投稿月・原本の通貨・契約形態・国籍・識別子、
-        そして**自由入力で打ち込まれた社名**。
+     ② 準識別子は1つも画面に出ない
+        機材・基地・在籍年数・年代・投稿月・原本の通貨・契約形態・国籍・識別子、
+        そして**自由入力で打ち込まれた社名**。支給の内訳（comp）もここに戻った。
         ★この検査では、サーバが返さないはずのこれらを **わざと混ぜた行** を流し込み、
           画面のどこにも出ないことを見る。将来 r.base_iata を1つ足した人が即座に赤くなる
      ③ 金額はすべて有効数字2桁（表示通貨に換算したあとも）
      ④ 1行＝1人。表は1枚だけ
         ⚠️ 粒度を2つに分けた形へ戻さない（同じ人が両方に出て二重に数えたように見える）
-     ⑤ 数え上げを見せない
-        合計件数・カバー社数・「◯人」を結果の中に出さない。行を数えれば人数は読めるが、
-        総数を明示すると会員規模そのものが出る
+     ⑤ 数え上げ（★2026-08-24 に方針が変わったところ）
+        ・上の数字カード4枚は**本物の数字だけ**。読めないカードは**そのカードごと出さない**
+          （埋めるための 0 を置かない＝画面に嘘の数字を作らない）
+        ・「投稿」は必ず**表の行数以上**（サーバと画面が別々に数えていない証拠）
+        ・ページ送りは**絞り込んだ後の総件数**を出す
+        ・鍵が無い人・0件の人には帯ごと出ない
+        ・表の中には今までどおり「◯件」「◯人」を1つも置かない
      ⑥ 通貨を切り替えても pv_pay_rows() を引き直さない
         （データは state に持つ。引き直すと切替のたびにサーバを叩く）
-     ⑦ 図（2026-08-24 追加）
-        ・既定は「あなたの支給構成」＝ my_pay_reports()。ここだけ金額が出る（本人の数字）
-        ・行を押すと**その人の割合**に切り替わる。★通貨記号が1文字も出ない
-        ・comp が null の行を押しても壊れず、静かに「内訳を出せません」になる
-        ・閉じ方が3つ（もう一度押す／「自分に戻す」／ESC）。閉じ込めを作らない
-        ・分布の棒に**人数の数字を書かない**（高さで目分量に読めるところまで）
-        ・行を選んでも**並びは1行も動かない**（選択が並べ替えに化けない）
+     ⑦ 並びに時間が無い
+        ★**並び替えの口を作らない**。並びに投稿の新しさが乗ると、
+          誰が最近出したかが読める（契約⑥に真っ向から反する）
+
+   ★図はこの画面に**年収の分布の棒1枚だけ**。オーナー指定で**表の右横**に置く
+     （狭い幅では表の下に回る）。棒に人数の数字は書かない。
 
    ★もう1つ、消えたものが戻っていないことを見る：
-     青のバッジ・推定レンジ・「5人」「30日」の約束・招待カードの差込口。
+     青のバッジ・推定レンジ・「5人」「30日」の約束・招待カードの差込口・
+     機材の絞り込み・行を押すドーナツ・賞与の列・「賞与ありのみ」。
      文言は特に静かに戻る（「5人そろうと出ます」は、今は嘘）。
 
    ⚠️ 偽物 Supabase の rpc は本物と同じ「then だけを持つ箱」にしてある。
@@ -85,17 +94,15 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
   ok(/fonts\.googleapis\.com\/css2/.test(html), `${name}: Inter を読んでいる`);
   ok(/<title>[^<]+<\/title>/.test(html), `${name}: title が空でない`);
   ok(!/pv-founding/.test(html), `${name}: FOUNDING の板を置かない（あれは profile.html だけ）`);
-  /* ★2026-08-24 反転。この画面は図を描くようになったので pay-viz を読む。
-       ⚠️ 読む順が肝。pay-viz.css の [data-theme="light"] .pt-* と
-          actual-pay.css の .ap-vcard .pt-* は詳細度が同じ（0,2,0）で、
-          後に書いたほうが勝つ。逆に置くと暗い前提の色が明るい画面に出る。 */
+  /* ★2026-08-24 に**もう一度**反転。支給の内訳（ドーナツ）はこの画面から外して
+       DEEP PAY の担当にした。残る図は分布の棒1枚で、それは actual-pay.js が自前で描く。
+       ⚠️ pay-viz.css は暗い前提の .pt-* を持っていて、actual-pay.css と詳細度が同じ（0,2,0）。
+          読み込みを戻すと、明るい画面に暗い前提の色が漏れる。 */
   const at = (file) => html.search(new RegExp('(?:src|href)="[^"]*' + file.replace('.', '\\.') + '"'));
-  const iVizC = at('pay-viz.css'), iApC = at('actual-pay.css');
-  ok(iVizC >= 0 && iApC > iVizC,
-     `${name}: pay-viz.css を actual-pay.css より先に読む`, `${iVizC} / ${iApC}`);
-  const iVizJ = at('pay-viz.js'), iApJ = at('actual-pay.js');
-  ok(iVizJ >= 0 && iApJ > iVizJ,
-     `${name}: pay-viz.js を actual-pay.js より先に読む`, `${iVizJ} / ${iApJ}`);
+  ok(at('pay-viz.css') < 0, `${name}: ★pay-viz.css を読んでいない`);
+  ok(at('pay-viz.js') < 0, `${name}: ★pay-viz.js を読んでいない`);
+  ok(at('actual-pay.css') >= 0 && at('actual-pay.js') >= 0,
+     `${name}: actual-pay.css / actual-pay.js は読んでいる`);
 
   /* 結果の入れ物は「開始タグ自体」に pv-no-cur。currency.js の自動走査に
      金額を触らせない（通貨ごとに2桁へ丸め直すのはこちらの仕事）。 */
@@ -108,11 +115,28 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
   ok(!/ap-badge--pub/.test(html), `${name}: ★青（推定）のバッジが無い`);
   ok(!/ap-ref-slot/.test(html), `${name}: ★招待カードの差込口が無い`);
 
-  /* 絞り込みは帯1つに3つ。機材だけ②の中に置く形はやめた（効く範囲が同じなので）。 */
+  /* 絞り込みは帯1つ。打ち込み1つ＋プルダウン2つ＋解除。
+     ★機材で絞る口は無い（列に出していないものを絞れると逆算できる）。 */
   ok(/id="ap-filter"[^>]*\shidden/.test(html) || /\shidden[^>]*id="ap-filter"/.test(html),
      `${name}: 絞り込みの帯は既定で隠れている（行が無いときに空の選択肢を出さない）`);
-  for (const id of ['ap-air', 'ap-pos', 'ap-fleet', 'ap-clear']) {
+  for (const id of ['ap-q', 'ap-air', 'ap-pos', 'ap-clear']) {
     ok(html.includes('id="' + id + '"'), `${name}: #${id} がある`);
+  }
+  ok(!html.includes('id="ap-fleet"'), `${name}: ★機材で絞る口が無い`);
+
+  /* ★数え上げのカード（2026-08-24）。入れ物だけ HTML にあり、中身は JS が入れる。
+     既定で hidden ＝ 鍵が無い人・0件の人に空の枠を見せない。 */
+  ok(/id="ap-stats"[^>]*\shidden/.test(html) || /\shidden[^>]*id="ap-stats"/.test(html),
+     `${name}: 数え上げのカードの入れ物は既定で隠れている`);
+
+  /* ★並び替えの口を作らない。並びに投稿の新しさが乗ると、誰が最近出したかが読める
+     （契約⑥「並びに時間が無い」に真っ向から反する）。 */
+  for (const w of ['ap-sort', '新しい順', 'Newest', 'id="ap-order"']) {
+    ok(!html.includes(w), `${name}: ★並び替え（${w}）が無い`);
+  }
+  /* ★賞与の列も「賞与ありのみ」の絞りも作らない（絞った行数が生の人数になる）。 */
+  for (const w of ['ap-bonus', 'bonus-only', '賞与ありのみ', 'With bonus only']) {
+    ok(!html.includes(w), `${name}: ★${w} が無い`);
   }
 
   /* 読み込み順。pv-referral.js が lang-toggle.js より後だと、
@@ -170,10 +194,23 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
   for (const w of ['ap-exp', 'ap-date', 'ap-id', 'verified-only', 'Verifiedのみ']) {
     ok(!j.includes(w), `★actual-pay.js に ${w} が無い`);
   }
-  /* ★ページ送りは「何ページ目か」だけを出す。総数を出すと会員規模が漏れる。 */
+  /* ★並び替えと賞与（2026-08-24 に「作らない」と決めたもの）。 */
+  for (const w of ['ap-sort', 'ap-order', 'newest', '新しい順', 'ap-bonus', 'bonus']) {
+    ok(!j.includes(w), `★actual-pay.js に ${w} が無い`);
+  }
+  /* ★支給の内訳（ドーナツ）は DEEP PAY の担当。この画面からは呼ばない。 */
+  ok(!/PVViz|pt-donut|renderComp|\bcomp\b/.test(j),
+     '★内訳（comp／PVViz）をこの画面が1文字も持っていない');
+  /* ★2026-08-24、オーナー判断で件数を出すことにした。
+     出すのは「絞り込んだ後の行数」で、絞り込みを解いた全体は上のカードが持つ。 */
   ok(/data-ap-page/.test(j), 'ページ送りがある（10件ずつ）');
-  ok(!/\.length\s*\+\s*'\s*件|件目|全\s*'\s*\+|of\s*'\s*\+\s*rows\.length/.test(j),
-     '★ページ送りに総件数を書いていない');
+  ok(/pgRange/.test(j), '★ページ送りが件数を出す（全N件中 a〜b件）');
+  ok(/pageList\(/.test(j), '★数字のページ番号を作る（多いときは … で畳む）');
+  ok(!/pgOf/.test(j), '★古い「◯ / ◯ページ」の文言が残っていない');
+  /* ★数え上げは JS が勝手に作らない。サーバ（stats）か rows を数えるかの2つだけ。 */
+  ok(/S\.stats/.test(j), '★数え上げはサーバの stats から受け取る');
+  ok(!/stats\s*=\s*\{[^}]*0/.test(j),
+     '★数が読めないときに 0 を置いていない（カードごと出さない）');
   /* ★月あたりは「画面に出ている年収」から作る。生の値から割ると、
      画面の月額 × 12 が画面の年収と合わない数字になる。 */
   ok(!/money\(\s*r\.annual_usd\s*\/\s*12\s*\)/.test(j),
@@ -193,7 +230,10 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
 {
   const c = decomment(CSS);
   ok(!/\.pv-badge/.test(c), 'actual-pay.css が .pv-badge 系を再定義していない');
-  ok(/\.ap-badge--actual/.test(c), '本人記録（橙）のバッジを .ap-* で持っている');
+  /* ★見出しの札そのものを消した（2026-08-24）。ページ全体に「本人記録」と貼ると、
+     出典が ✓ Verified の行と食い違う。出典は行ごとの .ap-vf / .ap-vf-no が持つ。 */
+  ok(!/\.ap-badge--actual/.test(c), '★見出しの札（橙）が残っていない');
+  ok(/\.ap-vf-no/.test(c) && /\.ap-vf\{/.test(c), '出典の札は行ごとの2つだけ');
   ok(!/\.ap-badge--pub/.test(c) && !/--pv-blue/.test(c),
      '★青（推定）の見た目がこの画面に1つも残っていない');
   ok(!/transition\s*:\s*all/.test(c), 'transition-all を使っていない');
@@ -224,7 +264,8 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
   ok(!/interval\s*'30 days'|30 day/.test(FN), '★30日の遅延が残っていない');
   ok(!/percentile_cont\(0\.[19]\)/.test(FN), '★p10-p90 のクリップが残っていない');
   ok(!/airline_other/.test(FN), '★自由入力の社名の列は読んでも返してもいない');
-  ok(/group by pkey, airline, pos, fleet/.test(FN), '★1行＝1人にまとめている');
+  ok(/group by pkey, airline, pos/.test(FN), '★1行＝1人にまとめている');
+  ok(!/\bfleet\b/.test(FN), '★機材（fleet）は読んでも返してもいない');
   /* 集計側（pay_benchmarks）の k≧5 は今も生きている。こちらを一緒に外さない。 */
   ok(/pg_get_viewdef\(bench\) like '%>= 5%'/.test(SQL),
      '★集計（pay_benchmarks）の k≧5 は今も見張っている');
@@ -262,12 +303,14 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
        '★換算のときも社名・同定キーを読まない');
   }
 
-  /* ★comp（内訳の割合・2026-08-24）。
-     返すのは m/b/d/h/o の整数パーセント5つだけ。**金額は1つも返さない。**
-     ここが崩れると、1人ずつの実額が画面から逆算できるようになる。 */
-  ok(/'comp'/.test(FN) || /\bcomp\b/.test(FN), '★内訳の割合（comp）を返している');
-  ok(/pv_pay_comp\(/.test(FN), '★割合は pv_pay_comp() が作る（式を書き写していない）');
-  ok(/pv_pct5\(/.test(FN), '★整数パーセント化は pv_pct5() が1か所でやる');
+  /* ★comp（内訳の割合）。2026-08-24 に**返すのをやめた**。
+     支給の内訳は DEEP PAY の担当で、あちらは1人ずつではなく複数の投稿を集計して出す。
+     これで契約②が元の「準識別子ゼロ」に戻った。
+     ⚠️ 3つの関数（pv_pay_comp / pv_pct5 / pv_pending_comp）の**定義は残してある**。
+        DEEP PAY で使うため。定義が残っているぶん、誰にも開いていないことを下で見る。 */
+  ok(!/'comp'/.test(FN), '★内訳の割合（comp）を返していない');
+  ok(!/pv_pay_comp\(|pv_pct5\(|pv_pending_comp\(/.test(FN),
+     '★pv_pay_rows が割合を作る3つを呼んでいない');
   ok(/revoke all on function public\.pv_pay_comp\([^)]*\) from public, anon, authenticated/
        .test(SQL),
      '★pv_pay_comp は誰にも開いていない');
@@ -299,12 +342,35 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
          nonull.join(' | ').slice(0, 160));
     }
   }
-  /* ★契約ヘッダの②が「準識別子ゼロ」に戻っていないこと。
-     戻すなら comp を返すのをやめてからにする（画面は comp が無ければ図を隠す）。 */
+  /* ★数え上げ（2026-08-24）。
+     カード4枚のうち2枚（投稿の件数・今月の件数）はサーバでしか数えられない。
+     ⚠️ 一覧と**同じ材料**（sane）から数えること。別々に数えると
+        「126件なのに表は60行」の説明がつかなくなる。 */
+  ok(/'stats'/.test(FN), '★数え上げ（stats）を返している');
+  ok(/from sane/.test(FN), '★数え上げは一覧と同じ材料（sane）から数えている');
+  ok(/date_trunc\('month'/.test(FN), '★今月ぶんを数えている');
+  /* ★数えるために投稿時刻を読むが、行としては返さない（契約⑥・②）。 */
+  ok(!/'created_at'/.test(FN) && !/'cat'/.test(FN),
+     '★数え上げに使う投稿時刻を、行としては返していない');
+  /* ★並べるほうに投稿時刻が入っていないこと。
+     ⚠️ [^;] で拾うと関数まるごと1つの塊になる（SQL の途中に ; が無い）。
+        数えるための `filter (where cat >= …)` まで当たって、正しいものが赤くなる。
+        order by は1行に収まっているので、その行の中だけを見る。 */
+  ok(!/order by\s[^\n]*\bcat\b/.test(FN), '★投稿時刻で並べていない',
+     (FN.match(/order by\s[^\n]*/g) || []).join(' / ').slice(0, 160));
+  /* ★鍵が無い人には数え上げも渡さない。 */
+  {
+    const lk = FN.slice(FN.indexOf("'locked'"));
+    ok(lk.length > 0 && !/'stats'/.test(lk.slice(0, 400)),
+       '★鍵が無いときは stats を返さない');
+  }
+
+  /* ★契約ヘッダ。②が「準識別子ゼロ」に戻り、数え上げを出した理由が日付つきで書いてある。 */
   {
     const head = SQL.slice(0, SQL.indexOf('create or replace'));
-    ok(/割合/.test(head) && /やめるとき/.test(head),
-       '★契約ヘッダが「割合だけ」と「やめるとき」を書いている');
+    ok(/準識別子/.test(head), '★契約ヘッダの②が「準識別子ゼロ」に戻っている');
+    ok(/2026-08-24/.test(head) && /数え上げ/.test(head),
+       '★数え上げを出すことにした日付と理由が契約ヘッダに書いてある');
   }
 }
 
@@ -318,6 +384,41 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
      out.trim().split('\n').slice(-3).join(' / '));
 }
 
+/* ★左メニューの並び（2026-08-24 オーナー指定）。
+     REAL PAY → DEEP PAY → VERIFIED PAY。
+   ★後ろ2つはまだページが無い。**リンクにしない。**
+     リンクにすると assert-links.mjs が 404 で落ちるし、押した人が行き止まりに落ちる。
+   ⚠️ href の無い <a> は「押せそうに見えるのにキーボードから触れない」＝いちばん悪い形。
+     だから <span aria-disabled="true"> で置く。 */
+for (const [name, file] of [['ja', 'actual-pay.html'], ['en', 'en/actual-pay.html']]) {
+  const html = read(file);
+  const i = html.indexOf('class="mr-side"');
+  const nav = i < 0 ? '' : html.slice(i, html.indexOf('</nav>', i));
+  ok(nav.length > 0, `${name}: 左メニューが読めた`);
+
+  const items = Array.from(nav.matchAll(/<(a|span)\s[^>]*class="mr-side-a[^"]*"([^>]*)>[\s\S]*?<span>([^<]+)<\/span>/g))
+    .map((m) => ({ tag: m[1], attr: m[2], label: m[3].trim() }));
+  const labels = items.map((x) => x.label);
+  const at = (s) => labels.indexOf(s);
+
+  ok(at('REAL PAY') >= 0 && at('DEEP PAY') >= 0 && at('VERIFIED PAY') >= 0,
+     `${name}: ★3枚とも左メニューにある`, labels.join(' / '));
+  ok(at('REAL PAY') < at('DEEP PAY') && at('DEEP PAY') < at('VERIFIED PAY'),
+     `${name}: ★並びは REAL PAY → DEEP PAY → VERIFIED PAY`, labels.join(' / '));
+
+  for (const l of ['DEEP PAY', 'VERIFIED PAY']) {
+    const it = items[at(l)];
+    ok(it && it.tag === 'span' && /aria-disabled="true"/.test(it.attr),
+       `${name}: ★${l} はまだ押せない（href の無い <a> にしない）`,
+       it ? `${it.tag} ${it.attr.trim()}` : '(無し)');
+    ok(it && !/href=/.test(it.attr), `${name}: ★${l} に行き先を書かない（404 を作らない）`);
+  }
+  const real = items[at('REAL PAY')];
+  ok(real && real.tag === 'a' && /aria-current="page"/.test(real.attr),
+     `${name}: ★今いる REAL PAY だけが「このページ」の印を持つ`,
+     real ? real.attr.trim() : '(無し)');
+}
+
 // ════════════════════════════════════════════════════════════════
 // 共通：偽物 Supabase
 // ════════════════════════════════════════════════════════════════
@@ -327,9 +428,9 @@ const FAKE = function (payload) {
   const UID = '00000000-0000-4000-8000-00000000a001';
   const RPC = {
     pv_pay_rows: () => payload,
-    /* ★左のドーナツの既定＝自分の支給構成。本人の行しか返らない関数で、
-       ここだけ金額が出る（自分の数字なので隠す相手が居ない）。
-       payload.mine を渡さないケースでは空＝「まだ出していない」の絵になる。 */
+    /* ★自分の給与。本人の行しか返らない関数で、ここから取るのは年収1つだけ
+       （分布の棒の「あなた」の破線をどこに立てるか）。
+       payload.mine を渡さないケースでは空＝破線を出さない。 */
     my_pay_reports: () => ({ ok: true, reports: (payload && payload.mine) || [] }),
     my_referral_code: () => ({ ok: true, code: 'K7QD3XZM', invited: 0, converted: 0 }),
     pv_referral_settle: () => ({ ok: true })
@@ -365,44 +466,42 @@ const FAKE = function (payload) {
    画面のどこかに出たら、その瞬間に赤くなる。
    ZQX は実在しない3文字（実在の空港コードを使うと、たまたま本文に出て誤検知する）。
    ★Somewhere Air は「自由入力で打ち込まれた社名」。これが画面に出たら、
-     その人の勤務先が本人の書いた文字列そのままで他人に見えている。 */
+     その人の勤務先が本人の書いた文字列そのままで他人に見えている。
+   ★2026-08-24 から **機材（fleet）と支給の内訳（comp）もここに入れた**。
+     サーバは返さなくなったが、万一また返し始めても画面には出ないこと。 */
 const POISON = {
   base_iata: 'ZQX', seniority_years: 137, age_bucket: '40s',
   period_year: 2026, period_month: 8, created_at: '2026-08-05T00:00:00Z',
   proof_hash: 'deadbeefcafe0001', contract_type: 'direct', tax_country: 'JP',
   nationality: 'JP', annual_total_orig: 19440000, currency: 'JPY', verify_level: 2,
-  airline_other: 'Somewhere Air'
+  airline_other: 'Somewhere Air',
+  fleet: 'zqx-jet', comp: { m: 73, b: 19, d: 5, h: 2, o: 1 }
 };
 /* ★字面がぶつからないものを選ぶ。'17' や '2026' のような短い数字は
    年号にたまたま出るので、毒として使えない。 */
 const POISON_VALUES = ['ZQX', '137', '40s', 'deadbeefcafe0001',
-                       '19,440,000', '19440000', '2026-08-05', 'Somewhere Air'];
+                       '19,440,000', '19440000', '2026-08-05', 'Somewhere Air',
+                       'zqx-jet', '73%', '19%'];
 
-const row = (airline, pos, fleet, usd, vf, extra) => Object.assign(
-  { airline: airline, pos: pos, fleet: fleet, annual_usd: usd, verified: vf }, extra || {});
-
-/* 内訳の割合。★整数で合計はちょうど 100。**金額は1つも入らない**（それがこの形の要点）。
-     m=月々の支給 b=年1回の賞与 d=パーディアム h=住宅手当 o=その他の手当 */
-const C = (m, b, dd, h, o) => ({ m: m, b: b, d: dd, h: h, o: o });
+const row = (airline, pos, usd, vf, extra) => Object.assign(
+  { airline: airline, pos: pos, annual_usd: usd, verified: vf }, extra || {});
 
 /* 本番に近い形（2026-08-23 時点は8人・全員が手入力＝verified はほぼ付かない）。
-   ★1人目にだけ毒を混ぜる。★自由入力の社名の人は airline:'other' で来る。
-   ★comp は本番の実測に寄せる。賞与20%の ANA、賞与ゼロで月給99%の JAL、
-     そして **comp が null の行を2つ**（内訳が出せない人がいても壊れないこと）。 */
+   ★1人目にだけ毒を混ぜる。★自由入力の社名の人は airline:'other' で来る。 */
 const ROWS = [
-  row('ana', 'cap', 'b787', 180000, true, Object.assign({ comp: C(75, 20, 4, 1, 0) }, POISON)),
-  row('ana', 'fo', 'b787', 120000, false, { comp: C(96, 0, 3, 1, 0) }),
-  row('ana', 'cap', 'b777', 190000, false, { comp: null }),
-  row('jal', 'cap', 'a350', 170000, false, { comp: C(70, 22, 5, 2, 1) }),
-  row('jal', 'fo', 'b737', 110000, false, { comp: C(99, 0, 1, 0, 0) }),
-  row('emirates', 'cap', 'a380', 250000, false, { comp: C(62, 0, 12, 24, 2) }),
-  row('other', 'cap', 'b737', 130000, false,
-      { airline_other: 'Somewhere Air', comp: C(88, 8, 4, 0, 0) }),
-  row('other', 'fo', 'a320', 90000, false, { comp: null })
+  row('ana', 'cap', 180000, true, POISON),
+  row('ana', 'fo', 120000, false),
+  row('ana', 'cap', 190000, false),
+  row('jal', 'cap', 170000, false),
+  row('jal', 'fo', 110000, false),
+  row('emirates', 'cap', 250000, false),
+  row('other', 'cap', 130000, false, { airline_other: 'Somewhere Air' }),
+  row('other', 'fo', 90000, false)
 ];
 
-/* 自分の支給構成（my_pay_reports()）。★ここだけ金額が出る。
-   本番と同じで、内訳まで入れている人の形（総支給1本の人は灰色が多くなる）。 */
+/* 自分の給与（my_pay_reports()）。★使うのは年収1つだけで、
+   分布の棒の「あなた」の破線をどこに立てるかに要る。
+   ★残りの金額はそのまま置いておく＝**これが1つでも画面に出たら赤**という毒を兼ねる。 */
 const MINE = [{
   period_year: 2026, period_month: 7, currency: 'JPY', fx_to_jpy: 1,
   base_pay: 620000, command_pay: 90000, flight_variable_pay: 110000,
@@ -416,14 +515,24 @@ const MINE = [{
 const MANY_ROWS = [];
 for (let i = 0; i < 23; i++) {
   const a = ['ana', 'jal', 'emirates', 'other'][i % 4];
-  MANY_ROWS.push(row(a, i % 2 ? 'fo' : 'cap', i % 3 ? 'b787' : 'a320',
-                     90000 + i * 5000, false,
-                     { comp: i % 5 === 4 ? null : C(70 + i % 20, 20 - i % 20, 6, 3, 1) }));
+  MANY_ROWS.push(row(a, i % 2 ? 'fo' : 'cap', 90000 + i * 5000, false));
 }
 
+/* ★数え上げ（2026-08-24）。サーバは一覧と同じ材料から数えるので、
+     **投稿件数 ≧ 行数** かつ **今月 ≦ 投稿件数** になる。ここもその形で渡す。 */
+const ST = { reports: 11, month: 3 };
+const ST_MANY = { reports: 31, month: 6 };
+
 const LOCKED = { ok: true, state: 'locked', rows: [] };
+/* ★鍵が無いのに数え上げだけ来た形。画面は帯ごと出さない（サーバも返さないが、
+     返ってきても会員規模が漏れないこと）。 */
+const LOCKED_ST = { ok: true, state: 'locked', rows: [], stats: ST };
 const EMPTY = { ok: true, state: 'open', rows: [] };
-const OPEN = { ok: true, state: 'open', rows: ROWS, mine: MINE };
+const OPEN = { ok: true, state: 'open', rows: ROWS, mine: MINE, stats: ST };
+const MANY = { ok: true, state: 'open', rows: MANY_ROWS, mine: MINE, stats: ST_MANY };
+/* ★サーバがまだ古い（db/pay-rows.sql を貼っていない）形。
+     数が読めない2枚は**そのカードごと出さない**＝埋めるための 0 を置かない。 */
+const NOSTAT = { ok: true, state: 'open', rows: ROWS, mine: MINE };
 
 /* 表示された金額の文字から数字だけを取り出す。
    単位（万 / K / M）は 10 のべき乗なので、有効数字の桁数を変えない。
@@ -505,8 +614,12 @@ const SNAP = () => {
     logoImgs: q('.ap-logo', rows).length,
     logoAlt: q('img.ap-logo', rows).map((e) => e.getAttribute('alt')),
     airNames: q('.ap-air', rows).map((e) => (e.textContent || '').trim()),
-    /* ページ送り。★数は出さない。出るのは「何ページ目か」だけ。 */
-    pgBtns: q('.ap-pg', rows).map((e) => ({ t: e.textContent.trim(), off: e.disabled })),
+    /* ページ送り。★2026-08-24 から**総件数を出す**（オーナー判断）。
+       「前へ／次へ」と「数字のページ番号」は別のものなので、別々に取る
+       （同じ .ap-pg を持つので、混ぜて数えると端の判定が壊れる）。 */
+    pgBtns: q('.ap-pg:not(.ap-pg--n)', rows).map((e) => ({ t: e.textContent.trim(), off: e.disabled })),
+    pgNums: q('.ap-pg--n', rows).map((e) => ({ t: e.textContent.trim(),
+                                               cur: e.getAttribute('aria-current') === 'page' })),
     pgLabel: q('.ap-pg-n', rows).map((e) => e.textContent.trim()).join(' '),
     vf: q('.ap-vf', rows).length,
     lock: q('.ap-msg--lock', rows).length,
@@ -523,34 +636,47 @@ const SNAP = () => {
     panels: q('.ap-panel').length,
     pvr: q('.pvr').length,
     refSlot: document.getElementById('ap-ref-slot') ? 1 : 0,
-    /* 絞り込み */
+    /* 絞り込み。★機材（ap-fleet）はもう無い。会社を打ち込む窓（ap-q）が代わりに入った。 */
     barHidden: bar ? bar.hidden : null,
-    fleetHidden: (function () {
-      const w = document.getElementById('ap-fleet-wrap');
-      return w ? w.hidden : null;
-    })(),
-    airOpts: opts('ap-air'), posOpts: opts('ap-pos'), fleetOpts: opts('ap-fleet'),
+    hasFleet: document.getElementById('ap-fleet') ? 1 : 0,
+    hasQ: document.getElementById('ap-q') ? 1 : 0,
+    airOpts: opts('ap-air'), posOpts: opts('ap-pos'),
+    /* ★並び替えと「賞与ありのみ」の口が実行時にも生えていないこと。 */
+    sortEls: q('#ap-sort, #ap-order, [name="sort"], [data-ap-sort]').length,
+    bonusEls: q('#ap-bonus, [data-ap-bonus], .ap-bonus').length,
     /* ── 図（2026-08-24）──────────────────────────────
-       ★他人の内訳は「割合だけ」。.amt（金額）が1つでも出たら赤。 */
+       ★この画面の図は**年収の分布の棒1枚だけ**。支給の内訳（ドーナツ）は
+         DEEP PAY へ移した。ここに ドーナツ／行の選択 が生えたら赤。 */
     vizCards: q('.ap-vcard').length,
     vizText: txt(document.querySelector('.ap-viz')),
-    vizTitle: txt(document.querySelector('.ap-vcard .pt-h')).trim(),
-    vizLegend: q('.ap-vcard .pt-leg').map((e) => e.innerText.replace(/\s+/g, ' ').trim()).join(' / '),
-    vizAmts: q('.ap-vcard .pt-leg .amt').map((e) => e.textContent.trim()),
-    vizPcts: q('.ap-vcard .pt-leg .pct').map((e) => e.textContent.trim()),
-    vizCenter: txt(document.querySelector('.ap-vcard .pt-donut-c b')).trim(),
-    vizEmpty: q('.ap-vcard .pt-empty').length,
-    vizBack: q('[data-ap-unsel]').length,
+    donut: q('.pt-donut, .pt-leg, .pt-empty, [data-ap-unsel]').length,
     /* ★分布の棒。人数の数字は書かない（高さで目分量に読めるところまで）。 */
     bars: q('.ap-bar').length,
     plotText: txt(document.querySelector('.ap-plot')),
     you: q('.ap-you').length,
     axText: q('.ap-ax').map((e) => e.innerText).join(' '),
-    /* 選んだ行。★aria-selected は grid の中でしか使えないので aria-current。 */
-    sel: q('#ap-rows tbody tr[aria-current="true"]').length,
-    selIdx: q('#ap-rows tbody tr[aria-current="true"]')
-      .map((e) => e.getAttribute('data-ap-row')).join(','),
-    rowIdx: q('#ap-rows tbody tr').map((e) => e.getAttribute('data-ap-row')).join(','),
+    /* ★行は押せない（押すと内訳が出る形はもう無い）。 */
+    rowSel: q('#ap-rows tbody tr[data-ap-row], #ap-rows tbody tr[tabindex]').length,
+    /* ── 数字カード（2026-08-24）───────────────────────
+       ★読めない数のカードは**そのカードごと出さない**＝0 を並べない。 */
+    statsHidden: (function () { const b = document.getElementById('ap-stats'); return b ? b.hidden : null; })(),
+    stats: q('.ap-st').map((e) => ({
+      n: ((e.querySelector('.ap-st-n') || {}).textContent || '').trim(),
+      l: ((e.querySelector('.ap-st-l') || {}).textContent || '').trim()
+    })),
+    /* ★見出しの下に説明を置かない（オーナー指定）。 */
+    hdSub: (function () { const e = document.querySelector('.mr-hd-s'); return e ? e.innerText.trim() : ''; })(),
+    /* ── 置き場所（2026-08-24 オーナー指定）─────────────
+       ★棒グラフは**表の右横**。狭い幅では表の下に回る。 */
+    cols: q('.ap-cols').length,
+    sideViz: q('.ap-side .ap-viz').length,
+    place: (function () {
+      const m = document.querySelector('.ap-main'), s = document.querySelector('.ap-side');
+      if (!m || !s) return null;
+      const a = m.getBoundingClientRect(), b = s.getBoundingClientRect();
+      return { right: b.left >= a.right - 2, sameRow: b.top < a.bottom - 4,
+               w: Math.round(b.width), mw: Math.round(a.width) };
+    })(),
     calls: (window.__rpc || []).map((r) => r.name),
     withArgs: (window.__rpc || []).filter((r) => r.hasArgs).map((r) => r.name),
     tblTexts: q('table', rows).map((t) => t.innerText)
@@ -566,12 +692,13 @@ function gone(v, tag) {
   ok(v.pvr === 0 && v.refSlot === 0, `${tag}: ★招待カードがこの画面に出ない`,
      `${v.pvr}/${v.refSlot}`);
   /* ★表の節は1つ。h1 とほぼ同じ h2 を並べない。
-     札（本人記録）はその1つの見出しの行に付く。
-     ★2026-08-24：h2 は「図のカード」のぶんだけ増える（支給の内訳／年収の分布）。
+     ★h2 は「図のカード」のぶんだけ増える（今は年収の分布の1枚だけ）。
        だから 0 固定ではなく **図の枚数と一致すること** を見る。
-       表の節に h2 が生えると、この式がずれて赤くなる。 */
-  ok(v.h2 === v.vizCards && v.orange === 1,
-     `${tag}: ★見出しは1つ・h2 は図の枚数と同じ・「本人記録」の札も1つ`,
+       表の節に h2 が生えると、この式がずれて赤くなる。
+     ★見出しに札を置かない。ページ全体を「本人記録」と名乗ると、
+       出典が ✓ Verified の行と食い違う（英語の画面で実際に並んで見えた）。 */
+  ok(v.h2 === v.vizCards && v.orange === 0,
+     `${tag}: ★見出しは1つ・h2 は図の枚数と同じ・見出しに札は無い`,
      `h2=${v.h2} / viz=${v.vizCards} / badge=${v.orange} / ${v.h1}`);
 }
 
@@ -600,10 +727,27 @@ for (const lang of ['ja', 'en']) {
      JSON.stringify(v.rowsText).slice(0, 160));
   ok(v.cta.some((h) => /pay-report\.html#ps/.test(h)),
      'Give & Get の導線（匿名で給与を追加）が出る', v.cta.join(','));
-  ok(v.barHidden === true, '★絞り込みの帯ごと隠れる（空の選択肢を3つ並べない）',
+  ok(v.barHidden === true, '★絞り込みの帯ごと隠れる（空の選択肢を並べない）',
      String(v.barHidden));
+  ok(v.statsHidden === true && v.stats.length === 0,
+     '★鍵が無いときは数字カードも出ない（会員規模を先に見せない）',
+     `${v.statsHidden}/${v.stats.length}`);
   gone(v, lang);
   promises(v, lang, lang);
+  ok(errs.length === 0, 'ページのエラーが1件も出ない', errs.join(' | '));
+}
+
+/* ★万一サーバが「鍵は無いが数だけ」を返してきても、画面は数を出さない。
+   （db/pay-rows.sql の locked の枝は stats を返さない。ここは画面側の二重の錠） */
+{
+  console.log('\n════ ja / A-2 鍵が無いのに数だけ来た ════');
+  const { page, errs } = await open('ja', LOCKED_ST);
+  const v = await page.evaluate(SNAP);
+  ok(v.statsHidden === true && v.stats.length === 0,
+     '★鍵が無ければ、数え上げが来ていても1文字も出さない',
+     `${v.statsHidden}/${JSON.stringify(v.stats)}`);
+  ok(!v.bodyText.includes('11') || !/11\s*件/.test(v.bodyText),
+     '★「11件」が本文に出ない', v.bodyText.slice(0, 80));
   ok(errs.length === 0, 'ページのエラーが1件も出ない', errs.join(' | '));
 }
 
@@ -622,6 +766,9 @@ for (const lang of ['ja', 'en']) {
      JSON.stringify(v.rowsText).slice(0, 160));
   ok(!/1,?247|68社|872|直近30日/.test(v.bodyText), '★件数・カバー社数の作り話を置かない');
   ok(v.barHidden === true, '★0件のときも絞り込みの帯は隠れる', String(v.barHidden));
+  ok(v.statsHidden === true && v.stats.length === 0,
+     '★0件のときは数字カードも出ない（「0名」を並べない）',
+     `${v.statsHidden}/${v.stats.length}`);
   ok(v.cta.some((h) => /pay-report\.html#ps/.test(h)), '投稿への導線が出る', v.cta.join(','));
   gone(v, lang);
   promises(v, lang, lang);
@@ -691,6 +838,43 @@ for (const lang of ['ja', 'en']) {
   /* 検証済みは1人だけ。★verified の無い人に ✓ を付けない。 */
   ok(v.vf === 1, '★✓ Verified は verified:true の1人だけ', String(v.vf));
 
+  /* ★数字カード4枚（2026-08-24 オーナー判断「本当の数字だけ出す」）。
+     4枚のうち2枚は rows を数えるだけ。残り2枚は pv_pay_rows() の stats から来る。 */
+  ok(v.statsHidden === false && v.stats.length === 4, '★数字カードが4枚出る',
+     JSON.stringify(v.stats));
+  {
+    const num = (s) => Number(String(s).replace(/[^\d]/g, ''));
+    const got = v.stats.map((c) => num(c.n));
+    ok(got[0] === ROWS.length, '★1枚目「一覧のパイロット」＝表の行数', JSON.stringify(got));
+    ok(got[1] === ST.reports, '★2枚目「実給与の投稿」＝サーバが数えた件数', JSON.stringify(got));
+    ok(got[1] >= v.trs,
+       '★投稿の件数は必ず表の行数以上（サーバと画面が別々に数えていない）',
+       `${got[1]} / ${v.trs}`);
+    ok(got[2] === 4, '★3枚目「航空会社」＝表に出ている会社の数', JSON.stringify(got));
+    ok(got[3] === ST.month && got[3] <= got[1],
+       '★4枚目「今月の新規投稿」（投稿の件数を越えない）', JSON.stringify(got));
+  }
+
+  /* ★モックにあったが作らなかったもの。実行時にも生えていないこと。 */
+  ok(v.sortEls === 0 && v.bonusEls === 0,
+     '★並び替えの口も「賞与ありのみ」も無い', `${v.sortEls}/${v.bonusEls}`);
+  ok(v.hasFleet === 0 && v.hasQ === 1,
+     '★機材で絞る口は無い／会社を打ち込む窓はある', `${v.hasFleet}/${v.hasQ}`);
+  ok(v.hdSub === '', '★見出しの下に説明を置かない（オーナー指定）', v.hdSub.slice(0, 80));
+  ok(v.rowSel === 0, '★行は押せない（押すと内訳が出る形はもう無い）', String(v.rowSel));
+  ok(v.donut === 0, '★ドーナツはこの画面に1つも無い（DEEP PAY へ移した）', String(v.donut));
+
+  /* ★原本通貨は返していない＝表は表示通貨に揃っている。 */
+  ok(!/[€£₩]|AED|SGD|HKD/.test(v.tblTexts.join(' ')),
+     '★原本通貨の記号が表に出ない（表示通貨に揃っている）',
+     v.tblTexts.join(' ').slice(0, 120));
+
+  /* ★棒グラフは表の右横（オーナー指定）。狭い幅では下に回る＝ここは 1360px。 */
+  ok(v.cols === 1 && v.sideViz === 1, '★図は表の右の列に1枚だけ入る',
+     `${v.cols}/${v.sideViz}`);
+  ok(v.place && v.place.right && v.place.sameRow && v.place.w < v.place.mw,
+     '★広い幅では表の右横に並び、表より細い', JSON.stringify(v.place));
+
   /* ★⑤数え上げ。表そのものに数え方の言葉を1つも置かない。
      ★ただし出典の札（本人記録 / Pilot-recorded）だけは別。あれは数え方ではなく
        「その額がどこから来たか」で、たまたま「人」「Pilot」の字を含むだけ。
@@ -700,8 +884,16 @@ for (const lang of ['ja', 'en']) {
   const tblAll = VF_LABELS.reduce((t, w) => t.split(w).join(' '), v.tblTexts.join('\n'));
   ok(!/(件|人|reports?|pilots?)/i.test(tblAll),
      '★表の中に「件」「人」が1つも無い', JSON.stringify(tblAll).slice(0, 160));
-  const counts = (v.rowsText.match(/(\d+)\s*(件|人|reports?|pilots?)/gi) || []);
-  ok(counts.length === 0, '★合計件数・カバー社数を出さない', counts.join(','));
+  /* ★2026-08-24 から、表の**外**（上のカードと下のページ送り）には数字が出る。
+     だから「#ap-rows の中に数え方の言葉が1つも無い」ではなく、
+     **ページ送りの1文を外したら1つも無いこと**を見る。 */
+  {
+    const rest = v.pgLabel ? v.rowsText.split(v.pgLabel).join(' ') : v.rowsText;
+    const counts = (rest.match(/(\d+)\s*(件|人|reports?|pilots?)/gi) || []);
+    ok(counts.length === 0, '★件数が出るのはページ送りの1文だけ', counts.join(','));
+  }
+  ok(!/直近\s*\d+\s*日|last\s*\d+\s*days|\+\s*\d+\s*件/i.test(v.mainText),
+     '★「直近30日で +X件」は出さない（増え方の速さまでは出さない）');
   ok(!/パーセンタイル|上位\s*\d|percentile|top\s*\d+\s*%/i.test(v.bodyText),
      '★「上位◯パーセンタイル」を出さない（本人を採点しない）');
 
@@ -723,27 +915,41 @@ for (const lang of ['ja', 'en']) {
       s.dispatchEvent(new Event('change', { bubbles: true }));
     };
     const q = (s) => Array.prototype.slice.call(document.querySelectorAll(s));
+    /* カードの数字。★絞り込みで動かないことを、同じ手順の中で見る。 */
+    const st = () => q('.ap-st .ap-st-n').map((e) => e.textContent.trim()).join('|');
+    const before = st();
     set('ap-air', 'ana');
     const afterAir = { trs: q('#ap-rows tbody tr').length,
-                       pos: document.getElementById('ap-pos').options.length,
-                       fleetHidden: document.getElementById('ap-fleet-wrap').hidden };
+                       pos: document.getElementById('ap-pos').options.length, st: st() };
     set('ap-pos', 'cap');
-    const afterPos = { trs: q('#ap-rows tbody tr').length,
-                       fleet: document.getElementById('ap-fleet').options.length,
-                       fleetHidden: document.getElementById('ap-fleet-wrap').hidden };
+    const afterPos = { trs: q('#ap-rows tbody tr').length, st: st() };
+    /* ★会社を打ち込む窓（2026-08-24）。会社が増えても選択肢の中で迷子にならない。 */
+    document.getElementById('ap-clear').click();
+    const qi = document.getElementById('ap-q');
+    qi.value = 'jal';
+    qi.dispatchEvent(new Event('input', { bubbles: true }));
+    const afterQ = { trs: q('#ap-rows tbody tr').length,
+                     air: document.getElementById('ap-air').options.length };
     document.getElementById('ap-clear').click();
     const afterClear = { trs: q('#ap-rows tbody tr').length,
-                         air: document.getElementById('ap-air').value };
-    return { afterAir, afterPos, afterClear };
+                         air: document.getElementById('ap-air').value,
+                         q: qi.value, st: st() };
+    return { before, afterAir, afterPos, afterQ, afterClear };
   });
   ok(step.afterAir.trs === 3, '会社で絞ると3行', JSON.stringify(step.afterAir));
   ok(step.afterAir.pos === 3, '職位の選択肢はその会社にある2つ＋すべて',
      JSON.stringify(step.afterAir));
   ok(step.afterPos.trs === 2, '会社＋職位で絞ると2行', JSON.stringify(step.afterPos));
-  ok(step.afterPos.fleet === 3 && step.afterPos.fleetHidden === false,
-     '機材は2機種あるので選ばせる', JSON.stringify(step.afterPos));
-  ok(step.afterClear.trs === ROWS.length && step.afterClear.air === '',
-     '★解除で全員に戻る', JSON.stringify(step.afterClear));
+  ok(step.afterQ.trs === 2 && step.afterQ.air === 2,
+     '★社名を打ち込むと、その会社の行だけになる（選択肢もその1社＋すべて）',
+     JSON.stringify(step.afterQ));
+  ok(step.afterClear.trs === ROWS.length && step.afterClear.air === ''
+     && step.afterClear.q === '',
+     '★解除で全員に戻る（打ち込んだ文字も消える）', JSON.stringify(step.afterClear));
+  ok(step.before === step.afterAir.st && step.before === step.afterPos.st
+     && step.before === step.afterClear.st,
+     '★数字カードは絞り込みでは動かない（ここは「全体で今どれだけ集まっているか」）',
+     `${step.before} → ${step.afterPos.st}`);
 
   /* ⑥通貨を切り替えても引き直さない。 */
   const before = v.calls.filter((n) => n === 'pv_pay_rows').length;
@@ -789,16 +995,27 @@ for (const lang of ['ja', 'en']) {
     let combos = 0;
     for (const a of vals('ap-air')) {
       set('ap-air', a);
+      combos++;
       if (!n()) dead.push('air=' + a);
       for (const p of vals('ap-pos')) {
         set('ap-air', a); set('ap-pos', p);
+        combos++;
         if (!n()) dead.push('air=' + a + ',pos=' + p);
-        for (const f of vals('ap-fleet')) {
-          set('ap-air', a); set('ap-pos', p); set('ap-fleet', f);
-          combos++;
-          if (!n()) dead.push('air=' + a + ',pos=' + p + ',fleet=' + f);
-        }
       }
+    }
+    /* ★打ち込む窓も同じ。**選んだ会社に当たらない文字**を打つと、
+       選ばれていた会社は外れる（外れないと0件の行き止まりになる）。 */
+    g('ap-clear').click();
+    for (const a of vals('ap-air')) {
+      if (!a) continue;
+      set('ap-air', a);
+      const qi = g('ap-q');
+      qi.value = 'zzq';
+      qi.dispatchEvent(new Event('input', { bubbles: true }));
+      combos++;
+      if (g('ap-air').value === a) dead.push('q=zzq でも air=' + a + ' が残る');
+      qi.value = '';
+      qi.dispatchEvent(new Event('input', { bubbles: true }));
     }
     g('ap-clear').click();
     return { dead: dead, combos: combos, back: n() };
@@ -845,30 +1062,46 @@ for (const lang of ['ja', 'en']) {
 // ════════════════════════════════════════════════════════════════
 // E. ページ送りが行き止まりにならない
 // ════════════════════════════════════════════════════════════════
-/* 10件で1ページ。★出すのは「何ページ目か」だけで、総件数・総人数は出さない
-   （出すと会員規模そのものが漏れる。D と同じ理由でここも総当たりする）。
-   見るのは4つ:
+/* 10件で1ページ。★2026-08-24 から**総件数を出す**（オーナー判断）。
+   N は「絞り込んだ後の行数」で、絞ると N も一緒に動く。
+   見るのは6つ:
      ・どのページにも1行以上ある（空のページへ行けない）
      ・端では「前へ」「次へ」が押せなくなる（押しても何も起きない、ではなく無効）
      ・行ったページから必ず戻れる
-     ・絞り込みを変えたら1ページ目に戻る（3ページ目のまま絞ると空に見える） */
+     ・絞り込みを変えたら1ページ目に戻る（3ページ目のまま絞ると空に見える）
+     ・★数字のページ番号が出て、今いるページが1つだけ印を持つ
+     ・★「全N件中 a〜b件」の N が絞り込みに追随する */
 for (const lang of ['ja', 'en']) {
   console.log(`\n════ ${lang} / E ページ送り ════`);
-  const { page, errs } = await open(lang, { ok: true, state: 'open', rows: MANY_ROWS });
+  const { page, errs } = await open(lang, MANY);
   const v0 = await page.evaluate(SNAP);
 
   ok(v0.trs === 10, '1ページ目は10行', String(v0.trs));
   ok(v0.pgBtns.length === 2, '「前へ」「次へ」が2つ', JSON.stringify(v0.pgBtns));
   ok(v0.pgBtns[0].off === true, '★1ページ目で「前へ」は押せない', JSON.stringify(v0.pgBtns));
   ok(v0.pgBtns[1].off === false, '1ページ目で「次へ」は押せる', JSON.stringify(v0.pgBtns));
-  ok(!/(\d+)\s*(件|人|reports?|pilots?)/i.test(v0.rowsText),
-     '★ページ送りに件数を出さない', JSON.stringify(v0.pgLabel));
+  ok(v0.pgNums.length === 3 && v0.pgNums.map((x) => x.t).join(',') === '1,2,3',
+     '★数字のページ番号が 1 2 3 と出る', JSON.stringify(v0.pgNums));
+  ok(v0.pgNums.filter((x) => x.cur).length === 1 && v0.pgNums[0].cur,
+     '★今いるページに印が1つだけ付く', JSON.stringify(v0.pgNums));
+  {
+    const d = (v0.pgLabel.match(/\d+/g) || []).map(Number);
+    ok(d.includes(MANY_ROWS.length) && d.includes(1) && d.includes(10),
+       `★「全 ${MANY_ROWS.length} 件中 1〜10件」と出る`, v0.pgLabel);
+  }
+  /* ★数字が出るのはページ送りの1文だけ。表の中は今までどおり。 */
+  {
+    const rest = v0.pgLabel ? v0.rowsText.split(v0.pgLabel).join(' ') : v0.rowsText;
+    const c = (rest.match(/(\d+)\s*(件|人|reports?|pilots?)/gi) || []);
+    ok(c.length === 0, '★件数が出るのはページ送りの1文だけ', c.join(','));
+  }
 
   /* 端まで進んで、端まで戻る。★行が0のページに立てたらそこで落ちる。 */
   const walk = await page.evaluate(() => {
     const rows = document.getElementById('ap-rows');
     const n = () => rows.querySelectorAll('tbody tr').length;
-    const btn = (i) => rows.querySelectorAll('.ap-pg')[i];
+    /* ★「前へ／次へ」だけを拾う（.ap-pg--n は数字のページ番号）。 */
+    const btn = (i) => rows.querySelectorAll('.ap-pg:not(.ap-pg--n)')[i];
     const lbl = () => { const e = rows.querySelector('.ap-pg-n'); return e ? e.textContent.trim() : ''; };
     const fwd = [], back = [];
     /* 進む。★止まらないと困るので上限を置く（ここに掛かったら無限送り＝赤）。 */
@@ -884,7 +1117,7 @@ for (const lang of ['ja', 'en']) {
       if (!b || b.disabled) break;
       b.click();
     }
-    const endBtns = Array.prototype.slice.call(rows.querySelectorAll('.ap-pg'))
+    const endBtns = Array.prototype.slice.call(rows.querySelectorAll('.ap-pg:not(.ap-pg--n)'))
       .map((e) => e.disabled);
     return { fwd: fwd, back: back, endBtns: endBtns, endN: n() };
   });
@@ -906,167 +1139,153 @@ for (const lang of ['ja', 'en']) {
   const jump = await page.evaluate(() => {
     const rows = document.getElementById('ap-rows');
     const n = () => rows.querySelectorAll('tbody tr').length;
-    const next = () => { const b = rows.querySelectorAll('.ap-pg')[1]; if (b && !b.disabled) b.click(); };
+    const next = () => {
+      const b = rows.querySelectorAll('.ap-pg:not(.ap-pg--n)')[1];
+      if (b && !b.disabled) b.click();
+    };
+    const lbl = () => { const e = rows.querySelector('.ap-pg-n'); return e ? e.textContent.trim() : ''; };
     next(); next();                         // 3ページ目へ
-    const at3 = n();
+    const at3 = n(), lbl3 = lbl();
     const s = document.getElementById('ap-air');
     s.value = 'jal';
     s.dispatchEvent(new Event('change', { bubbles: true }));
-    const after = n();
-    const lbl = rows.querySelector('.ap-pg-n');
-    return { at3: at3, after: after, lbl: lbl ? lbl.textContent.trim() : '(1ページだけ)' };
+    return { at3: at3, lbl3: lbl3, after: n(), lbl: lbl(),
+             nums: Array.prototype.slice.call(rows.querySelectorAll('.ap-pg--n'))
+               .map((e) => e.textContent.trim()).join(',') };
   });
   ok(jump.at3 === 3, '3ページ目まで行けた', String(jump.at3));
   ok(jump.after > 0, '★絞り込んだ瞬間に1ページ目へ戻る（空に落ちない）',
      JSON.stringify(jump));
+  /* ★N は絞り込んだ後の行数。23 のまま残ると「全23件中 1〜6件」という嘘になる。 */
+  {
+    const d3 = (jump.lbl3.match(/\d+/g) || []).map(Number);
+    const d1 = (jump.lbl.match(/\d+/g) || []).map(Number);
+    ok(d3.includes(MANY_ROWS.length), '絞る前の N は全体の数', jump.lbl3);
+    ok(!d1.includes(MANY_ROWS.length) && d1.includes(jump.after),
+       '★絞ったら N も一緒に減る（総数が残らない）', jump.lbl);
+  }
 
   ok(errs.length === 0, 'ページのエラーが1件も出ない', errs.join(' | '));
 }
 
 // ════════════════════════════════════════════════════════════════
-// F. 図（内訳のドーナツ・年収の分布）
+// F. 図（年収の分布）
 // ════════════════════════════════════════════════════════════════
-/* ★2026-08-24 追加。オーナー判断「一旦やってみよう。イマイチならやめよう」。
-   増える露出は **1人ぶんの内訳の割合** だけ。金額はサーバが返さない。
-   ここで守るのは3つ：
-     ・他人の側に通貨記号が1文字も出ない（割合だけ）
-     ・自分の側にだけ金額が出る（my_pay_reports＝自分の数字なので隠す相手が居ない）
-     ・閉じ方が3つあり、どれで閉じても「自分の支給構成」に戻る（閉じ込めを作らない） */
+/* ★2026-08-24。この画面の図は **年収の分布の棒1枚だけ**。
+   支給の内訳（ドーナツ）は DEEP PAY へ移したので、ここには1つも無い。
+   守るのは5つ：
+     ・棒のところに人数の数字が1文字も無い（高さで目分量に読めるところまで）
+     ・図に出る金額は軸の両端だけ（自分の明細の内訳の額が混ざらない）
+     ・「あなたの位置」は1本だけ。my_pay_reports() から出す
+     ・★オーナー指定の置き場所＝**表の右横**。狭い幅では表の下に回る
+     ・通貨を切り替えても引き直さない（手元の値で描き直すだけ） */
 for (const lang of ['ja', 'en']) {
   console.log(`\n════ ${lang} / F 図 ════`);
   const { page, errs } = await open(lang, OPEN);
   const v = await page.evaluate(SNAP);
 
-  ok(v.vizCards === 2, '図は2枚（支給の内訳・年収の分布）', String(v.vizCards));
-
-  /* ① 既定は自分の支給構成。★ここだけ金額が出る。 */
-  ok(v.calls.includes('my_pay_reports'),
-     '★自分の内訳は my_pay_reports() から取る（他人の表から自分を探さない）',
-     v.calls.join(','));
-  ok(v.vizAmts.length > 0, '既定＝自分の支給構成（金額が出る）', v.vizLegend.slice(0, 120));
-  ok(v.sel === 0 && v.vizBack === 0,
-     '何も選んでいないときは「自分に戻す」を出さない', `${v.sel}/${v.vizBack}`);
-
-  /* ② 分布の棒。★人数の数字を書かない。 */
+  ok(v.vizCards === 1, '★図は1枚だけ（年収の分布）', String(v.vizCards));
+  ok(v.donut === 0, '★ドーナツの部品が1つも無い（DEEP PAY へ移した）', String(v.donut));
   ok(v.bars >= 3, '分布の棒が出ている', String(v.bars));
   ok(!/\d/.test(v.plotText),
-     '★棒のところに数字が1文字も無い（人数を書かない）', JSON.stringify(v.plotText).slice(0, 120));
+     '★棒のところに数字が1文字も無い（人数を書かない）',
+     JSON.stringify(v.plotText).slice(0, 120));
   ok(!/(\d+)\s*(件|人|reports?|pilots?)/i.test(v.vizText),
      '★図の帯の中に件数・人数を書かない', v.vizText.replace(/\n/g, ' ').slice(0, 160));
   ok(v.axText.length > 0 && MONEY.test(v.axText),
      '軸の両端は表示中の通貨で出す', v.axText);
   ok(v.you === 1, '★「あなたの位置」は1本だけ', String(v.you));
+  ok(v.calls.includes('my_pay_reports'),
+     '★「あなたの位置」は my_pay_reports() から出す（他人の表から自分を探さない）',
+     v.calls.join(','));
 
-  /* ③ 行を押すと、その人の割合に切り替わる。 */
-  const clickRow = async (i) => {
-    await page.evaluate((n) => {
-      const tr = document.querySelector('[data-ap-row="' + n + '"]');
-      if (tr) tr.click();
-    }, i);
-    await sleep(320);
-    return page.evaluate(SNAP);
-  };
-
-  const a = await clickRow(0);
-  ok(a.sel === 1 && a.selIdx === '0', '★押した行だけが選ばれる', `${a.sel}/${a.selIdx}`);
-  ok(a.rowIdx === v.rowIdx, '★行を選んでも並びが1行も動かない（選択が並べ替えに化けない）',
-     `${v.rowIdx} → ${a.rowIdx}`);
-  ok(a.amounts.join('|') === v.amounts.join('|'), '★金額も1つも動かない');
-  ok(a.vizAmts.length === 0,
-     '★他人のドーナツに金額が1つも出ない（サーバが返していない）', a.vizAmts.join(','));
-  ok(!MONEY.test(a.vizLegend),
-     '★凡例に通貨記号も桁区切りの数字も出ない（割合だけ）', a.vizLegend.slice(0, 160));
-  ok(a.vizPcts.length === 4 && a.vizPcts.every((t) => /^\d{1,3}%$/.test(t)),
-     '★凡例は「◯%」だけ（75/20/4/1 の4つ）', a.vizPcts.join(','));
-  ok(a.vizCenter === a.amounts[0],
-     '★中央は画面に出ている年収そのもの（別の丸め方をしない）',
-     `${a.vizCenter} / ${a.amounts[0]}`);
-  ok(a.vizBack === 1, '「自分に戻す」が出る', String(a.vizBack));
+  /* ★図に出る金額は軸の両端だけ。自分の明細の中身は1つも出ない。 */
   {
-    const hit = POISON_VALUES.filter((p) => a.mainText.includes(p));
-    ok(hit.length === 0, '★行を選んでも毒（準識別子）が1つも出ない', hit.join(','));
+    const leak = ['620,000', '620000', '2,200,000', '2200000', '42,000', '42000']
+      .filter((s) => v.vizText.includes(s));
+    ok(leak.length === 0, '★自分の明細の内訳の額が図に出ない', leak.join(','));
   }
 
-  /* ④ comp が無い行を押しても壊れない。★静かに「出せません」になる。 */
-  const b2 = await clickRow(2);
-  ok(b2.sel === 1 && b2.vizEmpty === 1 && b2.vizPcts.length === 0,
-     '★内訳が無い行は静かに「出せません」（図が壊れない）',
-     `${b2.sel}/${b2.vizEmpty}/${b2.vizPcts.length}`);
-  ok(b2.vizBack === 1, 'そこからも「自分に戻す」で戻れる', String(b2.vizBack));
+  /* ★置き場所（オーナー指定）。1360px では表の右横で、表より細い。 */
+  ok(v.cols === 1 && v.sideViz === 1, '★図は表の右の列に1枚だけ入る',
+     `${v.cols}/${v.sideViz}`);
+  ok(v.place && v.place.right && v.place.sameRow && v.place.w < v.place.mw,
+     '★広い幅では表と同じ行、表の右横、表より細い', JSON.stringify(v.place));
 
-  /* ⑤ 閉じ方が3つ。どれでも「自分の支給構成」に戻る。 */
-  const same = await clickRow(2);
-  ok(same.sel === 0 && same.vizAmts.length > 0,
-     '★もう一度押すと自分に戻る', `${same.sel}/${same.vizAmts.length}`);
+  /* ★狭い幅では表の下に回る（横に潰れた棒は分布に見えない）。 */
+  await page.setViewport({ width: 720, height: 1200 });
+  await sleep(500);
+  const nar = await page.evaluate(SNAP);
+  ok(nar.sideViz === 1 && nar.place && !nar.place.sameRow,
+     '★狭い幅では図が表の下に回る', JSON.stringify(nar.place));
+  ok(nar.bars >= 3, '狭くても棒は出たまま', String(nar.bars));
+  await page.setViewport({ width: 1360, height: 1200 });
+  await sleep(500);
 
-  await clickRow(3);
-  await page.keyboard.press('Escape');
-  await sleep(320);
-  const esc = await page.evaluate(SNAP);
-  ok(esc.sel === 0 && esc.vizAmts.length > 0,
-     '★ESC でも自分に戻る', `${esc.sel}/${esc.vizAmts.length}`);
-
-  await clickRow(3);
-  await page.evaluate(() => document.querySelector('[data-ap-unsel]').click());
-  await sleep(320);
-  const back = await page.evaluate(SNAP);
-  ok(back.sel === 0 && back.vizAmts.length > 0,
-     '★「自分に戻す」でも戻る', `${back.sel}/${back.vizAmts.length}`);
-
-  /* ⑥ キーボードだけでも選べる（行はボタンではないので自前で拾っている）。 */
-  const kb = await page.evaluate(() => {
-    const tr = document.querySelector('[data-ap-row="1"]');
-    return { tab: tr ? tr.getAttribute('tabindex') : null };
-  });
-  ok(kb.tab === '0', '行に tabindex が付いている', String(kb.tab));
-  await page.evaluate(() => document.querySelector('[data-ap-row="1"]').focus());
-  await page.keyboard.press('Enter');
-  await sleep(320);
-  const ke = await page.evaluate(SNAP);
-  ok(ke.sel === 1 && ke.selIdx === '1', '★Enter でも選べる', `${ke.sel}/${ke.selIdx}`);
-
-  /* ⑦ 通貨を切り替えても引き直さない（図も手元の値で描き直すだけ）。 */
-  const n0 = ke.calls.length;
+  /* ★通貨を切り替えても引き直さない。図も手元の値で描き直すだけ。 */
+  const n0 = (await page.evaluate(SNAP)).calls.length;
   await page.evaluate(() => window.PVCurrency.set('USD'));
   await sleep(700);
   const cu = await page.evaluate(SNAP);
   ok(cu.calls.length === n0, '★通貨を切り替えても RPC が1本も増えない',
      `${n0} → ${cu.calls.length}`);
-  ok(cu.vizCenter === cu.amounts[1] && /\$/.test(cu.vizCenter),
-     '★図の中央もドル表記に描き直る（表の金額と同じ文字）',
-     `${cu.vizCenter} / ${cu.amounts[1]}`);
-  ok(/\$/.test(cu.axText), '軸もドル表記に描き直る', cu.axText);
-  ok(cu.vizAmts.length === 0, '★切り替えても他人の側に金額は出ない', cu.vizAmts.join(','));
+  ok(/\$/.test(cu.axText), '★軸もドル表記に描き直る', cu.axText);
+  ok(!/\d/.test(cu.plotText), '★切り替えても棒に数字は出ない',
+     JSON.stringify(cu.plotText).slice(0, 120));
 
-  /* ⑧ 絞り込みを触ったら選択は外れる（消えた行が選ばれたままにならない）。 */
-  const fl = await page.evaluate(() => {
-    const s2 = document.getElementById('ap-air');
-    s2.value = 'jal';
-    s2.dispatchEvent(new Event('change', { bubbles: true }));
-    return true;
+  /* ★絞り込むと、棒はその中で刻み直される（全体のままだと軸が嘘になる）。 */
+  await page.evaluate(() => {
+    const s = document.getElementById('ap-air');
+    s.value = 'ana';
+    s.dispatchEvent(new Event('change', { bubbles: true }));
   });
-  await sleep(320);
+  await sleep(500);
   const af = await page.evaluate(SNAP);
-  ok(fl && af.sel === 0 && af.vizAmts.length > 0,
-     '★絞り込みを触ると選択が外れて自分に戻る', `${af.sel}/${af.vizAmts.length}`);
+  ok(af.bars >= 3, '★絞り込んでも棒は出る', String(af.bars));
+  ok(af.axText !== cu.axText, '★軸は絞り込んだ中の下端・上端に描き直る',
+     `${cu.axText} → ${af.axText}`);
 
   ok(errs.length === 0, 'ページのエラーが1件も出ない', errs.join(' | '));
 }
 
 // ════════════════════════════════════════════════════════════════
-// G. まだ給与を出していない人（自分の内訳が無い）
+// G. まだ給与を出していない人（自分の年収が無い）
 // ════════════════════════════════════════════════════════════════
 /* ★鍵はあるが my_pay_reports が空、という形はありうる（預かりから来た人など）。
    ここで図が壊れると、いちばん最初に来る人の画面だけ真っ白になる。 */
 {
-  const { page, errs } = await open('ja', { ok: true, state: 'open', rows: ROWS, mine: [] });
+  console.log('\n════ ja / G 自分の年収が無い ════');
+  const { page, errs } = await open('ja', { ok: true, state: 'open', rows: ROWS, stats: ST });
   const v = await page.evaluate(SNAP);
-  ok(v.vizCards === 2, '自分の内訳が無くても図は2枚', String(v.vizCards));
-  ok(v.vizEmpty === 1 && v.vizAmts.length === 0,
-     '★静かに「まだ出せません」になる（金額を捏造しない）',
-     `${v.vizEmpty}/${v.vizAmts.length}`);
-  ok(v.you === 0, '★自分の年収が無いので「あなたの位置」も出さない', String(v.you));
+  ok(v.vizCards === 1, '自分の年収が無くても図は出る', String(v.vizCards));
   ok(v.bars >= 3, '分布の棒はそれでも出る', String(v.bars));
+  ok(v.you === 0,
+     '★「あなたの位置」の破線は出さない（軸の外に置くと、目盛りそのものが嘘に見える）',
+     String(v.you));
+  ok(v.trs === ROWS.length, '表はふつうに出る', String(v.trs));
+  ok(v.stats.length === 4, '数字カードも出たまま', JSON.stringify(v.stats));
+  ok(errs.length === 0, 'ページのエラーが1件も出ない', errs.join(' | '));
+}
+
+// ════════════════════════════════════════════════════════════════
+// H. サーバがまだ古い（数え上げを返さない）
+// ════════════════════════════════════════════════════════════════
+/* ★db/pay-rows.sql を Supabase に貼るまで、本番からは stats が返らない。
+   そのとき **読めない2枚はカードごと落として、2枚だけ並べる**。
+   埋めるための 0 を置かない＝画面に嘘の数字を作らない。 */
+{
+  console.log('\n════ ja / H サーバがまだ数え上げを返さない ════');
+  const { page, errs } = await open('ja', NOSTAT);
+  const v = await page.evaluate(SNAP);
+  const num = (s) => Number(String(s).replace(/[^\d]/g, ''));
+  ok(v.statsHidden === false && v.stats.length === 2,
+     '★読めない2枚は出さず、rows から数えられる2枚だけ並ぶ', JSON.stringify(v.stats));
+  ok(v.stats.every((c) => num(c.n) > 0), '★埋めるための 0 を置かない',
+     JSON.stringify(v.stats));
+  ok(num(v.stats[0].n) === ROWS.length && num(v.stats[1].n) === 4,
+     '残る2枚は「一覧のパイロット」と「航空会社」', JSON.stringify(v.stats));
+  ok(v.trs === ROWS.length, '表はふつうに出る（カードが欠けても壊れない）', String(v.trs));
+  ok(v.bars >= 3, '図もふつうに出る', String(v.bars));
   ok(errs.length === 0, 'ページのエラーが1件も出ない', errs.join(' | '));
 }
 
