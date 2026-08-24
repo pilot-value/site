@@ -66,6 +66,23 @@ await db.exec(`
 
   create function auth.uid() returns uuid language sql stable as $$
     select nullif(current_setting('pv.uid', true), '')::uuid $$;
+
+  /* 口コミの表（このファイルが触る列だけの最小形）。
+     ★db/pay-rows.sql は口コミに書かれた給与も一覧に混ぜるので、
+       流す前にこれが無いと落ちる（本番では元からある表）。
+     ★airline に外部キーを張らない。pv_airlines はこの下で作られるので順番が逆。 */
+  create table public.reviews_v2 (
+    id         uuid primary key default gen_random_uuid(),
+    proof_hash text not null,
+    airline    text not null,
+    "position" text,
+    annual_salary            integer,
+    base_annual              integer,
+    flight_allowance_annual  integer,
+    monthly_salary           integer,
+    bonus                    integer,
+    created_at timestamptz not null default now()
+  );
 `);
 
 // ── 適用（順番も含めて本番と同じ手順）────────────────────────
@@ -148,10 +165,11 @@ const pv2 = (v) => Number(v.toPrecision(2));
 
 // 会社コードは語彙から取る（このテストのために特定の社名を覚えない）
 const AIR = (await rows(
-  `select code from pv_airlines where code <> 'other' and active order by code limit 15`
+  `select code from pv_airlines where code <> 'other' and active order by code limit 21`
 )).map(r => r.code);
 const [A_ONE, A_M12, A_MIX, A_OLD, A_ORD, A_VF, A_OUT, A_FOTHER,
-       A_BAND, A_PEND, A_CLAIMED, A_NULLIP, A_CROSS, A_COMP, A_STAT] = AIR;
+       A_BAND, A_PEND, A_CLAIMED, A_NULLIP, A_CROSS, A_COMP, A_STAT,
+       A_RV_MON, A_RV_ANN, A_RV_SUM, A_RV_DUP, A_RV_NONE, A_AGE] = AIR;
 
 // ════════════════════════════════════════════════════════════
 console.log('\n▼ 1. 鍵（ログインと access_until）');
@@ -387,9 +405,9 @@ console.log('\n▼ 6. ★並びに時間が入っていない');
 // ════════════════════════════════════════════════════════════
 console.log('\n▼ 7. ★返り値に何が入っているか');
 // ════════════════════════════════════════════════════════════
-const ALLOWED = ['airline', 'pos', 'annual_usd', 'verified'];
+const ALLOWED = ['airline', 'pos', 'annual_usd', 'verified', 'age'];
 const extra = [...new Set(R.flatMap(x => Object.keys(x)))].filter(k => !ALLOWED.includes(k));
-ok(extra.length === 0, '返す項目は4つだけ', JSON.stringify(extra));
+ok(extra.length === 0, '返す項目は5つだけ', JSON.stringify(extra));
 ok(R.every(x => !('fleet' in x)),
    '★どの行にも機材のキーが無い（null ではなく、キーごと無い）');
 ok(R.every(x => !('comp' in x)),
@@ -404,8 +422,12 @@ const hit = BANNED.filter(w => raw.includes(w));
 ok(hit.length === 0, '準識別子・個人の内訳が返り値の文字列に1つも無い', JSON.stringify(hit));
 ok(!raw.includes(OTHER_NAME) && !raw.toLowerCase().includes('somewhere'),
    '★打ち込まれた自由入力の社名が返り値に1文字も無い');
-ok(only(R, x => x.airline === 'other').every(x => Object.keys(x).length === 4),
+ok(only(R, x => x.airline === 'other').every(x => Object.keys(x).length === 5),
    '　その人たちの行にも余分な欄が1つも無い（打ち込まれた社名の置き場が無い）');
+ok(R.every(x => Number.isInteger(x.age) && x.age >= 0 && x.age <= 4),
+   '★投稿の時期は0〜4の段だけ（日付も年月も入っていない）');
+ok(!/\d{4}-\d{2}/.test(raw),
+   '★返り値の文字列に年月の形をした数字が1つも無い');
 
 ok(!raw.includes('fleet') && !raw.includes('comp') && !raw.includes('"b737"'),
    '★返り値の文字列に機材も内訳も1語も無い');
@@ -739,13 +761,127 @@ await asViewer();
 }
 
 // ════════════════════════════════════════════════════════════
+console.log('\n▼ 12-c. ★昔の口コミに書かれた給与も一覧に混ざる');
+// ════════════════════════════════════════════════════════════
+/* 口コミの持ち主キーは submit-review.html が作る。塩をここに書き写すと、
+   あちらを直したときにテストだけ通り続けて本番が黙って壊れる。
+   だから**あちらから読み取って**、db/pay-rows.sql が同じ塩を使っていることも見る。 */
+const SR = read('submit-review.html');
+const SALT = SR.match(/encode\(\s*userId \+ '([^']+)' \+ airline \+ '([^']+)'\s*\)/);
+ok(!!SALT, '口コミの持ち主キーの作り方を submit-review.html から読み取れた');
+const PR_SRC = read('db/pay-rows.sql');
+ok(!!SALT && PR_SRC.includes(`'${SALT[1]}'`) && PR_SRC.includes(`'${SALT[2]}'`),
+   '★対応表が口コミと同じ塩を使っている（片方だけ直すとここで落ちる）',
+   SALT ? `${SALT[1]} / ${SALT[2]}` : '');
+
+const { createHash } = await import('node:crypto');
+const revHash = (u, air) =>
+  createHash('sha256').update(uid(u) + SALT[1] + air + SALT[2]).digest('hex');
+
+/* 口コミを1件置く。金額は万円で入る（口コミは原本通貨を持たない）。 */
+let revSeat = 3000;
+const review = async (air, pos, cols, days = 5) => {
+  const u = ++revSeat;
+  await db.query(`insert into profiles(id,email) values($1,$2) on conflict do nothing`,
+    [uid(u), `r${u}@example.com`]);
+  await db.query(
+    `insert into reviews_v2(proof_hash, airline, "position", annual_salary, base_annual,
+                            flight_allowance_annual, monthly_salary, bonus, created_at)
+     values($1,$2,$3,$4,$5,$6,$7,$8, now() - ($9 || ' days')::interval)`,
+    [revHash(u, air), air, pos, cols.ann ?? null, cols.base ?? null, cols.fa ?? null,
+     cols.mon ?? null, cols.bon ?? null, String(days)]);
+  return u;
+};
+
+/* 同じ人が給与明細も出している会社。明細が採られて口コミが落ちるはず。 */
+const dupUid = await person(A_RV_DUP, 'cap', [{ fleet: 'b777', month: 4, gross: 10000 }]);
+await db.query(
+  `insert into reviews_v2(proof_hash, airline, "position", monthly_salary, bonus)
+   values($1,$2,'captain',100,200)`, [revHash(dupUid, A_RV_DUP), A_RV_DUP]);
+
+await review(A_RV_MON,  'captain', { mon: 100, bon: 200 });   // 月給×12＋賞与 = 1400万
+await review(A_RV_ANN,  'fo',      { ann: 3000, mon: 999 });  // 総額が最優先 = 3000万
+await review(A_RV_SUM,  'captain', { base: 2000, fa: 500, bon: 300 }); // 合算 = 2800万
+await review(A_RV_NONE, 'fo',      {});                        // 金額が無い＝一覧に出ない
+
+/* 対応表は pay-rows.sql を流したときに埋まる。口コミを足したので流し直す。
+   ★ここで冪等性も一緒に確かめている（何度流しても同じ）。 */
+await db.exec(read('db/pay-rows.sql'));
+
+const JPY = Number((await one(`select to_usd from fx_rates where code = 'JPY'`)).to_usd);
+const man2usd = (man) => pv2(Math.round(man * 10000 * JPY * 100) / 100);
+
+await asViewer();
+const RV = (await payRows()).rows;
+const pick = (air) => only(RV, x => x.airline === air);
+
+ok(pick(A_RV_MON).length === 1 && pick(A_RV_MON)[0].annual_usd == man2usd(1400),
+   '月給×12＋賞与の口コミが1行になる（口コミカードと同じ式）',
+   JSON.stringify(pick(A_RV_MON)));
+ok(pick(A_RV_ANN).length === 1 && pick(A_RV_ANN)[0].annual_usd == man2usd(3000),
+   '総額が入っている口コミは総額を採る（月給を足さない）',
+   JSON.stringify(pick(A_RV_ANN)));
+ok(pick(A_RV_SUM).length === 1 && pick(A_RV_SUM)[0].annual_usd == man2usd(2800),
+   '基本給＋乗務手当＋賞与の口コミも1行になる',
+   JSON.stringify(pick(A_RV_SUM)));
+ok(pick(A_RV_NONE).length === 0, '金額の無い口コミは一覧に出ない');
+ok(pick(A_RV_MON).every(x => x.verified === false),
+   '★口コミ由来の行は verified が false（明細の裏付けは無い）');
+ok(pick(A_RV_MON)[0].pos === 'cap' && pick(A_RV_SUM)[0].pos === 'cap',
+   "★古い職位コード（captain）が cap に寄る", JSON.stringify(pick(A_RV_MON)[0]));
+
+ok(pick(A_RV_DUP).length === 1 && pick(A_RV_DUP)[0].verified === false
+   && pick(A_RV_DUP)[0].annual_usd == pv2(10000 * 12),
+   '★同じ人が明細も出していたら明細を採り、口コミ側は落ちる（1行のまま）',
+   JSON.stringify(pick(A_RV_DUP)));
+
+ok((await one(`select count(*)::int n from pv_review_person`)).n === 4,
+   '★対応表に入るのは金額を持つ口コミだけ（4件）',
+   String((await one(`select count(*)::int n from pv_review_person`)).n));
+ok(!(await one(`select has_table_privilege('anon','public.pv_review_person','select') b`)).b
+   && !(await one(`select has_table_privilege('authenticated','public.pv_review_person','select') b`)).b,
+   '★対応表は anon にも会員にも開いていない');
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 12-d. ★投稿の時期は5段の粗い区分だけ');
+// ════════════════════════════════════════════════════════════
+/* 段の境目。1ヶ月／3ヶ月／6ヶ月／1年 の内と外に、余裕を持たせて置く。
+   ★段は「その人のいちばん新しい提出」から決まる。 */
+const AGE_CASES = [[20, 0], [40, 1], [100, 2], [200, 3], [400, 4]];
+for (const [days, want] of AGE_CASES) {
+  const u = await review(A_AGE, 'fo', { ann: 1000 + days }, days);
+  ok(true, `　${days}日前の口コミを1件置いた（uid ${u % 1000}）`);
+}
+await db.exec(read('db/pay-rows.sql'));
+await asViewer();
+{
+  const got = only((await payRows()).rows, x => x.airline === A_AGE)
+    .map(x => x.age).sort((a, b) => a - b);
+  ok(JSON.stringify(got) === JSON.stringify(AGE_CASES.map(c => c[1])),
+     '★20/40/100/200/400日前が 0/1/2/3/4 の段に分かれる', JSON.stringify(got));
+}
+{
+  /* 同じ人が古い月と新しい月を出していたら、新しいほうの段になる。 */
+  const u = await person(A_OLD, 'cadet', [{ fleet: 'b737', month: 6, gross: 4000 }]);
+  await db.query(`update pay_reports set created_at = now() - interval '400 days'
+                   where airline = $1 and created_at > now() - interval '1 day'`, [A_OLD]);
+  await asUser(u);
+  await submit({ ...BASE, airline: A_OLD, position: 'cadet', fleet: 'b737',
+                 period_year: YEAR, period_month: 7, gross_monthly: 4000 });
+  await asViewer();
+  const row = only((await payRows()).rows, x => x.airline === A_OLD && x.pos === 'cadet');
+  ok(row.length === 1 && row[0].age === 0,
+     '★同じ人の古い月と新しい月は1行に畳まれ、段は新しいほうになる', JSON.stringify(row));
+}
+
+// ════════════════════════════════════════════════════════════
 console.log('\n▼ 13. 自己点検 SQL（ファイル末尾のものをそのまま流す）');
 // ════════════════════════════════════════════════════════════
 {
   const src = read('db/pay-rows.sql');
   const q = src.slice(src.lastIndexOf('with f as ('));
   const res = await rows(q);
-  ok(res.length === 26, `自己点検が26行ぜんぶ出る（= ${res.length}行）`);
+  ok(res.length === 32, `自己点検が32行ぜんぶ出る（= ${res.length}行）`);
   for (const row of res) {
     ok(row['結果'] === '✅', `${row['#']}. ${row['見るところ']}`);
   }

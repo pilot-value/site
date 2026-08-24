@@ -44,9 +44,11 @@
 --   したがってこの設計を支えているのは、いま次の7つだけ。
 --
 --     ① 鍵         給与明細を1枚出した人だけ・90日（サーバ側。anon には開かない）
---     ② 準識別子ゼロ 機材・基地・在籍年数・年代・投稿月・原本通貨・契約形態・国籍・
---                   レポートID・提出日は1つも返さない（列にも group by にも入れない）。
---                   支給の内訳も返さない（内訳は DEEP PAY の担当）
+--     ② 準識別子ゼロ 機材・基地・在籍年数・年代・原本通貨・契約形態・国籍・
+--                   レポートID・提出日そのものは1つも返さない（列にも group by にも入れない）。
+--                   支給の内訳も返さない（内訳は DEEP PAY の担当）。
+--                   ★2026-08-24、ここだけ1段ゆるめた。投稿の「時期」を
+--                     5段の粗い区分で返す（下の「★投稿の時期について」）
 --     ③ 有効数字2桁  $183,456 は $180,000 として出る。1円まで一致する個票が存在しない
 --     ④ 1行＝1人    同じ人の複数月は年換算の中央値で1行に畳む（回数から常連が割れない）
 --     ⑤ 引数ゼロ    総当たりで区分を指定して引く面が無い
@@ -75,6 +77,36 @@
 --     「今どれだけ集まっているか」と「今月どれだけ増えたか」の2つ。
 --     会員数そのものではない（出していない会員は1も足されない）。
 --     契約①〜⑦は**1つも外していない**。
+--
+-- ★投稿の時期について。2026-08-24 オーナー判断で**粗い段だけ出すことにした**。
+--   一覧の右端に「1ヶ月以内／3ヶ月以内／6ヶ月以内／1年以内／それより前」の5段が出る。
+--   その人の**いちばん新しい提出**から決める。
+--
+--   ★これは契約②を1段ゆるめている。正直に書いておく。
+--     前は「投稿月は返さない」と書いてあった。今も**日付も年月も返さない**が、
+--     「だいたいいつごろの人か」は分かるようになった。
+--     理由：この一覧は古い数字と新しい数字が同じ顔で並ぶ。読む人が
+--     「これは今の相場か」を判断できないと、出してもらった数字の値打ちが落ちる。
+--
+--   ★契約⑥（並びに時間が無い）は**外していない**。
+--     並びは今も md5(人のキー) 順で、段で並べ替える口も、段で絞る口も作らない。
+--     段で並べ替えられると、それは実質「投稿順の並び」になる（＝誰が最近出したか）。
+--     5段しか無いので、同じ段の中の順序は今までどおり md5 のまま何も語らない。
+--
+-- ★口コミに書かれた給与も一覧に混ぜる（2026-08-24 オーナー判断）
+--   給与明細の仕組みができる前、口コミフォームが年収も聞いていた時期がある。
+--   出してくれた人が実際に居るのに、その数字だけ REAL PAY に出ないのは
+--   Give & Get の約束と食い違う。だから混ぜる。
+--   ・**もう増えない。** 口コミフォームは金額を集めるのをやめている
+--     （submit-review.html「金額はここでは集めない」）。過去のぶんだけ。
+--   ・**新しく外へ出る情報はゼロ。** その金額は今も口コミカードに出ている
+--     （airlines/airline-reviews-ui.js と community.html が同じ式で表示している）。
+--     合計の出し方もあちらと1文字も違えない。違えると同じ人の金額が画面ごとに変わる。
+--   ・出典は「本人記録」（verified は false）。札を3種類に増やさない（オーナー判断）。
+--   ・**同じ人が給与明細も出していたら、明細を採って口コミ側を落とす。**
+--     落とさないと同じ人が2行に出る＝契約④が破れる。実際に本番で1人が重なっている。
+--   ・人の突き合わせは下の pv_review_person（対応表）。口コミと明細で持ち主の
+--     ハッシュの塩が違うので、名簿から作り直して1回だけ対応を取る。
 --
 -- ★内訳（支給の割合）について。2026-08-24 にいったん入れて、同じ日に外した。
 --   「行を選ぶとその人の支給の内訳が円グラフで見える」形にしてみたが、
@@ -439,6 +471,62 @@ comment on function public.pv_pending_comp(jsonb) is
 
 
 -- ════════════════════════════════════════════════════════════════
+-- 1-d. pv_review_person — 口コミと給与明細の「同じ人」をつなぐ対応表
+--
+-- なぜ表が要るか。持ち主のハッシュの塩が2つの機能で違う。
+--   口コミ   sha256( uid || '::pv_anon::' || 社 || '::2026' )   submit-review.html
+--   給与明細 sha256( uid || '::pv_pay::'  || 社 )               db/pay-reports.sql 5章
+-- どちらの表にも uid は残っていない（そういう設計にした）。
+-- つまり SQL だけでは突き合わせられない。名簿（profiles）から両方を作り直して、
+-- 1回だけ対応を取っておく。
+--
+-- ★持つのは「口コミの id → 明細側と同じ形の人のキー」だけ。uid は列に持たない。
+-- ★誰にも開かない。RLS を有効にしてポリシーを1つも置かず、grant も剥がす。
+--   ＝ security definer の pv_pay_rows から読むときだけ見える。
+--   （口コミの proof_hash 自体は anon から読める（口コミ一覧が select * している）。
+--     そこに明細側のキーを並べた表を足すと、2つの機能が同じ人だと外から分かってしまう）
+-- ★入れるのは**金額を持つ口コミだけ**。それ以外は一覧に出ないので対応も要らない。
+--   金額を集めるのはもうやめているので、この表はこれ以上増えない。
+-- ★何度流しても同じ（on conflict do nothing）。
+-- ════════════════════════════════════════════════════════════════
+create table if not exists public.pv_review_person (
+  review_id uuid primary key references public.reviews_v2(id) on delete cascade,
+  pkey      text not null
+);
+
+alter table public.pv_review_person enable row level security;
+-- ポリシーを1つも作らない＝RLS が有効なだけで誰も読めない。
+revoke all on table public.pv_review_person from public, anon, authenticated;
+
+comment on table public.pv_review_person is
+  '口コミ（reviews_v2）と給与明細（pay_reports）の同じ人をつなぐ対応表。'
+  '持つのは口コミの id と、明細側と同じ形の人のキーだけ（uid は持たない）。'
+  'RLS 有効・ポリシー無し・grant 無し＝pv_pay_rows の中からしか読めない。';
+
+-- ── 埋める（冪等）───────────────────────────────────────────
+-- 名簿 × その口コミの社コード で口コミ側のハッシュを作り直して当てる。
+-- 当たった人について、明細側と**同じ形**のキーを入れておく。
+-- こうしておくと、一覧の group by が何もしなくても同じ人として畳む。
+--
+-- ★'other'（自由入力の社名）の人だけは、明細側のキーに打ち込んだ社名まで入るので
+--   （db/pay-reports.sql 5章の coalesce）、明細を出していても突き合わない。
+--   その場合は口コミ側も1行出る。会社はどちらも「その他」なので実害は小さい。
+insert into public.pv_review_person (review_id, pkey)
+select v.id,
+       'r:' || encode(extensions.digest(
+                 p.id::text || '::pv_pay::' || v.airline, 'sha256'), 'hex')
+  from public.reviews_v2 v
+  join public.profiles p
+    on v.proof_hash = encode(extensions.digest(
+         p.id::text || '::pv_anon::' || v.airline || '::2026', 'sha256'), 'hex')
+ where coalesce(nullif(v.annual_salary, 0),
+                nullif(v.base_annual, 0),
+                nullif(v.flight_allowance_annual, 0),
+                nullif(v.monthly_salary, 0)) is not null
+on conflict (review_id) do nothing;
+
+
+-- ════════════════════════════════════════════════════════════════
 -- 2. pv_pay_rows — 匿名レポート一覧（1行＝1人・出した人は全員）
 --
 -- 返り値
@@ -453,13 +541,18 @@ comment on function public.pv_pending_comp(jsonb) is
 --   ★鍵が無いときは stats ごと返さない（数字も鍵の内側）。
 --
 -- rows[] の1件
---   { airline, pos, annual_usd, verified }
+--   { airline, pos, annual_usd, verified, age }
 --     airline … 航空会社コード。自由入力の社名の人は 'other' のまま
 --               （打ち込まれた文字列は返さない。画面が固定の札に置き換える）
+--     age     … 投稿の時期。0=1ヶ月以内 1=3ヶ月以内 2=6ヶ月以内 3=1年以内 4=それより前。
+--               その人のいちばん新しい提出から決める。**日付も年月も返さない。**
+--               並べ替えにも絞り込みにも使わない（契約⑥はそのまま）。
 --     ★機材は返さない（2026-08-24 に外した。理由はファイル冒頭）。
 --
--- 材料は2つ。本棚（会員が出したぶん）と、まだ移っていない預かり。
+-- 材料は3つ。本棚（会員が出したぶん）、まだ移っていない預かり、
+-- そして昔の口コミに書かれた給与。
 --   ★預かりは claimed_at が null のものだけ。移したものは本棚側に同じ人が居る。
+--   ★口コミは、同じ人が本棚に居るなら落とす（明細を優先）。理由はファイル冒頭。
 --
 -- 同じ人の複数月は「年換算額の中央値」で1行に畳む。
 --   ★最新月を採らない。最新月は投稿の新しさと相関するので、月をまたいで並べると
@@ -492,13 +585,14 @@ begin
     return jsonb_build_object('ok', true, 'state', 'locked', 'rows', '[]'::jsonb);
   end if;
 
-  with src as (
+  with shelf as (
     -- ── ① 本棚（会員が出したぶん）──────────────────────────
     -- ★ここで選んだ列がすべて。増やす前に必ずファイル冒頭の②を読む。
     --   自由入力の社名の列は、ここにも下にも1度も出てこない（読まない）。
     --   ★この行に列名そのものを書かないこと。自己点検8が「読んでいる」と誤検知する。
-    --   ★最後の1列は「いつ出されたか」。数を数えるためだけに持つ。
-    --     行として返さない・並べ替えにも使わない（契約⑥）。自己点検 26 が見ている。
+    --   ★最後の1列は「いつ出されたか」。数を数えるためと、粗い段（下の age）を
+    --     出すためだけに持つ。日付そのものは行として返さない・並べ替えにも
+    --     使わない（契約⑥）。自己点検 26 が見ている。
     select 'r:' || r.proof_hash as pkey,
            r.airline            as airline,
            r."position"         as pos,
@@ -508,6 +602,9 @@ begin
       from public.pay_reports r
      where r.annual_total_usd is not null      -- レートの無い通貨は落ちる（6章と同じ）
        and r.created_at >= now() - interval '24 months'
+  ),
+  src as (
+    select * from shelf
     union all
     -- ── ② 預かり（登録前に出されたぶん。まだ本棚に移っていないものだけ）──
     --   ★claimed_at is null が二重計上の唯一の歯止め。外さないこと。
@@ -527,6 +624,47 @@ begin
        -- 預かりの airline には外部キーが無いので、ここで語彙に当てる。
        -- 当たらない値は画面の辞書にも無い＝コードがそのまま出てしまう。
        and exists (select 1 from public.pv_airlines a where a.code = q.airline)
+    union all
+    -- ── ③ 昔の口コミに書かれた給与（2026-08-24。理由はファイル冒頭）──
+    --   ★合計の出し方は口コミカード（airlines/airline-reviews-ui.js）と1文字も違えない。
+    --     総額 ＞ 基本給＋乗務手当＋賞与 ＞ 月給×12＋賞与。
+    --     nullif を外さないこと。あちらは 0 を「入っていない」と読むので、
+    --     coalesce だけにすると 0 の行で答えが変わる。
+    --   ★保存されているのは万円。原本の通貨は持っていない（口コミは常に万円で入る）。
+    --     だから**今の**レートで USD に直す。本棚側は投稿した瞬間のレートで
+    --     確定しているので、ここだけ扱いが違う。ゆがみは丸め（③）より小さい。
+    --   ★職位は古いコードを寄せる（pv-vocab.mjs の LEGACY_POSITIONS と同じ内容）。
+    --     語彙に無い値の行は落とす。
+    --   ★同じ人が本棚に居るなら出さない。明細のほうが確かで、両方出すと
+    --     同じ人が2行になる（契約④）。
+    select l.pkey,
+           v.airline,
+           case v."position" when 'captain' then 'cap'
+                             when 'sfo'     then 'fo'
+                             when 'tri_tre' then 'cap'
+                             else v."position" end,
+           round(coalesce(
+                   nullif(v.annual_salary, 0),
+                   case when coalesce(nullif(v.base_annual, 0),
+                                      nullif(v.flight_allowance_annual, 0)) is not null
+                        then coalesce(v.base_annual, 0)
+                           + coalesce(v.flight_allowance_annual, 0)
+                           + coalesce(v.bonus, 0) end,
+                   case when nullif(v.monthly_salary, 0) is not null
+                        then v.monthly_salary * 12 + coalesce(v.bonus, 0) end
+                 )::numeric * 10000 * jpy.to_usd, 2),
+           false,
+           v.created_at
+      from public.reviews_v2 v
+      join public.pv_review_person l on l.review_id = v.id
+      join public.fx_rates jpy on jpy.code = 'JPY'
+     where v.created_at >= now() - interval '24 months'
+       and case v."position" when 'captain' then 'cap'
+                             when 'sfo'     then 'fo'
+                             when 'tri_tre' then 'cap'
+                             else v."position" end
+           in (select c.code from public.pv_positions c)
+       and not exists (select 1 from shelf s where s.pkey = l.pkey)
   ),
   sane as (
     -- ── ③ 常識の幅（⑦）。打ち間違いだけを落とす ────────────────
@@ -542,7 +680,15 @@ begin
            -- ★percentile_cont は numeric を渡しても double precision で返る。
            --   round(値, 桁) は numeric にしか無いので、先に ::numeric を通す。
            (percentile_cont(0.5) within group (order by usd))::numeric as v,
-           bool_or(vf) as verified
+           bool_or(vf) as verified,
+           -- ★投稿の時期。**その人のいちばん新しい提出**から決める。
+           --   出るのは0〜4の段だけで、日付も年月もここから先へ行かない。
+           --   段で並べ替えない・段で絞らない（契約⑥。理由はファイル冒頭）。
+           case when max(cat) >= now() - interval '1 month'   then 0
+                when max(cat) >= now() - interval '3 months'  then 1
+                when max(cat) >= now() - interval '6 months'  then 2
+                when max(cat) >= now() - interval '12 months' then 3
+                else 4 end as age
       from sane
      group by pkey, airline, pos
   ),
@@ -551,7 +697,8 @@ begin
              'airline',    p.airline,
              'pos',        p.pos,
              'annual_usd', public.pv_sig2(p.v),
-             'verified',   p.verified
+             'verified',   p.verified,
+             'age',        p.age
            -- ★並びに時間を入れないこと。投稿順に並べると、並び順そのものが
            --   「誰が最近出したか」になる（外した30日の遅延より悪い）。
            --   md5 なので毎回同じ並びで、しかも中身とも関係が無い。
@@ -590,8 +737,10 @@ grant execute on function public.pv_pay_rows() to authenticated;
 
 comment on function public.pv_pay_rows() is
   '実給与の匿名一覧。1行＝1人（複数月は年換算の中央値で畳む）。出した人は全員出る。'
-  '本棚（pay_reports）と、まだ移っていない預かり（pay_reports_pending）の両方から作る。'
-  '機材・基地・在籍年数・年代・投稿月・原本通貨・契約形態・自由入力の社名は返さない。'
+  '材料は3つ：本棚（pay_reports）／まだ移っていない預かり（pay_reports_pending）／'
+  '昔の口コミに書かれた給与（reviews_v2。同じ人が本棚に居るなら明細を優先して落とす）。'
+  '機材・基地・在籍年数・年代・原本通貨・契約形態・自由入力の社名は返さない。'
+  '投稿の時期は5段の粗い区分（age 0〜4）でだけ返す。日付も年月も返さない。'
   '支給の内訳も返さない（内訳は DEEP PAY の担当）。'
   '金額は有効数字2桁に丸め、年 $10,000〜$700,000 の外は打ち間違いとして出さない。'
   '並びは md5(人のキー) 順で投稿順ではない。'
@@ -605,10 +754,10 @@ comment on function public.pv_pay_rows() is
 --
 -- ★1本の SELECT にしてある。Supabase の SQL Editor は複数文を流すと
 --   最後の1本の結果しか出さないので、分けて書くと上から順に消えていく。
--- 期待：26行すべて ✅。1つでも ❌ なら、そこが効いていない。
+-- 期待：32行すべて ✅。1つでも ❌ なら、そこが効いていない。
 --
--- 特に 4・8・12・13・14・16・22・23 は「静かに壊れる」種類のもの。画面には何も出ないまま、
--- 他人の個票に届く経路が開く（16 は逆に、同じ人が二重に出る）。
+-- 特に 4・8・12・13・14・16・22・23・30・31 は「静かに壊れる」種類のもの。画面には何も
+-- 出ないまま、他人の個票に届く経路が開く（16・30 は逆に、同じ人が二重に出る）。
 -- ════════════════════════════════════════════════════════════════
 with f as (
   select to_regprocedure('public.pv_pay_rows()')       as f_rows,
@@ -619,7 +768,8 @@ with f as (
          to_regprocedure('public.pv_pay_comp(numeric,numeric,numeric,numeric,numeric,'
                          || 'numeric,text,numeric,numeric,numeric,numeric,numeric,'
                          || 'numeric,numeric)')          as f_comp,
-         to_regclass('public.pay_benchmarks')          as bench
+         to_regclass('public.pay_benchmarks')          as bench,
+         to_regclass('public.pv_review_person')        as link
 )
 select n as "#", case when ok then '✅' else '❌' end as 結果, 見るところ
 from (
@@ -763,10 +913,47 @@ from (
                and pg_get_functiondef(f_rows) like '%from sane%'
          end from f
   union all
-  select 26, '★数え上げに使う投稿時刻を、行としては返していない',
+  select 26, '★投稿の時刻そのものは行として返していない（返すのは粗い段だけ）',
          case when f_rows is null then false
               else pg_get_functiondef(f_rows) not like '%''created_at''%'
                and pg_get_functiondef(f_rows) not like '%''cat''%'
          end from f
+  union all
+  -- ── 投稿の時期・口コミの合流（2026-08-24）────────────────────
+  select 27, '★投稿の時期は5段の粗い区分でだけ返している',
+         case when f_rows is null then false
+              else pg_get_functiondef(f_rows) like '%''age''%'
+               and pg_get_functiondef(f_rows) like '%interval ''1 month''%'
+               and pg_get_functiondef(f_rows) like '%interval ''12 months''%'
+         end from f
+  union all
+  select 28, '★時期で並べ替えていない（並びは今も md5 順のまま）',
+         case when f_rows is null then false
+              -- ★[^,()]* にしてある。[^;]* だと percentile_cont の
+              --   order by usd から下の as age まで届いて、常に落ちる。
+              else pg_get_functiondef(f_rows) !~ 'order by[^,()]*\mage\M'
+         end from f
+  union all
+  select 29, '昔の口コミに書かれた給与も一覧に混ざる',
+         case when f_rows is null then false
+              else pg_get_functiondef(f_rows) like '%reviews_v2%'
+               and pg_get_functiondef(f_rows) like '%pv_review_person%'
+         end from f
+  union all
+  select 30, '★同じ人が明細も出していたら口コミ側を落としている（二重に出ない）',
+         case when f_rows is null then false
+              else pg_get_functiondef(f_rows) like '%not exists (select 1 from shelf%'
+         end from f
+  union all
+  select 31, '口コミとの対応表は誰にも開いていない（pv_pay_rows の中からだけ）',
+         case when link is null then false
+              else not has_table_privilege('anon', link, 'select')
+               and not has_table_privilege('authenticated', link, 'select')
+               and (select c.relrowsecurity from pg_class c where c.oid = f.link)
+         end from f
+  union all
+  select 32, '口コミ側も自由入力の社名は読んでいない（打ち込まれた文字列は識別子）',
+         case when f_rows is null then false
+              else pg_get_functiondef(f_rows) not like '%airline_other%' end from f
 ) t
 order by n;

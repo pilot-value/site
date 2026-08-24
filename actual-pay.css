@@ -9,6 +9,12 @@
    ★ pay-viz.css は読まない（2026-08-24 に外した）。この画面にドーナツは無い。
      支給の内訳は DEEP PAY の担当なので、ここには戻さない。
 
+   ★ 2026-08-24、**図を全部外した**（オーナー判断）。年収の分布の棒も無くなり、
+     .ap-viz / .ap-vcard / .ap-plot / .ap-bar / .ap-you / .ap-ax と、
+     表を右の細い列と並べていた2段組（.ap-cols / .ap-main / .ap-side）を
+     このファイルから削った。表は幅いっぱいに置く。
+     分布は DEEP PAY で作り直す。**ここに別の図を置き直さない。**
+
    ★ このファイルのクラスは全部 .ap-* 。my-value.css の .mv-* と
      衝突しないための約束。
 
@@ -33,17 +39,27 @@
 /* ══ 数え上げのカード ═════════════════════════════════════════════
    ★2026-08-24、オーナー判断で「本当の数字だけ出す」ことにした。
      出した人に「今どれだけ集まっているか」が見えないと Give & Get が成立しない。
-   ★4枚のうち2枚（一覧のパイロット・航空会社）は表の行を数えているだけ。
+   ★**3枚**（実給与の投稿 / 航空会社 / 今月の新規投稿）。同じ日に
+     「一覧のパイロット」の枚を外した（行数は表の下の「全N件中」が言っている）。
+     1枚（航空会社）は表の行を数えているだけ。
      残り2枚（実給与の投稿・今月）は pv_pay_rows() の stats から来る。
    ⚠️ 数が読めないカードは JS が**そのカードごと出さない**。
       枠だけ残して 0 を置かないこと（画面に嘘の数字が生まれる）。
-   ★絞り込みでは動かない。絞った結果の数はページ送りの「全N件中」が持つ。 */
+   ★絞り込みでは動かない。絞った結果の数はページ送りの「全N件中」が持つ。
+   ★2026-08-24、横に線画のアイコンを1枚ずつ足した（オーナー指示）。
+     丸い薄橙の下地＋ --pv-orange-ink の線。SVG は JS がインラインで書く
+     （外部ファイルもアイコンフォントも読み込まない）。 */
 .ap-stats[hidden]{display:none}
-.ap-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+.ap-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
   gap:12px;margin-bottom:var(--pv-s-3)}
-.ap-st{min-width:0;padding:16px 18px;
+.ap-st{min-width:0;display:flex;align-items:center;gap:13px;padding:16px 18px;
   background:var(--pv-surface);border:1px solid var(--pv-line);
   border-radius:var(--pv-r);box-shadow:var(--pv-shadow)}
+/* 丸い下地。★flex:0 0 auto。数字が長い行で潰れて楕円になるのを止める。 */
+.ap-st-i{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;
+  width:40px;height:40px;border-radius:999px;
+  background:var(--pv-orange-soft);color:var(--pv-orange-ink)}
+.ap-st-b{min-width:0}
 .ap-st-n{font-size:1.5rem;font-weight:800;letter-spacing:-.03em;line-height:1.15;
   color:var(--pv-ink);font-variant-numeric:tabular-nums;white-space:nowrap}
 .ap-st-u{margin-left:2px;font-size:.78rem;font-weight:700;letter-spacing:0;
@@ -109,61 +125,6 @@
      既定だと仮名のどこでも折れて「丸めた額／で、」と切れていた。 */
 .mr-hd-s,.ap-msg-s,.ap-tbl td{line-break:strict;word-break:auto-phrase}
 
-/* ══ 図の帯（年収の分布だけ）═══════════════════════════════════════
-
-   ★**表の右横**に1枚（.ap-cols の右の列）。幅いっぱいには置かない
-     ＝ 2026-08-24 のオーナー指示。狭いときだけ表の下に回る。
-     同じ日に、左に並んでいた支給の内訳のドーナツを外した
-     （そちらは DEEP PAY の担当）。 */
-.ap-viz{margin-bottom:var(--pv-s-3)}
-.ap-vcard{min-width:0;padding:18px 20px 20px;
-  background:var(--pv-surface);border:1px solid var(--pv-line);
-  border-radius:var(--pv-r);box-shadow:var(--pv-shadow)}
-.ap-vhd{display:flex;align-items:center;justify-content:space-between;
-  gap:12px;flex-wrap:wrap;margin-bottom:14px}
-.ap-vt{font-size:.72rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
-  color:var(--pv-ink-3);margin:0}
-.ap-vsub{font-size:.71rem;line-height:1.7;color:var(--pv-ink-3);margin-bottom:2px}
-
-/* 分布の棒。★人数の数字は書かない（棒の高さで目分量に読めるところまで）。 */
-.ap-plot{position:relative;display:flex;align-items:flex-end;gap:5px;
-  height:124px;margin-top:28px;border-bottom:1px solid var(--pv-line)}
-.ap-bw{flex:1 1 0;min-width:0;height:100%;display:flex;align-items:flex-end}
-.ap-bar{width:100%;min-height:2px;border-radius:5px 5px 0 0;
-  background:linear-gradient(180deg,var(--pv-orange) 0%,rgba(249,115,22,.32) 100%)}
-/* 「あなた」の位置。破線1本。★数字は書かない。
-   ★棒より上に出す（z-index）。棒に重なると破線が読めない。
-   ★札は棒の上の余白（.ap-plot の margin-top:28px）に置く。
-     右端に近いときは is-r で左向きに出す（はみ出す）。 */
-.ap-you{position:absolute;top:-8px;bottom:0;width:0;pointer-events:none;
-  z-index:1;border-left:2px dashed var(--pv-ink)}
-.ap-you span{position:absolute;top:-17px;left:6px;white-space:nowrap;
-  font-size:.62rem;font-weight:800;letter-spacing:.02em;color:var(--pv-ink)}
-.ap-you.is-r span{left:auto;right:6px}
-.ap-ax{display:flex;justify-content:space-between;gap:10px;margin-top:8px;
-  font-size:.66rem;font-weight:700;color:var(--pv-ink-3);
-  font-variant-numeric:tabular-nums}
-
-/* ══ 2段組（表 ＋ 右の細い列）═══════════════════════════════════════
-   ★右に入るのは分布の棒**1枚だけ**。説明のカードは置かない（オーナー判断 2026-08-24）。
-     「幅いっぱいはいらない。表の右横に置け」というのが元の指示。
-   ★狭いときは1段に畳んで棒が表の下に回る。表が先、棒が後（読む順を変えない）。
-   ⚠️ minmax(0,1fr) を使う。1fr だけだと中身（表）の最小幅に押されて
-      右の列が潰れる。 */
-.ap-cols{display:grid;grid-template-columns:minmax(0,1fr) 272px;
-  gap:var(--pv-s-3);align-items:start}
-.ap-main{min-width:0}
-.ap-side{min-width:0}
-/* 表が長いとき、棒は画面に留める（表を下まで見ながら分布が見える）。 */
-.ap-side .ap-viz{position:sticky;top:var(--pv-s-3);margin-bottom:0}
-@media (max-width:1080px){
-  .ap-cols{grid-template-columns:minmax(0,1fr)}
-  .ap-side .ap-viz{position:static}
-  /* ★下に回ったときも幅いっぱいには広げない。8本の棒を横に引き延ばすと、
-       低い棒が「床の線」に見えて分布が読めなくなる。 */
-  .ap-side{max-width:460px}
-}
-
 /* ══ 表 ═══════════════════════════════════════════════════════════
    ★1枚しかない。1行＝1人。全幅で置く。
      ⚠️ 粒度を分けた2枚に戻さないこと。同じ人が両方に出て、二重に数えたように見える。
@@ -216,6 +177,13 @@
   border-radius:999px;padding:3px 9px;
   color:var(--pv-ink-3);background:var(--pv-line-soft);
   border:1px solid var(--pv-line)}
+
+/* いちばん右の「投稿時期」。★出るのは5段の粗い区分の言葉だけで、日付は無い。
+   ★出典の札より更に静かに。ここは「どれくらい新しいか」の目安であって、
+     行の主役ではない（主役は金額）。
+   ⚠️ 見出しを押せるようにしない・並べ替えの矢印を付けない。
+      並びに投稿の新しさが乗ると「誰が最近出したか」が読める。 */
+.ap-age{font-size:.7rem;font-weight:600;white-space:nowrap;color:var(--pv-ink-3)}
 
 /* ══ ページ送り ═══════════════════════════════════════════════════
    ★2026-08-24、オーナー判断で**件数を出す**ことにした（「全N件中 1〜10件を表示」）。
@@ -271,18 +239,23 @@
 .ap-cta:active{transform:scale(.98)}
 
 @media (max-width:760px){
-  /* ★カードは2列に折る。4枚を横に潰すと数字が読めない。 */
-  .ap-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  /* ★ここではまだ3枚を横に並べたまま詰める。1列に積むのは 600px から（下）。
+     700px で積むと、幅いっぱいの帯が3本ならぶだけの間の抜けた絵になる。 */
+  .ap-stats{gap:10px}
   .ap-st{padding:14px}
+  .ap-st-i{width:36px;height:36px}
   .ap-st-n{font-size:1.28rem}
   .ap-filter{padding:14px}
-  .ap-vcard{padding:16px}
-  .ap-plot{height:104px;gap:4px}
   .ap-tbl th,.ap-tbl td{padding:11px 12px}
   .ap-logo{width:26px;height:26px}
   .ap-cell-air{gap:8px}
   .ap-pager{gap:10px;padding:12px;justify-content:center}
   .ap-pgs{justify-content:center}
+}
+
+@media (max-width:600px){
+  /* ★ここまで狭いと絵と数字が重なるので1列に積む。 */
+  .ap-stats{grid-template-columns:minmax(0,1fr)}
 }
 
 /* ★ 要素を display:none にしない（my-value.css と同じ約束）。

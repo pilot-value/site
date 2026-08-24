@@ -44,18 +44,23 @@
    ★ ランキングにしない。金額で並べ替える口も、「検証済みだけ」に絞る口も作らない。
      前者はこの画面を序列にする。後者は「絞った行数＝検証済みの人数」という生の数になる。
 
-   ── 図 ────────────────────────────────────────────────────────
-   表の上に**1枚だけ**。年収の分布（棒）と、その上の「あなた」の位置。
-   ★棒に人数の数字は書かない。棒の高さで目分量に読めるところまで。
-   ★「あなた」の位置だけは my_pay_reports() から出す（本人の行しか返さない関数）。
-     自分の年収がいまの絞り込みの外なら出さない（軸の外に置くと目盛りが嘘に見える）。
-   ★通貨を切り替えたら描き直すが、pv_pay_rows() は引き直さない。
-
-   ★2026-08-24、支給の内訳のドーナツはこの画面から外した。
-     「この給与は何で構成されているか」は **DEEP PAY** が複数の投稿を集計して見せる。
-     1人ずつの内訳を出すのは REAL PAY の仕事ではない。
+   ── 図は1つも無い ─────────────────────────────────────────────
+   ★2026-08-24、オーナー判断で**図を全部外した**。
+     支給の内訳（ドーナツ）も、年収の分布（棒）も、この画面には描かない。
+     「この給与は何で構成されているか」「どう散らばっているか」は
+     **DEEP PAY** が複数の投稿を集計して見せる。REAL PAY は1行＝1人の一覧だけ。
      ＝ このファイルは PVViz（pay-viz.js）を使わない。HTML も読み込んでいない。
+     ＝ my_pay_reports() も引かない（引いていたのは分布の「あなた」の破線のためだけ）。
    ★行を選ぶ仕掛けも一緒に落ちた（選んで見せるものがもう無い）。
+   ★表は幅いっぱい。2段組（ap-cols / ap-main / ap-side）はもう無い。
+     ⚠️ 別の図に置き換えない。ここは「消した」であって「差し替えた」ではない。
+
+   ── 投稿の時期（いちばん右の列）────────────────────────────────
+   ★2026-08-24 に足した。出すのは**5段の粗い区分の言葉だけ**
+     （1ヶ月以内 / 3ヶ月以内 / 6ヶ月以内 / 1年以内 / それより前）。
+     日付も年月もサーバから来ない（来るのは 0〜4 の段の番号）。
+   ⚠️ **並べ替えの口も絞り込みの口も付けない。**
+     並びに投稿の新しさが乗ると「誰が最近出したか」が読める（db/pay-rows.sql の契約⑥）。
    ════════════════════════════════════════════════════════════════ */
 (function (w, d) {
   'use strict';
@@ -86,20 +91,19 @@
       hd: 'REAL PAY',
       all: 'すべて',
       thAir: '航空会社', thPos: '職位',
-      thAmt: '年収', thMon: '月あたり', thVf: '出典',
+      thAmt: '年収', thMon: '月あたり', thVf: '出典', thAge: '投稿時期',
       othAir: 'その他の航空会社',
       vfNo: '本人記録',
-      stPilot: '一覧のパイロット', stPilotU: '人',
+      /* ★投稿時期。段の番号（0〜4）を言葉にするだけ。日付は持っていない。 */
+      age: ['1ヶ月以内', '3ヶ月以内', '6ヶ月以内', '1年以内', 'それより前'],
       stRep: '実給与の投稿',       stRepU: '件',
       stAir: '航空会社',           stAirU: '社',
       stMon: '今月の新規投稿',     stMonU: '件',
       foot: 'この一覧は、給与を出したパイロットだけが読めます。'
           + '載っているのは会社・職位・丸めた金額だけです'
           + '（月あたりはその金額を12で割った数字です）。'
-          + '機材・基地・年代・在籍年数・投稿した月は誰の行にも入っていません。',
-      vizDist: '年収の分布',
-      vizDistS: 'いま表に出ている行を、表示中の通貨で刻んだものです。',
-      vizYou: 'あなた',
+          + '機材・基地・年代・在籍年数は誰の行にも入っていません。'
+          + 'いつ出されたかは、おおまかな時期だけです。',
       pgPrev: '前へ', pgNext: '次へ', pgRange: '全{n}件中 {a}〜{b}件を表示',
       lockT: '給与明細を1枚出すと、ここが開きます',
       lockS: '他のパイロットが記録した実給与は、自分も1枚出した人だけが読めます。'
@@ -117,20 +121,19 @@
       hd: 'REAL PAY',
       all: 'All',
       thAir: 'Airline', thPos: 'Position',
-      thAmt: 'Annual', thMon: 'Per month', thVf: 'Source',
+      thAmt: 'Annual', thMon: 'Per month', thVf: 'Source', thAge: 'Submitted',
       othAir: 'Other airline',
       vfNo: 'Pilot-recorded',
-      stPilot: 'Pilots listed',  stPilotU: '',
+      age: ['Within 1 month', 'Within 3 months', 'Within 6 months',
+            'Within a year', 'Over a year ago'],
       stRep: 'Pay records',      stRepU: '',
       stAir: 'Airlines',         stAirU: '',
       stMon: 'Added this month', stMonU: '',
       foot: 'This list is readable only by pilots who have submitted their own pay. '
           + 'A row carries the airline, the position and a rounded figure '
           + '(the monthly column is that figure divided by twelve). '
-          + 'Fleet, base, age, years of service and the month submitted appear on no row.',
-      vizDist: 'How annual pay is spread',
-      vizDistS: 'The rows currently listed, bucketed in the currency shown.',
-      vizYou: 'You',
+          + 'Fleet, base, age and years of service appear on no row, '
+          + 'and when a row was submitted is shown only as a broad period.',
       pgPrev: 'Previous', pgNext: 'Next', pgRange: 'Showing {a}–{b} of {n}',
       lockT: 'Submit one payslip and this opens',
       lockS: 'Pay recorded by other pilots is readable by people who have recorded theirs too. '
@@ -156,8 +159,7 @@
     mode: '',         // 'locked' | 'open' | 'error'
     fAir: '', fPos: '', fQ: '',   // fQ ＝ 社名の打ち込み（絞り込みの1つ）
     stats: null,      // サーバから来る数え上げ { reports, month }。無ければそのカードを出さない
-    page: 1,          // 1始まり。絞り込みを変えたら1に戻す（行き止まりを作らない）
-    mineAll: null     // 自分の明細ぜんぶ（分布の「あなた」の位置にだけ使う）
+    page: 1           // 1始まり。絞り込みを変えたら1に戻す（行き止まりを作らない）
   };
 
   var PER_PAGE = 10;
@@ -217,6 +219,13 @@
   }
   function posName(code) { return S.pos[code] || code; }
 
+  /* 投稿時期。★サーバが返すのは 0〜4 の段の番号だけで、日付も年月も来ない。
+       段の外（古いサーバ・想定外の値）は**空欄**にする。
+       ここで「不明」のような札を作らない＝画面に無い情報を語らせない。 */
+  function ageName(a) {
+    return (typeof a === 'number' && T.age[a]) ? T.age[a] : '';
+  }
+
   /* 社ロゴ。airline-logos.js（window.PV_LOGOS）が「コード → 拡張子」を持っている。
      ★salary-leveling.js の logoHtml は流用しない。あちらはブランド色（a.color）を
        前提にしていて、salary-data.json はその色を持っていない（レベリング図が
@@ -261,13 +270,38 @@
 
   /* ══ 数え上げ（画面の上に並ぶ数字）═══════════════════════════════
      2026-08-24 オーナー判断で「本当の数字だけ出す」ことにした。
-     ★4枚のうち2枚は rows を数えるだけ（新しく出て行くものはゼロ）。
+     ★カードは**3枚**（実給与の投稿 / 航空会社 / 今月の新規投稿）。
+       ★2026-08-24、オーナー判断で「一覧のパイロット」の枚を外した。
+         行数は表の下のページ送り（全N件中…）が言っているので二度言わない。
+     ★1枚は rows を数えるだけ（新しく出て行くものはゼロ）。
        残り2枚は pv_pay_rows() の stats から来る。
      ★数が読めないカードは**そのカードごと出さない**。
-       サーバがまだ古い（stats を返さない）ときは2枚だけ並ぶ。
+       サーバがまだ古い（stats を返さない）ときは1枚だけ並ぶ。
        埋めるために 0 を置かない＝画面に嘘の数字を作らない。
      ★絞り込みでは動かさない。ここは「全体で今どれだけ集まっているか」で、
        絞った結果の話は下のページ送り（全N件中…）が持っている。 */
+
+  /* カードの絵。★インラインの線画（currentColor）だけ。外部ファイルも
+     アイコンフォントも読まない（この画面は増える読み込みを持たない）。
+     色は CSS 側の --pv-orange-* が currentColor として降りてくる。 */
+  var ICON = {
+    // 書類（＝出された記録）
+    rep: '<path d="M6 2.75h7.5L17.25 6.5v10.75a1 1 0 0 1-1 1h-10.25a1 1 0 0 1-1-1V3.75a1 1 0 0 1 1-1Z"/>'
+       + '<path d="M13.25 2.75v4h4"/><path d="M8 10.5h5M8 13.5h3.5"/>',
+    // 地球（＝航空会社の広がり）
+    air: '<circle cx="10" cy="10" r="7.25"/><path d="M2.75 10h14.5"/>'
+       + '<path d="M10 2.75c1.9 2 2.9 4.55 2.9 7.25S11.9 15.25 10 17.25C8.1 15.25 7.1 12.7 7.1 10S8.1 4.75 10 2.75Z"/>',
+    // 右肩上がり（＝今月の増え方）
+    mon: '<path d="M3 15.25 8 10l3 3 5.25-6.25"/><path d="M12.25 6.75h4.25V11"/>'
+  };
+
+  function icon(k) {
+    return '<span class="ap-st-i" aria-hidden="true">'
+         + '<svg viewBox="0 0 20 20" width="20" height="20" fill="none" stroke="currentColor"'
+         + ' stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" focusable="false">'
+         + ICON[k] + '</svg></span>';
+  }
+
   function renderStats() {
     var box = el('ap-stats');
     if (!box) return;
@@ -281,18 +315,18 @@
     });
     var st = S.stats || {};
     var cards = [
-      { n: S.rows.length, l: T.stPilot, u: T.stPilotU },
-      { n: (typeof st.reports === 'number') ? st.reports : null, l: T.stRep, u: T.stRepU },
-      { n: airs, l: T.stAir, u: T.stAirU },
-      { n: (typeof st.month === 'number') ? st.month : null, l: T.stMon, u: T.stMonU }
+      { n: (typeof st.reports === 'number') ? st.reports : null, l: T.stRep, u: T.stRepU, i: 'rep' },
+      { n: airs, l: T.stAir, u: T.stAirU, i: 'air' },
+      { n: (typeof st.month === 'number') ? st.month : null, l: T.stMon, u: T.stMonU, i: 'mon' }
     ].filter(function (c) { return c.n != null; });
 
     if (!cards.length) { box.hidden = true; box.innerHTML = ''; return; }
     box.hidden = false;
     box.innerHTML = cards.map(function (c) {
-      return '<div class="ap-st"><div class="ap-st-n">' + esc(String(c.n))
+      return '<div class="ap-st">' + icon(c.i) + '<div class="ap-st-b">'
+           + '<div class="ap-st-n">' + esc(String(c.n))
            + (c.u ? '<span class="ap-st-u">' + esc(c.u) + '</span>' : '')
-           + '</div><div class="ap-st-l">' + esc(c.l) + '</div></div>';
+           + '</div><div class="ap-st-l">' + esc(c.l) + '</div></div></div>';
     }).join('');
   }
 
@@ -340,13 +374,15 @@
     var from = (S.page - 1) * PER_PAGE;
     var page = rows.slice(from, from + PER_PAGE);
 
-    /* ★列は5つ。行は押せない（押して見せるものが無い）。
-         行に tabindex や押せる目印を置かないこと。置くと「何か起きるはず」に見える。 */
+    /* ★列は6つ。行は押せない（押して見せるものが無い）。
+         行に tabindex や押せる目印を置かないこと。置くと「何か起きるはず」に見える。
+       ★見出しは文字だけ。押せる見出し（＝並べ替え）を作らない。 */
     var h = '<div class="ap-tw"><div class="ap-tscroll"><table class="ap-tbl">'
           + '<thead><tr><th>' + esc(T.thAir) + '</th><th>' + esc(T.thPos) + '</th>'
           + '<th class="ap-num">' + esc(T.thAmt) + '</th>'
           + '<th class="ap-num">' + esc(T.thMon) + '</th>'
-          + '<th>' + esc(T.thVf) + '</th></tr></thead><tbody>';
+          + '<th>' + esc(T.thVf) + '</th>'
+          + '<th>' + esc(T.thAge) + '</th></tr></thead><tbody>';
     for (var i = 0; i < page.length; i++) {
       var r = page[i];
       h += '<tr>'
@@ -357,18 +393,17 @@
          /* ★月あたりは画面の年収を12で割っただけ。新しい情報は1つも増えていない。 */
          + '<td class="ap-num"><span class="ap-mon">' + esc(moneyMonth(r.annual_usd)) + '</span></td>'
          + '<td>' + (r.verified ? vfMark() : '<span class="ap-vf-no">' + esc(T.vfNo) + '</span>') + '</td>'
+         /* ★投稿時期。サーバから来るのは 0〜4 の段の番号だけ。
+              段が読めない行（古いサーバ）は空欄にする＝そこだけ黙って空く。 */
+         + '<td><span class="ap-age">' + esc(ageName(r.age)) + '</span></td>'
          + '</tr>';
     }
     h += '</tbody></table></div>' + pager(rows.length, pages) + '</div>';
 
-    /* ★2段組。左が表、右が分布の棒1枚。
-       右に置くのは図だけで、説明のカードは置かない（オーナー判断 2026-08-24）。
-       狭いときは CSS が1段に畳んで棒が表の下に回る。
-       ★ foot（何が載っていないかの1文）は段組の外＝表の下いっぱいに置く。 */
-    var viz = renderViz(rows);
-    box.innerHTML = '<div class="ap-cols"><div class="ap-main">' + h + '</div>'
-                  + (viz ? '<aside class="ap-side">' + viz + '</aside>' : '')
-                  + '</div><p class="ap-foot">' + esc(T.foot) + '</p>';
+    /* ★表は幅いっぱい。図は無い（2026-08-24 に外した）。
+       ★ foot（何が載っていないかの1文）は表の下。あれは説明ではなく約束で、
+         消すと「機種はどこ？」に答えるものが画面から無くなる。 */
+    box.innerHTML = h + '<p class="ap-foot">' + esc(T.foot) + '</p>';
     renderStats();
   }
 
@@ -425,73 +460,6 @@
          + '<p class="ap-msg-s">' + esc(s) + '</p>'
          + (cta ? '<a class="ap-cta" href="' + PAY_URL + '">' + esc(cta) + '</a>' : '')
          + '</div>';
-  }
-
-  // ── 図（年収の分布だけ）───────────────────────────────────────
-  /* ★この画面に描くのは分布の棒1枚だけ。支給の内訳（ドーナツ）は 2026-08-24 に
-       外した＝ PVViz（pay-viz.js）はこのファイルから1度も呼ばない。 */
-  function card(title, head, body) {
-    return '<section class="ap-vcard"><div class="ap-vhd">'
-         + '<h2 class="ap-vt">' + esc(title) + '</h2>'
-         + (head || '') + '</div>' + body + '</section>';
-  }
-
-  /* 自分の年収。★サーバと同じ畳み方（複数月は中央値）にする。
-     「最新の1ヶ月」にすると、分布の目印だけが表の自分の行とずれる。 */
-  function myAnnual() {
-    var v = (S.mineAll || []).map(function (r) { return Number(r.annual_total_usd); })
-      .filter(function (x) { return isFinite(x) && x > 0; })
-      .sort(function (a, b) { return a - b; });
-    if (!v.length) return null;
-    var m = Math.floor(v.length / 2);
-    return (v.length % 2) ? v[m] : (v[m - 1] + v[m]) / 2;
-  }
-
-  var BINS = 8;
-
-  /* 年収の分布。★人数の数字は書かない（棒の高さで目分量に読めるところまで）。
-     刻むのは「画面に出ている金額」＝表示通貨の有効数字2桁。だから通貨を
-     切り替えると刻み目も変わる。それでよい（新しい数字は1つも増えていない）。 */
-  function vizDist(rows) {
-    var vals = [];
-    rows.forEach(function (r) {
-      var v = disp(r.annual_usd);
-      if (v != null && v > 0) vals.push(v);
-    });
-    if (vals.length < 2) return '';          // 棒1本は分布ではない
-    var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
-    if (!(hi > lo)) return '';               // 全員おなじ額（丸めの後）
-    var n = Math.max(3, Math.min(BINS, vals.length)), i;
-    var wd = (hi - lo) / n, cnt = [];
-    for (i = 0; i < n; i++) cnt.push(0);
-    vals.forEach(function (v) {
-      var k = Math.floor((v - lo) / wd);
-      cnt[k < 0 ? 0 : (k >= n ? n - 1 : k)]++;   // 上端はいちばん右の箱に入れる
-    });
-    var mx = Math.max.apply(null, cnt), bars = '';
-    for (i = 0; i < n; i++) {
-      bars += '<div class="ap-bw"><div class="ap-bar" style="height:'
-            + (mx > 0 ? Math.round(cnt[i] / mx * 100) : 0) + '%"></div></div>';
-    }
-    /* 「あなた」の位置。★自分の年収がこの絞り込みの外なら出さない
-         （軸の外に破線を置くと、軸の目盛りが嘘に見える）。 */
-    var you = '', my = myAnnual(), mv = (my == null) ? null : disp(my);
-    if (mv != null && mv >= lo && mv <= hi) {
-      var p = ((mv - lo) / (hi - lo)) * 100;
-      /* ★右端に寄ると札がカードからはみ出す。72% を越えたら左向きに出す。 */
-      you = '<div class="ap-you' + (p > 72 ? ' is-r' : '') + '" style="left:'
-          + p.toFixed(1) + '%"><span>' + esc(T.vizYou) + '</span></div>';
-    }
-    return card(T.vizDist, '',
-      '<p class="ap-vsub">' + esc(T.vizDistS) + '</p>'
-      + '<div class="ap-plot">' + bars + you + '</div>'
-      + '<div class="ap-ax"><span>' + esc(fmtDisp(lo)) + '</span>'
-      + '<span>' + esc(fmtDisp(hi)) + '</span></div>');
-  }
-
-  function renderViz(rows) {
-    var b = vizDist(rows);
-    return b ? '<div class="ap-viz">' + b + '</div>' : '';
   }
 
   // ── 絞り込み ───────────────────────────────────────────────────
@@ -648,22 +616,8 @@
              ＝ そのカードだけ出ない（0 を置いて嘘の数字を作らない）。 */
         S.stats = (v && v.stats) || null;
         renderRows();
-        if (S.mode === 'open') loadMine(client);
       }).catch(function () { S.mode = 'error'; renderRows(); });
     });
-  }
-
-  /* 自分の年収。★本人の行しか返さない関数（my_pay_reports）を、この画面では
-     ここ1回だけ引く。使い道は分布の「あなた」の位置ただ1つで、
-     金額も内訳も画面には出さない。落ちても表は止めない（破線が出ないだけ）。
-     ★通貨を切り替えても引き直さない（pv_pay_rows と同じ約束）。 */
-  function loadMine(client) {
-    Promise.resolve(client.rpc('my_pay_reports')).then(function (res) {
-      var rs = (res && !res.error && res.data && res.data.reports) || [];
-      if (!rs.length) return;
-      S.mineAll = rs;
-      render();
-    }).catch(function () {});
   }
 
   if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', boot);

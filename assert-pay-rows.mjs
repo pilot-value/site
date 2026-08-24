@@ -16,21 +16,30 @@
          出した人に「どれだけ集まっているか」が見えないと Give & Get が成立しない、
          というオーナー判断。新しく外へ出るのは
          **「今どれだけ集まっているか」と「今月どれだけ増えたか」**の2つだけ
+       ・**図を全部外した**（同じ日に、年収の分布の棒も落とした）。
+         この画面に図は1つも無い。分布は DEEP PAY で作り直す
+       ・数字カードは**3枚**（「一覧のパイロット」の枚を外した。
+         行数は表の下の「全N件中」が言っているので二度言わない）。横に線画のアイコン
+       ・表のいちばん右に**投稿時期**の列を足した。出るのは
+         **5段の粗い区分の言葉だけ**（1ヶ月以内 / 3ヶ月以内 / 6ヶ月以内 / 1年以内 / それより前）。
+         ⚠️ ここは守りを1段ゆるめたところ。**並べ替えの口も絞り込みの口も作らない**
 
    ここで見るのは7つ：
 
      ① 鍵の無い人には金額が1文字も出ない
         （db/pay-rows.sql が state:'locked' を返す。画面のモザイクではない）
      ② 準識別子は1つも画面に出ない
-        機材・基地・在籍年数・年代・投稿月・原本の通貨・契約形態・国籍・識別子、
+        機材・基地・在籍年数・年代・**投稿の日付そのもの**・原本の通貨・契約形態・国籍・識別子、
         そして**自由入力で打ち込まれた社名**。支給の内訳（comp）もここに戻った。
+        ★2026-08-24、投稿の時期だけ**5段の粗い区分**で出すようにした（オーナー指示）。
+          日付も年月も画面には出さない＝毒（2026-08-05）は毒のまま。
         ★この検査では、サーバが返さないはずのこれらを **わざと混ぜた行** を流し込み、
           画面のどこにも出ないことを見る。将来 r.base_iata を1つ足した人が即座に赤くなる
      ③ 金額はすべて有効数字2桁（表示通貨に換算したあとも）
      ④ 1行＝1人。表は1枚だけ
         ⚠️ 粒度を2つに分けた形へ戻さない（同じ人が両方に出て二重に数えたように見える）
      ⑤ 数え上げ（★2026-08-24 に方針が変わったところ）
-        ・上の数字カード4枚は**本物の数字だけ**。読めないカードは**そのカードごと出さない**
+        ・上の数字カード3枚は**本物の数字だけ**。読めないカードは**そのカードごと出さない**
           （埋めるための 0 を置かない＝画面に嘘の数字を作らない）
         ・「投稿」は必ず**表の行数以上**（サーバと画面が別々に数えていない証拠）
         ・ページ送りは**絞り込んだ後の総件数**を出す
@@ -42,8 +51,11 @@
         ★**並び替えの口を作らない**。並びに投稿の新しさが乗ると、
           誰が最近出したかが読める（契約⑥に真っ向から反する）
 
-   ★図はこの画面に**年収の分布の棒1枚だけ**。オーナー指定で**表の右横**に置く
-     （狭い幅では表の下に回る）。棒に人数の数字は書かない。
+   ★図はこの画面に**1つも無い**（2026-08-24、オーナー判断）。
+     .ap-vcard / .ap-bar / .ap-you / .ap-ax も、表を右の細い列と並べていた
+     2段組（.ap-cols / .ap-main / .ap-side）も無い。表は幅いっぱい。
+     ⚠️ 「消した」であって「差し替えた」ではない。**別の図を置き直さない**。
+     ⚠️ my_pay_reports() も引かない（引いていたのは分布の破線のためだけ）。
 
    ★もう1つ、消えたものが戻っていないことを見る：
      青のバッジ・推定レンジ・「5人」「30日」の約束・招待カードの差込口・
@@ -130,8 +142,11 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
      `${name}: 数え上げのカードの入れ物は既定で隠れている`);
 
   /* ★並び替えの口を作らない。並びに投稿の新しさが乗ると、誰が最近出したかが読める
-     （契約⑥「並びに時間が無い」に真っ向から反する）。 */
-  for (const w of ['ap-sort', '新しい順', 'Newest', 'id="ap-order"']) {
+     （契約⑥「並びに時間が無い」に真っ向から反する）。
+     ★2026-08-24 に投稿時期の列を足したので、**その列で並べ替える／絞る口**も
+       ここで一緒に見張る。列に出したものは、絞れると逆算の足がかりになる。 */
+  for (const w of ['ap-sort', '新しい順', 'Newest', 'id="ap-order"',
+                   'id="ap-age"', 'data-ap-age', 'ap-recent']) {
     ok(!html.includes(w), `${name}: ★並び替え（${w}）が無い`);
   }
   /* ★賞与の列も「賞与ありのみ」の絞りも作らない（絞った行数が生の人数になる）。 */
@@ -194,13 +209,33 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
   for (const w of ['ap-exp', 'ap-date', 'ap-id', 'verified-only', 'Verifiedのみ']) {
     ok(!j.includes(w), `★actual-pay.js に ${w} が無い`);
   }
-  /* ★並び替えと賞与（2026-08-24 に「作らない」と決めたもの）。 */
-  for (const w of ['ap-sort', 'ap-order', 'newest', '新しい順', 'ap-bonus', 'bonus']) {
+  /* ★並び替えと賞与（2026-08-24 に「作らない」と決めたもの）。
+     ★投稿時期の列も同じ。言葉にして出すだけで、並べ替えも絞り込みも作らない。 */
+  for (const w of ['ap-sort', 'ap-order', 'newest', '新しい順', 'ap-bonus', 'bonus',
+                   'id="ap-age"', 'data-ap-age', 'S.fAge']) {
     ok(!j.includes(w), `★actual-pay.js に ${w} が無い`);
   }
+  ok(!/sort[^)]*\.age\b|\.age[^)]*sort/.test(j), '★投稿時期で並べ替える仕掛けが無い');
+  ok(!/S\.f[A-Za-z]*\s*&&\s*r\.age|r\.age\s*!==/.test(j),
+     '★投稿時期で絞り込む仕掛けが無い');
+  /* ★投稿時期は5段の言葉だけを持つ。日付を組み立てる道具を持ち込まない。 */
+  ok(/T\.age\[/.test(j) && /ageName\(/.test(j),
+     '★投稿時期は段の番号（0〜4）を言葉にするだけ');
+  ok(!/toLocaleDateString|new Date\(|getFullYear|getMonth/.test(j),
+     '★日付を組み立てる道具をこの画面が1つも持っていない');
   /* ★支給の内訳（ドーナツ）は DEEP PAY の担当。この画面からは呼ばない。 */
   ok(!/PVViz|pt-donut|renderComp|\bcomp\b/.test(j),
      '★内訳（comp／PVViz）をこの画面が1文字も持っていない');
+  /* ★2026-08-24、図を全部外した。分布の棒も、その部品も、2段組も残っていない。
+     ⚠️ 分布は DEEP PAY で作り直す。ここに別の図を置き直さない。 */
+  for (const w of ['renderViz', 'vizDist', 'myAnnual', 'ap-vcard', 'ap-plot',
+                   'ap-bar', 'ap-you', 'ap-ax', 'ap-cols', 'ap-main', 'ap-side']) {
+    ok(!j.includes(w), `★actual-pay.js に ${w} が無い（図は外した）`);
+  }
+  /* ★my_pay_reports は「本人の行しか返さない関数」。使い道は分布の破線だけだった。
+     図が無くなった以上、この画面は本人の明細を1度も引かない。 */
+  ok(!/my_pay_reports|mineAll|loadMine/.test(j),
+     '★本人の明細（my_pay_reports）をこの画面が引かない');
   /* ★2026-08-24、オーナー判断で件数を出すことにした。
      出すのは「絞り込んだ後の行数」で、絞り込みを解いた全体は上のカードが持つ。 */
   ok(/data-ap-page/.test(j), 'ページ送りがある（10件ずつ）');
@@ -241,6 +276,16 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
   /* display:flex は UA の [hidden]{display:none} に勝つ。帯と枠の両方に要る。 */
   ok(/\.ap-filter\[hidden\]/.test(c) && /\.ap-f\[hidden\]/.test(c),
      '★[hidden] を明示している（flex は UA の hidden に勝つ）');
+  /* ★2026-08-24、図と2段組の見た目を丸ごと落とした。
+     ⚠️ 残しておくと「使われていない CSS」ではなく「戻す下地」になる。 */
+  for (const w of ['.ap-viz', '.ap-vcard', '.ap-plot', '.ap-bw', '.ap-bar',
+                   '.ap-you', '.ap-ax', '.ap-vsub', '.ap-cols', '.ap-main', '.ap-side']) {
+    ok(!c.includes(w), `★actual-pay.css に ${w} が残っていない（図は外した）`);
+  }
+  /* ★カードは3枚（4枚のときの repeat(4,…) が残っていると、3枚が左に寄る）。 */
+  ok(/\.ap-stats\{[^}]*repeat\(3,/.test(c), '★カードの並びは3列');
+  ok(/\.ap-st-i\{/.test(c), '★カードのアイコンの下地（丸）がある');
+  ok(/\.ap-age\{/.test(c), '★投稿時期の列の見た目がある');
 }
 
 /* サーバ側。1行＝人の粒度なので anon には絶対に開かない。 */
@@ -483,25 +528,35 @@ const POISON_VALUES = ['ZQX', '137', '40s', 'deadbeefcafe0001',
                        '19,440,000', '19440000', '2026-08-05', 'Somewhere Air',
                        'zqx-jet', '73%', '19%'];
 
-const row = (airline, pos, usd, vf, extra) => Object.assign(
-  { airline: airline, pos: pos, annual_usd: usd, verified: vf }, extra || {});
+/* ★age ＝ 投稿時期の段（0〜4）。サーバが返すのはこの番号だけで、日付は来ない
+     （db/pay-rows.sql の「★投稿の時期について」）。 */
+const row = (airline, pos, usd, vf, age, extra) => Object.assign(
+  { airline: airline, pos: pos, annual_usd: usd, verified: vf, age: age }, extra || {});
 
 /* 本番に近い形（2026-08-23 時点は8人・全員が手入力＝verified はほぼ付かない）。
-   ★1人目にだけ毒を混ぜる。★自由入力の社名の人は airline:'other' で来る。 */
+   ★1人目にだけ毒を混ぜる。★自由入力の社名の人は airline:'other' で来る。
+   ★段は5つとも出るように配る（言葉が1つでも欠けていたら気づける）。 */
 const ROWS = [
-  row('ana', 'cap', 180000, true, POISON),
-  row('ana', 'fo', 120000, false),
-  row('ana', 'cap', 190000, false),
-  row('jal', 'cap', 170000, false),
-  row('jal', 'fo', 110000, false),
-  row('emirates', 'cap', 250000, false),
-  row('other', 'cap', 130000, false, { airline_other: 'Somewhere Air' }),
-  row('other', 'fo', 90000, false)
+  row('ana', 'cap', 180000, true, 0, POISON),
+  row('ana', 'fo', 120000, false, 1),
+  row('ana', 'cap', 190000, false, 2),
+  row('jal', 'cap', 170000, false, 3),
+  row('jal', 'fo', 110000, false, 4),
+  row('emirates', 'cap', 250000, false, 0),
+  row('other', 'cap', 130000, false, 2, { airline_other: 'Somewhere Air' }),
+  row('other', 'fo', 90000, false, 4)
 ];
 
-/* 自分の給与（my_pay_reports()）。★使うのは年収1つだけで、
-   分布の棒の「あなた」の破線をどこに立てるかに要る。
-   ★残りの金額はそのまま置いておく＝**これが1つでも画面に出たら赤**という毒を兼ねる。 */
+/* 画面に出るはずの段の言葉。★これ以外の言い方が出たら、どこかで作り直されている。 */
+const AGE_WORDS = {
+  ja: ['1ヶ月以内', '3ヶ月以内', '6ヶ月以内', '1年以内', 'それより前'],
+  en: ['Within 1 month', 'Within 3 months', 'Within 6 months',
+       'Within a year', 'Over a year ago']
+};
+
+/* 自分の給与（my_pay_reports()）。★2026-08-24、図を外したのでこの画面は
+   **もう1度も引かない**。それでも渡し続ける＝万一また引き始めたら、
+   下の「本人の明細の額が画面に出ない」で即座に赤くなる（毒として置いてある）。 */
 const MINE = [{
   period_year: 2026, period_month: 7, currency: 'JPY', fx_to_jpy: 1,
   base_pay: 620000, command_pay: 90000, flight_variable_pay: 110000,
@@ -515,7 +570,7 @@ const MINE = [{
 const MANY_ROWS = [];
 for (let i = 0; i < 23; i++) {
   const a = ['ana', 'jal', 'emirates', 'other'][i % 4];
-  MANY_ROWS.push(row(a, i % 2 ? 'fo' : 'cap', 90000 + i * 5000, false));
+  MANY_ROWS.push(row(a, i % 2 ? 'fo' : 'cap', 90000 + i * 5000, false, i % 5));
 }
 
 /* ★数え上げ（2026-08-24）。サーバは一覧と同じ材料から数えるので、
@@ -644,17 +699,15 @@ const SNAP = () => {
     /* ★並び替えと「賞与ありのみ」の口が実行時にも生えていないこと。 */
     sortEls: q('#ap-sort, #ap-order, [name="sort"], [data-ap-sort]').length,
     bonusEls: q('#ap-bonus, [data-ap-bonus], .ap-bonus').length,
-    /* ── 図（2026-08-24）──────────────────────────────
-       ★この画面の図は**年収の分布の棒1枚だけ**。支給の内訳（ドーナツ）は
-         DEEP PAY へ移した。ここに ドーナツ／行の選択 が生えたら赤。 */
+    /* ── 図（2026-08-24 に全部外した）──────────────────
+       ★この画面に図は1つも無い。ドーナツも分布の棒も。
+         ここが 0 でなくなったら、消したものが戻ったということ。 */
     vizCards: q('.ap-vcard').length,
-    vizText: txt(document.querySelector('.ap-viz')),
     donut: q('.pt-donut, .pt-leg, .pt-empty, [data-ap-unsel]').length,
-    /* ★分布の棒。人数の数字は書かない（高さで目分量に読めるところまで）。 */
     bars: q('.ap-bar').length,
-    plotText: txt(document.querySelector('.ap-plot')),
     you: q('.ap-you').length,
     axText: q('.ap-ax').map((e) => e.innerText).join(' '),
+    svgInRows: q('svg', rows).length,
     /* ★行は押せない（押すと内訳が出る形はもう無い）。 */
     rowSel: q('#ap-rows tbody tr[data-ap-row], #ap-rows tbody tr[tabindex]').length,
     /* ── 数字カード（2026-08-24）───────────────────────
@@ -662,20 +715,25 @@ const SNAP = () => {
     statsHidden: (function () { const b = document.getElementById('ap-stats'); return b ? b.hidden : null; })(),
     stats: q('.ap-st').map((e) => ({
       n: ((e.querySelector('.ap-st-n') || {}).textContent || '').trim(),
-      l: ((e.querySelector('.ap-st-l') || {}).textContent || '').trim()
+      l: ((e.querySelector('.ap-st-l') || {}).textContent || '').trim(),
+      /* ★カード1枚につき絵は1つ（2026-08-24 オーナー指示）。 */
+      i: e.querySelectorAll('.ap-st-i svg').length
     })),
+    /* ★表の列。いちばん右が投稿時期（2026-08-24）。 */
+    ths: q('thead th', rows).map((e) => (e.textContent || '').trim()),
+    thBtns: q('thead th button, thead th a, thead th [role="button"]', rows).length,
+    ages: q('.ap-age', rows).map((e) => (e.textContent || '').trim()),
     /* ★見出しの下に説明を置かない（オーナー指定）。 */
     hdSub: (function () { const e = document.querySelector('.mr-hd-s'); return e ? e.innerText.trim() : ''; })(),
     /* ── 置き場所（2026-08-24 オーナー指定）─────────────
-       ★棒グラフは**表の右横**。狭い幅では表の下に回る。 */
-    cols: q('.ap-cols').length,
-    sideViz: q('.ap-side .ap-viz').length,
-    place: (function () {
-      const m = document.querySelector('.ap-main'), s = document.querySelector('.ap-side');
-      if (!m || !s) return null;
-      const a = m.getBoundingClientRect(), b = s.getBoundingClientRect();
-      return { right: b.left >= a.right - 2, sameRow: b.top < a.bottom - 4,
-               w: Math.round(b.width), mw: Math.round(a.width) };
+       ★図が無くなったので、表は幅いっぱい。2段組の部品は1つも無い。 */
+    /* ★表は幅いっぱい。2段組はもう無い（図が消えたので右の列に置くものが無い）。 */
+    cols: q('.ap-cols').length + q('.ap-main').length + q('.ap-side').length,
+    tblWide: (function () {
+      const t = document.querySelector('.ap-tw'), m = document.querySelector('.mr-main');
+      if (!t || !m) return null;
+      const a = t.getBoundingClientRect(), b = m.getBoundingClientRect();
+      return { tw: Math.round(a.width), mw: Math.round(b.width) };
     })(),
     calls: (window.__rpc || []).map((r) => r.name),
     withArgs: (window.__rpc || []).filter((r) => r.hasArgs).map((r) => r.name),
@@ -692,14 +750,21 @@ function gone(v, tag) {
   ok(v.pvr === 0 && v.refSlot === 0, `${tag}: ★招待カードがこの画面に出ない`,
      `${v.pvr}/${v.refSlot}`);
   /* ★表の節は1つ。h1 とほぼ同じ h2 を並べない。
-     ★h2 は「図のカード」のぶんだけ増える（今は年収の分布の1枚だけ）。
-       だから 0 固定ではなく **図の枚数と一致すること** を見る。
-       表の節に h2 が生えると、この式がずれて赤くなる。
+     ★2026-08-24 に図を全部外したので、h2 は**1つも無い**のが正しい形になった
+       （それまでは図のカードの見出しぶんだけ増えた）。
      ★見出しに札を置かない。ページ全体を「本人記録」と名乗ると、
        出典が ✓ Verified の行と食い違う（英語の画面で実際に並んで見えた）。 */
-  ok(v.h2 === v.vizCards && v.orange === 0,
-     `${tag}: ★見出しは1つ・h2 は図の枚数と同じ・見出しに札は無い`,
-     `h2=${v.h2} / viz=${v.vizCards} / badge=${v.orange} / ${v.h1}`);
+  ok(v.h2 === 0 && v.orange === 0,
+     `${tag}: ★見出しは1つだけ・h2 は無い・見出しに札は無い`,
+     `h2=${v.h2} / badge=${v.orange} / ${v.h1}`);
+  /* ★図が1つも無いこと（消したものが戻っていないか）。 */
+  ok(v.vizCards === 0 && v.bars === 0 && v.you === 0 && v.axText === ''
+     && v.donut === 0 && v.cols === 0,
+     `${tag}: ★図も2段組も1つも無い（分布は DEEP PAY で作り直す）`,
+     `viz=${v.vizCards} bar=${v.bars} you=${v.you} cols=${v.cols}`);
+  /* ★本人の明細を引かない（引いていたのは分布の破線のためだけ）。 */
+  ok(!v.calls.includes('my_pay_reports'),
+     `${tag}: ★本人の明細（my_pay_reports）を1度も引かない`, v.calls.join(','));
 }
 
 /* ★文言の約束。外した3つが本文に残っていると、そこだけ嘘になる。 */
@@ -838,21 +903,48 @@ for (const lang of ['ja', 'en']) {
   /* 検証済みは1人だけ。★verified の無い人に ✓ を付けない。 */
   ok(v.vf === 1, '★✓ Verified は verified:true の1人だけ', String(v.vf));
 
-  /* ★数字カード4枚（2026-08-24 オーナー判断「本当の数字だけ出す」）。
-     4枚のうち2枚は rows を数えるだけ。残り2枚は pv_pay_rows() の stats から来る。 */
-  ok(v.statsHidden === false && v.stats.length === 4, '★数字カードが4枚出る',
+  /* ★数字カード3枚（2026-08-24 オーナー判断「本当の数字だけ出す」）。
+     1枚は rows を数えるだけ。残り2枚は pv_pay_rows() の stats から来る。
+     ★同じ日に「一覧のパイロット」の枚を外した（オーナー指示「件数だけでいいよ」）。
+       行数は表の下の「全N件中」が言っているので、上でも言うと二度言うことになる。 */
+  ok(v.statsHidden === false && v.stats.length === 3, '★数字カードが3枚出る',
      JSON.stringify(v.stats));
   {
     const num = (s) => Number(String(s).replace(/[^\d]/g, ''));
     const got = v.stats.map((c) => num(c.n));
-    ok(got[0] === ROWS.length, '★1枚目「一覧のパイロット」＝表の行数', JSON.stringify(got));
-    ok(got[1] === ST.reports, '★2枚目「実給与の投稿」＝サーバが数えた件数', JSON.stringify(got));
-    ok(got[1] >= v.trs,
+    ok(got[0] === ST.reports, '★1枚目「実給与の投稿」＝サーバが数えた件数', JSON.stringify(got));
+    ok(got[0] >= v.trs,
        '★投稿の件数は必ず表の行数以上（サーバと画面が別々に数えていない）',
-       `${got[1]} / ${v.trs}`);
-    ok(got[2] === 4, '★3枚目「航空会社」＝表に出ている会社の数', JSON.stringify(got));
-    ok(got[3] === ST.month && got[3] <= got[1],
-       '★4枚目「今月の新規投稿」（投稿の件数を越えない）', JSON.stringify(got));
+       `${got[0]} / ${v.trs}`);
+    ok(got[1] === 4, '★2枚目「航空会社」＝表に出ている会社の数', JSON.stringify(got));
+    ok(got[2] === ST.month && got[2] <= got[0],
+       '★3枚目「今月の新規投稿」（投稿の件数を越えない）', JSON.stringify(got));
+    /* ★「一覧のパイロット」の枚が戻っていないこと。 */
+    const label = lang === 'en' ? 'Pilots listed' : '一覧のパイロット';
+    ok(!v.stats.some((c) => c.l === label) && !v.bodyText.includes(label),
+       `★「${label}」のカードが戻っていない`, JSON.stringify(v.stats.map((c) => c.l)));
+    /* ★カード1枚につき絵を1つ（2026-08-24 オーナー指示）。 */
+    ok(v.stats.every((c) => c.i === 1), '★カードには絵が1枚ずつ入る',
+       JSON.stringify(v.stats.map((c) => c.i)));
+  }
+
+  /* ★列は6つで、いちばん右が投稿時期（2026-08-24 オーナー指示）。 */
+  {
+    const thAge = lang === 'en' ? 'Submitted' : '投稿時期';
+    ok(v.ths.length === 6, '★表の列は6つ', JSON.stringify(v.ths));
+    ok(v.ths[5] === thAge, `★いちばん右が「${thAge}」`, JSON.stringify(v.ths));
+    ok(v.thBtns === 0, '★見出しは押せない（＝並べ替えの口が無い）', String(v.thBtns));
+    const words = AGE_WORDS[lang];
+    ok(v.ages.length === ROWS.length, '★投稿時期は全部の行に出る',
+       `${v.ages.length} / ${ROWS.length}`);
+    ok(v.ages.every((t) => words.includes(t)),
+       '★出るのは5段の言葉だけ（日付も年月も出ない）', JSON.stringify(v.ages));
+    ok(v.ages.join('|') === ROWS.map((r) => words[r.age]).join('|'),
+       '★段の番号と言葉が1つずつ対応している', JSON.stringify(v.ages));
+    /* ★数字を含む段の言葉（「1ヶ月以内」）はあるが、それは件数でも人数でもない。
+         下の「表の中に件・人が無い」がここを誤検知しないことも、同時に見ている。 */
+    ok(!/\d{4}|\d+\s*\/\s*\d+|\d+日/.test(v.ages.join(' ')),
+       '★段の言葉に日付らしい数字が混ざっていない', JSON.stringify(v.ages));
   }
 
   /* ★モックにあったが作らなかったもの。実行時にも生えていないこと。 */
@@ -869,11 +961,9 @@ for (const lang of ['ja', 'en']) {
      '★原本通貨の記号が表に出ない（表示通貨に揃っている）',
      v.tblTexts.join(' ').slice(0, 120));
 
-  /* ★棒グラフは表の右横（オーナー指定）。狭い幅では下に回る＝ここは 1360px。 */
-  ok(v.cols === 1 && v.sideViz === 1, '★図は表の右の列に1枚だけ入る',
-     `${v.cols}/${v.sideViz}`);
-  ok(v.place && v.place.right && v.place.sameRow && v.place.w < v.place.mw,
-     '★広い幅では表の右横に並び、表より細い', JSON.stringify(v.place));
+  /* ★表は幅いっぱい（2026-08-24 に図を外したので、右に置くものが無い）。 */
+  ok(v.tblWide && Math.abs(v.tblWide.tw - v.tblWide.mw) <= 2,
+     '★表は本文の幅いっぱいに広がる', JSON.stringify(v.tblWide));
 
   /* ★⑤数え上げ。表そのものに数え方の言葉を1つも置かない。
      ★ただし出典の札（本人記録 / Pilot-recorded）だけは別。あれは数え方ではなく
@@ -1169,123 +1259,109 @@ for (const lang of ['ja', 'en']) {
 }
 
 // ════════════════════════════════════════════════════════════════
-// F. 図（年収の分布）
+// F. 図が1つも無い
 // ════════════════════════════════════════════════════════════════
-/* ★2026-08-24。この画面の図は **年収の分布の棒1枚だけ**。
-   支給の内訳（ドーナツ）は DEEP PAY へ移したので、ここには1つも無い。
+/* ★2026-08-24、オーナー判断で**図を全部外した**。
+   前の版はここに「年収の分布の棒1枚」を持っていて、置き場所・軸・「あなたの位置」を
+   細かく見張っていた。その節をまるごと**反転**させてある。
+   ⚠️ 分布は DEEP PAY で作り直す。**この画面に別の図を置き直さない。**
    守るのは5つ：
-     ・棒のところに人数の数字が1文字も無い（高さで目分量に読めるところまで）
-     ・図に出る金額は軸の両端だけ（自分の明細の内訳の額が混ざらない）
-     ・「あなたの位置」は1本だけ。my_pay_reports() から出す
-     ・★オーナー指定の置き場所＝**表の右横**。狭い幅では表の下に回る
-     ・通貨を切り替えても引き直さない（手元の値で描き直すだけ） */
+     ・図の部品（カード・棒・破線・軸）が1つも無い
+     ・2段組（.ap-cols / .ap-main / .ap-side）が無く、表が幅いっぱいに広がる
+     ・**本人の明細（my_pay_reports）を1度も引かない**（引いていたのは破線のためだけ）
+     ・本人の明細の額が画面に1文字も出ない（毒として渡し続けている）
+     ・狭い幅にしても、通貨を切り替えても、絞り込んでも、図は生えてこない */
 for (const lang of ['ja', 'en']) {
-  console.log(`\n════ ${lang} / F 図 ════`);
+  console.log(`\n════ ${lang} / F 図が1つも無い ════`);
   const { page, errs } = await open(lang, OPEN);
   const v = await page.evaluate(SNAP);
 
-  ok(v.vizCards === 1, '★図は1枚だけ（年収の分布）', String(v.vizCards));
-  ok(v.donut === 0, '★ドーナツの部品が1つも無い（DEEP PAY へ移した）', String(v.donut));
-  ok(v.bars >= 3, '分布の棒が出ている', String(v.bars));
-  ok(!/\d/.test(v.plotText),
-     '★棒のところに数字が1文字も無い（人数を書かない）',
-     JSON.stringify(v.plotText).slice(0, 120));
-  ok(!/(\d+)\s*(件|人|reports?|pilots?)/i.test(v.vizText),
-     '★図の帯の中に件数・人数を書かない', v.vizText.replace(/\n/g, ' ').slice(0, 160));
-  ok(v.axText.length > 0 && MONEY.test(v.axText),
-     '軸の両端は表示中の通貨で出す', v.axText);
-  ok(v.you === 1, '★「あなたの位置」は1本だけ', String(v.you));
-  ok(v.calls.includes('my_pay_reports'),
-     '★「あなたの位置」は my_pay_reports() から出す（他人の表から自分を探さない）',
-     v.calls.join(','));
+  ok(v.vizCards === 0 && v.bars === 0 && v.you === 0 && v.axText === '',
+     '★分布の棒も「あなたの位置」も軸も1つも無い',
+     `viz=${v.vizCards} bar=${v.bars} you=${v.you} ax=${v.axText}`);
+  ok(v.donut === 0, '★ドーナツの部品も1つも無い（DEEP PAY へ移した）', String(v.donut));
+  ok(v.cols === 0, '★2段組の部品（.ap-cols / .ap-main / .ap-side）が無い', String(v.cols));
+  ok(v.tblWide && Math.abs(v.tblWide.tw - v.tblWide.mw) <= 2,
+     '★表が本文の幅いっぱいに広がる', JSON.stringify(v.tblWide));
 
-  /* ★図に出る金額は軸の両端だけ。自分の明細の中身は1つも出ない。 */
+  /* ★本人の明細を引かない。図が無くなった以上、この画面に使い道が無い。 */
+  ok(!v.calls.includes('my_pay_reports'),
+     '★本人の明細（my_pay_reports）を1度も引かない', v.calls.join(','));
   {
-    const leak = ['620,000', '620000', '2,200,000', '2200000', '42,000', '42000']
-      .filter((s) => v.vizText.includes(s));
-    ok(leak.length === 0, '★自分の明細の内訳の額が図に出ない', leak.join(','));
+    const leak = ['620,000', '620000', '2,200,000', '2200000', '42,000', '42000',
+                  '132,000', '132000']
+      .filter((x) => v.bodyText.includes(x));
+    ok(leak.length === 0, '★本人の明細の額が画面に1文字も出ない', leak.join(','));
   }
+  /* 表の中の svg は社ロゴ（頭2文字の札のときは img も svg も無い）と ✓ Verified だけ。
+     棒グラフを svg で描き直した人が居たら、ここが増えて赤くなる。 */
+  ok(v.svgInRows <= v.trs + 1, '★表の中に図らしい絵が生えていない',
+     `svg=${v.svgInRows} / 行=${v.trs}`);
 
-  /* ★置き場所（オーナー指定）。1360px では表の右横で、表より細い。 */
-  ok(v.cols === 1 && v.sideViz === 1, '★図は表の右の列に1枚だけ入る',
-     `${v.cols}/${v.sideViz}`);
-  ok(v.place && v.place.right && v.place.sameRow && v.place.w < v.place.mw,
-     '★広い幅では表と同じ行、表の右横、表より細い', JSON.stringify(v.place));
-
-  /* ★狭い幅では表の下に回る（横に潰れた棒は分布に見えない）。 */
+  /* ★狭い幅にしても図は出てこない（前の版は「下に回る」を見ていた）。 */
   await page.setViewport({ width: 720, height: 1200 });
   await sleep(500);
   const nar = await page.evaluate(SNAP);
-  ok(nar.sideViz === 1 && nar.place && !nar.place.sameRow,
-     '★狭い幅では図が表の下に回る', JSON.stringify(nar.place));
-  ok(nar.bars >= 3, '狭くても棒は出たまま', String(nar.bars));
+  ok(nar.vizCards === 0 && nar.bars === 0 && nar.cols === 0,
+     '★狭い幅でも図は無い', `${nar.vizCards}/${nar.bars}/${nar.cols}`);
+  ok(nar.trs === ROWS.length, '★狭い幅でも行はそのまま出る', String(nar.trs));
   await page.setViewport({ width: 1360, height: 1200 });
   await sleep(500);
 
-  /* ★通貨を切り替えても引き直さない。図も手元の値で描き直すだけ。 */
+  /* ★通貨を切り替えても図は生えない・RPC も増えない。 */
   const n0 = (await page.evaluate(SNAP)).calls.length;
   await page.evaluate(() => window.PVCurrency.set('USD'));
   await sleep(700);
   const cu = await page.evaluate(SNAP);
   ok(cu.calls.length === n0, '★通貨を切り替えても RPC が1本も増えない',
      `${n0} → ${cu.calls.length}`);
-  ok(/\$/.test(cu.axText), '★軸もドル表記に描き直る', cu.axText);
-  ok(!/\d/.test(cu.plotText), '★切り替えても棒に数字は出ない',
-     JSON.stringify(cu.plotText).slice(0, 120));
+  ok(cu.vizCards === 0 && cu.bars === 0, '★切り替えても図は生えない',
+     `${cu.vizCards}/${cu.bars}`);
 
-  /* ★絞り込むと、棒はその中で刻み直される（全体のままだと軸が嘘になる）。 */
+  /* ★絞り込んでも図は生えない。 */
   await page.evaluate(() => {
-    const s = document.getElementById('ap-air');
-    s.value = 'ana';
-    s.dispatchEvent(new Event('change', { bubbles: true }));
+    const sel = document.getElementById('ap-air');
+    sel.value = 'ana';
+    sel.dispatchEvent(new Event('change', { bubbles: true }));
   });
   await sleep(500);
   const af = await page.evaluate(SNAP);
-  ok(af.bars >= 3, '★絞り込んでも棒は出る', String(af.bars));
-  ok(af.axText !== cu.axText, '★軸は絞り込んだ中の下端・上端に描き直る',
-     `${cu.axText} → ${af.axText}`);
+  ok(af.vizCards === 0 && af.bars === 0, '★絞り込んでも図は生えない',
+     `${af.vizCards}/${af.bars}`);
+  ok(af.trs === 3, '★絞り込みはふつうに効く（図が無くても表は動く）', String(af.trs));
 
   ok(errs.length === 0, 'ページのエラーが1件も出ない', errs.join(' | '));
 }
 
-// ════════════════════════════════════════════════════════════════
-// G. まだ給与を出していない人（自分の年収が無い）
-// ════════════════════════════════════════════════════════════════
-/* ★鍵はあるが my_pay_reports が空、という形はありうる（預かりから来た人など）。
-   ここで図が壊れると、いちばん最初に来る人の画面だけ真っ白になる。 */
-{
-  console.log('\n════ ja / G 自分の年収が無い ════');
-  const { page, errs } = await open('ja', { ok: true, state: 'open', rows: ROWS, stats: ST });
-  const v = await page.evaluate(SNAP);
-  ok(v.vizCards === 1, '自分の年収が無くても図は出る', String(v.vizCards));
-  ok(v.bars >= 3, '分布の棒はそれでも出る', String(v.bars));
-  ok(v.you === 0,
-     '★「あなたの位置」の破線は出さない（軸の外に置くと、目盛りそのものが嘘に見える）',
-     String(v.you));
-  ok(v.trs === ROWS.length, '表はふつうに出る', String(v.trs));
-  ok(v.stats.length === 4, '数字カードも出たまま', JSON.stringify(v.stats));
-  ok(errs.length === 0, 'ページのエラーが1件も出ない', errs.join(' | '));
-}
+/* ★G節（自分の年収が無い）は 2026-08-24 に落とした。
+   あれは「分布の『あなたの位置』の破線が出ないこと」を見る節で、
+   図が無くなった今は見るものが無い（表とカードが出ることは C節が見ている）。
+   ⚠️ 図を作り直すときは、この節も一緒に戻すこと。 */
 
 // ════════════════════════════════════════════════════════════════
 // H. サーバがまだ古い（数え上げを返さない）
 // ════════════════════════════════════════════════════════════════
 /* ★db/pay-rows.sql を Supabase に貼るまで、本番からは stats が返らない。
-   そのとき **読めない2枚はカードごと落として、2枚だけ並べる**。
-   埋めるための 0 を置かない＝画面に嘘の数字を作らない。 */
+   そのとき **読めない2枚はカードごと落として、1枚だけ並べる**。
+   埋めるための 0 を置かない＝画面に嘘の数字を作らない。
+   ★カードを3枚にしたので（2026-08-24）、この形では「航空会社」の1枚だけが残る。 */
 {
   console.log('\n════ ja / H サーバがまだ数え上げを返さない ════');
   const { page, errs } = await open('ja', NOSTAT);
   const v = await page.evaluate(SNAP);
-  const num = (s) => Number(String(s).replace(/[^\d]/g, ''));
-  ok(v.statsHidden === false && v.stats.length === 2,
-     '★読めない2枚は出さず、rows から数えられる2枚だけ並ぶ', JSON.stringify(v.stats));
+  const num = (t) => Number(String(t).replace(/[^\d]/g, ''));
+  ok(v.statsHidden === false && v.stats.length === 1,
+     '★読めない2枚は出さず、rows から数えられる1枚だけ並ぶ', JSON.stringify(v.stats));
   ok(v.stats.every((c) => num(c.n) > 0), '★埋めるための 0 を置かない',
      JSON.stringify(v.stats));
-  ok(num(v.stats[0].n) === ROWS.length && num(v.stats[1].n) === 4,
-     '残る2枚は「一覧のパイロット」と「航空会社」', JSON.stringify(v.stats));
+  ok(num(v.stats[0].n) === 4 && v.stats[0].l === '航空会社',
+     '残る1枚は「航空会社」', JSON.stringify(v.stats));
+  ok(v.stats[0].i === 1, '★カードが1枚でも絵は付いている', String(v.stats[0].i));
   ok(v.trs === ROWS.length, '表はふつうに出る（カードが欠けても壊れない）', String(v.trs));
-  ok(v.bars >= 3, '図もふつうに出る', String(v.bars));
+  ok(v.ages.length === ROWS.length,
+     '★投稿時期も出る（段は rows が持っているので stats とは無関係）', String(v.ages.length));
+  ok(v.vizCards === 0 && v.bars === 0, '★図はここでも1つも無い',
+     `${v.vizCards}/${v.bars}`);
   ok(errs.length === 0, 'ページのエラーが1件も出ない', errs.join(' | '));
 }
 
