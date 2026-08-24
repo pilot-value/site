@@ -252,9 +252,33 @@
      o.notes  {data:'※実額です', perDiem:'※パーディアムは…', housing:'※社宅は…'} */
   function donut(r, o) {
     o = o || {};
-    var nm = o.name || {}, notes = o.notes || {};
+    var notes = o.notes || {};
     var s = segments(r);
     if (!s) return '';
+
+    /* どの但し書きを出すかは明細（r）を見ないと決まらない。
+       絵そのものは donutFromSegs に任せる（割合だけの comp からも同じ絵を描くため）。 */
+    var ns = [];
+    if (notes.data) ns.push(notes.data);
+    if (s.vals.perdiem > 0 && notes.perDiem) ns.push(notes.perDiem);
+    if (r.housing_type && r.housing_type !== 'allowance' && num(r.housing_amount) && notes.housing)
+      ns.push(notes.housing);
+
+    return donutFromSegs(s, { title: o.title, name: o.name, notes: ns });
+  }
+
+  /* ── 材料（segs）から絵を作る ────────────────────────────────
+     donut() と、割合だけの comp（他人の行）の両方がここを通る。
+     ★絵の実体はここ1か所だけ。増やさないこと。
+     o.title   見出し
+     o.name    {キー: 表示名}
+     o.notes   但し書きの配列（呼ぶ側が決める）
+     o.amounts false にすると凡例から金額を落とす（金額を持っていないとき）
+     o.center  真ん中の文字。省くと合計の金額 */
+  function donutFromSegs(s, o) {
+    o = o || {};
+    if (!s || !(s.total > 0)) return '';
+    var nm = o.name || {}, showAmt = o.amounts !== false;
 
     var R = 52, SW = 20, C = 2 * Math.PI * R, acc = 0;
     var arcs = '', legend = '';
@@ -266,24 +290,50 @@
       acc += len;
       legend += '<div class="pt-leg"><i style="background:' + seg.c + '"></i>' +
         '<span class="nm">' + esc(nm[seg.k]) + '</span>' +
-        '<span class="amt">' + esc(fmt(v)) + '</span>' +
+        (showAmt ? '<span class="amt">' + esc(fmt(v)) + '</span>' : '') +
         '<span class="pct">' + Math.round(v / s.total * 100) + '%</span></div>';
     });
 
     var out = '';
-    if (notes.data) out += '<div class="pt-note">' + esc(notes.data) + '</div>';
-    if (s.vals.perdiem > 0 && notes.perDiem) out += '<div class="pt-note">' + esc(notes.perDiem) + '</div>';
-    if (r.housing_type && r.housing_type !== 'allowance' && num(r.housing_amount) && notes.housing)
-      out += '<div class="pt-note">' + esc(notes.housing) + '</div>';
+    (o.notes || []).forEach(function (t) {
+      if (t) out += '<div class="pt-note">' + esc(t) + '</div>';
+    });
 
     return '<div class="pt-sec"><div class="pt-h">' + esc(o.title) + '</div>' +
       '<div class="pt-donut-wrap">' +
         '<div class="pt-donut"><svg viewBox="0 0 132 132" width="132" height="132" aria-hidden="true">' +
           '<circle cx="66" cy="66" r="' + R + '" fill="none" stroke="rgba(128,140,160,.12)" stroke-width="' + SW + '"></circle>' +
           arcs + '</svg>' +
-          '<div class="pt-donut-c"><b>' + esc(fmt(s.total)) + '</b></div></div>' +
+          '<div class="pt-donut-c"><b>' + esc(o.center != null ? o.center : fmt(s.total)) + '</b></div></div>' +
         '<div class="pt-legend">' + legend + '</div>' +
       '</div>' + out + '</div>';
+  }
+
+  /* ── 他人の行の内訳（割合だけ）────────────────────────────────
+     サーバ（pv_pay_rows）が返す comp = {m,b,d,h,o} は**整数パーセント**で、
+     金額を1つも持っていない。だから凡例に金額は出せない（出してはいけない）。
+     色は上の SEG と揃える：月々の支給＝基本給の緑、賞与＝水色、
+     パーディアム＝桃、住宅手当＝橙、その他の手当＝紫。
+     ★合計は 100。segs の総和をそのまま total にするので、
+       サーバが 99 を返しても図は破綻しない（割合の分母がずれるだけ）。 */
+  var COMP = [
+    { k: 'm', c: '#34d399' },
+    { k: 'b', c: '#22d3ee' },
+    { k: 'd', c: '#f472b6' },
+    { k: 'h', c: '#fb923c' },
+    { k: 'o', c: '#a78bfa' }
+  ];
+
+  function compSegs(comp) {
+    if (!comp) return null;
+    var segs = [], total = 0;
+    COMP.forEach(function (s) {
+      var v = num(comp[s.k]);
+      if (v == null || !(v > 0)) return;
+      segs.push({ k: s.k, c: s.c, v: v });
+      total += v;
+    });
+    return total > 0 ? { segs: segs, total: total, vals: comp, partial: false } : null;
   }
 
   /* 折れ線の幅。viewBox を伸縮させると文字まで拡大縮小されてスマホで読めなくなるので、
@@ -374,10 +424,11 @@
   }
 
   w.PVViz = {
-    SEG: SEG, LINE: LINE,
+    SEG: SEG, LINE: LINE, COMP: COMP,
     esc: esc, num: num, fmt: fmt,
     calc: calc, metricOf: metricOf, segments: segments,
     grossOrig: grossOrig, totals: totals,
-    donut: donut, chart: chart, widthOf: widthOf
+    donut: donut, donutFromSegs: donutFromSegs, compSegs: compSegs,
+    chart: chart, widthOf: widthOf
   };
 }(window));

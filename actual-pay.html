@@ -44,7 +44,11 @@
   <link rel="stylesheet" href="pv-tokens.css">
   <!-- ページの骨格（.mr-*）。マイレポートと同じ殻を使う（日英で共有） -->
   <link rel="stylesheet" href="my-value.css">
-  <!-- この画面だけの見た目（.ap-*）。★pay-viz.css は読まない（図を描かない） -->
+  <!-- ドーナツ（.pt-*）の見た目。★actual-pay.css より前に読む
+       （向こうの [data-theme="light"] .pt-x と詳細度が並ぶので、
+         後から読ませないとこの画面の明るい上書きが効かない） -->
+  <link rel="stylesheet" href="pay-viz.css">
+  <!-- この画面だけの見た目（.ap-*） -->
   <link rel="stylesheet" href="actual-pay.css">
 
   <style>
@@ -194,6 +198,9 @@
 <!-- 社ロゴの一覧（コード → 拡張子）。生成物なので手で足さない。
      ★actual-pay.js より前に置く。無くても落ちないが、全社が頭2文字の札になる。 -->
 <script src="airline-logos.js"></script>
+<!-- 図の実体（window.PVViz）。★actual-pay.js より前に読む。
+     読み込みに失敗しても表は出る（図だけが出ない）。 -->
+<script src="pay-viz.js"></script>
 <script src="actual-pay.js"></script>
 </body>
 </html>

@@ -44,7 +44,11 @@
   <link rel="stylesheet" href="../pv-tokens.css">
   <!-- Page shell (.mr-*), shared with My Pay Report across both languages -->
   <link rel="stylesheet" href="../my-value.css">
-  <!-- This page only (.ap-*). ★ Never load pay-viz.css here — this page draws no charts. -->
+  <!-- The donut (.pt-*). ★ Load it before actual-pay.css: its
+       [data-theme="light"] .pt-x rules tie on specificity, so the light
+       overrides for this page only win by coming later. -->
+  <link rel="stylesheet" href="../pay-viz.css">
+  <!-- This page only (.ap-*) -->
   <link rel="stylesheet" href="../actual-pay.css">
 
   <style>
@@ -194,6 +198,9 @@
 <!-- 社ロゴの一覧（コード → 拡張子）。生成物なので手で足さない。
      ★actual-pay.js より前に置く。無くても落ちないが、全社が頭2文字の札になる。 -->
 <script src="../airline-logos.js"></script>
+<!-- The charts themselves (window.PVViz). ★ Load before actual-pay.js.
+     If it fails to load the table still renders; only the charts go missing. -->
+<script src="../pay-viz.js"></script>
 <script src="../actual-pay.js"></script>
 </body>
 </html>

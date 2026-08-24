@@ -38,8 +38,9 @@
 --   したがってこの設計を支えているのは、いま次の7つだけ。
 --
 --     ① 鍵         給与明細を1枚出した人だけ・90日（サーバ側。anon には開かない）
---     ② 準識別子ゼロ 基地・在籍年数・年代・投稿月・原本通貨・契約形態・国籍・
---                   レポートID・提出日を1つも返さない（列にも group by にも入れない）
+--     ② 内訳は割合だけ 基地・在籍年数・年代・投稿月・原本通貨・契約形態・国籍・
+--                   レポートID・提出日は1つも返さない（列にも group by にも入れない）。
+--                   支給の内訳は **整数パーセントの5つ組だけ**を返す（金額は返さない）
 --     ③ 有効数字2桁  $183,456 は $180,000 として出る。1円まで一致する個票が存在しない
 --     ④ 1行＝1人    同じ人の複数月は年換算の中央値で1行に畳む（回数から常連が割れない）
 --     ⑤ 引数ゼロ    総当たりで区分を指定して引く面が無い
@@ -48,6 +49,25 @@
 --
 --   ③を外すと個票そのものになる。④を外すと出した回数が漏れる。
 --   **この7つは1つも外さないこと。**
+--
+-- ★②は 2026-08-24 に「準識別子ゼロ」から緩めた。何を手放したかを正直に書く。
+--   オーナーの指示は「行を選ぶとその人の支給の内訳が円グラフで見える」。
+--   内訳そのもの（基本給いくら・パーディアムいくら）を返すと、
+--   1人ずつの実額が並ぶ＝③の丸めをすり抜けてしまう。そこで返すのは
+--   **割合だけ**にした（{m 月々の支給, b 年1回の賞与, d パーディアム,
+--   h 住宅手当, o その他の手当}。整数・合計ちょうど100）。
+--
+--   それでも次のことは新たに読めるようになった：
+--     ・賞与の比重が大きい人／ゼロの人が、1人ずつ分かる
+--     ・パーディアムの比重、住宅手当の有無が、1人ずつ分かる
+--     ・画面の年収（有効数字2桁）に割合を掛ければ、実額は ±10% ほどで逆算できる
+--   逆に、次は今までどおり1つも出ない：
+--     ・基地・年代・在籍年数・投稿月・原本通貨・契約形態・レポートID
+--
+--   ★やめるときは、下の 'comp' を返すのをやめるだけでよい。
+--     画面は comp が無ければ円グラフを出さない作りにしてある
+--     （自分の支給構成と年収の分布は my_pay_reports 由来なので残る）。
+--     ②の見出しも「準識別子ゼロ」に戻すこと。
 --
 -- ★⑦とは何か（外した p10-p90 クリップとは別物）
 --   クリップは「同じ区分の実データの上下1割に寄せる」＝**本物の値を書き換える**処理で、
@@ -197,6 +217,202 @@ comment on function public.pv_pending_usd(jsonb) is
   '金額の欄しか読まない。誰にも grant しない＝pv_pay_rows の中からだけ使う。';
 
 
+
+-- ════════════════════════════════════════════════════════════════
+-- 1-c. 支給の内訳（割合だけ）
+--
+-- ★なぜ「割合」なのか。
+--   金額（基本給いくら・パーディアムいくら）を1人ずつ返すと、③の
+--   「有効数字2桁」をすり抜けて実額の個票ができる。割合なら、画面に出ている
+--   丸めた年収を掛けないと額にならない＝丸めの粗さをそのまま引き継ぐ。
+--
+-- ★成分の足し算は pv_annual_total（db/pay-reports.sql 4章）と1円まで同じ。
+--     総支給1本の行 … m = 12×(総支給 − その月の賞与) − パーディアム年額 − 住宅手当年額
+--                     o = 0（内訳を入れていないので「その他の手当」は立てない）
+--     内訳の行     … m = 12×(基本給 + 時給×max(実績,保証))
+--                     o = 12×(交通費 + 機長手当 + その他手当)
+--     どちらも      b = 年1回の賞与 + 利益分配
+--                     d = 12×パーディアム
+--                     h = 12×住宅手当（現物支給の社宅は現金ではないので入れない）
+--   5本の合計は pv_annual_total の返り値と一致する。
+--   ズレていないことは db/test-pay-rows.mjs が毎回突き合わせている。
+--
+-- ★返すのは「割合」（合計1）であって額ではない。通貨に依らないので、
+--   月ごとに通貨が違う人が居ても、そのまま平均できる。
+--
+-- ★引数の並びは pv_annual_total と1文字も違わない。呼ぶ側が並べ違えないため。
+-- ════════════════════════════════════════════════════════════════
+create or replace function public.pv_pay_comp(
+  p_gross_monthly    numeric,
+  p_base_pay         numeric, p_hourly_rate numeric, p_guaranteed_hours numeric,
+  p_block_hours      numeric, p_per_diem    numeric,
+  p_housing_type     text,    p_housing_amount numeric,
+  p_transport        numeric, p_command_pay numeric, p_other_allowance numeric,
+  p_bonus_annual     numeric, p_profit_share_annual numeric,
+  p_bonus_month      numeric default null
+) returns numeric[]
+language sql
+immutable
+as $$
+  select case
+           -- 総額が出ない行（レートも金額も無い）は図を描かせない
+           when x.tot is null or x.tot <= 0 then null
+           -- 1つでも負になる行は入力違い（手当が総支給を超えている等）。
+           -- 嘘の円を描くより、何も描かない方がよい。
+           when least(x.m, x.b, x.d, x.h, x.o) < 0 then null
+           -- ★nullif を外さないこと。where や case より先に割り算が走ることがある
+           --   （2026-08-24、これを外した形が「0で割った」で落ちた）。
+           else array[x.m / nullif(x.tot, 0), x.b / nullif(x.tot, 0),
+                      x.d / nullif(x.tot, 0), x.h / nullif(x.tot, 0),
+                      x.o / nullif(x.tot, 0)]
+         end
+    from (
+      select y.*, (y.m + y.b + y.d + y.h + y.o) as tot
+        from (
+          select
+            /* m … 月々の支給（下の手当をのぞく） */
+            case when nullif(p_gross_monthly, 0) is not null
+                 then 12 * greatest(p_gross_monthly - coalesce(p_bonus_month, 0), 0)
+                      - 12 * coalesce(p_per_diem, 0)
+                      - 12 * case when p_housing_type = 'allowance'
+                                  then coalesce(p_housing_amount, 0) else 0 end
+                 else 12 * (coalesce(p_base_pay, 0)
+                            + coalesce(p_hourly_rate, 0)
+                              * greatest(coalesce(p_block_hours, 0),
+                                         coalesce(p_guaranteed_hours, 0)))
+            end as m,
+            /* b … 年1回の賞与（利益分配を含む。月額の外） */
+            coalesce(p_bonus_annual, 0) + coalesce(p_profit_share_annual, 0) as b,
+            /* d … パーディアム */
+            12 * coalesce(p_per_diem, 0) as d,
+            /* h … 住宅手当。現物支給の社宅は現金ではないので入れない */
+            12 * case when p_housing_type = 'allowance'
+                      then coalesce(p_housing_amount, 0) else 0 end as h,
+            /* o … その他の手当。総支給1本の行では立てない（中身が分からない） */
+            case when nullif(p_gross_monthly, 0) is not null then 0
+                 else 12 * (coalesce(p_transport, 0) + coalesce(p_command_pay, 0)
+                            + coalesce(p_other_allowance, 0))
+            end as o
+        ) y
+    ) x;
+$$;
+
+revoke all on function public.pv_pay_comp(
+  numeric, numeric, numeric, numeric, numeric, numeric, text, numeric,
+  numeric, numeric, numeric, numeric, numeric, numeric) from public, anon, authenticated;
+
+comment on function public.pv_pay_comp(
+  numeric, numeric, numeric, numeric, numeric, numeric, text, numeric,
+  numeric, numeric, numeric, numeric, numeric, numeric) is
+  '支給の内訳を「割合」（合計1・5本）で返す。金額は返さない。'
+  '足し算は pv_annual_total と一致する。引数の並びもあれと同じ。誰にも grant しない。';
+
+
+-- ────────────────────────────────────────────────────────────────
+-- pv_pct5 — 割合5本を整数パーセントにする（合計ちょうど100）
+--
+-- ★丸めた5つを足すと 99 や 101 になる。端数はいちばん大きい成分に寄せる
+--   （いちばん大きい成分は必ず 20 以上なので、寄せても負にならない）。
+-- ★入力が null／合計0のときは null を返す＝画面は円グラフを出さない。
+-- ────────────────────────────────────────────────────────────────
+create or replace function public.pv_pct5(a numeric[])
+returns jsonb
+language sql
+immutable
+as $$
+  select jsonb_build_object(
+           'm', v.p1 + case when v.k = 1 then v.diff else 0 end,
+           'b', v.p2 + case when v.k = 2 then v.diff else 0 end,
+           'd', v.p3 + case when v.k = 3 then v.diff else 0 end,
+           'h', v.p4 + case when v.k = 4 then v.diff else 0 end,
+           'o', v.p5 + case when v.k = 5 then v.diff else 0 end)
+    from (
+      select u.*, 100 - (u.p1 + u.p2 + u.p3 + u.p4 + u.p5) as diff,
+             case when u.v1 >= u.v2 and u.v1 >= u.v3 and u.v1 >= u.v4 and u.v1 >= u.v5 then 1
+                  when u.v2 >= u.v3 and u.v2 >= u.v4 and u.v2 >= u.v5 then 2
+                  when u.v3 >= u.v4 and u.v3 >= u.v5 then 3
+                  when u.v4 >= u.v5 then 4
+                  else 5 end as k
+        from (
+          -- ★nullif を外さないこと。下の where より先に割り算が走ることがある
+          --   （2026-08-24、内訳の出せない人＝合計0 が来て「0で割った」で落ちた）。
+          select t.*,
+                 round(t.v1 / nullif(t.tot, 0) * 100)::int as p1,
+                 round(t.v2 / nullif(t.tot, 0) * 100)::int as p2,
+                 round(t.v3 / nullif(t.tot, 0) * 100)::int as p3,
+                 round(t.v4 / nullif(t.tot, 0) * 100)::int as p4,
+                 round(t.v5 / nullif(t.tot, 0) * 100)::int as p5
+            from (
+              select coalesce(a[1], 0) as v1, coalesce(a[2], 0) as v2,
+                     coalesce(a[3], 0) as v3, coalesce(a[4], 0) as v4,
+                     coalesce(a[5], 0) as v5,
+                     coalesce(a[1], 0) + coalesce(a[2], 0) + coalesce(a[3], 0)
+                     + coalesce(a[4], 0) + coalesce(a[5], 0) as tot
+            ) t
+           where t.tot > 0
+        ) u
+    ) v;
+$$;
+
+revoke all on function public.pv_pct5(numeric[]) from public, anon, authenticated;
+
+comment on function public.pv_pct5(numeric[]) is
+  '割合5本を整数パーセント（合計100）にする。端数は最大の成分に寄せる。誰にも grant しない。';
+
+
+-- ────────────────────────────────────────────────────────────────
+-- pv_pending_comp — 預かりの payload から内訳の割合を出す
+--
+-- ★pv_pending_usd と同じ payload の読み方を、もう一度ここに書いている。
+--   （関数を分けたのは、あちらが「額」でこちらが「割合」だから。）
+--   ズレていないことは db/test-pay-rows.mjs が
+--   **同じ payload で「5本の合計 : pv_pending_usd」が一致するか**で毎回確かめる。
+--   片方だけ直すとそこで落ちる。
+-- ★fx は要らない。割合は通貨に依らない。
+-- ★金額の欄しか読まない。社名・基地・年代・国籍には触れない。
+-- ────────────────────────────────────────────────────────────────
+create or replace function public.pv_pending_comp(p jsonb)
+returns numeric[]
+language sql
+immutable
+set search_path = public, extensions
+as $$
+  select public.pv_pay_comp(
+           x.gross,
+           case when x.gross is null then x.base   end,
+           case when x.gross is null then x.hourly end,
+           x.guar, x.bh, x.perdiem,
+           x.htype, x.hamt,
+           case when x.gross is null then x.trans end,
+           case when x.gross is null then x.cmd   end,
+           case when x.gross is null then x.othal end,
+           x.bonus_a, x.profit, x.bonus_m
+         )
+    from (
+      select nullif(nullif(p->>'gross_monthly', '')::numeric, 0) as gross,
+             nullif(p->>'base_pay',            '')::numeric      as base,
+             nullif(p->>'hourly_rate',         '')::numeric      as hourly,
+             nullif(p->>'guaranteed_hours',    '')::numeric      as guar,
+             nullif(p->>'block_hours',         '')::numeric      as bh,
+             nullif(p->>'per_diem',            '')::numeric      as perdiem,
+             nullif(btrim(p->>'housing_type'), '')               as htype,
+             nullif(p->>'housing_amount',      '')::numeric      as hamt,
+             nullif(p->>'transport',           '')::numeric      as trans,
+             nullif(p->>'command_pay',         '')::numeric      as cmd,
+             nullif(p->>'other_allowance',     '')::numeric      as othal,
+             nullif(p->>'bonus_annual',        '')::numeric      as bonus_a,
+             nullif(p->>'profit_share_annual', '')::numeric      as profit,
+             nullif(p->>'bonus_month',         '')::numeric      as bonus_m
+    ) x;
+$$;
+
+revoke all on function public.pv_pending_comp(jsonb) from public, anon, authenticated;
+
+comment on function public.pv_pending_comp(jsonb) is
+  '登録前に預かった給与 payload の内訳を「割合」で返す。金額もレートも使わない。'
+  '誰にも grant しない＝pv_pay_rows の中からだけ使う。';
+
+
 -- ════════════════════════════════════════════════════════════════
 -- 2. pv_pay_rows — 匿名レポート一覧（1行＝1人・出した人は全員）
 --
@@ -254,7 +470,18 @@ begin
            r."position"         as pos,
            r.fleet              as fleet,
            r.annual_total_usd   as usd,
-           (r.verify_level >= 1) as vf
+           (r.verify_level >= 1) as vf,
+           -- ★内訳。返すのは「割合」（合計1の5本）で、金額は1つも持ち出さない。
+           --   ここでの並びは m 月々の支給 / b 年1回の賞与 / d パーディアム /
+           --   h 住宅手当 / o その他の手当。中身は 1-c 章を読む。
+           public.pv_pay_comp(
+             r.gross_monthly,
+             r.base_pay, r.hourly_rate, r.guaranteed_hours,
+             r.block_hours, r.per_diem,
+             r.housing_type, r.housing_amount,
+             r.transport, r.command_pay, r.other_allowance,
+             r.bonus_annual, r.profit_share_annual,
+             r.bonus_month) as comp
       from public.pay_reports r
      where r.annual_total_usd is not null      -- レートの無い通貨は落ちる（6章と同じ）
        and r.created_at >= now() - interval '24 months'
@@ -269,7 +496,8 @@ begin
            q.payload->>'position',
            q.payload->>'fleet',
            public.pv_pending_usd(q.payload),
-           false
+           false,
+           public.pv_pending_comp(q.payload)
       from public.pay_reports_pending q
      where q.claimed_at is null
        and q.ip_day_hash is not null
@@ -292,7 +520,15 @@ begin
            -- ★percentile_cont は numeric を渡しても double precision で返る。
            --   round(値, 桁) は numeric にしか無いので、先に ::numeric を通す。
            (percentile_cont(0.5) within group (order by usd))::numeric as v,
-           bool_or(vf) as verified
+           bool_or(vf) as verified,
+           -- ★内訳は「その人の月ごとの割合」を平均する。金額は足さない。
+           --   割合は通貨に依らないので、月ごとに通貨が違う人が居ても混ざらない。
+           --   1ヶ月でも割合を出せない月がある人は、内訳ぜんぶを出さない
+           --   （半分だけの円グラフを描くより、描かない方がよい）。
+           case when bool_and(comp is not null)
+                then array[avg(comp[1]), avg(comp[2]), avg(comp[3]),
+                           avg(comp[4]), avg(comp[5])]
+           end as parts
       from sane
      group by pkey, airline, pos, fleet
   )
@@ -301,7 +537,11 @@ begin
            'pos',        p.pos,
            'fleet',      p.fleet,
            'annual_usd', public.pv_sig2(p.v),
-           'verified',   p.verified
+           'verified',   p.verified,
+           -- ★整数パーセント5本（合計ちょうど100）。金額は入らない。
+           --   出せない人は null。画面は null なら円グラフを出さない。
+           --   ここを消すだけで「内訳を見せる」をやめられる（冒頭②の「やめるとき」）。
+           'comp',       public.pv_pct5(p.parts)
          -- ★並びに時間を入れないこと。投稿順に並べると、並び順そのものが
          --   「誰が最近出したか」になる（外した30日の遅延より悪い）。
          --   md5 なので毎回同じ並びで、しかも中身とも関係が無い。
@@ -325,6 +565,7 @@ comment on function public.pv_pay_rows() is
   '実給与の匿名一覧。1行＝1人（複数月は年換算の中央値で畳む）。出した人は全員出る。'
   '本棚（pay_reports）と、まだ移っていない預かり（pay_reports_pending）の両方から作る。'
   '基地・在籍年数・年代・投稿月・原本通貨・契約形態・自由入力の社名は返さない。'
+  '支給の内訳は comp（m/b/d/h/o の整数パーセント・合計100）だけを返す。金額は返さない。'
   '金額は有効数字2桁に丸め、年 $10,000〜$700,000 の外は打ち間違いとして出さない。'
   '並びは md5(人のキー) 順で投稿順ではない。'
   '★引数を取らない＝他人の区分を狙って引く面が無い。'
@@ -336,15 +577,20 @@ comment on function public.pv_pay_rows() is
 --
 -- ★1本の SELECT にしてある。Supabase の SQL Editor は複数文を流すと
 --   最後の1本の結果しか出さないので、分けて書くと上から順に消えていく。
--- 期待：19行すべて ✅。1つでも ❌ なら、そこが効いていない。
+-- 期待：24行すべて ✅。1つでも ❌ なら、そこが効いていない。
 --
--- 特に 4・8・12・13・14・16 は「静かに壊れる」種類のもの。画面には何も出ないまま、
+-- 特に 4・8・12・13・14・16・22 は「静かに壊れる」種類のもの。画面には何も出ないまま、
 -- 他人の個票に届く経路が開く（16 は逆に、同じ人が二重に出る）。
 -- ════════════════════════════════════════════════════════════════
 with f as (
   select to_regprocedure('public.pv_pay_rows()')       as f_rows,
          to_regprocedure('public.pv_sig2(numeric)')    as f_sig,
          to_regprocedure('public.pv_pending_usd(jsonb)') as f_pend,
+         to_regprocedure('public.pv_pct5(numeric[])')    as f_pct,
+         to_regprocedure('public.pv_pending_comp(jsonb)') as f_pcomp,
+         to_regprocedure('public.pv_pay_comp(numeric,numeric,numeric,numeric,numeric,'
+                         || 'numeric,text,numeric,numeric,numeric,numeric,numeric,'
+                         || 'numeric,numeric)')          as f_comp,
          to_regclass('public.pay_benchmarks')          as bench
 )
 select n as "#", case when ok then '✅' else '❌' end as 結果, 見るところ
@@ -436,5 +682,45 @@ from (
   select 19, '年換算の定義を書き写していない（pv_annual_total を呼んでいる）',
          case when f_pend is null then false
               else pg_get_functiondef(f_pend) like '%pv_annual_total(%' end from f
+  union all
+  -- ── 内訳（割合）まわり。2026-08-24 に足した ──────────────────
+  select 20, '内訳の関数が3つそろっている',
+         (f_comp is not null and f_pct is not null and f_pcomp is not null) as ok from f
+  union all
+  select 21, '内訳の関数は誰にも開いていない（pv_pay_rows の中からだけ）',
+         case when f_comp is null or f_pct is null or f_pcomp is null then false
+              else not has_function_privilege('anon', f_comp, 'execute')
+               and not has_function_privilege('authenticated', f_comp, 'execute')
+               and not has_function_privilege('anon', f_pct, 'execute')
+               and not has_function_privilege('authenticated', f_pct, 'execute')
+               and not has_function_privilege('anon', f_pcomp, 'execute')
+               and not has_function_privilege('authenticated', f_pcomp, 'execute')
+         end from f
+  union all
+  -- ★22 がいちばん静かに壊れる。pv_pct5 を通さずに配列や金額をそのまま
+  --   返す形にすると、画面は同じに見えるのに実額の個票が出ていく。
+  select 22, '★内訳は割合にしてから返している（金額のまま返していない）',
+         case when f_rows is null then false
+              else pg_get_functiondef(f_rows) like '%pv_pct5(%'
+               and pg_get_functiondef(f_rows) not like '%''base_pay''%'
+               and pg_get_functiondef(f_rows) not like '%''gross_monthly''%'
+               and pg_get_functiondef(f_rows) not like '%''bonus_annual''%'
+               and pg_get_functiondef(f_rows) not like '%''per_diem''%'
+               and pg_get_functiondef(f_rows) not like '%''housing_amount''%'
+         end from f
+  union all
+  select 23, '預かりの内訳も同じ足し算から作っている（pv_pay_comp を呼んでいる）',
+         case when f_pcomp is null then false
+              else pg_get_functiondef(f_pcomp) like '%pv_pay_comp(%' end from f
+  union all
+  select 24, '内訳の関数も自由入力の社名・準識別子を読んでいない',
+         case when f_comp is null or f_pcomp is null then false
+              else pg_get_functiondef(f_comp) not like '%airline_other%'
+               and pg_get_functiondef(f_pcomp) not like '%airline_other%'
+               and pg_get_functiondef(f_comp) !~
+                   '(base_iata|seniority_years|age_bucket|contract_type|tax_country|nationality|period_month)'
+               and pg_get_functiondef(f_pcomp) !~
+                   '(base_iata|seniority_years|age_bucket|contract_type|tax_country|nationality|period_month)'
+         end from f
 ) t
 order by n;

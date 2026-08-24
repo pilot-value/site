@@ -11,8 +11,13 @@
 
      ① 鍵の無い人には金額が1文字も出ない
         （db/pay-rows.sql が state:'locked' を返す。画面のモザイクではない）
-     ② 準識別子が1つも画面に出ない
-        基地・在籍年数・年代・投稿月・原本の通貨・契約形態・国籍・本人を指す識別子、
+     ② 内訳は割合だけ（金額は返さない）＋ 準識別子は1つも画面に出ない
+        ★2026-08-24、オーナー判断で「行を押すとその人の内訳（ドーナツ）」を足した。
+          だから②は「準識別子ゼロ」ではなくなった。サーバが返すのは comp＝
+          m/b/d/h/o の**整数パーセント5つだけ**で、金額は1つも返さない。
+          画面の年収（有効数字2桁）に掛ければ ±10% ほどで実額は逆算できる。
+          ここではその線を守る：**他人のドーナツに通貨記号が1文字も出ないこと**。
+        そのうえで、基地・在籍年数・年代・投稿月・原本の通貨・契約形態・国籍・識別子、
         そして**自由入力で打ち込まれた社名**。
         ★この検査では、サーバが返さないはずのこれらを **わざと混ぜた行** を流し込み、
           画面のどこにも出ないことを見る。将来 r.base_iata を1つ足した人が即座に赤くなる
@@ -24,6 +29,13 @@
         総数を明示すると会員規模そのものが出る
      ⑥ 通貨を切り替えても pv_pay_rows() を引き直さない
         （データは state に持つ。引き直すと切替のたびにサーバを叩く）
+     ⑦ 図（2026-08-24 追加）
+        ・既定は「あなたの支給構成」＝ my_pay_reports()。ここだけ金額が出る（本人の数字）
+        ・行を押すと**その人の割合**に切り替わる。★通貨記号が1文字も出ない
+        ・comp が null の行を押しても壊れず、静かに「内訳を出せません」になる
+        ・閉じ方が3つ（もう一度押す／「自分に戻す」／ESC）。閉じ込めを作らない
+        ・分布の棒に**人数の数字を書かない**（高さで目分量に読めるところまで）
+        ・行を選んでも**並びは1行も動かない**（選択が並べ替えに化けない）
 
    ★もう1つ、消えたものが戻っていないことを見る：
      青のバッジ・推定レンジ・「5人」「30日」の約束・招待カードの差込口。
@@ -73,7 +85,17 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
   ok(/fonts\.googleapis\.com\/css2/.test(html), `${name}: Inter を読んでいる`);
   ok(/<title>[^<]+<\/title>/.test(html), `${name}: title が空でない`);
   ok(!/pv-founding/.test(html), `${name}: FOUNDING の板を置かない（あれは profile.html だけ）`);
-  ok(!/pay-viz\.css/.test(html), `${name}: pay-viz.css を読まない（図を描かないので契約に触れない）`);
+  /* ★2026-08-24 反転。この画面は図を描くようになったので pay-viz を読む。
+       ⚠️ 読む順が肝。pay-viz.css の [data-theme="light"] .pt-* と
+          actual-pay.css の .ap-vcard .pt-* は詳細度が同じ（0,2,0）で、
+          後に書いたほうが勝つ。逆に置くと暗い前提の色が明るい画面に出る。 */
+  const at = (file) => html.search(new RegExp('(?:src|href)="[^"]*' + file.replace('.', '\\.') + '"'));
+  const iVizC = at('pay-viz.css'), iApC = at('actual-pay.css');
+  ok(iVizC >= 0 && iApC > iVizC,
+     `${name}: pay-viz.css を actual-pay.css より先に読む`, `${iVizC} / ${iApC}`);
+  const iVizJ = at('pay-viz.js'), iApJ = at('actual-pay.js');
+  ok(iVizJ >= 0 && iApJ > iVizJ,
+     `${name}: pay-viz.js を actual-pay.js より先に読む`, `${iVizJ} / ${iApJ}`);
 
   /* 結果の入れ物は「開始タグ自体」に pv-no-cur。currency.js の自動走査に
      金額を触らせない（通貨ごとに2桁へ丸め直すのはこちらの仕事）。 */
@@ -239,6 +261,51 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
     ok(!/airline_other|proof_hash|ip_day_hash|claim_token/.test(PF),
        '★換算のときも社名・同定キーを読まない');
   }
+
+  /* ★comp（内訳の割合・2026-08-24）。
+     返すのは m/b/d/h/o の整数パーセント5つだけ。**金額は1つも返さない。**
+     ここが崩れると、1人ずつの実額が画面から逆算できるようになる。 */
+  ok(/'comp'/.test(FN) || /\bcomp\b/.test(FN), '★内訳の割合（comp）を返している');
+  ok(/pv_pay_comp\(/.test(FN), '★割合は pv_pay_comp() が作る（式を書き写していない）');
+  ok(/pv_pct5\(/.test(FN), '★整数パーセント化は pv_pct5() が1か所でやる');
+  ok(/revoke all on function public\.pv_pay_comp\([^)]*\) from public, anon, authenticated/
+       .test(SQL),
+     '★pv_pay_comp は誰にも開いていない');
+  ok(/revoke all on function public\.pv_pct5\(numeric\[\]\) from public, anon, authenticated/
+       .test(SQL),
+     '★pv_pct5 は誰にも開いていない');
+  ok(/revoke all on function public\.pv_pending_comp\(jsonb\) from public, anon, authenticated/
+       .test(SQL),
+     '★預かりの割合も誰にも開いていない');
+  ok(!/grant execute on function public\.pv_(pay_comp|pct5|pending_comp)/.test(SQL),
+     '★割合を作る3つに grant が1つも無い');
+  {
+    const k0 = SQL.indexOf('create or replace function public.pv_pay_comp(');
+    const k1 = SQL.indexOf('revoke all on function public.pv_pay_comp(');
+    const CF = k0 > -1 && k1 > k0 ? SQL.slice(k0, k1) : '';
+    ok(!!CF, 'pv_pay_comp の定義が読めた');
+    /* ★現物支給の社宅は現金ではない（pv_annual_total と同じ扱い）。 */
+    ok(/housing_type[^;]*allowance/.test(CF),
+       "★住宅は housing_type='allowance' のときだけ数える");
+    /* ★2026-08-23 に本番で踏んだ。where で外しても SELECT の割り算が先に走りうる。
+       割り算を書いた行には必ず nullif が同じ行にあること。 */
+    {
+      /* ★SQL のコメントを先に落とす。/* … *​/ の中に「/」があると全部拾ってしまう。 */
+      const body = CF.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/--[^\n]*/g, ' ');
+      const raw = body.split('\n').filter((l) => l.includes('/'));
+      const nonull = raw.filter((l) => !/nullif\(/.test(l));
+      ok(raw.length > 0 && nonull.length === 0,
+         '★割り算の行は必ず nullif で包む（division by zero を踏んだ）',
+         nonull.join(' | ').slice(0, 160));
+    }
+  }
+  /* ★契約ヘッダの②が「準識別子ゼロ」に戻っていないこと。
+     戻すなら comp を返すのをやめてからにする（画面は comp が無ければ図を隠す）。 */
+  {
+    const head = SQL.slice(0, SQL.indexOf('create or replace'));
+    ok(/割合/.test(head) && /やめるとき/.test(head),
+       '★契約ヘッダが「割合だけ」と「やめるとき」を書いている');
+  }
 }
 
 /* サイドナビは patch-side-nav.mjs が1か所から書く。手で足すとドリフトする。 */
@@ -260,6 +327,10 @@ const FAKE = function (payload) {
   const UID = '00000000-0000-4000-8000-00000000a001';
   const RPC = {
     pv_pay_rows: () => payload,
+    /* ★左のドーナツの既定＝自分の支給構成。本人の行しか返らない関数で、
+       ここだけ金額が出る（自分の数字なので隠す相手が居ない）。
+       payload.mine を渡さないケースでは空＝「まだ出していない」の絵になる。 */
+    my_pay_reports: () => ({ ok: true, reports: (payload && payload.mine) || [] }),
     my_referral_code: () => ({ ok: true, code: 'K7QD3XZM', invited: 0, converted: 0 }),
     pv_referral_settle: () => ({ ok: true })
   };
@@ -310,18 +381,35 @@ const POISON_VALUES = ['ZQX', '137', '40s', 'deadbeefcafe0001',
 const row = (airline, pos, fleet, usd, vf, extra) => Object.assign(
   { airline: airline, pos: pos, fleet: fleet, annual_usd: usd, verified: vf }, extra || {});
 
+/* 内訳の割合。★整数で合計はちょうど 100。**金額は1つも入らない**（それがこの形の要点）。
+     m=月々の支給 b=年1回の賞与 d=パーディアム h=住宅手当 o=その他の手当 */
+const C = (m, b, dd, h, o) => ({ m: m, b: b, d: dd, h: h, o: o });
+
 /* 本番に近い形（2026-08-23 時点は8人・全員が手入力＝verified はほぼ付かない）。
-   ★1人目にだけ毒を混ぜる。★自由入力の社名の人は airline:'other' で来る。 */
+   ★1人目にだけ毒を混ぜる。★自由入力の社名の人は airline:'other' で来る。
+   ★comp は本番の実測に寄せる。賞与20%の ANA、賞与ゼロで月給99%の JAL、
+     そして **comp が null の行を2つ**（内訳が出せない人がいても壊れないこと）。 */
 const ROWS = [
-  row('ana', 'cap', 'b787', 180000, true, POISON),
-  row('ana', 'fo', 'b787', 120000, false),
-  row('ana', 'cap', 'b777', 190000, false),
-  row('jal', 'cap', 'a350', 170000, false),
-  row('jal', 'fo', 'b737', 110000, false),
-  row('emirates', 'cap', 'a380', 250000, false),
-  row('other', 'cap', 'b737', 130000, false, { airline_other: 'Somewhere Air' }),
-  row('other', 'fo', 'a320', 90000, false)
+  row('ana', 'cap', 'b787', 180000, true, Object.assign({ comp: C(75, 20, 4, 1, 0) }, POISON)),
+  row('ana', 'fo', 'b787', 120000, false, { comp: C(96, 0, 3, 1, 0) }),
+  row('ana', 'cap', 'b777', 190000, false, { comp: null }),
+  row('jal', 'cap', 'a350', 170000, false, { comp: C(70, 22, 5, 2, 1) }),
+  row('jal', 'fo', 'b737', 110000, false, { comp: C(99, 0, 1, 0, 0) }),
+  row('emirates', 'cap', 'a380', 250000, false, { comp: C(62, 0, 12, 24, 2) }),
+  row('other', 'cap', 'b737', 130000, false,
+      { airline_other: 'Somewhere Air', comp: C(88, 8, 4, 0, 0) }),
+  row('other', 'fo', 'a320', 90000, false, { comp: null })
 ];
+
+/* 自分の支給構成（my_pay_reports()）。★ここだけ金額が出る。
+   本番と同じで、内訳まで入れている人の形（総支給1本の人は灰色が多くなる）。 */
+const MINE = [{
+  period_year: 2026, period_month: 7, currency: 'JPY', fx_to_jpy: 1,
+  base_pay: 620000, command_pay: 90000, flight_variable_pay: 110000,
+  other_allowance: 140000, per_diem: 42000,
+  housing_type: 'allowance', housing_amount: 20000, transport: 18000,
+  bonus_annual: 2200000, annual_total_usd: 132000
+}];
 
 /* ページ送りの検査用。★10件で1ページなので 23人 = 3ページ（10 / 10 / 3）。
    会社は上の4つのまま（絞り込みの選択肢の検査とぶつからないように）。 */
@@ -329,12 +417,13 @@ const MANY_ROWS = [];
 for (let i = 0; i < 23; i++) {
   const a = ['ana', 'jal', 'emirates', 'other'][i % 4];
   MANY_ROWS.push(row(a, i % 2 ? 'fo' : 'cap', i % 3 ? 'b787' : 'a320',
-                     90000 + i * 5000, false));
+                     90000 + i * 5000, false,
+                     { comp: i % 5 === 4 ? null : C(70 + i % 20, 20 - i % 20, 6, 3, 1) }));
 }
 
 const LOCKED = { ok: true, state: 'locked', rows: [] };
 const EMPTY = { ok: true, state: 'open', rows: [] };
-const OPEN = { ok: true, state: 'open', rows: ROWS };
+const OPEN = { ok: true, state: 'open', rows: ROWS, mine: MINE };
 
 /* 表示された金額の文字から数字だけを取り出す。
    単位（万 / K / M）は 10 のべき乗なので、有効数字の桁数を変えない。
@@ -441,6 +530,27 @@ const SNAP = () => {
       return w ? w.hidden : null;
     })(),
     airOpts: opts('ap-air'), posOpts: opts('ap-pos'), fleetOpts: opts('ap-fleet'),
+    /* ── 図（2026-08-24）──────────────────────────────
+       ★他人の内訳は「割合だけ」。.amt（金額）が1つでも出たら赤。 */
+    vizCards: q('.ap-vcard').length,
+    vizText: txt(document.querySelector('.ap-viz')),
+    vizTitle: txt(document.querySelector('.ap-vcard .pt-h')).trim(),
+    vizLegend: q('.ap-vcard .pt-leg').map((e) => e.innerText.replace(/\s+/g, ' ').trim()).join(' / '),
+    vizAmts: q('.ap-vcard .pt-leg .amt').map((e) => e.textContent.trim()),
+    vizPcts: q('.ap-vcard .pt-leg .pct').map((e) => e.textContent.trim()),
+    vizCenter: txt(document.querySelector('.ap-vcard .pt-donut-c b')).trim(),
+    vizEmpty: q('.ap-vcard .pt-empty').length,
+    vizBack: q('[data-ap-unsel]').length,
+    /* ★分布の棒。人数の数字は書かない（高さで目分量に読めるところまで）。 */
+    bars: q('.ap-bar').length,
+    plotText: txt(document.querySelector('.ap-plot')),
+    you: q('.ap-you').length,
+    axText: q('.ap-ax').map((e) => e.innerText).join(' '),
+    /* 選んだ行。★aria-selected は grid の中でしか使えないので aria-current。 */
+    sel: q('#ap-rows tbody tr[aria-current="true"]').length,
+    selIdx: q('#ap-rows tbody tr[aria-current="true"]')
+      .map((e) => e.getAttribute('data-ap-row')).join(','),
+    rowIdx: q('#ap-rows tbody tr').map((e) => e.getAttribute('data-ap-row')).join(','),
     calls: (window.__rpc || []).map((r) => r.name),
     withArgs: (window.__rpc || []).filter((r) => r.hasArgs).map((r) => r.name),
     tblTexts: q('table', rows).map((t) => t.innerText)
@@ -455,10 +565,14 @@ function gone(v, tag) {
   ok(v.panels === 0, `${tag}: ★右の「選んだ区分」パネルが無い`, String(v.panels));
   ok(v.pvr === 0 && v.refSlot === 0, `${tag}: ★招待カードがこの画面に出ない`,
      `${v.pvr}/${v.refSlot}`);
-  /* ★見出しは1つ。節が1つしか無いので、h1 とほぼ同じ h2 を並べない。
-     札（本人記録）はその1つの見出しの行に付く。 */
-  ok(v.h2 === 0 && v.orange === 1, `${tag}: ★見出しは1つ・「本人記録」の札も1つ`,
-     `h2=${v.h2} / badge=${v.orange} / ${v.h1}`);
+  /* ★表の節は1つ。h1 とほぼ同じ h2 を並べない。
+     札（本人記録）はその1つの見出しの行に付く。
+     ★2026-08-24：h2 は「図のカード」のぶんだけ増える（支給の内訳／年収の分布）。
+       だから 0 固定ではなく **図の枚数と一致すること** を見る。
+       表の節に h2 が生えると、この式がずれて赤くなる。 */
+  ok(v.h2 === v.vizCards && v.orange === 1,
+     `${tag}: ★見出しは1つ・h2 は図の枚数と同じ・「本人記録」の札も1つ`,
+     `h2=${v.h2} / viz=${v.vizCards} / badge=${v.orange} / ${v.h1}`);
 }
 
 /* ★文言の約束。外した3つが本文に残っていると、そこだけ嘘になる。 */
@@ -806,6 +920,153 @@ for (const lang of ['ja', 'en']) {
   ok(jump.after > 0, '★絞り込んだ瞬間に1ページ目へ戻る（空に落ちない）',
      JSON.stringify(jump));
 
+  ok(errs.length === 0, 'ページのエラーが1件も出ない', errs.join(' | '));
+}
+
+// ════════════════════════════════════════════════════════════════
+// F. 図（内訳のドーナツ・年収の分布）
+// ════════════════════════════════════════════════════════════════
+/* ★2026-08-24 追加。オーナー判断「一旦やってみよう。イマイチならやめよう」。
+   増える露出は **1人ぶんの内訳の割合** だけ。金額はサーバが返さない。
+   ここで守るのは3つ：
+     ・他人の側に通貨記号が1文字も出ない（割合だけ）
+     ・自分の側にだけ金額が出る（my_pay_reports＝自分の数字なので隠す相手が居ない）
+     ・閉じ方が3つあり、どれで閉じても「自分の支給構成」に戻る（閉じ込めを作らない） */
+for (const lang of ['ja', 'en']) {
+  console.log(`\n════ ${lang} / F 図 ════`);
+  const { page, errs } = await open(lang, OPEN);
+  const v = await page.evaluate(SNAP);
+
+  ok(v.vizCards === 2, '図は2枚（支給の内訳・年収の分布）', String(v.vizCards));
+
+  /* ① 既定は自分の支給構成。★ここだけ金額が出る。 */
+  ok(v.calls.includes('my_pay_reports'),
+     '★自分の内訳は my_pay_reports() から取る（他人の表から自分を探さない）',
+     v.calls.join(','));
+  ok(v.vizAmts.length > 0, '既定＝自分の支給構成（金額が出る）', v.vizLegend.slice(0, 120));
+  ok(v.sel === 0 && v.vizBack === 0,
+     '何も選んでいないときは「自分に戻す」を出さない', `${v.sel}/${v.vizBack}`);
+
+  /* ② 分布の棒。★人数の数字を書かない。 */
+  ok(v.bars >= 3, '分布の棒が出ている', String(v.bars));
+  ok(!/\d/.test(v.plotText),
+     '★棒のところに数字が1文字も無い（人数を書かない）', JSON.stringify(v.plotText).slice(0, 120));
+  ok(!/(\d+)\s*(件|人|reports?|pilots?)/i.test(v.vizText),
+     '★図の帯の中に件数・人数を書かない', v.vizText.replace(/\n/g, ' ').slice(0, 160));
+  ok(v.axText.length > 0 && MONEY.test(v.axText),
+     '軸の両端は表示中の通貨で出す', v.axText);
+  ok(v.you === 1, '★「あなたの位置」は1本だけ', String(v.you));
+
+  /* ③ 行を押すと、その人の割合に切り替わる。 */
+  const clickRow = async (i) => {
+    await page.evaluate((n) => {
+      const tr = document.querySelector('[data-ap-row="' + n + '"]');
+      if (tr) tr.click();
+    }, i);
+    await sleep(320);
+    return page.evaluate(SNAP);
+  };
+
+  const a = await clickRow(0);
+  ok(a.sel === 1 && a.selIdx === '0', '★押した行だけが選ばれる', `${a.sel}/${a.selIdx}`);
+  ok(a.rowIdx === v.rowIdx, '★行を選んでも並びが1行も動かない（選択が並べ替えに化けない）',
+     `${v.rowIdx} → ${a.rowIdx}`);
+  ok(a.amounts.join('|') === v.amounts.join('|'), '★金額も1つも動かない');
+  ok(a.vizAmts.length === 0,
+     '★他人のドーナツに金額が1つも出ない（サーバが返していない）', a.vizAmts.join(','));
+  ok(!MONEY.test(a.vizLegend),
+     '★凡例に通貨記号も桁区切りの数字も出ない（割合だけ）', a.vizLegend.slice(0, 160));
+  ok(a.vizPcts.length === 4 && a.vizPcts.every((t) => /^\d{1,3}%$/.test(t)),
+     '★凡例は「◯%」だけ（75/20/4/1 の4つ）', a.vizPcts.join(','));
+  ok(a.vizCenter === a.amounts[0],
+     '★中央は画面に出ている年収そのもの（別の丸め方をしない）',
+     `${a.vizCenter} / ${a.amounts[0]}`);
+  ok(a.vizBack === 1, '「自分に戻す」が出る', String(a.vizBack));
+  {
+    const hit = POISON_VALUES.filter((p) => a.mainText.includes(p));
+    ok(hit.length === 0, '★行を選んでも毒（準識別子）が1つも出ない', hit.join(','));
+  }
+
+  /* ④ comp が無い行を押しても壊れない。★静かに「出せません」になる。 */
+  const b2 = await clickRow(2);
+  ok(b2.sel === 1 && b2.vizEmpty === 1 && b2.vizPcts.length === 0,
+     '★内訳が無い行は静かに「出せません」（図が壊れない）',
+     `${b2.sel}/${b2.vizEmpty}/${b2.vizPcts.length}`);
+  ok(b2.vizBack === 1, 'そこからも「自分に戻す」で戻れる', String(b2.vizBack));
+
+  /* ⑤ 閉じ方が3つ。どれでも「自分の支給構成」に戻る。 */
+  const same = await clickRow(2);
+  ok(same.sel === 0 && same.vizAmts.length > 0,
+     '★もう一度押すと自分に戻る', `${same.sel}/${same.vizAmts.length}`);
+
+  await clickRow(3);
+  await page.keyboard.press('Escape');
+  await sleep(320);
+  const esc = await page.evaluate(SNAP);
+  ok(esc.sel === 0 && esc.vizAmts.length > 0,
+     '★ESC でも自分に戻る', `${esc.sel}/${esc.vizAmts.length}`);
+
+  await clickRow(3);
+  await page.evaluate(() => document.querySelector('[data-ap-unsel]').click());
+  await sleep(320);
+  const back = await page.evaluate(SNAP);
+  ok(back.sel === 0 && back.vizAmts.length > 0,
+     '★「自分に戻す」でも戻る', `${back.sel}/${back.vizAmts.length}`);
+
+  /* ⑥ キーボードだけでも選べる（行はボタンではないので自前で拾っている）。 */
+  const kb = await page.evaluate(() => {
+    const tr = document.querySelector('[data-ap-row="1"]');
+    return { tab: tr ? tr.getAttribute('tabindex') : null };
+  });
+  ok(kb.tab === '0', '行に tabindex が付いている', String(kb.tab));
+  await page.evaluate(() => document.querySelector('[data-ap-row="1"]').focus());
+  await page.keyboard.press('Enter');
+  await sleep(320);
+  const ke = await page.evaluate(SNAP);
+  ok(ke.sel === 1 && ke.selIdx === '1', '★Enter でも選べる', `${ke.sel}/${ke.selIdx}`);
+
+  /* ⑦ 通貨を切り替えても引き直さない（図も手元の値で描き直すだけ）。 */
+  const n0 = ke.calls.length;
+  await page.evaluate(() => window.PVCurrency.set('USD'));
+  await sleep(700);
+  const cu = await page.evaluate(SNAP);
+  ok(cu.calls.length === n0, '★通貨を切り替えても RPC が1本も増えない',
+     `${n0} → ${cu.calls.length}`);
+  ok(cu.vizCenter === cu.amounts[1] && /\$/.test(cu.vizCenter),
+     '★図の中央もドル表記に描き直る（表の金額と同じ文字）',
+     `${cu.vizCenter} / ${cu.amounts[1]}`);
+  ok(/\$/.test(cu.axText), '軸もドル表記に描き直る', cu.axText);
+  ok(cu.vizAmts.length === 0, '★切り替えても他人の側に金額は出ない', cu.vizAmts.join(','));
+
+  /* ⑧ 絞り込みを触ったら選択は外れる（消えた行が選ばれたままにならない）。 */
+  const fl = await page.evaluate(() => {
+    const s2 = document.getElementById('ap-air');
+    s2.value = 'jal';
+    s2.dispatchEvent(new Event('change', { bubbles: true }));
+    return true;
+  });
+  await sleep(320);
+  const af = await page.evaluate(SNAP);
+  ok(fl && af.sel === 0 && af.vizAmts.length > 0,
+     '★絞り込みを触ると選択が外れて自分に戻る', `${af.sel}/${af.vizAmts.length}`);
+
+  ok(errs.length === 0, 'ページのエラーが1件も出ない', errs.join(' | '));
+}
+
+// ════════════════════════════════════════════════════════════════
+// G. まだ給与を出していない人（自分の内訳が無い）
+// ════════════════════════════════════════════════════════════════
+/* ★鍵はあるが my_pay_reports が空、という形はありうる（預かりから来た人など）。
+   ここで図が壊れると、いちばん最初に来る人の画面だけ真っ白になる。 */
+{
+  const { page, errs } = await open('ja', { ok: true, state: 'open', rows: ROWS, mine: [] });
+  const v = await page.evaluate(SNAP);
+  ok(v.vizCards === 2, '自分の内訳が無くても図は2枚', String(v.vizCards));
+  ok(v.vizEmpty === 1 && v.vizAmts.length === 0,
+     '★静かに「まだ出せません」になる（金額を捏造しない）',
+     `${v.vizEmpty}/${v.vizAmts.length}`);
+  ok(v.you === 0, '★自分の年収が無いので「あなたの位置」も出さない', String(v.you));
+  ok(v.bars >= 3, '分布の棒はそれでも出る', String(v.bars));
   ok(errs.length === 0, 'ページのエラーが1件も出ない', errs.join(' | '));
 }
 

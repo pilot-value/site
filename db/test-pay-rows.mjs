@@ -141,10 +141,10 @@ const pv2 = (v) => Number(v.toPrecision(2));
 
 // 会社コードは語彙から取る（このテストのために特定の社名を覚えない）
 const AIR = (await rows(
-  `select code from pv_airlines where code <> 'other' and active order by code limit 13`
+  `select code from pv_airlines where code <> 'other' and active order by code limit 14`
 )).map(r => r.code);
 const [A_ONE, A_M12, A_MIX, A_OLD, A_ORD, A_VF, A_OUT, A_FOTHER,
-       A_BAND, A_PEND, A_CLAIMED, A_NULLIP, A_CROSS] = AIR;
+       A_BAND, A_PEND, A_CLAIMED, A_NULLIP, A_CROSS, A_COMP] = AIR;
 
 // ════════════════════════════════════════════════════════════
 console.log('\n▼ 1. 鍵（ログインと access_until）');
@@ -260,6 +260,36 @@ await pend(A_NULLIP, { fleet: 'b787', month: 3, gross: 15000, iph: null });
                    where airline = $1 and payload->>'currency' = 'ZZZ'`, [A_NULLIP]);
 }
 
+/* (l) 支給の内訳（割合）の材料。6人ぶん、機材で見分けられるようにしてある。
+   ★手計算は下の「▼ 7-b」に書いてある。ここは形を作るだけ。 */
+{
+  const put = async (fleet, p) => {
+    const u = ++seat; await asUser(u);
+    for (const m of [].concat(p)) 
+      await submit({ ...BASE, airline: A_COMP, position: 'cap', fleet,
+                     period_year: YEAR, ...m });
+  };
+  // ① 総支給1本＋パーディアム＋住宅手当＋年1回の賞与（本番でいちばん多い形）
+  await put('b777', { period_month: 1, gross_monthly: 9000, per_diem: 400,
+                      housing_type: 'allowance', housing_amount: 70, bonus_annual: 26000 });
+  // ② 内訳を全部入れた形
+  await put('b787', { period_month: 1, base_pay: 9000, per_diem: 1200,
+                      housing_type: 'allowance', housing_amount: 2500,
+                      transport: 300, command_pay: 800, other_allowance: 200,
+                      bonus_annual: 20000, profit_share_annual: 5000 });
+  // ③ 社宅が現物支給（住宅は現金ではないので割合に入らない）
+  await put('a320', { period_month: 1, base_pay: 9000,
+                      housing_type: 'provided', housing_amount: 2500 });
+  // ④ 手当が総支給を超えている（入力違い）→ 内訳を出さない
+  await put('a330', { period_month: 1, gross_monthly: 1000, per_diem: 2000 });
+  // ⑤ 同じ人の2か月。割合が月ごとに違う → 平均される
+  await put('a350', [{ period_month: 1, gross_monthly: 10000 },
+                     { period_month: 2, gross_monthly: 10000, bonus_annual: 120000 }]);
+  // ⑥ 2か月のうち1か月が入力違い → その人の内訳は丸ごと出さない
+  await put('b737', [{ period_month: 3, gross_monthly: 1000, per_diem: 2000 },
+                     { period_month: 4, gross_monthly: 10000 }]);
+}
+
 await backdateAirline(A_OLD, 800);        // ★この会社だけ2年より前にする
 await asViewer();
 r = await payRows();
@@ -347,9 +377,9 @@ console.log('\n▼ 6. ★並びに時間が入っていない');
 // ════════════════════════════════════════════════════════════
 console.log('\n▼ 7. ★返り値に何が入っているか');
 // ════════════════════════════════════════════════════════════
-const ALLOWED = ['airline', 'pos', 'fleet', 'annual_usd', 'verified'];
+const ALLOWED = ['airline', 'pos', 'fleet', 'annual_usd', 'verified', 'comp'];
 const extra = [...new Set(R.flatMap(x => Object.keys(x)))].filter(k => !ALLOWED.includes(k));
-ok(extra.length === 0, '返す項目は5つだけ', JSON.stringify(extra));
+ok(extra.length === 0, '返す項目は6つだけ', JSON.stringify(extra));
 
 const raw = (await one(`select pv_pay_rows()::text t`)).t;
 const BANNED = ['proof_hash', 'base_iata', 'seniority', 'age_bucket', 'period_month',
@@ -371,6 +401,103 @@ ok(R.every(x => typeof x.verified === 'boolean'), '検証は true/false の1つ�
   const vf = only(R, x => x.airline === A_VF);
   ok(vf.length === 2 && vf.filter(x => x.verified).length === 1,
      '検証済みの人だけ verified が true', JSON.stringify(vf.map(x => x.verified)));
+}
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 7-b. ★支給の内訳（割合だけ。金額は返さない）');
+// ════════════════════════════════════════════════════════════
+/* 2026-08-24 に足した。オーナーの指示は「行を選ぶとその人の内訳が円グラフで見える」。
+   内訳の**金額**を返すと有効数字2桁の丸めをすり抜けて実額の個票になるので、
+   返すのは割合だけにしてある（db/pay-rows.sql 冒頭の②）。
+
+   ★ここが落ちたら画面を作ってはいけない本命は3つ：
+     ・comp に金額が混ざっていないこと（値はすべて 0〜100 の整数）
+     ・合計がちょうど 100 になること（99 や 101 だと円グラフに隙間が出る）
+     ・足し算が pv_annual_total と同じであること（下の手計算） */
+{
+  const cm = (fleet) => only(R, x => x.airline === A_COMP && x.fleet === fleet)[0]?.comp;
+  const KEYS = ['m', 'b', 'd', 'h', 'o'];
+  const eq = (c, e) => c !== null && c !== undefined
+    && KEYS.every(k => c[k] === e[k]);
+
+  ok(R.every(x => 'comp' in x), 'すべての行に内訳の欄がある（出せない人は null）');
+
+  const comps = R.map(x => x.comp).filter(c => c !== null && c !== undefined);
+  ok(comps.length > 0, '　内訳が出ている行が実際にある', String(comps.length));
+  ok(comps.every(c => Object.keys(c).length === 5
+                   && KEYS.every(k => Number.isInteger(c[k]))),
+     '★内訳は m/b/d/h/o の5つだけ。値は整数（金額が混ざっていない）',
+     JSON.stringify(comps.find(c => Object.keys(c).length !== 5
+                                 || !KEYS.every(k => Number.isInteger(c[k])))));
+  ok(comps.every(c => KEYS.every(k => c[k] >= 0 && c[k] <= 100)),
+     '　どの値も 0〜100 の中（額がそのまま入っていない）');
+  ok(comps.every(c => KEYS.reduce((s, k) => s + c[k], 0) === 100),
+     '★合計がちょうど 100（丸めの端数を最大の成分で吸収している）',
+     JSON.stringify(comps.map(c => KEYS.reduce((s, k) => s + c[k], 0)).filter(v => v !== 100)));
+
+  /* ① 総支給9000＋パーディアム400＋住宅手当70＋年1回の賞与26000
+        年収 = 12×9000 + 26000 = 134,000（pv_annual_total と同じ）
+        m = 12×(9000−400−70) = 102,360 → 76.4% → 76
+        b = 26,000 → 19.4% → 19 ／ d = 4,800 → 3.6% → 4 ／ h = 840 → 0.6% → 1 */
+  ok(eq(cm('b777'), { m: 76, b: 19, d: 4, h: 1, o: 0 }),
+     '① 総支給＋パーディアム＋住宅手当＋賞与（手計算と一致）', JSON.stringify(cm('b777')));
+
+  /* ② 内訳を全部入れた形。年収 = 12×14,000 + 25,000 = 193,000
+        m = 108,000 → 56 ／ b = 25,000 → 13 ／ d = 14,400 → 7
+        h = 30,000 → 16 ／ o = 12×1,300 = 15,600 → 8 */
+  ok(eq(cm('b787'), { m: 56, b: 13, d: 7, h: 16, o: 8 }),
+     '② 内訳を全部入れた形（手計算と一致）', JSON.stringify(cm('b787')));
+
+  /* ③ 社宅が現物支給。pv_annual_total が足さないので、割合にも入らない */
+  ok(eq(cm('a320'), { m: 100, b: 0, d: 0, h: 0, o: 0 }),
+     '★③ 現物支給の社宅は住宅手当に入らない（金額に入れていないので割合にも入れない）',
+     JSON.stringify(cm('a320')));
+
+  /* ④ パーディアム2000 が総支給1000 を超えている＝入力違い。
+        嘘の円を描くより描かない方がよい。 */
+  ok(cm('a330') === null,
+     '★④ 手当が総支給を超えている行は内訳を出さない（null）', JSON.stringify(cm('a330')));
+
+  /* ⑤ 同じ人の2か月。1月は 100/0、2月は 50/50 → 平均して 75/25 */
+  ok(eq(cm('a350'), { m: 75, b: 25, d: 0, h: 0, o: 0 }),
+     '★⑤ 同じ人の複数月は割合の平均（金額を足していない）', JSON.stringify(cm('a350')));
+
+  /* ⑥ 2か月のうち1か月が入力違い → 半分だけの円を描かない */
+  ok(cm('b737') === null,
+     '★⑥ 1か月でも出せない月がある人は、内訳を丸ごと出さない', JSON.stringify(cm('b737')));
+
+  /* 端数の吸収が「たまたま」でないことを、総当たりで見る。 */
+  const badSum = await rows(`
+    select a, public.pv_pct5(a) c
+      from (select array[i::numeric, j::numeric, k::numeric, l::numeric, m::numeric] a
+              from generate_series(0, 7) i, generate_series(0, 7) j, generate_series(0, 7) k,
+                   generate_series(0, 7) l, generate_series(0, 7) m
+             where i + j + k + l + m > 0) t
+     where (public.pv_pct5(a)->>'m')::int + (public.pv_pct5(a)->>'b')::int
+         + (public.pv_pct5(a)->>'d')::int + (public.pv_pct5(a)->>'h')::int
+         + (public.pv_pct5(a)->>'o')::int <> 100
+     limit 5`);
+  ok(badSum.length === 0,
+     '★5本の割合を 8×8×8×8×8 通り試して、合計が 100 でないものが1つも無い',
+     JSON.stringify(badSum));
+  const negPct = await rows(`
+    select a from (select array[i::numeric, j::numeric, k::numeric, l::numeric, m::numeric] a
+              from generate_series(0, 7) i, generate_series(0, 7) j, generate_series(0, 7) k,
+                   generate_series(0, 7) l, generate_series(0, 7) m
+             where i + j + k + l + m > 0) t
+     where least((public.pv_pct5(a)->>'m')::int, (public.pv_pct5(a)->>'b')::int,
+                 (public.pv_pct5(a)->>'d')::int, (public.pv_pct5(a)->>'h')::int,
+                 (public.pv_pct5(a)->>'o')::int) < 0 limit 5`);
+  ok(negPct.length === 0, '　端数を吸収しても負の割合が出ない', JSON.stringify(negPct));
+
+  ok((await one(`select public.pv_pct5(null::numeric[]) c`)).c === null,
+     '　材料が無ければ null（画面は円グラフを出さない）');
+  ok((await one(`select public.pv_pct5(array[0,0,0,0,0]::numeric[]) c`)).c === null,
+     '　全部ゼロでも null（0で割らない）');
+
+  const rawC = (await one(`select pv_pay_rows()::text t`)).t;
+  ok(!/"(m|b|d|h|o)":\s*-?\d{4,}/.test(rawC),
+     '★返り値の内訳に4桁以上の数字が1つも無い（＝金額が漏れていない）');
 }
 
 // ════════════════════════════════════════════════════════════
@@ -482,6 +609,20 @@ console.log('\n▼ 12. ★預かりの年換算が、本棚に入れたときと
     const same = (stored === null && derived === null)
               || (stored !== null && derived !== null && Number(stored) === Number(derived));
     ok(same, `${c.label}`, `本棚 ${stored} ≠ 預かり ${derived}`);
+
+    /* ★内訳も同じ。pv_pending_comp は payload の読み方をもう一度書いている
+       （額の pv_pending_usd とは別の関数）。片方だけ直されると静かにズレるので、
+       同じ1件を本棚の列から作った割合と突き合わせる。 */
+    const cmp = await one(`
+      select public.pv_pending_comp($1::jsonb)::text a,
+             (select public.pv_pay_comp(gross_monthly, base_pay, hourly_rate,
+                       guaranteed_hours, block_hours, per_diem, housing_type,
+                       housing_amount, transport, command_pay, other_allowance,
+                       bonus_annual, profit_share_annual, bonus_month)::text
+                from pay_reports where airline = $2 and period_month = $3) b`,
+      [JSON.stringify(payload), A_CROSS, c.m]);
+    ok(cmp.a === cmp.b, `　${c.label}（内訳の割合も一致）`,
+       `預かり ${cmp.a} ≠ 本棚 ${cmp.b}`);
   }
   const noFx = (await one(`select pv_pending_usd($1::jsonb) v`, [JSON.stringify(
     { ...BASE, currency: 'ZZZ', airline: A_CROSS, position: 'cap', fleet: 'b777',
@@ -496,7 +637,7 @@ console.log('\n▼ 13. 自己点検 SQL（ファイル末尾のものをその�
   const src = read('db/pay-rows.sql');
   const q = src.slice(src.lastIndexOf('with f as ('));
   const res = await rows(q);
-  ok(res.length === 19, `自己点検が19行ぜんぶ出る（= ${res.length}行）`);
+  ok(res.length === 24, `自己点検が24行ぜんぶ出る（= ${res.length}行）`);
   for (const row of res) {
     ok(row['結果'] === '✅', `${row['#']}. ${row['見るところ']}`);
   }
