@@ -302,13 +302,35 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
      '★anon には1つも実行させない（pay_benchmarks と違って粒度が人なので開けない）');
   ok(/access_until/.test(FN), '鍵（access_until）を見ている');
   ok(/pv_sig2\(/.test(FN), '有効数字2桁に丸めている');
-  ok(/order by md5\(/.test(FN),
-     '★並びは md5(proof_hash) 順（投稿順に並べると「誰が最近出したか」が漏れる）');
-  ok(!/order by[^;]*created_at/.test(FN), '★投稿順に並べていない');
+  /* ★2026-08-25、オーナー指示で「出した順（古いほうが上）」にした。
+     前は md5(人のキー) 順で、並びが中身と何も関係していないのが取り柄だった。
+     ゆるめたのは並びだけ。**時刻そのものを返さないこと**と
+     **画面から並べ替えられないこと**は下で見張り続ける。 */
+  ok(/order by p\.last_at, md5\(p\.pkey\)/.test(FN),
+     '★並びは出した順（同着でも揺れないよう md5 を第2キーに残している）');
+  ok(!/'last_at'/.test(FN),
+     '★並べるのに使う時刻は行に入れていない（入れると秒単位の提出時刻が漏れる）');
   ok(!/>=\s*5|having\s+count/.test(FN), '★人数の門が残っていない（全員出す）');
   ok(!/interval\s*'30 days'|30 day/.test(FN), '★30日の遅延が残っていない');
   ok(!/percentile_cont\(0\.[19]\)/.test(FN), '★p10-p90 のクリップが残っていない');
-  ok(!/airline_other/.test(FN), '★自由入力の社名の列は読んでも返してもいない');
+  /* ★2026-08-25、オーナー指示「ちゃんと航空会社名書いて」で、打ち込まれた社名を
+     語彙に当ててから使うようにした（pv_airline_resolve）。出口は pv_airlines の
+     コードか 'other' の2つだけ＝打ち込まれた文字列そのものは1文字も通らない。
+     resolve の括弧の中を消してから、素の airline_other が残らないことを見る。 */
+  ok(/pv_airline_resolve\(/.test(FN),
+     '★打ち込まれた社名は語彙に当ててから使っている');
+  ok(!/airline_other/.test(FN.replace(/pv_airline_resolve\([^)]*\)/g, '')),
+     '★語彙に当てずに自由入力の社名を読んでいる場所が無い');
+  ok(/pv_airline_resolve\(v\.airline\)/.test(FN),
+     '★口コミの社名の欄も無条件に語彙へ当てている（あそこはコードとは限らない）');
+  {
+    const i = SQL.indexOf('create or replace function public.pv_airline_resolve');
+    const RES = i > -1 ? SQL.slice(i, SQL.indexOf('$$;', i)) : '';
+    ok(!!RES && /pv_airlines/.test(RES) && !/like|similar to/i.test(RES),
+       '★寄せ先は語彙だけ。前方一致・部分一致で当てていない（社名を取り違えない）');
+    ok(/revoke all on function public\.pv_airline_resolve\(text\) from public, anon, authenticated/
+       .test(SQL), '★社名を寄せる関数は誰にも開いていない');
+  }
   ok(/group by pkey, airline, pos/.test(FN), '★1行＝1人にまとめている');
   ok(!/\bfleet\b/.test(FN), '★機材（fleet）は読んでも返してもいない');
   /* 集計側（pay_benchmarks）の k≧5 は今も生きている。こちらを一緒に外さない。 */
@@ -321,8 +343,11 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
   ok(/claimed_at is null/.test(FN),
      '★本棚へ移した預かりは読まない（同じ人が二重に出ない）');
   ok(/pv_pending_usd\(/.test(FN), '預かりの年換算は pv_pending_usd() が出す');
-  ok(!/payload->>'airline_other'/.test(FN),
-     '★預かりの payload からも自由入力の社名を読まない');
+  /* ★2026-08-25。前はここで「payload の自由入力社名を読まない」を見ていたが、
+     オーナー指示で読むようになった。読んだうえで必ず語彙に当てる（出口はコードか 'other'）。
+     素で読んでいないことは上の「語彙に当てずに…」がまとめて見ている。 */
+  ok(/pv_airline_resolve\(q\.payload->>'airline_other'\)/.test(FN),
+     '★預かりの自由入力社名も語彙に当ててから使っている');
 
   /* ★常識の幅（⑦）。k≧5 とクリップを外したので、打ち間違いを止めるのはここだけ。 */
   ok(/usd between 10000 and 700000/.test(FN),
@@ -896,7 +921,12 @@ for (const lang of ['ja', 'en']) {
      JSON.stringify(v.rowsText).slice(0, 120));
 
   /* 自由入力の社名の人は、固定の札に置き換わる。 */
-  const othLabel = lang === 'en' ? 'Other airline' : 'その他の航空会社';
+  /* ★2026-08-25、オーナー指示で札の言い方を変えた。
+     「その他の航空会社」＝ひとまとめに片付けた言い方に読める。
+     ここに来るのは「打ち込まれた社名が語彙に当たらなかった人」だけ。 */
+  const othLabel = lang === 'en' ? 'Airline not listed' : '一覧にない航空会社';
+  ok(!/その他の航空会社|Other airline/.test(v.rowsText),
+     '★「その他の航空会社」という言い方が戻っていない', v.rowsText.slice(0, 120));
   ok(v.rowsText.includes(othLabel), `★自由入力の社名は「${othLabel}」という固定の札になる`,
      JSON.stringify(v.rowsText).slice(0, 160));
 
@@ -993,7 +1023,7 @@ for (const lang of ['ja', 'en']) {
   /* ★絞り込みは「実際に行がある区分」だけ。112社を並べない。 */
   ok(v.barHidden === false, '行があるときは絞り込みの帯が出る', String(v.barHidden));
   ok(v.airOpts.length === 5, '航空会社は「すべて」＋実在する4つだけ', v.airOpts.join(','));
-  ok(v.airOpts.some((s) => s === othLabel), '「その他の航空会社」も選べる', v.airOpts.join(','));
+  ok(v.airOpts.some((s) => s === othLabel), `「${othLabel}」も選べる`, v.airOpts.join(','));
   ok(v.posOpts.length === 3, '職位は「すべて」＋2つ', v.posOpts.join(','));
 
   /* 会社 → 職位 と絞ると、下の段は上の段に追随する。 */

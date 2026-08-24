@@ -164,12 +164,16 @@ const only = (rs, f) => rs.filter(f);
 const pv2 = (v) => Number(v.toPrecision(2));
 
 // 会社コードは語彙から取る（このテストのために特定の社名を覚えない）
-const AIR = (await rows(
-  `select code from pv_airlines where code <> 'other' and active order by code limit 21`
-)).map(r => r.code);
+const VOCAB = (await rows(
+  `select code, name_ja, name_en from pv_airlines
+    where code <> 'other' and active order by code limit 27`
+));
+const AIR = VOCAB.map(r => r.code);
 const [A_ONE, A_M12, A_MIX, A_OLD, A_ORD, A_VF, A_OUT, A_FOTHER,
        A_BAND, A_PEND, A_CLAIMED, A_NULLIP, A_CROSS, A_COMP, A_STAT,
-       A_RV_MON, A_RV_ANN, A_RV_SUM, A_RV_DUP, A_RV_NONE, A_AGE] = AIR;
+       A_RV_MON, A_RV_ANN, A_RV_SUM, A_RV_DUP, A_RV_NONE, A_AGE,
+       A_AGE2, A_EDGE, A_NM_JA, A_NM_EN, A_NM_CODE, A_RV_FREE] = AIR;
+const nameOf = (code) => VOCAB.find(r => r.code === code);
 
 // ════════════════════════════════════════════════════════════
 console.log('\n▼ 1. 鍵（ログインと access_until）');
@@ -380,26 +384,42 @@ ok((await one(`select pv_sig2(0::numeric) v`)).v === null, 'pv_sig2(0) は null'
 }
 
 // ════════════════════════════════════════════════════════════
-console.log('\n▼ 6. ★並びに時間が入っていない');
+console.log('\n▼ 6. ★並びは出した順（2026-08-25。前は md5 順だった）');
 // ════════════════════════════════════════════════════════════
+/* ★オーナー指示で md5 順をやめ、出した順（古いほうが上）にした。
+   A_ORD の6人は「投稿順に金額が増える」ように作ってあるので、
+   出した順に並んでいれば金額も昇順になる。 */
 {
-  const got  = only(R, x => x.airline === A_ORD).map(x => Number(x.annual_usd));
-  const asc  = ORD_GROSS.map(g => g * 12);        // 投稿順 ＝ 金額の昇順に作ってある
-  const desc = [...asc].reverse();
+  const got = only(R, x => x.airline === A_ORD).map(x => Number(x.annual_usd));
+  // ★丸めたあとの額で比べる。生の額で比べると、丸めのせいで
+  //   「並びが違う」といつでも言えてしまい、検査が何も見なくなる。
+  const asc = ORD_GROSS.map(g => pv2(g * 12));
   ok(got.length === 6, '並びを見る会社は6人ぶん出る', `= ${got.length}行`);
   ok(new Set(got).size === 6, '　6人の額はすべて違う（並びが読める形になっている）',
      JSON.stringify(got));
-  ok(got.join() !== asc.join(),  '★投稿の順に並んでいない',       JSON.stringify(got));
-  ok(got.join() !== desc.join(), '★投稿の逆順にも並んでいない',   JSON.stringify(got));
-  ok(got.join() !== [...got].sort((a, b) => a - b).join()
-     && got.join() !== [...got].sort((a, b) => b - a).join(),
-     '★金額の順にも並んでいない（この画面はランキングではない）', JSON.stringify(got));
+  ok(got.join() === asc.join(), '★出した順（古いほうが上）に並んでいる',
+     JSON.stringify(got));
 }
 {
-  // 2回呼んでも同じ並び（md5 は固定。呼ぶたびに変わると「並びが乱数」＝説明できない）
+  // 2回呼んでも同じ並び（同着でも md5 が第2キーで押さえる）
   const a = (await payRows()).rows.map(x => `${x.airline}/${x.pos}/${x.annual_usd}`).join('|');
   const b = (await payRows()).rows.map(x => `${x.airline}/${x.pos}/${x.annual_usd}`).join('|');
-  ok(a === b, '何度呼んでも同じ並び（md5 順で固定）');
+  ok(a === b, '何度呼んでも同じ並び（同着は md5 で固定）');
+}
+{
+  /* ★並びと右端の列が食い違わないこと。
+     出した順（古いほうが上）に並び、段はその同じ時刻から決まるので、
+     上から下へ段は必ず 4→0 の向きにしか動かない。逆流したら、
+     並べるのに使った時刻と段を出した時刻が別物になっている。 */
+  const ages = R.map(x => x.age);
+  const bad  = ages.findIndex((a, i) => i > 0 && a > ages[i - 1]);
+  ok(bad === -1, '★上から下へ段が逆流しない（並びと投稿時期が同じ時刻から出ている）',
+     bad === -1 ? '' : `${bad}行目 ${ages[bad - 1]} → ${ages[bad]}`);
+}
+{
+  // 並べるのに使う時刻は返していない（返すと秒単位の提出時刻がそのまま漏れる）
+  const t = (await one(`select pv_pay_rows()::text t`)).t;
+  ok(!t.includes('last_at'), '★並べるのに使う時刻（last_at）を行に入れていない');
 }
 
 // ════════════════════════════════════════════════════════════
@@ -875,13 +895,147 @@ await asViewer();
 }
 
 // ════════════════════════════════════════════════════════════
+console.log('\n▼ 12-e. ★段が「その人の本当の投稿日」と1つずつ合っている');
+// ════════════════════════════════════════════════════════════
+/* ★オーナー指示（2026-08-25）「投稿時期の列はちゃんと本人の投稿時期と
+   正確にあってるかも一緒に検証して」。
+   上の 12-d は「20日前は0、40日前は1」のように、境目から離れたところしか見ていない。
+   ここでは (a) 境目そのものの内と外 (b) 一覧に出ている行を1つずつ生のテーブルと
+   突き合わせる、の2つを見る。 */
+{
+  /* (a) 境目。「1ヶ月」はカレンダー基準（2月と8月で長さが違う）なので、
+     日数ではなく**同じ interval を使って** 6時間だけ内と外にずらす。
+     8人ぶんを金額で見分けられるようにしてある（丸めても重ならない額）。 */
+  const IV = [['1 month', 0, 1], ['3 months', 1, 2], ['6 months', 2, 3], ['12 months', 3, 4]];
+  const want = [];
+  let g = 10000;
+  for (const [iv, inner, outer] of IV) {
+    for (const side of ['in', 'out']) {
+      await person(A_EDGE, 'cap', [{ fleet: 'b777', month: 11, gross: g }]);
+      const off = side === 'in' ? `interval '${iv}' - interval '6 hours'`
+                                : `interval '${iv}' + interval '6 hours'`;
+      await db.query(`update pay_reports set created_at = now() - (${off})
+                       where airline = $1 and annual_total_usd = $2`, [A_EDGE, g * 12]);
+      want.push({ usd: pv2(g * 12), age: side === 'in' ? inner : outer, iv, side });
+      g += 1000;
+    }
+  }
+  await asViewer();
+  const got = only((await payRows()).rows, x => x.airline === A_EDGE);
+  ok(got.length === 8, '境目に置いた8人が8行として出る', `= ${got.length}行`);
+  for (const w of want) {
+    const row = got.find(x => Number(x.annual_usd) === w.usd);
+    ok(!!row && row.age === w.age,
+       `　★${w.iv} の${w.side === 'in' ? '内側' : '外側'}6時間 → 段 ${w.age}`,
+       row ? `= ${row.age}` : '行が見つからない');
+  }
+}
+{
+  /* (b) 一覧に出ている行を1つずつ、生の pay_reports から数え直したものと突き合わせる。
+     関数の中の CTE を通らずに、テーブルから直接「人ごとのいちばん新しい提出」を出す。
+     ・group by を間違えている（別の人の日付を貼っている）
+     ・max ではなく min を見ている（初回の日付が出ている）
+     ・口コミや預かりと取り違えている
+     このどれが起きても、ここで金額と段の組が食い違う。
+     ★預かり（人の単位が違う）と、打ち込まれた社名の行（12-e(a) の担当）は外す。 */
+  const SKIP = [A_PEND, A_CLAIMED, A_NULLIP, 'other',
+                A_RV_MON, A_RV_ANN, A_RV_SUM, A_RV_NONE, A_RV_FREE, A_AGE];
+  const exp = await rows(`
+    select r.airline,
+           r."position" as pos,
+           public.pv_sig2((percentile_cont(0.5) within group
+             (order by r.annual_total_usd))::numeric) as usd,
+           case when max(r.created_at) >= now() - interval '1 month'   then 0
+                when max(r.created_at) >= now() - interval '3 months'  then 1
+                when max(r.created_at) >= now() - interval '6 months'  then 2
+                when max(r.created_at) >= now() - interval '12 months' then 3
+                else 4 end as age
+      from pay_reports r
+     where r.annual_total_usd is not null
+       and r.annual_total_usd between 10000 and 700000
+       and r.created_at >= now() - interval '24 months'
+       and r.airline <> 'other'
+     group by r.proof_hash, r.airline, r."position"
+  `);
+  const key = (x) => `${x.airline}/${x.pos}/${Number(x.usd ?? x.annual_usd)}/${x.age}`;
+  const mine = only((await payRows()).rows, x => !SKIP.includes(x.airline));
+  const A = exp.map(key).sort();
+  const B = mine.map(key).sort();
+  ok(A.length === B.length && A.join('|') === B.join('|'),
+     `★${B.length}行すべて、段が生のテーブルの「その人の最新の提出」と一致する`,
+     A.join('|') === B.join('|') ? ''
+       : `違い: ${A.filter(x => !B.includes(x)).slice(0, 3).join(' , ')}`);
+}
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 12-f. ★打ち込まれた社名を「知っている航空会社」に寄せる');
+// ════════════════════════════════════════════════════════════
+/* ★オーナー指示（2026-08-25）「REAL PAY の『その他の航空会社』ってなに？
+   失礼じゃない？ちゃんと航空会社名書いて」。
+   打ち込まれた文字列は外に出せない（準識別子になる）ので、語彙に当ててから出す。
+   当たれば本当の社名、当たらなければ 'other'。 */
+{
+  const typeIn = async (air, typed) => {
+    const u = ++seat; await asUser(u);
+    await submit({ ...BASE, airline: 'other', airline_other: typed, position: 'cap',
+                   fleet: 'b737', period_year: YEAR, period_month: 12, gross_monthly: 15000 });
+    return u;
+  };
+  await typeIn(A_NM_JA,   nameOf(A_NM_JA).name_ja);              // 和名そのまま
+  await typeIn(A_NM_EN,   nameOf(A_NM_EN).name_en.toUpperCase()); // 英名・大文字
+  await typeIn(A_NM_CODE, ' ' + A_NM_CODE.replace(/-/g, ' ') + ' '); // コード・空白とハイフンのゆれ
+
+  await asViewer();
+  const RR = (await payRows()).rows;
+  for (const [air, how] of [[A_NM_JA, '和名'], [A_NM_EN, '英名（大文字）'],
+                            [A_NM_CODE, 'コード（空白・ハイフンのゆれ）']]) {
+    ok(only(RR, x => x.airline === air).length === 1,
+       `★「その他」に${how}を打った人が、その航空会社の行として出る（${air}）`,
+       `= ${only(RR, x => x.airline === air).length}行`);
+  }
+  ok(only(RR, x => x.airline === 'other').length === 2,
+     "★語彙に無い社名を打った人は 'other' のまま（画面が「一覧にない航空会社」と書く）",
+     `= ${only(RR, x => x.airline === 'other').length}行`);
+  const raw2 = (await one(`select pv_pay_rows()::text t`)).t;
+  ok(!raw2.includes(OTHER_NAME) && !raw2.toLowerCase().includes('somewhere'),
+     '★寄せたあとも、打ち込まれた文字列そのものは1文字も返っていない');
+  ok(!(await one(`select has_function_privilege('anon','public.pv_airline_resolve(text)','execute') b`)).b
+     && !(await one(`select has_function_privilege('authenticated','public.pv_airline_resolve(text)','execute') b`)).b,
+     '★社名を寄せる関数は誰にも開いていない（総当たりで語彙を舐められない）');
+  ok((await one(`select public.pv_airline_resolve($1) c`, ['ぜんぜん違う会社'])).c === 'other'
+     && (await one(`select public.pv_airline_resolve($1) c`, [''])).c === 'other'
+     && (await one(`select public.pv_airline_resolve(null) c`)).c === 'other',
+     "★当たらない・空・null はすべて 'other'（前方一致や部分一致で当てない）");
+}
+{
+  /* 口コミ側は社名の欄そのものが自由入力になりうる（submit-review.html の
+     effectiveAirline）。素通しすると打ち込まれた文字列が画面に出る。 */
+  await review(A_RV_FREE, 'captain', { ann: 1500 });
+  await db.query(`insert into profiles(id,email) values($1,$2) on conflict do nothing`,
+    [uid(3900), 'free@example.com']);
+  await db.query(
+    `insert into reviews_v2(proof_hash, airline, "position", annual_salary)
+     values($1, $2, 'captain', 1600)`,
+    [createHash('sha256').update(uid(3900) + SALT[1] + 'ぼくの会社' + SALT[2]).digest('hex'),
+     'ぼくの会社']);
+  await db.exec(read('db/pay-rows.sql'));
+  await asViewer();
+  const RF = (await payRows()).rows;
+  ok(only(RF, x => x.airline === A_RV_FREE).length === 1,
+     '★口コミの社名がコードのときは、そのまま その航空会社の行になる');
+  const t = (await one(`select pv_pay_rows()::text t`)).t;
+  ok(!t.includes('ぼくの会社'),
+     '★口コミの社名の欄に打ち込まれた文字列も、そのままでは1文字も返らない');
+}
+
+// ════════════════════════════════════════════════════════════
 console.log('\n▼ 13. 自己点検 SQL（ファイル末尾のものをそのまま流す）');
 // ════════════════════════════════════════════════════════════
 {
   const src = read('db/pay-rows.sql');
   const q = src.slice(src.lastIndexOf('with f as ('));
   const res = await rows(q);
-  ok(res.length === 32, `自己点検が32行ぜんぶ出る（= ${res.length}行）`);
+  ok(res.length === 35, `自己点検が35行ぜんぶ出る（= ${res.length}行）`);
   for (const row of res) {
     ok(row['結果'] === '✅', `${row['#']}. ${row['見るところ']}`);
   }

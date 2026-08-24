@@ -52,7 +52,9 @@
 --     ③ 有効数字2桁  $183,456 は $180,000 として出る。1円まで一致する個票が存在しない
 --     ④ 1行＝1人    同じ人の複数月は年換算の中央値で1行に畳む（回数から常連が割れない）
 --     ⑤ 引数ゼロ    総当たりで区分を指定して引く面が無い
---     ⑥ 並びに時間が無い md5(人のキー) 順。投稿順に並べない
+--     ⑥ 並びはサーバが決める **出した順**（古いほうが上）。画面から並べ替えられない
+--                   ★2026-08-25、ここもゆるめた。前は md5(人のキー) 順だった
+--                     （下の「★並びについて」）
 --     ⑦ 常識の幅    年 $10,000 未満／$700,000 超は出さない（下の「⑦とは何か」）
 --
 --   ③を外すと個票そのものになる。④を外すと出した回数が漏れる。
@@ -78,6 +80,18 @@
 --     会員数そのものではない（出していない会員は1も足されない）。
 --     契約①〜⑦は**1つも外していない**。
 --
+-- ★打ち込まれた社名について。2026-08-25 オーナー指示
+--   「REAL PAY の『その他の航空会社』ってなに？失礼じゃない？ちゃんと航空会社名書いて」。
+--   航空会社の欄で「その他」を選んだ人の行は、それまで一律「その他の航空会社」と出ていた。
+--   打ち込まれた文字列を**そのまま出すことはできない**（②。社名の欄に
+--   「ANA 767 関空ベース 2019入社」のように社名以外を書く人が居る）。
+--   そこで pv_airline_resolve（1-b2）で**語彙に当てて**から出す。
+--     当たる  … 本当の社名が出る（例：'スカイマーク' と打った行は skymark として出る）
+--     当たらない … 'other' に落ちる。画面は「一覧にない航空会社」と書く
+--   出口は pv_airlines.code か 'other' の2つだけ。打ち込まれた文字列は1文字も通らない。
+--   ★口コミ側の社名の欄は**コードとは限らない**（「その他」の行には打ち込まれた
+--     文字列がそのまま入っている）。だから口コミだけは無条件に通す。
+--
 -- ★投稿の時期について。2026-08-24 オーナー判断で**粗い段だけ出すことにした**。
 --   一覧の右端に「1ヶ月以内／3ヶ月以内／6ヶ月以内／1年以内／それより前」の5段が出る。
 --   その人の**いちばん新しい提出**から決める。
@@ -88,10 +102,22 @@
 --     理由：この一覧は古い数字と新しい数字が同じ顔で並ぶ。読む人が
 --     「これは今の相場か」を判断できないと、出してもらった数字の値打ちが落ちる。
 --
---   ★契約⑥（並びに時間が無い）は**外していない**。
---     並びは今も md5(人のキー) 順で、段で並べ替える口も、段で絞る口も作らない。
---     段で並べ替えられると、それは実質「投稿順の並び」になる（＝誰が最近出したか）。
---     5段しか無いので、同じ段の中の順序は今までどおり md5 のまま何も語らない。
+-- ★並びについて。2026-08-25 オーナー指示「あと一旦出した順にしてもらっていいよ」。
+--   並びを **出した順（古いほうが上）** にした。前は md5(人のキー) 順だった。
+--
+--   ★これは契約⑥を外している。正直に書いておく。
+--     前の md5 順は、並びが中身と何も関係していないことが取り柄だった。
+--     出した順にすると、**同じ段の中でもどちらが先に出したかが読める**。
+--     すぐ上で入れた5段（age）は「だいたいいつごろか」までしか言わないが、
+--     並びはそれより細かい。上から下へ時間が流れている。
+--   ★それでも次の3つは守っている。
+--     ・**時刻そのものは1つも返さない。** 並べるのに使うだけで、行には入らない
+--       （自己点検 12・26 が見ている）。
+--     ・**画面から並べ替える口を作らない。** 並びはサーバが1つに決める。
+--       「新しい順」に切り替えられると、いつでも最新の1人を先頭に呼び出せてしまう。
+--     ・段で絞る口も作らない。
+--   ★「一旦」と言われている。戻すときは order by を md5(p.pkey) に戻すだけ
+--     （新しい順にするなら last_at に desc を付けるだけ）。
 --
 -- ★口コミに書かれた給与も一覧に混ぜる（2026-08-24 オーナー判断）
 --   給与明細の仕組みができる前、口コミフォームが年収も聞いていた時期がある。
@@ -265,6 +291,82 @@ revoke all on function public.pv_pending_usd(jsonb) from public, anon, authentic
 comment on function public.pv_pending_usd(jsonb) is
   '登録前に預かった給与 payload の年換算USD。pv_annual_total を呼ぶ（定義は書き写さない）。'
   '金額の欄しか読まない。誰にも grant しない＝pv_pay_rows の中からだけ使う。';
+
+
+-- ════════════════════════════════════════════════════════════════
+-- 1-b2. pv_airline_resolve — 打ち込まれた社名を「知っている航空会社」に寄せる
+--
+-- ★2026-08-25、オーナー指示「REAL PAY の『その他の航空会社』ってなに？失礼じゃない？
+--   ちゃんと航空会社名書いて」。
+--
+-- それまでは airline='other' の行を、画面が固定の札に置き換えて出していた。
+-- 打ち込まれた文字列そのものは**外に出せない**（ファイル冒頭②）。
+--   「ANA 767 関空ベース 2019入社」のように、社名の欄に社名以外を書く人が居る。
+--   そこだけ自由文になると、他の列から全部剥がした準識別子が1つの列から戻ってくる。
+--
+-- そこで**文字列を通さず、語彙に当てる**。
+--   入口  … 人が打った文字列（pay_reports.airline_other / 口コミの airline ほか）
+--   出口  … pv_airlines.code か 'other'。**それ以外は絶対に出ない**
+-- 当たれば本当の社名が出る（画面が code から名前を引く）。当たらなければ
+-- 'other' に落ちて、画面が「一覧にない航空会社」と書く。
+--
+-- ★当て方は「表記ゆれを潰した完全一致」だけ。前方一致も部分一致もしない。
+--   間違った社名を貼るのは、書かないことより悪い（その人の勤務先を誤って公開する）。
+--   潰すのは 空白・中黒・各種ハイフン・括弧・句読点・引用符・スラッシュ・アンダースコアと大小文字。
+--   当てる先は code / 和名 / 英名 と、その括弧の外と中（'全日本空輸（ANA）' なら
+--   '全日本空輸' と 'ANA' の両方）。
+--
+-- ★複数に当たったときは code の若い順で1つに決める（同じ入力に毎回同じ答え）。
+-- ════════════════════════════════════════════════════════════════
+create or replace function public.pv_airline_norm(p text)
+returns text
+language sql
+immutable
+as $$
+  select lower(regexp_replace(coalesce(p, ''),
+                '[[:space:]　・･''".,/_()（）\[\]‐‑‒–—―−ー－-]+', '', 'g'));
+$$;
+
+revoke all on function public.pv_airline_norm(text) from public, anon, authenticated;
+
+comment on function public.pv_airline_norm(text) is
+  '社名の表記ゆれを潰す（空白・中黒・ハイフン・括弧・大小文字）。pv_airline_resolve の中だけで使う。';
+
+create or replace function public.pv_airline_resolve(p_typed text)
+returns text
+language sql
+stable
+set search_path = public, extensions
+as $$
+  select coalesce((
+    select c.code
+      from (
+        select a.code,
+               unnest(array[
+                 a.code,
+                 a.name_ja,
+                 a.name_en,
+                 regexp_replace(a.name_ja, '[（(].*$', ''),
+                 (regexp_match(a.name_ja, '[（(]([^）)]+)[）)]'))[1],
+                 regexp_replace(a.name_en, '[（(].*$', ''),
+                 (regexp_match(a.name_en, '[（(]([^）)]+)[）)]'))[1]
+               ]) as nm
+          from public.pv_airlines a
+         where a.code <> 'other'
+      ) c
+     where public.pv_airline_norm(c.nm) <> ''
+       and public.pv_airline_norm(c.nm) = public.pv_airline_norm(p_typed)
+     order by c.code
+     limit 1
+  ), 'other');
+$$;
+
+revoke all on function public.pv_airline_resolve(text) from public, anon, authenticated;
+
+comment on function public.pv_airline_resolve(text) is
+  '打ち込まれた社名を pv_airlines.code に寄せる。当たらなければ ''other''。'
+  '返すのは語彙の code か ''other'' だけ＝打ち込まれた文字列そのものは通さない。'
+  '誰にも grant しない＝pv_pay_rows の中からだけ使う。';
 
 
 
@@ -588,13 +690,17 @@ begin
   with shelf as (
     -- ── ① 本棚（会員が出したぶん）──────────────────────────
     -- ★ここで選んだ列がすべて。増やす前に必ずファイル冒頭の②を読む。
-    --   自由入力の社名の列は、ここにも下にも1度も出てこない（読まない）。
     --   ★この行に列名そのものを書かないこと。自己点検8が「読んでいる」と誤検知する。
-    --   ★最後の1列は「いつ出されたか」。数を数えるためと、粗い段（下の age）を
-    --     出すためだけに持つ。日付そのものは行として返さない・並べ替えにも
-    --     使わない（契約⑥）。自己点検 26 が見ている。
+    --   ★自由入力の社名は pv_airline_resolve を通してからしか使わない（1-b2）。
+    --     打ち込まれた文字列そのものは、ここから先へ1文字も出ない。
+    --     出るのは pv_airlines.code か 'other' だけ。自己点検7が見ている。
+    --   ★最後の1列は「いつ出されたか」。数を数えるため、粗い段（下の age）を
+    --     出すため、そして並べる（契約⑥）ために持つ。
+    --     日付そのものは行として返さない。自己点検 26 が見ている。
     select 'r:' || r.proof_hash as pkey,
-           r.airline            as airline,
+           case when r.airline = 'other'
+                then public.pv_airline_resolve(r.airline_other)
+                else r.airline end as airline,
            r."position"         as pos,
            r.annual_total_usd   as usd,
            (r.verify_level >= 1) as vf,
@@ -610,9 +716,12 @@ begin
     --   ★claimed_at is null が二重計上の唯一の歯止め。外さないこと。
     --   ★人の単位は ip_day_hash。日をまたぐと同じ人でも別の値になる（＝2行に見える）。
     --   ★読むのは airline と、金額を出すための payload だけ。
-    --     payload の中には自由入力の社名も居るが、pv_pending_usd は金額の欄しか見ない。
+    --     payload の中の自由入力の社名も、本棚と同じく pv_airline_resolve を通す。
+    --     pv_pending_usd のほうは今までどおり金額の欄しか見ない。
     select 'p:' || q.ip_day_hash,
-           q.airline,
+           case when q.airline = 'other'
+                then public.pv_airline_resolve(q.payload->>'airline_other')
+                else q.airline end,
            q.payload->>'position',
            public.pv_pending_usd(q.payload),
            false,
@@ -637,8 +746,12 @@ begin
     --     語彙に無い値の行は落とす。
     --   ★同じ人が本棚に居るなら出さない。明細のほうが確かで、両方出すと
     --     同じ人が2行になる（契約④）。
+    --   ★口コミの社名の欄は**コードとは限らない**。「その他」を選んだ人の行には
+    --     打ち込まれた文字列がそのまま入っている（submit-review.html の
+    --     effectiveAirline）。だから本棚・預かりと違い、無条件に
+    --     pv_airline_resolve を通す。当たれば本当の社名、当たらなければ 'other'。
     select l.pkey,
-           v.airline,
+           public.pv_airline_resolve(v.airline),
            case v."position" when 'captain' then 'cap'
                              when 'sfo'     then 'fo'
                              when 'tri_tre' then 'cap'
@@ -688,7 +801,11 @@ begin
                 when max(cat) >= now() - interval '3 months'  then 1
                 when max(cat) >= now() - interval '6 months'  then 2
                 when max(cat) >= now() - interval '12 months' then 3
-                else 4 end as age
+                else 4 end as age,
+           -- ★並べるためだけの時刻（契約⑥）。**行には入れない**。
+           --   段（age）と同じ max(cat) から出す。別の時刻で並べると、
+           --   並び順と右端の列が食い違って見える。
+           max(cat) as last_at
       from sane
      group by pkey, airline, pos
   ),
@@ -699,11 +816,14 @@ begin
              'annual_usd', public.pv_sig2(p.v),
              'verified',   p.verified,
              'age',        p.age
-           -- ★並びに時間を入れないこと。投稿順に並べると、並び順そのものが
-           --   「誰が最近出したか」になる（外した30日の遅延より悪い）。
-           --   md5 なので毎回同じ並びで、しかも中身とも関係が無い。
-           --   人のキーそのものは返さない（並べるためだけに使う）。
-           ) order by md5(p.pkey)), '[]'::jsonb) as j
+           -- ★2026-08-25、オーナー指示で md5 順をやめ、**出した順**にした
+           --   （古いほうが上）。理由と、これで何が読めるようになったかは
+           --   ファイル冒頭「★並びについて」。
+           --   ・並べるのに使う時刻（last_at）は**行に入れない**。
+           --     出るのは今までどおり段（age）だけ。
+           --   ・同じ時刻の人が居ても順番が揺れないよう md5 を第2キーに残す。
+           --   ・画面側に並べ替えの口は作らない（サーバが1つに決める）。
+           ) order by p.last_at, md5(p.pkey)), '[]'::jsonb) as j
       from person p
   ),
   tally as (
@@ -754,7 +874,7 @@ comment on function public.pv_pay_rows() is
 --
 -- ★1本の SELECT にしてある。Supabase の SQL Editor は複数文を流すと
 --   最後の1本の結果しか出さないので、分けて書くと上から順に消えていく。
--- 期待：32行すべて ✅。1つでも ❌ なら、そこが効いていない。
+-- 期待：35行すべて ✅。1つでも ❌ なら、そこが効いていない。
 --
 -- 特に 4・8・12・13・14・16・22・23・30・31 は「静かに壊れる」種類のもの。画面には何も
 -- 出ないまま、他人の個票に届く経路が開く（16・30 は逆に、同じ人が二重に出る）。
@@ -769,7 +889,9 @@ with f as (
                          || 'numeric,text,numeric,numeric,numeric,numeric,numeric,'
                          || 'numeric,numeric)')          as f_comp,
          to_regclass('public.pay_benchmarks')          as bench,
-         to_regclass('public.pv_review_person')        as link
+         to_regclass('public.pv_review_person')        as link,
+         to_regprocedure('public.pv_airline_resolve(text)') as f_res,
+         to_regprocedure('public.pv_airline_norm(text)')    as f_norm
 )
 select n as "#", case when ok then '✅' else '❌' end as 結果, 見るところ
 from (
@@ -796,9 +918,16 @@ from (
          case when f_rows is null then false
               else pg_get_functiondef(f_rows) like '%access_until%' end from f
   union all
-  select 7, '自由入力の社名は読んでも返してもいない（一覧・預かりの換算とも）',
+  select 7, '★打ち込まれた社名は pv_airline_resolve を通してからしか使っていない',
+         -- ★2026-08-25 に書き換えた。前は「airline_other を1文字も書いていない」を
+         --   見ていた。今は語彙に当ててから使う（出口は code か 'other' だけ）ので、
+         --   **resolve の括弧の中を消してから** airline_other が残らないかを見る。
+         --   素の airline_other が1つでも残っていれば、それは文字列がどこかへ
+         --   漏れる道が開いたということ。
          case when f_rows is null or f_pend is null then false
-              else pg_get_functiondef(f_rows) not like '%airline_other%'
+              else regexp_replace(pg_get_functiondef(f_rows),
+                     'pv_airline_resolve\([^()]*(\([^()]*\))?[^()]*\)', '', 'g')
+                   not like '%airline_other%'
                and pg_get_functiondef(f_pend) not like '%airline_other%' end from f
   union all
   select 8, '準識別子を1つも読んでいない（基地・在籍年数・年代・投稿月・国籍・契約・税・原本通貨）',
@@ -818,10 +947,14 @@ from (
               else pg_get_functiondef(f_rows) like '%group by pkey, airline, pos%'
          end from f
   union all
-  select 11, '並びに時間が入っていない（md5 順・投稿順ではない）',
+  select 11, '★並びは出した順（サーバが1つに決める。同着は md5 で固定）',
+         -- ★2026-08-25 に書き換えた。前は「md5 順であること」を見ていた。
+         --   オーナー指示で出した順にしたので、見るところを
+         --   「並べるのに使う時刻が last_at であること」＋
+         --   「同着でも順番が揺れないよう md5 が第2キーに残っていること」に変えた。
+         --   時刻そのものを返していないことは 12・26 が見ている。
          case when f_rows is null then false
-              else pg_get_functiondef(f_rows) like '%order by md5(%'
-               and pg_get_functiondef(f_rows) !~ 'order by[^;]*created_at'
+              else pg_get_functiondef(f_rows) like '%order by p.last_at, md5(p.pkey)%'
          end from f
   union all
   select 12, '返す行に個人の同定キーが入っていない',
@@ -914,9 +1047,12 @@ from (
          end from f
   union all
   select 26, '★投稿の時刻そのものは行として返していない（返すのは粗い段だけ）',
+         -- ★並べるのに使う last_at も行に入れていないこと。
+         --   入れると、5段どころか秒単位の提出時刻がそのまま外へ出る。
          case when f_rows is null then false
               else pg_get_functiondef(f_rows) not like '%''created_at''%'
                and pg_get_functiondef(f_rows) not like '%''cat''%'
+               and pg_get_functiondef(f_rows) not like '%''last_at''%'
          end from f
   union all
   -- ── 投稿の時期・口コミの合流（2026-08-24）────────────────────
@@ -927,7 +1063,7 @@ from (
                and pg_get_functiondef(f_rows) like '%interval ''12 months''%'
          end from f
   union all
-  select 28, '★時期で並べ替えていない（並びは今も md5 順のまま）',
+  select 28, '★段（age）そのもので並べ替えてはいない（並べるのは last_at）',
          case when f_rows is null then false
               -- ★[^,()]* にしてある。[^;]* だと percentile_cont の
               --   order by usd から下の as age まで届いて、常に落ちる。
@@ -952,8 +1088,30 @@ from (
                and (select c.relrowsecurity from pg_class c where c.oid = f.link)
          end from f
   union all
-  select 32, '口コミ側も自由入力の社名は読んでいない（打ち込まれた文字列は識別子）',
+  select 32, '★口コミの社名の欄も無条件に pv_airline_resolve を通している',
+         -- 口コミの airline はコードとは限らない（「その他」の行には打ち込まれた
+         -- 文字列がそのまま入っている）。素の v.airline が残っていたら、
+         -- その文字列が画面まで届く。
          case when f_rows is null then false
-              else pg_get_functiondef(f_rows) not like '%airline_other%' end from f
+              else pg_get_functiondef(f_rows) like '%pv_airline_resolve(v.airline)%'
+               and pg_get_functiondef(f_rows) !~ '\mv\.airline\M[^_)]'
+         end from f
+  union all
+  -- ── 打ち込まれた社名の寄せ（2026-08-25）──────────────────────
+  select 33, '★社名を寄せる関数がある（出口は語彙の code か other だけ）',
+         (f_res is not null and f_norm is not null) from f
+  union all
+  select 34, '★社名を寄せる関数は誰にも開いていない（pv_pay_rows の中からだけ）',
+         case when f_res is null then false
+              else not has_function_privilege('anon', f_res, 'execute')
+               and not has_function_privilege('authenticated', f_res, 'execute')
+         end from f
+  union all
+  select 35, '★寄せ先は語彙（pv_airlines）だけ。前方一致・部分一致で当てていない',
+         case when f_res is null then false
+              else pg_get_functiondef(f_res) like '%pv_airlines%'
+               and pg_get_functiondef(f_res) not like '%like%'
+               and pg_get_functiondef(f_res) not like '%similar to%'
+         end from f
 ) t
 order by n;

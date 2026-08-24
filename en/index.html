@@ -779,7 +779,10 @@
       <p class="pv-lede">Everything below is already running. Anything that isn't says so.</p>
     </div>
 
-    <div class="pv-grid pv-grid-4">
+    <!-- ★2026-08-25、オーナー指示で「5人未満は公開しない」の札を外した。
+         REAL PAY は1行＝1人で、5人そろっていなくても出る。約束として書けない。
+         （集計の中央値パネルの k≧5 は今も生きている＝下の pv-note はそのまま） -->
+    <div class="pv-grid pv-grid-3">
       <div class="pv-card">
         <div class="pv-tile pv-tile--green">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 20v-1.6a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4V20"/><circle cx="8.5" cy="7" r="3.4"/><path d="M17 8.5l4.5 4.5M21.5 8.5L17 13"/></svg>
@@ -800,13 +803,6 @@
         </div>
         <h3 class="pv-h3" style="font-size:.92rem">Self-reported and payslip-read stay separate</h3>
         <p class="pv-step-d" style="margin-top:8px">A self-reported figure and a figure read off a payslip are never treated as the same thing.</p>
-      </div>
-      <div class="pv-card">
-        <div class="pv-tile pv-tile--green">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 20v-1.6a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4V20"/><circle cx="9" cy="7" r="3.4"/><path d="M17 4.2a3.4 3.4 0 0 1 0 5.6M19.5 14.6A4 4 0 0 1 22 18.4V20"/></svg>
-        </div>
-        <h3 class="pv-h3" style="font-size:.92rem">Nothing is published below five records</h3>
-        <p class="pv-step-d" style="margin-top:8px">That rule lives in the database. The page cannot switch it off.</p>
       </div>
     </div>
 

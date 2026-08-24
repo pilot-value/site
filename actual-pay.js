@@ -26,8 +26,16 @@
      ★列を消すだけでは足りない。**機材で絞る口も同時に消す**こと。
        絞れると、絞った結果から各行の機材が逆算できる（隠したことにならない）。
 
-   ★自由入力の社名の人は airline が 'other' で返る（打ち込まれた文字列は来ない）。
-     画面は固定の札（「その他の航空会社」）に置き換える。
+   ★航空会社の欄で「その他」を選んだ人の行も、サーバが**語彙に当ててから**返す
+     （db/pay-rows.sql の pv_airline_resolve）。打ち込まれた文字列は来ない。
+     ・当たった … 本当の社名のコードで来る＝他の行と同じように社名が出る
+     ・当たらない … 'other' で来る＝画面が「一覧にない航空会社」と書く
+     2026-08-25 まではここが一律「その他の航空会社」だった（オーナー指示で変更）。
+
+   ★並びはサーバが決める（**出した順・古いほうが上**）。画面は受け取った順に描くだけ。
+     2026-08-25 にオーナー指示で md5 順から変えた。
+     ★並べ替えの口を作らないこと。「新しい順」に切り替えられると、
+       いつでも最新の1人を先頭に呼び出せてしまう（db/pay-rows.sql の契約⑥）。
 
    ── 金額の出し方 ──────────────────────────────────────────────
    サーバは USD で有効数字2桁に確定させている。画面は表示通貨へ換算したあと
@@ -92,7 +100,7 @@
       all: 'すべて',
       thAir: '航空会社', thPos: '職位',
       thAmt: '年収', thMon: '月あたり', thVf: '出典', thAge: '投稿時期',
-      othAir: 'その他の航空会社',
+      othAir: '一覧にない航空会社',
       vfNo: '本人記録',
       /* ★投稿時期。段の番号（0〜4）を言葉にするだけ。日付は持っていない。 */
       age: ['1ヶ月以内', '3ヶ月以内', '6ヶ月以内', '1年以内', 'それより前'],
@@ -122,7 +130,7 @@
       all: 'All',
       thAir: 'Airline', thPos: 'Position',
       thAmt: 'Annual', thMon: 'Per month', thVf: 'Source', thAge: 'Submitted',
-      othAir: 'Other airline',
+      othAir: 'Airline not listed',
       vfNo: 'Pilot-recorded',
       age: ['Within 1 month', 'Within 3 months', 'Within 6 months',
             'Within a year', 'Over a year ago'],
@@ -211,8 +219,8 @@
   }
 
   // ── 名前の引き当て ─────────────────────────────────────────────
-  /* ★'other' は固定の札にする。打ち込まれた社名はサーバから来ないので、
-       ここで何を書いても本人の入力は出ない。 */
+  /* ★'other' で来るのは「語彙に当たらなかった」行だけ（サーバが当てて返す）。
+       打ち込まれた社名はここまで来ないので、固定の札にする。 */
   function airName(code) {
     if (code === 'other') return T.othAir;
     return S.air[code] || code;
@@ -232,18 +240,23 @@
        自前の表から引いている）。ここは色を使わない小さい版を持つ。
      ★alt="" にする。社名はすぐ隣に必ず文字で出るので、読み上げが二重になる。
        画像が落ちても行は読める。
-     ★ロゴが無い社と「一覧にない会社」は、社名の頭2文字をグレーの札にする。
+     ★ロゴが無い社は、社名の頭2文字をグレーの札にする。
        ここで出るのは**画面が持っている辞書の社名**で、本人が打ち込んだ文字列ではない
-       （'other' の名前は固定の札。サーバは打ち込まれた社名を返さない）。 */
+       （サーバは打ち込まれた社名を返さない。語彙に当たらなかった人は 'other' で来る）。
+     ★'other' だけは頭2文字を取らない。「一覧にない航空会社」の頭2文字は「一覧」で、
+       会社の略称のように見えてしまう。ロゴが無いことを示す点だけを置く。 */
   function logoHtml(code) {
     var ext = (w.PV_LOGOS || {})[code];
     if (code !== 'other' && ext) {
       return '<img class="ap-logo" src="' + esc(LOGO_BASE + code + '.' + ext) + '"'
            + ' alt="" loading="lazy" decoding="async" width="30" height="30"/>';
     }
-    var name = String(airName(code) || '');
-    var ini = name.replace(/[^0-9A-Za-z\u3040-\u30ff\u4e00-\u9fff]/g, '').slice(0, 2).toUpperCase();
-    return '<span class="ap-logo ap-logo--mono" aria-hidden="true">' + esc(ini || '·') + '</span>';
+    var ini = '·';
+    if (code !== 'other') {
+      var name = String(airName(code) || '');
+      ini = name.replace(/[^0-9A-Za-z\u3040-\u30ff\u4e00-\u9fff]/g, '').slice(0, 2).toUpperCase() || '·';
+    }
+    return '<span class="ap-logo ap-logo--mono" aria-hidden="true">' + esc(ini) + '</span>';
   }
 
   // ── 表 ─────────────────────────────────────────────────────────
