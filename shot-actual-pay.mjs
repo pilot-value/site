@@ -57,8 +57,8 @@ const UID = '00000000-0000-4000-8000-00000000c001';
       いちばん古い会員登録が 2026-05-04＝約4ヶ月前なので、本番にありうるのは 0〜2 だけ。
       3・4 の言葉が画面に出ていたら、それは作り物を見せているということ。
       （サーバ側は5段のまま。来年になれば普通に届く。）
-   ★並びは**出した順（古いほうが上）**（2026-08-25 オーナー指示）。
-      段は同じ時刻から出るので、上から下へ段は 2→0 の向きにしか動かない。
+   ★並びは**新しい順（新しいほうが上）**（2026-08-25 オーナー指示）。
+      段は同じ時刻から出るので、上から下へ段は 0→2 の向きにしか動かない。
       ここで作る行も必ずその向きに並べる。逆流させると本番に無い絵になる。 */
 const R = (air, pos, usd, vf, age) => ({
   airline: air, pos: pos, annual_usd: usd, verified: !!vf, age: age || 0 });
@@ -78,23 +78,24 @@ const ST = (reports, month) => ({ reports: reports, month: month });
    ⚠️ 実測なのは金額と会社と職位まで。**時期の段はこちらで振った作り物**
       （本番の投稿日は読んでいない）。給与レポートも預かりも 2026-08 に入ってからの
       ものばかりなので 0（1ヶ月以内）に寄せ、少しだけ 1 を混ぜてある。
-   ★並びは出した順なので、段の大きいほう（古いほう）から先に置く。 */
+   ★並びは新しい順なので、段の小さいほう（新しいほう）から先に置く。
+   ★13人の内訳は 本棚（pay_reports）8人 ＋ 登録前の預かり（pending）5人。
+      サーバは出どころで分けずに時刻だけで並べるので、ここでも混ぜて置く
+      （出どころごとに固めると、本番に無い並びの絵になる）。 */
 const ROWS = [
-  // ── 本棚（pay_reports・8人）
-  R('ana', 'fo', 110000, false, 1),
-  R('jal', 'fo',  99000, false, 1),
-  R('ana', 'fo',  95000, false, 1),
-  R('jal', 'fo',  81000, false, 0),
-  R('ana', 'fo', 110000, false, 0),
-  R('lufthansa', 'fo', 140000, false, 0),
-  R('ana', 'cap', 180000, false, 0),
+  R('ana', 'fo', 110000, false, 0),                 // 預かり
+  R('singapore-airlines', 'cap', 330000, false, 0), // 預かり
+  R('ana', 'fo',  94000, false, 0),                 // 預かり
+  R('air-canada', 'cap', 240000, false, 0),         // 預かり
+  R('zipair', 'fo', 82000, false, 0),               // 預かり
   R('eva-air', 'cap', 170000, false, 0),
-  // ── 登録前の預かり（pay_reports_pending・5人。✓ は付かない）
-  R('zipair', 'fo', 82000, false, 0),
-  R('air-canada', 'cap', 240000, false, 0),
+  R('ana', 'cap', 180000, false, 0),
+  R('lufthansa', 'fo', 140000, false, 0),
   R('ana', 'fo', 110000, false, 0),
-  R('ana', 'fo',  94000, false, 0),
-  R('singapore-airlines', 'cap', 330000, false, 0),
+  R('jal', 'fo',  81000, false, 0),
+  R('ana', 'fo',  95000, false, 1),
+  R('jal', 'fo',  99000, false, 1),
+  R('ana', 'fo', 110000, false, 1),
 ];
 
 /* ★口コミに書かれていた給与（2026-08-24 に合流させたぶん）。
@@ -108,46 +109,46 @@ const ROWS = [
      画面は「一覧にない航空会社」と書く（2026-08-25 オーナー指示。前は「その他の航空会社」）
    ⚠️ 金額は作り物。実際の8件の額はここに写していない。 */
 const FROM_REVIEWS = [
-  R('ana', 'cap', 160000, false, 2),
-  R('jal', 'cap', 180000, false, 2),
-  R('other', 'fo',  88000, false, 2),
-  R('emirates', 'cap', 230000, false, 2),
-  R('ana', 'cap', 170000, false, 1),
-  R('jal', 'fo',   96000, false, 1),
   R('ana', 'fo',  100000, false, 1),
+  R('jal', 'fo',   96000, false, 1),
+  R('ana', 'cap', 170000, false, 1),
+  R('emirates', 'cap', 230000, false, 2),
+  R('other', 'fo',  88000, false, 2),
+  R('jal', 'cap', 180000, false, 2),
+  R('ana', 'cap', 160000, false, 2),
 ];
 
-/* 合流した後の20行。★並びは**出した順（古いほうが上）**。
-   口コミ由来は給与レポートより古いので、自然と上のほうに来る。
+/* 合流した後の20行。★並びは**新しい順（新しいほうが上）**。
+   口コミ由来は給与レポートより古いので、自然と後ろのほうに来る。
    ここを混ぜ返さないこと＝本番と違う絵になる。 */
-const MERGED = [...FROM_REVIEWS, ...ROWS];
-/* もっと集まったら、という絵。★並びは出した順（古いほうが上）なので、
-   段は上から 2 → 1 → 0 の向きにしか動かない。
+const MERGED = [...ROWS, ...FROM_REVIEWS];
+/* もっと集まったら、という絵。★並びは新しい順（新しいほうが上）なので、
+   段は上から 0 → 1 → 2 の向きにしか動かない。
    会社と金額はばらけさせる（会社ごとに固めると絞り込みの絵が読めない）。
    ★段は 0〜2 だけ。サイトはまだ約4ヶ月なので 3・4 は本番にありえない（上の ⚠️）。 */
 const MANY = [
-  R('singapore-airlines', 'fo', 130000, false, 2),
-  R('lufthansa', 'cap', 160000, false, 2),
-  R('ana', 'fo', 120000, false, 2),
-  R('jal', 'cap', 190000, false, 2),
-  R('korean-air', 'fo', 95000, false, 2),
-  R('other', 'cap', 130000, false, 2),
-  R('jal', 'cap', 185000, true, 2),
-  R('emirates', 'cap', 240000, false, 1),
-  R('cathay-pacific', 'cap', 200000, false, 1),
-  R('ana', 'cap', 195000, false, 1),
-  R('lufthansa', 'fo', 110000, false, 1),
-  R('jal', 'fo', 112000, false, 1),
-  R('zipair', 'fo', 86000, false, 1),
-  R('other', 'fo', 90000, false, 1),
-  R('eva-air', 'fo', 105000, false, 1),
-  R('ana', 'cap', 180000, true, 0),
-  R('jal', 'fo', 105000, false, 0),
-  R('qatar-airways', 'cap', 260000, true, 0),
-  R('emirates', 'fo', 150000, false, 0),
-  R('ana', 'fo', 98000, false, 0),
-  R('korean-air', 'cap', 175000, false, 0),
   R('cathay-pacific', 'fo', 125000, false, 0),
+  R('korean-air', 'cap', 175000, false, 0),
+  R('ana', 'fo', 98000, false, 0),
+  R('emirates', 'fo', 150000, false, 0),
+  R('qatar-airways', 'cap', 260000, true, 0),
+  R('jal', 'fo', 105000, false, 0),
+  R('ana', 'cap', 180000, true, 0),
+  R('eva-air', 'fo', 105000, false, 1),
+  R('other', 'fo', 90000, false, 1),
+  R('zipair', 'fo', 86000, false, 1),
+  R('jal', 'fo', 112000, false, 1),
+  R('lufthansa', 'fo', 110000, false, 1),
+  R('ana', 'cap', 195000, false, 1),
+  R('cathay-pacific', 'cap', 200000, false, 1),
+  R('emirates', 'cap', 240000, false, 1),
+  R('jal', 'cap', 185000, true, 2),
+  R('other', 'cap', 130000, false, 2),
+  R('korean-air', 'fo', 95000, false, 2),
+  R('jal', 'cap', 190000, false, 2),
+  R('ana', 'fo', 120000, false, 2),
+  R('lufthansa', 'cap', 160000, false, 2),
+  R('singapore-airlines', 'fo', 130000, false, 2),
 ];
 
 const SCENES = {
@@ -156,7 +157,7 @@ const SCENES = {
   empty:  { pay: { ok: true, state: 'open', rows: [], stats: ST(0, 0) } },
   rows:   { pay: { ok: true, state: 'open', rows: ROWS,   stats: ST(17, 4) } },
   /* ★口コミ由来の7人が混ざった状態。行が13→20に増える。
-     口コミのほうが古いので、上のほうに「6ヶ月以内」が並ぶ。 */
+     口コミのほうが古いので、下のほうに「6ヶ月以内」が並ぶ。 */
   merged: { pay: { ok: true, state: 'open', rows: MERGED, stats: ST(24, 4) } },
   many:   { pay: { ok: true, state: 'open', rows: MANY, stats: ST(58, 11) } },
   picked: { pay: { ok: true, state: 'open', rows: MANY, stats: ST(58, 11) }, pick: 'ana' },
