@@ -3,6 +3,7 @@
    ただし S2〜S4 は埋めるまで出ないので、1枚目は「S1 だけ」が正しい状態。
    結果パネルは renderResult() を直接呼ぶ＝RPC が本番に無くても見た目は確認できる。
    使い方: node shot-pay.mjs        （出力は ./temporary screenshots/ ではなく round ディレクトリ）
+           node shot-pay.mjs open detail   撮らずに、見える窓で #pay-detail を開く
 
    撮る状態（2026-08-13 に 3〜5 を追加、同日その2で 0 を追加）:
      0  entry       開いた直後＝入口の2択（明細から自動入力／手で入力）だけ
@@ -24,6 +25,27 @@ const ROOT = fileURLToPath(new URL('.', import.meta.url));
 const ROUND = process.argv[2] || 'r1';
 const dir = path.join(ROOT, 'temporary screenshots', `pay-${ROUND}`);
 fs.mkdirSync(dir, { recursive: true });
+
+/* ★見える窓で開いたままにする（撮らない）。ほかの shot-*.mjs と同じ open。
+     node shot-pay.mjs open            手入力の入口から
+     node shot-pay.mjs open detail     DEEP PAY の「給与内訳を追加する」で来たとき
+     node shot-pay.mjs open detail en  英語で
+   このページはログイン不要なので素の URL でも出るが、ほかの画面と同じ渡し方に揃える。 */
+if (process.argv.includes('open')) {
+  const lang = process.argv.includes('en') ? 'en' : 'ja';
+  const url = `http://localhost:3000/${lang === 'en' ? 'en/' : ''}pay-report.html`
+            + (process.argv.includes('detail') ? '#pay-detail' : '');
+  const b = await puppeteer.launch({
+    headless: false, defaultViewport: null, args: ['--no-sandbox', '--window-size=1440,1000'],
+  });
+  const [pg] = await b.pages();
+  await pg.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+  console.log(`見える窓で開いた（${url}）。閉じるとこのコマンドも終わる。`);
+  /* ★時間で待たない。待つのは「窓が閉じられたこと」＝接続が切れたこと
+     （時間で待つと、誰も触っていないのに 30 秒で勝手に消える）。 */
+  await new Promise((r) => b.on('disconnected', r));
+  process.exit(0);
+}
 
 const browser = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox'] });
 
