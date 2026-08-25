@@ -2292,6 +2292,40 @@ $('entry-payslip').addEventListener('click', () => { track('pay_entry_payslip');
 $('entry-manual').addEventListener('click', () => { track('pay_entry_manual', { from: 'button' }); enterMode('manual'); $('f-airline').focus(); });
 $('ps-skip').addEventListener('click', () => { track('pay_entry_manual', { from: 'skip' }); enterMode('manual'); });
 
+/* ── #pay-detail で来たら「くわしく入れる」を開く ────────────────
+   DEEP PAY の説明の「内訳を入力する」（pv-gates.js の DETAIL_URL）から来る。
+   ★入口の2択が出ているあいだ、内訳の欄はまだ画面に無い（form-body が hidden）。
+     リンクだけ張っても畳まれたまま何も起きないので、手入力の画面まで進めてから開く。
+   ★開くところまでしかやらない。入力モードの切り替えは書き写さない
+     （.open = true が toggle を出し、上の updatePayMode がそのまま走る）。
+   ★同じページに居るまま踏まれることもあるので hashchange でも同じことをする。 */
+function openDetailFromHash() {
+  if (location.hash !== '#pay-detail') return;
+  const dt = $('pay-detail');
+  if (!dt) return;
+  if (!$('entry').hidden) { track('pay_entry_manual', { from: 'detail' }); enterMode('manual'); }
+  dt.open = true;                    // toggle → updatePayMode（書き写さない）
+  /* ★内訳の欄は、この時点ではまだ画面に出ていないのが普通。
+       段階表示（updateSteps）が §1 会社・§2 乗務時間を埋めるまで §3 を出さないうえ、
+       飛んだ時間は前回の値を持ち越さない（毎月変わるので保存していない）。
+       ＝どの人も、この画面に来た直後は必ず §1 から。
+     だからここでやるのは「先に開いておく」こと。たどり着いたときには
+     もう開いていて、総支給は内訳の合計に切り替わっている。
+     寄せ先は、出ていれば内訳・出ていなければフォームの先頭（そこから始まるので）。 */
+  const shown = (el) => !!el && el.getBoundingClientRect().height > 0;
+  const go = () => {
+    const b = $('f-base');
+    const to = shown(b) ? b : $('f-airline');
+    if (!shown(to)) return;
+    const box = shown(b) ? dt : to;
+    if (box.scrollIntoView) box.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    try { to.focus({ preventScroll: true }); } catch (e) { to.focus(); }
+  };
+  if (window.requestAnimationFrame) requestAnimationFrame(go); else setTimeout(go, 0);
+}
+openDetailFromHash();
+window.addEventListener('hashchange', openDetailFromHash);
+
 /* ── 任意項目はチップにたたむ ─────────────────────────────────
    常時10欄あると「まだこんなにあるのか」で止まる。押した人にだけ出す。 */
 // ★f-bonus はチップから出した（かんたん入力の5欄の1つ。年間ボーナスを聞かないと、

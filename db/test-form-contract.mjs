@@ -347,6 +347,82 @@ const NET_M = '41200';
    chrome-headless-shell で回す。 */
 const browser = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox'] });
 
+/* ══ #pay-detail で来たら「くわしく入れる」が開く（2026-08-25）════════
+   DEEP PAY の説明にある「給与内訳を追加する」（pv-gates.js の DETAIL_URL）の行き先。
+   ★リンクを張るだけでは効かない。この画面は入口の2択が先に出ていて、
+     内訳の欄はまだ DOM に在っても画面に出ていない（form-body が hidden）。
+     2026-08-25 まで、踏んでも入口の画面のまま何も起きなかった。
+   ★着いた瞬間に内訳の欄へカーソルが入ることは無い。段階表示（updateSteps）が
+     §1 会社・§2 乗務時間を埋めるまで §3 を出さず、飛んだ時間は前回の値を
+     持ち越さない（毎月変わるので保存していない）＝誰が来ても必ず §1 から。
+     だからここで見るのは2つ:
+       ① 着いた時点で「くわしく入れる」が先に開いていること（＋フォームの先頭に居ること）
+       ② §1・§2 を埋めて §3 が出てきたとき、もう開いた状態で現れること
+     ①だけだと「開いた気になっているが、出てきたら畳まれている」形を見逃す。
+   ★入力モードの切り替え（総支給が内訳の合計になる）も見る。
+     ここを写して書くと2つ目の実装になるので、写さず本物の toggle に任せている。 */
+console.log('\n内訳への導線（#pay-detail）');
+for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html#pay-detail'],
+                           ['en', 'http://localhost:3000/en/pay-report.html#pay-detail']]) {
+  const page = await browser.newPage();
+  await page.setViewport({ width: 1440, height: 1000 });
+  const errs = [];
+  page.on('pageerror', (e) => errs.push(String(e.message).slice(0, 140)));
+  await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+  await page.evaluate(() => localStorage.clear());
+  await page.reload({ waitUntil: 'networkidle2', timeout: 30000 });
+  await new Promise((r) => setTimeout(r, 900));
+
+  const shot = () => page.evaluate(() => {
+    const $ = (id) => document.getElementById(id);
+    const box = (e) => (e ? e.getBoundingClientRect() : { width: 0, height: 0 });
+    return {
+      open: !!($('pay-detail') || {}).open,
+      entryHidden: !!($('entry') || {}).hidden,
+      formShown: box($('form-body')).height > 0,
+      airlineShown: box($('f-airline')).height > 0,
+      atTop: document.activeElement === $('f-airline'),
+      baseShown: box($('f-base')).height > 0,
+      grossReadOnly: !!($('f-gross') || {}).readOnly
+    };
+  });
+
+  const v = await shot();
+  ok(v.open, `${lang}: ★#pay-detail で来たら「くわしく入れる」が開いている`, JSON.stringify(v));
+  ok(v.entryHidden && v.formShown,
+     `${lang}: ★入口の2択を越えて、入力の画面まで進んでいる`, JSON.stringify(v));
+  ok(v.airlineShown && v.atTop,
+     `${lang}: ★カーソルがフォームの先頭に入っている（内訳はまだ出ていない）`, JSON.stringify(v));
+  ok(v.grossReadOnly,
+     `${lang}: ★入力モードも切り替わっている（総支給が内訳の合計になる）`, JSON.stringify(v));
+
+  /* §1・§2 を埋めて §3 を出す。ゲートは pay-report.html の GATE_ROLE / GATE_HOURS。 */
+  await page.evaluate(() => {
+    const $ = (id) => document.getElementById(id);
+    const fire = (el) => {
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+    for (const id of ['f-airline', 'f-position', 'f-fleet', 'f-jobrole', 'f-age']) {
+      const el = $(id);
+      if (!el) continue;
+      if (el.tagName === 'SELECT') {
+        const pick = [...el.options].find((o) => o.value && o.value !== 'other');
+        if (pick) el.value = pick.value;
+      } else el.value = '1';
+      fire(el);
+    }
+    for (const id of ['f-block', 'f-stay']) { const el = $(id); if (el) { el.value = '80'; fire(el); } }
+  });
+  await new Promise((r) => setTimeout(r, 300));
+
+  const w = await shot();
+  ok(w.baseShown, `${lang}: ★§3 が出てきた（内訳の欄が画面に在る）`, JSON.stringify(w));
+  ok(w.open, `${lang}: ★出てきたときには、もう開いている（畳まれた状態で現れない）`, JSON.stringify(w));
+  ok(errs.length === 0, `${lang}: ページのエラーが1件も出ない`, errs.join(' | '));
+  await page.close();
+}
+
 for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
                            ['en', 'http://localhost:3000/en/pay-report.html']]) {
   console.log(`\n▼ ${lang}  ${url}`);

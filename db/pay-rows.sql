@@ -713,6 +713,56 @@ comment on function public.pv_my_give() is
 
 
 -- ════════════════════════════════════════════════════════════════
+-- 1-f. pv_contributors — 給与を出したユニークな人数（DEEP PAY の分子）
+--
+-- 返り値  整数1つだけ。誰が・いつ・いくら出したかは1バイトも出ない。
+--
+-- なぜ関数に切り出すか（2026-08-25）
+--   この数は2か所から要る ── 一覧の stats（pv_pay_rows）と、
+--   左メニューの DEEP PAY の札（pv_give_progress）。
+--   **数え方を書き写すと、同じ「N / 100人」が画面によって違う数になる。**
+--   pv_pending_usd が pv_annual_total を呼ぶのと同じ形で、定義はここ1つだけにする。
+--
+-- 数え方（ここが唯一の正）
+--   本棚は proof_hash、預かりは ip_day_hash が「人」の単位。
+--   ★sane（表に出る行）からは数えない。あれは「表の行の説明」で、
+--     こちらは「何人のパイロットが参加したか」という別の問い。
+--     sane から数えると、レートの無い通貨の人・24ヶ月より古い人が
+--     参加していないことになってしまう。給与フォームを通った人を素直に数える。
+--   ⚠️ 口コミに金額を書いた人は数えない（給与フォームを通っていない）。
+--   ⚠️ 預かりは日ごとにキーが変わるので、登録前に2日に分けて出した人は2と数える
+--      （登録して本棚へ移った時点で claimed_at が立ち、こちらからは消える）。
+--   ⚠️ **会員登録の数ではない**（オーナー決定 2026-08-25）。登録しただけでは動かず、
+--      給与を1件出したときに1つ増える。FOUNDING PILOT 100 と同じ100人。
+--
+-- ★誰にも grant しない。security definer の中（pv_pay_rows / pv_give_progress）からだけ呼ぶ。
+-- ════════════════════════════════════════════════════════════════
+create or replace function public.pv_contributors()
+returns int
+language sql
+security definer
+stable
+set search_path = public, extensions
+as $fn$
+  select (
+    (select count(distinct r.proof_hash) from public.pay_reports r)
+    + (select count(distinct q.ip_day_hash)
+         from public.pay_reports_pending q
+        where q.claimed_at is null and q.ip_day_hash is not null)
+  )::int;
+$fn$;
+
+revoke all on function public.pv_contributors() from public, anon, authenticated;
+
+comment on function public.pv_contributors() is
+  '給与を出したユニークな人数。本棚は proof_hash、まだ移っていない預かりは ip_day_hash が人の単位。'
+  'DEEP PAY の「N / 100人」の分子。★会員登録の数ではない（給与を1件出したときだけ増える）。'
+  '★表に出る行（sane）からは数えない。あれは表の説明で、これは参加人数という別の問い。'
+  '★数え方はここが唯一の正。pv_pay_rows と pv_give_progress の両方がこれを呼ぶ（書き写さない）。'
+  '★誰にも grant しない。security definer の中からだけ呼ぶ。';
+
+
+-- ════════════════════════════════════════════════════════════════
 -- 2. pv_pay_rows — 匿名レポート一覧（1行＝1人・出した人は全員）
 --
 -- 返り値
@@ -963,14 +1013,10 @@ begin
   ),
   contrib as (
     -- ★給与を出したユニークな人数。ここだけ sane から数えない（理由は上のヘッダ）。
-    --   本棚は proof_hash、預かりは ip_day_hash が「人」の単位。
-    --   出るのは1つの整数だけで、誰がいつ何を出したかは1バイトも出ない。
-    select (
-      (select count(distinct r.proof_hash) from public.pay_reports r)
-      + (select count(distinct q.ip_day_hash)
-           from public.pay_reports_pending q
-          where q.claimed_at is null and q.ip_day_hash is not null)
-    )::int as n
+    --   数え方は書き写さない。唯一の正は pv_contributors()（1-f）で、
+    --   左メニューの札を出す pv_give_progress()（2-b）も同じ関数を呼ぶ。
+    --   ここに式を戻すと、同じ「N / 100人」が画面によって違う数になる。
+    select public.pv_contributors() as n
   )
   select jsonb_build_object(
            'ok',    true,
@@ -1025,13 +1071,66 @@ comment on function public.pv_pay_rows() is
 
 
 -- ════════════════════════════════════════════════════════════════
+-- 2-b. pv_give_progress — DEEP PAY の札に要る2つだけを返す
+--
+-- 返り値  { ok:true, contributors:<int>, give:{ basic, detailed, payslip } }
+--         整数1つと真偽3つだけ。行も金額も日付も社名も1つも入らない。
+--
+-- なぜ要るか（2026-08-25 オーナー指示「パイロットの人数が合うように他のページとも調整して」）
+--   左メニュー（マイレポート／REAL PAY／DEEP PAY／VERIFIED PAY／設定）は
+--   4つの画面に同じものが出ていて、DEEP PAY を押すとどこでも同じ説明が開く。
+--   ところが数を持っているのは pv_pay_rows() を引く2画面だけで、残りは
+--   「準備中」のままだった＝**同じボタンなのに画面によって答えが違う**。
+--
+--   ではなぜ全画面で pv_pay_rows() を引かないか。
+--   鍵を持つ人が引くと**要らない行が全部付いてくる**（あの関数の本体は一覧）。
+--   CLAUDE.md が「数え上げのために pv_pay_rows() を引くのは、まだ1件も出していない人の
+--   枝だけ」と決めているのはそのため。この関数はその約束を守ったまま札を出す口で、
+--   一覧を1行も作らない。
+--
+-- ★中身を1つも書き写さない。
+--   contributors … pv_contributors()（1-f）。数え方はあちらが唯一の正。
+--   give         … pv_my_give()（1-e）。本人の行の引き方はあちらが唯一の正。
+--   ここが持っているのは「2つを1回で返す」ことだけ。
+--
+-- ★未ログインでも落とさない（null を返す）。画面は札を「準備中」のままにする。
+--   数が読めないときに 0 を置かない、はカードと同じ決まり。
+-- ════════════════════════════════════════════════════════════════
+create or replace function public.pv_give_progress()
+returns jsonb
+language sql
+security definer
+stable
+set search_path = public, extensions
+as $fn$
+  select jsonb_build_object(
+           'ok',           true,
+           'contributors', public.pv_contributors(),
+           'give',         public.pv_my_give()
+         )
+   where auth.uid() is not null;
+$fn$;
+
+-- ★anon には渡さない。ログインした人だけが自分の進み具合を見る。
+revoke all on function public.pv_give_progress() from public, anon;
+grant execute on function public.pv_give_progress() to authenticated;
+
+comment on function public.pv_give_progress() is
+  'DEEP PAY の札（N / 100人）に要る2つだけを返す。整数1つと真偽3つで、行も金額も日付も返さない。'
+  '左メニューを持つどの画面からでも同じ数が出るようにするための口（2026-08-25）。'
+  '一覧（pv_pay_rows）を引くと鍵を持つ人に要らない行が全部付いてくるので、そちらは使わない。'
+  '★中身は書き写さず pv_contributors() と pv_my_give() をそのまま呼ぶ。'
+  '★未ログインでは null を返す（0 を置かない。画面は「準備中」のまま）。';
+
+
+-- ════════════════════════════════════════════════════════════════
 -- 3. 自己点検（読むだけ。何も書き換えない）
 --
 -- ★1本の SELECT にしてある。Supabase の SQL Editor は複数文を流すと
 --   最後の1本の結果しか出さないので、分けて書くと上から順に消えていく。
--- 期待：40行すべて ✅。1つでも ❌ なら、そこが効いていない。
+-- 期待：43行すべて ✅。1つでも ❌ なら、そこが効いていない。
 --
--- 特に 4・8・12・13・14・16・22・23・30・31・36・37・40 は「静かに壊れる」種類のもの。画面には何も
+-- 特に 4・8・12・13・14・16・22・23・30・31・36・37・40・41・42 は「静かに壊れる」種類のもの。画面には何も
 -- 出ないまま、他人の個票に届く経路が開く（16・30 は逆に、同じ人が二重に出る）。
 -- ════════════════════════════════════════════════════════════════
 with f as (
@@ -1047,7 +1146,9 @@ with f as (
          to_regclass('public.pv_review_person')        as link,
          to_regprocedure('public.pv_airline_resolve(text)') as f_res,
          to_regprocedure('public.pv_airline_norm(text)')    as f_norm,
-         to_regprocedure('public.pv_my_give()')             as f_give
+         to_regprocedure('public.pv_my_give()')             as f_give,
+         to_regprocedure('public.pv_contributors()')        as f_ctb,
+         to_regprocedure('public.pv_give_progress()')       as f_prog
 )
 select n as "#", case when ok then '✅' else '❌' end as 結果, 見るところ
 from (
@@ -1310,6 +1411,31 @@ from (
               else pg_get_functiondef(f_res) like '%pv_airlines%'
                and pg_get_functiondef(f_res) not like '%like%'
                and pg_get_functiondef(f_res) not like '%similar to%'
+         end from f
+  union all
+  -- ── DEEP PAY の札を全画面で同じ数にする（2026-08-25）──────────
+  select 41, '★人数の数え方は1か所だけ（一覧は pv_contributors を呼んでいる／式を書き写していない）',
+         -- 静かに壊れる。書き写しても画面は普通に動き、同じ「N / 100人」が
+         -- 画面によって違う数になるだけなので、誰も気づかない。
+         case when (f_ctb is null or f_rows is null) then false
+              else pg_get_functiondef(f_rows) like '%pv_contributors()%'
+               and pg_get_functiondef(f_ctb) like '%proof_hash%'
+               and pg_get_functiondef(f_ctb) like '%ip_day_hash%'
+         end from f
+  union all
+  select 42, '★人数の関数は誰にも開いていない（security definer の中からだけ）',
+         case when f_ctb is null then false
+              else not has_function_privilege('anon', f_ctb, 'execute')
+               and not has_function_privilege('authenticated', f_ctb, 'execute')
+         end from f
+  union all
+  select 43, '★札の口（pv_give_progress）はログインした人だけ・中身を書き写していない',
+         case when f_prog is null then false
+              else not has_function_privilege('anon', f_prog, 'execute')
+               and has_function_privilege('authenticated', f_prog, 'execute')
+               and pg_get_functiondef(f_prog) like '%pv_contributors()%'
+               and pg_get_functiondef(f_prog) like '%pv_my_give()%'
+               and pg_get_functiondef(f_prog) not like '%pay_reports%'
          end from f
 ) t
 order by n;

@@ -447,8 +447,44 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
     ok(/'give',\s*public\.pv_my_give\(\)/.test(FN),
        '★本人が何を出したか（basic / detailed / payslip）を返す');
     /* ★①（100人）と②（本人の内訳）は別の材料から出ている。 */
-    ok(/pay_reports_pending/.test(FN.slice(FN.indexOf('contrib as'), FN.indexOf('contrib as') + 600)),
-       '★人数は未引き取りの預かりも数える（出したのに数に入らない人を作らない）');
+    /* ★数え方は pv_contributors() 1つだけが持つ（2026-08-25）。
+         同じ「N / 100人」を左メニューの札（pv_give_progress）も出すので、
+         一覧の中に式を書き戻すと**画面によって違う数**になる。
+         これは静かに壊れる ── どちらの画面も普通に動いたまま数だけずれる。 */
+    ok(/contrib as \(\s*(--[^\n]*\n\s*)*select public\.pv_contributors\(\) as n/.test(FN),
+       '★一覧は人数の式を書き写さず pv_contributors() を呼んでいる',
+       FN.slice(FN.indexOf('contrib as'), FN.indexOf('contrib as') + 300));
+    const CTB = (function () {
+      const a = SQL.indexOf('create or replace function public.pv_contributors()');
+      const b = SQL.indexOf('revoke all on function public.pv_contributors()');
+      return a > -1 && b > a ? SQL.slice(a, b) : '';
+    })();
+    ok(!!CTB, '★人数を数える関数（pv_contributors）がある');
+    ok(/proof_hash/.test(CTB) && /pay_reports_pending/.test(CTB) && /ip_day_hash/.test(CTB),
+       '★人数は未引き取りの預かりも数える（出したのに数に入らない人を作らない）', CTB.slice(0, 200));
+    ok(/claimed_at is null/.test(CTB),
+       '★本棚へ移った預かりは二重に数えない', CTB.slice(0, 200));
+    ok(/revoke all on function public\.pv_contributors\(\) from public, anon, authenticated/.test(SQL),
+       '★人数を数える関数は誰にも開いていない');
+  }
+
+  /* ★左メニューの札の口（2026-08-25）。整数1つと真偽3つだけを返し、
+       一覧（pv_pay_rows）を引かずに済ませるためだけに在る。
+       ⚠️ 中身を書き写したら、ここが2つ目の数え方になる。 */
+  {
+    const i2 = SQL.indexOf('create or replace function public.pv_give_progress()');
+    const i3 = SQL.indexOf('revoke all on function public.pv_give_progress()');
+    const PG = i2 > -1 && i3 > i2 ? SQL.slice(i2, i3) : '';
+    ok(!!PG, '★札の口（pv_give_progress）がある');
+    ok(/public\.pv_contributors\(\)/.test(PG) && /public\.pv_my_give\(\)/.test(PG),
+       '★札の口は中身を書き写さず、2つの関数をそのまま呼ぶ', PG.slice(0, 200));
+    ok(!/pay_reports|reviews_v2|annual|usd/.test(PG),
+       '★札の口は表も金額も自分では触らない', PG.slice(0, 200));
+    ok(/where auth\.uid\(\) is not null/.test(PG),
+       '★ログインしていない人には何も返さない（0 を置いて埋めない）', PG.slice(0, 200));
+    ok(/revoke all on function public\.pv_give_progress\(\) from public, anon/.test(SQL)
+       && /grant execute on function public\.pv_give_progress\(\) to authenticated/.test(SQL),
+       '★札の口は anon に開かず、ログインした人にだけ開く');
   }
   /* ★pv_my_give は誰にも開かない（security definer の中からしか読まれない）。 */
   ok(/revoke all on function public\.pv_my_give\(\) from public, anon, authenticated/.test(SQL),
@@ -575,7 +611,11 @@ const FAKE = function (payload) {
        payload.mine を渡さないケースでは空＝破線を出さない。 */
     my_pay_reports: () => ({ ok: true, reports: (payload && payload.mine) || [] }),
     my_referral_code: () => ({ ok: true, code: 'K7QD3XZM', invited: 0, converted: 0 }),
-    pv_referral_settle: () => ({ ok: true })
+    pv_referral_settle: () => ({ ok: true }),
+    /* ★DEEP PAY の札に要る2つだけを返す口（2026-08-25）。
+       payload.progress を渡さないケースでは undefined ＝ サーバがまだ古い状態。
+       そのとき札は「準備中」のままでなければならない（0 を置いて埋めない）。 */
+    pv_give_progress: () => (payload && payload.progress)
   };
   function q(rows) {
     const o = { data: rows, error: null,
@@ -1851,6 +1891,109 @@ for (const lang of ['ja', 'en']) {
      '★投稿時期も出る（段は rows が持っているので stats とは無関係）', String(v.ages.length));
   ok(v.vizCards === 0 && v.bars === 0, '★図はここでも1つも無い',
      `${v.vizCards}/${v.bars}`);
+  ok(errs.length === 0, 'ページのエラーが1件も出ない', errs.join(' | '));
+}
+
+// ════════════════════════════════════════════════════════════════
+// I. 左メニューの DEEP PAY の札を、どの画面でも同じ数にする（2026-08-25）
+// ════════════════════════════════════════════════════════════════
+/* 左メニューは4画面（マイレポート／REAL PAY／DEEP PAY／VERIFIED PAY／設定）に
+   同じものが出ていて、DEEP PAY を押すとどこでも同じ説明が開く。
+   ところが数を持っていたのは pv_pay_rows() を引く2画面だけで、残りは
+   「準備中」のままだった＝**同じボタンなのに画面によって答えが違う**。
+
+   直した形は「押されたときに1回だけ pv_give_progress() に聞く」。ここで見るのは4つ。
+     ① 数を渡されない画面でも、押せば「17 / 100人」になる
+     ② 聞くのは**押されたときだけ**（開いただけでは1本も投げない）
+     ③ 聞くのは**1度きり**（何度押しても増えない）
+     ④ 既に数を持っている画面では**聞かない**（一覧を引く2画面）
+   ★サーバがまだ古い（札の口が無い）ときは黙って「準備中」のまま。0 を置かない。 */
+{
+  const PROG = { ok: true, contributors: 17,
+                 give: { basic: false, detailed: false, payslip: false } };
+
+  const openPage = async (url, payload) => {
+    const page = await fresh();
+    const errs = [];
+    page.on('pageerror', (e) => errs.push(String(e.message).slice(0, 140)));
+    await page.evaluateOnNewDocument(FAKE, payload);
+    await page.goto(BASE + url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await sleep(2000);
+    return { page, errs };
+  };
+
+  /* 左メニューの DEEP PAY を押して、札と RPC の呼ばれ方を読む。 */
+  const pressDeep = (times) => page => page.evaluate(async (n) => {
+    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+    const b = document.querySelector('[data-mr-gate="deep"]');
+    if (!b) return { no: true };
+    for (var i = 0; i < n; i++) {
+      b.click();
+      await sleep(120);
+      const x = document.querySelector('.mr-gate-x');
+      if (i < n - 1 && x) x.click();
+      await sleep(20);
+    }
+    const p = document.getElementById('mr-gate');
+    const pills = Array.prototype.slice.call(document.querySelectorAll('.pv-give-p'))
+                       .map((e) => e.textContent);
+    return {
+      no: false,
+      pills: pills,
+      goal: (p && (p.querySelector('.mr-gate-goal-n') || {}).textContent) || '',
+      left: (p && (p.querySelector('.mr-gate-left') || {}).textContent) || '',
+      calls: (window.__rpc || []).map((r) => r.name)
+    };
+  }, times);
+
+  for (const lang of ['ja', 'en']) {
+    console.log(`\n════ ${lang} / I 数を渡されない画面（設定）で札を押す ════`);
+    const url = (lang === 'en' ? '/en/' : '/') + 'profile.html';
+
+    // ①②③ 札の口がある状態
+    const { page, errs } = await openPage(url, { progress: PROG });
+    const before = await page.evaluate(() => (window.__rpc || []).map((r) => r.name));
+    ok(!before.includes('pv_give_progress'),
+       `${lang}: ★開いただけでは1本も投げない（押されたときだけ聞く）`, before.join(','));
+    ok(!before.includes('pv_pay_rows'),
+       `${lang}: ★この画面は一覧（pv_pay_rows）を引かない`, before.join(','));
+
+    const g = await pressDeep(3)(page);
+    ok(!g.no, `${lang}: DEEP PAY の説明が開く`);
+    ok(g.calls.filter((n) => n === 'pv_give_progress').length === 1,
+       `${lang}: ★3回押しても聞くのは1度きり`,
+       String(g.calls.filter((n) => n === 'pv_give_progress').length));
+    ok(!g.calls.includes('pv_pay_rows'),
+       `${lang}: ★札のために一覧を引かない（鍵を持つ人に要らない行が付いてくる）`,
+       g.calls.join(','));
+    const want = (lang === 'ja' ? '17 / 100人' : '17 / 100');
+    ok(g.pills.some((t) => t.indexOf(want) === 0),
+       `${lang}: ★札が「${want}」になる（REAL PAY と同じ数）`, JSON.stringify(g.pills));
+    ok(g.goal.indexOf(want) === 0,
+       `${lang}: ★説明の中の見出しも同じ数`, g.goal);
+    ok(/83/.test(g.left), `${lang}: ★あと何人かも出る`, g.left);
+    ok(errs.length === 0, `${lang}: ページのエラーが1件も出ない`, errs.join(' | '));
+
+    // ★サーバがまだ古い（札の口が無い）とき ── 「準備中」のまま。0 を置かない。
+    const old = await openPage(url, {});
+    const o = await pressDeep(1)(old.page);
+    ok(!o.no, `${lang}: 札の口が無くても説明は開く`);
+    ok(o.goal === '' && !/\d/.test(o.pills.join(' ')),
+       `${lang}: ★数が読めないときは「準備中」のまま（0 を置いて埋めない）`,
+       JSON.stringify(o.pills));
+    ok((lang === 'ja' ? /準備中/ : /in preparation/i).test(o.pills.join(' ')),
+       `${lang}: ★札は「準備中」と名乗ったまま`, JSON.stringify(o.pills));
+    ok(old.errs.length === 0, `${lang}: ページのエラーが1件も出ない`, old.errs.join(' | '));
+  }
+
+  // ④ 既に数を持っている画面（REAL PAY）では聞かない
+  console.log('\n════ ja / I 数を持っている画面では聞かない ════');
+  const { page, errs } = await open('ja', Object.assign({ progress: PROG }, LOCKED_ST));
+  const g = await pressDeep(2)(page);
+  ok(!g.calls.includes('pv_give_progress'),
+     '★一覧から数を受け取っている画面は、札のために聞き直さない', g.calls.join(','));
+  ok(g.goal.indexOf('21 / 100人') === 0,
+     '★出る数は一覧から来たほう（札の口の 17 ではない）', g.goal);
   ok(errs.length === 0, 'ページのエラーが1件も出ない', errs.join(' | '));
 }
 

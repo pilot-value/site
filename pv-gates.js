@@ -37,9 +37,14 @@
      「DEEP PAY という機能を正式に開ける区切り」でしかない。
      人数が少ない区分をどう畳むかは、ページを作る回に別で決める。
 
-   ★数はサーバから来る（pv_pay_rows() の stats.contributors と give）。
-     このファイルは数を作らない・数えない。渡されなければ「準備中」に戻るだけ。
-     渡すのは actual-pay.js と my-value.js ── PVGates.setProgress()。
+   ★数はサーバから来る。このファイルは数を作らない・数えない。
+     渡されるのは2画面だけ ── actual-pay.js と my-value.js（PVGates.setProgress()）が
+     pv_pay_rows() の stats.contributors と give をそのまま渡す。
+     ★渡されない画面（設定・待遇アンケート・給与を出した人のマイレポート）では、
+       **押されたときに1回だけ** pv_give_progress() に聞く（askProgress）。
+       あちらは整数1つと真偽3つしか返さない ── 一覧を引くと、鍵を持つ人に
+       要らない行が全部付いてくるので pv_pay_rows() は使わない。
+     どちらも届かなければ「準備中」に戻るだけ。0 を置いて埋めない。
 
    ★先に内訳を出した人が「出し損」に見えないこと。それがこの表示の目的。
      100人に届く前でも内訳は出せるので、出した人には
@@ -237,6 +242,36 @@
     refreshGive();
   }
 
+  /* ── 数を渡されない画面のために、押されたら1回だけ聞く ────────────
+     左メニューは4画面に同じものが出ていて、DEEP PAY を押すとどこでも同じ説明が開く。
+     ところが数を渡してくれるのは pv_pay_rows() を引く2画面だけで、残りは
+     「準備中」のままだった＝**同じボタンなのに画面によって答えが違う**（2026-08-25）。
+
+     ★ここでも数えない。pv_give_progress() が返した整数と真偽を、そのまま setProgress へ渡す。
+     ★引くのは押されたときだけ・1度きり。ページを開いただけでは1回も投げない
+       （設定ページを開くだけで通信が増えない）。
+     ★既に渡されている画面（REAL PAY・空のマイレポート）では引かない。
+     ★失敗・未ログイン・関数がまだ無い → 黙って「準備中」のまま。0 を置いて埋めない。
+     ★クライアントは他画面と同じく、別の <script> が宣言した const sb を try で拾う
+       （actual-pay.js と同じ書き方）。押されたときなので読み込み順に左右されない。 */
+  var asked = false;
+
+  function askProgress() {
+    if (asked || deepN() !== null) return;
+    asked = true;
+    var client = null;
+    try { client = sb; } catch (e) { client = null; }
+    if (!client || typeof client.rpc !== 'function') return;
+    var q;
+    try { q = client.rpc('pv_give_progress'); } catch (e) { return; }
+    if (!q || typeof q.then !== 'function') return;
+    q.then(function (res) {
+      var v = res && res.data;
+      if (!v || v.ok !== true || typeof v.contributors !== 'number') return;
+      setProgress({ n: v.contributors, detailed: v.give ? v.give.detailed : null });
+    }, function () { /* 黙って「準備中」のまま */ });
+  }
+
   // ── 左メニューに錠前を出す ──────────────────────────────────
   function items() {
     return Array.prototype.slice.call(d.querySelectorAll('[data-mr-gate]'));
@@ -314,6 +349,9 @@
   }
 
   function openPanel(kind) {
+    /* ★ここだけが askProgress の入口。押されたときにしか通らない。
+         refreshGive() から呼び返されても asked が立っているので二度は投げない。 */
+    askProgress();
     closePanel();
     var main = d.querySelector('.mr-main');
     if (!main) return;
@@ -382,7 +420,8 @@
   w.PVGates = {
     /* 確かな値を持っている画面から呼ぶ（actual-pay.js / my-value.js）。 */
     mark: mark,
-    /* 同じ2つが pv_pay_rows() の stats.contributors と give.detailed を渡す。 */
+    /* 同じ2つが pv_pay_rows() の stats.contributors と give.detailed を渡す。
+       ★呼ばれない画面では、DEEP PAY を押した時に pv_give_progress() へ1回だけ聞く。 */
     setProgress: setProgress,
     /* ロック画面が同じ3段を描くために使う。 */
     giveGetHTML: giveGetHTML,

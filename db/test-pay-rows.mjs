@@ -1143,13 +1143,79 @@ console.log('\n▼ 12-g. ★本人が何を出したか（DEEP PAY の個人条�
 }
 
 // ════════════════════════════════════════════════════════════
+console.log('\n▼ 12-h. ★DEEP PAY の札を、左メニューを持つどの画面でも同じ数にする');
+// ════════════════════════════════════════════════════════════
+/* 左メニュー（マイレポート／REAL PAY／DEEP PAY／VERIFIED PAY／設定）は4画面に
+   同じものが出ていて、DEEP PAY を押すとどこでも同じ説明が開く。
+   ところが数を持っているのは pv_pay_rows() を引く2画面だけで、残りは
+   「準備中」のままだった＝**同じボタンなのに画面によって答えが違う**（2026-08-25）。
+
+   ではなぜ全画面で pv_pay_rows() を引かないか。
+   鍵を持つ人が引くと**一覧が丸ごと付いてくる**（あの関数の本体は行）。
+   pv_give_progress() は札に要る2つだけを返す口で、行を1つも作らない。
+
+   ★ここで見るのはただ1つ ── **一覧の数と札の数が必ず同じであること**。
+     数え方を書き写すと静かにずれるので、両方が pv_contributors() を呼ぶ形にしてある。 */
+{
+  const prog = async () => (await one(`select pv_give_progress() r`)).r;
+
+  // (a) 鍵を持つ人：一覧の数と札の数が1つも違わない
+  await asViewer();
+  const full = await payRows();
+  const p1 = await prog();
+  ok(p1 && p1.ok === true, '★札の口が返ってくる', JSON.stringify(p1));
+  ok(p1.contributors === full.stats.contributors,
+     '★札の人数が一覧の人数とぴったり同じ（数え方が1か所だから）',
+     `札 ${p1 && p1.contributors} / 一覧 ${full.stats.contributors}`);
+  ok(JSON.stringify(p1.give) === JSON.stringify(full.give),
+     '★本人が何を出したかも一覧と同じ答え', JSON.stringify(p1.give));
+
+  // (b) 鍵の無い人でも同じ。DEEP PAY の準備は REAL PAY を開ける前からできる。
+  await asUser(9001);
+  const lk = await payRows();
+  const p2 = await prog();
+  ok(p2 && p2.contributors === lk.stats.contributors,
+     '★鍵の無い人でも、札の人数は一覧の数え上げと同じ',
+     `札 ${p2 && p2.contributors} / 一覧 ${lk.stats.contributors}`);
+
+  // (c) 返るのは整数1つと真偽3つだけ。行も金額も日付も社名も入らない。
+  const keys = Object.keys(p2).sort().join(',');
+  ok(keys === 'contributors,give,ok', `★返るのは3つだけ（= ${keys}）`);
+  ok(Number.isInteger(p2.contributors), '　人数は整数', String(p2.contributors));
+  ok(Object.values(p2.give).every((v) => typeof v === 'boolean'),
+     '　本人の側は真偽だけ（数を混ぜていない）', JSON.stringify(p2.give));
+  const txt = JSON.stringify(p2);
+  ok(!/annual|usd|salary|airline|created|month|proof/i.test(txt),
+     '★札の返り値に 金額・社名・日付らしき語が1つも無い', txt.slice(0, 160));
+  ok(!/\d{4}-\d{2}-\d{2}/.test(txt), '　生の日付が1文字も入らない', txt.slice(0, 160));
+
+  // (d) ログインしていない人には何も返さない（0 を置いて埋めない）
+  await asAnon();
+  ok((await prog()) === null,
+     '★ログインしていない人には何も返さない（画面は「準備中」のまま）');
+
+  // (e) 入口の開き方。anon には渡さない・ログインした人には渡す。
+  ok(!(await one(`select has_function_privilege('anon','public.pv_give_progress()','execute') b`)).b,
+     '★登録していない人（anon）は札の口を呼べない');
+  ok((await one(`select has_function_privilege('authenticated','public.pv_give_progress()','execute') b`)).b,
+     'ログインした人は札の口を呼べる');
+
+  // (f) 人数の数え方そのものは、誰にも開いていない
+  ok(!(await one(`select has_function_privilege('anon','public.pv_contributors()','execute') b`)).b
+     && !(await one(`select has_function_privilege('authenticated','public.pv_contributors()','execute') b`)).b,
+     '★人数を数える関数は誰にも開いていない（security definer の中からだけ）');
+
+  await asViewer();
+}
+
+// ════════════════════════════════════════════════════════════
 console.log('\n▼ 13. 自己点検 SQL（ファイル末尾のものをそのまま流す）');
 // ════════════════════════════════════════════════════════════
 {
   const src = read('db/pay-rows.sql');
   const q = src.slice(src.lastIndexOf('with f as ('));
   const res = await rows(q);
-  ok(res.length === 40, `自己点検が40行ぜんぶ出る（= ${res.length}行）`);
+  ok(res.length === 43, `自己点検が43行ぜんぶ出る（= ${res.length}行）`);
   for (const row of res) {
     ok(row['結果'] === '✅', `${row['#']}. ${row['見るところ']}`);
   }

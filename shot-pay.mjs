@@ -195,6 +195,25 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
       if (ok !== true) console.log('  ⚠ 結果パネル: ' + ok);
       else { await new Promise((r) => setTimeout(r, 350)); await shoot(page, `${tag}-6-result`); }
       await page.close();
+
+      /* 7. DEEP PAY の説明から「給与内訳を追加する」で来たとき（#pay-detail）。
+            ★着いた瞬間に内訳の欄は出ない。段階表示が §1・§2 を先に求めるうえ、
+              飛んだ時間は前回の値を持ち越さないので、誰が来ても必ず §1 から。
+              ここでやっているのは「先に開いておく」ことなので、2枚で見る。
+              7a = 着地（入口の2択を越えてフォームの先頭に居る）
+              7b = §1・§2 を埋めて §3 が出たところ（もう開いた状態で現れる） */
+      const dp = await open(url + '#pay-detail', w, theme);
+      await shoot(dp, `${tag}-7a-detail-link`);
+      await put(dp, pick(SIMPLE, 'f-airline', 'f-position', 'f-fleet', 'f-jobrole', 'f-age'));
+      await put(dp, pick(SIMPLE, 'f-block', 'f-stay'));
+      await new Promise((r) => setTimeout(r, 350));
+      await shoot(dp, `${tag}-7b-detail-open`);
+      const arrived = await dp.evaluate(() => ({
+        open: document.getElementById('pay-detail').open,
+        base: document.getElementById('f-base').getBoundingClientRect().height > 0,
+      }));
+      console.log(`     #pay-detail: くわしく入れる=${arrived.open ? '開' : '閉'} / 内訳の欄=${arrived.base ? '出' : '—'}`);
+      await dp.close();
     }
   }
 }

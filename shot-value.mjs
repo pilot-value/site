@@ -31,6 +31,10 @@
    第6引数に open を付けると、撮らずに**見える窓で開いたまま**にする。
      node shot-value.mjs hand ja dark 1440 open
    自分の目で確かめたいとき用。窓を閉じると終わる。
+
+   gate を付けると、撮る前に左メニューの DEEP PAY を押して説明を出す。
+     node shot-value.mjs many ja dark 1440 gate
+   DEEP PAY の札（「N / 100人」）はここでしか画面に出ない。open と一緒にも書ける。
 */
 import puppeteer from 'puppeteer';
 import fs from 'fs';
@@ -45,7 +49,10 @@ const theme = process.argv[4] || 'dark';
    統計行が 4-up → 2-up に落ちるところは、幅を変えないと確かめられない。 */
 const vw    = Number(process.argv[5]) || 1440;
 // 第6引数 open ＝撮らずに見える窓で開いたままにする（自分の目で見る用）
-const open  = process.argv[6] === 'open';
+const open  = process.argv.includes('open');
+/* gate ＝撮る前に左メニューの DEEP PAY を押して説明を出す（札の「N / 100人」を見る用）。
+   ★ここでしか見えない。札は押して初めて出る要素の中にある。 */
+const gate  = process.argv.includes('gate');
 
 const dir = path.join(__dirname, 'temporary screenshots');
 if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
@@ -215,10 +222,11 @@ await page.evaluateOnNewDocument((scene, theme) => {
 
   /* ★鍵が無い人にも来る数え上げ（2026-08-25 オーナー判断）。
      ⚠️ 絵を見るための**見本**であって、本番の値そのものではない。
-        2026-08-25 に `node db/usage.mjs --all` の「REAL PAY の画面に出る数」を写した。
+        2026-08-26 に `node db/usage.mjs --all` の「REAL PAY の画面に出る数」を写した
+        （オーナーが動作確認ぶんを本番から消したあとの実測）。
         **腐る。** 写す前にもう一度その節を走らせること。
         分子を大きく作ると、本番に無い絵を見ることになる。 */
-  const ST_LOCK = { reports: 29, month: 25, airlines: 12, contributors: 21 };
+  const ST_LOCK = { reports: 27, month: 22, airlines: 12, contributors: 17 };
   const PAY_ROWS = {
     'empty-nostat': { ok: true, state: 'locked', rows: [] },
     'empty-ready':  { ok: true, state: 'locked', rows: [], stats: ST_LOCK,
@@ -241,6 +249,13 @@ await page.evaluateOnNewDocument((scene, theme) => {
     }),
     /* 1件も出していない人の画面だけが引く。件数・社数・直近1ヶ月ぶん・出した人数を返す。 */
     pv_pay_rows: () => PAY_ROWS,
+    /* ★札の口（2026-08-26）。数を渡されない画面 ── 給与を1件以上出した人の
+       マイレポート・設定・待遇アンケート ── で、DEEP PAY を押したときだけ引かれる。
+       ここは pv_pay_rows と同じ ST_LOCK を返す。**別の数を書かない**
+       （画面によって違う数が出る、まさにその壊れ方を絵で見逃す）。 */
+    pv_give_progress: () => ({
+      ok: true, contributors: ST_LOCK.contributors, give: PAY_ROWS.give
+    }),
     // 本番と同じく、オンにすると親（email_opt_in）も一緒に立てて返す
     set_mail_optin: (a) => {
       OPTIN.on = !!(a && a.p_on);
@@ -285,6 +300,16 @@ await page.evaluateOnNewDocument((scene, theme) => {
 
 await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
 await new Promise((r) => setTimeout(r, 2500));
+if (gate) {
+  const hit = await page.evaluate(() => {
+    const b = document.querySelector('[data-mr-gate="deep"]');
+    if (!b) return false;
+    b.click();
+    return true;
+  });
+  if (!hit) console.log('※ 左メニューに DEEP PAY のボタンが見つかりませんでした');
+  await new Promise((r) => setTimeout(r, 900));   // 押されてから1回だけ聞きに行く分
+}
 if (open) {
   console.log(`開きました（${scene} / ${lang} / ${theme}）。窓を閉じると終わります。`);
   /* ★ここを `browser.waitForTarget(() => false)` で待たない。

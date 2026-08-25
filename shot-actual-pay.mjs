@@ -80,10 +80,11 @@ const ST = (reports, month) => ({ reports: reports, month: month });
    行が1件も返らないので、社数もサーバーが数えて渡す。
    contributors ＝ 給与を出したユニークな人数（DEEP PAY の「N / 100人」の分子）。
    ⚠️ ここは絵を見るための**見本**であって、本番の値そのものではない。
-      2026-08-25 に `node db/usage.mjs --all` の「REAL PAY の画面に出る数」を写した。
+      2026-08-26 に `node db/usage.mjs --all` の「REAL PAY の画面に出る数」を写した
+      （オーナーが動作確認ぶんを本番から消したあとの実測）。
       **腐る。** 数字の当たりを見たいときは、写す前にもう一度その節を走らせる。
       分子を大きく作ると、本番に無い絵を見ることになる。 */
-const ST_LOCK = { reports: 29, month: 25, airlines: 12, contributors: 21 };
+const ST_LOCK = { reports: 27, month: 22, airlines: 12, contributors: 17 };
 
 /* ★いまの本番をそのまま写した13行（2026-08-23 に読んで確認した実測）。
    内訳は 本棚8人 ＋ 登録前の預かり5人。会社は7社。

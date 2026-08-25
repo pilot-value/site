@@ -2328,6 +2328,41 @@ $('entry-payslip').addEventListener('click', () => { track('pay_entry_payslip');
 $('entry-manual').addEventListener('click', () => { track('pay_entry_manual', { from: 'button' }); enterMode('manual'); $('f-airline').focus(); });
 $('ps-skip').addEventListener('click', () => { track('pay_entry_manual', { from: 'skip' }); enterMode('manual'); });
 
+/* ── Open "add the breakdown" when arriving at #pay-detail ───────
+   Comes from the "add the breakdown" link in the DEEP PAY panel
+   (DETAIL_URL in pv-gates.js).
+   ★While the two entry cards are up, the breakdown fields are not on screen yet
+     (form-body is hidden), so the link alone does nothing. Step into manual first.
+   ★Only opens it. The input-mode switch is not copied here
+     (.open = true fires toggle and updatePayMode above runs as it always does).
+   ★Also on hashchange — the link can be followed while already on this page. */
+function openDetailFromHash() {
+  if (location.hash !== '#pay-detail') return;
+  const dt = $('pay-detail');
+  if (!dt) return;
+  if (!$('entry').hidden) { track('pay_entry_manual', { from: 'detail' }); enterMode('manual'); }
+  dt.open = true;                    // toggle -> updatePayMode (not copied)
+  /* ★The breakdown fields are normally not on screen yet at this point.
+       The stepped form only reveals §3 once §1 (airline) and §2 (block hours) are
+       filled, and block hours are never carried over (they change every month).
+       So everyone who lands here starts at §1.
+     What we do here is open it ahead of time: by the time they reach it, it is
+     already expanded and gross has switched to the sum of the breakdown.
+     Scroll target: the breakdown if it is visible, otherwise the top of the form. */
+  const shown = (el) => !!el && el.getBoundingClientRect().height > 0;
+  const go = () => {
+    const b = $('f-base');
+    const to = shown(b) ? b : $('f-airline');
+    if (!shown(to)) return;
+    const box = shown(b) ? dt : to;
+    if (box.scrollIntoView) box.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    try { to.focus({ preventScroll: true }); } catch (e) { to.focus(); }
+  };
+  if (window.requestAnimationFrame) requestAnimationFrame(go); else setTimeout(go, 0);
+}
+openDetailFromHash();
+window.addEventListener('hashchange', openDetailFromHash);
+
 /* ── Optional fields fold into chips ──────────────────────────
    Ten permanently visible boxes read as "there is still all this". */
 // ★f-bonus came out of the chips (it is one of the five simple-form boxes: without
