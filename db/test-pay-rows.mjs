@@ -718,7 +718,7 @@ console.log('\n▼ 12-b. ★数え上げ（画面の上に並ぶ数字のうち�
 // ════════════════════════════════════════════════════════════
 /* 2026-08-24 オーナー判断で「本当の数字だけ出す」ことになった。
    画面の4枚のうち2枚（表の行数・会社数）は rows を数えれば出るので、
-   サーバが返すのは残り2つ（提出の件数・今月のぶん）だけ。
+   サーバが返すのは残り2つ（提出の件数・直近1ヶ月のぶん）だけ。
 
    ★いちばん大事なのは「行と同じ材料から数えていること」。
      別のところから数え直すと、画面に「126件」と出ているのに表が60行しかない
@@ -736,7 +736,7 @@ await asViewer();
   ok(s0.stats.reports - s0.rows.length >= 33,
      '　複数月を出した人のぶんだけ、件数のほうが多い（36件が3行に畳まれている）',
      `差 ${s0.stats.reports - s0.rows.length}`);
-  ok(s0.stats.month <= s0.stats.reports, '　今月のぶんは件数を超えない');
+  ok(s0.stats.month <= s0.stats.reports, '　直近1ヶ月のぶんは件数を超えない');
 
   const b = { r: s0.stats.reports, m: s0.stats.month, n: s0.rows.length };
 
@@ -746,7 +746,7 @@ await asViewer();
   let t = await payRows();
   ok(t.stats.reports === b.r + 1 && t.rows.length === b.n + 1,
      '1人が1件出すと 件数 +1・行 +1', `件数 ${t.stats.reports} / 行 ${t.rows.length}`);
-  ok(t.stats.month === b.m + 1, '　今月のぶんも +1', String(t.stats.month));
+  ok(t.stats.month === b.m + 1, '　直近1ヶ月のぶんも +1', String(t.stats.month));
 
   // ② 同じ人がもう1か月ぶん出す → 件数だけ +1（行は増えない）
   await asUser(U);
@@ -757,6 +757,17 @@ await asViewer();
   ok(t.stats.reports === b.r + 2 && t.rows.length === b.n + 1,
      '★同じ人がもう1か月出すと 件数だけ +1（行は増えない）',
      `件数 ${t.stats.reports} / 行 ${t.rows.length}`);
+
+  /* ②-b ★窓は「暦の月」ではなく「直近1ヶ月」（2026-08-25 オーナー指示）。
+        20日前に出した1件は、月の何日に走らせても必ず「直近1ヶ月」に入る。
+        date_trunc('month', now()) に戻すと、**毎月20日より前に走らせた日だけ**
+        この行が落ちてここが赤くなる（＝暦の月に戻したことに気づける）。 */
+  await db.query(`update pay_reports set created_at = now() - interval '20 days'
+                   where airline = $1 and period_month = 2`, [A_STAT]);
+  t = await payRows();
+  ok(t.stats.month === b.m + 2,
+     '★20日前の1件も「直近1ヶ月」に入る（暦の月で数えていない）',
+     `${t.stats.month} / 期待 ${b.m + 2}`);
 
   // ③ 打ち間違い（常識の幅の外）は、表からも件数からも落ちる
   await db.query(`update pay_reports set annual_total_usd = 0.75
@@ -771,7 +782,7 @@ await asViewer();
   t = await payRows();
   ok(t.stats.reports === b.r && t.rows.length === b.n,
      '★24ヶ月の窓の外は件数からも落ちる', `件数 ${t.stats.reports} / 行 ${t.rows.length}`);
-  ok(t.stats.month === b.m, '　今月のぶんにも入らない', String(t.stats.month));
+  ok(t.stats.month === b.m, '　直近1ヶ月のぶんにも入らない', String(t.stats.month));
 
   /* ⑤ 鍵が無い人に何が返るか。
         ★2026-08-25、オーナー判断でここが**反転した**。前は「数字も鍵の内側」として

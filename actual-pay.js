@@ -106,7 +106,7 @@
       age: ['1ヶ月以内', '3ヶ月以内', '6ヶ月以内', '1年以内', 'それより前'],
       stRep: '実給与の投稿',       stRepU: '件',
       stAir: '航空会社',           stAirU: '社',
-      stMon: '今月の新規投稿',     stMonU: '件',
+      stMon: '1ヶ月以内の新規投稿', stMonU: '件',
       foot: 'この一覧は、給与を出したパイロットだけが読めます。'
           + '載っているのは会社・職位・丸めた金額だけです'
           + '（月あたりはその金額を12で割った数字です）。'
@@ -149,7 +149,7 @@
             'Within a year', 'Over a year ago'],
       stRep: 'Pay records',      stRepU: '',
       stAir: 'Airlines',         stAirU: '',
-      stMon: 'Added this month', stMonU: '',
+      stMon: 'Added within 1 month', stMonU: '',
       foot: 'This list is readable only by pilots who have submitted their own pay. '
           + 'A row carries the airline, the position and a rounded figure '
           + '(the monthly column is that figure divided by twelve). '
@@ -309,7 +309,7 @@
 
   /* ══ 数え上げ（画面の上に並ぶ数字）═══════════════════════════════
      2026-08-24 オーナー判断で「本当の数字だけ出す」ことにした。
-     ★カードは**3枚**（実給与の投稿 / 航空会社 / 今月の新規投稿）。
+     ★カードは**3枚**（実給与の投稿 / 航空会社 / 1ヶ月以内の新規投稿）。
        ★2026-08-24、オーナー判断で「一覧のパイロット」の枚を外した。
          行数は表の下のページ送り（全N件中…）が言っているので二度言わない。
      ★1枚は rows を数えるだけ（新しく出て行くものはゼロ）。
@@ -330,7 +330,7 @@
     // 地球（＝航空会社の広がり）
     air: '<circle cx="10" cy="10" r="7.25"/><path d="M2.75 10h14.5"/>'
        + '<path d="M10 2.75c1.9 2 2.9 4.55 2.9 7.25S11.9 15.25 10 17.25C8.1 15.25 7.1 12.7 7.1 10S8.1 4.75 10 2.75Z"/>',
-    // 右肩上がり（＝今月の増え方）
+    // 右肩上がり（＝直近1ヶ月の増え方）
     mon: '<path d="M3 15.25 8 10l3 3 5.25-6.25"/><path d="M12.25 6.75h4.25V11"/>'
   };
 

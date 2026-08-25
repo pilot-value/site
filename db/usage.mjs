@@ -10,8 +10,11 @@
    毎回同じクエリを書き直すのも無駄なので、数え方をここに固定する。
 
    ── 設計上の約束 ──────────────────────────────────────────────
-   1. **読むだけ。** GET しか投げない。ファイルを1つも書かない。
+   1. **読むだけ。** ファイルを1つも書かない。
       RESEND_API_KEY を読まない＝メールを送る道を最初から持たない。
+      投げるのは GET と、**読み取り専用の関数を呼ぶ POST だけ**。
+      後者は /rest/v1/rpc/… で、呼べる関数名を下の RPC_READONLY に**列挙**してある
+      （表への POST は書き込みになるので、この道からは投げられない）。
    2. **テスト用アカウントを除外して数える。** 除外リストは mail-bot/.env に置く
       （このリポジトリは PUBLIC。実在のメールアドレスをコミットしない）。
       未設定なら黙って全部を実績にせず、冒頭で警告する。
@@ -123,6 +126,22 @@ async function rest(table, query) {
   if (!res.ok) throw new Error(`${table} ${res.status} ${(await res.text()).slice(0, 160)}`);
   return res.json();
 }
+/* ── 読み取り専用の関数を呼ぶ（約束1）───────────────────────────
+   なぜ POST が要るか。REAL PAY の画面に出る数を確かめるには、金額の出し方を
+   知っている必要がある。それを**ここに書き写すと本物からずれる**（預かりの
+   年換算は住居手当や時間給まで見る長い式で、db/pay-reports.sql が正）。
+   だから式は書かず、DB にある本物の関数をそのまま呼ぶ。どれも stable＝読むだけ。
+   ★呼べる名前をここに列挙する。表への POST（＝書き込み）はこの道を通らない。 */
+const RPC_READONLY = new Set(['pv_pending_usd', 'pv_airline_resolve']);
+async function rpcRead(fn, args) {
+  if (!RPC_READONLY.has(fn)) throw new Error(`rpcRead: ${fn} は読み取り専用の一覧にありません`);
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+    method: 'POST', headers: { ...H, 'Content-Type': 'application/json' }, body: JSON.stringify(args),
+  });
+  if (!res.ok) throw new Error(`${fn} ${res.status} ${(await res.text()).slice(0, 160)}`);
+  return res.json();
+}
+
 /* auth.users は REST に出ないので Admin API。1000人を超えたら頁を送る。 */
 async function authUsers() {
   const out = [];
@@ -145,7 +164,11 @@ async function authUsers() {
      口コミ        sha256(uid || '::pv_anon::' || airline || '::2026')
                    … submit-review.html:1374-1378（airline は「その他」なら自由入力の社名）
    ★口コミは航空会社コードを付け替えた移行（db/migrate-airline-codes.sql）より前の行だと
-     hash が旧コードのままなので一致しない。古い自分の投稿は落としきれないことがある。 */
+     hash が旧コードのままなので一致しない。古い自分の投稿は落としきれないことがある。
+   ⚠️ 下の「3-c」も同じ写し取りをしている。あちらは db/pay-rows.sql の
+      数え方（sane / person / tally / airs / contrib）を写している。
+      **pay-rows.sql の数え方を変えたら 3-c も直す**（金額の出し方は写していない。
+      本物の関数を呼んでいる＝上の rpcRead）。 */
 const payHash = (uid, airline, other) =>
   createHash('sha256')
     .update(`${uid}::pv_pay::${airline}${other ? '::' + String(other).toLowerCase() : ''}`)
@@ -404,6 +427,154 @@ async function foundingReport(users, testIds, real) {
     /* まだ SQL を流していないだけなら、それと分かる形で出す（エラーに見せない）。 */
     if (/\b404\b|PGRST205|does not exist/i.test(e.message)) {
       line('まだ置き場がありません', 'db/pay-report-pending.sql を Supabase で流すと出ます');
+    } else line('取得できず', e.message);
+  }
+
+  /* ── 3-c. REAL PAY の画面に出る数 ───────────────────────────
+     2026-08-25、オーナーから「実際の値、違くない？ 本当に14人しか居ないの？」。
+     そのとおりで、見本は手で書き写した古い値だった。**確かめる先が無かった**のが
+     本当の問題なので、ここに置く。本番の画面（actual-pay.html / my-value.html）の
+     カードに出るはずの数を、同じ材料・同じ数え方で出す。
+
+     ⚠️ 数え方は db/pay-rows.sql（pv_pay_rows）を**手で写している**。
+        あちらを変えたらここも直す。写しているのは「どれを数に入れるか」だけで、
+        金額の出し方は写していない（本物の関数を呼ぶ。上の rpcRead）。
+     ⚠️ 画面は**ログインした本人**として関数を呼ぶ。ここはサービスキーなので同じ
+        呼び方ができない（pv_pay_rows はログインを求めて 42501 を返す）。だから写す。
+
+     材料は3つ。db/pay-rows.sql の 本棚 / 預かり / 口コミ由来 と同じ。 */
+  console.log('');
+  console.log('■ REAL PAY の画面に出る数（3枚のカード ＋ DEEP PAY の分子）');
+  try {
+    /* Postgres の now() - interval 'N months' は**暦の月**を引く（月末は繰り上がらず
+       その月の末日に丸まる）。30日で引くと境目が数日ずれて件数が食い違うので、
+       同じ引き方をする。 */
+    const monthsAgo = (n) => {
+      const d = new Date();
+      const day = d.getDate();
+      d.setDate(1);
+      d.setMonth(d.getMonth() - n);
+      d.setDate(Math.min(day, new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()));
+      return d.toISOString();
+    };
+    const MONTHS24 = monthsAgo(24);
+    const MONTH1 = monthsAgo(1);
+    const [prAll, pdAll, rvAll, vocab, poss, fx, links] = await Promise.all([
+      rest('pay_reports', 'select=created_at,airline,airline_other,position,annual_total_usd,proof_hash&limit=5000'),
+      rest('pay_reports_pending', 'select=created_at,claimed_at,airline,ip_day_hash,payload&limit=5000'),
+      rest('reviews_v2', 'select=id,created_at,airline,position,proof_hash,annual_salary,base_annual,flight_allowance_annual,monthly_salary,bonus&limit=5000'),
+      rest('pv_airlines', 'select=code&limit=500'),
+      rest('pv_positions', 'select=code&limit=100'),
+      rest('fx_rates', 'select=to_usd&code=eq.JPY'),
+      rest('pv_review_person', 'select=review_id,pkey&limit=5000'),
+    ]);
+    const codes = new Set(vocab.map((a) => a.code));
+    const posOk = new Set(poss.map((p) => p.code));
+    const jpy = fx[0] ? Number(fx[0].to_usd) : null;
+
+    /* 打ち込まれた社名は本物の関数に当ててもらう（同じ文字列は1回だけ聞く）。 */
+    const resolved = new Map();
+    const resolve = async (typed) => {
+      const k = String(typed ?? '');
+      if (!resolved.has(k)) resolved.set(k, await rpcRead('pv_airline_resolve', { p_typed: k }));
+      return resolved.get(k);
+    };
+
+    /* テストアカウントの投稿を見分ける（上の2・3節と同じ写し取り）。
+       ★預かりだけは持ち主が分からない（ip_day_hash しか無い）。 */
+    const testPay = new Set(), testRv = new Set();
+    for (const id of testIds) {
+      for (const r of prAll) testPay.add(payHash(id, r.airline, r.airline_other));
+      for (const r of rvAll) testRv.add(reviewHash(id, r.airline));
+    }
+
+    const src = [];                          // { pkey, airline, pos, usd, cat, from, test }
+    /* ① 本棚（会員が出したぶん） */
+    const shelfKeys = new Set();
+    for (const r of prAll) {
+      if (r.annual_total_usd == null || r.created_at < MONTHS24) continue;
+      shelfKeys.add('r:' + r.proof_hash);
+      src.push({
+        pkey: 'r:' + r.proof_hash,
+        airline: r.airline === 'other' ? await resolve(r.airline_other) : r.airline,
+        pos: r.position, usd: Number(r.annual_total_usd), cat: r.created_at,
+        from: 'shelf', test: testPay.has(r.proof_hash),
+      });
+    }
+    /* ② 預かり（まだ本棚に移っていないぶんだけ） */
+    for (const q of pdAll) {
+      if (q.claimed_at || !q.ip_day_hash || q.created_at < MONTHS24 || !codes.has(q.airline)) continue;
+      const usd = await rpcRead('pv_pending_usd', { p: q.payload });
+      src.push({
+        pkey: 'p:' + q.ip_day_hash,
+        airline: q.airline === 'other' ? await resolve(q.payload && q.payload.airline_other) : q.airline,
+        pos: q.payload && q.payload.position, usd: usd == null ? null : Number(usd), cat: q.created_at,
+        from: 'pending', test: null,         // 誰の分か切り分けられない
+      });
+    }
+    /* ③ 昔の口コミに書かれた給与。金額の順は口コミカードと1文字も違えない
+       （総額 ＞ 基本給＋乗務手当＋賞与 ＞ 月給×12＋賞与。0 は「入っていない」と読む）。 */
+    const linkBy = Object.fromEntries(links.map((l) => [l.review_id, l.pkey]));
+    const POS = { captain: 'cap', sfo: 'fo', tri_tre: 'cap' };
+    const nz = (x) => (Number(x) || 0) || null;
+    for (const v of rvAll) {
+      const pkey = linkBy[v.id];
+      if (!pkey || v.created_at < MONTHS24 || shelfKeys.has(pkey)) continue;
+      const pos = POS[v.position] ?? v.position;
+      if (!posOk.has(pos)) continue;
+      const man = nz(v.annual_salary)
+        ?? ((nz(v.base_annual) || nz(v.flight_allowance_annual))
+              ? (Number(v.base_annual) || 0) + (Number(v.flight_allowance_annual) || 0) + (Number(v.bonus) || 0)
+              : null)
+        ?? (nz(v.monthly_salary) ? Number(v.monthly_salary) * 12 + (Number(v.bonus) || 0) : null);
+      if (man == null || jpy == null) continue;
+      src.push({
+        pkey, airline: await resolve(v.airline), pos,
+        usd: Math.round(man * 10000 * jpy * 100) / 100, cat: v.created_at,
+        from: 'review', test: testRv.has(v.proof_hash),
+      });
+    }
+
+    /* 常識の幅（⑦）。打ち間違いだけを落とす。 */
+    const sane = src.filter((r) => r.usd != null && r.usd >= 10000 && r.usd <= 700000);
+    const dropped = src.length - sane.length;
+
+    /* 1行＝1人。社数はここから数える（＝表に実際に出てくる会社）。 */
+    const seen = new Set();
+    for (const r of sane) seen.add([r.pkey, r.airline, r.pos].join(' '));
+    const airlines = new Set(sane.map((r) => r.airline));
+
+    /* 出したパイロット（DEEP PAY の分子）。★ここだけ sane から数えない。 */
+    const contribReal = new Set(), contribTest = new Set();
+    for (const r of prAll) (testPay.has(r.proof_hash) ? contribTest : contribReal).add(r.proof_hash);
+    const pendPeople = new Set(pdAll.filter((q) => !q.claimed_at && q.ip_day_hash).map((q) => q.ip_day_hash));
+
+    const inMonth = sane.filter((r) => r.cat >= MONTH1);
+    const mine = (list) => list.filter((r) => r.test === true).length;
+    const both = (list, unit) => {
+      const my = mine(list);
+      return my ? `　（うちあなたの動作確認 ${my}${unit} → 素の値 ${list.length - my}${unit}）` : '';
+    };
+
+    line('実給与の投稿', `${sane.length}件`, both(sane, '件'));
+    line('航空会社', `${airlines.size}社`);
+    line('1ヶ月以内の新規投稿', `${inMonth.length}件`, both(inMonth, '件'));
+    const contribAll = contribReal.size + contribTest.size + pendPeople.size;
+    line('出したパイロット', `${contribAll}人`, contribTest.size
+      ? `　（うちあなたの動作確認 ${contribTest.size}人 → 素の値 ${contribAll - contribTest.size}人）` : '');
+
+    console.log('   ── 材料の内訳（上の「実給与の投稿」の中身）');
+    const FROM = [['shelf', '本棚（会員が出した）'], ['pending', '預かり（登録前）'], ['review', '昔の口コミの給与']];
+    for (const [k, label] of FROM) line('  ' + label, `${sane.filter((r) => r.from === k).length}件`);
+    if (dropped) line('  常識の幅で落とした', `${dropped}件`, '　（年 $10,000〜$700,000 の外＝打ち間違い）');
+    if (pendPeople.size) {
+      console.log(`   ※ 「出したパイロット」に入っている預かり ${pendPeople.size}人ぶんは、誰の分か切り分けられません。`);
+    }
+    console.log('   ※ 画面にこの数が出るのは db/pay-rows.sql を Supabase に貼ったあとです');
+    console.log('      （貼るまでカードは1枚も出ません。0 を並べない作りにしてあります）。');
+  } catch (e) {
+    if (/\b404\b|PGRST205|PGRST202|does not exist/i.test(e.message)) {
+      line('まだ数えられません', 'db/pay-rows.sql を Supabase で流すと出ます');
     } else line('取得できず', e.message);
   }
 

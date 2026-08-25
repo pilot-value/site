@@ -214,9 +214,11 @@ await page.evaluateOnNewDocument((scene, theme) => {
   const OPTIN = { on: scene === 'many' || scene === 'new' };
 
   /* ★鍵が無い人にも来る数え上げ（2026-08-25 オーナー判断）。
-     いまの本番の実測（13行 / 7社 / 出した人は14人。2026-08-25 に db/usage.mjs で確認）にそろえてある。
-     分子を大きく作ると、本番に無い絵を見ることになる。 */
-  const ST_LOCK = { reports: 13, month: 4, airlines: 7, contributors: 14 };
+     ⚠️ 絵を見るための**見本**であって、本番の値そのものではない。
+        2026-08-25 に `node db/usage.mjs --all` の「REAL PAY の画面に出る数」を写した。
+        **腐る。** 写す前にもう一度その節を走らせること。
+        分子を大きく作ると、本番に無い絵を見ることになる。 */
+  const ST_LOCK = { reports: 29, month: 25, airlines: 12, contributors: 21 };
   const PAY_ROWS = {
     'empty-nostat': { ok: true, state: 'locked', rows: [] },
     'empty-ready':  { ok: true, state: 'locked', rows: [], stats: ST_LOCK,
@@ -237,7 +239,7 @@ await page.evaluateOnNewDocument((scene, theme) => {
       mail_optin: OPTIN.on, email_opt_in: OPTIN.on,
       pay_day_of_month: 5
     }),
-    /* 1件も出していない人の画面だけが引く。件数・社数・今月ぶん・出した人数を返す。 */
+    /* 1件も出していない人の画面だけが引く。件数・社数・直近1ヶ月ぶん・出した人数を返す。 */
     pv_pay_rows: () => PAY_ROWS,
     // 本番と同じく、オンにすると親（email_opt_in）も一緒に立てて返す
     set_mail_optin: (a) => {

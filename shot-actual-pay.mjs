@@ -67,17 +67,23 @@ const R = (air, pos, usd, vf, age) => ({
   airline: air, pos: pos, annual_usd: usd, verified: !!vf, age: age || 0 });
 
 /* 数え上げ。★サーバ（pv_pay_rows）の stats と同じ形。
-   reports ＝ 提出の件数（同じ人の複数月もそれぞれ1件）、month ＝ 今月に入った件数。
+   reports ＝ 提出の件数（同じ人の複数月もそれぞれ1件）、month ＝ 直近1ヶ月に入った件数。
    ⚠️ 必ず reports ≧ 行数。ここを行数より小さくすると、
-      「126件なのに表は60行」の逆＝説明のつかない絵になる。 */
+      「126件なのに表は60行」の逆＝説明のつかない絵になる。
+   ⚠️ **month ≧ 段0（「1ヶ月以内」）の行数**（2026-08-25）。カードの窓と表のいちばん右の
+      段0は同じ境目（now() - interval '1 month'）なので、month を段0の行数より小さくすると
+      「1ヶ月以内 4件」と書いてある下に「1ヶ月以内」の行が10本並ぶ絵になる。
+      本番ではありえない形なので、見本でも作らない。 */
 const ST = (reports, month) => ({ reports: reports, month: month });
 
 /* ★鍵が無い人にも来る数え上げ（2026-08-25 オーナー判断）。
    行が1件も返らないので、社数もサーバーが数えて渡す。
    contributors ＝ 給与を出したユニークな人数（DEEP PAY の「N / 100人」の分子）。
-   ⚠️ ここは**いまの本番の実測**（13行 / 7社 / 出した人は14人。2026-08-25 に db/usage.mjs で確認）に合わせてある。
+   ⚠️ ここは絵を見るための**見本**であって、本番の値そのものではない。
+      2026-08-25 に `node db/usage.mjs --all` の「REAL PAY の画面に出る数」を写した。
+      **腐る。** 数字の当たりを見たいときは、写す前にもう一度その節を走らせる。
       分子を大きく作ると、本番に無い絵を見ることになる。 */
-const ST_LOCK = { reports: 13, month: 4, airlines: 7, contributors: 14 };
+const ST_LOCK = { reports: 29, month: 25, airlines: 12, contributors: 21 };
 
 /* ★いまの本番をそのまま写した13行（2026-08-23 に読んで確認した実測）。
    内訳は 本棚8人 ＋ 登録前の預かり5人。会社は7社。
@@ -181,10 +187,10 @@ const SCENES = {
                            give: { basic: true, detailed: true, payslip: false } },
                     gate: 'deep' },
   empty:  { pay: { ok: true, state: 'open', rows: [], stats: ST(0, 0) } },
-  rows:   { pay: { ok: true, state: 'open', rows: ROWS,   stats: ST(17, 4) } },
+  rows:   { pay: { ok: true, state: 'open', rows: ROWS,   stats: ST(17, 13) } },
   /* ★口コミ由来の7人が混ざった状態。行が13→20に増える。
      口コミのほうが古いので、下のほうに「6ヶ月以内」が並ぶ。 */
-  merged: { pay: { ok: true, state: 'open', rows: MERGED, stats: ST(24, 4) } },
+  merged: { pay: { ok: true, state: 'open', rows: MERGED, stats: ST(24, 13) } },
   many:   { pay: { ok: true, state: 'open', rows: MANY, stats: ST(58, 11) } },
   picked: { pay: { ok: true, state: 'open', rows: MANY, stats: ST(58, 11) }, pick: 'ana' },
   find:   { pay: { ok: true, state: 'open', rows: MANY, stats: ST(58, 11) }, q: 'jal' },

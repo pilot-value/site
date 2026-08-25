@@ -253,7 +253,7 @@
       eBandC: 'REAL PAY を見る →',
       eStRep: '実給与の投稿', eStRepU: '件',
       eStAir: '航空会社',     eStAirU: '社',
-      eStMon: '今月の新規投稿', eStMonU: '件',
+      eStMon: '1ヶ月以内の新規投稿', eStMonU: '件',
       eAddT: '給与を追加する',
       eRec: 'おすすめ',
       eWay1T: '匿名で手入力',
@@ -439,7 +439,7 @@
       eBandC: 'See REAL PAY →',
       eStRep: 'Pay records',      eStRepU: '',
       eStAir: 'Airlines',         eStAirU: '',
-      eStMon: 'Added this month', eStMonU: '',
+      eStMon: 'Added within 1 month', eStMonU: '',
       eAddT: 'Add your pay',
       eRec: 'Recommended',
       eWay1T: 'Type it in anonymously',
@@ -1316,7 +1316,7 @@
   }
 
   /* ══ まだ給与を1件も出していない人の画面 ═══════════════════════
-     ★ここで数字を作らない。件数・社数・今月ぶんは pv_pay_rows() の数え上げ
+     ★ここで数字を作らない。件数・社数・直近1ヶ月ぶんは pv_pay_rows() の数え上げ
        （state.pay.stats）からしか来ない。読めなかったカードは、そのカードごと出さない
        ── 0 を並べると「誰も出していない」という嘘の数字になる（REAL PAY と同じ決まり）。
      ★見出し・ボタンにカッコの注記を足さない（2026-08-25 オーナー指摘）。
@@ -1619,7 +1619,7 @@
       if (!state.bench || !state.bench.cells.length) state.pub = await loadPub(last);
     } else {
       /* ★まだ1件も出していない人のときだけ、数え上げを取りに行く。
-           pv_pay_rows() は鍵が無くても stats（件数・社数・今月ぶん・出した人数）と
+           pv_pay_rows() は鍵が無くても stats（件数・社数・直近1ヶ月ぶん・出した人数）と
            give（本人が何を出したか）を返す。行は 1 件も返らない。
          ★出した人には引かない。この画面は行を必要としないのに、
            鍵を持つ人には全行が付いてくるため。 */
