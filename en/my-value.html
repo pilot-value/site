@@ -111,6 +111,7 @@
     <!-- ★ patch-side-nav.mjs writes these four entries into every page. Never add one by hand
          (assert-pay-rows.mjs checks all pages match, per language).
          Below 1000px the sidebar becomes a single horizontal row instead (no vertical cost). -->
+    <div class="mr-col">
     <nav class="mr-side" aria-label="My page">
       <a class="mr-side-a is-on" href="my-value.html" aria-current="page">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
@@ -140,6 +141,16 @@
       </a>
       <p class="mr-side-note">We never collect your name or staff number.</p>
     </nav>
+    <!-- ★プライバシーの札は <nav class="mr-side"> の **外**。
+         nav の中は patch-side-nav.mjs が8枚へ配っていて、1バイトでも食い違うと
+         assert-pay-rows.mjs が落ちる。この札を持つのはマイレポート日英の2枚だけ。 -->
+    <aside class="mv-priv">
+      <span class="mv-priv-i" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 21s7.5-3.7 7.5-9.4V5.4L12 2.6 4.5 5.4v6.2C4.5 17.3 12 21 12 21Z"/><path d="m9 12 2 2 4-4"/></svg></span>
+      <p class="mv-priv-t">Privacy comes first</p>
+      <p class="mv-priv-s">Your name, staff number and email are never published. Images are not stored, and nothing that identifies you is collected.</p>
+      <a class="mv-priv-a" href="privacy-pilot.html">How it works →</a>
+    </aside>
+    </div>
 
     <main class="mr-main">
       <!-- The report itself (my-value.js draws the contents).

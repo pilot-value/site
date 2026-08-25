@@ -54,6 +54,30 @@
           display:grid;grid-template-columns:208px minmax(0,1fr);gap:36px;align-items:start}
 
 .mr-side{position:sticky;top:84px;display:flex;flex-direction:column;gap:2px}
+
+/* ★マイレポートだけ、サイドバーの下にプライバシーの札を置く（オーナーの画像どおり）。
+     札は <nav class="mr-side"> の **外** ── nav の中は patch-side-nav.mjs が8枚へ配っていて、
+     1バイトでも食い違うと assert-pay-rows.mjs が落ちる。
+     札を持つのはマイレポート日英の2枚だけで、ほかの6枚は今までどおり nav の中の1行のまま。 */
+.mr-col{position:sticky;top:84px;display:flex;flex-direction:column;gap:16px}
+.mr-col .mr-side{position:static;top:auto}
+/* 同じことを2度言わない。札があるページでは nav の中の1行を出さない。 */
+.mr-col .mr-side-note{display:none}
+.mv-priv{padding:16px;border-radius:var(--pv-r);background:var(--pv-surface);
+         border:1px solid var(--pv-line);box-shadow:var(--pv-shadow)}
+/* 緑＝信頼（ブランドの決まり）。押せるものだけを橙にする。 */
+.mv-priv-i{display:inline-flex;align-items:center;justify-content:center;
+           width:34px;height:34px;border-radius:50%;
+           background:var(--pv-green-soft);color:var(--pv-green-ink)}
+.mv-priv-t{margin:10px 0 0;font-size:.82rem;font-weight:800;letter-spacing:-.01em;
+           line-height:1.5;color:var(--pv-ink)}
+.mv-priv-s{margin:6px 0 0;font-size:.72rem;line-height:1.75;color:var(--pv-ink-3)}
+.mv-priv-a{display:inline-block;margin-top:10px;font-size:.74rem;font-weight:800;
+           color:var(--pv-orange-ink);text-decoration:none;
+           border-bottom:1px solid transparent;
+           transition:border-color .18s var(--pv-ease),color .18s var(--pv-ease)}
+.mv-priv-a:hover{border-bottom-color:currentColor}
+.mv-priv-a:focus-visible{outline:2px solid var(--pv-orange);outline-offset:3px;border-radius:4px}
 .mr-side-a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--pv-r-sm);
            color:var(--pv-ink-2);text-decoration:none;font-size:.84rem;font-weight:600;
            border:1px solid transparent;
@@ -112,6 +136,41 @@
 .mr-gate-cta:hover{opacity:.92;box-shadow:0 10px 24px -12px rgba(249,115,22,.85)}
 .mr-gate-cta:focus-visible{outline:2px solid var(--pv-orange);outline-offset:3px}
 .mr-gate-cta:active{transform:scale(.98)}
+
+/* ── DEEP PAY の進み具合（パネルの中だけ）────────────────────
+   ★条件は2つで、別々に書く（100人 ／ 本人の内訳）。混ぜると
+     「100人そろえば誰でも見られる」とも読めてしまう。
+   ★数はサーバから来たときだけ描く。0 を置いて埋めない。 */
+.mr-gate-goal{display:flex;align-items:baseline;gap:10px;margin-top:18px;
+              padding:14px 16px;border-radius:var(--pv-r-sm);
+              background:var(--pv-orange-soft)}
+.mr-gate-goal-k{font-size:.68rem;font-weight:800;letter-spacing:.08em;
+                text-transform:uppercase;color:var(--pv-orange-ink)}
+.mr-gate-goal-n{margin-left:auto;font-size:1.45rem;font-weight:800;
+                letter-spacing:-.03em;line-height:1;color:var(--pv-ink);
+                font-variant-numeric:tabular-nums}
+.mr-gate-goal-u{font-size:.64rem;font-weight:700;letter-spacing:.08em;
+                color:var(--pv-ink-3)}
+.mr-gate-left{margin-top:10px;font-size:.79rem;line-height:1.7;color:var(--pv-ink-2)}
+/* 済んでいる人には緑（積み上がるもの・信頼）。先に出した人が損に見えないための1行。 */
+.mr-gate-ok{display:inline-flex;align-items:center;margin-top:10px;padding:6px 12px;
+            border-radius:999px;background:var(--pv-green-soft);
+            border:1px solid var(--pv-green-line);
+            font-size:.76rem;font-weight:700;color:var(--pv-green-ink)}
+.mr-gate-need{margin-top:10px;font-size:.79rem;line-height:1.7;color:var(--pv-ink-2)}
+/* 招待は二番手の押しどころ（枠だけ）。橙の実塗りは1画面に1つに保つ。 */
+.mr-gate-inv{display:inline-flex;align-items:center;margin-top:12px;margin-left:10px;
+             padding:10px 18px;border-radius:999px;background:none;
+             border:1px solid var(--pv-line);color:var(--pv-ink-2);
+             text-decoration:none;font-size:.8rem;font-weight:700;
+             transition:border-color .18s var(--pv-ease),color .18s var(--pv-ease),
+                        transform .18s var(--pv-ease)}
+.mr-gate-inv:hover{border-color:var(--pv-orange);color:var(--pv-orange-ink)}
+.mr-gate-inv:focus-visible{outline:2px solid var(--pv-orange);outline-offset:3px}
+.mr-gate-inv:active{transform:scale(.98)}
+/* 「あと何人」の段だけ、札を数字として読ませる（準備中のグレーより一段はっきり） */
+.pv-give-r.is-goal .pv-give-p{background:var(--pv-orange-soft);color:var(--pv-orange-ink);
+                              font-variant-numeric:tabular-nums}
 
 /* Give → Get の3段。ロック画面（actual-pay.js）とパネルで同じ部品を使う。 */
 /* ★列は**見出しも含めた4段全部で共有する**。見出しだけ別の grid にすると、
@@ -174,8 +233,8 @@
   .pv-give-ar{display:none}
 }
 @media (prefers-reduced-motion:reduce){
-  .mr-gate-x,.mr-gate-cta{transition:none}
-  .mr-gate-x:active,.mr-gate-cta:active{transform:none}
+  .mr-gate-x,.mr-gate-cta,.mr-gate-inv{transition:none}
+  .mr-gate-x:active,.mr-gate-cta:active,.mr-gate-inv:active{transform:none}
 }
 .mr-side-note{margin-top:14px;padding:0 12px;font-size:.68rem;line-height:1.65;color:var(--pv-ink-3)}
 
@@ -581,6 +640,112 @@
 #pv-value .pt-sw.on{background:#c2410c}
 #pv-value .pt-sw:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}
 
+/* ══ 4b) まだ給与を出していない人の画面 ═════════════════════════
+   my-value.js の renderEmpty() が描く。会員登録だけ／口コミだけの人が最初に見る面。
+   ★ここに「ぼかし」を書かない。まだ何も出していないだけで、隠しているものは無い。
+   ★青（--pv-blue-*）はこの画面では使ってよい。「推定の青」を禁じているのは
+     REAL PAY の画面（actual-pay.*）だけ ── ここでは明細の入口の色として使う。 */
+
+#pv-value .mv-e-h{font-size:1rem;font-weight:800;letter-spacing:-.02em;line-height:1.5;margin:0}
+#pv-value .mv-e-s{margin:0;font-size:.82rem;color:var(--pv-ink-2);line-height:1.75}
+
+/* ① あなたの給与レポート ─────────────────────────────────── */
+#pv-value .mv-e-rep{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);
+  gap:22px;align-items:start;
+  background:linear-gradient(148deg,var(--pv-orange-soft) 0%,transparent 58%),var(--pv-surface)}
+#pv-value .mv-e-rep-b{min-width:0}
+#pv-value .mv-e-rep-hd{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+#pv-value .mv-e-ic{flex:0 0 auto;width:42px;height:42px;border-radius:50%;
+  display:inline-flex;align-items:center;justify-content:center;
+  background:var(--pv-orange-soft);color:var(--pv-orange-ink)}
+#pv-value .mv-e-badge{display:inline-flex;align-items:center;padding:3px 9px;
+  border-radius:999px;font-size:.68rem;font-weight:800;letter-spacing:.03em;
+  background:var(--pv-line-soft);color:var(--pv-ink-3);border:1px solid var(--pv-line)}
+#pv-value .mv-e-badge.is-rec{background:var(--pv-orange);color:#fff;border-color:transparent}
+#pv-value .mv-e-rep-t{margin:14px 0 6px;font-size:.94rem;font-weight:800;
+  letter-spacing:-.01em;color:var(--pv-ink)}
+#pv-value .mv-e-rep .pt-btn{margin-top:16px}
+
+#pv-value .mv-e-know{min-width:0;padding:16px 18px;border-radius:var(--pv-r);
+  background:var(--pv-line-soft);border:1px solid var(--pv-line)}
+#pv-value .mv-e-know-t{font-size:.74rem;font-weight:800;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--pv-ink-3)}
+#pv-value .mv-e-know-l{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:9px}
+#pv-value .mv-e-know-l li{position:relative;padding-left:22px;font-size:.8rem;
+  line-height:1.65;color:var(--pv-ink)}
+/* ✓ は文字ではなく罫線を回して作る（フォントに依存しない） */
+#pv-value .mv-e-know-l li::before{content:'';position:absolute;left:3px;top:.42em;
+  width:9px;height:5px;border-left:2px solid var(--pv-orange);
+  border-bottom:2px solid var(--pv-orange);transform:rotate(-45deg)}
+#pv-value .mv-e-know-n{margin:14px 0 0;padding-top:12px;border-top:1px solid var(--pv-line);
+  font-size:.72rem;line-height:1.7;color:var(--pv-ink-3)}
+
+/* ② 解放の帯と数字カード ─────────────────────────────────── */
+#pv-value .mv-e-band{margin-top:var(--pv-s-3);
+  background:linear-gradient(140deg,var(--pv-orange-soft) 0%,transparent 70%),var(--pv-surface);
+  border-color:rgba(249,115,22,.3)}
+#pv-value .mv-e-band-hd{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+#pv-value .mv-e-band-b{flex:1 1 260px;min-width:0}
+#pv-value .mv-e-lk{flex:0 0 auto;width:34px;height:34px;border-radius:50%;
+  display:inline-flex;align-items:center;justify-content:center;
+  background:var(--pv-orange);color:#fff}
+#pv-value .mv-e-band-s{margin:6px 0 0;font-size:.82rem;color:var(--pv-ink-2);line-height:1.7}
+#pv-value .mv-e-band-s b{font-weight:800;color:var(--pv-orange-ink)}
+#pv-value .mv-e-link{flex:0 0 auto;font-size:.8rem;font-weight:800;color:var(--pv-orange-ink);
+  text-decoration:none;border-bottom:1px solid transparent;
+  transition:border-color .18s var(--pv-ease),color .18s var(--pv-ease)}
+#pv-value .mv-e-link:hover{border-bottom-color:currentColor}
+#pv-value .mv-e-link:focus-visible{outline:2px solid var(--pv-orange);outline-offset:3px;border-radius:4px}
+
+#pv-value .mv-e-stats{margin-top:18px;display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:12px}
+#pv-value .mv-e-st{min-width:0;display:flex;align-items:center;gap:12px;padding:14px 16px;
+  border:1px solid var(--pv-line);border-radius:var(--pv-r);background:var(--pv-surface)}
+#pv-value .mv-e-st-i{flex:0 0 auto;width:38px;height:38px;border-radius:50%;
+  display:inline-flex;align-items:center;justify-content:center;
+  background:var(--pv-orange-soft);color:var(--pv-orange-ink)}
+#pv-value .mv-e-st-b{min-width:0}
+#pv-value .mv-e-st-n{font-size:1.4rem;font-weight:800;letter-spacing:-.03em;line-height:1.15;
+  color:var(--pv-ink)}
+#pv-value .mv-e-st-u{margin-left:2px;font-size:.74rem;font-weight:700;letter-spacing:0;
+  color:var(--pv-ink-3)}
+#pv-value .mv-e-st-l{margin-top:4px;font-size:.68rem;font-weight:700;letter-spacing:.02em;
+  color:var(--pv-ink-3)}
+
+/* ③ 3段の Give → Get（中身は pv-gates.js。ここは器だけ）────── */
+#pv-value .mv-e-give{margin-top:var(--pv-s-3);padding:18px}
+
+/* ④ 給与を追加する ───────────────────────────────────────── */
+#pv-value .mv-e-add{margin-top:var(--pv-s-3)}
+#pv-value .mv-e-ways{margin-top:16px;display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+#pv-value .mv-e-way{min-width:0;padding:18px;border-radius:var(--pv-r);
+  border:1px solid var(--pv-line);background:var(--pv-surface);
+  display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+#pv-value .mv-e-way.is-rec{border-color:rgba(249,115,22,.34);
+  background:linear-gradient(150deg,var(--pv-orange-soft) 0%,transparent 64%),var(--pv-surface)}
+#pv-value .mv-e-way.is-ps{border-color:var(--pv-blue-line);
+  background:linear-gradient(150deg,var(--pv-blue-soft) 0%,transparent 64%),var(--pv-surface)}
+#pv-value .mv-e-way-t{font-size:.92rem;font-weight:800;letter-spacing:-.01em}
+#pv-value .mv-e-way .pt-btn{margin-top:auto}
+#pv-value .mv-e-way.is-ps .pt-btn.ghost{color:var(--pv-blue-ink);border-color:var(--pv-blue-line)}
+#pv-value .mv-e-way.is-ps .pt-btn.ghost:hover{background:var(--pv-blue-soft)}
+
+/* ⑤ 最後の1行 ───────────────────────────────────────────── */
+#pv-value .mv-e-foot{margin:18px 0 0;display:flex;align-items:flex-start;gap:8px;
+  font-size:.74rem;line-height:1.7;color:var(--pv-ink-3)}
+#pv-value .mv-e-foot svg{flex:0 0 auto;margin-top:3px;color:var(--pv-orange-ink)}
+
+@media(max-width:900px){
+  #pv-value .mv-e-rep{grid-template-columns:minmax(0,1fr)}
+  #pv-value .mv-e-stats{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+}
+@media(max-width:640px){
+  #pv-value .mv-e-ways{grid-template-columns:minmax(0,1fr)}
+  #pv-value .mv-e-stats{grid-template-columns:minmax(0,1fr)}
+  #pv-value .mv-e-link{flex:1 1 100%}
+}
+
 /* ══ 5) 狭い画面 ═══════════════════════════════════════════════
    横スクロールを作らない（§24）。横長の表は元から作っていない。 */
 
@@ -602,6 +767,10 @@
   .mr-side-a.is-locked{background:var(--pv-surface);border-color:var(--pv-line-soft);
                        text-align:center;font-size:.78rem}
   .mr-side-note{display:none}
+  /* 横タブに畳んだら札は出さない。縦に場所を取るだけで、
+     同じ約束は本文の最後の1行が言う。 */
+  .mr-col{position:static;display:block}
+  .mv-priv{display:none}
 }
 @media(max-width:760px){
   .mr-top-in,.mr-shell{padding-left:16px;padding-right:16px}

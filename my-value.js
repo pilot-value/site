@@ -226,10 +226,44 @@
       remindNote: 'メール本文に明細の項目名や金額は書きません。解除リンクは毎回入ります。',
       remindErr: '設定を保存できませんでした。時間をおいて再度お試しください。',
 
-      /* 空 / エラー */
-      emptyH: '明細を1枚落とすと、ここにあなたのレポートが出ます',
-      emptyS: '画像は端末の中で黒塗りしてから送られ、保存はされません。判定結果だけが残ります。',
-      emptyBtn: '明細から入力する →',
+      /* ── まだ給与を1件も出していない人が見る画面（2026-08-25 に作り直し）──
+         前は「明細を1枚落とすと〜」だけで、**明細が要る**と読めていた。
+         実際は手入力でも同じように解放される。★見出し・ボタンにカッコの注記を足さない。 */
+      eTitle: 'マイレポート',
+      eLead: 'あなたの給与レポートと、給与共有で解放される価値を確認できます。',
+      eRepT: 'あなたの給与レポート',
+      eRepBadge: '未作成',
+      eRepH: '給与をまだ共有していません',
+      eRepS: '給与を1件追加すると、あなただけのレポートがここに出ます。'
+           + '明細がなくても、手入力で作れます。',
+      eRepC: '給与を追加してレポートを作成する →',
+      eKnowT: 'レポートでわかること',
+      eKnow: ['年収・月収・賞与の内訳',
+              '市場の中央値との差と、あなたの位置',
+              '乗務時間あたりの報酬',
+              'あなたが入れた手取りと控除の積み上げ',
+              '月をまたいだ推移'],
+      eKnowN: '同じ条件で5人そろうと、実データとの比較に切り替わります。',
+      eBandT: '給与を共有すると、すべての価値が解放されます',
+      /* ★数字はサーバーの数え上げから来る。読めなかったら、この行ごと出さない。 */
+      eBand: function (n, a) {
+        return '現在 <b>' + n + '件</b> の実給与が、<b>' + a + '社</b> から共有されています';
+      },
+      eBand1: function (n) { return '現在 <b>' + n + '件</b> の実給与が共有されています'; },
+      eBandC: 'REAL PAY を見る →',
+      eStRep: '実給与の投稿', eStRepU: '件',
+      eStAir: '航空会社',     eStAirU: '社',
+      eStMon: '今月の新規投稿', eStMonU: '件',
+      eAddT: '給与を追加する',
+      eRec: 'おすすめ',
+      eWay1T: '匿名で手入力',
+      eWay1S: '明細がなくても大丈夫です。最短50秒で終わり、すぐに REAL PAY が解放されます。',
+      eWay1C: '匿名で手入力する →',
+      eWay2T: '給与明細から入力',
+      eWay2S: '画像は端末の中で黒塗りしてから送られ、保存はされません。読み取った金額だけが残ります。',
+      eWay2C: '明細をアップロードする →',
+      eFoot: '氏名・社員番号・メールは公開されません。'
+           + '画像は保存せず、個人が特定できる情報は一切取得しません。',
       err: 'レポートを読み込めませんでした。時間をおいて開き直してください。',
       /* sfo / tri_tre は 2026-08-18 に選択肢から外した旧コード。過去の投稿がまだ持っているので、
          ラベルだけ残す（消すと本人のマイページに生の 'sfo' が出る）。 */
@@ -381,9 +415,41 @@
       remindNote: 'The email never contains payslip line items or amounts, and always carries a one-click unsubscribe link.',
       remindErr: 'Could not save that setting. Please try again in a moment.',
 
-      emptyH: 'Drop one payslip and your report appears here',
-      emptyS: 'The image is redacted on your own device before it is sent, and it is never stored. Only the reading is kept.',
-      emptyBtn: 'Start from a payslip →',
+      /* Same screen in English. A payslip is not required — typing it in unlocks the same thing. */
+      eTitle: 'My report',
+      eLead: 'Your own pay report, and what sharing your pay unlocks.',
+      eRepT: 'Your pay report',
+      eRepBadge: 'Not started',
+      eRepH: 'You have not shared your pay yet',
+      eRepS: 'Add one pay record and your own report appears here. '
+           + 'No payslip needed — you can type it in.',
+      eRepC: 'Add your pay and build the report →',
+      eKnowT: 'What the report shows',
+      eKnow: ['Your annual, monthly and bonus breakdown',
+              'How far you sit from the median, and where you land',
+              'What you earn per block hour',
+              'The take-home and deductions you entered, stacked up',
+              'How it moves from month to month'],
+      eKnowN: 'Once five pilots share your conditions, the comparison switches to real member data.',
+      eBandT: 'Share your pay and everything here opens',
+      eBand: function (n, a) {
+        return '<b>' + n + '</b> pay records have been shared so far, from <b>' + a + '</b> airlines';
+      },
+      eBand1: function (n) { return '<b>' + n + '</b> pay records have been shared so far'; },
+      eBandC: 'See REAL PAY →',
+      eStRep: 'Pay records',      eStRepU: '',
+      eStAir: 'Airlines',         eStAirU: '',
+      eStMon: 'Added this month', eStMonU: '',
+      eAddT: 'Add your pay',
+      eRec: 'Recommended',
+      eWay1T: 'Type it in anonymously',
+      eWay1S: 'No payslip needed. It takes about 50 seconds, and REAL PAY opens straight away.',
+      eWay1C: 'Type it in anonymously →',
+      eWay2T: 'Start from a payslip',
+      eWay2S: 'The image is redacted on your own device before it is sent, and it is never stored. Only the figures are kept.',
+      eWay2C: 'Upload a payslip →',
+      eFoot: 'Your name, staff number and email are never published. '
+           + 'Images are not stored, and nothing that identifies you is collected.',
       err: 'Could not load your report. Please try again in a moment.',
       /* sfo / tri_tre are retired codes (removed from the form 2026-08-18). Old reports still carry
          them, so keep the labels — otherwise the raw code shows up on the member's own page. */
@@ -417,7 +483,8 @@
   /* series ＝ 最新の明細と同じ会社の月だけ（前回との差・推移の線が使う）
      rows   ＝ 全社ぶんそのまま（累計だけが使う。足し算に会社の壁は無い）
      bench  ＝ pay_benchmarks から引いた同条件の集計（n≧5 のセルしか返らない） */
-  var state = { data: null, rows: [], series: [], metric: 'hourly', busy: false, bench: null, pub: null, name: '' };
+  var state = { data: null, rows: [], series: [], metric: 'hourly', busy: false,
+               bench: null, pub: null, name: '', pay: null };
 
   /* 見出しに出す呼び名。★ プロフィールの氏名を**そのまま**は出さない。
      ここは本人しか見ない画面だが、肩越しに覗かれる・スクリーンショットが
@@ -1248,14 +1315,126 @@
       '<div class="mr-chips">' + chips + '</div></div>';
   }
 
+  /* ══ まだ給与を1件も出していない人の画面 ═══════════════════════
+     ★ここで数字を作らない。件数・社数・今月ぶんは pv_pay_rows() の数え上げ
+       （state.pay.stats）からしか来ない。読めなかったカードは、そのカードごと出さない
+       ── 0 を並べると「誰も出していない」という嘘の数字になる（REAL PAY と同じ決まり）。
+     ★見出し・ボタンにカッコの注記を足さない（2026-08-25 オーナー指摘）。
+     ★3段の Give → Get は pv-gates.js の giveGetHTML() をそのまま借りる。書き写さない。 */
+
+  var E_SVG = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor"'
+            + ' stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"'
+            + ' aria-hidden="true" focusable="false">';
+  // 書類（＝これから作るレポート）
+  var IC_DOC = E_SVG + '<path d="M7 3h7l4 4v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/>'
+             + '<path d="M14 3v4h4"/><path d="M9 12h6M9 16h4"/></svg>';
+  // 錠前。帯と最後の1行で使い回す
+  var IC_LOCK = '<svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor"'
+              + ' stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"'
+              + ' aria-hidden="true" focusable="false">'
+              + '<rect x="4.25" y="8.6" width="11.5" height="8.15" rx="2.2"/>'
+              + '<path d="M7 8.6V6.4a3 3 0 0 1 6 0v2.2"/></svg>';
+
+  var E_ICON = {
+    rep: '<path d="M6 2.75h7.5L17.25 6.5v10.75a1 1 0 0 1-1 1h-10.25a1 1 0 0 1-1-1V3.75a1 1 0 0 1 1-1Z"/>'
+       + '<path d="M13.25 2.75v4h4"/><path d="M8 10.5h5M8 13.5h3.5"/>',
+    air: '<circle cx="10" cy="10" r="7.25"/><path d="M2.75 10h14.5"/>'
+       + '<path d="M10 2.75c1.9 2 2.9 4.55 2.9 7.25S11.9 15.25 10 17.25C8.1 15.25 7.1 12.7 7.1 10S8.1 4.75 10 2.75Z"/>',
+    mon: '<path d="M3 15.25 8 10l3 3 5.25-6.25"/><path d="M12.25 6.75h4.25V11"/>'
+  };
+  function eIcon(k) {
+    return '<span class="mv-e-st-i" aria-hidden="true">'
+         + '<svg viewBox="0 0 20 20" width="20" height="20" fill="none" stroke="currentColor"'
+         + ' stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" focusable="false">'
+         + E_ICON[k] + '</svg></span>';
+  }
+
+  /* 0 以上の整数だけを通す。ここを抜けた値しか画面に出さないので、
+     下の太字タグを esc せずに出しても中身は数字だけになる。 */
+  function eNum(v) {
+    return (typeof v === 'number' && isFinite(v) && v >= 0) ? Math.floor(v) : null;
+  }
+  function eStat() { return (state.pay && state.pay.stats) || {}; }
+
+  function eStats() {
+    var st = eStat();
+    var cards = [
+      { n: eNum(st.reports),  l: T.eStRep, u: T.eStRepU, i: 'rep' },
+      { n: eNum(st.airlines), l: T.eStAir, u: T.eStAirU, i: 'air' },
+      { n: eNum(st.month),    l: T.eStMon, u: T.eStMonU, i: 'mon' }
+    ].filter(function (c) { return c.n != null; });
+    if (!cards.length) return '';
+    return '<div class="mv-e-stats">' + cards.map(function (c) {
+      return '<div class="mv-e-st">' + eIcon(c.i) + '<div class="mv-e-st-b">'
+           + '<div class="mv-e-st-n">' + esc(String(c.n))
+           + (c.u ? '<span class="mv-e-st-u">' + esc(c.u) + '</span>' : '')
+           + '</div><div class="mv-e-st-l">' + esc(c.l) + '</div></div></div>';
+    }).join('') + '</div>';
+  }
+
+  function eBandLine() {
+    var st = eStat();
+    var n = eNum(st.reports), a = eNum(st.airlines);
+    if (n == null) return '';
+    return '<p class="mv-e-band-s">' + (a != null ? T.eBand(n, a) : T.eBand1(n)) + '</p>';
+  }
+
   function renderEmpty() {
+    var rep =
+      '<section class="mr-card mv-e-rep">'
+      + '<div class="mv-e-rep-b">'
+      +   '<div class="mv-e-rep-hd">'
+      +     '<span class="mv-e-ic" aria-hidden="true">' + IC_DOC + '</span>'
+      +     '<h2 class="mv-e-h">' + esc(T.eRepT) + '</h2>'
+      +     '<span class="mv-e-badge">' + esc(T.eRepBadge) + '</span>'
+      +   '</div>'
+      +   '<p class="mv-e-rep-t">' + esc(T.eRepH) + '</p>'
+      +   '<p class="mv-e-s">' + esc(T.eRepS) + '</p>'
+      +   '<a class="pt-btn" href="' + payHref() + '">' + esc(T.eRepC) + '</a>'
+      + '</div>'
+      + '<aside class="mv-e-know">'
+      +   '<div class="mv-e-know-t">' + esc(T.eKnowT) + '</div>'
+      +   '<ul class="mv-e-know-l">'
+      +     T.eKnow.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('')
+      +   '</ul>'
+      +   '<p class="mv-e-know-n">' + esc(T.eKnowN) + '</p>'
+      + '</aside></section>';
+
+    var band =
+      '<section class="mr-card mv-e-band">'
+      + '<div class="mv-e-band-hd">'
+      +   '<span class="mv-e-lk" aria-hidden="true">' + IC_LOCK + '</span>'
+      +   '<div class="mv-e-band-b">'
+      +     '<h2 class="mv-e-h">' + esc(T.eBandT) + '</h2>' + eBandLine()
+      +   '</div>'
+      +   '<a class="mv-e-link" href="actual-pay.html">' + esc(T.eBandC) + '</a>'
+      + '</div>' + eStats() + '</section>';
+
+    var give = (w.PVGates && w.PVGates.giveGetHTML)
+      ? '<section class="mr-card mv-e-give">' + w.PVGates.giveGetHTML() + '</section>' : '';
+
+    var add =
+      '<section class="mr-card mv-e-add">'
+      + '<h2 class="mv-e-h">' + esc(T.eAddT) + '</h2>'
+      + '<div class="mv-e-ways">'
+      +   '<div class="mv-e-way is-rec">'
+      +     '<span class="mv-e-badge is-rec">' + esc(T.eRec) + '</span>'
+      +     '<div class="mv-e-way-t">' + esc(T.eWay1T) + '</div>'
+      +     '<p class="mv-e-s">' + esc(T.eWay1S) + '</p>'
+      +     '<a class="pt-btn" href="' + payHref() + '">' + esc(T.eWay1C) + '</a>'
+      +   '</div>'
+      +   '<div class="mv-e-way is-ps">'
+      +     '<div class="mv-e-way-t">' + esc(T.eWay2T) + '</div>'
+      +     '<p class="mv-e-s">' + esc(T.eWay2S) + '</p>'
+      +     '<a class="pt-btn ghost" href="' + payHref() + '">' + esc(T.eWay2C) + '</a>'
+      +   '</div>'
+      + '</div></section>';
+
     root.innerHTML =
-      '<div class="mr-hd"><h1 class="mr-hd-t">' + esc(T.titleOf(personName())) + '</h1></div>' +
-      '<div class="pt-first">' +
-        '<div class="pt-first-h">' + esc(T.emptyH) + '</div>' +
-        '<div class="pt-first-s">' + esc(T.emptyS) + '</div>' +
-        '<a class="pt-btn" href="' + payHref() + '">' + esc(T.emptyBtn) + '</a>' +
-      '</div>';
+      '<div class="mr-hd"><h1 class="mr-hd-t">' + esc(T.eTitle) + '</h1>'
+      + '<p class="mr-hd-s">' + esc(T.eLead) + '</p></div>'
+      + rep + band + give + add
+      + '<p class="mv-e-foot">' + IC_LOCK + '<span>' + esc(T.eFoot) + '</span></p>';
   }
 
   function render() {
@@ -1401,6 +1580,16 @@
     } catch (e) { return ''; }
   }
 
+  /* 数え上げだけを取りに行く。取れなくても画面は出す
+     （帯の1行と数字カードが消えるだけ ── 0 を並べない）。 */
+  async function loadPayStats() {
+    try {
+      var res = await SB.rpc('pv_pay_rows');
+      if (!res || res.error || !res.data || res.data.ok !== true) return null;
+      return res.data;
+    } catch (e) { return null; }
+  }
+
   async function load() {
     /* ページ側がセッションを確かめてからにする。未ログインだと my_pay_reports() は
        42501 で落ちるので、エラー枠を出す前にログインへ送られる（HTML の PV_SESSION）。 */
@@ -1428,6 +1617,19 @@
          いつも両方読むと、使わない 60KB を毎回落とすことになる。 */
       state.bench = await loadBench(last);
       if (!state.bench || !state.bench.cells.length) state.pub = await loadPub(last);
+    } else {
+      /* ★まだ1件も出していない人のときだけ、数え上げを取りに行く。
+           pv_pay_rows() は鍵が無くても stats（件数・社数・今月ぶん・出した人数）と
+           give（本人が何を出したか）を返す。行は 1 件も返らない。
+         ★出した人には引かない。この画面は行を必要としないのに、
+           鍵を持つ人には全行が付いてくるため。 */
+      state.pay = await loadPayStats();
+      if (w.PVGates && w.PVGates.setProgress && state.pay) {
+        w.PVGates.setProgress({
+          n: state.pay.stats ? state.pay.stats.contributors : null,
+          detailed: state.pay.give ? state.pay.give.detailed : null
+        });
+      }
     }
     state.name = await loadName(sess);
     render();

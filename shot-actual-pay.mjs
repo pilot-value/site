@@ -5,8 +5,10 @@
    中身が出ないので、ここで Supabase ごと差し替えて開く。
 
    実行: node shot-actual-pay.mjs <scene> <lang> [open]
-     scene = locked   鍵が無い人（金額が1つも出ない・導線だけ）
+     scene = locked   鍵が無い人（金額が1つも出ない・骨組みと導線だけ）
+             locked-nostat ★サーバをまだ貼り替えていない＝数字カードが1枚も出ない
              locked-panel ★左メニューの DEEP PAY を押して説明を出したところ
+             locked-ready ★先に内訳を出してくれた人（✓ 準備は完了しています）
              empty    鍵はあるが1件も無い（正直な1枚）
              rows     SQL を貼る前（明細だけの13人・全員が手入力＝✓ は付かない）
              merged   ★SQL を貼った後（口コミ由来の7人が混ざって20人になる）
@@ -69,6 +71,13 @@ const R = (air, pos, usd, vf, age) => ({
    ⚠️ 必ず reports ≧ 行数。ここを行数より小さくすると、
       「126件なのに表は60行」の逆＝説明のつかない絵になる。 */
 const ST = (reports, month) => ({ reports: reports, month: month });
+
+/* ★鍵が無い人にも来る数え上げ（2026-08-25 オーナー判断）。
+   行が1件も返らないので、社数もサーバーが数えて渡す。
+   contributors ＝ 給与を出したユニークな人数（DEEP PAY の「N / 100人」の分子）。
+   ⚠️ ここは**いまの本番の実測**（13行 / 7社 / 出した人は14人。2026-08-25 に db/usage.mjs で確認）に合わせてある。
+      分子を大きく作ると、本番に無い絵を見ることになる。 */
+const ST_LOCK = { reports: 13, month: 4, airlines: 7, contributors: 14 };
 
 /* ★いまの本番をそのまま写した13行（2026-08-23 に読んで確認した実測）。
    内訳は 本棚8人 ＋ 登録前の預かり5人。会社は7社。
@@ -153,11 +162,24 @@ const MANY = [
 ];
 
 const SCENES = {
-  /* ★鍵が無い人には stats も来ない（サーバがそう作ってある）。カードは1枚も出ない。 */
-  locked: { pay: { ok: true, state: 'locked', rows: [] } },
+  /* ★鍵が無い人の画面（2026-08-25 に作り直した）。
+     数え上げは見せる。行は1件も返らないので、一覧は中身の無い骨組みで出る。
+     ⚠️ 骨組みは**ぼかしではない**。隠しているのではなく、渡されていない。 */
+  locked: { pay: { ok: true, state: 'locked', rows: [], stats: ST_LOCK,
+                   give: { basic: false, detailed: false, payslip: false } } },
+  /* ★サーバ（db/pay-rows.sql）をまだ貼り替えていないとき。
+     数が1つも読めないので、カードは1枚も出ない＝埋めるための 0 を置かない。 */
+  'locked-nostat': { pay: { ok: true, state: 'locked', rows: [] } },
   /* ★左メニューのロックを押したときの説明（2026-08-25）。
-     覆いではないので、下のページが残ったまま上に1枚差し込まれる。 */
-  'locked-panel': { pay: { ok: true, state: 'locked', rows: [] }, gate: 'deep' },
+     覆いではないので、下のページが残ったまま上に1枚差し込まれる。
+     DEEP PAY は条件が2つ（100人 ／ 本人の内訳）。まだ内訳を出していない人の絵。 */
+  'locked-panel': { pay: { ok: true, state: 'locked', rows: [], stats: ST_LOCK,
+                           give: { basic: false, detailed: false, payslip: false } },
+                    gate: 'deep' },
+  /* ★先に内訳を出してくれた人。「出し損」に見えないことを絵で確かめる。 */
+  'locked-ready': { pay: { ok: true, state: 'locked', rows: [], stats: ST_LOCK,
+                           give: { basic: true, detailed: true, payslip: false } },
+                    gate: 'deep' },
   empty:  { pay: { ok: true, state: 'open', rows: [], stats: ST(0, 0) } },
   rows:   { pay: { ok: true, state: 'open', rows: ROWS,   stats: ST(17, 4) } },
   /* ★口コミ由来の7人が混ざった状態。行が13→20に増える。

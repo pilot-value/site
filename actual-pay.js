@@ -119,7 +119,17 @@
       lockS: 'あなたの給与を1件共有すると解放されます。給与明細でも手入力でもかまいません。'
            + '氏名も社員番号も受け取りません。'
            + '明細を使う場合、画像は端末の中だけで処理され、サーバーには送られません。',
+      lockS2: '一覧に出るのは、航空会社・職位と、丸めた年収・月あたりだけです。',
       lockC: '匿名で給与を追加する',
+      lockN: '約50秒・あとで内訳を追加できます',
+      skelT: '解放後の一覧イメージ',
+      skelL: '給与を1件共有すると一覧が見られます',
+      seeT: 'REAL PAY で見えること',
+      see: ['航空会社と職位ごとの、実際に受け取っている年収',
+            '年収を12で割った、月あたりの金額',
+            '給与明細の裏付けがある行に付く Verified の印',
+            'その記録がだいたいいつ出されたか'],
+      seeN: '機種は表示しません。',
       emptyT: 'まだ1行もありません',
       emptyS: '給与を出した人は、その全員がここに1行ずつ出ます。最初の1人になれます。',
       emptyC: '匿名で給与を追加する',
@@ -151,7 +161,18 @@
            + 'A payslip is not required — typing it in works too. '
            + 'We never take your name or staff number, '
            + 'and any payslip image is processed on your own device.',
+      lockS2: 'A row carries the airline, the position, '
+            + 'and rounded figures for the year and the month.',
       lockC: 'Add your pay anonymously',
+      lockN: 'About 50 seconds. You can add the breakdown later.',
+      skelT: 'What the list looks like once it opens',
+      skelL: 'Share one pay record to see the list',
+      seeT: 'What REAL PAY shows',
+      see: ['What pilots at each airline and rank actually earn in a year',
+            'That figure divided by twelve, as a monthly amount',
+            'The Verified mark on rows backed by a payslip',
+            'Roughly when each record was submitted'],
+      seeN: 'Fleet is never shown.',
       emptyT: 'No rows yet',
       emptyS: 'Everyone who submits their pay gets a row here. You could be the first.',
       emptyC: 'Add your pay anonymously',
@@ -323,15 +344,24 @@
   function renderStats() {
     var box = el('ap-stats');
     if (!box) return;
+    /* ★2026-08-25 オーナー判断。鍵が無い人にも「いまどれだけ集まっているか」を見せる。
+         ⚠️ 見せるのは数だけ。行は1件も返っていないので、社数は自分では数えられない
+         ── サーバーの数え上げ（stats.airlines）から取る。
+         ★読めなかったカードは、そのカードごと出さない（0 を並べて嘘の数字を作らない）。 */
     var open = (S.mode === 'open' && S.rows && S.rows.length);
-    if (!open) { box.hidden = true; box.innerHTML = ''; return; }
+    if (!open && S.mode !== 'locked') { box.hidden = true; box.innerHTML = ''; return; }
 
-    var seen = {}, airs = 0;
-    S.rows.forEach(function (r) {
-      if (r.airline == null || seen[r.airline]) return;
-      seen[r.airline] = 1; airs++;
-    });
     var st = S.stats || {};
+    var airs;
+    if (open) {
+      var seen = {}; airs = 0;
+      S.rows.forEach(function (r) {
+        if (r.airline == null || seen[r.airline]) return;
+        seen[r.airline] = 1; airs++;
+      });
+    } else {
+      airs = (typeof st.airlines === 'number') ? st.airlines : null;
+    }
     var cards = [
       { n: (typeof st.reports === 'number') ? st.reports : null, l: T.stRep, u: T.stRepU, i: 'rep' },
       { n: airs, l: T.stAir, u: T.stAirU, i: 'air' },
@@ -360,7 +390,7 @@
     if (S.mode === 'locked') {
       /* ★ここに金額を1文字も出さない。鍵の無い人に数字を見せない、が
            この画面の一番外側の約束。 */
-      box.innerHTML = msg('lock', T.lockT, T.lockS, T.lockC, giveGet());
+      box.innerHTML = lockScreen();
       renderFilters();
       renderStats();
       return;
@@ -486,6 +516,93 @@
      ＝ 見出し・本文・CTA だけの今までの形に戻るだけで、画面は壊れない。 */
   function giveGet() {
     return (w.PVGates && w.PVGates.giveGetHTML) ? w.PVGates.giveGetHTML() : '';
+  }
+
+  /* 錠前の小さな絵。文字の横に置く用。 */
+  var LOCK_I =
+    '<svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor"'
+    + ' stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"'
+    + ' aria-hidden="true" focusable="false">'
+    + '<rect x="4.25" y="8.6" width="11.5" height="8.15" rx="2.2"/>'
+    + '<path d="M7 8.6V6.4a3 3 0 0 1 6 0v2.2"/></svg>';
+
+  /* ロックのときだけ出す飾りの絵。
+     ⚠️ これは**分布図ではない**。.ap-viz / .ap-plot / .ap-bar は1つも使わない。
+        描いているのはこの画面の形そのもの ── 1行＝1人が並んだ一覧に錠前が掛かっている絵。
+     ★インラインの線画（currentColor）。外部ファイルもアイコンフォントも読まない。 */
+  var LOCK_ART =
+    '<svg class="ap-lock-art" viewBox="0 0 200 168" width="200" height="168" fill="none"'
+    + ' stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"'
+    + ' aria-hidden="true" focusable="false">'
+    + '<rect x="83" y="20" width="34" height="26" rx="7"/>'
+    + '<path d="M91 20v-6a9 9 0 0 1 18 0v6"/>'
+    + '<path d="M100 30v6"/>'
+    + '<rect x="16" y="58" width="168" height="94" rx="16"/>'
+    + '<circle cx="42" cy="84" r="8"/><path d="M60 80h46"/><path d="M60 89h28"/>'
+    + '<path d="M138 84h30"/>'
+    + '<circle cx="42" cy="110" r="8"/><path d="M60 106h38"/><path d="M60 115h22"/>'
+    + '<path d="M138 110h30"/>'
+    + '<circle cx="42" cy="136" r="8"/><path d="M60 132h50"/><path d="M60 141h30"/>'
+    + '<path d="M138 136h30"/>'
+    + '</svg>';
+
+  /* 骨組みの1行。★灰色の棒だけ。数字も社名も1文字も入れない。 */
+  function skelRow() {
+    var out = '<div class="ap-skel-r">';
+    for (var i = 0; i < 6; i++) out += '<span class="ap-skel-bar"></span>';
+    return out + '</div>';
+  }
+
+  /* 鍵が無い人の画面（2026-08-25）。
+     ⚠️ 骨組みは**ぼかしではない**。隠しているのではなく、サーバーが行を返していないので
+        中身が最初から無い。blur / filter のたぐいは1文字も書かない。
+     ★3段の Give → Get は pv-gates.js から借りる。ここに書き写さない。 */
+  function lockScreen() {
+    var hero =
+      '<div class="ap-msg ap-msg--lock ap-lockhero">'
+      + '<div class="ap-lockhero-b">'
+      +   '<div class="ap-msg-t">' + esc(T.lockT) + '</div>'
+      +   '<p class="ap-msg-s">' + esc(T.lockS) + '</p>'
+      +   '<p class="ap-msg-s">' + esc(T.lockS2) + '</p>'
+      +   giveGet()
+      +   '<a class="ap-cta" href="' + PAY_URL + '">' + esc(T.lockC) + '</a>'
+      +   '<p class="ap-lock-n">' + esc(T.lockN) + '</p>'
+      + '</div>'
+      + '<div class="ap-lockhero-a" aria-hidden="true">' + LOCK_ART + '</div>'
+      + '</div>';
+
+    /* ★列は実物と同じ6つ。賞与の列は無い（この画面に賞与は無い）。
+         見出しの字も実物のまま ── 注記のカッコを足さない。 */
+    var ths = [T.thAir, T.thPos, T.thAmt, T.thMon, T.thVf, T.thAge];
+    var skel =
+      '<section class="ap-lock-skel">'
+      + '<h2 class="ap-lock-h">' + esc(T.skelT) + '</h2>'
+      + '<div class="ap-skel">'
+      +   '<div class="ap-skel-hd" aria-hidden="true">'
+      +     ths.map(function (t) { return '<span>' + esc(t) + '</span>'; }).join('')
+      +   '</div>'
+      +   '<div class="ap-skel-body">'
+      +     skelRow() + skelRow() + skelRow() + skelRow() + skelRow()
+      +     '<p class="ap-skel-lock">' + LOCK_I + '<span>' + esc(T.skelL) + '</span></p>'
+      +   '</div>'
+      + '</div>'
+      + '</section>';
+
+    var see =
+      '<section class="ap-lock-see">'
+      + '<h2 class="ap-lock-h">' + esc(T.seeT) + '</h2>'
+      + '<ul class="ap-see">'
+      +   T.see.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('')
+      + '</ul>'
+      + '<p class="ap-see-n">' + LOCK_I + '<span>' + esc(T.seeN) + '</span></p>'
+      + '</section>';
+
+    /* ⚠️ 2段組の目印は .ap-lock-cols / .ap-lock-aside。
+         .ap-cols / .ap-main / .ap-side は開いている画面から外したもので、
+         assert-pay-rows.mjs が字として禁じている。 */
+    return hero
+         + '<div class="ap-lock-cols">' + skel
+         + '<div class="ap-lock-aside">' + see + '</div></div>';
   }
 
   // ── 絞り込み ───────────────────────────────────────────────────
@@ -645,6 +762,16 @@
         /* ★数え上げ。古いサーバ（stats を返さない）でも画面は止めない
              ＝ そのカードだけ出ない（0 を置いて嘘の数字を作らない）。 */
         S.stats = (v && v.stats) || null;
+        /* ★DEEP PAY の札（N / 100人）と、本人が内訳を出したかどうか。
+             数を作るのはサーバーだけで、pv-gates.js は渡された数を出すだけ。
+             来なければ札は「準備中」のまま＝古いサーバでも画面は壊れない。
+           ⚠️ renderRows() より前に渡す。3段の表はこの後で描かれる。 */
+        if (w.PVGates && w.PVGates.setProgress) {
+          w.PVGates.setProgress({
+            n: (v && v.stats) ? v.stats.contributors : null,
+            detailed: (v && v.give) ? v.give.detailed : null
+          });
+        }
         renderRows();
       }).catch(function () { S.mode = 'error'; renderRows(); });
     });

@@ -5,7 +5,9 @@
    ★ ここで使う数字は全部でたらめ。実物の明細の数値はこのリポジトリに1つも無い。
 
    実行: node shot-value.mjs <scene> <lang> <theme>
-     scene: empty  … 0件（初回の導線）
+     scene: empty  … 0件（★2026-08-25 に作り直した最初の画面）
+            empty-nostat … 0件 かつ db/pay-rows.sql を貼る前＝数字カードが1枚も出ない
+            empty-ready  … 0件 だが先に内訳を出した人＝DEEP PAY の札が「✓」側になる
             one    … 1件（折れ線が点1つ）
             many   … 5件・同社連続（推移・リマインドON・§6 は先月との差）
             thin   … 明細由来の列が無い（手入力だけ）＝§2 Duty無し / §4 手取り無し
@@ -144,7 +146,15 @@ await page.evaluateOnNewDocument((scene, theme) => {
   };
 
   const SCENES = {
+    /* ★2026-08-25、まだ給与を1件も出していない人の画面を作り直した。
+       empty 系はどれも「レポート0件」で、違うのは pv_pay_rows() が何を返すかだけ。
+         empty        … 数え上げが返ってくる（サーバを貼り替えた後）
+         empty-nostat … 数え上げが返らない（db/pay-rows.sql をまだ貼っていない）
+                        ＝帯の1行と数字カードが丸ごと消える。0 を並べない、を絵で確かめる
+         empty-ready  … 先に内訳まで出してくれた人（DEEP PAY の札が「✓」側になる） */
     empty: [],
+    'empty-nostat': [],
+    'empty-ready': [],
     one:   [mk(2026, 6)],
     many:  MANY,
     new:   MANY,
@@ -203,16 +213,32 @@ await page.evaluateOnNewDocument((scene, theme) => {
   const REPORTS = SCENES[scene] || [];
   const OPTIN = { on: scene === 'many' || scene === 'new' };
 
+  /* ★鍵が無い人にも来る数え上げ（2026-08-25 オーナー判断）。
+     いまの本番の実測（13行 / 7社 / 出した人は14人。2026-08-25 に db/usage.mjs で確認）にそろえてある。
+     分子を大きく作ると、本番に無い絵を見ることになる。 */
+  const ST_LOCK = { reports: 13, month: 4, airlines: 7, contributors: 14 };
+  const PAY_ROWS = {
+    'empty-nostat': { ok: true, state: 'locked', rows: [] },
+    'empty-ready':  { ok: true, state: 'locked', rows: [], stats: ST_LOCK,
+                      give: { basic: true, detailed: true, payslip: false } }
+  }[scene] || { ok: true, state: 'locked', rows: [], stats: ST_LOCK,
+                give: { basic: false, detailed: false, payslip: false } };
+
   const RPC = {
     my_pay_reports: () => ({
       ok: true, reports: REPORTS,
       report_count: REPORTS.length,
       streak_months: REPORTS.length,
-      access_until: new Date(Date.now() + 62 * 86400000).toISOString(),
+      /* ★1件も出していない人に鍵は無い。ここを常に立てると、
+         左メニューの REAL PAY が開いた見た目になって本番と食い違う。 */
+      access_until: REPORTS.length
+        ? new Date(Date.now() + 62 * 86400000).toISOString() : null,
       badge: 'silver', badge_state: 'active',
       mail_optin: OPTIN.on, email_opt_in: OPTIN.on,
       pay_day_of_month: 5
     }),
+    /* 1件も出していない人の画面だけが引く。件数・社数・今月ぶん・出した人数を返す。 */
+    pv_pay_rows: () => PAY_ROWS,
     // 本番と同じく、オンにすると親（email_opt_in）も一緒に立てて返す
     set_mail_optin: (a) => {
       OPTIN.on = !!(a && a.p_on);

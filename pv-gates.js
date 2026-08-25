@@ -26,8 +26,24 @@
 
    ── DEEP PAY / VERIFIED PAY について ─────────────────────────
    ★この2つは**まだページが無い**。だから「詳しく出すと開きます」とは書かない。
-     書くのは「準備中」。今すぐ開くのは REAL PAY だけ。
+     今すぐ開くのは REAL PAY だけ。
      ページを作った回に、下の TIERS の state を 'soon' から外す。
+
+   ★DEEP PAY の解放条件は2つで、どちらも満たしたときだけ（オーナー決定・2026-08-25）。
+       ① 給与を出したユニークなパイロットが 100人
+          （FOUNDING PILOT 100 と同じ100人。「登録者100人」ではない）
+       ② 本人が内訳まで出している（分かる項目だけでよい。全部必須にしない）
+     ①と②は**別々に判定する**。100人は Privacy Threshold ではなく、
+     「DEEP PAY という機能を正式に開ける区切り」でしかない。
+     人数が少ない区分をどう畳むかは、ページを作る回に別で決める。
+
+   ★数はサーバから来る（pv_pay_rows() の stats.contributors と give）。
+     このファイルは数を作らない・数えない。渡されなければ「準備中」に戻るだけ。
+     渡すのは actual-pay.js と my-value.js ── PVGates.setProgress()。
+
+   ★先に内訳を出した人が「出し損」に見えないこと。それがこの表示の目的。
+     100人に届く前でも内訳は出せるので、出した人には
+     「✓ あなたの準備は完了しています」と、あと何人かを見せる。
    ════════════════════════════════════════════════════════════════ */
 (function (w, d) {
   'use strict';
@@ -36,6 +52,9 @@
   var L = (d.documentElement.getAttribute('lang') === 'en') ? 'en' : 'ja';
   var KEY = 'pv_salary_unlock_expiry';
   var PAY_URL = 'pay-report.html#ps';
+  var DETAIL_URL = 'pay-report.html#pay-detail';   // 「くわしく入れる」を開いた先
+  var INVITE_URL = 'profile.html#pv-invite-slot';  // 招待の常設入口（ここ1つだけ）
+  var DEEP_GOAL = 100;                             // ①の人数。FOUNDING PILOT 100 と同じ
 
   var T = {
     ja: {
@@ -56,6 +75,12 @@
           s: 'その給与が基本給・乗務手当・賞与のどれでできているかを、'
            + '複数の投稿から集計して見られるようにします。まだ作っている途中です。'
         },
+        /* ★人数がサーバから来たときだけ、こちらを使う（上の文面は数が無いときの控え）。 */
+        deepN: {
+          t: 'DEEP PAY はパイロット100人で開きます',
+          s: '給与を出したパイロットが100人そろったときに開きます。'
+           + '内訳まで出してくれている人は、そのときに自動で解放されます。'
+        },
         verified: {
           t: 'VERIFIED PAY は準備中です',
           s: '給与明細に裏付けのあるものだけを集めて見られるようにします。'
@@ -63,10 +88,18 @@
         }
       },
       tiers: [
-        { give: '給与を1件（手入力でもかまいません）', get: 'REAL PAY' },
+        { give: '給与を1件。手入力でもかまいません', get: 'REAL PAY' },
         { give: '内訳まで詳しく', get: 'DEEP PAY' },
         { give: '給与明細から', get: 'VERIFIED PAY' }
-      ]
+      ],
+      unit: 'PILOTS',
+      goal: function (n) { return n + ' / ' + DEEP_GOAL + '人'; },
+      ready: '✓ あなたの準備は完了しています',
+      left: function (k) { return 'あと' + k + '人のパイロットが参加すると自動的に解放されます。'; },
+      arrived: '100人に届きました。まもなく開きます。',
+      needDetail: '給与の内訳を共有すると、DEEP PAY の準備が整います。',
+      ctaDetail: '給与内訳を追加する',
+      ctaInvite: '匿名でパイロットを1人招待'
     },
     en: {
       giveHd: 'What you share', getHd: 'What you can see',
@@ -86,6 +119,11 @@
           s: 'It will show what a salary is made of — base, flight pay, bonus — '
            + 'aggregated across several submissions. We are still building it.'
         },
+        deepN: {
+          t: 'DEEP PAY opens at 100 pilots',
+          s: 'It opens once 100 pilots have shared their pay. '
+           + 'If you have already shared your breakdown, it unlocks for you automatically.'
+        },
         verified: {
           t: 'VERIFIED PAY is in preparation',
           s: 'It will aggregate only figures backed by a payslip. '
@@ -93,10 +131,18 @@
         }
       },
       tiers: [
-        { give: 'One pay record (typing it in is fine)', get: 'REAL PAY' },
+        { give: 'One pay record — typing it in is fine', get: 'REAL PAY' },
         { give: 'The full breakdown', get: 'DEEP PAY' },
         { give: 'From a payslip', get: 'VERIFIED PAY' }
-      ]
+      ],
+      unit: 'PILOTS',
+      goal: function (n) { return n + ' / ' + DEEP_GOAL; },
+      ready: '✓ You are already qualified',
+      left: function (k) { return k + ' more pilots and it unlocks automatically.'; },
+      arrived: '100 pilots reached. Opening soon.',
+      needDetail: 'Share your pay breakdown to qualify for DEEP PAY.',
+      ctaDetail: 'Add your pay breakdown',
+      ctaInvite: 'Invite one pilot anonymously'
     }
   }[L];
 
@@ -129,24 +175,66 @@
     return !!v && Date.now() < v;
   }
 
+  /* ── いま何人集まっているか / 本人が何を出したか ────────────────
+     ★このファイルは数を作らない。サーバ（pv_pay_rows）から渡されたものを持つだけ。
+       渡されないあいだ n は null で、DEEP PAY の札は「準備中」のまま。
+       0 を置いて埋めない（REAL PAY の数字カードと同じ決まり）。 */
+  var PROG = { n: null, detailed: null };
+
+  function deepN() {
+    return (typeof PROG.n === 'number' && PROG.n >= 0) ? PROG.n : null;
+  }
+
+  /* 段ごとの「状態」の札。live は今までどおり。
+     DEEP PAY だけ、人数が分かっているときに「N / 100人」に変わる。 */
+  function pill(tier, live) {
+    if (live) return '✓ ' + T.now;
+    if (tier.key === 'deep' && deepN() !== null) return T.goal(deepN());
+    return T.soon;
+  }
+
   /* ── Give → Get の3段（ロック画面とパネルで同じものを使う）──────
      ★2か所に書き写さない。actual-pay.js もこの関数を呼ぶ。 */
   function giveGetHTML() {
     var rows = TIERS.map(function (tier, i) {
       var t = T.tiers[i];
       var live = tier.state === 'live';
-      return '<li class="pv-give-r' + (live ? ' is-live' : '') + '">'
+      var goal = (tier.key === 'deep' && !live && deepN() !== null);
+      return '<li class="pv-give-r' + (live ? ' is-live' : '')
+           + (goal ? ' is-goal' : '') + '">'
            + '<span class="pv-give-g">' + esc(t.give) + '</span>'
            + '<span class="pv-give-ar" aria-hidden="true">→</span>'
            + '<span class="pv-give-t">' + esc(t.get) + '</span>'
            + '<span class="pv-give-s"><span class="pv-give-p">'
-           + (live ? '✓ ' : '') + esc(live ? T.now : T.soon)
+           + esc(pill(tier, live))
            + '</span></span></li>';
     }).join('');
     return '<div class="pv-give">'
          + '<div class="pv-give-hd"><span>' + esc(T.giveHd) + '</span>'
          + '<span>' + esc(T.getHd) + '</span></div>'
          + '<ul class="pv-give-l">' + rows + '</ul></div>';
+  }
+
+  /* 数が後から届いたとき、すでに描いてある3段を描き直す。
+     ★描き直すのはこの3段だけ。まわりの文章には手を触れない。 */
+  function refreshGive() {
+    Array.prototype.slice.call(d.querySelectorAll('.pv-give')).forEach(function (el) {
+      var box = d.createElement('div');
+      box.innerHTML = giveGetHTML();
+      if (el.parentNode) el.parentNode.replaceChild(box.firstChild, el);
+    });
+    if (panel && panel.getAttribute('data-kind') === 'deep') openPanel('deep');
+  }
+
+  /* actual-pay.js / my-value.js が pv_pay_rows() の返りをそのまま渡す。
+       n        … stats.contributors（給与を出したユニークな人数）
+       detailed … give.detailed（本人が内訳まで出しているか）
+     どちらも分からなければ渡さなくてよい。渡さなければ今までの見た目に戻るだけ。 */
+  function setProgress(o) {
+    if (!o) return;
+    if (typeof o.n === 'number' && isFinite(o.n) && o.n >= 0) PROG.n = Math.floor(o.n);
+    if (typeof o.detailed === 'boolean') PROG.detailed = o.detailed;
+    refreshGive();
   }
 
   // ── 左メニューに錠前を出す ──────────────────────────────────
@@ -204,16 +292,39 @@
     if (offKey) { d.removeEventListener('keydown', offKey, true); offKey = null; }
   }
 
+  /* DEEP PAY のときだけ、条件2つの進み具合を出す。
+     ★①（100人）と②（本人の内訳）は別々に書く。混ぜると
+       「100人そろえば誰でも見られる」とも「内訳を出せば今日見られる」とも読めてしまう。
+     ★先に内訳を出した人が出し損に見えないこと。それがこの塊の目的。 */
+  function deepBody() {
+    var n = deepN();
+    if (n === null) return '';
+    var left = DEEP_GOAL - n;
+    var mine = (PROG.detailed === true)
+      ? '<p class="mr-gate-ok">' + esc(T.ready) + '</p>'
+      : '<p class="mr-gate-need">' + esc(T.needDetail) + '</p>'
+        + '<a class="mr-gate-cta" href="' + DETAIL_URL + '">' + esc(T.ctaDetail) + '</a>';
+    return '<div class="mr-gate-goal">'
+         + '<span class="mr-gate-goal-k">DEEP PAY</span>'
+         + '<span class="mr-gate-goal-n">' + esc(T.goal(n)) + '</span>'
+         + '<span class="mr-gate-goal-u">' + esc(T.unit) + '</span></div>'
+         + '<p class="mr-gate-left">' + esc(left > 0 ? T.left(left) : T.arrived) + '</p>'
+         + mine
+         + '<a class="mr-gate-inv" href="' + INVITE_URL + '">' + esc(T.ctaInvite) + '</a>';
+  }
+
   function openPanel(kind) {
     closePanel();
     var main = d.querySelector('.mr-main');
     if (!main) return;
-    var p = T.panel[kind] || T.panel.real;
+    var deep = (kind === 'deep' && deepN() !== null);
+    var p = (deep ? T.panel.deepN : T.panel[kind]) || T.panel.real;
 
     panel = d.createElement('div');
     panel.className = 'mr-gate';
     panel.id = 'mr-gate';
     panel.tabIndex = -1;
+    panel.setAttribute('data-kind', kind);
     panel.innerHTML =
         '<button type="button" class="mr-gate-x" aria-label="' + esc(T.close) + '">'
       + '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"'
@@ -221,8 +332,9 @@
       + '<path d="M6 6l12 12M18 6L6 18"/></svg></button>'
       + '<div class="mr-gate-t">' + esc(p.t) + '</div>'
       + '<p class="mr-gate-s">' + esc(p.s) + '</p>'
+      + (deep ? deepBody() : '')
       + giveGetHTML()
-      + '<a class="mr-gate-cta" href="' + PAY_URL + '">' + esc(T.cta) + '</a>';
+      + (deep ? '' : '<a class="mr-gate-cta" href="' + PAY_URL + '">' + esc(T.cta) + '</a>');
 
     main.insertBefore(panel, main.firstChild);
     panel.querySelector('.mr-gate-x').addEventListener('click', closePanel);
@@ -270,6 +382,8 @@
   w.PVGates = {
     /* 確かな値を持っている画面から呼ぶ（actual-pay.js / my-value.js）。 */
     mark: mark,
+    /* 同じ2つが pv_pay_rows() の stats.contributors と give.detailed を渡す。 */
+    setProgress: setProgress,
     /* ロック画面が同じ3段を描くために使う。 */
     giveGetHTML: giveGetHTML,
     close: closePanel

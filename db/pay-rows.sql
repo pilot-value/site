@@ -634,18 +634,125 @@ on conflict (review_id) do nothing;
 
 
 -- ════════════════════════════════════════════════════════════════
+-- 1-e. pv_my_give — 呼んだ本人が「何を出したか」だけを返す
+--
+-- 返り値  { basic, detailed, payslip }  ── 真偽3つだけ。
+--   basic    … 給与レポートが1件でもある
+--   detailed … 内訳のある行が1件でもある
+--   payslip  … そのうち明細の裏付けがあるもの（verify_level >= 1）
+--
+-- なぜ要るか（2026-08-25・DEEP PAY の解放条件）
+--   DEEP PAY は2つとも満たしたときだけ開く：
+--     ① 給与を出したユニークなパイロットが100人（＝みんなの話）
+--     ② **本人が内訳まで出している**（＝この関数が答える側）
+--   ★①と②は別々に判定する。100人はプライバシーの閾値ではなく、
+--     「機能を正式に開ける」という区切り。人数が足りない細かい区分を
+--     出さない判断は、DEEP PAY のページ側が別に持つ。
+--
+-- ★新しい列を1つも作っていない。pay_reports は gross_monthly（総支給1本）と
+--   内訳（base_pay 以下）を**排他**にしているので、いま入っているデータのまま
+--   Basic と Detailed が分かれる。＝前から内訳を出してくれていた人も、
+--   さかのぼって Detailed として数えられる（既存データを1行も壊さない）。
+-- ★明細から入れた行は内訳の側に入るので detailed が自動で true になる。
+--   ＝明細を出した人に、内訳のフォームをもう一度書かせない。
+-- ★payslip は verify_level を見る（一覧の「出典」列とまったく同じ判定）。
+--   source は自己申告なので使わない（db/pay-reports.sql 冒頭の約束）。
+--
+-- ⚠️ なぜ pv_pay_rows の中に書かないか
+--   本人の行を引くには proof_hash を作り直す必要があり、その材料に
+--   **打ち込まれた社名**が入る（pay_reports に user_id が無いため）。
+--   一覧の関数の中でそれを読むと、「打ち込まれた社名を読んでいない」という
+--   一覧側の約束（自己点検7）が言えなくなる。読む場所をこの関数1つに閉じ込める。
+--   引き方は my_pay_reports()（db/pay-reports.sql 5-b）と同じ。**式を変えないこと。**
+--
+-- ★誰にも grant しない。security definer の中（pv_pay_rows）からだけ呼ぶ。
+-- ════════════════════════════════════════════════════════════════
+create or replace function public.pv_my_give()
+returns jsonb
+language sql
+security definer
+stable
+set search_path = public, extensions
+as $fn$
+  with mine as (
+    -- 一覧から選んだ会社：コードは有限なので総当たりでハッシュを作れる
+    select encode(extensions.digest(
+             auth.uid()::text || '::pv_pay::' || a.code, 'sha256'), 'hex') as h
+      from public.pv_airlines a
+    union
+    -- 「一覧にない会社」：ハッシュに自由入力の社名が入っているので総当たりでは
+    -- 引けない。実在する社名だけを候補にして作り直す。ここで他人の社名を読むが、
+    -- 使うのはハッシュの材料としてだけで、関数の外へは1文字も出ない。
+    select encode(extensions.digest(
+             auth.uid()::text || '::pv_pay::other::' || o.nm, 'sha256'), 'hex')
+      from (select distinct lower(airline_other) as nm
+              from public.pay_reports
+             where airline = 'other' and airline_other is not null) o
+  )
+  select jsonb_build_object(
+           'basic',    coalesce(bool_or(true), false),
+           'detailed', coalesce(bool_or(r.gross_monthly is null
+                                        and r.base_pay is not null), false),
+           'payslip',  coalesce(bool_or(r.verify_level >= 1), false)
+         )
+    from public.pay_reports r
+    join mine k on k.h = r.proof_hash
+   where auth.uid() is not null;
+$fn$;
+
+-- ★誰にも渡さない。pv_pay_rows の中からだけ呼ぶ（pv_pending_usd と同じ扱い）。
+revoke all on function public.pv_my_give() from public, anon, authenticated;
+
+comment on function public.pv_my_give() is
+  '呼んだ本人が Basic / Detailed / Payslip のどれを出したかを真偽3つで返す。'
+  'DEEP PAY の個人条件（本人が内訳まで出しているか）に使う。'
+  '金額も件数も日付も返さない。新しい列は作らず、gross_monthly と内訳が排他である'
+  'という既存のスキーマだけで判定するので、過去の投稿もそのまま数えられる。'
+  '本人の行の引き方は my_pay_reports() と同じ（proof_hash を作り直す）。'
+  '★誰にも grant しない。pv_pay_rows() の中からだけ呼ぶ。';
+
+
+-- ════════════════════════════════════════════════════════════════
 -- 2. pv_pay_rows — 匿名レポート一覧（1行＝1人・出した人は全員）
 --
 -- 返り値
---   { ok:true, state:'locked', rows:[] }   鍵が無い／切れている
---   { ok:true, state:'open',   rows:[ … ], stats:{ reports, month } } 鍵がある
+--   { ok:true, state:'locked', rows:[], stats:{…}, give:{…} }  鍵が無い／切れている
+--   { ok:true, state:'open',   rows:[ … ], stats:{…}, give:{…} }  鍵がある
+--   ★違いは rows だけ。鍵が無い人には**行が1つも入らない**。
 --
 -- stats（2026-08-24 に足した。理由はファイル冒頭「★数え上げについて」）
---   reports … 提出の件数。同じ人の複数月もそれぞれ1件（＝ rows の数より必ず多いか同じ）
---   month   … そのうち今月に入ったぶん
---   ★どちらも rows を作ったのと同じ材料（下の sane）から数える。
+--   reports      … 提出の件数。同じ人の複数月もそれぞれ1件（＝ rows の数より必ず多いか同じ）
+--   month        … そのうち今月に入ったぶん
+--   airlines     … 行に出てくる航空会社の数
+--   contributors … 給与を出したユニークな人数（DEEP PAY の「N / 100人」に使う）
+--   ★reports / month / airlines は rows を作ったのと同じ材料（下の sane）から数える。
 --     別々に数えると「126件なのに表は60行」の説明がつかなくなる。
---   ★鍵が無いときは stats ごと返さない（数字も鍵の内側）。
+--
+--   ⚠️ 2026-08-25、オーナー判断で **stats は鍵が無い人にも返す**ことにした。
+--      前は「数字も鍵の内側」として stats ごと落としていた。外へ新しく出るのは
+--      「今どれだけ集まっているか」と「今月どれだけ増えたか」の2つで、
+--      **金額は1つも出ない**（行は今までどおり1つも返さない）。
+--      理由は、出す前の人に「どれだけ集まっているか」が見えないと
+--      Give & Get を選びようがないため。戻すなら v_open を stats にも掛ける。
+--
+--   ★contributors だけは sane から数えない。あれは「表の行の説明」で、
+--     こちらは「何人のパイロットが参加したか」という別の問い。
+--     sane から数えると、レートの無い通貨の人・24ヶ月より古い人が
+--     参加していないことになってしまう。給与フォームを通った人を素直に数える。
+--     ⚠️ 口コミに金額を書いた人は数えない（給与フォームは通っていない）。
+--     ⚠️ 預かりは日ごとにキーが変わるので、登録前に2日に分けて出した人は2と数える
+--        （登録して本棚へ移った時点で claimed_at が立ち、こちらからは消える）。
+--
+-- give ── 本人が何を出したか（2026-08-25。DEEP PAY の個人条件のため）
+--   basic    … 給与レポートが1件でもある
+--   detailed … 内訳のある行が1件でもある（gross_monthly が空で base_pay がある側）
+--   payslip  … そのうち明細の裏付けがあるもの（verify_level >= 1）
+--   ★新しい列を作っていない。pay_reports は gross_monthly（総支給1本）と
+--     内訳を**排他**にしているので、今あるデータのまま Basic / Detailed が分かる。
+--     ＝既存の投稿も1件も取りこぼさない。
+--   ★本人の行の引き方は my_pay_reports()（db/pay-reports.sql 5-b）と同じ。
+--     pay_reports に user_id は無いので、proof_hash を作り直して突き合わせる。
+--   ★返すのは真偽3つだけ。金額も件数も日付もここから出さない。
 --
 -- rows[] の1件
 --   { airline, pos, annual_usd, verified, age }
@@ -678,6 +785,7 @@ as $$
 declare
   v_uid   uuid := auth.uid();
   v_until timestamptz;
+  v_open  boolean;
   v_out   jsonb;
 begin
   if v_uid is null then
@@ -688,9 +796,11 @@ begin
 
   -- ★ここで raise しない。投げると画面がエラー表示になり、
   --   「1枚出せば開く」という肝心の伝え方ができなくなる。
-  if v_until is null or v_until <= now() then
-    return jsonb_build_object('ok', true, 'state', 'locked', 'rows', '[]'::jsonb);
-  end if;
+  -- ★2026-08-25、ここで return するのをやめた。数え上げ（stats）と
+  --   本人が何を出したか（give）は鍵が無い人にも返すため。
+  --   **行だけ**を下の listed で落とす。旗はここ1つで、
+  --   分岐を2つに増やさない（増やすと片方だけ直して漏れる）。
+  v_open := (v_until is not null and v_until > now());
 
   with shelf as (
     -- ── ① 本棚（会員が出したぶん）──────────────────────────
@@ -839,15 +949,45 @@ begin
     select count(*)::int as reports,
            count(*) filter (where cat >= date_trunc('month', now()))::int as mo
       from sane
+  ),
+  airs as (
+    -- 社数。★person から数える（＝表に実際に出てくる会社）。画面が rows を
+    --   数えて出していた数字を、行の来ない人にも返せるようにサーバへ移した。
+    select count(distinct airline)::int as n from person
+  ),
+  contrib as (
+    -- ★給与を出したユニークな人数。ここだけ sane から数えない（理由は上のヘッダ）。
+    --   本棚は proof_hash、預かりは ip_day_hash が「人」の単位。
+    --   出るのは1つの整数だけで、誰がいつ何を出したかは1バイトも出ない。
+    select (
+      (select count(distinct r.proof_hash) from public.pay_reports r)
+      + (select count(distinct q.ip_day_hash)
+           from public.pay_reports_pending q
+          where q.claimed_at is null and q.ip_day_hash is not null)
+    )::int as n
   )
   select jsonb_build_object(
            'ok',    true,
-           'state', 'open',
-           'rows',  l.j,
-           'stats', jsonb_build_object('reports', t.reports, 'month', t.mo)
+           'state', case when v_open then 'open' else 'locked' end,
+           -- ★行はここだけで落とす。鍵が無ければ空の配列そのもので、
+           --   ぼかした行でも伏せ字の行でもない（渡していないものは隠せない）。
+           'rows',  case when v_open then l.j else '[]'::jsonb end,
+           'stats', jsonb_build_object('reports',      t.reports,
+                                       'month',        t.mo,
+                                       'airlines',     s.n,
+                                       'contributors', c.n),
+           -- ★本人が何を出したか。中身は pv_my_give() が持つ（1-b3）。
+           --   ここに書き写さない。本人の行を引くには打ち込まれた社名を
+           --   ハッシュの材料として読む必要があり、この関数の中で読むと
+           --   「打ち込まれた社名を読んでいない」という一覧側の約束
+           --   （自己点検7）が言えなくなる。読む場所を1つに閉じ込める。
+           'give',  public.pv_my_give()
          )
     into v_out
-    from listed l cross join tally t;
+    from listed l
+    cross join tally t
+    cross join airs s
+    cross join contrib c;
 
   return v_out;
 end;
@@ -868,8 +1008,12 @@ comment on function public.pv_pay_rows() is
   '投稿の時期は5段の粗い区分（age 0〜4）でだけ返す。日付も年月も返さない。'
   '支給の内訳も返さない（内訳は DEEP PAY の担当）。'
   '金額は有効数字2桁に丸め、年 $10,000〜$700,000 の外は打ち間違いとして出さない。'
-  '並びは md5(人のキー) 順で投稿順ではない。'
+  '並びは新しい順（last_at desc）。並べるのに使う時刻は行に入れない。'
   '2026-08-24 から stats（提出の件数・今月のぶん）も返す。行と同じ材料から数える。'
+  '2026-08-25 から stats に社数と、給与を出したユニークな人数（contributors）を足し、'
+  '**鍵が無い人にも stats を返す**ようにした（金額は1つも出ない。行は今までどおり空）。'
+  '同じ回に give（本人が basic / detailed / payslip のどれを出したか）を足した。'
+  'give は真偽3つだけで、金額も件数も日付も返さない。'
   '★引数を取らない＝他人の区分を狙って引く面が無い。'
   '★鍵は給与明細の access_until のみ。口コミの鍵では開かない。';
 
@@ -879,9 +1023,9 @@ comment on function public.pv_pay_rows() is
 --
 -- ★1本の SELECT にしてある。Supabase の SQL Editor は複数文を流すと
 --   最後の1本の結果しか出さないので、分けて書くと上から順に消えていく。
--- 期待：35行すべて ✅。1つでも ❌ なら、そこが効いていない。
+-- 期待：40行すべて ✅。1つでも ❌ なら、そこが効いていない。
 --
--- 特に 4・8・12・13・14・16・22・23・30・31 は「静かに壊れる」種類のもの。画面には何も
+-- 特に 4・8・12・13・14・16・22・23・30・31・36・37・40 は「静かに壊れる」種類のもの。画面には何も
 -- 出ないまま、他人の個票に届く経路が開く（16・30 は逆に、同じ人が二重に出る）。
 -- ════════════════════════════════════════════════════════════════
 with f as (
@@ -896,7 +1040,8 @@ with f as (
          to_regclass('public.pay_benchmarks')          as bench,
          to_regclass('public.pv_review_person')        as link,
          to_regprocedure('public.pv_airline_resolve(text)') as f_res,
-         to_regprocedure('public.pv_airline_norm(text)')    as f_norm
+         to_regprocedure('public.pv_airline_norm(text)')    as f_norm,
+         to_regprocedure('public.pv_my_give()')             as f_give
 )
 select n as "#", case when ok then '✅' else '❌' end as 結果, 見るところ
 from (
@@ -1049,6 +1194,48 @@ from (
          case when f_rows is null then false
               else pg_get_functiondef(f_rows) like '%''stats''%'
                and pg_get_functiondef(f_rows) like '%from sane%'
+         end from f
+  union all
+  -- ── 鍵が無い人に何を返すか（2026-08-25）──────────────────────
+  select 36, '★鍵で落としているのは行だけ（数え上げは鍵が無い人にも返る）',
+         -- 鍵の旗（v_open）が掛かっているのは rows の1か所だけであること。
+         -- stats や give にも掛けてしまうと、出す前の人に何も見えなくなる。
+         -- ★鍵の旗（v_open）が出てよいのは4か所だけ ── 宣言・旗を立てる・state・rows。
+         --   増えていたら stats か give にも鍵を掛けた疑いがある＝出す前の人に
+         --   何も見えなくなる。数で釘を打っておく。
+         case when f_rows is null then false
+              else pg_get_functiondef(f_rows) like '%case when v_open then l.j else%'
+               and pg_get_functiondef(f_rows) like '%when v_open then ''open'' else ''locked''%'
+               and (length(pg_get_functiondef(f_rows))
+                    - length(replace(pg_get_functiondef(f_rows), 'v_open', ''))) / 6 = 4
+         end from f
+  union all
+  select 37, '★鍵が無い人には行が1つも入らない（空の配列そのもの。伏せた行ではない）',
+         case when f_rows is null then false
+              else pg_get_functiondef(f_rows) like '%else ''[]''::jsonb end%'
+         end from f
+  union all
+  select 38, '★給与を出したユニークな人数を返している（DEEP PAY の「N / 100人」の材料）',
+         case when f_rows is null then false
+              else pg_get_functiondef(f_rows) like '%''contributors''%'
+         end from f
+  union all
+  select 39, '★本人が何を出したかは真偽3つだけ（金額も件数も日付もここから出ない）',
+         case when f_give is null then false
+              else pg_get_functiondef(f_give) like '%''basic''%'
+               and pg_get_functiondef(f_give) like '%''detailed''%'
+               and pg_get_functiondef(f_give) like '%''payslip''%'
+               -- 金額そのものを返す道が無いこと（真偽に畳んでからしか出さない）
+               and pg_get_functiondef(f_give) not like '%annual_total%'
+               and pg_get_functiondef(f_give) not like '%''created_at''%'
+               and pg_get_functiondef(f_give) !~
+                   '(base_iata|seniority_years|age_bucket|contract_type|tax_country|period_month)'
+         end from f
+  union all
+  select 40, '★本人が何を出したかを返す関数は誰にも開いていない（pv_pay_rows の中からだけ）',
+         case when f_give is null then false
+              else not has_function_privilege('anon', f_give, 'execute')
+               and not has_function_privilege('authenticated', f_give, 'execute')
          end from f
   union all
   select 26, '★投稿の時刻そのものは行として返していない（返すのは粗い段だけ）',

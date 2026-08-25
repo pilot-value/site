@@ -428,12 +428,24 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
         order by は1行に収まっているので、その行の中だけを見る。 */
   ok(!/order by\s[^\n]*\bcat\b/.test(FN), '★投稿時刻で並べていない',
      (FN.match(/order by\s[^\n]*/g) || []).join(' / ').slice(0, 160));
-  /* ★鍵が無い人には数え上げも渡さない。 */
+  /* ★鍵が無い人にも「数」と「本人が何を出したか」は渡す（2026-08-25 オーナー判断）。
+       ⚠️ 渡さないのは **行だけ**。ここが逆になっていないことを見る。 */
   {
-    const lk = FN.slice(FN.indexOf("'locked'"));
-    ok(lk.length > 0 && !/'stats'/.test(lk.slice(0, 400)),
-       '★鍵が無いときは stats を返さない');
+    ok(/'rows',\s*case when v_open then l\.j else '\[\]'::jsonb end/.test(FN),
+       '★鍵が無いときに返る rows は空の配列（1バイトも行を返さない）',
+       (FN.match(/'rows',[^\n]*/g) || []).join(' / '));
+    ok(!/return v_out;/.test(FN.slice(0, FN.indexOf("'contributors'"))),
+       '★locked でも途中で return せず、最後の1つの select まで進む');
+    ok(/'contributors'/.test(FN), '★給与を出したユニークな人数を返す（DEEP PAY の分母）');
+    ok(/'give',\s*public\.pv_my_give\(\)/.test(FN),
+       '★本人が何を出したか（basic / detailed / payslip）を返す');
+    /* ★①（100人）と②（本人の内訳）は別の材料から出ている。 */
+    ok(/pay_reports_pending/.test(FN.slice(FN.indexOf('contrib as'), FN.indexOf('contrib as') + 600)),
+       '★人数は未引き取りの預かりも数える（出したのに数に入らない人を作らない）');
   }
+  /* ★pv_my_give は誰にも開かない（security definer の中からしか読まれない）。 */
+  ok(/revoke all on function public\.pv_my_give\(\) from public, anon, authenticated/.test(SQL),
+     '★pv_my_give は誰にも開いていない');
 
   /* ★契約ヘッダ。②が「準識別子ゼロ」に戻り、数え上げを出した理由が日付つきで書いてある。 */
   {
@@ -626,6 +638,12 @@ const ROWS = [
 ];
 
 /* 画面に出るはずの段の言葉。★これ以外の言い方が出たら、どこかで作り直されている。 */
+/* 実物の6列。★骨組みもこれと同じ字でなければならない（賞与の列は無い）。 */
+const TH6 = {
+  ja: ['航空会社', '職位', '年収', '月あたり', '出典', '投稿時期'],
+  en: ['Airline', 'Position', 'Annual', 'Per month', 'Source', 'Submitted']
+};
+
 const AGE_WORDS = {
   ja: ['1ヶ月以内', '3ヶ月以内', '6ヶ月以内', '1年以内', 'それより前'],
   en: ['Within 1 month', 'Within 3 months', 'Within 6 months',
@@ -659,7 +677,14 @@ const ST_MANY = { reports: 31, month: 6 };
 const LOCKED = { ok: true, state: 'locked', rows: [] };
 /* ★鍵が無いのに数え上げだけ来た形。画面は帯ごと出さない（サーバも返さないが、
      返ってきても会員規模が漏れないこと）。 */
-const LOCKED_ST = { ok: true, state: 'locked', rows: [], stats: ST };
+/* ★2026-08-25 オーナー判断で、鍵が無い人にも数え上げを返すようになった。
+     contributors ＝ 給与を出したユニークな人数（DEEP PAY の「N / 100人」に使う）。 */
+const ST_LOCK = { reports: 11, month: 3, airlines: 7, contributors: 21 };
+const LOCKED_ST = { ok: true, state: 'locked', rows: [], stats: ST_LOCK,
+                    give: { basic: false, detailed: false, payslip: false } };
+/* 先に内訳を出してくれた人（100人にはまだ届いていない）。 */
+const LOCKED_DET = { ok: true, state: 'locked', rows: [], stats: ST_LOCK,
+                     give: { basic: true, detailed: true, payslip: false } };
 const EMPTY = { ok: true, state: 'open', rows: [] };
 const OPEN = { ok: true, state: 'open', rows: ROWS, mine: MINE, stats: ST };
 const MANY = { ok: true, state: 'open', rows: MANY_ROWS, mine: MINE, stats: ST_MANY };
@@ -737,6 +762,14 @@ const SNAP = () => {
   return {
     url: location.pathname,
     rowsText: txt(rows),
+    /* ★3段の Give → Get を外した本文。真ん中の札は「21 / 100人」＝**進み具合**で、
+         金額ではない。金額の検査はこちらで見る（札の数字で赤くならないように）。 */
+    rowsTextX: (function () {
+      if (!rows) return '';
+      const c = rows.cloneNode(true);
+      Array.prototype.slice.call(c.querySelectorAll('.pv-give')).forEach((e) => e.remove());
+      return c.textContent || '';
+    })(),
     mainText: txt(main),
     bodyText: document.body.innerText,
     trs: q('tbody tr', rows).length,
@@ -849,6 +882,24 @@ const SNAP = () => {
       const a = t.getBoundingClientRect(), b = m.getBoundingClientRect();
       return { tw: Math.round(a.width), mw: Math.round(b.width) };
     })(),
+    /* ── 鍵が無い人の画面（2026-08-25）─────────────────
+       ★骨組みは「ぼかし」ではない。中身が最初から無いことを、
+         棒の並びに文字が1つも無いことで確かめる。 */
+    lockArt: q('.ap-lock-art', rows).length,
+    lockCols: q('.ap-lock-cols', rows).length,
+    skelThs: q('.ap-skel-hd span', rows).map((e) => (e.textContent || '').trim()),
+    skelBars: q('.ap-skel-bar', rows).length,
+    skelRowsText: q('.ap-skel-r', rows).map((e) => (e.textContent || '').trim()).join(''),
+    skelLock: q('.ap-skel-lock', rows).map((e) => (e.textContent || '').trim()).join(' '),
+    seeItems: q('.ap-see li', rows).map((e) => (e.textContent || '').trim()),
+    seeNote: q('.ap-see-n', rows).map((e) => (e.textContent || '').trim()).join(' '),
+    /* ★見出し・列名・ボタンの字に注記のカッコを足さない（2026-08-25 オーナー指摘
+         「（丸め）とか不要な文字はいらない」）。静かに戻るたぐいなので字として見張る。
+       ⚠️ 表の下の1文（.ap-foot）はここに入れない。あれは注記ではなく約束で、
+          カッコ書きを含んでいてよい。 */
+    labels: q('h1, h2, .ap-msg-t, .ap-lock-h, .ap-st-l, .ap-skel-hd span,'
+            + ' thead th, .ap-cta, .ap-pg, .pv-give-hd, .mr-gate-t', main)
+      .map((e) => (e.textContent || '').trim()),
     calls: (window.__rpc || []).map((r) => r.name),
     withArgs: (window.__rpc || []).filter((r) => r.hasArgs).map((r) => r.name),
     tblTexts: q('table', rows).map((t) => t.innerText)
@@ -856,7 +907,14 @@ const SNAP = () => {
 };
 
 /* ★消したものが戻っていないか（全ケースで同じことを見る）。 */
-function gone(v, tag) {
+function gone(v, tag, opt) {
+  /* opt.h2 … 鍵が無い画面だけ、下段2枚の見出しを許す（開いている画面は今までどおり0）。
+     opt.lock … 飾りの絵と2段組は**鍵が無いときだけ**出る。 */
+  const h2max = (opt && opt.h2) || 0;
+  const lk = (opt && opt.lock) ? 1 : 0;
+  ok(v.lockArt === lk && v.lockCols === lk,
+     `${tag}: ★飾りの絵と2段組は鍵が無いときだけ`,
+     `art=${v.lockArt} cols=${v.lockCols} / 期待 ${lk}`);
   ok(v.pub === 0 && v.bluePresent === 0 && v.ranges === 0 && v.plist === 0,
      `${tag}: ★推定レンジの節が実行時にも無い`,
      `${v.pub}/${v.bluePresent}/${v.ranges}/${v.plist}`);
@@ -868,8 +926,8 @@ function gone(v, tag) {
        （それまでは図のカードの見出しぶんだけ増えた）。
      ★見出しに札を置かない。ページ全体を「本人記録」と名乗ると、
        出典が ✓ Verified の行と食い違う（英語の画面で実際に並んで見えた）。 */
-  ok(v.h2 === 0 && v.orange === 0,
-     `${tag}: ★見出しは1つだけ・h2 は無い・見出しに札は無い`,
+  ok(v.h2 === h2max && v.orange === 0,
+     `${tag}: ★h2 は ${h2max} つだけ・見出しに札は無い`,
      `h2=${v.h2} / badge=${v.orange} / ${v.h1}`);
   /* ★図が1つも無いこと（消したものが戻っていないか）。 */
   ok(v.vizCards === 0 && v.bars === 0 && v.you === 0 && v.axText === ''
@@ -879,6 +937,15 @@ function gone(v, tag) {
   /* ★本人の明細を引かない（引いていたのは分布の破線のためだけ）。 */
   ok(!v.calls.includes('my_pay_reports'),
      `${tag}: ★本人の明細（my_pay_reports）を1度も引かない`, v.calls.join(','));
+}
+
+/* ★見出し・列名・ボタンに、断り書きのカッコを足していないこと（2026-08-25）。
+     「年収（丸め）」「給与を追加する（約30〜50秒）」のたぐい。
+     説明が要るものは本文か、表の下の1文が引き受ける。 */
+function noParen(v, tag) {
+  const bad = v.labels.filter((t) => /[（(][^）)]{0,24}[）)]/.test(t));
+  ok(bad.length === 0, `${tag}: ★見出し・列名・ボタンにカッコの注記が1つも無い`,
+     bad.join(' | '));
 }
 
 /* ★文言の約束。外した3つが本文に残っていると、そこだけ嘘になる。 */
@@ -961,25 +1028,146 @@ for (const lang of ['ja', 'en']) {
   }
   ok(v.barHidden === true, '★絞り込みの帯ごと隠れる（空の選択肢を並べない）',
      String(v.barHidden));
+  /* ★数え上げは見せる（2026-08-25 オーナー判断）が、**数が読めなければ出さない**。
+       この場面はサーバーが stats を返していないので、カードは1枚も出ないのが正しい。 */
   ok(v.statsHidden === true && v.stats.length === 0,
-     '★鍵が無いときは数字カードも出ない（会員規模を先に見せない）',
+     '★数が読めないときはカードごと出さない（0 を並べない）',
      `${v.statsHidden}/${v.stats.length}`);
-  gone(v, lang);
+
+  /* ── 一覧の骨組み（2026-08-25）──────────────────────────
+     ⚠️ これは**ぼかしではない**。サーバーが行を返していないので中身が最初から無い。 */
+  {
+    ok(v.lockCols === 1 && v.lockArt === 1,
+       `${lang}: ★下段2枚と飾りの絵が出る`, `cols=${v.lockCols} art=${v.lockArt}`);
+    ok(JSON.stringify(v.skelThs) === JSON.stringify(TH6[lang]),
+       `${lang}: ★骨組みの列が実物と同じ6つ`, JSON.stringify(v.skelThs));
+    const bonus = lang === 'ja' ? /賞与|ボーナス/ : /bonus/i;
+    ok(!bonus.test(v.skelThs.join(' ')),
+       `${lang}: ★骨組みに賞与の列が無い（実物に無い列を描かない）`, v.skelThs.join(','));
+    ok(v.skelBars > 0 && v.skelRowsText === '',
+       `${lang}: ★骨組みは灰色の棒だけ（数字も社名も1文字も無い）`,
+       `${v.skelBars}本 / ${JSON.stringify(v.skelRowsText).slice(0, 80)}`);
+    ok(v.skelLock !== '' && !/\d{3,}/.test(v.skelLock),
+       `${lang}: ★骨組みの上に錠前つきの1文が出る`, v.skelLock);
+    ok(v.seeItems.length === 4 && v.seeNote !== '',
+       `${lang}: ★「REAL PAY で見えること」4行＋機種の1文`,
+       `${v.seeItems.length} / ${v.seeNote}`);
+    const fleet = lang === 'ja' ? /機種/ : /fleet/i;
+    ok(fleet.test(v.seeNote), `${lang}: ★「機種は表示しません」が残っている`, v.seeNote);
+    /* ★見えることに、実際には出していないものを書かない。 */
+    const lies = lang === 'ja'
+      ? (v.seeItems.join(' ').match(/機材|基地|年代|在籍|賞与|手取り/g) || [])
+      : (v.seeItems.join(' ').match(/fleet|base|bonus|take-home/gi) || []);
+    ok(lies.length === 0, `${lang}: ★出していないものを「見えること」に書かない`, lies.join(','));
+  }
+
+  noParen(v, lang);
+  gone(v, lang, { h2: 2, lock: 1 });
   promises(v, lang, lang);
   ok(errs.length === 0, 'ページのエラーが1件も出ない', errs.join(' | '));
 }
 
-/* ★万一サーバが「鍵は無いが数だけ」を返してきても、画面は数を出さない。
-   （db/pay-rows.sql の locked の枝は stats を返さない。ここは画面側の二重の錠） */
-{
-  console.log('\n════ ja / A-2 鍵が無いのに数だけ来た ════');
-  const { page, errs } = await open('ja', LOCKED_ST);
+/* ════════════════════════════════════════════════════════════════
+   A-2 鍵が無い人にも数え上げを見せる（2026-08-25 オーナー判断）
+   ★前はここで「数が来ても1文字も出さない」を見張っていた。方針が変わったところ。
+     出した人に「いまどれだけ集まっているか」が見えないと Give & Get が成立しない。
+   ⚠️ 見せるのは**数だけ**。行・金額は1つも出ない（そちらは今までどおり）。
+   ════════════════════════════════════════════════════════════════ */
+for (const lang of ['ja', 'en']) {
+  console.log(`\n════ ${lang} / A-2 鍵が無い人に数だけ ════`);
+  const { page, errs } = await open(lang, LOCKED_ST);
   const v = await page.evaluate(SNAP);
-  ok(v.statsHidden === true && v.stats.length === 0,
-     '★鍵が無ければ、数え上げが来ていても1文字も出さない',
-     `${v.statsHidden}/${JSON.stringify(v.stats)}`);
-  ok(!v.bodyText.includes('11') || !/11\s*件/.test(v.bodyText),
-     '★「11件」が本文に出ない', v.bodyText.slice(0, 80));
+
+  ok(v.statsHidden === false && v.stats.length === 3,
+     `${lang}: ★数字カードが3枚出る`, `${v.statsHidden}/${JSON.stringify(v.stats)}`);
+  ok(v.stats.every((c) => c.i === 1), `${lang}: ★カード1枚につき絵が1つ`,
+     JSON.stringify(v.stats.map((c) => c.i)));
+  {
+    const n = v.stats.map((c) => c.n.replace(/[^\d]/g, ''));
+    ok(JSON.stringify(n) === JSON.stringify(['11', '7', '3']),
+       `${lang}: ★数はサーバーの数え上げそのまま（画面で数え直さない）`, JSON.stringify(n));
+  }
+  /* ★数を見せても、行と金額は1つも出ない。 */
+  ok(v.trs === 0 && v.amounts.length === 0 && v.tables === 0,
+     `${lang}: ★数を見せても行は1つも描かない`,
+     `${v.trs}行 / ${v.amounts.length}金額 / ${v.tables}表`);
+  ok(!MONEY.test(v.rowsTextX), `${lang}: ★結果の中に金額の形をした文字が1つも無い`,
+     JSON.stringify(v.rowsTextX).slice(0, 160));
+  ok(v.blurred.length === 0, `${lang}: ★ぼかしが1つも掛かっていない`, v.blurred.join(' | '));
+
+  /* ★DEEP PAY の札が「N / 100人」になる（3段の真ん中）。 */
+  {
+    const deep = v.give[1] || {};
+    const want = lang === 'ja' ? '21 / 100人' : '21 / 100';
+    ok(deep.s === want, `${lang}: ★DEEP PAY の札が「${want}」`, JSON.stringify(deep));
+    ok(!deep.live, `${lang}: ★札が出ても DEEP PAY は開いていない`, JSON.stringify(deep));
+    const real = v.give[0] || {};
+    ok(real.t === 'REAL PAY' && real.live,
+       `${lang}: ★いま開くのは REAL PAY だけ`, JSON.stringify(real));
+  }
+
+  /* ★条件2つを別々に書いてある（100人 ／ 本人の内訳）。
+       この人はまだ内訳を出していないので「内訳を足す」側が出る。 */
+  {
+    const g = await page.evaluate(() => {
+      const b = document.querySelector('[data-mr-gate="deep"]');
+      if (!b) return { no: true };
+      b.click();
+      const p = document.getElementById('mr-gate');
+      if (!p) return { no: true };
+      const a = Array.prototype.slice.call(p.querySelectorAll('a'));
+      return {
+        no: false,
+        goal: (p.querySelector('.mr-gate-goal-n') || {}).textContent || '',
+        left: (p.querySelector('.mr-gate-left') || {}).textContent || '',
+        ok0: p.querySelectorAll('.mr-gate-ok').length,
+        need: (p.querySelector('.mr-gate-need') || {}).textContent || '',
+        hrefs: a.map((x) => x.getAttribute('href')),
+        pos: getComputedStyle(p).position,
+        role: p.getAttribute('role') || '',
+        ov: document.body.style.overflow || ''
+      };
+    });
+    ok(!g.no, `${lang}: DEEP PAY の説明が開く`);
+    ok(/21/.test(g.goal) && /100/.test(g.goal),
+       `${lang}: ★①の進み具合が「21 / 100」で出る`, g.goal);
+    ok(/79/.test(g.left), `${lang}: ★あと79人と書いてある`, g.left);
+    ok(g.ok0 === 0 && g.need !== '',
+       `${lang}: ★②がまだの人には「内訳を共有すると」が出る`, `${g.ok0} / ${g.need}`);
+    ok(g.hrefs.some((h) => /pay-report\.html#pay-detail/.test(h || '')),
+       `${lang}: ★「給与内訳を追加する」の行き先がある`, g.hrefs.join(','));
+    ok(g.hrefs.some((h) => /profile\.html#pv-invite-slot/.test(h || '')),
+       `${lang}: ★招待の常設入口へ行ける`, g.hrefs.join(','));
+    ok(g.pos !== 'fixed' && g.role !== 'dialog' && g.ov === '',
+       `${lang}: ★説明は覆いではない（閉じ込めない）`, `${g.pos}/${g.role}/${g.ov}`);
+  }
+
+  ok(errs.length === 0, 'ページのエラーが1件も出ない', errs.join(' | '));
+}
+
+/* ★先に内訳を出してくれた人が「出し損」に見えないこと。ここがこの表示の目的。 */
+for (const lang of ['ja', 'en']) {
+  console.log(`\n════ ${lang} / A-2b 先に内訳を出した人 ════`);
+  const { page, errs } = await open(lang, LOCKED_DET);
+  const g = await page.evaluate(() => {
+    const b = document.querySelector('[data-mr-gate="deep"]');
+    if (!b) return { no: true };
+    b.click();
+    const p = document.getElementById('mr-gate');
+    if (!p) return { no: true };
+    return {
+      no: false,
+      ok0: (p.querySelector('.mr-gate-ok') || {}).textContent || '',
+      need: p.querySelectorAll('.mr-gate-need').length,
+      detail: p.querySelectorAll('a[href*="pay-detail"]').length,
+      left: (p.querySelector('.mr-gate-left') || {}).textContent || ''
+    };
+  });
+  ok(!g.no, `${lang}: DEEP PAY の説明が開く`);
+  ok(g.ok0 !== '', `${lang}: ★「あなたの準備は完了しています」が出る`, g.ok0);
+  ok(g.need === 0 && g.detail === 0,
+     `${lang}: ★済んだ人に、内訳をもう一度入れさせない`, `${g.need}/${g.detail}`);
+  ok(/79/.test(g.left), `${lang}: ★それでも①（100人）は別に書いてある`, g.left);
   ok(errs.length === 0, 'ページのエラーが1件も出ない', errs.join(' | '));
 }
 
@@ -1265,6 +1453,7 @@ for (const lang of ['ja', 'en']) {
 
   gone(v, lang);
   promises(v, lang, lang);
+  noParen(v, lang);
 
   /* ★絞り込みは「実際に行がある区分」だけ。112社を並べない。 */
   ok(v.barHidden === false, '行があるときは絞り込みの帯が出る', String(v.barHidden));

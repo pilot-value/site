@@ -166,13 +166,14 @@ const pv2 = (v) => Number(v.toPrecision(2));
 // 会社コードは語彙から取る（このテストのために特定の社名を覚えない）
 const VOCAB = (await rows(
   `select code, name_ja, name_en from pv_airlines
-    where code <> 'other' and active order by code limit 27`
+    where code <> 'other' and active order by code limit 31`
 ));
 const AIR = VOCAB.map(r => r.code);
 const [A_ONE, A_M12, A_MIX, A_OLD, A_ORD, A_VF, A_OUT, A_FOTHER,
        A_BAND, A_PEND, A_CLAIMED, A_NULLIP, A_CROSS, A_COMP, A_STAT,
        A_RV_MON, A_RV_ANN, A_RV_SUM, A_RV_DUP, A_RV_NONE, A_AGE,
-       A_AGE2, A_EDGE, A_NM_JA, A_NM_EN, A_NM_CODE, A_RV_FREE] = AIR;
+       A_AGE2, A_EDGE, A_NM_JA, A_NM_EN, A_NM_CODE, A_RV_FREE,
+       A_GV_BASIC, A_GV_DET, A_GV_PS, A_GV_OTHER] = AIR;
 const nameOf = (code) => VOCAB.find(r => r.code === code);
 
 // ════════════════════════════════════════════════════════════
@@ -772,11 +773,29 @@ await asViewer();
      '★24ヶ月の窓の外は件数からも落ちる', `件数 ${t.stats.reports} / 行 ${t.rows.length}`);
   ok(t.stats.month === b.m, '　今月のぶんにも入らない', String(t.stats.month));
 
-  // ⑤ 鍵が無い人には数字も返らない（数字も鍵の内側）
+  /* ⑤ 鍵が無い人に何が返るか。
+        ★2026-08-25、オーナー判断でここが**反転した**。前は「数字も鍵の内側」として
+          stats ごと落としていた。いまは数え上げだけ返す。
+          出す前の人に「どれだけ集まっているか」が見えないと Give & Get を
+          選びようがない、というのが理由。
+        ⚠️ 反転したのは数字だけ。**行は今までどおり1つも返らない**。
+          下の3つが、それを別々の角度から押さえている。 */
   await asUser(9001);
   const lk = await payRows();
-  ok(lk.state === 'locked' && !('stats' in lk),
-     '★鍵の無い人には数字が1つも返らない', JSON.stringify(lk));
+  ok(lk.state === 'locked' && lk.rows.length === 0,
+     '★鍵の無い人には行が1つも返らない', JSON.stringify(lk.rows));
+  ok(typeof lk.stats === 'object' && lk.stats
+     && typeof lk.stats.reports === 'number'
+     && typeof lk.stats.airlines === 'number'
+     && typeof lk.stats.contributors === 'number',
+     '★鍵の無い人にも数え上げは返る（2026-08-25 に反転）', JSON.stringify(lk.stats));
+  /* ★いちばん大事な1本。返り値の文字列のどこにも金額が無いこと。
+       stats を返すようになった以上、「うっかり金額まで載る」道は
+       件数の隣が一番近い。行の金額（下の open 側で確かめた値）が
+       1つも混ざっていないことを、丸ごとの文字列で見る。 */
+  const lkTxt = JSON.stringify(lk);
+  ok(!/annual|usd|pay_?amount|salary/i.test(lkTxt),
+     '★鍵の無い人の返り値に金額らしき語が1つも無い', lkTxt.slice(0, 160));
   await asViewer();
 }
 
@@ -1029,13 +1048,97 @@ console.log('\n▼ 12-f. ★打ち込まれた社名を「知っている航空�
 }
 
 // ════════════════════════════════════════════════════════════
+console.log('\n▼ 12-g. ★本人が何を出したか（DEEP PAY の個人条件）');
+// ════════════════════════════════════════════════════════════
+/* DEEP PAY が本人に開く条件は2つで、どちらも満たしたときだけ（オーナー決定・2026-08-25）。
+     ① 給与を出したユニークな人が 100人 …… stats.contributors（上の 12-b）
+     ② 本人が「くわしく」出している ……… ここで見る give.detailed
+   ★①と②は別々に判定する。100人は Privacy Threshold ではなく、
+     「DEEP PAY という機能を正式に開ける区切り」でしかない。
+
+   ★新しい列は1つも作っていない。db/pay-reports.sql が
+     gross_monthly（総支給1本）と内訳（base_pay 以下）を**排他**にしているので、
+     今ある行の形だけで「かんたん」と「くわしく」が見分けられる。
+     つまり**過去に内訳で出してくれた人は、さかのぼって条件を満たす**。 */
+{
+  const give = async () => (await payRows()).give;
+
+  // (a) 一度も出していない人
+  await asUser(9101);
+  const g0 = await give();
+  ok(g0 && g0.basic === false && g0.detailed === false && g0.payslip === false,
+     '★一度も出していない人は3つとも false', JSON.stringify(g0));
+
+  // (b) かんたん入力だけ（総支給1本）
+  const uB = ++seat; await asUser(uB);
+  await submit({ ...BASE, airline: A_GV_BASIC, position: 'cap', fleet: 'b777',
+                 period_year: YEAR, period_month: 2, gross_monthly: 15000 });
+  const gB = await give();
+  ok(gB.basic === true && gB.detailed === false && gB.payslip === false,
+     '★かんたん入力だけの人は basic だけ true（REAL PAY は開くが DEEP PAY の準備は未了）',
+     JSON.stringify(gB));
+
+  // (c) くわしく入力（内訳）。★総支給は入れない ── 入れると内訳が捨てられる
+  const uD = ++seat; await asUser(uD);
+  await submit({ ...BASE, airline: A_GV_DET, position: 'cap', fleet: 'b777',
+                 period_year: YEAR, period_month: 2,
+                 base_pay: 9000, command_pay: 2000, per_diem: 1200,
+                 transport: 300, other_allowance: 500 });
+  const gD = await give();
+  ok(gD.basic === true && gD.detailed === true && gD.payslip === false,
+     '★内訳を出した人は detailed も true（DEEP PAY の個人条件はここで満たす）',
+     JSON.stringify(gD));
+
+  // (d) 明細から。★読み取れた行は内訳の欄が埋まるので、detailed も自動で true になる。
+  //     オーナー指示「Payslip を出した人に Detailed Form をもう一度入力させない」は
+  //     特別扱いを書かなくても、この形のまま満たされる。
+  const uP = ++seat; await asUser(uP);
+  await submit({ ...BASE, airline: A_GV_PS, position: 'cap', fleet: 'b777',
+                 period_year: YEAR, period_month: 3,
+                 base_pay: 9500, command_pay: 2100, per_diem: 1000 });
+  await db.query(`update pay_reports set verify_level = 1 where airline = $1`, [A_GV_PS]);
+  const gP = await give();
+  ok(gP.basic === true && gP.detailed === true && gP.payslip === true,
+     '★明細から出した人は3つとも true（もう一度フォームを入れさせない）',
+     JSON.stringify(gP));
+
+  // (e) 隣の人が出しても自分の条件は動かない
+  await asUser(uB);
+  const gB2 = await give();
+  ok(gB2.basic === true && gB2.detailed === false,
+     '★他人が内訳を出しても、自分の detailed は false のまま', JSON.stringify(gB2));
+
+  // (f) 「一覧にない会社」に打ち込んだ人も、自分の行として拾える
+  const uO = ++seat; await asUser(uO);
+  await submit({ ...BASE, airline: 'other', airline_other: 'Nowhere Air', position: 'cap',
+                 fleet: 'b737', period_year: YEAR, period_month: 4,
+                 base_pay: 8800, command_pay: 1500 });
+  const gO = await give();
+  ok(gO.basic === true && gO.detailed === true,
+     '★社名を打ち込んで出した人も、自分の条件として拾える', JSON.stringify(gO));
+
+  // (g) 返っているのは真偽3つだけ。金額も件数も日付もここから出ない。
+  const keys = Object.keys(gP).sort().join(',');
+  ok(keys === 'basic,detailed,payslip', `★返るのは真偽3つだけ（= ${keys}）`);
+  ok(Object.values(gP).every(v => typeof v === 'boolean'),
+     '★3つとも真偽値（数を混ぜていない）', JSON.stringify(gP));
+
+  // (h) 鍵が無い人にも返る。DEEP PAY の準備は REAL PAY を開ける前からできる。
+  await asUser(9102);
+  const lk = await payRows();
+  ok(lk.state === 'locked' && lk.give && lk.give.basic === false,
+     '★鍵が無い人にも give は返る（先に内訳を出した人が損をしないための表示に使う）',
+     JSON.stringify(lk.give));
+}
+
+// ════════════════════════════════════════════════════════════
 console.log('\n▼ 13. 自己点検 SQL（ファイル末尾のものをそのまま流す）');
 // ════════════════════════════════════════════════════════════
 {
   const src = read('db/pay-rows.sql');
   const q = src.slice(src.lastIndexOf('with f as ('));
   const res = await rows(q);
-  ok(res.length === 35, `自己点検が35行ぜんぶ出る（= ${res.length}行）`);
+  ok(res.length === 40, `自己点検が40行ぜんぶ出る（= ${res.length}行）`);
   for (const row of res) {
     ok(row['結果'] === '✅', `${row['#']}. ${row['見るところ']}`);
   }
