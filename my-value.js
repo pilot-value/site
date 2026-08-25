@@ -1414,6 +1414,13 @@
     try { res = await SB.rpc('my_pay_reports'); } catch (e) { res = { error: e }; }
     if (!res || res.error || !res.data) { root.innerHTML = empty(T.err); return; }
     state.data = res.data;
+    /* ★左メニューの錠前は localStorage の写しで暫定的に出ている。
+         ここはサーバの access_until を持っているので、そちらで上書きする
+         （別の端末で初めて開いた人でも、正しい錠前になる）。 */
+    if (w.PVGates && w.PVGates.mark) {
+      var au = state.data.access_until ? Date.parse(state.data.access_until) : 0;
+      w.PVGates.mark(!!au && Date.now() < au);
+    }
     var rows = state.data.reports || [];
     if (rows.length) {
       var last = rows[rows.length - 1];

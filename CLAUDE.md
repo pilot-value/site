@@ -423,6 +423,37 @@ baland_ass/                            ブランド資産（※ brand_assets の
    （`--check` で書かずに差分だけ見られる）。
    **localhost が要る。本番の DB には触らない**（Supabase ごと差し替える。見た目は `node shot-actual-pay.mjs` が撮る）
 
+   ### Give → Get（2026-08-25）
+   **「出した人だけが見られる」を、どこが守っているか。** 6つの約束はすべて**サーバー側**にある。
+   画面側は1バイトも守っていない。
+
+   | 約束 | 守っている場所 |
+   |---|---|
+   | 会員登録しただけでは見られない | [db/pay-rows.sql](db/pay-rows.sql) の `pv_pay_rows()` が `profiles.access_until` を見て、無ければ `state:'locked'` ＋ 行ゼロ ＋ `stats` も返さない |
+   | 口コミだけでは解放しない | `access_until` に書くのは給与保存の1か所だけ。口コミも招待も触らない（[db/referrals.sql:26](db/referrals.sql#L26) に明記） |
+   | 給与を1件保存した人だけ解放 | [db/pay-reports.sql](db/pay-reports.sql) の `submit_pay_report` が保存に成功したときだけ書く。**手入力（`source='web'`）でも開く** |
+   | 保存成功時に90日 | `greatest(coalesce(access_until,'-infinity'), now() + interval '90 days')` |
+   | 採用判定と閲覧権は分離 | 返り値の `benchmark` は別に計算していて5人未満なら `null`。それでも `access_until` は立つ |
+   | 期限切れ後、更新すると再解放 | 同じ `greatest(...)` が今日から90日を立て直す |
+
+   ⚠️ **ぼかしで隠す実装を書かない。** 鍵が無い人にはサーバーが行を返していないので、隠すものが最初から無い。
+   `assert-pay-rows.mjs` の A節が2重に見張っている ── ①4つのファイルに `blur(` / `filter:` /
+   `backdrop-filter` / `text-security` の字が無いこと ②実際に開いた画面を歩いて
+   `getComputedStyle` の `filter` が `none` でない要素が1つも無いこと（②はクラス名を変えても逃げられない）。
+   ⚠️ [pv-gates.js](pv-gates.js) がやるのは**左メニューに錠前の絵を出すか決めるだけ**。
+   `localStorage['pv_salary_unlock_expiry']` を**読むだけで書かない**（`assert-unlock.mjs` の③が見張る）。
+   写しは古いことがあるので、確かな値を持つ画面が上書きする ──
+   `actual-pay.js` は `pv_pay_rows()` の `state` から、`my-value.js` は `my_pay_reports()` の
+   `access_until` から `PVGates.mark()` を呼ぶ。**`actual-pay.js` から `my_pay_reports()` は引かない**。
+   ⚠️ **DEEP PAY / VERIFIED PAY は「準備中」と書く。** ページがまだ無いのに
+   「詳しく出すと開きます」と書くと嘘になる。いま開くのは REAL PAY だけ。
+   左メニューの2つは `<button type="button">`（`href` の無い `<a>` はキーボードから掴めず、
+   本物の `href` は `assert-links.mjs` が 404 で落とす）。押すと Give → Get の説明が出る。
+   その説明は**覆いではない**（`position:fixed` も `role="dialog"` も `body.style.overflow` も書かない。
+   招待の着地と同じ考え方）。閉じ方は3つ ── × ／ 外を押す ／ ESC。
+   ⚠️ 3段の文言は [pv-gates.js](pv-gates.js) の `giveGetHTML()` **1か所だけ**が持つ。
+   ロック画面（`actual-pay.js`）はそれを借りる。2か所に書き写さない。
+
 **`supabase/functions/` を触ったら push だけでは本番に反映されない。**
 Supabase ダッシュボード → Edge Functions → 該当関数 → コードを貼り替えて Deploy（オーナー作業）。
 リポジトリ側だけ直して安心すると、サイトと通知メールで判定が食い違う（実際に起きた）。

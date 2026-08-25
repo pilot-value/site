@@ -140,7 +140,7 @@ export const SAMPLE = {
       ['換算', '$135,000 ／ ¥2,160万'],
       ['時間あたり報酬', '$169 / block hour'],
       ['推定手取り（年）', '¥1,536万'],
-      ['給与詳細の解放', '90日間'],
+      ['REAL PAY の解放', '90日間'],
     ],
     note: '※ 上記はすべて架空の見本です。ご自身の数値は、ログイン後の画面にのみ表示されます。',
     /* 累計報酬。毎月戻ってくる理由はここ（my-value.js の「累計だけカードを一段
@@ -172,7 +172,7 @@ export const SAMPLE = {
       ['Converted', '$135,000 / ¥21,600,000'],
       ['Pay per block hour', '$169 / block hour'],
       ['Estimated take-home (yr)', '¥15,360,000'],
-      ['Pay detail unlocked', '90 days'],
+      ['REAL PAY unlocked', '90 days'],
     ],
     note: 'All figures above are a made-up example. Your own numbers are shown only after you sign in.',
     cum: {

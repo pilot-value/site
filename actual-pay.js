@@ -113,9 +113,12 @@
           + '機材・基地・年代・在籍年数は誰の行にも入っていません。'
           + 'いつ出されたかは、おおまかな時期だけです。',
       pgPrev: '前へ', pgNext: '次へ', pgRange: '全{n}件中 {a}〜{b}件を表示',
-      lockT: '給与明細を1枚出すと、ここが開きます',
-      lockS: '他のパイロットが記録した実給与は、自分も1枚出した人だけが読めます。'
-           + '氏名も社員番号も受け取りません。明細の画像は端末の中だけで処理され、サーバーには送られません。',
+      /* ★「明細を1枚」と書かない。手入力（source='web'）でも解放される。
+           明細は VERIFIED PAY の話になったので、ここで要求すると Give を1つ減らす。 */
+      lockT: '他のパイロットが実際に提出した給与を見る',
+      lockS: 'あなたの給与を1件共有すると解放されます。給与明細でも手入力でもかまいません。'
+           + '氏名も社員番号も受け取りません。'
+           + '明細を使う場合、画像は端末の中だけで処理され、サーバーには送られません。',
       lockC: '匿名で給与を追加する',
       emptyT: 'まだ1行もありません',
       emptyS: '給与を出した人は、その全員がここに1行ずつ出ます。最初の1人になれます。',
@@ -143,9 +146,11 @@
           + 'Fleet, base, age and years of service appear on no row, '
           + 'and when a row was submitted is shown only as a broad period.',
       pgPrev: 'Previous', pgNext: 'Next', pgRange: 'Showing {a}–{b} of {n}',
-      lockT: 'Submit one payslip and this opens',
-      lockS: 'Pay recorded by other pilots is readable by people who have recorded theirs too. '
-           + 'We never take your name or staff number, and payslip images are processed on your own device.',
+      lockT: 'See what other pilots actually get paid',
+      lockS: 'Share one of your own pay records and this opens. '
+           + 'A payslip is not required — typing it in works too. '
+           + 'We never take your name or staff number, '
+           + 'and any payslip image is processed on your own device.',
       lockC: 'Add your pay anonymously',
       emptyT: 'No rows yet',
       emptyS: 'Everyone who submits their pay gets a row here. You could be the first.',
@@ -355,7 +360,7 @@
     if (S.mode === 'locked') {
       /* ★ここに金額を1文字も出さない。鍵の無い人に数字を見せない、が
            この画面の一番外側の約束。 */
-      box.innerHTML = msg('lock', T.lockT, T.lockS, T.lockC);
+      box.innerHTML = msg('lock', T.lockT, T.lockS, T.lockC, giveGet());
       renderFilters();
       renderStats();
       return;
@@ -467,12 +472,20 @@
          + ' aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Verified</span>';
   }
 
-  function msg(kind, t, s, cta) {
+  function msg(kind, t, s, cta, extra) {
     return '<div class="ap-msg' + (kind === 'lock' ? ' ap-msg--lock' : '') + '">'
          + '<div class="ap-msg-t">' + esc(t) + '</div>'
          + '<p class="ap-msg-s">' + esc(s) + '</p>'
+         + (extra || '')
          + (cta ? '<a class="ap-cta" href="' + PAY_URL + '">' + esc(cta) + '</a>' : '')
          + '</div>';
+  }
+
+  /* Give → Get の3段。★ここに書き写さない。左メニューの説明パネルと
+     まったく同じ部品（pv-gates.js）を借りる。読めていなければ何も出さない
+     ＝ 見出し・本文・CTA だけの今までの形に戻るだけで、画面は壊れない。 */
+  function giveGet() {
+    return (w.PVGates && w.PVGates.giveGetHTML) ? w.PVGates.giveGetHTML() : '';
   }
 
   // ── 絞り込み ───────────────────────────────────────────────────
@@ -624,6 +637,10 @@
         if (res && res.error) { S.mode = 'error'; renderRows(); return; }
         var v = res && res.data;
         S.mode = (v && v.state === 'open') ? 'open' : 'locked';
+        /* ★左メニューの錠前は localStorage の写しで暫定的に出ている。
+             ここはサーバの答えを持っているので、そちらで上書きする。
+             ⚠️ my_pay_reports() は引かない（この画面は本人の明細を読まない）。 */
+        if (w.PVGates && w.PVGates.mark) w.PVGates.mark(S.mode === 'open');
         S.rows = (v && v.rows) || [];
         /* ★数え上げ。古いサーバ（stats を返さない）でも画面は止めない
              ＝ そのカードだけ出ない（0 を置いて嘘の数字を作らない）。 */

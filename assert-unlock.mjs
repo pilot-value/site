@@ -125,6 +125,19 @@ console.log('\n════ ③ 年収枠の90日は据え置き ════');
   const pal = strip('airlines/premium-auth-lock.js', read('airlines/premium-auth-lock.js'));
   ok(/KEY_SALARY[\s\S]{0,200}access_until|access_until[\s\S]{0,200}KEY_SALARY/.test(pal),
      'premium-auth-lock.js の年収枠も access_until 由来');
+
+  /* ★2026-08-25。Give-to-Get の門（pv-gates.js）が読み手として増えた。
+       あれがやるのは**左メニューに錠前の絵を出すか決めるだけ**。
+       ⚠️ 書き手にしないこと。写しに書けるようにすると、
+          端末の中の数字を変えるだけで開いたことにできてしまう
+          （実データを止めているのはサーバの pv_pay_rows() だが、
+            写しが増えると「どちらが正か」が分からなくなる）。 */
+  const gates = strip('pv-gates.js', read('pv-gates.js'));
+  ok(/pv_salary_unlock_expiry/.test(gates) && /getItem/.test(gates),
+     'pv-gates.js は年収の鍵を読む（錠前を出すかの判断だけ）');
+  ok(!/setItem\(|removeItem\(/.test(gates),
+     '★pv-gates.js は年収の鍵に書かない・消さない（読み手を増やしただけ）');
+  ok(!/PVUnlock/.test(gates), 'pv-gates.js は口コミの鍵（PVUnlock）を触らない');
 }
 
 // ════════════════════════════════════════════════════════════════

@@ -6,6 +6,7 @@
 
    実行: node shot-actual-pay.mjs <scene> <lang> [open]
      scene = locked   鍵が無い人（金額が1つも出ない・導線だけ）
+             locked-panel ★左メニューの DEEP PAY を押して説明を出したところ
              empty    鍵はあるが1件も無い（正直な1枚）
              rows     SQL を貼る前（明細だけの13人・全員が手入力＝✓ は付かない）
              merged   ★SQL を貼った後（口コミ由来の7人が混ざって20人になる）
@@ -154,6 +155,9 @@ const MANY = [
 const SCENES = {
   /* ★鍵が無い人には stats も来ない（サーバがそう作ってある）。カードは1枚も出ない。 */
   locked: { pay: { ok: true, state: 'locked', rows: [] } },
+  /* ★左メニューのロックを押したときの説明（2026-08-25）。
+     覆いではないので、下のページが残ったまま上に1枚差し込まれる。 */
+  'locked-panel': { pay: { ok: true, state: 'locked', rows: [] }, gate: 'deep' },
   empty:  { pay: { ok: true, state: 'open', rows: [], stats: ST(0, 0) } },
   rows:   { pay: { ok: true, state: 'open', rows: ROWS,   stats: ST(17, 4) } },
   /* ★口コミ由来の7人が混ざった状態。行が13→20に増える。
@@ -234,6 +238,14 @@ if (S.q) {
     i.value = v;
     i.dispatchEvent(new Event('input', { bubbles: true }));
   }, S.q);
+  await new Promise((r) => setTimeout(r, 500));
+}
+
+if (S.gate) {
+  await page.evaluate((k) => {
+    const b = document.querySelector('[data-mr-gate="' + k + '"]');
+    if (b) b.click();
+  }, S.gate);
   await new Promise((r) => setTimeout(r, 500));
 }
 

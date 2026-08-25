@@ -70,10 +70,113 @@
 .mr-side-a.is-add{color:var(--pv-orange-ink);font-weight:700}
 .mr-side-a.is-add svg{opacity:1}
 .mr-side-a.is-add:hover{background:var(--pv-orange-soft);color:var(--pv-orange-ink)}
-/* まだページが無い項目（DEEP PAY / VERIFIED PAY）。<a> ではなく <span> で出る。
-   ★名前だけ先に見せて、押せないことを見た目で言う。文字での断りは足さない。 */
-.mr-side-a.is-soon{color:var(--pv-ink-3);opacity:.55;cursor:default}
-.mr-side-a.is-soon:hover{background:none;color:var(--pv-ink-3)}
+/* まだ開いていない段（REAL PAY を出す前 / DEEP PAY / VERIFIED PAY）。
+   ★2026-08-25、<span aria-disabled> をやめて <button> にした。押すと
+     pv-gates.js が「何を出すと何が見られるか」を説明する（Give-to-Get）。
+     だから死んだ見た目にしない ── 薄くはするが、hover / focus / active は付ける。 */
+.mr-side-a.is-locked{color:var(--pv-ink-3);background:none;border-color:transparent;
+                     font:inherit;font-size:.84rem;font-weight:600;text-align:left;
+                     width:100%;cursor:pointer;-webkit-appearance:none;appearance:none}
+.mr-side-a.is-locked:hover{background:var(--pv-line-soft);color:var(--pv-ink-2)}
+.mr-side-a.is-locked:active{background:var(--pv-line)}
+.mr-side-a.is-locked > svg:first-of-type{opacity:.5}
+/* 錠前はラベルの右端へ寄せる（項目の名前とぶつからない位置） */
+.mr-side-lk{margin-left:auto;opacity:.75}
+
+/* ── Give → Get の説明パネル ────────────────────────────────
+   ★覆いではない。position:fixed も aria-modal も使わない。
+     .mr-main の先頭に差し込むだけなので、下のページは見えたまま・
+     スクロールも止まらない。閉じ方は × ／ 外を押す ／ ESC の3つ。 */
+.mr-gate{position:relative;margin:0 0 var(--pv-s-3);padding:20px 22px 22px;
+         background:var(--pv-surface);border:1px solid var(--pv-line);
+         border-left:3px solid var(--pv-orange);border-radius:var(--pv-r);
+         box-shadow:var(--pv-shadow-lift)}
+.mr-gate:focus{outline:none}
+.mr-gate:focus-visible{outline:2px solid var(--pv-orange);outline-offset:3px}
+.mr-gate-x{position:absolute;top:10px;right:10px;display:flex;align-items:center;
+           justify-content:center;width:30px;height:30px;border:0;border-radius:999px;
+           background:none;color:var(--pv-ink-3);cursor:pointer;
+           transition:background-color .18s var(--pv-ease),color .18s var(--pv-ease)}
+.mr-gate-x:hover{background:var(--pv-line-soft);color:var(--pv-ink)}
+.mr-gate-x:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}
+.mr-gate-x:active{transform:scale(.94)}
+.mr-gate-t{padding-right:34px;font-size:1rem;font-weight:800;letter-spacing:-.02em;
+           line-height:1.4;color:var(--pv-ink)}
+.mr-gate-s{margin-top:8px;font-size:.81rem;line-height:1.75;color:var(--pv-ink-2);max-width:62ch}
+.mr-gate-cta{display:inline-flex;align-items:center;margin-top:18px;padding:11px 20px;
+             border-radius:999px;background:var(--pv-orange);color:#fff;
+             text-decoration:none;font-size:.83rem;font-weight:700;
+             box-shadow:0 8px 20px -12px rgba(249,115,22,.9);
+             transition:opacity .18s var(--pv-ease),box-shadow .18s var(--pv-ease),
+                        transform .18s var(--pv-ease)}
+.mr-gate-cta:hover{opacity:.92;box-shadow:0 10px 24px -12px rgba(249,115,22,.85)}
+.mr-gate-cta:focus-visible{outline:2px solid var(--pv-orange);outline-offset:3px}
+.mr-gate-cta:active{transform:scale(.98)}
+
+/* Give → Get の3段。ロック画面（actual-pay.js）とパネルで同じ部品を使う。 */
+/* ★列は**見出しも含めた4段全部で共有する**。見出しだけ別の grid にすると、
+     「見られるもの」の上に来るのが REAL PAY ではなく札になる（実際にそうなっていた）。
+     だから列を持つのは .pv-give ひとつだけで、見出しと ul は subgrid で借りる。
+   ★幅を測って止める。1fr のまま伸ばすと REAL PAY と札のあいだが本文の倍くらい空いて、
+     どの札がどの段のものか読み取りにくくなる。 */
+.pv-give{margin-top:18px;max-width:620px;display:grid;
+         grid-template-columns:max-content 28px max-content minmax(0,1fr)}
+.pv-give-hd{display:grid;grid-column:1/-1;grid-template-columns:subgrid}
+.pv-give-hd>*{padding:0 0 7px;font-size:.66rem;font-weight:700;letter-spacing:.06em;
+              text-transform:uppercase;color:var(--pv-ink-3)}
+.pv-give-hd>:first-child{padding-left:2px}
+/* 「見られるもの」は札の上ではなく、REAL PAY / DEEP PAY の上に立たせる。 */
+.pv-give-hd>:last-child{grid-column:3/-1}
+/* ★列は**3段で共有する**。1段ずつ別の grid にすると、
+     REAL PAY / DEEP PAY / VERIFIED PAY の文字幅と札の幅が段ごとに違うぶん
+     → の位置が段ごとにずれる（実際にずれていた）。
+     だから grid は ul の側に置き、li は display:contents で消す。 */
+/* ★列の隙間（column-gap）を作らない。作ると罫線がそこで切れて、
+     1本の線が3つに割れて見える。あいだは cell の padding で空ける。
+   ★「出すもの → 見られるもの」は左に寄せて隣どうしにする。
+     出すものを 1fr にすると → が遠くへ飛んで、矢印が何を指しているのか読めない。 */
+/* ★段に align-items:center を書かない。中央に寄せると背の低い升だけ上へ持ち上がり、
+     その升の罫線だけ数 px 上にずれる＝1本の線が矢印のところで切れて見える（実際にそうなっていた）。
+     升は伸ばしたまま（既定の stretch）にして、**升の中で**中央に寄せる。 */
+.pv-give-l{display:grid;grid-column:1/-1;grid-template-columns:subgrid;column-gap:0;
+           list-style:none;margin:0;padding:0;border-top:1px solid var(--pv-line-soft)}
+.pv-give-r{display:contents}
+.pv-give-r>*{display:flex;align-items:center;
+             padding-block:11px;border-bottom:1px solid var(--pv-line-soft);font-size:.8rem}
+.pv-give-g{color:var(--pv-ink-2);line-height:1.5;padding-left:2px}
+/* ★opacity で薄くしない。opacity は**罫線ごと**薄くするので、この列だけ線が抜けて見える。
+     薄くするのは文字色だけにする。 */
+.pv-give-ar{color:var(--pv-line);justify-content:center}
+.pv-give-t{font-weight:800;letter-spacing:-.01em;color:var(--pv-ink-3)}
+/* 札の高さは札で決める（行の上下余白と混ぜると、丸い札が縦に伸びる）。 */
+.pv-give-s{justify-content:flex-end;padding-right:2px}
+.pv-give-p{font-size:.7rem;font-weight:700;white-space:nowrap;
+           padding:3px 9px;border-radius:999px;
+           background:var(--pv-line-soft);color:var(--pv-ink-3)}
+/* いま開く段だけが色を持つ。「準備中」を色で強調しない（開くと読める）。 */
+.pv-give-r.is-live .pv-give-t{color:var(--pv-ink)}
+.pv-give-r.is-live .pv-give-p{background:var(--pv-orange-soft);color:var(--pv-orange-ink)}
+
+@media (max-width:520px){
+  /* 狭いところでは3段を横に並べきれない。1段ずつの grid に戻して
+     「出すもの」の下に「見られるもの」を置く（→ は消す）。 */
+  .pv-give{display:block;max-width:none}
+  .pv-give-hd{display:flex;justify-content:space-between;gap:12px;padding:0 0 7px}
+  .pv-give-hd>*{padding:0}
+  .pv-give-l{display:block}
+  .pv-give-r{display:grid;grid-template-columns:minmax(0,1fr) auto;
+             grid-template-areas:'g s' 't s';row-gap:2px;column-gap:10px;
+             padding:11px 2px;border-bottom:1px solid var(--pv-line-soft)}
+  .pv-give-r>*{padding-block:0;border-bottom:0}
+  .pv-give-g{grid-area:g;padding-left:0}
+  .pv-give-t{grid-area:t}
+  .pv-give-s{grid-area:s;align-self:center;padding-right:0}
+  .pv-give-ar{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  .mr-gate-x,.mr-gate-cta{transition:none}
+  .mr-gate-x:active,.mr-gate-cta:active{transform:none}
+}
 .mr-side-note{margin-top:14px;padding:0 12px;font-size:.68rem;line-height:1.65;color:var(--pv-ink-3)}
 
 .mr-main{min-width:0}
@@ -493,6 +596,11 @@
              background:var(--pv-surface);border-color:var(--pv-line)}
   .mr-side-a.is-on{box-shadow:none;border-color:var(--pv-orange);background:var(--pv-orange-soft)}
   .mr-side-a.is-on svg{color:var(--pv-orange-ink)}
+  /* 横並びでは中央揃えなので、錠前を右端へ飛ばさない（項目名の直後に置く）。
+     ★ロックされた段も他と同じ札の形にする。透明のままだと穴が空いて見える。 */
+  .mr-side-lk{margin-left:0}
+  .mr-side-a.is-locked{background:var(--pv-surface);border-color:var(--pv-line-soft);
+                       text-align:center;font-size:.78rem}
   .mr-side-note{display:none}
 }
 @media(max-width:760px){

@@ -2822,7 +2822,7 @@ function renderResult(d, p) {
   if (d.net_annual_jpy != null) rows.push(['Estimated take-home (yr)', jpyMan(d.net_annual_jpy), '']);
   if (d.streak_months) rows.push(['Consecutive months', String(d.streak_months), '']);
   if (d.access_until) {
-    rows.push(['Pay detail unlocked until', new Date(d.access_until).toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' }), '']);
+    rows.push(['REAL PAY unlocked until', new Date(d.access_until).toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' }), '']);
   }
 
   let bench = '';
@@ -2865,6 +2865,8 @@ function renderResult(d, p) {
         '<b>Filing reports will never earn you a “Verified” badge.</b> That only comes from confirming you really are a pilot (coming soon).</div>' +
       '<div class="mt-6 flex flex-col sm:flex-row gap-3">' +
         '<a href="my-value.html?new=1" class="btn-orange justify-center flex-1">See my report →</a>' +
+        /* ★Show the Get at the moment of the Give — this submission is what opened REAL PAY. */
+        '<a href="actual-pay.html" class="btn-ghost justify-center flex-1">Open REAL PAY →</a>' +
         '<button type="button" class="btn-ghost justify-center" id="btn-again">Report another month</button>' +
       '</div>' +
     '</div>';

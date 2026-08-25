@@ -115,18 +115,20 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
         <span>マイレポート</span>
       </a>
-      <a class="mr-side-a" href="actual-pay.html">
+      <a class="mr-side-a" href="actual-pay.html" data-mr-gate="real">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         <span>REAL PAY</span>
       </a>
-      <span class="mr-side-a is-soon" aria-disabled="true">
+      <button type="button" class="mr-side-a is-locked" data-mr-gate="deep" aria-label="DEEP PAY（準備中・押すと説明が出ます）">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
         <span>DEEP PAY</span>
-      </span>
-      <span class="mr-side-a is-soon" aria-disabled="true">
+        <svg class="mr-side-lk" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="4" y="10.5" width="16" height="10.5" rx="2.5"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></svg>
+      </button>
+      <button type="button" class="mr-side-a is-locked" data-mr-gate="verified" aria-label="VERIFIED PAY（準備中・押すと説明が出ます）">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
         <span>VERIFIED PAY</span>
-      </span>
+        <svg class="mr-side-lk" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="4" y="10.5" width="16" height="10.5" rx="2.5"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></svg>
+      </button>
       <a class="mr-side-a is-add" href="pay-report.html#ps">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
         <span>匿名で給与を追加</span>
@@ -179,6 +181,10 @@
 
 <script src="lang-toggle.js"></script>
 <script src="currency.js"></script>
+<!-- Give → Get の門。左メニューの錠前と、その説明を出す。
+     ★データは1バイトも隠さない（実給与を止めているのは pv_pay_rows() ）。
+     ⚠️ actual-pay.js より**前**に読む（PVGates.giveGetHTML() を使う）。 -->
+<script src="pv-gates.js"></script>
 <script src="pay-viz.js"></script>
 <script src="pv-referral.js"></script>
 <script src="my-value.js"></script>

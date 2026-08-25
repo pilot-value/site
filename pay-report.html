@@ -2762,7 +2762,9 @@ function renderResult(d, p) {
   if (d.net_annual_jpy != null) rows.push(['推定手取り（年）', jpyMan(d.net_annual_jpy), '']);
   if (d.streak_months) rows.push(['連続更新', d.streak_months + 'ヶ月', '']);
   if (d.access_until) {
-    rows.push(['給与詳細の解放', new Date(d.access_until).toLocaleDateString('ja-JP') + ' まで', '']);
+    /* ★「REAL PAY の解放」と書く。開くのは他のパイロットの実給与の一覧で、
+         自分のレポートは出していなくても読める（マイページはいつでも見られる）。 */
+    rows.push(['REAL PAY の解放', new Date(d.access_until).toLocaleDateString('ja-JP') + ' まで', '']);
   }
 
   let bench = '';
@@ -2805,6 +2807,8 @@ function renderResult(d, p) {
         '<b>「検証済み」バッジは、入力を続けても付きません。</b>本物のパイロットであることを確かめられたときだけ付きます（準備中）。</div>' +
       '<div class="mt-6 flex flex-col sm:flex-row gap-3">' +
         '<a href="my-value.html?new=1" class="btn-orange justify-center flex-1">マイレポートを見る →</a>' +
+        /* ★Give した瞬間に Get を見せる。ここを出したことで REAL PAY が開いている。 */
+        '<a href="actual-pay.html" class="btn-ghost justify-center flex-1">REAL PAY を見る →</a>' +
         '<button type="button" class="btn-ghost justify-center" id="btn-again">別の月を出す</button>' +
       '</div>' +
     '</div>';

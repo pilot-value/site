@@ -30,6 +30,8 @@ const ICON = {
   verified:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/>',
   others:  '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
   add:     '<path d="M12 5v14"/><path d="M5 12h14"/>',
+  /* ★錠前。まだ開いていない段に付ける（pv-gates.js が REAL PAY にも同じものを複製する）。 */
+  lock:    '<rect x="4" y="10.5" width="16" height="10.5" rx="2.5"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/>',
   settings:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.2.6.77 1 1.41 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
 };
 
@@ -42,12 +44,20 @@ const ICON = {
        VERIFIED PAY … 明細に裏付けのあるものだけを複数の明細から集計して見る
      ⚠️ 後ろ2枚は**まだページが無い**ので soon: true ＝ <a href> にしない。
         リンクにすると assert-links.mjs が 404 で落ちるし、押した人が行き止まりに落ちる。
-        ページを作った回に href を入れて soon を外す（ここ1か所で8枚に配られる）。 */
+        ページを作った回に href を入れて soon を外す（ここ1か所で8枚に配られる）。
+
+   ★2026-08-25、soon の出し方を <span aria-disabled> から <button> に変えた。
+     span はキーボードから掴めず、押しても何も起きない＝押せそうに見えて死んでいる。
+     button なら 404 も作らず、押すと pv-gates.js が
+     「何を出すと何が見られるか」を説明する（オーナー指示の Give-to-Get）。
+
+   ★data-mr-gate は pv-gates.js の目印。3段ぶん付ける。
+     REAL PAY（others）は鍵が要るので、錠前を出すかは実行時に決まる。 */
 const ITEMS = [
   { key: 'report',   href: 'my-value.html',        icon: 'report',   add: false },
-  { key: 'others',   href: 'actual-pay.html',      icon: 'others',   add: false },
-  { key: 'deep',     href: '',                     icon: 'deep',     add: false, soon: true },
-  { key: 'verified', href: '',                     icon: 'verified', add: false, soon: true },
+  { key: 'others',   href: 'actual-pay.html',      icon: 'others',   add: false, gate: 'real' },
+  { key: 'deep',     href: '',                     icon: 'deep',     add: false, soon: true, gate: 'deep' },
+  { key: 'verified', href: '',                     icon: 'verified', add: false, soon: true, gate: 'verified' },
   { key: 'add',      href: 'pay-report.html#ps',   icon: 'add',      add: true  },
   { key: 'settings', href: 'profile.html',         icon: 'settings', add: false },
 ];
@@ -59,6 +69,9 @@ const TEXT = {
     report: 'マイレポート', others: 'REAL PAY',
     deep: 'DEEP PAY', verified: 'VERIFIED PAY',
     add: '匿名で給与を追加', settings: '設定',
+    /* 錠前の付いた段の読み上げ。pv-gates.js は aria-label が無いときだけ書く
+       ＝ここに置いた言い方が正で、JS が落ちても読み上げは死なない。 */
+    soonAria: (n) => n + '（準備中・押すと説明が出ます）',
   },
   en: {
     aria: 'My page',
@@ -66,6 +79,7 @@ const TEXT = {
     report: 'My report', others: 'REAL PAY',
     deep: 'DEEP PAY', verified: 'VERIFIED PAY',
     add: 'Add pay anonymously', settings: 'Settings',
+    soonAria: (n) => n + ' (in preparation) — press for details',
   },
 };
 
@@ -82,17 +96,26 @@ function buildNav(lang, current) {
   const rows = ITEMS.map((it) => {
     const on = it.key === current;
     const cls = 'mr-side-a' + (on ? ' is-on' : '') + (it.add ? ' is-add' : '')
-              + (it.soon ? ' is-soon' : '');
+              + (it.soon ? ' is-locked' : '');
+    const gate = it.gate ? ' data-mr-gate="' + it.gate + '"' : '';
     const svg = '        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"'
               + ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
               + ICON[it.icon] + '</svg>\n'
               + '        <span>' + t[it.key] + '</span>\n';
-    /* ★まだ無いページは <span> で出す。href の無い <a> はキーボードで拾えず、
-         押せるように見えて何も起きない（一番たちの悪い形）。 */
+    /* ★まだ無いページは <button> で出す。
+         href の無い <a> はキーボードで拾えず、押せるように見えて何も起きない。
+         本物の href を付ければ 404（assert-links.mjs が落ちる）。
+         button なら両方避けられて、押すと pv-gates.js が説明を出す。
+       ★錠前はここで静的に描く。実行時に足すと一瞬だけ錠前の無い姿が見える。 */
+    const lock = '        <svg class="mr-side-lk" width="13" height="13" viewBox="0 0 24 24"'
+               + ' fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"'
+               + ' stroke-linejoin="round" aria-hidden="true" focusable="false">'
+               + ICON.lock + '</svg>\n';
     if (it.soon) {
-      return '      <span class="' + cls + '" aria-disabled="true">\n' + svg + '      </span>';
+      return '      <button type="button" class="' + cls + '"' + gate
+           + ' aria-label="' + t.soonAria(t[it.key]) + '">\n' + svg + lock + '      </button>';
     }
-    return '      <a class="' + cls + '" href="' + it.href + '"'
+    return '      <a class="' + cls + '" href="' + it.href + '"' + gate
          + (on ? ' aria-current="page"' : '') + '>\n' + svg + '      </a>';
   });
   return '<nav class="mr-side" aria-label="' + t.aria + '">\n'

@@ -459,15 +459,22 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
    ★後ろ2つはまだページが無い。**リンクにしない。**
      リンクにすると assert-links.mjs が 404 で落ちるし、押した人が行き止まりに落ちる。
    ⚠️ href の無い <a> は「押せそうに見えるのにキーボードから触れない」＝いちばん悪い形。
-     だから <span aria-disabled="true"> で置く。 */
+   ★2026-08-25、<span aria-disabled="true"> をやめて **<button type="button">** にした。
+     オーナー指示「未解放の場合は lock 状態を表示してクリック可能にし、
+     クリック後に何を Give すると何が Get できるかを説明する」。
+     <button> なら 404 も作らず、キーボードからも掴めて、押すと説明が出せる。
+     ⚠️ <span aria-disabled> に戻すと、押せる約束が黙って消える。 */
 for (const [name, file] of [['ja', 'actual-pay.html'], ['en', 'en/actual-pay.html']]) {
   const html = read(file);
   const i = html.indexOf('class="mr-side"');
   const nav = i < 0 ? '' : html.slice(i, html.indexOf('</nav>', i));
   ok(nav.length > 0, `${name}: 左メニューが読めた`);
 
-  const items = Array.from(nav.matchAll(/<(a|span)\s[^>]*class="mr-side-a[^"]*"([^>]*)>[\s\S]*?<span>([^<]+)<\/span>/g))
-    .map((m) => ({ tag: m[1], attr: m[2], label: m[3].trim() }));
+  /* ★属性は開きタグ**全体**を掴む。type="button" は class より前に出るので、
+       class の後ろだけを見ていると「button なのに type が無い」に見える。 */
+  const items = Array.from(nav.matchAll(/<(a|span|button)(\s[^>]*class="mr-side-a[^"]*"[^>]*)>([\s\S]*?)<\/\1>/g))
+    .map((m) => ({ tag: m[1], attr: m[2], body: m[3],
+                   label: ((m[3].match(/<span>([^<]+)<\/span>/) || [])[1] || '').trim() }));
   const labels = items.map((x) => x.label);
   const at = (s) => labels.indexOf(s);
 
@@ -478,15 +485,61 @@ for (const [name, file] of [['ja', 'actual-pay.html'], ['en', 'en/actual-pay.htm
 
   for (const l of ['DEEP PAY', 'VERIFIED PAY']) {
     const it = items[at(l)];
-    ok(it && it.tag === 'span' && /aria-disabled="true"/.test(it.attr),
-       `${name}: ★${l} はまだ押せない（href の無い <a> にしない）`,
+    ok(it && it.tag === 'button' && /type="button"/.test(it.attr),
+       `${name}: ★${l} は押せる <button>（<span aria-disabled> に戻さない）`,
        it ? `${it.tag} ${it.attr.trim()}` : '(無し)');
     ok(it && !/href=/.test(it.attr), `${name}: ★${l} に行き先を書かない（404 を作らない）`);
+    ok(it && !/aria-disabled/.test(it.attr),
+       `${name}: ★${l} を「押せない」と名乗らせない（押すと説明が出る）`, it ? it.attr.trim() : '');
+    ok(it && /data-mr-gate="/.test(it.attr),
+       `${name}: ★${l} に門の目印がある（pv-gates.js が説明を出す）`, it ? it.attr.trim() : '');
+    ok(it && /class="mr-side-lk"/.test(it.body),
+       `${name}: ★${l} に錠前が静的に入っている（JS が落ちても閉じていると分かる）`);
+    ok(it && /aria-label="[^"]+"/.test(it.attr),
+       `${name}: ★${l} は読み上げでも「準備中・押すと説明」と分かる`, it ? it.attr.trim() : '');
   }
   const real = items[at('REAL PAY')];
   ok(real && real.tag === 'a' && /aria-current="page"/.test(real.attr),
      `${name}: ★今いる REAL PAY だけが「このページ」の印を持つ`,
      real ? real.attr.trim() : '(無し)');
+  ok(real && /data-mr-gate="real"/.test(real.attr),
+     `${name}: ★REAL PAY にも門の目印がある（錠前は実行時に付く）`,
+     real ? real.attr.trim() : '(無し)');
+  ok(real && !/class="mr-side-lk"/.test(real.body),
+     `${name}: ★REAL PAY の錠前は静的に置かない（開いている人に錠前が一瞬出る）`);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   Give-to-Get（2026-08-25 オーナー指示）
+   ★実給与を止めているのは**サーバ**（pv_pay_rows() が行を返さない）。
+     画面のぼかしで隠す実装は禁止。ここはそれが生えていないことを見張る。
+   ════════════════════════════════════════════════════════════════ */
+{
+  /* ★説明文まで見ると「fixed は書かない」と**書いた**行が赤くなる。実体だけ見る。 */
+  const GATES = read('pv-gates.js')
+    .replace(/\/\*[\s\S]*?\*\//g, '').replace(/^[ \t]*\/\/.*$/gm, '');
+  /* ① 門の部品はデータを隠さない。 */
+  ok(!/blur\(|filter\s*:|backdrop-filter|text-security/i.test(GATES),
+     '★pv-gates.js にぼかしの実装が無い（隠すのではなく、最初から渡さない）');
+  /* ② 鍵の写しは**読むだけ**。書き手を増やさない（assert-unlock.mjs と対）。 */
+  ok(/getItem\(\s*KEY\s*\)/.test(GATES) && !/setItem\(/.test(GATES),
+     '★pv-gates.js は鍵の写しを読むだけで書かない');
+  /* ③ 覆いを作らない（招待の着地と同じ考え方。閉じ込めない）。 */
+  ok(!/position\s*:\s*fixed|role=["']dialog|aria-modal|body\.style\.overflow/.test(GATES),
+     '★説明のパネルは覆いではない（fixed / dialog / スクロール止めが無い）');
+  /* ④ 閉じ方が3つある。 */
+  ok(/mr-gate-x/.test(GATES) && /mousedown/.test(GATES) && /Escape/.test(GATES),
+     '★閉じ方は3つ（× ／ 外を押す ／ ESC）');
+  /* ⑤ DEEP / VERIFIED は「準備中」。ページが無いのに「開きます」と書かない。 */
+  ok(/state: 'soon'[\s\S]*state: 'soon'/.test(GATES) && /'live'/.test(GATES),
+     '★いま開くのは REAL PAY だけ（残り2つは準備中）');
+
+  /* ⑥ ぼかしが REAL PAY 側にも無い（CSS / JS / HTML の4本）。 */
+  for (const f of ['actual-pay.css', 'actual-pay.js', 'actual-pay.html', 'en/actual-pay.html']) {
+    const t = read(f);
+    const bad = (t.match(/blur\(|(?:^|[;{\s])filter\s*:|backdrop-filter|text-security/gim) || []);
+    ok(bad.length === 0, `★${f} にぼかしで隠す実装が無い`, bad.join(','));
+  }
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -705,6 +758,42 @@ const SNAP = () => {
     lock: q('.ap-msg--lock', rows).length,
     msg: q('.ap-msg', rows).length,
     cta: q('.ap-cta', rows).map((e) => e.getAttribute('href')),
+    /* ── ぼかし禁止（2026-08-25）──────────────────────────
+       ★クラス名を変えて逃げられないよう、**実際に効いている値**を見る。
+         本文（.mr-main）の中にぼかしが1つでも掛かっていたら、それは
+         「隠して見せている」形＝この画面がやらないと決めたこと。
+         ⚠️ ページ上部の帯（.mr-top）は backdrop-filter を持つが、
+            あれは背景の磨りガラスで .mr-main の外。だからここには入らない。 */
+    blurred: (function () {
+      const m = document.querySelector('.mr-main');
+      if (!m) return ['(.mr-main が無い)'];
+      const out = [];
+      const all = [m].concat(Array.prototype.slice.call(m.querySelectorAll('*')));
+      for (const e of all) {
+        const c = getComputedStyle(e);
+        const f = c.filter, b = c.backdropFilter || c.webkitBackdropFilter;
+        if ((f && f !== 'none') || (b && b !== 'none')) {
+          out.push((e.className || e.tagName) + ' → ' + f + ' / ' + b);
+        }
+      }
+      return out;
+    })(),
+    /* ── Give → Get の3段（pv-gates.js が作る）───────────── */
+    give: q('.pv-give-r').map((e) => ({
+      g: ((e.querySelector('.pv-give-g') || {}).textContent || '').trim(),
+      t: ((e.querySelector('.pv-give-t') || {}).textContent || '').trim(),
+      s: ((e.querySelector('.pv-give-s') || {}).textContent || '').trim(),
+      live: e.classList.contains('is-live')
+    })),
+    /* ── 左メニューの門（実行時の姿）───────────────────── */
+    gates: q('[data-mr-gate]').map((e) => ({
+      k: e.getAttribute('data-mr-gate'),
+      tag: e.tagName.toLowerCase(),
+      href: e.getAttribute('href'),
+      locked: e.classList.contains('is-locked'),
+      lk: e.querySelectorAll('.mr-side-lk').length,
+      aria: e.getAttribute('aria-label') || ''
+    })),
     /* 消したものが実行時にも戻っていないこと。 */
     pub: document.getElementById('ap-pub') ? 1 : 0,
     bluePresent: q('.ap-badge--pub').length,
@@ -810,13 +899,66 @@ for (const lang of ['ja', 'en']) {
   const { page, errs } = await open(lang, LOCKED);
   const v = await page.evaluate(SNAP);
 
-  ok(v.lock === 1, '「明細を1枚出すと開きます」の1枚だけ', String(v.lock));
+  ok(v.lock === 1, '鍵の案内は1枚だけ', String(v.lock));
   ok(v.trs === 0 && v.amounts.length === 0, '★行も金額も1つも描かない',
      `${v.trs} 行 / ${v.amounts.length} 金額`);
   ok(!MONEY.test(v.rowsText), '★結果の中に金額の形をした文字が1つも無い',
      JSON.stringify(v.rowsText).slice(0, 160));
   ok(v.cta.some((h) => /pay-report\.html#ps/.test(h)),
      'Give & Get の導線（匿名で給与を追加）が出る', v.cta.join(','));
+
+  /* ★ぼかしで隠していないこと（2026-08-25）。
+       クラス名ではなく、実際に効いている値を見ている。 */
+  ok(v.blurred.length === 0, '★本文にぼかしが1つも掛かっていない（隠すのではなく渡さない）',
+     v.blurred.join(' | '));
+
+  /* ★文言（2026-08-25 オーナー指示）。
+       「明細を1枚」と要求しない ── 手入力でも解放される。
+       明細は VERIFIED PAY の話なので、ここで求めると Give を1つ減らす。 */
+  {
+    const t = v.rowsText;
+    const asks = lang === 'ja'
+      ? /給与明細を1枚出すと|明細を1枚出した人だけ/.test(t)
+      : /submit one payslip|only.*payslip/i.test(t);
+    ok(!asks, `${lang}: ★「明細が要る」と読める言い方をしない（手入力でも開く）`,
+       t.slice(0, 140));
+    const says = lang === 'ja'
+      ? /給与を1件/.test(t) && /手入力/.test(t)
+      : /one of your own pay records/i.test(t) && /not required/i.test(t);
+    ok(says, `${lang}: ★「給与を1件（手入力でも可）で開く」と書いてある`, t.slice(0, 140));
+  }
+
+  /* ★Give → Get の3段が出ていて、開くのは REAL PAY だけと分かること。 */
+  {
+    const g = v.give;
+    ok(g.length === 3, `${lang}: ★Give → Get が3段そろっている`, JSON.stringify(g));
+    ok(g[0] && g[0].t === 'REAL PAY' && g[0].live,
+       `${lang}: ★REAL PAY だけが「いま開きます」`, JSON.stringify(g[0] || {}));
+    for (const i of [1, 2]) {
+      const r = g[i];
+      const soon = lang === 'ja' ? /準備中/ : /in preparation/i;
+      ok(r && !r.live && soon.test(r.s),
+         `${lang}: ★${(r || {}).t} は「準備中」と書いてある（ページが無いのに開くと書かない）`,
+         JSON.stringify(r || {}));
+    }
+    const soonWord = lang === 'ja' ? /準備中/ : /in preparation/i;
+    ok(g[0] && !soonWord.test(g[0].s),
+       `${lang}: ★REAL PAY の段に「準備中」が付いていない`, JSON.stringify(g[0] || {}));
+  }
+
+  /* ★左メニュー：REAL PAY に錠前が出て、DEEP / VERIFIED は押せる button のまま。 */
+  {
+    const by = Object.fromEntries(v.gates.map((x) => [x.k, x]));
+    ok(by.real && by.real.locked && by.real.lk === 1,
+       `${lang}: ★鍵が無いあいだ REAL PAY にも錠前が出る`, JSON.stringify(by.real || {}));
+    ok(by.real && by.real.tag === 'a' && /actual-pay\.html/.test(by.real.href || ''),
+       `${lang}: ★錠前が出ていても REAL PAY はリンクのまま（行き止まりを作らない）`,
+       JSON.stringify(by.real || {}));
+    for (const k of ['deep', 'verified']) {
+      ok(by[k] && by[k].tag === 'button' && by[k].lk === 1 && by[k].aria,
+         `${lang}: ★${k} は錠前つきの押せる button`, JSON.stringify(by[k] || {}));
+    }
+  }
   ok(v.barHidden === true, '★絞り込みの帯ごと隠れる（空の選択肢を並べない）',
      String(v.barHidden));
   ok(v.statsHidden === true && v.stats.length === 0,
@@ -838,6 +980,110 @@ for (const lang of ['ja', 'en']) {
      `${v.statsHidden}/${JSON.stringify(v.stats)}`);
   ok(!v.bodyText.includes('11') || !/11\s*件/.test(v.bodyText),
      '★「11件」が本文に出ない', v.bodyText.slice(0, 80));
+  ok(errs.length === 0, 'ページのエラーが1件も出ない', errs.join(' | '));
+}
+
+/* ════════════════════════════════════════════════════════════════
+   A-3 左メニューのロックを押したとき（2026-08-25）
+   ★オーナー指示「未解放の場合は lock 状態を表示してクリック可能にし、
+     クリック後に何を Give すると何が Get できるかを説明する」。
+   ★ここで作るのは**覆いではない**。招待の着地と同じで、
+     スクロールを止めない・下のページを残す・閉じ方が3つある。
+   ════════════════════════════════════════════════════════════════ */
+for (const lang of ['ja', 'en']) {
+  console.log(`\n════ ${lang} / A-3 ロックを押す ════`);
+  const { page, errs } = await open(lang, LOCKED);
+
+  /* DEEP PAY（ページが無い側）を押す。 */
+  const g = await page.evaluate(() => {
+    const b = document.querySelector('[data-mr-gate="deep"]');
+    if (!b) return { no: true };
+    const before = { ov: document.body.style.overflow, h: document.body.scrollHeight };
+    b.click();
+    const p = document.getElementById('mr-gate');
+    if (!p) return { no: true, before };
+    const cs = getComputedStyle(p);
+    return {
+      no: false,
+      first: document.querySelector('.mr-main').firstElementChild === p,
+      pos: cs.position,
+      role: p.getAttribute('role') || '',
+      modal: p.getAttribute('aria-modal') || '',
+      filter: cs.filter,
+      ovAfter: document.body.style.overflow,
+      /* 下のページが残っていること（覆いなら見えなくなる） */
+      bodyStillThere: document.body.scrollHeight >= before.h,
+      t: (p.querySelector('.mr-gate-t') || {}).textContent || '',
+      give: Array.prototype.slice.call(p.querySelectorAll('.pv-give-r')).length,
+      cta: (p.querySelector('.mr-gate-cta') || {}).getAttribute
+           ? p.querySelector('.mr-gate-cta').getAttribute('href') : '',
+      closeBtn: p.querySelectorAll('.mr-gate-x').length,
+      focused: document.activeElement === p,
+      text: p.innerText
+    };
+  });
+
+  ok(!g.no, `${lang}: ★ロックを押すと説明が出る`, JSON.stringify(g));
+  ok(g.first === true, `${lang}: ★説明は本文の先頭に差し込まれる（別画面に飛ばさない）`,
+     String(g.first));
+  ok(g.pos !== 'fixed' && g.role !== 'dialog' && g.modal !== 'true',
+     `${lang}: ★覆いではない（fixed / dialog / aria-modal が無い）`,
+     `${g.pos} / ${g.role} / ${g.modal}`);
+  ok(g.ovAfter !== 'hidden' && g.bodyStillThere,
+     `${lang}: ★スクロールを止めない・下のページが残る`, `${g.ovAfter}`);
+  ok(g.filter === 'none', `${lang}: ★説明にぼかしを掛けない`, g.filter);
+  ok(g.closeBtn === 1, `${lang}: ★× で閉じられる`, String(g.closeBtn));
+  ok(g.focused === true, `${lang}: ★開いたら読み上げの位置が説明へ移る`, String(g.focused));
+  ok(g.give === 3, `${lang}: ★同じ Give → Get の3段が出る（2か所に書き写していない）`,
+     String(g.give));
+  ok(/pay-report\.html#ps/.test(g.cta || ''),
+     `${lang}: ★説明の一番下は「匿名で給与を追加する」`, String(g.cta));
+  ok((lang === 'ja' ? /準備中/ : /in preparation/i).test(g.t),
+     `${lang}: ★DEEP PAY は「準備中」と名乗る`, g.t);
+  ok(!MONEY.test(g.text), `${lang}: ★説明を開いても金額が1文字も出ない`,
+     JSON.stringify(g.text).slice(0, 160));
+
+  /* 閉じ方3つ ── ESC ／ 外を押す ／ ×。 */
+  const closes = await page.evaluate(async () => {
+    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+    const open1 = () => { document.querySelector('[data-mr-gate="deep"]').click(); };
+    const alive = () => !!document.getElementById('mr-gate');
+    const out = {};
+
+    open1(); await sleep(30);
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    out.esc = !alive();
+
+    open1(); await sleep(30);
+    document.querySelector('.mr-main').dispatchEvent(
+      new MouseEvent('mousedown', { bubbles: true }));
+    out.outside = !alive();
+
+    open1(); await sleep(30);
+    document.querySelector('.mr-gate-x').click();
+    out.x = !alive();
+
+    /* 二重に開かない（押すたびに増えない） */
+    open1(); await sleep(10); open1(); await sleep(10);
+    out.dup = document.querySelectorAll('.mr-gate').length;
+    document.querySelector('.mr-gate-x').click();
+    return out;
+  });
+  ok(closes.esc && closes.outside && closes.x,
+     `${lang}: ★閉じ方は3つとも効く（ESC ／ 外を押す ／ ×）`, JSON.stringify(closes));
+  ok(closes.dup === 1, `${lang}: ★続けて押しても説明は1枚だけ`, String(closes.dup));
+
+  /* REAL PAY のロックを REAL PAY の上で押したとき ── 同じ話を二重に出さない。 */
+  const same = await page.evaluate(async () => {
+    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+    document.querySelector('[data-mr-gate="real"]').click();
+    await sleep(30);
+    return { panels: document.querySelectorAll('.mr-gate').length,
+             lock: document.querySelectorAll('.ap-msg--lock').length };
+  });
+  ok(same.panels === 0 && same.lock === 1,
+     `${lang}: ★REAL PAY の上では説明を重ねず、本文の案内へ寄せる`, JSON.stringify(same));
+
   ok(errs.length === 0, 'ページのエラーが1件も出ない', errs.join(' | '));
 }
 
