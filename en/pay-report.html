@@ -1086,8 +1086,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
             <label class="rolebox"><input type="checkbox" name="f-jobrole" value="examiner"><span>Examiner / Check</span></label>
             <label class="rolebox"><input type="checkbox" name="f-jobrole" value="union"><span>Union / Pilot representative</span></label>
             <label class="rolebox"><input type="checkbox" name="f-jobrole" value="management"><span>Management / Leadership</span></label>
-            <label class="rolebox"><input type="checkbox" name="f-jobrole" value="safety"><span>Safety / Standards / Technical</span></label>
-            <label class="rolebox"><input type="checkbox" name="f-jobrole" value="secondment"><span>Other department / Secondment</span></label>
+            <label class="rolebox"><input type="checkbox" name="f-jobrole" value="nonline"><span>Other / Non-Line Assignment</span></label>
             <!--END:BOXES:f-jobrole-->
           </div>
           <input type="hidden" id="f-jobrole"/>
@@ -1315,29 +1314,37 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
         <details class="pay-detail" id="pay-detail">
           <summary><span class="p">+</span>Add pay breakdown</summary>
           <div class="pay-detail-b">
-            <p class="fld-hint" style="margin:0 0 16px">You do not have to copy your payslip line for line. As long as <b>what you are paid every month</b> and <b>what changes with how much you fly</b> are separated, it can be compared across airlines.<br>The "Gross pay that month" box above <b>stays exactly as you typed it</b> &mdash; nothing here overwrites it.</p>
+            <p class="fld-hint" style="margin:0 0 16px">Enter <b>the amounts printed on your payslip, as they are</b>. We do the adding up, the hourly rates and the conversions on our side.<br>The "Gross pay that month" box above <b>stays exactly as you typed it</b> &mdash; nothing here overwrites it, and the breakdown does not have to add up to it.</p>
 
             <div class="fld">
-              <label class="form-label" for="f-base">Fixed / guaranteed pay</label>
+              <label class="form-label" for="f-base">Base pay</label>
               <input type="text" id="f-base" class="form-input money" inputmode="decimal" placeholder="e.g. 31,000"/>
-              <p class="fld-hint">Pay that is fixed or guaranteed every month, regardless of how much you fly. Per diem and housing allowance are asked above &mdash; do <b>not</b> repeat them here; anything that moves with flying goes under "Variable pay" below.</p>
+              <p class="fld-hint">The base pay figure as printed on your payslip. <b>Please do not add other allowances into it.</b></p>
               <label class="rolebox pd-none"><input type="checkbox" id="f-base-none"><span>None of this applies</span></label>
             </div>
 
-            <div class="opt-fld" id="opt-f-command" hidden>
+            <div class="opt-fld" id="opt-f-guarantee" hidden>
               <div class="fld">
-                <label class="form-label" for="f-command">Rank / position allowance</label>
-                <input type="text" id="f-command" class="form-input money" inputmode="decimal"/>
-                <p class="fld-hint">Captain Allowance, Senior FO Allowance and the like &mdash; <b>a monthly allowance attached to your rank</b>. Instructor and examiner allowances do not go here; we ask about those per role later on.</p>
+                <label class="form-label" for="f-guarantee">Guaranteed pay</label>
+                <input type="text" id="f-guarantee" class="form-input money" inputmode="decimal"/>
+                <p class="fld-hint">Only if a Minimum Guarantee or similar appears on your payslip <b>as an amount separate from base pay</b>. <b>There is no need to work out guaranteed hours &times; rate</b> &mdash; the guaranteed hours are asked above.</p>
               </div>
             </div>
 
             <div class="opt-fld" id="opt-pd-var" hidden>
               <div class="pd-block">
                 <div class="form-label">Variable pay</div>
-                <p class="fld-hint" style="margin-top:0">Pay that <b>changes month to month</b> with block hours, sectors, standby and so on. Every airline names these differently, so use whatever your payslip prints.</p>
+                <p class="fld-hint" style="margin-top:0">Pay that <b>changes month to month</b> with block hours, sectors, standby and so on. Just the <b>amount paid</b> &mdash; we do not ask for the rate or the rule.</p>
                 <div class="pd-rows" id="pd-var-rows"></div>
                 <button type="button" class="chip" id="pd-var"><span class="p">+</span>Add variable pay</button>
+              </div>
+            </div>
+
+            <div class="opt-fld" id="opt-f-command" hidden>
+              <div class="fld">
+                <label class="form-label" for="f-command">Rank / position allowance</label>
+                <input type="text" id="f-command" class="form-input money" inputmode="decimal"/>
+                <p class="fld-hint">Captain Allowance, Senior FO Allowance and the like &mdash; <b>a monthly allowance attached to your rank</b>, shown separately from base pay. Instructor and examiner allowances do not go here; we ask about those per role later on.</p>
               </div>
             </div>
 
@@ -1351,8 +1358,9 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
             </div>
 
             <div class="chips">
-              <button type="button" class="chip" data-open="f-command"><span class="p">+</span>Rank / position allowance</button>
+              <button type="button" class="chip" data-open="f-guarantee"><span class="p">+</span>Guaranteed pay</button>
               <button type="button" class="chip" data-open="pd-var"><span class="p">+</span>Variable pay</button>
+              <button type="button" class="chip" data-open="f-command"><span class="p">+</span>Rank / position allowance</button>
               <button type="button" class="chip" data-open="pd-oth"><span class="p">+</span>Other cash allowances</button>
             </div>
 
@@ -1394,10 +1402,13 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
               <select class="form-input pd-basis">
                 <option value="">You can leave this blank</option>
                 <option value="block">Flight / Block / Credit Hours</option>
+                <option value="duty">Duty / Duty Hours</option>
                 <option value="sector">Sector / Landing</option>
                 <option value="overtime">Overtime / Extra Duty</option>
                 <option value="reserve">Reserve / Standby</option>
-                <option value="premium">Night / Weekend / Holiday Premium</option>
+                <option value="night">Night Premium</option>
+                <option value="weekend">Weekend / Sunday Premium</option>
+                <option value="holiday">Public Holiday Premium</option>
                 <option value="other">Other</option>
                 <option value="unknown">Not sure</option>
               </select>
@@ -1405,10 +1416,6 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
             <div class="fld">
               <label class="form-label">Name on the payslip</label>
               <input type="text" class="form-input pd-label" maxlength="60" placeholder="e.g. Flight Pay, Productivity Pay"/>
-            </div>
-            <div class="fld">
-              <label class="form-label">Rate or rule</label>
-              <input type="text" class="form-input pd-rule" maxlength="60" placeholder="e.g. EUR 30 / Sector"/>
             </div>
           </div>
         </template>
@@ -2099,7 +2106,7 @@ $('f-housing').addEventListener('change', () => {
 /* ★A list of "open the breakdown if any of these came back", nothing more.
    It is not a list of things to clear — per diem and housing are asked of
    everyone above, which is why they are not in here. */
-const DETAIL_IDS = ['f-base','f-hourly',
+const DETAIL_IDS = ['f-base','f-guarantee','f-hourly',
                     'f-transport','f-command','f-other','f-profit','f-pension','f-payitems'];
 
 /* ★Since 2026-08-26 the gross and the breakdown are no longer exclusive (owner).
@@ -2241,7 +2248,7 @@ const num = (id) => { const v = parseFloat(unc($(id).value)); return isFinite(v)
 function monthlyDetail() {
   const hours = Math.max(num('f-block'), num('f-guar'));
   const housing = $('f-housing').value === 'allowance' ? num('f-housing-amt') : 0;
-  return num('f-base') + num('f-hourly') * hours + num('f-perdiem') + housing
+  return num('f-base') + num('f-guarantee') + num('f-hourly') * hours + num('f-perdiem') + housing
          + num('f-transport') + num('f-command') + num('f-other')
          + num('f-var-sum') + num('f-oth-sum');
 }
@@ -2283,7 +2290,7 @@ function recalc() {
 }
 /* ★f-transport / f-other are hidden now (only payslip parsing writes them).
    The repeating rows report through f-var-sum / f-oth-sum, written by pdSync(). */
-['f-gross','f-base','f-hourly','f-guar','f-block','f-perdiem','f-housing-amt','f-command','f-bonus','f-bonus-mo','f-profit']
+['f-gross','f-base','f-guarantee','f-hourly','f-guar','f-block','f-perdiem','f-housing-amt','f-command','f-bonus','f-bonus-mo','f-profit']
   .forEach((id) => $(id).addEventListener('input', recalc));
 $('f-currency').addEventListener('change', recalc);
 
@@ -2490,7 +2497,7 @@ window.addEventListener('hashchange', openDetailFromHash);
 // ★f-transport / f-other lost their boxes (hidden = payslip parsing only). The two
 //   repeating sections that replaced them hold no value of their own, so pdRestore()
 //   below reopens those by looking at what came back.
-const CHIP_FIELDS = ['f-duty','f-base-iata','f-command','f-profit','f-pension'];
+const CHIP_FIELDS = ['f-duty','f-base-iata','f-guarantee','f-command','f-profit','f-pension'];
 
 function openOpt(id, quiet) {
   const box = $('opt-' + id);
@@ -2528,9 +2535,11 @@ function pdRead(kind) {
     const g = (sel) => { const e = row.querySelector(sel); return e ? e.value.trim() : ''; };
     const a = parseFloat(unc(g('.pd-amt')));
     const o = { amount: isFinite(a) && a > 0 ? a : null, label: g('.pd-label') || null };
-    if (kind === 'var') { o.basis = g('.pd-basis') || null; o.rule = g('.pd-rule') || null; }
+    /* ★We do not ask for the rate or the rule (owner, 2026-08-26). Working out
+       "EUR 30 / Sector" is arithmetic, and arithmetic is our job, not the pilot's. */
+    if (kind === 'var') o.basis = g('.pd-basis') || null;
     /* A row where nothing was filled in is not sent (it would land as a 0 allowance). */
-    if (o.amount == null && !o.label && !o.basis && !o.rule) continue;
+    if (o.amount == null && !o.label && !o.basis) continue;
     out.push(o);
   }
   return out;
@@ -2593,7 +2602,7 @@ function pdRestore(raw) {
       const put = (sel, v) => { const e = row.querySelector(sel); if (e && v != null && v !== '') e.value = v; };
       put('.pd-amt', it.amount != null ? grp(String(it.amount)) : '');
       put('.pd-label', it.label);
-      if (kind === 'var') { put('.pd-basis', it.basis); put('.pd-rule', it.rule); }
+      if (kind === 'var') put('.pd-basis', it.basis);
     }
   }
   if (o.fixed_none) { $('f-base-none').checked = true; $('f-base').disabled = true; }
@@ -2610,7 +2619,7 @@ const LS_KEY = 'pv_pay_last';
 // ★f-paytype was removed as a field on 2026-08-12. f-gross (that month's gross) took its place.
 const PRESET_IDS = ['f-airline','f-airline-other','f-position','f-fleet','f-currency','f-gross','f-base','f-hourly',
   'f-guar','f-perdiem','f-housing','f-housing-amt','f-contract','f-seniority','f-taxcountry',
-  'f-tax','f-command','f-transport','f-other','f-bonus','f-profit','f-pension','f-jobrole','f-age','f-base-iata',
+  'f-tax','f-guarantee','f-command','f-transport','f-other','f-bonus','f-profit','f-pension','f-jobrole','f-age','f-base-iata',
   /* ★The repeating rows. The two totals (f-var-sum / f-oth-sum) are not saved — pdSync() derives them. */
   'f-payitems'];
 // ★For re-sending after login. Unlike the preset, this includes the period.
@@ -2733,6 +2742,7 @@ updateSteps(true);
     'f-age': s(r.age_bucket),
     'f-base-iata': s(r.base_iata), 'f-currency': s(r.currency),
     'f-gross': s(r.gross_monthly), 'f-base': s(r.base_pay),
+    'f-guarantee': s(r.guarantee_pay),
     'f-guar': s(r.guaranteed_hours), 'f-perdiem': s(r.per_diem),
     'f-housing': s(r.housing_type), 'f-housing-amt': s(r.housing_amount),
     'f-transport': s(r.transport), 'f-command': s(r.command_pay),
@@ -2942,6 +2952,10 @@ async function submitPayReport() {
        become a false "base pay 100%" doughnut). */
     gross_monthly:       val('f-gross'),
     base_pay:            val('f-base'),
+    /* ★保証給（2026-08-26）。基本給とは別の列に持つ。足し込むと二度と割れないし、
+       レポートの「基本給」の切れが嘘になる。年換算は総支給が正なので、
+       この欄で年収の数字は動かない（内訳だけで出した人にだけ効く）。 */
+    guarantee_pay:       val('f-guarantee'),
     hourly_rate:         val('f-hourly'),
     guaranteed_hours:    val('f-guar'),
     block_hours:         val('f-block'),

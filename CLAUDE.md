@@ -516,10 +516,13 @@ baland_ass/                            ブランド資産（※ brand_assets の
    「登録者100人」ではない）／
    ② **本人が内訳まで出している**（分かる項目だけでよい。全部必須にしない）
 
-   - ★**判定は `base_pay is not null or pay_items is not null`**（2026-08-26 に直した）。
+   - ★**判定は `base_pay is not null or guarantee_pay is not null
+     or command_pay is not null or pay_items is not null`**（2026-08-26 に直した）。
      前は `gross_monthly is null and base_pay is not null`＝「総支給と内訳は排他」を前提にしていた。
      フォームの作り直しで**総支給と内訳が両立する**ようになったので、そのままだと
-     **内訳を書いた人が全員「内訳なし」と判定される**。**過去の投稿も遡って数に入る**
+     **内訳を書いた人が全員「内訳なし」と判定される**。**過去の投稿も遡って数に入る**。
+     ⚠️ **`guarantee_pay` を外さない。**基本給という項目が無く保証給だけが下限として出る会社
+     （米国型）の人が、内訳を書いたのに「内訳なし」に落ちる
    - **明細を読み取れた人に、もう一度フォームを入れさせない**（読み取りが内訳の列を埋めるので
      ②は自動で満たされる。特別扱いを書かない）
    - 100人に届くまで DEEP PAY は開かない。**でも内訳の投稿は今日からできる**。
@@ -572,10 +575,16 @@ baland_ass/                            ブランド資産（※ brand_assets の
 ### 入れ子の約束（逆にすると図が壊れる）
 | 画面のブロック | 寄せる列 |
 |---|---|
-| 固定・保証給（＋「該当なし」） | `base_pay` |
-| RANK / POSITION の固定手当 | `command_pay` |
-| **変動給**（行で何本でも） | 合計 → `flight_variable_pay` |
-| **その他の現金手当**（行で何本でも） | 合計 → `other_allowance` |
+| 基本給（＋「該当なし」）【常時表示】 | `base_pay` |
+| ＋ 保証給 | ★`guarantee_pay`（2026-08-26 に足した列）|
+| ＋ RANK / POSITION の固定手当 | `command_pay` |
+| ＋ **変動給**（行で何本でも） | 合計 → `flight_variable_pay` |
+| ＋ **その他の現金手当**（行で何本でも） | 合計 → `other_allowance` |
+
+★**最初は基本給だけを出す。**残り4つは「＋」で足す（オーナー指示の Progressive Disclosure）。
+★**保証給は基本給に足し込まない。**日本＝基本給、米国＝保証給が下限で、意味が違う。
+1つの列に混ぜると二度と割れず、レポートの緑の切れが「基本給」と嘘をつく。
+保証**時間**は §2 の `f-guar`（`guaranteed_hours`）で既に聞いている。**二度聞かない。**
 
 ⚠️ **`other_allowance` は 変動給＋その他 の合計、`flight_variable_pay` はその内訳。**
 [pay-viz.js](pay-viz.js) が `flight_variable ⊂ other` として引き算しているので、逆にすると
@@ -583,19 +592,29 @@ baland_ass/                            ブランド資産（※ brand_assets の
 - **交通（月）とその他手当の専用欄は画面から消えた**（`<input type="hidden">`＝明細読み取り専用）。
   人が打つのは繰り返し行のほう。列は残す（過去データが使う）。
 - Housing / Per Diem は内訳の**前**で全員に聞いている。ここで二度聞かない。
-- 教官・審査・組合などの**追加ロールの手当はここに入れない**（②〜⑦のモジュールで別に聞く。まだ無い）。
+- 教官・審査・組合などの**追加ロールの手当はここに入れない**（②〜⑥のモジュールで別に聞く。まだ無い）。
+- ★**計算をユーザーにさせない**（2026-08-26 オーナー指示）。明細に書いてある**金額だけ**を聞く。
+  足し算・単価計算・時給換算・比率計算はこちらでやる。だから変動給の行に
+  **支給単価・ルールの欄を作らない**（`¥4,500 / Block Hour` を打たせない）し、
+  保証給も**「保証時間 × 単価」を計算させない**（金額が明細で分かるときだけ入れてもらう）。
 
 ### 行そのものは `pay_items jsonb` に残す
 ```json
 {"v":1,"fixed_none":false,
- "variable":[{"amount":180000,"basis":"block","label":"Flight Pay","rule":"¥4,500 / Block Hour"}],
+ "variable":[{"amount":180000,"basis":"block","label":"Flight Pay"}],
  "other":[{"amount":12000,"label":"通勤手当"}]}
 ```
 合計だけを既存列へ寄せるので、過去の集計・レポートの図・k≧5 のベンチマークが1つも壊れない。
 検品は `pv_validate_pay_payload`（8000文字・配列40件まで・壊れた JSON は投稿ごと落とさず捨てる）。
+`basis`（変動給の種類・任意）は**10択**で日英とも同じ並び ──
+`block` / `duty` / `sector` / `overtime` / `reserve` / `night` / `weekend` / `holiday` /
+`other` / `unknown`。⚠️ **`rule` を書き戻さない**（2026-08-26 に消した欄）。
 
-### 役職・区分は**7つ・複数選択**
-`line` / `instructor` / `examiner` / `union` / `management` / `safety` / `secondment`。
+### 役職・区分は**6つ・複数選択**
+`line` / `instructor` / `examiner` / `union` / `management` / `nonline`。
+★2026-08-26、7つから6つにした（`safety` と `secondment` を統合して
+`nonline`＝その他の兼務・配属）。`gen-vocab.mjs` は消えたコードを `active=false` にするだけで
+**行は消さない**ので、過去データがあっても壊れない。
 語彙の正は [pv-vocab.mjs](pv-vocab.mjs) の `JOB_ROLES`、配るのは `node gen-vocab.mjs`。**手で足さない。**
 
 | | 保存先 |
@@ -616,9 +635,14 @@ baland_ass/                            ブランド資産（※ brand_assets の
 
 ### 見るもの
 `node db/test-form-contract.mjs`（画面の契約）／`npm run test:sql`（保存と検品）／
-`node db/test-payslip-extras.mjs`（隠し欄 → payload）／`node assert-admin-notify.mjs`（メール）。
-絵は `node shot-pay.mjs`（3＝開いた状態 / 3b＝超えたときの注意 / 4＝閉じても残る）と
+`node db/test-payslip-extras.mjs`（隠し欄 → payload）／`node assert-admin-notify.mjs`（メール）／
+`node db/test-value-breakdown.mjs`（支給構成の切れ）。
+[db/pay-reports.verify.sql](db/pay-reports.verify.sql) は**オーナーが Supabase に貼る検算**
+（12行が全部 ✅ になる。手元では PGlite に流して確かめてある）。
+絵は `node shot-pay.mjs`（3a＝開いた直後＝基本給と4つの「＋」だけ / 3＝全部開いた状態 /
+3b＝超えたときの注意 / 4＝閉じても残る）と
 `node shot-value.mjs both ja`（総支給と内訳が両方ある行の支給構成）。
+`node measure-pay.mjs` は select がはみ出さないかを測る（変動給の種類も1行足して測っている）。
 
 **`supabase/functions/` を触ったら push だけでは本番に反映されない。**
 Supabase ダッシュボード → Edge Functions → 該当関数 → コードを貼り替えて Deploy（オーナー作業）。

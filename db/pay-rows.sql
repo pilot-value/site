@@ -265,11 +265,14 @@ as $$
              case when x.gross is null then x.trans end,
              case when x.gross is null then x.cmd   end,
              case when x.gross is null then x.othal end,
-             x.bonus_a, x.profit, x.bonus_m
+             x.bonus_a, x.profit, x.bonus_m,
+             -- ★ 2026-08-26 追加。保証給（金額）。内訳の側なので総支給と同じ扱いで隠す。
+             case when x.gross is null then x.gpay  end
            ) * r.to_usd, 2)
     from (
       select nullif(nullif(p->>'gross_monthly', '')::numeric, 0) as gross,
              nullif(p->>'base_pay',            '')::numeric      as base,
+             nullif(p->>'guarantee_pay',       '')::numeric      as gpay,
              nullif(p->>'hourly_rate',         '')::numeric      as hourly,
              nullif(p->>'guaranteed_hours',    '')::numeric      as guar,
              nullif(p->>'block_hours',         '')::numeric      as bh,
@@ -391,7 +394,7 @@ comment on function public.pv_airline_resolve(text) is
 -- ★成分の足し算は pv_annual_total（db/pay-reports.sql 4章）と1円まで同じ。
 --     総支給1本の行 … m = 12×(総支給 − その月の賞与) − パーディアム年額 − 住宅手当年額
 --                     o = 0（内訳を入れていないので「その他の手当」は立てない）
---     内訳の行     … m = 12×(基本給 + 時給×max(実績,保証))
+--     内訳の行     … m = 12×(基本給 + 保証給 + 時給×max(実績,保証))
 --                     o = 12×(交通費 + 機長手当 + その他手当)
 --     どちらも      b = 年1回の賞与 + 利益分配
 --                     d = 12×パーディアム
@@ -412,6 +415,12 @@ comment on function public.pv_airline_resolve(text) is
 --    pay_reports.pay_items にあり、合計は flight_variable_pay / other_allowance に
 --    寄せてある（変動給 ⊂ その他の手当）。
 -- ════════════════════════════════════════════════════════════════
+-- ★ 引数を増やしたら、古い版を必ず落とす。create or replace は「引数の数が違う別物」を
+--   増やすだけなので、落とさないと呼び出し側の引数の数で新旧どちらが走るか変わる。
+drop function if exists public.pv_pay_comp(
+  numeric, numeric, numeric, numeric, numeric, numeric, text, numeric,
+  numeric, numeric, numeric, numeric, numeric, numeric);
+
 create or replace function public.pv_pay_comp(
   p_gross_monthly    numeric,
   p_base_pay         numeric, p_hourly_rate numeric, p_guaranteed_hours numeric,
@@ -419,7 +428,9 @@ create or replace function public.pv_pay_comp(
   p_housing_type     text,    p_housing_amount numeric,
   p_transport        numeric, p_command_pay numeric, p_other_allowance numeric,
   p_bonus_annual     numeric, p_profit_share_annual numeric,
-  p_bonus_month      numeric default null
+  p_bonus_month      numeric default null,
+  -- ★ 2026-08-26 追加。保証給（金額）。pv_annual_total と1文字も違わない並びを保つ。
+  p_guarantee_pay    numeric default null
 ) returns numeric[]
 language sql
 immutable
@@ -447,6 +458,7 @@ as $$
                       - 12 * case when p_housing_type = 'allowance'
                                   then coalesce(p_housing_amount, 0) else 0 end
                  else 12 * (coalesce(p_base_pay, 0)
+                            + coalesce(p_guarantee_pay, 0)
                             + coalesce(p_hourly_rate, 0)
                               * greatest(coalesce(p_block_hours, 0),
                                          coalesce(p_guaranteed_hours, 0)))
@@ -469,11 +481,12 @@ $$;
 
 revoke all on function public.pv_pay_comp(
   numeric, numeric, numeric, numeric, numeric, numeric, text, numeric,
-  numeric, numeric, numeric, numeric, numeric, numeric) from public, anon, authenticated;
+  numeric, numeric, numeric, numeric, numeric,
+  numeric, numeric) from public, anon, authenticated;
 
 comment on function public.pv_pay_comp(
   numeric, numeric, numeric, numeric, numeric, numeric, text, numeric,
-  numeric, numeric, numeric, numeric, numeric, numeric) is
+  numeric, numeric, numeric, numeric, numeric, numeric, numeric) is
   '支給の内訳を「割合」（合計1・5本）で返す。金額は返さない。'
   '足し算は pv_annual_total と一致する。引数の並びもあれと同じ。'
   '誰にも grant しない。今はどこからも呼ばれていない（DEEP PAY 用）。';
@@ -558,11 +571,13 @@ as $$
            case when x.gross is null then x.trans end,
            case when x.gross is null then x.cmd   end,
            case when x.gross is null then x.othal end,
-           x.bonus_a, x.profit, x.bonus_m
+           x.bonus_a, x.profit, x.bonus_m,
+           case when x.gross is null then x.gpay  end
          )
     from (
       select nullif(nullif(p->>'gross_monthly', '')::numeric, 0) as gross,
              nullif(p->>'base_pay',            '')::numeric      as base,
+             nullif(p->>'guarantee_pay',       '')::numeric      as gpay,
              nullif(p->>'hourly_rate',         '')::numeric      as hourly,
              nullif(p->>'guaranteed_hours',    '')::numeric      as guar,
              nullif(p->>'block_hours',         '')::numeric      as bh,
@@ -660,8 +675,10 @@ on conflict (review_id) do nothing;
 -- ★2026-08-26、総支給と内訳の排他をやめた（オーナー指示。会社ごとに変動給の
 --   建て付けが違い、固定6欄では多くのパイロットが入れられなかったため）。
 --   なので detailed は「総支給が無い」では判定できない。**内訳が有る**で見る：
---     base_pay is not null   … 昔の形（総支給の代わりに内訳を入れた人）
---     pay_items is not null  … 新しい形（総支給を残したまま内訳の行を書いた人）
+--     base_pay is not null      … 昔の形（総支給の代わりに内訳を入れた人）
+--     guarantee_pay is not null … 保証給だけ書いた人（米国型。基本給という項目が無い）
+--     command_pay is not null   … 職位手当だけ書いた人
+--     pay_items is not null     … 新しい形（総支給を残したまま内訳の行を書いた人）
 --   ⚠️ ここを `gross_monthly is null and base_pay is not null` に戻すと、
 --      新しい形で内訳を書いた人が**全員「内訳なし」**になる。画面は普通に動くので
 --      誰も気づけない（「準備は完了しています」が一生出ない）。
@@ -706,6 +723,8 @@ as $fn$
   select jsonb_build_object(
            'basic',    coalesce(bool_or(true), false),
            'detailed', coalesce(bool_or(r.base_pay is not null
+                                        or r.guarantee_pay is not null
+                                        or r.command_pay is not null
                                         or r.pay_items is not null), false),
            'payslip',  coalesce(bool_or(r.verify_level >= 1), false)
          )
@@ -810,10 +829,10 @@ comment on function public.pv_contributors() is
 --
 -- give ── 本人が何を出したか（2026-08-25。DEEP PAY の個人条件のため）
 --   basic    … 給与レポートが1件でもある
---   detailed … 内訳のある行が1件でもある（gross_monthly が空で base_pay がある側）
+--   detailed … 内訳のある行が1件でもある（基本給・保証給・職位手当・内訳の行のどれか）
 --   payslip  … そのうち明細の裏付けがあるもの（verify_level >= 1）
---   ★新しい列を作っていない。pay_reports は gross_monthly（総支給1本）と
---     内訳を**排他**にしているので、今あるデータのまま Basic / Detailed が分かる。
+--   ★新しい列を作っていない。総支給と内訳は 2026-08-26 から**両立する**ので、
+--     判定は「内訳の欄が1つでも埋まっているか」で見る（pv_my_give の本体を参照）。
 --     ＝既存の投稿も1件も取りこぼさない。
 --   ★本人の行の引き方は my_pay_reports()（db/pay-reports.sql 5-b）と同じ。
 --     pay_reports に user_id は無いので、proof_hash を作り直して突き合わせる。
@@ -1156,7 +1175,7 @@ with f as (
          to_regprocedure('public.pv_pending_comp(jsonb)') as f_pcomp,
          to_regprocedure('public.pv_pay_comp(numeric,numeric,numeric,numeric,numeric,'
                          || 'numeric,text,numeric,numeric,numeric,numeric,numeric,'
-                         || 'numeric,numeric)')          as f_comp,
+                         || 'numeric,numeric,numeric)')  as f_comp,
          to_regclass('public.pay_benchmarks')          as bench,
          to_regclass('public.pv_review_person')        as link,
          to_regprocedure('public.pv_airline_resolve(text)') as f_res,

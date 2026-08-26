@@ -66,7 +66,7 @@
       onePoint: '点が1つだけです。来月の明細を1枚落とすと、ここに線が引けます。',
       noMetric: 'この指標に使える月がまだありません。',
       breakdown: 'いちばん新しい月の内訳',
-      segBase: '基本給', segCommand: '機長・役職手当', segFlight: '乗務変動手当',
+      segBase: '基本給', segGuarantee: '保証給', segCommand: '機長・役職手当', segFlight: '乗務変動手当',
       segOther: 'その他手当', segHousing: '住宅手当', segTransport: '交通費', segPerDiem: 'パーディアム',
       /* ★下の2つは総支給が入っている行にしか出ない（pay-viz.js の segments()）。
          ★2026-08-26、総支給と内訳が両立するようになったので「内訳を入れていない分」
@@ -116,7 +116,8 @@
       onePoint: 'Only one point so far. Drop next month’s payslip and this becomes a line.',
       noMetric: 'No month has the data this metric needs yet.',
       breakdown: 'Latest month, broken down',
-      segBase: 'Base pay', segCommand: 'Command / position', segFlight: 'Flight variable',
+      segBase: 'Base pay', segGuarantee: 'Guaranteed pay',
+      segCommand: 'Command / position', segFlight: 'Flight variable',
       segOther: 'Other allowances', segHousing: 'Housing', segTransport: 'Transport', segPerDiem: 'Per diem',
       /* ★The two below only appear on a row filed as one gross figure (see segments() in pay-viz.js). */
       segBonus: 'Bonus this month', segRest: 'Not itemised',
@@ -168,7 +169,8 @@
 
   // 内訳の名前（色は pay-viz.js が持つ）
   var SEGNAME = {
-    base:    T.segBase,    command:   T.segCommand,   flight:  T.segFlight,
+    base:    T.segBase,    guarantee: T.segGuarantee,
+    command: T.segCommand, flight:    T.segFlight,
     other:   T.segOther,   housing:   T.segHousing,   transport: T.segTransport,
     perdiem: T.segPerDiem,
     bonus:   T.segBonus,   rest:      T.segRest

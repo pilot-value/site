@@ -508,8 +508,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
               <label class="rolebox"><input type="checkbox" name="f-jobrole" value="examiner"><span>審査・査察担当</span></label>
               <label class="rolebox"><input type="checkbox" name="f-jobrole" value="union"><span>組合・乗員代表</span></label>
               <label class="rolebox"><input type="checkbox" name="f-jobrole" value="management"><span>管理・マネジメント</span></label>
-              <label class="rolebox"><input type="checkbox" name="f-jobrole" value="safety"><span>安全・運航基準・技術担当</span></label>
-              <label class="rolebox"><input type="checkbox" name="f-jobrole" value="secondment"><span>他部署配属・出向</span></label>
+              <label class="rolebox"><input type="checkbox" name="f-jobrole" value="nonline"><span>その他の兼務・配属</span></label>
               <!--END:BOXES:f-jobrole-->
             </div>
             <input type="hidden" id="f-jobrole"/>
@@ -1189,8 +1188,7 @@ for (const b of ROLE_BOXES) b.addEventListener('change', roleValue);
   examiner: '審査・査察担当',
   union: '組合・乗員代表',
   management: '管理・マネジメント',
-  safety: '安全・運航基準・技術担当',
-  secondment: '他部署配属・出向',
+  nonline: 'その他の兼務・配属',
 };/*END:ROLE_LABELS*/
 
 function buildPreview(v) {

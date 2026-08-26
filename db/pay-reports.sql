@@ -77,11 +77,12 @@ create table if not exists public.pay_reports (
 
   -- ── 月額（すべて currency の単位・給与明細に書いてある事実だけ）
   --
-  -- ★ gross_monthly と、その下の内訳（base_pay 以下）は排他。どちらか片方だけが入る。
+  -- ★ gross_monthly と、その下の内訳（base_pay 以下）は**排他ではない**（2026-08-26）。
   --   ・gross_monthly = 「その月の額面（総支給）」1本。明細を開かずに答えられる唯一の数字。
-  --   ・内訳          = 明細から読めた／手で分けて入れた場合。
-  --   両方入れてはいけない。pv_annual_total は gross_monthly があれば内訳を一切見ないので、
-  --   両方入っている行は「年収は総額から、支給構成は内訳から」という食い違った行になる。
+  --   ・内訳          = その総支給の**中身の説明**。分かるものだけ入る。
+  --   合計が一致する必要は無い。差は pay-viz.js が「どの項目にも入れていない分」として
+  --   灰色に描く（＝ Unclassified）。年換算は今までどおり総支給が正なので、
+  --   両方入っていても年収は1円も動かない（pv_annual_total の coalesce の第1引数）。
   --   ★ 総支給を base_pay に入れないこと。pay-viz.js の segments() が base_pay を
   --     「基本給」として1切れに描くので、支給構成が『基本給100%』という嘘の図になる。
   gross_monthly    numeric(14,2) check (gross_monthly    is null or gross_monthly    >= 0),
@@ -169,8 +170,14 @@ alter table public.pay_reports
   add column if not exists days_off            smallint,
   add column if not exists sectors             smallint,
   -- ★ かんたん入力の「その月の額面（総支給）」。2026-08-12 追加。
-  --    「基本給って何よ」で止まる人のための1本。内訳とは排他（上のコメント参照）。
+  --    「基本給って何よ」で止まる人のための1本。内訳と両立する（上のコメント参照）。
   add column if not exists gross_monthly       numeric(14,2),
+  -- ★ 2026-08-26 追加。保証給（Minimum Guarantee など）。
+  --    基本給とは**別の列**に持つ。足し込むと二度と割り戻せないし、
+  --    レポートの「基本給」の切れが嘘になる（日本＝基本給、米国＝保証給が下限）。
+  --    ⚠️ guaranteed_hours（保証**時間**）とは別物。時間 × 単価を本人に
+  --       計算させないためにこの列を足した（オーナー指示）。
+  add column if not exists guarantee_pay       numeric(14,2),
   -- ★ 2026-08-13 追加。ステイ日数（基地の外で泊まった泊数）と、
   --    その月の総支給に含まれているボーナス。どちらも本人の手入力（必須）。
   add column if not exists stay_nights         smallint,
@@ -364,7 +371,8 @@ comment on column public.profiles.access_until is
 -- 4. 年換算の計算（定義を1箇所に固定する）
 -- ════════════════════════════════════════════════════════════════
 -- ★ 2026-08-12 に引数が1つ増えた（p_gross_monthly）。2026-08-13 にもう1つ増えた
---   （p_bonus_month）。create or replace は引数リストを変えられない（別の関数として
+--   （p_bonus_month）。2026-08-26 にもう1つ増えた（p_guarantee_pay）。
+--   create or replace は引数リストを変えられない（別の関数として
 --   増えるだけ）ので、古い版を先に落とす。落とさないと、呼び出し側の引数の数によって
 --   新旧どちらが呼ばれるかが変わり、同じ入力から違う年収が出る。
 drop function if exists public.pv_annual_total(
@@ -373,6 +381,9 @@ drop function if exists public.pv_annual_total(
 drop function if exists public.pv_annual_total(
   numeric, numeric, numeric, numeric, numeric, numeric, text, numeric,
   numeric, numeric, numeric, numeric, numeric);
+drop function if exists public.pv_annual_total(
+  numeric, numeric, numeric, numeric, numeric, numeric, text, numeric,
+  numeric, numeric, numeric, numeric, numeric, numeric);
 
 create or replace function public.pv_annual_total(
   p_gross_monthly    numeric,
@@ -381,7 +392,10 @@ create or replace function public.pv_annual_total(
   p_housing_type     text,    p_housing_amount numeric,
   p_transport        numeric, p_command_pay numeric, p_other_allowance numeric,
   p_bonus_annual     numeric, p_profit_share_annual numeric,
-  p_bonus_month      numeric default null
+  p_bonus_month      numeric default null,
+  -- ★ 2026-08-26 追加。保証給（金額）。基本給と足して1本にしない。
+  --    末尾に置くのは、13引数で呼んでいる既存の呼び出しを1つも壊さないため。
+  p_guarantee_pay    numeric default null
 ) returns numeric
 language sql immutable as $$
   select 12 * coalesce(
@@ -398,6 +412,8 @@ language sql immutable as $$
                 then greatest(p_gross_monthly - coalesce(p_bonus_month, 0), 0) end,
          /* ── くわしく入力／明細から読めた場合：内訳を足し上げる ── */
            coalesce(p_base_pay, 0)
+         -- 保証給（Minimum Guarantee）。基本給と別に明細へ出ている会社のぶん。
+         + coalesce(p_guarantee_pay, 0)
          -- 時給は「実績と保証時間の大きい方」で払われるのが業界の標準的な建て付け
          + coalesce(p_hourly_rate, 0)
            * greatest(coalesce(p_block_hours, 0), coalesce(p_guaranteed_hours, 0))
@@ -454,6 +470,8 @@ declare
   -- 金額まわり。submit_pay_report と同じ導き方をする（0 は「入力あり」に数えない）。
   v_gross   numeric := nullif(nullif(p->>'gross_monthly', '')::numeric, 0);
   v_base    numeric := nullif(p->>'base_pay', '')::numeric;
+  -- ★ 2026-08-26 追加。保証給（金額）。基本給とは別の欄・別の列。
+  v_gpay    numeric := nullif(p->>'guarantee_pay', '')::numeric;
   v_hourly  numeric := nullif(p->>'hourly_rate', '')::numeric;
   v_trans   numeric := nullif(p->>'transport', '')::numeric;
   v_cmd     numeric := nullif(p->>'command_pay', '')::numeric;
@@ -529,11 +547,15 @@ begin
 
   -- 手当だけの行は給与レポートとして成立しない（比較の軸が無くなる）。
   -- かんたん入力なら総支給、くわしく入れるなら基本給、明細から時給が読めたなら時給。
-  -- 3つとも無い行は受け取らない。
+  -- ★ 2026-08-26、保証給も数に入れた。基本給という項目が無く保証給だけが下限として
+  --    出る会社が実在する（米国型）ので、外すと pv_annual_total は年収を出せるのに
+  --    ここだけが弾く、という食い違いになる。
+  -- 4つとも無い行は受け取らない。
   if coalesce(v_gross, 0) <= 0
      and coalesce(v_base, 0) <= 0
+     and coalesce(v_gpay, 0) <= 0
      and coalesce(v_hourly, 0) <= 0 then
-    raise exception '報酬額が入力されていません（その月の額面、または基本給か時給が必要です）'
+    raise exception '報酬額が入力されていません（その月の額面、または基本給・保証給か時給が必要です）'
       using errcode = '22023';
   end if;
 
@@ -548,7 +570,8 @@ begin
     v_trans,  v_cmd,  v_othal,
     nullif(p->>'bonus_annual', '')::numeric,
     nullif(p->>'profit_share_annual', '')::numeric,
-    nullif(p->>'bonus_month', '')::numeric);
+    nullif(p->>'bonus_month', '')::numeric,
+    v_gpay);
   if v_ann is null or v_ann <= 0 then
     raise exception '年換算が0になりました（時給制なら乗務時間か保証時間が必要です）'
       using errcode = '22023';
@@ -601,6 +624,9 @@ declare
   -- 内訳。★2026-08-26 から総支給と同時に持てる（排他をやめた）。
   -- 変数に受けているのは、insert と on conflict の2箇所で同じ判断を書き写さないため。
   v_base      numeric := nullif(p->>'base_pay', '')::numeric;
+  -- ★ 2026-08-26 追加。保証給（Minimum Guarantee などの金額）。
+  --    ⚠️ v_guar（保証**時間** guaranteed_hours）とは別物。名前が似ているので注意。
+  v_gpay      numeric := nullif(p->>'guarantee_pay', '')::numeric;
   v_hourly    numeric := nullif(p->>'hourly_rate', '')::numeric;
   v_trans     numeric := nullif(p->>'transport', '')::numeric;
   v_cmd       numeric := nullif(p->>'command_pay', '')::numeric;
@@ -794,7 +820,7 @@ begin
     v_trans,   v_cmd,
     v_othal,
     nullif(p->>'bonus_annual','')::numeric,     nullif(p->>'profit_share_annual','')::numeric,
-    v_bonusm);
+    v_bonusm,  v_gpay);
 
   -- 金額が足りているかは pv_validate_pay_payload が既に見ている（4-b）。
   -- ★ここに残す1本は判定ではなく最後の網。annual_total_orig は null を許す列なので、
@@ -817,7 +843,7 @@ begin
     period_year, period_month, "position", fleet, fleet_cat, job_role, job_roles, age_bucket,
     currency, fx_to_usd, fx_to_jpy, fx_at,
     gross_monthly,
-    base_pay, hourly_rate, guaranteed_hours, block_hours, duty_days, days_off, sectors,
+    base_pay, guarantee_pay, hourly_rate, guaranteed_hours, block_hours, duty_days, days_off, sectors,
     stay_nights, per_diem,
     housing_type, housing_amount, transport, command_pay, other_allowance,
     bonus_month, bonus_annual, profit_share_annual, pension_pct,
@@ -835,7 +861,7 @@ begin
     nullif(btrim(p->>'age_bucket'), ''),
     v_cur, v_fx.to_usd, v_fx.to_jpy, v_fx.as_of,
     v_gross,
-    v_base,   v_hourly,
+    v_base,   v_gpay,   v_hourly,
     v_guar,   v_bh,
     nullif(p->>'duty_days','')::smallint,
     nullif(p->>'days_off','')::smallint,        nullif(p->>'sectors','')::smallint,
@@ -872,7 +898,9 @@ begin
     -- ★ ここに書き忘れると、くわしく入れ直した人の行に古い総支給が残り、
     --    pv_annual_total が総支給を優先するので「内訳を直したのに年収が動かない」になる。
     gross_monthly = excluded.gross_monthly,
-    base_pay = excluded.base_pay, hourly_rate = excluded.hourly_rate,
+    base_pay = excluded.base_pay,
+    -- ★ ここに書き忘れると、保証給だけ訂正が効かない（最初に出した値が残る）。
+    guarantee_pay = excluded.guarantee_pay, hourly_rate = excluded.hourly_rate,
     guaranteed_hours = excluded.guaranteed_hours, block_hours = excluded.block_hours,
     duty_days = excluded.duty_days,
     -- ★ ここに書き忘れると、同じ月を出し直しても休日とセクターだけ古い値のまま残る
@@ -1422,7 +1450,7 @@ select column_name, data_type from information_schema.columns
  where table_schema='public' and table_name='pay_reports'
    and column_name = 'gross_monthly';
 
--- 8-7c. pv_annual_total が14引数の1本だけになっていること（期待：1 行）
+-- 8-7c. pv_annual_total が15引数の1本だけになっていること（期待：1 行）
 --       2行出たら drop function が流れておらず、呼び出し側の引数の数で
 --       新旧どちらが呼ばれるか変わる＝同じ入力から違う年収が出る。
 select p.oid::regprocedure as 定義, p.pronargs as 引数の数

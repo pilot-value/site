@@ -225,13 +225,15 @@ await page.evaluateOnNewDocument((scene, theme) => {
        ★年換算は総支給ベース。内訳を足さない（サーバの pv_annual_total と同じ）。 */
     both: [(function () {
       const r = mk(2026, 6, Object.assign({}, THIN, {
-        gross_monthly: 54250, guaranteed_hours: 75, bonus_annual: 130000, bonus_month: 0,
-        base_pay: 20000, command_pay: 3200,
+        gross_monthly: 57000, guaranteed_hours: 75, bonus_annual: 130000, bonus_month: 0,
+        /* ★保証給（2026-08-26）。基本給とは別の切れが出ることを、この1枚で見る。
+           灰色に落ちていたら pay-viz の segments に guarantee を足し忘れている。 */
+        base_pay: 20000, guarantee_pay: 3000, command_pay: 3200,
         flight_variable_pay: 11000, other_allowance: 11900,
         per_diem: 4200, transport: 0,
         housing_type: 'allowance', housing_amount: 12000,
       }));
-      r.annual_total_orig = 54250 * 12 + 130000;
+      r.annual_total_orig = 57000 * 12 + 130000;
       r.annual_total_jpy = Math.round(r.annual_total_orig * r.fx_to_jpy);
       r.annual_total_usd = Math.round(r.annual_total_orig * r.fx_to_usd);
       r.net_annual_jpy = Math.round(r.annual_total_jpy * 0.99);

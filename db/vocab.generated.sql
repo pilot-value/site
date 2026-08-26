@@ -69,8 +69,7 @@ insert into public.pv_job_roles (code, name_ja, name_en) values
   ('examiner', '審査・査察担当', 'Examiner / Check'),
   ('union', '組合・乗員代表', 'Union / Pilot representative'),
   ('management', '管理・マネジメント', 'Management / Leadership'),
-  ('safety', '安全・運航基準・技術担当', 'Safety / Standards / Technical'),
-  ('secondment', '他部署配属・出向', 'Other department / Secondment')
+  ('nonline', 'その他の兼務・配属', 'Other / Non-Line Assignment')
 on conflict (code) do update set name_ja = excluded.name_ja, name_en = excluded.name_en, active = true;
 
 insert into public.pv_age_buckets (code, name_ja, name_en) values
@@ -144,7 +143,7 @@ on conflict (code) do update set dec = excluded.dec, sym = excluded.sym,
 
 update public.pv_fleets    set active = false where code not in ('a320', 'b737', 'a220', 'b757', 'e-jet', 'b767', 'b777', 'b787', 'b747', 'a330', 'a350', 'a380', 'crj', 'atr', 'dhc8', 'regional', 'turboprop', 'bizjet', 'other');
 update public.pv_positions set active = false where code not in ('cap', 'fo', 'cadet');
-update public.pv_job_roles set active = false where code not in ('line', 'instructor', 'examiner', 'union', 'management', 'safety', 'secondment');
+update public.pv_job_roles set active = false where code not in ('line', 'instructor', 'examiner', 'union', 'management', 'nonline');
 update public.pv_age_buckets set active = false where code not in ('20-29', '30-39', '40-49', '50-59', '60+');
 update public.pv_housing_types  set active = false where code not in ('provided', 'allowance', 'none');
 update public.pv_contract_types set active = false where code not in ('direct', 'contract', 'agency');
@@ -262,7 +261,7 @@ begin
   end loop;
 end $$;
 
--- 検算：機種19 / 職位3 / 役職7 / 年代5 / 通貨45 / レート45
+-- 検算：機種19 / 職位3 / 役職6 / 年代5 / 通貨45 / レート45
 select
   (select count(*) from public.pv_fleets     where active) as 機種,
   (select count(*) from public.pv_positions  where active) as 職位,

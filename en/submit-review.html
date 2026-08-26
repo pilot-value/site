@@ -508,8 +508,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
               <label class="rolebox"><input type="checkbox" name="f-jobrole" value="examiner"><span>Examiner / Check</span></label>
               <label class="rolebox"><input type="checkbox" name="f-jobrole" value="union"><span>Union / Pilot representative</span></label>
               <label class="rolebox"><input type="checkbox" name="f-jobrole" value="management"><span>Management / Leadership</span></label>
-              <label class="rolebox"><input type="checkbox" name="f-jobrole" value="safety"><span>Safety / Standards / Technical</span></label>
-              <label class="rolebox"><input type="checkbox" name="f-jobrole" value="secondment"><span>Other department / Secondment</span></label>
+              <label class="rolebox"><input type="checkbox" name="f-jobrole" value="nonline"><span>Other / Non-Line Assignment</span></label>
               <!--END:BOXES:f-jobrole-->
             </div>
             <input type="hidden" id="f-jobrole"/>
@@ -1193,8 +1192,7 @@ for (const b of ROLE_BOXES) b.addEventListener('change', roleValue);
   examiner: 'Examiner / Check',
   union: 'Union / Pilot representative',
   management: 'Management / Leadership',
-  safety: 'Safety / Standards / Technical',
-  secondment: 'Other department / Secondment',
+  nonline: 'Other / Non-Line Assignment',
 };/*END:ROLE_LABELS*/
 
 function buildPreview(v) {

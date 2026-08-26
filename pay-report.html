@@ -1086,8 +1086,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
             <label class="rolebox"><input type="checkbox" name="f-jobrole" value="examiner"><span>審査・査察担当</span></label>
             <label class="rolebox"><input type="checkbox" name="f-jobrole" value="union"><span>組合・乗員代表</span></label>
             <label class="rolebox"><input type="checkbox" name="f-jobrole" value="management"><span>管理・マネジメント</span></label>
-            <label class="rolebox"><input type="checkbox" name="f-jobrole" value="safety"><span>安全・運航基準・技術担当</span></label>
-            <label class="rolebox"><input type="checkbox" name="f-jobrole" value="secondment"><span>他部署配属・出向</span></label>
+            <label class="rolebox"><input type="checkbox" name="f-jobrole" value="nonline"><span>その他の兼務・配属</span></label>
             <!--END:BOXES:f-jobrole-->
           </div>
           <input type="hidden" id="f-jobrole"/>
@@ -1312,29 +1311,37 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
         <details class="pay-detail" id="pay-detail">
           <summary><span class="p">+</span>給与の内訳を追加</summary>
           <div class="pay-detail-b">
-            <p class="fld-hint" style="margin:0 0 16px">明細をそのまま写す必要はありません。<b>毎月決まってもらえる分</b>と<b>飛んだ量で変わる分</b>が分かれていれば、会社をまたいで比べられます。<br>上の「その月の総支給額」は<b>そのまま残ります</b>。ここに入れた額で書き換えることはしません。</p>
+            <p class="fld-hint" style="margin:0 0 16px">明細に<b>書かれている金額をそのまま</b>入れてください。足し算・単価の計算・時給換算は、こちらでやります。<br>上の「その月の総支給額」は<b>そのまま残ります</b>。ここに入れた額で書き換えることはしません。合計が総支給と合わなくても構いません。</p>
 
             <div class="fld">
-              <label class="form-label" for="f-base">固定・保証給</label>
+              <label class="form-label" for="f-base">基本給</label>
               <input type="text" id="f-base" class="form-input money" inputmode="decimal" placeholder="例：480,000"/>
-              <p class="fld-hint">勤務量にかかわらず、毎月固定または保証されている給与です。上で聞いたパーディアム・住宅手当は<b>ここに入れず</b>、飛んだ量で変わる分は下の「変動給」へ。</p>
+              <p class="fld-hint">明細に載っている基本給の金額を、そのまま入れてください。<b>ほかの手当を足し合わせないでください。</b></p>
               <label class="rolebox pd-none"><input type="checkbox" id="f-base-none"><span>該当なし</span></label>
             </div>
 
-            <div class="opt-fld" id="opt-f-command" hidden>
+            <div class="opt-fld" id="opt-f-guarantee" hidden>
               <div class="fld">
-                <label class="form-label" for="f-command">Rank / Position の固定手当</label>
-                <input type="text" id="f-command" class="form-input money" inputmode="decimal"/>
-                <p class="fld-hint">Captain Allowance / Senior FO Allowance のように、<b>職位に対して毎月つく手当</b>です。教官・審査などの手当はここに入れません（役割ごとにあとで聞きます）。</p>
+                <label class="form-label" for="f-guarantee">保証給</label>
+                <input type="text" id="f-guarantee" class="form-input money" inputmode="decimal"/>
+                <p class="fld-hint">Minimum Guarantee などの保証分が、基本給とは<b>別に金額として明細に出ている場合だけ</b>入れてください。<b>保証時間 × 単価を計算する必要はありません</b>（保証時間は上で聞いています）。</p>
               </div>
             </div>
 
             <div class="opt-fld" id="opt-pd-var" hidden>
               <div class="pd-block">
                 <div class="form-label">変動給</div>
-                <p class="fld-hint" style="margin-top:0">乗務時間・セクター数・待機などで<b>月ごとに変わる支給</b>です。名前は会社ごとに違うので、明細に書いてあるとおりで構いません。</p>
+                <p class="fld-hint" style="margin-top:0">乗務時間・セクター数・待機などで<b>月ごとに変わる支給</b>です。<b>支給額だけ</b>入れてください。単価もルールも聞きません。</p>
                 <div class="pd-rows" id="pd-var-rows"></div>
                 <button type="button" class="chip" id="pd-var"><span class="p">+</span>変動給を追加</button>
+              </div>
+            </div>
+
+            <div class="opt-fld" id="opt-f-command" hidden>
+              <div class="fld">
+                <label class="form-label" for="f-command">職位手当</label>
+                <input type="text" id="f-command" class="form-input money" inputmode="decimal"/>
+                <p class="fld-hint">Captain Allowance / Senior FO Allowance のように、<b>職位に対して毎月つく手当</b>が基本給と別に出ている場合です。教官・審査などの手当はここに入れません（役割ごとにあとで聞きます）。</p>
               </div>
             </div>
 
@@ -1348,8 +1355,9 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
             </div>
 
             <div class="chips">
-              <button type="button" class="chip" data-open="f-command"><span class="p">+</span>Rank / Position の固定手当</button>
+              <button type="button" class="chip" data-open="f-guarantee"><span class="p">+</span>保証給</button>
               <button type="button" class="chip" data-open="pd-var"><span class="p">+</span>変動給</button>
+              <button type="button" class="chip" data-open="f-command"><span class="p">+</span>職位手当</button>
               <button type="button" class="chip" data-open="pd-oth"><span class="p">+</span>その他の現金手当</button>
             </div>
 
@@ -1390,11 +1398,14 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
               <label class="form-label">何に連動する支給か</label>
               <select class="form-input pd-basis">
                 <option value="">選ばなくても大丈夫です</option>
-                <option value="block">Flight / Block / Credit Hours</option>
-                <option value="sector">Sector / Landing</option>
-                <option value="overtime">Overtime / Extra Duty</option>
-                <option value="reserve">Reserve / Standby</option>
-                <option value="premium">Night / Weekend / Holiday Premium</option>
+                <option value="block">飛行・クレジット時間（Flight / Block / Credit Hours）</option>
+                <option value="duty">勤務・勤務時間（Duty / Duty Hours）</option>
+                <option value="sector">便数・着陸回数（Sector / Landing）</option>
+                <option value="overtime">時間外・追加勤務（Overtime / Extra Duty）</option>
+                <option value="reserve">待機・スタンバイ（Reserve / Standby）</option>
+                <option value="night">深夜・夜間勤務（Night Premium）</option>
+                <option value="weekend">週末・日曜勤務（Weekend / Sunday Premium）</option>
+                <option value="holiday">祝日勤務（Public Holiday Premium）</option>
                 <option value="other">その他</option>
                 <option value="unknown">わからない</option>
               </select>
@@ -1402,10 +1413,6 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
             <div class="fld">
               <label class="form-label">明細上の名称</label>
               <input type="text" class="form-input pd-label" maxlength="60" placeholder="例：Flight Pay、乗務手当"/>
-            </div>
-            <div class="fld">
-              <label class="form-label">支給単価・ルール</label>
-              <input type="text" class="form-input pd-rule" maxlength="60" placeholder="例：¥4,500 / Block Hour"/>
             </div>
           </div>
         </template>
@@ -2079,7 +2086,7 @@ $('f-housing').addEventListener('change', () => {
      年換算は画面と1円も違わない。内訳は列に入るだけで年換算には足されない。
    ★下の DETAIL_IDS は「入っていたら畳まずに開いておく」ための一覧。
      消すための一覧ではない（パーディアムと住宅手当は全員に聞く欄なので入れない）。 */
-const DETAIL_IDS = ['f-base','f-hourly',
+const DETAIL_IDS = ['f-base','f-guarantee','f-hourly',
                     'f-transport','f-command','f-other','f-profit','f-pension','f-payitems'];
 
 /* ★2026-08-26、総支給と内訳は排他ではなくなった（オーナー指示）。
@@ -2214,7 +2221,7 @@ const num = (id) => { const v = parseFloat(unc($(id).value)); return isFinite(v)
 function monthlyDetail() {
   const hours = Math.max(num('f-block'), num('f-guar'));
   const housing = $('f-housing').value === 'allowance' ? num('f-housing-amt') : 0;
-  return num('f-base') + num('f-hourly') * hours + num('f-perdiem') + housing
+  return num('f-base') + num('f-guarantee') + num('f-hourly') * hours + num('f-perdiem') + housing
          + num('f-transport') + num('f-command') + num('f-other')
          + num('f-var-sum') + num('f-oth-sum');
 }
@@ -2253,7 +2260,7 @@ function recalc() {
 }
 /* ★f-transport / f-other は画面から消えて hidden になった（明細読み取りだけが書く）。
    代わりに繰り返し行の合計 f-var-sum / f-oth-sum を pdSync() が書いて recalc を呼ぶ。 */
-['f-gross','f-base','f-hourly','f-guar','f-block','f-perdiem','f-housing-amt','f-command','f-bonus','f-bonus-mo','f-profit']
+['f-gross','f-base','f-guarantee','f-hourly','f-guar','f-block','f-perdiem','f-housing-amt','f-command','f-bonus','f-bonus-mo','f-profit']
   .forEach((id) => $(id).addEventListener('input', recalc));
 $('f-currency').addEventListener('change', recalc);
 
@@ -2454,7 +2461,7 @@ window.addEventListener('hashchange', openDetailFromHash);
 // ★f-transport / f-other は画面から消えた（hidden ＝ 明細読み取りだけが書く）。
 //   代わりに繰り返し行の2つ（pd-var / pd-oth）が入ったが、あちらは値を持つ欄が無いので
 //   ここでは扱わず、下の pdRestore() が中身を見て開き直す。
-const CHIP_FIELDS = ['f-duty','f-base-iata','f-command','f-profit','f-pension'];
+const CHIP_FIELDS = ['f-duty','f-base-iata','f-guarantee','f-command','f-profit','f-pension'];
 
 function openOpt(id, quiet) {
   const box = $('opt-' + id);
@@ -2490,9 +2497,11 @@ function pdRead(kind) {
     const g = (sel) => { const e = row.querySelector(sel); return e ? e.value.trim() : ''; };
     const a = parseFloat(unc(g('.pd-amt')));
     const o = { amount: isFinite(a) && a > 0 ? a : null, label: g('.pd-label') || null };
-    if (kind === 'var') { o.basis = g('.pd-basis') || null; o.rule = g('.pd-rule') || null; }
+    /* ★支給単価・ルールは聞かない（2026-08-26 オーナー指示）。
+       「¥4,500 / Block Hour」のような計算をパイロットにさせない。 */
+    if (kind === 'var') o.basis = g('.pd-basis') || null;
     /* ＋を押しただけの空の行は送らない（0円の手当として並んでしまう）。 */
-    if (o.amount == null && !o.label && !o.basis && !o.rule) continue;
+    if (o.amount == null && !o.label && !o.basis) continue;
     out.push(o);
   }
   return out;
@@ -2554,7 +2563,7 @@ function pdRestore(raw) {
       const put = (sel, v) => { const e = row.querySelector(sel); if (e && v != null && v !== '') e.value = v; };
       put('.pd-amt', it.amount != null ? grp(String(it.amount)) : '');
       put('.pd-label', it.label);
-      if (kind === 'var') { put('.pd-basis', it.basis); put('.pd-rule', it.rule); }
+      if (kind === 'var') put('.pd-basis', it.basis);
     }
   }
   if (o.fixed_none) { $('f-base-none').checked = true; $('f-base').disabled = true; }
@@ -2570,7 +2579,7 @@ const LS_KEY = 'pv_pay_last';
 // ★f-paytype は 2026-08-12 に欄ごと廃止。f-gross（その月の額面）が入った。
 const PRESET_IDS = ['f-airline','f-airline-other','f-position','f-fleet','f-currency','f-gross','f-base','f-hourly',
   'f-guar','f-perdiem','f-housing','f-housing-amt','f-contract','f-seniority','f-taxcountry',
-  'f-tax','f-command','f-transport','f-other','f-bonus','f-profit','f-pension','f-jobrole','f-age','f-base-iata',
+  'f-tax','f-guarantee','f-command','f-transport','f-other','f-bonus','f-profit','f-pension','f-jobrole','f-age','f-base-iata',
   /* ★内訳の繰り返し行。合計の2つ（f-var-sum / f-oth-sum）は pdSync() が出し直すので保存しない。 */
   'f-payitems'];
 // ★ログイン後の再送用。プリセットと違って対象月も含める（そのまま送るため）。
@@ -2688,6 +2697,7 @@ updateSteps(true);
     'f-age': s(r.age_bucket),
     'f-base-iata': s(r.base_iata), 'f-currency': s(r.currency),
     'f-gross': s(r.gross_monthly), 'f-base': s(r.base_pay),
+    'f-guarantee': s(r.guarantee_pay),
     'f-guar': s(r.guaranteed_hours), 'f-perdiem': s(r.per_diem),
     'f-housing': s(r.housing_type), 'f-housing-amt': s(r.housing_amount),
     'f-transport': s(r.transport), 'f-command': s(r.command_pay),
@@ -2882,6 +2892,10 @@ async function submitPayReport() {
        絶対に base_pay へ入れないこと（支給構成が「基本給100%」の嘘の図になる）。 */
     gross_monthly:       val('f-gross'),
     base_pay:            val('f-base'),
+    /* ★保証給（2026-08-26）。基本給とは別の列に持つ。足し込むと二度と割れないし、
+       レポートの「基本給」の切れが嘘になる。年換算は総支給が正なので、
+       この欄で年収の数字は動かない（内訳だけで出した人にだけ効く）。 */
+    guarantee_pay:       val('f-guarantee'),
     hourly_rate:         val('f-hourly'),
     guaranteed_hours:    val('f-guar'),
     block_hours:         val('f-block'),

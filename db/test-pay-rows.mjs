@@ -166,14 +166,14 @@ const pv2 = (v) => Number(v.toPrecision(2));
 // 会社コードは語彙から取る（このテストのために特定の社名を覚えない）
 const VOCAB = (await rows(
   `select code, name_ja, name_en from pv_airlines
-    where code <> 'other' and active order by code limit 32`
+    where code <> 'other' and active order by code limit 33`
 ));
 const AIR = VOCAB.map(r => r.code);
 const [A_ONE, A_M12, A_MIX, A_OLD, A_ORD, A_VF, A_OUT, A_FOTHER,
        A_BAND, A_PEND, A_CLAIMED, A_NULLIP, A_CROSS, A_COMP, A_STAT,
        A_RV_MON, A_RV_ANN, A_RV_SUM, A_RV_DUP, A_RV_NONE, A_AGE,
        A_AGE2, A_EDGE, A_NM_JA, A_NM_EN, A_NM_CODE, A_RV_FREE,
-       A_GV_BASIC, A_GV_DET, A_GV_PS, A_GV_OTHER, A_GV_ITEMS] = AIR;
+       A_GV_BASIC, A_GV_DET, A_GV_PS, A_GV_OTHER, A_GV_ITEMS, A_GV_GUAR] = AIR;
 const nameOf = (code) => VOCAB.find(r => r.code === code);
 
 // ════════════════════════════════════════════════════════════
@@ -577,6 +577,21 @@ console.log('\n▼ 7-b. ★支給の内訳（DEEP PAY 用。REAL PAY からは�
      '　材料が無ければ null（画面は円グラフを出さない）');
   ok((await one(`select public.pv_pct5(array[0,0,0,0,0]::numeric[]) c`)).c === null,
      '　全部ゼロでも null（0で割らない）');
+
+  /* ⑦ 保証給（2026-08-26）。pv_pay_comp は「引数の並びが pv_annual_total と
+     1文字も違わない」「5本の合計があちらの返り値と一致する」を約束している。
+     片方だけに引数を足すと、その2つが黙って破れる。 */
+  const nc = await one(`select p.pronargs n from pg_proc p join pg_namespace s on s.oid=p.pronamespace
+                         where s.nspname='public' and p.proname='pv_pay_comp'`);
+  ok(Number(nc.n) === 15, `★pv_pay_comp も15引数（pv_annual_total と同じ並び）→ ${nc.n}`);
+  const gcomp = await one(`
+    select public.pv_pct5(public.pv_pay_comp(null, 20000, null, null, null, null,
+             null, null, null, null, null, null, null, null, 5000)) c,
+           public.pv_annual_total(null, 20000, null, null, null, null,
+             null, null, null, null, null, null, null, null, 5000) v`);
+  ok(gcomp.c && gcomp.c.m === 100 && Number(gcomp.v) === 300000,
+     '★保証給は「月々の支給（m）」に入る（灰色にも賞与にも落ちない）',
+     JSON.stringify(gcomp));
 
   const rawC = (await one(`select pv_pay_rows()::text t`)).t;
   ok(!/"(m|b|d|h|o)":/.test(rawC),
@@ -1067,9 +1082,8 @@ console.log('\n▼ 12-g. ★本人が何を出したか（DEEP PAY の個人条�
    ★①と②は別々に判定する。100人は Privacy Threshold ではなく、
      「DEEP PAY という機能を正式に開ける区切り」でしかない。
 
-   ★新しい列は1つも作っていない。db/pay-reports.sql が
-     gross_monthly（総支給1本）と内訳（base_pay 以下）を**排他**にしているので、
-     今ある行の形だけで「かんたん」と「くわしく」が見分けられる。
+   ★DEEP PAY のために新しい列は1つも作っていない。総支給と内訳は 2026-08-26 から
+     **両立する**ので、判定は「内訳の欄が1つでも埋まっているか」で見る。
      つまり**過去に内訳で出してくれた人は、さかのぼって条件を満たす**。 */
 {
   const give = async () => (await payRows()).give;
@@ -1115,6 +1129,18 @@ console.log('\n▼ 12-g. ★本人が何を出したか（DEEP PAY の個人条�
   const gI = await give();
   ok(gI.basic === true && gI.detailed === true,
      '★総支給を残したまま内訳の行を書いた人も detailed が true', JSON.stringify(gI));
+
+  /* (c3) ★保証給だけを書いた人（2026-08-26）。米国型の会社には「基本給」という項目が
+     無く、Minimum Guarantee が下限として1本立つだけのことがある。判定に
+     guarantee_pay を入れ忘れると、この人が丸ごと「内訳なし」に落ちる。 */
+  const uG = ++seat; await asUser(uG);
+  await submit({ ...BASE, airline: A_GV_GUAR, position: 'cap', fleet: 'b777',
+                 period_year: YEAR, period_month: 2,
+                 gross_monthly: 15000, base_pay: null, guarantee_pay: 8000 });
+  const gG = await give();
+  ok(gG.basic === true && gG.detailed === true,
+     '★保証給だけを書いた人も detailed が true（基本給の無い会社を落とさない）',
+     JSON.stringify(gG));
 
   // (d) 明細から。★読み取れた行は内訳の欄が埋まるので、detailed も自動で true になる。
   //     オーナー指示「Payslip を出した人に Detailed Form をもう一度入力させない」は

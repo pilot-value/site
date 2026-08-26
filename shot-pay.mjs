@@ -71,15 +71,17 @@ const SIMPLE = {   // 誰にでも聞く欄（2026-08-13 に手取り・今月�
    ★2026-08-26、交通とその他の専用欄は無くなった（hidden ＝明細読み取り専用）。
      人が打つのは下の VAR / OTH の行。 */
 const DETAIL = {
-  'f-base': '36000', 'f-guar': '80', 'f-command': '3200',
+  'f-base': '36000', 'f-guarantee': '2500', 'f-guar': '80', 'f-command': '3200',
   'f-profit': '18000', 'f-pension': '12',
 };
 /* 変動給・その他の現金手当。会社ごとに名前も本数も違うので行で足す。
    ★合計が総支給（f-gross）を超えないようにしておく。超えると注意の1行が出て、
      それはそれで正しい絵だが「普通の状態」の見本ではなくなる。 */
+/* ★2026-08-26、支給単価・ルールの欄は消えた（オーナー指示「単価計算をユーザーにさせない」）。
+   ここに rule を書き戻すと、消したはずの欄がある前提の絵になる。 */
 const VAR = [
-  { amount: '9800', basis: 'block', label: 'Flight Pay', rule: 'AED 113 / Block Hour' },
-  { amount: '1200', basis: 'reserve', label: 'Standby Allowance', rule: '' },
+  { amount: '9800', basis: 'block', label: 'Flight Pay' },
+  { amount: '1200', basis: 'reserve', label: 'Standby Allowance' },
 ];
 const OTH = [{ amount: '900', label: 'Transport Allowance' }];
 
@@ -142,9 +144,13 @@ async function fillSimple(page) {
   await put(page, pick(SIMPLE, 'f-currency', 'f-gross', 'f-netpay', 'f-bonus-mo',
                                'f-perdiem', 'f-housing', 'f-housing-amt'));
   await put(page, pick(SIMPLE, 'f-contract', 'f-taxcountry', 'f-seniority'));
-  // 任意項目はチップを押して初めて欄が出る。検品では全部開けて溢れを見る。
+  /* 任意項目はチップを押して初めて欄が出る。検品では全部開けて溢れを見る。
+     ★内訳（#pay-detail）の中のチップはここでは押さない。開いた直後は「基本給だけ ＋
+       4つの『＋』」が正しい絵なので、それを 3a で撮ってから押す。 */
   await page.evaluate(() => {
-    for (const c of [...document.querySelectorAll('.chip[data-open]')]) c.click();
+    for (const c of [...document.querySelectorAll('.chip[data-open]')]) {
+      if (!c.closest('#pay-detail')) c.click();
+    }
   });
   await put(page, SIMPLE);
   await new Promise((r) => setTimeout(r, 400));
@@ -170,7 +176,7 @@ const putRows = (page, kind, list) => page.evaluate((k, items) => {
       if (e && v) { e.value = v; e.dispatchEvent(new Event('input', { bubbles: true })); }
     };
     set('.pd-amt', it.amount); set('.pd-basis', it.basis);
-    set('.pd-label', it.label); set('.pd-rule', it.rule);
+    set('.pd-label', it.label);
   }
   pdSync();
 }, kind, list);
@@ -207,6 +213,12 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
 
       // 3. くわしく入れるを開く＝額面は残ったまま「下の内訳の合計」になる
       await setDetail(page, true);
+      /* ★3a. 開いた直後。出ているのは基本給だけで、保証給・変動給・職位手当・
+         その他の現金手当は「＋」で足す（オーナー指示の Progressive Disclosure）。 */
+      await shoot(page, `${tag}-3a-detail-plus`);
+      await page.evaluate(() => {
+        for (const c of [...document.querySelectorAll('#pay-detail .chip[data-open]')]) c.click();
+      });
       await put(page, DETAIL);
       await putRows(page, 'var', VAR);
       await putRows(page, 'oth', OTH);
@@ -244,7 +256,7 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
         items: !!document.getElementById('f-payitems').value,
       }));
       console.log(`     閉じたあと: 額面 = ${back.gross}（期待 ${SIMPLE['f-gross']}）`
-                  + ` / 固定・保証給 = ${back.base}（期待 ${DETAIL['f-base']}）`
+                  + ` / 基本給 = ${back.base}（期待 ${DETAIL['f-base']}）`
                   + ` / 行 = ${back.items ? '残' : '—'}`);
 
       /* 5. 2回目の訪問。savePreset() は送信が通ったときに走るので、ここでは

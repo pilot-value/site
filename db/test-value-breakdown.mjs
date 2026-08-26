@@ -88,6 +88,24 @@ console.log('\n① 内訳を分けて入れた行（写真・くわしく入れ�
   ok(near(h.total, 500000), '社宅（現物支給）は円に入れない', String(h.total));
 }
 
+// ── ①-b 保証給（2026-08-26） ───────────────────────────────
+console.log('\n①-b 保証給を入れた人のぶんが灰色に落ちない');
+{
+  const s = V.segments(mk({ base_pay: 400000, guarantee_pay: 100000, per_diem: 60000 }));
+  ok(near(val(s, 'guarantee'), 100000),
+     '★ 保証給に色が付く（足し忘れると「どの項目にも入れていない分」に落ちて、入れた本人に嘘をつく）',
+     keys(s));
+  ok(near(val(s, 'base'), 400000), '基本給に足し込まれていない（別の色で残る）', String(val(s, 'base')));
+  ok(near(s.total, 560000), '合計 = 40 + 10 + 6 万', String(s.total));
+
+  // 基本給が無く保証給だけの会社（米国型）
+  const g = V.segments(mk({ gross_monthly: 500000, guarantee_pay: 300000 }));
+  ok(near(val(g, 'guarantee'), 300000) && near(val(g, 'rest'), 200000),
+     '★ 保証給だけの行でも灰色が減る（総支給 50 − 保証給 30 = 20 万）',
+     `guarantee=${val(g, 'guarantee')} rest=${val(g, 'rest')}`);
+  ok(g.partial === true, '基本給が分かっていないので partial は立ったまま');
+}
+
 // ── ② 総支給1本＋分かっている手当 ─────────────────────────
 console.log('\n② かんたん入力（総支給1本）— 入っている分だけ色を付ける');
 {
@@ -185,8 +203,28 @@ console.log('\n⑧ 名前の対応表（my-value.js / pay-tracker.js の両方�
        `${f}: 日本語の語がある`);
     ok(/segBonus: 'Bonus this month'/.test(src) && /segRest: 'Not itemised'/.test(src),
        `${f}: 英語の語がある`);
+    ok(/guarantee:\s*T\.segGuarantee/.test(src)
+       && src.includes("segGuarantee: '保証給'") && /segGuarantee: 'Guaranteed pay'/.test(src),
+       `${f}: ★ 保証給の語がある（無いと凡例が undefined になる）`);
   }
   const mv = readFileSync(path.join(ROOT, 'my-value.js'), 'utf8');
+  /* ★「固定 / 変動 / 判別できない」の3本のバケツ。segments() のスライスを
+     ひとつ残らず、どれか1本に入れる約束。落とすと3本の合計が円ぜんぶに届かず、
+     割合が静かにズレる（2026-08-26、保証給を足したときに実際そうなっていた）。 */
+  {
+    const grab = (name) => {
+      const m = mv.match(new RegExp('var ' + name + '\\s*=([^;]*);'));
+      return m ? [...m[1].matchAll(/v\.([a-z]+)/g)].map((x) => x[1]) : [];
+    };
+    const buckets = [...grab('fixed'), ...grab('vari'), ...grab('unk')];
+    const all = Object.keys(V.segments(mk({ base_pay: 1, guarantee_pay: 1 })).vals);
+    ok(buckets.includes('guarantee'),
+       '★ 保証給が3本のどれかに入っている（毎月かならず出る下限なので「固定」）', buckets.join(','));
+    const miss = all.filter((k) => !buckets.includes(k));
+    ok(miss.length === 0, '★ segments() のスライスが1つも取りこぼされていない', miss.join(','));
+    ok(new Set(buckets).size === buckets.length,
+       '★ 同じスライスを2本に入れていない（二重に数えない）', buckets.join(','));
+  }
   ok(!/明細からしか作れません/.test(mv),
      '★ my-value.js から「明細からしか作れません」が消えている（手で分けて入れても出るので嘘）');
   ok(/s\.partial \? ''/.test(mv),

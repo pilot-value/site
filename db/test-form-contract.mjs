@@ -161,7 +161,7 @@ console.log('\n市場価値レポート（my-value）');
        <input type="hidden"> になった（明細読み取りだけが書く）。人が打つ欄は
        繰り返し行の .pd-amt に変わり、id を持たない＝下の extra には出てこない。 */
   const MONEY = ['f-gross', 'f-netpay', 'f-perdiem', 'f-bonus-mo', 'f-housing-amt',
-                 'f-bonus', 'f-base', 'f-command', 'f-profit'];
+                 'f-bonus', 'f-base', 'f-guarantee', 'f-command', 'f-profit'];
   for (const f of ['pay-report.html', 'en/pay-report.html']) {
     const s = read(f);
     for (const id of MONEY) {
@@ -172,6 +172,23 @@ console.log('\n市場価値レポート（my-value）');
       .map((m) => m[1]);
     const extra = withMoney.filter((id) => !MONEY.includes(id));
     ok(extra.length === 0, `${f}: 金額以外の欄に money が付いていない`, extra.join(','));
+  }
+
+  /* ⑦-b 変動給の「種類」は日英でまったく同じ10択（2026-08-26 オーナー指定）。
+     ★value がズレると、同じ明細を日本語版と英語版で入れた2人が別の区分に落ちる。
+       集計はコードで数えるので、画面には出ないまま静かに割れる。
+     ★並びまで同じに保つ。片方だけ並べ替えると、次に触った人がどちらが正か分からない。 */
+  const VBASIS = ['block', 'duty', 'sector', 'overtime', 'reserve',
+                  'night', 'weekend', 'holiday', 'other', 'unknown'];
+  for (const f of ['pay-report.html', 'en/pay-report.html']) {
+    const s = read(f);
+    const tpl = (s.match(/<template id="tpl-pd-var">[\s\S]*?<\/template>/) || [''])[0];
+    const vals = [...tpl.matchAll(/<option value="([a-z]*)"/g)].map((m) => m[1])
+      .filter((v) => v !== '');
+    ok(JSON.stringify(vals) === JSON.stringify(VBASIS),
+       `${f}: 変動給の種類が10択で同じ並び`, vals.join(','));
+    ok(!/class="pd-rule"/.test(tpl),
+       `${f}: 変動給の行に支給単価・ルールの欄が無い（計算をさせない）`);
   }
 
   /* ⑧ 必須の印（2026-08-13 その4）。★これがこのファイルで一番効く検査。
@@ -638,7 +655,24 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
      '額面を disabled にしない（薄くなって一番大事な数字が読めなくなる）');
   ok((await fv('f-gross')) === GROSS_M,
      `開いただけで額面の値が変わらない → ${await fv('f-gross')}`, `期待 ${GROSS_M}`);
-  ok(await visFold('f-base'), '内訳を開くと固定・保証給が出る');
+  ok(await visFold('f-base'), '内訳を開くと基本給が出る');
+  /* ★2026-08-26。最初から全部を展開しない（オーナー指示）。
+     基本給だけが出て、保証給・変動給・職位手当・その他の現金手当は「＋」で足す。 */
+  for (const id of ['opt-f-guarantee', 'opt-pd-var', 'opt-f-command', 'opt-pd-oth']) {
+    ok(await page.$eval('#' + id, (el) => el.hidden),
+       `★内訳を開いただけでは出さない（＋で足す） ${id}`);
+  }
+  ok(await page.evaluate(() => {
+       const want = ['f-guarantee', 'pd-var', 'f-command', 'pd-oth'];
+       const got = [...document.querySelectorAll('.pay-detail-b .chips .chip')]
+         .map((b) => b.dataset.open);
+       return want.every((k) => got.includes(k));
+     }), '★4つの「＋」が並んでいる（保証給・変動給・職位手当・その他の現金手当）');
+  ok(await page.evaluate(() => {
+       document.querySelector('.pay-detail-b .chip[data-open="f-guarantee"]').click();
+       return !document.getElementById('opt-f-guarantee').hidden
+              && !document.querySelector('.pay-detail-b .chip[data-open="f-guarantee"]');
+     }), '★「＋保証給」を押すと欄が出て、その「＋」は消える');
   ok(await vis('gross-hint-own'), '額面の説明は入れ替わらない（いつでも本人の額面）');
   ok(!(await page.$('#gross-hint-sum')), '★「下の内訳の合計」という説明はもう無い');
 
@@ -665,7 +699,7 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
       const row = pdAdd(k, true);
       const set = (sel, v) => { const e = row.querySelector(sel); if (e && v != null) e.value = v; };
       set('.pd-amt', it.amount); set('.pd-label', it.label);
-      set('.pd-basis', it.basis); set('.pd-rule', it.rule);
+      set('.pd-basis', it.basis);
     }
     pdSync();
     try { return JSON.parse(document.getElementById('f-payitems').value || 'null'); }
@@ -673,13 +707,18 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   }, kind, list);
 
   let items = await pdFill('var', [
-    { amount: '4000', label: 'Flight Pay', basis: 'block', rule: '¥4,500 / Block Hour' },
+    { amount: '4000', label: 'Flight Pay', basis: 'block' },
     {},                                    // ＋を押しただけの空の行
   ]);
   ok(items && items.variable && items.variable.length === 1
-     && items.variable[0].amount === 4000 && items.variable[0].basis === 'block'
-     && items.variable[0].rule === '¥4,500 / Block Hour',
+     && items.variable[0].amount === 4000 && items.variable[0].basis === 'block',
      '★変動給が行のまま送られる（空の行は送らない）', JSON.stringify(items));
+  /* ★2026-08-26 オーナー指示。「¥4,500 / Block Hour」のような計算はさせない。
+     支給単価もルールも聞かない＝欄そのものが無い。行にも残らない。 */
+  ok(!(await page.$('#pd-var-rows .pd-rule')),
+     '★変動給の行に「支給単価・ルール」の欄が無い（計算をさせない）');
+  ok(items && items.variable && !('rule' in items.variable[0]),
+     '★送る行にも rule が入っていない', JSON.stringify(items));
   items = await pdFill('oth', [{ amount: '1000', label: '通勤手当' }]);
   ok(items && items.other && items.other.length === 1 && items.other[0].amount === 1000,
      '★その他の現金手当も行で足せる', JSON.stringify(items));
@@ -872,7 +911,12 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
      ★キーを増やすときはこの表も足す。減らすときは、なぜ消してよいかを考える。 */
   const KEYS_BEFORE = [   // 手入力で埋まる32キー。1つでも欠けたら静かに壊れる
     'airline', 'airline_other', 'position', 'fleet', 'job_role', 'base_iata',
-    'period_year', 'period_month', 'currency', 'base_pay', 'hourly_rate',
+    'period_year', 'period_month', 'currency', 'base_pay',
+    /* 2026-08-26 追加。保証給（Minimum Guarantee などの金額）。
+       ★base_pay に足し込まない。日本＝基本給、米国＝保証給が下限で、意味が違う。
+       ⚠️ guaranteed_hours（保証**時間**）とは別のキー。 */
+    'guarantee_pay',
+    'hourly_rate',
     'guaranteed_hours', 'block_hours', 'duty_days', 'per_diem', 'housing_type',
     'housing_amount', 'transport', 'command_pay', 'other_allowance',
     'bonus_annual', 'profit_share_annual', 'pension_pct', 'contract_type',
@@ -906,7 +950,9 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
     'source'];
 
   const missing = KEYS_BEFORE.concat(KEYS_PAYSLIP).filter((k) => !(k in p));
-  ok(missing.length === 0, `payload が43キーを全部送っている`, missing.join(','));
+  ok(missing.length === 0,
+     `payload が${KEYS_BEFORE.length + KEYS_PAYSLIP.length}キーを全部送っている`,
+     missing.join(','));
   const extra = Object.keys(p).filter((k) => !KEYS_BEFORE.includes(k) && !KEYS_PAYSLIP.includes(k));
   ok(extra.length === 0, `知らないキーが増えていない`, extra.join(','));
 

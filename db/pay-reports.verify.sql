@@ -35,7 +35,8 @@ with c as (
       where table_schema = 'public' and table_name = 'pay_benchmarks'
         and column_name in ('base_iata', 'seniority_years', 'proof_hash',
                             'airline_other', 'period_month'))                  as c6,
-    -- 語彙の外部キー7本（airline/position/fleet/job_role/currency/housing/contract）
+    -- 語彙の外部キー8本
+    -- （airline/position/fleet/job_role/age_bucket/currency/housing/contract）
     (select count(*) from pg_constraint
       where conrelid = to_regclass('public.pay_reports') and contype = 'f')    as c7,
     -- 年換算：12×(20000 + 250×85 + 3000 + 10000) = 651,000
@@ -45,8 +46,18 @@ with c as (
     -- 現物支給の社宅は足さない：12×(20000 + 21250 + 3000) = 531,000
     public.pv_annual_total(null, 20000, 250, 75, 85, 3000, 'provided', 10000,
                            null, null, null, null, null)                       as c9,
-    -- 換算レートのある通貨数（当面この通貨だけが pay_benchmarks に乗る）
-    (select count(*) from public.fx_rates)                                     as c10
+    -- ★ レートの無い通貨（語彙にあるのにレートが無いと、その通貨の投稿は
+    --    annual_total_usd が null のまま集計から落ちる）。実数を固定値で見ない
+    (select count(*) from public.pv_currencies cu
+      where cu.active and not exists (select 1 from public.fx_rates f
+                                       where f.code = cu.code))                as c10,
+    -- ★ 2026-08-26。保証給（金額）。基本給という項目が無く、保証給だけが下限として
+    --    出る会社（米国型）を落とさないための列。12×5,000 = 60,000
+    public.pv_annual_total(null, null, null, null, null, null, null, null,
+                           null, null, null, null, null, null, 5000)           as c11,
+    -- ★ 総支給がある行は内訳をひとつも見ない。保証給を足しても 651,000 のまま
+    public.pv_annual_total(54250, 20000, 250, 75, 85, 3000, 'allowance', 10000,
+                           null, null, null, null, null, null, 5000)           as c12
 )
 select * from (
   select 1 as "#", '8-1 user_id/uid/email 列が無い'          as 検査,
@@ -62,13 +73,17 @@ select * from (
          case when c5 = 0      then '✅' else '❌' end from c
   union all select  6, '8-5 公開集計に準識別子が無い',          c6::text, '0',
          case when c6 = 0      then '✅' else '❌' end from c
-  union all select  7, '8-6 語彙の外部キー本数',                c7::text, '7',
-         case when c7 = 7      then '✅' else '❌' end from c
+  union all select  7, '8-6 語彙の外部キー本数',                c7::text, '8',
+         case when c7 = 8      then '✅' else '❌' end from c
   union all select  8, '8-7 年換算（住宅手当＝現金は足す）',    c8::text, '651000',
          case when c8 = 651000 then '✅' else '❌' end from c
   union all select  9, '8-7 年換算（社宅＝現物は足さない）',    c9::text, '531000',
          case when c9 = 531000 then '✅' else '❌' end from c
-  union all select 10, '8-8 換算レートのある通貨数',            c10::text, '7',
-         case when c10 = 7     then '✅' else '❌' end from c
+  union all select 10, '8-8 レートの無い通貨',                  c10::text, '0',
+         case when c10 = 0     then '✅' else '❌' end from c
+  union all select 11, '8-9 年換算（保証給だけの行も出せる）',   c11::text, '60000',
+         case when c11 = 60000 then '✅' else '❌' end from c
+  union all select 12, '8-9 総支給がある行は保証給でも動かない', c12::text, '651000',
+         case when c12 = 651000 then '✅' else '❌' end from c
 ) t
 order by "#";

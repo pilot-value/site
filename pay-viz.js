@@ -40,6 +40,9 @@
   /* 内訳の色（salary-leveling.js の内訳色を踏襲）。名前は呼ぶ側が持つ。 */
   var SEG = [
     { k: 'base',      c: '#34d399' },
+    /* ★保証給（2026-08-26）。基本給の隣だが、緑と紛れない黄緑にする。
+       同じ緑の濃淡にすると、ドーナツで境目が読めない。 */
+    { k: 'guarantee', c: '#a3e635' },
     { k: 'command',   c: '#5fb0ff' },
     { k: 'flight',    c: '#f5c842' },
     { k: 'other',     c: '#a78bfa' },
@@ -200,6 +203,9 @@
     var split = (fv > 0 && fv <= other);
     var vals = {
       base:      (num(r.base_pay) || 0) * fx,
+      /* ★足し忘れると、保証給を入れた人のぶんが下の rest（灰色）に落ちる
+         ＝「どの項目にも入れていない分」と表示されて、入れた本人に嘘をつく。 */
+      guarantee: (num(r.guarantee_pay) || 0) * fx,
       command:   (num(r.command_pay) || 0) * fx,
       flight:    (split ? fv : 0) * fx,
       other:     (split ? other - fv : other) * fx,

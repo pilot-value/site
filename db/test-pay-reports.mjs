@@ -102,6 +102,19 @@ console.log('\n▼ 年換算の計算');
 const nfn = await one(`select count(*) c from pg_proc p join pg_namespace n on n.oid=p.pronamespace
                         where n.nspname='public' and p.proname='pv_annual_total'`);
 ok(Number(nfn.c) === 1, `pv_annual_total は1本だけ（古い12引数版が残っていない）→ ${nfn.c}`);
+/* ★2026-08-26、保証給（p_guarantee_pay）を末尾に足して15本になった。
+   末尾に default 付きで足したので、13本で呼んでいる下の検査はそのまま通る。 */
+const narg = await one(`select p.pronargs n from pg_proc p join pg_namespace nn on nn.oid=p.pronamespace
+                         where nn.nspname='public' and p.proname='pv_annual_total'`);
+ok(Number(narg.n) === 15, `pv_annual_total は15引数（保証給まで受ける）→ ${narg.n}`);
+/* 保証給は基本給と足し上げる（別の列だが、年収では同じ「固定の支給」）。 */
+const gp = await one(`select pv_annual_total(null,20000,null,null,null,null,null,null,
+                                             null,null,null,null,null,null,5000) v`);
+ok(Number(gp.v) === 300000, `基本給20,000＋保証給5,000 → ${gp.v}（期待 300000）`);
+/* ★総支給がある行では今までどおり内訳を一切見ない＝保証給を足しても動かない。 */
+const gp2 = await one(`select pv_annual_total(54250,20000,null,null,null,null,null,null,
+                                              null,null,null,null,null,null,5000) v`);
+ok(Number(gp2.v) === 651000, `総支給がある行は保証給でも動かない → ${gp2.v}（期待 651000）`);
 const a1 = await one(`select pv_annual_total(null,20000,250,75,85,3000,'allowance',10000,null,null,null,null,null) v`);
 ok(Number(a1.v) === 651000, `住宅手当は現金なので足す → ${a1.v}（期待 651000）`);
 const a2 = await one(`select pv_annual_total(null,20000,250,75,85,3000,'provided',10000,null,null,null,null,null) v`);
@@ -356,6 +369,38 @@ ok(Number(both.gross_monthly) === 54250 && Number(both.base_pay) === BASE.base_p
   `総支給と内訳が両方残る → ${both.gross_monthly} / ${both.base_pay} / ${both.hourly_rate}`);
 ok(Number(both.per_diem) === 3000 && Number(both.housing_amount) === 10000,
   `パーディアムと住宅手当は総支給と一緒でも残る → ${both.per_diem} / ${both.housing_amount}`);
+
+/* ── 保証給（2026-08-26 に足した列）──────────────────────────────
+   ★基本給と別の列に持つ。日本＝基本給が主、米国＝保証給が下限、で意味が違う。
+     足し込むと二度と割れず、レポートの「基本給」の切れが嘘になる。
+   ⚠️ guaranteed_hours（保証**時間**）とは別物。両方が同じ行に立つ。 */
+await asUser(43);
+r = (await submit({ ...BASE, gross_monthly: null, hourly_rate: null, per_diem: null,
+                    housing_type: null, housing_amount: null,
+                    base_pay: 20000, guarantee_pay: 5000,
+                    airline: 'lufthansa', period_year: 2026, period_month: 8 })).r;
+ok(Number(r.annual_total_orig) === 300000,
+  `保証給は基本給と足して年換算する → ${r.annual_total_orig}（期待 300000）`);
+const gpr = await one(`select * from pay_reports where airline='lufthansa' and period_month=8`);
+ok(Number(gpr.guarantee_pay) === 5000 && Number(gpr.base_pay) === 20000,
+  `保証給は基本給とは別の列に残る → ${gpr.base_pay} / ${gpr.guarantee_pay}`);
+ok(Number(gpr.guaranteed_hours) === 75,
+  `保証時間（時間）と保証給（金額）は別物として同じ行に立つ → ${gpr.guaranteed_hours}`);
+/* 出し直し（訂正）で保証給だけ古い値が残らないこと。 */
+await submit({ ...BASE, gross_monthly: null, hourly_rate: null, per_diem: null,
+               housing_type: null, housing_amount: null,
+               base_pay: 20000, guarantee_pay: 7000,
+               airline: 'lufthansa', period_year: 2026, period_month: 8 });
+const gpr2 = await one(`select guarantee_pay from pay_reports where airline='lufthansa' and period_month=8`);
+ok(Number(gpr2.guarantee_pay) === 7000, `保証給も訂正が効く → ${gpr2.guarantee_pay}`);
+/* 保証給だけでも受け取る（基本給という項目が無い会社が実在する）。 */
+await asUser(44);
+r = (await submit({ ...BASE, gross_monthly: null, base_pay: null, hourly_rate: null,
+                    per_diem: null, housing_type: null, housing_amount: null,
+                    guarantee_pay: 9000,
+                    airline: 'lufthansa', period_year: 2026, period_month: 2 })).r;
+ok(Number(r.annual_total_orig) === 108000,
+  `保証給だけの行も受け取る → ${r.annual_total_orig}（期待 108000）`);
 
 ok((await boom(`select submit_pay_report($1::jsonb)`, [JSON.stringify({
   ...BASE, base_pay: null, hourly_rate: null, gross_monthly: 0,

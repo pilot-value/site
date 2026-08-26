@@ -13,15 +13,34 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
      ja と en は同一オリジンなので、前の言語のプリセットも消しておく。 */
   await page.evaluate(() => {
     localStorage.clear();
+    /* ★2026-08-13 から、入口の2択で「手で入力」を押すまでフォームが出ない。
+       押さずに測ると s1〜s4 が hidden のままで、全部が「幅0＝溢れている」になる。 */
+    const em = document.getElementById('entry-manual');
+    if (em) em.click();
     const put = (id, v) => {
       const el = document.getElementById(id);
       el.value = v;
       el.dispatchEvent(new Event('change', { bubbles: true }));
       el.dispatchEvent(new Event('input', { bubbles: true }));
     };
+    /* ★段（s2〜s4）は前の段のゲートを満たすまで hidden。ゲートは
+       pay-report.html の GATE_ROLE / GATE_HOURS / GATE_PAY と同じ顔ぶれ。
+       あちらに必須を1つ足したらここも足す（足さないと「開けきれていない」で落ちる）。 */
     put('f-airline', 'emirates'); put('f-position', 'cap'); put('f-fleet', 'b777');
-    put('f-block', '86.5'); put('f-currency', 'AED'); put('f-base', '48500');
+    put('f-jobrole', 'line'); if (typeof syncRoleBoxes === 'function') syncRoleBoxes();
+    put('f-age', '40-49');
+    put('f-block', '86.5'); put('f-stay', '12');
+    put('f-currency', 'AED'); put('f-gross', '77800'); put('f-netpay', '71600');
+    put('f-bonus-mo', '0'); put('f-perdiem', '6200');
+    put('f-housing', 'allowance'); put('f-housing-amt', '17500');
+    put('f-contract', 'direct'); put('f-taxcountry', 'AE'); put('f-seniority', '12');
+    put('f-base', '48500');
     for (const c of [...document.querySelectorAll('.chip[data-open]')]) c.click();
+    /* ★変動給の「種類」は行の中にあるので、1行足さないと測れない
+       （2026-08-26 に10択へ増えた。いちばん長い語が入りきるかを見たい）。 */
+    const d = document.getElementById('pay-detail');
+    if (d) { d.open = true; d.dispatchEvent(new Event('toggle')); }
+    if (typeof pdAdd === 'function') pdAdd('var', true);
   });
   await new Promise((r) => setTimeout(r, 400));
   const hidden = await page.evaluate(() =>
@@ -33,8 +52,11 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
     const out = [];
     /* ★measure するのは <select> だけ。f-nationality は 2026-08-12 に欄ごと廃止、
        f-jobrole は 2026-08-26 にチェックボックス群になった（どちらも options が無い）。 */
-    for (const id of ['f-currency', 'f-taxcountry', 'f-airline', 'f-fleet', 'f-position', 'f-housing', 'f-contract']) {
-      const el = document.getElementById(id);
+    const targets = ['f-currency', 'f-taxcountry', 'f-airline', 'f-fleet', 'f-position', 'f-housing', 'f-contract']
+      .map((id) => [id, document.getElementById(id)]);
+    const vb = document.querySelector('#pd-var-rows .pd-basis');
+    if (vb) targets.push(['pd-basis〈変動給の種類〉', vb]);
+    for (const [id, el] of targets) {
       if (!el || !el.options) continue;
       const cs = getComputedStyle(el);
       cv.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
