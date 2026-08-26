@@ -27,7 +27,8 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
        pay-report.html の GATE_ROLE / GATE_HOURS / GATE_PAY と同じ顔ぶれ。
        あちらに必須を1つ足したらここも足す（足さないと「開けきれていない」で落ちる）。 */
     put('f-airline', 'emirates'); put('f-position', 'cap'); put('f-fleet', 'b777');
-    put('f-jobrole', 'line'); if (typeof syncRoleBoxes === 'function') syncRoleBoxes();
+    /* ★教官も選ぶ。選ばないと教官の節ごと hidden で、中の select が測れない。 */
+    put('f-jobrole', 'line,instructor'); if (typeof syncRoleBoxes === 'function') syncRoleBoxes();
     put('f-age', '40-49');
     put('f-block', '86.5'); put('f-stay', '12');
     put('f-currency', 'AED'); put('f-gross', '77800'); put('f-netpay', '71600');
@@ -41,6 +42,10 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
     const d = document.getElementById('pay-detail');
     if (d) { d.open = true; d.dispatchEvent(new Event('toggle')); }
     if (typeof pdAdd === 'function') pdAdd('var', true);
+    /* ★教官の「支給方法」は「別途支給される」を選ぶまで出ない（2026-08-26 その3）。 */
+    const di = document.getElementById('instr-detail');
+    if (di) { di.open = true; di.dispatchEvent(new Event('toggle')); }
+    if (document.getElementById('f-instr-extra')) put('f-instr-extra', 'separate');
   });
   await new Promise((r) => setTimeout(r, 400));
   const hidden = await page.evaluate(() =>
@@ -56,6 +61,10 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
       .map((id) => [id, document.getElementById(id)]);
     const vb = document.querySelector('#pd-var-rows .pd-basis');
     if (vb) targets.push(['pd-basis〈変動給の種類〉', vb]);
+    for (const [id, nm] of [['f-instr-extra', '教官・追加報酬'], ['f-instr-method', '教官・支給方法']]) {
+      const el = document.getElementById(id);
+      if (el) targets.push([`${id}〈${nm}〉`, el]);
+    }
     for (const [id, el] of targets) {
       if (!el || !el.options) continue;
       const cs = getComputedStyle(el);

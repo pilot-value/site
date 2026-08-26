@@ -238,7 +238,9 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 .step-in{animation:stepIn .34s cubic-bezier(.16,1,.3,1) both}
 @keyframes stepIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .opt-fld{margin-bottom:16px}
-.opt-fld>.fld{margin-bottom:0}
+/* ★:last-child を外さない。教官の節（#opt-instr-pay）だけ中に .fld が3つ並ぶので、
+   全部を 0 にすると欄と欄がくっついて1つの塊に見える（2026-08-26 その3）。 */
+.opt-fld>.fld:last-child{margin-bottom:0}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;font-size:.78rem;font-weight:700;color:#a8b3c2;background:rgba(255,255,255,.04);border:1px dashed rgba(255,255,255,.18);cursor:pointer;transition:color .2s,border-color .2s,background .2s,transform .2s cubic-bezier(.16,1,.3,1)}
 .chip:hover{color:#f5c842;border-color:rgba(245,200,66,.45);background:rgba(245,200,66,.07)}
@@ -1325,9 +1327,9 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 
             <div class="opt-fld" id="opt-f-guarantee" hidden>
               <div class="fld">
-                <label class="form-label" for="f-guarantee">保証給</label>
+                <label class="form-label" for="f-guarantee">Flight time 保証手当 / 職務手当</label>
                 <input type="text" id="f-guarantee" class="form-input money" inputmode="decimal"/>
-                <p class="fld-hint">Minimum Guarantee などの保証分が、基本給とは<b>別に金額として明細に出ている場合だけ</b>入れてください。<b>保証時間 × 単価を計算する必要はありません</b>（保証時間は上で聞いています）。</p>
+                <p class="fld-hint">Minimum Guarantee・保証給・<b>職務手当</b>など、呼び名は会社ごとに違います。基本給とは<b>別に金額として明細に出ている場合だけ</b>入れてください。<b>保証時間 × 単価を計算する必要はありません</b>（保証時間は上で聞いています）。</p>
               </div>
             </div>
 
@@ -1344,7 +1346,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
               <div class="fld">
                 <label class="form-label" for="f-command">職位手当</label>
                 <input type="text" id="f-command" class="form-input money" inputmode="decimal"/>
-                <p class="fld-hint">Captain Allowance / Senior FO Allowance のように、<b>職位に対して毎月つく手当</b>が基本給と別に出ている場合です。教官・審査などの手当はここに入れません（役割ごとにあとで聞きます）。</p>
+                <p class="fld-hint">Captain Allowance / Senior FO Allowance のように、<b>職位に対して毎月つく手当</b>が基本給と別に出ている場合です。上の「Flight time 保証手当 / 職務手当」に入れた分は、ここに入れません。教官の手当は下の<b>「教官・訓練の手当」</b>へ（審査などは役割ごとにあとで聞きます）。</p>
               </div>
             </div>
 
@@ -1358,7 +1360,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
             </div>
 
             <div class="chips">
-              <button type="button" class="chip" data-open="f-guarantee"><span class="p">+</span>保証給</button>
+              <button type="button" class="chip" data-open="f-guarantee"><span class="p">+</span>Flight time 保証手当 / 職務手当</button>
               <button type="button" class="chip" data-open="pd-var"><span class="p">+</span>変動給</button>
               <button type="button" class="chip" data-open="f-command"><span class="p">+</span>職位手当</button>
               <button type="button" class="chip" data-open="pd-oth"><span class="p">+</span>その他の現金手当</button>
@@ -1388,6 +1390,94 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
             </div>
           </div>
         </details>
+
+        <!-- ── 教官・訓練の手当（2026-08-26 その3）────────────────────
+             ★§1で「教官・訓練担当」を選んだ人にだけ出す。選んでいない人には
+               ブロックごと出さない（外したら中身も消す＝画面に無いものを黙って送らない）。
+             ★狙いは明細の再現ではない。(1)何を担当しているか (2)追加の支給があるか
+               (3)何に対して払われるか (4)今月いくら出たか の4つを、会社をまたいで
+               同じ形で持つこと。
+             ★ここに入れた額は職位手当・変動給・その他の現金手当へ**二重入力させない**。
+               専用の列（instructor_pay）に入り、行の中身は pay_items.instructor に残る。
+             ★総支給は書き換えない。合計が総支給を超えたときだけ上の1行が出る。
+             ★必須は1つも置かない（req-tag を置かない＝段のゲートも送信の条件も動かない）。 -->
+        <div id="s3-instr" hidden>
+          <details class="pay-detail" id="instr-detail">
+            <summary><span class="p">+</span>教官・訓練の手当を追加</summary>
+            <div class="pay-detail-b">
+              <p class="fld-hint" style="margin:0 0 16px">教官の仕事は、会社によって呼び名も払われ方も違います。<b>明細に出ている金額</b>と、<b>何に対して払われるか</b>を教えてください。教官業務を時間に換算する必要はありません。</p>
+
+              <div class="fld">
+                <div class="form-label">担当している訓練</div>
+                <div class="roleboxes">
+                  <label class="rolebox"><input type="checkbox" name="f-instr-train" value="line"><span>ライン（路線訓練・OJT）</span></label>
+                  <label class="rolebox"><input type="checkbox" name="f-instr-train" value="sim"><span>シミュレーター</span></label>
+                  <label class="rolebox"><input type="checkbox" name="f-instr-train" value="ground"><span>座学・地上訓練</span></label>
+                  <label class="rolebox"><input type="checkbox" name="f-instr-train" value="crm"><span>CRM・ヒューマンファクター</span></label>
+                  <label class="rolebox"><input type="checkbox" name="f-instr-train" value="other"><span>その他</span></label>
+                </div>
+              </div>
+
+              <div class="fld">
+                <label class="form-label" for="f-instr-label">会社・資格上の名称</label>
+                <input type="text" id="f-instr-label" class="form-input" maxlength="60" placeholder="例：TRI、SFI、Training Captain"/>
+                <p class="fld-hint">明細や辞令に出ている呼び名を、そのまま書き写してください。</p>
+              </div>
+
+              <div class="fld">
+                <label class="form-label" for="f-instr-extra">教官業務に対する追加の支給</label>
+                <select id="f-instr-extra" class="form-input">
+                  <option value="">選んでください</option>
+                  <option value="separate">別途支給されている</option>
+                  <option value="included">通常の給与に含まれている</option>
+                  <option value="none">追加の支給はない</option>
+                  <option value="unknown">わからない</option>
+                </select>
+              </div>
+
+              <!-- ★「別途支給されている」を選んだ人にだけ、ここから先を出す。
+                   「含まれている」「支給はない」の人は2〜3クリックで終わる。 -->
+              <div class="opt-fld" id="opt-instr-pay" hidden>
+                <div class="fld">
+                  <label class="form-label" for="f-instr-method">何に対して払われるか</label>
+                  <!-- ★単価・数量の**ラベルはここが持つ**（data-rate / data-qty）。
+                       JS に日本語を持たせない＝日英で同じコードが動く。
+                       月額固定は単価も数量も無いので data-rate を空にする。 -->
+                  <select id="f-instr-method" class="form-input">
+                    <option value="" data-rate="" data-qty="">選んでください</option>
+                    <option value="monthly" data-rate="" data-qty="">月額で固定</option>
+                    <option value="duty" data-rate="1日あたりの支給額" data-qty="日数">乗務日・勤務日ごと（Duty / Day）</option>
+                    <option value="session" data-rate="1回あたりの支給額" data-qty="回数">セッションごと（Session）</option>
+                    <option value="sector" data-rate="1レグあたりの支給額" data-qty="レグ数">便・レグごと（Sector / Leg）</option>
+                    <option value="hour" data-rate="1時間あたりの支給額" data-qty="時間数">時間ごと（Hour）</option>
+                    <option value="course" data-rate="1コースあたりの支給額" data-qty="コース数">コース・イベントごと（Course / Event）</option>
+                    <option value="other" data-rate="1回あたりの支給額" data-qty="数量">その他</option>
+                  </select>
+                </div>
+
+                <div class="fld">
+                  <label class="form-label" for="f-instructor">今月の教官・訓練の支給額</label>
+                  <input type="text" id="f-instructor" class="form-input money" inputmode="decimal" placeholder="例：60,000"/>
+                  <p class="fld-hint">明細に出ている金額をそのまま入れてください。この額は<b>職位手当・変動給・その他の現金手当には入れないでください</b>（同じお金を2回数えることになります）。</p>
+                </div>
+
+                <div id="instr-unit" hidden>
+                  <div class="grid2">
+                    <div class="fld">
+                      <label class="form-label" for="f-instr-rate" id="lab-instr-rate">1回あたりの支給額</label>
+                      <input type="text" id="f-instr-rate" class="form-input money" inputmode="decimal"/>
+                    </div>
+                    <div class="fld">
+                      <label class="form-label" for="f-instr-qty" id="lab-instr-qty">回数</label>
+                      <input type="text" id="f-instr-qty" class="form-input" inputmode="decimal"/>
+                    </div>
+                  </div>
+                  <p class="fld-hint" style="margin-top:0">明細に単価と回数が出ていれば、そのまま書き写してください。<b>掛け算はこちらでやります。</b></p>
+                </div>
+              </div>
+            </div>
+          </details>
+        </div>
 
         <!-- 繰り返し行の型。★言語ごとの文言はここに置く（JS に日本語を持たせない）。 -->
         <template id="tpl-pd-var">
@@ -2052,6 +2142,7 @@ function afterSaved(data, payload, airline) {
 const ROLE_BOXES = [].slice.call(document.querySelectorAll('input[name="f-jobrole"]'));
 function readRoleBoxes() {
   $('f-jobrole').value = ROLE_BOXES.filter((b) => b.checked).map((b) => b.value).join(',');
+  instrToggle();   // 教官を外したら、教官の欄ごと畳んで中身も消す
 }
 function syncRoleBoxes() {
   const on = {};
@@ -2064,6 +2155,70 @@ function syncRoleBoxes() {
 /* ★checkbox 自身に付ける。#form-wrap の change より先に走らせないと、
    updateSteps() が1つ前の値を見る（子から親へ上がるので子が先）。 */
 for (const b of ROLE_BOXES) b.addEventListener('change', readRoleBoxes);
+
+/* ── 教官・訓練の手当（2026-08-26 その3）──────────────────────
+   §1で「教官・訓練担当」を選んだ人にだけ出す。外したら中身も消す
+   （画面に無いものを黙って送らない）。
+   ★ここに入れた額は職位手当・変動給・その他の現金手当と**別の入れ物**に持つ。
+     金額は列 instructor_pay、行の形は pay_items.instructor。
+     どちらにも足し込まない ＝ これが「二重入力させない」の実装そのもの。
+   ★必須は1つも無い（req-tag を置いていない）。金額だけでも保存できる。 */
+const INSTR_BOXES = [].slice.call(document.querySelectorAll('input[name="f-instr-train"]'));
+const INSTR_PAY_IDS = ['f-instr-method', 'f-instructor', 'f-instr-rate', 'f-instr-qty'];
+const INSTR_ALL_IDS = ['f-instr-label', 'f-instr-extra'].concat(INSTR_PAY_IDS);
+
+function instrRead() {
+  if ($('s3-instr').hidden) return null;          // 教官でない人の分は組み立てない
+  const t = (id) => $(id).value.trim();
+  const n = (id) => { const v = parseFloat(unc($(id).value)); return isFinite(v) && v > 0 ? v : null; };
+  const trainings = INSTR_BOXES.filter((b) => b.checked).map((b) => b.value);
+  const o = { trainings: trainings, label: t('f-instr-label') || null, extra: t('f-instr-extra') || null,
+              method: null, amount: null, rate: null, qty: null };
+  /* 「別途支給されている」以外は金額の欄そのものが出ていない。 */
+  if (o.extra === 'separate') {
+    o.method = t('f-instr-method') || null;
+    o.amount = n('f-instructor');
+    o.rate = n('f-instr-rate');
+    o.qty = n('f-instr-qty');
+  }
+  if (!trainings.length && !o.label && !o.extra) return null;   // 開いただけの空は送らない
+  return o;
+}
+
+function instrSync() {
+  const sep = $('f-instr-extra').value === 'separate';
+  $('opt-instr-pay').hidden = !sep;
+  if (!sep) for (const id of INSTR_PAY_IDS) $(id).value = '';
+  /* ★単価・数量のラベルは option 側の data-rate / data-qty が持つ。
+     JS に日本語を持たせない＝日英で同じコードが動く。
+     月額で固定は単価も数量も無いので data-rate が空＝この2欄ごと出さない。 */
+  const m = $('f-instr-method');
+  const op = m.options[m.selectedIndex];
+  const rate = (op && op.dataset.rate) || '';
+  $('instr-unit').hidden = !(sep && rate);
+  if (rate) { $('lab-instr-rate').textContent = rate; $('lab-instr-qty').textContent = (op.dataset.qty || ''); }
+  else { $('f-instr-rate').value = ''; $('f-instr-qty').value = ''; }
+  pdSync();      // pay_items を組み直す（中で recalc も走る）
+}
+
+function instrToggle() {
+  const box = $('s3-instr');
+  if (!box) return;
+  const on = String($('f-jobrole').value || '').split(',').indexOf('instructor') >= 0;
+  if (box.hidden !== on) return;                  // 変わっていない
+  box.hidden = !on;
+  if (on) return;
+  for (const b of INSTR_BOXES) b.checked = false;
+  for (const id of INSTR_ALL_IDS) $(id).value = '';
+  $('instr-detail').open = false;
+  instrSync();
+}
+
+for (const b of INSTR_BOXES) b.addEventListener('change', instrSync);
+for (const id of INSTR_ALL_IDS) {
+  $(id).addEventListener('input', instrSync);
+  $(id).addEventListener('change', instrSync);
+}
 
 $('f-airline').addEventListener('change', () => {
   $('wrap-other').style.display = $('f-airline').value === 'other' ? '' : 'none';
@@ -2230,7 +2385,7 @@ function monthlyDetail() {
   const housing = $('f-housing').value === 'allowance' ? num('f-housing-amt') : 0;
   return num('f-base') + num('f-guarantee') + num('f-hourly') * hours + num('f-perdiem') + housing
          + num('f-transport') + num('f-command') + num('f-other')
-         + num('f-var-sum') + num('f-oth-sum');
+         + num('f-var-sum') + num('f-oth-sum') + num('f-instructor');
 }
 
 function annualTotal() {
@@ -2267,7 +2422,7 @@ function recalc() {
 }
 /* ★f-transport / f-other は画面から消えて hidden になった（明細読み取りだけが書く）。
    代わりに繰り返し行の合計 f-var-sum / f-oth-sum を pdSync() が書いて recalc を呼ぶ。 */
-['f-gross','f-base','f-guarantee','f-hourly','f-guar','f-block','f-perdiem','f-housing-amt','f-command','f-bonus','f-bonus-mo','f-profit']
+['f-gross','f-base','f-guarantee','f-hourly','f-guar','f-block','f-perdiem','f-housing-amt','f-command','f-bonus','f-bonus-mo','f-profit','f-instructor']
   .forEach((id) => $(id).addEventListener('input', recalc));
 $('f-currency').addEventListener('change', recalc);
 
@@ -2523,9 +2678,13 @@ function pdSync() {
   $('f-var-sum').value = sum(v) || '';
   $('f-oth-sum').value = sum(o) || '';
   const none = $('f-base-none').checked;
+  /* ★教官の行も同じ入れ物に乗せる。合計はどこにも寄せない
+     （寄せると職位手当・変動給・その他と二重に数えることになる）。 */
+  const ins = instrRead();
+  const pi = { v: 1, fixed_none: none, variable: v, other: o };
+  if (ins) pi.instructor = ins;
   /* 何も入っていないときは列ごと空にする（意味の無い {} を送らない）。 */
-  $('f-payitems').value = (v.length || o.length || none)
-    ? JSON.stringify({ v: 1, fixed_none: none, variable: v, other: o }) : '';
+  $('f-payitems').value = (v.length || o.length || none || ins) ? JSON.stringify(pi) : '';
   recalc();
 }
 
@@ -2585,6 +2744,24 @@ function pdRestore(raw) {
     }
   }
   if (o.fixed_none) { $('f-base-none').checked = true; $('f-base').disabled = true; }
+  /* ★教官の分。ここに来る前に syncRoleBoxes() が走っているので、教官を選んで
+     いる人なら s3-instr は既に出ている。出ていないなら書き戻さない
+     （画面に無いものを送らないため）。 */
+  const ins = o.instructor;
+  if (ins && typeof ins === 'object' && !$('s3-instr').hidden) {
+    const on = {};
+    for (const c of (Array.isArray(ins.trainings) ? ins.trainings : [])) on[c] = 1;
+    for (const b of INSTR_BOXES) b.checked = !!on[b.value];
+    const put = (id, v) => { if (v != null && v !== '') $(id).value = v; };
+    put('f-instr-label', ins.label);
+    put('f-instr-extra', ins.extra);
+    put('f-instr-method', ins.method);
+    put('f-instructor', ins.amount != null ? grp(String(ins.amount)) : '');
+    put('f-instr-rate', ins.rate != null ? grp(String(ins.rate)) : '');
+    put('f-instr-qty', ins.qty != null ? String(ins.qty) : '');
+    $('instr-detail').open = true;
+    instrSync();   // 中で pdSync も走る
+  }
   pdSync();
 }
 /* ?airline= で 'other' が入ったときは change が出ていないので会社名欄が
@@ -2599,7 +2776,10 @@ const PRESET_IDS = ['f-airline','f-airline-other','f-position','f-fleet','f-curr
   'f-guar','f-perdiem','f-housing','f-housing-amt','f-contract','f-seniority','f-taxcountry',
   'f-tax','f-guarantee','f-command','f-transport','f-other','f-bonus','f-profit','f-pension','f-jobrole','f-age','f-base-iata',
   /* ★内訳の繰り返し行。合計の2つ（f-var-sum / f-oth-sum）は pdSync() が出し直すので保存しない。 */
-  'f-payitems'];
+  'f-payitems',
+  /* ★教官の支給額。行の形（担当・呼び名・支給方法）は f-payitems 側が持つので、
+     ここに入れるのは列へ送る金額の1つだけ。 */
+  'f-instructor'];
 // ★ログイン後の再送用。プリセットと違って対象月も含める（そのまま送るため）。
 const ALL_IDS = PRESET_IDS.concat(['f-year','f-month','f-block','f-duty',
   /* ★その月にしか無い値。PRESET_IDS には入れない（翌月のフォームに持ち越すと壊れる）。 */
@@ -2720,6 +2900,7 @@ updateSteps(true);
     'f-housing': s(r.housing_type), 'f-housing-amt': s(r.housing_amount),
     'f-transport': s(r.transport), 'f-command': s(r.command_pay),
     'f-other': s(r.other_allowance), 'f-bonus': s(r.bonus_annual),
+    'f-instructor': s(r.instructor_pay),
     'f-profit': s(r.profit_share_annual), 'f-pension': s(r.pension_pct),
     'f-contract': s(r.contract_type), 'f-taxcountry': s(r.tax_country),
     'f-tax': s(r.tax_rate_pct), 'f-seniority': s(r.seniority_years),
@@ -2930,6 +3111,9 @@ async function submitPayReport() {
     housing_amount:      $('f-housing').value === 'allowance' ? val('f-housing-amt') : null,
     transport:           val('f-transport'),
     command_pay:         val('f-command'),
+    /* ★教官・訓練の手当（2026-08-26 その3）。職位手当・変動給・その他とは別の列。
+       足し込むと同じお金を2回数える。年換算は総支給が正なので、この欄で年収は動かない。 */
+    instructor_pay:      val('f-instructor'),
     /* ★繰り返し行（その他の現金手当＋変動給）の合計をここに足す。
        f-other は明細読み取りが丸ごと上書きする欄なので、手入力の行は
        別の入れ物（f-oth-sum / f-var-sum）に持っていて、送るときだけ合わせる。

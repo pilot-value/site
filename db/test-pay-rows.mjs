@@ -166,14 +166,15 @@ const pv2 = (v) => Number(v.toPrecision(2));
 // 会社コードは語彙から取る（このテストのために特定の社名を覚えない）
 const VOCAB = (await rows(
   `select code, name_ja, name_en from pv_airlines
-    where code <> 'other' and active order by code limit 33`
+    where code <> 'other' and active order by code limit 34`
 ));
 const AIR = VOCAB.map(r => r.code);
 const [A_ONE, A_M12, A_MIX, A_OLD, A_ORD, A_VF, A_OUT, A_FOTHER,
        A_BAND, A_PEND, A_CLAIMED, A_NULLIP, A_CROSS, A_COMP, A_STAT,
        A_RV_MON, A_RV_ANN, A_RV_SUM, A_RV_DUP, A_RV_NONE, A_AGE,
        A_AGE2, A_EDGE, A_NM_JA, A_NM_EN, A_NM_CODE, A_RV_FREE,
-       A_GV_BASIC, A_GV_DET, A_GV_PS, A_GV_OTHER, A_GV_ITEMS, A_GV_GUAR] = AIR;
+       A_GV_BASIC, A_GV_DET, A_GV_PS, A_GV_OTHER, A_GV_ITEMS, A_GV_GUAR,
+       A_CROSS2] = AIR;
 const nameOf = (code) => VOCAB.find(r => r.code === code);
 
 // ════════════════════════════════════════════════════════════
@@ -578,20 +579,33 @@ console.log('\n▼ 7-b. ★支給の内訳（DEEP PAY 用。REAL PAY からは�
   ok((await one(`select public.pv_pct5(array[0,0,0,0,0]::numeric[]) c`)).c === null,
      '　全部ゼロでも null（0で割らない）');
 
-  /* ⑦ 保証給（2026-08-26）。pv_pay_comp は「引数の並びが pv_annual_total と
+  /* ⑦ 保証給・教官の手当（2026-08-26）。pv_pay_comp は「引数の並びが pv_annual_total と
      1文字も違わない」「5本の合計があちらの返り値と一致する」を約束している。
      片方だけに引数を足すと、その2つが黙って破れる。 */
   const nc = await one(`select p.pronargs n from pg_proc p join pg_namespace s on s.oid=p.pronamespace
                          where s.nspname='public' and p.proname='pv_pay_comp'`);
-  ok(Number(nc.n) === 15, `★pv_pay_comp も15引数（pv_annual_total と同じ並び）→ ${nc.n}`);
+  ok(Number(nc.n) === 16, `★pv_pay_comp も16引数（pv_annual_total と同じ並び）→ ${nc.n}`);
   const gcomp = await one(`
     select public.pv_pct5(public.pv_pay_comp(null, 20000, null, null, null, null,
-             null, null, null, null, null, null, null, null, 5000)) c,
+             null, null, null, null, null, null, null, null, 5000, null)) c,
            public.pv_annual_total(null, 20000, null, null, null, null,
-             null, null, null, null, null, null, null, null, 5000) v`);
+             null, null, null, null, null, null, null, null, 5000, null) v`);
   ok(gcomp.c && gcomp.c.m === 100 && Number(gcomp.v) === 300000,
      '★保証給は「月々の支給（m）」に入る（灰色にも賞与にも落ちない）',
      JSON.stringify(gcomp));
+
+  const icomp = await one(`
+    select public.pv_pct5(public.pv_pay_comp(null, 20000, null, null, null, null,
+             null, null, null, null, null, null, null, null, null, 600)) c,
+           public.pv_annual_total(null, 20000, null, null, null, null,
+             null, null, null, null, null, null, null, null, null, 600) v`);
+  /* 教官の手当は「その他の手当（o）」の側。保証給（m）と行き先が違うのは、
+     保証給が基本給と同じ「毎月の下限」なのに対し、教官の手当は職位手当や
+     交通費と同じ手当だから。o に入れておくと DEEP PAY で
+     「基本給の割合」を出したときに教官の分が混ざらない。 */
+  ok(icomp.c && icomp.c.m === 97 && icomp.c.o === 3 && Number(icomp.v) === 247200,
+     '★教官の手当は「その他の手当（o）」に入る（賞与にも住宅にも落ちない）',
+     JSON.stringify(icomp));
 
   const rawC = (await one(`select pv_pay_rows()::text t`)).t;
   ok(!/"(m|b|d|h|o)":/.test(rawC),
@@ -692,17 +706,28 @@ console.log('\n▼ 12. ★預かりの年換算が、本棚に入れたときと
                                                  housing_amount: '', bonus_annual: '' } },
     { m: 10, label: '円（レートを掛ける）', p: { currency: 'JPY', gross_monthly: 900000 } },
     { m: 11, label: 'ユーロ',               p: { currency: 'EUR', base_pay: 9000, bonus_annual: 15000 } },
+    /* ★2026-08-26 に足した2列。どちらも「内訳だけの行」でしか効かない
+       （総支給がある行は pv_annual_total が内訳を一切見ない）。
+       だから内訳だけの形と、総支給と両方ある形の2通りを通す。 */
+    { m: 12, label: '保証給（内訳だけ）',   p: { base_pay: 9000, guarantee_pay: 2000 } },
+    /* 月は1〜12しか無く上で使い切ったので、ここから先は別の会社で数える
+       （行の引き当ては「会社＋月」で、年では絞っていない）。 */
+    { m: 1,  a: A_CROSS2, label: '★教官の手当（内訳だけ）',
+                                            p: { base_pay: 9000, instructor_pay: 600 } },
+    { m: 2,  a: A_CROSS2, label: '★教官の手当（総支給がある＝効かない側）',
+                                            p: { gross_monthly: 15000, base_pay: 9000, instructor_pay: 600 } },
     // ★レートの無い通貨は本棚側では作れない（currency に語彙の外部キーがある）。
     //   預かりは payload を寝かせるだけなので作れる。だから下で片側だけ見る。
   ];
   const u = ++seat; await asUser(u);
   for (const c of CROSS) {
-    const payload = { ...BASE, airline: A_CROSS, position: 'cap', fleet: 'b777',
+    const air = c.a || A_CROSS;
+    const payload = { ...BASE, airline: air, position: 'cap', fleet: 'b777',
                       period_year: YEAR, period_month: c.m, ...c.p };
     await submit(payload);
     const stored = (await one(
       `select annual_total_usd v from pay_reports where airline = $1 and period_month = $2`,
-      [A_CROSS, c.m])).v;
+      [air, c.m])).v;
     const derived = (await one(`select pv_pending_usd($1::jsonb) v`, [JSON.stringify(payload)])).v;
     const same = (stored === null && derived === null)
               || (stored !== null && derived !== null && Number(stored) === Number(derived));
@@ -716,9 +741,12 @@ console.log('\n▼ 12. ★預かりの年換算が、本棚に入れたときと
              (select public.pv_pay_comp(gross_monthly, base_pay, hourly_rate,
                        guaranteed_hours, block_hours, per_diem, housing_type,
                        housing_amount, transport, command_pay, other_allowance,
-                       bonus_annual, profit_share_annual, bonus_month)::text
+                       bonus_annual, profit_share_annual, bonus_month,
+                       /* ★2026-08-26 に足した2列。ここに渡し忘れると、本棚の側だけ
+                          その額を持たない図になり、預かりと静かにズレる。 */
+                       guarantee_pay, instructor_pay)::text
                 from pay_reports where airline = $2 and period_month = $3) b`,
-      [JSON.stringify(payload), A_CROSS, c.m]);
+      [JSON.stringify(payload), air, c.m]);
     ok(cmp.a === cmp.b, `　${c.label}（内訳の割合も一致）`,
        `預かり ${cmp.a} ≠ 本棚 ${cmp.b}`);
   }
@@ -1282,10 +1310,10 @@ console.log('\n▼ 14. 8-20（pay_reports を読む関数が anon に開いて�
   ok(res.length === 0, 'pay_reports を読む security definer 関数が anon に1つも開いていない',
      JSON.stringify(res));
 
-  // 8-21 … 2026-08-26 に足した2列（役職・区分の複数と、内訳の行）
+  // 8-21 … 2026-08-26 に足した4列（役職・区分の複数／内訳の行／保証給／教官の手当）
   const cols = await rows(cut('-- 8-21.'));
-  ok(cols.length === 2 && cols.every((c) => c['ある'] === true),
-     '役職（複数）と内訳の行の2列が入っている', JSON.stringify(cols));
+  ok(cols.length === 4 && cols.every((c) => c['ある'] === true),
+     '役職（複数）・内訳の行・保証給・教官の手当の4列が入っている', JSON.stringify(cols));
 
   // 8-22 … 総支給と内訳の排他が復活していないこと
   const exc = await rows(cut('-- 8-22.'));

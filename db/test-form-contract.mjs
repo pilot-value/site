@@ -160,8 +160,11 @@ console.log('\n市場価値レポート（my-value）');
   /* ★2026-08-26、内訳の作り直しで f-transport / f-other は画面から消えて
        <input type="hidden"> になった（明細読み取りだけが書く）。人が打つ欄は
        繰り返し行の .pd-amt に変わり、id を持たない＝下の extra には出てこない。 */
+  /* ★2026-08-26 その3、教官・訓練の手当が2欄増えた（今月の支給額と単価）。
+       数量（f-instr-qty）は金額ではないので money を付けない。 */
   const MONEY = ['f-gross', 'f-netpay', 'f-perdiem', 'f-bonus-mo', 'f-housing-amt',
-                 'f-bonus', 'f-base', 'f-guarantee', 'f-command', 'f-profit'];
+                 'f-bonus', 'f-base', 'f-guarantee', 'f-command', 'f-profit',
+                 'f-instructor', 'f-instr-rate'];
   for (const f of ['pay-report.html', 'en/pay-report.html']) {
     const s = read(f);
     for (const id of MONEY) {
@@ -210,6 +213,96 @@ console.log('\n市場価値レポート（my-value）');
     ok(hint.length > 20, `${f}: 変動給の節に説明がある`, hint.slice(0, 40));
     ok(!/任意|書かなくて|なくても|optional|leave (this )?blank/i.test(hint + ' ' + blank),
        `${f}: ★変動給の節に「任意・書かなくていい」の言い方が無い`, hint);
+  }
+
+  /* ⑦-c 教官・訓練の手当（2026-08-26 その3）─────────────────────
+     いちばん静かに壊れるのは「教官を選んでいない人にも出る」「外したのに中身が残る」
+     の2つ。どちらも画面を見た本人には気づけない（見えていない欄の値が送られる）。
+     ★ここは字だけで見る。実際に触る側は下の live のところ。 */
+  const INSTR_TRAIN = ['line', 'sim', 'ground', 'crm', 'other'];
+  const INSTR_EXTRA = ['separate', 'included', 'none', 'unknown'];
+  const INSTR_METHOD = ['monthly', 'duty', 'session', 'sector', 'hour', 'course', 'other'];
+  for (const f of ['pay-report.html', 'en/pay-report.html']) {
+    const s = read(f);
+    const ja = f === 'pay-report.html';
+
+    /* ① 札の併記（オーナー決定）。同じ金額が会社によって「保証給」とも「職務手当」とも
+       呼ばれる。片方しか出さないと、もう片方の人は自分の明細のどこを写せばいいのか
+       分からない。★列は guarantee_pay のまま（DB は1バイトも変わっていない）。 */
+    const gLab = ja ? 'Flight time 保証手当 / 職務手当' : 'Flight time guarantee / Duty allowance';
+    ok(s.includes(`<label class="form-label" for="f-guarantee">${gLab}</label>`),
+       `${f}: ★保証給の札が2つの呼び名を併記している`, gLab);
+    ok(s.includes(`data-open="f-guarantee"><span class="p">+</span>${gLab}`),
+       `${f}: ★チップ側の札も併記になっている`, gLab);
+
+    const blk = s.slice(s.indexOf('<div id="s3-instr"'), s.indexOf('<template id="tpl-pd-var">'));
+    ok(blk.length > 500, `${f}: 教官・訓練の手当のブロックが在る`, String(blk.length));
+
+    /* ② 既定で隠れていること。ここが開いたままになると、教官でない人の画面に
+       教官の欄が出る（しかも読み取り側は「教官だ」と受け取る）。 */
+    ok(/<div id="s3-instr" hidden>/.test(s),
+       `${f}: ★教官のブロックは既定で隠れている（役職で出す）`);
+    ok(/function readRoleBoxes\(\)[\s\S]{0,400}?instrToggle\(\)/.test(s),
+       `${f}: ★役職・区分を触るたびに出し入れを見直す（readRoleBoxes → instrToggle）`);
+    /* 外したら中身も消す。見えていない欄の値を黙って送らないため。 */
+    const tog = (s.match(/function instrToggle\(\)[\s\S]*?\n}/) || [''])[0];
+    ok(/b\.checked = false/.test(tog) && /\$\(id\)\.value = ''/.test(tog),
+       `${f}: ★教官を外したら、選んだ訓練も入れた金額も消す`, tog.slice(0, 60));
+
+    /* ③ 必須を1つも増やしていない。req-tag が段のゲートと送信の条件の出どころなので、
+       ここに1つ置くだけで「教官でない人が送れない」まで飛ぶ。 */
+    ok(!/req-tag/.test(blk), `${f}: ★教官の節に「必須」の印が無い（段も送信の条件も動かない）`);
+
+    /* ④ こちらが「書かなくていい」と言うと、書かれなくなる（⑦-b と同じ理由）。 */
+    ok(!/任意|書かなくて|なくても|optional|leave (this )?blank/i.test(blk),
+       `${f}: ★教官の節に「任意・書かなくていい」の言い方が無い`);
+    /* ★カッコの注記も足さない（見出し・ラベル・ボタン）。 */
+    ok(!/<summary>[\s\S]*?[（(][^）)]*[）)][\s\S]*?<\/summary>/.test(blk),
+       `${f}: ★見出しにカッコの注記を足していない`);
+
+    /* 選択肢は日英でまったく同じ value・同じ並び（⑦-b と同じ理由：
+       同じ明細を日本語版と英語版で入れた2人が別の区分に落ちる）。 */
+    const optsIn = (id) => [...((blk.match(new RegExp(`<select id="${id}"[\\s\\S]*?</select>`)) || [''])[0])
+      .matchAll(/<option value="([a-z]*)"/g)].map((m) => m[1]).filter((v) => v !== '');
+    const trains = [...blk.matchAll(/name="f-instr-train" value="([a-z]+)"/g)].map((m) => m[1]);
+    ok(JSON.stringify(trains) === JSON.stringify(INSTR_TRAIN),
+       `${f}: 担当している訓練が5択で同じ並び`, trains.join(','));
+    ok(JSON.stringify(optsIn('f-instr-extra')) === JSON.stringify(INSTR_EXTRA),
+       `${f}: 追加の支給が4択で同じ並び`, optsIn('f-instr-extra').join(','));
+    ok(JSON.stringify(optsIn('f-instr-method')) === JSON.stringify(INSTR_METHOD),
+       `${f}: 何に対して払われるかが7択で同じ並び`, optsIn('f-instr-method').join(','));
+    for (const id of ['f-instr-extra', 'f-instr-method']) {
+      const b = ((blk.match(new RegExp(`<select id="${id}"[\\s\\S]*?<option value=""[^>]*>([^<]*)<`)) || [])[1] || '').trim();
+      ok(/^(選んでください|Choose one)$/.test(b), `${f}: ★${id} の先頭は「選んでください」`, b);
+    }
+
+    /* ⑤ 単価・数量のラベルは option 側が持つ。JS に文言を持たせると、
+       日本語版と英語版で別々にズレる（そして片方だけ直される）。 */
+    const meth = (blk.match(/<select id="f-instr-method"[\s\S]*?<\/select>/) || [''])[0];
+    const withData = [...meth.matchAll(/<option value="([a-z]*)"[^>]*data-rate="([^"]*)"[^>]*data-qty="([^"]*)"/g)];
+    ok(withData.length === INSTR_METHOD.length + 1,
+       `${f}: ★どの option も単価・数量のラベルを自分で持っている`, String(withData.length));
+    ok(withData.filter((m) => m[2] && m[3]).length === INSTR_METHOD.length - 1,
+       `${f}: ★月額固定だけは単価も数量も持たない（掛け算する物が無い）`);
+    const sync = (s.match(/function instrSync\(\)[\s\S]*?\n}/) || [''])[0];
+    ok(/dataset\.rate/.test(sync) && /dataset\.qty/.test(sync),
+       `${f}: ★JS は option の data-* を読むだけ（文言を持たない）`);
+    /* ★注釈は読み飛ばす（説明にはその言葉が出る）。動くコードだけを見る。 */
+    const syncCode = sync.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '');
+    ok(!/単価|回数|per session|per hour/i.test(syncCode),
+       `${f}: ★JS に単位の文言が1つも無い（日英で同じコードが動く）`, syncCode.slice(0, 80));
+
+    /* ★教官の額は専用の欄。職位手当・変動給・その他へは足し込まない
+       （オーナー指示「二重入力させない」の実体）。合計を作っている3か所に
+       f-instructor が混ざっていないことを字で見る。 */
+    ok(/instructor_pay:\s*val\('f-instructor'\)/.test(s),
+       `${f}: ★教官の額は専用の列へそのまま行く（instructor_pay）`);
+    for (const [key, line] of [['command_pay', (s.match(/command_pay:[^\n]*/) || [''])[0]],
+                               ['other_allowance', (s.match(/other_allowance:[^\n]*/) || [''])[0]],
+                               ['flight_variable_pay', (s.match(/flight_variable_pay:[^\n]*/) || [''])[0]]]) {
+      ok(line.length > 10 && !/f-instructor/.test(line),
+         `${f}: ★教官の額を ${key} に足し込んでいない`, line.trim());
+    }
   }
 
   /* ⑧ 必須の印（2026-08-13 その4）。★これがこのファイルで一番効く検査。
@@ -914,6 +1007,130 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   bad.push(...await setF(SAMPLE));
   ok(bad.length === 0, '入力値がすべて選択肢に存在する', bad.join(' / '));
 
+  /* ── 教官・訓練の手当（2026-08-26 その3）──────────────────────
+     ★実際に触る側。ここで見るのは4つ:
+       ① 教官を選ぶまで出ない・外すと中身ごと消える
+       ② 「追加の支給はない」は数クリックで終わる（金額の欄まで出さない）
+       ③ 単価・数量が分からなくても、金額だけで保存できる
+       ④ 総支給・年換算・変動給・その他の合計が1つも動かない
+          （＝オーナー指示「二重入力させない」「総支給を書き換えない」の実体） */
+  const instrState = () => page.evaluate(() => ({
+    shown: document.getElementById('s3-instr').offsetParent !== null,
+    pay: document.getElementById('opt-instr-pay').hidden,
+    unit: document.getElementById('instr-unit').hidden,
+    rateLab: document.getElementById('lab-instr-rate').textContent,
+    qtyLab: document.getElementById('lab-instr-qty').textContent,
+    roles: document.getElementById('f-jobrole').value,
+    amount: document.getElementById('f-instructor').value,
+    varSum: document.getElementById('f-var-sum').value,
+    othSum: document.getElementById('f-oth-sum').value,
+    gross: document.getElementById('f-gross').value,
+    annual: annualTotal(),
+    detail: monthlyDetail(),
+    items: (() => {
+      try { return JSON.parse(document.getElementById('f-payitems').value || 'null'); }
+      catch (e) { return null; }
+    })(),
+  }));
+  const tickInstr = (on) => page.evaluate((v) => {
+    const b = document.querySelector('input[name="f-jobrole"][value="instructor"]');
+    b.checked = v;
+    b.dispatchEvent(new Event('change', { bubbles: true }));
+  }, on);
+
+  const i0 = await instrState();
+  ok(!i0.shown, '★教官を選ぶまで、教官の欄はそもそも出ない', JSON.stringify(i0.shown));
+  ok(!i0.items || !i0.items.instructor, '★出ていないうちは pay_items にも乗らない');
+
+  await tickInstr(true);
+  await new Promise((r) => setTimeout(r, 150));
+  const i1 = await instrState();
+  ok(i1.shown && i1.roles.split(',').includes('instructor'),
+     '★教官を選ぶと欄が出る', `${i1.shown} / ${i1.roles}`);
+  ok(i1.pay, '★開いた直後は金額の欄まで出さない（まず有無を聞く）');
+
+  /* ②「追加の支給はない」でそこで終わる。 */
+  await setF({ 'f-instr-extra': 'none' });
+  await new Promise((r) => setTimeout(r, 150));
+  const iNone = await instrState();
+  ok(iNone.pay, '★「追加の支給はない」なら金額の欄は出ない（数クリックで終わる）');
+  ok(iNone.items && iNone.items.instructor && iNone.items.instructor.extra === 'none'
+     && iNone.items.instructor.amount === null,
+     '★答えとしては残る（金額は空のまま）', JSON.stringify(iNone.items && iNone.items.instructor));
+
+  /* ⑤のラベルは option の data-* から来る（JS が文言を持たない）。 */
+  await setF({ 'f-instr-extra': 'separate', 'f-instr-method': 'session' });
+  await new Promise((r) => setTimeout(r, 150));
+  const iSes = await instrState();
+  const wantLab = await page.evaluate(() => {
+    const o = [...document.getElementById('f-instr-method').options].find((x) => x.value === 'session');
+    return { rate: o.dataset.rate, qty: o.dataset.qty };
+  });
+  ok(!iSes.pay && !iSes.unit, '★「別途支給されている」を選ぶと、金額と単価の欄が出る');
+  ok(iSes.rateLab === wantLab.rate && iSes.qtyLab === wantLab.qty,
+     '★単価・数量のラベルは選んだ支給方法から来る',
+     `${iSes.rateLab} / ${iSes.qtyLab}`);
+  await setF({ 'f-instr-method': 'monthly' });
+  await new Promise((r) => setTimeout(r, 150));
+  ok((await instrState()).unit,
+     '★月額で固定なら単価・数量は聞かない（掛け算する物が無い）');
+  await setF({ 'f-instr-method': 'session' });
+
+  /* ③ 単価も回数も空のまま、金額だけで保存できる。 */
+  const before = await instrState();
+  await setF({ 'f-instructor': '600' });
+  await new Promise((r) => setTimeout(r, 200));
+  const iAmt = await instrState();
+  ok(iAmt.items && iAmt.items.instructor && iAmt.items.instructor.amount === 600
+     && iAmt.items.instructor.rate === null && iAmt.items.instructor.qty === null,
+     '★単価・回数が分からなくても、金額だけで残る',
+     JSON.stringify(iAmt.items && iAmt.items.instructor));
+  ok(iAmt.gross === before.gross && iAmt.annual === before.annual,
+     '★教官の額を入れても総支給も年換算も動かない', `${iAmt.gross} / ${iAmt.annual}`);
+  ok(iAmt.varSum === before.varSum && iAmt.othSum === before.othSum,
+     '★変動給・その他の合計は1円も増えない（二重入力させない）',
+     `${iAmt.varSum} / ${iAmt.othSum}`);
+  ok(iAmt.detail === before.detail + 600,
+     '★「内訳の合計」には数える（総支給と見比べる数なので）',
+     `${iAmt.detail} / 期待 ${before.detail + 600}`);
+
+  /* 担当している訓練も乗る。 */
+  await page.evaluate(() => {
+    for (const v of ['line', 'sim']) {
+      const b = document.querySelector(`input[name="f-instr-train"][value="${v}"]`);
+      b.checked = true; b.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    document.getElementById('f-instr-label').value = 'Training Captain';
+    document.getElementById('f-instr-label').dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  await new Promise((r) => setTimeout(r, 150));
+  const iFull = await instrState();
+  ok(iFull.items.instructor.trainings.join(',') === 'line,sim'
+     && iFull.items.instructor.label === 'Training Captain'
+     && iFull.items.instructor.method === 'session',
+     '★担当している訓練・呼び名・支給方法がそのまま乗る',
+     JSON.stringify(iFull.items.instructor));
+
+  /* ① 外したら中身ごと消える。見えていない欄の値を黙って送らない。 */
+  await tickInstr(false);
+  await new Promise((r) => setTimeout(r, 150));
+  const iOff = await instrState();
+  ok(!iOff.shown && iOff.amount === '' && (!iOff.items || !iOff.items.instructor),
+     '★教官を外すと、欄も入れた金額も pay_items の中身も消える',
+     JSON.stringify({ shown: iOff.shown, amount: iOff.amount }));
+  ok(iOff.detail === before.detail,
+     '★消したぶんは「内訳の合計」からも引かれる', `${iOff.detail} / ${before.detail}`);
+
+  /* 送信の payload まで見たいので、もう一度入れ直す。 */
+  await tickInstr(true);
+  await new Promise((r) => setTimeout(r, 150));
+  await setF({ 'f-instr-extra': 'separate', 'f-instr-method': 'session', 'f-instructor': '600' });
+  await page.evaluate(() => {
+    const b = document.querySelector('input[name="f-instr-train"][value="sim"]');
+    b.checked = true; b.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  await new Promise((r) => setTimeout(r, 200));
+
   /* ── ログイン前の1押しで「預かる」───────────────────────────
      2026-08-18 に順序を反転させた。以前は「ログインするまでサーバへ送らない」
      だったが、それだと登録が1歩でも詰まった人の入力が丸ごと消えていた。
@@ -977,7 +1194,7 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
      保存されていなかった（明細画像は保存しないので、その分は復元できない）。
      「送り忘れ」は画面にも RPC のエラーにも出ないので、ここで数える。
      ★キーを増やすときはこの表も足す。減らすときは、なぜ消してよいかを考える。 */
-  const KEYS_BEFORE = [   // 手入力で埋まる32キー。1つでも欠けたら静かに壊れる
+  const KEYS_BEFORE = [   // 手入力で埋まる33キー。1つでも欠けたら静かに壊れる
     'airline', 'airline_other', 'position', 'fleet', 'job_role', 'base_iata',
     'period_year', 'period_month', 'currency', 'base_pay',
     /* 2026-08-26 追加。保証給（Minimum Guarantee などの金額）。
@@ -1004,7 +1221,12 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
     'job_roles',
     /* 2026-08-26 追加。変動給・その他の現金手当を行のまま溜める列。
        会社ごとに名前も本数も違うので、固定の欄に潰さずそのまま持つ。 */
-    'pay_items'];
+    'pay_items',
+    /* 2026-08-26 追加（その3）。教官・訓練の手当。
+       ★command_pay / flight_variable_pay / other_allowance のどれにも足し込まない。
+         足し込むと同じお金を2回数えるうえ、「教官をやると月いくら増えるのか」が
+         二度と割り戻せなくなる（オーナー指示の「二重入力させない」の実体）。 */
+    'instructor_pay'];
   const KEYS_PAYSLIP = [  // 明細から読めたぶん。手入力では埋まらない
     'ytd_taxable', 'deduction_total', 'night_hours', 'credit_hours',
     /* 2026-08-14 追加。読めた手当を1行ずつそのまま溜める列。画面には出さない。
@@ -1044,6 +1266,18 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   ok(Array.isArray(p.job_roles) && p.job_roles.length >= 1 && p.job_role === p.job_roles[0],
      '★役職・区分は配列で送り、単数には先頭が入る',
      `${JSON.stringify(p.job_roles)} / ${p.job_role}`);
+  /* ★教官・訓練の手当（2026-08-26 その3）。金額は専用の列、答えの中身は pay_items。
+     すぐ上の flight_variable_pay（4000）と other_allowance（4000+1000+f-other）は
+     教官の 600 を入れたあとも1円も増えていない ── それがここの本題。 */
+  ok(Number(p.instructor_pay) === 600,
+     `★教官の額は専用の列で届く → ${p.instructor_pay}`, '期待 600');
+  ok(p.pay_items && p.pay_items.instructor && p.pay_items.instructor.method === 'session'
+     && p.pay_items.instructor.trainings.includes('sim'),
+     '★何の訓練を・何に対して払われたかは pay_items.instructor に乗る',
+     JSON.stringify(p.pay_items && p.pay_items.instructor));
+  ok(p.job_roles.includes('instructor'),
+     '★役職・区分にも教官が入っている（欄が出た理由と揃っている）',
+     JSON.stringify(p.job_roles));
   /* 逆に、人が入れた欄はそのまま届いていること */
   ok(p.stay_nights === SAMPLE['f-stay'] && p.bonus_month === SAMPLE['f-bonus-mo']
      && p.net_pay_actual === SAMPLE['f-netpay'] && p.duty_hours === SAMPLE['f-duty-h'],

@@ -178,6 +178,15 @@ alter table public.pay_reports
   --    ⚠️ guaranteed_hours（保証**時間**）とは別物。時間 × 単価を本人に
   --       計算させないためにこの列を足した（オーナー指示）。
   add column if not exists guarantee_pay       numeric(14,2),
+  -- ★ 2026-08-26 追加。教官・訓練の手当（Instructor / Training）。
+  --    職位手当（command_pay）・変動給（flight_variable_pay）・
+  --    その他の現金手当（other_allowance）とは**別の列**に持つ。
+  --    どれかに足し込むと、同じお金を2回数えることになるうえ、
+  --    「教官をやると月いくら増えるのか」が二度と割り戻せない。
+  --    ⚠️ 総支給（gross_monthly）の中に入っている前提（オーナー確認）。
+  --       だから年換算は1円も動かない（pv_annual_total は総支給を優先する）。
+  --    ⚠️ 審査・組合・管理職などの手当はここに入れない（役割ごとに別に聞く）。
+  add column if not exists instructor_pay      numeric(14,2),
   -- ★ 2026-08-13 追加。ステイ日数（基地の外で泊まった泊数）と、
   --    その月の総支給に含まれているボーナス。どちらも本人の手入力（必須）。
   add column if not exists stay_nights         smallint,
@@ -371,7 +380,7 @@ comment on column public.profiles.access_until is
 -- 4. 年換算の計算（定義を1箇所に固定する）
 -- ════════════════════════════════════════════════════════════════
 -- ★ 2026-08-12 に引数が1つ増えた（p_gross_monthly）。2026-08-13 にもう1つ増えた
---   （p_bonus_month）。2026-08-26 にもう1つ増えた（p_guarantee_pay）。
+--   （p_bonus_month）。2026-08-26 にもう2つ増えた（p_guarantee_pay / p_instructor_pay）。
 --   create or replace は引数リストを変えられない（別の関数として
 --   増えるだけ）ので、古い版を先に落とす。落とさないと、呼び出し側の引数の数によって
 --   新旧どちらが呼ばれるかが変わり、同じ入力から違う年収が出る。
@@ -384,6 +393,9 @@ drop function if exists public.pv_annual_total(
 drop function if exists public.pv_annual_total(
   numeric, numeric, numeric, numeric, numeric, numeric, text, numeric,
   numeric, numeric, numeric, numeric, numeric, numeric);
+drop function if exists public.pv_annual_total(
+  numeric, numeric, numeric, numeric, numeric, numeric, text, numeric,
+  numeric, numeric, numeric, numeric, numeric, numeric, numeric);
 
 create or replace function public.pv_annual_total(
   p_gross_monthly    numeric,
@@ -395,7 +407,11 @@ create or replace function public.pv_annual_total(
   p_bonus_month      numeric default null,
   -- ★ 2026-08-26 追加。保証給（金額）。基本給と足して1本にしない。
   --    末尾に置くのは、13引数で呼んでいる既存の呼び出しを1つも壊さないため。
-  p_guarantee_pay    numeric default null
+  p_guarantee_pay    numeric default null,
+  -- ★ 2026-08-26 追加。教官・訓練の手当。同じく末尾に足す。
+  --    ⚠️ 総支給がある行では1円も効かない（下の coalesce の第1引数が総支給）。
+  --       効くのは「内訳だけで出した人」の年換算だけ。
+  p_instructor_pay   numeric default null
 ) returns numeric
 language sql immutable as $$
   select 12 * coalesce(
@@ -423,6 +439,9 @@ language sql immutable as $$
          + coalesce(p_transport, 0)
          + coalesce(p_command_pay, 0)
          + coalesce(p_other_allowance, 0)
+         -- 教官・訓練の手当。other_allowance には入っていない（別の入れ物）ので
+         -- ここで足す。足さないと、内訳だけで出した教官の年収がその分だけ低く出る。
+         + coalesce(p_instructor_pay, 0)
          )
          -- 年間ボーナスは月額の外（月によって出る／出ないが変わるため、額面×12 に
          -- 混ぜると同じ人の年収が月ごとに倍ちがう）。ここに p_bonus_month を足さない
@@ -472,6 +491,8 @@ declare
   v_base    numeric := nullif(p->>'base_pay', '')::numeric;
   -- ★ 2026-08-26 追加。保証給（金額）。基本給とは別の欄・別の列。
   v_gpay    numeric := nullif(p->>'guarantee_pay', '')::numeric;
+  -- ★ 2026-08-26 追加。教官・訓練の手当。職位手当・変動給・その他とは別の列。
+  v_ipay    numeric := nullif(p->>'instructor_pay', '')::numeric;
   v_hourly  numeric := nullif(p->>'hourly_rate', '')::numeric;
   v_trans   numeric := nullif(p->>'transport', '')::numeric;
   v_cmd     numeric := nullif(p->>'command_pay', '')::numeric;
@@ -571,7 +592,7 @@ begin
     nullif(p->>'bonus_annual', '')::numeric,
     nullif(p->>'profit_share_annual', '')::numeric,
     nullif(p->>'bonus_month', '')::numeric,
-    v_gpay);
+    v_gpay, v_ipay);
   if v_ann is null or v_ann <= 0 then
     raise exception '年換算が0になりました（時給制なら乗務時間か保証時間が必要です）'
       using errcode = '22023';
@@ -627,6 +648,9 @@ declare
   -- ★ 2026-08-26 追加。保証給（Minimum Guarantee などの金額）。
   --    ⚠️ v_guar（保証**時間** guaranteed_hours）とは別物。名前が似ているので注意。
   v_gpay      numeric := nullif(p->>'guarantee_pay', '')::numeric;
+  -- ★ 2026-08-26 追加。教官・訓練の手当。職位手当・変動給・その他へ足し込まない
+  --    （足し込むと同じお金を2回数える）。
+  v_ipay      numeric := nullif(p->>'instructor_pay', '')::numeric;
   v_hourly    numeric := nullif(p->>'hourly_rate', '')::numeric;
   v_trans     numeric := nullif(p->>'transport', '')::numeric;
   v_cmd       numeric := nullif(p->>'command_pay', '')::numeric;
@@ -757,10 +781,16 @@ begin
         'variable',   case when jsonb_typeof(v_items->'variable') = 'array'
                             and jsonb_array_length(v_items->'variable') <= 40 then v_items->'variable' end,
         'other',      case when jsonb_typeof(v_items->'other') = 'array'
-                            and jsonb_array_length(v_items->'other') <= 40 then v_items->'other' end
+                            and jsonb_array_length(v_items->'other') <= 40 then v_items->'other' end,
+        -- ★ 2026-08-26 追加。教官・訓練の中身（担当している訓練・会社での呼び名・
+        --    支給の有無と支給方法・単価と数量）。ここは配列ではなく**オブジェクト**。
+        --    ⚠️ 足し忘れると、教官が書いた中身がこの組み直しで黙って消える
+        --       （金額だけは instructor_pay 列に残るので、画面は普通に動いたまま）。
+        'instructor', case when jsonb_typeof(v_items->'instructor') = 'object'
+                            and length((v_items->'instructor')::text) <= 2000 then v_items->'instructor' end
       ));
       -- 行も「該当なし」も無い＝中身が無い。空の殻を溜めない。
-      if not (v_items ? 'variable' or v_items ? 'other'
+      if not (v_items ? 'variable' or v_items ? 'other' or v_items ? 'instructor'
               or coalesce((v_items->>'fixed_none')::boolean, false)) then
         v_items := null;
       end if;
@@ -820,7 +850,7 @@ begin
     v_trans,   v_cmd,
     v_othal,
     nullif(p->>'bonus_annual','')::numeric,     nullif(p->>'profit_share_annual','')::numeric,
-    v_bonusm,  v_gpay);
+    v_bonusm,  v_gpay, v_ipay);
 
   -- 金額が足りているかは pv_validate_pay_payload が既に見ている（4-b）。
   -- ★ここに残す1本は判定ではなく最後の網。annual_total_orig は null を許す列なので、
@@ -843,7 +873,8 @@ begin
     period_year, period_month, "position", fleet, fleet_cat, job_role, job_roles, age_bucket,
     currency, fx_to_usd, fx_to_jpy, fx_at,
     gross_monthly,
-    base_pay, guarantee_pay, hourly_rate, guaranteed_hours, block_hours, duty_days, days_off, sectors,
+    base_pay, guarantee_pay, instructor_pay,
+    hourly_rate, guaranteed_hours, block_hours, duty_days, days_off, sectors,
     stay_nights, per_diem,
     housing_type, housing_amount, transport, command_pay, other_allowance,
     bonus_month, bonus_annual, profit_share_annual, pension_pct,
@@ -861,7 +892,8 @@ begin
     nullif(btrim(p->>'age_bucket'), ''),
     v_cur, v_fx.to_usd, v_fx.to_jpy, v_fx.as_of,
     v_gross,
-    v_base,   v_gpay,   v_hourly,
+    v_base,   v_gpay,   v_ipay,
+    v_hourly,
     v_guar,   v_bh,
     nullif(p->>'duty_days','')::smallint,
     nullif(p->>'days_off','')::smallint,        nullif(p->>'sectors','')::smallint,
@@ -900,7 +932,10 @@ begin
     gross_monthly = excluded.gross_monthly,
     base_pay = excluded.base_pay,
     -- ★ ここに書き忘れると、保証給だけ訂正が効かない（最初に出した値が残る）。
-    guarantee_pay = excluded.guarantee_pay, hourly_rate = excluded.hourly_rate,
+    guarantee_pay = excluded.guarantee_pay,
+    -- ★ ここに書き忘れると、教官の手当だけ訂正が効かない（最初に出した値が残る）。
+    instructor_pay = excluded.instructor_pay,
+    hourly_rate = excluded.hourly_rate,
     guaranteed_hours = excluded.guaranteed_hours, block_hours = excluded.block_hours,
     duty_days = excluded.duty_days,
     -- ★ ここに書き忘れると、同じ月を出し直しても休日とセクターだけ古い値のまま残る
@@ -1090,6 +1125,11 @@ begin
            -- 内訳ドーナツの材料。housing_type も返す＝現物支給の社宅を現金として
            -- 描かないため（pv_annual_total も allowance のときしか足していない）。
            r.base_pay, r.command_pay, r.housing_type, r.housing_amount,
+           -- ★ 2026-08-26 に足した2列。ここに書き忘れると、入れた本人のレポートで
+           --    その金額が支給構成の**灰色（どの項目にも入れていない分）**に落ちる
+           --    ＝入れた人に嘘をつく（pay-viz.js の segments() がこの2つを読む）。
+           --    フォームが前回の値で埋め直すのにも要る（'f-guarantee' / 'f-instructor'）。
+           r.guarantee_pay, r.instructor_pay,
            r.flight_variable_pay,
            r.per_diem, r.transport, r.other_allowance,
            -- ★ 総支給と手取りは明細のとおり（ボーナス込み）。うち今月出たぶんを返さないと
@@ -1444,13 +1484,19 @@ select public.pv_annual_total(54250, null, null, null, 85, null, null, null,
 --   ＝同じ人がボーナスの出た月に出しても、年収が跳ね上がらない（上と同額になる）。
 select public.pv_annual_total(64250, null, null, null, 85, null, null, null,
                               null, null, null, null, null, 10000) as 期待651000;
+-- ★教官の手当は「内訳だけで出した人」にだけ効く。基本給2万＋教官6万 → 12×80,000 = 960,000
+select public.pv_annual_total(null, 20000, null, null, null, null, null, null,
+                              null, null, null, null, null, null, null, 60000) as 期待960000;
+-- ★総支給が入っている行では1円も動かない（教官の手当は総支給の中に入っている前提）。
+select public.pv_annual_total(54250, 20000, null, null, null, null, null, null,
+                              null, null, null, null, null, null, null, 60000) as 期待651000_教官は無視;
 
 -- 8-7b. かんたん入力の列が入ったこと（期待：1 行 gross_monthly numeric）
 select column_name, data_type from information_schema.columns
  where table_schema='public' and table_name='pay_reports'
    and column_name = 'gross_monthly';
 
--- 8-7c. pv_annual_total が15引数の1本だけになっていること（期待：1 行）
+-- 8-7c. pv_annual_total が16引数の1本だけになっていること（期待：1 行）
 --       2行出たら drop function が流れておらず、呼び出し側の引数の数で
 --       新旧どちらが呼ばれるか変わる＝同じ入力から違う年収が出る。
 select p.oid::regprocedure as 定義, p.pronargs as 引数の数
@@ -1586,15 +1632,16 @@ select n.nspname || '.' || p.proname
    and has_function_privilege('anon', p.oid, 'execute')
  order by 1;
 
--- 8-21. 2026-08-26 に足した2列が入っていること（期待：2 行とも true）
+-- 8-21. 2026-08-26 に足した4列が入っていること（期待：4 行とも true）
 --       ★入っていないと、役職を複数選んでも1つしか残らず、
 --         内訳の行（変動給・その他の現金手当）は保存されずに消える。
+--         保証給と教官の手当も同じで、書いた金額が黙って落ちる。
 --         画面は普通に「送信できました」と出るので、貼り忘れに気づけない。
 select k as 列, exists (
          select 1 from information_schema.columns
           where table_schema='public' and table_name='pay_reports' and column_name=k
        ) as ある
-  from unnest(array['job_roles','pay_items']) as k;
+  from unnest(array['job_roles','pay_items','guarantee_pay','instructor_pay']) as k;
 
 -- 8-22. 総支給と内訳の排他が復活していないこと（期待：2 行とも false）
 --       ★2026-08-26、オーナー指示で排他をやめた。総支給は明細の印字どおりに残し、

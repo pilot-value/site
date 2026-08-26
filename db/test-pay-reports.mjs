@@ -102,11 +102,12 @@ console.log('\n▼ 年換算の計算');
 const nfn = await one(`select count(*) c from pg_proc p join pg_namespace n on n.oid=p.pronamespace
                         where n.nspname='public' and p.proname='pv_annual_total'`);
 ok(Number(nfn.c) === 1, `pv_annual_total は1本だけ（古い12引数版が残っていない）→ ${nfn.c}`);
-/* ★2026-08-26、保証給（p_guarantee_pay）を末尾に足して15本になった。
-   末尾に default 付きで足したので、13本で呼んでいる下の検査はそのまま通る。 */
+/* ★2026-08-26、保証給（p_guarantee_pay）と教官の手当（p_instructor_pay）を
+   末尾に足して16本になった。どちらも default 付きなので、13本で呼んでいる
+   下の検査はそのまま通る。 */
 const narg = await one(`select p.pronargs n from pg_proc p join pg_namespace nn on nn.oid=p.pronamespace
                          where nn.nspname='public' and p.proname='pv_annual_total'`);
-ok(Number(narg.n) === 15, `pv_annual_total は15引数（保証給まで受ける）→ ${narg.n}`);
+ok(Number(narg.n) === 16, `pv_annual_total は16引数（保証給・教官まで受ける）→ ${narg.n}`);
 /* 保証給は基本給と足し上げる（別の列だが、年収では同じ「固定の支給」）。 */
 const gp = await one(`select pv_annual_total(null,20000,null,null,null,null,null,null,
                                              null,null,null,null,null,null,5000) v`);
@@ -115,6 +116,14 @@ ok(Number(gp.v) === 300000, `基本給20,000＋保証給5,000 → ${gp.v}（期�
 const gp2 = await one(`select pv_annual_total(54250,20000,null,null,null,null,null,null,
                                               null,null,null,null,null,null,5000) v`);
 ok(Number(gp2.v) === 651000, `総支給がある行は保証給でも動かない → ${gp2.v}（期待 651000）`);
+/* ★教官の手当（2026-08-26 その3）。総支給がある行では1円も動かない
+   ＝オーナー指示「本人が入れた総支給を書き換えない」がここでも守られる。 */
+const ip = await one(`select pv_annual_total(null,20000,null,null,null,null,null,null,
+                                             null,null,null,null,null,null,null,60000) v`);
+ok(Number(ip.v) === 960000, `基本給20,000＋教官60,000 → ${ip.v}（期待 960000）`);
+const ip2 = await one(`select pv_annual_total(54250,20000,null,null,null,null,null,null,
+                                              null,null,null,null,null,null,null,60000) v`);
+ok(Number(ip2.v) === 651000, `総支給がある行は教官の手当でも動かない → ${ip2.v}（期待 651000）`);
 const a1 = await one(`select pv_annual_total(null,20000,250,75,85,3000,'allowance',10000,null,null,null,null,null) v`);
 ok(Number(a1.v) === 651000, `住宅手当は現金なので足す → ${a1.v}（期待 651000）`);
 const a2 = await one(`select pv_annual_total(null,20000,250,75,85,3000,'provided',10000,null,null,null,null,null) v`);
@@ -402,6 +411,56 @@ r = (await submit({ ...BASE, gross_monthly: null, base_pay: null, hourly_rate: n
 ok(Number(r.annual_total_orig) === 108000,
   `保証給だけの行も受け取る → ${r.annual_total_orig}（期待 108000）`);
 
+/* ── 教官・訓練の手当（2026-08-26 その3 に足した列）────────────────
+   ★金額は instructor_pay へ。command_pay / flight_variable_pay / other_allowance の
+     どれにも足し込まない（オーナー指示「二重入力させない」）。足し込むと
+     「教官をやると月いくら増えるのか」が二度と割り戻せなくなる。
+   ★何の訓練を・何に対して払われたかは pay_items.instructor に残る。
+     ⚠️ pay_items は知っているキーだけで組み直す作りなので、'instructor' を
+        足し忘れると金額だけ残って中身が黙って消える。ここがその見張り。 */
+await asUser(49);
+const INSTR = { v: 1, fixed_none: false,
+  instructor: { trainings: ['line', 'sim'], label: 'Training Captain',
+                extra: 'separate', method: 'session', amount: 600, rate: 150, qty: 4 } };
+r = (await submit({ ...BASE, gross_monthly: 54250, instructor_pay: 600, pay_items: INSTR,
+                    job_roles: ['line', 'instructor'],
+                    airline: 'lufthansa', period_year: 2026, period_month: 1 })).r;
+const ins = await one(`select * from pay_reports where airline='lufthansa' and period_month=1`);
+ok(Number(ins.instructor_pay) === 600,
+  `教官の手当は専用の列に残る → ${ins.instructor_pay}`);
+ok(ins.command_pay === null && ins.flight_variable_pay === null && ins.other_allowance === null,
+  `職位手当・変動給・その他には1円も入らない → ${ins.command_pay} / ${ins.flight_variable_pay} / ${ins.other_allowance}`);
+ok(ins.pay_items && ins.pay_items.instructor
+   && ins.pay_items.instructor.method === 'session'
+   && String(ins.pay_items.instructor.trainings) === 'line,sim'
+   && ins.pay_items.instructor.label === 'Training Captain',
+  `★教官の中身が組み直しを生き延びる → ${JSON.stringify(ins.pay_items?.instructor)}`);
+ok(Number(r.annual_total_orig) === 651000,
+  `★総支給がある行では年換算が1円も動かない → ${r.annual_total_orig}（期待 651000）`);
+/* 金額だけ（単価も回数も分からない）でも保存できる。 */
+await asUser(50);
+await submit({ ...BASE, gross_monthly: 54250, instructor_pay: 900,
+               pay_items: { v: 1, instructor: { extra: 'separate', method: 'monthly', amount: 900 } },
+               airline: 'lufthansa', period_year: 2026, period_month: 5 });
+const insB = await one(`select * from pay_reports where airline='lufthansa' and period_month=5`);
+ok(Number(insB.instructor_pay) === 900 && insB.pay_items.instructor.method === 'monthly',
+  `単価も回数も無い行も保存できる → ${insB.instructor_pay}`);
+/* 教官を外して出し直したら、金額も中身も残らない。 */
+await asUser(49);
+await submit({ ...BASE, gross_monthly: 54250, job_roles: ['line'],
+               airline: 'lufthansa', period_year: 2026, period_month: 1 });
+const insC = await one(`select * from pay_reports where airline='lufthansa' and period_month=1`);
+ok(insC.instructor_pay === null && insC.pay_items === null,
+  `出し直して教官を外すと、金額も中身も残らない → ${insC.instructor_pay} / ${insC.pay_items}`);
+/* 中身が大きすぎるものは捨てる（投稿そのものは落とさない）。 */
+await asUser(50);
+await submit({ ...BASE, gross_monthly: 54250,
+               pay_items: { v: 1, instructor: { label: 'x'.repeat(4000) } },
+               airline: 'lufthansa', period_year: 2026, period_month: 3 });
+const insD = await one(`select * from pay_reports where airline='lufthansa' and period_month=3`);
+ok(!insD.pay_items || !insD.pay_items.instructor,
+  `大きすぎる教官の中身は捨てる（投稿は通る） → ${JSON.stringify(insD.pay_items)}`);
+
 ok((await boom(`select submit_pay_report($1::jsonb)`, [JSON.stringify({
   ...BASE, base_pay: null, hourly_rate: null, gross_monthly: 0,
   airline: 'lufthansa', period_year: 2026, period_month: 4,
@@ -487,11 +546,11 @@ await asUser(43);
 r = (await submit({
   ...BASE, base_pay: null, hourly_rate: null,
   gross_monthly: 64250, bonus_month: 10000, stay_nights: 12,
-  airline: 'zipair', period_year: 2026, period_month: 6,
+  airline: 'zipair', period_year: 2026, period_month: 1,
 })).r;
 ok(Number(r.annual_total_orig) === 651000,
    `年換算は（総支給 − 今月のボーナス）×12 → ${r.annual_total_orig}`);
-let st = await one(`select * from pay_reports where airline='zipair' and period_month=6`);
+let st = await one(`select * from pay_reports where airline='zipair' and period_month=1`);
 ok(Number(st.stay_nights) === 12 && Number(st.bonus_month) === 10000,
    `2列とも保存される → ステイ${st.stay_nights}泊 / 今月のボーナス${st.bonus_month}`);
 
@@ -499,9 +558,9 @@ ok(Number(st.stay_nights) === 12 && Number(st.bonus_month) === 10000,
 await submit({
   ...BASE, base_pay: null, hourly_rate: null,
   gross_monthly: 54250, bonus_month: 0, stay_nights: 0,
-  airline: 'zipair', period_year: 2026, period_month: 6,
+  airline: 'zipair', period_year: 2026, period_month: 1,
 });
-st = await one(`select * from pay_reports where airline='zipair' and period_month=6`);
+st = await one(`select * from pay_reports where airline='zipair' and period_month=1`);
 ok(Number(st.stay_nights) === 0 && Number(st.bonus_month) === 0,
    `出し直すと2列とも上書きされる → ${st.stay_nights} / ${st.bonus_month}`);
 

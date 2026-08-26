@@ -176,7 +176,8 @@
       noBd: '手当ごとに分けて入れると、この円グラフがあなたの数字になります。明細を読み取ると自動で分かれます。',
       /* 見本の札。★「サンプル」ではなく「見本」。本人の数字と1文字も似せない。 */
       sampleTag: '見本', sampleBtn: '匿名で給与を追加する →',
-      segBase: '基本給', segGuarantee: '保証給', segCommand: '機長・役職手当', segFlight: '乗務変動手当',
+      segBase: '基本給', segGuarantee: '保証手当・職務手当', segCommand: '機長・役職手当',
+      segInstructor: '教官・訓練手当', segFlight: '乗務変動手当',
       segOther: 'その他手当', segHousing: '住宅手当', segTransport: '交通費', segPerDiem: 'パーディアム',
       /* ★下の2つは総支給が入っている行にしか出ない（pay-viz.js の segments()）。
          ★2026-08-26、総支給と内訳が両立するようになったので「内訳を入れていない分」
@@ -373,8 +374,9 @@
       housingNote: '※ Company-provided housing is not cash, so it is left out of the breakdown.',
       noBd: 'Enter your pay allowance by allowance and this chart becomes your own. Reading a payslip fills it in automatically.',
       sampleTag: 'Sample', sampleBtn: 'Add pay anonymously →',
-      segBase: 'Base pay', segGuarantee: 'Guaranteed pay',
-      segCommand: 'Command / position', segFlight: 'Flight variable',
+      segBase: 'Base pay', segGuarantee: 'Guarantee / duty',
+      segCommand: 'Command / position', segInstructor: 'Instructor / training',
+      segFlight: 'Flight variable',
       segOther: 'Other allowances', segHousing: 'Housing', segTransport: 'Transport', segPerDiem: 'Per diem',
       /* ★The two below only appear on a row filed as one gross figure (see segments() in pay-viz.js). */
       segBonus: 'Bonus this month', segRest: 'Not itemised',
@@ -477,7 +479,8 @@
 
   var SEGNAME = {
     base:    T.segBase,    guarantee: T.segGuarantee,
-    command: T.segCommand, flight:    T.segFlight,
+    command: T.segCommand, instructor: T.segInstructor,
+    flight:  T.segFlight,
     other:   T.segOther,   housing:   T.segHousing,   transport: T.segTransport,
     perdiem: T.segPerDiem,
     bonus:   T.segBonus,   rest:      T.segRest
@@ -1138,8 +1141,12 @@
       /* ★保証給は毎月かならず出る下限＝固定。落とすと3本の合計が総支給に届かず、
          「固定 + 変動 + 判別できない < 円ぜんぶ」になって割合が静かにズレる。 */
       var fixed = v.base + v.guarantee + v.command + v.housing + v.transport;
-      /* 賞与は月ごとに出たり出なかったりする＝変動。総支給1本の行にしか入らない。 */
-      var vari  = v.flight + v.perdiem + v.bonus;
+      /* 賞与は月ごとに出たり出なかったりする＝変動。総支給1本の行にしか入らない。
+         ★教官の手当もここ。担当したセッション数・日数で月ごとに変わるのが普通で、
+           「月額で固定」の会社もあるが、変動として数えるほうが実態に近い。
+           ★どれか1本に必ず入れること。3本のどこにも入れないと、
+             db/test-value-breakdown.mjs が「スライスの取りこぼし」で落ちる。 */
+      var vari  = v.flight + v.instructor + v.perdiem + v.bonus;
       /* 「内訳を入れていない分」は固定とも変動とも言えないので、その他手当と同じ3本目へ。 */
       var unk   = v.other + v.rest;
       var total = fixed + vari + unk;

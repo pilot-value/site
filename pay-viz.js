@@ -44,6 +44,10 @@
        同じ緑の濃淡にすると、ドーナツで境目が読めない。 */
     { k: 'guarantee', c: '#a3e635' },
     { k: 'command',   c: '#5fb0ff' },
+    /* ★教官・訓練の手当（2026-08-26）。職位手当（水色）の隣に置くが、
+       色は空いている赤に振る。緑・黄緑・水色・金・紫・橙・灰・桃・シアンが
+       すでに埋まっていて、細いドーナツの弧で見分けられるのは赤だけだった。 */
+    { k: 'instructor', c: '#e8604c' },
     { k: 'flight',    c: '#f5c842' },
     { k: 'other',     c: '#a78bfa' },
     { k: 'housing',   c: '#fb923c' },
@@ -207,6 +211,11 @@
          ＝「どの項目にも入れていない分」と表示されて、入れた本人に嘘をつく。 */
       guarantee: (num(r.guarantee_pay) || 0) * fx,
       command:   (num(r.command_pay) || 0) * fx,
+      /* ★教官・訓練の手当。other_allowance にも flight_variable_pay にも
+         入っていない（フォームが別の入れ物へ送る）ので、ここで独立に読む。
+         足し忘れると、入れた人のぶんが下の rest（灰色＝どの項目にも入れていない分）
+         に落ちて、入れた本人に嘘をつく。 */
+      instructor: (num(r.instructor_pay) || 0) * fx,
       flight:    (split ? fv : 0) * fx,
       other:     (split ? other - fv : other) * fx,
       // 現物支給の社宅は現金ではない（pv_annual_total も足していない）

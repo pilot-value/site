@@ -239,7 +239,9 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 .step-in{animation:stepIn .34s cubic-bezier(.16,1,.3,1) both}
 @keyframes stepIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .opt-fld{margin-bottom:16px}
-.opt-fld>.fld{margin-bottom:0}
+/* ★:last-child を外さない。教官の節（#opt-instr-pay）だけ中に .fld が3つ並ぶので、
+   全部を 0 にすると欄と欄がくっついて1つの塊に見える（2026-08-26 その3）。 */
+.opt-fld>.fld:last-child{margin-bottom:0}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;font-size:.78rem;font-weight:700;color:#a8b3c2;background:rgba(255,255,255,.04);border:1px dashed rgba(255,255,255,.18);cursor:pointer;transition:color .2s,border-color .2s,background .2s,transform .2s cubic-bezier(.16,1,.3,1)}
 .chip:hover{color:#f5c842;border-color:rgba(245,200,66,.45);background:rgba(245,200,66,.07)}
@@ -1328,9 +1330,9 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 
             <div class="opt-fld" id="opt-f-guarantee" hidden>
               <div class="fld">
-                <label class="form-label" for="f-guarantee">Guaranteed pay</label>
+                <label class="form-label" for="f-guarantee">Flight time guarantee / Duty allowance</label>
                 <input type="text" id="f-guarantee" class="form-input money" inputmode="decimal"/>
-                <p class="fld-hint">Only if a Minimum Guarantee or similar appears on your payslip <b>as an amount separate from base pay</b>. <b>There is no need to work out guaranteed hours &times; rate</b> &mdash; the guaranteed hours are asked above.</p>
+                <p class="fld-hint">Minimum Guarantee, guaranteed pay, <b>duty allowance</b> &mdash; airlines call it different things. Enter it only if it appears on your payslip <b>as an amount separate from base pay</b>. <b>There is no need to work out guaranteed hours &times; rate</b> &mdash; the guaranteed hours are asked above.</p>
               </div>
             </div>
 
@@ -1347,7 +1349,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
               <div class="fld">
                 <label class="form-label" for="f-command">Rank / position allowance</label>
                 <input type="text" id="f-command" class="form-input money" inputmode="decimal"/>
-                <p class="fld-hint">Captain Allowance, Senior FO Allowance and the like &mdash; <b>a monthly allowance attached to your rank</b>, shown separately from base pay. Instructor and examiner allowances do not go here; we ask about those per role later on.</p>
+                <p class="fld-hint">Captain Allowance, Senior FO Allowance and the like &mdash; <b>a monthly allowance attached to your rank</b>, shown separately from base pay. Anything you already entered under &ldquo;Flight time guarantee / Duty allowance&rdquo; does not go here. Instructor allowances go in <b>&ldquo;Instructor / training pay&rdquo;</b> below; examiner and other roles are asked separately later on.</p>
               </div>
             </div>
 
@@ -1361,7 +1363,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
             </div>
 
             <div class="chips">
-              <button type="button" class="chip" data-open="f-guarantee"><span class="p">+</span>Guaranteed pay</button>
+              <button type="button" class="chip" data-open="f-guarantee"><span class="p">+</span>Flight time guarantee / Duty allowance</button>
               <button type="button" class="chip" data-open="pd-var"><span class="p">+</span>Variable pay</button>
               <button type="button" class="chip" data-open="f-command"><span class="p">+</span>Rank / position allowance</button>
               <button type="button" class="chip" data-open="pd-oth"><span class="p">+</span>Other cash allowances</button>
@@ -1391,6 +1393,96 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
             </div>
           </div>
         </details>
+
+        <!-- ── Instructor / training pay (2026-08-26, 3rd) ───────────────
+             ★Shown only to pilots who ticked "Instructor / Training" in §1.
+               Untick it and the whole block is cleared (never send what is not on screen).
+             ★The goal is not to reproduce a payslip. It is to hold four things in the
+               same shape across airlines: (1) what you instruct (2) whether there is
+               extra pay (3) what it is paid on (4) how much came in this month.
+             ★What goes here must NOT be entered again under Rank / position allowance,
+               Variable pay or Other cash allowances. It lands in its own column
+               (instructor_pay); the shape stays in pay_items.instructor.
+             ★Gross pay is never overwritten.
+             ★Nothing here is required (no req-tag = the step gates and the submit
+               conditions are untouched). -->
+        <div id="s3-instr" hidden>
+          <details class="pay-detail" id="instr-detail">
+            <summary><span class="p">+</span>Add instructor / training pay</summary>
+            <div class="pay-detail-b">
+              <p class="fld-hint" style="margin:0 0 16px">Airlines name and pay instructor work in very different ways. Tell us <b>the amount printed on your payslip</b> and <b>what it is paid on</b>. You never have to convert instructor work into hours.</p>
+
+              <div class="fld">
+                <div class="form-label">Training you deliver</div>
+                <div class="roleboxes">
+                  <label class="rolebox"><input type="checkbox" name="f-instr-train" value="line"><span>Line training / OJT</span></label>
+                  <label class="rolebox"><input type="checkbox" name="f-instr-train" value="sim"><span>Simulator</span></label>
+                  <label class="rolebox"><input type="checkbox" name="f-instr-train" value="ground"><span>Ground / classroom</span></label>
+                  <label class="rolebox"><input type="checkbox" name="f-instr-train" value="crm"><span>CRM / human factors</span></label>
+                  <label class="rolebox"><input type="checkbox" name="f-instr-train" value="other"><span>Other</span></label>
+                </div>
+              </div>
+
+              <div class="fld">
+                <label class="form-label" for="f-instr-label">Title your airline uses</label>
+                <input type="text" id="f-instr-label" class="form-input" maxlength="60" placeholder="e.g. TRI, SFI, Training Captain"/>
+                <p class="fld-hint">Copy across the wording that appears on your payslip or appointment letter.</p>
+              </div>
+
+              <div class="fld">
+                <label class="form-label" for="f-instr-extra">Extra pay for instructor duties</label>
+                <select id="f-instr-extra" class="form-input">
+                  <option value="">Choose one</option>
+                  <option value="separate">Paid separately</option>
+                  <option value="included">Included in normal pay</option>
+                  <option value="none">No extra pay</option>
+                  <option value="unknown">Not sure</option>
+                </select>
+              </div>
+
+              <!-- ★Only "Paid separately" opens the rest. "Included" and "No extra pay"
+                   finish in two or three clicks. -->
+              <div class="opt-fld" id="opt-instr-pay" hidden>
+                <div class="fld">
+                  <label class="form-label" for="f-instr-method">What it is paid on</label>
+                  <!-- ★The unit labels live HERE (data-rate / data-qty), never in the JS,
+                       so ja and en run the same code. A fixed monthly amount has no
+                       unit and no count, so its data-rate is empty. -->
+                  <select id="f-instr-method" class="form-input">
+                    <option value="" data-rate="" data-qty="">Choose one</option>
+                    <option value="monthly" data-rate="" data-qty="">Fixed monthly amount</option>
+                    <option value="duty" data-rate="Amount per day" data-qty="Days">Per duty / day</option>
+                    <option value="session" data-rate="Amount per session" data-qty="Sessions">Per session</option>
+                    <option value="sector" data-rate="Amount per sector" data-qty="Sectors">Per sector / leg</option>
+                    <option value="hour" data-rate="Amount per hour" data-qty="Hours">Per hour</option>
+                    <option value="course" data-rate="Amount per course" data-qty="Courses">Per course / event</option>
+                    <option value="other" data-rate="Amount per unit" data-qty="Units">Other</option>
+                  </select>
+                </div>
+
+                <div class="fld">
+                  <label class="form-label" for="f-instructor">Instructor pay this month</label>
+                  <input type="text" id="f-instructor" class="form-input money" inputmode="decimal" placeholder="e.g. 600"/>
+                  <p class="fld-hint">Enter the amount as printed on your payslip. <b>Do not enter it again under Rank / position allowance, Variable pay or Other cash allowances</b> &mdash; that would count the same money twice.</p>
+                </div>
+
+                <div id="instr-unit" hidden>
+                  <div class="grid2">
+                    <div class="fld">
+                      <label class="form-label" for="f-instr-rate" id="lab-instr-rate">Amount per session</label>
+                      <input type="text" id="f-instr-rate" class="form-input money" inputmode="decimal"/>
+                    </div>
+                    <div class="fld">
+                      <label class="form-label" for="f-instr-qty" id="lab-instr-qty">Sessions</label>
+                      <input type="text" id="f-instr-qty" class="form-input" inputmode="decimal"/>
+                    </div>
+                  </div>
+                  <p class="fld-hint" style="margin-top:0">If your payslip prints the rate and the count, copy them across. <b>We do the multiplication.</b></p>
+                </div>
+              </div>
+            </div>
+          </details>
+        </div>
 
         <!-- Row templates. ★All wording lives here, never in the JS (that is how ja and en drift). -->
         <template id="tpl-pd-var">
@@ -2062,6 +2154,7 @@ function afterSaved(data, payload, airline) {
 const ROLE_BOXES = [].slice.call(document.querySelectorAll('input[name="f-jobrole"]'));
 function readRoleBoxes() {
   $('f-jobrole').value = ROLE_BOXES.filter((b) => b.checked).map((b) => b.value).join(',');
+  instrToggle();   // untick Instructor and the whole instructor block folds away, cleared
 }
 function syncRoleBoxes() {
   const on = {};
@@ -2074,6 +2167,71 @@ function syncRoleBoxes() {
 /* ★checkbox 自身に付ける。#form-wrap の change より先に走らせないと、
    updateSteps() が1つ前の値を見る（子から親へ上がるので子が先）。 */
 for (const b of ROLE_BOXES) b.addEventListener('change', readRoleBoxes);
+
+/* ── Instructor / training pay (2026-08-26, 3rd) ───────────────
+   Shown only to pilots who ticked "Instructor / Training" in §1. Untick it and the
+   contents are cleared too (never silently send what is not on screen).
+   ★What goes in here lives in its OWN place, apart from rank/position allowance,
+     variable pay and other cash allowances: the amount in the instructor_pay column,
+     the shape in pay_items.instructor. It is added to neither of the others — that is
+     what "do not enter it twice" means in code.
+   ★Nothing here is required (no req-tag). The amount alone is enough to save. */
+const INSTR_BOXES = [].slice.call(document.querySelectorAll('input[name="f-instr-train"]'));
+const INSTR_PAY_IDS = ['f-instr-method', 'f-instructor', 'f-instr-rate', 'f-instr-qty'];
+const INSTR_ALL_IDS = ['f-instr-label', 'f-instr-extra'].concat(INSTR_PAY_IDS);
+
+function instrRead() {
+  if ($('s3-instr').hidden) return null;          // not an instructor: build nothing
+  const t = (id) => $(id).value.trim();
+  const n = (id) => { const v = parseFloat(unc($(id).value)); return isFinite(v) && v > 0 ? v : null; };
+  const trainings = INSTR_BOXES.filter((b) => b.checked).map((b) => b.value);
+  const o = { trainings: trainings, label: t('f-instr-label') || null, extra: t('f-instr-extra') || null,
+              method: null, amount: null, rate: null, qty: null };
+  /* Anything other than "paid separately" never shows the amount fields at all. */
+  if (o.extra === 'separate') {
+    o.method = t('f-instr-method') || null;
+    o.amount = n('f-instructor');
+    o.rate = n('f-instr-rate');
+    o.qty = n('f-instr-qty');
+  }
+  if (!trainings.length && !o.label && !o.extra) return null;   // opened but empty: send nothing
+  return o;
+}
+
+function instrSync() {
+  const sep = $('f-instr-extra').value === 'separate';
+  $('opt-instr-pay').hidden = !sep;
+  if (!sep) for (const id of INSTR_PAY_IDS) $(id).value = '';
+  /* ★The rate / count labels live on the <option> (data-rate / data-qty), never in
+     the JS — that is how ja and en run the same code. A fixed monthly amount has no
+     unit and no count, so its data-rate is empty and both fields stay hidden. */
+  const m = $('f-instr-method');
+  const op = m.options[m.selectedIndex];
+  const rate = (op && op.dataset.rate) || '';
+  $('instr-unit').hidden = !(sep && rate);
+  if (rate) { $('lab-instr-rate').textContent = rate; $('lab-instr-qty').textContent = (op.dataset.qty || ''); }
+  else { $('f-instr-rate').value = ''; $('f-instr-qty').value = ''; }
+  pdSync();      // rebuild pay_items (recalc runs inside)
+}
+
+function instrToggle() {
+  const box = $('s3-instr');
+  if (!box) return;
+  const on = String($('f-jobrole').value || '').split(',').indexOf('instructor') >= 0;
+  if (box.hidden !== on) return;                  // unchanged
+  box.hidden = !on;
+  if (on) return;
+  for (const b of INSTR_BOXES) b.checked = false;
+  for (const id of INSTR_ALL_IDS) $(id).value = '';
+  $('instr-detail').open = false;
+  instrSync();
+}
+
+for (const b of INSTR_BOXES) b.addEventListener('change', instrSync);
+for (const id of INSTR_ALL_IDS) {
+  $(id).addEventListener('input', instrSync);
+  $(id).addEventListener('change', instrSync);
+}
 
 $('f-airline').addEventListener('change', () => {
   $('wrap-other').style.display = $('f-airline').value === 'other' ? '' : 'none';
@@ -2257,7 +2415,7 @@ function monthlyDetail() {
   const housing = $('f-housing').value === 'allowance' ? num('f-housing-amt') : 0;
   return num('f-base') + num('f-guarantee') + num('f-hourly') * hours + num('f-perdiem') + housing
          + num('f-transport') + num('f-command') + num('f-other')
-         + num('f-var-sum') + num('f-oth-sum');
+         + num('f-var-sum') + num('f-oth-sum') + num('f-instructor');
 }
 
 function annualTotal() {
@@ -2297,7 +2455,7 @@ function recalc() {
 }
 /* ★f-transport / f-other are hidden now (only payslip parsing writes them).
    The repeating rows report through f-var-sum / f-oth-sum, written by pdSync(). */
-['f-gross','f-base','f-guarantee','f-hourly','f-guar','f-block','f-perdiem','f-housing-amt','f-command','f-bonus','f-bonus-mo','f-profit']
+['f-gross','f-base','f-guarantee','f-hourly','f-guar','f-block','f-perdiem','f-housing-amt','f-command','f-bonus','f-bonus-mo','f-profit','f-instructor']
   .forEach((id) => $(id).addEventListener('input', recalc));
 $('f-currency').addEventListener('change', recalc);
 
@@ -2561,9 +2719,14 @@ function pdSync() {
   $('f-var-sum').value = sum(v) || '';
   $('f-oth-sum').value = sum(o) || '';
   const none = $('f-base-none').checked;
+  /* ★The instructor block rides in the same container. Its total is folded into
+     nothing — folding it in would count the same money twice against rank/position
+     allowance, variable pay and other cash allowances. */
+  const ins = instrRead();
+  const pi = { v: 1, fixed_none: none, variable: v, other: o };
+  if (ins) pi.instructor = ins;
   /* Nothing entered -> leave the column empty rather than send a meaningless {}. */
-  $('f-payitems').value = (v.length || o.length || none)
-    ? JSON.stringify({ v: 1, fixed_none: none, variable: v, other: o }) : '';
+  $('f-payitems').value = (v.length || o.length || none || ins) ? JSON.stringify(pi) : '';
   recalc();
 }
 
@@ -2623,6 +2786,24 @@ function pdRestore(raw) {
     }
   }
   if (o.fixed_none) { $('f-base-none').checked = true; $('f-base').disabled = true; }
+  /* ★The instructor block. syncRoleBoxes() has already run by the time we get here,
+     so s3-instr is on screen for anyone who instructs. If it is not on screen we
+     restore nothing (never send what is not on screen). */
+  const ins = o.instructor;
+  if (ins && typeof ins === 'object' && !$('s3-instr').hidden) {
+    const on = {};
+    for (const c of (Array.isArray(ins.trainings) ? ins.trainings : [])) on[c] = 1;
+    for (const b of INSTR_BOXES) b.checked = !!on[b.value];
+    const put = (id, v) => { if (v != null && v !== '') $(id).value = v; };
+    put('f-instr-label', ins.label);
+    put('f-instr-extra', ins.extra);
+    put('f-instr-method', ins.method);
+    put('f-instructor', ins.amount != null ? grp(String(ins.amount)) : '');
+    put('f-instr-rate', ins.rate != null ? grp(String(ins.rate)) : '');
+    put('f-instr-qty', ins.qty != null ? String(ins.qty) : '');
+    $('instr-detail').open = true;
+    instrSync();   // pdSync runs inside
+  }
   pdSync();
 }
 /* ?airline= can select 'other' without firing change, so the
@@ -2638,7 +2819,10 @@ const PRESET_IDS = ['f-airline','f-airline-other','f-position','f-fleet','f-curr
   'f-guar','f-perdiem','f-housing','f-housing-amt','f-contract','f-seniority','f-taxcountry',
   'f-tax','f-guarantee','f-command','f-transport','f-other','f-bonus','f-profit','f-pension','f-jobrole','f-age','f-base-iata',
   /* ★The repeating rows. The two totals (f-var-sum / f-oth-sum) are not saved — pdSync() derives them. */
-  'f-payitems'];
+  'f-payitems',
+  /* ★Instructor pay. The shape (what you teach, the title, how it is paid) rides in
+     f-payitems, so all that belongs here is the one amount bound for its column. */
+  'f-instructor'];
 // ★For re-sending after login. Unlike the preset, this includes the period.
 const ALL_IDS = PRESET_IDS.concat(['f-year','f-month','f-block','f-duty',
   /* ★その月にしか無い値。PRESET_IDS には入れない（翌月のフォームに持ち越すと壊れる）。 */
@@ -2764,6 +2948,7 @@ updateSteps(true);
     'f-housing': s(r.housing_type), 'f-housing-amt': s(r.housing_amount),
     'f-transport': s(r.transport), 'f-command': s(r.command_pay),
     'f-other': s(r.other_allowance), 'f-bonus': s(r.bonus_annual),
+    'f-instructor': s(r.instructor_pay),
     'f-profit': s(r.profit_share_annual), 'f-pension': s(r.pension_pct),
     'f-contract': s(r.contract_type), 'f-taxcountry': s(r.tax_country),
     'f-tax': s(r.tax_rate_pct), 'f-seniority': s(r.seniority_years),
@@ -2991,6 +3176,10 @@ async function submitPayReport() {
     housing_amount:      $('f-housing').value === 'allowance' ? val('f-housing-amt') : null,
     transport:           val('f-transport'),
     command_pay:         val('f-command'),
+    /* ★Instructor / training pay (2026-08-26, 3rd). Its own column, apart from rank
+       allowance, variable pay and other cash. Folding it in would count the same money
+       twice. The annual figure comes from gross, so this field never moves it. */
+    instructor_pay:      val('f-instructor'),
     /* ★The repeating rows (other cash allowances + variable pay) are added in here.
        f-other is overwritten wholesale by payslip parsing, so hand-entered rows live
        in their own carriers (f-oth-sum / f-var-sum) and are only combined on send.

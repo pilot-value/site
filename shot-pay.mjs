@@ -14,6 +14,9 @@
                     ★2026-08-26 から、額面の欄は**本人の入力のまま**（読み取り専用にしない）。
                       変動給・その他の現金手当は行で足す
      3b detail-over 内訳の合計が額面を超えた状態＝注意の1行が出る（送信は止めない）
+     3c instructor  教官・訓練の手当を埋めた状態（§1で教官を選んだ人にだけ出る節）
+                    ★変動給・その他・額面のどれも増えていないことをログで見る
+     3d instructor-off 教官を外した状態＝節ごと消えて中身も消える
      4 detail-shut  閉じた状態 ★額面も内訳も消えずに残っている
      5 second       2回目の訪問（プリセットあり）★飛んだ時間が空なので §3 以降は出ない
      6 result       送信後の結果パネル */
@@ -84,6 +87,17 @@ const VAR = [
   { amount: '1200', basis: 'reserve', label: 'Standby Allowance' },
 ];
 const OTH = [{ amount: '900', label: 'Transport Allowance' }];
+
+/* 教官・訓練の手当（2026-08-26 その3）。§1で「教官・訓練担当」を選んだ人にだけ出る節。
+   ★ここに入れた額は変動給・その他の現金手当・職位手当のどれにも足し込まれない。
+     絵で確かめたいのはそこ（下のログが3つの数を並べる）。 */
+const INSTR = {
+  train: ['line', 'sim'],
+  'f-instr-label': 'Training Captain (TRI)',
+  'f-instr-extra': 'separate',
+  'f-instr-method': 'session',
+  'f-instructor': '4200', 'f-instr-rate': '1400', 'f-instr-qty': '3',
+};
 
 /* 送信後に返る想定の値（db/pay-reports.sql の submit_pay_report の戻り値と同じ形） */
 const RESULT = {
@@ -181,6 +195,30 @@ const putRows = (page, kind, list) => page.evaluate((k, items) => {
   pdSync();
 }, kind, list);
 
+/* 教官の節を開いて埋める。担当している訓練はチェックボックス群なので、
+   本物のページと同じ change を投げて instrSync() を走らせる。 */
+const fillInstr = (page, o) => page.evaluate((v) => {
+  const d = document.getElementById('instr-detail');
+  d.open = true; d.dispatchEvent(new Event('toggle'));
+  for (const b of document.querySelectorAll('input[name="f-instr-train"]')) {
+    b.checked = v.train.indexOf(b.value) >= 0;
+    b.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+  for (const id of ['f-instr-label', 'f-instr-extra', 'f-instr-method',
+                    'f-instructor', 'f-instr-rate', 'f-instr-qty']) {
+    const e = document.getElementById(id);
+    e.value = v[id];
+    e.dispatchEvent(new Event('change', { bubbles: true }));
+    e.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+}, o);
+
+/* 役職・区分の「教官・訓練担当」を外す。節ごと消えて中身も消えるのが正しい。 */
+const untickInstr = (page) => page.evaluate(() => {
+  const b = document.querySelector('input[name="f-jobrole"][value="instructor"]');
+  b.checked = false; b.dispatchEvent(new Event('change', { bubbles: true }));
+});
+
 const setDetail = async (page, open) => {
   await page.evaluate((o) => {
     const d = document.getElementById('pay-detail');
@@ -245,6 +283,51 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
       console.log(`     超えさせたとき: 注意 = ${over.over ? '出' : '—'}`
                   + ` / 送信ボタン = ${over.submit ? '出' : '—'}`);
       await put(page, { 'f-base': DETAIL['f-base'] });
+      await new Promise((r) => setTimeout(r, 200));
+
+      /* 3c. 教官・訓練の手当。★変動給・その他の合計が1円も増えていないこと、
+             額面（f-gross）が書き換わっていないことを絵とログの両方で見る。 */
+      /* ★読むのは f-var-sum / f-oth-sum。f-flightvar と f-other は明細読み取り専用の
+         隠し欄で、人が足した行の合計はこちらに入る（payload もこちらを足している）。 */
+      const sums = () => ({
+        gross: document.getElementById('f-gross').value,
+        vari: document.getElementById('f-var-sum').value,
+        oth: document.getElementById('f-oth-sum').value,
+      });
+      const beforeInstr = await page.evaluate(sums);
+      await fillInstr(page, INSTR);
+      await new Promise((r) => setTimeout(r, 300));
+      await shoot(page, `${tag}-3c-instructor`);
+      const afterInstr = await page.evaluate(() => ({
+        gross: document.getElementById('f-gross').value,
+        vari: document.getElementById('f-var-sum').value,
+        oth: document.getElementById('f-oth-sum').value,
+        pay: document.getElementById('f-instructor').value,
+        unit: document.getElementById('instr-unit').offsetParent !== null,
+        items: (() => { try { return JSON.parse(document.getElementById('f-payitems').value).instructor; }
+                        catch (e) { return null; } })(),
+      }));
+      console.log(`     教官の額 = ${afterInstr.pay} / 単価と回数 = ${afterInstr.unit ? '出' : '—'}`);
+      console.log(`     額面 ${beforeInstr.gross} → ${afterInstr.gross}`
+                  + ` / 変動給 ${beforeInstr.vari} → ${afterInstr.vari}`
+                  + ` / その他 ${beforeInstr.oth} → ${afterInstr.oth}`
+                  + `（3つとも動かないのが正しい）`);
+      console.log(`     pay_items.instructor = ${JSON.stringify(afterInstr.items)}`);
+
+      /* 3d. 教官を外す＝節ごと消えて、中身も消える（画面に無いものを黙って送らない）。 */
+      await untickInstr(page);
+      await new Promise((r) => setTimeout(r, 300));
+      await shoot(page, `${tag}-3d-instructor-off`);
+      const offInstr = await page.evaluate(() => ({
+        shown: document.getElementById('s3-instr').offsetParent !== null,
+        pay: document.getElementById('f-instructor').value,
+        items: (() => { try { return JSON.parse(document.getElementById('f-payitems').value).instructor; }
+                        catch (e) { return null; } })(),
+      }));
+      console.log(`     外したあと: 節 = ${offInstr.shown ? '出' : '—'}`
+                  + ` / 額 = '${offInstr.pay}' / pay_items.instructor = ${JSON.stringify(offInstr.items)}`);
+      await put(page, { 'f-jobrole': SIMPLE['f-jobrole'] });
+      await fillInstr(page, INSTR);
       await new Promise((r) => setTimeout(r, 200));
 
       // 4. 閉じる＝額面も内訳も残ったまま

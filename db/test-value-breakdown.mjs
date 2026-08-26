@@ -203,9 +203,18 @@ console.log('\n⑧ 名前の対応表（my-value.js / pay-tracker.js の両方�
        `${f}: 日本語の語がある`);
     ok(/segBonus: 'Bonus this month'/.test(src) && /segRest: 'Not itemised'/.test(src),
        `${f}: 英語の語がある`);
+    /* ★2026-08-26、札を2つの呼び名の併記にした（オーナー指示。同じ金額が会社に
+       よって「保証給」とも「職務手当」とも呼ばれ、片方しか出ていないと
+       もう片方の人が自分の明細のどこを写せばいいのか分からない）。
+       列は guarantee_pay のまま。ここが「保証給」だけに戻ったら、それは
+       画面の札も戻っているということ。 */
     ok(/guarantee:\s*T\.segGuarantee/.test(src)
-       && src.includes("segGuarantee: '保証給'") && /segGuarantee: 'Guaranteed pay'/.test(src),
-       `${f}: ★ 保証給の語がある（無いと凡例が undefined になる）`);
+       && src.includes("segGuarantee: '保証手当・職務手当'") && /segGuarantee: 'Guarantee \/ duty'/.test(src),
+       `${f}: ★ 保証給の語が2つの呼び名を併記している（無いと凡例が undefined になる）`);
+    /* ★教官・訓練の手当（2026-08-26 その3）。 */
+    ok(/instructor:\s*T\.segInstructor/.test(src)
+       && src.includes("segInstructor: '教官・訓練手当'") && /segInstructor: 'Instructor \/ training'/.test(src),
+       `${f}: ★ 教官の語がある（無いと凡例が undefined になる）`);
   }
   const mv = readFileSync(path.join(ROOT, 'my-value.js'), 'utf8');
   /* ★「固定 / 変動 / 判別できない」の3本のバケツ。segments() のスライスを
@@ -220,6 +229,11 @@ console.log('\n⑧ 名前の対応表（my-value.js / pay-tracker.js の両方�
     const all = Object.keys(V.segments(mk({ base_pay: 1, guarantee_pay: 1 })).vals);
     ok(buckets.includes('guarantee'),
        '★ 保証給が3本のどれかに入っている（毎月かならず出る下限なので「固定」）', buckets.join(','));
+    /* ★教官の手当は担当したセッション数・日数で月ごとに変わるので「変動」。
+       職位手当・変動給・その他の現金手当とは**別の入れ物**なので、
+       どれかに紛れ込ませず1本の独立したスライスとして数える。 */
+    ok(buckets.includes('instructor'),
+       '★ 教官の手当が3本のどれかに入っている（変動）', buckets.join(','));
     const miss = all.filter((k) => !buckets.includes(k));
     ok(miss.length === 0, '★ segments() のスライスが1つも取りこぼされていない', miss.join(','));
     ok(new Set(buckets).size === buckets.length,

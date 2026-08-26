@@ -267,12 +267,16 @@ as $$
              case when x.gross is null then x.othal end,
              x.bonus_a, x.profit, x.bonus_m,
              -- ★ 2026-08-26 追加。保証給（金額）。内訳の側なので総支給と同じ扱いで隠す。
-             case when x.gross is null then x.gpay  end
+             case when x.gross is null then x.gpay  end,
+             -- ★ 2026-08-26 追加。教官・訓練の手当。同じく内訳の側。
+             --   ここを足し忘れると、同じ明細から**本棚と預かりで違う年収**が出る。
+             case when x.gross is null then x.ipay  end
            ) * r.to_usd, 2)
     from (
       select nullif(nullif(p->>'gross_monthly', '')::numeric, 0) as gross,
              nullif(p->>'base_pay',            '')::numeric      as base,
              nullif(p->>'guarantee_pay',       '')::numeric      as gpay,
+             nullif(p->>'instructor_pay',      '')::numeric      as ipay,
              nullif(p->>'hourly_rate',         '')::numeric      as hourly,
              nullif(p->>'guaranteed_hours',    '')::numeric      as guar,
              nullif(p->>'block_hours',         '')::numeric      as bh,
@@ -420,6 +424,9 @@ comment on function public.pv_airline_resolve(text) is
 drop function if exists public.pv_pay_comp(
   numeric, numeric, numeric, numeric, numeric, numeric, text, numeric,
   numeric, numeric, numeric, numeric, numeric, numeric);
+drop function if exists public.pv_pay_comp(
+  numeric, numeric, numeric, numeric, numeric, numeric, text, numeric,
+  numeric, numeric, numeric, numeric, numeric, numeric, numeric);
 
 create or replace function public.pv_pay_comp(
   p_gross_monthly    numeric,
@@ -430,7 +437,9 @@ create or replace function public.pv_pay_comp(
   p_bonus_annual     numeric, p_profit_share_annual numeric,
   p_bonus_month      numeric default null,
   -- ★ 2026-08-26 追加。保証給（金額）。pv_annual_total と1文字も違わない並びを保つ。
-  p_guarantee_pay    numeric default null
+  p_guarantee_pay    numeric default null,
+  -- ★ 2026-08-26 追加。教官・訓練の手当。同じく並びを揃えるためだけに置く。
+  p_instructor_pay   numeric default null
 ) returns numeric[]
 language sql
 immutable
@@ -473,7 +482,9 @@ as $$
             /* o … その他の手当。総支給1本の行では立てない（中身が分からない） */
             case when nullif(p_gross_monthly, 0) is not null then 0
                  else 12 * (coalesce(p_transport, 0) + coalesce(p_command_pay, 0)
-                            + coalesce(p_other_allowance, 0))
+                            + coalesce(p_other_allowance, 0)
+                            -- 教官の手当は other_allowance に入っていない（別の入れ物）
+                            + coalesce(p_instructor_pay, 0))
             end as o
         ) y
     ) x;
@@ -482,11 +493,11 @@ $$;
 revoke all on function public.pv_pay_comp(
   numeric, numeric, numeric, numeric, numeric, numeric, text, numeric,
   numeric, numeric, numeric, numeric, numeric,
-  numeric, numeric) from public, anon, authenticated;
+  numeric, numeric, numeric) from public, anon, authenticated;
 
 comment on function public.pv_pay_comp(
   numeric, numeric, numeric, numeric, numeric, numeric, text, numeric,
-  numeric, numeric, numeric, numeric, numeric, numeric, numeric) is
+  numeric, numeric, numeric, numeric, numeric, numeric, numeric, numeric) is
   '支給の内訳を「割合」（合計1・5本）で返す。金額は返さない。'
   '足し算は pv_annual_total と一致する。引数の並びもあれと同じ。'
   '誰にも grant しない。今はどこからも呼ばれていない（DEEP PAY 用）。';
@@ -572,12 +583,14 @@ as $$
            case when x.gross is null then x.cmd   end,
            case when x.gross is null then x.othal end,
            x.bonus_a, x.profit, x.bonus_m,
-           case when x.gross is null then x.gpay  end
+           case when x.gross is null then x.gpay  end,
+           case when x.gross is null then x.ipay  end
          )
     from (
       select nullif(nullif(p->>'gross_monthly', '')::numeric, 0) as gross,
              nullif(p->>'base_pay',            '')::numeric      as base,
              nullif(p->>'guarantee_pay',       '')::numeric      as gpay,
+             nullif(p->>'instructor_pay',      '')::numeric      as ipay,
              nullif(p->>'hourly_rate',         '')::numeric      as hourly,
              nullif(p->>'guaranteed_hours',    '')::numeric      as guar,
              nullif(p->>'block_hours',         '')::numeric      as bh,
@@ -1175,7 +1188,7 @@ with f as (
          to_regprocedure('public.pv_pending_comp(jsonb)') as f_pcomp,
          to_regprocedure('public.pv_pay_comp(numeric,numeric,numeric,numeric,numeric,'
                          || 'numeric,text,numeric,numeric,numeric,numeric,numeric,'
-                         || 'numeric,numeric,numeric)')  as f_comp,
+                         || 'numeric,numeric,numeric,numeric)')  as f_comp,
          to_regclass('public.pay_benchmarks')          as bench,
          to_regclass('public.pv_review_person')        as link,
          to_regprocedure('public.pv_airline_resolve(text)') as f_res,

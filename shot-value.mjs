@@ -229,6 +229,10 @@ await page.evaluateOnNewDocument((scene, theme) => {
         /* ★保証給（2026-08-26）。基本給とは別の切れが出ることを、この1枚で見る。
            灰色に落ちていたら pay-viz の segments に guarantee を足し忘れている。 */
         base_pay: 20000, guarantee_pay: 3000, command_pay: 3200,
+        /* ★教官・訓練の手当（2026-08-26 その3）。other_allowance には**入っていない**
+           （別の入れ物）。ここが灰色に混ざっていたら pay-viz の segments に
+           instructor を足し忘れている。 */
+        instructor_pay: 2200,
         flight_variable_pay: 11000, other_allowance: 11900,
         per_diem: 4200, transport: 0,
         housing_type: 'allowance', housing_amount: 12000,
