@@ -17,6 +17,9 @@
      3c instructor  教官・訓練の手当を埋めた状態（§1で教官を選んだ人にだけ出る節）
                     ★変動給・その他・額面のどれも増えていないことをログで見る
      3d instructor-off 教官を外した状態＝節ごと消えて中身も消える
+     3e examiner    審査・査察の手当を埋めた状態（§1で審査を選んだ人にだけ出る節）
+                    ★教官の額まで含めて、どの合計も増えていないことをログで見る
+     3f examiner-off 審査を外した状態＝節ごと消えて中身も消える
      4 detail-shut  閉じた状態 ★額面も内訳も消えずに残っている
      5 second       2回目の訪問（プリセットあり）★飛んだ時間が空なので §3 以降は出ない
      6 result       送信後の結果パネル */
@@ -61,7 +64,7 @@ const browser = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox
 const SIMPLE = {   // 誰にでも聞く欄（2026-08-13 に手取り・今月のボーナス・ステイ日数が増えた）
   /* ★役職・区分は 2026-08-26 から複数選べる。カンマ区切りで hidden に入れると
        put() が絵のチェックまで戻す（本物のページと同じ syncRoleBoxes を呼ぶ）。 */
-  'f-airline': 'emirates', 'f-position': 'cap', 'f-fleet': 'b777', 'f-jobrole': 'line,instructor',
+  'f-airline': 'emirates', 'f-position': 'cap', 'f-fleet': 'b777', 'f-jobrole': 'line,instructor,examiner',
   'f-age': '40-49',
   'f-block': '86.5', 'f-stay': '12', 'f-duty-h': '158.2',
   'f-currency': 'AED', 'f-gross': '77800', 'f-netpay': '71600', 'f-bonus-mo': '0',
@@ -96,7 +99,17 @@ const INSTR = {
   'f-instr-label': 'Training Captain (TRI)',
   'f-instr-extra': 'separate',
   'f-instr-method': 'session',
-  'f-instructor': '4200', 'f-instr-rate': '1400', 'f-instr-qty': '3',
+  'f-instructor': '4200', 'f-instr-qty': '3',
+};
+
+/* 審査・査察の手当（2026-08-26 その4）。§1で「審査・査察」を選んだ人にだけ出る節。
+   ★教官の額にも変動給・その他・職位手当にも足し込まれない。絵で見たいのはそこ。 */
+const EXAM = {
+  checks: ['sim', 'line'],
+  'f-exam-label': 'TRE',
+  'f-exam-extra': 'separate',
+  'f-exam-method': 'check',
+  'f-examiner': '3600', 'f-exam-qty': '2',
 };
 
 /* 送信後に返る想定の値（db/pay-reports.sql の submit_pay_report の戻り値と同じ形） */
@@ -205,7 +218,7 @@ const fillInstr = (page, o) => page.evaluate((v) => {
     b.dispatchEvent(new Event('change', { bubbles: true }));
   }
   for (const id of ['f-instr-label', 'f-instr-extra', 'f-instr-method',
-                    'f-instructor', 'f-instr-rate', 'f-instr-qty']) {
+                    'f-instructor', 'f-instr-qty']) {
     const e = document.getElementById(id);
     e.value = v[id];
     e.dispatchEvent(new Event('change', { bubbles: true }));
@@ -213,11 +226,29 @@ const fillInstr = (page, o) => page.evaluate((v) => {
   }
 }, o);
 
-/* 役職・区分の「教官・訓練担当」を外す。節ごと消えて中身も消えるのが正しい。 */
-const untickInstr = (page) => page.evaluate(() => {
-  const b = document.querySelector('input[name="f-jobrole"][value="instructor"]');
+/* 審査の節を開いて埋める。担当している Check はチェックボックス群なので、
+   本物のページと同じ change を投げて examSync() を走らせる。 */
+const fillExam = (page, o) => page.evaluate((v) => {
+  const d = document.getElementById('exam-detail');
+  d.open = true; d.dispatchEvent(new Event('toggle'));
+  for (const b of document.querySelectorAll('input[name="f-exam-check"]')) {
+    b.checked = v.checks.indexOf(b.value) >= 0;
+    b.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+  for (const id of ['f-exam-label', 'f-exam-extra', 'f-exam-method',
+                    'f-examiner', 'f-exam-qty']) {
+    const e = document.getElementById(id);
+    e.value = v[id];
+    e.dispatchEvent(new Event('change', { bubbles: true }));
+    e.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+}, o);
+
+/* 役職・区分の1つを外す。節ごと消えて中身も消えるのが正しい。 */
+const untickRole = (page, code) => page.evaluate((v) => {
+  const b = document.querySelector(`input[name="f-jobrole"][value="${v}"]`);
   b.checked = false; b.dispatchEvent(new Event('change', { bubbles: true }));
-});
+}, code);
 
 const setDetail = async (page, open) => {
   await page.evaluate((o) => {
@@ -307,7 +338,7 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
         items: (() => { try { return JSON.parse(document.getElementById('f-payitems').value).instructor; }
                         catch (e) { return null; } })(),
       }));
-      console.log(`     教官の額 = ${afterInstr.pay} / 単価と回数 = ${afterInstr.unit ? '出' : '—'}`);
+      console.log(`     教官の額 = ${afterInstr.pay} / 回数の欄 = ${afterInstr.unit ? '出' : '—'}`);
       console.log(`     額面 ${beforeInstr.gross} → ${afterInstr.gross}`
                   + ` / 変動給 ${beforeInstr.vari} → ${afterInstr.vari}`
                   + ` / その他 ${beforeInstr.oth} → ${afterInstr.oth}`
@@ -315,7 +346,7 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
       console.log(`     pay_items.instructor = ${JSON.stringify(afterInstr.items)}`);
 
       /* 3d. 教官を外す＝節ごと消えて、中身も消える（画面に無いものを黙って送らない）。 */
-      await untickInstr(page);
+      await untickRole(page, 'instructor');
       await new Promise((r) => setTimeout(r, 300));
       await shoot(page, `${tag}-3d-instructor-off`);
       const offInstr = await page.evaluate(() => ({
@@ -328,6 +359,54 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
                   + ` / 額 = '${offInstr.pay}' / pay_items.instructor = ${JSON.stringify(offInstr.items)}`);
       await put(page, { 'f-jobrole': SIMPLE['f-jobrole'] });
       await fillInstr(page, INSTR);
+      await new Promise((r) => setTimeout(r, 200));
+
+      /* 3e. 審査・査察の手当。★ここでの本題は「教官の額（f-instructor）まで含めて
+             どの合計も増えていない」こと。教官と審査の両方をやっている人が
+             同じ手当を2回入れる道が無いか、絵とログで見る。 */
+      const beforeExam = await page.evaluate(() => ({
+        gross: document.getElementById('f-gross').value,
+        vari: document.getElementById('f-var-sum').value,
+        oth: document.getElementById('f-oth-sum').value,
+        instr: document.getElementById('f-instructor').value,
+      }));
+      await fillExam(page, EXAM);
+      await new Promise((r) => setTimeout(r, 300));
+      await shoot(page, `${tag}-3e-examiner`);
+      const afterExam = await page.evaluate(() => ({
+        gross: document.getElementById('f-gross').value,
+        vari: document.getElementById('f-var-sum').value,
+        oth: document.getElementById('f-oth-sum').value,
+        instr: document.getElementById('f-instructor').value,
+        pay: document.getElementById('f-examiner').value,
+        unit: document.getElementById('exam-unit').offsetParent !== null,
+        items: (() => { try { return JSON.parse(document.getElementById('f-payitems').value).examiner; }
+                        catch (e) { return null; } })(),
+      }));
+      console.log(`     審査の額 = ${afterExam.pay} / 回数の欄 = ${afterExam.unit ? '出' : '—'}`);
+      console.log(`     額面 ${beforeExam.gross} → ${afterExam.gross}`
+                  + ` / 変動給 ${beforeExam.vari} → ${afterExam.vari}`
+                  + ` / その他 ${beforeExam.oth} → ${afterExam.oth}`
+                  + ` / 教官 ${beforeExam.instr} → ${afterExam.instr}`
+                  + `（4つとも動かないのが正しい）`);
+      console.log(`     pay_items.examiner = ${JSON.stringify(afterExam.items)}`);
+
+      /* 3f. 審査を外す＝節ごと消えて中身も消える。教官の側は残ったまま。 */
+      await untickRole(page, 'examiner');
+      await new Promise((r) => setTimeout(r, 300));
+      await shoot(page, `${tag}-3f-examiner-off`);
+      const offExam = await page.evaluate(() => ({
+        shown: document.getElementById('s3-exam').offsetParent !== null,
+        pay: document.getElementById('f-examiner').value,
+        instr: document.getElementById('f-instructor').value,
+        items: (() => { try { return JSON.parse(document.getElementById('f-payitems').value); }
+                        catch (e) { return null; } })(),
+      }));
+      console.log(`     外したあと: 節 = ${offExam.shown ? '出' : '—'}`
+                  + ` / 額 = '${offExam.pay}' / 教官は残っている = ${offExam.instr}`
+                  + ` / pay_items.examiner = ${JSON.stringify(offExam.items && offExam.items.examiner)}`);
+      await put(page, { 'f-jobrole': SIMPLE['f-jobrole'] });
+      await fillExam(page, EXAM);
       await new Promise((r) => setTimeout(r, 200));
 
       // 4. 閉じる＝額面も内訳も残ったまま

@@ -215,6 +215,10 @@ console.log('\n⑧ 名前の対応表（my-value.js / pay-tracker.js の両方�
     ok(/instructor:\s*T\.segInstructor/.test(src)
        && src.includes("segInstructor: '教官・訓練手当'") && /segInstructor: 'Instructor \/ training'/.test(src),
        `${f}: ★ 教官の語がある（無いと凡例が undefined になる）`);
+    /* ★審査・査察の手当（2026-08-26 その4）。教官とは別のスライス。 */
+    ok(/examiner:\s*T\.segExaminer/.test(src)
+       && src.includes("segExaminer: '審査・査察手当'") && /segExaminer: 'Examiner \/ check'/.test(src),
+       `${f}: ★ 審査の語がある（無いと凡例が undefined になる）`);
   }
   const mv = readFileSync(path.join(ROOT, 'my-value.js'), 'utf8');
   /* ★「固定 / 変動 / 判別できない」の3本のバケツ。segments() のスライスを
@@ -234,6 +238,10 @@ console.log('\n⑧ 名前の対応表（my-value.js / pay-tracker.js の両方�
        どれかに紛れ込ませず1本の独立したスライスとして数える。 */
     ok(buckets.includes('instructor'),
        '★ 教官の手当が3本のどれかに入っている（変動）', buckets.join(','));
+    /* ★審査の手当も同じ理由で「変動」。担当した Check の回数で月ごとに変わる。
+       教官と同じ本に入るが、スライスとしては別々（同じお金を2回数えないため）。 */
+    ok(buckets.includes('examiner'),
+       '★ 審査の手当が3本のどれかに入っている（変動）', buckets.join(','));
     const miss = all.filter((k) => !buckets.includes(k));
     ok(miss.length === 0, '★ segments() のスライスが1つも取りこぼされていない', miss.join(','));
     ok(new Set(buckets).size === buckets.length,

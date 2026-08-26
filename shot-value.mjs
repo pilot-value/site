@@ -225,7 +225,10 @@ await page.evaluateOnNewDocument((scene, theme) => {
        ★年換算は総支給ベース。内訳を足さない（サーバの pv_annual_total と同じ）。 */
     both: [(function () {
       const r = mk(2026, 6, Object.assign({}, THIN, {
-        gross_monthly: 57000, guaranteed_hours: 75, bonus_annual: 130000, bonus_month: 0,
+        /* ★総支給は内訳の合計より少しだけ大きい数にしておく。小さいと
+           pay-viz が「手当の合計が総支給を超える行は正しい図を描けない」で
+           図ごと降りる（見本のまま出る）＝色の見比べができない。 */
+        gross_monthly: 59000, guaranteed_hours: 75, bonus_annual: 130000, bonus_month: 0,
         /* ★保証給（2026-08-26）。基本給とは別の切れが出ることを、この1枚で見る。
            灰色に落ちていたら pay-viz の segments に guarantee を足し忘れている。 */
         base_pay: 20000, guarantee_pay: 3000, command_pay: 3200,
@@ -233,11 +236,14 @@ await page.evaluateOnNewDocument((scene, theme) => {
            （別の入れ物）。ここが灰色に混ざっていたら pay-viz の segments に
            instructor を足し忘れている。 */
         instructor_pay: 2200,
+        /* ★審査・査察の手当（2026-08-26 その4）。教官の隣に自分の色で出る。
+           隣と見分けられない・灰色に落ちる、のどちらかなら pay-viz の SEG を直す。 */
+        examiner_pay: 1800,
         flight_variable_pay: 11000, other_allowance: 11900,
         per_diem: 4200, transport: 0,
         housing_type: 'allowance', housing_amount: 12000,
       }));
-      r.annual_total_orig = 57000 * 12 + 130000;
+      r.annual_total_orig = 59000 * 12 + 130000;
       r.annual_total_jpy = Math.round(r.annual_total_orig * r.fx_to_jpy);
       r.annual_total_usd = Math.round(r.annual_total_orig * r.fx_to_usd);
       r.net_annual_jpy = Math.round(r.annual_total_jpy * 0.99);

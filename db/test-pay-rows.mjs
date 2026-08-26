@@ -579,12 +579,12 @@ console.log('\n▼ 7-b. ★支給の内訳（DEEP PAY 用。REAL PAY からは�
   ok((await one(`select public.pv_pct5(array[0,0,0,0,0]::numeric[]) c`)).c === null,
      '　全部ゼロでも null（0で割らない）');
 
-  /* ⑦ 保証給・教官の手当（2026-08-26）。pv_pay_comp は「引数の並びが pv_annual_total と
+  /* ⑦ 保証給・教官・審査の手当（2026-08-26）。pv_pay_comp は「引数の並びが pv_annual_total と
      1文字も違わない」「5本の合計があちらの返り値と一致する」を約束している。
      片方だけに引数を足すと、その2つが黙って破れる。 */
   const nc = await one(`select p.pronargs n from pg_proc p join pg_namespace s on s.oid=p.pronamespace
                          where s.nspname='public' and p.proname='pv_pay_comp'`);
-  ok(Number(nc.n) === 16, `★pv_pay_comp も16引数（pv_annual_total と同じ並び）→ ${nc.n}`);
+  ok(Number(nc.n) === 17, `★pv_pay_comp も17引数（pv_annual_total と同じ並び）→ ${nc.n}`);
   const gcomp = await one(`
     select public.pv_pct5(public.pv_pay_comp(null, 20000, null, null, null, null,
              null, null, null, null, null, null, null, null, 5000, null)) c,
@@ -606,6 +606,27 @@ console.log('\n▼ 7-b. ★支給の内訳（DEEP PAY 用。REAL PAY からは�
   ok(icomp.c && icomp.c.m === 97 && icomp.c.o === 3 && Number(icomp.v) === 247200,
      '★教官の手当は「その他の手当（o）」に入る（賞与にも住宅にも落ちない）',
      JSON.stringify(icomp));
+
+  /* ★審査・査察の手当（2026-08-26 その4）。教官と同じ「その他の手当（o）」。
+     m（月々の支給）に混ぜると DEEP PAY の「基本給の割合」が審査の手当で汚れる。 */
+  const xcomp = await one(`
+    select public.pv_pct5(public.pv_pay_comp(null, 20000, null, null, null, null,
+             null, null, null, null, null, null, null, null, null, null, 600)) c,
+           public.pv_annual_total(null, 20000, null, null, null, null,
+             null, null, null, null, null, null, null, null, null, null, 600) v`);
+  ok(xcomp.c && xcomp.c.m === 97 && xcomp.c.o === 3 && Number(xcomp.v) === 247200,
+     '★審査の手当も「その他の手当（o）」に入る（教官と同じ扱い）',
+     JSON.stringify(xcomp));
+  /* ★教官と審査を両方入れても、片方に吸われず両方 o に積まれる。
+     年額 240,000（基本給）＋7,200（教官）＋7,200（審査）＝254,400 のうち
+     o は 14,400 ＝ 5.66% → 丸めて 6%。片方だけしか積まれていなければ 3% になる。 */
+  const bcomp = await one(`
+    select public.pv_pct5(public.pv_pay_comp(null, 20000, null, null, null, null,
+             null, null, null, null, null, null, null, null, null, 600, 600)) c,
+           public.pv_annual_total(null, 20000, null, null, null, null,
+             null, null, null, null, null, null, null, null, null, 600, 600) v`);
+  ok(bcomp.c && bcomp.c.o === 6 && bcomp.c.m === 94 && Number(bcomp.v) === 254400,
+     '★教官と審査は別々に積まれる（o に両方ぶん）', JSON.stringify(bcomp));
 
   const rawC = (await one(`select pv_pay_rows()::text t`)).t;
   ok(!/"(m|b|d|h|o)":/.test(rawC),
@@ -1310,10 +1331,10 @@ console.log('\n▼ 14. 8-20（pay_reports を読む関数が anon に開いて�
   ok(res.length === 0, 'pay_reports を読む security definer 関数が anon に1つも開いていない',
      JSON.stringify(res));
 
-  // 8-21 … 2026-08-26 に足した4列（役職・区分の複数／内訳の行／保証給／教官の手当）
+  // 8-21 … 2026-08-26 に足した5列（役職・区分の複数／内訳の行／保証給／教官／審査）
   const cols = await rows(cut('-- 8-21.'));
-  ok(cols.length === 4 && cols.every((c) => c['ある'] === true),
-     '役職（複数）・内訳の行・保証給・教官の手当の4列が入っている', JSON.stringify(cols));
+  ok(cols.length === 5 && cols.every((c) => c['ある'] === true),
+     '役職（複数）・内訳の行・保証給・教官・審査の5列が入っている', JSON.stringify(cols));
 
   // 8-22 … 総支給と内訳の排他が復活していないこと
   const exc = await rows(cut('-- 8-22.'));

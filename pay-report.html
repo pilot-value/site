@@ -1405,7 +1405,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
           <details class="pay-detail" id="instr-detail">
             <summary><span class="p">+</span>教官・訓練の手当を追加</summary>
             <div class="pay-detail-b">
-              <p class="fld-hint" style="margin:0 0 16px">教官の仕事は、会社によって呼び名も払われ方も違います。<b>明細に出ている金額</b>と、<b>何に対して払われるか</b>を教えてください。教官業務を時間に換算する必要はありません。</p>
+              <p class="fld-hint" style="margin:0 0 16px">教官の仕事は、会社によって呼び名も払われ方も違います。<b>明細に出ている金額</b>と、<b>何を単位に払われるか</b>を教えてください。教官業務を時間に換算する必要はありません。</p>
 
               <div class="fld">
                 <div class="form-label">担当している訓練</div>
@@ -1439,19 +1439,20 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
                    「含まれている」「支給はない」の人は2〜3クリックで終わる。 -->
               <div class="opt-fld" id="opt-instr-pay" hidden>
                 <div class="fld">
-                  <label class="form-label" for="f-instr-method">何に対して払われるか</label>
-                  <!-- ★単価・数量の**ラベルはここが持つ**（data-rate / data-qty）。
-                       JS に日本語を持たせない＝日英で同じコードが動く。
-                       月額固定は単価も数量も無いので data-rate を空にする。 -->
+                  <label class="form-label" for="f-instr-method">支給単位</label>
+                  <!-- ★数量のラベルはここが持つ（data-qty）。JS に日本語を持たせない
+                       ＝日英で同じコードが動く。月額固定は数える物が無いので空。
+                       ★単価は聞かない（2026-08-26 その4 オーナー指示）。
+                         今月の額 ÷ 数量でこちらが出せる数を、人に転記させない。 -->
                   <select id="f-instr-method" class="form-input">
-                    <option value="" data-rate="" data-qty="">選んでください</option>
-                    <option value="monthly" data-rate="" data-qty="">月額で固定</option>
-                    <option value="duty" data-rate="1日あたりの支給額" data-qty="日数">乗務日・勤務日ごと（Duty / Day）</option>
-                    <option value="session" data-rate="1回あたりの支給額" data-qty="回数">セッションごと（Session）</option>
-                    <option value="sector" data-rate="1レグあたりの支給額" data-qty="レグ数">便・レグごと（Sector / Leg）</option>
-                    <option value="hour" data-rate="1時間あたりの支給額" data-qty="時間数">時間ごと（Hour）</option>
-                    <option value="course" data-rate="1コースあたりの支給額" data-qty="コース数">コース・イベントごと（Course / Event）</option>
-                    <option value="other" data-rate="1回あたりの支給額" data-qty="数量">その他</option>
+                    <option value="" data-qty="">選んでください</option>
+                    <option value="monthly" data-qty="">月額で固定</option>
+                    <option value="duty" data-qty="今月の日数">乗務日・勤務日ごと（Duty / Day）</option>
+                    <option value="session" data-qty="今月の回数">セッションごと（Session）</option>
+                    <option value="sector" data-qty="今月のレグ数">便・レグごと（Sector / Leg）</option>
+                    <option value="hour" data-qty="今月の時間数">時間ごと（Hour）</option>
+                    <option value="course" data-qty="今月のコース数">コース・イベントごと（Course / Event）</option>
+                    <option value="other" data-qty="今月の数量">その他</option>
                   </select>
                 </div>
 
@@ -1462,17 +1463,96 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
                 </div>
 
                 <div id="instr-unit" hidden>
-                  <div class="grid2">
-                    <div class="fld">
-                      <label class="form-label" for="f-instr-rate" id="lab-instr-rate">1回あたりの支給額</label>
-                      <input type="text" id="f-instr-rate" class="form-input money" inputmode="decimal"/>
-                    </div>
-                    <div class="fld">
-                      <label class="form-label" for="f-instr-qty" id="lab-instr-qty">回数</label>
-                      <input type="text" id="f-instr-qty" class="form-input" inputmode="decimal"/>
-                    </div>
+                  <div class="fld">
+                    <label class="form-label" for="f-instr-qty" id="lab-instr-qty">回数</label>
+                    <input type="text" id="f-instr-qty" class="form-input" inputmode="decimal"/>
                   </div>
-                  <p class="fld-hint" style="margin-top:0">明細に単価と回数が出ていれば、そのまま書き写してください。<b>掛け算はこちらでやります。</b></p>
+                  <p class="fld-hint" style="margin-top:0">今月、何回ぶん出たかを書き写してください。<b>1回あたりの額はこちらで出します。</b></p>
+                </div>
+              </div>
+            </div>
+          </details>
+        </div>
+
+        <!-- ── 審査・査察（Examiner）の手当（2026-08-26 その4）──────────
+             ★§1で「審査・査察担当」を選んだ人にだけ出す。教官の節と同じ作り。
+             ★知りたいのは審査業務の実態ではなく、「Examiner という役割を持つと
+               どんな追加報酬があるのか」を会社ごとに比べられる形にすること。
+             ★教官の手当との二重計上を止めるのが「まとめて支給されている」の選択肢。
+               選ぶと金額の欄を出さない（その額は instructor_pay 側に入っている）。
+             ★金額は専用の列（examiner_pay）、行の形は pay_items.examiner。
+               職位手当・変動給・その他の現金手当・教官の手当のどれにも足し込まない。
+             ★総支給は書き換えない。★必須は1つも置かない（req-tag を置かない）。 -->
+        <div id="s3-exam" hidden>
+          <details class="pay-detail" id="exam-detail">
+            <summary><span class="p">+</span>審査・査察の手当を追加</summary>
+            <div class="pay-detail-b">
+              <p class="fld-hint" style="margin:0 0 16px">審査の呼び名も払われ方も会社ごとに違います。<b>明細に出ている金額</b>と、<b>何を単位に払われるか</b>を教えてください。</p>
+
+              <div class="fld">
+                <div class="form-label">担当している Check</div>
+                <div class="roleboxes">
+                  <label class="rolebox"><input type="checkbox" name="f-exam-check" value="sim"><span>シミュレーターチェック</span></label>
+                  <label class="rolebox"><input type="checkbox" name="f-exam-check" value="line"><span>ラインチェック</span></label>
+                  <label class="rolebox"><input type="checkbox" name="f-exam-check" value="recurrent"><span>定期審査（Recurrent / Proficiency）</span></label>
+                  <label class="rolebox"><input type="checkbox" name="f-exam-check" value="upgrade"><span>昇格審査（Upgrade / Command）</span></label>
+                  <label class="rolebox"><input type="checkbox" name="f-exam-check" value="other"><span>その他</span></label>
+                </div>
+              </div>
+
+              <div class="fld">
+                <label class="form-label" for="f-exam-label">会社・資格上の名称</label>
+                <input type="text" id="f-exam-label" class="form-input" maxlength="60" placeholder="例：TRE、Check Airman、Line Check Captain"/>
+                <p class="fld-hint">明細や辞令に出ている呼び名を、そのまま書き写してください。</p>
+              </div>
+
+              <div class="fld">
+                <label class="form-label" for="f-exam-extra">審査業務に対する追加の支給</label>
+                <select id="f-exam-extra" class="form-input">
+                  <option value="">選んでください</option>
+                  <option value="separate">Examiner として別途支給されている</option>
+                  <option value="with_instructor">教官・訓練の手当とまとめて支給されている</option>
+                  <option value="included">通常の給与に含まれていて、金額を分けられない</option>
+                  <option value="none">追加の支給はない</option>
+                  <option value="unknown">わからない</option>
+                </select>
+                <p class="fld-hint">教官の手当と<b>まとめて</b>払われている場合は、上の「教官・訓練の手当」に入れた額がその分です。ここで二重に入れないでください。</p>
+              </div>
+
+              <!-- ★「別途支給されている」を選んだ人にだけ、ここから先を出す。
+                   「まとめて」「含まれている」「支給はない」の人は数クリックで終わる。 -->
+              <div class="opt-fld" id="opt-exam-pay" hidden>
+                <div class="fld">
+                  <label class="form-label" for="f-exam-method">支給単位</label>
+                  <!-- ★数量のラベルはここが持つ（data-qty）。JS に日本語を持たせない
+                       ＝日英で同じコードが動く。月額固定は数える物が無いので空。
+                       ★単価は聞かない。今月の額 ÷ 数量でこちらが出せる。 -->
+                  <select id="f-exam-method" class="form-input">
+                    <option value="" data-qty="">選んでください</option>
+                    <option value="monthly" data-qty="">月額で固定</option>
+                    <option value="check" data-qty="今月の回数">Check・イベントごと</option>
+                    <option value="session" data-qty="今月のセッション数">シミュレーターセッションごと</option>
+                    <option value="duty" data-qty="今月の日数">乗務日・勤務日ごと（Duty / Day）</option>
+                    <option value="hour" data-qty="今月の対象時間">時間ごと（Hour）</option>
+                    <option value="other" data-qty="今月の数量">その他</option>
+                  </select>
+                </div>
+
+                <div class="fld" id="opt-exam-mlabel" hidden>
+                  <label class="form-label" for="f-exam-mlabel">支給単位の名称</label>
+                  <input type="text" id="f-exam-mlabel" class="form-input" maxlength="60" placeholder="例：Check Event Allowance"/>
+                </div>
+
+                <div class="fld">
+                  <label class="form-label" for="f-examiner">今月の審査・査察の支給額</label>
+                  <input type="text" id="f-examiner" class="form-input money" inputmode="decimal" placeholder="例：40,000"/>
+                  <p class="fld-hint">明細に出ている金額をそのまま入れてください。この額は<b>教官・訓練の手当・職位手当・変動給・その他の現金手当には入れないでください</b>（同じお金を2回数えることになります）。</p>
+                </div>
+
+                <div class="fld" id="exam-unit" hidden>
+                  <label class="form-label" for="f-exam-qty" id="lab-exam-qty">今月の回数</label>
+                  <input type="text" id="f-exam-qty" class="form-input" inputmode="decimal"/>
+                  <p class="fld-hint">今月、何回ぶん出たかを書き写してください。<b>1回あたりの額はこちらで出します。</b></p>
                 </div>
               </div>
             </div>
@@ -2143,6 +2223,7 @@ const ROLE_BOXES = [].slice.call(document.querySelectorAll('input[name="f-jobrol
 function readRoleBoxes() {
   $('f-jobrole').value = ROLE_BOXES.filter((b) => b.checked).map((b) => b.value).join(',');
   instrToggle();   // 教官を外したら、教官の欄ごと畳んで中身も消す
+  examToggle();    // 審査も同じ
 }
 function syncRoleBoxes() {
   const on = {};
@@ -2164,7 +2245,7 @@ for (const b of ROLE_BOXES) b.addEventListener('change', readRoleBoxes);
      どちらにも足し込まない ＝ これが「二重入力させない」の実装そのもの。
    ★必須は1つも無い（req-tag を置いていない）。金額だけでも保存できる。 */
 const INSTR_BOXES = [].slice.call(document.querySelectorAll('input[name="f-instr-train"]'));
-const INSTR_PAY_IDS = ['f-instr-method', 'f-instructor', 'f-instr-rate', 'f-instr-qty'];
+const INSTR_PAY_IDS = ['f-instr-method', 'f-instructor', 'f-instr-qty'];
 const INSTR_ALL_IDS = ['f-instr-label', 'f-instr-extra'].concat(INSTR_PAY_IDS);
 
 function instrRead() {
@@ -2173,12 +2254,11 @@ function instrRead() {
   const n = (id) => { const v = parseFloat(unc($(id).value)); return isFinite(v) && v > 0 ? v : null; };
   const trainings = INSTR_BOXES.filter((b) => b.checked).map((b) => b.value);
   const o = { trainings: trainings, label: t('f-instr-label') || null, extra: t('f-instr-extra') || null,
-              method: null, amount: null, rate: null, qty: null };
+              method: null, amount: null, qty: null };
   /* 「別途支給されている」以外は金額の欄そのものが出ていない。 */
   if (o.extra === 'separate') {
     o.method = t('f-instr-method') || null;
     o.amount = n('f-instructor');
-    o.rate = n('f-instr-rate');
     o.qty = n('f-instr-qty');
   }
   if (!trainings.length && !o.label && !o.extra) return null;   // 開いただけの空は送らない
@@ -2189,15 +2269,16 @@ function instrSync() {
   const sep = $('f-instr-extra').value === 'separate';
   $('opt-instr-pay').hidden = !sep;
   if (!sep) for (const id of INSTR_PAY_IDS) $(id).value = '';
-  /* ★単価・数量のラベルは option 側の data-rate / data-qty が持つ。
+  /* ★数量のラベルは option 側の data-qty が持つ。
      JS に日本語を持たせない＝日英で同じコードが動く。
-     月額で固定は単価も数量も無いので data-rate が空＝この2欄ごと出さない。 */
+     月額で固定は数える物が無いので data-qty が空＝この欄ごと出さない。
+     ★単価は聞かない。今月の額 ÷ 数量でこちらが出せる（2026-08-26 その4）。 */
   const m = $('f-instr-method');
   const op = m.options[m.selectedIndex];
-  const rate = (op && op.dataset.rate) || '';
-  $('instr-unit').hidden = !(sep && rate);
-  if (rate) { $('lab-instr-rate').textContent = rate; $('lab-instr-qty').textContent = (op.dataset.qty || ''); }
-  else { $('f-instr-rate').value = ''; $('f-instr-qty').value = ''; }
+  const qty = (op && op.dataset.qty) || '';
+  $('instr-unit').hidden = !(sep && qty);
+  if (qty) $('lab-instr-qty').textContent = qty;
+  else $('f-instr-qty').value = '';
   pdSync();      // pay_items を組み直す（中で recalc も走る）
 }
 
@@ -2218,6 +2299,74 @@ for (const b of INSTR_BOXES) b.addEventListener('change', instrSync);
 for (const id of INSTR_ALL_IDS) {
   $(id).addEventListener('input', instrSync);
   $(id).addEventListener('change', instrSync);
+}
+
+/* ── 審査・査察の手当（2026-08-26 その4）──────────────────────
+   §1で「審査・査察担当」を選んだ人にだけ出す。外したら中身も消す。
+   ★教官と同じで、額は専用の列（examiner_pay）に置き、職位手当・変動給・
+     その他の現金手当・教官の手当のどれにも足し込まない。
+   ★二重計上を止めるのは「教官・訓練の手当とまとめて支給されている」の選択肢。
+     選ぶと金額の欄そのものが出ない（その額は instructor_pay 側に入っている）。
+   ★必須は1つも無い（req-tag を置いていない）。今月の額だけでも保存できる。 */
+const EXAM_BOXES = [].slice.call(document.querySelectorAll('input[name="f-exam-check"]'));
+const EXAM_PAY_IDS = ['f-exam-method', 'f-exam-mlabel', 'f-examiner', 'f-exam-qty'];
+const EXAM_ALL_IDS = ['f-exam-label', 'f-exam-extra'].concat(EXAM_PAY_IDS);
+
+function examRead() {
+  if ($('s3-exam').hidden) return null;           // 審査担当でない人の分は組み立てない
+  const t = (id) => $(id).value.trim();
+  const n = (id) => { const v = parseFloat(unc($(id).value)); return isFinite(v) && v > 0 ? v : null; };
+  const checks = EXAM_BOXES.filter((b) => b.checked).map((b) => b.value);
+  const o = { checks: checks, label: t('f-exam-label') || null, extra: t('f-exam-extra') || null,
+              method: null, method_label: null, amount: null, qty: null };
+  /* 「別途支給されている」以外は金額の欄そのものが出ていない。 */
+  if (o.extra === 'separate') {
+    o.method = t('f-exam-method') || null;
+    o.method_label = o.method === 'other' ? (t('f-exam-mlabel') || null) : null;
+    o.amount = n('f-examiner');
+    o.qty = n('f-exam-qty');
+  }
+  if (!checks.length && !o.label && !o.extra) return null;      // 開いただけの空は送らない
+  return o;
+}
+
+function examSync() {
+  const sep = $('f-exam-extra').value === 'separate';
+  $('opt-exam-pay').hidden = !sep;
+  if (!sep) for (const id of EXAM_PAY_IDS) $(id).value = '';
+  const m = $('f-exam-method');
+  const op = m.options[m.selectedIndex];
+  const qty = (op && op.dataset.qty) || '';
+  /* 単位の名前を聞くのは「その他」を選んだときだけ。 */
+  const named = sep && m.value === 'other';
+  $('opt-exam-mlabel').hidden = !named;
+  if (!named) $('f-exam-mlabel').value = '';
+  /* ★数量のラベルは option 側の data-qty が持つ（JS に日本語を持たせない）。
+     月額で固定は数える物が無いので data-qty が空＝この欄ごと出さない。
+     ★単価は聞かない。今月の額 ÷ 数量でこちらが出せる。 */
+  $('exam-unit').hidden = !(sep && qty);
+  if (qty) $('lab-exam-qty').textContent = qty;
+  else $('f-exam-qty').value = '';
+  pdSync();      // pay_items を組み直す（中で recalc も走る）
+}
+
+function examToggle() {
+  const box = $('s3-exam');
+  if (!box) return;
+  const on = String($('f-jobrole').value || '').split(',').indexOf('examiner') >= 0;
+  if (box.hidden !== on) return;                  // 変わっていない
+  box.hidden = !on;
+  if (on) return;
+  for (const b of EXAM_BOXES) b.checked = false;
+  for (const id of EXAM_ALL_IDS) $(id).value = '';
+  $('exam-detail').open = false;
+  examSync();
+}
+
+for (const b of EXAM_BOXES) b.addEventListener('change', examSync);
+for (const id of EXAM_ALL_IDS) {
+  $(id).addEventListener('input', examSync);
+  $(id).addEventListener('change', examSync);
 }
 
 $('f-airline').addEventListener('change', () => {
@@ -2385,7 +2534,7 @@ function monthlyDetail() {
   const housing = $('f-housing').value === 'allowance' ? num('f-housing-amt') : 0;
   return num('f-base') + num('f-guarantee') + num('f-hourly') * hours + num('f-perdiem') + housing
          + num('f-transport') + num('f-command') + num('f-other')
-         + num('f-var-sum') + num('f-oth-sum') + num('f-instructor');
+         + num('f-var-sum') + num('f-oth-sum') + num('f-instructor') + num('f-examiner');
 }
 
 function annualTotal() {
@@ -2422,7 +2571,7 @@ function recalc() {
 }
 /* ★f-transport / f-other は画面から消えて hidden になった（明細読み取りだけが書く）。
    代わりに繰り返し行の合計 f-var-sum / f-oth-sum を pdSync() が書いて recalc を呼ぶ。 */
-['f-gross','f-base','f-guarantee','f-hourly','f-guar','f-block','f-perdiem','f-housing-amt','f-command','f-bonus','f-bonus-mo','f-profit','f-instructor']
+['f-gross','f-base','f-guarantee','f-hourly','f-guar','f-block','f-perdiem','f-housing-amt','f-command','f-bonus','f-bonus-mo','f-profit','f-instructor','f-examiner']
   .forEach((id) => $(id).addEventListener('input', recalc));
 $('f-currency').addEventListener('change', recalc);
 
@@ -2680,11 +2829,12 @@ function pdSync() {
   const none = $('f-base-none').checked;
   /* ★教官の行も同じ入れ物に乗せる。合計はどこにも寄せない
      （寄せると職位手当・変動給・その他と二重に数えることになる）。 */
-  const ins = instrRead();
+  const ins = instrRead(), exm = examRead();
   const pi = { v: 1, fixed_none: none, variable: v, other: o };
   if (ins) pi.instructor = ins;
+  if (exm) pi.examiner = exm;
   /* 何も入っていないときは列ごと空にする（意味の無い {} を送らない）。 */
-  $('f-payitems').value = (v.length || o.length || none || ins) ? JSON.stringify(pi) : '';
+  $('f-payitems').value = (v.length || o.length || none || ins || exm) ? JSON.stringify(pi) : '';
   recalc();
 }
 
@@ -2757,10 +2907,25 @@ function pdRestore(raw) {
     put('f-instr-extra', ins.extra);
     put('f-instr-method', ins.method);
     put('f-instructor', ins.amount != null ? grp(String(ins.amount)) : '');
-    put('f-instr-rate', ins.rate != null ? grp(String(ins.rate)) : '');
     put('f-instr-qty', ins.qty != null ? String(ins.qty) : '');
     $('instr-detail').open = true;
     instrSync();   // 中で pdSync も走る
+  }
+  /* ★審査・査察の分。教官と同じで、画面に出ていないなら書き戻さない。 */
+  const exm = o.examiner;
+  if (exm && typeof exm === 'object' && !$('s3-exam').hidden) {
+    const on = {};
+    for (const c of (Array.isArray(exm.checks) ? exm.checks : [])) on[c] = 1;
+    for (const b of EXAM_BOXES) b.checked = !!on[b.value];
+    const put = (id, v) => { if (v != null && v !== '') $(id).value = v; };
+    put('f-exam-label', exm.label);
+    put('f-exam-extra', exm.extra);
+    put('f-exam-method', exm.method);
+    put('f-exam-mlabel', exm.method_label);
+    put('f-examiner', exm.amount != null ? grp(String(exm.amount)) : '');
+    put('f-exam-qty', exm.qty != null ? String(exm.qty) : '');
+    $('exam-detail').open = true;
+    examSync();   // 中で pdSync も走る
   }
   pdSync();
 }
@@ -2777,9 +2942,9 @@ const PRESET_IDS = ['f-airline','f-airline-other','f-position','f-fleet','f-curr
   'f-tax','f-guarantee','f-command','f-transport','f-other','f-bonus','f-profit','f-pension','f-jobrole','f-age','f-base-iata',
   /* ★内訳の繰り返し行。合計の2つ（f-var-sum / f-oth-sum）は pdSync() が出し直すので保存しない。 */
   'f-payitems',
-  /* ★教官の支給額。行の形（担当・呼び名・支給方法）は f-payitems 側が持つので、
-     ここに入れるのは列へ送る金額の1つだけ。 */
-  'f-instructor'];
+  /* ★教官・審査の支給額。行の形（担当・呼び名・支給単位）は f-payitems 側が
+     持つので、ここに入れるのは列へ送る金額だけ。 */
+  'f-instructor','f-examiner'];
 // ★ログイン後の再送用。プリセットと違って対象月も含める（そのまま送るため）。
 const ALL_IDS = PRESET_IDS.concat(['f-year','f-month','f-block','f-duty',
   /* ★その月にしか無い値。PRESET_IDS には入れない（翌月のフォームに持ち越すと壊れる）。 */
@@ -2900,7 +3065,7 @@ updateSteps(true);
     'f-housing': s(r.housing_type), 'f-housing-amt': s(r.housing_amount),
     'f-transport': s(r.transport), 'f-command': s(r.command_pay),
     'f-other': s(r.other_allowance), 'f-bonus': s(r.bonus_annual),
-    'f-instructor': s(r.instructor_pay),
+    'f-instructor': s(r.instructor_pay), 'f-examiner': s(r.examiner_pay),
     'f-profit': s(r.profit_share_annual), 'f-pension': s(r.pension_pct),
     'f-contract': s(r.contract_type), 'f-taxcountry': s(r.tax_country),
     'f-tax': s(r.tax_rate_pct), 'f-seniority': s(r.seniority_years),
@@ -3114,6 +3279,9 @@ async function submitPayReport() {
     /* ★教官・訓練の手当（2026-08-26 その3）。職位手当・変動給・その他とは別の列。
        足し込むと同じお金を2回数える。年換算は総支給が正なので、この欄で年収は動かない。 */
     instructor_pay:      val('f-instructor'),
+    /* ★審査・査察の手当（2026-08-26 その4）。教官の手当ともまた別の列。
+       「教官とまとめて支給」を選んだ人はここが空になる（額は instructor_pay 側）。 */
+    examiner_pay:        val('f-examiner'),
     /* ★繰り返し行（その他の現金手当＋変動給）の合計をここに足す。
        f-other は明細読み取りが丸ごと上書きする欄なので、手入力の行は
        別の入れ物（f-oth-sum / f-var-sum）に持っていて、送るときだけ合わせる。

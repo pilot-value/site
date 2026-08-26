@@ -1410,7 +1410,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
           <details class="pay-detail" id="instr-detail">
             <summary><span class="p">+</span>Add instructor / training pay</summary>
             <div class="pay-detail-b">
-              <p class="fld-hint" style="margin:0 0 16px">Airlines name and pay instructor work in very different ways. Tell us <b>the amount printed on your payslip</b> and <b>what it is paid on</b>. You never have to convert instructor work into hours.</p>
+              <p class="fld-hint" style="margin:0 0 16px">Airlines name and pay instructor work in very different ways. Tell us <b>the amount printed on your payslip</b> and <b>what it is paid by</b>. You never have to convert instructor work into hours.</p>
 
               <div class="fld">
                 <div class="form-label">Training you deliver</div>
@@ -1444,19 +1444,21 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
                    finish in two or three clicks. -->
               <div class="opt-fld" id="opt-instr-pay" hidden>
                 <div class="fld">
-                  <label class="form-label" for="f-instr-method">What it is paid on</label>
-                  <!-- ★The unit labels live HERE (data-rate / data-qty), never in the JS,
-                       so ja and en run the same code. A fixed monthly amount has no
-                       unit and no count, so its data-rate is empty. -->
+                  <label class="form-label" for="f-instr-method">Pay unit</label>
+                  <!-- ★The count label lives HERE (data-qty), never in the JS, so ja and
+                       en run the same code. A fixed monthly amount has nothing to count,
+                       so its data-qty is empty.
+                       ★We never ask for the rate (owner, 2026-08-26 #4): amount ÷ count
+                         gives it to us, so nobody has to copy it across. -->
                   <select id="f-instr-method" class="form-input">
-                    <option value="" data-rate="" data-qty="">Choose one</option>
-                    <option value="monthly" data-rate="" data-qty="">Fixed monthly amount</option>
-                    <option value="duty" data-rate="Amount per day" data-qty="Days">Per duty / day</option>
-                    <option value="session" data-rate="Amount per session" data-qty="Sessions">Per session</option>
-                    <option value="sector" data-rate="Amount per sector" data-qty="Sectors">Per sector / leg</option>
-                    <option value="hour" data-rate="Amount per hour" data-qty="Hours">Per hour</option>
-                    <option value="course" data-rate="Amount per course" data-qty="Courses">Per course / event</option>
-                    <option value="other" data-rate="Amount per unit" data-qty="Units">Other</option>
+                    <option value="" data-qty="">Choose one</option>
+                    <option value="monthly" data-qty="">Fixed monthly amount</option>
+                    <option value="duty" data-qty="Days this month">Per duty / day</option>
+                    <option value="session" data-qty="Sessions this month">Per session</option>
+                    <option value="sector" data-qty="Sectors this month">Per sector / leg</option>
+                    <option value="hour" data-qty="Hours this month">Per hour</option>
+                    <option value="course" data-qty="Courses this month">Per course / event</option>
+                    <option value="other" data-qty="Units this month">Other</option>
                   </select>
                 </div>
 
@@ -1467,17 +1469,98 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
                 </div>
 
                 <div id="instr-unit" hidden>
-                  <div class="grid2">
-                    <div class="fld">
-                      <label class="form-label" for="f-instr-rate" id="lab-instr-rate">Amount per session</label>
-                      <input type="text" id="f-instr-rate" class="form-input money" inputmode="decimal"/>
-                    </div>
-                    <div class="fld">
-                      <label class="form-label" for="f-instr-qty" id="lab-instr-qty">Sessions</label>
-                      <input type="text" id="f-instr-qty" class="form-input" inputmode="decimal"/>
-                    </div>
+                  <div class="fld">
+                    <label class="form-label" for="f-instr-qty" id="lab-instr-qty">Sessions</label>
+                    <input type="text" id="f-instr-qty" class="form-input" inputmode="decimal"/>
                   </div>
-                  <p class="fld-hint" style="margin-top:0">If your payslip prints the rate and the count, copy them across. <b>We do the multiplication.</b></p>
+                  <p class="fld-hint" style="margin-top:0">Copy across how many you did this month. <b>We work out the amount per session.</b></p>
+                </div>
+              </div>
+            </div>
+          </details>
+        </div>
+
+        <!-- ── Examiner / check pay (2026-08-26 #4) ──────────────────
+             ★Only shown to people who ticked "Examiner / Check" in §1. Same shape
+               as the instructor block above.
+             ★What we want is not a survey of check work: it is what the Examiner
+               role pays, in a form that compares across airlines.
+             ★"Paid together with instructor pay" is what stops double counting —
+               pick it and the amount field never opens (that money is already in
+               instructor_pay).
+             ★The amount goes to its own column (examiner_pay); the shape stays in
+               pay_items.examiner. It is added to none of the others.
+             ★Gross pay is never rewritten. ★No required fields here (no req-tag). -->
+        <div id="s3-exam" hidden>
+          <details class="pay-detail" id="exam-detail">
+            <summary><span class="p">+</span>Add examiner / check pay</summary>
+            <div class="pay-detail-b">
+              <p class="fld-hint" style="margin:0 0 16px">Airlines name and pay check work in very different ways. Tell us <b>the amount printed on your payslip</b> and <b>what it is paid by</b>.</p>
+
+              <div class="fld">
+                <div class="form-label">Checks you conduct</div>
+                <div class="roleboxes">
+                  <label class="rolebox"><input type="checkbox" name="f-exam-check" value="sim"><span>Simulator check</span></label>
+                  <label class="rolebox"><input type="checkbox" name="f-exam-check" value="line"><span>Line check</span></label>
+                  <label class="rolebox"><input type="checkbox" name="f-exam-check" value="recurrent"><span>Recurrent / proficiency check</span></label>
+                  <label class="rolebox"><input type="checkbox" name="f-exam-check" value="upgrade"><span>Upgrade / command check</span></label>
+                  <label class="rolebox"><input type="checkbox" name="f-exam-check" value="other"><span>Other check</span></label>
+                </div>
+              </div>
+
+              <div class="fld">
+                <label class="form-label" for="f-exam-label">Title your airline uses</label>
+                <input type="text" id="f-exam-label" class="form-input" maxlength="60" placeholder="e.g. TRE, Check Airman, Line Check Captain"/>
+                <p class="fld-hint">Copy across the title printed on your payslip or letter of appointment.</p>
+              </div>
+
+              <div class="fld">
+                <label class="form-label" for="f-exam-extra">Extra pay for check duties</label>
+                <select id="f-exam-extra" class="form-input">
+                  <option value="">Choose one</option>
+                  <option value="separate">Paid separately as an examiner</option>
+                  <option value="with_instructor">Paid together with instructor / training pay</option>
+                  <option value="included">Included in normal pay, cannot be split out</option>
+                  <option value="none">No extra pay</option>
+                  <option value="unknown">Not sure</option>
+                </select>
+                <p class="fld-hint">If it is paid <b>together</b> with instructor pay, the amount you entered under Instructor / training pay already covers it. Do not enter it twice.</p>
+              </div>
+
+              <!-- ★Only "Paid separately" opens the rest. "Together", "Included" and
+                   "No extra pay" finish in two or three clicks. -->
+              <div class="opt-fld" id="opt-exam-pay" hidden>
+                <div class="fld">
+                  <label class="form-label" for="f-exam-method">Pay unit</label>
+                  <!-- ★The count label lives HERE (data-qty), never in the JS, so ja and
+                       en run the same code. A fixed monthly amount has nothing to count.
+                       ★We never ask for the rate: amount ÷ count gives it to us. -->
+                  <select id="f-exam-method" class="form-input">
+                    <option value="" data-qty="">Choose one</option>
+                    <option value="monthly" data-qty="">Fixed monthly amount</option>
+                    <option value="check" data-qty="Checks this month">Per check / event</option>
+                    <option value="session" data-qty="Sessions this month">Per simulator session</option>
+                    <option value="duty" data-qty="Days this month">Per duty / day</option>
+                    <option value="hour" data-qty="Hours this month">Per hour</option>
+                    <option value="other" data-qty="Units this month">Other</option>
+                  </select>
+                </div>
+
+                <div class="fld" id="opt-exam-mlabel" hidden>
+                  <label class="form-label" for="f-exam-mlabel">Name of the pay unit</label>
+                  <input type="text" id="f-exam-mlabel" class="form-input" maxlength="60" placeholder="e.g. Check Event Allowance"/>
+                </div>
+
+                <div class="fld">
+                  <label class="form-label" for="f-examiner">Examiner pay this month</label>
+                  <input type="text" id="f-examiner" class="form-input money" inputmode="decimal" placeholder="e.g. 400"/>
+                  <p class="fld-hint">Enter the amount as printed on your payslip. <b>Do not enter it again under Instructor / training pay, Rank / position allowance, Variable pay or Other cash allowances</b> &mdash; that would count the same money twice.</p>
+                </div>
+
+                <div class="fld" id="exam-unit" hidden>
+                  <label class="form-label" for="f-exam-qty" id="lab-exam-qty">Checks this month</label>
+                  <input type="text" id="f-exam-qty" class="form-input" inputmode="decimal"/>
+                  <p class="fld-hint">Copy across how many you did this month. <b>We work out the amount per check.</b></p>
                 </div>
               </div>
             </div>
@@ -2155,6 +2238,7 @@ const ROLE_BOXES = [].slice.call(document.querySelectorAll('input[name="f-jobrol
 function readRoleBoxes() {
   $('f-jobrole').value = ROLE_BOXES.filter((b) => b.checked).map((b) => b.value).join(',');
   instrToggle();   // untick Instructor and the whole instructor block folds away, cleared
+  examToggle();    // same for Examiner
 }
 function syncRoleBoxes() {
   const on = {};
@@ -2177,7 +2261,7 @@ for (const b of ROLE_BOXES) b.addEventListener('change', readRoleBoxes);
      what "do not enter it twice" means in code.
    ★Nothing here is required (no req-tag). The amount alone is enough to save. */
 const INSTR_BOXES = [].slice.call(document.querySelectorAll('input[name="f-instr-train"]'));
-const INSTR_PAY_IDS = ['f-instr-method', 'f-instructor', 'f-instr-rate', 'f-instr-qty'];
+const INSTR_PAY_IDS = ['f-instr-method', 'f-instructor', 'f-instr-qty'];
 const INSTR_ALL_IDS = ['f-instr-label', 'f-instr-extra'].concat(INSTR_PAY_IDS);
 
 function instrRead() {
@@ -2186,12 +2270,11 @@ function instrRead() {
   const n = (id) => { const v = parseFloat(unc($(id).value)); return isFinite(v) && v > 0 ? v : null; };
   const trainings = INSTR_BOXES.filter((b) => b.checked).map((b) => b.value);
   const o = { trainings: trainings, label: t('f-instr-label') || null, extra: t('f-instr-extra') || null,
-              method: null, amount: null, rate: null, qty: null };
+              method: null, amount: null, qty: null };
   /* Anything other than "paid separately" never shows the amount fields at all. */
   if (o.extra === 'separate') {
     o.method = t('f-instr-method') || null;
     o.amount = n('f-instructor');
-    o.rate = n('f-instr-rate');
     o.qty = n('f-instr-qty');
   }
   if (!trainings.length && !o.label && !o.extra) return null;   // opened but empty: send nothing
@@ -2202,15 +2285,16 @@ function instrSync() {
   const sep = $('f-instr-extra').value === 'separate';
   $('opt-instr-pay').hidden = !sep;
   if (!sep) for (const id of INSTR_PAY_IDS) $(id).value = '';
-  /* ★The rate / count labels live on the <option> (data-rate / data-qty), never in
-     the JS — that is how ja and en run the same code. A fixed monthly amount has no
-     unit and no count, so its data-rate is empty and both fields stay hidden. */
+  /* ★The count label lives on the <option> (data-qty), never in the JS — that is
+     how ja and en run the same code. A fixed monthly amount has nothing to count,
+     so its data-qty is empty and the field stays hidden.
+     ★We never ask for the rate: amount ÷ count gives it to us (2026-08-26 #4). */
   const m = $('f-instr-method');
   const op = m.options[m.selectedIndex];
-  const rate = (op && op.dataset.rate) || '';
-  $('instr-unit').hidden = !(sep && rate);
-  if (rate) { $('lab-instr-rate').textContent = rate; $('lab-instr-qty').textContent = (op.dataset.qty || ''); }
-  else { $('f-instr-rate').value = ''; $('f-instr-qty').value = ''; }
+  const qty = (op && op.dataset.qty) || '';
+  $('instr-unit').hidden = !(sep && qty);
+  if (qty) $('lab-instr-qty').textContent = qty;
+  else $('f-instr-qty').value = '';
   pdSync();      // rebuild pay_items (recalc runs inside)
 }
 
@@ -2231,6 +2315,77 @@ for (const b of INSTR_BOXES) b.addEventListener('change', instrSync);
 for (const id of INSTR_ALL_IDS) {
   $(id).addEventListener('input', instrSync);
   $(id).addEventListener('change', instrSync);
+}
+
+/* ── Examiner / check pay (2026-08-26, 4th) ────────────────────
+   Only shown to people who ticked "Examiner / Check" in §1; untick it and the
+   block folds away with its contents cleared.
+   ★Like the instructor block, the amount lives in its own column (examiner_pay)
+     and is folded into none of rank allowance, variable pay, other cash or
+     instructor pay.
+   ★What stops double counting is the "Paid together with instructor / training
+     pay" option: pick it and the amount field never opens (that money is already
+     sitting in instructor_pay).
+   ★Nothing here is required (no req-tag). This month's amount alone will save. */
+const EXAM_BOXES = [].slice.call(document.querySelectorAll('input[name="f-exam-check"]'));
+const EXAM_PAY_IDS = ['f-exam-method', 'f-exam-mlabel', 'f-examiner', 'f-exam-qty'];
+const EXAM_ALL_IDS = ['f-exam-label', 'f-exam-extra'].concat(EXAM_PAY_IDS);
+
+function examRead() {
+  if ($('s3-exam').hidden) return null;           // not an examiner -> build nothing
+  const t = (id) => $(id).value.trim();
+  const n = (id) => { const v = parseFloat(unc($(id).value)); return isFinite(v) && v > 0 ? v : null; };
+  const checks = EXAM_BOXES.filter((b) => b.checked).map((b) => b.value);
+  const o = { checks: checks, label: t('f-exam-label') || null, extra: t('f-exam-extra') || null,
+              method: null, method_label: null, amount: null, qty: null };
+  /* Anything other than "paid separately" never opens the amount field. */
+  if (o.extra === 'separate') {
+    o.method = t('f-exam-method') || null;
+    o.method_label = o.method === 'other' ? (t('f-exam-mlabel') || null) : null;
+    o.amount = n('f-examiner');
+    o.qty = n('f-exam-qty');
+  }
+  if (!checks.length && !o.label && !o.extra) return null;      // opened but empty -> do not send
+  return o;
+}
+
+function examSync() {
+  const sep = $('f-exam-extra').value === 'separate';
+  $('opt-exam-pay').hidden = !sep;
+  if (!sep) for (const id of EXAM_PAY_IDS) $(id).value = '';
+  const m = $('f-exam-method');
+  const op = m.options[m.selectedIndex];
+  const qty = (op && op.dataset.qty) || '';
+  /* We only ask what the unit is called when they picked "Other". */
+  const named = sep && m.value === 'other';
+  $('opt-exam-mlabel').hidden = !named;
+  if (!named) $('f-exam-mlabel').value = '';
+  /* ★The count label lives on the <option> (data-qty), never in the JS. A fixed
+     monthly amount has nothing to count, so data-qty is empty and the field stays
+     away. ★We never ask for the rate: amount ÷ count gives it to us. */
+  $('exam-unit').hidden = !(sep && qty);
+  if (qty) $('lab-exam-qty').textContent = qty;
+  else $('f-exam-qty').value = '';
+  pdSync();      // rebuild pay_items (recalc runs inside)
+}
+
+function examToggle() {
+  const box = $('s3-exam');
+  if (!box) return;
+  const on = String($('f-jobrole').value || '').split(',').indexOf('examiner') >= 0;
+  if (box.hidden !== on) return;                  // unchanged
+  box.hidden = !on;
+  if (on) return;
+  for (const b of EXAM_BOXES) b.checked = false;
+  for (const id of EXAM_ALL_IDS) $(id).value = '';
+  $('exam-detail').open = false;
+  examSync();
+}
+
+for (const b of EXAM_BOXES) b.addEventListener('change', examSync);
+for (const id of EXAM_ALL_IDS) {
+  $(id).addEventListener('input', examSync);
+  $(id).addEventListener('change', examSync);
 }
 
 $('f-airline').addEventListener('change', () => {
@@ -2415,7 +2570,7 @@ function monthlyDetail() {
   const housing = $('f-housing').value === 'allowance' ? num('f-housing-amt') : 0;
   return num('f-base') + num('f-guarantee') + num('f-hourly') * hours + num('f-perdiem') + housing
          + num('f-transport') + num('f-command') + num('f-other')
-         + num('f-var-sum') + num('f-oth-sum') + num('f-instructor');
+         + num('f-var-sum') + num('f-oth-sum') + num('f-instructor') + num('f-examiner');
 }
 
 function annualTotal() {
@@ -2455,7 +2610,7 @@ function recalc() {
 }
 /* ★f-transport / f-other are hidden now (only payslip parsing writes them).
    The repeating rows report through f-var-sum / f-oth-sum, written by pdSync(). */
-['f-gross','f-base','f-guarantee','f-hourly','f-guar','f-block','f-perdiem','f-housing-amt','f-command','f-bonus','f-bonus-mo','f-profit','f-instructor']
+['f-gross','f-base','f-guarantee','f-hourly','f-guar','f-block','f-perdiem','f-housing-amt','f-command','f-bonus','f-bonus-mo','f-profit','f-instructor','f-examiner']
   .forEach((id) => $(id).addEventListener('input', recalc));
 $('f-currency').addEventListener('change', recalc);
 
@@ -2722,11 +2877,12 @@ function pdSync() {
   /* ★The instructor block rides in the same container. Its total is folded into
      nothing — folding it in would count the same money twice against rank/position
      allowance, variable pay and other cash allowances. */
-  const ins = instrRead();
+  const ins = instrRead(), exm = examRead();
   const pi = { v: 1, fixed_none: none, variable: v, other: o };
   if (ins) pi.instructor = ins;
+  if (exm) pi.examiner = exm;
   /* Nothing entered -> leave the column empty rather than send a meaningless {}. */
-  $('f-payitems').value = (v.length || o.length || none || ins) ? JSON.stringify(pi) : '';
+  $('f-payitems').value = (v.length || o.length || none || ins || exm) ? JSON.stringify(pi) : '';
   recalc();
 }
 
@@ -2799,10 +2955,26 @@ function pdRestore(raw) {
     put('f-instr-extra', ins.extra);
     put('f-instr-method', ins.method);
     put('f-instructor', ins.amount != null ? grp(String(ins.amount)) : '');
-    put('f-instr-rate', ins.rate != null ? grp(String(ins.rate)) : '');
     put('f-instr-qty', ins.qty != null ? String(ins.qty) : '');
     $('instr-detail').open = true;
     instrSync();   // pdSync runs inside
+  }
+  /* ★The examiner block. Same rule as the instructor one: if it is not on
+     screen, restore nothing. */
+  const exm = o.examiner;
+  if (exm && typeof exm === 'object' && !$('s3-exam').hidden) {
+    const on = {};
+    for (const c of (Array.isArray(exm.checks) ? exm.checks : [])) on[c] = 1;
+    for (const b of EXAM_BOXES) b.checked = !!on[b.value];
+    const put = (id, v) => { if (v != null && v !== '') $(id).value = v; };
+    put('f-exam-label', exm.label);
+    put('f-exam-extra', exm.extra);
+    put('f-exam-method', exm.method);
+    put('f-exam-mlabel', exm.method_label);
+    put('f-examiner', exm.amount != null ? grp(String(exm.amount)) : '');
+    put('f-exam-qty', exm.qty != null ? String(exm.qty) : '');
+    $('exam-detail').open = true;
+    examSync();   // pdSync runs inside
   }
   pdSync();
 }
@@ -2820,9 +2992,10 @@ const PRESET_IDS = ['f-airline','f-airline-other','f-position','f-fleet','f-curr
   'f-tax','f-guarantee','f-command','f-transport','f-other','f-bonus','f-profit','f-pension','f-jobrole','f-age','f-base-iata',
   /* ★The repeating rows. The two totals (f-var-sum / f-oth-sum) are not saved — pdSync() derives them. */
   'f-payitems',
-  /* ★Instructor pay. The shape (what you teach, the title, how it is paid) rides in
-     f-payitems, so all that belongs here is the one amount bound for its column. */
-  'f-instructor'];
+  /* ★Instructor and examiner pay. The shape (what you teach or check, the title,
+     the pay unit) rides in f-payitems, so all that belongs here are the amounts
+     bound for their columns. */
+  'f-instructor','f-examiner'];
 // ★For re-sending after login. Unlike the preset, this includes the period.
 const ALL_IDS = PRESET_IDS.concat(['f-year','f-month','f-block','f-duty',
   /* ★その月にしか無い値。PRESET_IDS には入れない（翌月のフォームに持ち越すと壊れる）。 */
@@ -2948,7 +3121,7 @@ updateSteps(true);
     'f-housing': s(r.housing_type), 'f-housing-amt': s(r.housing_amount),
     'f-transport': s(r.transport), 'f-command': s(r.command_pay),
     'f-other': s(r.other_allowance), 'f-bonus': s(r.bonus_annual),
-    'f-instructor': s(r.instructor_pay),
+    'f-instructor': s(r.instructor_pay), 'f-examiner': s(r.examiner_pay),
     'f-profit': s(r.profit_share_annual), 'f-pension': s(r.pension_pct),
     'f-contract': s(r.contract_type), 'f-taxcountry': s(r.tax_country),
     'f-tax': s(r.tax_rate_pct), 'f-seniority': s(r.seniority_years),
@@ -3180,6 +3353,10 @@ async function submitPayReport() {
        allowance, variable pay and other cash. Folding it in would count the same money
        twice. The annual figure comes from gross, so this field never moves it. */
     instructor_pay:      val('f-instructor'),
+    /* ★Examiner / check pay (2026-08-26, 4th). Its own column again, apart from
+       instructor pay. Anyone who picked "paid together with instructor pay"
+       leaves this empty (that money sits in instructor_pay). */
+    examiner_pay:        val('f-examiner'),
     /* ★The repeating rows (other cash allowances + variable pay) are added in here.
        f-other is overwritten wholesale by payslip parsing, so hand-entered rows live
        in their own carriers (f-oth-sum / f-var-sum) and are only combined on send.

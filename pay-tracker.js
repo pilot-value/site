@@ -67,7 +67,8 @@
       noMetric: 'この指標に使える月がまだありません。',
       breakdown: 'いちばん新しい月の内訳',
       segBase: '基本給', segGuarantee: '保証手当・職務手当', segCommand: '機長・役職手当',
-      segInstructor: '教官・訓練手当', segFlight: '乗務変動手当',
+      segInstructor: '教官・訓練手当', segExaminer: '審査・査察手当',
+      segFlight: '乗務変動手当',
       segOther: 'その他手当', segHousing: '住宅手当', segTransport: '交通費', segPerDiem: 'パーディアム',
       /* ★下の2つは総支給が入っている行にしか出ない（pay-viz.js の segments()）。
          ★2026-08-26、総支給と内訳が両立するようになったので「内訳を入れていない分」
@@ -119,6 +120,7 @@
       breakdown: 'Latest month, broken down',
       segBase: 'Base pay', segGuarantee: 'Guarantee / duty',
       segCommand: 'Command / position', segInstructor: 'Instructor / training',
+      segExaminer: 'Examiner / check',
       segFlight: 'Flight variable',
       segOther: 'Other allowances', segHousing: 'Housing', segTransport: 'Transport', segPerDiem: 'Per diem',
       /* ★The two below only appear on a row filed as one gross figure (see segments() in pay-viz.js). */
@@ -173,6 +175,7 @@
   var SEGNAME = {
     base:    T.segBase,    guarantee: T.segGuarantee,
     command: T.segCommand, instructor: T.segInstructor,
+    examiner: T.segExaminer,
     flight:  T.segFlight,
     other:   T.segOther,   housing:   T.segHousing,   transport: T.segTransport,
     perdiem: T.segPerDiem,

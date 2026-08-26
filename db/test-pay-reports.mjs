@@ -102,12 +102,12 @@ console.log('\n▼ 年換算の計算');
 const nfn = await one(`select count(*) c from pg_proc p join pg_namespace n on n.oid=p.pronamespace
                         where n.nspname='public' and p.proname='pv_annual_total'`);
 ok(Number(nfn.c) === 1, `pv_annual_total は1本だけ（古い12引数版が残っていない）→ ${nfn.c}`);
-/* ★2026-08-26、保証給（p_guarantee_pay）と教官の手当（p_instructor_pay）を
-   末尾に足して16本になった。どちらも default 付きなので、13本で呼んでいる
-   下の検査はそのまま通る。 */
+/* ★2026-08-26、保証給（p_guarantee_pay）・教官の手当（p_instructor_pay）・
+   審査の手当（p_examiner_pay）を末尾に足して17本になった。どれも default 付きなので、
+   13本で呼んでいる下の検査はそのまま通る。 */
 const narg = await one(`select p.pronargs n from pg_proc p join pg_namespace nn on nn.oid=p.pronamespace
                          where nn.nspname='public' and p.proname='pv_annual_total'`);
-ok(Number(narg.n) === 16, `pv_annual_total は16引数（保証給・教官まで受ける）→ ${narg.n}`);
+ok(Number(narg.n) === 17, `pv_annual_total は17引数（保証給・教官・審査まで受ける）→ ${narg.n}`);
 /* 保証給は基本給と足し上げる（別の列だが、年収では同じ「固定の支給」）。 */
 const gp = await one(`select pv_annual_total(null,20000,null,null,null,null,null,null,
                                              null,null,null,null,null,null,5000) v`);
@@ -124,6 +124,18 @@ ok(Number(ip.v) === 960000, `基本給20,000＋教官60,000 → ${ip.v}（期待
 const ip2 = await one(`select pv_annual_total(54250,20000,null,null,null,null,null,null,
                                               null,null,null,null,null,null,null,60000) v`);
 ok(Number(ip2.v) === 651000, `総支給がある行は教官の手当でも動かない → ${ip2.v}（期待 651000）`);
+/* ★審査・査察の手当（2026-08-26 その4）。教官とは別の列で、同じように扱う。
+   ⚠️ 教官の額に足し込まれていないことが本題（同じお金を2回数えない）。 */
+const xp = await one(`select pv_annual_total(null,20000,null,null,null,null,null,null,
+                                             null,null,null,null,null,null,null,null,40000) v`);
+ok(Number(xp.v) === 720000, `基本給20,000＋審査40,000 → ${xp.v}（期待 720000）`);
+const xp2 = await one(`select pv_annual_total(null,20000,null,null,null,null,null,null,
+                                              null,null,null,null,null,null,null,60000,40000) v`);
+ok(Number(xp2.v) === 1440000,
+   `教官60,000と審査40,000は別々に足される → ${xp2.v}（期待 1440000）`);
+const xp3 = await one(`select pv_annual_total(54250,20000,null,null,null,null,null,null,
+                                              null,null,null,null,null,null,null,null,40000) v`);
+ok(Number(xp3.v) === 651000, `総支給がある行は審査の手当でも動かない → ${xp3.v}（期待 651000）`);
 const a1 = await one(`select pv_annual_total(null,20000,250,75,85,3000,'allowance',10000,null,null,null,null,null) v`);
 ok(Number(a1.v) === 651000, `住宅手当は現金なので足す → ${a1.v}（期待 651000）`);
 const a2 = await one(`select pv_annual_total(null,20000,250,75,85,3000,'provided',10000,null,null,null,null,null) v`);
@@ -460,6 +472,46 @@ await submit({ ...BASE, gross_monthly: 54250,
 const insD = await one(`select * from pay_reports where airline='lufthansa' and period_month=3`);
 ok(!insD.pay_items || !insD.pay_items.instructor,
   `大きすぎる教官の中身は捨てる（投稿は通る） → ${JSON.stringify(insD.pay_items)}`);
+
+/* ── 審査・査察の手当（2026-08-26 その4 に足した列）────────────────
+   ★教官とは別の列。両方やっている人が同じお金を2回入れないための分け方なので、
+     ここでは「教官も審査も入れた行」で、どちらの列にも相手の額が混ざらないことを見る。
+   ⚠️ pay_items は知っているキーだけで組み直す作り。'examiner' を足し忘れると
+      金額だけ残って中身が黙って消える。ここがその見張り。 */
+await asUser(51);
+const EXAM = { v: 1, fixed_none: false,
+  instructor: { trainings: ['sim'], extra: 'separate', method: 'session', amount: 600, qty: 4 },
+  examiner: { checks: ['sim', 'line'], label: 'TRE', extra: 'separate',
+              method: 'check', method_label: null, amount: 4000, qty: 3 } };
+r = (await submit({ ...BASE, gross_monthly: 54250,
+                    instructor_pay: 600, examiner_pay: 4000, pay_items: EXAM,
+                    job_roles: ['line', 'instructor', 'examiner'],
+                    airline: 'singapore-airlines', period_year: 2026, period_month: 8 })).r;
+const exm = await one(`select * from pay_reports where airline='singapore-airlines' and period_month=8`);
+ok(Number(exm.examiner_pay) === 4000 && Number(exm.instructor_pay) === 600,
+  `★教官と審査は別々の列に残る（片方に吸われない） → ${exm.instructor_pay} / ${exm.examiner_pay}`);
+ok(exm.command_pay === null && exm.flight_variable_pay === null && exm.other_allowance === null,
+  `職位手当・変動給・その他には1円も入らない → ${exm.command_pay} / ${exm.flight_variable_pay} / ${exm.other_allowance}`);
+ok(exm.pay_items && exm.pay_items.examiner
+   && exm.pay_items.examiner.method === 'check'
+   && String(exm.pay_items.examiner.checks) === 'sim,line'
+   && exm.pay_items.examiner.label === 'TRE'
+   && exm.pay_items.instructor,
+  `★審査の中身が組み直しを生き延びる（教官も残ったまま） → ${JSON.stringify(exm.pay_items)}`);
+ok(Number(r.annual_total_orig) === 651000,
+  `★総支給がある行では年換算が1円も動かない → ${r.annual_total_orig}（期待 651000）`);
+/* 「教官の手当とまとめて支給されている」人は、金額を持たずに答えだけ残る。 */
+await asUser(52);
+await submit({ ...BASE, gross_monthly: 54250, instructor_pay: 600,
+               pay_items: { v: 1, instructor: { extra: 'separate', method: 'monthly', amount: 600 },
+                            examiner: { checks: ['line'], extra: 'with_instructor', amount: null } },
+               job_roles: ['instructor', 'examiner'],
+               airline: 'singapore-airlines', period_year: 2026, period_month: 7 });
+const exmB = await one(`select * from pay_reports where airline='singapore-airlines' and period_month=7`);
+ok(exmB.examiner_pay === null
+   && exmB.pay_items.examiner.extra === 'with_instructor'
+   && Number(exmB.instructor_pay) === 600,
+  `★「まとめて支給」は金額を持たず答えだけ残る（二重計上しない） → ${exmB.examiner_pay}`);
 
 ok((await boom(`select submit_pay_report($1::jsonb)`, [JSON.stringify({
   ...BASE, base_pay: null, hourly_rate: null, gross_monthly: 0,

@@ -48,6 +48,10 @@
        色は空いている赤に振る。緑・黄緑・水色・金・紫・橙・灰・桃・シアンが
        すでに埋まっていて、細いドーナツの弧で見分けられるのは赤だけだった。 */
     { k: 'instructor', c: '#e8604c' },
+    /* ★審査・査察の手当（2026-08-26 その4）。教官の隣に置く。
+       赤・緑・黄緑・水色・金・紫・橙・灰・桃・シアンが埋まっているので、
+       残るのは濃い青緑。ブランドの --pv-teal をそのまま使う（色を発明しない）。 */
+    { k: 'examiner',  c: '#0f766e' },
     { k: 'flight',    c: '#f5c842' },
     { k: 'other',     c: '#a78bfa' },
     { k: 'housing',   c: '#fb923c' },
@@ -216,6 +220,9 @@
          足し忘れると、入れた人のぶんが下の rest（灰色＝どの項目にも入れていない分）
          に落ちて、入れた本人に嘘をつく。 */
       instructor: (num(r.instructor_pay) || 0) * fx,
+      /* ★審査・査察の手当。教官と同じく独立した列で、other_allowance にも
+         flight_variable_pay にも入っていない。足し忘れると rest（灰色）に落ちる。 */
+      examiner:  (num(r.examiner_pay) || 0) * fx,
       flight:    (split ? fv : 0) * fx,
       other:     (split ? other - fv : other) * fx,
       // 現物支給の社宅は現金ではない（pv_annual_total も足していない）
