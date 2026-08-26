@@ -142,8 +142,22 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 @media (prefers-reduced-motion:reduce){.form-alert{animation:none}}
 /* Note under aircraft type / role (all that remains here after pay entry was removed) */
 .sal-hint{font-size:.73rem;color:#6b7d93;margin-top:8px;line-height:1.65}
+.rolewrap{margin-top:18px}
+/* 役職・区分（複数選択）。中身は node gen-vocab.mjs が配る。 */
+.roleboxes{display:flex;flex-wrap:wrap;gap:8px}
+.rolebox{display:inline-flex;align-items:center;gap:9px;padding:9px 14px;border-radius:12px;font-size:.82rem;font-weight:600;color:#a8b3c2;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);cursor:pointer;transition:color .2s,border-color .2s,background .2s,transform .18s cubic-bezier(.16,1,.3,1)}
+.rolebox:hover{color:#e8edf2;border-color:rgba(245,200,66,.4);background:rgba(245,200,66,.06)}
+.rolebox:active{transform:translateY(1px)}
+.rolebox input{flex:none;width:16px;height:16px;margin:0;accent-color:#f5c842;cursor:pointer}
+.rolebox:has(input:checked){color:#f5c842;border-color:rgba(245,200,66,.55);background:rgba(245,200,66,.1)}
+.rolebox:has(input:focus-visible){outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.rolebox{transition:none}}
 .sal-hint b{color:#a8b3c2;font-weight:700}
 [data-theme="light"] .sal-hint{color:#64748b}
+[data-theme="light"] .rolebox{color:#475569;background:rgba(0,0,0,.03);border-color:rgba(0,0,0,.14)}
+[data-theme="light"] .rolebox:hover{color:#1e293b;border-color:rgba(200,149,0,.45);background:rgba(200,149,0,.07)}
+[data-theme="light"] .rolebox:has(input:checked){color:#a97e00;border-color:rgba(200,149,0,.6);background:rgba(200,149,0,.1)}
+[data-theme="light"] .rolebox input{accent-color:#a97e00}
 [data-theme="light"] .sal-hint b{color:#334155}
 </style>
 <!--PV-3P-->
@@ -481,16 +495,25 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
                 </optgroup>
               </select>
             </div>
-            <div>
-              <label class="form-label">Role / grade</label>
-              <select class="form-input" id="f-jobrole">
-                <option value="">Please select (optional)</option>
-                <option value="line">Line pilot</option>
-                <option value="instructor">Instructor (training)</option>
-                <option value="examiner">Examiner</option>
-                <option value="management">Management (dept. head, etc.)</option>
-              </select>
+          </div>
+
+          <div class="rolewrap">
+            <!-- ★複数選択。中身は node gen-vocab.mjs が pv-vocab.mjs の JOB_ROLES から生成する。手で足さない。
+                 ★選んだ値は下の hidden #f-jobrole にカンマ区切りで入る（reviews_v2 に列は足さない）。 -->
+            <label class="form-label" id="f-jobrole-lab">Role / grade</label>
+            <div class="roleboxes" role="group" aria-labelledby="f-jobrole-lab">
+              <!--BEGIN:BOXES:f-jobrole-->
+              <label class="rolebox"><input type="checkbox" name="f-jobrole" value="line"><span>Line pilot</span></label>
+              <label class="rolebox"><input type="checkbox" name="f-jobrole" value="instructor"><span>Instructor / Training</span></label>
+              <label class="rolebox"><input type="checkbox" name="f-jobrole" value="examiner"><span>Examiner / Check</span></label>
+              <label class="rolebox"><input type="checkbox" name="f-jobrole" value="union"><span>Union / Pilot representative</span></label>
+              <label class="rolebox"><input type="checkbox" name="f-jobrole" value="management"><span>Management / Leadership</span></label>
+              <label class="rolebox"><input type="checkbox" name="f-jobrole" value="safety"><span>Safety / Standards / Technical</span></label>
+              <label class="rolebox"><input type="checkbox" name="f-jobrole" value="secondment"><span>Other department / Secondment</span></label>
+              <!--END:BOXES:f-jobrole-->
             </div>
+            <input type="hidden" id="f-jobrole"/>
+            <p class="sal-hint">Tick <b>everything</b> that applies.</p>
           </div>
           <p class="sal-hint">Aircraft type is <b>information only currently serving crew hold accurately</b>. The more of this you fill in, the more it helps those coming after you.</p>
         </div>
@@ -896,7 +919,7 @@ function getVals() {
     tenure:     document.getElementById('f-tenure').value,
     age:        document.getElementById('f-age').value,
     fleet:      document.getElementById('f-fleet')?.value || '',
-    jobRole:    document.getElementById('f-jobrole')?.value || '',
+    jobRole:    roleValue(),
     cats: {
       culture:  { score: getStarScore('culture'),  comment: (document.getElementById('fc-culture')?.value||'').trim() },
       salary:   { score: getStarScore('salary'),   comment: (document.getElementById('fc-salary')?.value||'').trim() },
@@ -1151,12 +1174,27 @@ const CAT_LABELS = {culture:'Company culture',salary:'Salary',benefits:'Benefits
   bizjet: 'Business jet (Gulfstream, etc.)',
   other: 'Other',
 };/*END:FLEET_LABELS*/
+/* 役職・区分は複数選択。値は hidden の #f-jobrole がカンマ区切りで持つ。
+   ⚠️ reviews_v2 には列を足さない（airlines/airline-reviews-ui.js が select('*') で
+      読むので、足した列はそのまま公開される）。既にある job_role にそのまま入れる。 */
+const ROLE_BOXES = [].slice.call(document.querySelectorAll('input[name="f-jobrole"]'));
+function roleValue() {
+  const v = ROLE_BOXES.filter((b) => b.checked).map((b) => b.value).join(',');
+  const h = document.getElementById('f-jobrole');
+  if (h) h.value = v;
+  return v;
+}
+for (const b of ROLE_BOXES) b.addEventListener('change', roleValue);
+
 /*BEGIN:ROLE_LABELS*/const ROLE_LABELS = {
   // ★手で書かない。node gen-vocab.mjs が pv-vocab.mjs から生成する。
   line: 'Line pilot',
-  instructor: 'Instructor (training)',
-  examiner: 'Examiner',
-  management: 'Management (dept. head, etc.)',
+  instructor: 'Instructor / Training',
+  examiner: 'Examiner / Check',
+  union: 'Union / Pilot representative',
+  management: 'Management / Leadership',
+  safety: 'Safety / Standards / Technical',
+  secondment: 'Other department / Secondment',
 };/*END:ROLE_LABELS*/
 
 function buildPreview(v) {
@@ -1167,7 +1205,8 @@ function buildPreview(v) {
     ['Age group', v.age + ' years old'],
   ];
   if (v.fleet)   rows.push(['Aircraft type', FLEET_LABELS[v.fleet] || v.fleet]);
-  if (v.jobRole) rows.push(['Role / grade', ROLE_LABELS[v.jobRole] || v.jobRole]);
+  if (v.jobRole) rows.push(['Role / grade', v.jobRole.split(',')
+    .map((c) => ROLE_LABELS[c] || c).join(' · ')]);
 
   CAT_KEYS.forEach(k => {
     const c = v.cats[k];

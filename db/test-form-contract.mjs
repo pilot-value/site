@@ -157,8 +157,11 @@ console.log('\n市場価値レポート（my-value）');
      こちらで整形する。type="number" のままだとブラウザがカンマごと値を捨てる。
      ★時間・日数・％の欄に money を付けない。付けると上限の検査（min/max）が
        効かない欄が黙って増える。 */
+  /* ★2026-08-26、内訳の作り直しで f-transport / f-other は画面から消えて
+       <input type="hidden"> になった（明細読み取りだけが書く）。人が打つ欄は
+       繰り返し行の .pd-amt に変わり、id を持たない＝下の extra には出てこない。 */
   const MONEY = ['f-gross', 'f-netpay', 'f-perdiem', 'f-bonus-mo', 'f-housing-amt',
-                 'f-bonus', 'f-base', 'f-command', 'f-transport', 'f-other', 'f-profit'];
+                 'f-bonus', 'f-base', 'f-command', 'f-profit'];
   for (const f of ['pay-report.html', 'en/pay-report.html']) {
     const s = read(f);
     for (const id of MONEY) {
@@ -180,7 +183,7 @@ console.log('\n市場価値レポート（my-value）');
   const GATE_FREE = ['f-year', 'f-month'];
   const REQ = ['f-airline', 'f-airline-other', 'f-position', 'f-fleet', 'f-jobrole', 'f-age', 'f-year',
                'f-block', 'f-stay', 'f-currency', 'f-gross', 'f-netpay', 'f-bonus-mo',
-               'f-perdiem', 'f-housing', 'f-housing-amt', 'f-base',
+               'f-perdiem', 'f-housing', 'f-housing-amt',
                'f-contract', 'f-taxcountry', 'f-seniority'];
   for (const f of ['pay-report.html', 'en/pay-report.html']) {
     const s = read(f);
@@ -393,8 +396,12 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html#pay-det
      `${lang}: ★入口の2択を越えて、入力の画面まで進んでいる`, JSON.stringify(v));
   ok(v.airlineShown && v.atTop,
      `${lang}: ★カーソルがフォームの先頭に入っている（内訳はまだ出ていない）`, JSON.stringify(v));
-  ok(v.grossReadOnly,
-     `${lang}: ★入力モードも切り替わっている（総支給が内訳の合計になる）`, JSON.stringify(v));
+  /* ★2026-08-26、総支給と内訳は排他ではなくなった（オーナー指示
+       「入力した総支給額を給与内訳の合計で上書きしない」）。内訳を開いても
+       総支給の欄は本人の入力のままで、読み取り専用にしない。
+       ここが true に戻ったら、内訳を開いた人の総支給が合計で塗り潰されている。 */
+  ok(!v.grossReadOnly,
+     `${lang}: ★内訳を開いても総支給は本人の入力のまま（合計で上書きしない）`, JSON.stringify(v));
 
   /* §1・§2 を埋めて §3 を出す。ゲートは pay-report.html の GATE_ROLE / GATE_HOURS。 */
   await page.evaluate(() => {
@@ -610,12 +617,13 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
      '桁区切りが入っても年換算は素の数字で計算する');
   await setF({ 'f-gross': GROSS_M });
 
-  /* ── 総支給と内訳は排他。ただし額面の欄は消さない ─────────────
-     両方入った行は「年収は総額から・支給構成は内訳から」という食い違った行になる。
-     ★2026-08-13 オーナー指摘＝「ボーナスの前に額面を聞く欄が無い」。原因は、
-       くわしく入れるを開くと欄そのものを隠していたこと。今は欄は残り、
-       開いているあいだは下の内訳の合計を映す読み取り専用になる。
-       送るのは片方だけ（gross_monthly は open のとき null）。 */
+  /* ── 総支給と内訳は両立する（2026-08-26 オーナー指示）─────────
+     前は「くわしく入れる」を開くと額面が読み取り専用になり、内訳の合計が映っていた。
+     会社ごとに建て付けの違う変動給を固定の6欄に入れられない人が多かったので、
+     内訳を作り直すのに合わせて **本人が入れた総支給を合計で上書きしない** に変えた。
+     ★ここが戻ると、内訳を書いた人の額面が合計で塗り潰される
+       ＝「明細に出ているそのままの額」という約束が静かに破れる。
+     ★差は pay-viz.js が「どの項目にも入れていない分」として灰色に描く。画面では黙っている。 */
   const toggleDetail = (open) => page.evaluate((o) => {
     const d = document.getElementById('pay-detail');
     d.open = o;
@@ -624,57 +632,137 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   await toggleDetail(true);
   await new Promise((r) => setTimeout(r, 150));
   ok(await vis('f-gross'), '★内訳を開いても額面の欄は残る（隠さない）');
-  ok(await page.$eval('#f-gross', (el) => el.readOnly),
-     '内訳を開くと額面は読み取り専用になる（内訳の合計だから）');
+  ok(!(await page.$eval('#f-gross', (el) => el.readOnly)),
+     '★内訳を開いても額面は自分で入れられる（合計で上書きしない）');
   ok(!(await page.$eval('#f-gross', (el) => el.disabled)),
-     '読み取り専用でも disabled にしない（薄くなって一番大事な数字が読めなくなる）');
-  ok(await visFold('f-base'), '内訳を開くと基本給が出る');
-  ok((await vis('gross-hint-sum')) && !(await vis('gross-hint-own')),
-     '額面の説明が「下の内訳の合計」に入れ替わる');
+     '額面を disabled にしない（薄くなって一番大事な数字が読めなくなる）');
+  ok((await fv('f-gross')) === GROSS_M,
+     `開いただけで額面の値が変わらない → ${await fv('f-gross')}`, `期待 ${GROSS_M}`);
+  ok(await visFold('f-base'), '内訳を開くと固定・保証給が出る');
+  ok(await vis('gross-hint-own'), '額面の説明は入れ替わらない（いつでも本人の額面）');
+  ok(!(await page.$('#gross-hint-sum')), '★「下の内訳の合計」という説明はもう無い');
 
-  /* 額面の欄が映すのは monthlyDetail() の合計。画面の額面と年換算が
-     別々の式で出ていたら、ここで食い違いとして出る。 */
-  /* 30000（基本給）＋5000（パーディアム）＋17500（住宅手当）＝ 52500。
-     ★パーディアムと住宅手当は 2026-08-13 に内訳の外へ出たが、合計の式には
-       今までどおり入る（サーバの pv_annual_total も同じ順で足している）。 */
-  bad.push(...await setF({ 'f-base': '30000', 'f-perdiem': '5000' }));
-  const mirror = await page.evaluate(() => ({
-    shown: document.getElementById('f-gross').value, sum: monthlyDetail(),
+  /* 内訳を入れても、額面も年換算も動かない。サーバの pv_annual_total も
+     総支給があればそちらを正とする（coalesce の第1引数）ので画面と一致する。 */
+  bad.push(...await setF({ 'f-base': '20000', 'f-perdiem': '5000' }));
+  const kept = await page.evaluate(() => ({
+    shown: document.getElementById('f-gross').value,
+    detail: monthlyDetail(), annual: annualTotal(),
   }));
-  ok(Number(mirror.shown.replace(/,/g, '')) === mirror.sum && mirror.sum === 52500,
-     `額面の欄が内訳の合計を映す → ${mirror.shown}`, `合計は ${mirror.sum}（期待 52500）`);
+  ok(kept.shown.replace(/,/g, '') === GROSS_M,
+     `内訳を入れても額面は本人の数字のまま → ${kept.shown}`, `期待 ${GROSS_M}`);
+  ok(kept.annual === Number(GROSS_M) * 12,
+     `年換算に内訳を足さない（額面×12） → ${kept.annual}`, `期待 ${Number(GROSS_M) * 12}`);
 
-  /* ★手当だけの行を段のゲートに通さない。開いているあいだ額面の欄には合計が
-     映るので、そこを見てしまうとパーディアムだけで先に進めてしまい、
-     送信でサーバに弾かれる（＝入力を全部終えてから断られる）。 */
-  const allowanceOnly = await page.evaluate(() => {
-    const b = document.getElementById('f-base'), h = document.getElementById('f-hourly');
-    const kb = b.value, kh = h.value;
-    b.value = ''; h.value = '';
+  /* ── 変動給・その他の現金手当は「行」で足す（2026-08-26）─────────
+     Flight Pay / Sector / Reserve … は会社ごとに名前も本数も違う。固定の欄を並べると
+     自分の明細を入れられない人が出るので、何行でも足せる形にした。
+     ★行そのものは f-payitems（jsonb）で送り、合計だけを既存の列へ寄せる。 */
+  const pdFill = (kind, list) => page.evaluate((k, items) => {
+    const box = document.getElementById('pd-' + k + '-rows');
+    while (box.children.length) box.firstElementChild.remove();
+    for (const it of items) {
+      const row = pdAdd(k, true);
+      const set = (sel, v) => { const e = row.querySelector(sel); if (e && v != null) e.value = v; };
+      set('.pd-amt', it.amount); set('.pd-label', it.label);
+      set('.pd-basis', it.basis); set('.pd-rule', it.rule);
+    }
+    pdSync();
+    try { return JSON.parse(document.getElementById('f-payitems').value || 'null'); }
+    catch (e) { return { _broken: document.getElementById('f-payitems').value }; }
+  }, kind, list);
+
+  let items = await pdFill('var', [
+    { amount: '4000', label: 'Flight Pay', basis: 'block', rule: '¥4,500 / Block Hour' },
+    {},                                    // ＋を押しただけの空の行
+  ]);
+  ok(items && items.variable && items.variable.length === 1
+     && items.variable[0].amount === 4000 && items.variable[0].basis === 'block'
+     && items.variable[0].rule === '¥4,500 / Block Hour',
+     '★変動給が行のまま送られる（空の行は送らない）', JSON.stringify(items));
+  items = await pdFill('oth', [{ amount: '1000', label: '通勤手当' }]);
+  ok(items && items.other && items.other.length === 1 && items.other[0].amount === 1000,
+     '★その他の現金手当も行で足せる', JSON.stringify(items));
+  const sums = await page.evaluate(() => ({
+    v: document.getElementById('f-var-sum').value,
+    o: document.getElementById('f-oth-sum').value,
+    gross: val('f-gross'), annual: annualTotal(),
+  }));
+  ok(Number(sums.v) === 4000 && Number(sums.o) === 1000,
+     `行の合計が hidden に出る → ${sums.v} / ${sums.o}`);
+  ok(sums.gross === GROSS_M && sums.annual === Number(GROSS_M) * 12,
+     '★行を足しても額面と年換算は動かない', `${sums.gross} / ${sums.annual}`);
+  const gone = await page.evaluate(() => {
+    document.querySelector('#pd-oth-rows .pd-del').click();
+    return { rows: document.getElementById('pd-oth-rows').children.length,
+             sum: document.getElementById('f-oth-sum').value };
+  });
+  ok(gone.rows === 0 && gone.sum === '', '★行は × で消せる（合計も一緒に消える）',
+     JSON.stringify(gone));
+  await pdFill('oth', [{ amount: '1000', label: '通勤手当' }]);
+
+  /* ★差の見せ方（オーナー決定「差がおかしいときだけ出す」）。
+     プラス側の残り＝どの項目にも入れていない分は普通のことなので黙っている。
+     おかしいのは内訳の合計が総支給を**超えた**ときだけで、そのときだけ1行出す。
+     ★一致は強制しない・送信も止めない。 */
+  const gap = await page.evaluate(() => ({ detail: monthlyDetail(), gross: num('f-gross') }));
+  ok(gap.detail < gap.gross, `いま内訳は総支給に足りていない → ${gap.detail} / ${gap.gross}`);
+  ok(!(await vis('pd-over')),
+     '★内訳が総支給に足りなくても何も言わない（説明できない残りは普通のこと）');
+  await setF({ 'f-base': String(Number(GROSS_M) + 1000) });
+  await new Promise((r) => setTimeout(r, 150));
+  ok(await vis('pd-over'), '★内訳の合計が総支給を超えたときだけ注意が出る');
+  ok(await vis('submit-block'), '注意が出ても送信は止めない（一致は強制しない）');
+  await setF({ 'f-base': '20000' });
+  await new Promise((r) => setTimeout(r, 150));
+  ok(!(await vis('pd-over')), '直すと注意は消える');
+
+  /* ★報酬は総支給の1つだけが必須（2026-08-26）。内訳はぜんぶ任意になった。
+     内訳だけ入れて額面が空の行は作らせない（年換算の出しようが無い）。 */
+  const onlyDetail = await page.evaluate(() => {
+    const g = document.getElementById('f-gross'), keep = g.value;
+    g.value = '';
     const r = payEntered();
-    b.value = kb; h.value = kh;
+    g.value = keep;
     return r;
   });
-  ok(allowanceOnly === false,
-     '★手当だけ（基本給も時給も空）は報酬が入ったと見なさない');
+  ok(onlyDetail === false, '★内訳だけ（額面が空）では報酬が入ったと見なさない');
+
+  /* 「該当なし」＝固定・保証給の無い会社。欄を空にして触れなくし、
+     内訳そのものは「答えた」として送る（＝空欄のまま出した人と区別できる）。 */
+  const none = await page.evaluate(() => {
+    const c = document.getElementById('f-base-none'), b = document.getElementById('f-base');
+    c.checked = true; c.dispatchEvent(new Event('change'));
+    const o = JSON.parse(document.getElementById('f-payitems').value || 'null');
+    const seen = { disabled: b.disabled, val: b.value, fixed_none: o && o.fixed_none };
+    c.checked = false; c.dispatchEvent(new Event('change'));
+    return seen;
+  });
+  ok(none.disabled && none.val === '' && none.fixed_none === true,
+     '★「該当なし」は欄を空にして触れなくし、答えとして送る', JSON.stringify(none));
+  await setF({ 'f-base': '20000' });
 
   await toggleDetail(false);
   await new Promise((r) => setTimeout(r, 150));
   ok((await fv('f-gross')) === GROSS_M,
-     `内訳を閉じると手で入れた額面が戻る → ${await fv('f-gross')}`, `期待 ${GROSS_M}`);
-  ok(!(await page.$eval('#f-gross', (el) => el.readOnly)),
-     '閉じると額面は自分で入れられる');
-  ok((await fv('f-base')) === '',
-     '内訳を閉じると内訳の値は消える（画面に無い数字を送らない）');
-  /* ★逆に、内訳の外へ出た欄は閉じても消えないこと。消すと、開閉しただけで
-     必須が空に戻り、§4 と送信ボタンが出たまま送れない状態になる。 */
+     `閉じても額面はそのまま → ${await fv('f-gross')}`, `期待 ${GROSS_M}`);
+  ok(!(await page.$eval('#f-gross', (el) => el.readOnly)), '閉じても額面は自分で入れられる');
+  /* ★2026-08-26、閉じても内訳を消さない。前は「画面に無い数字を送らない」ために
+     畳んだ瞬間に全部消していたが、額面と両立するようになったので消す理由が無くなった。
+     消すと、うっかり畳んだだけで書いた内訳が全部飛ぶ。 */
+  ok((await fv('f-base')) === '20000',
+     `閉じても内訳は残る → ${await fv('f-base')}`, '期待 20000');
+  ok(await page.evaluate(() => !!document.getElementById('f-payitems').value),
+     '★閉じても変動給・その他の行は残る');
+  /* 内訳の外へ出た欄も閉じて消えないこと。消すと、開閉しただけで必須が空に戻り、
+     §4 と送信ボタンが出たまま送れない状態になる。 */
   ok((await fv('f-perdiem')) === '5000' && (await fv('f-housing-amt')) === SAMPLE['f-housing-amt']
      && (await fv('f-netpay')) === NET_M,
      '★閉じてもパーディアム・住宅手当・手取りは残る',
      `${await fv('f-perdiem')} / ${await fv('f-housing-amt')} / ${await fv('f-netpay')}`);
   const backToGross = await page.evaluate(() => annualTotal());
   ok(backToGross === Number(GROSS_M) * 12,
-     `閉じたあとの年換算は額面×12 に戻る → ${backToGross}`, `期待 ${Number(GROSS_M) * 12}`);
+     `閉じたあとの年換算も額面×12 → ${backToGross}`, `期待 ${Number(GROSS_M) * 12}`);
 
   // 以降は「くわしく入れる」側で測る（基本給・手当・住宅手当の額を検査したいので）
   await toggleDetail(true);
@@ -782,7 +870,7 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
      保存されていなかった（明細画像は保存しないので、その分は復元できない）。
      「送り忘れ」は画面にも RPC のエラーにも出ないので、ここで数える。
      ★キーを増やすときはこの表も足す。減らすときは、なぜ消してよいかを考える。 */
-  const KEYS_BEFORE = [   // 手入力で埋まる30キー。1つでも欠けたら静かに壊れる
+  const KEYS_BEFORE = [   // 手入力で埋まる32キー。1つでも欠けたら静かに壊れる
     'airline', 'airline_other', 'position', 'fleet', 'job_role', 'base_iata',
     'period_year', 'period_month', 'currency', 'base_pay', 'hourly_rate',
     'guaranteed_hours', 'block_hours', 'duty_days', 'per_diem', 'housing_type',
@@ -790,34 +878,58 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
     'bonus_annual', 'profit_share_annual', 'pension_pct', 'contract_type',
     'tax_country', 'tax_rate_pct', 'seniority_years', 'lang',
     /* 2026-08-12 追加。かんたん入力の「その月の額面（総支給）」。
-       ★内訳とは排他。base_pay へ入れると支給構成が「基本給100%」の嘘の図になる。 */
+       ★base_pay へ入れない（支給構成が「基本給100%」の嘘の図になる）。
+       ★2026-08-26、内訳との排他はやめた。両方そのまま送り、年換算は総支給を正とする。 */
     'gross_monthly',
     /* 2026-08-13 追加。手取りと勤務時間は明細専用の隠し欄から普通の欄へ出た
        （手取りは必須・勤務時間は任意）。ステイ日数と今月出たボーナスは新設。 */
     'net_pay_actual', 'duty_hours', 'stay_nights', 'bonus_month',
     /* 2026-08-18 追加。年代（10歳の幅）。年収は年齢とともに上がるので、
        これが無いと「同じ会社の機長」同士が実は入社3年目と定年間際の比較になる。 */
-    'age_bucket'];
+    'age_bucket',
+    /* 2026-08-26 追加。役職・区分は**複数**選べるようになった（オーナー指示）。
+       job_role（単数）は先頭が入って残る＝過去の行と明細読み取りが壊れない。 */
+    'job_roles',
+    /* 2026-08-26 追加。変動給・その他の現金手当を行のまま溜める列。
+       会社ごとに名前も本数も違うので、固定の欄に潰さずそのまま持つ。 */
+    'pay_items'];
   const KEYS_PAYSLIP = [  // 明細から読めたぶん。手入力では埋まらない
-    'ytd_taxable', 'flight_variable_pay', 'deduction_total',
-    'night_hours', 'credit_hours',
+    'ytd_taxable', 'deduction_total', 'night_hours', 'credit_hours',
     /* 2026-08-14 追加。読めた手当を1行ずつそのまま溜める列。画面には出さない。
        ★source より前に置く（下の wrongZero が「手入力では null」の側を
-         KEYS_PAYSLIP.slice(0, 6) で数えているため）。 */
+         KEYS_PAYSLIP.slice(0, 5) で数えているため）。 */
     'payslip_detail',
+    /* ★2026-08-26、ここは手入力でも埋まるようになった。画面の「変動給」の行の
+       合計が入る（other_allowance はその上位＝変動給＋その他の合計）。
+       だから wrongZero の側（手入力では null であるべき列）には**入れない**。 */
+    'flight_variable_pay',
     'source'];
 
   const missing = KEYS_BEFORE.concat(KEYS_PAYSLIP).filter((k) => !(k in p));
-  ok(missing.length === 0, `payload が41キーを全部送っている`, missing.join(','));
+  ok(missing.length === 0, `payload が43キーを全部送っている`, missing.join(','));
   const extra = Object.keys(p).filter((k) => !KEYS_BEFORE.includes(k) && !KEYS_PAYSLIP.includes(k));
   ok(extra.length === 0, `知らないキーが増えていない`, extra.join(','));
 
   /* ★この画面は手入力。明細は1枚も出していない。
      ・5列は null であること（0 を送ると「深夜0時間・控除0円」という嘘の実データになる）
      ・source は 'web' であること（'payslip' と申告されると出所の意味が消える） */
-  const wrongZero = KEYS_PAYSLIP.slice(0, 6).filter((k) => p[k] !== null && p[k] !== undefined);
-  ok(wrongZero.length === 0, `★手入力では明細由来の6列を送らない（0 で埋めない）`,
+  const wrongZero = KEYS_PAYSLIP.slice(0, 5).filter((k) => p[k] !== null && p[k] !== undefined);
+  ok(wrongZero.length === 0, `★手入力では明細由来の5列を送らない（0 で埋めない）`,
      wrongZero.map((k) => `${k}=${p[k]}`).join(','));
+  /* ★変動給の行 → flight_variable_pay、変動給＋その他 → other_allowance。
+     この入れ子（flight_variable は other の内訳）は pay-viz.js の支給構成の図が
+     前提にしている。逆にすると図が壊れる。 */
+  ok(Number(p.flight_variable_pay) === 4000,
+     `★変動給の行の合計が flight_variable_pay に入る → ${p.flight_variable_pay}`);
+  ok(Number(p.other_allowance) === 4000 + 1000 + Number(SAMPLE['f-other']),
+     `★other_allowance は変動給＋その他の合計 → ${p.other_allowance}`,
+     `期待 ${4000 + 1000 + Number(SAMPLE['f-other'])}`);
+  ok(p.pay_items && Array.isArray(p.pay_items.variable) && p.pay_items.variable.length === 1
+     && p.pay_items.variable[0].label === 'Flight Pay',
+     '★行そのものは pay_items に形のまま乗る', JSON.stringify(p.pay_items));
+  ok(Array.isArray(p.job_roles) && p.job_roles.length >= 1 && p.job_role === p.job_roles[0],
+     '★役職・区分は配列で送り、単数には先頭が入る',
+     `${JSON.stringify(p.job_roles)} / ${p.job_role}`);
   /* 逆に、人が入れた欄はそのまま届いていること */
   ok(p.stay_nights === SAMPLE['f-stay'] && p.bonus_month === SAMPLE['f-bonus-mo']
      && p.net_pay_actual === SAMPLE['f-netpay'] && p.duty_hours === SAMPLE['f-duty-h'],
@@ -837,13 +949,14 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   // ── 契約 ③：原本が原本のまま保存されているか ─────────────────
   ok(r.currency === 'AED', `原本通貨のまま → ${r.currency}`);
   ok(Number(r.base_pay) === 48500, `基本給が原本のまま → ${r.base_pay}`);
-  /* ★内訳で入れた行に総支給が残っていないこと。残ると pv_annual_total が
-     総支給を優先して、画面が出した年収と DB の年収が食い違う。
-     欄を隠すのをやめた（額面が内訳の合計を映すようになった）ので、
-     ページが送らないこと自体を payload でも縛る。 */
-  ok(p.gross_monthly === null,
-     `★内訳を開いているときは総支給を送らない → ${JSON.stringify(p.gross_monthly)}`);
-  ok(r.gross_monthly === null, `内訳で入れた行に総支給は入らない → ${r.gross_monthly}`);
+  /* ★2026-08-26、総支給と内訳は両方そのまま残る（オーナー指示）。
+     年換算は総支給を正とする（pv_annual_total の coalesce の第1引数）ので、
+     両方あっても二重に数えない。上の「ライブ計算とサーバ計算が一致」がそれを見ている。
+     ★ここが null に戻ったら、内訳を書いた人の総支給が捨てられている。 */
+  ok(p.gross_monthly === GROSS_M,
+     `★内訳を開いていても総支給はそのまま送る → ${JSON.stringify(p.gross_monthly)}`);
+  ok(Number(r.gross_monthly) === Number(GROSS_M),
+     `内訳の行にも総支給が残る → ${r.gross_monthly}`, `期待 ${GROSS_M}`);
   ok(Number(r.block_hours) === 86.5, `block hours が原本のまま → ${r.block_hours}`);
   ok(r.fleet_cat === 'w', `fleet_cat が語彙から自動で入る → ${r.fleet_cat}`);
   ok(r.housing_type === 'allowance' && Number(r.housing_amount) === 17500,
@@ -955,12 +1068,14 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
      `前回の基本給が入ったまま出てくる → ${await fv('f-base')}`, `期待 ${SAMPLE['f-base']}`);
   ok((await fv('f-currency')) === SAMPLE['f-currency'],
      `前回の通貨が入ったまま出てくる → ${await fv('f-currency')}`);
-  /* ★内訳を開いていた人の額面は保存しない（内訳の合計を映しただけの値で、
-     手で入れた額面ではない）。残ると翌月「額面と内訳の両方が入った行」になる。 */
+  /* ★2026-08-26、額面も普通にプリセットへ入る。内訳の合計を映していた欄ではなく、
+     いつでも本人が手で入れた数字になったため。 */
   ok(await page.$eval('#pay-detail', (el) => el.open),
      '内訳で入れた人は内訳側が開いた状態で戻る');
-  ok(await page.$eval('#f-gross', (el) => el.readOnly),
-     '戻ってきた額面は読み取り専用（合計を映しているだけ）');
+  ok((await fv('f-gross')) === GROSS_M,
+     `前回の額面も入ったまま出てくる → ${await fv('f-gross')}`, `期待 ${GROSS_M}`);
+  ok(!(await page.$eval('#f-gross', (el) => el.readOnly)),
+     '戻ってきた額面も自分で入れられる');
 
   await page.screenshot({ path: path.join(OUT, `${lang}-result.png`), fullPage: true });
   console.log(`  → temporary screenshots/pay-contract/${lang}-result.png`);

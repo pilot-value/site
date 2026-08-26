@@ -68,8 +68,11 @@
       breakdown: 'いちばん新しい月の内訳',
       segBase: '基本給', segCommand: '機長・役職手当', segFlight: '乗務変動手当',
       segOther: 'その他手当', segHousing: '住宅手当', segTransport: '交通費', segPerDiem: 'パーディアム',
-      /* ★下の2つは総支給1本で出した行にしか出ない（pay-viz.js の segments()）。 */
-      segBonus: '今月の賞与', segRest: '内訳を入れていない分',
+      /* ★下の2つは総支給が入っている行にしか出ない（pay-viz.js の segments()）。
+         ★2026-08-26、総支給と内訳が両立するようになったので「内訳を入れていない分」
+           という言い方をやめた。内訳を書いた人にも残りは出る＝それは
+           「どの項目にも入れていない分」であって「内訳が無い」ではない。 */
+      segBonus: '今月の賞与', segRest: 'どの項目にも入れていない分',
       housingNote: '※ 社宅（現物支給）は現金ではないので内訳に入れていません。',
       cmpTitle: '同じ会社・同じ機材・同じ職位の中央値との差',
       // 「+8% 中央値より」は日本語にならない。語順ごと言語側で持つ。
@@ -116,7 +119,7 @@
       segBase: 'Base pay', segCommand: 'Command / position', segFlight: 'Flight variable',
       segOther: 'Other allowances', segHousing: 'Housing', segTransport: 'Transport', segPerDiem: 'Per diem',
       /* ★The two below only appear on a row filed as one gross figure (see segments() in pay-viz.js). */
-      segBonus: 'Bonus this month', segRest: 'Not broken down yet',
+      segBonus: 'Bonus this month', segRest: 'Not itemised',
       housingNote: '※ Company-provided housing is not cash, so it is left out of the breakdown.',
       cmpTitle: 'Versus the median for your airline, fleet and seat',
       // 負のとき「-8% below the median」は二重否定になる。絶対値で言う。

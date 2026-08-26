@@ -2334,27 +2334,28 @@
     res._counts = counts;
 
     if (res.currency) setField('f-currency', res.currency);
+    /* ★総支給を必ず入れる（2026-08-26）。この日から f-gross は明細から来た人にも
+       必須になった。前は「内訳を開いた人には合計を映す」作りだったので、明細から
+       来た人の欄は空のままでよかったが、いまは書き戻しが無いので誰も埋めない。
+       ★入れるのは明細に**印字されている総支給**であって、読めた手当の合計ではない
+         （読めなかった行があるとき、合計は総支給より小さい。小さいほうを総支給として
+          送ると年収がそのぶん低く出る）。印字が読めなかったときだけ空のまま
+          ＝本人が入れる（必須なので送信前に必ず気づく）。 */
+    if (typeof res.gross_total === 'number' && res.gross_total > 0) {
+      setField('f-gross', String(Math.round(res.gross_total)));
+    }
     if (res.period) { setField('f-year', String(res.period.year)); setField('f-month', String(res.period.month)); }
     if (lastHours.block) setField('f-block', String(lastHours.block));
 
-    /* ★内訳が読めたら「くわしく入れる」側へ切り替える（2026-08-12）。
-       欄を畳んだままだと updatePayMode() が「見えていない欄の値は消す」を掛けて、
-       いま入れた基本給や手当を黙って捨てる。
-       ★開いたあとの額面の欄（f-gross）は、下の内訳の合計を映す読み取り専用に
-         変わる（2026-08-13。欄そのものは消さない）。手で入れていた額面は
-         updatePayMode() が預かって、閉じたときに戻す。
-         送信では open のとき gross_monthly を送らない＝総支給と内訳の両方が
-         入った行（年収は総額から・支給構成は内訳から、という食い違い）を作らない。
+    /* ★内訳が読めたら「給与の内訳を追加」を開く（2026-08-12）。畳んだままだと、
+       いま入れた基本給や手当が入っていることに本人が気づけない。
+       ★2026-08-26 から、開いても総支給の欄は何も変わらない（読み取り専用にしない・
+         合計で書き換えない・閉じても消さない）。総支給と内訳は排他ではなくなった。
        ★保証時間（f-guar）は §2 に残っているので触らない。annualTotal() の
          Math.max(f-block, f-guar) もそのまま効く。 */
     if (Object.keys(sums).length) {
       var det = document.getElementById('pay-detail');
-      if (det) {
-        det.open = true;
-        // 読み取り専用へ切り替え＋額面を預かる。関数が無い環境では最低限、値を消す
-        if (typeof updatePayMode === 'function') updatePayMode();
-        else { var g = document.getElementById('f-gross'); if (g) g.value = ''; }
-      }
+      if (det) det.open = true;
     }
 
     if (sums['f-housing-amt'] > 0) setField('f-housing', 'allowance');

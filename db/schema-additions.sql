@@ -136,7 +136,10 @@ $$;
 --   base_annual   … 基本給（年・万円）
 --   flight_allowance_annual … 乗務手当（年・万円）＝ブロックタイム×単価、機種で最も変動
 --   fleet         … 機種（a320/b737/b787/a350 …）現役しか正確に持たない目玉フィールド
---   job_role      … 役職・区分（line/instructor/examiner/management）
+--   job_role      … 役職・区分。★2026-08-26 から複数選択（7つ）になり、
+--                   選ばれたコードを**カンマ区切り**で入れる（例 'line,instructor'）。
+--                   ⚠️ 列は足さない。airlines/airline-reviews-ui.js が select('*') で読むので、
+--                      足した列はそのまま公開される。コードの一覧は pv-vocab.mjs の JOB_ROLES。
 -- ════════════════════════════════════════════════════════════════
 alter table public.reviews_v2
   add column if not exists base_annual              integer,

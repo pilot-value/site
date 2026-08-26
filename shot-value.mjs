@@ -15,6 +15,8 @@
             simple … かんたん入力で手当を1つも入れなかった月＝§3 と §4 が「見本（ぼかし）」
             hand   … かんたん入力の実態（額面1本＋パーディアム＋住宅手当＋今月の賞与）
                      ＝§3 の円グラフが「入っている分だけ色＋残りは灰色」で出る
+            both   … ★2026-08-26 以降の既定。額面と内訳の両方が入っている
+                     ＝§3 は内訳の色が全部出て、説明できない残りだけが灰色
             new    … many を ?new=1 で開く（文言だけ変わることの確認）
             gap    … 同社だが間隔があいている（2月と6月）＝§6 に「4ヶ月あいています」
             job    … 転職（ZIPAIR 3枚 → エミレーツ 1枚）＝§6 は差を出さず、
@@ -209,6 +211,27 @@ await page.evaluateOnNewDocument((scene, theme) => {
         per_diem: 4200, housing_type: 'allowance', housing_amount: 12000, bonus_month: 6000
       }));
       r.annual_total_orig = (54250 - 6000) * 12 + 130000;   // サーバの pv_annual_total と同じ組み方
+      r.annual_total_jpy = Math.round(r.annual_total_orig * r.fx_to_jpy);
+      r.annual_total_usd = Math.round(r.annual_total_orig * r.fx_to_usd);
+      r.net_annual_jpy = Math.round(r.annual_total_jpy * 0.99);
+      r.usd_per_block_hour = +((r.annual_total_usd / 12) / r.block_hours).toFixed(1);
+      return r;
+    })()],
+    /* ★2026-08-26、フォームを作り直して**額面と内訳が両方入る**ようになった。
+       これがこれから来る行の形。hand との違いは基本給が分かっていること
+       ＝§3 に「基本給が総支給に占める割合」の行が出る（partial が false）。
+       灰色は「説明できない残り」だけ。ここが総支給いっぱいに膨らんでいたら、
+       内訳を入れたのに拾えていない＝pay-viz の segments が壊れている。
+       ★年換算は総支給ベース。内訳を足さない（サーバの pv_annual_total と同じ）。 */
+    both: [(function () {
+      const r = mk(2026, 6, Object.assign({}, THIN, {
+        gross_monthly: 54250, guaranteed_hours: 75, bonus_annual: 130000, bonus_month: 0,
+        base_pay: 20000, command_pay: 3200,
+        flight_variable_pay: 11000, other_allowance: 11900,
+        per_diem: 4200, transport: 0,
+        housing_type: 'allowance', housing_amount: 12000,
+      }));
+      r.annual_total_orig = 54250 * 12 + 130000;
       r.annual_total_jpy = Math.round(r.annual_total_orig * r.fx_to_jpy);
       r.annual_total_usd = Math.round(r.annual_total_orig * r.fx_to_usd);
       r.net_annual_jpy = Math.round(r.annual_total_jpy * 0.99);

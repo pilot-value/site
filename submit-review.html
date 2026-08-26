@@ -142,8 +142,22 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 @media (prefers-reduced-motion:reduce){.form-alert{animation:none}}
 /* 機種・役職の下の補足文（給与入力を外した後もここだけ残る） */
 .sal-hint{font-size:.73rem;color:#6b7d93;margin-top:8px;line-height:1.65}
+.rolewrap{margin-top:18px}
+/* 役職・区分（複数選択）。中身は node gen-vocab.mjs が配る。 */
+.roleboxes{display:flex;flex-wrap:wrap;gap:8px}
+.rolebox{display:inline-flex;align-items:center;gap:9px;padding:9px 14px;border-radius:12px;font-size:.82rem;font-weight:600;color:#a8b3c2;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);cursor:pointer;transition:color .2s,border-color .2s,background .2s,transform .18s cubic-bezier(.16,1,.3,1)}
+.rolebox:hover{color:#e8edf2;border-color:rgba(245,200,66,.4);background:rgba(245,200,66,.06)}
+.rolebox:active{transform:translateY(1px)}
+.rolebox input{flex:none;width:16px;height:16px;margin:0;accent-color:#f5c842;cursor:pointer}
+.rolebox:has(input:checked){color:#f5c842;border-color:rgba(245,200,66,.55);background:rgba(245,200,66,.1)}
+.rolebox:has(input:focus-visible){outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.rolebox{transition:none}}
 .sal-hint b{color:#a8b3c2;font-weight:700}
 [data-theme="light"] .sal-hint{color:#64748b}
+[data-theme="light"] .rolebox{color:#475569;background:rgba(0,0,0,.03);border-color:rgba(0,0,0,.14)}
+[data-theme="light"] .rolebox:hover{color:#1e293b;border-color:rgba(200,149,0,.45);background:rgba(200,149,0,.07)}
+[data-theme="light"] .rolebox:has(input:checked){color:#a97e00;border-color:rgba(200,149,0,.6);background:rgba(200,149,0,.1)}
+[data-theme="light"] .rolebox input{accent-color:#a97e00}
 [data-theme="light"] .sal-hint b{color:#334155}
 </style>
 <!--PV-3P-->
@@ -481,16 +495,25 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
                 </optgroup>
               </select>
             </div>
-            <div>
-              <label class="form-label">役職・区分</label>
-              <select class="form-input" id="f-jobrole">
-                <option value="">選択してください（任意）</option>
-                <option value="line">ラインパイロット</option>
-                <option value="instructor">教官（訓練担当）</option>
-                <option value="examiner">査察操縦士</option>
-                <option value="management">管理職（部長・班長 等）</option>
-              </select>
+          </div>
+
+          <div class="rolewrap">
+            <!-- ★複数選択。中身は node gen-vocab.mjs が pv-vocab.mjs の JOB_ROLES から生成する。手で足さない。
+                 ★選んだ値は下の hidden #f-jobrole にカンマ区切りで入る（reviews_v2 に列は足さない）。 -->
+            <label class="form-label" id="f-jobrole-lab">役職・区分</label>
+            <div class="roleboxes" role="group" aria-labelledby="f-jobrole-lab">
+              <!--BEGIN:BOXES:f-jobrole-->
+              <label class="rolebox"><input type="checkbox" name="f-jobrole" value="line"><span>ライン乗務</span></label>
+              <label class="rolebox"><input type="checkbox" name="f-jobrole" value="instructor"><span>教官・訓練担当</span></label>
+              <label class="rolebox"><input type="checkbox" name="f-jobrole" value="examiner"><span>審査・査察担当</span></label>
+              <label class="rolebox"><input type="checkbox" name="f-jobrole" value="union"><span>組合・乗員代表</span></label>
+              <label class="rolebox"><input type="checkbox" name="f-jobrole" value="management"><span>管理・マネジメント</span></label>
+              <label class="rolebox"><input type="checkbox" name="f-jobrole" value="safety"><span>安全・運航基準・技術担当</span></label>
+              <label class="rolebox"><input type="checkbox" name="f-jobrole" value="secondment"><span>他部署配属・出向</span></label>
+              <!--END:BOXES:f-jobrole-->
             </div>
+            <input type="hidden" id="f-jobrole"/>
+            <p class="sal-hint">あてはまるものを<b>すべて</b>選んでください。</p>
           </div>
           <p class="sal-hint">機種は<b>現役の乗員だけが正確に持つ情報</b>です。ここが埋まるほど、後進の判断材料になります。</p>
         </div>
@@ -896,7 +919,7 @@ function getVals() {
     tenure:     document.getElementById('f-tenure').value,
     age:        document.getElementById('f-age').value,
     fleet:      document.getElementById('f-fleet')?.value || '',
-    jobRole:    document.getElementById('f-jobrole')?.value || '',
+    jobRole:    roleValue(),
     cats: {
       culture:  { score: getStarScore('culture'),  comment: (document.getElementById('fc-culture')?.value||'').trim() },
       salary:   { score: getStarScore('salary'),   comment: (document.getElementById('fc-salary')?.value||'').trim() },
@@ -1147,12 +1170,27 @@ const CAT_LABELS = {culture:'企業文化',salary:'給与',benefits:'福利厚�
   bizjet: 'ビジネスジェット（Gulfstream 等）',
   other: 'その他',
 };/*END:FLEET_LABELS*/
+/* 役職・区分は複数選択。値は hidden の #f-jobrole がカンマ区切りで持つ。
+   ⚠️ reviews_v2 には列を足さない（airlines/airline-reviews-ui.js が select('*') で
+      読むので、足した列はそのまま公開される）。既にある job_role にそのまま入れる。 */
+const ROLE_BOXES = [].slice.call(document.querySelectorAll('input[name="f-jobrole"]'));
+function roleValue() {
+  const v = ROLE_BOXES.filter((b) => b.checked).map((b) => b.value).join(',');
+  const h = document.getElementById('f-jobrole');
+  if (h) h.value = v;
+  return v;
+}
+for (const b of ROLE_BOXES) b.addEventListener('change', roleValue);
+
 /*BEGIN:ROLE_LABELS*/const ROLE_LABELS = {
   // ★手で書かない。node gen-vocab.mjs が pv-vocab.mjs から生成する。
-  line: 'ラインパイロット',
-  instructor: '教官（訓練担当）',
-  examiner: '査察操縦士',
-  management: '管理職（部長・班長 等）',
+  line: 'ライン乗務',
+  instructor: '教官・訓練担当',
+  examiner: '審査・査察担当',
+  union: '組合・乗員代表',
+  management: '管理・マネジメント',
+  safety: '安全・運航基準・技術担当',
+  secondment: '他部署配属・出向',
 };/*END:ROLE_LABELS*/
 
 function buildPreview(v) {
@@ -1163,7 +1201,8 @@ function buildPreview(v) {
     ['年代', v.age + '歳'],
   ];
   if (v.fleet)   rows.push(['機種', FLEET_LABELS[v.fleet] || v.fleet]);
-  if (v.jobRole) rows.push(['役職・区分', ROLE_LABELS[v.jobRole] || v.jobRole]);
+  if (v.jobRole) rows.push(['役職・区分', v.jobRole.split(',')
+    .map((c) => ROLE_LABELS[c] || c).join('・')]);
 
   CAT_KEYS.forEach(k => {
     const c = v.cats[k];

@@ -31,8 +31,11 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   const r = await page.evaluate(() => {
     const cv = document.createElement('canvas').getContext('2d');
     const out = [];
-    for (const id of ['f-currency', 'f-taxcountry', 'f-nationality', 'f-airline', 'f-fleet', 'f-position', 'f-housing', 'f-contract', 'f-jobrole']) {
+    /* ★measure するのは <select> だけ。f-nationality は 2026-08-12 に欄ごと廃止、
+       f-jobrole は 2026-08-26 にチェックボックス群になった（どちらも options が無い）。 */
+    for (const id of ['f-currency', 'f-taxcountry', 'f-airline', 'f-fleet', 'f-position', 'f-housing', 'f-contract']) {
       const el = document.getElementById(id);
+      if (!el || !el.options) continue;
       const cs = getComputedStyle(el);
       cv.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
       // select の中身が使える横幅 = box幅 - 左右padding - 矢印分

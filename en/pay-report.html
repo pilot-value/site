@@ -246,6 +246,33 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 .chip:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
 .chip:active{transform:translateY(1px)}
 .chip .p{font-size:.95rem;line-height:1;font-weight:800;color:#f5c842}
+/* 役職・区分（複数選択）。中身は node gen-vocab.mjs が配る。 */
+.roleboxes{display:flex;flex-wrap:wrap;gap:8px}
+.rolebox{display:inline-flex;align-items:center;gap:9px;padding:9px 14px;border-radius:12px;font-size:.82rem;font-weight:600;color:#a8b3c2;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);cursor:pointer;transition:color .2s,border-color .2s,background .2s,transform .18s cubic-bezier(.16,1,.3,1)}
+.rolebox:hover{color:#e8edf2;border-color:rgba(245,200,66,.4);background:rgba(245,200,66,.06)}
+.rolebox:active{transform:translateY(1px)}
+.rolebox input{flex:none;width:16px;height:16px;margin:0;accent-color:#f5c842;cursor:pointer}
+.rolebox:has(input:checked){color:#f5c842;border-color:rgba(245,200,66,.55);background:rgba(245,200,66,.1)}
+.rolebox:has(input:focus-visible){outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.rolebox{transition:none}}
+/* Pay breakdown: repeating rows (variable / other cash) and the once-a-year block. */
+.pd-none{margin-top:10px;padding:7px 12px;font-size:.78rem}
+.pd-block{margin-bottom:16px}
+.pd-rows{display:flex;flex-direction:column;gap:12px;margin:12px 0}
+.pd-row{position:relative;padding:14px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.09)}
+.pd-row>.fld{margin-bottom:12px}
+/* × は箱の右上に浮いている。逃げの余白は1行目の見出しにだけ持たせる。
+   行ぜんぶに右の余白を持たせると、欄だけが箱の中で左に寄って見える。 */
+.pd-row>.fld:first-of-type>.form-label{padding-right:34px}
+.pd-row>.fld:last-child{margin-bottom:0}
+.pd-del{position:absolute;top:9px;right:9px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:9px;border:1px solid rgba(255,255,255,.12);background:transparent;color:#8a95a3;font-size:1rem;line-height:1;cursor:pointer;transition:color .18s,border-color .18s,background .18s}
+.pd-del:hover{color:#e8edf2;border-color:rgba(255,255,255,.28);background:rgba(255,255,255,.06)}
+.pd-del:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.pd-warn{margin:4px 0 16px;padding:11px 14px;border-radius:12px;font-size:.8rem;line-height:1.6;color:#f0b8b8;background:rgba(214,92,92,.1);border:1px solid rgba(214,92,92,.32)}
+.pd-warn[hidden]{display:none}
+.pd-year{margin-top:22px;padding-top:20px;border-top:1px solid rgba(255,255,255,.09)}
+.pd-year-h{margin-bottom:14px;font-size:.74rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#8a95a3}
+@media (prefers-reduced-motion:reduce){.pd-del{transition:none}}
 @media (prefers-reduced-motion:reduce){.step-in{animation:none}}
 /* ── 手当ごとの内訳（畳んで残す）── 総支給の欄とは排他 ────────── */
 .pay-detail{margin-top:4px;border-top:1px solid rgba(255,255,255,.07);padding-top:14px}
@@ -589,6 +616,16 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 [data-theme="light"] .chip{color:#475569;background:rgba(0,0,0,.03);border-color:rgba(0,0,0,.18)}
 [data-theme="light"] .chip:hover{color:#a97e00;border-color:rgba(200,149,0,.5);background:rgba(200,149,0,.07)}
 [data-theme="light"] .chip .p{color:#a97e00}
+[data-theme="light"] .rolebox{color:#475569;background:rgba(0,0,0,.03);border-color:rgba(0,0,0,.14)}
+[data-theme="light"] .rolebox:hover{color:#1e293b;border-color:rgba(200,149,0,.45);background:rgba(200,149,0,.07)}
+[data-theme="light"] .rolebox:has(input:checked){color:#a97e00;border-color:rgba(200,149,0,.6);background:rgba(200,149,0,.1)}
+[data-theme="light"] .rolebox input{accent-color:#a97e00}
+[data-theme="light"] .pd-row{background:rgba(0,0,0,.02);border-color:rgba(0,0,0,.1)}
+[data-theme="light"] .pd-del{color:#64748b;border-color:rgba(0,0,0,.14)}
+[data-theme="light"] .pd-del:hover{color:#1e293b;border-color:rgba(0,0,0,.28);background:rgba(0,0,0,.04)}
+[data-theme="light"] .pd-warn{color:#9c3535;background:rgba(214,92,92,.08);border-color:rgba(214,92,92,.3)}
+[data-theme="light"] .pd-year{border-top-color:rgba(0,0,0,.1)}
+[data-theme="light"] .pd-year-h{color:#64748b}
 [data-theme="light"] .pay-detail{border-top-color:rgba(0,0,0,.08)}
 [data-theme="light"] .pay-detail>summary{color:#475569;background:rgba(0,0,0,.03);border-color:rgba(0,0,0,.18)}
 [data-theme="light"] .pay-detail>summary:hover{color:#a97e00;border-color:rgba(200,149,0,.5);background:rgba(200,149,0,.07)}
@@ -1037,17 +1074,24 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
             </select>
           </div>
         </div>
-        <div class="grid2">
         <div class="fld">
-          <!-- ★必須。印・GATE_ROLE・送信バリデーション・db/test-form-contract.mjs は同時に直す。 -->
-          <label class="form-label" for="f-jobrole">Role<span class="req-tag">Required</span></label>
-          <select id="f-jobrole" class="form-input">
-            <option value="">Select…</option>
-            <option value="line">Line pilot</option>
-            <option value="instructor">Instructor (training)</option>
-            <option value="examiner">Examiner</option>
-            <option value="management">Management (dept. head, etc.)</option>
-          </select>
+          <!-- ★必須（1つ以上）。印・GATE_ROLE・送信バリデーション・db/test-form-contract.mjs は同時に直す。
+               ★中身は node gen-vocab.mjs が pv-vocab.mjs の JOB_ROLES から生成する。手で足さない。
+               ★選んだ値は下の hidden #f-jobrole にカンマ区切りで入る。 -->
+          <label class="form-label" for="f-jobrole"><span id="f-jobrole-lab">Role</span><span class="req-tag">Required</span></label>
+          <div class="roleboxes" role="group" aria-labelledby="f-jobrole-lab">
+            <!--BEGIN:BOXES:f-jobrole-->
+            <label class="rolebox"><input type="checkbox" name="f-jobrole" value="line"><span>Line pilot</span></label>
+            <label class="rolebox"><input type="checkbox" name="f-jobrole" value="instructor"><span>Instructor / Training</span></label>
+            <label class="rolebox"><input type="checkbox" name="f-jobrole" value="examiner"><span>Examiner / Check</span></label>
+            <label class="rolebox"><input type="checkbox" name="f-jobrole" value="union"><span>Union / Pilot representative</span></label>
+            <label class="rolebox"><input type="checkbox" name="f-jobrole" value="management"><span>Management / Leadership</span></label>
+            <label class="rolebox"><input type="checkbox" name="f-jobrole" value="safety"><span>Safety / Standards / Technical</span></label>
+            <label class="rolebox"><input type="checkbox" name="f-jobrole" value="secondment"><span>Other department / Secondment</span></label>
+            <!--END:BOXES:f-jobrole-->
+          </div>
+          <input type="hidden" id="f-jobrole"/>
+          <p class="fld-hint">Tick <b>everything</b> that applies. Plenty of pilots fly the line and instruct at the same time.</p>
         </div>
         <div class="fld">
           <!-- ★中身は node gen-vocab.mjs が pv-vocab.mjs の AGE_BUCKETS から生成する。手で足さない。 -->
@@ -1061,7 +1105,6 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
             <option value="60+">60 or over</option>
           </select>
           <p class="fld-hint">Pay rises with age at every airline, so the same seat at the same carrier means a different number at a different age. We only ask for a 10-year band.</p>
-        </div>
         </div>
       </div>
 
@@ -1204,15 +1247,13 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
                pilots cannot answer it with a single number.
              Ask for one number that can be answered without opening the payslip.
              The breakdown lives in the <details> below for anyone who wants it (exclusive). -->
-        <!-- ★This field is never hidden, not even while the breakdown below is open
-             (owner, 2026-08-13). While the breakdown is open it turns into a
-             read-only mirror of the sum below. Both hint texts live here so the
-             JS never carries copy (that is how ja and en drift apart). -->
+        <!-- ★This is always the pilot's own figure (owner, 2026-08-26).
+             Opening the breakdown below does not make it read-only and never
+             overwrites it with the sum. The two do not have to match. -->
         <div class="fld" id="pay-gross-fld">
           <label class="form-label" for="f-gross">Gross pay that month<span class="req-tag">Required</span></label>
-          <input type="text" id="f-gross" class="form-input money" inputmode="decimal" placeholder="e.g. 48,500" data-ph-sum="Sum of the breakdown below"/>
+          <input type="text" id="f-gross" class="form-input money" inputmode="decimal" placeholder="e.g. 48,500"/>
           <p class="fld-hint" id="gross-hint-own">The <b>total before tax and deductions</b> ("Gross Pay" on your payslip).<br>Enter it <b>exactly as printed</b>, allowances and bonus included.</p>
-          <p class="fld-hint" id="gross-hint-sum" hidden>This is the <b>sum of the breakdown below</b> &mdash; we add it up for you while you are entering the items one by one.<br>To type a single number instead, close "Enter it in detail" (your own figure comes back).</p>
         </div>
 
         <div class="fld">
@@ -1272,55 +1313,118 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
              ★Reading a payslip switches to this side automatically — the
                breakdown is right there in the document. -->
         <details class="pay-detail" id="pay-detail">
-          <summary><span class="p">+</span>Split it by allowance</summary>
+          <summary><span class="p">+</span>Add pay breakdown</summary>
           <div class="pay-detail-b">
-            <p class="fld-hint" style="margin:0 0 14px">Splitting it gives your report a <b>pay-mix breakdown</b> &mdash; what actually builds your salary.<br>While it is split, the "gross pay" box above shows <b>these plus per diem and housing allowance</b> (we add it up).</p>
+            <p class="fld-hint" style="margin:0 0 16px">You do not have to copy your payslip line for line. As long as <b>what you are paid every month</b> and <b>what changes with how much you fly</b> are separated, it can be compared across airlines.<br>The "Gross pay that month" box above <b>stays exactly as you typed it</b> &mdash; nothing here overwrites it.</p>
+
             <div class="fld">
-              <label class="form-label" for="f-base">Base pay (per month)<span class="req-tag">Required</span></label>
+              <label class="form-label" for="f-base">Fixed / guaranteed pay</label>
               <input type="text" id="f-base" class="form-input money" inputmode="decimal" placeholder="e.g. 31,000"/>
-              <p class="fld-hint">The line that is <b>nearly the same every month</b> (usually "Basic Salary" or "Base Pay"). Per diem and housing allowance are asked above &mdash; do <b>not</b> repeat them here; flight and command pay have their own boxes below.</p>
+              <p class="fld-hint">Pay that is fixed or guaranteed every month, regardless of how much you fly. Per diem and housing allowance are asked above &mdash; do <b>not</b> repeat them here; anything that moves with flying goes under "Variable pay" below.</p>
+              <label class="rolebox pd-none"><input type="checkbox" id="f-base-none"><span>None of this applies</span></label>
             </div>
 
             <div class="opt-fld" id="opt-f-command" hidden>
               <div class="fld">
-                <label class="form-label" for="f-command">Command pay (month)</label>
+                <label class="form-label" for="f-command">Rank / position allowance</label>
                 <input type="text" id="f-command" class="form-input money" inputmode="decimal"/>
+                <p class="fld-hint">Captain Allowance, Senior FO Allowance and the like &mdash; <b>a monthly allowance attached to your rank</b>. Instructor and examiner allowances do not go here; we ask about those per role later on.</p>
               </div>
             </div>
-            <div class="opt-fld" id="opt-f-transport" hidden>
-              <div class="fld">
-                <label class="form-label" for="f-transport">Transport (month)</label>
-                <input type="text" id="f-transport" class="form-input money" inputmode="decimal"/>
+
+            <div class="opt-fld" id="opt-pd-var" hidden>
+              <div class="pd-block">
+                <div class="form-label">Variable pay</div>
+                <p class="fld-hint" style="margin-top:0">Pay that <b>changes month to month</b> with block hours, sectors, standby and so on. Every airline names these differently, so use whatever your payslip prints.</p>
+                <div class="pd-rows" id="pd-var-rows"></div>
+                <button type="button" class="chip" id="pd-var"><span class="p">+</span>Add variable pay</button>
               </div>
             </div>
-            <div class="opt-fld" id="opt-f-other" hidden>
-              <div class="fld">
-                <label class="form-label" for="f-other">Other pay (month)</label>
-                <input type="text" id="f-other" class="form-input money" inputmode="decimal"/>
+
+            <div class="opt-fld" id="opt-pd-oth" hidden>
+              <div class="pd-block">
+                <div class="form-label">Other cash allowances</div>
+                <p class="fld-hint" style="margin-top:0">Any other cash payment. Per diem and housing allowance are asked earlier, so leave those out.</p>
+                <div class="pd-rows" id="pd-oth-rows"></div>
+                <button type="button" class="chip" id="pd-oth"><span class="p">+</span>Add another allowance</button>
               </div>
             </div>
-            <div class="opt-fld" id="opt-f-profit" hidden>
-              <div class="fld">
-                <label class="form-label" for="f-profit">Profit share (annual)</label>
-                <input type="text" id="f-profit" class="form-input money" inputmode="decimal"/>
-              </div>
-            </div>
-            <div class="opt-fld" id="opt-f-pension" hidden>
-              <div class="fld">
-                <label class="form-label" for="f-pension">Employer pension (%)</label>
-                <input type="number" id="f-pension" class="form-input" min="0" max="100" step="any" inputmode="decimal"/>
-              </div>
-              <p class="fld-hint">The employer contribution is <b>not added to the annualised total</b> — how it is paid out differs too much by country.</p>
-            </div>
+
             <div class="chips">
-              <button type="button" class="chip" data-open="f-command"><span class="p">+</span>Command / role pay</button>
-              <button type="button" class="chip" data-open="f-transport"><span class="p">+</span>Transport</button>
-              <button type="button" class="chip" data-open="f-other"><span class="p">+</span>Other allowance</button>
-              <button type="button" class="chip" data-open="f-profit"><span class="p">+</span>Profit share</button>
-              <button type="button" class="chip" data-open="f-pension"><span class="p">+</span>Pension (employer)</button>
+              <button type="button" class="chip" data-open="f-command"><span class="p">+</span>Rank / position allowance</button>
+              <button type="button" class="chip" data-open="pd-var"><span class="p">+</span>Variable pay</button>
+              <button type="button" class="chip" data-open="pd-oth"><span class="p">+</span>Other cash allowances</button>
+            </div>
+
+            <p class="pd-warn" id="pd-over" hidden>The breakdown adds up to more than the gross pay above. Please check one of the two.</p>
+
+            <div class="pd-year">
+              <div class="pd-year-h">Once a year</div>
+              <div class="opt-fld" id="opt-f-profit" hidden>
+                <div class="fld">
+                  <label class="form-label" for="f-profit">Profit share (annual)</label>
+                  <input type="text" id="f-profit" class="form-input money" inputmode="decimal"/>
+                </div>
+              </div>
+              <div class="opt-fld" id="opt-f-pension" hidden>
+                <div class="fld">
+                  <label class="form-label" for="f-pension">Employer pension (%)</label>
+                  <input type="number" id="f-pension" class="form-input" min="0" max="100" step="any" inputmode="decimal"/>
+                </div>
+                <p class="fld-hint">The employer contribution is <b>not added to the annualised total</b> &mdash; how it is paid out differs too much by country.</p>
+              </div>
+              <div class="chips">
+                <button type="button" class="chip" data-open="f-profit"><span class="p">+</span>Profit share</button>
+                <button type="button" class="chip" data-open="f-pension"><span class="p">+</span>Pension (employer)</button>
+              </div>
             </div>
           </div>
         </details>
+
+        <!-- Row templates. ★All wording lives here, never in the JS (that is how ja and en drift). -->
+        <template id="tpl-pd-var">
+          <div class="pd-row">
+            <button type="button" class="pd-del" aria-label="Remove this row">&times;</button>
+            <div class="fld">
+              <label class="form-label">Amount</label>
+              <input type="text" class="form-input money pd-amt" inputmode="decimal" placeholder="e.g. 4,200"/>
+            </div>
+            <div class="fld">
+              <label class="form-label">What it is paid on</label>
+              <select class="form-input pd-basis">
+                <option value="">You can leave this blank</option>
+                <option value="block">Flight / Block / Credit Hours</option>
+                <option value="sector">Sector / Landing</option>
+                <option value="overtime">Overtime / Extra Duty</option>
+                <option value="reserve">Reserve / Standby</option>
+                <option value="premium">Night / Weekend / Holiday Premium</option>
+                <option value="other">Other</option>
+                <option value="unknown">Not sure</option>
+              </select>
+            </div>
+            <div class="fld">
+              <label class="form-label">Name on the payslip</label>
+              <input type="text" class="form-input pd-label" maxlength="60" placeholder="e.g. Flight Pay, Productivity Pay"/>
+            </div>
+            <div class="fld">
+              <label class="form-label">Rate or rule</label>
+              <input type="text" class="form-input pd-rule" maxlength="60" placeholder="e.g. EUR 30 / Sector"/>
+            </div>
+          </div>
+        </template>
+        <template id="tpl-pd-oth">
+          <div class="pd-row">
+            <button type="button" class="pd-del" aria-label="Remove this row">&times;</button>
+            <div class="fld">
+              <label class="form-label">Amount</label>
+              <input type="text" class="form-input money pd-amt" inputmode="decimal" placeholder="e.g. 250"/>
+            </div>
+            <div class="fld">
+              <label class="form-label">Name on the payslip</label>
+              <input type="text" class="form-input pd-label" maxlength="60" placeholder="e.g. Transport Allowance"/>
+            </div>
+          </div>
+        </template>
       </div>
 
       <div class="card sec step" id="s4" hidden>
@@ -1626,6 +1730,15 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
              §3・§2 にあるので、ここには置かない。 -->
       <input type="hidden" id="f-ytd">
       <input type="hidden" id="f-flightvar">
+      <!-- ★Transport / other pay lost their visible boxes on 2026-08-26 (they are rows now).
+           The columns stay, and payslip parsing still writes them wholesale. -->
+      <input type="hidden" id="f-transport">
+      <input type="hidden" id="f-other">
+      <!-- ★Totals of the repeating rows, kept apart from the two above so neither
+           side silently wipes the other. Added together only in the payload. -->
+      <input type="hidden" id="f-var-sum">
+      <input type="hidden" id="f-oth-sum">
+      <input type="hidden" id="f-payitems">
       <input type="hidden" id="f-deduct">
       <input type="hidden" id="f-night-h">
       <input type="hidden" id="f-credit-h">
@@ -1927,6 +2040,27 @@ function afterSaved(data, payload, airline) {
 })();
 
 // ── Free-text name when “Other” is picked ────────────────────────
+/* ── 役職・区分（複数選択）─────────────────────────────────────
+   見た目はチェックボックスだが、値を持つのは今までどおり hidden の #f-jobrole
+   （選んだコードをカンマ区切りで入れる）。こうしておくと、ゲート・必須の印・
+   プリセット・送信の4つを1文字も変えずに複数選択にできる。
+   ⚠️ 中身は node gen-vocab.mjs が配る。HTML に手で足さない。 */
+const ROLE_BOXES = [].slice.call(document.querySelectorAll('input[name="f-jobrole"]'));
+function readRoleBoxes() {
+  $('f-jobrole').value = ROLE_BOXES.filter((b) => b.checked).map((b) => b.value).join(',');
+}
+function syncRoleBoxes() {
+  const on = {};
+  for (const c of String($('f-jobrole').value || '').split(',')) if (c) on[c] = 1;
+  for (const b of ROLE_BOXES) b.checked = !!on[b.value];
+  /* ★語彙から消えたコードが値に残ると、画面に1つも付いていないのに必須が
+     満たされて見える。付いた箱から書き戻して必ず一致させる。 */
+  readRoleBoxes();
+}
+/* ★checkbox 自身に付ける。#form-wrap の change より先に走らせないと、
+   updateSteps() が1つ前の値を見る（子から親へ上がるので子が先）。 */
+for (const b of ROLE_BOXES) b.addEventListener('change', readRoleBoxes);
+
 $('f-airline').addEventListener('change', () => {
   $('wrap-other').style.display = $('f-airline').value === 'other' ? '' : 'none';
 });
@@ -1962,33 +2096,18 @@ $('f-housing').addEventListener('change', () => {
      truth and throw the breakdown away, so the pay-composition chart vanishes. */
 /* ★Per diem and the housing amount are NOT in here (2026-08-13). They moved out to
      boxes everyone answers, so closing the breakdown must not wipe them. */
+/* ★A list of "open the breakdown if any of these came back", nothing more.
+   It is not a list of things to clear — per diem and housing are asked of
+   everyone above, which is why they are not in here. */
 const DETAIL_IDS = ['f-base','f-hourly',
-                    'f-transport','f-command','f-other','f-profit','f-pension'];
-const GROSS_PH = $('f-gross').placeholder;
+                    'f-transport','f-command','f-other','f-profit','f-pension','f-payitems'];
 
-function updatePayMode() {
-  const detail = $('pay-detail').open;
-  const g = $('f-gross');
-  if (detail) {
-    if (!g.readOnly) g.dataset.manual = g.value;        // park what was typed
-    g.readOnly = true;
-    g.placeholder = g.dataset.phSum || GROSS_PH;
-  } else {
-    /* readOnly means we were mirroring the sum until now — only then may the
-       value be swapped (the preset restore runs through here too, so clearing
-       unconditionally would wipe what was just restored). */
-    if (g.readOnly) {
-      g.value = g.dataset.manual || '';
-      delete g.dataset.manual;
-      g.readOnly = false;
-    }
-    g.placeholder = GROSS_PH;
-    for (const id of DETAIL_IDS) $(id).value = '';
-  }
-  $('gross-hint-own').hidden = detail;
-  $('gross-hint-sum').hidden = !detail;
-  recalc();
-}
+/* ★Since 2026-08-26 the gross and the breakdown are no longer exclusive (owner).
+   "Do not overwrite the gross pay the pilot entered with the sum of the breakdown."
+   So all that is left here is: do not make the gross read-only, do not clear the
+   breakdown on close, do not write the sum back. The difference is drawn by
+   pay-viz.js as "not broken down yet". */
+function updatePayMode() { recalc(); }
 $('pay-detail').addEventListener('toggle', updatePayMode);
 
 /* ── Tax: estimated from residence + annual pay ────────────────
@@ -2123,7 +2242,8 @@ function monthlyDetail() {
   const hours = Math.max(num('f-block'), num('f-guar'));
   const housing = $('f-housing').value === 'allowance' ? num('f-housing-amt') : 0;
   return num('f-base') + num('f-hourly') * hours + num('f-perdiem') + housing
-         + num('f-transport') + num('f-command') + num('f-other');
+         + num('f-transport') + num('f-command') + num('f-other')
+         + num('f-var-sum') + num('f-oth-sum');
 }
 
 function annualTotal() {
@@ -2136,8 +2256,7 @@ function annualTotal() {
   /* ★The gross is entered exactly as printed, so a bonus month carries the bonus
      inside it. Take it out before ×12 (owner, 2026-08-13). A breakdown sum never
      contains a bonus, so that side is used as it is. */
-  const monthly = $('pay-detail').open ? monthlyDetail()
-                                       : Math.max(0, num('f-gross') - num('f-bonus-mo'));
+  const monthly = Math.max(0, num('f-gross') - num('f-bonus-mo'));
   return monthly * 12 + num('f-bonus') + num('f-profit');
 }
 
@@ -2149,19 +2268,22 @@ function fmtCur(v, code) {
 
 function recalc() {
   const cur = $('f-currency').value;
-  /* ★While the breakdown is open, the gross field mirrors the sum below.
-     Assigning .value fires no input event, so this never recurses. */
-  if ($('pay-detail').open) {
-    const m = monthlyDetail();
-    $('f-gross').value = m > 0 ? grp(+m.toFixed(2)) : '';
-  }
+  /* ★Nothing is ever written back into the gross field (owner, 2026-08-26).
+     A positive gap — "not broken down yet" — is completely normal, so we stay
+     quiet about it. The only wrong case is a breakdown that adds up to MORE
+     than the gross, and that is the one line we show. Matching is never
+     required and never blocks the submit. */
+  const gross = num('f-gross');
+  $('pd-over').hidden = !(gross > 0 && monthlyDetail() > gross + 1);
   const t = annualTotal();
   $('live-total').innerHTML = t > 0
     ? new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Math.round(t)) + '<span class="u">' + esc(cur || '') + ' / yr</span>'
     : '—';
   updateTax();   // the rate depends on annual pay, so redo it whenever a figure changes
 }
-['f-gross','f-base','f-hourly','f-guar','f-block','f-perdiem','f-housing-amt','f-transport','f-command','f-other','f-bonus','f-bonus-mo','f-profit']
+/* ★f-transport / f-other are hidden now (only payslip parsing writes them).
+   The repeating rows report through f-var-sum / f-oth-sum, written by pdSync(). */
+['f-gross','f-base','f-hourly','f-guar','f-block','f-perdiem','f-housing-amt','f-command','f-bonus','f-bonus-mo','f-profit']
   .forEach((id) => $(id).addEventListener('input', recalc));
 $('f-currency').addEventListener('change', recalc);
 
@@ -2176,13 +2298,11 @@ const GATE_ROLE   = () => filled('f-airline') && ($('f-airline').value !== 'othe
                           && filled('f-position') && filled('f-fleet') && filled('f-jobrole')
                           && filled('f-age');
 const GATE_HOURS  = () => filled('f-block') && filled('f-stay');
-/* ★Where to look for "pay was entered" depends on whether the breakdown is open.
-   While it is, the gross field mirrors the sum, so looking there would open the
-   step for a per-diem-only row that the server then rejects (it refuses rows
-   made of allowances alone). The gate and submitPayReport() share this one.
-   filled() lets '0' through — the real amount is checked on submit. */
-const payEntered  = () => $('pay-detail').open ? (filled('f-base') || filled('f-hourly'))
-                                               : filled('f-gross');
+/* ★Since 2026-08-26 exactly one pay figure is required: the gross. Everything in
+   the breakdown is optional. The step gate and the submit validation share this
+   one line (two different conditions in two places always drift apart).
+   filled() lets '0' through. The actual amount is checked on submit. */
+const payEntered  = () => filled('f-gross');
 /* Housing is not done when it is merely picked — cash means the amount too. */
 const housingOk   = () => filled('f-housing')
                           && ($('f-housing').value !== 'allowance' || filled('f-housing-amt'));
@@ -2367,7 +2487,10 @@ window.addEventListener('hashchange', openDetailFromHash);
    Ten permanently visible boxes read as "there is still all this". */
 // ★f-bonus came out of the chips (it is one of the five simple-form boxes: without
 //   asking for the annual bonus, whoever files a bonus month reads almost twice as high).
-const CHIP_FIELDS = ['f-duty','f-base-iata','f-command','f-transport','f-other','f-profit','f-pension'];
+// ★f-transport / f-other lost their boxes (hidden = payslip parsing only). The two
+//   repeating sections that replaced them hold no value of their own, so pdRestore()
+//   below reopens those by looking at what came back.
+const CHIP_FIELDS = ['f-duty','f-base-iata','f-command','f-profit','f-pension'];
 
 function openOpt(id, quiet) {
   const box = $('opt-' + id);
@@ -2381,6 +2504,101 @@ function openOpt(id, quiet) {
 for (const c of document.querySelectorAll('.chip[data-open]')) {
   c.addEventListener('click', () => { openOpt(c.dataset.open); $(c.dataset.open).focus(); });
 }
+
+/* ── Pay breakdown: repeating rows (2026-08-26) ────────────────
+   Variable pay and other cash allowances are named — and counted — differently
+   at every airline. A fixed set of boxes leaves most pilots unable to enter
+   their own payslip, so these are rows you add.
+   ★The rows themselves are sent as-is in f-payitems (jsonb); only the totals are
+     folded into the existing columns:
+       sum of variable pay          -> added to flight_variable_pay
+       sum of variable + other      -> added to other_allowance
+     (flight_variable is a part of other — the existing contract. Swap them and
+      the pay-mix chart in pay-viz.js breaks.)
+   ★Kept apart from what payslip parsing writes (it overwrites f-other /
+     f-flightvar wholesale). Sharing one box means one side silently wipes the other. */
+const PD = {
+  var: { rows: $('pd-var-rows'), tpl: $('tpl-pd-var'), sum: 'f-var-sum' },
+  oth: { rows: $('pd-oth-rows'), tpl: $('tpl-pd-oth'), sum: 'f-oth-sum' },
+};
+
+function pdRead(kind) {
+  const out = [];
+  for (const row of PD[kind].rows.children) {
+    const g = (sel) => { const e = row.querySelector(sel); return e ? e.value.trim() : ''; };
+    const a = parseFloat(unc(g('.pd-amt')));
+    const o = { amount: isFinite(a) && a > 0 ? a : null, label: g('.pd-label') || null };
+    if (kind === 'var') { o.basis = g('.pd-basis') || null; o.rule = g('.pd-rule') || null; }
+    /* A row where nothing was filled in is not sent (it would land as a 0 allowance). */
+    if (o.amount == null && !o.label && !o.basis && !o.rule) continue;
+    out.push(o);
+  }
+  return out;
+}
+
+function pdSync() {
+  const v = pdRead('var'), o = pdRead('oth');
+  const sum = (list) => list.reduce((t, x) => t + (x.amount || 0), 0);
+  $('f-var-sum').value = sum(v) || '';
+  $('f-oth-sum').value = sum(o) || '';
+  const none = $('f-base-none').checked;
+  /* Nothing entered -> leave the column empty rather than send a meaningless {}. */
+  $('f-payitems').value = (v.length || o.length || none)
+    ? JSON.stringify({ v: 1, fixed_none: none, variable: v, other: o }) : '';
+  recalc();
+}
+
+function pdAdd(kind, quiet) {
+  const box = PD[kind];
+  const row = box.tpl.content.firstElementChild.cloneNode(true);
+  box.rows.appendChild(row);
+  row.querySelector('.pd-del').addEventListener('click', () => { row.remove(); pdSync(); });
+  /* ★Rows born later are not in MONEY_EL, so the separators are wired up here. */
+  for (const el of row.querySelectorAll('input, select')) {
+    if (el.classList.contains('money')) el.addEventListener('input', () => fmtMoneyEl(el));
+    el.addEventListener('input', pdSync);
+    el.addEventListener('change', pdSync);
+  }
+  if (!quiet) { const f = row.querySelector('.pd-amt'); if (f) f.focus(); }
+  return row;
+}
+
+/* Opening a section drops one empty row in. A bare "+" would be one more thing to press. */
+for (const kind of ['var', 'oth']) {
+  const chip = document.querySelector('.chip[data-open="pd-' + kind + '"]');
+  if (chip) chip.addEventListener('click', () => { if (!PD[kind].rows.children.length) pdAdd(kind, true); });
+  $('pd-' + kind).addEventListener('click', () => pdAdd(kind));   // the "+ Add …" inside the section
+}
+
+/* "None of this applies" = an airline with no fixed pay. Empty the box and lock it. */
+$('f-base-none').addEventListener('change', () => {
+  const on = $('f-base-none').checked;
+  $('f-base').disabled = on;
+  if (on) $('f-base').value = '';
+  pdSync();
+});
+
+/* Rebuild the rows from what was saved, reopening the sections and refreshing the totals. */
+function pdRestore(raw) {
+  let o = null;
+  try { o = JSON.parse(raw || ''); } catch (e) { return; }
+  if (!o || typeof o !== 'object') return;
+  for (const kind of ['var', 'oth']) {
+    const key = kind === 'var' ? 'variable' : 'other';
+    const list = Array.isArray(o[key]) ? o[key] : [];
+    if (!list.length) continue;
+    openOpt('pd-' + kind, true);
+    for (const it of list) {
+      const row = pdAdd(kind, true);
+      const put = (sel, v) => { const e = row.querySelector(sel); if (e && v != null && v !== '') e.value = v; };
+      put('.pd-amt', it.amount != null ? grp(String(it.amount)) : '');
+      put('.pd-label', it.label);
+      if (kind === 'var') { put('.pd-basis', it.basis); put('.pd-rule', it.rule); }
+    }
+  }
+  if (o.fixed_none) { $('f-base-none').checked = true; $('f-base').disabled = true; }
+  pdSync();
+}
 /* ?airline= can select 'other' without firing change, so the
    free-text name box stays hidden — and then the S2 gate never opens
    with nothing on screen to explain why. */
@@ -2392,7 +2610,9 @@ const LS_KEY = 'pv_pay_last';
 // ★f-paytype was removed as a field on 2026-08-12. f-gross (that month's gross) took its place.
 const PRESET_IDS = ['f-airline','f-airline-other','f-position','f-fleet','f-currency','f-gross','f-base','f-hourly',
   'f-guar','f-perdiem','f-housing','f-housing-amt','f-contract','f-seniority','f-taxcountry',
-  'f-tax','f-command','f-transport','f-other','f-bonus','f-profit','f-pension','f-jobrole','f-age','f-base-iata'];
+  'f-tax','f-command','f-transport','f-other','f-bonus','f-profit','f-pension','f-jobrole','f-age','f-base-iata',
+  /* ★The repeating rows. The two totals (f-var-sum / f-oth-sum) are not saved — pdSync() derives them. */
+  'f-payitems'];
 // ★For re-sending after login. Unlike the preset, this includes the period.
 const ALL_IDS = PRESET_IDS.concat(['f-year','f-month','f-block','f-duty',
   /* ★その月にしか無い値。PRESET_IDS には入れない（翌月のフォームに持ち越すと壊れる）。 */
@@ -2401,11 +2621,9 @@ const ALL_IDS = PRESET_IDS.concat(['f-year','f-month','f-block','f-duty',
 
 function savePreset() {
   const o = {};
+  /* ★Since 2026-08-26 the gross is saved like anything else — it is always a
+     figure the pilot typed, never a mirrored sum. */
   for (const id of PRESET_IDS) { const v = $(id).value; if (v) o[id] = v; }
-  /* ★Never remember the gross while the breakdown was open — that value is the
-     mirrored sum, not a figure anyone typed. Kept, it comes back next month as a
-     hand-entered gross and builds a row holding both sides. */
-  if ($('pay-detail').open) delete o['f-gross'];
   try { localStorage.setItem(LS_KEY, JSON.stringify(o)); } catch (e) {}
 }
 function snapshot() {
@@ -2422,13 +2640,13 @@ function restoreInto(o) {
     el.value = o[id]; n++;
   }
   if (!n) return 0;
+  syncRoleBoxes();  // hidden に入った値をチェックの絵に戻す
   fmtMoneyAll();   // assignment fires no input event — put the separators back on
-  /* ★If even one breakdown box came back, open the "split it" side. Left closed,
-     updatePayMode() clears what is off screen and silently drops the restored
-     breakdown. (Anyone who had a gross saved stays closed — the gross is right.) */
-  const hasDetail = DETAIL_IDS.some((id) => String(o[id] || '').trim() !== '');
-  if (hasDetail) $('pay-detail').open = true;
-  updatePayMode();      // catches the cases where no toggle event fires (already open, etc.)
+  /* ★If even one breakdown box came back, leave the breakdown open — folded away,
+     nobody can tell there is anything in there. ★Nothing is cleared: the gross and
+     the breakdown are not exclusive. */
+  pdRestore(o['f-payitems']);
+  if (DETAIL_IDS.some((id) => String(o[id] || '').trim() !== '')) $('pay-detail').open = true;
   $('f-airline').dispatchEvent(new Event('change'));
   $('f-housing').dispatchEvent(new Event('change'));
   recalc();   // updateTax() runs inside
@@ -2509,7 +2727,9 @@ updateSteps(true);
   const s = (v) => (v === null || v === undefined || v === '' ? '' : String(v));
   const o = {
     'f-airline': s(r.airline), 'f-airline-other': s(r.airline_other),
-    'f-position': s(r.position), 'f-fleet': s(r.fleet), 'f-jobrole': s(r.job_role),
+    'f-position': s(r.position), 'f-fleet': s(r.fleet),
+    /* ★複数選択にしたので配列のほうが正。古い行は job_role（1つ）しか持たない。 */
+    'f-jobrole': (Array.isArray(r.job_roles) && r.job_roles.length) ? r.job_roles.join(',') : s(r.job_role),
     'f-age': s(r.age_bucket),
     'f-base-iata': s(r.base_iata), 'f-currency': s(r.currency),
     'f-gross': s(r.gross_monthly), 'f-base': s(r.base_pay),
@@ -2649,6 +2869,12 @@ function clearErr() { $('err').innerHTML = ''; }
 /* ★Goes through unc(). A money box reads 1,150,000 on screen; sent raw it
    makes the server's ::numeric fail (we always send bare digits). */
 const val = (id) => { const v = unc($(id).value).trim(); return v === '' ? null : v; };
+/* Add a few fields up into one column. All empty -> null (never send a 0). */
+const sumField = (...ids) => {
+  let t = 0, any = false;
+  for (const id of ids) { const v = parseFloat(unc($(id).value)); if (isFinite(v)) { t += v; any = true; } }
+  return any ? String(+t.toFixed(2)) : null;
+};
 
 async function submitPayReport() {
   clearErr();
@@ -2702,19 +2928,19 @@ async function submitPayReport() {
     airline_other:       val('f-airline-other'),
     position:            val('f-position'),
     fleet:               val('f-fleet'),
-    job_role:            val('f-jobrole'),
+    /* ★役職・区分は複数選択。job_roles が正で、job_role には先頭（主たる役割）を入れる。
+       古い行・明細読み取り・管理者メールが job_role を見ているので残す。 */
+    job_roles:           val('f-jobrole').split(',').filter(Boolean),
+    job_role:            val('f-jobrole').split(',')[0] || '',
     age_bucket:          val('f-age'),
     base_iata:           val('f-base-iata'),
     period_year:         val('f-year'),
     period_month:        val('f-month'),
     currency:            val('f-currency'),
-    /* ★The simple form's "gross pay that month". Exclusive with the breakdown
-       below — the server (submit_pay_report) also keeps the gross and drops the
-       breakdown. NEVER put it in base_pay (the pay mix would become a false
-       "base pay 100%" doughnut).
-       ★Not sent at all while the breakdown is open: the field only mirrors the
-       sum there, and sending it would make the server drop the breakdown. */
-    gross_monthly:       $('pay-detail').open ? null : val('f-gross'),
+    /* ★"Gross pay that month". Since 2026-08-26 it is **always sent** (no longer
+       exclusive with the breakdown). NEVER put it in base_pay (the pay mix would
+       become a false "base pay 100%" doughnut). */
+    gross_monthly:       val('f-gross'),
     base_pay:            val('f-base'),
     hourly_rate:         val('f-hourly'),
     guaranteed_hours:    val('f-guar'),
@@ -2726,7 +2952,12 @@ async function submitPayReport() {
     housing_amount:      $('f-housing').value === 'allowance' ? val('f-housing-amt') : null,
     transport:           val('f-transport'),
     command_pay:         val('f-command'),
-    other_allowance:     val('f-other'),
+    /* ★The repeating rows (other cash allowances + variable pay) are added in here.
+       f-other is overwritten wholesale by payslip parsing, so hand-entered rows live
+       in their own carriers (f-oth-sum / f-var-sum) and are only combined on send.
+       ★flight_variable_pay is a **part of** other_allowance (the pay-viz.js contract),
+         which is why variable pay lands in both. Swap them and the chart breaks. */
+    other_allowance:     sumField('f-other', 'f-var-sum', 'f-oth-sum'),
     bonus_annual:        val('f-bonus'),
     /* ★The bonus sitting inside this month's gross. Taken out before ×12.
        A different thing from bonus_annual — never add the two together. */
@@ -2748,7 +2979,7 @@ async function submitPayReport() {
          （VERIFIED-PILOT 3-2 A-1：明細を1枚も出さずに 'payslip' と送れてしまう）。 */
     net_pay_actual:      val('f-netpay'),
     ytd_taxable:         val('f-ytd'),
-    flight_variable_pay: val('f-flightvar'),
+    flight_variable_pay: sumField('f-flightvar', 'f-var-sum'),
     deduction_total:     val('f-deduct'),
     duty_hours:          val('f-duty-h'),
     night_hours:         val('f-night-h'),
@@ -2756,6 +2987,10 @@ async function submitPayReport() {
     /* ★val() を通さない。unc() がカンマを全部落とすので、JSON が壊れる。
        画面には出さない値で、送るのは payslip.js が組んだ文字列そのまま。 */
     payslip_detail:      $('f-psdetail').value || null,
+    /* ★The rows themselves. The totals already went into the columns above, so this
+       is purely about keeping their shape. Not passed through val() (unc() would
+       strip the commas and break the JSON). */
+    pay_items:           $('f-payitems').value ? JSON.parse($('f-payitems').value) : null,
     source:              val('f-source') || 'web',
     lang:                LANG,
   };

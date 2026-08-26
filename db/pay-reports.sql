@@ -189,7 +189,25 @@ alter table public.pay_reports
   add column if not exists payslip_detail      jsonb,
   -- ★ 2026-08-18 追加。年代（10歳刻み）。外部キーは下の do ブロックで冪等に張る
   --    （add column if not exists は制約を後付けしない）。
-  add column if not exists age_bucket          text;
+  add column if not exists age_bucket          text,
+  -- ★ 2026-08-26 追加。役職・区分を**複数**持てるようにした（オーナー指示）。
+  --    ラインを飛びながら教官、組合の役員も兼ねる、は普通にある。
+  --    ⚠️ job_role（単数）は消さない。過去の全行がそちらを持っていて、
+  --       明細読み取りと管理者メールもそちらを見ている。新しい投稿は
+  --       job_roles[1]（主たる役割）を job_role にも入れて両方そろえる。
+  --    ⚠️ 外部キーは張らない（text[] には張れない）。代わりに
+  --       pv_validate_pay_payload が pv_job_roles に在るコードだけ通す。
+  add column if not exists job_roles           text[],
+  -- ★ 2026-08-26 追加。給与の内訳のうち「行が何本あるか会社ごとに違う」ぶん
+  --    （変動給・その他の現金手当）を、行の形のまま溜める。
+  --    形は {"v":1,"fixed_none":bool,
+  --          "variable":[{amount,basis,label,rule}],"other":[{amount,label}]}。
+  --    ★合計は既存の列に寄せてある（変動給→flight_variable_pay、
+  --      変動給＋その他→other_allowance）ので、集計もレポートの図も
+  --      この列を読まなくてよい。ここは「何に対して払われているか」を残すため。
+  --    ★payslip_detail と同じ扱い：Verified の判定に使わない（クライアント申告）。
+  --      公開面に出る道も同じく無い（pay_reports は revoke all）。
+  add column if not exists pay_items           jsonb;
 
 do $$
 begin
@@ -482,12 +500,32 @@ begin
     raise exception '年代が不正です: %', v_age using errcode = '22023';
   end if;
 
-  -- 総支給が来ていたら内訳は見ない（submit_pay_report の insert と同じ排他の入れ方）。
-  -- ここで揃えておかないと、内訳だけの payload が仮受けを通って本登録で落ちる。
-  if v_gross is not null then
-    v_base := null; v_hourly := null;
-    v_trans := null; v_cmd := null; v_othal := null;
+  /* 役職・区分。2026-08-26 から**複数**選べる（オーナー指示）。
+     ★空でも通す。役職を聞く前に預かった仮受けと、過去の投稿を落とさないため。
+     ★入っているなら pv_job_roles に在るコードだけ通す。
+       job_role（単数）には外部キーが張ってあるが、job_roles（配列）には張れないので
+       ここが唯一の関門になる。 */
+  if jsonb_typeof(p->'job_roles') = 'array' then
+    if jsonb_array_length(p->'job_roles') > 20 then
+      raise exception '役職・区分が多すぎます' using errcode = '22023';
+    end if;
+    if exists (
+      select 1 from jsonb_array_elements_text(p->'job_roles') as t(code)
+       where not exists (select 1 from public.pv_job_roles r
+                          where r.code = t.code and r.active)
+    ) then
+      raise exception '役職・区分が不正です' using errcode = '22023';
+    end if;
   end if;
+
+  /* ★ 2026-08-26、総支給と内訳の排他をやめた（オーナー指示）。
+     以前はここで「総支給が来ていたら内訳を捨てる」としていた。だが会社ごとに
+     変動給の建て付けが違うため、総支給は明細の印字どおりに残したまま
+     「そのうち何が固定で何が変動か」を別に書いてもらう形にした。
+     ⚠️ 二重計上は起きない。pv_annual_total は総支給があれば内訳を一切見ない
+        （coalesce の第1引数）。年換算は今までと1円も変わらない。
+     ⚠️ 内訳の合計が総支給と一致することは条件にしない。差は
+        「どの項目にも入れていない分」として、レポートの図が灰色で描く。 */
 
   -- 手当だけの行は給与レポートとして成立しない（比較の軸が無くなる）。
   -- かんたん入力なら総支給、くわしく入れるなら基本給、明細から時給が読めたなら時給。
@@ -560,7 +598,7 @@ declare
   -- ★ かんたん入力の「その月の額面（総支給）」。0 も null に倒す（0 を「入力あり」と
   --   数えると、下の coalesce が内訳へ落ちずに年収0の行が通る）。
   v_gross     numeric := nullif(nullif(p->>'gross_monthly', '')::numeric, 0);
-  -- 内訳。v_gross が来たときは begin の中でまとめて null に落とす（両方入った行を作らない）。
+  -- 内訳。★2026-08-26 から総支給と同時に持てる（排他をやめた）。
   -- 変数に受けているのは、insert と on conflict の2箇所で同じ判断を書き写さないため。
   v_base      numeric := nullif(p->>'base_pay', '')::numeric;
   v_hourly    numeric := nullif(p->>'hourly_rate', '')::numeric;
@@ -582,6 +620,9 @@ declare
   v_htype     text    := nullif(btrim(p->>'housing_type'), '');
   v_src       text    := lower(nullif(btrim(p->>'source'), ''));
   v_detail    jsonb;   -- 読めた手当の内訳（画面には出さない。下で検品する）
+  v_items     jsonb;   -- 本人が書いた内訳の行（同上。下で検品する）
+  v_roles     text[];  -- 役職・区分（複数）。job_role 単数は先頭を入れる
+  v_role      text;
   v_pbh       numeric;
   v_net       numeric;
   v_prof      public.profiles%rowtype;
@@ -609,6 +650,18 @@ begin
   if v_airline <> 'other' then
     v_other := null;   -- 一覧から選んだのに自由入力が残っていたら捨てる
   end if;
+
+  -- ── 役職・区分（2026-08-26 から複数）──────────────────
+  -- 語彙に在るかは pv_validate_pay_payload が既に見ている。ここは形を整えるだけ。
+  -- ★job_role（単数）は消さない。過去の全行と、管理者メールがそちらを見ている。
+  --   先頭＝主たる役割を入れて、単数と複数の両方をそろえる。
+  if jsonb_typeof(p->'job_roles') = 'array' then
+    select array_agg(distinct t.code order by t.code)
+      into v_roles
+      from jsonb_array_elements_text(p->'job_roles') as t(code)
+     where nullif(btrim(t.code), '') is not null;
+  end if;
+  v_role := coalesce(nullif(btrim(p->>'job_role'), ''), v_roles[1]);
 
   -- 明細から下書きした行を、後から見分けられるようにする（AIが埋めた行の品質を
   -- 測る唯一の手段）。知らない値は 'web' に倒す。素通しにすると集計に使えなくなる。
@@ -651,6 +704,43 @@ begin
     end if;
   end if;
 
+  -- ── 本人が書いた内訳の行（2026-08-26）───────────────────
+  --    変動給とその他の現金手当は、会社ごとに本数も呼び名も違う。固定の欄に
+  --    押し込めないので、行の形のまま溜める。
+  --    ★金額の合計は既存の列に寄せてある（変動給→flight_variable_pay、
+  --      変動給＋その他→other_allowance）。ここが空でも金額は1円も欠けない。
+  --    ★payslip_detail と同じ扱い：壊れていても投稿そのものは通す。
+  --      内訳の不備で1件が丸ごと無駄になるのがいちばん損。
+  --    ★p はログイン利用者が自由に作れるので、知っているキーだけを組み直す。
+  begin
+    if jsonb_typeof(p->'pay_items') = 'object' then
+      v_items := p->'pay_items';
+    elsif length(coalesce(p->>'pay_items', '')) between 1 and 8000 then
+      v_items := (p->>'pay_items')::jsonb;    -- 文字列で送られてきた場合
+    end if;
+  exception when others then
+    v_items := null;                          -- 壊れた JSON でも投稿は通す
+  end;
+  if v_items is not null then
+    if jsonb_typeof(v_items) <> 'object' or length(v_items::text) > 8000 then
+      v_items := null;
+    else
+      v_items := jsonb_strip_nulls(jsonb_build_object(
+        'v',          coalesce(v_items->'v', to_jsonb(1)),
+        'fixed_none', case when jsonb_typeof(v_items->'fixed_none') = 'boolean' then v_items->'fixed_none' end,
+        'variable',   case when jsonb_typeof(v_items->'variable') = 'array'
+                            and jsonb_array_length(v_items->'variable') <= 40 then v_items->'variable' end,
+        'other',      case when jsonb_typeof(v_items->'other') = 'array'
+                            and jsonb_array_length(v_items->'other') <= 40 then v_items->'other' end
+      ));
+      -- 行も「該当なし」も無い＝中身が無い。空の殻を溜めない。
+      if not (v_items ? 'variable' or v_items ? 'other'
+              or coalesce((v_items->>'fixed_none')::boolean, false)) then
+        v_items := null;
+      end if;
+    end if;
+  end if;
+
   -- ── レート制限（1日10件。本物のパイロットは月1〜2件しか出さない）──
   select * into v_prof from public.profiles where id = v_uid for update;
   if not found then
@@ -686,16 +776,13 @@ begin
   -- ── 換算レート（無い通貨は null のまま。原本があるので後で再計算できる）──
   select to_usd, to_jpy, as_of into v_fx from public.fx_rates where code = v_cur;
 
-  -- ── 総支給と内訳は排他にする（サーバ側で決める）──────────
-  -- クライアントの表示切替（見えているもの＝送るもの）だけに頼らない。
-  -- 両方入った行は「年収は総額から・支給構成は内訳から」という食い違った行になり、
-  -- あとから見て どちらが本人の申告か 分からなくなる。総支給を正として内訳を捨てる。
-  -- ★ パーディアムと住宅手当はこの一覧に入れない（全員に聞く欄になったので捨てると
-  --    かんたん入力の人からだけ消える）。捨てるのは「内訳を開いた人しか書かない」欄だけ。
-  if v_gross is not null then
-    v_base := null; v_hourly := null;
-    v_trans := null; v_cmd := null; v_othal := null; v_fvp := null;
-  end if;
+  -- ── 総支給と内訳は両立する（2026-08-26 オーナー指示で排他をやめた）──
+  -- 以前はここで内訳を捨てていた。会社ごとに変動給の建て付けが違い、固定6欄では
+  -- 多くのパイロットが自分の明細を入れられなかったので、
+  -- 「総支給は明細の印字どおり・内訳はそのうち分かる範囲だけ」という形にした。
+  -- ⚠️ 二重計上は起きない。pv_annual_total は総支給があれば内訳を一切見ない。
+  -- ⚠️ 一致は求めない。差は「どの項目にも入れていない分」としてレポートの図が灰色で描く。
+  -- （判定は pv_validate_pay_payload 側にも同じ趣旨のコメントがある）
 
   -- ── 派生値 ──────────────────────────────────────────────
   v_ann := public.pv_annual_total(
@@ -727,7 +814,7 @@ begin
   -- ── ① 行を作る（user_id は入れない）────────────────────
   insert into public.pay_reports (
     proof_hash, airline, airline_other, base_iata,
-    period_year, period_month, "position", fleet, fleet_cat, job_role, age_bucket,
+    period_year, period_month, "position", fleet, fleet_cat, job_role, job_roles, age_bucket,
     currency, fx_to_usd, fx_to_jpy, fx_at,
     gross_monthly,
     base_pay, hourly_rate, guaranteed_hours, block_hours, duty_days, days_off, sectors,
@@ -740,11 +827,11 @@ begin
     --    上の既存26キーは名前も作り方も1つも変えていない。
     net_pay_actual, ytd_taxable, flight_variable_pay, deduction_total,
     duty_hours, night_hours, credit_hours,
-    payslip_detail,
+    payslip_detail, pay_items,
     lang, source
   ) values (
     v_hash, v_airline, v_other, upper(nullif(btrim(p->>'base_iata'), '')),
-    v_year, v_month, v_pos, v_fleet, v_cat, nullif(btrim(p->>'job_role'), ''),
+    v_year, v_month, v_pos, v_fleet, v_cat, v_role, v_roles,
     nullif(btrim(p->>'age_bucket'), ''),
     v_cur, v_fx.to_usd, v_fx.to_jpy, v_fx.as_of,
     v_gross,
@@ -767,7 +854,7 @@ begin
     v_fvp,                                         nullif(p->>'deduction_total','')::numeric,
     nullif(p->>'duty_hours','')::numeric,          nullif(p->>'night_hours','')::numeric,
     nullif(p->>'credit_hours','')::numeric,
-    v_detail,
+    v_detail, v_items,
     coalesce(nullif(btrim(p->>'lang'), ''), 'en'), v_src
   )
   on conflict on constraint pay_reports_uniq do update set
@@ -776,6 +863,8 @@ begin
     created_at = now(),
     base_iata = excluded.base_iata, "position" = excluded."position",
     fleet = excluded.fleet, fleet_cat = excluded.fleet_cat, job_role = excluded.job_role,
+    -- ★ ここに書き忘れると、役職を選び直しても複数のほうだけ古いまま残る。
+    job_roles = excluded.job_roles,
     -- ★ ここに書き忘れると、年代だけ訂正が効かない（最初に出した値が残る）。
     age_bucket = excluded.age_bucket,
     currency = excluded.currency, fx_to_usd = excluded.fx_to_usd,
@@ -812,6 +901,9 @@ begin
     /* ★訂正で内訳が空になったときに古い内訳を残さない。残すと、金額は新しく
        内訳は前回のまま、という食い違った1行ができる。 */
     payslip_detail = excluded.payslip_detail,
+    /* ★同じ理由で内訳の行も上書きする。残すと、合計は新しく行は前回のまま、
+       という食い違った1行ができる。 */
+    pay_items = excluded.pay_items,
     lang = excluded.lang, source = excluded.source
   -- xmax=0 は「今この文で新規に挿入された行」の目印。訂正（update）と区別する。
   -- この事業が追う唯一の指標が月間コントリビューション数なので、
@@ -1465,3 +1557,25 @@ select n.nspname || '.' || p.proname
    and pg_get_functiondef(p.oid) ~ '\mpay_reports\M'
    and has_function_privilege('anon', p.oid, 'execute')
  order by 1;
+
+-- 8-21. 2026-08-26 に足した2列が入っていること（期待：2 行とも true）
+--       ★入っていないと、役職を複数選んでも1つしか残らず、
+--         内訳の行（変動給・その他の現金手当）は保存されずに消える。
+--         画面は普通に「送信できました」と出るので、貼り忘れに気づけない。
+select k as 列, exists (
+         select 1 from information_schema.columns
+          where table_schema='public' and table_name='pay_reports' and column_name=k
+       ) as ある
+  from unnest(array['job_roles','pay_items']) as k;
+
+-- 8-22. 総支給と内訳の排他が復活していないこと（期待：2 行とも false）
+--       ★2026-08-26、オーナー指示で排他をやめた。総支給は明細の印字どおりに残し、
+--         そのうち何が固定で何が変動かを別に書いてもらう。
+--         ここが true に戻ると、内訳を書いた人の行から内訳だけが黙って消える
+--         （年収は変わらないので、誰も気づけない）。
+select p.proname as 関数,
+       pg_get_functiondef(p.oid) ~ 'v_gross is not null then\s*\n\s*v_base := null' as 内訳を捨てている
+  from pg_proc p
+  join pg_namespace n on n.oid = p.pronamespace
+ where n.nspname='public'
+   and p.proname in ('submit_pay_report','pv_validate_pay_payload');

@@ -342,16 +342,18 @@ ok(gs.base_pay === null, `総支給を基本給の列に入れていない → $
 ok(Number(gs.guaranteed_hours) === 75, `保証時間は残る（金額ではなく契約の事実）→ ${gs.guaranteed_hours}`);
 ok(gs.housing_type === 'allowance', `住居の種類も残る（金額だけ聞かない）→ ${gs.housing_type}`);
 
-// 総支給と内訳が両方来たら、総支給を正として内訳を捨てる
-// （両方入った行は「年収は総額から・支給構成は内訳から」という食い違った行になる）
-// ★ ただしパーディアムと住宅手当は 2026-08-13 から全員に聞く欄になったので捨てない。
-//   二重計上は起きない＝ pv_annual_total は総支給があれば内訳側を一切見ない。
+// 総支給と内訳は両方そろって残る（2026-08-26 オーナー指示で排他をやめた）。
+// 会社ごとに変動給の建て付けが違うので、総支給は明細の印字どおりに残したまま
+// 「そのうち何が固定で何が変動か」を別に書いてもらう形にした。
+// ★年換算は今までどおり総支給が正（pv_annual_total は総支給があれば内訳を見ない）。
+//   ＝二重計上は起きない。内訳は「支給構成の図」を描くためだけに残る。
 await asUser(42);
 r = (await submit({ ...BASE, gross_monthly: 54250, airline: 'lufthansa', period_year: 2026, period_month: 7 })).r;
-ok(Number(r.annual_total_orig) === 651000, `内訳が付いてきても総支給が正 → ${r.annual_total_orig}`);
+ok(Number(r.annual_total_orig) === 651000, `内訳が付いてきても年換算は総支給が正 → ${r.annual_total_orig}`);
 const both = await one(`select * from pay_reports where airline='lufthansa' and period_month=7`);
-ok(both.base_pay === null && both.transport === null && both.command_pay === null,
-  `内訳（基本給・交通・機長手当）は保存しない → ${both.base_pay} / ${both.transport} / ${both.command_pay}`);
+ok(Number(both.gross_monthly) === 54250 && Number(both.base_pay) === BASE.base_pay
+   && Number(both.hourly_rate) === BASE.hourly_rate,
+  `総支給と内訳が両方残る → ${both.gross_monthly} / ${both.base_pay} / ${both.hourly_rate}`);
 ok(Number(both.per_diem) === 3000 && Number(both.housing_amount) === 10000,
   `パーディアムと住宅手当は総支給と一緒でも残る → ${both.per_diem} / ${both.housing_amount}`);
 
@@ -359,6 +361,78 @@ ok((await boom(`select submit_pay_report($1::jsonb)`, [JSON.stringify({
   ...BASE, base_pay: null, hourly_rate: null, gross_monthly: 0,
   airline: 'lufthansa', period_year: 2026, period_month: 4,
 })]) || '').includes('報酬額'), '総支給0・基本給も時給も無い行は弾く');
+
+// ── 役職・区分（複数）と内訳の行（2026-08-26 に足した2列）──────────
+// 会社ごとに変動給の建て付けが違うので、固定の欄に押し込めない。行の形のまま溜める。
+console.log('\n▼ 役職・区分（複数）と内訳の行');
+await asUser(44);
+const ITEMS = {
+  v: 1, fixed_none: false,
+  variable: [{ amount: 180000, basis: 'block', label: 'Flight Pay', rule: 'AED 250 / Block Hour' }],
+  other: [{ amount: 12000, label: '通勤手当' }],
+};
+r = (await submit({
+  ...BASE, gross_monthly: 54250, airline: 'ana', period_year: 2026, period_month: 5,
+  job_roles: ['instructor', 'line'], pay_items: ITEMS,
+})).r;
+const jr = await one(`select * from pay_reports where airline='ana' and period_month=5`);
+ok(String(jr.job_roles) === 'instructor,line', `役職を複数そのまま保存 → ${jr.job_roles}`);
+// ★単数の列は消さない。過去の全行と管理者メールがそちらを見ている。
+ok(jr.job_role === 'instructor', `job_role（単数）に先頭が入る → ${jr.job_role}`);
+ok(jr.pay_items && jr.pay_items.variable[0].label === 'Flight Pay'
+   && jr.pay_items.other[0].amount === 12000,
+  `内訳の行がそのまま残る → 変動${jr.pay_items?.variable?.length} / その他${jr.pay_items?.other?.length}`);
+
+// 文字列で送られてきても受ける（画面は JSON.stringify して送ることがある）
+await asUser(45);
+await submit({
+  ...BASE, gross_monthly: 54250, airline: 'jal', period_year: 2026, period_month: 5,
+  job_roles: ['union'], pay_items: JSON.stringify(ITEMS),
+});
+const js = await one(`select * from pay_reports where airline='jal' and period_month=5`);
+ok(js.pay_items && js.pay_items.variable.length === 1, '文字列で送られた内訳も読める');
+
+// 知らないキーは組み直しで落ちる（p はログイン利用者が自由に作れる）
+await asUser(46);
+await submit({
+  ...BASE, gross_monthly: 54250, airline: 'ryanair', period_year: 2026, period_month: 5,
+  pay_items: { v: 1, other: [{ amount: 500, label: 'x' }], evil: 'ここに何でも入れられては困る' },
+});
+const ev = await one(`select * from pay_reports where airline='ryanair' and period_month=5`);
+ok(ev.pay_items && ev.pay_items.evil === undefined, `知らないキーは落ちる → ${JSON.stringify(ev.pay_items)}`);
+
+// 空の殻は溜めない（行も「該当なし」も無い）
+await asUser(47);
+await submit({
+  ...BASE, gross_monthly: 54250, airline: 'qantas', period_year: 2026, period_month: 5,
+  pay_items: { v: 1, fixed_none: false },
+});
+ok((await one(`select * from pay_reports where airline='qantas' and period_month=5`)).pay_items === null,
+  '中身の無い内訳は保存しない');
+
+// 語彙に無い役職は弾く（job_roles には外部キーを張れないので、ここが唯一の関門）
+ok((await boom(`select submit_pay_report($1::jsonb)`, [JSON.stringify({
+  ...BASE, gross_monthly: 54250, airline: 'ana', period_year: 2026, period_month: 3,
+  job_roles: ['line', 'not-a-role'],
+})]) || '').includes('役職'), '語彙に無い役職は弾く');
+
+// ★壊れた内訳で投稿そのものを落とさない（1件が丸ごと無駄になるのがいちばん損）
+await asUser(48);
+r = (await submit({
+  ...BASE, gross_monthly: 54250, airline: 'ana', period_year: 2026, period_month: 2,
+  pay_items: 'これは JSON ではない',
+})).r;
+ok(r.ok === true, '内訳が壊れていても投稿は通る');
+
+// 訂正で内訳が空になったら古い内訳を残さない
+await asUser(44);
+await submit({
+  ...BASE, gross_monthly: 54250, airline: 'ana', period_year: 2026, period_month: 5,
+  job_roles: ['line'],
+});
+const fix = await one(`select * from pay_reports where airline='ana' and period_month=5`);
+ok(fix.pay_items === null && String(fix.job_roles) === 'line',
+  `出し直すと役職も内訳も新しいほうになる → ${fix.job_roles} / ${fix.pay_items}`);
 
 // ── ステイ日数と「今月出たボーナス」（2026-08-13 に足した2列）──────
 // 総支給と手取りは「明細のとおり」＝ボーナスが出た月は込みの額で申告してもらう。

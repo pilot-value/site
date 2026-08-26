@@ -245,6 +245,33 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 .chip:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
 .chip:active{transform:translateY(1px)}
 .chip .p{font-size:.95rem;line-height:1;font-weight:800;color:#f5c842}
+/* 役職・区分（複数選択）。中身は node gen-vocab.mjs が配る。 */
+.roleboxes{display:flex;flex-wrap:wrap;gap:8px}
+.rolebox{display:inline-flex;align-items:center;gap:9px;padding:9px 14px;border-radius:12px;font-size:.82rem;font-weight:600;color:#a8b3c2;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);cursor:pointer;transition:color .2s,border-color .2s,background .2s,transform .18s cubic-bezier(.16,1,.3,1)}
+.rolebox:hover{color:#e8edf2;border-color:rgba(245,200,66,.4);background:rgba(245,200,66,.06)}
+.rolebox:active{transform:translateY(1px)}
+.rolebox input{flex:none;width:16px;height:16px;margin:0;accent-color:#f5c842;cursor:pointer}
+.rolebox:has(input:checked){color:#f5c842;border-color:rgba(245,200,66,.55);background:rgba(245,200,66,.1)}
+.rolebox:has(input:focus-visible){outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.rolebox{transition:none}}
+/* 給与の内訳。繰り返し行（変動給／その他の現金手当）と年に一度のもの。 */
+.pd-none{margin-top:10px;padding:7px 12px;font-size:.78rem}
+.pd-block{margin-bottom:16px}
+.pd-rows{display:flex;flex-direction:column;gap:12px;margin:12px 0}
+.pd-row{position:relative;padding:14px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.09)}
+.pd-row>.fld{margin-bottom:12px}
+/* × は箱の右上に浮いている。逃げの余白は1行目の見出しにだけ持たせる。
+   行ぜんぶに右の余白を持たせると、欄だけが箱の中で左に寄って見える。 */
+.pd-row>.fld:first-of-type>.form-label{padding-right:34px}
+.pd-row>.fld:last-child{margin-bottom:0}
+.pd-del{position:absolute;top:9px;right:9px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:9px;border:1px solid rgba(255,255,255,.12);background:transparent;color:#8a95a3;font-size:1rem;line-height:1;cursor:pointer;transition:color .18s,border-color .18s,background .18s}
+.pd-del:hover{color:#e8edf2;border-color:rgba(255,255,255,.28);background:rgba(255,255,255,.06)}
+.pd-del:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.pd-warn{margin:4px 0 16px;padding:11px 14px;border-radius:12px;font-size:.8rem;line-height:1.6;color:#f0b8b8;background:rgba(214,92,92,.1);border:1px solid rgba(214,92,92,.32)}
+.pd-warn[hidden]{display:none}
+.pd-year{margin-top:22px;padding-top:20px;border-top:1px solid rgba(255,255,255,.09)}
+.pd-year-h{margin-bottom:14px;font-size:.74rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#8a95a3}
+@media (prefers-reduced-motion:reduce){.pd-del{transition:none}}
 @media (prefers-reduced-motion:reduce){.step-in{animation:none}}
 /* ── 手当ごとの内訳（畳んで残す）── 総支給の欄とは排他 ────────── */
 .pay-detail{margin-top:4px;border-top:1px solid rgba(255,255,255,.07);padding-top:14px}
@@ -588,6 +615,16 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 [data-theme="light"] .chip{color:#475569;background:rgba(0,0,0,.03);border-color:rgba(0,0,0,.18)}
 [data-theme="light"] .chip:hover{color:#a97e00;border-color:rgba(200,149,0,.5);background:rgba(200,149,0,.07)}
 [data-theme="light"] .chip .p{color:#a97e00}
+[data-theme="light"] .rolebox{color:#475569;background:rgba(0,0,0,.03);border-color:rgba(0,0,0,.14)}
+[data-theme="light"] .rolebox:hover{color:#1e293b;border-color:rgba(200,149,0,.45);background:rgba(200,149,0,.07)}
+[data-theme="light"] .rolebox:has(input:checked){color:#a97e00;border-color:rgba(200,149,0,.6);background:rgba(200,149,0,.1)}
+[data-theme="light"] .rolebox input{accent-color:#a97e00}
+[data-theme="light"] .pd-row{background:rgba(0,0,0,.02);border-color:rgba(0,0,0,.1)}
+[data-theme="light"] .pd-del{color:#64748b;border-color:rgba(0,0,0,.14)}
+[data-theme="light"] .pd-del:hover{color:#1e293b;border-color:rgba(0,0,0,.28);background:rgba(0,0,0,.04)}
+[data-theme="light"] .pd-warn{color:#9c3535;background:rgba(214,92,92,.08);border-color:rgba(214,92,92,.3)}
+[data-theme="light"] .pd-year{border-top-color:rgba(0,0,0,.1)}
+[data-theme="light"] .pd-year-h{color:#64748b}
 [data-theme="light"] .pay-detail{border-top-color:rgba(0,0,0,.08)}
 [data-theme="light"] .pay-detail>summary{color:#475569;background:rgba(0,0,0,.03);border-color:rgba(0,0,0,.18)}
 [data-theme="light"] .pay-detail>summary:hover{color:#a97e00;border-color:rgba(200,149,0,.5);background:rgba(200,149,0,.07)}
@@ -1036,17 +1073,25 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
             </select>
           </div>
         </div>
-        <div class="grid2">
         <div class="fld">
-          <!-- ★必須。印・GATE_ROLE・送信バリデーション・db/test-form-contract.mjs は同時に直す。 -->
-          <label class="form-label" for="f-jobrole">役職・区分<span class="req-tag">必須</span></label>
-          <select id="f-jobrole" class="form-input">
-            <option value="">選択してください</option>
-            <option value="line">ラインパイロット</option>
-            <option value="instructor">教官（訓練担当）</option>
-            <option value="examiner">査察操縦士</option>
-            <option value="management">管理職（部長・班長 等）</option>
-          </select>
+          <!-- ★必須（1つ以上）。印・GATE_ROLE・送信バリデーション・db/test-form-contract.mjs は同時に直す。
+               ★中身は node gen-vocab.mjs が pv-vocab.mjs の JOB_ROLES から生成する。手で足さない。
+               ★選んだ値は下の hidden #f-jobrole にカンマ区切りで入る。
+                 こうすると filled('f-jobrole') も val('f-jobrole') も必須の印も今までどおり動く。 -->
+          <label class="form-label" for="f-jobrole"><span id="f-jobrole-lab">役職・区分</span><span class="req-tag">必須</span></label>
+          <div class="roleboxes" role="group" aria-labelledby="f-jobrole-lab">
+            <!--BEGIN:BOXES:f-jobrole-->
+            <label class="rolebox"><input type="checkbox" name="f-jobrole" value="line"><span>ライン乗務</span></label>
+            <label class="rolebox"><input type="checkbox" name="f-jobrole" value="instructor"><span>教官・訓練担当</span></label>
+            <label class="rolebox"><input type="checkbox" name="f-jobrole" value="examiner"><span>審査・査察担当</span></label>
+            <label class="rolebox"><input type="checkbox" name="f-jobrole" value="union"><span>組合・乗員代表</span></label>
+            <label class="rolebox"><input type="checkbox" name="f-jobrole" value="management"><span>管理・マネジメント</span></label>
+            <label class="rolebox"><input type="checkbox" name="f-jobrole" value="safety"><span>安全・運航基準・技術担当</span></label>
+            <label class="rolebox"><input type="checkbox" name="f-jobrole" value="secondment"><span>他部署配属・出向</span></label>
+            <!--END:BOXES:f-jobrole-->
+          </div>
+          <input type="hidden" id="f-jobrole"/>
+          <p class="fld-hint">あてはまるものを<b>すべて</b>選んでください。ラインを飛びながら教官、のように複数の役割を持つ人がいます。</p>
         </div>
         <div class="fld">
           <!-- ★中身は node gen-vocab.mjs が pv-vocab.mjs の AGE_BUCKETS から生成する。手で足さない。 -->
@@ -1060,7 +1105,6 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
             <option value="60+">60歳以上</option>
           </select>
           <p class="fld-hint">年収は年齢とともに上がるので、同じ会社・同じ職位でも年代が違えば別の数字になります。10歳の幅までしか聞きません。</p>
-        </div>
         </div>
       </div>
 
@@ -1199,15 +1243,13 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
              ・時給は昼夜・国内国際で単価が割れるので「1つの数字」で答えられる人が少ない。
              聞くのは、明細を開かずに答えられる数字1本だけにする。
              手当ごとに分けたい人のために、下の <details> に内訳を残してある（排他）。 -->
-        <!-- ★この欄は「くわしく入れる」を開いても消さない（2026-08-13 オーナー指摘）。
-             開いている間は下の内訳の合計を映すだけの読み取り専用になる。
-             文言と placeholder の差し替え用に、両方の文をここに置いておく
-             （JS 側に日本語を持たせると EN と食い違う）。 -->
+        <!-- ★この欄は常に本人の入力（2026-08-26 オーナー指示）。
+             下の内訳を開いても読み取り専用にしない・合計で書き換えない。
+             内訳の合計と一致しなくてよい。差は「どの項目にも入れていない分」。 -->
         <div class="fld" id="pay-gross-fld">
           <label class="form-label" for="f-gross">その月の総支給額<span class="req-tag">必須</span></label>
-          <input type="text" id="f-gross" class="form-input money" inputmode="decimal" placeholder="例：1,080,000" data-ph-sum="下の内訳の合計"/>
+          <input type="text" id="f-gross" class="form-input money" inputmode="decimal" placeholder="例：1,080,000"/>
           <p class="fld-hint" id="gross-hint-own">税・保険が引かれる<b>前</b>の合計です（明細の「総支給額」「Gross Pay」）。<br>手当もボーナスも含めて、<b>明細に出ているそのままの額</b>を入れてください。</p>
-          <p class="fld-hint" id="gross-hint-sum" hidden><b>下の内訳の合計</b>です。手当ごとに入れているあいだは、こちらで自動で計算します。<br>1つの数字で入れたい方は「くわしく入れる」を閉じてください（入力した総支給額が戻ります）。</p>
         </div>
 
         <div class="fld">
@@ -1259,61 +1301,127 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
           <p class="fld-hint">1年でもらうボーナスの<b>合計</b>（見込みで構いません）。年換算にそのまま足します。</p>
         </div>
 
-        <!-- ── 手当ごとに分ける（畳んで残す）──────────────────────
-             ★上の総支給とは排他。開いたら総支給を消し、閉じたら内訳を消す。
-               両方が入った行は「年収は総額から・支給構成は内訳から」という
-               食い違った行になる（サーバ側でも総支給を正として内訳を捨てる）。
-             ★明細を読み取ったときは、内訳が取れるので自動でこちらへ切り替わる。 -->
+        <!-- ── 給与の内訳（畳んで残す）────────────────────────────
+             ★2026-08-26、上の総支給とは**排他ではなくなった**（オーナー指示）。
+               本人が入れた総支給を内訳の合計で上書きしない。合わなくてよい。
+               差は「どの項目にも入れていない分」としてレポートに灰色で出る。
+             ★目的は明細の再現ではない。固定／変動／変動の理由／その他の現金の
+               4つに分けて、航空会社をまたいで比べられる形にすること。
+             ★教官・審査・組合などの追加ロールの手当はここに入れない。
+               役割ごとの追加モジュールで別に聞く。 -->
         <details class="pay-detail" id="pay-detail">
-          <summary><span class="p">+</span>くわしく入れる（手当ごとに分ける）</summary>
+          <summary><span class="p">+</span>給与の内訳を追加</summary>
           <div class="pay-detail-b">
-            <p class="fld-hint" style="margin:0 0 14px">分けて入れると、レポートに<b>支給構成の内訳</b>（何が年収を作っているか）が出ます。<br>分けている間は、上の「その月の総支給額」は<b>ここの合計＋パーディアム＋住宅手当</b>が入ります（自動計算）。</p>
+            <p class="fld-hint" style="margin:0 0 16px">明細をそのまま写す必要はありません。<b>毎月決まってもらえる分</b>と<b>飛んだ量で変わる分</b>が分かれていれば、会社をまたいで比べられます。<br>上の「その月の総支給額」は<b>そのまま残ります</b>。ここに入れた額で書き換えることはしません。</p>
+
             <div class="fld">
-              <label class="form-label" for="f-base">基本給（月額）<span class="req-tag">必須</span></label>
+              <label class="form-label" for="f-base">固定・保証給</label>
               <input type="text" id="f-base" class="form-input money" inputmode="decimal" placeholder="例：480,000"/>
-              <p class="fld-hint">明細で<b>毎月ほぼ同じ額が出ている行</b>です（日本の明細なら「基本給」「本給」）。上で聞いたパーディアム・住宅手当は<b>ここに入れず</b>、乗務手当などは下で足してください。</p>
+              <p class="fld-hint">勤務量にかかわらず、毎月固定または保証されている給与です。上で聞いたパーディアム・住宅手当は<b>ここに入れず</b>、飛んだ量で変わる分は下の「変動給」へ。</p>
+              <label class="rolebox pd-none"><input type="checkbox" id="f-base-none"><span>該当なし</span></label>
             </div>
 
             <div class="opt-fld" id="opt-f-command" hidden>
               <div class="fld">
-                <label class="form-label" for="f-command">機長・役職手当（月）</label>
+                <label class="form-label" for="f-command">Rank / Position の固定手当</label>
                 <input type="text" id="f-command" class="form-input money" inputmode="decimal"/>
+                <p class="fld-hint">Captain Allowance / Senior FO Allowance のように、<b>職位に対して毎月つく手当</b>です。教官・審査などの手当はここに入れません（役割ごとにあとで聞きます）。</p>
               </div>
             </div>
-            <div class="opt-fld" id="opt-f-transport" hidden>
-              <div class="fld">
-                <label class="form-label" for="f-transport">交通（月）</label>
-                <input type="text" id="f-transport" class="form-input money" inputmode="decimal"/>
+
+            <div class="opt-fld" id="opt-pd-var" hidden>
+              <div class="pd-block">
+                <div class="form-label">変動給</div>
+                <p class="fld-hint" style="margin-top:0">乗務時間・セクター数・待機などで<b>月ごとに変わる支給</b>です。名前は会社ごとに違うので、明細に書いてあるとおりで構いません。</p>
+                <div class="pd-rows" id="pd-var-rows"></div>
+                <button type="button" class="chip" id="pd-var"><span class="p">+</span>変動給を追加</button>
               </div>
             </div>
-            <div class="opt-fld" id="opt-f-other" hidden>
-              <div class="fld">
-                <label class="form-label" for="f-other">その他手当（月）</label>
-                <input type="text" id="f-other" class="form-input money" inputmode="decimal"/>
+
+            <div class="opt-fld" id="opt-pd-oth" hidden>
+              <div class="pd-block">
+                <div class="form-label">その他の現金手当</div>
+                <p class="fld-hint" style="margin-top:0">上に当てはまらない現金の支給です。パーディアムと住宅手当は前に聞いているので、ここには入れません。</p>
+                <div class="pd-rows" id="pd-oth-rows"></div>
+                <button type="button" class="chip" id="pd-oth"><span class="p">+</span>その他の手当を追加</button>
               </div>
             </div>
-            <div class="opt-fld" id="opt-f-profit" hidden>
-              <div class="fld">
-                <label class="form-label" for="f-profit">プロフィットシェア（年額）</label>
-                <input type="text" id="f-profit" class="form-input money" inputmode="decimal"/>
-              </div>
-            </div>
-            <div class="opt-fld" id="opt-f-pension" hidden>
-              <div class="fld">
-                <label class="form-label" for="f-pension">年金 会社負担（%）</label>
-                <input type="number" id="f-pension" class="form-input" min="0" max="100" step="any" inputmode="decimal"/>
-              </div>
-              <p class="fld-hint">年金の会社負担分は<b>年換算総額に含めません</b>（受け取り方が国ごとに違うため）。</p>
-            </div>
+
             <div class="chips">
-              <button type="button" class="chip" data-open="f-command"><span class="p">+</span>機長・役職手当</button>
-              <button type="button" class="chip" data-open="f-transport"><span class="p">+</span>交通</button>
-              <button type="button" class="chip" data-open="f-other"><span class="p">+</span>その他手当</button>
-              <button type="button" class="chip" data-open="f-profit"><span class="p">+</span>プロフィットシェア</button>
-              <button type="button" class="chip" data-open="f-pension"><span class="p">+</span>年金 会社負担</button>
+              <button type="button" class="chip" data-open="f-command"><span class="p">+</span>Rank / Position の固定手当</button>
+              <button type="button" class="chip" data-open="pd-var"><span class="p">+</span>変動給</button>
+              <button type="button" class="chip" data-open="pd-oth"><span class="p">+</span>その他の現金手当</button>
+            </div>
+
+            <p class="pd-warn" id="pd-over" hidden>内訳の合計が、上の総支給額を超えています。どちらかを見直してください。</p>
+
+            <div class="pd-year">
+              <div class="pd-year-h">年に一度のもの</div>
+              <div class="opt-fld" id="opt-f-profit" hidden>
+                <div class="fld">
+                  <label class="form-label" for="f-profit">プロフィットシェア（年額）</label>
+                  <input type="text" id="f-profit" class="form-input money" inputmode="decimal"/>
+                </div>
+              </div>
+              <div class="opt-fld" id="opt-f-pension" hidden>
+                <div class="fld">
+                  <label class="form-label" for="f-pension">年金 会社負担（%）</label>
+                  <input type="number" id="f-pension" class="form-input" min="0" max="100" step="any" inputmode="decimal"/>
+                </div>
+                <p class="fld-hint">年金の会社負担分は<b>年換算総額に含めません</b>（受け取り方が国ごとに違うため）。</p>
+              </div>
+              <div class="chips">
+                <button type="button" class="chip" data-open="f-profit"><span class="p">+</span>プロフィットシェア</button>
+                <button type="button" class="chip" data-open="f-pension"><span class="p">+</span>年金 会社負担</button>
+              </div>
             </div>
           </div>
         </details>
+
+        <!-- 繰り返し行の型。★言語ごとの文言はここに置く（JS に日本語を持たせない）。 -->
+        <template id="tpl-pd-var">
+          <div class="pd-row">
+            <button type="button" class="pd-del" aria-label="この行を消す">×</button>
+            <div class="fld">
+              <label class="form-label">支給額</label>
+              <input type="text" class="form-input money pd-amt" inputmode="decimal" placeholder="例：180,000"/>
+            </div>
+            <div class="fld">
+              <label class="form-label">何に連動する支給か</label>
+              <select class="form-input pd-basis">
+                <option value="">選ばなくても大丈夫です</option>
+                <option value="block">Flight / Block / Credit Hours</option>
+                <option value="sector">Sector / Landing</option>
+                <option value="overtime">Overtime / Extra Duty</option>
+                <option value="reserve">Reserve / Standby</option>
+                <option value="premium">Night / Weekend / Holiday Premium</option>
+                <option value="other">その他</option>
+                <option value="unknown">わからない</option>
+              </select>
+            </div>
+            <div class="fld">
+              <label class="form-label">明細上の名称</label>
+              <input type="text" class="form-input pd-label" maxlength="60" placeholder="例：Flight Pay、乗務手当"/>
+            </div>
+            <div class="fld">
+              <label class="form-label">支給単価・ルール</label>
+              <input type="text" class="form-input pd-rule" maxlength="60" placeholder="例：¥4,500 / Block Hour"/>
+            </div>
+          </div>
+        </template>
+        <template id="tpl-pd-oth">
+          <div class="pd-row">
+            <button type="button" class="pd-del" aria-label="この行を消す">×</button>
+            <div class="fld">
+              <label class="form-label">金額</label>
+              <input type="text" class="form-input money pd-amt" inputmode="decimal" placeholder="例：12,000"/>
+            </div>
+            <div class="fld">
+              <label class="form-label">明細上の名称</label>
+              <input type="text" class="form-input pd-label" maxlength="60" placeholder="例：通勤手当"/>
+            </div>
+          </div>
+        </template>
       </div>
 
       <div class="card sec step" id="s4" hidden>
@@ -1631,6 +1739,18 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
            明細から単価が読めるようになったらここへ入れれば、そのまま送られる。
            空のままなら val() が null を返して列も NULL。 -->
       <input type="hidden" id="f-hourly">
+      <!-- ★2026-08-26。交通・その他手当の専用欄は画面から消した（内訳は下の
+           「その他の現金手当」が繰り返し行で受ける）。列と payslip.js の
+           行き先はそのままなので、hidden で残す。明細を読んだときだけ入る。 -->
+      <input type="hidden" id="f-transport">
+      <input type="hidden" id="f-other">
+      <!-- ★手で足した繰り返し行の合計。payslip.js が触る f-other / f-flightvar とは
+           別に持ち、送るときに足す（片方だけ上書きされて二重・欠落にならない）。 -->
+      <input type="hidden" id="f-var-sum">
+      <input type="hidden" id="f-oth-sum">
+      <!-- ★繰り返し行そのもの（pay_items）。合計だけを既存の列に寄せ、
+           行は形のまま jsonb で残す。f-psdetail と同じ考え方。 -->
+      <input type="hidden" id="f-payitems">
 
       <div class="step" id="submit-block" hidden>
         <div class="sal-total pv-no-cur" style="margin-bottom:8px">
@@ -1910,6 +2030,27 @@ function afterSaved(data, payload, airline) {
 })();
 
 // ── 会社「その他」の自由入力 ──────────────────────────────────
+/* ── 役職・区分（複数選択）─────────────────────────────────────
+   見た目はチェックボックスだが、値を持つのは今までどおり hidden の #f-jobrole
+   （選んだコードをカンマ区切りで入れる）。こうしておくと、ゲート・必須の印・
+   プリセット・送信の4つを1文字も変えずに複数選択にできる。
+   ⚠️ 中身は node gen-vocab.mjs が配る。HTML に手で足さない。 */
+const ROLE_BOXES = [].slice.call(document.querySelectorAll('input[name="f-jobrole"]'));
+function readRoleBoxes() {
+  $('f-jobrole').value = ROLE_BOXES.filter((b) => b.checked).map((b) => b.value).join(',');
+}
+function syncRoleBoxes() {
+  const on = {};
+  for (const c of String($('f-jobrole').value || '').split(',')) if (c) on[c] = 1;
+  for (const b of ROLE_BOXES) b.checked = !!on[b.value];
+  /* ★語彙から消えたコードが値に残ると、画面に1つも付いていないのに必須が
+     満たされて見える。付いた箱から書き戻して必ず一致させる。 */
+  readRoleBoxes();
+}
+/* ★checkbox 自身に付ける。#form-wrap の change より先に走らせないと、
+   updateSteps() が1つ前の値を見る（子から親へ上がるので子が先）。 */
+for (const b of ROLE_BOXES) b.addEventListener('change', readRoleBoxes);
+
 $('f-airline').addEventListener('change', () => {
   $('wrap-other').style.display = $('f-airline').value === 'other' ? '' : 'none';
 });
@@ -1929,46 +2070,25 @@ $('f-housing').addEventListener('change', () => {
   recalc();
 });
 
-/* ── 総支給と内訳は排他（ただし額面の欄は消さない）──────────────
-   ★「くわしく入れる」を開いても額面の欄は残す（2026-08-13 オーナー指摘）。
-     以前は欄ごと隠していたので、開いている人には「ボーナスの前に額面を聞く欄が
-     無い」ように見えていた。開いているあいだは下の内訳の合計を映すだけの
-     読み取り専用にする（合計は recalc() が入れる）。
-   ★手で入れた額面は dataset に預かって、閉じたら戻す。消してしまうと
-     「中を見るために開いただけ」で入力が消える。
-   ★見えていない内訳の値は消す。残すと、画面に無い数字が年換算と送信に混ざる。
-     「見えているもの＝送るもの」。
-   ★送るのは片方だけ（payload で open のとき gross_monthly を null にする）。
-     両方送るとサーバ（submit_pay_report）が総支給を正として内訳を捨て、
-     手当ごとに入れた内容が黙って消える＝レポートの支給構成が出なくなる。 */
-/* ★パーディアムと住宅手当はここに入れない（2026-08-13）。全員に聞く欄へ出したので、
-     「くわしく入れる」を閉じたときに消してはいけない。 */
+/* ── 総支給と内訳は排他ではない（2026-08-26 オーナー指示）──────
+   総支給はいつでも本人の入力で、内訳は**その中身の説明**。合計が一致しなくてよく、
+   一致を送信の条件にもしない。差は「どの項目にも入れていない分」として
+   レポートの支給構成に灰色で出る（pay-viz.js の rest）。
+   ★だから内訳は消さない・書き戻さない・読み取り専用にしない。
+   ★両方そのまま送る。サーバ（pv_annual_total）は総支給があればそちらを正とするので、
+     年換算は画面と1円も違わない。内訳は列に入るだけで年換算には足されない。
+   ★下の DETAIL_IDS は「入っていたら畳まずに開いておく」ための一覧。
+     消すための一覧ではない（パーディアムと住宅手当は全員に聞く欄なので入れない）。 */
 const DETAIL_IDS = ['f-base','f-hourly',
-                    'f-transport','f-command','f-other','f-profit','f-pension'];
-const GROSS_PH = $('f-gross').placeholder;
+                    'f-transport','f-command','f-other','f-profit','f-pension','f-payitems'];
 
-function updatePayMode() {
-  const detail = $('pay-detail').open;
-  const g = $('f-gross');
-  if (detail) {
-    if (!g.readOnly) g.dataset.manual = g.value;        // 手入力を預かる
-    g.readOnly = true;
-    g.placeholder = g.dataset.phSum || GROSS_PH;
-  } else {
-    /* readOnly だった＝直前まで合計を映していた。そのときだけ値を差し替える
-       （プリセット復元の初回もここを通るので、無条件に消すと復元が消える）。 */
-    if (g.readOnly) {
-      g.value = g.dataset.manual || '';
-      delete g.dataset.manual;
-      g.readOnly = false;
-    }
-    g.placeholder = GROSS_PH;
-    for (const id of DETAIL_IDS) $(id).value = '';
-  }
-  $('gross-hint-own').hidden = detail;
-  $('gross-hint-sum').hidden = !detail;
-  recalc();
-}
+/* ★2026-08-26、総支給と内訳は排他ではなくなった（オーナー指示）。
+   「本人が入れた総支給を、内訳の合計で上書きしない」。だからここは
+   ・総支給を読み取り専用にしない
+   ・閉じたときに内訳を消さない（開き直したら入れた分がそのまま残る）
+   ・合計を総支給の欄へ書き戻さない
+   の3つを守るだけになった。差は pay-viz.js が「どの項目にも入れていない分」として描く。 */
+function updatePayMode() { recalc(); }
 $('pay-detail').addEventListener('toggle', updatePayMode);
 
 /* ── 税：居住国と年収から概算して差し出す ─────────────────────
@@ -2086,26 +2206,28 @@ function fmtMoneyAll() { for (const el of MONEY_EL) if (el.value) el.value = grp
 //   最終的な正はサーバの返り値で、送信後はそちらで上書き表示する。
 const num = (id) => { const v = parseFloat(unc($(id).value)); return isFinite(v) && v > 0 ? v : 0; };
 
-/* 内訳から出す月額。★額面の欄に映す合計と annualTotal() が同じ式を使う
-   （2箇所で足し方が違うと、画面の額面と年換算が食い違う）。 */
+/* 内訳の合計（月）。★2026-08-26 から、この数を額面の欄に書き戻さない。
+   使い道は「内訳の合計が総支給を超えていないか」を見るところだけ。
+   ★足す顔ぶれは pay-viz.js の segments() の known と同じでなければならない
+     （あちらは gross - known を「どの項目にも入れていない分」として灰色に描く）。
+     片方だけ増やすと、注意が出ないのにレポートの図が描けない行ができる。 */
 function monthlyDetail() {
   const hours = Math.max(num('f-block'), num('f-guar'));
   const housing = $('f-housing').value === 'allowance' ? num('f-housing-amt') : 0;
   return num('f-base') + num('f-hourly') * hours + num('f-perdiem') + housing
-         + num('f-transport') + num('f-command') + num('f-other');
+         + num('f-transport') + num('f-command') + num('f-other')
+         + num('f-var-sum') + num('f-oth-sum');
 }
 
 function annualTotal() {
-  /* ★どちらを正とするかは「くわしく入れる」が開いているかで決める。
-     開いているあいだ f-gross には合計が映っているので、「額面が入っていたら
-     内訳を見ない」だと自分の合計を読んで内訳を無視することになる。
-     サーバ側の coalesce(p_gross_monthly, 内訳の合計) と結果は同じ
-     （開いているときは gross_monthly を送らない＝サーバも内訳を足す）。 */
+  /* ★2026-08-26 から、年換算は**いつでも本人が入れた総支給**から出す。
+     内訳は総支給の中身を説明するものであって、足し直すものではない
+     （オーナー指示「総支給額を給与内訳の合計で上書きしない」）。
+     サーバ側の pv_annual_total も、総支給があればそちらを正とする
+     （coalesce の第1引数）ので、画面とサーバで同じ数になる。 */
   /* ★総支給は「明細のとおり」なので、ボーナスが出た月はそれが入っている。
-     ×12 する前に、その月に出たボーナスだけ外す（2026-08-13 オーナー指摘）。
-     内訳を書いている人の合計にはボーナスが入っていないので、そのまま。 */
-  const monthly = $('pay-detail').open ? monthlyDetail()
-                                       : Math.max(0, num('f-gross') - num('f-bonus-mo'));
+     ×12 する前に、その月に出たボーナスだけ外す（2026-08-13 オーナー指摘）。 */
+  const monthly = Math.max(0, num('f-gross') - num('f-bonus-mo'));
   return monthly * 12 + num('f-bonus') + num('f-profit');
 }
 
@@ -2117,19 +2239,21 @@ function fmtCur(v, code) {
 
 function recalc() {
   const cur = $('f-currency').value;
-  /* ★くわしく入れるを開いているあいだ、額面の欄は下の内訳の合計を映す。
-     .value への代入では input イベントが出ないので、ここから再帰しない。 */
-  if ($('pay-detail').open) {
-    const m = monthlyDetail();
-    $('f-gross').value = m > 0 ? grp(+m.toFixed(2)) : '';
-  }
+  /* ★総支給の欄には何も書き戻さない（2026-08-26 オーナー指示）。
+     差がプラス側＝「どの項目にも入れていない分」は普通のことなので黙っている。
+     おかしいのは内訳の合計が総支給を**超えた**ときだけで、そのときだけ1行出す。
+     一致は強制しないし、送信も止めない。 */
+  const gross = num('f-gross');
+  $('pd-over').hidden = !(gross > 0 && monthlyDetail() > gross + 1);
   const t = annualTotal();
   $('live-total').innerHTML = t > 0
     ? new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Math.round(t)) + '<span class="u">' + esc(cur || '') + ' / 年</span>'
     : '—';
   updateTax();   // 税率は年収で変わる。金額を触るたびに引き直す
 }
-['f-gross','f-base','f-hourly','f-guar','f-block','f-perdiem','f-housing-amt','f-transport','f-command','f-other','f-bonus','f-bonus-mo','f-profit']
+/* ★f-transport / f-other は画面から消えて hidden になった（明細読み取りだけが書く）。
+   代わりに繰り返し行の合計 f-var-sum / f-oth-sum を pdSync() が書いて recalc を呼ぶ。 */
+['f-gross','f-base','f-hourly','f-guar','f-block','f-perdiem','f-housing-amt','f-command','f-bonus','f-bonus-mo','f-profit']
   .forEach((id) => $(id).addEventListener('input', recalc));
 $('f-currency').addEventListener('change', recalc);
 
@@ -2143,13 +2267,10 @@ const GATE_ROLE   = () => filled('f-airline') && ($('f-airline').value !== 'othe
                           && filled('f-position') && filled('f-fleet') && filled('f-jobrole')
                           && filled('f-age');
 const GATE_HOURS  = () => filled('f-block') && filled('f-stay');
-/* ★報酬が入ったかの判定は、見る場所が「くわしく入れる」の開閉で変わる。
-   開いているあいだ f-gross には内訳の合計が映るので、そこを見てしまうと
-   パーディアムだけの行でも段が開き、送信でサーバに弾かれる（手当だけの行は
-   受け取らない）。ゲートと送信バリデーションはこの1つを共有する。
+/* ★2026-08-26 から、報酬は**総支給の1つだけ**が必須。内訳はぜんぶ任意になった。
+   ゲートと送信バリデーションはこの1つを共有する（2箇所に違う条件を書くと必ずズレる）。
    filled は '0' も通す。実際の金額は送信時に見る。 */
-const payEntered  = () => $('pay-detail').open ? (filled('f-base') || filled('f-hourly'))
-                                               : filled('f-gross');
+const payEntered  = () => filled('f-gross');
 /* 住居は「選んだら終わり」ではない。現金を選んだ人は額まで入って初めて揃う。 */
 const housingOk   = () => filled('f-housing')
                           && ($('f-housing').value !== 'allowance' || filled('f-housing-amt'));
@@ -2330,7 +2451,10 @@ window.addEventListener('hashchange', openDetailFromHash);
    常時10欄あると「まだこんなにあるのか」で止まる。押した人にだけ出す。 */
 // ★f-bonus はチップから出した（かんたん入力の5欄の1つ。年間ボーナスを聞かないと、
 //   賞与が出た月に出した人だけ年収が倍近く高く出る）。
-const CHIP_FIELDS = ['f-duty','f-base-iata','f-command','f-transport','f-other','f-profit','f-pension'];
+// ★f-transport / f-other は画面から消えた（hidden ＝ 明細読み取りだけが書く）。
+//   代わりに繰り返し行の2つ（pd-var / pd-oth）が入ったが、あちらは値を持つ欄が無いので
+//   ここでは扱わず、下の pdRestore() が中身を見て開き直す。
+const CHIP_FIELDS = ['f-duty','f-base-iata','f-command','f-profit','f-pension'];
 
 function openOpt(id, quiet) {
   const box = $('opt-' + id);
@@ -2344,6 +2468,98 @@ function openOpt(id, quiet) {
 for (const c of document.querySelectorAll('.chip[data-open]')) {
   c.addEventListener('click', () => { openOpt(c.dataset.open); $(c.dataset.open).focus(); });
 }
+
+/* ── 給与の内訳：繰り返し行（2026-08-26）──────────────────────
+   変動給とその他の現金手当は、会社ごとに名前も本数も違う。固定の欄を並べると
+   多くのパイロットが自分の明細を入れられないので、行を足す形にする。
+   ★行そのものは f-payitems（jsonb）に形のまま送り、合計だけを既存の列へ寄せる：
+       変動給の合計         → flight_variable_pay に足す
+       変動給＋その他の合計 → other_allowance に足す
+     （flight_variable は other の内訳、という既存の約束を守る。
+      逆にすると pay-viz.js の支給構成の図が壊れる。）
+   ★明細から読めた分（payslip.js が f-other / f-flightvar を丸ごと上書きする）とは
+     別の入れ物に持つ。同じ欄を共有すると、どちらかが黙って消える。 */
+const PD = {
+  var: { rows: $('pd-var-rows'), tpl: $('tpl-pd-var'), sum: 'f-var-sum' },
+  oth: { rows: $('pd-oth-rows'), tpl: $('tpl-pd-oth'), sum: 'f-oth-sum' },
+};
+
+function pdRead(kind) {
+  const out = [];
+  for (const row of PD[kind].rows.children) {
+    const g = (sel) => { const e = row.querySelector(sel); return e ? e.value.trim() : ''; };
+    const a = parseFloat(unc(g('.pd-amt')));
+    const o = { amount: isFinite(a) && a > 0 ? a : null, label: g('.pd-label') || null };
+    if (kind === 'var') { o.basis = g('.pd-basis') || null; o.rule = g('.pd-rule') || null; }
+    /* ＋を押しただけの空の行は送らない（0円の手当として並んでしまう）。 */
+    if (o.amount == null && !o.label && !o.basis && !o.rule) continue;
+    out.push(o);
+  }
+  return out;
+}
+
+function pdSync() {
+  const v = pdRead('var'), o = pdRead('oth');
+  const sum = (list) => list.reduce((t, x) => t + (x.amount || 0), 0);
+  $('f-var-sum').value = sum(v) || '';
+  $('f-oth-sum').value = sum(o) || '';
+  const none = $('f-base-none').checked;
+  /* 何も入っていないときは列ごと空にする（意味の無い {} を送らない）。 */
+  $('f-payitems').value = (v.length || o.length || none)
+    ? JSON.stringify({ v: 1, fixed_none: none, variable: v, other: o }) : '';
+  recalc();
+}
+
+function pdAdd(kind, quiet) {
+  const box = PD[kind];
+  const row = box.tpl.content.firstElementChild.cloneNode(true);
+  box.rows.appendChild(row);
+  row.querySelector('.pd-del').addEventListener('click', () => { row.remove(); pdSync(); });
+  /* ★あとから生えた行は MONEY_EL に入っていないので、桁区切りをここで付ける。 */
+  for (const el of row.querySelectorAll('input, select')) {
+    if (el.classList.contains('money')) el.addEventListener('input', () => fmtMoneyEl(el));
+    el.addEventListener('input', pdSync);
+    el.addEventListener('change', pdSync);
+  }
+  if (!quiet) { const f = row.querySelector('.pd-amt'); if (f) f.focus(); }
+  return row;
+}
+
+/* 節を開いたときに空の行を1つ出す。「＋」だけ置くと、押すものがもう一つ増える。 */
+for (const kind of ['var', 'oth']) {
+  const chip = document.querySelector('.chip[data-open="pd-' + kind + '"]');
+  if (chip) chip.addEventListener('click', () => { if (!PD[kind].rows.children.length) pdAdd(kind, true); });
+  $('pd-' + kind).addEventListener('click', () => pdAdd(kind));   // 節の中の「＋…を追加」
+}
+
+/* 「該当なし」＝固定・保証給が無い会社。欄は空にして触れなくする。 */
+$('f-base-none').addEventListener('change', () => {
+  const on = $('f-base-none').checked;
+  $('f-base').disabled = on;
+  if (on) $('f-base').value = '';
+  pdSync();
+});
+
+/* 保存した内容から行を組み立て直す。開き直しと合計の書き戻しまでここで済ませる。 */
+function pdRestore(raw) {
+  let o = null;
+  try { o = JSON.parse(raw || ''); } catch (e) { return; }
+  if (!o || typeof o !== 'object') return;
+  for (const kind of ['var', 'oth']) {
+    const list = Array.isArray(o[kind === 'var' ? 'variable' : 'other']) ? o[kind === 'var' ? 'variable' : 'other'] : [];
+    if (!list.length) continue;
+    openOpt('pd-' + kind, true);
+    for (const it of list) {
+      const row = pdAdd(kind, true);
+      const put = (sel, v) => { const e = row.querySelector(sel); if (e && v != null && v !== '') e.value = v; };
+      put('.pd-amt', it.amount != null ? grp(String(it.amount)) : '');
+      put('.pd-label', it.label);
+      if (kind === 'var') { put('.pd-basis', it.basis); put('.pd-rule', it.rule); }
+    }
+  }
+  if (o.fixed_none) { $('f-base-none').checked = true; $('f-base').disabled = true; }
+  pdSync();
+}
 /* ?airline= で 'other' が入ったときは change が出ていないので会社名欄が
    出ない。出ないと S2 のゲートが開かず、理由も見えないまま詰まる。 */
 $('f-airline').dispatchEvent(new Event('change'));
@@ -2354,7 +2570,9 @@ const LS_KEY = 'pv_pay_last';
 // ★f-paytype は 2026-08-12 に欄ごと廃止。f-gross（その月の額面）が入った。
 const PRESET_IDS = ['f-airline','f-airline-other','f-position','f-fleet','f-currency','f-gross','f-base','f-hourly',
   'f-guar','f-perdiem','f-housing','f-housing-amt','f-contract','f-seniority','f-taxcountry',
-  'f-tax','f-command','f-transport','f-other','f-bonus','f-profit','f-pension','f-jobrole','f-age','f-base-iata'];
+  'f-tax','f-command','f-transport','f-other','f-bonus','f-profit','f-pension','f-jobrole','f-age','f-base-iata',
+  /* ★内訳の繰り返し行。合計の2つ（f-var-sum / f-oth-sum）は pdSync() が出し直すので保存しない。 */
+  'f-payitems'];
 // ★ログイン後の再送用。プリセットと違って対象月も含める（そのまま送るため）。
 const ALL_IDS = PRESET_IDS.concat(['f-year','f-month','f-block','f-duty',
   /* ★その月にしか無い値。PRESET_IDS には入れない（翌月のフォームに持ち越すと壊れる）。 */
@@ -2363,11 +2581,9 @@ const ALL_IDS = PRESET_IDS.concat(['f-year','f-month','f-block','f-duty',
 
 function savePreset() {
   const o = {};
+  /* ★2026-08-26 から総支給も普通に保存する。内訳の合計を映していた欄ではなく、
+     いつでも本人が手で入れた数字になったため。 */
   for (const id of PRESET_IDS) { const v = $(id).value; if (v) o[id] = v; }
-  /* ★くわしく入れるを開いていたときの額面は保存しない（内訳の合計を映しただけの
-     値で、手で入れた額面ではない）。残すと次回、合計が「手入力の額面」として
-     復元され、内訳と両方入った行が作れてしまう。 */
-  if ($('pay-detail').open) delete o['f-gross'];
   try { localStorage.setItem(LS_KEY, JSON.stringify(o)); } catch (e) {}
 }
 function snapshot() {
@@ -2384,13 +2600,12 @@ function restoreInto(o) {
     el.value = o[id]; n++;
   }
   if (!n) return 0;
+  syncRoleBoxes();  // hidden に入った値をチェックの絵に戻す
   fmtMoneyAll();   // 代入では input が出ない＝桁区切りが付かないので、ここで付け直す
-  /* ★内訳が1つでも入っていたら「くわしく」側を開く。開かないまま放置すると
-     updatePayMode() が「見えていない欄は消す」で、復元した内訳を黙って捨てる。
-     （総支給の欄が入っていた人は閉じたまま＝そのまま総支給が正。） */
-  const hasDetail = DETAIL_IDS.some((id) => String(o[id] || '').trim() !== '');
-  if (hasDetail) $('pay-detail').open = true;
-  updatePayMode();      // toggle が出ないケース（既に open だった等）を拾う
+  /* ★内訳が1つでも入っていたら「給与の内訳を追加」を開いておく（畳んだままだと
+     入っていることに気づけない）。★消しはしない。総支給と内訳は排他ではない。 */
+  pdRestore(o['f-payitems']);
+  if (DETAIL_IDS.some((id) => String(o[id] || '').trim() !== '')) $('pay-detail').open = true;
   $('f-airline').dispatchEvent(new Event('change'));
   $('f-housing').dispatchEvent(new Event('change'));
   recalc();   // 中で updateTax() も走る
@@ -2467,7 +2682,9 @@ updateSteps(true);
   const s = (v) => (v === null || v === undefined || v === '' ? '' : String(v));
   const o = {
     'f-airline': s(r.airline), 'f-airline-other': s(r.airline_other),
-    'f-position': s(r.position), 'f-fleet': s(r.fleet), 'f-jobrole': s(r.job_role),
+    'f-position': s(r.position), 'f-fleet': s(r.fleet),
+    /* ★複数選択にしたので配列のほうが正。古い行は job_role（1つ）しか持たない。 */
+    'f-jobrole': (Array.isArray(r.job_roles) && r.job_roles.length) ? r.job_roles.join(',') : s(r.job_role),
     'f-age': s(r.age_bucket),
     'f-base-iata': s(r.base_iata), 'f-currency': s(r.currency),
     'f-gross': s(r.gross_monthly), 'f-base': s(r.base_pay),
@@ -2595,6 +2812,12 @@ function clearErr() { $('err').innerHTML = ''; }
 /* ★unc() を通す。金額の欄は画面に 1,150,000 と出ているので、そのまま送ると
    サーバの ::numeric が落ちる（送るのは常に素の数字）。 */
 const val = (id) => { const v = unc($(id).value).trim(); return v === '' ? null : v; };
+/* いくつかの欄を足して1つの列へ送る。全部空なら null（0 を送らない）。 */
+const sumField = (...ids) => {
+  let t = 0, any = false;
+  for (const id of ids) { const v = parseFloat(unc($(id).value)); if (isFinite(v)) { t += v; any = true; } }
+  return any ? String(+t.toFixed(2)) : null;
+};
 
 async function submitPayReport() {
   clearErr();
@@ -2646,18 +2869,18 @@ async function submitPayReport() {
     airline_other:       val('f-airline-other'),
     position:            val('f-position'),
     fleet:               val('f-fleet'),
-    job_role:            val('f-jobrole'),
+    /* ★役職・区分は複数選択。job_roles が正で、job_role には先頭（主たる役割）を入れる。
+       古い行・明細読み取り・管理者メールが job_role を見ているので残す。 */
+    job_roles:           val('f-jobrole').split(',').filter(Boolean),
+    job_role:            val('f-jobrole').split(',')[0] || '',
     age_bucket:          val('f-age'),
     base_iata:           val('f-base-iata'),
     period_year:         val('f-year'),
     period_month:        val('f-month'),
     currency:            val('f-currency'),
-    /* ★かんたん入力の「その月の総支給額」。下の内訳とは排他で、
-       サーバ側（submit_pay_report）も総支給を正として内訳を捨てる。
-       絶対に base_pay へ入れないこと（支給構成が「基本給100%」の嘘の図になる）。
-       ★くわしく入れるを開いているときは送らない。欄には内訳の合計が映って
-         いるだけなので、送るとサーバが内訳を捨てて支給構成が出なくなる。 */
-    gross_monthly:       $('pay-detail').open ? null : val('f-gross'),
+    /* ★「その月の総支給額」。2026-08-26 から**いつでも送る**（内訳と排他ではない）。
+       絶対に base_pay へ入れないこと（支給構成が「基本給100%」の嘘の図になる）。 */
+    gross_monthly:       val('f-gross'),
     base_pay:            val('f-base'),
     hourly_rate:         val('f-hourly'),
     guaranteed_hours:    val('f-guar'),
@@ -2669,7 +2892,13 @@ async function submitPayReport() {
     housing_amount:      $('f-housing').value === 'allowance' ? val('f-housing-amt') : null,
     transport:           val('f-transport'),
     command_pay:         val('f-command'),
-    other_allowance:     val('f-other'),
+    /* ★繰り返し行（その他の現金手当＋変動給）の合計をここに足す。
+       f-other は明細読み取りが丸ごと上書きする欄なので、手入力の行は
+       別の入れ物（f-oth-sum / f-var-sum）に持っていて、送るときだけ合わせる。
+       ★flight_variable_pay は other_allowance の**内訳**（pay-viz.js の約束）。
+         だから other には変動給も入り、flight_variable には変動給だけが入る。
+         逆にすると支給構成の図が壊れる。 */
+    other_allowance:     sumField('f-other', 'f-var-sum', 'f-oth-sum'),
     bonus_annual:        val('f-bonus'),
     /* ★総支給に含まれている「その月のボーナス」。年換算のとき ×12 の前に外す。
        bonus_annual（1年の合計）とは別物なので、絶対に足し合わせない。 */
@@ -2691,7 +2920,7 @@ async function submitPayReport() {
          （VERIFIED-PILOT 3-2 A-1：明細を1枚も出さずに 'payslip' と送れてしまう）。 */
     net_pay_actual:      val('f-netpay'),
     ytd_taxable:         val('f-ytd'),
-    flight_variable_pay: val('f-flightvar'),
+    flight_variable_pay: sumField('f-flightvar', 'f-var-sum'),
     deduction_total:     val('f-deduct'),
     duty_hours:          val('f-duty-h'),
     night_hours:         val('f-night-h'),
@@ -2699,6 +2928,9 @@ async function submitPayReport() {
     /* ★val() を通さない。unc() がカンマを全部落とすので、JSON が壊れる。
        画面には出さない値で、送るのは payslip.js が組んだ文字列そのまま。 */
     payslip_detail:      $('f-psdetail').value || null,
+    /* ★内訳の行そのもの。合計は上の列へ寄せてあるので、ここは形を残すためだけ。
+       val() を通さない（unc() がカンマを落として JSON が壊れる）。 */
+    pay_items:           $('f-payitems').value ? JSON.parse($('f-payitems').value) : null,
     source:              val('f-source') || 'web',
     lang:                LANG,
   };

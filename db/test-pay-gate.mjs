@@ -161,7 +161,10 @@ for (const [dir, tag] of [['', '(日本語)'], ['/en', '/en']]) {
     set('f-airline', firstOpt('f-airline'));
     set('f-position', firstOpt('f-position'));
     set('f-fleet', firstOpt('f-fleet'));
-    set('f-jobrole', firstOpt('f-jobrole'));
+    /* ★役職・区分は 2026-08-26 からチェックボックス群（値は hidden の #f-jobrole）。
+       絵の側を押して、ページの sync に hidden を書かせる。 */
+    const role = document.querySelector('input[name="f-jobrole"]');
+    if (role) { role.checked = true; role.dispatchEvent(new Event('change', { bubbles: true })); }
     set('f-age', firstOpt('f-age'));
     set('f-currency', firstOpt('f-currency'));
     set('f-housing', firstOpt('f-housing'));

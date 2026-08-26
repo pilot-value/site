@@ -214,7 +214,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
   airline       text    NOT NULL,      -- Airline code
   position      text    NOT NULL,      -- Captain / First Officer / Trainee
   fleet         text,                  -- Aircraft type (optional, e.g. "b787")
-  job_role      text,                  -- Role (optional, e.g. "line")
+  job_role      text,                  -- Role (optional, multiple, e.g. "line,instructor")
   tenure_bucket text    NOT NULL,      -- e.g. "5-10" (years of service, 5-year steps)
   age_bucket    text    NOT NULL,      -- e.g. "30-34" (age, 5-year bands)
   *_score       int,                   -- Five-point rating, seven categories

@@ -403,6 +403,14 @@ comment on function public.pv_airline_resolve(text) is
 --   月ごとに通貨が違う人が居ても、そのまま平均できる。
 --
 -- ★引数の並びは pv_annual_total と1文字も違わない。呼ぶ側が並べ違えないため。
+--
+-- ⚠️ 2026-08-26、給与フォームで**総支給と内訳の両方**を書けるようにした。
+--    この関数はまだ「総支給がある行は内訳を見ない」形のまま（下の m と o の case）。
+--    ＝新しい形の行は全部そちらへ落ち、その他の手当（o）が 0 として描かれる。
+--    いまは誰も呼んでいないので害は無い（pv_pay_rows からは呼ばない・誰にも grant しない）。
+--    **DEEP PAY を作る回に、ここを内訳優先へ直すこと。** 内訳の行は
+--    pay_reports.pay_items にあり、合計は flight_variable_pay / other_allowance に
+--    寄せてある（変動給 ⊂ その他の手当）。
 -- ════════════════════════════════════════════════════════════════
 create or replace function public.pv_pay_comp(
   p_gross_monthly    numeric,
@@ -649,10 +657,16 @@ on conflict (review_id) do nothing;
 --     「機能を正式に開ける」という区切り。人数が足りない細かい区分を
 --     出さない判断は、DEEP PAY のページ側が別に持つ。
 --
--- ★新しい列を1つも作っていない。pay_reports は gross_monthly（総支給1本）と
---   内訳（base_pay 以下）を**排他**にしているので、いま入っているデータのまま
---   Basic と Detailed が分かれる。＝前から内訳を出してくれていた人も、
---   さかのぼって Detailed として数えられる（既存データを1行も壊さない）。
+-- ★2026-08-26、総支給と内訳の排他をやめた（オーナー指示。会社ごとに変動給の
+--   建て付けが違い、固定6欄では多くのパイロットが入れられなかったため）。
+--   なので detailed は「総支給が無い」では判定できない。**内訳が有る**で見る：
+--     base_pay is not null   … 昔の形（総支給の代わりに内訳を入れた人）
+--     pay_items is not null  … 新しい形（総支給を残したまま内訳の行を書いた人）
+--   ⚠️ ここを `gross_monthly is null and base_pay is not null` に戻すと、
+--      新しい形で内訳を書いた人が**全員「内訳なし」**になる。画面は普通に動くので
+--      誰も気づけない（「準備は完了しています」が一生出ない）。
+--   ★どちらの形も拾うので、前から内訳を出してくれていた人もさかのぼって数えられる
+--     （既存データを1行も壊さない）。
 -- ★明細から入れた行は内訳の側に入るので detailed が自動で true になる。
 --   ＝明細を出した人に、内訳のフォームをもう一度書かせない。
 -- ★payslip は verify_level を見る（一覧の「出典」列とまったく同じ判定）。
@@ -691,8 +705,8 @@ as $fn$
   )
   select jsonb_build_object(
            'basic',    coalesce(bool_or(true), false),
-           'detailed', coalesce(bool_or(r.gross_monthly is null
-                                        and r.base_pay is not null), false),
+           'detailed', coalesce(bool_or(r.base_pay is not null
+                                        or r.pay_items is not null), false),
            'payslip',  coalesce(bool_or(r.verify_level >= 1), false)
          )
     from public.pay_reports r
@@ -706,8 +720,9 @@ revoke all on function public.pv_my_give() from public, anon, authenticated;
 comment on function public.pv_my_give() is
   '呼んだ本人が Basic / Detailed / Payslip のどれを出したかを真偽3つで返す。'
   'DEEP PAY の個人条件（本人が内訳まで出しているか）に使う。'
-  '金額も件数も日付も返さない。新しい列は作らず、gross_monthly と内訳が排他である'
-  'という既存のスキーマだけで判定するので、過去の投稿もそのまま数えられる。'
+  '金額も件数も日付も返さない。判定は「内訳が有るか」だけ（base_pay か pay_items）。'
+  '昔の形（総支給の代わりに内訳）も新しい形（総支給＋内訳の行）も同じように拾うので、'
+  '過去の投稿もそのまま数えられる。'
   '本人の行の引き方は my_pay_reports() と同じ（proof_hash を作り直す）。'
   '★誰にも grant しない。pv_pay_rows() の中からだけ呼ぶ。';
 

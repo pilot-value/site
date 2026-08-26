@@ -181,9 +181,9 @@ console.log('\n⑧ 名前の対応表（my-value.js / pay-tracker.js の両方�
     const src = readFileSync(path.join(ROOT, f), 'utf8');
     ok(/bonus:\s*T\.segBonus/.test(src) && /rest:\s*T\.segRest/.test(src),
        `${f}: SEGNAME に bonus / rest がある（無いと凡例が undefined になる）`);
-    ok(src.includes("segBonus: '今月の賞与'") && src.includes("segRest: '内訳を入れていない分'"),
+    ok(src.includes("segBonus: '今月の賞与'") && src.includes("segRest: 'どの項目にも入れていない分'"),
        `${f}: 日本語の語がある`);
-    ok(/segBonus: 'Bonus this month'/.test(src) && /segRest: 'Not broken down yet'/.test(src),
+    ok(/segBonus: 'Bonus this month'/.test(src) && /segRest: 'Not itemised'/.test(src),
        `${f}: 英語の語がある`);
   }
   const mv = readFileSync(path.join(ROOT, 'my-value.js'), 'utf8');

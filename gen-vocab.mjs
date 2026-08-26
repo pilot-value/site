@@ -226,6 +226,36 @@ function patch(path, id, build, want) {
   return n;
 }
 
+/* 役職・区分だけは select ではなく「チェックボックス群」（複数選択）。
+   ★選ばれた値は同じ id を持つ hidden 入力にカンマ区切りで書き戻される（画面側の JS）。
+     こうすると filled('f-jobrole') / val('f-jobrole') / 必須の印が今までどおり動き、
+     変わるのは見た目だけになる。
+   ⚠️ 差し替える範囲は <!--BEGIN:BOXES:id--> 〜 <!--END:BOXES:id-->。
+     patchMap と同じ考え方で、外側の枠（説明文・aria）はページ側の文言を保つ。 */
+function roleBoxes(lang, pad) {
+  return JOB_ROLES.map((r) =>
+    `${pad}<label class="rolebox"><input type="checkbox" name="f-jobrole" value="${r.code}">`
+    + `<span>${esc(r[lang])}</span></label>`).join('\n');
+}
+
+function patchBoxes(path, id, build, want) {
+  const url = new URL(path, import.meta.url);
+  const html = readFileSync(url, 'utf8');
+  const re = new RegExp(
+    `(^([ \\t]*)<!--BEGIN:BOXES:${id}-->\\n)([\\s\\S]*?)(^[ \\t]*<!--END:BOXES:${id}-->)`, 'm');
+  if (!re.test(html)) throw new Error(`#${id} のチェックボックス枠が見つからない: ${path}`);
+
+  // ★replace の第2引数は必ず関数（文字列だと $ が置換パターンとして解釈される）。
+  const next = html.replace(re, (_, head, pad, __, tail) => head + build(pad) + '\n' + tail);
+
+  const block = next.match(re)[0];
+  const n = [...block.matchAll(new RegExp(`name="${id}" value="`, 'g'))].length;
+  if (n !== want) throw new Error(`チェックボックスの数が合わない: ${path}#${id} → ${n} != ${want}`);
+
+  writeFileSync(url, next);
+  return n;
+}
+
 // ── 3. 確認画面のラベル表 ──────────────────────────────────────
 const jsKey = (k) => (/^[A-Za-z_$][\w$]*$/.test(k) ? k : `'${k}'`);
 const jsStr = (s) => `'${s.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
@@ -261,10 +291,10 @@ function patchMap(path, name, list, lang) {
 
 for (const [path, lang] of [['./submit-review.html', 'ja'], ['./en/submit-review.html', 'en']]) {
   const f = patch(path, 'f-fleet', (pad) => fleetOptions(lang, pad), FLEETS.length);
-  const r = patch(path, 'f-jobrole', (pad) => listOptions(JOB_ROLES, lang, pad), JOB_ROLES.length);
+  const r = patchBoxes(path, 'f-jobrole', (pad) => roleBoxes(lang, pad), JOB_ROLES.length);
   const fl = patchMap(path, 'FLEET_LABELS', FLEETS, lang);
   const rl = patchMap(path, 'ROLE_LABELS', JOB_ROLES, lang);
-  console.log(`✅ ${path.replace('./', '')} → #f-fleet ${f} / #f-jobrole ${r} option、FLEET_LABELS ${fl} / ROLE_LABELS ${rl} 件`);
+  console.log(`✅ ${path.replace('./', '')} → #f-fleet ${f} option / #f-jobrole ${r} 択、FLEET_LABELS ${fl} / ROLE_LABELS ${rl} 件`);
 }
 
 // ── 3-2. 給与レポート（select が8本。ラベル表は持たない）──────
@@ -275,7 +305,6 @@ const PAY_SELECTS = [
   ['f-currency',    (lang, pad) => currencyOptions(lang, pad),              CURRENCIES.length],
   ['f-housing',     (lang, pad) => listOptions(HOUSING, lang, pad),         HOUSING.length],
   ['f-contract',    (lang, pad) => listOptions(CONTRACT_TYPES, lang, pad),  CONTRACT_TYPES.length],
-  ['f-jobrole',     (lang, pad) => listOptions(JOB_ROLES, lang, pad),       JOB_ROLES.length],
   ['f-age',         (lang, pad) => listOptions(AGE_BUCKETS, lang, pad),    AGE_BUCKETS.length],
   // 国籍（f-nationality）は 2026-08-12 に廃止。居住国だけ聞く。
   ['f-taxcountry',  (lang, pad) => countryOptions(lang, pad),               COUNTRIES.length],
@@ -313,8 +342,10 @@ function patchMeta(path) {
 
 for (const [path, lang] of [['./pay-report.html', 'ja'], ['./en/pay-report.html', 'en']]) {
   const got = PAY_SELECTS.map(([id, build, want]) => `${id} ${patch(path, id, (pad) => build(lang, pad), want)}`);
+  // 役職・区分は複数選択なので select ではない（上の patchBoxes を参照）。
+  const roles = patchBoxes(path, 'f-jobrole', (pad) => roleBoxes(lang, pad), JOB_ROLES.length);
   const meta = patchMeta(path);
-  console.log(`✅ ${path.replace('./', '')} → ${got.join(' / ')}、CUR_META ${meta} 通貨`);
+  console.log(`✅ ${path.replace('./', '')} → ${got.join(' / ')} / f-jobrole ${roles} 択、CUR_META ${meta} 通貨`);
 }
 
 // ── 4. DB 側の語彙マスタ ───────────────────────────────────────

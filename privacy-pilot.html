@@ -214,7 +214,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
   airline       text    NOT NULL,      -- 航空会社コード
   position      text    NOT NULL,      -- 機長 / 副操縦士 / 訓練生
   fleet         text,                  -- 機種（任意・例: "b787"）
-  job_role      text,                  -- 役職・区分（任意・例: "line"）
+  job_role      text,                  -- 役職・区分（任意・複数可・例: "line,instructor"）
   tenure_bucket text    NOT NULL,      -- 例: "5-10"（勤務年数5年単位）
   age_bucket    text    NOT NULL,      -- 例: "30-34"（年代5歳単位）
   *_score       int,                   -- 7カテゴリの5段階評価

@@ -76,9 +76,13 @@ for (const [name, s] of [['pay-report.html', JA], ['en/pay-report.html', EN]]) {
     }
     ok(s.includes(`<input type="hidden" id="${id}">`), `${name}: 隠し欄 ${id} がある`);
   }
-  for (const key of Object.values(MAP)) {
-    ok(new RegExp(`${key}:\\s+val\\(`).test(s) || new RegExp(`${key}:\\s+val\\(.*\\|\\|`).test(s),
-       `${name}: payload に ${key} がある`);
+  /* ★2026-08-26、flight_variable_pay だけ val() 1つではなくなった。明細から読めた分
+     （隠し欄 f-flightvar）に加えて、本人が手で足した「変動給」の行の合計（f-var-sum）も
+     足す。だから見るのは書き方ではなく **その隠し欄が payload のそのキーに繋がっているか**。 */
+  for (const [id, key] of Object.entries(MAP)) {
+    const line = (s.match(new RegExp(`\\n\\s*${key}:[^\\n]*`)) || [''])[0];
+    ok(/(val|sumField)\(/.test(line) && line.includes(`'${id}'`),
+       `${name}: payload に ${key} がある（隠し欄 ${id} から来ている）`);
   }
 
   // ★ ALL_IDS には入れる（未ログイン→ログイン後の再送で落ちないため）

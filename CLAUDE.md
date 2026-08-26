@@ -516,9 +516,10 @@ baland_ass/                            ブランド資産（※ brand_assets の
    「登録者100人」ではない）／
    ② **本人が内訳まで出している**（分かる項目だけでよい。全部必須にしない）
 
-   - **新しい列は要らない。** [db/pay-reports.sql](db/pay-reports.sql) は
-     `gross_monthly`（総支給1本）と内訳を**排他**にしているので、
-     `gross_monthly is null and base_pay is not null` が「内訳あり」。**過去の投稿も遡って数に入る**
+   - ★**判定は `base_pay is not null or pay_items is not null`**（2026-08-26 に直した）。
+     前は `gross_monthly is null and base_pay is not null`＝「総支給と内訳は排他」を前提にしていた。
+     フォームの作り直しで**総支給と内訳が両立する**ようになったので、そのままだと
+     **内訳を書いた人が全員「内訳なし」と判定される**。**過去の投稿も遡って数に入る**
    - **明細を読み取れた人に、もう一度フォームを入れさせない**（読み取りが内訳の列を埋めるので
      ②は自動で満たされる。特別扱いを書かない）
    - 100人に届くまで DEEP PAY は開かない。**でも内訳の投稿は今日からできる**。
@@ -546,6 +547,78 @@ baland_ass/                            ブランド資産（※ brand_assets の
      ⚠️ **ページを開いただけでは投げない**（押されたときだけ・二度目は投げない）。
      取れなければ「準備中」のまま。**0 を置いて埋めない**
    - ★**ロック画面の数字カード3枚は出したまま**（2026-08-26 オーナー確認済み・確定）
+
+## 給与フォームの内訳（2026-08-26 に作り直した）
+
+固定6欄（基本給／機長手当／交通／その他／プロフィットシェア／年金）は**日本の大手の明細**しか
+入らない形だった。Flight Pay・Sector Allowance・Productivity Pay・Reserve のように、
+**変動給の建て付けは会社ごとに違う**。オーナー指示で作り直した。
+
+**目的は明細の再現ではない。** 固定／変動／変動の理由／その他の現金の4つに分けて、
+航空会社をまたいで比べられる形にすること。
+
+### ⚠️ 総支給と内訳は**排他ではない**
+- 本人が入れた「その月の総支給額」を**内訳の合計で上書きしない**（オーナー指示）。
+  内訳を開いても欄は生きたまま・読み取り専用にしない・閉じても消さない。
+- **一致を送信の条件にしない。** 差はレポートの図が「どの項目にも入れていない分」として灰色に描く
+  （[pay-viz.js](pay-viz.js) の `segments()`）。
+- 画面が口を出すのは**内訳の合計が総支給を超えたときだけ**（`#pd-over` の1行）。
+  それでも送信は止めない。**足りないときは何も言わない**（説明できない残りは普通のこと）。
+- 年換算は昔から総支給が正（[db/pay-reports.sql](db/pay-reports.sql) の `pv_annual_total` の
+  `coalesce` の第1引数）。だから**この変更で年収の数字は1円も動かない**。
+- ⚠️ 排他を復活させると DEEP PAY の「内訳あり」判定と `pay-viz` の `partial` が同時に壊れる。
+  `db/test-pay-reports.mjs` と `db/test-form-contract.mjs` が字と実際の値の両方で見張っている。
+
+### 入れ子の約束（逆にすると図が壊れる）
+| 画面のブロック | 寄せる列 |
+|---|---|
+| 固定・保証給（＋「該当なし」） | `base_pay` |
+| RANK / POSITION の固定手当 | `command_pay` |
+| **変動給**（行で何本でも） | 合計 → `flight_variable_pay` |
+| **その他の現金手当**（行で何本でも） | 合計 → `other_allowance` |
+
+⚠️ **`other_allowance` は 変動給＋その他 の合計、`flight_variable_pay` はその内訳。**
+[pay-viz.js](pay-viz.js) が `flight_variable ⊂ other` として引き算しているので、逆にすると
+支給構成の円が二重計上になる。
+- **交通（月）とその他手当の専用欄は画面から消えた**（`<input type="hidden">`＝明細読み取り専用）。
+  人が打つのは繰り返し行のほう。列は残す（過去データが使う）。
+- Housing / Per Diem は内訳の**前**で全員に聞いている。ここで二度聞かない。
+- 教官・審査・組合などの**追加ロールの手当はここに入れない**（②〜⑦のモジュールで別に聞く。まだ無い）。
+
+### 行そのものは `pay_items jsonb` に残す
+```json
+{"v":1,"fixed_none":false,
+ "variable":[{"amount":180000,"basis":"block","label":"Flight Pay","rule":"¥4,500 / Block Hour"}],
+ "other":[{"amount":12000,"label":"通勤手当"}]}
+```
+合計だけを既存列へ寄せるので、過去の集計・レポートの図・k≧5 のベンチマークが1つも壊れない。
+検品は `pv_validate_pay_payload`（8000文字・配列40件まで・壊れた JSON は投稿ごと落とさず捨てる）。
+
+### 役職・区分は**7つ・複数選択**
+`line` / `instructor` / `examiner` / `union` / `management` / `safety` / `secondment`。
+語彙の正は [pv-vocab.mjs](pv-vocab.mjs) の `JOB_ROLES`、配るのは `node gen-vocab.mjs`。**手で足さない。**
+
+| | 保存先 |
+|---|---|
+| 給与 `pay_reports` | ★`job_roles text[]` を足した（`revoke all` なので公開されない）|
+| 口コミ `reviews_v2` | ★**列を足さない。**既存の `job_role text` にカンマ区切り |
+
+⚠️ **`reviews_v2` に列を足さない**のは [airlines/airline-reviews-ui.js](airlines/airline-reviews-ui.js) が
+`select('*')` で読むから（足した列はそのまま公開される）。
+- ⚠️ **単数の `job_role` を消さない。** 先頭（主たる役割）が入る。過去の行・明細読み取り・
+  管理者メールがこれを読んでいる。
+- 画面は**チェックボックス群**（`input[name="f-jobrole"]`）＋ **値を持つのは hidden の `#f-jobrole`**
+  （カンマ区切り）。ゲート・必須の帯・プリセット・payload はこの hidden を見るので、
+  絵を変えても1行も直さずに済んでいる。書き写す側は自前で計算せず `syncRoleBoxes()` を呼ぶ。
+- 管理者メールは**コードのまま**「・」で並べる（日本語名に直すと語彙の写しを
+  [notify-admin](supabase/functions/notify-admin/index.ts) に持つことになる）。
+  `pay_items` は**行数だけ**出す。**明細上の名称は1文字も出さない**（手当の呼び名は勤務先が割れる）。
+
+### 見るもの
+`node db/test-form-contract.mjs`（画面の契約）／`npm run test:sql`（保存と検品）／
+`node db/test-payslip-extras.mjs`（隠し欄 → payload）／`node assert-admin-notify.mjs`（メール）。
+絵は `node shot-pay.mjs`（3＝開いた状態 / 3b＝超えたときの注意 / 4＝閉じても残る）と
+`node shot-value.mjs both ja`（総支給と内訳が両方ある行の支給構成）。
 
 **`supabase/functions/` を触ったら push だけでは本番に反映されない。**
 Supabase ダッシュボード → Edge Functions → 該当関数 → コードを貼り替えて Deploy（オーナー作業）。

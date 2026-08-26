@@ -61,12 +61,18 @@ export const POSITIONS = [
 /* 引退したコードの寄せ先。過去の投稿を数えるときはここを通してから集計する。 */
 export const LEGACY_POSITIONS = { captain: 'cap', sfo: 'fo', tri_tre: 'cap' };
 
-/* 役職・区分（職位とは別軸。ラインを飛びながら教官、があるため）。 */
+/* 役職・区分（職位とは別軸。ラインを飛びながら教官、があるため）。
+   ★複数選択できる。1人が「ライン乗務 ＋ 教官 ＋ 組合」は普通にある。
+   ⚠️ 並びはオーナー指定の①〜⑦。過去の投稿が持つ4つのコード
+      （line / instructor / examiner / management）は付け替えずに残す。 */
 export const JOB_ROLES = [
-  { code:'line',       ja:'ラインパイロット',           en:'Line pilot' },
-  { code:'instructor', ja:'教官（訓練担当）',           en:'Instructor (training)' },
-  { code:'examiner',   ja:'査察操縦士',                 en:'Examiner' },
-  { code:'management', ja:'管理職（部長・班長 等）',     en:'Management (dept. head, etc.)' },
+  { code:'line',       ja:'ライン乗務',               en:'Line pilot' },
+  { code:'instructor', ja:'教官・訓練担当',           en:'Instructor / Training' },
+  { code:'examiner',   ja:'審査・査察担当',           en:'Examiner / Check' },
+  { code:'union',      ja:'組合・乗員代表',           en:'Union / Pilot representative' },
+  { code:'management', ja:'管理・マネジメント',       en:'Management / Leadership' },
+  { code:'safety',     ja:'安全・運航基準・技術担当', en:'Safety / Standards / Technical' },
+  { code:'secondment', ja:'他部署配属・出向',         en:'Other department / Secondment' },
 ];
 
 /* 年代。年収はどの会社でも年齢とともに上がるので、これが無いと

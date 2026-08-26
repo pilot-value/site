@@ -186,6 +186,20 @@ const table = (rows: string) =>
 
 type Mail = { subject: string; html: string; replyTo?: string };
 
+/* 役職・区分は 2026-08-26 から**複数**選べる（オーナー指示）。入っている場所が
+   2つに分かれているので、ここで1つの言い方に揃える。
+     給与   pay_reports.job_roles（text[]）… 単数の job_role には先頭が残る
+     口コミ reviews_v2.job_role（text）… カンマ区切り（列を足せないため）
+   ★コードをそのまま出す。日本語名に直すと語彙の写しをここに持つことになり、
+     pv_job_roles を増やしたときに黙って古いままになる。 */
+const roles = (arr: unknown, one: unknown): string => {
+  const list = Array.isArray(arr) && arr.length
+    ? arr.map((x) => String(x))
+    : String(one ?? '').split(',');
+  const out = list.map((x) => x.trim()).filter(Boolean);
+  return out.length ? out.join('・') : '—';
+};
+
 /* ── reviews_v2 ───────────────────────────────────────────── */
 async function buildReview(id: string): Promise<Mail | null> {
   const select = ['id', 'airline', 'position', 'age_bucket', 'tenure_bucket', 'fleet', 'job_role',
@@ -212,7 +226,7 @@ async function buildReview(id: string): Promise<Mail | null> {
       row('航空会社', esc(r.airline)) +
       row('職位 / 年代', `${esc(POS[r.position] ?? r.position ?? '—')} / ${esc(r.age_bucket ?? '—')}`) +
       row('在籍', esc(r.tenure_bucket ?? '—')) +
-      row('機種 / 区分', `${esc(r.fleet ?? '—')} / ${esc(r.job_role ?? '—')}`) +
+      row('機種 / 区分', `${esc(r.fleet ?? '—')} / ${esc(roles(null, r.job_role))}`) +
       row('年収', esc(salary)) +
       row('記入カテゴリ', `${comments.length} / ${CAT_KEYS.length}`) +
       row('品質チェック', flag) +
@@ -289,8 +303,8 @@ async function buildContact(id: string): Promise<Mail | null> {
      submit_pay_report を呼ぶので同じ経路で届く。 */
 async function buildPayReport(id: string): Promise<Mail | null> {
   const r = await sbSelect('pay_reports', id,
-    'id,created_at,airline,airline_other,period_year,period_month,position,fleet,job_role,'
-    + 'currency,source,lang,payslip_detail');
+    'id,created_at,airline,airline_other,period_year,period_month,position,fleet,job_role,job_roles,'
+    + 'currency,source,lang,payslip_detail,pay_items');
   if (!r) return null;
 
   const ym = `${r.period_year}-${String(r.period_month).padStart(2, '0')}`;
@@ -299,6 +313,11 @@ async function buildPayReport(id: string): Promise<Mail | null> {
   const how = r.source === 'payslip' ? '明細から' : '手入力';
   // 内訳は「何項目あったか」だけ。ラベルも金額も出さない。
   const lines = Array.isArray(r.payslip_detail?.earnings) ? r.payslip_detail.earnings.length : 0;
+  /* ★本人が手で書いた内訳（変動給・その他の現金手当）も**行数だけ**。
+     pay_items は「明細上の名称」を持っているので、ラベルは1文字も出さない
+     （手当の呼び名は勤務先が割れる社内語彙になりうる）。 */
+  const items = (Array.isArray(r.pay_items?.variable) ? r.pay_items.variable.length : 0)
+              + (Array.isArray(r.pay_items?.other) ? r.pay_items.other.length : 0);
 
   return {
     subject: `【PILOT VALUE】給与レポート — ${r.airline ?? '不明'} / ${ym}`,
@@ -310,9 +329,10 @@ async function buildPayReport(id: string): Promise<Mail | null> {
         row('対象月', esc(ym)) +
         row('入れ方', esc(how)) +
         row('職位 / 機種', `${esc(POS[r.position] ?? r.position ?? '—')} / ${esc(r.fleet ?? '—')}`) +
-        row('区分', esc(r.job_role ?? '—')) +
+        row('区分', esc(roles(r.job_roles, r.job_role))) +
         row('通貨', esc(r.currency ?? '—')) +
         row('明細の内訳', lines ? `${lines}項目` : 'なし') +
+        row('本人が書いた内訳', items ? `${items}行` : 'なし') +
         row('言語', esc(r.lang === 'ja' ? '日本語' : r.lang ?? '—')),
       )),
   };

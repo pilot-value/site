@@ -166,14 +166,14 @@ const pv2 = (v) => Number(v.toPrecision(2));
 // 会社コードは語彙から取る（このテストのために特定の社名を覚えない）
 const VOCAB = (await rows(
   `select code, name_ja, name_en from pv_airlines
-    where code <> 'other' and active order by code limit 31`
+    where code <> 'other' and active order by code limit 32`
 ));
 const AIR = VOCAB.map(r => r.code);
 const [A_ONE, A_M12, A_MIX, A_OLD, A_ORD, A_VF, A_OUT, A_FOTHER,
        A_BAND, A_PEND, A_CLAIMED, A_NULLIP, A_CROSS, A_COMP, A_STAT,
        A_RV_MON, A_RV_ANN, A_RV_SUM, A_RV_DUP, A_RV_NONE, A_AGE,
        A_AGE2, A_EDGE, A_NM_JA, A_NM_EN, A_NM_CODE, A_RV_FREE,
-       A_GV_BASIC, A_GV_DET, A_GV_PS, A_GV_OTHER] = AIR;
+       A_GV_BASIC, A_GV_DET, A_GV_PS, A_GV_OTHER, A_GV_ITEMS] = AIR;
 const nameOf = (code) => VOCAB.find(r => r.code === code);
 
 // ════════════════════════════════════════════════════════════
@@ -1089,7 +1089,7 @@ console.log('\n▼ 12-g. ★本人が何を出したか（DEEP PAY の個人条�
      '★かんたん入力だけの人は basic だけ true（REAL PAY は開くが DEEP PAY の準備は未了）',
      JSON.stringify(gB));
 
-  // (c) くわしく入力（内訳）。★総支給は入れない ── 入れると内訳が捨てられる
+  // (c) くわしく入力（内訳）。昔の形＝総支給の代わりに内訳を入れた人
   const uD = ++seat; await asUser(uD);
   await submit({ ...BASE, airline: A_GV_DET, position: 'cap', fleet: 'b777',
                  period_year: YEAR, period_month: 2,
@@ -1099,6 +1099,22 @@ console.log('\n▼ 12-g. ★本人が何を出したか（DEEP PAY の個人条�
   ok(gD.basic === true && gD.detailed === true && gD.payslip === false,
      '★内訳を出した人は detailed も true（DEEP PAY の個人条件はここで満たす）',
      JSON.stringify(gD));
+
+  /* (c2) ★新しい形（2026-08-26）。総支給はそのまま残し、内訳は「変動給の行」で書く。
+     固定・保証給は「該当なし」を選べるので base_pay が入らないことがある。
+     判定を `gross_monthly is null and base_pay is not null` に戻すと、
+     この人が丸ごと「内訳なし」に落ちる。画面は普通に動くので誰も気づけない。 */
+  const uI = ++seat; await asUser(uI);
+  await submit({ ...BASE, airline: A_GV_ITEMS, position: 'cap', fleet: 'b777',
+                 period_year: YEAR, period_month: 2,
+                 gross_monthly: 15000, base_pay: null, flight_variable_pay: 4000,
+                 other_allowance: 4500,
+                 pay_items: { v: 1, fixed_none: true,
+                              variable: [{ amount: 4000, basis: 'block', label: 'Flight Pay' }],
+                              other: [{ amount: 500, label: '通勤手当' }] } });
+  const gI = await give();
+  ok(gI.basic === true && gI.detailed === true,
+     '★総支給を残したまま内訳の行を書いた人も detailed が true', JSON.stringify(gI));
 
   // (d) 明細から。★読み取れた行は内訳の欄が埋まるので、detailed も自動で true になる。
   //     オーナー指示「Payslip を出した人に Detailed Form をもう一度入力させない」は
@@ -1226,10 +1242,29 @@ console.log('\n▼ 14. 8-20（pay_reports を読む関数が anon に開いて�
 // ════════════════════════════════════════════════════════════
 {
   const src = read('db/pay-reports.sql');
-  const q = src.slice(src.lastIndexOf('-- 8-20.'));
-  const res = await rows(q.slice(q.indexOf('select')));
+  /* ★1文だけ切り出す。「そこから最後まで」にすると、あのファイルの末尾に
+     検査を1つ足しただけで「複数の文は流せない」で落ちる（実際に落ちた）。 */
+  const cut = (tag) => {
+    const from = src.lastIndexOf(tag);
+    if (from < 0) return null;
+    const tail = src.slice(from);
+    const next = tail.indexOf('\n-- 8-', 1);
+    const one = next < 0 ? tail : tail.slice(0, next);
+    return one.slice(one.indexOf('select'));
+  };
+  const res = await rows(cut('-- 8-20.'));
   ok(res.length === 0, 'pay_reports を読む security definer 関数が anon に1つも開いていない',
      JSON.stringify(res));
+
+  // 8-21 … 2026-08-26 に足した2列（役職・区分の複数と、内訳の行）
+  const cols = await rows(cut('-- 8-21.'));
+  ok(cols.length === 2 && cols.every((c) => c['ある'] === true),
+     '役職（複数）と内訳の行の2列が入っている', JSON.stringify(cols));
+
+  // 8-22 … 総支給と内訳の排他が復活していないこと
+  const exc = await rows(cut('-- 8-22.'));
+  ok(exc.length === 2 && exc.every((c) => c['内訳を捨てている'] === false),
+     '総支給が来ても内訳を捨てていない（排他が復活していない）', JSON.stringify(exc));
 }
 
 // ── まとめ ───────────────────────────────────────────────────

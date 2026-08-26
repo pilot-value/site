@@ -57,6 +57,10 @@ const SECRET = {
   '年収（円）':        '7890123',
   '手取り':            '8901234',
   '明細の項目名':      'ZZ-TESTALLOWANCE-LABEL',
+  /* ★2026-08-26 追加。本人が手で書いた内訳（pay_items）の「明細上の名称」と金額。
+     読み取った明細と同じ扱い＝行数だけ出して、名前も額も出さない。 */
+  '内訳の項目名':      'ZZ-MYITEM-LABEL',
+  '内訳の金額':        '8887776',
   '預かりの中身':      'ZZ-PENDING-PAYLOAD-9998887',
   '待遇の金額回答':    '9998887',
   '待遇の自由記述':    'ZZ-FREE-TEXT-SHOULD-NOT-APPEAR',
@@ -72,7 +76,9 @@ ROWS = {
     id: 'pr-1', created_at: '2026-08-22T11:00:00+00:00',
     airline: 'emirates', airline_other: null,
     period_year: 2026, period_month: 7,
-    position: 'captain', fleet: 'b777', job_role: 'line',
+    position: 'captain', fleet: 'b777',
+    /* 役職・区分は 2026-08-26 から複数。単数の job_role には先頭が残る。 */
+    job_role: 'line', job_roles: ['line', 'instructor'],
     currency: 'AED', source: 'payslip', lang: 'ja', verify_level: 1,
     // ↓ ここから下は全部「出てはいけない」もの
     gross_monthly: 1234567, base_pay: 2345678, flight_variable_pay: 3456789,
@@ -82,6 +88,9 @@ ROWS = {
       { label: 'ZZ-TESTALLOWANCE-LABEL', amount: 3456789, kind: 'allowance' },
       { label: 'ZZ-TESTALLOWANCE-LABEL', amount: 2345678, kind: 'base' },
     ] },
+    pay_items: { v: 1, fixed_none: false,
+      variable: [{ amount: 8887776, basis: 'block', label: 'ZZ-MYITEM-LABEL', rule: 'ZZ-MYITEM-LABEL' }],
+      other: [{ amount: 8887776, label: 'ZZ-MYITEM-LABEL' }] },
   },
 };
 const pr = await nx.buildPayReport('pr-1');
@@ -93,11 +102,19 @@ ck('件名に会社と対象月が出る', pr.subject.includes('emirates') && pr
    pr.subject);
 ck('入れ方が「明細から」', pr.html.includes('明細から'));
 ck('内訳は件数だけ（2項目）', pr.html.includes('2項目'));
+/* ★2026-08-26。本人が書いた内訳も行数だけ。名前と額は SECRET が見張っている。 */
+ck('本人が書いた内訳も行数だけ（2行）', pr.html.includes('2行'), pr.html);
+/* ★役職・区分は複数。ここが1つしか出ないと、教官・組合を兼ねている人の
+   「どの役割の給与か」が運営側から見えなくなる。 */
+ck('区分に複数の役職が並ぶ', pr.html.includes('line・instructor'), pr.html);
 
-ROWS.pay_reports = { ...ROWS.pay_reports, source: 'web', payslip_detail: null };
+ROWS.pay_reports = { ...ROWS.pay_reports, source: 'web', payslip_detail: null, pay_items: null,
+                     job_roles: null };
 const prWeb = await nx.buildPayReport('pr-1');
 ck('手入力は「手入力」', prWeb.html.includes('手入力') && !prWeb.html.includes('明細から'));
 ck('内訳が無ければ「なし」', prWeb.html.includes('なし'));
+/* 配列が空でも単数の job_role が残っていれば、そちらを出す（過去の行）。 */
+ck('配列が無ければ単数の役職を出す', prWeb.html.includes('line'), prWeb.html);
 
 /* ── 登録前の預かり ───────────────────────────────────────── */
 ROWS = {

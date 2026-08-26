@@ -178,8 +178,11 @@
       sampleTag: '見本', sampleBtn: '匿名で給与を追加する →',
       segBase: '基本給', segCommand: '機長・役職手当', segFlight: '乗務変動手当',
       segOther: 'その他手当', segHousing: '住宅手当', segTransport: '交通費', segPerDiem: 'パーディアム',
-      /* ★下の2つは総支給1本で出した行にしか出ない（pay-viz.js の segments()）。 */
-      segBonus: '今月の賞与', segRest: '内訳を入れていない分',
+      /* ★下の2つは総支給が入っている行にしか出ない（pay-viz.js の segments()）。
+         ★2026-08-26、総支給と内訳が両立するようになったので「内訳を入れていない分」
+           という言い方をやめた。内訳を書いた人にも残りは出る＝それは
+           「どの項目にも入れていない分」であって「内訳が無い」ではない。 */
+      segBonus: '今月の賞与', segRest: 'どの項目にも入れていない分',
       fixed: '固定', variable: '変動', unknown: '判別できない',
       baseRatio: '基本給が総支給に占める割合',
 
@@ -373,7 +376,7 @@
       segBase: 'Base pay', segCommand: 'Command / position', segFlight: 'Flight variable',
       segOther: 'Other allowances', segHousing: 'Housing', segTransport: 'Transport', segPerDiem: 'Per diem',
       /* ★The two below only appear on a row filed as one gross figure (see segments() in pay-viz.js). */
-      segBonus: 'Bonus this month', segRest: 'Not broken down yet',
+      segBonus: 'Bonus this month', segRest: 'Not itemised',
       fixed: 'Fixed', variable: 'Variable', unknown: 'Cannot tell',
       baseRatio: 'Base pay as a share of gross',
 
