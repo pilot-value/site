@@ -264,6 +264,9 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 /* × は箱の右上に浮いている。逃げの余白は1行目の見出しにだけ持たせる。
    行ぜんぶに右の余白を持たせると、欄だけが箱の中で左に寄って見える。 */
 .pd-row>.fld:first-of-type>.form-label{padding-right:34px}
+/* ★2026-08-26 その2、行の先頭が「種類」（必須）になったので、✓ の印が × と同じ角に
+   重なった。印だけ × の左へ逃がす（× は 9px + 28px ＝ 右から 37px まで使う）。 */
+.pd-row>.fld:first-of-type.is-req::after{right:28px}
 .pd-row>.fld:last-child{margin-bottom:0}
 .pd-del{position:absolute;top:9px;right:9px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:9px;border:1px solid rgba(255,255,255,.12);background:transparent;color:#8a95a3;font-size:1rem;line-height:1;cursor:pointer;transition:color .18s,border-color .18s,background .18s}
 .pd-del:hover{color:#e8edf2;border-color:rgba(255,255,255,.28);background:rgba(255,255,255,.06)}
@@ -1334,7 +1337,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
             <div class="opt-fld" id="opt-pd-var" hidden>
               <div class="pd-block">
                 <div class="form-label">Variable pay</div>
-                <p class="fld-hint" style="margin-top:0">Pay that <b>changes month to month</b> with block hours, sectors, standby and so on. Just the <b>amount paid</b> &mdash; we do not ask for the rate or the rule.</p>
+                <p class="fld-hint" style="margin-top:0">Pay that <b>changes month to month</b> with block hours, sectors, standby and so on. Copy across <b>the amount and the name exactly as they appear on your payslip</b> &mdash; you never have to work out a rate or a rule.</p>
                 <div class="pd-rows" id="pd-var-rows"></div>
                 <button type="button" class="chip" id="pd-var"><span class="p">+</span>Add variable pay</button>
               </div>
@@ -1393,14 +1396,14 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
         <template id="tpl-pd-var">
           <div class="pd-row">
             <button type="button" class="pd-del" aria-label="Remove this row">&times;</button>
+            <!-- ★2026-08-26 (2nd), reordered on the owner's instruction. Asking for the
+                 amount first pushes the category to "later", and later never comes.
+                 ★"You can leave this blank" is gone — say that and nobody picks one.
+                   The way out is "Not sure" at the bottom, so it can be required. -->
             <div class="fld">
-              <label class="form-label">Amount</label>
-              <input type="text" class="form-input money pd-amt" inputmode="decimal" placeholder="e.g. 4,200"/>
-            </div>
-            <div class="fld">
-              <label class="form-label">What it is paid on</label>
+              <label class="form-label">What it is paid on<span class="req-tag">Required</span></label>
               <select class="form-input pd-basis">
-                <option value="">You can leave this blank</option>
+                <option value="">Choose one</option>
                 <option value="block">Flight / Block / Credit Hours</option>
                 <option value="duty">Duty / Duty Hours</option>
                 <option value="sector">Sector / Landing</option>
@@ -1412,6 +1415,10 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
                 <option value="other">Other</option>
                 <option value="unknown">Not sure</option>
               </select>
+            </div>
+            <div class="fld">
+              <label class="form-label">Amount</label>
+              <input type="text" class="form-input money pd-amt" inputmode="decimal" placeholder="e.g. 4,200"/>
             </div>
             <div class="fld">
               <label class="form-label">Name on the payslip</label>
@@ -2355,7 +2362,10 @@ function markRequired() {
     const fld = lab.closest('.fld');
     if (!fld) continue;
     fld.classList.add('is-req');
-    const el = $(lab.htmlFor);
+    /* ★A repeated row (variable pay) cannot carry a `for` — its id would not be
+       unique once a second row is added. Fall back to the control inside the same
+       .fld, so req-tag in the HTML stays the single source of truth. */
+    const el = $(lab.htmlFor) || fld.querySelector('input, select');
     fld.classList.toggle('is-done', !!el && el.value.trim() !== '');
   }
 }
@@ -2568,7 +2578,14 @@ function pdAdd(kind, quiet) {
     el.addEventListener('input', pdSync);
     el.addEventListener('change', pdSync);
   }
-  if (!quiet) { const f = row.querySelector('.pd-amt'); if (f) f.focus(); }
+  /* ★A row that grew after load still needs the required mark and the rail. */
+  markRequired();
+  /* ★Land on the category first (2026-08-26, 2nd). Other cash allowance rows have
+     no .pd-basis, so those still land on the amount. */
+  if (!quiet) {
+    const f = row.querySelector('.pd-basis') || row.querySelector('.pd-amt');
+    if (f) f.focus();
+  }
   return row;
 }
 
@@ -2910,11 +2927,11 @@ async function submitPayReport() {
   }
   /* ★Same split as payEntered() used by the step gate (one place decides where to
      look). Only the amount being 0 is caught here. */
-  if ($('pay-detail').open) {
-    if (num('f-base') <= 0 && num('f-hourly') <= 0) {
-      return showErr('Please enter your base salary or hourly rate. Allowances alone give nothing to compare against.');
-    }
-  } else if (num('f-gross') <= 0) {
+  /* ★2026-08-26 (2nd): stopped branching on whether the breakdown is open. Gross is
+     always required, base pay is optional and has a "not applicable" box. With the
+     branch in place, anyone who ticked that box saw the submit button appear and
+     then got stopped — f-hourly is a payslip-only hidden field they cannot fill. */
+  if (num('f-gross') <= 0) {
     return showErr('Please enter your gross pay for that month. Allowances alone give nothing to compare against.');
   }
   if (!val('f-netpay')) return showErr('Please enter your net pay for that month ("Net Pay" on your payslip).');
@@ -2923,6 +2940,14 @@ async function submitPayReport() {
   if (!val('f-housing')) return showErr('Please choose your housing.');
   if ($('f-housing').value === 'allowance' && !val('f-housing-amt')) {
     return showErr('You picked “Housing allowance (cash)” — please enter the monthly amount as well.');
+  }
+  /* ★Once a variable pay row is added, "What it is paid on" is required (owner,
+     2026-08-26, 2nd). "Not sure" is there for anyone who cannot tell. Add no rows
+     and nothing changes.
+     ★pdRead('var') decides what counts as a row, so the rule that drops an empty
+     one is not written down twice. */
+  if (pdRead('var').some((r) => !r.basis)) {
+    return showErr('Please choose “What it is paid on” for each variable pay row. Pick “Not sure” if you cannot tell.');
   }
   /* ★4. Contract & tax (required since 2026-08-13). Folded or not, the values are
      there, so the same check works. */

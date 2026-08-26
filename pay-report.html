@@ -263,6 +263,9 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 /* × は箱の右上に浮いている。逃げの余白は1行目の見出しにだけ持たせる。
    行ぜんぶに右の余白を持たせると、欄だけが箱の中で左に寄って見える。 */
 .pd-row>.fld:first-of-type>.form-label{padding-right:34px}
+/* ★2026-08-26 その2、行の先頭が「種類」（必須）になったので、✓ の印が × と同じ角に
+   重なった。印だけ × の左へ逃がす（× は 9px + 28px ＝ 右から 37px まで使う）。 */
+.pd-row>.fld:first-of-type.is-req::after{right:28px}
 .pd-row>.fld:last-child{margin-bottom:0}
 .pd-del{position:absolute;top:9px;right:9px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:9px;border:1px solid rgba(255,255,255,.12);background:transparent;color:#8a95a3;font-size:1rem;line-height:1;cursor:pointer;transition:color .18s,border-color .18s,background .18s}
 .pd-del:hover{color:#e8edf2;border-color:rgba(255,255,255,.28);background:rgba(255,255,255,.06)}
@@ -1331,7 +1334,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
             <div class="opt-fld" id="opt-pd-var" hidden>
               <div class="pd-block">
                 <div class="form-label">変動給</div>
-                <p class="fld-hint" style="margin-top:0">乗務時間・セクター数・待機などで<b>月ごとに変わる支給</b>です。<b>支給額だけ</b>入れてください。単価もルールも聞きません。</p>
+                <p class="fld-hint" style="margin-top:0">乗務時間・セクター数・待機などで<b>月ごとに変わる支給</b>です。<b>明細に出ているとおりの金額と名称</b>を書き写してください。単価やルールを計算する必要はありません。</p>
                 <div class="pd-rows" id="pd-var-rows"></div>
                 <button type="button" class="chip" id="pd-var"><span class="p">+</span>変動給を追加</button>
               </div>
@@ -1390,14 +1393,14 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
         <template id="tpl-pd-var">
           <div class="pd-row">
             <button type="button" class="pd-del" aria-label="この行を消す">×</button>
+            <!-- ★2026-08-26 その2、オーナー指示で並べ替えた。金額を先に書かせると
+                 区分は「あとで」になって選ばれない。先に何の支給かを選んでもらう。
+                 ★「選ばなくても大丈夫です」をやめる（そう言われたら選ばなくなる）。
+                   逃げ道は末尾の「わからない」で、必須にしたまま出口がある。 -->
             <div class="fld">
-              <label class="form-label">支給額</label>
-              <input type="text" class="form-input money pd-amt" inputmode="decimal" placeholder="例：180,000"/>
-            </div>
-            <div class="fld">
-              <label class="form-label">何に連動する支給か</label>
+              <label class="form-label">何に連動する支給か<span class="req-tag">必須</span></label>
               <select class="form-input pd-basis">
-                <option value="">選ばなくても大丈夫です</option>
+                <option value="">選んでください</option>
                 <option value="block">飛行・クレジット時間（Flight / Block / Credit Hours）</option>
                 <option value="duty">勤務・勤務時間（Duty / Duty Hours）</option>
                 <option value="sector">便数・着陸回数（Sector / Landing）</option>
@@ -1409,6 +1412,10 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
                 <option value="other">その他</option>
                 <option value="unknown">わからない</option>
               </select>
+            </div>
+            <div class="fld">
+              <label class="form-label">支給額</label>
+              <input type="text" class="form-input money pd-amt" inputmode="decimal" placeholder="例：180,000"/>
             </div>
             <div class="fld">
               <label class="form-label">明細上の名称</label>
@@ -2320,7 +2327,10 @@ function markRequired() {
     const fld = lab.closest('.fld');
     if (!fld) continue;
     fld.classList.add('is-req');
-    const el = $(lab.htmlFor);
+    /* ★繰り返し行（変動給）のラベルは for を持てない。行が何本でも生えるので id が
+       一意にならないため。引けなかったときだけ、同じ .fld の中の欄を見る。
+       これで「必須の出どころは HTML の req-tag ただ1か所」を崩さずに済む。 */
+    const el = $(lab.htmlFor) || fld.querySelector('input, select');
     fld.classList.toggle('is-done', !!el && el.value.trim() !== '');
   }
 }
@@ -2530,7 +2540,15 @@ function pdAdd(kind, quiet) {
     el.addEventListener('input', pdSync);
     el.addEventListener('change', pdSync);
   }
-  if (!quiet) { const f = row.querySelector('.pd-amt'); if (f) f.focus(); }
+  /* ★あとから生えた行にも必須の印とレールを付ける（型の中の req-tag は
+     markRequired() が走るまで色が付かない）。 */
+  markRequired();
+  /* ★寄せるのは「種類」から（2026-08-26 その2）。金額から書かせると区分が選ばれない。
+     その他の現金手当の行に .pd-basis は無いので、あちらは今までどおり金額へ。 */
+  if (!quiet) {
+    const f = row.querySelector('.pd-basis') || row.querySelector('.pd-amt');
+    if (f) f.focus();
+  }
   return row;
 }
 
@@ -2852,11 +2870,11 @@ async function submitPayReport() {
   }
   /* ★段のゲートと同じ payEntered() を通す（見る場所を1本にしてある）。
      金額が 0 のときだけここで弾く。 */
-  if ($('pay-detail').open) {
-    if (num('f-base') <= 0 && num('f-hourly') <= 0) {
-      return showErr('基本給か時給を入れてください。手当だけでは、他社と比べる軸がありません。');
-    }
-  } else if (num('f-gross') <= 0) {
+  /* ★2026-08-26 その2、内訳を開いているかで分けるのをやめた。総支給はいつでも必須で、
+     基本給は任意（「該当なし」もある）。分けたままだと、内訳を開いて「該当なし」を付けた人が、
+     送信ボタンは出ているのに押すと止まる。f-hourly は明細読み取り専用の hidden なので、
+     その人には埋めようが無い。 */
+  if (num('f-gross') <= 0) {
     return showErr('その月の総支給額を入れてください。手当だけでは、他社と比べる軸がありません。');
   }
   if (!val('f-netpay')) return showErr('その月の手取り額を入れてください（明細の「差引支給額」「Net Pay」）。');
@@ -2865,6 +2883,12 @@ async function submitPayReport() {
   if (!val('f-housing')) return showErr('住居を選んでください。');
   if ($('f-housing').value === 'allowance' && !val('f-housing-amt')) {
     return showErr('「住宅手当（現金）」を選んだ場合は、その月額も入れてください。');
+  }
+  /* ★変動給の行を足したときだけ「何に連動する支給か」は必須（2026-08-26 その2 オーナー指示）。
+     分からない人には「わからない」がある。行を1つも足していない人は素通り。
+     ★判定は pdRead('var') に任せる（＋を押しただけの空の行を落とす条件を2か所に書かない）。 */
+  if (pdRead('var').some((r) => !r.basis)) {
+    return showErr('変動給の「何に連動する支給か」を選んでください。当てはまるものが分からないときは「わからない」を選んでください。');
   }
   /* ★4. 契約と税（2026-08-13 に必須化）。畳まれていても値は入っているので同じ判定で通る。 */
   if (!val('f-contract')) return showErr('契約形態を選んでください。');

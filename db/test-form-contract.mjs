@@ -189,6 +189,27 @@ console.log('\n市場価値レポート（my-value）');
        `${f}: 変動給の種類が10択で同じ並び`, vals.join(','));
     ok(!/class="pd-rule"/.test(tpl),
        `${f}: 変動給の行に支給単価・ルールの欄が無い（計算をさせない）`);
+
+    /* ★2026-08-26 その2 オーナー指示。行の並びは 種類 → 支給額 → 明細上の名称。
+       金額を先に書かせると、区分は「あとで」になって選ばれない。 */
+    const order = [...tpl.matchAll(/class="[^"]*\b(pd-basis|pd-amt|pd-label)\b/g)].map((m) => m[1]);
+    ok(JSON.stringify(order) === JSON.stringify(['pd-basis', 'pd-amt', 'pd-label']),
+       `${f}: ★変動給の行は 種類 → 支給額 → 明細上の名称 の順`, order.join(' → '));
+    /* ★「必須」の印は種類の select に付く（すぐ後ろに置いてあることまで見る）。 */
+    ok(/<label class="form-label">[^<]*<span class="req-tag">[^<]*<\/span><\/label>\s*<select class="form-input pd-basis">/.test(tpl),
+       `${f}: ★種類に「必須」の印が付いている（逃げ道は末尾の「わからない」）`);
+    ok(/class="[^"]*\bpd-label\b/.test(tpl) && /maxlength="60"/.test(tpl),
+       `${f}: 明細上の名称の欄は残っている（消さない・そのまま保存する）`);
+
+    /* ★こちらが「書かなくていい」と言うと、書かれなくなる（オーナー指摘）。
+       先頭の option と節の説明の両方から、その言い方を締め出す。 */
+    const blank = ((tpl.match(/<option value="">([^<]*)</) || [])[1] || '').trim();
+    ok(/^(選んでください|Choose one)$/.test(blank),
+       `${f}: ★先頭は「選んでください」（選ばなくていいとは言わない）`, blank);
+    const hint = ((s.match(/id="opt-pd-var"[\s\S]*?<p class="fld-hint"[^>]*>([\s\S]*?)<\/p>/) || [])[1] || '');
+    ok(hint.length > 20, `${f}: 変動給の節に説明がある`, hint.slice(0, 40));
+    ok(!/任意|書かなくて|なくても|optional|leave (this )?blank/i.test(hint + ' ' + blank),
+       `${f}: ★変動給の節に「任意・書かなくていい」の言い方が無い`, hint);
   }
 
   /* ⑧ 必須の印（2026-08-13 その4）。★これがこのファイルで一番効く検査。
@@ -719,6 +740,53 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
      '★変動給の行に「支給単価・ルール」の欄が無い（計算をさせない）');
   ok(items && items.variable && !('rule' in items.variable[0]),
      '★送る行にも rule が入っていない', JSON.stringify(items));
+
+  /* ★変動給の行を足したときだけ「何に連動する支給か」は必須（2026-08-26 その2 オーナー指示）。
+     ページの submitPayReport() をそのまま呼ぶ。#err に何が出るかで見る。
+     ⚠️ 2回目は f-contract を空にしてから呼ぶ。種類の注意を抜けた先で必ず契約で止まるので、
+        送信の口（RPC）まで進まない＝ネットにも DB にも触らない。 */
+  await pdFill('var', [{ amount: '4000', label: 'Flight Pay' }]);   // 金額だけ・種類が空
+  const noBasis = await page.evaluate(async () => {
+    await submitPayReport();
+    return document.getElementById('err').textContent;
+  });
+  ok(/何に連動する支給か|What it is paid on/.test(noBasis),
+     '★金額だけの行を作って送ると、種類を選ぶよう止められる', noBasis.slice(0, 60));
+  const withUnknown = await page.evaluate(async () => {
+    document.querySelector('#pd-var-rows .pd-basis').value = 'unknown';
+    const c = document.getElementById('f-contract'), keep = c.value;
+    c.value = ''; c.dispatchEvent(new Event('change', { bubbles: true }));
+    await submitPayReport();
+    const seen = document.getElementById('err').textContent;
+    c.value = keep; c.dispatchEvent(new Event('change', { bubbles: true }));
+    document.getElementById('err').innerHTML = '';
+    return seen;
+  });
+  ok(!/何に連動する支給か|What it is paid on/.test(withUnknown)
+     && /契約形態|contract type/.test(withUnknown),
+     '★「わからない」を選ぶと種類では止まらない（次の必須へ進む）', withUnknown.slice(0, 60));
+  /* 行を1本も足していない人は、これまでどおり素通りする。 */
+  const noRows = await page.evaluate(async () => {
+    const box = document.getElementById('pd-var-rows');
+    while (box.children.length) box.firstElementChild.remove();
+    pdSync();
+    const c = document.getElementById('f-contract'), keep = c.value;
+    c.value = ''; c.dispatchEvent(new Event('change', { bubbles: true }));
+    await submitPayReport();
+    const seen = document.getElementById('err').textContent;
+    c.value = keep; c.dispatchEvent(new Event('change', { bubbles: true }));
+    document.getElementById('err').innerHTML = '';
+    return seen;
+  });
+  ok(!/何に連動する支給か|What it is paid on/.test(noRows),
+     '★変動給を1行も足していない人は種類で止まらない', noRows.slice(0, 60));
+  ok(await vis('submit-block'), '止めた後も送信ボタンは出たまま（契約を戻せば元どおり）');
+  items = await pdFill('var', [
+    { amount: '4000', label: 'Flight Pay', basis: 'block' },
+    {},
+  ]);
+  ok(items && items.variable && items.variable.length === 1,
+     '検査の後始末（変動給を元に戻す）', JSON.stringify(items));
   items = await pdFill('oth', [{ amount: '1000', label: '通勤手当' }]);
   ok(items && items.other && items.other.length === 1 && items.other[0].amount === 1000,
      '★その他の現金手当も行で足せる', JSON.stringify(items));
