@@ -57,6 +57,31 @@
     [data-theme="light"] .theme-toggle{background:rgba(0,0,0,.06);color:#0f172a;border-color:rgba(0,0,0,.13)}
     .glass{background:rgba(17,22,32,.7);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:28px}
     [data-theme="light"] .glass{background:#fff;border-color:rgba(0,0,0,.09);box-shadow:0 2px 14px rgba(0,0,0,.07)}
+    /* ── メール通知のスイッチ ─────────────────────────────────────
+       ★色を持つのは CSS だけ。JS は aria-checked を切り替えるだけにする。
+       inline の style に background を書くと CSS が必ず負けるので、
+       明るいテーマではオフのトラック rgba(255,255,255,.14) が
+       白いカード（.glass = #fff）の上に白で乗り、**消えて見えなくなる**
+       （2026-08-27 オーナー指摘「色が薄くて見ずらい」）。
+       ⚠️ 枠は border ではなく inset の box-shadow で描く。border を足すと
+          padding box が 1px 縮み、中の丸（top:3px / translateX(22px)）が
+          上下左右でずれる。 */
+    .optin-sw{flex:none;width:52px;height:30px;border-radius:999px;border:none;cursor:pointer;position:relative;background:rgba(255,255,255,.20);box-shadow:inset 0 0 0 1px rgba(255,255,255,.42);transition:background-color .2s,box-shadow .2s}
+    .optin-sw[aria-checked="true"]{background:#f5c842;box-shadow:inset 0 0 0 1px rgba(122,86,0,.55)}
+    .optin-sw:hover{box-shadow:inset 0 0 0 1px rgba(255,255,255,.72)}
+    .optin-sw[aria-checked="true"]:hover{box-shadow:inset 0 0 0 1px rgba(122,86,0,.85)}
+    .optin-sw:focus-visible{outline:2px solid #f5c842;outline-offset:3px}
+    .optin-sw:active{opacity:.88}
+    .optin-knob{position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.45);transition:transform .2s}
+    [data-theme="light"] .optin-sw{background:#c3ccd8;box-shadow:inset 0 0 0 1px rgba(15,23,42,.30)}
+    [data-theme="light"] .optin-sw[aria-checked="true"]{background:#f5c842;box-shadow:inset 0 0 0 1px rgba(122,86,0,.60)}
+    [data-theme="light"] .optin-sw:hover{box-shadow:inset 0 0 0 1px rgba(15,23,42,.50)}
+    [data-theme="light"] .optin-sw[aria-checked="true"]:hover{box-shadow:inset 0 0 0 1px rgba(122,86,0,.90)}
+    [data-theme="light"] .optin-knob{box-shadow:0 1px 3px rgba(15,23,42,.30)}
+    .optin-note{font-size:.76rem;color:#9aa9bd;line-height:1.6}
+    [data-theme="light"] .optin-note{color:#4a5768}
+    .optin-hint{font-size:.72rem;color:#9aa9bd;margin-top:10px}
+    [data-theme="light"] .optin-hint{color:#4a5768}
     .avatar{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#f5c842,#f97316);display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:800;color:#000;flex-shrink:0}
     .info-row{display:grid;grid-template-columns:120px 1fr;gap:8px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.06);align-items:center}
     .info-row:last-child{border-bottom:none}
@@ -382,13 +407,13 @@
       <div style="display:flex;align-items:center;justify-content:space-between;gap:14px">
         <div>
           <div style="font-size:.92rem;font-weight:700;margin-bottom:4px">メール通知</div>
-          <div style="font-size:.76rem;color:#6b7d93;line-height:1.6">年収データの更新・新着口コミ・新規エアライン情報などの有益な更新をお届けします。広告目的の配信はしません。</div>
+          <div class="optin-note">年収データの更新・新着口コミ・新規エアライン情報などの有益な更新をお届けします。広告目的の配信はしません。</div>
         </div>
-        <button id="optin-toggle" role="switch" aria-checked="false" aria-label="メール通知のオン/オフ" onclick="toggleOptIn()" style="flex:none;width:52px;height:30px;border-radius:999px;border:none;cursor:pointer;position:relative;background:rgba(255,255,255,.14);transition:background .2s">
-          <span id="optin-knob" style="position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:transform .2s"></span>
+        <button id="optin-toggle" role="switch" aria-checked="false" aria-label="メール通知のオン/オフ" onclick="toggleOptIn()" class="optin-sw">
+          <span id="optin-knob" class="optin-knob"></span>
         </button>
       </div>
-      <div id="optin-hint" style="font-size:.72rem;color:#6b7d93;margin-top:10px"></div>
+      <div id="optin-hint" class="optin-hint"></div>
     </div>
 
     <!-- Password -->
@@ -619,7 +644,6 @@
       const h = document.getElementById('optin-hint');
       if (!t) return;
       t.setAttribute('aria-checked', on ? 'true' : 'false');
-      t.style.background = on ? '#f5c842' : 'rgba(255,255,255,.14)';
       k.style.transform  = on ? 'translateX(22px)' : 'translateX(0)';
       if (h) h.textContent = on ? '受信中：有益な更新のみお送りします。' : '現在オフ：新着や更新の通知は届きません。';
     }
