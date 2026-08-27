@@ -215,6 +215,8 @@ var PV_SEARCH_L10N = {
     '#pv-search-input{background:none;border:none;outline:none;color:#e8edf2;font-size:.83rem;width:100%;font-family:inherit}',
     '[data-theme=light] #pv-search-input{color:#0f172a}',
     '#pv-search-input::placeholder{color:#4e5f73;font-size:.78rem}',
+    /* ★iOS は 16px 未満の入力欄に触れるとページごと拡大し、戻らない（2026-08-27 実測）。⚠️ 16px を下げない。 */
+    '@media (pointer:coarse),(max-width:820px){#pv-search-input{font-size:16px}}',
     '#pv-search-close{background:none;border:none;color:#4e5f73;cursor:pointer;font-size:.85rem;padding:0;line-height:1;flex-shrink:0;transition:color .15s}',
     '#pv-search-close:hover{color:#e8edf2}',
     '[data-theme=light] #pv-search-close:hover{color:#0f172a}',

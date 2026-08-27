@@ -316,6 +316,8 @@
       'font:inherit;font-size:.85rem;line-height:1.7;color:#e8edf2;background:rgba(255,255,255,.04);',
       'border:1px solid rgba(255,255,255,.14);resize:vertical}',
     '.pvcf-note:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}',
+    /* ★iOS は 16px 未満の入力欄に触れるとページごと拡大し、戻らない（2026-08-27 実測）。⚠️ 16px を下げない。 */
+    '@media (pointer:coarse),(max-width:820px){.pvcf-num,.pvcf-sel,.pvcf-note{font-size:16px}}',
     '.pvcf-notelab{display:block;font-size:.74rem;font-weight:700;color:#6b7d93;margin-top:12px}',
     /* 保存の合図は静かに。色だけに頼らないので文字でも書く */
     '.pvcf-state{font-size:.74rem;font-weight:700;color:#34d399;margin-top:10px;min-height:1em}',

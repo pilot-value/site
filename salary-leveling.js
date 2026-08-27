@@ -898,6 +898,8 @@
     '.lvl-drop-search{display:flex;align-items:center;gap:8px;padding:11px 13px;border-bottom:1px solid rgba(255,255,255,.08);color:#6b7d93}' +
     '.lvl-drop-input{flex:1;background:transparent;border:none;outline:none;font-family:inherit;font-size:.82rem;color:#e8edf2}' +
     '.lvl-drop-input::placeholder{color:#5c6b7e}' +
+    /* ★iOS は 16px 未満の入力欄に触れるとページごと拡大し、戻らない（2026-08-27 実測）。⚠️ 16px を下げない。 */
+    '@media (pointer:coarse),(max-width:820px){.lvl-drop-input{font-size:16px}}' +
     '.lvl-drop-list{max-height:264px;overflow-y:auto;padding:5px;scrollbar-width:thin}' +
     '.lvl-drop-list::-webkit-scrollbar{width:7px}' +
     '.lvl-drop-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.14);border-radius:4px}' +

@@ -26,11 +26,24 @@
      5) CTA は残る — バーから消えるのは最後の段だけで、そのときは引き出しの先頭にある
      6) 引き出しにそのページのリンクが入っていて、**国別年収が入っていない**、
         **口コミへ行ける**（オーナー決定 2026-08-19）
+     7) ★**触れる入力欄の文字が 16px 未満でない**（入力欄のある18枚を 390px で1周）。
+        iOS は 16px 未満の入力欄に触れた瞬間ページごと拡大する（**戻らない**。
+        こちらから呼ぶ `focus()` でも起きる ── `pay-report` の「匿名で提出」は
+        足りない欄へ飛んで focus する）。拡大しているあいだ、`position:fixed` の
+        ヘッダーと常設バーは**広げられたレイアウト幅**の箱になり、見えている窓から
+        左右へはみ出す＝**両端が切れる**。1)〜3) が全部 ✓ でも実機では切れる。
+        2026-08-27、オーナーの iPhone 16 の写真から 1.09 倍の拡大を実測した
+        （45.6px の入力欄が 116px。拡大なしなら 107px のはず）。
+        手当ては各ページの CSS に
+        `@media (pointer:coarse),(max-width:820px){…{font-size:16px}}` を足すこと。
+        ⚠️ **16px を下げない。**ここは見た目より先に、拡大させないことが目的。
 
    使い方（node serve.mjs を起動した状態で）
      node assert-header.mjs
    ═══════════════════════════════════════════════════════════════════ */
 import puppeteer from 'puppeteer';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
 
 const BASE = 'http://localhost:3000';
 
@@ -241,6 +254,58 @@ for (const [href, label, opt = {}] of PAGES) {
     }
     await page.close();
   }
+}
+
+/* ═══ 7) 触れる入力欄の文字の大きさ（iOS の自動拡大よけ）════════════════════
+   上の1)〜6) は「畳んだ後の形」を見ている。ここで見るのは**拡大の引き金**。
+   入力欄のある18枚を 390px で1周し、画面に出ている text / select / textarea が
+   1つでも 16px 未満なら落とす（checkbox・radio・button は拡大の引き金にならない）。
+   ⚠️ 手元の Chrome は `pointer:fine` なので、当たるのは `max-width:820px` の側だけ。
+   実機の iPad は 1024px でも `pointer:coarse` で同じ規則が当たる。 */
+const HERE = fileURLToPath(new URL('.', import.meta.url));
+const hasField = (f) => {
+  const t = fs.readFileSync(f, 'utf8');
+  return /<textarea|<select|<input(?![^>]*type=["']?(hidden|checkbox|radio|submit|button|file))/i.test(t);
+};
+const FORM_PAGES = [
+  ...fs.readdirSync(HERE).filter((f) => f.endsWith('.html')).map((f) => '/' + f),
+  ...fs.readdirSync(HERE + 'en').filter((f) => f.endsWith('.html')).map((f) => '/en/' + f),
+].filter((h) => hasField(HERE + h.slice(1)))
+  /* ★静的な HTML に <input> が無くても、JS があとから欄を作る画面がある。
+     待遇アンケート（pv-conditions.js）と、トップの比較図の会社さがし
+     （salary-leveling.js）。ここは手で足す。 */
+  .concat(['/airline-conditions.html', '/en/airline-conditions.html', '/', '/en/']);
+
+const smallFields = () => {
+  const out = [];
+  document.querySelectorAll('input,select,textarea').forEach((el) => {
+    const ty = (el.type || '').toLowerCase();
+    if (['hidden', 'checkbox', 'radio', 'file', 'submit', 'button', 'range', 'color'].includes(ty)) return;
+    const cs = getComputedStyle(el);
+    if (cs.display === 'none' || cs.visibility === 'hidden') return;
+    const fs2 = parseFloat(cs.fontSize);
+    if (fs2 >= 16) return;
+    out.push(el.tagName.toLowerCase() + '.' + ((el.className || '').toString().trim().split(/\s+/)[0] || '?') + ' ' + fs2 + 'px');
+  });
+  return [...new Set(out)];
+};
+
+console.log(`\n═══ 触れる入力欄が 16px 未満でない（${FORM_PAGES.length}枚 × 390px）═══`);
+for (const href of FORM_PAGES) {
+  const page = await browser.newPage();
+  await page.setViewport({ width: 390, height: 820 });
+  await page.evaluateOnNewDocument(FAKE_SESSION);   /* ログインの先も測る */
+  await page.goto(BASE + href, { waitUntil: 'networkidle2' });
+  await new Promise((r) => setTimeout(r, 900));
+  /* 給与フォームは入口を押すまで欄が出ない（23本ある本体がここから先） */
+  await page.evaluate(() => {
+    document.getElementById('entry-manual')?.click();   /* 給与フォームの入口 */
+    document.getElementById('pv-search-btn')?.click();  /* ヘッダーの検索窓（全ページ） */
+  });
+  await new Promise((r) => setTimeout(r, 400));
+  const small = await page.evaluate(smallFields);
+  ok(small.length === 0, `${href}`, small.slice(0, 6).join(' / '));
+  await page.close();
 }
 
 await browser.close();

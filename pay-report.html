@@ -88,6 +88,10 @@ nav.scrolled{background:rgba(10,12,15,.92);backdrop-filter:blur(20px);border-bot
      「パーディアム（その月の合計）」のような長いラベルと2列組みで重なる）。 */
 .miss-tag{color:#f87171;background:rgba(239,68,68,.13);border:1px solid rgba(239,68,68,.36)}
 .form-input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:11px 14px;color:#e8edf2;font-size:.9rem;transition:border-color .2s,background .2s;outline:none;font-family:'Inter','Noto Sans JP',sans-serif}
+/* ★iOS は 16px 未満の入力欄に触れるとページごと拡大し、戻らない。拡大した画面では
+   position:fixed のヘッダーと常設バーが窓より広い箱になり、左右とも切れる
+   （2026-08-27、オーナーの iPhone 16 で実測 1.09 倍）。⚠️ この 16px を下げない。 */
+@media (pointer:coarse),(max-width:820px){.form-input{font-size:16px}}
 .form-input:focus{border-color:rgba(245,200,66,.4);background:rgba(255,255,255,.07)}
 .form-input:focus-visible{outline:2px solid rgba(245,200,66,.35);outline-offset:1px}
 .form-input::placeholder{color:#6b7d93}

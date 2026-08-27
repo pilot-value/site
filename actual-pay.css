@@ -106,6 +106,10 @@
 .ap-q::placeholder{color:var(--pv-ink-3);font-weight:500}
 .ap-q:hover{border-color:var(--pv-ink-3)}
 .ap-q:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}
+/* ★iOS は 16px 未満の入力欄に触れるとページごと拡大し、戻らない。拡大した画面では
+   position:fixed のヘッダーと常設バーが窓より広い箱になり、左右とも切れる
+   （2026-08-27、オーナーの iPhone 16 で実測 1.09 倍）。⚠️ この 16px を下げない。 */
+@media (pointer:coarse),(max-width:820px){.ap-sel,.ap-q{font-size:16px}}
 
 .ap-clear{min-height:40px;padding:8px 16px;border-radius:999px;
   border:1px solid var(--pv-line);background:none;color:var(--pv-ink-2);
