@@ -160,9 +160,9 @@ async function authUsers() {
    代わりに proof_hash があり、**式に秘密の塩が入っていない**ので手元でも作れる。
    これでテストアカウントの投稿だけを正確に外せる。突き合わせの手段はこれしかない。
      給与レポート  sha256(uid || '::pv_pay::'  || airline [|| '::' || lower(airline_other)])
-                   … db/pay-reports.sql:556-560
+                   … db/pay-reports.sql:925（submit_pay_report）
      口コミ        sha256(uid || '::pv_anon::' || airline || '::2026')
-                   … submit-review.html:1374-1378（airline は「その他」なら自由入力の社名）
+                   … submit-review.html:1227（airline は「その他」なら自由入力の社名）
    ★口コミは航空会社コードを付け替えた移行（db/migrate-airline-codes.sql）より前の行だと
      hash が旧コードのままなので一致しない。古い自分の投稿は落としきれないことがある。
    ⚠️ 下の「3-c」も同じ写し取りをしている。あちらは db/pay-rows.sql の
@@ -575,6 +575,92 @@ async function foundingReport(users, testIds, real) {
   } catch (e) {
     if (/\b404\b|PGRST205|PGRST202|does not exist/i.test(e.message)) {
       line('まだ数えられません', 'db/pay-rows.sql を Supabase で流すと出ます');
+    } else line('取得できず', e.message);
+  }
+
+  /* ── 3-d. 整合（データのズレを見つける）─────────────────────
+     2026-08-27、オーナーから「給与を出していないのに REAL PAY が見えている人が
+     居ないか」。調べたら **4人居た**。門（pv_pay_rows）は正しくて、原因は
+     データのズレだった ── 過去に SQL Editor で pay_reports の行だけ手で消し、
+     profiles 側に残る「1件出した」という記録（pay_report_count / access_until /
+     badge / pay_day_of_month）を戻し忘れた形。
+
+     行を消すときは db/cleanup-test-payslip-row.sql（1人ぶん）か
+     db/repair-orphan-unlock.sql（総当たりで全員ぶん）を通す。どちらも10列まとめて
+     戻すので、通していればこの節は0のままになる。
+
+     ⚠️ **本番を読む道具はこれ1つしかない。再発はここでしか気づけない。**
+        ①と②は正常なら必ず0。1人でも出たら上の SQL を流す。
+     ⚠️ ①は「REAL PAY が開いてしまう」ズレ、②は「開くべきなのに開いていない」ズレ。
+        向きが逆なので、片方だけ見ても足りない。 */
+  console.log('\n■ 整合（①と②は 0人 が正常。0人でなければ下に書いた SQL を流す）');
+  try {
+    const [prLink, profLink] = await Promise.all([
+      rest('pay_reports', 'select=proof_hash,airline,airline_other&limit=5000'),
+      rest('profiles', 'select=id,pay_report_count,pay_streak_months,access_until,'
+         + 'last_pay_report_at,pay_day_of_month,last_pay_period_ym&limit=5000'),
+    ]);
+    /* 行の持ち主を総当たりで確定する（db/repair-orphan-unlock.sql の① と同じ考え方）。
+       proof_hash の式に秘密の塩が入っていないので手元でも作れる。 */
+    const ownerOf = new Set();
+    for (const u of users) {
+      for (const r of prLink) {
+        if (payHash(u.id, r.airline, r.airline_other) === r.proof_hash) { ownerOf.add(u.id); break; }
+      }
+    }
+    const emailOf = Object.fromEntries(users.map((u) => [u.id, u.email]));
+    /* submit_pay_report が書く列。1つでも残っていれば「出した痕跡」がある。 */
+    const marks = (p) => !!(p.pay_report_count > 0 || p.pay_streak_months > 0 || p.access_until
+                         || p.last_pay_report_at || p.pay_day_of_month || p.last_pay_period_ym);
+    const orphan  = profLink.filter((p) => !ownerOf.has(p.id) && marks(p));
+    const missing = profLink.filter((p) => ownerOf.has(p.id) && (!p.access_until || !(p.pay_report_count > 0)));
+    const now = new Date().toISOString();
+    const expired = profLink.filter((p) => ownerOf.has(p.id) && p.access_until && p.access_until < now);
+
+    line('① 痕跡だけ残っている人', `${orphan.length}人`,
+         orphan.length ? '　← 給与を出していないのに REAL PAY が開く' : '');
+    for (const p of orphan.slice(0, 10)) {
+      line('  ' + mask(emailOf[p.id]), `解放 ${day(p.access_until) || '(無し)'}`,
+           `　件数 ${p.pay_report_count ?? 0}`, p.pay_day_of_month ? `　給料日 ${p.pay_day_of_month}日` : '');
+    }
+    if (orphan.length) {
+      console.log('   → db/repair-orphan-unlock.sql を Supabase の SQL Editor に貼ります');
+      console.log('     （①で人数を目で見る → ②で戻す → ③が0行になる。何度流しても同じ結果）。');
+      console.log('   ※ 給料日を戻すのを忘れると、消えたレポートから学習した日で毎月のメールが飛び続けます。');
+    }
+    line('② 行はあるのに記録が無い人', `${missing.length}人`,
+         missing.length ? '　← マイレポートには出るのに鍵が開いていない' : '');
+    for (const p of missing.slice(0, 10)) {
+      line('  ' + mask(emailOf[p.id]), `解放 ${day(p.access_until) || '(無し)'}`, `　件数 ${p.pay_report_count ?? 0}`);
+    }
+    /* ③はズレではない。90日たてば普通に起きる（もう1件出せば立て直る）。 */
+    line('③ 解放が切れている人', `${expired.length}人`, '　（90日たてば普通に起きる。ズレではない）');
+  } catch (e) { line('取得できず', e.message); }
+
+  /* ── 3-e. 引き取られていない預かり（期限つき）───────────────
+     預かり証は30日で切れる（db/pay-report-pending.sql）。切れると本人でも
+     引き取れないので、**残り日数**まで出す。3-b は件数と塊を出すだけで、
+     「あと何日で消えるか」は出していない。 */
+  console.log('\n■ 預かりの期限（本人が引き取れるのは出してから30日）');
+  try {
+    const pdEx = await rest('pay_reports_pending', 'select=created_at,claimed_at,airline&order=created_at.asc&limit=5000');
+    const open = pdEx.filter((r) => !r.claimed_at);
+    line('まだ引き取られていない', `${open.length}件`);
+    for (const r of open) {
+      const due = new Date(Date.parse(r.created_at) + 30 * 86400_000);
+      const left = Math.ceil((due - Date.now()) / 86400_000);
+      line('  ' + day(r.created_at) + ' ' + (r.airline || '?'),
+           left > 0 ? `期限 ${day(due.toISOString())}（あと${left}日）` : `期限切れ（${day(due.toISOString())}）`);
+    }
+    if (open.length) {
+      console.log('   ※ 本人が「そのブラウザで」アカウントを作れば今でも紐付きます。');
+      console.log('     端末が変わって預かり証を失った人には、');
+      console.log('     https://pilot-value.com/pay-report.html?claim=<そのレポートの claim_token>');
+      console.log('     をログイン中に開いてもらえば引き取れます（トークンは本人以外に渡さない）。');
+    }
+  } catch (e) {
+    if (/\b404\b|PGRST205|does not exist/i.test(e.message)) {
+      line('まだ置き場がありません', 'db/pay-report-pending.sql を Supabase で流すと出ます');
     } else line('取得できず', e.message);
   }
 

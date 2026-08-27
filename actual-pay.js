@@ -748,6 +748,19 @@
       ? w.PV_SESSION : { then: function (f) { f(null); return { catch: function () {} }; } };
     ready.then(function (session) {
       if (!session) return;                       // ページ側がログインへ送っている
+      /* 匿名で出した給与データの預かり証を拾う（最後の網。profile.html:477 と同じ実体）。
+         ★pv_pay_rows() より **前**。引き取りに成功すると submit_pay_report が走って
+           90日の解放が立つので、直後に引けば1回目から開いた画面になる。
+           後ろに置くと、出したばかりの人に1回だけロック画面を見せることになる。
+         ★takeFromUrl() を自分で呼ばない ── sweep() が中で先に呼んでいる。
+         ★失敗しても画面は止めない（profile.html と同じ扱い）。 */
+      var swept = null;
+      try { if (w.PVClaimPending) swept = w.PVClaimPending.sweep(client); } catch (e) { swept = null; }
+      Promise.resolve(swept).catch(function () { return null; }).then(function () { fetchRows(client); });
+    });
+
+    /* 一覧を取りに行く。上の預かりの引き取りが終わってから呼ばれる。 */
+    function fetchRows(client) {
       /* ★ rpc() が返すのは「then だけを持つ箱」で Promise ではない。
            Promise.resolve() で包んでから catch を付ける（pv-referral.js:gap と同じ）。 */
       Promise.resolve(client.rpc('pv_pay_rows')).then(function (res) {
@@ -774,7 +787,7 @@
         }
         renderRows();
       }).catch(function () { S.mode = 'error'; renderRows(); });
-    });
+    }
   }
 
   if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', boot);

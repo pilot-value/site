@@ -78,7 +78,47 @@ alter table public.profiles enable row level security;
 
 -- anon には1行も渡さない。ログイン前に profiles を読む画面は1つも無い。
 revoke all on public.profiles from anon;
-grant select, insert, update on public.profiles to authenticated;
+
+/* ★2026-08-27、ここを列単位に絞った。
+
+   それまでは `grant select, insert, update on public.profiles to authenticated`
+   ＝ **表ごと** 書き換えを許していた。RLS は「どの行か」しか見ないので、
+   ログインしている人なら誰でもブラウザの開発者ツールから
+
+       await sb.from('profiles').update({ access_until: '2099-01-01' }).eq('id', myId)
+
+   で自分の REAL PAY を永久に開けたし、verify_level を上げて Verified を
+   名乗ることもできた。画面には出していない列でも、表に書ける以上は書ける。
+   （実データを調べた限り、使われた形跡はゼロ。2026-08-27 時点で verify_level>0 は0人）
+
+   ⚠️ 許すのは **画面が実際に書いている列だけ**。増やす前に必ず grep する：
+       from('profiles').update / .upsert
+     現在の書き手は4ファイル・6か所しかない
+       profile.html:775 / en/profile.html:777   氏名ほか6列（プロフィール編集）
+       profile.html:630 / en/profile.html:632   メール通知の2列（トグル）
+       signup.html:649  / en/signup.html:649    登録時の upsert（id と email を含む）
+
+   ⚠️ `id` と `email` を外さない。登録の upsert は
+       INSERT ... ON CONFLICT DO UPDATE  になり、その2列も SET に入る。
+       外すと**登録時に氏名・会社が黙って保存されない**（本人は成功したつもりで、
+       プロフィールが空のまま残る。実際にそういうアカウントが1つあった）。
+       `id` を勝手な値にはできない ── 下の RLS の with check (id = auth.uid()) が縛る。
+
+   ⚠️ 給与・口コミ・招待・待遇の書き込みはここを通らない。全部
+      security definer の関数（submit_pay_report / set_mail_optin / claim_referral …）
+      なので、この grant を絞っても1つも壊れない。 */
+/* ⚠️ **この3行の順番を入れ替えない。**
+   Postgres は「表ごとの revoke」で **その表の列の許可も道連れに消す**
+   （PGlite で実測済み）。revoke を後ろに書くと、下の grant が全部消えて
+   **profiles に1文字も書けなくなる** ＝ 登録も、プロフィール編集も、
+   メール通知のトグルも黙って失敗する。必ず revoke → grant の順。 */
+revoke insert, update on public.profiles from authenticated;
+
+grant select on public.profiles to authenticated;
+grant insert (id, email, name, gender, birthdate, country, company, position,
+              email_opt_in, email_opt_in_at) on public.profiles to authenticated;
+grant update (id, email, name, gender, birthdate, country, company, position,
+              email_opt_in, email_opt_in_at) on public.profiles to authenticated;
 
 -- 消す前に控えを取る。戻したくなったらこの表を見る。
 create table if not exists public.pv_policy_backup (
@@ -189,10 +229,35 @@ select '④b PUBLIC に残った権限', coalesce(string_agg(distinct g.privileg
 union all
 select '⑤ 管理用の入口', string_agg(p.proname, ', ')
   from pg_proc p join pg_namespace n on n.oid = p.pronamespace
- where n.nspname='public' and p.proname in ('pv_is_admin','admin_list_profiles','admin_list_reviews');
+ where n.nspname='public' and p.proname in ('pv_is_admin','admin_list_profiles','admin_list_reviews')
+union all
+select '⑥ 会員が profiles に表ごと書けるか',
+       coalesce(string_agg(distinct g.privilege_type, ', '), 'なし（これが正しい）')
+  from information_schema.role_table_grants g
+ where g.table_schema='public' and g.table_name='profiles'
+   and g.grantee='authenticated' and g.privilege_type in ('INSERT','UPDATE')
+union all
+select '⑦ 会員が書ける列（この10列だけが正しい）',
+       coalesce(string_agg(distinct c.column_name, ', ' order by c.column_name), '❌ 1列も無い')
+  from information_schema.column_privileges c
+ where c.table_schema='public' and c.table_name='profiles'
+   and c.grantee='authenticated' and c.privilege_type = 'UPDATE'
+union all
+select '⑧ 会員が書けてはいけない列が混ざっていないか',
+       coalesce(string_agg(distinct c.column_name, ', '), 'なし（これが正しい）')
+  from information_schema.column_privileges c
+ where c.table_schema='public' and c.table_name='profiles'
+   and c.grantee='authenticated' and c.privilege_type in ('INSERT','UPDATE')
+   and c.column_name in ('access_until','verify_level','verified_airline','verified_at',
+                         'badge','badge_state','pay_report_count','pay_streak_months',
+                         'pay_day_of_month','last_pay_report_at','mail_unsub_token','mail_optin');
 
 /* ①が 0 のままなら 5. のメールアドレスが auth.users に無い。
    ④・④b が「なし」でなければ revoke が効いていない。
+   ⑥が「なし」でなければ表ごとの許可が残っている＝⑦の絞り込みが意味を失う。
+   ⑦が「❌ 1列も無い」なら revoke と grant の順番が逆
+     ＝ このあと**誰も登録できない・プロフィールを保存できない**。すぐ直す。
+   ⑧に何か出たら、会員が自分で REAL PAY を開けたり Verified を名乗れる。
    ここまで通ったら admin.html にログインして表が出るか確かめる。 */
 
 

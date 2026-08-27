@@ -75,6 +75,42 @@ ok(has(/revoke all on public\.profiles from anon/), 'profiles は未ログイン
 ok(has(/create policy profiles_select_self[\s\S]*?using \(id = auth\.uid\(\)\)/),
    'ログインしていても、読めるのは自分の1行だけ');
 ok(has(/pv_policy_backup/), '既存の設定を消す前に控えを取る');
+
+/* ★2026-08-27 追加。RLS は「どの行か」しか見ないので、表ごと update を許すと
+   ログインした人が自分の access_until（REAL PAY の解放）や verify_level
+   （Verified の表示）を開発者ツールから書き換えられる。列で絞ってあることを見る。 */
+const GRANTABLE = ['id', 'email', 'name', 'gender', 'birthdate', 'country',
+                   'company', 'position', 'email_opt_in', 'email_opt_in_at'];
+const FORBIDDEN = ['access_until', 'verify_level', 'verified_airline', 'verified_at',
+                   'badge', 'badge_state', 'pay_report_count', 'pay_streak_months',
+                   'pay_day_of_month', 'last_pay_report_at', 'mail_unsub_token', 'mail_optin'];
+/* ★ここから下はコメントを外した字面で見る。上の説明文が「昔の悪い grant」を
+   そのまま引用しているので、生の字面で探すと自分の説明で落ちる。 */
+const bare = sql.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/--[^\n]*/g, ' ');
+const colGrants = [...bare.matchAll(/grant\s+(insert|update)\s*\(([^)]*)\)\s*on public\.profiles to authenticated/gi)]
+  .map((m) => ({ kind: m[1].toLowerCase(), cols: m[2].split(',').map((c) => c.trim()) }));
+
+ok(!/grant\s+[a-z, ]*\b(insert|update)\b[a-z, ]*on public\.profiles to authenticated/i.test(bare),
+   '会員に profiles を表ごと書かせていない（列を書かない grant が無い）');
+ok(colGrants.some((g) => g.kind === 'insert') && colGrants.some((g) => g.kind === 'update'),
+   '会員が書ける列を insert / update それぞれで名指ししている');
+for (const g of colGrants) {
+  ok(g.cols.every((c) => GRANTABLE.includes(c)),
+     `grant ${g.kind} の列が許可リストの中だけ`, g.cols.filter((c) => !GRANTABLE.includes(c)).join(', '));
+  ok(!g.cols.some((c) => FORBIDDEN.includes(c)),
+     `grant ${g.kind} に自己付与できる列が混ざっていない`, g.cols.filter((c) => FORBIDDEN.includes(c)).join(', '));
+  for (const need of ['id', 'email'])
+    ok(g.cols.includes(need), `grant ${g.kind} に ${need} が残っている（登録の upsert が使う）`);
+}
+/* ⚠️ 順番の罠。Postgres は「表ごとの revoke」で列の許可も道連れに消すので、
+   revoke を grant の後ろに書くと profiles に1文字も書けなくなる
+   （＝登録もプロフィール保存も黙って失敗する）。位置で見る。 */
+const iRevoke = bare.search(/revoke insert, update on public\.profiles from authenticated/);
+const iGrant  = bare.search(/grant\s+(insert|update)\s*\([^)]*\)\s*on public\.profiles to authenticated/i);
+ok(iRevoke >= 0, '表ごとの insert / update を revoke している');
+ok(iRevoke >= 0 && iGrant >= 0 && iRevoke < iGrant,
+   'revoke が列の grant より先に書かれている（逆だと列の許可ごと消える）');
+ok(has(/⑦ 会員が書ける列/), '検算に「会員が書ける列」が出る（貼った人がその場で気づける）');
 ok(!/[A-Za-z0-9._%+-]+@(?!pilot-value\.com|example\.)[A-Za-z0-9.-]+\.[A-Za-z]{2,}/.test(sql),
    '実在のメールアドレスが書かれていない');
 

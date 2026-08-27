@@ -95,7 +95,7 @@ baland_ass/                            ブランド資産（※ brand_assets の
 - **動作確認用のテストアカウントを外して数える。** 除外リストは `mail-bot/.env` の `PV_TEST_EMAILS`
   （公開リポジトリなので実在アドレスをコードに書かない）。未設定だと警告が出るが数字は素のまま＝動作確認が実績に混ざる。
 - 口コミも給与レポートも `user_id` を持たない。`proof_hash` を手元で作り直して本人と突き合わせている
-  （式は [db/pay-reports.sql:556](db/pay-reports.sql#L556) と [submit-review.html:1164](submit-review.html#L1164)）。**この2つを変えたら `db/usage.mjs` も直す。**
+  （式は [db/pay-reports.sql:925](db/pay-reports.sql#L925) と [submit-review.html:1227](submit-review.html#L1227)）。**この2つを変えたら `db/usage.mjs` も直す。**
 - **訪問者数（PV/UU）はここには出ない。** DB に残るのは「登録した・投稿した」だけ。訪問は GA4 で見る。
 - ★**「REAL PAY の画面に出る数」の節（3-c）が、画面の3枚のカードと DEEP PAY の分子を出す**（2026-08-25）。
   `shot-*.mjs` の見本（`ST_LOCK`）は手で書き写した値なので**腐る**。写す前にここを走らせる。

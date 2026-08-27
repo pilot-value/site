@@ -1623,6 +1623,13 @@
        他の3か所（profile / pay-report ×2）と重なっても害は無い。
        ★失敗してもレポートは止めない。 */
     try { if (w.PVReferral) await w.PVReferral.claim(SB); } catch (e) {}
+    /* 匿名で出した給与データの預かり証を拾う（最後の網。profile.html:477 と同じ実体）。
+       ★my_pay_reports() より **前**。引き取りに成功すると submit_pay_report が走って
+         その1件が本人のものになるので、直後に引く一覧に最初から載る。
+         後ろに置くと、1回目だけ「出したのに無い」画面が出る。
+       ★takeFromUrl() を自分で呼ばない ── sweep() が中で先に呼んでいる。
+       ★失敗しても画面は止めない（profile.html と同じ扱い）。 */
+    try { if (w.PVClaimPending) await w.PVClaimPending.sweep(SB); } catch (e) {}
     var res;
     try { res = await SB.rpc('my_pay_reports'); } catch (e) { res = { error: e }; }
     if (!res || res.error || !res.data) { root.innerHTML = empty(T.err); return; }
