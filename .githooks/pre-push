@@ -1,0 +1,67 @@
+#!/bin/sh
+# ═══════════════════════════════════════════════════════════════════
+#  pre-push — push の直前に、手元で拾える壊れ方を拾う
+#
+#  なぜ commit ではなく push なのか。
+#  commit は作業の途中で何度も打つ。そこに1.5秒でも検査を挟むと、
+#  結局 --no-verify を癖で付けるようになって検査ごと死ぬ。
+#  push は「本番に出す」瞬間で、1日に何度もあるものではない。ここが妥当な関所。
+#  （身元漏れの検査だけは commit 側にある。あれは一度入ると消せないので別扱い。）
+#
+#  ここで流すもの:
+#    1. node check.mjs fast     静的検査15本・約1.5秒
+#    2. node assert-generated   生成物が古くないか・約0.5秒
+#
+#  ★ ブラウザ検査（check.mjs web / 約7分）はここに入れていない。
+#    7分待たされる関所は、必ず迂回されるようになる。
+#    代わりに「画面まわりを触っているのに web を流していない」ときだけ
+#    下で警告を出す。止めはしない ── 止めると迂回されるので。
+#
+#  ★ 通したいときは git push --no-verify。
+#    使ったら、その回に何を出したかを自分で確認する。
+# ═══════════════════════════════════════════════════════════════════
+set -e
+
+if ! command -v node >/dev/null 2>&1; then
+  echo "pre-push: node が見つからないので検査できなかった。中止する。" >&2
+  exit 1
+fi
+
+echo "── push 前の検査 ────────────────────────────────"
+
+if ! node check.mjs fast; then
+  echo ""
+  echo " push を中止した。上の落ちた検査を直してから push し直す。"
+  echo " ⚠ 落ちた理由は workflows/deploy-checklist.md に書いてある。"
+  echo "   検査のほうが正しいことがほとんどなので、検査を直す前にそこを読む。"
+  exit 1
+fi
+
+echo ""
+if ! node assert-generated.mjs; then
+  echo ""
+  echo " push を中止した。生成スクリプトを流し直して commit してから push する。"
+  exit 1
+fi
+
+# ── 画面まわりを触っているなら、ブラウザ検査を勧める（止めはしない）──
+UP=$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null || echo "")
+if [ -n "$UP" ]; then
+  VISUAL=$(git diff --name-only "$UP"..HEAD 2>/dev/null \
+    | grep -E '\.(html|css)$|^[^/]*\.js$' | head -8 || true)
+  if [ -n "$VISUAL" ]; then
+    echo ""
+    echo "── 参考 ────────────────────────────────────────"
+    echo " 画面まわりのファイルが入っている:"
+    echo "$VISUAL" | sed 's/^/   /'
+    echo ""
+    echo " ブラウザ検査は流していない。気になるなら push の前に:"
+    echo "   node check.mjs web     （約7分）"
+    echo " ※ 止めはしない。判断は出す人に任せる。"
+  fi
+fi
+
+echo ""
+echo "✅ 手元で拾える範囲は通った。push する。"
+echo "   ⚠ push が終わったら node assert-no-pii.mjs --live を流す"
+echo "     （本番で消したい物が本当に 404 かは、本番でしか確認できない）"

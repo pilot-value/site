@@ -191,6 +191,7 @@ baland_ass/                            ブランド資産（※ brand_assets の
 | `assert-unlock.mjs` | **口コミの鍵と給与の鍵が混ざらない**（口コミ1件で年収が開かない）|
 | `assert-pay-rows.mjs` | REAL PAY の7つの約束（Give → Get・準識別子ゼロ・有効数字2桁・1行＝1人…）|
 | `assert-pay-report-sync.mjs` | 給与レポートの**日英が片方だけ直されていない**か（骨格だけ照合・文言は見ない）|
+| `assert-generated.mjs` | 生成物（sitemap・英語版一覧・語彙）が**流し忘れで古くなっていない**か（`.githooks/pre-push` から自動で走る）|
 | `assert-no-pii.mjs` | オーナーの身元が漏れていないか（`.githooks/pre-commit` から毎回自動で走る）|
 | `npm run test:sql` | Supabase 側（`db/*.sql`）を触ったとき。`check.mjs sql` が同じものを並列で回す |
 
@@ -204,6 +205,9 @@ baland_ass/                            ブランド資産（※ brand_assets の
 `check-sources.mjs --online` / `assert-jobs.mjs --online` /
 `assert-no-pii.mjs --live`（push 後に必ず）/ `assert-no-pii.mjs --history`（履歴を触ったとき）。
 `assert-salary-input.mjs` は 2026-08-16 から休止中で、直すか消すかが決まるまで入れない。
+`assert-generated.mjs` は**作業ツリーが綺麗なときしか走れない**ので入れていない
+（生成スクリプトを実際に流して差分を見る＝戻す手段が `git checkout` しかなく、
+未コミットの変更を巻き込んで消してしまう）。代わりに `.githooks/pre-push` が push の直前に流す。
 
 ## 給与フォームの内訳（[pay-report.html](pay-report.html)）
 
@@ -311,7 +315,9 @@ secret を削除して共通キーへ落として復旧。現在この secret �
 
 ### 新しい Mac / 新しい clone での初回セットアップ（3つとも要る）
 ```sh
-git config core.hooksPath .githooks     # commit のたびに assert-no-pii.mjs が走るようにする
+git config core.hooksPath .githooks     # commit と push のたびに検査が走るようにする
+#   pre-commit → assert-no-pii.mjs（身元漏れ。入ると消せないので commit で止める）
+#   pre-push   → check.mjs fast ＋ assert-generated.mjs（約2秒）
 # iCloud の Claude-Backup/latest/repo-lists/ から
 #   .pii-denylist と .employer-denylist をリポジトリのルートに戻す
 # （どちらも gitignore 済みなので clone には付いてこない。
