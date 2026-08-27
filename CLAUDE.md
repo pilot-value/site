@@ -190,6 +190,7 @@ baland_ass/                            ブランド資産（※ brand_assets の
 | `assert-admin.mjs` | 管理者ページが**ログインした管理者にしか見えない**（合言葉を持たない）|
 | `assert-unlock.mjs` | **口コミの鍵と給与の鍵が混ざらない**（口コミ1件で年収が開かない）|
 | `assert-pay-rows.mjs` | REAL PAY の7つの約束（Give → Get・準識別子ゼロ・有効数字2桁・1行＝1人…）|
+| `assert-pay-report-sync.mjs` | 給与レポートの**日英が片方だけ直されていない**か（骨格だけ照合・文言は見ない）|
 | `assert-no-pii.mjs` | オーナーの身元が漏れていないか（`.githooks/pre-commit` から毎回自動で走る）|
 | `npm run test:sql` | Supabase 側（`db/*.sql`）を触ったとき。`check.mjs sql` が同じものを並列で回す |
 
