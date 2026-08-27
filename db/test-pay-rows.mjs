@@ -579,12 +579,13 @@ console.log('\n▼ 7-b. ★支給の内訳（DEEP PAY 用。REAL PAY からは�
   ok((await one(`select public.pv_pct5(array[0,0,0,0,0]::numeric[]) c`)).c === null,
      '　全部ゼロでも null（0で割らない）');
 
-  /* ⑦ 保証給・教官・審査の手当（2026-08-26）。pv_pay_comp は「引数の並びが pv_annual_total と
-     1文字も違わない」「5本の合計があちらの返り値と一致する」を約束している。
+  /* ⑦ 保証給・教官・審査・組合・管理職の手当（2026-08-26）と、その他の兼務・配属（2026-08-27）。
+     pv_pay_comp は「引数の並びが pv_annual_total と 1文字も違わない」
+     「6本の合計があちらの返り値と一致する」を約束している。
      片方だけに引数を足すと、その2つが黙って破れる。 */
   const nc = await one(`select p.pronargs n from pg_proc p join pg_namespace s on s.oid=p.pronamespace
                          where s.nspname='public' and p.proname='pv_pay_comp'`);
-  ok(Number(nc.n) === 17, `★pv_pay_comp も17引数（pv_annual_total と同じ並び）→ ${nc.n}`);
+  ok(Number(nc.n) === 20, `★pv_pay_comp も20引数（pv_annual_total と同じ並び）→ ${nc.n}`);
   const gcomp = await one(`
     select public.pv_pct5(public.pv_pay_comp(null, 20000, null, null, null, null,
              null, null, null, null, null, null, null, null, 5000, null)) c,
@@ -627,6 +628,49 @@ console.log('\n▼ 7-b. ★支給の内訳（DEEP PAY 用。REAL PAY からは�
              null, null, null, null, null, null, null, null, null, 600, 600) v`);
   ok(bcomp.c && bcomp.c.o === 6 && bcomp.c.m === 94 && Number(bcomp.v) === 254400,
      '★教官と審査は別々に積まれる（o に両方ぶん）', JSON.stringify(bcomp));
+
+  /* ★管理・マネジメントの手当（2026-08-26 その6）。教官・審査・組合と同じ
+     「その他の手当（o）」。m（月々の支給）に混ぜると DEEP PAY の
+     「基本給の割合」が管理職の手当で汚れる。 */
+  const mcomp = await one(`
+    select public.pv_pct5(public.pv_pay_comp(null, 20000, null, null, null, null,
+             null, null, null, null, null, null, null, null, null, null, null, null, 600)) c,
+           public.pv_annual_total(null, 20000, null, null, null, null,
+             null, null, null, null, null, null, null, null, null, null, null, null, 600) v`);
+  ok(mcomp.c && mcomp.c.m === 97 && mcomp.c.o === 3 && Number(mcomp.v) === 247200,
+     '★管理職の手当も「その他の手当（o）」に入る（教官・審査と同じ扱い）',
+     JSON.stringify(mcomp));
+  /* ★4つ（教官・審査・組合・管理職）を同時に入れても互いに吸われない。
+     年額 240,000（基本給）＋7,200×4 ＝ 268,800 のうち o は 28,800 ＝ 10.71% → 11%。
+     どれか1つでも落ちていれば 8% 以下になる。 */
+  const acomp = await one(`
+    select public.pv_pct5(public.pv_pay_comp(null, 20000, null, null, null, null,
+             null, null, null, null, null, null, null, null, null, 600, 600, 600, 600)) c,
+           public.pv_annual_total(null, 20000, null, null, null, null,
+             null, null, null, null, null, null, null, null, null, 600, 600, 600, 600) v`);
+  ok(acomp.c && acomp.c.o === 11 && acomp.c.m === 89 && Number(acomp.v) === 268800,
+     '★教官・審査・組合・管理職が4つとも別々に積まれる（o に4つぶん）', JSON.stringify(acomp));
+
+  /* ★その他の兼務・配属の手当（2026-08-27 その7）。20番目。
+     教官・審査・組合・管理職と同じ「その他の手当（o）」。m に混ぜない。 */
+  const ncomp = await one(`
+    select public.pv_pct5(public.pv_pay_comp(null, 20000, null, null, null, null,
+             null, null, null, null, null, null, null, null, null, null, null, null, null, 600)) c,
+           public.pv_annual_total(null, 20000, null, null, null, null,
+             null, null, null, null, null, null, null, null, null, null, null, null, null, 600) v`);
+  ok(ncomp.c && ncomp.c.m === 97 && ncomp.c.o === 3 && Number(ncomp.v) === 247200,
+     '★兼務・配属の手当も「その他の手当（o）」に入る（教官・審査・管理職と同じ扱い）',
+     JSON.stringify(ncomp));
+  /* ★5つ（教官・審査・組合・管理職・兼務）を同時に入れても互いに吸われない。
+     年額 240,000（基本給）＋7,200×5 ＝ 276,000 のうち o は 36,000 ＝ 13.04% → 13%。
+     どれか1つでも落ちていれば 11% 以下になる。 */
+  const a5comp = await one(`
+    select public.pv_pct5(public.pv_pay_comp(null, 20000, null, null, null, null,
+             null, null, null, null, null, null, null, null, null, 600, 600, 600, 600, 600)) c,
+           public.pv_annual_total(null, 20000, null, null, null, null,
+             null, null, null, null, null, null, null, null, null, 600, 600, 600, 600, 600) v`);
+  ok(a5comp.c && a5comp.c.o === 13 && a5comp.c.m === 87 && Number(a5comp.v) === 276000,
+     '★教官・審査・組合・管理職・兼務が5つとも別々に積まれる（o に5つぶん）', JSON.stringify(a5comp));
 
   const rawC = (await one(`select pv_pay_rows()::text t`)).t;
   ok(!/"(m|b|d|h|o)":/.test(rawC),
@@ -737,6 +781,31 @@ console.log('\n▼ 12. ★預かりの年換算が、本棚に入れたときと
                                             p: { base_pay: 9000, instructor_pay: 600 } },
     { m: 2,  a: A_CROSS2, label: '★教官の手当（総支給がある＝効かない側）',
                                             p: { gross_monthly: 15000, base_pay: 9000, instructor_pay: 600 } },
+    { m: 3,  a: A_CROSS2, label: '★審査の手当（内訳だけ）',
+                                            p: { base_pay: 9000, examiner_pay: 400 } },
+    /* ★組合の手当。支給元が組合でも、列にも年換算にも同じように入る
+       （条件つきなのは画面が総支給と突き合わせるときだけ）。 */
+    { m: 4,  a: A_CROSS2, label: '★組合の手当（内訳だけ）',
+                                            p: { base_pay: 9000, union_pay: 1000 } },
+    /* ★管理・マネジメントの手当（2026-08-26 その6）。組合と違い、SQL 側は
+       支給元の条件を持たない（条件つきなのは画面の突き合わせだけ）。 */
+    { m: 6,  a: A_CROSS2, label: '★管理職の手当（内訳だけ）',
+                                            p: { base_pay: 9000, management_pay: 5000 } },
+    { m: 7,  a: A_CROSS2, label: '★管理職の手当（総支給がある＝効かない側）',
+                                            p: { gross_monthly: 15000, base_pay: 9000, management_pay: 5000 } },
+    { m: 5,  a: A_CROSS2, label: '★教官・審査・組合・管理職が4つとも（内訳だけ）',
+                                            p: { base_pay: 9000, instructor_pay: 600,
+                                                 examiner_pay: 400, union_pay: 1000,
+                                                 management_pay: 5000 } },
+    /* ★その他の兼務・配属の手当（2026-08-27 その7）。管理職と同じで条件を持たない。 */
+    { m: 8,  a: A_CROSS2, label: '★兼務・配属の手当（内訳だけ）',
+                                            p: { base_pay: 9000, nonline_pay: 3000 } },
+    { m: 9,  a: A_CROSS2, label: '★兼務・配属の手当（総支給がある＝効かない側）',
+                                            p: { gross_monthly: 15000, base_pay: 9000, nonline_pay: 3000 } },
+    { m: 10, a: A_CROSS2, label: '★5つとも同時（教官・審査・組合・管理職・兼務）',
+                                            p: { base_pay: 9000, instructor_pay: 600,
+                                                 examiner_pay: 400, union_pay: 1000,
+                                                 management_pay: 5000, nonline_pay: 3000 } },
     // ★レートの無い通貨は本棚側では作れない（currency に語彙の外部キーがある）。
     //   預かりは payload を寝かせるだけなので作れる。だから下で片側だけ見る。
   ];
@@ -763,9 +832,10 @@ console.log('\n▼ 12. ★預かりの年換算が、本棚に入れたときと
                        guaranteed_hours, block_hours, per_diem, housing_type,
                        housing_amount, transport, command_pay, other_allowance,
                        bonus_annual, profit_share_annual, bonus_month,
-                       /* ★2026-08-26 に足した2列。ここに渡し忘れると、本棚の側だけ
+                       /* ★2026-08-26〜27 に足した6列。ここに渡し忘れると、本棚の側だけ
                           その額を持たない図になり、預かりと静かにズレる。 */
-                       guarantee_pay, instructor_pay)::text
+                       guarantee_pay, instructor_pay, examiner_pay, union_pay,
+                       management_pay, nonline_pay)::text
                 from pay_reports where airline = $2 and period_month = $3) b`,
       [JSON.stringify(payload), air, c.m]);
     ok(cmp.a === cmp.b, `　${c.label}（内訳の割合も一致）`,
@@ -1331,10 +1401,10 @@ console.log('\n▼ 14. 8-20（pay_reports を読む関数が anon に開いて�
   ok(res.length === 0, 'pay_reports を読む security definer 関数が anon に1つも開いていない',
      JSON.stringify(res));
 
-  // 8-21 … 2026-08-26 に足した5列（役職・区分の複数／内訳の行／保証給／教官／審査）
+  // 8-21 … 2026-08-26〜27 に足した8列（役職・区分の複数／内訳の行／保証給／教官／審査／組合／管理職／兼務）
   const cols = await rows(cut('-- 8-21.'));
-  ok(cols.length === 5 && cols.every((c) => c['ある'] === true),
-     '役職（複数）・内訳の行・保証給・教官・審査の5列が入っている', JSON.stringify(cols));
+  ok(cols.length === 8 && cols.every((c) => c['ある'] === true),
+     '役職（複数）・内訳の行・保証給・教官・審査・組合・管理職・兼務の8列が入っている', JSON.stringify(cols));
 
   // 8-22 … 総支給と内訳の排他が復活していないこと
   const exc = await rows(cut('-- 8-22.'));

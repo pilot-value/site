@@ -272,7 +272,13 @@ as $$
              --   ここを足し忘れると、同じ明細から**本棚と預かりで違う年収**が出る。
              case when x.gross is null then x.ipay  end,
              -- ★ 2026-08-26 追加。審査・査察の手当。同上。
-             case when x.gross is null then x.epay  end
+             case when x.gross is null then x.epay  end,
+             -- ★ 2026-08-26 追加。組合・乗員代表の手当。同上。
+             case when x.gross is null then x.upay  end,
+             -- ★ 2026-08-26 追加。管理・マネジメントの手当。同上。
+             case when x.gross is null then x.mpay  end,
+             -- ★ 2026-08-27 追加。その他の兼務・配属の手当。同上。
+             case when x.gross is null then x.npay  end
            ) * r.to_usd, 2)
     from (
       select nullif(nullif(p->>'gross_monthly', '')::numeric, 0) as gross,
@@ -280,6 +286,9 @@ as $$
              nullif(p->>'guarantee_pay',       '')::numeric      as gpay,
              nullif(p->>'instructor_pay',      '')::numeric      as ipay,
              nullif(p->>'examiner_pay',        '')::numeric      as epay,
+             nullif(p->>'union_pay',           '')::numeric      as upay,
+             nullif(p->>'management_pay',      '')::numeric      as mpay,
+             nullif(p->>'nonline_pay',         '')::numeric      as npay,
              nullif(p->>'hourly_rate',         '')::numeric      as hourly,
              nullif(p->>'guaranteed_hours',    '')::numeric      as guar,
              nullif(p->>'block_hours',         '')::numeric      as bh,
@@ -433,6 +442,16 @@ drop function if exists public.pv_pay_comp(
 drop function if exists public.pv_pay_comp(
   numeric, numeric, numeric, numeric, numeric, numeric, text, numeric,
   numeric, numeric, numeric, numeric, numeric, numeric, numeric, numeric);
+drop function if exists public.pv_pay_comp(
+  numeric, numeric, numeric, numeric, numeric, numeric, text, numeric,
+  numeric, numeric, numeric, numeric, numeric, numeric, numeric, numeric, numeric);
+drop function if exists public.pv_pay_comp(
+  numeric, numeric, numeric, numeric, numeric, numeric, text, numeric,
+  numeric, numeric, numeric, numeric, numeric, numeric, numeric, numeric, numeric, numeric);
+drop function if exists public.pv_pay_comp(
+  numeric, numeric, numeric, numeric, numeric, numeric, text, numeric,
+  numeric, numeric, numeric, numeric, numeric, numeric, numeric, numeric, numeric, numeric,
+  numeric);
 
 create or replace function public.pv_pay_comp(
   p_gross_monthly    numeric,
@@ -447,7 +466,13 @@ create or replace function public.pv_pay_comp(
   -- ★ 2026-08-26 追加。教官・訓練の手当。同じく並びを揃えるためだけに置く。
   p_instructor_pay   numeric default null,
   -- ★ 2026-08-26 追加。審査・査察の手当。同上。
-  p_examiner_pay     numeric default null
+  p_examiner_pay     numeric default null,
+  -- ★ 2026-08-26 追加。組合・乗員代表の手当。同上。
+  p_union_pay        numeric default null,
+  -- ★ 2026-08-26 追加。管理・マネジメントの手当。同上。
+  p_management_pay   numeric default null,
+  -- ★ 2026-08-27 追加。その他の兼務・配属の手当。同上。
+  p_nonline_pay      numeric default null
 ) returns numeric[]
 language sql
 immutable
@@ -495,7 +520,13 @@ as $$
                             + coalesce(p_instructor_pay, 0)
                             -- 審査の手当も同じ。★m（月々の支給）に混ぜない
                             --   ＝混ぜると DEEP PAY の「基本給の割合」が汚れる。
-                            + coalesce(p_examiner_pay, 0))
+                            + coalesce(p_examiner_pay, 0)
+                            -- 組合・乗員代表の手当も同じ。ここも o に入れる。
+                            + coalesce(p_union_pay, 0)
+                            -- 管理・マネジメントの手当も同じ。ここも o に入れる。
+                            + coalesce(p_management_pay, 0)
+                            -- その他の兼務・配属の手当も同じ。ここも o に入れる。
+                            + coalesce(p_nonline_pay, 0))
             end as o
         ) y
     ) x;
@@ -504,12 +535,12 @@ $$;
 revoke all on function public.pv_pay_comp(
   numeric, numeric, numeric, numeric, numeric, numeric, text, numeric,
   numeric, numeric, numeric, numeric, numeric,
-  numeric, numeric, numeric, numeric) from public, anon, authenticated;
+  numeric, numeric, numeric, numeric, numeric, numeric, numeric) from public, anon, authenticated;
 
 comment on function public.pv_pay_comp(
   numeric, numeric, numeric, numeric, numeric, numeric, text, numeric,
   numeric, numeric, numeric, numeric, numeric, numeric, numeric, numeric,
-  numeric) is
+  numeric, numeric, numeric, numeric) is
   '支給の内訳を「割合」（合計1・5本）で返す。金額は返さない。'
   '足し算は pv_annual_total と一致する。引数の並びもあれと同じ。'
   '誰にも grant しない。今はどこからも呼ばれていない（DEEP PAY 用）。';
@@ -597,7 +628,10 @@ as $$
            x.bonus_a, x.profit, x.bonus_m,
            case when x.gross is null then x.gpay  end,
            case when x.gross is null then x.ipay  end,
-           case when x.gross is null then x.epay  end
+           case when x.gross is null then x.epay  end,
+           case when x.gross is null then x.upay  end,
+           case when x.gross is null then x.mpay  end,
+           case when x.gross is null then x.npay  end
          )
     from (
       select nullif(nullif(p->>'gross_monthly', '')::numeric, 0) as gross,
@@ -605,6 +639,9 @@ as $$
              nullif(p->>'guarantee_pay',       '')::numeric      as gpay,
              nullif(p->>'instructor_pay',      '')::numeric      as ipay,
              nullif(p->>'examiner_pay',        '')::numeric      as epay,
+             nullif(p->>'union_pay',           '')::numeric      as upay,
+             nullif(p->>'management_pay',      '')::numeric      as mpay,
+             nullif(p->>'nonline_pay',         '')::numeric      as npay,
              nullif(p->>'hourly_rate',         '')::numeric      as hourly,
              nullif(p->>'guaranteed_hours',    '')::numeric      as guar,
              nullif(p->>'block_hours',         '')::numeric      as bh,
@@ -1202,7 +1239,8 @@ with f as (
          to_regprocedure('public.pv_pending_comp(jsonb)') as f_pcomp,
          to_regprocedure('public.pv_pay_comp(numeric,numeric,numeric,numeric,numeric,'
                          || 'numeric,text,numeric,numeric,numeric,numeric,numeric,'
-                         || 'numeric,numeric,numeric,numeric,numeric)')  as f_comp,
+                         || 'numeric,numeric,numeric,numeric,numeric,numeric,numeric,'
+                         || 'numeric)')  as f_comp,
          to_regclass('public.pay_benchmarks')          as bench,
          to_regclass('public.pv_review_person')        as link,
          to_regprocedure('public.pv_airline_resolve(text)') as f_res,

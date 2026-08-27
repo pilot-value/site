@@ -163,10 +163,12 @@ console.log('\n市場価値レポート（my-value）');
   /* ★2026-08-26 その3、教官・訓練の手当。その4で審査・査察の手当。
        増える金額の欄は各1つ（今月の支給額）だけ。
        ★単価の欄は作らない（今月の額 ÷ 数量でこちらが出せる）。
-       数量（f-instr-qty / f-exam-qty）は金額ではないので money を付けない。 */
+       数量（f-instr-qty / f-exam-qty）と組合の活動日数（f-union-days）、
+       管理職の管理業務日数（f-mgmt-days）、兼務・配属の業務日数（f-nonline-days）は
+       金額ではないので money を付けない。 */
   const MONEY = ['f-gross', 'f-netpay', 'f-perdiem', 'f-bonus-mo', 'f-housing-amt',
                  'f-bonus', 'f-base', 'f-guarantee', 'f-command', 'f-profit',
-                 'f-instructor', 'f-examiner'];
+                 'f-instructor', 'f-examiner', 'f-union-pay', 'f-mgmt-pay', 'f-nonline-pay'];
   for (const f of ['pay-report.html', 'en/pay-report.html']) {
     const s = read(f);
     for (const id of MONEY) {
@@ -331,8 +333,9 @@ console.log('\n市場価値レポート（my-value）');
   for (const f of ['pay-report.html', 'en/pay-report.html']) {
     const s = read(f);
     const ja = f === 'pay-report.html';
-    const blk = cut(s.slice(s.indexOf('<div id="s3-exam"'),
-                            s.indexOf(ja ? '<!-- 繰り返し行の型。' : '<!-- Row templates.')));
+    /* ⚠️ 終わりは組合のブロックの手前。「繰り返し行の型」まで取ると、
+       ⑦-e の組合の節をここが丸ごと飲み込む（審査の検査が組合にも当たる）。 */
+    const blk = cut(s.slice(s.indexOf('<div id="s3-exam"'), s.indexOf('<div id="s3-union"')));
     ok(blk.length > 500, `${f}: 審査・査察の手当のブロックが在る`, String(blk.length));
 
     /* ① 既定で隠れている・役職を触るたびに見直す・外したら中身も消す。 */
@@ -399,6 +402,303 @@ console.log('\n市場価値レポート（my-value）');
     }
   }
 
+  /* ⑦-e 組合・乗員代表（Union / Pilot representative）の手当（2026-08-26 その5）──
+     役割ごとのモジュールの3本目。教官・審査と同じ壊れ方をするので、同じ形で見る。
+     ★ここだけの本題は「支給元」── 組合から出ている額は会社の明細に載っていないので、
+       総支給との突き合わせ（#pd-over）に無条件で足すと注意が嘘で出る。
+     ★聞くのは3つだけ（活動日数・追加支給の有無・あるなら金額と支給元）。
+       Committee の種別・Union 内の役職名・Negotiation / Safety の活動内容・
+       給与保障制度は聞かない（オーナー明記）。増えていないことをここで見張る。 */
+  const UNION_EXTRA = ['yes', 'none', 'unknown'];
+  const UNION_SRC   = ['airline', 'union', 'both', 'other'];
+  for (const f of ['pay-report.html', 'en/pay-report.html']) {
+    const s = read(f);
+    const ja = f === 'pay-report.html';
+    /* ⚠️ 終わりは管理職のブロックの手前。「繰り返し行の型」まで取ると
+       ⑤で足した #s3-mgmt を組合ごと飲み込んで、下の「聞くのは4欄だけ」が落ちる。 */
+    const blk = cut(s.slice(s.indexOf('<div id="s3-union"'),
+                            s.indexOf('<div id="s3-mgmt"')));
+    ok(blk.length > 400, `${f}: 組合・乗員代表の手当のブロックが在る`, String(blk.length));
+
+    /* ① 既定で隠れている・役職を触るたびに見直す・外したら中身も消す。 */
+    ok(/<div id="s3-union" hidden>/.test(s),
+       `${f}: ★組合のブロックは既定で隠れている（役職で出す）`);
+    ok(/function readRoleBoxes\(\)[\s\S]{0,500}?unionToggle\(\)/.test(s),
+       `${f}: ★役職・区分を触るたびに出し入れを見直す（readRoleBoxes → unionToggle）`);
+    const tog = (s.match(/function unionToggle\(\)[\s\S]*?\n}/) || [''])[0];
+    ok(/indexOf\('union'\)/.test(tog) && /\$\(id\)\.value = ''/.test(tog),
+       `${f}: ★組合を外したら、入れた日数も金額も消す`, tog.slice(0, 60));
+
+    /* ② 必須をひとつも増やさない・「任意」と書かない・カッコの注記を足さない。 */
+    ok(!/req-tag/.test(blk), `${f}: ★組合の節に「必須」の印が無い（段も送信の条件も動かない）`);
+    ok(!/任意|書かなくて|なくても|optional|leave (this )?blank/i.test(blk),
+       `${f}: ★組合の節に「任意・書かなくていい」の言い方が無い`);
+    ok(!/<summary>[\s\S]*?[（(][^）)]*[）)][\s\S]*?<\/summary>/.test(blk),
+       `${f}: ★組合の見出しにカッコの注記を足していない`);
+
+    /* ③ 選択肢は日英でまったく同じ value・同じ並び。 */
+    const optsIn = (id) => [...((blk.match(new RegExp(`<select id="${id}"[\\s\\S]*?</select>`)) || [''])[0])
+      .matchAll(/<option value="([a-z_]*)"/g)].map((m) => m[1]).filter((v) => v !== '');
+    ok(JSON.stringify(optsIn('f-union-extra')) === JSON.stringify(UNION_EXTRA),
+       `${f}: 追加の支給が3択で同じ並び`, optsIn('f-union-extra').join(','));
+    ok(JSON.stringify(optsIn('f-union-src')) === JSON.stringify(UNION_SRC),
+       `${f}: 支給元が4択で同じ並び`, optsIn('f-union-src').join(','));
+    for (const id of ['f-union-extra', 'f-union-src']) {
+      const b = ((blk.match(new RegExp(`<select id="${id}"[\\s\\S]*?<option value=""[^>]*>([^<]*)<`)) || [])[1] || '').trim();
+      ok(/^(選んでください|Choose one)$/.test(b), `${f}: ★${id} の先頭は「選んでください」`, b);
+    }
+
+    /* ④ 「なし」「わからない」ならすぐ終わる ── 金額と支給元はまとめて隠す。
+       ★単価も1日あたりの額も聞かない（今月の額 ÷ 日数でこちらが出せる）。 */
+    ok(/<div class="opt-fld" id="opt-union-pay" hidden>/.test(blk),
+       `${f}: ★金額と支給元は既定で隠れている（「あり」を選ぶまで出ない）`);
+    const sync = (s.match(/function unionSync\(\)[\s\S]*?\n}/) || [''])[0];
+    ok(/=== 'yes'/.test(sync) && /opt-union-pay'\)\.hidden = !yes/.test(sync),
+       `${f}: ★「あり」のときだけ金額と支給元を出す`, sync.slice(0, 80));
+    ok(/for \(const id of UNION_PAY_IDS\) \$\(id\)\.value = ''/.test(sync),
+       `${f}: ★「なし」「わからない」に戻したら、隠した欄の中身も消す`);
+    ok(!/f-union-rate|f-union-per-day|f-union-unit/.test(s),
+       `${f}: ★組合にも単価・1日あたりの欄を作っていない（今月の額 ÷ 日数でこちらが出す）`);
+
+    /* ⑤ 増やさないと決めたことを増やしていない（オーナー明記）。 */
+    ok(!/f-union-(committee|title|role|activity|protect|guarantee)/.test(s),
+       `${f}: ★Committee 種別・Union 内の役職名・活動内容・給与保障制度を聞いていない`);
+    const inputs = [...blk.matchAll(/<(?:input|select|textarea)[^>]*id="([a-z0-9-]+)"/g)].map((m) => m[1]);
+    ok(JSON.stringify(inputs) === JSON.stringify(
+         ['f-union-days', 'f-union-extra', 'f-union-pay', 'f-union-src']),
+       `${f}: ★組合に聞くのは4欄だけ（日数・有無・金額・支給元）`, inputs.join(','));
+
+    /* ⑥ 組合の額は専用の欄。教官・審査・職位手当・変動給・その他へは足し込まない。 */
+    ok(/union_pay:\s*val\('f-union-pay'\)/.test(s),
+       `${f}: ★組合の額は専用の列へそのまま行く（union_pay）`);
+    for (const [key, line] of [['command_pay', (s.match(/command_pay:[^\n]*/) || [''])[0]],
+                               ['other_allowance', (s.match(/other_allowance:[^\n]*/) || [''])[0]],
+                               ['flight_variable_pay', (s.match(/flight_variable_pay:[^\n]*/) || [''])[0]],
+                               ['instructor_pay', (s.match(/instructor_pay:[^\n]*/) || [''])[0]],
+                               ['examiner_pay', (s.match(/examiner_pay:[^\n]*/) || [''])[0]]]) {
+      ok(line.length > 10 && !/f-union-pay/.test(line),
+         `${f}: ★組合の額を ${key} に足し込んでいない`, line.trim());
+    }
+
+    /* ⑦ ★★支給元の扱い。ここだけ教官・審査と違う。
+       組合から出ている額は会社の明細に無いので、総支給との突き合わせには
+       会社から出ているぶんだけを足す。無条件に足すと
+       「内訳の合計が総支給を超えています」が嘘で出る。 */
+    const gate = (s.match(/function unionInGross\(\)[\s\S]*?\n}/) || [''])[0];
+    ok(/'airline'/.test(gate) && /'both'/.test(gate) && !/'union'\s*\|\|/.test(gate),
+       `${f}: ★総支給と突き合わせるのは支給元が会社（airline / both）のときだけ`,
+       gate.slice(0, 80));
+    const md = (s.match(/function monthlyDetail\(\)[\s\S]*?\n}/) || [''])[0];
+    ok(/unionInGross\(\)\s*\?\s*num\('f-union-pay'\)\s*:\s*0/.test(md),
+       `${f}: ★monthlyDetail は条件つきで足している（無条件に足していない）`, md.slice(-120));
+    /* 総支給そのものは書き換えない（教官・審査と同じ約束）。 */
+    ok(!/\$\('f-gross'\)\.value\s*=/.test(s.replace(/put\('f-gross'[^\n]*/g, '')),
+       `${f}: ★総支給の欄をこちらから書き換えていない`);
+
+    /* ⑧ pay_items へ乗る形。組合はオブジェクト1つ（配列ではない）。 */
+    ok(/if \(uni\) pi\.union = uni;/.test(s),
+       `${f}: ★組合の中身は pay_items.union に乗る`);
+    /* ⚠️ 末尾で閉じない。⑤で `|| mgt` が足されたときにここが落ちた。 */
+    ok(/\(v\.length \|\| o\.length \|\| none \|\| ins \|\| exm \|\| uni\b/.test(s),
+       `${f}: ★組合だけ書いた人の pay_items が空にされない`);
+  }
+
+  /* ⑦-f 管理・マネジメント（Management / Leadership）の手当（2026-08-26 その6）──
+     役割ごとのモジュールの4本目。教官・審査・組合と同じ壊れ方をするので、同じ形で見る。
+     ★ここだけの本題は「組合と違って無条件に足す」── 管理職の手当は会社が払う＝
+       総支給の中にあるので、内訳の合計（monthlyDetail）には条件なしで足す。
+       組合の unionInGross を写して条件を作ると、内訳の合計が実際より小さく出る。
+     ★聞くのは2つだけ（管理業務日数・追加支給の有無。あるときだけ金額と支給単位）。
+       役職分類・管理人数・会議時間・管理職歴・担当部署・業務の割合は聞かない（オーナー明記）。
+     ★数量の欄が無いのは、①の日数がそのまま数量だから（教官・審査より1欄少ない）。 */
+  const MGMT_EXTRA  = ['separate', 'included', 'none', 'unknown'];
+  const MGMT_METHOD = ['monthly', 'duty', 'other'];
+  for (const f of ['pay-report.html', 'en/pay-report.html']) {
+    const s = read(f);
+    const ja = f === 'pay-report.html';
+    /* ⚠️ 終わりは「繰り返し行の型」ではなく、次のブロックの頭で止める。
+       ここを直し忘れると⑥（その他の兼務・配属）まで飲み込んで、
+       「管理職の節には無いはず」の検査が⑥の中身に当たって落ちる（⑦-d・⑦-e で2度踏んだ）。 */
+    const blk = cut(s.slice(s.indexOf('<div id="s3-mgmt"'),
+                            s.indexOf('<div id="s3-nonline"')));
+    ok(blk.length > 400, `${f}: 管理・マネジメントの手当のブロックが在る`, String(blk.length));
+
+    /* ① 既定で隠れている・役職を触るたびに見直す・外したら中身も消す。 */
+    ok(/<div id="s3-mgmt" hidden>/.test(s),
+       `${f}: ★管理職のブロックは既定で隠れている（役職で出す）`);
+    ok(/function readRoleBoxes\(\)[\s\S]{0,600}?mgmtToggle\(\)/.test(s),
+       `${f}: ★役職・区分を触るたびに出し入れを見直す（readRoleBoxes → mgmtToggle）`);
+    const tog = (s.match(/function mgmtToggle\(\)[\s\S]*?\n}/) || [''])[0];
+    ok(/indexOf\('management'\)/.test(tog) && /\$\(id\)\.value = ''/.test(tog),
+       `${f}: ★管理職を外したら、入れた日数も金額も消す`, tog.slice(0, 60));
+
+    /* ② 必須をひとつも増やさない・「任意」と書かない・カッコの注記を足さない。 */
+    ok(!/req-tag/.test(blk), `${f}: ★管理職の節に「必須」の印が無い（段も送信の条件も動かない）`);
+    ok(!/任意|書かなくて|なくても|optional|leave (this )?blank/i.test(blk),
+       `${f}: ★管理職の節に「任意・書かなくていい」の言い方が無い`);
+    ok(!/<summary>[\s\S]*?[（(][^）)]*[）)][\s\S]*?<\/summary>/.test(blk),
+       `${f}: ★管理職の見出しにカッコの注記を足していない`);
+
+    /* ③ 選択肢は日英でまったく同じ value・同じ並び。 */
+    const optsIn = (id) => [...((blk.match(new RegExp(`<select id="${id}"[\\s\\S]*?</select>`)) || [''])[0])
+      .matchAll(/<option value="([a-z_]*)"/g)].map((m) => m[1]).filter((v) => v !== '');
+    ok(JSON.stringify(optsIn('f-mgmt-extra')) === JSON.stringify(MGMT_EXTRA),
+       `${f}: 追加の支給が4択で同じ並び`, optsIn('f-mgmt-extra').join(','));
+    ok(JSON.stringify(optsIn('f-mgmt-method')) === JSON.stringify(MGMT_METHOD),
+       `${f}: 支給単位が3択で同じ並び`, optsIn('f-mgmt-method').join(','));
+    for (const id of ['f-mgmt-extra', 'f-mgmt-method']) {
+      const b = ((blk.match(new RegExp(`<select id="${id}"[\\s\\S]*?<option value=""[^>]*>([^<]*)<`)) || [])[1] || '').trim();
+      ok(/^(選んでください|Choose one)$/.test(b), `${f}: ★${id} の先頭は「選んでください」`, b);
+    }
+    /* ★支給単位の言い方は教官・審査と同じ語（オーナー確認済み）。「支給方法」に戻さない。 */
+    const mlab = ((blk.match(/<label class="form-label" for="f-mgmt-method">([^<]*)</) || [])[1] || '').trim();
+    ok(/^(支給単位|Pay unit)$/.test(mlab), `${f}: ★支給単位の見出しは教官・審査と同じ語`, mlab);
+
+    /* ④ 「含まれる」「なし」「わからない」ならすぐ終わる ── 金額と支給単位はまとめて隠す。
+       ★単価も1日あたりの額も聞かない（今月の額 ÷ 日数でこちらが出せる）。 */
+    ok(/<div class="opt-fld" id="opt-mgmt-pay" hidden>/.test(blk),
+       `${f}: ★金額と支給単位は既定で隠れている（「別途支給」を選ぶまで出ない）`);
+    const sync = (s.match(/function mgmtSync\(\)[\s\S]*?\n}/) || [''])[0];
+    ok(/=== 'separate'/.test(sync) && /opt-mgmt-pay'\)\.hidden = !sep/.test(sync),
+       `${f}: ★「別途支給」のときだけ金額と支給単位を出す`, sync.slice(0, 80));
+    ok(/for \(const id of MGMT_PAY_IDS\) \$\(id\)\.value = ''/.test(sync),
+       `${f}: ★「含まれる」「なし」「わからない」に戻したら、隠した欄の中身も消す`);
+
+    /* ⑤ 増やさないと決めたことを増やしていない（オーナー明記）。
+       ★数量の欄も作らない ── ①の日数がそのまま数量。 */
+    ok(!/f-mgmt-(rate|qty|title|headcount|hours|dept|ratio|per-day|unit)/.test(s),
+       `${f}: ★単価・数量・役職分類・管理人数・会議時間・担当部署・業務の割合を聞いていない`);
+    const inputs = [...blk.matchAll(/<(?:input|select|textarea)[^>]*id="([a-z0-9-]+)"/g)].map((m) => m[1]);
+    ok(JSON.stringify(inputs) === JSON.stringify(
+         ['f-mgmt-days', 'f-mgmt-extra', 'f-mgmt-pay', 'f-mgmt-method']),
+       `${f}: ★管理職に聞くのは4欄だけ（日数・有無・金額・支給単位）`, inputs.join(','));
+
+    /* ⑥ 管理職の額は専用の欄。教官・審査・組合・職位手当・変動給・その他へは足し込まない。 */
+    ok(/management_pay:\s*val\('f-mgmt-pay'\)/.test(s),
+       `${f}: ★管理職の額は専用の列へそのまま行く（management_pay）`);
+    for (const [key, line] of [['command_pay', (s.match(/command_pay:[^\n]*/) || [''])[0]],
+                               ['other_allowance', (s.match(/other_allowance:[^\n]*/) || [''])[0]],
+                               ['flight_variable_pay', (s.match(/flight_variable_pay:[^\n]*/) || [''])[0]],
+                               ['instructor_pay', (s.match(/instructor_pay:[^\n]*/) || [''])[0]],
+                               ['examiner_pay', (s.match(/examiner_pay:[^\n]*/) || [''])[0]],
+                               ['union_pay', (s.match(/union_pay:[^\n]*/) || [''])[0]]]) {
+      ok(line.length > 10 && !/f-mgmt-pay/.test(line),
+         `${f}: ★管理職の額を ${key} に足し込んでいない`, line.trim());
+    }
+
+    /* ⑦ ★★総支給との突き合わせ。ここが組合と逆になる。
+       管理職の手当は会社が払う＝総支給の中にあるので、内訳の合計には無条件で足す。
+       組合の unionInGross を写して条件を作ると、内訳の合計が実際より小さく出て
+       「超えています」の注意が出るべきときに出なくなる。 */
+    ok(!/function mgmtInGross/.test(s),
+       `${f}: ★管理職に支給元の条件（mgmtInGross）を作っていない`);
+    const md = (s.match(/function monthlyDetail\(\)[\s\S]*?\n}/) || [''])[0];
+    ok(/\+ num\('f-mgmt-pay'\)/.test(md),
+       `${f}: ★monthlyDetail に管理職の額を条件なしで足している`, md.slice(-160));
+    ok(!/f-mgmt-pay[^\n]*\?/.test(md),
+       `${f}: ★その足し算に条件が付いていない`, md.slice(-160));
+    /* 総支給そのものは書き換えない（教官・審査・組合と同じ約束）。 */
+    ok(!/\$\('f-gross'\)\.value\s*=/.test(s.replace(/put\('f-gross'[^\n]*/g, '')),
+       `${f}: ★総支給の欄をこちらから書き換えていない`);
+
+    /* ⑧ pay_items へ乗る形。管理職もオブジェクト1つ（配列ではない）。 */
+    ok(/if \(mgt\) pi\.management = mgt;/.test(s),
+       `${f}: ★管理職の中身は pay_items.management に乗る`);
+    ok(/\(v\.length \|\| o\.length \|\| none \|\| ins \|\| exm \|\| uni \|\| mgt \|\| nol\)/.test(s),
+       `${f}: ★管理職だけ書いた人の pay_items が空にされない`);
+  }
+
+  /* ⑦-g その他の兼務・配属（Other / Non-Line Assignment）の手当（2026-08-27 その7）──
+     役割ごとのモジュールの5本目＝最後。上の4本と同じ壊れ方をするので、同じ形で見る。
+     ★ここだけの本題は「具体名を1つも聞かない」── 部署名・出向先の会社名・
+       プロジェクト名・仕事の中身・勤務割合・Office 勤務時間・配属期間・配属理由は
+       聞かない（オーナー明記）。1つでも欄が生えると、勤務先が割れる道になる。
+     ★支給単位も数量も無い（オーナーの仕様は金額だけ。教官・審査の形を写さない）。 */
+  const NOL_AREA  = ['safety', 'standards', 'fleet', 'dept', 'secondment', 'other'];
+  const NOL_EXTRA = ['separate', 'included', 'none', 'unknown'];
+  for (const f of ['pay-report.html', 'en/pay-report.html']) {
+    const s = read(f);
+    const ja = f === 'pay-report.html';
+    const blk = cut(s.slice(s.indexOf('<div id="s3-nonline"'),
+                            s.indexOf(ja ? '<!-- 繰り返し行の型。' : '<!-- Row templates.')));
+    ok(blk.length > 400, `${f}: その他の兼務・配属の手当のブロックが在る`, String(blk.length));
+
+    /* ① 既定で隠れている・役職を触るたびに見直す・外したら中身も消す。 */
+    ok(/<div id="s3-nonline" hidden>/.test(s),
+       `${f}: ★兼務・配属のブロックは既定で隠れている（役職で出す）`);
+    ok(/function readRoleBoxes\(\)[\s\S]{0,700}?nonlineToggle\(\)/.test(s),
+       `${f}: ★役職・区分を触るたびに出し入れを見直す（readRoleBoxes → nonlineToggle）`);
+    const tog = (s.match(/function nonlineToggle\(\)[\s\S]*?\n  }/) || [''])[0];
+    ok(/indexOf\('nonline'\)/.test(tog) && /\$\(id\)\.value = ''/.test(tog)
+       && /b\.checked = false/.test(tog),
+       `${f}: ★兼務・配属を外したら、選んだ分野も日数も金額も消す`, tog.slice(0, 60));
+
+    /* ② 必須をひとつも増やさない・「任意」と書かない・カッコの注記を足さない。 */
+    ok(!/req-tag/.test(blk), `${f}: ★兼務・配属の節に「必須」の印が無い（段も送信の条件も動かない）`);
+    ok(!/任意|書かなくて|なくても|optional|leave (this )?blank/i.test(blk),
+       `${f}: ★兼務・配属の節に「任意・書かなくていい」の言い方が無い`);
+    ok(!/<summary>[\s\S]*?[（(][^）)]*[）)][\s\S]*?<\/summary>/.test(blk),
+       `${f}: ★兼務・配属の見出しにカッコの注記を足していない`);
+
+    /* ③ 分野は6択・追加報酬は4択。日英でまったく同じ value・同じ並び。 */
+    const areas = [...blk.matchAll(/name="f-nonline-area" value="([a-z_]*)"/g)].map((m) => m[1]);
+    ok(JSON.stringify(areas) === JSON.stringify(NOL_AREA),
+       `${f}: 担当している分野が6択で同じ並び`, areas.join(','));
+    const optsIn = (id) => [...((blk.match(new RegExp(`<select id="${id}"[\\s\\S]*?</select>`)) || [''])[0])
+      .matchAll(/<option value="([a-z_]*)"/g)].map((m) => m[1]).filter((v) => v !== '');
+    ok(JSON.stringify(optsIn('f-nonline-extra')) === JSON.stringify(NOL_EXTRA),
+       `${f}: 追加報酬が4択で同じ並び`, optsIn('f-nonline-extra').join(','));
+    const b0 = ((blk.match(/<select id="f-nonline-extra"[\s\S]*?<option value=""[^>]*>([^<]*)</) || [])[1] || '').trim();
+    ok(/^(選んでください|Choose one)$/.test(b0), `${f}: ★f-nonline-extra の先頭は「選んでください」`, b0);
+
+    /* ④ 「含まれる」「なし」「わからない」ならすぐ終わる ── 金額の欄そのものを出さない。 */
+    ok(/<div class="opt-fld" id="opt-nonline-pay" hidden>/.test(blk),
+       `${f}: ★金額は既定で隠れている（「別途支給される」を選ぶまで出ない）`);
+    const sync = (s.match(/function nonlineSync\(\)[\s\S]*?\n  }/) || [''])[0];
+    ok(/=== 'separate'/.test(sync) && /opt-nonline-pay'\)\.hidden = !sep/.test(sync),
+       `${f}: ★「別途支給される」のときだけ金額を出す`, sync.slice(0, 80));
+    ok(/for \(const id of NONLINE_PAY_IDS\) \$\(id\)\.value = ''/.test(sync),
+       `${f}: ★「含まれる」「なし」「わからない」に戻したら、隠した金額も消す`);
+
+    /* ⑤ ★★具体名を1つも聞いていない（この節のいちばんの本題）。
+       支給単位・数量・単価も作らない（オーナーの仕様は金額だけ）。 */
+    ok(!/f-nonline-(dept|company|project|label|name|ratio|hours|term|reason|method|qty|rate|unit)/.test(s),
+       `${f}: ★部署名・出向先・プロジェクト名・仕事の中身・勤務割合・支給単位・数量・単価を聞いていない`);
+    const inputs = [...blk.matchAll(/<(?:input|select|textarea)[^>]*id="([a-z0-9-]+)"/g)].map((m) => m[1]);
+    ok(JSON.stringify(inputs) === JSON.stringify(
+         ['f-nonline-days', 'f-nonline-extra', 'f-nonline-pay']),
+       `${f}: ★兼務・配属に聞くのは3欄だけ（日数・有無・金額）＋分野のチェック`, inputs.join(','));
+
+    /* ⑥ 兼務・配属の額は専用の欄。ほかのどの手当へも足し込まない。 */
+    ok(/nonline_pay:\s*val\('f-nonline-pay'\)/.test(s),
+       `${f}: ★兼務・配属の額は専用の列へそのまま行く（nonline_pay）`);
+    for (const [key, line] of [['command_pay', (s.match(/command_pay:[^\n]*/) || [''])[0]],
+                               ['other_allowance', (s.match(/other_allowance:[^\n]*/) || [''])[0]],
+                               ['flight_variable_pay', (s.match(/flight_variable_pay:[^\n]*/) || [''])[0]],
+                               ['instructor_pay', (s.match(/instructor_pay:[^\n]*/) || [''])[0]],
+                               ['examiner_pay', (s.match(/examiner_pay:[^\n]*/) || [''])[0]],
+                               ['union_pay', (s.match(/union_pay:[^\n]*/) || [''])[0]],
+                               ['management_pay', (s.match(/management_pay:[^\n]*/) || [''])[0]]]) {
+      ok(line.length > 10 && !/f-nonline-pay/.test(line),
+         `${f}: ★兼務・配属の額を ${key} に足し込んでいない`, line.trim());
+    }
+
+    /* ⑦ ★★総支給との突き合わせ。管理職と同じで「無条件に足す」。
+       組合の unionInGross を写して条件を作ると、内訳の合計が実際より小さく出て
+       「超えています」の注意が出るべきときに出なくなる。 */
+    ok(!/function nonlineInGross/.test(s),
+       `${f}: ★兼務・配属に支給元の条件（nonlineInGross）を作っていない`);
+    const md = (s.match(/function monthlyDetail\(\)[\s\S]*?\n  }/) || [''])[0];
+    ok(/\+ num\('f-nonline-pay'\)/.test(md),
+       `${f}: ★monthlyDetail に兼務・配属の額を条件なしで足している`, md.slice(-160));
+    ok(!/f-nonline-pay[^\n]*\?/.test(md),
+       `${f}: ★その足し算に条件が付いていない`, md.slice(-160));
+
+    /* ⑧ pay_items へ乗る形。兼務・配属もオブジェクト1つ（配列ではない）。 */
+    ok(/if \(nol\) pi\.nonline = nol;/.test(s),
+       `${f}: ★兼務・配属の中身は pay_items.nonline に乗る`);
+  }
+
   /* ⑧ 必須の印（2026-08-13 その4）。★これがこのファイルで一番効く検査。
      画面に出す「必須」と、送信を止めるゲートは、必ず同じ欄でなければならない。
      ズレると ①必須と書いてあるのに空でも送れる ②印が無い欄で送信が黙って止まる
@@ -441,6 +741,124 @@ console.log('\n市場価値レポート（my-value）');
     ok(gates.length > 200, 'ゲートの定義を取り出せている', String(gates.length));
     const missing = REQ.filter((id) => !GATE_FREE.includes(id) && !gates.includes(`'${id}'`));
     ok(missing.length === 0, '必須と書いた欄は全部ゲートが見ている', missing.join(','));
+  }
+
+  /* ⑧-b 常設の「匿名で提出」と、足りない必須項目の見せ方（2026-08-27 オーナー指示
+       「3.報酬の画面を出したあたりから『匿名で提出』ボタンを常に下に表示させて。
+         途中で押したらエラー画面で記入していない必須項目を箇条書きで出るようにして」
+       ＋「『匿名で提出』とその上の『年換算の総額』も一緒に」）。
+     ★同日その2、箇条書きは作り直した ──
+       「やっぱり箇条書きを一旦やめよう。……そのまま必須項目の該当する欄まで飛んで、
+         そこを赤く囲うとかはどう？該当する項目の右横に未入力とか書いて」。
+     ★ここで見るのは「2つ目の必須一覧を JS に作っていない」こと。
+       作った瞬間、画面の印（req-tag）と足りない欄の印が別々にズレて、
+       どちらが正しいのか触っている本人には分からなくなる。 */
+  for (const f of ['pay-report.html', 'en/pay-report.html']) {
+    const s = read(f);
+    ok(/<div id="sticky-submit" class="sticky-cta" hidden>/.test(s),
+       `${f}: 常設バーは hidden で置いてある（§3 が出てから出す）`);
+    ok(/id="sticky-total"/.test(s) && /id="sticky-btn"/.test(s),
+       `${f}: 常設バーに年換算の総額と提出ボタンが両方ある（オーナー指示の「一緒に」）`);
+    ok(/class="sticky-cta-sum pv-no-cur"/.test(s),
+       `${f}: 常設バーの金額に pv-no-cur が付いている（currency.js に二度変換させない）`);
+    /* ★長い説明はバーに載せない。#live-hint は #submit-block の中の1つだけ。 */
+    ok((s.match(/id="live-hint"/g) || []).length === 1,
+       `${f}: 年換算の長い説明は1か所だけ（バーは金額とボタンだけ）`);
+    /* ★送信ボタンは2つ。状態は必ず両方へ配る（片方だけ止めると送信中に押せる）。 */
+    ok(/\['submit-btn', 'sticky-btn'\]/.test(s),
+       `${f}: 送信中の disabled と文言は2つのボタンへ配っている`);
+    ok(/\$\('sticky-btn'\)\.addEventListener\('click', submitPayReport\)/.test(s),
+       `${f}: 常設バーは本体と同じ submitPayReport() を押す（2本目の経路を作らない）`);
+    /* ★金額は recalc() が同じ文字列を2か所へ書くだけ。式（annualTotal）は1本のまま。 */
+    ok((s.match(/annualTotal\(\)\s*;/g) || []).length >= 1
+       && /\$\('sticky-total'\)\.innerHTML = totalHTML;/.test(s),
+       `${f}: 常設バーの金額は #live-total と同じものを書き写している（式を2本にしない）`);
+    ok(!/transition:\s*all/.test(s), `${f}: transition-all を使っていない`);
+
+    /* ── 必須の出どころは req-tag ただ1か所 ─────────────────────── */
+    const mr = (s.match(/function missingRequired\(\)[\s\S]*?\n\}/) || [''])[0];
+    ok(mr.includes("querySelectorAll('.fld.is-req:not(.is-done)')"),
+       `${f}: ★足りない必須は画面の印（.fld.is-req）から拾う（2つ目の一覧を JS に作らない）`,
+       String(mr.length));
+    ok(mr.includes('markRequired()') && mr.includes('offsetParent') && mr.includes('disabled'),
+       `${f}: 隠れている欄・触れない欄は数えない`, String(mr.length));
+    ok(!/\[\s*'f-[a-z-]+'\s*,\s*'f-[a-z-]+'[\s\S]{0,200}\]\s*;?\s*\/\/\s*必須/.test(mr),
+       `${f}: missingRequired() が欄の名前を並べ持っていない`);
+    /* ラベルは画面の <label> から取る＝日英で自動的に正しい。訳の表を持たない。 */
+    const rl = (s.match(/const reqLabel = \(f\) => \{[\s\S]*?\n\};/) || [''])[0];
+    ok(rl.includes('.form-label') && rl.includes('.req-tag') && rl.includes('.miss-tag'),
+       `${f}: ラベルは画面の <label> から作る（訳の一覧を持たない・未入力の札も剥がす）`);
+    /* ★止まっている段は開ける。でも #submit-block は開けない
+       （全段そろったときだけ出す、という約束はそのまま）。 */
+    const rs = (s.match(/function revealSteps\(\)[\s\S]*?\n\}/) || [''])[0];
+    ok(rs.length > 20 && !rs.includes('submit-block'),
+       `${f}: ★足りない欄を見せるために段は開くが、送信ボタンの枠は開けない`, String(rs.length));
+    /* ★#err は #submit-block の外。中に置くと、出していないあいだ何を書いても見えない。 */
+    ok(s.indexOf('<div id="err"') > 0 && s.indexOf('<div id="err"') < s.indexOf('id="submit-block"'),
+       `${f}: エラーの置き場所は送信ボタンの枠の外（隠れている枠の中に書かない）`);
+
+    /* ── ★2026-08-27（その2）箇条書きをやめ、その欄まで飛んで赤く囲う ──────
+         静かに戻る類なので、字で見張る。 */
+    ok(!/fa-list["'{]|fa-jump["'{:]/.test(s),
+       `${f}: ★箇条書き（.fa-list / .fa-jump）が戻っていない`);
+    ok(!/<ul/.test((s.match(/function markMissing\(list\)[\s\S]*?\n\}/) || [''])[0]),
+       `${f}: ★足りない必須を <ul> で並べていない`);
+    const mm = (s.match(/function markMissing\(list\)[\s\S]*?\n\}/) || [''])[0];
+    ok(mm.includes("classList.add('is-miss')") && mm.includes("'miss-tag'"),
+       `${f}: ★足りない欄すべてに赤い印（.is-miss）と「未入力」の札を付ける`, String(mm.length));
+    ok(mm.includes('jumpTarget(list[0])') && mm.includes('scrollIntoView') && mm.includes('focus('),
+       `${f}: ★飛ぶのは先頭ひとつ（その欄まで運んで focus する）`);
+    /* ★役職・区分は値を hidden の #f-jobrole が持つ＝.form-input が無い。
+         .rolebox を掴めないと、この欄だけ「押しても何も起きない」になる。 */
+    const jt = (s.match(/const jumpTarget = [\s\S]*?;\n/) || [''])[0];
+    ok(jt.includes('.rolebox input'),
+       `${f}: ★役職・区分（hidden の #f-jobrole）にも飛べる`, String(jt.length));
+    /* ★赤を落とすのは2か所だけ。埋めた瞬間に消えないと、直したのに赤いままになる。 */
+    const mrq = (s.match(/function markRequired\(\)[\s\S]*?\n\}/) || [''])[0];
+    ok(mrq.includes("remove('is-miss')") && mrq.includes('.miss-tag'),
+       `${f}: ★埋まった欄からは赤も札もその場で落ちる`, String(mrq.length));
+    ok(/function clearErr\(\) \{ \$\('err'\)\.innerHTML = ''; clearMissMarks\(\); \}/.test(s),
+       `${f}: ★エラーを消したら赤も札も全部落ちる`);
+    /* ★札の文字は日英でそれぞれ1つ。訳の表を JS に持たない。 */
+    const tag = (s.match(/const MISS_TAG = '([^']+)'/) || [])[1] || '';
+    ok(tag === (f.startsWith('en/') ? 'Missing' : '未入力'),
+       `${f}: ★未入力の札の文字（${tag}）`);
+    /* ★札は既存の丸ピル3兄弟に相乗り（4つ目の見た目を発明しない）。 */
+    ok(/\.opt-tag,\.req-tag,\.auto-tag,\.miss-tag\{/.test(s),
+       `${f}: 未入力の札は既存のピルと同じ形`);
+    ok(/\.fld\.is-miss \.form-input\{[^}]*border-color/.test(s)
+       && /\.fld\.is-miss \.roleboxes\{/.test(s)
+       && /\[data-theme="light"\] \.fld\.is-miss \.form-input\{/.test(s),
+       `${f}: ★赤い枠は明・暗の両方にあり、役職・区分にも効く`);
+
+    /* ── ★「＋…を追加」の6つを目立たせる（2026-08-27 オーナー指示
+         「DEEP PAYを見るには必須だから」）。6つとも .pay-detail>summary の1か所で決まる。 */
+    ok((s.match(/<details class="pay-detail"/g) || []).length === 6,
+       `${f}: 「＋…を追加」は6つ（内訳＋役割5つ）`);
+    const sum = (s.match(/\.pay-detail>summary\{[^}]*\}/) || [''])[0];
+    ok(sum.includes('solid') && !sum.includes('dashed'),
+       `${f}: ★閉じているときの「＋…を追加」が破線の弱い見た目に戻っていない`, sum.slice(0, 90));
+    ok(sum.includes('#f5c842') && sum.includes('max-width:100%'),
+       `${f}: ★ブランド金で、狭い画面でもはみ出さない`);
+    /* ★ここに説明文を足さない。DEEP PAY のページはまだ無く「準備中」なので、
+         「詳しく出すと開きます」と書くと嘘になる。 */
+    const sums = [...s.matchAll(/<summary[^>]*>([\s\S]*?)<\/summary>/g)]
+      .map((m) => m[1]).filter((t) => t.includes('class="p"'));
+    const sumTxt = sums.map((t) => t.replace(/<[^>]+>/g, '').replace(/[+＋]/g, '').trim());
+    ok(sums.length === 6 && sumTxt.every((t) => t.length < 60 && !/[。]|\.\s|DEEP PAY/i.test(t)),
+       `${f}: ★「＋…を追加」はボタンの名前だけ（説明文も DEEP PAY の約束も足さない）`,
+       sumTxt.join(' / '));
+
+    /* ── ★項目名（.form-label）が読める強さであること（2026-08-27 オーナー指摘
+         「『対象月』『勤務時間（Duty time）』…が灰色の薄い文字で見えにくい」）。
+         小さい・薄い・全部大文字の3つが重なっていた。静かに戻る類なので字で見張る。 */
+    const lab = (s.match(/\n\.form-label\{[^}]*\}/) || [''])[0];
+    ok(!lab.includes('text-transform:uppercase'),
+       `${f}: ★項目名を全部大文字に戻していない（英語が読みにくくなる）`, lab.slice(0, 90));
+    ok(!lab.includes('#9ca3af') && /font-size:\.8[3-9]rem/.test(lab),
+       `${f}: ★項目名は薄い灰色でも .78rem でもない`, lab.slice(0, 90));
+    ok(/\[data-theme="light"\] \.form-label\{/.test(s),
+       `${f}: ★ライトにも項目名の色がある（白いカードに暗い地むけの灰色を乗せない）`);
   }
 
   /* ⑨ 2026-08-13（その4）オーナー指摘で消したもの。戻すと画面がまた重くなる。 */
@@ -738,6 +1156,9 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
      （Chrome の ::details-content は content-visibility:hidden ＝ レイアウトを残す）。
      畳んだ中身が見えているかは checkVisibility() で測る。 */
   const visFold = (id) => page.$eval('#' + id, (el) => el.checkVisibility());
+  /* ★常設バー（#sticky-submit）は position:fixed ＝ offsetParent が常に null なので
+     vis() では測れない。出す・出さないは hidden ただ1つで決めている。 */
+  const stickyOn = () => page.$eval('#sticky-submit', (el) => !el.hidden);
   const pick = (...ids) => Object.fromEntries(ids.map((k) => [k, SAMPLE[k]]));
   /* ★金額の欄は画面では '54,250' と桁区切りで出ている（2026-08-13）。
      入れた値と突き合わせるのが目的なので、読むときにカンマを落とす。
@@ -780,6 +1201,8 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   bad.push(...await setF(pick('f-age')));
   ok(await vis('s2'), '会社・職位・機材・年代を埋めると S2 が出る');
   ok(!(await vis('s3')), 'まだ S3 は出ない');
+  ok(!(await stickyOn()),
+     '★B: §2 のあいだは常設の「匿名で提出」を出さない（オーナー指示は「3.報酬から」）');
 
   bad.push(...await setF(pick('f-block')));
   ok(!(await vis('s3')),
@@ -787,6 +1210,16 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   bad.push(...await setF(pick('f-stay')));
   ok(await vis('s3'), 'フライトタイムとステイ日数で S3 が出る');
   ok(!(await vis('s4')), 'まだ S4 と送信ボタンは出ない');
+  /* ── B: 常設の「匿名で提出」（2026-08-27 オーナー指示）──────────
+     「3.報酬の画面を出したあたりから『匿名で提出』ボタンを常に下に表示させて」。
+     §4 も送信ボタンの枠もまだ出ていないこの時点で、押す所だけは在る。 */
+  ok(await stickyOn(), '★B: §3「報酬」が出たら常設の「匿名で提出」が出る');
+  ok(await page.$eval('body', (el) => el.classList.contains('has-cta')),
+     '★B: バーのぶんだけ本文に下余白を足している（最後の欄が隠れない）');
+  ok(await page.$eval('#sticky-btn', (el) => el.textContent.trim())
+     === await page.$eval('#submit-btn', (el) => el.textContent.trim()),
+     '★B: バーの文言は本体の送信ボタンと同じ（2本目の定数を作らない）',
+     await page.$eval('#sticky-btn', (el) => el.textContent.trim()));
 
   /* ★かんたん入力（既定）。2026-08-13 に、額面のほかに 手取り・今月出たボーナス・
      パーディアム・住居 が必須になった。1つずつ足して、揃うまで開かないことを見る。 */
@@ -944,14 +1377,21 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
     const c = document.getElementById('f-contract'), keep = c.value;
     c.value = ''; c.dispatchEvent(new Event('change', { bubbles: true }));
     await submitPayReport();
-    const seen = document.getElementById('err').textContent;
+    const seen = {
+      err: document.getElementById('err').textContent,
+      /* ★2026-08-27（その2）以降、足りない欄の名前は #err に出ない。
+           印は欄そのものに付くので、そちらで見る。 */
+      miss: [...document.querySelectorAll('.fld.is-miss')]
+        .map((f) => (f.querySelector('input, select') || {}).id || ''),
+    };
     c.value = keep; c.dispatchEvent(new Event('change', { bubbles: true }));
-    document.getElementById('err').innerHTML = '';
+    clearErr();
     return seen;
   });
-  ok(!/何に連動する支給か|What it is paid on/.test(withUnknown)
-     && /契約形態|contract type/.test(withUnknown),
-     '★「わからない」を選ぶと種類では止まらない（次の必須へ進む）', withUnknown.slice(0, 60));
+  ok(!/何に連動する支給か|What it is paid on/.test(withUnknown.err)
+     && withUnknown.miss.includes('f-contract'),
+     '★「わからない」を選ぶと種類では止まらない（次の必須へ進む）',
+     `${withUnknown.err.slice(0, 40)} / ${withUnknown.miss.join(',')}`);
   /* 行を1本も足していない人は、これまでどおり素通りする。 */
   const noRows = await page.evaluate(async () => {
     const box = document.getElementById('pd-var-rows');
@@ -1329,6 +1769,227 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   ok(eOff.detail === eBefore.detail,
      '★消したぶんは「内訳の合計」からも引かれる', `${eOff.detail} / ${eBefore.detail}`);
 
+  /* ── 管理・マネジメントの手当（2026-08-26 その6）───────────────
+     教官・審査と同じ4つに加えて、ここだけの本題がひとつ ──
+     ★組合と違い、この額は会社が払う＝総支給の中にあるので、内訳の合計には
+       条件なしで足す。条件を付けると、内訳の合計が実際より小さく出て
+       「総支給を超えています」の注意が出るべきときに出なくなる。 */
+  const mgmtState = () => page.evaluate(() => ({
+    shown: document.getElementById('s3-mgmt').offsetParent !== null,
+    pay: document.getElementById('opt-mgmt-pay').hidden,
+    roles: document.getElementById('f-jobrole').value,
+    amount: document.getElementById('f-mgmt-pay').value,
+    instrAmount: document.getElementById('f-instructor').value,
+    examAmount: document.getElementById('f-examiner').value,
+    varSum: document.getElementById('f-var-sum').value,
+    othSum: document.getElementById('f-oth-sum').value,
+    command: document.getElementById('f-command').value,
+    gross: document.getElementById('f-gross').value,
+    annual: annualTotal(),
+    detail: monthlyDetail(),
+    items: (() => {
+      try { return JSON.parse(document.getElementById('f-payitems').value || 'null'); }
+      catch (e) { return null; }
+    })(),
+  }));
+  const tickMgmt = (on) => page.evaluate((v) => {
+    const b = document.querySelector('input[name="f-jobrole"][value="management"]');
+    b.checked = v;
+    b.dispatchEvent(new Event('change', { bubbles: true }));
+  }, on);
+
+  const m0 = await mgmtState();
+  ok(!m0.shown, '★管理職を選ぶまで、管理職の欄はそもそも出ない', JSON.stringify(m0.shown));
+  ok(!m0.items || !m0.items.management, '★出ていないうちは pay_items にも乗らない');
+
+  await tickMgmt(true);
+  await new Promise((r) => setTimeout(r, 150));
+  const m1 = await mgmtState();
+  ok(m1.shown && m1.roles.split(',').includes('management'),
+     '★管理職を選ぶと欄が出る', `${m1.shown} / ${m1.roles}`);
+  ok(m1.pay, '★開いた直後は金額の欄まで出さない（まず日数と有無を聞く）');
+
+  /* ★「含まれる」「なし」「わからない」は2クリックで終わる（金額を聞かない）。 */
+  for (const v of ['included', 'none', 'unknown']) {
+    await setF({ 'f-mgmt-extra': v });
+    await new Promise((r) => setTimeout(r, 120));
+    ok((await mgmtState()).pay, `★「${v}」なら金額の欄を出さない（数クリックで終わる）`);
+  }
+
+  /* 管理業務日数だけ書いて終える人も居る。それも残る。 */
+  await setF({ 'f-mgmt-extra': '', 'f-mgmt-days': '8' });
+  await new Promise((r) => setTimeout(r, 150));
+  const mDays = await mgmtState();
+  ok(mDays.items && mDays.items.management && mDays.items.management.days === 8,
+     '★管理業務日数だけでも残る（Block Hours が少ない月の理由になる）',
+     JSON.stringify(mDays.items && mDays.items.management));
+
+  const mBefore = await mgmtState();
+  await setF({ 'f-mgmt-extra': 'separate' });
+  await new Promise((r) => setTimeout(r, 150));
+  ok(!(await mgmtState()).pay, '★「別途支給されている」を選ぶと金額と支給単位が出る');
+  await setF({ 'f-mgmt-method': 'monthly', 'f-mgmt-pay': '50000' });
+  await new Promise((r) => setTimeout(r, 200));
+  const mAmt = await mgmtState();
+  ok(mAmt.items && mAmt.items.management && mAmt.items.management.amount === 50000
+     && mAmt.items.management.method === 'monthly' && mAmt.items.management.days === 8,
+     '★日数・有無・金額・支給単位がそのまま乗る',
+     JSON.stringify(mAmt.items && mAmt.items.management));
+  ok(mAmt.gross === mBefore.gross && mAmt.annual === mBefore.annual,
+     '★管理職の額を入れても総支給も年換算も動かない', `${mAmt.gross} / ${mAmt.annual}`);
+  ok(mAmt.varSum === mBefore.varSum && mAmt.othSum === mBefore.othSum
+     && mAmt.command === mBefore.command
+     && mAmt.instrAmount === mBefore.instrAmount && mAmt.examAmount === mBefore.examAmount,
+     '★変動給・その他・職位手当・教官・審査の額は1円も増えない（二重入力させない）',
+     `${mAmt.varSum} / ${mAmt.othSum} / ${mAmt.command}`);
+  ok(mAmt.detail === mBefore.detail + 50000,
+     '★★「内訳の合計」には条件なしで足される（組合と違い、会社が払うお金だから）',
+     `${mAmt.detail} / 期待 ${mBefore.detail + 50000}`);
+
+  /* 外したら中身ごと消える。★このあとの payload では管理職を選んでいない状態に戻す。 */
+  await tickMgmt(false);
+  await new Promise((r) => setTimeout(r, 150));
+  const mOff = await mgmtState();
+  ok(!mOff.shown && mOff.amount === '' && (!mOff.items || !mOff.items.management),
+     '★管理職を外すと、欄も入れた金額も pay_items の中身も消える',
+     JSON.stringify({ shown: mOff.shown, amount: mOff.amount }));
+  ok(mOff.detail === mBefore.detail,
+     '★消したぶんは「内訳の合計」からも引かれる', `${mOff.detail} / ${mBefore.detail}`);
+
+  /* ── その他の兼務・配属の手当（2026-08-27 その7）──────────────
+     役割ごとの5本目＝最後。管理職と同じで内訳の合計には条件なしで足す。
+     ★ここだけの本題は「聞くのは3つだけ」── 分野・日数・追加報酬（あるときだけ金額）。
+       部署名・出向先の会社名・プロジェクト名・仕事の中身は画面に欄そのものが無い。 */
+  const nolState = () => page.evaluate(() => ({
+    shown: document.getElementById('s3-nonline').offsetParent !== null,
+    pay: document.getElementById('opt-nonline-pay').hidden,
+    roles: document.getElementById('f-jobrole').value,
+    amount: document.getElementById('f-nonline-pay').value,
+    instrAmount: document.getElementById('f-instructor').value,
+    examAmount: document.getElementById('f-examiner').value,
+    mgmtAmount: document.getElementById('f-mgmt-pay').value,
+    varSum: document.getElementById('f-var-sum').value,
+    othSum: document.getElementById('f-oth-sum').value,
+    command: document.getElementById('f-command').value,
+    gross: document.getElementById('f-gross').value,
+    annual: annualTotal(),
+    detail: monthlyDetail(),
+    items: (() => {
+      try { return JSON.parse(document.getElementById('f-payitems').value || 'null'); }
+      catch (e) { return null; }
+    })(),
+  }));
+  const tickNonline = (on) => page.evaluate((v) => {
+    const b = document.querySelector('input[name="f-jobrole"][value="nonline"]');
+    b.checked = v;
+    b.dispatchEvent(new Event('change', { bubbles: true }));
+  }, on);
+
+  const n0 = await nolState();
+  ok(!n0.shown, '★兼務・配属を選ぶまで、兼務・配属の欄はそもそも出ない', JSON.stringify(n0.shown));
+  ok(!n0.items || !n0.items.nonline, '★出ていないうちは pay_items にも乗らない');
+
+  await tickNonline(true);
+  await new Promise((r) => setTimeout(r, 150));
+  const n1 = await nolState();
+  ok(n1.shown && n1.roles.split(',').includes('nonline'),
+     '★兼務・配属を選ぶと欄が出る', `${n1.shown} / ${n1.roles}`);
+  ok(n1.pay, '★開いた直後は金額の欄まで出さない（まず分野と日数と有無を聞く）');
+
+  /* ★「含まれる」「なし」「わからない」は数クリックで終わる（金額を聞かない）。 */
+  for (const v of ['included', 'none', 'unknown']) {
+    await setF({ 'f-nonline-extra': v });
+    await new Promise((r) => setTimeout(r, 120));
+    ok((await nolState()).pay, `★「${v}」なら金額の欄を出さない（数クリックで終わる）`);
+  }
+
+  /* 分野だけ選んで終える人も居る。それも残る。 */
+  await setF({ 'f-nonline-extra': '' });
+  await page.evaluate(() => {
+    for (const v of ['safety', 'secondment']) {
+      const b = document.querySelector(`input[name="f-nonline-area"][value="${v}"]`);
+      b.checked = true; b.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  });
+  await new Promise((r) => setTimeout(r, 150));
+  const nArea = await nolState();
+  ok(nArea.items && nArea.items.nonline
+     && nArea.items.nonline.areas.join(',') === 'safety,secondment',
+     '★分野だけでも残る（追加報酬が無いのは普通のこと）',
+     JSON.stringify(nArea.items && nArea.items.nonline));
+
+  await setF({ 'f-nonline-days': '8' });
+  await new Promise((r) => setTimeout(r, 150));
+  const nBefore = await nolState();
+  await setF({ 'f-nonline-extra': 'separate' });
+  await new Promise((r) => setTimeout(r, 150));
+  ok(!(await nolState()).pay, '★「別途支給される」を選ぶと金額が出る');
+  await setF({ 'f-nonline-pay': '30000' });
+  await new Promise((r) => setTimeout(r, 200));
+  const nAmt = await nolState();
+  ok(nAmt.items && nAmt.items.nonline && nAmt.items.nonline.amount === 30000
+     && nAmt.items.nonline.days === 8
+     && nAmt.items.nonline.areas.join(',') === 'safety,secondment',
+     '★分野・日数・有無・金額がそのまま乗る',
+     JSON.stringify(nAmt.items && nAmt.items.nonline));
+  ok(nAmt.gross === nBefore.gross && nAmt.annual === nBefore.annual,
+     '★兼務・配属の額を入れても総支給も年換算も動かない', `${nAmt.gross} / ${nAmt.annual}`);
+  ok(nAmt.varSum === nBefore.varSum && nAmt.othSum === nBefore.othSum
+     && nAmt.command === nBefore.command && nAmt.instrAmount === nBefore.instrAmount
+     && nAmt.examAmount === nBefore.examAmount && nAmt.mgmtAmount === nBefore.mgmtAmount,
+     '★変動給・その他・職位手当・教官・審査・管理職の額は1円も増えない（二重入力させない）',
+     `${nAmt.varSum} / ${nAmt.othSum} / ${nAmt.command}`);
+  ok(nAmt.detail === nBefore.detail + 30000,
+     '★★「内訳の合計」には条件なしで足される（管理職と同じ）',
+     `${nAmt.detail} / 期待 ${nBefore.detail + 30000}`);
+
+  /* ★A（2026-08-27）── 超過の注意は、その額を打った欄の下に出る。
+     いま最後に打ったのは兼務・配属の金額なので、出るのは pd-over-nonline だけ。 */
+  await page.evaluate(() => {
+    const g = document.getElementById('f-gross');
+    g.value = '1'; g.dispatchEvent(new Event('input', { bubbles: true }));
+    const n = document.getElementById('f-nonline-pay');
+    n.dispatchEvent(new Event('input', { bubbles: true }));   // ★最後に触った欄をこちらに戻す
+  });
+  await new Promise((r) => setTimeout(r, 200));
+  const warnN = await page.evaluate(() => ['pd-over', 'pd-over-instr', 'pd-over-exam',
+    'pd-over-union', 'pd-over-mgmt', 'pd-over-nonline']
+    .filter((id) => { const e = document.getElementById(id); return e && !e.hidden; }));
+  ok(warnN.length === 1 && warnN[0] === 'pd-over-nonline',
+     '★A: 超過の注意は兼務・配属の金額の下に1つだけ出る', warnN.join(','));
+  /* 基本給を最後に触ると、既定の受け皿（内訳の中）へ戻る。 */
+  await page.evaluate(() => {
+    const b = document.getElementById('f-base');
+    b.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  await new Promise((r) => setTimeout(r, 200));
+  const warnB = await page.evaluate(() => ['pd-over', 'pd-over-instr', 'pd-over-exam',
+    'pd-over-union', 'pd-over-mgmt', 'pd-over-nonline']
+    .filter((id) => { const e = document.getElementById(id); return e && !e.hidden; }));
+  ok(warnB.length === 1 && warnB[0] === 'pd-over',
+     '★A: 内訳の欄を触ったら既定の受け皿へ戻る（受け皿は常に1つだけ）', warnB.join(','));
+  /* 総支給を内訳より大きくすると、どの受け皿も消える。
+     ★ここは「超えていない状態」を作る必要がある。この通しでは基本給や変動給が
+       すでに入っていて、素の 54,250 では内訳のほうが大きい（それが正しい）。 */
+  await setF({ 'f-gross': '200000' });
+  await new Promise((r) => setTimeout(r, 200));
+  const warnOff = await page.evaluate(() => ['pd-over', 'pd-over-instr', 'pd-over-exam',
+    'pd-over-union', 'pd-over-mgmt', 'pd-over-nonline']
+    .filter((id) => { const e = document.getElementById(id); return e && !e.hidden; }));
+  ok(warnOff.length === 0, '★A: 超えていなければ注意は1つも出ない', warnOff.join(','));
+  await setF({ 'f-gross': GROSS_M });      // 通しの続きのために戻す
+  await new Promise((r) => setTimeout(r, 150));
+
+  /* 外したら中身ごと消える。★このあとの payload では兼務・配属を選んでいない状態に戻す。 */
+  await tickNonline(false);
+  await new Promise((r) => setTimeout(r, 150));
+  const nOff = await nolState();
+  ok(!nOff.shown && nOff.amount === '' && (!nOff.items || !nOff.items.nonline),
+     '★兼務・配属を外すと、欄も入れた金額も pay_items の中身も消える',
+     JSON.stringify({ shown: nOff.shown, amount: nOff.amount }));
+  ok(nOff.detail === nBefore.detail,
+     '★消したぶんは「内訳の合計」からも引かれる', `${nOff.detail} / ${nBefore.detail}`);
+
   /* 送信の payload まで見たいので、もう一度入れ直す。 */
   await tickInstr(true);
   await new Promise((r) => setTimeout(r, 150));
@@ -1347,10 +2008,97 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
        ② ただし本棚（pay_reports）にはログイン前に1行も入らない。
           誰の行かは本人が確定するまで決められないため。 */
   /* ★件数は日本語版・英語版で通しの器を使い回すので、差分で見る（合計だと2周目で落ちる）。 */
+  /* ── B: 途中で押したら、足りない欄まで飛んで赤く囲う ────────────
+     2026-08-27 オーナー指示「途中で押したらエラー画面で記入していない必須項目を
+     箇条書きで出るようにして」→ 同日その2「やっぱり箇条書きを一旦やめよう。
+     ……そのまま必須項目の該当する欄まで飛んで、そこを赤く囲うとかはどう？
+     該当する項目の右横に未入力とか書いて」。
+     前は早期 return で1件ずつだったので、3つ空いている人は3回押し直していた。
+     ★必須の出どころは今までどおり画面の req-tag ただ1か所（上の ⑧-b が字で見張っている）。
+       ここでは「印を消した3つが全部赤くなり、先頭に飛ぶ」ことを実際に押して確かめる。 */
+  {
+    const CLEAR = ['f-netpay', 'f-contract', 'f-seniority'];   // DOM の並び順
+    /* 期待するラベルも画面から作る（訳を書き写すと日英でズレる）。 */
+    const wantLabels = await page.evaluate((ids) => ids.map((id) => {
+      const c = document.getElementById(id).closest('.fld').querySelector('.form-label').cloneNode(true);
+      for (const t of c.querySelectorAll('.req-tag, .opt-tag, .auto-tag')) t.remove();
+      return c.textContent.trim();
+    }), CLEAR);
+    ok(wantLabels.every((t) => t.length > 0 && !/必須|Required/.test(t)),
+       '★B: 画面のラベルから「必須」の札を落として読めている', wantLabels.join(' / '));
+
+    const seenB = seen.length, stashB = stash.length;
+    await setF({ 'f-netpay': '', 'f-contract': '', 'f-seniority': '' });
+    await new Promise((r) => setTimeout(r, 150));
+    /* ★#submit-block を手で閉じておく。箇条書きの経路が「段は開けるが
+       送信ボタンの枠は開けない」を守っているかを、実際に見るため。 */
+    await page.evaluate(() => { document.getElementById('submit-block').hidden = true; });
+    await page.evaluate(() => document.getElementById('sticky-btn').click());
+    await new Promise((r) => setTimeout(r, 250));
+
+    const eb = await page.evaluate(() => {
+      const e = document.getElementById('err');
+      const miss = [...document.querySelectorAll('.fld.is-miss')];
+      return {
+        /* 赤くなった欄を、中の input/select の id で見る（並びも DOM のまま）。 */
+        marked: miss.map((f) => (f.querySelector('input, select') || {}).id || ''),
+        /* 右横の札は画面の文字から読む（訳を書き写さない）。 */
+        tags: miss.map((f) => {
+          const t = f.querySelector('.form-label .miss-tag');
+          return t ? t.textContent.trim() : '';
+        }),
+        /* 飛んだ先。focus({preventScroll:true}) が当たっているはず。 */
+        focused: (document.activeElement || {}).id || '',
+        title: (e.querySelector('.fa-title') || { textContent: '' }).textContent.trim(),
+        ul: !!e.querySelector('ul'),
+        blockHidden: document.getElementById('submit-block').hidden,
+        steps: ['s2', 's3', 's4'].map((id) => !document.getElementById(id).hidden),
+      };
+    });
+    ok(JSON.stringify(eb.marked) === JSON.stringify(CLEAR),
+       '★B: 空にした3つが全部そのまま赤くなる（1件ずつ押し直させない）',
+       `${eb.marked.join(' / ')} 期待 ${CLEAR.join(' / ')}`);
+    ok(eb.tags.length === 3 && eb.tags.every((t) => t.length > 0 && t === eb.tags[0]),
+       '★B: 3つとも右横に「未入力」の札が出ている', eb.tags.join(' / '));
+    ok(eb.focused === CLEAR[0],
+       `★B: 先頭の欄まで飛んでいる → ${eb.focused}`, `期待 ${CLEAR[0]}`);
+    ok(eb.title.length > 0 && !eb.ul,
+       '★B: 見出しの1文は出すが、箇条書きは組まない', eb.title);
+    ok(eb.steps.every(Boolean),
+       '★B: 押したあと §2〜§4 が全部開く（「契約形態を入れて」と言いながら欄が画面に無い、にしない）',
+       JSON.stringify(eb.steps));
+    ok(eb.blockHidden === true,
+       '★B: それでも送信ボタンの枠は開けない（全段そろったときだけ、は維持）');
+    ok(seen.length === seenB && stash.length === stashB,
+       '★B: 足りないうちは本棚にも預かりにも1行も送らない',
+       `${seen.length - seenB} / ${stash.length - stashB}`);
+
+    /* ★埋めた欄の赤はその場で落ちる（直したのに赤いまま、にしない）。
+       落とすのは markRequired() ただ1か所なので、1つだけ埋めて残り2つを見る。 */
+    await setF({ 'f-netpay': NET_M });
+    await new Promise((r) => setTimeout(r, 150));
+    const after1 = await page.evaluate(() => [...document.querySelectorAll('.fld.is-miss')]
+      .map((f) => (f.querySelector('input, select') || {}).id || ''));
+    ok(JSON.stringify(after1) === JSON.stringify(['f-contract', 'f-seniority']),
+       '★B: 埋めた欄だけ赤が落ちる（残りはそのまま）', after1.join(' / '));
+
+    /* 通しの続きのために埋め直す。★「全部埋めると赤も札も消える」は、
+       このあとの本物の送信（#submit-btn）で確かめる。 */
+    await setF({ 'f-contract': SAMPLE['f-contract'],
+                 'f-seniority': SAMPLE['f-seniority'] });
+    await new Promise((r) => setTimeout(r, 200));
+    ok(await vis('submit-block'), '★B: 埋め直すと送信ボタンの枠が戻る');
+    ok((await page.evaluate(() => missingRequired().length)) === 0,
+       '★B: 埋め直したら足りない必須はゼロ',
+       String(await page.evaluate(() => missingRequired().map(reqLabel))));
+  }
+
   const pendBefore = (await db.query(`select count(*)::int n from pay_reports_pending`)).rows[0].n;
   await page.click('#submit-btn');
   await new Promise((r) => setTimeout(r, 400));
   ok(await vis('login-gate'), '未ログインで送信するとログインを求める');
+  ok((await page.evaluate(() => document.querySelectorAll('.fld.is-miss, .miss-tag').length)) === 0,
+     '★B: 必須が全部埋まったら赤も「未入力」の札も残らず、そのまま先へ進む');
   ok(stash.length === 1, `★ログイン前の1押しでサーバへ預ける → ${stash.length} 回`);
   ok(seen.length === 0, `★ログイン前に本棚へは1行も入れない → ${seen.length} 回`);
   ok(await page.evaluate(() => {
@@ -1438,7 +2186,20 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
     /* 2026-08-26 追加（その4）。審査・査察（Examiner / Check）の手当。
        ★instructor_pay とも別の列。「Instructor / Training 手当とまとめて支給される」を
          選んだ人はここを空のまま出す（額はあちら側に入っている）。 */
-    'examiner_pay'];
+    'examiner_pay',
+    /* 2026-08-26 追加（その5）。組合・乗員代表（Union / Pilot representative）の手当。
+       ★これもまた別の列。支給元が組合のこともあるので、画面が総支給と突き合わせる
+         ときだけ条件つきで足す（monthlyDetail）。列と payload は無条件。 */
+    'union_pay',
+    /* 2026-08-26 追加（その6）。管理・マネジメント（Management / Leadership）の手当。
+       ★これもまた別の列。ただし組合と違い、この額は会社が払う＝総支給の中にあるので、
+         画面の突き合わせ（monthlyDetail）にも条件なしで足す。 */
+    'management_pay',
+    /* 2026-08-27 追加（その7）。その他の兼務・配属（Other / Non-Line Assignment）の手当。
+       ★これもまた別の列。管理職と同じで、画面の突き合わせ（monthlyDetail）にも
+         条件なしで足す（出向先が払っていて明細に載っていないことはあるが、
+         聞いていないので分けられない ── 分けるなら組合と同じ形で1問足す）。 */
+    'nonline_pay'];
   const KEYS_PAYSLIP = [  // 明細から読めたぶん。手入力では埋まらない
     'ytd_taxable', 'deduction_total', 'night_hours', 'credit_hours',
     /* 2026-08-14 追加。読めた手当を1行ずつそのまま溜める列。画面には出さない。
@@ -1496,6 +2257,21 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
      `★審査を選んでいないので examiner_pay は空 → ${p.examiner_pay}`);
   ok(!(p.pay_items && p.pay_items.examiner),
      '★選んでいない役割は pay_items にも乗らない');
+  /* ★組合・乗員代表（2026-08-26 その5）。ここでも選んでいないので同じ。 */
+  ok(p.union_pay === null || p.union_pay === undefined,
+     `★組合を選んでいないので union_pay は空 → ${p.union_pay}`);
+  ok(!(p.pay_items && p.pay_items.union),
+     '★選んでいない役割（組合）も pay_items に乗らない');
+  /* ★管理・マネジメント（2026-08-26 その6）。ここでも選んでいないので同じ。 */
+  ok(p.management_pay === null || p.management_pay === undefined,
+     `★管理職を選んでいないので management_pay は空 → ${p.management_pay}`);
+  ok(!(p.pay_items && p.pay_items.management),
+     '★選んでいない役割（管理職）も pay_items に乗らない');
+  /* ★その他の兼務・配属（2026-08-27 その7）。ここでも選んでいないので同じ。 */
+  ok(p.nonline_pay === null || p.nonline_pay === undefined,
+     `★兼務・配属を選んでいないので nonline_pay は空 → ${p.nonline_pay}`);
+  ok(!(p.pay_items && p.pay_items.nonline),
+     '★選んでいない役割（兼務・配属）も pay_items に乗らない');
   /* 逆に、人が入れた欄はそのまま届いていること */
   ok(p.stay_nights === SAMPLE['f-stay'] && p.bonus_month === SAMPLE['f-bonus-mo']
      && p.net_pay_actual === SAMPLE['f-netpay'] && p.duty_hours === SAMPLE['f-duty-h'],

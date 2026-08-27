@@ -65,7 +65,11 @@ nav.scrolled{background:rgba(10,12,15,.92);backdrop-filter:blur(20px);border-bot
 .btn-ghost:hover{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.05)}
 .btn-ghost:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
 .card{background:rgba(17,22,32,.7);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:28px}
-.form-label{display:block;font-size:.78rem;font-weight:700;color:#9ca3af;margin-bottom:8px;letter-spacing:.05em;text-transform:uppercase}
+/* ★項目名は小さい・薄い・全部大文字の3つ重ねで読みにくかった（2026-08-27 オーナー指摘
+   「対象月」「勤務時間（Duty time）」…が灰色の薄い文字で見えにくい）。
+   明るさを上げ・少し大きくし・字間と全部大文字をやめる。入力欄の文字（#e8edf2）よりは
+   一段落として、項目名 → 入力値 → 補足（.fld-hint）の順に読める強さを保つ。 */
+.form-label{display:block;font-size:.83rem;font-weight:700;color:#ccd6e2;margin-bottom:8px;letter-spacing:.01em;line-height:1.5}
 /* 欄の小札は3つ。★色の役割を分ける（2026-08-13 その4）。
    これまでは「任意」だけが在り、しかもブランド最強色の金だった＝いちばん目立つ色が
    「入れなくていい欄」に付いていた。必須の欄には印すら無かった。
@@ -74,10 +78,15 @@ nav.scrolled{background:rgba(10,12,15,.92);backdrop-filter:blur(20px);border-bot
      任意 = 中立グレー（.sec-tag.opt と同じ色）
    ★.req-tag が付く欄は「ゲートが実際に見ている欄」と一致していること。
      ズレると画面と送信の判定が食い違う。db/test-form-contract.mjs の静的検査⑧が見張る。 */
-.opt-tag,.req-tag,.auto-tag{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:999px;font-size:.62rem;font-weight:700;letter-spacing:.04em;text-transform:none}
+.opt-tag,.req-tag,.auto-tag,.miss-tag{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:999px;font-size:.62rem;font-weight:700;letter-spacing:.04em;text-transform:none}
 .opt-tag{color:#9ca3af;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14)}
 .req-tag{color:#fb923c;background:rgba(249,115,22,.13);border:1px solid rgba(249,115,22,.3)}
 .auto-tag{color:#34d399;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.28)}
+/* ★2026-08-27 オーナー指示。「匿名で提出」を押したとき、足りない必須項目の
+   右横に出す赤い札。markMissing() が挿し、markRequired() が埋まった瞬間に落とす。
+   ★ラベルの中に流し込む（.fld.is-req::after の ✓ と同じ右上に浮かせると、
+     「パーディアム（その月の合計）」のような長いラベルと2列組みで重なる）。 */
+.miss-tag{color:#f87171;background:rgba(239,68,68,.13);border:1px solid rgba(239,68,68,.36)}
 .form-input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:11px 14px;color:#e8edf2;font-size:.9rem;transition:border-color .2s,background .2s;outline:none;font-family:'Inter','Noto Sans JP',sans-serif}
 .form-input:focus{border-color:rgba(245,200,66,.4);background:rgba(255,255,255,.07)}
 .form-input:focus-visible{outline:2px solid rgba(245,200,66,.35);outline-offset:1px}
@@ -163,6 +172,19 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 .fld.is-req .req-tag{transition:opacity .2s}
 .fld.is-req.is-done .req-tag{opacity:.3}
 @media (prefers-reduced-motion:reduce){.fld.is-req::before,.fld.is-req::after,.fld.is-req .req-tag{transition:none}}
+/* ★足りない必須の欄を赤く囲う（2026-08-27 オーナー指示
+     「そのまま必須項目の該当する欄まで飛んで、そこを赤く囲うとかはどう？」）。
+   ★border-color と box-shadow で描く＝レイアウトが動かないので、2列組みの行
+     （フライトタイム／勤務時間 など）がガタつかない。 */
+.fld.is-miss .form-input{border-color:rgba(239,68,68,.7);background:rgba(239,68,68,.06);
+  box-shadow:0 0 0 3px rgba(239,68,68,.13)}
+/* ★飛んで focus しても赤いまま。金に戻ると「もう直った」ように見える。 */
+.fld.is-miss .form-input:focus{border-color:rgba(239,68,68,.85);background:rgba(239,68,68,.08)}
+.fld.is-miss .form-input:focus-visible{outline-color:rgba(239,68,68,.5)}
+/* 役職・区分は値を hidden の #f-jobrole が持つので、囲うのはチェックボックス群のほう。 */
+.fld.is-miss .roleboxes{border-radius:14px;outline:2px solid rgba(239,68,68,.45);outline-offset:7px}
+/* 左のレールも赤へ。オレンジのままだと「まだ残っている」と「押したのに空だった」が同じ色になる。 */
+.fld.is-req.is-miss::before{background:rgba(239,68,68,.7)}
 /* 段の見出しの右端に出す進み具合のゲージ。押すと最初の未入力欄へ飛ぶ。
    ＝送信ボタンが出ない理由が、常に見出しに書いてある状態にする。
    ★器は中立の灰、伸びるバーだけ緑（2026-08-18 オーナー決定）。
@@ -197,6 +219,32 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 .sal-total-lab{font-size:.75rem;font-weight:700;color:#9ca3af;letter-spacing:.04em}
 .sal-total-val{font-size:1.7rem;font-weight:800;letter-spacing:-.02em;color:#f5c842;font-variant-numeric:tabular-nums;line-height:1.1}
 .sal-total-val .u{font-size:.8rem;font-weight:600;color:#9ca3af;margin-left:5px;letter-spacing:0}
+/* ── 常設の提出バー（2026-08-27 オーナー指示）──────────────────────
+   「3. 報酬」が出たところから、画面の下に**年換算の総額と「匿名で提出」**を置く。
+   途中で出したい人が押せる所を、いつでも持っている状態にする。
+   ★#submit-block が画面に入っている間は .is-off で沈める（同じボタンを2つ並べない）。
+   ★動かすのは transform と opacity だけ（transition-all は使わない）。 */
+.sticky-cta{position:fixed;left:0;right:0;bottom:0;z-index:120;
+  padding:10px 16px calc(10px + env(safe-area-inset-bottom));
+  background:linear-gradient(180deg,rgba(10,12,15,0),rgba(10,12,15,.93) 26%,rgba(10,12,15,.985));
+  border-top:1px solid rgba(245,200,66,.18);backdrop-filter:blur(14px);
+  transition:opacity .22s cubic-bezier(.16,1,.3,1),transform .22s cubic-bezier(.16,1,.3,1)}
+.sticky-cta.is-off{opacity:0;transform:translateY(105%);pointer-events:none}
+.sticky-cta[hidden]{display:none}
+.sticky-cta-in{max-width:640px;margin:0 auto;display:flex;align-items:center;gap:14px}
+.sticky-cta-sum{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.sticky-cta-lab{font-size:.66rem;font-weight:700;color:#9ca3af;letter-spacing:.05em}
+.sticky-cta-val{font-size:1.18rem;font-weight:800;letter-spacing:-.02em;color:#f5c842;font-variant-numeric:tabular-nums;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sticky-cta-val .u{font-size:.68rem;font-weight:600;color:#9ca3af;margin-left:4px;letter-spacing:0}
+.sticky-cta .btn-orange{flex:0 0 auto;padding:11px 20px;font-size:.86rem}
+/* バーの下に隠れる欄が出ないよう、出ているあいだだけ足元を空ける。 */
+body.has-cta #form-wrap{padding-bottom:96px}
+@media (max-width:430px){
+  .sticky-cta-in{gap:10px}
+  .sticky-cta-val{font-size:1rem}
+  .sticky-cta .btn-orange{padding:10px 15px;font-size:.79rem}
+}
+@media (prefers-reduced-motion:reduce){.sticky-cta{transition:none}}
 .sal-hint{font-size:.73rem;color:#6b7d93;margin-top:8px;line-height:1.65}
 /* ── 送信後の結果 ───────────────────────────────────────── */
 .res{border-radius:20px;border:1px solid rgba(52,211,153,.3);background:radial-gradient(130% 170% at 0% 0%,rgba(52,211,153,.12),transparent 60%),rgba(17,22,32,.7);padding:28px}
@@ -280,16 +328,28 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 @media (prefers-reduced-motion:reduce){.step-in{animation:none}}
 /* ── 手当ごとの内訳（畳んで残す）── 総支給の欄とは排他 ────────── */
 .pay-detail{margin-top:4px;border-top:1px solid rgba(255,255,255,.07);padding-top:14px}
-.pay-detail>summary{display:flex;align-items:center;gap:7px;width:fit-content;list-style:none;cursor:pointer;font-size:.79rem;font-weight:700;color:#a8b3c2;padding:6px 12px 6px 10px;border-radius:999px;border:1px dashed rgba(255,255,255,.18);background:rgba(255,255,255,.04);transition:color .2s,border-color .2s,background .2s,transform .2s cubic-bezier(.16,1,.3,1)}
+/* ★2026-08-27 オーナー指示「『＋給与の内訳を追加』と、その他の役職の給与の内訳を
+   追加（５種類あるやつ）のボタンを目立たせよう。DEEP PAY を見るには必須だから」。
+   もとは破線の枠＋灰色の字で、周りの入力欄より弱かった＝「開かなくてよいもの」に見えていた。
+   閉じているあいだはブランド金の実線ピル（地は .pay-count と同じ放射）。開いたら静める
+   （用の済んだボタンが居座らない）。6つ（内訳＋役割5つ）ともこの1か所で決まる。
+   ★ここに説明文を足さない。うたい文句になり得るのは「DEEP PAY が開く」だけだが、
+     DEEP PAY のページはまだ無く「準備中」なので、書くと嘘になる。 */
+.pay-detail>summary{display:flex;align-items:center;gap:9px;width:fit-content;max-width:100%;list-style:none;cursor:pointer;font-size:.84rem;font-weight:700;color:#f5c842;padding:9px 16px 9px 13px;border-radius:999px;border:1px solid rgba(245,200,66,.42);
+  background:radial-gradient(120% 160% at 0% 50%,rgba(245,200,66,.14),transparent 70%),rgba(245,200,66,.05);
+  transition:color .2s,border-color .2s,background .2s,transform .2s cubic-bezier(.16,1,.3,1)}
 .pay-detail>summary::-webkit-details-marker{display:none}
-.pay-detail>summary:hover{color:#f5c842;border-color:rgba(245,200,66,.45);background:rgba(245,200,66,.07)}
+.pay-detail>summary:hover{color:#ffd968;border-color:rgba(245,200,66,.7);transform:translateY(-1px);
+  background:radial-gradient(120% 160% at 0% 50%,rgba(245,200,66,.2),transparent 70%),rgba(245,200,66,.09)}
 .pay-detail>summary:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
 .pay-detail>summary:active{transform:translateY(1px)}
-.pay-detail>summary .p{font-size:.95rem;line-height:1;font-weight:800;color:#f5c842;transition:transform .2s cubic-bezier(.16,1,.3,1)}
-.pay-detail[open]>summary{color:#e8edf2;border-style:solid;border-color:rgba(245,200,66,.32);margin-bottom:16px}
+/* ＋は丸に入れる。文字だけだと「開く印」に見えず、押せる物に見えない。 */
+.pay-detail>summary .p{flex:none;width:19px;height:19px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;font-size:.86rem;line-height:1;font-weight:800;color:#f5c842;background:rgba(245,200,66,.16);border:1px solid rgba(245,200,66,.42);transition:transform .2s cubic-bezier(.16,1,.3,1)}
+.pay-detail[open]>summary{color:#e8edf2;border-color:rgba(245,200,66,.32);background:rgba(255,255,255,.04);margin-bottom:16px}
+.pay-detail[open]>summary:hover{color:#f5c842;background:rgba(245,200,66,.07);transform:none}
 .pay-detail[open]>summary .p{transform:rotate(45deg)}
 .pay-detail-b{animation:stepIn .3s cubic-bezier(.16,1,.3,1) both}
-@media (prefers-reduced-motion:reduce){.pay-detail-b{animation:none}.pay-detail>summary .p{transition:none}}
+@media (prefers-reduced-motion:reduce){.pay-detail-b{animation:none}.pay-detail>summary,.pay-detail>summary .p{transition:none}}
 /* ── 4. 契約と税：前月の値が入っているときは要約1行に畳む ────────── */
 .sum-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);font-size:.81rem;color:#c8d2de;line-height:1.7}
 .sum-row b{color:#e8edf2;font-weight:700}
@@ -560,6 +620,9 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 [data-theme="light"] .nav-link:hover{color:#0f172a!important}
 [data-theme="light"] .card{background:rgba(255,255,255,.85)!important;border-color:rgba(0,0,0,.08)!important}
 [data-theme="light"] .form-input{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.12);color:#0f172a}
+/* ★ライトには .form-label の上書きが無く、暗い地むけの #9ca3af が白いカードに
+   そのまま乗っていた（コントラスト 2.3:1 ＝ 読めない）。濃い側に落とす。 */
+[data-theme="light"] .form-label{color:#334155}
 [data-theme="light"] .form-input:focus{border-color:rgba(200,149,0,.5);background:rgba(0,0,0,.06)}
 [data-theme="light"] .form-input[readonly],
 [data-theme="light"] .form-input[readonly]:focus{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.18)}
@@ -576,6 +639,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 [data-theme="light"] .opt-tag{color:#64748b;background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.12)}
 [data-theme="light"] .req-tag,[data-theme="light"] .sec-tag.req{color:#a34a00;background:rgba(163,74,0,.08);border-color:rgba(163,74,0,.28)}
 [data-theme="light"] .auto-tag{color:#0d8a63;background:rgba(13,138,99,.08);border-color:rgba(13,138,99,.28)}
+[data-theme="light"] .miss-tag{color:#dc2626;background:rgba(220,38,38,.08);border-color:rgba(220,38,38,.32)}
 [data-theme="light"] .fld.is-req::before{background:rgba(163,74,0,.3)}
 /* ★白の上では #34d399 が薄すぎて読めない。済みの印はライトだけ濃い緑に落とす
    （既存の .auto-tag と同じ #0d8a63）。もとは rgba(0,0,0,.12) ＝ ほぼ見えなかった。 */
@@ -602,6 +666,15 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 [data-theme="light"] .sal-total{border-color:rgba(200,149,0,.32);background:radial-gradient(130% 170% at 100% 0%,rgba(200,149,0,.12),transparent 60%),rgba(200,149,0,.05)}
 [data-theme="light"] .sal-total-lab,[data-theme="light"] .sal-total-val .u{color:#64748b}
 [data-theme="light"] .sal-total-val{color:#a97e00}
+[data-theme="light"] .sticky-cta{background:linear-gradient(180deg,rgba(243,245,248,0),rgba(243,245,248,.94) 26%,rgba(243,245,248,.99));border-top-color:rgba(200,149,0,.3)}
+[data-theme="light"] .sticky-cta-lab,[data-theme="light"] .sticky-cta-val .u{color:#64748b}
+[data-theme="light"] .sticky-cta-val{color:#a97e00}
+[data-theme="light"] .fld.is-miss .form-input{border-color:rgba(220,38,38,.65);background:rgba(220,38,38,.05);
+  box-shadow:0 0 0 3px rgba(220,38,38,.1)}
+[data-theme="light"] .fld.is-miss .form-input:focus{border-color:rgba(220,38,38,.8);background:rgba(220,38,38,.07)}
+[data-theme="light"] .fld.is-miss .form-input:focus-visible{outline-color:rgba(220,38,38,.45)}
+[data-theme="light"] .fld.is-miss .roleboxes{outline-color:rgba(220,38,38,.4)}
+[data-theme="light"] .fld.is-req.is-miss::before{background:rgba(220,38,38,.65)}
 [data-theme="light"] .res{background:radial-gradient(130% 170% at 0% 0%,rgba(16,140,100,.12),transparent 60%),rgba(255,255,255,.88);border-color:rgba(16,140,100,.28)}
 /* 明るいテーマだと金の放射が白地に溶ける。線と影だけ濃くする（形は同じ）。 */
 [data-theme="light"] .res-pop{background:radial-gradient(120% 120% at 30% 20%,rgba(245,200,66,.45),rgba(13,138,99,.10) 62%,transparent);border-color:rgba(169,126,0,.32);box-shadow:inset 0 1px 0 rgba(255,255,255,.65),0 6px 16px -8px rgba(169,126,0,.34),0 18px 36px -24px rgba(13,138,99,.42)}
@@ -631,10 +704,13 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 [data-theme="light"] .pd-year{border-top-color:rgba(0,0,0,.1)}
 [data-theme="light"] .pd-year-h{color:#64748b}
 [data-theme="light"] .pay-detail{border-top-color:rgba(0,0,0,.08)}
-[data-theme="light"] .pay-detail>summary{color:#475569;background:rgba(0,0,0,.03);border-color:rgba(0,0,0,.18)}
-[data-theme="light"] .pay-detail>summary:hover{color:#a97e00;border-color:rgba(200,149,0,.5);background:rgba(200,149,0,.07)}
-[data-theme="light"] .pay-detail>summary .p{color:#a97e00}
-[data-theme="light"] .pay-detail[open]>summary{color:#0f172a;border-color:rgba(200,149,0,.4)}
+[data-theme="light"] .pay-detail>summary{color:#a97e00;border-color:rgba(200,149,0,.45);
+  background:radial-gradient(120% 160% at 0% 50%,rgba(200,149,0,.14),transparent 70%),rgba(200,149,0,.05)}
+[data-theme="light"] .pay-detail>summary:hover{color:#8a6600;border-color:rgba(200,149,0,.72);
+  background:radial-gradient(120% 160% at 0% 50%,rgba(200,149,0,.2),transparent 70%),rgba(200,149,0,.09)}
+[data-theme="light"] .pay-detail>summary .p{color:#a97e00;background:rgba(200,149,0,.14);border-color:rgba(200,149,0,.42)}
+[data-theme="light"] .pay-detail[open]>summary{color:#0f172a;border-color:rgba(200,149,0,.4);background:rgba(0,0,0,.03)}
+[data-theme="light"] .pay-detail[open]>summary:hover{color:#a97e00;background:rgba(200,149,0,.07)}
 [data-theme="light"] .sum-row{background:rgba(0,0,0,.025);border-color:rgba(0,0,0,.08);color:#475569}
 [data-theme="light"] .sum-row b{color:#0f172a}
 [data-theme="light"] .sum-row button{color:#475569;border-color:rgba(0,0,0,.15)}
@@ -1461,6 +1537,9 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
                   <input type="text" id="f-instructor" class="form-input money" inputmode="decimal" placeholder="例：60,000"/>
                   <p class="fld-hint">明細に出ている金額をそのまま入れてください。この額は<b>職位手当・変動給・その他の現金手当には入れないでください</b>（同じお金を2回数えることになります）。</p>
                 </div>
+                <!-- ★超過の注意は、その額を打った欄の下に出す（2026-08-27 オーナー指摘）。
+                     文言と条件は #pd-over と同じ。recalc() が OVER_SLOT を見て1つだけ出す。 -->
+                <p class="pd-warn" id="pd-over-instr" hidden>内訳の合計が、上の総支給額を超えています。どちらかを見直してください。</p>
 
                 <div id="instr-unit" hidden>
                   <div class="fld">
@@ -1510,7 +1589,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
                 <label class="form-label" for="f-exam-extra">審査業務に対する追加の支給</label>
                 <select id="f-exam-extra" class="form-input">
                   <option value="">選んでください</option>
-                  <option value="separate">Examiner として別途支給されている</option>
+                  <option value="separate">審査・査察として別途支給されている</option>
                   <option value="with_instructor">教官・訓練の手当とまとめて支給されている</option>
                   <option value="included">通常の給与に含まれていて、金額を分けられない</option>
                   <option value="none">追加の支給はない</option>
@@ -1548,12 +1627,195 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
                   <input type="text" id="f-examiner" class="form-input money" inputmode="decimal" placeholder="例：40,000"/>
                   <p class="fld-hint">明細に出ている金額をそのまま入れてください。この額は<b>教官・訓練の手当・職位手当・変動給・その他の現金手当には入れないでください</b>（同じお金を2回数えることになります）。</p>
                 </div>
+                <!-- ★超過の注意は、その額を打った欄の下に出す（2026-08-27 オーナー指摘）。
+                     文言と条件は #pd-over と同じ。recalc() が OVER_SLOT を見て1つだけ出す。 -->
+                <p class="pd-warn" id="pd-over-exam" hidden>内訳の合計が、上の総支給額を超えています。どちらかを見直してください。</p>
 
                 <div class="fld" id="exam-unit" hidden>
                   <label class="form-label" for="f-exam-qty" id="lab-exam-qty">今月の回数</label>
                   <input type="text" id="f-exam-qty" class="form-input" inputmode="decimal"/>
                   <p class="fld-hint">今月、何回ぶん出たかを書き写してください。<b>1回あたりの額はこちらで出します。</b></p>
                 </div>
+              </div>
+            </div>
+          </details>
+        </div>
+
+        <!-- ── 組合・乗員代表（Union / Pilot Representative）の手当（2026-08-26 その5）──
+             ★§1で「組合・乗員代表」を選んだ人にだけ出す。教官・審査の節と同じ作り。
+             ★知りたいのは組合制度の調査ではなく、「組合・乗員代表の役割が、その月の
+               給与データにどう影響しているか」だけ（オーナー明記）。だから聞くのは
+               ①今月の活動日数 ②追加の支給があるか ③あるなら金額と支給元 の3つだけで、
+               Committee の種別・組合内の役職名・活動内容・給与保障制度は聞かない。
+             ★金額は専用の列（union_pay）、行の形は pay_items.union。
+               職位手当・変動給・その他の現金手当・教官・審査のどれにも足し込まない。
+             ★ここだけ教官・審査と違うのは「支給元」を聞くこと。組合から出ている額は
+               会社の明細に載っていないので、総支給と突き合わせる側（#pd-over）では
+               会社から出ているぶんだけを数える。
+             ★総支給は書き換えない。★必須は1つも置かない（req-tag を置かない）。 -->
+        <div id="s3-union" hidden>
+          <details class="pay-detail" id="union-detail">
+            <summary><span class="p">+</span>組合・乗員代表の手当を追加</summary>
+            <div class="pay-detail-b">
+              <p class="fld-hint" style="margin:0 0 16px">組合・乗員代表の役割が、その月の給与にどう出ているかだけを教えてください。<b>活動の中身は聞きません。</b></p>
+
+              <div class="fld">
+                <label class="form-label" for="f-union-days">今月、組合・乗員代表として活動した日数</label>
+                <input type="text" id="f-union-days" class="form-input" inputmode="decimal" placeholder="例：12"/>
+                <p class="fld-hint">乗務を外れて組合・乗員代表の業務にあたった日数です。</p>
+              </div>
+
+              <div class="fld">
+                <label class="form-label" for="f-union-extra">組合・乗員代表の役割に関連する追加の支給はありますか？</label>
+                <select id="f-union-extra" class="form-input">
+                  <option value="">選んでください</option>
+                  <option value="yes">あり</option>
+                  <option value="none">なし</option>
+                  <option value="unknown">わからない</option>
+                </select>
+              </div>
+
+              <!-- ★「あり」を選んだ人にだけ、ここから先を出す。
+                   「なし」「わからない」の人は2クリックで終わる。 -->
+              <div class="opt-fld" id="opt-union-pay" hidden>
+                <div class="fld">
+                  <label class="form-label" for="f-union-pay">今月の追加支給額</label>
+                  <input type="text" id="f-union-pay" class="form-input money" inputmode="decimal" placeholder="例：30,000"/>
+                  <p class="fld-hint">明細に出ている金額をそのまま入れてください。この額は<b>職位手当・変動給・その他の現金手当・教官・審査の手当には入れないでください</b>（同じお金を2回数えることになります）。</p>
+                </div>
+                <!-- ★超過の注意は、その額を打った欄の下に出す（2026-08-27 オーナー指摘）。
+                     文言と条件は #pd-over と同じ。recalc() が OVER_SLOT を見て1つだけ出す。 -->
+                <p class="pd-warn" id="pd-over-union" hidden>内訳の合計が、上の総支給額を超えています。どちらかを見直してください。</p>
+
+                <div class="fld">
+                  <label class="form-label" for="f-union-src">支給元</label>
+                  <select id="f-union-src" class="form-input">
+                    <option value="">選んでください</option>
+                    <option value="airline">会社（Airline / Company）</option>
+                    <option value="union">組合（Union / Association）</option>
+                    <option value="both">両方</option>
+                    <option value="other">その他</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </details>
+        </div>
+
+        <!-- ── 管理・マネジメント（Management / Leadership）の手当（2026-08-26 その6）──
+             ★§1で「管理・マネジメント」を選んだ人にだけ出す。教官・審査・組合と同じ作り。
+             ★知りたいのは管理職の仕事内容の調査ではなく、「管理・マネジメント業務が、
+               その月の給与データにどの程度関係しているか」だけ（オーナー明記）。だから
+               聞くのは ①今月の管理業務日数 ②追加の支給があるか の2つだけで、
+               Chief Pilot / Fleet Manager 等の役職分類・管理人数・会議時間・管理職歴・
+               担当部署の詳細・Management 業務の割合は聞かない。
+             ★数量の欄は作らない ── ①の日数がそのまま数量。単価も1日あたりの額も、
+               今月の額 ÷ 日数でこちらが出せるので聞かない。
+             ★金額は専用の列（management_pay）、行の形は pay_items.management。
+               職位手当・変動給・その他の現金手当・教官・審査・組合のどれにも足し込まない。
+             ★組合と違い、この額は会社が払う＝総支給の中にある。だから内訳の合計
+               （monthlyDetail）には条件なしで足す。mgmtInGross のような条件を作らない。
+             ★総支給は書き換えない。★必須は1つも置かない（req-tag を置かない）。 -->
+        <div id="s3-mgmt" hidden>
+          <details class="pay-detail" id="mgmt-detail">
+            <summary><span class="p">+</span>管理・マネジメントの手当を追加</summary>
+            <div class="pay-detail-b">
+              <p class="fld-hint" style="margin:0 0 16px">管理・マネジメント業務が、その月の給与にどう出ているかだけを教えてください。<b>担当部署や業務の中身は聞きません。</b></p>
+
+              <div class="fld">
+                <label class="form-label" for="f-mgmt-days">今月、管理・マネジメント業務を行った日数</label>
+                <input type="text" id="f-mgmt-days" class="form-input" inputmode="decimal" placeholder="例：8"/>
+                <p class="fld-hint">乗務を外れて管理・マネジメント業務にあたった日数です。Block Hours が少ない月の理由が、後から分かるようになります。</p>
+              </div>
+
+              <div class="fld">
+                <label class="form-label" for="f-mgmt-extra">管理・マネジメントの役割に対する追加の支給はありますか？</label>
+                <select id="f-mgmt-extra" class="form-input">
+                  <option value="">選んでください</option>
+                  <option value="separate">管理・マネジメントとして別途支給されている</option>
+                  <option value="included">通常の給与に含まれていて、金額を分けられない</option>
+                  <option value="none">追加報酬はない</option>
+                  <option value="unknown">わからない</option>
+                </select>
+              </div>
+
+              <!-- ★「別途支給されている」を選んだ人にだけ、ここから先を出す。
+                   「含まれている」「なし」「わからない」の人は2クリックで終わる。 -->
+              <div class="opt-fld" id="opt-mgmt-pay" hidden>
+                <div class="fld">
+                  <label class="form-label" for="f-mgmt-pay">今月の追加支給額</label>
+                  <input type="text" id="f-mgmt-pay" class="form-input money" inputmode="decimal" placeholder="例：50,000"/>
+                  <p class="fld-hint">明細に出ている金額をそのまま入れてください。この額は<b>職位手当・変動給・その他の現金手当・教官・審査・組合の手当には入れないでください</b>（同じお金を2回数えることになります）。</p>
+                </div>
+                <!-- ★超過の注意は、その額を打った欄の下に出す（2026-08-27 オーナー指摘）。
+                     文言と条件は #pd-over と同じ。recalc() が OVER_SLOT を見て1つだけ出す。 -->
+                <p class="pd-warn" id="pd-over-mgmt" hidden>内訳の合計が、上の総支給額を超えています。どちらかを見直してください。</p>
+
+                <div class="fld">
+                  <label class="form-label" for="f-mgmt-method">支給単位</label>
+                  <select id="f-mgmt-method" class="form-input">
+                    <option value="">選んでください</option>
+                    <option value="monthly">月額で固定</option>
+                    <option value="duty">乗務日・勤務日ごと（Duty / Day）</option>
+                    <option value="other">その他</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </details>
+        </div>
+
+        <!-- ⑥ その他の兼務・配属（2026-08-27 その7 オーナー指示）。
+             §1 で「その他の兼務・配属」を選んだ人にだけ出す。外すと畳んで中身も消える。
+             ★聞くのは3つだけ（分野・日数・追加報酬）。部署名・出向先企業名・プロジェクト名・
+             仕事内容・勤務割合・Office 勤務時間・配属期間・配属理由は聞かない。
+             ★支給単位も数量も置かない（オーナー仕様は金額だけ。教官・審査の形を写さない）。 -->
+        <div id="s3-nonline" hidden>
+          <details class="pay-detail" id="nonline-detail">
+            <summary><span class="p">+</span>その他の兼務・配属の手当を追加</summary>
+            <div class="pay-detail-b">
+              <p class="fld-hint" style="margin:0 0 16px">ライン乗務のほかに、継続的な兼務・配属・出向がある場合だけ答えてください。<b>部署名や出向先の会社名、仕事の中身は聞きません。</b></p>
+
+              <div class="fld">
+                <div class="form-label">担当している分野</div>
+                <div class="roleboxes">
+                  <label class="rolebox"><input type="checkbox" name="f-nonline-area" value="safety"><span>安全（Flight Safety）</span></label>
+                  <label class="rolebox"><input type="checkbox" name="f-nonline-area" value="standards"><span>運航基準・手順（Flight Standards）</span></label>
+                  <label class="rolebox"><input type="checkbox" name="f-nonline-area" value="fleet"><span>機種・技術（Fleet / Technical）</span></label>
+                  <label class="rolebox"><input type="checkbox" name="f-nonline-area" value="dept"><span>その他の部署</span></label>
+                  <label class="rolebox"><input type="checkbox" name="f-nonline-area" value="secondment"><span>社外への出向</span></label>
+                  <label class="rolebox"><input type="checkbox" name="f-nonline-area" value="other"><span>その他</span></label>
+                </div>
+              </div>
+
+              <div class="fld">
+                <label class="form-label" for="f-nonline-days">今月、この兼務・配属に関連する業務を行った日数</label>
+                <input type="text" id="f-nonline-days" class="form-input" inputmode="decimal" placeholder="例：8"/>
+                <p class="fld-hint">乗務を外れて、この兼務・配属の業務にあたった日数です。</p>
+              </div>
+
+              <div class="fld">
+                <label class="form-label" for="f-nonline-extra">この役割に対する追加報酬はありますか？</label>
+                <select id="f-nonline-extra" class="form-input">
+                  <option value="">選んでください</option>
+                  <option value="separate">別途支給される</option>
+                  <option value="included">追加分が通常給与に含まれていて、金額を分けられない</option>
+                  <option value="none">追加報酬はない</option>
+                  <option value="unknown">わからない</option>
+                </select>
+              </div>
+
+              <!-- ★「別途支給される」を選んだ人にだけ、ここから先を出す。
+                   「含まれる」「なし」「わからない」の人は2クリックで終わる。 -->
+              <div class="opt-fld" id="opt-nonline-pay" hidden>
+                <div class="fld">
+                  <label class="form-label" for="f-nonline-pay">今月の追加支給額</label>
+                  <input type="text" id="f-nonline-pay" class="form-input money" inputmode="decimal" placeholder="例：50,000"/>
+                  <p class="fld-hint">明細に出ている金額をそのまま入れてください。この額は<b>職位手当・変動給・その他の現金手当・教官・審査・組合・管理職の手当には入れないでください</b>（同じお金を2回数えることになります）。</p>
+                </div>
+                <!-- ★超過の注意は、その額を打った欄の下に出す（2026-08-27 オーナー指摘）。
+                     文言と条件は #pd-over と同じ。recalc() が OVER_SLOT を見て1つだけ出す。 -->
+                <p class="pd-warn" id="pd-over-nonline" hidden>内訳の合計が、上の総支給額を超えています。どちらかを見直してください。</p>
               </div>
             </div>
           </details>
@@ -1936,6 +2198,11 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
            行は形のまま jsonb で残す。f-psdetail と同じ考え方。 -->
       <input type="hidden" id="f-payitems">
 
+      <!-- ★エラーの置き場所。#submit-block は必須が全部そろうまで hidden なので、
+           中に置いていると「途中で押した人」に何も見えない（2026-08-27）。
+           空のときは高さゼロ。showErr / clearErr は今までどおりここへ書く。 -->
+      <div id="err" style="margin-top:18px"></div>
+
       <div class="step" id="submit-block" hidden>
         <div class="sal-total pv-no-cur" style="margin-bottom:8px">
           <span class="sal-total-lab">年換算の総額<br>（あなたの入力から）</span>
@@ -1950,8 +2217,6 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
           <div id="pay-login"></div>
         </div>
 
-        <div id="err" style="margin-top:18px"></div>
-
         <div class="mt-7 flex flex-col sm:flex-row gap-3">
           <button type="button" id="submit-btn" class="btn-orange justify-center flex-1">送信して結果を見る →</button>
           <a href="world-airlines.html" class="btn-ghost justify-center">やめる</a>
@@ -1960,6 +2225,22 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
              （先にサーバへ預かり、アカウントを作った時に本棚へ入って90日が付く）。
              ボタンのすぐ下で言っていることが1歩ずれると、そこで信用を落とす。 -->
         <p class="sal-hint" style="text-align:center;margin-top:14px">アカウントを作ると<b>給与詳細が90日間</b>開きます。次の明細を出すたびに、そこから90日に伸びます。個人の利用は永久に無料です。</p>
+      </div>
+
+      <!-- ★常設の提出バー（2026-08-27 オーナー指示「3. 報酬の画面を出したあたりから
+           『匿名で提出』ボタンを常に下に表示させて」＋「その上の『年換算の総額』も一緒に」）。
+           ・出すのは §3 が出てから。一度出したら二度と隠さない（段の考え方と同じ）。
+           ・押すのは #submit-btn と同じ submitPayReport()。2本目の経路を作らない。
+           ・金額は recalc() が #live-total と同じものをここへも書く（式は1本のまま）。
+           ・長い説明（#live-hint）はここには載せない。バーは金額とボタンだけ。 -->
+      <div id="sticky-submit" class="sticky-cta" hidden>
+        <div class="sticky-cta-in">
+          <div class="sticky-cta-sum pv-no-cur">
+            <span class="sticky-cta-lab">年換算の総額</span>
+            <span class="sticky-cta-val" id="sticky-total">—</span>
+          </div>
+          <button type="button" id="sticky-btn" class="btn-orange justify-center">匿名で提出する</button>
+        </div>
       </div>
 
       </div><!-- /form-body -->
@@ -2087,10 +2368,16 @@ function recapLine() {
 const BTN_LABEL_IN  = '送信して結果を見る →';
 const BTN_LABEL_OUT = '匿名で提出する';
 let _btnLabel = BTN_LABEL_IN;
+/* ── 送信ボタンは2つある ────────────────────────────────────────
+   #submit-btn（全段そろったとき下に出る本体）と、常設バーの #sticky-btn。
+   ★状態は必ず両方へ配る。片方だけ止めると、送信中にもう片方が押せてしまう。 */
+const SUBMIT_BTNS = () => ['submit-btn', 'sticky-btn'].map($).filter(Boolean);
+function setSubmitBusy(busy, label) {
+  for (const b of SUBMIT_BTNS()) { b.disabled = busy; b.textContent = label; }
+}
 function setSubmitLabel(signedIn) {
   _btnLabel = signedIn ? BTN_LABEL_IN : BTN_LABEL_OUT;
-  const b = $('submit-btn');
-  if (b && !b.disabled) b.textContent = _btnLabel;
+  for (const b of SUBMIT_BTNS()) if (!b.disabled) b.textContent = _btnLabel;
 }
 
 /* ★ここでページを離れさせない。中身は pay-login.js が作る（日英で1枚）。
@@ -2224,6 +2511,9 @@ function readRoleBoxes() {
   $('f-jobrole').value = ROLE_BOXES.filter((b) => b.checked).map((b) => b.value).join(',');
   instrToggle();   // 教官を外したら、教官の欄ごと畳んで中身も消す
   examToggle();    // 審査も同じ
+  unionToggle();   // 組合・乗員代表も同じ
+  mgmtToggle();    // 管理・マネジメントも同じ
+  nonlineToggle(); // その他の兼務・配属も同じ
 }
 function syncRoleBoxes() {
   const on = {};
@@ -2367,6 +2657,169 @@ for (const b of EXAM_BOXES) b.addEventListener('change', examSync);
 for (const id of EXAM_ALL_IDS) {
   $(id).addEventListener('input', examSync);
   $(id).addEventListener('change', examSync);
+}
+
+/* ── 組合・乗員代表の手当（2026-08-26 その5）──────────────────
+   §1で「組合・乗員代表」を選んだ人にだけ出す。外したら中身も消す。
+   ★教官・審査と同じで、額は専用の列（union_pay）に置き、職位手当・変動給・
+     その他の現金手当・教官・審査の手当のどれにも足し込まない。
+   ★ここだけ違うのは「支給元」。組合から出ている額は会社の明細に無いので、
+     総支給と突き合わせる monthlyDetail() では会社から出ているぶんだけを数える。
+   ★必須は1つも無い（req-tag を置いていない）。日数だけでも保存できる。 */
+const UNION_PAY_IDS = ['f-union-pay', 'f-union-src'];
+const UNION_ALL_IDS = ['f-union-days', 'f-union-extra'].concat(UNION_PAY_IDS);
+
+function unionRead() {
+  if ($('s3-union').hidden) return null;          // 組合でない人の分は組み立てない
+  const t = (id) => $(id).value.trim();
+  const n = (id) => { const v = parseFloat(unc($(id).value)); return isFinite(v) && v > 0 ? v : null; };
+  const o = { days: n('f-union-days'), extra: t('f-union-extra') || null,
+              source: null, amount: null };
+  /* 「あり」以外は金額の欄そのものが出ていない。 */
+  if (o.extra === 'yes') {
+    o.amount = n('f-union-pay');
+    o.source = t('f-union-src') || null;
+  }
+  if (o.days == null && !o.extra) return null;    // 開いただけの空は送らない
+  return o;
+}
+
+/* ★総支給と突き合わせるのは「会社から出ているぶん」だけ。
+   組合から出ている額は会社の明細に載っていないので、足すと
+   「内訳の合計が総支給を超えています」が嘘で出る。 */
+function unionInGross() {
+  if ($('s3-union').hidden) return 0;
+  if ($('f-union-extra').value !== 'yes') return 0;
+  const src = $('f-union-src').value;
+  return (src === 'airline' || src === 'both') ? 1 : 0;
+}
+
+function unionSync() {
+  const yes = $('f-union-extra').value === 'yes';
+  $('opt-union-pay').hidden = !yes;
+  if (!yes) for (const id of UNION_PAY_IDS) $(id).value = '';
+  pdSync();      // pay_items を組み直す（中で recalc も走る）
+}
+
+function unionToggle() {
+  const box = $('s3-union');
+  if (!box) return;
+  const on = String($('f-jobrole').value || '').split(',').indexOf('union') >= 0;
+  if (box.hidden !== on) return;                  // 変わっていない
+  box.hidden = !on;
+  if (on) return;
+  for (const id of UNION_ALL_IDS) $(id).value = '';
+  $('union-detail').open = false;
+  unionSync();
+}
+
+for (const id of UNION_ALL_IDS) {
+  $(id).addEventListener('input', unionSync);
+  $(id).addEventListener('change', unionSync);
+}
+
+/* ── 管理・マネジメントの手当（2026-08-26 その6）──────────────
+   §1で「管理・マネジメント」を選んだ人にだけ出す。外したら中身も消す。
+   ★額は専用の列（management_pay）に置き、職位手当・変動給・その他の現金手当・
+     教官・審査・組合の手当のどれにも足し込まない。
+   ★組合と違い、この額は会社が払う＝総支給の中にある。だから monthlyDetail() には
+     条件なしで足す。unionInGross() のような条件をここに作らない。
+   ★数量は聞かない ── 日数（f-mgmt-days）がそのまま数量になる。
+   ★必須は1つも無い（req-tag を置いていない）。日数だけでも保存できる。 */
+const MGMT_PAY_IDS = ['f-mgmt-pay', 'f-mgmt-method'];
+const MGMT_ALL_IDS = ['f-mgmt-days', 'f-mgmt-extra'].concat(MGMT_PAY_IDS);
+
+function mgmtRead() {
+  if ($('s3-mgmt').hidden) return null;           // 管理職でない人の分は組み立てない
+  const t = (id) => $(id).value.trim();
+  const n = (id) => { const v = parseFloat(unc($(id).value)); return isFinite(v) && v > 0 ? v : null; };
+  const o = { days: n('f-mgmt-days'), extra: t('f-mgmt-extra') || null,
+              method: null, amount: null };
+  /* 「別途支給されている」以外は金額の欄そのものが出ていない。 */
+  if (o.extra === 'separate') {
+    o.amount = n('f-mgmt-pay');
+    o.method = t('f-mgmt-method') || null;
+  }
+  if (o.days == null && !o.extra) return null;    // 開いただけの空は送らない
+  return o;
+}
+
+function mgmtSync() {
+  const sep = $('f-mgmt-extra').value === 'separate';
+  $('opt-mgmt-pay').hidden = !sep;
+  if (!sep) for (const id of MGMT_PAY_IDS) $(id).value = '';
+  pdSync();      // pay_items を組み直す（中で recalc も走る）
+}
+
+function mgmtToggle() {
+  const box = $('s3-mgmt');
+  if (!box) return;
+  const on = String($('f-jobrole').value || '').split(',').indexOf('management') >= 0;
+  if (box.hidden !== on) return;                  // 変わっていない
+  box.hidden = !on;
+  if (on) return;
+  for (const id of MGMT_ALL_IDS) $(id).value = '';
+  $('mgmt-detail').open = false;
+  mgmtSync();
+}
+
+for (const id of MGMT_ALL_IDS) {
+  $(id).addEventListener('input', mgmtSync);
+  $(id).addEventListener('change', mgmtSync);
+}
+
+/* ── その他の兼務・配属の手当（2026-08-27 その7）────────────────
+   §1で「その他の兼務・配属」を選んだ人にだけ出す。外したら中身も消す。
+   ★額は専用の列（nonline_pay）に置き、職位手当・変動給・その他の現金手当・
+     教官・審査・組合・管理職の手当のどれにも足し込まない。
+   ★管理職と同じで monthlyDetail() には条件なしで足す。
+     unionInGross() のような条件をここに作らない（pay-viz の known と顔ぶれが
+     食い違うと、支給構成の円が二重計上になる）。
+   ★聞くのは3つだけ ── 分野・日数・追加報酬（あるときだけ金額）。
+     部署名・出向先の会社名・プロジェクト名・仕事の中身は聞かない。
+   ★支給単位も数量も無い（オーナー仕様は金額だけ）。
+   ★必須は1つも無い（req-tag を置いていない）。 */
+const NONLINE_BOXES = [].slice.call(document.querySelectorAll('input[name="f-nonline-area"]'));
+const NONLINE_PAY_IDS = ['f-nonline-pay'];
+const NONLINE_ALL_IDS = ['f-nonline-days', 'f-nonline-extra'].concat(NONLINE_PAY_IDS);
+
+function nonlineRead() {
+  if ($('s3-nonline').hidden) return null;        // 兼務・配属でない人の分は組み立てない
+  const t = (id) => $(id).value.trim();
+  const n = (id) => { const v = parseFloat(unc($(id).value)); return isFinite(v) && v > 0 ? v : null; };
+  const areas = NONLINE_BOXES.filter((b) => b.checked).map((b) => b.value);
+  const o = { areas: areas, days: n('f-nonline-days'), extra: t('f-nonline-extra') || null,
+              amount: null };
+  /* 「別途支給される」以外は金額の欄そのものが出ていない。 */
+  if (o.extra === 'separate') o.amount = n('f-nonline-pay');
+  if (!areas.length && o.days == null && !o.extra) return null;  // 開いただけの空は送らない
+  return o;
+}
+
+function nonlineSync() {
+  const sep = $('f-nonline-extra').value === 'separate';
+  $('opt-nonline-pay').hidden = !sep;
+  if (!sep) for (const id of NONLINE_PAY_IDS) $(id).value = '';
+  pdSync();      // pay_items を組み直す（中で recalc も走る）
+}
+
+function nonlineToggle() {
+  const box = $('s3-nonline');
+  if (!box) return;
+  const on = String($('f-jobrole').value || '').split(',').indexOf('nonline') >= 0;
+  if (box.hidden !== on) return;                  // 変わっていない
+  box.hidden = !on;
+  if (on) return;
+  for (const b of NONLINE_BOXES) b.checked = false;
+  for (const id of NONLINE_ALL_IDS) $(id).value = '';
+  $('nonline-detail').open = false;
+  nonlineSync();
+}
+
+for (const b of NONLINE_BOXES) b.addEventListener('change', nonlineSync);
+for (const id of NONLINE_ALL_IDS) {
+  $(id).addEventListener('input', nonlineSync);
+  $(id).addEventListener('change', nonlineSync);
 }
 
 $('f-airline').addEventListener('change', () => {
@@ -2534,7 +2987,39 @@ function monthlyDetail() {
   const housing = $('f-housing').value === 'allowance' ? num('f-housing-amt') : 0;
   return num('f-base') + num('f-guarantee') + num('f-hourly') * hours + num('f-perdiem') + housing
          + num('f-transport') + num('f-command') + num('f-other')
-         + num('f-var-sum') + num('f-oth-sum') + num('f-instructor') + num('f-examiner');
+         + num('f-var-sum') + num('f-oth-sum') + num('f-instructor') + num('f-examiner')
+  /* ★組合だけ条件つき。支給元が組合（Union / Association）のときは会社の明細に
+     載っていない額なので、足すと「合計が総支給を超えています」が嘘で出る。 */
+         + (unionInGross() ? num('f-union-pay') : 0)
+  /* ★管理職はふつうに足す。会社が払うお金＝総支給の中にあるので、
+     組合のような条件を作らない（作ると内訳の合計が実際より小さく出る）。 */
+         + num('f-mgmt-pay')
+         + num('f-nonline-pay');
+}
+
+/* ── 超過の注意を「その額を打った欄の下」に出す（2026-08-27 オーナー指摘）──
+   注意は1つのまま。文言も条件も増やさず、**出す場所だけ**を打った欄の下へ移す。
+   役割ごとの節（教官・審査・組合・管理職）は <details id="pay-detail"> の**後ろ**に
+   あるので、既定の #pd-over だと打った欄から数百px上に出ていた
+   （「なんか変なところに出るよこれ」）。
+   ★出すのは必ず1つだけ。2か所に同じ注意が並ぶと、どこを直せばいいのか分からなくなる。
+   ★受け皿を増やしたら OVER_SLOT にも足す（HTML だけ足しても出ない）。 */
+const OVER_SLOT = { 'f-instructor': 'pd-over-instr', 'f-examiner': 'pd-over-exam',
+                    'f-union-pay': 'pd-over-union', 'f-mgmt-pay': 'pd-over-mgmt',
+                    'f-nonline-pay': 'pd-over-nonline' };
+const OVER_IDS = ['pd-over'].concat(Object.keys(OVER_SLOT).map((k) => OVER_SLOT[k]));
+let _lastMoney = '';   // 最後に打った金額欄（listener が入れる）
+function overSlot() {
+  const slot = OVER_SLOT[_lastMoney];
+  /* 空にした欄・合計に入っていない額の下に出しても、直しようが無い。 */
+  if (!slot || num(_lastMoney) <= 0) return 'pd-over';
+  /* ★組合だけは、支給元が会社のときしか合計に入っていない（unionInGross）。 */
+  if (_lastMoney === 'f-union-pay' && !unionInGross()) return 'pd-over';
+  return slot;
+}
+function showOver(on) {
+  const slot = on ? overSlot() : '';
+  for (const id of OVER_IDS) $(id).hidden = id !== slot;
 }
 
 function annualTotal() {
@@ -2562,17 +3047,20 @@ function recalc() {
      おかしいのは内訳の合計が総支給を**超えた**ときだけで、そのときだけ1行出す。
      一致は強制しないし、送信も止めない。 */
   const gross = num('f-gross');
-  $('pd-over').hidden = !(gross > 0 && monthlyDetail() > gross + 1);
+  showOver(gross > 0 && monthlyDetail() > gross + 1);
   const t = annualTotal();
-  $('live-total').innerHTML = t > 0
+  /* ★同じ文字列を2か所へ。#sticky-total は常設バーの中（式は annualTotal() の1本のまま）。 */
+  const totalHTML = t > 0
     ? new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Math.round(t)) + '<span class="u">' + esc(cur || '') + ' / 年</span>'
     : '—';
+  $('live-total').innerHTML = totalHTML;
+  $('sticky-total').innerHTML = totalHTML;
   updateTax();   // 税率は年収で変わる。金額を触るたびに引き直す
 }
 /* ★f-transport / f-other は画面から消えて hidden になった（明細読み取りだけが書く）。
    代わりに繰り返し行の合計 f-var-sum / f-oth-sum を pdSync() が書いて recalc を呼ぶ。 */
-['f-gross','f-base','f-guarantee','f-hourly','f-guar','f-block','f-perdiem','f-housing-amt','f-command','f-bonus','f-bonus-mo','f-profit','f-instructor','f-examiner']
-  .forEach((id) => $(id).addEventListener('input', recalc));
+['f-gross','f-base','f-guarantee','f-hourly','f-guar','f-block','f-perdiem','f-housing-amt','f-command','f-bonus','f-bonus-mo','f-profit','f-instructor','f-examiner','f-union-pay','f-mgmt-pay','f-nonline-pay']
+  .forEach((id) => $(id).addEventListener('input', () => { _lastMoney = id; recalc(); }));
 $('f-currency').addEventListener('change', recalc);
 
 /* ── 段階表示（levels.fyi 型）──────────────────────────────────
@@ -2617,6 +3105,9 @@ function updateSteps(quiet) {
   for (let i = 0; i < STEPS.length; i++) { if (!STEPS[i][1]()) break; last = i; }
   for (let i = 0; i <= last; i++) show(STEPS[i][0]);
   if (last === STEPS.length - 1 && GATE_CONTRACT()) show('submit-block');
+  /* ★§3「報酬」が出たら、下端の常設バーも出す（2026-08-27 オーナー指示）。
+     途中で出したい人が押せる所を、いつでも持っている状態にする。 */
+  if (!$('s3').hidden) showSticky();
   markRequired();
   markProgress();
   $('ai-legend').hidden = !document.querySelector('.form-input.ai-filled');
@@ -2635,7 +3126,15 @@ function markRequired() {
        一意にならないため。引けなかったときだけ、同じ .fld の中の欄を見る。
        これで「必須の出どころは HTML の req-tag ただ1か所」を崩さずに済む。 */
     const el = $(lab.htmlFor) || fld.querySelector('input, select');
-    fld.classList.toggle('is-done', !!el && el.value.trim() !== '');
+    const done = !!el && el.value.trim() !== '';
+    fld.classList.toggle('is-done', done);
+    /* ★埋まった瞬間に「未入力」の赤を落とす（押し直させない）。付けるのは
+       markMissing() ただ1か所で、落とすのはここと clearErr() の2か所だけ。 */
+    if (done && fld.classList.contains('is-miss')) {
+      fld.classList.remove('is-miss');
+      const t = lab.querySelector('.miss-tag');
+      if (t) t.remove();
+    }
   }
 }
 /* 段ごとの進み具合（2026-08-17 オーナー指摘：どこが入力済みか分からない
@@ -2829,12 +3328,15 @@ function pdSync() {
   const none = $('f-base-none').checked;
   /* ★教官の行も同じ入れ物に乗せる。合計はどこにも寄せない
      （寄せると職位手当・変動給・その他と二重に数えることになる）。 */
-  const ins = instrRead(), exm = examRead();
+  const ins = instrRead(), exm = examRead(), uni = unionRead(), mgt = mgmtRead(), nol = nonlineRead();
   const pi = { v: 1, fixed_none: none, variable: v, other: o };
   if (ins) pi.instructor = ins;
   if (exm) pi.examiner = exm;
+  if (uni) pi.union = uni;
+  if (mgt) pi.management = mgt;
+  if (nol) pi.nonline = nol;
   /* 何も入っていないときは列ごと空にする（意味の無い {} を送らない）。 */
-  $('f-payitems').value = (v.length || o.length || none || ins || exm) ? JSON.stringify(pi) : '';
+  $('f-payitems').value = (v.length || o.length || none || ins || exm || uni || mgt || nol) ? JSON.stringify(pi) : '';
   recalc();
 }
 
@@ -2927,6 +3429,41 @@ function pdRestore(raw) {
     $('exam-detail').open = true;
     examSync();   // 中で pdSync も走る
   }
+  /* ★組合・乗員代表の分。同じく、画面に出ていないなら書き戻さない。 */
+  const uni = o.union;
+  if (uni && typeof uni === 'object' && !$('s3-union').hidden) {
+    const put = (id, v) => { if (v != null && v !== '') $(id).value = v; };
+    put('f-union-days', uni.days != null ? String(uni.days) : '');
+    put('f-union-extra', uni.extra);
+    put('f-union-pay', uni.amount != null ? grp(String(uni.amount)) : '');
+    put('f-union-src', uni.source);
+    $('union-detail').open = true;
+    unionSync();   // 中で pdSync も走る
+  }
+  /* ★管理・マネジメントの分。同じく、画面に出ていないなら書き戻さない。 */
+  const mgt = o.management;
+  if (mgt && typeof mgt === 'object' && !$('s3-mgmt').hidden) {
+    const put = (id, v) => { if (v != null && v !== '') $(id).value = v; };
+    put('f-mgmt-days', mgt.days != null ? String(mgt.days) : '');
+    put('f-mgmt-extra', mgt.extra);
+    put('f-mgmt-pay', mgt.amount != null ? grp(String(mgt.amount)) : '');
+    put('f-mgmt-method', mgt.method);
+    $('mgmt-detail').open = true;
+    mgmtSync();   // 中で pdSync も走る
+  }
+  /* ★その他の兼務・配属の分。同じく、画面に出ていないなら書き戻さない。 */
+  const nol = o.nonline;
+  if (nol && typeof nol === 'object' && !$('s3-nonline').hidden) {
+    const on = {};
+    for (const c of (Array.isArray(nol.areas) ? nol.areas : [])) on[c] = 1;
+    for (const b of NONLINE_BOXES) b.checked = !!on[b.value];
+    const put = (id, v) => { if (v != null && v !== '') $(id).value = v; };
+    put('f-nonline-days', nol.days != null ? String(nol.days) : '');
+    put('f-nonline-extra', nol.extra);
+    put('f-nonline-pay', nol.amount != null ? grp(String(nol.amount)) : '');
+    $('nonline-detail').open = true;
+    nonlineSync();   // 中で pdSync も走る
+  }
   pdSync();
 }
 /* ?airline= で 'other' が入ったときは change が出ていないので会社名欄が
@@ -2944,7 +3481,7 @@ const PRESET_IDS = ['f-airline','f-airline-other','f-position','f-fleet','f-curr
   'f-payitems',
   /* ★教官・審査の支給額。行の形（担当・呼び名・支給単位）は f-payitems 側が
      持つので、ここに入れるのは列へ送る金額だけ。 */
-  'f-instructor','f-examiner'];
+  'f-instructor','f-examiner','f-union-pay','f-mgmt-pay','f-nonline-pay'];
 // ★ログイン後の再送用。プリセットと違って対象月も含める（そのまま送るため）。
 const ALL_IDS = PRESET_IDS.concat(['f-year','f-month','f-block','f-duty',
   /* ★その月にしか無い値。PRESET_IDS には入れない（翌月のフォームに持ち越すと壊れる）。 */
@@ -3066,6 +3603,9 @@ updateSteps(true);
     'f-transport': s(r.transport), 'f-command': s(r.command_pay),
     'f-other': s(r.other_allowance), 'f-bonus': s(r.bonus_annual),
     'f-instructor': s(r.instructor_pay), 'f-examiner': s(r.examiner_pay),
+    'f-union-pay': s(r.union_pay),
+    'f-mgmt-pay': s(r.management_pay),
+    'f-nonline-pay': s(r.nonline_pay),
     'f-profit': s(r.profit_share_annual), 'f-pension': s(r.pension_pct),
     'f-contract': s(r.contract_type), 'f-taxcountry': s(r.tax_country),
     'f-tax': s(r.tax_rate_pct), 'f-seniority': s(r.seniority_years),
@@ -3180,7 +3720,77 @@ function showErr(msg, title) {
   $('err').innerHTML = '<div class="form-alert"><span class="fa-title">' + esc(title || '送信できませんでした') + '</span>' + esc(msg) + '</div>';
   $('err').scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
-function clearErr() { $('err').innerHTML = ''; }
+function clearErr() { $('err').innerHTML = ''; clearMissMarks(); }
+
+/* ── 足りない必須項目を、まとめて拾う（2026-08-27 オーナー指示）──
+   前は早期 return で1件ずつだったので、3つ空いている人は3回押し直していた。
+   常設バーから途中でも押せるようになったので、なおさら1件ずつでは終わらない。
+   ★必須の出どころは今までどおり HTML の <span class="req-tag"> ただ1か所。
+     ここは markRequired() が付けた .fld.is-req / .is-done を読むだけで、
+     2つ目の一覧を JS に持たない（持った瞬間に画面の印とズレる）。
+   ★ラベルは画面の <label> から取る＝日英で自動的に正しい。 */
+function missingRequired() {
+  markRequired();
+  return [...document.querySelectorAll('.fld.is-req:not(.is-done)')].filter((f) => {
+    const el = f.querySelector('input, select');
+    /* 隠れている欄（一覧にない会社名）・触れない欄（住宅手当の額）は数えない。 */
+    if (!el || el.disabled || !f.offsetParent) return false;
+    /* ＋を押しただけの空の行は pdRead() が落とす＝送られない。数えない。 */
+    const row = f.closest('.pd-row');
+    return !(row && ![...row.querySelectorAll('input, select')].some((e) => e.value.trim()));
+  });
+}
+const reqLabel = (f) => {
+  const lab = f.querySelector('.form-label');
+  if (!lab) return '';
+  const c = lab.cloneNode(true);
+  for (const t of c.querySelectorAll('.req-tag, .opt-tag, .auto-tag, .miss-tag')) t.remove();
+  return c.textContent.trim();
+};
+/* 止まっている段が隠れたままだと「契約形態を入れてください」と言いながら
+   その欄が画面に無い、という行き止まりになる。段だけ開ける。
+   ★#submit-block は開けない（全段そろったときだけ、は維持）。 */
+function revealSteps() {
+  for (const [id] of STEPS) $(id).hidden = false;
+  showSticky();
+  markRequired();
+  markProgress();
+}
+/* ── 足りない必須項目：その欄まで飛んで赤く囲う（2026-08-27 オーナー指示で作り直し）──
+   前は <ul> の箇条書きで並べていたが、オーナー指示
+   「やっぱり箇条書きを一旦やめよう。……そのまま必須項目の該当する欄まで飛んで、
+     そこを赤く囲うとかはどう？該当する項目の右横に未入力とか書いて」。
+   ＝読ませて押させる（一覧 → 押す → 飛ぶ）のをやめ、押した瞬間に現場へ連れて行く。
+   ★印は足りない欄すべてに付ける。飛ぶのは先頭ひとつだけ。
+   ★.fa-list / .fa-jump は戻さない（db/test-form-contract.mjs が字で見張っている）。 */
+const MISS_TAG = '未入力';
+/* 役職・区分は値を hidden の #f-jobrole が持つので .form-input が無い。
+   その場合はチェックボックスの1つ目を掴む（掴めないと飛べない）。 */
+const jumpTarget = (f) => f.querySelector('.form-input:not([type="hidden"])')
+  || f.querySelector('.rolebox input') || f.querySelector('input, select');
+function clearMissMarks() {
+  for (const f of document.querySelectorAll('.fld.is-miss')) f.classList.remove('is-miss');
+  for (const t of document.querySelectorAll('.miss-tag')) t.remove();
+}
+function markMissing(list) {
+  track('pay_form_blocked');
+  clearMissMarks();
+  for (const f of list) {
+    f.classList.add('is-miss');
+    const lab = f.querySelector('.form-label');
+    if (!lab || lab.querySelector('.miss-tag')) continue;
+    const t = document.createElement('span');
+    t.className = 'miss-tag';
+    t.textContent = MISS_TAG;
+    lab.appendChild(t);
+  }
+  $('err').innerHTML = '<div class="form-alert"><span class="fa-title">入力していない必須項目があります</span>赤く囲った欄がまだ空です。</div>';
+  /* ★飛ぶのは先頭ひとつ。印は上で全部に付けてある。 */
+  const inp = jumpTarget(list[0]);
+  if (!inp) return;
+  inp.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  inp.focus({ preventScroll: true });
+}
 
 // ── 送信 ──────────────────────────────────────────────────────
 /* ★unc() を通す。金額の欄は画面に 1,150,000 と出ているので、そのまま送ると
@@ -3196,7 +3806,14 @@ const sumField = (...ids) => {
 async function submitPayReport() {
   clearErr();
   hideGate();
-  const btn = $('submit-btn');
+
+  /* ★まず「空のままの必須欄」を全部まとめて出す（2026-08-27 オーナー指示）。
+     常設バーで途中からでも押せるので、1件ずつ返すと何度も押し直しになる。
+     ここを抜けた後の判定（額面・変動給の種類・時給との組み合わせ）は
+     「空かどうか」ではないので箇条書きにできない。今までどおり1件ずつ残す。 */
+  revealSteps();
+  const miss = missingRequired();
+  if (miss.length) return markMissing(miss);
 
   const airline = val('f-airline');
   if (!airline) return showErr('会社を選んでください。');
@@ -3282,6 +3899,12 @@ async function submitPayReport() {
     /* ★審査・査察の手当（2026-08-26 その4）。教官の手当ともまた別の列。
        「教官とまとめて支給」を選んだ人はここが空になる（額は instructor_pay 側）。 */
     examiner_pay:        val('f-examiner'),
+    /* ★組合・乗員代表の手当（2026-08-26 その5）。これもまた別の列。
+       支給元が組合のことがあるので、総支給との突き合わせだけ条件つき
+       （monthlyDetail() を参照）。年換算は総支給が正なので年収は動かない。 */
+    union_pay:           val('f-union-pay'),
+    management_pay:      val('f-mgmt-pay'),
+    nonline_pay:         val('f-nonline-pay'),
     /* ★繰り返し行（その他の現金手当＋変動給）の合計をここに足す。
        f-other は明細読み取りが丸ごと上書きする欄なので、手入力の行は
        別の入れ物（f-oth-sum / f-var-sum）に持っていて、送るときだけ合わせる。
@@ -3325,8 +3948,7 @@ async function submitPayReport() {
     lang:                LANG,
   };
 
-  btn.disabled = true;
-  btn.textContent = '送信中…';
+  setSubmitBusy(true, '送信中…');
 
   /* ★下書きは送る前に必ず端末へ残す。ここから先で何が起きても入力は消えない。
      ★預けた時刻も一緒に残す。ログインせずに離れた人の下書きはそのまま残るので、
@@ -3351,15 +3973,13 @@ async function submitPayReport() {
       try { if (typeof window.PVConfetti === 'function') window.PVConfetti(); } catch (e) {}
       savePreset();
       track('pay_report_pending');
-      btn.disabled = false;
-      btn.textContent = _btnLabel;
+      setSubmitBusy(false, _btnLabel);
       return showGate(true);
     } catch (e) {
       console.error(e);
       const code = String((e && e.code) || '');
       track('pay_report_error', { reason: ('pending_' + (code || (e && e.name) || 'error')).slice(0, 40) });
-      btn.disabled = false;
-      btn.textContent = _btnLabel;
+      setSubmitBusy(false, _btnLabel);
       /* 入力そのものが受け取れない（22023）なら、その場で直してもらう。
          ここで登録の箱を出すと、直しようのない画面でアカウントだけ作らせることになる。 */
       if (code === '22023') return showErr(String((e && (e.message || e.hint)) || 'error'));
@@ -3382,11 +4002,31 @@ async function submitPayReport() {
        送るのは短い符号だけ。message には値が混じることがあるので送らない。 */
     track('pay_report_error', { reason: String((e && (e.code || e.name)) || 'error').slice(0, 40) });
     showErr(String((e && (e.message || e.hint)) || 'error'));
-    btn.disabled = false;
-    btn.textContent = _btnLabel;
+    setSubmitBusy(false, _btnLabel);
   }
 }
 $('submit-btn').addEventListener('click', submitPayReport);
+
+/* ── 常設バー（2026-08-27）────────────────────────────────────
+   §3「報酬」が出たら下端に出し、以後は隠さない（段と同じ規則）。
+   #submit-block が画面に入っているあいだだけ .is-off で沈める（同じボタンを2つ見せない）。 */
+function stickyWatch() {
+  const bar = $('sticky-submit'), blk = $('submit-block');
+  if (!bar || !blk || bar._io) return;
+  if (typeof IntersectionObserver !== 'function') return;   // 無い環境では出したまま
+  bar._io = new IntersectionObserver((es) => {
+    for (const e of es) bar.classList.toggle('is-off', e.isIntersecting);
+  }, { rootMargin: '0px 0px -60px 0px' });
+  bar._io.observe(blk);
+}
+function showSticky() {
+  const bar = $('sticky-submit');
+  if (!bar || !bar.hidden) return;
+  bar.hidden = false;
+  document.body.classList.add('has-cta');
+  stickyWatch();
+}
+$('sticky-btn').addEventListener('click', submitPayReport);
 
 // ── 結果（★入力させずに返す。これが投稿の見返り）─────────────
 function renderResult(d, p) {
@@ -3483,8 +4123,7 @@ function renderResult(d, p) {
   $('btn-again').addEventListener('click', () => {
     $('result-wrap').style.display = 'none';
     $('form-wrap').style.display = '';
-    $('submit-btn').disabled = false;
-    $('submit-btn').textContent = _btnLabel;
+    setSubmitBusy(false, _btnLabel);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 

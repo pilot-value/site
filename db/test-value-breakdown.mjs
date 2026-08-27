@@ -219,6 +219,20 @@ console.log('\n⑧ 名前の対応表（my-value.js / pay-tracker.js の両方�
     ok(/examiner:\s*T\.segExaminer/.test(src)
        && src.includes("segExaminer: '審査・査察手当'") && /segExaminer: 'Examiner \/ check'/.test(src),
        `${f}: ★ 審査の語がある（無いと凡例が undefined になる）`);
+    /* ★組合・乗員代表の手当（2026-08-26 その5）。教官・審査ともまた別のスライス。 */
+    ok(/union:\s*T\.segUnion/.test(src)
+       && src.includes("segUnion: '組合・乗員代表手当'") && /segUnion: 'Union \/ representative'/.test(src),
+       `${f}: ★ 組合の語がある（無いと凡例が undefined になる）`);
+    /* ★管理・マネジメントの手当（2026-08-26 その6）。役割ごとの4本目のスライス。 */
+    ok(/management:\s*T\.segManagement/.test(src)
+       && src.includes("segManagement: '管理・マネジメント手当'")
+       && /segManagement: 'Management \/ leadership'/.test(src),
+       `${f}: ★ 管理職の語がある（無いと凡例が undefined になる）`);
+    /* ★その他の兼務・配属（2026-08-27 その7）。役割ごとの5本目＝最後のスライス。 */
+    ok(/nonline:\s*T\.segNonline/.test(src)
+       && src.includes("segNonline: 'その他の兼務・配属手当'")
+       && /segNonline: 'Other \/ non-line assignment'/.test(src),
+       `${f}: ★ 兼務・配属の語がある（無いと凡例が undefined になる）`);
   }
   const mv = readFileSync(path.join(ROOT, 'my-value.js'), 'utf8');
   /* ★「固定 / 変動 / 判別できない」の3本のバケツ。segments() のスライスを
@@ -242,6 +256,21 @@ console.log('\n⑧ 名前の対応表（my-value.js / pay-tracker.js の両方�
        教官と同じ本に入るが、スライスとしては別々（同じお金を2回数えないため）。 */
     ok(buckets.includes('examiner'),
        '★ 審査の手当が3本のどれかに入っている（変動）', buckets.join(','));
+    /* ★組合の手当も同じ理由で「変動」。活動した日数で月ごとに変わる。
+       ⚠️ この列だけ会社が払っているとは限らない（支給元は pay_items.union.source）が、
+          図は「その月にいくら受け取ったか」を描くので扱いは同じ。 */
+    ok(buckets.includes('union'),
+       '★ 組合の手当が3本のどれかに入っている（変動）', buckets.join(','));
+    /* ★管理職の手当も同じ理由で「変動」。管理業務にあたった日数で月ごとに変わる。
+       ⚠️ 組合と違い、この額は会社が払う＝総支給の中にある。それでも図は
+          「その月にいくら受け取ったか」を描くので、スライスとしての扱いは同じ。 */
+    ok(buckets.includes('management'),
+       '★ 管理職の手当が3本のどれかに入っている（変動）', buckets.join(','));
+    /* ★兼務・配属の手当も同じ理由で「変動」。関連する業務にあたった日数で月ごとに変わる。
+       ⚠️ 出向の場合、その額を出向先が払っていて会社の明細に載っていないことがあるが、
+          図は「その月にいくら受け取ったか」を描くので扱いは同じ。 */
+    ok(buckets.includes('nonline'),
+       '★ 兼務・配属の手当が3本のどれかに入っている（変動）', buckets.join(','));
     const miss = all.filter((k) => !buckets.includes(k));
     ok(miss.length === 0, '★ segments() のスライスが1つも取りこぼされていない', miss.join(','));
     ok(new Set(buckets).size === buckets.length,

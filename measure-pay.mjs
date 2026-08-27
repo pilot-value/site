@@ -28,7 +28,8 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
        あちらに必須を1つ足したらここも足す（足さないと「開けきれていない」で落ちる）。 */
     put('f-airline', 'emirates'); put('f-position', 'cap'); put('f-fleet', 'b777');
     /* ★教官も選ぶ。選ばないと教官の節ごと hidden で、中の select が測れない。 */
-    put('f-jobrole', 'line,instructor,examiner'); if (typeof syncRoleBoxes === 'function') syncRoleBoxes();
+    put('f-jobrole', 'line,instructor,examiner,union,management,nonline');
+    if (typeof syncRoleBoxes === 'function') syncRoleBoxes();
     put('f-age', '40-49');
     put('f-block', '86.5'); put('f-stay', '12');
     put('f-currency', 'AED'); put('f-gross', '77800'); put('f-netpay', '71600');
@@ -42,11 +43,17 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
     const d = document.getElementById('pay-detail');
     if (d) { d.open = true; d.dispatchEvent(new Event('toggle')); }
     if (typeof pdAdd === 'function') pdAdd('var', true);
-    /* ★教官・審査の「支給単位」は「別途支給される」を選ぶまで出ない（2026-08-26 その3・その4）。 */
-    for (const [did, eid] of [['instr-detail', 'f-instr-extra'], ['exam-detail', 'f-exam-extra']]) {
+    /* ★教官・審査・管理職の「支給単位」と組合の「支給元」は、追加の支給が「ある」を
+       選ぶまで出ない（2026-08-26 その3〜その6）。選ぶ値が組合だけ違う。
+       ★兼務・配属（2026-08-27 その7）は select が「追加報酬」の1つだけ（支給単位を聞かない）。 */
+    for (const [did, eid, v] of [['instr-detail', 'f-instr-extra', 'separate'],
+                                 ['exam-detail', 'f-exam-extra', 'separate'],
+                                 ['union-detail', 'f-union-extra', 'yes'],
+                                 ['mgmt-detail', 'f-mgmt-extra', 'separate'],
+                                 ['nonline-detail', 'f-nonline-extra', 'separate']]) {
       const dd = document.getElementById(did);
       if (dd) { dd.open = true; dd.dispatchEvent(new Event('toggle')); }
-      if (document.getElementById(eid)) put(eid, 'separate');
+      if (document.getElementById(eid)) put(eid, v);
     }
   });
   await new Promise((r) => setTimeout(r, 400));
@@ -64,7 +71,10 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
     const vb = document.querySelector('#pd-var-rows .pd-basis');
     if (vb) targets.push(['pd-basis〈変動給の種類〉', vb]);
     for (const [id, nm] of [['f-instr-extra', '教官・追加報酬'], ['f-instr-method', '教官・支給単位'],
-                            ['f-exam-extra', '審査・追加報酬'], ['f-exam-method', '審査・支給単位']]) {
+                            ['f-exam-extra', '審査・追加報酬'], ['f-exam-method', '審査・支給単位'],
+                            ['f-union-extra', '組合・追加報酬'], ['f-union-src', '組合・支給元'],
+                            ['f-mgmt-extra', '管理職・追加報酬'], ['f-mgmt-method', '管理職・支給単位'],
+                            ['f-nonline-extra', '兼務・配属・追加報酬']]) {
       const el = document.getElementById(id);
       if (el) targets.push([`${id}〈${nm}〉`, el]);
     }

@@ -228,7 +228,7 @@ await page.evaluateOnNewDocument((scene, theme) => {
         /* ★総支給は内訳の合計より少しだけ大きい数にしておく。小さいと
            pay-viz が「手当の合計が総支給を超える行は正しい図を描けない」で
            図ごと降りる（見本のまま出る）＝色の見比べができない。 */
-        gross_monthly: 59000, guaranteed_hours: 75, bonus_annual: 130000, bonus_month: 0,
+        gross_monthly: 66000, guaranteed_hours: 75, bonus_annual: 130000, bonus_month: 0,
         /* ★保証給（2026-08-26）。基本給とは別の切れが出ることを、この1枚で見る。
            灰色に落ちていたら pay-viz の segments に guarantee を足し忘れている。 */
         base_pay: 20000, guarantee_pay: 3000, command_pay: 3200,
@@ -239,11 +239,20 @@ await page.evaluateOnNewDocument((scene, theme) => {
         /* ★審査・査察の手当（2026-08-26 その4）。教官の隣に自分の色で出る。
            隣と見分けられない・灰色に落ちる、のどちらかなら pay-viz の SEG を直す。 */
         examiner_pay: 1800,
+        /* ★組合・乗員代表の手当（2026-08-26 その5）。教官・審査の隣に自分の色で出る。
+           ⚠️ ここを足したら総支給も一緒に上げる（上の★の理由）。 */
+        union_pay: 1500,
+        /* ★管理・マネジメントの手当（2026-08-26 その6）。組合の隣に自分の色（ブロンズ）で出る。
+           ⚠️ ここを足したら総支給も一緒に上げる（上の★の理由。60500 → 63000 にした）。 */
+        management_pay: 2500,
+        /* ★その他の兼務・配属の手当（2026-08-27 その7）。管理職の隣に自分の色（濃紺）で出る。
+           ⚠️ ここを足したら総支給も一緒に上げる（上の★の理由。63000 → 66000 にした）。 */
+        nonline_pay: 3000,
         flight_variable_pay: 11000, other_allowance: 11900,
         per_diem: 4200, transport: 0,
         housing_type: 'allowance', housing_amount: 12000,
       }));
-      r.annual_total_orig = 59000 * 12 + 130000;
+      r.annual_total_orig = 66000 * 12 + 130000;
       r.annual_total_jpy = Math.round(r.annual_total_orig * r.fx_to_jpy);
       r.annual_total_usd = Math.round(r.annual_total_orig * r.fx_to_usd);
       r.net_annual_jpy = Math.round(r.annual_total_jpy * 0.99);
