@@ -23,7 +23,17 @@ import { fileURLToPath } from 'url';
 /* db/ から見て1つ上がリポジトリのルート。
    絶対パスを書くと macOS のユーザー名が公開リポジトリに載る */
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
-const read = (f) => readFileSync(path.join(ROOT, f), 'utf8');
+/* ★2026-08-27、給与レポートの CSS を pay-report.css へ切り出した（日英で同じ1枚）。
+   検査は今までどおり「HTML ＋ そのページが読む CSS」を1つの材料として見る＝切り出す前と同じ。
+   ⚠️ ここを HTML だけに戻すと、CSS を見ている**否定形**の検査
+   （「破線に戻っていない」「全部大文字に戻していない」…）が空文字列を相手に**黙って通る**。
+   落ちないまま守りだけが消える形なので、下の ★CSS-GUARD が中身の有無を毎回確かめている。 */
+const PAGE_CSS = { 'pay-report.html': 'pay-report.css', 'en/pay-report.html': 'pay-report.css' };
+const read = (f) => {
+  const html = readFileSync(path.join(ROOT, f), 'utf8');
+  if (!PAGE_CSS[f]) return html;
+  return html + '\n<style>\n' + readFileSync(path.join(ROOT, PAGE_CSS[f]), 'utf8') + '\n</style>\n';
+};
 
 /* ★給与を保存したあとに鳴ってよい RPC。ここに書いた名前だけが「ほかの RPC」から外れる。
    待遇の質問（pv-conditions.js）はレポートが出たあとに動く。給与の保存とは別の口で、
@@ -150,6 +160,16 @@ console.log('\n市場価値レポート（my-value）');
   const bad = [...new Set([...MV.matchAll(/\br\.([a-z_]+)/g)].map((m) => m[1]))]
     .filter((k) => /deduct|tax|pension|union|insur/.test(k) && !OKDEDUCT.includes(k));
   ok(bad.length === 0, `my-value.js は控除の内訳を読んでいない（合計だけ）`, bad.join(','));
+
+/* ★CSS-GUARD ── 切り出した CSS が本当に読めているか。ここが落ちない限り、
+   下の CSS を見ている検査は「空を相手に通った」のではないと言える。 */
+for (const f of ['pay-report.html', 'en/pay-report.html']) {
+  const s = read(f);
+  ok(/<link rel="stylesheet" href="(\.\.\/)?pay-report\.css">/.test(s),
+     `${f}: ★pay-report.css を読み込んでいる`);
+  ok(s.includes('.pay-detail>summary{') && s.includes('.form-label{') && s.length > 120000,
+     `${f}: ★CSS が検査の材料に入っている（空を相手に通っていない）`, `${s.length} 文字`);
+}
 
   // ⑥ 明細を出した直後の着地先が Get 側（レポート）に向いている
   for (const f of ['pay-report.html', 'en/pay-report.html']) {

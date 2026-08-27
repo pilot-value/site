@@ -1264,7 +1264,13 @@ for (const [f, needles] of COPY) {
    payslip.js が専用クラスを付けていても、スタイルが無ければ素の <p> と同じで、
    「大きく言う」という約束が見た目の側から静かに外れる。JP/EN 両方に求める。 */
 for (const f of ['pay-report.html', 'en/pay-report.html']) {
-  const s = readFileSync(path.join(DIR, '..', f), 'utf8');
+  /* ★2026-08-27、CSS は pay-report.css へ切り出した。ここは HTML ＋ CSS を材料にする。
+     ⚠️ HTML だけに戻すと、下の3つの**否定形**（62vh で頭打ちにしていない／
+     「原寸で確認」が残っていない）が空文字列を相手に黙って通る。だから中身の有無を先に見る。 */
+  const s = readFileSync(path.join(DIR, '..', f), 'utf8')
+    + '\n<style>\n' + readFileSync(path.join(DIR, '..', 'pay-report.css'), 'utf8') + '\n</style>\n';
+  ok(s.includes('.ps-edit{') && s.includes('.ps-stage'),
+    `${f}: ★CSS が検査の材料に入っている（空を相手に通っていない）`);
   ok(/\.ps-frwarn\{[^}]*background:/.test(s),
     `${f}: ★枠が全体のときの警告に目立つ見た目がある`);
   ok(/\[data-theme="light"\] \.ps-frwarn\{/.test(s),
