@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+
+  "permissions": {
+    "allow": [
+      "Read(//Users/**)",
+      "Glob(**)",
+      "Grep(**)",
+
+      "Bash(ls:*)", "Bash(cat:*)", "Bash(head:*)", "Bash(tail:*)", "Bash(wc:*)",
+      "Bash(sed -n:*)", "Bash(grep:*)", "Bash(rg:*)", "Bash(find:*)", "Bash(file:*)",
+      "Bash(diff:*)", "Bash(shasum:*)", "Bash(du:*)", "Bash(stat:*)", "Bash(sort:*)",
+      "Bash(uniq:*)", "Bash(cut:*)", "Bash(awk:*)", "Bash(basename:*)", "Bash(dirname:*)",
+      "Bash(echo:*)", "Bash(printf:*)", "Bash(pwd)", "Bash(which:*)", "Bash(mkdir:*)",
+
+      "Bash(git status:*)", "Bash(git diff:*)", "Bash(git log:*)", "Bash(git show:*)",
+      "Bash(git branch:*)", "Bash(git grep:*)", "Bash(git stash list:*)",
+      "Bash(git config --get:*)", "Bash(git rev-parse:*)", "Bash(git ls-files:*)",
+      "Bash(git add:*)", "Bash(git restore:*)", "Bash(git checkout -b:*)",
+
+      "Bash(node check.mjs:*)",
+      "Bash(node check-salary.mjs:*)", "Bash(node check-sources.mjs)",
+      "Bash(node assert-*.mjs)", "Bash(node assert-*.mjs --check)",
+      "Bash(node db/test-*.mjs)", "Bash(node db/test-*.mjs:*)",
+      "Bash(node measure-pay.mjs:*)",
+      "Bash(node gen-sitemap.mjs)", "Bash(node gen-en-manifest.mjs)",
+      "Bash(node gen-vocab.mjs)", "Bash(node gen-salary-json.mjs)",
+      "Bash(node seo-normalize.mjs)",
+      "Bash(node patch-side-nav.mjs:*)", "Bash(node patch-anon-cta.mjs:*)",
+      "Bash(node patch-site-salaries.mjs:*)", "Bash(node patch-unlock-wording.mjs:*)",
+      "Bash(node serve.mjs)",
+      "Bash(node screenshot.mjs:*)", "Bash(node shot-*.mjs:*)",
+      "Bash(node --check:*)", "Bash(node -e:*)", "Bash(node -p:*)",
+      "Bash(npm run test:sql)", "Bash(npm ls:*)",
+      "Bash(python3:*)",
+
+      "Bash(lsof -i:*)", "Bash(pkill -f serve.mjs)", "Bash(curl -s -o /dev/null:*)"
+    ],
+
+    "ask": [
+      "Bash(git commit:*)",
+      "Bash(git rebase:*)", "Bash(git reset:*)", "Bash(git revert:*)",
+      "Bash(git merge:*)", "Bash(git cherry-pick:*)",
+      "Bash(npm install:*)", "Bash(npm i:*)", "Bash(npm uninstall:*)",
+
+      "Bash(node gen-fx-rates.mjs:*)",
+      "Bash(node gen-countries.mjs:*)",
+      "Bash(node gen-new-airline.mjs:*)",
+      "Bash(node db/usage.mjs:*)",
+      "Bash(node db/eval-payslip.mjs:*)",
+      "Bash(node translate-eval.mjs:*)",
+      "Bash(node db/smoke-parse-payslip.mjs:*)",
+      "Bash(node check-sources.mjs --online)",
+      "Bash(node assert-jobs.mjs --online)",
+      "Bash(node assert-no-pii.mjs --live)",
+      "Bash(node assert-no-pii.mjs --history)",
+      "Bash(node mail-bot/*.mjs:*)",
+      "Bash(node tweet-bot/*.mjs:*)"
+    ],
+
+    "deny": [
+      "Bash(git push:*)",
+      "Bash(git checkout main)",
+      "Bash(git checkout -- :*)",
+      "Bash(git clean:*)",
+      "Bash(git commit --no-verify:*)",
+
+      "Bash(node gen_asia.mjs:*)",
+      "Bash(node gen_europe.mjs:*)",
+      "Bash(node gen_americas.mjs:*)",
+      "Bash(node gen_mideast_africa.mjs:*)",
+      "Bash(node generate_airlines.mjs:*)",
+      "Bash(node generate_world_airlines.mjs:*)",
+      "Bash(node gen_en_airlines.mjs:*)",
+      "Bash(node seo-title-update.mjs:*)",
+      "Bash(node seo-phase2.mjs:*)",
+      "Bash(node seo-batch-update.mjs:*)",
+      "Bash(node seo-content-expand.mjs:*)",
+
+      "Edit(salary-data.json)", "Write(salary-data.json)",
+      "Edit(db/vocab.generated.sql)", "Write(db/vocab.generated.sql)",
+      "Edit(db/conditions.generated.sql)", "Write(db/conditions.generated.sql)",
+      "Edit(db/airlines.generated.sql)", "Write(db/airlines.generated.sql)",
+      "Edit(lang-toggle.js)",
+      "Edit(fx-rates.mjs)", "Write(fx-rates.mjs)",
+
+      "Read(./.pii-denylist)", "Read(./.employer-denylist)",
+      "Read(./mail-bot/.env)", "Read(./tweet-bot/.env)", "Read(./.env)"
+    ]
+  }
+}

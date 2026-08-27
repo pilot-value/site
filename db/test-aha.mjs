@@ -95,8 +95,13 @@ console.log('\n② currency.js の RATES ＝ DB の fx_rates（画面と保存�
 
   ok(Object.keys(front).length > 0 && Object.keys(back).length > 0,
      '両方から通貨を読めた（画面 ' + Object.keys(front).length + ' / DB ' + Object.keys(back).length + '）');
-  ok(Object.keys(front).sort().join(',') === Object.keys(back).sort().join(','),
-     '対応通貨の顔ぶれが一致: ' + Object.keys(front).sort().join(','));
+  // 顔ぶれは一致しない（画面の切替メニューは7通貨・DB は45通貨）。
+  // 要るのは「画面に出る通貨が全部 DB にもあって、同じ値であること」の片側だけ。
+  // 逆向き（DB にあって画面に無い）は正常なので見ない。
+  const orphan = Object.keys(front).filter((c) => !(c in back));
+  ok(orphan.length === 0,
+     '画面の ' + Object.keys(front).length + '通貨が全部 DB にもある' +
+     (orphan.length ? '  ← DB に無い: ' + orphan.join(',') : ''));
   Object.keys(front).forEach((c) => ok(front[c] === back[c], c + ' のレートが一致（' + front[c] + '）'));
 }
 

@@ -26,3 +26,6 @@ sources-raw/
 # ★ 社名は入れない。サイトは110社の航空会社を扱っていて、社名は本文にいくらでも出る。
 #   中の人しか書けない語だけを入れる。理由は pii-rules.mjs の EMPLOYER_FILE のところ。
 .employer-denylist
+
+# Claude Code のローカル上書き（公開リポジトリなので個人設定は入れない）
+.claude/settings.local.json
