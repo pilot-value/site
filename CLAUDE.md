@@ -217,15 +217,26 @@ baland_ass/                            ブランド資産（※ brand_assets の
    履歴を触ったとき・公開する前・Mac を替えたときは `--history` を手で走らせる
    （毎回の commit では重いので走らせない）。
    見つかっても**その行を直して commit しても消えない**。直し方はリポジトリの作り直しだけ
-15. `node assert-header.mjs` — ヘッダーが幅ごとに正しく畳まれるか（**日英10ページ × 10幅**）。
+15. `node assert-header.mjs` — ヘッダーが幅ごとに正しく畳まれるか（**日英14ページ × 10幅**）。
    ヘッダーは Tailwind の `md:` で出し分けるのをやめ、**[search.js](search.js) が実測して自動で畳む**。
    `.pv-nav-links` / `.pv-nav-right` / `.pv-nav-2nd` / `.pv-nav-cta` は**JS が付ける目印**なので、
    HTML 側に `md:` を書き足しても効かない。
    ★**ヘッダーは2種類ある** ── `<nav id="main-nav">`（サイトの56枚）と
-   `<header class="mr-top">`（マイページ系8枚）。**`search.js` が両方に ≡ と引き出しを付ける**
+   `<header class="mr-top">`（マイページ系8枚＋認証4枚＝**12枚**）。**`search.js` が両方に ≡ と引き出しを付ける**
    （`inject()` が `#main-nav || header.mr-top`）。文言を2か所に持たないため新しい JS を作らない。
    畳む段のセレクタは `#main-nav` 限定なので `.mr-top` には当たらず、≡ と引き出しだけが付く。
    検索窓も生えない（`buildUI()` が `.flex.items-center.gap-3` を要る）。
+   ★**認証4枚（`login` / `signup` の日英）も 2026-08-27 に `.mr-top` へ揃えた。**
+   それまでは `body` 直下に `position:fixed` の `<div>` を2つ置くだけの**第3のヘッダー**で、
+   `<header>` も `<nav>` も無い＝`search.js` の `inject()` が即 return し、**≡ も引き出しも
+   原理的に出なかった**（🇯🇵 JP と ¥ JPY だけ並んで見えたのは、`lang-toggle.js` /
+   `currency.js` が `#theme-toggle` の隣に自分で差し込むから。ヘッダーがあったからではない）。
+   `assert-header.mjs` にも `shot-header.mjs` にも入っておらず、**一度も見られていなかった**。
+   骨格は HTML に書き写さず `pv-tokens.css` → `my-value.css` の2本を読む（[my-value.css:12](my-value.css#L12) の禁止事項）。
+   カードを `<main class="auth-main">` で包み、中央寄せを `body` からそちらへ移した
+   ── `body` に `padding` を残すと `.mr-top` の背景が左右の端に届かない。
+   ⚠️ この4枚を `assert-header.mjs` に足すとき **`login:true` を付けない**。
+   セッションがあると `login.html` がマイページへ飛ばしてヘッダーごと消え、必ず落ちる。
    ★**畳む順は4段** ── ① 真ん中のリンク群 → ② ログイン・← 戻る → ③ CTA →
    ★④ 検索窓（`pv-nav-micro`。320px 用）。**言語と通貨は最後まで残す**
    （外貨で見ている人の主機能。ここを畳むと海外の人が円のまま取り残される）。

@@ -63,6 +63,16 @@ const PAGES = [
   /* マイページ系（header.mr-top）。ログインしないとヘッダーごと出ないので
      セッションを差し込む。畳む段が無いので ≡ は常に出ているのが正しい。 */
   ['/my-value.html',        'ja マイレポート', { ham: 'always', login: true }],
+  /* ★認証4枚。2026-08-27 に header.mr-top 型へ揃えた。それまでは body 直下に
+       fixed の div を2つ置くだけの「第3のヘッダー」で、search.js の inject() が
+       #main-nav も header.mr-top も見つけられず即 return ＝ ≡ も引き出しも
+       原理的に出なかった。この一覧にも撮影にも入っていなかったので誰も見ていなかった。
+     ⚠️ login:true を付けない。セッションがあると login.html の「もう入っている人は
+        マイページへ」が働いてヘッダーごと消え、必ず落ちる。 */
+  ['/login.html',           'ja ログイン',   { ham: 'always' }],
+  ['/signup.html',          'ja 新規登録',   { ham: 'always' }],
+  ['/en/login.html',        'en ログイン',   { ham: 'always' }],
+  ['/en/signup.html',       'en 新規登録',   { ham: 'always' }],
 ];
 /* ★320px は iPhone SE(1) / 5s の実幅。ここが入っていなかったので
    「最後の段まで畳んでもまだ 30〜40px 足りない」を長いあいだ見逃していた。 */

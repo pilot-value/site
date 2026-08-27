@@ -414,7 +414,7 @@ var PV_SEARCH_L10N = {
 
   function inject() {
     if (document.getElementById('pv-ham-btn')) return;
-    /* ヘッダーは2種類ある。#main-nav（サイトの56枚）と header.mr-top（マイページ系8枚）。
+    /* ヘッダーは2種類ある。#main-nav（サイトの56枚）と header.mr-top（マイページ系8枚＋認証4枚＝12枚）。
        ≡ と引き出しの文言を2か所に持たないため、どちらもここが面倒を見る。
        畳む段のセレクタは #main-nav 限定なので .mr-top には当たらない
        （リンクも CTA も無く fits() は素通りし、≡ と引き出しだけが付く）。 */

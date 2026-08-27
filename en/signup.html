@@ -37,7 +37,12 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    body{background:#0a0c0f;color:#e8edf2;font-family:Inter,'Noto Sans JP',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px 20px}
+    /* ★ body 直下に .mr-top が入ったので、body の flex は「ヘッダー ／ 本文」の縦積みに使う。
+         カードの中央寄せは <main class="auth-main"> が flex:1 でそのまま引き継ぐ。
+       ★ padding を body に残さない。残すと .mr-top の背景と下線が左右に届かず、
+         上にも隙間ができる＝どのページとも揃わないヘッダーになる。 */
+    body{background:#0a0c0f;color:#e8edf2;font-family:Inter,'Noto Sans JP',sans-serif;min-height:100vh;display:flex;flex-direction:column}
+    .auth-main{flex:1;display:flex;align-items:center;justify-content:center;padding:24px 20px}
     body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 0%,rgba(245,200,66,.05) 0%,transparent 70%);pointer-events:none}
     [data-theme="light"] body{background:#f3f5f8;color:#0f172a}
     .auth-card{background:rgba(17,22,32,.95);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:40px;width:100%;max-width:480px}
@@ -78,7 +83,7 @@
     /* ライトの指定が無く、白地に白枠＋薄グレー文字で消えていた */
     [data-theme="light"] .btn-secondary{background:rgba(0,0,0,.04);color:#475569;border-color:rgba(0,0,0,.12)}
     [data-theme="light"] .btn-secondary:hover{background:rgba(0,0,0,.07);color:#0f172a}
-    .theme-toggle{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.07);color:#e8edf2;border:1px solid rgba(255,255,255,.12);cursor:pointer;transition:background .2s}
+    .theme-toggle{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.07);color:#e8edf2;border:1px solid rgba(255,255,255,.12);cursor:pointer;transition:background .2s;flex-shrink:0}
     .theme-toggle:hover{background:rgba(255,255,255,.13)}
     [data-theme="light"] .theme-toggle{background:rgba(0,0,0,.06);color:#0f172a;border-color:rgba(0,0,0,.13)}
     .error-msg{color:#f87171;font-size:.79rem;padding:8px 12px;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);border-radius:8px;display:none;margin-top:4px}
@@ -107,6 +112,11 @@
     /* サイト共通の扱い（en/index.html:557 と同じ）。金色は白地で 1.8:1 しか出ない。 */
     [data-theme="light"] [style*="color:#f5c842"]{color:#8a6e00!important}
   </style>
+  <!-- 色と余白の唯一の正。下の骨格が --pv-* を読むので、必ず先に置く。 -->
+  <link rel="stylesheet" href="../pv-tokens.css">
+  <!-- 上部バーの骨格（.mr-top / .mr-top-in / .mr-brand / .mr-top-r）。
+       マイページ系と同じものを読む。★ここの .mr-* を HTML に書き写さない。 -->
+  <link rel="stylesheet" href="../my-value.css">
 <!-- Google tag (gtag.js) -->
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -141,16 +151,21 @@
 <script src="../pv-session.js"></script>
 </head>
 <body>
-  <div style="position:fixed;top:16px;right:16px;z-index:10">
-    <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme"></button>
-  </div>
-  <div style="position:fixed;top:16px;left:16px;z-index:10">
-    <a href="login.html" style="font-size:.82rem;color:#6b7d93;text-decoration:none;display:flex;align-items:center;gap:5px">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M5 12l7-7M5 12l7 7"/></svg>
-      Back to log in
-    </a>
-  </div>
+  <header class="mr-top">
+    <div class="mr-top-in">
+      <a class="mr-brand" href="index.html" aria-label="PILOT VALUE home">
+        <img src="../assets/logo.png" alt="PILOT VALUE" height="28"/>
+      </a>
+      <!-- ★ Keep #theme-toggle inside .mr-top-r. lang-toggle.js:165 inserts the language
+           button right after it, currency.js:345 puts the currency button after that,
+           and search.js:566 appends the ≡ to .mr-top-r. -->
+      <div class="mr-top-r">
+        <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme"></button>
+      </div>
+    </div>
+  </header>
 
+  <main class="auth-main">
   <div class="auth-card">
     <div style="text-align:center;margin-bottom:28px">
       <a href="index.html"><img src="../assets/logo.png" alt="PILOT VALUE" style="height:32px;margin:0 auto"/></a>
@@ -308,6 +323,7 @@
       </div>
     </div>
   </div>
+  </main>
 
   <script>
     const SB_URL = 'https://vzgmnkrggrwtsrpqndsm.supabase.co';
@@ -668,6 +684,7 @@
       showSuccessCta();
     }
   </script>
+<script src="../search.js"></script>
 <script src="../lang-toggle.js"></script>
 <script src="../currency.js"></script>
 </body>

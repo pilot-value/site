@@ -41,6 +41,11 @@ const PAGES = [
   ['/pay-report.html',      'ja 給与を出す'],
   ['/submit-review.html',   'ja 口コミを出す'],
   ['/en/pay-report.html',   'en 給与を出す'],
+  /* ★2026-08-27 に足した2枚。ログイン・新規登録は body 直下に fixed の div を2つ置く
+     「第3のヘッダー」で、≡ も引き出しも原理的に出なかった。header.mr-top 型へ揃えた。
+     ログイン不要で .mr-top を撮れるのはこの2枚だけ（en/ は同じ生成物なので撮らない）。 */
+  ['/login.html',           'ja ログイン'],
+  ['/signup.html',          'ja 新規登録'],
 ];
 
 const dir = path.join(__dirname, 'temporary screenshots');
