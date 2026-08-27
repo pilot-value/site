@@ -34,6 +34,13 @@ const PAGES = [
   ['/community.html',       'ja 口コミ'],
   ['/airlines/ana.html',    'ja 航空会社ページ'],
   ['/en/airlines/ana.html', 'en 航空会社ページ'],
+  /* ★2026-08-27 に足した3枚。ここは id="main-nav" を持ちながら search.js を
+     読んでいなかったので、iPhone の幅で「← 世界の航空会社」が4行に折れて
+     本文へ垂れていた。テンプレートが他と違うので絵でも見る。
+     （マイページ系はログインが要るので shot-value.mjs / shot-actual-pay.mjs で見る） */
+  ['/pay-report.html',      'ja 給与を出す'],
+  ['/submit-review.html',   'ja 口コミを出す'],
+  ['/en/pay-report.html',   'en 給与を出す'],
 ];
 
 const dir = path.join(__dirname, 'temporary screenshots');

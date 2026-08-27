@@ -412,7 +412,12 @@ var PV_SEARCH_L10N = {
 
   function inject() {
     if (document.getElementById('pv-ham-btn')) return;
-    var nav = document.getElementById('main-nav');
+    /* ヘッダーは2種類ある。#main-nav（サイトの56枚）と header.mr-top（マイページ系8枚）。
+       ≡ と引き出しの文言を2か所に持たないため、どちらもここが面倒を見る。
+       畳む段のセレクタは #main-nav 限定なので .mr-top には当たらない
+       （リンクも CTA も無く fits() は素通りし、≡ と引き出しだけが付く）。 */
+    var nav = document.getElementById('main-nav') ||
+              document.querySelector('header.mr-top');
     if (!nav) return;
 
     var s = document.createElement('style');
@@ -460,7 +465,20 @@ var PV_SEARCH_L10N = {
       '#main-nav.pv-nav-min .pv-nav-cta{display:none!important}',
       '#main-nav.pv-nav-min>div{padding-left:16px;padding-right:16px}',
       '#main-nav.pv-nav-min .pv-nav-right{gap:8px}',
+      /* 段④。320px（iPhone SE 1 / 5s の実幅）は段③でもまだ 30〜40px 足りない。
+         残っているのは ロゴ・検索・テーマ・言語・通貨・≡ で、消してよいのは検索だけ
+         （航空会社へは引き出しから行ける）。言語と通貨は最後まで残す ──
+         外貨で見ている人の主機能で、ここを畳むと海外の人が円のまま取り残される。 */
+      '#main-nav.pv-nav-micro #pv-search-wrap{display:none!important}',
+      '#main-nav.pv-nav-micro>div{padding-left:12px;padding-right:12px}',
+      '#main-nav.pv-nav-micro .pv-nav-right{gap:6px}',
       '@media(max-width:767px){.pv-ham-btn{display:flex}}',
+      /* ★マイページ系（header.mr-top）は幅に関係なく ≡ を出す。
+         あのヘッダーはロゴ・テーマ・言語・通貨しか持たず、リンクも CTA も無い＝
+         畳む段が1つも当たらない。広い画面で ≡ を隠すと、マイページから
+         口コミ・世界の航空会社へ行く道がサイトから消える（下の .mr-side は
+         マイページの中の移動で、サイトへの出口ではない）。 */
+      'header.mr-top .pv-ham-btn{display:flex}',
     ].join('');
     document.head.appendChild(s);
 
@@ -543,7 +561,7 @@ var PV_SEARCH_L10N = {
     btn.innerHTML = '<span class="pv-ham-line"></span><span class="pv-ham-line"></span><span class="pv-ham-line"></span>';
 
     var rights = nav.querySelectorAll('.flex.items-center');
-    var right = rights[rights.length - 1];
+    var right = rights[rights.length - 1] || nav.querySelector('.mr-top-r');
     if (right) right.appendChild(btn);
 
     function openD() { drawer.classList.add('open'); overlay.classList.add('open'); document.body.style.overflow = 'hidden'; }
@@ -611,13 +629,19 @@ var PV_SEARCH_L10N = {
       return needed() <= inner.clientWidth + 0.5 && minGap() >= BREATH;
     }
     function fit() {
-      nav.classList.remove('pv-nav-compact', 'pv-nav-tight', 'pv-nav-min');
+      nav.classList.remove('pv-nav-compact', 'pv-nav-tight', 'pv-nav-min', 'pv-nav-micro');
       if (fits()) return;
       nav.classList.add('pv-nav-compact');   /* ① リンク群を ≡ の中へ */
       if (fits()) return;
       nav.classList.add('pv-nav-tight');     /* ② ログイン・← 戻る（どちらも ≡ の中にある） */
       if (fits()) return;
-      nav.classList.add('pv-nav-min');       /* ③ 最後に CTA（引き出しの先頭に置いてある） */
+      nav.classList.add('pv-nav-min');       /* ③ CTA（引き出しの先頭に置いてある） */
+      if (fits()) return;
+      /* ★段④だけは BREATH を見ない。320px で 20px のすき間は原理的に取れないし、
+         逆にここで fits() を使うと「幅は足りているが詰まって見える」だけの
+         375px（iPhone SE2/7/8）でも検索窓が消える。消してよいのは本当に入らないときだけ。 */
+      if (needed() <= inner.clientWidth + 0.5) return;
+      nav.classList.add('pv-nav-micro');     /* ④ 最後に検索窓。320px 用 */
     }
 
     /* 右側の幅はあとから増える — currency.js の通貨ピルと lang-toggle.js の

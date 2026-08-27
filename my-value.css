@@ -791,6 +791,13 @@
   .mv-c .k{flex:1 1 100%}
   .mr-side-a span{font-size:.75rem}
 }
+/* ★search.js が ≡ を .mr-top-r に足すので、狭い幅では 4つ並ぶ
+   （テーマ・言語・通貨・≡）。320px（iPhone SE 1 / 5s）で溢れないよう詰める。
+   ボタンそのものは小さくしない（38px は指で押せる下限）。 */
+@media(max-width:400px){
+  .mr-top-in{padding-left:12px;padding-right:12px}
+  .mr-top-r{gap:6px}
+}
 @media(max-width:420px){
   /* 3つ並べるとラベルが折れるので、アイコンの下に文字を置く */
   .mr-side-a{flex-direction:column;gap:4px;padding:8px 4px;flex:1 1 92px}

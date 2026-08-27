@@ -1365,6 +1365,11 @@ async function submitReview() {
 }
 </script>
 <script src="confetti.js"></script>
+<!-- ★ヘッダーを畳むのは search.js。id="main-nav" を持つページは必ず読む。
+     読まないと white-space:nowrap も ≡ も効かず、iPhone で「← 世界の航空会社」が
+     4行に折れて本文へ垂れる（2026-08-27 に実際そうなっていた）。
+     lang-toggle.js より前に置く ── index.html と同じ並び。 -->
+<script src="search.js"></script>
 <script src="lang-toggle.js"></script>
 <script src="currency.js"></script>
 </body>

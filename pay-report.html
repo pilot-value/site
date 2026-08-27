@@ -225,6 +225,11 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
    ★#submit-block が画面に入っている間は .is-off で沈める（同じボタンを2つ並べない）。
    ★動かすのは transform と opacity だけ（transition-all は使わない）。 */
 .sticky-cta{position:fixed;left:0;right:0;bottom:0;z-index:120;
+  /* ★箱を画面より広くしない。iOS はページが横に溢れるとレイアウト幅を広げ、
+     left:0;right:0 はその広げられた幅に貼りつく＝見えている窓からは左右にはみ出す
+     （2026-08-27、実機で数字とボタンの端が左右とも切れていた。真因は上のヘッダーの溢れ）。
+     ⚠️ viewport-fit=cover は足さない。env(safe-area-inset-*) が 0 なのは正しい。 */
+  box-sizing:border-box;max-width:100vw;
   padding:10px 16px calc(10px + env(safe-area-inset-bottom));
   background:linear-gradient(180deg,rgba(10,12,15,0),rgba(10,12,15,.93) 26%,rgba(10,12,15,.985));
   border-top:1px solid rgba(245,200,66,.18);backdrop-filter:blur(14px);
@@ -243,6 +248,17 @@ body.has-cta #form-wrap{padding-bottom:96px}
   .sticky-cta-in{gap:10px}
   .sticky-cta-val{font-size:1rem}
   .sticky-cta .btn-orange{padding:10px 15px;font-size:.79rem}
+}
+/* ★320px（iPhone SE 1 / 5s）だけもう一段詰める。ボタンの文字数は言語で違い、
+   英語の「Submit anonymously」は 160px（日本語の「匿名で提出する」は 118px）。
+   その差で金額の右端「JPY / yr」が 16px ぶん省略記号に化けていた（2026-08-27 実測）。
+   バーの左右（16→10）とボタンの内側（15→11）で 20px 返す。
+   ⚠️ 金額の font-size は下げない。ここは読ませる数字で、単位より先に守る。
+   ⚠️ 360px 以上には当てない（今のままで足りている）。 */
+@media (max-width:340px){
+  .sticky-cta{padding-left:10px;padding-right:10px}
+  .sticky-cta-in{gap:8px}
+  .sticky-cta .btn-orange{padding:10px 11px;font-size:.76rem}
 }
 @media (prefers-reduced-motion:reduce){.sticky-cta{transition:none}}
 .sal-hint{font-size:.73rem;color:#6b7d93;margin-top:8px;line-height:1.65}
@@ -4179,7 +4195,12 @@ addEventListener('scroll', () => {
 });
 (function () {
   const btn = $('theme-toggle');
-  const ico = () => { btn.textContent = document.documentElement.getAttribute('data-theme') === 'light' ? '🌙' : '☀️'; };
+  /* ★絵文字にしない。端末ごとに絵柄が変わり、サイトの他の56枚（線画）と揃わない。
+     currentColor なので .theme-toggle の色（明:#0f172a / 暗:#e8edf2）にそのまま乗る。
+     手本は submit-review.html。18px・同じ 38x38 のボタン。 */
+  const SUN  = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
+  const MOON = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+  const ico = () => { btn.innerHTML = document.documentElement.getAttribute('data-theme') === 'light' ? MOON : SUN; };
   ico();
   btn.addEventListener('click', () => {
     const next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
@@ -4192,6 +4213,11 @@ addEventListener('scroll', () => {
 <script src="payslip.js"></script>
 <script src="confetti.js"></script>
 <script src="pay-login.js"></script>
+<!-- ★ヘッダーを畳むのは search.js。id="main-nav" を持つページは必ず読む。
+     読まないと white-space:nowrap も ≡ も効かず、iPhone で「← 世界の航空会社」が
+     4行に折れて本文へ垂れる（2026-08-27 に実際そうなっていた）。
+     lang-toggle.js より前に置く ── index.html と同じ並び。 -->
+<script src="search.js"></script>
 <script src="lang-toggle.js"></script>
 <script src="currency.js"></script>
 <script src="pv-conditions.js"></script>

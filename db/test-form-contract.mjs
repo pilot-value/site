@@ -29,7 +29,13 @@ const read = (f) => readFileSync(path.join(ROOT, f), 'utf8');
    待遇の質問（pv-conditions.js）はレポートが出たあとに動く。給与の保存とは別の口で、
    落ちてもレポートに触らない。増やすときは「保存より後にしか鳴らないこと」を確かめてから。
    ⚠️ 2つの検査（下書き経路・ログイン済み経路）の両方から参照するのでモジュール直下に置く。 */
-const READ_OK = ['next_condition_questions', 'submit_airline_conditions'];
+const READ_OK = ['next_condition_questions', 'submit_airline_conditions',
+  /* ★この2つは招待の仕組み（pv-referral.js）。正常。
+     pv_referral_settle … ?ref= で来た人の紐付けを1回だけ確定する（settle()）
+     my_cohort_gap      … 「あと N 人」を出すために自分の区分の人数を聞く（gap()）
+     どちらも読むだけで、給与の payload には1バイトも関係しない。
+     pay-report.html が pv-referral.js を読んでいる以上、この2つは必ず呼ばれる。 */
+  'pv_referral_settle', 'my_cohort_gap'];
 const OUT = path.join(ROOT, 'temporary screenshots', 'pay-contract');
 mkdirSync(OUT, { recursive: true });
 

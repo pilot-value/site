@@ -11,7 +11,14 @@
      ⚠️ `scrollWidth` では測れない。文字が折れて逃げるあいだ `scrollWidth` は
      増えないので「入っていない」ことを検出できない。子の幅を足して比べる。
 
-   見るもの（日英6ページ × 7幅 = 42マス）
+   見るもの（日英10ページ × 10幅 = 100マス）
+     ★ヘッダーは2種類ある。`#main-nav`（サイトの56枚）と `header.mr-top`
+       （マイページ系8枚）。**どちらも search.js が ≡ と引き出しを付ける**。
+     ★2026-08-27 に一覧を広げた。それまで 6ページ × 7幅（いちばん狭くて 390px）で
+       210/210 通っていたが、**壊れている4枚が一覧に無かった**。
+       `pay-report` / `submit-review` の日英4枚は `id="main-nav"` を持ちながら
+       `search.js` を読んでおらず、iPhone で「← 世界の航空会社」が4行に折れて
+       本文へ 109px 垂れていた。320px（iPhone SE 1 / 5s の実幅）も入れてある。
      1) ヘッダーの中身が画面からはみ出さない
      2) `#main-nav` の中に2行になった要素が無い
      3) 隣り合う中身が 20px 未満まで近づかない（入っていても詰まって見える）
@@ -35,9 +42,23 @@ const PAGES = [
   ['/community.html',       'ja 口コミ'],
   ['/airlines/ana.html',    'ja 航空会社ページ'],
   ['/en/airlines/ana.html', 'en 航空会社ページ'],
+  /* ★ここから下が 2026-08-27 に足した4枚。上の6枚と違うのは
+       「ログインの先」＝アプリ側の画面だということ。 */
+  ['/pay-report.html',      'ja 給与を出す'],
+  ['/submit-review.html',   'ja 口コミを出す'],
+  ['/en/pay-report.html',   'en 給与を出す'],
+  /* マイページ系（header.mr-top）。ログインしないとヘッダーごと出ないので
+     セッションを差し込む。畳む段が無いので ≡ は常に出ているのが正しい。 */
+  ['/my-value.html',        'ja マイレポート', { ham: 'always', login: true }],
 ];
-const WIDTHS = [390, 768, 900, 1024, 1152, 1280, 1440];
+/* ★320px は iPhone SE(1) / 5s の実幅。ここが入っていなかったので
+   「最後の段まで畳んでもまだ 30〜40px 足りない」を長いあいだ見逃していた。 */
+const WIDTHS = [320, 360, 375, 390, 768, 900, 1024, 1152, 1280, 1440];
 const MIN_GAP = 19;          /* search.js の BREATH=20 に測定誤差ぶんの余裕 */
+/* ★すき間の検査は 390px 未満では見ない。320px でロゴとボタンのあいだに 20px は
+   物理的に取れないし、そこで要るのは「はみ出さない・2行に折れない」だけ
+   （search.js の fit() も段④だけは BREATH を見ない。同じ理由）。 */
+const GAP_FROM = 390;
 
 let fail = 0, ran = 0;
 const ok = (cond, name, detail = '') => {
@@ -50,7 +71,7 @@ const browser = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox
 
 /* ── 見た目を測る（1マスぶん）──────────────────────────────────── */
 const measure = () => {
-  const nav = document.getElementById('main-nav');
+  const nav = document.getElementById('main-nav') || document.querySelector('header.mr-top');
   if (!nav || !nav.firstElementChild) return { noNav: true };
   const inner = nav.firstElementChild;
   const vw = document.documentElement.clientWidth;
@@ -79,11 +100,21 @@ const measure = () => {
     if (lines.length > 1) { twoLine++; twoNames.push(label); }
   });
 
+  /* ★リンクや btn-* を持たないヘッダー（マイページ系）でも、はみ出しは見たい。
+     中身の箱そのものが画面の外に出ていないかを見る（上の SEL とは別の目）。 */
+  let boxOver = 0;
+  shown.forEach((c) => {
+    const b = c.getBoundingClientRect();
+    if (b.width === 0) return;
+    if (b.right > vw + 0.5 || b.left < -0.5) boxOver++;
+  });
+
   const ham = document.getElementById('pv-ham-btn');
   const cta = nav.querySelector('.btn-primary,.btn-orange');
   return {
     minGap: minGap === Infinity ? null : Math.round(minGap),
-    over, overNames, twoLine, twoNames,
+    over, overNames, twoLine, twoNames, boxOver,
+    hScroll: document.documentElement.scrollWidth > document.documentElement.clientWidth,
     hamVisible: !!ham && getComputedStyle(ham).display !== 'none',
     collapsed: nav.classList.contains('pv-nav-compact'),
     ctaInBar: cta ? cta.getBoundingClientRect().width > 0 : null,
@@ -102,6 +133,7 @@ const readDrawer = () => {
     href: a.getAttribute('href') || '',
   }));
   const cta = d.querySelector('.pv-nd-cta');
+  /* マイページ系のヘッダーには a.nav-link が無い（写す物がゼロ＝共通の6本が出る）。 */
   const navHrefs = [...document.querySelectorAll('#main-nav a.nav-link')].map((a) => a.getAttribute('href') || '');
   return {
     links,
@@ -112,30 +144,72 @@ const readDrawer = () => {
 
 const abs = (href, base) => { try { return new URL(href, base).pathname.replace(/\/index\.html$/, '/'); } catch (e) { return href; } };
 
-for (const [href, label] of PAGES) {
+/* ログインの先の画面は、素の URL だと login.html へ飛ぶ。ヘッダーを測りたいだけなので
+   Supabase を丸ごと差し替えてセッションだけ在ることにする。**本番の DB には触らない。**
+   ⚠️ rpc / from は本物と同じ「then だけを持つ箱」。async 関数に戻さない
+   （呼ぶ側は .select().eq().order() と鎖にしてから await する）。 */
+const FAKE_SESSION = () => {
+  const UID = '00000000-0000-4000-8000-0000000000aa';
+  const box = (data) => {
+    const t = {
+      select: () => t, eq: () => t, neq: () => t, in: () => t, is: () => t,
+      order: () => t, limit: () => t, range: () => t, single: () => t, maybeSingle: () => t,
+      then: (f, g) => Promise.resolve({ data, error: null }).then(f, g),
+    };
+    return t;
+  };
+  const FAKE = {
+    auth: {
+      getSession: () => Promise.resolve({ data: { session: { user: { id: UID, email: 'pilot@example.com' } } }, error: null }),
+      getUser: () => Promise.resolve({ data: { user: { id: UID, email: 'pilot@example.com' } }, error: null }),
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }),
+      signOut: () => Promise.resolve({ error: null }),
+    },
+    rpc: () => box(null),
+    from: () => box([]),
+    storage: { from: () => ({ upload: () => Promise.resolve({ data: null, error: null }) }) },
+  };
+  Object.defineProperty(window, 'supabase', {
+    value: { createClient: () => FAKE }, writable: false, configurable: false,
+  });
+};
+
+for (const [href, label, opt = {}] of PAGES) {
   console.log(`\n═══ ${label}  ${href} ═══`);
   let drawerDone = false;
 
   for (const w of WIDTHS) {
     const page = await browser.newPage();
     await page.setViewport({ width: w, height: 820 });
+    if (opt.login) await page.evaluateOnNewDocument(FAKE_SESSION);
     await page.goto(BASE + href, { waitUntil: 'networkidle2' });
     /* 通貨ピルと言語ボタンはあとから右側に差し込まれる。差し込まれた後を測る。 */
     await new Promise((r) => setTimeout(r, 1200));
 
     const m = await page.evaluate(measure);
     if (m.noNav) {
-      ok(false, `${w}px — #main-nav がある`);
+      ok(false, `${w}px — ヘッダーがある`, `いま ${page.url()}`);
       await page.close();
       continue;
     }
     const tag = `${String(w).padStart(4)}px`;
-    ok(m.over === 0, `${tag} 画面からはみ出していない`, m.over ? m.overNames.join(' / ') : '');
+    ok(m.over === 0 && m.boxOver === 0, `${tag} 画面からはみ出していない`,
+       m.over ? m.overNames.join(' / ') : (m.boxOver ? `中身の箱が ${m.boxOver} 個` : ''));
     ok(m.twoLine === 0, `${tag} 2行に折れた項目が無い`, m.twoLine ? m.twoNames.join(' / ') : '');
-    ok(m.minGap === null || m.minGap >= MIN_GAP, `${tag} 中身どうしが ${MIN_GAP}px 以上あいている`,
-       m.minGap === null ? '' : `いちばん狭いところ ${m.minGap}px`);
-    ok(m.collapsed === m.hamVisible || (w <= 767 && m.hamVisible),
-       `${tag} ≡ は畳んだときだけ出る`, `畳んだ=${m.collapsed} ≡=${m.hamVisible}`);
+    ok(!m.hScroll, `${tag} ページが横に溢れていない`,
+       m.hScroll ? 'iOS はここでレイアウト幅を広げ、position:fixed の常設バーが画面より広くなる' : '');
+    if (w >= GAP_FROM) {
+      ok(m.minGap === null || m.minGap >= MIN_GAP, `${tag} 中身どうしが ${MIN_GAP}px 以上あいている`,
+         m.minGap === null ? '' : `いちばん狭いところ ${m.minGap}px`);
+    }
+    if (opt.ham === 'always') {
+      /* マイページ系には畳む段が無い（リンクも CTA も無いので fits() が素通りする）。
+         ここで見るのは「≡ がどの幅でも出ている」＝オーナー指示「どの画面も」。 */
+      ok(m.hamVisible, `${tag} ≡ が常に出ている`);
+    } else {
+      ok(m.collapsed === m.hamVisible || (w <= 767 && m.hamVisible),
+         `${tag} ≡ は畳んだときだけ出る`, `畳んだ=${m.collapsed} ≡=${m.hamVisible}`);
+    }
     /* CTA が無いページ（← トップ だけの一覧・航空会社ページ）は対象外 */
     if (m.ctaInBar !== null) {
       ok(m.ctaInBar || m.ctaHidden, `${tag} CTA が黙って消えていない`,

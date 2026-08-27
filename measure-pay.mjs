@@ -1,4 +1,12 @@
-/* pay-report の select が実際に何px足りないかを測る（目分量で直さないため）。 */
+/* pay-report の select が実際に何px足りないかを測る（目分量で直さないため）。
+   ★2026-08-27、狭い幅（320 / 360 / 390px）で2つ測るのを足した ──
+     ① 常設バー（#sticky-submit）の箱が ちょうど [0, 画面幅]。左右に1pxも出ない
+     ② ページが横に溢れていない（scrollWidth === clientWidth）
+     ③ バーの金額が省略記号に化けていない（①では捕まらない。下の valNeed を参照）
+   オーナーの実機で「画面の下の部分が見切れる」＝バーの数字とボタンの端が
+   左右とも切れていた。手元の Chrome では起きない。iOS はページが横に溢れると
+   レイアウト幅を広げ、position:fixed;left:0;right:0 はその広げられた幅に貼りつくので、
+   見えている窓からはみ出す。②が本当の原因なので、数で押さえる。 */
 import puppeteer from 'puppeteer';
 
 const browser = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox'] });
@@ -111,6 +119,51 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   }
   console.log(`--- input の上端が揃っていない grid: ${r.rows.length} 箇所 ---`);
   for (const x of r.rows) console.log(`  tops=${x.tops.join(',')}  labelH=${x.labelHeights.join(',')}  ${x.txt.join(' | ')}`);
+
+  /* ── 狭い幅：常設バーと横溢れ ─────────────────────────────── */
+  console.log('--- 狭い幅（常設バー / 横溢れ）---');
+  for (const w of [320, 360, 390]) {
+    await page.setViewport({ width: w, height: 760 });
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await new Promise((r2) => setTimeout(r2, 500));
+    const b = await page.evaluate(() => {
+      const el = document.getElementById('sticky-submit');
+      const de = document.documentElement;
+      const nav = document.getElementById('main-nav');
+      const inner = nav && nav.firstElementChild;
+      let navR = 0, navL = 0;
+      if (inner) {
+        navR = 0; navL = 1e9;
+        [].forEach.call(inner.children, (c) => {
+          if (getComputedStyle(c).display === 'none') return;
+          const r3 = c.getBoundingClientRect();
+          navR = Math.max(navR, r3.right); navL = Math.min(navL, r3.left);
+        });
+      }
+      if (!el) return { none: true };
+      /* ★hidden が出る・出ないの唯一の判断（position:fixed なので offsetParent は常に null）。 */
+      if (el.hasAttribute('hidden')) return { hidden: true, sw: de.scrollWidth, cw: de.clientWidth, navL, navR };
+      const r4 = el.getBoundingClientRect();
+      /* ★金額が省略記号（…）に化けていないか。.sticky-cta-val は overflow:hidden ＋
+         text-overflow:ellipsis なので、切れても箱の座標は [0,画面幅] のまま＝
+         ①では捕まらない。2026-08-27、英語の 320px で「JPY / yr」が 16px ぶん
+         消えていた（ボタンの文字数が言語で違い、en は 160px / ja は 118px）。 */
+      const v = document.querySelector('.sticky-cta-val');
+      return { left: Math.round(r4.left), right: Math.round(r4.right), width: Math.round(r4.width),
+               sw: de.scrollWidth, cw: de.clientWidth, navL: Math.round(navL), navR: Math.round(navR),
+               valNeed: v ? Math.ceil(v.scrollWidth) : 0, valHave: v ? Math.floor(v.clientWidth) : 0,
+               navH: nav ? Math.round(nav.getBoundingClientRect().height) : -1 };
+    });
+    if (b.none)  { console.log(`  ${w}px  ❌ #sticky-submit が無い`); continue; }
+    const hs = b.sw > b.cw ? `❌ 横に溢れている scrollWidth=${b.sw} > ${b.cw}` : '✅ 横に溢れていない';
+    const navOK = b.navR <= w + 0.5 && b.navL >= -0.5 ? '✅' : `❌ ヘッダーが [${b.navL},${b.navR}]`;
+    if (b.hidden) { console.log(`  ${w}px  バーは hidden（§3 がまだ出ていない）  ${hs}  ヘッダー${navOK}`); continue; }
+    const barOK = b.left === 0 && b.right === w ? '✅' : `❌ [${b.left},${b.right}] であるべきは [0,${w}]`;
+    const short = b.valNeed - b.valHave;
+    const valOK = short > 0 ? `❌ 金額が ${short}px 切れている` : '✅ 金額が切れていない';
+    console.log(`  ${w}px  バー${barOK}  ${hs}  ${valOK}  ヘッダー${navOK} h=${b.navH}`);
+  }
+  await page.setViewport({ width: 1440, height: 900 });
   await page.close();
 }
 await browser.close();

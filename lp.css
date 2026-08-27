@@ -897,7 +897,16 @@
     /* カテゴリを左、星を右。星は reviews_v2 の6項目の平均で、実データ（捏造なし）。
        ⚠️ Tailwind CDN の JIT は後から <style> を入れるので、単一クラスだと負けることがある。
           ここは Tailwind に同名ユーティリティが無い名前なので素のクラスのままでよい。 */
-    .pv-voice-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    /* ★flex-wrap を外さない。外すと 901〜1150px で横スクロールが出る。
+       .pv-grid-4 の 1fr は最小が min-content なので、カードの min-content が
+       1列ぶん（1024px で 232px）を超えるとグリッドごと右へ膨らむ。
+       英語の区分名（Suggestions for management）＋星（95px・flex-shrink:0）で
+       min-content が 248px になり、2026-08-27 に /en/ が実際に 28px 溢れていた
+       （iPad 横向きの幅。見た目は普通のまま、下の常設バーだけが切れる）。
+       wrap にすると min-content は max(区分名, 星) まで下がり、
+       入らないときだけ星が2行目へ落ちる。 */
+    .pv-voice-head{ display:flex; flex-wrap:wrap; align-items:center;
+      justify-content:space-between; gap:8px; }
     .pv-voice-stars{ display:inline-flex; align-items:baseline; gap:5px; flex-shrink:0; }
     /* ⚠️ 白いカードに #f5c842 を直接置くとコントラストが 1.65 でほぼ見えない。
           ライトでは一段落とした金（--pv-star）、ダークでは元の #f5c842 に戻る。 */
