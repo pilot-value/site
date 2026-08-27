@@ -43,7 +43,7 @@ const SRC = readFileSync(path.join(ROOT, 'supabase/functions/parse-payslip/index
 
 globalThis.Deno = { env: { get: () => '' }, serve: () => {} };
 const { sanitize, parseHours, reconcile, applyChecks, payTolerance, systemPrompt,
-        EARNING_KINDS, HOUR_KINDS, isCountRow, COUNT_MAX } =
+        EARNING_KINDS, HOUR_KINDS, VARIABLE_BASIS, isCountRow, COUNT_MAX } =
   await import('../supabase/functions/parse-payslip/index.ts');
 
 let pass = 0, fail = 0;
@@ -99,8 +99,14 @@ console.log('\n①-d 語彙に無い kind は捨てずに unmapped へ');
   eq(r.unmapped, [{ label: '謎手当', amount: 3000 }], '★捨てずに残して、あとで本人に聞く');
 }
 eq(slip({ earnings: [E('本給A', 150000, '')] }).unmapped.length, 1, 'kind が空でも捨てない');
-ok(EARNING_KINDS.length === 11, `支給の語彙は11種（いま ${EARNING_KINDS.length}）`);
-ok(HOUR_KINDS.length === 4, `時間の語彙は4種（いま ${HOUR_KINDS.length}）`);
+/* ★数ではなく顔ぶれで見る。数だけだと「1つ足して1つ消した」が通ってしまう。 */
+eq([...EARNING_KINDS], ['base', 'guarantee', 'command', 'housing', 'flight_variable', 'per_diem',
+                        'transport', 'absence', 'notional', 'instructor', 'examiner',
+                        'other', 'bonus', 'profit'], '支給の語彙（14種）');
+eq([...HOUR_KINDS], ['block', 'duty', 'night', 'credit', 'guarantee'], '時間の語彙（5種）');
+/* ⚠️ pension を作らない。日本の明細の厚生年金は**控除**であって支給ではないので、
+      kind を作った瞬間に控除の行が収入として立つ道が開く（f-pension は手入力のまま）。 */
+ok(!EARNING_KINDS.includes('pension'), '★pension という kind を作っていない（あれは控除）');
 
 console.log('\n①-e 分からない行のうち「金額でない行」だけ印を付ける');
 {
@@ -141,6 +147,27 @@ console.log('\n①-f 画面（payslip.js）が同じ判定を持っている');
                  ['本給A', null], ['', 14]];
   for (const [l, a] of probe)
     ok(front(l, a) === isCountRow(l, a), `画面とサーバで同じ答え: ${l || '（空）'} ${a}`);
+}
+
+console.log('\n①-g 変動給の「何に連動する支給か」（basis）');
+{
+  /* ★語彙は画面の <select class="pd-basis"> と1つ違わず同じ並びでなければならない。
+     片方だけ足すと、読み取った行が画面で「選んでください」のまま必須に引っかかる
+     （画面は普通に動いたまま、明細から入った人だけが送信できなくなる）。 */
+  for (const f of ['pay-report.html', 'en/pay-report.html']) {
+    const html = readFileSync(path.join(ROOT, f), 'utf8');
+    const tpl = html.match(/<template id="tpl-pd-var">[\s\S]*?<\/template>/);
+    ok(!!tpl, `${f} から tpl-pd-var を切り出せた`);
+    const opts = [...tpl[0].matchAll(/<option value="([^"]*)"/g)].map((m) => m[1]).filter(Boolean);
+    eq(opts, [...VARIABLE_BASIS], `★${f} の10択と VARIABLE_BASIS が同じ並び`);
+  }
+  const V = (basis) => slip({ earnings: [{ label: 'FLIGHT PAY', amount: 180000,
+                                           kind: 'flight_variable', basis }] }).earnings[0];
+  eq(V('block').basis, 'block', '語彙にある basis はそのまま通る');
+  eq(V('per_sector').basis, 'unknown', '★語彙に無い basis は捨てずに unknown へ倒す');
+  eq(V(undefined).basis, 'unknown', '★basis が無くても行は unknown を持つ（画面の必須に引っかからない）');
+  eq(slip({ earnings: [{ label: '本給A', amount: 150000, kind: 'base', basis: 'block' }] })
+       .earnings[0].basis, undefined, '★変動給以外に付いてきた basis は落とす（置き場が無い）');
 }
 
 // ═══ ② 時間 ══════════════════════════════════════════════════════
@@ -377,6 +404,20 @@ console.log('\n⑦ systemPrompt の中身');
      （落ちた行は本人に聞いて、その答えが pv_label_hints に溜まる）。 */
   ok(/sector pay/i.test(P) && /FDP allowance/i.test(P),
      '★実測で落ちた変動給の名前（sector pay / FDP allowance）を語彙に持っている');
+  /* ★2026-08-27 に足した3つ（フォームの作り直しに読み取りを追いつかせた）。
+     どれも「言葉ひとつで静かに壊れる」たぐいなので、規則が本文に在ることを字で見張る。 */
+  ok(/職務手当 and 役職手当 are NOT guarantee/.test(P),
+     '★保証給と職務手当を混ぜさせない（混ぜると日本の全員の内訳が壊れる）');
+  ok(/the FLOOR amount paid when the hours actually flown fall below/.test(P),
+     '★保証給を「下限を割ったときに埋められる額」と behaviour で定義している');
+  ok(/never return it as "block" or "credit"/.test(P),
+     '★保証時間を実際に飛んだ時間と混ぜさせない');
+  ok(/INSTRUCTOR PAY/.test(P) && /CHECK AIRMAN/.test(P),
+     '★教官・審査の印字を語彙に持っている');
+  ok(/If the label does not clearly say training\s*\n?\s*or checking, use "unmapped"/.test(P),
+     '★教官か審査かはっきりしない行は unmapped に落とさせる（推測で列に入れない）');
+  ok(!/union|組合/i.test(P.split('Classification rules:')[1].split('CRITICAL — do not guess:')[0]),
+     '★分類規則に組合を1語も足していない（組合名は返させない）');
   ok(systemPrompt('en').includes('The user reads English'), 'lang=en で英語話者向けになる');
   ok(systemPrompt('ja').includes('The user reads Japanese'), 'lang=ja で日本語話者向けになる');
   ok(systemPrompt('en').includes('keep "label" exactly as printed'),

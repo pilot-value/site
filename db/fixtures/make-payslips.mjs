@@ -1093,6 +1093,46 @@ const ID_ = `
       <td>Jam malam</td><td class="r">9,7</td></tr>
 </table>`;
 
+/* ── ⑯ 米国・保証給と役割手当（2026-08-27 追加。★必ず末尾に足す）──────
+   読み取り側が 8-26/8-27 のフォームに追いついたので、その4つを実際に印字した1枚。
+   いまある15枚のどれにも1行も無い印字だけを集めてある：
+     ・MIN MONTHLY GUARANTEE … 飛んだ時間（61.20）が契約の下限（73.00）を割った月。
+       ★下限そのものを埋める額なので「基本給」ではない（must_not が見張る）
+     ・SECTOR PAY           … 変動給。回数に連動する＝画面の10択の sector
+     ・INSTRUCTOR PAY - LINE / CHECK AIRMAN OVERRIDE
+                           … 役割に対する手当。専用の列（instructor_pay / examiner_pay）へ行く
+     ・TIME SUMMARY の MIN MONTHLY GUARANTEE 73.00 … 保証フライトタイム（時間の側）
+
+   ★金額・氏名・便名は1つ残らず作り話。使ったのは「項目名と並び順」だけ。
+     Σ支給 = 24,085.43／支給 − 控除 = 手取り まで合わせてある
+     （こちら側の検算をすり抜ける読み違いだけが must_not の仕事になるように）。 */
+const US_GUAR = `
+<pre class="mono" style="font-size:12.5px;line-height:1.65">
+                    PILOT PAY STATEMENT   -   JUL 2026
+
+EMPLOYEE: <span data-pii>AVERY, T. R.</span>          FILE #: <span data-pii>0517933</span>
+BASE: DFW   SEAT: CA   EQUIP: 32N          SSN: <span data-pii>XXX-XX-2086</span>
+
+EARNINGS                     HOURS        RATE        AMOUNT
+  MIN MONTHLY GUARANTEE       73.00      302.11     22,054.03
+  SECTOR PAY                  12.00       31.00        372.00
+  INSTRUCTOR PAY - LINE        6.00       45.00        270.00
+  CHECK AIRMAN OVERRIDE                                850.00
+  PER DIEM                   186.00        2.90        539.40
+  VACATION                     0.00        0.00          0.00
+                                                  ------------
+GROSS EARNINGS                                       24,085.43
+
+DEDUCTIONS
+  FEDERAL TAX / STATE TAX / FICA / 401K / DUES
+TOTAL DEDUCTIONS                                      7,905.61
+NET PAY                                              16,179.82
+
+TIME SUMMARY
+  BLOCK HOURS  61.20      CREDIT HOURS  68.40
+  DUTY HOURS  132.10      MIN MONTHLY GUARANTEE  73.00
+</pre>`;
+
 const PAGES = [
   { id: 'jp-major', w: 900, body: JP1 },
   { id: 'jp-lcc', w: 860, body: JP2 },
@@ -1155,6 +1195,9 @@ const PAGES = [
   { id: 'oceania', w: 900, locale: 'en-AU', body: AU },
   { id: 'latam',   w: 940, locale: 'pt-BR', body: BR },
   { id: 'sea',     w: 900, locale: 'id-ID', body: ID_ },
+  /* ★保証給・変動給の種類・教官・審査を印字した1枚（2026-08-27）。
+     読み取り側を直した所を、実際に採点できるようにするための見本。 */
+  { id: 'us-guarantee', w: 820, body: US_GUAR },
   // ★ noScore＝payslips.json に入れない（黒塗りの採点はしない。上の説明を参照）
   { id: 'page-shot', w: 1280, body: PORTAL, noScore: true },
 ];

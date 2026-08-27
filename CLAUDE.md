@@ -770,6 +770,55 @@ baland_ass/                            ブランド資産（※ brand_assets の
   [notify-admin](supabase/functions/notify-admin/index.ts) に持つことになる）。
   `pay_items` は**行数だけ**出す。**明細上の名称は1文字も出さない**（手当の呼び名は勤務先が割れる）。
 
+### 明細から入るもの・入らないもの（2026-08-27）
+
+明細を落とすと [parse-payslip](supabase/functions/parse-payslip/index.ts) が読んで、
+[payslip.js](payslip.js) の `apply()` がフォームの欄に書き込む。
+**読み取り側はフォームより後から追いかける形なので、欄を足したらここも足す**
+（2026-08-26/27 の作り直しのあいだ、保証給・変動給の種類・教官・審査は
+**フォームには在るのに読み取り側の語彙に無い**状態が数日続いた。画面は普通に動いたまま、
+明細から入った人だけ内訳が薄くなる、という静かな壊れ方をする）。
+
+| 入る | 行き先 |
+|---|---|
+| 基本給 | `f-base` |
+| **Flight time 保証手当 / 職務手当** | `f-guarantee`（★2026-08-27）|
+| 職位手当 | `f-command` |
+| **変動給** | ★**行**（`tpl-pd-var`）＝手で打った人とまったく同じ入れ物。種類（`basis`）も入る |
+| 住宅 / パーディアム / 交通 | `f-housing` `f-perdiem` `f-transport` |
+| 今月のボーナス / プロフィットシェア | `f-bonus-mo` `f-profit` |
+| **教官 / 審査** | ★`f-instructor` / `f-examiner`（＋役職のチェックと「別途支給されている」まで）|
+| 総支給 / 手取り / 控除合計 | `f-gross` `f-netpay` |
+| 対象月 / 通貨 | `f-year` `f-month` `f-currency` |
+| フライトタイム / 勤務時間 / **保証フライトタイム** | `f-block` `f-duty-h` / ★`f-guar` |
+
+| 入らない | 理由 |
+|---|---|
+| **組合・乗員代表** | プロンプトが「**組合費・組合の名前を返してはいけない**」と言っている。どの組合に居るかは最も機微な情報で、`label` から漏れる道を作らない |
+| **管理・マネジメント / その他の兼務・配属** | 明細に決まった印字が無い。誤分類は**データを黙って汚す**（節は §1 のチェックでしか出ないので、本人に任せるほうが正しい）|
+| **年金（`f-pension`）** | ★**`pension` という kind を作らない。** 日本の明細の「厚生年金」は**控除**であって支給ではない。kind を作ると、控除の行が収入として立つ道が開く |
+| 支給単位・数量・担当訓練 | 明細から分からない。本人が足す（空のまま出しても送信は止まらない）|
+
+- ★**`職務手当` を `guarantee` にしない。あれは `command`。**
+  フォームの札が「Flight time 保証手当 / 職務手当」の併記なのは、**同じ額の呼び名が会社で違う**という話。
+  日本の明細の職務手当は今までどおり `command`。ここを混ぜると日本のユーザー全員の内訳が壊れる。
+- ★**二重計上の境目は1点だけ。** `flight_variable` の額は、**行に載ったら `f-var-sum`、
+  載らなければ `f-flightvar`**。`flight_variable_pay = sumField('f-flightvar','f-var-sum')` /
+  `other_allowance = sumField('f-other','f-var-sum','f-oth-sum')` なので、
+  **どちらの経路でも両方に1回ずつだけ入る**＝年収も `pay-viz` の `flight_variable ⊂ other` も1円も動かない。
+  `sumKind()` が `r.row` を持つ行を飛ばすのがその実装（`db/test-payslip-extras.mjs` の ②-b が値で見張っている）。
+- 教官・審査の額は `f-other` にも `f-command` にも**足し込まない**（専用列があることがその実装そのもの）。
+- **6択（`UNC_CHOICES`）は広げない。** `asked` の語彙は
+  [db/pay-reports.sql](db/pay-reports.sql) の `pv_label_hints` が門になっていて、
+  広げるとオーナーに SQL をもう1枚貼らせることになる。
+- 明細を**落とし直したら、前に生やした行は消える**（`seededRows`）。
+  足すだけにすると2回落とした人の変動給が2倍になる。**本人が自分で足した行には触らない。**
+- ⚠️ **`supabase/functions/parse-payslip` を触ったら push だけでは本番に反映されない。**
+  ダッシュボードで Deploy（オーナー作業）。忘れると、サイトの画面と読み取りで判定が食い違う。
+- 読み取りの精度は `node db/eval-payslip.mjs`（16枚 ≒$0.32・**課金される**ので
+  デプロイ前チェックには入れない）。見るのは**黙って外した数**だけ。
+  ★正解表 `db/fixtures/payslips.expected.json` は**自動更新しない**（退化した出力が正解になって検査が死ぬ）。
+
 ### 見るもの
 `node db/test-form-contract.mjs`（画面の契約）／`npm run test:sql`（保存と検品）／
 `node db/test-payslip-extras.mjs`（隠し欄 → payload）／`node assert-admin-notify.mjs`（メール）／

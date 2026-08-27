@@ -300,10 +300,15 @@
   }
 
   /* 読み取った kind → 入れる欄。
-     ★flight_variable の専用欄はまだ無いので「その他手当」に入れる。
-       黙って混ぜないよう、確認リストに行き先を必ず出す（7-B で専用欄を作る）。 */
+     ★flight_variable はここに載っているが、行（tpl-pd-var）を作れたときは
+       行のほうへ回して f-flightvar を空にする（apply の中。二重計上の境目はそこ1点だけ）。
+     ★instructor / examiner はここに載せない。行き先が単純な1欄ではなく、
+       役職のチェック → 節を出す → 「別途支給されている」を選ぶ、まで要るので apply() が持つ。 */
   var KIND_FIELD = {
     base: 'f-base',
+    /* ★2026-08-27。基本給とは別の列（日本＝基本給が下限、米国＝保証給が下限で意味が違う）。
+       混ぜるとレポートの緑の切れが「基本給」と嘘をつく。 */
+    guarantee: 'f-guarantee',
     command: 'f-command',
     housing: 'f-housing-amt',
     flight_variable: 'f-other',
@@ -394,7 +399,14 @@
 
   var FIELD_LABEL = {
     'f-base': { ja: '基本給', en: 'Base pay' },
+    'f-guarantee': { ja: 'Flight time 保証手当 / 職務手当',
+                     en: 'Flight time guarantee / Duty allowance' },
+    'f-guar': { ja: '保証フライトタイム', en: 'Guaranteed flight time' },
     'f-command': { ja: '機長・役職手当', en: 'Command / position pay' },
+    /* 役割ごとの手当（2026-08-27）。額は専用の列へ入るので、
+       確認リストにも「その他手当」ではなくこの名前で出る。 */
+    'f-instructor': { ja: '教官・訓練の支給額', en: 'Instructor / training pay' },
+    'f-examiner': { ja: '審査・査察の支給額', en: 'Examiner / check pay' },
     'f-housing-amt': { ja: '住宅手当', en: 'Housing allowance' },
     'f-perdiem': { ja: 'パーディアム', en: 'Per diem' },
     'f-transport': { ja: '交通費', en: 'Transport' },
@@ -407,7 +419,16 @@
     'f-duty-h': { ja: '勤務時間', en: 'Duty time' },
     'f-currency': { ja: '通貨', en: 'Currency' },
     'f-year': { ja: '対象月', en: 'Period' },
+    /* ★欄ではなく「行」に入るもの（2026-08-27）。id ではないので getElementById には
+       渡らない。確認の表に行き先として出すためだけの名前。 */
+    'pd-var': { ja: '変動給', en: 'Variable pay' },
   };
+
+  /* 役割ごとの手当 → 専用の列。KIND_FIELD と分けているのは行き先が1欄ではないから
+     （役職にチェック → 節を出す → 「別途支給されている」を選ぶ、まで要る）。
+     ★組合・管理職・兼務は入れない（オーナー決定 2026-08-27）。組合は「組合名を返さない」
+       という規則と唯一ぶつかり、管理職・兼務は明細に決まった印字が無い。 */
+  var ROLE_FIELD = { instructor: 'f-instructor', examiner: 'f-examiner' };
 
   // ── 小道具 ────────────────────────────────────────────────
   var el = function (tag, cls, html) {
@@ -2279,20 +2300,110 @@
   }
   function unmark(e2) { e2.currentTarget.classList.remove('ai-filled'); }
 
+  /* ── 変動給を「行」に載せる（2026-08-27）────────────────────────
+     pay-report.html の繰り返し行（tpl-pd-var）は素の <script> の中で定義されていて
+     global に居る。無ければ今までどおり隠しの合計へ落ちるだけ＝古い HTML でも壊れない。 */
+  function canRows() {
+    return typeof pdAdd === 'function' && typeof pdSync === 'function' &&
+           !!document.getElementById('tpl-pd-var');
+  }
+  var seededRows = [];         // 前回この明細から生やした行（落とし直したら消す）
+  function seedVarRows(seed) {
+    /* ★明細を落とし直したら、前に生やした行は必ず消す。足すだけにすると
+       2回落とした人の変動給が2倍になる（欄なら上書きで済んでいた所）。
+       本人が自分で足した行には触らない（こちらが作った行だけを覚えている）。 */
+    seededRows.forEach(function (r) { if (r && r.parentNode) r.parentNode.removeChild(r); });
+    seededRows = [];
+    if (!seed || !seed.length || !canRows()) { if (typeof pdSync === 'function') pdSync(); return; }
+    if (typeof openOpt === 'function') openOpt('pd-var', true);   // 節そのものを開ける
+    seed.forEach(function (t) {
+      var row = pdAdd('var', true);
+      if (!row) return;
+      t.row = row;
+      seededRows.push(row);
+      var set = function (sel, v) {
+        var e2 = row.querySelector(sel);
+        if (!e2 || v == null || v === '') return;
+        e2.value = String(v);
+        /* 行の中の欄にも「AIが入れた」印を付ける（本人が触ったら外れる）。 */
+        e2.classList.add('ai-filled');
+        e2.addEventListener('input', unmark);
+        e2.addEventListener('change', unmark);
+      };
+      /* ★basis は必ず入れる。空のままだと必須（req-tag）に引っかかって、
+         明細から入った人だけが送信できなくなる。分からない行は 'unknown'。 */
+      set('.pd-basis', t.basis || 'unknown');
+      set('.pd-amt', String(Math.round(t.amount || 0)));
+      set('.pd-label', t.label);
+    });
+    var det = document.getElementById('pay-detail');
+    if (det) det.open = true;
+    pdSync();                        // f-var-sum と f-payitems を組み直す（中で recalc）
+  }
+
+  /* ── 教官・審査の節を出して額を入れる（2026-08-27）──────────────
+     ①役職にチェックを付ける ②「別途支給されている」を選ぶ ③名称を入れる ④節を開く。
+     金額そのものは apply() の sums の書き込みが入れる（この順でないと欄がまだ無い）。
+     ★支給単位・数量・担当訓練は入れない。明細から分からないので本人が足す。 */
+  function openRoles(sums, roleLabel) {
+    var want = [];
+    if (sums['f-instructor'] != null) want.push('instructor');
+    if (sums['f-examiner'] != null) want.push('examiner');
+    if (!want.length) return;
+    var jr = document.getElementById('f-jobrole');
+    if (!jr || typeof syncRoleBoxes !== 'function') return;       // 役職の欄が無い古い HTML
+    var have = String(jr.value || '').split(',').filter(Boolean);
+    want.forEach(function (c) { if (have.indexOf(c) < 0) have.push(c); });
+    setField('f-jobrole', have.join(','));
+    syncRoleBoxes();                                              // 節（s3-instr / s3-exam）が出る
+    want.forEach(function (c) {
+      var p = c === 'instructor' ? 'instr' : 'exam';
+      /* 「別途支給されている」＝金額の欄が出る。これを先に入れないと下が空振りする。 */
+      setField('f-' + p + '-extra', 'separate');
+      if (roleLabel[c]) setField('f-' + p + '-label', roleLabel[c]);
+      var det = document.getElementById(p + '-detail');
+      if (det) det.open = true;
+    });
+  }
+
   function apply(res) {
     lastHours = {};
     (res.hours || []).forEach(function (h) { lastHours[h.kind] = h.value; });
 
     // 手当を欄ごとに足し合わせる（同じ欄に行く行が複数あることがある）
     var sums = {}, trace = [], notional = [], counts = [];
+    var roleLabel = {};        // 教官・審査の「明細上の名称」（最初に読めた1つだけ）
+    var varSeed = [];          // 変動給。欄ではなく「行」に載せる（下で pdAdd する）
+    var rowsOK = canRows();
     (res.earnings || []).forEach(function (e2) {
       /* 相殺項目（航空券課税など）。控除欄に同額が立つので手取りは1円も動かない。
          収入に足すと時給が水増しになるので分子から外す。ただし黙って消さず、
          「読めたが数えていない」と画面に出す（unmapped に落として本人に聞くのも違う。
           何の項目かは分かっていて、数えないと決めているだけなので）。 */
       if (e2.kind === 'notional') { notional.push(e2); return; }
+      /* ★役割ごとの手当（教官・審査）。専用の列があるので、その他手当にも
+         職位手当にも1円も足し込まない。受け皿は下の openRoles() が作る。 */
+      var rid = ROLE_FIELD[e2.kind];
+      if (rid) {
+        sums[rid] = (sums[rid] || 0) + e2.amount;
+        if (!roleLabel[e2.kind]) roleLabel[e2.kind] = e2.label;
+        trace.push({ label: e2.label, field: rid, amount: e2.amount, kind: e2.kind });
+        return;
+      }
       var id = KIND_FIELD[e2.kind];
       if (!id) { (res.unmapped = res.unmapped || []).push({ label: e2.label, amount: e2.amount }); return; }
+      /* ★変動給は欄ではなく「行」に載せる（2026-08-27）。手で打った人と同じ入れ物に
+         入れないと、種類（basis）も明細上の名称も残らず、明細を落とした人のほうが
+         内訳が薄くなる。DEEP PAY はその内訳のために作っている。
+         ★行に載せたら f-flightvar は書かない（sumKind が row 付きを外す）。
+           f-var-sum が flight_variable_pay と other_allowance に1回ずつ入るので、
+           前の「二重書き」とまったく同じ金額になる。 */
+      if (e2.kind === 'flight_variable' && rowsOK) {
+        var tv = { label: e2.label, field: 'pd-var', amount: e2.amount, kind: e2.kind,
+                   basis: e2.basis || 'unknown' };
+        varSeed.push(tv); trace.push(tv);
+        return;
+      }
       sums[id] = (sums[id] || 0) + e2.amount;
       /* kind も持たせる。flight_variable は f-other に他の手当と混ざって入るので、
          欄では分けられない。専用列(flight_variable_pay)は kind で拾う。 */
@@ -2351,14 +2462,18 @@
        いま入れた基本給や手当が入っていることに本人が気づけない。
        ★2026-08-26 から、開いても総支給の欄は何も変わらない（読み取り専用にしない・
          合計で書き換えない・閉じても消さない）。総支給と内訳は排他ではなくなった。
-       ★保証時間（f-guar）は §2 に残っているので触らない。annualTotal() の
-         Math.max(f-block, f-guar) もそのまま効く。 */
+       ★保証時間（f-guar）は §2 に残っている欄で、2026-08-27 から writeExtras() が
+         setField で入れる（それまでは語彙に無くて黙って捨てていた）。
+         annualTotal() の Math.max(f-block, f-guar) はそのまま効く。 */
     if (Object.keys(sums).length) {
       var det = document.getElementById('pay-detail');
       if (det) det.open = true;
     }
 
     if (sums['f-housing-amt'] > 0) setField('f-housing', 'allowance');
+    /* ★先に受け皿を作る。教官・審査の金額欄は「別途支給されている」を選ぶまで
+       画面に無いので、順番を逆にすると setField が空振りする。 */
+    openRoles(sums, roleLabel);
     Object.keys(sums).forEach(function (id) {
       if (typeof openOpt === 'function') openOpt(id, true);       // チップの奥にある欄を開けてから入れる
       setField(id, String(Math.round(sums[id])));
@@ -2366,6 +2481,8 @@
     /* 6択に答えると行き先が変わる。そのとき「前は書いたが今は空にすべき欄」を
        知っている必要がある（pushTrace を参照）。 */
     lastFields = Object.keys(sums);
+
+    seedVarRows(varSeed);
 
     writeExtras(res, trace);
 
@@ -2410,7 +2527,10 @@
   function sumKind(rows, kind) {
     var t = 0, seen = false;
     (rows || []).forEach(function (r) {
-      if (r && r.kind === kind) { t += (r.amount || 0); seen = true; }
+      /* ★行（tpl-pd-var）に載った分は数えない。あちらは f-var-sum が持っていて、
+         f-var-sum は flight_variable_pay と other_allowance の両方に足される。
+         ここでも数えると変動給だけが二重になる（二重計上の境目はこの1行）。 */
+      if (r && r.kind === kind && !r.row) { t += (r.amount || 0); seen = true; }
     });
     return seen ? t : null;
   }
@@ -2486,16 +2606,28 @@
     if (np != null) setField('f-netpay', np); else writeHidden('f-netpay', null);
     var dh = okHours(lastHours.duty);
     if (dh != null) setField('f-duty-h', dh); else writeHidden('f-duty-h', null);
+    /* ★保証フライトタイム（2026-08-27）。§2 の表に出ている欄なので writeHidden ではなく
+       setField ＝「AIが入れた」印が付き、段階表示も進む。
+       ⚠️ 語彙に無かったころ、時間の行は unmapped にも落ちず黙って捨てられていた。
+          米国の明細は前から GUARANTEE 73.00 を印字していて、それが消えていた。
+       ★annualTotal() の Math.max(f-block, f-guar) はそのまま効く。時給の分母が
+         「飛んだ時間」から「保証時間」に上がるのは意図どおり（下限までは払われている）。 */
+    var gh = okHours(lastHours.guarantee);
+    if (gh != null) setField('f-guar', gh);
     writeHidden('f-ytd',      okAmount(res.ytd_taxable));
     writeHidden('f-deduct',   okAmount(res.deductions_total));
     writeHidden('f-night-h',  okHours(lastHours.night));
     writeHidden('f-credit-h', okHours(lastHours.credit));
     writeHidden('f-source',   'payslip');
-    /* ★flight_variable は f-other から「抜かない」。二重書きが正しい。
-       pay-tracker の donut は flight_variable_pay を other_allowance の部分集合として
-       扱い（fv <= other のときだけ割る）、pv_annual_total() は other_allowance しか
-       足していない。抜くと年収が丸ごと下がるうえ、annualTotal() と pv_annual_total()
-       が対称に下がるので test-form-contract では検出できない。 */
+    /* ★flight_variable の額は、必ずどちらか片方の道を通る（2026-08-27）：
+         行に載った  → f-var-sum（flight_variable_pay と other_allowance の両方に1回ずつ）
+         載らなかった → f-flightvar ＋ f-other（今までどおりの二重書き）
+       どちらでも金額はまったく同じ。両方に書くと変動給だけが二重になるので、
+       sumKind() が row 付きの行を外している。
+       ★「f-other から抜けばいい」ではない。pay-tracker の donut は flight_variable_pay を
+         other_allowance の部分集合として扱い、pv_annual_total() は other_allowance しか
+         足していない。抜くと年収が丸ごと下がるうえ、annualTotal() と pv_annual_total() が
+         対称に下がるので test-form-contract では検出できない。 */
     writeHidden('f-flightvar', okAmount(sumKind(rows, 'flight_variable')));
     writeHidden('f-psdetail', detailJson(res, rows));
   }
@@ -2518,8 +2650,18 @@
   }
 
   function pushTrace() {
-    var sums = {};
-    lastTrace.forEach(function (t) { if (t.field) sums[t.field] = (sums[t.field] || 0) + (t.amount || 0); });
+    var sums = {}, touchedRow = false;
+    lastTrace.forEach(function (t) {
+      /* ★行に載った変動給は欄ではなく行そのものへ書き戻す。
+         ここを忘れると、表で直した額が行に反映されず、送られるのは古い額のままになる。 */
+      if (t.row) {
+        var a = t.row.querySelector('.pd-amt');
+        if (a) { a.value = String(Math.round(t.amount || 0)); a.classList.remove('ai-filled'); }
+        touchedRow = true;
+        return;
+      }
+      if (t.field) sums[t.field] = (sums[t.field] || 0) + (t.amount || 0);
+    });
     /* ★6択に答えると行き先が変わる（未分類 → 賞与など）。移った先だけを書いて
        元の欄をそのままにすると、同じ金額が2つの欄に立って二重に数えられる。
        前回書いた欄で今回いなくなったものは、必ず空にする。 */
@@ -2539,6 +2681,8 @@
        ここを忘れると、フォームの合計は本人の訂正・DB の内訳は読み取り直後、
        という食い違った2つが同じ行に入る。 */
     writeHidden('f-psdetail', detailJson(lastRes || {}, lastTrace));
+    /* 行を直したら f-var-sum と f-payitems を組み直す（中で recalc も走る）。 */
+    if (touchedRow && typeof pdSync === 'function') pdSync();
     if (typeof recalc === 'function') recalc();
     renderRate();
   }

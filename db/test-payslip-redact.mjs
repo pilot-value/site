@@ -50,19 +50,37 @@ const FAKE = {
     period: { year: 2026, month: 7 },
     earnings: [
       { label: '基本給', amount: 420000, kind: 'base' },
+      /* ★保証給は基本給とは別の列（2026-08-27）。日本＝基本給が下限、
+         米国＝保証給が下限で意味が違うので、1つの列に混ぜると二度と割れない。 */
+      { label: '保証給', amount: 90000, kind: 'guarantee' },
       { label: '職務手当', amount: 185000, kind: 'command' },
-      { label: '変動付加乗務手当', amount: 148200, kind: 'flight_variable' },
-      { label: '深夜割増', amount: 23400, kind: 'flight_variable' },
+      /* ★basis＝何に連動する支給か。画面の10択と同じ語彙（2026-08-27）。 */
+      { label: '変動付加乗務手当', amount: 148200, kind: 'flight_variable', basis: 'block' },
+      { label: '深夜割増', amount: 23400, kind: 'flight_variable', basis: 'night' },
+      /* ★役割ごとの手当。専用の列があるので、その他手当にも職位手当にも足し込まない。 */
+      { label: '教官手当', amount: 30000, kind: 'instructor' },
+      { label: '審査手当', amount: 25000, kind: 'examiner' },
       { label: '住宅手当', amount: 60000, kind: 'housing' },
       { label: '通勤手当', amount: 18000, kind: 'transport' },
       { label: '日当（非課税）', amount: 42000, kind: 'per_diem' },
     ],
+    /* ★総支給を持たせる（2026-08-27）。2026-08-26 の作り直しで annualTotal() は
+       **本人が入れた総支給だけ**から出すようになった（内訳を足し直さない）ので、
+       ここが無いと年換算が 0 になり、時給のカードごと消える。
+       本物の明細はどれも総支給を印字している（見本16枚とも `gross_total` を持つ）。
+       ★内訳の合計とぴったり合わせてある＝「内訳の合計が総支給を超えています」の
+         注意が出ない（出ると絵で見たときに嘘の警告に見える）。 */
+    gross_total: 1053600,
     deductions_total: 221354,
-    net_pay: 690146,
+    net_pay: 832246,
     hours: [
       { label: '総勤務時間', value: 168.5, kind: 'duty' },
       { label: '乗務時間', value: 78.2, kind: 'block' },
       { label: '深夜時間', value: 12.0, kind: 'night' },
+      /* ★保証フライトタイム（2026-08-27）。それまでは語彙に無く、未分類にも落ちずに
+         黙って捨てられていた。乗務時間 78.2 より小さくしてある＝
+         annualTotal() の Math.max(f-block, f-guar) は 78.2 のまま動かない。 */
+      { label: '保証時間', value: 65.0, kind: 'guarantee' },
     ],
     unmapped: [{ label: '特別加算', amount: 12000 }],
     confidence: 'high',
@@ -484,6 +502,25 @@ for (const fx of fixtures) {
         perdiem: g('f-perdiem'), transport: g('f-transport'),
         housing: g('f-housing'), housingAmt: g('f-housing-amt'),
         block: g('f-block'), cur: g('f-currency'), y: g('f-year'), m: g('f-month'),
+        /* ── 2026-08-27 に読めるようになったもの ─────────────────────── */
+        guarantee: g('f-guarantee'), guar: g('f-guar'),
+        instr: g('f-instructor'), exam: g('f-examiner'),
+        instrLabel: g('f-instr-label'), examLabel: g('f-exam-label'),
+        instrExtra: g('f-instr-extra'), examExtra: g('f-exam-extra'),
+        jobrole: g('f-jobrole'),
+        instrShown: !(document.getElementById('s3-instr') || {}).hidden,
+        examShown: !(document.getElementById('s3-exam') || {}).hidden,
+        /* 変動給は「行」に載る（手で打った人とまったく同じ入れ物）。 */
+        varRows: [...(document.getElementById('pd-var-rows') || { children: [] }).children]
+          .map((r) => {
+            const q = (sel) => { const e = r.querySelector(sel); return e ? e.value.trim() : ''; };
+            return { basis: q('.pd-basis'), amt: q('.pd-amt'), label: q('.pd-label') };
+          }),
+        varSum: g('f-var-sum'), othSum: g('f-oth-sum'), flightvar: g('f-flightvar'),
+        /* ★payload と同じ式を「本物の sumField」で引く（写さない）。 */
+        fvPay: typeof sumField === 'function' ? sumField('f-flightvar', 'f-var-sum') : null,
+        othPay: typeof sumField === 'function' ? sumField('f-other', 'f-var-sum', 'f-oth-sum') : null,
+        payitems: g('f-payitems'),
         marked: document.querySelectorAll('.ai-filled').length,
         rate: (document.getElementById('ps-rate') || {}).textContent || '',
         formBodyHidden: document.getElementById('form-body').hidden,
@@ -499,12 +536,70 @@ for (const fx of fixtures) {
     ok(dg(v.command) === '185000', '職務手当が機長・役職手当に入る', v.command);
     /* ★2026-08-14：分類できなかった「特別加算 12,000」もここに入る（148200+23400+12000）。
        前はどの欄にも入らず、年収から黙って消えていた。 */
-    ok(dg(v.other) === '183600',
-       '★変動乗務手当＋分類できなかった行がその他手当に入る（148200+23400+12000）', v.other);
+    /* ★2026-08-27、変動給は「行」へ移った。その他手当の欄に残るのは
+       分類できなかった「特別加算 12,000」だけ。**金額の合計は1円も変わらない**
+       ── f-var-sum が other_allowance にも1回入るので、下の ★不変条件 で見る。 */
+    ok(dg(v.other) === '12000',
+       '★その他手当の欄に残るのは分類できなかった行だけ（変動給は行へ移った）', v.other);
     ok(dg(v.perdiem) === '42000', 'パーディアムが入る', v.perdiem);
     ok(dg(v.transport) === '18000', '交通費が入る', v.transport);
     ok(v.housing === 'allowance' && dg(v.housingAmt) === '60000', '住宅手当が現金として入る', v.housingAmt);
     ok(dg(v.block) === '78.2', '乗務時間が入る', v.block);
+
+    /* ══ 2026-08-27：フォームの作り直し（8-26 / 8-27）に読み取りを追いつかせた分 ══
+       ここが空だった間、明細を落とした人は「保証給・保証時間・変動給の種類・
+       教官・審査」を1つも持てなかった（手で打った人より内訳が薄かった）。 */
+    ok(dg(v.guarantee) === '90000',
+       '★保証給が専用の欄に入る（基本給に混ぜない）', v.guarantee);
+    ok(dg(v.base) === '420000',
+       '★その保証給を基本給に足し込んでいない（足すと二度と割れない）', v.base);
+    ok(dg(v.guar) === '65',
+       '★保証フライトタイムが入る（前は語彙に無く黙って捨てていた）', v.guar);
+    ok(v.block === '78.2' || dg(v.block) === '78.2',
+       '★保証時間を乗務時間で上書きしていない', `${v.block} / ${v.guar}`);
+
+    /* 変動給は「行」へ（手で打った人とまったく同じ入れ物）。 */
+    ok(v.varRows.length === 2, '★変動給が2行になる', `${v.varRows.length} 行`);
+    if (v.varRows.length === 2) {
+      ok(v.varRows[0].basis === 'block' && v.varRows[1].basis === 'night',
+         '★行に「種類」が選ばれている（basis。空だと必須に引っかかって送信できない）',
+         v.varRows.map((r) => r.basis).join('／'));
+      ok(dg(v.varRows[0].amt) === '148200' && dg(v.varRows[1].amt) === '23400',
+         '★行に金額が入る', v.varRows.map((r) => r.amt).join('／'));
+      ok(v.varRows[0].label === '変動付加乗務手当' && v.varRows[1].label === '深夜割増',
+         '★明細上の名称がそのまま残る（DEEP PAY はこの内訳のために作っている）',
+         v.varRows.map((r) => r.label).join('／'));
+    }
+    ok(/"basis":"block"/.test(v.payitems || '') && /"basis":"night"/.test(v.payitems || ''),
+       '★行が pay_items（送られる内訳）にも入っている', (v.payitems || '').slice(0, 120));
+    ok(dg(v.varSum) === '171600', '★行の合計（148200+23400）', v.varSum);
+    ok(dg(v.flightvar) === '',
+       '★行に載せたら f-flightvar は空（ここが二重計上の境目）', v.flightvar);
+
+    /* ★★不変条件 ── 行にしても、送られる2つの列は1円も変わらない。
+       flight_variable_pay = f-flightvar + f-var-sum
+       other_allowance     = f-other + f-var-sum + f-oth-sum
+       ＝ f-var-sum が両方に1回ずつ。前の「f-other と f-flightvar への二重書き」と同じ額。
+       ★式は写さず、ページの本物の sumField を呼んで測っている。 */
+    ok(v.fvPay === '171600',
+       '★★flight_variable_pay は行に移す前と1円も変わらない', String(v.fvPay));
+    ok(v.othPay === '183600',
+       '★★other_allowance も変わらない（12000 + 171600）', String(v.othPay));
+
+    /* 役割ごとの手当。専用の列があるので、その他手当にも職位手当にも足し込まない。 */
+    ok(v.instrShown && v.examShown, '★教官・審査の節が出ている',
+       `${v.instrShown ? '教官○' : '教官×'} ${v.examShown ? '審査○' : '審査×'}`);
+    ok(/instructor/.test(v.jobrole || '') && /examiner/.test(v.jobrole || ''),
+       '★役職・区分にチェックが付く', v.jobrole);
+    ok(v.instrExtra === 'separate' && v.examExtra === 'separate',
+       '★「別途支給されている」が選ばれている（これが無いと金額の欄が出ない）',
+       `${v.instrExtra}／${v.examExtra}`);
+    ok(dg(v.instr) === '30000' && dg(v.exam) === '25000',
+       '★教官・審査の額が専用の欄に入る', `${v.instr}／${v.exam}`);
+    ok(v.instrLabel === '教官手当' && v.examLabel === '審査手当',
+       '★明細上の名称も入る', `${v.instrLabel}／${v.examLabel}`);
+    ok(dg(v.command) === '185000',
+       '★教官・審査を職位手当に足し込んでいない', v.command);
     ok(v.cur === 'JPY', '通貨が入る', v.cur);
     ok(v.y === '2026' && v.m === '7', '対象月が入る', `${v.y}/${v.m}`);
     ok(v.marked >= 8, 'AIが埋めた欄がハイライトされている', `${v.marked} 欄`);
@@ -527,7 +622,7 @@ for (const fx of fixtures) {
     const body = await page.evaluate(() => document.body.innerText);
     ok(/まだ投稿されていません/.test(body), '「まだ投稿されていません」と書いてある');
     ok(/特別加算/.test(body), '分類できなかった項目を黙って捨てていない');
-    ok(/221,354/.test(body) && /690,146/.test(body), '控除合計・差引支給額を画面に出している');
+    ok(/221,354/.test(body) && /832,246/.test(body), '控除合計・差引支給額を画面に出している');
 
     /* ── 分類できなかった行の扱い（2026-08-14）────────────────────
        前は「これはどれですか？ 分かる方はあとで手で入れてください」と宿題を出し、
@@ -566,8 +661,10 @@ for (const fx of fixtures) {
                  card: !!document.querySelector('.ps-q') };
       });
       ok(dg(after.bonus) === '12000', '答えると賞与の欄へ移る', after.bonus);
-      ok(dg(after.other) === '171600', '★移した元（その他手当）から抜けている＝二重に数えない',
-         after.other);
+      /* ★2026-08-27、変動給が行へ移ったので、その他手当の欄に残っていたのは
+         この12,000だけ。移したら空になる（0 も書かない）。 */
+      ok(dg(after.other) === '', '★移した元（その他手当）から抜けている＝二重に数えない',
+         after.other || '(空)');
       ok(!after.card, '答え終わったらカードごと消える（1件しか無かった）');
       ok(/"asked":"bonus"/.test(after.detail || ''),
          '★本人の答えが内訳データに残る（これが語彙の正解データになる）');
@@ -1126,7 +1223,10 @@ const COPY = [
     ['解析にだけ使い、保存しません', '保存しないと書いてある（日）'],
     ['Only what is <b>inside the bright frame</b> is sent', '★送るのは枠の中だけと書いてある（英）'],
     ['Nothing outside the frame leaves your device', '★枠の外は端末を出ないと書いてある（英）'],
-    ['found and blacked out here on your device', '枠の中も探して塗る（英）'],
+    /* ★文言そのものではなく「約束が画面に出ているか」を見ている。英語側は
+       "…black them out right here on your device." と書いてある（payslip.js の redacted）。
+       日本語を直したときに英語だけ言い回しが変わり、ここが古い字を探し続けていた。 */
+    ['black them out right here on your device', '枠の中も探して塗る（英）'],
     ['is left inside the frame', '本人が確認してから送る（英）'],
     ['Add more if anything was missed', '自動検出は完璧ではないと断っている（英）'],
     ['cropped to just the payslip', '切り出しを勧めている（英）'],
@@ -1138,7 +1238,7 @@ const COPY = [
   ]],
   ['en/pay-report.html', [
     ['accept="application/pdf', 'PDF を選べる'],
-    ['Dropping <b>the PDF itself</b> reads most accurately', 'PDF を勧めている'],
+    ['Dropping <b>the PDF itself</b> gives the most accurate read', 'PDF を勧めている'],
   ]],
   ['personal-data.html', [
     ['ご本人が確認した「送る枠」の中だけ', '★送るのは枠の中だけと書いてある'],

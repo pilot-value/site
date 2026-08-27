@@ -79,8 +79,12 @@ for (const [name, s] of [['pay-report.html', JA], ['en/pay-report.html', EN]]) {
   /* ★2026-08-26、flight_variable_pay だけ val() 1つではなくなった。明細から読めた分
      （隠し欄 f-flightvar）に加えて、本人が手で足した「変動給」の行の合計（f-var-sum）も
      足す。だから見るのは書き方ではなく **その隠し欄が payload のそのキーに繋がっているか**。 */
+  /* ⚠️ ファイル全体から `キー:` を拾ってはいけない。2026-08-26 その5 に組合の節が
+     `{ … source: null … }` を持ったせいで、payload より前の行を拾って落ちた。
+     見たいのは payload の中身だけなので、`const payload = {` から先を切り出す。 */
+  const body = s.slice(s.indexOf('const payload = {'));
   for (const [id, key] of Object.entries(MAP)) {
-    const line = (s.match(new RegExp(`\\n\\s*${key}:[^\\n]*`)) || [''])[0];
+    const line = (body.match(new RegExp(`\\n\\s*${key}:[^\\n]*`)) || [''])[0];
     ok(/(val|sumField)\(/.test(line) && line.includes(`'${id}'`),
        `${name}: payload に ${key} がある（隠し欄 ${id} から来ている）`);
   }
@@ -117,6 +121,37 @@ ok(kindField && !/'f-flightvar'/.test(kindField[0]),
 ok(/writeHidden\('f-flightvar'/.test(PAYSLIP), 'flight_variable_pay は隠し欄へ別途書いている（二重書き）');
 ok(/表で金額を直したら専用列も追随/.test(PAYSLIP) || /pushTrace[\s\S]{0,400}f-flightvar/.test(PAYSLIP),
    '表で直したときも f-flightvar が追随する');
+
+/* ══ ②-b 2026-08-27：読み取りをフォーム（8-26 / 8-27）に追いつかせた分 ══
+   ★ここは「どの欄へ行くか」だけを見る。金額が1円も変わらないことは
+     db/test-payslip-redact.mjs が**本物のページの sumField** で測っている
+     （式をこちらに書き写すと、片方だけ直したときに黙ってズレる）。 */
+console.log('\n②-b 保証給・教官・審査の行き先（2026-08-27）');
+eq(kindField && /guarantee:\s*'(f-[a-z-]+)'/.exec(kindField[0])?.[1], 'f-guarantee',
+   "★保証給は専用の欄へ（基本給に混ぜない。日本＝基本給／米国＝保証給が下限で意味が違う）");
+ok(kindField && !/\bpension\b/.test(kindField[0]),
+   '★pension という分類を作っていない（日本の明細の厚生年金は控除。支給として立てる道を開かない）');
+
+const roleField = PAYSLIP.match(/var ROLE_FIELD = \{[^}]*\};/);
+ok(!!roleField, 'ROLE_FIELD を読めた');
+ok(roleField && /instructor:\s*'f-instructor'/.test(roleField[0]) &&
+   /examiner:\s*'f-examiner'/.test(roleField[0]),
+   '★教官・審査は専用の欄へ（instructor_pay / examiner_pay）');
+ok(roleField && !/'f-other'/.test(roleField[0]) && !/'f-command'/.test(roleField[0]),
+   '★その他手当にも職位手当にも足し込まない（専用の列があることがその実装そのもの）');
+ok(!/ROLE_FIELD\[[^\]]*\][\s\S]{0,200}f-other/.test(PAYSLIP),
+   '★役割の枝から f-other へ落ちる道が無い');
+/* 組合・管理職・兼務は**読まない**（オーナー決定 2026-08-27）。
+   組合は「組合名を返してはいけない」という規則が唯一ぶつかる所で、
+   管理職・兼務は明細に決まった印字が無く、誤分類はデータを黙って汚す。 */
+for (const c of ['union', 'management', 'nonline']) {
+  ok(roleField && !new RegExp(`\\b${c}:`).test(roleField[0]),
+     `★${c} は読まない（明細から当てられない／組合名は返してはいけない）`);
+}
+ok(/basis/.test(PAYSLIP) && /pdAdd\('var'/.test(PAYSLIP),
+   '★変動給は「行」に載せる（手で打った人と同じ入れ物。種類 basis も入る）');
+ok(/seededRows/.test(PAYSLIP),
+   '★落とし直したら前に生やした行を消す（足すだけだと2回落とした人の変動給が2倍になる）');
 
 /* ══ ③ 出荷されるコードをそのまま走らせる ═════════════════════
    writeHidden〜writeExtras を payslip.js から切り出して、偽の document で実行する。
@@ -174,6 +209,30 @@ const mkSetField = (doc, seen) => (id, v) => {
      seen.join(','));
   ok(!seen.includes('f-ytd') && !seen.includes('f-deduct') && !seen.includes('f-flightvar'),
      '画面に出ていない欄は writeHidden のまま（1枚で7回描き直さない）', seen.join(','));
+}
+
+// ── ★2026-08-27：保証時間と、行に載った変動給 ──────────────────
+{
+  /* f-guar は §2 の表に出ている欄なので writeHidden ではなく setField で入れる
+     （印が付いて段階表示も進む）。2026-08-27 まで語彙に無く、未分類にも落ちずに
+     黙って捨てられていた（米国の見本は実際に GUARANTEE 73.00 を印字している）。 */
+  const doc = fakeDoc([...Object.keys(MAP), 'f-guar']);
+  const seen = [];
+  const api = build(doc, { block: 78.2, duty: 168.5, guarantee: 65 }, mkSetField(doc, seen));
+  api.writeExtras({ net_pay: 832246 },
+    [/* 行に載った変動給。f-var-sum が持つので、こちらでは数えない。 */
+     { field: 'pd-var', amount: 148200, kind: 'flight_variable', row: {} },
+     { field: 'pd-var', amount:  23400, kind: 'flight_variable', row: {} },
+     { field: 'f-other', amount: 12000, kind: 'unclassified' }]);
+  const v = (id) => doc.els[id].value;
+  eq(v('f-guar'), '65', '★保証フライトタイムが入る');
+  ok(seen.includes('f-guar'),
+     '★f-guar は setField で入れる（隠しにしない＝印が付いて段階表示も進む）');
+  eq(v('f-flightvar'), '',
+     '★★行に載った変動給は f-flightvar に書かない（ここが二重計上の境目）');
+  eq(api.sumKind([{ kind: 'flight_variable', amount: 5000 },
+                  { kind: 'flight_variable', amount: 148200, row: {} }], 'flight_variable'), 5000,
+     '★sumKind は行に載った分を数えない（欄に残った分だけ）');
 }
 
 // ── 範囲外・欠損 ──

@@ -88,6 +88,10 @@ const ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/webp'];
    pay-report.html の入力欄と対応している（payslip.js の KIND_FIELD が対応表）。 */
 export const EARNING_KINDS = [
   'base',            // 基本給（本給A・本給B のように複数行に割れることがある）
+  /* ★2026-08-27。フォームが 2026-08-26 に基本給と割ったので、こちらも割る。
+     日本＝基本給が下限、米国＝保証給が下限で意味が違う。1つの列に混ぜると
+     二度と割れず、レポートの緑の切れが「基本給」と嘘をつく（CLAUDE.md）。 */
+  'guarantee',       // Flight time 保証手当 / 職務手当（Minimum Guarantee）。★職務手当≠これ。下の規則を読む
   'command',         // 職務・役職手当（機長手当など）
   'housing',         // 住宅手当（現金）
   'flight_variable', // 変動乗務手当（変動付加乗務時間・深夜変動付加割増・変動付加乗務回数など）
@@ -95,6 +99,13 @@ export const EARNING_KINDS = [
   'transport',       // 通勤・交通費
   'absence',         // 不就労減額など、支給欄に立つマイナス行。★符号を保つ
   'notional',        // 現物給与の課税処理（航空券課税など）。控除欄に同額が立ち、手取りは動かない
+  /* ★2026-08-27。役割ごとのモジュール（pay-report.html の #s3-instr / #s3-exam）へ入れる。
+     語彙に無かったころは「その他手当」に落ちていた＝フォーム自身の
+     「役割の手当をここに入れない」という約束を、明細経由のときだけ破っていた。
+     ★組合・管理職・兼務は足さない（オーナー決定 2026-08-27）。組合は「組合名を返さない」規則と
+       唯一ぶつかり、管理職・兼務は明細に決まった印字が無い＝誤分類がデータを黙って汚す。 */
+  'instructor',      // 教官・訓練の手当（INSTRUCTOR PAY / TRI / 教官手当）
+  'examiner',        // 審査・査察の手当（CHECK AIRMAN / TRE / 審査手当）
   'other',           // その他の手当
   'bonus',           // 賞与（年額）
   'profit',          // プロフィットシェア（年額）
@@ -105,6 +116,27 @@ export const HOUR_KINDS = [
   'duty',    // 勤務時間・総勤務時間
   'night',   // 深夜時間
   'credit',  // クレジットアワー（米国。block とは別物。リグ・欠航補償を含む）
+  /* ★2026-08-27。§2 の「保証フライトタイム」(f-guar) に入る。
+     ⚠️ 時間の行は unmapped に落ちず、語彙に無いと下の for が continue で**黙って捨てる**。
+        米国の見本は前から GUARANTEE 73.00 を印字しているのに、ここに無いせいで消えていた。 */
+  'guarantee', // 契約上の最低保証時間（MIN GUARANTEE / 保証時間）
+] as const;
+
+/* 変動給の「何に連動する支給か」。pay-report.html の <select class="pd-basis"> の
+   10択と**1つ違わず同じ並び**でなければならない（db/test-payslip-parse.mjs が突き合わせる）。
+   ★語彙に無い答えは捨てずに 'unknown' へ倒す。画面の10択にも「わからない」があり、
+     行を作る以上どれかは入っていないと必須で引っかかるため。 */
+export const VARIABLE_BASIS = [
+  'block',    // 飛行・クレジット時間
+  'duty',     // 勤務・勤務時間
+  'sector',   // 便数・着陸回数
+  'overtime', // 時間外・追加勤務
+  'reserve',  // 待機・スタンバイ
+  'night',    // 深夜・夜間勤務
+  'weekend',  // 週末・日曜勤務
+  'holiday',  // 祝日勤務
+  'other',    // その他
+  'unknown',  // わからない
 ] as const;
 
 /* 分類できなかった行（unmapped）の中に混ざる「金額でない行」。
@@ -358,7 +390,7 @@ export function systemPrompt(lang: string): string {
     '',
     'Return ONE JSON object, no prose, no code fence, with exactly these keys:',
     '{"currency":string|null,"period":{"year":int,"month":int}|null,',
-    ' "earnings":[{"label":string,"amount":number,"kind":string}],',
+    ' "earnings":[{"label":string,"amount":number,"kind":string,"basis":string|null}],',
     ' "gross_total":number|null,',
     ' "deductions_total":number|null,"net_pay":number|null,"ytd_taxable":number|null,',
     ' "hours":[{"label":string,"raw":string,"value":number,"kind":string}],',
@@ -366,11 +398,21 @@ export function systemPrompt(lang: string): string {
     '',
     `"kind" for earnings MUST be one of: ${EARNING_KINDS.join(', ')}.`,
     `"kind" for hours MUST be one of: ${HOUR_KINDS.join(', ')}.`,
+    `"basis" is ONLY for kind "flight_variable" — what the amount moves with. One of: ${VARIABLE_BASIS.join(', ')}.`,
+    '  Use null for every other kind. Use "unknown" when the line is variable pay but the slip does not',
+    '  say what drives it. Never force a guess — "unknown" is a real answer the pilot can correct.',
     '',
     'Classification rules:',
     '- base: 基本給 / 本給 / 本給A / 本給B / basic salary / base pay / fixed monthly salary.',
     '  A Japanese slip often splits base pay over several lines (本給A and 本給B). Return each as its own',
     '  entry with kind "base" — do not add them together yourself.',
+    '- guarantee: MINIMUM GUARANTEE / MIN GUAR / GUARANTEE PAY / MONTHLY GUARANTEE / 保証給 —',
+    '  the FLOOR amount paid when the hours actually flown fall below the contractual minimum.',
+    '  It is usually printed with an hours figure next to it (e.g. 73:00) and is the bottom of the',
+    '  monthly pay, not a fixed allowance for holding a rank.',
+    '  ★ 職務手当 and 役職手当 are NOT guarantee. They are "command". A Japanese slip that prints',
+    '  職務手当 must stay "command" — putting it here breaks the breakdown for every Japanese pilot.',
+    '  When a slip has no floor line at all, simply do not return this kind.',
     '- command: 職務手当 / 役職手当 / 機長手当 / command pay / position allowance —',
     '  a FIXED monthly amount paid for holding the rank. It does not move with hours flown.',
     '  An "override" line is only command pay when it is a flat monthly figure for being captain.',
@@ -386,6 +428,20 @@ export function systemPrompt(lang: string): string {
     '  international override / night override / holding pay / deadhead pay. These are printed with',
     '  an HOURS and a RATE next to them, which is exactly what makes them variable, not rank-based.',
     '  If several such lines exist, return them as separate entries all with kind "flight_variable".',
+    /* ★basis は「実際に印字されている語」からしか決めない。ここに並べたのは上の flight_variable の
+       規則が既に持っている語だけで、推測で足した語は1つも無い（語彙を増やすと誤分類が増える）。 */
+    '  Give each of them a "basis" — what the amount moves with, taken from what is printed:',
+    '    block  = flying / credit hours — a line printed with HOURS and a RATE, 変動付加乗務時間,',
+    '             flying pay, flight pay, hourly flight allowance, OVERRIDE - INTL, holding pay, deadhead pay.',
+    '    duty   = duty hours — FDP allowance, 勤務時間 based premiums.',
+    '    sector = number of sectors or landings — sector pay, 変動付加乗務回数.',
+    '    overtime = 時間外手当 / overtime.',
+    '    reserve  = standby / reserve duty pay.',
+    '    night    = 深夜変動付加割増 / 深夜勤務割増手当 / night premium.',
+    '    weekend  = 土日出勤手当 / weekend duty.   holiday = 祝日出勤手当 / public holiday duty.',
+    '    other    = clearly variable, and clearly none of the above.',
+    '    unknown  = the slip does not say what it moves with. Prefer this over guessing.',
+    '  ★ 土日祝出勤手当 mixes weekend and holiday in one label — use "weekend".',
     '- per_diem: 日当 / パーディアム / per diem / layover allowance / meal allowance.',
     '  Per diem is usually tax-free reimbursement — classify it here, never as base.',
     '- transport: 通勤手当 / 交通費 / commuting allowance / transport allowance.',
@@ -400,6 +456,14 @@ export function systemPrompt(lang: string): string {
     '  deductions column is not visible — do not fall back to "other" just because you cannot check.',
     '- bonus: 賞与 / 一時金 / bonus — annual figures that happen to appear on a monthly slip.',
     '- profit: profit share / profit sharing / 利益配分.',
+    '- instructor: pay for TRAINING other pilots — INSTRUCTOR PAY / INSTRUCTOR OVERRIDE / TRI / TRE-less',
+    '  training roles / TRAINING CAPTAIN / LINE TRAINING / SIM INSTRUCTOR / 教官手当 / 訓練手当.',
+    '- examiner: pay for CHECKING or examining other pilots — CHECK AIRMAN / CHECK PILOT /',
+    '  CHECK AIRMAN OVERRIDE / TRE / EXAMINER / LINE CHECK / 審査手当 / 査察手当.',
+    '  ★ Both of these are paid for HOLDING A ROLE and doing that work, which is neither "command"',
+    '  (a flat amount for holding a rank) nor "other". They go to their own field on the form, so a',
+    '  wrong answer here puts money in the wrong column. If the label does not clearly say training',
+    '  or checking, use "unmapped" and let the pilot say what it was.',
     '- other: an allowance you are confident is pay but that fits none of the above',
     '  (e.g. 株式積立奨励金 / 共済 / 資格手当 / 語学手当).',
     '',
@@ -443,6 +507,11 @@ export function systemPrompt(lang: string): string {
     '- duty: 勤務時間 / 総勤務時間 / duty hours / total hours on duty (includes ground and standby).',
     '- night: 深夜時間 / night hours / 深夜割増対象時間.',
     '- credit: US-style credit hours / credited time. NOT the same as block — keep it separate.',
+    '- guarantee: the contractual MINIMUM hours guaranteed for the month — GUARANTEE / MIN GUARANTEE /',
+    '  MIN MONTHLY GUARANTEE / MONTHLY GUARANTEE / 保証時間. It is a floor written into the contract,',
+    '  not time the pilot actually worked, so never return it as "block" or "credit".',
+    '  A US slip often prints it twice: as an hours figure and next to the guarantee AMOUNT.',
+    '  Return the hours here and the money as an earning with kind "guarantee".',
     '- 不就労時間 / absence hours / unpaid hours is NOT one of these. Leave it out entirely.',
     '  It is time NOT worked, and on Japanese slips it is already excluded from 勤務時間.',
     '- "raw" MUST be the value copied EXACTLY as printed, character for character: "111H59", "55H00",',
@@ -494,7 +563,7 @@ export function sanitize(raw: Parsed): Parsed {
      読み違いで隣の列を連結した形なので、切っても失うものが無い。 */
   const lbl = (v: unknown) => str(v).replace(/\d{5,}/g, '…').slice(0, 40).trim();
 
-  const earnings: Array<{ label: string; amount: number; kind: string }> = [];
+  const earnings: Array<{ label: string; amount: number; kind: string; basis?: string }> = [];
   /* count:true ＝ 金額ではない行（乗務日数など）。付けるのはここ1か所で、
      支給合計の検算も画面側の集計も、この印を見て外す。 */
   const unmapped: Array<{ label: string; amount: number; count?: true }> = [];
@@ -513,7 +582,16 @@ export function sanitize(raw: Parsed): Parsed {
     if (!(EARNING_KINDS as readonly string[]).includes(kind)) { putUnmapped(label, amount); continue; }
     if (kind === 'absence') amount = -Math.abs(amount);    // 減額は定義上マイナス
     else if (kind !== 'other') amount = Math.abs(amount);  // 手当が負なのは読み違い
-    earnings.push({ label, amount, kind });
+    /* ★basis は変動給の行だけが持つ。ほかの kind に付いてきたら黙って落とす
+       （画面の「変動給」の行にしか置き場が無いので、持たせても行き先が無い）。
+       語彙に無い答えは捨てずに 'unknown' へ倒す ── 行を作る以上どれかは要る。 */
+    if (kind === 'flight_variable') {
+      const b = str(row.basis);
+      earnings.push({
+        label, amount, kind,
+        basis: (VARIABLE_BASIS as readonly string[]).includes(b) ? b : 'unknown',
+      });
+    } else earnings.push({ label, amount, kind });
   }
   for (const u of Array.isArray(raw.unmapped) ? raw.unmapped : []) {
     const row = u as Parsed;

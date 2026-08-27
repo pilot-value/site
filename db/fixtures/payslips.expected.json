@@ -45,7 +45,7 @@
       },
       "hours": { "duty": 168.5, "block": 78.2, "night": 12.0 },
       "must_not": {
-        "kinds": { "base": 911500 },
+        "kinds": { "base": 911500, "guarantee": 185000 },
         "hours": { "block": 14 }
       }
     },
@@ -97,7 +97,7 @@
       },
       "hours": { "duty": 120.5, "block": 60.0, "night": 4.2 },
       "must_not": {
-        "kinds": { "absence": 18000 },
+        "kinds": { "absence": 18000, "guarantee": 460000 },
         "hours": { "duty": 120.3, "night": 4.12, "absence": 4 }
       }
     },
@@ -124,7 +124,7 @@
       },
       "hours": { "duty": 120.5, "block": 60.0, "night": 4.2 },
       "must_not": {
-        "kinds": { "absence": 18000 },
+        "kinds": { "absence": 18000, "guarantee": 460000 },
         "hours": { "duty": 120.3, "absence": 4 }
       }
     },
@@ -182,7 +182,7 @@
     {
       "id": "us",
       "file": "payslip-us.png",
-      "note": "米国・等幅テキストで罫線なし。★EARNINGS / HOURS / RATE / AMOUNT の4列。金額は一番右の AMOUNT。GUARANTEE 73.00 は時間の語彙に無いので落ちる。",
+      "note": "米国・等幅テキストで罫線なし。★EARNINGS / HOURS / RATE / AMOUNT の4列。金額は一番右の AMOUNT。★2026-08-27、時間の語彙に guarantee を足したので GUARANTEE 73.00 が拾えるようになった（それまでは黙って捨てていた）。",
       "lang": "en",
       "currency": ["USD", null],
       "period": [{ "year": 2026, "month": 7 }, null],
@@ -196,7 +196,7 @@
         "per_diem": 620.6
       },
       "kinds_note": "OVERRIDE-INTL 549.58。2026-08-14 の実測で実際に command に寄った（プロンプトの command の例に『captain override』と書いてあったのが原因）。飛んだ時間に比例する割増なので flight_variable が正。プロンプト側で書き分けた。年収は変わらないので、ずれても『分類ずれ』であって金額の誤りではない。",
-      "hours": { "block": 76.3, "credit": 84.55, "duty": 158.4 },
+      "hours": { "block": 76.3, "credit": 84.55, "duty": 158.4, "guarantee": 73.0 },
       "must_not": {
         "kinds": { "flight_variable": 84.55, "per_diem": 214 },
         "gross_total": 84.55,
@@ -420,6 +420,35 @@
         "kinds": { "base": 62.4 },
         "gross_total": 125.25
       }
+    },
+
+    {
+      "id": "us-guarantee",
+      "file": "payslip-us-guarantee.png",
+      "note": "★2026-08-27 追加。8-26/8-27 のフォームに合わせて読み取り側を直した所を、実際に採点するための1枚。ほかの15枚に1行も無い印字だけを集めてある — 保証給（下限）・回数に連動する変動給・教官・審査・保証時間。飛んだ時間 61.20 が契約の下限 73.00 を割った月なので、保証給が立つ。",
+      "lang": "en",
+      "currency": ["USD", null],
+      "period": [{ "year": 2026, "month": 7 }, null],
+      "period_note": "★null も正解。us と同じ様式で、対象月『JUL 2026』は表題の行にしか無く送る枠が落とす。絵に無いものを null と答えるのは正しい動作。",
+      "gross_total": 24085.43,
+      "deductions_total": 7905.61,
+      "net_pay": 16179.82,
+      "ytd_taxable": null,
+      "kinds": {
+        "guarantee": 22054.03,
+        "flight_variable": 372.0,
+        "instructor": 270.0,
+        "examiner": 850.0,
+        "per_diem": 539.4
+      },
+      "kinds_note": "★MIN MONTHLY GUARANTEE は『飛んだ時間が契約の下限を割ったときに埋められる額』＝guarantee。base ではない（must_not が見張る）。SECTOR PAY は回数に連動するので flight_variable（basis は sector が正しいが、basis は採点していない — 画面の10択との突き合わせは db/test-payslip-parse.mjs の①-g が静的に見ている）。INSTRUCTOR PAY - LINE と CHECK AIRMAN OVERRIDE は役割に対する手当で、専用の列（instructor_pay / examiner_pay）へ行く。command でも other でもない。",
+      "hours": { "block": 61.2, "credit": 68.4, "duty": 132.1, "guarantee": 73.0 },
+      "must_not": {
+        "kinds": { "base": 22054.03, "guarantee": 73, "instructor": 6, "other": 1120 },
+        "gross_total": 22054.03,
+        "hours": { "block": 73, "credit": 73 }
+      },
+      "must_not_note": "base 22054.03 ＝ 保証給を基本給と読んだ（日本の明細の基本給と混ざると内訳が二度と割れない）。guarantee 73 / instructor 6 ＝ HOURS の列を AMOUNT と取り違えた。other 1120 ＝ 教官 270 と審査 850 を足して『その他手当』に落とした（8-27 に直したのがまさにこれ）。hours.block 73 ＝ 契約の下限を『飛んだ時間』として返した（時給の分母が狂う）。"
     }
   ]
 }
