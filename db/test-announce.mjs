@@ -24,6 +24,11 @@
    ④ FOUNDING PILOT 100 のお知らせ（buildFounding）
       こちらは email_opt_in で絞らず登録者全員に送る。①〜③に加えて、
       勧誘が1文も無いこと・受け取った人の番号が本文に無いことを見る。
+
+   ⑤ REAL PAY 公開のお知らせ（buildRealPay）
+      ④と同じく登録者全員に送る。加えて、書いた主張が actual-pay.js と
+      1文字違わないことを見る（画面の文言を直したらここが落ちる＝
+      メールに古い主張が残らない）。
    ════════════════════════════════════════════════════════════════ */
 import { readFileSync, statSync, readdirSync } from 'fs';
 import { createHash } from 'crypto';
@@ -36,7 +41,7 @@ const read = (p) => readFileSync(join(ROOT, p), 'utf8');
 let pass = 0, fail = 0;
 const ok = (c, m, x = '') => { c ? (pass++, console.log(`  ✅ ${m}`)) : (fail++, console.log(`  ❌ ${m}${x ? '\n     ' + x : ''}`)); };
 
-const { build, buildFounding, langModeOf, SAMPLE, IMG_VER } = await import(join(ROOT, 'mail-bot/announce-mail.mjs'));
+const { build, buildFounding, buildRealPay, realPayLangOf, langModeOf, SAMPLE, IMG_VER } = await import(join(ROOT, 'mail-bot/announce-mail.mjs'));
 
 /* 架空の人。実在の氏名は使わない（このリポジトリは PUBLIC）。 */
 const P = {
@@ -489,6 +494,233 @@ for (const [k, b] of FALL) ok(b.subject.length <= 78, `founding/${k}: 件名が 
      'founding: 日本語の副題も画面と同じ');
   ok(/Founding Member/.test(js) && buildFounding(FP.en, O).html.includes('Founding Member'),
      'founding: 英語の副題も画面と同じ');
+}
+
+/* ════════ ⑤ REAL PAY 公開のお知らせ ══════════════════════════════
+   buildRealPay()。④と同じく登録者全員へ送るので、勧誘・人数・金額の
+   見張りをそのまま継ぐ。加えてこのメール特有の約束が3つある。
+
+   ・★主張の出どころは actual-pay.js ただ1つ。見えること4つと列の見出し6つを
+     1文字違わず写しているかを見る。画面を直したのにメールが古いままだと、
+     開いた人が「メールにあった列が無い」と探すことになる。
+   ・★「個人が特定されない形に加工しています」と書かない。
+     k≧5 の門・30日の遅延・p10-p90 のクリップは 2026-08-23 に外してあり、
+     db/pay-rows.sql の契約ヘッダは「同じ会社・同じ職位の同僚には
+     当てられうる」と書いている。実装より強い約束をメールでしない。
+   ・★日英ともは日本語が上・英語が下（2026-08-27 オーナー指示）。
+     announce / founding とは逆。ここだけ向きが違うのはわざとなので、
+     揃えようとして直さない。                                        */
+console.log('\n── ⑤ REAL PAY 公開のお知らせ ──');
+
+const RP = {
+  ja:   { name: '高橋 蓮',     country: '日本', unsub_token: 'rp-ja' },
+  en:   { name: 'Alex Mercer', country: 'UAE',  unsub_token: 'rp-en' },
+  both: { name: 'Ren Aoki',    country: null,   unsub_token: 'rp-both' },
+};
+const RALL = Object.entries(RP).map(([k, x]) => [k, buildRealPay(x, O)]);
+
+/* 入れてはいけないもの。①④と同じ物差しをそのまま当てる（見本カードが
+   無いので stripSample を通さない＝素の本文で見る）。 */
+for (const [k, b] of RALL) {
+  const body = b.html + '\n' + b.subject + '\n' + b.text;
+  const money = MONEY.find(([re]) => re.test(body));
+  ok(!money, `realpay/${k}: 金額が1つも入っていない`, money ? `${money[1]} → ${body.match(money[0])[0]}` : '');
+
+  const name = NAMES.find((n) => hitsName(body, n));
+  ok(!name, `realpay/${k}: 航空会社名が1つも入っていない`, name || '');
+
+  const low = body.toLowerCase();
+  const ded = DEDUCT.find((w) => low.includes(w.toLowerCase()));
+  ok(!ded, `realpay/${k}: 控除の項目名が入っていない`, ded || '');
+  const slip = SLIP.find((w) => low.includes(w.toLowerCase()));
+  ok(!slip, `realpay/${k}: 明細の項目名が入っていない`, slip || '');
+}
+
+/* ★人数・件数を書かない。REAL PAY の画面は数え上げを出すが、それは
+   開いた人にだけ見せるもので、受信箱と Resend の送信ログに残す物ではない。
+   通す数字は下の3つの言い回しの中だけ（会員の規模と関係が無い数）。
+   それ以外は1文字も通さないので、あとから「28件あります」を足したら落ちる。 */
+const RP_OK_DIGITS = ['パイロット1人につき1行', 'パイロットが1人ずつ', '年収を12で割った', 'ここに集まる1件ずつ'];
+const rpBare = (s) => RP_OK_DIGITS.reduce((a, w) => a.split(w).join(' '), s).replace(/[^0-9]/g, '');
+for (const [k, b] of RALL) {
+  ok(rpBare(b.subject + '\n' + b.text) === '', `realpay/${k}: 文字版に人数・件数が無い`,
+     rpBare(b.subject + '\n' + b.text));
+  const visible = b.html
+    .replace(/<(script|style)[\s\S]*?<\/\1>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&[a-z]+;/gi, ' ');
+  ok(rpBare(visible) === '', `realpay/${k}: HTML の見える文字にも人数・件数が無い`, rpBare(visible));
+}
+
+/* ★勧誘の言い回しが入っていないこと。オーナーの原稿にあった末尾の1文
+   （「まだ給与を共有していない方は…／匿名で給与を共有する →」）は、
+   全員に送るために外してある。戻すと広告宣伝メールになり、本文に
+   運営者の氏名・住所を書く義務が出る。 */
+for (const [k, b] of RALL) {
+  const low = (b.html + b.subject + b.text).toLowerCase();
+  const hit = SOLICIT.find((w) => low.includes(w.toLowerCase()));
+  ok(!hit, `realpay/${k}: 勧誘の言い回しが入っていない`, hit || '');
+}
+/* ボタンは REAL PAY へ行く1つだけ。給与フォームへの導線を本文に置かない
+   （置いた時点で「出してください」という誘いになる）。 */
+for (const [k, b] of RALL) {
+  ok(!/pay-report\.html/.test(b.html + b.text), `realpay/${k}: 給与フォームへの導線が無い`);
+  const n = (b.html.match(/actual-pay\.html/g) || []).length;
+  ok(n === (b.lang === 'both' ? 2 : 1), `realpay/${k}: 押す所は言語ごとに1つだけ`, String(n));
+}
+
+/* ★主張の出どころ。actual-pay.js から実際に切り出して突き合わせる。 */
+{
+  const ap = read('actual-pay.js');
+  const pick = (re) => [...ap.matchAll(re)].map((m) => m[1]);
+  const seeBlocks = [...ap.matchAll(/\bsee:\s*\[([\s\S]*?)\]/g)]
+    .map((m) => [...m[1].matchAll(/'((?:[^'\\]|\\.)*)'/g)].map((x) => x[1]));
+  ok(seeBlocks.length === 2, `actual-pay.js から see を2つ取り出せた（${seeBlocks.length}）`);
+  const [seeJa, seeEn] = seeBlocks;
+  const bJa = buildRealPay(RP.ja, O), bEn = buildRealPay(RP.en, O);
+  for (const [nm, arr, b] of [['ja', seeJa, bJa], ['en', seeEn, bEn]]) {
+    ok(arr.length === 4, `realpay/${nm}: 画面の「見えること」が4つ`, String(arr.length));
+    const miss = arr.find((line) => !b.html.includes(line) || !b.text.includes(line));
+    ok(!miss, `realpay/${nm}: 4つとも actual-pay.js と1文字違わない`, miss || '');
+  }
+  /* 列の見出し6つ。骨組みの表と画面で違う言葉を出さない。 */
+  const th = (key) => pick(new RegExp('\\b' + key + ":\\s*'([^']*)'", 'g'));
+  const keys = ['thAir', 'thPos', 'thAmt', 'thMon', 'thVf', 'thAge'];
+  for (const [i, nm, b] of [[0, 'ja', bJa], [1, 'en', bEn]]) {
+    const heads = keys.map((k2) => th(k2)[i]);
+    ok(heads.every(Boolean), `realpay/${nm}: 画面から列の見出し6つを取り出せた`, heads.join('/'));
+    const miss = heads.find((h) => h && !b.html.includes('>' + h + '<'));
+    ok(!miss, `realpay/${nm}: 骨組みの表の見出しが画面と同じ`, miss || '');
+  }
+  /* 「見えること」の見出しも画面と同じ（seeT）。 */
+  const seeT = pick(/\bseeT:\s*'([^']*)'/g);
+  ok(seeT.length === 2 && bJa.html.includes(seeT[0]) && bEn.html.includes(seeT[1]),
+     'realpay: 「見えること」の見出しが画面と同じ', seeT.join(' / '));
+}
+
+/* ★賞与の列は無い（actual-pay.js:574「賞与の列は無い」）。
+   オーナーの原稿にあった「Bonusなどの報酬情報」は、無い列を約束していた。 */
+for (const [k, b] of RALL) {
+  const body = (b.html + b.subject + b.text).toLowerCase();
+  ok(!/賞与|ボーナス|\bbonus/.test(body), `realpay/${k}: 賞与のことを書いていない（列が無い）`);
+}
+
+/* ★実装より強い約束をしない。匿名加工・特定不能をうたわない。 */
+const OVERCLAIM = [/個人が特定され/, /特定できない/, /匿名加工/, /完全に匿名化/,
+  /cannot be identified/i, /de-?identified/i, /anonymi[sz]ed data/i];
+for (const [k, b] of RALL) {
+  const body = b.html + b.subject + b.text;
+  const hit = OVERCLAIM.find((re) => re.test(body));
+  ok(!hit, `realpay/${k}: 特定されないと言い切っていない`, hit ? String(hit) : '');
+}
+
+/* ★DEEP PAY はまだページが無い。もう使えるように読める書き方をしない。 */
+for (const [k, b] of RALL) {
+  const t = b.text;
+  if (!/DEEP PAY/.test(t)) { ok(false, `realpay/${k}: DEEP PAY に触れている`); continue; }
+  ok(/準備しています|preparing/.test(t), `realpay/${k}: DEEP PAY は「準備しています」`);
+  ok(!/DEEP PAY[^。\n]{0,20}(公開しました|見られます|is (now )?(live|available)|you can (now )?see)/i.test(t),
+     `realpay/${k}: DEEP PAY がもう開いているように読めない`);
+}
+
+/* 解除の導線。全員に送るぶん、欠けたときの傷が深い。 */
+for (const [k, b] of RALL) {
+  ok(b.unsubUrl.includes(RP[k].unsub_token), `realpay/${k}: 解除リンクがその人のトークンを持っている`);
+  ok(b.html.includes(b.unsubUrl), `realpay/${k}: HTML 版に解除リンクがある`);
+  ok(b.text.includes(b.unsubUrl), `realpay/${k}: 文字版にも解除リンクがある`);
+  ok(/functions\/v1\/remind-payslip\?u=/.test(b.oneClickUrl), `realpay/${k}: ワンクリック解除の宛先がある`);
+  ok(!/希望|opted in|opt-in/i.test(b.text), `realpay/${k}: 「希望した方に」と書いていない（全員に送るため）`);
+  ok(/お知らせとしてお送り|service notice/i.test(b.text), `realpay/${k}: 全員に送る理由を正直に書いている`);
+}
+/* 日英ともの人には解除リンクが2本（それぞれ自分の言語のページへ）。 */
+{
+  const b = buildRealPay(RP.both, O);
+  ok(b.html.includes('/unsubscribe.html') && b.html.includes('/en/unsubscribe.html'),
+     'realpay/both: 解除リンクが日英2本ある');
+}
+
+/* 行き先は REAL PAY。 */
+ok(buildRealPay(RP.ja, O).text.includes('/actual-pay.html'), 'realpay: 日本語の人は日本語の REAL PAY へ');
+ok(buildRealPay(RP.en, O).text.includes('/en/actual-pay.html'), 'realpay: 英語の人は英語の REAL PAY へ');
+
+/* ★日英ともは日本語が上・英語が下。announce / founding とは逆（上のコメント）。 */
+{
+  const b = buildRealPay(RP.both, O);
+  const jaAt = b.text.search(/[぀-ヿ一-鿿]/);
+  const enAt = b.text.search(/[A-Za-z]{4,}/);
+  ok(jaAt >= 0 && enAt >= 0 && jaAt < enAt, 'realpay/both: 日本語が上・英語が下', `ja@${jaAt} en@${enAt}`);
+  ok(b.html.includes('English follows.'), 'realpay/both: 仕切りが「English follows.」');
+  ok(!b.html.includes('日本語は下に続きます。'), 'realpay/both: 逆向きの仕切りが残っていない');
+  ok(b.subject.includes('公開しました') && b.subject.includes('is now live'),
+     'realpay/both: 件名に日英が両方ある', b.subject);
+}
+/* 片方だけの人に、もう片方を混ぜない。 */
+ok(!/[぀-ヿ一-鿿]/.test(buildRealPay(RP.en, O).text), 'realpay: 英語だけの人に日本語を混ぜない');
+ok(!/(English follows|日本語は下に続きます)/.test(buildRealPay(RP.ja, O).html),
+   'realpay: 日本語だけの人に仕切りを出さない');
+
+/* ★言語の決め方（2026-08-27 オーナー指示）。
+   手がかりのある人は今までの2通と同じ判定。手がかりが無い人だけ、
+   勤務先の航空会社が海外なら英語・そうでなければ日英ともに。
+   ★langModeOf を書き換えていないこと（announce / founding の判定を巻き込まない）。 */
+{
+  ok(realPayLangOf(RP.ja) === 'ja' && realPayLangOf(RP.en) === 'en',
+     'realpay: 氏名・居住国から分かる人は今までと同じ判定');
+  ok(realPayLangOf(RP.both) === 'both', 'realpay: 手がかりが無ければ日英ともに');
+  const over = { ...RP.both, airline_region: 'mideast' };
+  ok(realPayLangOf(over) === 'en', 'realpay: 勤務先が海外の航空会社なら英語だけ');
+  ok(buildRealPay(over, O).lang === 'en' && !/[぀-ヿ一-鿿]/.test(buildRealPay(over, O).text),
+     'realpay: そのとき本文にも日本語が入らない');
+  ok(realPayLangOf({ ...RP.both, airline_region: 'japan' }) === 'both',
+     'realpay: 勤務先が日本の航空会社なら日英ともに');
+  ok(realPayLangOf({ ...RP.both, airline_region: '' }) === 'both',
+     'realpay: 名寄せが当たらなかったときも日英ともに');
+  /* 日本語の氏名の人は、勤務先が海外でも日本語のまま
+     （言語は居住国と氏名で決める。勤務先は手がかりが無いときの最後の頼り）。 */
+  ok(realPayLangOf({ ...RP.ja, airline_region: 'mideast' }) === 'ja',
+     'realpay: 氏名から分かる人は勤務先で上書きしない');
+  /* ★announce / founding の判定を変えていない。 */
+  ok(langModeOf(RP.both) === 'both' && langModeOf({ ...RP.both, airline_region: 'mideast' }) === 'both',
+     'realpay: langModeOf（announce / founding 側）は変えていない');
+}
+
+/* ★1種類しか作れないこと。提出の有無で文面を割ると、割った側が必ず勧誘になる。 */
+{
+  const a = buildRealPay({ name: '高橋 蓮', country: '日本', unsub_token: 'x' }, O);
+  const b = buildRealPay({ name: '高橋 蓮', country: '日本', unsub_token: 'x',
+    pay_report_count: 9, review_count: 4, founding_no: 7 }, O);
+  ok(a.html === b.html && a.subject === b.subject,
+     'realpay: 提出の有無を渡しても本文が変わらない（1種類しか作れない）');
+}
+
+/* 画像を使わない。一覧の骨組みは表で描いてあるので、画像を止めていても消えない。 */
+for (const [k, b] of RALL) ok(!/<img/i.test(b.html), `realpay/${k}: 画像を使っていない`);
+
+/* 氏名を出さない（①④と同じ理由）。 */
+for (const [k, b] of RALL) {
+  const nm = String(RP[k].name).split(/\s+/).filter((w) => w.length >= 2);
+  const hit = nm.find((w) => (b.subject + b.html + b.text).includes(w));
+  ok(!hit, `realpay/${k}: 氏名が件名にも本文にも出ない`, hit || '');
+}
+{
+  const evil = buildRealPay({ name: '<script>x</script>', country: '日本', unsub_token: 't' }, O);
+  ok(!evil.html.includes('<script>') && !evil.html.includes('&lt;script&gt;'),
+     'realpay: 氏名に入れられたタグが本文に出ない');
+  const anon = buildRealPay({ name: null, country: null, unsub_token: 't' }, O);
+  ok(anon.html.length > 500 && !/null|undefined/.test(anon.text), 'realpay: 氏名が空でも本文が壊れない');
+}
+
+/* 件名の長さ。 */
+for (const [k, b] of RALL) ok(b.subject.length <= 78, `realpay/${k}: 件名が 78 文字以内（${b.subject.length}）`);
+
+/* タグラインは実在の文言（index.html の h1／pv-referral.js の TAGLINE）。発明しない。 */
+{
+  ok(read('index.html').includes('パイロットの待遇に、')
+     && buildRealPay(RP.ja, O).text.includes('パイロットの待遇に、匿名の実データで透明性を。'),
+     'realpay: 日本語のタグラインがトップページと同じ');
+  ok(/Know your value\. Raise our value\./.test(read('pv-referral.js'))
+     && RALL.every(([, b]) => b.text.includes('Know your value. Raise our value.')),
+     'realpay: 共通のタグラインが pv-referral.js と同じ');
 }
 
 console.log(`\n${pass} pass / ${fail} fail\n`);

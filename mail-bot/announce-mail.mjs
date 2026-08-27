@@ -646,3 +646,255 @@ export function buildFounding(p, o = {}) {
 
   return { lang, subject, html, text, unsubUrl, oneClickUrl, meUrl: meUrl(langs[0]) };
 }
+
+/* ════════════════════════════════════════════════════════════════
+   REAL PAY 公開のお知らせ（buildRealPay）
+
+   ── 誰に送るか ────────────────────────────────────────────────
+   buildFounding と同じ。**登録者全員**（email_opt_in で絞らない）。
+   だから本文は勧誘を1文も含まない「サービスからのお知らせ」に保つ。
+   勧誘が入った時点で特定電子メール法の広告宣伝メールになり、4条の
+   「送信者の氏名・住所」の表示義務が発生する（運営者の身元を守る方針と
+   正面からぶつかる）。オーナーの原稿にあった末尾の1文
+   「まだ給与を共有していない方は…／匿名で給与を共有する →」は、
+   その理由で外してある（2026-08-27 オーナー了承）。ボタンは1つだけ。
+
+   ── 本文に入れないもの ────────────────────────────────────────
+   ・金額・会社名・職位名・明細の項目名（build() / buildFounding() と同じ）
+   ・★人数・件数。「18人が出しています」「28件あります」は会員の規模が読める。
+     REAL PAY の画面は数え上げを出すが、それは開いた人にだけ見せるもので、
+     受信箱と Resend の送信ログに残す物ではない。
+   ・★DEEP PAY がもう開いているように読める書き方。ページはまだ無い。
+
+   ── 書いてよい事実の出どころ ──────────────────────────────────
+   主張は全部 actual-pay.js から取る。盛らない。
+     ・見えること4つ …… T.see（日英とも1文字違わず写す）
+     ・載っていないもの …… T.foot（機材・基地・年代・在籍年数・生の日付）
+     ・列の見出し6つ …… T.thAir/thPos/thAmt/thMon/thVf/thAge
+   ★「個人が特定されない形に加工した」とは書かない。k≧5 の門・30日の遅延・
+     p10-p90 のクリップは 2026-08-23 に外してあり、db/pay-rows.sql の契約ヘッダは
+     「同じ会社・同じ職位の同僚には当てられうる」と書いている。画面が約束している
+     ところ（何が載っていないか）までしか書かない。
+   → db/test-announce.mjs の⑤が全部を検査して固定している。
+   ════════════════════════════════════════════════════════════════ */
+
+/* ★このメールだけ、日英ともの並びが逆（日本語が上・英語が下）。
+   2026-08-27 オーナー指示「そうでなければ上に日本語、下に英語でいいよ」。
+   BOTH_ORDER（en→ja）は build() と buildFounding() のもので、書き換えない
+   ―― 過去に送った2通と判定が変わると、同じ人に届いた物の並びが後から食い違う。 */
+const REALPAY_BOTH_ORDER = ['ja', 'en'];
+
+/* ★言語の決め方（2026-08-27 オーナー指示）。
+     氏名か居住国から分かる人 …… 今までどおり langOf（日本語 or 英語）
+     手がかりがまったく無い人 …… 勤務先の航空会社が海外なら英語、
+                                  そうでなければ日英ともに（日本語が上）
+   ★langModeOf は書き換えない。build() と buildFounding() が使っていて、
+     そちらの判定まで変えると「同じ人に過去と違う言語で届く」が起きる。
+   ★ここではネットを叩かない。勤務先（profiles.company）は自由入力なので、
+     112社の語彙に当てて地域を引くのは呼び出し側（send.mjs が
+     pv_airline_resolve → pv_airlines.region）。ここは結果の1語を受け取るだけ
+     ―― db/test-announce.mjs を鍵もネットも無しで回せるようにするため。 */
+export function realPayLangOf(p) {
+  const mode = langModeOf(p);
+  if (mode !== 'both') return mode;
+  const region = String(p?.airline_region ?? '').trim().toLowerCase();
+  return (region && region !== 'japan') ? 'en' : 'both';
+}
+
+/* 一覧の骨組み。★画面のロック時の「解放後の一覧イメージ」と同じ考え方で、
+   見出し6つだけを出し、中身は灰色の帯にする。数字も社名も1文字も入らない。
+   画像にしない ―― 画像を止めている受信箱で、何の話か分からなくなるため。 */
+function realPaySkeleton(t) {
+  const bar = (w) => `<td style="padding:9px 6px;border-top:1px solid #eef0f4">
+        <div style="height:8px;width:${w}%;background:#e7ebf1;border-radius:4px"></div></td>`;
+  const row = (ws) => `<tr>${ws.map(bar).join('')}</tr>`;
+  return `
+    <div style="margin:0 0 6px;color:#6b7a8c;font-size:11px;letter-spacing:.06em;font-weight:700">${esc(t.skelT)}</div>
+    <table style="border-collapse:collapse;width:100%;margin:0 0 22px;background:#fff;border:1px solid #e6e9ef;border-radius:12px">
+      <tr>${t.th.map((h) => `<th style="padding:10px 6px;text-align:left;color:#111;font-size:11px;font-weight:800;white-space:nowrap">${esc(h)}</th>`).join('')}</tr>
+      ${row([88, 62, 70, 58, 46, 66])}
+      ${row([70, 74, 62, 66, 46, 54])}
+      ${row([82, 58, 66, 60, 46, 62])}
+    </table>`;
+}
+
+function realPayCopy(lang) {
+  if (lang === 'ja') {
+    return {
+      subject: 'REAL PAY を公開しました',
+      hi: 'こんにちは',
+      /* ★列の見出しは actual-pay.js の T.ja.thAir… と1文字違わず同じ。
+           メールで見た列がページに無い、を作らない。 */
+      th: ['航空会社', '職位', '年収', '月あたり', '出典', '投稿時期'],
+      skelT: '一覧のイメージ',
+      lead: [
+        'PILOT VALUE に REAL PAY を公開しました。',
+        'REAL PAY では、PILOT VALUE に寄せられた給与を、パイロット1人につき1行の一覧で読むことができます。',
+        '求人票の想定年収でも、推定でもありません。パイロット本人が出した記録です。',
+        /* ★actual-pay.js の T.ja.foot が約束していることだけを書く。
+             「個人が特定されない形に加工した」とは書かない（上のコメント）。 */
+        '一方で、載せる情報は絞ってあります。機材・基地・在籍年数・年代は誰の行にも入っていません。いつ出された記録かも、おおまかな時期だけです。載っているのは、航空会社・職位と、丸めた年収・月あたりだけです。',
+      ],
+      seeT: 'REAL PAY で見えること',
+      /* ★actual-pay.js の T.ja.see をそのまま写す。画面の文言を変えたら
+           db/test-announce.mjs の⑤が落ちる＝メールに古い主張が残らない。 */
+      see: ['航空会社と職位ごとの、実際に受け取っている年収',
+            '年収を12で割った、月あたりの金額',
+            '給与明細の裏付けがある行に付く Verified の印',
+            'その記録がだいたいいつ出されたか'],
+      tail: [
+        /* ★「まだ多くはありません」と正直に書く。件数は書かない
+             （書くと会員の規模が読める）。 */
+        'まだ多くはありません。それでも、パイロットが1人ずつ匿名で出したことで、これまで噂でしか分からなかった給与が、少しずつ形になってきました。',
+        /* ★DEEP PAY は「準備しています」。ページはまだ無いので、
+             もう開いているように読める書き方をしない。 */
+        'REAL PAY は最初の段階です。今後は、給与の内訳・勤務量・Instructor や Examiner など追加の役割に対する報酬まで比べられる DEEP PAY を準備しています。',
+      ],
+      /* VISION。ここが無いと「機能ができました」だけの通知になる。
+         ★「あなたが出した1件が」と書かない。全員に同じ1通が届くので、
+           まだ出していない人には事実と合わない。 */
+      vision: [
+        'PILOT VALUE が目指しているのは、給与を公開すること自体ではありません。匿名のまま、パイロットが自分の待遇を正しく比べられる場所をつくることです。',
+        'ここに集まる1件ずつが、別のパイロットのキャリアの判断につながります。',
+      ],
+      cta: 'REAL PAY を見る',
+      /* ★勧誘にしない。「出すと見られます」ではなく、いまどうなっているかの事実。 */
+      after: 'この一覧は、自分の給与を出したパイロットが読めるようにしています。まだ出していない方にも、いまどれだけ集まっているかは開いてご覧いただけます。',
+      /* タグラインは実在の文言。index.html の h1 と pv-referral.js の TAGLINE。 */
+      tag: ['パイロットの待遇に、匿名の実データで透明性を。',
+            'Know your value. Raise our value.'],
+      why: 'このメールは、PILOT VALUE にご登録いただいた方へ、サービスからのお知らせとしてお送りしています。',
+      unsub: '配信を停止する',
+    };
+  }
+  return {
+    subject: 'REAL PAY is now live',
+    hi: 'Hi,',
+    th: ['Airline', 'Position', 'Annual', 'Per month', 'Source', 'Submitted'],
+    skelT: 'What the list looks like',
+    lead: [
+      'REAL PAY is now live on PILOT VALUE.',
+      'REAL PAY lets you read the pay that pilots have shared with PILOT VALUE — one row per pilot.',
+      'Not job postings. Not estimates. Records pilots entered themselves.',
+      'At the same time, a row carries very little. Fleet, base, years of service and age appear on no row, and when a record was submitted is shown only as a broad period. What a row carries is the airline, the position, and rounded figures for the year and the month.',
+    ],
+    seeT: 'What REAL PAY shows',
+    see: ['What pilots at each airline and rank actually earn in a year',
+          'That figure divided by twelve, as a monthly amount',
+          'The Verified mark on rows backed by a payslip',
+          'Roughly when each record was submitted'],
+    tail: [
+      'There is not much yet. But with each pilot who shares anonymously, pay that used to travel only by word of mouth takes a clearer shape.',
+      'REAL PAY is only the beginning. Next we are preparing DEEP PAY, where pay structure, workload and the pay attached to extra roles such as Instructor and Examiner can be compared.',
+    ],
+    vision: [
+      'The goal of PILOT VALUE is not to publish salaries. It is to build a place where pilots can compare their own package with confidence, and stay anonymous doing it.',
+      'Every record that lands here helps another pilot decide.',
+    ],
+    cta: 'Open REAL PAY',
+    after: 'The list is readable by pilots who have shared their own pay. If you have not, you can still open it and see how much has been collected so far.',
+    tag: ['Bringing transparency to pilot compensation — through anonymous, real-world data.',
+          'Know your value. Raise our value.'],
+    why: 'This is a service notice sent to people registered with PILOT VALUE.',
+    unsub: 'Unsubscribe',
+  };
+}
+
+/* p = { name, country, airline_region, unsub_token }
+   o = { siteUrl, supabaseUrl, adminEmail, lang }  ← lang を渡すと判定を上書き
+
+   ★name は言語の判定にしか使わない。宛名には出さない（build() と同じ）。 */
+export function buildRealPay(p, o = {}) {
+  const opt = { ...DEFAULTS, ...o };
+  const site = String(opt.siteUrl).replace(/\/+$/, '');
+  const lang = opt.lang || realPayLangOf(p);
+  const langs = lang === 'both' ? REALPAY_BOTH_ORDER : [lang];
+
+  const payUrl = (l) => `${site}/${l === 'en' ? 'en/' : ''}actual-pay.html`;
+  /* ★日英ぶん2本出す（buildFounding と同じ理由）。オプトインで絞らず全員に
+     送るので、片方の言語しか読めない人が解除できない形にしない。 */
+  const unsubPage = (l) => `${site}/${l === 'en' ? 'en/' : ''}unsubscribe.html?token=${encodeURIComponent(p?.unsub_token || '')}`;
+  const unsubUrl = unsubPage(langs[0]);
+  /* 受信箱側のワンクリック解除（RFC 8058）。本番で動いている remind-payslip の
+     入口をそのまま指す（新しい解除の窓口を作らない）。 */
+  const oneClickUrl = opt.supabaseUrl
+    ? `${String(opt.supabaseUrl).replace(/\/+$/, '')}/functions/v1/remind-payslip?u=${encodeURIComponent(p?.unsub_token || '')}`
+    : '';
+
+  const parts = langs.map((l) => ({ l, t: realPayCopy(l), u: payUrl(l) }));
+
+  const subject = lang === 'both'
+    ? `${parts[0].t.subject} / ${parts[1].t.subject}`
+    : parts[0].t.subject;
+
+  const li = (s) => `<tr>
+      <td style="vertical-align:top;padding:0 8px 8px 0;color:#f5c842;font-weight:800">&bull;</td>
+      <td style="vertical-align:top;padding:0 0 8px;color:#333;font-size:13px;line-height:1.7">${esc(s)}</td>
+    </tr>`;
+
+  const blockHtml3 = (t, u, first) => `
+    <p style="margin:0 0 18px">${esc(t.hi)}</p>
+    ${t.lead.map((s) => `<p style="margin:0 0 16px;color:#333">${esc(s)}</p>`).join('')}
+    ${first ? realPaySkeleton(t) : ''}
+    <p style="margin:0 0 10px;font-weight:800;color:#111;font-size:13px">${esc(t.seeT)}</p>
+    <table style="border-collapse:collapse;margin:0 0 20px">${t.see.map(li).join('')}</table>
+    ${t.tail.map((s) => `<p style="margin:0 0 16px;color:#333">${esc(s)}</p>`).join('')}
+    <p style="margin:22px 0 22px;padding:14px 16px;background:#f7f9fb;border-left:3px solid #f5c842;color:#333;font-size:13px;line-height:1.8">${
+      t.vision.map((s, i) => (i === t.vision.length - 1 && t.vision.length > 1
+        ? `<b style="color:#1a1a1a">${esc(s)}</b>`
+        : esc(s))).join('<br><br>')}</p>
+    <p style="margin:0 0 12px">
+      <a href="${esc(u)}" style="display:inline-block;background:#f5c842;color:#111;text-decoration:none;font-weight:800;padding:12px 22px;border-radius:10px">${esc(t.cta)}</a>
+    </p>
+    <p style="margin:0 0 18px;color:#6b7a8c;font-size:12px;line-height:1.8">${esc(t.after)}</p>
+    <p style="margin:0;color:#6b7a8c;font-size:12px;line-height:1.9">${
+      t.tag.map((s, i) => (i === 0 ? esc(s) : `<b style="color:#1a1a1a">${esc(s)}</b>`)).join('<br>')}<br>
+      <span style="color:#111;font-weight:800;letter-spacing:.04em">PILOT VALUE</span></p>`;
+
+  const blockText3 = (t, u) => [
+    strip(t.hi), '',
+    ...t.lead.flatMap((s) => [strip(s), '']),
+    strip(t.seeT), '',
+    ...t.see.map((s) => '  - ' + strip(s)), '',
+    ...t.tail.flatMap((s) => [strip(s), '']),
+    ...t.vision.flatMap((s) => [strip(s), '']),
+    `${strip(t.cta)}: ${u}`, '',
+    strip(t.after), '',
+    ...t.tag.map(strip),
+    'PILOT VALUE',
+  ].join('\n');
+
+  /* ★足元は日英ともに出す（buildFounding と同じ）。全員に送るので、
+     解除のしかたが読めない人が出ると困る。 */
+  const feet = parts.map((x) => x.t);
+  const unsubLink = parts
+    .map((x) => `<a href="${esc(unsubPage(x.l))}" style="color:#6b7280">${esc(x.t.unsub)}</a>`)
+    .join(' / ');
+
+  const html =
+    `<div style="background:#f3f5f8;padding:24px 12px;font-family:-apple-system,'Segoe UI','Noto Sans JP',sans-serif">
+      <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;border:1px solid #e6e9ef">
+        <div style="background:#0a0c0f;padding:18px 24px">
+          <span style="color:#f5c842;font-weight:800;letter-spacing:.04em;font-size:15px">PILOT VALUE</span>
+        </div>
+        <div style="padding:26px 24px;color:#1f2937;font-size:14px;line-height:1.8">
+          ${parts.map((x, i) => blockHtml3(x.t, x.u, i === 0))
+            .reduce((a, b, i) => a + dividerFor(langs[i]) + b)}
+        </div>
+        <div style="padding:16px 24px;border-top:1px solid #eef0f4;color:#9aa5b1;font-size:11px;line-height:1.7">
+          ${feet.map((t) => esc(t.why)).join('<br>')}<br>
+          ${unsubLink}
+          ・<a href="${esc(site)}" style="color:#6b7280">${esc(site.replace(/^https?:\/\//, ''))}</a>
+        </div>
+      </div>
+    </div>`;
+
+  const text = [
+    parts.map((x) => blockText3(x.t, x.u)).join('\n\n— — —\n\n'),
+    '', '--',
+    ...feet.map((t) => strip(t.why)),
+    ...parts.map((x) => `${strip(x.t.unsub)}: ${unsubPage(x.l)}`),
+  ].join('\n');
+
+  return { lang, subject, html, text, unsubUrl, oneClickUrl, payUrl: payUrl(langs[0]) };
+}

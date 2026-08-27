@@ -12,13 +12,14 @@
          node shot-remind.mjs --write     … 書き出すだけ（撮らない）
          node shot-remind.mjs --announce  … お知らせメール（announce-mail.mjs）の側を撮る
          node shot-remind.mjs --founding  … FOUNDING PILOT 100 のお知らせを撮る
+         node shot-remind.mjs --realpay   … REAL PAY 公開のお知らせを撮る
 */
 import puppeteer from 'puppeteer';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { build } from './supabase/functions/remind-payslip/index.ts';
-import { build as buildAnnounce, buildFounding } from './mail-bot/announce-mail.mjs';
+import { build as buildAnnounce, buildFounding, buildRealPay } from './mail-bot/announce-mail.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const outDir = path.join(__dirname, 'temporary screenshots', 'mail');
@@ -26,6 +27,7 @@ fs.mkdirSync(outDir, { recursive: true });
 
 const ANNOUNCE = process.argv.includes('--announce');
 const FOUNDING = process.argv.includes('--founding');
+const REALPAY  = process.argv.includes('--realpay');
 const day = (n) => new Date(Date.now() + n * 86400000).toISOString();
 
 /* 受け取る人の状態は3つに分かれる。文面と色が変わるので全部見る。 */
@@ -61,11 +63,26 @@ const FOUNDING_CASES = [
   { k: 'fd-noname', p: { name: null,          country: null } },
 ];
 
-const CASES = FOUNDING ? FOUNDING_CASES : ANNOUNCE ? ANNOUNCE_CASES : REMIND_CASES;
+/* REAL PAY 公開のお知らせ。★分かれるのは言語だけ（全員に同じ1通）。
+   日英ともの並びはこのメールだけ逆（日本語が上・英語が下。2026-08-27 オーナー指示）。
+   ★rp-both-overseas は「氏名も居住国も手がかりが無いが、勤務先が海外の航空会社」の人。
+     英語だけになるところを見る（region は send.mjs が pv_airline_resolve で引く）。 */
+const REALPAY_CASES = [
+  { k: 'rp-ja',            p: { name: '高橋 蓮',     country: '日本' } },
+  { k: 'rp-en',            p: { name: 'Alex Mercer', country: 'UAE' } },
+  { k: 'rp-both',          p: { name: 'Ren Aoki',    country: null } },
+  { k: 'rp-both-overseas', p: { name: 'Ren Aoki',    country: null, airline_region: 'mideast' } },
+  { k: 'rp-noname',        p: { name: null,          country: null } },
+];
+
+const CASES = REALPAY ? REALPAY_CASES : FOUNDING ? FOUNDING_CASES : ANNOUNCE ? ANNOUNCE_CASES : REMIND_CASES;
 
 const files = [];
 for (const c of CASES) {
-  const m = FOUNDING
+  const m = REALPAY
+    ? buildRealPay({ id: 'x', unsub_token: '0000-token', ...c.p },
+      { supabaseUrl: 'https://example.supabase.co', siteUrl: 'http://localhost:3000' })
+    : FOUNDING
     ? buildFounding({ id: 'x', unsub_token: '0000-token', ...c.p },
       { supabaseUrl: 'https://example.supabase.co', siteUrl: 'http://localhost:3000' })
     : ANNOUNCE
