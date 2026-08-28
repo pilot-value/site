@@ -43,9 +43,38 @@
    ═══════════════════════════════════════════════════════════════════ */
 import puppeteer from 'puppeteer';
 import fs from 'fs';
+import os from 'node:os';
 import { fileURLToPath } from 'url';
 
 const BASE = 'http://localhost:3000';
+
+/* ── 同時に開くタブの数 ─────────────────────────────────────────────
+   162 回の読み込みのうち **3分の2 は、ただ待っている時間**（下の 1200ms の
+   再フィット待ちと networkidle2 の 500ms）。CPU を使うのは1マスあたり 0.8 秒だけ。
+   ＝ 4本並べても、実際に描いているのは平均 1.3 本ぶんしかない。
+   既定は「コアの半分・2〜6本」。check.mjs:78 の web 側（コア数から引いて頭打ち）と
+   同じ考え方に揃えてある。8コアで 4本。
+
+   2026-08-28 の実測（単独・8コア）── 直列 380秒 / -j 4 で 98秒 / -j 10 で 49秒。
+   どれも直列版と出力が1バイトも違わなかった。
+
+   ⚠️ **ここを上げても `check.mjs web` は速くならない。他の検査を落とすだけ。**
+      実際にやってこうなった（同じ日・同じ機械）:
+        中4タブ → web 全体 315秒。ただし db/test-payslip-redact.mjs が7件落ちる
+        中2タブ → web 全体 317秒。18本すべて通る
+      web 全体は既に CPU で頭打ちで、下限は「仕事の合計 1245秒 ÷ 同時4本 ＝ 311秒」。
+      317秒はもうそこに着いている＝タブを増やしても全体は縮まず、奪った CPU のぶん
+      隣が飢えるだけ。とくに db/test-payslip-redact.mjs は OCR を40秒で打ち切る決まりで、
+      奪われると黒塗りが1つも置けず**最初の様式が7件落ちる**
+      （理由は db/test-payslip-redact.mjs:17-24）。
+      なので check.mjs は自分から呼ぶときだけ PV_HEADER_JOBS=2 を渡す（check.mjs:104）。
+      単独で流すときは既定の4本のまま速い。
+   ⚠️ 上げるほど「測る瞬間に他のタブが CPU を持っている」確率が上がる。
+      上げたら必ず直列版（PV_HEADER_JOBS=1）と出力を diff し直すこと。 */
+const jArg = process.argv.indexOf('-j');
+const JOBS = Math.max(1,
+  Number(process.env.PV_HEADER_JOBS || (jArg >= 0 ? process.argv[jArg + 1] : 0))
+  || Math.min(6, Math.max(2, os.cpus().length >> 1)));
 
 /* テンプレートが違うものを1枚ずつ。同じ生成物を並べても同じ形が増えるだけ。 */
 const PAGES = [
@@ -83,11 +112,19 @@ const MIN_GAP = 19;          /* search.js の BREATH=20 に測定誤差ぶんの
    （search.js の fit() も段④だけは BREATH を見ない。同じ理由）。 */
 const GAP_FROM = 390;
 
+/* ★並列にしたので console.log を直に呼ばない。行はページごとの箱へ積み、
+   全部終わってから **宣言順に** まとめて吐く（PAGES の順・幅の昇順・FORM_PAGES の順）。
+   直列で回していた頃と出力を1バイトも変えないため。ここが揃っているから
+   「直列版と diff して同一」が検証として使える。
+   ran / fail は素のカウンタ。Node は1本の糸で回り、++ と if のあいだに await が
+   挟まらないので、並べても数は狂わない。 */
 let fail = 0, ran = 0;
-const ok = (cond, name, detail = '') => {
+const fmt = (cond, name, detail = '') =>
+  `  ${cond ? '✓' : '✗ FAIL'}  ${name}${detail ? `\n          → ${detail}` : ''}`;
+const mkOk = (lines) => (cond, name, detail = '') => {
   ran++;
   if (!cond) fail++;
-  console.log(`  ${cond ? '✓' : '✗ FAIL'}  ${name}${detail ? `\n          → ${detail}` : ''}`);
+  lines.push(fmt(cond, name, detail));
 };
 
 const browser = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox'] });
@@ -197,22 +234,97 @@ const FAKE_SESSION = () => {
   });
 };
 
-for (const [href, label, opt = {}] of PAGES) {
-  console.log(`\n═══ ${label}  ${href} ═══`);
+/* ── 形が落ち着くまで待つ（下の 1200ms の「後ろ」に足すだけ）──────────────
+   search.js:653-660 は load と [0,300,1200]ms の setTimeout から
+   requestAnimationFrame 経由で fit() をやり直す。タブを何枚も並べると、
+   その最後の 1200ms がこちらの sleep より後ろへずれることがある
+   ＝ **最後の再フィットを見ないまま測って ✓ を出す**。並列化でいちばん怖いのはこれ。
+
+   ここで見るのは3つ。どれも「もっと待つ」方向にしか効かない。
+     ① ページ側の時計で DOMContentLoaded + 1200ms を過ぎたか
+        （search.js は body 末尾の同期スクリプトなので fit の起点は DCL。
+          こちらの sleep はページの時計とは別物なので、ページ側で数え直す）
+     ② webfont が落ち着いたか（Inter と Noto Sans JP は外から来る。
+        当たると文字幅が変わり、nav の形も変わる）
+     ③ nav の class と中身の座標が、2フレーム続けて同じか
+
+   ⚠️ **これは 1200 を短くする道具ではない。** 下の sleep は残したまま、その後に
+      呼ぶ。上限まで待って駄目なら黙って進み、その回数だけ最後に stderr へ出す
+      （0 でないなら -j を下げる合図）。 */
+const REFIT_MS = 1200;    /* search.js:660 の最後の setTimeout と同じ数 */
+const SETTLE_MAX = 3000;  /* これ以上は待たない */
+
+const settleFn = (refitMs, maxMs) => new Promise((done) => {
+  const nav = document.getElementById('main-nav') || document.querySelector('header.mr-top');
+  if (!nav || !nav.firstElementChild) return done('nonav');  /* noNav は measure 側が落とす */
+  const e = performance.getEntriesByType('navigation')[0];
+  const deadline = (e ? e.domContentLoadedEventEnd : 0) + refitMs;
+  const t0 = performance.now();
+  const sig = () => {
+    let s = nav.className;   /* fit() が付け外しする段（compact / tight / min / micro） */
+    for (const c of nav.firstElementChild.children) {
+      const b = c.getBoundingClientRect();
+      s += '|' + Math.round(b.left) + ',' + Math.round(b.right) + ',' + Math.round(b.top);
+    }
+    return s;
+  };
+  let fonts = false;
+  const mark = () => { fonts = true; };
+  (document.fonts ? document.fonts.ready : Promise.resolve()).then(mark, mark);
+  let prev = sig(), same = 0;
+  const tick = () => {
+    const s = sig();
+    same = s === prev ? same + 1 : 0;
+    prev = s;
+    const now = performance.now();
+    if (fonts && now >= deadline && same >= 2) return done('ok');
+    if (now - t0 >= maxMs) return done('timeout');
+    /* rAF が来ない場面でも進むよう、保険の setTimeout も張る（先に来たほうで1回だけ） */
+    let fired = false;
+    const go = () => { if (!fired) { fired = true; tick(); } };
+    requestAnimationFrame(go);
+    setTimeout(go, 50);
+  };
+  tick();
+});
+
+let settleTimeouts = 0;
+const settle = async (page) => {
+  try { if (await page.evaluate(settleFn, REFIT_MS, SETTLE_MAX) === 'timeout') settleTimeouts++; }
+  catch (e) { settleTimeouts++; }   /* 落ちても黙って進む。合否は measure が出す */
+};
+
+async function runPage(href, label, opt, ok) {
+  /* ★ページごとに使い捨ての入れ物。**これは保険ではなく必須。**
+     localStorage は同一オリジンで全タブ共有で、実際に書く者と読む者が両方いる：
+       書く — index.html:1976。`/` を開くとセッションがあれば pv_user を書く。
+              下の runForm は**全ページに偽セッションを注入する**ので、
+              入力欄の検査が `/` を踏んだ瞬間に書かれる
+       読む — search.js:577。pv_user があると**引き出しのログインリンクの文字と
+              行き先を差し替える** ＝ readDrawer の結果が変わる
+     直列だった頃は入力欄ループが後ろにあったので、この2つは出会わなかった。
+     並べて混ぜた瞬間に出会う。入れ物を分けて、出会えなくする。
+     ⚠️ **マスごとではなくページごと。** マスごとにすると10幅すべてがキャッシュ
+        空っぽからの読み込みになり、外から来るフォントの到着が毎回レースになる
+        （＝測る文字幅が変わる）。10幅で1つの入れ物を共有するのは今と同じ状態。 */
+  const ctx = await browser.createBrowserContext();
+  try {
   let drawerDone = false;
 
   for (const w of WIDTHS) {
-    const page = await browser.newPage();
+    const page = await ctx.newPage();
+    try {
     await page.setViewport({ width: w, height: 820 });
+    page.setDefaultNavigationTimeout(60000);   /* 並べると 30s では足りない回が出る */
     if (opt.login) await page.evaluateOnNewDocument(FAKE_SESSION);
     await page.goto(BASE + href, { waitUntil: 'networkidle2' });
     /* 通貨ピルと言語ボタンはあとから右側に差し込まれる。差し込まれた後を測る。 */
     await new Promise((r) => setTimeout(r, 1200));
+    await settle(page);   /* ★足したのはこの1行。上の 1200ms は削っていない */
 
     const m = await page.evaluate(measure);
     if (m.noNav) {
       ok(false, `${w}px — ヘッダーがある`, `いま ${page.url()}`);
-      await page.close();
       continue;
     }
     const tag = `${String(w).padStart(4)}px`;
@@ -262,8 +374,9 @@ for (const [href, label, opt = {}] of PAGES) {
         }
       }
     }
-    await page.close();
+    } finally { await page.close(); }   /* ★continue でも例外でも閉じ漏れない */
   }
+  } finally { await ctx.close(); }
 }
 
 /* ═══ 7) 触れる入力欄の文字の大きさ（iOS の自動拡大よけ）════════════════════
@@ -300,24 +413,87 @@ const smallFields = () => {
   return [...new Set(out)];
 };
 
-console.log(`\n═══ 触れる入力欄が 16px 未満でない（${FORM_PAGES.length}枚 × 390px）═══`);
-for (const href of FORM_PAGES) {
-  const page = await browser.newPage();
-  await page.setViewport({ width: 390, height: 820 });
-  await page.evaluateOnNewDocument(FAKE_SESSION);   /* ログインの先も測る */
-  await page.goto(BASE + href, { waitUntil: 'networkidle2' });
-  await new Promise((r) => setTimeout(r, 900));
-  /* 給与フォームは入口を押すまで欄が出ない（23本ある本体がここから先） */
-  await page.evaluate(() => {
-    document.getElementById('entry-manual')?.click();   /* 給与フォームの入口 */
-    document.getElementById('pv-search-btn')?.click();  /* ヘッダーの検索窓（全ページ） */
-  });
-  await new Promise((r) => setTimeout(r, 400));
-  const small = await page.evaluate(smallFields);
-  ok(small.length === 0, `${href}`, small.slice(0, 6).join(' / '));
-  await page.close();
+/* ここは反復どうしの依存がゼロ。見ているのも文字の大きさだけで、混雑に鈍い。
+   settle は要らない（レイアウトが落ち着いたかではなく font-size を読むだけ）。 */
+async function runForm(href, ok) {
+  const ctx = await browser.createBrowserContext();
+  try {
+    const page = await ctx.newPage();
+    try {
+      await page.setViewport({ width: 390, height: 820 });
+      page.setDefaultNavigationTimeout(60000);
+      await page.evaluateOnNewDocument(FAKE_SESSION);   /* ログインの先も測る */
+      await page.goto(BASE + href, { waitUntil: 'networkidle2' });
+      await new Promise((r) => setTimeout(r, 900));
+      /* 給与フォームは入口を押すまで欄が出ない（23本ある本体がここから先） */
+      await page.evaluate(() => {
+        document.getElementById('entry-manual')?.click();   /* 給与フォームの入口 */
+        document.getElementById('pv-search-btn')?.click();  /* ヘッダーの検索窓（全ページ） */
+      });
+      await new Promise((r) => setTimeout(r, 400));
+      const small = await page.evaluate(smallFields);
+      ok(small.length === 0, `${href}`, small.slice(0, 6).join(' / '));
+    } finally { await page.close(); }
+  } finally { await ctx.close(); }
 }
 
+/* ═══ 走らせる ═══════════════════════════════════════════════════════
+   **出す順は宣言順に固定し、走らせる順だけプールに任せる。**
+   重い仕事（1ページ＝10幅で約25秒）が先に並び、軽い FORM（1枚 約2.6秒）が
+   後ろにあるので、終盤の空きスロットが自然に埋まる。 */
+const tasks = [];
+for (const [href, label, opt = {}] of PAGES) {
+  const lines = [`\n═══ ${label}  ${href} ═══`];
+  tasks.push({ label, lines, run: () => runPage(href, label, opt, mkOk(lines)) });
+}
+const pageTasks = [...tasks];
+tasks.push({ label: '(見出し)',   /* 走らせるものは無い。行の場所を取るだけ */
+  lines: [`\n═══ 触れる入力欄が 16px 未満でない（${FORM_PAGES.length}枚 × 390px）═══`] });
+for (const href of FORM_PAGES) {
+  const lines = [];
+  tasks.push({ label: href, lines, run: () => runForm(href, mkOk(lines)) });
+}
+const formTasks = tasks.slice(pageTasks.length);
+
+/* assert-links.mjs:249-256 と同じカーソル式のプール。 */
+const pool = async (list) => {
+  let cur = 0;
+  await Promise.all(Array.from({ length: JOBS }, async () => {
+    while (cur < list.length) {
+      const t = list[cur++];
+      if (!t.run) continue;
+      try { await t.run(); }
+      catch (e) {
+        /* 途中で落ちた仕事を「黙って通った」ことにしない。
+           stdout には FAIL を1行だけ、詳しいものは stderr へ（stdout の形を保つ）。 */
+        ran++; fail++;
+        t.lines.push(fmt(false, `${t.label} が最後まで走らなかった`, String(e?.message || e).slice(0, 160)));
+        console.error(e);
+      }
+    }
+  }));
+};
+
+/* PV_HEADER_PHASED=1 で「PAGES を全部やってから FORM」に戻せる。
+   出力が直列版とずれたとき、原因が FORM の混走かどうかを切り分けるための栓。 */
+if (process.env.PV_HEADER_PHASED) { await pool(pageTasks); await pool(formTasks); }
+else { await pool(tasks); }
+
+/* ★ここまで stdout に1文字も書いていない。宣言順にまとめて吐く。
+   console.log(x) は x + '\n' を書くだけなので、join('\n') + '\n' と同じ。 */
+const write = (s) => new Promise((r) => process.stdout.write(s, r));
+const out = tasks.flatMap((t) => t.lines);
+if (out.length) await write(out.join('\n') + '\n');
+
 await browser.close();
-console.log(`\n==== ${ran - fail}/${ran} passed ====`);
+await write(`\n==== ${ran - fail}/${ran} passed ====\n`);
+if (settleTimeouts) {
+  /* 1〜2個なら普通。手前の 1200ms で既に足りているので合否には出ない
+     （2026-08-28、既定 -j 4 の5回中1回で1マス出たが、出力は直列版と完全一致だった）。
+     十マス単位で出るようになったら -j を下げる。 */
+  console.error(`· 形が落ち着くのを待ちきれなかったマス ${settleTimeouts} 個 / 150（数マスなら想定内。十マス単位なら -j を下げる）`);
+}
+/* ⚠️ まとめて吐くようにした瞬間に生まれた穴 ── check.mjs は spawn の既定＝
+   パイプで読むので、最後の数十KB がパイプに残ったまま process.exit すると消える。
+   上の write を await してからでないと終われない。 */
 process.exit(fail ? 1 : 0);

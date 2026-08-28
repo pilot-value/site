@@ -129,8 +129,17 @@ ok((await q(`select source from pay_reports order by created_at desc limit 1`))[
 console.log('\n④ 控除の内訳を保存する列が存在しないこと');
 const cols = (await q(`select column_name from information_schema.columns
   where table_schema='public' and table_name='pay_reports'`)).map((r) => r.column_name);
-ok(!cols.some((c) => /union|kumiai|deduction_item|deduction_detail/i.test(c)),
-   '組合費・控除内訳の列が無い（どの組合かは極めて機微）');
+// ⚠️ union_pay（組合手当）は**この検査の対象ではない**。
+//    ここが見張っているのは「組合費 ＝ 控除」のほう。額から所属組合が割れるので持たない。
+//    union_pay は逆に**支給**側で、組合の役員をしている人に出る手当。
+//    給与フォームの作り直し（2026-08-26）で専用の列にすると決めている
+//    （CLAUDE.md「絶対に破らない6つ」の2番＝職位手当や変動給に足し込ませないため）。
+//    2026-08-28、名前に union が入るというだけでこの検査が落ちていたので外した。
+//    ⚠️ 外すのは**この1列だけ**。union_fee / union_dues のような控除側の列が増えたら、
+//    これまでどおり落ちる。
+const DUES = cols.filter((c) => c !== 'union_pay');
+ok(!DUES.some((c) => /union|kumiai|deduction_item|deduction_detail/i.test(c)),
+   '組合費・控除内訳の列が無い（どの組合かは極めて機微／組合手当 union_pay は支給側なので別）');
 ok(cols.includes('deduction_total'), '持つのは合計だけ');
 
 // ═══ ⑤ my_pay_reports は本人の行だけ ════════════════════════════

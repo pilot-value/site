@@ -350,17 +350,33 @@ for (const lang of ['ja', 'en']) {
      スクロールを止めていないので、下へ動かせば必ず抜けられる。 */
   const trap = await page.evaluate(async () => {
     const before = getComputedStyle(document.body).overflow;
+    /* ⚠️ ここを「決め打ちの秒数」で待つと、CPU が混んでいる回に**嘘の赤**が出る。
+       理由が2つあって、両方とも実際に起きた（2026-08-28、check.mjs の中で計4回）。
+         ① ページの高さがまだ足りない ── 本文の組み直しが終わっておらず、
+            画面より短いので**1pxも動けない**（scrollY 0 のまま落ちた）
+         ② サイト全体に html{scroll-behavior:smooth} が効いている ──
+            scrollBy はその場で終わらず**アニメーションで**動くので、
+            250ms 後に読むと「まだ 2px」で落ちる
+       単独で流すと必ず通る＝**閉じ込めは起きていない。検査の待ち方の問題**だった。
+       ①は「下に余白ができるまで」、②は「動きが止まるまで」待つ（各最長3秒）。
+       ⚠️ 落ちたときのために余白も返す。y も room も 0 なら ①、y だけ小さいなら ②。 */
+    const room = () => document.documentElement.scrollHeight - innerHeight;
+    for (let i = 0; i < 60 && room() < 600; i++) await new Promise((r) => setTimeout(r, 50));
     scrollTo(0, 0); scrollBy(0, 500);
-    await new Promise((r) => setTimeout(r, 250));
-    const y = scrollY;
+    let y = -1, same = 0;
+    for (let i = 0; i < 60 && same < 3; i++) {
+      await new Promise((r) => setTimeout(r, 50));
+      if (scrollY === y) same++; else { y = scrollY; same = 0; }
+    }
+    const roomLeft = room();
     scrollTo(0, 0);
     const nav = document.querySelector('nav');
-    return { overflow: before, y: y,
+    return { overflow: before, y: y, room: roomLeft,
              z: Number(getComputedStyle(document.querySelector('.pvr-strip')).zIndex),
              navZ: nav ? Number(getComputedStyle(nav).zIndex) : 0 };
   });
   ok(trap.overflow !== 'hidden', '★背後のスクロールを止めない（閉じ込めが起きない）', trap.overflow);
-  ok(trap.y > 100, '★出ている間もページを下へ動かせる', String(trap.y));
+  ok(trap.y > 100, '★出ている間もページを下へ動かせる', `動いた ${trap.y}px ／ 下の余白 ${trap.room}px`);
   ok(trap.z < trap.navZ, '★nav より下に置く（ロゴも操作も生きたまま）', `${trap.z} / ${trap.navZ}`);
 
   // × は「招待を断る」ではない。この1枚だけ消して、コードは預かったままにする
