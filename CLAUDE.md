@@ -191,7 +191,7 @@ baland_ass/                            ブランド資産（※ brand_assets の
 | `assert-unlock.mjs` | **口コミの鍵と給与の鍵が混ざらない**（口コミ1件で年収が開かない）|
 | `assert-pay-rows.mjs` | REAL PAY の7つの約束（Give → Get・準識別子ゼロ・有効数字2桁・1行＝1人…）|
 | `assert-pay-report-sync.mjs` | 給与レポートの**日英が片方だけ直されていない**か（骨格だけ照合・文言は見ない）|
-| `assert-generated.mjs` | 生成物（sitemap・英語版一覧・語彙）が**流し忘れで古くなっていない**か（`.githooks/pre-push` から自動で走る）|
+| `assert-generated.mjs` | 生成物（sitemap・英語版一覧・語彙）が**流し忘れで古くなっていない**か。使い捨てのコピーの中で生成スクリプトを流すので**リポジトリには書き込まない**（`.git` だけ読むために貸す）|
 | `assert-no-pii.mjs` | オーナーの身元が漏れていないか（`.githooks/pre-commit` から毎回自動で走る）|
 | `npm run test:sql` | Supabase 側（`db/*.sql`）を触ったとき。`check.mjs sql` が同じものを並列で回す |
 
@@ -205,9 +205,7 @@ baland_ass/                            ブランド資産（※ brand_assets の
 `check-sources.mjs --online` / `assert-jobs.mjs --online` /
 `assert-no-pii.mjs --live`（push 後に必ず）/ `assert-no-pii.mjs --history`（履歴を触ったとき）。
 `assert-salary-input.mjs` は 2026-08-16 から休止中で、直すか消すかが決まるまで入れない。
-`assert-generated.mjs` は**作業ツリーが綺麗なときしか走れない**ので入れていない
-（生成スクリプトを実際に流して差分を見る＝戻す手段が `git checkout` しかなく、
-未コミットの変更を巻き込んで消してしまう）。代わりに `.githooks/pre-push` が push の直前に流す。
+
 
 ## 給与フォームの内訳（[pay-report.html](pay-report.html)）
 

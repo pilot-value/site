@@ -9,8 +9,8 @@
 #  （身元漏れの検査だけは commit 側にある。あれは一度入ると消せないので別扱い。）
 #
 #  ここで流すもの:
-#    1. node check.mjs fast     静的検査15本・約1.5秒
-#    2. node assert-generated   生成物が古くないか・約0.5秒
+#    node check.mjs fast   静的検査16本・約2秒
+#    （生成物が古くないかを見る assert-generated.mjs もこの中に入っている）
 #
 #  ★ ブラウザ検査（check.mjs web / 約7分）はここに入れていない。
 #    7分待たされる関所は、必ず迂回されるようになる。
@@ -34,13 +34,6 @@ if ! node check.mjs fast; then
   echo " push を中止した。上の落ちた検査を直してから push し直す。"
   echo " ⚠ 落ちた理由は workflows/deploy-checklist.md に書いてある。"
   echo "   検査のほうが正しいことがほとんどなので、検査を直す前にそこを読む。"
-  exit 1
-fi
-
-echo ""
-if ! node assert-generated.mjs; then
-  echo ""
-  echo " push を中止した。生成スクリプトを流し直して commit してから push する。"
   exit 1
 fi
 
