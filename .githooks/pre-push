@@ -11,6 +11,7 @@
 #  ここで流すもの:
 #    node check.mjs fast   静的検査16本・約2秒
 #    （生成物が古くないかを見る assert-generated.mjs もこの中に入っている）
+#    node check.mjs sql    DB 側を触った回だけ・9本・約70秒
 #
 #  ★ ブラウザ検査（check.mjs web / 約7分）はここに入れていない。
 #    7分待たされる関所は、必ず迂回されるようになる。
@@ -37,10 +38,41 @@ if ! node check.mjs fast; then
   exit 1
 fi
 
-# ── 画面まわりを触っているなら、ブラウザ検査を勧める（止めはしない）──
+# 出す差分を1回だけ数える（下の2つで使う）。
+# 上流が無い＝新しい枝の初回 push のときは origin/main と比べる。
 UP=$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null || echo "")
+if [ -z "$UP" ] && git rev-parse --verify -q origin/main >/dev/null 2>&1; then
+  UP="origin/main"
+fi
+CHANGED=$(git diff --name-only "$UP"..HEAD 2>/dev/null || echo "")
+
+# ── DB 側を触っているなら、SQL の検査も流す（こちらは止める）──
+#
+#  ★ なぜ「触った回だけ」なのか。
+#    SQL の検査は PGlite を9本立ち上げるので約70秒かかる。毎回これを待たされると
+#    --no-verify が癖になり、上の2秒の検査ごと死ぬ。関所は短いほど生き延びる。
+#
+#  ★ なぜ画面の警告と違って「止める」のか。
+#    2026-08-28、db/pay-reports.sql に列を1つ足しただけで db/test-unlock-rule.mjs が
+#    赤くなり、そのまま main に入った。上の fast にこの検査は入っていないので、
+#    誰も気づけないまま本番に出る。ここが唯一の関所になる。
+#
+#  ★ 差分が読めなかったとき（上流も origin/main も無い）は、安全側に倒して流す。
+if [ -z "$UP" ] || printf '%s\n' "$CHANGED" | grep -qE '^db/|^supabase/|\.sql$'; then
+  echo ""
+  echo "── DB 側のファイルが入っている。SQL の検査も流す（約70秒）──"
+  if ! node check.mjs sql; then
+    echo ""
+    echo " push を中止した。DB 側の検査が落ちている。"
+    echo " ⚠ 列を1つ足しただけでも落ちる。写し忘れが無いかを先に見る"
+    echo "   （CLAUDE.md「列を1つ足したら4か所に写す」）。"
+    exit 1
+  fi
+fi
+
+# ── 画面まわりを触っているなら、ブラウザ検査を勧める（止めはしない）──
 if [ -n "$UP" ]; then
-  VISUAL=$(git diff --name-only "$UP"..HEAD 2>/dev/null \
+  VISUAL=$(printf '%s\n' "$CHANGED" \
     | grep -E '\.(html|css)$|^[^/]*\.js$' | head -8 || true)
   if [ -n "$VISUAL" ]; then
     echo ""

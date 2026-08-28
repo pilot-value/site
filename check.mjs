@@ -67,9 +67,6 @@ const WEB = [
   ['assert-review-quality.mjs', 1.5], ['db/test-session-expiry.mjs', 0.9],
 ];
 
-// assert-salary-input.mjs は 2026-08-16 から休止中（走らせると全部落ちる）。
-// 直すか消すかが決まるまで、ここには入れない。
-
 const argv = process.argv.slice(2);
 const tier = argv.find(a => !a.startsWith('-')) || 'quick';
 const jFlag = argv.indexOf('-j');

@@ -210,7 +210,6 @@ baland_ass/                            ブランド資産（※ brand_assets の
 `db/eval-payslip.mjs`（$0.32）/ `translate-eval.mjs`（課金）/
 `check-sources.mjs --online` / `assert-jobs.mjs --online` /
 `assert-no-pii.mjs --live`（push 後に必ず）/ `assert-no-pii.mjs --history`（履歴を触ったとき）。
-`assert-salary-input.mjs` は 2026-08-16 から休止中で、直すか消すかが決まるまで入れない。
 
 
 ## 給与フォームの内訳（[pay-report.html](pay-report.html)）
@@ -321,7 +320,8 @@ secret を削除して共通キーへ落として復旧。現在この secret �
 ```sh
 git config core.hooksPath .githooks     # commit と push のたびに検査が走るようにする
 #   pre-commit → assert-no-pii.mjs（身元漏れ。入ると消せないので commit で止める）
-#   pre-push   → check.mjs fast ＋ assert-generated.mjs（約2秒）
+#   pre-push   → check.mjs fast（約2秒）。DB 側（db/ ・ supabase/ ・ *.sql）を
+#                触っている回だけ check.mjs sql（約70秒）も足して流し、落ちたら止める
 # iCloud の Claude-Backup/latest/repo-lists/ から
 #   .pii-denylist と .employer-denylist をリポジトリのルートに戻す
 # （どちらも gitignore 済みなので clone には付いてこない。
