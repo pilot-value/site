@@ -39,7 +39,7 @@ const SQL = [
   ['db/test-conditions.mjs', 12], ['db/test-referrals.mjs', 10],
   ['db/test-founding.mjs', 10], ['db/test-admin-grants.mjs', 10],
   ['db/test-payslip-extras.mjs', 10], ['db/test-unlock-rule.mjs', 10],
-  ['db/test-remind.mjs', 10], ['db/test-deep-pay.mjs', 2],
+  ['db/test-remind.mjs', 10], ['db/test-deep-pay.mjs', 3],
 ];
 
 // localhost:3000 が要るもの。長い順に並べてある。
@@ -64,6 +64,7 @@ const WEB = [
   ['assert-unlock.mjs', 29], ['assert-my-posts.mjs', 26],
   ['assert-founding.mjs', 21], ['assert-admin.mjs', 13],
   ['assert-langtoggle.mjs', 12], ['db/test-login-redirect.mjs', 3],
+  ['assert-deep-pay.mjs', 2.4],
   ['assert-review-quality.mjs', 1.5], ['db/test-session-expiry.mjs', 0.9],
 ];
 

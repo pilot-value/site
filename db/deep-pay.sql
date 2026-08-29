@@ -376,6 +376,20 @@ begin
            (percentile_cont(0.5) within group (order by duty_d))::numeric  as duty_d,
            (percentile_cont(0.5) within group (order by stay_n))::numeric  as stay_n,
            (percentile_cont(0.5) within group (order by b_share))::numeric as b_share,
+           /* その月の現金を USD にしたもの（賞与ぬき）。給与構成の
+              「月額（中央値）」の材料はこれ1つだけ。
+              ★割合は通貨をまたげるが金額はまたげない。annual_total_usd は
+                投稿した瞬間のレートで確定していて後から動かないので、
+                同じ人の割合と同じ土俵に乗る（約束②を壊さない）。
+              ★賞与の割合が出せない人（fx_to_usd が無い）は null にして
+                金額の集計から外す。0 とみなすと賞与のぶんだけ月額が太る。 */
+           case when (percentile_cont(0.5) within group (order by b_share)) is null
+                then null
+                else (percentile_cont(0.5) within group (order by usd))::numeric
+                     * greatest(1 - (percentile_cont(0.5)
+                                     within group (order by b_share))::numeric, 0)
+                     / 12
+           end                                                             as ucm,
            bool_or(vf)                                                     as vf,
            (percentile_cont(0.5) within group (order by a_fixed / cash_m))::numeric as s_fixed,
            (percentile_cont(0.5) within group (order by a_var   / cash_m))::numeric as s_var,
@@ -475,7 +489,34 @@ begin
            count(*) filter (where s_role  > 0) as r_n,
            count(*) filter (where s_pd    > 0) as p_n,
            count(*) filter (where s_house > 0) as h_n,
-           count(*) filter (where s_other > 0) as o_n
+           count(*) filter (where s_other > 0) as o_n,
+           /* 金額（月額・USD）。割合と違って通貨をまたげないので ucm で数える。
+              ★人数の門は割合とは別に掛ける。ucm を持つ人だけで数え直すと
+                3 を割ることがあり、そのとき「2人の中央値＝その人の実額」になる。 */
+           count(*) filter (where s_fixed > 0 and ucm is not null) as f_an,
+           count(*) filter (where s_var   > 0 and ucm is not null) as v_an,
+           count(*) filter (where s_cmd   > 0 and ucm is not null) as c_an,
+           count(*) filter (where s_role  > 0 and ucm is not null) as r_an,
+           count(*) filter (where s_pd    > 0 and ucm is not null) as p_an,
+           count(*) filter (where s_house > 0 and ucm is not null) as h_an,
+           count(*) filter (where s_other > 0 and ucm is not null) as o_an,
+           count(*) filter (where s_rest  > 0 and ucm is not null) as u_an,
+           (percentile_cont(0.5) within group (order by s_fixed * ucm)
+              filter (where ucm is not null))::numeric as f_amt,
+           (percentile_cont(0.5) within group (order by s_var   * ucm)
+              filter (where ucm is not null))::numeric as v_amt,
+           (percentile_cont(0.5) within group (order by s_cmd   * ucm)
+              filter (where ucm is not null))::numeric as c_amt,
+           (percentile_cont(0.5) within group (order by s_role  * ucm)
+              filter (where ucm is not null))::numeric as r_amt,
+           (percentile_cont(0.5) within group (order by s_pd    * ucm)
+              filter (where ucm is not null))::numeric as p_amt,
+           (percentile_cont(0.5) within group (order by s_house * ucm)
+              filter (where ucm is not null))::numeric as h_amt,
+           (percentile_cont(0.5) within group (order by s_other * ucm)
+              filter (where ucm is not null))::numeric as o_amt,
+           (percentile_cont(0.5) within group (order by s_rest  * ucm)
+              filter (where ucm is not null))::numeric as u_amt
       from coh
   ),
   /* ★項目ごとにも n ≧ 3。満たさない区分は **0 として並べず、未分類へ畳む。**
@@ -502,18 +543,39 @@ begin
              + case when p_n >= 3 then 0 else coalesce(p_raw, 0) end
              + case when h_n >= 3 then 0 else coalesce(h_raw, 0) end
              + case when o_n >= 3 then 0 else coalesce(o_raw, 0) end
-           ]) as pc
+           ]) as pc,
+           /* 金額は割合の「おまけ」。出す条件は割合より1つ厳しく、
+              その区分に金額を書いた人が3人以上いるときだけ。
+              ★出ない区分は 0 ではなく null を返す（画面は「—」と出す）。
+                0 と書くと「その手当が無い」と読めてしまう。 */
+           case when f_n >= 3 and f_an >= 3 then public.pv_sig2(f_amt) end as f_usd,
+           case when v_n >= 3 and v_an >= 3 then public.pv_sig2(v_amt) end as v_usd,
+           case when c_n >= 3 and c_an >= 3 then public.pv_sig2(c_amt) end as c_usd,
+           case when r_n >= 3 and r_an >= 3 then public.pv_sig2(r_amt) end as r_usd,
+           case when p_n >= 3 and p_an >= 3 then public.pv_sig2(p_amt) end as p_usd,
+           case when h_n >= 3 and h_an >= 3 then public.pv_sig2(h_amt) end as h_usd,
+           case when o_n >= 3 and o_an >= 3 then public.pv_sig2(o_amt) end as o_usd,
+           /* ★未分類の金額は「1つも畳まれていない」ときしか出さない。
+              畳んだ区分があるときの u_raw は畳むぶんを含んでいるが u_amt は
+              含んでいない＝画面の割合と桁が合わない金額になる。 */
+           case when u_an >= 3
+                 and f_n >= 3 and v_n >= 3 and c_n >= 3 and r_n >= 3
+                 and p_n >= 3 and h_n >= 3 and o_n >= 3
+                then public.pv_sig2(u_amt) end as u_usd
       from cagg
   ),
   -- ★キーの並びは cnorm の配列と1対1。片方だけ足すと色と名前がずれる。
   cseg as (
-    select coalesce(jsonb_agg(jsonb_build_object('k', t.k, 'pct', t.p)
+    select coalesce(jsonb_agg(jsonb_build_object('k', t.k, 'pct', t.p,
+                                                'med_usd', t.a)
                               order by t.p desc, t.i), '[]'::jsonb) as j
       from cnorm,
            unnest(array['fixed','variable','command','role',
                         'perdiem','housing','other','rest'],
                   cnorm.pc,
-                  array[1,2,3,4,5,6,7,8]) as t(k, p, i)
+                  array[cnorm.f_usd, cnorm.v_usd, cnorm.c_usd, cnorm.r_usd,
+                        cnorm.p_usd, cnorm.h_usd, cnorm.o_usd, cnorm.u_usd],
+                  array[1,2,3,4,5,6,7,8]) as t(k, p, a, i)
      where t.p > 0
   ),
   /* 固定給比率 ── 飛ばなくても出る4つ（固定・職位・役割・住宅）。

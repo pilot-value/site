@@ -62,6 +62,8 @@ const NOINDEX = new Set([
   'airline-conditions.html',
   /* 給与明細を出した人だけが読める画面。ログインが要るので検索に出さない。 */
   'actual-pay.html',
+  /* 給与の中身（集計）まで読める画面。鍵が要るので検索に出さない。 */
+  'deep-pay.html',
   /* 2026-08-15 に求人の掲載を停止した。ページは残す（外部からのリンクを
      404 にしないため）が、中身が「停止中」の1行だけなので検索には出さない。
      gen-sitemap.mjs の同名の集合と対にしてある。 */
@@ -199,6 +201,13 @@ const COPY = {
           d: 'パイロット本人が記録した実給与を、1行＝1人でそのまま並べます。同じ人の複数月は1行に畳み、金額は有効数字2桁に丸めています。' },
     en: { t: 'What Other Pilots Actually Earn',
           d: 'Pay recorded by pilots themselves, one row per pilot. Several months from the same pilot fold into a single row, and every figure is rounded to two significant digits.' },
+  },
+  /* 同上。noindex でも <title> は出るので中身が要る。 */
+  'deep-pay.html': {
+    ja: { t: 'DEEP PAY｜給与の中身を見る',
+          d: '同じ会社・同じ役職のパイロットの給与を、固定と変動の内訳、働き方の前提とセットで見ます。個人の明細は1件も表示しません。' },
+    en: { t: 'DEEP PAY — What the Pay Is Made Of',
+          d: 'See how the same airline and rank actually get paid: fixed vs variable, and the flying behind it. No individual payslip is ever shown.' },
   },
   'airline-conditions.html': {
     ja: { t: '待遇・働き方を教える',

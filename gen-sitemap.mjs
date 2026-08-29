@@ -35,6 +35,8 @@ const NOINDEX = new Set([
   'airline-conditions.html',
   /* 給与明細を出した人だけが読める画面。ログインが要るので検索に出さない。 */
   'actual-pay.html',
+  /* 給与の中身（集計）まで読める画面。鍵が要るので検索に出さない。 */
+  'deep-pay.html',
   /* 2026-08-15、求人の掲載を停止した。ページは残すが検索には出さない。 */
   'world-jobs.html',
 ]);

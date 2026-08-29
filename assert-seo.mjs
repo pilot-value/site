@@ -42,6 +42,8 @@ const NOINDEX = new Set([
   'airline-conditions.html',
   /* 給与明細を出した人だけが読める画面。ログインが要るので検索に出さない。 */
   'actual-pay.html',
+  /* 給与の中身（集計）まで読める画面。鍵が要るので検索に出さない。 */
+  'deep-pay.html',
   /* 2026-08-15 に求人の掲載を停止した。ページは残す（外部からのリンクを 404 に
      しないため）が、中身が「停止中」の1行だけなので検索には出さない。
      gen-sitemap.mjs / seo-normalize.mjs の同名の集合と3つで対にしてある。 */

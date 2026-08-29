@@ -318,6 +318,19 @@ console.log('\n▼ 5. 給与構成（割合・合計ちょうど100）');
   ok(d.head.fixed_pct === f.pct + cmd.pct + (hou ? hou.pct : 0),
      '★固定給比率＝固定＋職位＋役割＋住宅（配列と食い違わない）',
      `${d.head.fixed_pct} vs ${f.pct}+${cmd.pct}+${hou ? hou.pct : 0}`);
+
+  // ── 月額（中央値）── 画面の3列目。割合の「おまけ」。
+  ok(segs.every(s => 'med_usd' in s), 'どの区分にも med_usd のキーが在る');
+  ok(Number(f.med_usd) > 0, '★固定・保証給の月額（USD）が出ている', String(f.med_usd));
+  ok(Number(v.med_usd) > 0 && Number(v.med_usd) < Number(f.med_usd),
+     '変動給の月額は固定給より小さい', `${v.med_usd} vs ${f.med_usd}`);
+  ok(segs.every(s => s.med_usd == null
+                  || String(Math.round(Number(s.med_usd))).replace(/0+$/, '').length <= 2),
+     '★月額も有効数字2桁', JSON.stringify(segs.map(s => s.med_usd)));
+  // 賞与ぬきの現金なので、月額の合計は「年収 ÷ 12」を超えない
+  const amt = segs.reduce((a, s) => a + Number(s.med_usd || 0), 0);
+  ok(amt > 0 && amt <= Number(d.head.annual_usd) / 12 * 1.3,
+     '★月額の合計が年収の月割りとかけ離れていない', `${Math.round(amt)} vs ${Math.round(d.head.annual_usd / 12)}`);
 }
 
 // ★項目ごとの n≧3。3人の区分のうち1人しか書いていない列は出さない。
@@ -391,6 +404,10 @@ console.log('\n▼ 7. 未分類（総支給に届かない分を吸う）');
   ok(f && f.pct === 60, '★固定は60%（6000 / 10000）', JSON.stringify(f));
   ok(rest && rest.pct === 40,
      '★残り40%は未分類。0 として消さず、他の区分へ配りもしない', JSON.stringify(rest));
+  ok(rest.med_usd == null,
+     '★畳んだ区分があるとき、未分類の月額は出さない（割合と桁が合わないため）',
+     String(rest.med_usd));
+  ok(Number(f.med_usd) > 0, '固定給の月額は出る', String(f.med_usd));
 }
 
 // ════════════════════════════════════════════════════════════

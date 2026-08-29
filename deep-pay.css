@@ -1,0 +1,214 @@
+/* ════════════════════════════════════════════════════════════════
+   deep-pay.css — DEEP PAY（給与の中身）
+                  deep-pay.html / en/deep-pay.html が共有する1枚
+
+   ★ここに書くのは .dp-* だけ。
+     ・カードの器・見出し・スケルトンは my-value.css（.mr-*）
+     ・ドーナツと凡例は pay-viz.css（.pt-*）
+     足りているものを書き直さない。
+
+   ⚠️ .pt-* / .mv-* を**トップレベルで再定義しない**
+      （db/test-form-contract.mjs が見張っている）。
+      この画面だけ形を変えたいときは #dp-comp .pt-legend のように
+      器で囲む（このファイルの下のほうがその形）。
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── 2段組（左が広い）────────────────────────────────────────
+   .mr-2col は 1:1 なので使わない。モックは左 58% / 右 42%。
+   ★片方が hidden のときは display:none になり、残った側が自然に幅いっぱいに
+     なる（grid にすると空の列が残って、右半分が白いまま空く）。 */
+.dp-row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;margin-top:16px}
+.dp-row>*{flex:1 1 360px;min-width:0}
+.dp-row>.dp-w58{flex-grow:1.38}
+
+/* ── いま見ている区分の1行 ──────────────────────────────────── */
+.dp-cond{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  background:var(--pv-surface);border:1px solid var(--pv-line);
+  border-radius:var(--pv-r-sm);padding:9px 14px;min-height:40px;margin-top:14px}
+.dp-cond-l{flex:1 1 auto;min-width:0;font-size:.8rem;color:var(--pv-ink);
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.dp-cond-k{color:var(--pv-ink-3);font-weight:500}
+.dp-cond-s{color:var(--pv-line)}   /* ★user-select:none を付けない。
+  区切りの「/」だけなら害は無いが、この画面では「隠す・選べなくする」系の宣言を
+  1つも置かないことを assert-deep-pay.mjs が例外なしで見ている（ぼかしの禁止）。
+  例外を1つ作ると、次に値そのものへ付いたときに赤くならない。 */
+/* 信頼度。★n が小さいほど淡い。数字（n）は隣の KPI が持つ。 */
+.dp-trust{display:inline-flex;align-items:center;gap:6px;flex:none;
+  font-size:.72rem;font-weight:700;letter-spacing:.01em;
+  border-radius:999px;padding:4px 10px;
+  background:var(--pv-green-soft);color:var(--pv-green-ink);
+  border:1px solid var(--pv-green-line)}
+.dp-trust--mid{background:var(--pv-gold-soft);color:var(--pv-gold-ink);
+  border-color:var(--pv-gold-line)}
+.dp-trust--low{background:var(--pv-line-soft);color:var(--pv-ink-3);
+  border-color:var(--pv-line)}
+.dp-trust svg{width:12px;height:12px;flex:none}
+
+/* ── KPI 4枚 ─────────────────────────────────────────────────
+   ★ .mr-kpis は5列固定。ここは「出せた枚数だけ」並ぶので auto-fit にする。
+     初日は4枚中2枚しか出ない＝固定列だと左に寄って「読み込み失敗」に見える。 */
+.dp-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+  gap:16px;margin-top:16px}
+.dp-kpi{display:flex;align-items:center;gap:14px;min-height:112px;
+  background:var(--pv-surface);border:1px solid var(--pv-line);
+  border-radius:var(--pv-r);padding:18px;box-shadow:var(--pv-shadow)}
+.dp-kpi--green{background:var(--pv-green-soft);border-color:var(--pv-green-line)}
+.dp-kpi-ic{flex:none;width:48px;height:48px;border-radius:12px;
+  display:grid;place-items:center;
+  background:var(--pv-line-soft);color:var(--pv-ink-3)}
+.dp-kpi-ic svg{width:22px;height:22px}
+.dp-kpi-ic--org{background:var(--pv-orange-soft);color:var(--pv-orange-ink)}
+.dp-kpi-ic--grn{background:var(--pv-green-soft);color:var(--pv-green-ink)}
+.dp-kpi-ic--tea{background:var(--pv-teal-soft);color:var(--pv-teal)}
+.dp-kpi-b{display:flex;flex-direction:column;min-width:0}
+.dp-kpi-k{display:flex;align-items:center;gap:5px;
+  font-size:.72rem;font-weight:600;color:var(--pv-ink-3);letter-spacing:.01em}
+.dp-kpi-v{margin-top:5px;font-size:1.85rem;font-weight:800;line-height:1.05;
+  letter-spacing:-.03em;font-variant-numeric:tabular-nums;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* ★長い数字だけ字を落とす。英語ページの JPY は「¥17,000,000」＝11文字で
+     （currency.js:75 が「万」に畳むのは日本語ページだけ）、1.85rem のままだと
+     167px 要るのにカードの文字欄は 135px しか無い。上の overflow:hidden に
+     任せると「¥17,000,0…」と**金額が途中で切れたまま出る**。クラスは
+     deep-pay.js の kpi() が文字幅（全角は2つぶん）で判断して付ける。 */
+.dp-kpi-v--long{font-size:1.4rem}
+.dp-kpi-u{font-size:1rem;font-weight:700;letter-spacing:0;margin-left:2px}
+.dp-kpi-n{margin-top:6px;font-size:.72rem;color:var(--pv-ink-3)}
+
+/* ── 節の中の小さな見出し ───────────────────────────────────── */
+.dp-sec-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.dp-sec-s{font-size:.72rem;color:var(--pv-ink-3);flex:none}
+
+/* ── 1行＝アイコン＋ラベル＋棒＋値 ───────────────────────────
+   働き方（.dp-list--work）と変動給（.dp-list--var）が同じ形を使う。 */
+/* ★container-type を必ず置く。無いと下の @container は**1度も効かない**
+   （書いてあるのに死んでいる形。狭い側でだけ棒がつぶれ、赤くもならない）。
+   ここを @media にしないのは、この行が入るカードの幅が画面幅と一致しないから
+   ── 1440px でも右の列は 466px しかない。 */
+.dp-list{display:flex;flex-direction:column;gap:14px;margin-top:16px;container-type:inline-size}
+.dp-li{display:flex;align-items:center;gap:12px}
+.dp-li-ic{flex:none;width:32px;height:32px;border-radius:9px;display:grid;place-items:center;
+  background:var(--pv-line-soft);color:var(--pv-ink-3)}
+.dp-li-ic svg{width:16px;height:16px}
+.dp-li-l{flex:0 0 172px;min-width:0;display:flex;flex-direction:column}
+.dp-li-t{font-size:.78rem;font-weight:600;line-height:1.25}
+.dp-li-s{font-size:.68rem;color:var(--pv-ink-3);margin-top:2px}
+.dp-li-b{flex:1 1 auto;min-width:56px;height:8px;border-radius:999px;
+  background:rgba(128,140,160,.12);overflow:hidden}
+.dp-li-f{display:block;height:100%;border-radius:999px}
+.dp-li-v{flex:none;min-width:64px;text-align:right;font-size:.9rem;font-weight:800;
+  font-variant-numeric:tabular-nums}
+.dp-li-v small{font-size:.72rem;font-weight:700;margin-left:2px}
+
+/* 幅が狭いと棒がつぶれるので、ラベルの下へ落とす（器＝.dp-list の幅で判断する）*/
+@container (max-width:340px){
+  .dp-li{flex-wrap:wrap}
+  .dp-li-l{flex:1 1 auto}
+  .dp-li-b{flex:1 1 100%;order:3}
+}
+
+/* ── 淡い囲み（時給ではなく…／データの見方）──────────────────── */
+.dp-hint{display:flex;gap:10px;margin-top:16px;padding:12px 14px;border-radius:var(--pv-r-sm);
+  background:var(--pv-blue-soft);border:1px solid var(--pv-blue-line)}
+.dp-hint svg{flex:none;width:16px;height:16px;color:var(--pv-blue-ink);margin-top:1px}
+.dp-hint p{font-size:.74rem;line-height:1.65;color:var(--pv-ink-2)}
+.dp-hint b{color:var(--pv-ink);font-weight:700}
+.dp-notes{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+.dp-note{display:flex;gap:10px;align-items:flex-start;padding:11px 13px;
+  border-radius:var(--pv-r-sm);background:var(--pv-bg-sub);border:1px solid var(--pv-line-soft)}
+.dp-note svg{flex:none;width:15px;height:15px;color:var(--pv-ink-3);margin-top:2px}
+.dp-note span{font-size:.74rem;line-height:1.6;color:var(--pv-ink-2)}
+.dp-foot{margin-top:14px;font-size:.68rem;color:var(--pv-ink-3);line-height:1.6}
+
+/* ── 賞与（ドーナツの外）────────────────────────────────────
+   ★ドーナツに混ぜない（オーナー確定）。罫を1本引いた下に1行だけ。 */
+.dp-bonus{display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+  margin-top:16px;padding-top:14px;border-top:1px solid var(--pv-line-soft)}
+.dp-bonus-k{font-size:.78rem;font-weight:600}
+.dp-bonus-v{font-size:.85rem;font-weight:800;font-variant-numeric:tabular-nums}
+.dp-bonus-s{font-size:.68rem;color:var(--pv-ink-3);font-weight:500;margin-left:6px}
+
+/* ── もっと深く見る ─────────────────────────────────────────── */
+#dp-more{margin-top:16px}   /* 段の間は器で空ける。中の .dp-more に付けるとカードの上だけ厚くなる */
+.dp-more{display:flex;align-items:center;justify-content:space-between;gap:18px;
+  flex-wrap:wrap}
+.dp-more-l{display:flex;align-items:center;gap:14px;min-width:0}
+.dp-more-ic{flex:none;width:44px;height:44px;border-radius:999px;display:grid;place-items:center;
+  background:var(--pv-orange-soft);color:var(--pv-orange-ink)}
+.dp-more-ic svg{width:20px;height:20px}
+.dp-more-tx{display:flex;flex-direction:column;min-width:0}
+.dp-more-t{font-size:.95rem;font-weight:800;letter-spacing:-.01em}
+.dp-more-s{font-size:.74rem;color:var(--pv-ink-3);margin-top:3px}
+.dp-more-r{display:flex;gap:10px;flex-wrap:wrap}
+/* ★行き先がまだ無いので <a href> にしない（assert-links.mjs が404で落とす）。 */
+.dp-more-b{display:inline-flex;align-items:center;gap:8px;font:inherit;
+  font-size:.78rem;font-weight:700;color:var(--pv-ink-2);
+  background:var(--pv-surface);border:1px solid var(--pv-line);
+  border-radius:999px;padding:9px 14px;cursor:not-allowed;opacity:.72}
+.dp-more-b svg{width:15px;height:15px;flex:none}
+.dp-more-b .dp-more-c{margin-left:2px;color:var(--pv-ink-3)}
+
+/* ── 何も出せないとき（鍵が閉じている／人数が足りない）──────── */
+.dp-msg{background:var(--pv-surface);border:1px solid var(--pv-line);
+  border-radius:var(--pv-r-lg);padding:22px;box-shadow:var(--pv-shadow)}
+.dp-msg--lock{border-style:dashed}
+.dp-msg-t{display:flex;align-items:center;gap:8px;font-size:1rem;font-weight:800;
+  letter-spacing:-.01em}
+.dp-msg-t svg{width:18px;height:18px;flex:none;color:var(--pv-ink-3)}
+.dp-msg-s{margin-top:8px;font-size:.8rem;line-height:1.75;color:var(--pv-ink-2)}
+.dp-cta{display:inline-flex;align-items:center;gap:8px;margin-top:16px;
+  font-size:.82rem;font-weight:700;text-decoration:none;
+  background:var(--pv-orange);color:#fff;border-radius:999px;padding:11px 20px;
+  transition:transform .18s var(--pv-ease),box-shadow .18s var(--pv-ease)}
+.dp-cta:hover{transform:translateY(-1px);box-shadow:var(--pv-shadow-lift)}
+.dp-cta:focus-visible{outline:2px solid var(--pv-orange-ink);outline-offset:2px}
+.dp-cta:active{transform:translateY(0)}
+.dp-cta-n{margin-top:9px;font-size:.7rem;color:var(--pv-ink-3)}
+
+/* ── 給与構成 ────────────────────────────────────────────────
+   ★絵は pay-viz.js の donutFromSegs をそのまま借りる（実体は1か所だけ）。
+     ここでするのは「モックの3列の表に見えるように並べ替える」ことだけで、
+     .pt-* はこの器（#dp-comp）の中でしか触らない。 */
+#dp-root .pt-sec{margin-top:0}   /* 段は .dp-row の gap で空ける（pay-viz.css の 22px を器の中で無効化）*/
+#dp-comp .pt-h:empty{display:none}          /* 見出しはカード側が持っている */
+#dp-comp .pt-donut-wrap{gap:22px;align-items:center;margin-top:16px}
+#dp-comp .pt-donut{width:170px;height:170px}
+#dp-comp .pt-donut svg{width:100%;height:100%}
+/* 中心は2行（構成比 /（中央値））。改行はそのまま出す。 */
+#dp-comp .pt-donut-c b{display:block;white-space:pre-line;font-size:.78rem;
+  font-weight:700;line-height:1.5;color:var(--pv-ink-2);text-align:center}
+#dp-comp .pt-legend{gap:0;min-width:236px}
+#dp-comp .pt-leg{gap:8px;padding:7px 0;border-bottom:1px solid var(--pv-line-soft);
+  font-size:.76rem}
+#dp-comp .pt-leg:last-child{border-bottom:0}
+/* ★数字の2列は狭く保つ。ここを広げると名前の列が痩せて「その他・未分類」が
+     語の途中で折れる（実測 81px しか残らなかった）。 */
+#dp-comp .pt-leg .nm{order:1;min-width:110px;line-height:1.35;color:var(--pv-ink);font-weight:500}
+#dp-comp .pt-leg .pct{order:2;width:44px;color:var(--pv-ink);font-weight:700}
+#dp-comp .pt-leg .amt{order:3;width:80px;text-align:right;color:var(--pv-ink-2);
+  font-weight:600;font-size:.74rem}
+/* 表の見出し（構成要素 / 構成比 / 月額）。deep-pay.js が凡例の先頭に挿す。 */
+#dp-comp .dp-th{border-bottom:1px solid var(--pv-line);padding-bottom:6px;
+  font-size:.66rem;color:var(--pv-ink-3);font-weight:600}
+#dp-comp .dp-th i{background:transparent}
+#dp-comp .dp-th .nm,#dp-comp .dp-th .pct,#dp-comp .dp-th .amt{
+  color:var(--pv-ink-3);font-weight:600;font-size:.66rem}
+
+@media (max-width:560px){
+  .dp-kpi{min-height:96px;padding:14px;gap:12px}
+  .dp-kpi-ic{width:40px;height:40px}
+  .dp-kpi-v{font-size:1.5rem}
+  #dp-comp .pt-donut{width:140px;height:140px}
+  /* ★狭い幅では凡例を丸ごと下の行へ落とす（min-width:0 にすると横に並んだまま
+     痩せて、幅を固定した .pct / .amt が器からはみ出す＝実測 375px で 398px）。 */
+  #dp-comp .pt-legend{min-width:100%}
+  #dp-comp .pt-leg .nm{min-width:88px}
+  #dp-comp .pt-leg .pct{width:44px}
+  /* ★見出しの「月額（中央値）」が 74px ある。70px にすると**見出しだけ**が
+     4px 切れる（数字は切れないので気づきにくい）。凡例はこの幅では丸ごと
+     下の行に落ちていて場所は余っているので、desktop と同じ 80px でよい。 */
+  #dp-comp .pt-leg .amt{width:80px}
+  .dp-li-l{flex:0 0 108px}
+  .dp-more-r{width:100%}
+  .dp-more-b{flex:1 1 auto;justify-content:center}
+}
