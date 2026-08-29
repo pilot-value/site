@@ -21,6 +21,47 @@
 .dp-row>*{flex:1 1 360px;min-width:0}
 .dp-row>.dp-w58{flex-grow:1.38}
 
+/* ── 区分を選ぶ（会社 / 役職 / 機材）─────────────────────────────
+   ★ここに「隠す」系の宣言（blur / filter / mask / user-select:none）を1つも置かない。
+     例外を1つ作ると、次に値そのものへ付いた日に assert-deep-pay.mjs が赤くならない。
+   ★<select> は端末の見た目のまま使う（appearance を潰さない）。潰すと
+     iOS で16px未満に縮んだときに拡大され、選ぶたびに画面が動く。 */
+.dp-pick{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;
+  background:var(--pv-surface-2);border:1px solid var(--pv-line);
+  border-radius:var(--pv-r-sm);padding:10px 14px;margin-top:14px}
+.dp-pick-k{flex:none;align-self:center;font-size:.78rem;font-weight:700;
+  letter-spacing:.01em;color:var(--pv-ink-2)}
+.dp-pick-f{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1 1 180px}
+.dp-pick-l{font-size:.68rem;font-weight:600;letter-spacing:.02em;color:var(--pv-ink-3)}
+/* ★16px を下回らせない（iOS が焦点を当てた瞬間に拡大する境目）。
+   assert-header.mjs が入力欄に対して見ているのと同じ線。 */
+.dp-pick-s{width:100%;min-width:0;font:inherit;font-size:16px;line-height:1.35;
+  color:var(--pv-ink);background:var(--pv-surface);
+  border:1px solid var(--pv-line);border-radius:var(--pv-r-sm);
+  padding:7px 10px;
+  transition:border-color .18s var(--pv-ease),box-shadow .18s var(--pv-ease)}
+.dp-pick-s:hover{border-color:var(--pv-ink-3)}
+.dp-pick-s:focus-visible{outline:none;border-color:var(--pv-orange);
+  box-shadow:0 0 0 3px var(--pv-orange-soft)}
+.dp-pick-s:active{border-color:var(--pv-orange)}
+.dp-pick-s:disabled{color:var(--pv-ink-3);background:var(--pv-line-soft)}
+.dp-pick-r{flex:none;align-self:center;font:inherit;font-size:.76rem;font-weight:700;
+  color:var(--pv-orange-ink);background:var(--pv-orange-soft);
+  border:1px solid var(--pv-orange-soft);border-radius:999px;
+  padding:7px 13px;cursor:pointer;
+  transition:transform .18s var(--pv-ease),box-shadow .18s var(--pv-ease)}
+.dp-pick-r:hover{box-shadow:var(--pv-shadow)}
+.dp-pick-r:focus-visible{outline:none;box-shadow:0 0 0 3px var(--pv-orange-soft)}
+.dp-pick-r:active{transform:translateY(1px)}
+.dp-pick-r:disabled{cursor:default;color:var(--pv-ink-3);
+  background:var(--pv-line-soft);border-color:var(--pv-line)}
+.dp-pick-n{flex:1 1 200px;align-self:center;font-size:.72rem;line-height:1.6;
+  color:var(--pv-ink-3)}
+@media (max-width:520px){
+  .dp-pick{gap:10px}
+  .dp-pick-f{flex:1 1 100%}
+}
+
 /* ── いま見ている区分の1行 ──────────────────────────────────── */
 .dp-cond{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
   background:var(--pv-surface);border:1px solid var(--pv-line);

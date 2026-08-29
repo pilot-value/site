@@ -154,6 +154,12 @@
           <div class="mr-skel" style="height:30px;width:42%"></div>
         </div>
 
+        <!-- 区分を選ぶ（会社 / 役職 / 機材）。中身は deep-pay.js が入れる。
+             ★3つとも「選ばない」なら、今までどおり自分の区分を自動で出す。
+             ★3人に満たない区分を伏せるのは SQL（db/deep-pay.sql）だけの仕事。
+                ここで人数を数えたり隠したりしない。 -->
+        <div class="dp-pick" id="dp-pick" hidden></div>
+
         <!-- KPI 4枚。★読めない数字はカードごと落とす（0 を並べない） -->
         <div id="dp-kpi"><div class="mr-skel" style="height:112px"></div></div>
 

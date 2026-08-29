@@ -14,6 +14,19 @@
      決定を持続させているのは、この下の「錠前」の節だけ。
      patch-side-nav.mjs の soon を外して commit した人は、ここで赤くなる。
 
+   ★開ける日にやること（この検査を書き換える前に、この順で）──
+     1. patch-side-nav.mjs の deep を href:'deep-pay.html' / soon を外す、
+        pv-gates.js の DEEP PAY を state:'soon' から live へ。
+     2. **patch-side-nav.mjs の CURRENT に deep-pay.html を足す。**
+        足さないと現在地のハイライトだけが付かない（他は自動で走査される）。
+        今わざと足していないのは、錠前が掛かっているうちは
+        ハイライトする現在地が存在しないから。
+     3. node patch-side-nav.mjs を流して、8枚のナビの差分を同じコミットに入れる。
+     4. gen-sitemap.mjs / seo-normalize.mjs / assert-seo.mjs の NOINDEX から外す。
+     5. この下の「錠前」の節を、開いた後の姿に書き換える。
+     ⚠️ 1〜4 のどれか1つだけやると、sitemap と robots が食い違うのに
+        何も赤くならない（CLAUDE.md の「同じ集合が4つある」）。
+
    見るのは9つ：
 
      ① 錠前がまだ掛かっている（メニューは soon、どの画面にも入口が無い、
@@ -256,10 +269,10 @@ console.log('\n════ ⑧ 通貨 ════');
 // ════════════════════════════════════════════════════════════════
 console.log('\n════ ⑨ SQL の権限 ════');
 {
-  const revoke = SQL.indexOf('revoke all on function public.pv_deep_pay() from public, anon;');
-  const grant  = SQL.indexOf('grant execute on function public.pv_deep_pay() to authenticated;');
-  ok(revoke >= 0, 'pv_deep_pay() を public と anon から revoke している');
-  ok(grant  >= 0, 'pv_deep_pay() を authenticated に grant している');
+  const revoke = SQL.indexOf('revoke all on function public.pv_deep_pay(jsonb) from public, anon;');
+  const grant  = SQL.indexOf('grant execute on function public.pv_deep_pay(jsonb) to authenticated;');
+  ok(revoke >= 0, 'pv_deep_pay(jsonb) を public と anon から revoke している');
+  ok(grant  >= 0, 'pv_deep_pay(jsonb) を authenticated に grant している');
   ok(revoke >= 0 && grant >= 0 && revoke < grant,
      '★revoke が grant より前（順番を入れ替えると誰も呼べなくなる）');
 
@@ -325,8 +338,17 @@ const FAKE = function (payload) {
   window.__rpc = {};
   const UID = '00000000-0000-4000-8000-00000000a001';
   const STATS = { reports: 58, month: 12, airlines: 19, contributors: 37 };
+  window.__rpcArgs = [];
   const RPC = {
-    pv_deep_pay: () => payload,
+    /* ★選んだ区分ごとに違う答えを返す。鍵は 会社|役職|機材。
+       選んでいないとき deep-pay.js は**引数を渡さない**ので鍵は '||' になり、
+       素の payload に落ちる（＝今までと同じ呼び方に戻っていることも確かめられる）。 */
+    pv_deep_pay: (args) => {
+      const q = (args && args.p) || {};
+      const k = [q.airline || '', q.position || '', q.fleet || ''].join('|');
+      if (!payload || !payload.__pick) return payload;
+      return payload.__pick[k] || (k === '||' ? payload : payload.__pick.__none || payload);
+    },
     pv_pay_rows: () => ({ ok: true, state: 'open', rows: [], stats: STATS }),
     pv_give_progress: () => ({ ok: true, contributors: 37, give: { detailed: true } })
   };
@@ -348,11 +370,12 @@ const FAKE = function (payload) {
       onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } })
     },
     from: () => q([]),
-    rpc: (name) => {
+    rpc: (name, args) => {
       window.__rpc[name] = (window.__rpc[name] || 0) + 1;
+      if (name === 'pv_deep_pay') window.__rpcArgs.push(args === undefined ? null : args);
       const res = (payload && payload.__err && name === 'pv_deep_pay')
         ? { data: null, error: { message: 'synthetic failure' } }
-        : { data: RPC[name] ? RPC[name]() : { ok: true }, error: null };
+        : { data: RPC[name] ? RPC[name](args) : { ok: true }, error: null };
       return { then: (y, n) => Promise.resolve(res).then(y, n) };   // ★then だけ
     }
   };
@@ -365,7 +388,7 @@ const FULL = {
   ok: true, state: 'open',
   gate: { key: true, detailed: true, contributors: 37, goal: 100 },
   give: { detailed: true }, stats: STATS,
-  cohort: { level: 'airline_pos_fleet', airline: 'ana', pos: 'fo', fleet: 'a320', n: 12 },
+  cohort: { level: 'airline_pos_fleet', manual: false, airline: 'ana', pos: 'fo', fleet: 'a320', n: 12 },
   head: { annual_usd: 110000, per_block_usd: 93, detailed_n: 12, fixed_pct: 62 },
   comp: { total_kind: 'monthly_cash', n: 12,
     segs: [{ k: 'fixed', pct: 52, med_usd: 4800 }, { k: 'variable', pct: 24, med_usd: 2200 },
@@ -387,6 +410,21 @@ const NOHEAD = Object.assign(clone(FULL), {
   head: { annual_usd: null, per_block_usd: null, detailed_n: null, fixed_pct: null },
   comp: null, work: null, var: []
 });
+/* 手で選んだ区分（自分は ANA の FO なのに、JAL の機長・787 を見ている形）。 */
+const SEL = Object.assign(clone(FULL), {
+  cohort: { level: 'selected', manual: true, airline: 'jal', pos: 'cap', fleet: 'b787', n: 5 },
+  head: { annual_usd: 210000, per_block_usd: 180, detailed_n: 5, fixed_pct: 71 }
+});
+/* 選んだ区分が3人に届かなかった形。★SQL は広い区分に登らないので、
+   ここに来るのは「何も出せない」だけ。全体の数字は1つも入っていない。 */
+const NONE = { ok: true, state: 'open', gate: clone(FULL.gate), give: { detailed: true },
+  stats: STATS,
+  cohort: { level: 'none', manual: true, airline: 'sas', pos: null, fleet: null, n: 0 },
+  head: { annual_usd: null, per_block_usd: null, detailed_n: null, fixed_pct: null },
+  comp: null, work: null, var: [] };
+const PICKABLE = Object.assign(clone(FULL),
+  { __pick: { 'jal|cap|b787': SEL, 'sas||': NONE } });
+
 const LOCK = { ok: true, state: 'locked', stats: STATS, give: { detailed: false },
                gate: { key: false, detailed: false, contributors: 37, goal: 100 },
                cohort: null, head: null, comp: null, work: null, var: null };
@@ -452,6 +490,19 @@ const SNAP = () => {
     bars: q('#dp-var .dp-li-f').map((e) => getComputedStyle(e).backgroundColor),
     moreBtns: q('#dp-more button').map((e) => ({ dis: e.disabled, tag: e.tagName })),
     moreLinks: q('#dp-more a').length,
+    cond: (document.querySelector('.dp-cond') || {}).innerText || '',
+    pick: (function () {
+      const e = document.getElementById('dp-pick');
+      const one = (id) => {
+        const x = document.getElementById(id);
+        return x ? { v: x.value, n: x.options.length, dis: !!x.disabled } : null;
+      };
+      return { hidden: !!(e && e.hidden),
+               air: one('dp-pk-air'), pos: one('dp-pk-pos'), flt: one('dp-pk-flt'),
+               groups: e ? e.querySelectorAll('optgroup').length : 0,
+               reset: !!document.getElementById('dp-pk-rst') };
+    })(),
+    args: window.__rpcArgs || [],
     rpc: window.__rpc
   };
 };
@@ -476,6 +527,7 @@ const SNAP = () => {
      (s.text.match(/[^\n]*[¥$€£万][^\n]*/) || [''])[0].slice(0, 60));
   ok(s.comp.hidden && s.work.hidden && s.vari.hidden,
      '鍵が無いと 給与構成・働き方・変動給 の節ごと出ない');
+  ok(s.pick.hidden, '★鍵が無いと区分も選ばせない（どれを選んでも答えは同じ）');
   ok(/pay-report\.html/.test(await page.evaluate(() => document.getElementById('dp-root').innerHTML)),
      '鍵が無い人には「出す」入口を出している（Give → Get）');
   ok(errs.length === 0, '鍵が無い形で JS のエラーが出ない', errs.join(' / '));
@@ -575,6 +627,85 @@ for (const lang of ['ja', 'en']) {
   ok(s.kpi === 0 && s.empty >= 1, 'サーバが返らないと「読み込めませんでした」だけを出す',
      `カード ${s.kpi} / 板 ${s.empty}`);
   ok(!/[¥$€£]|万/.test(s.text), '★エラーのときに 0 や仮の金額を置かない');
+}
+
+// ── 9. 他の人の区分を選ぶ（2026-08-30）────────────────────────
+/* ★ここが「自分の区分しか見られないなら意味がない」への答え。
+   選べること・選んでも壁が動かないこと・選ばなければ元に戻ることの3つを見る。 */
+async function choose(page, sel) {
+  await page.evaluate((x) => {
+    const set = (id, v) => { const e = document.getElementById(id); if (e) e.value = v || ''; };
+    set('dp-pk-air', x.airline); set('dp-pk-pos', x.position); set('dp-pk-flt', x.fleet);
+    document.getElementById('dp-pk-flt')
+      .dispatchEvent(new Event('change', { bubbles: true }));
+  }, sel);
+  /* ★時間で待たない。引いた回数が1つ増えて、欄が触れる状態に戻るまで待つ。 */
+  await page.waitForFunction(
+    (n) => window.__rpcArgs.length === n && !document.getElementById('dp-pk-air').disabled,
+    { timeout: 10000 }, sel.__n);
+}
+{
+  const { page, errs } = await open('ja', PICKABLE);
+  const a = await page.evaluate(SNAP);
+  ok(!a.pick.hidden && a.pick.air && a.pick.pos && a.pick.flt,
+     '★会社・役職・機材の3つとも選べる');
+  ok(a.pick.air.n > 100, '会社の選択肢は salary-data.json の全社ぶん', `今 ${a.pick.air && a.pick.air.n} 個`);
+  ok(a.pick.groups >= 6, '会社は地域ごとにまとまっている', `今 ${a.pick.groups} 組`);
+  ok(a.pick.pos.n === 4 && a.pick.flt.n === 20,
+     '役職と機材は語彙そのまま（＋「選ばない」1つ）',
+     `役職 ${a.pick.pos.n} / 機材 ${a.pick.flt.n}`);
+  ok(!a.pick.reset, '何も選んでいないうちは「戻す」を出さない');
+  ok(a.args.length === 1 && a.args[0] === null,
+     '★選んでいなければ引数を渡さない（今までと同じ呼び方）', JSON.stringify(a.args));
+  ok(/全日本空輸/.test(a.cond), '最初は自分の区分（ANA）', a.cond.replace(/\n/g, ' '));
+
+  await choose(page, { airline: 'jal', position: 'cap', fleet: 'b787', __n: 2 });
+  const b = await page.evaluate(SNAP);
+  ok(b.args[1] && b.args[1].p && b.args[1].p.airline === 'jal'
+     && b.args[1].p.position === 'cap' && b.args[1].p.fleet === 'b787',
+     '★選んだ区分をそのままサーバへ渡す', JSON.stringify(b.args[1]));
+  ok(/日本航空/.test(b.cond) && !/全日本空輸/.test(b.cond),
+     '★自分の会社ではない区分の見出しになる', b.cond.replace(/\n/g, ' '));
+  ok(b.kpi === 4 && b.kpiV[0] !== a.kpiV[0],
+     '★数字も選んだ区分のものに入れ替わる', `${a.kpiV[0]} → ${b.kpiV[0]}`);
+  ok(b.pick.reset, '選んだら「自分の区分に戻す」が出る');
+  /* 5人なので上限は 3（3つとも選んだ）× 人数の判定 2 ＝「中」。 */
+  ok(/中/.test(b.cond) && !/高/.test(b.cond),
+     '★5人の区分を「信頼度 高」と言わない', b.cond.replace(/\n/g, ' '));
+
+  await choose(page, { airline: 'sas', position: '', fleet: '', __n: 3 });
+  const c = await page.evaluate(SNAP);
+  ok(c.kpi === 0, '★3人に届かない区分では KPI が1枚も出ない', `今 ${c.kpi} 枚`);
+  ok(c.comp.hidden && c.work.hidden && c.vari.hidden && c.notes.hidden && c.more.hidden,
+     '★節も全部消える（空の器を残さない）');
+  ok(!/[¥$€£]|万|%/.test(c.text),
+     '★★広い区分の数字で埋めない（金額も割合も1つも出ない）',
+     (c.text.match(/[^\n]*[¥$€£万%][^\n]*/) || [''])[0].slice(0, 60));
+  ok(c.cond === '', '★出せない区分では「表示中:」の行ごと出さない', c.cond);
+  ok(/3人/.test(c.text) && !/あと1人|あと 1/.test(c.text),
+     '★「あと1人」と書かない（人数が1人単位で読めてしまう）',
+     c.text.replace(/\n/g, ' ').slice(0, 80));
+
+  await page.evaluate(() => document.getElementById('dp-pk-rst').click());
+  await page.waitForFunction(() => window.__rpcArgs.length === 4
+    && !document.getElementById('dp-pk-air').disabled, { timeout: 10000 });
+  const e = await page.evaluate(SNAP);
+  ok(e.args[3] === null, '★「戻す」は引数なしで引き直す', JSON.stringify(e.args[3]));
+  ok(/全日本空輸/.test(e.cond) && e.kpi === 4,
+     '★戻すと自分の区分に帰る', e.cond.replace(/\n/g, ' '));
+  ok(!e.pick.reset && e.pick.air.v === '' && e.pick.pos.v === '' && e.pick.flt.v === '',
+     '★戻したら欄も空に戻る');
+
+  /* ★選んだあとに通貨を切り替えても、選び直しにはならない。 */
+  await page.evaluate(() => window.PVCurrency.set('USD'));
+  await page.waitForFunction(
+    () => /^\$/.test((document.querySelector('.dp-kpi-v') || {}).textContent || ''),
+    { timeout: 10000 });
+  const f = await page.evaluate(SNAP);
+  ok(f.rpc.pv_deep_pay === 4,
+     '★★通貨を切り替えても引き直さない（選んだ後も同じ）', JSON.stringify(f.rpc));
+  ok(f.pick.air.v === '' && !f.pick.reset, '通貨を切り替えても選択が飛ばない');
+  ok(errs.length === 0, '選ぶ操作で JS のエラーが出ない', errs.join(' / '));
 }
 
 for (const j of jars) await j.close().catch(() => {});

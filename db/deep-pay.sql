@@ -24,10 +24,23 @@
 --                  作れない形にする。1人ずつの実額を組み立てられないようにするため。
 --   ③ 有効数字2桁   金額は pv_sig2 を通す。1円まで合う数字は個票の証拠になる。
 --   ④ 1行＝1人      proof_hash で束ねてから中央値を取る。同じ人の6か月分は1人。
---   ⑤ 引数ゼロ      pv_deep_pay() は引数を取らない。引数だけが攻撃面になる。
---                  区分は**呼んだ本人の最新の1行**からサーバが決める。
+--   ⑤ 語彙の中だけ  pv_deep_pay(p jsonb) は会社・役職・機材を受け取る。
+--                  ★2026-08-30 に引数ゼロから変えた。初めは「呼んだ本人の区分」しか
+--                    出さなかったが、REAL PAY（pv_pay_rows）が既に**全社の行**を
+--                    見せている以上、DEEP PAY だけ自分の区分に閉じているのは
+--                    筋が通らない（オーナー判断）。
+--                  引数が増えたぶんは、この2つで守る ──
+--                    (a) 受け取った値は pv_airlines / pv_positions / pv_fleets に
+--                        **在るものだけ**通す。無い値は空を返す。知らない値を
+--                        「広い区分」に読み替えない。読み替えると、打ち間違いに
+--                        別の区分の数字が出て、読み手はそれと気づけない。
+--                    (b) 手で選んだ区分は**はしごを登らない**。3人に届かなければ
+--                        そのまま「まだ出せません」。広い区分の数字を、狭い区分の
+--                        見出しのまま出すことをしない。
+--                  n ≧ 3 は誰が選んでも同じに掛かる。引数では緩められない。
 --   ⑥ 準識別子ゼロ  投稿月・作成日時・proof_hash・自由入力の社名・年代・在籍年数は
---                  返さない。返すのは会社・役職・機材（＝呼んだ本人が既に知っている値）だけ。
+--                  返さない。返すのは会社・役職・機材（＝選んだ本人が渡した値、
+--                  または呼んだ本人が既に知っている自分の値）だけ。
 --   ⑦ 常識の幅      年 $10,000〜$700,000 の外は数えない。
 --
 -- ════════════════════════════════════════════════════════════════════════
@@ -222,9 +235,10 @@ comment on function public.pv_deep_pct(numeric[]) is
 -- 区分（coh）に入れない。入れると全員が未分類100%になり、
 -- ドーナツが灰色一色になる。人数表示（stats）とは別の数であることに注意。
 -- ════════════════════════════════════════════════════════════════
-drop function if exists public.pv_deep_pay();
+drop function if exists public.pv_deep_pay();          -- 引数ゼロだった頃のもの
+drop function if exists public.pv_deep_pay(jsonb);
 
-create or replace function public.pv_deep_pay()
+create or replace function public.pv_deep_pay(p jsonb default '{}'::jsonb)
 returns jsonb
 language plpgsql
 security definer
@@ -238,6 +252,11 @@ declare
   v_key   boolean;
   v_det   boolean;
   v_open  boolean;
+  v_air   text := nullif(btrim(coalesce(p ->> 'airline',  '')), '');
+  v_pos   text := nullif(btrim(coalesce(p ->> 'position', '')), '');
+  v_flt   text := nullif(btrim(coalesce(p ->> 'fleet',    '')), '');
+  v_man   boolean;   -- 手で選んだか（＝本人の区分ではないか）
+  v_bad   boolean := false;   -- 語彙に無い値が来たか
   v_out   jsonb;
 begin
   if v_uid is null then
@@ -257,6 +276,23 @@ begin
   v_key  := (v_until is not null and v_until > now());
   v_det  := coalesce((v_give ->> 'detailed')::boolean, false);
   v_open := v_key and v_det;
+
+  -- ★選べるのは語彙に在るものだけ（約束⑤a）。
+  --   'other'（自由入力の社名）は選ばせない。別々の会社が other という1社に
+  --   潰れて混ざるので、その見出しで数字を出すと嘘になる。
+  --   ★語彙に無い値を null に読み替えて「広い区分」を返さないこと。
+  --     打ち間違いに別の区分の数字が出て、読み手はそれと気づけない。
+  --     v_bad は下の lvl で 0段を丸ごと消し、空の区分として返る。
+  v_man := (v_air is not null or v_pos is not null or v_flt is not null);
+  if v_air is not null and not exists (
+       select 1 from public.pv_airlines a where a.code = v_air and a.code <> 'other')
+    then v_bad := true; end if;
+  if v_pos is not null and not exists (
+       select 1 from public.pv_positions q where q.code = v_pos)
+    then v_bad := true; end if;
+  if v_flt is not null and not exists (
+       select 1 from public.pv_fleets f where f.code = v_flt)
+    then v_bad := true; end if;
 
   with
   -- ── 呼んだ本人の行 ──────────────────────────────────────
@@ -415,26 +451,40 @@ begin
 
   -- ── はしごを1段ずつ数える ────────────────────────────────
   lvl as (
-    select 1 as lv, count(*) as n from person p, me m
-      where p.airline = m.airline and p.pos = m.pos
+    -- ── 0段 ＝ 手で選んだ区分 ────────────────────────────
+    -- ★ここから上（広いほう）へ登らない（約束⑤b）。3人に届かなければ -1 に落ちて
+    --   空の区分が返る。落として広い区分の数字を狭い見出しのまま出すことはしない。
+    -- ★v_air は語彙に在るコードなので、'other' は最初から入らない。
+    --   会社を選んでいないとき（v_air is null）は、4段・5段と同じく other も混ぜる。
+    select 0 as lv, count(*) as n from person p
+      where v_man and not v_bad
+        and (v_air is null or p.airline = v_air)
+        and (v_pos is null or p.pos     = v_pos)
+        and (v_flt is null or p.fleet   = v_flt)
+    union all
+    -- ── 1〜5段 ＝ 何も選んでいないときだけ。本人の区分から順に落とす ──
+    select 1, count(*) from person p, me m
+      where not v_man and p.airline = m.airline and p.pos = m.pos
         and p.fleet is not distinct from m.fleet
         and p.airline <> 'other'
     union all
     select 2, count(*) from person p, me m
-      where p.airline = m.airline and p.pos = m.pos
+      where not v_man and p.airline = m.airline and p.pos = m.pos
         and p.cat is not distinct from m.cat
         and p.airline <> 'other'
     union all
     select 3, count(*) from person p, me m
-      where p.airline = m.airline and p.pos = m.pos
+      where not v_man and p.airline = m.airline and p.pos = m.pos
         and p.airline <> 'other'
     union all
     select 4, count(*) from person p, me m
-      where p.pos = m.pos
+      where not v_man and p.pos = m.pos
     union all
-    select 5, count(*) from person
+    select 5, count(*) from person where not v_man
   ),
-  pick as (select coalesce(min(lv), 5) as lv from lvl where n >= 3),
+  -- ★手で選んだのに3人に届かなかったときは -1（空）。5段（全体）に落とさない。
+  pick as (select coalesce(min(lv), case when v_man then -1 else 5 end) as lv
+             from lvl where n >= 3),
 
   -- ── 採った段の人たち ────────────────────────────────────
   -- ★自由入力の社名（airline = 'other'）は 1〜3段では外す。
@@ -448,6 +498,9 @@ begin
     --   実際には起きないが、門を緩めた回に静かに全部消える形は残さない。
     select p.* from person p cross join pick k left join me m on true
      where case k.lv
+             when 0 then (v_air is null or p.airline = v_air)
+                     and (v_pos is null or p.pos     = v_pos)
+                     and (v_flt is null or p.fleet   = v_flt)
              when 1 then p.airline = m.airline and p.pos = m.pos
                          and p.fleet is not distinct from m.fleet
                          and p.airline <> 'other'
@@ -457,7 +510,10 @@ begin
              when 3 then p.airline = m.airline and p.pos = m.pos
                          and p.airline <> 'other'
              when 4 then p.pos = m.pos
-             else true
+             when 5 then true
+             -- ★-1（選んだ区分が3人に届かなかった）。**else true にしない。**
+             --   true にすると全体の数字が、選んだ会社の見出しのまま出る。
+             else false
            end
   ),
 
@@ -686,16 +742,23 @@ begin
                'contributors', (select contributors from st)),
 
     'cohort', case when not v_open then null else jsonb_build_object(
-               'level',   (select case lv when 1 then 'airline_pos_fleet'
+               'level',   (select case lv when 0 then 'selected'
+                                          when 1 then 'airline_pos_fleet'
                                           when 2 then 'airline_pos_cat'
                                           when 3 then 'airline_pos'
                                           when 4 then 'pos'
-                                          else 'all' end from pick),
-               -- ★返すのは呼んだ本人自身の値だけ（約束⑥）。
-               --   落ちてきた元の段の会社名は返さない。
-               'airline', (select airline from me),
-               'pos',     (select pos from me),
-               'fleet',   (select fleet from me),
+                                          when 5 then 'all'
+                                          else 'none' end from pick),
+               'manual',  v_man,
+               -- ★返すのは「選んだ本人が渡した値」か「呼んだ本人自身の値」だけ
+               --   （約束⑥）。落ちてきた元の段の会社名は返さない。
+               --   語彙に無い値が来たときは echo もしない。
+               'airline', case when v_man then (case when v_bad then null else v_air end)
+                               else (select airline from me) end,
+               'pos',     case when v_man then (case when v_bad then null else v_pos end)
+                               else (select pos from me) end,
+               'fleet',   case when v_man then (case when v_bad then null else v_flt end)
+                               else (select fleet from me) end,
                'n',       (select n from hagg)) end,
 
     'head', case when not v_open then null else jsonb_build_object(
@@ -731,11 +794,11 @@ end;
 $fn$;
 
 -- ★順番を変えないこと。revoke してから grant する。
-revoke all on function public.pv_deep_pay() from public, anon;
-grant execute on function public.pv_deep_pay() to authenticated;
+revoke all on function public.pv_deep_pay(jsonb) from public, anon;
+grant execute on function public.pv_deep_pay(jsonb) to authenticated;
 
-comment on function public.pv_deep_pay() is
-  'DEEP PAY の画面が呼ぶ唯一の関数。引数ゼロ。'
+comment on function public.pv_deep_pay(jsonb) is
+  'DEEP PAY の画面が呼ぶ唯一の関数。会社・役職・機材を選べる（語彙に在る値だけ）。'
   '区分（会社×役職×機材から順に落とすはしご）ごとの中央値と、給与構成の割合を返す。'
   '個人の行は1件も返さない。金額は有効数字2桁。内訳は割合で返す。'
   '鍵（access_until）と本人の内訳（pv_my_give の detailed）の両方が要る。'
@@ -747,7 +810,7 @@ comment on function public.pv_deep_pay() is
 -- ここが全部 ✅ になっていれば貼れている。
 -- ★1つの select にまとめる（SQL Editor は最後の結果しか出さない）。
 -- ════════════════════════════════════════════════════════════════
-with d as (select pg_get_functiondef('public.pv_deep_pay()'::regprocedure) as s),
+with d as (select pg_get_functiondef('public.pv_deep_pay(jsonb)'::regprocedure) as s),
      -- ★db/pay-rows.sql:1240 の自己点検が使っている文字列と1字も違わないこと
      --   （numeric×6 → text → numeric×13）。写し間違えると、あちらを触っていないのに
      --   13番が ❌ になり、オーナーが「貼れていない」と誤解する。
@@ -756,19 +819,19 @@ with d as (select pg_get_functiondef('public.pv_deep_pay()'::regprocedure) as s)
                 || 'numeric,numeric,numeric,numeric,numeric,numeric,numeric,'
                 || 'numeric)' as sig)
 select * from (
-  select  1 as "#", '引数ゼロ（約束⑤）' as "見るもの",
+  select  1 as "#", '受け取る引数は jsonb 1つだけ（約束⑤）' as "見るもの",
           case when (select pronargs from pg_proc
-                      where oid = 'public.pv_deep_pay()'::regprocedure) = 0
+                      where oid = 'public.pv_deep_pay(jsonb)'::regprocedure) = 1
                then '✅' else '❌' end as "答え"
   union all select  2, 'security definer で動く',
           case when (select prosecdef from pg_proc
-                      where oid = 'public.pv_deep_pay()'::regprocedure)
+                      where oid = 'public.pv_deep_pay(jsonb)'::regprocedure)
                then '✅' else '❌' end
   union all select  3, '未ログイン（anon）は呼べない',
-          case when not has_function_privilege('anon', 'public.pv_deep_pay()', 'execute')
+          case when not has_function_privilege('anon', 'public.pv_deep_pay(jsonb)', 'execute')
                then '✅' else '❌' end
   union all select  4, 'ログイン済みは呼べる',
-          case when has_function_privilege('authenticated', 'public.pv_deep_pay()', 'execute')
+          case when has_function_privilege('authenticated', 'public.pv_deep_pay(jsonb)', 'execute')
                then '✅' else '❌' end
   union all select  5, '本人の鍵づくりは誰にも開いていない',
           case when not has_function_privilege('authenticated', 'public.pv_my_keys()', 'execute')
@@ -793,12 +856,17 @@ select * from (
                then '✅' else '❌' end
   union all select 11, '自由入力の社名を返していない（約束⑥）',
           case when (select s from d) not like '%''airline_other''%' then '✅' else '❌' end
-  union all select 12, '金額は有効数字2桁を通している（約束③）',
+  union all select 12, '選べる区分は語彙の中だけ（約束⑤a）',
+          case when (select s from d) like '%pv_airlines%'
+                and (select s from d) like '%pv_positions%'
+                and (select s from d) like '%pv_fleets%'
+               then '✅' else '❌' end
+  union all select 13, '金額は有効数字2桁を通している（約束③）',
           case when (select s from d) like '%pv_sig2%' then '✅' else '❌' end
-  union all select 13, '旧 pv_pay_comp は 20 引数のまま（触っていない）',
+  union all select 14, '旧 pv_pay_comp は 20 引数のまま（触っていない）',
           case when to_regprocedure((select sig from c)) is not null
                then '✅' else '❌' end
-  union all select 14, '旧 pv_pay_comp は今も誰にも開いていない',
+  union all select 15, '旧 pv_pay_comp は今も誰にも開いていない',
           case when to_regprocedure((select sig from c)) is null
                  or not has_function_privilege('authenticated', (select sig from c), 'execute')
                then '✅' else '❌' end

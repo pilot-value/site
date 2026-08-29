@@ -14,6 +14,9 @@
             fold  … 3人に満たない項目が「その他・未分類」に畳まれた状態
                     （灰色の意味が変わるので but 書きが1行増える）
             pos   … 区分が段4（役職のみ・全社）まで落ちた状態
+            pick  … 自分の区分ではない区分を手で選んだ状態（JAL / 機長 / B787）
+            thin  … 手で選んだ区分が3人に届かなかった状態
+                    （★広い区分の数字で埋めない。何も出ないのが正しい）
             lock  … 鍵がまだ無い（給与を1件も出していない）
             det   … 鍵はあるが内訳を書いていない
             err   … サーバが返らなかった
@@ -132,7 +135,22 @@ await page.evaluateOnNewDocument((scene, theme) => {
   const DET  = Object.assign({}, LOCK, { give: { detailed: false },
                  gate: { key: true, detailed: false, contributors: 37, goal: 100 } });
 
-  const SCENES = { full: FULL, day1: DAY1, fold: FOLD, pos: POS, lock: LOCK, det: DET };
+  /* 手で選んだ区分（2026-08-30）。自分は ANA の FO なのに JAL の機長・787 を見ている。
+     ★n=5 なので信頼度は「中」。3つとも選んでいても人数で頭打ちになる。 */
+  const PICK = Object.assign({}, FULL, {
+    cohort: { level: 'selected', manual: true, airline: 'jal', pos: 'cap', fleet: 'b787', n: 5 },
+    head: { annual_usd: 210000, per_block_usd: 180, detailed_n: 5, verified_n: 3, fixed_pct: 71 }
+  });
+  /* 選んだ区分が3人に届かなかった状態。★広い区分に登らないので、出るものが何も無い。
+     「あと1人」とも書かない（書くと人数が1人単位で読める）。 */
+  const THIN = { ok: true, state: 'open', stats: STATS, give: { detailed: true },
+    gate: { key: true, detailed: true, contributors: 37, goal: 100 },
+    cohort: { level: 'none', manual: true, airline: 'sas', pos: null, fleet: null, n: 0 },
+    head: { annual_usd: null, per_block_usd: null, detailed_n: null, fixed_pct: null },
+    comp: null, work: null, var: [] };
+
+  const SCENES = { full: FULL, day1: DAY1, fold: FOLD, pos: POS,
+                   pick: PICK, thin: THIN, lock: LOCK, det: DET };
   const DEEP = SCENES[scene] || FULL;
 
   const RPC = {

@@ -359,14 +359,22 @@ for (const lang of ['ja', 'en']) {
             250ms 後に読むと「まだ 2px」で落ちる
        単独で流すと必ず通る＝**閉じ込めは起きていない。検査の待ち方の問題**だった。
        ①は「下に余白ができるまで」、②は「動きが止まるまで」待つ（各最長3秒）。
-       ⚠️ 落ちたときのために余白も返す。y も room も 0 なら ①、y だけ小さいなら ②。 */
+       ⚠️ 落ちたときのために余白も返す。y も room も 0 なら ①、y だけ小さいなら ②。
+
+       ③ **動き出す前の 0 を「止まった」と読む**（2026-08-30 に踏んだ）──
+          ②の「同じ値が3回続いたら止まった」だけで抜けると、混んだ回に
+          smooth のアニメーションが**まだ始まっていない**うちに 0, 0, 0 を数えて
+          「0px で安定した」と判定してしまう。下に 12,478px も余白があるのに
+          `動いた 0px` で落ちた。**0 のあいだは「止まった」と数えない。**
+          3秒たっても 0 のままなら、それは本物の閉じ込め＝落ちてよい。 */
     const room = () => document.documentElement.scrollHeight - innerHeight;
     for (let i = 0; i < 60 && room() < 600; i++) await new Promise((r) => setTimeout(r, 50));
     scrollTo(0, 0); scrollBy(0, 500);
-    let y = -1, same = 0;
+    let y = 0, same = 0;
     for (let i = 0; i < 60 && same < 3; i++) {
       await new Promise((r) => setTimeout(r, 50));
-      if (scrollY === y) same++; else { y = scrollY; same = 0; }
+      if (scrollY !== y) { y = scrollY; same = 0; }
+      else if (y > 0) same++;          /* ★0 のままは「止まった」ではなく「まだ動いていない」 */
     }
     const roomLeft = room();
     scrollTo(0, 0);

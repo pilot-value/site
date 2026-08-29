@@ -12,10 +12,19 @@
    こちらは集計だけ。個人の明細は1件も出さない。**
 
    ── サーバから来るもの ────────────────────────────────────────
-   pv_deep_pay()（db/deep-pay.sql）1本だけ。引数ゼロ。
-   区分（会社×役職×機材から順に落とすはしご）は**サーバが決める**。
-   画面から段を指定する口を作らないこと ── 指定できると、段を上げ下げして
-   差分を取るだけで小さな集団の中身が読める。
+   pv_deep_pay(jsonb)（db/deep-pay.sql）1本だけ。
+   何も選ばなければ引数を渡さない ＝ 区分（会社×役職×機材から順に落とすはしご）は
+   **サーバが決める**。選んだときは {airline, position, fleet} をそのまま渡す。
+
+   ── 区分を選べるようにした（2026-08-30・オーナー確定）────────────
+   ★自分の区分しか見られないのは、REAL PAY（pv_pay_rows）が最初から全社の行を
+     返しているのと食い違う。会社・役職・機材の3つとも選べる。
+   ★守りは「3人未満は出さない」だけ（待遇アンケート・REAL PAY と同じ線）。
+   ★選べる値は語彙（pv_airlines / pv_positions / pv_fleets）の中だけで、
+     **手で選んだ区分ははしごを登らない**。3人に届かなければ level:'none' が
+     返るだけで、広い区分の数字がその見出しのまま出ることは無い。
+   ⚠️ この壁は SQL にしか無い。画面側で人数を数えたり伏せたりしないこと
+     ── 2か所に置くと、片方だけ直した日に静かに緩む。
 
    ── ここで守っている約束 ──────────────────────────────────────
    ★「時給」と書かない。出すのは Pay / Block Hour で、Block Hours から
@@ -77,6 +86,15 @@
       allAir: '全社',
       allPos: '全体',
       cat: '同じ機材区分',
+
+      pickK: '区分を選ぶ',
+      pickAir: '会社', pickPos: '役職', pickFlt: '機材',
+      pickAny: '選ばない',
+      pickAuto: '選ばないと、あなたの区分を自動で表示します。',
+      pickReset: '自分の区分に戻す',
+      rg: { japan: '日本', mideast: '中東', asia: 'アジア', europe: '欧州',
+            us: '北米', latam: '中南米', oceania: 'オセアニア', africa: 'アフリカ' },
+
       trust: '信頼度',
       hi: '高', mid: '中', lo: '低',
 
@@ -136,6 +154,15 @@
       allAir: 'all airlines',
       allPos: 'everyone',
       cat: 'same fleet category',
+
+      pickK: 'Choose a group',
+      pickAir: 'Airline', pickPos: 'Seat', pickFlt: 'Fleet',
+      pickAny: 'Any',
+      pickAuto: 'Leave these as they are and your own group is shown.',
+      pickReset: 'Back to my group',
+      rg: { japan: 'Japan', mideast: 'Middle East', asia: 'Asia', europe: 'Europe',
+            us: 'North America', latam: 'Latin America', oceania: 'Oceania', africa: 'Africa' },
+
       trust: 'Confidence',
       hi: 'High', mid: 'Medium', lo: 'Low',
 
@@ -318,7 +345,12 @@
   };
 
   // ── 状態 ───────────────────────────────────────────────────────
-  var S = { mode: 'load', data: null, air: {}, pos: {} };
+  var S = { mode: 'load', data: null, air: {}, pos: {},
+            /* 選ぶための材料（辞書が届いてから埋まる）と、いま選んでいる区分。
+               ★sel が3つとも空なら「選んでいない」＝ 今までどおり自分の区分。 */
+            airs: [], poss: [], flts: [],
+            sel: { airline: '', position: '', fleet: '' },
+            client: null, busy: false };
   function el(id) { return d.getElementById(id); }
   /* 別の <script> が宣言した const sb を読む（actual-pay.js:662）。
      宣言前に呼ばれると ReferenceError になるので、必ず try で包んだ側から呼ぶ。 */
@@ -338,9 +370,17 @@
      自分の会社の数字ではない。人数の判定と段ごとの上限の、低いほうを採る
      （そうしないと、初日の一番あてにならない状態が「信頼度 高」と出る）。 */
   var TCAP = { airline_pos_fleet: 3, airline_pos_cat: 3, airline_pos: 2, pos: 1, all: 1 };
-  function trustOf(n, level) {
+  function trustOf(n, c) {
+    var level = c.level;
     var by  = n >= 10 ? 3 : n >= 5 ? 2 : 1;
     var cap = TCAP[level] != null ? TCAP[level] : 1;
+    /* 手で選んだ区分にも、**選んだ絞りの数**で同じ上限を掛ける。
+       「役職だけ・全社」を選んだ人に「信頼度 高」と出さないため
+       （自動で段4に落ちたときと同じ扱いになる）。 */
+    if (level === 'selected') {
+      var k = (c.airline ? 1 : 0) + (c.pos ? 1 : 0) + (c.fleet ? 1 : 0);
+      cap = k >= 3 ? 3 : k === 2 ? 2 : 1;
+    }
     var r   = Math.min(by, cap);
     if (r >= 3) return { k: T.hi,  m: '' };
     if (r === 2) return { k: T.mid, m: ' dp-trust--mid' };
@@ -351,23 +391,102 @@
   function cohortWords(c) {
     var air = airName(c.airline), pos = posName(c.pos);
     var fleet = c.fleet ? String(c.fleet).toUpperCase() : '';
+    /* 手で選んだとき。選ばなかった面は言わない（会社だけ「全社」と補う）。 */
+    if (c.level === 'selected')          return [air || T.allAir, pos, fleet].filter(Boolean);
     if (c.level === 'airline_pos_fleet') return [air, pos, fleet].filter(Boolean);
     if (c.level === 'airline_pos_cat')   return [air, pos, T.cat].filter(Boolean);
     if (c.level === 'airline_pos')       return [air, pos].filter(Boolean);
     if (c.level === 'pos')               return [pos, T.allAir].filter(Boolean);
     return [T.allPos];
   }
+  /* ── 区分を選ぶ（2026-08-30）────────────────────────────────────
+     ★自分の区分しか見られないのは、REAL PAY（pv_pay_rows）が最初から
+       全社の行を返しているのと食い違う。会社・役職・機材の3つを選べる。
+     ★守りは足さない。3人に満たない区分は db/deep-pay.sql が level:'none' を返し、
+       広い区分に**登らない**（登ると、選んだ会社の見出しのまま全体の数字が出る）。
+       だから画面側で人数を数えたり伏せたりしない ── 壁は1か所（SQL）にしか無い。
+     ★3つとも空なら引数を渡さない。今までと1バイトも同じ呼び方に戻す。 */
+  var RGO = ['japan', 'mideast', 'asia', 'europe', 'us', 'latam', 'oceania', 'africa'];
+  function optlist(items, cur) {
+    return '<option value="">' + esc(T.pickAny) + '</option>' +
+      items.map(function (o) {
+        return '<option value="' + esc(o.v) + '"' + (o.v === cur ? ' selected' : '') + '>' +
+          esc(o.t) + '</option>';
+      }).join('');
+  }
+  function airOpts(cur) {
+    var by = {}, h = '<option value="">' + esc(T.pickAny) + '</option>';
+    S.airs.forEach(function (a) { (by[a.rg] || (by[a.rg] = [])).push(a); });
+    var order = RGO.filter(function (r) { return by[r]; })
+      .concat(Object.keys(by).filter(function (r) { return RGO.indexOf(r) < 0; }));
+    order.forEach(function (r) {
+      h += '<optgroup label="' + esc((T.rg && T.rg[r]) || r) + '">' +
+        by[r].sort(function (x, y) { return x.t > y.t ? 1 : -1; })
+          .map(function (a) {
+            return '<option value="' + esc(a.v) + '"' + (a.v === cur ? ' selected' : '') + '>' +
+              esc(a.t) + '</option>';
+          }).join('') + '</optgroup>';
+    });
+    return h;
+  }
+  function field(id, label, opts) {
+    return '<label class="dp-pick-f" for="' + id + '"><span class="dp-pick-l">' +
+      esc(label) + '</span><select id="' + id + '" class="dp-pick-s">' + opts + '</select></label>';
+  }
+  function picked() { return !!(S.sel.airline || S.sel.position || S.sel.fleet); }
+  function onPick() {
+    S.sel = {
+      airline:  (el('dp-pk-air') || {}).value || '',
+      position: (el('dp-pk-pos') || {}).value || '',
+      fleet:    (el('dp-pk-flt') || {}).value || ''
+    };
+    if (S.client) load(S.client);
+  }
+  function picker() {
+    var box = el('dp-pick');
+    if (!box) return;
+    /* 辞書は RPC より後に届くことがある。中身が変わった回だけ組み直す
+       （毎回組み直すと、通貨を切り替えただけで選択が飛ぶ）。 */
+    var sig = L + '|' + S.airs.length + '|' + S.poss.length + '|' + S.flts.length +
+      '|' + S.sel.airline + '|' + S.sel.position + '|' + S.sel.fleet;
+    if (box.getAttribute('data-sig') !== sig) {
+      box.setAttribute('data-sig', sig);
+      box.innerHTML = '<span class="dp-pick-k">' + esc(T.pickK) + '</span>' +
+        field('dp-pk-air', T.pickAir, airOpts(S.sel.airline)) +
+        field('dp-pk-pos', T.pickPos, optlist(S.poss, S.sel.position)) +
+        field('dp-pk-flt', T.pickFlt, optlist(S.flts, S.sel.fleet)) +
+        (picked()
+          ? '<button type="button" class="dp-pick-r" id="dp-pk-rst">' + esc(T.pickReset) + '</button>'
+          : '<span class="dp-pick-n">' + esc(T.pickAuto) + '</span>');
+      ['dp-pk-air', 'dp-pk-pos', 'dp-pk-flt'].forEach(function (id) {
+        var e = el(id); if (e) e.addEventListener('change', onPick);
+      });
+      var r = el('dp-pk-rst');
+      if (r) r.addEventListener('click', function () {
+        S.sel = { airline: '', position: '', fleet: '' };
+        if (S.client) load(S.client);
+      });
+    }
+    /* 引いている間は触らせない（連打で答えが入れ替わるのを止める）。 */
+    ['dp-pk-air', 'dp-pk-pos', 'dp-pk-flt', 'dp-pk-rst'].forEach(function (id) {
+      var e = el(id); if (e) e.disabled = !!S.busy || !S.client;
+    });
+    /* 鍵が掛かっている画面・読み込めなかった画面では選ばせない
+       （どの区分を選んでも答えは同じなので、押せる欄を出すのは嘘になる）。 */
+    box.hidden = !(S.mode === 'open' || S.mode === 'load');
+  }
+
   function head() {
     var box = el('dp-hd');
     if (!box) return;
     var h = '<h1 class="mr-hd-t">' + esc(T.hd) + '</h1>';
     var c = S.data && S.data.cohort;
-    if (S.mode === 'open' && c) {
+    if (S.mode === 'open' && c && c.level !== 'none') {
       var parts = cohortWords(c);
       var n = num(c.n);
       if (n != null) parts.push(n + T.people);
       parts.push(T.months);
-      var t = trustOf(n || 0, c.level);
+      var t = trustOf(n || 0, c);
       h += '<div class="dp-cond"><span class="dp-cond-l">' +
         '<span class="dp-cond-k">' + esc(T.now) + '</span>' +
         parts.map(function (x, i) {
@@ -613,11 +732,29 @@
     box.hidden = false;
   }
 
+  /* ★選んだ区分が3人に届かなかったとき。**広い区分の数字で埋めない。**
+     「あと1人」とも書かない ── 書いた瞬間、その区分の人数が1人単位で読める。 */
+  function thin() {
+    ['dp-comp', 'dp-work', 'dp-var', 'dp-notes', 'dp-more'].forEach(function (id) {
+      var b = el(id); if (b) { b.innerHTML = ''; b.hidden = true; }
+    });
+    var box = el('dp-kpi');
+    if (!box) return;
+    box.innerHTML = '<div class="dp-msg dp-msg--lock">' +
+      '<div class="dp-msg-t">' + IC.info.replace('24" height="24', '18" height="18') +
+        esc(T.thinT) + '</div>' +
+      '<p class="dp-msg-s">' + esc(T.thinS) + '</p>' +
+      '<a class="dp-cta" href="pay-report.html">' + esc(T.lockCta) + '</a></div>';
+    box.hidden = false;
+  }
+
   // ── 描く ───────────────────────────────────────────────────────
   function render() {
-    head();
+    picker(); head();
     if (S.mode === 'error') { shut('error'); return; }
     if (S.mode !== 'open')  { shut('lock');  return; }
+    var c = S.data && S.data.cohort;
+    if (c && c.level === 'none') { thin(); return; }
     kpis(); comp(); work(); vari(); notes(); more();
   }
 
@@ -645,20 +782,40 @@
     /* 語彙（職位）と社名の辞書。★辞書が後から届いても描き直す
        ＝ RPC のほうが先に返っても、条件バーがコードのまま固まらない。 */
     fetch(VOCAB_URL).then(function (r) { return r.json(); }).then(function (v) {
-      (v.positions || []).forEach(function (p) { S.pos[p.code] = p[L] || p.ja; });
+      (v.positions || []).forEach(function (p) {
+        S.pos[p.code] = p[L] || p.ja;
+        S.poss.push({ v: p.code, t: p[L] || p.ja });
+      });
+      /* ★選択肢は語彙そのまま。SQL 側も pv_positions / pv_fleets の中だけを許す
+         ＝ 画面に出る選択肢と、通る値が同じ集合になる。 */
+      (v.fleets || []).forEach(function (f) { S.flts.push({ v: f.code, t: f[L] || f.ja }); });
     }).catch(function () {}).then(function () {
       return fetch(AIR_URL).then(function (r) { return r.json(); });
     }).then(function (j) {
       var a = (j && j.airlines) || {};
-      Object.keys(a).forEach(function (c) { S.air[c] = a[c][L] || a[c].ja || c; });
+      Object.keys(a).forEach(function (c) {
+        S.air[c] = a[c][L] || a[c].ja || c;
+        S.airs.push({ v: c, t: S.air[c], rg: a[c].region || '' });
+      });
       render();
     }).catch(function () { render(); });
   }
 
   function load(client) {
+    S.client = client;
+    S.busy = true;
+    picker();
+    /* ★3つとも空なら**引数を渡さない**。今までと同じ呼び方に戻す
+       （SQL 側の既定値は '{}' なので結果も同じだが、呼び方まで同じにしておく）。 */
+    var args = picked()
+      ? [{ p: { airline: S.sel.airline || null,
+                position: S.sel.position || null,
+                fleet: S.sel.fleet || null } }]
+      : [];
     /* ★ rpc() が返すのは「then だけを持つ箱」で Promise ではない
          （actual-pay.js の注記どおり）。Promise.resolve() で包んでから catch を付ける。 */
-    Promise.resolve(client.rpc('pv_deep_pay')).then(function (res) {
+    Promise.resolve(client.rpc.apply(client, ['pv_deep_pay'].concat(args))).then(function (res) {
+      S.busy = false;
       if (res && res.error) { S.mode = 'error'; render(); return; }
       var v = res && res.data;
       S.data = v || null;
@@ -673,7 +830,7 @@
         });
       }
       render();
-    }).catch(function () { S.mode = 'error'; render(); });
+    }).catch(function () { S.busy = false; S.mode = 'error'; render(); });
   }
 
   /* ★試験用の入口（shot-deep.mjs / assert-deep-pay.mjs が使う）。

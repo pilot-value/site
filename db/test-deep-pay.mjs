@@ -134,7 +134,10 @@ const person = async (air, pos, fleet, months, extra = {}) => {
   return u;
 };
 
-const deep = async () => (await one(`select pv_deep_pay() r`)).r;
+/* 引数なしで呼ぶと今までどおり「呼び手自身の区分」。
+   オブジェクトを渡すと、その区分を手で選んだ形になる。 */
+const deep = async (sel) =>
+  (await one(`select pv_deep_pay($1::jsonb) r`, [JSON.stringify(sel || {})])).r;
 const give = async () => (await one(`select pv_my_give() g`)).g;
 const openKey = (n) => db.query(
   `insert into profiles(id,email,access_until) values($1,$2, now() + interval '90 days')
@@ -157,9 +160,9 @@ console.log('\n▼ 1. 権限（誰が呼べるか）');
 await asAnon();
 ok(/ログイン/.test(await boom(`select pv_deep_pay()`) || ''),
    'ログインしていない人は呼べない');
-ok(!(await one(`select has_function_privilege('anon','public.pv_deep_pay()','execute') b`)).b,
+ok(!(await one(`select has_function_privilege('anon','public.pv_deep_pay(jsonb)','execute') b`)).b,
    'anon に execute が渡っていない');
-ok((await one(`select has_function_privilege('authenticated','public.pv_deep_pay()','execute') b`)).b,
+ok((await one(`select has_function_privilege('authenticated','public.pv_deep_pay(jsonb)','execute') b`)).b,
    'ログインした人には execute が渡っている');
 for (const f of ['public.pv_my_keys()', 'public.pv_deep_pct(numeric[])']) {
   const r = await one(
@@ -167,12 +170,19 @@ for (const f of ['public.pv_my_keys()', 'public.pv_deep_pct(numeric[])']) {
             has_function_privilege('authenticated',$1,'execute') u`, [f]);
   ok(!r.a && !r.u, `★${f} は anon にも authenticated にも開いていない`);
 }
-ok((await one(`select prosecdef b from pg_proc where oid='public.pv_deep_pay()'::regprocedure`)).b,
+ok((await one(`select prosecdef b from pg_proc where oid='public.pv_deep_pay(jsonb)'::regprocedure`)).b,
    'security definer で動く');
-ok((await one(`select pronargs n from pg_proc where oid='public.pv_deep_pay()'::regprocedure`)).n === 0,
-   '★引数ゼロ（引数の面が存在しない）');
-ok((await boom(`select pv_deep_pay('ana')`)) !== null,
-   '★引数を付けて呼ぼうとしても関数が無い');
+ok((await one(`select pronargs n from pg_proc where oid='public.pv_deep_pay(jsonb)'::regprocedure`)).n === 1,
+   '★受け取る引数は jsonb 1つだけ');
+/* ★引数には既定値があるので、引数なしの `pv_deep_pay()` も今までどおり通る。
+   （上の1本目が「ログインしていない」で落ちている＝関数自体は見つかっている証拠。
+   「関数が無い」で落ちていたら後方互換が切れている。） */
+ok(!/does not exist|存在しません/.test(await boom(`select pv_deep_pay()`) || ''),
+   '★引数なしでも今までどおり呼べる（後方互換）');
+/* ★引数ゼロだった頃の関数が残っていないこと。残っていると、古い画面が
+   そちらを呼び続けて「選べないほうの DEEP PAY」が生き残る。 */
+ok(Number((await one(`select count(*) n from pg_proc where proname='pv_deep_pay'`)).n) === 1,
+   '★pv_deep_pay は1本だけ（引数ゼロの旧版が残っていない）');
 
 // ════════════════════════════════════════════════════════════
 console.log('\n▼ 2. 門（鍵と、本人が内訳を出したか）');
@@ -277,6 +287,79 @@ await asUser(V);
        group by proof_hash) z`, [A_HOME]);
   ok(Number(lv.n) === d.cohort.n,
      '★はしごが数えた人数と、実際にその段に居る人数が一致する', `${lv.n} vs ${d.cohort.n}`);
+}
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 3-b. 手で選んだ区分（2026-08-30）');
+// ════════════════════════════════════════════════════════════
+/* いまの並び ── 呼び手 V は A_HOME / fo / a320。
+     A_HOME fo a320 … 3人（V を含む）
+     A_HOME fo b737 … 2人
+     A_HOME fo b777 … 1人
+     A_FILL3 cap b787 … 2人
+   ★ここで見たいのは「選べること」ではなく、**選んでも壁が動かないこと**。 */
+await asUser(V);
+{
+  const d = await deep({ airline: A_HOME, position: 'fo', fleet: 'a320' });
+  ok(d.cohort.level === 'selected', '選んだ区分は selected として返る', d.cohort.level);
+  ok(d.cohort.manual === true, '手で選んだことが分かる（manual）');
+  ok(d.cohort.airline === A_HOME && d.cohort.pos === 'fo' && d.cohort.fleet === 'a320',
+     '選んだ値がそのまま返る');
+  ok(d.cohort.n === 3, '人数は選んだ区分の人数', String(d.cohort.n));
+}
+{
+  /* ★本命。2人しか居ない区分を選んでも、広い区分に落として
+     その見出しのまま数字を出さないこと。 */
+  const d = await deep({ airline: A_HOME, position: 'fo', fleet: 'b737' });
+  ok(d.cohort.level === 'none', '★3人に届かない区分は none（はしごを登らない）', d.cohort.level);
+  ok(d.cohort.n === 0, '★人数は0（広い区分の人数を出さない）', String(d.cohort.n));
+  ok(d.head.annual_usd === null, '★年収も出ない（全体の数字が漏れない）',
+     String(d.head.annual_usd));
+  ok(d.comp === null && d.work.block_h === null && (d.var || []).length === 0,
+     '★給与構成・働き方・変動給も出ない');
+}
+{
+  const d = await deep({ airline: 'zzzz-not-an-airline', position: 'fo' });
+  ok(d.cohort.level === 'none', '★語彙に無い会社は none（広い区分に読み替えない）',
+     d.cohort.level);
+  ok(d.cohort.airline === null, '★語彙に無い値は echo もしない');
+  ok(d.head.annual_usd === null, '★語彙に無い会社で全体の数字が出ない');
+}
+{
+  const d = await deep({ airline: 'other' });
+  ok(d.cohort.level === 'none', "★自由入力の社名（other）は選べない", d.cohort.level);
+}
+{
+  const d = await deep({ position: 'zzz' });
+  ok(d.cohort.level === 'none', '★語彙に無い役職も none');
+}
+{
+  /* 会社を選ばずに役職だけ。段4と同じ広さ。 */
+  const d = await deep({ position: 'fo' });
+  ok(d.cohort.level === 'selected', '役職だけでも選べる', d.cohort.level);
+  ok(d.cohort.airline === null, '会社を選んでいないので会社は null');
+  const n = await one(`select count(*) n from (
+      select proof_hash from pay_reports where "position" = 'fo'
+       group by proof_hash) z`);
+  ok(Number(n.n) === d.cohort.n, '数えた人数と実際の人数が一致する',
+     `${n.n} vs ${d.cohort.n}`);
+}
+{
+  /* ★自分が居ない会社を選んでも、自分の区分の数字が出ないこと。 */
+  await person(A_FILL3, 'cap', 'b787', [{ month: 5 }]);   // 2人 → 3人
+  await asUser(V);
+  const mine = await deep();
+  const other = await deep({ airline: A_FILL3, position: 'cap', fleet: 'b787' });
+  ok(other.cohort.level === 'selected' && other.cohort.airline === A_FILL3,
+     '★自分が居ない会社の区分も、3人そろっていれば見られる');
+  ok(other.cohort.n === 3, '人数はその会社の人数', String(other.cohort.n));
+  ok(mine.cohort.airline === A_HOME && mine.cohort.manual === false,
+     '★選ばずに呼べば、今までどおり自分の区分に戻る');
+}
+{
+  const a = await deep(), b = await deep({});
+  ok(JSON.stringify(a) === JSON.stringify(b),
+     '★空のオブジェクトは「選んでいない」と同じ（後方互換）');
 }
 
 // ════════════════════════════════════════════════════════════
@@ -534,8 +617,8 @@ await asUser(V);
   for (const w of banned)
     ok(!s.includes(w), `★返り値に ${w} が無い`);
   ok(!/[0-9a-f]{64}/.test(s), '★64桁の16進（ハッシュ）が1つも無い');
-  ok(Object.keys(d.cohort).sort().join(',') === 'airline,fleet,level,n,pos',
-     '区分に入っているキーは5つだけ', Object.keys(d.cohort).join(','));
+  ok(Object.keys(d.cohort).sort().join(',') === 'airline,fleet,level,manual,n,pos',
+     '区分に入っているキーは6つだけ', Object.keys(d.cohort).join(','));
 }
 
 // ★呼び手ごとに違う区分が返る
