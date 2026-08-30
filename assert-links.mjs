@@ -189,7 +189,7 @@ show(`海外評判の一覧のずれ（node gen-overseas-rep-list.mjs で直る�
    ログイン・投稿など流れの途中の画面は、わざと出していないので対象外。 */
 const APPFLOW = new Set([
   '404.html', 'admin.html', 'auth-callback.html', 'login.html', 'signup.html',
-  'profile.html', 'my-value.html', 'actual-pay.html', 'deep-pay.html', 'pay-report.html', 'submit-review.html', 'unsubscribe.html',
+  'profile.html', 'my-value.html', 'actual-pay.html', 'deep-pay.html', 'deep-pay-compare.html', 'pay-report.html', 'submit-review.html', 'unsubscribe.html',
 ]);
 const noMenu = [...doc.keys()].filter((k) => {
   if (APPFLOW.has(path.basename(k))) return false;

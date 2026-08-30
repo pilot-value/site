@@ -29,6 +29,12 @@
 .dp-pick{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;
   background:var(--pv-surface-2);border:1px solid var(--pv-line);
   border-radius:var(--pv-r-sm);padding:10px 14px;margin-top:14px}
+/* ⚠️ hidden 属性を**書いて消す**。UA の [hidden]{display:none} は
+   作者側の display:flex/grid に負けるので、これが無いと
+   鍵の画面・読み込めなかった画面でピッカーが出たままになる
+   （box.hidden は true のまま＝JS からは消えて見えるので静かに壊れる）。
+   同じ罠が actual-pay.css:73 にも書いてある。★下の #dp-pick より強く書く。 */
+.dp-pick[hidden],#dp-pick[hidden]{display:none}
 .dp-pick-k{flex:none;align-self:center;font-size:.78rem;font-weight:700;
   letter-spacing:.01em;color:var(--pv-ink-2)}
 .dp-pick-f{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1 1 180px}
@@ -55,11 +61,29 @@
 .dp-pick-r:active{transform:translateY(1px)}
 .dp-pick-r:disabled{cursor:default;color:var(--pv-ink-3);
   background:var(--pv-line-soft);border-color:var(--pv-line)}
-.dp-pick-n{flex:1 1 200px;align-self:center;font-size:.72rem;line-height:1.6;
-  color:var(--pv-ink-3)}
 @media (max-width:520px){
   .dp-pick{gap:10px}
   .dp-pick-f{flex:1 1 100%}
+}
+/* ★1行に「ラベル＋3欄＋クリア」を並べると <select> の内寸が227pxで頭打ちになり、
+   「全日本空輸（ANA）」（実測297px）も「Boeing 787 Dreamliner」（259px）も端で切れる。
+   <select> は溢れても省略記号すら出さないので、**切れたことが画面から分からない**
+   （「Boeing 787 Dreamli」と読める形で止まる）。ラベルとクリアを1行目に上げ、
+   3欄を2行目に流す。列幅は中身の長さで振り分ける（会社が最長・役職が最短）。
+   比較ページの4欄も同じ形（deep-pay-compare.css の #dc-pick は2×2）。 */
+#dp-pick{display:grid;grid-template-columns:1.35fr .75fr 1.15fr;
+  gap:12px 16px;align-items:end}
+/* ★ラベルと「クリア」は**どちらも1行目まるごと**を占める（重ねて、左右に寄せる）。
+   1マスだけにすると、クリアが出ていないとき（＝まだ何も選んでいないとき）に
+   1行目へ空きが残り、そこへ最初の欄が吸い込まれて並びが崩れる。 */
+#dp-pick .dp-pick-k{grid-area:1/1/2/-1;justify-self:start;align-self:center}
+#dp-pick .dp-pick-r{grid-area:1/1/2/-1;justify-self:end;align-self:center}
+@media (max-width:900px){
+  #dp-pick{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+}
+@media (max-width:640px){
+  #dp-pick{grid-template-columns:minmax(0,1fr)}
+  #dp-pick .dp-pick-r{grid-area:auto;justify-self:start}
 }
 
 /* ── いま見ている区分の1行 ──────────────────────────────────── */
@@ -181,18 +205,26 @@
 .dp-more-t{font-size:.95rem;font-weight:800;letter-spacing:-.01em}
 .dp-more-s{font-size:.74rem;color:var(--pv-ink-3);margin-top:3px}
 .dp-more-r{display:flex;gap:10px;flex-wrap:wrap}
-/* ★行き先がまだ無いので <a href> にしない（assert-links.mjs が404で落とす）。 */
+/* ★役割別はまだ行き先が無いので <a href> にしない（assert-links.mjs が404で落とす）。
+   会社比較だけ .dp-more-b--on を重ねて本物のリンクにする。 */
 .dp-more-b{display:inline-flex;align-items:center;gap:8px;font:inherit;
   font-size:.78rem;font-weight:700;color:var(--pv-ink-2);
   background:var(--pv-surface);border:1px solid var(--pv-line);
   border-radius:999px;padding:9px 14px;cursor:not-allowed;opacity:.72}
 .dp-more-b svg{width:15px;height:15px;flex:none}
 .dp-more-b .dp-more-c{margin-left:2px;color:var(--pv-ink-3)}
+.dp-more-b--on{cursor:pointer;opacity:1;text-decoration:none;
+  transition:transform .18s var(--pv-ease),box-shadow .18s var(--pv-ease),
+             border-color .18s var(--pv-ease)}
+.dp-more-b--on:hover{transform:translateY(-1px);box-shadow:var(--pv-shadow);
+  border-color:var(--pv-orange)}
+.dp-more-b--on:focus-visible{outline:2px solid var(--pv-orange-ink);outline-offset:2px}
+.dp-more-b--on:active{transform:translateY(0);box-shadow:none}
 
 /* ── 何も出せないとき（鍵が閉じている／人数が足りない）──────── */
 .dp-msg{background:var(--pv-surface);border:1px solid var(--pv-line);
   border-radius:var(--pv-r-lg);padding:22px;box-shadow:var(--pv-shadow)}
-.dp-msg--lock{border-style:dashed}
+.dp-msg--lock,.dp-msg--ask{border-style:dashed}
 .dp-msg-t{display:flex;align-items:center;gap:8px;font-size:1rem;font-weight:800;
   letter-spacing:-.01em}
 .dp-msg-t svg{width:18px;height:18px;flex:none;color:var(--pv-ink-3)}

@@ -44,6 +44,8 @@ const NOINDEX = new Set([
   'actual-pay.html',
   /* 給与の中身（集計）まで読める画面。鍵が要るので検索に出さない。 */
   'deep-pay.html',
+  /* 2社を横に並べる画面。同じく鍵が要るので検索に出さない。 */
+  'deep-pay-compare.html',
   /* 2026-08-15 に求人の掲載を停止した。ページは残す（外部からのリンクを 404 に
      しないため）が、中身が「停止中」の1行だけなので検索には出さない。
      gen-sitemap.mjs / seo-normalize.mjs の同名の集合と3つで対にしてある。 */

@@ -1,36 +1,36 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="ja" data-theme="light">
 <head>
   <meta charset="UTF-8"/>
-<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png"/>
-<link rel="apple-touch-icon" href="../assets/favicon-180.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png"/>
+<link rel="apple-touch-icon" href="assets/favicon-180.png"/>
   <script>(function(){var t=localStorage.getItem('pv-theme')||'light';document.documentElement.setAttribute('data-theme',t);}());</script>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <!-- 明細まで出した人だけが読める画面。ログインが要るので検索に出してはいけない -->
-  <title>DEEP PAY — What the Pay Is Made Of | PILOT VALUE</title>
+  <title>会社を比べる｜DEEP PAY | PILOT VALUE</title>
 <!--PV-SEO-->
-<!--PV-SRC t="DEEP PAY — What the Pay Is Made Of" d="See how the same airline and rank actually get paid: fixed vs variable, and the flying behind it. No individual payslip is ever shown."-->
-<meta name="description" content="See how the same airline and rank actually get paid: fixed vs variable, and the flying behind it. No individual payslip is ever shown."/>
+<!--PV-SRC t="会社を比べる｜DEEP PAY" d="2社を選んで、年収の中央値・給与構成・働き方の前提を横に並べて比べます。順位は付けず、個人の明細は1件も表示しません。"-->
+<meta name="description" content="2社を選んで、年収の中央値・給与構成・働き方の前提を横に並べて比べます。順位は付けず、個人の明細は1件も表示しません。"/>
 <meta name="robots" content="noindex,follow"/>
-<link rel="canonical" href="https://pilot-value.com/en/deep-pay.html"/>
-<link rel="alternate" hreflang="ja" href="https://pilot-value.com/deep-pay.html"/>
-<link rel="alternate" hreflang="en" href="https://pilot-value.com/en/deep-pay.html"/>
-<link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/deep-pay.html"/>
-<meta property="og:title" content="DEEP PAY — What the Pay Is Made Of | PILOT VALUE"/>
-<meta property="og:description" content="See how the same airline and rank actually get paid: fixed vs variable, and the flying behind it. No individual payslip is ever shown."/>
-<meta property="og:url" content="https://pilot-value.com/en/deep-pay.html"/>
+<link rel="canonical" href="https://pilot-value.com/deep-pay-compare.html"/>
+<link rel="alternate" hreflang="ja" href="https://pilot-value.com/deep-pay-compare.html"/>
+<link rel="alternate" hreflang="en" href="https://pilot-value.com/en/deep-pay-compare.html"/>
+<link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/deep-pay-compare.html"/>
+<meta property="og:title" content="会社を比べる｜DEEP PAY | PILOT VALUE"/>
+<meta property="og:description" content="2社を選んで、年収の中央値・給与構成・働き方の前提を横に並べて比べます。順位は付けず、個人の明細は1件も表示しません。"/>
+<meta property="og:url" content="https://pilot-value.com/deep-pay-compare.html"/>
 <meta property="og:type" content="website"/>
 <meta property="og:site_name" content="PILOT VALUE"/>
-<meta property="og:locale" content="en_US"/>
-<meta property="og:locale:alternate" content="ja_JP"/>
-<meta property="og:image" content="https://pilot-value.com/assets/og/default-en.jpg"/>
+<meta property="og:locale" content="ja_JP"/>
+<meta property="og:locale:alternate" content="en_US"/>
+<meta property="og:image" content="https://pilot-value.com/assets/og/default-ja.jpg"/>
 <meta property="og:image:width" content="1200"/>
 <meta property="og:image:height" content="630"/>
-<meta property="og:image:alt" content="DEEP PAY — What the Pay Is Made Of | PILOT VALUE"/>
+<meta property="og:image:alt" content="会社を比べる｜DEEP PAY | PILOT VALUE"/>
 <meta name="twitter:card" content="summary_large_image"/>
-<meta name="twitter:title" content="DEEP PAY — What the Pay Is Made Of | PILOT VALUE"/>
-<meta name="twitter:description" content="See how the same airline and rank actually get paid: fixed vs variable, and the flying behind it. No individual payslip is ever shown."/>
-<meta name="twitter:image" content="https://pilot-value.com/assets/og/default-en.jpg"/>
+<meta name="twitter:title" content="会社を比べる｜DEEP PAY | PILOT VALUE"/>
+<meta name="twitter:description" content="2社を選んで、年収の中央値・給与構成・働き方の前提を横に並べて比べます。順位は付けず、個人の明細は1件も表示しません。"/>
+<meta name="twitter:image" content="https://pilot-value.com/assets/og/default-ja.jpg"/>
 <!--/PV-SEO-->
 
   <!-- ⚠️ URL は my-value.html と1文字も変えない。同じURLならキャッシュに当たる。 -->
@@ -42,21 +42,24 @@
   <!-- 匿名で出した給与データの預かり証を拾う（pv-claim-pending.js）。
        ★この画面にも要る。ログイン用メールのリンクを押すとメールアプリの中の
        別ブラウザが開き、預かり証を置いた元のブラウザには戻らないことがある。 -->
-  <script src="../pv-claim-pending.js"></script>
+  <script src="pv-claim-pending.js"></script>
 
   <!-- 配色・角丸・余白・影のトークン。読まないと --pv-* が全部 undefined になる。 -->
-  <link rel="stylesheet" href="../pv-tokens.css">
+  <link rel="stylesheet" href="pv-tokens.css">
   <!-- ドーナツと凡例（.pt-*）。★絵の実体は pay-viz.js 1か所だけ。増やさない。 -->
-  <link rel="stylesheet" href="../pay-viz.css">
+  <link rel="stylesheet" href="pay-viz.css">
   <!-- ページの骨格（.mr-*）。マイレポートと同じ殻を使う（日英で共有） -->
-  <link rel="stylesheet" href="../my-value.css">
-  <!-- この画面だけの見た目（.dp-*）。
-       ★.pt-* / .mv-* をトップレベルで書き直さない（db/test-form-contract.mjs が見ている）。 -->
-  <link rel="stylesheet" href="../deep-pay.css">
+  <link rel="stylesheet" href="my-value.css">
+  <!-- ★DEEP PAY 本体の見た目をそのまま借りる。ピッカー（.dp-pick-*）・条件バー（.dp-cond）・
+       案内カード（.dp-msg）・注記（.dp-note）は写さずここから使う。写すとドリフトする。 -->
+  <link rel="stylesheet" href="deep-pay.css">
+  <!-- この画面だけの見た目（.dc-*）。
+       ★.pt-* / .mv-* / .mr-* をトップレベルで書き直さない（db/test-form-contract.mjs が見ている）。 -->
+  <link rel="stylesheet" href="deep-pay-compare.css">
 
   <style>
     /* ここに置くのは「CSS が届く前に見えてしまう部分」だけ。
-       ★ カードや棒の見た目（.dp-…）を書き戻さないこと。
+       ★ カードや棒の見た目（.dc-…）を書き戻さないこと。
           日英2枚に散って必ずドリフトする。 */
     *{box-sizing:border-box;margin:0;padding:0}
     body{background:var(--pv-bg-sub);color:var(--pv-ink);
@@ -94,90 +97,92 @@
 })();
 </script>
 <!--/PV-3P-->
-<script src="../pv-session.js"></script>
+<script src="pv-session.js"></script>
 </head>
 <body>
   <header class="mr-top">
     <div class="mr-top-in">
-      <a class="mr-brand" href="index.html" aria-label="PILOT VALUE home">
-        <img src="../assets/logo.png" alt="PILOT VALUE" height="28"/>
+      <a class="mr-brand" href="index.html" aria-label="PILOT VALUE トップへ">
+        <img src="assets/logo.png" alt="PILOT VALUE" height="28"/>
       </a>
       <!-- ★ #theme-toggle は消さない。lang-toggle.js と currency.js が
            このボタンの隣に自分のボタンを差し込む（無いとナビ末尾に落ちる）。 -->
       <div class="mr-top-r">
-        <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme"></button>
+        <button id="theme-toggle" class="theme-toggle" aria-label="テーマ切替"></button>
       </div>
     </div>
   </header>
 
   <div class="mr-shell">
-    <!-- ★空のまま置く。node patch-side-nav.mjs が8枚に同じ物を配る。
+    <!-- ★空のまま置く。node patch-side-nav.mjs が同じ物を全ページに配る。
          手で書くと必ずドリフトして assert-pay-rows.mjs が赤くなる。 -->
-    <nav class="mr-side" aria-label="My page">
+    <nav class="mr-side" aria-label="マイページ">
       <a class="mr-side-a" href="my-value.html">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
-        <span>My report</span>
+        <span>マイレポート</span>
       </a>
       <a class="mr-side-a" href="actual-pay.html" data-mr-gate="real">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         <span>REAL PAY</span>
       </a>
-      <button type="button" class="mr-side-a is-locked" data-mr-gate="deep" aria-label="DEEP PAY (in preparation) — press for details">
+      <button type="button" class="mr-side-a is-locked" data-mr-gate="deep" aria-label="DEEP PAY（準備中・押すと説明が出ます）">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
         <span>DEEP PAY</span>
         <svg class="mr-side-lk" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="4" y="10.5" width="16" height="10.5" rx="2.5"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></svg>
       </button>
-      <button type="button" class="mr-side-a is-locked" data-mr-gate="verified" aria-label="VERIFIED PAY (in preparation) — press for details">
+      <button type="button" class="mr-side-a is-locked" data-mr-gate="verified" aria-label="VERIFIED PAY（準備中・押すと説明が出ます）">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
         <span>VERIFIED PAY</span>
         <svg class="mr-side-lk" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="4" y="10.5" width="16" height="10.5" rx="2.5"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></svg>
       </button>
       <a class="mr-side-a is-add" href="pay-report.html#ps">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
-        <span>Add pay anonymously</span>
+        <span>匿名で給与を追加</span>
       </a>
       <a class="mr-side-a" href="profile.html">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.2.6.77 1 1.41 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        <span>Settings</span>
+        <span>設定</span>
       </a>
-      <p class="mr-side-note">We never collect your name or staff number.</p>
+      <p class="mr-side-note">氏名も社員番号も受け取りません。</p>
     </nav>
 
     <main class="mr-main">
-      <!-- ★pv-no-cur は #dp-root に1つだけ。
+      <!-- ★pv-no-cur は #dc-root に1つだけ。
            currency.js の自動走査を止め、金額は PVCurrency.fmt を通して自分で書き、
            pv-currency-change で描き直す（RPC は引き直さない）。 -->
-      <div class="pv-no-cur" id="dp-root">
+      <div class="pv-no-cur" id="dc-root">
 
-        <!-- 見出しと、いま見ている区分の1行。中身は deep-pay.js が入れる -->
-        <div class="mr-hd" id="dp-hd">
-          <div class="mr-skel" style="height:30px;width:42%"></div>
+        <!-- 見出し。中身は deep-pay-compare.js が入れる -->
+        <div class="mr-hd" id="dc-hd">
+          <div class="mr-skel" style="height:30px;width:46%"></div>
         </div>
 
-        <!-- 区分を選ぶ（会社 / 役職 / 機材）。中身は deep-pay.js が入れる。
-             ★どれも選んでいないうちは何も出さない（呼んだ本人の区分を勝手に出さない）。
-                入口で1回だけ引数なしで呼ぶのは、state と鍵を知るためだけ。
+        <!-- 2社を選ぶ（会社A / 会社B / 役職 / 機材）。役職と機材は左右で共通。
+             ★2社そろうまで何も出さない。片方だけでは比較にならない。
              ★3人に満たない区分を伏せるのは SQL（db/deep-pay.sql）だけの仕事。
                 ここで人数を数えたり隠したりしない。 -->
-        <div class="dp-pick" id="dp-pick" hidden></div>
+        <div class="dp-pick" id="dc-pick" hidden></div>
 
-        <!-- KPI 4枚。★読めない数字はカードごと落とす（0 を並べない） -->
-        <div id="dp-kpi"><div class="mr-skel" style="height:112px"></div></div>
+        <!-- いま見ている条件の1行（◯人 vs ◯人 / 直近24か月） -->
+        <div id="dc-cond"></div>
 
-        <!-- 給与構成（左）と 働き方と報酬（右） -->
+        <!-- 2社のカード。薄い側はその側だけ「まだ出せません」に替わる -->
+        <div id="dc-sides"><div class="mr-skel" style="height:150px"></div></div>
+
+        <!-- 差がつくポイント（表） -->
+        <div id="dc-diff" hidden></div>
+
+        <!-- 給与構成の比較（横棒） -->
+        <div id="dc-mix" hidden></div>
+
+        <!-- トレードオフ（左）と データの見方（右） -->
         <div class="dp-row">
-          <div class="dp-w58" id="dp-comp" hidden></div>
-          <div id="dp-work" hidden></div>
+          <div class="dp-w58" id="dc-trade" hidden></div>
+          <div id="dc-notes" hidden></div>
         </div>
 
-        <!-- 変動給の中身（左）と データの見方（右） -->
-        <div class="dp-row">
-          <div class="dp-w58" id="dp-var" hidden></div>
-          <div id="dp-notes" hidden></div>
-        </div>
-
-        <!-- もっと深く見る（全幅）。★入口はまだ無いので disabled のボタン -->
-        <div id="dp-more" hidden></div>
+        <!-- 下の入口（全幅） -->
+        <div id="dc-cta" hidden></div>
       </div>
     </main>
   </div>
@@ -195,12 +200,12 @@
 
     /* ★ pv_deep_pay() は未ログインだと 42501 で落ちる。エラー文言を出すのではなく
          ログインへ送る（login.html の safePath() は pathname + search + hash を返す）。
-       deep-pay.js はこの Promise を待ってから RPC を撃つ＝二重に走らない。 */
+       deep-pay-compare.js はこの Promise を待ってから RPC を撃つ＝二重に走らない。 */
     window.PV_SESSION = (async function () {
       const { data: { session } } = await sb.auth.getSession();
       if (!session) {
         window.location.href = 'login.html?redirect='
-          + encodeURIComponent('deep-pay.html' + (window.location.search || '') + (window.location.hash || ''));
+          + encodeURIComponent('deep-pay-compare.html' + (window.location.search || '') + (window.location.hash || ''));
         return null;
       }
       return session;
@@ -209,17 +214,19 @@
 
 <!-- ★ pv-referral.js は lang-toggle.js より前。あちらは pv-lang==='en' の人を
      location.replace() で /en/ へ飛ばし、そのときクエリ（?ref=）を丸ごと捨てる。 -->
-<script src="../pv-referral.js"></script>
+<script src="pv-referral.js"></script>
 <!-- ★search.js が ≡（メニュー）と引き出しを付ける。マイページ系のヘッダー
      （header.mr-top）にも同じ物を出すため読む。 -->
-<script src="../search.js"></script>
-<script src="../lang-toggle.js"></script>
-<script src="../currency.js"></script>
+<script src="search.js"></script>
+<script src="lang-toggle.js"></script>
+<script src="currency.js"></script>
 <!-- Give → Get の門。左メニューの錠前と、その説明を出す。
-     ⚠️ deep-pay.js より**前**に読む（PVGates.giveGetHTML() を使う）。 -->
-<script src="../pv-gates.js"></script>
-<!-- ★絵の実体はここ1か所だけ。ドーナツを自前で描かない。 -->
-<script src="../pay-viz.js"></script>
-<script src="../deep-pay.js"></script>
+     ⚠️ deep-pay-compare.js より**前**に読む（PVGates.giveGetHTML() を使う）。 -->
+<script src="pv-gates.js"></script>
+<!-- 航空会社ロゴの拡張子表（window.PV_LOGOS）。★これより後に比較の JS を読む。 -->
+<script src="airline-logos.js"></script>
+<!-- ★絵の実体はここ1か所だけ。色（PVViz.SEG）もここから借りる。 -->
+<script src="pay-viz.js"></script>
+<script src="deep-pay-compare.js"></script>
 </body>
 </html>

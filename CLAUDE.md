@@ -161,8 +161,8 @@ baland_ass/                            ブランド資産（※ brand_assets の
 |---|---|---|
 | `node check.mjs fast` | 静的検査＋ネット不要の単体（16本）| 2秒 |
 | `node check.mjs sql` | PGlite の SQL テスト（10本）| 70秒 |
-| `node check.mjs web` | Puppeteer の画面検査（19本）| 7分半 |
-| `node check.mjs all` | 全部（45本）| 8分半 |
+| `node check.mjs web` | Puppeteer の画面検査（20本）| 7分半 |
+| `node check.mjs all` | 全部（46本）| 8分半 |
 | `node check.mjs` | 既定 ＝ `fast` ＋ `sql`（画面を触っていない回はこれで足りる）| 70秒 |
 
 - 画面・CSS・共有 JS を触ったら `web` か `all` まで流す。
@@ -197,7 +197,8 @@ baland_ass/                            ブランド資産（※ brand_assets の
 | `assert-unlock.mjs` | **口コミの鍵と給与の鍵が混ざらない**（口コミ1件で年収が開かない）|
 | `assert-pay-rows.mjs` | REAL PAY の7つの約束（Give → Get・準識別子ゼロ・有効数字2桁・1行＝1人…）|
 | `assert-pay-report-sync.mjs` | 給与レポートの**日英が片方だけ直されていない**か（骨格だけ照合・文言は見ない）|
-| `assert-deep-pay.mjs` | DEEP PAY ── **錠前が掛かったまま**（入口ゼロ）・「時給」と呼ばない・順位を書かない・0 で埋めない・**選んだ区分が3人未満なら広い区分の数字で埋めない** |
+| `assert-deep-pay.mjs` | DEEP PAY ── **錠前が掛かったまま**（対の外から入口ゼロ）・「時給」と呼ばない・順位を書かない・0 で埋めない・**選んだ区分が3人未満なら広い区分の数字で埋めない**・**選ぶまで何も出さない** |
+| `assert-deep-pay-compare.mjs` | 会社比較 ── **片側が3人未満でももう片側は普通に出る**・勝ち負けの語を書かない・賞与を月々の棒に入れない・人数を JS で数えない（壁は SQL の1か所）|
 | `assert-generated.mjs` | 生成物（sitemap・英語版一覧・語彙）が**流し忘れで古くなっていない**か。使い捨てのコピーの中で生成スクリプトを流すので**リポジトリには書き込まない**（`.git` だけ読むために貸す）|
 | `assert-no-pii.mjs` | オーナーの身元が漏れていないか（`.githooks/pre-commit` から毎回自動で走る）|
 | `npm run test:sql` | Supabase 側（`db/*.sql`）を触ったとき。`check.mjs sql` が同じものを並列で回す |

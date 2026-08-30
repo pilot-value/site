@@ -98,21 +98,57 @@ console.log('\n════ ① 錠前（この決定を持続させるのはこ
   ok(soon.length === 2, `★pv-gates.js の soon はちょうど2つ（DEEP と VERIFIED）`, `今 ${soon.length}`);
   ok(/key:\s*'deep',\s*state:\s*'soon'/.test(gates), '★pv-gates.js の deep が soon のまま');
 
-  /* どの画面からも入口が生えていないこと。canonical / alternate / stylesheet は
-     deep-pay 自身の head なので数えない（見るのは <a> だけ）。 */
+  /* ★DEEP PAY は2枚になった（概要 deep-pay.html と 会社比較 deep-pay-compare.html）。
+     2枚は互いに行き来してよいが、**対の外からは1本も生えていない**こと ── これが
+     「まだ開けていない」の実体。だから「入口が0本」ではなく**対の閉包**で見る。
+     ⚠️ ここを `linked` の中身が特定の配列と一致、に緩めてはいけない。それだと
+        index.html から deep-pay-compare.html へ生えた入口を**1本も数えないまま通る**。
+        内と外に振り分けて、外を0本に固定する形でなければ今より弱くなる。
+     ⚠️ 入口は HTML の <a> だけに在るとは限らない ── 実際いま在る2本は**両方とも JS が
+        組み立てている**（deep-pay.js の ln() と deep-pay-compare.js の href="…"）。
+        だから root の *.js も同じ網で見る。 */
+  const PAIR = new Set([
+    'deep-pay.html', 'en/deep-pay.html',
+    'deep-pay-compare.html', 'en/deep-pay-compare.html',
+    'deep-pay.js', 'deep-pay-compare.js'
+  ]);
+  /* どちらの画面を指しているかだけ取り出す。'/' か '=' の直後、または先頭。
+     ★長いほう（-compare）を先に書く ── 順を逆にすると deep-pay-compare.html が
+       deep-pay.html に前方一致で吸われて、行き先を取り違える。 */
+  const WHICH = /(?:^|[/=])(deep-pay-compare\.html|deep-pay\.html)/;
   const dirs = ['.', 'en', 'airlines', 'en/airlines'];
-  const linked = [];
+  const inside = [], outside = [];
+  const add = (rel, target) => (PAIR.has(rel) ? inside : outside).push(rel + ' → ' + target);
+
   for (const d of dirs) {
     const abs = new URL(d + '/', ROOT);
     if (!existsSync(abs)) continue;
     for (const f of readdirSync(abs)) {
       if (!f.endsWith('.html')) continue;
       const rel = (d === '.' ? '' : d + '/') + f;
-      const html = nohtmlcomment(read(rel));
-      if (/<a\b[^>]*href="[^"]*deep-pay\.html/i.test(html)) linked.push(rel);
+      /* canonical / alternate / stylesheet は deep-pay 自身の head なので数えない
+         （見るのは <a> だけ）。ログインの戻り先も <a> ではなく inline の JS。 */
+      for (const m of nohtmlcomment(read(rel)).matchAll(/<a\b[^>]*href="([^"]*)"/gi)) {
+        const hit = WHICH.exec(m[1]);
+        if (hit) add(rel, hit[1]);
+      }
     }
   }
-  ok(linked.length === 0, '★どの画面にも DEEP PAY への入口（<a href>）が無い', linked.join(' '));
+  for (const f of readdirSync(ROOT)) {
+    /* lang-toggle.js は言語切替の名簿（生成物）で、入口ではない。⑩ が別に見ている。 */
+    if (!f.endsWith('.js') || f === 'lang-toggle.js') continue;
+    for (const m of decomment(read(f)).matchAll(/['"]([^'"]*deep-pay[\w-]*\.html)['"]/g)) {
+      const hit = WHICH.exec(m[1]);
+      if (hit) add(f, hit[1]);
+    }
+  }
+
+  ok(outside.length === 0, '★対の外の画面・JS から DEEP PAY への入口が無い', outside.join(' / '));
+  const EDGES = ['deep-pay-compare.js → deep-pay.html',
+                 'deep-pay.js → deep-pay-compare.html'].join(' / ');
+  /* 日英で同じ JS を共有しているので、2往復ぶんの実体はこの2本。 */
+  ok([...new Set(inside)].sort().join(' / ') === EDGES,
+     '★対の中の行き来はこの2本だけ（日英が共有）', inside.sort().join(' / '));
 
   ok(!/deep-pay/.test(read('sitemap.xml')), '★sitemap.xml に出ない（noindex）');
   ok(/name="robots"\s+content="noindex/.test(nohtmlcomment(JA)), 'ja: noindex を宣言している');
@@ -312,6 +348,9 @@ console.log('\n════ ⑨ SQL の権限 ════');
 // ════════════════════════════════════════════════════════════════
 console.log('\n════ ⑩ ページ登録 ════');
 {
+  /* ★CLAUDE.md の「ページを1枚足すとき」の表。同じ集合が4つあり、1つ忘れると
+     sitemap と robots が食い違うのに何も赤くならない。DEEP PAY は2枚あるので
+     **2枚とも回す** ── 概要だけ登録して比較を忘れる、が一番起きやすい。 */
   const lists = [
     ['gen-sitemap.mjs',     'NOINDEX'],
     ['seo-normalize.mjs',   'NOINDEX と COPY'],
@@ -319,13 +358,15 @@ console.log('\n════ ⑩ ページ登録 ════');
     ['assert-links.mjs',    'APPFLOW'],
     ['assert-founding.mjs', '除外リスト']
   ];
-  for (const [f, what] of lists) {
-    ok(read(f).includes("'deep-pay.html'"), `${f} の ${what} に入っている`);
+  for (const page of ['deep-pay.html', 'deep-pay-compare.html']) {
+    for (const [f, what] of lists) {
+      ok(read(f).includes("'" + page + "'"), `${f} の ${what} に ${page} が入っている`);
+    }
+    ok(new RegExp("'" + page.split('.').join('\\.') + "':\\s*\\{").test(read('seo-normalize.mjs')),
+       `★seo-normalize.mjs の COPY に ${page} の日英 t/d が在る（noindex でも <title> は出る）`);
+    ok(read('lang-toggle.js').includes(page),
+       `lang-toggle.js の EN_PAGES に ${page} が入っている（gen-en-manifest.mjs の生成物）`);
   }
-  ok(/'deep-pay\.html':\s*\{/.test(read('seo-normalize.mjs')),
-     "★seo-normalize.mjs の COPY に日英の t/d が在る（noindex でも <title> は出る）");
-  ok(read('lang-toggle.js').includes('deep-pay.html'),
-     'lang-toggle.js の EN_PAGES に入っている（gen-en-manifest.mjs の生成物）');
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -424,6 +465,19 @@ const NONE = { ok: true, state: 'open', gate: clone(FULL.gate), give: { detailed
   comp: null, work: null, var: [] };
 const PICKABLE = Object.assign(clone(FULL),
   { __pick: { 'jal|cap|b787': SEL, 'sas||': NONE } });
+/* variable 区分が3人に届かなかった形。★KPI の「変動給比率」の行が**消える**こと
+   （0% とも「100 − 固定給」とも書かない）を見るための見本。 */
+const NOVAR = Object.assign(clone(FULL), {
+  comp: { total_kind: 'monthly_cash', n: 12,
+    segs: [{ k: 'fixed', pct: 52, med_usd: 4800 }, { k: 'command', pct: 8, med_usd: 730 },
+           { k: 'perdiem', pct: 7, med_usd: 640 }, { k: 'housing', pct: 5, med_usd: 460 }],
+    bonus: { pct_of_annual: 5, n: 9 } }
+});
+/* ★2026-08-30 から、この画面は**選ぶまで何も出さない**。だから見本の配置を見る
+   筋書きは、先に区分を選ばせないと空のページを撮ることになる。
+   中身は FAKE の鍵に使われるだけで、__pick を持たない見本はどの鍵でも
+   同じ payload を返す＝見本そのものは1バイトも直さなくてよい。 */
+const MINE = { airline: 'ana', position: 'fo', fleet: 'a320' };
 
 const LOCK = { ok: true, state: 'locked', stats: STATS, give: { detailed: false },
                gate: { key: false, detailed: false, contributors: 37, goal: 100 },
@@ -431,7 +485,7 @@ const LOCK = { ok: true, state: 'locked', stats: STATS, give: { detailed: false 
 
 const browser = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox'] });
 const jars = [];
-async function open(lang, payload, theme) {
+async function open(lang, payload, theme, pick) {
   const jar = await browser.createBrowserContext();
   jars.push(jar);
   const page = await jar.newPage();
@@ -465,7 +519,33 @@ async function open(lang, payload, theme) {
     await page.waitForFunction(() => !!document.querySelector('#dp-hd h1'), { timeout: 20000 });
     await page.waitForFunction(() => !document.querySelector('#dp-kpi .mr-skel'), { timeout: 20000 });
   }
+  /* ★選ぶまで何も出ない（2026-08-30）。配置を見る筋書きはここで区分を選ぶ。 */
+  if (pick) await choose(page, pick);
   return { page, errs };
+}
+
+/* 区分を選ぶ。★選択肢が生えるのを待ってから値を入れる。語彙（pv-vocab.json /
+   salary-data.json）は RPC より遅れて着くことがあり、待たずに value を入れると
+   空文字のまま静かに素通りする＝「選んだのに何も出ない」という**嘘の緑**になる。 */
+const PK_ID = { airline: 'dp-pk-air', position: 'dp-pk-pos', fleet: 'dp-pk-flt' };
+async function choose(page, sel) {
+  const want = {};
+  for (const k of Object.keys(PK_ID)) if (sel[k]) want[k] = sel[k];
+  await page.waitForFunction((w, ids) => Object.keys(w).every(
+    (k) => !!document.querySelector('#' + ids[k] + ' option[value="' + w[k] + '"]')),
+    { timeout: 15000 }, want, PK_ID);
+  const n = await page.evaluate(() => window.__rpcArgs.length);
+  await page.evaluate((x, ids) => {
+    for (const k of Object.keys(ids)) {
+      const e = document.getElementById(ids[k]);
+      if (e) e.value = x[k] || '';
+    }
+    document.getElementById('dp-pk-flt')
+      .dispatchEvent(new Event('change', { bubbles: true }));
+  }, sel, PK_ID);
+  /* ★時間で待たない。引いた回数が1つ増えて、欄が触れる状態に戻るまで待つ。 */
+  await page.waitForFunction((m) => window.__rpcArgs.length === m
+    && !document.getElementById('dp-pk-air').disabled, { timeout: 15000 }, n + 1);
 }
 
 /* 画面から一度に読み取るもの（ケースごとに見方を変えない）。 */
@@ -481,6 +561,7 @@ const SNAP = () => {
     text: root ? root.innerText : '',
     kpi: q('.dp-kpi').length,
     kpiV: q('.dp-kpi-v').map((e) => e.textContent),
+    kpiN: q('.dp-kpi-n').map((e) => e.textContent),
     empty: q('#dp-root .pt-empty').length,
     donut: q('#dp-comp svg').length,
     compCta: q('#dp-comp a[href*="pay-report"]').length,
@@ -490,6 +571,7 @@ const SNAP = () => {
     bars: q('#dp-var .dp-li-f').map((e) => getComputedStyle(e).backgroundColor),
     moreBtns: q('#dp-more button').map((e) => ({ dis: e.disabled, tag: e.tagName })),
     moreLinks: q('#dp-more a').length,
+    moreHrefs: q('#dp-more a').map((e) => e.getAttribute('href')),
     cond: (document.querySelector('.dp-cond') || {}).innerText || '',
     pick: (function () {
       const e = document.getElementById('dp-pick');
@@ -497,7 +579,11 @@ const SNAP = () => {
         const x = document.getElementById(id);
         return x ? { v: x.value, n: x.options.length, dis: !!x.disabled } : null;
       };
+      /* ★hidden 属性だけでは足りない。UA の [hidden]{display:none} は作者側の
+         display:flex/grid に負けるので、**属性は付いたまま画面には出ている**
+         という壊れ方をする（実際にそうなっていた）。描かれた結果も見る。 */
       return { hidden: !!(e && e.hidden),
+               shown: !!(e && getComputedStyle(e).display !== 'none'),
                air: one('dp-pk-air'), pos: one('dp-pk-pos'), flt: one('dp-pk-flt'),
                groups: e ? e.querySelectorAll('optgroup').length : 0,
                reset: !!document.getElementById('dp-pk-rst') };
@@ -527,7 +613,9 @@ const SNAP = () => {
      (s.text.match(/[^\n]*[¥$€£万][^\n]*/) || [''])[0].slice(0, 60));
   ok(s.comp.hidden && s.work.hidden && s.vari.hidden,
      '鍵が無いと 給与構成・働き方・変動給 の節ごと出ない');
-  ok(s.pick.hidden, '★鍵が無いと区分も選ばせない（どれを選んでも答えは同じ）');
+  ok(s.pick.hidden && !s.pick.shown,
+     '★鍵が無いと区分も選ばせない（どれを選んでも答えは同じ）',
+     `hidden=${s.pick.hidden} 見えている=${s.pick.shown}`);
   ok(/pay-report\.html/.test(await page.evaluate(() => document.getElementById('dp-root').innerHTML)),
      '鍵が無い人には「出す」入口を出している（Give → Get）');
   ok(errs.length === 0, '鍵が無い形で JS のエラーが出ない', errs.join(' / '));
@@ -535,7 +623,7 @@ const SNAP = () => {
 
 // ── 3. そろった状態（配置の骨格）─────────────────────────────
 {
-  const { page, errs } = await open('ja', FULL);
+  const { page, errs } = await open('ja', FULL, 'light', MINE);
   const s = await page.evaluate(SNAP);
   ok(s.kpi === 4, 'そろっていれば KPI は4枚', `今 ${s.kpi} 枚`);
   ok(s.donut === 1, 'ドーナツは1つ', `今 ${s.donut} 個`);
@@ -547,16 +635,42 @@ const SNAP = () => {
   ok(nwh.length === 3, '★夜間・週末・祝日は3行のまま（1つにまとめない）', nwh.join(''));
   /* ★棒は全部同じ色（色で良し悪しを言わない）。 */
   ok(new Set(s.bars).size === 1, '★変動給の棒は全部同じ色', [...new Set(s.bars)].join(' '));
-  ok(s.moreLinks === 0 && s.moreBtns.length === 2 && s.moreBtns.every((b) => b.dis),
-     '★「もっと深く見る」は無効のボタン（無い先へリンクしない）',
-     JSON.stringify(s.moreBtns));
+  /* ★会社比較は在る（<a>）／役割別はまだ無い（無効の <button> ＋「準備中」）。
+     無い先へリンクすると assert-links.mjs が404で落とす。逆に、出来た先を
+     ボタンのままにすると誰も辿り着けない。だから**両方**を数で固定する。 */
+  ok(s.moreLinks === 1 && s.moreHrefs[0] === 'deep-pay-compare.html'
+     && s.moreBtns.length === 1 && s.moreBtns.every((b) => b.dis),
+     '★「もっと深く見る」は 会社比較へのリンク1本 ＋ 無効のボタン1つ',
+     JSON.stringify(s.moreHrefs) + ' / ' + JSON.stringify(s.moreBtns));
+  /* ★変動給比率は「100 − 固定給比率」ではない。db/deep-pay.sql の fixed_pct は
+     固定＋職位＋役割＋住宅で、残りにはパーディアム・その他・未分類も入っている。
+     見本は 固定 62% ／ segs の variable 24%。引き算だと 38% になる。
+     ⚠️ 本文全体を見ると凡例の 24% でも通ってしまうので、KPI の添え字だけを見る。 */
+  ok(s.kpiN.some((t) => /変動給比率\s*24\s*%/.test(t))
+     && !s.kpiN.some((t) => /38\s*%/.test(t)),
+     '★変動給比率は segs の variable から出す（100 − 固定給 ではない）',
+     JSON.stringify(s.kpiN));
   ok(!/undefined|NaN|\[object/.test(s.text), '本文に undefined / NaN が出ない');
   ok(errs.length === 0, 'JS のエラーが出ない', errs.join(' / '));
 }
 
+// ── 3b. variable が3人に届かないと「変動給比率」の行ごと消える ──
+/* ★0% と書けば「変動給の無い会社」に見えるが、実際は「3人に届かず出せない」だけ。
+   ここが緑のままだと、比較ページで同じ嘘が左右2つ並ぶ。 */
+{
+  const { page } = await open('ja', NOVAR, 'light', MINE);
+  const s = await page.evaluate(SNAP);
+  ok(s.kpi === 4, 'カードの枚数は変わらない（消えるのは中の1行）', `今 ${s.kpi} 枚`);
+  ok(!s.kpiN.some((t) => /変動給/.test(t)),
+     '★variable が無い区分では「変動給比率」を書かない（0% とも 38% とも書かない）',
+     JSON.stringify(s.kpiN));
+  ok(!/38\s*%/.test(s.text.replace(/\n/g, ' ')),
+     '★「100 − 固定給」の値が本文のどこにも出ない');
+}
+
 // ── 4. 読めなかった列は行ごと消える（0 を並べない）──────────────
 {
-  const { page } = await open('ja', HOLES);
+  const { page } = await open('ja', HOLES, 'light', MINE);
   const s = await page.evaluate(SNAP);
   ok(s.work.rows === 3, '★3人に届かなかった列は行ごと消える（4→3行）', `今 ${s.work.rows} 行`);
   ok(!/(^|[^\d.])0([^\d.%]|$)/.test(s.work.text.replace(/\n/g, ' ')),
@@ -567,7 +681,7 @@ const SNAP = () => {
 
 // ── 5. 数字が1つも読めないときは、カードごと出ない ──────────────
 {
-  const { page } = await open('ja', NOHEAD);
+  const { page } = await open('ja', NOHEAD, 'light', MINE);
   const s = await page.evaluate(SNAP);
   ok(s.kpi === 0, '★読める数字が無いと KPI は1枚も出ない', `今 ${s.kpi} 枚`);
   ok(s.empty >= 1, 'その代わり「まだ出せません」を1つ出す', `今 ${s.empty} 個`);
@@ -582,7 +696,7 @@ const SNAP = () => {
 
 // ── 6. 通貨を切り替えても引き直さない ───────────────────────────
 {
-  const { page } = await open('ja', FULL);
+  const { page } = await open('ja', FULL, 'light', MINE);
   const before = await page.evaluate(SNAP);
   await page.evaluate(() => window.PVCurrency.set('USD'));
   await page.waitForFunction(
@@ -593,8 +707,9 @@ const SNAP = () => {
      '通貨を切り替えると凡例の金額が変わる', `${before.legend[0]} → ${after.legend[0]}`);
   ok(before.kpiV[0] !== after.kpiV[0],
      '通貨を切り替えると KPI の数字も変わる', `${before.kpiV[0]} → ${after.kpiV[0]}`);
-  ok(after.rpc.pv_deep_pay === 1,
-     '★★通貨を切り替えても pv_deep_pay() を引き直さない', JSON.stringify(after.rpc));
+  ok(after.rpc.pv_deep_pay === 2,
+     '★★通貨を切り替えても pv_deep_pay() を引き直さない（入口1＋選択1 のまま）',
+     JSON.stringify(after.rpc));
   /* 切り替えた先で数字が枠から切れていないこと（英語ページの JPY が11文字になる）。 */
   const clipped = await page.evaluate(() => Array.prototype.slice
     .call(document.querySelectorAll('.dp-kpi-v, #dp-comp .amt'))
@@ -605,7 +720,7 @@ const SNAP = () => {
 // ── 7. 日英・明暗 ───────────────────────────────────────────────
 for (const lang of ['ja', 'en']) {
   for (const theme of ['light', 'dark']) {
-    const { page, errs } = await open(lang, FULL, theme);
+    const { page, errs } = await open(lang, FULL, theme, MINE);
     const s = await page.evaluate(SNAP);
     ok(!/undefined|NaN|\[object|null/.test(s.text),
        `${lang}/${theme}: 本文に undefined / NaN / null が出ない`,
@@ -616,6 +731,10 @@ for (const lang of ['ja', 'en']) {
     ok(/Pay \/ Block Hour/.test(s.text), `${lang}/${theme}: Pay / Block Hour が出ている`);
     ok(!/上位|percentile/i.test(s.text), `${lang}/${theme}: ★順位を書いていない`);
     ok(s.kpi === 4, `${lang}/${theme}: KPI は4枚`, `今 ${s.kpi} 枚`);
+    /* ★相対のまま。'/deep-pay-compare.html' に直すと /en/ から日本語版へ飛ぶ。 */
+    ok(s.moreHrefs.length === 1 && s.moreHrefs[0] === 'deep-pay-compare.html',
+       `${lang}/${theme}: ★会社比較の行き先は相対のまま（/en/ からは /en/ に解ける）`,
+       JSON.stringify(s.moreHrefs));
     ok(errs.length === 0, `${lang}/${theme}: JS のエラーが出ない`, errs.join(' / '));
   }
 }
@@ -629,51 +748,81 @@ for (const lang of ['ja', 'en']) {
   ok(!/[¥$€£]|万/.test(s.text), '★エラーのときに 0 や仮の金額を置かない');
 }
 
-// ── 9. 他の人の区分を選ぶ（2026-08-30）────────────────────────
-/* ★ここが「自分の区分しか見られないなら意味がない」への答え。
-   選べること・選んでも壁が動かないこと・選ばなければ元に戻ることの3つを見る。 */
-async function choose(page, sel) {
-  await page.evaluate((x) => {
-    const set = (id, v) => { const e = document.getElementById(id); if (e) e.value = v || ''; };
-    set('dp-pk-air', x.airline); set('dp-pk-pos', x.position); set('dp-pk-flt', x.fleet);
-    document.getElementById('dp-pk-flt')
-      .dispatchEvent(new Event('change', { bubbles: true }));
-  }, sel);
-  /* ★時間で待たない。引いた回数が1つ増えて、欄が触れる状態に戻るまで待つ。 */
-  await page.waitForFunction(
-    (n) => window.__rpcArgs.length === n && !document.getElementById('dp-pk-air').disabled,
-    { timeout: 10000 }, sel.__n);
-}
+// ── 9. 見たい区分を選ぶ（2026-08-30）──────────────────────────
+/* ★ここが「自分の区分しか見られないなら意味がない」への答えと、
+   そのあとのオーナー判断「自動で自分の区分を出す機能自体を消す」の両方の見張り。
+   見るのは4つ ── 選ぶまで何も出ない／3つとも選べる／選んでも壁は動かない／
+   クリアで「選んでください」に戻る。 */
 {
   const { page, errs } = await open('ja', PICKABLE);
   const a = await page.evaluate(SNAP);
-  ok(!a.pick.hidden && a.pick.air && a.pick.pos && a.pick.flt,
+  ok(!a.pick.hidden && a.pick.shown && a.pick.air && a.pick.pos && a.pick.flt,
      '★会社・役職・機材の3つとも選べる');
-  ok(a.pick.air.n > 100, '会社の選択肢は salary-data.json の全社ぶん', `今 ${a.pick.air && a.pick.air.n} 個`);
+  ok(a.pick.air.n > 100, '会社の選択肢は salary-data.json の全社ぶん',
+     `今 ${a.pick.air && a.pick.air.n} 個`);
   ok(a.pick.groups >= 6, '会社は地域ごとにまとまっている', `今 ${a.pick.groups} 組`);
   ok(a.pick.pos.n === 4 && a.pick.flt.n === 20,
-     '役職と機材は語彙そのまま（＋「選ばない」1つ）',
+     '役職と機材は語彙そのまま（＋「選択する」1つ）',
      `役職 ${a.pick.pos.n} / 機材 ${a.pick.flt.n}`);
-  ok(!a.pick.reset, '何も選んでいないうちは「戻す」を出さない');
+  ok(!a.pick.reset, '何も選んでいないうちは「選択をクリア」を出さない');
+  /* ★ラベル（区分を選ぶ）と同じ段に欄が上がってこないこと。grid の1行目に空きが
+     残ると、そこへ最初の欄が吸い込まれて「区分を選ぶ｜会社／役職｜機材」に崩れる。
+     ★「選択をクリア」が出ていない状態でだけ起きる（実際に起きた）ので、
+       選ぶ前と選んだ後の両方で見る。1360px では3欄とも同じ段。 */
+  const lay = (pg) => pg.evaluate(() => {
+    const k = document.querySelector('#dp-pick .dp-pick-k');
+    const y = [...document.querySelectorAll('#dp-pick .dp-pick-s')]
+      .map((e) => Math.round(e.getBoundingClientRect().top));
+    return { kb: k ? Math.round(k.getBoundingClientRect().bottom) : null,
+             tops: y, rows: [...new Set(y)].length };
+  });
+  const l0 = await lay(page);
+  ok(l0.kb != null && l0.tops.length === 3 && l0.tops.every((t) => t >= l0.kb)
+     && l0.rows === 1,
+     '★ラベルの段に欄が上がってこない（選ぶ前）', JSON.stringify(l0));
   ok(a.args.length === 1 && a.args[0] === null,
-     '★選んでいなければ引数を渡さない（今までと同じ呼び方）', JSON.stringify(a.args));
-  ok(/全日本空輸/.test(a.cond), '最初は自分の区分（ANA）', a.cond.replace(/\n/g, ' '));
+     '★入口の1回は引数なし（state と鍵を取りに行くだけ）', JSON.stringify(a.args));
+  /* ★★ここがこの回のオーナー判断そのもの。前は3つとも空だと db/deep-pay.sql の
+     はしごが降りて「副操縦士・全社 12人」のような**別の区分**の数字が出ていた。
+     読み手はそれを自分の会社の数字だと読み違える。選ぶまで出さなければ起きない。
+     ⚠️ ここを緩めて「最初から出す」に戻すと、その誤読が黙って復活する。 */
+  ok(a.kpi === 0, '★★選ぶまで KPI は1枚も出ない', `今 ${a.kpi} 枚`);
+  ok(a.cond === '', '★★選ぶまで条件バー（表示中:）を出さない', a.cond);
+  ok(!/[¥$€£]|万|%/.test(a.text), '★★選ぶまで金額も割合も1文字も出ない',
+     (a.text.match(/[^\n]*[¥$€£万%][^\n]*/) || [''])[0].slice(0, 60));
+  ok(a.comp.hidden && a.work.hidden && a.vari.hidden && a.notes.hidden && a.more.hidden,
+     '★選ぶまで節も出ない（空の器を残さない）');
 
-  await choose(page, { airline: 'jal', position: 'cap', fleet: 'b787', __n: 2 });
+  await choose(page, { airline: 'jal', position: 'cap', fleet: 'b787' });
   const b = await page.evaluate(SNAP);
   ok(b.args[1] && b.args[1].p && b.args[1].p.airline === 'jal'
      && b.args[1].p.position === 'cap' && b.args[1].p.fleet === 'b787',
      '★選んだ区分をそのままサーバへ渡す', JSON.stringify(b.args[1]));
-  ok(/日本航空/.test(b.cond) && !/全日本空輸/.test(b.cond),
-     '★自分の会社ではない区分の見出しになる', b.cond.replace(/\n/g, ' '));
-  ok(b.kpi === 4 && b.kpiV[0] !== a.kpiV[0],
-     '★数字も選んだ区分のものに入れ替わる', `${a.kpiV[0]} → ${b.kpiV[0]}`);
-  ok(b.pick.reset, '選んだら「自分の区分に戻す」が出る');
+  ok(/日本航空/.test(b.cond), '★選んだ区分の見出しになる', b.cond.replace(/\n/g, ' '));
+  ok(b.kpi === 4, '★選んでから数字が出る', `今 ${b.kpi} 枚`);
+  /* 見本の固定給比率は 選んだ区分 71% ／ 素の payload 62%。
+     ★71 が出ることが「選んだ区分の答えを描いている」ことの証拠。 */
+  ok(/^71/.test(b.kpiV[1] || ''), '★数字は選んだ区分のもの（素の見本の 62% ではない）',
+     JSON.stringify(b.kpiV));
+  ok(b.pick.reset, '選んだら「選択をクリア」が出る');
+  const l1 = await lay(page);
+  ok(l1.kb != null && l1.tops.every((t) => t >= l1.kb) && l1.rows === 1,
+     '★「選択をクリア」が出ても3欄は同じ段のまま', JSON.stringify(l1));
   /* 5人なので上限は 3（3つとも選んだ）× 人数の判定 2 ＝「中」。 */
   ok(/中/.test(b.cond) && !/高/.test(b.cond),
      '★5人の区分を「信頼度 高」と言わない', b.cond.replace(/\n/g, ' '));
 
-  await choose(page, { airline: 'sas', position: '', fleet: '', __n: 3 });
+  /* ★選んだあとに通貨を切り替えても、選び直しにはならない。 */
+  await page.evaluate(() => window.PVCurrency.set('USD'));
+  await page.waitForFunction(
+    () => /^\$/.test((document.querySelector('.dp-kpi-v') || {}).textContent || ''),
+    { timeout: 10000 });
+  const f = await page.evaluate(SNAP);
+  ok(f.rpc.pv_deep_pay === 2,
+     '★★通貨を切り替えても引き直さない（入口1＋選択1 のまま）', JSON.stringify(f.rpc));
+  ok(f.pick.air.v === 'jal' && f.pick.reset, '通貨を切り替えても選択が飛ばない');
+
+  await choose(page, { airline: 'sas', position: '', fleet: '' });
   const c = await page.evaluate(SNAP);
   ok(c.kpi === 0, '★3人に届かない区分では KPI が1枚も出ない', `今 ${c.kpi} 枚`);
   ok(c.comp.hidden && c.work.hidden && c.vari.hidden && c.notes.hidden && c.more.hidden,
@@ -687,24 +836,17 @@ async function choose(page, sel) {
      c.text.replace(/\n/g, ' ').slice(0, 80));
 
   await page.evaluate(() => document.getElementById('dp-pk-rst').click());
-  await page.waitForFunction(() => window.__rpcArgs.length === 4
-    && !document.getElementById('dp-pk-air').disabled, { timeout: 10000 });
+  /* ★クリアは引き直さない（捨てるだけの答えを取りに行かない）。だから
+     __rpcArgs.length が増えるのを待つと、ここで10秒待って嘘の赤になる。
+     待つのはボタンが消えること。 */
+  await page.waitForFunction(() => !document.getElementById('dp-pk-rst'), { timeout: 10000 });
   const e = await page.evaluate(SNAP);
-  ok(e.args[3] === null, '★「戻す」は引数なしで引き直す', JSON.stringify(e.args[3]));
-  ok(/全日本空輸/.test(e.cond) && e.kpi === 4,
-     '★戻すと自分の区分に帰る', e.cond.replace(/\n/g, ' '));
-  ok(!e.pick.reset && e.pick.air.v === '' && e.pick.pos.v === '' && e.pick.flt.v === '',
-     '★戻したら欄も空に戻る');
-
-  /* ★選んだあとに通貨を切り替えても、選び直しにはならない。 */
-  await page.evaluate(() => window.PVCurrency.set('USD'));
-  await page.waitForFunction(
-    () => /^\$/.test((document.querySelector('.dp-kpi-v') || {}).textContent || ''),
-    { timeout: 10000 });
-  const f = await page.evaluate(SNAP);
-  ok(f.rpc.pv_deep_pay === 4,
-     '★★通貨を切り替えても引き直さない（選んだ後も同じ）', JSON.stringify(f.rpc));
-  ok(f.pick.air.v === '' && !f.pick.reset, '通貨を切り替えても選択が飛ばない');
+  ok(e.rpc.pv_deep_pay === 3, '★「選択をクリア」は引き直さない', JSON.stringify(e.rpc));
+  ok(e.kpi === 0 && e.cond === '',
+     '★★クリアすると「選んでください」に戻る（前の区分の数字も見出しも残さない）',
+     `${e.kpi} 枚 / ${e.cond}`);
+  ok(e.pick.air.v === '' && e.pick.pos.v === '' && e.pick.flt.v === '',
+     '★クリアしたら欄も空に戻る');
   ok(errs.length === 0, '選ぶ操作で JS のエラーが出ない', errs.join(' / '));
 }
 

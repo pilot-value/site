@@ -43,14 +43,14 @@
   var EN_PAGES = new Set([
     "404.html", "actual-pay.html", "admin.html", "africa-pilot-salary.html",
     "airline-conditions.html", "asia-pilot-salary.html", "auth-callback.html", "community.html",
-    "contact.html", "countries.html", "deep-pay.html", "europe-pilot-salary.html",
-    "guide.html", "help.html", "latin-america-pilot-salary.html", "login.html",
-    "middle-east-pilot-salary.html", "my-value.html", "north-america-pilot-salary.html", "oceania-pilot-salary.html",
-    "pay-report.html", "personal-data.html", "pilot-salary-guide.html", "pilot-tenshoku.html",
-    "pilot-vs-bengoshi.html", "pilot-vs-isha.html", "pilot-vs-kochin.html", "policy.html",
-    "privacy-pilot.html", "privacy.html", "profile.html", "signup.html",
-    "sitemap.html", "submit-review.html", "terms.html", "unsubscribe.html",
-    "world-airlines.html", "world-jobs.html"
+    "contact.html", "countries.html", "deep-pay-compare.html", "deep-pay.html",
+    "europe-pilot-salary.html", "guide.html", "help.html", "latin-america-pilot-salary.html",
+    "login.html", "middle-east-pilot-salary.html", "my-value.html", "north-america-pilot-salary.html",
+    "oceania-pilot-salary.html", "pay-report.html", "personal-data.html", "pilot-salary-guide.html",
+    "pilot-tenshoku.html", "pilot-vs-bengoshi.html", "pilot-vs-isha.html", "pilot-vs-kochin.html",
+    "policy.html", "privacy-pilot.html", "privacy.html", "profile.html",
+    "signup.html", "sitemap.html", "submit-review.html", "terms.html",
+    "unsubscribe.html", "world-airlines.html", "world-jobs.html"
   ]);
   /* EN-PAGES:END */
 

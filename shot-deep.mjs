@@ -6,6 +6,9 @@
    ★ ここで使う数字は全部でたらめ。実物の給与はこのリポジトリに1つも無い。
    ⚠️ shot-*.mjs の見本は**腐る**（CLAUDE.md の ST_LOCK と同じ）。
       「本番でもこう出る」と読まないこと。ここで確かめるのは**配置だけ**。
+   ⚠️ 2026-08-30 以降、画面は**区分を選ぶまで何も出さない**。だからここも
+      「開く → 選択肢が生えるのを待つ → 選ぶ → 描き終わるのを待つ」まで
+      やってから撮る。選ばずに撮ると、どの scene も同じ空の板が写る。
 
    実行: node shot-deep.mjs <scene> <lang> <theme> <幅> [open]
      scene: full  … 全部そろった状態（モックと同じ配置。既定）
@@ -13,7 +16,8 @@
                     働き方は1行しか無いので節ごと消える・変動給も出ない
             fold  … 3人に満たない項目が「その他・未分類」に畳まれた状態
                     （灰色の意味が変わるので but 書きが1行増える）
-            pos   … 区分が段4（役職のみ・全社）まで落ちた状態
+            ask   … 開いた直後。まだ何も選んでいない（★これが入口の見た目）
+            pos   … 役職だけ選んで会社を選ばなかった状態
             pick  … 自分の区分ではない区分を手で選んだ状態（JAL / 機長 / B787）
             thin  … 手で選んだ区分が3人に届かなかった状態
                     （★広い区分の数字で埋めない。何も出ないのが正しい）
@@ -38,6 +42,7 @@ const lang  = process.argv[3] || 'ja';
 const theme = process.argv[4] || 'light';
 const vw    = Number(process.argv[5]) || 1440;
 const open  = process.argv.includes('open');
+const measure = process.argv.includes('measure');
 
 const dir = path.join(__dirname, 'temporary screenshots');
 if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
@@ -47,6 +52,20 @@ while (fs.existsSync(path.join(dir, `screenshot-${n}-${label}.png`))) n++;
 const outPath = path.join(dir, `screenshot-${n}-${label}.png`);
 
 const url = `http://localhost:3000/${lang === 'en' ? 'en/' : ''}deep-pay.html`;
+
+/* scene ごとに「窓の中で何を選ぶか」。★画面は選ぶまで何も出さないので、
+   これが無いと撮れるのは「区分を選んでください」の板だけになる。
+   lock / err / 未登録の scene は選ばない（選べる欄がそもそも出ない）。 */
+const PICK = {
+  /* ★ask は載せない（＝何も選ばない）。それが開いた直後の見た目そのもの。 */
+  full: { airline: 'ana', position: 'cap', fleet: 'b787' },
+  day1: { airline: 'ana' },
+  fold: { airline: 'ana', position: 'cap' },
+  pos:  { position: 'cap' },
+  pick: { airline: 'jal', position: 'cap', fleet: 'b787' },
+  thin: { airline: 'sas' },
+  det:  { airline: 'ana' }
+}[scene] || null;
 
 /* ★ headless:'new' はこの環境で page.screenshot() が返ってこない
    （shot-tracker.mjs に実測の経緯あり）。chrome-headless-shell を使う。 */
@@ -154,7 +173,30 @@ await page.evaluateOnNewDocument((scene, theme) => {
   const DEEP = SCENES[scene] || FULL;
 
   const RPC = {
-    pv_deep_pay: () => DEEP,
+    /* ★選んだ区分に答える（2026-08-30）。ここを () => DEEP のままにすると、
+       窓の中でセレクタを動かしても**答えが1つも変わらない**＝
+       「壊れている」ように見えて、配置の確認にならない。
+       返す数字はでたらめだが、**選んだ値をそのまま映す**ところは本物と同じ。
+       ⚠️ sas（スカンジナビア航空）だけは「3人に届かなかった」を返す。
+          空の状態を窓の中で実際に踏めるようにするための細工で、
+          本番の人数とは何の関係も無い。 */
+    pv_deep_pay: (a) => {
+      const q = (a && a.p) || {};
+      if (!q.airline && !q.position && !q.fleet) return DEEP;   /* 選んでいない＝その scene のまま */
+      const echo = { manual: true, airline: q.airline || null,
+                     pos: q.fleet && !q.position ? null : (q.position || null),
+                     fleet: q.fleet || null };
+      if (q.airline === 'sas')
+        return Object.assign({}, THIN,
+          { cohort: Object.assign({ level: 'none', n: 0 }, echo) });
+      /* ★土台は**その scene の payload**。FULL に潰すと day1（薄い初日）や
+         fold（畳まれた状態）が選んだ瞬間に満杯へ化けて、確かめたい配置が消える。 */
+      const k = (q.airline ? 1 : 0) + (q.position ? 1 : 0) + (q.fleet ? 1 : 0);
+      return Object.assign({}, DEEP, {
+        cohort: Object.assign({ level: 'selected', n: k >= 3 ? 5 : k === 2 ? 9 : 14 }, echo),
+        head: (k >= 3 && DEEP === FULL) ? PICK.head : DEEP.head
+      });
+    },
     pv_pay_rows: () => ({ ok: true, state: 'open', rows: [], stats: STATS,
                           give: { detailed: !!(DEEP.give && DEEP.give.detailed) } }),
     pv_give_progress: () => ({ ok: true, contributors: STATS.contributors,
@@ -202,6 +244,57 @@ await page.waitForFunction(
   () => !!document.querySelector('#dp-hd h1'), { timeout: 15000 });
 await page.waitForFunction(
   () => !document.querySelector('#dp-kpi .mr-skel'), { timeout: 15000 });
+
+if (PICK) {
+  const IDS = { airline: 'dp-pk-air', position: 'dp-pk-pos', fleet: 'dp-pk-flt' };
+  /* ★選択肢が生えるのを待ってから入れる。語彙（pv-vocab.json / salary-data.json）は
+     RPC より遅れて着くことがあり、待たずに value を入れると空文字のまま静かに
+     素通りする＝「選んだのに何も出ない」という嘘の結果になる。 */
+  await page.waitForFunction((p, ids) => Object.keys(p).every((k) =>
+    !!document.querySelector('#' + ids[k] + ' option[value="' + p[k] + '"]')),
+    { timeout: 15000 }, PICK, IDS);
+  await page.evaluate((p, ids) => {
+    for (const k of Object.keys(p)) {
+      const e = document.getElementById(ids[k]);
+      e.value = p[k];
+      e.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  }, PICK, IDS);
+  /* 描き終わり＝KPI か「まだ出せません」の板のどちらかが在ること。 */
+  await page.waitForFunction(
+    () => !!document.querySelector('#dp-kpi .dp-kpi, #dp-kpi .dp-msg'), { timeout: 15000 });
+}
+
+/* ── 実測（`measure` を付けたとき）────────────────────────────────
+   ★<select> は中身が入り切らなくても黙って端で切る（省略記号すら出ない）。
+     選択肢の実幅を canvas で測り、欄の内寸と突き合わせる。 */
+if (measure) {
+  const rep = await page.evaluate(() => {
+    const px = (v) => Math.round(v * 10) / 10;
+    const cv = document.createElement('canvas').getContext('2d');
+    return [...document.querySelectorAll('.dp-pick-s')].map((e) => {
+      const cs = getComputedStyle(e);
+      cv.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+      const widest = [...e.options].reduce(
+        (a, o) => Math.max(a, cv.measureText(o.text).width), 0);
+      const inner = e.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+      const selw = cv.measureText(e.selectedOptions[0]?.text || '').width;
+      return { id: e.id, box: px(e.getBoundingClientRect().width), inner: px(inner),
+               widest: px(widest), sel: e.selectedOptions[0]?.text || '',
+               /* ★見えているのは「選んだ1つ」。落ちるのはそれが切れたときだけ。
+                  いちばん長い選択肢は、開いた一覧の中でしか出ない（端末側の描画）。 */
+               cut: px(inner - 18 - selw),
+               short: px(inner - 18 - widest) };   // 18px ≒ 端末の▼
+    });
+  });
+  console.log(`── ${scene} / ${lang} / ${theme} / ${vw}px ──`);
+  for (const s of rep)
+    console.log(`  ${s.cut < 0 ? '❌' : (s.short < 0 ? '△' : '✓ ')} ${s.id.padEnd(10)} `
+      + `欄 ${String(s.box).padStart(6)}px 内寸 ${String(s.inner).padStart(6)} / `
+      + `いま出ている ${String(s.cut).padStart(6)} / 最長 ${String(s.short).padStart(6)}  [${s.sel}]`);
+  await browser.close();
+  process.exit(0);
+}
 
 if (open) {
   console.log(`開きました（${scene} / ${lang} / ${theme}）。窓を閉じると終わります。`);

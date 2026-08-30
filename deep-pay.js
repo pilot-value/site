@@ -89,9 +89,10 @@
 
       pickK: '区分を選ぶ',
       pickAir: '会社', pickPos: '役職', pickFlt: '機材',
-      pickAny: '選ばない',
-      pickAuto: '選ばないと、あなたの区分を自動で表示します。',
-      pickReset: '自分の区分に戻す',
+      pickAny: '選択する',
+      pickReset: '選択をクリア',
+      askT: '見たい区分を選んでください',
+      askS: '会社・役職・機材のどれか1つを選ぶと、その区分の数字が出ます。',
       rg: { japan: '日本', mideast: '中東', asia: 'アジア', europe: '欧州',
             us: '北米', latam: '中南米', oceania: 'オセアニア', africa: 'アフリカ' },
 
@@ -157,9 +158,10 @@
 
       pickK: 'Choose a group',
       pickAir: 'Airline', pickPos: 'Seat', pickFlt: 'Fleet',
-      pickAny: 'Any',
-      pickAuto: 'Leave these as they are and your own group is shown.',
-      pickReset: 'Back to my group',
+      pickAny: 'Select',
+      pickReset: 'Clear',
+      askT: 'Choose a group to see',
+      askS: 'Pick an airline, seat or fleet and the numbers for that group appear.',
       rg: { japan: 'Japan', mideast: 'Middle East', asia: 'Asia', europe: 'Europe',
             us: 'North America', latam: 'Latin America', oceania: 'Oceania', africa: 'Africa' },
 
@@ -440,7 +442,10 @@
       position: (el('dp-pk-pos') || {}).value || '',
       fleet:    (el('dp-pk-flt') || {}).value || ''
     };
-    if (S.client) load(S.client);
+    /* ★どれも選んでいない形に戻したら、引き直さずに「選んでください」に戻る
+       （捨てるだけの答えを取りに行かない）。 */
+    if (!S.client) return;
+    if (picked()) load(S.client); else render();
   }
   function picker() {
     var box = el('dp-pick');
@@ -457,14 +462,14 @@
         field('dp-pk-flt', T.pickFlt, optlist(S.flts, S.sel.fleet)) +
         (picked()
           ? '<button type="button" class="dp-pick-r" id="dp-pk-rst">' + esc(T.pickReset) + '</button>'
-          : '<span class="dp-pick-n">' + esc(T.pickAuto) + '</span>');
+          : '');
       ['dp-pk-air', 'dp-pk-pos', 'dp-pk-flt'].forEach(function (id) {
         var e = el(id); if (e) e.addEventListener('change', onPick);
       });
       var r = el('dp-pk-rst');
       if (r) r.addEventListener('click', function () {
         S.sel = { airline: '', position: '', fleet: '' };
-        if (S.client) load(S.client);
+        render();   /* ★引き直さない。選んでいない画面は何も出さないので答えが要らない */
       });
     }
     /* 引いている間は触らせない（連打で答えが入れ替わるのを止める）。 */
@@ -481,7 +486,9 @@
     if (!box) return;
     var h = '<h1 class="mr-hd-t">' + esc(T.hd) + '</h1>';
     var c = S.data && S.data.cohort;
-    if (S.mode === 'open' && c && c.level !== 'none') {
+    /* ★picked() が要る。無いとクリアした後も前の区分の条件バーが
+       空のページの上に残り、「この数字はまだ出ている」と読まれる。 */
+    if (S.mode === 'open' && picked() && c && c.level !== 'none') {
       var parts = cohortWords(c);
       var n = num(c.n);
       if (n != null) parts.push(n + T.people);
@@ -525,10 +532,14 @@
     var h = (S.data && S.data.head) || {};
     var a = money(h.annual_usd), am = moneyMonth(h.annual_usd);
     var fx = num(h.fixed_pct), pb = moneyExact(h.per_block_usd), dn = num(h.detailed_n);
+    /* ★変動給比率は「100 − 固定給比率」ではない。db/deep-pay.sql の fixed_pct は
+       固定＋職位＋役割＋住宅で、残りにはパーディアム・その他・未分類も入っている。
+       引き算だとそれを全部「変動給」と呼んでしまう。無い区分は行ごと出さない。 */
+    var vp = segPct((S.data && S.data.comp && S.data.comp.segs) || [], 'variable');
     var cards = [
       a == null ? null : kpi({ k: T.k1, v: a, n: am ? T.k1n + am : '', ic: 'org', svg: IC.money }),
       fx == null ? null : kpi({ k: T.k2, v: Math.round(fx), u: '%', green: true, ic: 'grn',
-                                svg: IC.pie, n: T.k2n + Math.max(0, 100 - Math.round(fx)) + '%' }),
+                                svg: IC.pie, n: vp == null ? '' : T.k2n + Math.round(vp) + '%' }),
       pb == null ? null : kpi({ k: T.k3, v: pb, n: T.k3n, ic: 'tea', svg: IC.clock }),
       dn == null ? null : kpi({ k: T.k4, v: dn, u: T.k4u, n: T.k4n, svg: IC.doc })
     ].filter(Boolean);
@@ -600,6 +611,12 @@
   }
   function segByKey(segs, k) {
     for (var i = 0; i < segs.length; i++) if (segs[i].k === k) return segs[i].med_usd;
+    return null;
+  }
+  /* ★無い区分は null を返す。0 を返さない ── 0% と書けば「その手当が無い会社」に見えるが、
+     実際は「3人に届かず出せない」だけのことがある。 */
+  function segPct(segs, k) {
+    for (var i = 0; i < segs.length; i++) if (segs[i].k === k) return num(segs[i].pct);
     return null;
   }
 
@@ -684,22 +701,29 @@
   }
 
   // ── ⑥ もっと深く見る ──────────────────────────────────────────
-  /* ★行き先がまだ無いので <a href> にしない（assert-links.mjs が404で落とす）。
-     disabled の <button> にして「準備中」と書く。 */
+  /* 会社比較（deep-pay-compare.html）は在るので本物の <a href>。
+     ★役割別はまだ無い。無い先へリンクすると assert-links.mjs が404で落とすので
+       disabled の <button> のままにして「準備中」と書く。 */
   function more() {
     var box = el('dp-more');
     if (!box) return;
-    function b(t, ic) {
+    function bn(t, ic) {
       return '<button type="button" class="dp-more-b" disabled>' +
         ic.replace('24" height="24', '15" height="15') + esc(t) +
         '<span class="dp-more-c">' + esc(T.soon) + '</span>' +
         IC.chev.replace('24" height="24', '15" height="15') + '</button>';
     }
+    function ln(href, t, ic) {
+      return '<a class="dp-more-b dp-more-b--on" href="' + esc(href) + '">' +
+        ic.replace('24" height="24', '15" height="15') + esc(t) +
+        IC.chev.replace('24" height="24', '15" height="15') + '</a>';
+    }
     box.innerHTML = '<section class="mr-card"><div class="dp-more">' +
       '<div class="dp-more-l"><span class="dp-more-ic">' + IC.eye + '</span>' +
       '<span class="dp-more-tx"><span class="dp-more-t">' + esc(T.moreT) + '</span>' +
       '<span class="dp-more-s">' + esc(T.moreS) + '</span></span></div>' +
-      '<div class="dp-more-r">' + b(T.more1, IC.layer) + b(T.more2, IC.users) + '</div>' +
+      '<div class="dp-more-r">' + ln('deep-pay-compare.html', T.more1, IC.layer) +
+        bn(T.more2, IC.users) + '</div>' +
       '</div></section>';
     box.hidden = false;
   }
@@ -748,11 +772,32 @@
     box.hidden = false;
   }
 
+  /* ★まだ何も選んでいないとき。**呼んだ本人の区分を勝手に出さない。**
+     前は3つとも空なら SQL のはしごが降りて「副操縦士・全社 12人」のような
+     別の区分が出ていたが、読み手はそれを自分の会社の数字だと読み違える。
+     鍵は掛かっていないので pay-report.html の誘いは出さない。 */
+  function ask() {
+    ['dp-comp', 'dp-work', 'dp-var', 'dp-notes', 'dp-more'].forEach(function (id) {
+      var b = el(id); if (b) { b.innerHTML = ''; b.hidden = true; }
+    });
+    var box = el('dp-kpi');
+    if (!box) return;
+    box.innerHTML = '<div class="dp-msg dp-msg--ask">' +
+      '<div class="dp-msg-t">' + IC.info.replace('24" height="24', '18" height="18') +
+        esc(T.askT) + '</div>' +
+      '<p class="dp-msg-s">' + esc(T.askS) + '</p></div>';
+    box.hidden = false;
+  }
+
   // ── 描く ───────────────────────────────────────────────────────
   function render() {
     picker(); head();
     if (S.mode === 'error') { shut('error'); return; }
     if (S.mode !== 'open')  { shut('lock');  return; }
+    /* ★この3行の順番が効いている。錠前より前に置くと鍵の画面が出ず、
+       level==='none' より後ろに置くとクリアした直後に
+       「人数が足りません」（前の区分の答え）が出る。 */
+    if (!picked())          { ask();         return; }
     var c = S.data && S.data.cohort;
     if (c && c.level === 'none') { thin(); return; }
     kpis(); comp(); work(); vari(); notes(); more();
@@ -805,8 +850,12 @@
     S.client = client;
     S.busy = true;
     picker();
-    /* ★3つとも空なら**引数を渡さない**。今までと同じ呼び方に戻す
-       （SQL 側の既定値は '{}' なので結果も同じだが、呼び方まで同じにしておく）。 */
+    /* ★3つとも空なら**引数を渡さない**。この1回で取りに行くのは
+       state・gate・give・stats **だけ**で、cohort / head / comp は捨てる
+       （選ぶまで数字は1つも出さないため）。錠前の画面を描くのにこの1回が要る。
+       ⚠️ db/deep-pay.sql の「区分のはしご」（段1〜5・v_man=false）は、これで
+          この画面から使われなくなった。SQL は873行あってオーナーが手で貼るので、
+          消さずにそのまま残してある。消すときは貼り直しとセットになる。 */
     var args = picked()
       ? [{ p: { airline: S.sel.airline || null,
                 position: S.sel.position || null,

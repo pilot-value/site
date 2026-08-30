@@ -106,6 +106,7 @@ console.log('\n════ ソース ════');
   for (const f of ['submit-review.html', 'en/submit-review.html', 'pay-report.html', 'en/pay-report.html',
                    'my-value.html', 'en/my-value.html', 'actual-pay.html', 'en/actual-pay.html',
                    'deep-pay.html', 'en/deep-pay.html',
+                   'deep-pay-compare.html', 'en/deep-pay-compare.html',
                    'index.html', 'en/index.html']) {
     ok(!read('./' + f).includes('pv-founding'),
        `★${f} に称号を出さない（母集団が小さく、投稿の横に番号が出ると書き手が絞れる）`);

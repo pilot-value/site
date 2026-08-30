@@ -64,7 +64,7 @@ const WEB = [
   ['assert-unlock.mjs', 29], ['assert-my-posts.mjs', 26],
   ['assert-founding.mjs', 21], ['assert-admin.mjs', 13],
   ['assert-langtoggle.mjs', 12], ['db/test-login-redirect.mjs', 3],
-  ['assert-deep-pay.mjs', 2.2],
+  ['assert-deep-pay-compare.mjs', 2.5], ['assert-deep-pay.mjs', 2.2],
   ['assert-review-quality.mjs', 1.5], ['db/test-session-expiry.mjs', 0.9],
 ];
 

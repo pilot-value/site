@@ -1,0 +1,154 @@
+/* ════════════════════════════════════════════════════════════════
+   deep-pay-compare.css — DEEP PAY / 会社を比べる
+                          deep-pay-compare.html と
+                          en/deep-pay-compare.html が共有する1枚
+
+   ★ここに書くのは .dc-* だけ。
+     ・カードの器・見出し・スケルトンは my-value.css（.mr-*）
+     ・注記と「まだ出せません」の枠は pay-viz.css（.pt-note / .pt-empty）
+     ・選ぶ欄・条件バー・錠前の板・下の入口は deep-pay.css（.dp-*）
+     この画面のために作り直したものは1つも無い。**足りているものを書き直さない。**
+
+   ⚠️ .pt-* / .mv-* / .mr-* を**トップレベルで再定義しない**
+      （db/test-form-contract.mjs が見張っている）。
+      この画面だけ形を変えたいときは #dc-root .pt-empty のように器で囲む。
+
+   ★「隠す」系の宣言（blur / filter / mask / user-select:none /
+     opacity:0 / visibility:hidden）を1つも置かない。
+     DEEP PAY は「ぼかして見せる」画面ではない。出せない数字は最初から描かない。
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── 節と節のあいだ（deep-pay.css の #dp-* と同じ刻み）────────── */
+#dc-sides{margin-top:16px}
+#dc-diff,#dc-mix{margin-top:16px}
+#dc-cta{margin-top:16px}
+
+/* ── 選ぶ欄（deep-pay.css の .dp-pick を2列に折る）──────────────
+   ★deep-pay は3欄、この画面は4欄。1行に並べると <select> の内寸が
+     163px になり、「全日本空輸（ANA）」（実測 297px）も
+     「Boeing 787 Dreamliner」（実測 259px）も入り切らずに端で切れる。
+     <select> は溢れても省略記号すら出さないので、**切れていることが
+     画面から分からない**（「Boeing 787 Dreamli」と読める形で止まる）。
+   ラベルと「選択をクリア」を1行目に置き、4欄を2×2に流す。
+   ★.dp-pick-f は自動配置。1行目の2マスが埋まっているので2行目から並ぶ。 */
+#dc-pick.dp-pick{display:grid;grid-template-columns:1fr 1fr;
+  gap:12px 16px;align-items:end}
+/* ★ラベルと「クリア」は**どちらも1行目まるごと**を占める（重ねて、左右に寄せる）。
+   1マスだけにすると、クリアが出ていないとき（＝まだ何も選んでいないとき）に
+   1行目へ空きが残り、そこへ最初の欄が吸い込まれて並びが崩れる。 */
+/* ⚠️ deep-pay.css の .dp-pick[hidden] は id の規則に負ける。ここで書き直す
+   （無いと鍵の画面・エラーの画面でピッカーが出たままになる）。 */
+#dc-pick[hidden]{display:none}
+#dc-pick .dp-pick-k{grid-area:1/1/2/-1;justify-self:start;align-self:center}
+#dc-pick .dp-pick-r{grid-area:1/1/2/-1;justify-self:end;align-self:center}
+@media (max-width:560px){
+  #dc-pick.dp-pick{grid-template-columns:minmax(0,1fr)}
+  #dc-pick .dp-pick-r{grid-area:auto;justify-self:start}
+}
+
+/* ── ① 2社のカード ────────────────────────────────────────────
+   ★grid ではなく flex。片側が「まだ出せません」の1枚に替わっても
+     高さが揃わないだけで、空の列が残らない。 */
+.dc-sides{display:flex;flex-wrap:wrap;gap:16px;align-items:stretch}
+.dc-side{flex:1 1 300px;min-width:0;display:flex;flex-direction:column}
+
+.dc-side-h{display:flex;align-items:center;gap:10px;min-width:0;
+  padding-bottom:12px;margin-bottom:4px;
+  border-bottom:1px solid var(--pv-line-soft)}
+.dc-side-n{flex:1 1 auto;min-width:0;font-size:.95rem;font-weight:800;
+  letter-spacing:-.01em;color:var(--pv-ink);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* 人数のピル。★「件」ではなく「人」（1行＝1人に束ねてある）。 */
+.dc-side-c{flex:none;font-size:.7rem;font-weight:700;letter-spacing:.01em;
+  color:var(--pv-ink-3);background:var(--pv-surface-2);
+  border:1px solid var(--pv-line);border-radius:999px;padding:3px 9px}
+
+/* ロゴ ── actual-pay.css:155 の .ap-logo と同じ寸法。
+   ★あちらを再利用しない（actual-pay.css はこの画面に読み込まれていない）。 */
+.dc-logo{flex:none;width:30px;height:30px;object-fit:contain;
+  border-radius:8px;background:#fff;padding:3px;
+  border:1px solid var(--pv-line-soft)}
+.dc-logo--mono{display:inline-flex;align-items:center;justify-content:center;
+  padding:0;background:var(--pv-surface-2);color:var(--pv-ink-3);
+  font-size:.66rem;font-weight:800;letter-spacing:.01em}
+
+.dc-kv{display:flex;align-items:baseline;justify-content:space-between;
+  gap:12px;padding:9px 0;border-bottom:1px solid var(--pv-line-soft)}
+.dc-kv:last-child{border-bottom:0;padding-bottom:0}
+.dc-kv-k{font-size:.76rem;color:var(--pv-ink-3);line-height:1.5}
+.dc-kv-v{flex:none;font-size:1.02rem;font-weight:800;letter-spacing:-.02em;
+  color:var(--pv-ink);font-variant-numeric:tabular-nums}
+
+/* ── ② 差がつくポイント（表）──────────────────────────────────
+   ★勝ち色・▲▼を付けない。付けた瞬間に「順位を出さない」約束が崩れる。
+     左右の列は最後まで同じ見た目のまま。 */
+.dc-tbl{display:flex;flex-direction:column;margin-top:2px}
+.dc-tr{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,.8fr)
+  minmax(0,.8fr) minmax(0,1.4fr);
+  align-items:baseline;gap:12px;padding:11px 12px;border-radius:var(--pv-r-sm)}
+.dc-tr:nth-child(even){background:var(--pv-surface-2)}
+.dc-c1{font-size:.78rem;color:var(--pv-ink-2);line-height:1.5;min-width:0}
+.dc-c2,.dc-c3{font-size:.9rem;font-weight:800;letter-spacing:-.01em;
+  color:var(--pv-ink);font-variant-numeric:tabular-nums;min-width:0}
+.dc-c4{font-size:.74rem;color:var(--pv-ink-3);line-height:1.55;min-width:0}
+/* 見出し行。★セル側に font 指定があるので、行に書くだけでは効かない。 */
+.dc-th,.dc-th:nth-child(even){background:none;padding-top:4px;padding-bottom:8px}
+.dc-th .dc-c1,.dc-th .dc-c2,.dc-th .dc-c3,.dc-th .dc-c4{
+  font-size:.68rem;font-weight:700;letter-spacing:.03em;
+  color:var(--pv-ink-3);text-transform:uppercase;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* 会社名は広い画面では見出し行が持つので、値の側には出さない */
+.dc-c-a{display:none}
+
+/* ── ③ 給与構成の比較（横棒）──────────────────────────────────
+   ★賞与はこの棒に入っていない（年額。月々の現金の100%を壊す）。
+     モックの凡例には賞与があるが、モックのほうが誤り。表には行として出る。
+   ★棒は pct をそのまま並べる。100% に伸ばし直さない ──
+     3人に満たない項目が抜けている分だけ短いのが正しい。 */
+.dc-mix{display:flex;flex-direction:column;gap:16px;margin-top:4px}
+.dc-bar-row{display:flex;flex-direction:column;gap:8px;min-width:0}
+.dc-bar-h{display:flex;align-items:center;gap:9px;min-width:0}
+.dc-bar-n{min-width:0;font-size:.82rem;font-weight:700;color:var(--pv-ink);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dc-bar{display:flex;height:22px;border-radius:999px;overflow:hidden;
+  background:var(--pv-line-soft);border:1px solid var(--pv-line)}
+.dc-seg{display:block;height:100%;min-width:2px}
+.dc-bar--none{align-items:center;justify-content:center;
+  border-style:dashed;background:none}
+.dc-bar-e{font-size:.7rem;color:var(--pv-ink-3)}
+
+.dc-leg{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:14px}
+.dc-leg-i{display:inline-flex;align-items:center;gap:6px;
+  font-size:.72rem;color:var(--pv-ink-2)}
+.dc-leg-i i{flex:none;width:10px;height:10px;border-radius:3px}
+
+/* ── ④ トレードオフ ──────────────────────────────────────────
+   ★締めの1行は、対が1つも無くても必ず出る。 */
+.dc-to{display:flex;flex-direction:column;gap:10px;margin-top:2px}
+.dc-to-li{display:flex;align-items:flex-start;gap:9px;
+  font-size:.78rem;color:var(--pv-ink-2);line-height:1.65}
+.dc-to-li svg{flex:none;margin-top:2px;color:var(--pv-orange-ink)}
+.dc-to-end{margin-top:14px;padding-top:12px;
+  border-top:1px solid var(--pv-line-soft);
+  font-size:.74rem;color:var(--pv-ink-3);line-height:1.7}
+
+/* ── 狭い画面 ─────────────────────────────────────────────────
+   4列の表は 640px を切ると読めなくなる。横スクロールにはせず、
+   「項目 → 2社の値 → 見えた違い」の3段に畳む。
+   ★このとき見出し行は意味を失うので消し、代わりに値の側の会社名を出す。 */
+@media (max-width:640px){
+  .dc-tr{grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    row-gap:4px;padding:12px}
+  .dc-c1{grid-column:1/-1;font-weight:700;color:var(--pv-ink)}
+  .dc-c4{grid-column:1/-1;padding-top:2px}
+  .dc-th{display:none}
+  .dc-c-a{display:block;font-size:.66rem;font-weight:600;
+    color:var(--pv-ink-3);letter-spacing:.01em;margin-bottom:2px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+}
+@media (max-width:400px){
+  .dc-sides{gap:12px}
+  .dc-side-n{font-size:.88rem}
+  .dc-kv-v{font-size:.95rem}
+  .dc-leg{gap:6px 12px}
+}
