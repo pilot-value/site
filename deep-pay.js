@@ -99,9 +99,9 @@
       trust: '信頼度',
       hi: '高', mid: '中', lo: '低',
 
-      k1: '年収（中央値）',     k1n: '月換算 約 ',
-      k2: '固定給比率',         k2n: '乗務量で動かない報酬 ／ 変動給比率 ',
-      k3: 'Pay / Block Hour',   k3n: '中央値 ／ 月額報酬 ÷ Block Hours',
+      k1: '年収（中央値）',     k1n: '月換算 約 ', k1nb: '月換算（賞与ぬき）約 ',
+      k2: '固定・保証給比率',   k2n: '乗務量に左右されにくい報酬 ／ 変動給比率 ',
+      k3: 'Pay / Block Hour',   k3n: '1人ずつ 年収÷12÷Block Hours ／ その中央値',
 
       compT: '給与構成',
       compS: '月々の現金・賞与ぬき',
@@ -128,6 +128,9 @@
          残したのはこの1行だけ ── 3人の壁は約束、時給と呼ばないのは仕様。
          カードにせず、給与構成の下に淡い1行で置く。 */
       foot: '※ 3人以上そろった区分だけを出します。3人未満は 0 ではなく行ごと出しません。',
+      /* ★年収が何を含むかは、これまで画面のどこにも書いていなかった（2026-09-01 に追加）。
+         中身は db/pay-reports.sql の pv_annual_total と対。あちらを変えたらここも直す。 */
+      footA: '※ 年収＝住宅手当・パーディアム・交通費・賞与・利益分配を含む現金の年換算。現物の社宅は含みません。',
 
       moreT: 'もっと深く見る',
       moreS: '別の切り口で見る。',
@@ -164,9 +167,9 @@
       trust: 'Confidence',
       hi: 'High', mid: 'Medium', lo: 'Low',
 
-      k1: 'Annual pay (median)',   k1n: 'About ',
-      k2: 'Fixed pay share',       k2n: 'Not tied to flying / Variable share ',
-      k3: 'Pay / Block Hour',      k3n: 'Median / monthly pay ÷ block hours',
+      k1: 'Annual pay (median)',   k1n: 'About ', k1nb: 'About (bonus excluded) ',
+      k2: 'Fixed & guaranteed share', k2n: 'Not tied much to flying / Variable share ',
+      k3: 'Pay / Block Hour',      k3n: 'Per-pilot annual÷12÷block hours, median',
 
       compT: 'What the pay is made of',
       compS: 'Monthly cash, bonus excluded',
@@ -189,7 +192,8 @@
       varNote: 'Shares are rounded, so they may not add up to 100%.',
       varLead: ['', ' of variable pay moves with ', '.'],
 
-      foot: 'Only groups of 3+ pilots are shown. Fewer than 3 is left out, not shown as zero.',
+      foot: 'Groups of 3+ pilots only; fewer than 3 is left out, not zero.',
+      footA: 'Annual pay = cash incl. housing allowance, per diem, transport, bonus and profit share; housing in kind is not counted.',
 
       moreT: 'Go deeper',
       moreS: 'More detailed cuts of the same data.',
@@ -303,10 +307,21 @@
     if (n == null) return null;
     return exact(sig2(usdToJpy(n)));
   }
-  function moneyMonth(usd) {                // 年額 USD → 月額の表示
+  /* 年額 USD → 月額の表示。bPct ＝ 年収に占める賞与の割合（%）。
+     ★2026-09-01、ここを**賞与ぬき**にした。同じ画面の「給与構成」の月額は
+       db/deep-pay.sql の ucm ＝ 年収 ×(1−賞与割合)÷12 で出しているのに、
+       ここだけ 年収 ÷ 12 だったので、賞与のぶん**同じ画面に月額が2つ**あった。
+     ★割り算の元は **sig2 済みの年収**（画面に出ている額そのもの）。賞与の割合も
+       すぐ下に出ているので、読み手が「1,600万 × 0.95 ÷ 12 ≒ 130万」と検算できる。
+     ⚠️ 賞与の割合が null のとき（賞与を書いた人が3人に満たず伏せている）は 0 として
+        扱い、**ラベルにも「賞与ぬき」と書かない**（k1n のまま）。本当は賞与がある人が
+        1〜2人いる場合があり、そこで「賞与ぬき」と名乗ると嘘になる。 */
+  function moneyMonth(usd, bPct) {
     var n = num(usd);
     if (n == null) return null;
-    return fmt(sig2(usdToJpy(n) / 12));
+    var b = num(bPct);
+    var keep = b == null ? 1 : Math.max(1 - b / 100, 0);
+    return fmt(sig2(sig2(usdToJpy(n)) * keep / 12));
   }
 
   // ── 図形（アイコンは1か所にまとめる）───────────────────────────
@@ -489,6 +504,8 @@
          （「うち明細あり 0人」と書くと、信じるなと言っているのと同じ）。 */
       var vn = num(S.data && S.data.head && S.data.head.verified_n);
       if (vn) parts.push(T.verif + vn + T.people);
+      /* ★「直近24か月」は db/deep-pay.sql の sane の
+         `created_at >= now() - interval '24 months'` の写し。あちらを変えたらここも直す。 */
       parts.push(T.months);
       var t = trustOf(n || 0, c);
       h += '<div class="dp-cond"><span class="dp-cond-l">' +
@@ -530,19 +547,34 @@
     var box = el('dp-kpi');
     if (!box) return;
     var h = (S.data && S.data.head) || {};
-    var a = money(h.annual_usd), am = moneyMonth(h.annual_usd);
+    /* ★月換算は賞与ぬき（給与構成の月額と同じ土俵）。割合が出ているときだけ
+       ラベルを「月換算（賞与ぬき）約」にする。詳しくは moneyMonth のコメント。 */
+    var bp = num(S.data && S.data.comp && S.data.comp.bonus && S.data.comp.bonus.pct_of_annual);
+    var a = money(h.annual_usd), am = moneyMonth(h.annual_usd, bp);
     var fx = num(h.fixed_pct), pb = moneyExact(h.per_block_usd);
-    /* ★変動給比率は「100 − 固定給比率」ではない。db/deep-pay.sql の fixed_pct は
-       固定＋職位＋役割＋住宅で、残りにはパーディアム・その他・未分類も入っている。
+    /* ★変動給比率は「100 − 固定・保証給比率」ではない。db/deep-pay.sql の fixed_pct は
+       固定＋職位＋役割で、残りにはパーディアム・住宅・その他・未分類も入っている。
        引き算だとそれを全部「変動給」と呼んでしまう。無い区分は行ごと出さない。 */
     var vp = segPct((S.data && S.data.comp && S.data.comp.segs) || [], 'variable');
     var cards = [
-      a == null ? null : kpi({ k: T.k1, v: a, n: am ? T.k1n + am : '', ic: 'org', svg: IC.money }),
+      a == null ? null : kpi({ k: T.k1, v: a,
+                               n: am ? (bp == null ? T.k1n : T.k1nb) + am : '',
+                               ic: 'org', svg: IC.money }),
       fx == null ? null : kpi({ k: T.k2, v: Math.round(fx), u: '%', green: true, ic: 'grn',
                                 svg: IC.pie, n: vp == null ? '' : T.k2n + Math.round(vp) + '%' }),
       pb == null ? null : kpi({ k: T.k3, v: pb, n: T.k3n, ic: 'tea', svg: IC.clock })
     ].filter(Boolean);
-    box.innerHTML = cards.length ? '<div class="dp-kpis">' + cards.join('') + '</div>' : '';
+    /* ★注記は**この1行だけ**（2026-09-01 にここへ集めた）。
+       - 3人の壁（T.foot）── 給与構成のカードの中に置いていた。あの壁は円グラフだけの
+         話ではなく画面全体の約束なので、数字の真下のここが正しい。
+       - 年収の中身（T.footA）── これまで画面のどこにも書いていなかった。
+       ★1つの `<p>` にまとめている。ここは全幅（約1160px）なので2文でも1行に収まる。
+         2つの `<p>` に分けると、行が増えるぶんだけ画面が下へ伸びて 1512×980 に収まらない。
+       ⚠️ 年収のカードが出ていないとき（a == null）は年収の定義を書かない（定義だけ浮く）。 */
+    var fo = cards.length
+      ? '<p class="dp-foot">' + esc(T.foot) + (a == null ? '' : ' ' + esc(T.footA)) + '</p>'
+      : '';
+    box.innerHTML = cards.length ? '<div class="dp-kpis">' + cards.join('') + '</div>' + fo : '';
     box.hidden = !cards.length;
   }
 
@@ -587,9 +619,10 @@
     }
     body += note(esc(T.compNote));
     if (segs.some(function (x) { return x.k === 'rest'; })) body += note(esc(T.restNote));
-    /* ★3人の壁の説明はここ1行だけ。板5枚（データの見方）は消したが、
-       「3人以上そろった区分だけ」は約束なので、いちばん数字の多いカードに残す。 */
-    body += '<p class="dp-foot">' + esc(T.foot) + '</p>';
+    /* ⚠️ ここに `.dp-foot` を戻さない（3人の壁も年収の定義も kpis() の全幅の行に移した）。
+       このカードは上の段の高さを決めている側で、幅が狭いぶん1文が2〜3行に折れ、
+       折れたぶんだけ画面全体が下へ伸びる（1512×980 の1画面に収まらなくなり、
+       実際に assert-deep-pay.mjs の「★1画面に収まる」が落ちた）。 */
 
     box.innerHTML = sec(T.compT, body, T.compS);
     box.hidden = false;

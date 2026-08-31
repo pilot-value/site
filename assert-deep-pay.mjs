@@ -434,6 +434,13 @@ const FULL = {
      detailed_n と同じく**人数**で、12人のうち4人が明細を出した形。
      SEL 側にはわざと入れていない ── 0/未設定のときは条件バーに足さない
      （「うち明細あり 0人」は「信じるな」と書いているのと同じ）。 */
+  /* ⚠️ per_block_usd 93 は annual_usd ÷ 12 ÷ block_h（110000÷12÷74 ≒ 124）と**一致しない**。
+     見本が壊れているのではない。db/deep-pay.sql の hagg は**1人ずつ**比を出してから
+     中央値を取るので、中央値どうしの割り算とは一致しないのが普通
+     （よく飛ぶ人ほど年収が高い形なら必ずこうなる）。
+     ★だから「画面の3つの数字が割り算で結べる」検査をここに足さない。
+       結べることを確かめるのは db/test-deep-pay.mjs の19節 ── あちらは
+       **全員まったく同じ値の区分**をわざと作って、中央値を個人の値に潰している。 */
   head: { annual_usd: 110000, per_block_usd: 93, detailed_n: 12, verified_n: 4, fixed_pct: 62 },
   comp: { total_kind: 'monthly_cash', n: 12,
     segs: [{ k: 'fixed', pct: 52, med_usd: 4800 }, { k: 'variable', pct: 24, med_usd: 2200 },
@@ -477,6 +484,13 @@ const NOVAR = Object.assign(clone(FULL), {
            { k: 'perdiem', pct: 7, med_usd: 640 }, { k: 'housing', pct: 5, med_usd: 460 }],
     bonus: { pct_of_annual: 5, n: 9 } }
 });
+/* 賞与を書いた人が3人に届かず、割合が伏せられている形（comp.bonus が無い）。
+   ★このとき月換算に「（賞与ぬき）」と名乗ってはいけない。賞与のある人が
+     1〜2人いるかもしれず、その人たちのぶんは年収に入ったままだから。 */
+const NOBONUS = Object.assign(clone(FULL), {
+  comp: Object.assign(clone(FULL.comp), { bonus: null })
+});
+
 /* ★2026-08-30 から、この画面は**選ぶまで何も出さない**。だから見本の配置を見る
    筋書きは、先に区分を選ばせないと空のページを撮ることになる。
    中身は FAKE の鍵に使われるだけで、__pick を持たない見本はどの鍵でも
@@ -582,6 +596,12 @@ const SNAP = () => {
     moreBtns: q('#dp-more button').map((e) => ({ dis: e.disabled, tag: e.tagName })),
     moreLinks: q('#dp-more a').length,
     moreHrefs: q('#dp-more a').map((e) => e.getAttribute('href')),
+    /* ★注記（.dp-foot）は「どのカードの中に居るか」まで見る。2026-09-01 に
+       給与構成のカードから KPI の下（全幅）へ移した ── あのカードは段の高さを
+       決めている側で、狭いぶん1文が2〜3行に折れ、折れたぶんだけ画面が下へ伸びた。 */
+    foot: q('#dp-root .dp-foot').map((e) => ({
+      in: ((e.closest('#dp-kpi,#dp-comp,#dp-work,#dp-var,#dp-more') || {}).id) || '',
+      t: e.textContent })),
     cond: (document.querySelector('.dp-cond') || {}).innerText || '',
     pick: (function () {
       const e = document.getElementById('dp-pick');
@@ -672,8 +692,8 @@ const SNAP = () => {
      && s.moreBtns.length === 0,
      '★「もっと深く見る」は 会社比較へのリンク1本だけ（準備中は置かない）',
      JSON.stringify(s.moreHrefs) + ' / ' + JSON.stringify(s.moreBtns));
-  /* ★変動給比率は「100 − 固定給比率」ではない。db/deep-pay.sql の fixed_pct は
-     固定＋職位＋役割＋住宅で、残りにはパーディアム・その他・未分類も入っている。
+  /* ★変動給比率は「100 − 固定・保証給比率」ではない。db/deep-pay.sql の fixed_pct は
+     固定＋職位＋役割で、残りにはパーディアム・住宅・その他・未分類も入っている。
      見本は 固定 62% ／ segs の variable 24%。引き算だと 38% になる。
      ⚠️ 本文全体を見ると凡例の 24% でも通ってしまうので、KPI の添え字だけを見る。 */
   ok(s.kpiN.some((t) => /変動給比率\s*24\s*%/.test(t))
@@ -682,6 +702,101 @@ const SNAP = () => {
      JSON.stringify(s.kpiN));
   ok(!/undefined|NaN|\[object/.test(s.text), '本文に undefined / NaN が出ない');
   ok(errs.length === 0, 'JS のエラーが出ない', errs.join(' / '));
+}
+
+// ── 3c. 数字の定義がそろっている（2026-09-01）──────────────────
+/* ChatGPT の指示 ──「同一条件を選んだとき、DEEP PAY ↓ Pay Structure ↓
+   Pay / Block Hour ↓ Company Compare の数字が論理的・数学的に完全に整合していること」。
+   ここは**画面側**（読み手が電卓で追えるか）。SQL が本当に割り算で結べるかは
+   db/test-deep-pay.mjs の19節が、全員同じ値の区分をわざと作って見ている。 */
+{
+  /* 画面に出ている文字から読み直す。「¥1,700万」→ 1700。 */
+  const man = (t) => {
+    const m = /¥\s*([\d,]+)\s*万/.exec(t || '');
+    return m ? Number(m[1].replace(/,/g, '')) : null;
+  };
+  /* deep-pay.js の sig2 と同じ（有効数字2桁）。 */
+  const sig2 = (v) => {
+    const p = Math.pow(10, Math.floor(Math.log(v) / Math.LN10) - 1);
+    return Math.round(v / p) * p;
+  };
+  const { page } = await open('ja', FULL, 'light', MINE);
+  const s = await page.evaluate(SNAP);
+  const a = man(s.kpiV[0]), m = man(s.kpiN[0]);
+
+  // ── 年収カードの月換算 ──────────────────────────────────────
+  ok(/月換算（賞与ぬき）約/.test(s.kpiN[0] || ''),
+     '★賞与の割合が出ている区分では「月換算（賞与ぬき）」と名乗る', s.kpiN[0]);
+  ok(a != null && m != null && m === sig2(a * (1 - 5 / 100) / 12),
+     '★月換算は「画面の年収 ×(1−賞与割合)÷12」＝読み手が電卓で出せる',
+     `${a}万 × 0.95 ÷ 12 → ${a == null ? '?' : sig2(a * 0.95 / 12)}万 ／ 画面 ${m}万`);
+  /* ★負の対照。賞与を引かない「年収÷12」なら別の数字になる。ここが同じ値だと、
+     上の検査は何も守っていないことになる（見本の年収 1,700万 では 140万 と 130万）。 */
+  ok(a != null && m !== sig2(a / 12),
+     '★賞与を引かない「年収÷12」とは別の数字になる（引く必要があることの証拠）',
+     `年収÷12 → ${a == null ? '?' : sig2(a / 12)}万 ／ 画面 ${m}万`);
+
+  // ── 固定・保証給比率（指示 §3 の言い方）─────────────────────
+  ok(/固定・保証給比率/.test(s.text) && !/固定給比率/.test(s.text),
+     '★見出しは「固定・保証給比率」（古い「固定給比率」は残っていない）');
+  ok(/乗務量に左右されにくい報酬/.test(s.kpiN[1] || ''),
+     '★その補足は「乗務量に左右されにくい報酬」', s.kpiN[1]);
+
+  // ── Pay / Block Hour（指示 §7）──────────────────────────────
+  /* ★保存時の定義は「年収USD ÷ (12 × Block Hours)」（db/pay-reports.sql）。
+     年収には賞与も住宅手当もパーディアムも入っている＝**賞与ぬきの月額報酬ではない**。
+     「月額報酬 ÷ Block Hours」と書くと、給与構成の月額で割ったように読める。 */
+  ok(!/月額報酬/.test(s.text), '★画面のどこにも「月額報酬 ÷ Block Hours」と書かない');
+  ok(/1人ずつ/.test(s.kpiN[2] || ''),
+     '★Pay / Block Hour は「1人ずつ」出した中央値だと書く（＝で結べるように書かない）',
+     s.kpiN[2]);
+
+  // ── 年収の定義（指示 §5）と3人の壁 ─────────────────────────
+  /* ★注記は KPI の下の**1行にまとめる**。給与構成のカードへ戻すと、
+     狭いぶん折れて画面が下へ伸び、「★1画面に収まる」が落ちる。 */
+  ok(s.foot.length === 1 && s.foot[0].in === 'dp-kpi',
+     '★注記は KPI の下の1行だけ（カードの中に散らさない）',
+     JSON.stringify(s.foot.map((f) => f.in)));
+  ok(/3人以上/.test(s.foot[0] ? s.foot[0].t : ''), '★3人の壁は注記に残っている');
+  ok(/年収＝/.test(s.foot[0] ? s.foot[0].t : '')
+     && /住宅手当/.test(s.foot[0].t) && /現物の社宅は含みません/.test(s.foot[0].t),
+     '★年収が何を含むかを画面に書く（現物の社宅は含まない）',
+     s.foot[0] ? s.foot[0].t : '');
+
+  // ── 対象期間（db/deep-pay.sql の interval '24 months' の写し）──
+  ok(/直近\s*24\s*か月/.test(s.cond.replace(/\n/g, ' ')),
+     '★条件バーに対象期間（直近24か月）が出る', s.cond.replace(/\n/g, ' '));
+}
+
+// ── 3d. 賞与の割合が伏せられているときは「賞与ぬき」と名乗らない ──
+/* ★3人に届かず割合が出ていないだけで、賞与が無いとは限らない。
+   そこで「賞与ぬき」と書くと、賞与のある1〜2人ぶんを黙って隠したことになる。 */
+{
+  const { page } = await open('ja', NOBONUS, 'light', MINE);
+  const s = await page.evaluate(SNAP);
+  /* ⚠️ 本文全体で数えない。給与構成のカードの副題が「月々の現金・賞与ぬき」で、
+     あちらは**割合が出ていなくても正しい**（SQL の ucm が賞与を引いた月額だから）。
+     ここで見たいのは年収カードの添え字1本だけ。 */
+  ok(!/賞与ぬき/.test(s.kpiN[0] || ''),
+     '★割合が出ていない区分では月換算に「賞与ぬき」と書かない', s.kpiN[0]);
+  ok(/月換算 約/.test(s.kpiN[0] || ''), '★ラベルは「月換算 約」のまま', s.kpiN[0]);
+}
+
+// ── 3e. 英語側も同じ定義になっている ───────────────────────────
+{
+  const { page } = await open('en', FULL, 'light', MINE);
+  const s = await page.evaluate(SNAP);
+  ok(/Fixed & guaranteed share/.test(s.text) && !/Fixed pay share/.test(s.text),
+     '★英語も「Fixed & guaranteed share」');
+  ok(/bonus excluded/.test(s.kpiN[0] || ''), '★英語も月換算は賞与ぬき', s.kpiN[0]);
+  ok(/Per-pilot/.test(s.kpiN[2] || '') && !/monthly pay/i.test(s.text),
+     '★英語の Pay / Block Hour も「1人ずつ」（monthly pay ÷ … と書かない）', s.kpiN[2]);
+  ok(s.foot.length === 1 && s.foot[0].in === 'dp-kpi'
+     && /housing in kind is not counted/.test(s.foot[0].t),
+     '★英語も注記1行に年収の定義が入っている',
+     JSON.stringify(s.foot));
+  ok(/last 24 months/.test(s.cond.replace(/\n/g, ' ')),
+     '★英語の条件バーにも対象期間が出る', s.cond.replace(/\n/g, ' '));
 }
 
 // ── 3b. variable が3人に届かないと「変動給比率」の行ごと消える ──
@@ -840,7 +955,7 @@ for (const lang of ['ja', 'en']) {
   ok(!/明細あり/.test(b.cond), '★裏付けが0人のときは条件バーに足さない',
      b.cond.replace(/\n/g, ' '));
   ok(b.kpi === 3, '★選んでから数字が出る', `今 ${b.kpi} 枚`);
-  /* 見本の固定給比率は 選んだ区分 71% ／ 素の payload 62%。
+  /* 見本の固定・保証給比率は 選んだ区分 71% ／ 素の payload 62%。
      ★71 が出ることが「選んだ区分の答えを描いている」ことの証拠。 */
   ok(/^71/.test(b.kpiV[1] || ''), '★数字は選んだ区分のもの（素の見本の 62% ではない）',
      JSON.stringify(b.kpiV));
@@ -903,8 +1018,14 @@ for (const lang of ['ja', 'en']) {
       ここが守っているのは「段が1つ増えた」級の後戻り（数十〜百px）。
 
    ⚠️ しきい値を上げて通さない。上げた瞬間にこの回の作業が黙って巻き戻る。
-      実測 ja 854 / en 871（本物のフォント）／ ja 868 / en 871（ここ・代替フォント）。
-      940 はその差ぶんの余裕込み。 */
+      実測（2026-09-01・数字の定義をそろえた回）── ja 905 / en 929（本物のフォント）／
+      **ja 898 / en 932（ここ・代替フォント）**。en は 940 まで残り8px しか無い。
+      ★この回、注記を1行足したのに合計は1pxも増えていない。増えたぶんは
+        「給与構成のカードに入れていた注記を KPI の下の**全幅**の1行にまとめ、
+        3枚のカードの補足を1行に収まる長さへ詰める」ことで相殺した。
+      ⚠️ 注記や補足に**1文字足すとここが落ちる**。落ちたら文言を削るか、
+        `node shot-deep.mjs full en light 1512 measure` で**どの行が折れたか**を見る
+        （折れた1行 ＝ 約17px。カードの補足が折れると段ごと 15px 伸びる）。 */
 for (const lang of ['ja', 'en']) {
   const { page } = await open(lang, FULL, 'light', MINE);
   await page.setViewport({ width: 1512, height: 1000 });

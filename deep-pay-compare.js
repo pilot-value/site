@@ -9,8 +9,8 @@
       薄い区分の合図は `cohort.level === 'none'` ただ1つ。
    2. **無い数字を 0 と書かない。** 片側でも欠けている行は、表から行ごと落とす。
       0% と書くと「その手当が無い会社」に見えるが、実際は「3人に届かず出せない」だけ。
-   3. **変動給比率を「100 − 固定給比率」で出さない。** db/deep-pay.sql の fixed_pct は
-      固定＋職位＋役割＋住宅で、残りにはパーディアム・その他・未分類も入っている。
+   3. **変動給比率を「100 − 固定・保証給比率」で出さない。** db/deep-pay.sql の fixed_pct は
+      固定＋職位＋役割で、残りにはパーディアム・住宅・その他・未分類も入っている。
    4. **順位・パーセンタイル・勝ち負けを書かない。** 差の数値も書かない
       （有効数字2桁の数どうしで「+18%」は嘘の精度）。▲▼も勝ち色も付けない。
    5. **「時給」と呼ばない。** Pay / Block Hour は Block Hours から出した指標。
@@ -62,7 +62,7 @@
       dupS: '会社Aと会社Bに同じ会社が入っています。',
       thinT: 'まだ出せません',
       thinS: '3人そろった区分から順に出ます。',
-      mAnnual: '年収（中央値）', mPbh: 'Pay / Block Hour', mFixed: '固定給比率',
+      mAnnual: '年収（中央値）', mPbh: 'Pay / Block Hour', mFixed: '固定・保証給比率',
       mVar: '変動給比率', mPer: 'パーディアム比率', mHou: '住宅手当比率',
       mPerA: 'パーディアム（月額）', mHouA: '住宅手当（月額）',
       mBonus: '賞与・利益分配', mBlock: 'Block Hours / 月', mStay: 'ステイ / 月',
@@ -81,7 +81,10 @@
       /* ★「データの見方」の板5枚はオーナー判断で削除（2026-08-31・じゃま）。
          残したのはこの1行だけ ── 3人の壁は約束、時給と呼ばないのは仕様。
          カードにせず、表の下に淡い1行で置く（賞与の扱いは mixS が言っている）。 */
-      foot: '※ 3人以上そろった区分だけを出しています。Pay / Block Hour は、投稿された月額報酬を Block Hours で割った参考値です。時給ではありません。',
+      foot: '※ 3人以上そろった区分だけを出しています。Pay / Block Hour は、1人ずつ「年収 ÷ 12 ÷ Block Hours」を出した中央値です。時給ではありません。',
+      /* ★年収が何を含むかは、これまで画面のどこにも書いていなかった（2026-09-01 に追加）。
+         中身は db/pay-reports.sql の pv_annual_total と対。deep-pay.js の footA と同じ文。 */
+      footA: '※ 年収＝住宅手当・パーディアム・交通費・賞与・利益分配を含む現金の年換算。現物の社宅は含みません。',
       ctaT: 'もっと深く見る', ctaS: '別の切り口でも読めます。',
       cta1: '別の会社と比べる', cta3: 'DEEP PAY に戻る',
       lockT: 'DEEP PAY はまだ開いていません',
@@ -109,7 +112,7 @@
       dupS: 'Airline A and airline B are the same.',
       thinT: 'Not available yet',
       thinS: 'Groups appear once 3 pilots have reported.',
-      mAnnual: 'Annual pay (median)', mPbh: 'Pay / Block Hour', mFixed: 'Fixed pay share',
+      mAnnual: 'Annual pay (median)', mPbh: 'Pay / Block Hour', mFixed: 'Fixed & guaranteed share',
       mVar: 'Variable pay share', mPer: 'Per diem share', mHou: 'Housing share',
       mPerA: 'Per diem (monthly)', mHouA: 'Housing allowance (monthly)',
       mBonus: 'Bonus / profit share', mBlock: 'Block hours / month', mStay: 'Layovers / month',
@@ -125,7 +128,8 @@
       tr2: '{n} — median annual pay {x}, layover nights {y}.',
       tr3: '{n} — pay per block hour {x}, block hours {y}.',
       trEnd: 'It is not about which is better, but about what you value.',
-      foot: 'Only groups of 3 or more pilots are shown. Pay / Block Hour divides the reported monthly pay by block hours. It is not an hourly wage.',
+      foot: 'Only groups of 3 or more pilots are shown. Pay / Block Hour is the median of each pilot’s annual pay ÷ 12 ÷ block hours. It is not an hourly wage.',
+      footA: 'Annual pay = cash incl. housing allowance, per diem, transport, bonus and profit share; housing in kind is not counted.',
       ctaT: 'Go deeper', ctaS: 'There are other ways to read this.',
       cta1: 'Compare other airlines', cta3: 'Back to DEEP PAY',
       lockT: 'DEEP PAY is not open yet',
@@ -280,7 +284,7 @@
   function nights(v) { return (Math.round(v * 10) / 10) + T.nightU; }
 
   /* 表に出す9項目。順はモックのまま。
-     ★variable は segPct から取る。「100 − 固定給比率」では出さない
+     ★variable は segPct から取る。「100 − 固定・保証給比率」では出さない
        （db/deep-pay.sql の fixed_pct は固定＋職位＋役割＋住宅で、
          残りにはパーディアム・その他・未分類も入っている）。 */
   var MET = {
@@ -458,7 +462,7 @@
     var box = el('dc-sides');
     if (!box) return;
     /* ★両側とも読めるときはカードを出さない（2026-08-31・オーナー確定）。
-       年収・Pay per BH・固定給比率・Block Hours は**すぐ下の表にも同じ数字が並ぶ**。
+       年収・Pay per BH・固定・保証給比率・Block Hours は**すぐ下の表にも同じ数字が並ぶ**。
        2度出すのをやめて 153px 減らし、1画面に収めている。
        ロゴ・社名・人数は diff() の見出し行が受け持つ。
        ⚠️ この関数ごと消さないこと。**片側だけ薄いときは、読める側の数字がここに
@@ -567,10 +571,11 @@
         '<span class="dc-c3"><small class="dc-c-a">' + nb + '</small>' + esc(r.sb) +
           (hi === 'b' ? dl : '') + '</span></div>';
     }).join('');
-    /* ★3人の壁と「時給ではない」の説明はここ1行だけ。板5枚（データの見方）は
-       消したが、この2つは約束と仕様なので、Pay / Block Hour の行が在る表に残す。 */
+    /* ★3人の壁・「時給ではない」・年収の中身の説明はここの2行だけ。板5枚（データの見方）は
+       消したが、これらは約束と仕様なので、Pay / Block Hour の行が在る表に残す。 */
     box.innerHTML = sec(T.diffT, '<div class="dc-tbl">' + head + body + '</div>' +
-      '<p class="dp-foot">' + esc(T.foot) + '</p>', T.diffS);
+      '<p class="dp-foot">' + esc(T.foot) + '</p>' +
+      '<p class="dp-foot">' + esc(T.footA) + '</p>', T.diffS);
     box.hidden = false;
   }
 
@@ -614,7 +619,7 @@
 
   // ── ④ トレードオフ ────────────────────────────────────────────
   /* 対にするのはこの3つだけ。
-     ★`固定給比率 × 変動給比率` は同じ円の裏表なので入れない（必ず逆に振れる＝情報が無い）。
+     ★`固定・保証給比率 × 変動給比率` は同じ円の裏表なので入れない（必ず逆に振れる＝情報が無い）。
      ★`年収 × Pay / Block Hour` も入れない（後者は前者を Block Hours で割ったもので、
        「年収が高くて Pay/BH も高い」はほとんどの場合ただの言い換えになる）。 */
   var TRADE = [

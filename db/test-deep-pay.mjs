@@ -396,11 +396,20 @@ console.log('\n▼ 5. 給与構成（割合・合計ちょうど100）');
   const v = segs.find(s => s.k === 'variable');
   ok(v && v.pct >= 21 && v.pct <= 26, '★変動給は約24%（4000 / 17000）', JSON.stringify(v));
   ok(d.head.fixed_pct !== null && d.head.fixed_pct > 0 && d.head.fixed_pct < 100,
-     '固定給比率は 0 でも 100 でもない', String(d.head.fixed_pct));
+     '固定・保証給比率は 0 でも 100 でもない', String(d.head.fixed_pct));
   const cmd = segs.find(s => s.k === 'command'), hou = segs.find(s => s.k === 'housing');
-  ok(d.head.fixed_pct === f.pct + cmd.pct + (hou ? hou.pct : 0),
-     '★固定給比率＝固定＋職位＋役割＋住宅（配列と食い違わない）',
-     `${d.head.fixed_pct} vs ${f.pct}+${cmd.pct}+${hou ? hou.pct : 0}`);
+  const rol = segs.find(s => s.k === 'role');
+  ok(d.head.fixed_pct === f.pct + (cmd ? cmd.pct : 0) + (rol ? rol.pct : 0),
+     '★固定・保証給比率＝固定＋職位＋役割（配列と食い違わない）',
+     `${d.head.fixed_pct} vs ${f.pct}+${cmd ? cmd.pct : 0}+${rol ? rol.pct : 0}`);
+  /* ★住宅手当は固定側に入らない（2026-09-01・オーナー確定）。
+     住宅手当は働きに対する報酬ではなく住居の補填で、現物の社宅を出す会社では
+     同じ待遇でも 0 になる。混ぜると会社どうしの比較が成り立たない。
+     この見本は住宅手当を持っているので、足した数と**一致しないこと**が意味を持つ。 */
+  ok(hou && hou.pct > 0, '（この見本には住宅手当が在る）', JSON.stringify(hou));
+  ok(d.head.fixed_pct !== f.pct + (cmd ? cmd.pct : 0) + (rol ? rol.pct : 0) + hou.pct,
+     '★固定・保証給比率に住宅手当は入っていない',
+     `${d.head.fixed_pct} / 住宅を足すと ${f.pct + (cmd ? cmd.pct : 0) + (rol ? rol.pct : 0) + hou.pct}`);
 
   // ── 月額（中央値）── 画面の3列目。割合の「おまけ」。
   ok(segs.every(s => 'med_usd' in s), 'どの区分にも med_usd のキーが在る');
@@ -787,6 +796,77 @@ console.log('\n▼ 17. 「時給」と呼んでいない');
 
 // ════════════════════════════════════════════════════════════
 console.log('\n▼ 18. 末尾の自己点検（オーナーが SQL Editor で見る表）');
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 19. 画面の数字どうしが矛盾しないか（同じ区分の中）');
+// ════════════════════════════════════════════════════════════
+/* ★ここまでの検査は「合わない数字を出さないか」を見てきた。ここは逆に
+     **出している数字どうしが割り算で結べるか**を見る。
+
+   中央値どうしは、ふつう割り算で結べない（1人ずつ比を出してから中央値を取るので、
+   中央値の比とは一致しない）。だから**全員まったく同じ**の区分をわざと作る。
+   中央値＝その1人の値に潰れるので、そこでだけ「＝」で結べる。
+   ここが崩れたら、定義がどこかで入れ替わっている。 */
+{
+  const BH = 80, BON = 24000;             // Block Hours / 年間賞与
+  const IDENT = { ...DET, block_hours: BH, bonus_annual: BON };
+  let uSame;
+  for (let i = 0; i < 4; i++)
+    uSame = await person(A_SPARE, 'cap', 'b787', [{ month: 2 }], IDENT);
+  await openKey(uSame);
+  await asUser(uSame);
+  const d = await deep();
+
+  // 保存した生の値（画面に出る前）。年収と Pay/BH は投稿した瞬間に列へ確定する。
+  const raw = await one(
+    `select annual_total_usd a, usd_per_block_hour p from pay_reports
+      where airline = $1 and position = 'cap' limit 1`, [A_SPARE]);
+  const sig2 = async (v) => Number((await one(`select pv_sig2($1::numeric) v`, [v])).v);
+
+  ok(Number(raw.a) === 12 * 17000 + BON,
+     '★年収＝月々の現金×12 ＋ 年間賞与（内訳17000・賞与24000）', String(raw.a));
+  ok(Number(raw.p) === Math.round(Number(raw.a) / (12 * BH) * 100) / 100,
+     '★Pay / Block Hour ＝ 年収 ÷ 12 ÷ Block Hours（保存時の定義）',
+     `${raw.p} vs ${Number(raw.a) / (12 * BH)}`);
+
+  ok(Number(d.work.block_h) === BH, '★Block Hours はそのまま出ている', String(d.work.block_h));
+  ok(Number(d.head.annual_usd) === await sig2(Number(raw.a)),
+     '★画面の年収＝保存した年収を有効数字2桁にしただけ',
+     `${d.head.annual_usd} vs ${raw.a}`);
+  ok(Number(d.head.per_block_usd) === await sig2(Number(raw.a) / 12 / BH),
+     '★画面の Pay / Block Hour ＝ 年収 ÷ 12 ÷ Block Hours（全員同じなら「＝」で結べる）',
+     `${d.head.per_block_usd} vs ${Number(raw.a) / 12 / BH}`);
+
+  /* ★年収カードの「月換算（賞与ぬき）」と、給与構成の月額が同じ土俵に乗っているか。
+     deep-pay.js の moneyMonth は 年収 ×(1−賞与割合)÷12 で出している。 */
+  const bp = Number(d.comp.bonus.pct_of_annual);
+  ok(bp === Math.round(BON / Number(raw.a) * 100),
+     '★賞与の割合＝年間賞与 ÷ 年収', `${bp} vs ${BON}/${raw.a}`);
+  const monthly = Number(d.head.annual_usd) * (1 - bp / 100) / 12;
+  const amt = d.comp.segs.reduce((a, x) => a + Number(x.med_usd || 0), 0);
+  ok(Math.abs(amt - monthly) / monthly <= 0.08,
+     '★給与構成の月額の合計＝年収 ×(1−賞与割合)÷12（丸めのぶんだけずれる）',
+     `${Math.round(amt)} vs ${Math.round(monthly)}`);
+  /* ⚠️ 賞与を引かないと合わない。引かずに 年収÷12 と比べると 11% ずれる
+        ＝これが 2026-09-01 まで画面に「月額が2つある」状態だったもの。 */
+  ok(Math.abs(amt - Number(d.head.annual_usd) / 12) / (Number(d.head.annual_usd) / 12) > 0.08,
+     '★賞与を引かない 年収÷12 とは合わない（引く必要があることの証拠）',
+     `${Math.round(amt)} vs ${Math.round(Number(d.head.annual_usd) / 12)}`);
+
+  /* ★DEEP PAY と会社比較が同じ数字を出すか。
+     DEEP PAY は引数なし（呼び手自身の区分）、比較は会社・役職・機材を渡す。
+     同じ区分なら**同じ関数の同じ経路**なので、head は1文字も違わないはず。
+     ここが割れたら「同じ ANA / CAP / B787 なのに2つの画面で年収が違う」が起きる。 */
+  const cmp = await deep({ airline: A_SPARE, position: 'cap', fleet: 'b787' });
+  ok(JSON.stringify(cmp.head) === JSON.stringify(d.head),
+     '★DEEP PAY と会社比較で head が完全に同じ',
+     JSON.stringify(cmp.head) + ' vs ' + JSON.stringify(d.head));
+  ok(JSON.stringify(cmp.comp) === JSON.stringify(d.comp),
+     '★DEEP PAY と会社比較で給与構成も完全に同じ');
+  ok(JSON.stringify(cmp.work) === JSON.stringify(d.work),
+     '★DEEP PAY と会社比較で働き方も完全に同じ');
+}
+await asUser(V);
+
 // ════════════════════════════════════════════════════════════
 /* ★ここが一番効く。deep-pay.sql の末尾には、貼れたかどうかをオーナーが
      自分で確かめるための14行の表が付いている。**あの表自体が間違っている**と、

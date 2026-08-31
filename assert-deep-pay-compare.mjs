@@ -134,7 +134,7 @@ console.log('\n════ ③ 数え方・出し方 ════');
   ok(!/\.n\s*<\s*3/.test(jsC), '★JS が人数を自分で数えていない（\\.n < 3 が無い）');
   ok(/level\s*===\s*'none'/.test(jsC), '★薄い区分の合図は cohort.level === \'none\' だけ');
 
-  /* ★変動給比率を「100 − 固定給比率」で出さない（2社ぶん並ぶので嘘が倍になる）。
+  /* ★変動給比率を「100 − 固定・保証給比率」で出さない（2社ぶん並ぶので嘘が倍になる）。
      fixed_pct は 固定＋職位＋役割＋住宅 なので、残りは変動給ではない。 */
   for (const [name, src] of [['deep-pay-compare.js', jsC], ['deep-pay.js', decomment(read('deep-pay.js'))]]) {
     ok(!/100\s*[-−]\s*(Math\.round\()?\s*(fx|fixed)/i.test(src),
@@ -158,7 +158,7 @@ console.log('\n════ ③ 数え方・出し方 ════');
   ok(!!tr, 'TRADE（対にする組）が読める');
   const trs = tr ? tr[1] : '';
   ok(!/'fixed'[\s\S]{0,40}'variable'|'variable'[\s\S]{0,40}'fixed'/.test(trs),
-     '★固定給比率 × 変動給比率 を対にしていない（同じ円の裏表で必ず逆に振れる）');
+     '★固定・保証給比率 × 変動給比率 を対にしていない（同じ円の裏表で必ず逆に振れる）');
   ok(!/'annual'[\s\S]{0,20}y:\s*'pbh'|'pbh'[\s\S]{0,20}y:\s*'annual'/.test(trs),
      '★年収 × Pay/Block Hour を対にしていない（後者は前者を割ったもの）');
   ok((trs.match(/\{\s*x:/g) || []).length === 3, '★対にするのは3つだけ',
@@ -612,7 +612,7 @@ async function open(lang, payload, theme, sel, expect, width) {
      '2社の名前が左右に並ぶ', s.sideN.join(' / '));
   ok(s.sideC.join(',') === '21人,17人', '人数のピルが左右それぞれ出る', s.sideC.join(','));
   /* ★両方読めるときはカード2枚を出さない（2026-08-31・オーナー確定「1画面に収める」）。
-     年収・Pay per BH・固定給比率・Block Hours は**すぐ下の表に同じ数字が並ぶ**ので、
+     年収・Pay per BH・固定・保証給比率・Block Hours は**すぐ下の表に同じ数字が並ぶ**ので、
      カードは同じ数字の2度書きだった。やめて 153px 減らし、ロゴ・社名・人数は
      表の見出し行が受け持つ（上の2本がその見出しを見ている）。
      ⚠️ 戻すときは §5 の「薄いのは片側だけ」も一緒に見ること。あちらはカードが要る。 */
@@ -654,6 +654,19 @@ async function open(lang, payload, theme, sel, expect, width) {
   ok(saysHourly(s.text).ja === 0, '★画面で「時給」と呼ばない（否定する文だけ許す）',
      String(saysHourly(s.text).ja));
   ok(/時給ではありません/.test(s.text), '★「時給ではありません」の但し書きが画面に出ている');
+  /* ── 数字の定義（2026-09-01・DEEP PAY と同じ土俵にそろえた回）──────
+     ★保存時の定義は「年収USD ÷ (12 × Block Hours)」。年収には賞与も住宅手当も
+       パーディアムも入っている＝**賞与ぬきの月額報酬ではない**。
+       「月額報酬 ÷ Block Hours」と書くと、給与構成の月額で割ったように読める。 */
+  ok(!/月額報酬/.test(s.text), '★「月額報酬 ÷ Block Hours」と書かない');
+  ok(/1人ずつ/.test(s.text),
+     '★Pay / Block Hour は「1人ずつ」出した中央値だと書く（＝で結べるように書かない）');
+  /* ★指示 §3 の言い方。住宅手当を外したので「固定給」ではなく「固定・保証給」。 */
+  ok(/固定・保証給比率/.test(s.text) && !/固定給比率/.test(s.text),
+     '★表の見出しは「固定・保証給比率」（古い「固定給比率」は残っていない）');
+  /* ★年収が何を含むかは、これまでどちらの画面にも書いていなかった。 */
+  ok(/年収＝/.test(s.text) && /住宅手当/.test(s.text) && /現物の社宅は含みません/.test(s.text),
+     '★年収が何を含むかを画面に書く（現物の社宅は含まない）');
   ok(!/上位|パーセンタイル|位です/.test(s.text), '★順位・パーセンタイルを出さない');
   ok(errs.length === 0, '2社そろった画面で JS のエラーが出ない', errs.join(' / '));
 }
@@ -793,6 +806,13 @@ for (const [lang, theme] of [['ja', 'dark'], ['en', 'light'], ['en', 'dark']]) {
     ok(!/\b(better|best|winner|worse|beats)\b/i.test(s.text.replace(/It is not about which is[^.]*\./g, '')),
        `${tag}: ★勝ち負けの語を書かない`);
     ok(!/percentile|top \d/i.test(s.text), `${tag}: ★順位・パーセンタイルを書かない`);
+    /* ★数字の定義（2026-09-01）。日本語だけ直して英語が古いまま、を防ぐ。 */
+    ok(/Fixed & guaranteed share/.test(s.text) && !/Fixed pay share/.test(s.text),
+       `${tag}: ★見出しは「Fixed & guaranteed share」`);
+    ok(/housing in kind is not counted/.test(s.text),
+       `${tag}: ★年収が何を含むかを画面に書く（現物の社宅は含まない）`);
+    ok(!/monthly pay ÷/i.test(s.text) && /each pilot/i.test(s.text),
+       `${tag}: ★Pay / Block Hour は「1人ずつ」（monthly pay ÷ … と書かない）`);
   }
   ok(errs.length === 0, `${tag}: JS のエラーが出ない`, errs.join(' / '));
 }
