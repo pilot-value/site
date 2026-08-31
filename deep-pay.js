@@ -83,6 +83,7 @@
       now: '表示中:',
       months: '直近24か月',
       people: '人',
+      verif: 'うち明細あり ',
       allAir: '全社',
       allPos: '全体',
       cat: '同じ機材区分',
@@ -99,9 +100,8 @@
       hi: '高', mid: '中', lo: '低',
 
       k1: '年収（中央値）',     k1n: '月換算 約 ',
-      k2: '固定給比率',         k2n: '変動給比率 ',
-      k3: 'Pay / Block Hour',   k3n: '中央値',
-      k4: '詳細投稿数',         k4u: '件', k4n: '直近24か月の有効投稿',
+      k2: '固定給比率',         k2n: '乗務量で動かない報酬 ／ 変動給比率 ',
+      k3: 'Pay / Block Hour',   k3n: '中央値 ／ 月額報酬 ÷ Block Hours',
 
       compT: '給与構成',
       compS: '月々の現金・賞与ぬき',
@@ -118,11 +118,11 @@
       workS: '中央値 / 月',
       hintT: '時給ではなく、働き方の前提とセットで報酬を見ます。',
       hintS: '同じ年収でも、飛ぶ時間と拘束される時間は会社ごとに倍ちがいます。',
-      workNote: '※ 棒の長さは、時間は節の中で一番長いもの、日数は30日を基準にしています。',
 
-      varT: '変動給の中身',
-      varS: '変動給に占める割合',
+      varT: '何をすると給与が増えるか',
+      varS: '変動給の内訳',
       varNote: '※ 合計は四捨五入のため100%にならない場合があります。',
+      varLead: ['変動給の ', ' は「', '」に連動しています。'],
 
       /* ★「データの見方」の板5枚はオーナー判断で削除（2026-08-31・じゃま）。
          残したのはこの1行だけ ── 3人の壁は約束、時給と呼ばないのは仕様。
@@ -132,8 +132,6 @@
       moreT: 'もっと深く見る',
       moreS: '別の切り口で見る。',
       more1: '会社比較を見る',
-      more2: '役割別で見る',
-      soon: '準備中',
 
       lockT: 'DEEP PAY はまだ開いていません',
       lockKey: '給与を1件出すと、90日ぶん開きます。',
@@ -150,6 +148,7 @@
       now: 'Showing:',
       months: 'last 24 months',
       people: ' pilots',
+      verif: 'payslip-backed ',
       allAir: 'all airlines',
       allPos: 'everyone',
       cat: 'same fleet category',
@@ -166,9 +165,8 @@
       hi: 'High', mid: 'Medium', lo: 'Low',
 
       k1: 'Annual pay (median)',   k1n: 'About ',
-      k2: 'Fixed pay share',       k2n: 'Variable share ',
-      k3: 'Pay / Block Hour',      k3n: 'Median',
-      k4: 'Detailed reports',      k4u: '', k4n: 'Valid reports, last 24 months',
+      k2: 'Fixed pay share',       k2n: 'Not tied to flying / Variable share ',
+      k3: 'Pay / Block Hour',      k3n: 'Median / monthly pay ÷ block hours',
 
       compT: 'What the pay is made of',
       compS: 'Monthly cash, bonus excluded',
@@ -185,19 +183,17 @@
       workS: 'Median / month',
       hintT: 'Pay is read together with the flying, not as an hourly rate.',
       hintS: 'The same annual pay can hide twice the block hours at another airline.',
-      workNote: 'Hour bars are scaled to the longest hour row; day bars to 30 days.',
 
-      varT: 'Inside the variable pay',
-      varS: 'Share of variable pay',
+      varT: 'What makes the pay go up',
+      varS: 'Inside the variable pay',
       varNote: 'Shares are rounded, so they may not add up to 100%.',
+      varLead: ['', ' of variable pay moves with ', '.'],
 
       foot: 'Only groups of 3+ pilots are shown. Fewer than 3 is left out, not shown as zero.',
 
       moreT: 'Go deeper',
       moreS: 'More detailed cuts of the same data.',
       more1: 'Compare airlines',
-      more2: 'Compare roles',
-      soon: 'Soon',
 
       lockT: 'DEEP PAY is not open yet',
       lockKey: 'Share one pay report and it opens for 90 days.',
@@ -213,10 +209,10 @@
 
   /* 給与構成の名前。★区分は8つで固定（db/deep-pay.sql の cseg と同じ順・同じ鍵）。 */
   var CN = {
-    ja: { fixed: '固定・保証給', variable: '変動給', command: '職位手当',
+    ja: { fixed: '基本給・保証給', variable: '変動給', command: '職位手当',
           role: '役割手当', perdiem: 'パーディアム', housing: '住宅手当',
           other: 'その他の現金', rest: 'その他・未分類' },
-    en: { fixed: 'Fixed / guaranteed', variable: 'Variable (flying)', command: 'Rank pay',
+    en: { fixed: 'Base & guaranteed', variable: 'Variable (flying)', command: 'Rank pay',
           role: 'Role pay', perdiem: 'Per diem', housing: 'Housing allowance',
           other: 'Other cash', rest: 'Other / unclassified' }
   }[L];
@@ -488,6 +484,11 @@
       var parts = cohortWords(c);
       var n = num(c.n);
       if (n != null) parts.push(n + T.people);
+      /* ★明細の裏付けがある人数（db/deep-pay.sql の hagg.vfn）。
+         こちらも**人数**で「件」ではない。0 人のときは足さない
+         （「うち明細あり 0人」と書くと、信じるなと言っているのと同じ）。 */
+      var vn = num(S.data && S.data.head && S.data.head.verified_n);
+      if (vn) parts.push(T.verif + vn + T.people);
       parts.push(T.months);
       var t = trustOf(n || 0, c);
       h += '<div class="dp-cond"><span class="dp-cond-l">' +
@@ -501,7 +502,7 @@
     box.innerHTML = h;
   }
 
-  // ── ① KPI 4枚 ─────────────────────────────────────────────────
+  // ── ① KPI 3枚 ─────────────────────────────────────────────────
   /* 表示上の文字幅。全角は2つぶんで数える（「¥1,700万」は7文字だが幅は8）。 */
   function vwidth(s) {
     var n = 0;
@@ -520,14 +521,17 @@
       (o.u ? '<span class="dp-kpi-u">' + esc(o.u) + '</span>' : '') + '</b>' +
       (o.n ? '<span class="dp-kpi-n">' + esc(o.n) + '</span>' : '') + '</span></div>';
   }
-  /* ★4枚作って .filter(Boolean)。数字の無いカードは**落とす**（0 を置かない）。
-     初日は年収と詳細投稿数の2枚しか出ない。それが正しい出力。 */
+  /* ★3枚作って .filter(Boolean)。数字の無いカードは**落とす**（0 を置かない）。
+     初日は年収の1枚しか出ない。それが正しい出力。
+     ★「詳細投稿数」の4枚目は 2026-08-31 に外した。中身は head.detailed_n ＝ **人数**
+       なのに単位が「件」で、しかもすぐ上の条件バーの「◯人」と同じ数だった
+       （db/deep-pay.sql の person が proof_hash で1行＝1人に潰している）。 */
   function kpis() {
     var box = el('dp-kpi');
     if (!box) return;
     var h = (S.data && S.data.head) || {};
     var a = money(h.annual_usd), am = moneyMonth(h.annual_usd);
-    var fx = num(h.fixed_pct), pb = moneyExact(h.per_block_usd), dn = num(h.detailed_n);
+    var fx = num(h.fixed_pct), pb = moneyExact(h.per_block_usd);
     /* ★変動給比率は「100 − 固定給比率」ではない。db/deep-pay.sql の fixed_pct は
        固定＋職位＋役割＋住宅で、残りにはパーディアム・その他・未分類も入っている。
        引き算だとそれを全部「変動給」と呼んでしまう。無い区分は行ごと出さない。 */
@@ -536,8 +540,7 @@
       a == null ? null : kpi({ k: T.k1, v: a, n: am ? T.k1n + am : '', ic: 'org', svg: IC.money }),
       fx == null ? null : kpi({ k: T.k2, v: Math.round(fx), u: '%', green: true, ic: 'grn',
                                 svg: IC.pie, n: vp == null ? '' : T.k2n + Math.round(vp) + '%' }),
-      pb == null ? null : kpi({ k: T.k3, v: pb, n: T.k3n, ic: 'tea', svg: IC.clock }),
-      dn == null ? null : kpi({ k: T.k4, v: dn, u: T.k4u, n: T.k4n, svg: IC.doc })
+      pb == null ? null : kpi({ k: T.k3, v: pb, n: T.k3n, ic: 'tea', svg: IC.clock })
     ].filter(Boolean);
     box.innerHTML = cards.length ? '<div class="dp-kpis">' + cards.join('') + '</div>' : '';
     box.hidden = !cards.length;
@@ -624,43 +627,40 @@
     return '<div class="dp-li"><span class="dp-li-ic">' + o.svg + '</span>' +
       '<span class="dp-li-l"><span class="dp-li-t">' + esc(o.t) + '</span>' +
       (o.s ? '<span class="dp-li-s">' + esc(o.s) + '</span>' : '') + '</span>' +
-      '<span class="dp-li-b"><i class="dp-li-f" style="width:' +
-        Math.max(3, Math.min(100, o.w)).toFixed(1) + '%;background:' + o.c + '"></i></span>' +
+      (o.w == null ? '' :
+        '<span class="dp-li-b"><i class="dp-li-f" style="width:' +
+          Math.max(3, Math.min(100, o.w)).toFixed(1) + '%;background:' + o.c + '"></i></span>') +
       '<span class="dp-li-v">' + esc(o.v) +
       (o.u ? '<small>' + esc(o.u) + '</small>' : '') + '</span></div>';
   }
   /* ★null は行ごと飛ばす。2行以上残ったときだけ節を描く。
-     ★棒の基準は正直に決める ── 時間は同じ節の中で一番長い行、日数は30日。
-       項目ごとの「あるべき上限」を発明しない（発明すると、その基準が
-       どこから来たのか誰にも説明できない）。 */
+     ★棒は置かない（2026-08-31）。Block 74h・Duty 141h・勤務 18日・ステイ 9泊は
+       単位が3種類あり、時間は「節の中で一番長い行」、日数は「30日」と
+       **別々の基準**で伸ばしていた。長さを見比べても意味が無い形だったので、
+       数字と単位だけにした。棒が要るのは同じ単位で並ぶ変動給（--var）だけ。 */
   function work() {
     var box = el('dp-work');
     if (!box) return;
     var wk = (S.data && S.data.work) || {};
     var bh = num(wk.block_h), dh = num(wk.duty_h);
     var dd = num(wk.duty_days), sn = num(wk.stay_nights);
-    var hmax = Math.max(bh || 0, dh || 0) || 1;
-    var C = 'var(--pv-teal)';
     var rows = [
       bh == null ? null : li({ t: 'Block Hours', s: T.workS, v: bh.toFixed(1), u: 'h',
-                               w: bh / hmax * 100, c: C, svg: IC.plane }),
+                               svg: IC.plane }),
       dh == null ? null : li({ t: 'Duty Hours', s: T.workS, v: dh.toFixed(1), u: 'h',
-                               w: dh / hmax * 100, c: C, svg: IC.watch }),
+                               svg: IC.watch }),
       dd == null ? null : li({ t: (L === 'ja') ? '勤務日数' : 'Duty Days', s: T.workS,
                                v: dd.toFixed(1).replace(/\.0$/, ''),
-                               u: (L === 'ja') ? '日' : 'd',
-                               w: dd / 30 * 100, c: C, svg: IC.cal }),
+                               u: (L === 'ja') ? '日' : 'd', svg: IC.cal }),
       sn == null ? null : li({ t: (L === 'ja') ? 'ステイ日数' : 'Stay Nights', s: T.workS,
                                v: sn.toFixed(1).replace(/\.0$/, ''),
-                               u: (L === 'ja') ? '泊' : 'n',
-                               w: sn / 30 * 100, c: C, svg: IC.bed })
+                               u: (L === 'ja') ? '泊' : 'n', svg: IC.bed })
     ].filter(Boolean);
     if (rows.length < 2) { box.hidden = true; box.innerHTML = ''; return; }
     box.innerHTML = sec(T.workT,
       '<div class="dp-list dp-list--work">' + rows.join('') + '</div>' +
       '<div class="dp-hint">' + IC.info.replace('24" height="24', '16" height="16') +
-        '<p><b>' + esc(T.hintT) + '</b><br>' + esc(T.hintS) + '</p></div>' +
-      note(esc(T.workNote)));
+        '<p><b>' + esc(T.hintT) + '</b><br>' + esc(T.hintS) + '</p></div>');
     box.hidden = false;
   }
 
@@ -682,24 +682,32 @@
                   c: COL.variable, svg: IC.layer });
     }).filter(Boolean);
     if (rows.length < 2) { box.hidden = true; box.innerHTML = ''; return; }
-    box.innerHTML = sec(T.varT, '<div class="dp-list dp-list--var">' + rows.join('') + '</div>' +
+    /* ★一番大きい区分を1文にする。**2区分以上あるときだけ**（1つしか無いと
+       必ず「100%」になり、読んでも何も分からない行が1本増えるだけ）。
+       値は既に画面に出ている var[0].pct をそのまま使う ── 表の数字と1桁も違わない。 */
+    var lead = '';
+    var t0 = v.filter(function (x) { return num(x.pct) > 0; })
+              .sort(function (a, b) { return num(b.pct) - num(a.pct); })[0];
+    if (t0 && rows.length >= 2) {
+      var ln0 = (VN[t0.k] || [t0.k])[0];
+      lead = '<p class="dp-lead">' + esc(T.varLead[0]) +
+        '<b>' + Math.round(num(t0.pct)) + '%</b>' + esc(T.varLead[1]) +
+        '<b>' + esc(ln0) + '</b>' + esc(T.varLead[2]) + '</p>';
+    }
+    box.innerHTML = sec(T.varT, lead + '<div class="dp-list dp-list--var">' + rows.join('') + '</div>' +
       note(esc(T.varNote)), T.varS);
     box.hidden = false;
   }
 
   // ── ⑥ もっと深く見る ──────────────────────────────────────────
   /* 会社比較（deep-pay-compare.html）は在るので本物の <a href>。
-     ★役割別はまだ無い。無い先へリンクすると assert-links.mjs が404で落とすので
-       disabled の <button> のままにして「準備中」と書く。 */
+     ★2026-08-31、「役割別で見る（準備中）」の押せないボタンを外した。
+       押せないものを並べると、押せる1本がどれか分かりにくくなる。
+       ⚠️ 無い先へリンクを張らない（assert-links.mjs が404で落とす）。
+       役割別ができたら ln() をもう1本足すだけでよい。 */
   function more() {
     var box = el('dp-more');
     if (!box) return;
-    function bn(t, ic) {
-      return '<button type="button" class="dp-more-b" disabled>' +
-        ic.replace('24" height="24', '15" height="15') + esc(t) +
-        '<span class="dp-more-c">' + esc(T.soon) + '</span>' +
-        IC.chev.replace('24" height="24', '15" height="15') + '</button>';
-    }
     function ln(href, t, ic) {
       return '<a class="dp-more-b dp-more-b--on" href="' + esc(href) + '">' +
         ic.replace('24" height="24', '15" height="15') + esc(t) +
@@ -709,8 +717,7 @@
       '<div class="dp-more-l"><span class="dp-more-ic">' + IC.eye + '</span>' +
       '<span class="dp-more-tx"><span class="dp-more-t">' + esc(T.moreT) + '</span>' +
       '<span class="dp-more-s">' + esc(T.moreS) + '</span></span></div>' +
-      '<div class="dp-more-r">' + ln('deep-pay-compare.html', T.more1, IC.layer) +
-        bn(T.more2, IC.users) + '</div>' +
+      '<div class="dp-more-r">' + ln('deep-pay-compare.html', T.more1, IC.layer) + '</div>' +
       '</div></section>';
     box.hidden = false;
   }

@@ -77,7 +77,7 @@
      画面から分からない**（「Boeing 787 Dreamli」と読める形で止まる）。
    ラベルと「選択をクリア」を1行目に置き、4欄を2×2に流す。
    ★.dp-pick-f は自動配置。1行目の2マスが埋まっているので2行目から並ぶ。 */
-#dc-pick.dp-pick{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+#dc-pick.dp-pick{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,.9fr) minmax(0,.9fr);
   gap:10px 16px;align-items:end}
 /* ★「選択をクリア」は2行目の右端に**列として**置く（2026-08-31）。
    前はラベルと重ねて1行目をまるごと占めていたが、見出しを消したいま
@@ -174,27 +174,34 @@
    ★勝ち色・▲▼を付けない。付けた瞬間に「順位を出さない」約束が崩れる。
      左右の列は最後まで同じ見た目のまま。 */
 .dc-tbl{display:flex;flex-direction:column;margin-top:2px}
-/* ★列の配分は**実測で決めた**（2026-08-31）。1.3/.8/.8/1.4 から動かしている。
-     4列目（見えた違い）は「All Nippon Airways (ANA) is higher」のように社名を含むので、
-     英語では 1.4fr（約168px）に入り切らず**9行ぜんぶが2行に折れて** 115px 太った。
-     4列目を 1.6fr に広げ、そのぶんを1列目と値の2列から出す。
-       1.3/.8/1.4 … en 底 1030 ❌   1.15/.75/1.6 … en 底 932 ✓（ja はどれでも 923）
-     1.05/.7/1.8 まで広げても 932 のまま（そこから先は右の列が背を決める）ので、
-     1列目に一番余裕の残る 1.15 を採る。
-   ⚠️ 見出し行の社名（2・3列目）は3行に折れるが、それでいい ── 折れるのは**1行だけ**。
-      逆に2・3列目を広げると4列目が痩せ、9行ぶん折れて何倍も損をする。 */
-.dc-tr{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.75fr)
-  minmax(0,.75fr) minmax(0,1.6fr);
+/* ★列の配分は**実測で決めた**（2026-08-31・3列に組み直したとき）。
+     4列目「見えた違い」を廃止し、差を高いほうの値のセルに数値で添える形にした。
+     廃止前は、英語の4列目が「All Nippon Airways (ANA) is higher」のように社名を含むため
+     1.4fr（約168px）に入り切らず**9行ぜんぶ2行に折れて** 115px 太っていた。
+     その原因ごと無くなったので、旧 1.15/.75/.75/1.6 は捨てて測り直している。
+     測ったのは英語（項目名が長い側）の .dc-tbl の高さ ──
+       1/1/1 … 341.8（"Housing allowance (monthly)" が2行に折れる）
+       1.2/.9/.9 … 339.7 ✓（データ行は9行とも1行に収まる）
+       1.35/.83/.83 も 1.5/.75/.75 も 339.7 のまま＝ここから先は縮まない。
+     いちばん値の側に余裕を残せる 1.2/.9/.9 を採る（ja はどれでも 923）。
+   ⚠️ 値のセルは「¥2,000万 +¥300万」のように**2つの数字が並ぶ**。
+      1列目を欲張ると先に値のほうが折れる（9行ぶん効くので損が大きい）。
+   ⚠️ 1.2 では見出し行の社名が2行に折れるが、それでいい ── 折れるのは**1行だけ**。 */
+.dc-tr{display:grid;
+  grid-template-columns:minmax(0,1.2fr) minmax(0,.9fr) minmax(0,.9fr);
   align-items:baseline;gap:12px;padding:4px 12px;border-radius:var(--pv-r-sm)}
 .dc-tr:nth-child(even){background:var(--pv-surface-2)}
 .dc-c1{font-size:.78rem;color:var(--pv-ink-2);line-height:1.5;min-width:0}
 .dc-c2,.dc-c3{font-size:.9rem;font-weight:800;letter-spacing:-.01em;
   color:var(--pv-ink);font-variant-numeric:tabular-nums;min-width:0}
-.dc-c4{font-size:.74rem;color:var(--pv-ink-3);line-height:1.5;min-width:0}
+/* 差の数値。★色で勝ち負けを付けない（緑・赤にした瞬間に「順位を出さない」約束が崩れる）。
+   置き場所が高いほうを示すので、語も記号も要らない。 */
+.dc-dl{margin-left:6px;font-size:.76rem;font-weight:700;letter-spacing:0;
+  color:var(--pv-ink-3);white-space:nowrap}
 /* 見出し行。★セル側に font 指定があるので、行に書くだけでは効かない。 */
 .dc-th,.dc-th:nth-child(even){background:none;padding-top:0;padding-bottom:6px;
   align-items:flex-end;border-bottom:1px solid var(--pv-line);border-radius:0}
-.dc-th .dc-c1,.dc-th .dc-c4{
+.dc-th .dc-c1{
   font-size:.68rem;font-weight:700;letter-spacing:.03em;
   color:var(--pv-ink-3);text-transform:uppercase;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -243,14 +250,13 @@
   font-size:.74rem;color:var(--pv-ink-3);line-height:1.6}
 
 /* ── 狭い画面 ─────────────────────────────────────────────────
-   4列の表は 640px を切ると読めなくなる。横スクロールにはせず、
-   「項目 → 2社の値 → 見えた違い」の3段に畳む。
+   3列の表は 640px を切ると読めなくなる。横スクロールにはせず、
+   「項目 → 2社の値」の2段に畳む。
    ★このとき見出し行は意味を失うので消し、代わりに値の側の会社名を出す。 */
 @media (max-width:640px){
   .dc-tr{grid-template-columns:minmax(0,1fr) minmax(0,1fr);
     row-gap:4px;padding:12px}
   .dc-c1{grid-column:1/-1;font-weight:700;color:var(--pv-ink)}
-  .dc-c4{grid-column:1/-1;padding-top:2px}
   .dc-th{display:none}
   .dc-c-a{display:block;font-size:.66rem;font-weight:600;
     color:var(--pv-ink-3);letter-spacing:.01em;margin-bottom:2px;

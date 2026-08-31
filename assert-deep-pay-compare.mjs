@@ -171,9 +171,19 @@ console.log('\n════ ③ 数え方・出し方 ════');
 
   /* ★「ほぼ同じ」は画面に出す文字列どうしで判定する（丸めた後に同じ表示になる値がある）。 */
   ok(/same:\s*sa === sb/.test(jsC), '★「ほぼ同じ」は表示する文字列で判定している');
-  const sawFn = (decomment(JS).match(/function saw\([\s\S]*?\n  \}/) || [''])[0];
-  ok(sawFn.length > 0 && !/va\s*[-−]\s*vb|vb\s*[-−]\s*va|va\s*\/\s*vb|vb\s*\/\s*va/.test(sawFn),
-     '★saw() は差も比も計算していない（有効数字2桁に対して「+18%」は嘘の精度）');
+  /* ★差は 2026-08-31 から数値で出す（オーナー確定「語を書かず数値だけ」）。
+     許されるのは**画面に出ている2つの文字列の引き算**だけ。生の値で引くと、
+     金額は有効数字2桁（pv_sig2）に丸めてから画面に出ているので、
+     読み手が自分で引き算した答えと合わない数が出る＝2桁より細かい精度の主張になる。 */
+  const deltaFn = (decomment(JS).match(/function delta\([\s\S]*?\n  \}/) || [''])[0];
+  ok(deltaFn.length > 0, '★差を出す delta() が在る');
+  ok(!/va\s*[-−]\s*vb|vb\s*[-−]\s*va|va\s*\/\s*vb|vb\s*\/\s*va/.test(deltaFn),
+     '★差を生の値で引いていない（丸める前の値で引くと画面の数字と辻褄が合わない）');
+  ok(/partsOf\(r\.sa\)[\s\S]{0,80}partsOf\(r\.sb\)/.test(deltaFn),
+     '★差は画面に出ている2つの文字列から出している');
+  /* ★割合の差は pt。71% と 64% の差は 7 ポイントで 7% ではない。 */
+  ok(/'%'\s*\?\s*'pt'/.test(deltaFn), '★割合の差の単位は pt（% と書かない）');
+  ok(!/[▲▼↑↓+]-|より高い|の方が/.test(jsC), '★差に勝ち負けの記号・語を添えていない');
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -400,12 +410,29 @@ const SNAP = () => {
     usd: ((document.getElementById('dc-root').innerText.match(/\$/g) || []).length),
     sideEmpty: [...document.querySelectorAll('#dc-sides .dc-side')]
       .map((e) => (e.querySelector('.pt-empty') || {}).textContent || ''),
-    rows: [...document.querySelectorAll('#dc-diff .dc-tr:not(.dc-th)')].map((r) => ({
-      k: (r.querySelector('.dc-c1') || {}).textContent || '',
-      a: (r.querySelector('.dc-c2') || {}).textContent || '',
-      b: (r.querySelector('.dc-c3') || {}).textContent || '',
-      s: (r.querySelector('.dc-c4') || {}).textContent || ''
-    })),
+    /* ★4列目「見えた違い」は 2026-08-31 に列ごと廃止。差は**高いほうの値のセル**に
+       .dc-dl で添える。d = 差の数値、side = どちらの列に付いたか、
+       a/b = 差を除いた素の値（同じ表示かどうかをここで見る）。 */
+    rows: [...document.querySelectorAll('#dc-diff .dc-tr:not(.dc-th)')].map((r) => {
+      const bare = (e) => {
+        if (!e) return '';
+        const d = e.querySelector('.dc-dl');
+        const n = e.querySelector('.dc-c-a');
+        let x = e.textContent || '';
+        if (d) x = x.replace(d.textContent, '');
+        if (n) x = x.replace(n.textContent, '');
+        return x.trim();
+      };
+      const da = (r.querySelector('.dc-c2 .dc-dl') || {}).textContent || '';
+      const db = (r.querySelector('.dc-c3 .dc-dl') || {}).textContent || '';
+      return {
+        k: (r.querySelector('.dc-c1') || {}).textContent || '',
+        a: bare(r.querySelector('.dc-c2')),
+        b: bare(r.querySelector('.dc-c3')),
+        d: (da || db).trim(),
+        side: da ? 'a' : (db ? 'b' : '')
+      };
+    }),
     diffEmpty: t('#dc-diff .pt-empty'),
     bars: [...document.querySelectorAll('#dc-mix .dc-bar-row')]
       .map((r) => r.querySelectorAll('.dc-seg').length),
@@ -595,13 +622,20 @@ async function open(lang, payload, theme, sel, expect, width) {
      '★条件バーは「◯人 vs ◯人」と「直近24か月」（件ではない・12か月ではない）',
      s.condK.join(' / '));
   ok(s.rows.length === 9, '★9項目とも両側にあるので9行出る', String(s.rows.length));
-  ok(s.rows.every((r) => r.a.trim() && r.b.trim() && r.s.trim()),
-     '空のセルが無い');
-  ok(!s.rows.some((r) => /ほぼ同じ/.test(r.s)), '違う値に「ほぼ同じ」と書かない');
-  ok(s.rows.filter((r) => /日本航空|JAL/.test(r.s)).length === 7
-     && s.rows.filter((r) => /ANA|全日/.test(r.s)).length === 2,
+  ok(s.rows.every((r) => r.a.trim() && r.b.trim()), '空のセルが無い');
+  /* ★差は**値が違う行にだけ**付く。同じ表示の行に付けると、
+     「+0」や「+¥0万」が並んで、丸めた後の同じ数字を違うように見せてしまう。 */
+  ok(s.rows.every((r) => (r.a !== r.b) === !!r.d),
+     '★値が違う行にだけ差の数値が付く（同じ行にはどちらにも付けない）',
+     s.rows.map((r) => `${r.a}|${r.b}|${r.d}`).join(' / '));
+  ok(s.rows.every((r) => !r.d || /^\+/.test(r.d)),
+     '★差は必ず「+」から始まる（置き場所が高いほうを示すので符号は常に +）',
+     s.rows.map((r) => r.d).join(' / '));
+  /* ★勝った会社を1列にまとめない。項目ごとに、差が付く側が入れ替わる。 */
+  ok(s.rows.filter((r) => r.side === 'b').length === 7
+     && s.rows.filter((r) => r.side === 'a').length === 2,
      '★どちらが高いかは項目ごとに入れ替わる（勝った会社をまとめない）',
-     s.rows.map((r) => r.s).join(' / '));
+     s.rows.map((r) => r.side + r.d).join(' / '));
   ok(s.bars.join(',') === '5,5' && s.barNone === 0,
      '★給与構成の棒が左右2本（賞与は棒に入れない＝5区分）', s.bars.join(','));
   ok(s.leg.length === 5 && !s.leg.some((t) => /賞与|ボーナス/.test(t)),
@@ -609,8 +643,11 @@ async function open(lang, payload, theme, sel, expect, width) {
   ok(s.rows.some((r) => /賞与/.test(r.k)), '賞与は表には行として残る');
   ok(s.to.length === 2, '★トレードオフは最大2行', String(s.to.length));
   ok(/どちらが良いかではなく/.test(s.toEnd), '締めの1行が必ず出る', s.toEnd);
-  ok(s.ctaA.join(',') === 'deep-pay.html' && s.ctaOn === 1 && s.ctaOff === 1,
-     '★下の入口は 戻るリンク1本＋押せるボタン1つ＋準備中1つ',
+  /* ★「準備中」の押せないボタンは置かない（2026-08-31・オーナー確定）。
+     押せないボタンは読み手の時間を1回奪って何も返さない。
+     役割別ができたら、そのときリンクを1本足す。 */
+  ok(s.ctaA.join(',') === 'deep-pay.html' && s.ctaOn === 1 && s.ctaOff === 0,
+     '★下の入口は 戻るリンク1本＋押せるボタン1つ（準備中は置かない）',
      `${s.ctaA.join(',')} on=${s.ctaOn} off=${s.ctaOff}`);
   /* ★『Pay / Block Hour は…（時給ではありません）』は**時給ではないと断っている**文。
      素の grep だと、約束を書いた画面ほど赤くなる。②と同じ数え方を画面にも当てる。 */
@@ -666,10 +703,10 @@ async function open(lang, payload, theme, sel, expect, width) {
 {
   const { page } = await open('ja', OK, 'light', { a: 'ana', b: 'emirates' });
   const s = await page.evaluate(SNAP);
-  ok(s.rows.length === 9 && s.rows.every((r) => r.s === 'ほぼ同じ'),
-     '★★同じ数字が並んでいるのに「◯◯の方が高い」と書かない（表示文字列で判定）',
-     s.rows.map((r) => `${r.a}|${r.b}|${r.s}`).join(' / '));
-  ok(!/の方が/.test(s.text), '「の方が」が1つも出ない');
+  ok(s.rows.length === 9 && s.rows.every((r) => r.a === r.b && !r.d),
+     '★★同じ数字が並んでいるのに差の数値を書かない（表示文字列で判定）',
+     s.rows.map((r) => `${r.a}|${r.b}|${r.d}`).join(' / '));
+  ok(!/の方が|より高い|より長い/.test(s.text), '勝ち負けを言う語が1つも出ない');
   ok(s.to.length === 0,
      '★全部同じならトレードオフは出ない（締めの1行だけ）', s.to.join(' / '));
 }

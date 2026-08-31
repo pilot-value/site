@@ -51,7 +51,7 @@
       hd: '会社を比べる',
       hdS: '2社を横に並べて、同じ物差しで読みます。順位は付けません。',
       now: '表示中:', months: '直近24か月', people: '人', vs: 'vs',
-      pickA: '会社A', pickB: '会社B', pickPos: '役職', pickFlt: '機材',
+      pickA: '会社A', pickB: '会社B', pickPos: '役職（両社共通）', pickFlt: '機材（両社共通）',
       pickAny: '選択する', pickReset: '選択をクリア',
       allPos: '役職を問わない', allFlt: '機材を問わない',
       rg: { japan: '日本', mideast: '中東', asia: 'アジア', europe: '欧州',
@@ -64,28 +64,26 @@
       thinS: '3人そろった区分から順に出ます。',
       mAnnual: '年収（中央値）', mPbh: 'Pay / Block Hour', mFixed: '固定給比率',
       mVar: '変動給比率', mPer: 'パーディアム比率', mHou: '住宅手当比率',
+      mPerA: 'パーディアム（月額）', mHouA: '住宅手当（月額）',
       mBonus: '賞与・利益分配', mBlock: 'Block Hours / 月', mStay: 'ステイ / 月',
       nightU: '泊',
-      diffT: '差がつくポイント', diffS: '両方に数字がある項目だけ',
+      diffT: '差がつくポイント', diffS: '両社で比較できる項目だけ',
       diffNone: 'この条件では、並べられる項目がまだありません。',
-      thItem: '項目', thSaw: '見えた違い',
-      same: 'ほぼ同じ', sideOf: 'の方が',
-      wHi: '高い', wLong: '長い', wMany: '多い',
+      thItem: '項目',
       mixT: '給与構成の比較', mixS: '月々の現金・賞与ぬき',
       mixNone: 'この2社では、給与構成をまだ並べられません。',
       mixNote: '※ 3人に満たない項目は棒に入れていません。棒の合計が100%にならないことがあります。',
       tradeT: 'トレードオフ', tradeS: '同じ側が2つとも上回ったときだけ',
-      tr1: '{n}は年収の中央値が高く、Block Hours も長い。',
-      tr2: '{n}は年収の中央値が高く、ステイの泊数も多い。',
-      tr3: '{n}は Pay / Block Hour が高く、Block Hours も長い。',
+      tr1: '{n} ── 年収の中央値 {x}、Block Hours {y}。',
+      tr2: '{n} ── 年収の中央値 {x}、ステイの泊数 {y}。',
+      tr3: '{n} ── Pay / Block Hour {x}、Block Hours {y}。',
       trEnd: 'どちらが良いかではなく、何を重視するかで見方が変わります。',
       /* ★「データの見方」の板5枚はオーナー判断で削除（2026-08-31・じゃま）。
          残したのはこの1行だけ ── 3人の壁は約束、時給と呼ばないのは仕様。
          カードにせず、表の下に淡い1行で置く（賞与の扱いは mixS が言っている）。 */
-      foot: '※ 3人以上そろった区分だけを出しています。Pay / Block Hour は金額 ÷ Block Hours で、時給ではありません。',
+      foot: '※ 3人以上そろった区分だけを出しています。Pay / Block Hour は、投稿された月額報酬を Block Hours で割った参考値です。時給ではありません。',
       ctaT: 'もっと深く見る', ctaS: '別の切り口でも読めます。',
-      cta1: '別の会社と比べる', cta2: '役割別の差を見る', cta3: 'DEEP PAY に戻る',
-      soon: '準備中',
+      cta1: '別の会社と比べる', cta3: 'DEEP PAY に戻る',
       lockT: 'DEEP PAY はまだ開いていません',
       lockKey: '給与を1件出すと、90日ぶん開きます。',
       lockDet: '内訳（基本給・手当）まで書いた明細を1件出すと開きます。',
@@ -97,7 +95,10 @@
       hd: 'Compare airlines',
       hdS: 'Two airlines side by side, read on the same scale. No ranking.',
       now: 'Showing:', months: 'last 24 months', people: ' pilots', vs: 'vs',
-      pickA: 'Airline A', pickB: 'Airline B', pickPos: 'Seat', pickFlt: 'Fleet',
+      pickA: 'Airline A', pickB: 'Airline B',
+      /* ★役職・機材は左右で共通。ラベルにそう書く ── 見出しを1段足すと
+         1画面（1512×980）の約束を破るので、語だけで解く。 */
+      pickPos: 'Seat (both airlines)', pickFlt: 'Fleet (both airlines)',
       pickAny: 'Select', pickReset: 'Clear',
       allPos: 'Any seat', allFlt: 'Any fleet',
       rg: { japan: 'Japan', mideast: 'Middle East', asia: 'Asia', europe: 'Europe',
@@ -110,25 +111,23 @@
       thinS: 'Groups appear once 3 pilots have reported.',
       mAnnual: 'Annual pay (median)', mPbh: 'Pay / Block Hour', mFixed: 'Fixed pay share',
       mVar: 'Variable pay share', mPer: 'Per diem share', mHou: 'Housing share',
+      mPerA: 'Per diem (monthly)', mHouA: 'Housing allowance (monthly)',
       mBonus: 'Bonus / profit share', mBlock: 'Block hours / month', mStay: 'Layovers / month',
       nightU: ' nights',
-      diffT: 'Where they differ', diffS: 'Only rows both sides report',
+      diffT: 'Where they differ', diffS: 'Only rows both airlines report',
       diffNone: 'Nothing can be lined up for this group yet.',
-      thItem: 'Item', thSaw: 'What shows',
-      same: 'About the same', sideOf: ' ',
-      wHi: 'is higher', wLong: 'is longer', wMany: 'has more',
+      thItem: 'Item',
       mixT: 'Pay mix, side by side', mixS: 'Monthly cash, bonus excluded',
       mixNone: 'The pay mix cannot be lined up for these two yet.',
       mixNote: 'Items reported by fewer than 3 pilots are left out of the bar, so a bar may not reach 100%.',
       tradeT: 'Trade-offs', tradeS: 'Only when the same side leads both',
-      tr1: '{n} has higher median annual pay and longer block hours.',
-      tr2: '{n} has higher median annual pay and more layover nights.',
-      tr3: '{n} has a higher pay per block hour and longer block hours.',
+      tr1: '{n} — median annual pay {x}, block hours {y}.',
+      tr2: '{n} — median annual pay {x}, layover nights {y}.',
+      tr3: '{n} — pay per block hour {x}, block hours {y}.',
       trEnd: 'It is not about which is better, but about what you value.',
-      foot: 'Only groups of 3 or more pilots are shown. Pay / Block Hour is pay divided by block hours, not an hourly wage.',
+      foot: 'Only groups of 3 or more pilots are shown. Pay / Block Hour divides the reported monthly pay by block hours. It is not an hourly wage.',
       ctaT: 'Go deeper', ctaS: 'There are other ways to read this.',
-      cta1: 'Compare other airlines', cta2: 'Compare roles', cta3: 'Back to DEEP PAY',
-      soon: 'Soon',
+      cta1: 'Compare other airlines', cta3: 'Back to DEEP PAY',
       lockT: 'DEEP PAY is not open yet',
       lockKey: 'Share one pay report and it opens for 90 days.',
       lockDet: 'Share one report with the breakdown (base pay and allowances) to open it.',
@@ -142,10 +141,10 @@
      ★bonus はここに無い（年額なので月々の現金の100%に混ぜられない）。 */
   var SEGK = ['fixed', 'variable', 'command', 'role', 'perdiem', 'housing', 'other', 'rest'];
   var CN = {
-    ja: { fixed: '固定・保証給', variable: '変動給', command: '職位手当',
+    ja: { fixed: '基本給・保証給', variable: '変動給', command: '職位手当',
           role: '役割手当', perdiem: 'パーディアム', housing: '住宅手当',
           other: 'その他の現金', rest: 'その他・未分類' },
-    en: { fixed: 'Fixed / guaranteed', variable: 'Variable (flying)', command: 'Rank pay',
+    en: { fixed: 'Base & guaranteed', variable: 'Variable (flying)', command: 'Rank pay',
           role: 'Role pay', perdiem: 'Per diem', housing: 'Housing allowance',
           other: 'Other cash', rest: 'Other / unclassified' }
   }[L];
@@ -270,6 +269,12 @@
     for (var i = 0; i < segs.length; i++) if (segs[i].k === k) return num(segs[i].pct);
     return null;
   }
+  /* 区分ごとの月額中央値（USD）。db/deep-pay.sql の cseg が 3人以上そろった区分にだけ
+     載せてくる。無ければ null ── 0 を返さない（segPct と同じ理由）。 */
+  function segAmt(segs, k) {
+    for (var i = 0; i < segs.length; i++) if (segs[i].k === k) return num(segs[i].med_usd);
+    return null;
+  }
   function pct(v) { return Math.round(v) + '%'; }
   function hrs(v) { return (Math.round(v * 10) / 10) + 'h'; }
   function nights(v) { return (Math.round(v * 10) / 10) + T.nightU; }
@@ -279,23 +284,28 @@
        （db/deep-pay.sql の fixed_pct は固定＋職位＋役割＋住宅で、
          残りにはパーディアム・その他・未分類も入っている）。 */
   var MET = {
-    annual:   { lab: T.mAnnual, wd: T.wHi,   f: money,
+    annual:   { lab: T.mAnnual, f: money,
                 get: function (x) { return num(x.head && x.head.annual_usd); } },
-    pbh:      { lab: T.mPbh,    wd: T.wHi,   f: moneyExact,
+    pbh:      { lab: T.mPbh,    f: moneyExact,
                 get: function (x) { return num(x.head && x.head.per_block_usd); } },
-    fixed:    { lab: T.mFixed,  wd: T.wHi,   f: pct,
+    fixed:    { lab: T.mFixed,  f: pct,
                 get: function (x) { return num(x.head && x.head.fixed_pct); } },
-    variable: { lab: T.mVar,    wd: T.wHi,   f: pct,
+    variable: { lab: T.mVar,    f: pct,
                 get: function (x) { return segPct(segsOf(x), 'variable'); } },
-    perdiem:  { lab: T.mPer,    wd: T.wHi,   f: pct,
-                get: function (x) { return segPct(segsOf(x), 'perdiem'); } },
-    housing:  { lab: T.mHou,    wd: T.wHi,   f: pct,
-                get: function (x) { return segPct(segsOf(x), 'housing'); } },
-    bonus:    { lab: T.mBonus,  wd: T.wHi,   f: pct,
+    /* ★パーディアム・住宅手当は**両側に月額がそろったときだけ**金額で並べる。
+       片側しか無いときは今までどおり率（率なら必ず両側に在る）。
+       0 で埋めない・「—」で埋めない ── どちらも「手当が無い会社」に見えてしまう。 */
+    perdiem:  { lab: T.mPer,    labA: T.mPerA, f: pct, fA: moneyExact,
+                get: function (x) { return segPct(segsOf(x), 'perdiem'); },
+                amt: function (x) { return segAmt(segsOf(x), 'perdiem'); } },
+    housing:  { lab: T.mHou,    labA: T.mHouA, f: pct, fA: moneyExact,
+                get: function (x) { return segPct(segsOf(x), 'housing'); },
+                amt: function (x) { return segAmt(segsOf(x), 'housing'); } },
+    bonus:    { lab: T.mBonus,  f: pct,
                 get: function (x) { return num(x.comp && x.comp.bonus && x.comp.bonus.pct_of_annual); } },
-    block:    { lab: T.mBlock,  wd: T.wLong, f: hrs,
+    block:    { lab: T.mBlock,  f: hrs,
                 get: function (x) { return num(x.work && x.work.block_h); } },
-    stay:     { lab: T.mStay,   wd: T.wMany, f: nights,
+    stay:     { lab: T.mStay,   f: nights,
                 get: function (x) { return num(x.work && x.work.stay_nights); } }
   };
   var ORDER = ['annual', 'pbh', 'fixed', 'variable', 'perdiem', 'housing', 'bonus', 'block', 'stay'];
@@ -462,26 +472,65 @@
   }
 
   // ── ② 差がつくポイント ────────────────────────────────────────
+  /* 1項目ぶんの左右。表もトレードオフもここだけを見る（2か所で別々に組むと、
+     同じ項目で違う数が出る）。 */
+  function pairOf(k, A, B) {
+    var m = MET[k];
+    /* ★金額で出せるのは**両側そろったときだけ**。片側だけ金額にすると
+       「¥12万 vs 5%」という並びになり、比べようが無い。 */
+    var aa = m.amt ? m.amt(A) : null, ab = m.amt ? m.amt(B) : null;
+    var useA = aa != null && ab != null;
+    var va = useA ? aa : m.get(A), vb = useA ? ab : m.get(B);
+    if (va == null || vb == null) return null;   // ★片側でも無ければ行ごと落とす
+    var f = useA ? m.fA : m.f;
+    var sa = f(va), sb = f(vb);
+    if (sa == null || sb == null) return null;
+    /* ★「ほぼ同じ」は画面に出す文字列どうしで判定する。
+       有効数字2桁で丸めた後に同じ表示になる値を「違う」と書くと、
+       同じ数字が2つ並んでいるのに差が出ているように見える。 */
+    return { m: m, lab: (useA && m.labA) ? m.labA : m.lab,
+             va: va, vb: vb, sa: sa, sb: sb, same: sa === sb };
+  }
   function rowsOf() {
     var A = S.side.a, B = S.side.b, out = [];
     if (sideThin(A) || sideThin(B)) return out;
     ORDER.forEach(function (k) {
-      var m = MET[k], va = m.get(A), vb = m.get(B);
-      if (va == null || vb == null) return;      // ★片側でも無ければ行ごと落とす
-      var sa = m.f(va), sb = m.f(vb);
-      if (sa == null || sb == null) return;
-      /* ★「ほぼ同じ」は画面に出す文字列どうしで判定する。
-         有効数字2桁で丸めた後に同じ表示になる値を「違う」と書くと、
-         同じ数字が2つ並んでいるのに「◯◯の方が高い」と出る。 */
-      out.push({ m: m, va: va, vb: vb, sa: sa, sb: sb, same: sa === sb });
+      var r = pairOf(k, A, B);
+      if (r) out.push(r);
     });
     return out;
   }
-  /* ★差の数値は書かない（有効数字2桁に対して「+18%」は嘘の精度）。
-     良い・悪いも書かない。書くのは「どちらが高い／長い／多いか」だけ。 */
-  function saw(r) {
-    if (r.same) return T.same;
-    return airName(r.va > r.vb ? S.sel.a : S.sel.b) + T.sideOf + r.m.wd;
+  /* ★差は「画面に出ている2つの文字列の引き算そのもの」にする。生の値では引かない。
+     金額は有効数字2桁（db/deep-pay.sql の pv_sig2）、時間は小数1桁に丸めてから
+     画面に出ている。丸める前の値で引くと、読み手が自分で引き算した答えと合わない数が出る。
+     文字列どうしで引けば、**画面の3つの数字はいつでも辻褄が合う**し、
+     2桁より細かい精度を主張しない。
+     ★良い・悪い・どちらが勝ちは書かない。書くのは数値だけ（オーナー確定 2026-08-31）。 */
+  var NUMRE = /[\d,]*\.?\d+/;
+  function partsOf(str) {
+    var t = String(str), m = NUMRE.exec(t);
+    if (!m) return null;
+    return { pre: t.slice(0, m.index), suf: t.slice(m.index + m[0].length),
+             v: Number(m[0].replace(/,/g, '')),
+             dec: (m[0].split('.')[1] || '').length,
+             comma: m[0].indexOf(',') >= 0 };
+  }
+  function delta(r) {
+    if (!r || r.same) return '';
+    var A = partsOf(r.sa), B = partsOf(r.sb);
+    /* 記号や単位が左右で違う形（起きないはずだが、起きたら黙って出さない）。 */
+    if (!A || !B || A.pre !== B.pre || A.suf !== B.suf) return '';
+    var d = Math.abs(A.v - B.v);
+    if (!isFinite(d) || !(d > 0)) return '';
+    var dec = Math.max(A.dec, B.dec);
+    var body = dec ? d.toFixed(dec) : String(Math.round(d));
+    if (A.comma || B.comma || d >= 1000) {
+      var sp = body.split('.');
+      body = Number(sp[0]).toLocaleString('en-US') + (sp[1] ? '.' + sp[1] : '');
+    }
+    /* ★割合の差の単位は「pt」。71% と 64% の差は 7 ポイントで 7% ではない
+       （7% と書くと「64% の 7%」＝ 4.5 ポイントとも読める）。 */
+    return '+' + A.pre + body + (A.suf === '%' ? 'pt' : A.suf);
   }
   function diff() {
     var box = el('dc-diff');
@@ -502,17 +551,21 @@
         '<span class="dc-side-c">' + esc(n == null ? '—' : (n + T.people)) + '</span></span>';
     };
     var head = '<div class="dc-tr dc-th"><span class="dc-c1">' + esc(T.thItem) + '</span>' +
-      th('dc-c2', 'a') + th('dc-c3', 'b') +
-      '<span class="dc-c4">' + esc(T.thSaw) + '</span></div>';
+      th('dc-c2', 'a') + th('dc-c3', 'b') + '</div>';
     /* ★狭い画面では見出し行が畳まれるので、値の側にも会社名を持たせる
        （CSS だけでは「どちらの列がどちらの会社か」を出せない）。
        広い画面では .dc-c-a が display:none になり、見出し行が受け持つ。 */
     var na = esc(airName(S.sel.a)), nb = esc(airName(S.sel.b));
+    /* ★差は**高いほうのセルにだけ**添える。どちらの会社かを語で言う代わりに、
+       数字の置き場所そのもので示す（オーナー確定 ── 語は書かず数値だけ）。 */
     var body = rows.map(function (r) {
-      return '<div class="dc-tr"><span class="dc-c1">' + esc(r.m.lab) + '</span>' +
-        '<span class="dc-c2"><small class="dc-c-a">' + na + '</small>' + esc(r.sa) + '</span>' +
-        '<span class="dc-c3"><small class="dc-c-a">' + nb + '</small>' + esc(r.sb) + '</span>' +
-        '<span class="dc-c4">' + esc(saw(r)) + '</span></div>';
+      var d = delta(r), hi = d && r.va > r.vb ? 'a' : (d ? 'b' : '');
+      var dl = '<small class="dc-dl">' + esc(d) + '</small>';
+      return '<div class="dc-tr"><span class="dc-c1">' + esc(r.lab) + '</span>' +
+        '<span class="dc-c2"><small class="dc-c-a">' + na + '</small>' + esc(r.sa) +
+          (hi === 'a' ? dl : '') + '</span>' +
+        '<span class="dc-c3"><small class="dc-c-a">' + nb + '</small>' + esc(r.sb) +
+          (hi === 'b' ? dl : '') + '</span></div>';
     }).join('');
     /* ★3人の壁と「時給ではない」の説明はここ1行だけ。板5枚（データの見方）は
        消したが、この2つは約束と仕様なので、Pay / Block Hour の行が在る表に残す。 */
@@ -578,16 +631,14 @@
     var box = el('dc-trade');
     if (!box) return;
     /* rowsOf() は表の見た目のための配列なので、ここでは鍵で引ける形に組み直す。
-       ★同じ f() を通しているので「ほぼ同じ」の判定は表と必ず一致する。 */
+       ★組み立ては pairOf() 1か所きり。表と別々に計算すると、同じ項目なのに
+       表とここで違う数が出る（金額と率が入れ替わる行があるので特に）。 */
     var map = {};
     var A = S.side.a, B = S.side.b;
     if (!sideThin(A) && !sideThin(B)) {
       ORDER.forEach(function (k) {
-        var m = MET[k], va = m.get(A), vb = m.get(B);
-        if (va == null || vb == null) return;
-        var sa = m.f(va), sb = m.f(vb);
-        if (sa == null || sb == null) return;
-        map[k] = { va: va, vb: vb, same: sa === sb };
+        var r = pairOf(k, A, B);
+        if (r) map[k] = r;
       });
     }
     var ic = IC.scale.replace('24" height="24', '15" height="15');
@@ -595,10 +646,16 @@
       var lx = leadOf(map, p.x), ly = leadOf(map, p.y);
       /* ★同じ側が両方で上回ったときだけ出す。片方ずつなら「トレードオフ」ではない。 */
       if (!lx || lx !== ly) return '';
+      var dx = delta(map[p.x]), dy = delta(map[p.y]);
+      /* 差を数値で出せない形（単位が左右で違う等）なら、その1行は黙って出さない。
+         語だけ残すと「高い一方」という勝ち負けの文になってしまう。 */
+      if (!dx || !dy) return '';
       var nm = airName(lx === 'a' ? S.sel.a : S.sel.b);
       /* ★replace の「新しい側」に文字列を渡さない（$ が特殊記号として解釈される）。 */
-      return '<div class="dc-to-li">' + ic + '<span>' +
-        esc(p.t).split('{n}').join(esc(nm)) + '</span></div>';
+      var tx = esc(p.t).split('{n}').join(esc(nm))
+                       .split('{x}').join(esc(dx))
+                       .split('{y}').join(esc(dy));
+      return '<div class="dc-to-li">' + ic + '<span>' + tx + '</span></div>';
     }).filter(Boolean).slice(0, 2).join('');
     box.innerHTML = sec(T.tradeT,
       (lines ? '<div class="dc-to">' + lines + '</div>' : '') +
@@ -607,17 +664,12 @@
   }
 
   // ── ⑥ 下の入口 ────────────────────────────────────────────────
-  /* 役割別はまだ無い。無い先へリンクすると assert-links.mjs が404で落とすので
-     disabled の <button> のままにして「準備中」と書く。 */
+  /* ★「準備中」のボタンは置かない（2026-08-31・オーナー確定）。
+     押せないボタンは、その場で読み手の時間を1回奪って何も返さない。
+     役割別ができたら、そのときリンクを1本足す。 */
   function cta() {
     var box = el('dc-cta');
     if (!box) return;
-    function bn(t, ic) {
-      return '<button type="button" class="dp-more-b" disabled>' +
-        ic.replace('24" height="24', '15" height="15') + esc(t) +
-        '<span class="dp-more-c">' + esc(T.soon) + '</span>' +
-        IC.chev.replace('24" height="24', '15" height="15') + '</button>';
-    }
     box.innerHTML = '<section class="mr-card"><div class="dp-more">' +
       '<div class="dp-more-l"><span class="dp-more-ic">' + IC.eye + '</span>' +
       '<span class="dp-more-tx"><span class="dp-more-t">' + esc(T.ctaT) + '</span>' +
@@ -626,7 +678,6 @@
         '<button type="button" class="dp-more-b dp-more-b--on" id="dc-again">' +
           IC.layer.replace('24" height="24', '15" height="15') + esc(T.cta1) +
           IC.chev.replace('24" height="24', '15" height="15') + '</button>' +
-        bn(T.cta2, IC.users) +
         '<a class="dp-more-b dp-more-b--on" href="deep-pay.html">' +
           IC.back.replace('24" height="24', '15" height="15') + esc(T.cta3) + '</a>' +
       '</div></div></section>';

@@ -430,7 +430,11 @@ const FULL = {
   gate: { key: true, detailed: true, contributors: 37, goal: 100 },
   give: { detailed: true }, stats: STATS,
   cohort: { level: 'airline_pos_fleet', manual: false, airline: 'ana', pos: 'fo', fleet: 'a320', n: 12 },
-  head: { annual_usd: 110000, per_block_usd: 93, detailed_n: 12, fixed_pct: 62 },
+  /* ★verified_n は「明細の裏付けがある人数」（db/deep-pay.sql:768 の hagg.vfn）。
+     detailed_n と同じく**人数**で、12人のうち4人が明細を出した形。
+     SEL 側にはわざと入れていない ── 0/未設定のときは条件バーに足さない
+     （「うち明細あり 0人」は「信じるな」と書いているのと同じ）。 */
+  head: { annual_usd: 110000, per_block_usd: 93, detailed_n: 12, verified_n: 4, fixed_pct: 62 },
   comp: { total_kind: 'monthly_cash', n: 12,
     segs: [{ k: 'fixed', pct: 52, med_usd: 4800 }, { k: 'variable', pct: 24, med_usd: 2200 },
            { k: 'command', pct: 8, med_usd: 730 }, { k: 'perdiem', pct: 7, med_usd: 640 },
@@ -569,6 +573,12 @@ const SNAP = () => {
     comp: sec('dp-comp'), work: sec('dp-work'), vari: sec('dp-var'),
     more: sec('dp-more'),
     bars: q('#dp-var .dp-li-f').map((e) => getComputedStyle(e).backgroundColor),
+    /* ★働き方の節の棒（2026-08-31 に廃止）。Block 74h・Duty 141h・勤務 18日・
+       ステイ 9泊は**単位が違う**ので、同じ基準の棒で並べても長さを比べる意味が無い。
+       0 なら「棒が無い」＝正しい。 */
+    workBars: q('#dp-work .dp-li-b').length,
+    /* ★変動給の1行の要約（一番大きい区分）。2区分以上あるときだけ出す。 */
+    varLead: q('#dp-var .dp-lead').map((e) => e.textContent),
     moreBtns: q('#dp-more button').map((e) => ({ dis: e.disabled, tag: e.tagName })),
     moreLinks: q('#dp-more a').length,
     moreHrefs: q('#dp-more a').map((e) => e.getAttribute('href')),
@@ -625,22 +635,42 @@ const SNAP = () => {
 {
   const { page, errs } = await open('ja', FULL, 'light', MINE);
   const s = await page.evaluate(SNAP);
-  ok(s.kpi === 4, 'そろっていれば KPI は4枚', `今 ${s.kpi} 枚`);
+  /* ★3枚（2026-08-31）。4枚目「詳細投稿数 ◯件」を捨てた ── 中身は
+     db/deep-pay.sql の hagg の count(*) ＝**人数**で、単位が「件」なのが誤り。
+     しかもすぐ上の条件バーの「◯人」と同じ数で、同じ数を2回出していた。
+     人数は条件バーが受け持つ（「12人 / うち明細あり 4人」）。 */
+  ok(s.kpi === 3, 'そろっていれば KPI は3枚', `今 ${s.kpi} 枚`);
   ok(s.donut === 1, 'ドーナツは1つ', `今 ${s.donut} 個`);
   ok(s.legend.length === 6, '凡例は渡した6区分ぶん', `今 ${s.legend.length} 行`);
   ok(s.work.rows === 4, '働き方は4行', `今 ${s.work.rows} 行`);
+  /* ★働き方に棒を戻さない。時間・日・泊は単位が違うので、
+     同じ基準で伸ばした棒は長さを比べる意味が無い（戻すと静かに嘘になる）。 */
+  ok(s.workBars === 0, '★働き方の行に棒を付けない（時間・日・泊は単位が違う）',
+     `今 ${s.workBars} 本`);
+  ok(!/棒の長さ/.test(s.work.text), '★消した棒の説明書きも残っていない');
+  /* ★「何をすると給与が増えるか」の1行。一番大きい区分を名指しする。 */
+  ok(s.varLead.length === 1 && /46\s*%/.test(s.varLead[0]),
+     '★変動給の節に「一番大きい区分」の1行が出る', JSON.stringify(s.varLead));
+  /* ★人数を「件」と書かない。db/deep-pay.sql は proof_hash で1行＝1人に潰している。 */
+  ok(!/件/.test(s.cond), '★条件バーで人数を「件」と書かない', s.cond.replace(/\n/g, ' '));
+  ok(/うち明細あり\s*4\s*人/.test(s.cond.replace(/\n/g, ' ')),
+     '★明細の裏付けがある人数を条件バーに出す（head.verified_n）',
+     s.cond.replace(/\n/g, ' '));
   ok(s.vari.rows === 6, '変動給は6行', `今 ${s.vari.rows} 行`);
   /* ★night / weekend / holiday は3つのまま（1行にまとめない）。 */
   const nwh = ['夜間', '週末', '祝'].filter((w) => s.vari.text.includes(w));
   ok(nwh.length === 3, '★夜間・週末・祝日は3行のまま（1つにまとめない）', nwh.join(''));
   /* ★棒は全部同じ色（色で良し悪しを言わない）。 */
   ok(new Set(s.bars).size === 1, '★変動給の棒は全部同じ色', [...new Set(s.bars)].join(' '));
-  /* ★会社比較は在る（<a>）／役割別はまだ無い（無効の <button> ＋「準備中」）。
-     無い先へリンクすると assert-links.mjs が404で落とす。逆に、出来た先を
-     ボタンのままにすると誰も辿り着けない。だから**両方**を数で固定する。 */
+  /* ★「準備中」の押せないボタンは置かない（2026-08-31・オーナー確定）。
+     押せないボタンは、その場で読み手の時間を1回奪って何も返さない。
+     出来た先へリンクを足すのはそのときで、それまでは在る道1本だけを出す。
+     ⚠️ ここを 0 に固定しているので、次に「準備中」を足そうとすると赤くなる。
+        足したくなったら、まずこの行と assert-deep-pay-compare.mjs の
+        「下の入口」を見ること（あちらも同じ日に 0 にした）。 */
   ok(s.moreLinks === 1 && s.moreHrefs[0] === 'deep-pay-compare.html'
-     && s.moreBtns.length === 1 && s.moreBtns.every((b) => b.dis),
-     '★「もっと深く見る」は 会社比較へのリンク1本 ＋ 無効のボタン1つ',
+     && s.moreBtns.length === 0,
+     '★「もっと深く見る」は 会社比較へのリンク1本だけ（準備中は置かない）',
      JSON.stringify(s.moreHrefs) + ' / ' + JSON.stringify(s.moreBtns));
   /* ★変動給比率は「100 − 固定給比率」ではない。db/deep-pay.sql の fixed_pct は
      固定＋職位＋役割＋住宅で、残りにはパーディアム・その他・未分類も入っている。
@@ -660,7 +690,7 @@ const SNAP = () => {
 {
   const { page } = await open('ja', NOVAR, 'light', MINE);
   const s = await page.evaluate(SNAP);
-  ok(s.kpi === 4, 'カードの枚数は変わらない（消えるのは中の1行）', `今 ${s.kpi} 枚`);
+  ok(s.kpi === 3, 'カードの枚数は変わらない（消えるのは中の1行）', `今 ${s.kpi} 枚`);
   ok(!s.kpiN.some((t) => /変動給/.test(t)),
      '★variable が無い区分では「変動給比率」を書かない（0% とも 38% とも書かない）',
      JSON.stringify(s.kpiN));
@@ -730,7 +760,7 @@ for (const lang of ['ja', 'en']) {
        `${lang}/${theme}: ★画面で「時給」と呼んでいない`, h.en.join(' / '));
     ok(/Pay \/ Block Hour/.test(s.text), `${lang}/${theme}: Pay / Block Hour が出ている`);
     ok(!/上位|percentile/i.test(s.text), `${lang}/${theme}: ★順位を書いていない`);
-    ok(s.kpi === 4, `${lang}/${theme}: KPI は4枚`, `今 ${s.kpi} 枚`);
+    ok(s.kpi === 3, `${lang}/${theme}: KPI は3枚`, `今 ${s.kpi} 枚`);
     /* ★相対のまま。'/deep-pay-compare.html' に直すと /en/ から日本語版へ飛ぶ。 */
     ok(s.moreHrefs.length === 1 && s.moreHrefs[0] === 'deep-pay-compare.html',
        `${lang}/${theme}: ★会社比較の行き先は相対のまま（/en/ からは /en/ に解ける）`,
@@ -805,7 +835,11 @@ for (const lang of ['ja', 'en']) {
      && b.args[1].p.position === 'cap' && b.args[1].p.fleet === 'b787',
      '★選んだ区分をそのままサーバへ渡す', JSON.stringify(b.args[1]));
   ok(/日本航空/.test(b.cond), '★選んだ区分の見出しになる', b.cond.replace(/\n/g, ' '));
-  ok(b.kpi === 4, '★選んでから数字が出る', `今 ${b.kpi} 枚`);
+  /* ★明細の裏付けが 0 人（この見本は verified_n を持たない）のときは**足さない**。
+     「うち明細あり 0人」と書くのは、この数字を信じるなと書いているのと同じ。 */
+  ok(!/明細あり/.test(b.cond), '★裏付けが0人のときは条件バーに足さない',
+     b.cond.replace(/\n/g, ' '));
+  ok(b.kpi === 3, '★選んでから数字が出る', `今 ${b.kpi} 枚`);
   /* 見本の固定給比率は 選んだ区分 71% ／ 素の payload 62%。
      ★71 が出ることが「選んだ区分の答えを描いている」ことの証拠。 */
   ok(/^71/.test(b.kpiV[1] || ''), '★数字は選んだ区分のもの（素の見本の 62% ではない）',

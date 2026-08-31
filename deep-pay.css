@@ -188,14 +188,16 @@
      アイコン26 ＋ 隙間10 ＋ ラベル160 ＋ 隙間10 ＋ 棒56 ＋ 隙間10 ＋ 値52 ＝ 324。
      2列＋列間18 で 666。余白を見て 676 から。これより狭いと素直に1列へ戻る
      （中途半端に2列のまま痩せると、ラベルが折り返して逆に高くなる）。 */
-/* 働き方の4行は「Block Hours」＋「中央値 / 月」のように短い。縦に積むと
+/* 働き方の4行には棒が無い（単位が3種類あって長さを比べられないため
+   2026-08-31 に外した）。ラベルを伸ばして値を右端へ寄せる。
+   4行は「Block Hours」＋「中央値 / 月」のように短い。縦に積むと
    1行 33.6px、横に並べると 26px（アイコンの高さ）で済む ── 4行で 30px 縮む。
    ★変動給（--var）には掛けない。あちらのラベルは
      「飛行・クレジット時間 / Flight / Block / Credit Hours」で、横に並べると
      どのみち折り返して逆に高くなる。
    ★flex-wrap を必ず置く。狭い器では素直に縦へ戻る（下の 340px の規則と噛み合う）。 */
-.dp-list--work .dp-li-l{flex-direction:row;flex-wrap:wrap;align-items:baseline;
-  gap:2px 6px}
+.dp-list--work .dp-li-l{flex:1 1 auto;flex-direction:row;flex-wrap:wrap;
+  align-items:baseline;gap:2px 6px}
 .dp-list--work .dp-li-s{margin-top:0}
 
 @container (min-width:676px){
@@ -228,14 +230,12 @@
 /* ★.dp-row の中に入れたら、段の間は .dp-row 側が持っている。
    消し忘れると右の板だけ 14px 下がって、左のカードと頭が揃わない。 */
 .dp-row>#dp-more{margin-top:0}
-/* ★下の段では幅が 256px しかない。既定の「文章の右に入口2つ」を保ったままだと、
-   入口が2つとも器に入りきらずに縮み、**ボタンの中の文字が2行に折れる**
-   （「役割別の差を見／る」と読める形で止まり、崩れたとは気づきにくい）。
+/* ★下の段では幅が 256px しかない。文章の右に入口を置いたままだと器に入りきらず、
+   **ボタンの中の文字が2行に折れる**（崩れたとは気づきにくい形で止まる）。
    だからこの段だけは縦に積み、入口は器いっぱいに広げる。 */
 .dp-row--var .dp-more{flex-direction:column;align-items:stretch;gap:12px}
 .dp-row--var .dp-more-r{flex-direction:column;gap:8px}
 .dp-row--var .dp-more-b{justify-content:flex-start}
-.dp-row--var .dp-more-b .dp-more-c{margin-left:auto}
 .dp-more{display:flex;align-items:center;justify-content:space-between;gap:14px;
   flex-wrap:wrap}
 .dp-more-l{display:flex;align-items:center;gap:12px;min-width:0}
@@ -246,14 +246,13 @@
 .dp-more-t{font-size:.95rem;font-weight:800;letter-spacing:-.01em}
 .dp-more-s{font-size:.72rem;color:var(--pv-ink-3);margin-top:2px;line-height:1.45}
 .dp-more-r{display:flex;gap:10px;flex-wrap:wrap}
-/* ★役割別はまだ行き先が無いので <a href> にしない（assert-links.mjs が404で落とす）。
-   会社比較だけ .dp-more-b--on を重ねて本物のリンクにする。 */
+/* ★行き先が無いものはここに置かない（2026-08-31 に「役割別（準備中）」を外した）。
+   押せる入口には .dp-more-b--on を重ねる。素の .dp-more-b は押せない見た目のまま。 */
 .dp-more-b{display:inline-flex;align-items:center;gap:8px;font:inherit;
   font-size:.78rem;font-weight:700;color:var(--pv-ink-2);
   background:var(--pv-surface);border:1px solid var(--pv-line);
   border-radius:999px;padding:8px 13px;cursor:not-allowed;opacity:.72}
 .dp-more-b svg{width:15px;height:15px;flex:none}
-.dp-more-b .dp-more-c{margin-left:2px;color:var(--pv-ink-3)}
 .dp-more-b--on{cursor:pointer;opacity:1;text-decoration:none;
   transition:transform .18s var(--pv-ease),box-shadow .18s var(--pv-ease),
              border-color .18s var(--pv-ease)}
@@ -297,6 +296,10 @@
 #dp-root .mr-card{padding:16px 18px}
 #dp-root .mr-card-h{margin-bottom:10px}
 #dp-root .pt-note{margin-top:6px;line-height:1.5}
+/* 変動給の節の頭の1文（「変動給の 46% は「飛行…」に連動しています。」）。
+   値は表の1行目と同じ var[0].pct を使う ── 別に計算しない。 */
+.dp-lead{margin:10px 0 0;font-size:.82rem;line-height:1.5;color:var(--pv-ink-2)}
+.dp-lead b{font-weight:800;color:var(--pv-ink)}
 #dp-comp .pt-h:empty{display:none}          /* 見出しはカード側が持っている */
 #dp-comp .pt-donut-wrap{gap:18px;align-items:center;margin-top:12px}
 #dp-comp .pt-donut{width:140px;height:140px}
