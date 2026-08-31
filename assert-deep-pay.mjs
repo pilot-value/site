@@ -567,7 +567,7 @@ const SNAP = () => {
     compCta: q('#dp-comp a[href*="pay-report"]').length,
     legend: q('#dp-comp .pt-leg:not(.dp-th) .amt').map((e) => e.textContent),
     comp: sec('dp-comp'), work: sec('dp-work'), vari: sec('dp-var'),
-    notes: sec('dp-notes'), more: sec('dp-more'),
+    more: sec('dp-more'),
     bars: q('#dp-var .dp-li-f').map((e) => getComputedStyle(e).backgroundColor),
     moreBtns: q('#dp-more button').map((e) => ({ dis: e.disabled, tag: e.tagName })),
     moreLinks: q('#dp-more a').length,
@@ -765,21 +765,27 @@ for (const lang of ['ja', 'en']) {
      '役職と機材は語彙そのまま（＋「選択する」1つ）',
      `役職 ${a.pick.pos.n} / 機材 ${a.pick.flt.n}`);
   ok(!a.pick.reset, '何も選んでいないうちは「選択をクリア」を出さない');
-  /* ★ラベル（区分を選ぶ）と同じ段に欄が上がってこないこと。grid の1行目に空きが
-     残ると、そこへ最初の欄が吸い込まれて「区分を選ぶ｜会社／役職｜機材」に崩れる。
-     ★「選択をクリア」が出ていない状態でだけ起きる（実際に起きた）ので、
-       選ぶ前と選んだ後の両方で見る。1360px では3欄とも同じ段。 */
+  /* ★3欄は必ず**1段**（オーナー確定 2026-08-31「常に出したまま1段に詰める」）。
+     見出し（区分を選ぶ）は同じ日に消した ── 見出しだけで1段ぶん使っていて、
+     この画面を1画面に収める約束と両立しなかった。
+     ⚠️ 「選択をクリア」は出たり消えたりする。前はそれが grid の1行目を
+        まるごと占めていて、消えた瞬間に欄が1つ上へ吸い込まれて並びが崩れた。
+        いまは4列目に固定してあるが、**選ぶ前と選んだ後の両方**で見る。
+     ★クリアは align-items:flex-end で欄と下端を揃えている。上端ではなく
+       **下端**で見る（背の低いボタンなので上端は当然ずれる）。 */
   const lay = (pg) => pg.evaluate(() => {
-    const k = document.querySelector('#dp-pick .dp-pick-k');
     const y = [...document.querySelectorAll('#dp-pick .dp-pick-s')]
       .map((e) => Math.round(e.getBoundingClientRect().top));
-    return { kb: k ? Math.round(k.getBoundingClientRect().bottom) : null,
-             tops: y, rows: [...new Set(y)].length };
+    const b = [...document.querySelectorAll('#dp-pick .dp-pick-s')]
+      .map((e) => Math.round(e.getBoundingClientRect().bottom));
+    const r = document.querySelector('#dp-pick .dp-pick-r');
+    return { tops: y, rows: [...new Set(y)].length,
+             gap: r ? Math.abs(Math.round(r.getBoundingClientRect().bottom)
+                               - Math.max(...b)) : null };
   });
   const l0 = await lay(page);
-  ok(l0.kb != null && l0.tops.length === 3 && l0.tops.every((t) => t >= l0.kb)
-     && l0.rows === 1,
-     '★ラベルの段に欄が上がってこない（選ぶ前）', JSON.stringify(l0));
+  ok(l0.tops.length === 3 && l0.rows === 1,
+     '★3欄は1段のまま（選ぶ前）', JSON.stringify(l0));
   ok(a.args.length === 1 && a.args[0] === null,
      '★入口の1回は引数なし（state と鍵を取りに行くだけ）', JSON.stringify(a.args));
   /* ★★ここがこの回のオーナー判断そのもの。前は3つとも空だと db/deep-pay.sql の
@@ -790,7 +796,7 @@ for (const lang of ['ja', 'en']) {
   ok(a.cond === '', '★★選ぶまで条件バー（表示中:）を出さない', a.cond);
   ok(!/[¥$€£]|万|%/.test(a.text), '★★選ぶまで金額も割合も1文字も出ない',
      (a.text.match(/[^\n]*[¥$€£万%][^\n]*/) || [''])[0].slice(0, 60));
-  ok(a.comp.hidden && a.work.hidden && a.vari.hidden && a.notes.hidden && a.more.hidden,
+  ok(a.comp.hidden && a.work.hidden && a.vari.hidden && a.more.hidden,
      '★選ぶまで節も出ない（空の器を残さない）');
 
   await choose(page, { airline: 'jal', position: 'cap', fleet: 'b787' });
@@ -806,8 +812,9 @@ for (const lang of ['ja', 'en']) {
      JSON.stringify(b.kpiV));
   ok(b.pick.reset, '選んだら「選択をクリア」が出る');
   const l1 = await lay(page);
-  ok(l1.kb != null && l1.tops.every((t) => t >= l1.kb) && l1.rows === 1,
-     '★「選択をクリア」が出ても3欄は同じ段のまま', JSON.stringify(l1));
+  ok(l1.tops.length === 3 && l1.rows === 1 && l1.gap != null && l1.gap <= 4,
+     '★「選択をクリア」が出ても3欄は同じ段のまま（クリアも同じ段）',
+     JSON.stringify(l1));
   /* 5人なので上限は 3（3つとも選んだ）× 人数の判定 2 ＝「中」。 */
   ok(/中/.test(b.cond) && !/高/.test(b.cond),
      '★5人の区分を「信頼度 高」と言わない', b.cond.replace(/\n/g, ' '));
@@ -825,7 +832,7 @@ for (const lang of ['ja', 'en']) {
   await choose(page, { airline: 'sas', position: '', fleet: '' });
   const c = await page.evaluate(SNAP);
   ok(c.kpi === 0, '★3人に届かない区分では KPI が1枚も出ない', `今 ${c.kpi} 枚`);
-  ok(c.comp.hidden && c.work.hidden && c.vari.hidden && c.notes.hidden && c.more.hidden,
+  ok(c.comp.hidden && c.work.hidden && c.vari.hidden && c.more.hidden,
      '★節も全部消える（空の器を残さない）');
   ok(!/[¥$€£]|万|%/.test(c.text),
      '★★広い区分の数字で埋めない（金額も割合も1つも出ない）',
@@ -848,6 +855,56 @@ for (const lang of ['ja', 'en']) {
   ok(e.pick.air.v === '' && e.pick.pos.v === '' && e.pick.flt.v === '',
      '★クリアしたら欄も空に戻る');
   ok(errs.length === 0, '選ぶ操作で JS のエラーが出ない', errs.join(' / '));
+}
+
+// ── 10. 1画面に収まる（オーナー確定 2026-08-31）─────────────────
+/* 「各画像いいかんじだから、画面にできればおさまるといいかな。いま収まってないから」
+   ── 基準は**オーナーの画面（約 1512×980）**。窓を 1512×1000 にして、
+   #dp-root の中で**いちばん下まで伸びている物**を測る。
+
+   ⚠️ ここの数字は shot-deep.mjs の measure と**一致しない**。
+      この検査は外の網を1本も引かない＝ Inter が落ちてこないので、
+      文字は代替フォントで組まれ、行の高さが数px ずれる。
+      **正確な実測は `node shot-deep.mjs full ja light 1512 measure`。**
+      ここが守っているのは「段が1つ増えた」級の後戻り（数十〜百px）。
+
+   ⚠️ しきい値を上げて通さない。上げた瞬間にこの回の作業が黙って巻き戻る。
+      実測 ja 854 / en 871（本物のフォント）／ ja 868 / en 871（ここ・代替フォント）。
+      940 はその差ぶんの余裕込み。 */
+for (const lang of ['ja', 'en']) {
+  const { page } = await open(lang, FULL, 'light', MINE);
+  await page.setViewport({ width: 1512, height: 1000 });
+  /* ★時間で待たない。幅が本当に 1512 になってから測る。 */
+  await page.waitForFunction(() => innerWidth === 1512, { timeout: 10000 });
+  const m = await page.evaluate(() => {
+    let bottom = 0;
+    (function walk(n) {
+      for (const c of n.children) {
+        const r = c.getBoundingClientRect();
+        if (r.height > 0) bottom = Math.max(bottom, r.bottom + scrollY);
+        walk(c);
+      }
+    })(document.getElementById('dp-root'));
+    /* <select> は溢れても省略記号を出さない＝**切れたことが画面から分からない**。
+       描画に使っている実際のフォントで一番長い選択肢を測り、内寸と比べる。 */
+    const cv = document.createElement('canvas').getContext('2d');
+    const cut = [];
+    for (const el of document.querySelectorAll('#dp-pick select')) {
+      const st = getComputedStyle(el);
+      cv.font = `${st.fontWeight} ${st.fontSize} ${st.fontFamily}`;
+      const wide = [...el.options]
+        .reduce((a, o) => Math.max(a, cv.measureText(o.textContent.trim()).width), 0);
+      /* 右の矢印ぶん（padding-right）は既に inner から引かれている。 */
+      const inner = el.clientWidth - parseFloat(st.paddingLeft) - parseFloat(st.paddingRight);
+      cut.push({ id: el.id, slack: Math.round((inner - wide) * 10) / 10 });
+    }
+    return { bottom: Math.round(bottom * 10) / 10, cut };
+  });
+  ok(m.bottom <= 940, `★1画面に収まる（${lang} / 1512×1000）`,
+     `底 ${m.bottom}`);
+  ok(m.cut.every((c) => c.slack >= 0),
+     `★<select> の選択肢が切れていない（${lang} / 1512）`,
+     m.cut.map((c) => `${c.id} ${c.slack}`).join(' / '));
 }
 
 for (const j of jars) await j.close().catch(() => {});

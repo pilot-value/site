@@ -51,7 +51,7 @@
   <!-- ページの骨格（.mr-*）。マイレポートと同じ殻を使う（日英で共有） -->
   <link rel="stylesheet" href="my-value.css">
   <!-- ★DEEP PAY 本体の見た目をそのまま借りる。ピッカー（.dp-pick-*）・条件バー（.dp-cond）・
-       案内カード（.dp-msg）・注記（.dp-note）は写さずここから使う。写すとドリフトする。 -->
+       案内カード（.dp-msg）・段組み（.dp-row）は写さずここから使う。写すとドリフトする。 -->
   <link rel="stylesheet" href="deep-pay.css">
   <!-- この画面だけの見た目（.dc-*）。
        ★.pt-* / .mv-* / .mr-* をトップレベルで書き直さない（db/test-form-contract.mjs が見ている）。 -->
@@ -152,9 +152,20 @@
            pv-currency-change で描き直す（RPC は引き直さない）。 -->
       <div class="pv-no-cur" id="dc-root">
 
-        <!-- 見出し。中身は deep-pay-compare.js が入れる -->
-        <div class="mr-hd" id="dc-hd">
-          <div class="mr-skel" style="height:30px;width:46%"></div>
+        <!-- 見出しと「いま見ている条件」を1段に並べる（DEEP PAY 本体と同じ形）。
+             縦に積むと 見出し69＋余白24＋条件34 で 127px 使うが、横なら約52px で済む。
+             ⚠️ #dc-cond を #dc-hd の**中**に入れてはいけない。
+                deep-pay-compare.js の hdr() が #dc-hd.innerHTML をまるごと書き替えるので、
+                描き直すたびに条件バーが黙って消える。外側の器で横に並べるのが唯一の形。
+             ★入り切らない幅では .dc-top の flex-wrap が素直に縦へ戻す。 -->
+        <div class="dc-top">
+          <!-- 見出し。中身は deep-pay-compare.js が入れる -->
+          <div class="mr-hd" id="dc-hd">
+            <div class="mr-skel" style="height:30px;width:46%"></div>
+          </div>
+
+          <!-- いま見ている条件の1行（◯人 vs ◯人 / 直近24か月） -->
+          <div id="dc-cond"></div>
         </div>
 
         <!-- 2社を選ぶ（会社A / 会社B / 役職 / 機材）。役職と機材は左右で共通。
@@ -163,22 +174,27 @@
                 ここで人数を数えたり隠したりしない。 -->
         <div class="dp-pick" id="dc-pick" hidden></div>
 
-        <!-- いま見ている条件の1行（◯人 vs ◯人 / 直近24か月） -->
-        <div id="dc-cond"></div>
-
-        <!-- 2社のカード。薄い側はその側だけ「まだ出せません」に替わる -->
+        <!-- 案内の置き場（読み込み中の骨・鍵・「区分を選んでください」・「別の会社を」）
+             と、2社のカード。
+             ★カードが出るのは**片側が薄いときだけ**（2026-08-31）。両方読めるときは
+                ロゴ・社名・人数を表の見出し行が受け持ち、ここは空で隠れる。
+                同じ数字を表の上にもう一度並べていたのをやめて 153px 減らした。
+             ⚠️ 消し切らないこと。**片側だけ薄いとき、読める側の数字はここにしか出ない**
+                （表は片側が薄いと丸ごと畳む）。「その側だけ出せません」の約束はこの1枚。 -->
         <div id="dc-sides"><div class="mr-skel" style="height:150px"></div></div>
 
-        <!-- 差がつくポイント（表） -->
-        <div id="dc-diff" hidden></div>
-
-        <!-- 給与構成の比較（横棒） -->
-        <div id="dc-mix" hidden></div>
-
-        <!-- トレードオフ（左）と データの見方（右） -->
-        <div class="dp-row">
-          <div class="dp-w58" id="dc-trade" hidden></div>
-          <div id="dc-notes" hidden></div>
+        <!-- 差がつくポイント（表・左）と、給与構成の棒＋トレードオフ（右）を横に並べる。
+             ★縦に積むと 表359 ＋ 棒とトレードオフ283 で 656px 使う。横なら高いほうだけで
+                済み、1画面（1512×980）に収まる（オーナー確定 2026-08-31）。
+             ★右は .dc-col で縦に積む ── 棒とトレードオフを .dp-row の直下に置くと
+                3つが横一列になり、表が 1/3 の幅まで痩せて「違い」の列が全部折り返す。
+             ★入り切らない幅では .dp-row の flex-wrap が素直に縦へ戻す。 -->
+        <div class="dp-row dc-main">
+          <div class="dp-w58" id="dc-diff" hidden></div>
+          <div class="dc-col">
+            <div id="dc-mix" hidden></div>
+            <div id="dc-trade" hidden></div>
+          </div>
         </div>
 
         <!-- 下の入口（全幅） -->

@@ -385,10 +385,19 @@ const SNAP = () => {
        deep-pay.js:497 と同じ形＝ラベルもピルも .dp-cond-l の中に入っている。
        ここを .dp-cond-k のままにすると、拾えるのは「表示中:」の4文字だけになる。 */
     condK: all('#dc-cond .dp-cond-l > span:not(.dp-cond-k):not(.dp-cond-s)'),
-    sideN: all('#dc-sides .dc-side-n'),
-    sideC: all('#dc-sides .dc-side-c'),
+    /* ★#dc-sides に限定しない。2026-08-31 から、両方読めるときは
+       ロゴ・社名・人数が**表の見出し行**に出る（カードは出ない）。
+       器を問わず「2社の名前と人数が1つずつ出ている」ことを見る。 */
+    sideN: all('#dc-root .dc-side-n'),
+    sideC: all('#dc-root .dc-side-c'),
+    cardsShown: !document.getElementById('dc-sides').hidden,
     kvK: all('#dc-sides .dc-kv-k'),
     kvV: all('#dc-sides .dc-kv-v'),
+    /* 画面に出ている通貨記号の数。通貨を切り替えたとき「表だけ変わって
+       どこかに古い通貨が残る」を捕まえる（カードが出ない配置になったので、
+       器を名指しせず #dc-root 全体を数える）。 */
+    yen: ((document.getElementById('dc-root').innerText.match(/¥/g) || []).length),
+    usd: ((document.getElementById('dc-root').innerText.match(/\$/g) || []).length),
     sideEmpty: [...document.querySelectorAll('#dc-sides .dc-side')]
       .map((e) => (e.querySelector('.pt-empty') || {}).textContent || ''),
     rows: [...document.querySelectorAll('#dc-diff .dc-tr:not(.dc-th)')].map((r) => ({
@@ -404,7 +413,6 @@ const SNAP = () => {
     leg: all('#dc-mix .dc-leg-i'),
     to: all('#dc-trade .dc-to-li'),
     toEnd: t('#dc-trade .dc-to-end'),
-    notes: cnt('#dc-notes .dp-note'),
     ctaA: [...document.querySelectorAll('#dc-cta a')].map((a) => a.getAttribute('href')),
     ctaOff: [...document.querySelectorAll('#dc-cta button')].filter((b) => b.disabled).length,
     ctaOn: [...document.querySelectorAll('#dc-cta button')].filter((b) => !b.disabled).length,
@@ -421,7 +429,7 @@ const SNAP = () => {
       return !!(e && getComputedStyle(e).display !== 'none');
     })(),
     rst: cnt('#dc-pk-rst'),
-    lowHidden: ['dc-diff', 'dc-mix', 'dc-trade', 'dc-notes', 'dc-cta']
+    lowHidden: ['dc-diff', 'dc-mix', 'dc-trade', 'dc-cta']
       .filter((id) => !!(document.getElementById(id) || {}).hidden).length,
     text: document.body.innerText
   };
@@ -519,26 +527,30 @@ async function open(lang, payload, theme, sel, expect, width) {
   ok(s.ask === 1 && s.rows.length === 0 && s.kvV.length === 0,
      '★★2社そろうまで数字を1つも出さない', `ask=${s.ask} 行=${s.rows.length}`);
   ok(s.condK.length === 0, '★★選ぶまで条件バー（表示中:）を出さない', s.condK.join(','));
-  ok(s.lowHidden === 5, '★下の5枚（表・棒・トレードオフ・見方・入口）は畳んだまま',
+  ok(s.lowHidden === 4, '★下の4枚（表・棒・トレードオフ・入口）は畳んだまま',
      String(s.lowHidden));
   ok(s.pickHidden === false && s.pick.join(',') === 'dc-pk-a,dc-pk-b,dc-pk-pos,dc-pk-flt',
      '会社A・会社B・役職・機材の4つの欄が出ている', s.pick.join(','));
   ok(s.rst === 0, '何も選んでいないうちは「選択をクリア」を出さない');
-  /* ★4欄は2×2に流す。ラベル（2社を選ぶ）と同じ段に欄が上がってこないこと。
-     grid の1行目に空きがあると、そこへ最初の欄が吸い込まれて
-     「2社を選ぶ｜会社A ／ 会社B｜役職 ／ 機材」という並びに崩れる。
-     ★「選択をクリア」が出ていない状態でだけ起きる（実際に起きた）ので、
-       選ぶ前と選んだ後の両方で見る。 */
+  /* ★4欄は必ず 2×2。1段に並べると <select> の内寸が 190px まで痩せ、
+     「全日本空輸（ANA）」（実測 313px）が端で切れる ── しかも <select> は
+     省略記号すら出さないので、切れたことが画面から分からない。
+     ★「2社を選ぶ」の見出しは 2026-08-31 に削除（1画面に収める / オーナー確定）。
+     ⚠️ 「選択をクリア」は出たり消えたりする。前はそれが grid の1行目を
+        まるごと占めていて、消えた瞬間に欄が1つずつずれた。いまは
+        3列目に固定してあるが、**選ぶ前と選んだ後の両方**で見る。
+     ★クリアは欄と下端を揃える（背の低いボタンなので上端は当然ずれる）。 */
   const lay = (pg) => pg.evaluate(() => {
-    const k = document.querySelector('#dc-pick .dp-pick-k');
     const f = [...document.querySelectorAll('#dc-pick .dp-pick-s')];
     const y = f.map((e) => Math.round(e.getBoundingClientRect().top));
-    return { kb: k ? Math.round(k.getBoundingClientRect().bottom) : null,
-             tops: y, rows: [...new Set(y)].length };
+    const b = f.map((e) => Math.round(e.getBoundingClientRect().bottom));
+    const r = document.querySelector('#dc-pick .dp-pick-r');
+    return { tops: y, rows: [...new Set(y)].length,
+             gap: r ? Math.abs(Math.round(r.getBoundingClientRect().bottom)
+                               - Math.max(...b)) : null };
   });
   const l0 = await lay(page);
-  ok(l0.kb != null && l0.tops.every((t) => t >= l0.kb),
-     '★ラベルの段に欄が上がってこない（選ぶ前）', JSON.stringify(l0));
+  ok(l0.tops.length === 4, '★4欄そろっている（選ぶ前）', JSON.stringify(l0));
   ok(l0.rows === 2, '★4欄は2段（2×2）に並ぶ（選ぶ前）', String(l0.rows));
   ok(s.args.length === 1 && s.args[0] === null,
      '★入口の1回は引数なし（state と鍵を取りに行くだけ）', JSON.stringify(s.args));
@@ -551,8 +563,9 @@ async function open(lang, payload, theme, sel, expect, width) {
      '★片方だけでは引かない・出さない', `${h.args.length}回 ask=${h.ask}`);
   ok(h.rst === 1, '1つでも選ぶと「選択をクリア」が出る');
   const l1 = await lay(page);
-  ok(l1.kb != null && l1.tops.every((t) => t >= l1.kb) && l1.rows === 2,
-     '★「選択をクリア」が出ても並びは 2×2 のまま', JSON.stringify(l1));
+  ok(l1.rows === 2 && l1.tops.length === 4 && l1.gap != null && l1.gap <= 4,
+     '★「選択をクリア」が出ても並びは 2×2 のまま（クリアは2段目の右端）',
+     JSON.stringify(l1));
 
   // 同じ会社を2つ
   await choose(page, { a: 'ana', b: 'ana' }, 0);
@@ -569,8 +582,15 @@ async function open(lang, payload, theme, sel, expect, width) {
      '★入口1回＋左右2回。選んだ会社をそのままサーバへ渡す',
      JSON.stringify(s.args.map((a) => a && a.p && a.p.airline)));
   ok(s.sideN.length === 2 && /ANA|全日/.test(s.sideN[0]) && /JAL|日本航空/.test(s.sideN[1]),
-     '2社のカードが左右に並ぶ', s.sideN.join(' / '));
+     '2社の名前が左右に並ぶ', s.sideN.join(' / '));
   ok(s.sideC.join(',') === '21人,17人', '人数のピルが左右それぞれ出る', s.sideC.join(','));
+  /* ★両方読めるときはカード2枚を出さない（2026-08-31・オーナー確定「1画面に収める」）。
+     年収・Pay per BH・固定給比率・Block Hours は**すぐ下の表に同じ数字が並ぶ**ので、
+     カードは同じ数字の2度書きだった。やめて 153px 減らし、ロゴ・社名・人数は
+     表の見出し行が受け持つ（上の2本がその見出しを見ている）。
+     ⚠️ 戻すときは §5 の「薄いのは片側だけ」も一緒に見ること。あちらはカードが要る。 */
+  ok(s.cardsShown === false, '★両方読めるならカードは出さない（表の見出しが受け持つ）',
+     String(s.cardsShown));
   ok(s.condK.join(' / ') === '21人 vs 17人 / 直近24か月',
      '★条件バーは「◯人 vs ◯人」と「直近24か月」（件ではない・12か月ではない）',
      s.condK.join(' / '));
@@ -589,7 +609,6 @@ async function open(lang, payload, theme, sel, expect, width) {
   ok(s.rows.some((r) => /賞与/.test(r.k)), '賞与は表には行として残る');
   ok(s.to.length === 2, '★トレードオフは最大2行', String(s.to.length));
   ok(/どちらが良いかではなく/.test(s.toEnd), '締めの1行が必ず出る', s.toEnd);
-  ok(s.notes === 5, '「データの見方」が5行', String(s.notes));
   ok(s.ctaA.join(',') === 'deep-pay.html' && s.ctaOn === 1 && s.ctaOff === 1,
      '★下の入口は 戻るリンク1本＋押せるボタン1つ＋準備中1つ',
      `${s.ctaA.join(',')} on=${s.ctaOn} off=${s.ctaOff}`);
@@ -610,6 +629,11 @@ async function open(lang, payload, theme, sel, expect, width) {
      '★★薄いのは片側だけ。もう片側は普通に出る',
      JSON.stringify(s.sideEmpty));
   ok(s.kvV.length === 4, '読める側は4項目そのまま出る', String(s.kvV.length));
+  /* ★片側が薄いと表は丸ごと畳む（rowsOf() が [] を返す）ので、**読める側の数字は
+     このカードにしか出ない**。「薄いのはその側だけ・もう片側は普通に出る」という
+     約束を持っているのはこの1枚。§4 で消したからといってここまで消さないこと。 */
+  ok(s.cardsShown === true, '★★片側が薄いときはカードを出す（読める側の数字はここにしか出ない）',
+     String(s.cardsShown));
   ok(s.sideC.join(',') === '21人,—', '★人数のピルは薄い側だけ —', s.sideC.join(','));
   ok(s.condK[0] === '21人 vs —', '条件バーも片側だけ —', s.condK.join(' / '));
   ok(s.rows.length === 0 && /並べられる項目がまだありません/.test(s.diffEmpty),
@@ -671,8 +695,12 @@ async function open(lang, payload, theme, sel, expect, width) {
   const after = await page.evaluate(SNAP);
   ok(before.rows[0].a !== after.rows[0].a,
      '通貨を切り替えると表の金額が変わる', `${before.rows[0].a} → ${after.rows[0].a}`);
-  ok(before.kvV[0] !== after.kvV[0],
-     'カードの金額も変わる', `${before.kvV[0]} → ${after.kvV[0]}`);
+  /* ★2026-08-31 まではカードの金額（kvV）を見ていたが、両方読めるときは
+     カードを出さなくなったので対象が消えた。画面ぜんぶを数える形に替える
+     ── こちらのほうが強い（「表だけ変わって別のどこかに ¥ が残る」も捕まる）。 */
+  ok(before.yen > 0 && after.yen === 0 && after.usd > 0,
+     '★画面のどこにも古い通貨が残らない',
+     `¥ ${before.yen}→${after.yen} / $ ${before.usd}→${after.usd}`);
   ok(after.args.length === 3,
      '★★通貨を切り替えても pv_deep_pay() を引き直さない（入口1＋左右2 のまま）',
      String(after.args.length));
@@ -747,6 +775,84 @@ for (const [lang, theme] of [['ja', 'dark'], ['en', 'light'], ['en', 'dark']]) {
   const over = await page.evaluate(() =>
     document.documentElement.scrollWidth - document.documentElement.clientWidth);
   ok(over <= 1, '★390px で横に溢れない', String(over));
+}
+
+// ── ⑬ 1画面に収まる ＋ <select> が切れていないこと ───────────────
+/* オーナー確定 2026-08-31 ── 基準は**オーナーの画面（約 1512×980）**。
+   ★2026-08-31 に**収まった**。1685.7 →（詰める）→ 1202 →（表を左・棒を右に並べる）→
+     ja 923 / en 932。ここは後戻り止めではなく「1画面に収まる」ことそのものの検査。
+
+   ⚠️ ここの数字は shot-compare.mjs の measure と少しずれる。この検査は外の網を
+      1本も引かない＝ Inter が落ちてこないので、**代替フォントは横に広い**
+      （ここでの実測 ja 931 / en 938.1）。正確な実測は
+      `node shot-compare.mjs full ja light 1512 measure`。
+      しきい値 980 はオーナーの画面の高さそのもの。40px ほどの余裕しか無いので、
+      段を1つ足せば（100〜300px）必ず赤くなる。
+
+   ★<select> は溢れても省略記号すら出さない ── 「Boeing 787 Dreamli」と読める形で
+     止まるので、**切れたことが画面から分からない**。だから毎回測る。 */
+for (const lang of ['ja', 'en']) {
+  const { page } = await open(lang, OK, 'light', { a: 'ana', b: 'jal' }, null, 1512);
+  await page.setViewport({ width: 1512, height: 1000 });
+  await page.waitForFunction(() => innerWidth === 1512, { timeout: 10000 });
+  const m = await page.evaluate(() => {
+    let bottom = 0;
+    (function walk(n) {
+      for (const c of n.children) {
+        const r = c.getBoundingClientRect();
+        if (r.height > 0) bottom = Math.max(bottom, r.bottom + scrollY);
+        walk(c);
+      }
+    })(document.getElementById('dc-root'));
+    const cv = document.createElement('canvas').getContext('2d');
+    const cut = [];
+    for (const el of document.querySelectorAll('#dc-pick select')) {
+      const st = getComputedStyle(el);
+      cv.font = `${st.fontWeight} ${st.fontSize} ${st.fontFamily}`;
+      const wide = [...el.options]
+        .reduce((a, o) => Math.max(a, cv.measureText(o.textContent.trim()).width), 0);
+      const inner = el.clientWidth - parseFloat(st.paddingLeft) - parseFloat(st.paddingRight);
+      cut.push({ id: el.id, slack: Math.round((inner - wide) * 10) / 10 });
+    }
+    return { bottom: Math.round(bottom * 10) / 10, cut };
+  });
+  ok(m.bottom <= 980, `★1画面に収まる（${lang} / 1512×980）`,
+     `底 ${m.bottom}`);
+  ok(m.cut.every((c) => c.slack >= 0),
+     `★<select> の選択肢が切れていない（${lang} / 1512）`,
+     m.cut.map((c) => `${c.id} ${c.slack}`).join(' / '));
+}
+
+/* ── ⑭ 狭い画面でも <select> が切れない（2026-08-31）─────────────
+   ★実際に踏んだ形を固定する。「選択をクリア」の列を 640px でも作っていたため、
+     その 123px ぶん欄が痩せて社名が 107px 欠けていた。切れても省略記号は出ない
+     ので、**画面を見ても気づけない**。だから幅を変えて測る。
+   ・900 … 2列＋クリアは3段目（3列にすると欄が 333px を割る）
+   ・640 … 1列（2列だと割る）
+   ⚠️ ここを緑にするために .dp-pick-f へ justify-self:start を掛けない。
+      掛けると欄が中身の幅まで縮んで測定値だけ良くなり、実際は4つの欄が
+      342/342/158/307 とバラバラになる（実際にやった）。 */
+for (const lang of ['ja', 'en']) {
+  for (const w of [900, 640]) {
+    const { page } = await open(lang, OK, 'light', { a: 'ana', b: 'jal' }, null, w);
+    await page.setViewport({ width: w, height: 1000 });
+    await page.waitForFunction((x) => innerWidth === x, { timeout: 10000 }, w);
+    const cut = await page.evaluate(() => {
+      const cv = document.createElement('canvas').getContext('2d');
+      return [...document.querySelectorAll('#dc-pick select')].map((el) => {
+        const st = getComputedStyle(el);
+        cv.font = `${st.fontWeight} ${st.fontSize} ${st.fontFamily}`;
+        const wide = [...el.options]
+          .reduce((a, o) => Math.max(a, cv.measureText(o.textContent.trim()).width), 0);
+        const inner = el.clientWidth
+          - parseFloat(st.paddingLeft) - parseFloat(st.paddingRight);
+        return { id: el.id, slack: Math.round((inner - wide) * 10) / 10 };
+      });
+    });
+    ok(cut.length === 4 && cut.every((c) => c.slack >= 0),
+       `★<select> の選択肢が切れていない（${lang} / ${w}）`,
+       cut.map((c) => `${c.id} ${c.slack}`).join(' / '));
+  }
 }
 
 for (const j of jars) await j.close().catch(() => {});

@@ -51,7 +51,6 @@
       hd: '会社を比べる',
       hdS: '2社を横に並べて、同じ物差しで読みます。順位は付けません。',
       now: '表示中:', months: '直近24か月', people: '人', vs: 'vs',
-      pickK: '2社を選ぶ',
       pickA: '会社A', pickB: '会社B', pickPos: '役職', pickFlt: '機材',
       pickAny: '選択する', pickReset: '選択をクリア',
       allPos: '役職を問わない', allFlt: '機材を問わない',
@@ -80,12 +79,10 @@
       tr2: '{n}は年収の中央値が高く、ステイの泊数も多い。',
       tr3: '{n}は Pay / Block Hour が高く、Block Hours も長い。',
       trEnd: 'どちらが良いかではなく、何を重視するかで見方が変わります。',
-      notesT: 'データの見方',
-      n1: '個人が特定されないよう、3人以上そろった区分だけを集計で出しています。',
-      n2: '同じ項目でも、会社によって手当の呼び方や区分の切り方が違います。',
-      n3: 'Pay / Block Hour は投稿された金額と Block Hours から計算しています（時給ではありません）。',
-      n4: '3人未満の項目は 0 ではなく、行ごと表示していません。',
-      n5: '賞与は年1回のため、月々の現金の構成には入れていません（表には行として出しています）。',
+      /* ★「データの見方」の板5枚はオーナー判断で削除（2026-08-31・じゃま）。
+         残したのはこの1行だけ ── 3人の壁は約束、時給と呼ばないのは仕様。
+         カードにせず、表の下に淡い1行で置く（賞与の扱いは mixS が言っている）。 */
+      foot: '※ 3人以上そろった区分だけを出しています。Pay / Block Hour は金額 ÷ Block Hours で、時給ではありません。',
       ctaT: 'もっと深く見る', ctaS: '別の切り口でも読めます。',
       cta1: '別の会社と比べる', cta2: '役割別の差を見る', cta3: 'DEEP PAY に戻る',
       soon: '準備中',
@@ -100,7 +97,6 @@
       hd: 'Compare airlines',
       hdS: 'Two airlines side by side, read on the same scale. No ranking.',
       now: 'Showing:', months: 'last 24 months', people: ' pilots', vs: 'vs',
-      pickK: 'Pick two airlines',
       pickA: 'Airline A', pickB: 'Airline B', pickPos: 'Seat', pickFlt: 'Fleet',
       pickAny: 'Select', pickReset: 'Clear',
       allPos: 'Any seat', allFlt: 'Any fleet',
@@ -129,12 +125,7 @@
       tr2: '{n} has higher median annual pay and more layover nights.',
       tr3: '{n} has a higher pay per block hour and longer block hours.',
       trEnd: 'It is not about which is better, but about what you value.',
-      notesT: 'How to read this',
-      n1: 'Only groups of 3 or more pilots are shown, so no one can be singled out.',
-      n2: 'The same item can be named or split differently from one airline to the next.',
-      n3: 'Pay / Block Hour is computed from reported pay and block hours. It is not an hourly wage.',
-      n4: 'Items reported by fewer than 3 pilots are left out entirely, not shown as zero.',
-      n5: 'Bonus is annual, so it stays out of the monthly cash mix. It is still a row in the table.',
+      foot: 'Only groups of 3 or more pilots are shown. Pay / Block Hour is pay divided by block hours, not an hourly wage.',
       ctaT: 'Go deeper', ctaS: 'There are other ways to read this.',
       cta1: 'Compare other airlines', cta2: 'Compare roles', cta3: 'Back to DEEP PAY',
       soon: 'Soon',
@@ -365,7 +356,10 @@
       '|' + S.sel.a + '|' + S.sel.b + '|' + S.sel.pos + '|' + S.sel.flt;
     if (box.getAttribute('data-sig') !== sig) {
       box.setAttribute('data-sig', sig);
-      box.innerHTML = '<span class="dp-pick-k">' + esc(T.pickK) + '</span>' +
+      /* ★「2社を選ぶ」の見出しは置かない（2026-08-31）。欄ごとのラベル
+         （会社A / 会社B / 役職 / 機材）で足りるうえ、見出しだけで1段ぶん
+         （約46px）使う。この画面は1画面に収めるのが約束なので、段を増やさない。 */
+      box.innerHTML =
         field('dc-pk-a', T.pickA, airOpts(S.sel.a)) +
         field('dc-pk-b', T.pickB, airOpts(S.sel.b)) +
         field('dc-pk-pos', T.pickPos, optlist(S.poss, S.sel.pos)) +
@@ -453,6 +447,16 @@
   function cards() {
     var box = el('dc-sides');
     if (!box) return;
+    /* ★両側とも読めるときはカードを出さない（2026-08-31・オーナー確定）。
+       年収・Pay per BH・固定給比率・Block Hours は**すぐ下の表にも同じ数字が並ぶ**。
+       2度出すのをやめて 153px 減らし、1画面に収めている。
+       ロゴ・社名・人数は diff() の見出し行が受け持つ。
+       ⚠️ この関数ごと消さないこと。**片側だけ薄いときは、読める側の数字がここに
+          しか出ない**（rowsOf() が片側でも薄ければ [] を返し、表は丸ごと畳む）。
+          「薄いのはその側だけ・もう片側は普通に出る」の約束はこの1枚が持っている。 */
+    if (!sideThin(S.side.a) && !sideThin(S.side.b)) {
+      box.innerHTML = ''; box.hidden = true; return;
+    }
     box.innerHTML = '<div class="dc-sides">' + sideCard('a') + sideCard('b') + '</div>';
     box.hidden = false;
   }
@@ -488,9 +492,17 @@
       box.hidden = false;
       return;
     }
+    /* ★見出しの2列が会社カードの代わりを務める（2026-08-31）。
+       ロゴ・社名・人数をここに入れたので、両方読めるときはカード2枚を出さない。
+       class は .dc-side-n / .dc-side-c のまま ── 場所が変わっただけで意味は同じ。 */
+    var th = function (cls, key) {
+      var code = S.sel[key], n = nOf(S.side[key]);
+      return '<span class="' + cls + '">' + logoHtml(code) +
+        '<span class="dc-side-n">' + esc(airName(code)) + '</span>' +
+        '<span class="dc-side-c">' + esc(n == null ? '—' : (n + T.people)) + '</span></span>';
+    };
     var head = '<div class="dc-tr dc-th"><span class="dc-c1">' + esc(T.thItem) + '</span>' +
-      '<span class="dc-c2">' + esc(airName(S.sel.a)) + '</span>' +
-      '<span class="dc-c3">' + esc(airName(S.sel.b)) + '</span>' +
+      th('dc-c2', 'a') + th('dc-c3', 'b') +
       '<span class="dc-c4">' + esc(T.thSaw) + '</span></div>';
     /* ★狭い画面では見出し行が畳まれるので、値の側にも会社名を持たせる
        （CSS だけでは「どちらの列がどちらの会社か」を出せない）。
@@ -502,7 +514,10 @@
         '<span class="dc-c3"><small class="dc-c-a">' + nb + '</small>' + esc(r.sb) + '</span>' +
         '<span class="dc-c4">' + esc(saw(r)) + '</span></div>';
     }).join('');
-    box.innerHTML = sec(T.diffT, '<div class="dc-tbl">' + head + body + '</div>', T.diffS);
+    /* ★3人の壁と「時給ではない」の説明はここ1行だけ。板5枚（データの見方）は
+       消したが、この2つは約束と仕様なので、Pay / Block Hour の行が在る表に残す。 */
+    box.innerHTML = sec(T.diffT, '<div class="dc-tbl">' + head + body + '</div>' +
+      '<p class="dp-foot">' + esc(T.foot) + '</p>', T.diffS);
     box.hidden = false;
   }
 
@@ -591,18 +606,6 @@
     box.hidden = false;
   }
 
-  // ── ⑤ データの見方 ────────────────────────────────────────────
-  function notes() {
-    var box = el('dc-notes');
-    if (!box) return;
-    var ic = IC.info.replace('24" height="24', '15" height="15');
-    var items = [T.n1, T.n2, T.n3, T.n4, T.n5].map(function (t) {
-      return '<div class="dp-note">' + ic + '<span>' + esc(t) + '</span></div>';
-    }).join('');
-    box.innerHTML = sec(T.notesT, '<div class="dp-notes">' + items + '</div>');
-    box.hidden = false;
-  }
-
   // ── ⑥ 下の入口 ────────────────────────────────────────────────
   /* 役割別はまだ無い。無い先へリンクすると assert-links.mjs が404で落とすので
      disabled の <button> のままにして「準備中」と書く。 */
@@ -636,7 +639,7 @@
   }
 
   // ── まだ出せないとき ──────────────────────────────────────────
-  var LOW = ['dc-diff', 'dc-mix', 'dc-trade', 'dc-notes', 'dc-cta'];
+  var LOW = ['dc-diff', 'dc-mix', 'dc-trade', 'dc-cta'];
   function clearLow() {
     LOW.forEach(function (id) {
       var b = el(id); if (b) { b.innerHTML = ''; b.hidden = true; }
@@ -688,7 +691,7 @@
     if (!S.sel.a || !S.sel.b)  { ask(); return; }
     if (S.sel.a === S.sel.b)   { dup(); return; }
     if (!S.side.a || !S.side.b) { skel(); return; }
-    cards(); diff(); mix(); trade(); notes(); cta();
+    cards(); diff(); mix(); trade(); cta();
   }
 
   // ── 読み込み ───────────────────────────────────────────────────

@@ -87,7 +87,6 @@
       allPos: '全体',
       cat: '同じ機材区分',
 
-      pickK: '区分を選ぶ',
       pickAir: '会社', pickPos: '役職', pickFlt: '機材',
       pickAny: '選択する',
       pickReset: '選択をクリア',
@@ -118,23 +117,22 @@
       workT: '働き方と報酬',
       workS: '中央値 / 月',
       hintT: '時給ではなく、働き方の前提とセットで報酬を見ます。',
-      hintS: '同じ年収でも、飛んでいる時間と拘束されている時間は会社ごとに倍ちがいます。',
-      workNote: '※ 棒の長さは、時間は同じ節の中で一番長いものを、日数は30日を基準にしています。',
+      hintS: '同じ年収でも、飛ぶ時間と拘束される時間は会社ごとに倍ちがいます。',
+      workNote: '※ 棒の長さは、時間は節の中で一番長いもの、日数は30日を基準にしています。',
 
       varT: '変動給の中身',
       varS: '変動給に占める割合',
       varNote: '※ 合計は四捨五入のため100%にならない場合があります。',
 
-      notesT: 'データの見方',
-      n1: '個人が特定されないよう、3人以上そろった区分だけを集計で出しています。',
-      n2: '同じ会社でも、役割や月によって差があります。',
-      n3: 'Pay / Block Hour は投稿された金額と Block Hours から計算しています（時給ではありません）。',
-      n4: '項目ごとにも3人未満のものは表示していません。0 として並べていません。',
+      /* ★「データの見方」の板5枚はオーナー判断で削除（2026-08-31・じゃま）。
+         残したのはこの1行だけ ── 3人の壁は約束、時給と呼ばないのは仕様。
+         カードにせず、給与構成の下に淡い1行で置く。 */
+      foot: '※ 3人以上そろった区分だけを出します。3人未満は 0 ではなく行ごと出しません。',
 
       moreT: 'もっと深く見る',
-      moreS: '気になる切り口で、より詳しい分析を確認できます。',
+      moreS: '別の切り口で見る。',
       more1: '会社比較を見る',
-      more2: '役割別の差を見る',
+      more2: '役割別で見る',
       soon: '準備中',
 
       lockT: 'DEEP PAY はまだ開いていません',
@@ -156,7 +154,6 @@
       allPos: 'everyone',
       cat: 'same fleet category',
 
-      pickK: 'Choose a group',
       pickAir: 'Airline', pickPos: 'Seat', pickFlt: 'Fleet',
       pickAny: 'Select',
       pickReset: 'Clear',
@@ -187,18 +184,14 @@
       workT: 'The flying behind the pay',
       workS: 'Median / month',
       hintT: 'Pay is read together with the flying, not as an hourly rate.',
-      hintS: 'The same annual pay can sit behind twice the block or duty hours at another airline.',
+      hintS: 'The same annual pay can hide twice the block hours at another airline.',
       workNote: 'Hour bars are scaled to the longest hour row; day bars to 30 days.',
 
       varT: 'Inside the variable pay',
       varS: 'Share of variable pay',
       varNote: 'Shares are rounded, so they may not add up to 100%.',
 
-      notesT: 'How to read this',
-      n1: 'Only groups of 3 or more pilots are shown, so no one can be singled out.',
-      n2: 'Even within one airline, roles and months differ.',
-      n3: 'Pay / Block Hour is computed from reported pay and block hours. It is not an hourly wage.',
-      n4: 'Items reported by fewer than 3 pilots are left out, not shown as zero.',
+      foot: 'Only groups of 3+ pilots are shown. Fewer than 3 is left out, not shown as zero.',
 
       moreT: 'Go deeper',
       moreS: 'More detailed cuts of the same data.',
@@ -456,7 +449,10 @@
       '|' + S.sel.airline + '|' + S.sel.position + '|' + S.sel.fleet;
     if (box.getAttribute('data-sig') !== sig) {
       box.setAttribute('data-sig', sig);
-      box.innerHTML = '<span class="dp-pick-k">' + esc(T.pickK) + '</span>' +
+      /* ★「区分を選ぶ」の見出しは置かない（2026-08-31）。欄ごとのラベル
+         （会社 / 役職 / 機材）で足りるうえ、見出しだけで1段ぶん（約49px）
+         使う。この画面は1画面に収めるのが約束なので、段を増やさない。 */
+      box.innerHTML =
         field('dp-pk-air', T.pickAir, airOpts(S.sel.airline)) +
         field('dp-pk-pos', T.pickPos, optlist(S.poss, S.sel.position)) +
         field('dp-pk-flt', T.pickFlt, optlist(S.flts, S.sel.fleet)) +
@@ -588,6 +584,9 @@
     }
     body += note(esc(T.compNote));
     if (segs.some(function (x) { return x.k === 'rest'; })) body += note(esc(T.restNote));
+    /* ★3人の壁の説明はここ1行だけ。板5枚（データの見方）は消したが、
+       「3人以上そろった区分だけ」は約束なので、いちばん数字の多いカードに残す。 */
+    body += '<p class="dp-foot">' + esc(T.foot) + '</p>';
 
     box.innerHTML = sec(T.compT, body, T.compS);
     box.hidden = false;
@@ -658,7 +657,7 @@
     ].filter(Boolean);
     if (rows.length < 2) { box.hidden = true; box.innerHTML = ''; return; }
     box.innerHTML = sec(T.workT,
-      '<div class="dp-list">' + rows.join('') + '</div>' +
+      '<div class="dp-list dp-list--work">' + rows.join('') + '</div>' +
       '<div class="dp-hint">' + IC.info.replace('24" height="24', '16" height="16') +
         '<p><b>' + esc(T.hintT) + '</b><br>' + esc(T.hintS) + '</p></div>' +
       note(esc(T.workNote)));
@@ -683,20 +682,8 @@
                   c: COL.variable, svg: IC.layer });
     }).filter(Boolean);
     if (rows.length < 2) { box.hidden = true; box.innerHTML = ''; return; }
-    box.innerHTML = sec(T.varT, '<div class="dp-list">' + rows.join('') + '</div>' +
+    box.innerHTML = sec(T.varT, '<div class="dp-list dp-list--var">' + rows.join('') + '</div>' +
       note(esc(T.varNote)), T.varS);
-    box.hidden = false;
-  }
-
-  // ── ⑤ データの見方 ────────────────────────────────────────────
-  function notes() {
-    var box = el('dp-notes');
-    if (!box) return;
-    var ic = IC.info.replace('24" height="24', '15" height="15');
-    var items = [T.n1, T.n2, T.n3, T.n4].map(function (t) {
-      return '<div class="dp-note">' + ic + '<span>' + esc(t) + '</span></div>';
-    }).join('');
-    box.innerHTML = sec(T.notesT, '<div class="dp-notes">' + items + '</div>');
     box.hidden = false;
   }
 
@@ -730,7 +717,7 @@
 
   // ── 開いていないとき ──────────────────────────────────────────
   function shut(kind) {
-    ['dp-comp', 'dp-work', 'dp-var', 'dp-notes', 'dp-more'].forEach(function (id) {
+    ['dp-comp', 'dp-work', 'dp-var', 'dp-more'].forEach(function (id) {
       var b = el(id); if (b) { b.innerHTML = ''; b.hidden = true; }
     });
     /* ★板は #dp-kpi（全幅・見出しの直下）に出す。2段組の左半分に入れると
@@ -759,7 +746,7 @@
   /* ★選んだ区分が3人に届かなかったとき。**広い区分の数字で埋めない。**
      「あと1人」とも書かない ── 書いた瞬間、その区分の人数が1人単位で読める。 */
   function thin() {
-    ['dp-comp', 'dp-work', 'dp-var', 'dp-notes', 'dp-more'].forEach(function (id) {
+    ['dp-comp', 'dp-work', 'dp-var', 'dp-more'].forEach(function (id) {
       var b = el(id); if (b) { b.innerHTML = ''; b.hidden = true; }
     });
     var box = el('dp-kpi');
@@ -777,7 +764,7 @@
      別の区分が出ていたが、読み手はそれを自分の会社の数字だと読み違える。
      鍵は掛かっていないので pay-report.html の誘いは出さない。 */
   function ask() {
-    ['dp-comp', 'dp-work', 'dp-var', 'dp-notes', 'dp-more'].forEach(function (id) {
+    ['dp-comp', 'dp-work', 'dp-var', 'dp-more'].forEach(function (id) {
       var b = el(id); if (b) { b.innerHTML = ''; b.hidden = true; }
     });
     var box = el('dp-kpi');
@@ -800,7 +787,7 @@
     if (!picked())          { ask();         return; }
     var c = S.data && S.data.cohort;
     if (c && c.level === 'none') { thin(); return; }
-    kpis(); comp(); work(); vari(); notes(); more();
+    kpis(); comp(); work(); vari(); more();
   }
 
   // ── 起動 ───────────────────────────────────────────────────────

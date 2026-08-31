@@ -19,9 +19,55 @@
    ════════════════════════════════════════════════════════════════ */
 
 /* ── 節と節のあいだ（deep-pay.css の #dp-* と同じ刻み）────────── */
-#dc-sides{margin-top:16px}
-#dc-diff,#dc-mix{margin-top:16px}
-#dc-cta{margin-top:16px}
+#dc-sides{margin-top:14px}
+#dc-cta{margin-top:14px}
+/* ── 表（左）と 棒＋トレードオフ（右）の段 ─────────────────────
+   ★段の間を空けるのは .dp-row 自身の margin-top と gap。中の板に
+     margin-top を持たせない（持たせると右の板だけ下にずれ、左のカードと
+     頭が揃わない。崩れたと気づきにくい形）。
+   ★右は縦に積む。.dp-row の直下に3つ置くと横一列になり、表が 1/3 まで
+     痩せて「違い」の列が全部折り返す。
+   ★min-width:0 が要る ── 無いと中の棒（flex）が縮まず、右の列が
+     器を押し広げて左の表を潰す。 */
+.dc-col{display:flex;flex-direction:column;gap:14px;min-width:0}
+.dc-main>#dc-diff,.dc-col>#dc-mix,.dc-col>#dc-trade{margin-top:0}
+/* ★実測で決めた幅（2026-08-31）。推測で動かさない。
+     1512 幅のときの本文は 988px。ここで左右が 575 / 399 になると、
+     表 531.4 / 棒＋トレードオフ 532.8 とほぼ同じ背丈で釣り合って底が一番低くなる。
+     ・560 まで左を痩せさせると表の「違い」の列が折り返して 638 に伸び、底 1028 ＝はみ出す。
+     ・600 まで太らせると今度は右の棒が縦に伸びて 551.8、底 942。
+     570〜580 が平らな底（923）で、その真ん中が 575。
+
+   ⚠️ **基準幅の合計を本文の幅ぴったりにしない。** flex は「縮める」前に「折り返す」ので、
+      575+399+gap14 = 988 と書くと本文が 1px でも狭い瞬間に段が縦に割れ、
+      底が 923 → 1300 に跳ねる。実際 1279px 幅で踏んだ。縦スクロールバーが出る環境なら
+      「入り切らない → バーが出る → 幅が減る → 折れてもっと伸びる」と悪化し続ける。
+      だから基準幅は 565+389+14 = 968 と 20px 余らせ、余りを grow で半分ずつ配って
+      575 / 399 に着地させる。1279px（本文 987）でも 574.5 / 398.5 とほぼ同じ。
+      本文が 968 を切る幅（およそ 1260px 未満）では素直に縦へ戻る。
+
+   ⚠️ 測り直すときは shot-compare.mjs の `measure` を使う。フォントが載り切るのを
+      待ってから測っているので答えが揺れない（待たないと 570→920 / 580→938 のような
+      あり得ない並びが出る）。 */
+.dc-main>#dc-diff{flex:1 1 565px}
+.dc-main>.dc-col{flex:1 1 389px}
+
+/* ── 見出しと「いま見ている条件」を1段に ───────────────────────
+   ★DEEP PAY 本体（#dp-root .mr-hd）と同じ組み方。縦に積むと
+     見出し69＋余白24＋条件34 ＝ 127px 使うが、横なら約52px で足りる。
+   ★#dc-cond を #dc-hd の中に入れない（hdr() が innerHTML ごと書き替える）。
+     ここでは**外側の .dc-top** で横に並べている。
+   ★入り切らない幅では flex-wrap が縦へ戻す。そのとき段の間を空けるのは
+     .dp-cond の margin-top ではなくこの gap なので、下で潰している。 */
+.dc-top{display:flex;align-items:center;justify-content:space-between;
+  gap:10px 16px;flex-wrap:wrap;margin-bottom:12px}
+#dc-root .mr-hd{margin-bottom:0;flex:0 1 auto;min-width:0}
+#dc-root .mr-hd-t{font-size:1.5rem;line-height:1.2}
+#dc-root .mr-hd-s{margin-top:3px;font-size:.78rem;line-height:1.5}
+#dc-root .dp-cond{margin-top:0;flex:1 1 300px}
+/* カードの内側も DEEP PAY 本体と揃える（#dp-root と同じ値）。 */
+#dc-root .mr-card{padding:16px 18px}
+#dc-root .mr-card-h{margin-bottom:10px}
 
 /* ── 選ぶ欄（deep-pay.css の .dp-pick を2列に折る）──────────────
    ★deep-pay は3欄、この画面は4欄。1行に並べると <select> の内寸が
@@ -31,19 +77,48 @@
      画面から分からない**（「Boeing 787 Dreamli」と読める形で止まる）。
    ラベルと「選択をクリア」を1行目に置き、4欄を2×2に流す。
    ★.dp-pick-f は自動配置。1行目の2マスが埋まっているので2行目から並ぶ。 */
-#dc-pick.dp-pick{display:grid;grid-template-columns:1fr 1fr;
-  gap:12px 16px;align-items:end}
-/* ★ラベルと「クリア」は**どちらも1行目まるごと**を占める（重ねて、左右に寄せる）。
-   1マスだけにすると、クリアが出ていないとき（＝まだ何も選んでいないとき）に
-   1行目へ空きが残り、そこへ最初の欄が吸い込まれて並びが崩れる。 */
+#dc-pick.dp-pick{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:10px 16px;align-items:end}
+/* ★「選択をクリア」は2行目の右端に**列として**置く（2026-08-31）。
+   前はラベルと重ねて1行目をまるごと占めていたが、見出しを消したいま
+   その行には他に何も無く、**ボタン1つのために1段（約43px）**使っていた。
+   ⚠️ 3列目を常に作らない。クリアが出ていない画面（＝まだ何も選んでいない）で
+      空の列ぶんの隙間 16px が欄から削られ、社名が静かに切れる。
+      :has() で「ボタンが在るときだけ」3列にする。 */
+#dc-pick.dp-pick:has(.dp-pick-r){
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto}
 /* ⚠️ deep-pay.css の .dp-pick[hidden] は id の規則に負ける。ここで書き直す
    （無いと鍵の画面・エラーの画面でピッカーが出たままになる）。 */
 #dc-pick[hidden]{display:none}
-#dc-pick .dp-pick-k{grid-area:1/1/2/-1;justify-self:start;align-self:center}
-#dc-pick .dp-pick-r{grid-area:1/1/2/-1;justify-self:end;align-self:center}
-@media (max-width:560px){
-  #dc-pick.dp-pick{grid-template-columns:minmax(0,1fr)}
-  #dc-pick .dp-pick-r{grid-area:auto;justify-self:start}
+/* 4欄は 2×2 に置く。★自動配置に任せない ── クリアが出たり消えたりすると
+   1行目の空きが変わり、欄が1マスずつずれる。 */
+#dc-pick .dp-pick-f:nth-of-type(1){grid-column:1;grid-row:1}
+#dc-pick .dp-pick-f:nth-of-type(2){grid-column:2;grid-row:1}
+#dc-pick .dp-pick-f:nth-of-type(3){grid-column:1;grid-row:2}
+#dc-pick .dp-pick-f:nth-of-type(4){grid-column:2;grid-row:2}
+#dc-pick .dp-pick-r{grid-column:3;grid-row:2;align-self:end}
+/* ── 狭い画面での畳み方 ──────────────────────────────────────
+   ★しきい値は**一番長い選択肢の実測**から決めている。推測しない。
+     「全日本空輸（ANA）」は 313px、欄の左右の余白が 20px ＝ 1欄に 333px 要る。
+   ・900px 未満 … 「選択をクリア」の3列目を作る余裕が無い。3段目へ落とす。
+       （残したまま狭めると、その 123px ぶん欄が痩せて社名が黙って切れる。
+         実測 640px で 107px ぶん欠けていた。）
+   ・760px 未満 … 2列にすると 1欄が 333px を割る。素直に1列へ。
+   ⚠️ .dp-pick-f に justify-self:start を掛けない。掛けると欄が中身の幅まで
+      縮んで、4つの欄がバラバラの長さになる（実際にやって 342/342/158/307 に
+      なった）。start にしてよいのはボタン（.dp-pick-r）だけ。 */
+@media (max-width:900px){
+  #dc-pick.dp-pick:has(.dp-pick-r){
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  #dc-pick .dp-pick-r{grid-column:1/-1;grid-row:3;justify-self:start}
+}
+@media (max-width:760px){
+  #dc-pick.dp-pick,#dc-pick.dp-pick:has(.dp-pick-r){
+    grid-template-columns:minmax(0,1fr)}
+  #dc-pick .dp-pick-f:nth-of-type(1),#dc-pick .dp-pick-f:nth-of-type(2),
+  #dc-pick .dp-pick-f:nth-of-type(3),#dc-pick .dp-pick-f:nth-of-type(4){
+    grid-column:1;grid-row:auto}
+  #dc-pick .dp-pick-r{grid-column:1;grid-row:auto;justify-self:start}
 }
 
 /* ── ① 2社のカード ────────────────────────────────────────────
@@ -52,8 +127,23 @@
 .dc-sides{display:flex;flex-wrap:wrap;gap:16px;align-items:stretch}
 .dc-side{flex:1 1 300px;min-width:0;display:flex;flex-direction:column}
 
+/* KPI 4つ（年収・Pay per BH・Block Hours・ステイ）は 2×2 に組む。
+   縦1列だと 1枚 61px × 4 ＝ 244px、2×2 なら 2段で 122px ── 2社ぶんで
+   約113px 減る。これがこの画面でいちばん効く（1画面に収める / オーナー確定）。
+   ★.dc-side そのものを grid にする。KPI を包む器が DOM に無いので、
+     見出し（.dc-side-h）と「まだ出せません」を全幅に伸ばして逃がす。
+   ★400px を切ったら縦1列に戻す（社名も値も入らなくなる）。 */
+@media (min-width:401px){
+  .dc-side{display:grid;grid-template-columns:1fr 1fr;
+    column-gap:16px;align-content:start}
+  .dc-side-h,#dc-sides .pt-empty,#dc-sides .dp-cta-n{grid-column:1/-1}
+  /* ★下の段の2枚から線を抜く。:last-child だけだと右下の1枚しか消えず、
+     左下に線が1本だけ残る（気づきにくい非対称）。 */
+  .dc-kv:nth-last-child(-n+2){border-bottom:0;padding-bottom:0}
+}
+
 .dc-side-h{display:flex;align-items:center;gap:10px;min-width:0;
-  padding-bottom:12px;margin-bottom:4px;
+  padding-bottom:8px;margin-bottom:2px;
   border-bottom:1px solid var(--pv-line-soft)}
 .dc-side-n{flex:1 1 auto;min-width:0;font-size:.95rem;font-weight:800;
   letter-spacing:-.01em;color:var(--pv-ink);
@@ -65,7 +155,7 @@
 
 /* ロゴ ── actual-pay.css:155 の .ap-logo と同じ寸法。
    ★あちらを再利用しない（actual-pay.css はこの画面に読み込まれていない）。 */
-.dc-logo{flex:none;width:30px;height:30px;object-fit:contain;
+.dc-logo{flex:none;width:28px;height:28px;object-fit:contain;
   border-radius:8px;background:#fff;padding:3px;
   border:1px solid var(--pv-line-soft)}
 .dc-logo--mono{display:inline-flex;align-items:center;justify-content:center;
@@ -73,9 +163,10 @@
   font-size:.66rem;font-weight:800;letter-spacing:.01em}
 
 .dc-kv{display:flex;align-items:baseline;justify-content:space-between;
-  gap:12px;padding:9px 0;border-bottom:1px solid var(--pv-line-soft)}
+  gap:12px;padding:7px 0;border-bottom:1px solid var(--pv-line-soft)}
 .dc-kv:last-child{border-bottom:0;padding-bottom:0}
-.dc-kv-k{font-size:.76rem;color:var(--pv-ink-3);line-height:1.5}
+.dc-kv-k{font-size:.76rem;color:var(--pv-ink-3);line-height:1.5;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dc-kv-v{flex:none;font-size:1.02rem;font-weight:800;letter-spacing:-.02em;
   color:var(--pv-ink);font-variant-numeric:tabular-nums}
 
@@ -83,20 +174,39 @@
    ★勝ち色・▲▼を付けない。付けた瞬間に「順位を出さない」約束が崩れる。
      左右の列は最後まで同じ見た目のまま。 */
 .dc-tbl{display:flex;flex-direction:column;margin-top:2px}
-.dc-tr{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,.8fr)
-  minmax(0,.8fr) minmax(0,1.4fr);
-  align-items:baseline;gap:12px;padding:11px 12px;border-radius:var(--pv-r-sm)}
+/* ★列の配分は**実測で決めた**（2026-08-31）。1.3/.8/.8/1.4 から動かしている。
+     4列目（見えた違い）は「All Nippon Airways (ANA) is higher」のように社名を含むので、
+     英語では 1.4fr（約168px）に入り切らず**9行ぜんぶが2行に折れて** 115px 太った。
+     4列目を 1.6fr に広げ、そのぶんを1列目と値の2列から出す。
+       1.3/.8/1.4 … en 底 1030 ❌   1.15/.75/1.6 … en 底 932 ✓（ja はどれでも 923）
+     1.05/.7/1.8 まで広げても 932 のまま（そこから先は右の列が背を決める）ので、
+     1列目に一番余裕の残る 1.15 を採る。
+   ⚠️ 見出し行の社名（2・3列目）は3行に折れるが、それでいい ── 折れるのは**1行だけ**。
+      逆に2・3列目を広げると4列目が痩せ、9行ぶん折れて何倍も損をする。 */
+.dc-tr{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.75fr)
+  minmax(0,.75fr) minmax(0,1.6fr);
+  align-items:baseline;gap:12px;padding:4px 12px;border-radius:var(--pv-r-sm)}
 .dc-tr:nth-child(even){background:var(--pv-surface-2)}
 .dc-c1{font-size:.78rem;color:var(--pv-ink-2);line-height:1.5;min-width:0}
 .dc-c2,.dc-c3{font-size:.9rem;font-weight:800;letter-spacing:-.01em;
   color:var(--pv-ink);font-variant-numeric:tabular-nums;min-width:0}
-.dc-c4{font-size:.74rem;color:var(--pv-ink-3);line-height:1.55;min-width:0}
+.dc-c4{font-size:.74rem;color:var(--pv-ink-3);line-height:1.5;min-width:0}
 /* 見出し行。★セル側に font 指定があるので、行に書くだけでは効かない。 */
-.dc-th,.dc-th:nth-child(even){background:none;padding-top:4px;padding-bottom:8px}
-.dc-th .dc-c1,.dc-th .dc-c2,.dc-th .dc-c3,.dc-th .dc-c4{
+.dc-th,.dc-th:nth-child(even){background:none;padding-top:0;padding-bottom:6px;
+  align-items:flex-end;border-bottom:1px solid var(--pv-line);border-radius:0}
+.dc-th .dc-c1,.dc-th .dc-c4{
   font-size:.68rem;font-weight:700;letter-spacing:.03em;
   color:var(--pv-ink-3);text-transform:uppercase;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* ★見出しの2列は会社カードの代わり（2026-08-31）。ロゴ・社名・人数を縦に積む。
+   ★text-transform:uppercase を掛けない ── 「全日本空輸（ANA）」はそのままだが
+     英語版が「ALL NIPPON AIRWAYS (ANA)」になって2行に折れ、見出しだけ背が伸びる。
+   ★social な省略はしない。社名は2行まで折り返してよい（切ると別会社に読める）。 */
+.dc-th .dc-c2,.dc-th .dc-c3{display:flex;flex-direction:column;align-items:flex-start;
+  gap:3px;min-width:0;font-weight:800;letter-spacing:-.01em;color:var(--pv-ink)}
+.dc-th .dc-side-n{flex:0 0 auto;font-size:.8rem;line-height:1.3;white-space:normal}
+.dc-th .dc-side-c{flex:0 0 auto}
+.dc-th .dc-logo{width:22px;height:22px}
 /* 会社名は広い画面では見出し行が持つので、値の側には出さない */
 .dc-c-a{display:none}
 
@@ -105,32 +215,32 @@
      モックの凡例には賞与があるが、モックのほうが誤り。表には行として出る。
    ★棒は pct をそのまま並べる。100% に伸ばし直さない ──
      3人に満たない項目が抜けている分だけ短いのが正しい。 */
-.dc-mix{display:flex;flex-direction:column;gap:16px;margin-top:4px}
-.dc-bar-row{display:flex;flex-direction:column;gap:8px;min-width:0}
+.dc-mix{display:flex;flex-direction:column;gap:12px;margin-top:2px}
+.dc-bar-row{display:flex;flex-direction:column;gap:6px;min-width:0}
 .dc-bar-h{display:flex;align-items:center;gap:9px;min-width:0}
 .dc-bar-n{min-width:0;font-size:.82rem;font-weight:700;color:var(--pv-ink);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.dc-bar{display:flex;height:22px;border-radius:999px;overflow:hidden;
+.dc-bar{display:flex;height:20px;border-radius:999px;overflow:hidden;
   background:var(--pv-line-soft);border:1px solid var(--pv-line)}
 .dc-seg{display:block;height:100%;min-width:2px}
 .dc-bar--none{align-items:center;justify-content:center;
   border-style:dashed;background:none}
 .dc-bar-e{font-size:.7rem;color:var(--pv-ink-3)}
 
-.dc-leg{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:14px}
+.dc-leg{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:9px}
 .dc-leg-i{display:inline-flex;align-items:center;gap:6px;
   font-size:.72rem;color:var(--pv-ink-2)}
 .dc-leg-i i{flex:none;width:10px;height:10px;border-radius:3px}
 
 /* ── ④ トレードオフ ──────────────────────────────────────────
    ★締めの1行は、対が1つも無くても必ず出る。 */
-.dc-to{display:flex;flex-direction:column;gap:10px;margin-top:2px}
+.dc-to{display:flex;flex-direction:column;gap:9px;margin-top:2px}
 .dc-to-li{display:flex;align-items:flex-start;gap:9px;
   font-size:.78rem;color:var(--pv-ink-2);line-height:1.65}
 .dc-to-li svg{flex:none;margin-top:2px;color:var(--pv-orange-ink)}
-.dc-to-end{margin-top:14px;padding-top:12px;
+.dc-to-end{margin-top:11px;padding-top:10px;
   border-top:1px solid var(--pv-line-soft);
-  font-size:.74rem;color:var(--pv-ink-3);line-height:1.7}
+  font-size:.74rem;color:var(--pv-ink-3);line-height:1.6}
 
 /* ── 狭い画面 ─────────────────────────────────────────────────
    4列の表は 640px を切ると読めなくなる。横スクロールにはせず、

@@ -170,14 +170,17 @@
           <div id="dp-work" hidden></div>
         </div>
 
-        <!-- 変動給の中身（左）と データの見方（右） -->
-        <div class="dp-row">
-          <div class="dp-w58" id="dp-var" hidden></div>
-          <div id="dp-notes" hidden></div>
+        <!-- 変動給の中身（左）と もっと深く見る（右）
+             ★「データの見方」の板5枚は 2026-08-31 に削除（オーナー判断＝じゃま）。
+                残した1行は給与構成カードの末尾（.dp-foot）。
+                空いた右半分に下の入口を上げて、段を1つまるごと減らしている。
+             ★この段だけ .dp-row--var で右の幅を固定する。左（変動給）は中で
+                2列に組むので、上の段と同じ伸び縮みにすると列が痩せて
+                ラベル・棒・数字が1行に入らなくなる。 -->
+        <div class="dp-row dp-row--var">
+          <div id="dp-var" hidden></div>
+          <div id="dp-more" hidden></div>
         </div>
-
-        <!-- もっと深く見る（全幅）。★入口はまだ無いので disabled のボタン -->
-        <div id="dp-more" hidden></div>
       </div>
     </main>
   </div>

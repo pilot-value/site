@@ -243,13 +243,21 @@ if (PICK) {
     const first = document.getElementById(ids.a);
     if (first) first.dispatchEvent(new Event('change', { bubbles: true }));
   }, PICK, IDS);
-  /* 描き終わり＝2枚のカードか、板（同じ会社・鍵）のどちらかが在って骨が消えたこと。 */
+  /* 描き終わり＝表・カード・板のどれかが在って骨が消えたこと。
+     ⚠️ カード（#dc-sides .dc-side）だけを待たない。2026-08-31 から、
+        **両方読めるときはカードが出ない**（表の見出しが受け持つ）ので、
+        正常な画面ほど待ち続けて 15秒でタイムアウトする。 */
   await page.waitForFunction(
     () => !document.querySelector('#dc-sides .mr-skel') &&
-          !!document.querySelector('#dc-sides .dc-side, #dc-sides .dp-msg'),
+          !!document.querySelector('#dc-diff .dc-tbl, #dc-sides .dc-side, #dc-sides .dp-msg'),
     { timeout: 15000 });
 }
 
+/* ★測る前にフォントが載り切るのを待つ。Inter は外から読むので、載る前に測ると
+   代替フォント（横に広い）の幅で数えてしまい、**同じ CSS なのに回ごとに違う答え**
+   が出る（実測で 570px→920 / 580px→938 / 610px→950 と単調でない並びになった）。
+   ⚠️ sleep で待たない。混んだ回に足りなくなって、また同じ揺れが戻る。 */
+await page.evaluate(() => document.fonts.ready);
 /* ── 実測（`measure` を付けたとき）────────────────────────────────
    ★スクショを目で見て「詰まっている気がする」で直さない。ここで数える。
      <select> は中身が入り切らなくても**黙って端で切る**（省略記号すら出ない）ので、
@@ -282,9 +290,27 @@ if (measure) {
       const r = e.getBoundingClientRect();
       return `${e.className || e.tagName} ${px(r.left)}..${px(r.right)}`;
     });
-    return { sels, cond,
+
+    /* ★たて ── この画面の主題。「収まっていない」はここ1本で数える。
+       innerHeight は窓の高さ。中身の底がそれを超えたらスクロールが要る。 */
+    const rows = [];
+    (function walk(el, d) {                 /* ★段だけでは「どこが厚いか」が分からない。
+                                               カードの中も3段だけ降りる（それ以上は読めない）。 */
+      for (const c of el.children) {
+        const q = c.getBoundingClientRect();
+        if (q.height < 6) continue;
+        const nm = c.id ? '#' + c.id
+          : (typeof c.className === 'string' && c.className.trim()
+              ? '.' + c.className.trim().split(/\s+/)[0] : c.tagName.toLowerCase());
+        rows.push({ id: '  '.repeat(d) + nm, y: px(q.top + scrollY),
+                    h: px(q.height), b: px(q.bottom + scrollY) });
+        if (d < 3) walk(c, d + 1);
+      }
+    })(document.getElementById('dc-root'), 0);
+    return { sels, cond, rows, vh: innerHeight,
+      bottom: rows.reduce((a, r) => Math.max(a, r.b), 0),
       boxes: ['#dc-pick .dp-pick', '#dc-cond .dp-cond', '#dc-trade .mr-card',
-              '#dc-notes .mr-card', '#dc-mix .mr-card'].map(box).filter(Boolean) };
+              '#dc-diff .mr-card', '#dc-mix .mr-card'].map(box).filter(Boolean) };
   });
   console.log(`── ${scene} / ${lang} / ${theme} / ${vw}px ──`);
   for (const s of rep.sels)
@@ -292,6 +318,16 @@ if (measure) {
       + `欄 ${String(s.box).padStart(6)}px 内寸 ${String(s.inner).padStart(6)} / `
       + `いま出ている ${String(s.cut).padStart(6)} / 最長 ${String(s.short).padStart(6)}  [${s.sel}]`);
   console.log('  条件バー: ' + (rep.cond.join(' | ') || '（無し）'));
+  console.log(`  ─ たて（窓 ${vw}x${rep.vh}）─`);
+  for (const r of rep.rows)
+    console.log(`    ${r.id.padEnd(30)} y${String(r.y).padStart(6)} h${String(r.h).padStart(6)}`
+      + ` → ${String(r.b).padStart(6)}`);
+  {
+    const gap = Math.round((rep.vh - rep.bottom) * 10) / 10;
+    console.log(`    ${gap >= 0 ? '✓ 1画面に収まる' : '❌ はみ出す'}`
+      + ` ── 底 ${rep.bottom} / 窓 ${rep.vh}`
+      + `（${gap >= 0 ? '余り ' + gap : 'あと ' + -gap + ' 縮める'}）`);
+  }
   for (const b of rep.boxes)
     console.log(`  ${b.sel.padEnd(24)} x${String(b.x).padStart(6)} y${String(b.y).padStart(6)} `
       + `w${String(b.w).padStart(6)} h${String(b.h).padStart(6)}`);

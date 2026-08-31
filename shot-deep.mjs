@@ -265,6 +265,11 @@ if (PICK) {
     () => !!document.querySelector('#dp-kpi .dp-kpi, #dp-kpi .dp-msg'), { timeout: 15000 });
 }
 
+/* ★測る前にフォントが載り切るのを待つ。Inter は外から読むので、載る前に測ると
+   代替フォント（横に広い）の幅で数えてしまい、**同じ CSS なのに回ごとに違う答え**
+   が出る（実測で 570px→920 / 580px→938 / 610px→950 と単調でない並びになった）。
+   ⚠️ sleep で待たない。混んだ回に足りなくなって、また同じ揺れが戻る。 */
+await page.evaluate(() => document.fonts.ready);
 /* ── 実測（`measure` を付けたとき）────────────────────────────────
    ★<select> は中身が入り切らなくても黙って端で切る（省略記号すら出ない）。
      選択肢の実幅を canvas で測り、欄の内寸と突き合わせる。 */
@@ -272,7 +277,7 @@ if (measure) {
   const rep = await page.evaluate(() => {
     const px = (v) => Math.round(v * 10) / 10;
     const cv = document.createElement('canvas').getContext('2d');
-    return [...document.querySelectorAll('.dp-pick-s')].map((e) => {
+    const sels = [...document.querySelectorAll('.dp-pick-s')].map((e) => {
       const cs = getComputedStyle(e);
       cv.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
       const widest = [...e.options].reduce(
@@ -286,9 +291,38 @@ if (measure) {
                cut: px(inner - 18 - selw),
                short: px(inner - 18 - widest) };   // 18px ≒ 端末の▼
     });
+
+    /* ★たて ── この画面の主題。「収まっていない」はここ1本で数える。
+       innerHeight は窓の高さ。中身の底がそれを超えたらスクロールが要る。 */
+    const rows = [];
+    (function walk(el, d) {                 /* ★段だけでは「どこが厚いか」が分からない。
+                                               カードの中も3段だけ降りる（それ以上は読めない）。 */
+      for (const c of el.children) {
+        const q = c.getBoundingClientRect();
+        if (q.height < 6) continue;
+        const nm = c.id ? '#' + c.id
+          : (typeof c.className === 'string' && c.className.trim()
+              ? '.' + c.className.trim().split(/\s+/)[0] : c.tagName.toLowerCase());
+        rows.push({ id: '  '.repeat(d) + nm, y: px(q.top + scrollY),
+                    h: px(q.height), b: px(q.bottom + scrollY) });
+        if (d < 3) walk(c, d + 1);
+      }
+    })(document.getElementById('dp-root'), 0);
+    return { sels, rows, vh: innerHeight,
+             bottom: rows.reduce((a, r) => Math.max(a, r.b), 0) };
   });
   console.log(`── ${scene} / ${lang} / ${theme} / ${vw}px ──`);
-  for (const s of rep)
+  console.log(`  ─ たて（窓 ${vw}x${rep.vh}）─`);
+  for (const r of rep.rows)
+    console.log(`    ${r.id.padEnd(30)} y${String(r.y).padStart(6)} h${String(r.h).padStart(6)}`
+      + ` → ${String(r.b).padStart(6)}`);
+  {
+    const gap = Math.round((rep.vh - rep.bottom) * 10) / 10;
+    console.log(`    ${gap >= 0 ? '✓ 1画面に収まる' : '❌ はみ出す'}`
+      + ` ── 底 ${rep.bottom} / 窓 ${rep.vh}`
+      + `（${gap >= 0 ? '余り ' + gap : 'あと ' + -gap + ' 縮める'}）`);
+  }
+  for (const s of rep.sels)
     console.log(`  ${s.cut < 0 ? '❌' : (s.short < 0 ? '△' : '✓ ')} ${s.id.padEnd(10)} `
       + `欄 ${String(s.box).padStart(6)}px 内寸 ${String(s.inner).padStart(6)} / `
       + `いま出ている ${String(s.cut).padStart(6)} / 最長 ${String(s.short).padStart(6)}  [${s.sel}]`);
