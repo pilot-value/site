@@ -380,6 +380,22 @@ const FAKE = function (payload) {
   const UID = '00000000-0000-4000-8000-00000000a001';
   const STATS = { reports: 58, month: 12, airlines: 19, contributors: 37 };
   window.__rpcArgs = [];
+  /* ★既定の「選べる組み合わせ」（2026-09-01）。本物は開いている限り毎回返す。
+     見本ごとに書くと同じものを何十か所へ写すことになるので、**自分で持って
+     いない見本にはこれを配る**。どの筋書きでも区分を選べるように、
+     ana / jal / sas × cap / fo × a320 / b787 を全部入れてある。
+     ⚠️ 自分で picks を持つ見本（一覧そのものを見る筋書き）はそちらが勝つ。
+     ⚠️ __nopicks を立てた見本には**配らない**＝「一覧が届かない」を作れる。 */
+  const DEF_PICKS = (function () {
+    const A = ['ana', 'jal', 'sas'], P = ['cap', 'fo'], F = ['a320', 'b787'];
+    const pos = { '': P.slice() }, flt = { '|': F.slice() };
+    for (const c of A) {
+      pos[c] = P.slice(); flt[c + '|'] = F.slice();
+      for (const x of P) flt[c + '|' + x] = F.slice();
+    }
+    for (const x of P) flt['|' + x] = F.slice();
+    return { air: A.slice(), pos: pos, flt: flt };
+  })();
   const RPC = {
     /* ★選んだ区分ごとに違う答えを返す。鍵は 会社|役職|機材。
        選んでいないとき deep-pay.js は**引数を渡さない**ので鍵は '||' になり、
@@ -387,8 +403,13 @@ const FAKE = function (payload) {
     pv_deep_pay: (args) => {
       const q = (args && args.p) || {};
       const k = [q.airline || '', q.position || '', q.fleet || ''].join('|');
-      if (!payload || !payload.__pick) return payload;
-      return payload.__pick[k] || (k === '||' ? payload : payload.__pick.__none || payload);
+      const r = (!payload || !payload.__pick) ? payload
+        : (payload.__pick[k] || (k === '||' ? payload : payload.__pick.__none || payload));
+      /* ★鍵が開いているときだけ配る。閉じている答えに一覧を付けると
+         「鍵が無いのに区分を選ばせる」画面ができる（本物は null を返す）。 */
+      if (r && r.state === 'open' && !r.picks && !(payload && payload.__nopicks))
+        return Object.assign({ picks: (payload && payload.picks) || DEF_PICKS }, r);
+      return r;
     },
     pv_pay_rows: () => ({ ok: true, state: 'open', rows: [], stats: STATS }),
     pv_give_progress: () => ({ ok: true, contributors: 37, give: { detailed: true } })
@@ -476,6 +497,31 @@ const NONE = { ok: true, state: 'open', gate: clone(FULL.gate), give: { detailed
   comp: null, work: null, var: [] };
 const PICKABLE = Object.assign(clone(FULL),
   { __pick: { 'jal|cap|b787': SEL, 'sas||': NONE } });
+/* 選べる組み合わせつき（2026-09-01）。形は db/deep-pay.sql の avail と同じ ──
+   会社 ／ 会社ごとの職位 ／「会社|職位」ごとの機材。空文字の鍵は「そこで絞っていない」。
+   ★ANA と JAL で持っている職位・機材を**わざと違えてある** ── 会社を変えたときに
+     その会社に無い職位・機材が落ちることを見るため。
+   ★jal を選んでも薄い答えを返させる（__pick の 'jal||'）── 選択肢どおりに
+     選んでも、一覧を受け取った後に人が減れば空になり得る。そのとき広い区分の
+     数字で埋めないことを見る。 */
+const PICKS3 = {
+  air: ['jal', 'ana'],          /* ★並びは画面側が語彙の順に直す（ana, jal になる）*/
+  pos: { '': ['cap', 'fo'], jal: ['cap'], ana: ['cap', 'fo'] },
+  flt: { '|': ['a320', 'b787'], '|cap': ['b787'], '|fo': ['a320'],
+         'jal|': ['b787'], 'jal|cap': ['b787'],
+         'ana|': ['a320', 'b787'], 'ana|cap': ['b787'], 'ana|fo': ['a320'] }
+};
+const HASPICKS = Object.assign(clone(PICKABLE), {
+  picks: PICKS3,
+  __pick: { 'jal|cap|b787': SEL, 'sas||': NONE, 'jal||': NONE }
+});
+/* 一覧が空で届いた形（まだ誰も内訳を書いていない日）。★自動 fallback は禁止＝
+   110社を並べる逃げ道は無い。選択欄ごと出ないのが正しい。 */
+const NOPICKS = Object.assign(clone(FULL),
+  { picks: { air: [], pos: {}, flt: {} } });
+/* 一覧そのものが届かなかった形（db/deep-pay.sql を Supabase に貼る前がこれ）。
+   ★__nopicks は FAKE への合図で、サーバの返り値の中身ではない。 */
+const NOLIST = Object.assign(clone(FULL), { __nopicks: true });
 /* variable 区分が3人に届かなかった形。★KPI の「変動給比率」の行が**消える**こと
    （0% とも「100 − 固定給」とも書かない）を見るための見本。 */
 const NOVAR = Object.assign(clone(FULL), {
@@ -612,10 +658,23 @@ const SNAP = () => {
       /* ★hidden 属性だけでは足りない。UA の [hidden]{display:none} は作者側の
          display:flex/grid に負けるので、**属性は付いたまま画面には出ている**
          という壊れ方をする（実際にそうなっていた）。描かれた結果も見る。 */
+      /* ★中身の値そのものを持ち出す（個数だけでは「一覧どおりか」が見えない）。
+         先頭の「選択する」（value が空）は数に入れない。 */
+      const vals = (id) => {
+        const x = document.getElementById(id);
+        return x ? [...x.options].map((o) => o.value).filter(Boolean) : null;
+      };
       return { hidden: !!(e && e.hidden),
                shown: !!(e && getComputedStyle(e).display !== 'none'),
                air: one('dp-pk-air'), pos: one('dp-pk-pos'), flt: one('dp-pk-flt'),
+               airV: vals('dp-pk-air'), posV: vals('dp-pk-pos'), fltV: vals('dp-pk-flt'),
+               note: ((e && e.querySelector('.dp-pick-n')) || {}).textContent || '',
                groups: e ? e.querySelectorAll('optgroup').length : 0,
+               grp: e ? [...e.querySelectorAll('#dp-pk-air optgroup')]
+                          .map((g) => g.label) : [],
+               airOn: e ? [...e.querySelectorAll('#dp-pk-air optgroup')]
+                            .map((g) => [...g.querySelectorAll('option')]
+                                          .map((o) => o.value)) : [],
                reset: !!document.getElementById('dp-pk-rst') };
     })(),
     args: window.__rpcArgs || [],
@@ -903,11 +962,17 @@ for (const lang of ['ja', 'en']) {
   const a = await page.evaluate(SNAP);
   ok(!a.pick.hidden && a.pick.shown && a.pick.air && a.pick.pos && a.pick.flt,
      '★会社・役職・機材の3つとも選べる');
-  ok(a.pick.air.n > 100, '会社の選択肢は salary-data.json の全社ぶん',
+  /* ★2026-09-01 に約束が入れ替わった。**前は「110社ぜんぶ並ぶ」を見ていた**が、
+     オーナー確定「選択できる ＝ 実際に数字が返る」により、並ぶのは
+     サーバが返した一覧の分だけになった。ここの作り物は3社（ana/jal/sas）×
+     2職位 × 2機材。数え方は「選択肢の数 ＝ 一覧の数 ＋「選択する」1つ」。
+     ⚠️ 中身が正しく絞れているか（会社ごとに違う職位・機材）は §11 が見ている。 */
+  ok(a.pick.air.n === 4, '会社は一覧にある会社だけ（全社を並べない）',
      `今 ${a.pick.air && a.pick.air.n} 個`);
-  ok(a.pick.groups >= 6, '会社は地域ごとにまとまっている', `今 ${a.pick.groups} 組`);
-  ok(a.pick.pos.n === 4 && a.pick.flt.n === 20,
-     '役職と機材は語彙そのまま（＋「選択する」1つ）',
+  ok(a.pick.groups >= 2, '会社は地域ごとにまとまっている（組の作りは残っている）',
+     `今 ${a.pick.groups} 組`);
+  ok(a.pick.pos.n === 3 && a.pick.flt.n === 3,
+     '役職と機材も一覧にある分だけ（＋「選択する」1つ）',
      `役職 ${a.pick.pos.n} / 機材 ${a.pick.flt.n}`);
   ok(!a.pick.reset, '何も選んでいないうちは「選択をクリア」を出さない');
   /* ★3欄は必ず**1段**（オーナー確定 2026-08-31「常に出したまま1段に詰める」）。
@@ -1018,14 +1083,19 @@ for (const lang of ['ja', 'en']) {
       ここが守っているのは「段が1つ増えた」級の後戻り（数十〜百px）。
 
    ⚠️ しきい値を上げて通さない。上げた瞬間にこの回の作業が黙って巻き戻る。
-      実測（2026-09-01・数字の定義をそろえた回）── ja 905 / en 929（本物のフォント）／
-      **ja 898 / en 932（ここ・代替フォント）**。en は 940 まで残り8px しか無い。
-      ★この回、注記を1行足したのに合計は1pxも増えていない。増えたぶんは
-        「給与構成のカードに入れていた注記を KPI の下の**全幅**の1行にまとめ、
-        3枚のカードの補足を1行に収まる長さへ詰める」ことで相殺した。
+      実測（2026-09-01・選択肢を絞った回）── ja 903 / en 905（本物のフォント）／
+      **ja 905 / en 931（ここ・代替フォント）**。en は 940 まで残り約9px しか無い。
+      ★この回、選択欄の下に断り1行（.dp-pick-n）を足した。あの1行は**段が1つ増える**
+        ので、置いただけで 27px 伸びる。増えたぶんは**この画面の中でだけ**刻みを
+        詰めて相殺した（器の上下 16→14 / 段の間 14→12 / 見出しの下 12→10 /
+        選択欄の器 9→8・段の間 10→8 / 条件バーの段の間 12→5 / 注記の上 9→7・6→5）。
+        my-value.css 側（マイページ全体の刻み）は1つも触っていない。
+      ⚠️ en の条件バーは**2段で正しい**。中身が 998px 要るのに幅が 836px しか無い
+        （`measure` の「条件バー」の行で見える）。1段に戻そうとして文言を削らない。
       ⚠️ 注記や補足に**1文字足すとここが落ちる**。落ちたら文言を削るか、
         `node shot-deep.mjs full en light 1512 measure` で**どの行が折れたか**を見る
-        （折れた1行 ＝ 約17px。カードの補足が折れると段ごと 15px 伸びる）。 */
+        （折れた1行 ＝ 約17px。カードの補足が折れると段ごと 15px 伸びる）。
+      ★落ちたときは #dp-root の直下が「どこで何px使っているか」も一緒に出る。 */
 for (const lang of ['ja', 'en']) {
   const { page } = await open(lang, FULL, 'light', MINE);
   await page.setViewport({ width: 1512, height: 1000 });
@@ -1033,13 +1103,18 @@ for (const lang of ['ja', 'en']) {
   await page.waitForFunction(() => innerWidth === 1512, { timeout: 10000 });
   const m = await page.evaluate(() => {
     let bottom = 0;
+    const root = document.getElementById('dp-root');
     (function walk(n) {
       for (const c of n.children) {
         const r = c.getBoundingClientRect();
         if (r.height > 0) bottom = Math.max(bottom, r.bottom + scrollY);
         walk(c);
       }
-    })(document.getElementById('dp-root'));
+    })(root);
+    const rows = [...root.children].map((c) => {
+      const r = c.getBoundingClientRect();
+      return `${c.id || c.className} y${Math.round(r.top + scrollY)} h${Math.round(r.height)}`;
+    });
     /* <select> は溢れても省略記号を出さない＝**切れたことが画面から分からない**。
        描画に使っている実際のフォントで一番長い選択肢を測り、内寸と比べる。 */
     const cv = document.createElement('canvas').getContext('2d');
@@ -1053,13 +1128,114 @@ for (const lang of ['ja', 'en']) {
       const inner = el.clientWidth - parseFloat(st.paddingLeft) - parseFloat(st.paddingRight);
       cut.push({ id: el.id, slack: Math.round((inner - wide) * 10) / 10 });
     }
-    return { bottom: Math.round(bottom * 10) / 10, cut };
+    return { bottom: Math.round(bottom * 10) / 10, cut, rows };
   });
+  /* ★落ちたときだけ、上から順に「どこが何px使っているか」を出す。
+     底の数字だけでは、段が増えたのか1行折れたのかが分からない。 */
   ok(m.bottom <= 940, `★1画面に収まる（${lang} / 1512×1000）`,
-     `底 ${m.bottom}`);
+     `底 ${m.bottom}\n     ` + m.rows.join('\n     '));
   ok(m.cut.every((c) => c.slack >= 0),
      `★<select> の選択肢が切れていない（${lang} / 1512）`,
      m.cut.map((c) => `${c.id} ${c.slack}`).join(' / '));
+}
+
+// ── 11. 選べる ＝ 必ず数字が返る（2026-09-01）─────────────────
+/* 会社110社 × 職位3つ × 機材19機種を全部並べると、ほとんどの組み合わせが空振りする。
+   ★サーバが「数字が返る組み合わせ」を全部返し、**画面はそれを引くだけ**。
+     3人の壁は SQL の1か所にしかない（画面は人数を数えないし、閾値も持たない）。
+   ⚠️ 見るのは6つ。**最後の2つが命綱**（db/*.sql は push では本番に入らない。
+      貼る前に push すると選択欄が空になる ── それが**正しい**ことを見張る）。 */
+{
+  const { page, errs } = await open('ja', HASPICKS);
+  const a = await page.evaluate(SNAP);
+
+  // (a) 会社は一覧にある2社だけ。110社は並ばない
+  ok((a.pick.airV || []).join(',') === 'ana,jal',
+     '★★会社は数字が返る会社だけ（110社を並べない）',
+     `今 ${(a.pick.airV || []).join(',')}`);
+  ok(!a.pick.grp.includes('数字が出る会社') && !a.pick.grp.includes('まだ人数が足りない会社'),
+     '★2つの組に分ける作りは残っていない（地域ごとのまま）', a.pick.grp.join(' / '));
+
+  // (b) 断り1行 ── 数字が1文字も入らない（招待の画面と同じ約束）
+  ok(/データが十分にある条件のみ/.test(a.pick.note),
+     '★「データが十分にある条件のみ表示しています」の1行が出る', a.pick.note);
+  ok(!/[0-9０-９]/.test(a.pick.note),
+     '★★断り書きに数字が1文字も入らない（人数が読めてしまう）', a.pick.note);
+
+  // (c) 職位は選んだ会社で数字が返るものだけ／機材は 会社×職位 で返るものだけ
+  await choose(page, { airline: 'jal', position: '', fleet: '' });
+  const c = await page.evaluate(SNAP);
+  ok((c.pick.posV || []).join(',') === 'cap',
+     '★職位は選んだ会社で数字が返るものだけ', `今 ${(c.pick.posV || []).join(',')}`);
+  ok((c.pick.fltV || []).join(',') === 'b787',
+     '★機材は 会社 × 職位 で数字が返るものだけ', `今 ${(c.pick.fltV || []).join(',')}`);
+
+  /* ★会社を先に変えてから職位を選ぶ（2段に分ける）。JAL のときは職位の欄に
+     「副操縦士」が**そもそも無い**ので、1回で ana+fo を入れようとすると
+     生えてこない選択肢を待ち続けて固まる。人が触る順そのまま。 */
+  await choose(page, { airline: 'ana', position: '', fleet: '' });
+  await choose(page, { airline: 'ana', position: 'fo', fleet: '' });
+  const c2 = await page.evaluate(SNAP);
+  ok((c2.pick.fltV || []).join(',') === 'a320',
+     '★★同じ会社でも職位を変えると機材が入れ替わる（会社だけで数えたら出ない形）',
+     `今 ${(c2.pick.fltV || []).join(',')}`);
+
+  // (d) 会社を変えると、その会社に無い職位・機材が黙って落ちる
+  await choose(page, { airline: 'ana', position: 'fo', fleet: 'a320' });
+  const n0 = await page.evaluate(() => window.__rpcArgs.length);
+  await page.evaluate(() => {
+    const e = document.getElementById('dp-pk-air');
+    e.value = 'jal'; e.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  /* ★時間で待たない。引いた回数が増えて、欄が触れる状態に戻るまで待つ。 */
+  await page.waitForFunction((m) => window.__rpcArgs.length > m
+    && !document.getElementById('dp-pk-air').disabled, { timeout: 15000 }, n0);
+  const d = await page.evaluate(SNAP);
+  ok(d.pick.pos.v === '' && d.pick.flt.v === '',
+     '★★会社を変えると、その会社に無い職位・機材が落ちる',
+     `職位 "${d.pick.pos.v}" / 機材 "${d.pick.flt.v}"`);
+  {
+    const last = (d.args[d.args.length - 1] || {}).p || {};
+    ok(last.airline === 'jal' && !last.position && !last.fleet,
+       '★★落とした後の値でサーバを引く（画面の見た目とサーバへの問い合わせがずれない）',
+       JSON.stringify(last));
+  }
+
+  // (e) 選択肢どおりに選んでも空が返ることはある。そのとき広い区分で埋めない
+  await choose(page, { airline: 'jal', position: '', fleet: '' });
+  const e2 = await page.evaluate(SNAP);
+  ok(/3人/.test(e2.text) && !/\$|¥|万円/.test(e2.text),
+     '★★空が返ったら金額を1文字も出さない（広い区分の数字で埋めない）',
+     e2.text.replace(/\n/g, ' ').slice(0, 90));
+  ok(errs.length === 0, '（11）JS のエラーが出ない', errs.join(' / '));
+
+  // (f) ★命綱★ 一覧が届かない・空のときは選択欄ごと出さない
+  for (const [nm, pl] of [['一覧が空の', NOPICKS], ['一覧が届かない', NOLIST]]) {
+    const { page: p2 } = await open('ja', pl);
+    const b = await p2.evaluate(SNAP);
+    ok(!b.pick.air && !b.pick.pos && !b.pick.flt,
+       `★★${nm}ときは選択欄を出さない（110社を並べる逃げ道は置かない）`,
+       JSON.stringify({ air: !!b.pick.air, pos: !!b.pick.pos, flt: !!b.pick.flt }));
+    ok(/選べる条件がまだありません/.test(b.pick.note),
+       `★${nm}ときは理由を1行出す`, b.pick.note);
+    /* ★同じ画面で「まだありません」と「選んでください」を並べない（2026-09-01）。
+         欄が消えている＝押せるものが画面に無いので、「選んでください」は
+         読み手に「自分の操作が悪い」と読ませる。絵で見つけた。 */
+    ok(/給与が集まるとここに出ます/.test(b.text) && !/選んでください/.test(b.text),
+       `★★${nm}ときは「選んでください」と書かない（押せるものが無い）`,
+       b.text.replace(/\n/g, ' ').slice(0, 80));
+  }
+
+  // (g) 英語も同じ（文言は言語ごとに別物なので両方見る）
+  {
+    const { page: p3 } = await open('en', NOLIST);
+    const b = await p3.evaluate(SNAP);
+    ok(/No groups can be shown yet/.test(b.pick.note) &&
+       /Numbers appear as pay reports come in/.test(b.text) &&
+       !/Choose a group to see/.test(b.text),
+       '★★一覧が届かないときの英語も「選んでください」と書かない',
+       b.text.replace(/\n/g, ' ').slice(0, 80));
+  }
 }
 
 for (const j of jars) await j.close().catch(() => {});

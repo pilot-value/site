@@ -91,8 +91,14 @@
       pickAir: '会社', pickPos: '役職', pickFlt: '機材',
       pickAny: '選択する',
       pickReset: '選択をクリア',
+      /* ★選べる欄のすぐ下の断り1行。⚠️ 数字を1文字も入れない
+         （入れた瞬間、その区分の人数が読める。招待の画面と同じ約束）。 */
+      pickNote: 'データが十分にある条件のみ表示しています',
+      pickNone: '選べる条件がまだありません。給与が集まると出ます。',
       askT: '見たい区分を選んでください',
       askS: '会社・役職・機材のどれか1つを選ぶと、その区分の数字が出ます。',
+      askNoneT: '給与が集まるとここに出ます',
+      askNoneS: '3人以上そろった区分ができると、会社・役職・機材で選べるようになります。',
       rg: { japan: '日本', mideast: '中東', asia: 'アジア', europe: '欧州',
             us: '北米', latam: '中南米', oceania: 'オセアニア', africa: 'アフリカ' },
 
@@ -162,8 +168,12 @@
       pickAir: 'Airline', pickPos: 'Seat', pickFlt: 'Fleet',
       pickAny: 'Select',
       pickReset: 'Clear',
+      pickNote: 'Only groups with enough data are listed.',
+      pickNone: 'No groups can be shown yet. They appear as pay reports come in.',
       askT: 'Choose a group to see',
       askS: 'Pick an airline, seat or fleet and the numbers for that group appear.',
+      askNoneT: 'Numbers appear as pay reports come in',
+      askNoneS: 'Once at least 3 pilots report the same group, you can pick an airline, seat or fleet.',
       rg: { japan: 'Japan', mideast: 'Middle East', asia: 'Asia', europe: 'Europe',
             us: 'North America', latam: 'Latin America', oceania: 'Oceania', africa: 'Africa' },
 
@@ -359,6 +369,13 @@
             /* 選ぶための材料（辞書が届いてから埋まる）と、いま選んでいる区分。
                ★sel が3つとも空なら「選んでいない」＝ 今までどおり自分の区分。 */
             airs: [], poss: [], flts: [],
+            /* 選べる組み合わせ（サーバが決める）。★null は「まだ分からない」＝
+               db/deep-pay.sql を貼るまで来ない。そのときは**選択欄を出さない**
+               （選べるのに数字が出ない状態を作らないため。自動 fallback は禁止）。
+               形は { air:[…], pos:{ '会社': […] }, flt:{ '会社|役職': […] } }。
+               空文字の鍵は「そこで絞っていない」の意味。
+               pkv は「中身が変わった回数」＝ picker() の組み直しの合図。 */
+            picks: null, pkj: '', pkv: 0,
             sel: { airline: '', position: '', fleet: '' },
             client: null, busy: false };
   function el(id) { return d.getElementById(id); }
@@ -424,18 +441,67 @@
           esc(o.t) + '</option>';
       }).join('');
   }
+  /* ── 選べる組み合わせ（2026-09-01・オーナー確定）────────────────
+     約束は1つ ── **選べる ＝ 必ず数字が返る**。
+     110社 × 3職位 × 19機材を素で並べると、選んだ先が「まだ出せません」しか無い
+     選択肢が大半になる。だからサーバ（db/deep-pay.sql の avail）が配った
+     組み合わせだけを並べる。
+     ★誰が「出る」かを**画面側で数えない。** 一覧は区分の壁（lvl）と同じ数え方で
+       出したものをそのまま使う。ここで数え直すと2つがズレたとき
+       「選べるのに選ぶと空」が**画面は普通に動いたまま**起きる。
+     ★**一覧が無いときの逃げ道を置かない**（自動 fallback 禁止）。
+       null なら選択欄そのものを出さず、理由を1行だけ出す。
+       ⚠️ つまり db/deep-pay.sql を貼る前に push すると選択欄が出ない。順番を守る。 */
+  function pk() { var v = S.picks; return (v && Array.isArray(v.air)) ? v : null; }
+  /* ★中身が変わった回だけ pkv を進める。毎回進めると、区分を選び直すたびに
+       選択欄を組み直すことになり、開いたままの <select> が閉じる。 */
+  function setPicks(v) {
+    if (!v || !Array.isArray(v.air)) return;
+    var j = JSON.stringify(v);
+    if (j === S.pkj) return;
+    S.pkj = j; S.picks = v; S.pkv++;
+  }
+  function airList() {
+    var v = pk();
+    return v ? S.airs.filter(function (a) { return v.air.indexOf(a.v) >= 0; }) : [];
+  }
+  function posList() {
+    var v = pk(), l = v && v.pos[S.sel.airline || ''];
+    return l ? S.poss.filter(function (o) { return l.indexOf(o.v) >= 0; }) : [];
+  }
+  function fltList() {
+    var v = pk(), l = v && v.flt[(S.sel.airline || '') + '|' + (S.sel.position || '')];
+    return l ? S.flts.filter(function (o) { return l.indexOf(o.v) >= 0; }) : [];
+  }
+  /* ★会社を変えると、いま選んでいる役職・機材がその会社に無いことがある。
+       **必ずこの順（会社 → 役職 → 機材）で落とす。** 順番を入れ替えて機材から
+       均すと、会社を落とした後にもう一度合わなくなる。
+     ★行き止まりは構造的に無い ── 一覧に居る会社は「会社だけ」で必ず数字が返るので、
+       役職・機材の「選択する」（＝絞らない）はいつでも有効。 */
+  function fix() {
+    var v = pk();
+    if (!v) { S.sel = { airline: '', position: '', fleet: '' }; return; }
+    if (S.sel.airline && v.air.indexOf(S.sel.airline) < 0) S.sel.airline = '';
+    var pl = v.pos[S.sel.airline || ''] || [];
+    if (S.sel.position && pl.indexOf(S.sel.position) < 0) S.sel.position = '';
+    var fl = v.flt[(S.sel.airline || '') + '|' + (S.sel.position || '')] || [];
+    if (S.sel.fleet && fl.indexOf(S.sel.fleet) < 0) S.sel.fleet = '';
+  }
+  function opt(a, cur) {
+    return '<option value="' + esc(a.v) + '"' + (a.v === cur ? ' selected' : '') + '>' +
+      esc(a.t) + '</option>';
+  }
+  /* 残った会社を地域ごとにまとめる（並びは今までと同じ）。 */
   function airOpts(cur) {
-    var by = {}, h = '<option value="">' + esc(T.pickAny) + '</option>';
-    S.airs.forEach(function (a) { (by[a.rg] || (by[a.rg] = [])).push(a); });
+    var h = '<option value="">' + esc(T.pickAny) + '</option>';
+    var by = {};
+    airList().forEach(function (a) { (by[a.rg] || (by[a.rg] = [])).push(a); });
     var order = RGO.filter(function (r) { return by[r]; })
       .concat(Object.keys(by).filter(function (r) { return RGO.indexOf(r) < 0; }));
     order.forEach(function (r) {
       h += '<optgroup label="' + esc((T.rg && T.rg[r]) || r) + '">' +
         by[r].sort(function (x, y) { return x.t > y.t ? 1 : -1; })
-          .map(function (a) {
-            return '<option value="' + esc(a.v) + '"' + (a.v === cur ? ' selected' : '') + '>' +
-              esc(a.t) + '</option>';
-          }).join('') + '</optgroup>';
+          .map(function (a) { return opt(a, cur); }).join('') + '</optgroup>';
     });
     return h;
   }
@@ -450,6 +516,7 @@
       position: (el('dp-pk-pos') || {}).value || '',
       fleet:    (el('dp-pk-flt') || {}).value || ''
     };
+    fix();      /* ★会社を変えた拍子に、その会社に無い役職・機材が残らないように */
     /* ★どれも選んでいない形に戻したら、引き直さずに「選んでください」に戻る
        （捨てるだけの答えを取りに行かない）。 */
     if (!S.client) return;
@@ -459,21 +526,30 @@
     var box = el('dp-pick');
     if (!box) return;
     /* 辞書は RPC より後に届くことがある。中身が変わった回だけ組み直す
-       （毎回組み直すと、通貨を切り替えただけで選択が飛ぶ）。 */
+       （毎回組み直すと、通貨を切り替えただけで選択が飛ぶ）。
+       ★選べる組み合わせ（pkv）も合図に入れる。辞書と RPC は届く順が決まって
+         いないので、後から来た側で組み直せないと欄が空のまま残る。
+       ★役職・機材の一覧は選んでいる会社で変わるので、sel の3つも合図に要る。 */
     var sig = L + '|' + S.airs.length + '|' + S.poss.length + '|' + S.flts.length +
+      '|' + S.pkv +
       '|' + S.sel.airline + '|' + S.sel.position + '|' + S.sel.fleet;
     if (box.getAttribute('data-sig') !== sig) {
       box.setAttribute('data-sig', sig);
       /* ★「区分を選ぶ」の見出しは置かない（2026-08-31）。欄ごとのラベル
          （会社 / 役職 / 機材）で足りるうえ、見出しだけで1段ぶん（約49px）
          使う。この画面は1画面に収めるのが約束なので、段を増やさない。 */
-      box.innerHTML =
-        field('dp-pk-air', T.pickAir, airOpts(S.sel.airline)) +
-        field('dp-pk-pos', T.pickPos, optlist(S.poss, S.sel.position)) +
-        field('dp-pk-flt', T.pickFlt, optlist(S.flts, S.sel.fleet)) +
-        (picked()
-          ? '<button type="button" class="dp-pick-r" id="dp-pk-rst">' + esc(T.pickReset) + '</button>'
-          : '');
+      var av = airList();
+      box.innerHTML = av.length
+        ? (field('dp-pk-air', T.pickAir, airOpts(S.sel.airline)) +
+           field('dp-pk-pos', T.pickPos, optlist(posList(), S.sel.position)) +
+           field('dp-pk-flt', T.pickFlt, optlist(fltList(), S.sel.fleet)) +
+           (picked()
+             ? '<button type="button" class="dp-pick-r" id="dp-pk-rst">' + esc(T.pickReset) + '</button>'
+             : '') +
+           '<p class="dp-pick-n">' + esc(T.pickNote) + '</p>')
+        /* ★一覧が届いていない／中身が1つも無いときは**欄を出さない**。
+             出すと「選べるのに数字が出ない」が生まれる（自動 fallback 禁止）。 */
+        : '<p class="dp-pick-n">' + esc(T.pickNone) + '</p>';
       ['dp-pk-air', 'dp-pk-pos', 'dp-pk-flt'].forEach(function (id) {
         var e = el(id); if (e) e.addEventListener('change', onPick);
       });
@@ -803,6 +879,9 @@
     });
     var box = el('dp-kpi');
     if (!box) return;
+    /* ★選択欄がサーバの一覧どおりなら、ここには**届かないはず**の板。
+         それでも残してある ── 一覧を受け取った後にその区分の人が消えた回
+         （投稿の削除・24か月の窓から落ちた）に、広い区分の数字で埋めないため。 */
     box.innerHTML = '<div class="dp-msg dp-msg--lock">' +
       '<div class="dp-msg-t">' + IC.info.replace('24" height="24', '18" height="18') +
         esc(T.thinT) + '</div>' +
@@ -821,10 +900,16 @@
     });
     var box = el('dp-kpi');
     if (!box) return;
+    /* ★選べる会社が1つも無いときに「選んでください」と書かない（2026-09-01）。
+         上の欄は消えているので、読み手には**押せるものが画面に無い**。
+         同じ画面で「選べる条件がまだありません」と「選んでください」が並ぶと、
+         自分の操作が悪いのだと読める。判定は picker() と同じ airList() を使う
+         （別々に持つと、片方だけ直したときに文言が食い違う）。 */
+    var none = airList().length === 0;
     box.innerHTML = '<div class="dp-msg dp-msg--ask">' +
       '<div class="dp-msg-t">' + IC.info.replace('24" height="24', '18" height="18') +
-        esc(T.askT) + '</div>' +
-      '<p class="dp-msg-s">' + esc(T.askS) + '</p></div>';
+        esc(none ? T.askNoneT : T.askT) + '</div>' +
+      '<p class="dp-msg-s">' + esc(none ? T.askNoneS : T.askS) + '</p></div>';
     box.hidden = false;
   }
 
@@ -908,6 +993,9 @@
       var v = res && res.data;
       S.data = v || null;
       S.mode = (v && v.state === 'open') ? 'open' : (v ? 'locked' : 'error');
+      /* ★一度届いた一覧は消さない。区分を選び直すたびに引き直すので、
+           1回でも欠けた答えが来ると選択欄がまるごと消えてちらつく。 */
+      setPicks(v && v.picks);
       /* 左メニューの錠前は localStorage の写しで暫定的に出ている。
          サーバの答えで上書きする。★DEEP PAY 自身の錠前は別（pv-gates.js の soon）。 */
       if (w.PVGates && w.PVGates.mark) w.PVGates.mark(!!(v && v.gate && v.gate.key));
@@ -926,6 +1014,8 @@
      呼ばれたときだけ S を差し替えて描き直す。 */
   w.PVDeepPay = {
     render: function (data) { S.data = data || null;
+                              setPicks(data && data.picks);
+                              fix();
                               S.mode = (data && data.state === 'open') ? 'open' : 'locked';
                               render(); }
   };

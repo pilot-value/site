@@ -1364,6 +1364,158 @@ ok(EX2.length >= 7, '▼21 用の会社が足りている', String(EX2.length));
 }
 await asUser(V);
 
+/* ── (k) 選べる組み合わせ（picks）── 画面の選択肢はこれで絞る ────
+   約束は1つ ── **選べる ＝ 必ず数字が返る**（オーナー確定 2026-09-01）。
+   110社・3職位・19機材を素で並べると、選んだ先が「まだ出せません」しか無い
+   選択肢が大半になる。だから中身のある組み合わせだけをサーバから配る。
+
+   ★数え方は区分の壁（lvl）と**同じでなければならない**
+     ＝「内訳を書いた月を持つ**実人物**が3人以上」。
+     ズレると「選択肢に出ているのに選ぶと空」が、**画面は普通に動いたまま**起きる。
+     行で数えていないか／1人の複数月で増えないか／総支給だけの人を
+     頭数に入れていないかを、4社を並べて確かめる。
+
+   ★最後に**配った選択肢を全部たどって、本当に数字が返るかを確かめる**。
+     ここが約束そのもの。閾値を片方だけ直した日に、必ずここが落ちる。 */
+{
+  const NEW = (await rows(
+    `select code from pv_airlines
+      where code <> 'other' and active
+        and code <> all(string_to_array($1, ','))
+      order by code limit 4`, [AIR.concat(EX, EX2).join(',')])).map(r => r.code);
+  ok(NEW.length === 4, '★(k) 用の会社を4社借りられた', String(NEW.length));
+  const [X, Y, Z, Q] = NEW;
+
+  // X … 機長×B777 が3人（うち1人は2か月ぶん）→ 会社も、機長も、B777 も出る
+  await person(X, 'cap', 'b777', [{ month: 6 }, { month: 7 }]);
+  await person(X, 'cap', 'b777', [{ month: 6 }]);
+  await person(X, 'cap', 'b777', [{ month: 6 }]);
+  // X … 副操縦士×A320 も3人 → 同じ会社で職位が2つ、機材は職位ごとに違う
+  await person(X, 'fo', 'a320', [{ month: 6 }]);
+  await person(X, 'fo', 'a320', [{ month: 6 }]);
+  await person(X, 'fo', 'a320', [{ month: 6 }]);
+  /* X … 機長×A320 は2人だけ。会社ぜんぶで見れば A320 は5人（副操縦士3＋機長2）
+       なので、**機材の一覧を会社だけで作ると A320 が機長の欄に出てしまう**。
+       選ぶと空になる。会社×職位で数えている証拠にする。 */
+  await person(X, 'cap', 'a320', [{ month: 6 }]);
+  await person(X, 'cap', 'a320', [{ month: 6 }]);
+  // Y … 内訳つきで2人 → 出ない
+  await person(Y, 'cap', 'b777', [{ month: 6 }]);
+  await person(Y, 'cap', 'b777', [{ month: 6 }]);
+  // Z … 3人いるが内訳を書いたのは2人（3人目は総支給だけ）→ 出ない
+  await person(Z, 'cap', 'b777', [{ month: 6 }]);
+  await person(Z, 'cap', 'b777', [{ month: 6 }]);
+  {
+    const u = ++seat;
+    await asUser(u);
+    await submit({ ...BASE, airline: Z, position: 'cap', fleet: 'b777',
+                   period_year: YEAR, period_month: 6, gross_monthly: 10000 });
+  }
+  // Q … 1人が3か月ぶん出しただけ → 出ない（行ではなく人を数えている証拠）
+  await person(Q, 'cap', 'b777', [{ month: 6 }, { month: 7 }, { month: 8 }]);
+
+  await asUser(V);
+  const d = await deep();
+  const pk = d.picks;
+  const sorted = (l) => JSON.stringify(l) === JSON.stringify(l.slice().sort());
+
+  ok(pk && Array.isArray(pk.air) && pk.pos && pk.flt
+        && !Array.isArray(pk.pos) && !Array.isArray(pk.flt),
+     '★選べる組み合わせは 会社 / 会社ごとの職位 / 会社×職位ごとの機材 の3つで返る',
+     JSON.stringify(Object.keys(pk || {})));
+
+  // ── 会社 ────────────────────────────────────────────────
+  ok(pk.air.includes(X), '★内訳つきで3人そろった会社は一覧に出る');
+  ok(!pk.air.includes(Y),
+     '★★2人しか居ない会社は一覧に出ない（選んでも空になる選択肢を並べない）');
+  ok(!pk.air.includes(Z),
+     '★★内訳を書いた人が2人の会社は出ない（総支給だけの人を頭数に入れない）');
+  ok(!pk.air.includes(Q),
+     '★★1人が3か月ぶん出しただけの会社は出ない（行ではなく人を数えている）');
+  ok(!pk.air.includes('other'),
+     '★一覧に無い航空会社（other）は会社として選ばせない（別々の会社が1社に潰れるため）');
+  ok(!Object.keys(pk.pos).includes('other') && !Object.keys(pk.flt).some(k => k.startsWith('other|')),
+     '★other は職位・機材の鍵にも出ない');
+  ok(sorted(pk.air),
+     '★一覧は並びが決まっている（呼ぶたびに順番が変わらない）', JSON.stringify(pk.air));
+  ok(pk.air.every(c => typeof c === 'string' && c !== ''),
+     '★入っているのは会社コードだけ（人数も、どの会社が何人かも返さない）');
+
+  // ── 会社ごとの職位 ──────────────────────────────────────
+  ok((pk.pos[X] || []).includes('cap') && (pk.pos[X] || []).includes('fo'),
+     '★その会社で数字が返る職位が並ぶ', JSON.stringify(pk.pos[X]));
+  ok(!pk.pos[Y] && !pk.pos[Z] && !pk.pos[Q],
+     '★★数字が返らない会社は職位の鍵ごと無い（会社を選べないので職位も要らない）');
+  ok(Array.isArray(pk.pos['']),
+     '★会社を選ばないときの職位も入っている（空文字＝絞っていない）',
+     JSON.stringify(pk.pos['']));
+
+  // ── 会社×職位ごとの機材 ────────────────────────────────
+  const fX = (a, b) => pk.flt[a + '|' + b] || [];
+  ok(fX(X, 'cap').includes('b777'), '★会社×職位で3人そろった機材は出る',
+     JSON.stringify(fX(X, 'cap')));
+  ok(!fX(X, 'cap').includes('a320'),
+     '★★機材の一覧は「会社×職位」で数える（会社ぜんぶでは5人でも、機長では2人なので出さない）',
+     JSON.stringify(fX(X, 'cap')));
+  ok(fX(X, 'fo').includes('a320'), '★同じ会社でも職位が違えば機材の一覧が違う',
+     JSON.stringify(fX(X, 'fo')));
+  ok(fX(X, '').includes('a320') && fX(X, '').includes('b777'),
+     '★職位を選ばないときは会社ぜんぶで数える（A320 は5人なので出る）',
+     JSON.stringify(fX(X, '')));
+  ok(Array.isArray(pk.flt['|']), '★どちらも選ばないときの機材も入っている',
+     JSON.stringify(pk.flt['|']));
+  ok(Object.values(pk.pos).concat(Object.values(pk.flt))
+       .every(l => Array.isArray(l) && l.length && sorted(l) && l.every(v => v !== '')),
+     '★★どの一覧も 空でない・並びが決まっている・空文字が混ざらない');
+
+  /* ★★ここが約束そのもの。**配った選択肢を1つ残らず選んでみて、
+       本当に数字が返るかを確かめる。** 閾値や数え方を片方だけ直すと、
+       画面は普通に動いたまま「選べるのに空」が生まれる。 */
+  {
+    const combos = [];
+    for (const a of pk.air) combos.push({ airline: a });
+    for (const [a, ps] of Object.entries(pk.pos))
+      for (const ps1 of ps) combos.push(a ? { airline: a, position: ps1 } : { position: ps1 });
+    for (const [k, fs] of Object.entries(pk.flt)) {
+      const [a, ps1] = k.split('|');
+      for (const f of fs) combos.push(Object.assign({ fleet: f },
+        a ? { airline: a } : {}, ps1 ? { position: ps1 } : {}));
+    }
+    const bad = [];
+    for (const c of combos) {
+      const r = await deep(c);
+      if (!r.cohort || r.cohort.level !== 'selected' || !(r.cohort.n >= 3)) bad.push(c);
+    }
+    ok(bad.length === 0,
+       `★★配った選択肢 ${combos.length} 通りを全部たどって、全部で数字が返る`,
+       JSON.stringify(bad.slice(0, 5)));
+  }
+  /* ★逆も見る。配っていない組み合わせは none で返り続ける
+       （壁が緩んだのに一覧だけ古い、の逆パターンを止める）。 */
+  ok((await deep({ airline: Y })).cohort.level === 'none',
+     '★一覧に無い会社を手で指定しても数字は出ない');
+  ok((await deep({ airline: X, position: 'cap', fleet: 'a320' })).cohort.level === 'none',
+     '★★一覧に無い機材を手で指定しても数字は出ない（一覧と壁が同じ場所を見ている）');
+
+  /* ★選んだ区分で一覧が入れ替わらないこと。入れ替わると、会社Aを選び直している
+       途中で会社Bが選択肢から消える（B社を選んでいる側の欄が空になる）。 */
+  const pkSel = (await deep({ airline: Y, position: 'cap', fleet: 'b777' })).picks;
+  ok(JSON.stringify(pkSel) === JSON.stringify(pk),
+     '★★選んだ区分では一覧が変わらない（選び直しの途中で会社が消えない）',
+     JSON.stringify(pkSel && pkSel.air));
+
+  /* ★鍵が閉じている人には一覧そのものを渡さない。
+       画面は閉じているときそもそも選択欄を出さないが、**渡していないものは
+       隠せない**（pv_pay_rows の rows と同じ考え方）。 */
+  const uNo = ++seat;
+  await asUser(uNo);
+  const dLock = await deep();
+  ok(dLock.state === 'locked' && dLock.picks === null,
+     '★★鍵が閉じている人には一覧そのものを渡さない',
+     `${dLock.state} / ${JSON.stringify(dLock.picks)}`);
+  await asUser(V);
+}
+
 // ════════════════════════════════════════════════════════════
 /* ★ここが一番効く。deep-pay.sql の末尾には、貼れたかどうかをオーナーが
      自分で確かめるための18行の表が付いている。**あの表自体が間違っている**と、

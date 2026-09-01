@@ -301,6 +301,42 @@ const FAKE = function (payload) {
     state: P.__lock ? 'locked' : 'open',
     gate: GATE, stats: STATS, give: { detailed: !P.__lock }
   };
+  /* ★選べる組み合わせ（2026-09-01・オーナー確定「選択できる ＝ 実際に数字が返る」）。
+     サーバが「数字が返る組み合わせ」を全部返し、**画面はそれを引くだけ**。
+       air … 会社を選ぶだけで数字が返る会社
+       pos["ana"] … ANA を選んだとき数字が返る役職（"" ＝ 会社を絞らないとき）
+       flt["ana|cap"] … ANA × 機長で数字が返る機材
+     ⚠️ 自動 fallback は禁止。一覧が無いときに「全社出す」逃げ道は**置かない**
+        （置くと「選べるのに数字が出ない」が戻る）。だから既定値は
+        **この作り物の中だけ**の話で、製品側の既定値ではない。
+        一覧が無い・空のときに欄が消えることは §13 が専用の payload で見る。
+     ★会社ごとに違う機材を持たせる（ANA に A380 は無い）。会社だけで数えると
+       出ない形＝左右で別々に絞れていないと落ちる。 */
+  const DEF_PICKS = (function () {
+    const F = { ana: { cap: ['b787', 'b777'], fo: ['a320', 'b787'] },
+                jal: { cap: ['b787', 'b767'], fo: ['b737', 'b787'] },
+                /* ★sas は見本の表（P.air）に無い＝選んでも「まだ出せません」が返る。
+                   **わざと選べるようにしてある。** §5（片側だけ薄い）が見ているのは
+                   その形で、本番でも起こりうる（一覧を受け取ったあとに DB が動く）。
+                   ここ以外の会社は必ず数字が返る。 */
+                sas: { cap: ['a320'], fo: ['a320'] } };
+    /* 見本の表にある会社は全部選べるようにする（§4〜§6 は会社を選んで描き手を叩く）。 */
+    for (const c of Object.keys(P.air || {}))
+      if (!F[c]) F[c] = { cap: ['b787'], fo: ['a320'] };
+    const uniq = (l) => [...new Set(l)].sort();
+    const air = Object.keys(F).sort();
+    const pos = { '': ['cap', 'fo'] }, flt = {}, all = [];
+    for (const c of air) {
+      pos[c] = Object.keys(F[c]).sort();
+      const mine = [];
+      for (const k of pos[c]) { flt[c + '|' + k] = F[c][k].slice().sort(); mine.push(...F[c][k]); }
+      flt[c + '|'] = uniq(mine); all.push(...mine);
+    }
+    flt['|'] = uniq(all);
+    for (const k of pos['']) flt['|' + k] = uniq(air.flatMap((c) => F[c][k] || []));
+    return { air, pos, flt };
+  })();
+  if (!P.__nopicks) BOOT.picks = P.__picks || DEF_PICKS;
   /* ★入口の1回は state と鍵だけ。cohort / head / comp を混ぜない
      ── 混ぜると「選ぶ前に数字が出ていない」ことを見張れなくなる。 */
   const THIN = { state: 'open', gate: GATE, stats: STATS, cohort: { level: 'none' } };
@@ -399,6 +435,9 @@ const SNAP = () => {
        ロゴ・社名・人数が**表の見出し行**に出る（カードは出ない）。
        器を問わず「2社の名前と人数が1つずつ出ている」ことを見る。 */
     sideN: all('#dc-root .dc-side-n'),
+    /* ★選んだ機材の札。**社名のすぐ隣**に出ていることを見る ── 両側読めるとき
+       カードは出ないので、表の見出しに添えていないと機材がどこにも出ない。 */
+    sideF: all('#dc-root .dc-side-f'),
     sideC: all('#dc-root .dc-side-c'),
     cardsShown: !document.getElementById('dc-sides').hidden,
     kvK: all('#dc-sides .dc-kv-k'),
@@ -456,6 +495,16 @@ const SNAP = () => {
       return !!(e && getComputedStyle(e).display !== 'none');
     })(),
     rst: cnt('#dc-pk-rst'),
+    /* ★欄ごとの「いま並んでいる選択肢」。空の1つ目（選択する）は落とす。
+       約束は「選べる ＝ 必ず数字が返る」なので、ここが絞れているかが要。 */
+    opt: (function () {
+      const v = (id) => {
+        const e = document.getElementById(id);
+        return e ? [...e.options].map((o) => o.value).filter(Boolean) : null;
+      };
+      return { a: v('dc-pk-a'), b: v('dc-pk-b'), pos: v('dc-pk-pos'),
+               fa: v('dc-pk-fa'), fb: v('dc-pk-fb') };
+    })(),
     lowHidden: ['dc-diff', 'dc-mix', 'dc-trade', 'dc-cta']
       .filter((id) => !!(document.getElementById(id) || {}).hidden).length,
     text: document.body.innerText
@@ -465,7 +514,8 @@ const SNAP = () => {
 const browser = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox'] });
 const jars = [];
 
-const PK = { a: 'dc-pk-a', b: 'dc-pk-b', pos: 'dc-pk-pos', flt: 'dc-pk-flt' };
+const PK = { a: 'dc-pk-a', b: 'dc-pk-b', pos: 'dc-pk-pos',
+             fltA: 'dc-pk-fa', fltB: 'dc-pk-fb' };
 /* ★選択肢が生えるのを待ってから値を入れる。語彙 JSON と salary-data.json は
    RPC より遅れて着くので、待たずに入れると空文字が入って**静かに空振りする**。
    待ちは全部「条件が満たされるまで」── sleep で待つと混んだ回に嘘の赤が出る。 */
@@ -556,12 +606,18 @@ async function open(lang, payload, theme, sel, expect, width) {
   ok(s.condK.length === 0, '★★選ぶまで条件バー（表示中:）を出さない', s.condK.join(','));
   ok(s.lowHidden === 4, '★下の4枚（表・棒・トレードオフ・入口）は畳んだまま',
      String(s.lowHidden));
-  ok(s.pickHidden === false && s.pick.join(',') === 'dc-pk-a,dc-pk-b,dc-pk-pos,dc-pk-flt',
-     '会社A・会社B・役職・機材の4つの欄が出ている', s.pick.join(','));
+  /* ★2026-09-01 に欄が4つ → 5つになった。機材は**会社ごとに違う**（ANA に A380 は
+     無い）ので左右に分けた。役職だけは両社共通（揃えないと比較が成り立たない）。
+     並び順は 会社A → 機材A → 役職 → 会社B → 機材B。 */
+  ok(s.pickHidden === false
+     && s.pick.join(',') === 'dc-pk-a,dc-pk-fa,dc-pk-pos,dc-pk-b,dc-pk-fb',
+     '会社A・機材A・役職・会社B・機材B の5つの欄が出ている', s.pick.join(','));
   ok(s.rst === 0, '何も選んでいないうちは「選択をクリア」を出さない');
-  /* ★4欄は必ず 2×2。1段に並べると <select> の内寸が 190px まで痩せ、
-     「全日本空輸（ANA）」（実測 313px）が端で切れる ── しかも <select> は
-     省略記号すら出さないので、切れたことが画面から分からない。
+  /* ★5欄は必ず 3列 × 2段（会社A・機材A・役職 ／ 会社B・機材B・クリア）。
+     1段に並べると <select> の内寸が痩せ、一番長い社名が端で切れる ── しかも
+     <select> は省略記号すら出さないので、切れたことが画面から分からない。
+     幅は勘で振らず `node shot-compare.mjs full ja light <幅> measure` で実測する
+     （2026-09-01 の実測 ── 会社 297px / 機材 258px / 役職 127px が最長）。
      ★「2社を選ぶ」の見出しは 2026-08-31 に削除（1画面に収める / オーナー確定）。
      ⚠️ 「選択をクリア」は出たり消えたりする。前はそれが grid の1行目を
         まるごと占めていて、消えた瞬間に欄が1つずつずれた。いまは
@@ -577,8 +633,8 @@ async function open(lang, payload, theme, sel, expect, width) {
                                - Math.max(...b)) : null };
   });
   const l0 = await lay(page);
-  ok(l0.tops.length === 4, '★4欄そろっている（選ぶ前）', JSON.stringify(l0));
-  ok(l0.rows === 2, '★4欄は2段（2×2）に並ぶ（選ぶ前）', String(l0.rows));
+  ok(l0.tops.length === 5, '★5欄そろっている（選ぶ前）', JSON.stringify(l0));
+  ok(l0.rows === 2, '★5欄は3列×2段に並ぶ（選ぶ前）', String(l0.rows));
   ok(s.args.length === 1 && s.args[0] === null,
      '★入口の1回は引数なし（state と鍵を取りに行くだけ）', JSON.stringify(s.args));
   ok(errs.length === 0, '入口で JS のエラーが出ない', errs.join(' / '));
@@ -590,8 +646,8 @@ async function open(lang, payload, theme, sel, expect, width) {
      '★片方だけでは引かない・出さない', `${h.args.length}回 ask=${h.ask}`);
   ok(h.rst === 1, '1つでも選ぶと「選択をクリア」が出る');
   const l1 = await lay(page);
-  ok(l1.rows === 2 && l1.tops.length === 4 && l1.gap != null && l1.gap <= 4,
-     '★「選択をクリア」が出ても並びは 2×2 のまま（クリアは2段目の右端）',
+  ok(l1.rows === 2 && l1.tops.length === 5 && l1.gap != null && l1.gap <= 4,
+     '★「選択をクリア」が出ても並びは 3列×2段のまま（クリアは2段目の右端）',
      JSON.stringify(l1));
 
   // 同じ会社を2つ
@@ -826,7 +882,7 @@ for (const [lang, theme] of [['ja', 'dark'], ['en', 'light'], ['en', 'dark']]) {
   const sizes = await page.evaluate(() =>
     [...document.querySelectorAll('#dc-pick select')]
       .map((e) => getComputedStyle(e).fontSize));
-  ok(sizes.length === 4 && sizes.every((v) => parseFloat(v) >= 16),
+  ok(sizes.length === 5 && sizes.every((v) => parseFloat(v) >= 16),
      '★390px で <select> の実測 font-size が16px 以上（iOS が勝手に拡大しない）',
      JSON.stringify(sizes));
   const over = await page.evaluate(() =>
@@ -880,15 +936,148 @@ for (const lang of ['ja', 'en']) {
      m.cut.map((c) => `${c.id} ${c.slack}`).join(' / '));
 }
 
+// ── 13. 選べる ＝ 必ず数字が返る（2026-09-01）───────────────────
+/* 110社 × 3役職 × 19機種を全部並べても、中身があるのはごく一部。選んで初めて
+   「まだ出せません」と分かるのをやめる ── サーバが「数字が返る組み合わせ」を
+   全部返し、**画面はそれを引くだけ**（3人の壁は SQL の1か所にしかない）。
+   ⚠️ 見るのは6つ。**(b) が命綱**（db/*.sql は push では本番に入らない。
+      貼る前に push すると選択欄が空になる ── それが**正しい**ことを見張る）。 */
+{
+  // (a) 会社は一覧にある会社だけ。左右とも同じ一覧
+  {
+    const { page, errs } = await open('ja', OK, 'light');
+    await page.waitForFunction(() => !!document.querySelector('#dc-pk-a option[value="ana"]'),
+                               { timeout: 20000 });
+    const s = await page.evaluate(SNAP);
+    /* ★並び順は語彙（salary-data.json）の順で、一覧の順ではない。集合で見る。 */
+    const want = 'ana,emirates,jal,lufthansa,qatar-airways,sas';
+    const set = (l) => (l || []).slice().sort().join(',');
+    ok(set(s.opt.a) === want && set(s.opt.b) === want,
+       '★★選べる会社だけが選択肢に残る（110社は並べない・左右とも同じ一覧）',
+       `A=${s.opt.a.join(',')} / B=${s.opt.b.join(',')}`);
+    ok(s.pickHidden === false && s.pickShown === true,
+       '2社以上あるので選択欄は出たまま');
+    ok(errs.length === 0, '（13a）JS エラーが出ていない', errs.join(' | '));
+  }
+
+  // (b) ★命綱★ 一覧が届かない・空のときは選択欄ごと出さない（全社に逃げない）
+  for (const [nm, pl] of [['一覧が届かない', { ...OK, __nopicks: true }],
+                          ['一覧が空の', { ...OK, __picks: { air: [], pos: {}, flt: {} } }]]) {
+    const { page, errs } = await open('ja', pl, 'light');
+    await page.waitForFunction(
+      () => !!document.querySelector('#dc-sides .dp-msg'), { timeout: 20000 });
+    const s = await page.evaluate(SNAP);
+    ok(s.pickShown === false && !s.opt.a && !s.opt.b && s.pick.length === 0,
+       `★★${nm}ときは選択欄を出さない（110社を並べる逃げ道は置かない）`,
+       `shown=${s.pickShown} / A=${s.opt.a && s.opt.a.length}`);
+    ok(errs.length === 0, `（13b/${nm}）JS エラーが出ていない`, errs.join(' | '));
+  }
+
+  // (c) 役職は**両社に共通**の分だけ／機材は 会社 × 役職 で左右べつべつ
+  {
+    const { page, errs } = await open('ja', OK, 'light');
+    await choose(page, { a: 'ana', b: 'sas' }, 2);
+    const s = await page.evaluate(SNAP);
+    ok(s.opt.pos.join(',') === 'cap,fo',
+       '役職は両社に共通の分だけ（ana ∩ sas）', `今 ${s.opt.pos.join(',')}`);
+    /* ★機材を左右で分けた理由そのもの。同じ役職でも会社が違えば飛ぶ機材が違う。
+         1本にまとめると、どちらかで必ず空振りする組み合わせが選べてしまう。 */
+    await choose(page, { a: 'ana', b: 'sas', pos: 'cap' }, 2);
+    const c = await page.evaluate(SNAP);
+    ok(c.opt.fa.join(',') === 'b777,b787' && c.opt.fb.join(',') === 'a320',
+       '★★機材は左右べつべつ（会社 × 役職 で数字が返るものだけ）',
+       `A=${c.opt.fa.join(',')} / B=${c.opt.fb.join(',')}`);
+    ok(errs.length === 0, '（13c）JS エラーが出ていない', errs.join(' | '));
+  }
+
+  // (d) 左右で違う機材を選ぶと、サーバへも違う引数で引く
+  {
+    const { page, errs } = await open('ja', OK, 'light');
+    await choose(page, { a: 'ana', b: 'jal', pos: 'cap' }, 2);
+    await choose(page, { a: 'ana', b: 'jal', pos: 'cap', fltA: 'b777', fltB: 'b767' }, 2);
+    const s = await page.evaluate(SNAP);
+    const l = s.args.slice(-2).map((x) => x && x.p);
+    ok(l[0] && l[1] && l[0].airline === 'ana' && l[0].fleet === 'b777'
+       && l[1].airline === 'jal' && l[1].fleet === 'b767'
+       && l[0].position === 'cap' && l[1].position === 'cap',
+       '★★左右で違う機材・同じ役職でサーバを引く（画面と問い合わせがずれない）',
+       JSON.stringify(l));
+    /* ★機材はどこかに必ず出る。両側読めるときカードは出ないので、
+         表の見出しに添えていないと**機材がどこにも出ない画面**ができる。 */
+    ok(s.sideF.length === 2 && /777/.test(s.sideF[0]) && /767/.test(s.sideF[1]),
+       '★★選んだ機材が左右それぞれの見出しに出る（どこにも出ない画面を作らない）',
+       s.sideF.join(' / '));
+    ok(errs.length === 0, '（13d）JS エラーが出ていない', errs.join(' | '));
+  }
+
+  // (e) 会社を変えると、その会社に無い役職・機材が黙って落ちる
+  {
+    const { page, errs } = await open('ja', OK, 'light');
+    await choose(page, { a: 'ana', b: 'jal', pos: 'cap', fltA: 'b777', fltB: 'b767' }, 2);
+    await choose(page, { a: 'sas', b: 'jal', pos: 'cap' }, 2);
+    const s = await page.evaluate(SNAP);
+    const fa = await page.evaluate(() => document.getElementById('dc-pk-fa').value);
+    ok(fa === '' , '★★会社を変えると、その会社に無い機材が落ちる', `機材A "${fa}"`);
+    const last = s.args.slice(-2).map((x) => x && x.p && x.p.fleet);
+    ok(last[0] === undefined || last[0] === null || last[0] === '',
+       '★★落とした後の値でサーバを引く', JSON.stringify(last));
+    ok(errs.length === 0, '（13e）JS エラーが出ていない', errs.join(' | '));
+  }
+
+  // (f) 1社しか無ければ選ばせず、理由と投稿の入口を出す
+  {
+    const ONE = { ...OK, __picks: { air: ['ana'], pos: { '': ['cap'], ana: ['cap'] },
+                                    flt: { '|': ['b787'], '|cap': ['b787'],
+                                           'ana|': ['b787'], 'ana|cap': ['b787'] } } };
+    const { page, errs } = await open('ja', ONE, 'light');
+    await page.waitForFunction(
+      () => !!document.querySelector('#dc-sides .dp-msg'), { timeout: 20000 });
+    const s = await page.evaluate(SNAP);
+    ok(s.pickHidden === true && s.pickShown === false,
+       '★★比べられる会社が1社なら選択欄を出さない', `hidden=${s.pickHidden}`);
+    ok(/2社/.test(s.msg), '理由が出ている', s.msg);
+    ok(s.ctaA.length > 0 || /pay-report\.html/.test(await page.evaluate(
+         () => document.querySelector('#dc-sides a.dp-cta')?.getAttribute('href') || '')),
+       '投稿の入口が出ている');
+    /* ★出していいのは**動かない壁**（比べるには2社・区分は3人）だけ。
+         いま何社あるか・あと何人かを書かない ── 書いた瞬間、その会社の人数が
+         1人単位で読める（招待の画面と同じ約束）。 */
+    const bare = s.msg.replace(/まだ2社/g, '').replace(/3人そろった/g, '');
+    ok(!/[0-9０-９]/.test(bare) && !/あと/.test(s.msg),
+       '★★いま何社・何人いるかを書かない（「あと1人」も書かない）', s.msg);
+    ok(errs.length === 0, '（13f）JS エラーが出ていない', errs.join(' | '));
+
+    // (f-en) 英語側も同じ（片方だけ直した、を捕まえる）
+    const { page: p2 } = await open('en', ONE, 'light');
+    await p2.waitForFunction(
+      () => !!document.querySelector('#dc-sides .dp-msg'), { timeout: 20000 });
+    const e = await p2.evaluate(SNAP);
+    ok(e.pickShown === false && /Not enough airlines/.test(e.msg),
+       '★英語側も同じ（日本語だけ直した、にしない）', e.msg.slice(0, 60));
+    ok(!/[0-9]/.test(e.msg.replace(/3 pilots/g, '')),
+       '★英語側も人数を書かない', e.msg.slice(0, 80));
+  }
+
+  // (g) 鍵が掛かっている人には一覧が無い＝今までどおり選択欄ごと出ない
+  {
+    const { page } = await open('ja', LOCK, 'light');
+    const s = await page.evaluate(SNAP);
+    ok(s.pickShown === false && s.lock === 1,
+       '鍵が掛かっているときは今までどおり錠前の画面', `${s.pickShown} / ${s.lock}`);
+  }
+}
+
 /* ── ⑭ 狭い画面でも <select> が切れない（2026-08-31）─────────────
    ★実際に踏んだ形を固定する。「選択をクリア」の列を 640px でも作っていたため、
      その 123px ぶん欄が痩せて社名が 107px 欠けていた。切れても省略記号は出ない
      ので、**画面を見ても気づけない**。だから幅を変えて測る。
-   ・900 … 2列＋クリアは3段目（3列にすると欄が 333px を割る）
-   ・640 … 1列（2列だと割る）
+   ★2026-09-01 に欄が5つになった（機材を左右に分けた）ので折り返しも測り直した。
+     要る幅は **会社 335px / 機材 296px / 役職 165px**（`measure` の「最長」＋▼18＋余白20）。
+   ・900 … 2列（3列にすると会社が 335px を割る。折り返しは 1240px）
+   ・640 … 1列（2列だと割る。折り返しは 800px）
    ⚠️ ここを緑にするために .dp-pick-f へ justify-self:start を掛けない。
-      掛けると欄が中身の幅まで縮んで測定値だけ良くなり、実際は4つの欄が
-      342/342/158/307 とバラバラになる（実際にやった）。 */
+      掛けると欄が中身の幅まで縮んで測定値だけ良くなり、実際は欄の幅が
+      バラバラになる（実際にやった）。 */
 for (const lang of ['ja', 'en']) {
   for (const w of [900, 640]) {
     const { page } = await open(lang, OK, 'light', { a: 'ana', b: 'jal' }, null, w);
@@ -906,7 +1095,7 @@ for (const lang of ['ja', 'en']) {
         return { id: el.id, slack: Math.round((inner - wide) * 10) / 10 };
       });
     });
-    ok(cut.length === 4 && cut.every((c) => c.slack >= 0),
+    ok(cut.length === 5 && cut.every((c) => c.slack >= 0),
        `★<select> の選択肢が切れていない（${lang} / ${w}）`,
        cut.map((c) => `${c.id} ${c.slack}`).join(' / '));
   }

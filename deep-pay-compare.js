@@ -51,15 +51,24 @@
       hd: '会社を比べる',
       hdS: '2社を横に並べて、同じ物差しで読みます。順位は付けません。',
       now: '表示中:', months: '直近24か月', people: '人', vs: 'vs',
-      pickA: '会社A', pickB: '会社B', pickPos: '役職（両社共通）', pickFlt: '機材（両社共通）',
+      pickA: '会社A', pickB: '会社B', pickPos: '役職（両社共通）',
+      /* ★機材は左右で別（2026-09-01・オーナー確定）。会社が違えば飛ばす機材も
+         違うので、両社共通にすると片方が必ず空振りする。役職は共通のまま
+         ── 比べる土台がそこで揃っている。 */
+      pickFltA: '機材（会社A）', pickFltB: '機材（会社B）',
       pickAny: '選択する', pickReset: '選択をクリア',
+      /* ★選べる欄のすぐ下の断り1行。⚠️ 数字を1文字も入れない
+         （入れた瞬間、その区分の人数が読める。招待の画面と同じ約束）。 */
+      pickNote: 'データが十分にある条件のみ表示しています',
       allPos: '役職を問わない', allFlt: '機材を問わない',
       rg: { japan: '日本', mideast: '中東', asia: 'アジア', europe: '欧州',
             us: '北米', latam: '中南米', oceania: 'オセアニア', africa: 'アフリカ' },
       askT: '比べる2社を選んでください',
-      askS: '会社Aと会社Bを選ぶと、同じ役職・機材の条件で横に並びます。',
+      askS: '会社Aと会社Bを選ぶと、同じ役職の条件で横に並びます。',
       dupT: '別の会社を選んでください',
       dupS: '会社Aと会社Bに同じ会社が入っています。',
+      fewT: '比べられる会社が、まだ2社ありません',
+      fewS: '3人そろった会社から順に出ます。',
       thinT: 'まだ出せません',
       thinS: '3人そろった区分から順に出ます。',
       mAnnual: '年収（中央値）', mPbh: 'Pay / Block Hour', mFixed: '固定・保証給比率',
@@ -101,15 +110,19 @@
       pickA: 'Airline A', pickB: 'Airline B',
       /* ★役職・機材は左右で共通。ラベルにそう書く ── 見出しを1段足すと
          1画面（1512×980）の約束を破るので、語だけで解く。 */
-      pickPos: 'Seat (both airlines)', pickFlt: 'Fleet (both airlines)',
+      pickPos: 'Seat (both airlines)',
+      pickFltA: 'Fleet (A)', pickFltB: 'Fleet (B)',
       pickAny: 'Select', pickReset: 'Clear',
+      pickNote: 'Only groups with enough data are listed.',
       allPos: 'Any seat', allFlt: 'Any fleet',
       rg: { japan: 'Japan', mideast: 'Middle East', asia: 'Asia', europe: 'Europe',
             us: 'North America', latam: 'Latin America', oceania: 'Oceania', africa: 'Africa' },
       askT: 'Choose two airlines to compare',
-      askS: 'Pick airline A and airline B and they appear side by side, on the same seat and fleet.',
+      askS: 'Pick airline A and airline B and they appear side by side, on the same seat.',
       dupT: 'Choose a different airline',
       dupS: 'Airline A and airline B are the same.',
+      fewT: 'Not enough airlines to compare yet',
+      fewS: 'Airlines appear once 3 pilots have reported.',
       thinT: 'Not available yet',
       thinS: 'Groups appear once 3 pilots have reported.',
       mAnnual: 'Annual pay (median)', mPbh: 'Pay / Block Hour', mFixed: 'Fixed & guaranteed share',
@@ -225,9 +238,13 @@
 
   // ── 状態 ───────────────────────────────────────────────────────
   /* boot は入口の1回ぶん（state / gate / give / stats だけ使う）。
-     side は左右それぞれの答え。sel の役職・機材は左右で共通。 */
+     side は左右それぞれの答え。★役職は左右共通・機材は左右別（fltA / fltB）。
+     picks は選べる組み合わせ。形は db/deep-pay.sql の avail と同じ
+     { air:[…], pos:{ '会社': […] }, flt:{ '会社|役職': […] } }。
+     pkv は「中身が変わった回数」＝ picker() の組み直しの合図。 */
   var S = { mode: 'load', boot: null, air: {}, pos: {}, airs: [], poss: [], flts: [],
-            sel: { a: '', b: '', pos: '', flt: '' },
+            picks: null, pkj: '', pkv: 0,
+            sel: { a: '', b: '', pos: '', fltA: '', fltB: '' },
             side: { a: null, b: null }, client: null, busy: false, seq: 0 };
 
   function el(id) { return d.getElementById(id); }
@@ -324,9 +341,81 @@
           esc(o.t) + '</option>';
       }).join('');
   }
+  /* ── 選べる組み合わせ（2026-09-01・オーナー確定）──────────────
+     約束は1つ ── **選べる ＝ 実際に比較が成立する**。
+     110社 × 3職位 × 19機材を素で並べると、選んだ先が「まだ出せません」しか
+     無い選択肢が大半になる。だからサーバ（db/deep-pay.sql の avail）が配った
+     組み合わせだけを並べる。この画面は元から「鍵が掛かっているときは選択欄ごと
+     隠す」（下の picker）── 押せる欄を出すのは嘘になる、の一段深いところ。
+
+     ★誰が選べるかを**画面側で数えない。** 一覧は区分の壁（lvl）と同じ数え方で
+       出したものをそのまま使う。ここで数え直すと2つがズレたとき
+       「選択肢に出ているのに選ぶと空」になり、**画面は普通に動いたまま**なので
+       誰も気づけない。
+     ★**一覧が無いときの逃げ道を置かない**（自動 fallback 禁止）。
+       null なら比べられる会社が無いのと同じ扱いにして、理由を出す（下の few）。
+       ⚠️ つまり db/deep-pay.sql を貼る前に push するとこの画面は few になる。順番を守る。 */
+  function pk() { var v = S.picks; return (v && Array.isArray(v.air)) ? v : null; }
+  /* ★中身が変わった回だけ pkv を進める。毎回進めると、選び直すたびに選択欄を
+       組み直すことになり、開いたままの <select> が閉じる。 */
+  function setPicks(v) {
+    if (!v || !Array.isArray(v.air)) return;
+    var j = JSON.stringify(v);
+    if (j === S.pkj) return;
+    S.pkj = j; S.picks = v; S.pkv++;
+  }
+  function airList() {
+    var v = pk();
+    return v ? S.airs.filter(function (a) { return v.air.indexOf(a.v) >= 0; }) : [];
+  }
+  /* 役職は**両社共通**なので、A で出る職位と B で出る職位の**交わり**だけ。
+     ★片方しか選んでいない間は、選んでいる側だけで絞る。どちらも未選択なら
+       「会社を絞らないとき」の一覧（空文字の鍵）を出す。 */
+  function posList() {
+    var v = pk();
+    if (!v) return [];
+    var la = v.pos[S.sel.a], lb = v.pos[S.sel.b], l;
+    if (S.sel.a && S.sel.b) {
+      la = la || []; lb = lb || [];
+      l = la.filter(function (x) { return lb.indexOf(x) >= 0; });
+    } else l = (S.sel.a ? la : (S.sel.b ? lb : v.pos[''])) || [];
+    return S.poss.filter(function (o) { return l.indexOf(o.v) >= 0; });
+  }
+  /* 機材は左右別。**その会社 × 共通の役職**で数字が返るものだけ。 */
+  function fltList(key) {
+    var v = pk();
+    if (!v) return [];
+    var l = v.flt[(S.sel[key] || '') + '|' + (S.sel.pos || '')] || [];
+    return S.flts.filter(function (o) { return l.indexOf(o.v) >= 0; });
+  }
+  /* ★会社を変えると、いまの役職・機材がその会社に無いことがある。
+       **必ずこの順（会社 → 役職 → 機材）で落とす。** 機材から均すと、
+       役職を落とした後にもう一度合わなくなる。
+     ★行き止まりは構造的に無い ── 一覧に居る会社は「会社だけ」で必ず数字が
+       返るので、役職・機材の「選択する」（＝絞らない）はいつでも有効。
+       交わりが空でも同じ理由で詰まらない。 */
+  function fix() {
+    var v = pk();
+    if (!v) { S.sel = { a: '', b: '', pos: '', fltA: '', fltB: '' }; return; }
+    ['a', 'b'].forEach(function (k) {
+      if (S.sel[k] && v.air.indexOf(S.sel[k]) < 0) S.sel[k] = '';
+    });
+    var pl = posList().map(function (o) { return o.v; });
+    if (S.sel.pos && pl.indexOf(S.sel.pos) < 0) S.sel.pos = '';
+    [['fltA', 'a'], ['fltB', 'b']].forEach(function (q) {
+      var fl = fltList(q[1]).map(function (o) { return o.v; });
+      if (S.sel[q[0]] && fl.indexOf(S.sel[q[0]]) < 0) S.sel[q[0]] = '';
+    });
+  }
+  /* 比べるには2社要る。1社以下では選ばせず、理由を出す（下の few）。
+     ★S.airs が空の間は判定しない（社名の辞書がまだ届いていないだけ）。 */
+  function fewAir() {
+    return S.airs.length > 0 && airList().length < 2;
+  }
+
   function airOpts(cur) {
     var by = {}, h = '<option value="">' + esc(T.pickAny) + '</option>';
-    S.airs.forEach(function (a) { (by[a.rg] || (by[a.rg] = [])).push(a); });
+    airList().forEach(function (a) { (by[a.rg] || (by[a.rg] = [])).push(a); });
     var order = RGO.filter(function (r) { return by[r]; })
       .concat(Object.keys(by).filter(function (r) { return RGO.indexOf(r) < 0; }));
     order.forEach(function (r) {
@@ -343,16 +432,20 @@
     return '<label class="dp-pick-f" for="' + id + '"><span class="dp-pick-l">' +
       esc(label) + '</span><select id="' + id + '" class="dp-pick-s">' + opts + '</select></label>';
   }
-  function anyPick() { return !!(S.sel.a || S.sel.b || S.sel.pos || S.sel.flt); }
+  function anyPick() {
+    return !!(S.sel.a || S.sel.b || S.sel.pos || S.sel.fltA || S.sel.fltB);
+  }
   function pairReady() { return !!(S.sel.a && S.sel.b) && S.sel.a !== S.sel.b; }
 
   function onPick() {
     S.sel = {
-      a:   (el('dc-pk-a')   || {}).value || '',
-      b:   (el('dc-pk-b')   || {}).value || '',
-      pos: (el('dc-pk-pos') || {}).value || '',
-      flt: (el('dc-pk-flt') || {}).value || ''
+      a:    (el('dc-pk-a')   || {}).value || '',
+      b:    (el('dc-pk-b')   || {}).value || '',
+      pos:  (el('dc-pk-pos') || {}).value || '',
+      fltA: (el('dc-pk-fa')  || {}).value || '',
+      fltB: (el('dc-pk-fb')  || {}).value || ''
     };
+    fix();      /* ★会社を変えた拍子に、その会社に無い役職・機材が残らないように */
     if (!S.client) return;
     /* ★2社そろって別会社のときだけ引く。片方だけ・同じ会社では答えが要らない。 */
     if (pairReady()) { pair(); return; }
@@ -365,40 +458,55 @@
     var box = el('dc-pick');
     if (!box) return;
     /* 辞書は RPC より後に届くことがある。中身が変わった回だけ組み直す
-       （毎回組み直すと、通貨を切り替えただけで選択が飛ぶ）。 */
+       （毎回組み直すと、通貨を切り替えただけで選択が飛ぶ）。
+       ★選べる組み合わせ（pkv）も合図に入れる。語彙 JSON と RPC は届く順が
+         決まっていないので、後から来た側で組み直せないと欄が空のまま残る。
+       ★役職・機材の一覧は選んでいる会社で変わるので、sel の5つも合図に要る。 */
     var sig = L + '|' + S.airs.length + '|' + S.poss.length + '|' + S.flts.length +
-      '|' + S.sel.a + '|' + S.sel.b + '|' + S.sel.pos + '|' + S.sel.flt;
+      '|' + S.pkv +
+      '|' + S.sel.a + '|' + S.sel.b + '|' + S.sel.pos +
+      '|' + S.sel.fltA + '|' + S.sel.fltB;
     if (box.getAttribute('data-sig') !== sig) {
       box.setAttribute('data-sig', sig);
       /* ★「2社を選ぶ」の見出しは置かない（2026-08-31）。欄ごとのラベル
-         （会社A / 会社B / 役職 / 機材）で足りるうえ、見出しだけで1段ぶん
-         （約46px）使う。この画面は1画面に収めるのが約束なので、段を増やさない。 */
-      box.innerHTML =
+         （会社A / 機材（会社A）/ 役職 …）で足りるうえ、見出しだけで1段ぶん
+         （約46px）使う。この画面は1画面に収めるのが約束なので、段を増やさない。
+         ★並びは 会社A → 機材A → 役職 → 会社B → 機材B。CSS は3列の自動配置に
+           任せてあるので、**この順番を変えると画面の配置が変わる**。 */
+      /* ★比べられる会社が1社以下なら**欄そのものを作らない**（2026-09-01）。
+         器を hidden にするだけだと、中身は DOM に残る＝ [hidden] が
+         display:grid に負けた瞬間に「空の欄が5つ」出る（この画面で実際にあった
+         壊れ方。下の box.hidden のコメントと対）。理由は #dc-sides 側が1行で出す。 */
+      box.innerHTML = fewAir() ? '' :
         field('dc-pk-a', T.pickA, airOpts(S.sel.a)) +
+        field('dc-pk-fa', T.pickFltA, optlist(fltList('a'), S.sel.fltA)) +
+        field('dc-pk-pos', T.pickPos, optlist(posList(), S.sel.pos)) +
         field('dc-pk-b', T.pickB, airOpts(S.sel.b)) +
-        field('dc-pk-pos', T.pickPos, optlist(S.poss, S.sel.pos)) +
-        field('dc-pk-flt', T.pickFlt, optlist(S.flts, S.sel.flt)) +
+        field('dc-pk-fb', T.pickFltB, optlist(fltList('b'), S.sel.fltB)) +
         (anyPick()
           ? '<button type="button" class="dp-pick-r" id="dc-pk-rst">' + esc(T.pickReset) + '</button>'
-          : '');
-      ['dc-pk-a', 'dc-pk-b', 'dc-pk-pos', 'dc-pk-flt'].forEach(function (id) {
+          : '') +
+        '<p class="dp-pick-n">' + esc(T.pickNote) + '</p>';
+      ['dc-pk-a', 'dc-pk-fa', 'dc-pk-pos', 'dc-pk-b', 'dc-pk-fb'].forEach(function (id) {
         var e = el(id); if (e) e.addEventListener('change', onPick);
       });
       var r = el('dc-pk-rst');
       if (r) r.addEventListener('click', function () {
-        S.sel = { a: '', b: '', pos: '', flt: '' };
+        S.sel = { a: '', b: '', pos: '', fltA: '', fltB: '' };
         S.seq++;
         S.side = { a: null, b: null };
         render();   /* ★引き直さない。選んでいない画面は何も出さないので答えが要らない */
       });
     }
     /* 引いている間は触らせない（連打で答えが入れ替わるのを止める）。 */
-    ['dc-pk-a', 'dc-pk-b', 'dc-pk-pos', 'dc-pk-flt', 'dc-pk-rst'].forEach(function (id) {
-      var e = el(id); if (e) e.disabled = !!S.busy || !S.client;
-    });
+    ['dc-pk-a', 'dc-pk-fa', 'dc-pk-pos', 'dc-pk-b', 'dc-pk-fb', 'dc-pk-rst']
+      .forEach(function (id) {
+        var e = el(id); if (e) e.disabled = !!S.busy || !S.client;
+      });
     /* 鍵が掛かっている画面・読み込めなかった画面では選ばせない
-       （どの区分を選んでも答えは同じなので、押せる欄を出すのは嘘になる）。 */
-    box.hidden = !(S.mode === 'open' || S.mode === 'load');
+       （どの区分を選んでも答えは同じなので、押せる欄を出すのは嘘になる）。
+       ★比べられる会社が1社以下のときも同じ理由で出さない（2026-09-01）。 */
+    box.hidden = !(S.mode === 'open' || S.mode === 'load') || fewAir();
   }
 
   // ── 見出しと条件バー ───────────────────────────────────────────
@@ -419,7 +527,9 @@
     var na = nOf(S.side.a), nb = nOf(S.side.b);
     var parts = [];
     if (S.sel.pos) parts.push(posName(S.sel.pos));
-    if (S.sel.flt) parts.push(fltName(S.sel.flt));
+    /* ★機材はここに書かない（2026-09-01）。左右で別の機材を選べるようになった
+       ので、1つにまとめると片方が嘘になる。**会社の見出しの側**に添える
+       （sideCard の dc-side-f と diff の th）。 */
     parts.push((na == null ? '—' : na + T.people) + ' ' + T.vs + ' ' +
                (nb == null ? '—' : nb + T.people));
     parts.push(T.months);
@@ -435,11 +545,17 @@
   }
 
   // ── ① 2社のカード ─────────────────────────────────────────────
+  /* ★機材は会社ごとに別なので、社名のすぐ横に添える（2026-09-01）。
+       選んでいないときは何も出さない（「機材を問わない」と書くと1行増える）。 */
+  function fltTag(key) {
+    var f = S.sel[key === 'a' ? 'fltA' : 'fltB'];
+    return f ? '<span class="dc-side-f">' + esc(fltName(f)) + '</span>' : '';
+  }
   function sideCard(key) {
     var code = S.sel[key], x = S.side[key];
     var n = nOf(x);
     var h = '<div class="dc-side-h">' + logoHtml(code) +
-      '<span class="dc-side-n">' + esc(airName(code)) + '</span>' +
+      '<span class="dc-side-n">' + esc(airName(code)) + '</span>' + fltTag(key) +
       '<span class="dc-side-c">' + esc(n == null ? '—' : (n + T.people)) + '</span></div>';
     /* ★薄い側だけを差し替える。もう片側は普通に出る（オーナー確定）。 */
     if (sideThin(x)) {
@@ -548,10 +664,12 @@
     /* ★見出しの2列が会社カードの代わりを務める（2026-08-31）。
        ロゴ・社名・人数をここに入れたので、両方読めるときはカード2枚を出さない。
        class は .dc-side-n / .dc-side-c のまま ── 場所が変わっただけで意味は同じ。 */
+    /* ⚠️ 機材をここに入れ忘れない。両側とも読めるときカード2枚は出ない
+       （cards() の注記）ので、**この見出しに無いと機材がどこにも出ない画面**になる。 */
     var th = function (cls, key) {
       var code = S.sel[key], n = nOf(S.side[key]);
       return '<span class="' + cls + '">' + logoHtml(code) +
-        '<span class="dc-side-n">' + esc(airName(code)) + '</span>' +
+        '<span class="dc-side-n">' + esc(airName(code)) + '</span>' + fltTag(key) +
         '<span class="dc-side-c">' + esc(n == null ? '—' : (n + T.people)) + '</span></span>';
     };
     var head = '<div class="dc-tr dc-th"><span class="dc-c1">' + esc(T.thItem) + '</span>' +
@@ -735,6 +853,17 @@
         esc(T.dupT) + '</div>' +
       '<p class="dp-msg-s">' + esc(T.dupS) + '</p></div>');
   }
+  /* 比べられる会社が1社以下。選択欄は picker が隠しているので、
+     ここは理由と、増やすための入口だけを出す。
+     ★人数を1文字も書かない（「あと◯人」も書かない）。招待の画面と同じ約束。 */
+  function few() {
+    only('<div class="dp-msg dp-msg--ask">' +
+      '<div class="dp-msg-t">' + IC.info.replace('24" height="24', '18" height="18') +
+        esc(T.fewT) + '</div>' +
+      '<p class="dp-msg-s">' + esc(T.fewS) + '</p>' +
+      '<a class="dp-cta" href="pay-report.html">' + esc(T.lockCta) + '</a>' +
+      '<p class="dp-cta-n">' + esc(T.lockN) + '</p></div>');
+  }
 
   // ── 描く ───────────────────────────────────────────────────────
   function render() {
@@ -743,7 +872,10 @@
     if (S.mode === 'load')  { skel();        return; }
     if (S.mode !== 'open')  { shut('lock');  return; }
     /* ★この順番が効いている。錠前より前に置くと鍵の画面が出ず、
-       「同じ会社」を後ろに置くと、同じ会社を2つ選んだ人に空の表が出る。 */
+       「同じ会社」を後ろに置くと、同じ会社を2つ選んだ人に空の表が出る。
+       ★「比べられる会社が2社に満たない」は ask より前。後ろに置くと
+         「比べる2社を選んでください」と言いながら選択欄が無い画面になる。 */
+    if (fewAir())              { few(); return; }
     if (!S.sel.a || !S.sel.b)  { ask(); return; }
     if (S.sel.a === S.sel.b)   { dup(); return; }
     if (!S.side.a || !S.side.b) { skel(); return; }
@@ -751,10 +883,10 @@
   }
 
   // ── 読み込み ───────────────────────────────────────────────────
-  /* 会社を入れて1社ぶん引く。position / fleet は左右で共通。 */
-  function one(client, code) {
+  /* 会社を入れて1社ぶん引く。★役職は左右共通・**機材は左右別**（2026-09-01）。 */
+  function one(client, code, flt) {
     return Promise.resolve(client.rpc('pv_deep_pay', {
-      p: { airline: code, position: S.sel.pos || null, fleet: S.sel.flt || null }
+      p: { airline: code, position: S.sel.pos || null, fleet: flt || null }
     })).then(function (res) {
       if (!res || res.error) return null;
       return res.data || null;
@@ -767,7 +899,8 @@
     S.busy = true;
     S.side = { a: null, b: null };
     render();
-    Promise.all([one(client, S.sel.a), one(client, S.sel.b)]).then(function (r) {
+    Promise.all([one(client, S.sel.a, S.sel.fltA),
+                 one(client, S.sel.b, S.sel.fltB)]).then(function (r) {
       if (seq !== S.seq) return;      /* ★古い対の答えは捨てる（選び直しの追い越し） */
       S.busy = false;
       if (!r[0] || !r[1]) { S.mode = 'error'; render(); return; }
@@ -792,6 +925,9 @@
       var v = res && res.data;
       S.boot = v || null;
       S.mode = (v && v.state === 'open') ? 'open' : (v ? 'locked' : 'error');
+      /* ★選べる組み合わせ。**無いときは null のまま**＝選ばせない（few）。
+           db/deep-pay.sql を貼る前の本番はこの形で返ってくる。 */
+      setPicks(v && v.picks);
       if (w.PVGates && w.PVGates.mark) w.PVGates.mark(!!(v && v.gate && v.gate.key));
       if (w.PVGates && w.PVGates.setProgress) {
         w.PVGates.setProgress({
@@ -844,7 +980,8 @@
      **作り物のデータを既定で描かせない**ため、呼ばれたときだけ S を差し替えて描き直す。 */
   w.PVDeepPayCompare = {
     render: function (a, b, sel) {
-      if (sel) S.sel = { a: sel.a || '', b: sel.b || '', pos: sel.pos || '', flt: sel.flt || '' };
+      if (sel) S.sel = { a: sel.a || '', b: sel.b || '', pos: sel.pos || '',
+                         fltA: sel.fltA || '', fltB: sel.fltB || '' };
       S.side = { a: a || null, b: b || null };
       S.mode = 'open';
       render();

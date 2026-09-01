@@ -490,6 +490,72 @@ begin
            <= cash_m * 1.02
   ),
 
+  -- ── 選べる組み合わせ（会社・職位・機材）────────────────
+  /* 画面の選択肢をこれで絞る。約束は1つ ── **選べる ＝ 必ず数字が返る**
+     （オーナー確定 2026-09-01）。110社・3職位・19機材を素で並べると、中身が
+     あるのは一握りで、選んだ先が「まだ出せません」しか無い選択肢が大半になる。
+
+     ★**ここで閾値を決め直しているのではない。** 下の lvl と同じ数え方を、
+       段ではなく「会社・職位・機材の絞り方」で割っただけ。材料も ok で同じ
+       （直近24か月・約束⑦の幅・現金の検品まで通った行）。
+       lvl は `group by lv, human having bool_or(det)` ＝「その区分の中に、
+       内訳を書いた月を持つ人が何人いるか」。ここは先に where o.det で絞って
+       count(distinct human) を数える。**同じことを別の書き方でしている**
+       （どちらも「内訳の月を1つ以上持つ人」を1人と数える）。
+       ⬆ ズレると「選択肢に出ているのに選ぶと空」が**画面は普通に動いたまま**起きる。
+       自己点検 21 が、この >= 3 と lvl 側の >= 3 の両方が在ることを見ている。
+
+     ★0段（tag の lv=0）と**同じ絞り方**を8通りぜんぶ数える。0段は
+       「渡された v_air / v_pos / v_flt のうち、null でないものだけで絞る」
+       ので、選択肢の組み合わせはちょうど 2×2×2 = 8通りしか無い。
+       grouping sets で1回のなめで全部出す。
+
+     ⚠️ **空文字は「絞っていない」の意味だけに使う。** coalesce(fleet,'') では
+        書かないこと。いまは pay_reports の airline / position / fleet が3つとも
+        not null（db/pay-reports.sql の表）なので当たらないが、当たった日には
+        「機材を書かなかった人」と「機材で絞らない」が同じ鍵に潰れて、選択肢に
+        出ていない機材が選べるようになる。grouping() で見分ける（下の3行）。
+
+     ★'other'（一覧に無い航空会社）は**会社としては**選ばせない。別々の会社の
+       答えが1社に潰れて混ざるため（tag の1〜3段・pay_benchmarks と同じ理由）。
+       会社で絞らない側（grouping=1）には混ぜたまま ── 0段も v_air が null の
+       ときは other を混ぜているので、そこと同じにする。 */
+  /* ⚠️ 列名を a / p / f にしない。**p は関数の引数の名前**なので
+        「column reference "p" is ambiguous」で落ちる（実際に踏んだ）。 */
+  avail as (
+    select case when grouping(airline) = 1 then '' else airline end as qa,
+           case when grouping(pos)     = 1 then '' else pos     end as qp,
+           case when grouping(fleet)   = 1 then '' else fleet   end as qf
+      from ok o
+     where o.det
+     group by grouping sets ((airline, pos, fleet), (airline, pos), (airline, fleet),
+                             (airline), (pos, fleet), (pos), (fleet), ())
+    having count(distinct o.human) >= 3
+       and (grouping(airline) = 1 or airline is not null)
+       and (grouping(pos)     = 1 or pos     is not null)
+       and (grouping(fleet)   = 1 or fleet   is not null)
+       and (grouping(airline) = 1 or airline <> 'other')
+  ),
+  /* 画面が引く形に組み直す。'' ＝「その軸で絞っていない」。
+       air              … 会社を選ぶだけで数字が返る会社
+       pos["ana"]       … ANA を選んだとき数字が返る職位（pos[""] は会社なし）
+       flt["ana|cap"]   … ANA × 機長で数字が返る機材（flt["ana|"] / flt["|"] も同じ形）
+     ★行き止まりが構造的に無い。air に居る会社は「会社だけ」で必ず返るので、
+       職位・機材の「指定なし」はいつでも有効。
+     ★名前を picks にしない。すぐ下に段の pick が居て1文字違いになる。 */
+  avail_j as (
+    select jsonb_build_object(
+      'air', (select coalesce(jsonb_agg(qa order by qa), '[]'::jsonb)
+                from avail where qp = '' and qf = '' and qa <> ''),
+      'pos', (select coalesce(jsonb_object_agg(kk, vv), '{}'::jsonb)
+                from (select qa as kk, jsonb_agg(qp order by qp) as vv
+                        from avail where qf = '' and qp <> '' group by qa) t),
+      'flt', (select coalesce(jsonb_object_agg(kk, vv), '{}'::jsonb)
+                from (select qa || '|' || qp as kk, jsonb_agg(qf order by qf) as vv
+                        from avail where qf <> '' group by qa, qp) t)
+    ) as j
+  ),
+
   -- ── その月がどの段に属するかの札 ────────────────────────
   /* ★役職・機材は**その月の行に書いてある値**で判定する（約束⑧・2026-09-01）。
      FO 検索には FO だった月だけ、CAP 検索には CAP だった月だけが入る。
@@ -871,6 +937,16 @@ begin
                'airlines',     (select airlines from st),
                'contributors', (select contributors from st)),
 
+    /* ★選べる組み合わせ（画面の選択肢を絞るためだけの値）。
+         鍵が開いているときだけ返す ── 閉じた画面は選択欄ごと出さないので
+         要らないし、**渡していないものは隠せない**（pv_pay_rows の rows と同じ）。
+       ★入っているのはコードだけ。人数も、どの組み合わせが何人かも返さない。
+         鍵を持つ人は選択肢を1つずつ叩けば同じことが分かるので、新しく漏れる
+         ものは無い（会社×職位×機材は pay_benchmarks が k≧5 で anon に公開済み）。
+       ★選んだ区分（p）に影響されない。選ぶたびに一覧が入れ替わると、
+         選び直しの途中で自分が今選んでいる値が消える。 */
+    'picks', case when not v_open then null else (select j from avail_j) end,
+
     'cohort', case when not v_open then null else jsonb_build_object(
                'level',   (select case lv when 0 then 'selected'
                                           when 1 then 'airline_pos_fleet'
@@ -1014,7 +1090,7 @@ select * from (
           case when not has_function_privilege('authenticated', 'public.pv_pay_person_map()', 'execute')
                 and not has_function_privilege('anon', 'public.pv_pay_person_map()', 'execute')
                then '✅' else '❌' end
-  -- ── 2026-09-01 に足した2つ ────────────────────────────────
+  -- ── 2026-09-01 に足した3つ ────────────────────────────────
   union all select 19, '正式公開の手動フラグが門に入っている',
           -- 静かに壊れる。ここが抜けても100人以上の間は普通に開くので気づけず、
           -- 正式公開したあとに99人へ落ちた日、DEEP PAY が丸ごと消える。
@@ -1024,5 +1100,19 @@ select * from (
           case when (select s from d) like '%thin%'
                 and (length((select s from d))
                      - length(replace((select s from d), 'from thin', ''))) / 9 >= 4
+               then '✅' else '❌' end
+  union all select 21, '★選べる組み合わせは、区分と同じ数え方で出している（閾値の写しが無い）',
+          -- 静かに壊れる。ここがズレると「選択肢に出ているのに選ぶと空」になり、
+          -- 画面は普通に動いたままなので誰も気づけない。見るのは4つ。
+          --   ① 鍵が閉じているときは一覧そのものを渡していない
+          --   ② 8通りの絞り方を1回で数えている（grouping sets）＝0段と同じ絞り方
+          --   ③ 数え上げが「内訳を書いた月を持つ実人物」（行数でも proof_hash でもない）
+          --   ④ 3人の壁が、選択肢の側（avail）と区分の側（lvl→pick）の
+          --      両方に在る。片方だけ書き換えると落ちる。
+          case when (select s from d) like '%''picks'', case when not v_open then null%'
+                and (select s from d) like '%group by grouping sets%'
+                and (select s from d) like '%where o.det%'
+                and (select s from d) like '%count(distinct o.human) >= 3%'
+                and (select s from d) like '%where n >= 3%'
                then '✅' else '❌' end
 ) t order by "#";

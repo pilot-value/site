@@ -21,6 +21,8 @@
             pick  … 自分の区分ではない区分を手で選んだ状態（JAL / 機長 / B787）
             thin  … 手で選んだ区分が3人に届かなかった状態
                     （★広い区分の数字で埋めない。何も出ないのが正しい）
+            nolist… 選べる組み合わせが1つも届いていない
+                    （★選択欄ごと出ない。全社を並べる逃げ道は置かない）
             lock  … 鍵がまだ無い（給与を1件も出していない）
             det   … 鍵はあるが内訳を書いていない
             err   … サーバが返らなかった
@@ -168,9 +170,82 @@ await page.evaluateOnNewDocument((scene, theme) => {
     head: { annual_usd: null, per_block_usd: null, detailed_n: null, fixed_pct: null },
     comp: null, work: null, var: [] };
 
+  /* 選べる組み合わせが1つも届いていない状態（2026-09-01）。まだ誰も内訳を
+     書いていない日か、SQL を貼る前がこれ。★**全社を並べる逃げ道は置かない**
+     ので、選択欄ごと出ないのが正しい（選べるのに数字が出ない状態を作らない）。 */
+  const NOLIST = { ok: true, state: 'open', stats: STATS, give: { detailed: true },
+    gate: { key: true, detailed: true, contributors: 37, goal: 100 },
+    cohort: null, head: null, comp: null, work: null, var: [] };
+
   const SCENES = { full: FULL, day1: DAY1, fold: FOLD, pos: POS,
-                   pick: PICK, thin: THIN, lock: LOCK, det: DET };
+                   pick: PICK, thin: THIN, lock: LOCK, det: DET, nolist: NOLIST };
   const DEEP = SCENES[scene] || FULL;
+
+  /* ★選べる組み合わせ（2026-09-01）。画面はこれで選択肢を絞る。形は
+     db/deep-pay.sql の avail と同じ ── 会社 / 会社ごとの職位 /「会社|職位」ごとの機材。
+     空文字の鍵は「そこで絞っていない」。
+     ★**会社ごとに機材を変えてある。** 会社を変えると機材の欄が入れ替わるのが
+       窓の中で踏める（本番も会社ごとに飛ばす機材が違う）。
+     ⚠️ この一覧も作り物。本番のどの会社・どの機材が出るかとは関係が無い。 */
+  const FL = {
+    ana:                  { cap: ['a320', 'b777', 'b787'], fo: ['a320', 'b787'] },
+    jal:                  { cap: ['b767', 'b777', 'b787'], fo: ['b737', 'b787'] },
+    emirates:             { cap: ['a380', 'b777'],         fo: ['b777'] },
+    'qatar-airways':      { cap: ['a350', 'b787'],         fo: ['a320'] },
+    'singapore-airlines': { cap: ['a350', 'b777', 'b787'], fo: ['a350'] },
+    lufthansa:            { cap: ['a320', 'a350', 'b747'], fo: ['a320'] },
+    'cathay-pacific':     { cap: ['a330', 'a350', 'b777'], fo: ['a330'] },
+    'delta-air-lines':    { cap: ['a320', 'b737', 'b767'], fo: ['b737'] },
+    /* ★名前が一番長い2社。**絵のためではなく measure のため。** 欄の幅は
+       「一番長い選択肢」で決まるので、短い社名だけで測ると本番より
+       150px ほど短く出て、足りない幅を「足りている」と読み違える。 */
+    swiss:                { cap: ['a320', 'a330'],         fo: ['a320'] },
+    'shin-central':       { cap: ['dhc8'],                 fo: ['dhc8'] },
+    /* ★sas は「3人に届かなかった」側。**thin の絵を撮る回だけ**一覧に入れる ──
+       本来の約束（選べる＝必ず数字が返る）をわざと破って、空の板を窓の中で
+       踏めるようにするための細工。他の scene では入れない。 */
+    sas:                  { cap: ['a320'],                 fo: ['a320'] }
+  };
+  const PICKS = (function () {
+    const air = Object.keys(FL).filter((c) => c !== 'sas' || scene === 'thin').sort();
+    const uniq = (l) => [...new Set(l)].sort();
+    const pos = { '': ['cap', 'fo'] }, flt = {};
+    const all = [];
+    for (const c of air) {
+      pos[c] = Object.keys(FL[c]).sort();
+      const mine = [];
+      for (const k of pos[c]) { flt[c + '|' + k] = FL[c][k].slice().sort(); mine.push(...FL[c][k]); }
+      flt[c + '|'] = uniq(mine);
+      all.push(...mine);
+    }
+    flt['|'] = uniq(all);
+    for (const k of pos['']) flt['|' + k] = uniq(air.flatMap((c) => FL[c][k] || []));
+    return { air, pos, flt };
+  })();
+
+  /* ★職位・機材で数字が動く（2026-09-01）。前は3つとも選んだときにしか
+     動かず、窓の中で役職や機材を変えても1円も動かなかった ── オーナーが
+     最初に気づいたのがこれ。本番は db/deep-pay.sql の0段が3つとも見て絞っている。
+     ⚠️ 係数はでたらめ。「機長は副操縦士の何倍」を読み取らないこと。 */
+  const POSK = { cap: 1, fo: 0.66, cadet: 0.4 };
+  const FLTK = { a380: 1.14, b747: 1.12, b777: 1.1, b787: 1.06, a350: 1.05,
+                 a330: 1.02, b767: 0.97, dhc8: 0.72, a320: 0.92, b737: 0.9 };
+  /* 金額と時間だけ動かす。★割合（pct）は掛けない ── 合計 100 が崩れる。
+     ★null は null のまま返す（day1 の「まだ出せない」欄を潰さないため）。 */
+  function scale(src, k, n) {
+    const r1 = (v) => (v == null ? v : Math.round(v * k));
+    const r2 = (v) => (v == null ? v : Math.round(v * k * 10) / 10);
+    const o = Object.assign({}, src);
+    if (src.head) o.head = Object.assign({}, src.head, {
+      annual_usd: r1(src.head.annual_usd), per_block_usd: r1(src.head.per_block_usd),
+      detailed_n: src.head.detailed_n == null ? null : n,
+      verified_n: src.head.verified_n == null ? null : Math.min(src.head.verified_n, n) });
+    if (src.comp) o.comp = Object.assign({}, src.comp, { n: n,
+      segs: src.comp.segs.map((g) => Object.assign({}, g, { med_usd: r1(g.med_usd) })) });
+    if (src.work) o.work = { block_h: r2(src.work.block_h), duty_h: r2(src.work.duty_h),
+                             duty_days: src.work.duty_days, stay_nights: src.work.stay_nights };
+    return o;
+  }
 
   const RPC = {
     /* ★選んだ区分に答える（2026-08-30）。ここを () => DEEP のままにすると、
@@ -182,7 +257,11 @@ await page.evaluateOnNewDocument((scene, theme) => {
           本番の人数とは何の関係も無い。 */
     pv_deep_pay: (a) => {
       const q = (a && a.p) || {};
-      if (!q.airline && !q.position && !q.fleet) return DEEP;   /* 選んでいない＝その scene のまま */
+      /* 選んでいない＝その scene のまま。★一覧はここで渡す（画面は一度届いた
+         一覧を持ち続けるので、選んだ後の答えに毎回入れる必要は無い）。
+         ⚠️ nolist だけ渡さない＝選択欄ごと出ない。 */
+      if (!q.airline && !q.position && !q.fleet)
+        return Object.assign(scene === 'nolist' ? {} : { picks: PICKS }, DEEP);
       const echo = { manual: true, airline: q.airline || null,
                      pos: q.fleet && !q.position ? null : (q.position || null),
                      fleet: q.fleet || null };
@@ -192,10 +271,10 @@ await page.evaluateOnNewDocument((scene, theme) => {
       /* ★土台は**その scene の payload**。FULL に潰すと day1（薄い初日）や
          fold（畳まれた状態）が選んだ瞬間に満杯へ化けて、確かめたい配置が消える。 */
       const k = (q.airline ? 1 : 0) + (q.position ? 1 : 0) + (q.fleet ? 1 : 0);
-      return Object.assign({}, DEEP, {
-        cohort: Object.assign({ level: 'selected', n: k >= 3 ? 5 : k === 2 ? 9 : 14 }, echo),
-        head: (k >= 3 && DEEP === FULL) ? PICK.head : DEEP.head
-      });
+      const n = k >= 3 ? 5 : k === 2 ? 9 : 14;
+      return Object.assign(
+        scale(DEEP, (POSK[q.position] || 1) * (FLTK[q.fleet] || 1), n),
+        { cohort: Object.assign({ level: 'selected', n: n }, echo) });
     },
     pv_pay_rows: () => ({ ok: true, state: 'open', rows: [], stats: STATS,
                           give: { detailed: !!(DEEP.give && DEEP.give.detailed) } }),
@@ -247,19 +326,23 @@ await page.waitForFunction(
 
 if (PICK) {
   const IDS = { airline: 'dp-pk-air', position: 'dp-pk-pos', fleet: 'dp-pk-flt' };
-  /* ★選択肢が生えるのを待ってから入れる。語彙（pv-vocab.json / salary-data.json）は
-     RPC より遅れて着くことがあり、待たずに value を入れると空文字のまま静かに
-     素通りする＝「選んだのに何も出ない」という嘘の結果になる。 */
-  await page.waitForFunction((p, ids) => Object.keys(p).every((k) =>
-    !!document.querySelector('#' + ids[k] + ' option[value="' + p[k] + '"]')),
-    { timeout: 15000 }, PICK, IDS);
-  await page.evaluate((p, ids) => {
-    for (const k of Object.keys(p)) {
-      const e = document.getElementById(ids[k]);
-      e.value = p[k];
+  /* ★会社 → 役職 → 機材 の順に、1つずつ「選択肢が生えるのを待つ → 入れる →
+     change」を繰り返す（2026-09-01）。機材の選択肢は**選んだ会社×役職**で
+     入れ替わるので、会社を入れる前に機材を入れてもまだ生えていない。
+     value に無い値を入れると空文字のまま静かに素通りし、「選んだのに何も
+     出ない」という嘘の結果になる。本物の操作と同じ順番でしか踏めない。
+     ⚠️ 時間で待たない（混んだ回に嘘の結果が出る）。条件で待つ。 */
+  for (const k of ['airline', 'position', 'fleet']) {
+    if (!PICK[k]) continue;
+    await page.waitForFunction((id, v) =>
+      !!document.querySelector('#' + id + ' option[value="' + v + '"]'),
+      { timeout: 15000 }, IDS[k], PICK[k]);
+    await page.evaluate((id, v) => {
+      const e = document.getElementById(id);
+      e.value = v;
       e.dispatchEvent(new Event('change', { bubbles: true }));
-    }
-  }, PICK, IDS);
+    }, IDS[k], PICK[k]);
+  }
   /* 描き終わり＝KPI か「まだ出せません」の板のどちらかが在ること。 */
   await page.waitForFunction(
     () => !!document.querySelector('#dp-kpi .dp-kpi, #dp-kpi .dp-msg'), { timeout: 15000 });
@@ -308,7 +391,24 @@ if (measure) {
         if (d < 3) walk(c, d + 1);
       }
     })(document.getElementById('dp-root'), 0);
-    return { sels, rows, vh: innerHeight,
+    /* ★条件バー（表示中: …）。en は語が長くて信頼度の札が2段目へ落ちやすく、
+       落ちると見出しの段が丸ごと約27px 伸びる＝1画面の約束に直に効く。
+       「あと何px 足りないか」を出す（勘で font-size を触らないため）。 */
+    let cond = null;
+    {
+      const c = document.querySelector('.dp-cond');
+      const l = c && c.querySelector('.dp-cond-l');
+      const t = c && c.querySelector('.dp-trust');
+      if (c && l && t) {
+        const cs = getComputedStyle(c);
+        const room = c.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+        const need = l.scrollWidth + t.getBoundingClientRect().width
+          + parseFloat(cs.columnGap || 0);
+        cond = { room: px(room), need: px(need), slack: px(room - need),
+                 rows: Math.round(c.getBoundingClientRect().height) > 40 ? 2 : 1 };
+      }
+    }
+    return { sels, rows, cond, vh: innerHeight,
              bottom: rows.reduce((a, r) => Math.max(a, r.b), 0) };
   });
   console.log(`── ${scene} / ${lang} / ${theme} / ${vw}px ──`);
@@ -322,6 +422,10 @@ if (measure) {
       + ` ── 底 ${rep.bottom} / 窓 ${rep.vh}`
       + `（${gap >= 0 ? '余り ' + gap : 'あと ' + -gap + ' 縮める'}）`);
   }
+  if (rep.cond)
+    console.log(`  ${rep.cond.slack < 0 ? '△' : '✓ '} 条件バー   `
+      + `幅 ${String(rep.cond.room).padStart(6)}px / 中身 ${String(rep.cond.need).padStart(6)} / `
+      + `余り ${String(rep.cond.slack).padStart(6)}  [${rep.cond.rows}段]`);
   for (const s of rep.sels)
     console.log(`  ${s.cut < 0 ? '❌' : (s.short < 0 ? '△' : '✓ ')} ${s.id.padEnd(10)} `
       + `欄 ${String(s.box).padStart(6)}px 内寸 ${String(s.inner).padStart(6)} / `

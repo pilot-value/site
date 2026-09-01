@@ -17,7 +17,7 @@
    .mr-2col は 1:1 なので使わない。モックは左 58% / 右 42%。
    ★片方が hidden のときは display:none になり、残った側が自然に幅いっぱいに
      なる（grid にすると空の列が残って、右半分が白いまま空く）。 */
-.dp-row{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start;margin-top:14px}
+.dp-row{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start;margin-top:12px}
 .dp-row>*{flex:1 1 360px;min-width:0}
 .dp-row>.dp-w58{flex-grow:1.38}
 /* ★下の段（変動給｜もっと深く見る）だけは伸び縮みにしない。
@@ -38,7 +38,7 @@
      iOS で16px未満に縮んだときに拡大され、選ぶたびに画面が動く。 */
 .dp-pick{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;
   background:var(--pv-surface-2);border:1px solid var(--pv-line);
-  border-radius:var(--pv-r-sm);padding:9px 12px;margin-top:12px}
+  border-radius:var(--pv-r-sm);padding:8px 12px;margin-top:12px}
 /* ⚠️ hidden 属性を**書いて消す**。UA の [hidden]{display:none} は
    作者側の display:flex/grid に負けるので、これが無いと
    鍵の画面・読み込めなかった画面でピッカーが出たままになる
@@ -69,6 +69,10 @@
 .dp-pick-r:active{transform:translateY(1px)}
 .dp-pick-r:disabled{cursor:default;color:var(--pv-ink-3);
   background:var(--pv-line-soft);border-color:var(--pv-line)}
+/* 断り1行（「データが十分にある条件のみ表示しています」）。★欄の下に丸ごと1行
+   置く＝ flex の折り返しで最後に落ちるよう basis:100%。⚠️ ここに数字は入らない
+   （文言は deep-pay.js の pickNote / pickNone。assert-deep-pay.mjs が見ている）。 */
+.dp-pick-n{flex:1 1 100%;margin:0;font-size:.7rem;line-height:1.5;color:var(--pv-ink-3)}
 @media (max-width:520px){
   .dp-pick{gap:10px}
   .dp-pick-f{flex:1 1 100%}
@@ -83,7 +87,7 @@
    ⚠️ ただしこれは 1280px 以上での話。それより狭いと中身の欄も一緒に痩せるので、
       下の @media で 2列 → 1列へ折る（折らないと社名が黙って切れる）。 */
 #dp-pick{display:grid;grid-template-columns:minmax(0,2.15fr) minmax(0,1fr)
-  minmax(0,1.9fr) auto;gap:10px 12px;align-items:end}
+  minmax(0,1.9fr) auto;gap:8px 12px;align-items:end}
 /* ★「選択をクリア」は4列目。出ていないときは列が幅0になり、欄が自然に広がる。 */
 #dp-pick .dp-pick-r{align-self:end;margin-bottom:1px}
 @media (max-width:1279px){
@@ -96,7 +100,7 @@
 }
 
 /* ── いま見ている区分の1行 ──────────────────────────────────── */
-.dp-cond{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+.dp-cond{display:flex;align-items:center;gap:5px 12px;flex-wrap:wrap;
   background:var(--pv-surface);border:1px solid var(--pv-line);
   border-radius:var(--pv-r-sm);padding:6px 12px;min-height:34px;margin-top:10px}
 .dp-cond-l{flex:1 1 auto;min-width:0;font-size:.8rem;color:var(--pv-ink);
@@ -215,7 +219,7 @@
 .dp-hint svg{flex:none;width:15px;height:15px;color:var(--pv-blue-ink);margin-top:1px}
 .dp-hint p{font-size:.72rem;line-height:1.5;color:var(--pv-ink-2)}
 .dp-hint b{color:var(--pv-ink);font-weight:700}
-.dp-foot{margin-top:9px;font-size:.68rem;color:var(--pv-ink-3);line-height:1.55}
+.dp-foot{margin-top:7px;font-size:.68rem;color:var(--pv-ink-3);line-height:1.55}
 
 /* ── 賞与（ドーナツの外）────────────────────────────────────
    ★ドーナツに混ぜない（オーナー確定）。罫を1本引いた下に1行だけ。 */
@@ -289,13 +293,13 @@
    横なら条件バーの高さ（約37px）だけで済む。入りきらない幅では flex-wrap が
    素直に縦へ戻す ── そのとき段の間を空けるのは .dp-cond の margin-top ではなく
    この gap なので、下で margin-top:0 に潰している（両方効くと二重に空く）。 */
-#dp-root .mr-hd{margin-bottom:12px;display:flex;align-items:center;
+#dp-root .mr-hd{margin-bottom:10px;display:flex;align-items:center;
   justify-content:space-between;gap:12px 16px;flex-wrap:wrap}
 #dp-root .mr-hd-t{font-size:1.5rem;line-height:1.2;flex:none}
 #dp-root .dp-cond{margin-top:0;flex:1 1 460px}
-#dp-root .mr-card{padding:16px 18px}
+#dp-root .mr-card{padding:14px 18px}
 #dp-root .mr-card-h{margin-bottom:10px}
-#dp-root .pt-note{margin-top:6px;line-height:1.5}
+#dp-root .pt-note{margin-top:5px;line-height:1.5}
 /* 変動給の節の頭の1文（「変動給の 46% は「飛行…」に連動しています。」）。
    値は表の1行目と同じ var[0].pct を使う ── 別に計算しない。 */
 .dp-lead{margin:10px 0 0;font-size:.82rem;line-height:1.5;color:var(--pv-ink-2)}

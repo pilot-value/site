@@ -19,6 +19,7 @@
             same … 表示される文字列が同じになる状態（★「ほぼ同じ」・勝ち負けの語は出ない）
             ask  … まだ2社そろっていない（入口の板）
             dup  … 左右に同じ会社を選んだ
+            few  … 比べられる会社が1社しか無い（★選択欄ごと出ない）
             lock … 鍵がまだ無い（給与を1件も出していない）
             err  … サーバが返らなかった
      lang : ja | en
@@ -52,8 +53,10 @@ const url = `http://localhost:3000/${lang === 'en' ? 'en/' : ''}deep-pay-compare
 
 /* scene ごとに「窓の中で何を選ぶか」。★2社そろうまで何も出ないので、
    これが無いと撮れるのは入口の板だけになる。ask / lock / err は選ばない。 */
+/* ★機材は左右**別々**（2026-09-01）。会社が違えば飛ばす機材も違うので、
+   full は左右で違う機材を選ぶ ── 「それぞれの会社で選べる」がそのまま絵になる。 */
 const PICK = {
-  full: { a: 'ana', b: 'jal', pos: 'cap', flt: 'b787' },
+  full: { a: 'ana', b: 'jal', pos: 'cap', fltA: 'b787', fltB: 'b777' },
   thin: { a: 'ana', b: 'sas' },
   drop: { a: 'ana', b: 'lufthansa' },
   same: { a: 'ana', b: 'emirates' },
@@ -141,8 +144,58 @@ await page.evaluateOnNewDocument((scene, theme) => {
     }
   };
 
+  /* ★選べる組み合わせ（2026-09-01）。画面はこれで選択肢を絞る。形は
+     db/deep-pay.sql の avail と同じ ── 会社 / 会社ごとの職位 /「会社|職位」ごとの機材。
+     空文字の鍵は「そこで絞っていない」。
+     ★**会社ごとに機材を変えてある。** 会社を変えると機材の欄が入れ替わるのが
+       窓の中で踏める（「会社が違うんだから機種もそれぞれ」を絵にしたもの）。
+     ⚠️ 本番のどの会社・どの機材が出るかとは何の関係も無い（この一覧も作り物）。 */
+  const FL = {
+    ana:             { cap: ['a320', 'b777', 'b787'], fo: ['a320', 'b787'] },
+    jal:             { cap: ['b767', 'b777', 'b787'], fo: ['b737', 'b787'] },
+    lufthansa:       { cap: ['a320', 'a350', 'b747'], fo: ['a320'] },
+    emirates:        { cap: ['a380', 'b777'],         fo: ['b777'] },
+    /* ★sas は「3人に届かなかった」側の見本（AIR に見本を持たない）。
+       **thin の絵を撮る回だけ**一覧に入れる ── 本来の約束（選べる＝必ず
+       数字が返る）をわざと破って、空の板を窓の中で踏めるようにするための細工。
+       他の scene では入れない＝窓の中の選択肢はどれを選んでも数字が返る。 */
+    sas:             { cap: ['a320'],                 fo: ['a320'] },
+    /* ★名前が一番長い2社（下の WIDE）。**絵のためではなく measure のため。**
+       欄の幅は「一番長い選択肢」で決まるので、見本4社だけで測ると
+       本番より 150px ほど短く見え、足りない幅を「足りている」と読み違える。 */
+    swiss:           { cap: ['a320', 'a330'],         fo: ['a320'] },
+    'shin-central':  { cap: ['dhc8'],                 fo: ['dhc8'] }
+  };
+  /* ★一覧に出る会社のうち、名前が一番長い2社 ── ja の最長
+     「スイス インターナショナル エアラインズ」と en の最長
+     「Shin Chuo Airlines (Shin Nichi Aviation)」。本番の一覧にもこの2社は
+     普通に出得るので、**欄の幅はここまで含めて測らないと足りない。**
+     数字は右側の見本を使い回す（「選べる＝必ず数字が返る」を破らないため）。 */
+  const WIDE = { swiss: 'lufthansa', 'shin-central': 'lufthansa' };
+  const PICKS = (function () {
+    /* ★一覧は AIR（見本を持っている会社）からしか作らない。ここに見本の無い
+       会社を書くと、窓の中で選べるのに空の板が出る＝直したはずの不具合が
+       絵の中だけ再発する。 */
+    const air = scene === 'few' ? ['ana']
+      : Object.keys(AIR).concat(Object.keys(WIDE))
+          .concat(scene === 'thin' ? ['sas'] : []).sort();
+    const uniq = (l) => [...new Set(l)].sort();
+    const pos = { '': ['cap', 'fo'] }, flt = {};
+    const all = [];
+    for (const c of air) {
+      pos[c] = Object.keys(FL[c]).sort();
+      const mine = [];
+      for (const k of pos[c]) { flt[c + '|' + k] = FL[c][k].slice().sort(); mine.push(...FL[c][k]); }
+      flt[c + '|'] = uniq(mine);
+      all.push(...mine);
+    }
+    flt['|'] = uniq(all);
+    for (const k of pos['']) flt['|' + k] = uniq(air.flatMap((c) => FL[c][k] || []));
+    return { air, pos, flt };
+  })();
   const BOOT = { ok: true, state: 'open', stats: STATS, give: { detailed: true },
                  gate: { key: true, detailed: true, contributors: 37, goal: 100 },
+                 picks: PICKS,
                  cohort: null, head: null, comp: null, work: null, var: null };
   const LOCK = Object.assign({}, BOOT, { state: 'locked', give: { detailed: false },
                  gate: { key: false, detailed: false, contributors: 37, goal: 100 } });
@@ -159,22 +212,43 @@ await page.evaluateOnNewDocument((scene, theme) => {
       comp: null, work: null, var: [] };
   }
 
+  /* ★職位・機材で数字が動く（2026-09-01）。前はここが会社しか見ておらず、
+     窓の中で役職や機材を変えても1円も動かなかった ── オーナーが最初に
+     気づいたのがこれ。本番は db/deep-pay.sql の0段が3つとも見て絞っている。
+     ⚠️ 係数はでたらめ。「機長は副操縦士の何倍」を読み取らないこと。 */
+  const POSK = { cap: 1, fo: 0.66, cadet: 0.4 };
+  const FLTK = { a380: 1.14, b747: 1.12, b777: 1.1, b787: 1.06, a350: 1.05,
+                 b767: 0.97, a330: 1.02, a320: 0.92, b737: 0.9 };
   const RPC = {
     /* ★引数なし＝入口の1回（state と鍵を取りに行くだけ）。
-       会社を渡されたら**その会社の見本**を返す。ここを1つの payload に
-       潰すと左右が同じ数字になり、確かめたい配置が全部消える。
+       会社を渡されたら**その会社の見本**に、職位・機材の係数を掛けて返す。
+       ここを1つの payload に潰すと左右が同じ数字になり、確かめたい配置が
+       全部消える。
        ⚠️ 一覧に無い会社は「3人に届かなかった」を返す ── 空の状態を窓の中で
           実際に踏めるようにするための細工で、本番の人数とは何の関係も無い。 */
     pv_deep_pay: (a) => {
       const q = (a && a.p) || {};
       if (!q.airline) return scene === 'lock' ? LOCK : BOOT;
-      const src = AIR[q.airline];
+      const src = AIR[q.airline] || AIR[WIDE[q.airline]];
       if (!src) return thin(q.airline, q);
+      const k = (POSK[q.position] || 1) * (FLTK[q.fleet] || 1);
+      const r1 = (v) => (v == null ? v : Math.round(v * k));
+      const r2 = (v) => (v == null ? v : Math.round(v * k * 10) / 10);
+      /* 絞るほど人数は減る。★3人は割らない（割ったら本番は none を返す）。 */
+      const n = Math.max(3, Math.round(src.n * (q.position ? 0.75 : 1) * (q.fleet ? 0.7 : 1)));
+      /* ★割合（pct）は係数を掛けない ── 合計 100 が崩れる。動かすのは金額と時間だけ。 */
+      const comp = src.comp && Object.assign({}, src.comp, { n,
+        segs: src.comp.segs.map((g) => Object.assign({}, g, { med_usd: r1(g.med_usd) })) });
+      const work = src.work && { block_h: r2(src.work.block_h), duty_h: r2(src.work.duty_h),
+                                 duty_days: src.work.duty_days, stay_nights: src.work.stay_nights };
       return { ok: true, state: 'open', stats: STATS, give: { detailed: true },
         gate: { key: true, detailed: true, contributors: 37, goal: 100 },
         cohort: { level: 'selected', manual: true, airline: q.airline,
-                  pos: q.position || null, fleet: q.fleet || null, n: src.n },
-        head: src.head, comp: src.comp, work: src.work, var: [] };
+                  pos: q.position || null, fleet: q.fleet || null, n },
+        head: Object.assign({}, src.head, { annual_usd: r1(src.head.annual_usd),
+                                            per_block_usd: r1(src.head.per_block_usd),
+                                            detailed_n: n }),
+        comp: comp, work: work, var: [] };
     },
     pv_pay_rows: () => ({ ok: true, state: 'open', rows: [], stats: STATS,
                           give: { detailed: true } }),
@@ -225,24 +299,33 @@ await page.waitForFunction(
   () => !document.querySelector('#dc-sides .mr-skel'), { timeout: 15000 });
 
 if (PICK) {
-  const IDS = { a: 'dc-pk-a', b: 'dc-pk-b', pos: 'dc-pk-pos', flt: 'dc-pk-flt' };
-  /* ★選択肢が生えるのを待ってから入れる。語彙（pv-vocab.json / salary-data.json）は
-     RPC より遅れて着くことがあり、待たずに value を入れると空文字のまま静かに
-     素通りする＝「選んだのに何も出ない」という嘘の結果になる。 */
-  await page.waitForFunction((p, ids) => Object.keys(p).every((k) =>
-    !!document.querySelector('#' + ids[k] + ' option[value="' + p[k] + '"]')),
-    { timeout: 15000 }, PICK, IDS);
-  /* 値は4つとも入れてから change を1回。★1つずつ投げると、途中の
-     「片方だけ選んだ対」で余計な RPC が走る（本物の操作でも起きるが、
-     ここで見たいのは選び終わった後の画面）。 */
-  await page.evaluate((p, ids) => {
-    for (const k of Object.keys(p)) {
-      const e = document.getElementById(ids[k]);
-      if (e) e.value = p[k];
-    }
-    const first = document.getElementById(ids.a);
-    if (first) first.dispatchEvent(new Event('change', { bubbles: true }));
-  }, PICK, IDS);
+  const IDS = { a: 'dc-pk-a', b: 'dc-pk-b', pos: 'dc-pk-pos',
+                fltA: 'dc-pk-fa', fltB: 'dc-pk-fb' };
+  /* ★2段に分けて入れる（2026-09-01）。機材の選択肢は「選んだ会社 × 役職」で
+     入れ替わるので、会社を入れる前に機材を入れても**選択肢がまだ生えていない**。
+     value に無い値を入れると空文字のまま静かに素通りし、「選んだのに何も
+     出ない」という嘘の絵になる。本物の操作と同じ順番でしか踏めない。 */
+  const put = async (part) => {
+    /* 選択肢が生えるのを待つ。語彙（pv-vocab.json / salary-data.json）は
+       RPC より遅れて着くことがある。 */
+    await page.waitForFunction((p, ids) => Object.keys(p).every((k) =>
+      !!document.querySelector('#' + ids[k] + ' option[value="' + p[k] + '"]')),
+      { timeout: 15000 }, part, IDS);
+    await page.evaluate((p, ids) => {
+      let last = null;
+      for (const k of Object.keys(p)) {
+        const e = document.getElementById(ids[k]);
+        if (e) { e.value = p[k]; last = e; }
+      }
+      /* まとめて入れてから change を1回。★1つずつ投げると、途中の
+         「片方だけ選んだ対」で余計な RPC が走る。 */
+      if (last) last.dispatchEvent(new Event('change', { bubbles: true }));
+    }, part, IDS);
+  };
+  const step1 = {}, step2 = {};
+  for (const k of Object.keys(PICK)) (k === 'fltA' || k === 'fltB' ? step2 : step1)[k] = PICK[k];
+  await put(step1);
+  if (Object.keys(step2).length) await put(step2);
   /* 描き終わり＝表・カード・板のどれかが在って骨が消えたこと。
      ⚠️ カード（#dc-sides .dc-side）だけを待たない。2026-08-31 から、
         **両方読めるときはカードが出ない**（表の見出しが受け持つ）ので、

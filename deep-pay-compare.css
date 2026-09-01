@@ -69,56 +69,74 @@
 #dc-root .mr-card{padding:16px 18px}
 #dc-root .mr-card-h{margin-bottom:10px}
 
-/* ── 選ぶ欄（deep-pay.css の .dp-pick を2列に折る）──────────────
-   ★deep-pay は3欄、この画面は4欄。1行に並べると <select> の内寸が
-     163px になり、「全日本空輸（ANA）」（実測 297px）も
-     「Boeing 787 Dreamliner」（実測 259px）も入り切らずに端で切れる。
-     <select> は溢れても省略記号すら出さないので、**切れていることが
-     画面から分からない**（「Boeing 787 Dreamli」と読める形で止まる）。
-   ラベルと「選択をクリア」を1行目に置き、4欄を2×2に流す。
-   ★.dp-pick-f は自動配置。1行目の2マスが埋まっているので2行目から並ぶ。 */
-#dc-pick.dp-pick{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,.9fr) minmax(0,.9fr);
+/* ── 選ぶ欄（deep-pay.css の .dp-pick を折る）────────────────────
+   ★deep-pay は3欄、この画面は**5欄**（2026-09-01 に機材を左右別にして4→5）。
+     1行に並べると <select> の内寸が 163px になり、一番長い社名も
+     「Boeing 787 Dreamliner」も入り切らずに端で切れる。<select> は溢れても
+     省略記号すら出さないので、**切れていることが画面から分からない**
+     （「Boeing 787 Dreamli」と読める形で止まる）。
+   ★置き方 ── 左の列に会社、その右にその会社の機材、右端に共通の役職。
+       会社A ｜ 機材（会社A）｜ 役職（両社共通）
+       会社B ｜ 機材（会社B）｜ 選択をクリア
+     **段は増やさない**（2段のまま）＝ 1画面の約束を保てる。
+   ★HTML 側の並びは 会社A → 機材A → 役職 → 会社B → 機材B
+     （deep-pay-compare.js の picker）。下の nth-of-type はその順番に対応する。
+   ★3列を 2:2:1 にする（等分にしない）。**必要な幅が欄ごとに違う**からで、
+     等分にすると 1512px でも社名が切れる（実際にそうなっていた）。
+     必要な幅は下の実測から 会社 335px ／ 機材 296px ／ 役職 166px。 */
+#dc-pick.dp-pick{display:grid;
+  grid-template-columns:minmax(0,2fr) minmax(0,2fr) minmax(0,1fr);
   gap:10px 16px;align-items:end}
-/* ★「選択をクリア」は2行目の右端に**列として**置く（2026-08-31）。
-   前はラベルと重ねて1行目をまるごと占めていたが、見出しを消したいま
-   その行には他に何も無く、**ボタン1つのために1段（約43px）**使っていた。
-   ⚠️ 3列目を常に作らない。クリアが出ていない画面（＝まだ何も選んでいない）で
-      空の列ぶんの隙間 16px が欄から削られ、社名が静かに切れる。
-      :has() で「ボタンが在るときだけ」3列にする。 */
-#dc-pick.dp-pick:has(.dp-pick-r){
-  grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto}
 /* ⚠️ deep-pay.css の .dp-pick[hidden] は id の規則に負ける。ここで書き直す
    （無いと鍵の画面・エラーの画面でピッカーが出たままになる）。 */
 #dc-pick[hidden]{display:none}
-/* 4欄は 2×2 に置く。★自動配置に任せない ── クリアが出たり消えたりすると
-   1行目の空きが変わり、欄が1マスずつずれる。 */
-#dc-pick .dp-pick-f:nth-of-type(1){grid-column:1;grid-row:1}
-#dc-pick .dp-pick-f:nth-of-type(2){grid-column:2;grid-row:1}
-#dc-pick .dp-pick-f:nth-of-type(3){grid-column:1;grid-row:2}
-#dc-pick .dp-pick-f:nth-of-type(4){grid-column:2;grid-row:2}
-#dc-pick .dp-pick-r{grid-column:3;grid-row:2;align-self:end}
+/* ★自動配置に任せない ── クリアが出たり消えたりすると空きが変わり、
+   欄が1マスずつずれる（2026-08-31 に実際に起きた）。 */
+#dc-pick .dp-pick-f:nth-of-type(1){grid-column:1;grid-row:1}   /* 会社A   */
+#dc-pick .dp-pick-f:nth-of-type(2){grid-column:2;grid-row:1}   /* 機材A   */
+#dc-pick .dp-pick-f:nth-of-type(3){grid-column:3;grid-row:1}   /* 役職    */
+#dc-pick .dp-pick-f:nth-of-type(4){grid-column:1;grid-row:2}   /* 会社B   */
+#dc-pick .dp-pick-f:nth-of-type(5){grid-column:2;grid-row:2}   /* 機材B   */
+#dc-pick .dp-pick-r{grid-column:3;grid-row:2;align-self:end;justify-self:start}
+#dc-pick .dp-pick-n{grid-column:1/-1;grid-row:3}
 /* ── 狭い画面での畳み方 ──────────────────────────────────────
    ★しきい値は**一番長い選択肢の実測**から決めている。推測しない。
-     「全日本空輸（ANA）」は 313px、欄の左右の余白が 20px ＝ 1欄に 333px 要る。
-   ・900px 未満 … 「選択をクリア」の3列目を作る余裕が無い。3段目へ落とす。
-       （残したまま狭めると、その 123px ぶん欄が痩せて社名が黙って切れる。
-         実測 640px で 107px ぶん欠けていた。）
-   ・760px 未満 … 2列にすると 1欄が 333px を割る。素直に1列へ。
+     測り方は `node shot-compare.mjs full ja light <幅> measure`
+     （en も測る。en のほうが役職が長い）。2026-09-01 の実測 ──
+       会社   最長 297px（ja「スイス インターナショナル エアラインズ」
+                          en「Shin Chuo Airlines (Shin Nichi Aviation)」ほぼ同じ）
+       機材   最長 258px（「Boeing 787 Dreamliner」）
+       役職   最長 127px（en「First Officer (FO)」）
+     欄には ▼ の 18px と左右の余白 20px が要るので、
+     **要る幅 ＝ 会社 335px ／ 機材 296px ／ 役職 165px。**
+     ⚠️ 作り物の一覧（shot-compare.mjs）に**名前の長い会社を入れてから測る。**
+        見本4社だけで測ると本番より 150px 短く出て、足りない幅を「足りている」と読む。
+   ・1240px 未満 … 3列だと会社の欄が 335px を割る（このページは 1024px 以上で
+       左に脇の柱があり、中身は「画面幅 − 318px」しか無い。1241px で 356px）。
+       2列に落として、左に会社・右にその機材、3段目に 役職 ｜ クリア を置く。
+       **会社とその機材が同じ段に並ぶ形は保つ。**
+   ・800px 未満 … 2列にすると会社の欄が 335px を割る（801px で 355px、
+       761px だと 335px ちょうどで**当たりはずれになる**）。素直に1列へ。
    ⚠️ .dp-pick-f に justify-self:start を掛けない。掛けると欄が中身の幅まで
-      縮んで、4つの欄がバラバラの長さになる（実際にやって 342/342/158/307 に
+      縮んで、欄がバラバラの長さになる（実際にやって 342/342/158/307 に
       なった）。start にしてよいのはボタン（.dp-pick-r）だけ。 */
-@media (max-width:900px){
-  #dc-pick.dp-pick:has(.dp-pick-r){
-    grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
-  #dc-pick .dp-pick-r{grid-column:1/-1;grid-row:3;justify-self:start}
+@media (max-width:1240px){
+  #dc-pick.dp-pick{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  #dc-pick .dp-pick-f:nth-of-type(1){grid-column:1;grid-row:1}   /* 会社A */
+  #dc-pick .dp-pick-f:nth-of-type(2){grid-column:2;grid-row:1}   /* 機材A */
+  #dc-pick .dp-pick-f:nth-of-type(3){grid-column:1;grid-row:3}   /* 役職  */
+  #dc-pick .dp-pick-f:nth-of-type(4){grid-column:1;grid-row:2}   /* 会社B */
+  #dc-pick .dp-pick-f:nth-of-type(5){grid-column:2;grid-row:2}   /* 機材B */
+  #dc-pick .dp-pick-r{grid-column:2;grid-row:3;justify-self:start}
+  #dc-pick .dp-pick-n{grid-row:4}
 }
-@media (max-width:760px){
-  #dc-pick.dp-pick,#dc-pick.dp-pick:has(.dp-pick-r){
-    grid-template-columns:minmax(0,1fr)}
+@media (max-width:800px){
+  #dc-pick.dp-pick{grid-template-columns:minmax(0,1fr)}
   #dc-pick .dp-pick-f:nth-of-type(1),#dc-pick .dp-pick-f:nth-of-type(2),
-  #dc-pick .dp-pick-f:nth-of-type(3),#dc-pick .dp-pick-f:nth-of-type(4){
-    grid-column:1;grid-row:auto}
+  #dc-pick .dp-pick-f:nth-of-type(3),#dc-pick .dp-pick-f:nth-of-type(4),
+  #dc-pick .dp-pick-f:nth-of-type(5){grid-column:1;grid-row:auto}
   #dc-pick .dp-pick-r{grid-column:1;grid-row:auto;justify-self:start}
+  #dc-pick .dp-pick-n{grid-column:1;grid-row:auto}
 }
 
 /* ── ① 2社のカード ────────────────────────────────────────────
@@ -147,6 +165,12 @@
   border-bottom:1px solid var(--pv-line-soft)}
 .dc-side-n{flex:1 1 auto;min-width:0;font-size:.95rem;font-weight:800;
   letter-spacing:-.01em;color:var(--pv-ink);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* 機材の札（2026-09-01）。★左右で別の機材を選べるので、条件バーではなく
+   **会社の見出しの側**に付く。社名より弱く、人数のピルとは別の見た目にする
+   （同じ形にすると人数と読み違える）。選んでいないときは出ない。 */
+.dc-side-f{flex:none;max-width:40%;font-size:.7rem;font-weight:700;
+  letter-spacing:.01em;color:var(--pv-ink-3);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* 人数のピル。★「件」ではなく「人」（1行＝1人に束ねてある）。 */
 .dc-side-c{flex:none;font-size:.7rem;font-weight:700;letter-spacing:.01em;
@@ -212,6 +236,7 @@
 .dc-th .dc-c2,.dc-th .dc-c3{display:flex;flex-direction:column;align-items:flex-start;
   gap:3px;min-width:0;font-weight:800;letter-spacing:-.01em;color:var(--pv-ink)}
 .dc-th .dc-side-n{flex:0 0 auto;font-size:.8rem;line-height:1.3;white-space:normal}
+.dc-th .dc-side-f{flex:0 0 auto;max-width:100%}
 .dc-th .dc-side-c{flex:0 0 auto}
 .dc-th .dc-logo{width:22px;height:22px}
 /* 会社名は広い画面では見出し行が持つので、値の側には出さない */
