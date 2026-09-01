@@ -139,6 +139,9 @@
       lockT: 'DEEP PAY はまだ開いていません',
       lockKey: '給与を1件出すと、90日ぶん開きます。',
       lockDet: '内訳（基本給・手当）まで書いた明細を1件出すと開きます。',
+      /* ★人数が足りなくて閉じているときの3行目（2026-09-01）。
+         数字は返ってきた gate から入れる。ここで数え直さない。 */
+      lockGoal: '給与を出したパイロットが{goal}人に達すること（いま{n}人）。',
       lockCta: '匿名で給与を出す',
       lockN: '出した内容は集計にしか使いません。個人の明細は誰にも表示されません。',
 
@@ -202,6 +205,7 @@
       lockT: 'DEEP PAY is not open yet',
       lockKey: 'Share one pay report and it opens for 90 days.',
       lockDet: 'Share one report with the breakdown filled in and it opens.',
+      lockGoal: 'It opens once {goal} pilots have shared their pay (currently {n}).',
       lockCta: 'Share your pay anonymously',
       lockN: 'What you share is only ever used in aggregate. No individual payslip is shown to anyone.',
 
@@ -773,6 +777,13 @@
     var lines = [];
     if (!g.key) lines.push(T.lockKey);
     if (!g.detailed) lines.push(T.lockDet);
+    /* ★100人に届いていないときは、そう書く（2026-09-01）。書かないと
+       「明細を1枚出せば開く」だけが出て、出しても開かない人が生まれる。
+       ★数字は返ってきた gate から読む。JS で数え直さない（門と同じ数）。 */
+    if (g.contributors != null && g.goal != null &&
+        Number(g.contributors) < Number(g.goal))
+      lines.push(T.lockGoal.replace('{goal}', function () { return String(g.goal); })
+                           .replace('{n}',    function () { return String(g.contributors); }));
     if (!lines.length) lines.push(T.lockDet);
     box.innerHTML = '<div class="dp-msg dp-msg--lock">' +
       '<div class="dp-msg-t">' + IC.lock.replace('24" height="24', '18" height="18') +

@@ -167,6 +167,7 @@ async function authUsers() {
      hash が旧コードのままなので一致しない。古い自分の投稿は落としきれないことがある。
    ⚠️ 下の「3-c」も同じ写し取りをしている。あちらは db/pay-rows.sql の
       数え方（sane / person / tally / airs / contrib）を写している。
+      contrib だけは pv_deep_contributors()（＝実際の人数）と同じ数え方。
       **pay-rows.sql の数え方を変えたら 3-c も直す**（金額の出し方は写していない。
       本物の関数を呼んでいる＝上の rpcRead）。 */
 const payHash = (uid, airline, other) =>
@@ -544,9 +545,33 @@ async function foundingReport(users, testIds, real) {
     for (const r of sane) seen.add([r.pkey, r.airline, r.pos].join(' '));
     const airlines = new Set(sane.map((r) => r.airline));
 
-    /* 出したパイロット（DEEP PAY の分子）。★ここだけ sane から数えない。 */
+    /* 出したパイロット（DEEP PAY の分子）。★ここだけ sane から数えない。
+
+       ★2026-09-01、proof_hash ではなく **実際の人数** で数えるようにした。
+         proof_hash は（本人 × 会社）で1つなので、2社に出した1人が2人に見えていた。
+         db/pay-rows.sql の pv_deep_contributors() と同じ数え方にそろえる
+         ── 名簿（profiles）の id から proof_hash を作り直して人に戻す。
+         **当たらない行は数えない**（fail closed。あちらの join と同じ）。
+       ⚠️ あちらの数え方を変えたらここも直す。
+       ⚠️ 会社は「実際に投稿のある会社」だけで総当たりする（全110社ではない）。
+          profiles 5000行 × 会社数ぶんの sha256 で済ませるため。 */
+    const airSeen = new Map();
+    for (const r of prAll) {
+      const k = r.airline === 'other'
+        ? 'other::' + String(r.airline_other || '').toLowerCase() : r.airline;
+      if (!airSeen.has(k)) airSeen.set(k, r);
+    }
+    const hashToUid = new Map();
+    for (const pf of profiles)
+      for (const r of airSeen.values())
+        hashToUid.set(payHash(pf.id, r.airline, r.airline_other), pf.id);
     const contribReal = new Set(), contribTest = new Set();
-    for (const r of prAll) (testPay.has(r.proof_hash) ? contribTest : contribReal).add(r.proof_hash);
+    let unmapped = 0;
+    for (const r of prAll) {
+      const u = hashToUid.get(r.proof_hash);
+      if (!u) { unmapped++; continue; }
+      (testIds.has(u) ? contribTest : contribReal).add(u);
+    }
     const pendPeople = new Set(pdAll.filter((q) => !q.claimed_at && q.ip_day_hash).map((q) => q.ip_day_hash));
 
     const inMonth = sane.filter((r) => r.cat >= MONTH1);
@@ -567,6 +592,10 @@ async function foundingReport(users, testIds, real) {
     const FROM = [['shelf', '本棚（会員が出した）'], ['pending', '預かり（登録前）'], ['review', '昔の口コミの給与']];
     for (const [k, label] of FROM) line('  ' + label, `${sane.filter((r) => r.from === k).length}件`);
     if (dropped) line('  常識の幅で落とした', `${dropped}件`, '　（年 $10,000〜$700,000 の外＝打ち間違い）');
+    if (unmapped) {
+      console.log(`   ※ 名簿に当たらなかった給与レポートが ${unmapped}件あります（人数に入れていません）。`);
+      console.log(`      退会などで profiles 行が消えた人の投稿です。画面の数え方（fail closed）と同じ扱いです。`);
+    }
     if (pendPeople.size) {
       console.log(`   ※ 「出したパイロット」に入っている預かり ${pendPeople.size}人ぶんは、誰の分か切り分けられません。`);
     }

@@ -85,6 +85,18 @@ for (const f of FILES) {
   catch (e) { console.log(`  ❌ ${f}\n     ${e.message}`); fail++; process.exit(1); }
 }
 
+/* ── 100人の門を、区分のテストの間だけ開けておく ────────────
+   pv_deep_pay は「給与を出したパイロットが100人」を門にしている（約束①）。
+   このファイルが見たいのは区分・中央値・匿名性なので、そこを毎回100人ぶん
+   作るのは意味が無い。抜け道を明示的に立てて通す。
+
+   ★この抜け道は**本番では立てようがない**。
+     pv_deep_pay は「auth.users が無い」ことも同時に見ていて、
+     この器（PGlite）は auth.uid() の代役しか作っていないから通るだけ。
+     本番の Supabase には auth.users が必ず在る。
+   ★門そのものは ▼2 の最後で、この設定を外して確かめる。 */
+await db.query(`select set_config('pv.deep_bypass', 'on', false)`);
+
 console.log('\n▼ 冪等性（もう一度そのまま流す）');
 for (const f of FILES) {
   try { await db.exec(read(f)); console.log(`  ✅ ${f} 再適用OK`); pass++; }
@@ -868,17 +880,256 @@ console.log('\n▼ 19. 画面の数字どうしが矛盾しないか（同じ区
 await asUser(V);
 
 // ════════════════════════════════════════════════════════════
+console.log('\n▼ 20. 境界（2026-09-01 の作り直しで効かせたもの）');
+// ════════════════════════════════════════════════════════════
+/* ★Codex の独立監査で出た6件のうち、直した4件をここで1つずつ固定する。
+     どれも **画面は普通に動いたまま静かに違う数字を出す** 形なので、
+     ここが赤くなったら検査を直す前に db/deep-pay.sql の並び（hum→…→coh）を読む。
+
+   ★この節は**いちばん最後に置く**。中で会社を10社ぶん増やし、最後に人を99人
+     積むので、先に置くと上の節の「3人そろっている／いない」が全部ずれる。 */
+
+// 上の節が使っていない会社を借りる（AIR は先頭20社）
+const EX = (await rows(
+  `select code from pv_airlines
+    where code <> 'other' and active
+      and code <> all(string_to_array($1, ','))
+    order by code limit 14`, [AIR.join(',')])).map(r => r.code);
+ok(EX.length >= 13, '境界テスト用の会社が足りている', String(EX.length));
+
+// 「いまから k か月前」を Postgres 自身に数えさせる（時差でずれないように）
+const ago = async (k) => await one(
+  `select extract(year  from d)::int y,
+          extract(month from d)::int m
+     from (select (date_trunc('month', now()) - make_interval(months => $1))::date d) z`,
+  [k]);
+
+// ── (a) 昇進しても、FO だったころの給与は FO の統計に残る ──────
+{
+  const A = EX[0];
+  for (let i = 0; i < 3; i++)
+    await person(A, 'fo', 'a320',
+      [{ month: 2 }, { month: 3 },
+       { month: 6, position: 'cap', fleet: 'b777', base_pay: 19000 }]);
+  await asUser(V);
+  const fo  = await deep({ airline: A, position: 'fo',  fleet: 'a320' });
+  const cap = await deep({ airline: A, position: 'cap', fleet: 'b777' });
+  ok(fo.cohort.n === 3,  '★昇進した3人の「FO だった月」が FO の区分に残っている',
+     String(fo.cohort.n));
+  ok(cap.cohort.n === 3, '★同じ3人が CAP の区分にも居る（月ごとに分かれる）',
+     String(cap.cohort.n));
+  ok(Number(cap.head.annual_usd) > Number(fo.head.annual_usd) * 1.3,
+     '★CAP の年収に FO だった月が混ざっていない（前は人の代表値1つで分けていた）',
+     `${fo.head.annual_usd} → ${cap.head.annual_usd}`);
+}
+
+// ── (b) 機種を変えても、変える前の機種の統計が残る ──────────────
+{
+  const A = EX[1];
+  for (let i = 0; i < 3; i++)
+    await person(A, 'cap', 'a320',
+      [{ month: 2 }, { month: 6, fleet: 'b787', base_pay: 19000 }]);
+  await asUser(V);
+  const a = await deep({ airline: A, position: 'cap', fleet: 'a320' });
+  const b = await deep({ airline: A, position: 'cap', fleet: 'b787' });
+  ok(a.cohort.n === 3 && b.cohort.n === 3,
+     '★機種を変えた3人が、前の機種にも今の機種にも居る', `${a.cohort.n} / ${b.cohort.n}`);
+  ok(Number(b.head.annual_usd) > Number(a.head.annual_usd),
+     '★新しい機種の数字に前の機種の月が混ざっていない',
+     `${a.head.annual_usd} → ${b.head.annual_usd}`);
+}
+
+// ── (c) 「直近24か月」は**その報酬がいつのものか**で見る ──────────
+/* 前は「いつ投稿されたか」で見ていたので、5年前の給与を昨日書いた行が
+   直近に入り、去年書いた去年の給与が今年落ちていた。 */
+{
+  const out = await ago(24);   // 25か月前 ＝ 窓の1つ外
+  const old = await ago(23);   // いちばん古い、窓の中
+  const now = await ago(0);    // 当月
+
+  for (let i = 0; i < 3; i++)
+    await person(EX[2], 'cap', 'b787',
+      [{ period_year: out.y, period_month: out.m }]);
+  for (let i = 0; i < 3; i++)
+    await person(EX[3], 'cap', 'b787',
+      [{ period_year: old.y, period_month: old.m }]);
+  for (let i = 0; i < 3; i++)
+    await person(EX[4], 'cap', 'b787',
+      [{ period_year: now.y, period_month: now.m }]);
+  await asUser(V);
+
+  const dOut = await deep({ airline: EX[2], position: 'cap', fleet: 'b787' });
+  const dOld = await deep({ airline: EX[3], position: 'cap', fleet: 'b787' });
+  const dNow = await deep({ airline: EX[4], position: 'cap', fleet: 'b787' });
+  ok(dOut.cohort.n === 0, `★${out.y}年${out.m}月（25か月前）は入らない`, String(dOut.cohort.n));
+  ok(dOld.cohort.n === 3, `★${old.y}年${old.m}月（24か月前）は入る`,   String(dOld.cohort.n));
+  ok(dNow.cohort.n === 3, `★${now.y}年${now.m}月（当月）は入る`,       String(dNow.cohort.n));
+}
+
+// ── (d) 未来の月は、投稿の時点で弾かれている ───────────────────
+/* ＝上の窓の「上限」は保険。既存の行を1つも落とさないことの根拠。 */
+{
+  const f = await ago(-1);            // 来月
+  const u = ++seat;
+  await asUser(u);
+  const e = await boom(`select submit_pay_report($1::jsonb)`,
+    [JSON.stringify({ ...BASE, airline: EX[5], position: 'cap', fleet: 'b777',
+                      period_year: f.y, period_month: f.m, ...DET })]);
+  ok(/未来/.test(e || ''), '★未来の月は投稿の時点で弾かれる（DB 側の検証が生きている）',
+     String(e).slice(0, 60));
+}
+
+// ── (e) その月の賞与を年に2回数えない ─────────────────────────
+/* 総支給 19000・そのうち賞与 2000 → その月の現金は 17000。
+   年収は (19000 − 2000) × 12。賞与の割合の分子にもう一度足すと、
+   給与構成の月額が 15000 になって年収カードと食い違う。 */
+{
+  const A = EX[7];
+  for (let i = 0; i < 3; i++)
+    await person(A, 'cap', 'b777', [{ month: 4 }],
+                 { gross_monthly: 19000, bonus_month: 2000 });
+  await asUser(V);
+  const d = await deep({ airline: A, position: 'cap', fleet: 'b777' });
+  ok(d.cohort.n === 3, '3人そろっている', String(d.cohort.n));
+  ok(d.comp.bonus === null,
+     '★その月の賞与は「年収に対する賞与の割合」に出さない（総支給の中に既にある）',
+     JSON.stringify(d.comp.bonus));
+  const amt = d.comp.segs.reduce((a, x) => a + Number(x.med_usd || 0), 0);
+  ok(Math.abs(amt - 17000) / 17000 <= 0.02,
+     '★給与構成の月額の合計＝総支給 − その月の賞与（二重に引かれていない）',
+     `${Math.round(amt)} vs 17000`);
+}
+
+// ── (f) 賞与の中央値 0 は「誰も貰っていない」ではない ────────────
+/* Codex ⑥は再現しなかった（中央値は0の人も含めた全員に掛かっている）。
+   直さないと決めたので、そのかわり**この読み違いが起きる形**を固定しておく。 */
+{
+  const A = EX[8];
+  for (let i = 0; i < 3; i++) await person(A, 'cap', 'b787', [{ month: 4 }], { bonus_annual: 24000 });
+  for (let i = 0; i < 4; i++) await person(A, 'cap', 'b787', [{ month: 4 }]);
+  await asUser(V);
+  const d = await deep({ airline: A, position: 'cap', fleet: 'b787' });
+  ok(d.comp.bonus && Number(d.comp.bonus.pct_of_annual) === 0 && Number(d.comp.bonus.n) === 3,
+     '★7人中3人が貰っていても中央値は 0（「0%」＝「誰も貰っていない」ではない）',
+     JSON.stringify(d.comp.bonus));
+}
+{
+  const A = EX[9];
+  for (let i = 0; i < 3; i++) await person(A, 'cap', 'b787', [{ month: 4 }], { bonus_annual: 24000 });
+  for (let i = 0; i < 2; i++) await person(A, 'cap', 'b787', [{ month: 4 }]);
+  await asUser(V);
+  const d = await deep({ airline: A, position: 'cap', fleet: 'b787' });
+  ok(d.comp.bonus && Number(d.comp.bonus.pct_of_annual) > 0,
+     '★5人中3人なら中央値は 0 でない（門は受給者3人で開く）',
+     JSON.stringify(d.comp.bonus));
+}
+
+// ── (g) 人の対応表 ── 正常な行は落ちず、当たらない行は壁を押し上げない ──
+{
+  const miss = await one(
+    `select count(*) n from pay_reports r
+       left join pv_pay_person_map() m on m.h = r.proof_hash
+      where m.human is null`);
+  ok(Number(miss.n) === 0,
+     '★submit_pay_report を通した行は1行残らず「同じ人」に当たる（fail closed の代償が出ない）',
+     String(miss.n));
+
+  const A = EX[10];
+  const us = [];
+  for (let i = 0; i < 3; i++) us.push(await person(A, 'cap', 'b787', [{ month: 8 }]));
+  await asUser(V);
+  ok((await deep({ airline: A, position: 'cap', fleet: 'b787' })).cohort.n === 3,
+     '3人そろえば出る（このあと1人を名簿から消す）');
+
+  const before = Number((await one(
+    `select count(*) n from pay_reports where airline = $1`, [A])).n);
+  await db.query(`delete from profiles where id = $1`, [uid(us[0])]);
+  await asUser(V);
+  const d = await deep({ airline: A, position: 'cap', fleet: 'b787' });
+  ok(Number((await one(`select count(*) n from pay_reports where airline = $1`, [A])).n) === before,
+     '★行そのものは消えていない（消したのは名簿だけ）');
+  ok(d.cohort.n === 0 && d.cohort.level === 'none',
+     '★名簿に当たらない行は3人の壁を押し上げない（2人のまま数字が出ない）',
+     JSON.stringify(d.cohort));
+}
+
+// ── (h) 人の通し番号は返り値に1文字も出ない ─────────────────────
+{
+  await asUser(V);
+  const s = JSON.stringify(await deep({ airline: EX[0], position: 'fo', fleet: 'a320' }));
+  ok(!s.includes('human'), '★返ってきた JSON に人の通し番号が出ない');
+}
+
+// ── (i) 100人の門（★この節はいちばん最後。人を99人積む）──────────
+{
+  await db.query(`select set_config('pv.deep_bypass', '', false)`);
+  await asUser(V);
+  ok((await deep()).state === 'locked', '★抜け道を外すと、100人に届くまで locked');
+
+  /* ★本番と同じ形（auth.users が在る）にすると、抜け道を立てても効かない。
+     ＝「管理者だけ静かに迂回できる隠し例外」になっていないことの証拠。 */
+  await db.exec(`create table auth.users (id uuid primary key)`);
+  await db.query(`select set_config('pv.deep_bypass', 'on', false)`);
+  await asUser(V);
+  ok((await deep()).state === 'locked',
+     '★本番の形では抜け道が効かない（隠し例外になっていない）');
+  await db.exec(`drop table auth.users`);
+  await db.query(`select set_config('pv.deep_bypass', '', false)`);
+
+  const cur = Number((await one(`select pv_deep_contributors() n`)).n);
+  ok(cur < 99, `いまの人数は ${cur}人（ここから99人まで積む）`, String(cur));
+
+  let last;
+  for (let i = cur; i < 99; i++)
+    last = await person(EX[11], 'cap', 'b777', [{ month: 9 }]);
+
+  ok(Number((await one(`select pv_deep_contributors() n`)).n) === 99,
+     '★ちょうど99人');
+
+  // 同じ人が2社目に出しても人数は増えない（人×会社では数えない）
+  await asUser(last);
+  await submit({ ...BASE, airline: EX[12], position: 'cap', fleet: 'b777',
+                 period_year: YEAR, period_month: 11, ...DET });
+  ok(Number((await one(`select pv_deep_contributors() n`)).n) === 99,
+     '★既に出している人が2社目に出しても99人のまま');
+
+  await asUser(V);
+  let d = await deep();
+  ok(d.state === 'locked' && d.cohort === null && d.head === null,
+     '★99人では開かない（中身のキーは渡さない）');
+  ok(Number(d.gate.contributors) === 99 && Number(d.gate.goal) === 100,
+     '★錠前に出す人数と門が同じ数（「表示は100人なのに開かない」が起きない）',
+     `${d.gate.contributors}/${d.gate.goal}`);
+  ok(Number(d.stats.contributors) === 99,
+     '★左メニューの数も同じ（3か所とも pv_deep_contributors() を呼んでいる）',
+     String(d.stats.contributors));
+  const g = (await one(`select pv_give_progress() g`)).g;
+  ok(Number(g.contributors) === 99, '★Give の進み具合も同じ数', String(g.contributors));
+
+  // 100人目
+  await person(EX[11], 'cap', 'b777', [{ month: 9 }]);
+  await asUser(V);
+  d = await deep();
+  ok(Number(d.gate.contributors) === 100, '★100人になった', String(d.gate.contributors));
+  ok(d.state === 'open' && d.cohort !== null, '★100人で開く');
+}
+
+// ════════════════════════════════════════════════════════════
 /* ★ここが一番効く。deep-pay.sql の末尾には、貼れたかどうかをオーナーが
-     自分で確かめるための14行の表が付いている。**あの表自体が間違っている**と、
+     自分で確かめるための18行の表が付いている。**あの表自体が間違っている**と、
      オーナーは正しく貼れているのに ❌ を見て貼り直す（実際に13番の署名を
      1つ写し間違えていた）。手元で同じ表を出して、全部 ✅ を確かめる。 */
 {
   const src = read('db/deep-pay.sql');
   const cut = src.indexOf('with d as (select pg_get_functiondef');
   ok(cut > 0, '自己点検の select が見つかる');
+  /* ★16番は「本番では試験用の抜け道が効かない」を見ている。この器には
+       auth.users が無い（だから抜け道が通る）ので、本番と同じ形にしてから回す。
+       抜け道そのものが効かないことは ▼20-(i) で確かめてある。 */
+  await db.exec(`create table if not exists auth.users (id uuid primary key)`);
   const sql = src.slice(cut);
   const r = await rows(sql);
-  ok(r.length >= 12, `自己点検は ${r.length} 行ある`, String(r.length));
+  ok(r.length >= 18, `自己点検は ${r.length} 行ある`, String(r.length));
   for (const x of r)
     ok(x['答え'] === '✅', `${x['#']}. ${x['見るもの']}`, x['答え']);
 }

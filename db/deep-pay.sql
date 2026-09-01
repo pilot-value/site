@@ -2,7 +2,7 @@
 -- db/deep-pay.sql — DEEP PAY（給与の中身を集計して見る画面）のサーバ側
 --
 -- 貼る順番：db/pay-reports.sql → db/pay-rows.sql → **このファイル**
---   （pv_sig2 / pv_my_give / pv_contributors を使う）
+--   （pv_sig2 / pv_my_give / pv_deep_contributors / pv_pay_person_map を使う）
 --
 -- ════════════════════════════════════════════════════════════════════════
 -- この画面が答えるのは5つだけ。
@@ -257,6 +257,9 @@ declare
   v_flt   text := nullif(btrim(coalesce(p ->> 'fleet',    '')), '');
   v_man   boolean;   -- 手で選んだか（＝本人の区分ではないか）
   v_bad   boolean := false;   -- 語彙に無い値が来たか
+  v_goal  constant int := 100;   -- 解放に要る人数。返り値の goal もここから出す
+  v_ctb   int;       -- 今までに給与を出したユニークな人数
+  v_byp   boolean;   -- 試験だけの抜け道（本番では立たない。下の注を読む）
   v_out   jsonb;
 begin
   if v_uid is null then
@@ -266,16 +269,36 @@ begin
   select p.access_until into v_until from public.profiles p where p.id = v_uid;
   v_give := public.pv_my_give();
 
-  -- ★門は2つとも要る（約束①）。
+  -- ★門は3つとも要る（約束①）。
   --   access_until … REAL PAY と同じ90日の鍵。
   --   detailed     … 本人が内訳まで出していること。pv-gates.js に条件として
   --                  書いてあるが、今まで JS にしかなかった＝devtools で素通しできた。
   --                  ここが唯一の実装場所。
+  --   100人        … 「給与を出したパイロットが100人に達したら開く」という
+  --                  プロダクトの約束（2026-09-01）。今までは画面に札を出すだけで
+  --                  **どこも強制していなかった**（JS にも無い）。ここが唯一の実装場所。
+  -- ★人数は pv_deep_contributors()（db/pay-rows.sql 1-h）＝**札と同じ関数**。
+  --   ここに数え方を書き写すと「画面は 100 / 100 人なのに開かない」が起きる。
+  --   proof_hash をそのまま数えないこと（本人 × 会社で1つ＝2社に出した1人が2人になる）。
   -- ★ここで raise しない。投げると画面がエラーになり、
   --   「1枚出せば開く」という肝心の伝え方ができなくなる（pv_pay_rows と同じ）。
   v_key  := (v_until is not null and v_until > now());
   v_det  := coalesce((v_give ->> 'detailed')::boolean, false);
-  v_open := v_key and v_det;
+  v_ctb  := public.pv_deep_contributors();
+
+  /* ★試験だけの抜け道（オーナー確定 2026-09-01）
+     「本番では強制する。ただし開発・検証ができなくなるのは困る。
+       本番で管理者だけ静かに迂回できる隠し例外は作らない。」
+
+     だから合言葉ひとつでは開けない。**2つとも**要る：
+       ① auth.users が存在しないこと ── 試験の器（PGlite）は auth.uid() の
+          代役だけ作って auth.users を作らない。本番の Supabase には必ず在る。
+          ＝**本番ではこの条件が立てようがない。** 誰が何を設定しても開かない。
+       ② そのうえで pv.deep_bypass を明示的に立てること。
+     管理者フラグも合言葉も見ない。見ると「本番の管理者だけ迂回できる」形になる。 */
+  v_byp  := (to_regclass('auth.users') is null
+             and coalesce(current_setting('pv.deep_bypass', true), '') = 'on');
+  v_open := v_key and v_det and (v_ctb >= v_goal or v_byp);
 
   -- ★選べるのは語彙に在るものだけ（約束⑤a）。
   --   'other'（自由入力の社名）は選ばせない。別々の会社が other という1社に
@@ -381,17 +404,134 @@ begin
            /* 賞与は**ドーナツに入れない**（オーナー確定）。年収に対する割合を
               別行で1つだけ出すので、ここで1行ぶんの割合にしておく。
               年収は本人の通貨に戻してから割る（USD どうしでも同じ値になるが、
-              fx_to_usd が無い行を確実に外すためこの形にする）。 */
+              fx_to_usd が無い行を確実に外すためこの形にする）。
+
+              ★★ bonus_month をここに足さない（2026-09-01 に直した）。★★
+              その月の賞与は**総支給の中に既に入っている**。上の cash_m が
+              総支給から1回引いていて、年収（pv_annual_total）も同じ理由で
+              引いてから12倍している（db/pay-reports.sql 4章）。
+              ここで ×12 して足すと、同じ賞与を年に2回数えることになり、
+              賞与比率が実際より大きく・月額（ucm）が実際より小さく出る。
+              足さないことで **年収 ×(1 − b_share) ÷ 12 ＝ cash_m** が
+              恒等式になる（db/test-deep-pay.mjs が固定している）。 */
            case when r.fx_to_usd is not null and r.fx_to_usd > 0
                  and r.annual_total_usd is not null and r.annual_total_usd > 0
-                then (coalesce(r.bonus_annual, 0) + coalesce(r.profit_share_annual, 0)
-                      + coalesce(r.bonus_month, 0) * 12)
+                then (coalesce(r.bonus_annual, 0) + coalesce(r.profit_share_annual, 0))
                      / (r.annual_total_usd / r.fx_to_usd)
            end                                                          as b_share
       from public.pay_reports r
      where r.annual_total_usd is not null    -- レートの無い通貨は落ちる
        and r.annual_total_usd between 10000 and 700000   -- 約束⑦
-       and r.created_at >= now() - interval '24 months'
+       /* ★「直近24か月」は**その報酬がいつのものか**で見る（2026-09-01 に直した）。
+          投稿された日で見ていたので、2020年の給与を昨日書いた行が「直近」に入り、
+          去年書いた去年の給与が今年落ちていた。
+          db/pay-reports.sql の期間の列にも「created_at では"いつ時点の報酬か"が
+          消える」と書いてあり、コードだけが食い違っていた。
+          当月を含めて暦の24か月ちょうど（2026-09 なら 2024-10〜2026-09）。
+          上限は保険 ── 未来の月は投稿時に既に弾いている
+          （pv_validate_pay_payload の「未来の月は投稿できません」）。 */
+       and make_date(r.period_year, r.period_month, 1)
+             between (date_trunc('month', now()) - interval '23 months')::date
+                 and  date_trunc('month', now())::date
+  ),
+
+  /* ── ここから下の並びを2026-09-01に組み替えた ────────────────
+     前は「人に潰す → 区分で絞る」だった。だから
+       ・FO のときの給与が、今 CAP の人の CAP の数字に混ざっていた
+         （人を1行にした時点で、月ごとの役職が消えていた）
+       ・3人の壁を proof_hash で数えていた＝**本人 × 会社**で1つなので、
+         2社に出した1人が2人になり、実は2人のセルで中央値が出ていた
+     今は「月次で絞る → 人に潰す」。順番を入れ替えただけで両方直る。
+
+     hum → ok → tag → lvl → pick → mrow → person → coh
+     ★過去の給与は1行も捨てない。FO だった月は FO の統計に残り、
+       CAP になった月は CAP の統計に入る（オーナー確定 2026-09-01）。 */
+
+  -- ── 月次行に「同じ人」を貼る ────────────────────────────
+  -- ★当たらない行は落とす（fail closed）。「たぶん別人」として数え上げると
+  --   2人しか居ないセルが3人に見えて中央値が出る＝匿名性が破れる方向。
+  --   落とすと数字が出ないだけで、誰の実額も漏れない。
+  --   投稿のたびに profiles 行ができる（db/pay-reports.sql 6章）ので、
+  --   正常に出した人がここで落ちることは無い。
+  -- ★human はこの関数の中だけの連番。**返り値に入れないこと。**
+  hum as (
+    select s.*, m.human
+      from sane s
+      join public.pv_pay_person_map() m on m.h = s.pkey
+  ),
+
+  -- ── 1行ぶんの検品 ──────────────────────────────────────
+  /* 現金が無い／内訳が現金をはみ出している行は割合に混ぜない。
+     はみ出しは本人の書き間違いで、こちらで按分すると嘘の内訳になる。
+     2%までは丸めの誤差として通す（給与フォームも合計一致を強制していない）。
+     落とした数はどこにも出さない（出すと「何人が変な書き方をしたか」が漏れる）。 */
+  ok as (
+    select * from hum
+     where cash_m is not null and cash_m > 0
+       and (a_fixed + a_var + a_cmd + a_role + a_pd + a_house + a_other)
+           <= cash_m * 1.02
+  ),
+
+  -- ── その月がどの段に属するかの札 ────────────────────────
+  /* ★役職・機材は**その月の行に書いてある値**で判定する（約束⑧・2026-09-01）。
+     FO 検索には FO だった月だけ、CAP 検索には CAP だった月だけが入る。
+     昇進した人の過去の給与を捨てるのではなく、**その頃の区分に残す**。
+     機材を変えた人も同じ。
+     ★自由入力の社名（airline = 'other'）は 1〜3段では外す。
+       別々の会社の答えが other という1社に潰れて混ざるため
+       （db/pay-reports.sql の pay_benchmarks に同じ理由が書いてある）。
+     ★me を left join にする。呼んだ本人がまだ1枚も出していないとき、
+       cross join だと段5（全体）まで空になる。
+     ★条件を書くのはここ1か所だけ。前は数える側（lvl）と集める側（coh）に
+       同じ条件が2つあり、ずれると「3人そろったと数えた段に2人しか居ない」が
+       起きる作りだった。**その写しが消えた。** */
+  tag as (
+    select o.*, l.lv
+      from ok o
+      cross join (values (0),(1),(2),(3),(4),(5)) l(lv)
+      left join me m on true
+     where case l.lv
+             -- 0段 ＝ 手で選んだ区分。★v_air は語彙に在るコードなので
+             --   'other' は最初から入らない。会社を選んでいないときは
+             --   4段・5段と同じく other も混ぜる。
+             when 0 then v_man and not v_bad
+                     and (v_air is null or o.airline = v_air)
+                     and (v_pos is null or o.pos     = v_pos)
+                     and (v_flt is null or o.fleet   = v_flt)
+             -- 1〜5段 ＝ 何も選んでいないときだけ。本人の区分から順に落とす
+             when 1 then not v_man and o.airline = m.airline and o.pos = m.pos
+                     and o.fleet is not distinct from m.fleet
+                     and o.airline <> 'other'
+             when 2 then not v_man and o.airline = m.airline and o.pos = m.pos
+                     and o.cat is not distinct from m.cat
+                     and o.airline <> 'other'
+             when 3 then not v_man and o.airline = m.airline and o.pos = m.pos
+                     and o.airline <> 'other'
+             when 4 then not v_man and o.pos = m.pos
+             when 5 then not v_man
+           end
+  ),
+
+  -- ── はしごを1段ずつ数える ────────────────────────────────
+  /* ★数えるのは**実人物**（human）。proof_hash ではない。
+       proof_hash は本人 × 会社で1つなので、2社に出した1人が2人になり、
+       実は2人しか居ないセルで中央値が出る＝匿名性が破れる。
+     ★数えるのは「その段の中に、内訳を書いた月を持つ人」＝下の person と同じ条件。 */
+  lvl as (
+    select lv, count(*) as n
+      from (select lv, human from tag group by lv, human having bool_or(det)) z
+     group by lv
+  ),
+  -- ★手で選んだのに3人に届かなかったときは -1（空）。5段（全体）に落とさない
+  --   （約束⑤b）。落として広い区分の数字を狭い見出しのまま出すことはしない。
+  pick as (select coalesce(min(lv), case when v_man then -1 else 5 end) as lv
+             from lvl where n >= 3),
+
+  -- ── 採った段の月次行 ────────────────────────────────────
+  -- ★-1（選んだ区分が3人に届かなかった）のときは1行も残らない。
+  --   pick.lv = -1 に当たる tag が無いので自然にそうなる。
+  mrow as (
+    select t.* from tag t cross join pick k where t.lv = k.lv
   ),
 
   -- ── 1行＝1人（約束④）──────────────────────────────────
@@ -399,12 +539,13 @@ begin
   -- ★割合は「1人ごとの割合」を先に出してから中央値にする。
   --   金額の中央値どうしを割ると、通貨の違う人が混ざったときに壊れる。
   --   割合なら各人が自分の通貨のまま計算できて、為替が1度も入らない（約束②）。
+  -- ★group by は human。前は pkey（本人 × 会社）だったので、2社に出した人が
+  --   2行になって「1行＝1人」が破れていた。
+  -- ★会社・役職・機材はもう持たない。区分の判定は上の tag で終わっていて、
+  --   ここから下の CTE はどれも使わない。持たせると「人の代表値で絞る」
+  --   古いやり方に戻す入口になる。
   person as (
-    select pkey,
-           mode() within group (order by airline) as airline,
-           mode() within group (order by pos)     as pos,
-           mode() within group (order by fleet)   as fleet,
-           mode() within group (order by cat)     as cat,
+    select human,
            (percentile_cont(0.5) within group (order by usd))::numeric     as usd_y,
            (percentile_cont(0.5) within group (order by ubh))::numeric     as ubh,
            (percentile_cont(0.5) within group (order by block_h))::numeric as block_h,
@@ -437,85 +578,14 @@ begin
            (percentile_cont(0.5) within group (order by
               greatest(cash_m - (a_fixed + a_var + a_cmd + a_role
                                  + a_pd + a_house + a_other), 0) / cash_m))::numeric as s_rest
-      from sane
-      /* 1人分の検品：現金が無い／内訳が現金をはみ出している行は割合に混ぜない。
-         はみ出しは本人の書き間違いで、こちらで按分すると嘘の内訳になる。
-         2%までは丸めの誤差として通す（給与フォームも合計一致を強制していない）。
-         落とした数はどこにも出さない（出すと「何人が変な書き方をしたか」が漏れる）。 */
-     where cash_m is not null and cash_m > 0
-       and (a_fixed + a_var + a_cmd + a_role + a_pd + a_house + a_other)
-           <= cash_m * 1.02
-     group by pkey
+      from mrow
+     group by human
     having bool_or(det)          -- 総支給だけの人は「給与の中身」の母集団に入れない
   ),
 
-  -- ── はしごを1段ずつ数える ────────────────────────────────
-  lvl as (
-    -- ── 0段 ＝ 手で選んだ区分 ────────────────────────────
-    -- ★ここから上（広いほう）へ登らない（約束⑤b）。3人に届かなければ -1 に落ちて
-    --   空の区分が返る。落として広い区分の数字を狭い見出しのまま出すことはしない。
-    -- ★v_air は語彙に在るコードなので、'other' は最初から入らない。
-    --   会社を選んでいないとき（v_air is null）は、4段・5段と同じく other も混ぜる。
-    select 0 as lv, count(*) as n from person p
-      where v_man and not v_bad
-        and (v_air is null or p.airline = v_air)
-        and (v_pos is null or p.pos     = v_pos)
-        and (v_flt is null or p.fleet   = v_flt)
-    union all
-    -- ── 1〜5段 ＝ 何も選んでいないときだけ。本人の区分から順に落とす ──
-    select 1, count(*) from person p, me m
-      where not v_man and p.airline = m.airline and p.pos = m.pos
-        and p.fleet is not distinct from m.fleet
-        and p.airline <> 'other'
-    union all
-    select 2, count(*) from person p, me m
-      where not v_man and p.airline = m.airline and p.pos = m.pos
-        and p.cat is not distinct from m.cat
-        and p.airline <> 'other'
-    union all
-    select 3, count(*) from person p, me m
-      where not v_man and p.airline = m.airline and p.pos = m.pos
-        and p.airline <> 'other'
-    union all
-    select 4, count(*) from person p, me m
-      where not v_man and p.pos = m.pos
-    union all
-    select 5, count(*) from person where not v_man
-  ),
-  -- ★手で選んだのに3人に届かなかったときは -1（空）。5段（全体）に落とさない。
-  pick as (select coalesce(min(lv), case when v_man then -1 else 5 end) as lv
-             from lvl where n >= 3),
-
   -- ── 採った段の人たち ────────────────────────────────────
-  -- ★自由入力の社名（airline = 'other'）は 1〜3段では外す。
-  --   別々の会社の答えが other という1社に潰れて混ざるため
-  --   （db/pay-reports.sql の pay_benchmarks に同じ理由が書いてある）。
-  -- ★lvl 側の条件と1行ずつ同じにすること。ずれると
-  --   「3人そろったと数えた段に2人しか居ない」が起きる。
-  coh as (
-    -- ★me を left join にする。呼んだ本人がまだ1枚も出していないとき、
-    --   cross join だと段5（全体）まで空になる。門は detailed を要求するので
-    --   実際には起きないが、門を緩めた回に静かに全部消える形は残さない。
-    select p.* from person p cross join pick k left join me m on true
-     where case k.lv
-             when 0 then (v_air is null or p.airline = v_air)
-                     and (v_pos is null or p.pos     = v_pos)
-                     and (v_flt is null or p.fleet   = v_flt)
-             when 1 then p.airline = m.airline and p.pos = m.pos
-                         and p.fleet is not distinct from m.fleet
-                         and p.airline <> 'other'
-             when 2 then p.airline = m.airline and p.pos = m.pos
-                         and p.cat is not distinct from m.cat
-                         and p.airline <> 'other'
-             when 3 then p.airline = m.airline and p.pos = m.pos
-                         and p.airline <> 'other'
-             when 4 then p.pos = m.pos
-             when 5 then true
-             -- ★-1（選んだ区分が3人に届かなかった）。**else true にしない。**
-             --   true にすると全体の数字が、選んだ会社の見出しのまま出る。
-             else false
-           end
-  ),
+  -- ★名前だけ残してある（下の CTE 群が全部 coh を見ている）。
+  coh as (select * from person),
 
   -- ── 見出しの数字 ────────────────────────────────────────
   hagg as (
@@ -683,23 +753,27 @@ begin
   -- ★★ night / weekend / holiday を1つにまとめないこと。★★
   --   まとめれば n ≧ 3 を通りやすくなるので「整理」したくなるが、
   --   3つは別の働き方の対価で、混ぜると何が効いているのか分からなくなる。
+  -- ★読むのは mrow（採った段の月次行）。sane 全体ではない（2026-09-01）。
+  --   前は人のキーで sane を引き直していたので、CAP の人の FO だった月の
+  --   変動給の内訳まで CAP の円グラフに入っていた。上の tag と同じ月だけを見る。
   vraw as (
-    select s.pkey,
+    select s.human,
            it ->> 'basis'                          as basis,
            greatest((it ->> 'amount')::numeric, 0) as amt
-      from sane s
+      from mrow s
            cross join lateral jsonb_array_elements(
              case when jsonb_typeof(s.items -> 'variable') = 'array'
                   then s.items -> 'variable' else '[]'::jsonb end) it
-     where s.pkey in (select pkey from coh)
-       and it ->> 'basis' in ('block','duty','sector','overtime','reserve',
+     where it ->> 'basis' in ('block','duty','sector','overtime','reserve',
                               'night','weekend','holiday','other','unknown')
        and (it ->> 'amount') ~ '^[0-9]+(\.[0-9]+)?$'
   ),
+  -- ★人の単位も human。pkey（本人 × 会社）で割ると、2社に出した1人が
+  --   2人ぶんの重みで円グラフに効く。
   vper as (
-    select pkey, basis, sum(amt) as amt,
-           sum(sum(amt)) over (partition by pkey) as tot
-      from vraw group by pkey, basis
+    select human, basis, sum(amt) as amt,
+           sum(sum(amt)) over (partition by human) as tot
+      from vraw group by human, basis
   ),
   vagg as (
     select basis,
@@ -723,6 +797,8 @@ begin
   ),
 
   -- ── 数え上げ（鍵が無い人にも返す）────────────────────────
+  -- ★ここの日付は投稿された日でよい。「いつ投稿されたか」という別の問いで、
+  --   上の sane（いつ時点の報酬か）とは違う（2026-09-01）。
   st as (
     select (select count(*) from public.pay_reports
              where created_at >= now() - interval '24 months')            as reports,
@@ -730,7 +806,7 @@ begin
              where created_at >= now() - interval '30 days')              as month,
            (select count(distinct airline) from public.pay_reports
              where created_at >= now() - interval '24 months')            as airlines,
-           public.pv_contributors()                                        as contributors
+           v_ctb                                                          as contributors
   )
 
   select jsonb_build_object(
@@ -740,7 +816,7 @@ begin
                'key',          v_key,
                'detailed',     v_det,
                'contributors', (select contributors from st),
-               'goal',         100),
+               'goal',         v_goal),
     'give',  v_give,
     'stats', jsonb_build_object(
                'reports',      (select reports from st),
@@ -876,5 +952,13 @@ select * from (
   union all select 15, '旧 pv_pay_comp は今も誰にも開いていない',
           case when to_regprocedure((select sig from c)) is null
                  or not has_function_privilege('authenticated', (select sig from c), 'execute')
+               then '✅' else '❌' end
+  union all select 16, '本番では試験用の抜け道が効かない',
+          case when to_regclass('auth.users') is not null then '✅' else '❌' end
+  union all select 17, '門に「100人に達したか」が入っている',
+          case when (select s from d) like '%pv_deep_contributors%' then '✅' else '❌' end
+  union all select 18, '人の対応表は誰にも開いていない',
+          case when not has_function_privilege('authenticated', 'public.pv_pay_person_map()', 'execute')
+                and not has_function_privilege('anon', 'public.pv_pay_person_map()', 'execute')
                then '✅' else '❌' end
 ) t order by "#";

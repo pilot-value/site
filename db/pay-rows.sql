@@ -854,11 +854,123 @@ revoke all on function public.pv_contributors() from public, anon, authenticated
 
 comment on function public.pv_contributors() is
   '給与を出したユニークな人数。本棚は proof_hash、まだ移っていない預かりは ip_day_hash が人の単位。'
-  'DEEP PAY の「N / 100人」の分子。★会員登録の数ではない（給与を1件出したときだけ増える）。'
+  '★会員登録の数ではない（給与を1件出したときだけ増える）。'
   '★表に出る行（sane）からは数えない。あれは表の説明で、これは参加人数という別の問い。'
-  '★数え方はここが唯一の正。pv_pay_rows と pv_give_progress の両方がこれを呼ぶ（書き写さない）。'
+  '★DEEP PAY の進捗にこれを使わない。表示も門も pv_deep_contributors（1-h）を呼ぶ。'
+  '  こちらは proof_hash 単位（本人 × 会社）なので、2社に出した1人が2人になる。'
   '★誰にも grant しない。security definer の中からだけ呼ぶ。';
 
+
+-- ════════════════════════════════════════════════════════════════
+-- 1-g. pv_pay_person_map — proof_hash → 「同じ人」の通し番号
+--
+-- 返り値  (h, human) の表。h は pay_reports.proof_hash、human は
+--         **この呼び出しの中だけで意味のある整数**。uid は1文字も出さない。
+--
+-- なぜ要るか（2026-09-01）
+--   proof_hash は **（本人 × 会社）で1つ**（db/pay-reports.sql 5章）。
+--   だから proof_hash を数えると、2社に出した1人が2人になる。
+--   ・DEEP PAY の「100人」…… 実際より早く開いてしまう
+--   ・区分の「3人以上」…… 実は2人しか居ないセルで中央値が出てしまう
+--   後者は匿名性そのものなので、人の単位を1つ用意する。
+--
+-- 引き方は pv_review_person（1-d）と同じ ── 名簿（profiles）から
+-- ハッシュを作り直して当てる。**列も表も pepper も新設していない。**
+--   profiles.id は auth の uid そのもの。
+--   submit_pay_report は投稿のたびに profiles 行を作る（db/pay-reports.sql 6章）
+--   ＝正常に出した人がこの表から落ちることはない。
+--
+-- ★式は pv_my_keys（db/deep-pay.sql 1）・pv_my_give（1-e）と同じもの。**写しが3つ目。**
+--   1つ直したら3つとも直す。db/test-deep-pay.mjs が「3つが同じ人を拾う」ことを固定している。
+-- ★総当たりの相手は**実際に投稿のある会社だけ**（pv_airlines 全部ではない）。
+--   proof_hash 側には必ずその会社が入っているので、これで取りこぼさない。
+--   profiles が数万行になったら内部キャッシュ表を検討する（今は1000回未満の sha256）。
+-- ★誰にも grant しない。security definer の中からだけ呼ぶ。
+--   uid → h は作れるが h → uid は作れない（sha256）。返り値の human は連番なので
+--   外へ出しても本人には戻らないが、**それでも返り値には入れない**（下の pv_deep_pay）。
+-- ════════════════════════════════════════════════════════════════
+create or replace function public.pv_pay_person_map()
+returns table (h text, human bigint)
+language sql
+security definer
+stable
+set search_path = public, extensions
+as $fn$
+  -- ★内側で h という名前を使わない（RETURNS TABLE の名前と衝突する）
+  select z.hx, dense_rank() over (order by z.pid)
+    from (
+      -- 一覧から選んだ会社
+      select encode(extensions.digest(
+               p.id::text || '::pv_pay::' || a.code, 'sha256'), 'hex') as hx,
+             p.id                                                      as pid
+        from public.profiles p
+        cross join (select distinct airline as code
+                      from public.pay_reports
+                     where airline <> 'other') a
+      union all
+      -- 「一覧にない会社」：ハッシュに自由入力の社名が入っている
+      select encode(extensions.digest(
+               p.id::text || '::pv_pay::other::' || o.nm, 'sha256'), 'hex'),
+             p.id
+        from public.profiles p
+        cross join (select distinct lower(airline_other) as nm
+                      from public.pay_reports
+                     where airline = 'other' and airline_other is not null) o
+    ) z;
+$fn$;
+
+revoke all on function public.pv_pay_person_map() from public, anon, authenticated;
+
+comment on function public.pv_pay_person_map() is
+  'pay_reports の proof_hash を「同じ人」でまとめるための対応表。'
+  'proof_hash は（本人 × 会社）で1つなので、そのまま数えると2社に出した1人が2人になる。'
+  '名簿（profiles）からハッシュを作り直して当てる（pv_review_person と同じ引き方）。'
+  '★uid は関数の外へ出ない。human はこの呼び出しの中だけで意味のある連番。'
+  '★式は pv_my_keys / pv_my_give と同じ写し。3つとも同時に直すこと。'
+  '★誰にも grant しない。security definer の中からだけ呼ぶ。';
+
+
+-- ════════════════════════════════════════════════════════════════
+-- 1-h. pv_deep_contributors — DEEP PAY の「N / 100人」の分子（唯一の正）
+--
+-- pv_contributors（1-f）との違いは1つだけ ── **同じ人が2社に出しても 1**。
+-- 画面に出るのは「給与を出したパイロットが100人」なので、こちらが正しい数え方。
+--
+-- ★これは表示と門の**両方**が呼ぶ。分けない（オーナー確定 2026-09-01）。
+--   「表示上100人なのに門は開かない」という状態を作らないため、
+--   pv_pay_rows の stats・pv_give_progress・pv_deep_pay の門が全部これを呼ぶ。
+-- ★名簿に当たらない行は数えない（fail closed）。多く数えて門を早く開けるより、
+--   少なく数えて開かないほうが安全。投稿時に必ず profiles 行ができるので
+--   今は落ちる行が無い。
+-- ★預かり（pay_reports_pending）は 1-f と同じ数え方のまま。まだ会員ではないので
+--   名簿に居ない＝人の単位は ip_day_hash しか無い。
+-- ★誰にも grant しない。security definer の中からだけ呼ぶ。
+-- ════════════════════════════════════════════════════════════════
+create or replace function public.pv_deep_contributors()
+returns int
+language sql
+security definer
+stable
+set search_path = public, extensions
+as $fn$
+  select (
+    (select count(distinct m.human)
+       from public.pay_reports r
+       join public.pv_pay_person_map() m on m.h = r.proof_hash)
+    + (select count(distinct q.ip_day_hash)
+         from public.pay_reports_pending q
+        where q.claimed_at is null and q.ip_day_hash is not null)
+  )::int;
+$fn$;
+
+revoke all on function public.pv_deep_contributors() from public, anon, authenticated;
+
+comment on function public.pv_deep_contributors() is
+  'DEEP PAY の解放進捗（N / 100人）の分子。ユニークな実人物で数える。'
+  '同じ人が2社に給与を出しても 1（pv_contributors は proof_hash 単位なので 2 になる）。'
+  '★表示（pv_pay_rows の stats・pv_give_progress）と門（pv_deep_pay）が同じこれを呼ぶ。'
+  '★名簿に当たらない行は数えない（fail closed）。'
+  '★誰にも grant しない。security definer の中からだけ呼ぶ。';
 
 -- ════════════════════════════════════════════════════════════════
 -- 2. pv_pay_rows — 匿名レポート一覧（1行＝1人・出した人は全員）
@@ -1111,10 +1223,13 @@ begin
   ),
   contrib as (
     -- ★給与を出したユニークな人数。ここだけ sane から数えない（理由は上のヘッダ）。
-    --   数え方は書き写さない。唯一の正は pv_contributors()（1-f）で、
-    --   左メニューの札を出す pv_give_progress()（2-b）も同じ関数を呼ぶ。
+    --   数え方は書き写さない。唯一の正は pv_deep_contributors()（1-h）で、
+    --   左メニューの札を出す pv_give_progress()（2-b）と、DEEP PAY の門
+    --   （pv_deep_pay）も同じ関数を呼ぶ。
     --   ここに式を戻すと、同じ「N / 100人」が画面によって違う数になる。
-    select public.pv_contributors() as n
+    -- ★1-f（pv_contributors）ではない。あちらは proof_hash 単位＝2社に出した
+    --   1人が2人になる。画面は「パイロットが100人」と書いているので実人物で数える。
+    select public.pv_deep_contributors() as n
   )
   select jsonb_build_object(
            'ok',    true,
@@ -1187,7 +1302,8 @@ comment on function public.pv_pay_rows() is
 --   一覧を1行も作らない。
 --
 -- ★中身を1つも書き写さない。
---   contributors … pv_contributors()（1-f）。数え方はあちらが唯一の正。
+--   contributors … pv_deep_contributors()（1-h）。数え方はあちらが唯一の正。
+--                  ★門（pv_deep_pay）と同じ関数。札とゲートがずれない。
 --   give         … pv_my_give()（1-e）。本人の行の引き方はあちらが唯一の正。
 --   ここが持っているのは「2つを1回で返す」ことだけ。
 --
@@ -1203,7 +1319,7 @@ set search_path = public, extensions
 as $fn$
   select jsonb_build_object(
            'ok',           true,
-           'contributors', public.pv_contributors(),
+           'contributors', public.pv_deep_contributors(),
            'give',         public.pv_my_give()
          )
    where auth.uid() is not null;
@@ -1217,7 +1333,7 @@ comment on function public.pv_give_progress() is
   'DEEP PAY の札（N / 100人）に要る2つだけを返す。整数1つと真偽3つで、行も金額も日付も返さない。'
   '左メニューを持つどの画面からでも同じ数が出るようにするための口（2026-08-25）。'
   '一覧（pv_pay_rows）を引くと鍵を持つ人に要らない行が全部付いてくるので、そちらは使わない。'
-  '★中身は書き写さず pv_contributors() と pv_my_give() をそのまま呼ぶ。'
+  '★中身は書き写さず pv_deep_contributors() と pv_my_give() をそのまま呼ぶ。'
   '★未ログインでは null を返す（0 を置かない。画面は「準備中」のまま）。';
 
 
@@ -1247,6 +1363,8 @@ with f as (
          to_regprocedure('public.pv_airline_norm(text)')    as f_norm,
          to_regprocedure('public.pv_my_give()')             as f_give,
          to_regprocedure('public.pv_contributors()')        as f_ctb,
+         to_regprocedure('public.pv_deep_contributors()')   as f_dctb,
+         to_regprocedure('public.pv_pay_person_map()')      as f_pmap,
          to_regprocedure('public.pv_give_progress()')       as f_prog
 )
 select n as "#", case when ok then '✅' else '❌' end as 結果, 見るところ
@@ -1513,28 +1631,47 @@ from (
          end from f
   union all
   -- ── DEEP PAY の札を全画面で同じ数にする（2026-08-25）──────────
-  select 41, '★人数の数え方は1か所だけ（一覧は pv_contributors を呼んでいる／式を書き写していない）',
+  select 41, '★人数の数え方は1か所だけ（一覧は pv_deep_contributors を呼んでいる／式を書き写していない）',
          -- 静かに壊れる。書き写しても画面は普通に動き、同じ「N / 100人」が
          -- 画面によって違う数になるだけなので、誰も気づかない。
-         case when (f_ctb is null or f_rows is null) then false
-              else pg_get_functiondef(f_rows) like '%pv_contributors()%'
-               and pg_get_functiondef(f_ctb) like '%proof_hash%'
-               and pg_get_functiondef(f_ctb) like '%ip_day_hash%'
+         case when (f_dctb is null or f_rows is null) then false
+              else pg_get_functiondef(f_rows) like '%pv_deep_contributors()%'
+               and pg_get_functiondef(f_dctb) like '%pv_pay_person_map()%'
+               and pg_get_functiondef(f_dctb) like '%ip_day_hash%'
          end from f
   union all
   select 42, '★人数の関数は誰にも開いていない（security definer の中からだけ）',
-         case when f_ctb is null then false
+         case when (f_ctb is null or f_dctb is null) then false
               else not has_function_privilege('anon', f_ctb, 'execute')
                and not has_function_privilege('authenticated', f_ctb, 'execute')
+               and not has_function_privilege('anon', f_dctb, 'execute')
+               and not has_function_privilege('authenticated', f_dctb, 'execute')
          end from f
   union all
   select 43, '★札の口（pv_give_progress）はログインした人だけ・中身を書き写していない',
          case when f_prog is null then false
               else not has_function_privilege('anon', f_prog, 'execute')
                and has_function_privilege('authenticated', f_prog, 'execute')
-               and pg_get_functiondef(f_prog) like '%pv_contributors()%'
+               and pg_get_functiondef(f_prog) like '%pv_deep_contributors()%'
                and pg_get_functiondef(f_prog) like '%pv_my_give()%'
                and pg_get_functiondef(f_prog) not like '%pay_reports%'
+         end from f
+  union all
+  -- ── 人の対応表（2026-09-01）────────────────────────────────
+  select 44, '★人の対応表がある・誰にも開いていない（uid は関数の外へ出ない）',
+         -- 静かに壊れる。grant が付いても画面は普通に動くが、
+         -- 誰でも「どの proof_hash が同じ人か」を引けるようになる。
+         case when f_pmap is null then false
+              else not has_function_privilege('anon', f_pmap, 'execute')
+               and not has_function_privilege('authenticated', f_pmap, 'execute')
+         end from f
+  union all
+  select 45, '★札とゲートが同じ数え方（表示も門も pv_deep_contributors を呼ぶ）',
+         -- 静かに壊れる。片方だけ古い数え方に戻ると、
+         -- 「画面は 100 / 100 人なのに DEEP PAY が開かない」が起きる。
+         case when (f_rows is null or f_prog is null) then false
+              else pg_get_functiondef(f_rows) not like '%pv_contributors()%'
+               and pg_get_functiondef(f_prog) not like '%pv_contributors()%'
          end from f
 ) t
 order by n;
