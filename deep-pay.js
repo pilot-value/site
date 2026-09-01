@@ -508,8 +508,9 @@
          （「うち明細あり 0人」と書くと、信じるなと言っているのと同じ）。 */
       var vn = num(S.data && S.data.head && S.data.head.verified_n);
       if (vn) parts.push(T.verif + vn + T.people);
-      /* ★「直近24か月」は db/deep-pay.sql の sane の
-         `created_at >= now() - interval '24 months'` の写し。あちらを変えたらここも直す。 */
+      /* ★「直近24か月」は db/deep-pay.sql の sane の写し。数えているのは
+         **投稿した日ではなく、その報酬がいつの月のものか**（period_year /
+         period_month）。当月を含めて暦で24か月ちょうど。あちらを変えたらここも直す。 */
       parts.push(T.months);
       var t = trustOf(n || 0, c);
       h += '<div class="dp-cond"><span class="dp-cond-l">' +

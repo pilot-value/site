@@ -257,8 +257,12 @@ declare
   v_flt   text := nullif(btrim(coalesce(p ->> 'fleet',    '')), '');
   v_man   boolean;   -- 手で選んだか（＝本人の区分ではないか）
   v_bad   boolean := false;   -- 語彙に無い値が来たか
-  v_goal  constant int := 100;   -- 解放に要る人数。返り値の goal もここから出す
-  v_ctb   int;       -- 今までに給与を出したユニークな人数
+  -- 解放に要る人数。返り値の goal もここから出す。
+  -- ★ここが唯一の場所（2026-09-01）。前は pv_deep_goal() から取っていたが、
+  --   数字を見る場所がこの1か所だけになったので直書きに戻した。
+  v_goal  constant int := 100;
+  v_ctb   int;       -- 今までに給与を出したユニークな人数（今の実数）
+  v_lch   boolean;   -- 正式公開の手動フラグが立っているか
   v_byp   boolean;   -- 試験だけの抜け道（本番では立たない。下の注を読む）
   v_out   jsonb;
 begin
@@ -298,7 +302,21 @@ begin
      管理者フラグも合言葉も見ない。見ると「本番の管理者だけ迂回できる」形になる。 */
   v_byp  := (to_regclass('auth.users') is null
              and coalesce(current_setting('pv.deep_bypass', true), '') = 'on');
-  v_open := v_key and v_det and (v_ctb >= v_goal or v_byp);
+
+  /* ★解放条件はこの2つだけ（オーナー確定 2026-09-01）。
+       ・今のユニークな人数が100人以上
+       ・正式公開の手動フラグが立っている（db/pay-rows.sql の pv_deep_launch）
+     フラグは**管理者が一度だけ手で立てる。** 自動では立たないし、自動では降りない。
+     ⚠️ フラグを立てるまでは、100人 → 99人 に落ちれば普通に閉じる。
+        （前の版は100人到達をトリガで自動記録していた。取りやめた。）
+     ⚠️ フラグを立てたあとは人数が減っても開いたまま ── でないと
+        「100人を保つために消してほしい人のデータを残す」という
+        やってはいけない動機が生まれる。**削除依頼が来た人のデータは普通に消す。**
+     ⚠️ 区分ごとの3人の壁はこれとは別物で、今のデータで毎回判定する
+        （3人 → 2人に落ちればその区分は消える。下の thin を見る）。
+     ⚠️ gate.contributors は今の実数を出し続ける（99 と出たまま開いているのが正しい）。 */
+  v_lch  := exists (select 1 from public.pv_deep_launch);
+  v_open := v_key and v_det and (v_lch or v_ctb >= v_goal or v_byp);
 
   -- ★選べるのは語彙に在るものだけ（約束⑤a）。
   --   'other'（自由入力の社名）は選ばせない。別々の会社が other という1社に
@@ -522,10 +540,12 @@ begin
       from (select lv, human from tag group by lv, human having bool_or(det)) z
      group by lv
   ),
-  -- ★手で選んだのに3人に届かなかったときは -1（空）。5段（全体）に落とさない
+  -- ★3人に届く段が1つも無ければ -1（空）。5段（全体）にも落とさない
   --   （約束⑤b）。落として広い区分の数字を狭い見出しのまま出すことはしない。
-  pick as (select coalesce(min(lv), case when v_man then -1 else 5 end) as lv
-             from lvl where n >= 3),
+  -- ★2026-09-01、手で選んでいないときの落ち先も -1 にした（オーナー確定）。
+  --   前は 5（全体）へ落ちていたので、内訳を書いた人がサイト全体で2人しか
+  --   いなくても「全体の年収中央値」が出た＝ほぼその2人の年収そのもの。
+  pick as (select coalesce(min(lv), -1) as lv from lvl where n >= 3),
 
   -- ── 採った段の月次行 ────────────────────────────────────
   -- ★-1（選んだ区分が3人に届かなかった）のときは1行も残らない。
@@ -568,16 +588,33 @@ begin
                      / 12
            end                                                             as ucm,
            bool_or(vf)                                                     as vf,
-           (percentile_cont(0.5) within group (order by a_fixed / cash_m))::numeric as s_fixed,
-           (percentile_cont(0.5) within group (order by a_var   / cash_m))::numeric as s_var,
-           (percentile_cont(0.5) within group (order by a_cmd   / cash_m))::numeric as s_cmd,
-           (percentile_cont(0.5) within group (order by a_role  / cash_m))::numeric as s_role,
-           (percentile_cont(0.5) within group (order by a_pd    / cash_m))::numeric as s_pd,
-           (percentile_cont(0.5) within group (order by a_house / cash_m))::numeric as s_house,
-           (percentile_cont(0.5) within group (order by a_other / cash_m))::numeric as s_other,
+           /* ── 給与構成の割合（8本）────────────────────────────
+              ★ここだけ filter (where det) を掛ける（2026-09-01）。
+                内訳を書いていない月は「固定給 0%」ではなく**観測していない**。
+                混ぜると、内訳を書いた月が少ない人ほど割合が低く出て、
+                「1人が3か月出して内訳は1か月だけ」で固定給が 100% → 33% に化ける。
+                会社どうしの比較が静かに壊れる（画面は普通に動いたまま）。
+              ⚠️ 上の年収（usd_y）・Pay per Block Hour（ubh）・働き方（block_h /
+                 duty_h / duty_d / stay_n）・賞与（b_share / ucm）には**掛けない。**
+                 総支給しか書いていない月も、そちらの統計には引き続き使う。 */
+           (percentile_cont(0.5) within group (order by a_fixed / cash_m)
+              filter (where det))::numeric as s_fixed,
+           (percentile_cont(0.5) within group (order by a_var   / cash_m)
+              filter (where det))::numeric as s_var,
+           (percentile_cont(0.5) within group (order by a_cmd   / cash_m)
+              filter (where det))::numeric as s_cmd,
+           (percentile_cont(0.5) within group (order by a_role  / cash_m)
+              filter (where det))::numeric as s_role,
+           (percentile_cont(0.5) within group (order by a_pd    / cash_m)
+              filter (where det))::numeric as s_pd,
+           (percentile_cont(0.5) within group (order by a_house / cash_m)
+              filter (where det))::numeric as s_house,
+           (percentile_cont(0.5) within group (order by a_other / cash_m)
+              filter (where det))::numeric as s_other,
            (percentile_cont(0.5) within group (order by
               greatest(cash_m - (a_fixed + a_var + a_cmd + a_role
-                                 + a_pd + a_house + a_other), 0) / cash_m))::numeric as s_rest
+                                 + a_pd + a_house + a_other), 0) / cash_m)
+              filter (where det))::numeric as s_rest
       from mrow
      group by human
     having bool_or(det)          -- 総支給だけの人は「給与の中身」の母集団に入れない
@@ -596,6 +633,16 @@ begin
            count(*) filter (where vf) as vfn
       from coh
   ),
+
+  /* ── 人数の門（オーナー必須修正2・2026-09-01）──────────────
+     ★3人に満たないときは「画面で隠す」のではなく**返り値に入れない。**
+       関数を直接叩いても2人以下の集計値は1つも取れない。
+     ★伏せるのは head / comp / work / var の4つ。
+       返してよいのは「非公開だと画面が判断するための材料」だけ ──
+       ok / state / gate / give / stats / cohort（level・n・本人が渡した区分）。
+     ★pick が -1 のときも人数が 0 でここが立つ。門が二重なのは意図的で、
+       はしごの式を将来1行変えたときの最後の壁として残す。 */
+  thin as (select coalesce((select n from hagg), 0) < 3 as x),
 
   -- ── 給与構成 ────────────────────────────────────────────
   -- 生の中央値と「何人が書いたか」を並べて出しておき、門は次の CTE で掛ける。
@@ -844,14 +891,19 @@ begin
                                else (select fleet from me) end,
                'n',       (select n from hagg)) end,
 
-    'head', case when not v_open then null else jsonb_build_object(
+    /* ★ここから下の4つは「人が3人に満たなければ1つも返さない」（thin）。
+         年収中央値・Pay per Block Hour・給与構成・賞与率・Block Hours まで、
+         個人の推定につながる値は**返り値そのものに入れない。**
+         画面で隠すだけでは、関数を直接叩けば取れてしまう。 */
+    'head', case when not v_open or (select x from thin) then null
+                 else jsonb_build_object(
                'annual_usd',    (select annual from hagg),
                'per_block_usd', (select ubh from hagg),
                'detailed_n',    (select n from hagg),
                'verified_n',    (select vfn from hagg),
                'fixed_pct',     (select pct from cfix)) end,
 
-    'comp', case when not v_open then null else (
+    'comp', case when not v_open or (select x from thin) then null else (
                select case when pc is null then null else jsonb_build_object(
                         'total_kind', 'monthly_cash',
                         'n',          n,
@@ -862,14 +914,15 @@ begin
                                          from bagg)
                       ) end from cnorm) end,
 
-    'work', case when not v_open then null else (
+    'work', case when not v_open or (select x from thin) then null else (
                select jsonb_build_object(
                         'block_h',     block_h,
                         'duty_h',      duty_h,
                         'duty_days',   duty_d,
                         'stay_nights', stay_n) from wagg) end,
 
-    'var',  case when not v_open then null else (select j from vpct) end
+    'var',  case when not v_open or (select x from thin) then null
+                 else (select j from vpct) end
   ) into v_out;
 
   return v_out;
@@ -960,5 +1013,16 @@ select * from (
   union all select 18, '人の対応表は誰にも開いていない',
           case when not has_function_privilege('authenticated', 'public.pv_pay_person_map()', 'execute')
                 and not has_function_privilege('anon', 'public.pv_pay_person_map()', 'execute')
+               then '✅' else '❌' end
+  -- ── 2026-09-01 に足した2つ ────────────────────────────────
+  union all select 19, '正式公開の手動フラグが門に入っている',
+          -- 静かに壊れる。ここが抜けても100人以上の間は普通に開くので気づけず、
+          -- 正式公開したあとに99人へ落ちた日、DEEP PAY が丸ごと消える。
+          case when (select s from d) like '%pv_deep_launch%' then '✅' else '❌' end
+  union all select 20, '3人に満たない区分では集計値を返さない（返り値そのもので伏せる）',
+          -- 画面で隠すだけでは、関数を直接叩けば取れてしまう。
+          case when (select s from d) like '%thin%'
+                and (length((select s from d))
+                     - length(replace((select s from d), 'from thin', ''))) / 9 >= 4
                then '✅' else '❌' end
 ) t order by "#";

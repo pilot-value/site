@@ -882,9 +882,22 @@ comment on function public.pv_contributors() is
 --
 -- ★式は pv_my_keys（db/deep-pay.sql 1）・pv_my_give（1-e）と同じもの。**写しが3つ目。**
 --   1つ直したら3つとも直す。db/test-deep-pay.mjs が「3つが同じ人を拾う」ことを固定している。
+--
+--   ⚠️ 技術的負債（DEEP PAY のリリースとは別タスク・2026-09-01 に記録）
+--      この式は3か所にある（pv_my_keys / pv_my_give / ここ）。1つの private helper に
+--      まとめたいが、3つは security definer の境界をまたいでいて、まとめると
+--      「どの権限で走るか」が変わる。**今回は触らない**（オーナー指示：大規模
+--      リファクタ禁止）。横断テスト db/test-deep-pay.mjs ▼21-i が3つのズレを検出する。
+--
 -- ★総当たりの相手は**実際に投稿のある会社だけ**（pv_airlines 全部ではない）。
 --   proof_hash 側には必ずその会社が入っているので、これで取りこぼさない。
---   profiles が数万行になったら内部キャッシュ表を検討する（今は1000回未満の sha256）。
+--
+--   ⚠️ 性能の分岐点（今は最適化しない・オーナー指示 2026-09-01）
+--      計算量は profiles の行数 × 投稿のある会社数ぶんの sha256。
+--      今は数百人 × 数十社＝1000回未満で一瞬。**profiles が1万行を超えたあたり**から
+--      毎回作り直すのが重くなるので、そのときに (proof_hash → 人) を持つ
+--      内部キャッシュ表と、profiles・pay_reports へのトリガでの更新を検討する。
+--      それまでは作らない（表が増えるほど「静かにズレる」場所が増えるため）。
 -- ★誰にも grant しない。security definer の中からだけ呼ぶ。
 --   uid → h は作れるが h → uid は作れない（sha256）。返り値の human は連番なので
 --   外へ出しても本人には戻らないが、**それでも返り値には入れない**（下の pv_deep_pay）。
@@ -942,8 +955,13 @@ comment on function public.pv_pay_person_map() is
 -- ★名簿に当たらない行は数えない（fail closed）。多く数えて門を早く開けるより、
 --   少なく数えて開かないほうが安全。投稿時に必ず profiles 行ができるので
 --   今は落ちる行が無い。
--- ★預かり（pay_reports_pending）は 1-f と同じ数え方のまま。まだ会員ではないので
---   名簿に居ない＝人の単位は ip_day_hash しか無い。
+-- ★★預かり（pay_reports_pending）は数えない（オーナー確定 2026-09-01）。★★
+--   ip_day_hash は「端末 × 日」であって人ではない ── 同じ人が翌日また出せば 2、
+--   家族で1台なら 2人が 1。これを「パイロット◯人」と呼ぶと数が嘘になる。
+--   預かりは**件数**として db/usage.mjs §3-b が別に出す（人数には混ぜない）。
+--   登録して claim した時点で、その人は上の行として普通に 1 と数えられる。
+--   ⚠️ ここに pay_reports_pending を書き戻さないこと。
+--      db/pay-rows.sql の自己点検 47 が検出して落ちる。
 -- ★誰にも grant しない。security definer の中からだけ呼ぶ。
 -- ════════════════════════════════════════════════════════════════
 create or replace function public.pv_deep_contributors()
@@ -953,14 +971,9 @@ security definer
 stable
 set search_path = public, extensions
 as $fn$
-  select (
-    (select count(distinct m.human)
-       from public.pay_reports r
-       join public.pv_pay_person_map() m on m.h = r.proof_hash)
-    + (select count(distinct q.ip_day_hash)
-         from public.pay_reports_pending q
-        where q.claimed_at is null and q.ip_day_hash is not null)
-  )::int;
+  select (select count(distinct m.human)
+            from public.pay_reports r
+            join public.pv_pay_person_map() m on m.h = r.proof_hash)::int;
 $fn$;
 
 revoke all on function public.pv_deep_contributors() from public, anon, authenticated;
@@ -970,7 +983,60 @@ comment on function public.pv_deep_contributors() is
   '同じ人が2社に給与を出しても 1（pv_contributors は proof_hash 単位なので 2 になる）。'
   '★表示（pv_pay_rows の stats・pv_give_progress）と門（pv_deep_pay）が同じこれを呼ぶ。'
   '★名簿に当たらない行は数えない（fail closed）。'
+  '★登録前の預かりは数えない（ip_day_hash は端末×日であって人ではない）。'
   '★誰にも grant しない。security definer の中からだけ呼ぶ。';
+
+
+-- ════════════════════════════════════════════════════════════════
+-- 1-i. pv_deep_launch — 正式公開の手動フラグ（1行しか入らない）
+--
+-- ★解放条件はこの1行だけ（オーナー確定 2026-09-01）。
+--     開く ＝ 今のユニークな人数が100人以上  or  この表に行が在る
+--   前の版は「100人に達した瞬間にトリガで自動記録」していたが、取りやめた。
+--   **自動では立たない・自動では降りない。管理者が一度だけ手で立てる。**
+-- ★立てる前は、100人 → 99人 に落ちれば普通に閉じる（それが正しい挙動）。
+--   立てたあとは人数が減っても開いたまま ── だから
+--   「100人を保つために、消してほしい人のデータを残す」動機が生まれない。
+--   **削除依頼が来た人のデータは普通に消す。この表があるからそれができる。**
+-- ★区分ごとの3人の壁はこれとは別物で、今のデータで毎回判定する
+--   （3人 → 2人に落ちればその区分は消える）。
+-- ★個人データを1文字も持たない。持つのは真偽1つと日付1つだけ。
+-- ★ポリシーを1本も作らない＋全権限 revoke ＝ 通常ユーザーは読むことも書くこともできない。
+--
+-- ★正式公開すると決めた日に、Supabase の SQL Editor でこの1行だけ流す：
+--     insert into public.pv_deep_launch (one) values (true) on conflict do nothing;
+--   ⚠️ この insert をこのファイルに書かないこと。貼り直すたびに勝手に開く。
+-- ════════════════════════════════════════════════════════════════
+create table if not exists public.pv_deep_launch (
+  one       boolean primary key default true check (one),
+  opened_at timestamptz not null default now()
+);
+
+alter table public.pv_deep_launch enable row level security;
+revoke all on table public.pv_deep_launch from public, anon, authenticated;
+
+comment on table public.pv_deep_launch is
+  'DEEP PAY の正式公開フラグ。1行だけ。個人データは持たない。'
+  '★管理者が一度だけ手で入れる。自動では立たないし、自動では降りない。'
+  '★この行が在る間は再ロックしない（退会で99人に落ちても閉じない）。'
+  '★立てる前は、100人 → 99人 に落ちれば普通に閉じる。'
+  '★区分ごとの3人の壁は別物で、今のデータで毎回判定する。';
+
+
+-- ════════════════════════════════════════════════════════════════
+-- 1-j. 後始末 — 100人到達の自動記録は取りやめた（2026-09-01）
+--
+-- ★前の版には pv_deep_latch()（表2つの after insert トリガ）と
+--   pv_deep_goal() が在った。解放条件が「今100人以上 or 手動フラグ」の
+--   2つだけになったので、どちらも要らない。
+-- ★貼ってしまった環境から確実に消すための後始末。何も無ければ何も起きない。
+-- ★トリガを先に落としてから関数を落とす。
+-- ════════════════════════════════════════════════════════════════
+drop trigger  if exists trg_pv_deep_latch_pay  on public.pay_reports;
+drop trigger  if exists trg_pv_deep_latch_prof on public.profiles;
+drop function if exists public.pv_deep_latch();
+drop function if exists public.pv_deep_goal();
+
 
 -- ════════════════════════════════════════════════════════════════
 -- 2. pv_pay_rows — 匿名レポート一覧（1行＝1人・出した人は全員）
@@ -1342,10 +1408,11 @@ comment on function public.pv_give_progress() is
 --
 -- ★1本の SELECT にしてある。Supabase の SQL Editor は複数文を流すと
 --   最後の1本の結果しか出さないので、分けて書くと上から順に消えていく。
--- 期待：43行すべて ✅。1つでも ❌ なら、そこが効いていない。
+-- 期待：47行すべて ✅。1つでも ❌ なら、そこが効いていない。
 --
--- 特に 4・8・12・13・14・16・22・23・30・31・36・37・40・41・42 は「静かに壊れる」種類のもの。画面には何も
--- 出ないまま、他人の個票に届く経路が開く（16・30 は逆に、同じ人が二重に出る）。
+-- 特に 4・8・12・13・14・16・22・23・30・31・36・37・40・41・42・44・45・46・47 は
+-- 「静かに壊れる」種類のもの ── 画面には何も出ないまま、他人の個票に届く経路が開く
+-- （16・30 は逆に、同じ人が二重に出る／41・45・47 は数だけが画面ごとに食い違う）。
 -- ════════════════════════════════════════════════════════════════
 with f as (
   select to_regprocedure('public.pv_pay_rows()')       as f_rows,
@@ -1365,7 +1432,8 @@ with f as (
          to_regprocedure('public.pv_contributors()')        as f_ctb,
          to_regprocedure('public.pv_deep_contributors()')   as f_dctb,
          to_regprocedure('public.pv_pay_person_map()')      as f_pmap,
-         to_regprocedure('public.pv_give_progress()')       as f_prog
+         to_regprocedure('public.pv_give_progress()')       as f_prog,
+         to_regclass('public.pv_deep_launch')               as t_lch
 )
 select n as "#", case when ok then '✅' else '❌' end as 結果, 見るところ
 from (
@@ -1637,7 +1705,6 @@ from (
          case when (f_dctb is null or f_rows is null) then false
               else pg_get_functiondef(f_rows) like '%pv_deep_contributors()%'
                and pg_get_functiondef(f_dctb) like '%pv_pay_person_map()%'
-               and pg_get_functiondef(f_dctb) like '%ip_day_hash%'
          end from f
   union all
   select 42, '★人数の関数は誰にも開いていない（security definer の中からだけ）',
@@ -1672,6 +1739,26 @@ from (
          case when (f_rows is null or f_prog is null) then false
               else pg_get_functiondef(f_rows) not like '%pv_contributors()%'
                and pg_get_functiondef(f_prog) not like '%pv_contributors()%'
+         end from f
+  union all
+  -- ── 正式公開の手動フラグ（2026-09-01）──────────────────────
+  select 46, '★正式公開の手動フラグは誰にも開いていない（RLS 有効・ポリシー0本）',
+         -- 静かに壊れる。書けるようになっても画面は何も変わらないが、
+         -- 通常ユーザーが自分で1行入れて DEEP PAY を開けてしまう。
+         case when t_lch is null then false
+              else not has_table_privilege('anon', t_lch, 'select')
+               and not has_table_privilege('authenticated', t_lch, 'select')
+               and not has_table_privilege('anon', t_lch, 'insert')
+               and not has_table_privilege('authenticated', t_lch, 'insert')
+               and (select c.relrowsecurity from pg_class c where c.oid = f.t_lch)
+               and (select count(*) from pg_policies
+                     where schemaname = 'public' and tablename = 'pv_deep_launch') = 0
+         end from f
+  union all
+  select 47, '★進捗に登録前の預かりが混ざっていない（端末を人と呼んでいない）',
+         -- 静かに壊れる。混ざっても画面は普通に動き、数だけが多く出る。
+         case when f_dctb is null then false
+              else pg_get_functiondef(f_dctb) not like '%pay_reports_pending%'
          end from f
 ) t
 order by n;

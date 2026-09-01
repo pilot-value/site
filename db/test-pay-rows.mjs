@@ -1376,7 +1376,7 @@ console.log('\n▼ 13. 自己点検 SQL（ファイル末尾のものをその�
   const src = read('db/pay-rows.sql');
   const q = src.slice(src.lastIndexOf('with f as ('));
   const res = await rows(q);
-  ok(res.length === 45, `自己点検が45行ぜんぶ出る（= ${res.length}行）`);
+  ok(res.length === 47, `自己点検が47行ぜんぶ出る（= ${res.length}行）`);
   for (const row of res) {
     ok(row['結果'] === '✅', `${row['#']}. ${row['見るところ']}`);
   }

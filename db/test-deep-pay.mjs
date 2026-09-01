@@ -325,9 +325,10 @@ await asUser(V);
   const d = await deep({ airline: A_HOME, position: 'fo', fleet: 'b737' });
   ok(d.cohort.level === 'none', '★3人に届かない区分は none（はしごを登らない）', d.cohort.level);
   ok(d.cohort.n === 0, '★人数は0（広い区分の人数を出さない）', String(d.cohort.n));
-  ok(d.head.annual_usd === null, '★年収も出ない（全体の数字が漏れない）',
-     String(d.head.annual_usd));
-  ok(d.comp === null && d.work.block_h === null && (d.var || []).length === 0,
+  /* ★2026-09-01、null を詰めた塊すら返さなくなった（オーナー必須修正2）。
+     前は head の中の値が null。今は head という塊ごと返さない。 */
+  ok(d.head === null, '★年収も出ない（頭の塊ごと返さない）', JSON.stringify(d.head));
+  ok(d.comp === null && d.work === null && (d.var || []).length === 0,
      '★給与構成・働き方・変動給も出ない');
 }
 {
@@ -335,7 +336,7 @@ await asUser(V);
   ok(d.cohort.level === 'none', '★語彙に無い会社は none（広い区分に読み替えない）',
      d.cohort.level);
   ok(d.cohort.airline === null, '★語彙に無い値は echo もしない');
-  ok(d.head.annual_usd === null, '★語彙に無い会社で全体の数字が出ない');
+  ok(d.head === null, '★語彙に無い会社で全体の数字が出ない');
 }
 {
   const d = await deep({ airline: 'other' });
@@ -1060,6 +1061,9 @@ const ago = async (k) => await one(
   ok(!s.includes('human'), '★返ってきた JSON に人の通し番号が出ない');
 }
 
+/* ★100人目になった人。▼21 でこの1人だけを名簿から消して 100 → 99 に落とす。
+     消す相手を決め打ちにしないと、どの人を消したかで人数が変わって読めなくなる。 */
+let HUNDREDTH = null;
 // ── (i) 100人の門（★この節はいちばん最後。人を99人積む）──────────
 {
   await db.query(`select set_config('pv.deep_bypass', '', false)`);
@@ -1107,12 +1111,258 @@ const ago = async (k) => await one(
   ok(Number(g.contributors) === 99, '★Give の進み具合も同じ数', String(g.contributors));
 
   // 100人目
-  await person(EX[11], 'cap', 'b777', [{ month: 9 }]);
+  HUNDREDTH = await person(EX[11], 'cap', 'b777', [{ month: 9 }]);
   await asUser(V);
   d = await deep();
   ok(Number(d.gate.contributors) === 100, '★100人になった', String(d.gate.contributors));
   ok(d.state === 'open' && d.cohort !== null, '★100人で開く');
 }
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 21. オーナー確定の6件（2026-09-01・Codex 再監査分）');
+// ════════════════════════════════════════════════════════════
+/* ★この節も▼20と同じく**最後に置く**。中で人を足し引きするので、
+     先に置くと上の節の「3人そろっている／いない」が全部ずれる。
+
+   見ているのは4つ。どれも **画面は普通に動いたまま静かに違う数字を出す** 形：
+     ・内訳を書いていない月が「0%」として給与構成の中央値に混ざる
+     ・3人に満たないのに、関数を直接叩けば集計値が取れてしまう
+     ・「◯人」に登録前の預かり（端末×日）が混ざる
+     ・正式公開フラグが、消し残した自動記録のトリガで勝手に立つ
+
+   ★この節は▼20の続きから始まる。入口の状態は
+     「ちょうど100人・手動フラグは立っていない・抜け道は外れている」。 */
+
+// ▼20 と▼21 の前で使っていない会社を借りる
+const EX2 = (await rows(
+  `select code from pv_airlines
+    where code <> 'other' and active
+      and code <> all(string_to_array($1, ','))
+    order by code limit 10`, [AIR.concat(EX).join(',')])).map(r => r.code);
+ok(EX2.length >= 7, '▼21 用の会社が足りている', String(EX2.length));
+
+// ── (f) 解放は「今100人以上 or 手動フラグ」の2つだけ ────────────
+/* ★2026-09-01、100人到達を自動で永久記録する仕掛け（表2つのトリガ）は取りやめた。
+     残っているのはこの1行だけ：
+       開く ＝ 今のユニークな人数が100人以上  or  pv_deep_launch に行が在る
+     フラグは**管理者が一度だけ手で立てる。** 自動では立たないし、自動では降りない。
+   ★ここで指定の 1〜5 を順に確かめる（99人で閉じる／100人で開く／100→99で閉じる／
+     フラグを立てれば99人でも開く／預かりは人数に入らない）。 */
+{
+  // ① 自動では立たない ── 100人に達しても表は空のまま
+  ok(Number((await one(`select count(*) n from pv_deep_launch`)).n) === 0,
+     '★★100人に達しても正式公開フラグは立たない（自動で書く仕掛けはもう無い）');
+
+  // ② 100人ちょうどで開く
+  await asUser(V);
+  ok((await deep()).state === 'open', '★100人ちょうどで開く');
+
+  // ③ 100人目が退会して99人 → 閉じる（フラグを立てるまでは毎回判定する）
+  await db.query(`delete from profiles where id = $1`, [uid(HUNDREDTH)]);
+  await asUser(V);
+  let d = await deep();
+  ok(Number((await one(`select pv_deep_contributors() n`)).n) === 99, '★99人に戻った');
+  ok(d.state === 'locked' && Number(d.gate.contributors) === 99,
+     '★★フラグを立てるまでは 100人 → 99人 で閉じる',
+     `${d.state} / ${d.gate.contributors}`);
+
+  // ④ 登録前の預かりは何件あっても人数に入らない
+  await asAnon();
+  const toks = [];
+  for (let i = 0; i < 5; i++)
+    toks.push((await one(`select submit_pay_report_pending($1::jsonb) r`, [JSON.stringify({
+      ...BASE, airline: EX2[2], position: 'cap', fleet: 'b777',
+      period_year: YEAR, period_month: 3 + i, ...DET })])).r.claim_token);
+  ok(toks.every(t => typeof t === 'string' && t.length > 16), '預かりが5件できた');
+  ok(Number((await one(`select pv_deep_contributors() n`)).n) === 99,
+     '★★登録前の預かりは何件あっても人数に入らない（端末×日を「人」と呼ばない）');
+  await asUser(V);
+  ok((await deep()).state === 'locked', '★預かり5件では開かない');
+
+  // ⑤ 預けた人が会員になって引き取る＝ここで初めて100人目になる
+  const uC = ++seat;
+  await asUser(uC);
+  const r = (await one(`select claim_pending_report($1) r`, [toks[0]])).r;
+  ok(r.ok === true, '預かりを引き取れた', JSON.stringify(r));
+  ok(Number((await one(`select pv_deep_contributors() n`)).n) === 100,
+     '★引き取って会員になった瞬間に100人目になる（会員になって初めて1人）');
+  await asUser(V);
+  ok((await deep()).state === 'open', '★また開いた');
+
+  // ⑥ その人が退会すれば また閉じる ── 自動記録がもう無いことの証拠
+  await db.query(`delete from profiles where id = $1`, [uid(uC)]);
+  await asUser(V);
+  d = await deep();
+  ok(d.state === 'locked' && Number(d.gate.contributors) === 99,
+     '★★また99人になれば また閉じる（自動で永久記録する仕掛けは消えている）',
+     `${d.state} / ${d.gate.contributors}`);
+
+  // ⑦ 管理者が手でフラグを立てる → 99人でも開く
+  await db.query(`insert into pv_deep_launch (one) values (true) on conflict do nothing`);
+  await asUser(V);
+  d = await deep();
+  ok(d.state === 'open',
+     '★★手動フラグを立てれば99人でも開く（開く ＝ 100人以上 or フラグ）', d.state);
+  ok(Number(d.gate.contributors) === 99,
+     '★人数は正直に99と出す（開いているのに99、が正しい状態）',
+     String(d.gate.contributors));
+
+  // ⑧ 通常ユーザーはフラグを読むことも書くこともできない
+  const priv = (await one(
+    `select case when not has_table_privilege('authenticated','public.pv_deep_launch','select')
+                  and not has_table_privilege('authenticated','public.pv_deep_launch','insert')
+                  and not has_table_privilege('anon','public.pv_deep_launch','select')
+                  and not has_table_privilege('anon','public.pv_deep_launch','insert')
+                 then 'ok' else 'ng' end as x`)).x;
+  ok(priv === 'ok',
+     '★★通常ユーザーはフラグを読むことも書くこともできない（RLS ＋ 全権限 revoke）', priv);
+
+  // ⑨ SQL を貼り直しても、立てたフラグは消えも増えもしない
+  await db.exec(read('db/pay-rows.sql'));
+  ok(Number((await one(`select count(*) n from pv_deep_launch`)).n) === 1,
+     '★貼り直してもフラグは1行のまま（勝手に降りない・勝手に増えない）');
+  ok((await rows(`select tgname from pg_trigger
+                   where not tgisinternal and tgname like 'trg_pv_deep_latch%'`)).length === 0,
+     '★★自動記録のトリガは1本も残っていない（貼り直しで消える後始末が効いている）');
+  await asUser(V);
+  ok((await deep()).state === 'open', '★貼り直したあとも開いたまま');
+}
+
+/* ── (a)(b) 給与構成は「内訳を書いた月」だけで出す【Release blocker】──
+   3人とも「総支給だけの月が2つ・内訳を書いた月が1つ（固定給100%）」。
+   ★直す前は、内訳を書いていない2か月が「固定給 0%」という観測として
+     中央値に混ざり、固定給が 100% → 0% に化けていた。
+   ★同時に、その2か月が**年収の統計からは消えていない**ことも見る。 */
+{
+  const C = EX2[1];
+  for (let i = 0; i < 3; i++) {
+    const u = ++seat;
+    await asUser(u);
+    for (const m of [2, 3])       // 総支給だけ（内訳なし）
+      await submit({ ...BASE, airline: C, position: 'cap', fleet: 'b777',
+                     period_year: YEAR, period_month: m, gross_monthly: 10000 });
+    await submit({ ...BASE, airline: C, position: 'cap', fleet: 'b777',   // 内訳あり
+                   period_year: YEAR, period_month: 4, base_pay: 30000 });
+  }
+  await asUser(V);
+  const d = await deep({ airline: C, position: 'cap', fleet: 'b777' });
+  ok(d.cohort.n === 3, '3人そろっている', String(d.cohort.n));
+  const seg = (d.comp.segs || []).find(s => s.k === 'fixed');
+  ok(seg && Number(seg.pct) === 100,
+     '★★内訳を書いた月だけで割合を出す（3か月のうち1か月しか書いていなくても固定給100%）',
+     JSON.stringify(d.comp.segs));
+  ok(Number(d.head.annual_usd) === 120000,
+     '★総支給だけの月も年収の統計には残る（120000。内訳の月だけなら360000になる）',
+     String(d.head.annual_usd));
+}
+
+/* ── (c)(c') 内訳を書いた人が2人 → 関数が集計値を1つも返さない ────
+   ★オーナー必須修正2。画面で隠すのではなく**返り値に入れない。**
+     ここは画面を通さず関数を直接呼んでいる＝API を叩いた人と同じ見え方。 */
+{
+  const B = EX2[0];
+  const u1 = await person(B, 'cap', 'b787', [{ month: 5 }]);
+  await person(B, 'cap', 'b787', [{ month: 5 }]);
+  await asUser(V);
+  const d = await deep({ airline: B, position: 'cap', fleet: 'b787' });
+  ok(d.cohort.level === 'none' && d.cohort.n === 0,
+     '★2人では区分そのものが空（広い区分の数字で埋めない）', JSON.stringify(d.cohort));
+  ok(d.head === null && d.comp === null && d.work === null && d.var === null,
+     '★★2人以下では head / comp / work / var を1つも返さない',
+     JSON.stringify({ head: d.head, comp: d.comp, work: d.work, var: d.var }));
+  const s = JSON.stringify(d);
+  for (const k of ['annual_usd', 'per_block_usd', 'fixed_pct',
+                   'pct_of_annual', 'block_h', 'duty_h', 'stay_nights', 'med_usd'])
+    ok(!s.includes(k), `★返ってきた JSON に ${k} が1文字も無い`);
+  ok(d.ok === true && d.state === 'open' && d.gate && d.give
+     && typeof d.stats.contributors === 'number',
+     '★「非公開だと画面が判断するための材料」は返す（ok/state/gate/give/stats/cohort）');
+
+  // ── (d)(d') 3人目が出した瞬間に4つとも出る（厳しすぎて永久に出ない、を防ぐ）
+  await person(B, 'cap', 'b787', [{ month: 5 }]);
+  await asUser(V);
+  const d3 = await deep({ airline: B, position: 'cap', fleet: 'b787' });
+  ok(d3.cohort.n === 3, '★3人になった', String(d3.cohort.n));
+  ok(d3.head !== null && d3.comp !== null && d3.work !== null && d3.var !== null,
+     '★★3人になった瞬間に4つとも出る',
+     JSON.stringify({ head: !!d3.head, comp: !!d3.comp,
+                      work: !!d3.work, var: !!d3.var }));
+  ok(Number(d3.head.annual_usd) > 0, '★年収の中央値が出る', String(d3.head.annual_usd));
+
+  // ── (g) 区分の3人の壁は「今のデータ」で毎回判定する（100人の門とは別物）
+  await db.query(`delete from profiles where id = $1`, [uid(u1)]);
+  await asUser(V);
+  const d2 = await deep({ airline: B, position: 'cap', fleet: 'b787' });
+  ok(d2.cohort.n === 0 && d2.head === null,
+     '★3人→2人に減れば、その区分はまた非表示になる', JSON.stringify(d2.cohort));
+  ok(d2.state === 'open',
+     '★★区分が消えてもサイト全体は開いたまま（3人の壁と100人の区切りは別物）', d2.state);
+}
+
+/* ── (h) 1人1票 ── 給与差の大きい2社を経験した人 ──────────────
+   ★機種だけで選ぶ（この機種を出しているのはこの3人だけ）。
+     直す前は本人×会社で数えていたので、この人が2人になり、
+     人数も中央値もずれた（3人 → 4人 / 150000 → 180000）。 */
+{
+  const F = 'dhc8';
+  const uMix = ++seat;
+  await asUser(uMix);
+  for (let m = 1; m <= 6; m++)         // A社：月 5,000 → 年 60,000
+    await submit({ ...BASE, airline: EX2[4], position: 'cap', fleet: F,
+                   period_year: YEAR, period_month: m, base_pay: 5000 });
+  for (let m = 7; m <= 12; m++)        // B社：月 20,000 → 年 240,000
+    await submit({ ...BASE, airline: EX2[5], position: 'cap', fleet: F,
+                   period_year: YEAR, period_month: m, base_pay: 20000 });
+  for (const v of [10000, 25000]) {    // 同じ機種の別の2人
+    const u = ++seat;
+    await asUser(u);
+    await submit({ ...BASE, airline: EX2[4], position: 'cap', fleet: F,
+                   period_year: YEAR, period_month: 2, base_pay: v });
+  }
+  await asUser(V);
+  const d = await deep({ fleet: F });
+  ok(d.cohort.n === 3,
+     '★★2社を経験した1人は1人（会社ごとに2人と数えない）', String(d.cohort.n));
+  ok(Number(d.head.annual_usd) === 150000,
+     '★その人の寄与は自分の12か月の中央値1つ（12票でも2票でもない。2票なら180000）',
+     String(d.head.annual_usd));
+}
+
+/* ── (i) 3つのハッシュ式が同じ人を指している ────────────────────
+   ★pv_my_keys / pv_my_give / pv_pay_person_map に同じ式の写しが3つある。
+     今回まとめない代わりに、ズレをここで検出する（技術的負債の印は
+     db/pay-rows.sql の pv_pay_person_map のコメントに置いた）。 */
+{
+  const uK = ++seat;
+  await asUser(uK);
+  await submit({ ...BASE, airline: EX2[6], position: 'cap', fleet: 'b777',
+                 period_year: YEAR, period_month: 2, ...DET });
+  await submit({ ...BASE, airline: 'other', airline_other: 'Nowhere Air Three',
+                 position: 'cap', fleet: 'b777',
+                 period_year: YEAR, period_month: 3, ...DET });
+  /* ★pv_my_keys は「あり得る鍵」を総当たりで作る（語彙110社 ＋ 実在する
+       自由入力の社名ぶん）ので、返る本数そのものは人数と関係が無い。
+       見るのは**その鍵に当たった本人の行**。 */
+  const ks = (await rows(
+    `select r.proof_hash h from pay_reports r
+      where r.proof_hash in (select pv_my_keys())`)).map(r => r.h);
+  ok(ks.length === 2, '★pv_my_keys が本人の2社ぶんの行を拾う', String(ks.length));
+  const hum = await rows(
+    `select distinct m.human from pv_pay_person_map() m
+      where m.h = any(string_to_array($1, ','))`, [ks.join(',')]);
+  ok(hum.length === 1,
+     '★pv_pay_person_map は2社ぶんを同じ1人に当てる', JSON.stringify(hum));
+  const cnt = await one(
+    `select count(*) c from pay_reports r
+       join pv_pay_person_map() m on m.h = r.proof_hash
+      where m.human = $1`, [hum[0] && hum[0].human]);
+  ok(Number(cnt.c) === 2, '★その人の行は2件（会社ごとに別人になっていない）', String(cnt.c));
+  const g = await give();
+  ok(g.basic === true && g.detailed === true,
+     '★pv_my_give も同じ2件を拾う（3つの式が同じ答えを出す）', JSON.stringify(g));
+}
+await asUser(V);
 
 // ════════════════════════════════════════════════════════════
 /* ★ここが一番効く。deep-pay.sql の末尾には、貼れたかどうかをオーナーが

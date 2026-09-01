@@ -38,7 +38,10 @@
      訪問は GA4（index.html の G-… ）でしか見られない。
    ・**明細の読み取り回数は、誰の分か切り分けられない。** pv_parse_quota.subject は
      Supabase 側の secret（PV_IP_SALT）で HMAC した値で、手元では復元できない。
-     オーナー自身の動作確認も同じ数に混ざる。
+     オーナー自身の動作確認も同じ数に混ざる。**だから「人」ではなく「端末」と書く。**
+   ・**この道具に出てくる「人」は1つの意味だけ。** 名簿（profiles）に当たった実在の
+     アカウント＝DEEP PAY の「◯/100」と同じ数え方。2社に出した1人は 1人。
+     預かり（登録前）と明細の読み取りは**件数・端末数**で、人数には数えない。
    ・**その回数は「試した回数」であって「読めた回数」ではない。** AI に投げる前に数えて
      いて、失敗しても戻さない（supabase/functions/parse-payslip/index.ts）。
      つまり読み取り失敗も1回として入っている。
@@ -120,11 +123,33 @@ const inSpan = (t) => !sinceIso || (t && t >= sinceIso);
 const width = (s) => [...String(s)].reduce((n, c) => n + (c.codePointAt(0) < 0x100 ? 1 : 2), 0);
 const line = (label, ...rest) => console.log('   ' + label + ' '.repeat(Math.max(1, 26 - width(label))) + rest.join(''));
 
-/* ── Supabase REST（読むだけ）── */
+/* ── Supabase REST（読むだけ）──────────────────────────────────
+   ★limit で黙って切れると人数が減る（2026-09-01）。
+     PostgREST に総数も数えさせ（Prefer: count=exact）、受け取った件数と
+     食い違ったらここに控える。まとめの先頭で赤く出す（下の truncWarn）。
+     ⚠️ 上限を上げて済ませない。上げても「いつか切れる」は消えず、
+        減ったことに気づけないのがいちばん悪い。気づける形にしておく。 */
+const TRUNCATED = [];
 async function rest(table, query) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${query}`, { headers: H });
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${query}`,
+    { headers: { ...H, Prefer: 'count=exact' } });
   if (!res.ok) throw new Error(`${table} ${res.status} ${(await res.text()).slice(0, 160)}`);
-  return res.json();
+  const rows = await res.json();
+  /* content-range は "0-4999/12345"。数えられないときは総数が "*" になる。 */
+  const total = Number(String(res.headers.get('content-range') ?? '').split('/')[1]);
+  if (Number.isFinite(total) && Array.isArray(rows) && rows.length < total)
+    TRUNCATED.push({ table, got: rows.length, total });
+  return rows;
+}
+/* 切れていたら大きく出す。数え漏れたまま「◯人」と読ませないため。 */
+function truncWarn() {
+  if (!TRUNCATED.length) return;
+  console.log('');
+  console.log('\x1b[31m━━ ⚠️ 途中で切れています（下の人数・件数はすべて下限値です）━━\x1b[0m');
+  for (const t of TRUNCATED)
+    console.log('   \x1b[31m' + t.table + '：受け取ったのは ' + t.got + '件'
+      + (t.total == null ? '。まだ続きがあります' : `、本当は ${t.total}件あります`) + '\x1b[0m');
+  console.log('   \x1b[31m→ db/usage.mjs の limit を上げるか、分けて取る必要があります。\x1b[0m');
 }
 /* ── 読み取り専用の関数を呼ぶ（約束1）───────────────────────────
    なぜ POST が要るか。REAL PAY の画面に出る数を確かめるには、金額の出し方を
@@ -142,9 +167,11 @@ async function rpcRead(fn, args) {
   return res.json();
 }
 
-/* auth.users は REST に出ないので Admin API。1000人を超えたら頁を送る。 */
+/* auth.users は REST に出ないので Admin API。1000人を超えたら頁を送る。
+   ★20頁（4000人）で止まる。止まったことに気づけるよう控える（2026-09-01）。 */
 async function authUsers() {
   const out = [];
+  let more = false;
   for (let page = 1; page <= 20; page++) {
     const res = await fetch(`${SUPABASE_URL}/auth/v1/admin/users?per_page=200&page=${page}`, { headers: H });
     if (!res.ok) throw new Error(`auth ${res.status} ${(await res.text()).slice(0, 160)}`);
@@ -152,7 +179,9 @@ async function authUsers() {
     const us = j.users ?? [];
     out.push(...us);
     if (us.length < 200) break;
+    if (page === 20) more = true;
   }
+  if (more) TRUNCATED.push({ table: 'auth.users（名簿）', got: out.length, total: null });
   return out;
 }
 
@@ -166,16 +195,53 @@ async function authUsers() {
    ★口コミは航空会社コードを付け替えた移行（db/migrate-airline-codes.sql）より前の行だと
      hash が旧コードのままなので一致しない。古い自分の投稿は落としきれないことがある。
    ⚠️ 下の「3-c」も同じ写し取りをしている。あちらは db/pay-rows.sql の
-      数え方（sane / person / tally / airs / contrib）を写している。
-      contrib だけは pv_deep_contributors()（＝実際の人数）と同じ数え方。
+      数え方（sane / person / tally / airs）を写している。
       **pay-rows.sql の数え方を変えたら 3-c も直す**（金額の出し方は写していない。
-      本物の関数を呼んでいる＝上の rpcRead）。 */
+      本物の関数を呼んでいる＝上の rpcRead）。
+   ★人数の数え方は 3節・3-c 節で**同じ1つの関数**を通す（下の payPersonMap）。
+      2つに分かれていた頃、3節だけ proof_hash を数えていて食い違っていた。 */
 const payHash = (uid, airline, other) =>
   createHash('sha256')
     .update(`${uid}::pv_pay::${airline}${other ? '::' + String(other).toLowerCase() : ''}`)
     .digest('hex');
 const reviewHash = (uid, airline) =>
   createHash('sha256').update(`${uid}::pv_anon::${airline}::2026`).digest('hex');
+
+/* ── 給与レポートの行を「人」に戻す対応表 ────────────────────────
+   pay_reports は user_id を持たない。名簿（profiles）の id と会社から
+   proof_hash を作り直して突き合わせる ＝ db/pay-rows.sql の
+   pv_pay_person_map() と同じ考え方。**当たらない行は数えない**
+   （fail closed。あちらの join と同じ）。
+   ★proof_hash は（本人 × 会社）で1つ。**2社に出した1人は 1人**。
+     DEEP PAY の「◯/100」（pv_deep_contributors）と同じ数え方にそろえる
+     ── 3節と 3-c 節でこの1つの表を使い回す（2026-09-01）。
+   ⚠️ pay-rows.sql の数え方を変えたらここも直す。
+   ⚠️ 会社は「実際に投稿のある会社」だけで総当たりする（全110社ではない）。
+      profiles の行数 × 会社数ぶんの sha256 で済ませるため。 */
+function payPersonMap(payRows, profileRows) {
+  const airSeen = new Map();
+  for (const r of payRows) {
+    const k = r.airline === 'other'
+      ? 'other::' + String(r.airline_other || '').toLowerCase() : r.airline;
+    if (!airSeen.has(k)) airSeen.set(k, r);
+  }
+  const h2u = new Map();
+  for (const pf of profileRows)
+    for (const r of airSeen.values())
+      h2u.set(payHash(pf.id, r.airline, r.airline_other), pf.id);
+  return h2u;
+}
+/* 対応表に通して人を数える。{ real, test, unmapped } を返す。 */
+function countPeople(payRows, h2u, testIds) {
+  const real = new Set(), test = new Set();
+  let unmapped = 0;
+  for (const r of payRows) {
+    const u = h2u.get(r.proof_hash);
+    if (!u) { unmapped++; continue; }
+    (testIds.has(u) ? test : real).add(u);
+  }
+  return { real, test, unmapped };
+}
 
 /* ════════════════════════════════════════════════════════════════
    --founding — FOUNDING PILOT 100（創設メンバー）の番号を出す。読むだけ。
@@ -306,7 +372,7 @@ async function foundingReport(users, testIds, real) {
   const real = users.filter((u) => !testIds.has(u.id));
   const profById = Object.fromEntries(profiles.map((p) => [p.id, p]));
 
-  if (has('--founding')) { await foundingReport(users, testIds, real); return; }
+  if (has('--founding')) { await foundingReport(users, testIds, real); truncWarn(); return; }
 
   console.log('');
   console.log('━━ PILOT VALUE 利用状況 ' + '━'.repeat(30));
@@ -359,7 +425,7 @@ async function foundingReport(users, testIds, real) {
   /* まとめの1行で「読ませようとした人／保存まで届いた人」を並べるため、
      3と4の結果をここで受ける（取得できなかったときは null のまま出さない）。 */
   let paidPeople = null;   // 給与レポートを保存できた実人数（累計）
-  let tryPeople = null;    // 明細を読ませようとした人（累計・のべ端末）
+  let tryDevices = null;   // 明細を読ませようとした端末（累計。人ではない）
   console.log('\n■ 給与レポート（一次データ。ここが増えないと事業は前に進まない）');
   try {
     const pr = await rest('pay_reports', 'select=created_at,airline,airline_other,source,proof_hash&order=created_at.desc&limit=5000');
@@ -370,8 +436,17 @@ async function foundingReport(users, testIds, real) {
     const testPr = pr.length - realPr.length;
     line('期間内', `${realPr.filter((r) => inSpan(r.created_at)).length}件`);
     line('累計（実ユーザー）', `${realPr.length}件`, testPr ? `　＋あなたのテスト ${testPr}件` : '');
-    paidPeople = new Set(realPr.map((r) => r.proof_hash)).size;
-    line('出した実人数', `${paidPeople}人`);
+    /* ★2026-09-01、proof_hash の数から**実際の人数**に変えた。
+         proof_hash は（本人 × 会社）で1つなので、2社に出した1人が2人に見えていた。
+         3-c 節・DEEP PAY の「◯/100」と同じ対応表（payPersonMap）を使う。 */
+    const h2u = payPersonMap(pr, profiles);
+    const who = countPeople(pr, h2u, testIds);
+    paidPeople = who.real.size;
+    line('出した実人数', `${paidPeople}人`, who.test.size ? `　＋テスト用 ${who.test.size}人` : '');
+    if (who.unmapped) {
+      console.log(`   ※ 名簿に当たらなかった行が ${who.unmapped}件あります（人数に入れていません）。`);
+      console.log('      退会などで profiles 行が消えた人の投稿です。画面の数え方と同じ扱いです。');
+    }
     const bySrc = {};
     for (const r of realPr) bySrc[r.source] = (bySrc[r.source] ?? 0) + 1;
     if (realPr.length) line('入れ方', Object.entries(bySrc).map(([s, n]) => `${s === 'payslip' ? '明細から' : '手入力'} ${n}`).join(' / '));
@@ -549,30 +624,16 @@ async function foundingReport(users, testIds, real) {
 
        ★2026-09-01、proof_hash ではなく **実際の人数** で数えるようにした。
          proof_hash は（本人 × 会社）で1つなので、2社に出した1人が2人に見えていた。
-         db/pay-rows.sql の pv_deep_contributors() と同じ数え方にそろえる
-         ── 名簿（profiles）の id から proof_hash を作り直して人に戻す。
-         **当たらない行は数えない**（fail closed。あちらの join と同じ）。
-       ⚠️ あちらの数え方を変えたらここも直す。
-       ⚠️ 会社は「実際に投稿のある会社」だけで総当たりする（全110社ではない）。
-          profiles 5000行 × 会社数ぶんの sha256 で済ませるため。 */
-    const airSeen = new Map();
-    for (const r of prAll) {
-      const k = r.airline === 'other'
-        ? 'other::' + String(r.airline_other || '').toLowerCase() : r.airline;
-      if (!airSeen.has(k)) airSeen.set(k, r);
-    }
-    const hashToUid = new Map();
-    for (const pf of profiles)
-      for (const r of airSeen.values())
-        hashToUid.set(payHash(pf.id, r.airline, r.airline_other), pf.id);
-    const contribReal = new Set(), contribTest = new Set();
-    let unmapped = 0;
-    for (const r of prAll) {
-      const u = hashToUid.get(r.proof_hash);
-      if (!u) { unmapped++; continue; }
-      (testIds.has(u) ? contribTest : contribReal).add(u);
-    }
-    const pendPeople = new Set(pdAll.filter((q) => !q.claimed_at && q.ip_day_hash).map((q) => q.ip_day_hash));
+         数え方は上の payPersonMap / countPeople に1つにまとめてある
+         （3節も同じ関数を通す。db/pay-rows.sql の pv_deep_contributors() と同じ）。 */
+    const { real: contribReal, test: contribTest, unmapped } =
+      countPeople(prAll, payPersonMap(prAll, profiles), testIds);
+
+    /* ★預かり（登録前の投稿）は人数に数えない（2026-09-01・オーナー確定）。
+         ip_day_hash は「端末 × 日」であって人ではない ── 同じ人が翌日出せば 2、
+         家族で1台なら 1。DEEP PAY の門（pv_deep_contributors）も数えていない。
+         件数としては下に別行で出す（消すのではなく、意味を分ける）。 */
+    const pendRows = sane.filter((r) => r.from === 'pending').length;
 
     const inMonth = sane.filter((r) => r.cat >= MONTH1);
     const mine = (list) => list.filter((r) => r.test === true).length;
@@ -584,9 +645,10 @@ async function foundingReport(users, testIds, real) {
     line('実給与の投稿', `${sane.length}件`, both(sane, '件'));
     line('航空会社', `${airlines.size}社`);
     line('1ヶ月以内の新規投稿', `${inMonth.length}件`, both(inMonth, '件'));
-    const contribAll = contribReal.size + contribTest.size + pendPeople.size;
+    const contribAll = contribReal.size + contribTest.size;
     line('出したパイロット', `${contribAll}人`, contribTest.size
       ? `　（うちあなたの動作確認 ${contribTest.size}人 → 素の値 ${contribAll - contribTest.size}人）` : '');
+    line('登録前の預かり', `${pendRows}件`, '　（人数には数えません。誰の分か切り分けられない）');
 
     console.log('   ── 材料の内訳（上の「実給与の投稿」の中身）');
     const FROM = [['shelf', '本棚（会員が出した）'], ['pending', '預かり（登録前）'], ['review', '昔の口コミの給与']];
@@ -596,8 +658,9 @@ async function foundingReport(users, testIds, real) {
       console.log(`   ※ 名簿に当たらなかった給与レポートが ${unmapped}件あります（人数に入れていません）。`);
       console.log(`      退会などで profiles 行が消えた人の投稿です。画面の数え方（fail closed）と同じ扱いです。`);
     }
-    if (pendPeople.size) {
-      console.log(`   ※ 「出したパイロット」に入っている預かり ${pendPeople.size}人ぶんは、誰の分か切り分けられません。`);
+    if (pendRows) {
+      console.log(`   ※ 預かり ${pendRows}件は表には出ますが、「出したパイロット」には入りません`);
+      console.log('      （DEEP PAY の「◯/100」も同じ。会員になった時点で1人として数えます）。');
     }
     console.log('   ※ 画面にこの数が出るのは db/pay-rows.sql を Supabase に貼ったあとです');
     console.log('      （貼るまでカードは1枚も出ません。0 を並べない作りにしてあります）。');
@@ -694,6 +757,9 @@ async function foundingReport(users, testIds, real) {
   }
 
   /* ── 4. 明細の読み取り ─────────────────────────────────── */
+  /* ★ここは「人」ではなく「端末」で数える（2026-09-01・オーナー確定）。
+       subject は IP を secret で HMAC した値＝端末×日に近いもので、人ではない。
+       サイトの中で「人」という言葉の意味を3つに増やさないため、言い方を分ける。 */
   console.log('\n■ 明細の読み取り（AIに読ませようと「試した」回数。失敗も1回に入ります）');
   try {
     const q = await rest('pv_parse_quota', 'select=day,subject,n&order=day.desc&limit=2000');
@@ -710,11 +776,11 @@ async function foundingReport(users, testIds, real) {
       if (isGlobal) { if (r.subject === 'global') d.calls = r.n; }
       else d.people++;
     }
-    tryPeople = everyone.size;
+    tryDevices = everyone.size;
     const keys = Object.keys(days).sort();
     if (!keys.length) line('期間内', '0回');
-    for (const d of keys) line('  ' + d, `${days[d].calls}回 / ${days[d].people}人`);
-    line('累計', `${allCalls}回 / ${tryPeople}人`);
+    for (const d of keys) line('  ' + d, `${days[d].calls}回 / ${days[d].people}端末`);
+    line('累計', `${allCalls}回 / ${tryDevices}端末`);
     console.log('   ※ 誰の分かは切り分けられません（あなたの動作確認も同じ数に入ります）');
     console.log('   ※ 読めた回数ではありません。読み取りに失敗した分もここに入っています。');
   } catch (e) { line('取得できず', e.message); }
@@ -728,21 +794,23 @@ async function foundingReport(users, testIds, real) {
 
   /* ── まとめ ────────────────────────────────────────────── */
   console.log('\n━━ まとめ ' + '━'.repeat(43));
+  truncWarn();          // ★切れていたら、数字を読む前に赤で出す
   console.log(`   ${spanLabel}で、新しく登録した人は ${fresh.length}人 です。`);
   console.log(`   会員は全部で ${real.length}人（あなたのテスト用を除く）、`);
   console.log(`   そのうち登録した日より後にもう一度来た人は ${returned.length}人 です。`);
-  if (tryPeople !== null && paidPeople !== null) {
+  if (tryDevices !== null && paidPeople !== null) {
     console.log('');
-    console.log(`   明細を読ませようとした人は累計 ${tryPeople}人、そのうち給与レポートの`);
-    console.log(`   保存まで届いたのは ${paidPeople}人 です。`);
-    if (tryPeople > 0 && paidPeople === 0) {
+    console.log(`   明細を読ませようとした端末は累計 ${tryDevices}端末、給与レポートの`);
+    console.log(`   保存まで届いた人は ${paidPeople}人 です（端末と人は別の数え方です）。`);
+    if (tryDevices > 0 && paidPeople === 0) {
       console.log('   → 途中で全員が離脱しています。どこで諦めたかは GA4 の payslip_* で見ます。');
     }
   }
   if (pendTotal !== null && pendTotal > 0) {
     console.log('');
-    console.log(`   給与データを出した人は累計 ${pendTotal}人ぶん、そのうち ${pendTotal - pendOpen}人ぶんが`);
-    console.log(`   アカウントまで進みました（残り ${pendOpen}人ぶんは出したまま会員になっていません）。`);
+    console.log(`   登録前に預かった給与データは累計 ${pendTotal}件、そのうち ${pendTotal - pendOpen}件が`);
+    console.log(`   アカウントまで進みました（残り ${pendOpen}件は出したまま会員になっていません）。`);
+    console.log('   ※ 預かりは件数です。誰の分か切り分けられないので人数には数えません。');
   }
   console.log('');
   console.log('   ※ 「サイトを見に来た人の数」はここには出ません。DB には残らないので、');
