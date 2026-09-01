@@ -210,12 +210,24 @@ for (const kase of CASES) {
   ok(s.saves >= 1, 'スキップもサーバに預ける（いつ飛ばしたかを覚える）');
 
   await openModal();
-  for (let k = 0; k < want; k++) await clickOpt();
-  const done = await page.evaluate(() => {
+  for (let k = 0; k < want - 1; k++) await clickOpt();
+  /* ★最後の1問だけ待ち方を変える（2026-09-01）。答え終わるとお礼が出て、
+       2600ms でモーダルが自分から閉じる（pv-conditions.js の doneTimer）。
+       固定の sleep で読むと、混んだ回に「もう閉じていた」を掴んで嘘の赤が出る
+       （実際に 2026-09-01 の 46本走行で {"open":false,"opts":-1} が出た）。
+     ★お礼が出た瞬間に読む。sleep ではなく条件で待つ。 */
+  await page.evaluate(() => { const b = document.querySelector('[data-pvc] .pvc-opt'); if (b) b.click(); });
+  const done = await page.waitForFunction(() => {
     const m = document.querySelector('[data-pvc]');
-    return { open: !!m, opts: m ? m.querySelectorAll('.pvc-opt').length : -1,
-             more: !!(m && m.querySelector('.pvc-more')) };
-  });
+    if (!m || m.querySelectorAll('.pvc-opt').length) return null;
+    return { open: true, opts: 0, more: !!m.querySelector('.pvc-more') };
+  }, { timeout: 8000, polling: 50 })
+    .then((h) => h.jsonValue())
+    .catch(async () => await page.evaluate(() => {
+      const m = document.querySelector('[data-pvc]');
+      return { open: !!m, opts: m ? m.querySelectorAll('.pvc-opt').length : -1,
+               more: !!(m && m.querySelector('.pvc-more')) };
+    }));
   ok(done.open && done.opts === 0, `${want}問答えたら質問は出ず、お礼だけになる`, JSON.stringify(done));
   ok(done.more, '最後に「もっと詳しく答える →」が1つだけ出る');
 

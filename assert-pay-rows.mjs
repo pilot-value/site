@@ -447,12 +447,14 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
     ok(/'give',\s*public\.pv_my_give\(\)/.test(FN),
        '★本人が何を出したか（basic / detailed / payslip）を返す');
     /* ★①（100人）と②（本人の内訳）は別の材料から出ている。 */
-    /* ★数え方は pv_contributors() 1つだけが持つ（2026-08-25）。
-         同じ「N / 100人」を左メニューの札（pv_give_progress）も出すので、
+    /* ★数え方は pv_deep_contributors() 1つだけが持つ（2026-09-01 に 1-f から移した）。
+         同じ「N / 100人」を左メニューの札（pv_give_progress）も DEEP PAY の門も出すので、
          一覧の中に式を書き戻すと**画面によって違う数**になる。
-         これは静かに壊れる ── どちらの画面も普通に動いたまま数だけずれる。 */
-    ok(/contrib as \(\s*(--[^\n]*\n\s*)*select public\.pv_contributors\(\) as n/.test(FN),
-       '★一覧は人数の式を書き写さず pv_contributors() を呼んでいる',
+         これは静かに壊れる ── どちらの画面も普通に動いたまま数だけずれる。
+         ⚠️ pv_contributors()（1-f・proof_hash 単位）ではない。あちらは2社に出した
+            1人を2人と数える。画面は「パイロットが100人」なので実人物で数える。 */
+    ok(/contrib as \(\s*(--[^\n]*\n\s*)*select public\.pv_deep_contributors\(\) as n/.test(FN),
+       '★一覧は人数の式を書き写さず pv_deep_contributors() を呼んでいる',
        FN.slice(FN.indexOf('contrib as'), FN.indexOf('contrib as') + 300));
     const CTB = (function () {
       const a = SQL.indexOf('create or replace function public.pv_contributors()');
@@ -476,8 +478,12 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
     const i3 = SQL.indexOf('revoke all on function public.pv_give_progress()');
     const PG = i2 > -1 && i3 > i2 ? SQL.slice(i2, i3) : '';
     ok(!!PG, '★札の口（pv_give_progress）がある');
-    ok(/public\.pv_contributors\(\)/.test(PG) && /public\.pv_my_give\(\)/.test(PG),
+    ok(/public\.pv_deep_contributors\(\)/.test(PG) && /public\.pv_my_give\(\)/.test(PG),
        '★札の口は中身を書き写さず、2つの関数をそのまま呼ぶ', PG.slice(0, 200));
+    /* ★札とゲートが同じ数え方であること（2026-09-01）。ここが 1-f に戻ると
+         「表示は100人なのに DEEP PAY が開かない」が起きる。 */
+    ok(!/public\.pv_contributors\(\)/.test(PG),
+       '★札は proof_hash 単位（pv_contributors）では数えない', PG.slice(0, 200));
     ok(!/pay_reports|reviews_v2|annual|usd/.test(PG),
        '★札の口は表も金額も自分では触らない', PG.slice(0, 200));
     ok(/where auth\.uid\(\) is not null/.test(PG),
