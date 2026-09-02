@@ -1,10 +1,12 @@
-/* ログイン後の戻り先。ここは2つの意味で壊れると痛い。
+/* ログイン後の戻り先。ここは3つの意味で壊れると痛い。
    ① 名前が合わないと戻れない（＝「そのまま送信されます」が嘘になる）
    ② 緩いと外部サイトへ飛ばせる（＝ログイン直後にフィッシングへ流せる）
+   ③ 失敗したときに言語と戻り先を落とすと、そこが行き止まりになる
+      （2026-09-01、英語版から明細を出した人が登録まで届かなかった実例）
    なので、実際に localhost のページを読み込んで**本物のコード**を呼ぶ。
-   auth-callback の判定は関数になっていないので、HTML から該当ブロックを
-   切り出してそのまま実行する（判定式をテスト側に写経すると、写経の方だけ
-   直して本体が古いまま、という一番まずい通り方をしてしまう）。
+   auth-callback の判定は pvSafeNext / pvLoginUrl という関数になっているので
+   そのまま呼ぶ（判定式をテスト側に写経すると、写経の方だけ直して本体が古いまま、
+   という一番まずい通り方をしてしまう）。
    実行: node serve.mjs を上げてから node db/test-login-redirect.mjs        */
 import puppeteer from 'puppeteer';
 
@@ -148,20 +150,99 @@ for (const dir of ['', '/en']) {
   ok(top.links.length === 0, 'signup.html へのリンクが1本も無い', top.links);
   ok(top.pay >= 3, `給与の画面への導線が残っている（${top.pay}本）`, top.pay);
 
-  console.log(`\n${label} auth-callback.html の next 判定（HTMLから切り出して実行）\n`);
+  /* ★auth-callback.html の判定を**本物の関数として**呼ぶ。
+     以前は HTML から正規表現でブロックを切り出して実行していた。だが本体を少し
+     書き換えるだけで切り出しが見つからなくなる＝本体より先に検査のほうが壊れる。
+     2026-09-01 に本体を pvSafeNext / pvLoginUrl という関数に出したので、直接呼ぶ。 */
+  console.log(`\n${label} auth-callback.html の next 判定（本物の関数を呼ぶ）\n`);
   for (const [q, want, desc] of CASES.filter((c) => c[0].startsWith('?next='))) {
     await page.goto(`${BASE}${dir}/auth-callback.html${q}`, { waitUntil: 'domcontentloaded' });
-    const got = await page.evaluate(async (dir) => {
-      const src = await (await fetch(`${dir}/auth-callback.html`)).text();
-      const m = src.match(/const raw = new URLSearchParams[\s\S]*?window\.location\.replace\(next \|\| 'profile\.html'\);/);
-      if (!m) return 'NOT_FOUND: 判定ブロックが見つからない（本体が書き換わった？）';
-      const body = m[0].replace("window.location.replace(next || 'profile.html');",
-                               "return next || 'profile.html';");
-      try { return new URL(new Function(body)(), location.href).pathname; }
-      catch (e) { return 'THREW:' + e.message; }
-    }, dir);
+    const got = await page.evaluate(() => {
+      if (typeof pvSafeNext !== 'function') return 'NOT_FOUND: pvSafeNext が無い（本体が書き換わった？）';
+      try {
+        const next = pvSafeNext(new URLSearchParams(location.search).get('next'));
+        return new URL(next || 'profile.html', location.href).pathname;
+      } catch (e) { return 'THREW:' + e.message; }
+    });
     ok(got === want(dir), `${desc}  ${q} → ${want(dir)}`, got);
   }
+
+  /* ★失敗して戻されるときの行き先。ここが今回の穴だった。
+     2026-09-01、英語版の給与フォームから明細を出したカンタスのパイロットが
+     Google ログインの往復で落ち、言語に関係なく日本語の login.html へ飛ばされ、
+     しかも next に載せた預かり証ごと捨てられた＝英語の人には行き止まりだった。
+     見るのは4つ ①言語を保つ ②next を保つ ③預かり証を URL に載せない
+     （login.html は GA4 を持つので、載せると page_location として Google に渡る）
+     ④そのぶん端末には残す。 */
+  console.log(`\n${label} auth-callback.html の失敗時の行き先\n`);
+  const FAILS = [
+    ['?next=%2Fen%2Fpay-report.html',         '/en/login.html',   '/en/pay-report.html', '英語の next → 英語の login'],
+    ['?next=%2Fpay-report.html',              '/login.html',      '/pay-report.html',    '日本語の next → 日本語の login'],
+    ['?next=https%3A%2F%2Fevil.com%2Fx.html', `${dir}/login.html`, '',                   '外部URL → next を付けない'],
+    ['',                                      `${dir}/login.html`, '',                   'next なし → 自分の言語の login'],
+  ];
+  for (const [q, wantLogin, wantNext, desc] of FAILS) {
+    await page.goto(`${BASE}${dir}/auth-callback.html${q}`, { waitUntil: 'domcontentloaded' });
+    const got = await page.evaluate(() => {
+      if (typeof pvLoginUrl !== 'function') return { err: 'NOT_FOUND: pvLoginUrl が無い' };
+      try {
+        const u = new URL(pvLoginUrl('no_code'), location.href);
+        return { path: u.pathname, next: u.searchParams.get('next') || '', reason: u.searchParams.get('reason') || '' };
+      } catch (e) { return { err: 'THREW:' + e.message }; }
+    });
+    ok(got.path === wantLogin, `${desc}  ${q || '(なし)'} → ${wantLogin}`, got.path ?? got.err);
+    ok(got.next === wantNext,  `${desc}  → next=${wantNext || '(付けない)'}`, got.next ?? got.err);
+    ok(got.reason === 'no_code', `${desc}  → reason が載る（着地側で GA4 に出す）`, got.reason ?? got.err);
+  }
+
+  // ★預かり証つきで戻された場合：URL からは消え、端末には残る
+  const TOK = 'a1b2c3d4'.repeat(6);   // 48桁16進
+  await page.goto(`${BASE}${dir}/auth-callback.html`, { waitUntil: 'domcontentloaded' });
+  await page.evaluate(() => { try { localStorage.clear(); } catch (e) {} });
+  await page.goto(`${BASE}${dir}/auth-callback.html?next=` +
+                  encodeURIComponent('/en/pay-report.html?claim=' + TOK), { waitUntil: 'domcontentloaded' });
+  const claim = await page.evaluate(() => {
+    if (typeof pvLoginUrl !== 'function') return { err: 'NOT_FOUND: pvLoginUrl が無い' };
+    const url = pvLoginUrl('oauth_error');
+    return { url, path: new URL(url, location.href).pathname, stash: localStorage.getItem('pv_pay_claim') || '' };
+  });
+  ok(!(claim.url || '').includes(TOK), '預かり証が行き先 URL に一度も現れない', claim.url ?? claim.err);
+  ok((claim.stash || '').includes(TOK), '預かり証は端末に残っている（登録後に引き取れる）', claim.stash ?? claim.err);
+  ok(claim.path === '/en/login.html', '預かり証つきでも英語のまま /en/login.html へ', claim.path ?? claim.err);
+
+  /* ★着地側。login.html が ?error=1&reason= を読んで案内を出すこと。
+     2026-09-01 まで ?error=1 は誰も読んでおらず、戻された人の画面には
+     何も出なかった（＝何が起きたのか本人にも運営にも分からない）。
+     ★next は残す。残っていないと、やり直したログインの後に元の画面へ戻れない。 */
+  console.log(`\n${label} login.html が失敗の理由を受ける\n`);
+  for (const reason of ['in_app_browser', 'oauth_error', 'no_code', 'set_session', 'timeout', 'zzz<script>']) {
+    await page.goto(`${BASE}${dir}/login.html`, { waitUntil: 'domcontentloaded' });
+    await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
+    await page.goto(`${BASE}${dir}/login.html?error=1&reason=${encodeURIComponent(reason)}&next=` +
+                    encodeURIComponent(`${dir}/pay-report.html`), { waitUntil: 'domcontentloaded' });
+    const got = await page.evaluate(() => {
+      const el = document.getElementById('auth-fail-notice');
+      const q = new URLSearchParams(location.search);
+      return {
+        shown: !!el && getComputedStyle(el).display !== 'none',
+        text: el ? (el.textContent || '').trim() : '',
+        left: [...q.keys()].sort().join(','),
+        next: q.get('next') || '',
+        redirect: new URL(getRedirect(), location.href).pathname,
+      };
+    });
+    ok(got.shown && got.text.length > 0, `reason=${reason} → 案内が出る`, got);
+    ok(got.left === 'next', `reason=${reason} → error/reason だけ URL から消える`, got.left);
+    ok(got.redirect === `${dir}/pay-report.html`, `reason=${reason} → 戻り先が残る`, got.redirect);
+  }
+  // アプリ内ブラウザだけは「メールにコードを送る」へ案内する（何度押しても Google は通らない）
+  await page.goto(`${BASE}${dir}/login.html?error=1&reason=in_app_browser`, { waitUntil: 'domcontentloaded' });
+  const inapp = await page.evaluate(() => {
+    const t = (document.getElementById('auth-fail-notice') || {}).textContent || '';
+    const btns = [...document.querySelectorAll('button')].map((b) => (b.textContent || '').trim());
+    return { t, hit: btns.some((b) => b && t.includes(b)) };
+  });
+  ok(inapp.hit, 'アプリ内ブラウザの案内が、実在するボタンの文言をそのまま指している', inapp.t);
 }
 
 /* ★リンク元とログイン画面の名前が合っていることも見る。

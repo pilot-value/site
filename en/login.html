@@ -152,6 +152,12 @@
       You were signed out automatically for your security. Please log in again.
     </div>
 
+    <!-- Shown when the sign-in round trip broke and auth-callback.html sent them back.
+         The wording comes from MSG below. Do not reuse expired-notice: that one is
+         pinned by db/test-session-expiry.mjs as "shows once, gone on reload", and
+         ?reason= stays in the URL here, so reusing it would muddy that. -->
+    <div class="notice" id="auth-fail-notice" style="display:none"></div>
+
     <form id="login-form" onsubmit="handleLogin(event)" novalidate>
       <div style="display:flex;flex-direction:column;gap:11px;margin-bottom:16px">
         <input class="auth-input" type="email" id="email" placeholder="Email" autocomplete="email" required/>
@@ -313,6 +319,39 @@
       try { expired = sessionStorage.getItem('pv_expired') === '1'; sessionStorage.removeItem('pv_expired'); } catch(e){}
       if (!expired) expired = new URLSearchParams(location.search).get('expired') === '1';
       if (expired) document.getElementById('expired-notice').style.display = 'block';
+    })();
+
+    /* ── Receives someone auth-callback.html sent back after a broken sign-in ──
+       On 2026-09-01 a Qantas pilot filled in the whole English pay form and never
+       reached sign-up. auth-callback.html sent everyone to the Japanese login no
+       matter the language, and nobody read ?error=1 — so nothing showed on screen
+       and nothing reached GA4.
+       ★GA4 can only be fired here: auth-callback.html is in inject-ga.mjs's SKIP
+         list so it has no gtag (?code= must never reach Google as page_location).
+       ★Keep next. getRedirect() picks it up, so a successful retry lands them back
+         on the page they came from. The claim token was already moved into
+         localStorage by auth-callback.html. */
+    (function(){
+      const q = new URLSearchParams(location.search);
+      if (q.get('error') !== '1') return;
+      // Fixed short codes only. Never put a string from the URL on screen or into GA4.
+      const reason = String(q.get('reason') || '').replace(/[^a-z_]/g, '').slice(0, 32) || 'unknown';
+      const MSG = {
+        in_app_browser: 'Google sign-in does not work inside in-app browsers. Please use "Email me a code" below.',
+        oauth_error:    'Sign-in was interrupted. Please try again.',
+        no_code:        'Sign-in was interrupted. Please try again.',
+        set_session:    'Sign-in was interrupted. Please try again.',
+        timeout:        'Sign-in was interrupted. Please try again.'
+      };
+      const el = document.getElementById('auth-fail-notice');
+      if (el) { el.textContent = MSG[reason] || MSG.oauth_error; el.style.display = 'block'; }
+      try { if (window.gtag) gtag('event', 'auth_callback_fail', { reason: reason }); } catch(e){}
+      // Drop error/reason once shown (so a reload does not show it twice). ★Keep next.
+      try {
+        q.delete('error'); q.delete('reason');
+        const s = q.toString();
+        history.replaceState(null, '', location.pathname + (s ? '?' + s : '') + location.hash);
+      } catch(e){}
     })();
 
     // Redirect if already signed in

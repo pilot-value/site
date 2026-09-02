@@ -152,6 +152,12 @@
       安全のため自動的にログアウトしました。お手数ですが、もう一度ログインしてください。
     </div>
 
+    <!-- ログインの往復が途中で切れて戻された人への案内。文言は下の MSG が入れる。
+         ★expired-notice を使い回さない。あちらは「一度出したら消える」ことを
+           db/test-session-expiry.mjs が固定していて、こちらは ?reason= が
+           URL に残る＝読み直しても消えないので、意味が濁る。 -->
+    <div class="notice" id="auth-fail-notice" style="display:none"></div>
+
     <form id="login-form" onsubmit="handleLogin(event)" novalidate>
       <div style="display:flex;flex-direction:column;gap:11px;margin-bottom:16px">
         <input class="auth-input" type="email" id="email" placeholder="Email" autocomplete="email" required/>
@@ -312,6 +318,37 @@
       try { expired = sessionStorage.getItem('pv_expired') === '1'; sessionStorage.removeItem('pv_expired'); } catch(e){}
       if (!expired) expired = new URLSearchParams(location.search).get('expired') === '1';
       if (expired) document.getElementById('expired-notice').style.display = 'block';
+    })();
+
+    /* ── ログインの往復が途中で切れて戻された人を受ける（auth-callback.html から）──
+       2026-09-01、英語版の給与フォームから明細を出したカンタスのパイロットが登録まで
+       届かなかった。auth-callback.html が言語に関係なく日本語の login へ飛ばし、
+       しかも ?error=1 を誰も読んでいなかった＝画面には何も出ず、GA4 にも1件も残らなかった。
+       ★GA4 はここでしか撃てない。auth-callback.html は inject-ga.mjs の SKIP に入っていて
+         gtag を持たない（?code= を page_location として Google に渡さないため）。
+       ★next は消さない。残しておけば getRedirect() が拾い、やり直したログインの後に
+         元の画面へ戻れる。預かり証は auth-callback.html 側で端末へ移してある。 */
+    (function(){
+      const q = new URLSearchParams(location.search);
+      if (q.get('error') !== '1') return;
+      // 理由は決め打ちの短い符号だけ。URL から来た文字をそのまま画面にも GA4 にも出さない。
+      const reason = String(q.get('reason') || '').replace(/[^a-z_]/g, '').slice(0, 32) || 'unknown';
+      const MSG = {
+        in_app_browser: 'アプリ内ブラウザからは Google ログインができません。下の「メールにコードを送る」でお進みください。',
+        oauth_error:    'ログインの途中で中断されました。もう一度お試しください。',
+        no_code:        'ログインの途中で中断されました。もう一度お試しください。',
+        set_session:    'ログインの途中で中断されました。もう一度お試しください。',
+        timeout:        'ログインの途中で中断されました。もう一度お試しください。'
+      };
+      const el = document.getElementById('auth-fail-notice');
+      if (el) { el.textContent = MSG[reason] || MSG.oauth_error; el.style.display = 'block'; }
+      try { if (window.gtag) gtag('event', 'auth_callback_fail', { reason: reason }); } catch(e){}
+      // 出したら error/reason だけ URL から外す（読み直しで二度出さない）。★next は残す。
+      try {
+        q.delete('error'); q.delete('reason');
+        const s = q.toString();
+        history.replaceState(null, '', location.pathname + (s ? '?' + s : '') + location.hash);
+      } catch(e){}
     })();
 
     // 既にログイン済みならリダイレクト
