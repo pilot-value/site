@@ -470,6 +470,32 @@ async function foundingReport(users, testIds, real) {
     const byLang = {};
     for (const r of pd) byLang[r.lang ?? '?'] = (byLang[r.lang ?? '?'] ?? 0) + 1;
     if (pendTotal) line('言語', Object.entries(byLang).map(([l, n]) => `${l} ${n}`).join(' / '));
+
+    /* ★未引き取りを言語ごとに割る。ここが今いちばん効く行。
+       認証メールが「送信 200」で返ったのに届かない事故は、GA4 にも Resend にも
+       痕跡が出ない（Supabase 組み込みメールは Resend を通らないため）。
+       残る信号は「預けたまま登録に至らなかった率」だけで、
+       **en の率が ja から大きく離れたら、それが配信の壊れ**。
+       2026-09-01、英語版から24項目を埋めて出したカンタスのパイロットが
+       登録まで届かず、こちらは何日も気づけなかった。この行があれば見えていた。 */
+    if (pendOpen) {
+      const openByLang = {}, staleByLang = {};
+      const DAY_AGO = Date.now() - 24 * 60 * 60 * 1000;
+      for (const r of pd) {
+        if (r.claimed_at) continue;
+        const l = r.lang ?? '?';
+        openByLang[l] = (openByLang[l] ?? 0) + 1;
+        if (Date.parse(r.created_at) < DAY_AGO) staleByLang[l] = (staleByLang[l] ?? 0) + 1;
+      }
+      const rate = (l) => (byLang[l] ? `${Math.round(((openByLang[l] ?? 0) / byLang[l]) * 100)}%` : '—');
+      line('  まだ紐付いていない（言語別）',
+           Object.entries(openByLang).map(([l, n]) => `${l} ${n}件`).join(' / '),
+           `　未引き取り率 ja ${rate('ja')} / en ${rate('en')}`);
+      const stale = Object.entries(staleByLang).map(([l, n]) => `${l} ${n}件`).join(' / ');
+      if (stale) line('  24時間より古い未引き取り', stale, '　（この人たちはもう戻ってきません）');
+      console.log('   ※ en の未引き取り率が ja から大きく離れていたら、まず認証メールの配信を疑うこと');
+      console.log('      （2026-08-22 以降、届いた人は30〜60秒で登録まで到達しています）。');
+    }
     console.log('   ※ 誰の分かは切り分けられません（あなたの動作確認も同じ数に入ります）。');
     console.log('   ※ 紐付いていない分は公開の中央値には入りません（別のテーブルにあるため）。');
 
