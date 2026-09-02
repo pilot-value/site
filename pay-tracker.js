@@ -78,6 +78,9 @@
            「どの項目にも入れていない分」であって「内訳が無い」ではない。 */
       segBonus: '今月の賞与', segRest: 'どの項目にも入れていない分',
       housingNote: '※ 社宅（現物支給）は現金ではないので内訳に入れていません。',
+      /* ★組合が総支給の外で払った分も、受け取った額としてこの円に入れている。
+         会社の明細には載らない額なので、その1点だけ断る（2026-09-02）。 */
+      unionOutNote: '※ 組合から別に受け取った分は、会社の明細には印字されません。受け取った額としてこの円に入れています。',
       cmpTitle: '同じ会社・同じ機材・同じ職位の中央値との差',
       // 「+8% 中央値より」は日本語にならない。語順ごと言語側で持つ。
       cmpTxt: function (p) {
@@ -130,6 +133,7 @@
       /* ★The two below only appear on a row filed as one gross figure (see segments() in pay-viz.js). */
       segBonus: 'Bonus this month', segRest: 'Not itemised',
       housingNote: '※ Company-provided housing is not cash, so it is left out of the breakdown.',
+      unionOutNote: '※ Money your union pays you directly is not printed on the company payslip. It is included here as pay you received.',
       cmpTitle: 'Versus the median for your airline, fleet and seat',
       // 負のとき「-8% below the median」は二重否定になる。絶対値で言う。
       cmpTxt: function (p) {
@@ -194,7 +198,7 @@
     return V.donut(r, {
       title: T.breakdown,
       name: SEGNAME,
-      notes: { housing: T.housingNote }
+      notes: { housing: T.housingNote, unionOut: T.unionOutNote }
     });
   }
 

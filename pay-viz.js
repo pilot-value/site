@@ -160,6 +160,19 @@
     return (m != null && m > 0) ? m : null;
   }
 
+  /* ── 総支給の外で払われた組合の分（円）──────────────────────
+     支給元が組合のときだけ、その額は会社の明細に印字されない＝本人が書いた
+     総支給の中に無い。**年収は足すが、支給構成の円には入れない。**
+     ★ 判定を書き写さない。サーバが付けてくる union_outside_gross を読む
+       （db/pay-reports.sql の pv_union_outside_gross が唯一の判定）。
+     ★ 円に直して返す（呼ぶ側が「> 0 のときだけ出す」で分岐できる）。
+       ここを 0 のまま画面に出さないと、総支給と年換算の掛け算が合わなくなる。 */
+  function unionOutsideJpy(r) {
+    var fx = num(r.fx_to_jpy);
+    if (fx == null || !r.union_outside_gross) return 0;
+    return (num(r.union_pay) || 0) * fx;
+  }
+
   /* ── これまでの累計 ──────────────────────────────────────────
      記録した月の支給額を積み上げる。1回出すごとに増える数字。
 
@@ -179,8 +192,9 @@
      ★ 1行も無いときは 0 ではなく null。0円と言うと「稼いでいない」に読める。
        実際は「まだ読み取れていない」。
 
-     戻り: { gross, net, deduct, months, monthsNet, skipped, total, from, to, series }
-       gross          … 円。総支給が分かる月の合計
+     戻り: { gross, unionOut, net, deduct, months, monthsNet, skipped, total, from, to, series }
+       gross          … 円。総支給が分かる月の合計（＋総支給の外で組合が払った分）
+       unionOut       … 円。そのうち組合が総支給の外で払った分（gross の内数）
        net / deduct   … 円。手取りも書いてある月だけの合計（deduct は同じ月の額面 − 手取り）
        months         … 額面を足せた枚数 / monthsNet … 手取りを足せた枚数
        total          … 手元にある全枚数 / skipped … 総支給が出せず落とした枚数
@@ -190,13 +204,22 @@
     var list = (rows || []).slice().sort(function (a, b) {
       return (a.period_year * 12 + a.period_month) - (b.period_year * 12 + b.period_month);
     });
-    var counted = [], series = [], skipped = 0, gross = 0;
+    var counted = [], series = [], skipped = 0, gross = 0, unionOut = 0;
     var netMonths = 0, net = 0, netGross = 0;   // 手取りを書いた月だけの合計
 
     list.forEach(function (r) {
       var g = grossOrig(r), n = num(r.net_pay_actual), fx = num(r.fx_to_jpy);
       if (g == null || fx == null) { skipped++; return; }
-      gross += g * fx;
+      /* ★組合が総支給の外で払った分も足す（2026-09-02）。
+         ここは「受け取った額の足し算」で、支給構成の円（明細の中の分かれ方）とは
+         別の問いに答えている。会社の明細に印字されないだけで、本人は受け取っている。
+         足さないと、乗員代表の累計が受け取った額の半分で止まる（本番で1件）。 */
+      var uo = unionOutsideJpy(r);
+      unionOut += uo;
+      gross += g * fx + uo;
+      /* ★控除の分母（netGross）には足さない。組合の分は会社の明細の外にあり、
+         そこから引かれた控除が1円も無い。足すと画面の
+         「額面 − 手取り ＝ 控除」が組合の額ぶんズレる。 */
       if (n != null) { net += n * fx; netGross += g * fx; netMonths++; }
       counted.push(r);
       series.push({ r: r, gross: gross, net: net });
@@ -204,6 +227,7 @@
 
     return {
       gross:     counted.length ? gross : null,
+      unionOut:  unionOut,                            // 上の gross に含まれている（内数）
       net:       netMonths ? net : null,
       deduct:    netMonths ? netGross - net : null,   // 同じ月の額面から引く＝必ず一致する
       months:    counted.length,
@@ -244,9 +268,12 @@
       /* ★組合・乗員代表の手当。教官・審査と同じく独立した列。
          足し忘れると rest（灰色）に落ちて、入れた本人に嘘をつく。
          ⚠️ 支給元が組合のときは、この額が総支給の**外**にある（会社の明細に
-            印字されない）。2026-09-02 まで円ぜんぶを総支給にしていたので、
-            そういう行は「組合手当がほぼ全部」に見えるか、合計が総支給を超えて
-            図ごと消えていた。下で円ぜんぶのほうを広げて直している。 */
+            印字されない）。それでも**円には入れる**（2026-09-02）── この円は
+            「受け取った額がどう分かれているか」で、乗員代表のように半分が組合から
+            出ている人の円を、会社ぶんだけで描くと本人の実感と合わない。
+            そのぶん**円ぜんぶは総支給ではなく「受け取った額」**になるので、
+            下の「基本給が総支給に占める割合」の分母だけは outsideGross を
+            引いて総支給に戻す（呼ぶ側の仕事。引かないと 47% が 28% と刷られる）。 */
       union:     (num(r.union_pay) || 0) * fx,
       /* ★管理・マネジメントの手当。教官・審査・組合と同じく独立した列。
          足し忘れると rest（灰色）に落ちて、入れた本人に嘘をつく。
@@ -280,6 +307,8 @@
          入っていないので、あちらで足すと円の合計が総支給を超える。 */
     var partial = false;
     var gross = num(r.gross_monthly);
+    // 総支給の外で組合が払った分（円）。上の union に含まれている＝円ぜんぶにも足す
+    var outsideGross = unionOutsideJpy(r);
     if (gross != null) {
       /* ★2026-08-26、総支給と内訳が両立するようになった（フォームの作り直し）。
          partial は「総支給がある」ではなく **「基本給が分かっていない」** の意味。
@@ -289,12 +318,13 @@
       vals.bonus = (num(r.bonus_month) || 0) * fx;
       var known = 0;
       for (var k in vals) if (k !== 'rest') known += vals[k];
-      /* ★円ぜんぶ＝総支給＋「総支給の外で払われた組合の分」（2026-09-02）。
-         判定はサーバが付けてくる union_outside_gross（my_pay_reports が
-         pv_union_outside_gross で出す）。年収の式と同じ1つの判定を使う。
-         ここを総支給だけにすると、組合払いの人の図が壊れる。 */
-      var circle = gross + (r.union_outside_gross ? (num(r.union_pay) || 0) : 0);
-      var rest = circle * fx - known;
+      /* ★円ぜんぶ＝**総支給 ＋ 総支給の外で組合が払った分**（2026-09-02）。
+         足さないと、上の union を known に数えたぶんだけ known が円を超え、
+         rest < -1 で**図が丸ごと消える**。実際、乗員代表の1件がそうなっていた
+         （本人が書いた組合の額が総支給の91%だったため）。
+         ⚠️ ここを触ったら「基本給が総支給に占める割合」の分母（呼ぶ側が
+            outsideGross を引いている）も必ず一緒に確かめる。 */
+      var rest = gross * fx + outsideGross - known;
       // 色の付く分が1つも無い＝灰色100%は何も言わない。呼ぶ側の「見本」に任せる
       if (known <= 0) return null;
       // 手当の合計が総支給を超える行（別建て支給・入力違い）は正しい図を描けない
@@ -308,7 +338,11 @@
                   .map(function (s) { return { k: s.k, c: s.c, v: vals[s.k] }; });
     var total = segs.reduce(function (a, s) { return a + s.v; }, 0);
     // partial＝基本給が分かっていない。呼ぶ側は「基本給の割合」を刷ってはいけない
-    return (total > 0) ? { segs: segs, total: total, vals: vals, partial: partial } : null;
+    /* outsideGross ＝ total の**内数**。「総支給に占める割合」を出す側は
+       total からこれを引いて分母を総支給に戻す（my-value.js の mv-ratio）。 */
+    return (total > 0)
+      ? { segs: segs, total: total, vals: vals, partial: partial, outsideGross: outsideGross }
+      : null;
   }
 
   /* ── ドーナツ（salary-leveling.js の stroke-dasharray 実装を流用）──
@@ -326,6 +360,10 @@
     var ns = [];
     if (notes.data) ns.push(notes.data);
     if (s.vals.perdiem > 0 && notes.perDiem) ns.push(notes.perDiem);
+    /* ★組合が総支給の外で払った分は、会社の明細に印字されない（2026-09-02）。
+       円には受け取った額として入れてあるので、「明細と足し算が合わない」と
+       読まれないように、その1点だけ断る。 */
+    if (unionOutsideJpy(r) > 0 && notes.unionOut) ns.push(notes.unionOut);
     if (r.housing_type && r.housing_type !== 'allowance' && num(r.housing_amount) && notes.housing)
       ns.push(notes.housing);
 
@@ -492,7 +530,7 @@
     SEG: SEG, LINE: LINE, COMP: COMP,
     esc: esc, num: num, fmt: fmt,
     calc: calc, metricOf: metricOf, segments: segments,
-    grossOrig: grossOrig, totals: totals,
+    grossOrig: grossOrig, unionOutsideJpy: unionOutsideJpy, totals: totals,
     donut: donut, donutFromSegs: donutFromSegs, compSegs: compSegs,
     chart: chart, widthOf: widthOf
   };

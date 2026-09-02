@@ -93,6 +93,10 @@
       hStay: function (n) { return n + '泊'; },
       noDuty: '総勤務時間が明細から読み取れていません。乗務時間あたりだけ出しています。<b>乗務時間から推定はしません</b>（実際の拘束時間は人によって倍ちがうため）。',
       kDeduct: '控除合計', kYtd: '年初来の課税支給額',
+      /* ★総支給の外で受け取った分（支給元＝組合）。会社の明細に印字されないので
+         上の「総支給」には入っていない。出さないと年換算だけが大きくなり、
+         画面の中で掛け算が合わなくなる（2026-09-02）。 */
+      kUnionOut: '組合から別に受け取った分', kGrossAll: '合わせて受け取った額',
       kAnnual: '今月ベースの単純年換算',
       annualFrom: '今月と同水準の給与が12ヶ月続いた場合の参考値',
       annualWarn: '※ 賞与・変動手当・勤務時間によって、実際の年間報酬とは異なります。',
@@ -105,6 +109,10 @@
       tHead: 'これまでに記録した支給額',
       tGross: '額面の合計', tNet: '手取りの合計', tDeduct: '控除の合計',
       tMonths: '記録月数', tAvg: '月平均の額面', tHourly: '通算の乗務時間あたり',
+      /* 上の合計の**内数**。組合が総支給の外で払った分は会社の明細に印字されない＝
+         「額面 − 手取り ＝ 控除」の外側にある。出さないと、控除と手取りを足しても
+         上の合計に届かない理由が画面のどこにも書いていないことになる（2026-09-02）。 */
+      tUnionOut: 'うち組合から別に受け取った分',
       tBlockH: '累計の乗務時間', tDutyH: '累計の総勤務時間',
       tSpanOf: function (a, b) { return a === b ? a : a + '〜' + b; },
       tCountOf: function (m, n) { return m === n ? m + '件' : n + '件中 ' + m + '件'; },
@@ -189,6 +197,9 @@
       segBonus: '今月の賞与', segRest: 'どの項目にも入れていない分',
       fixed: '固定', variable: '変動', unknown: '判別できない',
       baseRatio: '基本給が総支給に占める割合',
+      /* ★この円は総支給の中だけ。組合が外で払った分が抜けていることを断る
+         （断らないと「自分が書いた70万が消えた」と読める）。 */
+      unionOutNote: '※ 組合から別に受け取った分は、会社の明細には印字されません。受け取った額としてこの円に入れています。',
 
       /* 推移と節目 */
       trend: '月ごとの推移',
@@ -303,6 +314,7 @@
       hStay: function (n) { return String(n); },
       noDuty: 'Duty hours were not readable from your payslip, so only the block-hour figure is shown. <b>We do not estimate duty hours from block hours</b> — the real ratio varies by up to 2× between operators.',
       kDeduct: 'Total deductions', kYtd: 'Taxable pay, year to date',
+      kUnionOut: 'Paid separately by your union', kGrossAll: 'Received in total',
       kAnnual: 'This month, straight-annualised',
       annualFrom: 'what twelve months like this one would come to',
       annualWarn: '※ Bonus, variable allowances and hours flown all move this. It is not your actual annual pay.',
@@ -314,6 +326,7 @@
       tHead: 'Everything you have on record',
       tGross: 'Gross, total', tNet: 'Take-home, total', tDeduct: 'Deductions, total',
       tMonths: 'Months recorded', tAvg: 'Average gross / month', tHourly: 'Career per block hour',
+      tUnionOut: 'of which, paid by your union',
       tBlockH: 'Block hours, total', tDutyH: 'Duty hours, total',
       tSpanOf: function (a, b) { return a === b ? a : a + ' – ' + b; },
       tCountOf: function (m, n) { return m === n ? m + (m === 1 ? ' record' : ' records') : m + ' of ' + n + ' records'; },
@@ -394,6 +407,7 @@
       onePoint: 'Only one point so far. Drop next month’s payslip and this becomes a line.',
       noMetric: 'No month has the data this metric needs yet.',
       trendScoped: 'Payslips from your other airline are not on this line. Across an airline change both the currency and the contract change, so joining them would not mean anything.',
+      unionOutNote: '※ Money your union pays you directly is not printed on the company payslip. It is included here as pay you received.',
       msH: 'Milestones',
       msSub: 'Picked up from where your own records change',
       msPos: function (a, b) { return 'Seat: ' + a + ' → ' + b; },
@@ -768,6 +782,17 @@
 
     if (c.hourlyBlock != null && c.hourlyDuty == null) body += note(T.noDuty);
 
+    /* ★総支給の外で受け取った分（支給元＝組合）。上の「総支給」は明細に印字された
+       額そのもので、組合が直接払った分はそこに載っていない。ここに出さないと、
+       下の年換算だけが大きくなって「12倍が合わない」画面になる（2026-09-02）。
+       ★足し算をそのまま見せる。合計は年換算の分子と同じ額＝画面の中で追える。 */
+    var uo = V.unionOutsideJpy(r);
+    if (uo > 0 && gross != null) {
+      body += '<div class="mv-grid" style="margin-top:14px">' +
+        row(T.kUnionOut, fmt(uo)) +
+        row(T.kGrossAll, fmt(jpyOf(r, gross) + uo)) + '</div>';
+    }
+
     /* 控除は「総支給 − 手取り」でしか作れないので、手取りを書いた月にだけ出る。
        年初来の課税額は明細からしか読めない。★ 空の枠を置かない。 */
     var extra = (ded != null ? row(T.kDeduct, fmt(jpyOf(r, ded))) : '') +
@@ -805,7 +830,11 @@
      ★ 額面は総支給が分かる月ぜんぶ、手取り・控除は手取りを書いた月だけ
        （totals() がそう作っている）。控除は同じ部分集合の額面から引いているので、
        画面の「額面 − 手取り」は必ず「控除の合計」と一致する。額面と枚数が
-       違うときは、いくつぶんの合計かを下に1行で断る。 */
+       違うときは、いくつぶんの合計かを下に1行で断る。
+     ★ 一番上の合計には**組合が総支給の外で払った分も入っている**（2026-09-02）。
+       受け取った額の足し算なので入れないと嘘になるが、あの分は会社の明細の外＝
+       控除が1円も引かれていない。だから「手取り＋控除」は上の合計より小さくなる。
+       その差が何なのかを、内数の札（tUnionOut）1つで必ず出す。 */
   function lifetime(rows) {
     var t = V.totals(rows);
     if (!t.months) {
@@ -841,6 +870,8 @@
     var cells =
       (t.monthsNet ? mini(esc(fmt(t.net)), T.tNet) +
                      mini(esc(fmt(t.deduct)), T.tDeduct) : '') +
+      /* 組合が総支給の外で払った分（内数）。0 の人には出さない。 */
+      (t.unionOut > 0 ? mini(esc(fmt(t.unionOut)), T.tUnionOut) : '') +
       mini(T.months(t.months), T.tMonths) +
       mini(esc(fmt(t.gross / t.months)), T.tAvg) +
       (hDen > 0 ? mini(esc(fmt(hNum / hDen)), T.tHourly) : '') +
@@ -1136,7 +1167,7 @@
   function breakdown(r) {
     var dn = V.donut(r, {
       title: T.ym(r.period_year, r.period_month), name: SEGNAME,
-      notes: { housing: T.housingNote }
+      notes: { housing: T.housingNote, unionOut: T.unionOutNote }
     });
     /* 内訳の数字が1つも無い行（＝かんたん入力で額面1本だけ出した人・
        明細の読み取りに失敗した人）。空欄で終わらせず、見本をぼかして出す。 */
@@ -1168,10 +1199,18 @@
           { nm: T.unknown,  v: unk,   c: '#94a3b8' }
         ].filter(function (x) { return x.v > 0; });
 
+        /* ★この1行だけ**分母が違う**。見出しが「基本給が総支給に占める割合」なので、
+           総支給の外で組合が払った分（円ぜんぶには入っている）を分母から抜いて
+           総支給に戻す（2026-09-02）。抜かないと、乗員代表のように組合の額が
+           大きい人で 47% が 28% と刷られる。下の棒の割合は円ぜんぶが分母のままでよい
+           （あちらは「受け取った額の分かれ方」を見せている）。 */
+        var gTotal = total - (s.outsideGross || 0);
+        var basePc = gTotal > 0 ? Math.round(v.base / gTotal * 100) : 0;
+
         /* ★総支給1本の行（s.partial）では基本給が分かっていない。ここを出すと
            「基本給は0%」と刷ることになるので、行ごと出さない。 */
         body += (s.partial ? '' :
-            '<div class="mv-ratio"><b>' + pc(v.base) + '%</b><span>' + esc(T.baseRatio) + '</span></div>') +
+            '<div class="mv-ratio"><b>' + basePc + '%</b><span>' + esc(T.baseRatio) + '</span></div>') +
           '<div class="mv-bar">' + BARS.map(function (x) {
             return '<i style="width:' + (x.v / total * 100).toFixed(2) + '%;background:' + x.c + '"></i>';
           }).join('') + '</div>' +

@@ -18,8 +18,11 @@
             both   … ★2026-08-26 以降の既定。額面と内訳の両方が入っている
                      ＝§3 は内訳の色が全部出て、説明できない残りだけが灰色
             union  … ★2026-09-02。組合が総支給の**外**で払っている人（乗員代表）
-                     ＝円ぜんぶが「総支給＋組合」に広がる。直す前はこの形の行で
-                       §3 の円が丸ごと消えていた（合計が総支給を超えるため）
+                     ＝§3 の円ぜんぶは「受け取った額」（総支給 ＋ 組合）で、組合も
+                       スライスとして出る。「基本給が総支給に占める割合」の分母だけは
+                       組合の分を引いて総支給に戻す。組合の額は §2 にも
+                       「組合から別に受け取った分」＋「合わせて受け取った額」の2行で出る。
+                       直す前はこの形の行で §3 の円が丸ごと消えていた
             new    … many を ?new=1 で開く（文言だけ変わることの確認）
             gap    … 同社だが間隔があいている（2月と6月）＝§6 に「4ヶ月あいています」
             job    … 転職（ZIPAIR 3枚 → エミレーツ 1枚）＝§6 は差を出さず、
@@ -29,6 +32,15 @@
                      ＝§7b の累計に全部入る（§7 の線は同社5点のまま）
             partial… 8枚中3枚しか手取り・控除が読めていない
                      ＝§7b に「8枚中 3枚」の断り書きが出る
+            real   … ★ここだけ合成ではない。**本番から1行だけ読んで**その会員の画面を
+                       そのまま描く（2026-09-02）。my_pay_reports() は本人の行しか
+                       返さない＝サービスキーでも他人としては呼べないので、
+                       「この会員にいま何が見えているか」を確かめる道がほかに無い。
+                       既定は「組合が絡む一番新しい1件」。第6引数に PostgREST の
+                       絞り込みを書くと変えられる（例: airline=eq.jal）。
+                       ⚠️ 読むだけ。数字はこのファイルに1つも書かない。
+                       ⚠️ 本番DBを叩くので check.mjs には入れない（db/usage.mjs と同じ）。
+                       ⚠️ mail-bot/.env の SUPABASE_URL / SUPABASE_SERVICE_KEY が要る。
      lang : ja | en
      theme: dark | light
    保存先は screenshot.mjs と同じ ./temporary screenshots/
@@ -79,7 +91,50 @@ if (!open) await page.setViewport({ width: vw, height: 1000 });
 
 /* ★ setRequestInterception は使わない（CDP デッドロック。shot-tracker.mjs 参照）。
    CDN の supabase-js に上書きさせない目的は defineProperty で達成する。 */
-await page.evaluateOnNewDocument((scene, theme) => {
+/* ── scene='real' だけ、本番の実物を1行だけ読む（2026-09-02）──────────
+   なぜ要るか：my_pay_reports() は**本人の行しか返さない**（サービスキーでも
+   他人としては呼べない）ので、「この会員の画面がいまどう見えているか」を
+   確かめる道が、合成データ以外に1つも無かった。合成で議論すると、実在しない
+   組み合わせ（組合を持たない会社に組合手当、など）を本物と取り違える。
+   ⚠️ 読むだけ。**数字はこのファイルに1つも書かない**（実行のたびに取り直す）。
+   ⚠️ 本番DBを叩くので check.mjs には入れない（db/usage.mjs と同じ扱い）。 */
+let REALROW = null;
+if (scene === 'real') {
+  const envPath = path.join(__dirname, 'mail-bot/.env');
+  if (!fs.existsSync(envPath)) {
+    console.error('❌ mail-bot/.env がありません（SUPABASE_URL / SUPABASE_SERVICE_KEY が要ります）。');
+    process.exit(1);
+  }
+  for (const line of fs.readFileSync(envPath, 'utf8').split('\n')) {
+    const [k, ...v] = line.split('=');
+    if (k && v.length && !process.env[k.trim()]) process.env[k.trim()] = v.join('=').trim();
+  }
+  const KEY = process.env.SUPABASE_SERVICE_KEY;
+  const H = { apikey: KEY, Authorization: 'Bearer ' + KEY };
+  /* 第7引数に絞り込みを書ける（PostgREST の書式そのまま）。
+     既定は「組合が絡む一番新しい1件」＝いま調べている形。 */
+  const filter = process.argv[6] && process.argv[6].includes('=')
+    ? process.argv[6] : 'union_pay=gt.0';
+  const rows = await (await fetch(process.env.SUPABASE_URL +
+    '/rest/v1/pay_reports?select=*&' + filter + '&order=created_at.desc&limit=1',
+    { headers: H })).json();
+  if (!Array.isArray(rows) || !rows.length) {
+    console.error('❌ 該当する行がありません:', filter);
+    process.exit(1);
+  }
+  REALROW = rows[0];
+  /* my_pay_reports() が計算して足す列。REST は素の表を返すので手で足す。
+     規則は pv_union_outside_gross と同じ（extra='yes' かつ source='union'）。
+     ⚠️ あちらを変えたらここも直す。ズレると本番と違う絵を見ることになる。 */
+  const u = REALROW.pay_items && REALROW.pay_items.union;
+  REALROW.union_outside_gross = !!(u && u.extra === 'yes' && u.source === 'union');
+  REALROW.period_ym = REALROW.period_year * 12 + REALROW.period_month;
+  console.log('本番から1行:', REALROW.airline, REALROW.position, REALROW.fleet,
+              REALROW.period_year + '年' + REALROW.period_month + '月',
+              '／ 組合が総支給の外 =', REALROW.union_outside_gross);
+}
+
+await page.evaluateOnNewDocument((scene, theme, REALROW) => {
   localStorage.setItem('pv-theme', theme);
   localStorage.removeItem('pv_unlock_expiry');
 
@@ -161,6 +216,8 @@ await page.evaluateOnNewDocument((scene, theme) => {
   };
 
   const SCENES = {
+    /* ★本番から読んだ実物の1行（scene='real'）。ここだけ合成ではない。 */
+    real: REALROW ? [REALROW] : [],
     /* ★2026-08-25、まだ給与を1件も出していない人の画面を作り直した。
        empty 系はどれも「レポート0件」で、違うのは pv_pay_rows() が何を返すかだけ。
          empty        … 数え上げが返ってくる（サーバを貼り替えた後）
@@ -269,28 +326,47 @@ await page.evaluateOnNewDocument((scene, theme) => {
     /* ★2026-09-02、組合が総支給の**外**で払っている人（乗員代表）。
        会社の明細に印字されるのは gross_monthly だけで、組合の分はそこに載らない。
        union_outside_gross（サーバの pv_union_outside_gross が付ける）が真なので、
-       円ぜんぶが「総支給＋組合」に広がり、会社ぶんと組合ぶんの2色で割れる。
-       ⚠️ この列を落とすと known（50,000）が円ぜんぶ（30,000）を超えて
-          rest < -1 ＝ §3 の円が丸ごと消える。直す前の画面がこれ。
+       §3 の円ぜんぶは「受け取った額」＝ 780,000 ＋ 520,000 ＝ 1,300,000。
+       組合の 520,000 はスライスとして出る（40%）。
+       灰色は 780,000 − 715,000 ＝ 65,000（5%）。**組合の分ではない。**
+       ★「基本給が総支給に占める割合」だけは分母が違う ── 円ぜんぶから組合の
+         520,000 を引いて総支給に戻すので 370,000 / 780,000 ＝ 47%。
+         引き忘れると 370,000 / 1,300,000 ＝ 28% と刷られる（my-value.js の basePc）。
+       ⚠️ この列を落とすと組合の 520,000 が「総支給の中にある」扱いになり、
+          known（1,235,000）が円ぜんぶ（780,000）を超えて rest < -1
+          ＝ §3 の円が丸ごと消える。直す前の画面がこれ。
+       ★このシーンだけ**円建ての日本の会社**にしてある。ほかは AED 建てのエミレーツだが、
+         組合を持たない会社に組合手当を付けた絵は現実にあり得ず、桁もレート倍で
+         読みにくい（実際に「月 228万？」と読み違える形になった）。
        ⚠️ 数字は全部でたらめ。実物の明細の額はこのリポジトリに1つも無い。 */
     union: [(function () {
-      const r = mk(2026, 6, Object.assign({}, THIN, {
-        gross_monthly: 30000, guaranteed_hours: 75, bonus_annual: 130000, bonus_month: 0,
-        base_pay: 14000, command_pay: 3000,
-        // 総支給（30,000）より大きい。会社が払っていないから成り立つ額
-        union_pay: 26000, union_outside_gross: true,
-        flight_variable_pay: 4000, other_allowance: 2000,
-        per_diem: 1000, transport: 0,
-        housing_type: 'allowance', housing_amount: 0,
+      const r = mk(2026, 6, Object.assign({}, JP, THIN, {
+        position: 'fo', fleet: 'b787',
+        gross_monthly: 780000, guaranteed_hours: 75, bonus_annual: 2600000, bonus_month: 0,
+        base_pay: 370000, command_pay: 0,
+        // 総支給（780,000）の3分の2。会社が払っていないから成り立つ額
+        union_pay: 520000, union_outside_gross: true,
+        /* ★変動給は「その他手当」の**内訳**（pay-viz.js の約束・フォームも
+           payslip.js もその形で送る）。ここを逆転させると pay-viz が
+           「別欄に入れた人」とみなして変動給をスライスにせず、その額が丸ごと
+           灰色（どの項目にも入れていない分）に落ちる＝本番に無い絵になる。
+           その他手当 240,000 の内訳が 変動給 180,000 ＋ その他 60,000。 */
+        flight_variable_pay: 180000, other_allowance: 240000,
+        per_diem: 45000, transport: 0,
+        housing_type: 'allowance', housing_amount: 60000,
         // 組合活動でその月ほとんど飛んでいない＝時給が跳ねることも1枚で見る
         block_hours: 15.5, duty_hours: 42.0
       }));
       // 年換算も「総支給＋組合」×12＋賞与。サーバの pv_annual_total と同じ組み方
-      r.annual_total_orig = (30000 + 26000) * 12 + 130000;
+      r.annual_total_orig = (780000 + 520000) * 12 + 2600000;
       r.annual_total_jpy = Math.round(r.annual_total_orig * r.fx_to_jpy);
       r.annual_total_usd = Math.round(r.annual_total_orig * r.fx_to_usd);
-      r.net_annual_jpy = Math.round(r.annual_total_jpy * 0.99);
-      r.usd_per_block_hour = +((r.annual_total_usd / 12) / r.block_hours).toFixed(1);
+      r.net_annual_jpy = Math.round(r.annual_total_jpy * 0.79);
+      /* ★乗務1時間あたりだけは、組合の分を**分子から抜く**（サーバの
+         pv_block_hour_usd と同じ）。あれは「飛んだことへの対価」で年収ではない。
+         ここを annual_total_usd のまま割ると、画面の見本だけがサーバより高く出る。 */
+      r.usd_per_block_hour = +(((r.annual_total_orig - 520000 * 12) * r.fx_to_usd)
+                               / (12 * r.block_hours)).toFixed(2);
       return r;
     })()]
   };
@@ -374,7 +450,7 @@ await page.evaluateOnNewDocument((scene, theme) => {
   Object.defineProperty(window, 'supabase', {
     value: { createClient: () => FAKE }, writable: false, configurable: false
   });
-}, scene, theme);
+}, scene, theme, REALROW);
 
 await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
 await new Promise((r) => setTimeout(r, 2500));

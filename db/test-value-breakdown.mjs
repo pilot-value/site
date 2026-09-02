@@ -153,20 +153,60 @@ console.log('\n④-b 組合が総支給の外で払われている行（2026-09-
 {
   /* 本番で実際に起きた形。乗員代表で、会社の明細に印字された総支給より
      組合から直接受け取った額のほうが大きい月がある。
-     この行の図は 2026-09-01 まで**まるごと消えていた**（④の枝に落ちていた）。
-     組合が総支給の外なら円ぜんぶを「総支給＋組合」にする。
-     判定は自分でせず、サーバが付けてくる union_outside_gross をそのまま読む
-     （pv_union_outside_gross が出す。年収の式と同じ1つの判定）。 */
-  const out = V.segments(mk({ gross_monthly: 300000, union_pay: 700000,
-                              union_outside_gross: true }));
-  ok(out !== null, '★ 組合が外なら図が消えない（消えていたのがこの件の症状）');
+
+     ★この円は「**受け取った額**がどう分かれているか」に答える図。組合が総支給の
+       外で払った分も**円に入れる**（2026-09-02、オーナー指摘）。入れないと、
+       半分が組合から出ている人の円が会社ぶんだけになり、本人の実感と合わない。
+       内訳を1つも書いていない人（本番の1件）は組合の額が唯一の色になるので、
+       入れないと図そのものが出ない＝見本のまま何も見えない。
+     ★そのぶん**円ぜんぶは総支給ではない**ので、「基本給が総支給に占める割合」の
+       分母だけは outsideGross を引いて総支給に戻す（呼ぶ側＝my-value.js の仕事）。
+       引き忘れると 67% と刷るべき行が 20% になる。下の ⑧ で見張っている。
+     ★判定は自分でせず、サーバが付けてくる union_outside_gross をそのまま読む
+       （pv_union_outside_gross が出す。年収の式と同じ1つの判定）。 */
+  const out = V.segments(mk({ gross_monthly: 300000, base_pay: 200000,
+                              union_pay: 700000, union_outside_gross: true }));
+  ok(out !== null, '★ 組合が外でも図が消えない（消えていたのがこの件の症状）');
   ok(out && near(out.total, 1000000),
-     '★ 円ぜんぶは 総支給300,000 ＋ 組合700,000', String(out && out.total));
+     '★ 円ぜんぶ＝総支給 ＋ 総支給の外の組合分（300,000 ＋ 700,000）',
+     String(out && out.total));
   ok(out && val(out, 'union') === 700000,
-     '組合のスライスは受け取った額そのまま', String(out && val(out, 'union')));
-  ok(out && val(out, 'rest') === 300000,
-     '★ 灰色は総支給のうち説明できていない分だけ（組合を吸わない）',
+     '★ 組合のスライスが生える（受け取った額なので）', String(out && val(out, 'union')));
+  ok(out && val(out, 'rest') === 100000,
+     '★ 灰色は総支給のうち説明できていない分だけ（300,000 − 200,000）',
      String(out && val(out, 'rest')));
+  ok(out && near(out.outsideGross, 700000),
+     '★ segments() が outsideGross を返す（分母を総支給に戻す材料）',
+     String(out && out.outsideGross));
+  ok(out && !out.partial &&
+     Math.round(val(out, 'base') / (out.total - out.outsideGross) * 100) === 67,
+     '★ 基本給の割合は総支給で数える（200,000 / 300,000 ＝ 67%）',
+     String(out && Math.round(val(out, 'base') / (out.total - out.outsideGross) * 100)));
+
+  /* 会社の内訳を1つも書いていない行（本番の1件がこれ）。以前は円に色が付く分が
+     無くなって図ごと消えていた。組合の額を入れるようになったので、
+     「組合 70% / どの項目にも入れていない分 30%」の図が出る。 */
+  const only = V.segments(mk({ gross_monthly: 300000, union_pay: 700000,
+                               union_outside_gross: true }));
+  ok(only !== null, '★ 組合しか書いていない行でも図が出る（見本のままにしない）');
+  ok(only && val(only, 'union') === 700000 && val(only, 'rest') === 300000,
+     '★ その図は 組合700,000 と どの項目にも入れていない分300,000 の2つ',
+     String(only && val(only, 'union')) + ' / ' + String(only && val(only, 'rest')));
+  ok(only && only.partial === true,
+     '★ 基本給が分かっていないので「基本給の割合」は出さない（partial）');
+
+  /* ★円の外に出す金額。ここが 0 のまま画面に出ないと、総支給と年換算の
+     掛け算が合わない画面になる（オーナー指摘 2026-09-02）。 */
+  ok(typeof V.unionOutsideJpy === 'function', 'unionOutsideJpy() がある');
+  ok(V.unionOutsideJpy(mk({ union_pay: 700000, union_outside_gross: true })) === 700000,
+     '★ 外の組合分をそのまま円で返す');
+  ok(V.unionOutsideJpy(mk({ union_pay: 700000, union_outside_gross: false })) === 0,
+     '★ 支給元が会社なら 0（総支給の中にあるので円の外に出さない）');
+  ok(V.unionOutsideJpy(mk({ union_pay: 700000 })) === 0,
+     '★ 列そのものが無い古い行も 0（undefined は足さない側）');
+  ok(V.unionOutsideJpy(mk({ currency: 'AED', fx_to_jpy: 30, union_pay: 1000,
+                            union_outside_gross: true })) === 30000,
+     '★ 原本通貨はその行のレートで円に直す');
 
   /* ★支給元が会社（＝総支給の中）の行は今までどおり。ここが変わると
      会社払いの人の図が黙って大きくなる＝二重計上した図になる。 */
@@ -179,6 +219,8 @@ console.log('\n④-b 組合が総支給の外で払われている行（2026-09-
                               union_outside_gross: false }));
   ok(inn && near(inn.total, 1000000),
      '会社払いの行の円ぜんぶは総支給のまま', String(inn && inn.total));
+  ok(inn && val(inn, 'union') === 700000,
+     '会社払いの組合手当はスライスとして出る', String(inn && val(inn, 'union')));
 }
 
 // ── ⑤ ぴったり説明しきった行に灰色を生やさない ────────────
@@ -266,6 +308,26 @@ console.log('\n⑧ 名前の対応表（my-value.js / pay-tracker.js の両方�
        && src.includes("segNonline: 'その他の兼務・配属手当'")
        && /segNonline: 'Other \/ non-line assignment'/.test(src),
        `${f}: ★ 兼務・配属の語がある（無いと凡例が undefined になる）`);
+    /* ★組合が総支給の外で払った分は円に入らない（2026-09-02）。黙って落とすと
+       「自分が書いた額が消えた」と読める。donut() は notes.unionOut を渡された
+       ときだけ断りを刷るので、**2画面とも渡していること**をここで見張る。
+       片方だけ直すと、その画面だけ無言で額が消える。 */
+    ok(/notes:\s*\{[^}]*unionOut:\s*T\.unionOutNote/.test(src),
+       `${f}: ★ donut() に unionOut の断りを渡している（無いと円から消えた額が無言になる）`);
+    /* ★「基本給が総支給に占める割合」の分母は円ぜんぶではなく**総支給**
+       （2026-09-02）。円には総支給の外の組合分が入っているので、引き忘れると
+       67% が 20% と刷られる。この1行は my-value.js にしか無い（pay-tracker は
+       割合を刷らない）ので、そのファイルのときだけ見る。 */
+    if (f === 'my-value.js') {
+      ok(/total\s*-\s*\(s\.outsideGross\s*\|\|\s*0\)/.test(src),
+         `${f}: ★ 基本給の割合の分母から outsideGross を引いている`);
+      ok(/mv-ratio"><b>' \+ basePc \+ '%/.test(src),
+         `${f}: ★ 刷っているのは basePc（円ぜんぶで割った pc ではない）`);
+    }
+    ok(src.includes('unionOutNote:') && src.includes('この円に入れています'),
+       `${f}: 日本語の断りがある`);
+    ok(/unionOutNote: '※ Money your union pays you directly/.test(src),
+       `${f}: 英語の断りがある`);
   }
   const mv = readFileSync(path.join(ROOT, 'my-value.js'), 'utf8');
   /* ★「固定 / 変動 / 判別できない」の3本のバケツ。segments() のスライスを
@@ -290,8 +352,10 @@ console.log('\n⑧ 名前の対応表（my-value.js / pay-tracker.js の両方�
     ok(buckets.includes('examiner'),
        '★ 審査の手当が3本のどれかに入っている（変動）', buckets.join(','));
     /* ★組合の手当も同じ理由で「変動」。活動した日数で月ごとに変わる。
-       ⚠️ この列だけ会社が払っているとは限らない（支給元は pay_items.union.source）が、
-          図は「その月にいくら受け取ったか」を描くので扱いは同じ。 */
+       ⚠️ この列だけ会社が払っているとは限らない（支給元は pay_items.union.source）。
+          支給元が組合のときは総支給の**外**にあるので、segments() が円から外す
+          （④-b を見よ）。3本のバケツに入れておくのは、会社が払っている
+          ふつうの行のため。外の行では union が 0 になるだけで矛盾しない。 */
     ok(buckets.includes('union'),
        '★ 組合の手当が3本のどれかに入っている（変動）', buckets.join(','));
     /* ★管理職の手当も同じ理由で「変動」。管理業務にあたった日数で月ごとに変わる。
