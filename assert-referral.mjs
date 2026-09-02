@@ -463,8 +463,11 @@ for (const lang of ['ja', 'en']) {
 }
 
 /* ★言語切替をまたぐ回帰テスト。lang-toggle.js は pv-lang==='en' の人を
-   location.replace() で /en/ へ飛ばし、そのときクエリを丸ごと捨てる。
-   pv-referral.js を先に読んでいなければ、ここでコードが消える。 */
+   location.replace() で /en/ へ飛ばす。
+   2026-09-02 まで、このとき ?ref= を丸ごと捨てていた。いまは付けたまま飛ばす。
+   ★それでも localStorage への写しは残す。飛ぶ前に pv-referral.js が読まれていない
+     ページも在り得るし、写しがあれば URL を触られても招待は生き残る。
+     この検査は「URL とローカルの両方で残っている」ことを見ている。 */
 {
   console.log('\n════ 言語切替をまたいでも消えない ════');
   const page = await fresh(() => localStorage.setItem('pv-lang', 'en'));
@@ -473,7 +476,7 @@ for (const lang of ['ja', 'en']) {
   const v = await page.evaluate(() => ({ path: location.pathname, search: location.search,
     ref: localStorage.getItem('pv_ref') || '', strip: !!document.querySelector('.pvr-strip') }));
   ok(/^\/en\/?$/.test(v.path), '英語設定の人は /en/ へ飛ばされる（ここは既存の挙動）', v.path);
-  ok(v.search === '', '飛ばされた先では ?ref= が消えている（だから localStorage に写す）', v.search);
+  ok(v.search === '?ref=' + CODE, '★飛ばされた先でも ?ref= が付いたまま（2026-09-02〜）', v.search);
   ok(JSON.parse(v.ref || '{}').c === CODE, '★それでも招待コードは残っている', v.ref);
   ok(v.strip, '飛ばされた先でも招待状が出る');
 }

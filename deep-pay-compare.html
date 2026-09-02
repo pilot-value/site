@@ -228,8 +228,10 @@
     }());
   </script>
 
-<!-- ★ pv-referral.js は lang-toggle.js より前。あちらは pv-lang==='en' の人を
-     location.replace() で /en/ へ飛ばし、そのときクエリ（?ref=）を丸ごと捨てる。 -->
+<!-- ★ pv-referral.js は lang-toggle.js より前に読む。あちらは pv-lang==='en' の人を
+     location.replace() で /en/ へ飛ばす。2026-09-02 にクエリとハッシュを連れて行く
+     ようにしたので ?ref= はもう消えないが、読み込みの時点で localStorage に
+     写しておく方が確実（クエリを捨てる場所は他にもある。pv-referral.js:70-74）。 -->
 <script src="pv-referral.js"></script>
 <!-- ★search.js が ≡（メニュー）と引き出しを付ける。マイページ系のヘッダー
      （header.mr-top）にも同じ物を出すため読む。 -->

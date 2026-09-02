@@ -1937,7 +1937,9 @@ function updateNavAuth(name) {
 <script src="salary-leveling.js"></script>
 <script src="search.js"></script>
 <!-- ★pv-referral.js は lang-toggle.js より前に読む。あちらは pv-lang=='en' の人を
-     location.replace() で /en/ へ飛ばし、そのとき ?ref= を丸ごと捨てるため。 -->
+     location.replace() で /en/ へ飛ばすため。2026-09-02 にクエリとハッシュを連れて
+     行くようにしたので ?ref= はもう消えないが、読み込みの時点で localStorage に
+     写しておく方が確実（クエリを捨てる場所は他にもある。pv-referral.js:70-74）。 -->
 <script src="pv-referral.js"></script>
 <script src="lang-toggle.js"></script>
 <script>/* 招待リンクから来た人にだけ、上に1行の帯を出す（レイアウトは1pxも動かさない）。 */

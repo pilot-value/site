@@ -168,6 +168,52 @@ if (enCountriesDisk.has('japan')) {
      'EN 国別ページ → クリック → JP へ戻る', `url=${page.url()}`);
 }
 
+/* --- ★英語を選んだ人が、日本語に落ちないこと（2026-09-02）--------------------
+   ここまで pv-lang は「トグルを押した人」にしか付かなかった。英語版の画面に
+   直接来た人は無印のままで、一度でも日本語側の URL を踏むとそこから先ずっと
+   日本語だった。2026-09-01 に英語で給与を出したカンタスのパイロットがこの道。
+   見るのは3つ ①英語の操作画面に来たら覚える ②日本語の URL を踏んでも英語に戻る
+   ③検索から人が降りてくるページでは覚えない（日本語の人を巻き込まない）。 */
+await open(`${BASE}/en/pay-report.html`, null);
+ok((await state()).saved === 'en',
+   '★英語の給与フォームに来ただけで pv-lang が en になる（トグルを押さなくても）');
+
+await page.goto(`${BASE}/pay-report.html`, { waitUntil: 'load', timeout: 45000 });
+await new Promise((r) => setTimeout(r, 700));
+ok(new URL(page.url()).pathname === '/en/pay-report.html',
+   '★その人が日本語の URL を踏んでも英語へ戻される', `url=${page.url()}`);
+
+for (const [url, where] of [
+  [`${BASE}/en/airlines/emirates.html`, '英語の航空会社ページ'],
+  [`${BASE}/en/`,                       '英語のトップ'],
+]) {
+  await open(url, null);
+  ok((await state()).saved === null,
+     `★${where}に来ただけでは pv-lang を付けない（日本語の人を英語に閉じ込めない）`,
+     `saved=${(await state()).saved}`);
+}
+
+/* --- ★言語を移すときにクエリとハッシュを捨てないこと -------------------------
+   ?claim=（預かった給与の引換券）・?redirect=（ログイン後の戻り先）・?ref=（招待）が
+   ここで消えていた。?ref= だけは pv-referral.js が読み込み時に localStorage へ
+   写していたので無事だった＝**気づける形では壊れていなかった**ので長く残った。 */
+for (const [from, want, desc] of [
+  ['/login.html?redirect=%2Fpay-report.html', '/en/login.html?redirect=%2Fpay-report.html', 'ログイン後の戻り先'],
+  ['/?ref=ABCD1234',                          '/en/?ref=ABCD1234',                          '招待コード'],
+  ['/world-airlines.html?q=ana#list',          '/en/world-airlines.html?q=ana#list',          'クエリとハッシュの両方'],
+]) {
+  await open(`${BASE}${from}`, 'en');
+  const u = new URL(page.url());
+  ok(u.pathname + u.search + u.hash === want, `★${desc}を連れて英語へ移る  ${from} → ${want}`,
+     `url=${u.pathname + u.search + u.hash}`);
+}
+await open(`${BASE}/en/login.html?redirect=%2Fen%2Fpay-report.html`, 'ja');
+{
+  const u = new URL(page.url());
+  ok(u.pathname + u.search === '/login.html?redirect=%2Fen%2Fpay-report.html',
+     '★日本語へ戻すときも同じく連れて行く', `url=${u.pathname + u.search}`);
+}
+
 await browser.close();
 
 console.log(`\n==== ${ran - fail}/${ran} passed ====`);

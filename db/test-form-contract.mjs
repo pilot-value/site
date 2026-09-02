@@ -1040,6 +1040,21 @@ const NET_M = '41200';
    chrome-headless-shell で回す。 */
 const browser = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox'] });
 
+/* ★2026-09-02: 英語のアプリ画面（/en/pay-report.html など）を一度でも開くと
+   pv-lang='en' が端末に残り、次に日本語の URL を開いても /en/ へ飛ばされる
+   （lang-toggle.js の STICKY_EN。英語を選んだ人を英語のままにするための仕様）。
+   ここは「そのページの言語で保存されるか」を測る検査なので、
+   どのページも毎回まっさらな言語設定から始める。
+   ★消すのは document ができる前（evaluateOnNewDocument）。
+     goto の後に消しても、その時にはもう飛ばされている。 */
+async function newPage() {
+  const p = await browser.newPage();
+  await p.evaluateOnNewDocument(() => {
+    try { localStorage.removeItem('pv-lang'); } catch (e) {}
+  });
+  return p;
+}
+
 /* ══ #pay-detail で来たら「くわしく入れる」が開く（2026-08-25）════════
    DEEP PAY の説明にある「給与内訳を追加する」（pv-gates.js の DETAIL_URL）の行き先。
    ★リンクを張るだけでは効かない。この画面は入口の2択が先に出ていて、
@@ -1057,7 +1072,7 @@ const browser = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox
 console.log('\n内訳への導線（#pay-detail）');
 for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html#pay-detail'],
                            ['en', 'http://localhost:3000/en/pay-report.html#pay-detail']]) {
-  const page = await browser.newPage();
+  const page = await newPage();
   await page.setViewport({ width: 1440, height: 1000 });
   const errs = [];
   page.on('pageerror', (e) => errs.push(String(e.message).slice(0, 140)));
@@ -1123,7 +1138,7 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html#pay-det
 for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
                            ['en', 'http://localhost:3000/en/pay-report.html']]) {
   console.log(`\n▼ ${lang}  ${url}`);
-  const page = await browser.newPage();
+  const page = await newPage();
   await page.setViewport({ width: 1440, height: 1000 });
   page.on('pageerror', (e) => { fail++; console.log(`  ❌ ページ例外: ${e.message}`); });
   await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
@@ -2520,7 +2535,7 @@ console.log('\n明細の内訳（hidden → RPC → payslip_detail 列）');
     checks: { gross: 'ok', net: 'ok', diff: 0 },
   };
 
-  const page = await browser.newPage();
+  const page = await newPage();
   await page.setViewport({ width: 1440, height: 1000 });
   page.on('pageerror', (e) => { fail++; console.log(`  ❌ ページ例外: ${e.message}`); });
   await page.goto('http://localhost:3000/pay-report.html',
@@ -2688,7 +2703,7 @@ console.log('\n市場価値レポート（§6 の差・§7 の線は同一会社
   };
 
   for (const [name, reports] of Object.entries(SCENES)) {
-    const page = await browser.newPage();
+    const page = await newPage();
     await page.setViewport({ width: 1440, height: 1000 });
     page.on('pageerror', (e) => { fail++; console.log(`  ❌ [${name}] ページ例外: ${e.message}`); });
     await page.evaluateOnNewDocument((rows) => {
@@ -2763,7 +2778,7 @@ console.log('\n市場価値レポート（§6 の差・§7 の線は同一会社
    ★守りたいのは「解除した人を勝手に送信へ戻さない」こと。 */
 console.log('\nメールの同意（会員登録の側でだけ預かる）');
 {
-  const page = await browser.newPage();
+  const page = await newPage();
   page.on('pageerror', (e) => { fail++; console.log('  ❌ JSERR', e.message); });
   await page.goto('http://localhost:3000/pay-report.html', { waitUntil: 'networkidle2' });
 

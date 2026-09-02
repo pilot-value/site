@@ -103,15 +103,56 @@
   var raw = location.pathname.replace(/\/$/, '') || '/';
   var isEN = raw.indexOf('/en') === 0;
 
+  /* 言語を移すとき、クエリとハッシュはそのまま連れて行く。
+     ★これが無いと、切り替わった瞬間に URL の後ろが丸ごと消える。実害は2つあった：
+       ?claim=    預かった給与の引換券。消えると本人が二度と引き取れない
+       ?redirect= ログインした後の戻り先。消えると必ずマイページに落ちる
+       ?ref= だけは無事だった。pv-referral.js が読み込みの時点で localStorage に
+       写しているため（あちらの :70-74 に「クエリを捨てる場所が4つある」と書いてある。
+       ここがその1つ）。＝**気づける形では壊れていなかった**ので長く残った。
+     ★写像（jaToEn / enToJa）にはパスだけを渡し、連結は最後にする。 */
+  function withQS(dest) { return dest + location.search + location.hash; }
+
   /* ── Auto-redirect based on saved preference ── */
   var saved = localStorage.getItem('pv-lang');
   if (saved === 'en' && !isEN) {
     var enDest = jaToEn(raw);
-    if (enDest) { location.replace(enDest); return; }
+    if (enDest) { location.replace(withQS(enDest)); return; }
   }
   if (saved === 'ja' && isEN) {
-    location.replace(enToJa(raw)); return;
+    location.replace(withQS(enToJa(raw))); return;
   }
+
+  /* ── 英語を選んだ人を、トグルを押さなくても覚える ────────────────────
+     2026-09-02。ここまで pv-lang は「トグルを押した人」にしか付かなかった。
+     英語版の画面に直接来た人（検索・共有リンク・メールの中のリンク）は最後まで
+     無印のままで、一度でも日本語側の URL を踏むと、そこから先ずっと日本語になった。
+     2026-09-01 に英語で給与を出したカンタスのパイロットが辿ったのがこの道。
+
+     ★書くのは 'en' だけ。'ja' は今まで通りトグルを押した人にしか付けない。
+       ＝この変更で日本語側の挙動は1つも変わらない。
+     ★対象は下の画面だけ。検索から人が降りてくる記事・航空会社ページ・トップを
+       入れてはいけない。日本語の人が英語の1枚を開いただけでサイト全体が
+       英語に切り替わってしまう。ここに並ぶのは「サイトの中を進まないと着かない、
+       自分で操作する画面」＝英語で居ることがたまたまではなく選択である場所。
+     ★auth-callback.html はこの一覧にも lang-toggle.js の読み込みにも入れない。
+       理由はすぐ下の注意書き。 */
+  var STICKY_EN = new Set([
+    'login.html', 'signup.html', 'profile.html', 'my-value.html', 'actual-pay.html',
+    'deep-pay.html', 'deep-pay-compare.html', 'pay-report.html', 'submit-review.html',
+    'airline-conditions.html', 'personal-data.html', 'unsubscribe.html'
+  ]);
+  if (isEN && !saved) {
+    var base = raw.slice(raw.lastIndexOf('/') + 1);
+    if (STICKY_EN.has(base)) { localStorage.setItem('pv-lang', 'en'); saved = 'en'; }
+  }
+
+  /* ⚠️ auth-callback.html にこのファイルを読ませない。
+     上の自動リダイレクトはパスだけで行き先を決めて location.replace() する。
+     ログインの折り返しは ?code=… / #access_token=… を持って戻ってくるので、
+     移す前に query と hash を連れて行けたとしても、Supabase の Redirect URLs に
+     /en/auth-callback.html を登録していない限りそこで認証が落ちる。
+     あの画面は自前で言語を判定していて（pvInEn）、pv-lang も自分で書く。 */
 
   /* ── トグルの見た目を供給する（テーマボタンとセット） ─────────────────
      `lang-toggle.js` は 276/284 ページに届く（JP航空会社116枚には airline-base.js が
@@ -182,12 +223,12 @@
     btn.addEventListener('click', function () {
       if (isEN) {
         localStorage.setItem('pv-lang', 'ja');
-        location.href = enToJa(raw);
+        location.href = withQS(enToJa(raw));
       } else {
         var enDest = jaToEn(raw);
         if (!enDest) return;
         localStorage.setItem('pv-lang', 'en');
-        location.href = enDest;
+        location.href = withQS(enDest);
       }
     });
   }

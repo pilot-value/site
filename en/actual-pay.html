@@ -212,7 +212,9 @@
   </script>
 
 <!-- ★ pv-referral.js must come before lang-toggle.js: that script sends pv-lang==='en'
-     visitors to /en/ with location.replace(), dropping the whole query string (?ref=). -->
+     visitors to /en/ with location.replace(). Since 2026-09-02 that carries the query
+     string and hash along, so ?ref= survives — but stashing it in localStorage on load
+     is still safer (other places drop the query too; see pv-referral.js:70-74). -->
 <script src="../pv-referral.js"></script>
 <!-- ★search.js が ≡（メニュー）と引き出しを付ける。マイページ系のヘッダー
      （header.mr-top）にも同じ物を出すため読む。検索窓は生えない
