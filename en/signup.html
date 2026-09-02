@@ -409,7 +409,7 @@
        auth-callback.html はルート直下にあるので、en/ を明示する。 */
     function callbackUrl(){
       return 'https://pilot-value.com/auth-callback.html?next='
-           + encodeURIComponent('en/signup.html' + location.search);
+           + encodeURIComponent('/en/signup.html' + location.search);
     }
 
     function goStep2(e) {

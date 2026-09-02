@@ -479,6 +479,60 @@ console.log('\n/en ?next= 無しでログインした人が英語版に着くか
   await p.close();
 }
 
+/* ⑨-2 給与フォームの中のログインの箱（pay-login.js）も同じ約束を守ること。
+      ⑨ は en/login.html しか見ていなかったので、**今回の穴はここでは検知できなかった**。
+      pay-login.js は「★必ず絶対パスで書く」とコメントしながら 'en/pay-report.html' と
+      相対で書かれていた（callbackUrl() がルートの auth-callback.html を固定で書いていたので
+      偶然動いていただけ）。だから**絶対パスであること自体**も見る。 */
+console.log('\n給与フォームのログインの箱の戻り先（日英）\n');
+for (const [dir, want] of [['', '/pay-report.html'], ['/en', '/en/pay-report.html']]) {
+  const label = dir || '(日本語)';
+  const p = await b.newPage();
+  await p.setRequestInterception(true);
+  const otpSent = [], authSent = [];
+  p.on('request', (r) => {
+    const u = r.url();
+    if (/googletagmanager|google-analytics/.test(u)) return r.abort();
+    if (!SB_HOST.test(u)) return r.continue();
+    const H = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': '*', 'Access-Control-Allow-Methods': 'POST, GET, OPTIONS' };
+    if (r.method() === 'OPTIONS') return r.respond({ status: 204, headers: H, body: '' });
+    if (/\/auth\/v1\/otp\b/.test(u)) otpSent.push(u);
+    if (/\/auth\/v1\/authorize\b/.test(u)) authSent.push(u);
+    return r.respond({ status: 200, headers: H, contentType: 'application/json', body: '{}' });
+  });
+  const unwrap = (u) => { let t = u; for (let i = 0; i < 3; i++) t = decodeURIComponent(t); return t; };
+  const nextOf = (list) => {
+    const m = unwrap(list[list.length - 1] || '').match(/next=([^&]+)/);
+    return m ? m[1] : '';
+  };
+
+  await p.goto(`${BASE}${dir}/pay-report.html`, { waitUntil: 'networkidle0' });
+  await p.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
+  await p.goto(`${BASE}${dir}/pay-report.html`, { waitUntil: 'networkidle0' });
+  await p.evaluate(() => { showGate(false); });
+  // ★箱は「まだ埋めきっていない段」の中なので高さ0。見た目はここの主題ではない
+  //   （見えるかどうかは ⑥ と db/test-form-contract.mjs が見ている）。居ることだけ待つ。
+  await p.waitForSelector('#pl-up-mail');
+
+  await p.evaluate(() => {
+    document.getElementById('pl-up-mail').value = 'someone@example.invalid';
+    document.getElementById('pl-up-btn').click();
+  });
+  await new Promise((rs) => setTimeout(rs, 1200));
+  const nOtp = nextOf(otpSent);
+  ok(nOtp === want, `${label} コードのメールの戻り先が ${want}`, nOtp || otpSent);
+  ok(nOtp.startsWith('/'), `${label} コードの戻り先が絶対パス（相対だと着地が言語ごと壊れる）`, nOtp);
+
+  // Google は押すとページを離れるので最後に押す
+  await p.evaluate(() => { document.getElementById('pl-g-up').click(); }).catch(() => {});
+  await new Promise((rs) => setTimeout(rs, 1200));
+  const nAuth = nextOf(authSent);
+  ok(nAuth === want, `${label} Google の戻り先が ${want}`, nAuth || authSent);
+  ok(nAuth.startsWith('/'), `${label} Google の戻り先が絶対パス`, nAuth);
+
+  await p.close();
+}
+
 await b.close();
 console.log(fail ? `\n${fail} fail\n` : '\n全部通った\n');
 process.exit(fail ? 1 : 0);

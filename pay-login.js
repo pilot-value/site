@@ -61,6 +61,7 @@
       verify: 'コードで進む',
       verifying: '確認中…',
       resend: 'メールを再送する',
+      resendWait: function (sec) { return 'あと ' + sec + ' 秒で再送できます'; },
       back: '← 戻る',
       resent: 'メールを再送しました。',
       done: 'ログインしました。レポートを作っています…',
@@ -68,7 +69,7 @@
       badPass: 'メールアドレスまたはパスワードが正しくありません。',
       badCode: '6桁の数字を入力してください。',
       wrongCode: 'コードが正しくないか、有効期限が切れています。再送してお試しください。',
-      tooFast: '送信の間隔が短すぎます。少し時間をおいてからお試しください。',
+      tooFast: 'いまメールの送信が混み合っています。少し時間をおいてからお試しください。',
       sendFail: 'メールを送信できませんでした。通信を確かめて、もう一度お試しください。',
     },
     en: {
@@ -93,6 +94,7 @@
       verify: 'Continue with code',
       verifying: 'Checking…',
       resend: 'Send the email again',
+      resendWait: function (sec) { return 'You can resend in ' + sec + 's'; },
       back: '← Back',
       resent: 'We sent the email again.',
       done: 'Signed in. Building your report…',
@@ -100,7 +102,7 @@
       badPass: 'That email address or password is not right.',
       badCode: 'Please enter the 6 digits.',
       wrongCode: 'That code is wrong or has expired. Send it again and retry.',
-      tooFast: 'That was too soon after the last one. Please wait a moment and try again.',
+      tooFast: 'Email sending is busy right now. Please wait a moment and try again.',
       sendFail: 'The email could not be sent. Check your connection and try again.',
     },
   };
@@ -253,7 +255,7 @@
          2026-08-22 に本番で2人ぶん消えていたのがこれ。URL に載せた1枚が唯一の綱になる。
        ★マウント時ではなくクリックの瞬間に組む。マウントは提出より前に走ることがあり、
          その時点ではまだ預かり証が存在しない。 */
-    var NEXT = L === 'en' ? 'en/pay-report.html' : 'pay-report.html';
+    var NEXT = L === 'en' ? '/en/pay-report.html' : '/pay-report.html';
     function callbackUrl() {
       var next = NEXT;
       var tok = '';
@@ -372,13 +374,32 @@
       } catch (e) { /* 保存できない端末では同意は立たない。送信は止めない */ }
     }
 
-    // ── Google（ページを離れる。入力は端末に預けてあるので戻れば自動送信）──
+    /* ── Google（ページを離れる。入力は端末に預けてあるので戻れば自動送信）──
+       ★失敗したときに何も残らないのが一番まずかった。sendCode は理由を GA4 に残すのに
+         ここだけ返り値を見ておらず、2026-09-01 に英語版から出した人が登録まで届かなかった
+         とき、Google が断ったのか、そもそも呼べていなかったのかが分からなかった。 */
     async function google() {
-      await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: callbackUrl() } });
+      var res = await sb.auth.signInWithOAuth({
+        provider: 'google', options: { redirectTo: callbackUrl() },
+      });
+      if (res && res.error) {
+        // ★理由は決め打ちの短い語だけ。エラー本文をそのまま送らない
+        track('pay_login_google_fail', { reason: res.error.status === 429 ? 'rate_limited' : 'oauth_failed' });
+        return fail(esc(t.sendFail));
+      }
     }
     /* ★入口が1つになったので、既存の会員もここを通る。同意を預けてよい理由は
        claimOptIn が「一度解除した人」に触らないから（下の「解除済みの人」の行）。 */
-    $('pl-g-up').addEventListener('click', function () { start('google'); stashOptIn(); google(); });
+    $('pl-g-up').addEventListener('click', function () {
+      start('google');
+      stashOptIn();
+      /* 投げっぱなしにすると、失敗が未処理の rejection になって画面には何も出ない。 */
+      google().catch(function (e) {
+        console.error(e);
+        track('pay_login_google_fail', { reason: 'threw' });
+        fail(esc(t.sendFail));
+      });
+    });
 
     // ── パスワードでログイン（ページ遷移なし）──
     async function passwordIn() {
@@ -404,6 +425,27 @@
        shouldCreateUser: true なので、初めての人はこの1回で会員になる。 */
     var otpMail = '';
 
+    /* ★再送に60秒の間を置く。連打は 429 を呼び、しかも Supabase のメール上限は
+         **時間あたり**なので、断られるのはその1回では済まない（次の数分ぶんも落ちる）。
+       ★押せない理由を出す。無言で無効にすると人はもっと連打する。 */
+    var RESEND_WAIT = 60;
+    var resendTimer = null;
+    function coolResend() {
+      var btn = $('pl-resend');
+      if (!btn) return;
+      if (resendTimer) { clearInterval(resendTimer); resendTimer = null; }
+      var left = RESEND_WAIT;
+      btn.disabled = true;
+      btn.textContent = t.resendWait(left);
+      resendTimer = setInterval(function () {
+        left -= 1;
+        if (left > 0) { btn.textContent = t.resendWait(left); return; }
+        clearInterval(resendTimer); resendTimer = null;
+        btn.disabled = false;
+        btn.textContent = t.resend;
+      }, 1000);
+    }
+
     async function sendCode(mail, btn, isResend) {
       clearMsg();
       if (!EMAIL_RE.test(mail)) {
@@ -427,6 +469,7 @@
       $('pl-main').style.display = 'none';
       $('pl-code-step').style.display = '';
       if (isResend) good(esc(t.resent));
+      coolResend();
       $('pl-code').focus();
     }
 

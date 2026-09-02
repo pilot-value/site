@@ -409,7 +409,7 @@
     /* 戻り先は Google の往復をまたぐ。?redirect= を落とさないよう search ごと持ち回る。 */
     function callbackUrl(){
       return 'https://pilot-value.com/auth-callback.html?next='
-           + encodeURIComponent('signup.html' + location.search);
+           + encodeURIComponent('/signup.html' + location.search);
     }
 
     function goStep2(e) {
