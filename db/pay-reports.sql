@@ -680,6 +680,21 @@ begin
     raise exception '機材コードが不正です: %', v_fleet using errcode = '22023';
   end if;
 
+  /* 職位。★2026-09-02 まで、ここには関所が無かった。表の外部キーが
+     pv_positions(code) を見ているだけで、**選択肢から外したコードも通っていた**
+     （SFO・教官機長を 2026-08-18 に外したときも、古い画面からは保存できた）。
+     訓練生を選択肢から外す（オーナー指示）にあたって、
+     「画面に出る選択肢と、通る値が同じ集合」にするための関所をここに置く。
+     ⚠️ 外部キーは残す。過去の投稿（訓練生2件・sfo・tri_tre）は pv_positions に
+        active=false で残り、REAL PAY には今までどおり訓練生として出る。
+     ⚠️ ここは預かり（submit_pay_report_pending）も通る**唯一**の判定なので、
+        「受け取りましたと出したのに本登録で落ちる」は起きない。
+        なお active=false にする前に、引き取り前の預かりに訓練生が
+        1件も無いことを確かめてある（2026-09-02 時点で0件）。 */
+  if not exists (select 1 from public.pv_positions where code = v_pos and active) then
+    raise exception '職位が不正です: %', v_pos using errcode = '22023';
+  end if;
+
   /* 年代。★フォームでは必須にしているが、ここでは「入っていたら語彙にあるか」しか見ない。
      必須にすると、年代を聞く前に受け取った仮受け（pay_report_pending）が
      本登録の時点で全部落ちる。過去に預かった投稿を、あとから作ったルールで捨てない。 */

@@ -388,9 +388,12 @@
           <div>
             <div class="field-label">Position</div>
             <div class="radio-group">
+              <!-- ★訓練生（cadet）は 2026-09-02 に選択肢から外した（オーナー指示）。
+                   ⚠️ 既に訓練生で登録している人の値は消さない。保存は下の
+                      position: p ? p.value : profile.position ＝ どれも選ばれて
+                      いなければ今の値をそのまま残すので、編集しても消えない。 -->
               <div class="radio-chip"><input type="radio" name="e-pos" id="ep-cap" value="captain"/><label for="ep-cap">Captain</label></div>
               <div class="radio-chip"><input type="radio" name="e-pos" id="ep-fo" value="fo"/><label for="ep-fo">First Officer</label></div>
-              <div class="radio-chip"><input type="radio" name="e-pos" id="ep-cad" value="cadet"/><label for="ep-cad">Trainee</label></div>
             </div>
           </div>
         </div>

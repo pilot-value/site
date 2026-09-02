@@ -50,12 +50,22 @@ export const FLEETS = [
      消したのは選択肢だけで、過去の投稿のコードは pv_positions に残る
      （db/vocab.generated.sql が active=false にするだけで消さない）。
 
-   口コミフォームは 'captain' / 'fo' / 'cadet' の3チップのまま動いており、
-   'captain' だけコードが違う。LEGACY_POSITIONS で寄せてから集計する。 */
+   ★訓練生（cadet）は 2026-09-02 に選択肢から外した（オーナー指示）。
+     ⚠️ 上の SFO / TRI・TRE とは外し方が違う。あちらは LEGACY_POSITIONS で
+        副操縦士・機長へ**寄せて**いるので、画面にコードが出ることは無い。
+        訓練生は寄せない ── 訓練中の給与を副操縦士の中に混ぜたら中央値が狂う。
+        だから **行はここに残したまま retired を立てる**。
+     retired が意味するのは1つだけ：**選択肢に出さない**。
+       ・pv-vocab.json には今までどおり載る ＝ REAL PAY / DEEP PAY が
+         既に入っている2件を「訓練生」と**言葉で**出せる（コードが生で出ない）
+       ・db/vocab.generated.sql は pv_positions の行を残して active=false にする
+         ＝ pay_reports.position の外部キーが切れない
+       ・pv_validate_pay_payload が active しか通さない ＝ 今後は保存できない
+     ⚠️ 消してはいけない。消すと本番の2件が外部キーごと宙に浮く。 */
 export const POSITIONS = [
   { code:'cap',     ja:'機長（CAP）',         en:'Captain (CAP)' },
   { code:'fo',      ja:'副操縦士（FO）',      en:'First Officer (FO)' },
-  { code:'cadet',   ja:'訓練生',              en:'Cadet / Trainee' },
+  { code:'cadet',   ja:'訓練生',              en:'Cadet / Trainee', retired:true },
 ];
 
 /* 引退したコードの寄せ先。過去の投稿を数えるときはここを通してから集計する。 */

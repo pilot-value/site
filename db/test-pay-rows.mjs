@@ -1069,14 +1069,14 @@ await asViewer();
 }
 {
   /* 同じ人が古い月と新しい月を出していたら、新しいほうの段になる。 */
-  const u = await person(A_OLD, 'cadet', [{ fleet: 'b737', month: 6, gross: 4000 }]);
+  const u = await person(A_OLD, 'fo', [{ fleet: 'b737', month: 6, gross: 4000 }]);
   await db.query(`update pay_reports set created_at = now() - interval '400 days'
                    where airline = $1 and created_at > now() - interval '1 day'`, [A_OLD]);
   await asUser(u);
-  await submit({ ...BASE, airline: A_OLD, position: 'cadet', fleet: 'b737',
+  await submit({ ...BASE, airline: A_OLD, position: 'fo', fleet: 'b737',
                  period_year: YEAR, period_month: 7, gross_monthly: 4000 });
   await asViewer();
-  const row = only((await payRows()).rows, x => x.airline === A_OLD && x.pos === 'cadet');
+  const row = only((await payRows()).rows, x => x.airline === A_OLD && x.pos === 'fo');
   ok(row.length === 1 && row[0].age === 0,
      '★同じ人の古い月と新しい月は1行に畳まれ、段は新しいほうになる', JSON.stringify(row));
 }

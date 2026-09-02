@@ -83,7 +83,15 @@ const cnt = await one(`select
 const N_AIRLINES = Object.keys(SALARY).length + 1;   // SSOT の全社 ＋ other
 ok(Number(cnt.a) === N_AIRLINES, `会社 ${N_AIRLINES}（other 込み）→ ${cnt.a}`);
 ok(Number(cnt.f) === 19, `機種 19 → ${cnt.f}`);
-ok(Number(cnt.p) === 3, `職位 3 → ${cnt.p}`);
+/* ★2026-09-02、訓練生（cadet）を選択肢から外した（オーナー指示）。
+   行は残して active=false にしてある＝ pay_reports.position の外部キーが切れず、
+   既に入っている2件は REAL PAY に「訓練生」と出たまま。 */
+ok(Number(cnt.p) === 2, `選べる職位 2（機長・副操縦士）→ ${cnt.p}`);
+{
+  const cd = await one(`select active from pv_positions where code = 'cadet'`);
+  ok(cd && cd.active === false,
+     '★訓練生の行は消さずに残っている（消すと過去の投稿が外部キーごと宙に浮く）');
+}
 /* ★年代は口コミ（submit-review.html）が5歳刻みで先に集めている。こちらは10歳刻み。
    件数がずれたら、どちらかの刻みを動かした合図（gen-vocab.mjs が突き合わせている）。 */
 ok(Number(cnt.g) === 5, `年代 5 → ${cnt.g}`);
@@ -253,6 +261,14 @@ ok((await boom(`select submit_pay_report($1::jsonb)`, [JSON.stringify({ ...BASE,
 ok((await boom(`select submit_pay_report($1::jsonb)`, [JSON.stringify({ ...BASE, fleet: 'b797', period_year: 2026, period_month: 5 })]) || '').includes('機材コード'), '存在しない機種は弾く');
 ok((await boom(`select submit_pay_report($1::jsonb)`, [JSON.stringify({ ...BASE, base_pay: null, hourly_rate: null, period_year: 2026, period_month: 5 })]) || '').includes('報酬額'), '金額ゼロの空レポートは弾く');
 ok((await boom(`select submit_pay_report($1::jsonb)`, [JSON.stringify({ ...BASE, airline: 'other', period_year: 2026, period_month: 5 })]) || '').includes('社名'), "'other' なのに社名が無ければ弾く");
+/* ★選択肢から外した職位は、画面を書き換えても保存できない（2026-09-02）。
+   2026-09-02 まではここに関所が無く、表の外部キーだけが見ていたので、
+   古い画面や devtools からは外したはずのコードがそのまま入っていた。 */
+ok((await boom(`select submit_pay_report($1::jsonb)`, [JSON.stringify({ ...BASE, position: 'cadet', period_year: 2026, period_month: 5 })]) || '').includes('職位'), '★訓練生は弾く（選択肢から外した職位は保存できない）');
+ok((await boom(`select submit_pay_report($1::jsonb)`, [JSON.stringify({ ...BASE, position: 'sfo', period_year: 2026, period_month: 5 })]) || '').includes('職位'), '★SFO も同じく弾く（2026-08-18 に外した職位）');
+/* ★預かり（ログイン前）も同じ判定を通る＝「受け取りましたと出したのに、
+   会員登録のあとで落ちる」が起きない。判定は pv_validate_pay_payload の1か所だけ。 */
+ok((await boom(`select submit_pay_report_pending($1::jsonb)`, [JSON.stringify({ ...BASE, position: 'cadet', period_year: 2026, period_month: 5 })]) || '').includes('職位'), '★預かりの入口でも訓練生は弾く（本登録との食い違いを作らない）');
 
 // profiles 行が無い人（トリガーの取りこぼし）でも書けること
 await db.query(`select set_config('pv.uid', $1, false)`, [uid(77)]);

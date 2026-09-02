@@ -3134,6 +3134,13 @@
       return;
     }
     if (air === 'other')  { host.innerHTML = out + '<p class="ps-aha-msg">' + esc2(T.ahaNoAirline) + '</p>'; return; }
+    /* ★2026-09-02 以降、この行はフォームからは届かない。BAND は fo / cap の2つで、
+       そこに落ちるのは訓練生だけだったが、訓練生を職位の選択肢から外したため
+       （pv-vocab.mjs の POSITIONS に retired を立てた）。
+       分岐は保険として残す ── 公開レンジの無い職位を将来足したときに、
+       ここが無いと下の band が undefined のまま進む。
+       ⚠️ 文言（ahaNoBand）は訓練生の話のままにしてある。届かないので誰も読まないが、
+          もし別の職位で届かせるなら文言も一緒に書き直すこと。 */
     if (!BAND[pos])       { host.innerHTML = out + '<p class="ps-aha-msg">' + esc2(T.ahaNoBand) + '</p>';    return; }
 
     if (!SAL) { loadSalary(); host.innerHTML = out; return; }

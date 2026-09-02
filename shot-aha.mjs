@@ -7,7 +7,7 @@
      （触ると、撮った絵が本番の絵でなくなる）。
 
    実行: node shot-aha.mjs <scene> <lang> <theme>
-     scene: pick | below | mid | top | cadet | nofx
+     scene: pick | below | mid | top | low | nofx
      lang : ja | en    theme: dark | light
    保存先は screenshot.mjs と同じ ./temporary screenshots/
 */
@@ -40,7 +40,11 @@ const SCENES = {
   below: { airline: 'ana',      position: 'cap',     currency: 'JPY', gross: 1500000 },  // 2200万を割る
   mid:   { airline: 'emirates', position: 'cap',     currency: 'AED', gross: 78000  },   // レンジ内
   top:   { airline: 'united',   position: 'cap',     currency: 'USD', gross: 60000  },   // 誰より上
-  cadet: { airline: 'ana',      position: 'cadet',   currency: 'JPY', gross: 450000 },
+  /* ★2026-09-02 まで訓練生（cadet）の場面だった。訓練生を職位の選択肢から
+     外したので、f-position に 'cadet' を入れても select が受け取らず
+     （＝ pick と同じ絵になり）黙って別物を撮ることになる。副操縦士の
+     低い額に置き換えてある。 */
+  low:   { airline: 'ana',      position: 'fo',      currency: 'JPY', gross: 450000 },
   nofx:  { airline: 'qatar-airways', position: 'cap', currency: 'QAR', gross: 90000 },   // レート未整備
 };
 

@@ -331,14 +331,21 @@ const r4 = await gap();
 ok(r4.state === 'near' && r4.remaining === 1, `n=4 → あと1人 → ${JSON.stringify(r4)}`);
 
 // ── n≧5：比較が出るので招待の導線は出さない ────────────────
-const g5 = await fill('cadet', 'a320', 2025, 5);
+/* ★区分は（会社・職位・機材・年）の4つ。ここから下は「同じ区分を丸ごと1つ占有する」
+   ことだけが目的なので、職位は cap / fo のどちらでもよく、機材だけ他とぶつからない
+   ものを選んでいる。2026-09-02 まで訓練生を3本目の軸に使っていたが、訓練生は
+   選択肢から外した（＝ pv_validate_pay_payload が弾く）ので、
+   fo × 未使用の機材（b767 / b787 / b747）に置き換えてある。
+   ⚠️ 区分を足すときは、既にある (職位, 機材, 年) と重ならないものにする。
+      重なると2つのテストが同じ人数を数えて、どちらかが理由もなく落ちる。 */
+const g5 = await fill('fo', 'b767', 2025, 5);
 await asUser(g5[4]);            // 最後に出した人＝自分より後の行が無い
 const r5 = await gap();
 ok(r5.state === 'open', 'n=5 は open（普通の比較が出る）');
 ok(!('remaining' in r5), 'open では remaining を返さない（「あと0人」と書かせない）');
 ok(r5.crossed === false && r5.gained === 0, `最後に出した人には増分が無い → ${JSON.stringify(r5)}`);
 
-const g9 = await fill('cadet', 'b737', 2025, 9);
+const g9 = await fill('fo', 'b787', 2025, 9);
 await asUser(g9[8]);
 const r9 = await gap();
 ok(r9.state === 'open', 'n=9 も open');
@@ -370,9 +377,9 @@ await asUser(gb2[0]);
 ok((await gap()).gained === 0, '何度呼んでも0のまま');
 
 // crossed — 4人から5人へ越えた瞬間だけ true
-const gc = await fill('cadet', 'a220', 2025, 1);
-await backdate('cadet', 'a220', 2025, 1);
-await fill('cadet', 'a220', 2025, 4, 5);
+const gc = await fill('fo', 'b747', 2025, 1);
+await backdate('fo', 'b747', 2025, 1);
+await fill('fo', 'b747', 2025, 4, 5);
 await asUser(gc[0]);
 const rc = await gap();
 ok(rc.state === 'open' && rc.crossed === true && rc.gained === 4,

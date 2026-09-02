@@ -125,14 +125,18 @@ console.log('\n③ フォームの110社・3職位が SSOT に着地する');
 
   /* payslip.js の BAND は cadet を持たない＝訓練生には比較を出さない。
      出さないことは正しいが、「黙って別の帯の数字を出す」に化けていないか見る。
-     ★職位は 2026-08-18 に3択（機長・副操縦士・訓練生）へ減らした。SFO・教官機長は
-       役職・区分（f-jobrole）で聞くので、公開レンジへ寄せる処理そのものが無くなった。 */
+     ★職位は 2026-08-18 に3択（機長・副操縦士・訓練生）へ減らし、
+       2026-09-02 に訓練生も外して2択にした（オーナー指示）。SFO・教官機長は
+       役職・区分（f-jobrole）で聞くので、公開レンジへ寄せる処理そのものが無くなった。
+     ⚠️ cadet の帯を作らないこと。選択肢からは消えたが、既に入っている2件は
+        REAL PAY に残っており、帯を足すと訓練中の給与が機長・副操縦士の
+        レンジと並んでしまう。 */
   const band = payslip.match(/var BAND = \{([^}]*)\}/);
   ok(!!band, 'payslip.js の BAND を読めた');
   const mapped = Object.fromEntries([...(band ? band[1] : '').matchAll(/(\w+)\s*:\s*'(\w+)'/g)].map((m) => [m[1], m[2]]));
   const positions = grab('f-position');
-  ok(positions.join(',') === ['cap', 'fo', 'cadet'].join(','),
-     'f-position は 機長→副操縦士→訓練生 の3択: ' + positions.join(','));
+  ok(positions.join(',') === ['cap', 'fo'].join(','),
+     '★f-position は 機長→副操縦士 の2択（訓練生は 2026-09-02 に外した）: ' + positions.join(','));
   ok(!mapped.cadet, '訓練生（cadet）には帯を割り当てていない＝比較を出さない');
   ok(mapped.fo === 'fo' && mapped.cap === 'cap', '副操縦士・機長はそれぞれ自分の帯で見る');
   ok(Object.keys(mapped).sort().join(',') === 'cap,fo',

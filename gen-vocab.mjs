@@ -41,8 +41,16 @@ for (const c of CURRENCIES) {
   if (!/^[A-Z]{3}$/.test(c.code)) throw new Error(`ISO 4217 でない: ${c.code}`);
   if (![0, 2, 3].includes(c.dec)) throw new Error(`小数桁が変: ${c.code}`);
 }
+/* 今も選べる職位。retired が立っている行は**語彙からは消さない**（過去の投稿の
+   外部キーとラベルがそこにぶら下がっている）が、選択肢には出さない。
+   詳しくは pv-vocab.mjs の POSITIONS の注記。 */
+const LIVE_POSITIONS = POSITIONS.filter((p) => !p.retired);
+if (!LIVE_POSITIONS.length) throw new Error('選べる職位が1つも無い');
+
 for (const [from, to] of Object.entries(LEGACY_POSITIONS)) {
-  if (!POSITIONS.some((p) => p.code === to)) throw new Error(`旧職位の寄せ先が無い: ${from}→${to}`);
+  /* ★寄せ先は「今も選べる職位」でなければならない。retired な職位へ寄せると、
+     選択肢から外したはずのコードが古い投稿ぶんだけ復活する。 */
+  if (!LIVE_POSITIONS.some((p) => p.code === to)) throw new Error(`旧職位の寄せ先が無い（または引退済み）: ${from}→${to}`);
   if (POSITIONS.some((p) => p.code === from)) throw new Error(`旧職位が現役と衝突: ${from}`);
 }
 
@@ -140,7 +148,7 @@ const json = {
   taxZero: TAX_DEFAULT_ZERO, citizenshipTaxed: CITIZENSHIP_TAXED, taxTable: taxPublic,
 };
 writeFileSync(new URL('./pv-vocab.json', import.meta.url), JSON.stringify(json));
-console.log(`✅ pv-vocab.json 書き出し: 機種${FLEETS.length} / 職位${POSITIONS.length} / 役職${JOB_ROLES.length} / 年代${AGE_BUCKETS.length} / 通貨${CURRENCIES.length} / 国${COUNTRIES.length}`);
+console.log(`✅ pv-vocab.json 書き出し: 機種${FLEETS.length} / 職位${LIVE_POSITIONS.length}（語彙には${POSITIONS.length}） / 役職${JOB_ROLES.length} / 年代${AGE_BUCKETS.length} / 通貨${CURRENCIES.length} / 国${COUNTRIES.length}`);
 
 // ── 2. 機種 select（cat でグループ分け）────────────────────────
 const FLEET_GROUPS = {
@@ -300,7 +308,7 @@ for (const [path, lang] of [['./submit-review.html', 'ja'], ['./en/submit-review
 // ── 3-2. 給与レポート（select が8本。ラベル表は持たない）──────
 // 会社（#f-airline）は gen-airline-codes.mjs の担当。ここでは触らない。
 const PAY_SELECTS = [
-  ['f-position',    (lang, pad) => listOptions(POSITIONS, lang, pad),       POSITIONS.length],
+  ['f-position',    (lang, pad) => listOptions(LIVE_POSITIONS, lang, pad),  LIVE_POSITIONS.length],
   ['f-fleet',       (lang, pad) => fleetOptions(lang, pad),                 FLEETS.length],
   ['f-currency',    (lang, pad) => currencyOptions(lang, pad),              CURRENCIES.length],
   ['f-housing',     (lang, pad) => listOptions(HOUSING, lang, pad),         HOUSING.length],
@@ -451,7 +459,7 @@ on conflict (code) do update set dec = excluded.dec, sym = excluded.sym,
   name_ja = excluded.name_ja, name_en = excluded.name_en, active = true;
 
 update public.pv_fleets    set active = false where code not in (${FLEETS.map((x) => q(x.code)).join(', ')});
-update public.pv_positions set active = false where code not in (${POSITIONS.map((x) => q(x.code)).join(', ')});
+update public.pv_positions set active = false where code not in (${LIVE_POSITIONS.map((x) => q(x.code)).join(', ')});
 update public.pv_job_roles set active = false where code not in (${JOB_ROLES.map((x) => q(x.code)).join(', ')});
 update public.pv_age_buckets set active = false where code not in (${AGE_BUCKETS.map((x) => q(x.code)).join(', ')});
 update public.pv_housing_types  set active = false where code not in (${HOUSING.map((x) => q(x.code)).join(', ')});
@@ -532,7 +540,7 @@ begin
   end loop;
 end $$;
 
--- 検算：機種${FLEETS.length} / 職位${POSITIONS.length} / 役職${JOB_ROLES.length} / 年代${AGE_BUCKETS.length} / 通貨${CURRENCIES.length} / レート${Object.keys(JPY_PER).length}
+-- 検算：機種${FLEETS.length} / 職位${LIVE_POSITIONS.length} / 役職${JOB_ROLES.length} / 年代${AGE_BUCKETS.length} / 通貨${CURRENCIES.length} / レート${Object.keys(JPY_PER).length}
 select
   (select count(*) from public.pv_fleets     where active) as 機種,
   (select count(*) from public.pv_positions  where active) as 職位,
@@ -542,5 +550,5 @@ select
   (select count(*) from public.fx_rates)                   as レート;
 `;
   writeFileSync(new URL('./db/vocab.generated.sql', import.meta.url), sql);
-  console.log(`✅ db/vocab.generated.sql 書き出し: 機種${FLEETS.length} / 職位${POSITIONS.length} / 役職${JOB_ROLES.length} / 年代${AGE_BUCKETS.length} / 通貨${CURRENCIES.length} / レート${Object.keys(JPY_PER).length}`);
+  console.log(`✅ db/vocab.generated.sql 書き出し: 機種${FLEETS.length} / 職位${LIVE_POSITIONS.length} / 役職${JOB_ROLES.length} / 年代${AGE_BUCKETS.length} / 通貨${CURRENCIES.length} / レート${Object.keys(JPY_PER).length}`);
 }

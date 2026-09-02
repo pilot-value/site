@@ -553,6 +553,39 @@ Office 勤務時間・配属期間・配属理由は**聞かない**（オーナ
   「＋給与の内訳を追加」と役割の5つ＝`.pay-detail>summary` の6つだけ。
 - `max-width:100%` を付ける（「その他の兼務・配属の手当を追加」が狭い画面ではみ出さない）。
 
+### 職位は**2つ**（訓練生は 2026-09-02 に外した・オーナー指示）
+`cap`（機長）/ `fo`（副操縦士）のみ。**訓練生（`cadet`）は選択肢に出さない。**
+理由は1つ ── 訓練中の給与を副操縦士の中に混ぜると中央値が狂う。
+
+⚠️ **`POSITIONS` から行を消してはいけない。** 本番に訓練生の給与レポートが2件あり、
+`pay_reports.position` が `pv_positions(code)` を外部キーで見ている。消すとその2件が宙に浮く。
+代わりに [pv-vocab.mjs](pv-vocab.mjs) の行に **`retired: true`** を立てる。意味は1つだけ ──
+**選択肢に出さない**。
+
+| 立てると何が起きるか | どこ |
+|---|---|
+| `f-position` の option に出なくなる（日英とも）| `gen-vocab.mjs` の `LIVE_POSITIONS` |
+| `pv_positions` の行は残り `active = false` になる | `db/vocab.generated.sql`（オーナーが貼る）|
+| 保存できなくなる（画面を書き換えても通らない）| `pv_validate_pay_payload` の職位の関所 |
+| ラベルは残る ＝ REAL PAY / DEEP PAY は既存2件を「訓練生」と**言葉で**出せる | `pv-vocab.json` |
+
+⚠️ **SFO・教官機長（2026-08-18）とは外し方が違う。** あちらは `LEGACY_POSITIONS` で
+副操縦士・機長へ**寄せて**いる。訓練生は寄せない（寄せた瞬間に中央値が狂う）。
+`gen-vocab.mjs` は「寄せ先が `retired` なら落ちる」ようにしてある。
+
+⚠️ **関所は 2026-09-02 に初めて置いた。** それまで職位だけ `and active` を見ておらず、
+選択肢から外したコードが古い画面からは保存できていた。関所は
+`pv_validate_pay_payload` の**1か所だけ**で、預かり（`submit_pay_report_pending`）も
+同じ関数を通る ＝「受け取りましたと出したのに本登録で落ちる」は起きない。
+
+⚠️ **順番。`db/vocab.generated.sql` を先に貼る。** 関所は `pv_positions.active` を見るので、
+`active=false` にする前に `db/pay-reports.sql` だけ貼っても何も変わらない（無害だが効かない）。
+
+登録画面（`signup.html` / `profile.html` と `en/`）の職位も同じ日に2択にした。
+プロフィールの保存は `p ? p.value : profile.position` ＝ どれも選ばれていなければ
+今の値を残すので、**既に訓練生の人が編集しても消えない**。
+
+
 ### 役職・区分は**6つ・複数選択**
 `line` / `instructor` / `examiner` / `union` / `management` / `nonline`。
 ★2026-08-26、7つから6つにした（`safety` と `secondment` を統合して

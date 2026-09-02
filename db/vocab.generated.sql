@@ -142,7 +142,7 @@ on conflict (code) do update set dec = excluded.dec, sym = excluded.sym,
   name_ja = excluded.name_ja, name_en = excluded.name_en, active = true;
 
 update public.pv_fleets    set active = false where code not in ('a320', 'b737', 'a220', 'b757', 'e-jet', 'b767', 'b777', 'b787', 'b747', 'a330', 'a350', 'a380', 'crj', 'atr', 'dhc8', 'regional', 'turboprop', 'bizjet', 'other');
-update public.pv_positions set active = false where code not in ('cap', 'fo', 'cadet');
+update public.pv_positions set active = false where code not in ('cap', 'fo');
 update public.pv_job_roles set active = false where code not in ('line', 'instructor', 'examiner', 'union', 'management', 'nonline');
 update public.pv_age_buckets set active = false where code not in ('20-29', '30-39', '40-49', '50-59', '60+');
 update public.pv_housing_types  set active = false where code not in ('provided', 'allowance', 'none');
@@ -267,7 +267,7 @@ begin
   end loop;
 end $$;
 
--- 検算：機種19 / 職位3 / 役職6 / 年代5 / 通貨45 / レート45
+-- 検算：機種19 / 職位2 / 役職6 / 年代5 / 通貨45 / レート45
 select
   (select count(*) from public.pv_fleets     where active) as 機種,
   (select count(*) from public.pv_positions  where active) as 職位,

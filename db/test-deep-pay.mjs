@@ -460,7 +460,7 @@ console.log('\n▼ 6. 二重計上（変動給とその他手当）');
    other_allowance の両方に写す。素直に足すと変動給を2回数える。 */
 {
   const uD = ++seat; await asUser(uD);
-  await submit({ ...BASE, airline: A_DOUBLE, position: 'cadet', fleet: 'a320',
+  await submit({ ...BASE, airline: A_DOUBLE, position: 'fo', fleet: 'a320',
                  period_year: YEAR, period_month: 2,
                  base_pay: 10000, flight_variable_pay: 5000, other_allowance: 5000,
                  pay_items: { v: 1, variable: [{ amount: 5000, basis: 'block', label: 'Flight' }] } });
@@ -471,11 +471,11 @@ console.log('\n▼ 6. 二重計上（変動給とその他手当）');
      '前提：同じ5000が両方の列に入っている（本番と同じ形）', JSON.stringify(r));
   // 手計算：現金 = 10000(固定) + 5000(変動) + 0(その他) = 15000。
   // その他は greatest(5000 - 5000, 0) = 0 なので変動は1回しか数えない。
-  const u2 = await person(A_DOUBLE, 'cadet', 'a320', [{ month: 3 }], {
+  const u2 = await person(A_DOUBLE, 'fo', 'a320', [{ month: 3 }], {
     base_pay: 10000, flight_variable_pay: 5000, other_allowance: 5000,
     command_pay: null, per_diem: null, housing_type: null, housing_amount: null,
     pay_items: { v: 1, variable: [{ amount: 5000, basis: 'block', label: 'Flight' }] } });
-  const u3 = await person(A_DOUBLE, 'cadet', 'a320', [{ month: 4 }], {
+  const u3 = await person(A_DOUBLE, 'fo', 'a320', [{ month: 4 }], {
     base_pay: 10000, flight_variable_pay: 5000, other_allowance: 5000,
     command_pay: null, per_diem: null, housing_type: null, housing_amount: null,
     pay_items: { v: 1, variable: [{ amount: 5000, basis: 'block', label: 'Flight' }] } });
@@ -496,7 +496,7 @@ console.log('\n▼ 6. 二重計上（変動給とその他手当）');
 console.log('\n▼ 7. 未分類（総支給に届かない分を吸う）');
 // ════════════════════════════════════════════════════════════
 {
-  const mk = (m) => ({ ...BASE, airline: A_REST, position: 'cadet', fleet: 'b737',
+  const mk = (m) => ({ ...BASE, airline: A_REST, position: 'fo', fleet: 'b737',
                        period_year: YEAR, period_month: m,
                        gross_monthly: 10000, base_pay: 6000 });
   const uR = ++seat; await asUser(uR); await submit(mk(2));
@@ -524,7 +524,7 @@ console.log('\n▼ 7-b. ★組合が総支給の外で払われている行（20
    上の ok（1.02倍の関所）でこの行がまるごと落ちる ── 年収カードだけでなく
    ドーナツからも消える。cash_m に組合の分を足すと、普通に数えられる。 */
 {
-  const mk = (m) => ({ ...BASE, airline: A_UNION, position: 'cadet', fleet: 'b737',
+  const mk = (m) => ({ ...BASE, airline: A_UNION, position: 'fo', fleet: 'b737',
                        period_year: YEAR, period_month: m,
                        gross_monthly: 10000, base_pay: 6000, union_pay: 9000,
                        job_roles: ['line', 'union'],
@@ -557,7 +557,7 @@ console.log('\n▼ 8. 働き方（列ごとに n≧3）');
 // ════════════════════════════════════════════════════════════
 {
   // 3人。block_hours は3人とも、duty_days は1人だけ書く。
-  const mk = (m, extra) => ({ ...BASE, airline: A_WORK, position: 'cadet', fleet: 'b767',
+  const mk = (m, extra) => ({ ...BASE, airline: A_WORK, position: 'fo', fleet: 'b767',
                               period_year: YEAR, period_month: m, ...DET,
                               block_hours: 70, ...extra });
   const uW = ++seat; await asUser(uW); await submit(mk(2, { duty_days: 18 }));
@@ -582,7 +582,7 @@ console.log('\n▼ 9. 変動給の中身（区分ごとに n≧3・まとめな�
     { amount: 3000, basis: 'block',   label: 'Flight Pay' },
     { amount: 1000, basis: 'night',   label: 'Night' },
     ...extra ] });
-  const mk = (m, extra) => ({ ...BASE, airline: A_NWH, position: 'cadet', fleet: 'b787',
+  const mk = (m, extra) => ({ ...BASE, airline: A_NWH, position: 'fo', fleet: 'b787',
                               period_year: YEAR, period_month: m,
                               base_pay: 8000, flight_variable_pay: 4000 + (extra.add || 0),
                               other_allowance: 4000 + (extra.add || 0),
@@ -609,7 +609,7 @@ console.log('\n▼ 9. 変動給の中身（区分ごとに n≧3・まとめな�
 
 // ★許可リストに無い basis は捨てる（other へ寄せない）
 {
-  const mk = (m) => ({ ...BASE, airline: A_BASIS, position: 'cadet', fleet: 'a330',
+  const mk = (m) => ({ ...BASE, airline: A_BASIS, position: 'fo', fleet: 'a330',
                        period_year: YEAR, period_month: m,
                        base_pay: 8000, flight_variable_pay: 4000, other_allowance: 4000,
                        pay_items: { v: 1, variable: [
@@ -634,7 +634,7 @@ console.log('\n▼ 10. 有効数字2桁と常識の幅');
   /* ★総支給と内訳を食い違わせない。DET（内訳17000）に gross_monthly 12345 を
      足すと「内訳が総支給をはみ出している行」になり、検品で正しく落ちる。
      落ちると区分が段5まで落ちて、この節が測りたい丸めではなく別のものを見てしまう。 */
-  const mk = (m, g) => ({ ...BASE, airline: A_SIG, position: 'cadet', fleet: 'a350',
+  const mk = (m, g) => ({ ...BASE, airline: A_SIG, position: 'fo', fleet: 'a350',
                           period_year: YEAR, period_month: m,
                           gross_monthly: g, base_pay: g });
   const uS = ++seat; await asUser(uS); await submit(mk(2, 12345));
@@ -650,7 +650,7 @@ console.log('\n▼ 10. 有効数字2桁と常識の幅');
 }
 {
   // 幅の外は数えない
-  const mk = (m, g) => ({ ...BASE, airline: A_BAND, position: 'cadet', fleet: 'a380',
+  const mk = (m, g) => ({ ...BASE, airline: A_BAND, position: 'fo', fleet: 'a380',
                           period_year: YEAR, period_month: m,
                           gross_monthly: g, base_pay: g });
   const uL = ++seat; await asUser(uL); await submit(mk(2, 20000));   // 年 240,000 → 入る
@@ -809,7 +809,7 @@ console.log('\n▼ 15. pv_deep_pct（合計ちょうど100）');
 console.log('\n▼ 16. 賞与はドーナツの外');
 // ════════════════════════════════════════════════════════════
 {
-  const mk = (m) => ({ ...BASE, airline: A_BONUS, position: 'cadet', fleet: 'crj',
+  const mk = (m) => ({ ...BASE, airline: A_BONUS, position: 'fo', fleet: 'crj',
                        period_year: YEAR, period_month: m, ...DET,
                        bonus_annual: 40000 });
   const uB = ++seat; await asUser(uB); await submit(mk(2));
