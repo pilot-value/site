@@ -1950,12 +1950,27 @@ function unionRead() {
 
 /* ★Only the company-paid part is compared against gross. Union-paid money is not
    printed on the company payslip, so adding it would fire the "breakdown exceeds
-   gross" line for no reason. */
+   gross" line for no reason.
+   ⚠️ "Other" is company money too (owner's call, 2026-09-02) — it belongs here. */
 function unionInGross() {
   if ($('s3-union').hidden) return 0;
   if ($('f-union-extra').value !== 'yes') return 0;
   const src = $('f-union-src').value;
-  return (src === 'airline' || src === 'both') ? 1 : 0;
+  return (src === 'airline' || src === 'both' || src === 'other') ? 1 : 0;
+}
+
+/* ★The other side: money paid **outside** the gross (2026-09-02). This is the only
+   part added to the annual figure. Same rule as the server's pv_union_outside_gross
+   (db/pay-reports.sql, section 4).
+   ⚠️ Only the union itself is outside. Airline / both / other are all paid by the
+      company, so they are never added.
+   ⚠️ Not the inverse of unionInGross(). When the payer is left blank, both fall to 0
+      (that one: do not warn; this one: do not add). Adding on a guess inflates the
+      annual figure, so an unknown payer must never be added. */
+function unionOutsideGross() {
+  if ($('s3-union').hidden) return 0;
+  if ($('f-union-extra').value !== 'yes') return 0;
+  return $('f-union-src').value === 'union' ? 1 : 0;
 }
 
 function unionSync() {
@@ -2316,7 +2331,13 @@ function annualTotal() {
   /* ★The gross is entered exactly as printed, so a bonus month carries the bonus
      inside it. Take it out before ×12 (owner, 2026-08-13). A breakdown sum never
      contains a bonus, so that side is used as it is. */
-  const monthly = Math.max(0, num('f-gross') - num('f-bonus-mo'));
+  /* ★The one exception is union-paid money (2026-09-02). It is not printed on the
+     company payslip, so it is not inside the gross the pilot typed. Leaving it out
+     drops that whole amount from the annual figure. The server carries the same
+     line (p_union_outside_gross). */
+  const gross = num('f-gross');
+  const monthly = Math.max(0, gross - num('f-bonus-mo'))
+                + (gross > 0 && unionOutsideGross() ? num('f-union-pay') : 0);
   return monthly * 12 + num('f-bonus') + num('f-profit');
 }
 

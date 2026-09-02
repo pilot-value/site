@@ -273,12 +273,20 @@ as $$
              case when x.gross is null then x.ipay  end,
              -- ★ 2026-08-26 追加。審査・査察の手当。同上。
              case when x.gross is null then x.epay  end,
-             -- ★ 2026-08-26 追加。組合・乗員代表の手当。同上。
-             case when x.gross is null then x.upay  end,
+             /* ★ 2026-08-26 追加。組合・乗員代表の手当。
+                ⚠️ ここだけは隠さない（2026-09-02）。組合が直接払った額は会社の明細に
+                   印字されない＝本人が書いた総支給の中に無いので、隠すと年収が
+                   その分だけ丸ごと落ちる。総支給の中にあるとき（支給元＝会社／両方）は
+                   下の真偽値が false になり、pv_annual_total が1円も足さない。 */
+             x.upay,
              -- ★ 2026-08-26 追加。管理・マネジメントの手当。同上。
              case when x.gross is null then x.mpay  end,
              -- ★ 2026-08-27 追加。その他の兼務・配属の手当。同上。
-             case when x.gross is null then x.npay  end
+             case when x.gross is null then x.npay  end,
+             -- ★ 2026-09-02 追加。組合の分が総支給の外か。判定は本棚と同じ関数を呼ぶ
+             --   （ここに規則を書き写すと、預かりと本棚で違う年収が出る）。
+             public.pv_union_outside_gross(
+               case when jsonb_typeof(p->'pay_items') = 'object' then p->'pay_items' end)
            ) * r.to_usd, 2)
     from (
       select nullif(nullif(p->>'gross_monthly', '')::numeric, 0) as gross,
@@ -417,11 +425,18 @@ comment on function public.pv_airline_resolve(text) is
 --                     h = 12×住宅手当（現物支給の社宅は現金ではないので入れない）
 --   5本の合計は pv_annual_total の返り値と一致する。
 --   ズレていないことは db/test-pay-rows.mjs が毎回突き合わせている。
+--   ⚠️ 2026-09-02 から**組合が総支給の外で払われている行だけ例外**。
+--      pv_annual_total はその額を総支給に足すが、この関数（凍結中・誰も呼ばない）は
+--      足さないので、その行では 5本の合計がその額のぶん小さく出る。
+--      直すのは「DEEP PAY を作る回に内訳優先へ直す」（下の ⚠️）と同じ機会に。
 --
 -- ★返すのは「割合」（合計1）であって額ではない。通貨に依らないので、
 --   月ごとに通貨が違う人が居ても、そのまま平均できる。
 --
 -- ★引数の並びは pv_annual_total と1文字も違わない。呼ぶ側が並べ違えないため。
+--   （2026-09-02、pv_annual_total だけ21本目 p_union_outside_gross が付いた。
+--     この関数は金額しか受け取らないので、そこまでは並べていない。
+--     20本目までは今も1文字も違わない。）
 --
 -- ⚠️ 2026-08-26、給与フォームで**総支給と内訳の両方**を書けるようにした。
 --    この関数はまだ「総支給がある行は内訳を見ない」形のまま（下の m と o の case）。

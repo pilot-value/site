@@ -230,6 +230,13 @@ baland_ass/                            ブランド資産（※ brand_assets の
    一致を送信の条件にしない（超えたときだけ注意を1行出し、**送信は止めない**）。
    年換算は昔から総支給が正（[db/pay-reports.sql](db/pay-reports.sql) の `pv_annual_total` の
    `coalesce` 第1引数）＝**内訳の列を足しても年収の数字は1円も動かない**
+   ⚠️ **例外は組合の手当が1つだけ**（2026-09-02）。**支給元が「組合」のときだけ**、そのお金が
+   会社の明細に印字されない＝本人が書いた総支給の中に無いので、総支給の枝でも足す。
+   会社・両方・**その他**・空は「総支給の中」（その他を選ぶ人も、お金は会社から出ている）。
+   判定は `pv_union_outside_gross` の**1か所だけ**（画面・預かり・本棚・DEEP PAY が全部これを呼ぶ）。
+   ここを直す前は、乗員代表の年収が組合払いのぶん丸ごと落ちていた（本番で1件・年収が半分）
+   ⚠️ **時間あたり（`usd_per_block_hour`）だけは、この組合分を分子から抜く。** あれは
+   「飛んだことへの対価」で年収そのものではない。式は `pv_block_hour_usd` の1か所だけ
 2. **役割ごとの手当は専用の列に入れる。二重計上させない。**
    教官 `instructor_pay` ／ 審査 `examiner_pay` ／ 組合 `union_pay` ／
    管理 `management_pay` ／ 兼務 `nonline_pay`。
@@ -254,7 +261,8 @@ baland_ass/                            ブランド資産（※ brand_assets の
 `node db/test-value-breakdown.mjs`（支給構成の切れ）。
 絵は `node shot-pay.mjs`（3a〜4 の16枚）と `node shot-value.mjs both ja`、
 はみ出しは `node measure-pay.mjs`。
-[db/pay-reports.verify.sql](db/pay-reports.verify.sql) は**オーナーが Supabase に貼る検算**（12行が ✅）。
+[db/pay-reports.verify.sql](db/pay-reports.verify.sql) は**オーナーが Supabase に貼る検算**（16行が ✅）。
+中身は `db/test-pay-reports.mjs` が毎回流している＝**検算だけ古い**にはならない。
 
 **`supabase/functions/` を触ったら push だけでは本番に反映されない。**
 Supabase ダッシュボード → Edge Functions → 該当関数 → コードを貼り替えて Deploy（オーナー作業）。

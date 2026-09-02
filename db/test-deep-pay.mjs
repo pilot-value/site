@@ -157,11 +157,11 @@ const openKey = (n) => db.query(
   [uid(n), `p${n}@example.com`]);
 
 const VOCAB = await rows(
-  `select code from pv_airlines where code <> 'other' and active order by code limit 20`);
+  `select code from pv_airlines where code <> 'other' and active order by code limit 21`);
 const AIR = VOCAB.map(r => r.code);
 const [A_HOME, A_CAT, A_FILL1, A_FILL2, A_FILL3, A_OTHER1, A_DUP, A_BAND,
        A_ROUND, A_DOUBLE, A_REST, A_BASIS, A_NWH, A_WORK, A_SIG,
-       A_PEER, A_PEND, A_RV, A_BONUS, A_SPARE] = AIR;
+       A_PEER, A_PEND, A_RV, A_BONUS, A_SPARE, A_UNION] = AIR;
 
 // 呼び手（オーナー役）。この人の最新の1行が区分を決める。
 const V = 9500;
@@ -513,6 +513,43 @@ console.log('\n▼ 7. 未分類（総支給に届かない分を吸う）');
      '★畳んだ区分があるとき、未分類の月額は出さない（割合と桁が合わないため）',
      String(rest.med_usd));
   ok(Number(f.med_usd) > 0, '固定給の月額は出る', String(f.med_usd));
+}
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 7-b. ★組合が総支給の外で払われている行（2026-09-02）');
+// ════════════════════════════════════════════════════════════
+/* 本番で実際に起きた形。乗員代表で、会社の明細に印字された総支給（10,000）より
+   組合から直接受け取った額（9,000）のほうが大きい月がある。
+   総支給だけを「その月の現金」と見なすと、④役割手当が分母を超えて
+   上の ok（1.02倍の関所）でこの行がまるごと落ちる ── 年収カードだけでなく
+   ドーナツからも消える。cash_m に組合の分を足すと、普通に数えられる。 */
+{
+  const mk = (m) => ({ ...BASE, airline: A_UNION, position: 'cadet', fleet: 'b737',
+                       period_year: YEAR, period_month: m,
+                       gross_monthly: 10000, base_pay: 6000, union_pay: 9000,
+                       job_roles: ['line', 'union'],
+                       pay_items: { v: 1, union: { days: 10, extra: 'yes',
+                                                   source: 'union', amount: 9000 } } });
+  const uU = ++seat; await asUser(uU); await submit(mk(2));
+  const u2 = ++seat; await asUser(u2); await submit(mk(3));
+  const u3 = ++seat; await asUser(u3); await submit(mk(4));
+  await openKey(uU); await asUser(uU);
+  const d = await deep();
+  /* ★段1（会社・職位・機材）に3人そろって残ること。落ちると段が下りて
+     よその会社の数字にすり替わる ── 画面は普通に出るので気づけない。 */
+  ok(d.cohort.level === 'airline_pos_fleet' && d.cohort.n === 3,
+     '★組合払いの行が関所で落ちない（落ちると段が下りて別の集団の数字になる）',
+     JSON.stringify(d.cohort));
+  const seg = (k) => (d.comp?.segs || []).find(s => s.k === k);
+  ok(seg('role') && seg('fixed') && seg('role').pct > seg('fixed').pct,
+     '★役割手当（9,000）が固定給（6,000）より大きい割合で出る',
+     JSON.stringify(d.comp?.segs));
+  ok((d.comp?.segs || []).reduce((a, s) => a + s.pct, 0) === 100,
+     '★割合の合計はちょうど100のまま', JSON.stringify(d.comp?.segs));
+  /* ★分母が総支給＋組合であること。19,000 の 6,000 ＝ 32%（10,000 のままなら 60%）。 */
+  ok(seg('fixed') && seg('fixed').pct === 32,
+     '★分母は総支給＋組合（19,000）。固定は32%（総支給だけなら60%になる）',
+     String(seg('fixed')?.pct));
 }
 
 // ════════════════════════════════════════════════════════════

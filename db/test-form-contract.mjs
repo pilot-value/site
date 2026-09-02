@@ -511,12 +511,33 @@ for (const f of ['pay-report.html', 'en/pay-report.html']) {
        会社から出ているぶんだけを足す。無条件に足すと
        「内訳の合計が総支給を超えています」が嘘で出る。 */
     const gate = (s.match(/function unionInGross\(\)[\s\S]*?\n}/) || [''])[0];
-    ok(/'airline'/.test(gate) && /'both'/.test(gate) && !/'union'\s*\|\|/.test(gate),
-       `${f}: ★総支給と突き合わせるのは支給元が会社（airline / both）のときだけ`,
+    ok(/'airline'/.test(gate) && /'both'/.test(gate) && /'other'/.test(gate)
+       && !/'union'\s*\|\|/.test(gate) && !/===\s*'union'/.test(gate),
+       `${f}: ★総支給と突き合わせるのは会社から出ているぶん（airline / both / other）`,
        gate.slice(0, 80));
     const md = (s.match(/function monthlyDetail\(\)[\s\S]*?\n}/) || [''])[0];
     ok(/unionInGross\(\)\s*\?\s*num\('f-union-pay'\)\s*:\s*0/.test(md),
        `${f}: ★monthlyDetail は条件つきで足している（無条件に足していない）`, md.slice(-120));
+
+    /* ⑦-b ★年収に足すのは「総支給の外で払われたぶん」だけ（2026-09-02）。
+       ⚠️ **外は「組合」だけ**。その他（other）を選ぶ人もお金は会社から出ているので、
+          ここに入れると総支給に二重で足して年収を盛る（2026-09-02 オーナー判断）。
+       unionInGross() の裏返しではない ── 支給元が空のときは**どちらも足さない**。
+       あちらは注意を出すかどうかで、外しても誰も損をしない。年収は足すと盛る。
+       サーバの pv_union_outside_gross（db/pay-reports.sql 4章）と同じ規則。 */
+    const out = (s.match(/function unionOutsideGross\(\)[\s\S]*?\n}/) || [''])[0];
+    ok(/'union'/.test(out)
+       && !/'other'/.test(out) && !/'airline'/.test(out) && !/'both'/.test(out),
+       `${f}: ★年収に足すのは支給元が組合のときだけ`, out.slice(0, 90));
+    ok(/f-union-extra'\)\.value\s*!==\s*'yes'/.test(out),
+       `${f}: ★「別途の支給あり」と答えた人だけ（分からない・無しでは足さない）`,
+       out.slice(0, 90));
+    const at = (s.match(/function annualTotal\(\)[\s\S]*?\n}/) || [''])[0];
+    ok(/unionOutsideGross\(\)/.test(at) && !/unionInGross\(\)/.test(at),
+       `${f}: ★年換算が見ているのは unionOutsideGross（unionInGross ではない）`,
+       at.slice(-200));
+    ok(/f-union-pay/.test(at),
+       `${f}: ★年換算に組合の額が入っている`, at.slice(-200));
     /* 総支給そのものは書き換えない（教官・審査と同じ約束）。 */
     ok(!/\$\('f-gross'\)\.value\s*=/.test(s.replace(/put\('f-gross'[^\n]*/g, '')),
        `${f}: ★総支給の欄をこちらから書き換えていない`);
@@ -1274,7 +1295,10 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
      '時給は人に聞かない（hidden として残す）');
 
   /* ★総支給が入っているときは内訳を一切足さない（サーバの
-     coalesce(p_gross_monthly, 内訳の合計) と同じ順番）。額面×12 ちょうどになること。 */
+     coalesce(p_gross_monthly, 内訳の合計) と同じ順番）。額面×12 ちょうどになること。
+     ⚠️ 唯一の例外は組合が総支給の外で払われたとき（2026-09-02）。ここは組合の節を
+        開いていない＝unionOutsideGross() が 0 なので、今までどおり額面×12。
+        例外そのものは上の静的検査 ⑦-b と db/test-pay-reports.mjs が見ている。 */
   const grossOnly = await page.evaluate(() => annualTotal());
   ok(grossOnly === Number(GROSS_M) * 12,
      `額面だけのときは 額面×12 → ${grossOnly}`, `期待 ${Number(GROSS_M) * 12}`);
@@ -1344,7 +1368,9 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   ok(!(await page.$('#gross-hint-sum')), '★「下の内訳の合計」という説明はもう無い');
 
   /* 内訳を入れても、額面も年換算も動かない。サーバの pv_annual_total も
-     総支給があればそちらを正とする（coalesce の第1引数）ので画面と一致する。 */
+     総支給があればそちらを正とする（coalesce の第1引数）ので画面と一致する。
+     ⚠️ 組合が総支給の外で払われている行だけは例外（2026-09-02）。組合の節は
+        「乗員代表」を選んだ人にしか出ないので、ここでは開いていない。 */
   bad.push(...await setF({ 'f-base': '20000', 'f-perdiem': '5000' }));
   const kept = await page.evaluate(() => ({
     shown: document.getElementById('f-gross').value,

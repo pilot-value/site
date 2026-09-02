@@ -56,7 +56,10 @@ await page.evaluateOnNewDocument((scene, theme) => {
   /* ★ annual_total_orig は「毎月の支給の合計 × 12 ＋ 賞与」から作る。
      手で別の数字を置くと、画面上で内訳ドーナツの合計と時給の分子が食い違って
      見え、レイアウトの検分ができなくなる（DB 側の pv_annual_total と同じ組み方）。
-     flight_variable_pay は other_allowance の内訳なので足さない。 */
+     flight_variable_pay は other_allowance の内訳なので足さない。
+     ★2026-09-02、サーバ側にだけ例外が1つ増えた ── 組合が総支給の外で払った行
+       （union_outside_gross が真）は、年収に組合の分を足す。ここの見本は
+       どれもその列を持たないので、今までどおりの組み方でよい。 */
   const mk = (y, m, over = {}) => {
     const r = Object.assign({
       airline: 'emirates', airline_other: null, position: 'cap', fleet: 'b777', job_role: null,
@@ -98,7 +101,7 @@ await page.evaluateOnNewDocument((scene, theme) => {
         net_pay_actual: null, ytd_taxable: null, deduction_total: null,
         duty_hours: null, night_hours: null, source: 'web'
       });
-      r.annual_total_orig = (54250 - 6000) * 12;   // サーバの pv_annual_total と同じ組み方
+      r.annual_total_orig = (54250 - 6000) * 12;   // サーバの pv_annual_total と同じ組み方（組合の例外は mk() の★）
       r.annual_total_jpy = Math.round(r.annual_total_orig * FX);
       r.annual_total_usd = Math.round(r.annual_total_orig * r.fx_to_usd);
       r.net_annual_jpy = Math.round(r.annual_total_jpy * 0.99);

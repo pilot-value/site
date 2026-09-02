@@ -373,6 +373,12 @@ begin
                 年収カードが食い違う。 */
            case when nullif(r.gross_monthly, 0) is not null
                 then greatest(r.gross_monthly - coalesce(r.bonus_month, 0), 0)
+                     /* ★組合が直接払った分だけは総支給の外にある（2026-09-02）。
+                        会社の明細に印字されないので、足さないと分母が小さいまま
+                        ④役割手当だけが膨らみ、下の 1.02 倍の関所でこの行が
+                        まるごと集計から落ちる。pv_annual_total と同じ1行。 */
+                   + case when public.pv_union_outside_gross(r.pay_items)
+                          then coalesce(r.union_pay, 0) else 0 end
                 else coalesce(r.base_pay, 0)
                    + coalesce(r.guarantee_pay, 0)
                    + coalesce(r.hourly_rate, 0)

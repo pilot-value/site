@@ -106,11 +106,12 @@ ok(Number(nfn.c) === 1, `pv_annual_total は1本だけ（古い12引数版が残
    審査の手当（p_examiner_pay）・組合の手当（p_union_pay）・
    管理職の手当（p_management_pay）を末尾に足して19本になった。
    ★2026-08-27、その他の兼務・配属の手当（p_nonline_pay）を足して20本。
-   どれも default 付きなので、13本で呼んでいる下の検査はそのまま通る。 */
+   ★2026-09-02、組合の分が総支給の外か（p_union_outside_gross）を足して21本。
+     どれも default 付きなので、13本で呼んでいる下の検査はそのまま通る。 */
 const narg = await one(`select p.pronargs n from pg_proc p join pg_namespace nn on nn.oid=p.pronamespace
                          where nn.nspname='public' and p.proname='pv_annual_total'`);
-ok(Number(narg.n) === 20,
-   `pv_annual_total は20引数（保証給・教官・審査・組合・管理職・兼務まで受ける）→ ${narg.n}`);
+ok(Number(narg.n) === 21,
+   `pv_annual_total は21引数（保証給・教官・審査・組合・管理職・兼務＋組合の支給元まで受ける）→ ${narg.n}`);
 /* 保証給は基本給と足し上げる（別の列だが、年収では同じ「固定の支給」）。 */
 const gp = await one(`select pv_annual_total(null,20000,null,null,null,null,null,null,
                                              null,null,null,null,null,null,5000) v`);
@@ -407,6 +408,9 @@ ok(gs.housing_type === 'allowance', `住居の種類も残る（金額だけ聞�
 // 「そのうち何が固定で何が変動か」を別に書いてもらう形にした。
 // ★年換算は今までどおり総支給が正（pv_annual_total は総支給があれば内訳を見ない）。
 //   ＝二重計上は起きない。内訳は「支給構成の図」を描くためだけに残る。
+// ⚠️ 例外は組合の手当だけ（2026-09-02）。支給元が「組合」「その他」のときは、
+//    そのお金が会社の明細に印字されない＝本人が書いた総支給の中に**入っていない**ので、
+//    総支給の枝でも足す。判定は pv_union_outside_gross の1か所。下の▼組合の節で見る。
 await asUser(42);
 r = (await submit({ ...BASE, gross_monthly: 54250, airline: 'lufthansa', period_year: 2026, period_month: 7 })).r;
 ok(Number(r.annual_total_orig) === 651000, `内訳が付いてきても年換算は総支給が正 → ${r.annual_total_orig}`);
@@ -541,8 +545,10 @@ ok(exmB.examiner_pay === null
 
 /* ★組合・乗員代表（2026-08-26 その5）。教官・審査ともまた別の列で、
    pay_items.union も組み直しを生き延びること。
-   ★支給元が組合（union）でも、列にも年換算にも同じように入る
-     ── 条件つきなのは画面が総支給と突き合わせるときだけ。 */
+   ★支給元が「組合」なら年換算に足す（2026-09-02 に直した本体）。
+     組合が直接払ったお金は会社の明細に印字されない＝本人が書いた総支給の中に無い。
+     ここを足さないと、乗員代表の年収が組合払いのぶんだけ丸ごと消える
+     （本番で実際に1件起きた。年 ¥1,777万 が ¥931万 として保存されていた）。 */
 await asUser(53);
 r = (await submit({ ...BASE, gross_monthly: 54250,
                     instructor_pay: 600, examiner_pay: 4000, union_pay: 3000,
@@ -563,8 +569,10 @@ ok(uni.pay_items && uni.pay_items.union
    && uni.pay_items.union.source === 'union'
    && uni.pay_items.examiner && uni.pay_items.instructor,
   `★組合の中身が組み直しを生き延びる（教官・審査も残ったまま） → ${JSON.stringify(uni.pay_items.union)}`);
-ok(Number(r.annual_total_orig) === 651000,
-  `★総支給がある行では年換算が1円も動かない（組合の手当を入れても） → ${r.annual_total_orig}（期待 651000）`);
+ok(Number(r.annual_total_orig) === 687000,
+  `★支給元が組合なら、総支給がある行でも年換算に足す → ${r.annual_total_orig}（期待 687000 ＝ (54250+3000)×12）`);
+ok(Number(uni.gross_monthly) === 54250,
+  `★本人が書いた総支給は1円も書き換えない → ${uni.gross_monthly}`);
 /* ★組合だけ書いた人の pay_items が「空の殻」として捨てられないこと。 */
 await asUser(54);
 await submit({ ...BASE, gross_monthly: 54250,
@@ -574,10 +582,64 @@ await submit({ ...BASE, gross_monthly: 54250,
 const uniB = await one(`select * from pay_reports where airline='singapore-airlines' and period_month=5`);
 ok(uniB.pay_items && uniB.pay_items.union && uniB.pay_items.union.extra === 'none',
   `★組合だけ書いた人の pay_items が捨てられない → ${JSON.stringify(uniB.pay_items)}`);
+/* ★2026-09-02。上の月6（支給元＝組合）と対で読む。支給元が「会社」なら、
+   そのお金は総支給の中に既に入っている＝足すと二重計上になる。 */
+await asUser(59);
+r = (await submit({ ...BASE, gross_monthly: 54250, union_pay: 3000,
+                    pay_items: { v: 1, union: { days: 12, extra: 'yes', source: 'airline', amount: 3000 } },
+                    job_roles: ['line', 'union'],
+                    airline: 'singapore-airlines', period_year: 2026, period_month: 4 })).r;
+ok(Number(r.annual_total_orig) === 651000,
+  `★支給元が会社なら年換算は動かない（総支給の中にある） → ${r.annual_total_orig}（期待 651000）`);
+/* ★支給元が空のまま（聞いたが答えていない）のときも足さない。
+   分からないほうに倒すと年収を盛る。盛らない側へ倒すのがこのサイトの約束。 */
+await asUser(60);
+r = (await submit({ ...BASE, gross_monthly: 54250, union_pay: 3000,
+                    pay_items: { v: 1, union: { days: 12, extra: 'yes', source: null, amount: 3000 } },
+                    job_roles: ['line', 'union'],
+                    airline: 'singapore-airlines', period_year: 2026, period_month: 9 })).r;
+ok(Number(r.annual_total_orig) === 651000,
+  `★支給元が空なら足さない（盛らない側に倒す） → ${r.annual_total_orig}（期待 651000）`);
 /* ★内訳だけで出した行では、組合の手当も年換算に効く（総支給が無い枝）。 */
 const uc = await one(`select pv_annual_total(null,20000,null,null,null,null,null,null,
                                              null,null,null,null,null,null,null,null,null,1000) v`);
 ok(Number(uc.v) === 252000, `基本給20,000＋組合1,000 → ${uc.v}（期待 252000）`);
+
+/* ★「組合の分が総支給の外にあるか」の規則そのもの（2026-09-02）。
+   この判定は pv_union_outside_gross の1か所にしか無い（画面・預かり・本棚・
+   DEEP PAY が全部ここを呼ぶ）ので、表の形で固定しておく。
+   ⚠️ **外は「組合」だけ**（2026-09-02 オーナー判断）。その他を選ぶ人もお金は
+      会社から出ているので中。ここを true に戻すと総支給に二重で足して年収を盛る。 */
+const UOG = [
+  [`'{"union":{"extra":"yes","source":"union"}}'`,    true,  '支給元＝組合 → 外'],
+  [`'{"union":{"extra":"yes","source":"other"}}'`,    false, '★支給元＝その他 → 中（お金は会社から出ている）'],
+  [`'{"union":{"extra":"yes","source":"airline"}}'`,  false, '支給元＝会社 → 中'],
+  [`'{"union":{"extra":"yes","source":"both"}}'`,     false, '支給元＝両方 → 中（会社の分が総支給に入っている）'],
+  [`'{"union":{"extra":"yes","source":""}}'`,         false, '支給元が空 → 中（盛らない側に倒す）'],
+  [`'{"union":{"extra":"yes"}}'`,                     false, '支給元のキーが無い → 中'],
+  [`'{"union":{"extra":"none","source":"union"}}'`,   false, '別途の支給が無い → 中'],
+  [`'{"union":{"extra":"unknown","source":"union"}}'`, false, '分からない → 中'],
+  [`'{}'`,                                            false, '組合の節そのものが無い → 中'],
+  ['null',                                             false, 'pay_items が無い行 → 中'],
+];
+for (const [js, want, why] of UOG) {
+  const u = await one(`select public.pv_union_outside_gross(${js}::jsonb) v`);
+  ok(u.v === want, `${why} → ${u.v}`);
+}
+/* ★関数を直に叩いて、21番目の引数が総支給の枝にだけ効くことを固定する。 */
+const uo1 = await one(`select pv_annual_total(54250,null,null,null,null,null,null,null,
+                                              null,null,null,null,null,null,null,null,null,
+                                              3000,null,null,true) v`);
+ok(Number(uo1.v) === 687000, `総支給54,250＋組合3,000（外）→ ${uo1.v}（期待 687000）`);
+const uo2 = await one(`select pv_annual_total(54250,null,null,null,null,null,null,null,
+                                              null,null,null,null,null,null,null,null,null,
+                                              3000,null,null,false) v`);
+ok(Number(uo2.v) === 651000, `総支給54,250＋組合3,000（中）→ ${uo2.v}（期待 651000）`);
+/* ★既定値。20引数までで呼んでいる古い場所は今までどおり動く。 */
+const uo3 = await one(`select pv_annual_total(54250,null,null,null,null,null,null,null,
+                                              null,null,null,null,null,null,null,null,null,
+                                              3000) v`);
+ok(Number(uo3.v) === 651000, `21番目を省くと今までどおり → ${uo3.v}（期待 651000）`);
 
 /* ★管理・マネジメント（2026-08-26 その6）。役割ごとのモジュールの4本目。
    ここでは4つ全部を同時に出して、どれもが自分の列に残り、
@@ -603,8 +665,10 @@ ok(mgt.pay_items && mgt.pay_items.management
    && mgt.pay_items.management.method === 'monthly'
    && mgt.pay_items.union && mgt.pay_items.examiner && mgt.pay_items.instructor,
   `★管理職の中身が組み直しを生き延びる（ほかの3つも残ったまま） → ${JSON.stringify(mgt.pay_items.management)}`);
-ok(Number(r.annual_total_orig) === 651000,
-  `★総支給がある行では年換算が1円も動かない（管理職の手当を入れても） → ${r.annual_total_orig}（期待 651000）`);
+/* ★動いてよいのは組合の 3,000（支給元＝組合）だけ。651,000 + 3,000×12 = 687,000。
+   教官600・審査4,000・管理職50,000 のどれか1つでも足し込まれていたら、この数にならない。 */
+ok(Number(r.annual_total_orig) === 687000,
+  `★総支給がある行で動くのは組合の分だけ（管理職の手当は1円も足さない） → ${r.annual_total_orig}（期待 687000）`);
 /* ★管理職だけ書いた人の pay_items が「空の殻」として捨てられないこと。
    日数だけ書いて終える人が居る（Block Hours が少ない月の理由になる）。 */
 await asUser(56);
@@ -644,8 +708,10 @@ ok(nol.pay_items && nol.pay_items.nonline
    && nol.pay_items.nonline.extra === 'separate'
    && nol.pay_items.management && nol.pay_items.union && nol.pay_items.examiner && nol.pay_items.instructor,
   `★兼務・配属の中身が組み直しを生き延びる（ほかの4つも残ったまま） → ${JSON.stringify(nol.pay_items.nonline)}`);
-ok(Number(r.annual_total_orig) === 651000,
-  `★総支給がある行では年換算が1円も動かない（兼務・配属の手当を入れても） → ${r.annual_total_orig}（期待 651000）`);
+/* ★ここでも動いてよいのは組合の 3,000 だけ。兼務30,000・管理職50,000 は
+   支給元を聞いていない＝総支給の中にあるものとして扱う（オーナー判断 2026-09-02）。 */
+ok(Number(r.annual_total_orig) === 687000,
+  `★総支給がある行で動くのは組合の分だけ（兼務・配属の手当は1円も足さない） → ${r.annual_total_orig}（期待 687000）`);
 /* ★分野だけ選んで終える人が居る（追加報酬が無いのは普通のこと）。
    「空の殻」として捨てられないこと。 */
 await asUser(58);
@@ -1081,6 +1147,20 @@ const tooOld = (await one(`select claim_pending_report($1) r`, [old.claim_token]
 ok(tooOld.ok === false, '30日を過ぎた預かりは移さない');
 ok(Number((await one(`select count(*) n from pay_reports_pending where claim_token=$1`,
   [old.claim_token])).n) === 1, '移さなくても行は消さない（データとしては数える）');
+
+// ── オーナーが Supabase に貼る検算そのもの ──────────────────
+/* db/pay-reports.verify.sql は「本番に貼って目で見る」ための1枚。
+   ここで流しておかないと、関数を増やしたのに検算だけ古いまま＝
+   オーナーの画面には ✅ が並ぶのに実際は確かめていない、という形になる。
+   （db/test-conditions.mjs が同じことをしている） */
+console.log('\n▼ db/pay-reports.verify.sql（オーナーが貼る検算）');
+{
+  const vr = await rows(read('db/pay-reports.verify.sql'));
+  const bad = vr.filter((x) => x['判定'] !== '✅');
+  ok(vr.length === 16, `検算は16行（増やしたら CLAUDE.md の行数も直す）→ ${vr.length}`);
+  ok(bad.length === 0, '★検算が16行すべて ✅',
+     bad.map((x) => `${x['検査']}: 実際 ${x['実際']} / 期待 ${x['期待']}`).join(' | '));
+}
 
 console.log(`\n══ ${pass} pass / ${fail} fail ══`);
 process.exit(fail ? 1 : 0);

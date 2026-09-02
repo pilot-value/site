@@ -3,10 +3,10 @@
 --
 -- pay-reports.sql の「8. 検算」は select が8本並んでいるが、Supabase の
 -- SQL Editor は最後の1文の結果しか表示しない。＝ 8-1〜8-7 が見えないまま
--- 「通った」と誤認できてしまう。ここでは10項目を1つの結果表にまとめ、
+-- 「通った」と誤認できてしまう。ここでは16項目を1つの結果表にまとめ、
 -- 期待値との一致を 判定 列で出す。スキーマを触るたびに流し直す。
 --
--- 期待：10行すべて 判定 = ✅
+-- 期待：16行すべて 判定 = ✅
 -- ════════════════════════════════════════════════════════════════
 
 with c as (
@@ -57,7 +57,32 @@ with c as (
                            null, null, null, null, null, null, 5000)           as c11,
     -- ★ 総支給がある行は内訳をひとつも見ない。保証給を足しても 651,000 のまま
     public.pv_annual_total(54250, 20000, 250, 75, 85, 3000, 'allowance', 10000,
-                           null, null, null, null, null, null, 5000)           as c12
+                           null, null, null, null, null, null, 5000)           as c12,
+    -- ★ 2026-09-02。組合の手当だけが「総支給の外」で払われることがある
+    --    （乗員代表。組合が直接払うので会社の明細に印字されない）。
+    --    最後の引数が真のときだけ、総支給の枝でも足す：12×(54250 + 3000) = 687,000
+    --    ⚠️ ここが 651000 と出たら、本番にまだ古い20引数版が残っていて
+    --       そちらが呼ばれている。db/pay-reports.sql を貼り直すこと。
+    public.pv_annual_total(54250, null, null, null, null, null, null, null,
+                           null, null, null, null, null, null, null, null, null,
+                           3000, null, null, true)                             as c13,
+    -- ★ 支給元が会社なら1円も動かない（総支給の中に既に入っている）。651,000 のまま
+    public.pv_annual_total(54250, null, null, null, null, null, null, null,
+                           null, null, null, null, null, null, null, null, null,
+                           3000, null, null, false)                            as c14,
+    -- ★ 2026-09-02。「総支給の外」と数えるのは支給元＝**組合のときだけ**。
+    --    会社・両方・その他・空はぜんぶ「中」（お金は会社から出ている）。
+    --    5つ試して「外」と出るのは1つだけ。
+    (select count(*) from (values ('airline'), ('union'), ('both'), ('other'), (''))
+                            v(s)
+      where public.pv_union_outside_gross(
+              jsonb_build_object('union',
+                jsonb_build_object('extra', 'yes', 'source', v.s))))           as c15,
+    -- ★ 2026-09-02。乗務1時間あたりは「飛んだことへの対価」で割る。
+    --    組合が総支給の外で払った分（月3,000）は分子から抜く：
+    --    (687,000 − 3,000×12) ÷ (12×50) = 1,085.00
+    --    ⚠️ ここで「関数が無い」と怒られたら db/pay-reports.sql を貼り直すこと。
+    public.pv_block_hour_usd(687000, 1, 50, 3000, true)                        as c16
 )
 select * from (
   select 1 as "#", '8-1 user_id/uid/email 列が無い'          as 検査,
@@ -85,5 +110,13 @@ select * from (
          case when c11 = 60000 then '✅' else '❌' end from c
   union all select 12, '8-9 総支給がある行は保証給でも動かない', c12::text, '651000',
          case when c12 = 651000 then '✅' else '❌' end from c
+  union all select 13, '8-10 組合払いは総支給に足す（乗員代表）', c13::text, '687000',
+         case when c13 = 687000 then '✅' else '❌' end from c
+  union all select 14, '8-10 会社払いの組合手当は動かさない',     c14::text, '651000',
+         case when c14 = 651000 then '✅' else '❌' end from c
+  union all select 15, '8-11 総支給の外は「組合」だけ（5つ中1つ）', c15::text, '1',
+         case when c15 = 1      then '✅' else '❌' end from c
+  union all select 16, '8-11 時間あたりは組合の分を分子から抜く',   c16::text, '1085.00',
+         case when c16 = 1085   then '✅' else '❌' end from c
 ) t
 order by "#";

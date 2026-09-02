@@ -109,12 +109,18 @@
 
   /* ── 1行ぶんの数字を作る ───────────────────────────────────
      分子は「サーバが数えた年額 − 賞与」÷12。画面で足し直さないので、
-     DB の集計（pay_benchmarks）と定義がずれない。 */
+     DB の集計（pay_benchmarks）と定義がずれない。
+     ★時間あたりの分子だけは「飛んだことへの対価」に絞る（2026-09-02）。
+       パーディアム（実費）に加えて、組合が総支給の外で払った分も抜く。
+       あれは乗務の対価ではなく、むしろ組合活動で**飛べていない**月に出るので、
+       抜かないと「時間あたりが倍」という嘘の数字になる。
+       サーバ側の pv_block_hour_usd（db/pay-reports.sql）と同じ抜き方。 */
   function calc(r) {
     var fx = num(r.fx_to_jpy);
     var monthly = monthlyOrig(r);                                      // 原本通貨・月額
     var pd = num(r.per_diem) || 0;
-    var numer = (monthly != null) ? Math.max(0, monthly - pd) : null;  // パーディアムを抜く
+    var uo = r.union_outside_gross ? (num(r.union_pay) || 0) : 0;      // 総支給の外の組合分
+    var numer = (monthly != null) ? Math.max(0, monthly - pd - uo) : null;
     var bh = num(r.block_hours), dh = num(r.duty_hours);
     var jpy = function (v) { return (v != null && fx != null) ? v * fx : null; };
     return {
@@ -237,8 +243,10 @@
       examiner:  (num(r.examiner_pay) || 0) * fx,
       /* ★組合・乗員代表の手当。教官・審査と同じく独立した列。
          足し忘れると rest（灰色）に落ちて、入れた本人に嘘をつく。
-         ⚠️ 支給元が組合のこともあるので、総支給より大きくなりうる。
-            その行は下の rest < -1 で図ごと降りる（今までどおり）。 */
+         ⚠️ 支給元が組合のときは、この額が総支給の**外**にある（会社の明細に
+            印字されない）。2026-09-02 まで円ぜんぶを総支給にしていたので、
+            そういう行は「組合手当がほぼ全部」に見えるか、合計が総支給を超えて
+            図ごと消えていた。下で円ぜんぶのほうを広げて直している。 */
       union:     (num(r.union_pay) || 0) * fx,
       /* ★管理・マネジメントの手当。教官・審査・組合と同じく独立した列。
          足し忘れると rest（灰色）に落ちて、入れた本人に嘘をつく。
@@ -281,7 +289,12 @@
       vals.bonus = (num(r.bonus_month) || 0) * fx;
       var known = 0;
       for (var k in vals) if (k !== 'rest') known += vals[k];
-      var rest = gross * fx - known;
+      /* ★円ぜんぶ＝総支給＋「総支給の外で払われた組合の分」（2026-09-02）。
+         判定はサーバが付けてくる union_outside_gross（my_pay_reports が
+         pv_union_outside_gross で出す）。年収の式と同じ1つの判定を使う。
+         ここを総支給だけにすると、組合払いの人の図が壊れる。 */
+      var circle = gross + (r.union_outside_gross ? (num(r.union_pay) || 0) : 0);
+      var rest = circle * fx - known;
       // 色の付く分が1つも無い＝灰色100%は何も言わない。呼ぶ側の「見本」に任せる
       if (known <= 0) return null;
       // 手当の合計が総支給を超える行（別建て支給・入力違い）は正しい図を描けない

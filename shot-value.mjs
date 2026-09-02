@@ -17,6 +17,9 @@
                      ＝§3 の円グラフが「入っている分だけ色＋残りは灰色」で出る
             both   … ★2026-08-26 以降の既定。額面と内訳の両方が入っている
                      ＝§3 は内訳の色が全部出て、説明できない残りだけが灰色
+            union  … ★2026-09-02。組合が総支給の**外**で払っている人（乗員代表）
+                     ＝円ぜんぶが「総支給＋組合」に広がる。直す前はこの形の行で
+                       §3 の円が丸ごと消えていた（合計が総支給を超えるため）
             new    … many を ?new=1 で開く（文言だけ変わることの確認）
             gap    … 同社だが間隔があいている（2月と6月）＝§6 に「4ヶ月あいています」
             job    … 転職（ZIPAIR 3枚 → エミレーツ 1枚）＝§6 は差を出さず、
@@ -85,7 +88,10 @@ await page.evaluateOnNewDocument((scene, theme) => {
   /* ★ annual_total_orig は「毎月の支給の合計 × 12 ＋ 賞与」から作る。
      手で別の数字を置くと、内訳ドーナツの合計と時給の分子が画面上で食い違って
      見え、レイアウトの検分ができなくなる（DB の pv_annual_total と同じ組み方）。
-     flight_variable_pay は other_allowance の内訳なので足さない。 */
+     flight_variable_pay は other_allowance の内訳なので足さない。
+     ★2026-09-02、サーバ側にだけ例外が1つ増えた ── 組合が総支給の外で払った行
+       （union_outside_gross が真）は、年収に組合の分を足す。この見本で
+       その列を持つのは union シーンだけで、ほかは今までどおりの組み方でよい。 */
   const mk = (y, m, over = {}) => {
     const r = Object.assign({
       airline: 'emirates', airline_other: null, position: 'cap', fleet: 'b777',
@@ -210,7 +216,7 @@ await page.evaluateOnNewDocument((scene, theme) => {
         gross_monthly: 54250, guaranteed_hours: 75, bonus_annual: 130000,
         per_diem: 4200, housing_type: 'allowance', housing_amount: 12000, bonus_month: 6000
       }));
-      r.annual_total_orig = (54250 - 6000) * 12 + 130000;   // サーバの pv_annual_total と同じ組み方
+      r.annual_total_orig = (54250 - 6000) * 12 + 130000;   // サーバの pv_annual_total と同じ組み方（組合の例外は mk() の★）
       r.annual_total_jpy = Math.round(r.annual_total_orig * r.fx_to_jpy);
       r.annual_total_usd = Math.round(r.annual_total_orig * r.fx_to_usd);
       r.net_annual_jpy = Math.round(r.annual_total_jpy * 0.99);
@@ -222,7 +228,8 @@ await page.evaluateOnNewDocument((scene, theme) => {
        ＝§3 に「基本給が総支給に占める割合」の行が出る（partial が false）。
        灰色は「説明できない残り」だけ。ここが総支給いっぱいに膨らんでいたら、
        内訳を入れたのに拾えていない＝pay-viz の segments が壊れている。
-       ★年換算は総支給ベース。内訳を足さない（サーバの pv_annual_total と同じ）。 */
+       ★年換算は総支給ベース。内訳を足さない（サーバの pv_annual_total と同じ）。
+         組合手当も**会社が払っている**ので総支給の中＝足さない。外で払う形は union シーン。 */
     both: [(function () {
       const r = mk(2026, 6, Object.assign({}, THIN, {
         /* ★総支給は内訳の合計より少しだけ大きい数にしておく。小さいと
@@ -253,6 +260,33 @@ await page.evaluateOnNewDocument((scene, theme) => {
         housing_type: 'allowance', housing_amount: 12000,
       }));
       r.annual_total_orig = 66000 * 12 + 130000;
+      r.annual_total_jpy = Math.round(r.annual_total_orig * r.fx_to_jpy);
+      r.annual_total_usd = Math.round(r.annual_total_orig * r.fx_to_usd);
+      r.net_annual_jpy = Math.round(r.annual_total_jpy * 0.99);
+      r.usd_per_block_hour = +((r.annual_total_usd / 12) / r.block_hours).toFixed(1);
+      return r;
+    })()],
+    /* ★2026-09-02、組合が総支給の**外**で払っている人（乗員代表）。
+       会社の明細に印字されるのは gross_monthly だけで、組合の分はそこに載らない。
+       union_outside_gross（サーバの pv_union_outside_gross が付ける）が真なので、
+       円ぜんぶが「総支給＋組合」に広がり、会社ぶんと組合ぶんの2色で割れる。
+       ⚠️ この列を落とすと known（50,000）が円ぜんぶ（30,000）を超えて
+          rest < -1 ＝ §3 の円が丸ごと消える。直す前の画面がこれ。
+       ⚠️ 数字は全部でたらめ。実物の明細の額はこのリポジトリに1つも無い。 */
+    union: [(function () {
+      const r = mk(2026, 6, Object.assign({}, THIN, {
+        gross_monthly: 30000, guaranteed_hours: 75, bonus_annual: 130000, bonus_month: 0,
+        base_pay: 14000, command_pay: 3000,
+        // 総支給（30,000）より大きい。会社が払っていないから成り立つ額
+        union_pay: 26000, union_outside_gross: true,
+        flight_variable_pay: 4000, other_allowance: 2000,
+        per_diem: 1000, transport: 0,
+        housing_type: 'allowance', housing_amount: 0,
+        // 組合活動でその月ほとんど飛んでいない＝時給が跳ねることも1枚で見る
+        block_hours: 15.5, duty_hours: 42.0
+      }));
+      // 年換算も「総支給＋組合」×12＋賞与。サーバの pv_annual_total と同じ組み方
+      r.annual_total_orig = (30000 + 26000) * 12 + 130000;
       r.annual_total_jpy = Math.round(r.annual_total_orig * r.fx_to_jpy);
       r.annual_total_usd = Math.round(r.annual_total_orig * r.fx_to_usd);
       r.net_annual_jpy = Math.round(r.annual_total_jpy * 0.99);

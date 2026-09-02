@@ -1926,12 +1926,25 @@ function unionRead() {
 
 /* ★総支給と突き合わせるのは「会社から出ているぶん」だけ。
    組合から出ている額は会社の明細に載っていないので、足すと
-   「内訳の合計が総支給を超えています」が嘘で出る。 */
+   「内訳の合計が総支給を超えています」が嘘で出る。
+   ⚠️「その他」は会社から出ている（2026-09-02 オーナー判断）＝こちら側。 */
 function unionInGross() {
   if ($('s3-union').hidden) return 0;
   if ($('f-union-extra').value !== 'yes') return 0;
   const src = $('f-union-src').value;
-  return (src === 'airline' || src === 'both') ? 1 : 0;
+  return (src === 'airline' || src === 'both' || src === 'other') ? 1 : 0;
+}
+
+/* ★逆に「総支給の外で払われている」ぶん（2026-09-02）。年収に足すのはこれだけ。
+   サーバの pv_union_outside_gross（db/pay-reports.sql 4章）と同じ規則にする。
+   ⚠️ 外は**組合だけ**。会社・両方・その他はぜんぶ会社から出ているので足さない。
+   ⚠️ unionInGross() の裏返しではない。支給元が**空のまま**のときは、どちらも 0
+      に倒す（あちらは注意を出さない側、こちらは足さない側）。年収は足すと
+      盛る方向に効くので、分からないときに足してはいけない。 */
+function unionOutsideGross() {
+  if ($('s3-union').hidden) return 0;
+  if ($('f-union-extra').value !== 'yes') return 0;
+  return $('f-union-src').value === 'union' ? 1 : 0;
 }
 
 function unionSync() {
@@ -2270,7 +2283,12 @@ function annualTotal() {
      （coalesce の第1引数）ので、画面とサーバで同じ数になる。 */
   /* ★総支給は「明細のとおり」なので、ボーナスが出た月はそれが入っている。
      ×12 する前に、その月に出たボーナスだけ外す（2026-08-13 オーナー指摘）。 */
-  const monthly = Math.max(0, num('f-gross') - num('f-bonus-mo'));
+  /* ★例外は組合が直接払ったぶんだけ（2026-09-02）。会社の明細に印字されない＝
+     本人が書いた総支給の中に無いので、ここで足さないと年収がその額のぶん
+     丸ごと落ちる。サーバも同じ1行を持っている（p_union_outside_gross）。 */
+  const gross = num('f-gross');
+  const monthly = Math.max(0, gross - num('f-bonus-mo'))
+                + (gross > 0 && unionOutsideGross() ? num('f-union-pay') : 0);
   return monthly * 12 + num('f-bonus') + num('f-profit');
 }
 

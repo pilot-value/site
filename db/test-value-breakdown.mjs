@@ -148,6 +148,39 @@ console.log('\n④ 手当の合計が総支給を超える行（別建て支給�
      '住宅手当が総支給を超える行も同じ');
 }
 
+// ── ④-b 組合が総支給の外で払われている行 ──────────────────
+console.log('\n④-b 組合が総支給の外で払われている行（2026-09-02）');
+{
+  /* 本番で実際に起きた形。乗員代表で、会社の明細に印字された総支給より
+     組合から直接受け取った額のほうが大きい月がある。
+     この行の図は 2026-09-01 まで**まるごと消えていた**（④の枝に落ちていた）。
+     組合が総支給の外なら円ぜんぶを「総支給＋組合」にする。
+     判定は自分でせず、サーバが付けてくる union_outside_gross をそのまま読む
+     （pv_union_outside_gross が出す。年収の式と同じ1つの判定）。 */
+  const out = V.segments(mk({ gross_monthly: 300000, union_pay: 700000,
+                              union_outside_gross: true }));
+  ok(out !== null, '★ 組合が外なら図が消えない（消えていたのがこの件の症状）');
+  ok(out && near(out.total, 1000000),
+     '★ 円ぜんぶは 総支給300,000 ＋ 組合700,000', String(out && out.total));
+  ok(out && val(out, 'union') === 700000,
+     '組合のスライスは受け取った額そのまま', String(out && val(out, 'union')));
+  ok(out && val(out, 'rest') === 300000,
+     '★ 灰色は総支給のうち説明できていない分だけ（組合を吸わない）',
+     String(out && val(out, 'rest')));
+
+  /* ★支給元が会社（＝総支給の中）の行は今までどおり。ここが変わると
+     会社払いの人の図が黙って大きくなる＝二重計上した図になる。 */
+  ok(V.segments(mk({ gross_monthly: 300000, union_pay: 700000,
+                     union_outside_gross: false })) === null,
+     '★ 支給元が会社なら今までどおり（総支給を超える行は図を出さない）');
+  ok(V.segments(mk({ gross_monthly: 300000, union_pay: 700000 })) === null,
+     '★ 列そのものが無い古い行も今までどおり（undefined は足さない側）');
+  const inn = V.segments(mk({ gross_monthly: 1000000, union_pay: 700000,
+                              union_outside_gross: false }));
+  ok(inn && near(inn.total, 1000000),
+     '会社払いの行の円ぜんぶは総支給のまま', String(inn && inn.total));
+}
+
 // ── ⑤ ぴったり説明しきった行に灰色を生やさない ────────────
 console.log('\n⑤ 端数の灰色を出さない（1円の遊び）');
 {

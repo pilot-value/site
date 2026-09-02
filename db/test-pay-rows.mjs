@@ -783,10 +783,22 @@ console.log('\n▼ 12. ★預かりの年換算が、本棚に入れたときと
                                             p: { gross_monthly: 15000, base_pay: 9000, instructor_pay: 600 } },
     { m: 3,  a: A_CROSS2, label: '★審査の手当（内訳だけ）',
                                             p: { base_pay: 9000, examiner_pay: 400 } },
-    /* ★組合の手当。支給元が組合でも、列にも年換算にも同じように入る
-       （条件つきなのは画面が総支給と突き合わせるときだけ）。 */
+    /* ★組合の手当。内訳だけの行では今までどおり無条件に足す。 */
     { m: 4,  a: A_CROSS2, label: '★組合の手当（内訳だけ）',
                                             p: { base_pay: 9000, union_pay: 1000 } },
+    /* ★組合だけは総支給がある行でも効く（2026-09-02）。組合が直接払ったお金は
+       会社の明細に印字されない＝本人が書いた総支給の中に無いため。
+       ⚠️ 預かりと本棚で判定の書き方が違う（本棚は検品済みの v_items、預かりは
+          payload を直に読む）。ここが2つとも pv_union_outside_gross を呼んでいる
+          ことを、この2件が1円まで突き合わせて確かめる。 */
+    { m: 11, a: A_CROSS2, label: '★組合の手当（総支給あり・支給元＝組合＝効く側）',
+                                            p: { gross_monthly: 15000, union_pay: 1000,
+                                                 pay_items: { v: 1, union: { days: 5, extra: 'yes',
+                                                              source: 'union', amount: 1000 } } } },
+    { m: 12, a: A_CROSS2, label: '★組合の手当（総支給あり・支給元＝会社＝効かない側）',
+                                            p: { gross_monthly: 15000, union_pay: 1000,
+                                                 pay_items: { v: 1, union: { days: 5, extra: 'yes',
+                                                              source: 'airline', amount: 1000 } } } },
     /* ★管理・マネジメントの手当（2026-08-26 その6）。組合と違い、SQL 側は
        支給元の条件を持たない（条件つきなのは画面の突き合わせだけ）。 */
     { m: 6,  a: A_CROSS2, label: '★管理職の手当（内訳だけ）',
@@ -841,6 +853,17 @@ console.log('\n▼ 12. ★預かりの年換算が、本棚に入れたときと
     ok(cmp.a === cmp.b, `　${c.label}（内訳の割合も一致）`,
        `預かり ${cmp.a} ≠ 本棚 ${cmp.b}`);
   }
+  /* ★上の2件（月11・月12）は payload が支給元しか違わない。両方が同じ額のままだと
+     「1円まで一致」は通るのに直っていないので、差そのものも見る。
+     組合1,000×12 = 12,000（原本通貨）ぶんだけ月11 が大きいこと。 */
+  const uog = await one(
+    `select (select annual_total_orig from pay_reports where airline=$1 and period_month=11) a,
+            (select annual_total_orig from pay_reports where airline=$1 and period_month=12) b`,
+    [A_CROSS2]);
+  ok(Number(uog.a) - Number(uog.b) === 12000,
+     '★支給元が組合の行だけ、総支給があっても年換算が組合の分だけ大きい',
+     `組合払い ${uog.a} − 会社払い ${uog.b}（期待 12000 差）`);
+
   const noFx = (await one(`select pv_pending_usd($1::jsonb) v`, [JSON.stringify(
     { ...BASE, currency: 'ZZZ', airline: A_CROSS, position: 'cap', fleet: 'b777',
       period_year: YEAR, period_month: 1, gross_monthly: 15000 })])).v;
