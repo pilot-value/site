@@ -306,6 +306,9 @@
          「入れていない」と言うことになる。内訳の行の合計にはボーナスが
          入っていないので、あちらで足すと円の合計が総支給を超える。 */
     var partial = false;
+    /* 総支給1本だけで、色の付く手当が1つも無い行（＝かんたん入力で出した人・
+       明細の読み取りに失敗した人）。円は描くが、灰色1色になる。 */
+    var noBreakdown = false;
     var gross = num(r.gross_monthly);
     // 総支給の外で組合が払った分（円）。上の union に含まれている＝円ぜんぶにも足す
     var outsideGross = unionOutsideJpy(r);
@@ -325,8 +328,14 @@
          ⚠️ ここを触ったら「基本給が総支給に占める割合」の分母（呼ぶ側が
             outsideGross を引いている）も必ず一緒に確かめる。 */
       var rest = gross * fx + outsideGross - known;
-      // 色の付く分が1つも無い＝灰色100%は何も言わない。呼ぶ側の「見本」に任せる
-      if (known <= 0) return null;
+      /* ★色の付く分が1つも無い行でも円を出す（2026-09-02・オーナー指示）。
+         前はここで図ごと降ろし、呼ぶ側が**他人の割合の見本**をぼかして出していた。
+         給与を出してくれた人の画面に、自分の数字が1つも無い図が並ぶほうが悪い。
+         灰色1色でも、真ん中には本人のその月の額が出て、「まだ分かれていない」と
+         いう事実を言っている。
+         ⚠️ 呼ぶ側は noBreakdown を見て「手当ごとに入れると分かれる」の1行を
+            必ず添えること（灰色1色を置きっぱなしにしない）。 */
+      noBreakdown = (known <= 0);
       // 手当の合計が総支給を超える行（別建て支給・入力違い）は正しい図を描けない
       if (rest < -1) return null;
       // ★1円の遊び。各値は原本通貨 × fx なので端数が出る。ぴったり説明しきった
@@ -341,14 +350,16 @@
     /* outsideGross ＝ total の**内数**。「総支給に占める割合」を出す側は
        total からこれを引いて分母を総支給に戻す（my-value.js の mv-ratio）。 */
     return (total > 0)
-      ? { segs: segs, total: total, vals: vals, partial: partial, outsideGross: outsideGross }
+      ? { segs: segs, total: total, vals: vals, partial: partial,
+          outsideGross: outsideGross, noBreakdown: noBreakdown }
       : null;
   }
 
   /* ── ドーナツ（salary-leveling.js の stroke-dasharray 実装を流用）──
      o.title  見出し
      o.name   {base:'基本給', command:…, flight:…, other:…, housing:…, transport:…, perdiem:…}
-     o.notes  {data:'※実額です', perDiem:'※パーディアムは…', housing:'※社宅は…'} */
+     o.notes  {data:'※実額です', perDiem:'※パーディアムは…', housing:'※社宅は…',
+               noBreakdown:'※手当ごとに入れると分かれます…'} */
   function donut(r, o) {
     o = o || {};
     var notes = o.notes || {};
@@ -366,6 +377,9 @@
     if (unionOutsideJpy(r) > 0 && notes.unionOut) ns.push(notes.unionOut);
     if (r.housing_type && r.housing_type !== 'allowance' && num(r.housing_amount) && notes.housing)
       ns.push(notes.housing);
+    /* ★灰色1色の円（総支給1本だけの行）。何が足りないのかをここで1行だけ言う。
+       言わないと「これで全部だ」と読まれる。 */
+    if (s.noBreakdown && notes.noBreakdown) ns.push(notes.noBreakdown);
 
     return donutFromSegs(s, { title: o.title, name: o.name, notes: ns });
   }

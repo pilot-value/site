@@ -78,6 +78,9 @@
            「どの項目にも入れていない分」であって「内訳が無い」ではない。 */
       segBonus: '今月の賞与', segRest: 'どの項目にも入れていない分',
       housingNote: '※ 社宅（現物支給）は現金ではないので内訳に入れていません。',
+      /* ★灰色1色の円（総支給1本だけの月）に添える1行。この下に
+         「今月ぶんを追加する →」の入口が既にあるので、ここは1行だけでよい。 */
+      restOnly: '※ 手当ごとに分けて入れると、この灰色が項目ごとに分かれます。明細を読み取ると自動で入ります。',
       /* ★組合が総支給の外で払った分も、受け取った額としてこの円に入れている。
          会社の明細には載らない額なので、その1点だけ断る（2026-09-02）。 */
       unionOutNote: '※ 組合から別に受け取った分は、会社の明細には印字されません。受け取った額としてこの円に入れています。',
@@ -133,6 +136,7 @@
       /* ★The two below only appear on a row filed as one gross figure (see segments() in pay-viz.js). */
       segBonus: 'Bonus this month', segRest: 'Not itemised',
       housingNote: '※ Company-provided housing is not cash, so it is left out of the breakdown.',
+      restOnly: '※ Enter your pay allowance by allowance and this grey circle splits into items. Reading a payslip fills it in automatically.',
       unionOutNote: '※ Money your union pays you directly is not printed on the company payslip. It is included here as pay you received.',
       cmpTitle: 'Versus the median for your airline, fleet and seat',
       // 負のとき「-8% below the median」は二重否定になる。絶対値で言う。
@@ -198,7 +202,7 @@
     return V.donut(r, {
       title: T.breakdown,
       name: SEGNAME,
-      notes: { housing: T.housingNote, unionOut: T.unionOutNote }
+      notes: { housing: T.housingNote, unionOut: T.unionOutNote, noBreakdown: T.restOnly }
     });
   }
 

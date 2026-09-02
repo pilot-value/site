@@ -5,7 +5,7 @@
    ★ ここで使う数字は全部でたらめ。実物の明細の数値はこのリポジトリに1つも無い。
 
    実行: node shot-tracker.mjs <scene> <lang> <theme>
-     scene: empty | one | many | bench
+     scene: empty | one | many | bench | hand | simple
             hand … かんたん入力（額面1本＋パーディアム＋住宅手当＋今月の賞与）。
                    内訳の節が「入っている分だけ色＋残りは灰色」で出ることの確認
      lang : ja | en
@@ -102,6 +102,26 @@ await page.evaluateOnNewDocument((scene, theme) => {
         duty_hours: null, night_hours: null, source: 'web'
       });
       r.annual_total_orig = (54250 - 6000) * 12;   // サーバの pv_annual_total と同じ組み方（組合の例外は mk() の★）
+      r.annual_total_jpy = Math.round(r.annual_total_orig * FX);
+      r.annual_total_usd = Math.round(r.annual_total_orig * r.fx_to_usd);
+      r.net_annual_jpy = Math.round(r.annual_total_jpy * 0.99);
+      r.usd_per_block_hour = +((r.annual_total_usd / 12) / r.block_hours).toFixed(1);
+      return r;
+    })()],
+    /* 総支給1本だけの月（かんたん入力で手当を1つも入れなかった人）。
+       ★2026-09-02、ここも灰色1色の円を出すようになった（オーナー指示）。
+         円の下に「手当ごとに入れると分かれます」の1行が出ていること、
+         その下の「今月ぶんを追加する →」と重なって見えないことを、この1枚で見る。 */
+    simple: [(function () {
+      const r = mk(2026, 6, {
+        gross_monthly: 54250, bonus_month: null,
+        base_pay: null, command_pay: null, other_allowance: null,
+        flight_variable_pay: null, transport: null, per_diem: null,
+        housing_amount: null, housing_type: null,
+        net_pay_actual: null, ytd_taxable: null, deduction_total: null,
+        duty_hours: null, night_hours: null, source: 'web'
+      });
+      r.annual_total_orig = 54250 * 12;   // サーバの pv_annual_total と同じ組み方
       r.annual_total_jpy = Math.round(r.annual_total_orig * FX);
       r.annual_total_usd = Math.round(r.annual_total_orig * r.fx_to_usd);
       r.net_annual_jpy = Math.round(r.annual_total_jpy * 0.99);

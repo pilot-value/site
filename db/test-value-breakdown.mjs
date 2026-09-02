@@ -23,8 +23,11 @@
    ③ **内訳のある行（写真・くわしく入れる）は1円も変わってはいけない。**
       新しい枝が古い行に漏れると、既に見えている図が黙って変わる。
 
-   ④ 灰色が円の全部になる行（総支給しか無い人）は、図を出さずに
-      見本のまま。灰色100%の円は何も言わないうえ、何かを言っているように見える。
+   ④ 灰色が円の全部になる行（総支給1本だけ出した人）にも**図を出す**
+      （2026-09-02・オーナー指示で反転）。前は見本をぼかして出していたが、
+      給与を出してくれた人の画面に自分の数字が1つも無い図が並ぶほうが悪い。
+      灰色1色でも真ん中には本人の額が出る。ただし「手当ごとに入れると分かれる」の
+      1行を必ず添えること（noBreakdown → notes.noBreakdown）。
 
    ⑤ 手当の合計が総支給を超える行（別建て支給・入力違い）は
       正しい図が描けない。負のスライスを出すくらいなら出さない。
@@ -127,16 +130,38 @@ console.log('\n② かんたん入力（総支給1本）— 入っている分�
   ok(s.segs[s.segs.length - 1].k === 'rest', '灰色が最後に来る（描き順）', keys(s));
 }
 
-// ── ③ 灰色しか無い行は図を出さない ────────────────────────
-console.log('\n③ 総支給しか入っていない行は見本のまま');
+// ── ③ 灰色しか無い行にも図を出す（2026-09-02 に反転）──────
+console.log('\n③ 総支給しか入っていない行にも円を出す');
 {
-  ok(V.segments(mk({ gross_monthly: 800000 })) === null,
-     '★ 灰色100%の円は出さない（何も言っていないのに何か言っているように見える）');
-  ok(V.segments(mk({ gross_monthly: 800000, per_diem: 0, bonus_month: 0,
-                     housing_type: 'none', housing_amount: 0 })) === null,
+  /* オーナー指示：「給与提出してくれた人にはマイレポートの支給構成の円グラフを出す」。
+     本番に1件、かんたん入力で総支給1本だけ出した人がいて、その人だけ
+     支給構成の節が**他人の割合の見本（ぼかし）**になっていた。 */
+  const s = V.segments(mk({ gross_monthly: 800000 }));
+  ok(s !== null, '★ 総支給1本だけの行でも図が返る（見本に落とさない）');
+  ok(s && keys(s) === 'rest', '灰色1色（どの項目にも入れていない分）', s ? keys(s) : '(null)');
+  ok(s && near(s.total, 800000), '円ぜんぶ＝その月の総支給', s ? String(s.total) : '');
+  ok(s && s.noBreakdown === true,
+     '★ noBreakdown が立つ（呼ぶ側はこれを見て「入れると分かれる」の1行を添える）');
+  ok(s && s.partial === true, '基本給は分かっていない＝割合の1行は出さない');
+
+  const z = V.segments(mk({ gross_monthly: 800000, per_diem: 0, bonus_month: 0,
+                            housing_type: 'none', housing_amount: 0 }));
+  ok(z && z.noBreakdown === true && keys(z) === 'rest',
      'パーディアム0・賞与0・住宅なしでも同じ（0 は「入れていない」と同じ扱い）');
-  ok(V.segments(mk({ gross_monthly: 800000, housing_type: 'company', housing_amount: 150000 })) === null,
-     '社宅（現物支給）だけの行も出さない（現金ではないので色が付かない）');
+
+  const h = V.segments(mk({ gross_monthly: 800000, housing_type: 'company', housing_amount: 150000 }));
+  ok(h && h.noBreakdown === true && keys(h) === 'rest',
+     '社宅（現物支給）だけの行も灰色1色（現金ではないので色が付かない）');
+  ok(h && near(h.total, 800000), '★ 現物の社宅を円に足していない', h ? String(h.total) : '');
+
+  /* ★ここは今までどおり空のまま。金額が1つも無い行に円は描けない。 */
+  ok(V.segments(mk({ per_diem: 0 })) === null, '総支給も手当も無い行は今までどおり図なし');
+  ok(V.segments(mk({ gross_monthly: 0 })) === null, '総支給が0の行も図なし（0円の円は描けない）');
+
+  /* ★内訳を1つでも書いた行では noBreakdown が立たない＝
+     「手当ごとに入れると分かれます」の1行が、既に分けて書いた人に出ない。 */
+  const one = V.segments(mk({ gross_monthly: 800000, per_diem: 60000 }));
+  ok(one && one.noBreakdown === false, '★ 手当を1つでも書いた行では noBreakdown が立たない');
 }
 
 // ── ④ 手当が総支給を超える行 ──────────────────────────────
@@ -263,8 +288,17 @@ console.log('\n⑦ donut()（画面に出る形）');
   ok(/<svg/.test(html), '★ かんたん入力の行でも図の HTML が返る');
   ok(html.includes('内訳を入れていない分') && html.includes('今月の賞与'), '凡例に新しい2語が出る');
   ok(/63%/.test(html), '灰色の割合が出る（500,000 / 800,000 = 62.5%）');
-  ok(V.donut(mk({ gross_monthly: 800000 }), { title: 'x', name: nm }) === '',
-     '灰色しか無い行は空を返す（呼ぶ側が見本を出す）');
+  /* ★2026-09-02、灰色1色の行も図を返すようになった。 */
+  const bare = V.donut(mk({ gross_monthly: 800000 }), { title: 'x', name: nm,
+                       notes: { noBreakdown: '※ 手当ごとに分けて入れると、この灰色が項目ごとに分かれます。' } });
+  ok(/<svg/.test(bare), '★ 灰色しか無い行でも図の HTML が返る（見本に落とさない）');
+  ok(bare.includes('100%'), '灰色が100%と出る');
+  ok(bare.includes('この灰色が項目ごとに分かれます'),
+     '★ 何が足りないのかの1行が付く（付けないと「これで全部」と読まれる）');
+  ok(!V.donut(mk({ gross_monthly: 800000 }), { title: 'x', name: nm }).includes('項目ごとに分かれます'),
+     '断りを渡さなければ出ない（文言は画面側が持つ）');
+  ok(V.donut(mk({ per_diem: 0 }), { title: 'x', name: nm }) === '',
+     '金額が1つも無い行は今までどおり空を返す（呼ぶ側が見本を出す）');
 }
 
 // ── ⑧ 画面の文言が揃っているか ────────────────────────────
@@ -308,10 +342,10 @@ console.log('\n⑧ 名前の対応表（my-value.js / pay-tracker.js の両方�
        && src.includes("segNonline: 'その他の兼務・配属手当'")
        && /segNonline: 'Other \/ non-line assignment'/.test(src),
        `${f}: ★ 兼務・配属の語がある（無いと凡例が undefined になる）`);
-    /* ★組合が総支給の外で払った分は円に入らない（2026-09-02）。黙って落とすと
-       「自分が書いた額が消えた」と読める。donut() は notes.unionOut を渡された
-       ときだけ断りを刷るので、**2画面とも渡していること**をここで見張る。
-       片方だけ直すと、その画面だけ無言で額が消える。 */
+    /* ★組合が総支給の外で払った分も、受け取った額として円に入れている（2026-09-02）。
+       会社の明細には印字されない額なので、その1点だけ断る。donut() は
+       notes.unionOut を渡されたときだけ刷るので、**2画面とも渡していること**を
+       ここで見張る。片方だけ直すと、その画面だけ「明細と合わない円」になる。 */
     ok(/notes:\s*\{[^}]*unionOut:\s*T\.unionOutNote/.test(src),
        `${f}: ★ donut() に unionOut の断りを渡している（無いと円から消えた額が無言になる）`);
     /* ★「基本給が総支給に占める割合」の分母は円ぜんぶではなく**総支給**
@@ -323,7 +357,25 @@ console.log('\n⑧ 名前の対応表（my-value.js / pay-tracker.js の両方�
          `${f}: ★ 基本給の割合の分母から outsideGross を引いている`);
       ok(/mv-ratio"><b>' \+ basePc \+ '%/.test(src),
          `${f}: ★ 刷っているのは basePc（円ぜんぶで割った pc ではない）`);
+      /* ★灰色1色の行では「固定/変動/判別できない」の3本棒を出さない。
+         出すと「判別できない 100%」と刷るだけで、何も言っていない。
+         代わりに入口（pt-btn）を1つ置いて、Give & Get の Get 側にする。 */
+      ok(/if \(s && s\.noBreakdown\)[\s\S]{0,220}pt-btn/.test(src),
+         `${f}: ★ 灰色1色の行は「円＋入口」で返す（3本棒を刷らない）`);
+      /* ★見本（ぼかし）の道は残す。円そのものが描けない行はまだあるため
+         （その月の総支給が無い・レートが無い・手当の合計が総支給を大きく超える）。 */
+      ok(/if \(!dn\) return sec\(T\.breakdown, maskSample\(sampleBreakdown\(\), T\.noBd\)\)/.test(src),
+         `${f}: 円が描けない行の見本は残っている`);
     }
+    /* ★灰色1色の円（総支給1本だけの月）には「手当ごとに入れると分かれます」の
+       1行を必ず添える（2026-09-02）。添えないと、灰色100%の円が
+       「これで全部」に見える。2画面とも渡していることを見張る。 */
+    ok(/notes:\s*\{[^}]*noBreakdown:\s*T\.restOnly/.test(src),
+       `${f}: ★ donut() に noBreakdown の1行を渡している（無いと灰色100%が言い放しになる）`);
+    ok(src.includes('restOnly:') && src.includes('この灰色が項目ごとに分かれます'),
+       `${f}: restOnly の日本語がある`);
+    ok(/restOnly: '※ Enter your pay allowance by allowance and this grey circle splits/.test(src),
+       `${f}: restOnly の英語がある`);
     ok(src.includes('unionOutNote:') && src.includes('この円に入れています'),
        `${f}: 日本語の断りがある`);
     ok(/unionOutNote: '※ Money your union pays you directly/.test(src),

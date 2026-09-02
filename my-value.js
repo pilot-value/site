@@ -182,6 +182,9 @@
       breakdown: '支給構成',
       housingNote: '※ 社宅（現物支給）は現金ではないので内訳に入れていません。',
       noBd: '手当ごとに分けて入れると、この円グラフがあなたの数字になります。明細を読み取ると自動で分かれます。',
+      /* ★灰色1色の円（総支給1本だけの月）に添える1行。上の noBd は
+         **円そのものが描けない行**の見本に添える文で、宛先が違う。 */
+      restOnly: '※ 手当ごとに分けて入れると、この灰色が項目ごとに分かれます。明細を読み取ると自動で入ります。',
       /* 見本の札。★「サンプル」ではなく「見本」。本人の数字と1文字も似せない。 */
       sampleTag: '見本', sampleBtn: '匿名で給与を追加する →',
       segBase: '基本給', segGuarantee: '保証手当・職務手当', segCommand: '機長・役職手当',
@@ -389,6 +392,7 @@
       breakdown: 'How your pay is made up',
       housingNote: '※ Company-provided housing is not cash, so it is left out of the breakdown.',
       noBd: 'Enter your pay allowance by allowance and this chart becomes your own. Reading a payslip fills it in automatically.',
+      restOnly: '※ Enter your pay allowance by allowance and this grey circle splits into items. Reading a payslip fills it in automatically.',
       sampleTag: 'Sample', sampleBtn: 'Add pay anonymously →',
       segBase: 'Base pay', segGuarantee: 'Guarantee / duty',
       segCommand: 'Command / position', segInstructor: 'Instructor / training',
@@ -1167,14 +1171,23 @@
   function breakdown(r) {
     var dn = V.donut(r, {
       title: T.ym(r.period_year, r.period_month), name: SEGNAME,
-      notes: { housing: T.housingNote, unionOut: T.unionOutNote }
+      notes: { housing: T.housingNote, unionOut: T.unionOutNote, noBreakdown: T.restOnly }
     });
-    /* 内訳の数字が1つも無い行（＝かんたん入力で額面1本だけ出した人・
-       明細の読み取りに失敗した人）。空欄で終わらせず、見本をぼかして出す。 */
+    /* 円そのものが描けない行（＝その月の総支給が無い・レートが無い・手当の合計が
+       総支給を大きく超えている）。空欄で終わらせず、見本をぼかして出す。
+       ★総支給1本だけの行はここに落ちない（2026-09-02）。灰色1色でも本人の
+         数字が真ん中に出る円を描く＝給与を出した人には必ず円が出る。 */
     if (!dn) return sec(T.breakdown, maskSample(sampleBreakdown(), T.noBd));
 
     var body = dn;
     var s = V.segments(r);
+    /* ★灰色1色の円。固定/変動/判別できない の3本棒は「判別できない100%」に
+       なるだけで何も言わないので出さない。代わりに入口を1つ置く
+       （円の下の但し書き（restOnly）とセットで Give & Get の Get 側になる）。 */
+    if (s && s.noBreakdown) {
+      return sec(T.breakdown, dn +
+        '<a class="pt-btn" href="' + payHref() + '">' + esc(T.sampleBtn) + '</a>');
+    }
     var v = s ? s.vals : null;
     if (v) {
       /* ★保証給は毎月かならず出る下限＝固定。落とすと3本の合計が総支給に届かず、
