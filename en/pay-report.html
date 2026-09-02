@@ -1571,7 +1571,7 @@ async function sessionUserId() {
      now carries the code only, and pv-claim-pending.js also reads ?claim=. */
 const CLAIM_MAX_AGE = PVClaimPending.CLAIM_MAX_AGE;
 const readClaims    = () => PVClaimPending.read();
-const rememberClaim = (tok) => PVClaimPending.remember(tok);
+const rememberClaim = (tok, key) => PVClaimPending.remember(tok, key);
 const markPopped    = (tok) => PVClaimPending.markPopped(tok);
 
 /* ★Pull ?claim= out of the URL first, before anything asks whether a claim
@@ -3308,11 +3308,30 @@ async function submitPayReport() {
      ★Nothing comes back at hand-over — no pay, no benchmark. Return those and
        the result can be walked off with, and the reason to register is gone. */
   if (!(await sessionUserId())) {
+    /* ★Do not re-send the same airline and the same month from this device.
+         The button stays live after a successful hand-over (the sign-up box opens
+         directly above it, so it sits right where a thumb lands). On 2026-09-01 a
+         pilot on the English form sent the same month twice, 12 seconds apart, and
+         two rows landed in the holding table. The table folds them by ip_day_hash,
+         so the display looks fine while the counts quietly drift.
+       ★Just stop; the screen stays on the sign-up box. No refusal is shown —
+         from where they sit, nothing has changed: it is already held.
+       ★Another tab or another device is not stopped here. The server carries that
+         (the same check lives in db/pay-report-pending.sql). */
+    const dupKey = [airline,
+                    airline === 'other' ? String(val('f-airline-other') || '').toLowerCase() : '',
+                    val('f-year'), val('f-month')].join('|');
+    if (PVClaimPending.findKey(dupKey)) {
+      track('pay_report_pending_dup');
+      savePreset();
+      setSubmitBusy(false, _btnLabel);
+      return showGate(true);
+    }
     try {
       const { data, error } = await _sb.rpc('submit_pay_report_pending', { p: payload });
       if (error) throw error;
       if (!data || !data.ok || !data.claim_token) throw new Error('No claim token came back from the server');
-      rememberClaim(data.claim_token);
+      rememberClaim(data.claim_token, dupKey);
       /* Celebrate the moment it is all handed over. Only this one new hand-over
          pops; the result card after signing up stays quiet (_gatePopped). */
       markPopped(data.claim_token);

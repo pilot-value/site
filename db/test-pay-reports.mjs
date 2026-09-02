@@ -1164,6 +1164,93 @@ ok(tooOld.ok === false, '30日を過ぎた預かりは移さない');
 ok(Number((await one(`select count(*) n from pay_reports_pending where claim_token=$1`,
   [old.claim_token])).n) === 1, '移さなくても行は消さない（データとしては数える）');
 
+/* 11) 同じ回線から「同じ会社・同じ月」をもう一度出したら、弾かずに畳む
+   2026-09-01、英語版の給与フォームからカンタスのパイロットが12秒差で同じ月を2回出し、
+   置き場に2行できた。表示は ip_day_hash で畳まれるので**見た目は正常**なまま、
+   件数（stats.reports / db/usage.mjs）だけが静かに +1 されていた。
+   ★ここは本番でしか働かない枝（IP が取れないと通らない）なので、
+     この検査だけは x-forwarded-for を自分で立ててから流す。 */
+console.log('\n▼ 同じ会社・同じ月の二度押しを畳む');
+{
+  const IP = '203.0.113.7';
+  const withIp = async (ip) =>
+    db.query(`select set_config('request.headers', $1, false)`, [JSON.stringify({ 'x-forwarded-for': ip })]);
+  const iphOf = async (ip) => (await one(
+    `select encode(extensions.digest($1 || '::' || current_date::text,'sha256'),'hex') h`, [ip])).h;
+
+  await withIp(IP);
+  const iph = await iphOf(IP);
+  const nAt = async (extra) => Number((await one(
+    `select count(*) n from pay_reports_pending where ip_day_hash=$1 ${extra}`, [iph])).n);
+
+  const D = { ...PEND, airline: 'qantas', period_year: 2026, period_month: 7 };
+  await db.exec(`set role anon`);
+  const first = (await pend(D)).r;
+  // ★IP が読めない環境なら、この節は成り立たない。先に確かめて、黙って通さない。
+  await db.exec(`reset role`);
+  const ipWorks = (await one(`select ip_day_hash h from pay_reports_pending where claim_token=$1`,
+    [first.claim_token])).h === iph;
+  ok(ipWorks, 'PGlite が request.headers を受ける（受けないとこの節は本番を写せない）');
+
+  if (ipWorks) {
+    await db.exec(`set role anon`);
+    const again = (await pend({ ...D, gross_monthly: 61000 })).r;
+    await db.exec(`reset role`);
+    ok(again.ok === true && again.claim_token === first.claim_token,
+       '二度目は同じ預かり証が返る（新しく発行すると端末の1枚が宙に浮く）', again.claim_token);
+    ok(await nAt(`and airline='qantas' and period_month=7`) === 1,
+       '同じ会社・同じ月は1行のまま（件数が水増しされない）');
+    ok(Number((await one(`select (payload->>'gross_monthly')::int g from pay_reports_pending
+                          where claim_token=$1`, [first.claim_token])).g) === 61000,
+       '中身は後から出したほうで上書きされる（打ち間違いを直せる）');
+
+    // 月が違えば別の行（＝畳みすぎない）
+    await db.exec(`set role anon`);
+    const other = (await pend({ ...D, period_month: 8 })).r;
+    await db.exec(`reset role`);
+    ok(other.claim_token !== first.claim_token && await nAt(`and airline='qantas'`) === 2,
+       '月が違えば別の行として残る');
+
+    /* ★「一覧にない会社」は社名まで見る。ここが一番静かに壊れる ──
+       見ないと、同じ回線・同じ日の**別々の会社**2件が黙って融合し、
+       片方の payload が失われる（いま直している事故と同じ質の損失）。 */
+    const O = { ...PEND, airline: 'other', period_year: 2026, period_month: 9 };
+    await db.exec(`set role anon`);
+    const oa = (await pend({ ...O, airline_other: 'Air Alpha' })).r;
+    const ob = (await pend({ ...O, airline_other: 'Air Beta' })).r;
+    const oc = (await pend({ ...O, airline_other: '  air alpha ' })).r;
+    await db.exec(`reset role`);
+    ok(oa.claim_token !== ob.claim_token && await nAt(`and airline='other'`) === 2,
+       '「一覧にない会社」は社名が違えば融合しない');
+    ok(oc.claim_token === oa.claim_token, '同じ社名なら大文字小文字・前後の空白が違っても同じ行');
+
+    // 引き取り済みの行は書き換えない（本棚と食い違う）
+    await db.query(`update pay_reports_pending set claimed_at = now() where claim_token=$1`,
+      [first.claim_token]);
+    await db.exec(`set role anon`);
+    const afterClaim = (await pend(D)).r;
+    await db.exec(`reset role`);
+    ok(afterClaim.claim_token !== first.claim_token,
+       '引き取り済みの行には当てない（新しく預かる）');
+
+    // 1日20件の上限（今まで一度も検査していなかった）
+    await db.query(
+      `insert into pay_reports_pending (claim_token, payload, airline, period_year, period_month, lang, ip_day_hash)
+       select encode(extensions.digest('cap' || g::text, 'sha256'), 'hex'),
+              $2::jsonb, 'jal', 2026, 1, 'ja', $1
+         from generate_series(1, 20) g`, [iph, JSON.stringify(PEND)]);
+    await db.exec(`set role anon`);
+    const capped = await boom(`select submit_pay_report_pending($1::jsonb)`,
+      [JSON.stringify({ ...PEND, airline: 'ana', period_month: 2 })]);   // ★未来の月にしない
+    await db.exec(`reset role`);
+    ok(/しばらくしてから/.test(capped || ''), '同じ回線から1日20件を超えると静かに断る', capped);
+  }
+
+  // 後片付け。以降の検査に IP を持ち込まない（この枝は本番だけの想定）
+  await db.query(`select set_config('request.headers', '', false)`);
+  await db.query(`delete from pay_reports_pending where ip_day_hash = $1`, [iph]);
+}
+
 // ── オーナーが Supabase に貼る検算そのもの ──────────────────
 /* db/pay-reports.verify.sql は「本番に貼って目で見る」ための1枚。
    ここで流しておかないと、関数を増やしたのに検算だけ古いまま＝

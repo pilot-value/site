@@ -1557,7 +1557,7 @@ async function sessionUserId() {
      メールはコードだけにし、pv-claim-pending.js が ?claim= も拾うようにした。 */
 const CLAIM_MAX_AGE = PVClaimPending.CLAIM_MAX_AGE;
 const readClaims    = () => PVClaimPending.read();
-const rememberClaim = (tok) => PVClaimPending.remember(tok);
+const rememberClaim = (tok, key) => PVClaimPending.remember(tok, key);
 const markPopped    = (tok) => PVClaimPending.markPopped(tok);
 
 /* ★?claim= は「預かり分があるか」を誰かが聞くより先に URL から取り込む。
@@ -3219,11 +3219,28 @@ async function submitPayReport() {
      ★預かった時点では何も返らない（年収も比較も）。返すと登録せずに
        結果だけ持ち帰れて、アカウントを作る理由が消える。 */
   if (!(await sessionUserId())) {
+    /* ★同じ会社・同じ月を、この端末からもう預けてあるなら送り直さない。
+         成功したあともボタンは有効なまま（登録の箱がそのすぐ上に出る＝押せる位置にある）。
+         2026-09-01、英語版から出した人が12秒差で同じものを2回送り、置き場に2行できた。
+         表の行は ip_day_hash で畳まれるので見た目は正常なまま、件数だけが静かに増える。
+       ★止めるだけで、画面は登録の箱のまま。断りの文は出さない
+         （本人から見れば「もう預かってある」状態と何も変わらない）。
+       ★別タブ・別端末はここでは止まらない。そちらはサーバ側が受け持つ
+         （db/pay-report-pending.sql の同じ判定）。 */
+    const dupKey = [airline,
+                    airline === 'other' ? String(val('f-airline-other') || '').toLowerCase() : '',
+                    val('f-year'), val('f-month')].join('|');
+    if (PVClaimPending.findKey(dupKey)) {
+      track('pay_report_pending_dup');
+      savePreset();
+      setSubmitBusy(false, _btnLabel);
+      return showGate(true);
+    }
     try {
       const { data, error } = await _sb.rpc('submit_pay_report_pending', { p: payload });
       if (error) throw error;
       if (!data || !data.ok || !data.claim_token) throw new Error('サーバから預かり証が返りませんでした');
-      rememberClaim(data.claim_token);
+      rememberClaim(data.claim_token, dupKey);
       /* 出し切った瞬間をここで祝う。鳴らすのは新しく預けたこの1回だけで、
          アカウントを作って戻ってきた結果カードでは鳴らさない（_gatePopped）。 */
       markPopped(data.claim_token);

@@ -2160,6 +2160,21 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   const stashed = (await db.query(
     `select count(*)::int n from pay_reports_pending where claimed_at is null`)).rows[0].n - pendBefore;
   ok(stashed === 1, `置き場に1件だけ寝る → ${stashed} 件`);
+
+  /* ★もう一度押しても、置き場に2件目を作らないこと。
+     2026-09-01、英語版の給与フォームから出したカンタスのパイロットが12秒差で
+     同じ会社・同じ月を2回出し、置き場に2行できた。ログインの箱は送信ボタンの
+     すぐ上に出るうえ、押したボタンは元に戻る（送信は成功しているので当然）ので、
+     「反応が無かった」と思った人はもう一度押す。
+     サーバ側でも畳んでいる（db/pay-report-pending.sql）が、あちらは IP が取れる
+     本番でしか働かない枝なので、ここでは端末側のガードを見る。 */
+  await page.click('#submit-btn');
+  await new Promise((r) => setTimeout(r, 400));
+  ok(stash.length === 1, `★未ログインでもう一度押しても預けは1回のまま → ${stash.length} 回`);
+  const stashed2 = (await db.query(
+    `select count(*)::int n from pay_reports_pending where claimed_at is null`)).rows[0].n - pendBefore;
+  ok(stashed2 === 1, `★二度押ししても置き場は1件のまま → ${stashed2} 件`);
+  ok(await vis('login-gate'), '★二度押しでもログインの箱は出たまま（消えると行き場を失う）');
   const pend = await page.evaluate(() => {
     try { return JSON.parse(localStorage.getItem('pv_pay_pending')); } catch (e) { return null; }
   });

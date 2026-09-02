@@ -66,12 +66,30 @@
     } catch (e) {}
   }
 
-  function remember(tok) {
+  /* 第2引数は「どの会社・どの月のぶんか」の印（社|その他社名|年|月）。省略できる。
+     ★金額は入れない。二度押しを止めるのに要らないので、端末に置く情報量を増やさない。
+     ★read() は t と ts しか見ないので k は素通りする（markPopped の pop と同じ手）。 */
+  function remember(tok, key) {
     if (!TOKEN_RE.test(String(tok || ''))) return '';
     var a = read().filter(function (x) { return x.t !== tok; });
-    a.push({ t: tok, ts: Date.now() });
+    a.push(key ? { t: tok, ts: Date.now(), k: String(key) } : { t: tok, ts: Date.now() });
     write(a);
     return tok;
+  }
+
+  /* 同じ会社・同じ月を、この端末からもう預けてあるか。
+     2026-09-01、英語版から出した人が12秒差で同じものを2回送り、置き場に2行できた。
+     送信ボタンは成功後も有効なまま（そのすぐ上に登録の箱が出るので押せてしまう）。
+     ★サーバ側にも同じ判定がある（db/pay-report-pending.sql）。こちらは無駄な往復を
+       減らすためのもので、別タブ・別端末はサーバ側が受け持つ。 */
+  var DUP_MAX_AGE = 24 * 60 * 60 * 1000;
+  function findKey(key) {
+    if (!key) return '';
+    var a = read();
+    for (var i = a.length - 1; i >= 0; i--) {
+      if (a[i].k === String(key) && Date.now() - Number(a[i].ts || 0) < DUP_MAX_AGE) return a[i].t;
+    }
+    return '';
   }
 
   /* 「この預かり分は、登録の箱でもうクラッカーを鳴らした」印。
@@ -153,7 +171,7 @@
     CLAIM_MAX_AGE: CLAIM_MAX_AGE,
     read: read, write: write,
     remember: remember, markPopped: markPopped,
-    has: has, latest: latest,
+    has: has, latest: latest, findKey: findKey,
     takeFromUrl: takeFromUrl, claim: claim, sweep: sweep,
   };
 })();

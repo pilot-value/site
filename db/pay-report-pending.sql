@@ -93,6 +93,11 @@ create index if not exists pay_reports_pending_unclaimed_idx
   on public.pay_reports_pending (created_at) where claimed_at is null;
 create index if not exists pay_reports_pending_ipday_idx
   on public.pay_reports_pending (ip_day_hash) where ip_day_hash is not null;
+-- 同じ回線から「同じ会社・同じ月」を二度出したときに、前の1行を引き当てるため。
+-- 引き取り済みの行は当てない（本棚に入ったものを書き換えると中身が食い違う）。
+create index if not exists pay_reports_pending_dup_idx
+  on public.pay_reports_pending (ip_day_hash, airline, period_year, period_month)
+  where claimed_at is null;
 
 
 -- ════════════════════════════════════════════════════════════════
@@ -134,6 +139,8 @@ declare
   v_n      int;
   v_token  text;
   v_id     uuid;
+  v_dup_id  uuid;
+  v_dup_tok text;
 begin
   -- ── 大きすぎる入力は見ない ──────────────────────────────
   -- ログイン不要の口なので、まず量から止める。実物のフォームは 3KB 前後。
@@ -167,6 +174,48 @@ begin
      where ip_day_hash = v_iph and created_at > now() - interval '1 day';
     if v_n >= 20 then
       raise exception 'しばらくしてからもう一度お試しください' using errcode = '54000';
+    end if;
+
+    -- ── 同じ会社・同じ月をもう一度出したら、弾かずに畳む ──────────
+    -- ★本棚と同じ考え方。あちらは unique (proof_hash, period_year, period_month) で
+    --   ※ここに本棚の表の名前をそのまま書かない。db/pay-reports.sql の 8-20 が
+    --     「その名前を含む security definer 関数が anon に開いていないか」を
+    --     pg_get_functiondef ＝コメントごと見ている。コメントに書くだけで落ちる。
+    --   「同じ社・同じ月の出し直しは訂正として上書き」にしてある。置き場にだけ
+    --   それが無かったので、2026-09-01 に英語版から出した人が12秒差で2行作り、
+    --   表の行数は畳まれて正しいのに件数だけが静かに +1 された。
+    -- ★エラーにしない。22023 を投げると画面が「預かれませんでした」の顔になるが、
+    --   実際には中身は安全に入っている＝出した人に嘘をつくことになる。
+    -- ★同じ預かり証を返す。新しいものを発行すると端末に古い1枚が宙に浮き、
+    --   登録後の claim_pending_report が「無い」と答える。
+    -- ★ここは v_ip <> '' の中にある＝IP が取れない環境（ローカルの検査）では働かない。
+    perform pg_advisory_xact_lock(
+      hashtext(v_iph || '|' || coalesce(p->>'airline', '') || '|' ||
+               coalesce(p->>'period_year', '') || '|' || coalesce(p->>'period_month', '')));
+
+    select id, claim_token into v_dup_id, v_dup_tok
+      from public.pay_reports_pending
+     where ip_day_hash   = v_iph
+       and claimed_at   is null
+       and created_at    > now() - interval '1 day'
+       and airline      is not distinct from nullif(btrim(p->>'airline'), '')
+       and period_year   = (p->>'period_year')::smallint
+       and period_month  = (p->>'period_month')::smallint
+       -- ★「その他」のときだけ社名も見る。見ないと、同じ回線・同じ日に出した
+       --   別々の「その他」航空会社2件が黙って1件に融合し、片方が失われる。
+       and (nullif(btrim(p->>'airline'), '') is distinct from 'other'
+            or lower(btrim(coalesce(payload->>'airline_other', ''))) =
+               lower(btrim(coalesce(p->>'airline_other', ''))))
+     order by created_at desc
+     limit 1;
+
+    if v_dup_tok is not null then
+      update public.pay_reports_pending
+         set payload    = p,
+             lang       = coalesce(nullif(btrim(p->>'lang'), ''), 'en'),
+             created_at = now()
+       where id = v_dup_id;
+      return jsonb_build_object('ok', true, 'claim_token', v_dup_tok, 'id', v_dup_id);
     end if;
   end if;
 
