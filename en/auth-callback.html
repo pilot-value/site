@@ -46,9 +46,6 @@
 <div class="spinner"></div>
 <p id="msg">Signing you in…</p>
 <div id="debug"></div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="../pv-reunlock.js?v=2"></script>
-<script src="../pv-claim-pending.js"></script>
 <script>
 /* ── 戻り先の判定（成功からも失敗からも使う）──────────────────────
    ★.html で終わるだけを条件にすると ?next=https://evil.com/x.html が通り、
@@ -93,16 +90,54 @@ function pvLoginUrl(reason) {
          '?error=1&reason=' + encodeURIComponent(String(reason || 'unknown')) +
          (next ? '&next=' + encodeURIComponent(next) : '');
 }
+
+/* 読み込み中の文言も言語で出し分ける。★英語の人もルート側のこの画面に着地する
+   （pay-login.js の callbackUrl() が pilot-value.com/auth-callback.html を固定で書く）。
+   成功しても必ず一瞬は見える画面なので、ここが日本語のままだと
+   英語で出した人には「知らない言語のページに落ちた」に見える。
+   静的な <title> は触らない（検索向けの正。assert-seo.mjs が見ているのはそちら）。 */
+(function () {
+  var en = pvInEn(pvSafeNext(new URLSearchParams(location.search).get('next')));
+  document.title = en ? 'Signing In | PILOT VALUE' : 'ログイン処理中｜PILOT VALUE';
+  var m = document.getElementById('msg');
+  if (m) m.textContent = en ? 'Signing you in…' : 'ログイン処理中…';
+})();
 </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../pv-reunlock.js?v=2"></script>
+<script src="../pv-claim-pending.js"></script>
 <script>
 (async function() {
   const SB_URL = 'https://vzgmnkrggrwtsrpqndsm.supabase.co';
   const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6Z21ua3JnZ3J3dHNycHFuZHNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0MzkwOTcsImV4cCI6MjA5MDAxNTA5N30.wE4cJbqeYGCgn5ZvHd80hYWgQuySKvOMJMbsJWOvmtw';
 
+  /* 失敗の詳細も言語で出し分ける。見出しだけ英語にして下の一行が日本語のままだと、
+     英語の人には読めない一行が4秒出るだけになる（実際そうなっていた）。
+     ルート側にも英語の人が着地するので、この表は日英どちらの画面にも要る。 */
+  const inEn = pvInEn(pvSafeNext(new URLSearchParams(location.search).get('next')));
+  const T = inEn
+    ? { failed:  'Sign-in failed',
+        err:     'Error: ',
+        noCode:  'No authorization code was found. Please sign in again.',
+        session: 'We could not start your session: ',
+        timeout: 'The request timed out. Please try signing in again.' }
+    : { failed:  'ログインに失敗しました',
+        err:     'エラー: ',
+        noCode:  '認証コードが見つかりません。もう一度ログインしてください。',
+        session: 'セッションを開始できませんでした: ',
+        timeout: 'タイムアウトしました。もう一度ログインを試してください。' };
+
+  /* 英語で来た人を、この先ずっと英語のままにする。
+     ★鍵（pv-lang）の持ち主は lang-toggle.js。この画面だけは自分で書く。
+       あちらを読み込むと、自動リダイレクトが ?code= を持ったまま
+       /en/auth-callback.html へ移そうとして認証が落ちるため（あちらの注意書き参照）。
+     ★書くのは 'en' だけ・まだ何も選んでいない人にだけ。日本語を選んだ人の
+       設定を、日本語の next で来たからといって上書きしない。 */
+  if (inEn) { try { if (!localStorage.getItem('pv-lang')) localStorage.setItem('pv-lang', 'en'); } catch (e) {} }
+
   function showError(msg, reason) {
-    const inEn = pvInEn(pvSafeNext(new URLSearchParams(location.search).get('next')));
     document.querySelector('.spinner').style.display = 'none';
-    document.getElementById('msg').textContent = inEn ? 'Sign-in failed' : 'ログインに失敗しました';
+    document.getElementById('msg').textContent = T.failed;
     const d = document.getElementById('debug');
     d.textContent = msg;
     d.style.display = 'block';
@@ -122,7 +157,7 @@ function pvLoginUrl(reason) {
   const urlError = params.get('error') || hash.get('error');
   if (urlError) {
     const desc = params.get('error_description') || hash.get('error_description') || '';
-    showError('Error: ' + urlError + ' — ' + desc,
+    showError(T.err + urlError + ' — ' + desc,
       /disallowed_useragent/i.test(urlError + ' ' + desc) ? 'in_app_browser' : 'oauth_error');
     return;
   }
@@ -132,7 +167,7 @@ function pvLoginUrl(reason) {
   const refreshToken = hash.get('refresh_token');
 
   if (!code && !accessToken) {
-    showError('No authorization code was found. Please sign in again.', 'no_code');
+    showError(T.noCode, 'no_code');
     return;
   }
 
@@ -161,7 +196,8 @@ function pvLoginUrl(reason) {
        ★.html で終わるだけを条件にすると ?next=https://evil.com/x.html が通り、
          ログイン直後に外部サイトへ飛ばせてしまう（オープンリダイレクト）。
          拡張子ではなく「同一オリジンに解決されるか」で判定する。 */
-    window.location.replace(pvSafeNext(new URLSearchParams(location.search).get('next')) || 'profile.html');
+    window.location.replace(pvSafeNext(new URLSearchParams(location.search).get('next')) ||
+                            (inEn ? '/en/profile.html' : '/profile.html'));
   }
 
   // onAuthStateChange でSIGNED_INを待つ（PKCEの自動交換後に発火）
@@ -180,7 +216,7 @@ function pvLoginUrl(reason) {
     });
     if (data && data.session) { await onSuccess(data.session); return; }
     if (error && !handled) {
-      showError('We could not start your session: ' + error.message, 'set_session');
+      showError(T.session + error.message, 'set_session');
       return;
     }
   }
@@ -194,7 +230,7 @@ function pvLoginUrl(reason) {
 
   // 15秒タイムアウト
   setTimeout(() => {
-    if (!handled) showError('The request timed out. Please try signing in again.', 'timeout');
+    if (!handled) showError(T.timeout, 'timeout');
   }, 15000);
 })();
 </script>

@@ -210,6 +210,36 @@ for (const dir of ['', '/en']) {
   ok((claim.stash || '').includes(TOK), '預かり証は端末に残っている（登録後に引き取れる）', claim.stash ?? claim.err);
   ok(claim.path === '/en/login.html', '預かり証つきでも英語のまま /en/login.html へ', claim.path ?? claim.err);
 
+  /* ★この画面そのものの言語。英語の人もルート側の auth-callback.html に着地する
+     （pay-login.js の callbackUrl() が pilot-value.com/auth-callback.html を固定で書く）。
+     2026-09-02 まで、読み込み中の一行も失敗の詳細も日本語のままだった。
+     見出しだけ英語で下の一行が日本語だと、英語の人には読めない一行が4秒出るだけになる。
+     ※ここに来た時点で認証コードが無いので、本体は既に失敗の表示に入っている。 */
+  console.log(`\n${label} auth-callback.html の画面の言語\n`);
+  const CJK = /[ぁ-んァ-ヶ一-龯]/;
+  for (const [next, wantEn, desc] of [
+    ['/en/pay-report.html', true,  '英語の next → 画面ぜんぶ英語'],
+    ['/pay-report.html',    false, '日本語の next → 画面ぜんぶ日本語'],
+  ]) {
+    await page.goto(`${BASE}${dir}/auth-callback.html`, { waitUntil: 'domcontentloaded' });
+    await page.evaluate(() => { try { localStorage.removeItem('pv-lang'); } catch (e) {} });
+    await page.goto(`${BASE}${dir}/auth-callback.html?next=${encodeURIComponent(next)}`,
+                    { waitUntil: 'domcontentloaded' });
+    const seen = await page.evaluate(() => ({
+      title: document.title,
+      msg:   (document.getElementById('msg') || {}).textContent || '',
+      debug: (document.getElementById('debug') || {}).textContent || '',
+      lang:  (() => { try { return localStorage.getItem('pv-lang'); } catch (e) { return null; } })(),
+    }));
+    const all = [seen.title, seen.msg, seen.debug].join(' | ');
+    ok(seen.debug.length > 0, `${desc}  失敗の詳細が出ている`, all);
+    ok(CJK.test(all) !== wantEn, `${desc}  ${all}`, all);
+    /* ★この先ずっと英語のままにする。lang-toggle.js はこの画面では読まない
+       （?code= を持ったまま /en/ へ移そうとして認証が落ちるため）ので、
+       pv-lang はここが自分で書く。書くのは 'en' だけ・まだ無印の人にだけ。 */
+    if (wantEn) ok(seen.lang === 'en', `${desc}  この先も英語のままにする（pv-lang=en）`, String(seen.lang));
+  }
+
   /* ★着地側。login.html が ?error=1&reason= を読んで案内を出すこと。
      2026-09-01 まで ?error=1 は誰も読んでおらず、戻された人の画面には
      何も出なかった（＝何が起きたのか本人にも運営にも分からない）。
