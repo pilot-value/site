@@ -1075,6 +1075,46 @@ on conflict (review_id) do nothing;
 --
 -- ★誰にも grant しない。security definer の中（pv_pay_rows）からだけ呼ぶ。
 -- ════════════════════════════════════════════════════════════════
+-- ════════════════════════════════════════════════════════════════
+-- 1-e0. pv_is_operator — 呼んだ本人が運営か（2026-09-03）
+--
+-- 返り値  真偽1つだけ。誰が運営かは1バイトも出ない。
+--
+-- なぜ要るか
+--   運営は「他人が何を見ているか」を確かめられないと、門が正しく効いているかを
+--   自分の目で検品できない。かといって**運営が偽の給与を1件出して開ける**のは
+--   最悪の手 ── その行が REAL PAY の一覧にも DEEP PAY の集計にも混ざり、
+--   本物の一次データが嘘で薄まる（VISION の「数字を盛らない」に真っ向から反する）。
+--   だから門の側で、運営だけを名指しで通す。
+--
+-- ★名簿は db/admin.sql の pv_admins（管理者ページと同じ1つ）。増やさない。
+-- ⚠️ language plpgsql なのは、この関数が **db/admin.sql より先に流されても壊れない**
+--    ようにするため。SQL 関数だと作る時点で pv_admins の実在を要求するので、
+--    名簿をまだ作っていない環境（PGlite の検査など）でファイルごと流れなくなる。
+--    to_regclass の門があるので、名簿が無ければ**必ず false**（開きっぱなしにしない）。
+-- ★誰にも grant しない。security definer の中からだけ呼ぶ。
+-- ════════════════════════════════════════════════════════════════
+create or replace function public.pv_is_operator()
+returns boolean
+language plpgsql
+security definer
+stable
+set search_path = public, extensions
+as $fn$
+begin
+  if auth.uid() is null then return false; end if;
+  if to_regclass('public.pv_admins') is null then return false; end if;
+  return exists (select 1 from public.pv_admins a where a.user_id = auth.uid());
+end;
+$fn$;
+
+revoke all on function public.pv_is_operator() from public, anon, authenticated;
+
+comment on function public.pv_is_operator() is
+  '呼んだ本人が運営（pv_admins に載っている）かを真偽で返す。'
+  '名簿が無い環境では必ず false。誰にも grant しない。';
+
+
 create or replace function public.pv_my_give()
 returns jsonb
 language sql
@@ -1098,12 +1138,14 @@ as $fn$
              where airline = 'other' and airline_other is not null) o
   )
   select jsonb_build_object(
-           'basic',    coalesce(bool_or(true), false),
+           'basic',    coalesce(bool_or(true), false) or public.pv_is_operator(),
            'detailed', coalesce(bool_or(r.base_pay is not null
                                         or r.guarantee_pay is not null
                                         or r.command_pay is not null
-                                        or r.pay_items is not null), false),
-           'payslip',  coalesce(bool_or(r.verify_level >= 1), false),
+                                        or r.pay_items is not null), false)
+                       or public.pv_is_operator(),
+           'payslip',  coalesce(bool_or(r.verify_level >= 1), false)
+                       or public.pv_is_operator(),
            /* ── full ── REAL PAY の「報酬の内訳」を開く鍵（2026-09-03）──────
               ★detailed とは別物。detailed は「内訳が1つでもあるか」で、
                 DEEP PAY の個人条件がそれを読んでいる。**あちらは1バイトも変えない。**
@@ -1140,6 +1182,14 @@ as $fn$
                                 or r.command_pay is not null
                                 or r.pay_items is not null))
                        ), false)
+                       /* ★運営は自分で出さなくても開く（2026-09-03）。
+                            門が効いているかを目で検品するため。偽の給与を1件
+                            出して開ける手は取らない ── その行が一覧にも
+                            DEEP PAY の集計にも混ざり、一次データが嘘で薄まる。
+                          ⚠️ 通るのは pv_admins に載っている人だけ。ここを
+                             「メールが info@ で始まる」のような形にしないこと
+                             （メールは本人が変えられる）。 */
+                       or public.pv_is_operator()
          )
     from public.pay_reports r
     join mine k on k.h = r.proof_hash
@@ -1484,7 +1534,12 @@ begin
   --   本人が何を出したか（give）は鍵が無い人にも返すため。
   --   **行だけ**を下の listed で落とす。旗はここ1つで、
   --   分岐を2つに増やさない（増やすと片方だけ直して漏れる）。
-  v_open := (v_until is not null and v_until > now());
+  -- ★運営（pv_admins）は鍵が無くても開く（2026-09-03）。門が効いているかを
+  --   目で検品するため。★偽の給与を1件出して開ける手は取らない ── その行が
+  --   一覧にも DEEP PAY の集計にも混ざり、一次データが嘘で薄まる。
+  -- ⚠️ 足すのはこの1行の中だけ。分岐を増やさない（自己点検36 が旗の出現数を
+  --    きっかり4と数えている＝宣言・ここ・state・rows）。
+  v_open := (v_until is not null and v_until > now()) or public.pv_is_operator();
 
   /* ── 報酬の内訳の門（Give & Get・2026-09-03）─────────────────
      オーナー指示 ──「自分の給与内訳を共有した人だけ、他人の給与内訳を見られる」。

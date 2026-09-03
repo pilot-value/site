@@ -286,7 +286,9 @@ begin
   --   proof_hash をそのまま数えないこと（本人 × 会社で1つ＝2社に出した1人が2人になる）。
   -- ★ここで raise しない。投げると画面がエラーになり、
   --   「1枚出せば開く」という肝心の伝え方ができなくなる（pv_pay_rows と同じ）。
-  v_key  := (v_until is not null and v_until > now());
+  -- ★運営（pv_admins）は鍵が無くても開く（2026-09-03。REAL PAY 側と同じ理由）。
+  --   内訳の側（v_det）は pv_my_give が既に運営を通しているので、この1行で両方そろう。
+  v_key  := (v_until is not null and v_until > now()) or public.pv_is_operator();
   v_det  := coalesce((v_give ->> 'detailed')::boolean, false);
   v_ctb  := public.pv_deep_contributors();
 
