@@ -284,6 +284,22 @@ body.has-cta #form-wrap{padding-bottom:96px}
 @media (prefers-reduced-motion:reduce){.rolebox{transition:none}}
 /* 給与の内訳。繰り返し行（変動給／その他の現金手当）と年に一度のもの。 */
 .pd-none{margin-top:10px;padding:7px 12px;font-size:.78rem}
+/* ── 内訳の欄の左のレール（2026-09-03 その3・オーナー指示
+     「入力するべきところが文字だけじゃわかりづらい」）─────────────
+   ⚠️ .fld.is-req（必須の印）とは**別物**。内訳の欄に req-tag を足さない
+      ── 足した瞬間、「該当なし」を選んだ人が送信できなくなる
+      （CLAUDE.md 給与フォームの鉄則6）。だから印だけ借りて、必須の勘定には入れない。
+   ⚠️ .is-done も借りない（あれは markRequired() の持ち物で、必須の数を数えている）。
+   ★色は2種類 ── REAL PAY の門になる3つ（基本給・保証手当・変動給）はオレンジ、
+     ほかの内訳は中立の灰。どちらも埋まれば緑。
+   ★.fld にも .pd-block にも付くので、.fld を前提に書かない。 */
+.is-rail{position:relative}
+.is-rail::before{content:'';position:absolute;left:-12px;top:3px;bottom:3px;width:2px;
+  border-radius:2px;background:rgba(255,255,255,.13);
+  transition:background .28s cubic-bezier(.16,1,.3,1)}
+.is-rail.is-rail-key::before{background:rgba(249,115,22,.32)}
+.is-rail.is-rail-done::before{background:rgba(52,211,153,.45)}
+@media (prefers-reduced-motion:reduce){.is-rail::before{transition:none}}
 .pd-block{margin-bottom:16px}
 .pd-rows{display:flex;flex-direction:column;gap:12px;margin:12px 0}
 .pd-row{position:relative;padding:14px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.09)}
@@ -622,6 +638,10 @@ body.has-cta #form-wrap{padding-bottom:96px}
 /* ★白の上では #34d399 が薄すぎて読めない。済みの印はライトだけ濃い緑に落とす
    （既存の .auto-tag と同じ #0d8a63）。もとは rgba(0,0,0,.12) ＝ ほぼ見えなかった。 */
 [data-theme="light"] .fld.is-req.is-done::before{background:rgba(13,138,99,.5)}
+/* 内訳のレールもライトだけ濃く落とす（白い地では薄い色が消える）。 */
+[data-theme="light"] .is-rail::before{background:rgba(0,0,0,.13)}
+[data-theme="light"] .is-rail.is-rail-key::before{background:rgba(163,74,0,.3)}
+[data-theme="light"] .is-rail.is-rail-done::before{background:rgba(13,138,99,.5)}
 [data-theme="light"] .fld.is-req::after{color:#0d8a63;background:rgba(13,138,99,.1);border-color:rgba(13,138,99,.32)}
 [data-theme="light"] .sec-prog{color:#64748b;background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.11)}
 [data-theme="light"] .sec-prog:hover{background:rgba(0,0,0,.07);border-color:rgba(0,0,0,.2)}

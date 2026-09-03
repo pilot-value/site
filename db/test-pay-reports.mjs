@@ -792,6 +792,41 @@ await submit({
 ok((await one(`select * from pay_reports where airline='qantas' and period_month=5`)).pay_items === null,
   '中身の無い内訳は保存しない');
 
+/* ── 「該当なし」3つ（2026-09-03。REAL PAY の内訳の門が読む）──────────
+   ★これは「金額が0」ではなく「その項目が会社に無い」。0円とは別物として
+     真偽で持つ（列は足していない。pay_items の中の3つ）。
+   ⚠️ 空の殻を捨てる判定に *_none を足し忘れると、「該当なし」だけを
+      答えた人の内訳が丸ごと null に潰れる。画面もDBも何も言わないまま、
+      その人は REAL PAY の内訳が**一生開かない**。ここがその見張り。 */
+await asUser(51);
+await submit({
+  ...BASE, gross_monthly: 54250, airline: 'qantas', period_year: 2026, period_month: 7,
+  pay_items: { v: 1, fixed_none: true, guarantee_none: true, variable_none: true },
+});
+const nn = (await one(`select * from pay_reports where airline='qantas' and period_month=7`)).pay_items;
+ok(nn && nn.fixed_none === true && nn.guarantee_none === true && nn.variable_none === true,
+  `★「該当なし」3つだけでも内訳が残る（空の殻に潰されない） → ${JSON.stringify(nn)}`);
+
+// false（＝「該当なし」ではない）は殻とみなす。全部 false なら今までどおり保存しない。
+await asUser(52);
+await submit({
+  ...BASE, gross_monthly: 54250, airline: 'qantas', period_year: 2026, period_month: 8,
+  pay_items: { v: 1, fixed_none: false, guarantee_none: false, variable_none: false },
+});
+ok((await one(`select * from pay_reports where airline='qantas' and period_month=8`)).pay_items === null,
+  '「該当なし」が3つとも false なら、今までどおり中身なし扱い');
+
+// 真偽以外は捨てる（画面が誤って文字列を送っても、真偽のふりをさせない）
+await asUser(53);
+await submit({
+  ...BASE, gross_monthly: 54250, airline: 'qantas', period_year: 2026, period_month: 9,
+  pay_items: { v: 1, guarantee_none: 'yes', variable_none: 1,
+               other: [{ amount: 500, label: 'x' }] },
+});
+const nb = (await one(`select * from pay_reports where airline='qantas' and period_month=9`)).pay_items;
+ok(nb && nb.guarantee_none === undefined && nb.variable_none === undefined,
+  `★真偽でない「該当なし」は落ちる（文字列で門を開けさせない） → ${JSON.stringify(nb)}`);
+
 // 語彙に無い役職は弾く（job_roles には外部キーを張れないので、ここが唯一の関門）
 ok((await boom(`select submit_pay_report($1::jsonb)`, [JSON.stringify({
   ...BASE, gross_monthly: 54250, airline: 'ana', period_year: 2026, period_month: 3,

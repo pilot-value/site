@@ -633,32 +633,36 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           <div class="pay-detail-b">
             <p class="fld-hint" style="margin:0 0 16px">明細に<b>書かれている金額をそのまま</b>入れてください。足し算・単価の計算・時給換算は、こちらでやります。<br>上の「その月の総支給額」は<b>そのまま残ります</b>。ここに入れた額で書き換えることはしません。合計が総支給と合わなくても構いません。</p>
 
-            <div class="fld">
+            <p class="fld-hint pd-gate" id="pd-gate" hidden>この3つ（<b>基本給</b>・<b>Flight time 保証手当 / 職務手当</b>・<b>変動給</b>）を答えると、<b>REAL PAY の給与内訳</b>が開きます。金額が明細に無い項目は「該当なし」を選んでください。</p>
+
+            <div class="fld is-rail is-rail-key">
               <label class="form-label" for="f-base">基本給</label>
               <input type="text" id="f-base" class="form-input money" inputmode="decimal" placeholder="例：480,000"/>
               <p class="fld-hint">明細に載っている基本給の金額を、そのまま入れてください。<b>ほかの手当を足し合わせないでください。</b></p>
               <label class="rolebox pd-none"><input type="checkbox" id="f-base-none"><span>該当なし</span></label>
             </div>
 
-            <div class="opt-fld" id="opt-f-guarantee" hidden>
-              <div class="fld">
+            <div class="opt-fld" id="opt-f-guarantee">
+              <div class="fld is-rail is-rail-key">
                 <label class="form-label" for="f-guarantee">Flight time 保証手当 / 職務手当</label>
-                <input type="text" id="f-guarantee" class="form-input money" inputmode="decimal"/>
+                <input type="text" id="f-guarantee" class="form-input money" inputmode="decimal" placeholder="例：90,000"/>
                 <p class="fld-hint">Minimum Guarantee・保証給・<b>職務手当</b>など、呼び名は会社ごとに違います。基本給とは<b>別に金額として明細に出ている場合だけ</b>入れてください。<b>保証時間 × 単価を計算する必要はありません</b>（保証時間は上で聞いています）。</p>
+                <label class="rolebox pd-none"><input type="checkbox" id="f-guarantee-none"><span>該当なし</span></label>
               </div>
             </div>
 
-            <div class="opt-fld" id="opt-pd-var" hidden>
-              <div class="pd-block">
+            <div class="opt-fld" id="opt-pd-var">
+              <div class="pd-block is-rail is-rail-key">
                 <div class="form-label">変動給</div>
                 <p class="fld-hint" style="margin-top:0">乗務時間・セクター数・待機などで<b>月ごとに変わる支給</b>です。<b>明細に出ているとおりの金額と名称</b>を書き写してください。単価やルールを計算する必要はありません。</p>
                 <div class="pd-rows" id="pd-var-rows"></div>
                 <button type="button" class="chip" id="pd-var"><span class="p">+</span>変動給を追加</button>
+                <label class="rolebox pd-none"><input type="checkbox" id="f-variable-none"><span>該当なし</span></label>
               </div>
             </div>
 
             <div class="opt-fld" id="opt-f-command" hidden>
-              <div class="fld">
+              <div class="fld is-rail">
                 <label class="form-label" for="f-command">職位手当</label>
                 <input type="text" id="f-command" class="form-input money" inputmode="decimal"/>
                 <p class="fld-hint">Captain Allowance / Senior FO Allowance のように、<b>職位に対して毎月つく手当</b>が基本給と別に出ている場合です。上の「Flight time 保証手当 / 職務手当」に入れた分は、ここに入れません。教官の手当は下の<b>「教官・訓練の手当」</b>へ（審査などは役割ごとにあとで聞きます）。</p>
@@ -666,7 +670,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
             </div>
 
             <div class="opt-fld" id="opt-pd-oth" hidden>
-              <div class="pd-block">
+              <div class="pd-block is-rail">
                 <div class="form-label">その他の現金手当</div>
                 <p class="fld-hint" style="margin-top:0">上に当てはまらない現金の支給です。パーディアムと住宅手当は前に聞いているので、ここには入れません。</p>
                 <div class="pd-rows" id="pd-oth-rows"></div>
@@ -675,8 +679,6 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
             </div>
 
             <div class="chips">
-              <button type="button" class="chip" data-open="f-guarantee"><span class="p">+</span>Flight time 保証手当 / 職務手当</button>
-              <button type="button" class="chip" data-open="pd-var"><span class="p">+</span>変動給</button>
               <button type="button" class="chip" data-open="f-command"><span class="p">+</span>職位手当</button>
               <button type="button" class="chip" data-open="pd-oth"><span class="p">+</span>その他の現金手当</button>
             </div>
@@ -686,13 +688,13 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
             <div class="pd-year">
               <div class="pd-year-h">年に一度のもの</div>
               <div class="opt-fld" id="opt-f-profit" hidden>
-                <div class="fld">
+                <div class="fld is-rail">
                   <label class="form-label" for="f-profit">プロフィットシェア（年額）</label>
                   <input type="text" id="f-profit" class="form-input money" inputmode="decimal"/>
                 </div>
               </div>
               <div class="opt-fld" id="opt-f-pension" hidden>
-                <div class="fld">
+                <div class="fld is-rail">
                   <label class="form-label" for="f-pension">年金 会社負担（%）</label>
                   <input type="number" id="f-pension" class="form-input" min="0" max="100" step="any" inputmode="decimal"/>
                 </div>
@@ -2366,8 +2368,16 @@ function updateSteps(quiet) {
      途中で出したい人が押せる所を、いつでも持っている状態にする。 */
   if (!$('s3').hidden) showSticky();
   markRequired();
+  markRail();
   markProgress();
   $('ai-legend').hidden = !document.querySelector('.form-input.ai-filled');
+  /* ★「給与の内訳を入力する」から来た人を、§3 が出た**1回だけ**内訳まで寄せる。
+     旗は使ったら消す（そのあと勝手に飛ばない）。 */
+  if (PEND_DETAIL && $('pay-detail') && $('pay-detail').open && detailShown($('f-base'))) {
+    PEND_DETAIL = false;
+    if (window.requestAnimationFrame) requestAnimationFrame(scrollToPaySec);
+    else setTimeout(scrollToPaySec, 0);
+  }
 }
 
 /* 必須の欄の左レール（2026-08-13 その4）。埋まったら中立色に落とす。
@@ -2393,6 +2403,34 @@ function markRequired() {
       if (t) t.remove();
     }
   }
+}
+/* 内訳の欄の左のレール（2026-09-03 その3・オーナー指示
+   「入力するべきところが文字だけじゃわかりづらい」）。
+   ⚠️ 上の .fld.is-req（必須の印）とは**別物**。内訳の欄に req-tag を足さない
+      ── 足した瞬間、「該当なし」を選んだ人が送信できなくなる
+      （CLAUDE.md 給与フォームの鉄則6・ブリーフ §2「空欄は未回答扱い」）。
+      .is-done も借りない（あれは markRequired() が必須の数を数えるのに使っている）。
+   ★どこに引くかは HTML の class="is-rail" ただ1か所で決める。
+     ここで別の一覧を持つと、印と判定が別々にズレる。
+     REAL PAY の門になる3つには is-rail-key も書いてある（オレンジ／ほかは灰）。
+   ★「埋まった」＝ 中の入力に値がある、または「該当なし」が付いている。
+     変動給・その他の現金は**行が1本でも埋まっていれば**緑。 */
+function markRail() {
+  for (const box of document.querySelectorAll('.is-rail')) {
+    let done = false;
+    for (const el of box.querySelectorAll('input, select, textarea')) {
+      if (el.type === 'checkbox' || el.type === 'radio') { if (el.checked) done = true; }
+      else if (String(el.value || '').trim() !== '') done = true;
+      if (done) break;
+    }
+    box.classList.toggle('is-rail-done', done);
+  }
+}
+/* ★あとから生えた行の中の欄も拾えるよう、節そのものに1つだけ付ける
+     （行ごとに付けると、行を消したときに外し忘れる）。 */
+{
+  const b = document.querySelector('.pay-detail-b');
+  if (b) { b.addEventListener('input', markRail); b.addEventListener('change', markRail); }
 }
 /* 段ごとの進み具合（2026-08-17 オーナー指摘：どこが入力済みか分からない
    → 2026-08-18 オーナー指摘：残りの個数ではなく、埋まった割合を緑のゲージで）。
@@ -2497,6 +2535,7 @@ $('ps-skip').addEventListener('click', () => { track('pay_entry_manual', { from:
    ★開くところまでしかやらない。入力モードの切り替えは書き写さない
      （.open = true が toggle を出し、上の updatePayMode がそのまま走る）。
    ★同じページに居るまま踏まれることもあるので hashchange でも同じことをする。 */
+var PEND_DETAIL = false;
 function openDetailFromHash() {
   if (location.hash !== '#pay-detail') return;
   const dt = $('pay-detail');
@@ -2509,17 +2548,33 @@ function openDetailFromHash() {
        ＝どの人も、この画面に来た直後は必ず §1 から。
      だからここでやるのは「先に開いておく」こと。たどり着いたときには
      もう開いていて、総支給は内訳の合計に切り替わっている。
-     寄せ先は、出ていれば内訳・出ていなければフォームの先頭（そこから始まるので）。 */
-  const shown = (el) => !!el && el.getBoundingClientRect().height > 0;
-  const go = () => {
-    const b = $('f-base');
-    const to = shown(b) ? b : $('f-airline');
-    if (!shown(to)) return;
-    const box = shown(b) ? dt : to;
-    if (box.scrollIntoView) box.scrollIntoView({ block: 'start', behavior: 'smooth' });
-    try { to.focus({ preventScroll: true }); } catch (e) { to.focus(); }
-  };
-  if (window.requestAnimationFrame) requestAnimationFrame(go); else setTimeout(go, 0);
+     寄せ先は、§3 が出ていれば §3 の頭・出ていなければフォームの先頭（そこから始まるので）。 */
+  /* ★内訳がまだ出ていないなら旗を立てておく（2026-09-03 その3・オーナー指摘
+       「押すとちゃんと給与の内訳入力まで飛ぶようになってる？」）。
+     ここで諦めると、§1・§2 を埋め終えたあとも §3 は画面のずっと下のままで、
+     自分で探すことになる。updateSteps() が §3 を出した**1回だけ**寄せる。 */
+  if (!detailShown($('f-base'))) PEND_DETAIL = true;
+  if (window.requestAnimationFrame) requestAnimationFrame(scrollToPaySec);
+  else setTimeout(scrollToPaySec, 0);
+}
+function detailShown(el) { return !!el && el.getBoundingClientRect().height > 0; }
+/* 寄せ先は §3「3. 報酬」の**頭**（2026-09-03 その5・オーナー指摘
+     「2. 対象月と乗務 まで入力するといきなり給与の内訳を追加まで下にスライドして
+       飛んでしまう。スライドするなら『3. 報酬』じゃない？」）。
+   ⚠️ 前はここが内訳（#pay-detail）そのものだった。同じ §3 の**上半分**
+      ── 通貨・その月の総支給額 ── を飛び越えて着地するので、
+      **一番大事な欄を見ないまま**内訳の前に座らされていた。
+      年収は総支給から出す（pv_annual_total の coalesce 第1引数）＝内訳を
+      いくら埋めても、総支給が空のままなら年収は1円も出ない。
+   §3 がまだ出ていないうちはフォームの先頭へ（どの人もそこから始まる）。 */
+function scrollToPaySec() {
+  const s3 = $('s3'), head = $('f-airline');
+  const shown = detailShown(s3);
+  const box = shown ? s3 : head;
+  const to = shown ? $('f-currency') : head;
+  if (!box || !detailShown(box)) return;
+  if (box.scrollIntoView) box.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  if (to) { try { to.focus({ preventScroll: true }); } catch (e) { to.focus(); } }
 }
 openDetailFromHash();
 window.addEventListener('hashchange', openDetailFromHash);
@@ -2577,24 +2632,40 @@ function pdRead(kind) {
   return out;
 }
 
+/* ── REAL PAY の門から来た人 ────────────────────────────────
+   actual-pay.js が、押した行の戻り先を sessionStorage に置いてから飛ばす。
+   ★URL には載せない。クエリでもハッシュでも、他人の年収がアドレス欄に出る
+     （GA4 の載る URL に置かない、と同じ理屈）。ここで読むのは在るかどうかだけ。
+   ★鍵は消さない。消すのは actual-pay.js 側、面を開き直した1回きり。 */
+const RP_BACK = 'pv_realpay_back';
+function realpayBack() {
+  try { return JSON.parse(sessionStorage.getItem(RP_BACK) || 'null'); } catch (e) { return null; }
+}
+if (realpayBack() && $('pd-gate')) $('pd-gate').hidden = false;
+
 function pdSync() {
   const v = pdRead('var'), o = pdRead('oth');
   const sum = (list) => list.reduce((t, x) => t + (x.amount || 0), 0);
   $('f-var-sum').value = sum(v) || '';
   $('f-oth-sum').value = sum(o) || '';
   const none = $('f-base-none').checked;
+  const gnone = $('f-guarantee-none').checked;
+  const vnone = $('f-variable-none').checked;
   /* ★教官の行も同じ入れ物に乗せる。合計はどこにも寄せない
      （寄せると職位手当・変動給・その他と二重に数えることになる）。 */
   const ins = instrRead(), exm = examRead(), uni = unionRead(), mgt = mgmtRead(), nol = nonlineRead();
-  const pi = { v: 1, fixed_none: none, variable: v, other: o };
+  const pi = { v: 1, fixed_none: none, guarantee_none: gnone, variable_none: vnone,
+               variable: v, other: o };
   if (ins) pi.instructor = ins;
   if (exm) pi.examiner = exm;
   if (uni) pi.union = uni;
   if (mgt) pi.management = mgt;
   if (nol) pi.nonline = nol;
   /* 何も入っていないときは列ごと空にする（意味の無い {} を送らない）。 */
-  $('f-payitems').value = (v.length || o.length || none || ins || exm || uni || mgt || nol) ? JSON.stringify(pi) : '';
+  $('f-payitems').value = (v.length || o.length || none || gnone || vnone
+                           || ins || exm || uni || mgt || nol) ? JSON.stringify(pi) : '';
   recalc();
+  markRail();
 }
 
 function pdAdd(kind, quiet) {
@@ -2611,6 +2682,7 @@ function pdAdd(kind, quiet) {
   /* ★あとから生えた行にも必須の印とレールを付ける（型の中の req-tag は
      markRequired() が走るまで色が付かない）。 */
   markRequired();
+  markRail();
   /* ★寄せるのは「種類」から（2026-08-26 その2）。金額から書かせると区分が選ばれない。
      その他の現金手当の行に .pd-basis は無いので、あちらは今までどおり金額へ。 */
   if (!quiet) {
@@ -2618,6 +2690,22 @@ function pdAdd(kind, quiet) {
     if (f) f.focus();
   }
   return row;
+}
+
+/* ★空のまま置いてある行を片づける（2026-09-03 その4）。
+     読み込みのときに変動給を1本出しているので、あとから本物の行が入るとき
+     （下書きの復元・明細の読み取り）に**空の行がそのまま先頭に残る**。
+     ⚠️ 送信は止まらない（missingRequired() は空の行を数えない）ので、
+     画面は普通に動いたまま「空の行のあと本物の行」という並びだけが残る。
+     ★入れ物は1つにしてある。pdRestore() と payslip.js の seedVarRows() が両方これを呼ぶ。 */
+function pdDropEmpty(kind) {
+  const box = PD[kind];
+  if (!box) return;
+  for (const r of Array.prototype.slice.call(box.rows.children)) {
+    const has = Array.prototype.some.call(r.querySelectorAll('input, select'),
+                                          (e) => String(e.value || '').trim() !== '');
+    if (!has) r.remove();
+  }
 }
 
 /* 節を開いたときに空の行を1つ出す。「＋」だけ置くと、押すものがもう一つ増える。 */
@@ -2635,6 +2723,25 @@ $('f-base-none').addEventListener('change', () => {
   pdSync();
 });
 
+/* 「該当なし」＝その項目が会社に無い（**0円ではない**）。欄は空にして触れなくする。
+   ★REAL PAY の「報酬の内訳」の門は、この3つを「回答済み」として読む
+     （db/pay-rows.sql の pv_my_give の full）。空欄は未回答のまま。 */
+$('f-guarantee-none').addEventListener('change', () => {
+  const on = $('f-guarantee-none').checked;
+  $('f-guarantee').disabled = on;
+  if (on) $('f-guarantee').value = '';
+  pdSync();
+});
+
+/* 変動給は行の集まりなので、消さずに触れなくするだけにする
+   （押し間違いで書いたものが消えると、もう一度は書いてもらえない）。 */
+function varNoneSync() {
+  const on = $('f-variable-none').checked;
+  $('pd-var').disabled = on;
+  for (const el of $('pd-var-rows').querySelectorAll('input, select')) el.disabled = on;
+}
+$('f-variable-none').addEventListener('change', () => { varNoneSync(); pdSync(); });
+
 /* 保存した内容から行を組み立て直す。開き直しと合計の書き戻しまでここで済ませる。 */
 function pdRestore(raw) {
   let o = null;
@@ -2643,6 +2750,9 @@ function pdRestore(raw) {
   for (const kind of ['var', 'oth']) {
     const list = Array.isArray(o[kind === 'var' ? 'variable' : 'other']) ? o[kind === 'var' ? 'variable' : 'other'] : [];
     if (!list.length) continue;
+    /* ★戻す前に、空のまま置いてある行を片づける（読み込みのときに1本出している）。
+         残すと「空の行のあと本物の行」という並びになる。 */
+    pdDropEmpty(kind);
     openOpt('pd-' + kind, true);
     for (const it of list) {
       const row = pdAdd(kind, true);
@@ -2653,6 +2763,8 @@ function pdRestore(raw) {
     }
   }
   if (o.fixed_none) { $('f-base-none').checked = true; $('f-base').disabled = true; }
+  if (o.guarantee_none) { $('f-guarantee-none').checked = true; $('f-guarantee').disabled = true; }
+  if (o.variable_none) { $('f-variable-none').checked = true; varNoneSync(); }
   /* ★教官の分。ここに来る前に syncRoleBoxes() が走っているので、教官を選んで
      いる人なら s3-instr は既に出ている。出ていないなら書き戻さない
      （画面に無いものを送らないため）。 */
@@ -2819,6 +2931,18 @@ $('btn-forget').addEventListener('click', () => {
   $('restore-bar').style.display = 'none';
 });
 loadPreset();
+/* ★変動給の入力欄を最初から1本出す（2026-09-03 その3・オーナー指示
+     「『変動給を追加』を押さないと入力画面出てこないの直して」）。
+   ★もとは「＋変動給」のチップを押したときに1本出していた。変動給を
+     最初から見せるためにそのチップを消したので、出す人が居なくなっていた。
+   ⚠️ これで送信は止まらない。行の中の「何に連動する支給か」は必須だが、
+      missingRequired() が**1文字も入っていない行を数えない**。ここを壊さない。
+      pdRead() も空の行を送らない（0円の手当として並ばない）。
+   ★下書きを戻したあとに置く（戻った行がある人には足さない）。そのあと
+     varNoneSync() ── 「該当なし」を戻した人の行を触れないままにする。 */
+if (!PD.var.rows.children.length) pdAdd('var', true);
+varNoneSync();
+markRail();
 updateSteps(true);
 
 /* ── 先月の内容をサーバから埋める ──────────────────────────────
@@ -3358,6 +3482,21 @@ function renderResult(d, p) {
     bench = '<div class="bench" id="bench-gap"><div style="font-size:.82rem;color:#9ca3af">この区分（会社・職位・機材・年）は<b>まだ5人に届いていません</b>。5人そろった時点で位置が出ます。個人が特定されない人数に達するまで、集計は出しません。</div></div>';
   }
 
+  /* ★門から来た人には、押した行の面まで戻す。開き直しと鍵の後始末は
+       actual-pay.js 側（sessionStorage を読んで、開いたらその場で消す）。
+     ★「開きました」と書くのは、3項目が本当にそろったときだけ。
+       そろっていないのに書くと、戻った先でまだ閉じていて嘘になる。 */
+  const back = realpayBack();
+  const shared3 = ($('f-base').value.trim() !== '' || $('f-base-none').checked)
+    && ($('f-guarantee').value.trim() !== '' || $('f-guarantee-none').checked)
+    && ($('f-var-sum').value.trim() !== '' || $('f-variable-none').checked);
+  const backNote = back
+    ? '<div class="warn-row" style="margin-top:16px;background:#f0fdf4;border-color:#bbf7d0;color:#166534">'
+      + '給与詳細を共有しました。'
+      + (shared3 ? '<b>REAL PAY の給与内訳が開きました。</b>' : '基本給・Flight time 保証手当 / 職務手当・変動給の3つを答えると、REAL PAY の給与内訳が開きます。')
+      + '</div>'
+    : '';
+
   const fxNote = d.fx_missing
     ? '<div class="warn-row" style="margin-top:16px">' + esc(cur) + ' の換算レートがまだ入っていないため、USD／円の表示は出せません。<b>入力された金額は原本のまま保存されています</b>ので、レートを入れた時点でさかのぼって計算されます。</div>'
     : '';
@@ -3371,14 +3510,14 @@ function renderResult(d, p) {
       '<div style="margin-top:18px">' +
         rows.map((r) => '<div class="res-row"><span class="res-k">' + esc(r[0]) + '</span><span class="res-v ' + r[2] + '">' + r[1] + '</span></div>').join('') +
       '</div>' +
-      bench + fxNote +
+      bench + backNote + fxNote +
       '<div class="res-note">この内容は<b>この端末にだけ</b>保存しました。来月は変わったところを直すだけで済みます。' +
         '次の明細を出すと、その日から90日に伸びます。<br>' +
         '<b>「検証済み」バッジは、入力を続けても付きません。</b>本物のパイロットであることを確かめられたときだけ付きます（準備中）。</div>' +
       '<div class="mt-6 flex flex-col sm:flex-row gap-3">' +
         '<a href="my-value.html?new=1" class="btn-orange justify-center flex-1">マイレポートを見る →</a>' +
         /* ★Give した瞬間に Get を見せる。ここを出したことで REAL PAY が開いている。 */
-        '<a href="actual-pay.html" class="btn-ghost justify-center flex-1">REAL PAY を見る →</a>' +
+        '<a href="actual-pay.html" class="btn-ghost justify-center flex-1">' + (back ? 'REAL PAY に戻る →' : 'REAL PAY を見る →') + '</a>' +
         '<button type="button" class="btn-ghost justify-center" id="btn-again">別の月を出す</button>' +
       '</div>' +
     '</div>';

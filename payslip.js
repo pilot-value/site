@@ -2315,6 +2315,11 @@
     seededRows.forEach(function (r) { if (r && r.parentNode) r.parentNode.removeChild(r); });
     seededRows = [];
     if (!seed || !seed.length || !canRows()) { if (typeof pdSync === 'function') pdSync(); return; }
+    /* ★本物の行を載せる前に、空のまま置いてある行を片づける（2026-09-03 その4）。
+       pay-report.html が読み込みのときに変動給を1本出している。消さないと
+       「空の行のあと明細から入った行」という並びになる（送信は止まらないので
+       画面は普通に動いたまま残る）。古い HTML には無い＝あれば呼ぶ。 */
+    if (typeof pdDropEmpty === 'function') pdDropEmpty('var');
     if (typeof openOpt === 'function') openOpt('pd-var', true);   // 節そのものを開ける
     seed.forEach(function (t) {
       var row = pdAdd('var', true);

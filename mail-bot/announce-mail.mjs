@@ -668,8 +668,12 @@ export function buildFounding(p, o = {}) {
 
    ── 書いてよい事実の出どころ ──────────────────────────────────
    主張は全部 actual-pay.js から取る。盛らない。
-     ・見えること4つ …… T.see（日英とも1文字違わず写す）
-     ・載っていないもの …… T.foot（機材・基地・年代・在籍年数・生の日付）
+     ・見えること7つ …… T.see（日英とも1文字違わず写す）
+     ・載っていないもの …… T.foot（基地・年代・国籍・契約形態・生の日付）
+   ★2026-09-03、画面が機材・在籍の段・報酬の内訳・勤務を**帯で**出すように
+     なった。それまでの本文は「機材・在籍年数は誰の行にも入っていません」と
+     書いていて、そのままだと**嘘になる**ので3か所（lead / see / foot）を
+     同じ日に直した。実装より強い約束をメールでしない、が理由。
      ・列の見出し6つ …… T.thAir/thPos/thAmt/thMon/thVf/thAge
    ★「個人が特定されない形に加工した」とは書かない。k≧5 の門・30日の遅延・
      p10-p90 のクリップは 2026-08-23 に外してあり、db/pay-rows.sql の契約ヘッダは
@@ -733,13 +737,16 @@ function realPayCopy(lang) {
         '求人票の想定年収でも、推定でもありません。パイロット本人が出した記録です。',
         /* ★actual-pay.js の T.ja.foot が約束していることだけを書く。
              「個人が特定されない形に加工した」とは書かない（上のコメント）。 */
-        '一方で、載せる情報は絞ってあります。機材・基地・在籍年数・年代は誰の行にも入っていません。いつ出された記録かも、おおまかな時期だけです。載っているのは、航空会社・職位と、丸めた年収・月あたりだけです。',
+        '一方で、金額はすべて幅のある帯で出しています。端数までの正確な額は誰の行にも出ません。基地・年代・国籍・契約形態は誰の行にも入っておらず、いつ出された記録かも、おおまかな時期だけです。',
       ],
       seeT: 'REAL PAY で見えること',
       /* ★actual-pay.js の T.ja.see をそのまま写す。画面の文言を変えたら
            db/test-announce.mjs の⑤が落ちる＝メールに古い主張が残らない。 */
       see: ['航空会社と職位ごとの、実際に受け取っている年収',
             '年収を12で割った、月あたりの金額',
+            'その人が乗っている機材',
+            '報酬の内訳（固定給・変動給・手当など）を帯で',
+            '乗務時間・乗務日数・休日を帯で',
             '給与明細の裏付けがある行に付く Verified の印',
             'その記録がだいたいいつ出されたか'],
       tail: [
@@ -776,11 +783,14 @@ function realPayCopy(lang) {
       'REAL PAY is now live on PILOT VALUE.',
       'REAL PAY lets you read the pay that pilots have shared with PILOT VALUE — one row per pilot.',
       'Not job postings. Not estimates. Records pilots entered themselves.',
-      'At the same time, a row carries very little. Fleet, base, years of service and age appear on no row, and when a record was submitted is shown only as a broad period. What a row carries is the airline, the position, and rounded figures for the year and the month.',
+      'At the same time, every figure is a range. No exact amount appears on any row. Home base, age, nationality and contract type appear on no row, and when a record was submitted is shown only as a broad period.',
     ],
     seeT: 'What REAL PAY shows',
     see: ['What pilots at each airline and rank actually earn in a year',
           'That figure divided by twelve, as a monthly amount',
+          'The aircraft each pilot flies',
+          'How the pay breaks down — base, variable pay, allowances — as ranges',
+          'Block hours, duty days and days off, as ranges',
           'The Verified mark on rows backed by a payslip',
           'Roughly when each record was submitted'],
     tail: [

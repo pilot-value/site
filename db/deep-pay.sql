@@ -421,7 +421,16 @@ begin
               flight_variable_pay **と** other_allowance の**両方**に写している。
               素直に足すと変動給を二重に数える。
               pay-viz.js の segments() も split = (fv > 0 && fv <= other) で
-              同じ罠を避けている。**外さないこと。** */
+              同じ罠を避けている。**外さないこと。**
+
+              ★★ 直したら db/pay-rows.sql の2か所も同じに直す（2026-09-03）。★★
+                 ・shelf CTE の a_other（本棚）
+                 ・pv_pending_detail の 'other'（登録前の預かり）
+              同じ式が**3か所**にある。片方だけ直すと、DEEP PAY のドーナツと
+              REAL PAY の帯が**同じ人について違う内訳**を出す。どちらの画面も
+              普通に動いたまま、数字だけが食い違う。
+              ★共有関数にしていないのは、pay-rows.sql が deep-pay.sql より
+                **先に**貼られるファイルだから（依存させると適用順が逆転する）。 */
            greatest(coalesce(r.other_allowance, 0)
                     - coalesce(r.flight_variable_pay, 0), 0)
            + coalesce(r.transport, 0)                                  as a_other,

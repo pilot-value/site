@@ -238,8 +238,12 @@ alter table public.pay_reports
   add column if not exists job_roles           text[],
   -- ★ 2026-08-26 追加。給与の内訳のうち「行が何本あるか会社ごとに違う」ぶん
   --    （変動給・その他の現金手当）を、行の形のまま溜める。
-  --    形は {"v":1,"fixed_none":bool,
+  --    形は {"v":1,"fixed_none":bool,"guarantee_none":bool,"variable_none":bool,
   --          "variable":[{amount,basis,label,rule}],"other":[{amount,label}]}。
+  --    ★ 2026-09-03 追加。*_none は「金額が0」ではなく「その項目が会社に無い」。
+  --      0円と「該当なし」は意味が違うので、真偽で別に持つ（列は足していない）。
+  --      REAL PAY の内訳の門（pv_my_give の full）が、この3つを
+  --      「回答済み」として読む。空欄は未回答のまま。
   --    ★合計は既存の列に寄せてある（変動給→flight_variable_pay、
   --      変動給＋その他→other_allowance）ので、集計もレポートの図も
   --      この列を読まなくてよい。ここは「何に対して払われているか」を残すため。
@@ -958,6 +962,13 @@ begin
       v_items := jsonb_strip_nulls(jsonb_build_object(
         'v',          coalesce(v_items->'v', to_jsonb(1)),
         'fixed_none', case when jsonb_typeof(v_items->'fixed_none') = 'boolean' then v_items->'fixed_none' end,
+        -- ★ 2026-09-03 追加。保証手当・変動給の「該当なし」。
+        --    fixed_none と同じ形。0円ではなく「その項目が会社に無い」という答え。
+        --    ⚠️ 下の「空の殻」の判定にも足すこと。足し忘れると、3つとも
+        --       「該当なし」と答えた人の pay_items が丸ごと null に潰れ、
+        --       REAL PAY の内訳が一生開かない（画面もDBも無言）。
+        'guarantee_none', case when jsonb_typeof(v_items->'guarantee_none') = 'boolean' then v_items->'guarantee_none' end,
+        'variable_none',  case when jsonb_typeof(v_items->'variable_none')  = 'boolean' then v_items->'variable_none'  end,
         'variable',   case when jsonb_typeof(v_items->'variable') = 'array'
                             and jsonb_array_length(v_items->'variable') <= 40 then v_items->'variable' end,
         'other',      case when jsonb_typeof(v_items->'other') = 'array'
@@ -986,10 +997,15 @@ begin
                             and length((v_items->'nonline')::text) <= 2000 then v_items->'nonline' end
       ));
       -- 行も「該当なし」も無い＝中身が無い。空の殻を溜めない。
+      -- ★「該当なし」3つは、それだけでも中身として扱う（2026-09-03）。
+      --   3つとも「会社に無い」と答えるのは立派な回答で、REAL PAY の門は
+      --   それで開く。ここで潰すと、その人の答えがどこにも残らない。
       if not (v_items ? 'variable' or v_items ? 'other' or v_items ? 'instructor'
               or v_items ? 'examiner' or v_items ? 'union' or v_items ? 'management'
               or v_items ? 'nonline'
-              or coalesce((v_items->>'fixed_none')::boolean, false)) then
+              or coalesce((v_items->>'fixed_none')::boolean, false)
+              or coalesce((v_items->>'guarantee_none')::boolean, false)
+              or coalesce((v_items->>'variable_none')::boolean, false)) then
         v_items := null;
       end if;
     end if;

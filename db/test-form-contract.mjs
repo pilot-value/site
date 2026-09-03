@@ -35,6 +35,13 @@ const read = (f) => {
   return html + '\n<style>\n' + readFileSync(path.join(ROOT, PAGE_CSS[f]), 'utf8') + '\n</style>\n';
 };
 
+/* pdSync() が f-payitems を出すかどうかを決めている式だけを切り出す。
+   ⚠️ ここを「並びごと写して」見ない。実際に2度それで落ちている ──
+      2026-08-27 に `|| mgt` が末尾に足されたとき、
+      2026-09-03 に `|| gnone || vnone` が前へ割り込んだとき。
+   見たいのは並びではなく「その式の中にその語が居るか」だけ。 */
+const emitCond = (s) => (s.match(/\$\('f-payitems'\)\.value = \(([\s\S]*?)\) \?/) || ['', ''])[1];
+
 /* ★給与を保存したあとに鳴ってよい RPC。ここに書いた名前だけが「ほかの RPC」から外れる。
    待遇の質問（pv-conditions.js）はレポートが出たあとに動く。給与の保存とは別の口で、
    落ちてもレポートに触らない。増やすときは「保存より後にしか鳴らないこと」を確かめてから。
@@ -264,8 +271,67 @@ for (const f of ['pay-report.html', 'en/pay-report.html']) {
     const gLab = ja ? 'Flight time 保証手当 / 職務手当' : 'Flight time guarantee / Duty allowance';
     ok(s.includes(`<label class="form-label" for="f-guarantee">${gLab}</label>`),
        `${f}: ★保証給の札が2つの呼び名を併記している`, gLab);
-    ok(s.includes(`data-open="f-guarantee"><span class="p">+</span>${gLab}`),
-       `${f}: ★チップ側の札も併記になっている`, gLab);
+    /* ★2026-09-03、チップは消して欄を最初から出すようにした（REAL PAY の
+       「報酬の内訳」を開く必須3項目の1つ。奥に畳んだままでは誰も答えられない
+       ── 本番23件で保証手当を書いた人は0人だった）。札の併記だけが残る。 */
+    ok(!s.includes('data-open="f-guarantee"'),
+       `${f}: ★保証給はチップの奥ではなく最初から出ている`);
+
+    /* ①-a 内訳の欄の左に色の縦棒（2026-09-03 オーナー指摘
+         「入力するべきところが文字だけじゃわかりづらい」）。
+       ⚠️ 必須の縦棒（.fld.is-req::before）とは**別の印**。
+          内訳に req-tag を足すのは禁止（CLAUDE.md 給与フォーム鉄則6・
+          「空欄は未回答扱い」）。足した瞬間、内訳を書かない人が送信できなくなる。 */
+    const rails = (s.match(/<div class="[^"]*\bis-rail\b[^"]*"/g) || []);
+    ok(rails.length === 7,
+       `${f}: ★内訳の7つの欄すべてに縦棒が引いてある`, String(rails.length));
+    ok(rails.filter((c) => /is-rail-key/.test(c)).length === 3,
+       `${f}: ★オレンジ（門の必須3項目）はきっかり3つ`,
+       String(rails.filter((c) => /is-rail-key/.test(c)).length));
+    /* その3つが本当に 基本給・保証給・変動給 か。id で確かめる
+       （並びで数えない。1つ挿し込まれただけでずれる）。 */
+    for (const id of ['f-base', 'f-guarantee', 'pd-var-rows']) {
+      const i = s.indexOf(`id="${id}"`);
+      const head = s.lastIndexOf('is-rail', i);
+      ok(i > 0 && head > 0 && /is-rail-key/.test(s.slice(head, i)),
+         `${f}: ★${id} の欄がオレンジの縦棒を持っている`);
+    }
+    /* ①-b 塗り分けは markRail() の1本だけ。
+       ⚠️ is-done は markRequired() の持ち物。ここで使い回すと必須の勘定に混ざり、
+          内訳を書いた人だけ「必須が埋まった」ことになる（本人には見えない）。 */
+    const mrail = (s.match(/function markRail\(\)[\s\S]*?\n}/) || [''])[0];
+    ok(mrail.length > 100, `${f}: markRail() が在る`, String(mrail.length));
+    ok(/is-rail-done/.test(mrail) && !/'is-done'|"is-done"/.test(mrail),
+       `${f}: ★markRail は is-rail-done だけを塗る（必須の is-done を使い回さない）`);
+    ok(!/req-tag/.test(mrail),
+       `${f}: ★markRail は必須の印を見ない（内訳を必須にしない）`);
+    const mreq = (s.match(/function markRequired\(\)[\s\S]*?\n}/) || [''])[0];
+    ok(mreq.length > 50 && !/is-rail/.test(mreq),
+       `${f}: ★markRequired は縦棒の印を見ない（2つの印が混ざらない）`);
+    const miss = (s.match(/function missingRequired\(\)[\s\S]*?\n}/) || [''])[0];
+    ok(miss.length > 50 && !/is-rail/.test(miss),
+       `${f}: ★送信の条件も縦棒の印を見ない`);
+    /* ①-c 変動給の入力欄が最初から1本ある（オーナー指摘
+         「『変動給を追加』を押さないと入力画面出てこないの直して」）。
+       ⚠️ 空の行は送らないし必須にもならない（下の live で実際に押して確かめる）。 */
+    ok(/if \(!PD\.var\.rows\.children\.length\) pdAdd\('var', true\);/.test(s),
+       `${f}: ★読み込みのとき変動給の行を1本だけ出す`);
+    /* ★その1本を、あとから本物の行が来るときに片づける入れ物が居ること（2026-09-03 その4）。
+         居ないと「空の行のあと本物の行」という並びが残る。**送信は止まらない**ので
+         画面は普通に動いたまま並びだけが崩れる（db/test-payslip-redact.mjs が
+         「変動給が2行になる」で落ちて見つかった。手元では 3 行になっていた）。 */
+    ok(/function pdDropEmpty\(kind\)/.test(s), `${f}: ★空の行を片づける入れ物がある`);
+    ok(/pdDropEmpty\(kind\);/.test(s), `${f}: ★下書きを戻すときに空の行を片づけている`);
+    /* ①-d 縦棒そのもの（CSS）。3段の色があること・ライトでも見えること。
+       ⚠️ ライトの上書きが無いと、白地に rgba(255,255,255,.13) ＝**何も見えない**。
+          画面は普通に動いたままなので、明るいテーマの人だけ字だけの画面になる。 */
+    ok(/\.is-rail::before\{content:''/.test(s), `${f}: 縦棒が引かれている`);
+    ok(/\.is-rail\.is-rail-key::before\{background:/.test(s)
+       && /\.is-rail\.is-rail-done::before\{background:/.test(s),
+       `${f}: ★残り（オレンジ）と済み（緑）で色が変わる`);
+    ok(/\[data-theme="light"\] \.is-rail::before\{/.test(s)
+       && /\[data-theme="light"\] \.is-rail\.is-rail-done::before\{/.test(s),
+       `${f}: ★明るいテーマにも色がある（白地で消えない）`);
 
     /* ★終端は次のブロックの直前。ただし次のブロックの説明文（先頭のコメント）が
        手前に付いてくるので、最後の </div> で切る。付いたままだと、あちらの説明に
@@ -545,9 +611,8 @@ for (const f of ['pay-report.html', 'en/pay-report.html']) {
     /* ⑧ pay_items へ乗る形。組合はオブジェクト1つ（配列ではない）。 */
     ok(/if \(uni\) pi\.union = uni;/.test(s),
        `${f}: ★組合の中身は pay_items.union に乗る`);
-    /* ⚠️ 末尾で閉じない。⑤で `|| mgt` が足されたときにここが落ちた。 */
-    ok(/\(v\.length \|\| o\.length \|\| none \|\| ins \|\| exm \|\| uni\b/.test(s),
-       `${f}: ★組合だけ書いた人の pay_items が空にされない`);
+    ok(/\buni\b/.test(emitCond(s)),
+       `${f}: ★組合だけ書いた人の pay_items が空にされない`, emitCond(s));
   }
 
   /* ⑦-f 管理・マネジメント（Management / Leadership）の手当（2026-08-26 その6）──
@@ -651,8 +716,8 @@ for (const f of ['pay-report.html', 'en/pay-report.html']) {
     /* ⑧ pay_items へ乗る形。管理職もオブジェクト1つ（配列ではない）。 */
     ok(/if \(mgt\) pi\.management = mgt;/.test(s),
        `${f}: ★管理職の中身は pay_items.management に乗る`);
-    ok(/\(v\.length \|\| o\.length \|\| none \|\| ins \|\| exm \|\| uni \|\| mgt \|\| nol\)/.test(s),
-       `${f}: ★管理職だけ書いた人の pay_items が空にされない`);
+    ok(/\bmgt\b/.test(emitCond(s)) && /\bnol\b/.test(emitCond(s)),
+       `${f}: ★管理職だけ書いた人の pay_items が空にされない`, emitCond(s));
   }
 
   /* ⑦-g その他の兼務・配属（Other / Non-Line Assignment）の手当（2026-08-27 その7）──
@@ -1091,7 +1156,10 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html#pay-det
       airlineShown: box($('f-airline')).height > 0,
       atTop: document.activeElement === $('f-airline'),
       baseShown: box($('f-base')).height > 0,
-      grossReadOnly: !!($('f-gross') || {}).readOnly
+      grossReadOnly: !!($('f-gross') || {}).readOnly,
+      scrollY: Math.round(window.scrollY),
+      detailTop: Math.round(box($('pay-detail')).top),
+      s3Top: Math.round(box($('s3')).top)
     };
   });
 
@@ -1131,6 +1199,52 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html#pay-det
   const w = await shot();
   ok(w.baseShown, `${lang}: ★§3 が出てきた（内訳の欄が画面に在る）`, JSON.stringify(w));
   ok(w.open, `${lang}: ★出てきたときには、もう開いている（畳まれた状態で現れない）`, JSON.stringify(w));
+
+  /* ③ 2026-09-03 オーナー指摘「押すとちゃんと給与の内訳入力まで飛ぶようになってる？」。
+     §1・§2 を埋め終わった時点では、§3 は画面のずっと下にある。ここで寄せないと
+     「内訳を入力する」を押して来た人が、自分で探すことになる。
+     ★寄せ先は §3「3. 報酬」の**頭**（同日その5・オーナー指摘
+       「いきなり給与の内訳を追加まで飛んでしまう。スライドするなら『3. 報酬』じゃない？」）。
+     ⚠️ 内訳（#pay-detail）の頭に寄せてはいけない。同じ節の上半分 ── 通貨・
+        その月の総支給額 ── を飛び越える。年収は総支給から出すので、そこを
+        見ないまま内訳だけ埋めた人は年収が1円も出ない。
+     ⚠️ 時間で待たない（混んだ回に嘘の赤が出る）。位置が落ち着くまで待つ。 */
+  /* ⚠️ この画面は scroll-behavior:smooth。動いている途中の位置を読むと嘘の値になる
+       （2026-08-28 に assert-referral.mjs で実際に踏んだ形）。止まるまで待つ。 */
+  const settle = async () => {
+    await page.waitForFunction(() => {
+      const y = Math.round(window.scrollY);
+      const s = (window.__sy && window.__sy.v === y) ? window.__sy : { v: y, n: 0 };
+      s.n++; window.__sy = s;
+      return s.n > 10;
+    }, { timeout: 8000, polling: 'raf' }).catch(() => {});
+    await page.evaluate(() => { window.__sy = null; });
+  };
+  await page.waitForFunction(() => {
+    const r = document.getElementById('s3').getBoundingClientRect();
+    return r.top > -80 && r.top < 140;
+  }, { timeout: 8000, polling: 'raf' }).catch(() => {});
+  await settle();
+  const z = await shot();
+  ok(z.scrollY > 200 && z.s3Top > -80 && z.s3Top < 140,
+     `${lang}: ★§3 が出た瞬間に「3. 報酬」の頭まで寄っている（自分で探させない）`, JSON.stringify(z));
+  ok(z.detailTop > z.s3Top + 100,
+     `${lang}: ★内訳を通り越していない（通貨・総支給が頭の上に残っている）`, JSON.stringify(z));
+
+  /* ★旗は1回で消える。消えないと、そのあと欄を触るたびに画面が飛ぶ。 */
+  await page.evaluate(() => { window.scrollTo(0, 0); });
+  await settle();
+  await page.evaluate(() => {
+    const el = document.getElementById('f-block');
+    el.value = '81';
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  await settle();
+  const y = await shot();
+  ok(y.scrollY < 40, `${lang}: ★そのあと欄を触っても勝手に飛ばない（旗は使い切り）`,
+     JSON.stringify(y));
+
   ok(errs.length === 0, `${lang}: ページのエラーが1件も出ない`, errs.join(' | '));
   await page.close();
 }
@@ -1362,23 +1476,102 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   ok((await fv('f-gross')) === GROSS_M,
      `開いただけで額面の値が変わらない → ${await fv('f-gross')}`, `期待 ${GROSS_M}`);
   ok(await visFold('f-base'), '内訳を開くと基本給が出る');
+
+  /* ①（2026-09-03 オーナー指摘「入力するべきところが文字だけじゃわかりづらい」）
+     ★見るのは「縦棒が在るか」ではなく「埋めると色が変わるか」。
+       在るだけなら CSS を消しても誰も気づけない。 */
+  const railOf = (id) => page.evaluate((i) => {
+    const el = document.getElementById(i);
+    const b = el && el.closest('.is-rail');
+    return b ? { key: b.classList.contains('is-rail-key'),
+                 done: b.classList.contains('is-rail-done') } : null;
+  }, id);
+  ok((await railOf('f-base') || {}).key === true, '★基本給の欄にオレンジの縦棒がある');
+  ok((await railOf('f-base') || {}).done === false, '空のうちは緑にならない');
+  await setF({ 'f-base': '300000' });
+  ok((await railOf('f-base') || {}).done === true, '★金額を入れると縦棒が緑に変わる');
+  await setF({ 'f-base': '' });
+  ok((await railOf('f-base') || {}).done === false, '★消すとオレンジに戻る（後始末）');
+  ok((await railOf('f-command') || {}).key === false
+     && (await railOf('f-command') || {}).done === false,
+     '★門に関係しない欄は灰のまま（オレンジは3つだけ）');
+
+  /* ①-b 変動給の入力欄が最初から1本ある（オーナー指摘
+       「『変動給を追加』を押さないと入力画面出てこないの直して」）。
+     ⚠️ その1本は**空のまま**。必須にしてはいけない（下で実際に送って確かめる）。 */
+  const vRows = await page.evaluate(() => {
+    const box = document.getElementById('pd-var-rows');
+    return { n: box.children.length,
+             filled: [...box.querySelectorAll('input, select')]
+               .filter((e) => String(e.value || '').trim() !== '').length };
+  });
+  ok(vRows.n === 1, '★変動給の入力欄が最初から1本出ている（＋を押さなくていい）',
+     JSON.stringify(vRows));
+  ok(vRows.filled === 0, '★その1本は空（勝手に何かを入れておかない）', JSON.stringify(vRows));
+  /* ⚠️ ここが一番静かに壊れる。最初から出した空の1本が必須に数えられると、
+       変動給の無い人（大多数）が理由の分からないまま送信できなくなる。
+       missingRequired() は「1文字も入っていない .pd-row」を数えない約束。 */
+  const vMiss = await page.evaluate(() =>
+    missingRequired().map((f) => (f.querySelector('input, select') || {}).className || '')
+      .filter((c) => /pd-/.test(c)));
+  ok(vMiss.length === 0,
+     '★最初から出した空の1本は必須に数えない（送信を止めない）', JSON.stringify(vMiss));
   /* ★2026-08-26。最初から全部を展開しない（オーナー指示）。
-     基本給だけが出て、保証給・変動給・職位手当・その他の現金手当は「＋」で足す。 */
-  for (const id of ['opt-f-guarantee', 'opt-pd-var', 'opt-f-command', 'opt-pd-oth']) {
+     ★2026-09-03、そのうち2つ（保証給・変動給）だけを最初から出す形に変えた。
+       REAL PAY の「報酬の内訳」を開く条件がこの3つで、奥に畳んだままでは
+       誰も答えられなかったため（本番23件で保証手当を書いた人は0人）。
+     ⚠️ 残る2つ（職位手当・その他の現金手当）は「＋」の奥のまま見張り続ける。
+        ここが「全部出す」に流れていくのを止める最後の砦。減らさない。 */
+  for (const id of ['opt-f-guarantee', 'opt-pd-var']) {
+    ok(!(await page.$eval('#' + id, (el) => el.hidden)),
+       `★内訳を開いた時点でもう出ている（門の必須3項目） ${id}`);
+  }
+  for (const id of ['opt-f-command', 'opt-pd-oth']) {
     ok(await page.$eval('#' + id, (el) => el.hidden),
        `★内訳を開いただけでは出さない（＋で足す） ${id}`);
   }
+  /* 門の必須3項目には「該当なし」が要る。金額が無い人（保証給の無い会社）が
+     ここで詰まると、条件を満たしようがない。 */
+  for (const id of ['f-base-none', 'f-guarantee-none', 'f-variable-none']) {
+    ok(await visFold(id), `★「該当なし」が出ている（0円ではなく「無い」を言える） ${id}`);
+  }
   ok(await page.evaluate(() => {
-       const want = ['f-guarantee', 'pd-var', 'f-command', 'pd-oth'];
+       const want = ['f-command', 'pd-oth'];
+       const gone = ['f-guarantee', 'pd-var'];
        const got = [...document.querySelectorAll('.pay-detail-b .chips .chip')]
          .map((b) => b.dataset.open);
-       return want.every((k) => got.includes(k));
-     }), '★4つの「＋」が並んでいる（保証給・変動給・職位手当・その他の現金手当）');
+       return want.every((k) => got.includes(k)) && !gone.some((k) => got.includes(k));
+     }), '★「＋」に残っているのは職位手当とその他の現金手当だけ（保証給と変動給は出た）');
   ok(await page.evaluate(() => {
-       document.querySelector('.pay-detail-b .chip[data-open="f-guarantee"]').click();
-       return !document.getElementById('opt-f-guarantee').hidden
-              && !document.querySelector('.pay-detail-b .chip[data-open="f-guarantee"]');
-     }), '★「＋保証給」を押すと欄が出て、その「＋」は消える');
+       document.querySelector('.pay-detail-b .chip[data-open="f-command"]').click();
+       return !document.getElementById('opt-f-command').hidden
+              && !document.querySelector('.pay-detail-b .chip[data-open="f-command"]');
+     }), '★「＋職位手当」を押すと欄が出て、その「＋」は消える');
+  /* 「該当なし」を3つとも入れただけで pay_items が出る（＝空の殻にされない）。
+     ⚠️ ここが黙って壊れると、3つとも「該当なし」の人の内訳が丸ごと消えて
+        REAL PAY が永久に開かない。DB 側は db/test-pay-reports.mjs が見ている。 */
+  const none3 = await page.evaluate(() => {
+    for (const id of ['f-base-none', 'f-guarantee-none', 'f-variable-none']) {
+      const el = document.getElementById(id);
+      el.checked = true;
+      el.dispatchEvent(new Event('change'));
+    }
+    let o = null;
+    try { o = JSON.parse(document.getElementById('f-payitems').value || 'null'); } catch (e) {}
+    return { o, gDis: document.getElementById('f-guarantee').disabled,
+             vDis: document.getElementById('pd-var').disabled };
+  });
+  ok(none3.o && none3.o.fixed_none === true && none3.o.guarantee_none === true
+     && none3.o.variable_none === true,
+     '★「該当なし」3つが pay_items に残る（空の殻に潰さない）', JSON.stringify(none3.o));
+  ok(none3.gDis && none3.vDis, '★「該当なし」を選ぶとその欄は触れなくなる（0円と混ざらない）');
+  await page.evaluate(() => {
+    for (const id of ['f-base-none', 'f-guarantee-none', 'f-variable-none']) {
+      const el = document.getElementById(id);
+      el.checked = false;
+      el.dispatchEvent(new Event('change'));
+    }
+  });
   ok(await vis('gross-hint-own'), '額面の説明は入れ替わらない（いつでも本人の額面）');
   ok(!(await page.$('#gross-hint-sum')), '★「下の内訳の合計」という説明はもう無い');
 
@@ -1435,10 +1628,19 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   await pdFill('var', [{ amount: '4000', label: 'Flight Pay' }]);   // 金額だけ・種類が空
   const noBasis = await page.evaluate(async () => {
     await submitPayReport();
-    return document.getElementById('err').textContent;
+    return {
+      err: document.getElementById('err').textContent,
+      marked: !!document.querySelector('#pd-var-rows .fld.is-miss .pd-basis'),
+    };
   });
-  ok(/何に連動する支給か|What it is paid on/.test(noBasis),
-     '★金額だけの行を作って送ると、種類を選ぶよう止められる', noBasis.slice(0, 60));
+  /* ⚠️ 2026-09-03、止まる場所が変わった。変動給の欄を最初から出すようにしたので、
+     「空のままの必須欄をまとめて出す」段（missingRequired）がこの行を先に掴む。
+     前はこの欄ごと hidden ＝ offsetParent が無く、あの段を素通りして下の専用の
+     1文まで落ちていた。どちらでも「止まって、その欄に印が付く」ことは同じなので、
+     ★見るのは文面ではなく「止まったか・その欄に印が付いたか」にする。 */
+  ok(/何に連動する支給か|What it is paid on/.test(noBasis.err) || noBasis.marked,
+     '★金額だけの行を作って送ると、種類を選ぶよう止められる',
+     `${noBasis.err.slice(0, 40)} / 印 ${noBasis.marked}`);
   const withUnknown = await page.evaluate(async () => {
     document.querySelector('#pd-var-rows .pd-basis').value = 'unknown';
     const c = document.getElementById('f-contract'), keep = c.value;

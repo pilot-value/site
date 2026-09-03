@@ -211,10 +211,16 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
   }
   /* ★並び替えと賞与（2026-08-24 に「作らない」と決めたもの）。
      ★投稿時期の列も同じ。言葉にして出すだけで、並べ替えも絞り込みも作らない。 */
-  for (const w of ['ap-sort', 'ap-order', 'newest', '新しい順', 'ap-bonus', 'bonus',
+  /* ★2026-09-03、裸の 'bonus' だけ禁止から外した。行を押すと出る面が
+       賞与を**帯の1区分として**出すようになったため（オーナー判断）。
+       ⚠️ 外したのは「語を書いてよい」までで、**列・並べ替え・絞り込みは今も無い**。
+          それは下の2行が別々に見張っている。 */
+  for (const w of ['ap-sort', 'ap-order', 'newest', '新しい順', 'ap-bonus',
                    'id="ap-age"', 'data-ap-age', 'S.fAge']) {
     ok(!j.includes(w), `★actual-pay.js に ${w} が無い`);
   }
+  ok(!/sort[^)]*bonus|bonus[^)]*sort|S\.fBonus|onlyBonus/i.test(j),
+     '★賞与で並べ替える・絞り込む仕掛けが無い');
   ok(!/sort[^)]*\.age\b|\.age[^)]*sort/.test(j), '★投稿時期で並べ替える仕掛けが無い');
   ok(!/S\.f[A-Za-z]*\s*&&\s*r\.age|r\.age\s*!==/.test(j),
      '★投稿時期で絞り込む仕掛けが無い');
@@ -223,9 +229,21 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
      '★投稿時期は段の番号（0〜4）を言葉にするだけ');
   ok(!/toLocaleDateString|new Date\(|getFullYear|getMonth/.test(j),
      '★日付を組み立てる道具をこの画面が1つも持っていない');
-  /* ★支給の内訳（ドーナツ）は DEEP PAY の担当。この画面からは呼ばない。 */
-  ok(!/PVViz|pt-donut|renderComp|\bcomp\b/.test(j),
-     '★内訳（comp／PVViz）をこの画面が1文字も持っていない');
+  /* ★支給の内訳について（2026-09-03 に方針が変わったところ）。
+       この画面は内訳を出すようになった。**ただし出すのは帯だけ**で、
+       ドーナツ（PVViz）も、割合（％）も、1円単位の額も出さない。
+       ⚠️ 「内訳を出す」と「ドーナツを戻す」は別の話。ここは後者を見張る。
+          割合を出し始めると、帯の中の本当の位置が逆算できてしまう。 */
+  ok(!/PVViz|pt-donut|renderComp|renderDonut|conic-gradient/.test(j),
+     '★ドーナツ（PVViz）はこの画面に戻っていない ── 出すのは帯だけ');
+  /* ⚠️ 「* 100」そのものを禁じないこと。横棒の left / width は CSS の % で置くので
+        座標の計算に 100 が要る。**禁じるのは画面に出る割合**で、それは
+        「開いた面の文字に % が1つも無い」（下の runtime 側）が見張っている。 */
+  ok(!/\bpct\b|percent|toFixed\(\s*\d\s*\)\s*\+\s*'%'/i.test(j),
+     '★割合（％）を数として持ち回していない');
+  /* ★帯は**サーバが作る**。画面が生の額から帯を組み立てていないこと。 */
+  ok(!/pv_band|Math\.round\([^)]*\/\s*(?:1000|10000)\s*\)/.test(j),
+     '★画面が帯を作っていない（両端はサーバから来た2つの数をそのまま出す）');
   /* ★2026-08-24、図を全部外した。分布の棒も、その部品も、2段組も残っていない。
      ⚠️ 分布は DEEP PAY で作り直す。ここに別の図を置き直さない。 */
   for (const w of ['renderViz', 'vizDist', 'myAnnual', 'ap-vcard', 'ap-plot',
@@ -288,6 +306,69 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
   ok(/\.ap-age\{/.test(c), '★投稿時期の列の見た目がある');
 }
 
+/* ══ 積み上げバーの色（2026-09-03 その2）══════════════════════════
+   バーと丸の色は **区分ごと**で、色そのものは pay-viz.js の SEG が持っている。
+   あちらは DEEP PAY のドーナツとマイレポートも引いていて、
+   「同じ項目がマイレポートと同じ色になる」はオーナー確定（2026-08-29）。
+
+   ⚠️ actual-pay.html は pay-viz.js を読み込んでいない（読み込めない ──
+      あれはドーナツ一式で、この画面に図は戻さないと決めてある）。
+      だから色は actual-pay.css に**手で写してある**。
+
+   ⚠️ 写しである以上、あちらのパレットを変えると2つの画面が同じ項目に違う色を出す。
+      **どちらも普通に動いたまま**なので、ここで3枚を突き合わせて落とす。
+        pay-viz.js の SEG（鍵 → 色）
+          → deep-pay.js の COL（面の区分 → SEG の鍵）
+            → actual-pay.css の .ap-dw-c-<区分>
+   ★賞与だけ COL に無い（DEEP PAY は賞与を月々の棒に入れない）ので SEG から直に引く。 */
+{
+  const viz = decomment(read('pay-viz.js'));
+  const dp  = decomment(read('deep-pay.js'));
+  const c   = decomment(CSS);
+  const j   = decomment(JS);
+
+  /* 1) pay-viz.js の SEG を { 鍵: 色 } に読む */
+  const segBlock = (viz.match(/var\s+SEG\s*=\s*\[([\s\S]*?)\n\s*\];/) || [])[1] || '';
+  const SEGC = {};
+  for (const m of segBlock.matchAll(/\{\s*k:\s*'([a-z]+)'\s*,\s*c:\s*'(#[0-9a-f]{6})'\s*\}/gi)) {
+    SEGC[m[1]] = m[2].toLowerCase();
+  }
+  ok(Object.keys(SEGC).length >= 14, '★pay-viz.js の SEG を読めた', String(Object.keys(SEGC).length));
+
+  /* 2) deep-pay.js の COL を { 面の区分: SEG の鍵 } に読む */
+  const colBlock = (dp.match(/var\s+COL\s*=\s*\{([\s\S]*?)\n\s*\};/) || [])[1] || '';
+  const COL = {};
+  for (const m of colBlock.matchAll(/(\w+)\s*:\s*SEGCOL\.(\w+)/g)) COL[m[1]] = m[2];
+  ok(Object.keys(COL).length === 8, '★deep-pay.js の COL を読めた（8区分）', String(Object.keys(COL).length));
+
+  /* 3) 面が持つ区分は T.seg の鍵。★名前の表が白名簿を兼ねている（segCls）。 */
+  const segKeys = Object.keys(
+    Object.fromEntries([...((j.match(/seg:\s*\{([\s\S]*?)\}/) || [])[1] || '')
+      .matchAll(/(\w+)\s*:/g)].map((m) => [m[1], 1])));
+  ok(segKeys.length === 9,
+     '★面の区分はちょうど9つ（8つは DEEP PAY と共通・賞与だけこの画面）', segKeys.join(','));
+
+  /* 4) 9つとも、CSS の色が SEG から出る色と一致する */
+  for (const k of segKeys) {
+    const want = SEGC[k === 'bonus' ? 'bonus' : COL[k]];
+    const got = (c.match(new RegExp('\\.ap-dw-c-' + k + '\\s*\\{background:(#[0-9a-f]{6})\\}', 'i')) || [])[1];
+    ok(!!want && !!got && want === String(got).toLowerCase(),
+       `★${k} の色が pay-viz.js の SEG と同じ`, `css=${got} seg=${want}`);
+  }
+
+  /* 5) 余分な色を足していない（CSS にあって面が持たない区分が無い） */
+  const cssKeys = [...c.matchAll(/\.ap-dw-c-([a-z]+)\s*\{/gi)].map((m) => m[1]);
+  ok(cssKeys.length === segKeys.length && cssKeys.every((k) => segKeys.includes(k)),
+     '★CSS の色は面が持つ区分ぶんだけ（余りも足りないも無い）', cssKeys.join(','));
+
+  /* 6) 濃淡（並び順で色を決める形）に戻っていない。
+        ★戻すと「1番目が濃い」だけになり、行が変わると同じ色が別の意味になる。 */
+  ok(!/ap-dw-c\d/.test(j) && !/ap-dw-c\d/.test(c),
+     '★色は並び順ではなく区分に付いている（濃淡の段に戻っていない）');
+  ok(/function segCls/.test(j) && /T\.seg && T\.seg\[k\]/.test(j),
+     '★鍵をそのまま class に流していない（T.seg が白名簿を兼ねる）');
+}
+
 /* サーバ側。1行＝人の粒度なので anon には絶対に開かない。 */
 {
   const i0 = SQL.indexOf('create or replace function public.pv_pay_rows()');
@@ -332,7 +413,13 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
        .test(SQL), '★社名を寄せる関数は誰にも開いていない');
   }
   ok(/group by pkey, airline, pos/.test(FN), '★1行＝1人にまとめている');
-  ok(!/\bfleet\b/.test(FN), '★機材（fleet）は読んでも返してもいない');
+  /* ★2026-09-03、オーナー判断で機材を返すことにした（2026-08-24 に外したもの）。
+       返すのは**語彙のコードだけ**で、fleet_cat（大分類）は返さない。
+       ⚠️ 出すが**絞らせない**。引数ゼロの関数のままであること（契約⑤）と、
+          画面に機材の絞り込みが無いこと（下の hasFleet === 0）が対になっている。 */
+  ok(/\bfleet\b/.test(FN), '★機材（fleet）を返している');
+  ok(!/\bfleet_cat\b/.test(FN), '★機材の大分類（fleet_cat）は返していない');
+  ok(/'fleet'/.test(FN), '★機材はキー fleet として1つだけ返る');
   /* 集計側（pay_benchmarks）の k≧5 は今も生きている。こちらを一緒に外さない。 */
   ok(/pg_get_viewdef\(bench\) like '%>= 5%'/.test(SQL),
      '★集計（pay_benchmarks）の k≧5 は今も見張っている');
@@ -444,8 +531,15 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
     ok(!/return v_out;/.test(FN.slice(0, FN.indexOf("'contributors'"))),
        '★locked でも途中で return せず、最後の1つの select まで進む');
     ok(/'contributors'/.test(FN), '★給与を出したユニークな人数を返す（DEEP PAY の分母）');
-    ok(/'give',\s*public\.pv_my_give\(\)/.test(FN),
-       '★本人が何を出したか（basic / detailed / payslip）を返す');
+    /* ★2026-09-03、報酬の内訳の門を入れたので pv_my_give() は**1回だけ**呼び、
+         その値を v_give に持つ（総当たりでハッシュを作るので2度呼ぶと2度走る）。
+         返すのはその同じ値 ── 画面に渡す give と、門に使う判定がズレないように。 */
+    ok(/v_give\s*:=\s*public\.pv_my_give\(\);/.test(FN)
+       && /'give',\s*v_give/.test(FN),
+       '★本人が何を出したか（basic / detailed / full / payslip）を返す',
+       (FN.match(/'give',[^\n]*/g) || []).join(' / '));
+    ok((FN.match(/public\.pv_my_give\(\)/g) || []).length === 1,
+       '★★その判定は1か所だけ（門と画面で違う答えにならない）');
     /* ★①（100人）と②（本人の内訳）は別の材料から出ている。 */
     /* ★数え方は pv_deep_contributors() 1つだけが持つ（2026-09-01 に 1-f から移した）。
          同じ「N / 100人」を左メニューの札（pv_give_progress）も DEEP PAY の門も出すので、
@@ -595,10 +689,28 @@ for (const [name, file] of [['ja', 'actual-pay.html'], ['en', 'en/actual-pay.htm
   ok(/state: 'soon'[\s\S]*state: 'soon'/.test(GATES) && /'live'/.test(GATES),
      '★いま開くのは REAL PAY だけ（残り2つは準備中）');
 
-  /* ⑥ ぼかしが REAL PAY 側にも無い（CSS / JS / HTML の4本）。 */
+  /* ⑥ ぼかしが REAL PAY 側にも無い（CSS / JS / HTML の4本）。
+     ⚠️ 2026-09-03 その3 ── 閉じている内訳の「金額の板」だけ例外にした
+        （オーナー指示「色付きの棒グラフと項目名までは出す。金額だけ隠す」）。
+        あの板は**中身が空**で、霞ませている相手が最初から無い。
+        許すのは `.ap-dw-lk-p` を名乗る規則の中だけ ── 消さずに範囲を狭めてある。
+        本当の担保は下の K-1（毒を仕込んだ行を開いて、面に数字が1文字も出ない）。 */
+  const BLURY = /blur\(|(?:^|[;{\s])filter\s*:|backdrop-filter|text-security/gim;
   for (const f of ['actual-pay.css', 'actual-pay.js', 'actual-pay.html', 'en/actual-pay.html']) {
     const t = read(f);
-    const bad = (t.match(/blur\(|(?:^|[;{\s])filter\s*:|backdrop-filter|text-security/gim) || []);
+    let bad;
+    if (f.endsWith('.css')) {
+      bad = [];
+      let m;
+      const RULE = /([^{}]+)\{([^{}]*)\}/g;
+      while ((m = RULE.exec(t))) {
+        BLURY.lastIndex = 0;
+        if (!BLURY.test(m[2])) continue;
+        if (!/\.ap-dw-lk-p/.test(m[1])) bad.push(m[1].trim().slice(0, 60));
+      }
+    } else {
+      bad = (t.match(BLURY) || []);
+    }
     ok(bad.length === 0, `★${f} にぼかしで隠す実装が無い`, bad.join(','));
   }
 }
@@ -655,40 +767,84 @@ const FAKE = function (payload) {
    ZQX は実在しない3文字（実在の空港コードを使うと、たまたま本文に出て誤検知する）。
    ★Somewhere Air は「自由入力で打ち込まれた社名」。これが画面に出たら、
      その人の勤務先が本人の書いた文字列そのままで他人に見えている。
-   ★2026-08-24 から **機材（fleet）と支給の内訳（comp）もここに入れた**。
-     サーバは返さなくなったが、万一また返し始めても画面には出ないこと。 */
+   ★2026-08-24 から **支給の内訳（comp）もここに入れた**。
+     サーバは割合を返さない。万一また返し始めても画面には出ないこと。
+   ★2026-09-03、**機材（fleet）は毒から外した** ── 画面に出るようになったため。
+     代わりに3つ入れた。
+       ・fleet_cat …… 機材の**大分類**。サーバは今もこれを返さない
+                      （細かい機材と大分類が両方出ると、絞り込みの階段になる）
+       ・base_pay ・ block_hours …… **生の額と生の時間**。
+                      画面が出すのは帯の両端だけで、この形の数は1つも出ない */
 const POISON = {
   base_iata: 'ZQX', seniority_years: 137, age_bucket: '40s',
   period_year: 2026, period_month: 8, created_at: '2026-08-05T00:00:00Z',
   proof_hash: 'deadbeefcafe0001', contract_type: 'direct', tax_country: 'JP',
   nationality: 'JP', annual_total_orig: 19440000, currency: 'JPY', verify_level: 2,
   airline_other: 'Somewhere Air',
-  fleet: 'zqx-jet', comp: { m: 73, b: 19, d: 5, h: 2, o: 1 }
+  fleet_cat: 'zqx-cat', base_pay: 132456, block_hours: 137.5,
+  comp: { m: 73, b: 19, d: 5, h: 2, o: 1 }
 };
 /* ★字面がぶつからないものを選ぶ。'17' や '2026' のような短い数字は
    年号にたまたま出るので、毒として使えない。 */
 const POISON_VALUES = ['ZQX', '137', '40s', 'deadbeefcafe0001',
                        '19,440,000', '19440000', '2026-08-05', 'Somewhere Air',
-                       'zqx-jet', '73%', '19%'];
+                       'zqx-cat', '132,456', '132456', '73%', '19%'];
 
 /* ★age ＝ 投稿時期の段（0〜4）。サーバが返すのはこの番号だけで、日付は来ない
      （db/pay-rows.sql の「★投稿の時期について」）。 */
 const row = (airline, pos, usd, vf, age, extra) => Object.assign(
   { airline: airline, pos: pos, annual_usd: usd, verified: vf, age: age }, extra || {});
 
+/* ★行を押すと出る面の材料（2026-09-03）。サーバが返す形をそのまま置く。
+     pay …… [{ k: 区分, r: [下端, 上端] }]  ── **両端の2つだけ**。中間の位置は無い
+     work … { bh / dd / off: [下端, 上端] }  ── この3つだけ（便数もステイも無い）
+     ten … 在籍の**段**（fo は 0〜1・cap は 0〜2）。年そのものは来ない
+   ★帯の刻み（grid）は年収のおよそ40分の1を 1/2/5 へ切り上げたもの。
+     18万ドルなら 5,000・25万ドルなら 10,000。下の R_GRID がその写し。
+   ★わざと**4通りの欠け方**を混ぜてある ── 全部そろい / 内訳だけ / 勤務だけ / 年収だけ。
+     いちばん下（口コミ由来）が「年収だけ」で、押しても空にならないことを見る。 */
+const bnd = (fixed, variable, other, bonus) => [
+  { k: 'fixed', r: fixed }, { k: 'variable', r: variable },
+  { k: 'other', r: other }, { k: 'bonus', r: bonus }];
+const WORK = { bh: [60, 70], dd: [14, 16], off: [12, 14] };
+
 /* 本番に近い形（2026-08-23 時点は8人・全員が手入力＝verified はほぼ付かない）。
    ★1人目にだけ毒を混ぜる。★自由入力の社名の人は airline:'other' で来る。
    ★段は5つとも出るように配る（言葉が1つでも欠けていたら気づける）。 */
 const ROWS = [
-  row('ana', 'cap', 180000, true, 0, POISON),
-  row('ana', 'fo', 120000, false, 1),
-  row('ana', 'cap', 190000, false, 2),
-  row('jal', 'cap', 170000, false, 3),
+  row('ana', 'cap', 180000, true, 0, Object.assign({}, POISON, {
+    fleet: 'b787', ten: 1,
+    pay: bnd([95000, 100000], [35000, 40000], [10000, 15000], [0, 5000]),
+    work: WORK })),
+  row('ana', 'fo', 120000, false, 1, {
+    fleet: 'a320', ten: 0,
+    pay: bnd([70000, 75000], [25000, 30000], [10000, 15000], [0, 5000]),
+    work: { bh: [70, 80], dd: [16, 18], off: [10, 12] } }),
+  /* 内訳だけ（勤務を書かなかった人）。 */
+  row('ana', 'cap', 190000, false, 2, {
+    fleet: 'b787', ten: 2,
+    pay: bnd([100000, 105000], [40000, 45000], [15000, 20000], [0, 5000]) }),
+  /* 勤務だけ（総支給しか書かず、明細の中身を出さなかった人）。 */
+  row('jal', 'cap', 170000, false, 3, {
+    fleet: 'b777', ten: 0, work: { bh: [50, 60], dd: [12, 14], off: [14, 16] } }),
+  /* ★年収だけ（口コミ由来）。機材も在籍も内訳も勤務も無い。 */
   row('jal', 'fo', 110000, false, 4),
-  row('emirates', 'cap', 250000, false, 0),
-  row('other', 'cap', 130000, false, 2, { airline_other: 'Somewhere Air' }),
-  row('other', 'fo', 90000, false, 4)
+  row('emirates', 'cap', 250000, false, 0, {
+    fleet: 'a380', ten: 1,
+    pay: bnd([130000, 140000], [50000, 60000], [20000, 30000], [0, 20000]),
+    work: { bh: [80, 90], dd: [16, 18], off: [10, 12] } }),
+  row('other', 'cap', 130000, false, 2, { airline_other: 'Somewhere Air',
+    fleet: 'b737', ten: 1,
+    pay: bnd([70000, 75000], [30000, 35000], [10000, 15000], [0, 5000]),
+    work: { bh: [60, 70], dd: [14, 16], off: [12, 14] } }),
+  /* ★fo の段の2つ目。fo に3段目が生えていないことは、これが出ることで見える。 */
+  row('other', 'fo', 90000, false, 4, {
+    fleet: 'b737', ten: 1,
+    pay: bnd([50000, 55000], [20000, 25000], [5000, 10000], [0, 5000]),
+    work: { bh: [60, 70], dd: [14, 16], off: [12, 14] } })
 ];
+/* 帯の刻み。★上の行と対。両端がこの倍数でなければ、どこかで生の額が混ざっている。 */
+const R_GRID = ROWS.map((r) => (r.annual_usd >= 200000 ? 10000 : 5000));
 
 /* 画面に出るはずの段の言葉。★これ以外の言い方が出たら、どこかで作り直されている。 */
 /* 実物の6列。★骨組みもこれと同じ字でなければならない（賞与の列は無い）。 */
@@ -853,8 +1009,16 @@ const SNAP = () => {
     blurred: (function () {
       const m = document.querySelector('.mr-main');
       if (!m) return ['(.mr-main が無い)'];
+      /* ★2026-09-03、**行を押すと出る面**をここに足した。
+           あれは body の直下に出る＝ .mr-main の外なので、
+           足さないと「面の中だけ検査が届かない穴」になっていた。 */
+      const roots = [m, document.querySelector('.ap-dw-back')].filter(Boolean);
       const out = [];
-      const all = [m].concat(Array.prototype.slice.call(m.querySelectorAll('*')));
+      const all = [];
+      roots.forEach(function (r) {
+        all.push(r);
+        Array.prototype.slice.call(r.querySelectorAll('*')).forEach(function (e) { all.push(e); });
+      });
       for (const e of all) {
         const c = getComputedStyle(e);
         const f = c.filter, b = c.backdropFilter || c.webkitBackdropFilter;
@@ -909,7 +1073,9 @@ const SNAP = () => {
     axText: q('.ap-ax').map((e) => e.innerText).join(' '),
     svgInRows: q('svg', rows).length,
     /* ★行は押せない（押すと内訳が出る形はもう無い）。 */
-    rowSel: q('#ap-rows tbody tr[data-ap-row], #ap-rows tbody tr[tabindex]').length,
+    rowSel: q('#ap-rows tbody tr[data-ap-row]').length,
+    rowTab: q('#ap-rows tbody tr[tabindex]').length,
+    rowGo: q('#ap-rows tbody tr .ap-go[aria-label]').length,
     /* ── 数字カード（2026-08-24）───────────────────────
        ★読めない数のカードは**そのカードごと出さない**＝0 を並べない。 */
     statsHidden: (function () { const b = document.getElementById('ap-stats'); return b ? b.hidden : null; })(),
@@ -1102,15 +1268,24 @@ for (const lang of ['ja', 'en']) {
        `${v.skelBars}本 / ${JSON.stringify(v.skelRowsText).slice(0, 80)}`);
     ok(v.skelLock !== '' && !/\d{3,}/.test(v.skelLock),
        `${lang}: ★骨組みの上に錠前つきの1文が出る`, v.skelLock);
-    ok(v.seeItems.length === 4 && v.seeNote !== '',
-       `${lang}: ★「REAL PAY で見えること」4行＋機種の1文`,
+    /* ★2026-09-03、4行 → 7行（機材・報酬の内訳・勤務が増えた）。
+         この7行は mail-bot/announce-mail.mjs にも1文字違わず写してあり、
+         db/test-announce.mjs が突き合わせている＝メールだけ古い主張が残らない。 */
+    ok(v.seeItems.length === 7 && v.seeNote !== '',
+       `${lang}: ★「REAL PAY で見えること」7行＋「1円単位は出ない」の1文`,
        `${v.seeItems.length} / ${v.seeNote}`);
-    const fleet = lang === 'ja' ? /機種/ : /fleet/i;
-    ok(fleet.test(v.seeNote), `${lang}: ★「機種は表示しません」が残っている`, v.seeNote);
-    /* ★見えることに、実際には出していないものを書かない。 */
+    /* ★「機種は表示しません」の1文は 2026-09-03 に消した ── 嘘になったため。
+         代わりに置いたのが「金額はすべて帯」。**言い換えではなく差し替え**。 */
+    const band = lang === 'ja' ? /帯/ : /range/i;
+    ok(band.test(v.seeNote), `${lang}: ★「金額はすべて帯」の1文がある`, v.seeNote);
+    const oldLine = lang === 'ja' ? /機種は表示しません/ : /fleet is not shown/i;
+    ok(!oldLine.test(v.seeNote), `${lang}: ★古い「機種は表示しません」が残っていない`, v.seeNote);
+    /* ★見えることに、実際には出していないものを書かない。
+         ⚠️ en の base は「基地」以外の意味でも使う語なので、基地の意味のときだけ拾う。
+            機材・在籍・賞与は出すようになったので、この一覧から外した。 */
     const lies = lang === 'ja'
-      ? (v.seeItems.join(' ').match(/機材|基地|年代|在籍|賞与|手取り/g) || [])
-      : (v.seeItems.join(' ').match(/fleet|base|bonus|take-home/gi) || []);
+      ? (v.seeItems.join(' ').match(/基地|年代|国籍|手取り/g) || [])
+      : (v.seeItems.join(' ').match(/\bhome base\b|base airport|\bage\b|nationality|take-home/gi) || []);
     ok(lies.length === 0, `${lang}: ★出していないものを「見えること」に書かない`, lies.join(','));
   }
 
@@ -1487,7 +1662,18 @@ for (const lang of ['ja', 'en']) {
   ok(v.hasFleet === 0 && v.hasQ === 1,
      '★機材で絞る口は無い／会社を打ち込む窓はある', `${v.hasFleet}/${v.hasQ}`);
   ok(v.hdSub === '', '★見出しの下に説明を置かない（オーナー指定）', v.hdSub.slice(0, 80));
-  ok(v.rowSel === 0, '★行は押せない（押すと内訳が出る形はもう無い）', String(v.rowSel));
+  /* ★2026-09-03、オーナー判断で行を押せるようにした（2026-08-24 に消したもの）。
+       ⚠️ 戻したのは「押すと開く」までで、**開くのは帯だけの面**。
+          ドーナツも割合も戻していない（下の donut === 0 が対）。
+     ★全行に付いていること。1行でも欠けると「押せる行と押せない行」が混ざり、
+       押せない行の人だけ内訳が無いように読める。 */
+  ok(v.rowSel === v.trs && v.trs > 0,
+     '★どの行も押せる（押せる行と押せない行が混ざっていない）',
+     `${v.rowSel} / ${v.trs}`);
+  ok(v.rowTab === 0,
+     '★<tr> に tabindex を置いていない（入口は行末のボタン1つ）', String(v.rowTab));
+  ok(v.rowGo === v.trs,
+     '★行末の「›」が全行にあり、読み上げ用の名前を持っている', `${v.rowGo} / ${v.trs}`);
   ok(v.donut === 0, '★ドーナツはこの画面に1つも無い（DEEP PAY へ移した）', String(v.donut));
 
   /* ★原本通貨は返していない＝表は表示通貨に揃っている。 */
@@ -1500,11 +1686,15 @@ for (const lang of ['ja', 'en']) {
      '★表は本文の幅いっぱいに広がる', JSON.stringify(v.tblWide));
 
   /* ★⑤数え上げ。表そのものに数え方の言葉を1つも置かない。
-     ★ただし出典の札（本人記録 / Pilot-recorded）だけは別。あれは数え方ではなく
-       「その額がどこから来たか」で、たまたま「人」「Pilot」の字を含むだけ。
+     ★ただし出典の札（本人申告 / Self-reported）だけは別。あれは数え方ではなく
+       「その額がどこから来たか」で、たまたま「人」「report」の字を含むだけ。
        札の文字列そのものを外してから、残りを元どおり厳しく見る。
-       外すのは札だけ＝他の場所に「3件」「5人」が出れば今までどおり落ちる。 */
-  const VF_LABELS = ['本人記録', 'Pilot-recorded'];
+       外すのは札だけ＝他の場所に「3件」「5人」が出れば今までどおり落ちる。
+     ⚠️ actual-pay.js の T.vfNo を変えたら、**同じコミットでここも直す**。
+        直し忘れると画面は正しいのにこの検査だけが赤くなる
+        （2026-09-03、「本人記録」→「本人申告」で実際に踏んだ。
+         新しい札は日英とも「人」「report」を字として含んでいる）。 */
+  const VF_LABELS = ['本人申告', 'Self-reported'];
   const tblAll = VF_LABELS.reduce((t, w) => t.split(w).join(' '), v.tblTexts.join('\n'));
   ok(!/(件|人|reports?|pilots?)/i.test(tblAll),
      '★表の中に「件」「人」が1つも無い', JSON.stringify(tblAll).slice(0, 160));
@@ -2001,6 +2191,730 @@ for (const lang of ['ja', 'en']) {
   ok(g.goal.indexOf('21 / 100人') === 0,
      '★出る数は一覧から来たほう（札の口の 17 ではない）', g.goal);
   ok(errs.length === 0, 'ページのエラーが1件も出ない', errs.join(' | '));
+}
+
+// ════════════════════════════════════════════════════════════════
+// J. 行を押すと出る面（2026-09-03）
+// ════════════════════════════════════════════════════════════════
+/* 2026-08-24 に「行は押せない」と決めて消した仕掛けを、オーナーの判断で戻した。
+   戻したのは**押すと1人ぶんの面が出る**ところまで。
+   図・割合（％）・2粒度・右の「選んだ区分」パネルは戻していない。
+
+   ここで見るのは6つ。
+     ① 押せることが hover でしか分からない画面になっていない
+     ② 押しても**サーバへ1本も投げない**（誰がどの行を開いたかを記録に残さない）
+     ③ 出る数はすべて帯で、両端はサーバが決めた刻みの倍数
+        （＝画面が生の額を受け取って自分で丸めている、という形になっていない）
+     ④ サーバが返さないもの（生の基本給・生の乗務時間・機材の大分類・割合）は面にも出ない
+     ⑤ 無いものは節ごと出さない。作り話の 0 も「—」も置かない
+     ⑥ 閉じたら DOM から消える・押した行へフォーカスが戻る
+
+   ⚠️ ここは1人を深く見る画面なので、**項目を足すほど個人に近づく**。
+      検査を足すときは、まず db/pay-rows.sql の契約文の
+      「これ以上1つも足さない。次に足したくなったらどれかを外す」を読むこと。 */
+{
+  /* ★画面の言葉をここに書き写している（AGE_WORDS と同じ流儀）。
+       黙って言い換えられたら、その場で赤くなるようにしておく。 */
+  const TEN = {
+    ja: { fo: ['1〜5年', '5年以上'], cap: ['1〜10年', '10〜20年', '20年以上'] },
+    en: { fo: ['1–5 years', '5+ years'],
+          cap: ['1–10 years', '10–20 years', '20+ years'] }
+  };
+  const DWT = {
+    ja: { comp: '報酬の内訳', work: '勤務', sim: '同じ会社・同じ職位のほかの記録',
+          only: 'この投稿には年収だけが含まれています。',
+          noComp: 'この投稿には給与内訳が含まれていません。',
+          noWork: 'この投稿には勤務の記録が含まれていません。',
+          share: '構成比は匿名化された金額帯から算出した概算です',
+          wk: ['乗務時間', '乗務日数', '休日'] },
+    en: { comp: 'Compensation', work: 'Work',
+          sim: 'Other records at the same airline and rank',
+          only: 'This submission carries the yearly figure only.',
+          noComp: 'This submission does not include a pay breakdown.',
+          noWork: 'This submission does not include any work data.',
+          share: 'Shares are approximate, worked out from the anonymised ranges',
+          wk: ['Block hours', 'Duty days', 'Days off'] }
+  };
+  /* 勤務の刻み（乗務時間 10h / 乗務日数 2日 / 休日 2日）。db/pay-rows.sql と対。 */
+  const W_GRID = [10, 2, 2];
+
+  /* 面の中だけを読み取る。★毎回同じ形で取る（ケースごとに見方を変えない）。 */
+  const DWS = () => {
+    const q = (s, r) => Array.prototype.slice.call((r || document).querySelectorAll(s));
+    const dw = document.querySelector('.ap-dw');
+    const t = (e) => ((e && e.innerText) || '').trim();
+    const lab = dw ? (dw.getAttribute('aria-labelledby') || '') : '';
+    const labEl = lab ? document.getElementById(lab) : null;
+    return {
+      n: q('.ap-dw').length,
+      backs: q('.ap-dw-back').length,
+      role: dw ? (dw.getAttribute('role') || '') : '',
+      modal: dw ? (dw.getAttribute('aria-modal') || '') : '',
+      labId: lab,
+      labText: t(labEl),
+      labIn: !!(dw && labEl && dw.contains(labEl)),
+      text: t(dw),
+      html: dw ? dw.innerHTML : '',
+      name: t(document.querySelector('.ap-dw-name')),
+      meta: t(document.querySelector('.ap-dw-meta')),
+      amts: q('.ap-dw-av').map(t),
+      /* ★見出しは textContent で取る。innerText は CSS の text-transform を
+           掛けた後の字を返すので、英語の見出しが全部大文字になって照合できない。 */
+      heads: q('.ap-dw-h').map((e) => (e.textContent || '').trim()),
+      tags: q('.ap-dw h1,.ap-dw h2,.ap-dw h3,.ap-dw h4,.ap-dw h5').map((e) => e.tagName),
+      /* 内訳の行（勤務の行は別に取る。刻みが違うので混ぜて数えられない）。 */
+      pay: q('.ap-dw-row:not(.ap-dw-row--w)').map((e) => ({
+        k: t(e.querySelector('.ap-dw-k')), v: t(e.querySelector('.ap-dw-v')) })),
+      work: q('.ap-dw-row--w').map((e) => ({
+        k: t(e.querySelector('.ap-dw-k')), v: t(e.querySelector('.ap-dw-v')),
+        u: t(e.querySelector('.ap-dw-u')) })),
+      miss: t(document.querySelector('.ap-dw-miss')),
+      sims: q('.ap-dw-sim').map((e) => ({ i: e.getAttribute('data-ap-row'), t: t(e) })),
+      /* 主 ── DEEP PAY の門を開くボタン。★href を持たない（リンクではない）。 */
+      go: q('.ap-dw-cta').map((e) => ({
+        tag: e.tagName, href: e.getAttribute('href'), t: t(e) })),
+      /* 副 ── 出す側へ戻すリンク。 */
+      cta: q('.ap-dw-cta2').map((e) => e.getAttribute('href')),
+      /* 積み上げバー。★flex の伸び率だけを見る（% も割合の字も持たない）。 */
+      st: q('.ap-dw-st').length,
+      sti: q('.ap-dw-sti').map((e) => Number(getComputedStyle(e).flexGrow)),
+      stn: t(document.querySelector('.ap-dw-stn')),
+      dots: q('.ap-dw-dot').length,
+      /* 実際に塗られている色。★橙1色の濃淡に戻ると、ここが全部同じ rgb になる
+           （opacity は backgroundColor に出ないので、色そのものを見る）。 */
+      stiC: q('.ap-dw-sti').map((e) => getComputedStyle(e).backgroundColor),
+      dotC: q('.ap-dw-dot').map((e) => getComputedStyle(e).backgroundColor),
+      /* 消したもの ── 行ごとの横棒。 */
+      rng: q('.ap-dw-rng,.ap-dw-rngi').length,
+      note: t(document.querySelector('.ap-dw-note')),
+      closes: q('.ap-dw [data-ap-close]').length,
+      focusIn: !!(dw && dw.contains(document.activeElement)),
+      ov: document.body.style.overflow,
+      bodyText: document.body.innerText,
+      calls: (window.__rpc || []).map((r) => r.name)
+    };
+  };
+
+  /* 行末の › を押して、面の中を読む。★押すのはキーボードの入口と同じボタン。 */
+  const press = async (page, i) => {
+    await page.evaluate((n) => {
+      const tr = document.querySelector('#ap-rows tbody tr[data-ap-row="' + n + '"]');
+      const b = tr && tr.querySelector('.ap-go');
+      if (b) b.click();
+    }, i);
+    await sleep(420);
+    return page.evaluate(DWS);
+  };
+
+  /* 「$95K–$100K」→ [95000, 100000]。「Under $5K」→ [5000]。 */
+  const band = (s) => (String(s).match(/[\d][\d,]*(?:\.\d+)?\s*[KM万]?/g) || [])
+    .map((x) => amountValue(x));
+
+  for (const lang of ['ja', 'en']) {
+    const TN = TEN[lang], W = DWT[lang];
+
+    console.log(`\n════ ${lang} / J-1 押すと1人ぶんの面が出る ════`);
+    const { page, errs } = await open(lang, OPEN);
+    const v0 = await page.evaluate(SNAP);
+    const before = v0.calls.length;
+
+    /* ★hover しないと押せると分からない画面にしない（オーナーの §1）。
+         触る端末には hover が無いので、機材も › も最初から出ている。 */
+    const seen = await page.evaluate(() => {
+      const q = (s) => Array.prototype.slice.call(document.querySelectorAll(s));
+      const vis = (e) => { const c = getComputedStyle(e);
+        return c.display !== 'none' && c.visibility !== 'hidden' && Number(c.opacity) > 0; };
+      return { go: q('#ap-rows .ap-go').filter(vis).length,
+               flt: q('#ap-rows .ap-flt').filter(vis).length,
+               hint: q('#ap-rows .ap-hint-i').filter((e) => e.getBoundingClientRect().height > 1).length };
+    });
+    ok(seen.go === ROWS.length, `${lang}: ★› は hover しなくても全行に見えている`,
+       String(seen.go));
+    ok(seen.flt === ROWS.filter((r) => r.fleet).length,
+       `${lang}: ★機材も最初から見えている（機材の無い行だけ空く）`, String(seen.flt));
+    ok(seen.hint === 0, `${lang}: ★hover の予告は畳まれたまま（黙って高さを取らない）`,
+       String(seen.hint));
+
+    const d0 = await press(page, 0);
+    ok(d0.n === 1 && d0.backs === 1, `${lang}: ★押すと面が1枚だけ出る`,
+       `${d0.n}/${d0.backs}`);
+    ok(d0.role === 'dialog' && d0.modal === 'true',
+       `${lang}: ★読み上げに「覆い」として名乗る`, `${d0.role}/${d0.modal}`);
+    ok(d0.labIn && d0.labText === d0.name && d0.name !== '',
+       `${lang}: ★名前は面の中の社名を指している`, `${d0.labId} / ${d0.labText}`);
+    ok(d0.ov === 'hidden', `${lang}: ★後ろの一覧は動かない`, d0.ov);
+    ok(d0.focusIn === true, `${lang}: ★開いたら読み上げの位置が面へ移る`, String(d0.focusIn));
+    ok(d0.calls.length === before,
+       `${lang}: ★★押してもサーバへ1本も投げない（誰がどの行を開いたかを残さない）`,
+       `${before} → ${d0.calls.length}`);
+    ok(d0.tags.length > 0 && d0.tags.every((x) => x === 'H3'),
+       `${lang}: ★面の見出しは h3 だけ（この画面の h2 は 0 のまま）`, d0.tags.join(','));
+    ok(d0.closes === 1, `${lang}: ★× は1つ`, String(d0.closes));
+    /* ★導線は2本（2026-09-03）。主＝他社と比べる（門を開く）／副＝出す側へ戻す。
+         投稿の誘導を**消していない**こと ── 下げたのは順位だけ。 */
+    ok(d0.go.length === 1 && d0.go[0].tag === 'BUTTON' && !d0.go[0].href,
+       `${lang}: ★主の導線はボタン（DEEP PAY へのリンクではない）`,
+       JSON.stringify(d0.go));
+    ok(d0.cta.length === 1 && /pay-report\.html#ps/.test(d0.cta[0]),
+       `${lang}: ★副の導線は残っている（「あなたの給与情報を匿名で追加」）`,
+       d0.cta.join(','));
+    ok(!/deep-pay/.test(d0.html),
+       `${lang}: ★DEEP PAY への辺を増やしていない（門の形を変えない）`);
+
+    /* 消したものが、面を開いた状態でも戻っていないこと。 */
+    const vOpen = await page.evaluate(SNAP);
+    gone(vOpen, `${lang}（面を開いたまま）`);
+    ok(vOpen.blurred.length === 0,
+       `${lang}: ★★面にぼかしが1つも掛かっていない（渡っていないものは隠す必要が無い）`,
+       vOpen.blurred.join(' | '));
+    ok(vOpen.trs === ROWS.length,
+       `${lang}: ★後ろの一覧は消えない（別画面へ飛ばしていない）`, String(vOpen.trs));
+
+    /* ★サーバが返さない列が、面を開いた状態でも1つも出ない。 */
+    const leaked = POISON_VALUES.filter((s) => d0.bodyText.includes(s));
+    ok(leaked.length === 0,
+       `${lang}: ★★面を開いても、返さないはずの列が1つも出ない`, leaked.join(' / '));
+    ok(d0.text.indexOf('%') < 0,
+       `${lang}: ★面に％が1文字も無い（割合は返していない）`,
+       d0.text.replace(/\n/g, ' ').slice(0, 120));
+    ok(!/20\d\d[-/年]/.test(d0.text),
+       `${lang}: ★いつ出されたかは段だけ（年月日が1つも出ない）`,
+       d0.text.replace(/\n/g, ' ').slice(0, 120));
+    ok(!/[€£₩]|AED|S\$|HK\$/.test(d0.text),
+       `${lang}: ★原本の通貨が漏れていない（出るのは今の表示通貨だけ）`,
+       d0.text.replace(/\n/g, ' ').slice(0, 120));
+
+    console.log(`\n════ ${lang} / J-2 出る数はすべて帯（USD で見る）════`);
+    await page.evaluate(() => window.PVCurrency.set('USD'));
+    await sleep(260);
+    const dU = await page.evaluate(DWS);
+    ok(dU.n === 1, `${lang}: ★通貨を切り替えても面は開いたまま`, String(dU.n));
+    ok(dU.calls.length === before,
+       `${lang}: ★通貨を切り替えてもサーバへ投げ直さない`,
+       `${before} → ${dU.calls.length}`);
+
+    const g0 = R_GRID[0];
+    const bads = [], flat = [], zeros = [];
+    dU.pay.forEach((p) => {
+      const n = band(p.v);
+      if (!n.length) { bads.push(p.k + ':(読めない)'); return; }
+      n.forEach((x) => { if (x % g0 !== 0) bads.push(p.k + ':' + p.v); });
+      if (n.length === 2 && n[0] === n[1]) flat.push(p.k + ':' + p.v);
+      if (/(^|[^\d])0\s*[〜–]/.test(p.v)) zeros.push(p.k + ':' + p.v);
+    });
+    ok(dU.pay.length === 4, `${lang}: ★内訳は4行（0 の区分をサーバが落としている）`,
+       String(dU.pay.length));
+    ok(bads.length === 0,
+       `${lang}: ★★両端がサーバの刻み（$${g0.toLocaleString('en-US')}）の倍数`,
+       bads.join(' / '));
+    ok(flat.length === 0, `${lang}: ★両端が同じ数の帯が1つも無い（1点に見えない）`,
+       flat.join(' / '));
+    ok(zeros.length === 0, `${lang}: ★下端 0 は「0〜」ではなく「◯ 未満」の形`,
+       zeros.join(' / '));
+    ok(dU.pay.some((p) => band(p.v).length === 1),
+       `${lang}: ★畳んだ帯は「◯ 未満」の1つの数で出る`,
+       dU.pay.map((p) => p.v).join(' / '));
+
+    const wbad = [];
+    dU.work.forEach((wk, i) => {
+      band(wk.v).forEach((x) => { if (x % W_GRID[i] !== 0) wbad.push(wk.k + ':' + wk.v); });
+    });
+    ok(dU.work.length === 3, `${lang}: ★勤務は3つだけ（便数もステイも拘束時間も無い）`,
+       String(dU.work.length));
+    ok(dU.work.map((x) => x.k).join('/') === W.wk.join('/'),
+       `${lang}: ★勤務の並びは 乗務時間・乗務日数・休日`, dU.work.map((x) => x.k).join('/'));
+    ok(wbad.length === 0, `${lang}: ★勤務の両端は 10 / 2 / 2 の倍数`, wbad.join(' / '));
+    ok(dU.amts.length === 2, `${lang}: ★上に出る金額は年収と月あたりの2つだけ`,
+       dU.amts.join(' / '));
+
+    /* ★積み上げバー（2026-09-03）。行ごとの横棒（帯の下端〜上端）はここで消した
+         ── 長さが金額の大小に読めてしまい、説明しないと読めなかった。
+       ★出すのは「おおよその構成」だけ。長さは帯の中点から出す。
+       ⚠️ 割合の数字は1文字も出さない（それは上の「％が1文字も無い」が見張る）。
+       ⚠️ 長さは flex の伸び率で持つ。% で書くと「toFixed(n) + '%'」の
+          静的検査に当たる（割合を出し始めた合図として禁じてある）。 */
+    ok(dU.rng === 0, `${lang}: ★行ごとの横棒は残っていない（1本の積み上げに替えた）`,
+       String(dU.rng));
+    ok(dU.st === 1 && dU.sti.length === dU.pay.length,
+       `${lang}: ★バーは1本・区分の数だけ切れている`, `${dU.st} / ${dU.sti.length}`);
+    ok(dU.dots === dU.pay.length,
+       `${lang}: ★一覧の丸はバーと同じ数（凡例を別に置かない）`, String(dU.dots));
+    /* 伸び率は「中点 ÷ 中点の合計」なので、足すと 1 になる。
+       ★合計を年収に合わせない ── 帯は足しても年収とは合わないと決めてある。 */
+    const stSum = dU.sti.reduce((a, b) => a + b, 0);
+    ok(Math.abs(stSum - 1) < 0.01 && dU.sti.every((x) => x > 0),
+       `${lang}: ★長さは中点の合計で割ってある（0 の切れ端が無い）`,
+       dU.sti.join(' / '));
+    ok(dU.stn === W.share,
+       `${lang}: ★★バーの下に「概算です」と必ず断っている`, dU.stn);
+    /* ★色（2026-09-03 その2・オーナー指示で橙1色をやめた）。
+         「オレンジだけじゃわかりづらい」が黙って戻らないように、
+         **実際に塗られている色**を見る。 */
+    ok(new Set(dU.stiC).size === dU.stiC.length,
+       `${lang}: ★★バーの区分がその行の中で全部違う色`, dU.stiC.join(' / '));
+    ok(dU.dotC.length === dU.stiC.length
+       && dU.dotC.every((c2, i) => c2 === dU.stiC[i]),
+       `${lang}: ★一覧の丸がバーの区分と1つずつ同じ色（凡例を別に置かない根拠）`,
+       dU.dotC.join(' / '));
+
+    console.log(`\n════ ${lang} / J-3 在籍は段だけ・欠けは節ごと落とす ════`);
+    ok(TN.cap.includes(dU.meta.split(' · ').pop()),
+       `${lang}: ★在籍は段の言葉で出る（年そのものは出ない）`, dU.meta);
+    ok(!/\d+\s*(年|years?)\s*\d/.test(dU.meta),
+       `${lang}: ★段の中に生の年数が混ざっていない`, dU.meta);
+
+    /* 内訳だけの人（勤務を書かなかった）／勤務だけの人／年収だけの人。 */
+    const dComp = await press(page, 2);
+    ok(dComp.heads.includes(W.comp) && !dComp.heads.includes(W.work),
+       `${lang}: ★勤務が無い人には勤務の節ごと出ない`, dComp.heads.join(' / '));
+    ok(dComp.miss === W.noWork,
+       `${lang}: ★代わりに「書かれていません」と正直に1文（「—」も 0 も置かない）`,
+       dComp.miss);
+
+    const dWork = await press(page, 3);
+    ok(dWork.heads.includes(W.work) && !dWork.heads.includes(W.comp),
+       `${lang}: ★内訳が無い人には内訳の節ごと出ない`, dWork.heads.join(' / '));
+    ok(dWork.miss === W.noComp, `${lang}: ★こちらも1文で正直に`, dWork.miss);
+    ok(dWork.st === 0 && dWork.stn === '',
+       `${lang}: ★内訳が無ければ積み上げバーも「概算です」の断りも出ない`,
+       `${dWork.st} / ${dWork.stn}`);
+
+    /* ★口コミ由来の行 ── 年収しか無い。押しても空の面にしない。 */
+    const dOnly = await press(page, 4);
+    ok(dOnly.n === 1 && dOnly.amts.length === 2,
+       `${lang}: ★年収しか無い行も、押せば面が開いて金額は出る`,
+       `${dOnly.n} / ${dOnly.amts.join(' ')}`);
+    ok(dOnly.pay.length === 0 && dOnly.work.length === 0,
+       `${lang}: ★中身が無いのに枠だけ並べない`,
+       `${dOnly.pay.length}/${dOnly.work.length}`);
+    ok(dOnly.miss === W.only, `${lang}: ★「年収だけです」と1文で言う`, dOnly.miss);
+    ok(dOnly.meta === dOnly.meta.split(' · ')[0],
+       `${lang}: ★機材も在籍も無い行では、そこが黙って空く（「不明」を作らない）`,
+       dOnly.meta);
+    ok(!/不明|Unknown|—|N\/A/i.test(dOnly.text),
+       `${lang}: ★★「不明」の札を置かない（書いていない、という情報も出さない）`,
+       dOnly.text.replace(/\n/g, ' ').slice(0, 120));
+    ok(dOnly.sims.length === 0,
+       `${lang}: ★ほかに同じ会社・同じ職位が居なければ、その節ごと出ない`,
+       JSON.stringify(dOnly.sims));
+
+    console.log(`\n════ ${lang} / J-4 同じ会社・同じ職位のほかの記録 ════`);
+    const dSim = await press(page, 0);
+    ok(dSim.sims.length === 1 && dSim.sims[0].i === '2',
+       `${lang}: ★同じ会社・同じ職位だけ・自分は入らない`, JSON.stringify(dSim.sims));
+    const dSw = await page.evaluate(async () => {
+      const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+      document.querySelector('.ap-dw-sim').click();
+      await sleep(120);
+      return { n: document.querySelectorAll('.ap-dw').length,
+               meta: (document.querySelector('.ap-dw-meta') || {}).innerText || '',
+               calls: (window.__rpc || []).length };
+    });
+    ok(dSw.n === 1, `${lang}: ★押しても面は1枚のまま（開き直さない）`, String(dSw.n));
+    ok(TN.cap[2] && dSw.meta.indexOf(TN.cap[2]) >= 0,
+       `${lang}: ★中身だけ入れ替わる（押した相手の段になる）`, dSw.meta);
+    ok(dSw.calls === before,
+       `${lang}: ★ここでもサーバへ投げない`, `${before} → ${dSw.calls}`);
+
+    console.log(`\n════ ${lang} / J-5 閉じ方3つと戻り先 ════`);
+    const cl = await page.evaluate(async () => {
+      const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+      const alive = () => document.querySelectorAll('.ap-dw-back').length;
+      const openRow = (n) => {
+        document.querySelector('#ap-rows tbody tr[data-ap-row="' + n + '"] .ap-go').click();
+      };
+      const out = { ovBase: document.body.style.overflow };
+      /* いま開いているものを × で閉じる。 */
+      document.querySelector('.ap-dw-x').click();
+      await sleep(360);
+      out.x = alive();
+      out.ovBack = document.body.style.overflow;
+      out.focus = document.activeElement
+        === document.querySelector('#ap-rows tbody tr[data-ap-row="0"] .ap-go');
+
+      openRow(1); await sleep(60);
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      await sleep(360);
+      out.esc = alive();
+
+      openRow(1); await sleep(60);
+      const b = document.querySelector('.ap-dw-back');
+      b.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+      b.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await sleep(360);
+      out.back = alive();
+
+      /* 続けて押しても増えない。 */
+      openRow(1); await sleep(60); openRow(2); await sleep(60);
+      out.dup = alive();
+      out.leftover = document.querySelectorAll('.ap-dw-row').length;
+      document.querySelector('.ap-dw-x').click();
+      await sleep(360);
+      out.after = alive();
+      out.rows = document.querySelectorAll('.ap-dw-row').length;
+      out.calls = (window.__rpc || []).length;
+      return out;
+    });
+    ok(cl.x === 0 && cl.esc === 0 && cl.back === 0,
+       `${lang}: ★閉じ方は3つとも効く（× ／ ESC ／ 背景）`,
+       `x=${cl.x} esc=${cl.esc} back=${cl.back}`);
+    ok(cl.ovBack !== 'hidden', `${lang}: ★閉じたら一覧がまた動く`, cl.ovBack);
+    ok(cl.focus === true, `${lang}: ★閉じたら押した行の › にフォーカスが戻る`,
+       String(cl.focus));
+    ok(cl.dup === 1, `${lang}: ★続けて押しても面は1枚だけ`, String(cl.dup));
+    ok(cl.after === 0 && cl.rows === 0,
+       `${lang}: ★★閉じたら DOM から消える（他人の帯が残らない）`,
+       `${cl.after} / ${cl.rows}`);
+    ok(cl.calls === before,
+       `${lang}: ★開け閉てを繰り返してもサーバへ投げない`, `${before} → ${cl.calls}`);
+
+    console.log(`\n════ ${lang} / J-6 主の導線は「既存の門」を開く ════`);
+    /* ★DEEP PAY はまだ開けていない。だから面からもリンクは張らない。
+         押すと出るのは**左メニューを押したときとまったく同じ説明パネル**で、
+         deep-pay.html へは1歩も進まない。
+       ⚠️ ここが緑でも、assert-deep-pay.mjs の「辺は2本だけ」が本丸。
+          あちらが root の全 .js を見ていて、deep-pay.html と書いた時点で落ちる。 */
+    const gt = await page.evaluate(async () => {
+      const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+      document.querySelector('#ap-rows tbody tr[data-ap-row="0"] .ap-go').click();
+      await sleep(120);
+      const btn = document.querySelector('.ap-dw-cta');
+      const label = (btn && btn.innerText || '').trim();
+      btn.click();
+      await sleep(520);
+      const p = document.querySelector('#mr-gate');
+      return { label: label,
+               dw: document.querySelectorAll('.ap-dw-back').length,
+               panel: p ? (p.getAttribute('data-kind') || '') : '',
+               inMain: !!(p && p.closest('.mr-main')),
+               href: document.querySelectorAll('a[href*="deep-pay"]').length,
+               calls: (window.__rpc || []).map((r) => r.name) };
+    });
+    ok(gt.dw === 0, `${lang}: ★門を開く前に面が閉じている（覆いの裏に出さない）`,
+       String(gt.dw));
+    ok(gt.panel === 'deep' && gt.inMain,
+       `${lang}: ★★出るのは左メニューと同じ門（説明パネル）`, `${gt.panel}/${gt.inMain}`);
+    ok(gt.href === 0,
+       `${lang}: ★★deep-pay.html へのリンクは1本も生えていない`, String(gt.href));
+    ok(/DEEP PAY/.test(gt.label),
+       `${lang}: ★主の導線は「他社と比較する → DEEP PAY」と名乗る`, gt.label);
+    /* 門は「あと何人か」を1度だけ聞くことがある（pv_give_progress）。
+       ★聞くとしてもそれだけ。面を開いたこと自体はサーバに残らない。 */
+    ok(gt.calls.filter((n) => n !== 'pv_give_progress').length === before,
+       `${lang}: ★門を開いても、行を読み直しに行かない`, gt.calls.join(','));
+    await page.evaluate(() => { if (window.PVGates) window.PVGates.close(); });
+
+    ok(errs.length === 0, `${lang}: ページのエラーが1件も出ない`, errs.join(' | '));
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+// K. 報酬の内訳の門（Give & Get・2026-09-03）
+// ════════════════════════════════════════════════════════════════
+/* オーナー指示 ──「自分の給与内訳を共有した人だけ、他人の給与内訳を見られる」。
+   課金の門ではなく**相互性の門**。
+
+   いちばん強い制約（そして、この節が在る理由）──
+   **「CSS でぼかして隠す」のではなく、未 Unlock の人には実数そのものを返さない。**
+   開発者ツールでぼかしを外しても見えない構造にすること。
+
+   だからここで見るのは「隠せているか」ではなく **「そもそも届いていないか」**。
+     ① 閉じている行の面に、帯の形（区分名と両端の組）が1つも無い
+     ② 骨組みは**中身が固定**。区分の数も幅も、その人のデータから作っていない
+     ③ 内訳がそもそも無い行には門を出さない（§15 の C。出すと「隠されている」と読める）
+     ④ 門のボタンは戻り先を sessionStorage に置くだけ ── **URL に載せない**
+     ⑤ 戻ってくると、押した行の面が開き直り、鍵は消える（一度きり）
+     ⑥ 字面 ── blur を書いていない・口コミの鍵（pv_salary_unlock_expiry）に触らない
+
+   ⚠️ サーバ側（pay を返さない・paylock だけを返す）は db/test-pay-rows.mjs の 12-i。
+      あちらが本丸で、ここは**画面がそれを裏切っていない**ことだけを見る。 */
+{
+  /* ★閉じている行が持つのは paylock ── **区分の名前だけ**（区分が1つしか
+       無い行は真偽1つ）。pay は**鍵ごと無い** ── jsonb_strip_nulls が
+       消しているので、undefined ではなく不在。金額は1円も来ていない。
+     1行目 …… 閉じている（内訳も勤務もある人）。区分は4つ
+     2行目 …… 閉じている＋勤務が無い（1文が「勤務が無い」だけになること）。
+               ★1行目と**同じ数・違う区分**にしてある ── 帯の幅が
+                 その人の金額ではなく位置だけで決まることを見るため
+     3行目 …… そもそも内訳が無い（§15 の C。門を出してはいけない）
+     4行目 …… 区分が1つだけ（名前も来ない）。今までどおりの灰色の骨組み */
+  const LOCK_KEYS = ['fixed', 'variable', 'other', 'bonus'];
+  const LOCK_ROWS = [
+    row('ana', 'cap', 180000, true, 0, Object.assign({}, POISON, {
+      fleet: 'b787', ten: 1, paylock: LOCK_KEYS, work: WORK })),
+    row('jal', 'cap', 170000, false, 3, { fleet: 'b777', ten: 0,
+      paylock: ['fixed', 'command', 'housing', 'rest'] }),
+    row('jal', 'fo', 110000, false, 4, { fleet: 'a320', ten: 0, work: WORK }),
+    row('ana', 'fo', 120000, false, 2, { fleet: 'a320', ten: 0, paylock: true })
+  ];
+  const PAYLOCK = { ok: true, state: 'open', rows: LOCK_ROWS, mine: MINE, stats: ST,
+                    give: { basic: true, detailed: false, full: false, payslip: false } };
+
+  const LKT = {
+    ja: { comp: '報酬の内訳', noComp: 'この投稿には給与内訳が含まれていません。',
+          noWork: 'この投稿には勤務の記録が含まれていません。',
+          cta: '給与の内訳を入力する' },
+    en: { comp: 'Compensation',
+          noComp: 'This submission does not include a pay breakdown.',
+          noWork: 'This submission does not include any work data.',
+          cta: 'Add your pay breakdown' }
+  };
+
+  /* 面の中の「閉じている内訳」だけを読み取る。 */
+  const LKS = () => {
+    const q = (s) => Array.prototype.slice.call(document.querySelectorAll(s));
+    const t = (e) => ((e && e.innerText) || '').trim();
+    const dw = document.querySelector('.ap-dw');
+    return {
+      n: q('.ap-dw').length,
+      lk: q('.ap-dw-lk').length,
+      segs: q('.ap-dw-lk-s').length,
+      pills: q('.ap-dw-lk-p').length,
+      flex: q('.ap-dw-lk-s').map((e) => Number(getComputedStyle(e).flexGrow)),
+      /* ★帯の中の文字。帯には項目名すら置かない（色だけ）。 */
+      barText: q('.ap-dw-lk-b')
+        .map((e) => (e.textContent || '').replace(/\s+/g, '')).join(''),
+      /* ★★金額の板の中の文字。**ここが本題** ── ぼかしているのではなく
+           中身が無いこと。1文字でも在れば「置いてから霞ませた」ことになる。 */
+      pillText: q('.ap-dw-lk-p')
+        .map((e) => (e.textContent || '').replace(/\s+/g, '')).join(''),
+      /* 出ている項目名（本物）。オーナー指示で名前までは出す。 */
+      lkNames: q('.ap-dw-lk-r .ap-dw-k').map((e) => (e.innerText || '').trim()),
+      /* 板がぼけていること（＝空の板の質感）。数字が入っていないことは
+         pillText が別に見ている。 */
+      pillBlur: q('.ap-dw-lk-r.is-real .ap-dw-lk-p2')
+        .map((e) => getComputedStyle(e).filter),
+      heads: q('.ap-dw-h').map((e) => (e.textContent || '').trim()),
+      /* 帯（開いている行が出すもの）が1本も無いこと。 */
+      bands: q('.ap-dw-row:not(.ap-dw-row--w):not(.ap-dw-lk-r)').length,
+      stn: q('.ap-dw-stn').length,
+      miss: t(document.querySelector('.ap-dw-miss')),
+      lkT: t(document.querySelector('.ap-dw-lk-t')),
+      lkAll: t(document.querySelector('.ap-dw-lk')),
+      lkC: (function () {
+        const a = document.querySelector('.ap-dw-lk-c');
+        return a ? { tag: a.tagName, href: a.getAttribute('href') || '',
+                     label: (a.innerText || '').trim() } : null;
+      })(),
+      /* ★面ぜんぶの文字。ここに帯の数字が出ていないことを別に見る。 */
+      text: t(dw),
+      html: dw ? dw.innerHTML : '',
+      calls: (window.__rpc || []).map((r) => r.name)
+    };
+  };
+
+  const press = async (page, i) => {
+    await page.evaluate((n) => {
+      const tr = document.querySelector('#ap-rows tbody tr[data-ap-row="' + n + '"]');
+      const b = tr && tr.querySelector('.ap-go');
+      if (b) b.click();
+    }, i);
+    await sleep(420);
+    return page.evaluate(LKS);
+  };
+
+  /* ── 字だけで見るもの ───────────────────────────────── */
+  console.log('\n════ K-0 字（ぼかしに戻っていないか）════');
+  {
+    const j = read('./actual-pay.js'), c = read('./actual-pay.css');
+    /* ★「本物を置いてから霞ませる」形に戻っていないこと。
+         霞ませる相手が在る時点で、開発者ツールで1秒で剥がれる。
+       ⚠️ 2026-09-03 その3 で、金額の板だけ blur を許した（オーナー指示
+          「色付きの棒グラフと項目名までは出す。金額だけ隠す」）。
+          **許すのは中身が空の板の規則1つだけ** ── 消さずに範囲を狭めてある。
+          描く側（JS）は今までどおり blur を1文字も書かない。 */
+    ok(!/blur\s*\(/.test(j),
+       '★★描く側（actual-pay.js）に blur が1文字も無い');
+    const CSSRULE = /([^{}]+)\{([^{}]*)\}/g;
+    const wrong = [];
+    let m;
+    while ((m = CSSRULE.exec(c))) {
+      if (!/blur\s*\(|(?:^|[;\s])filter\s*:/.test(m[2])) continue;
+      if (!/\.ap-dw-lk-p/.test(m[1])) wrong.push(m[1].trim().slice(0, 60));
+    }
+    ok(wrong.length === 0,
+       '★★CSS の blur / filter は「中身が空の板（.ap-dw-lk-p）」の規則だけ',
+       wrong.join(' | '));
+    /* ★骨組みが受け取ってよいのは**区分の名前だけ**。金額の材料
+         （帯 r.pay・その中点・金額の書式）をこの関数から触らない。 */
+    ok(/function payLockHTML\(keys\)/.test(j),
+       '★★骨組みを作る関数が受け取るのは名前の配列だけ');
+    const LKBODY = (j.split('function payLockHTML(keys)')[1] || '')
+      .split('\n  function ')[0];
+    const leak = ['r.pay', 'rngMoney', 'segMid', 'annual'].filter((w) => LKBODY.includes(w));
+    ok(LKBODY.length > 0 && leak.length === 0,
+       '★★その関数が金額の材料に1つも触っていない（帯・中点・書式）',
+       leak.join(','));
+    /* ★口コミの鍵と混ぜない（オーナーの §13）。あちらは pv-gates.js の持ち物。 */
+    ok(!/pv_salary_unlock_expiry/.test(j),
+       '★★口コミ・給与の既存の鍵（pv_salary_unlock_expiry）に触っていない');
+    /* ★戻り先は URL に載せない。載せると他人の年収がアドレス欄に出て GA4 に載る。 */
+    ok(!/location\.(href|search|hash)\s*=[^=]/.test(j.replace(/DETAIL_URL/g, '')),
+       '★戻り先を URL に書き込んでいない');
+    ok(/sessionStorage/.test(j), '戻り先は sessionStorage（タブを閉じれば消える）');
+    ok(/pay-report\.html#pay-detail/.test(j),
+       '内訳の欄まで直接飛ぶ（#pay-detail）');
+  }
+
+  for (const lang of ['ja', 'en']) {
+    const W = LKT[lang];
+
+    console.log(`\n════ ${lang} / K-1 閉じている内訳（実数が届いていない）════`);
+    const { page, errs } = await open(lang, PAYLOCK);
+    const v0 = await page.evaluate(SNAP);
+    const before = v0.calls.length;
+
+    const d0 = await press(page, 0);
+    ok(d0.n === 1, `${lang}: 押すと面が1枚出る`, String(d0.n));
+    ok(d0.lk === 1, `${lang}: ★閉じている行には門が出る`, String(d0.lk));
+    ok(d0.heads.indexOf(W.comp) >= 0,
+       `${lang}: ★見出しは今までどおり「報酬の内訳」`, d0.heads.join(','));
+    ok(d0.bands === 0 && d0.stn === 0,
+       `${lang}: ★★帯も構成比のバーも1本も出ない`, `${d0.bands}/${d0.stn}`);
+    ok(d0.barText === '',
+       `${lang}: ★★帯の中に文字が1つも無い（色だけ・項目名も置かない）`,
+       JSON.stringify(d0.barText).slice(0, 80));
+    /* ★★この節でいちばん強い1行。金額の板は**空**。
+         ぼかしているのではなく、置く数が届いていない。 */
+    ok(d0.pillText === '',
+       `${lang}: ★★金額の板の中に文字が1つも無い（ぼかしではなく不在）`,
+       JSON.stringify(d0.pillText).slice(0, 80));
+    /* オーナー指示 ── 項目名は本物を出す（何が隠れているのか伝わらないため）。 */
+    ok(d0.lkNames.length === 4 && d0.lkNames.every((x) => x.length > 0),
+       `${lang}: ★項目名は本物が4つ出る（区分の数だけ）`, d0.lkNames.join(' / '));
+    ok(d0.pillBlur.length === 4 && d0.pillBlur.every((f) => /blur/.test(f)),
+       `${lang}: ★金額の場所は空の板（ぼけた質感）`, d0.pillBlur.join(','));
+    /* ★★この節の本題。1行目には**毒**（生の基本給 132,456 など）を混ぜてある。
+         閉じている面のどこにも、その形の文字が1つも出ない。
+         ⚠️ 「130000 が無いこと」では見ない ── あの数は年収の丸めでほかの行にも出る
+            （db/test-pay-rows.mjs の 12-i で同じ罠を踏んでいる）。 */
+    const dirty = POISON_VALUES.filter((v) => d0.text.includes(v));
+    ok(dirty.length === 0,
+       `${lang}: ★★閉じている面に生の額・生の時間が1文字も出ない`, dirty.join(','));
+    /* ★門の言葉そのものにも金額を書かない（「あと◯円」のような煽りにしない）。 */
+    ok(!MONEY.test(d0.lkAll),
+       `${lang}: ★門の文章に金額の形をした文字が無い`, d0.lkAll.slice(0, 60));
+    /* 面に出ている数字は「年収」と「月あたり」の2つだけ（一覧に元から出ている数）。
+       内訳の金額は1つも増えていない。 */
+    ok(d0.calls.length === before,
+       `${lang}: ★門を出してもサーバへ1本も投げない`, `${before} → ${d0.calls.length}`);
+
+    console.log(`\n════ ${lang} / K-2 幅はその人の金額から作っていない ════`);
+    /* ★★ここが門の生命線。区分の**名前**は本物だが、帯の**幅**は
+         位置だけで決まる定数（CSS の :nth-child）。本当の割合を出すと、
+         面に出ている年収と掛けるだけで金額が戻ってしまう。 */
+    ok(d0.segs === 4 && d0.pills === 4,
+       `${lang}: ★帯は区分の数だけ・金額の板は1行に1つ`, `${d0.segs}/${d0.pills}`);
+    ok(JSON.stringify(d0.flex) === JSON.stringify([6, 4, 3, 2]),
+       `${lang}: ★★幅は決め打ちの並び（6-4-3-2）`, JSON.stringify(d0.flex));
+    const d1 = await press(page, 1);
+    ok(JSON.stringify(d1.flex) === JSON.stringify(d0.flex),
+       `${lang}: ★★区分の顔ぶれが違っても幅はまったく同じ（金額から作っていない）`,
+       `${JSON.stringify(d0.flex)} / ${JSON.stringify(d1.flex)}`);
+    ok(d1.pillText === '' && d1.barText === '',
+       `${lang}: ★この行にも数字が1文字も無い`, `${d1.barText}/${d1.pillText}`);
+    ok(JSON.stringify(d1.lkNames) !== JSON.stringify(d0.lkNames),
+       `${lang}: 　（見本の2行は別の区分にしてある＝上の比較が効いている）`,
+       d1.lkNames.join(' / '));
+    /* 2行目は勤務が無い人。★「内訳が無い」ではなく「勤務が無い」と言う。 */
+    ok(d1.miss === W.noWork,
+       `${lang}: ★閉じているだけの行を「内訳が無い」と言わない`, d1.miss);
+
+    console.log(`\n════ ${lang} / K-2b 区分が1つだけの行は名前も出さない ════`);
+    /* ★区分が1つ ＝ その区分が内訳のほぼ全部。面には年収が出ているので、
+         名前を出した時点で「基本給 ≒ 年収」と読めてしまう。
+         サーバはその行に真偽1つしか入れない（db/pay-rows.sql）。
+         画面はそれを今までどおりの灰色の骨組みで受ける。 */
+    const d3 = await press(page, 3);
+    ok(d3.lk === 1, `${lang}: ★門そのものは出る`, String(d3.lk));
+    ok(d3.lkNames.length === 0,
+       `${lang}: ★★項目名を1つも出さない`, d3.lkNames.join(' / '));
+    ok(d3.segs === 4 && d3.pills === 6,
+       `${lang}: ★中身の無い骨組み（4本の帯・3行 × 2つの板）`,
+       `${d3.segs}/${d3.pills}`);
+    ok(d3.barText === '' && d3.pillText === '',
+       `${lang}: ★ここにも文字が1つも無い`, `${d3.barText}/${d3.pillText}`);
+
+    console.log(`\n════ ${lang} / K-3 内訳がそもそも無い行に門を出さない ════`);
+    /* ★オーナーの §15 の C。ここに門を出すと「隠されている」と読めるが、
+         本当は**その人が書いていない**。嘘になる。 */
+    const d2 = await press(page, 2);
+    ok(d2.lk === 0 && d2.segs === 0,
+       `${lang}: ★★内訳が無い行には門を出さない`, `${d2.lk}/${d2.segs}`);
+    ok(d2.miss === W.noComp,
+       `${lang}: ★代わりに「この投稿には給与内訳が含まれていません」`, d2.miss);
+    ok(d2.heads.indexOf(W.comp) < 0,
+       `${lang}: ★見出しごと出さない（空の枠を置かない）`, d2.heads.join(','));
+
+    console.log(`\n════ ${lang} / K-4 門のボタン（戻り先は URL に載せない）════`);
+    await press(page, 0);
+    const cl = await page.evaluate(() => {
+      /* ★飛ばさずに押す。飛ぶと次の頁の読み込みを待つことになり、
+           「押した瞬間に何を書いたか」が読めない。 */
+      const stop = (e) => e.preventDefault();
+      document.addEventListener('click', stop, true);
+      const a = document.querySelector('.ap-dw-lk-c');
+      a.click();
+      document.removeEventListener('click', stop, true);
+      return { href: location.href,
+               back: sessionStorage.getItem('pv_realpay_back') || '',
+               dw: document.querySelectorAll('.ap-dw-back').length };
+    });
+    ok(/pay-report\.html#pay-detail$/.test(d0.lkC ? d0.lkC.href : ''),
+       `${lang}: ★行き先は内訳の欄（#pay-detail）`, d0.lkC ? d0.lkC.href : 'なし');
+    ok(d0.lkC && d0.lkC.tag === 'A',
+       `${lang}: ★リンクのまま（真ん中クリックで別のタブに開ける）`,
+       d0.lkC ? d0.lkC.tag : 'なし');
+    ok(d0.lkC && d0.lkC.label === W.cta,
+       `${lang}: ★札は「給与の内訳を入力する」`, d0.lkC ? d0.lkC.label : 'なし');
+    ok(!/180000|180,000|realpay_back|annual/.test(cl.href),
+       `${lang}: ★★戻り先を URL に載せない（他人の年収がアドレス欄に出ない）`, cl.href);
+    const bk = (() => { try { return JSON.parse(cl.back); } catch (e) { return null; } })();
+    ok(bk && bk.a === 'ana' && bk.p === 'cap' && bk.v === 180000,
+       `${lang}: ★押した行だけを覚える（会社・職位・年収の3つ）`, cl.back);
+    ok(Object.keys(bk || {}).length === 3,
+       `${lang}: ★それ以上は持たない`, Object.keys(bk || {}).join(','));
+
+    console.log(`\n════ ${lang} / K-5 戻ってくると同じ面が開き、鍵は消える ════`);
+    await page.reload({ waitUntil: 'domcontentloaded', timeout: 30000 });
+    await sleep(2600);
+    const re = await page.evaluate(() => ({
+      n: document.querySelectorAll('.ap-dw').length,
+      name: ((document.querySelector('.ap-dw-name') || {}).innerText || '').trim(),
+      back: sessionStorage.getItem('pv_realpay_back')
+    }));
+    ok(re.n === 1, `${lang}: ★★戻ってくると押した行の面がそのまま開く`, String(re.n));
+    ok(/ANA|All Nippon/i.test(re.name),
+       `${lang}: ★開くのは押した行（別の行ではない）`, re.name);
+    ok(re.back === null, `${lang}: ★★鍵は一度きり（次に来ても勝手に開かない）`,
+       String(re.back));
+    /* もう一度読み込んでも開かない。 */
+    await page.reload({ waitUntil: 'domcontentloaded', timeout: 30000 });
+    await sleep(2600);
+    const re2 = await page.evaluate(() => document.querySelectorAll('.ap-dw').length);
+    ok(re2 === 0, `${lang}: ★2回目は開かない`, String(re2));
+
+    console.log(`\n════ ${lang} / K-6 狭い画面（§17）════`);
+    await page.setViewport({ width: 375, height: 780 });
+    await sleep(200);
+    await press(page, 0);
+    const sm = await page.evaluate(() => {
+      const a = document.querySelector('.ap-dw-lk-c');
+      const r = a.getBoundingClientRect();
+      const dw = document.querySelector('.ap-dw');
+      return { right: r.right, left: r.left, w: innerWidth,
+               ovX: document.documentElement.scrollWidth > innerWidth,
+               dwOv: dw.scrollWidth > dw.clientWidth + 1 };
+    });
+    ok(sm.left >= 0 && sm.right <= sm.w,
+       `${lang}: ★★375px でボタンが画面の外に出ない`,
+       `${Math.round(sm.left)}〜${Math.round(sm.right)} / ${sm.w}`);
+    ok(!sm.ovX && !sm.dwOv, `${lang}: ★横スクロールが生えない`,
+       `${sm.ovX}/${sm.dwOv}`);
+    await page.setViewport({ width: 1360, height: 1200 });
+
+    ok(errs.length === 0, `${lang}: ページのエラーが1件も出ない`, errs.join(' | '));
+  }
 }
 
 for (const jar of jars) { try { await jar.close(); } catch (e) {} }

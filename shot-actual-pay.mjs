@@ -16,10 +16,19 @@
              picked   会社で絞った状態（絞り込みが効いているところ）
              find     会社を打ち込んで絞ったところ
              nostat   ★サーバがまだ古い（stats を返さない）＝カードが1枚だけ出る
+             drawer   ★行を押して開いた面（2026-09-03）。その1人ぶんの帯が出る
+             drawer-lock ★自分の内訳をまだ出していない人が同じ面を開いたところ
+                         （報酬の内訳が閉じている。帯は**サーバから届いていない**）
      lang  = ja | en
      第3引数以降  open  撮らずに見える窓で開いたままにする
                   dark  暗いほうで撮る
                   w=900 幅を変えて撮る（既定 1440）。★カードと6列の表が畳まれる幅を見る
+                        ★720px 未満で面は右からではなく**下から**出る（別物になる）
+                  row=7 drawer のとき、どの行を押すか（既定 0）。
+                        0=内訳も勤務もある人 / 1=内訳だけ / 2=勤務だけ /
+                        7=年収だけ（口コミ由来）── 空の面にならないことを見る
+                  gate  drawer のとき、面の主 CTA まで押す（面が閉じて
+                        左メニューと同じ DEEP PAY の説明パネルが出るところ）
 
    ★2026-08-24、この画面から図を全部外した。右の棒も「あなた」の破線も無い。
      だから本人の明細（my_pay_reports）はもう引いていない＝ここでも作らない。
@@ -29,7 +38,7 @@
 */
 import puppeteer from 'puppeteer';
 import { fileURLToPath } from 'node:url';
-import { existsSync, mkdirSync, readdirSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 const ROOT  = fileURLToPath(new URL('.', import.meta.url));
@@ -44,6 +53,11 @@ const theme = process.argv.slice(4).includes('dark') ? 'dark' : 'light';
    「畳まれた側」を見ないと崩れに気づけない。 */
 const wArg = process.argv.slice(4).find((a) => /^w=\d+$/.test(a));
 const W = wArg ? Number(wArg.slice(2)) : 1440;
+/* drawer のとき、どの行を押すか。★1ページ目に載っている行しか押せない（10件で改頁）。 */
+const rArg = process.argv.slice(4).find((a) => /^row=\d+$/.test(a));
+/* drawer のとき、面の主 CTA まで押す。★飛び先は DEEP PAY ではなく、
+   左メニューと同じ「まだ開けていない」の説明パネル（#mr-gate）。 */
+const gate = process.argv.slice(4).includes('gate');
 
 const UID = '00000000-0000-4000-8000-00000000c001';
 
@@ -51,8 +65,18 @@ const UID = '00000000-0000-4000-8000-00000000c001';
    サーバは有効数字2桁で返すので、こちらもその形にそろえてある。
    ★1行＝1人。同じ人の複数月はサーバ側で1行に畳まれているので、ここも1人1行。
    ★自由入力の社名の人は airline:'other' で来る（打ち込まれた文字列は来ない）。
-   ★機材（fleet）も支給の内訳（comp）も 2026-08-24 に返さなくした。
-     ここに足すと、サーバが返さないものを絵にしてしまう。
+   ★2026-09-03、機材・在籍の段・報酬の内訳・勤務が返るようになった（行を押すと出る面の中身）。
+     2026-08-24 に「返さない」と書いてあったのはこの日に取り消した。
+       fleet … 語彙のコード（pv-vocab.json の fleets）。表の職位セルの2行目に出る
+       ten  … 在籍の**段**だけ。fo は 0〜1（1〜5年 / 5年以上）、
+              cap は 0〜2（1〜10年 / 10〜20年 / 20年以上）。年そのものは来ない
+       pay  … [{ k: 区分, r: [下端, 上端] }] ── **両端の2つだけ**。中間の位置は無い
+       work … { bh / dd / off: [下端, 上端] } ── この3つだけ（便数もステイも来ない）
+     ⚠️ 帯の刻みは**年収から決まる**（年収 ÷ 40 を 1/2/5 へ切り上げ ＝ pv_band_grid）。
+        両端がその倍数でない数をここに書くと、サーバが作れない帯を絵にしてしまう。
+        下の checkRows が起動時に全部を検算して、外れていたら止める。
+     ⚠️ 口コミ由来の行（FROM_REVIEWS）には**何も足さない**。元データに無いので、
+        本番でも機材も内訳も勤務も付かない。押すと「年収だけ」の面が出る。
    ★age ＝ 投稿時期の段。0=1ヶ月以内 / 1=3ヶ月以内 / 2=6ヶ月以内 / 3=1年以内 / 4=それより前。
      サーバが返すのはこの番号だけで、日付も年月も返らない。ここでも番号しか作らない。
    ⚠️ **段 3・4 をここで作らないこと**（2026-08-25 オーナー指摘
@@ -63,8 +87,46 @@ const UID = '00000000-0000-4000-8000-00000000c001';
    ★並びは**新しい順（新しいほうが上）**（2026-08-25 オーナー指示）。
       段は同じ時刻から出るので、上から下へ段は 0→2 の向きにしか動かない。
       ここで作る行も必ずその向きに並べる。逆流させると本番に無い絵になる。 */
-const R = (air, pos, usd, vf, age) => ({
-  airline: air, pos: pos, annual_usd: usd, verified: !!vf, age: age || 0 });
+const R = (air, pos, usd, vf, age, x) => Object.assign({
+  airline: air, pos: pos, annual_usd: usd, verified: !!vf, age: age || 0 }, x || {});
+
+/* 面の中身を書くための2つ。★キーの並びがそのまま画面の並びになる。 */
+const P  = (o) => Object.keys(o).map((k) => ({ k: k, r: o[k] }));
+const WK = (bh, dd, off) => ({ bh: bh, dd: dd, off: off });
+
+/* ★帯の検算（起動時に1回）。サーバ（pv_band_grid）と同じ式をここに写してある。
+     grid ＝ 年収 ÷ 40 を {1,2,5}×10ⁿ の直上へ切り上げ
+   両端がその倍数でなければ、本番のサーバには作れない帯＝作り物を絵にしている。
+   ⚠️ この関数を db/pay-rows.sql と食い違わせない（向こうが正）。 */
+const gridOf = (annual) => {
+  const raw = annual / 40;
+  const p = Math.pow(10, Math.floor(Math.log10(raw)));
+  return raw <= p ? p : raw <= p * 2 ? p * 2 : raw <= p * 5 ? p * 5 : p * 10;
+};
+const W_GRID = { bh: 10, dd: 2, off: 2 };
+const FLEETS = new Set((JSON.parse(
+  readFileSync(path.join(ROOT, 'pv-vocab.json'), 'utf8')).fleets || []).map((f) => f.code));
+const TEN_MAX = { fo: 1, cap: 2 };
+function checkRows(list, tag) {
+  const bad = [];
+  list.forEach((r, i) => {
+    const at = tag + '[' + i + '] ' + r.airline + ' ' + r.pos;
+    if (r.fleet && !FLEETS.has(r.fleet)) bad.push(at + ' 機材 ' + r.fleet + ' は語彙に無い');
+    if (typeof r.ten === 'number' && r.ten > (TEN_MAX[r.pos] === undefined ? -1 : TEN_MAX[r.pos]))
+      bad.push(at + ' 在籍の段 ' + r.ten + ' は ' + r.pos + ' に無い');
+    const g = gridOf(r.annual_usd);
+    (r.pay || []).forEach((p) => {
+      if (p.r[0] % g || p.r[1] % g) bad.push(at + ' ' + p.k + ' が刻み ' + g + ' の倍数でない');
+      if (p.r[0] === p.r[1]) bad.push(at + ' ' + p.k + ' の両端が同じ数');
+      if (p.r[0] === 0 && p.r[1] !== g * 2) bad.push(at + ' ' + p.k + ' の畳み方が違う');
+    });
+    if (r.work) Object.keys(W_GRID).forEach((k) => {
+      const v = r.work[k]; if (!v) return;
+      if (v[0] % W_GRID[k] || v[1] % W_GRID[k]) bad.push(at + ' ' + k + ' が刻みの倍数でない');
+    });
+  });
+  if (bad.length) { console.error(bad.join('\n')); process.exit(1); }
+}
 
 /* 数え上げ。★サーバ（pv_pay_rows）の stats と同じ形。
    reports ＝ 提出の件数（同じ人の複数月もそれぞれ1件）、month ＝ 直近1ヶ月に入った件数。
@@ -100,19 +162,59 @@ const ST_LOCK = { reports: 27, month: 22, airlines: 12, contributors: 17 };
       サーバは出どころで分けずに時刻だけで並べるので、ここでも混ぜて置く
       （出どころごとに固めると、本番に無い並びの絵になる）。 */
 const ROWS = [
-  R('ana', 'fo', 110000, false, 0),                 // 預かり
-  R('singapore-airlines', 'cap', 330000, false, 0), // 預かり
-  R('ana', 'fo',  94000, false, 0),                 // 預かり
-  R('air-canada', 'cap', 240000, false, 0),         // 預かり
-  R('zipair', 'fo', 82000, false, 0),               // 預かり
-  R('eva-air', 'cap', 170000, false, 0),
-  R('ana', 'cap', 180000, false, 0),
-  R('lufthansa', 'fo', 140000, false, 0),
-  R('ana', 'fo', 110000, false, 0),
-  R('jal', 'fo',  81000, false, 0),
-  R('ana', 'fo',  95000, false, 1),
-  R('jal', 'fo',  99000, false, 1),
-  R('ana', 'fo', 110000, false, 1),
+  R('ana', 'fo', 110000, false, 0,                  // 預かり
+    { fleet: 'a320', ten: 0,
+      pay: P({ fixed: [70000, 75000], variable: [25000, 30000],
+               perdiem: [5000, 10000], bonus: [0, 10000] }),
+      work: WK([60, 70], [14, 16], [12, 14]) }),
+  R('singapore-airlines', 'cap', 330000, false, 0,  // 預かり ── 内訳だけ（勤務は書いていない）
+    { fleet: 'a380', ten: 2,
+      pay: P({ fixed: [190000, 200000], variable: [70000, 80000],
+               perdiem: [20000, 30000], bonus: [0, 20000] }) }),
+  R('ana', 'fo',  94000, false, 0,                  // 預かり ── 勤務だけ
+    { fleet: 'b787', ten: 0, work: WK([70, 80], [16, 18], [10, 12]) }),
+  R('air-canada', 'cap', 240000, false, 0,          // 預かり
+    { fleet: 'b777', ten: 1,
+      pay: P({ fixed: [140000, 150000], variable: [50000, 60000],
+               perdiem: [10000, 20000], bonus: [0, 20000] }),
+      work: WK([60, 70], [12, 14], [14, 16]) }),
+  /* ★預かり ── 総支給しか書かなかった人。機材と在籍は出るが、面には内訳も勤務も出ない。 */
+  R('zipair', 'fo', 82000, false, 0, { fleet: 'b787', ten: 0 }),
+  R('eva-air', 'cap', 170000, false, 0,
+    { fleet: 'a330', ten: 1,
+      pay: P({ fixed: [95000, 100000], variable: [35000, 40000],
+               housing: [10000, 15000], bonus: [0, 10000] }),
+      work: WK([50, 60], [12, 14], [14, 16]) }),
+  R('ana', 'cap', 180000, false, 0,
+    { fleet: 'b787', ten: 1,
+      pay: P({ fixed: [100000, 105000], variable: [35000, 40000],
+               command: [15000, 20000], bonus: [0, 10000] }),
+      work: WK([60, 70], [14, 16], [12, 14]) }),
+  R('lufthansa', 'fo', 140000, false, 0,
+    { fleet: 'a320', ten: 1,
+      pay: P({ fixed: [85000, 90000], variable: [30000, 35000],
+               other: [10000, 15000], bonus: [0, 10000] }) }),
+  R('ana', 'fo', 110000, false, 0,
+    { fleet: 'b737', ten: 0,
+      pay: P({ fixed: [70000, 75000], variable: [25000, 30000],
+               perdiem: [5000, 10000], bonus: [0, 10000] }),
+      work: WK([60, 70], [14, 16], [12, 14]) }),
+  R('jal', 'fo',  81000, false, 0,
+    { fleet: 'e-jet', ten: 0, work: WK([40, 50], [12, 14], [14, 16]) }),
+  R('ana', 'fo',  95000, false, 1,
+    { fleet: 'a320', ten: 0,
+      pay: P({ fixed: [60000, 65000], variable: [20000, 25000],
+               perdiem: [5000, 10000], bonus: [0, 10000] }),
+      work: WK([50, 60], [12, 14], [14, 16]) }),
+  R('jal', 'fo',  99000, false, 1,
+    { fleet: 'b767', ten: 0,
+      pay: P({ fixed: [65000, 70000], variable: [20000, 25000],
+               other: [5000, 10000], bonus: [0, 10000] }) }),
+  R('ana', 'fo', 110000, false, 1,
+    { fleet: 'b787', ten: 1,
+      pay: P({ fixed: [70000, 75000], variable: [25000, 30000],
+               housing: [10000, 15000], bonus: [0, 10000] }),
+      work: WK([60, 70], [14, 16], [12, 14]) }),
 ];
 
 /* ★口コミに書かれていた給与（2026-08-24 に合流させたぶん）。
@@ -121,7 +223,7 @@ const ROWS = [
    ・口コミフォームはもう金額を集めていないので、**この7行が打ち止め**。将来増えない
    ・給与レポートより前の時期のものなので、段は 1〜2 に寄る。
      ⚠️ 3・4 にしないこと。サイトはまだ約4ヶ月しか経っていない（上の ⚠️）
-   ・出典は明細と同じ「本人記録」（札を3種類に増やさない＝オーナー決定）
+   ・出典は明細と同じ「本人申告」（札を3種類に増やさない＝オーナー決定）
    ・1行は airline:'other'＝打ち込まれた社名が語彙に当たらなかった人。
      画面は「一覧にない航空会社」と書く（2026-08-25 オーナー指示。前は「その他の航空会社」）
    ⚠️ 金額は作り物。実際の8件の額はここに写していない。 */
@@ -142,31 +244,68 @@ const MERGED = [...ROWS, ...FROM_REVIEWS];
 /* もっと集まったら、という絵。★並びは新しい順（新しいほうが上）なので、
    段は上から 0 → 1 → 2 の向きにしか動かない。
    会社と金額はばらけさせる（会社ごとに固めると絞り込みの絵が読めない）。
-   ★段は 0〜2 だけ。サイトはまだ約4ヶ月なので 3・4 は本番にありえない（上の ⚠️）。 */
+   ★段は 0〜2 だけ。サイトはまだ約4ヶ月なので 3・4 は本番にありえない（上の ⚠️）。
+   ★ここは表と頁送りを見るための場面なので、機材と在籍の段までしか持たせていない
+     （面は開かない ＝ 内訳と勤務は絵に出ない）。面を見たいときは drawer を使う。 */
 const MANY = [
-  R('cathay-pacific', 'fo', 125000, false, 0),
-  R('korean-air', 'cap', 175000, false, 0),
-  R('ana', 'fo', 98000, false, 0),
-  R('emirates', 'fo', 150000, false, 0),
-  R('qatar-airways', 'cap', 260000, true, 0),
-  R('jal', 'fo', 105000, false, 0),
-  R('ana', 'cap', 180000, true, 0),
-  R('eva-air', 'fo', 105000, false, 1),
-  R('other', 'fo', 90000, false, 1),
-  R('zipair', 'fo', 86000, false, 1),
-  R('jal', 'fo', 112000, false, 1),
-  R('lufthansa', 'fo', 110000, false, 1),
-  R('ana', 'cap', 195000, false, 1),
-  R('cathay-pacific', 'cap', 200000, false, 1),
-  R('emirates', 'cap', 240000, false, 1),
-  R('jal', 'cap', 185000, true, 2),
-  R('other', 'cap', 130000, false, 2),
-  R('korean-air', 'fo', 95000, false, 2),
-  R('jal', 'cap', 190000, false, 2),
-  R('ana', 'fo', 120000, false, 2),
-  R('lufthansa', 'cap', 160000, false, 2),
-  R('singapore-airlines', 'fo', 130000, false, 2),
+  R('cathay-pacific', 'fo', 125000, false, 0, { fleet: 'a350', ten: 0 }),
+  R('korean-air', 'cap', 175000, false, 0, { fleet: 'b777', ten: 1 }),
+  R('ana', 'fo', 98000, false, 0, { fleet: 'b737', ten: 0 }),
+  R('emirates', 'fo', 150000, false, 0, { fleet: 'b777', ten: 1 }),
+  R('qatar-airways', 'cap', 260000, true, 0, { fleet: 'a350', ten: 1 }),
+  R('jal', 'fo', 105000, false, 0, { fleet: 'b767', ten: 0 }),
+  R('ana', 'cap', 180000, true, 0, { fleet: 'b787', ten: 1 }),
+  R('eva-air', 'fo', 105000, false, 1, { fleet: 'a330', ten: 0 }),
+  R('other', 'fo', 90000, false, 1, { fleet: 'a320', ten: 0 }),
+  R('zipair', 'fo', 86000, false, 1, { fleet: 'b787', ten: 0 }),
+  R('jal', 'fo', 112000, false, 1, { fleet: 'a350', ten: 1 }),
+  R('lufthansa', 'fo', 110000, false, 1, { fleet: 'a320', ten: 1 }),
+  R('ana', 'cap', 195000, false, 1, { fleet: 'b777', ten: 2 }),
+  R('cathay-pacific', 'cap', 200000, false, 1, { fleet: 'a350', ten: 1 }),
+  R('emirates', 'cap', 240000, false, 1, { fleet: 'a380', ten: 2 }),
+  R('jal', 'cap', 185000, true, 2, { fleet: 'b787', ten: 1 }),
+  R('other', 'cap', 130000, false, 2, { fleet: 'b737', ten: 0 }),
+  R('korean-air', 'fo', 95000, false, 2, { fleet: 'a320', ten: 0 }),
+  R('jal', 'cap', 190000, false, 2, { fleet: 'b777', ten: 2 }),
+  R('ana', 'fo', 120000, false, 2, { fleet: 'b787', ten: 1 }),
+  R('lufthansa', 'cap', 160000, false, 2, { fleet: 'a350', ten: 0 }),
+  R('singapore-airlines', 'fo', 130000, false, 2, { fleet: 'b787', ten: 1 }),
 ];
+
+/* ★行を押して出る面のための9行（2026-09-03）。
+     ⚠️ 9行にしてあるのは、**1ページに全部載せるため**（10件で改頁するので、
+        2ページ目の行は押せない ＝ 撮れない）。
+     並びは新しい順。上の7行が給与フォーム由来（段0）、下の2行が口コミ由来（段1）。
+     row= で選ぶ行の見え方：
+       0 内訳も勤務もある（同じ会社・同じ職位の他の記録も2件出る）
+       1 内訳だけ（勤務の節が丸ごと出ない）
+       2 勤務だけ（内訳の節が丸ごと出ない）
+       4 機材と在籍はあるが年収だけ
+       7 口コミ由来 ── 機材も在籍も無い。**空の面にならないことを見る**  */
+const DRAWER = [...ROWS.slice(0, 7), ...FROM_REVIEWS.slice(0, 2)];
+
+/* ★報酬の内訳の門（2026-09-03）。自分の内訳を出した人どうしで見られる。
+     サーバは閉じている行の**金額を1円も返さない** ── `pay` の鍵ごと消えて、
+     代わりに `paylock` が来る。中身は**区分の名前だけ**で、
+     区分が1つしか無い行は名前も渡さず真偽1つに落ちる
+     （1つ＝その区分が内訳のほぼ全部。面に出ている年収から金額が読めてしまう）。
+   ⚠️ 絵にするときも**ここで消してから**渡す。帯を残したまま上から霞ませない
+      （それをやると、開発者ツールで1秒で剥がれるものを絵で承認することになる）。
+   ★3行目（勤務だけの人）は pay を持たないので、門も出ない
+     ＝「この投稿には給与内訳が含まれていません」のまま。row=2 で見られる。 */
+const DRAWER_LOCK = DRAWER.map(function (r) {
+  const c = Object.assign({}, r);
+  if (c.pay) {
+    const keys = c.pay.map(function (p) { return p.k; });
+    delete c.pay;
+    c.paylock = keys.length > 1 ? keys : true;
+  }
+  return c;
+});
+
+/* 起動する前に帯を検算する（作れない帯を絵にしない）。 */
+[[ROWS, 'ROWS'], [FROM_REVIEWS, 'FROM_REVIEWS'], [MANY, 'MANY'], [DRAWER, 'DRAWER']]
+  .forEach(([l, t]) => checkRows(l, t));
 
 const SCENES = {
   /* ★鍵が無い人の画面（2026-08-25 に作り直した）。
@@ -198,6 +337,14 @@ const SCENES = {
   /* ★サーバをまだ貼り替えていないとき。数えられるのは会社数だけなので
      カードは1枚になる。空いた分に 0 を置かない＝画面に嘘の数字を作らない、を絵で確かめる。 */
   nostat: { pay: { ok: true, state: 'open', rows: ROWS } },
+  /* ★行を押して開いた面。どの行を押すかは row=N（既定 0）。 */
+  drawer: { pay: { ok: true, state: 'open', rows: DRAWER, stats: ST(14, 9) }, open: 0 },
+  /* ★まだ自分の内訳を出していない人が同じ行を押したところ。
+       帯の代わりに骨組みと門が出る。row=2 は「内訳がそもそも無い人」で、門は出ない。 */
+  'drawer-lock': { pay: { ok: true, state: 'open', rows: DRAWER_LOCK, stats: ST(14, 9),
+                          give: { basic: true, detailed: false, full: false,
+                                  payslip: false } },
+                   open: 0 },
 };
 const S = SCENES[scene];
 if (!S) { console.error('scene は ' + Object.keys(SCENES).join(' / ')); process.exit(1); }
@@ -278,6 +425,44 @@ if (S.gate) {
   await new Promise((r) => setTimeout(r, 500));
 }
 
+/* ★行を押して面を開く（2026-09-03）。
+     押すのは行の末尾の ›。行のどこを押しても同じところへ行くが、
+     ここは**キーボードで辿れる入口**を押しておく（無ければ気づける）。 */
+if (S.open !== undefined) {
+  const i = rArg ? Number(rArg.slice(4)) : S.open;
+  const hit = await page.evaluate((n) => {
+    const tr = document.querySelector('#ap-rows tbody tr[data-ap-row="' + n + '"]');
+    if (!tr) return 'no-row';
+    const b = tr.querySelector('.ap-go');
+    if (!b) return 'no-go';
+    b.click();
+    return 'ok';
+  }, i);
+  if (hit !== 'ok') {
+    console.error('row=' + i + ' を押せなかった（' + hit
+      + '）。1ページ目に無い行は押せない（10件で改頁）。');
+    process.exit(1);
+  }
+  /* 面が滑り込むのを待つ（.32s）。★時間ではなく、出たことで待つ。 */
+  await page.waitForFunction(
+    () => { const d = document.querySelector('.ap-dw-back'); return !!(d && d.classList.contains('is-in')); },
+    { timeout: 5000 });
+  await new Promise((r) => setTimeout(r, 500));
+
+  /* gate ── 面の主 CTA を押す（2026-09-03）。面が閉じて、左メニューと同じ
+     DEEP PAY の説明パネルが本文の頭に出るところまで。
+     ★DEEP PAY へは飛ばない（あちらへの辺は2本だけと決めてある）。
+     ★待つのは時間ではなく **#mr-gate が出たこと**。 */
+  if (gate) {
+    await page.evaluate(() => {
+      const b = document.querySelector('.ap-dw-cta');
+      if (b) b.click();
+    });
+    await page.waitForFunction(() => !!document.querySelector('#mr-gate'), { timeout: 5000 });
+    await new Promise((r) => setTimeout(r, 400));
+  }
+}
+
 if (show) {
   console.log(`見える窓で開いた（${scene} / ${lang}）。閉じるとこのコマンドも終わる。`);
   await new Promise(() => {});
@@ -288,11 +473,23 @@ if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
 const n = readdirSync(dir).filter((f) => /^screenshot-\d+/.test(f))
   .reduce((m, f) => Math.max(m, Number(f.match(/^screenshot-(\d+)/)[1])), 0) + 1;
 const out = path.join(dir,
-  `screenshot-${n}-actualpay-${scene}-${lang}${W === 1440 ? '' : '-w' + W}${theme === 'dark' ? '-dark' : ''}.png`);
+  `screenshot-${n}-actualpay-${scene}${rArg ? '-' + rArg.replace('=', '') : ''}`
+  + `-${lang}${W === 1440 ? '' : '-w' + W}${theme === 'dark' ? '-dark' : ''}.png`);
 
-/* ページ全体を撮る（絞り込みの帯と表の関係が見たいので、要素で切り出さない）。 */
-const full = await page.evaluate(() => document.documentElement.scrollHeight);
-await page.setViewport({ width: W, height: Math.min(full, 3200) });
+/* ページ全体を撮る（絞り込みの帯と表の関係が見たいので、要素で切り出さない）。
+   ★面が開いているときは伸ばさない ── 面は画面の高さいっぱいに立つので、
+     縦に伸ばすと**誰も見ることのない縦長の面**を撮ることになる。
+     代わりに、面の中身が窓より長ければその分だけ伸ばす。 */
+if (S.open !== undefined) {
+  const h = await page.evaluate(() => {
+    const b = document.querySelector('.ap-dw-b');
+    return b ? Math.ceil(b.getBoundingClientRect().height) + 40 : 0;
+  });
+  await page.setViewport({ width: W, height: Math.min(Math.max(1100, h), 2000) });
+} else {
+  const full = await page.evaluate(() => document.documentElement.scrollHeight);
+  await page.setViewport({ width: W, height: Math.min(full, 3200) });
+}
 await new Promise((r) => setTimeout(r, 600));
 await page.screenshot({ path: out });
 console.log(out.replace(ROOT, ''));

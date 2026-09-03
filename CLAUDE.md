@@ -195,7 +195,7 @@ baland_ass/                            ブランド資産（※ brand_assets の
 | `assert-referral.mjs` | 招待 ── **2人以下の区分では数字が1文字も出ない**・常設入口が消えない |
 | `assert-admin.mjs` | 管理者ページが**ログインした管理者にしか見えない**（合言葉を持たない）|
 | `assert-unlock.mjs` | **口コミの鍵と給与の鍵が混ざらない**（口コミ1件で年収が開かない）|
-| `assert-pay-rows.mjs` | REAL PAY の7つの約束（Give → Get・準識別子ゼロ・有効数字2桁・1行＝1人…）|
+| `assert-pay-rows.mjs` | REAL PAY の7つの約束（Give → Get・準識別子は粗い段だけ・有効数字2桁・1行＝1人…）＋**行を押すと出る面**（帯の両端が刻みの倍数・％も生の額も出ない・押してもサーバへ投げない）|
 | `assert-pay-report-sync.mjs` | 給与レポートの**日英が片方だけ直されていない**か（骨格だけ照合・文言は見ない）|
 | `assert-deep-pay.mjs` | DEEP PAY ── **錠前が掛かったまま**（対の外から入口ゼロ）・「時給」と呼ばない・順位を書かない・0 で埋めない・**選んだ区分が3人未満なら広い区分の数字で埋めない**・**選ぶまで何も出さない** |
 | `assert-deep-pay-compare.mjs` | 会社比較 ── **片側が3人未満でももう片側は普通に出る**・勝ち負けの語を書かない・賞与を月々の棒に入れない・人数を JS で数えない（壁は SQL の1か所）|
@@ -255,6 +255,13 @@ baland_ass/                            ブランド資産（※ brand_assets の
    （足し忘れると中身が黙って消える）／[db/pay-rows.sql](db/pay-rows.sql) の `pv_annual_total` の
    **引数の並び**（署名を書く場所が4つ。1つでも古いと**ファイルごと流れない**）／
    [pay-viz.js](pay-viz.js) の `SEG`／[my-value.js](my-value.js) の3本のバケツ
+   ⚠️ **8区分に分ける「命綱の引き算」は2か所にある**（2026-09-03）──
+   [db/deep-pay.sql](db/deep-pay.sql) の `a_fixed / a_var / a_cmd / a_role / a_pd / a_house / a_other` と、
+   [db/pay-rows.sql](db/pay-rows.sql) の `shelf`（REAL PAY の帯を作る側）。**同じ式を写してある。**
+   片方だけ直すと、DEEP PAY のドーナツと REAL PAY の帯が**同じ人について違う内訳を出す**
+   （どちらも普通に動いたまま）。共有関数にしていないのは、`pv_pay_comp` が同型の欠陥を
+   抱えたまま残っている（直す場所が3つになる）ことと、`deep-pay.sql` が `pay-rows.sql` より
+   **後**に貼るファイルで依存すると適用順が逆転するため。
 5. **`reviews_v2` に列を足さない。**
    [airlines/airline-reviews-ui.js](airlines/airline-reviews-ui.js) が `select('*')` で読む＝
    足した列はそのまま公開される。役職・区分は既存の `job_role` にカンマ区切りで入れる

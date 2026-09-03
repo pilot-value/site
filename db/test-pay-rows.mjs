@@ -166,7 +166,7 @@ const pv2 = (v) => Number(v.toPrecision(2));
 // 会社コードは語彙から取る（このテストのために特定の社名を覚えない）
 const VOCAB = (await rows(
   `select code, name_ja, name_en from pv_airlines
-    where code <> 'other' and active order by code limit 34`
+    where code <> 'other' and active order by code limit 46`
 ));
 const AIR = VOCAB.map(r => r.code);
 const [A_ONE, A_M12, A_MIX, A_OLD, A_ORD, A_VF, A_OUT, A_FOTHER,
@@ -174,7 +174,15 @@ const [A_ONE, A_M12, A_MIX, A_OLD, A_ORD, A_VF, A_OUT, A_FOTHER,
        A_RV_MON, A_RV_ANN, A_RV_SUM, A_RV_DUP, A_RV_NONE, A_AGE,
        A_AGE2, A_EDGE, A_NM_JA, A_NM_EN, A_NM_CODE, A_RV_FREE,
        A_GV_BASIC, A_GV_DET, A_GV_PS, A_GV_OTHER, A_GV_ITEMS, A_GV_GUAR,
-       A_CROSS2] = AIR;
+       A_CROSS2,
+       // ★2026-09-03 に足した3社（帯・在籍の段・勤務の材料）
+       A_BND, A_TEN, A_WRK,
+       // ★2026-09-03 に足した7社（報酬の内訳の門）。1社＝1人にして、
+       //   その人の投稿時刻だけを動かせるようにしてある（12-i）。
+       A_GT_FULL, A_GT_NONE, A_GT_M1, A_GT_M2, A_GT_M3,
+       A_GT_ROW, A_GT_OLD, A_GT_PLAIN,
+       // ★1区分だけの内訳（基本給＝総支給）。閉じている面に名前も渡さない側。
+       A_GT_1SEG] = AIR;
 const nameOf = (code) => VOCAB.find(r => r.code === code);
 
 // ════════════════════════════════════════════════════════════
@@ -322,6 +330,70 @@ await pend(A_NULLIP, { fleet: 'b787', month: 3, gross: 15000, iph: null });
                      { period_month: 4, gross_monthly: 10000 }]);
 }
 
+/* (m) ★帯の材料（2026-09-03）。オーナーが書いた完成イメージを**そのまま**作る。
+   Qantas / First Officer / A320 · 1-5 years / 約 185K
+     Base 130,000–135,000 / Flight Pay 30,000–35,000
+     Allowances 10,000–15,000 / Bonus < 10,000
+     Block Hours 60–70 / Duty Days 14–16 / Days Off 12–14
+   ここが落ちたら、画面に出る帯がオーナーの指定と違うということ。
+
+   ⚠️ other_allowance に 3,600 と入れているのは打ち間違いではない。
+      給与フォームは変動の合計（2,600）を flight_variable_pay と
+      other_allowance の**両方**に写す。実際の「その他」は 1,000。
+      サーバ側の引き算（命綱）が効いていれば 12,000/年 の帯になる。 */
+{
+  const u = ++seat; await asUser(u);
+  await submit({ ...BASE, airline: A_BND, position: 'fo', fleet: 'a320',
+                 period_year: YEAR, period_month: 6,
+                 gross_monthly: 14600, base_pay: 11000,
+                 flight_variable_pay: 2600, other_allowance: 3600,
+                 bonus_annual: 7000,
+                 block_hours: 65, duty_days: 15, days_off: 13,
+                 seniority_years: 3 });
+}
+
+/* (n) 在籍の段。FO は5年で2段・CAP は10年と20年で3段（オーナー確定）。
+   境目のちょうどの値を入れる ── 5年は「5年〜」側、10年・20年も上の段。 */
+{
+  const ten = async (pos, years, month) => {
+    const u = ++seat; await asUser(u);
+    await submit({ ...BASE, airline: A_TEN, position: pos, fleet: 'b777',
+                   period_year: YEAR, period_month: month, gross_monthly: 15000,
+                   seniority_years: years });
+  };
+  await ten('fo',   4, 1);   // → 0
+  await ten('fo',   5, 2);   // → 1（境目は上の段）
+  await ten('cap',  9, 3);   // → 0
+  await ten('cap', 10, 4);   // → 1
+  await ten('cap', 19, 5);   // → 1
+  await ten('cap', 20, 6);   // → 2
+  // 年数を書いていない人 → 段そのものが出ない（「不明」を置かない）
+  const u = ++seat; await asUser(u);
+  await submit({ ...BASE, airline: A_TEN, position: 'cap', fleet: 'b777',
+                 period_year: YEAR, period_month: 7, gross_monthly: 15000 });
+}
+
+/* (o) 勤務だけ書いた人・総支給だけの人。
+   ★総支給だけの人に「その他1本」の帯を作らないことを見る。 */
+{
+  const u = ++seat; await asUser(u);
+  await submit({ ...BASE, airline: A_WRK, position: 'cap', fleet: 'b787',
+                 period_year: YEAR, period_month: 6, gross_monthly: 20000,
+                 block_hours: 72 });
+  const u2 = ++seat; await asUser(u2);
+  await submit({ ...BASE, airline: A_WRK, position: 'fo', fleet: 'b787',
+                 period_year: YEAR, period_month: 6, gross_monthly: 8000 });
+}
+
+/* ★2026-09-03、報酬の内訳に Give & Get の門が入った。
+   見る人が自分の内訳を出していないと、下の 7-c で読む帯が**返ってこない**。
+   会社は A_OLD ── この直後に2年より前へ送るので、**行にも件数にも出てこない**。
+   「見る人は自分の行を一覧に持たない」という元の前提はそのまま守られる。 */
+await asViewer();
+await submit({ ...BASE, airline: A_OLD, position: 'cap', fleet: 'b777',
+               period_year: YEAR, period_month: 1, gross_monthly: 15000,
+               base_pay: 9000, guarantee_pay: 3000, flight_variable_pay: 2000 });
+
 await backdateAirline(A_OLD, 800);        // ★この会社だけ2年より前にする
 await asViewer();
 r = await payRows();
@@ -427,40 +499,153 @@ console.log('\n▼ 6. ★並びは新しい順（2026-08-25。前は md5 順だ�
 // ════════════════════════════════════════════════════════════
 console.log('\n▼ 7. ★返り値に何が入っているか');
 // ════════════════════════════════════════════════════════════
-const ALLOWED = ['airline', 'pos', 'annual_usd', 'verified', 'age'];
+/* ★2026-09-03、オーナー判断で機材・在籍の段・内訳の帯・勤務の帯を返すようにした。
+   （2026-08-24 に「返さない」と決めたのを取り消したもの。経緯は db/pay-rows.sql の冒頭）
+   ここの検査は「返すか返さないか」から **「返るのが帯と段だけか」** に移っている。
+   ⚠️ ALLOWED に語を足すのは設計判断。足す前に db/pay-rows.sql の②を読むこと。 */
+const ALLOWED = ['airline', 'pos', 'annual_usd', 'verified', 'age',
+                 'fleet', 'ten', 'pay', 'paylock', 'work'];
 const extra = [...new Set(R.flatMap(x => Object.keys(x)))].filter(k => !ALLOWED.includes(k));
-ok(extra.length === 0, '返す項目は5つだけ', JSON.stringify(extra));
-ok(R.every(x => !('fleet' in x)),
-   '★どの行にも機材のキーが無い（null ではなく、キーごと無い）');
+ok(extra.length === 0, '返す項目は10個だけ', JSON.stringify(extra));
 ok(R.every(x => !('comp' in x)),
-   '★どの行にも支給の内訳のキーが無い（内訳は DEEP PAY の役目）');
+   '★どの行にも支給の「割合」のキーが無い（割合は今も DEEP PAY の役目）');
+ok(R.every(x => !('fleet_cat' in x)),
+   '★機材の区分（狭胴・中型・広胴）は返していない（2粒度を揃えない）');
 
 const raw = (await one(`select pv_pay_rows()::text t`)).t;
 const BANNED = ['proof_hash', 'base_iata', 'seniority', 'age_bucket', 'period_month',
                 'period_year', 'created_at', 'annual_total_orig', 'currency',
                 'contract_type', 'tax_country', 'nationality', 'verify_level',
-                'base_pay', 'housing', 'per_diem', 'block_hours', 'airline_other'];
+                'base_pay', 'housing_amount', 'housing_type', 'per_diem',
+                'block_hours', 'duty_days', 'days_off', 'airline_other'];
 const hit = BANNED.filter(w => raw.includes(w));
-ok(hit.length === 0, '準識別子・個人の内訳が返り値の文字列に1つも無い', JSON.stringify(hit));
+ok(hit.length === 0, '準識別子・列名そのものが返り値の文字列に1つも無い', JSON.stringify(hit));
 ok(!raw.includes(OTHER_NAME) && !raw.toLowerCase().includes('somewhere'),
    '★打ち込まれた自由入力の社名が返り値に1文字も無い');
-ok(only(R, x => x.airline === 'other').every(x => Object.keys(x).length === 5),
+ok(only(R, x => x.airline === 'other')
+     .every(x => Object.keys(x).every(k => ALLOWED.includes(k))),
    '　その人たちの行にも余分な欄が1つも無い（打ち込まれた社名の置き場が無い）');
 ok(R.every(x => Number.isInteger(x.age) && x.age >= 0 && x.age <= 4),
    '★投稿の時期は0〜4の段だけ（日付も年月も入っていない）');
 ok(!/\d{4}-\d{2}/.test(raw),
    '★返り値の文字列に年月の形をした数字が1つも無い');
 
-ok(!raw.includes('fleet') && !raw.includes('comp') && !raw.includes('"b737"'),
-   '★返り値の文字列に機材も内訳も1語も無い');
+/* ★機材は**語彙のコードだけ**。打ち込まれた文字列がそのまま出る道が無いこと。 */
+{
+  const codes = (await rows(`select code from pv_fleets where active`)).map(x => x.code);
+  const bad = [...new Set(R.map(x => x.fleet).filter(Boolean))]
+                .filter(c => !codes.includes(c));
+  ok(bad.length === 0, '★機材は語彙にあるコードだけ', JSON.stringify(bad));
+  ok(R.some(x => x.fleet), '　機材が実際に出ている（キーごと消えていない）');
+}
 ok(only(R, x => x.airline === A_FOTHER).length === 1,
-   '　機材の区分が無い行も、機材を返さないので普通に1行として出る');
+   '　機材の区分が無い行も、機材そのものは出るので普通に1行として出る');
 ok(R.every(x => x.airline && x.pos), 'ラベルの無い列が1つも無い');
 ok(R.every(x => typeof x.verified === 'boolean'), '検証は true/false の1つだけ（段階を持たない）');
 {
   const vf = only(R, x => x.airline === A_VF);
   ok(vf.length === 2 && vf.filter(x => x.verified).length === 1,
      '検証済みの人だけ verified が true', JSON.stringify(vf.map(x => x.verified)));
+}
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 7-c. ★帯（2026-09-03。行を押すと見えるもの）');
+// ════════════════════════════════════════════════════════════
+/* ★ここが落ちたら画面を作ってはいけない本命は4つ：
+     ・帯の両端が刻みの倍数であること      … 端が生の額になっていない
+     ・両端が違う数であること              … 幅0の帯＝実額をそのまま出している
+     ・総支給しか書いていない人に帯が無いこと … 年収を写しただけの偽の内訳
+     ・在籍が段だけであること              … 年が混ざると1人に当たる          */
+{
+  const b = only(R, x => x.airline === A_BND)[0];
+  ok(!!b, '★帯の材料になる行が出ている');
+
+  /* ── オーナーが書いた完成イメージ、そのまま ────────────── */
+  const seg = (k) => (b && b.pay || []).find(x => x.k === k);
+  const same = (k, lo, hi) => {
+    const g = seg(k);
+    return !!g && Number(g.r[0]) === lo && Number(g.r[1]) === hi;
+  };
+  ok(b && b.fleet === 'a320' && b.pos === 'fo' && b.ten === 0,
+     '★オーナーの例：A320 / First Officer / 1〜5年の段',
+     JSON.stringify(b && { fleet: b.fleet, pos: b.pos, ten: b.ten }));
+  ok(same('fixed', 130000, 135000),
+     '★オーナーの例：Base 130,000〜135,000', JSON.stringify(seg('fixed')));
+  ok(same('variable', 30000, 35000),
+     '★オーナーの例：Flight Pay 30,000〜35,000', JSON.stringify(seg('variable')));
+  ok(same('other', 10000, 15000),
+     '★オーナーの例：Allowances 10,000〜15,000（命綱の引き算が効いている）',
+     JSON.stringify(seg('other')));
+  ok(same('bonus', 0, 10000),
+     '★オーナーの例：Bonus は「10,000 未満」に畳まれる（下端が 0）',
+     JSON.stringify(seg('bonus')));
+  ok(b && b.work && Number(b.work.bh[0]) === 60 && Number(b.work.bh[1]) === 70
+       && Number(b.work.dd[0]) === 14 && Number(b.work.dd[1]) === 16
+       && Number(b.work.off[0]) === 12 && Number(b.work.off[1]) === 14,
+     '★オーナーの例：60〜70時間 / 14〜16日 / 休み12〜14日',
+     JSON.stringify(b && b.work));
+
+  /* ── 全行にかかる約束 ──────────────────────────────── */
+  const all = R.flatMap(x => (x.pay || []).map(p => ({ air: x.airline, ...p })));
+  ok(all.length > 0, '　帯が実際に出ている行がある', String(all.length));
+  ok(all.every(p => Array.isArray(p.r) && p.r.length === 2),
+     '★帯は必ず「下端と上端」の2つ（1つの数を返していない）');
+  ok(all.every(p => Number(p.r[1]) > Number(p.r[0])),
+     '★★ 幅0の帯が1つも無い（＝実額をそのまま出していない）★★',
+     JSON.stringify(all.filter(p => Number(p.r[1]) <= Number(p.r[0])).slice(0, 3)));
+
+  /* 両端が刻みの倍数であること。刻みはその人の年収から決まる（pv_band_grid）。 */
+  const bad = [];
+  for (const x of R) {
+    if (!x.pay) continue;
+    const g = Number((await one(`select pv_band_grid($1::numeric) g`, [x.annual_usd])).g);
+    for (const p of x.pay)
+      if (Number(p.r[0]) % g !== 0 || Number(p.r[1]) % g !== 0)
+        bad.push({ air: x.airline, k: p.k, r: p.r, g });
+  }
+  ok(bad.length === 0, '★帯の両端が刻みの倍数（端が生の額になっていない）',
+     JSON.stringify(bad.slice(0, 3)));
+
+  /* 勤務の刻みは固定（年収に連動させない）。 */
+  const w = R.map(x => x.work).filter(Boolean);
+  ok(w.length > 0, '　勤務の帯が実際に出ている行がある', String(w.length));
+  ok(w.every(v => (!v.bh  || (v.bh[0]  % 10 === 0 && v.bh[1]  % 10 === 0))
+                && (!v.dd  || (v.dd[0]  %  2 === 0 && v.dd[1]  %  2 === 0))
+                && (!v.off || (v.off[0] %  2 === 0 && v.off[1] %  2 === 0))),
+     '★勤務の刻みは 10時間 / 2日 / 2日で固定（年収に連動していない）');
+  ok(w.every(v => Object.keys(v).every(k => ['bh', 'dd', 'off'].includes(k))),
+     '★勤務は3つだけ（便数・ステイ日数・拘束時間などが増えていない）',
+     JSON.stringify([...new Set(w.flatMap(v => Object.keys(v)))]));
+
+  /* ── 総支給しか書いていない人 ───────────────────────── */
+  {
+    const only1 = only(R, x => x.airline === A_WRK && x.pos === 'fo')[0];
+    ok(only1 && !('pay' in only1),
+       '★★ 総支給しか書いていない人に帯を作っていない（キーごと無い）★★',
+       JSON.stringify(only1));
+    ok(only1 && !('work' in only1) && !('ten' in only1),
+       '　勤務も在籍も書いていなければキーごと出ない（「不明」を置かない）');
+    const wOnly = only(R, x => x.airline === A_WRK && x.pos === 'cap')[0];
+    ok(wOnly && !('pay' in wOnly) && wOnly.work && Number(wOnly.work.bh[0]) === 70,
+       '　勤務だけ書いた人は勤務だけ出る（内訳は作らない）',
+       JSON.stringify(wOnly && wOnly.work));
+  }
+
+  /* ── 在籍の段 ─────────────────────────────────────── */
+  {
+    const t = only(R, x => x.airline === A_TEN);
+    const ten = (pos, m) => t.filter(x => x.pos === pos).map(x => x.ten);
+    const fo  = t.filter(x => x.pos === 'fo').map(x => x.ten).sort();
+    const cap = t.filter(x => x.pos === 'cap').map(x => x.ten)
+                 .filter(v => v !== undefined).sort();
+    ok(fo.join(',') === '0,1', '★FO の段は2つだけ（5年が境目・境目は上の段）', fo.join(','));
+    ok(cap.join(',') === '0,1,1,2',
+       '★CAP の段は3つだけ（10年・20年が境目）', cap.join(','));
+    ok(t.filter(x => !('ten' in x)).length === 1,
+       '★年数を書いていない人には段そのものが無い（「不明」を置かない）');
+    ok(R.every(x => x.ten === undefined || [0, 1, 2].includes(x.ten)),
+       '★段は 0・1・2 だけ（年そのものが混ざっていない）');
+  }
 }
 
 // ════════════════════════════════════════════════════════════
@@ -672,9 +857,14 @@ console.log('\n▼ 7-b. ★支給の内訳（DEEP PAY 用。REAL PAY からは�
   ok(a5comp.c && a5comp.c.o === 13 && a5comp.c.m === 87 && Number(a5comp.v) === 276000,
      '★教官・審査・組合・管理職・兼務が5つとも別々に積まれる（o に5つぶん）', JSON.stringify(a5comp));
 
+  /* ★REAL PAY が返すのは「帯」であって「割合」ではない。
+     割合は {"m":87,"b":0,"d":0,"h":0,"o":13} という**1文字キーに整数**の形をしている。
+     REAL PAY 側は {"k":"fixed","r":[130000,135000]} ＝ 区分名と2つの数の配列。
+     ⚠️ 帯のキーに 'b' を使わないこと。使うとこの検査が当たらなくなる
+        （検査は緑のまま意味を失う）。db/pay-rows.sql の listed にも同じ注意がある。 */
   const rawC = (await one(`select pv_pay_rows()::text t`)).t;
-  ok(!/"(m|b|d|h|o)":/.test(rawC),
-     '★REAL PAY の返り値に内訳の欄が1つも無い（丸ごと DEEP PAY に移した）');
+  ok(!/"(m|b|d|h|o)":\s*\d/.test(rawC),
+     '★REAL PAY の返り値に「割合」が1つも無い（割合は DEEP PAY の担当のまま）');
 }
 
 // ════════════════════════════════════════════════════════════
@@ -1314,9 +1504,9 @@ console.log('\n▼ 12-g. ★本人が何を出したか（DEEP PAY の個人条�
 
   // (g) 返っているのは真偽3つだけ。金額も件数も日付もここから出ない。
   const keys = Object.keys(gP).sort().join(',');
-  ok(keys === 'basic,detailed,payslip', `★返るのは真偽3つだけ（= ${keys}）`);
+  ok(keys === 'basic,detailed,full,payslip', `★返るのは真偽4つだけ（= ${keys}）`);
   ok(Object.values(gP).every(v => typeof v === 'boolean'),
-     '★3つとも真偽値（数を混ぜていない）', JSON.stringify(gP));
+     '★4つとも真偽値（数を混ぜていない）', JSON.stringify(gP));
 
   // (h) 鍵が無い人にも返る。DEEP PAY の準備は REAL PAY を開ける前からできる。
   await asUser(9102);
@@ -1393,13 +1583,193 @@ console.log('\n▼ 12-h. ★DEEP PAY の札を、左メニューを持つどの�
 }
 
 // ════════════════════════════════════════════════════════════
+console.log('\n▼ 12-i. ★報酬の内訳の門（Give & Get・2026-09-03）');
+// ════════════════════════════════════════════════════════════
+/* オーナー指示 ──「自分の給与内訳を共有した人だけ、他人の給与内訳を見られる」。
+   課金の門ではなく**相互性の門**。いちばん強い制約は
+   **「ぼかすのではなく、実数そのものを返さない」**。
+   DevTools でぼかしを外しても見えない ＝ 未 Unlock のブラウザには
+   金額が1文字も届いていない、ということ。★ここが落ちたら画面を作ってはいけない。
+
+   ⚠️ 経過措置の締切は pv_my_give の中の**定数**。この検査を書いた日
+      （2026-09-03）は、いま作る行が全部その締切より前に入ってしまうので、
+      **時計に頼らず投稿時刻を明示する**。時計に頼ると、日付が変わった翌日に
+      「厳密3項目」の検査だけが静かに意味を失う。 */
+{
+  /* ★db/pay-rows.sql の pv_my_give に書いてある定数と同じ文字列。
+     片方だけ動かさないこと（動かすと「欠けている」側が全部 true になる）。 */
+  const CUT = '2026-09-04 00:00:00+09';
+  const stamp = (air, when) =>
+    db.query(`update pay_reports set created_at = $2::timestamptz where airline = $1`,
+             [air, when]);
+  const give = async () => (await one(`select pv_my_give() g`)).g;
+
+  /* 1社＝1人。出したあとに、その人の投稿時刻を when にそろえる。
+     既定の CUT は締切ちょうど ── 「より前」ではないので経過措置に入らない。 */
+  const gate = async (air, extra, when = CUT) => {
+    const u = ++seat; await asUser(u);
+    await submit({ ...BASE, airline: air, position: 'cap', fleet: 'b777',
+                   period_year: YEAR, period_month: 5, gross_monthly: 15000, ...extra });
+    await stamp(air, when);
+    return await give();
+  };
+
+  // ── (a) 3項目すべて金額 → 開く ────────────────────────────
+  const gF = await gate(A_GT_FULL,
+    { base_pay: 9000, guarantee_pay: 3000, flight_variable_pay: 2000 });
+  ok(gF.full === true,
+     '★基本給・保証手当・変動給を3つとも金額で答えた人は開く', JSON.stringify(gF));
+
+  // ── (b) 3つとも「該当なし」でも開く ──────────────────────
+  /* ★ブリーフ §11「0円と『該当なし』は意味が違う」。
+     「うちの会社にその項目は無い」は**回答**であって未回答ではない。
+     ここが false になると、単純な給与体系の会社の人が一生開かない。 */
+  const gN = await gate(A_GT_NONE,
+    { pay_items: { v: 1, fixed_none: true, guarantee_none: true, variable_none: true } });
+  ok(gN.full === true,
+     '★★ 3つとも「該当なし」でも開く（未回答ではなく回答）★★', JSON.stringify(gN));
+
+  // ── (c) 1つでも空欄なら開かない（3通りとも）──────────────
+  const g1 = await gate(A_GT_M1, { guarantee_pay: 3000, flight_variable_pay: 2000 });
+  ok(g1.full === false, '　基本給だけ空欄 → 開かない', JSON.stringify(g1));
+  const g2 = await gate(A_GT_M2, { base_pay: 9000, flight_variable_pay: 2000 });
+  ok(g2.full === false, '　保証手当だけ空欄 → 開かない', JSON.stringify(g2));
+  const g3 = await gate(A_GT_M3, { base_pay: 9000, guarantee_pay: 3000 });
+  ok(g3.full === false, '　変動給だけ空欄 → 開かない', JSON.stringify(g3));
+  ok(g1.detailed === true && g2.detailed === true && g3.detailed === true,
+     '★1つ空欄でも detailed は true のまま（DEEP PAY の条件は動いていない）',
+     JSON.stringify([g1.detailed, g2.detailed, g3.detailed]));
+
+  // ── (d) 変動給は「行」で答えても回答済み ──────────────────
+  /* フォームの変動給は1行ずつ足す形（pd-var-rows）で、合計が
+     flight_variable_pay に写る。合計が写らない道が将来できても
+     静かに閉じないよう、行そのものでも回答済みと数える。 */
+  const gR = await gate(A_GT_ROW,
+    { base_pay: 9000, guarantee_pay: 3000,
+      pay_items: { v: 1, variable: [{ amount: 2000, basis: 'block', label: 'Flight Pay' }] } });
+  ok(gR.full === true,
+     '★変動給を「行」で書いた人も開く（合計欄が空でも回答済み）', JSON.stringify(gR));
+
+  // ── (e) 経過措置 ── 門より前に内訳を出した人は開いたまま ────
+  /* ブリーフ §10「既存ユーザーに再入力を求めない」。
+     この人は基本給しか書いていない＝厳密3項目には届かないが、
+     門を入れる前から出してくれていたので開いたままにする。 */
+  const gO = await gate(A_GT_OLD, { base_pay: 9000 }, '2026-09-03 12:00:00+09');
+  ok(gO.full === true,
+     '★★ 門より前に内訳を出した人は、再入力なしで開いたまま ★★', JSON.stringify(gO));
+
+  // ── (f) 総支給しか書いていない人は開かない ────────────────
+  const gP2 = await gate(A_GT_PLAIN, {});
+  ok(gP2.full === false && gP2.detailed === false && gP2.basic === true,
+     '　総支給だけの人は開かない（basic は true・detailed も false のまま）',
+     JSON.stringify(gP2));
+
+  /* 小道具 ── 基本給＝総支給の人を 1 人作る。内訳は 1 区分だけになる
+     （余りが 0 なので落ちる）。(g) で「名前も渡さない」を見るため。 */
+  await gate(A_GT_1SEG, { base_pay: 15000 });
+
+  /* ══ ここから「何がブラウザに届くか」══════════════════════════ */
+
+  // ── (g) 未 Unlock ＋ 内訳のある行 → paylock だけ ──────────
+  const NOGIVE = 9103;
+  await db.query(
+    `insert into profiles(id,email,access_until) values($1,$2, now() + interval '90 days')
+       on conflict (id) do update set access_until = excluded.access_until`,
+    [uid(NOGIVE), 'nogive@example.com']);
+  await db.query(`select set_config('pv.uid', $1, false)`, [uid(NOGIVE)]);
+
+  const L = await payRows();
+  ok(L.state === 'open' && L.give.full === false,
+     '　鍵は持っているが内訳を出していない人（一覧そのものは今までどおり出る）',
+     JSON.stringify({ state: L.state, give: L.give }));
+  const lb = only(L.rows, x => x.airline === A_BND)[0];
+  ok(!!lb && !('pay' in lb) && Array.isArray(lb.paylock),
+     '★★ 未 Unlock の行に pay の鍵が無く、paylock（区分の名前だけ）が立つ ★★',
+     JSON.stringify(lb && lb.paylock));
+  ok(!!lb && Array.isArray(lb.paylock)
+        && lb.paylock.every(k => typeof k === 'string'),
+     '★★ 入っているのは文字列だけ（帯も金額も1つも混ざっていない）★★',
+     JSON.stringify(lb && lb.paylock));
+  ok(!!lb && JSON.stringify(lb.paylock)
+        === JSON.stringify(['fixed', 'variable', 'other', 'bonus']),
+     '★オーナーの例の行は「基本給・変動給・その他・賞与」の4つ（中身は帯と同じ）',
+     JSON.stringify(lb && lb.paylock));
+  /* ★並びは金額の大きい順ではなく **paid が組んだ固定順**。
+     大きい順にすると「変動給 > 基本給」という順位が、
+     数字を1文字も書かないまま漏れる。 */
+  const SEGORD = ['fixed', 'variable', 'command', 'role', 'perdiem',
+                  'housing', 'other', 'rest', 'bonus'];
+  const lord = (lb && lb.paylock || []).map(k => SEGORD.indexOf(k));
+  ok(lord.length > 0 && lord.every(i => i >= 0)
+        && lord.every((v, i) => i === 0 || lord[i - 1] < v),
+     '★★ 並びは固定順（金額順に並べ替えていない）★★',
+     JSON.stringify(lb && lb.paylock));
+
+  ok(!!lb && !!lb.airline && !!lb.pos && !!lb.fleet && !!lb.work,
+     '★門が掛かるのは「報酬の内訳」だけ（会社・職位・機材・勤務は今までどおり出る）',
+     JSON.stringify(lb && Object.keys(lb)));
+
+  /* ★区分が1つしか無い行は、その名前さえ渡さない。
+     区分が1つ ＝ その区分が内訳のほぼ全部。面には年収が出ているので、
+     名前を出した時点で「基本給 ≒ 年収」と読めてしまう。 */
+  const l1 = only(L.rows, x => x.airline === A_GT_1SEG)[0];
+  ok(!!l1 && !('pay' in l1) && l1.paylock === true,
+     '★★ 区分が1つだけの行は真偽1つに落ちる（名前も渡さない）★★',
+     JSON.stringify(l1 && { paylock: l1.paylock }));
+
+  const lraw = (await one(`select pv_pay_rows()::text t`)).t;
+  ok(!lraw.includes('"pay"'),
+     '★★ 返り値の文字列に "pay" の鍵が1つも無い ★★');
+  /* ★「130000 が無いこと」では見ない。あの数は年収の丸め（有効数字2桁）で
+     ほかの行にも普通に出る（134,000 → 130,000）。実際にそれで一度赤くなった。
+     見るのは**帯の形**と、帯にしか出ない上端の2つ。 */
+  /* ★paylock に入るのは **裸の名前**（"fixed"）。帯は
+     {"k":"fixed","r":[…]} という対なので、この3つは今も
+     ゼロのままでなければならない。名前を渡しただけでここが
+     赤くなったら、帯そのものを渡している。 */
+  const bandLike = ['"r":[', '"k":"fixed"', '"k":"variable"'].filter(w => lraw.includes(w));
+  ok(bandLike.length === 0,
+     '★★ 帯の形（区分名と下端・上端の組）が返り値に1つも無い ── ぼかしではなく不在 ★★',
+     JSON.stringify(bandLike));
+  ok(!lraw.includes('135000'),
+     '★★ 帯の上端の実数（135000）が返り値に1文字も無い ★★',
+     lraw.slice(Math.max(0, lraw.indexOf('135000') - 60), lraw.indexOf('135000') + 20));
+  ok(lraw.includes('paylock'),
+     '　代わりに立つのは区分の名前だけ（どの区分があるか、まで）');
+
+  // ── (h) 内訳の無い投稿は、未 Unlock でも門を出さない（状態C）──
+  const lc = only(L.rows, x => x.airline === A_ONE)[0];
+  ok(!!lc && !('pay' in lc) && !('paylock' in lc),
+     '★★ 投稿に内訳が無い行は鍵が2つとも無い（門ではなく「内訳がありません」）★★',
+     JSON.stringify(lc));
+
+  // ── (i) Unlock 済みには今までどおり帯が返る ────────────────
+  await asViewer();
+  const V = await payRows();
+  ok(V.give.full === true, '　見る人の門は開いている（自分の内訳を出しているので）',
+     JSON.stringify(V.give));
+  const vb = only(V.rows, x => x.airline === A_BND)[0];
+  ok(!!vb && Array.isArray(vb.pay) && vb.pay.length > 0 && !('paylock' in vb),
+     '★開いている人には帯が返り、paylock は立たない（2つが同時に出ない）',
+     JSON.stringify(vb && { pay: vb.pay && vb.pay.length, paylock: vb.paylock }));
+
+  // ── (j) REAL PAY の門は DEEP PAY を開けない（ブリーフ §13）──
+  /* full が true になっても、DEEP PAY が読むのは今までどおり detailed と
+     人数の2つだけ。ここが崩れると「片方を開けたらもう片方も開いた」になる。 */
+  const prog = (await one(`select pv_give_progress() r`)).r;
+  ok(prog.give.detailed === V.give.detailed && typeof prog.contributors === 'number',
+     '★DEEP PAY の札が読む値（detailed と人数）は、この門で1つも動かない',
+     JSON.stringify(prog.give));
+}
+
+// ════════════════════════════════════════════════════════════
 console.log('\n▼ 13. 自己点検 SQL（ファイル末尾のものをそのまま流す）');
 // ════════════════════════════════════════════════════════════
 {
   const src = read('db/pay-rows.sql');
   const q = src.slice(src.lastIndexOf('with f as ('));
   const res = await rows(q);
-  ok(res.length === 47, `自己点検が47行ぜんぶ出る（= ${res.length}行）`);
+  ok(res.length === 61, `自己点検が61行ぜんぶ出る（= ${res.length}行）`);
   for (const row of res) {
     ok(row['結果'] === '✅', `${row['#']}. ${row['見るところ']}`);
   }

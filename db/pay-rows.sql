@@ -38,17 +38,72 @@
 --   ★列と絞り込みは**同時に**外すこと。列だけ消して機材で絞れる状態にすると、
 --     絞った結果から各行の機材が逆算できる（隠したことにならない）。
 --
+-- 2026-09-03 オーナー判断：**機材を戻し、内訳と勤務も帯で出す。**（上の判断の取り消し）
+--   REAL PAY は「どの会社の・どの職位が・年いくら」しか答えられない画面だった。
+--   基本給が厚い会社と、乗務手当で積み上げる会社は、**同じ年収でも別の仕事で
+--   別のリスク**を負っている。そこが読めないと、並べても比べたことにならない。
+--   ＝ **比べるための画面が、比べられないままだった。** それを直すために匿名性を
+--   一段渡した。行に機材が付き、行を押すと在籍年数の段・支給の内訳・勤務が出る。
+--   ★ただし**数そのものは1つも出さない。帯（下端と上端）だけを出す。**
+--     どこまで粗くするかは下の「★帯について」に全部書いた。
+--   ★機材は全行に出す（人数の門は掛けない。オーナー確定）。
+--   ★**絞り込みは戻さない。** 上の「列と絞り込みは同時に」を、今度は逆向きに守る。
+--     行に出ているものを目で拾うのと、狙った1人へ数クリックで到達する道を
+--     こちらから用意するのは別物。⑤のとおりサーバには引数が無い。
+--     画面側にも作らないこと（#ap-fleet を戻さない）。
+--
 -- ★これで匿名性がどこまで落ちたか（正直に書いておく）
---   出るのは会社と職位だけ。それでも「うちの機長は3人しか居ない」が成り立つ規模なら、
---   候補はそこまで絞れる。**これは承知のうえで選んだ形。**
+--   2026-09-03 より前、行に出るのは会社と職位だけだった。それでも
+--   「うちの機長は3人しか居ない」が成り立つ規模なら、候補はそこまで絞れていた。
+--   同じ日の判断で、そこから**もう一段下げた**。同じ会社の同僚から見れば、
+--   「787 の機長で在籍20年以上」まで揃った時点で1人に当たる会社は珍しくない。
+--   **そこまで含めて、これは承知のうえで選んだ形。**
+--
+--   ★落としていないものも同じだけ正直に書く。ここは1つも動かしていない。
+--     ・1円単位の金額は、年収も内訳も1つも外へ出ない（③と「★帯について」）
+--     ・基地・年代・国籍・契約形態・税の国・原本通貨・レポートID・提出日そのもの・
+--       打ち込まれた社名は、今も1つも返さない
+--     ・引数はゼロのまま（⑤）。狙った1人を指定して引く面は無い
+--     ・1行＝1人のまま（④）。押しても出るのは、その1行の人のぶんだけ
+--
+--   ★いちばん危ないのは「重ねると効く」ほう。会社・職位・機材・在籍の段・
+--     勤務の帯は、1つずつ見れば粗い。重ねると1人に当たる。
+--     だから **これ以上1つも足さない。** 次に何かを足したくなったら、
+--     まずここにあるどれかを外すこと。足し算だけで済ませないこと。
+--     いま足したいと言われても足さないもの ──
+--       基地／年代／国籍／便数（sectors）／ステイ日数／拘束時間／深夜時間／
+--       クレジット時間／契約形態／原本通貨／提出した月。
+--
 --   したがってこの設計を支えているのは、いま次の7つだけ。
 --
 --     ① 鍵         給与明細を1枚出した人だけ・90日（サーバ側。anon には開かない）
---     ② 準識別子ゼロ 機材・基地・在籍年数・年代・原本通貨・契約形態・国籍・
---                   レポートID・提出日そのものは1つも返さない（列にも group by にも入れない）。
---                   支給の内訳も返さない（内訳は DEEP PAY の担当）。
---                   ★2026-08-24、ここだけ1段ゆるめた。投稿の「時期」を
---                     5段の粗い区分で返す（下の「★投稿の時期について」）
+--     ② 準識別子は「粗い段」だけ
+--                   ★2026-09-03、オーナー判断でここを**大きくゆるめた**。
+--                     それまでは「準識別子ゼロ」（機材・在籍年数・内訳を1つも
+--                     返さない）だった。いま新しく返すのは次の4つ。
+--
+--                     ・機材   … pv_fleets のコードを1つ。**全行に出す**。
+--                                人数の門は置かない（オーナー確定）。
+--                                コードだけで、fleet_cat（区分）は返さない。
+--                     ・在籍   … **段だけ**。副操縦士は2段（1〜5年／5年〜）、
+--                                機長は3段（1〜10年／10〜20年／20年〜）。
+--                                年そのものは1つも返さない。訓練生と、
+--                                在籍を書いていない人は段を作らない（空欄になる）。
+--                     ・内訳   … 8区分（基本給・保証給／変動給／職位手当／役割手当／
+--                                パーディアム／住宅手当／その他の現金／未分類）と賞与。
+--                                **1区分につき返すのは帯の下端と上端の2つの数だけ。**
+--                                0 の区分は行ごと消える。割合（％）は返さない。
+--                     ・勤務   … 乗務時間・乗務日数・休日の3つ。同じく帯の2つの数だけ。
+--                                便数・ステイ日数・拘束時間・深夜時間・クレジット時間は
+--                                **返さない**（重ねると一気に個人に当たる）。
+--
+--                   今も1つも返さないもの（列にも group by にも入れない）：
+--                     基地・年代・国籍・契約形態・税の国・原本通貨・
+--                     レポートID・提出日そのもの・打ち込まれた社名。
+--                   ★投稿の「時期」だけは 5段の粗い区分で返す
+--                     （2026-08-24。下の「★投稿の時期について」）。
+--                   ★機材でも在籍でも**絞り込ませない**。⑤のとおりサーバには
+--                     引数が無い。画面側にも作らないこと。
 --     ③ 有効数字2桁  $183,456 は $180,000 として出る。1円まで一致する個票が存在しない
 --     ④ 1行＝1人    同じ人の複数月は年換算の中央値で1行に畳む（回数から常連が割れない）
 --     ⑤ 引数ゼロ    総当たりで区分を指定して引く面が無い
@@ -59,6 +114,42 @@
 --
 --   ③を外すと個票そのものになる。④を外すと出した回数が漏れる。
 --   **この7つは1つも外さないこと。**
+--
+-- ★帯について（2026-09-03）
+--   内訳と勤務は、**数ではなく帯**で返す。返すのは下端と上端の2つだけで、
+--   その間のどこに居るかは返さない。
+--
+--   ★画面でぼかすのではない。**サーバが帯しか作らない。**
+--     生の額をブラウザまで渡して CSS で霞ませる形は、開発者ツールを開けば
+--     1秒で剥がれる。このリポジトリは最初からその形を禁じていて、
+--     assert-pay-rows.mjs が actual-pay の4ファイルに blur / filter が
+--     1文字も無いことを見張っている。**渡さないものは、隠す必要が無い。**
+--
+--   帯の幅（grid）は**その人の年収から決める**（pv_band_grid）。
+--     grid ＝ 年収 ÷ 40 を {1,2,5}×10ⁿ の直上へ切り上げたもの
+--     例）年 $185,000 → 185000/40 = 4,625 → grid $5,000
+--         基本給 $132,000 は「$130,000〜$135,000」として出る
+--         2×grid に満たない額は「$10,000 未満」に畳む（1万ドル未満の手当を
+--         $0〜$5,000 と書くと、下端の 0 が「無い」に読めるため）
+--   ★年収から決める理由は、読んだ人が画面の数字だけで刻みを再現できるようにするため。
+--   ★「有効数字2桁の刻み ÷2」にしなかった理由。その式だと年収が $100,000 を
+--     またいだ瞬間に幅が**10倍**変わる（年 $95,000 の人は grid $500 ＝ ほぼ生の額、
+--     年 $100,000 の人は grid $5,000）。**匿名性の弱い側に10倍の穴が開く。**
+--     ÷40 は帯の幅を常に年収の約 2.5% に保つ。
+--   勤務の刻みは固定（乗務時間 10 時間／乗務日数 2 日／休日 2 日）。
+--     こちらは 2×grid 未満を畳まない（15 時間を「20 時間未満」と書くと、
+--     10〜20 時間という本当のことより粗くなる）。
+--
+--   ★正直に書いておく（1）── **帯を足しても、上の年収とは合わない。**
+--     ①内訳はその人の1か月ぶん（年収の中央値にいちばん近い月）を12倍したもの、
+--     ②帯なので端数がある、の2つの理由。画面の脚注にも同じことを書く。
+--     **合わせようとして足し算の帳尻を合わせる処理を入れないこと。**
+--     入れた瞬間、帯の中の本当の位置が逆算できる（＝帯である意味が消える）。
+--
+--   ★正直に書いておく（2）── **給与表を知っている人には、帯から段が読める。**
+--     同じ会社の人事や組合の人が号俸表を持っていれば、基本給の帯から在籍の
+--     号俸まで詰められることがある。これは帯の幅を広げても完全には消えない。
+--     消したければ内訳を出さないしか無く、それは 2026-09-03 に**出すと決めた**。
 --
 -- ★数え上げについて。2026-08-24 オーナー判断で**出すことにした**。
 --   画面の上に4枚の数字が並ぶ：
@@ -139,16 +230,24 @@
 --   ・人の突き合わせは下の pv_review_person（対応表）。口コミと明細で持ち主の
 --     ハッシュの塩が違うので、名簿から作り直して1回だけ対応を取る。
 --
--- ★内訳（支給の割合）について。2026-08-24 にいったん入れて、同じ日に外した。
---   「行を選ぶとその人の支給の内訳が円グラフで見える」形にしてみたが、
---   オーナー判断でマイページを3枚に分けることになり、
---   「この給与は何で構成されているか」は **DEEP PAY が複数の投稿を集計して**見せる、
---   と役割が決まった。1人ずつの内訳を返すのは REAL PAY の仕事ではない。
---   ＝ ここは内訳を1つも返さない。②は「準識別子ゼロ」のまま守られている。
+-- ★内訳について。2026-08-24 にいったん入れて同じ日に外し、2026-09-03 に戻した。
+--   最初に入れたのは「行を選ぶとその人の支給の内訳が**円グラフ**で見える」形。
+--   同じ日に外したのは、マイページを3枚に分けて「この給与は何で構成されているか」は
+--   DEEP PAY が複数の投稿を集計して見せる、と役割が決まったため。
 --
---   ★pv_pay_comp / pv_pct5 / pv_pending_comp の3つは**定義だけ残してある**
---     （DEEP PAY で使う）。誰にも grant していないので、今は誰からも呼べない。
---     pv_pay_rows からは呼ばない。自己点検 22 がそれを見ている。
+--   2026-09-03 に戻したが、**戻したのは内訳であって、あのときの形ではない。**
+--     ・図は戻していない（円グラフも棒も無い）。**帯の文字だけ。**
+--     ・割合（％）は戻していない。返すのは金額の帯だけで、pv_pct5 は呼ばない。
+--     ・区分は DEEP PAY と同じ8区分をそのまま使う。**新しい分類を発明しない。**
+--       発明すると、同じ人について2つの画面が違う内訳を出す。
+--   ＝ 役割の線は今も引いてある。**REAL PAY はその1人・DEEP PAY は集団。**
+--
+--   ★pv_pay_comp / pv_pct5 / pv_pending_comp の3つは**今も呼ばない。**
+--     定義だけ残してある（DEEP PAY で使う）。誰にも grant していない。
+--     あれは「割合」を出す関数で、こちらが要るのは「金額の帯」。自己点検 22 が
+--     呼んでいないことを見ている。
+--     ⚠️ pv_pay_comp には「総支給がある行は内訳を見ない」という既知の欠陥が
+--        あって、⚠️ が貼られたまま残っている。**あれを流用しないこと。**
 --
 -- ★⑦とは何か（外した p10-p90 クリップとは別物）
 --   クリップは「同じ区分の実データの上下1割に寄せる」＝**本物の値を書き換える**処理で、
@@ -171,7 +270,13 @@
 -- ★まだ禁じていること：
 --   ・この関数に引数を足すこと（総当たりで区分を指定する面が生える）
 --   ・anon に execute を渡すこと（下の grant は authenticated だけ）
---   ・②の列を1つでも返り値に足すこと
+--   ・②が「返さない」と書いているものを1つでも返り値に足すこと
+--   ・帯の中の位置（中央値・平均・何割のところか）を返すこと
+--   ・帯を細かくすること（grid を小さくすること）
+--   ・便数・ステイ日数・拘束時間・深夜時間・クレジット時間を返すこと
+--   ・機材や在籍で絞れるようにすること（列と絞り込みは常に別。
+--     出しているものでも絞らせない）
+--   ・行1つを指定して引く関数を足すこと（⑤。1回の呼び出しで全部返している）
 --   ・自由入力の社名を読むこと・返すこと
 --     → 打ち込まれた文字列そのものが識別子。airline は 'other' のまま返し、
 --        画面が「その他の航空会社」という固定の札に置き換える。
@@ -221,6 +326,81 @@ grant execute on function public.pv_sig2(numeric) to authenticated;
 comment on function public.pv_sig2(numeric) is
   '有効数字2桁に丸める。実給与の一覧はこれを通した額しか外へ出さない。'
   '桁を増やすと個票の証拠になるので増やさないこと。';
+
+
+-- ════════════════════════════════════════════════════════════════
+-- 1-a2. pv_band_grid — 帯の幅（刻み）を決める
+--
+--   grid ＝ 年収 ÷ 40 を {1,2,5}×10ⁿ の直上へ切り上げたもの
+--      40,000 → 1,000 → 1,000       95,000 →  2,375 →  5,000
+--     185,000 → 4,625 → 5,000      250,000 →  6,250 → 10,000
+--     400,000 → 10,000 → 10,000    700,000 → 17,500 → 20,000
+--   ＝ 帯の幅は常に年収の 2.5%〜5% に収まる（どの桁でも同じ強さでぼける）
+--
+-- ★これ1つが「どこまでぼかすか」の全部。変えるならここだけ。呼ぶ側は1行も変わらない。
+-- ★「有効数字2桁の刻み ÷2」にしない理由はファイル冒頭の「★帯について」に書いた。
+--   （$100,000 の前後で幅が10倍変わり、匿名性の弱い側に穴が開く）
+-- ★読んだ人が画面に出ている年収だけから刻みを再現できる（生の中央値から作らない理由）。
+-- ════════════════════════════════════════════════════════════════
+create or replace function public.pv_band_grid(v_annual numeric)
+returns numeric
+language sql
+immutable
+as $$
+  with t as (
+    select case when v_annual is null or v_annual <= 0 then null
+                else v_annual / 40.0 end as raw
+  ), d as (
+    select raw, power(10, floor(log(raw))::int)::numeric as p from t where raw is not null
+  )
+  select case when p is null then null
+              when raw <= p     then p
+              when raw <= p * 2 then p * 2
+              when raw <= p * 5 then p * 5
+              else p * 10
+         end
+    from d;
+$$;
+
+revoke all on function public.pv_band_grid(numeric) from public, anon;
+grant execute on function public.pv_band_grid(numeric) to authenticated;
+
+comment on function public.pv_band_grid(numeric) is
+  '帯の刻みを年収から決める（年収÷40を1/2/5へ切り上げ）。'
+  'ぼかしの強さはこの関数1つが決めている。細かくしないこと。';
+
+
+-- ════════════════════════════════════════════════════════════════
+-- 1-a3. pv_band — 値を刻みで床に落として [下端, 上端] を返す
+--
+--   pv_band(132000, 5000, true) → [130000, 135000]
+--   pv_band(  7000, 5000, true) → [0, 10000]   ← 画面は「$10,000 未満」と書く
+--   pv_band(    65,   10, false) → [60, 70]
+--
+-- ★返すのは2つの数だけ。**間のどこに居るかは返さない。**
+-- ★p_collapse が真なら 2×grid 未満を [0, 2×grid] に畳む。金額はこれを使う
+--   （1万ドル未満の手当を $0〜$5,000 と書くと、下端の 0 が「無い」に読める）。
+--   勤務は畳まない（15 時間を「20 時間未満」と書くと 10〜20 時間より粗くなる）。
+-- ★default を付けないこと。付けるとシグネチャが2つに見えて revoke の対象を取り違える。
+-- ════════════════════════════════════════════════════════════════
+create or replace function public.pv_band(v numeric, grid numeric, p_collapse boolean)
+returns jsonb
+language sql
+immutable
+as $$
+  select case
+    when v is null or grid is null or grid <= 0 or v <= 0 then null
+    when p_collapse and v < grid * 2 then jsonb_build_array(0, grid * 2)
+    else jsonb_build_array(floor(v / grid) * grid, floor(v / grid) * grid + grid)
+  end;
+$$;
+
+revoke all on function public.pv_band(numeric, numeric, boolean) from public, anon;
+grant execute on function public.pv_band(numeric, numeric, boolean) to authenticated;
+
+comment on function public.pv_band(numeric, numeric, boolean) is
+  '値を帯（下端・上端）に変える。実給与の一覧は内訳と勤務をこれを通してしか外へ出さない。';
+
 
 
 -- ════════════════════════════════════════════════════════════════
@@ -323,6 +503,124 @@ revoke all on function public.pv_pending_usd(jsonb) from public, anon, authentic
 comment on function public.pv_pending_usd(jsonb) is
   '登録前に預かった給与 payload の年換算USD。pv_annual_total を呼ぶ（定義は書き写さない）。'
   '金額の欄しか読まない。誰にも grant しない＝pv_pay_rows の中からだけ使う。';
+
+
+-- ════════════════════════════════════════════════════════════════
+-- 1-b3. pv_pending_detail — 預かりの payload から「帯の材料」を出す（2026-09-03）
+--
+-- 本棚（pay_reports）は8区分の材料を**列で持っている**。預かりは payload の中。
+-- 形をそろえて1つの jsonb で返し、pv_pay_rows 側は本棚と同じ式で帯にする。
+--
+-- ★pv_pending_usd（1-b）は今までどおり金額の欄しか読まない。**あちらは触らない。**
+--   年収は今も pv_pending_usd が出す。ここが出すのは内訳と勤務だけ。
+--
+-- ★★ 8区分の式は db/deep-pay.sql の sane（a_fixed〜a_other）と同じもの。★★
+--    片方だけ直すと、DEEP PAY のドーナツと REAL PAY の帯が
+--    同じ人について違う内訳を出す（どちらも普通に動いたまま）。
+--
+-- ★誰にも渡さない。単体で開けると「この payload の内訳はいくらか」を
+--   総当たりで問える面になる（pv_pending_usd と同じ理由）。
+-- ════════════════════════════════════════════════════════════════
+create or replace function public.pv_pending_detail(p jsonb)
+returns jsonb
+language sql
+stable
+set search_path = public, extensions
+as $$
+  select jsonb_build_object(
+    'fx',     r.to_usd,
+    /* その月の現金（賞与ぬき）。総支給がある人はそこから当月賞与を引く。
+       無い人は内訳の足し算。db/deep-pay.sql の cash_m と1行ずつ同じ。
+       ★組合が直接払った分だけは総支給の外にある（2026-09-02）。判定は
+         pv_union_outside_gross の1か所だけを呼ぶ（規則を書き写さない）。 */
+    'cash_m', case when x.gross is not null
+                   then greatest(x.gross - coalesce(x.bonus_m, 0), 0)
+                      + case when public.pv_union_outside_gross(x.items)
+                             then coalesce(x.upay, 0) else 0 end
+                   else coalesce(x.base, 0) + coalesce(x.gpay, 0)
+                      + coalesce(x.hourly, 0)
+                        * greatest(coalesce(x.bh, 0), coalesce(x.guar, 0))
+                      + coalesce(x.perdiem, 0)
+                      + case when x.htype = 'allowance'
+                             then coalesce(x.hamt, 0) else 0 end
+                      + coalesce(x.trans, 0) + coalesce(x.cmd, 0)
+                      + coalesce(x.othal, 0) + coalesce(x.ipay, 0)
+                      + coalesce(x.epay, 0)  + coalesce(x.upay, 0)
+                      + coalesce(x.mpay, 0)  + coalesce(x.npay, 0)
+              end,
+    -- ① 固定・保証給
+    'fixed',  coalesce(x.base, 0) + coalesce(x.gpay, 0),
+    -- ② 変動給。書いていない人は「時給 × 実績と保証時間の大きい方」
+    'var',    coalesce(x.fvp, coalesce(x.hourly, 0)
+                              * greatest(coalesce(x.bh, 0), coalesce(x.guar, 0))),
+    -- ③ 職位手当
+    'cmd',    coalesce(x.cmd, 0),
+    -- ④ 役割手当（教官・審査・組合・管理・兼務）
+    'role',   coalesce(x.ipay, 0) + coalesce(x.epay, 0) + coalesce(x.upay, 0)
+              + coalesce(x.mpay, 0) + coalesce(x.npay, 0),
+    -- ⑤ パーディアム
+    'pd',     coalesce(x.perdiem, 0),
+    -- ⑥ 住宅手当。現物支給の社宅は現金ではないので数えない
+    'house',  case when x.htype = 'allowance' then coalesce(x.hamt, 0) else 0 end,
+    /* ⑦ その他の現金手当
+       ★★ この引き算が命綱。★★ 給与フォームが変動の合計を
+       flight_variable_pay **と** other_allowance の**両方**に写すので、
+       素直に足すと変動給を二重に数える。
+       ★★ 直したら db/deep-pay.sql の sane（a_other）と、
+          下の pv_pay_rows の shelf も同じに直す。同じ式が3か所にある。★★ */
+    'other',  greatest(coalesce(x.othal, 0) - coalesce(x.fvp, 0), 0)
+              + coalesce(x.trans, 0),
+    -- 賞与は帯の中に混ぜず、1本だけ別に出す
+    'bonus_y', coalesce(x.bonus_a, 0) + coalesce(x.profit, 0),
+    -- 勤務。3つだけ。便数・ステイ日数・拘束時間は読まない（ファイル冒頭②）
+    'bh',     x.bh,
+    'dd',     x.dd,
+    'dof',    x.dof,
+    /* 内訳を書いたか。db/deep-pay.sql の det と**同じ条件**にそろえる
+       （pv_my_give の detailed とも同じ）。false の人には帯を1本も作らない。
+       ★総支給しか書いていない人を「その他 1本」の帯で埋めないための旗。
+         埋めると、内訳を書いていない人の画面に、年収を写しただけの
+         内訳が出る（本人は何も書いていないのに、書いたように見える）。 */
+    'det',    (x.base is not null or x.gpay is not null
+               or x.cmd is not null or x.items is not null)
+  )
+    from (
+      select nullif(nullif(p->>'gross_monthly', '')::numeric, 0) as gross,
+             nullif(p->>'base_pay',            '')::numeric      as base,
+             nullif(p->>'guarantee_pay',       '')::numeric      as gpay,
+             nullif(p->>'instructor_pay',      '')::numeric      as ipay,
+             nullif(p->>'examiner_pay',        '')::numeric      as epay,
+             nullif(p->>'union_pay',           '')::numeric      as upay,
+             nullif(p->>'management_pay',      '')::numeric      as mpay,
+             nullif(p->>'nonline_pay',         '')::numeric      as npay,
+             nullif(p->>'hourly_rate',         '')::numeric      as hourly,
+             nullif(p->>'guaranteed_hours',    '')::numeric      as guar,
+             nullif(p->>'block_hours',         '')::numeric      as bh,
+             nullif(p->>'duty_days',           '')::smallint     as dd,
+             nullif(p->>'days_off',            '')::smallint     as dof,
+             nullif(p->>'per_diem',            '')::numeric      as perdiem,
+             nullif(btrim(p->>'housing_type'), '')               as htype,
+             nullif(p->>'housing_amount',      '')::numeric      as hamt,
+             nullif(p->>'transport',           '')::numeric      as trans,
+             nullif(p->>'command_pay',         '')::numeric      as cmd,
+             nullif(p->>'other_allowance',     '')::numeric      as othal,
+             nullif(p->>'flight_variable_pay', '')::numeric      as fvp,
+             nullif(p->>'bonus_annual',        '')::numeric      as bonus_a,
+             nullif(p->>'profit_share_annual', '')::numeric      as profit,
+             nullif(p->>'bonus_month',         '')::numeric      as bonus_m,
+             case when jsonb_typeof(p->'pay_items') = 'object'
+                  then p->'pay_items' end                        as items,
+             upper(nullif(btrim(p->>'currency'), ''))            as cur
+    ) x
+    -- ★join なので、レートの無い通貨は行が消える＝null が返る（1-b と同じ扱い）。
+    join public.fx_rates r on r.code = x.cur;
+$$;
+
+revoke all on function public.pv_pending_detail(jsonb) from public, anon, authenticated;
+
+comment on function public.pv_pending_detail(jsonb) is
+  '預かり payload の内訳（8区分）と勤務。帯にするための材料で、金額そのものは外へ出ない。'
+  '誰にも grant しない＝pv_pay_rows の中からだけ使う。';
 
 
 -- ════════════════════════════════════════════════════════════════
@@ -805,7 +1103,43 @@ as $fn$
                                         or r.guarantee_pay is not null
                                         or r.command_pay is not null
                                         or r.pay_items is not null), false),
-           'payslip',  coalesce(bool_or(r.verify_level >= 1), false)
+           'payslip',  coalesce(bool_or(r.verify_level >= 1), false),
+           /* ── full ── REAL PAY の「報酬の内訳」を開く鍵（2026-09-03）──────
+              ★detailed とは別物。detailed は「内訳が1つでもあるか」で、
+                DEEP PAY の個人条件がそれを読んでいる。**あちらは1バイトも変えない。**
+              条件は3つ ── 基本給 / 保証手当・職務手当 / 変動給。
+              それぞれ「金額が入っている」か「該当なし」のどちらかで回答済み。
+              ★空欄は未回答。0 と「該当なし」は別物（pay_items の *_none で持つ）。
+              ★**同じ1件の中で**3つそろっていること。月をまたいで拾い集めない
+                （フォームは3つ同時に出るので、1件で埋まるのが普通の形）。 */
+           'full',     coalesce(bool_or(
+                         (r.base_pay is not null
+                          or coalesce((r.pay_items->>'fixed_none')::boolean, false))
+                         and
+                         (r.guarantee_pay is not null
+                          or coalesce((r.pay_items->>'guarantee_none')::boolean, false))
+                         and
+                         (r.flight_variable_pay is not null
+                          or coalesce(jsonb_array_length(r.pay_items->'variable'), 0) > 0
+                          or coalesce((r.pay_items->>'variable_none')::boolean, false))
+                       /* ── 経過措置（2026-09-03）────────────────────────
+                          この門を入れる前から内訳を出してくれていた人は、開いたまま。
+                          先に出した人が損をする形にしない。
+                          ★締切は**定数**。「今から何日前」という動く窓にすると、
+                            門が永久に閉じない（誰でもいつでも経過措置に入れる）。
+                            自己点検57 が、この関数に現在時刻を取る関数が
+                            1つも無いことを見ている。
+                          ⚠️ この関数の中で、投稿時刻の列名を**引用符でくくって**
+                             書かないこと。自己点検39 が「日付をキーとして
+                             返していない」をその文字列で見ているので、
+                             注意書きのつもりで書くと注意書きだけで赤くなる
+                             （列参照として書くぶんには当たらない）。 */
+                       or (r.created_at < timestamptz '2026-09-04 00:00:00+09'
+                           and (r.base_pay is not null
+                                or r.guarantee_pay is not null
+                                or r.command_pay is not null
+                                or r.pay_items is not null))
+                       ), false)
          )
     from public.pay_reports r
     join mine k on k.h = r.proof_hash
@@ -816,8 +1150,11 @@ $fn$;
 revoke all on function public.pv_my_give() from public, anon, authenticated;
 
 comment on function public.pv_my_give() is
-  '呼んだ本人が Basic / Detailed / Payslip のどれを出したかを真偽3つで返す。'
-  'DEEP PAY の個人条件（本人が内訳まで出しているか）に使う。'
+  '呼んだ本人が Basic / Detailed / Payslip / Full のどれを出したかを真偽4つで返す。'
+  'detailed は DEEP PAY の個人条件（本人が内訳まで出しているか）。'
+  'full は REAL PAY の「報酬の内訳」を開く鍵 ── 基本給・保証手当・変動給の3つが'
+  '同じ1件の中で「金額」か「該当なし」で回答済みなこと。'
+  '2026-09-04 より前に内訳を出していた人は経過措置で開いたまま（締切は定数）。'
   '金額も件数も日付も返さない。判定は「内訳が有るか」だけ（base_pay か pay_items）。'
   '昔の形（総支給の代わりに内訳）も新しい形（総支給＋内訳の行）も同じように拾うので、'
   '過去の投稿もそのまま数えられる。'
@@ -1127,6 +1464,12 @@ declare
   v_uid   uuid := auth.uid();
   v_until timestamptz;
   v_open  boolean;
+  /* ★本人が何を出したか。総当たりでハッシュを作り直す重い関数なので
+     **1回だけ呼んで持ち回る**（下の give でも同じ値を使う）。 */
+  v_give  jsonb;
+  /* ★報酬の内訳の門（Give & Get）。上の鍵とは**別の錠前**。
+     access_until を持っていても、自分の内訳を出していなければ開かない。 */
+  v_comp  boolean;
   v_out   jsonb;
 begin
   if v_uid is null then
@@ -1142,6 +1485,20 @@ begin
   --   **行だけ**を下の listed で落とす。旗はここ1つで、
   --   分岐を2つに増やさない（増やすと片方だけ直して漏れる）。
   v_open := (v_until is not null and v_until > now());
+
+  /* ── 報酬の内訳の門（Give & Get・2026-09-03）─────────────────
+     オーナー指示 ──「自分の給与内訳を共有した人だけ、他人の給与内訳を見られる」。
+     ★これは課金の門ではない。access_until の鍵とは**別**の錠前で、
+       両方そろって初めて他人の内訳が見える。
+     ⚠️ この注意書きに鍵の旗の変数名を書かないこと ── 自己点検36 が
+        その名前の出現数をきっかり4と数えている（注意書きだけで赤くなる）。
+     ★判定はここ（サーバ）だけ。閉じている人のブラウザには
+       **金額そのものを1つも返さない**。画面でぼかす作りにしない
+       ── DevTools でぼかしを外せば見えてしまう。
+     ★開けるのは「報酬の内訳」だけ。会社・職位・機材・在籍の段・年収・
+       月あたり・本人申告・投稿時期・勤務の帯は、閉じている人にもそのまま出す。 */
+  v_give := public.pv_my_give();
+  v_comp := coalesce((v_give->>'full')::boolean, false);
 
   with shelf as (
     -- ── ① 本棚（会員が出したぶん）──────────────────────────
@@ -1160,7 +1517,73 @@ begin
            r."position"         as pos,
            r.annual_total_usd   as usd,
            (r.verify_level >= 1) as vf,
-           r.created_at         as cat
+           r.created_at         as cat,
+           -- ── ここから下は2026-09-03に足した「帯の材料」──────────────
+           --   ★どれも生の値のままここを通るが、**外へ出るのは帯だけ**。
+           --     帯にするのは下の listed ただ1か所（pv_band を通す）。
+           --     ここから listed までの間で行に混ぜないこと。
+           --   ★語彙に無い機材は捨てる。画面の辞書にも無い＝コードが素で出る。
+           case when exists (select 1 from public.pv_fleets f
+                              where f.code = r.fleet and f.active)
+                then r.fleet end as fleet,
+           r.seniority_years    as sen,
+           r.fx_to_usd          as fx,
+           /* その月の現金（賞与ぬき）。db/deep-pay.sql の cash_m と1行ずつ同じ。
+              ★組合が直接払った分だけは総支給の外にある（2026-09-02）。
+                判定は pv_union_outside_gross の1か所だけを呼ぶ。 */
+           case when nullif(r.gross_monthly, 0) is not null
+                then greatest(r.gross_monthly - coalesce(r.bonus_month, 0), 0)
+                   + case when public.pv_union_outside_gross(r.pay_items)
+                          then coalesce(r.union_pay, 0) else 0 end
+                else coalesce(r.base_pay, 0) + coalesce(r.guarantee_pay, 0)
+                   + coalesce(r.hourly_rate, 0)
+                     * greatest(coalesce(r.block_hours, 0),
+                                coalesce(r.guaranteed_hours, 0))
+                   + coalesce(r.per_diem, 0)
+                   + case when r.housing_type = 'allowance'
+                          then coalesce(r.housing_amount, 0) else 0 end
+                   + coalesce(r.transport, 0) + coalesce(r.command_pay, 0)
+                   + coalesce(r.other_allowance, 0) + coalesce(r.instructor_pay, 0)
+                   + coalesce(r.examiner_pay, 0) + coalesce(r.union_pay, 0)
+                   + coalesce(r.management_pay, 0) + coalesce(r.nonline_pay, 0)
+           end                  as cash_m,
+           -- ① 固定・保証給
+           coalesce(r.base_pay, 0) + coalesce(r.guarantee_pay, 0)    as a_fixed,
+           -- ② 変動給。書いていない人は「時給 × 実績と保証時間の大きい方」
+           coalesce(r.flight_variable_pay,
+                    coalesce(r.hourly_rate, 0)
+                    * greatest(coalesce(r.block_hours, 0),
+                               coalesce(r.guaranteed_hours, 0)))     as a_var,
+           -- ③ 職位手当
+           coalesce(r.command_pay, 0)                                as a_cmd,
+           -- ④ 役割手当（教官・審査・組合・管理・兼務）
+           coalesce(r.instructor_pay, 0) + coalesce(r.examiner_pay, 0)
+           + coalesce(r.union_pay, 0) + coalesce(r.management_pay, 0)
+           + coalesce(r.nonline_pay, 0)                              as a_role,
+           -- ⑤ パーディアム
+           coalesce(r.per_diem, 0)                                   as a_pd,
+           -- ⑥ 住宅手当。現物支給の社宅は現金ではないので数えない
+           case when r.housing_type = 'allowance'
+                then coalesce(r.housing_amount, 0) else 0 end        as a_house,
+           /* ⑦ その他の現金手当
+              ★★ この引き算が命綱。★★ 給与フォームが変動の合計を
+              flight_variable_pay **と** other_allowance の**両方**に写すので、
+              素直に足すと変動給を二重に数える。
+              ★★ 直したら db/deep-pay.sql の sane（a_other）と、
+                 上の pv_pending_detail も同じに直す。同じ式が3か所にある。★★ */
+           greatest(coalesce(r.other_allowance, 0)
+                    - coalesce(r.flight_variable_pay, 0), 0)
+           + coalesce(r.transport, 0)                                as a_other,
+           -- 賞与は帯の中に混ぜず、1本だけ別に出す（年額なので12倍しない）
+           coalesce(r.bonus_annual, 0)
+           + coalesce(r.profit_share_annual, 0)                      as bonus_y,
+           -- 勤務は3つだけ。便数・ステイ日数・拘束時間は読まない（ファイル冒頭②）
+           r.block_hours        as bh,
+           r.duty_days          as dd,
+           r.days_off           as dof,
+           -- 内訳を書いたか。db/deep-pay.sql の det と1文字ずつ同じ条件
+           (r.base_pay is not null or r.guarantee_pay is not null
+            or r.command_pay is not null or r.pay_items is not null) as det
       from public.pay_reports r
      where r.annual_total_usd is not null      -- レートの無い通貨は落ちる（6章と同じ）
        and r.created_at >= now() - interval '24 months'
@@ -1181,8 +1604,30 @@ begin
            q.payload->>'position',
            public.pv_pending_usd(q.payload),
            false,
-           q.created_at
+           q.created_at,
+           -- ★2026-09-03。本棚と同じ材料を payload から出す（pv_pending_detail）。
+           --   年収は今までどおり pv_pending_usd。あちらは1文字も変えていない。
+           case when exists (select 1 from public.pv_fleets f
+                              where f.code = nullif(btrim(q.payload->>'fleet'), '')
+                                and f.active)
+                then nullif(btrim(q.payload->>'fleet'), '') end,
+           nullif(q.payload->>'seniority_years', '')::smallint,
+           (d.j->>'fx')::numeric,
+           (d.j->>'cash_m')::numeric,
+           (d.j->>'fixed')::numeric,
+           (d.j->>'var')::numeric,
+           (d.j->>'cmd')::numeric,
+           (d.j->>'role')::numeric,
+           (d.j->>'pd')::numeric,
+           (d.j->>'house')::numeric,
+           (d.j->>'other')::numeric,
+           (d.j->>'bonus_y')::numeric,
+           (d.j->>'bh')::numeric,
+           (d.j->>'dd')::smallint,
+           (d.j->>'dof')::smallint,
+           (d.j->>'det')::boolean
       from public.pay_reports_pending q
+      cross join lateral (select public.pv_pending_detail(q.payload) as j) d
      where q.claimed_at is null
        and q.ip_day_hash is not null
        and q.created_at >= now() - interval '24 months'
@@ -1223,7 +1668,14 @@ begin
                         then v.monthly_salary * 12 + coalesce(v.bonus, 0) end
                  )::numeric * 10000 * jpy.to_usd, 2),
            false,
-           v.created_at
+           v.created_at,
+           /* ★口コミは機材も在籍も内訳も勤務も**持っていない**（金額だけ）。
+              ここを埋めるための推測をしないこと。行は総額だけの行として出て、
+              画面は「この行は年収だけです」と正直に書く。 */
+           null::text, null::smallint, null::numeric, null::numeric,
+           null::numeric, null::numeric, null::numeric, null::numeric,
+           null::numeric, null::numeric, null::numeric, null::numeric,
+           null::numeric, null::smallint, null::smallint, false
       from public.reviews_v2 v
       join public.pv_review_person l on l.review_id = v.id
       join public.fx_rates jpy on jpy.code = 'JPY'
@@ -1265,13 +1717,164 @@ begin
       from sane
      group by pkey, airline, pos
   ),
+  pick as (
+    /* ── どの月の内訳と勤務を見せるか（2026-09-03）─────────────
+       金額は person で中央値に畳んでいるので、内訳と勤務も
+       **その中央値にいちばん近い月**を代表に採る。同点は md5 で割る。
+       ★★ 最新月を採らないこと。★★ 採ると「いつ出したか」が内訳ごしに
+          漏れる（契約⑥と同じ理由）。abs() が第1キーである限り、この
+          order by に時刻は1つも入らない。
+       ★1か月しか出していない人は、どの採り方でも同じ行になる。
+       ★ここで採った月の**生の額**が下の paid へ渡るが、外へ出るのは
+         pv_band を通した帯だけ。この CTE の値を行に混ぜないこと。 */
+    select distinct on (s.pkey, s.airline, s.pos)
+           s.pkey, s.airline, s.pos, s.fleet, s.sen, s.fx, s.cash_m, s.det,
+           s.a_fixed, s.a_var, s.a_cmd, s.a_role, s.a_pd, s.a_house, s.a_other,
+           s.bonus_y, s.bh, s.dd, s.dof
+      from sane s
+      join person p
+        on p.pkey = s.pkey and p.airline = s.airline and p.pos = s.pos
+     order by s.pkey, s.airline, s.pos,
+              abs(s.usd - p.v), md5(s.pkey || s.usd::text)
+  ),
+  grid as (
+    /* 帯の幅。**その人の年収から1つだけ**決める（区分ごとに変えない）。
+       式は pv_band_grid ただ1本。ここで刻みを直接書かないこと。 */
+    select p.pkey, p.airline, p.pos,
+           public.pv_band_grid(public.pv_sig2(p.v)) as g
+      from person p
+  ),
+  paid as (
+    /* ── 支給の内訳を帯にする（2026-09-03）─────────────────
+       ★出るのは帯（下端と上端）だけ。**割合も図も出さない。**
+         割合は DEEP PAY の担当で、あちらは1人ずつではなく集計して出す。
+       ★検品は db/deep-pay.sql の ok と同じ関所 ── 現金があり、内訳の合計が
+         現金を2%以上はみ出していないこと。はみ出しは本人の書き間違いで、
+         こちらで按分すると嘘の内訳になる。落ちた行は帯が付かないだけで、
+         行そのものは総額の行として残る（画面は正直に1文だけ出す）。
+       ★0 の区分は落とす。空の札を並べない。
+       ★帯を足しても上の年収とは合わない。**合わせる処理を入れないこと。**
+         入れた瞬間、帯の中の本当の位置が逆算できる（ファイル冒頭の「★帯について」）。 */
+    select k.pkey, k.airline, k.pos,
+           /* キーは k（区分）と r（帯 ＝ 下端と上端の2つ）だけ。
+              ★'b' を使わないこと ── DEEP PAY の割合が
+                {"m":…,"b":…,"d":…,"h":…,"o":…} という形をしていて、
+                db/test-pay-rows.mjs が「REAL PAY の返り値にその形が無い」を
+                見ている。同じ1文字を使うと、割合が混ざっていないという
+                検査が**当たらなくなる**（検査は緑のまま意味を失う）。 */
+           jsonb_agg(jsonb_build_object(
+             'k', x.seg,
+             'r', public.pv_band(x.amt, gr.g, true)
+           ) order by x.ord) as j
+      from pick k
+      join grid gr
+        on gr.pkey = k.pkey and gr.airline = k.airline and gr.pos = k.pos
+      cross join lateral (values
+        (1, 'fixed',    k.a_fixed * 12 * k.fx),
+        (2, 'variable', k.a_var   * 12 * k.fx),
+        (3, 'command',  k.a_cmd   * 12 * k.fx),
+        (4, 'role',     k.a_role  * 12 * k.fx),
+        (5, 'perdiem',  k.a_pd    * 12 * k.fx),
+        (6, 'housing',  k.a_house * 12 * k.fx),
+        (7, 'other',    k.a_other * 12 * k.fx),
+        (8, 'rest',     greatest(k.cash_m - (k.a_fixed + k.a_var + k.a_cmd
+                                             + k.a_role + k.a_pd + k.a_house
+                                             + k.a_other), 0) * 12 * k.fx),
+        -- ★賞与は**年額**なので12倍しない。月々の帯にも混ぜない。
+        (9, 'bonus',    k.bonus_y * k.fx)
+      ) as x(ord, seg, amt)
+     where k.det                 -- 総支給しか書いていない人には帯を作らない
+       and k.fx is not null
+       and k.cash_m is not null and k.cash_m > 0
+       and (k.a_fixed + k.a_var + k.a_cmd + k.a_role
+            + k.a_pd + k.a_house + k.a_other) <= k.cash_m * 1.02
+       and gr.g is not null
+       and x.amt > 0
+     group by k.pkey, k.airline, k.pos
+    /* ★「余り」1本だけの内訳は出さない。それは年収を写しただけで、
+         本人が書いた内訳ではない。 */
+    having bool_or(x.seg <> 'rest')
+  ),
+  worked as (
+    /* ── 勤務を帯にする（2026-09-03）───────────────────────
+       刻みは固定（乗務時間 10h / 乗務日数 2日 / 休日 2日）。
+       年収の grid に連動させないこと ── 連動させると、勤務の帯の幅から
+       年収の帯の幅が読め、年収の丸めが1段細かくなる。
+       ★2×刻み未満を畳まない（15h を「20h未満」と書くと 10〜20h より粗くなる）。
+       ★★ 3つだけ。★★ 便数・ステイ日数・拘束時間・深夜時間・クレジット時間は
+          返さない。重ねると一気に個人へ当たる（ファイル冒頭②）。
+          ★この段落に列名そのものを書かないこと ── 自己点検 55 が
+            「その5つの列名がこの関数に1語も無い」を見ているので、
+            注意書きのつもりで書くと**注意書きだけで赤くなる**（8番と同じ罠）。 */
+    select k.pkey, k.airline, k.pos,
+           nullif(jsonb_strip_nulls(jsonb_build_object(
+             'bh',  public.pv_band(k.bh::numeric,  10::numeric, false),
+             'dd',  public.pv_band(k.dd::numeric,   2::numeric, false),
+             'off', public.pv_band(k.dof::numeric,  2::numeric, false)
+           )), '{}'::jsonb) as j
+      from pick k
+  ),
   listed as (
-    select coalesce(jsonb_agg(jsonb_build_object(
+    /* ★jsonb_strip_nulls ── 材料が無い行は**キーごと消える**。
+         「不明」「—」を入れないこと。書いていないという事実も情報。 */
+    select coalesce(jsonb_agg(jsonb_strip_nulls(jsonb_build_object(
              'airline',    p.airline,
              'pos',        p.pos,
              'annual_usd', public.pv_sig2(p.v),
              'verified',   p.verified,
-             'age',        p.age
+             'age',        p.age,
+             -- ── ここから4つが2026-09-03に足したもの。どれも段か帯だけ ──
+             --   機材は語彙のコード1つ（全行。人数の門は掛けない＝オーナー確定）。
+             --   ★機材の区分（狭胴・中型・広胴）のほうは返さない。2粒度が
+             --     揃うと、機材を書いていない人の区分まで推測の材料になる。
+             --     自己点検 23 が、その列名がこの関数に1語も無いことを見ている。
+             'fleet',      k.fleet,
+             /* 在籍は**段だけ**。年そのものは返さない。
+                FO＝5年で2段 / CAP＝10年・20年で3段（オーナー確定）。
+                cadet と、年数を書いていない人は null ＝ キーごと消える。
+                ★キー名は ten（tenure の頭3文字）。在籍を表す英単語を
+                  そのままキーにしないこと ── 画面側の禁止語であり、
+                  自己点検 51 もその語が関数に無いことを見ている
+                  （注意書きのつもりで書くと注意書きだけで赤くなる）。 */
+             'ten',        case when k.sen is null then null
+                                when p.pos = 'fo'
+                                  then case when k.sen < 5 then 0 else 1 end
+                                when p.pos = 'cap'
+                                  then case when k.sen < 10 then 0
+                                            when k.sen < 20 then 1
+                                            else 2 end
+                           end,
+             /* ── 報酬の内訳（2026-09-03 に門がついた）─────────────
+                ★閉じている人には帯そのものを渡さない。**null にして消す**
+                  （jsonb_strip_nulls が下で効くので、キーごと消える）。
+                  伏せた値・0・ダミーを入れないこと ── 入れた瞬間、
+                  「隠している」だけになり DevTools で外せる作りに戻る。
+                ★paylock に入るのは**区分の名前だけ**（2026-09-03 その3、
+                  オーナー指示「色付きの棒グラフと項目名までは出す。金額だけ隠す」）。
+                  帯（r）は1つも入れない＝金額は今までどおり1円も出ない。
+                  画面がこの3状態を見分けるために要る ──
+                    pay あり      … 内訳あり・開いている
+                    paylock だけ  … 内訳あり・閉じている（門を出す）
+                    どちらも無し  … そもそも内訳が無い（門を出してはいけない）
+                  3つ目に門を出すと、書いていない人の投稿を
+                  「何か隠されている」と読ませることになる。 */
+             'pay',        case when v_comp then c.j else null end,
+             'paylock',    case when c.j is null or v_comp then null
+                                /* ★区分が1つだけの行は名前も渡さない（真偽に落とす）。
+                                     区分が1つ ＝ その区分が内訳のほぼ全部。面には年収が
+                                     出ているので、名前を出した時点で「基本給 ≒ 年収」と
+                                     読めてしまい、金額を渡さない意味が消える。 */
+                                when jsonb_array_length(c.j) < 2 then to_jsonb(true)
+                                /* ★名前だけを、上の paid が組んだ**固定順**のまま渡す。
+                                     金額順に並べ替えないこと ── 大きい順にすると
+                                     「変動給 > 基本給」という順位が、数字を1文字も
+                                     書かないまま漏れる。帯の幅は画面の CSS が持つ
+                                     （全員同じ）＝割合もここから出ない。 */
+                                else (select jsonb_agg(e.v->'k' order by e.i)
+                                        from jsonb_array_elements(c.j)
+                                             with ordinality as e(v, i))
+                           end,
+             'work',       wk.j
            -- ★2026-08-25、オーナー指示で md5 順をやめ、**新しい順**にした
            --   （新しいほうが上）。理由と、これで何が読めるようになったかは
            --   ファイル冒頭「★並びについて」。
@@ -1279,8 +1882,16 @@ begin
            --     出るのは今までどおり段（age）だけ。
            --   ・同じ時刻の人が居ても順番が揺れないよう md5 を第2キーに残す。
            --   ・画面側に並べ替えの口は作らない（サーバが1つに決める）。
-           ) order by p.last_at desc, md5(p.pkey)), '[]'::jsonb) as j
+           )) order by p.last_at desc, md5(p.pkey)), '[]'::jsonb) as j
       from person p
+      /* ★どれも left join。材料が無い人も**行は必ず出る**（総額だけの行になる）。
+         内側の join にすると、口コミ由来の行と総支給だけの行が一覧から消える。 */
+      left join pick   k  on k.pkey  = p.pkey and k.airline  = p.airline
+                         and k.pos   = p.pos
+      left join paid   c  on c.pkey  = p.pkey and c.airline  = p.airline
+                         and c.pos   = p.pos
+      left join worked wk on wk.pkey = p.pkey and wk.airline = p.airline
+                         and wk.pos  = p.pos
   ),
   tally as (
     -- ★数え上げ。**必ず sane から数える**（＝行と同じ材料。同じ幅・同じ期間・
@@ -1327,7 +1938,10 @@ begin
            --   ハッシュの材料として読む必要があり、この関数の中で読むと
            --   「打ち込まれた社名を読んでいない」という一覧側の約束
            --   （自己点検7）が言えなくなる。読む場所を1つに閉じ込める。
-           'give',  public.pv_my_give()
+           -- ★上（begin の直後）で1回だけ呼んだものをそのまま返す。
+           --   もう一度呼ばない ── 航空会社の総当たりでハッシュを作る関数なので、
+           --   1回の呼び出しで2度走らせると素直に2倍かかる。
+           'give',  v_give
          )
     into v_out
     from listed l
@@ -1423,9 +2037,10 @@ comment on function public.pv_give_progress() is
 --
 -- ★1本の SELECT にしてある。Supabase の SQL Editor は複数文を流すと
 --   最後の1本の結果しか出さないので、分けて書くと上から順に消えていく。
--- 期待：47行すべて ✅。1つでも ❌ なら、そこが効いていない。
+-- 期待：56行すべて ✅。1つでも ❌ なら、そこが効いていない。
 --
--- 特に 4・8・12・13・14・16・22・23・30・31・36・37・40・41・42・44・45・46・47 は
+-- 特に 4・8・12・13・14・16・22・23・30・31・36・37・40・41・42・44・45・46・47・
+--      50・51・52・53・54・55・56 は
 -- 「静かに壊れる」種類のもの ── 画面には何も出ないまま、他人の個票に届く経路が開く
 -- （16・30 は逆に、同じ人が二重に出る／41・45・47 は数だけが画面ごとに食い違う）。
 -- ════════════════════════════════════════════════════════════════
@@ -1433,6 +2048,10 @@ with f as (
   select to_regprocedure('public.pv_pay_rows()')       as f_rows,
          to_regprocedure('public.pv_sig2(numeric)')    as f_sig,
          to_regprocedure('public.pv_pending_usd(jsonb)') as f_pend,
+         -- ★2026-09-03 に足した3本（帯の関数2つと、預かりの材料）
+         to_regprocedure('public.pv_pending_detail(jsonb)')      as f_pdet,
+         to_regprocedure('public.pv_band_grid(numeric)')         as f_grid,
+         to_regprocedure('public.pv_band(numeric,numeric,boolean)') as f_band,
          to_regprocedure('public.pv_pct5(numeric[])')    as f_pct,
          to_regprocedure('public.pv_pending_comp(jsonb)') as f_pcomp,
          to_regprocedure('public.pv_pay_comp(numeric,numeric,numeric,numeric,numeric,'
@@ -1487,10 +2106,15 @@ from (
                    not like '%airline_other%'
                and pg_get_functiondef(f_pend) not like '%airline_other%' end from f
   union all
-  select 8, '準識別子を1つも読んでいない（基地・在籍年数・年代・投稿月・国籍・契約・税・原本通貨）',
+  select 8, '準識別子を1つも読んでいない（基地・年代・投稿月・国籍・契約・税・原本通貨）',
+         /* ★2026-09-03 に seniority_years を除外語から外した（オーナー判断で
+            在籍を出すことにしたため）。**外したのはこの1語だけ。**
+            年数そのものが行へ出ていないことは 51 が別に見ている。
+            ⚠️ この一覧に語を足すのは簡単だが、外すのは設計判断。
+               外すときは必ずファイル冒頭の②も同じ日付で書き換えること。 */
          case when f_rows is null or f_pend is null then false
               else pg_get_functiondef(f_rows) !~
-                   '(base_iata|seniority_years|age_bucket|contract_type|tax_country|nationality|annual_total_orig|period_month)'
+                   '(base_iata|age_bucket|contract_type|tax_country|nationality|annual_total_orig|period_month)'
                and pg_get_functiondef(f_pend) !~
                    '(base_iata|seniority_years|age_bucket|contract_type|tax_country|nationality|period_month)'
          end from f
@@ -1569,7 +2193,14 @@ from (
   union all
   -- ★22 と 23 が「静かに戻る」2つ。どちらも画面は動いたままで、
   --   出て行く情報だけが増える。REAL PAY は行そのものしか返さない。
-  select 22, '★REAL PAY は支給の内訳を1つも返していない（内訳は DEEP PAY の担当）',
+  select 22, '★内訳は「割合」でも「生の額」でもなく帯だけ（割合は今も DEEP PAY の担当）',
+         /* ★2026-09-03 に見出しを変えた。内訳は返すようになったが、
+            **返るのは pv_band が作った下端と上端だけ**。
+            ・割合を作る3つ（pv_pct5 / pv_pay_comp / pv_pending_comp）は
+              今も1つも呼んでいない ── あれは「割合」を出す関数で、
+              こちらが要るのは「金額の帯」。混ぜると2画面が食い違う。
+            ・列名そのものをキーにしていない（'base_pay' などが返り値に出ない）。
+              出ているのは 'fixed' 'variable' … という区分名だけ。 */
          case when f_rows is null then false
               else pg_get_functiondef(f_rows) not like '%pv_pct5(%'
                and pg_get_functiondef(f_rows) not like '%pv_pay_comp(%'
@@ -1582,9 +2213,18 @@ from (
                and pg_get_functiondef(f_rows) not like '%''housing_amount''%'
          end from f
   union all
-  select 23, '★REAL PAY は機材を返していない（列にも group by にも無い）',
+  select 23, '★機材は語彙のコードだけ（狭・中・広の区分は返さない・絞る口も無い）',
+         /* ★2026-09-03 にオーナー判断で反転（前は「機材を1語も書いていない」）。
+            全行に出す＝人数の門は掛けない。そのかわり
+            ・fleet_cat（狭胴・中型・広胴）は返さない ── 機材と区分の2粒度が
+              揃うと、機材を書いていない人の区分まで推測の材料になる
+            ・機材で**絞る**口はサーバにも画面にも作らない（契約⑤）。
+              行に出ているものを目で拾うのと、狙った1人へ数クリックで
+              到達する道を用意するのは別物。 */
          case when f_rows is null then false
-              else pg_get_functiondef(f_rows) not like '%fleet%' end from f
+              else pg_get_functiondef(f_rows) like '%''fleet''%'
+               and pg_get_functiondef(f_rows) not like '%fleet_cat%'
+         end from f
   union all
   select 24, '内訳の関数も自由入力の社名・準識別子を読んでいない',
          case when f_comp is null or f_pcomp is null then false
@@ -1622,21 +2262,77 @@ from (
               else pg_get_functiondef(f_rows) like '%else ''[]''::jsonb end%'
          end from f
   union all
+  -- ── 報酬の内訳の門（Give & Get・2026-09-03）───────────────────
+  select 58, '★内訳を出していない人には帯の金額を渡さない（伏せるのではなく null で消す）',
+         -- ★オーナー指示の一番外側 ──「CSS でぼかして隠す」のではなく、
+         --   実数そのものを返さない。ここが崩れたら機能ごと嘘になる。
+         -- ★もう1つの旗（v_comp）も、出てよいのは4か所だけ ── 宣言・旗を立てる・
+         --   pay・paylock。増えていたら stats か give にも掛けた疑い
+         --   （鍵の旗を4つで釘打ちしているのと同じ理屈）。
+         case when f_rows is null then false
+              else pg_get_functiondef(f_rows) like '%case when v_comp then c.j else null end%'
+               and (length(pg_get_functiondef(f_rows))
+                    - length(replace(pg_get_functiondef(f_rows), 'v_comp', ''))) / 6 = 4
+         end from f
+  union all
+  select 59, '★内訳が「無い」と「閉じている」を別の形で返している（無い人に門を出さない）',
+         -- 内訳あり・閉じている → paylock だけ／そもそも内訳が無い → どちらも無い。
+         -- 混ぜると、書いていない人の投稿が「何か隠されている」ように読める。
+         case when f_rows is null then false
+              else pg_get_functiondef(f_rows) like
+                   '%''paylock'',%c.j is null or v_comp then null%'
+         end from f
+  union all
+  select 60, '★重い関数（pv_my_give）は1回だけ呼んで持ち回っている',
+         -- 総当たりでハッシュを作る関数。門の判定と give の2か所で要るので、
+         -- 2度呼ぶと素直に2倍かかる。呼び出しは1つだけであること。
+         case when f_rows is null then false
+              else (length(pg_get_functiondef(f_rows))
+                    - length(replace(pg_get_functiondef(f_rows),
+                                     'public.pv_my_give()', ''))) / 19 = 1
+         end from f
+  union all
+  select 61, '★閉じている行に渡すのは区分の名前だけ（帯の金額を混ぜていない・1区分の行は名前も渡さない）',
+         -- 2026-09-03 その3、オーナー指示で骨組みに色と項目名を出すことにした。
+         -- 渡してよいのは名前（k）だけで、帯（r）を1つでも混ぜたら金額が出る。
+         -- ★区分が1つだけの行は名前も渡さない ── 区分が1つ ＝ その区分が内訳の
+         --   ほぼ全部で、面には年収が出ている。名前を出すだけで額が読める。
+         case when f_rows is null then false
+              else pg_get_functiondef(f_rows) like
+                   '%jsonb_array_length(c.j) < 2 then to_jsonb(true)%'
+               and pg_get_functiondef(f_rows) like
+                   '%jsonb_agg(e.v->''k'' order by e.i)%'
+         end from f
+  union all
   select 38, '★給与を出したユニークな人数を返している（DEEP PAY の「N / 100人」の材料）',
          case when f_rows is null then false
               else pg_get_functiondef(f_rows) like '%''contributors''%'
          end from f
   union all
-  select 39, '★本人が何を出したかは真偽3つだけ（金額も件数も日付もここから出ない）',
+  select 39, '★本人が何を出したかは真偽4つだけ（金額も件数も日付もここから出ない）',
          case when f_give is null then false
               else pg_get_functiondef(f_give) like '%''basic''%'
                and pg_get_functiondef(f_give) like '%''detailed''%'
                and pg_get_functiondef(f_give) like '%''payslip''%'
+               -- ★2026-09-03 に4つ目。REAL PAY の「報酬の内訳」を開く鍵。
+               and pg_get_functiondef(f_give) like '%''full''%'
                -- 金額そのものを返す道が無いこと（真偽に畳んでからしか出さない）
                and pg_get_functiondef(f_give) not like '%annual_total%'
+               -- ★禁じているのは「日付をキーとして返すこと」。経過措置の締切を
+               --   見るための列参照（r.created_at）は当たらない書き方にしてある。
                and pg_get_functiondef(f_give) not like '%''created_at''%'
                and pg_get_functiondef(f_give) !~
                    '(base_iata|seniority_years|age_bucket|contract_type|tax_country|period_month)'
+         end from f
+  union all
+  select 57, '★経過措置の締切は定数（動く窓にしていない＝門がいつか本当に閉まる）',
+         -- ⚠️ 「今から何日前」という動く窓にすると、いつ来た人でも経過措置に
+         --    入れてしまい、3項目を書く人が永久にゼロになる（画面は普通に動く）。
+         --    detailed / payslip の判定に現在時刻は要らないので、この関数に
+         --    現在時刻を取る関数が現れたら十中八九これ。
+         case when f_give is null then false
+              else pg_get_functiondef(f_give) not like '%now()%'
+               and pg_get_functiondef(f_give) like '%timestamptz ''2026-09-04%'
          end from f
   union all
   select 40, '★本人が何を出したかを返す関数は誰にも開いていない（pv_pay_rows の中からだけ）',
@@ -1774,6 +2470,104 @@ from (
          -- 静かに壊れる。混ざっても画面は普通に動き、数だけが多く出る。
          case when f_dctb is null then false
               else pg_get_functiondef(f_dctb) not like '%pay_reports_pending%'
+         end from f
+
+  -- ════════════════════════════════════════════════════════
+  -- 48〜56 ＝ 2026-09-03。行を押すと内訳と勤務が見えるようにしたぶん。
+  -- どれも「画面は普通に動いたまま、他人の実額へ近づく」形をしている。
+  -- ════════════════════════════════════════════════════════
+  union all
+  select 48, '★帯を作る関数が2本あり、どちらも immutable（呼ぶたびに答えが変わらない）',
+         -- 揺れると、同じ行を何度も引いて帯の境目を動かし、中の値を挟み撃ちにできる。
+         case when f_grid is null or f_band is null then false
+              else (select p.provolatile = 'i' from pg_proc p where p.oid = f.f_grid)
+               and (select p.provolatile = 'i' from pg_proc p where p.oid = f.f_band)
+         end from f
+  union all
+  select 49, '★帯の関数は anon に開いていない（ログインした人だけ）',
+         case when f_grid is null or f_band is null then false
+              else not has_function_privilege('anon', f.f_grid, 'execute')
+               and not has_function_privilege('anon', f.f_band, 'execute')
+               and has_function_privilege('authenticated', f.f_grid, 'execute')
+               and has_function_privilege('authenticated', f.f_band, 'execute')
+         end from f
+  union all
+  select 50, '★帯はサーバが作っている（一覧が pv_band と pv_band_grid を呼んでいる）',
+         /* 静かに壊れる。生の額を返して画面側で丸める形にすると、見た目は
+            まったく同じまま、通信の中身に1円単位の他人の実額が乗る。
+            このリポジトリの原則は「隠すのではなく渡さない」。 */
+         case when f_rows is null then false
+              else pg_get_functiondef(f_rows) like '%public.pv_band(%'
+               and pg_get_functiondef(f_rows) like '%public.pv_band_grid(%'
+         end from f
+  union all
+  select 51, '★在籍は粗い段だけ（年数そのものは行に入っていない）',
+         /* 静かに壊れる。段のつもりで年を入れても画面は同じに見えるが、
+            会社×職位×機材と重なった時点で1人に当たる。 */
+         /* ★読むのは許す・返すのは許さない、を見分ける。
+            預かりの枝は payload->>'seniority_years' で年数を読むので、
+            素の like では**正しいものが赤くなる**（7番と同じ形）。
+            payload の読み出しだけを消してから、その語が残らないかを見る。 */
+         case when f_rows is null then false
+              else pg_get_functiondef(f_rows) like '%''ten''%'
+               and regexp_replace(pg_get_functiondef(f_rows),
+                     'payload->>''seniority_years''', '', 'g')
+                   not like '%''seniority_years''%'
+               and pg_get_functiondef(f_rows) not like '%''seniority''%'
+               and pg_get_functiondef(f_rows) not like '%''sen''%'
+         end from f
+  union all
+  select 52, '★命綱の引き算が本棚にも預かりにも入っている（変動給を二重に数えていない）',
+         /* ★★ 静かに壊れる。★★ 給与フォームは変動の合計を
+            flight_variable_pay と other_allowance の**両方**に写す。
+            引き算を落とすと、内訳の合計が現金をはみ出して下の検品に引っかかり、
+            **その人の帯だけが黙って消える**（画面はエラーも出さない）。
+            同じ式が3か所（ここ2つ ＋ db/deep-pay.sql の a_other）。 */
+         case when f_rows is null or f_pdet is null then false
+              else pg_get_functiondef(f_rows) like
+                     '%greatest(coalesce(r.other_allowance, 0)%'
+               and pg_get_functiondef(f_rows) like
+                     '%- coalesce(r.flight_variable_pay, 0), 0)%'
+               and pg_get_functiondef(f_pdet) like
+                     '%greatest(coalesce(x.othal, 0) - coalesce(x.fvp, 0), 0)%'
+         end from f
+  union all
+  select 53, '★内訳の検品が効いている（現金をはみ出した行に帯を作らない）',
+         /* db/deep-pay.sql の ok と同じ関所。外すと、本人の書き間違いを
+            こちらで按分した「嘘の内訳」が帯になって出る。 */
+         case when f_rows is null then false
+              else pg_get_functiondef(f_rows) like '%<= k.cash_m * 1.02%'
+               and pg_get_functiondef(f_rows) like '%where k.det%'
+         end from f
+  union all
+  select 54, '★代表の月を時刻で選んでいない（中央値にいちばん近い月＋md5）',
+         /* ★★ 静かに壊れる。★★ 「最新の月」に変えても画面は同じに見えるが、
+            内訳ごしに**いつ出したか**が読める。契約⑥（並びはサーバが決める・
+            時刻そのものは返さない）が、内訳の側から破られる。 */
+         case when f_rows is null then false
+              else pg_get_functiondef(f_rows) like
+                   '%abs(s.usd - p.v), md5(s.pkey || s.usd::text)%'
+         end from f
+  union all
+  select 55, '★勤務は3つだけ（便数・ステイ日数・拘束時間・深夜時間・クレジット時間を読まない）',
+         /* 静かに壊れる。1つ足すごとに重ね合わせが効いて、
+            会社×職位×機材×在籍の段に「勤務の形」まで加わる。 */
+         case when f_rows is null then false
+              else pg_get_functiondef(f_rows) like '%''bh''%'
+               and pg_get_functiondef(f_rows) like '%''dd''%'
+               and pg_get_functiondef(f_rows) like '%''off''%'
+               and pg_get_functiondef(f_rows) !~
+                   '(sectors|stay_nights|duty_hours|night_hours|credit_hours)'
+         end from f
+  union all
+  select 56, '★預かりの材料を出す関数は誰にも開いていない・準識別子を読んでいない',
+         /* pv_pending_usd と同じ扱い（pv_pay_rows の中からだけ使う）。
+            grant すると、payload を1つ渡すだけで他人の内訳が生の額で返る口になる。 */
+         case when f_pdet is null then false
+              else not has_function_privilege('anon',          f.f_pdet, 'execute')
+               and not has_function_privilege('authenticated', f.f_pdet, 'execute')
+               and pg_get_functiondef(f_pdet) !~
+                   '(base_iata|seniority_years|age_bucket|contract_type|tax_country|nationality|period_month|airline_other)'
          end from f
 ) t
 order by n;

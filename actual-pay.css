@@ -132,8 +132,8 @@
 /* ══ 表 ═══════════════════════════════════════════════════════════
    ★1枚しかない。1行＝1人。全幅で置く。
      ⚠️ 粒度を分けた2枚に戻さないこと。同じ人が両方に出て、二重に数えたように見える。
-   ★行はクリックできない。押して開く先がこの画面には無い
-     （区分の詳細も、その人の支給の内訳も、ここには置いていない）。 */
+   ★行は押せる（2026-09-03）。押すと右から1人ぶんの面が出る（.ap-dw・下）。
+     ⚠️ 押せることが hover でしか分からない形にしない。› は最初から見えている。 */
 .ap-tw{min-width:0;
   background:var(--pv-surface);border:1px solid var(--pv-line);
   border-radius:var(--pv-r);box-shadow:var(--pv-shadow);overflow:hidden}
@@ -151,7 +151,47 @@
 .ap-tbl td{padding:14px 16px;border-bottom:1px solid var(--pv-line-soft);
   line-height:1.6;vertical-align:middle}
 .ap-tbl tbody tr:last-child td{border-bottom:0}
-/* ★カーソルも hover の色も付けない。押せない行を押せるように見せない。 */
+/* 押せる行（2026-09-03）。★色と背景だけ。transform で動かさない
+     ── 表の行が動くと、隣の行の桁と揃わなくなって読みにくい。 */
+.ap-tbl tbody tr.ap-r{cursor:pointer;
+  transition:background-color .16s var(--pv-ease)}
+.ap-tbl tbody tr.ap-r:hover,.ap-tbl tbody tr.ap-r:focus-within{
+  background:var(--pv-orange-soft)}
+
+/* 職位の下に置く機材（7列目を作らない）。★無い行はこの1行が黙って空く。 */
+.ap-pos{display:block;color:var(--pv-ink)}
+.ap-flt{display:block;margin-top:3px;
+  font-size:.72rem;font-weight:600;color:var(--pv-ink-3)}
+
+/* hover の1行。★<tr> を増やさず、セルの中で高さ 0 → 1行に開く
+     （0fr → 1fr は transition できる。height:auto はできない）。
+   ★出すのは予告だけ。金額も乗務時間も1文字も入っていない（JS 側の hintHtml）。 */
+.ap-hint{display:grid;grid-template-rows:0fr;
+  transition:grid-template-rows .18s var(--pv-ease)}
+.ap-tbl tbody tr.ap-r:hover .ap-hint,
+.ap-tbl tbody tr.ap-r:focus-within .ap-hint{grid-template-rows:1fr}
+.ap-hint-i{overflow:hidden;min-height:0;
+  font-size:.71rem;font-weight:600;color:var(--pv-orange-ink);
+  letter-spacing:.01em;line-height:1.9}
+
+/* › ── 押せることの目印。★最初から見えている（hover で現れない）。
+     文字で描く。絵にすると表の中の svg が増える。 */
+.ap-go{flex:none;width:28px;height:28px;padding:0;
+  display:inline-flex;align-items:center;justify-content:center;
+  border:1px solid var(--pv-line);border-radius:999px;
+  background:var(--pv-surface);color:var(--pv-ink-3);
+  font-size:1rem;font-weight:700;line-height:1;cursor:pointer;
+  transition:color .18s var(--pv-ease),border-color .18s var(--pv-ease),
+             background-color .18s var(--pv-ease)}
+.ap-tbl tbody tr.ap-r:hover .ap-go{color:var(--pv-orange-ink);
+  border-color:var(--pv-orange-ink)}
+.ap-go:hover{color:var(--pv-orange-ink);border-color:var(--pv-orange-ink)}
+.ap-go:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}
+.ap-go:active{transform:scale(.92)}
+/* 投稿時期と › を1行に並べる（列は増やさない）。 */
+.ap-tbl td:last-child{white-space:nowrap}
+.ap-tbl td:last-child .ap-age{margin-right:10px;vertical-align:middle}
+.ap-tbl td:last-child .ap-go{vertical-align:middle}
 
 /* 社名のセル。ロゴ＋文字。★ロゴが落ちても社名は必ず文字で残る。 */
 .ap-cell-air{display:flex;align-items:center;gap:10px;min-width:0}
@@ -172,7 +212,7 @@
 .ap-vf{display:inline-flex;align-items:center;gap:4px;
   font-size:.68rem;font-weight:700;color:var(--pv-green-ink);white-space:nowrap}
 .ap-vf svg{flex:none}
-/* ★「本人記録」は13行が13行とも同じ札になる＝いまは情報が無い。
+/* ★「本人申告」は13行が13行とも同じ札になる＝いまは情報が無い。
    橙で塗ると画面がその1語で埋まるので、ここは灰の静かな札にする。
    色を使うのは ✓ Verified（緑）だけ。差が出たときにだけ目が行く。
    ★出典を言うのはこの2つの札だけ（見出しには札を置かない）。 */
@@ -343,4 +383,264 @@
   .ap-sel,.ap-q,.ap-clear,.ap-cta,.ap-pg{transition:none}
   /* ★骨組みは動かないので止めるものは無い。要素を消さない。 */
   .ap-clear:active,.ap-cta:active,.ap-pg:active{transform:none}
+}
+
+/* ══ 行を押すと出る面（2026-09-03）═══════════════════════════════
+   ⚠️ **ぼかしを1文字も書かない。** ぼかしの類は、この画面では字面ごと禁じ手。
+      assert-pay-rows.mjs が4つのファイルを素で grep しているので、
+      **説明のつもりでその語をここに書くだけでも赤くなる**（実際に1度踏んだ）。
+      隠して見せているのではなく、サーバが帯しか作っていない。
+      背景の幕は**単色の rgba だけ**で、後ろを霞ませない。
+   ⚠️ .ap-panel / .ap-cols / .ap-main / .ap-side / .ap-bar / .ap-viz を
+      使わない。あれは 2026-08-24 に「消したもの」として字で禁じてある。
+   ★色は --pv-* だけ。この画面はオレンジ（--pv-orange-*）で通す。
+   ══════════════════════════════════════════════════════════════ */
+.ap-dw-back{position:fixed;inset:0;z-index:205;
+  background:rgba(10,22,40,.52);opacity:0;
+  transition:opacity .32s var(--pv-ease)}
+.ap-dw-back.is-in{opacity:1}
+
+.ap-dw{position:absolute;top:0;right:0;bottom:0;
+  width:420px;max-width:92vw;
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
+  background:var(--pv-surface);
+  border-left:1px solid var(--pv-line);
+  box-shadow:-24px 0 60px -30px rgba(10,22,40,.45),
+             -2px 0 8px -4px rgba(10,22,40,.22);
+  transform:translateX(100%);
+  transition:transform .32s var(--pv-ease)}
+.ap-dw-back.is-in .ap-dw{transform:none}
+.ap-dw-b{padding:20px 22px 28px}
+
+/* 頭 ── 社名と × */
+.ap-dw-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.ap-dw-air{display:flex;align-items:center;gap:10px;min-width:0}
+.ap-dw-name{font-size:1.02rem;font-weight:800;letter-spacing:-.01em;
+  color:var(--pv-ink);line-break:strict;word-break:auto-phrase}
+/* ★閉じるは、この面でいちばん弱い要素にする（2026-09-03）。
+     大きさ（36px）と当たり判定は変えない ── 弱くするのは色だけ。
+     ⚠️ 開いた瞬間の居場所は面そのものに置く（actual-pay.js の paintDrawer）。
+        ここに focus を飛ばすと :focus-visible の橙が光り、
+        いちばん目立つのが「閉じる」になる。 */
+.ap-dw-x{flex:none;width:36px;height:36px;margin:-6px -6px 0 0;
+  display:grid;place-items:center;
+  border:1px solid var(--pv-line);border-radius:10px;background:none;
+  color:var(--pv-ink-3);font-size:1.3rem;line-height:1;cursor:pointer;
+  transition:color .18s var(--pv-ease),background-color .18s var(--pv-ease),
+             border-color .18s var(--pv-ease)}
+.ap-dw-x:hover{color:var(--pv-orange-ink);border-color:var(--pv-orange-ink);
+  background:var(--pv-orange-soft)}
+.ap-dw-x:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}
+.ap-dw-x:active{transform:scale(.94)}
+
+/* 職位・機材・在籍の段 */
+.ap-dw-meta{margin-top:8px;font-size:.78rem;font-weight:600;
+  color:var(--pv-ink-2);line-height:1.7;
+  line-break:strict;word-break:auto-phrase}
+
+/* 年収と月あたり */
+.ap-dw-amt{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;
+  margin-top:16px;padding:14px 16px;
+  background:var(--pv-surface-2);border:1px solid var(--pv-line);
+  border-radius:var(--pv-r)}
+.ap-dw-a{min-width:0}
+.ap-dw-al{display:block;font-size:.66rem;font-weight:700;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--pv-ink-3)}
+.ap-dw-av{display:block;margin-top:4px;
+  font-size:1.16rem;font-weight:800;letter-spacing:-.02em;
+  color:var(--pv-ink);font-variant-numeric:tabular-nums}
+.ap-dw-src{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px}
+.ap-dw-age{font-size:.72rem;font-weight:600;color:var(--pv-ink-3)}
+
+/* 節の見出し。★h3。この画面の h2 は 0 のままにする。 */
+.ap-dw-h{margin:24px 0 10px;
+  font-size:.68rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--pv-orange-ink)}
+
+/* 帯の並び */
+.ap-dw-list{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.ap-dw-row{display:grid;grid-template-columns:minmax(0,1fr) auto;
+  align-items:baseline;gap:6px 12px}
+.ap-dw-k{font-size:.78rem;font-weight:600;color:var(--pv-ink-2);min-width:0;
+  line-break:strict;word-break:auto-phrase}
+.ap-dw-v{font-size:.82rem;font-weight:700;color:var(--pv-ink);white-space:nowrap;
+  font-variant-numeric:tabular-nums;text-align:right}
+.ap-dw-u{margin-left:5px;font-size:.7rem;font-weight:600;color:var(--pv-ink-3)}
+
+/* 報酬の内訳 ── 1本の積み上げバー（2026-09-03）。
+   ★前は行ごとに横棒を1本ずつ描いていた（帯の下端から上端まで）。長さが金額の
+     大小に読めてしまうので消した。いまは「その人の報酬を、どの区分がどれくらい
+     占めているか」を1本で出す。
+   ★長さは帯の中点から出した**おおよその構成**。％の数字は1つも出さない
+     （バーの下の .ap-dw-stn がそう断っている）。
+   ★色は区分ごと（2026-09-03 その2・オーナー指示）。
+     はじめ橙1色の濃淡9段にしたが「オレンジだけじゃわかりづらい」。
+     12px の細い帯では隣り合う2段が見分けられず、1色で9段に割る以上
+     これ以上ランプは広げられなかった。
+     ⚠️ 多色にしたが**ドーナツを戻したのではない**。出すのは1本の帯だけ。 */
+.ap-dw-st{display:flex;width:100%;height:12px;margin:0 0 9px;
+  border-radius:999px;overflow:hidden;
+  background:var(--pv-surface-2);box-shadow:inset 0 0 0 1px var(--pv-line)}
+.ap-dw-sti{display:block;min-width:6px;background:var(--pv-orange)}
+/* 隣の区分との境目。★多色でも要る（役割手当=赤 と パーディアム=桃 が隣接する）。 */
+.ap-dw-sti+.ap-dw-sti{box-shadow:inset 1.5px 0 0 var(--pv-surface)}
+.ap-dw-stn{margin:0 0 14px;font-size:.68rem;line-height:1.7;color:var(--pv-ink-3);
+  line-break:strict;word-break:auto-phrase}
+/* 一覧の丸。★バーと同じ色・同じ並び ── 凡例を別に置かないための印。 */
+.ap-dw-dot{flex:none;display:inline-block;width:8px;height:8px;
+  margin-right:7px;vertical-align:middle;
+  border-radius:999px;background:var(--pv-orange)}
+
+/* 区分の色 ── 9つ。★pay-viz.js の SEG から写した。
+   DEEP PAY のドーナツ・マイレポートと **同じ項目が同じ色** になる
+   （オーナー確定 2026-08-29「同じ項目がマイレポートと同じ色になる」）。
+   ★色は**並び順ではなく区分そのもの**に付く。だから行を次々に押していったとき、
+     「緑（基本給）がどれだけ占めているか」を人ごとに見比べられる。
+     濃淡だった頃は「1番目が濃い」でしかなく、行が変わると同じ色が別の意味だった。
+   ★暗いほうでも同じ色にする（分岐させない）。灰だけ沈むが、あれは
+     「まだ埋まっていない」を表す意図的な鈍さで、ドーナツも同じ見え方をしている。
+     2画面で同じ項目が違って見えるほうが害が大きい。
+   ⚠️ **手で写してある。** pay-viz.js の SEG を変えたらここも直す。
+      ズレは assert-pay-rows.mjs が3枚を突き合わせて落とす
+      （pay-viz.js の SEG → deep-pay.js の COL → この9行）。
+   ⚠️ 上の .ap-dw-sti / .ap-dw-dot の橙は消さない。知らない鍵が来たときの受け皿。 */
+.ap-dw-c-fixed   {background:#34d399}   /* 基本給・保証給   ← SEG.base       */
+.ap-dw-c-variable{background:#f5c842}   /* 変動給           ← SEG.flight     */
+.ap-dw-c-command {background:#5fb0ff}   /* 職位手当         ← SEG.command    */
+.ap-dw-c-role    {background:#e8604c}   /* 役割手当         ← SEG.instructor */
+.ap-dw-c-perdiem {background:#f472b6}   /* パーディアム     ← SEG.perdiem    */
+.ap-dw-c-housing {background:#fb923c}   /* 住宅手当         ← SEG.housing    */
+.ap-dw-c-other   {background:#a78bfa}   /* その他の現金     ← SEG.other      */
+.ap-dw-c-rest    {background:#5c6675}   /* その他・未分類   ← SEG.rest       */
+/* ★賞与だけ deep-pay.js の COL に無い（あちらは賞与を月々の棒に入れない）。
+     SEG から直に引いている。 */
+.ap-dw-c-bonus   {background:#22d3ee}   /* 賞与・利益分配   ← SEG.bonus      */
+
+/* ══ 閉じている「報酬の内訳」（2026-09-03・Give & Get の門）══════════
+   ★ここは**ぼかしではない**。閉じている行に金額そのものは届いていない
+     （db/pay-rows.sql は pay を返さず、paylock ＝ 区分の**名前だけ**を返す）。
+     だから霞ませる相手が無い ── 金額の板は最初から中身が空。
+   ★2026-09-03 その3（オーナー指示「色付きの棒グラフと項目名までは出す。
+     金額だけ隠す」）で2つの姿を持つ ──
+       .is-real  … 名前が2つ以上来た行。本物の色と本物の項目名を出す
+       （無印）  … 区分が1つだけの行（名前も来ない）。今までどおりの灰色の骨組み
+   ⚠️ **幅は両方とも固定。人によって変えない。** 本当の割合を出すと、
+      面に出ている年収と掛けるだけで金額が戻る（門の意味が消える）。
+      並びもサーバの固定順のまま ── 大きい順にすると順位が漏れる。
+   ⚠️ blur を書いてよいのは**中身の空の板（.ap-dw-lk-p）だけ**。
+      「本物を置いてから霞ませる」形に戻さない。assert-pay-rows.mjs が
+      字（ここに blur がこれ以外に無いこと）と実測（毒を仕込んだ行を開いて
+      面に数字が1文字も出ないこと）の両方で見張っている。
+   ★動かさない（明滅させない）。「読み込み中」に見えて、待たせてしまう。 */
+.ap-dw-lk-b{opacity:.55}
+.ap-dw-lk-b.is-real{opacity:1}
+/* 灰色になるのは骨組みのときだけ。色は上の .ap-dw-c-* が持つ。 */
+.ap-dw-lk-b:not(.is-real) .ap-dw-lk-s{background:var(--pv-line)}
+/* 幅は固定。★:nth-child で書く＝JS 側に数字を1つも置かないため。
+     位置で決まるので、どの区分が来ても同じ形にしかならない。 */
+.ap-dw-lk-b:not(.is-real) .ap-dw-lk-s:nth-child(1){flex:5 1 0}
+.ap-dw-lk-b:not(.is-real) .ap-dw-lk-s:nth-child(2){flex:3 1 0}
+.ap-dw-lk-b:not(.is-real) .ap-dw-lk-s:nth-child(3){flex:2 1 0}
+.ap-dw-lk-b:not(.is-real) .ap-dw-lk-s:nth-child(4){flex:1 1 0}
+.ap-dw-lk-b.is-real .ap-dw-lk-s:nth-child(1){flex:6 1 0}
+.ap-dw-lk-b.is-real .ap-dw-lk-s:nth-child(2){flex:4 1 0}
+.ap-dw-lk-b.is-real .ap-dw-lk-s:nth-child(3){flex:3 1 0}
+.ap-dw-lk-b.is-real .ap-dw-lk-s:nth-child(4){flex:2 1 0}
+.ap-dw-lk-b.is-real .ap-dw-lk-s:nth-child(5){flex:2 1 0}
+.ap-dw-lk-b.is-real .ap-dw-lk-s:nth-child(6){flex:2 1 0}
+.ap-dw-lk-b.is-real .ap-dw-lk-s:nth-child(7){flex:2 1 0}
+.ap-dw-lk-b.is-real .ap-dw-lk-s:nth-child(8){flex:2 1 0}
+.ap-dw-lk-b.is-real .ap-dw-lk-s:nth-child(9){flex:2 1 0}
+.ap-dw-lk-l{margin-bottom:16px}
+/* ★中身が空の板なので baseline では揃わない。中央で揃える。 */
+.ap-dw-lk-r{opacity:.55;align-items:center}
+/* 項目名は本物なので薄くしない（読めないと出す意味が無い）。 */
+.ap-dw-lk-r.is-real{opacity:1}
+.ap-dw-lk-p{display:block;height:11px;border-radius:999px;background:var(--pv-line)}
+.ap-dw-lk-p:first-child{width:112px}
+.ap-dw-lk-p2{width:74px}
+.ap-dw-lk-r:nth-child(2) .ap-dw-lk-p:first-child{width:86px}
+.ap-dw-lk-r:nth-child(3) .ap-dw-lk-p:first-child{width:98px}
+.ap-dw-lk-r:nth-child(3) .ap-dw-lk-p2{width:58px}
+/* ★本物の項目名と並ぶ側の板は、幅も全行そろえる（幅が動くと数に見える）。
+     ここだけ blur を掛ける ── **中身が空の板の質感**であって、
+     置いた数字を霞ませているのではない。 */
+.ap-dw-lk-r.is-real .ap-dw-lk-p2{width:74px;height:13px;
+  filter:blur(3px);background:var(--pv-line)}
+
+/* 鍵の言葉。★「あと◯項目」と書かない（1つ埋めた人には嘘になる）。 */
+.ap-dw-lk{padding:16px;border:1px solid var(--pv-line);border-radius:var(--pv-r-sm);
+  background:var(--pv-surface-2)}
+.ap-dw-lk-t{margin:0;font-size:.82rem;font-weight:800;color:var(--pv-ink);
+  line-height:1.6;line-break:strict;word-break:auto-phrase}
+.ap-dw-lk-s2{margin:8px 0 0;font-size:.73rem;line-height:1.8;color:var(--pv-ink-3);
+  line-break:strict;word-break:auto-phrase}
+/* ★ボタンは .ap-dw-cta と同じ形。ここでは上の余白だけ詰める
+     （枠の中なので 24px も空けると箱が間延びする）。 */
+.ap-dw-lk-c{margin-top:14px}
+
+/* 書かれていないものの1文。★空の枠も 0 も置かない。 */
+.ap-dw-miss{margin-top:16px;padding:12px 14px;
+  font-size:.75rem;line-height:1.8;color:var(--pv-ink-3);
+  background:var(--pv-surface-2);border:1px solid var(--pv-line);
+  border-radius:var(--pv-r-sm);
+  line-break:strict;word-break:auto-phrase}
+
+/* 同じ会社・同じ職位のほかの記録。押すと中身だけ差し替わる。 */
+.ap-dw-sims{display:grid;gap:8px}
+.ap-dw-sim{display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+  width:100%;min-height:44px;padding:10px 14px;text-align:left;
+  border:1px solid var(--pv-line);border-radius:var(--pv-r-sm);
+  background:var(--pv-surface);cursor:pointer;
+  transition:border-color .18s var(--pv-ease),background-color .18s var(--pv-ease)}
+.ap-dw-sim:hover{border-color:var(--pv-orange-ink);background:var(--pv-orange-soft)}
+.ap-dw-sim:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}
+.ap-dw-sim:active{transform:scale(.99)}
+.ap-dw-simv{font-size:.86rem;font-weight:800;color:var(--pv-ink);
+  font-variant-numeric:tabular-nums}
+.ap-dw-simm{font-size:.72rem;font-weight:600;color:var(--pv-ink-3);
+  text-align:right;min-width:0}
+
+/* 主 ── 他社と比べる（DEEP PAY）。★リンクではなくボタン。
+   押すと左メニューと同じ門（pv-gates.js）が開く。DEEP PAY へは繋がない
+   ── あちらの入口は2本だけと決めてある。 */
+.ap-dw-cta{display:block;width:100%;margin-top:24px;padding:13px 18px;
+  border:0;border-radius:999px;text-align:center;cursor:pointer;
+  font-family:inherit;font-size:.84rem;font-weight:700;text-decoration:none;
+  color:#fff;background:var(--pv-orange);
+  box-shadow:0 10px 24px -14px rgba(249,115,22,.8);
+  transition:background-color .18s var(--pv-ease),transform .18s var(--pv-ease)}
+.ap-dw-cta:hover{background:var(--pv-orange-ink)}
+.ap-dw-cta:focus-visible{outline:2px solid var(--pv-orange);outline-offset:3px}
+.ap-dw-cta:active{transform:scale(.98)}
+/* 副 ── 出す側へ戻す。消さずに順位だけ下げる。 */
+.ap-dw-cta2{display:block;margin-top:10px;padding:11px 18px;
+  border:1px solid var(--pv-line);border-radius:999px;text-align:center;
+  font-size:.79rem;font-weight:700;text-decoration:none;
+  color:var(--pv-ink-2);background:var(--pv-surface);
+  transition:border-color .18s var(--pv-ease),color .18s var(--pv-ease),
+             background-color .18s var(--pv-ease)}
+.ap-dw-cta2:hover{border-color:var(--pv-orange-ink);color:var(--pv-orange-ink);
+  background:var(--pv-orange-soft)}
+.ap-dw-cta2:focus-visible{outline:2px solid var(--pv-orange);outline-offset:3px}
+.ap-dw-note{margin-top:14px;font-size:.71rem;line-height:1.8;color:var(--pv-ink-3);
+  line-break:strict;word-break:auto-phrase}
+
+/* 狭いところでは下から出るシートにする（横スクロールを作らない）。 */
+@media (max-width:720px){
+  .ap-dw{top:auto;left:0;right:0;bottom:0;
+    width:auto;max-width:none;height:88vh;
+    border-left:0;border-top:1px solid var(--pv-line);
+    border-radius:var(--pv-r-lg) var(--pv-r-lg) 0 0;
+    box-shadow:0 -24px 60px -30px rgba(10,22,40,.45);
+    transform:translateY(100%)}
+  .ap-dw-b{padding:18px 18px 26px}
+}
+
+@media (prefers-reduced-motion:reduce){
+  /* ★要素を消さない。動きだけ止める。 */
+  .ap-dw-back,.ap-dw,.ap-hint,.ap-tbl tbody tr.ap-r,.ap-go,
+  .ap-dw-x,.ap-dw-sim,.ap-dw-cta,.ap-dw-cta2{transition:none}
+  .ap-go:active,.ap-dw-x:active,.ap-dw-sim:active,.ap-dw-cta:active{transform:none}
+  .ap-dw{transform:none}
 }

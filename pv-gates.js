@@ -425,6 +425,11 @@
     setProgress: setProgress,
     /* ロック画面が同じ3段を描くために使う。 */
     giveGetHTML: giveGetHTML,
+    /* ★左メニュー以外から同じ門を開くために使う（actual-pay.js の面の主 CTA）。
+         ⚠️ これは「DEEP PAY への入口を1つ増やした」のではない。開くのは
+            **説明パネル**で、deep-pay.html へは繋がっていない。
+            あちらへの辺は deep-pay.js ⇄ deep-pay-compare.js の2本だけ。 */
+    open: openPanel,
     close: closePanel
   };
 
