@@ -387,23 +387,46 @@ ok('★一覧 RPC が select r.* を書いていない', !/select\s+r\.\*/i.test
 ok('★ハッシュを jsonb の値に詰めていない',
    !/'[a-z_]+'\s*,\s*[a-z_]*\.?(?:author|liker)_hash/i.test(SQLC));
 ok('★行ごと jsonb に変換していない', !/to_jsonb\s*\(\s*r\s*\)|row_to_json/i.test(SQLC));
-/* ★一覧を組み立てる関数の中では author_hash という語を1度も使わない。
-   使う必要が無いので、出てきたら必ず何かが漏れている。 */
-{
-  const from = SQLC.indexOf('function public.pv_requests_list');
+/* ★一覧を組み立てる関数が author_hash を使ってよいのは、たった1つの形だけ ──
+   「その行が自分の行か」を確かめる比較（r.author_hash = v_hash）。
+   ★『運営だけに見せる』が入ると、この比較が必要になる。だから「1度も出てこない」
+     では見張れない。出てきた回数と、比較の形で出てきた回数が一致することを見る。
+     select の並びや jsonb に1つ紛れ込んだ瞬間、数が合わなくなって落ちる。 */
+const fnBody = (name) => {
+  const from = SQLC.indexOf('function public.' + name);
+  if (from < 0) return '';
   /* 関数の後ろに続く comment on … is '…' は本文ではない。手前で切る。 */
-  const to = SQLC.slice(from + 10).search(/create or replace function|comment on /);
-  const body = SQLC.slice(from, to > 0 ? from + 10 + to : undefined);
-  ok('★一覧 RPC が author_hash に触れていない', from > 0 && !/author_hash/.test(body));
+  const to = SQLC.slice(from + 10).search(/create or replace function|comment on |drop function /);
+  return SQLC.slice(from, to > 0 ? from + 10 + to : undefined);
+};
+{
+  const body = fnBody('pv_requests_list');
+  ok('一覧 RPC を見つけられている', body.length > 0);
+  /* 「自分か」を確かめる比較 ── ハッシュの右も左も v_hash（自分のハッシュ）でなければならない。
+     l.liker_hash も同じ。片方でも列そのものを返り値へ運ぶ形が混ざれば数が合わなくなる。 */
+  for (const col of ['author_hash', 'liker_hash']) {
+    const all = (body.match(new RegExp(col, 'g')) || []).length;
+    const cmp = (body.match(new RegExp('\\b[a-z]\\.' + col + '\\s*=\\s*v_hash\\b', 'g')) || []).length;
+    ok(`★一覧 RPC は ${col} を「自分か」の比較にしか使っていない`,
+       all === cmp, `出てきた ${all} 回 / 比較の形 ${cmp} 回`);
+  }
 }
 ok('★ハッシュ関数を画面から呼べない',
    /revoke\s+all\s+on\s+function\s+public\.pv_request_hash\(uuid\)\s+from\s+public,\s*anon,\s*authenticated/i.test(SQL));
 ok('★1人1票は主キーで担保している',
    /primary\s+key\s*\(\s*request_id\s*,\s*liker_hash\s*\)/i.test(SQL));
-ok('表を閉じている（RLS 有効）',
-   (SQL.match(/enable\s+row\s+level\s+security/gi) || []).length === 2);
-ok('★表そのものを anon / authenticated から revoke している',
-   (SQL.match(/revoke\s+all\s+on\s+public\.pv_request/gi) || []).length === 2);
+/* ★数で見ない。表を1つ足したときに「2 を 3 に書き換えれば通る」形にしてしまうと、
+   revoke を書き忘れた新しい表がそのまま anon から読めるようになる。
+   この SQL が作る表を全部拾って、1つずつ見る。 */
+const TABLES = [...SQL.matchAll(/create table if not exists public\.(pv_[a-z_]+)/g)]
+  .map((m) => m[1]);
+ok('表が2つ以上ある（拾い方が壊れていない）', TABLES.length >= 2, TABLES.join(' / '));
+for (const t of TABLES) {
+  ok(`${t} を閉じている（RLS 有効）`,
+     new RegExp('alter\\s+table\\s+public\\.' + t + '\\s+enable\\s+row\\s+level\\s+security', 'i').test(SQL));
+  ok(`★${t} そのものを anon / authenticated から revoke している`,
+     new RegExp('revoke\\s+all\\s+on\\s+public\\.' + t + '\\s+from\\s+anon,\\s*authenticated', 'i').test(SQL));
+}
 for (const fn of ['pv_request_set_status', 'pv_request_set_hidden']) {
   const body = SQL.slice(SQL.indexOf('function public.' + fn));
   ok(`★${fn} が pv_is_admin() で門を掛けている`,
