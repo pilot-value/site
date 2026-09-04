@@ -429,9 +429,39 @@ async function buildCondition(id: string): Promise<Mail | null> {
   };
 }
 
+/* ── pv_requests ──────────────────────────────────────────── */
+/* ロードマップの画面から届く「こういう機能がほしい」。
+   ★ author_hash を SELECT に入れない。事故で本文に出る道を作らない。
+     あれは sha256(user_id ‖ 固定文字列) ＝ 同じ人なら毎回同じ値なので、
+     メールに1度でも出れば「この12件は同じ人」が組めてしまう。
+   ★ 表示するのは本文・区分・状態だけ。航空会社・職位・給与とは結びつけない
+     （画面と同じ約束をメールでも守る）。
+   ★ 本文は全文を載せる。返事をするのに要るし、1通ぶんしかない。
+     ただし esc() を通してから <br> に直す（生の HTML をメールに通さない）。
+   ★ ♡ では送らない。1押しごとにメールが来る（webhooks.sql の配列に
+     pv_request_likes を入れていないのはこのため）。 */
+async function buildRequest(id: string): Promise<Mail | null> {
+  const r = await sbSelect('pv_requests', id, 'id,created_at,body,category,status');
+  if (!r) return null;
+  const CAT: Record<string, string> = {
+    feature: '機能', data: 'データ', ui: '使いやすさ', bug: '不具合', other: 'その他',
+  };
+  const body = esc(String(r.body ?? '')).replace(/\n/g, '<br>');
+  return {
+    subject: `【PILOT VALUE】要望 — ${CAT[String(r.category)] ?? 'その他'}`,
+    html: shell('パイロットから要望が1件あります',
+      `${esc(r.created_at)} に匿名で送信されました。誰が書いたかはこのメールには載りません。`,
+      table(
+        row('区分', esc(CAT[String(r.category)] ?? String(r.category ?? '—'))) +
+        row('内容', body || '—') +
+        row('状態', esc(String(r.status ?? 'new'))),
+      )),
+  };
+}
+
 /* 手元の検査（assert-admin-notify.mjs）が実体をそのまま動かせるように出す。
    translate-review/index.ts と同じ形。Deno 側では無害。 */
-export { buildReview, buildProfile, buildContact, buildPayReport, buildPayReportPending, buildCondition };
+export { buildReview, buildProfile, buildContact, buildPayReport, buildPayReportPending, buildCondition, buildRequest };
 
 async function send(mail: Mail, idemKey: string) {
   const res = await fetch('https://api.resend.com/emails', {
@@ -487,6 +517,7 @@ Deno.serve(async (req) => {
     pay_reports: buildPayReport,
     pay_reports_pending: buildPayReportPending,
     airline_conditions: buildCondition,
+    pv_requests: buildRequest,
   };
   const build = builders[tbl];
   if (!build) return json({ ok: true, note: `unhandled table ${tbl}` });

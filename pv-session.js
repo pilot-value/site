@@ -67,7 +67,7 @@
 
   // ログインが要るページ。タブを開いたまま期限が来たとき、ここだけは
   // 画面に留めずログインへ送る（公開ページは黙って消すだけでよい）。
-  var GUARDED = /(?:^|\/)(profile|my-value|pay-report|submit-review|admin)\.html$/;
+  var GUARDED = /(?:^|\/)(profile|my-value|pay-report|submit-review|admin|roadmap)\.html$/;
 
   var SB_URL = 'https://vzgmnkrggrwtsrpqndsm.supabase.co';
   var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6Z21ua3JnZ3J3dHNycHFuZHNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0MzkwOTcsImV4cCI6MjA5MDAxNTA5N30.wE4cJbqeYGCgn5ZvHd80hYWgQuySKvOMJMbsJWOvmtw';

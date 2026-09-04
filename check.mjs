@@ -28,6 +28,7 @@ const FAST = [
   ['assert-admin-notify.mjs', 0.1], ['assert-translate-review.mjs', 0.1],
   ['assert-jobs.mjs', 0.1], ['assert-no-pii.mjs', 1.0],
   ['assert-pay-report-sync.mjs', 0.1],
+  ['assert-roadmap.mjs', 0.1],
   ['assert-generated.mjs', 0.8],
   ['db/test-aha.mjs', 1], ['db/test-announce.mjs', 1],
   ['db/test-payslip-hours.mjs', 1], ['db/test-payslip-parse.mjs', 1],
@@ -40,6 +41,7 @@ const SQL = [
   ['db/test-founding.mjs', 10], ['db/test-admin-grants.mjs', 10],
   ['db/test-payslip-extras.mjs', 10], ['db/test-unlock-rule.mjs', 10],
   ['db/test-remind.mjs', 10], ['db/test-deep-pay.mjs', 2],
+  ['db/test-requests.mjs', 8],
 ];
 
 // localhost:3000 が要るもの。長い順に並べてある。

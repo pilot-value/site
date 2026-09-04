@@ -49,8 +49,8 @@
     "oceania-pilot-salary.html", "pay-report.html", "personal-data.html", "pilot-salary-guide.html",
     "pilot-tenshoku.html", "pilot-vs-bengoshi.html", "pilot-vs-isha.html", "pilot-vs-kochin.html",
     "policy.html", "privacy-pilot.html", "privacy.html", "profile.html",
-    "signup.html", "sitemap.html", "submit-review.html", "terms.html",
-    "unsubscribe.html", "world-airlines.html", "world-jobs.html"
+    "roadmap.html", "signup.html", "sitemap.html", "submit-review.html",
+    "terms.html", "unsubscribe.html", "world-airlines.html", "world-jobs.html"
   ]);
   /* EN-PAGES:END */
 
@@ -140,7 +140,8 @@
   var STICKY_EN = new Set([
     'login.html', 'signup.html', 'profile.html', 'my-value.html', 'actual-pay.html',
     'deep-pay.html', 'deep-pay-compare.html', 'pay-report.html', 'submit-review.html',
-    'airline-conditions.html', 'personal-data.html', 'unsubscribe.html'
+    'airline-conditions.html', 'personal-data.html', 'unsubscribe.html',
+    'roadmap.html'
   ]);
   if (isEN && !saved) {
     var base = raw.slice(raw.lastIndexOf('/') + 1);

@@ -92,6 +92,11 @@ const PAGES = [
   /* マイページ系（header.mr-top）。ログインしないとヘッダーごと出ないので
      セッションを差し込む。畳む段が無いので ≡ は常に出ているのが正しい。 */
   ['/my-value.html',        'ja マイレポート', { ham: 'always', login: true }],
+  /* ★ロードマップと要望。テンプレートは同じ .mr-shell だが、これは
+       このリポジトリで唯一「自由に書ける textarea を持つマイページ」で、
+       下の FORM_PAGES にも自動で入る（390px で入力欄が 16px 未満なら iOS が拡大する）。 */
+  ['/roadmap.html',         'ja ロードマップ', { ham: 'always', login: true }],
+  ['/en/roadmap.html',      'en ロードマップ', { ham: 'always', login: true }],
   /* ★認証4枚。2026-08-27 に header.mr-top 型へ揃えた。それまでは body 直下に
        fixed の div を2つ置くだけの「第3のヘッダー」で、search.js の inject() が
        #main-nav も header.mr-top も見つけられず即 return ＝ ≡ も引き出しも

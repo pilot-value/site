@@ -30,6 +30,8 @@ const ICON = {
   verified:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/>',
   others:  '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
   add:     '<path d="M12 5v14"/><path d="M5 12h14"/>',
+  /* 旗。運営が目指している先と、そこへ声を出す場所。 */
+  roadmap: '<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V4s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/>',
   /* ★錠前。まだ開いていない段に付ける（pv-gates.js が REAL PAY にも同じものを複製する）。 */
   lock:    '<rect x="4" y="10.5" width="16" height="10.5" rx="2.5"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/>',
   settings:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.2.6.77 1 1.41 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
@@ -59,6 +61,9 @@ const ITEMS = [
   { key: 'deep',     href: '',                     icon: 'deep',     add: false, soon: true, gate: 'deep' },
   { key: 'verified', href: '',                     icon: 'verified', add: false, soon: true, gate: 'verified' },
   { key: 'add',      href: 'pay-report.html#ps',   icon: 'add',      add: true  },
+  /* ★NEW バッジは付けない。色が付くのは is-add の1つだけと決めてある
+       （上のコメント）。後で外す前提の飾りのために14枚の生成器を広げない。 */
+  { key: 'roadmap',  href: 'roadmap.html',         icon: 'roadmap',  add: false },
   { key: 'settings', href: 'profile.html',         icon: 'settings', add: false },
 ];
 
@@ -68,7 +73,7 @@ const TEXT = {
     note: '氏名も社員番号も受け取りません。',
     report: 'マイレポート', others: 'REAL PAY',
     deep: 'DEEP PAY', verified: 'VERIFIED PAY',
-    add: '匿名で給与を追加', settings: '設定',
+    add: '匿名で給与を追加', roadmap: 'ROADMAP', settings: '設定',
     /* 錠前の付いた段の読み上げ。pv-gates.js は aria-label が無いときだけ書く
        ＝ここに置いた言い方が正で、JS が落ちても読み上げは死なない。 */
     soonAria: (n) => n + '（準備中・押すと説明が出ます）',
@@ -78,7 +83,7 @@ const TEXT = {
     note: 'We never collect your name or staff number.',
     report: 'My report', others: 'REAL PAY',
     deep: 'DEEP PAY', verified: 'VERIFIED PAY',
-    add: 'Add pay anonymously', settings: 'Settings',
+    add: 'Add pay anonymously', roadmap: 'ROADMAP', settings: 'Settings',
     soonAria: (n) => n + ' (in preparation) — press for details',
   },
 };
@@ -89,6 +94,7 @@ const CURRENT = {
   'my-value.html': 'report',
   'actual-pay.html': 'others',
   'profile.html': 'settings',
+  'roadmap.html': 'roadmap',
 };
 
 function buildNav(lang, current) {

@@ -6,19 +6,20 @@
 <link rel="apple-touch-icon" href="assets/favicon-180.png"/>
   <script>(function(){var t=localStorage.getItem('pv-theme')||'light';document.documentElement.setAttribute('data-theme',t);}());</script>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <!-- 明細まで出した人だけが読める画面。ログインが要るので検索に出してはいけない -->
-  <title>会社を比べる｜DEEP PAY | PILOT VALUE</title>
+  <!-- ログインした人だけが読む画面。検索に出してはいけない
+       （NOINDEX は gen-sitemap / seo-normalize / assert-seo の3つで対）。 -->
+  <title>ロードマップと要望 | PILOT VALUE</title>
 <!--PV-SEO-->
-<!--PV-SRC t="会社を比べる｜DEEP PAY" d="2社を選んで、年収の中央値・給与構成・働き方の前提を横に並べて比べます。順位は付けず、個人の明細は1件も表示しません。"-->
-<meta name="description" content="2社を選んで、年収の中央値・給与構成・働き方の前提を横に並べて比べます。順位は付けず、個人の明細は1件も表示しません。"/>
+<!--PV-SRC t="ロードマップと要望 | PILOT VALUE" d=""-->
+<meta name="description" content="PILOT VALUE がいま何を作っていて、次に何を目指しているのか。パイロットからの要望を匿名で受け取り、進み具合を公開しています。"/>
 <meta name="robots" content="noindex,follow"/>
-<link rel="canonical" href="https://pilot-value.com/deep-pay-compare.html"/>
-<link rel="alternate" hreflang="ja" href="https://pilot-value.com/deep-pay-compare.html"/>
-<link rel="alternate" hreflang="en" href="https://pilot-value.com/en/deep-pay-compare.html"/>
-<link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/deep-pay-compare.html"/>
-<meta property="og:title" content="会社を比べる｜DEEP PAY | PILOT VALUE"/>
-<meta property="og:description" content="2社を選んで、年収の中央値・給与構成・働き方の前提を横に並べて比べます。順位は付けず、個人の明細は1件も表示しません。"/>
-<meta property="og:url" content="https://pilot-value.com/deep-pay-compare.html"/>
+<link rel="canonical" href="https://pilot-value.com/roadmap.html"/>
+<link rel="alternate" hreflang="ja" href="https://pilot-value.com/roadmap.html"/>
+<link rel="alternate" hreflang="en" href="https://pilot-value.com/en/roadmap.html"/>
+<link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/roadmap.html"/>
+<meta property="og:title" content="ロードマップと要望 | PILOT VALUE"/>
+<meta property="og:description" content="PILOT VALUE がいま何を作っていて、次に何を目指しているのか。パイロットからの要望を匿名で受け取り、進み具合を公開しています。"/>
+<meta property="og:url" content="https://pilot-value.com/roadmap.html"/>
 <meta property="og:type" content="website"/>
 <meta property="og:site_name" content="PILOT VALUE"/>
 <meta property="og:locale" content="ja_JP"/>
@@ -26,10 +27,10 @@
 <meta property="og:image" content="https://pilot-value.com/assets/og/default-ja.jpg"/>
 <meta property="og:image:width" content="1200"/>
 <meta property="og:image:height" content="630"/>
-<meta property="og:image:alt" content="会社を比べる｜DEEP PAY | PILOT VALUE"/>
+<meta property="og:image:alt" content="ロードマップと要望 | PILOT VALUE"/>
 <meta name="twitter:card" content="summary_large_image"/>
-<meta name="twitter:title" content="会社を比べる｜DEEP PAY | PILOT VALUE"/>
-<meta name="twitter:description" content="2社を選んで、年収の中央値・給与構成・働き方の前提を横に並べて比べます。順位は付けず、個人の明細は1件も表示しません。"/>
+<meta name="twitter:title" content="ロードマップと要望 | PILOT VALUE"/>
+<meta name="twitter:description" content="PILOT VALUE がいま何を作っていて、次に何を目指しているのか。パイロットからの要望を匿名で受け取り、進み具合を公開しています。"/>
 <meta name="twitter:image" content="https://pilot-value.com/assets/og/default-ja.jpg"/>
 <!--/PV-SEO-->
 
@@ -39,28 +40,16 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'"/><noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet"/></noscript>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- 匿名で出した給与データの預かり証を拾う（pv-claim-pending.js）。
-       ★この画面にも要る。ログイン用メールのリンクを押すとメールアプリの中の
-       別ブラウザが開き、預かり証を置いた元のブラウザには戻らないことがある。 -->
-  <script src="pv-claim-pending.js"></script>
 
   <!-- 配色・角丸・余白・影のトークン。読まないと --pv-* が全部 undefined になる。 -->
   <link rel="stylesheet" href="pv-tokens.css">
-  <!-- ドーナツと凡例（.pt-*）。★絵の実体は pay-viz.js 1か所だけ。増やさない。 -->
-  <link rel="stylesheet" href="pay-viz.css">
   <!-- ページの骨格（.mr-*）。マイレポートと同じ殻を使う（日英で共有） -->
   <link rel="stylesheet" href="my-value.css">
-  <!-- ★DEEP PAY 本体の見た目をそのまま借りる。ピッカー（.dp-pick-*）・条件バー（.dp-cond）・
-       案内カード（.dp-msg）・段組み（.dp-row）は写さずここから使う。写すとドリフトする。 -->
-  <link rel="stylesheet" href="deep-pay.css">
-  <!-- この画面だけの見た目（.dc-*）。
-       ★.pt-* / .mv-* / .mr-* をトップレベルで書き直さない（db/test-form-contract.mjs が見ている）。 -->
-  <link rel="stylesheet" href="deep-pay-compare.css">
 
   <style>
     /* ここに置くのは「CSS が届く前に見えてしまう部分」だけ。
-       ★ カードや棒の見た目（.dc-…）を書き戻さないこと。
-          日英2枚に散って必ずドリフトする。 */
+       ★ このページの見た目（.rm-…）を書き戻さないこと。roadmap.js が持っている
+          ＝日英2枚に散らさないための唯一の置き場所。 */
     *{box-sizing:border-box;margin:0;padding:0}
     body{background:var(--pv-bg-sub);color:var(--pv-ink);
          font-family:Inter,'Noto Sans JP',sans-serif;min-height:100vh;
@@ -105,8 +94,8 @@
       <a class="mr-brand" href="index.html" aria-label="PILOT VALUE トップへ">
         <img src="assets/logo.png" alt="PILOT VALUE" height="28"/>
       </a>
-      <!-- ★ #theme-toggle は消さない。lang-toggle.js と currency.js が
-           このボタンの隣に自分のボタンを差し込む（無いとナビ末尾に落ちる）。 -->
+      <!-- ★ #theme-toggle は消さない。lang-toggle.js がこのボタンの隣に
+           自分のボタンを差し込む（無いとナビ末尾に落ちる）。 -->
       <div class="mr-top-r">
         <button id="theme-toggle" class="theme-toggle" aria-label="テーマ切替"></button>
       </div>
@@ -114,8 +103,8 @@
   </header>
 
   <div class="mr-shell">
-    <!-- ★空のまま置く。node patch-side-nav.mjs が同じ物を全ページに配る。
-         手で書くと必ずドリフトして assert-pay-rows.mjs が赤くなる。 -->
+    <!-- ★中身は patch-side-nav.mjs が14ページへ配る。ここを手で書かない。
+         空のまま置くこと（中に別の <nav> を書くと、あちらの最短一致が壊れる）。 -->
     <nav class="mr-side" aria-label="マイページ">
       <a class="mr-side-a" href="my-value.html">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
@@ -139,7 +128,7 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
         <span>匿名で給与を追加</span>
       </a>
-      <a class="mr-side-a" href="roadmap.html">
+      <a class="mr-side-a is-on" href="roadmap.html" aria-current="page">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V4s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
         <span>ROADMAP</span>
       </a>
@@ -151,59 +140,75 @@
     </nav>
 
     <main class="mr-main">
-      <!-- ★pv-no-cur は #dc-root に1つだけ。
-           currency.js の自動走査を止め、金額は PVCurrency.fmt を通して自分で書き、
-           pv-currency-change で描き直す（RPC は引き直さない）。 -->
-      <div class="pv-no-cur" id="dc-root">
-
-        <!-- 見出しと「いま見ている条件」を1段に並べる（DEEP PAY 本体と同じ形）。
-             縦に積むと 見出し69＋余白24＋条件34 で 127px 使うが、横なら約52px で済む。
-             ⚠️ #dc-cond を #dc-hd の**中**に入れてはいけない。
-                deep-pay-compare.js の hdr() が #dc-hd.innerHTML をまるごと書き替えるので、
-                描き直すたびに条件バーが黙って消える。外側の器で横に並べるのが唯一の形。
-             ★入り切らない幅では .dc-top の flex-wrap が素直に縦へ戻す。 -->
-        <div class="dc-top">
-          <!-- 見出し。中身は deep-pay-compare.js が入れる -->
-          <div class="mr-hd" id="dc-hd">
-            <div class="mr-skel" style="height:30px;width:46%"></div>
-          </div>
-
-          <!-- いま見ている条件の1行（◯人 vs ◯人 / 直近24か月） -->
-          <div id="dc-cond"></div>
-        </div>
-
-        <!-- 2社を選ぶ（会社A / 会社B / 役職 / 機材）。役職と機材は左右で共通。
-             ★2社そろうまで何も出さない。片方だけでは比較にならない。
-             ★3人に満たない区分を伏せるのは SQL（db/deep-pay.sql）だけの仕事。
-                ここで人数を数えたり隠したりしない。 -->
-        <div class="dp-pick" id="dc-pick" hidden></div>
-
-        <!-- 案内の置き場（読み込み中の骨・鍵・「区分を選んでください」・「別の会社を」）
-             と、2社のカード。
-             ★カードが出るのは**片側が薄いときだけ**（2026-08-31）。両方読めるときは
-                ロゴ・社名・人数を表の見出し行が受け持ち、ここは空で隠れる。
-                同じ数字を表の上にもう一度並べていたのをやめて 153px 減らした。
-             ⚠️ 消し切らないこと。**片側だけ薄いとき、読める側の数字はここにしか出ない**
-                （表は片側が薄いと丸ごと畳む）。「その側だけ出せません」の約束はこの1枚。 -->
-        <div id="dc-sides"><div class="mr-skel" style="height:150px"></div></div>
-
-        <!-- 差がつくポイント（表・左）と、給与構成の棒＋トレードオフ（右）を横に並べる。
-             ★縦に積むと 表359 ＋ 棒とトレードオフ283 で 656px 使う。横なら高いほうだけで
-                済み、1画面（1512×980）に収まる（オーナー確定 2026-08-31）。
-             ★右は .dc-col で縦に積む ── 棒とトレードオフを .dp-row の直下に置くと
-                3つが横一列になり、表が 1/3 の幅まで痩せて「違い」の列が全部折り返す。
-             ★入り切らない幅では .dp-row の flex-wrap が素直に縦へ戻す。 -->
-        <div class="dp-row dc-main">
-          <div class="dp-w58" id="dc-diff" hidden></div>
-          <div class="dc-col">
-            <div id="dc-mix" hidden></div>
-            <div id="dc-trade" hidden></div>
-          </div>
-        </div>
-
-        <!-- 下の入口（全幅） -->
-        <div id="dc-cta" hidden></div>
+      <div class="mr-hd">
+        <h1 class="mr-hd-t">ROADMAP &amp; REQUESTS</h1>
+        <p class="mr-hd-s">いま何を目指していて、何を作っているのか。そして、あなたの声がどこへ届くのか。</p>
       </div>
+
+      <!-- ここから下は roadmap.js が描く。文言を書き写さない
+           （日英2枚に散ると必ず片方だけ古くなる）。 -->
+      <div class="mr-stack" id="rm-top">
+        <div class="mr-skel" style="height:230px"></div>
+        <div class="mr-skel" style="height:96px"></div>
+      </div>
+
+      <div class="mr-2col" style="margin-top:16px">
+        <div class="mr-stack">
+          <div id="rm-tasks"></div>
+
+          <section class="mr-card">
+            <div class="mr-card-h">
+              <h2 class="mr-card-t">みんなからのリクエスト</h2>
+              <span class="mr-card-s" id="rm-list-n"></span>
+            </div>
+            <div class="rm-tabs" id="rm-tabs" style="margin-bottom:14px">
+              <button type="button" class="rm-tab" data-rm-sort="popular" aria-pressed="true">人気順</button>
+              <button type="button" class="rm-tab" data-rm-sort="new" aria-pressed="false">新着順</button>
+            </div>
+            <ul class="rm-list" id="rm-req-list"></ul>
+            <button type="button" class="rm-more-btn" id="rm-more" style="display:none">さらに読む</button>
+          </section>
+        </div>
+
+        <div class="mr-stack">
+          <section class="mr-card">
+            <div class="mr-card-h">
+              <h2 class="mr-card-t">匿名で要望を送る</h2>
+              <span class="mr-card-s">あなたのアイデアが、次の機能になります。</span>
+            </div>
+            <!-- ★ textarea と select は静的に置く。JS で後から挿さない。
+                 assert-header.mjs が <textarea> を持つページを自分で見つけて
+                 390px 幅で「入力欄が 16px 未満でないか」を見るので、
+                 静的に置いてはじめて本当の検査になる（iOS が拡大する）。 -->
+            <form id="rm-form" novalidate>
+              <label class="rm-f-l" for="rm-body">どんな機能・データがあれば、あなたの役に立ちますか？</label>
+              <textarea id="rm-body" class="rm-f-t" name="body" maxlength="500"
+                        placeholder="例：機種ごとの月間フライト時間が会社別に見たい"></textarea>
+
+              <label class="rm-f-l" for="rm-cat" style="margin-top:14px">区分</label>
+              <select id="rm-cat" class="rm-f-s" name="category">
+                <option value="feature">機能</option>
+                <option value="data">データ</option>
+                <option value="ui">使いやすさ</option>
+                <option value="bug">不具合</option>
+                <option value="other" selected>その他</option>
+              </select>
+
+              <div class="rm-f-r">
+                <span class="rm-f-c" id="rm-count-c">0 / 500</span>
+                <button type="submit" class="rm-f-b" id="rm-send">リクエストを送信する</button>
+              </div>
+            </form>
+            <p class="rm-f-msg" id="rm-msg"></p>
+            <p class="rm-note" id="rm-privacy"></p>
+          </section>
+
+          <div id="rm-ship"></div>
+        </div>
+      </div>
+
+      <!-- 読み上げ用。ページに1つだけ置く（♡・送信・失敗をここへ流す）。 -->
+      <p class="rm-live" id="rm-live" role="status" aria-live="polite"></p>
     </main>
   </div>
 
@@ -218,37 +223,30 @@
     applyTheme(localStorage.getItem('pv-theme')||'light');
     document.getElementById('theme-toggle').addEventListener('click',function(){applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');});
 
-    /* ★ pv_deep_pay() は未ログインだと 42501 で落ちる。エラー文言を出すのではなく
-         ログインへ送る（login.html の safePath() は pathname + search + hash を返す）。
-       deep-pay-compare.js はこの Promise を待ってから RPC を撃つ＝二重に走らない。 */
+    /* ★要望も ♡ も、ログインした本人でないと1件も出せない（RPC が 42501 を返す）。
+         未ログインでは読むことすらできないので、エラーを出さずログインへ送る。 */
     window.PV_SESSION = (async function () {
       const { data: { session } } = await sb.auth.getSession();
       if (!session) {
         window.location.href = 'login.html?redirect='
-          + encodeURIComponent('deep-pay-compare.html' + (window.location.search || '') + (window.location.hash || ''));
+          + encodeURIComponent('roadmap.html' + (window.location.search || '') + (window.location.hash || ''));
         return null;
       }
       return session;
     }());
   </script>
 
-<!-- ★ pv-referral.js は lang-toggle.js より前に読む。あちらは pv-lang==='en' の人を
-     location.replace() で /en/ へ飛ばす。2026-09-02 にクエリとハッシュを連れて行く
-     ようにしたので ?ref= はもう消えないが、読み込みの時点で localStorage に
-     写しておく方が確実（クエリを捨てる場所は他にもある。pv-referral.js:70-74）。 -->
-<script src="pv-referral.js"></script>
 <!-- ★search.js が ≡（メニュー）と引き出しを付ける。マイページ系のヘッダー
      （header.mr-top）にも同じ物を出すため読む。 -->
 <script src="search.js"></script>
 <script src="lang-toggle.js"></script>
-<script src="currency.js"></script>
 <!-- Give → Get の門。左メニューの錠前と、その説明を出す。
-     ⚠️ deep-pay-compare.js より**前**に読む（PVGates.giveGetHTML() を使う）。 -->
+     ⚠️ roadmap.js より**前**に読む。roadmap.js が人数を1回だけ取って
+        PVGates.setProgress() へ渡す＝ヒーローの数字と左メニューの門が
+        必ず同じ数になり、通信も1回で済む。 -->
 <script src="pv-gates.js"></script>
-<!-- 航空会社ロゴの拡張子表（window.PV_LOGOS）。★これより後に比較の JS を読む。 -->
-<script src="airline-logos.js"></script>
-<!-- ★絵の実体はここ1か所だけ。色（PVViz.SEG）もここから借りる。 -->
-<script src="pay-viz.js"></script>
-<script src="deep-pay-compare.js"></script>
+<!-- ★段・タスク・履歴の文言はここ1枚。roadmap.js より前に読む。 -->
+<script src="roadmap-config.js"></script>
+<script src="roadmap.js"></script>
 </body>
 </html>

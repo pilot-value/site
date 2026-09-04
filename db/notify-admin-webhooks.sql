@@ -60,9 +60,11 @@ begin
                 'ダッシュボードの Database Webhooks 画面から作ってください。';
   end if;
 
-  -- ── 6本作る ───────────────────────────────────────────────
+  -- ── 7本作る ───────────────────────────────────────────────
+  -- ⚠️ pv_request_likes は入れない。♡ を1押しするたびにメールが飛ぶ。
   foreach tbl in array array['contacts', 'profiles', 'reviews_v2',
-                             'pay_reports', 'pay_reports_pending', 'airline_conditions'] loop
+                             'pay_reports', 'pay_reports_pending', 'airline_conditions',
+                             'pv_requests'] loop
     hook := 'notify_admin_' || tbl;
 
     -- 対象テーブルが無ければ飛ばす（contacts 未作成のまま流した場合など）。

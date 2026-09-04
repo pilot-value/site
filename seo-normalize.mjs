@@ -66,6 +66,8 @@ const NOINDEX = new Set([
   'deep-pay.html',
   /* 2社を横に並べる画面。同じく鍵が要るので検索に出さない。 */
   'deep-pay-compare.html',
+  /* ロードマップと要望の画面。ログインした人だけが読み書きする。 */
+  'roadmap.html',
   /* 2026-08-15 に求人の掲載を停止した。ページは残す（外部からのリンクを
      404 にしないため）が、中身が「停止中」の1行だけなので検索には出さない。
      gen-sitemap.mjs の同名の集合と対にしてある。 */
@@ -91,6 +93,14 @@ const COPY = {
   },
   /* 掲載元が募集終了の求人を消し、URL の番号を別の求人に付け替えるため、
      載せた求人は放っておくと必ず「無い／違う」になる。2026-08-15 に掲載を停止した。 */
+  /* ★noindex でも <title> は出る。ここを書かないと、次に seo-normalize を
+     流した人がタイトルを空にしてしまう（NOINDEX の3点セットと対で必要）。 */
+  'roadmap.html': {
+    ja: { t: 'ロードマップと要望',
+          d: 'PILOT VALUE がいま何を作っていて、次に何を目指しているのか。パイロットからの要望を匿名で受け取り、進み具合を公開しています。' },
+    en: { t: 'Roadmap and requests',
+          d: 'What PILOT VALUE is building now and aiming at next. Pilots send requests anonymously, and progress is published here.' },
+  },
   'world-jobs.html': {
     ja: { t: 'パイロット求人（掲載停止中）',
           d: '現在、求人情報の掲載を停止しています。航空会社別・国別のパイロット年収は引き続きご覧いただけます。' },

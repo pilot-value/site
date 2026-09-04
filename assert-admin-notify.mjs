@@ -64,6 +64,10 @@ const SECRET = {
   '預かりの中身':      'ZZ-PENDING-PAYLOAD-9998887',
   '待遇の金額回答':    '9998887',
   '待遇の自由記述':    'ZZ-FREE-TEXT-SHOULD-NOT-APPEAR',
+  /* ★2026-09-04 追加。要望の投稿者ハッシュ。sha256(user_id ‖ 固定文字列) ＝
+     同じ人なら毎回同じ値なので、メールに1度でも出れば
+     「この12件は同じ人が書いた」が受信箱と Resend のログの上で組める。 */
+  '要望の投稿者ハッシュ': 'ZZ-AUTHOR-HASH-DO-NOT-SEND',
 };
 const leaks = (mail) => {
   const hay = `${mail.subject}\n${mail.html}`;
@@ -255,6 +259,39 @@ ck('email が無い行は「新規登録ではありません」と件名に出�
    p2.subject.includes('新規登録ではありません'), p2.subject);
 ck('「新規会員登録」を名乗らない', !p2.subject.includes('新規会員登録'), p2.subject);
 
+/* ── 要望（ロードマップの画面） ───────────────────────────── */
+/* ②が「profiles しか引けない」偽物に差し替えているので、ROWS を素直に返す形へ戻す。 */
+globalThis.fetch = async (url) => {
+  const t = String(url).match(/\/rest\/v1\/([a-z_]+)/)?.[1];
+  const got = ROWS[t];
+  if (got === undefined) throw new Error(`テストが用意していないテーブルを引いた: ${t}`);
+  return { ok: true, json: async () => (Array.isArray(got) ? got : [got]) };
+};
+/* ★守るのは「誰が書いたか」。本文は出してよい（返事をするのに要る）が、
+     author_hash は1文字も出してはいけない。 */
+ROWS = {
+  pv_requests: {
+    id: 'rq-1', created_at: '2026-09-04T09:00:00+00:00',
+    body: '機種ごとの月間フライト時間を会社別に見たい',
+    category: 'data', status: 'new',
+    // ↓ ビルダーが SELECT を広げても、本文に出さない限り通る
+    author_hash: 'ZZ-AUTHOR-HASH-DO-NOT-SEND',
+  },
+};
+const rq = await nx.buildRequest('rq-1');
+console.log('\n── 要望 ─────────────────────────────────');
+ck('メールができる', !!rq);
+ck('★投稿者のハッシュが1文字も出ない', leaks(rq).length === 0, `漏れた: ${leaks(rq).join(' / ')}`);
+ck('件名で「要望」とわかる', rq.subject.includes('要望'), rq.subject);
+ck('件名に区分が出る', rq.subject.includes('データ'), rq.subject);
+ck('本文が読める', rq.html.includes('機種ごとの月間フライト時間'));
+/* 生の HTML をメールに通さない。<script> をそのまま書かれても、
+   受信箱で動く形にはしない（esc を通してから <br> に直している）。 */
+ROWS.pv_requests = { ...ROWS.pv_requests, body: '<script>alert(1)</script>\n2行目' };
+const rqX = await nx.buildRequest('rq-1');
+ck('★本文の HTML がそのまま通らない', !rqX.html.includes('<script>'), rqX.html);
+ck('改行は <br> になる', rqX.html.includes('<br>2行目'), rqX.html);
+
 /* ════════════════════════════════════════════════════════════════
    ③ ビルダーと Webhook のトリガの顔ぶれが一致すること
    ════════════════════════════════════════════════════════════════ */
@@ -269,7 +306,7 @@ const aStart = sql.indexOf('foreach tbl in array array[');
 const aBlock = sql.slice(aStart, sql.indexOf('] loop', aStart));
 const tables = [...aBlock.matchAll(/'([a-z_0-9]+)'/g)].map((m) => m[1]).sort();
 
-ck('ビルダーを6つ持っている', builders.length === 6, builders.join(', '));
+ck('ビルダーを7つ持っている', builders.length === 7, builders.join(', '));
 ck('index.ts の builders と db/notify-admin-webhooks.sql の表が同じ',
    JSON.stringify(builders) === JSON.stringify(tables),
    `builders: ${builders.join(', ')}\n      webhooks: ${tables.join(', ')}`);
@@ -295,9 +332,12 @@ console.log('\n── SQL の形 ───────────────�
   ck('do $ が単独で残っていない', !/\bdo\s+\$(?![a-z_]*\$)/.test(live));
   ck('確認クエリが1つだけ（末尾が途中に混入していない）',
      live.split('as webhook,').length - 1 === 1);
-  ck('6つの表が全部書かれている',
+  ck('7つの表が全部書かれている',
      ['contacts', 'profiles', 'reviews_v2', 'pay_reports',
-      'pay_reports_pending', 'airline_conditions'].every((t) => live.includes(`'${t}'`)));
+      'pay_reports_pending', 'airline_conditions',
+      'pv_requests'].every((t) => live.includes(`'${t}'`)));
+  /* ★♡ の表は入れない。1押しごとにメールが飛ぶ。 */
+  ck('★pv_request_likes は Webhook を作らない', !live.includes("'pv_request_likes'"));
 }
 
 /* ════════════════════════════════════════════════════════════════

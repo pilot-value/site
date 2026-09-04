@@ -39,6 +39,8 @@ const NOINDEX = new Set([
   'deep-pay.html',
   /* 2社を横に並べる画面。同じく鍵が要るので検索に出さない。 */
   'deep-pay-compare.html',
+  /* ロードマップと要望の画面。ログインした人だけが読み書きする。 */
+  'roadmap.html',
   /* 2026-08-15、求人の掲載を停止した。ページは残すが検索には出さない。 */
   'world-jobs.html',
 ]);
