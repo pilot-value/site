@@ -474,6 +474,14 @@
      o.noMetric  使える月が無いときの文言
      o.valueAt   function(row, i) → その点の値。渡すと key の代わりに使う
                  （累計の running total のように、1行だけでは決まらない値を描くため）
+     o.h         折れ線の高さ（px）。既定 168。100 未満は無視する
+                 （目盛りの文字が実寸なので、潰すと値札と重なる）
+     o.color     線・点・最新値の色。既定は LINE（DEEP PAY の金）。
+                 ★ CSS 変数を文字列で渡さない。線と点は presentation attribute
+                   （stroke="…"）で塗っているので var(--pv-orange) は効かず、
+                   線が黒か透明になる。getComputedStyle で解いた実際の値を渡すこと。
+     o.fmtVal    function(v) → 最新値のラベル。既定は fmt（金額）。
+                 金額でないもの（人数など）を描くときに渡す
 
      ★ この引数を valueOf という名前にしてはいけない。オブジェクトリテラルに
        valueOf を書かなくても Object.prototype.valueOf が継承されるので
@@ -482,6 +490,10 @@
   function chart(rows, key, o) {
     o = o || {};
     var label = o.labelOf || function () { return ''; };
+    /* ★ 既定は今までどおり。渡されたときだけ差し替える
+       （この関数は6ページが共有している。既定を動かすと全部の絵が変わる）。 */
+    var COL = o.color || LINE;
+    var lab = (typeof o.fmtVal === 'function') ? o.fmtVal : fmt;
     var pick = (typeof o.valueAt === 'function') ? o.valueAt
                                                  : function (r) { return metricOf(r, key); };
     var pts = (rows || []).map(function (r, i) { return { r: r, v: pick(r, i) }; })
@@ -490,7 +502,12 @@
 
     var W = (typeof o.width === 'number' && o.width > 0) ? o.width : 560;
     // 点が1つのときは線が引けない＝縦を使う意味が無いので低くする（空白が目立つ）
-    var H = pts.length === 1 ? 104 : 168, PL = 8, PR = 8, PT = 24, PB = 26;
+    /* 高さ。既定は 168（点が1つのときは線が引けないので低くする）。
+       ★ o.h は「その枠に収めたい」ときだけ渡す。目盛りの文字は実寸なので、
+         100 を下回らせない（下回ると上下の目盛りと値札が重なる）。 */
+    var H = pts.length === 1 ? 104
+          : (typeof o.h === 'number' && o.h >= 100) ? o.h : 168;
+    var PL = 8, PR = 8, PT = 24, PB = 26;
     var iw = W - PL - PR, ih = H - PT - PB;
 
     var vs = pts.map(function (p) { return p.v; });
@@ -512,14 +529,14 @@
       var dPath = pts.map(function (p, i) { return (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(p.v).toFixed(1); }).join(' ');
       var area = dPath + ' L' + x(pts.length - 1).toFixed(1) + ' ' + (PT + ih) + ' L' + x(0).toFixed(1) + ' ' + (PT + ih) + ' Z';
       g += '<path d="' + area + '" fill="url(#' + fid + ')"/>';
-      g += '<path d="' + dPath + '" fill="none" stroke="' + LINE + '" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
+      g += '<path d="' + dPath + '" fill="none" stroke="' + COL + '" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
     }
     pts.forEach(function (p, i) {
       var last = i === pts.length - 1;
       // 未選択の点は背景色で抜く。ライト/ダークで色が違うので CSS 変数を使う
       // （presentation attribute では var() が効かないので style で渡す）。
       g += '<circle cx="' + x(i).toFixed(1) + '" cy="' + y(p.v).toFixed(1) + '" r="' + (last ? 5 : 3.5) +
-           '" style="fill:' + (last ? LINE : 'var(--pt-dot)') + '" stroke="' + LINE + '" stroke-width="2"/>';
+           '" style="fill:' + (last ? COL : 'var(--pt-dot)') + '" stroke="' + COL + '" stroke-width="2"/>';
       // 両端のラベルは middle だと枠の外へはみ出す（EN の "Jun" が切れていた）
       var ta = (pts.length > 1 && i === 0) ? 'start'
              : (pts.length > 1 && last) ? 'end' : 'middle';
@@ -531,14 +548,14 @@
     var lx = x(pts.length - 1), anchor = 'end', dx = -8;
     if (pts.length === 1) { anchor = 'middle'; dx = 0; }
     g += '<text x="' + (lx + dx).toFixed(1) + '" y="' + Math.max(14, y(lastP.v) - 12).toFixed(1) + '" text-anchor="' + anchor +
-         '" font-size="13" font-weight="800" fill="' + LINE + '">' + esc(fmt(lastP.v)) + '</text>';
+         '" font-size="13" font-weight="800" fill="' + COL + '">' + esc(lab(lastP.v)) + '</text>';
 
     var note = (pts.length === 1 && o.onePoint) ? '<div class="pt-note">' + esc(o.onePoint) + '</div>' : '';
     return '<svg class="pt-svg" viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" role="img" ' +
       'aria-label="' + esc(o.aria) + '">' +
       '<defs><linearGradient id="' + fid + '" x1="0" y1="0" x2="0" y2="1">' +
-        '<stop offset="0%" stop-color="' + LINE + '" stop-opacity=".22"/>' +
-        '<stop offset="100%" stop-color="' + LINE + '" stop-opacity="0"/>' +
+        '<stop offset="0%" stop-color="' + COL + '" stop-opacity=".22"/>' +
+        '<stop offset="100%" stop-color="' + COL + '" stop-opacity="0"/>' +
       '</linearGradient></defs>' + g + '</svg>' + note;
   }
 

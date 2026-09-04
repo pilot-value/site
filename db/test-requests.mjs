@@ -51,16 +51,27 @@ await db.exec(`
   create table auth.users (id uuid primary key, email text, raw_user_meta_data jsonb);
   create function auth.uid() returns uuid language sql stable as $$
     select nullif(current_setting('pv.uid', true), '')::uuid $$;
+  /* 口コミの表（db/pay-rows.sql が触る列まで含めた最小形）。
+     ★db/test-pay-rows.mjs から写した。あちらを増やしたらここも増やす。 */
   create table public.reviews_v2 (
     id uuid primary key default gen_random_uuid(),
     proof_hash text not null, airline text not null, "position" text,
+    annual_salary            integer,
+    base_annual              integer,
+    flight_allowance_annual  integer,
+    monthly_salary           integer,
+    bonus                    integer,
     created_at timestamptz not null default now()
   );
 `);
 
 console.log('\n▼ SQL の適用');
+/* ★db/pay-rows.sql まで流す。requests.sql の pv_give_growth が
+   pv_pay_person_map()（＝あちらが作る実人物の地図）を呼ぶため。
+   並びは db/test-pay-rows.mjs と同じ＝本番でオーナーが貼る順番。 */
 const FILES = ['db/airlines.generated.sql', 'db/vocab.generated.sql',
                'db/schema-additions.sql', 'db/pay-reports.sql',
+               'db/pay-report-pending.sql', 'db/pay-rows.sql',
                'db/admin.sql', 'db/requests.sql'];
 for (const f of FILES) {
   try { await db.exec(read(f)); ok(true, f); }
@@ -381,7 +392,102 @@ console.log('\n▼ ⑨ 連投・上限・同じ内容');
 }
 
 // ════════════════════════════════════════════════════════════
-console.log('\n▼ ⑩ 前提が無いときは日本語で止まる');
+/* pv_give_growth ── 画面の折れ線の材料。
+   ★ここで守るのはただ1つ。「折れ線の右端」と「ヒーローの人数」が同じであること。
+     同じ画面に2つの人数が出てはいけない。両者は別の関数なので、
+     片方だけ proof_hash で数え始めても、画面は普通に描けてしまう。 */
+console.log('\n▼ ⑩ コミュニティの伸び（折れ線の材料）');
+{
+  const AIRS = (await db.query(
+    `select code from public.pv_airlines where code <> 'other' and active order by code limit 2`
+  )).rows;
+  const A1 = AIRS[0].code, A2 = AIRS[1].code;
+  // 今年だと「未来の月は投稿できません」で落ちる月が出る（db/test-pay-rows.mjs と同じ）
+  const YEAR = new Date().getFullYear() - 1;
+  const BASE = { currency: 'USD', lang: 'en', tax_rate_pct: 0, fleet: 'b777', position: 'cap' };
+
+  /* 本物の口（submit_pay_report）を通す。proof_hash を手で作らない。
+     ★1日10件の上限に当たらないよう、1件ごとに当日カウンタを戻す
+       （上限そのものは db/test-pay-reports.mjs が見ている）。 */
+  const give = async (uid, air, month) => {
+    const r = await call(uid, `select public.submit_pay_report($1::jsonb) as v`,
+      [JSON.stringify({ ...BASE, airline: air, period_year: YEAR,
+                        period_month: month, gross_monthly: 9000 })]);
+    await db.query(`update public.profiles set pay_reports_today = 0`);
+    return r;
+  };
+  const growth = async (uid, weeks) => {
+    const q = weeks === undefined
+      ? await call(uid, `select public.pv_give_growth() as v`)
+      : await call(uid, `select public.pv_give_growth($1) as v`, [weeks]);
+    return q.v ? q.v.v : null;
+  };
+
+  // 人を4人ふやす（A と B は既に要望を出している人。給与はここが初めて）
+  const P = ['0000000000c1', '0000000000c2', '0000000000c3'].map(
+    (t) => '00000000-0000-4000-8000-' + t);
+  for (const [i, uid] of P.entries()) {
+    await db.query(`insert into auth.users(id,email) values($1,$2)
+                    on conflict (id) do nothing`, [uid, `g${i}@example.com`]);
+    await db.query(`insert into public.profiles(id,email) values($1,$2)
+                    on conflict (id) do nothing`, [uid, `g${i}@example.com`]);
+  }
+
+  await give(P[0], A1, 3);
+  await give(P[1], A1, 4);
+  // ★同じ人が2社に出す。proof_hash 単位なら 2、実人物なら 1
+  await give(P[2], A1, 5);
+  await give(P[2], A2, 6);
+
+  const series = await growth(A);
+  ok(Array.isArray(series) && series.length === 12,
+     '既定は12週ぶん返る', JSON.stringify(series));
+
+  const contributors = (await db.query(`select public.pv_deep_contributors() n`)).rows[0].n;
+  ok(contributors === 3, '実人物は3人（2社に出した人は1人）', String(contributors));
+
+  const last = series[series.length - 1];
+  ok(last.n === contributors,
+     '★★折れ線の右端が pv_deep_contributors() と一致する（同じ画面に2つの人数を出さない）',
+     `折れ線=${last.n} ヒーロー=${contributors}`);
+
+  const raw = (await db.query(
+    `select count(distinct proof_hash)::int n from public.pay_reports`)).rows[0].n;
+  ok(raw === 4 && last.n === 3,
+     '★proof_hash で数えていない（4件・3人）', `proof_hash=${raw} 折れ線=${last.n}`);
+
+  ok(series.every((x, i) => i === 0 || x.n >= series[i - 1].n),
+     '累計なので下がらない', JSON.stringify(series.map((x) => x.n)));
+  ok(series.every((x) => /^\d{4}-\d{2}-\d{2}$/.test(String(x.d))),
+     '週の日付が入っている', JSON.stringify(series[0]));
+  ok(Object.keys(series[0]).sort().join(',') === 'd,n',
+     '★返るのは日付と人数だけ（会社も職位も金額も出さない）', JSON.stringify(series[0]));
+
+  // ── 週数はサーバで抑える ──────────────────────────────────
+  ok((await growth(A, 0) || []).length === 2, '0週は2週に丸める');
+  ok((await growth(A, 999) || []).length === 52, '999週は52週に丸める');
+  ok((await growth(A, null) || []).length === 12, 'null は既定の12週');
+
+  // ── 未ログイン ────────────────────────────────────────────
+  await db.exec(`set role authenticated`);
+  await db.query(`select set_config('pv.uid', '', false)`);
+  const anonSeries = (await db.query(`select public.pv_give_growth() v`)).rows[0].v;
+  await asOwner();
+  ok(anonSeries === null,
+     '★未ログインでは null（0 の並びを返さない）', JSON.stringify(anonSeries));
+
+  // ── anon ロールからは呼べない ──────────────────────────────
+  await db.exec(`set role anon`);
+  let denied = null;
+  try { await db.query(`select public.pv_give_growth()`); }
+  catch (e) { denied = String(e.message || e); }
+  await asOwner();
+  ok(!!denied && /permission|権限/i.test(denied),
+     '★anon からは実行できない', denied || '呼べてしまった');
+}
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ ⑪ 前提が無いときは日本語で止まる');
 {
   const db2 = new PGlite({ extensions: { pgcrypto } });
   await db2.waitReady;
@@ -397,6 +503,17 @@ console.log('\n▼ ⑩ 前提が無いときは日本語で止まる');
   try { await db2.exec(read('db/requests.sql')); } catch (e) { msg = String(e.message || e); }
   ok(!!msg && msg.includes('db/admin.sql'),
      '★db/admin.sql を先に流していないと、日本語で止まる（黙って半分だけ作らない）', msg || '通ってしまった');
+
+  /* pv_is_admin だけ在って pv_pay_person_map が無い状態＝
+     「pay-rows.sql を貼り忘れたまま requests.sql を貼った」。
+     ★ここで止めないと、折れ線だけが出ない画面が黙って出来上がる。 */
+  await db2.exec(`create function public.pv_is_admin() returns boolean
+                    language sql stable as $q$ select false $q$;`);
+  let msg2 = null;
+  try { await db2.exec(read('db/requests.sql')); } catch (e) { msg2 = String(e.message || e); }
+  ok(!!msg2 && msg2.includes('db/pay-rows.sql'),
+     '★db/pay-rows.sql を先に流していないと、日本語で止まる（折れ線だけ黙って消えない）',
+     msg2 || '通ってしまった');
   await db2.close();
 }
 

@@ -41,7 +41,7 @@ const SQL = [
   ['db/test-founding.mjs', 10], ['db/test-admin-grants.mjs', 10],
   ['db/test-payslip-extras.mjs', 10], ['db/test-unlock-rule.mjs', 10],
   ['db/test-remind.mjs', 10], ['db/test-deep-pay.mjs', 2],
-  ['db/test-requests.mjs', 8],
+  ['db/test-requests.mjs', 5],
 ];
 
 // localhost:3000 が要るもの。長い順に並べてある。

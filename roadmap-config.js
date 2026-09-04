@@ -11,7 +11,7 @@
         「もうすぐ出す」を done に書くと、それは嘘の実績になる。
      ② 数字を盛らない。ここに人数や件数を直接書かない。
         画面に出る数はすべてサーバから来る（現在の人数＝pv_give_progress、
-        要望の件数＝pv_requests_list の total）。
+        伸びの折れ線＝pv_give_growth、要望の件数＝pv_requests_list の total）。
         ハードコードした数はその日から腐り、誰も気づかない。
      ③ 段（milestones）の文言で、**まだ約束していないこと**を約束しない。
         100人の段だけは既に pv-gates.js が画面で約束している内容
@@ -21,13 +21,26 @@
      ⑤ tasks は**1本の配列**。「運営が進めていること」と「最近のアップデート」は
         同じ配列の別の見え方でしかない。2本に割ると必ず片方だけ直されて食い違う。
 
-   state は4つ。
-     'done'        … 出し終わったもの（date が必須。最近のアップデートに出る）
-     'building'    … いま手を動かしているもの
-     'planned'     … やると決まっているが、まだ着手していないもの
-     'considering' … 検討中。まだやると決めていない
+   ⚠️ **短く書く**（2026-09-04 のオーナー指示「文字多すぎ」）。
+      この画面は1枚に収まっていることが値打ちで、説明の長さではない。
+      ・goals[].t は横一列のレールの札になる。**9文字ちょうどまで**。
+        長いと 390px で1マス 65px に3行折り返し、レールが崩れる
+        （説明を足したいときは d に書く。d は「次の段」1つぶんだけ画面に出る）。
+      ・tasks[].d は1行。2文書きたくなったら、それは d ではなく別のタスク。
 ════════════════════════════════════════════════════════════════ */
 window.PVRoadmap = {
+
+  /* ── 何のためにやっているか（ヒーローの2行）──────────────────
+     ★ここは長くしない。増やしたくなったら、それは別のページの仕事。 */
+  mission: {
+    ja: 'パイロットの待遇に、匿名の実データで透明性を。',
+    en: 'Bring transparency to pilot pay with anonymous, real data.'
+  },
+  vision: {
+    ja: '世界中の航空会社が、優秀なパイロットに選ばれるために待遇を競う市場をつくる。',
+    en: 'Build a market where airlines worldwide compete on pay and conditions '
+      + 'to be the ones great pilots choose.'
+  },
 
   /* ── 目標の段。現在地は pv_give_progress() の人数で決まる ──────
      ★数え方は「給与を出したユニークなパイロットの人数」。
@@ -36,128 +49,103 @@ window.PVRoadmap = {
 
   goals: [
     { n: 100,
-      ja: { t: 'DEEP PAY が開く',
+      ja: { t: 'DEEP PAY',
             d: '給与を出したパイロットが100人そろった時点で、職位・機材ごとの内訳を読む DEEP PAY を開きます。' },
-      en: { t: 'DEEP PAY opens',
+      en: { t: 'DEEP PAY',
             d: 'Once 100 pilots have shared their pay, DEEP PAY — the breakdown by position and fleet — opens.' } },
     { n: 500,
-      ja: { t: '主要エアラインが「実データ」で読める',
+      ja: { t: '実データで比較',
             d: '主要な航空会社について、職位・機材ごとに実データだけで比較できる密度になります。' },
-      en: { t: 'Major airlines readable from real data',
+      en: { t: 'Major airlines',
             d: 'Enough density to compare major airlines by position and fleet using submitted data alone.' } },
     { n: 1000,
-      ja: { t: '国をまたいだ比較ができる',
+      ja: { t: '国をまたぐ',
             d: '公開情報の推定ではなく、実際に受け取った額で国をまたいだ比較ができるようになります。' },
-      en: { t: 'Cross-border comparison',
+      en: { t: 'Cross-border',
             d: 'Compare across countries using what pilots actually received, not published estimates.' } },
     { n: 2000,
-      ja: { t: '待遇の「動き」が見える',
+      ja: { t: '待遇の動き',
             d: '同じ会社の待遇が上がったのか下がったのかを、時系列で読めるようになります。' },
-      en: { t: 'Movement becomes visible',
+      en: { t: 'Pay movement',
             d: 'See whether pay at a given airline is rising or falling, over time.' } },
     { n: 5000,
-      ja: { t: '世界の基準になる',
+      ja: { t: '世界の基準',
             d: 'パイロットの待遇を語るときに参照される、世界で最も信頼されるデータになります。' },
-      en: { t: 'A world standard',
+      en: { t: 'World standard',
             d: 'The most trusted reference for what pilots are actually paid, worldwide.' } }
-  ],
-
-  /* ── ヒーローの3原則。サイト全体で守っていることだけを書く ────── */
-  tenets: [
-    { ja: '数字を盛らない。確かめられない数値は載せない。',
-      en: 'No inflated numbers. Nothing we cannot verify gets published.' },
-    { ja: '出してくれた人が、必ず何かを受け取る。',
-      en: 'If you give data, you get data back.' },
-    { ja: '誰が出したかは、公開しない。',
-      en: 'Who submitted what is never made public.' }
-  ],
-
-  /* ── なぜ作っているのか（3枚）───────────────────────────── */
-  why: [
-    { ja: { t: '情報が無いまま、キャリアを決めている',
-            d: '転職先の実際の年収も、手当の構成も、外からは分からない。だから多くのパイロットが、確かめようのない噂と求人票だけで人生の決断をしている。' },
-      en: { t: 'Career decisions made in the dark',
-            d: 'Actual pay and how it is built up are invisible from outside. Most pilots decide on rumour and a job ad.' } },
-    { ja: { t: '待遇は「聞ける人がいるか」で決まってしまう',
-            d: '中に知り合いがいる人だけが本当の数字を知っている。情報が人脈の有無で配られている限り、待遇の交渉も転職も公平にはならない。' },
-      en: { t: 'What you know depends on who you know',
-            d: 'Only pilots with a contact on the inside see real numbers. While information travels through networks, nothing is fair.' } },
-    { ja: { t: '見えるようになれば、市場が動く',
-            d: '待遇が比較できるようになると、良い会社に人が集まり、悪い会社は改善を迫られる。その市場原理が、世界のパイロット待遇を継続的に押し上げる。' },
-      en: { t: 'Visibility moves the market',
-            d: 'When pay is comparable, pilots move toward better employers and the rest have to improve. That pressure is the point.' } }
   ],
 
   /* ── やったこと・やっていること（1本の配列）────────────────
      ★done の日付は実際に本番へ出した日。git log と揃えてある。
      ★community:true は「みんなからの要望がきっかけで作ったもの」。
-       本当にそうだったものにだけ付ける（付けると画面に札が出る）。 */
+       本当にそうだったものにだけ付ける（付けると画面に札が出る）。
+     ★d は1行。 */
   tasks: [
     { id: 'roadmap-page', state: 'building',
       ja: { t: 'このページ（ロードマップと要望）',
-            d: '運営が何を作っているかを公開し、パイロットからの要望を匿名で受け取れるようにする。' },
+            d: '作っているものを公開し、要望を匿名で受け取る。' },
       en: { t: 'This page — roadmap and requests',
-            d: 'Publish what we are building, and take requests from pilots anonymously.' } },
+            d: 'Publish what we build; take requests anonymously.' } },
 
     { id: 'verified-pilot', state: 'planned',
-      ja: { t: 'VERIFIED PILOT（明細で裏を取ったデータに印を付ける）',
-            d: '給与明細から読み取ったデータと、手入力のデータを画面で区別する。信頼できる数字がどれかを、読む側が判断できるようにする。' },
-      en: { t: 'VERIFIED PILOT — mark data backed by a payslip',
-            d: 'Distinguish figures read from an actual payslip from figures typed in by hand, so readers can judge what to trust.' } },
+      ja: { t: 'VERIFIED PILOT',
+            d: '明細で裏を取ったデータと、手入力を画面で区別する。' },
+      en: { t: 'VERIFIED PILOT',
+            d: 'Mark figures backed by a payslip, apart from typed-in ones.' } },
 
     { id: 'public-percentile', state: 'planned',
-      ja: { t: 'あなたの年収が、公開情報の中でどのあたりか',
-            d: 'マイレポートに、公開されている年収レンジの中での位置を足す。順位は付けない。' },
-      en: { t: 'Where your pay sits against published ranges',
-            d: 'Add your position within published salary ranges to your report. No leaderboards.' } },
+      ja: { t: '公開レンジの中での位置',
+            d: 'マイレポートに位置だけ足す。順位は付けない。' },
+      en: { t: 'Where your pay sits',
+            d: 'Your position within published ranges. No leaderboards.' } },
 
     { id: 'apple-login', state: 'considering',
       ja: { t: 'Apple でログイン',
-            d: '海外のパイロットからの要望が増えたら着手する。まだ決めていない。' },
+            d: '海外からの要望が増えたら着手する。' },
       en: { t: 'Sign in with Apple',
-            d: 'We will build it if more pilots outside Japan ask for it. Not decided yet.' } },
+            d: 'If more pilots outside Japan ask for it.' } },
 
     /* ── ここから下は出し終わったもの（最近のアップデートに出る）── */
     { id: 'pay-breakdown-row', state: 'done', date: '2026-09-03',
-      ja: { t: '実給与の1行を押すと、その人の報酬の内訳が見られる',
-            d: '固定・変動・職位手当・住宅などの構成を、金額そのものではなく帯で読む。' },
+      ja: { t: '実給与の1行から報酬の内訳を見る',
+            d: '固定・変動・職位手当・住宅の構成を帯で読む。' },
       en: { t: 'Tap a pay row to see how it was built up',
-            d: 'Fixed, variable, command and housing shown as a band rather than raw figures.' } },
+            d: 'Fixed, variable, command and housing as a band.' } },
 
     { id: 'union-pay', state: 'done', date: '2026-09-02',
-      ja: { t: '組合から直接支払われた分を、年収に正しく入れる',
-            d: '会社の明細に載らないお金があるぶん、年収が実際より低く出ていたのを直した。' },
+      ja: { t: '組合から直接払われた分を年収に入れる',
+            d: '明細に載らないお金のぶん、年収が低く出ていた。' },
       en: { t: 'Pay routed through a union now counts',
-            d: 'Money that never appears on the company payslip was making annual totals read low.' } },
+            d: 'Money off the company payslip was reading low.' } },
 
     { id: 'deep-pay-compare', state: 'done', date: '2026-09-01',
-      ja: { t: 'DEEP PAY に会社比較を足す',
-            d: '2社を並べて、支給の構成まで比べられるようにした。選べる区分は必ず数字が返る。' },
+      ja: { t: 'DEEP PAY に会社比較',
+            d: '2社を並べて、支給の構成まで比べられる。' },
       en: { t: 'Company comparison in DEEP PAY',
-            d: 'Put two airlines side by side, down to how the pay is composed.' } },
+            d: 'Two airlines side by side, down to composition.' } },
 
     { id: 'real-pay', state: 'done', date: '2026-08-24',
-      ja: { t: 'REAL PAY —— 他のパイロットの実際の給与を1行ずつ読む',
-            d: '公開情報とは混ぜず、実際に受け取った額だけを並べる。給与を出した人が読める。' },
-      en: { t: 'REAL PAY — other pilots’ actual pay, row by row',
-            d: 'Only what pilots actually received, never mixed with published figures.' } },
+      ja: { t: 'REAL PAY — 実際の給与を1行ずつ読む',
+            d: '公開情報と混ぜず、受け取った額だけを並べる。' },
+      en: { t: 'REAL PAY — actual pay, row by row',
+            d: 'Only what pilots received, never mixed with estimates.' } },
 
     { id: 'conditions', state: 'done', date: '2026-08-19',
       ja: { t: '待遇アンケート（32問）',
-            d: '年収に出てこない待遇 —— 休日・ベース・ローテーション・宿泊などを集める。' },
+            d: '休日・ベース・ローテーション・宿泊を集める。' },
       en: { t: 'Working-conditions survey (32 questions)',
-            d: 'The parts of a job that never show up in a salary figure.' } },
+            d: 'The parts of a job a salary figure never shows.' } },
 
     { id: 'review-i18n', state: 'done', date: '2026-08-10',
       ja: { t: '口コミの日英自動翻訳',
-            d: '日本語で書かれた口コミが英語でも、英語の口コミが日本語でも読めるようになった。' },
+            d: '日本語の口コミが英語でも、英語が日本語でも読める。' },
       en: { t: 'Reviews translated both ways',
-            d: 'Japanese reviews readable in English, and English reviews in Japanese.' } },
+            d: 'Japanese readable in English, and the other way round.' } },
 
     { id: 'payslip-redact', state: 'done', date: '2026-08-06',
-      ja: { t: '給与明細を、端末の中で黒塗りしてから読み取る',
-            d: '氏名・社員番号・住所が写った画像を、サーバーへ送る前に本人の端末で消す。明細そのものは保存しない。' },
+      ja: { t: '明細を端末の中で黒塗りしてから読み取る',
+            d: '氏名・社員番号・住所は送る前に消す。画像は保存しない。' },
       en: { t: 'Payslips redacted on your device',
-            d: 'Name, employee number and address are removed before anything leaves your phone. The image itself is never stored.' } }
+            d: 'Name and address never leave the phone. Image not stored.' } }
   ]
 };

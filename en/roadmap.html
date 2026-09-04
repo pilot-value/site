@@ -42,6 +42,9 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <link rel="stylesheet" href="../pv-tokens.css">
+  <!-- The chart look, shared with my-value.html / profile.html.
+       PVViz.chart() draws the growth line here (do not restyle it). -->
+  <link rel="stylesheet" href="../pay-viz.css">
   <link rel="stylesheet" href="../my-value.css">
 
   <style>
@@ -139,47 +142,31 @@
     <main class="mr-main">
       <div class="mr-hd">
         <h1 class="mr-hd-t">ROADMAP &amp; REQUESTS</h1>
-        <p class="mr-hd-s">What we are aiming at, what we are building, and where your voice lands.</p>
       </div>
 
-      <!-- Everything below is drawn by roadmap.js. Do not copy its wording here. -->
-      <div class="mr-stack" id="rm-top">
-        <div class="mr-skel" style="height:230px"></div>
-        <div class="mr-skel" style="height:96px"></div>
-      </div>
-
-      <div class="mr-2col" style="margin-top:16px">
-        <div class="mr-stack">
-          <div id="rm-tasks"></div>
-
-          <section class="mr-card">
-            <div class="mr-card-h">
-              <h2 class="mr-card-t">Requests from pilots</h2>
-              <span class="mr-card-s" id="rm-list-n"></span>
-            </div>
-            <div class="rm-tabs" id="rm-tabs" style="margin-bottom:14px">
-              <button type="button" class="rm-tab" data-rm-sort="popular" aria-pressed="true">Most wanted</button>
-              <button type="button" class="rm-tab" data-rm-sort="new" aria-pressed="false">Newest</button>
-            </div>
-            <ul class="rm-list" id="rm-req-list"></ul>
-            <button type="button" class="rm-more-btn" id="rm-more" style="display:none">Load more</button>
-          </section>
+      <!-- The left column (Mission/Vision, progress, growth line, most-wanted,
+           the milestone rail, what we are building, recent updates) is drawn by
+           roadmap.js. Do not copy any of that copy here — split across two files
+           it always goes stale on one side. Only the right column is static: the
+           inputs have to be real for assert-header.mjs to measure them. -->
+      <div class="mr-2col rm-grid">
+        <div class="mr-stack rm-l" id="rm-left">
+          <div class="mr-skel" style="height:200px"></div>
+          <div class="mr-skel" style="height:214px"></div>
         </div>
 
-        <div class="mr-stack">
+        <div class="mr-stack rm-r">
           <section class="mr-card">
             <div class="mr-card-h">
               <h2 class="mr-card-t">Send a request anonymously</h2>
-              <span class="mr-card-s">Your idea could be the next feature.</span>
             </div>
-            <!-- ★ The textarea and the select are static on purpose — never injected.
-                 assert-header.mjs discovers pages that contain a <textarea> and
-                 checks at 390px that no input is under 16px (iOS zooms otherwise).
-                 Only a static field makes that a real check. -->
+            <!-- ★ Keep the textarea and the select in the HTML. Do not inject them
+                 from JS. assert-header.mjs finds pages that have a <textarea> and
+                 checks at 390px that no input is under 16px (iOS zooms otherwise). -->
             <form id="rm-form" novalidate>
-              <label class="rm-f-l" for="rm-body">What feature or data would actually help you?</label>
+              <label class="rm-f-l" for="rm-body">What feature or data would help you most?</label>
               <textarea id="rm-body" class="rm-f-t" name="body" maxlength="500"
-                        placeholder="e.g. monthly block hours by fleet, per airline"></textarea>
+                        placeholder="e.g. monthly block hours by type, compared across airlines"></textarea>
 
               <label class="rm-f-l" for="rm-cat" style="margin-top:14px">Category</label>
               <select id="rm-cat" class="rm-f-s" name="category">
@@ -199,7 +186,18 @@
             <p class="rm-note" id="rm-privacy"></p>
           </section>
 
-          <div id="rm-ship"></div>
+          <section class="mr-card">
+            <div class="mr-card-h">
+              <h2 class="mr-card-t">Requests from pilots</h2>
+              <span class="mr-card-s" id="rm-list-n"></span>
+            </div>
+            <div class="rm-tabs" id="rm-tabs" style="margin-bottom:14px">
+              <button type="button" class="rm-tab" data-rm-sort="popular" aria-pressed="true">Most wanted</button>
+              <button type="button" class="rm-tab" data-rm-sort="new" aria-pressed="false">Newest</button>
+            </div>
+            <ul class="rm-list" id="rm-req-list"></ul>
+            <button type="button" class="rm-more-btn" id="rm-more" style="display:none">Load more</button>
+          </section>
         </div>
       </div>
 
@@ -241,6 +239,9 @@
         hands it to PVGates.setProgress() — so the hero number and the gate always
         agree, and only one round-trip happens. -->
 <script src="../pv-gates.js"></script>
+<!-- The chart engine (PVViz), shared with 6 other pages. Read before
+     roadmap.js, which calls PVViz.chart() for the growth line. -->
+<script src="../pay-viz.js"></script>
 <!-- ★ Milestones, tasks and history live in this one file. Load before roadmap.js. -->
 <script src="../roadmap-config.js"></script>
 <script src="../roadmap.js"></script>

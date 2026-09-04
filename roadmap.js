@@ -3,12 +3,16 @@
 
    このファイルがやること
      ① roadmap-config.js の設定を、通信を待たずに描く
-        （ミッション・3原則・なぜ・運営が進めていること・目標の段の枠・更新履歴）
-     ② サーバに3つだけ聞く
+        （Mission / Vision・目標の段のレール・運営が進めていること・更新履歴）
+     ② サーバに4つだけ聞く
         pv_give_progress()  … 給与を出したパイロットの人数（＝現在地）
-        pv_requests_list()  … みんなからの要望と、その総数（＝KPIの1つ）
+        pv_give_growth()    … 週ごとの累計人数（＝折れ線）
+        pv_requests_list()  … みんなからの要望と、その総数
         pv_is_admin()       … 管理用の操作を出すかどうか
      ③ 要望を出す・♡ を押す
+
+   ★1画面に収める（2026-09-04 のオーナー指示「文字多すぎ・グラフで見せて」）。
+     説明文を足したくなったら、まず何かを消す。縦に伸ばさない。
 
    ★このファイルは数を作らない。画面に出る数は全部サーバが返したもの。
      人数も件数も ♡ の数も、ここで足し引きして表示を作らない
@@ -17,14 +21,19 @@
 
    ★文言は T に集める。HTML 側にはフォームの札しか置かない
      （assert-roadmap.mjs が T.ja と T.en の鍵が完全に同じかを見張る）。
+     Mission / Vision と段・タスクの文言だけは roadmap-config.js にある。
 
    ★色は --pv-* トークンだけ。hex を1つも書かない。
      ダークは [data-theme="dark"] が勝手に効く。
      ⚠️ prefers-color-scheme はこのリポジトリのどこにも無い。持ち込まない
         （テーマは localStorage['pv-theme'] が唯一の正）。
+     ⚠️ SVG の presentation attribute（stroke="…" / fill="…"）では var() が
+        効かない。図の色は style="stroke:var(--pv-…)" で渡すか、
+        getComputedStyle で解いた実際の値を渡す（ink() を見ること）。
 
    ⚠️ 本文（利用者が書いた文字）は必ず textContent で入れる。
       innerHTML に混ぜない。ここが1か所でも崩れると要望欄が XSS の口になる。
+      要望の本文は「一覧」と「要望の人気（横棒）」の2か所に出る。両方 textContent。
 
    ⚠️ どの RPC も data が null で返り得る前提で書く。
       assert-header.mjs の偽セッションは sb.rpc に {data:null,error:null} を返させる。
@@ -38,7 +47,10 @@
   var CFG  = w.PVRoadmap || {};
   var MILE = (CFG.milestones && CFG.milestones.length) ? CFG.milestones.slice()
                                                        : [100, 500, 1000, 2000, 5000];
-  var PAGE = 20;                       // 1回に取る要望の数（全件は投げない）
+  /* 右カラムの一覧は縦に長くできない（左の図と高さを揃えて1画面に収める）。
+     ★全件はブラウザへ投げない。足りなければ「さらに読む」で継ぎ足す。 */
+  var PAGE = 4;
+  var TOPN = 5;                        // 横棒に出す「人気の要望」の本数
 
   /* 区分と状態は db/requests.sql の白リストと1対1。
      ★片方だけ増やさない。増やすときは SQL の check 制約と同時に。 */
@@ -48,38 +60,37 @@
   // ══ 文言 ═══════════════════════════════════════════════════
   var DICT = {
     ja: {
-      eyebrow: 'OUR MISSION',
-      mission: 'パイロットの情報格差をなくし、給与透明性を世界標準にする。',
-      missionBody: 'これまで見えなかった給与・福利厚生・勤務条件を可視化し、キャリアの選択肢を広げる。'
-                 + '待遇の良い会社に人材が集まり、待遇の悪い会社は改善を迫られる。'
-                 + 'その市場原理によって、世界のパイロット待遇を継続的に向上させる。',
-      builtWith: 'Built with pilots, for pilots.',
+      missionK: 'MISSION',
+      visionK: 'VISION',
 
       countK: '給与を出したパイロット',
       countUnit: function (n) { return n + '人'; },
       countPending: '確認中',
-      countNote: '登録した人数ではなく、実際に給与データを出した人数です。',
+      countNote: '登録者数ではありません。',
       nextK: function (g) { return '次の目標 ' + fmt(g) + '人'; },
       nextLeft: function (left) { return 'あと ' + fmt(left) + '人'; },
       allDone: 'すべての目標に届きました。',
       barLabel: function (n, g) { return g + '人のうち ' + n + '人'; },
 
-      kpiDone: '完了した改善',
-      kpiBuilding: '進行中',
-      kpiReq: 'コミュニティ要望',
-      kpiUnit: '件',
       unknown: '—',
       retry: 'もう一度読み込む',
 
-      whyH: 'なぜ PILOT VALUE をつくっているのか',
+      growthH: 'コミュニティの伸び',
+      growthS: '週ごとの累計',
+      growthAria: '給与を出したパイロットの、週ごとの累計人数',
+      growthOne: 'まだ1週ぶんです。来週から線になります。',
+      growthErr: '伸びを読み込めませんでした。',
+
+      wantH: '要望の人気',
+      wantS: '賛成の多い順',
 
       tasksH: '運営が進めていること',
-      tasksS: '上から順に、いま手が付いているものです。',
+      tasksS: function (b, dn) { return '開発中 ' + b + '・完了 ' + dn; },
       stDone: '完了', stBuilding: '開発中', stPlanned: '予定', stConsidering: '検討中',
       fromCommunity: 'みんなの要望から',
 
-      mlH: '目標の段',
-      mlNote: 'ロードマップはコミュニティからの要望やデータ状況に応じて変更される場合があります。',
+      mlH: '5,000人までの道のり',
+      mlNote: '予定は変わることがあります',
 
       formH: '匿名で要望を送る',
       formS: 'あなたのアイデアが、次の機能になります。',
@@ -103,15 +114,17 @@
         return (on ? 'この要望への賛成を取り消す' : 'この要望に賛成する') + '（現在 ' + n + '件）';
       },
       likeErr: '賛成を記録できませんでした。もう一度お試しください。',
+      openMore: '全文を読む',
+      openLess: '閉じる',
 
       shipH: '最近のアップデート',
       shipEmpty: 'アップデート履歴はこれから追加されます。',
       shipMore: 'これまでのアップデートをすべて見る',
 
-      privacy: '匿名で送信されます。氏名・メールアドレスなどの個人情報は公開されません。'
-             + '運営上必要な不正防止情報を除き、投稿者を特定する情報は公開されません。',
-      privacy2: '公開されるのは、本文・区分・賛成の数・状態・おおよその時期だけです。'
-              + '航空会社・職位・給与・メールアドレス・氏名とは結びつけません。',
+      /* ★「運営にも誰かわからない」とは書かない（ハッシュは運営側で照合できる）。
+         公開されるものだけを1文で言う。 */
+      privacy: '公開されるのは本文・区分・賛成の数・状態・時期だけ。'
+             + '航空会社・職位・給与・氏名とは結びつけません。',
 
       adminH: '管理',
       adminHide: '伏せる',
@@ -122,42 +135,42 @@
       cat: { feature: '機能', data: 'データ', ui: '使いやすさ', bug: '不具合', other: 'その他' },
       st:  { 'new': '受付済み', considering: '検討中', planned: '予定',
              building: '開発中', done: '完了', declined: '見送り' },
-      ym: function (y, m) { return y + '年' + m + '月'; }
+      ym: function (y, m) { return y + '年' + m + '月'; },
+      md: function (m, dd) { return m + '/' + dd; }
     },
 
     en: {
-      eyebrow: 'OUR MISSION',
-      mission: 'Close the information gap for pilots, and make pay transparency the world standard.',
-      missionBody: 'Make pay, benefits and working conditions visible so pilots have real choices. '
-                 + 'Pilots move toward the airlines that treat them well, and the rest have to improve. '
-                 + 'That pressure is how pilot pay rises worldwide.',
-      builtWith: 'Built with pilots, for pilots.',
+      missionK: 'MISSION',
+      visionK: 'VISION',
 
       countK: 'Pilots who shared their pay',
       countUnit: function (n) { return n; },
       countPending: 'Checking',
-      countNote: 'Not sign-ups — pilots who actually submitted pay data.',
+      countNote: 'Not sign-ups.',
       nextK: function (g) { return 'Next milestone: ' + fmt(g); },
       nextLeft: function (left) { return fmt(left) + ' to go'; },
       allDone: 'Every milestone reached.',
       barLabel: function (n, g) { return n + ' of ' + g; },
 
-      kpiDone: 'Shipped',
-      kpiBuilding: 'In progress',
-      kpiReq: 'Community requests',
-      kpiUnit: '',
       unknown: '—',
       retry: 'Load again',
 
-      whyH: 'Why we are building PILOT VALUE',
+      growthH: 'Community growth',
+      growthS: 'Cumulative, weekly',
+      growthAria: 'Cumulative number of pilots who shared their pay, by week',
+      growthOne: 'One week so far. The line starts next week.',
+      growthErr: 'Could not load the growth line.',
+
+      wantH: 'Most wanted',
+      wantS: 'By votes',
 
       tasksH: 'What we are working on',
-      tasksS: 'Top of the list is what has hands on it right now.',
+      tasksS: function (b, dn) { return 'Building ' + b + ' · Shipped ' + dn; },
       stDone: 'Shipped', stBuilding: 'Building', stPlanned: 'Planned', stConsidering: 'Considering',
       fromCommunity: 'From a community request',
 
-      mlH: 'Milestones',
-      mlNote: 'This roadmap may change based on community requests and how the data grows.',
+      mlH: 'Road to 5,000 pilots',
+      mlNote: 'Plans may change',
 
       formH: 'Send a request anonymously',
       formS: 'Your idea could be the next feature.',
@@ -182,15 +195,15 @@
              + ' (' + n + ' now)';
       },
       likeErr: 'Could not record your vote. Please try again.',
+      openMore: 'Read all',
+      openLess: 'Close',
 
       shipH: 'Recent updates',
       shipEmpty: 'Updates will be listed here.',
       shipMore: 'See every update so far',
 
-      privacy: 'Sent anonymously. Your name and email address are never published. '
-             + 'Apart from what we need internally to prevent abuse, nothing identifying you is made public.',
-      privacy2: 'Only the text, the category, the vote count, the status and a rough date are shown. '
-              + 'Nothing is linked to your airline, rank, pay, email or name.',
+      privacy: 'Only the text, category, votes, status and date are shown — '
+             + 'never your airline, rank, pay or name.',
 
       adminH: 'Admin',
       adminHide: 'Hide',
@@ -202,12 +215,12 @@
       st:  { 'new': 'Received', considering: 'Considering', planned: 'Planned',
              building: 'Building', done: 'Shipped', declined: 'Not planned' },
       /* ★3文字で書く。'September 2026' は日付の列（5.6em）に収まらず2行に折れ、
-         履歴の題名の左端が行ごとにずれる。列を広げると右カラムの3割を
-         日付が食う。変更履歴の日付は短いほうが読みやすい。 */
+         履歴の題名の左端が行ごとにずれる。 */
       ym: function (y, m) {
         return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul',
                 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][m - 1] + ' ' + y;
-      }
+      },
+      md: function (m, dd) { return m + '/' + dd; }
     }
   };
   var T = DICT[LANG];
@@ -218,7 +231,7 @@
     catch (e) { return String(n); }
   }
   /* ★これは**設定ファイルの文字**にだけ使う。利用者が書いた本文には使わない
-     （本文は textContent で入れる。下の reqNode を見ること）。 */
+     （本文は textContent で入れる。下の reqNode と paintWant を見ること）。 */
   function esc(s) {
     return String(s == null ? '' : s)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -232,81 +245,121 @@
     if (isNaN(t.getTime())) return '';
     return T.ym(t.getFullYear(), t.getMonth() + 1);
   }
+  /* 週の日付は 'YYYY-MM-DD' の文字列で来る。★new Date で解かない
+     （UTC 深夜と解釈されるので、西半球では1日前の札が出る）。 */
+  function md(iso) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(iso == null ? '' : iso));
+    return m ? T.md(Number(m[2]), Number(m[3])) : '';
+  }
+  /* 図の線に渡す色。★'var(--pv-orange)' を文字列のまま渡さない
+     （SVG の stroke="…" では var() が効かず、線が黒か透明になる）。 */
+  function ink(name) {
+    try {
+      var v = w.getComputedStyle(d.documentElement).getPropertyValue(name);
+      v = String(v == null ? '' : v).replace(/^\s+|\s+$/g, '');
+      return v || 'currentColor';
+    } catch (e) { return 'currentColor'; }
+  }
   var REDUCED = false;
   try { REDUCED = w.matchMedia && w.matchMedia('(prefers-reduced-motion: reduce)').matches; }
   catch (e) { REDUCED = false; }
 
   // ══ ページ固有の CSS ═══════════════════════════════════════
-  /* ★my-value.css を触らない。あれは12ページが共有していて、1行足すと
-     画面検査（7分半）が必ず要る。このページでしか使わない見た目はここに置く。 */
+  /* ★my-value.css を触らない。あれは14ページが共有していて、1行足すと
+     画面検査（7分半）が必ず要る。このページでしか使わない見た目はここに置く。
+
+     ★ページ固有の CSS を .rm-x .mr-y（詳細度 0,2,0）で書かない。
+       my-value.css の @media 側（0,1,0）に勝ってしまい、**狭いときの
+       折り返しだけが黙って効かなくなる**。ここでは共有クラスを上書きせず、
+       .rm-* だけで完結させてある。 */
   var CSS = [
-    '.rm-hero-in{display:flex;flex-wrap:wrap;gap:26px;align-items:flex-start}',
-    '.rm-hero-l{flex:1 1 320px;min-width:0}',
-    '.rm-hero-r{flex:1 1 230px;min-width:0;padding:18px;border-radius:var(--pv-r);',
-    '  background:var(--pv-surface);border:1px solid var(--pv-line)}',
-    '.rm-eyebrow{display:block;font-size:.7rem;font-weight:800;letter-spacing:.14em;',
-    '  text-transform:uppercase;color:var(--pv-ink-3)}',
-    '.rm-mission{margin-top:12px;font-size:clamp(1.25rem,3vw,1.62rem);font-weight:800;',
-    '  letter-spacing:-.03em;line-height:1.42;color:var(--pv-ink)}',
-    '.rm-lede{margin-top:14px;font-size:.85rem;line-height:1.85;color:var(--pv-ink-2);max-width:60ch}',
-    '.rm-built{display:inline-block;margin-top:16px;padding:5px 12px;border-radius:999px;',
-    '  background:var(--pv-orange-soft);color:var(--pv-orange-ink);',
-    '  font-size:.72rem;font-weight:800;letter-spacing:.01em}',
-    '.rm-tenets{list-style:none;margin-top:18px;display:flex;flex-direction:column;gap:9px}',
-    '.rm-tenets li{position:relative;padding-left:22px;font-size:.78rem;line-height:1.7;',
+    /* ── 外の2カラム。左が図、右が「送る」と「みんなの声」───────
+       ★メディアクエリで切らない。この段の左右にサイドバーが有るか無いかで
+         使える幅が変わる（1000px でサイドバーが畳まれて逆に広くなる）ので、
+         画面幅で分けると 1001px だけ極端に細い2列になる。
+         flex-basis で書けば、どんな幅でも正しい側に倒れる。 */
+    '.rm-grid>.rm-l{flex:2 1 560px}',
+    '.rm-grid>.rm-r{flex:1 1 320px}',
+    '.rm-row{display:flex;flex-wrap:wrap;gap:16px;align-items:stretch}',
+    '.rm-row>*{min-width:0}',
+    '.rm-row>.rm-hero{flex:1.7 1 320px}',
+    '.rm-row>.rm-prog{flex:1 1 210px}',
+    '.rm-row>.rm-growth{flex:1.35 1 300px}',
+    '.rm-row>.rm-want{flex:1 1 250px}',
+    '.rm-row>.rm-tasks{flex:1.45 1 300px}',
+    '.rm-row>.rm-ship-c{flex:1 1 250px}',
+
+    /* ── Mission / Vision（紺のカード。ここに置く文は2つだけ）──── */
+    '.rm-hero{display:flex;flex-direction:column;justify-content:center;gap:16px}',
+    '.rm-eyebrow{display:block;font-size:.66rem;font-weight:800;letter-spacing:.16em;',
+    '  color:var(--pv-ink-3)}',
+    '.rm-mission{margin-top:7px;font-size:clamp(1.1rem,2.3vw,1.36rem);font-weight:800;',
+    '  letter-spacing:-.03em;line-height:1.5;color:var(--pv-ink)}',
+    '.rm-vision{margin-top:7px;font-size:clamp(.78rem,1.4vw,.85rem);font-weight:600;',
+    '  line-height:1.7;color:var(--pv-ink-2)}',
+    '.rm-mv-2{padding-top:15px;border-top:1px solid var(--pv-line)}',
+
+    /* ── 現在地のリング ───────────────────────────────── */
+    '.rm-prog{display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px}',
+    '.rm-cnt-k{display:block;font-size:.69rem;font-weight:700;letter-spacing:.02em;',
+    '  color:var(--pv-ink-3);line-height:1.5}',
+    '.rm-ring{margin-top:10px;line-height:0}',
+    '.rm-ring-s{display:block}',
+    '.rm-ring-v{font-size:26px;font-weight:900;letter-spacing:-.03em;fill:var(--pv-ink);',
+    '  font-variant-numeric:tabular-nums}',
+    '.rm-ring-p{font-size:10px;font-weight:800;letter-spacing:.04em;fill:var(--pv-ink-3)}',
+    '.rm-next{margin-top:12px;font-size:.72rem;font-weight:700;line-height:1.6;',
     '  color:var(--pv-ink-2)}',
-    '.rm-tenets li::before{content:"";position:absolute;left:2px;top:.62em;width:7px;height:7px;',
-    '  border-radius:999px;background:var(--pv-orange)}',
+    '.rm-next b{display:block;margin-top:3px;font-weight:800;color:var(--pv-orange-ink);',
+    '  font-variant-numeric:tabular-nums}',
+    '.rm-cnt-n{display:block;margin-top:9px;font-size:.65rem;line-height:1.6;color:var(--pv-ink-3)}',
 
-    '.rm-cnt-k{display:block;font-size:.71rem;font-weight:700;letter-spacing:.05em;',
-    '  text-transform:uppercase;color:var(--pv-ink-3);line-height:1.5}',
-    '.rm-cnt-v{display:block;margin-top:8px;font-size:clamp(2rem,6vw,2.7rem);font-weight:900;',
-    '  letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums;color:var(--pv-ink)}',
-    '.rm-cnt-n{display:block;margin-top:9px;font-size:.7rem;line-height:1.6;color:var(--pv-ink-3)}',
-    '.rm-next{display:flex;align-items:baseline;justify-content:space-between;gap:10px;',
-    '  flex-wrap:wrap;margin-top:16px;font-size:.74rem;font-weight:700;color:var(--pv-ink-2)}',
-    '.rm-next b{font-weight:800;color:var(--pv-orange-ink);font-variant-numeric:tabular-nums}',
-    '.rm-bar{display:flex;height:10px;border-radius:999px;overflow:hidden;margin-top:9px;',
-    '  background:var(--pv-line-soft)}',
-    '.rm-bar i{display:block;height:100%;background:var(--pv-orange);border-radius:999px}',
+    /* ── 折れ線 ────────────────────────────────────────
+       ★--pt-dot は pay-viz.js が「通過点」の抜き色に使う。カードの地の色を
+         渡す約束（既定は白 or 黒）。渡さないとライトの紺以外で点が浮く。 */
+    '.rm-growth{--pt-dot:var(--pv-surface)}',
+    '.rm-chart{min-height:134px}',
 
-    '.rm-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}',
-    /* ★見出しの折り返しは行の高さを変える。「コミュニティ要望」も
-       'Community requests' も 390px では2行に折れ、3枚のうち1枚だけ数字が
-       1行ぶん下へずれる。狭いときは先に2行ぶんの高さを取って高さを揃える
-       （.mr-kpi-k は line-height:1.4 なので2行＝2.8em）。 */
-    '@media(max-width:560px){.rm-kpis .mr-kpi-k{min-height:2.8em}}',
-    '.rm-kpi-v{font-variant-numeric:tabular-nums}',
-    '.rm-kpi-r{display:inline-block;margin-top:6px;padding:0;border:0;background:none;',
-    '  font:inherit;font-size:.66rem;font-weight:700;color:var(--pv-orange-ink);',
-    '  cursor:pointer;text-decoration:underline;text-underline-offset:3px}',
-    '.rm-kpi-r:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}',
+    /* ── 要望の人気（横棒）──────────────────────────────
+       ★縦棒にしない。日本語の要望文は縦棒の下で2〜3行に折れ、390px で必ず崩れる。 */
+    '.rm-wbars{list-style:none;display:flex;flex-direction:column;gap:9px}',
+    '.rm-wbars li{min-width:0}',
+    '.rm-wr{display:flex;align-items:baseline;gap:8px}',
+    '.rm-wt{flex:1 1 auto;min-width:0;font-size:.73rem;font-weight:600;line-height:1.5;',
+    '  color:var(--pv-ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+    '.rm-wn{flex:none;font-size:.72rem;font-weight:800;color:var(--pv-orange-ink);',
+    '  font-variant-numeric:tabular-nums}',
+    '.rm-wb{display:block;height:6px;margin-top:5px;border-radius:999px;',
+    '  background:var(--pv-line-soft);overflow:hidden}',
+    '.rm-wb i{display:block;height:100%;border-radius:999px;background:var(--pv-orange)}',
 
-    '.rm-why{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}',
-    '@container (max-width:640px){.rm-why{grid-template-columns:1fr}}',
-    '.rm-why-c{padding:16px;border-radius:var(--pv-r);background:var(--pv-surface-2);',
-    '  border:1px solid var(--pv-line-soft)}',
-    '.rm-why-c b{display:block;font-size:.83rem;font-weight:800;letter-spacing:-.015em;line-height:1.5}',
-    '.rm-why-c span{display:block;margin-top:8px;font-size:.75rem;line-height:1.8;color:var(--pv-ink-2)}',
-
-    /* 目標の段は5つ。my-value.css の .mr-ml-g は4列なので、ここだけ上書きする。
-       ★狭いときの折り返しも自分で書く。my-value.css:806 の
-       @media(max-width:420px){.mr-ml-g{…2列…}} は詳細度が 0,1,0 で、
-       こちらの .rm-ml5 .mr-ml-g（0,2,0）に負ける＝メディアクエリの中でも
-       5列のまま残り、390px で段の文字が1文字ずつ縦に割れる。 */
-    '.rm-ml5 .mr-ml-g{grid-template-columns:repeat(5,minmax(0,1fr))}',
-    '@media(max-width:640px){.rm-ml5 .mr-ml-g{grid-template-columns:repeat(3,minmax(0,1fr))}}',
-    '@media(max-width:420px){.rm-ml5 .mr-ml-g{grid-template-columns:repeat(2,minmax(0,1fr))}}',
-    '.rm-ml5 .mr-ml-g li{display:flex;flex-direction:column;gap:4px;padding:11px 6px}',
-    '.rm-ml5 .mr-ml-g li span{font-size:.63rem;font-weight:600;line-height:1.4;',
-    '  color:var(--pv-ink-3);white-space:normal}',
-    '.rm-ml5 .mr-ml-g li.is-on span{color:inherit;opacity:.9}',
-    '.rm-ml5 .mr-ml-g li.is-next span{color:var(--pv-ink-2)}',
-    '.rm-ml-d{margin-top:12px;font-size:.75rem;line-height:1.8;color:var(--pv-ink-2)}',
+    /* ── 目標の段（横一列のレール）───────────────────────
+       ★到達は色だけで伝えない。丸の塗り＋数字の前の ✓ ＋色の3つで示す。 */
+    '.rm-rail{list-style:none;display:flex;gap:0;margin-top:2px}',
+    '.rm-rail li{flex:1 1 0;min-width:0;position:relative;padding:24px 3px 0;text-align:center}',
+    '.rm-rail li::before{content:"";position:absolute;left:0;right:0;top:7px;height:2px;',
+    '  background:var(--pv-line)}',
+    '.rm-rail li:first-child::before{left:50%}',
+    '.rm-rail li:last-child::before{right:50%}',
+    '.rm-rail li.is-on::before{background:var(--pv-orange)}',
+    '.rm-rail .rm-dot{position:absolute;left:50%;top:0;width:16px;height:16px;margin-left:-8px;',
+    '  border-radius:999px;border:2px solid var(--pv-line);background:var(--pv-surface)}',
+    '.rm-rail li.is-on .rm-dot{border-color:var(--pv-orange);background:var(--pv-orange)}',
+    '.rm-rail li.is-next .rm-dot{border-color:var(--pv-orange);border-width:3px}',
+    '.rm-rail li b{display:block;font-size:.72rem;font-weight:800;line-height:1.4;',
+    '  color:var(--pv-ink-3);font-variant-numeric:tabular-nums}',
+    '.rm-rail li.is-on b{color:var(--pv-orange-ink)}',
+    '.rm-rail li.is-next b{color:var(--pv-ink)}',
+    '.rm-rail li span{display:block;margin-top:3px;font-size:.62rem;font-weight:600;',
+    '  line-height:1.45;color:var(--pv-ink-3)}',
+    '.rm-rail li.is-next span{color:var(--pv-ink-2)}',
+    '@media(max-width:560px){.rm-rail li b{font-size:.66rem}',
+    '  .rm-rail li span{font-size:.55rem}}',
+    '.rm-ml-d{margin-top:11px;font-size:.72rem;line-height:1.7;color:var(--pv-ink-2)}',
 
     /* 状態の札。★色だけで区別しない。記号＋語＋色の3つで区別する。 */
     '.rm-tag{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;',
-    '  font-size:.68rem;font-weight:800;white-space:nowrap;border:1px solid transparent}',
+    '  font-size:.66rem;font-weight:800;white-space:nowrap;border:1px solid transparent}',
     '.rm-tag.is-done{background:var(--pv-green-soft);color:var(--pv-green-ink);',
     '  border-color:var(--pv-green-line)}',
     '.rm-tag.is-building{background:var(--pv-orange-soft);color:var(--pv-orange-ink);',
@@ -319,28 +372,30 @@
     '.rm-tag.is-declined{background:var(--pv-line-soft);color:var(--pv-ink-3);',
     '  border-color:var(--pv-line);text-decoration:line-through}',
 
-    '.rm-list{list-style:none;display:flex;flex-direction:column;gap:10px}',
-    '.rm-task{padding:14px 16px;border-radius:var(--pv-r);background:var(--pv-surface-2);',
-    '  border:1px solid var(--pv-line-soft)}',
-    '.rm-task.is-building{border-color:var(--pv-orange);background:var(--pv-orange-soft)}',
-    '.rm-task-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap}',
-    '.rm-task-t{font-size:.83rem;font-weight:800;letter-spacing:-.015em;line-height:1.5;',
+    /* ── 運営が進めていること（札を左、題名と1行の説明を右）──── */
+    '.rm-list{list-style:none;display:flex;flex-direction:column;gap:9px}',
+    '.rm-task{display:flex;gap:10px;align-items:flex-start}',
+    '.rm-task .rm-tag{flex:none;margin-top:1px}',
+    '.rm-task-b{flex:1 1 auto;min-width:0}',
+    '.rm-task-t{font-size:.79rem;font-weight:800;letter-spacing:-.015em;line-height:1.5;',
     '  color:var(--pv-ink)}',
-    '.rm-task-d{margin-top:7px;font-size:.74rem;line-height:1.8;color:var(--pv-ink-2)}',
-    '.rm-chipc{display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;',
-    '  background:var(--pv-gold-soft);color:var(--pv-gold-ink);border:1px solid var(--pv-gold-line);',
-    '  font-size:.66rem;font-weight:800;white-space:nowrap}',
+    '.rm-task-d{margin-top:2px;font-size:.69rem;line-height:1.6;color:var(--pv-ink-3)}',
+    '.rm-chipc{display:inline-flex;align-items:center;margin-left:6px;padding:2px 7px;',
+    '  border-radius:999px;background:var(--pv-gold-soft);color:var(--pv-gold-ink);',
+    '  border:1px solid var(--pv-gold-line);font-size:.62rem;font-weight:800;white-space:nowrap}',
 
     '.rm-ship{list-style:none;display:flex;flex-direction:column;gap:0}',
-    '.rm-ship li{display:flex;gap:12px;padding:11px 0;border-top:1px solid var(--pv-line-soft)}',
+    '.rm-ship li{display:flex;gap:10px;padding:7px 0;border-top:1px solid var(--pv-line-soft)}',
     '.rm-ship li:first-child{border-top:0;padding-top:0}',
     /* ★日付の列は固定幅。auto にすると行ごとに幅が変わって題名の左端が揃わない。
        日英とも 5.6em に収まる形（「2026年9月」/「Sep 2026」）で書くこと ── T.ym を
        長い月名に戻すと、ここは何も言わずに2行へ折れる。 */
-    '.rm-ship .ymd{flex:none;width:5.6em;font-size:.68rem;font-weight:700;line-height:1.7;',
+    '.rm-ship .ymd{flex:none;width:5.6em;font-size:.67rem;font-weight:700;line-height:1.7;',
     '  color:var(--pv-ink-3);font-variant-numeric:tabular-nums}',
-    '.rm-ship .t{flex:1 1 auto;min-width:0;font-size:.76rem;font-weight:700;line-height:1.7;',
+    '.rm-ship .t{flex:1 1 auto;min-width:0;font-size:.74rem;font-weight:700;line-height:1.7;',
     '  color:var(--pv-ink)}',
+    '.rm-ship .ck{flex:none;color:var(--pv-green-ink);font-size:.72rem;font-weight:900;',
+    '  line-height:1.7}',
 
     '.rm-tabs{display:flex;gap:6px}',
     '.rm-tab{min-height:44px;padding:9px 14px;border-radius:999px;border:1px solid var(--pv-line);',
@@ -354,7 +409,7 @@
     '.rm-tab[aria-pressed="true"]{background:var(--pv-orange-soft);color:var(--pv-orange-ink);',
     '  border-color:var(--pv-orange)}',
 
-    '.rm-req{display:flex;gap:12px;padding:14px 16px;border-radius:var(--pv-r);',
+    '.rm-req{display:flex;gap:11px;padding:11px 12px;border-radius:var(--pv-r);',
     '  background:var(--pv-surface-2);border:1px solid var(--pv-line-soft)}',
     '.rm-req.is-new{border-color:var(--pv-orange);background:var(--pv-orange-soft)}',
     '.rm-req.is-hidden{opacity:.55}',
@@ -372,10 +427,20 @@
     '.rm-like svg{flex:none}',
     '.rm-like b{font-size:.72rem;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}',
     '.rm-req-b{flex:1 1 auto;min-width:0}',
-    '.rm-req-t{font-size:.79rem;line-height:1.85;color:var(--pv-ink);',
-    '  overflow-wrap:anywhere;white-space:pre-wrap}',
-    '.rm-req-m{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:9px}',
-    '.rm-req-m .ymd{font-size:.67rem;font-weight:600;color:var(--pv-ink-3)}',
+    /* ★長い要望で右カラムが縦に伸びないよう3行で畳む。全文は下のボタンで開く
+       （切り捨てない。500文字まで書けると約束している以上、読めなくしない）。 */
+    '.rm-req-t{font-size:.75rem;line-height:1.75;color:var(--pv-ink);',
+    '  overflow-wrap:anywhere;white-space:pre-wrap;overflow:hidden;',
+    '  display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}',
+    '.rm-req-t.is-open{display:block;overflow:visible}',
+    '.rm-open{margin-top:5px;padding:2px 0;border:0;background:none;font:inherit;',
+    '  font-size:.67rem;font-weight:700;color:var(--pv-orange-ink);cursor:pointer;',
+    '  text-decoration:underline;text-underline-offset:3px}',
+    '.rm-open:hover{color:var(--pv-ink)}',
+    '.rm-open:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}',
+    '.rm-open:active{opacity:.7}',
+    '.rm-req-m{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:7px}',
+    '.rm-req-m .ymd{font-size:.65rem;font-weight:600;color:var(--pv-ink-3)}',
 
     '.rm-admin{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:10px;',
     '  padding-top:9px;border-top:1px dashed var(--pv-line)}',
@@ -390,43 +455,51 @@
     '.rm-admin button:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}',
     '.rm-admin select:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}',
 
-    '.rm-empty{padding:22px 16px;border-radius:var(--pv-r);background:var(--pv-surface-2);',
-    '  border:1px dashed var(--pv-line);font-size:.77rem;line-height:1.8;color:var(--pv-ink-2);',
+    '.rm-empty{padding:18px 14px;border-radius:var(--pv-r);background:var(--pv-surface-2);',
+    '  border:1px dashed var(--pv-line);font-size:.74rem;line-height:1.75;color:var(--pv-ink-2);',
     '  text-align:center}',
+    /* 取れなかったときの読み直し。★ここに 0 を書かない（本当に0件だと読める）。 */
+    '.rm-retry{display:inline-block;margin-top:6px;padding:0;border:0;background:none;',
+    '  font:inherit;font-size:.68rem;font-weight:700;color:var(--pv-orange-ink);',
+    '  cursor:pointer;text-decoration:underline;text-underline-offset:3px}',
+    '.rm-retry:hover{color:var(--pv-ink)}',
+    '.rm-retry:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}',
+    '.rm-retry:active{opacity:.7}',
     '.rm-more-btn{display:block;width:100%;min-height:44px;margin-top:12px;padding:11px 16px;',
     '  border-radius:var(--pv-r-sm);border:1px solid var(--pv-line);background:var(--pv-surface);',
     '  color:var(--pv-ink-2);font:inherit;font-size:.76rem;font-weight:700;cursor:pointer;',
     '  transition:background-color .18s var(--pv-ease),color .18s var(--pv-ease)}',
     '.rm-more-btn:hover{background:var(--pv-line-soft);color:var(--pv-ink)}',
     '.rm-more-btn:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}',
+    '.rm-more-btn:active{background:var(--pv-line)}',
 
     '.rm-live{margin-top:16px;font-size:.75rem;line-height:1.7;color:var(--pv-orange-ink);',
     '  min-height:1.2em}',
-    '.rm-note{margin-top:12px;font-size:.68rem;line-height:1.8;color:var(--pv-ink-3)}',
+    '.rm-note{margin-top:10px;font-size:.66rem;line-height:1.7;color:var(--pv-ink-3)}',
 
     /* 送信フォーム。iOS が拡大しないよう入力欄は 16px を切らない。 */
-    '.rm-f-l{display:block;font-size:.76rem;font-weight:700;color:var(--pv-ink-2);line-height:1.6}',
-    '.rm-f-t{display:block;width:100%;margin-top:8px;padding:12px 13px;border-radius:var(--pv-r-sm);',
+    '.rm-f-l{display:block;font-size:.75rem;font-weight:700;color:var(--pv-ink-2);line-height:1.6}',
+    '.rm-f-t{display:block;width:100%;margin-top:8px;padding:11px 12px;border-radius:var(--pv-r-sm);',
     '  border:1px solid var(--pv-line);background:var(--pv-surface-2);color:var(--pv-ink);',
-    '  font:inherit;font-size:16px;line-height:1.8;min-height:132px;resize:vertical}',
+    '  font:inherit;font-size:16px;line-height:1.7;min-height:84px;resize:vertical}',
     '.rm-f-t:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}',
-    '.rm-f-s{display:block;width:100%;margin-top:8px;padding:11px 12px;border-radius:var(--pv-r-sm);',
+    '.rm-f-s{display:block;width:100%;margin-top:8px;padding:10px 12px;border-radius:var(--pv-r-sm);',
     '  border:1px solid var(--pv-line);background:var(--pv-surface-2);color:var(--pv-ink);',
     '  font:inherit;font-size:16px}',
     '.rm-f-s:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}',
     '.rm-f-r{display:flex;align-items:center;justify-content:space-between;gap:10px;',
-    '  flex-wrap:wrap;margin-top:14px}',
+    '  flex-wrap:wrap;margin-top:13px}',
     '.rm-f-c{font-size:.7rem;font-weight:700;color:var(--pv-ink-3);font-variant-numeric:tabular-nums}',
     '.rm-f-c.is-over{color:var(--pv-orange-ink)}',
-    '.rm-f-b{min-height:44px;padding:12px 22px;border-radius:999px;border:0;',
-    '  background:var(--pv-orange);color:var(--pv-bg);font:inherit;font-size:.8rem;',
+    '.rm-f-b{min-height:44px;padding:12px 20px;border-radius:999px;border:0;',
+    '  background:var(--pv-orange);color:var(--pv-bg);font:inherit;font-size:.78rem;',
     '  font-weight:800;letter-spacing:-.01em;cursor:pointer;',
     '  transition:opacity .18s var(--pv-ease),transform .18s var(--pv-ease)}',
     '.rm-f-b:hover{opacity:.9}',
     '.rm-f-b:focus-visible{outline:2px solid var(--pv-orange);outline-offset:3px}',
     '.rm-f-b:active{transform:scale(.97)}',
     '.rm-f-b[disabled]{opacity:.55;cursor:default;transform:none}',
-    '.rm-f-msg{margin-top:12px;font-size:.75rem;line-height:1.8;color:var(--pv-orange-ink)}',
+    '.rm-f-msg{margin-top:11px;font-size:.74rem;line-height:1.75;color:var(--pv-orange-ink)}',
     '.rm-f-msg.is-ok{color:var(--pv-green-ink)}',
 
     '@media(prefers-reduced-motion:reduce){',
@@ -443,71 +516,80 @@
 
   // ══ 設定から描く（通信を待たない）══════════════════════════
   function heroHTML() {
-    var tenets = (CFG.tenets || []).map(function (t) {
-      return '<li>' + esc(t[LANG] || '') + '</li>';
-    }).join('');
-    return '<section class="mr-card is-hero">' +
-      '<div class="rm-hero-in">' +
-        '<div class="rm-hero-l">' +
-          '<span class="rm-eyebrow">' + esc(T.eyebrow) + '</span>' +
-          '<h2 class="rm-mission">' + esc(T.mission) + '</h2>' +
-          '<p class="rm-lede">' + esc(T.missionBody) + '</p>' +
-          '<span class="rm-built">' + esc(T.builtWith) + '</span>' +
-          '<ul class="rm-tenets">' + tenets + '</ul>' +
-        '</div>' +
-        '<div class="rm-hero-r" id="rm-count">' +
-          '<span class="rm-cnt-k">' + esc(T.countK) + '</span>' +
-          '<span class="rm-cnt-v" id="rm-count-v">' + esc(T.countPending) + '</span>' +
-          '<span class="rm-cnt-n">' + esc(T.countNote) + '</span>' +
-          '<div id="rm-count-next"></div>' +
-        '</div>' +
+    var m = CFG.mission || {}, v = CFG.vision || {};
+    return '<section class="mr-card is-hero rm-hero">' +
+      '<div>' +
+        '<span class="rm-eyebrow">' + esc(T.missionK) + '</span>' +
+        '<p class="rm-mission">' + esc(m[LANG] || '') + '</p>' +
+      '</div>' +
+      '<div class="rm-mv-2">' +
+        '<span class="rm-eyebrow">' + esc(T.visionK) + '</span>' +
+        '<p class="rm-vision">' + esc(v[LANG] || '') + '</p>' +
       '</div>' +
     '</section>';
   }
 
-  function kpiHTML() {
-    var done = tasksBy('done').length;
-    var bld  = tasksBy('building').length;
-    function cell(k, v, id) {
-      return '<div class="mr-kpi"><span class="mr-kpi-k">' + esc(k) + '</span>' +
-             '<span class="mr-kpi-v rm-kpi-v"' + (id ? ' id="' + id + '"' : '') + '>' +
-             esc(v) + '</span></div>';
-    }
-    return '<section class="mr-card"><div class="mr-kpis rm-kpis">' +
-      cell(T.kpiDone, fmt(done) + T.kpiUnit) +
-      cell(T.kpiBuilding, fmt(bld) + T.kpiUnit) +
-      '<div class="mr-kpi"><span class="mr-kpi-k">' + esc(T.kpiReq) + '</span>' +
-        '<span class="mr-kpi-v rm-kpi-v" id="rm-kpi-req">' + esc(T.unknown) + '</span>' +
-        '<span id="rm-kpi-req-r"></span></div>' +
-    '</div></section>';
+  /* 現在地のリング。★人数が来るまでは輪だけ（0% を描いて埋めない）。 */
+  function ringHTML(n, goal) {
+    var R = 33, C = 2 * Math.PI * R;
+    var has = (typeof n === 'number') && (typeof goal === 'number') && goal > 0;
+    var pct = has ? Math.max(0, Math.min(100, n / goal * 100)) : 0;
+    var on = C * pct / 100;
+    var mid = has ? fmt(n) : '…';
+    return '<svg class="rm-ring-s" viewBox="0 0 86 86" width="86" height="86" role="img" ' +
+      'aria-label="' + esc(has ? T.barLabel(fmt(n), fmt(goal)) : T.countPending) + '">' +
+      '<circle cx="43" cy="43" r="' + R + '" fill="none" stroke-width="8" ' +
+        'style="stroke:var(--pv-line-soft)"/>' +
+      (has ? '<circle cx="43" cy="43" r="' + R + '" fill="none" stroke-width="8" ' +
+        'stroke-linecap="round" transform="rotate(-90 43 43)" ' +
+        'stroke-dasharray="' + on.toFixed(1) + ' ' + (C - on).toFixed(1) + '" ' +
+        'style="stroke:var(--pv-orange)"/>' : '') +
+      '<text class="rm-ring-v" x="43" y="' + (has ? 40 : 43) + '" text-anchor="middle" ' +
+        'dominant-baseline="central">' + esc(mid) + '</text>' +
+      (has ? '<text class="rm-ring-p" x="43" y="56" text-anchor="middle" ' +
+        'dominant-baseline="central">' + esc(Math.round(pct) + '%') + '</text>' : '') +
+    '</svg>';
   }
 
-  function whyHTML() {
-    var cards = (CFG.why || []).map(function (c) {
-      var v = txt(c);
-      return '<div class="rm-why-c"><b>' + esc(v.t || '') + '</b>' +
-             '<span>' + esc(v.d || '') + '</span></div>';
-    }).join('');
-    if (!cards) return '';
-    return '<section class="mr-card">' +
-      '<div class="mr-card-h"><h2 class="mr-card-t">' + esc(T.whyH) + '</h2></div>' +
-      '<div class="rm-why">' + cards + '</div></section>';
+  function progHTML() {
+    return '<section class="mr-card rm-prog">' +
+      '<span class="rm-cnt-k">' + esc(T.countK) + '</span>' +
+      '<div class="rm-ring" id="rm-ring">' + ringHTML(null, null) + '</div>' +
+      '<div id="rm-count-next"></div>' +
+      '<span class="rm-cnt-n">' + esc(T.countNote) + '</span>' +
+    '</section>';
+  }
+
+  function growthHTML() {
+    return '<section class="mr-card rm-growth">' +
+      '<div class="mr-card-h"><h2 class="mr-card-t">' + esc(T.growthH) + '</h2>' +
+      '<span class="mr-card-s">' + esc(T.growthS) + '</span></div>' +
+      '<div class="rm-chart" id="rm-chart">' +
+        '<div class="mr-skel" style="height:134px"></div></div>' +
+    '</section>';
+  }
+
+  function wantHTML() {
+    return '<section class="mr-card rm-want">' +
+      '<div class="mr-card-h"><h2 class="mr-card-t">' + esc(T.wantH) + '</h2>' +
+      '<span class="mr-card-s">' + esc(T.wantS) + '</span></div>' +
+      '<div id="rm-want"><div class="mr-skel" style="height:150px"></div></div>' +
+    '</section>';
   }
 
   /* 目標の段。★現在地はサーバの人数が来てから入れる（0 を置いて埋めない）。 */
-  function mlHTML() {
+  function railHTML() {
     var lis = MILE.map(function (g) {
-      var goal = findGoal(g), v = txt(goal || {});
-      return '<li data-rm-goal="' + g + '"><b>' + fmt(g) + '</b>' +
-             '<span>' + esc(v.t || '') + '</span></li>';
+      var v = txt(findGoal(g) || {});
+      return '<li data-rm-goal="' + g + '">' +
+        '<i class="rm-dot" aria-hidden="true"></i>' +
+        '<b>' + fmt(g) + '</b><span>' + esc(v.t || '') + '</span></li>';
     }).join('');
     return '<section class="mr-card">' +
-      '<div class="mr-card-h"><h2 class="mr-card-t">' + esc(T.mlH) + '</h2></div>' +
-      '<div class="mr-ml rm-ml5" style="margin-top:0">' +
-        '<ol class="mr-ml-g" id="rm-ml-g" style="margin-top:0">' + lis + '</ol>' +
-        '<p class="rm-ml-d" id="rm-ml-d"></p>' +
-      '</div>' +
-      '<p class="rm-note">' + esc(T.mlNote) + '</p>' +
+      '<div class="mr-card-h"><h2 class="mr-card-t">' + esc(T.mlH) + '</h2>' +
+      '<span class="mr-card-s">' + esc(T.mlNote) + '</span></div>' +
+      '<ol class="rm-rail" id="rm-ml-g">' + lis + '</ol>' +
+      '<p class="rm-ml-d" id="rm-ml-d"></p>' +
     '</section>';
   }
 
@@ -516,15 +598,15 @@
     for (var i = 0; i < g.length; i++) if (g[i].n === n) return g[i];
     return null;
   }
-  function tasksBy(state) {
-    return (CFG.tasks || []).filter(function (t) { return t.state === state; });
+  function tasksBy(state2) {
+    return (CFG.tasks || []).filter(function (t) { return t.state === state2; });
   }
 
   var ORDER = { building: 0, planned: 1, considering: 2 };
   /* ★ ORDER[x] || 9 と書かない。building は 0 で falsy なので 9 に化け、
-     「上から順に、いま手が付いているもの」と書いてある見出しの真下で
      開発中が一番下に落ちる（画面は普通に出たまま並びだけ逆になる）。 */
   function rank(s) { return Object.prototype.hasOwnProperty.call(ORDER, s) ? ORDER[s] : 9; }
+
   function tasksHTML() {
     var live = (CFG.tasks || []).filter(function (t) { return t.state !== 'done'; })
       .sort(function (a, b) { return rank(a.state) - rank(b.state); });
@@ -532,20 +614,22 @@
       var v = txt(t), st = t.state;
       var lab = st === 'building' ? T.stBuilding : st === 'planned' ? T.stPlanned : T.stConsidering;
       var sym = st === 'building' ? '●' : st === 'planned' ? '○' : '?';
-      return '<li class="rm-task' + (st === 'building' ? ' is-building' : '') + '">' +
-        '<div class="rm-task-h">' +
-          '<span class="rm-tag is-' + st + '"><span aria-hidden="true">' + sym + '</span>' +
-          esc(lab) + '</span>' +
-          (t.community ? '<span class="rm-chipc">' + esc(T.fromCommunity) + '</span>' : '') +
+      return '<li class="rm-task">' +
+        '<span class="rm-tag is-' + st + '"><span aria-hidden="true">' + sym + '</span>' +
+        esc(lab) + '</span>' +
+        '<div class="rm-task-b">' +
+          '<p class="rm-task-t">' + esc(v.t || '') +
+          (t.community ? '<span class="rm-chipc">' + esc(T.fromCommunity) + '</span>' : '') + '</p>' +
+          (v.d ? '<p class="rm-task-d">' + esc(v.d) + '</p>' : '') +
         '</div>' +
-        '<p class="rm-task-t" style="margin-top:9px">' + esc(v.t || '') + '</p>' +
-        (v.d ? '<p class="rm-task-d">' + esc(v.d) + '</p>' : '') +
       '</li>';
     }).join('') + '</ul>' : '<p class="rm-empty">' + esc(T.shipEmpty) + '</p>';
 
-    return '<section class="mr-card">' +
+    return '<section class="mr-card rm-tasks">' +
       '<div class="mr-card-h"><h2 class="mr-card-t">' + esc(T.tasksH) + '</h2>' +
-      '<span class="mr-card-s">' + esc(T.tasksS) + '</span></div>' + body + '</section>';
+      '<span class="mr-card-s">' +
+        esc(T.tasksS(fmt(tasksBy('building').length), fmt(tasksBy('done').length))) +
+      '</span></div>' + body + '</section>';
   }
 
   function shipHTML() {
@@ -553,24 +637,32 @@
       return String(b.date || '').localeCompare(String(a.date || ''));
     });
     if (!done.length) {
-      return '<section class="mr-card">' +
+      return '<section class="mr-card rm-ship-c">' +
         '<div class="mr-card-h"><h2 class="mr-card-t">' + esc(T.shipH) + '</h2></div>' +
         '<p class="rm-empty">' + esc(T.shipEmpty) + '</p></section>';
     }
     function row(t) {
       var v = txt(t);
       return '<li><span class="ymd">' + esc(ym(t.date)) + '</span>' +
+             '<span class="ck" aria-hidden="true">✓</span>' +
              '<span class="t">' + esc(v.t || '') + '</span></li>';
     }
     var head = done.slice(0, 5).map(row).join('');
     var rest = done.slice(5);
-    return '<section class="mr-card">' +
+    return '<section class="mr-card rm-ship-c">' +
       '<div class="mr-card-h"><h2 class="mr-card-t">' + esc(T.shipH) + '</h2></div>' +
       '<ul class="rm-ship">' + head + '</ul>' +
       (rest.length ? '<details class="mr-more"><summary>' + esc(T.shipMore) + '</summary>' +
         '<ul class="rm-ship" style="margin-top:10px">' + rest.map(row).join('') + '</ul>' +
        '</details>' : '') +
     '</section>';
+  }
+
+  function leftHTML() {
+    return '<div class="rm-row">' + heroHTML() + progHTML() + '</div>' +
+           '<div class="rm-row">' + growthHTML() + wantHTML() + '</div>' +
+           railHTML() +
+           '<div class="rm-row">' + tasksHTML() + shipHTML() + '</div>';
   }
 
   // ══ 人数と段の現在地 ═══════════════════════════════════════
@@ -581,25 +673,19 @@
 
   /* 人数が届いたときだけ呼ぶ。★届かなければ「確認中」のまま。0 を置いて埋めない。 */
   function paintCount(n) {
-    var v = $('rm-count-v');
-    if (v) v.textContent = T.countUnit(fmt(n));
-
+    /* ★分母は「次の段」。累計分母にすると「あと77人」が画面の数字から
+       検算できなくなる（真下にレールが描いてあるので、段が上がって％が
+       戻って見えても読める）。 */
     var goal = nextMilestone(n);
+    var ring = $('rm-ring');
+    if (ring) ring.innerHTML = ringHTML(n, goal === null ? MILE[MILE.length - 1] : goal);
+
     var box = $('rm-count-next');
     if (box) {
-      if (goal === null) {
-        box.innerHTML = '<p class="rm-next"><span>' + esc(T.allDone) + '</span></p>';
-      } else {
-        /* ★分母は「次の段」。累計分母にすると「あと27人」が画面の数字から
-           検算できなくなる（真下に段が描いてあるので、段が上がって％が
-           戻って見えても読める）。 */
-        var pct = Math.max(0, Math.min(100, Math.round(n / goal * 100)));
-        box.innerHTML =
-          '<p class="rm-next"><span>' + esc(T.nextK(goal)) + '</span>' +
-          '<b>' + esc(T.nextLeft(goal - n)) + '</b></p>' +
-          '<div class="rm-bar" role="img" aria-label="' + esc(T.barLabel(fmt(n), fmt(goal))) + '">' +
-          '<i style="width:' + pct + '%"></i></div>';
-      }
+      box.innerHTML = (goal === null)
+        ? '<p class="rm-next"><span>' + esc(T.allDone) + '</span></p>'
+        : '<p class="rm-next"><span>' + esc(T.nextK(goal)) + '</span>' +
+          '<b>' + esc(T.nextLeft(goal - n)) + '</b></p>';
     }
 
     var g = $('rm-ml-g');
@@ -618,13 +704,97 @@
     }
   }
 
+  // ══ 折れ線 ═════════════════════════════════════════════════
+  /* サーバが返すのは [{d:'2026-08-10', n:12}, …] だけ（会社も職位も金額も来ない）。
+     ★数え方は pv_deep_contributors() と同じ実人物（2社に出した人も1人）。
+       proof_hash で数えると、右端の数字がリングの人数と食い違う。 */
+  function paintGrowth() {
+    var box = $('rm-chart');
+    if (!box || !w.PVViz || !state.growth) return;
+    var pts = state.growth.filter(function (r) { return r && typeof r.n === 'number' && r.n > 0; });
+    if (!pts.length) { growthError(); return; }
+    /* ★札は両端だけ。pay-viz.js の chart() は**全部の点**に <text> を描くので、
+       12週ぶん全部に日付を入れると重なって読めなくなる。 */
+    pts.forEach(function (r, i) { r.lab = (i === 0 || i === pts.length - 1) ? md(r.d) : ''; });
+    box.innerHTML = w.PVViz.chart(pts, null, {
+      width: w.PVViz.widthOf(box, box.parentNode),
+      valueAt: function (r) { return r.n; },
+      labelOf: function (r) { return r.lab || ''; },
+      h: 134,
+      color: ink('--pv-orange'),
+      fmtVal: function (x) { return T.countUnit(fmt(x)); },
+      aria: T.growthAria,
+      onePoint: T.growthOne,
+      noMetric: T.unknown
+    });
+  }
+
+  function growthError() {
+    var box = $('rm-chart');
+    if (!box) return;
+    box.innerHTML = '';
+    box.appendChild(retryP(T.growthErr, loadGrowth));
+  }
+
+  function loadGrowth() {
+    return rpc('pv_give_growth').then(function (v) {
+      if (!v || v.__err || !v.length) { growthError(); return; }
+      state.growth = v;
+      paintGrowth();
+    });
+  }
+
+  // ══ 要望の人気（横棒）═════════════════════════════════════
+  /* ★並べ替えのタブで作り直さない。人気順で1回だけ取った並びを持ち、
+     ♡ が動いたら数と幅だけ書き換える（棒が指の下で並び替わらない）。 */
+  function paintWant() {
+    var box = $('rm-want');
+    if (!box) return;
+    var top = state.top || [];
+    box.innerHTML = '';
+    if (!top.length) {
+      var e = d.createElement('p');
+      e.className = 'rm-empty';
+      e.textContent = T.listEmpty;
+      box.appendChild(e);
+      return;
+    }
+    var max = 0;
+    top.forEach(function (it) { if (it.like_count > max) max = it.like_count; });
+    var ul = d.createElement('ul');
+    ul.className = 'rm-wbars';
+    top.forEach(function (it) {
+      var li = d.createElement('li');
+      var r = d.createElement('div');
+      r.className = 'rm-wr';
+      var t = d.createElement('span');
+      t.className = 'rm-wt';
+      t.textContent = it.body || '';        // ★ここも textContent
+      var n = d.createElement('span');
+      n.className = 'rm-wn';
+      n.textContent = fmt(it.like_count);
+      r.appendChild(t);
+      r.appendChild(n);
+      var bar = d.createElement('span');
+      bar.className = 'rm-wb';
+      var i = d.createElement('i');
+      i.style.width = (max > 0 ? Math.max(5, Math.round(it.like_count / max * 100)) : 5) + '%';
+      bar.appendChild(i);
+      li.appendChild(r);
+      li.appendChild(bar);
+      ul.appendChild(li);
+    });
+    box.appendChild(ul);
+  }
+
   // ══ 要望の一覧 ═════════════════════════════════════════════
   var HEART =
     '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
     'stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
     '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1L12 21l7.7-7.6 1.1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>';
 
-  var state = { sort: 'popular', offset: 0, total: null, admin: false, items: [] };
+  var state = { sort: 'popular', offset: 0, total: null, admin: false,
+                items: [], top: null, growth: null };
 
   /* 1件ぶんの DOM を組む。
      ★本文だけは textContent。ここが崩れると要望欄が XSS の口になる。 */
@@ -648,6 +818,22 @@
     p.className = 'rm-req-t';
     p.textContent = it.body || '';        // ★ここ
     body.appendChild(p);
+
+    /* 長いものは3行で畳んである。★切り捨てない ── 開けば全文が読める。 */
+    if (String(it.body || '').length > 52) {
+      var tg = d.createElement('button');
+      tg.type = 'button';
+      tg.className = 'rm-open';
+      tg.textContent = T.openMore;
+      tg.setAttribute('aria-expanded', 'false');
+      tg.addEventListener('click', function () {
+        var on = !p.classList.contains('is-open');
+        p.classList.toggle('is-open', on);
+        tg.setAttribute('aria-expanded', on ? 'true' : 'false');
+        tg.textContent = on ? T.openLess : T.openMore;
+      });
+      body.appendChild(tg);
+    }
 
     var meta = d.createElement('div');
     meta.className = 'rm-req-m';
@@ -727,16 +913,14 @@
     if (more) {
       var left = (state.total || 0) - state.items.length;
       more.style.display = left > 0 ? 'block' : 'none';
-      more.textContent = T.listMore + (left > 0 ? '（' + fmt(left) + '）' : '');
-      if (LANG === 'en') more.textContent = T.listMore + (left > 0 ? ' (' + fmt(left) + ')' : '');
+      more.textContent = T.listMore + (left > 0
+        ? (LANG === 'en' ? ' (' + fmt(left) + ')' : '（' + fmt(left) + '）') : '');
     }
-    var cnt = $('rm-list-n');
-    if (cnt && state.total !== null) cnt.textContent = T.listS(state.total);
   }
 
   function paintTotal() {
-    var k = $('rm-kpi-req');
-    if (k) k.textContent = (state.total === null) ? T.unknown : fmt(state.total) + T.kpiUnit;
+    var k = $('rm-list-n');
+    if (k) k.textContent = (state.total === null) ? T.unknown : T.listS(state.total);
   }
 
   // ══ 通信 ═══════════════════════════════════════════════════
@@ -765,7 +949,7 @@
       if (!v || v.__err || typeof v.contributors !== 'number') return;
       paintCount(v.contributors);
       /* ★左メニューの DEEP PAY にも同じ数を渡す。渡さないと、あちらが
-         押されたときにもう一度同じ RPC を投げ、しかもヒーローと違う数を
+         押されたときにもう一度同じ RPC を投げ、しかもリングと違う数を
          出しうる（間に投稿があれば実際に食い違う）。 */
       if (w.PVGates && typeof w.PVGates.setProgress === 'function') {
         w.PVGates.setProgress({
@@ -779,8 +963,8 @@
   function loadList(append) {
     var ul = $('rm-req-list');
     if (!append && ul) {
-      ul.innerHTML = '<div class="mr-skel" style="height:78px"></div>'
-                   + '<div class="mr-skel" style="height:78px;margin-top:10px"></div>';
+      ul.innerHTML = '<div class="mr-skel" style="height:74px"></div>'
+                   + '<div class="mr-skel" style="height:74px;margin-top:10px"></div>';
     }
     return rpc('pv_requests_list',
                { p_sort: state.sort, p_limit: PAGE, p_offset: append ? state.offset : 0 })
@@ -792,36 +976,38 @@
         state.total  = (typeof v.total === 'number') ? v.total : state.total;
         state.items  = append ? state.items.concat(v.items) : v.items.slice();
         state.offset = state.items.length;
+        /* 横棒は「人気順で最初に取った並び」だけを持つ。
+           ★新着順に切り替えたときに作り直さない（人気の棒ではなくなる）。 */
+        if (!append && state.sort === 'popular') {
+          state.top = state.items.slice(0, TOPN);
+          paintWant();
+        }
         paintTotal();
         paintList();
       });
   }
 
-  function listError() {
-    var ul = $('rm-req-list');
-    if (!ul) return;
-    ul.innerHTML = '';
+  /* 取れなかったときは「—」と読み直し。★0 と書かない（本当に0件だと読める）。 */
+  function retryP(msg, again) {
     var p = d.createElement('p');
     p.className = 'rm-empty';
-    p.textContent = T.listErr + ' ';
+    p.textContent = T.unknown + ' ' + msg + ' ';
     var b = d.createElement('button');
     b.type = 'button';
-    b.className = 'rm-kpi-r';
+    b.className = 'rm-retry';
     b.textContent = T.retry;
-    b.addEventListener('click', function () { state.offset = 0; loadList(false); });
+    b.addEventListener('click', again);
     p.appendChild(b);
-    ul.appendChild(p);
+    return p;
+  }
 
-    /* KPI も「0件」ではなく「—」＋読み直し。0 と書くと本当に0件だと読める。 */
-    var slot = $('rm-kpi-req-r');
-    if (slot && !slot.firstChild) {
-      var r = d.createElement('button');
-      r.type = 'button';
-      r.className = 'rm-kpi-r';
-      r.textContent = T.retry;
-      r.addEventListener('click', function () { state.offset = 0; loadList(false); });
-      slot.appendChild(r);
-    }
+  function listError() {
+    var again = function () { state.offset = 0; loadList(false); };
+    var ul = $('rm-req-list');
+    if (ul) { ul.innerHTML = ''; ul.appendChild(retryP(T.listErr, again)); }
+    var wb = $('rm-want');
+    if (wb && !state.top) { wb.innerHTML = ''; wb.appendChild(retryP(T.listErr, again)); }
+    paintTotal();
   }
 
   // ══ ♡ ═════════════════════════════════════════════════════
@@ -858,6 +1044,19 @@
     if (b) b.textContent = fmt(n);
     btn.setAttribute('aria-pressed', on ? 'true' : 'false');
     btn.setAttribute('aria-label', T.likeLabel(n, on));
+    syncWant(it);
+  }
+
+  /* 横棒に同じ要望が出ていたら、数と幅も同じ値にする。
+     ★棒の並びは変えない（人気順で並べ直すと読んでいる棒が動く）。 */
+  function syncWant(it) {
+    var top = state.top;
+    if (!top) return;
+    var hit = false;
+    for (var i = 0; i < top.length; i++) {
+      if (top[i].id === it.id) { top[i].like_count = it.like_count; hit = true; }
+    }
+    if (hit) paintWant();
   }
 
   // ══ 管理者の操作 ═══════════════════════════════════════════
@@ -965,28 +1164,33 @@
     });
   }
 
+  /* 折れ線だけは実寸で組んである（viewBox を伸縮させると文字まで拡大縮小されて
+     スマホで読めなくなる）。幅が変わったら組み直す。 */
+  function wireResize() {
+    var tid = 0, last = 0;
+    w.addEventListener('resize', function () {
+      var box = $('rm-chart');
+      if (!box || !state.growth) return;
+      if (box.clientWidth === last) return;
+      last = box.clientWidth;
+      w.clearTimeout(tid);
+      tid = w.setTimeout(paintGrowth, 180);
+    });
+  }
+
   // ══ 起動 ═══════════════════════════════════════════════════
   function boot() {
-    var top = $('rm-top');
-    if (top) top.innerHTML = heroHTML() + kpiHTML() + whyHTML() + mlHTML();
-    var tk = $('rm-tasks');
-    if (tk) tk.innerHTML = tasksHTML();
-    var sp = $('rm-ship');
-    if (sp) sp.innerHTML = shipHTML();
+    var L = $('rm-left');
+    if (L) L.innerHTML = leftHTML();
 
     /* 匿名の説明。★「運営にも誰かわからない」とは書かない
        （ハッシュは運営側で照合できる＝実装と食い違う文言は書かない）。 */
     var pv = $('rm-privacy');
-    if (pv) { pv.textContent = T.privacy; 
-      var pv2 = d.createElement('span');
-      pv2.style.display = 'block';
-      pv2.style.marginTop = '6px';
-      pv2.textContent = T.privacy2;
-      pv.appendChild(pv2);
-    }
+    if (pv) pv.textContent = T.privacy;
 
     wireForm();
     wireTabs();
+    wireResize();
 
     var ul = $('rm-req-list');
     if (ul) ul.addEventListener('click', function (ev) {
@@ -997,6 +1201,7 @@
     if (more) more.addEventListener('click', function () { loadList(true); });
 
     loadCount();
+    loadGrowth();
     /* 管理者かどうかを先に確かめてから一覧を描く。
        あとから分かると、一度描いた行に操作を足すことになり順番が読みにくい。 */
     rpc('pv_is_admin').then(function (v) {

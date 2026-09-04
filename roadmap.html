@@ -43,6 +43,9 @@
 
   <!-- 配色・角丸・余白・影のトークン。読まないと --pv-* が全部 undefined になる。 -->
   <link rel="stylesheet" href="pv-tokens.css">
+  <!-- 図の見た目。my-value.html / profile.html と共有する。
+       ここでは PVViz.chart() が折れ線を描く（勝手に上書きしない）。 -->
+  <link rel="stylesheet" href="pay-viz.css">
   <!-- ページの骨格（.mr-*）。マイレポートと同じ殻を使う（日英で共有） -->
   <link rel="stylesheet" href="my-value.css">
 
@@ -142,39 +145,21 @@
     <main class="mr-main">
       <div class="mr-hd">
         <h1 class="mr-hd-t">ROADMAP &amp; REQUESTS</h1>
-        <p class="mr-hd-s">いま何を目指していて、何を作っているのか。そして、あなたの声がどこへ届くのか。</p>
       </div>
 
-      <!-- ここから下は roadmap.js が描く。文言を書き写さない
-           （日英2枚に散ると必ず片方だけ古くなる）。 -->
-      <div class="mr-stack" id="rm-top">
-        <div class="mr-skel" style="height:230px"></div>
-        <div class="mr-skel" style="height:96px"></div>
-      </div>
-
-      <div class="mr-2col" style="margin-top:16px">
-        <div class="mr-stack">
-          <div id="rm-tasks"></div>
-
-          <section class="mr-card">
-            <div class="mr-card-h">
-              <h2 class="mr-card-t">みんなからのリクエスト</h2>
-              <span class="mr-card-s" id="rm-list-n"></span>
-            </div>
-            <div class="rm-tabs" id="rm-tabs" style="margin-bottom:14px">
-              <button type="button" class="rm-tab" data-rm-sort="popular" aria-pressed="true">人気順</button>
-              <button type="button" class="rm-tab" data-rm-sort="new" aria-pressed="false">新着順</button>
-            </div>
-            <ul class="rm-list" id="rm-req-list"></ul>
-            <button type="button" class="rm-more-btn" id="rm-more" style="display:none">さらに読む</button>
-          </section>
+      <!-- 左の列（Mission/Vision・現在地・折れ線・要望の人気・段・進捗・履歴）は
+           roadmap.js が描く。文言を書き写さない（日英2枚に散ると必ず片方だけ古くなる）。
+           右の列だけ静的に置く ── 入力欄は assert-header.mjs が実物を測るため。 -->
+      <div class="mr-2col rm-grid">
+        <div class="mr-stack rm-l" id="rm-left">
+          <div class="mr-skel" style="height:200px"></div>
+          <div class="mr-skel" style="height:214px"></div>
         </div>
 
-        <div class="mr-stack">
+        <div class="mr-stack rm-r">
           <section class="mr-card">
             <div class="mr-card-h">
               <h2 class="mr-card-t">匿名で要望を送る</h2>
-              <span class="mr-card-s">あなたのアイデアが、次の機能になります。</span>
             </div>
             <!-- ★ textarea と select は静的に置く。JS で後から挿さない。
                  assert-header.mjs が <textarea> を持つページを自分で見つけて
@@ -203,7 +188,18 @@
             <p class="rm-note" id="rm-privacy"></p>
           </section>
 
-          <div id="rm-ship"></div>
+          <section class="mr-card">
+            <div class="mr-card-h">
+              <h2 class="mr-card-t">みんなからのリクエスト</h2>
+              <span class="mr-card-s" id="rm-list-n"></span>
+            </div>
+            <div class="rm-tabs" id="rm-tabs" style="margin-bottom:14px">
+              <button type="button" class="rm-tab" data-rm-sort="popular" aria-pressed="true">人気順</button>
+              <button type="button" class="rm-tab" data-rm-sort="new" aria-pressed="false">新着順</button>
+            </div>
+            <ul class="rm-list" id="rm-req-list"></ul>
+            <button type="button" class="rm-more-btn" id="rm-more" style="display:none">さらに読む</button>
+          </section>
         </div>
       </div>
 
@@ -245,6 +241,9 @@
         PVGates.setProgress() へ渡す＝ヒーローの数字と左メニューの門が
         必ず同じ数になり、通信も1回で済む。 -->
 <script src="pv-gates.js"></script>
+<!-- 図を描く道具（PVViz）。他6ページと共有。roadmap.js が
+     PVViz.chart() で折れ線を描くので、それより前に読む。 -->
+<script src="pay-viz.js"></script>
 <!-- ★段・タスク・履歴の文言はここ1枚。roadmap.js より前に読む。 -->
 <script src="roadmap-config.js"></script>
 <script src="roadmap.js"></script>

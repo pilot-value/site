@@ -76,10 +76,14 @@ for (const g of CFG.goals || []) {
   ok(`${g.n} の段が日英そろっている`, !!(g.ja && g.ja.t && g.en && g.en.t));
 }
 
-ok('ヒーローの原則が3つ', (CFG.tenets || []).length === 3);
-for (const t of CFG.tenets || []) ok('原則が日英そろっている', !!(t.ja && t.en));
-ok('「なぜ作るのか」が3枚', (CFG.why || []).length === 3);
-for (const c of CFG.why || []) ok('「なぜ」が日英そろっている', !!(c.ja && c.ja.t && c.en && c.en.t));
+/* 2026-09-04、オーナーの指示でヒーローの長文（3原則・「なぜ作るのか」3枚・
+   Built with pilots, for pilots.）を全部消し、Mission と Vision の2文だけにした。
+   ★ここに説明文を足し戻さない。1画面に収まらなくなる。 */
+ok('★ヒーローは Mission と Vision の2つだけ',
+   !!(CFG.mission && CFG.vision) && !CFG.tenets && !CFG.why,
+   [CFG.tenets ? 'tenets が残っている' : '', CFG.why ? 'why が残っている' : ''].join(' '));
+ok('Mission が日英そろっている', !!(CFG.mission && CFG.mission.ja && CFG.mission.en));
+ok('Vision が日英そろっている', !!(CFG.vision && CFG.vision.ja && CFG.vision.en));
 
 const STATE4 = new Set(['done', 'building', 'planned', 'considering']);
 const seen = new Set();
@@ -181,7 +185,12 @@ ok('innerHTML に渡すのは定数か組み立てた枠だけ',
 ok('★人数が取れないときは 0 で埋めない（countPending がある）',
    !!DICT.ja.countPending && !!DICT.en.countPending);
 ok('★件数が取れないときは — を出す', DICT.ja.unknown === '—' && DICT.en.unknown === '—');
-ok('取れなかったときに読み直せる', !!DICT.ja.retry && /rm-kpi-r/.test(JS));
+ok('取れなかったときに読み直せる', !!DICT.ja.retry && /rm-retry/.test(JS));
+/* ★取れなかった所に 0 を書かない（0 は「本当に0件」と読めてしまう）。
+   一覧・要望の人気・折れ線の3つとも、同じ retryP() で「—」と読み直しを出す。 */
+ok('★取れなかったときの出し分けが1か所にまとまっている',
+   /function retryP\(/.test(JS)
+   && (JS.match(/retryP\(/g) || []).length >= 4);
 /* ♡ の数はサーバの戻りで必ず上書きする（見た目だけ先に動かすのは許す）。 */
 ok('★♡ はサーバの実数で上書きする', /applyLike\(btn,\s*it,\s*v\.like_count/.test(JS));
 ok('★♡ が失敗したら元に戻す', /applyLike\(btn,\s*it,\s*wasN,\s*wasOn\)/.test(JS));
@@ -201,7 +210,7 @@ ok('★prefers-color-scheme を持ち込んでいない', !/prefers-color-scheme
 ok('動きを減らす設定に従う', /prefers-reduced-motion/.test(JS));
 ok('transition-all を使っていない', !/transition\s*:\s*all/.test(JSC));
 /* 押せるものには hover / focus-visible / active を全部付ける。 */
-for (const sel of ['.rm-tab', '.rm-like', '.rm-f-b']) {
+for (const sel of ['.rm-tab', '.rm-like', '.rm-f-b', '.rm-open', '.rm-retry', '.rm-more-btn']) {
   for (const st of [':hover', ':focus-visible', ':active']) {
     ok(`${sel}${st} がある`, JS.includes(sel + st));
   }
@@ -242,10 +251,10 @@ ok('★日英でスクリプトの並びが同じ',
    `ja: ${srcOf(HTML_JA).join(',')}\n      en: ${srcOf(HTML_EN).join(',')}`);
 /* ★pv-gates.js が先。roadmap.js が人数を1回だけ取って渡す＝
    ヒーローの数字と左メニューの門が必ず同じ数になり、通信も1回で済む。 */
-const s = srcOf(HTML_JA);
-ok('★pv-gates.js を roadmap.js より先に読む', s.indexOf('pv-gates.js') < s.indexOf('roadmap.js'));
+const s2 = srcOf(HTML_JA);
+ok('★pv-gates.js を roadmap.js より先に読む', s2.indexOf('pv-gates.js') < s2.indexOf('roadmap.js'));
 ok('roadmap-config.js を roadmap.js より先に読む',
-   s.indexOf('roadmap-config.js') < s.indexOf('roadmap.js'));
+   s2.indexOf('roadmap-config.js') < s2.indexOf('roadmap.js'));
 ok('人数を PVGates へ渡している', /PVGates\.setProgress\(/.test(JS));
 ok('★人数を取る RPC は1本だけ',
    (JSC.match(/pv_give_progress/g) || []).length === 1);
@@ -260,7 +269,70 @@ ok('日英とも .mr-side を空で置いている（patch-side-nav.mjs が埋�
    /<nav class="mr-side"[^>]*><\/nav>/.test(HTML_JA) || HTML_JA.includes('mr-side-a'));
 
 /* ════════════════════════════════════════════════════════════════
-   ⑦ 区分・状態の白リストが SQL と画面で一致
+   ⑦ 1画面に収める作り（2026-09-04 の作り直し）
+   ════════════════════════════════════════════════════════════════
+   前の形は 1,280×3,026px ＝ 縦に3画面あった。オーナーの指示は
+   「1画面でできればこれが見えるように・文字多すぎ・グラフで見せて」。
+   ここで見るのは、その形が黙って元に戻っていないか。 */
+console.log('\n── 1画面の作り ──────────────────────────');
+
+/* 図は pay-viz.js（PVViz）を借りる。折れ線を自前で描き直さない。 */
+for (const [name, h, pre] of [['ja', HTML_JA, ''], ['en', HTML_EN, '../']]) {
+  ok(`${name} が pay-viz.css を読む`, h.includes(`href="${pre}pay-viz.css"`));
+  ok(`${name} が pay-viz.js を読む`, h.includes(`src="${pre}pay-viz.js"`));
+  /* ★pay-viz.css は my-value.css より前。あとに置くと、このページ用の
+     上書きを my-value.css 側が塗り替える向きが逆になる。 */
+  ok(`${name} の pay-viz.css が my-value.css より前`,
+     h.indexOf('pay-viz.css') < h.indexOf('my-value.css'));
+}
+ok('★pay-viz.js を roadmap.js より先に読む', s2.indexOf('pay-viz.js') < s2.indexOf('roadmap.js'));
+ok('折れ線は PVViz.chart() を借りている（自前で描き直していない）',
+   /PVViz\.chart\(/.test(JS));
+/* ★SVG の presentation attribute では var() が効かない。文字列のまま渡すと
+   線が黒か透明になる（画面は普通に出たまま線だけ消える）。 */
+ok('★線の色は getComputedStyle で解いてから渡す',
+   /getPropertyValue/.test(JS) && !/color\s*:\s*'var\(/.test(JS));
+/* ★chart() の既定の値札は金額（fmt）。人数に使うと「¥23」と出る。 */
+ok('★人数の値札に fmtVal を渡している', /fmtVal\s*:/.test(JS));
+
+/* 骨格 ── 左は JS が描き、右（入力欄と一覧）だけ静的 HTML に置く。 */
+for (const [name, h] of [['ja', HTML_JA], ['en', HTML_EN]]) {
+  ok(`${name} に #rm-left がある`, /id="rm-left"/.test(h));
+  ok(`${name} の外枠が2カラム`, /class="mr-2col rm-grid"/.test(h));
+  /* ★h1 の下の副題は消した。足し戻すと1画面に入らなくなる。 */
+  ok(`${name} に h1 の副題が無い`, !/mr-hd-s/.test(h));
+  ok(`${name} に古い骨格が残っていない`,
+     !/id="rm-top"|id="rm-tasks"|id="rm-ship"/.test(h));
+}
+/* ★外の2カラムをメディアクエリで切らない。サイドバーが 1000px で畳まれて
+   使える幅が反転するので、画面幅で分けると 1001px だけ極端に細い2列になる。 */
+ok('★外の2カラムは flex-basis で倒す（@media で切らない）',
+   /\.rm-grid>\.rm-l\{flex:/.test(JS) && /\.rm-grid>\.rm-r\{flex:/.test(JS)
+   && !/@media[^']*rm-grid/.test(JS));
+/* ★ページ固有CSSを .rm-x .mr-y（0,2,0）で書かない。my-value.css の
+   @media 側（0,1,0）に勝ってしまい、狭いときの折り返しだけが黙って効かなくなる。 */
+{
+  const bad = [...JS.matchAll(/'\s*\.rm-[a-z0-9-]+\s+\.mr-[a-z0-9-]+/g)].map((m) => m[0].trim());
+  ok('★共有クラスを .rm-x .mr-y で上書きしていない', bad.length === 0, bad.join(' '));
+}
+
+/* 折れ線の材料。★人数と同じ数え方（pv_pay_person_map）でなければ、
+   同じ画面に違う人数が2つ出る。 */
+ok('★折れ線を取る RPC は1本だけ', (JSC.match(/pv_give_growth/g) || []).length === 1);
+ok('折れ線が取れないときの文言が日英ともに在る',
+   !!DICT.ja.growthErr && !!DICT.en.growthErr);
+ok('★折れ線が人物単位で数えている（proof_hash で数えていない）',
+   /pv_give_growth[\s\S]{0,1200}pv_pay_person_map\(\)/.test(SQLC));
+ok('★pv_give_growth は anon から実行できない',
+   /revoke all on function public\.pv_give_growth\(int\) from public, anon/.test(SQLC));
+ok('pv_give_growth はログインした人だけ',
+   /grant execute on function public\.pv_give_growth\(int\) to authenticated/.test(SQLC));
+/* ★貼る順を間違えると折れ線だけが黙って出ない画面になる。前提で落とす。 */
+ok('★pv_pay_person_map が無いと SQL が最初に落ちる',
+   /pv_pay_person_map\(\)'\)\s*is null/.test(SQLC));
+
+/* ════════════════════════════════════════════════════════════════
+   ⑧ 区分・状態の白リストが SQL と画面で一致
    ════════════════════════════════════════════════════════════════ */
 console.log('\n── 白リスト ─────────────────────────────');
 const listOf = (re) => {
@@ -286,7 +358,7 @@ ok('状態の対応表が白リストを網羅している',
    jsSt.every((c) => c in DICT.ja.st && c in DICT.en.st));
 
 /* ════════════════════════════════════════════════════════════════
-   ⑧ SQL 側の急所（詳しくは db/test-requests.mjs が PGlite で回す）
+   ⑨ SQL 側の急所（詳しくは db/test-requests.mjs が PGlite で回す）
    ════════════════════════════════════════════════════════════════
    ここで見るのは「貼る前に落としたい」ものだけ。 */
 console.log('\n── SQL の急所 ───────────────────────────');
@@ -330,7 +402,7 @@ ok('★profiles に行を作らない', !/insert\s+into\s+public\.profiles/i.tes
 }
 
 /* ════════════════════════════════════════════════════════════════
-   ⑨ ページ登録の一覧（1つ忘れても何も赤くならない場所）
+   ⑩ ページ登録の一覧（1つ忘れても何も赤くならない場所）
    ════════════════════════════════════════════════════════════════ */
 console.log('\n── ページ登録 ───────────────────────────');
 for (const f of ['./gen-sitemap.mjs', './seo-normalize.mjs', './assert-seo.mjs']) {

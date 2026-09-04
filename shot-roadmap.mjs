@@ -9,7 +9,8 @@
      scene: full  … ふつうの画面（要望が7件・自分は一般ユーザー）
             empty … 要望がまだ1件も無い（★空でも言葉が出るのが正しい）
             admin … 管理者（★ここにだけ状態を変える操作が出る）
-            dead  … 一覧が読めなかった（★0件と書かず — と読み直しを出す）
+            dead  … 一覧も人数も折れ線も読めなかった
+                    （★0件・0人と書かず — と読み直しを出す）
             near  … 次の段の直前（99人）。バーと「あと1人」の見え方
      lang : ja | en    theme: light | dark    width: 1280 / 390 など
      第5引数 open ＝撮らずに見える窓で開いたままにする（オーナーに見せる用）
@@ -95,6 +96,19 @@ await page.evaluateOnNewDocument((scene, theme, lang) => {
   const RPC = {
     pv_give_progress: () => ({ ok: true, contributors: N, give: { detailed: true } }),
     pv_is_admin: () => scene === 'admin',
+    /* 折れ線の見本。★右端は必ず pv_give_progress の人数と同じにする
+       （本物の pv_give_growth も pv_pay_person_map を通して同じ数え方をする。
+       ここで違う数を返すと、絵で「人数が2つある」を見落とす）。 */
+    pv_give_growth: () => {
+      const wks = 12, out = [];
+      for (let i = 0; i < wks; i++) {
+        const t = new Date(Date.UTC(2026, 5, 21) + i * 7 * 864e5);
+        out.push({ d: t.toISOString().slice(0, 10),
+                   n: Math.max(1, Math.round(N * Math.pow((i + 1) / wks, 1.6))) });
+      }
+      out[out.length - 1].n = N;
+      return out;
+    },
     pv_requests_list: (a) => {
       const items = scene === 'empty' ? [] : ITEMS.slice();
       if (a && a.p_sort === 'new') {
@@ -102,8 +116,11 @@ await page.evaluateOnNewDocument((scene, theme, lang) => {
       } else {
         items.sort((x, y) => y.like_count - x.like_count);
       }
+      /* ★本物と同じく p_limit / p_offset を守る。全件返すと「さらに読む」が
+         出ない絵になり、右の列の高さも本番と違ってしまう。 */
+      const lim = (a && a.p_limit) || 20, off = (a && a.p_offset) || 0;
       return { ok: true, total: items.length, sort: (a && a.p_sort) || 'popular',
-               limit: (a && a.p_limit) || 20, offset: (a && a.p_offset) || 0, items: items };
+               limit: lim, offset: off, items: items.slice(off, off + lim) };
     },
     pv_request_like_toggle: () => ({ ok: true, like_count: 15, liked_by_me: true }),
     pv_request_submit: (a) => ({
@@ -134,7 +151,8 @@ await page.evaluateOnNewDocument((scene, theme, lang) => {
        本番には無い .catch が生えて、失敗したときの見え方を撮り逃す
        （shot-conditions.mjs に同じ注意書きがある）。 */
     rpc: (name, a) => {
-      const res = (name === 'pv_requests_list' && scene === 'dead')
+      const DEAD = ['pv_requests_list', 'pv_give_growth', 'pv_give_progress'];
+      const res = (DEAD.indexOf(name) >= 0 && scene === 'dead')
         ? { data: null, error: { message: 'stub' } }
         : { data: RPC[name] ? RPC[name](a) : { ok: true }, error: null };
       return { then: (ok, ng) => Promise.resolve(res).then(ok, ng) };
@@ -150,7 +168,10 @@ await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
 await page.waitForFunction(() => {
   const list = document.getElementById('rm-req-list');
   const cnt = document.getElementById('rm-count-c');
-  return list && cnt && !list.querySelector('.mr-skel') && list.children.length > 0;
+  const chart = document.getElementById('rm-chart');
+  return list && cnt && chart
+      && !document.querySelector('.mr-skel')
+      && list.children.length > 0;
 }, { timeout: 15000 }).catch(() => {});
 
 if (open) {

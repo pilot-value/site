@@ -36,6 +36,11 @@ begin
   if to_regprocedure('public.pv_is_admin()') is null then
     raise exception '先に db/admin.sql を実行してください（pv_is_admin が無い）';
   end if;
+  -- 下の pv_give_growth（コミュニティの伸びの折れ線）が使う。
+  -- ★これが無いまま貼ると、折れ線だけが黙って出ない画面になる。
+  if to_regprocedure('public.pv_pay_person_map()') is null then
+    raise exception '先に db/pay-rows.sql を実行してください（pv_pay_person_map が無い）';
+  end if;
 end $$;
 
 
@@ -435,3 +440,60 @@ grant execute on function public.pv_request_set_hidden(uuid, boolean) to authent
 
 comment on function public.pv_request_set_hidden(uuid, boolean) is
   '要望を伏せる／戻す。管理者だけ（pv_is_admin）。伏せた行は一覧にも total にも出ない。';
+
+
+-- ════════════════════════════════════════════════════════════════
+-- 8. コミュニティの伸び（折れ線の材料）
+-- ════════════════════════════════════════════════════════════════
+-- 週ごとの「給与を出したパイロットの累計人数」を返すだけ。
+-- 返るのは [{d: '2026-07-06', n: 12}, …] の形で、週の日付と人数しか入っていない。
+-- 個人の属性は1つも出さない（会社も職位も金額も、この関数は触っていない）。
+--
+-- ★★ 数え方は pv_deep_contributors() と1文字も違えてはいけない。★★
+--   あれは pv_pay_person_map() を通した**実人物**で数える。ここで proof_hash を
+--   そのまま数えると、2社に給与を出した人が 2 になり、
+--   **折れ線の右端がヒーローの人数と食い違う**（同じ画面に「23人」と「25」が並ぶ）。
+--   式を写さず、同じ地図（pv_pay_person_map）を呼ぶこと。
+--
+-- ★預かり（pay_reports_pending）は数えない。pv_deep_contributors() と同じ理由で、
+--   ip_day_hash は「端末 × 日」であって人ではない。
+--
+-- ★未ログインでは jsonb_agg が NULL を返す（= 空の配列ではなく null）。
+--   画面は null を「取れなかった」として — を出す。0 の並びを描かせない。
+create or replace function public.pv_give_growth(p_weeks int default 12)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = public, extensions
+as $fn$
+  with wk as (
+    -- 週数はサーバで抑える（2〜52）。呼ぶ側の数字をそのまま信じない
+    select generate_series(
+             date_trunc('week', now())
+               - make_interval(weeks => greatest(2, least(52, coalesce(p_weeks, 12))) - 1),
+             date_trunc('week', now()),
+             interval '1 week') as w
+  ),
+  firsts as (
+    -- 1人につき「はじめて給与を出した日」1つだけ
+    select m.human as human, min(r.created_at) as t
+      from public.pay_reports r
+      join public.pv_pay_person_map() m on m.h = r.proof_hash
+     group by m.human
+  )
+  select jsonb_agg(jsonb_build_object(
+           'd', (wk.w)::date,
+           'n', (select count(*) from firsts f where f.t < wk.w + interval '7 days')
+         ) order by wk.w)
+    from wk
+   where auth.uid() is not null;
+$fn$;
+
+revoke all on function public.pv_give_growth(int) from public, anon;
+grant execute on function public.pv_give_growth(int) to authenticated;
+
+comment on function public.pv_give_growth(int) is
+  'コミュニティの伸び。週ごとの「給与を出したパイロット」の累計人数だけを返す。'
+  '数え方は pv_deep_contributors() と同じ実人物単位（pv_pay_person_map を通す）。'
+  '右端の値は必ず pv_deep_contributors() と一致する。';
