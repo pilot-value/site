@@ -636,7 +636,204 @@ console.log('\n▼ ⑩ コミュニティの伸び（折れ線の材料）');
 }
 
 // ════════════════════════════════════════════════════════════
-console.log('\n▼ ⑪ 前提が無いときは日本語で止まる');
+console.log('\n▼ ⑪ コメント（給与を1件出した人だけ・名乗りは投稿者/運営/匿名N）');
+{
+  /* ★ここは ⑩ より後に置く。中で給与レポートを足すので、
+     先に置くと ⑩ の「実人物は3人」が4人になって落ちる。 */
+  const mk = async (tag) => {
+    const uid = '00000000-0000-4000-8000-0000000000' + tag;
+    await db.query(`insert into auth.users(id,email) values($1,$2)
+                    on conflict (id) do nothing`, [uid, `${tag}@example.com`]);
+    await db.query(`insert into public.profiles(id,email) values($1,$2)
+                    on conflict (id) do nothing`, [uid, `${tag}@example.com`]);
+    return uid;
+  };
+  const TH = await mk('e1');   // スレッドを立てた人（投稿者）
+  const CA = await mk('e2');   // 匿名1になる人
+  const CB = await mk('e3');   // 匿名2になる人
+  const CC = await mk('e4');   // 匿名2が伏せられた後に来る人
+  const NG = await mk('e5');   // 給与を1件も出していない人
+  const RL = await mk('e6');   // 1日の上限だけを見る人
+
+  const AIR = (await db.query(
+    `select code from public.pv_airlines where code <> 'other' and active order by code limit 1`
+  )).rows[0].code;
+  const YEAR = new Date().getFullYear() - 1;
+  /* 本物の口を通す。proof_hash を手で作らない（⑩ と同じ） */
+  const give = async (uid, month) => {
+    await call(uid, `select public.submit_pay_report($1::jsonb) as v`,
+      [JSON.stringify({ currency: 'USD', lang: 'en', tax_rate_pct: 0, fleet: 'b777',
+                        position: 'cap', airline: AIR, period_year: YEAR,
+                        period_month: month, gross_monthly: 9000 })]);
+    await db.query(`update public.profiles set pay_reports_today = 0`);
+  };
+  for (const [i, u] of [TH, CA, CB, CC, RL].entries()) await give(u, i + 1);
+
+  const cAdd  = (uid, id, body) =>
+    call(uid, `select public.pv_request_comment_add($1,$2) as v`, [id, body]);
+  const cList = (uid, id) =>
+    call(uid, `select public.pv_request_comments_list($1) as v`, [id]);
+  const cHide = (uid, id, h) =>
+    call(uid, `select public.pv_request_comment_set_hidden($1,$2) as v`, [id, h]);
+
+  /* ★30秒の連投制限を外すための時間ずらし。**過去へ遠ざける幅を毎回せまくする**。
+     幅を広げていくと、あとに書いたコメントほど過去になり、並び順が逆さまになる。 */
+  let cmin = 90;
+  const ageC = async (uid) => {
+    cmin -= 1;
+    await db.query(
+      `update public.pv_request_comments set created_at = now() - (($2 || ' minutes')::interval)
+        where author_hash = public.pv_request_hash($1)
+          and created_at > now() - interval '30 seconds'`, [uid, String(cmin)]);
+  };
+  const say = async (uid, id, body) => {
+    const r = await cAdd(uid, id, body);
+    await ageC(uid);
+    return r;
+  };
+
+  const th = await freshSubmit(TH, '機種ごとのコメント欄がほしいです', 'feature');
+  const TID = th.v.v.item.id;
+  ok(th.v.v.item.comment_count === 0, '出した直後のコメント数は 0（実数）',
+     String(th.v.v.item.comment_count));
+
+  // ── 門 ──────────────────────────────────────────────────
+  const ng = await cAdd(NG, TID, '給与を出していない人のコメント');
+  ok(ng.v && ng.v.v.ok === false && ng.v.v.status === 'need_give',
+     '★給与を1件も出していない人は書けない（例外ではなく need_give）',
+     JSON.stringify(ng.v && ng.v.v));
+  const ngList = await cList(NG, TID);
+  ok(ngList.v && ngList.v.v.can_write === false,
+     '★画面が門の一言を先に出せる（can_write が false）',
+     JSON.stringify(ngList.v && ngList.v.v.can_write));
+
+  // ── 名乗り ──────────────────────────────────────────────
+  const r1 = await say(TH, TID, 'この欄がほしかったのは、機種で条件が違うからです');
+  ok(r1.v && r1.v.v.ok === true && r1.v.v.item.who === 'author',
+     '要望を出した本人は「投稿者」', JSON.stringify(r1.v && r1.v.v));
+  const r2 = await say(ADMIN, TID, '検討します。まず機種の粒度を決めます');
+  ok(r2.v.v.item.who === 'staff', '運営は「運営」', JSON.stringify(r2.v.v.item));
+  ok(r2.v.v.ok === true, '★運営は給与を1件も出していなくても書ける');
+
+  const r3 = await say(CA, TID, '同じことを思っていました');
+  ok(r3.v.v.item.who === 'anon' && r3.v.v.item.n === 1, '3人目は「匿名1」',
+     JSON.stringify(r3.v.v.item));
+  const r4 = await say(CB, TID, '副操縦士でも見たいです');
+  ok(r4.v.v.item.n === 2, '4人目は「匿名2」', JSON.stringify(r4.v.v.item));
+  const r5 = await say(CA, TID, '長距離と短距離でも分けてほしいです');
+  ok(r5.v.v.item.n === 1, '★同じ人が2回書いても番号は変わらない（匿名1のまま）',
+     JSON.stringify(r5.v.v.item));
+
+  // ── 番号は伏せてもずれない ───────────────────────────────
+  const hid = await cHide(ADMIN, r4.v.v.item.id, true);
+  ok(hid.v && hid.v.v.ok === true, '運営はコメントを伏せられる');
+  const r6 = await say(CC, TID, '訓練生の欄もあると助かります');
+  ok(r6.v.v.item.n === 3,
+     '★匿名2を伏せた後に来た人は「匿名3」（番号を詰め直さない＝過去の会話の相手が入れ替わらない）',
+     JSON.stringify(r6.v.v.item));
+
+  const seen = (await cList(CA, TID)).v.v;
+  ok(seen.total === 5, '一般会員には伏せた1件を除いた5件が見える', String(seen.total));
+  ok(!seen.items.some((x) => x.n === 2), '伏せた「匿名2」は一般会員に出ない');
+  ok(seen.items.map((x) => x.who).join(',') === 'author,staff,anon,anon,anon',
+     '★古い順に並ぶ（書いた順）', seen.items.map((x) => x.who).join(','));
+  ok(seen.items.filter((x) => x.mine).length === 2,
+     '自分の書き込みだけ mine が立つ', String(seen.items.filter((x) => x.mine).length));
+  ok(seen.items.every((x) => x.is_hidden === null),
+     '★伏せた札は一般会員の JSON に鍵ごと出ない');
+  const seenAd = (await cList(ADMIN, TID)).v.v;
+  ok(seenAd.total === 6, '運営には伏せた1件も見える', String(seenAd.total));
+  ok(seenAd.items.some((x) => x.n === 2 && x.is_hidden === true),
+     '運営には「どれを伏せたか」が分かる');
+
+  // ── 数は必ずサーバの実数 ─────────────────────────────────
+  const row  = (await list(CA, 'new', 100)).v.v.items.find((x) => x.id === TID);
+  const rowA = (await list(ADMIN, 'new', 100)).v.v.items.find((x) => x.id === TID);
+  ok(row.comment_count === 5, '一覧のコメント数は一般会員には5（伏せたぶんを含めない）',
+     String(row.comment_count));
+  ok(rowA.comment_count === 6, '運営の一覧では6', String(rowA.comment_count));
+  ok(!JSON.stringify(row).includes('同じことを思っていました'),
+     '★一覧に本文を載せない（開いた行のぶんだけ取りにいく）');
+
+  // ── ★ハッシュが外へ出ない ────────────────────────────────
+  {
+    const hCA = (await db.query(`select public.pv_request_hash($1) as h`, [CA])).rows[0].h;
+    for (const [who, uid] of [['本人', CA], ['他人', CB], ['運営', ADMIN]]) {
+      const raw = JSON.stringify((await cList(uid, TID)).v.v);
+      ok(!raw.includes('author_hash'), `${who}が読んだコメントに author_hash という語が無い`);
+      ok(!raw.includes(hCA), `★${who}が読んだコメントに CA の実際のハッシュ値が無い`);
+      ok(!raw.includes(CA), `${who}が読んだコメントに CA の user_id が無い`);
+    }
+    ok(!JSON.stringify(r3.v.v).includes(hCA), '★書いた返り値にもハッシュが無い');
+  }
+
+  // ── 見えない要望のコメントは読めない・書けない ───────────
+  {
+    const pv = await freshSubmit(TH, '個人的な事情の相談です（運営だけ）', 'other', true);
+    const PID = pv.v.v.item.id;
+    const rd = await cList(CA, PID);
+    ok(!!rd.err && /42501|表示されていません/.test(rd.err),
+       '★運営だけに見せる要望のコメントは第三者に読めない', rd.err || '読めてしまった');
+    const wr = await cAdd(CA, PID, '横から失礼します');
+    ok(!!wr.err && /42501|表示されていません/.test(wr.err),
+       '★同じ要望に第三者は書き込めない', wr.err || '書けてしまった');
+    ok((await cList(ADMIN, PID)).v.v.ok === true, '運営は読める');
+    ok((await cList(TH, PID)).v.v.ok === true, '本人は読める');
+  }
+
+  // ── 文字数・空・連投・上限・同文 ─────────────────────────
+  {
+    const e1 = await cAdd(CA, TID, '   ');
+    ok(!!e1.err && /22023|書いてください/.test(e1.err), '空白だけのコメントは止まる', e1.err);
+    const e2 = await cAdd(CA, TID, 'あ'.repeat(501));
+    ok(!!e2.err && /22023|500/.test(e2.err), '501文字は止まる', e2.err);
+    const okLong = await cAdd(CA, TID, 'あ'.repeat(500));
+    ok(okLong.v && okLong.v.v.ok === true, 'ちょうど500文字は通る',
+       JSON.stringify(okLong.v && okLong.v.v));
+    const fast = await cAdd(CA, TID, '続けてもう1つ');
+    ok(fast.v && fast.v.v.status === 'too_fast', '30秒以内の連投は止まる',
+       JSON.stringify(fast.v && fast.v.v));
+    await ageC(CA);
+    const dup = await cAdd(CA, TID, '同じことを思っていました');
+    ok(dup.v && dup.v.v.status === 'duplicate', '同じ文の重ね出しは止まる',
+       JSON.stringify(dup.v && dup.v.v));
+    await ageC(CA);
+  }
+  {
+    for (let i = 0; i < 20; i++) await say(RL, TID, `上限を確かめる書き込み ${i}`);
+    const over = await cAdd(RL, TID, '21件目');
+    ok(over.v && over.v.v.status === 'rate_limited', '1日20件で止まる',
+       JSON.stringify(over.v && over.v.v));
+  }
+
+  // ── 権限 ────────────────────────────────────────────────
+  {
+    const bad = await cHide(CA, r3.v.v.item.id, true);
+    ok(!!bad.err && /42501|管理者/.test(bad.err), '★一般会員はコメントを伏せられない', bad.err);
+    const direct = await call(CA, `select count(*) as n from public.pv_request_comments`);
+    ok(!!direct.err && /permission denied|許可|denied/i.test(direct.err),
+       '会員は pv_request_comments を直接読めない', direct.err || '読めてしまった');
+    const ins = await call(CA,
+      `insert into public.pv_request_comments(request_id,author_hash,body)
+       values($1,'0000000000000000000000000000000000000000000000000000000000000000','なりすまし')`,
+      [TID]);
+    ok(!!ins.err, '★会員は他人になりすまして直接 insert できない', ins.err || '入ってしまった');
+    const anons = await call(CA, `select count(*) as n from public.pv_request_anons`);
+    ok(!!anons.err && /permission denied|許可|denied/i.test(anons.err),
+       '会員は pv_request_anons を直接読めない', anons.err || '読めてしまった');
+  }
+  /* ★消す関数を作らない。作った日に、匿名の通し番号が意味を失う。 */
+  {
+    const sql = read('db/requests.sql');
+    ok(!sql.includes('delete from public.pv_request_comments'),
+       '★コメントを消す道が SQL のどこにも無い（伏せるだけ）');
+    ok(!/update public\.pv_request_anons|delete from public\.pv_request_anons/.test(sql),
+       '★一度配った匿名番号を書き換える口も、返す口も無い');
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ ⑫ 前提が無いときは日本語で止まる');
 {
   const db2 = new PGlite({ extensions: { pgcrypto } });
   await db2.waitReady;

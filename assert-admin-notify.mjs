@@ -68,6 +68,7 @@ const SECRET = {
      同じ人なら毎回同じ値なので、メールに1度でも出れば
      「この12件は同じ人が書いた」が受信箱と Resend のログの上で組める。 */
   '要望の投稿者ハッシュ': 'ZZ-AUTHOR-HASH-DO-NOT-SEND',
+  'コメントの投稿者ハッシュ': 'ZZ-COMMENT-HASH-DO-NOT-SEND',
 };
 const leaks = (mail) => {
   const hay = `${mail.subject}\n${mail.html}`;
@@ -312,6 +313,57 @@ const rqN = await nx.buildRequest('rq-1');
 ck('添付が無いときは「添付なし」', rqN.html.includes('添付なし'), rqN.html);
 ck('みんなに見えるときはそう書く', rqN.html.includes('みんなに見える'), rqN.html);
 
+/* ── 要望へのコメント ─────────────────────────────────────── */
+/* ★守るものは要望と同じ。本文は出してよい（返事をするのに要る）が、
+     書いた人のハッシュは1文字も出してはいけない。
+     親の要望の author_hash も同じ（コメント経由で漏れる道を作らない）。 */
+console.log('\n── 要望へのコメント ─────────────────────');
+ROWS = {
+  pv_request_comments: {
+    id: 'rc-1', created_at: '2026-09-04T10:00:00+00:00',
+    body: '同じことを思っていました。機種別だと特に見たいです。',
+    request_id: 'rq-1', is_staff: false, is_hidden: false,
+    // ↓ ビルダーが SELECT を広げても、本文に出さない限り通る
+    author_hash: 'ZZ-COMMENT-HASH-DO-NOT-SEND',
+  },
+  pv_requests: {
+    id: 'rq-1', created_at: '2026-09-04T09:00:00+00:00',
+    body: '機種ごとの月間フライト時間を会社別に見たい',
+    category: 'data', status: 'new', visibility: 'public',
+    author_hash: 'ZZ-AUTHOR-HASH-DO-NOT-SEND',
+  },
+};
+const rc = await nx.buildRequestComment('rc-1');
+ck('メールができる', !!rc);
+ck('★書いた人のハッシュが1文字も出ない', leaks(rc).length === 0, `漏れた: ${leaks(rc).join(' / ')}`);
+ck('件名でコメントとわかる', rc.subject.includes('要望へのコメント'), rc.subject);
+ck('件名に区分が出る', rc.subject.includes('データ'), rc.subject);
+ck('コメントが読める', rc.html.includes('同じことを思っていました'), rc.html);
+ck('どのスレッドか分かる（元の要望が添えてある）',
+   rc.html.includes('機種ごとの月間フライト時間'), rc.html);
+
+/* 生の HTML をメールに通さない。要望の本文と同じ扱い。 */
+ROWS.pv_request_comments = { ...ROWS.pv_request_comments,
+                             body: '<script>alert(1)</script>\n2行目' };
+const rcX = await nx.buildRequestComment('rc-1');
+ck('★コメントの HTML がそのまま通らない', !rcX.html.includes('<script>'), rcX.html);
+ck('改行は <br> になる', rcX.html.includes('<br>2行目'), rcX.html);
+
+/* ★運営自身の返信では送らない。自分が書いたものが自分に届いても意味が無く、
+     数が増えるほど本物の通知が埋もれる。 */
+ROWS.pv_request_comments = { ...ROWS.pv_request_comments, is_staff: true };
+ck('★運営自身の返信ではメールを出さない',
+   (await nx.buildRequestComment('rc-1')) === null);
+
+/* 親の要望は抜粋だけ。1通に本文を2つ全文で並べない。 */
+ROWS.pv_request_comments = { ...ROWS.pv_request_comments,
+                             is_staff: false, body: 'ふつうのコメント' };
+ROWS.pv_requests = { ...ROWS.pv_requests, body: 'あ'.repeat(200), visibility: 'private' };
+const rcL = await nx.buildRequestComment('rc-1');
+ck('元の要望は抜粋だけ載る',
+   rcL.html.includes('…') && !rcL.html.includes('あ'.repeat(120)), rcL.html.slice(0, 400));
+ck('★「運営だけに見せる」だと分かる', rcL.html.includes('運営だけに見せる'), rcL.html);
+
 /* ════════════════════════════════════════════════════════════════
    ③ ビルダーと Webhook のトリガの顔ぶれが一致すること
    ════════════════════════════════════════════════════════════════ */
@@ -326,7 +378,7 @@ const aStart = sql.indexOf('foreach tbl in array array[');
 const aBlock = sql.slice(aStart, sql.indexOf('] loop', aStart));
 const tables = [...aBlock.matchAll(/'([a-z_0-9]+)'/g)].map((m) => m[1]).sort();
 
-ck('ビルダーを7つ持っている', builders.length === 7, builders.join(', '));
+ck('ビルダーを8つ持っている', builders.length === 8, builders.join(', '));
 ck('index.ts の builders と db/notify-admin-webhooks.sql の表が同じ',
    JSON.stringify(builders) === JSON.stringify(tables),
    `builders: ${builders.join(', ')}\n      webhooks: ${tables.join(', ')}`);

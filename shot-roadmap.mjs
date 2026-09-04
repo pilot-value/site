@@ -17,6 +17,8 @@
             img   … 添付の絵（★公開済みは出て、確認待ちは自分の行にだけ出る）
             priv  … 「運営だけに見せる」の札が付いた行
             attach… 絵を1枚選んだ直後（★端末の中での焼き直しを実際に走らせる）
+            talk  … コメントを開いた状態（★投稿者・運営・匿名1・匿名2 の名乗り）
+            nogive… 給与を1件も出していない人がコメントを開いた（★門が閉じている）
      lang : ja | en    theme: light | dark    width: 1280 / 390 など
      第5引数 open ＝撮らずに見える窓で開いたままにする（オーナーに見せる用）
      第5引数 top  ＝縦に全部つなげず、上から1画面ぶんだけ撮る
@@ -40,7 +42,8 @@ const vw    = Number(process.argv[5] || 1280);
 const open  = process.argv[6] === 'open';
 const top   = process.argv[6] === 'top';
 
-const SCENES = ['full', 'empty', 'admin', 'dead', 'near', 'long', 'img', 'priv', 'attach'];
+const SCENES = ['full', 'empty', 'admin', 'dead', 'near', 'long', 'img', 'priv', 'attach',
+                'talk', 'nogive'];
 if (SCENES.indexOf(scene) < 0) {
   console.error(`場面は ${SCENES.join(' / ')} のどれか（渡された値: ${scene}）`);
   process.exit(2);
@@ -74,7 +77,7 @@ await page.evaluateOnNewDocument((scene, theme, lang) => {
     id: '00000000-0000-4000-8000-0000000000' + String(10 + i),
     body: '要望の本文', category: 'feature', status: 'new',
     created_at: '2026-08-' + String(10 + i).padStart(2, '0') + 'T09:00:00Z',
-    like_count: 1, liked_by_me: false, is_hidden: null,
+    like_count: 1, liked_by_me: false, is_hidden: null, comment_count: 0,
     /* ★サーバは必ずこの2つを返す。見本でも必ず持たせる
        （持たせないと「返ってこないときの見え方」を撮ってしまう）。 */
     image: 'none', visibility: 'public'
@@ -109,6 +112,34 @@ await page.evaluateOnNewDocument((scene, theme, lang) => {
     ITEMS[0].image = 'public';
     ITEMS[1].image = 'pending';
   }
+  /* コメントの見本。★名乗りは who と n だけ ── サーバはハッシュを返さない。
+     `<script>` を1件入れてあるのは、要望の本文と同じく文字として出ることを目で見るため。 */
+  const COMMENTS = [
+    { id: 'c1', who: 'author', n: null, mine: false, is_hidden: null,
+      created_at: '2026-08-12T10:00:00Z',
+      body: '書いた本人です。長距離と短距離だけでなく、貨物も分けて見たいです。' },
+    { id: 'c2', who: 'staff', n: null, mine: false, is_hidden: null,
+      created_at: '2026-08-13T09:30:00Z',
+      body: '運営です。機材と職位までは既に持っているので、路線の区分をどう取るかを検討します。' },
+    { id: 'c3', who: 'anon', n: 1, mine: false, is_hidden: null,
+      created_at: '2026-08-14T22:10:00Z',
+      body: '同じことを思っていました。同じ777でも貨物は Days off がまるで違います。\n'
+          + '月あたりのブロック時間も一緒に並べてもらえると助かります。' },
+    { id: 'c4', who: 'anon', n: 2, mine: true, is_hidden: null,
+      created_at: '2026-08-15T07:45:00Z',
+      body: '<script>alert(1)</script> と書いても、そのまま文字として出ますか？' }
+  ];
+  if (scene === 'admin') {
+    COMMENTS.forEach((c) => { c.is_hidden = false; });
+    COMMENTS.push({ id: 'c5', who: 'anon', n: 3, mine: false, is_hidden: true,
+                    created_at: '2026-08-16T11:00:00Z',
+                    body: '（伏せたコメントの見本。一般ユーザーには返らない）' });
+  }
+  if (scene === 'talk' || scene === 'nogive' || scene === 'admin') {
+    ITEMS[0].comment_count = COMMENTS.length;
+    ITEMS[2].comment_count = 2;
+  }
+
   if (scene === 'priv') {
     ITEMS[1].visibility = 'private';
     ITEMS[3].visibility = 'private';
@@ -162,6 +193,17 @@ await page.evaluateOnNewDocument((scene, theme, lang) => {
                b64: cv.toDataURL('image/jpeg', 0.8).split(',')[1] };
     },
     pv_request_set_image_state: (a) => ({ ok: true, image: (a && a.p_state) || 'public' }),
+    /* ★書けるかを決めるのはサーバ（pv_my_give の basic）。画面はこの真偽に従うだけ。 */
+    pv_request_comments_list: (a) => ({
+      ok: true, id: (a && a.p_id) || '', total: COMMENTS.length,
+      limit: 50, offset: 0, can_write: scene !== 'nogive', items: COMMENTS.slice()
+    }),
+    pv_request_comment_add: (a) => ({
+      ok: true,
+      item: { id: 'c9', who: 'anon', n: 4, mine: true, is_hidden: null,
+              created_at: '2026-09-04T00:00:00Z', body: (a && a.p_body) || '' }
+    }),
+    pv_request_comment_set_hidden: (a) => ({ ok: true, is_hidden: !!(a && a.p_hidden) }),
     pv_request_like_toggle: () => ({ ok: true, like_count: 15, liked_by_me: true }),
     pv_request_submit: (a) => ({
       ok: true,
@@ -242,6 +284,14 @@ if (scene === 'long') {
   await page.waitForFunction(() =>
     document.getElementById('rm-body').scrollHeight
       <= document.getElementById('rm-body').clientHeight + 1, { timeout: 5000 });
+}
+
+/* talk / nogive ── コメントを実際に開く。★押されるまで取りにいかない造りなので、
+   ここを飛ばすと「畳んだままの絵」を撮ってしまう。 */
+if (scene === 'talk' || scene === 'nogive') {
+  await page.$eval('.rm-cbtn', (b) => b.click());
+  await page.waitForFunction(() =>
+    !!document.querySelector('.rm-c-list, .rm-c-gate'), { timeout: 8000 });
 }
 
 if (open) {

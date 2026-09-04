@@ -211,7 +211,7 @@ ok('動きを減らす設定に従う', /prefers-reduced-motion/.test(JS));
 ok('transition-all を使っていない', !/transition\s*:\s*all/.test(JSC));
 /* 押せるものには hover / focus-visible / active を全部付ける。 */
 for (const sel of ['.rm-tab', '.rm-like', '.rm-f-b', '.rm-open', '.rm-retry', '.rm-more-btn',
-                  '.rm-f-att', '.rm-f-x']) {
+                  '.rm-f-att', '.rm-f-x', '.rm-cbtn', '.rm-c-b', '.rm-c-x', '.rm-c-cta']) {
   for (const st of [':hover', ':focus-visible', ':active']) {
     ok(`${sel}${st} がある`, JS.includes(sel + st));
   }
@@ -487,6 +487,78 @@ ok('弾かれた理由を画面に出し分ける',
 ok('★絵を書き換える SQL がファイルに1つも無い', !/update\s+public\.pv_request_images/i.test(SQLC));
 ok('★絵を入れる SQL は1か所だけ',
    (SQLC.match(/insert into public\.pv_request_images/g) || []).length === 1);
+
+/* ════════════════════════════════════════════════════════════════
+   ⑧-b コメント
+   ════════════════════════════════════════════════════════════════
+   ★守るものは要望の本文とまったく同じ ── XSS と、誰が書いたかを出さないこと。
+     そのうえでコメント特有の急所が2つある:
+       ・匿名の通し番号は配ったら二度と動かない（消す・書き換える道を作らない）
+       ・書く欄は「開いたときに作る」ので、読み込み時の DOM しか見ない
+         assert-header.mjs の 16px 検査に当たらない＝ここで見るしかない */
+console.log('\n── コメント ─────────────────────────────');
+ok('★コメントの本文は textContent で入る', /\.textContent\s*=\s*c\.body/.test(JS));
+ok('★コメントの本文が innerHTML に入らない',
+   !/innerHTML[^\n]*\bc\.body\b/.test(JS) && !/\besc\(\s*c\.body/.test(JS));
+/* ★この欄は押されたときに作る。assert-header.mjs は読み込み時の DOM しか見ないので
+   ここが検査の穴になる。16px を切ると iOS が触った瞬間にページごと拡大して戻らない。 */
+ok('★書く欄の font-size が 16px', /\.rm-c-ta\{[^}]*font-size:16px/.test(JS));
+/* 「一覧を全件ブラウザへ投げない」の約束はコメントにも掛かる。
+   開くまで RPC を呼ばない＝畳んだままの行のぶんは1バイトも取りにいかない。 */
+ok('★開くまでコメントを取りにいかない',
+   /loaded = true;\s*\n\s*loadComments\(/.test(JS));
+ok('★件数はサーバの実数で上書きする', /it\.comment_count = v\.total/.test(JS));
+ok('★書けない人には欄そのものを作らない',
+   /if \(v\.can_write\) \{/.test(JS) && /function commentGate\(/.test(JS));
+ok('門から給与を出す道が1本ある', /a\.href = 'pay-report\.html'/.test(JS));
+/* 管理用は「隠す」ではなく「作らない」。要望の行と同じ流儀。 */
+ok('★コメントの管理用の操作は管理者のときだけ作る',
+   /if \(state\.admin\) \{[\s\S]{0,300}rm-c-x/.test(JS));
+ok('★画面にコメントを消す口が無い', !/comment_delete|comment_remove|deleteComment/i.test(JS));
+{
+  const body = fnBody('pv_request_comments_list');
+  ok('コメント一覧 RPC を見つけられている', body.length > 0);
+  /* 名乗りの綴りが SQL と画面でずれると、全員が「匿名」に落ちる。
+     運営の返信と投稿者本人の返信が見分けられなくなるが、画面は普通に動いたまま。 */
+  const whoCase = body.slice(body.indexOf("'who',"), body.indexOf("'n',"));
+  const sqlWho = [...whoCase.matchAll(/'([a-z]+)'/g)].map((m) => m[1])
+    .filter((x) => x !== 'who').sort();
+  const jsWho = [...(JS.match(/var WHO\s*=\s*\[([^\]]*)\]/) || [, ''])[1]
+    .matchAll(/'([a-z]+)'/g)].map((m) => m[1]).sort();
+  ok('★名乗りの白リストが SQL と roadmap.js で同じ',
+     JSON.stringify(sqlWho) === JSON.stringify(jsWho), `sql: ${sqlWho}\n      js : ${jsWho}`);
+  ok('名乗りは author / staff / anon の3つだけ',
+     JSON.stringify(jsWho) === JSON.stringify(['anon', 'author', 'staff']), jsWho.join(','));
+  /* ★jsonb を組み立てている所に author_hash が1文字も無いこと。
+     「誰の行か」の比較はその手前の lateral 1か所に閉じてある。 */
+  const a = body.indexOf('jsonb_build_object');
+  const j = body.slice(a, body.indexOf('from public.pv_request_comments', a));
+  ok('★コメント一覧は jsonb に author_hash を1文字も入れない', !/author_hash/.test(j), j);
+  ok('★誰の行かの判定が lateral 1か所に閉じている',
+     (body.match(/c\.author_hash/g) || []).length === 3,
+     String((body.match(/c\.author_hash/g) || []).length));
+}
+ok('★コメントを書けるのは給与を1件でも出した人（門が SQL にある）',
+   /pv_my_give\(\)/.test(fnBody('pv_request_comment_add')));
+ok('★門の答えを画面へ先に渡す（空振りの往復を作らない）',
+   /'can_write'/.test(fnBody('pv_request_comments_list')));
+ok('★コメントを伏せられるのは運営だけ',
+   /pv_is_admin\(\)/.test(fnBody('pv_request_comment_set_hidden')));
+/* ★消すと匿名の通し番号が意味を失い、過去の会話の相手が入れ替わる。
+   だから消す SQL をファイルのどこにも置かない（伏せるだけ）。 */
+ok('★コメントを消す SQL がファイルに1つも無い',
+   !/delete from public\.pv_request_comments/i.test(SQLC));
+/* ★通し番号は配ったら二度と動かさない。書き換えも削除も道が無い。 */
+ok('★通し番号を書き換える／消す SQL が1つも無い',
+   !/update public\.pv_request_anons|delete from public\.pv_request_anons/i.test(SQLC));
+ok('★通し番号は1人につき1つ（主キーで縛る）',
+   /primary key \(request_id, author_hash\)/.test(SQLC));
+ok('★1つの番号を持つ人は1人（unique で縛る）',
+   /unique \(request_id, anon_no\)/.test(SQLC));
+/* 件数は出した直後の 0 も含めてサーバが返す。画面で足し引きして作らない。 */
+ok('★件数は投稿 RPC も一覧 RPC も返す',
+   /'comment_count'/.test(fnBody('pv_request_submit'))
+   && /'comment_count'/.test(fnBody('pv_requests_list')));
 
 /* ════════════════════════════════════════════════════════════════
    ⑨ SQL 側の急所（詳しくは db/test-requests.mjs が PGlite で回す）

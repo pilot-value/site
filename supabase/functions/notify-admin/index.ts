@@ -467,9 +467,48 @@ async function buildRequest(id: string): Promise<Mail | null> {
   };
 }
 
+/* ── pv_request_comments ──────────────────────────────────── */
+/* 要望への返信。★buildRequest と同じ約束をそのまま引き継ぐ。
+   ★ author_hash を SELECT に入れない。1度でもメールに出れば
+     「この12件は同じ人」が組めてしまう（画面が who と番号しか出さない意味が消える）。
+   ★ 誰が書いたかは載せない。載せるのは「投稿者本人か / それ以外か」だけ。
+     これはスレッドの中でしか意味を持たず、人には辿れない。
+   ★ 運営が書いた行ではメールを出さない（自分が書いたものが自分に届いても意味が無い）。
+   ★ どのスレッドかが分かるように、親の要望の本文を抜粋で添える。全文は要らない。
+   ★ 本文は esc() を通してから <br> に直す（生の HTML をメールに通さない）。 */
+async function buildRequestComment(id: string): Promise<Mail | null> {
+  const c = await sbSelect('pv_request_comments', id,
+                           'id,created_at,body,request_id,is_staff,is_hidden');
+  if (!c) return null;
+  if (c.is_staff === true) return null;      // ★運営自身の返信では送らない
+
+  const r = await sbSelect('pv_requests', String(c.request_id ?? ''),
+                           'id,body,category,status,visibility');
+  const CAT: Record<string, string> = {
+    feature: '機能', data: 'データ', ui: '使いやすさ', bug: '不具合', other: 'その他',
+  };
+  const parent = String(r?.body ?? '');
+  const excerpt = parent.length > 80 ? `${parent.slice(0, 80)}…` : parent;
+  const body = esc(String(c.body ?? '')).replace(/\n/g, '<br>');
+  return {
+    subject: `【PILOT VALUE】要望へのコメント — ${CAT[String(r?.category)] ?? 'その他'}`,
+    html: shell('要望にコメントが1件あります',
+      `${esc(c.created_at)} に匿名で書き込まれました。誰が書いたかはこのメールには載りません。`,
+      table(
+        row('コメント', body || '—') +
+        row('書いた人', '要望を出した本人か、給与を出したパイロット（運営には別の札が出ます）') +
+        row('元の要望', esc(excerpt) || '—') +
+        row('区分', esc(CAT[String(r?.category)] ?? String(r?.category ?? '—'))) +
+        row('公開範囲', String(r?.visibility ?? 'public') === 'private'
+              ? '運営だけに見せる（本人の指定）' : 'みんなに見える'),
+      )),
+  };
+}
+
 /* 手元の検査（assert-admin-notify.mjs）が実体をそのまま動かせるように出す。
    translate-review/index.ts と同じ形。Deno 側では無害。 */
-export { buildReview, buildProfile, buildContact, buildPayReport, buildPayReportPending, buildCondition, buildRequest };
+export { buildReview, buildProfile, buildContact, buildPayReport, buildPayReportPending, buildCondition, buildRequest,
+         buildRequestComment };
 
 async function send(mail: Mail, idemKey: string) {
   const res = await fetch('https://api.resend.com/emails', {
@@ -526,6 +565,7 @@ Deno.serve(async (req) => {
     pay_reports_pending: buildPayReportPending,
     airline_conditions: buildCondition,
     pv_requests: buildRequest,
+    pv_request_comments: buildRequestComment,
   };
   const build = builders[tbl];
   if (!build) return json({ ok: true, note: `unhandled table ${tbl}` });

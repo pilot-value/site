@@ -62,6 +62,9 @@
   /* ★SQL の image_state の白リストと同じ綴り。assert-roadmap.mjs が突き合わせる
      （綴りがずれると、確認待ちの絵が誰の目にも触れないまま黙って溜まる）。 */
   var IMGST = ['none', 'pending', 'public', 'rejected'];
+  /* コメントの名乗り。★SQL の case が返す3つと同じ綴り（assert-roadmap.mjs が突き合わせる）。
+     ずれると全員が「匿名」に落ち、運営の返信と投稿者本人の返信が見分けられなくなる。 */
+  var WHO = ['anon', 'author', 'staff'];
 
   // ══ 文言 ═══════════════════════════════════════════════════
   var DICT = {
@@ -151,6 +154,23 @@
       adminShow: '戻す',
       adminHidden: '伏せています',
       adminErr: '変更できませんでした。',
+
+      cLabel: function (n) { return 'コメント ' + fmt(n) + '件'; },
+      cLoading: '読み込んでいます…',
+      cEmpty: 'まだコメントはありません。',
+      cErr: 'コメントを読み込めませんでした。',
+      cPh: 'この要望について書く',
+      cSend: '送る',
+      cSent: 'コメントを送りました。',
+      cAuthor: '投稿者',
+      cStaff: '運営',
+      cAnon: function (n) { return '匿名' + n; },
+      cMine: 'あなた',
+      cNeed: '給与を1件出すと、コメントできます。',
+      cNeedCta: '匿名で給与を出す',
+      cErrShort: 'コメントを書いてください。',
+      cErrMany: '今日はここまでにしてください。明日また受け取ります。',
+      cErrDup: '同じ内容のコメントを、すでに受け取っています。',
 
       cat: { feature: '機能', data: 'データ', ui: '使いやすさ', bug: '不具合', other: 'その他' },
       st:  { 'new': '受付済み', considering: '検討中', planned: '予定',
@@ -244,6 +264,23 @@
       adminShow: 'Unhide',
       adminHidden: 'Hidden',
       adminErr: 'Could not apply the change.',
+
+      cLabel: function (n) { return n === 1 ? '1 comment' : fmt(n) + ' comments'; },
+      cLoading: 'Loading…',
+      cEmpty: 'No comments yet.',
+      cErr: 'Could not load the comments.',
+      cPh: 'Write about this request',
+      cSend: 'Post',
+      cSent: 'Your comment is posted.',
+      cAuthor: 'Author',
+      cStaff: 'PILOT VALUE',
+      cAnon: function (n) { return 'Anonymous ' + n; },
+      cMine: 'you',
+      cNeed: 'Share one pay report and you can comment here.',
+      cNeedCta: 'Share pay anonymously',
+      cErrShort: 'Please write your comment.',
+      cErrMany: 'That is enough for today. We will take more tomorrow.',
+      cErrDup: 'We have already received the same comment.',
 
       cat: { feature: 'Feature', data: 'Data', ui: 'Usability', bug: 'Bug', other: 'Other' },
       st:  { 'new': 'Received', considering: 'Considering', planned: 'Planned',
@@ -450,7 +487,9 @@
     '  background:var(--pv-surface-2);border:1px solid var(--pv-line-soft)}',
     '.rm-req.is-new{border-color:var(--pv-orange);background:var(--pv-orange-soft)}',
     '.rm-req.is-hidden{opacity:.55}',
-    '.rm-like{flex:none;display:flex;flex-direction:column;align-items:center;',
+    /* ★align-self を止めないと、行の高さいっぱいに縦長の ♡ が伸びる
+       （コメントを開いた行で700pxの帯になった）。 */
+    '.rm-like{flex:none;align-self:flex-start;display:flex;flex-direction:column;align-items:center;',
     '  justify-content:center;gap:2px;min-width:46px;min-height:46px;padding:5px 6px;',
     '  border-radius:var(--pv-r-sm);border:1px solid var(--pv-line);background:var(--pv-surface);',
     '  color:var(--pv-ink-3);font:inherit;cursor:pointer;',
@@ -584,9 +623,76 @@
     '.rm-f-msg{margin-top:11px;font-size:.74rem;line-height:1.75;color:var(--pv-orange-ink)}',
     '.rm-f-msg.is-ok{color:var(--pv-green-ink)}',
 
+    /* コメント。★新しい部品を作らない ── 既存の --pv-* と .rm-* の中で組む。
+       畳んでいる間は .rm-c を hidden にするので、初期の1画面は1pxも変わらない。 */
+    '.rm-cbtn{display:inline-flex;align-items:center;gap:5px;min-height:30px;padding:4px 10px;',
+    '  border-radius:999px;border:1px solid var(--pv-line);background:var(--pv-surface);',
+    '  color:var(--pv-ink-3);font:inherit;font-size:.66rem;font-weight:700;cursor:pointer;',
+    '  transition:background-color .18s var(--pv-ease),color .18s var(--pv-ease),',
+    '  border-color .18s var(--pv-ease)}',
+    '.rm-cbtn svg{flex:none}',
+    '.rm-cbtn b{font-weight:800;font-variant-numeric:tabular-nums}',
+    '.rm-cbtn:hover{border-color:var(--pv-ink-3);color:var(--pv-ink)}',
+    '.rm-cbtn:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}',
+    '.rm-cbtn:active{background:var(--pv-line-soft)}',
+    '.rm-cbtn[aria-expanded="true"]{border-color:var(--pv-orange);color:var(--pv-orange-ink);',
+    '  background:var(--pv-orange-soft)}',
+    '.rm-c{margin-top:11px;padding-top:10px;border-top:1px dashed var(--pv-line)}',
+    '.rm-c-note{font-size:.68rem;line-height:1.7;color:var(--pv-ink-3)}',
+    '.rm-c-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}',
+    '.rm-c-i{padding:8px 10px;border-radius:var(--pv-r-sm);background:var(--pv-surface);',
+    '  border:1px solid var(--pv-line-soft)}',
+    '.rm-c-i.is-hidden{opacity:.5}',
+    '.rm-c-h{display:flex;align-items:center;gap:7px;flex-wrap:wrap}',
+    /* 名乗り。★出るのは 投稿者 / 運営 / 匿名N だけ。誰かに辿れる語を足さない。 */
+    '.rm-c-w{font-size:.63rem;font-weight:800;letter-spacing:.01em;padding:2px 8px;',
+    '  border-radius:999px;background:var(--pv-line-soft);color:var(--pv-ink-2)}',
+    '.rm-c-w.is-author{background:var(--pv-orange-soft);color:var(--pv-orange-ink)}',
+    '.rm-c-w.is-staff{background:var(--pv-ink);color:var(--pv-surface)}',
+    '.rm-c-me{font-size:.62rem;font-weight:700;color:var(--pv-ink-3)}',
+    '.rm-c-h .ymd{font-size:.63rem;font-weight:600;color:var(--pv-ink-3)}',
+    '.rm-c-t{margin-top:5px;font-size:.72rem;line-height:1.75;color:var(--pv-ink);',
+    '  white-space:pre-wrap;overflow-wrap:anywhere}',
+    '.rm-c-x{margin-top:6px;padding:2px 0;border:0;background:none;font:inherit;',
+    '  font-size:.64rem;font-weight:700;color:var(--pv-ink-3);cursor:pointer;',
+    '  text-decoration:underline;text-underline-offset:3px;',
+    '  transition:color .18s var(--pv-ease)}',
+    '.rm-c-x:hover{color:var(--pv-ink)}',
+    '.rm-c-x:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}',
+    '.rm-c-x:active{opacity:.7}',
+    /* 書く欄。★16px を手で書く。この欄は開いたときに作るので、読み込み時の DOM しか
+       見ない assert-header.mjs の目に入らない＝検査の穴。下げると iOS が触った瞬間に
+       ページごと拡大して戻らない。高さに transition は付けない（1文字ごとに揺れる）。 */
+    '.rm-c-f{margin-top:11px}',
+    '.rm-c-ta{display:block;width:100%;padding:9px 11px;border-radius:var(--pv-r-sm);',
+    '  border:1px solid var(--pv-line);background:var(--pv-surface-2);color:var(--pv-ink);',
+    '  font:inherit;font-size:16px;line-height:1.7;min-height:52px;',
+    '  resize:none;overflow-y:hidden}',
+    '.rm-c-ta:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}',
+    '.rm-c-b{margin-top:8px;min-height:40px;padding:10px 18px;border-radius:999px;border:0;',
+    '  background:var(--pv-orange);color:var(--pv-bg);font:inherit;font-size:.74rem;',
+    '  font-weight:800;letter-spacing:-.01em;cursor:pointer;',
+    '  transition:opacity .18s var(--pv-ease),transform .18s var(--pv-ease)}',
+    '.rm-c-b:hover{opacity:.9}',
+    '.rm-c-b:focus-visible{outline:2px solid var(--pv-orange);outline-offset:3px}',
+    '.rm-c-b:active{transform:scale(.97)}',
+    '.rm-c-b[disabled]{opacity:.55;cursor:default;transform:none}',
+    '.rm-c-msg{margin-top:7px;font-size:.68rem;line-height:1.75;color:var(--pv-orange-ink)}',
+    '.rm-c-msg.is-ok{color:var(--pv-green-ink)}',
+    /* まだ給与を1件も出していない人に出る門。★責めない。道を1本だけ置く。 */
+    '.rm-c-gate{margin-top:11px;padding:9px 11px;border-radius:var(--pv-r-sm);',
+    '  background:var(--pv-surface);border:1px dashed var(--pv-line);',
+    '  font-size:.68rem;line-height:1.75;color:var(--pv-ink-2)}',
+    '.rm-c-cta{display:inline-block;margin-top:3px;font-weight:800;',
+    '  color:var(--pv-orange-ink);text-decoration:underline;text-underline-offset:3px;',
+    '  transition:color .18s var(--pv-ease)}',
+    '.rm-c-cta:hover{color:var(--pv-ink)}',
+    '.rm-c-cta:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}',
+    '.rm-c-cta:active{opacity:.7}',
+
     '@media(prefers-reduced-motion:reduce){',
-    '  .rm-tab,.rm-like,.rm-f-b,.rm-more-btn{transition-duration:.01ms}',
-    '  .rm-like:active,.rm-f-b:active{transform:none}}'
+    '  .rm-tab,.rm-like,.rm-f-b,.rm-more-btn,.rm-cbtn,.rm-c-b{transition-duration:.01ms}',
+    '  .rm-like:active,.rm-f-b:active,.rm-c-b:active{transform:none}}'
   ].join('\n');
 
   (function injectCSS() {
@@ -875,6 +981,11 @@
     'stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
     '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1L12 21l7.7-7.6 1.1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>';
 
+  var BUBBLE =
+    '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+    + 'stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    + '<path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9.6 9.6 0 0 1-2.8-.4L3 21l1.6-4.8A8.2 8.2 0 0 1 3 11.5 8.4 8.4 0 0 1 12 3.1a8.4 8.4 0 0 1 9 8.4z"/></svg>';
+
   var state = { sort: 'popular', offset: 0, total: null, admin: false,
                 items: [], top: null, growth: null, img: null };
 
@@ -955,6 +1066,14 @@
        （サーバが image:'none' を返すので、ここへ来た時点でその心配は無い）。 */
     if (it.image === 'public' || it.image === 'pending') attachImage(body, it);
 
+    /* コメント。★入口だけを札の列に置き、中身は押されるまで作らない。
+       畳んでいる間の高さは 0（.rm-c は hidden）＝1画面の見た目は変わらない。 */
+    var cbox = d.createElement('div');
+    cbox.className = 'rm-c';
+    cbox.hidden = true;
+    meta.appendChild(commentChip(cbox, it));
+    body.appendChild(cbox);
+
     /* ★管理用の操作は、管理者のときだけ DOM に足す。
        一般ユーザーの画面には要素として存在させない（隠すのではなく作らない）。 */
     if (state.admin) body.appendChild(adminNode(it));
@@ -962,6 +1081,198 @@
     li.appendChild(btn);
     li.appendChild(body);
     return li;
+  }
+
+  /* ══ コメント ══════════════════════════════════════════════
+     ★一覧には本文が来ていない。開いた1行のぶんだけ取りにいく
+       （「一覧を全件ブラウザへ投げない」の約束はコメントにも掛かる）。
+     ★名乗りは who と n だけ。author_hash はサーバの返り値にそもそも入っていない。
+     ★本文は必ず textContent。ここが1か所崩れると、要望欄と同じ口が開く。 */
+  function commentChip(box, it) {
+    var b = d.createElement('button');
+    b.type = 'button';
+    b.className = 'rm-cbtn';
+    b.setAttribute('aria-expanded', 'false');
+    b.innerHTML = BUBBLE + '<b></b>';        // ★定数だけ。利用者の文字は入れない
+    var num = b.querySelector('b');
+    var loaded = false;
+    function relabel() {
+      var n = it.comment_count || 0;
+      num.textContent = fmt(n);
+      b.setAttribute('aria-label', T.cLabel(n));
+    }
+    relabel();
+    b.addEventListener('click', function () {
+      var on = b.getAttribute('aria-expanded') !== 'true';
+      b.setAttribute('aria-expanded', on ? 'true' : 'false');
+      box.hidden = !on;
+      if (!on || loaded) return;
+      loaded = true;
+      loadComments(box, it, relabel);
+    });
+    return b;
+  }
+
+  function loadComments(box, it, relabel) {
+    box.textContent = '';
+    var wait = d.createElement('p');
+    wait.className = 'rm-c-note';
+    wait.textContent = T.cLoading;
+    box.appendChild(wait);
+    rpc('pv_request_comments_list', { p_id: it.id }).then(function (v) {
+      if (!v || v.__err || v.ok !== true || !v.items) { wait.textContent = T.cErr; return; }
+      /* ★件数はサーバが数えたものに置き換える。ここで足し引きして作らない。 */
+      if (typeof v.total === 'number') it.comment_count = v.total;
+      relabel();
+      paintComments(box, it, v, relabel);
+    });
+  }
+
+  function paintComments(box, it, v, relabel) {
+    box.textContent = '';
+    var none = d.createElement('p');
+    none.className = 'rm-c-note';
+    none.textContent = T.cEmpty;
+    if (!v.items.length) box.appendChild(none);
+
+    var ul = d.createElement('ul');
+    ul.className = 'rm-c-list';
+    v.items.forEach(function (c) { ul.appendChild(commentNode(c)); });
+    box.appendChild(ul);
+
+    /* 書けるかはサーバが決める（pv_my_give の basic）。
+       ★書けない人には欄そのものを作らない。出すのは道1本だけ。 */
+    if (v.can_write) {
+      box.appendChild(commentForm(it, function (c) {
+        if (none.parentNode) none.parentNode.removeChild(none);
+        ul.appendChild(commentNode(c));
+        it.comment_count = (it.comment_count || 0) + 1;
+        relabel();
+      }));
+    } else {
+      box.appendChild(commentGate());
+    }
+  }
+
+  function commentNode(c) {
+    var li = d.createElement('li');
+    li.className = 'rm-c-i' + (c.is_hidden ? ' is-hidden' : '');
+
+    var h = d.createElement('div');
+    h.className = 'rm-c-h';
+    var who = d.createElement('span');
+    var kind = (WHO.indexOf(c.who) >= 0) ? c.who : 'anon';
+    who.className = 'rm-c-w is-' + kind;
+    who.textContent = kind === 'author' ? T.cAuthor
+                    : kind === 'staff' ? T.cStaff
+                    : T.cAnon(c.n || 0);
+    h.appendChild(who);
+    if (c.mine) {
+      var me = d.createElement('span');
+      me.className = 'rm-c-me';
+      me.textContent = T.cMine;
+      h.appendChild(me);
+    }
+    var when = d.createElement('span');
+    when.className = 'ymd';
+    when.textContent = ym(c.created_at);
+    h.appendChild(when);
+    li.appendChild(h);
+
+    var p = d.createElement('p');
+    p.className = 'rm-c-t';
+    p.textContent = c.body || '';        // ★ここ
+    li.appendChild(p);
+
+    /* ★管理用の操作は管理者のときだけ DOM に足す（隠すのではなく作らない）。
+       消す口は作らない ── 伏せるだけ（サーバにも delete は無い）。 */
+    if (state.admin) {
+      var x = d.createElement('button');
+      x.type = 'button';
+      x.className = 'rm-c-x';
+      x.textContent = c.is_hidden ? T.adminShow : T.adminHide;
+      x.addEventListener('click', function () {
+        var next = !c.is_hidden;
+        x.disabled = true;
+        rpc('pv_request_comment_set_hidden', { p_id: c.id, p_hidden: next })
+          .then(function (v) {
+            x.disabled = false;
+            if (!v || v.__err || v.ok !== true) { say(T.adminErr); return; }
+            c.is_hidden = next;
+            li.classList.toggle('is-hidden', next);
+            x.textContent = next ? T.adminShow : T.adminHide;
+          });
+      });
+      li.appendChild(x);
+    }
+    return li;
+  }
+
+  /* 給与を1件も出していない人に出る門。Give → Get をここでも同じ形で守る。 */
+  function commentGate() {
+    var p = d.createElement('p');
+    p.className = 'rm-c-gate';
+    p.textContent = T.cNeed + ' ';
+    var a = d.createElement('a');
+    a.className = 'rm-c-cta';
+    a.href = 'pay-report.html';       /* ★日英とも同じ階層に居る。相対で足りる */
+    a.textContent = T.cNeedCta;
+    p.appendChild(a);
+    return p;
+  }
+
+  function commentForm(it, onAdd) {
+    var f = d.createElement('form');
+    f.className = 'rm-c-f';
+
+    var ta = d.createElement('textarea');
+    ta.className = 'rm-c-ta';
+    ta.rows = 2;
+    ta.maxLength = 500;
+    ta.placeholder = T.cPh;
+    ta.setAttribute('aria-label', T.cPh);
+    ta.addEventListener('input', function () { growEl(ta); });
+    f.appendChild(ta);
+
+    var b = d.createElement('button');
+    b.type = 'submit';
+    b.className = 'rm-c-b';
+    b.textContent = T.cSend;
+    f.appendChild(b);
+
+    var msg = d.createElement('p');
+    msg.className = 'rm-c-msg';
+    f.appendChild(msg);
+    function show(text, okFlag) {
+      msg.className = 'rm-c-msg' + (okFlag ? ' is-ok' : '');
+      msg.textContent = text;
+      say(text);
+    }
+
+    f.addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var body = String(ta.value || '').trim();
+      if (body.length < 2) { show(T.cErrShort, false); return; }
+      if (body.length > 500) { show(T.errLong, false); return; }
+      b.disabled = true;
+      show(T.sending, false);
+      rpc('pv_request_comment_add', { p_id: it.id, p_body: body }).then(function (v) {
+        b.disabled = false;
+        if (!v || v.__err) { show(T.errSend, false); return; }
+        if (v.ok !== true) {
+          show(v.status === 'need_give' ? T.cNeed
+             : v.status === 'too_fast' ? T.errFast
+             : v.status === 'rate_limited' ? T.cErrMany
+             : v.status === 'duplicate' ? T.cErrDup : T.errSend, false);
+          return;
+        }
+        ta.value = '';
+        growEl(ta);
+        show(T.cSent, true);
+        if (v.item) onAdd(v.item);
+      });
+    });
+    return f;
   }
 
   function adminNode(it) {
@@ -1448,13 +1759,13 @@
      scrollHeight は枠線を含まない（* に box-sizing:border-box が効いている）ので、
      offsetHeight - clientHeight ＝ 上下の枠線ぶんを足す。足さないと1文字打つたびに
      2px ずつ足りず、最後の行が半分隠れる。 */
-  function growTa() {
-    var el = $('rm-body');
+  function growEl(el) {
     if (!el) return;
     var edge = el.offsetHeight - el.clientHeight;
     el.style.height = 'auto';
     el.style.height = (el.scrollHeight + edge) + 'px';
   }
+  function growTa() { growEl($('rm-body')); }
 
   // ══ 並べ替えのタブ ═════════════════════════════════════════
   function wireTabs() {

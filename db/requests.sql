@@ -49,6 +49,11 @@ begin
   if to_regprocedure('public.pv_pay_person_map()') is null then
     raise exception '先に db/pay-rows.sql を実行してください（pv_pay_person_map が無い）';
   end if;
+  -- コメントを書ける条件（給与を1件でも出したか）をここで判定する。
+  -- ★これが無いまま貼ると、コメント欄だけが誰にも書けない画面になる。
+  if to_regprocedure('public.pv_my_give()') is null then
+    raise exception '先に db/pay-rows.sql を実行してください（pv_my_give が無い）';
+  end if;
 end $$;
 
 
@@ -93,6 +98,38 @@ create table if not exists public.pv_request_images (
   w          integer,
   h          integer,
   created_at timestamptz not null default now()
+);
+
+-- 要望へのコメント（オーナー指示「他の人がコメントできるようにして」）。
+-- ★ 書けるのは給与を1件でも出した人だけ（pv_my_give の basic）。運営はいつでも書ける。
+-- ★ 名乗りは「投稿者」「運営」「匿名1」「匿名2」…。番号はこの表には持たない（下の表で配る）。
+-- ★ コメントは物理削除しない。伏せるだけ（is_hidden）。
+create table if not exists public.pv_request_comments (
+  id          uuid primary key default gen_random_uuid(),
+  request_id  uuid not null references public.pv_requests(id) on delete cascade,
+  -- 要望と同じ式のハッシュ。★どの関数の返り値にも入れない
+  author_hash text not null,
+  body        text not null,
+  -- ★書いた時点の pv_is_admin() を焼き付ける。名簿から外れた日に、
+  --   過去の運営の返信が「匿名3」に化けないため
+  is_staff    boolean not null default false,
+  is_hidden   boolean not null default false,
+  created_at  timestamptz not null default now()
+);
+
+-- スレッドごとの匿名の通し番号。★配るのはここ1か所だけ。
+--   主キー (request_id, author_hash) ＝ 1人が持つ番号は1つ。
+--   unique (request_id, anon_no)     ＝ 1つの番号を持つ人は1人。
+-- ★ 一度配った番号を書き換える口も、返す口も作らない。だから、コメントを
+--   伏せても消しても「匿名2さんの言うとおり」が別人への返事に化けない。
+--   （読むときに dense_rank で数え直す形にすると、1行欠けた日に全員ずれる。）
+create table if not exists public.pv_request_anons (
+  request_id  uuid not null references public.pv_requests(id) on delete cascade,
+  author_hash text not null,
+  anon_no     integer not null,
+  created_at  timestamptz not null default now(),
+  primary key (request_id, author_hash),
+  unique (request_id, anon_no)
 );
 
 -- check は毎回 drop してから付け直す（条件を変えて流し直したとき古い定義を残さない）
@@ -140,12 +177,29 @@ alter table public.pv_request_likes drop constraint if exists pv_request_likes_h
 alter table public.pv_request_likes add constraint pv_request_likes_hash_ck check (
   liker_hash ~ '^[0-9a-f]{64}$');
 
+alter table public.pv_request_comments drop constraint if exists pv_request_comments_body_ck;
+alter table public.pv_request_comments add constraint pv_request_comments_body_ck check (
+  char_length(btrim(body)) between 2 and 500);
+alter table public.pv_request_comments drop constraint if exists pv_request_comments_hash_ck;
+alter table public.pv_request_comments add constraint pv_request_comments_hash_ck check (
+  author_hash ~ '^[0-9a-f]{64}$');
+-- 匿名の番号は1から。0 や負の番号を配らない
+alter table public.pv_request_anons drop constraint if exists pv_request_anons_no_ck;
+alter table public.pv_request_anons add constraint pv_request_anons_no_ck check (
+  anon_no >= 1);
+alter table public.pv_request_anons drop constraint if exists pv_request_anons_hash_ck;
+alter table public.pv_request_anons add constraint pv_request_anons_hash_ck check (
+  author_hash ~ '^[0-9a-f]{64}$');
+
 create index if not exists pv_requests_new_idx
   on public.pv_requests (created_at desc) where not is_hidden;
 create index if not exists pv_requests_author_idx
   on public.pv_requests (author_hash, created_at desc);
 create index if not exists pv_request_likes_req_idx
   on public.pv_request_likes (request_id);
+
+create index if not exists pv_request_comments_req_idx
+  on public.pv_request_comments (request_id, created_at);
 
 comment on table public.pv_requests is
   'ROADMAP & REQUESTS の匿名リクエスト。user_id は持たず author_hash だけ。個票の直読みは不可。';
@@ -160,18 +214,30 @@ comment on table public.pv_request_likes is
    ★ 「誰が押したか」を返す関数を作らないこと。作った瞬間に、投稿時の自動1票から投稿者が割れる。';
 
 
+comment on table public.pv_request_comments is
+  '要望へのコメント。user_id は持たず author_hash だけ。書けるのは給与を1件でも出した人（pv_my_give の basic）。';
+comment on table public.pv_request_anons is
+  '「匿名1」「匿名2」をスレッドごとに配る表。★配った番号は書き換えない・返さない。読むときに数え直さないのは、1行欠けただけで過去の会話の相手が入れ替わるため。';
+comment on column public.pv_request_comments.is_staff is
+  '★書いた時点の pv_is_admin() を焼き付けたもの。名簿から外れても過去の「運営」の返信が匿名に化けない。';
+
+
 -- ════════════════════════════════════════════════════════════════
 -- 2. 権限：表は誰にも触らせない
 -- ════════════════════════════════════════════════════════════════
 -- SELECT / INSERT / UPDATE / DELETE いずれのポリシーも作らない。
 -- ＝ anon も authenticated も直接は1行も読めない・書けない。
-alter table public.pv_requests       enable row level security;
-alter table public.pv_request_likes  enable row level security;
-alter table public.pv_request_images enable row level security;
+alter table public.pv_requests         enable row level security;
+alter table public.pv_request_likes    enable row level security;
+alter table public.pv_request_images   enable row level security;
+alter table public.pv_request_comments enable row level security;
+alter table public.pv_request_anons    enable row level security;
 
-revoke all on public.pv_requests       from anon, authenticated;
-revoke all on public.pv_request_likes  from anon, authenticated;
-revoke all on public.pv_request_images from anon, authenticated;
+revoke all on public.pv_requests         from anon, authenticated;
+revoke all on public.pv_request_likes    from anon, authenticated;
+revoke all on public.pv_request_images   from anon, authenticated;
+revoke all on public.pv_request_comments from anon, authenticated;
+revoke all on public.pv_request_anons    from anon, authenticated;
 
 -- 既に作ってしまったポリシーがあれば落とす（冪等・事故防止）
 do $$
@@ -180,7 +246,8 @@ begin
   for p in select policyname, tablename from pg_policies
             where schemaname = 'public'
               and tablename in ('pv_requests', 'pv_request_likes',
-                                'pv_request_images') loop
+                                'pv_request_images', 'pv_request_comments',
+                                'pv_request_anons') loop
     execute format('drop policy %I on public.%I', p.policyname, p.tablename);
   end loop;
 end $$;
@@ -357,6 +424,8 @@ begin
     'created_at',  v_row.created_at,
     'like_count',  1,
     'liked_by_me', true,
+    -- 出した直後は当然ゼロ。★フロントで数えない（増減は必ずサーバの実数）
+    'comment_count', 0,
     'image',       v_row.image_state,
     'is_hidden',   case when v_admin then false else null end));
 end;
@@ -421,6 +490,9 @@ begin
                'like_count',  c.n,
                'liked_by_me', exists (select 1 from public.pv_request_likes l
                                        where l.request_id = r.id and l.liker_hash = v_hash),
+               -- ★実数。伏せたコメントは一般ユーザーの数にも入れない
+               --   （数だけ多い行を作ると「1件消えた」が分かってしまう）
+               'comment_count', cc.n,
                -- ★ 確認前の絵は、第三者には **あることすら** 出さない。
                --   'pending' を返すと「運営が確認中の絵がある」という札が立ち、
                --   公開前の絵をめぐる催促や詮索の的になる。第三者には 'none'。
@@ -438,6 +510,9 @@ begin
         cross join lateral (
                select count(*)::int as n from public.pv_request_likes l
                 where l.request_id = r.id) c
+        cross join lateral (
+               select count(*)::int as n from public.pv_request_comments cm
+                where cm.request_id = r.id and (v_admin or not cm.is_hidden)) cc
        where public.pv_req_visible(r.is_hidden, r.visibility, r.author_hash, v_hash, v_admin)
        order by case when p_sort = 'new' then 0 else c.n end desc,
                 r.created_at desc, r.id
@@ -577,6 +652,216 @@ comment on function public.pv_request_image(uuid) is
 
 
 -- ════════════════════════════════════════════════════════════════
+-- 6-c. コメント（書く・読む）
+-- ════════════════════════════════════════════════════════════════
+-- オーナー指示「みんなからのリクエストの部分、他の人がコメントできるようにして」。
+--
+-- ★ 書けるのは給与を1件でも出した人だけ（オーナー決定）。Give & Get の門を
+--   ここにも掛ける。運営は pv_my_give の basic が自動で通す。
+-- ★ 名乗りは「投稿者」「運営」「匿名1」「匿名2」…。番号は書いた瞬間に決まる。
+-- ★ author_hash はどの返り値にも入れない。要望の側と同じ約束。
+--   ここが破れると「この匿名1は、あの要望を出した人と同じ」が組み立てられる。
+create or replace function public.pv_request_comment_add(p_id uuid, p_body text)
+returns jsonb
+language plpgsql
+volatile
+security definer
+set search_path = public, extensions
+as $fn$
+declare
+  v_uid   uuid := auth.uid();
+  v_hash  text;
+  v_admin boolean;
+  v_body  text;
+  v_row   public.pv_requests%rowtype;
+  v_who   text;
+  v_no    integer;
+  v_n     int;
+  v_c     public.pv_request_comments%rowtype;
+begin
+  if v_uid is null then
+    raise exception 'ログインが必要です' using errcode = '42501';
+  end if;
+  v_hash  := public.pv_request_hash(v_uid);
+  v_admin := public.pv_is_admin();
+
+  -- ★ trim が先（空白だけのコメントを潰す）
+  v_body := btrim(coalesce(p_body, ''));
+  if char_length(v_body) < 2 then
+    raise exception 'コメントを書いてください' using errcode = '22023';
+  end if;
+  if char_length(v_body) > 500 then
+    raise exception '500文字までです' using errcode = '22023';
+  end if;
+
+  -- ★ 親の行を掴んでから読む。同じスレッドへ2人が同時に書いても、
+  --   同じ匿名番号を2人に配らない（表の unique はその裏取り）。
+  select * into v_row from public.pv_requests where id = p_id for update;
+  if not found then
+    raise exception 'その要望はありません' using errcode = '22023';
+  end if;
+  -- ★ 一覧と同じ判定。自分に見えない要望には書けない
+  --   （書けたかどうかで、見えない行の存在が分かってしまう）
+  if not public.pv_req_visible(v_row.is_hidden, v_row.visibility,
+                               v_row.author_hash, v_hash, v_admin) then
+    raise exception 'その要望は表示されていません' using errcode = '42501';
+  end if;
+
+  -- ★ Give & Get の門。例外にしないのは、画面が
+  --   「給与を1件出すと、コメントできます」の1行を出すため（既存の too_fast と同じ流儀）。
+  if not coalesce((public.pv_my_give()->>'basic')::boolean, false) then
+    return jsonb_build_object('ok', false, 'status', 'need_give');
+  end if;
+
+  -- 連投（30秒）
+  if exists (select 1 from public.pv_request_comments
+              where author_hash = v_hash and created_at > now() - interval '30 seconds') then
+    return jsonb_build_object('ok', false, 'status', 'too_fast');
+  end if;
+  -- 1日の上限
+  select count(*) into v_n from public.pv_request_comments
+   where author_hash = v_hash and created_at > now() - interval '24 hours';
+  if v_n >= 20 then
+    return jsonb_build_object('ok', false, 'status', 'rate_limited');
+  end if;
+  -- 同じスレッドへの同じ内容の重ね出し
+  if exists (select 1 from public.pv_request_comments
+              where request_id = p_id and author_hash = v_hash
+                and lower(btrim(body)) = lower(v_body)) then
+    return jsonb_build_object('ok', false, 'status', 'duplicate');
+  end if;
+
+  -- 名乗り。投稿者 > 運営 > 匿名N の順に決まる
+  if v_row.author_hash = v_hash then
+    v_who := 'author';
+  elsif v_admin then
+    v_who := 'staff';
+  else
+    v_who := 'anon';
+    -- ★ 番号は pv_request_anons で配る。同じスレッドで前にも書いていれば
+    --   そのときの番号がそのまま返る（主キーが1人1番号を担保している）。
+    select an.anon_no into v_no from public.pv_request_anons an
+     where an.request_id = p_id and an.author_hash = v_hash;
+    if v_no is null then
+      -- ★ 伏せた人・消えたコメントの番号も飛ばさずに数える（他人の番号がずれない）
+      select coalesce(max(an.anon_no), 0) + 1 into v_no
+        from public.pv_request_anons an where an.request_id = p_id;
+      insert into public.pv_request_anons (request_id, author_hash, anon_no)
+      values (p_id, v_hash, v_no);
+    end if;
+  end if;
+
+  insert into public.pv_request_comments (request_id, author_hash, body, is_staff)
+  values (p_id, v_hash, v_body, v_who = 'staff')
+  returning * into v_c;
+
+  -- ★ 一覧と同じ鍵の顔ぶれで返す（画面が取り直さずに末尾へ足せる）
+  return jsonb_build_object('ok', true, 'item', jsonb_build_object(
+    'id',         v_c.id,
+    'body',       v_c.body,
+    'who',        v_who,
+    'n',          v_no,
+    'mine',       true,
+    'created_at', v_c.created_at,
+    'is_hidden',  case when v_admin then false else null end));
+end;
+$fn$;
+
+revoke all on function public.pv_request_comment_add(uuid, text) from public, anon;
+grant execute on function public.pv_request_comment_add(uuid, text) to authenticated;
+
+comment on function public.pv_request_comment_add(uuid, text) is
+  '要望に1件コメントする。給与を1件でも出した人だけ（出していなければ {ok:false,status:''need_give''}）。author_hash は返さない。';
+
+
+-- ★ 一覧には本文を載せない。開いた行のぶんだけ、ここで取りにくる
+--   （「一覧を全件ブラウザへ投げない」の約束はコメントにも掛かる）。
+create or replace function public.pv_request_comments_list(
+  p_id uuid, p_limit int default 50, p_offset int default 0)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public, extensions
+as $fn$
+declare
+  v_uid   uuid := auth.uid();
+  v_hash  text;
+  v_admin boolean;
+  v_row   public.pv_requests%rowtype;
+  v_lim   int;
+  v_off   int;
+  v_total int;
+  v_items jsonb;
+begin
+  if v_uid is null then
+    raise exception 'ログインが必要です' using errcode = '42501';
+  end if;
+  v_hash  := public.pv_request_hash(v_uid);
+  v_admin := public.pv_is_admin();
+
+  select * into v_row from public.pv_requests where id = p_id;
+  if not found then
+    raise exception 'その要望はありません' using errcode = '22023';
+  end if;
+  -- ★ 見えない要望のコメントは読めない（あるかどうかも答えない）
+  if not public.pv_req_visible(v_row.is_hidden, v_row.visibility,
+                               v_row.author_hash, v_hash, v_admin) then
+    raise exception 'その要望は表示されていません' using errcode = '42501';
+  end if;
+
+  v_lim := least(greatest(coalesce(p_limit, 50), 1), 100);
+  v_off := greatest(coalesce(p_offset, 0), 0);
+
+  select count(*) into v_total from public.pv_request_comments c
+   where c.request_id = p_id and (v_admin or not c.is_hidden);
+
+  select coalesce(jsonb_agg(x order by x_ord), '[]'::jsonb) into v_items
+    from (
+      select jsonb_build_object(
+               'id',   c.id,
+               'body', c.body,
+               -- ★ 名乗りはこの3つだけ。ハッシュそのものは1バイトも出さない。
+               --   比較は下の f に閉じてあり、ここには hash という語すら出てこない
+               'who',  case when f.is_author then 'author'
+                            when c.is_staff then 'staff'
+                            else 'anon' end,
+               'n',    case when c.is_staff or f.is_author
+                            then null else an.anon_no end,
+               -- 自分の書き込みか。呼んだ本人のことしか分からない値
+               'mine', f.is_mine,
+               'created_at', c.created_at,
+               'is_hidden',  case when v_admin then c.is_hidden else null end) as x,
+             row_number() over (order by c.created_at, c.id) as x_ord
+        from public.pv_request_comments c
+        left join public.pv_request_anons an
+               on an.request_id = c.request_id and an.author_hash = c.author_hash
+        -- ★ハッシュを見るのはここ1か所だけ。ここから外へ出るのは真偽2つだけ
+        cross join lateral (
+               select c.author_hash = v_row.author_hash as is_author,
+                      c.author_hash = v_hash            as is_mine) f
+       where c.request_id = p_id and (v_admin or not c.is_hidden)
+       order by c.created_at, c.id
+       limit v_lim offset v_off
+    ) s;
+
+  return jsonb_build_object('ok', true, 'id', p_id, 'total', v_total,
+                            'limit', v_lim, 'offset', v_off,
+                            -- 画面が門の一言を先に出せるように（空振りの往復を作らない）
+                            'can_write',
+                            coalesce((public.pv_my_give()->>'basic')::boolean, false),
+                            'items', v_items);
+end;
+$fn$;
+
+revoke all on function public.pv_request_comments_list(uuid, int, int) from public, anon;
+grant execute on function public.pv_request_comments_list(uuid, int, int) to authenticated;
+
+comment on function public.pv_request_comments_list(uuid, int, int) is
+  '1つの要望のコメントを古い順に返す。名乗りは author / staff / anon+番号 だけで、author_hash は返さない。見えない要望のコメントは読めない。';
+
+
+-- ════════════════════════════════════════════════════════════════
 -- 7. 管理者だけ（状態を変える・伏せる）
 -- ════════════════════════════════════════════════════════════════
 -- grant は authenticated に出すが、守っているのは中の pv_is_admin() の判定。
@@ -690,6 +975,40 @@ grant execute on function public.pv_request_set_image_state(uuid, text) to authe
 
 comment on function public.pv_request_set_image_state(uuid, text) is
   '添付の絵を公開する／見送る。管理者だけ（pv_is_admin）。見送ると絵の中身も消す。pending へは戻せない。';
+
+
+-- コメントを伏せる／戻す。★消す関数は作らない。
+--   物理削除すると匿名の通し番号が意味を失い、過去の会話の相手が入れ替わる。
+create or replace function public.pv_request_comment_set_hidden(p_id uuid, p_hidden boolean)
+returns jsonb
+language plpgsql
+volatile
+security definer
+set search_path = public, extensions
+as $fn$
+declare v_n int;
+begin
+  if not public.pv_is_admin() then
+    raise exception '管理者ではありません' using errcode = '42501';
+  end if;
+
+  update public.pv_request_comments
+     set is_hidden = coalesce(p_hidden, false)
+   where id = p_id;
+  get diagnostics v_n = row_count;
+  if v_n = 0 then
+    raise exception 'そのコメントはありません' using errcode = '22023';
+  end if;
+
+  return jsonb_build_object('ok', true, 'id', p_id, 'is_hidden', coalesce(p_hidden, false));
+end;
+$fn$;
+
+revoke all on function public.pv_request_comment_set_hidden(uuid, boolean) from public, anon;
+grant execute on function public.pv_request_comment_set_hidden(uuid, boolean) to authenticated;
+
+comment on function public.pv_request_comment_set_hidden(uuid, boolean) is
+  'コメントを伏せる／戻す。管理者だけ（pv_is_admin）。★消す関数は無い（消すと匿名の通し番号がずれる）。';
 
 
 -- ════════════════════════════════════════════════════════════════
