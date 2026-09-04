@@ -59,6 +59,9 @@
   /* ★SQL の visibility の白リストと同じ綴り。assert-roadmap.mjs が突き合わせる
      （綴りがずれると、運営だけの行に札が出ないまま普通に並ぶ）。 */
   var VIS = ['public', 'private'];
+  /* ★SQL の image_state の白リストと同じ綴り。assert-roadmap.mjs が突き合わせる
+     （綴りがずれると、確認待ちの絵が誰の目にも触れないまま黙って溜まる）。 */
+  var IMGST = ['none', 'pending', 'public', 'rejected'];
 
   // ══ 文言 ═══════════════════════════════════════════════════
   var DICT = {
@@ -130,6 +133,19 @@
              + '航空会社・職位・給与・氏名とは結びつけません。',
 
       tagPrivate: '運営だけ',
+      imgAdd: '画像を添付する',
+      imgChange: '画像を選び直す',
+      imgDrop: '外す',
+      imgReading: '画像を読み込んでいます…',
+      imgReady: function (kb) { return '添付します（' + kb + 'KB）'; },
+      imgWait: '運営の確認待ち',
+      imgWaitNote: 'この画像はまだほかのパイロットには出ていません。',
+      imgAlt: '要望に添えられた画像',
+      imgErrType: '画像として読めませんでした。別の画像を選んでください。',
+      imgErrBig: '画像が大きすぎます。別の画像を選んでください。',
+      imgOpen: '画像を公開する',
+      imgReject: '画像を見送る',
+      imgShown: '公開しています',
       adminH: '管理',
       adminHide: '伏せる',
       adminShow: '戻す',
@@ -210,6 +226,19 @@
              + 'never your airline, rank, pay or name.',
 
       tagPrivate: 'Team only',
+      imgAdd: 'Attach an image',
+      imgChange: 'Choose another image',
+      imgDrop: 'Remove',
+      imgReading: 'Reading the image…',
+      imgReady: function (kb) { return 'Attached (' + kb + 'KB)'; },
+      imgWait: 'Waiting for review',
+      imgWaitNote: 'Other pilots cannot see this image yet.',
+      imgAlt: 'Image attached to the request',
+      imgErrType: 'That file could not be read as an image. Please choose another one.',
+      imgErrBig: 'That image is too large. Please choose another one.',
+      imgOpen: 'Publish image',
+      imgReject: 'Reject image',
+      imgShown: 'Published',
       adminH: 'Admin',
       adminHide: 'Hide',
       adminShow: 'Unhide',
@@ -499,6 +528,36 @@
     '  border:1px solid var(--pv-line);background:var(--pv-surface-2);color:var(--pv-ink);',
     '  font:inherit;font-size:16px}',
     '.rm-f-s:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}',
+    /* 添付の絵。★押せる所はボタン側で作る（file 入力そのものは見せない）。 */
+    '.rm-f-img{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:13px}',
+    '.rm-f-att{flex:none;min-height:40px;padding:9px 14px;border-radius:var(--pv-r-sm);',
+    '  border:1px dashed var(--pv-line);background:var(--pv-surface-2);color:var(--pv-ink-2);',
+    '  font:inherit;font-size:.75rem;font-weight:700;cursor:pointer;',
+    '  transition:background-color .18s var(--pv-ease),border-color .18s var(--pv-ease),',
+    '  color .18s var(--pv-ease)}',
+    '.rm-f-att:hover{background:var(--pv-line-soft);border-color:var(--pv-ink-3);color:var(--pv-ink)}',
+    '.rm-f-att:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}',
+    '.rm-f-att:active{background:var(--pv-line-soft);border-style:solid}',
+    '.rm-f-att-n{font-size:.7rem;font-weight:600;color:var(--pv-ink-3);line-height:1.6}',
+    /* 選んだ絵の下見。★高さを先に取らないと、読み終わった瞬間に下が飛び跳ねる。 */
+    '.rm-f-prev{position:relative;margin-top:10px}',
+    '.rm-f-prev img{display:block;width:100%;height:auto;max-height:200px;',
+    '  object-fit:contain;',
+    '  border-radius:var(--pv-r-sm);border:1px solid var(--pv-line);background:var(--pv-surface-2)}',
+    '.rm-f-x{position:absolute;top:7px;right:7px;min-width:34px;min-height:34px;',
+    '  border-radius:999px;border:1px solid var(--pv-line);background:var(--pv-surface);',
+    '  color:var(--pv-ink-2);font:inherit;font-size:.7rem;font-weight:700;cursor:pointer;',
+    '  transition:background-color .18s var(--pv-ease),color .18s var(--pv-ease)}',
+    '.rm-f-x:hover{background:var(--pv-ink);color:var(--pv-surface)}',
+    '.rm-f-x:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}',
+    '.rm-f-x:active{background:var(--pv-ink-2);color:var(--pv-surface)}',
+    /* 一覧の行に出る絵。★幅は行に合わせる。横スクロールを作らない。 */
+    '.rm-req-img{margin-top:9px}',
+    '.rm-req-img img{display:block;width:100%;height:auto;max-height:190px;',
+    '  object-fit:contain;',
+    '  border-radius:var(--pv-r-sm);border:1px solid var(--pv-line);background:var(--pv-surface-2)}',
+    '.rm-req-img .rm-img-w{display:block;margin-top:5px;font-size:.66rem;font-weight:600;',
+    '  color:var(--pv-ink-3);line-height:1.6}',
     /* 「運営だけに見せる」。★触る所を44px確保する（checkbox 単体では小さすぎる）。 */
     '.rm-f-p{display:flex;align-items:flex-start;gap:9px;margin-top:13px;padding:7px 9px;',
     '  min-height:44px;border-radius:var(--pv-r-sm);border:1px solid transparent;',
@@ -817,7 +876,7 @@
     '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1L12 21l7.7-7.6 1.1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>';
 
   var state = { sort: 'popular', offset: 0, total: null, admin: false,
-                items: [], top: null, growth: null };
+                items: [], top: null, growth: null, img: null };
 
   /* 1件ぶんの DOM を組む。
      ★本文だけは textContent。ここが崩れると要望欄が XSS の口になる。 */
@@ -892,6 +951,10 @@
     }
     body.appendChild(meta);
 
+    /* 添付の絵。★確認前のものは第三者に「あることすら」出さない
+       （サーバが image:'none' を返すので、ここへ来た時点でその心配は無い）。 */
+    if (it.image === 'public' || it.image === 'pending') attachImage(body, it);
+
     /* ★管理用の操作は、管理者のときだけ DOM に足す。
        一般ユーザーの画面には要素として存在させない（隠すのではなく作らない）。 */
     if (state.admin) body.appendChild(adminNode(it));
@@ -926,6 +989,28 @@
     hide.textContent = it.is_hidden ? T.adminShow : T.adminHide;
     hide.addEventListener('click', function () { setHidden(it, !it.is_hidden); });
     wrap.appendChild(hide);
+
+    /* 絵の門。★ここだけが 'public' にできる（サーバも pv_is_admin() で同じ門を持つ）。
+       'rejected' にすると画素そのものが消える＝承認後のすり替えの道も残らない。 */
+    if (it.image === 'pending' || it.image === 'public') {
+      if (it.image === 'public') {
+        var sh = d.createElement('span');
+        sh.className = 'rm-admin-k';
+        sh.textContent = T.imgShown;
+        wrap.appendChild(sh);
+      } else {
+        var yes = d.createElement('button');
+        yes.type = 'button';
+        yes.textContent = T.imgOpen;
+        yes.addEventListener('click', function () { setImage(it, 'public'); });
+        wrap.appendChild(yes);
+      }
+      var no = d.createElement('button');
+      no.type = 'button';
+      no.textContent = T.imgReject;
+      no.addEventListener('click', function () { setImage(it, 'rejected'); });
+      wrap.appendChild(no);
+    }
     return wrap;
   }
 
@@ -1110,6 +1195,172 @@
     });
   }
 
+  function setImage(it, next) {
+    if (IMGST.indexOf(next) < 0) return;   /* 白リストの外は投げない */
+    rpc('pv_request_set_image_state', { p_id: it.id, p_state: next }).then(function (v) {
+      if (!v || v.__err || v.ok !== true) { say(T.adminErr); return; }
+      it.image = next;
+      it.imgSrc = null;          /* ★見送ったら手元の写しも捨てる */
+      paintList();
+      say(next === 'public' ? T.imgShown : T.imgReject);
+    });
+  }
+
+  // ══ 添付の絵 ═══════════════════════════════════════════════
+  /* 端末の中で JPEG に焼き直してから送る。★EXIF の位置情報が落ちるのは、この
+     描き直しの副作用であって専用のコードは無い（payslip.js と同じ理屈）。
+     同時に、出てくるのが必ず JPEG になるので、SVG のような「絵の顔をした HTML」が
+     原理的に入らない。
+     ⚠️ 画素に写り込んだ氏名・社員番号・会社名・金額は落ちない。だから運営が1回見る。
+     この門を外すと、この機能はサイトの土台（匿名性）に反する。 */
+  var IMG_MAX  = 500000;                        // ★SQL の pv_request_images_len_ck と同じ数
+  var IMG_EDGE = 1568;
+  var IMG_Q    = [0.86, 0.72, 0.6, 0.48, 0.36];
+
+  function toB64(blob) {
+    return new Promise(function (done, fail) {
+      var fr = new FileReader();
+      fr.onload = function () {
+        var s = String(fr.result || ''), i = s.indexOf(',');
+        done(i >= 0 ? s.slice(i + 1) : '');     /* data: の頭は落として渡す */
+      };
+      fr.onerror = function () { fail(new Error('type')); };
+      fr.readAsDataURL(blob);
+    });
+  }
+
+  /* 上限に収まるまで画質を1段ずつ落とす。★勝手に諦めない・勝手に巨大なものを送らない。 */
+  function encodeAt(cv, i) {
+    return new Promise(function (done, fail) {
+      cv.toBlob(function (b) {
+        if (!b) { fail(new Error('type')); return; }
+        if (b.size <= IMG_MAX || i >= IMG_Q.length - 1) { done(b); return; }
+        encodeAt(cv, i + 1).then(done, fail);
+      }, 'image/jpeg', IMG_Q[i]);
+    });
+  }
+
+  function shrinkImage(file) {
+    return new Promise(function (done, fail) {
+      if (!file || String(file.type || '').indexOf('image/') !== 0) {
+        fail(new Error('type')); return;
+      }
+      var url = w.URL.createObjectURL(file);
+      var im  = new Image();
+      im.onerror = function () { w.URL.revokeObjectURL(url); fail(new Error('type')); };
+      im.onload = function () {
+        w.URL.revokeObjectURL(url);
+        var iw = im.naturalWidth || im.width, ih = im.naturalHeight || im.height;
+        if (!iw || !ih) { fail(new Error('type')); return; }
+        var k  = Math.min(1, IMG_EDGE / Math.max(iw, ih));
+        var cw = Math.max(1, Math.round(iw * k)), ch = Math.max(1, Math.round(ih * k));
+        var cv = d.createElement('canvas');
+        cv.width = cw; cv.height = ch;
+        var cx = cv.getContext ? cv.getContext('2d') : null;
+        if (!cx) { fail(new Error('type')); return; }
+        /* ★先に白で塗る。透過の PNG をそのまま JPEG にすると、抜けた所が黒く潰れる。 */
+        cx.fillStyle = 'white';
+        cx.fillRect(0, 0, cw, ch);
+        cx.drawImage(im, 0, 0, cw, ch);
+        encodeAt(cv, 0).then(function (b) {
+          if (b.size > IMG_MAX) throw new Error('big');
+          return toB64(b).then(function (b64) {
+            if (!b64) throw new Error('type');
+            done({ b64: b64, w: cw, h: ch, kb: Math.round(b.size / 1024) });
+          });
+        }).then(null, fail);
+      };
+      im.src = url;
+    });
+  }
+
+  function clearImage() {
+    state.img = null;
+    var f = $('rm-img'), n = $('rm-img-n'), p = $('rm-img-p'), b = $('rm-img-b');
+    if (f) f.value = '';
+    if (n) n.textContent = '';
+    if (b) b.textContent = T.imgAdd;
+    if (p) { p.innerHTML = ''; p.hidden = true; }
+  }
+
+  function wireImage() {
+    var f = $('rm-img'), b = $('rm-img-b'), n = $('rm-img-n'), p = $('rm-img-p');
+    if (!f || !b) return;
+    /* ★file 入力そのものは見せない（OS ごとに見た目が違い、触る所も小さい）。 */
+    b.addEventListener('click', function () { f.click(); });
+    f.addEventListener('change', function () {
+      var file = f.files && f.files[0];
+      if (!file) { clearImage(); return; }
+      if (n) n.textContent = T.imgReading;
+      shrinkImage(file).then(function (r) {
+        state.img = { b64: r.b64, w: r.w, h: r.h };
+        if (n) n.textContent = T.imgReady(r.kb);
+        b.textContent = T.imgChange;
+        if (!p) return;
+        p.innerHTML = '';
+        p.hidden = false;
+        var im = d.createElement('img');
+        im.alt = T.imgAlt;
+        im.src = 'data:image/jpeg;base64,' + r.b64;
+        p.appendChild(im);
+        var x = d.createElement('button');
+        x.type = 'button';
+        x.className = 'rm-f-x';
+        x.textContent = T.imgDrop;
+        x.addEventListener('click', function () { clearImage(); b.focus(); });
+        p.appendChild(x);
+        say(T.imgReady(r.kb));
+      }, function (e) {
+        clearImage();
+        var text = (e && e.message === 'big') ? T.imgErrBig : T.imgErrType;
+        var m = $('rm-msg');
+        if (m) { m.textContent = text; m.className = 'rm-f-msg'; }
+        say(text);
+      });
+    });
+  }
+
+  /* 一覧の絵は、行ごとに後から取る。★一覧の返事に画素を載せない
+     （「一覧を全件ブラウザへ投げない」の約束は、絵でこそ効く）。 */
+  function attachImage(body, it) {
+    var box = d.createElement('div');
+    box.className = 'rm-req-img';
+    body.appendChild(box);
+
+    if (it.image === 'pending') {
+      var note = d.createElement('span');
+      note.className = 'rm-img-w';
+      note.textContent = T.imgWait + '　' + T.imgWaitNote;
+      box.appendChild(note);
+    }
+    if (it.imgSrc) { putImg(box, it); return; }
+
+    rpc('pv_request_image', { p_id: it.id }).then(function (v) {
+      if (!v || v.__err || v.ok !== true || !v.b64) {
+        if (box.parentNode) box.parentNode.removeChild(box);
+        return;
+      }
+      it.imgSrc = 'data:' + (v.mime || 'image/jpeg') + ';base64,' + v.b64;
+      it.imgW = v.w; it.imgH = v.h;
+      /* 取っている間に ♡ などで描き直されているかもしれない。★今ある箱に描く。 */
+      var live = d.querySelector('[data-rm-id="' + String(it.id).replace(/"/g, '') +
+                                 '"] .rm-req-img');
+      putImg(live || box, it);
+    });
+  }
+
+  function putImg(box, it) {
+    if (!box || box.querySelector('img')) return;
+    var im = d.createElement('img');
+    im.alt = T.imgAlt;
+    /* ★loading='lazy' は付けない。中身はもう data: で手元にあり、遅らせる得が無い
+       ぶん、画面の下のほうの絵が空の枠のままになる形だけが残る。 */
+    /* 縦横を先に入れておく。★読み終わった瞬間に下の行が飛び跳ねない。 */
+    if (it.imgW && it.imgH) { im.width = it.imgW; im.height = it.imgH; }
+    im.src = it.imgSrc;
+    box.insertBefore(im, box.firstChild);
+  }
+
   // ══ 送信 ═══════════════════════════════════════════════════
   function wireForm() {
     var form = $('rm-form'), ta = $('rm-body'), cat = $('rm-cat'),
@@ -1144,21 +1395,29 @@
       btn.disabled = true;
       show(T.sending, false);
 
+      /* ★絵は「送るときの1回」だけ渡す。あとから差し替える口はサーバに無い。 */
+      var img = state.img;
       rpc('pv_request_submit', { p_body: body,
                                  p_category: (cat && cat.value) || 'other',
-                                 p_private: !!(priv && priv.checked) })
+                                 p_private: !!(priv && priv.checked),
+                                 p_image_b64: img ? img.b64 : null,
+                                 p_w: img ? img.w : null,
+                                 p_h: img ? img.h : null })
         .then(function (v) {
           btn.disabled = false;
           if (!v || v.__err) { show(T.errSend, false); return; }
           if (v.ok !== true) {
             show(v.status === 'too_fast' ? T.errFast
                : v.status === 'rate_limited' ? T.errLimit
+               : v.status === 'image_bad' ? T.imgErrType
+               : v.status === 'image_too_big' ? T.imgErrBig
                : v.status === 'duplicate' ? T.errDup : T.errSend, false);
             return;   // ★本文は消さない（書き直せるように残す）
           }
           ta.value = '';
           /* ★次の1件が黙って「運営だけ」にならないよう、必ず戻す。 */
           if (priv) priv.checked = false;
+          clearImage();
           count();
           growTa();
           show(T.sent, true);
@@ -1241,6 +1500,7 @@
     if (pv) pv.textContent = T.privacy;
 
     wireForm();
+    wireImage();
     wireTabs();
     wireResize();
 

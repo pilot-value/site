@@ -14,9 +14,13 @@
             near  … 次の段の直前（99人）。バーと「あと1人」の見え方
             long  … 書く欄に500字ちょうど入れた状態（★全文が見えて、
                     右の列からはみ出さないことを目で見る）
+            img   … 添付の絵（★公開済みは出て、確認待ちは自分の行にだけ出る）
+            priv  … 「運営だけに見せる」の札が付いた行
+            attach… 絵を1枚選んだ直後（★端末の中での焼き直しを実際に走らせる）
      lang : ja | en    theme: light | dark    width: 1280 / 390 など
      第5引数 open ＝撮らずに見える窓で開いたままにする（オーナーに見せる用）
      第5引数 top  ＝縦に全部つなげず、上から1画面ぶんだけ撮る
+     第5引数 probe＝撮らずに寸法だけ出す（横溢れ・絵の実寸）
    保存先は screenshot.mjs と同じ ./temporary screenshots/
 
    ⚠️ ここに書く数字は**見本**。本物は pv_give_progress と pv_requests_list が返す。
@@ -36,7 +40,7 @@ const vw    = Number(process.argv[5] || 1280);
 const open  = process.argv[6] === 'open';
 const top   = process.argv[6] === 'top';
 
-const SCENES = ['full', 'empty', 'admin', 'dead', 'near', 'long'];
+const SCENES = ['full', 'empty', 'admin', 'dead', 'near', 'long', 'img', 'priv', 'attach'];
 if (SCENES.indexOf(scene) < 0) {
   console.error(`場面は ${SCENES.join(' / ')} のどれか（渡された値: ${scene}）`);
   process.exit(2);
@@ -70,7 +74,10 @@ await page.evaluateOnNewDocument((scene, theme, lang) => {
     id: '00000000-0000-4000-8000-0000000000' + String(10 + i),
     body: '要望の本文', category: 'feature', status: 'new',
     created_at: '2026-08-' + String(10 + i).padStart(2, '0') + 'T09:00:00Z',
-    like_count: 1, liked_by_me: false, is_hidden: null
+    like_count: 1, liked_by_me: false, is_hidden: null,
+    /* ★サーバは必ずこの2つを返す。見本でも必ず持たせる
+       （持たせないと「返ってこないときの見え方」を撮ってしまう）。 */
+    image: 'none', visibility: 'public'
   }, o);
 
   const ITEMS = [
@@ -92,6 +99,19 @@ await page.evaluateOnNewDocument((scene, theme, lang) => {
   if (scene === 'admin') {
     ITEMS.push(mk(8, { category: 'other', status: 'new', like_count: 0, is_hidden: true,
                        body: '（隠した行の見本。一般ユーザーには返らない）' }));
+  }
+
+  /* 添付の絵。★確認待ちの絵は、サーバが第三者へ image:'none' を返す
+     （あることすら出さない）。見本もそのとおりに作る。
+     img  … 一般ユーザー。1件目は公開済み・2件目は自分が出した確認待ち
+     admin … 運営。確認待ちがそのまま見えて、公開／見送りの操作が出る */
+  if (scene === 'img' || scene === 'admin') {
+    ITEMS[0].image = 'public';
+    ITEMS[1].image = 'pending';
+  }
+  if (scene === 'priv') {
+    ITEMS[1].visibility = 'private';
+    ITEMS[3].visibility = 'private';
   }
 
   const N = scene === 'near' ? 99 : 42;
@@ -124,6 +144,24 @@ await page.evaluateOnNewDocument((scene, theme, lang) => {
       return { ok: true, total: items.length, sort: (a && a.p_sort) || 'popular',
                limit: lim, offset: off, items: items.slice(off, off + lim) };
     },
+    /* 見本の絵はその場で描いて JPEG にする（大きな定数をこのファイルに置かない）。
+       ★本物と同じく base64 だけを返す（data: の頭はサーバも付けない）。 */
+    pv_request_image: () => {
+      const cv = document.createElement('canvas');
+      cv.width = 960; cv.height = 540;
+      const cx = cv.getContext('2d');
+      const g = cx.createLinearGradient(0, 0, 960, 540);
+      g.addColorStop(0, '#132038'); g.addColorStop(1, '#2b4770');
+      cx.fillStyle = g; cx.fillRect(0, 0, 960, 540);
+      cx.fillStyle = 'rgba(255,255,255,.16)';
+      for (let i = 0; i < 6; i++) cx.fillRect(80, 120 + i * 56, 300 + i * 88, 26);
+      cx.fillStyle = '#ffffff';
+      cx.font = 'bold 40px sans-serif';
+      cx.fillText('見本の画像（スクリーンショット）', 80, 80);
+      return { ok: true, mime: 'image/jpeg', w: 960, h: 540, state: 'public',
+               b64: cv.toDataURL('image/jpeg', 0.8).split(',')[1] };
+    },
+    pv_request_set_image_state: (a) => ({ ok: true, image: (a && a.p_state) || 'public' }),
     pv_request_like_toggle: () => ({ ok: true, like_count: 15, liked_by_me: true }),
     pv_request_submit: (a) => ({
       ok: true,
@@ -176,6 +214,17 @@ await page.waitForFunction(() => {
       && list.children.length > 0;
 }, { timeout: 15000 }).catch(() => {});
 
+/* 絵は行ごとに後から取る（一覧の返事に画素を載せないため）。
+   ★描き終わる前に撮ると、空の枠だけが写って「絵が出ていない」と誤読する。 */
+await page.waitForFunction(() => {
+  const box = [...document.querySelectorAll('.rm-req-img')];
+  if (!box.length) return true;
+  return box.every((b) => {
+    const im = b.querySelector('img');
+    return im && im.complete && im.naturalWidth > 0;
+  });
+}, { timeout: 8000 }).catch(() => {});
+
 /* ★long ── 500字ちょうど。値を入れるだけでは伸びない（roadmap.js は input で伸ばす）ので、
    本物の input を投げる。ここを await の外に出すと、伸びる前に撮れる。 */
 if (scene === 'long') {
@@ -199,6 +248,57 @@ if (open) {
   console.log(`見える窓で開いた: ${url}（${scene} / ${lang} / ${theme}）`);
   console.log('見終わったら Ctrl+C で閉じる。');
   await new Promise(() => {});
+}
+
+/* 第5引数 probe ── 撮らずに寸法だけ読む。★横に溢れていないか・絵が本当に
+   描けているかは、縮んだ PNG を目で見るより数で見たほうが確かなときがある。 */
+/* attach ── 絵を1枚選んだ直後。★端末の中での焼き直し（shrinkImage）を本当に走らせる。
+   ここが動かないと絵は1枚も届かないのに、画面は普通に見えたままになる。
+   わざと PNG を渡す（JPEG に焼き直す道を通す＝SVG も PNG も必ず JPEG になる）。 */
+if (scene === 'attach') {
+  await page.evaluate(async () => {
+    const cv = document.createElement('canvas');
+    cv.width = 1400; cv.height = 900;
+    const cx = cv.getContext('2d');
+    cx.fillStyle = '#0f1c33'; cx.fillRect(0, 0, 1400, 900);
+    cx.fillStyle = 'rgba(255,255,255,.18)';
+    for (let i = 0; i < 7; i++) cx.fillRect(90, 190 + i * 84, 420 + i * 120, 38);
+    cx.fillStyle = '#ffffff';
+    cx.font = 'bold 56px sans-serif';
+    cx.fillText('見本のスクリーンショット', 90, 130);
+    const blob = await new Promise((r) => cv.toBlob(r, 'image/png'));
+    const dt = new DataTransfer();
+    dt.items.add(new File([blob], 'screenshot.png', { type: 'image/png' }));
+    const el = document.getElementById('rm-img');
+    el.files = dt.files;
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  await page.waitForFunction(() => {
+    const p = document.getElementById('rm-img-p');
+    const im = p && p.querySelector('img');
+    return p && !p.hidden && im && im.complete && im.naturalWidth > 0;
+  }, { timeout: 20000 });
+}
+
+if (process.argv[6] === 'probe') {
+  const r = await page.evaluate(() => {
+    const de = document.documentElement;
+    const imgs = [...document.querySelectorAll('.rm-req-img img, .rm-f-prev img')]
+      .map((im) => ({ nat: im.naturalWidth + 'x' + im.naturalHeight,
+                      box: Math.round(im.getBoundingClientRect().width) + 'x' +
+                           Math.round(im.getBoundingClientRect().height) }));
+    let wide = [];
+    document.querySelectorAll('*').forEach((el) => {
+      const b = el.getBoundingClientRect();
+      if (b.right > de.clientWidth + 1) wide.push(el.className || el.tagName);
+    });
+    return { doc: de.scrollWidth + ' / ' + de.clientWidth, imgs,
+             wide: wide.slice(0, 6),
+             wait: [...document.querySelectorAll('.rm-img-w')].map((x) => x.textContent) };
+  });
+  console.log(JSON.stringify(r, null, 1));
+  await browser.close();
+  process.exit(0);
 }
 
 await page.screenshot({ path: outPath, fullPage: !top });

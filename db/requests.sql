@@ -29,6 +29,11 @@
 --  6. 「見えるかどうか」の判定は pv_req_visible() ただ1つ。
 --     ★ 一覧の total と本体で同じ where を2回書かない。片方だけ直すと
 --       「7件と書いてあるのに6件しか並ばない」が静かに起きる。
+--  7. 添付の絵は運営が見るまで他人に出ない（image_state='pending'）。
+--     ★ 再エンコードで EXIF は落ちるが、画素に写った氏名・社員番号・会社名は落ちない。
+--       機械で守れるのはそこまでなので、人が1回見る。この門を外さない。
+--     ★ 絵は Supabase Storage に置かない。storage.objects が生の user_id と
+--       request_id を並べて持ち、この機能の匿名性そのものを崩すため。
 -- ════════════════════════════════════════════════════════════════
 
 -- ── 0. 前提 ─────────────────────────────────────────────────
@@ -72,6 +77,24 @@ create table if not exists public.pv_request_likes (
   primary key (request_id, liker_hash)
 );
 
+-- 添付の絵（1件につき1枚）。
+-- ★ Supabase Storage を使わない。storage.objects は owner に **生の user_id** を持ち、
+--   パスに request_id が入る＝「この user がこの要望を書いた」の対応表が平文でできる。
+--   この機能ぜんぶが author_hash しか持たない前提の上に乗っているので、そこは崩せない。
+--   （加えて PGlite に storage スキーマが無く、手元で1行も試せない。）
+-- ★ 誰が出したかはここにも書かない。親の pv_requests を辿らないと分からない。
+create table if not exists public.pv_request_images (
+  -- 1件1枚。主キーが request_id そのもの＝2枚目を入れる道が無い
+  request_id uuid primary key references public.pv_requests(id) on delete cascade,
+  mime       text not null default 'image/jpeg',
+  bytes      bytea not null,
+  byte_len   integer not null,
+  -- 縦横は場所を先に取るためだけ（読み込みで行が飛び跳ねない）。画面から来た値
+  w          integer,
+  h          integer,
+  created_at timestamptz not null default now()
+);
+
 -- check は毎回 drop してから付け直す（条件を変えて流し直したとき古い定義を残さない）
 alter table public.pv_requests drop constraint if exists pv_requests_body_ck;
 alter table public.pv_requests drop constraint if exists pv_requests_hash_ck;
@@ -94,6 +117,24 @@ alter table public.pv_requests add column if not exists visibility text not null
 alter table public.pv_requests drop constraint if exists pv_requests_vis_ck;
 alter table public.pv_requests add constraint pv_requests_vis_ck check (
   visibility in ('public', 'private'));
+
+-- 添付の絵は「運営が見てから公開」（オーナー決定）。
+-- ★ ここが要。再エンコードで EXIF の位置情報は落ちるが、画素に写り込んだ
+--   氏名・社員番号・会社名・金額は落ちない。機械で守れるのはここまでなので人が1回見る。
+--   この門を外すと、この機能はサイトの土台（匿名性）に反する。
+alter table public.pv_requests add column if not exists image_state text not null default 'none';
+alter table public.pv_requests drop constraint if exists pv_requests_img_ck;
+alter table public.pv_requests add constraint pv_requests_img_ck check (
+  image_state in ('none', 'pending', 'public', 'rejected'));
+
+alter table public.pv_request_images drop constraint if exists pv_request_images_len_ck;
+alter table public.pv_request_images add constraint pv_request_images_len_ck check (
+  byte_len = octet_length(bytes) and byte_len > 0 and byte_len <= 500000);
+alter table public.pv_request_images drop constraint if exists pv_request_images_mime_ck;
+-- ★ JPEG だけ。常に JPEG へ焼き直して送るので、SVG のような
+--   「絵の顔をした HTML」が原理的に入らない
+alter table public.pv_request_images add constraint pv_request_images_mime_ck check (
+  mime = 'image/jpeg' and substring(bytes from 1 for 3) = '\xffd8ff'::bytea);
 
 alter table public.pv_request_likes drop constraint if exists pv_request_likes_hash_ck;
 alter table public.pv_request_likes add constraint pv_request_likes_hash_ck check (
@@ -124,11 +165,13 @@ comment on table public.pv_request_likes is
 -- ════════════════════════════════════════════════════════════════
 -- SELECT / INSERT / UPDATE / DELETE いずれのポリシーも作らない。
 -- ＝ anon も authenticated も直接は1行も読めない・書けない。
-alter table public.pv_requests      enable row level security;
-alter table public.pv_request_likes enable row level security;
+alter table public.pv_requests       enable row level security;
+alter table public.pv_request_likes  enable row level security;
+alter table public.pv_request_images enable row level security;
 
-revoke all on public.pv_requests      from anon, authenticated;
-revoke all on public.pv_request_likes from anon, authenticated;
+revoke all on public.pv_requests       from anon, authenticated;
+revoke all on public.pv_request_likes  from anon, authenticated;
+revoke all on public.pv_request_images from anon, authenticated;
 
 -- 既に作ってしまったポリシーがあれば落とす（冪等・事故防止）
 do $$
@@ -136,7 +179,8 @@ declare p record;
 begin
   for p in select policyname, tablename from pg_policies
             where schemaname = 'public'
-              and tablename in ('pv_requests', 'pv_request_likes') loop
+              and tablename in ('pv_requests', 'pv_request_likes',
+                                'pv_request_images') loop
     execute format('drop policy %I on public.%I', p.policyname, p.tablename);
   end loop;
 end $$;
@@ -190,9 +234,11 @@ comment on function public.pv_req_visible(boolean, text, text, text, boolean) is
 --    画面が古いほうを呼び続け、「運営だけに見せる」が黙って効かなくなるので、
 --    必ず先に落とす。
 drop function if exists public.pv_request_submit(text, text);
+drop function if exists public.pv_request_submit(text, text, boolean);
 
 create or replace function public.pv_request_submit(
-  p_body text, p_category text default 'other', p_private boolean default false)
+  p_body text, p_category text default 'other', p_private boolean default false,
+  p_image_b64 text default null, p_w int default null, p_h int default null)
 returns jsonb
 language plpgsql
 volatile
@@ -207,6 +253,8 @@ declare
   v_vis   text;
   v_admin boolean;
   v_n     int;
+  v_bytes bytea;
+  v_state text := 'none';
   v_row   public.pv_requests%rowtype;
 begin
   if v_uid is null then
@@ -251,9 +299,46 @@ begin
     return jsonb_build_object('ok', false, 'status', 'duplicate');
   end if;
 
-  insert into public.pv_requests (author_hash, body, category, visibility)
-  values (v_hash, v_body, v_cat, v_vis)
+  -- ── 添付の絵 ──────────────────────────────────────────────
+  -- ★ 行より先に中身を確かめる。ここを通してから1つの取引で両方入れるので、
+  --   「絵だけ入って行が無い」も「行だけ入って絵が無い」も起きない。
+  -- ★ 絵は行と同じ取引で入る＝通知の Webhook（INSERT のときだけ飛ぶ）が
+  --   image_state を 'pending' として読める。あとから足す形にすると
+  --   「絵が付いているのにメールが何も言わない」になる。
+  if p_image_b64 is not null and char_length(btrim(p_image_b64)) > 0 then
+    -- 先に長さで弾く（base64 は元の約4/3）。大きいものを decode してから測らない
+    if char_length(p_image_b64) > 700000 then
+      return jsonb_build_object('ok', false, 'status', 'image_too_big');
+    end if;
+    begin
+      v_bytes := decode(p_image_b64, 'base64');
+    exception when others then
+      return jsonb_build_object('ok', false, 'status', 'image_bad');
+    end;
+    if octet_length(v_bytes) > 500000 then
+      return jsonb_build_object('ok', false, 'status', 'image_too_big');
+    end if;
+    -- ★ 中身の検品が先。小さすぎるものを「大きすぎる」と言い返さない
+    --   （PNG を送った人に image_too_big と返して、意味の分からない画面になっていた）。
+    -- JPEG の先頭3バイト。画面は必ず canvas で焼き直してから送るので、
+    -- ここを通らない＝送り方がおかしい（SVG や PDF を混ぜようとしている）
+    if octet_length(v_bytes) < 100
+       or substring(v_bytes from 1 for 3) <> '\xffd8ff'::bytea then
+      return jsonb_build_object('ok', false, 'status', 'image_bad');
+    end if;
+    v_state := 'pending';
+  end if;
+
+  insert into public.pv_requests (author_hash, body, category, visibility, image_state)
+  values (v_hash, v_body, v_cat, v_vis, v_state)
   returning * into v_row;
+
+  if v_state = 'pending' then
+    insert into public.pv_request_images (request_id, bytes, byte_len, w, h)
+    values (v_row.id, v_bytes, octet_length(v_bytes),
+            nullif(least(greatest(coalesce(p_w, 0), 0), 20000), 0),
+            nullif(least(greatest(coalesce(p_h, 0), 0), 20000), 0));
+  end if;
 
   -- ★ 本人の1票を本当に入れる。like_count が 1 から始まるのは実データ。
   --   誰が押したかはどの関数も返さないので、これで投稿者は割れない。
@@ -272,15 +357,18 @@ begin
     'created_at',  v_row.created_at,
     'like_count',  1,
     'liked_by_me', true,
+    'image',       v_row.image_state,
     'is_hidden',   case when v_admin then false else null end));
 end;
 $fn$;
 
-revoke all on function public.pv_request_submit(text, text, boolean) from public, anon;
-grant execute on function public.pv_request_submit(text, text, boolean) to authenticated;
+revoke all on function public.pv_request_submit(text, text, boolean, text, int, int)
+  from public, anon;
+grant execute on function public.pv_request_submit(text, text, boolean, text, int, int)
+  to authenticated;
 
-comment on function public.pv_request_submit(text, text, boolean) is
-  '要望を1件出す。ログインした人だけ。本文4〜500字・60秒/5件24時間・同文の重複を弾く。投稿者の1票も同時に入れる。p_private で運営だけに見せる。';
+comment on function public.pv_request_submit(text, text, boolean, text, int, int) is
+  '要望を1件出す。ログインした人だけ。本文4〜500字・60秒/5件24時間・同文の重複を弾く。投稿者の1票も同時に入れる。p_private で運営だけに見せる。絵は JPEG 500KB まで・出した時点では pending（運営が見るまで他人に出ない）。';
 
 
 -- ════════════════════════════════════════════════════════════════
@@ -333,6 +421,13 @@ begin
                'like_count',  c.n,
                'liked_by_me', exists (select 1 from public.pv_request_likes l
                                        where l.request_id = r.id and l.liker_hash = v_hash),
+               -- ★ 確認前の絵は、第三者には **あることすら** 出さない。
+               --   'pending' を返すと「運営が確認中の絵がある」という札が立ち、
+               --   公開前の絵をめぐる催促や詮索の的になる。第三者には 'none'。
+               'image',       case
+                                when r.image_state = 'public' then 'public'
+                                when v_admin or r.author_hash = v_hash then r.image_state
+                                else 'none' end,
                -- 隠した札は管理者にだけ返す（一般ユーザーの JSON には鍵ごと出ない）
                'is_hidden',   case when v_admin then r.is_hidden else null end)
                as x,
@@ -422,6 +517,66 @@ comment on function public.pv_request_like_toggle(uuid) is
 
 
 -- ════════════════════════════════════════════════════════════════
+-- 6-b. 添付の絵を1枚読む
+-- ════════════════════════════════════════════════════════════════
+-- 一覧では絵を返さない（4件でも数百KBずつ乗る）。画面が「絵がある」と分かった行だけ、
+-- 描くときに1枚ずつ取りにくる。返すのは base64 で、画面が data: URL にして貼る。
+-- ★ 門は3つ全部。行が自分に見えて、かつ（公開済み or 自分の行 or 運営）。
+create or replace function public.pv_request_image(p_id uuid)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public, extensions
+as $fn$
+declare
+  v_uid   uuid := auth.uid();
+  v_hash  text;
+  v_admin boolean;
+  v_row   public.pv_requests%rowtype;
+  v_img   public.pv_request_images%rowtype;
+begin
+  if v_uid is null then
+    raise exception 'ログインが必要です' using errcode = '42501';
+  end if;
+  v_hash  := public.pv_request_hash(v_uid);
+  v_admin := public.pv_is_admin();
+
+  select * into v_row from public.pv_requests where id = p_id;
+  if not found then
+    return jsonb_build_object('ok', false, 'status', 'not_found');
+  end if;
+  -- 見えない要望の絵は、あるかどうかも答えない
+  if not public.pv_req_visible(v_row.is_hidden, v_row.visibility,
+                               v_row.author_hash, v_hash, v_admin) then
+    raise exception '見られません' using errcode = '42501';
+  end if;
+  if not (v_row.image_state = 'public' or v_row.author_hash = v_hash or v_admin) then
+    return jsonb_build_object('ok', false, 'status', 'not_found');
+  end if;
+
+  select * into v_img from public.pv_request_images where request_id = p_id;
+  if not found then
+    return jsonb_build_object('ok', false, 'status', 'not_found');
+  end if;
+
+  return jsonb_build_object('ok', true, 'mime', v_img.mime,
+                            'w', v_img.w, 'h', v_img.h,
+                            'state', v_row.image_state,
+                            -- ★ encode は76字ごとに改行を挟む。画面は data: URL に
+                            --   そのまま入れるので、外してから返す
+                            'b64', replace(encode(v_img.bytes, 'base64'), chr(10), ''));
+end;
+$fn$;
+
+revoke all on function public.pv_request_image(uuid) from public, anon;
+grant execute on function public.pv_request_image(uuid) to authenticated;
+
+comment on function public.pv_request_image(uuid) is
+  '添付の絵を1枚 base64 で返す。公開済み・自分の行・運営のときだけ。author_hash は返さない。';
+
+
+-- ════════════════════════════════════════════════════════════════
 -- 7. 管理者だけ（状態を変える・伏せる）
 -- ════════════════════════════════════════════════════════════════
 -- grant は authenticated に出すが、守っているのは中の pv_is_admin() の判定。
@@ -491,6 +646,50 @@ grant execute on function public.pv_request_set_hidden(uuid, boolean) to authent
 
 comment on function public.pv_request_set_hidden(uuid, boolean) is
   '要望を伏せる／戻す。管理者だけ（pv_is_admin）。伏せた行は一覧にも total にも出ない。';
+
+
+-- 添付の絵を公開する／見送る。★この門がこの機能の芯（オーナー決定）。
+-- ★ 'pending' へ戻す道は作らない。運営が一度見た事実を、あとから無かったことにしない。
+-- ★ 絵そのものを差し替える道もどこにも無い（絵が入るのは pv_request_submit の
+--   INSERT のとき1回だけ）。公開したあとで別の絵にすり替えられない。
+create or replace function public.pv_request_set_image_state(p_id uuid, p_state text)
+returns jsonb
+language plpgsql
+volatile
+security definer
+set search_path = public, extensions
+as $fn$
+declare v_n int;
+begin
+  if not public.pv_is_admin() then
+    raise exception '管理者ではありません' using errcode = '42501';
+  end if;
+  if p_state not in ('public', 'rejected') then
+    raise exception '公開するか見送るかのどちらかです' using errcode = '22023';
+  end if;
+
+  update public.pv_requests
+     set image_state = p_state, updated_at = now()
+   where id = p_id and image_state in ('pending', 'public', 'rejected');
+  get diagnostics v_n = row_count;
+  if v_n = 0 then
+    raise exception 'その要望に絵がありません' using errcode = '22023';
+  end if;
+
+  -- 見送った絵は中身ごと消す。「見送り」と書いてあるのに DB には残っている、を作らない
+  if p_state = 'rejected' then
+    delete from public.pv_request_images where request_id = p_id;
+  end if;
+
+  return jsonb_build_object('ok', true, 'id', p_id, 'image', p_state);
+end;
+$fn$;
+
+revoke all on function public.pv_request_set_image_state(uuid, text) from public, anon;
+grant execute on function public.pv_request_set_image_state(uuid, text) to authenticated;
+
+comment on function public.pv_request_set_image_state(uuid, text) is
+  '添付の絵を公開する／見送る。管理者だけ（pv_is_admin）。見送ると絵の中身も消す。pending へは戻せない。';
 
 
 -- ════════════════════════════════════════════════════════════════

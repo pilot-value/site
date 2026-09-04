@@ -292,6 +292,26 @@ const rqX = await nx.buildRequest('rq-1');
 ck('★本文の HTML がそのまま通らない', !rqX.html.includes('<script>'), rqX.html);
 ck('改行は <br> になる', rqX.html.includes('<br>2行目'), rqX.html);
 
+/* 添付の絵 ── メールに載せてよいのは「あるか無いか」の1つだけ。
+   ★画素も URL も載せない。メールは転送も保存もされる。確認は必ず画面で1回する。 */
+ROWS.pv_requests = {
+  id: 'rq-1', created_at: '2026-09-04T09:00:00+00:00',
+  body: '空港ごとのステイ先を知りたい', category: 'data', status: 'new',
+  visibility: 'private', image_state: 'pending',
+  author_hash: 'ZZ-AUTHOR-HASH-DO-NOT-SEND',
+  // ↓ ビルダーが SELECT を広げて画素まで引いてしまった日に、ここで赤くする
+  bytes: '/9j/4AAQSkZJRgABAQEASABIAAD-THIS-IS-THE-IMAGE',
+};
+const rqI = await nx.buildRequest('rq-1');
+ck('★画像の中身がメールに出ない', !rqI.html.includes('/9j/4AAQ'), rqI.html);
+ck('画像が添付されていると分かる', rqI.html.includes('添付あり'), rqI.html);
+ck('運営の確認が要ると書いてある', rqI.html.includes('確認が必要'), rqI.html);
+ck('★「運営だけに見せる」だと分かる', rqI.html.includes('運営だけに見せる'), rqI.html);
+ROWS.pv_requests = { ...ROWS.pv_requests, image_state: 'none', visibility: 'public' };
+const rqN = await nx.buildRequest('rq-1');
+ck('添付が無いときは「添付なし」', rqN.html.includes('添付なし'), rqN.html);
+ck('みんなに見えるときはそう書く', rqN.html.includes('みんなに見える'), rqN.html);
+
 /* ════════════════════════════════════════════════════════════════
    ③ ビルダーと Webhook のトリガの顔ぶれが一致すること
    ════════════════════════════════════════════════════════════════ */

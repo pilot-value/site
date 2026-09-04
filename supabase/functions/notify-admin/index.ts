@@ -439,14 +439,18 @@ async function buildCondition(id: string): Promise<Mail | null> {
    ★ 本文は全文を載せる。返事をするのに要るし、1通ぶんしかない。
      ただし esc() を通してから <br> に直す（生の HTML をメールに通さない）。
    ★ ♡ では送らない。1押しごとにメールが来る（webhooks.sql の配列に
-     pv_request_likes を入れていないのはこのため）。 */
+     pv_request_likes を入れていないのはこのため）。
+     ★ 画像は「添付があるか」の真偽1つだけ。画素も URL もメールには載せない
+       （メールは転送も保存もされる。確認は必ずサイトの画面で1回する）。 */
 async function buildRequest(id: string): Promise<Mail | null> {
-  const r = await sbSelect('pv_requests', id, 'id,created_at,body,category,status');
+  const r = await sbSelect('pv_requests', id,
+                           'id,created_at,body,category,status,visibility,image_state');
   if (!r) return null;
   const CAT: Record<string, string> = {
     feature: '機能', data: 'データ', ui: '使いやすさ', bug: '不具合', other: 'その他',
   };
   const body = esc(String(r.body ?? '')).replace(/\n/g, '<br>');
+  const hasImg = String(r.image_state ?? 'none') !== 'none';
   return {
     subject: `【PILOT VALUE】要望 — ${CAT[String(r.category)] ?? 'その他'}`,
     html: shell('パイロットから要望が1件あります',
@@ -454,6 +458,10 @@ async function buildRequest(id: string): Promise<Mail | null> {
       table(
         row('区分', esc(CAT[String(r.category)] ?? String(r.category ?? '—'))) +
         row('内容', body || '—') +
+        row('公開範囲', String(r.visibility ?? 'public') === 'private'
+              ? '運営だけに見せる（本人の指定）' : 'みんなに見える') +
+        row('画像', hasImg ? '添付あり — 運営の確認が必要（要望の一覧で公開／見送りを選ぶ）'
+                           : '添付なし') +
         row('状態', esc(String(r.status ?? 'new'))),
       )),
   };

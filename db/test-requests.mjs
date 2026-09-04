@@ -109,8 +109,9 @@ const call = async (uid, sql, params = []) => {
   catch (e) { return { err: String(e.message || e) }; }
   finally { await asOwner(); }
 };
-const submit = (uid, body, cat = 'other', priv = false) =>
-  call(uid, `select public.pv_request_submit($1,$2,$3) as v`, [body, cat, priv]);
+const submit = (uid, body, cat = 'other', priv = false, b64 = null, w = null, h = null) =>
+  call(uid, `select public.pv_request_submit($1,$2,$3,$4,$5,$6) as v`,
+       [body, cat, priv, b64, w, h]);
 const list = (uid, sort = 'popular', lim = 20, off = 0) =>
   call(uid, `select public.pv_requests_list($1,$2,$3) as v`, [sort, lim, off]);
 const toggle = (uid, id) =>
@@ -126,8 +127,8 @@ const ageOut = async (uid) => {
       where author_hash = public.pv_request_hash($1)
         and created_at > now() - interval '60 seconds'`, [uid, String(clock)]);
 };
-const freshSubmit = async (uid, body, cat, priv) => {
-  const r = await submit(uid, body, cat, priv);
+const freshSubmit = async (uid, body, cat, priv, b64, w, h) => {
+  const r = await submit(uid, body, cat, priv, b64, w, h);
   await ageOut(uid);
   return r;
 };
@@ -364,6 +365,98 @@ console.log('\n▼ ⑦-b 運営だけに見せる要望');
      String(open.v.v.item.visibility));
   ok((await list(A, 'new', 100)).v.v.items.some(x => x.id === open.v.v.item.id),
      '公開の要望は第三者に出る');
+}
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ ⑦-c 添付の絵は運営が見てから公開');
+{
+  /* 1×1 の本物の JPEG（160バイト）。先頭3バイトが ffd8ff。 */
+  const JPG = '/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkS'
+            + 'Ew8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAAB'
+            + 'AAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAA'
+            + 'AAD/2gAIAQEAAD8AKp//2Q==';
+  const P = '00000000-0000-4000-8000-00000000000d';  // 絵の検査だけに使う人（⑨ の C とは別）
+  const REQ = read('db/requests.sql');
+  const img = (uid, id) => call(uid, `select public.pv_request_image($1) as v`, [id]);
+
+  const withImg = await freshSubmit(P, '座席の写真を付けて説明したいです', 'ui', false, JPG, 1, 1);
+  ok(!withImg.err, '絵を付けて出せる', withImg.err);
+  const IMGID = withImg.v.v.item.id;
+  ok(withImg.v.v.item.image === 'pending', '出した直後は pending（まだ他人に出ない）',
+     String(withImg.v.v.item.image));
+
+  /* ★第三者には「絵がある」ことすら出さない。'pending' を返すと
+     公開前の絵の存在が札になって、催促や詮索の的になる。 */
+  const asB = (await list(B, 'new', 100)).v.v.items.find(x => x.id === IMGID);
+  ok(asB && asB.image === 'none', '★第三者の一覧では絵があること自体が出ない',
+     asB ? String(asB.image) : '行が無い');
+  const stealB = await img(B, IMGID);
+  ok(stealB.v && stealB.v.v.ok === false, '★第三者は確認前の絵を読めない',
+     JSON.stringify(stealB.v && stealB.v.v));
+
+  const mine = await img(P, IMGID);
+  ok(mine.v.v.ok === true, '本人は自分の絵を読める');
+  ok(mine.v.v.b64 === JPG, '入れた絵がそのまま返る');
+  ok(mine.v.v.state === 'pending', '本人には「確認待ち」と分かる');
+  ok(!JSON.stringify(mine.v.v).includes('author_hash'), '★絵の返り値にも author_hash が無い');
+  ok((await img(ADMIN, IMGID)).v.v.ok === true, '運営は確認のために読める');
+
+  /* ★一覧は絵の中身を運ばない（4件でも数百KBずつ乗る）。 */
+  ok(!JSON.stringify((await list(P, 'new', 100)).v.v).includes(JPG.slice(0, 40)),
+     '★一覧の JSON に絵の中身が入っていない');
+
+  /* 一般会員は公開できない。 */
+  const bad = await call(B, `select public.pv_request_set_image_state($1,'public') as v`, [IMGID]);
+  ok(!!bad.err, '★一般会員は絵を公開できない', bad.err ? '' : '公開できてしまった');
+
+  const okPub = await call(ADMIN, `select public.pv_request_set_image_state($1,'public') as v`, [IMGID]);
+  ok(!okPub.err && okPub.v.v.ok === true, '運営は公開できる', okPub.err);
+  const asB2 = (await list(B, 'new', 100)).v.v.items.find(x => x.id === IMGID);
+  ok(asB2 && asB2.image === 'public', '公開すると第三者の一覧にも出る');
+  ok((await img(B, IMGID)).v.v.ok === true, '公開後は第三者も読める');
+
+  /* ★公開したあと「確認待ち」へ戻す道は無い（見た事実を無かったことにしない）。 */
+  const back = await call(ADMIN, `select public.pv_request_set_image_state($1,'pending') as v`, [IMGID]);
+  ok(!!back.err, '★pending へは戻せない', back.err ? '' : '戻せてしまった');
+
+  /* ★絵が入るのは投稿の INSERT のとき1回だけ＝すり替える道がどこにも無い。 */
+  ok(!/update\s+public\.pv_request_images/i.test(REQ) &&
+     (REQ.match(/insert into public\.pv_request_images/g) || []).length === 1,
+     '★絵を後から書き換える SQL がファイルのどこにも無い');
+
+  /* 見送ると中身ごと消える。 */
+  const rej = await freshSubmit(P, '見送られる絵の付いた要望です', 'ui', false, JPG, 1, 1);
+  const REJID = rej.v.v.item.id;
+  await call(ADMIN, `select public.pv_request_set_image_state($1,'rejected') as v`, [REJID]);
+  const left = (await db.query(
+    `select count(*)::int as n from public.pv_request_images where request_id = $1`, [REJID])).rows[0].n;
+  ok(left === 0, '★見送ると絵の中身も消える（「見送り」なのに DB に残っている を作らない）');
+  const asB3 = (await list(B, 'new', 100)).v.v.items.find(x => x.id === REJID);
+  ok(asB3 && asB3.image === 'none', '見送った絵は第三者に出ない');
+
+  /* 絵の中身の検品。 */
+  const png = await freshSubmit(P, 'PNG に見せかけた添付を試します', 'ui', false,
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==');
+  ok(png.v.v.ok === false && png.v.v.status === 'image_bad',
+     '★JPEG でないものは弾く（SVG のような「絵の顔をした HTML」が入らない）',
+     JSON.stringify(png.v.v));
+  const broken = await freshSubmit(P, '壊れた base64 を送ってみます', 'ui', false, '!!!not base64!!!');
+  ok(broken.v.v.ok === false && broken.v.v.status === 'image_bad', '壊れた base64 は image_bad',
+     JSON.stringify(broken.v.v));
+  const huge = await freshSubmit(P, '大きすぎる絵を送ってみます', 'ui', false, 'A'.repeat(700004));
+  ok(huge.v.v.ok === false && huge.v.v.status === 'image_too_big', '大きすぎる絵は image_too_big',
+     JSON.stringify(huge.v.v));
+  ok((await db.query(`select count(*)::int as n from public.pv_requests
+                       where body like '%壊れた base64%' or body like '%大きすぎる絵%'
+                          or body like '%PNG に見せかけた%'`)).rows[0].n === 0,
+     '★弾いたときは行も1つも入っていない（絵だけ落ちて本文が残る形にしない）');
+
+  /* 付けなければ none。 */
+  const plain = await freshSubmit(P, '絵は付けずに出す普通の要望です', 'ui');
+  ok(plain.v.v.item.image === 'none', '絵を付けなければ none', String(plain.v.v.item.image));
+  ok((await db.query(`select count(*)::int as n from public.pv_request_images
+                       where request_id = $1`, [plain.v.v.item.id])).rows[0].n === 0,
+     '絵の表にも行を作らない');
 }
 
 // ════════════════════════════════════════════════════════════

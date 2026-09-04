@@ -177,6 +177,15 @@
                 <option value="other" selected>Other</option>
               </select>
 
+              <!-- 添付の絵。★file 入力そのものは見せず、押せる所はボタンで作る
+                   （pay-report.html と同じ形）。選んだ絵は端末の中で JPEG に焼き直してから送る。 -->
+              <div class="rm-f-img">
+                <input type="file" id="rm-img" name="image" accept="image/*" hidden>
+                <button type="button" class="rm-f-att" id="rm-img-b">Attach an image</button>
+                <span class="rm-f-att-n" id="rm-img-n"></span>
+              </div>
+              <div class="rm-f-prev" id="rm-img-p" hidden></div>
+
               <!-- ★ checkbox は 16px 検査の対象外（assert-header.mjs が飛ばす種類）。
                    触る所を44px確保するため、囲みの label 側で高さを取る。 -->
               <label class="rm-f-p" for="rm-priv">

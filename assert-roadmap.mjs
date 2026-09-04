@@ -210,7 +210,8 @@ ok('★prefers-color-scheme を持ち込んでいない', !/prefers-color-scheme
 ok('動きを減らす設定に従う', /prefers-reduced-motion/.test(JS));
 ok('transition-all を使っていない', !/transition\s*:\s*all/.test(JSC));
 /* 押せるものには hover / focus-visible / active を全部付ける。 */
-for (const sel of ['.rm-tab', '.rm-like', '.rm-f-b', '.rm-open', '.rm-retry', '.rm-more-btn']) {
+for (const sel of ['.rm-tab', '.rm-like', '.rm-f-b', '.rm-open', '.rm-retry', '.rm-more-btn',
+                  '.rm-f-att', '.rm-f-x']) {
   for (const st of [':hover', ':focus-visible', ':active']) {
     ok(`${sel}${st} がある`, JS.includes(sel + st));
   }
@@ -413,6 +414,80 @@ ok('.rm-f-p の中の checkbox に focus-visible の輪郭がある',
 ok('★触る所が44px以上ある', /\.rm-f-p\{[^}]*min-height:44px|min-height:44px/.test(
    JS.replace(/',\s*\n\s*'/g, '')));
 
+/* SQL の関数1本ぶんを切り出す道具。⑧-b と ⑨ の両方で使う。 */
+const fnBody = (name) => {
+  const from = SQLC.indexOf('function public.' + name);
+  if (from < 0) return '';
+  /* 関数の後ろに続く comment on … is '…' は本文ではない。手前で切る。 */
+  const to = SQLC.slice(from + 10).search(/create or replace function|comment on |drop function /);
+  return SQLC.slice(from, to > 0 ? from + 10 + to : undefined);
+};
+
+/* ════════════════════════════════════════════════════════════════
+   ⑧-b 添付の絵 ── 運営が見てから公開する
+   ════════════════════════════════════════════════════════════════
+   ★この門を外すと、この機能はサイトの土台（匿名性）に反する。
+     焼き直しで消えるのは EXIF の位置情報だけで、画素に写り込んだ氏名・
+     社員番号・会社名・金額は消えない。だから人が1回見る。 */
+console.log('\n── 添付の絵 ─────────────────────────────');
+const sqlImg = listOf(/image_state\s+in\s*\(([^)]*)\)/);
+const jsImg  = [...(JS.match(/var IMGST\s*=\s*\[([^\]]*)\]/) || [, ''])[1]
+  .matchAll(/'([a-z]+)'/g)].map((m) => m[1]).sort();
+ok('★絵の状態の白リストが SQL と roadmap.js で同じ', JSON.stringify(sqlImg) === JSON.stringify(jsImg),
+   `sql: ${sqlImg}\n      js : ${jsImg}`);
+
+for (const [name, h] of [['ja', HTML_JA], ['en', HTML_EN]]) {
+  ok(`${name} に隠したファイル入力がある`, /<input type="file" id="rm-img"[^>]*hidden/.test(h));
+  ok(`${name} は画像しか選ばせない`, /id="rm-img"[^>]*accept="image\/\*"/.test(h));
+  ok(`${name} に押せる添付ボタンがある`, /<button type="button" class="rm-f-att" id="rm-img-b"/.test(h));
+  ok(`${name} に下見の置き場がある`, /id="rm-img-p"[^>]*hidden/.test(h));
+}
+/* ★端末の中で必ず JPEG に焼き直す。ここが2つを同時に守っている ──
+   EXIF/GPS が落ちる／SVG のような「絵の顔をした HTML」が原理的に入らない。 */
+ok('★端末の中で JPEG に焼き直してから送る',
+   /toBlob\([\s\S]{0,200}?'image\/jpeg'/.test(JS));
+ok('★白で塗ってから描く（透過が黒く潰れない）', /fillStyle = 'white'[\s\S]{0,120}fillRect/.test(JS));
+ok('★上限が SQL と同じ数', /var IMG_MAX\s*=\s*500000/.test(JS) && /<= 500000/.test(SQLC));
+ok('入らないときは画質を落として収める', /IMG_Q\s*=\s*\[/.test(JS) && /encodeAt\(cv, i \+ 1\)/.test(JS));
+/* 絵を渡す口は「出すときの1回」だけ。あとから差し替える道を画面にも作らない。 */
+ok('★絵を送るのは submit の1回だけ', (JSC.match(/p_image_b64/g) || []).length === 1);
+ok('★出したあと添付を空に戻す', /clearImage\(\);/.test(JSC) && /if \(priv\) priv\.checked = false;\s*\n\s*clearImage\(\);/.test(JS));
+ok('弾かれた理由を画面に出し分ける',
+   /'image_bad' \? T\.imgErrType/.test(JS) && /'image_too_big' \? T\.imgErrBig/.test(JS));
+/* 一覧の返事に画素を載せない（絵でこそ効く約束）。1行ぶんずつ後から取る。 */
+{
+  const body = fnBody('pv_requests_list');
+  ok('★一覧の返事に画素を載せていない', !/encode\(|\.bytes/.test(body), '一覧に bytes が混ざっている');
+  ok('★確認前の絵は第三者に「あることすら」出さない',
+     /'image',\s*case[\s\S]{0,300}?else 'none'/.test(body));
+  ok('絵は行ごとに後から取る', /rpc\('pv_request_image'/.test(JS));
+}
+{
+  const body = fnBody('pv_request_image');
+  ok('絵を1枚返す RPC がある', body.length > 0);
+  ok('★見えない要望の絵は返さない', /pv_req_visible/.test(body));
+  ok('★確認前の絵を第三者に返さない', /image_state = 'public'/.test(body));
+  /* ハッシュを使ってよいのは「その行が自分のものか」を確かめるときだけ。
+     ★出てきた回数と、その2つの形で出てきた回数が同じであることを見る
+       （返り値に1度でも混ざれば、それは以後ずっと同じ人を指す仮名になる）。 */
+  const uses  = (body.match(/author_hash/g) || []).length;
+  const okUse = (body.match(/v_row\.author_hash,\s*v_hash|v_row\.author_hash = v_hash/g) || []).length;
+  ok('★ハッシュを使うのは「自分の行か」を確かめるときだけ', uses > 0 && uses === okUse,
+     `出現 ${uses} 回 / 許す形 ${okUse} 回`);
+  /* Postgres の encode は76字ごとに改行を挟む。取らずに返すと画面で絵が壊れる。 */
+  ok('★base64 の改行を取ってから返す', /replace\(encode\([\s\S]{0,60}chr\(10\)/.test(body));
+}
+{
+  const body = fnBody('pv_request_set_image_state');
+  ok('★絵を公開できるのは運営だけ', /pv_is_admin\(\)/.test(body));
+  ok('★確認待ちへ戻す道が無い', /p_state not in \('public', 'rejected'\)/.test(body));
+  ok('★見送ったら画素そのものを消す', /delete from public\.pv_request_images/.test(body));
+}
+/* 承認した絵をあとで別の絵にすり替える道を、そもそも作らない。 */
+ok('★絵を書き換える SQL がファイルに1つも無い', !/update\s+public\.pv_request_images/i.test(SQLC));
+ok('★絵を入れる SQL は1か所だけ',
+   (SQLC.match(/insert into public\.pv_request_images/g) || []).length === 1);
+
 /* ════════════════════════════════════════════════════════════════
    ⑨ SQL 側の急所（詳しくは db/test-requests.mjs が PGlite で回す）
    ════════════════════════════════════════════════════════════════
@@ -429,13 +504,6 @@ ok('★行ごと jsonb に変換していない', !/to_jsonb\s*\(\s*r\s*\)|row_t
    ★『運営だけに見せる』が入ると、この比較が必要になる。だから「1度も出てこない」
      では見張れない。出てきた回数と、比較の形で出てきた回数が一致することを見る。
      select の並びや jsonb に1つ紛れ込んだ瞬間、数が合わなくなって落ちる。 */
-const fnBody = (name) => {
-  const from = SQLC.indexOf('function public.' + name);
-  if (from < 0) return '';
-  /* 関数の後ろに続く comment on … is '…' は本文ではない。手前で切る。 */
-  const to = SQLC.slice(from + 10).search(/create or replace function|comment on |drop function /);
-  return SQLC.slice(from, to > 0 ? from + 10 + to : undefined);
-};
 {
   const body = fnBody('pv_requests_list');
   ok('一覧 RPC を見つけられている', body.length > 0);
