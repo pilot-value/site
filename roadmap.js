@@ -56,6 +56,9 @@
      ★片方だけ増やさない。増やすときは SQL の check 制約と同時に。 */
   var CATS   = ['feature', 'data', 'ui', 'bug', 'other'];
   var STATES = ['new', 'considering', 'planned', 'building', 'done', 'declined'];
+  /* ★SQL の visibility の白リストと同じ綴り。assert-roadmap.mjs が突き合わせる
+     （綴りがずれると、運営だけの行に札が出ないまま普通に並ぶ）。 */
+  var VIS = ['public', 'private'];
 
   // ══ 文言 ═══════════════════════════════════════════════════
   var DICT = {
@@ -126,6 +129,7 @@
       privacy: '公開されるのは本文・区分・賛成の数・状態・時期だけ。'
              + '航空会社・職位・給与・氏名とは結びつけません。',
 
+      tagPrivate: '運営だけ',
       adminH: '管理',
       adminHide: '伏せる',
       adminShow: '戻す',
@@ -205,6 +209,7 @@
       privacy: 'Only the text, category, votes, status and date are shown — '
              + 'never your airline, rank, pay or name.',
 
+      tagPrivate: 'Team only',
       adminH: 'Admin',
       adminHide: 'Hide',
       adminShow: 'Unhide',
@@ -371,6 +376,9 @@
     '.rm-tag.is-new{background:var(--pv-line-soft);color:var(--pv-ink-2);border-color:var(--pv-line)}',
     '.rm-tag.is-declined{background:var(--pv-line-soft);color:var(--pv-ink-3);',
     '  border-color:var(--pv-line);text-decoration:line-through}',
+    /* 運営だけに見せる要望。★色だけで区別しない ── 破線の囲みと語で分かる。 */
+    '.rm-tag.is-private{background:var(--pv-surface-2);color:var(--pv-ink-2);',
+    '  border-color:var(--pv-ink-3);border-style:dashed}',
 
     /* ── 運営が進めていること（札を左、題名と1行の説明を右）──── */
     '.rm-list{list-style:none;display:flex;flex-direction:column;gap:9px}',
@@ -491,6 +499,17 @@
     '  border:1px solid var(--pv-line);background:var(--pv-surface-2);color:var(--pv-ink);',
     '  font:inherit;font-size:16px}',
     '.rm-f-s:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}',
+    /* 「運営だけに見せる」。★触る所を44px確保する（checkbox 単体では小さすぎる）。 */
+    '.rm-f-p{display:flex;align-items:flex-start;gap:9px;margin-top:13px;padding:7px 9px;',
+    '  min-height:44px;border-radius:var(--pv-r-sm);border:1px solid transparent;',
+    '  font-size:.72rem;font-weight:700;color:var(--pv-ink-2);line-height:1.6;cursor:pointer}',
+    '.rm-f-p b{display:block;font-size:.66rem;font-weight:600;color:var(--pv-ink-3);',
+    '  line-height:1.7;margin-top:2px}',
+    '.rm-f-p input{flex:none;width:18px;height:18px;margin-top:2px;accent-color:var(--pv-orange)}',
+    '.rm-f-p:hover{background:var(--pv-line-soft);border-color:var(--pv-line)}',
+    '.rm-f-p:active{background:var(--pv-line-soft);border-color:var(--pv-ink-3)}',
+    '.rm-f-p:focus-within{background:var(--pv-line-soft);border-color:var(--pv-line)}',
+    '.rm-f-p input:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}',
     '.rm-f-r{display:flex;align-items:center;justify-content:space-between;gap:10px;',
     '  flex-wrap:wrap;margin-top:13px}',
     '.rm-f-c{font-size:.7rem;font-weight:700;color:var(--pv-ink-3);font-variant-numeric:tabular-nums}',
@@ -856,6 +875,15 @@
     when.textContent = ym(it.created_at);
     meta.appendChild(when);
 
+    /* ★この行がそもそも返ってきているのは、自分の行か運営のときだけ
+       （見えるかの判定はサーバの pv_req_visible ただ1つ）。だから札も自然にそこだけ出る。 */
+    if (it.visibility === 'private') {
+      var pv = d.createElement('span');
+      pv.className = 'rm-tag is-private';
+      pv.textContent = T.tagPrivate;
+      meta.appendChild(pv);
+    }
+
     if (it.is_hidden) {
       var h = d.createElement('span');
       h.className = 'rm-tag is-declined';
@@ -1085,7 +1113,8 @@
   // ══ 送信 ═══════════════════════════════════════════════════
   function wireForm() {
     var form = $('rm-form'), ta = $('rm-body'), cat = $('rm-cat'),
-        btn  = $('rm-send'), cnt = $('rm-count-c'), msg = $('rm-msg');
+        btn  = $('rm-send'), cnt = $('rm-count-c'), msg = $('rm-msg'),
+        priv = $('rm-priv');
     if (!form || !ta || !btn) return;
 
     function count() {
@@ -1115,7 +1144,9 @@
       btn.disabled = true;
       show(T.sending, false);
 
-      rpc('pv_request_submit', { p_body: body, p_category: (cat && cat.value) || 'other' })
+      rpc('pv_request_submit', { p_body: body,
+                                 p_category: (cat && cat.value) || 'other',
+                                 p_private: !!(priv && priv.checked) })
         .then(function (v) {
           btn.disabled = false;
           if (!v || v.__err) { show(T.errSend, false); return; }
@@ -1126,6 +1157,8 @@
             return;   // ★本文は消さない（書き直せるように残す）
           }
           ta.value = '';
+          /* ★次の1件が黙って「運営だけ」にならないよう、必ず戻す。 */
+          if (priv) priv.checked = false;
           count();
           growTa();
           show(T.sent, true);

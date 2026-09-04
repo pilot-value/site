@@ -376,6 +376,43 @@ ok('区分の対応表が白リストを網羅している',
 ok('状態の対応表が白リストを網羅している',
    jsSt.every((c) => c in DICT.ja.st && c in DICT.en.st));
 
+/* 「運営だけに見せる」。★綴りが SQL とずれると、行は伏せられているのに札が出ない
+   ＝本人が「みんなに見えている」と思い込む形で静かに壊れる。 */
+const sqlVis = listOf(/visibility\s+in\s*\(([^)]*)\)/);
+const jsVis  = [...(JS.match(/var VIS\s*=\s*\[([^\]]*)\]/) || [, ''])[1]
+  .matchAll(/'([a-z]+)'/g)].map((m) => m[1]).sort();
+ok('★公開範囲の白リストが SQL と roadmap.js で同じ', JSON.stringify(sqlVis) === JSON.stringify(jsVis),
+   `sql: ${sqlVis}\n      js : ${jsVis}`);
+ok('公開範囲は public と private の2つだけ', JSON.stringify(jsVis) === JSON.stringify(['private', 'public']),
+   jsVis.join(','));
+
+console.log('\n── 運営だけに見せる ─────────────────────');
+for (const [name, h] of [['ja', HTML_JA], ['en', HTML_EN]]) {
+  ok(`${name} にチェックボックスがある`, /<input type="checkbox" id="rm-priv"/.test(h));
+  ok(`${name} は label で囲って触る所を広げている`,
+     /<label class="rm-f-p" for="rm-priv">/.test(h));
+  /* ★ select にしない。<option> の白リスト検査が区分の顔ぶれと突き合わせているので、
+     ここで select を使うと区分の検査ごと壊れる。 */
+  ok(`${name} は select ではない`, !/id="rm-priv"[^>]*>[\s\S]{0,20}<option/.test(h));
+}
+ok('★チェックを送信に渡している（付けても効かない形になっていない）',
+   /p_private:\s*!!\(priv && priv\.checked\)/.test(JS));
+ok('★送ったあとチェックを戻す（次の1件が黙って運営だけにならない）',
+   /priv\.checked\s*=\s*false/.test(JS));
+ok('★private の行に札を出す', /it\.visibility === 'private'/.test(JS) && /T\.tagPrivate/.test(JS));
+ok('札を色だけで伝えない（破線の囲みを持つ）',
+   /is-private\{[^}]*\}|is-private\{/.test(JS.replace(/',\s*\n\s*'/g, '')) &&
+   /border-style:dashed/.test(JS));
+/* .rm-f-p は label ＝ 自分は focus を受け取らない。中の checkbox が受け取るので、
+   focus は :focus-within（囲み）と input:focus-visible（輪郭）の2本で見る。 */
+for (const st of [':hover', ':active', ':focus-within']) {
+  ok(`.rm-f-p${st} がある`, JS.includes('.rm-f-p' + st));
+}
+ok('.rm-f-p の中の checkbox に focus-visible の輪郭がある',
+   JS.includes('.rm-f-p input:focus-visible'));
+ok('★触る所が44px以上ある', /\.rm-f-p\{[^}]*min-height:44px|min-height:44px/.test(
+   JS.replace(/',\s*\n\s*'/g, '')));
+
 /* ════════════════════════════════════════════════════════════════
    ⑨ SQL 側の急所（詳しくは db/test-requests.mjs が PGlite で回す）
    ════════════════════════════════════════════════════════════════
@@ -402,15 +439,41 @@ const fnBody = (name) => {
 {
   const body = fnBody('pv_requests_list');
   ok('一覧 RPC を見つけられている', body.length > 0);
-  /* 「自分か」を確かめる比較 ── ハッシュの右も左も v_hash（自分のハッシュ）でなければならない。
-     l.liker_hash も同じ。片方でも列そのものを返り値へ運ぶ形が混ざれば数が合わなくなる。 */
+  /* 「自分か」を確かめるときだけ使ってよい。許すのは2つの形しかない ──
+       r.author_hash = v_hash        … その場で比べる
+       r.author_hash, v_hash         … pv_req_visible に「自分のぶん」と並べて渡す
+     どちらもハッシュのすぐ隣に v_hash が居る。select の並びや jsonb に1つ紛れ込むと、
+     隣に v_hash が無いので数が合わなくなって落ちる。 */
   for (const col of ['author_hash', 'liker_hash']) {
     const all = (body.match(new RegExp(col, 'g')) || []).length;
-    const cmp = (body.match(new RegExp('\\b[a-z]\\.' + col + '\\s*=\\s*v_hash\\b', 'g')) || []).length;
-    ok(`★一覧 RPC は ${col} を「自分か」の比較にしか使っていない`,
-       all === cmp, `出てきた ${all} 回 / 比較の形 ${cmp} 回`);
+    const cmp = (body.match(new RegExp(
+      '\\b[a-z]\\.' + col + '\\s*(?:=\\s*v_hash|,\\s*v_hash)\\b', 'g')) || []).length;
+    ok(`★一覧 RPC は ${col} を「自分か」の判定にしか使っていない`,
+       all === cmp, `出てきた ${all} 回 / 判定の形 ${cmp} 回`);
   }
 }
+/* ★「見えるか」を決めるのは pv_req_visible ただ1つ。
+   一覧の total と本体で同じ where を書き写すと、片方だけ直す日が必ず来て
+   「7件と書いてあるのに6件しか並ばない」が静かに起きる。 */
+ok('★見えるかの判定が関数1本になっている', /function public\.pv_req_visible\(/.test(SQLC));
+{
+  const body = fnBody('pv_requests_list');
+  ok('★一覧 RPC が pv_req_visible を2回呼ぶ（total と本体）',
+     (body.match(/pv_req_visible\(/g) || []).length === 2,
+     String((body.match(/pv_req_visible\(/g) || []).length));
+  ok('★一覧 RPC に生の is_hidden 比較が残っていない',
+     !/not\s+r\.is_hidden|r\.is_hidden\s*=/.test(body));
+}
+ok('★♡ も同じ判定を使う（見えない行に押せない）',
+   /pv_req_visible\(/.test(fnBody('pv_request_like_toggle')));
+/* ★引数を足した関数は、先に落としてから作り直す。
+   create or replace だけだと古い署名が残り、画面が古いほうを呼び続ける。 */
+ok('★投稿 RPC は古い2引数版を先に落としている',
+   /drop function if exists public\.pv_request_submit\(text,\s*text\)/.test(SQLC));
+/* ★本人の意図に反して運営が公開できる形にしない。切り替える口そのものを作らない。 */
+ok('★公開／非公開を後から切り替える関数が無い',
+   !/set_visibility|make_public|pv_request_publish/i.test(SQLC));
+
 ok('★ハッシュ関数を画面から呼べない',
    /revoke\s+all\s+on\s+function\s+public\.pv_request_hash\(uuid\)\s+from\s+public,\s*anon,\s*authenticated/i.test(SQL));
 ok('★1人1票は主キーで担保している',

@@ -26,6 +26,9 @@
 --     画面の maxlength は目安にすぎず、REST を直接叩けば素通りする。
 --  5. status を変えられるのは pv_is_admin() だけ。
 --     守っているのは grant ではなく関数の中の判定。
+--  6. 「見えるかどうか」の判定は pv_req_visible() ただ1つ。
+--     ★ 一覧の total と本体で同じ where を2回書かない。片方だけ直すと
+--       「7件と書いてあるのに6件しか並ばない」が静かに起きる。
 -- ════════════════════════════════════════════════════════════════
 
 -- ── 0. 前提 ─────────────────────────────────────────────────
@@ -85,6 +88,13 @@ alter table public.pv_requests add constraint pv_requests_cat_ck check (
 alter table public.pv_requests add constraint pv_requests_status_ck check (
   status in ('new', 'considering', 'planned', 'building', 'done', 'declined'));
 
+-- 「運営だけに見せる」── 個人的な内容の要望のため（オーナー指示）。
+-- ★ 後から公開へ切り替える口は作らない。本人の意図に反して運営が公開できる形にしない。
+alter table public.pv_requests add column if not exists visibility text not null default 'public';
+alter table public.pv_requests drop constraint if exists pv_requests_vis_ck;
+alter table public.pv_requests add constraint pv_requests_vis_ck check (
+  visibility in ('public', 'private'));
+
 alter table public.pv_request_likes drop constraint if exists pv_request_likes_hash_ck;
 alter table public.pv_request_likes add constraint pv_request_likes_hash_ck check (
   liker_hash ~ '^[0-9a-f]{64}$');
@@ -100,6 +110,8 @@ comment on table public.pv_requests is
   'ROADMAP & REQUESTS の匿名リクエスト。user_id は持たず author_hash だけ。個票の直読みは不可。';
 comment on column public.pv_requests.author_hash is
   '★ どの関数の返り値にも入れないこと。外へ出た瞬間に安定した仮名 ID になり、同じ人の投稿を束ねられる。';
+comment on column public.pv_requests.visibility is
+  '''private'' は運営と本人にしか出さない。公開へ戻す関数は作らない（消して出し直す）。';
 comment on column public.pv_requests.is_hidden is
   '荒らしを伏せる札。「やらない」を表すのは status=''declined'' のほう。';
 comment on table public.pv_request_likes is
@@ -149,12 +161,38 @@ revoke all on function public.pv_request_hash(uuid) from public, anon, authentic
 
 
 -- ════════════════════════════════════════════════════════════════
+-- 3-b. 見えるかどうか（★この判定はここ1か所だけ）
+-- ════════════════════════════════════════════════════════════════
+-- 一覧の total と本体、♡ を押せるかの3か所が全部これを呼ぶ。
+-- ★ where を手で書き写さない。書き写した瞬間、片方だけ直す日が来る。
+create or replace function public.pv_req_visible(
+  p_hidden boolean, p_vis text, p_author text, p_me text, p_admin boolean)
+returns boolean
+language sql
+immutable
+as $fn$
+  select coalesce(p_admin, false)
+      or (p_author = p_me)
+      or ((not coalesce(p_hidden, false)) and coalesce(p_vis, 'public') = 'public');
+$fn$;
+
+comment on function public.pv_req_visible(boolean, text, text, text, boolean) is
+  '要望が自分に見えるか。運営は全部／自分の行は必ず／それ以外は「伏せられていない かつ public」。';
+
+
+-- ════════════════════════════════════════════════════════════════
 -- 4. 出す（投稿）
 -- ════════════════════════════════════════════════════════════════
 -- 返り値は {ok:true, item:{…}}。弾いたときは例外ではなく
 -- {ok:false, status:'rate_limited'|'too_fast'|'duplicate'} を返す
 -- （db/referrals.sql と同じ作法。画面は理由ごとに違う一言を出す）。
-create or replace function public.pv_request_submit(p_body text, p_category text default 'other')
+-- ⚠️ 引数が1つ増えた。create or replace だけでは **古い2引数版が残る**。
+--    画面が古いほうを呼び続け、「運営だけに見せる」が黙って効かなくなるので、
+--    必ず先に落とす。
+drop function if exists public.pv_request_submit(text, text);
+
+create or replace function public.pv_request_submit(
+  p_body text, p_category text default 'other', p_private boolean default false)
 returns jsonb
 language plpgsql
 volatile
@@ -162,12 +200,14 @@ security definer
 set search_path = public, extensions
 as $fn$
 declare
-  v_uid  uuid := auth.uid();
-  v_hash text;
-  v_body text;
-  v_cat  text;
-  v_n    int;
-  v_row  public.pv_requests%rowtype;
+  v_uid   uuid := auth.uid();
+  v_hash  text;
+  v_body  text;
+  v_cat   text;
+  v_vis   text;
+  v_admin boolean;
+  v_n     int;
+  v_row   public.pv_requests%rowtype;
 begin
   if v_uid is null then
     raise exception 'ログインが必要です' using errcode = '42501';
@@ -185,6 +225,8 @@ begin
   -- 区分は白リスト外なら 'other' に丸める。区分の綴り違いで本文を落とさない
   v_cat := case when p_category in ('feature', 'data', 'ui', 'bug', 'other')
                 then p_category else 'other' end;
+
+  v_vis := case when coalesce(p_private, false) then 'private' else 'public' end;
 
   v_hash := public.pv_request_hash(v_uid);
 
@@ -209,8 +251,8 @@ begin
     return jsonb_build_object('ok', false, 'status', 'duplicate');
   end if;
 
-  insert into public.pv_requests (author_hash, body, category)
-  values (v_hash, v_body, v_cat)
+  insert into public.pv_requests (author_hash, body, category, visibility)
+  values (v_hash, v_body, v_cat, v_vis)
   returning * into v_row;
 
   -- ★ 本人の1票を本当に入れる。like_count が 1 から始まるのは実データ。
@@ -218,23 +260,27 @@ begin
   insert into public.pv_request_likes (request_id, liker_hash)
   values (v_row.id, v_hash);
 
-  -- 一覧と同じ形で返す（画面が取り直さずに先頭へ挿せる）
+  -- ★ 一覧と「鍵の顔ぶれまで」同じ形で返す（画面が取り直さずに先頭へ挿せる）。
+  --   1つでも欠けると、出した直後の1件だけ札や絵が出ない行になる。
+  v_admin := public.pv_is_admin();
   return jsonb_build_object('ok', true, 'item', jsonb_build_object(
     'id',          v_row.id,
     'body',        v_row.body,
     'category',    v_row.category,
     'status',      v_row.status,
+    'visibility',  v_row.visibility,
     'created_at',  v_row.created_at,
     'like_count',  1,
-    'liked_by_me', true));
+    'liked_by_me', true,
+    'is_hidden',   case when v_admin then false else null end));
 end;
 $fn$;
 
-revoke all on function public.pv_request_submit(text, text) from public, anon;
-grant execute on function public.pv_request_submit(text, text) to authenticated;
+revoke all on function public.pv_request_submit(text, text, boolean) from public, anon;
+grant execute on function public.pv_request_submit(text, text, boolean) to authenticated;
 
-comment on function public.pv_request_submit(text, text) is
-  '要望を1件出す。ログインした人だけ。本文4〜500字・60秒/5件24時間・同文の重複を弾く。投稿者の1票も同時に入れる。';
+comment on function public.pv_request_submit(text, text, boolean) is
+  '要望を1件出す。ログインした人だけ。本文4〜500字・60秒/5件24時間・同文の重複を弾く。投稿者の1票も同時に入れる。p_private で運営だけに見せる。';
 
 
 -- ════════════════════════════════════════════════════════════════
@@ -269,9 +315,11 @@ begin
   v_lim := least(greatest(coalesce(p_limit, 20), 1), 100);
   v_off := greatest(coalesce(p_offset, 0), 0);
 
+  -- ★ total は「その人に見えている件数」。運営だけに見せる要望を1件出した人は、
+  --   その人にだけ1件多く見える。自分の行なので他人のことは1件も分からない。
   select count(*) into v_total
     from public.pv_requests r
-   where (not r.is_hidden) or v_admin;
+   where public.pv_req_visible(r.is_hidden, r.visibility, r.author_hash, v_hash, v_admin);
 
   select coalesce(jsonb_agg(x order by x_ord), '[]'::jsonb) into v_items
     from (
@@ -280,6 +328,7 @@ begin
                'body',        r.body,
                'category',    r.category,
                'status',      r.status,
+               'visibility',  r.visibility,
                'created_at',  r.created_at,
                'like_count',  c.n,
                'liked_by_me', exists (select 1 from public.pv_request_likes l
@@ -294,7 +343,7 @@ begin
         cross join lateral (
                select count(*)::int as n from public.pv_request_likes l
                 where l.request_id = r.id) c
-       where (not r.is_hidden) or v_admin
+       where public.pv_req_visible(r.is_hidden, r.visibility, r.author_hash, v_hash, v_admin)
        order by case when p_sort = 'new' then 0 else c.n end desc,
                 r.created_at desc, r.id
        limit v_lim offset v_off
@@ -311,7 +360,7 @@ revoke all on function public.pv_requests_list(text, int, int) from public, anon
 grant execute on function public.pv_requests_list(text, int, int) to authenticated;
 
 comment on function public.pv_requests_list(text, int, int) is
-  '要望の一覧。ログインした人だけ。author_hash は返さない。隠した行は管理者にしか出ない。total は KPI にそのまま使う。';
+  '要望の一覧。ログインした人だけ。author_hash は返さない。見えるかは pv_req_visible ただ1つで決める。total はその人に見えている件数。';
 
 
 -- ════════════════════════════════════════════════════════════════
@@ -327,7 +376,7 @@ as $fn$
 declare
   v_uid    uuid := auth.uid();
   v_hash   text;
-  v_hidden boolean;
+  v_row    public.pv_requests%rowtype;
   v_del    int;
   v_n      int;
 begin
@@ -336,11 +385,13 @@ begin
   end if;
   v_hash := public.pv_request_hash(v_uid);
 
-  select r.is_hidden into v_hidden from public.pv_requests r where r.id = p_id;
+  select * into v_row from public.pv_requests r where r.id = p_id;
   if not found then
     raise exception 'その要望はありません' using errcode = '22023';
   end if;
-  if v_hidden then
+  -- ★ 一覧と同じ判定。見えない行には押せない（見えない行の数を数えられない）
+  if not public.pv_req_visible(v_row.is_hidden, v_row.visibility,
+                               v_row.author_hash, v_hash, public.pv_is_admin()) then
     raise exception 'その要望は表示されていません' using errcode = '42501';
   end if;
 

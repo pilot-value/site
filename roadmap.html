@@ -179,6 +179,13 @@
                 <option value="other" selected>その他</option>
               </select>
 
+              <!-- ★ checkbox は 16px 検査の対象外（assert-header.mjs が飛ばす種類）。
+                   触る所を44px確保するため、囲みの label 側で高さを取る。 -->
+              <label class="rm-f-p" for="rm-priv">
+                <input type="checkbox" id="rm-priv" name="private">
+                <span>運営だけに見せる<b>個人的な内容のときに使ってください。ほかのパイロットには出ません。</b></span>
+              </label>
+
               <div class="rm-f-r">
                 <span class="rm-f-c" id="rm-count-c">0 / 500</span>
                 <button type="submit" class="rm-f-b" id="rm-send">リクエストを送信する</button>

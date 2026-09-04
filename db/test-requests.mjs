@@ -109,8 +109,8 @@ const call = async (uid, sql, params = []) => {
   catch (e) { return { err: String(e.message || e) }; }
   finally { await asOwner(); }
 };
-const submit = (uid, body, cat = 'other') =>
-  call(uid, `select public.pv_request_submit($1,$2) as v`, [body, cat]);
+const submit = (uid, body, cat = 'other', priv = false) =>
+  call(uid, `select public.pv_request_submit($1,$2,$3) as v`, [body, cat, priv]);
 const list = (uid, sort = 'popular', lim = 20, off = 0) =>
   call(uid, `select public.pv_requests_list($1,$2,$3) as v`, [sort, lim, off]);
 const toggle = (uid, id) =>
@@ -126,8 +126,8 @@ const ageOut = async (uid) => {
       where author_hash = public.pv_request_hash($1)
         and created_at > now() - interval '60 seconds'`, [uid, String(clock)]);
 };
-const freshSubmit = async (uid, body, cat) => {
-  const r = await submit(uid, body, cat);
+const freshSubmit = async (uid, body, cat, priv) => {
+  const r = await submit(uid, body, cat, priv);
   await ageOut(uid);
   return r;
 };
@@ -308,6 +308,62 @@ console.log('\n▼ ⑦ 伏せた要望は一般会員に返さない');
   await call(ADMIN, `select public.pv_request_set_hidden($1,false) as v`, [HID]);
   ok((await list(A, 'new', 100)).v.v.items.some(x => x.id === HID), '戻せば また出る');
   await call(ADMIN, `select public.pv_request_set_hidden($1,true) as v`, [HID]);
+}
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ ⑦-b 運営だけに見せる要望');
+{
+  /* 先に基準を取る。⑦ が B の行を1つ伏せたまま終わっているので、
+     「A より1多い」と決め打つと数が合わない。★増えぶんで見る。 */
+  const beforeA = (await list(A, 'new', 100)).v.v.total;
+  const beforeB = (await list(B, 'new', 100)).v.v.total;
+
+  const mine = await freshSubmit(B, '自分の勤務先の個人的な事情の相談です', 'other', true);
+  ok(!mine.err, '「運営だけ」で出せる', mine.err);
+  const PRIV = mine.v.v.item.id;
+  ok(mine.v.v.item.visibility === 'private', '出した本人には private と返る', String(mine.v.v.item.visibility));
+
+  const asA = (await list(A, 'new', 100)).v.v;
+  ok(!asA.items.some(x => x.id === PRIV), '★第三者の items に無い');
+  ok(!JSON.stringify(asA).includes('個人的な事情'), '★本文も1文字も出ない');
+
+  const asB = (await list(B, 'new', 100)).v.v;
+  ok(asB.items.some(x => x.id === PRIV), '本人には出る');
+  ok(asB.items.find(x => x.id === PRIV).visibility === 'private', '本人の行に private の札が立つ');
+
+  const asAdmin = (await list(ADMIN, 'new', 100)).v.v;
+  ok(asAdmin.items.some(x => x.id === PRIV), '運営には出る');
+
+  /* ★仕様（オーナー承認済み）── total は「その人に見えている件数」。
+     private を1件出した人だけ数が1多い。自分の行なので漏洩ではない。
+     ここを「公開の件数」に変えると、本人の画面で
+     「7件」と書いてあるのに8行並ぶ（さらに読む の残りもずれる）。 */
+  ok(asB.total === beforeB + 1, '★本人の total だけ1増える（自分の行だから）',
+     `B:${beforeB}→${asB.total}`);
+  ok(asA.total === beforeA, '★第三者の total は1つも増えない',
+     `A:${beforeA}→${asA.total}`);
+  ok(asB.items.length === asB.total, 'total と行数が食い違わない（見えている件数を数えている）',
+     `行:${asB.items.length} / total:${asB.total}`);
+  /* ★伏せられた行は「本人には見える」（黙って消さない）。⑦ の A 側の検査と対になっている。 */
+  ok(asB.total > asA.total, '伏せられた自分の行も本人には残る',
+     `B:${asB.total} / A:${asA.total}`);
+
+  const like = await toggle(A, PRIV);
+  ok(!!like.err, '★第三者は ♡ を押せない', like.err ? '' : '押せてしまった');
+  const likeB = await toggle(B, PRIV);
+  ok(!likeB.err, '本人は ♡ を押せる', likeB.err);
+
+  /* ★後から公開に切り替える口を作らない（本人の意図に反して運営が公開できる形にしない）。 */
+  const flip = await call(ADMIN,
+    `select public.pv_request_set_visibility($1,'public') as v`, [PRIV]);
+  ok(!!flip.err, '★公開へ切り替える関数がそもそも無い', flip.err ? '' : '切り替えられてしまった');
+
+  /* 既定は公開。チェックを入れなかった人が黙って隠されない。 */
+  const open = await freshSubmit(B, '既定は公開のままであってほしい', 'other');
+  ok(open.v.v.item.visibility === 'public', '★チェックを入れなければ public',
+     String(open.v.v.item.visibility));
+  ok((await list(A, 'new', 100)).v.v.items.some(x => x.id === open.v.v.item.id),
+     '公開の要望は第三者に出る');
 }
 
 // ════════════════════════════════════════════════════════════
