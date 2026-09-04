@@ -233,8 +233,27 @@ for (const h of [HTML_JA, HTML_EN]) {
   /* ★静的に置いてはじめて assert-header.mjs の 390px / 16px 検査に入る。 */
   ok('textarea が静的 HTML にある', /<textarea[^>]*id="rm-body"/.test(h));
 }
-ok('入力欄が 16px を切らない', /\.rm-f-t\{[\s\S]*?font-size:16px/.test(JS)
-   && /\.rm-f-s\{[\s\S]*?font-size:16px/.test(JS));
+/* ★その規則の { } の中だけを見る。[\s\S]*? だと隣の規則の 16px を拾って、
+   自分の 16px が消えたことに気づけない（CSS は JS の配列に文字列で入っている）。 */
+const rule = (sel) => (JS.match(new RegExp(sel.replace('.', '\\.') + '\\{([^}]*)\\}')) || [, ''])[1];
+ok('入力欄が 16px を切らない',
+   /font-size:16px/.test(rule('.rm-f-t')) && /font-size:16px/.test(rule('.rm-f-s')),
+   rule('.rm-f-t').slice(0, 60));
+
+/* ★「入らない分は枠が浮いて？拡張できるようにして。常に全文見れるように」（オーナー）。
+   書く欄は中身の高さに合わせて伸びる。3つとも欠けると静かに壊れる ── */
+ok('★書く欄が縦スクロールを出さない（全文が見える）',
+   /resize:none/.test(rule('.rm-f-t')) && /overflow-y:hidden/.test(rule('.rm-f-t')),
+   rule('.rm-f-t').slice(-60));
+ok('★書く欄の高さに transition を付けていない（1文字ごとに揺れる）',
+   !/transition[^;}]*height/.test(rule('.rm-f-t')));
+ok('★伸ばすときに枠線ぶんを足している（足さないと最後の行が半分隠れる）',
+   /offsetHeight\s*-\s*[a-z]+\.clientHeight/.test(JSC) && /scrollHeight\s*\+/.test(JSC));
+/* 呼ぶ場所は3つ ── 打つたび・送信して空にした直後・幅が変わったとき。
+   どれが欠けても「打っている間だけ正しい」欄になる。 */
+ok('★伸ばす関数を3か所以上から呼んでいる',
+   (JSC.match(/growTa\(\)/g) || []).length >= 4,   // 定義1 ＋ 呼び出し3
+   String((JSC.match(/growTa\(\)/g) || []).length));
 
 /* ════════════════════════════════════════════════════════════════
    ⑥ 日英の骨格が同じ

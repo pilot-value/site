@@ -477,11 +477,15 @@
     '  min-height:1.2em}',
     '.rm-note{margin-top:10px;font-size:.66rem;line-height:1.7;color:var(--pv-ink-3)}',
 
-    /* 送信フォーム。iOS が拡大しないよう入力欄は 16px を切らない。 */
+    /* 送信フォーム。iOS が拡大しないよう入力欄は 16px を切らない。
+       ★書く欄は書いた分だけ伸びる（高さは growTa が入れる）。resize:none にするのは、
+         掴んで広げた高さが次の1文字で JS に消されるため。高さに transition は付けない
+         （1文字ごとに欄が揺れる）。 */
     '.rm-f-l{display:block;font-size:.75rem;font-weight:700;color:var(--pv-ink-2);line-height:1.6}',
     '.rm-f-t{display:block;width:100%;margin-top:8px;padding:11px 12px;border-radius:var(--pv-r-sm);',
     '  border:1px solid var(--pv-line);background:var(--pv-surface-2);color:var(--pv-ink);',
-    '  font:inherit;font-size:16px;line-height:1.7;min-height:84px;resize:vertical}',
+    '  font:inherit;font-size:16px;line-height:1.7;min-height:84px;',
+    '  resize:none;overflow-y:hidden}',
     '.rm-f-t:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}',
     '.rm-f-s{display:block;width:100%;margin-top:8px;padding:10px 12px;border-radius:var(--pv-r-sm);',
     '  border:1px solid var(--pv-line);background:var(--pv-surface-2);color:var(--pv-ink);',
@@ -1091,8 +1095,9 @@
         cnt.className = 'rm-f-c' + (n > 500 ? ' is-over' : '');
       }
     }
-    ta.addEventListener('input', count);
-    count();
+    function onType() { count(); growTa(); }
+    ta.addEventListener('input', onType);
+    onType();
 
     function show(text, okFlag) {
       if (!msg) return;
@@ -1122,6 +1127,7 @@
           }
           ta.value = '';
           count();
+          growTa();
           show(T.sent, true);
           if (v.item) {
             state.items.unshift(v.item);
@@ -1144,6 +1150,18 @@
     catch (e) { node.scrollIntoView(); }
     node.classList.add('is-new');
     w.setTimeout(function () { node.classList.remove('is-new'); }, 2200);
+  }
+
+  /* 書く欄を中身の高さに合わせる。★「常に全文見れるように」（オーナー）。
+     scrollHeight は枠線を含まない（* に box-sizing:border-box が効いている）ので、
+     offsetHeight - clientHeight ＝ 上下の枠線ぶんを足す。足さないと1文字打つたびに
+     2px ずつ足りず、最後の行が半分隠れる。 */
+  function growTa() {
+    var el = $('rm-body');
+    if (!el) return;
+    var edge = el.offsetHeight - el.clientHeight;
+    el.style.height = 'auto';
+    el.style.height = (el.scrollHeight + edge) + 'px';
   }
 
   // ══ 並べ替えのタブ ═════════════════════════════════════════
@@ -1169,6 +1187,7 @@
   function wireResize() {
     var tid = 0, last = 0;
     w.addEventListener('resize', function () {
+      growTa();   /* ★折れ線の有無に関わらず、書く欄は必ず取り直す */
       var box = $('rm-chart');
       if (!box || !state.growth) return;
       if (box.clientWidth === last) return;

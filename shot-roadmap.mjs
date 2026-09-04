@@ -12,6 +12,8 @@
             dead  … 一覧も人数も折れ線も読めなかった
                     （★0件・0人と書かず — と読み直しを出す）
             near  … 次の段の直前（99人）。バーと「あと1人」の見え方
+            long  … 書く欄に500字ちょうど入れた状態（★全文が見えて、
+                    右の列からはみ出さないことを目で見る）
      lang : ja | en    theme: light | dark    width: 1280 / 390 など
      第5引数 open ＝撮らずに見える窓で開いたままにする（オーナーに見せる用）
      第5引数 top  ＝縦に全部つなげず、上から1画面ぶんだけ撮る
@@ -34,7 +36,7 @@ const vw    = Number(process.argv[5] || 1280);
 const open  = process.argv[6] === 'open';
 const top   = process.argv[6] === 'top';
 
-const SCENES = ['full', 'empty', 'admin', 'dead', 'near'];
+const SCENES = ['full', 'empty', 'admin', 'dead', 'near', 'long'];
 if (SCENES.indexOf(scene) < 0) {
   console.error(`場面は ${SCENES.join(' / ')} のどれか（渡された値: ${scene}）`);
   process.exit(2);
@@ -173,6 +175,25 @@ await page.waitForFunction(() => {
       && !document.querySelector('.mr-skel')
       && list.children.length > 0;
 }, { timeout: 15000 }).catch(() => {});
+
+/* ★long ── 500字ちょうど。値を入れるだけでは伸びない（roadmap.js は input で伸ばす）ので、
+   本物の input を投げる。ここを await の外に出すと、伸びる前に撮れる。 */
+if (scene === 'long') {
+  await page.$eval('#rm-body', (el) => {
+    const S = '整備の遅延で出発が遅れたとき、待機している間の手当がどう付くのかを会社ごとに並べて見たいです。'
+            + '同じ機種・同じ職位でも会社によってまるで違うはずで、そこが転職を考えるときにいちばん知りたい所です。'
+            + 'できれば待機1時間あたりの額と、月に何時間くらい発生しているのかの両方が見られると助かります。'
+            + 'あと国内線と国際線で分けて見られるとさらに良いです。改行も入れてみます。\n'
+            + 'ここから先は、欄がどこまで伸びるのかを確かめるための埋め草です。';
+    let v = '';
+    while (v.length < 500) v += S;
+    el.value = v.slice(0, 500);
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  await page.waitForFunction(() =>
+    document.getElementById('rm-body').scrollHeight
+      <= document.getElementById('rm-body').clientHeight + 1, { timeout: 5000 });
+}
 
 if (open) {
   console.log(`見える窓で開いた: ${url}（${scene} / ${lang} / ${theme}）`);
