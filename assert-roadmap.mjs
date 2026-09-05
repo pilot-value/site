@@ -664,7 +664,14 @@ ok('assert-header.mjs が日英2枚を測る',
    && /'\/en\/roadmap\.html'/.test(read('./assert-header.mjs')));
 ok('assert-founding.mjs が称号を出さない一覧に入れている',
    /'roadmap\.html',\s*'en\/roadmap\.html'/.test(read('./assert-founding.mjs')));
-ok('patch-side-nav.mjs に ROADMAP が在る', /roadmap:\s*'ROADMAP'/.test(read('./patch-side-nav.mjs')));
+/* ★2026-09-05、左メニューの項目名を「ROADMAP & REQUESTS」にした（オーナー指示）。
+     ページの大見出しと同じ綴りにするため。下タブは幅が無いので3行に割ってある
+     （Roadmap / & / Requests）が、読み上げには同じ1語を渡している。 */
+ok('patch-side-nav.mjs に ROADMAP & REQUESTS が在る（日英2か所）',
+   (read('./patch-side-nav.mjs').match(/roadmap:\s*'ROADMAP & REQUESTS'/g) || []).length === 2);
+ok('★下タブは3行に割ってある（Roadmap / & / Requests）',
+   /TAB_ROADMAP\s*=\s*'<span>Roadmap<\/span><span class="mr-tab-am">&amp;<\/span><span>Requests<\/span>'/
+     .test(read('./patch-side-nav.mjs')));
 ok('notify-admin が pv_requests を知っている',
    /pv_requests:\s*buildRequest/.test(read('./supabase/functions/notify-admin/index.ts')));
 ok('Webhook の表に pv_requests が在る', /'pv_requests'/.test(read('./db/notify-admin-webhooks.sql')));

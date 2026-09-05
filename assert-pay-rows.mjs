@@ -70,7 +70,7 @@
    ⚠️ localhost が要る（node serve.mjs）。本番の DB には触らない。
 */
 import puppeteer from 'puppeteer';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 
 const ROOT = new URL('.', import.meta.url);
@@ -231,14 +231,25 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
      '★日付を組み立てる道具をこの画面が1つも持っていない');
   /* ★支給の内訳について（2026-09-03 に方針が変わったところ）。
        この画面は内訳を出すようになった。**ただし出すのは帯だけ**で、
-       ドーナツ（PVViz）も、割合（％）も、1円単位の額も出さない。
-       ⚠️ 「内訳を出す」と「ドーナツを戻す」は別の話。ここは後者を見張る。
-          割合を出し始めると、帯の中の本当の位置が逆算できてしまう。 */
+       ドーナツ（PVViz）も、1円単位の額も出さない。
+       ⚠️ 「内訳を出す」と「ドーナツを戻す」は別の話。ここは後者を見張る。 */
   ok(!/PVViz|pt-donut|renderComp|renderDonut|conic-gradient/.test(j),
      '★ドーナツ（PVViz）はこの画面に戻っていない ── 出すのは帯だけ');
-  /* ⚠️ 「* 100」そのものを禁じないこと。横棒の left / width は CSS の % で置くので
-        座標の計算に 100 が要る。**禁じるのは画面に出る割合**で、それは
-        「開いた面の文字に % が1つも無い」（下の runtime 側）が見張っている。 */
+  /* ★割合（％）は 2026-09-04 にオーナーの決定で出すようになった（iPhone の作り直し）。
+       出してよい理由 ── 割合は帯の中点から作っていて、**中点は画面に出ている
+       両端2つを足して2で割っただけ**。しかも同じ比は前から
+       style="flex:0.7031 1 0" として DOM に小数4桁で入っていた。
+       つまり「割合を出す」＝**バーが既に持っている長さを読める字で書く**だけで、
+       サーバから来る数は1つも増えていない。
+     守る4つ（runtime 側が1本ずつ見張る）──
+       ① 閉じている行（paylock）には1文字も出さない（あちらの幅は全員同じ作り物）
+       ② 整数だけ・合計はちょうど 100
+       ③ 「おおよその構成」と必ず並べて出す
+       ④ 割合 × 年収 を画面に書かない（金額は今までどおり帯のまま）
+     ⚠️ 「* 100」そのものを禁じないこと。横棒の left / width は CSS の % で置くので
+        座標の計算に 100 が要る。
+     ⚠️ 下の静的検査は**そのまま残す**。名前を pct にしない・toFixed(n) + '%' の形で
+        作らない、という**作り方の縛り**（小数の割合が生えた合図になる）。 */
   ok(!/\bpct\b|percent|toFixed\(\s*\d\s*\)\s*\+\s*'%'/i.test(j),
      '★割合（％）を数として持ち回していない');
   /* ★帯は**サーバが作る**。画面が生の額から帯を組み立てていないこと。 */
@@ -607,6 +618,100 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
   catch (e) { code = 1; out = String((e.stdout || '') + (e.stderr || '')); }
   ok(code === 0, '★サイドナビが全ページで1バイトも食い違わない（patch-side-nav.mjs --check）',
      out.trim().split('\n').slice(-3).join(' / '));
+}
+
+/* ★下タブ（2026-09-05）。オーナーが実機で「REAL PAY から他所へ行くとタブが消える」。
+     移った先で足元の帯が消えると、戻る道がハンバーガーの中だけになる。
+   ★同じ日にオーナーが中身も決め直した ──
+       マイレポート / ROADMAP & REQUESTS / REAL PAY / 各航空会社 / マイページ。
+     「給与を追加」を帯から外し、代わりに「各航空会社」を入れた。
+     外した理由は行き先の pay-report.html に帯が無いから（押すと帯ごと消える）。
+     入れた「各航空会社」＝ world-airlines.html には**帯を置いた**＝同じ穴を作っていない。
+   ⚠️ patch-side-nav.mjs は「在る入れ物に書く」だけで、入れ物そのものは作らない。
+      1枚だけ入れ物を置き忘れても --check は緑のままなので、ここで数える。 */
+{
+  const pages = [];
+  for (const dir of ['.', 'en']) {
+    for (const f of readdirSync(new URL(dir + '/', ROOT)).filter((x) => x.endsWith('.html')).sort()) {
+      const rel = dir === '.' ? f : dir + '/' + f;
+      pages.push({ rel, html: read(rel) });
+    }
+  }
+  const side = pages.filter((p) => p.html.includes('<nav class="mr-side"'));
+  const tab = pages.filter((p) => p.html.includes('<nav class="mr-tabs"'));
+  const no = side.filter((p) => !p.html.includes('<nav class="mr-tabs"')).map((p) => p.rel);
+  ok(side.length === 14, '左メニューを持つページは日英14枚', String(side.length));
+  ok(no.length === 0, '★★左メニューを持つページには**全部**下タブの入れ物が在る',
+     no.join(' / '));
+  /* ★帯を出すページは 14 ＋ 世界の航空会社一覧（日英2枚）＝ 16。
+       「各航空会社」のタブの行き先なので、ここに帯が無いと押した瞬間に帯が消える。 */
+  ok(tab.length === 16, '★下タブを出すページは日英16枚（＋世界の航空会社一覧）',
+     tab.map((p) => p.rel).join(' / '));
+  for (const rel of ['world-airlines.html', 'en/world-airlines.html']) {
+    ok(tab.some((p) => p.rel === rel), `★${rel} に下タブの入れ物が在る（タブの行き先）`);
+  }
+  /* ★帯を出すページは CSS も読んでいること。読み忘れると
+       .mr-tabs が素の <nav> のまま本文の末尾に流れ落ちる（画面は動いたまま）。 */
+  const noCss = tab.filter((p) => {
+    const up = p.rel.startsWith('en/') ? '../' : '';
+    return !p.html.includes(`href="${up}tabs.css"`)
+        || !p.html.includes(`href="${up}pv-tokens.css"`);
+  }).map((p) => p.rel);
+  ok(noCss.length === 0, '★★下タブを出す16枚は tabs.css と pv-tokens.css を読む', noCss.join(' / '));
+  /* ★.mr-shell を持たないページだけ <body> に mr-tabs-pad。両方付けると2倍空く。 */
+  for (const p of tab) {
+    const hasShell = p.html.includes('class="mr-shell') || p.html.includes('mr-shell"');
+    const hasPad = /<body[^>]*\bmr-tabs-pad\b/.test(p.html);
+    ok(hasShell !== hasPad, `${p.rel}: 足元の余白は .mr-shell か mr-tabs-pad の**どちらか一方**`,
+       `shell ${hasShell} / pad ${hasPad}`);
+  }
+  /* ★入れ物が他の中身を呑み込んでいないか。
+       patch-side-nav.mjs は「入れ物の始まり 〜 最初の </nav>」を差し替える。
+       2026-09-05、ページのコメントに入れ物と同じ字面を1行書いたせいで、
+       そこから最初の </nav> までが差し替え範囲になり、CSS 240行とヘッダーが消えた。
+       ファイルは壊れたのに、そのとき赤くなった検査は1本も無かった。
+       ★中身は5つの口だけ＝どのページでも 1000 字に満たない。 */
+  for (const p of tab) {
+    const m = p.html.match(/^<nav class="mr-tabs"[\s\S]*?<\/nav>/m);
+    ok(m && m[0].length < 1000 && !/<\/style>|<!--|<script/.test(m[0]),
+       `${p.rel}: 下タブの入れ物が他の中身を呑み込んでいない`,
+       m ? `${m[0].length}字` : '入れ物が行頭に無い');
+  }
+  /* ★呑み込みを止める見張りが生成器に残っているか。 */
+  {
+    const g = read('patch-side-nav.mjs');
+    ok(/\/\^<nav class="mr-tabs"/.test(g), '★生成器は入れ物を**行頭で**探す（錨を外さない）');
+    ok(/<\\\/style>\|<!--\|<script/.test(g), '★生成器に呑み込みの見張りが在る');
+  }
+
+  /* ★帯は <nav> なので、ページ側に**要素名で掴む**規則が在ると巻き込まれる。
+       2026-09-05、世界の航空会社一覧の `nav{position:fixed;top:0}` が下タブにも当たり、
+       帯が画面いっぱい（844px）に伸びていた。画面は普通に動いたままで、
+       気づいたのは assert-header.mjs の「足元の余白 ≧ 帯の高さ」だけ。
+       ページ側は #main-nav に絞り、tabs.css には top:auto を入れてある。 */
+  const bareNav = tab.filter((p) => /(^|\n)(\[[^\]]*\] )?nav[ .:,{]/.test(p.html)).map((p) => p.rel);
+  ok(bareNav.length === 0, '★★下タブを出すページに「nav」を要素名で掴む CSS が無い',
+     bareNav.join(' / '));
+  ok(/top:auto/.test(read('tabs.css')), '★tabs.css の .mr-tabs に top:auto が在る');
+
+  /* ★給与フォームには置かない（2026-09-05 オーナー決定）。
+       あそこは .sticky-cta が足元を使っていて帯が2本になり、
+       下書きの自動保存が無いので、途中で他所へ移ると数字が消える。 */
+  ok(!read('pay-report.html').includes('<nav class="mr-tabs"'),
+     '★pay-report.html には下タブを置かない（提出の帯と2本になる・書きかけが消える）');
+  ok(!/'add'/.test(read('patch-side-nav.mjs').match(/const TABS = \[[^\]]*\]/)?.[0] || "'add'"),
+     '★下タブに「給与を追加」を戻していない（行き先に帯が無い）');
+  /* ★下タブの CSS は tabs.css の1か所だけ。
+       my-value.css に書くと世界の航空会社一覧に効かず、
+       actual-pay.css に書くと他の15枚に効かないまま緑になる。
+     ★見るのは**規則**だけ。コメントは先に外す ── そうしないと、あちらに書き留めた
+       「ここに .mr-tabs を書き戻さない」という注意書きそのものに当たって落ちる。 */
+  const noCmt = (f) => read(f).replace(/\/\*[\s\S]*?\*\//g, () => ' ');
+  ok(/\.mr-tabs\{/.test(noCmt('tabs.css')), '★下タブの CSS は tabs.css が持つ');
+  for (const f of ['my-value.css', 'actual-pay.css']) {
+    ok(!/\.mr-tabs?\b/.test(noCmt(f)),
+       `★${f} に .mr-tabs を書き戻していない（2か所になると片方が古くなる）`);
+  }
 }
 
 /* ★左メニューの並び（2026-08-24 オーナー指定）。
@@ -1722,7 +1827,18 @@ for (const lang of ['ja', 'en']) {
   ok(v.posOpts.length === 3, '職位は「すべて」＋2つ', v.posOpts.join(','));
 
   /* 会社 → 職位 と絞ると、下の段は上の段に追随する。 */
-  const step = await page.evaluate(() => {
+  const step = await page.evaluate(async () => {
+    /* ★打ち込みは 250ms 待ってから絞る作りにした（2026-09-04・iPhone の親指入力）。
+         打った直後はまだ前の一覧のまま。**条件が満たされるまで**待つ
+         ── sleep で待つと、混んだ回に嘘の赤が出る。 */
+    const until = (f) => new Promise((res) => {
+      const t0 = performance.now();
+      const tick = () => {
+        if (f() || performance.now() - t0 > 4000) return res();
+        requestAnimationFrame(tick);
+      };
+      tick();
+    });
     const set = (id, v) => {
       const s = document.getElementById(id);
       const o = Array.prototype.slice.call(s.options).find((x) => x.value === v);
@@ -1743,6 +1859,7 @@ for (const lang of ['ja', 'en']) {
     const qi = document.getElementById('ap-q');
     qi.value = 'jal';
     qi.dispatchEvent(new Event('input', { bubbles: true }));
+    await until(() => document.getElementById('ap-air').options.length === 2);
     const afterQ = { trs: q('#ap-rows tbody tr').length,
                      air: document.getElementById('ap-air').options.length };
     document.getElementById('ap-clear').click();
@@ -1798,7 +1915,16 @@ for (const lang of ['ja', 'en']) {
   console.log(`\n════ ${lang} / D 行き止まりが無い ════`);
   const { page, errs } = await open(lang, OPEN);
 
-  const sweep = await page.evaluate(() => {
+  const sweep = await page.evaluate(async () => {
+    /* ★打ち込みの 250ms 待ち（上と同じ理由）。 */
+    const until = (f) => new Promise((res) => {
+      const t0 = performance.now();
+      const tick = () => {
+        if (f() || performance.now() - t0 > 4000) return res();
+        requestAnimationFrame(tick);
+      };
+      tick();
+    });
     const g = (id) => document.getElementById(id);
     const set = (id, v) => {
       const s = g(id); s.value = v;
@@ -1827,10 +1953,14 @@ for (const lang of ['ja', 'en']) {
       const qi = g('ap-q');
       qi.value = 'zzq';
       qi.dispatchEvent(new Event('input', { bubbles: true }));
+      await until(() => g('ap-air').value !== a);
       combos++;
       if (g('ap-air').value === a) dead.push('q=zzq でも air=' + a + ' が残る');
       qi.value = '';
       qi.dispatchEvent(new Event('input', { bubbles: true }));
+      /* ★次の周に入る前に選択肢が戻るまで待つ。戻る前に選ぶと
+           「選択肢に無い値」を入れることになり、以降ぜんぶ空振りする。 */
+      await until(() => g('ap-air').options.length > 1);
     }
     g('ap-clear').click();
     return { dead: dead, combos: combos, back: n() };
@@ -2263,8 +2393,16 @@ for (const lang of ['ja', 'en']) {
       heads: q('.ap-dw-h').map((e) => (e.textContent || '').trim()),
       tags: q('.ap-dw h1,.ap-dw h2,.ap-dw h3,.ap-dw h4,.ap-dw h5').map((e) => e.tagName),
       /* 内訳の行（勤務の行は別に取る。刻みが違うので混ぜて数えられない）。 */
-      pay: q('.ap-dw-row:not(.ap-dw-row--w)').map((e) => ({
-        k: t(e.querySelector('.ap-dw-k')), v: t(e.querySelector('.ap-dw-v')) })),
+      /* ★2026-09-04、金額の右に割合（％）が並ぶようになった。
+           ここで見たいのは**帯そのもの**なので、割合の字は外して取る
+           （混ぜると「$95K〜$100K65%」になって刻みが読めなくなる）。 */
+      pay: q('.ap-dw-row:not(.ap-dw-row--w)').map((e) => {
+        const vv = e.querySelector('.ap-dw-v');
+        const ss = vv ? vv.querySelector('.ap-dw-sh') : null;
+        let vt = vv ? ((vv.innerText || '').trim()) : '';
+        if (ss) vt = vt.replace((ss.innerText || '').trim(), '').trim();
+        return { k: t(e.querySelector('.ap-dw-k')), v: vt };
+      }),
       work: q('.ap-dw-row--w').map((e) => ({
         k: t(e.querySelector('.ap-dw-k')), v: t(e.querySelector('.ap-dw-v')),
         u: t(e.querySelector('.ap-dw-u')) })),
@@ -2279,6 +2417,8 @@ for (const lang of ['ja', 'en']) {
       st: q('.ap-dw-st').length,
       sti: q('.ap-dw-sti').map((e) => Number(getComputedStyle(e).flexGrow)),
       stn: t(document.querySelector('.ap-dw-stn')),
+      /* ★割合の字（2026-09-04 から出る）。整数・合計 100・隣の伸び率と一致、を J-2 が見る。 */
+      sh: q('.ap-dw-sh').map(t),
       dots: q('.ap-dw-dot').length,
       /* 実際に塗られている色。★橙1色の濃淡に戻ると、ここが全部同じ rgb になる
            （opacity は backgroundColor に出ないので、色そのものを見る）。 */
@@ -2374,8 +2514,10 @@ for (const lang of ['ja', 'en']) {
     const leaked = POISON_VALUES.filter((s) => d0.bodyText.includes(s));
     ok(leaked.length === 0,
        `${lang}: ★★面を開いても、返さないはずの列が1つも出ない`, leaked.join(' / '));
-    ok(d0.text.indexOf('%') < 0,
-       `${lang}: ★面に％が1文字も無い（割合は返していない）`,
+    /* ★割合は 2026-09-04 から出る。ただし**整数だけ** ── 小数を出すと帯より細かくなり、
+         帯の中の本当の位置が逆算できてしまう。 */
+    ok(!/\d+[.,]\d+\s*%/.test(d0.text),
+       `${lang}: ★★面に出る割合は整数だけ（小数の％が1つも無い）`,
        d0.text.replace(/\n/g, ' ').slice(0, 120));
     ok(!/20\d\d[-/年]/.test(d0.text),
        `${lang}: ★いつ出されたかは段だけ（年月日が1つも出ない）`,
@@ -2430,9 +2572,10 @@ for (const lang of ['ja', 'en']) {
     /* ★積み上げバー（2026-09-03）。行ごとの横棒（帯の下端〜上端）はここで消した
          ── 長さが金額の大小に読めてしまい、説明しないと読めなかった。
        ★出すのは「おおよその構成」だけ。長さは帯の中点から出す。
-       ⚠️ 割合の数字は1文字も出さない（それは上の「％が1文字も無い」が見張る）。
-       ⚠️ 長さは flex の伸び率で持つ。% で書くと「toFixed(n) + '%'」の
-          静的検査に当たる（割合を出し始めた合図として禁じてある）。 */
+       ★2026-09-04 から、その長さを**読める字**でも出す（オーナーの決定）。
+          出してよい形は下の5本が見張る ── 区分の数だけ出る・整数・合計 100・
+          隣の伸び率と一致・通貨を切り替えても動かない。
+       ⚠️ 長さそのものは今までどおり flex の伸び率で持つ。CSS の % で書かない。 */
     ok(dU.rng === 0, `${lang}: ★行ごとの横棒は残っていない（1本の積み上げに替えた）`,
        String(dU.rng));
     ok(dU.st === 1 && dU.sti.length === dU.pay.length,
@@ -2447,6 +2590,26 @@ for (const lang of ['ja', 'en']) {
        dU.sti.join(' / '));
     ok(dU.stn === W.share,
        `${lang}: ★★バーの下に「概算です」と必ず断っている`, dU.stn);
+    /* ★割合の字（2026-09-04）。バーが既に持っている長さを書いているだけで、
+         新しい数は1つも増えていない ── それをここで実測する。 */
+    ok(dU.sh.length === dU.pay.length,
+       `${lang}: ★割合は区分の数だけ出る（1つだけ伏せる、が起きない）`,
+       dU.sh.join(' / '));
+    ok(dU.sh.length > 0 && dU.sh.every((s2) => /^\d+%$/.test(s2)),
+       `${lang}: ★★割合は整数だけ（小数を出すと帯より細かくなる）`, dU.sh.join(' / '));
+    const shN = dU.sh.map((s2) => parseInt(s2, 10));
+    ok(shN.reduce((a, b) => a + b, 0) === 100,
+       `${lang}: ★割合の合計がちょうど 100（端数は最大剰余法で配ってある）`,
+       shN.join('+'));
+    /* ★★いちばん強い1行。字が**隣の伸び率と一致する**＝帯から作った証拠。
+         金額から作り直すと、ここが必ずずれる。 */
+    const shGap = shN.filter((x, i) => Math.abs(x - dU.sti[i] * 100) > 1);
+    ok(shGap.length === 0,
+       `${lang}: ★★割合が隣の伸び率と1ポイント以内で一致（帯から作った証拠）`,
+       dU.sh.join(' / ') + ' ↔ ' + dU.sti.map((x) => (x * 100).toFixed(1)).join(' / '));
+    ok(d0.sh.join('/') === dU.sh.join('/'),
+       `${lang}: ★★通貨を切り替えても割合が動かない（金額から作っていない証拠）`,
+       `${d0.sh.join('/')} → ${dU.sh.join('/')}`);
     /* ★色（2026-09-03 その2・オーナー指示で橙1色をやめた）。
          「オレンジだけじゃわかりづらい」が黙って戻らないように、
          **実際に塗られている色**を見る。 */
@@ -2779,6 +2942,12 @@ for (const lang of ['ja', 'en']) {
     ok(d0.pillText === '',
        `${lang}: ★★金額の板の中に文字が1つも無い（ぼかしではなく不在）`,
        JSON.stringify(d0.pillText).slice(0, 80));
+    /* ★★2026-09-04、開いている行には割合（％）を出すようになった。
+         閉じている行には**1文字も出さない** ── あちらの幅は CSS が持つ
+         全員同じ作り物（6/4/3/2）で、割合にしたら発明した数字を公開することになる。 */
+    ok(d0.text.indexOf('%') < 0,
+       `${lang}: ★★閉じている面には割合（％）が1文字も無い`,
+       d0.text.replace(/\n/g, ' ').slice(0, 120));
     /* オーナー指示 ── 項目名は本物を出す（何が隠れているのか伝わらないため）。 */
     ok(d0.lkNames.length === 4 && d0.lkNames.every((x) => x.length > 0),
        `${lang}: ★項目名は本物が4つ出る（区分の数だけ）`, d0.lkNames.join(' / '));
@@ -2915,6 +3084,329 @@ for (const lang of ['ja', 'en']) {
 
     ok(errs.length === 0, `${lang}: ページのエラーが1件も出ない`, errs.join(' | '));
   }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   L 狭い画面（iPhone）── 2026-09-04 の作り直し
+   ★見るのは 375〜430px だけ。広い幅の見え方は1バイトも変えていない
+     （表の DOM はそのままで、狭い幅のときだけ CSS がカードに組み替える）。
+   ⚠️ 時間で待たない。**条件が満たされるまで**待つ ── 混んだ回に嘘の赤を出さない
+      （2026-08-28 に assert-referral.mjs で2種類とも踏んだ）。
+   ════════════════════════════════════════════════════════════════ */
+const WIDTHS = [375, 390, 393, 430];
+
+/* 条件が満たされるまで待つ。満たされなければ false を返す（例外にしない）。 */
+const till = async (page, fn, ms = 5000) => {
+  try { await page.waitForFunction(fn, { timeout: ms, polling: 60 }); return true; }
+  catch (e) { return false; }
+};
+/* シートを開く。★2つ、時間では取れない待ちがある ──
+     ① 閉じた直後は暗幕が 320ms だけ DOM に残る。その上から「絞り込み」を押すと
+        暗幕が受け取ってしまう（実際に踏んだ）。**暗幕が外れるまで待つ。**
+     ② 開けた直後は下から滑っている途中。**下辺が窓の下辺に着くまで待つ。**
+   どちらも sleep ではなく条件で待つ。 */
+const AT_BOTTOM = "(function(){var s=document.getElementById('ap-sheet');"
+  + "if(!s)return false;var r=s.getBoundingClientRect();"
+  + "return r.height>0&&Math.abs(r.bottom-window.innerHeight)<=1;})()";
+const sheetUp = async (page) => {
+  await till(page, "document.querySelectorAll('.ap-sh-back').length === 0");
+  await page.click('#ap-open-f');
+  const up = await till(page, "document.querySelector('.ap-sh-back.is-in') !== null");
+  return up && await till(page, AT_BOTTOM);
+};
+const sheetGone = (page) =>
+  till(page, "!document.getElementById('ap-sheet').hasAttribute('role')");
+
+/* 幅を変えて、その幅で描き終わるまで待つ。 */
+const widen = async (page, w) => {
+  await page.setViewport({ width: w, height: 780 });
+  await till(page, 'window.innerWidth === ' + w);
+  await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+};
+
+/* 狭い幅で一度に読み取るもの。★毎回同じ形で取る（ケースごとに見方を変えない）。 */
+const NAR = () => {
+  const q = (s2, r) => Array.prototype.slice.call((r || document).querySelectorAll(s2));
+  const de = document.documentElement;
+  const st = (e) => (e ? getComputedStyle(e).display : 'なし');
+  const box = (e) => { const r = e.getBoundingClientRect();
+    return { w: Math.round(r.width), h: Math.round(r.height),
+             top: Math.round(r.top), bottom: Math.round(r.bottom),
+             left: Math.round(r.left), right: Math.round(r.right) }; };
+  const tabs = document.querySelector('.mr-tabs');
+  /* 触れる的。★出ていないもの（幅 0）は数えない。 */
+  const small = q('#ap-rows .ap-go,#ap-rows .ap-pg,.mr-tab,#ap-open-f,#ap-clear')
+    .map((e) => ({ c: e.className || e.id, b: e.getBoundingClientRect() }))
+    .filter((x) => x.b.width > 0 && (x.b.height < 44 || x.b.width < 44))
+    .map((x) => x.c + ':' + Math.round(x.b.width) + '×' + Math.round(x.b.height));
+  return {
+    w: innerWidth,
+    /* 横に溢れていないか。★入れ子の中で溢れる形もあるので body と一覧も見る。 */
+    ovX: de.scrollWidth - de.clientWidth,
+    ovBody: document.body.scrollWidth - document.body.clientWidth,
+    ovRows: (() => { const e = document.getElementById('ap-rows');
+      return e ? e.scrollWidth - e.clientWidth : 0; })(),
+    wide: q('#ap-rows *').filter((e) => e.getBoundingClientRect().right > innerWidth + 1)
+      .slice(0, 3).map((e) => String(e.className || e.tagName)),
+    trs: q('#ap-rows tbody tr').length,
+    /* ★カード1枚の高さと、足元・頭の帯が食う高さ（2026-09-05）。
+         オーナーが実機で「2件で画面いっぱい」＝1枚 約295px だった。
+         詰めたことが後戻りしないための錨。 */
+    cardMax: (() => { const rs = q('#ap-rows tbody tr');
+      return rs.length
+        ? Math.max.apply(null, rs.map((e) => Math.round(e.getBoundingClientRect().height)))
+        : 0; })(),
+    barsH: (() => { const h = (s2) => { const e = document.querySelector(s2);
+      return e ? Math.round(e.getBoundingClientRect().height) : 0; };
+      return h('.mr-top') + h('.ap-filter') + h('.mr-tabs'); })(),
+    /* カードに組み替わったか ── 見出し語（年収 / 月あたり）が出ている。 */
+    labs: q('.ap-cl').filter((e) => e.getBoundingClientRect().height > 0).length,
+    /* 表の見出しは消さない（読み上げのために置いたまま隠す）。 */
+    theadDisp: st(document.querySelector('#ap-rows thead')),
+    theadH: (() => { const e = document.querySelector('#ap-rows thead');
+      return e ? Math.round(e.getBoundingClientRect().height) : -1; })(),
+    /* 張り付く帯と下タブ。 */
+    fbtn: (() => { const e = document.getElementById('ap-open-f');
+      return e && e.getBoundingClientRect().width > 0 ? box(e) : null; })(),
+    cnt: ((document.getElementById('ap-fbar-n') || {}).textContent || '').trim(),
+    sheetDisp: st(document.getElementById('ap-sheet')),
+    tabs: tabs && tabs.getBoundingClientRect().height > 0 ? box(tabs) : null,
+    tabN: q('.mr-tab').length,
+    tabOn: q('.mr-tab.is-on').length,
+    tabHref: q('.mr-tab').map((e) => e.getAttribute('href') || '(現在地)'),
+    small: small,
+    /* いちばん下の中身（ページ送りがあればそれ、無ければ最後の行）。 */
+    lastB: (() => {
+      const p = document.querySelector('.ap-pager');
+      if (p && p.getBoundingClientRect().height > 0) return Math.round(p.getBoundingClientRect().bottom);
+      const rs = q('#ap-rows tbody tr');
+      return rs.length ? Math.round(rs[rs.length - 1].getBoundingClientRect().bottom) : 0;
+    })(),
+    calls: (window.__rpc || []).map((r) => r.name)
+  };
+};
+
+for (const lang of ['ja', 'en']) {
+  console.log(`\n════ ${lang} / L-1 4つの幅で崩れない（375 / 390 / 393 / 430）════`);
+  const { page, errs } = await open(lang, OPEN);
+  const base = (await page.evaluate(NAR)).calls.length;
+
+  for (const w of WIDTHS) {
+    await widen(page, w);
+    const n = await page.evaluate(NAR);
+    ok(n.ovX <= 0 && n.ovBody <= 0 && n.ovRows <= 0,
+       `${lang}/${w}px: ★★横スクロールが生えない`,
+       `画面${n.ovX} / body${n.ovBody} / 一覧${n.ovRows}` +
+       (n.wide.length ? ' ← ' + n.wide.join(', ') : ''));
+    ok(n.trs === ROWS.length && n.labs > 0,
+       `${lang}/${w}px: ★行はそのまま・カードに組み替わっている`,
+       `${n.trs}行 / 見出し語${n.labs}`);
+    ok(n.theadDisp !== 'none' && n.theadH <= 1,
+       `${lang}/${w}px: ★表の見出しは消さずに隠してある（読み上げに残る）`,
+       `${n.theadDisp} / 高さ${n.theadH}`);
+    ok(n.fbtn && n.fbtn.h >= 44 && n.fbtn.left >= 0 && n.fbtn.right <= n.w,
+       `${lang}/${w}px: ★「絞り込み」の的が 44px 以上で窓の中に収まる`,
+       n.fbtn ? `${n.fbtn.w}×${n.fbtn.h} @${n.fbtn.left}〜${n.fbtn.right}` : 'なし');
+    ok(n.tabs && n.tabs.left >= 0 && n.tabs.right <= n.w,
+       `${lang}/${w}px: ★下タブが窓の中に収まる（左右にはみ出さない）`,
+       n.tabs ? `${n.tabs.left}〜${n.tabs.right} / ${n.w}` : 'なし');
+    ok(n.small.length === 0, `${lang}/${w}px: ★触れる的がすべて 44px 以上`,
+       n.small.join(' / '));
+    /* ★1画面に何枚入るか（2026-09-05・オーナー指示「4-5件入るようにしてよ」）。
+       ⚠️ 窓の高さは実機の 844（iPhone 14/15）で数える。この検査の窓は 780 しか無いので、
+          そのまま数えると実機より1枚少なく出て、直っているのに赤くなる。
+          間の 8px はカードとカードの隙間（.ap-tbl tbody の gap）。 */
+    const fit = Math.floor((844 - n.barsH) / (n.cardMax + 8));
+    ok(fit >= 4, `${lang}/${w}px: ★★iPhone の1画面にカードが4枚以上入る`,
+       `1枚 最大${n.cardMax}px / 上下の帯 ${n.barsH}px → ${fit}枚`);
+    ok(n.sheetDisp === 'none',
+       `${lang}/${w}px: ★絞り込みは開くまで出ない（帯のボタンだけ）`, n.sheetDisp);
+  }
+  ok((await page.evaluate(NAR)).calls.length === base,
+     `${lang}: ★幅を変えてもサーバへ1本も投げ直さない`, String(base));
+  ok((await page.evaluate(NAR)).tabN === 5,
+     `${lang}: ★下タブは5つ（左メニューの行き先そのまま）`);
+
+  console.log(`\n════ ${lang} / L-2 下タブが中身を隠さない ════`);
+  await widen(page, 390);
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+  const bot = await page.evaluate(NAR);
+  ok(bot.tabs && bot.lastB <= bot.tabs.top,
+     `${lang}: ★★いちばん下まで送っても、下タブが中身に被さらない`,
+     `中身の底 ${bot.lastB} / タブの上端 ${bot.tabs ? bot.tabs.top : '?'}`);
+  ok(bot.tabOn === 1 && bot.tabHref.filter((h) => h === '(現在地)').length === 1,
+     `${lang}: ★今いる所（REAL PAY）はリンクにしない`, bot.tabHref.join(' / '));
+  await page.evaluate(() => window.scrollTo(0, 0));
+
+  console.log(`\n════ ${lang} / L-3 絞り込みシート（開く・閉じる3経路・焦点）════`);
+  const c0 = (await page.evaluate(NAR)).calls.length;
+  ok(await sheetUp(page), `${lang}: ★「絞り込み」で下からシートが出る`);
+  const sh = await page.evaluate(() => {
+    const s2 = document.getElementById('ap-sheet');
+    const r = s2.getBoundingClientRect();
+    const lab = document.getElementById(s2.getAttribute('aria-labelledby') || '');
+    return { role: s2.getAttribute('role'), modal: s2.getAttribute('aria-modal'),
+             lab: lab ? (lab.innerText || '').trim() : '',
+             ov: document.body.style.overflow,
+             backs: document.querySelectorAll('.ap-sh-back').length,
+             inside: s2.contains(document.activeElement),
+             bottom: Math.round(r.bottom), h: Math.round(r.height),
+             go: (document.getElementById('ap-sheet-go').innerText || '').trim(),
+             q: !!s2.querySelector('#ap-q'), air: !!s2.querySelector('#ap-air'),
+             pos: !!s2.querySelector('#ap-pos'), clr: !!s2.querySelector('#ap-clear'),
+             calls: (window.__rpc || []).length };
+  });
+  ok(sh.role === 'dialog' && sh.modal === 'true' && sh.lab.length > 0,
+     `${lang}: ★役割と見出しが読み上げに渡る`, `${sh.role}/${sh.modal}/${sh.lab}`);
+  ok(sh.ov === 'hidden' && sh.backs === 1,
+     `${lang}: ★★後ろは暗くなって動かない（背景が2枚出ない）`, `${sh.ov}/${sh.backs}`);
+  ok(sh.calls === c0, `${lang}: ★★開いてもサーバへ1本も投げない`,
+     `${c0} → ${sh.calls}`);
+  ok(sh.q && sh.air && sh.pos && sh.clr,
+     `${lang}: ★★口は増えていない（今までの3つと「すべてクリア」がそのまま入る）`,
+     `${sh.q}/${sh.air}/${sh.pos}/${sh.clr}`);
+  ok(sh.bottom <= 781 && sh.h > 0 && sh.h <= 780,
+     `${lang}: ★シートは窓の下辺に付いて、はみ出さない`, `底${sh.bottom} 高さ${sh.h}`);
+  ok(new RegExp('(^|[^0-9])' + ROWS.length + '([^0-9]|$)').test(sh.go),
+     `${lang}: ★主ボタンに今の件数が入る`, sh.go);
+  ok(sh.inside, `${lang}: ★開いた瞬間、焦点はシートの中`, String(sh.inside));
+  /* ★★「押した先」を実際に拾う。見えているだけでは足りない ──
+       シートが暗幕の裏に潜っていると、絵は正しく出ているのに、押した指は
+       全部暗幕に当たって「閉じるだけ」になる（2026-09-05 に踏んだ）。
+       口の1つ1つについて、その真ん中にある要素が本当にその口かを見る。 */
+  const hit = await page.evaluate(() => {
+    const at = (el) => {
+      const r = el.getBoundingClientRect();
+      const n = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+      return n ? (n.id || n.className || n.tagName) : 'なし';
+    };
+    const s2 = document.getElementById('ap-sheet');
+    const inSheet = (el) => {
+      const r = el.getBoundingClientRect();
+      const n = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+      return !!n && s2.contains(n);
+    };
+    const ids = ['ap-q', 'ap-air', 'ap-pos', 'ap-clear', 'ap-sheet-go', 'ap-sheet-x'];
+    const bad = ids.filter((id) => !inSheet(document.getElementById(id)));
+    const r2 = s2.getBoundingClientRect();
+    const up = document.elementFromPoint(Math.round(r2.width / 2), Math.round(r2.top / 2));
+    return { bad, whom: bad.map((id) => id + '→' + at(document.getElementById(id))).join(' / '),
+             dim: up ? (up.className || up.tagName) : 'なし' };
+  });
+  ok(hit.bad.length === 0,
+     `${lang}: ★★シートの中の口は、どれも押した先が自分自身（暗幕に食われていない）`,
+     hit.whom);
+  ok(String(hit.dim).indexOf('ap-sh-back') >= 0,
+     `${lang}: ★シートより上の空きを押すと暗幕に当たる（閉じる経路が生きている）`,
+     String(hit.dim));
+  /* 焦点の閉じ込め ── Tab を10回押しても外へ出ない。 */
+  for (let i = 0; i < 10; i++) await page.keyboard.press('Tab');
+  const trap = await page.evaluate(() =>
+    document.getElementById('ap-sheet').contains(document.activeElement));
+  ok(trap, `${lang}: ★★Tab を10回押しても焦点がシートの外へ出ない`, String(trap));
+  /* ① Escape */
+  await page.keyboard.press('Escape');
+  ok(await sheetGone(page), `${lang}: ★Escape で閉じる`);
+  ok(await till(page, `document.activeElement && document.activeElement.id === 'ap-open-f'`),
+     `${lang}: ★★閉じたら焦点は開いたボタンへ戻る`);
+  ok(await till(page, `document.body.style.overflow !== 'hidden'`),
+     `${lang}: ★閉じたら後ろがまた動く`);
+  ok(await till(page, `document.querySelectorAll('.ap-sh-back').length === 0`),
+     `${lang}: ★暗幕は DOM から外れる（残り続けない）`);
+  /* ② 背景 */
+  ok(await sheetUp(page), `${lang}: もう一度開く（背景で閉じる番）`);
+  await page.mouse.click(195, 30);
+  ok(await sheetGone(page), `${lang}: ★背景を押すと閉じる`);
+  /* ③ × */
+  ok(await sheetUp(page), `${lang}: もう一度開く（× で閉じる番）`);
+  await page.click('#ap-sheet-x');
+  ok(await sheetGone(page), `${lang}: ★× で閉じる`);
+
+  console.log(`\n════ ${lang} / L-4 絞り込みが URL に載り、読み直しで戻る ════`);
+  await sheetUp(page);
+  await page.evaluate(() => {
+    const s2 = document.getElementById('ap-air');
+    s2.value = 'ana';
+    s2.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  ok(await till(page, `document.querySelectorAll('#ap-rows tbody tr').length === 3`),
+     `${lang}: ★シートの中で選ぶと、後ろの一覧がその場で絞られる`);
+  const u1 = await page.evaluate(() => ({
+    s: location.search,
+    go: (document.getElementById('ap-sheet-go').innerText || '').trim() }));
+  ok(/air=ana/.test(u1.s), `${lang}: ★★選んだ絞り込みが URL に載る`, u1.s);
+  ok(!/annual|180000|realpay_back|usd/i.test(u1.s),
+     `${lang}: ★★URL に載るのは選んだ条件だけ（他人の年収は載らない）`, u1.s);
+  ok(/(^|[^0-9])3([^0-9]|$)/.test(u1.go), `${lang}: ★主ボタンの件数も付いてくる`, u1.go);
+  /* 主ボタンで閉じて一覧の先頭へ。 */
+  await page.click('#ap-sheet-go');
+  ok(await sheetGone(page), `${lang}: ★「◯件の実給与を見る」で閉じる`);
+  /* 読み直し ── 同じ絞り込みで開く。 */
+  await page.reload({ waitUntil: 'domcontentloaded', timeout: 30000 });
+  ok(await till(page, `document.querySelectorAll('#ap-rows tbody tr').length === 3`, 12000),
+     `${lang}: ★★読み直しても同じ絞り込みで開く（共有した URL がそのまま効く）`);
+  const rst = await page.evaluate(() => document.getElementById('ap-air').value);
+  ok(rst === 'ana', `${lang}: ★選び直さなくても、選択そのものが戻っている`, rst);
+  /* すべてクリア。 */
+  await widen(page, 390);
+  await sheetUp(page);
+  await page.click('#ap-clear');
+  ok(await till(page, `document.querySelectorAll('#ap-rows tbody tr').length === ` + ROWS.length),
+     `${lang}: ★すべてクリアで全件に戻る`);
+  ok(await till(page, `location.search === ''`),
+     `${lang}: ★★クリアすると URL からも消える（絞り込みが残らない）`);
+  await page.keyboard.press('Escape');
+  await sheetGone(page);
+
+  console.log(`\n════ ${lang} / L-5 広い幅に戻すと、今までの見え方に戻る ════`);
+  await page.setViewport({ width: 1360, height: 1200 });
+  await till(page, 'window.innerWidth === 1360');
+  await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+  const wide = await page.evaluate(() => {
+    const st = (s2) => { const e = document.querySelector(s2);
+      return e ? getComputedStyle(e).display : 'なし'; };
+    const on = (s2) => { const e = document.querySelector(s2);
+      return !!(e && e.getBoundingClientRect().width > 0); };
+    return { tabs: st('.mr-tabs'), fbtn: st('#ap-open-f'), hd: st('.ap-sheet-hd'),
+             ft: st('.ap-sheet-ft'), lab: st('.ap-cl'), cb: st('.ap-cb'),
+             sheet: st('#ap-sheet'), fbar: st('#ap-fbar'),
+             q: on('#ap-q'), air: on('#ap-air'), pos: on('#ap-pos'), clr: on('#ap-clear'),
+             thead: (() => { const e = document.querySelector('#ap-rows thead');
+               return Math.round(e.getBoundingClientRect().height); })() };
+  });
+  ok(wide.tabs === 'none' && wide.fbtn === 'none' && wide.hd === 'none' && wide.ft === 'none',
+     `${lang}: ★★広い幅では、狭い幅の部品が1つも出ない`,
+     `${wide.tabs}/${wide.fbtn}/${wide.hd}/${wide.ft}`);
+  ok(wide.lab === 'none' && wide.cb === 'none',
+     `${lang}: ★カード用の見出し語も帯も出ない（表の字が1文字も増えない）`,
+     `${wide.lab}/${wide.cb}`);
+  ok(wide.sheet === 'contents' && wide.fbar === 'contents',
+     `${lang}: ★★器そのものは消える（3つの口が今までどおり横1列に並ぶ）`,
+     `${wide.sheet}/${wide.fbar}`);
+  ok(wide.q && wide.air && wide.pos && wide.clr,
+     `${lang}: ★3つの口と「すべてクリア」がその場に出ている`,
+     `${wide.q}/${wide.air}/${wide.pos}/${wide.clr}`);
+  ok(wide.thead > 1, `${lang}: ★表の見出しが戻る`, String(wide.thead));
+
+  ok(errs.length === 0, `${lang}: ページのエラーが1件も出ない`, errs.join(' | '));
+}
+
+/* ページ送りが出る量（23件）でも、下タブが被さらない。 */
+{
+  console.log('\n════ ja / L-6 ページ送りが出ても下タブに隠れない ════');
+  const { page, errs } = await open('ja', MANY);
+  await widen(page, 390);
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+  const n = await page.evaluate(NAR);
+  ok(n.ovX <= 0 && n.ovBody <= 0, '★390px で横スクロールが生えない（23件）',
+     `${n.ovX}/${n.ovBody}`);
+  ok(n.tabs && n.lastB <= n.tabs.top,
+     '★★ページ送りが下タブに隠れない（押せなくならない）',
+     `送りの底 ${n.lastB} / タブの上端 ${n.tabs ? n.tabs.top : '?'}`);
+  ok(n.small.length === 0, '★ページ送りの的も 44px 以上', n.small.join(' / '));
+  ok(errs.length === 0, 'ページのエラーが1件も出ない', errs.join(' | '));
 }
 
 for (const jar of jars) { try { await jar.close(); } catch (e) {} }

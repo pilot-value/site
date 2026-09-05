@@ -50,6 +50,7 @@
   <link rel="stylesheet" href="../pv-tokens.css">
   <!-- Page shell (.mr-*), shared with My Pay Report across both languages -->
   <link rel="stylesheet" href="../my-value.css">
+  <link rel="stylesheet" href="../tabs.css">
   <!-- This page only (.ap-*).
        ★ pay-viz.css is not loaded here — this page has no donut
          (how the pay is made up belongs to DEEP PAY). -->
@@ -137,7 +138,7 @@
       </a>
       <a class="mr-side-a" href="roadmap.html">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V4s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
-        <span>ROADMAP</span>
+        <span>ROADMAP & REQUESTS</span>
       </a>
       <a class="mr-side-a" href="profile.html">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.2.6.77 1 1.41 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -162,20 +163,43 @@
            ★ No fleet filter. Filtering by something the table does not show would let
              anyone read each row's fleet back out of the filtered result. -->
       <div class="ap-filter" id="ap-filter" hidden>
-        <div class="ap-f ap-f--q">
-          <label class="ap-f-l" for="ap-q">Search airlines</label>
-          <input class="ap-q" id="ap-q" type="search" autocomplete="off"
-                 spellcheck="false" placeholder="Type a name">
+        <!-- 狭い幅（iPhone）でだけ出る帯。★口は増やしていない ── 下のシートの
+             中身は今までと同じ3つで、広い幅では display:contents で
+             元どおり横1列に戻る（別の絞り込みを作ったのではない）。 -->
+        <div class="ap-fbar" id="ap-fbar">
+          <button type="button" class="ap-fbtn" id="ap-open-f"
+                  aria-haspopup="dialog">Filter</button>
+          <span class="ap-fbar-n" id="ap-fbar-n" aria-live="polite"></span>
         </div>
-        <div class="ap-f">
-          <label class="ap-f-l" for="ap-air">Airline</label>
-          <select class="ap-sel" id="ap-air"></select>
+
+        <!-- ★狭い幅では下から出るシート。開いている間だけ actual-pay.js が
+             role="dialog" を付ける（広い幅ではただの3つの口なので付けない）。 -->
+        <div class="ap-sheet" id="ap-sheet">
+          <div class="ap-sheet-hd">
+            <p class="ap-sheet-t" id="ap-sheet-t">Filter</p>
+            <button type="button" class="ap-sheet-x" id="ap-sheet-x"
+                    aria-label="Close">×</button>
+          </div>
+          <div class="ap-sheet-b">
+            <div class="ap-f ap-f--q">
+              <label class="ap-f-l" for="ap-q">Search airlines</label>
+              <input class="ap-q" id="ap-q" type="search" autocomplete="off"
+                     spellcheck="false" placeholder="Type a name">
+            </div>
+            <div class="ap-f">
+              <label class="ap-f-l" for="ap-air">Airline</label>
+              <select class="ap-sel" id="ap-air"></select>
+            </div>
+            <div class="ap-f">
+              <label class="ap-f-l" for="ap-pos">Position</label>
+              <select class="ap-sel" id="ap-pos"></select>
+            </div>
+            <button type="button" class="ap-clear" id="ap-clear">Clear filters</button>
+          </div>
+          <div class="ap-sheet-ft">
+            <button type="button" class="ap-sheet-go" id="ap-sheet-go"></button>
+          </div>
         </div>
-        <div class="ap-f">
-          <label class="ap-f-l" for="ap-pos">Position</label>
-          <select class="ap-sel" id="ap-pos"></select>
-        </div>
-        <button type="button" class="ap-clear" id="ap-clear">Clear filters</button>
       </div>
 
       <!-- ★ One row is one pilot. Everyone who submitted their pay is here — no headcount gate.
@@ -234,5 +258,16 @@
      ★actual-pay.js より前に置く。無くても落ちないが、全社が頭2文字の札になる。 -->
 <script src="../airline-logos.js"></script>
 <script src="../actual-pay.js"></script>
+<!-- Bottom tabs, shown only on narrow (iPhone) widths. Same five destinations
+     as the side menu. Do NOT hand-edit: patch-side-nav.mjs writes all 14 pages
+     (--check fails on drift). The footer inset uses env(safe-area-inset-bottom);
+     never add viewport-fit=cover (see pay-report.css:193 — env must stay 0). -->
+<nav class="mr-tabs" aria-label="Sections">
+  <a class="mr-tab" href="my-value.html">My report</a>
+  <a class="mr-tab" href="roadmap.html" aria-label="ROADMAP &amp; REQUESTS"><span>Roadmap</span><span class="mr-tab-am">&amp;</span><span>Requests</span></a>
+  <span class="mr-tab is-on" aria-current="page">REAL PAY</span>
+  <a class="mr-tab" href="world-airlines.html">Airlines</a>
+  <a class="mr-tab" href="profile.html">Account</a>
+</nav>
 </body>
 </html>

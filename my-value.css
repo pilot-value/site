@@ -806,6 +806,29 @@
   .mr-ml-g{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 
+/* ══ 6) 下タブに合わせた骨格の調整（狭い画面だけ）══════════════
+   ★帯そのものの見た目は tabs.css が持つ。**ここに .mr-tabs を書き戻さない。**
+     2026-09-05、オーナーが下タブの中身を
+     「マイレポート / ROADMAP & REQUESTS / REAL PAY / 各航空会社 / マイページ」
+     に決め直した。「各航空会社」＝ world-airlines.html はマイページ系ではなく
+     このファイルを読まないので、帯だけ tabs.css へ切り出してある。
+   ★DOM は patch-side-nav.mjs が16枚へ配る。手で書き足さない。 */
+@media(max-width:720px){
+  /* 帯のぶん、本文の足元を空ける。★骨格の padding は上書きだけ。
+     3行のタブが一番背が高いので、そこに合わせる。
+     ⚠️ tabs.css の .mr-tabs-pad を <body> に足さない ── 2倍空く。 */
+  .mr-shell{padding-bottom:calc(96px + env(safe-area-inset-bottom))}
+
+  /* 左メニューは、下タブと行き先がかぶるものだけ隠す（二度出さない）。
+     残るのは 錠前つきの3つ（REAL PAY / DEEP PAY / VERIFIED PAY）と
+     ★「匿名で給与を追加」（.is-add）。
+     ⚠️ .is-add を隠さない ── 2026-09-05 に下タブから「給与を追加」が外れた。
+        ここまで隠すと、狭い画面から給与を出す入口が本文の橙ボタンだけになる。
+     ⚠️ DOM は1バイトも触らない。16枚が一致していることを検査が見ている。
+     ⚠️ DEEP PAY / VERIFIED PAY の錠前を消さない ── 消すと iPhone から辿れなくなる。 */
+  .mr-side>.mr-side-a:not([data-mr-gate]):not(.is-add){display:none}
+}
+
 /* 動きを減らす設定のとき。★ 要素を display:none にしない
    （トップページで実際に踏んだ罠。中身ごと消える）。 */
 @media(prefers-reduced-motion:reduce){

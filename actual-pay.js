@@ -149,8 +149,20 @@
       dwNote: '金額・勤務の数字は、匿名化のため帯で表示しています。'
             + '氏名・社員番号・メールアドレスなどの個人情報は公開しません。',
       /* ★積み上げバーの下に必ず置く1行。バーは帯の中点から出した概算で、
-           正確な構成比ではない。数字（％）は1つも出さない。 */
+           正確な構成比ではない。だから ％ は整数までしか出さない（下の payHTML を読む）。 */
       dwShare: '構成比は匿名化された金額帯から算出した概算です',
+      /* ★狭い幅（iPhone）でだけ出るもの。広い幅では1文字も出ない。
+           絞り込みの口そのものは増やしていない（検索・航空会社・職位の3つのまま）。
+           ここで増えるのは「その3つをどう見せるか」だけ。
+         ★動かない語（「絞り込み」「閉じる」「下タブの5つ」）は HTML が持つ
+           ── 左メニュー・絞り込みの見出し語と同じ扱い。ここには数の入る語だけ置く。 */
+      fGo: '{n}件の実給与を見る',
+      fN: '{n}件',
+      cBh: '乗務',
+      /* ★カードの凡例（2026-09-05・オーナー指示）。iPhone の1画面に4〜5件入れるため、
+           カードでは**いちばん大きい区分だけ**名前と％を出し、残りは数だけ言う。
+           全区分の名前と％は、行を押すと出る面（ap-dw-list）に今までどおり全部ある。 */
+      cbMore: 'ほか{n}区分',
       /* 主 ── DEEP PAY。★リンクではなく、左メニューと同じ門（pv-gates.js）を開く。
            ⚠️ ここに deep-pay.html と書かない。DEEP PAY への辺は2本だけと決めてある
               （assert-deep-pay.mjs が root の全 .js を見張っている）。 */
@@ -238,6 +250,10 @@
       dwNote: 'Pay and work figures are shown as ranges so that no one can be identified. '
             + 'Names, staff numbers and email addresses are never published.',
       dwShare: 'Shares are approximate, worked out from the anonymised ranges',
+      fGo: 'Show {n} records',
+      fN: '{n} rows',
+      cBh: 'Block',
+      cbMore: '+{n} more',
       dwGo: 'Compare with other airlines → DEEP PAY',
       dwCta: 'Add your pay anonymously',
       lockPT: 'Pay breakdowns are shared between the pilots who share their own',
@@ -607,11 +623,21 @@
               語彙に無い行・そもそも機材の無い行（口コミ由来）は、その1行が黙って空く。 */
          + '<td><span class="ap-pos">' + esc(posName(r.pos)) + '</span>'
          +   (fl ? '<span class="ap-flt">' + esc(fl) + '</span>' : '')
+         /* ★カードのときだけ出る乗務の帯（広い幅では CSS が伏せる）。
+              サーバが既に返している work.bh をそのまま出すだけで、
+              時間あたりの単価は作らない（あれは年収そのものではない）。 */
+         +   cardBhHTML(r)
          + '</td>'
-         + '<td class="ap-num"><span class="ap-amt">' + esc(money(r.annual_usd)) + '</span></td>'
+         /* ★「年収」「月あたり」の見出し語。カードには表の見出し行が無いので、
+              セルの中に置いて広い幅では伏せる。CSS に日本語を直書きしないため、
+              content:attr() ではなく本物の要素にしてある（英語版がそのまま効く）。 */
+         + '<td class="ap-num"><span class="ap-cl" aria-hidden="true">' + esc(T.thAmt) + '</span>'
+         +   '<span class="ap-amt">' + esc(money(r.annual_usd)) + '</span></td>'
          /* ★月あたりは画面の年収を12で割っただけ。新しい情報は1つも増えていない。 */
-         + '<td class="ap-num"><span class="ap-mon">' + esc(moneyMonth(r.annual_usd)) + '</span></td>'
-         + '<td>' + (r.verified ? vfMark() : '<span class="ap-vf-no">' + esc(T.vfNo) + '</span>') + '</td>'
+         + '<td class="ap-num"><span class="ap-cl" aria-hidden="true">' + esc(T.thMon) + '</span>'
+         +   '<span class="ap-mon">' + esc(moneyMonth(r.annual_usd)) + '</span></td>'
+         + '<td>' + cardCompHTML(r)
+         +   (r.verified ? vfMark() : '<span class="ap-vf-no">' + esc(T.vfNo) + '</span>') + '</td>'
          /* ★投稿時期。サーバから来るのは 0〜4 の段の番号だけ。
               段が読めない行（古いサーバ）は空欄にする＝そこだけ黙って空く。
             ★› は**文字**で描く。絵にすると表の中の svg が1つ増えて、
@@ -629,7 +655,11 @@
     /* ★表は幅いっぱい。図は無い（2026-08-24 に外した）。
        ★ foot（何が載っていないかの1文）は表の下。あれは説明ではなく約束で、
          消すと「機種はどこ？」に答えるものが画面から無くなる。 */
-    box.innerHTML = h + '<p class="ap-foot">' + esc(T.foot) + '</p>';
+    /* ★概算だと断る1行。カードでは内訳バーが行ごとに出るので、
+         その約束をこの1枚で引き受ける（10枚のカードに10回書かない）。
+         広い幅では出ない（バーはカードにしか無い）。 */
+    box.innerHTML = h + '<p class="ap-shn">' + esc(T.dwShare) + '</p>'
+                  + '<p class="ap-foot">' + esc(T.foot) + '</p>';
     renderStats();
   }
 
@@ -759,16 +789,53 @@
     return (a + b) / 2;
   }
 
-  /* 報酬の内訳（2026-09-03 改）。
+  /* 帯の中点 → 構成比（整数）。合計はちょうど 100 になる。
+     ★2026-09-04、オーナー判断で「％を1つも出さない」を**開いている行に限って**開けた。
+       経緯は下の payHTML のコメントに書いた。ここは算数だけ。
+     ★端数は最大剰余法で配る。小数を出すと帯より細かい数を作ってしまうので整数まで。
+     ★中点が 0 より大きい区分を 0% にしない ── 「載っているのに 0」は嘘に読める。
+       足りないぶんは、その時いちばん大きい区分から1ずつ借りる。 */
+  function shareInts(mid, sum) {
+    if (!(sum > 0)) return null;
+    var raw = mid.map(function (m) { return (m / sum) * 100; });
+    var out = raw.map(function (v) { return Math.floor(v); });
+    var left = 100;
+    out.forEach(function (v) { left -= v; });
+    raw.map(function (v, k) { return { k: k, f: v - Math.floor(v) }; })
+       .sort(function (a, b) { return (b.f - a.f) || (a.k - b.k); })
+       .forEach(function (o) { if (left > 0) { out[o.k] += 1; left -= 1; } });
+    /* 0 に落ちた区分を 1 に持ち上げる。借り先は今いちばん大きい区分。 */
+    for (var i = 0; i < out.length; i++) {
+      if (out[i] !== 0 || !(mid[i] > 0)) continue;
+      var big = 0;
+      for (var j = 1; j < out.length; j++) if (out[j] > out[big]) big = j;
+      if (out[big] < 2) break;
+      out[big] -= 1; out[i] = 1;
+    }
+    return out;
+  }
+
+  function shareText(n) { return String(n) + '%'; }
+
+  /* 報酬の内訳（2026-09-03 改 / 2026-09-04 に％を開けた）。
      ★1本の積み上げバーで「その人の報酬を、どの区分がどれくらい占めているか」を出す。
        前は行ごとに横棒を1本ずつ描いていたが、あれは**帯の下端から上端まで**で、
        長さ＝金額の大小には読めない（説明しないと読めないものは、ここに置かない）。
      ★長さは**画面に出ている帯の中点**から出し、中点の合計で割る。
        中点は両端2つの割り算でしかなく、サーバが返していない数を画面が作ってはいない。
-     ⚠️ ％の数字を1つも出さない。帯の刻みでは「68.3%」のような数は作れないし、
-        割合を出すと帯の中の本当の位置が逆算できる。だから「おおよその構成」として
-        長さだけを見せ、下に必ず概算だと1行置く。
-     ⚠️ 長さは % ではなく flex の伸び率で置く（100 倍も % の字も要らない）。
+
+     ⚠️ ％について（2026-09-04・オーナー判断で方針を変えた）。
+        前は「％を1文字も出さない」と決めていた。開けた理由は、出す数が
+        **バーが既に持っている長さそのもの**だから ── 同じ比は今日の DOM に
+        style="flex:0.6531 1 0" と小数4桁で入っている。読める字に直すだけで、
+        サーバが返していない数は1つも増えない。そのうえで4つ守る。
+          1. **閉じている行（paylock）には1文字も出さない。**
+             あちらの幅は CSS の :nth-child が持つ**全員同じ作り物**で、
+             ％にしたら発明した数字を公開することになる。payLockHTML は触らない。
+          2. **整数だけ**（shareInts）。小数は帯より細かい＝持っていない精度。
+          3. **概算だと必ず添える**（T.dwShare）。バーと同じ場所に必ず1行置く。
+          4. **％ × 年収を書かない。** 金額は今までどおり帯のまま。
+     ⚠️ バーの長さは今までどおり flex の伸び率で置く（style に % の字を書かない）。
      ★色は区分ごと（segCls）。並び順ではなく項目そのものに付くので、
        行を次々に押しても同じ項目は同じ色のまま。
        ⚠️ 多色にしたが**ドーナツを戻したのではない**。出すのは1本の帯だけ。
@@ -782,9 +849,11 @@
     var mid = r.pay.map(segMid), wsum = 0;
     mid.forEach(function (m) { wsum += m; });
 
-    /* 区分が1つだけなら、バーは1色で埋まるだけ＝何も言っていない。出さない。 */
-    var bar = '';
+    /* 区分が1つだけなら、バーは1色で埋まるだけ＝何も言っていない。出さない。
+       ★％も同じ。1区分しか無い行の「100%」は数えていないのと同じ。 */
+    var bar = '', sh = null;
     if (r.pay.length > 1 && wsum > 0) {
+      sh = shareInts(mid, wsum);
       bar = '<div class="ap-dw-st" aria-hidden="true">'
           + r.pay.map(function (p, k) {
               return '<span class="ap-dw-sti ' + segCls(p.k)
@@ -795,17 +864,66 @@
     }
 
     /* 一覧。★丸はバーと同じ色・同じ並び。凡例を別に置かないための印。 */
-    var li = r.pay.map(function (p) {
+    var li = r.pay.map(function (p, k) {
       return '<li class="ap-dw-row">'
         + '<span class="ap-dw-k">'
         +   (bar ? '<i class="ap-dw-dot ' + segCls(p.k) + '" aria-hidden="true"></i>' : '')
         +   esc(segName(p.k)) + '</span>'
-        + '<span class="ap-dw-v">' + esc(rngMoney(p.r[0], p.r[1])) + '</span></li>';
+        + '<span class="ap-dw-v">' + esc(rngMoney(p.r[0], p.r[1]))
+        +   (sh ? '<span class="ap-dw-sh">' + esc(shareText(sh[k])) + '</span>' : '')
+        + '</span></li>';
     }).join('');
 
     return '<h3 class="ap-dw-h">' + esc(T.dwComp) + '</h3>'
          + bar
          + '<ul class="ap-dw-list">' + li + '</ul>';
+  }
+
+  /* ── 狭い幅（iPhone）のカードにだけ出るもの（2026-09-04）───────────
+     ★中身は面と同じ数字で、見せ方だけカード用。新しいデータは1つも読んでいない。
+     ⚠️ クラスを .ap-dw-* と分ける。あちらは「面の中に何個あるか」を数えている
+        検査が使っていて、表の中に同じ名前を撒くと数が合わなくなる。
+     ⚠️ 広い幅では CSS が伏せる＝表は今までどおりの6列のまま。 */
+  function cardBhHTML(r) {
+    var v = (r.work && r.work.bh) ? rngPlain(r.work.bh) : '';
+    if (!v) return '';
+    return '<span class="ap-cbh"><span class="ap-cbh-k">' + esc(T.cBh) + '</span>'
+      + esc(v) + '<span class="ap-cbh-u">' + esc(T.wkU.bh) + '</span></span>';
+  }
+
+  /* カードの内訳バー＋凡例。
+     ★閉じている行（paylock）には**1文字も出さない**。あちらの幅は作り物なので、
+       ％にしたら発明した数字を公開することになる（payHTML のコメントを読む）。
+     ★区分が1つだけの行も出さない。「100%」は数えていないのと同じ。 */
+  function cardCompHTML(r) {
+    if (r.paylock || !r.pay || r.pay.length < 2) return '';
+    var mid = r.pay.map(segMid), wsum = 0;
+    mid.forEach(function (m) { wsum += m; });
+    var sh = shareInts(mid, wsum);
+    if (!sh) return '';
+    /* ★出す数字は今までと同じ（shareInts は全区分ぶん整数で計算したまま）。
+         変えたのは**出す個数**だけ ── いちばん大きい区分を1つ、残りは数える。
+       ★同率のときは先に来たほう＝サーバが組んだ並び順を尊重する
+         （こちらで並べ替えない。並びそのものが情報になる）。 */
+    var top = 0;
+    for (var k = 1; k < sh.length; k++) { if (sh[k] > sh[top]) top = k; }
+    var rest = sh.length - 1;
+
+    return '<span class="ap-cb" aria-hidden="true">'
+      + r.pay.map(function (p, k2) {
+          return '<i class="ap-cb-s ' + segCls(p.k)
+               + '" style="flex:' + (mid[k2] / wsum).toFixed(4) + ' 1 0"></i>';
+        }).join('')
+      + '</span><span class="ap-cb-l">'
+      + '<span class="ap-cb-i"><i class="ap-cb-d ' + segCls(r.pay[top].k)
+      +   '" aria-hidden="true"></i>' + esc(segName(r.pay[top].k))
+      +   ' <b>' + esc(shareText(sh[top])) + '</b></span>'
+      + (rest > 0
+          ? '<span class="ap-cb-m">'
+            + esc(T.cbMore.replace('{n}', function () { return String(rest); }))
+            + '</span>'
+          : '')
+      + '</span>';
   }
 
   /* 閉じている「報酬の内訳」（2026-09-03 その3・オーナー指示
@@ -903,7 +1021,7 @@
     for (k = 0; k < vis.length; k++) {
       if (vis[k] === hit) {
         var p = Math.floor(k / PER_PAGE) + 1;
-        if (p !== S.page) { S.page = p; renderRows(); }
+        if (p !== S.page) { S.page = p; render(); }
         break;
       }
     }
@@ -1269,7 +1387,125 @@
     }), S.fPos);
   }
 
-  function render() { renderRows(); }
+  /* ── 絞り込みシート（2026-09-04・狭い幅のときだけ）─────────────
+     ★絞り込みの口は**増やしていない**。#ap-q / #ap-air / #ap-pos / #ap-clear は
+       同じ DOM のまま、狭い幅では下から出るシートの中に見える。広い幅では
+       今までどおりその場に横1列で並ぶ（CSS の display:contents で戻している）。
+     ★サーバへは1本も投げない。開いても閉じても pv_pay_rows() は引き直さない。
+     ⚠️ 背景にぼかしを掛けない。この画面は「隠して見せる」をしないと決めてあり、
+        .mr-main の中にぼかしが1つでもあると assert-pay-rows.mjs が実測で落とす。
+     ⚠️ 開いている間だけ role="dialog" を付ける。広い幅ではただの3つの口なので、
+        付けっぱなしにすると読み上げが「常に開いているダイアログ」と言う。 */
+  var SH = null;
+
+  function sheetOpen() {
+    var sheet = el('ap-sheet');
+    if (!sheet || SH) return;
+    var back = d.createElement('div');
+    back.className = 'ap-sh-back';
+    SH = { back: back, sheet: sheet, down: false,
+           prevFocus: el('ap-open-f') || d.activeElement,
+           prevOverflow: d.body.style.overflow };
+
+    sheet.setAttribute('role', 'dialog');
+    sheet.setAttribute('aria-modal', 'true');
+    sheet.setAttribute('aria-labelledby', 'ap-sheet-t');
+    sheet.setAttribute('tabindex', '-1');
+    d.body.appendChild(back);
+    d.body.style.overflow = 'hidden';
+    d.body.classList.add('ap-sh-on');
+
+    /* 閉じ方は3つ（× ・背景 ・ESC）。面（.ap-dw）と同じ作法。
+       ★背景は mousedown で印を立て click で二重に確かめる。 */
+    back.addEventListener('mousedown', function (e) {
+      if (SH && e.target === back) SH.down = true;
+    });
+    back.addEventListener('click', function (e) {
+      if (!SH) return;
+      if (e.target === back) { var was = SH.down; SH.down = false; if (was) sheetClose(); }
+    });
+    SH.onKey = function (e) {
+      if (e.key === 'Escape') { e.preventDefault(); sheetClose(); return; }
+      if (e.key !== 'Tab' || !SH) return;
+      var f = SH.sheet.querySelectorAll(
+        'button:not([disabled]),a[href],select,input,[tabindex]:not([tabindex="-1"])');
+      if (!f.length) return;
+      var first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && d.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && d.activeElement === last) { e.preventDefault(); first.focus(); }
+    };
+    d.addEventListener('keydown', SH.onKey, true);
+
+    if (w.requestAnimationFrame) {
+      w.requestAnimationFrame(function () { if (SH) SH.back.classList.add('is-in'); });
+    } else back.classList.add('is-in');
+    try { sheet.focus({ preventScroll: true }); } catch (e) { try { sheet.focus(); } catch (e2) {} }
+  }
+
+  function sheetClose(noFocus) {
+    if (!SH) return;
+    var x = SH; SH = null;
+    d.removeEventListener('keydown', x.onKey, true);
+    d.body.style.overflow = x.prevOverflow || '';
+    d.body.classList.remove('ap-sh-on');
+    ['role', 'aria-modal', 'aria-labelledby', 'tabindex'].forEach(function (a) {
+      x.sheet.removeAttribute(a);
+    });
+    x.back.classList.remove('is-in');
+    w.setTimeout(function () {
+      if (x.back.parentNode) x.back.parentNode.removeChild(x.back);
+    }, 320);
+    if (noFocus) return;
+    var back = el('ap-open-f') || x.prevFocus;
+    try { if (back && back.focus) back.focus({ preventScroll: true }); } catch (e) {}
+  }
+
+  /* 帯の件数とシートの主ボタン。★数えるのは手元の行そのもの（実数）。
+     この画面に伏せ字の規則は無い（DEEP PAY の n≧3 とは別の画面）。 */
+  function syncBar() {
+    var n = visibleRows().length;
+    /* ★#ap-fbar は #ap-filter の中にある＝行が無いときは帯ごと消える
+         （renderFilters が #ap-filter を hidden にする）。ここでは数だけ直す。 */
+    var cnt = el('ap-fbar-n');
+    if (cnt) cnt.textContent = T.fN.replace('{n}', function () { return String(n); });
+    var go = el('ap-sheet-go');
+    if (go) go.textContent = T.fGo.replace('{n}', function () { return String(n); });
+  }
+
+  /* ── 絞り込みを URL に載せる（2026-09-04）────────────────────
+     ★読み直しても共有しても同じ絞り込みで開く。
+     ⚠️ location.search に**代入しない**（代入すると読み込みが走る／
+        assert-pay-rows.mjs が字として禁じている）。replaceState だけを使う。
+     ⚠️ 載せるのは「見る人が自分で選んだ絞り込み」だけ。行を引き当てる戻り先
+        （会社・職位・年収）は今までどおり sessionStorage のまま
+        ── あれは他人の年収なので、アドレス欄にも GA4 にも出さない。 */
+  function urlWrite() {
+    if (!(w.history && w.history.replaceState)) return;
+    try {
+      var u = new URL(w.location.href);
+      /* ★q は**打った字のまま**載せる（S.fQ は小文字に均した内部用）。
+           均した側を載せると、読み直したとき入力欄が勝手に小文字になる。 */
+      var qi = el('ap-q');
+      var qv = S.fQ ? ((qi && qi.value) || S.fQ) : '';
+      [['air', S.fAir], ['pos', S.fPos], ['q', qv]].forEach(function (p) {
+        if (p[1]) u.searchParams.set(p[0], p[1]); else u.searchParams.delete(p[0]);
+      });
+      w.history.replaceState(null, '', u.pathname + (u.search || '') + u.hash);
+    } catch (e) {}
+  }
+
+  function urlRead() {
+    try {
+      var p = new URL(w.location.href).searchParams;
+      S.fAir = p.get('air') || '';
+      S.fPos = p.get('pos') || '';
+      S.fQ = norm(p.get('q') || '');
+      var q = el('ap-q');
+      if (q && S.fQ) q.value = p.get('q') || '';
+    } catch (e) {}
+  }
+
+  function render() { renderRows(); syncBar(); urlWrite(); }
 
   /* 別の <script> が宣言した const sb を読む。宣言前に呼ばれると
      ReferenceError になるので、必ず try で包んだ側から呼ぶ。 */
@@ -1286,16 +1522,28 @@
          出典は行ごとに 出典 の列が持っている。見出しは重ねて言わない。 */
       head.innerHTML = '<h1 class="mr-hd-t">' + esc(T.hd) + '</h1>';
     }
-    /* 会社の打ち込み。★語彙は舐めない（当たるのは今この画面にある社名だけ）。 */
+    /* ★絞り込みを URL から戻す。行が届く**前**に読む
+         ── 後から入れると、一度ぜんぶ描いてから絞り直すのが見える。 */
+    urlRead();
+
+    /* 会社の打ち込み。★語彙は舐めない（当たるのは今この画面にある社名だけ）。
+       ★250ms 待ってから絞る（2026-09-04）。1文字ごとに描き直すと、
+         iPhone の親指入力では表が毎回ちらつく。待つのは描き直しだけで、
+         サーバへは元から1本も投げていない。 */
     var q = el('ap-q');
     if (q) {
+      var qt = null;
       q.addEventListener('input', function () {
-        S.fQ = norm(q.value);
-        /* 打ち込みで選んでいた会社が消えたら、その選択も落とす
-           （残すと「選んだのに0件」になる）。 */
-        if (S.fAir && !hitQ(S.fAir)) { S.fAir = ''; S.fPos = ''; }
-        S.page = 1;
-        render();
+        if (qt) w.clearTimeout(qt);
+        qt = w.setTimeout(function () {
+          qt = null;
+          S.fQ = norm(q.value);
+          /* 打ち込みで選んでいた会社が消えたら、その選択も落とす
+             （残すと「選んだのに0件」になる）。 */
+          if (S.fAir && !hitQ(S.fAir)) { S.fAir = ''; S.fPos = ''; }
+          S.page = 1;
+          render();
+        }, 250);
       });
     }
     ['ap-air', 'ap-pos'].forEach(function (id) {
@@ -1315,6 +1563,28 @@
       if (q) q.value = '';
       render();
     });
+
+    /* ★絞り込みシート（狭い幅だけ）。開く・閉じる・「◯件の実給与を見る」。
+         主ボタンは**閉じて一覧の先頭へ戻すだけ** ── 絞り込みは選んだ瞬間に
+         もう効いている（後ろで一覧が動いているのが見える）。 */
+    var opf = el('ap-open-f');
+    if (opf) opf.addEventListener('click', function () { sheetOpen(); });
+    var shx = el('ap-sheet-x');
+    if (shx) shx.addEventListener('click', function () { sheetClose(); });
+    var shg = el('ap-sheet-go');
+    if (shg) shg.addEventListener('click', function () {
+      sheetClose();
+      var top = el('ap-rows');
+      if (top && top.scrollIntoView) top.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    });
+    /* ★広い幅へ戻ったらシートは畳む。開いたまま横向きにすると、
+         3つの口が本文の中に並んでいるのに背景だけ暗いままになる。 */
+    if (w.matchMedia) {
+      var mq = w.matchMedia('(min-width:721px)');
+      var onMq = function (e) { if (e.matches) sheetClose(true); };
+      if (mq.addEventListener) mq.addEventListener('change', onMq);
+      else if (mq.addListener) mq.addListener(onMq);
+    }
 
     /* ページ送りも行も、描き直すたびに作り直される。入れ物の側で受ける。
        ★ページ送りの判定が**先**。› のボタンはページ送りの外にあるので
@@ -1372,7 +1642,7 @@
        ★ここで createClient しない。1ページに2つ作ると getSession が別々に走る。 */
     var client = null;
     try { client = sb0(); } catch (e) { client = null; }
-    if (!client || !client.rpc) { S.mode = 'error'; renderRows(); return; }
+    if (!client || !client.rpc) { S.mode = 'error'; render(); return; }
     var ready = w.PV_SESSION && typeof w.PV_SESSION.then === 'function'
       ? w.PV_SESSION : { then: function (f) { f(null); return { catch: function () {} }; } };
     ready.then(function (session) {
@@ -1393,7 +1663,7 @@
       /* ★ rpc() が返すのは「then だけを持つ箱」で Promise ではない。
            Promise.resolve() で包んでから catch を付ける（pv-referral.js:gap と同じ）。 */
       Promise.resolve(client.rpc('pv_pay_rows')).then(function (res) {
-        if (res && res.error) { S.mode = 'error'; renderRows(); return; }
+        if (res && res.error) { S.mode = 'error'; render(); return; }
         var v = res && res.data;
         S.mode = (v && v.state === 'open') ? 'open' : 'locked';
         /* ★左メニューの錠前は localStorage の写しで暫定的に出ている。
@@ -1418,12 +1688,12 @@
             detailed: (v && v.give) ? v.give.detailed : null
           });
         }
-        renderRows();
+        render();
         /* ★フォームから戻ってきた人の面を開き直す（オーナーの §8）。
-             renderRows() の**後**。中でページを送り直すことがあるので、
+             render() の**後**。中でページを送り直すことがあるので、
              一度描き終わってからでないと居場所がずれる。 */
         if (S.mode === 'open') reopenBack();
-      }).catch(function () { S.mode = 'error'; renderRows(); });
+      }).catch(function () { S.mode = 'error'; render(); });
     }
   }
 

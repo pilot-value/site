@@ -50,6 +50,7 @@
   <link rel="stylesheet" href="pay-viz.css">
   <!-- ページの骨格（.mr-*）。マイレポートと同じ殻を使う（日英で共有） -->
   <link rel="stylesheet" href="my-value.css">
+  <link rel="stylesheet" href="tabs.css">
   <!-- この画面だけの見た目（.dp-*）。
        ★.pt-* / .mv-* をトップレベルで書き直さない（db/test-form-contract.mjs が見ている）。 -->
   <link rel="stylesheet" href="deep-pay.css">
@@ -138,7 +139,7 @@
       </a>
       <a class="mr-side-a" href="roadmap.html">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V4s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
-        <span>ROADMAP</span>
+        <span>ROADMAP & REQUESTS</span>
       </a>
       <a class="mr-side-a" href="profile.html">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.2.6.77 1 1.41 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -230,5 +231,16 @@
 <!-- ★絵の実体はここ1か所だけ。ドーナツを自前で描かない。 -->
 <script src="pay-viz.js"></script>
 <script src="deep-pay.js"></script>
+<!-- ★狭い幅（iPhone）でだけ出る下タブ。行き先は左メニューと同じ5つ。
+     ⚠️ 中身を手で書かない ── patch-side-nav.mjs が14枚へ配る（--check が食い違いを落とす）。
+     ⚠️ 足元は env(safe-area-inset-bottom)。viewport-fit=cover は足さない
+        （pay-report.css:193 に理由が書いてある。env が 0 なのが正しい）。 -->
+<nav class="mr-tabs" aria-label="画面の切り替え">
+  <a class="mr-tab" href="my-value.html">マイレポート</a>
+  <a class="mr-tab" href="roadmap.html" aria-label="ROADMAP &amp; REQUESTS"><span>Roadmap</span><span class="mr-tab-am">&amp;</span><span>Requests</span></a>
+  <a class="mr-tab" href="actual-pay.html">REAL PAY</a>
+  <a class="mr-tab" href="world-airlines.html">各航空会社</a>
+  <a class="mr-tab" href="profile.html">マイページ</a>
+</nav>
 </body>
 </html>

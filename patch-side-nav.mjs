@@ -1,13 +1,27 @@
 /* ════════════════════════════════════════════════════════════════
-   patch-side-nav.mjs — マイページ系のサイドバー（.mr-side）を1か所から配る
+   patch-side-nav.mjs — マイページ系の行き先（左メニューと下タブ）を1か所から配る
 
-   .mr-side を持つページは 8枚（4画面 × 日英）。
-   同じ項目を人が8か所に書き写すと、必ず1枚だけ古いまま残る。
+   配る先は 16枚。
+     左メニュー（.mr-side）… マイページ系 7画面 × 日英 ＝ 14枚
+     下タブ（.mr-tabs）    … その14枚 ＋ 世界の航空会社一覧 日英2枚
+   同じ項目を人が16か所に書き写すと、必ず1枚だけ古いまま残る。
    実際に 2026-08-23 まで、my-value / airline-conditions の両方に
    「3つだけ」というコメントが残っていた。
 
-   ★このスクリプトが触るのは <nav class="mr-side" …> 〜 </nav> の**中だけ**。
+   ★このスクリプトが触るのは2つの入れ物の**中だけ**。
+       <nav class="mr-side" …> 〜 </nav>   ── 左メニュー（広い画面）
+       <nav class="mr-tabs" …> 〜 </nav>   ── 下タブ（狭い画面・2026-09-05 追加）
      その前後（コメント・.mr-shell・.mr-main）には手を出さない。
+   ★下タブは「入れ物が在るページ」にだけ書く。無いページには作らない。
+     新しいページに出したいときは、空の <nav class="mr-tabs"></nav> を
+     </body> の直前に1回だけ置き、tabs.css と pv-tokens.css を読ませる
+     （.mr-shell を持たないページは <body> に mr-tabs-pad も）。
+   ★pay-report.html には置かない。理由は2つ ──
+     ① .sticky-cta（この内容で提出する）が既に足元を使っていて帯が2本になる
+     ② あの画面は入力の途中で下書きを保存しない。他所へ移る口を足すと、
+        書きかけの数字が黙って消える。
+     2026-09-05、オーナーの指示で下タブから「給与を追加」そのものを外した。
+     狭い画面の入口は 本文の橙のボタンと、左メニューに残した .is-add。
    ★冪等。何度流しても同じ結果になる（`--check` で書かずに差分だけ見る）。
 
    使い方:
@@ -67,26 +81,56 @@ const ITEMS = [
   { key: 'settings', href: 'profile.html',         icon: 'settings', add: false },
 ];
 
+/* ★2026-09-05、roadmap の項目名を「ROADMAP & REQUESTS」にした（オーナー指示）。
+     ページの大見出しが最初からその綴りで、左メニューだけ ROADMAP と短かった。
+     ⚠️ ここを変えたら assert-roadmap.mjs の「patch-side-nav.mjs に … が在る」も
+        同じコミットで直す（文言をそのまま見ている）。 */
 const TEXT = {
   ja: {
     aria: 'マイページ',
     note: '氏名も社員番号も受け取りません。',
     report: 'マイレポート', others: 'REAL PAY',
     deep: 'DEEP PAY', verified: 'VERIFIED PAY',
-    add: '匿名で給与を追加', roadmap: 'ROADMAP', settings: '設定',
+    add: '匿名で給与を追加', roadmap: 'ROADMAP & REQUESTS', settings: '設定',
     /* 錠前の付いた段の読み上げ。pv-gates.js は aria-label が無いときだけ書く
        ＝ここに置いた言い方が正で、JS が落ちても読み上げは死なない。 */
     soonAria: (n) => n + '（準備中・押すと説明が出ます）',
+    /* 下タブ。1枠が 70px ほどしか無いので、左メニューより短い言い方にする。
+       ★「匿名で」は帯には書かない（左メニューとボタン本体が言っている）。 */
+    tabAria: '画面の切り替え',
+    tab: { report: 'マイレポート', roadmap: null, others: 'REAL PAY',
+           airlines: '各航空会社', settings: 'マイページ' },
   },
   en: {
     aria: 'My page',
     note: 'We never collect your name or staff number.',
     report: 'My report', others: 'REAL PAY',
     deep: 'DEEP PAY', verified: 'VERIFIED PAY',
-    add: 'Add pay anonymously', roadmap: 'ROADMAP', settings: 'Settings',
+    add: 'Add pay anonymously', roadmap: 'ROADMAP & REQUESTS', settings: 'Settings',
     soonAria: (n) => n + ' (in preparation) — press for details',
+    tabAria: 'Sections',
+    tab: { report: 'My report', roadmap: null, others: 'REAL PAY',
+           airlines: 'Airlines', settings: 'Account' },
   },
 };
+
+/* 下タブに出す5つ。★並びはオーナーが決めた順（2026-09-05）──
+     マイレポート / ROADMAP & REQUESTS / REAL PAY / 各航空会社 / マイページ。
+   ⚠️ 左メニュー（ITEMS）とは中身も順番も別。揃えようとしない。
+   ⚠️ DEEP PAY / VERIFIED PAY は入れない。まだページが無く、帯の中では
+      錠前の説明を出す場所も無い（左メニューには残っている）。
+   ⚠️ 「給与を追加」は入れない。行き先の pay-report.html に帯が無く、
+      押すと帯そのものが消えて行き止まりに見える（オーナーが実機で指摘）。 */
+const TABS = ['report', 'roadmap', 'others', 'airlines', 'settings'];
+
+/* 下タブにだけ在る行き先（左メニューには置かない）。
+   ★world-airlines.html は日英とも同じファイル名なので、相対のまま両方で当たる。 */
+const TAB_HREF = { airlines: 'world-airlines.html' };
+
+/* roadmap だけ3行に割る（オーナー指示「Roadmap / & / Requests、＆は小さく」）。
+   ★割る場所をこちらで決める。ブラウザ任せの折り返しだと幅ごとに割れ方が変わる。
+   ★日英で同じ形。ROADMAP & REQUESTS は英語のまま出す語なので訳し分けない。 */
+const TAB_ROADMAP = '<span>Roadmap</span><span class="mr-tab-am">&amp;</span><span>Requests</span>';
 
 /* どのページがどの項目で光るか。ここに無いページ（airline-conditions 等）は
    どれも光らせない＝導線から来る画面なので「今ここ」を主張しない。 */
@@ -95,6 +139,7 @@ const CURRENT = {
   'actual-pay.html': 'others',
   'profile.html': 'settings',
   'roadmap.html': 'roadmap',
+  'world-airlines.html': 'airlines',
 };
 
 function buildNav(lang, current) {
@@ -130,6 +175,33 @@ function buildNav(lang, current) {
        + '    </nav>';
 }
 
+/* 下タブ（狭い画面だけ出る）。
+   ★今いるページはリンクにしない ── 押しても何も起きないリンクを置かない。
+     読み上げには aria-current="page" で「今ここ」と伝える。
+   ★aria-label は左メニュー（「マイページ」/「My page」）と別の語にする。
+     同じ語の landmark が2つあると、読み上げでどちらか分からなくなる。 */
+function buildTabs(lang, current) {
+  const t = TEXT[lang];
+  const rows = TABS.map((key) => {
+    const href = TAB_HREF[key] || (ITEMS.find((x) => x.key === key) || {}).href;
+    const on = key === current;
+    const body = t.tab[key] === null ? TAB_ROADMAP : t.tab[key];
+    /* 3行に割った項目だけ、読み上げ用に1つの語を渡す（Roadmap / & / Requests と
+       ばらばらに読ませない）。 */
+    /* ★属性の中に & を裸で置かない（HTML の実体参照と紛らわしい）。
+       ⚠️ 置換は関数形。文字列で渡すと $ が特殊記号になる（CLAUDE.md）。 */
+    const lab = t.tab[key] === null
+      ? ' aria-label="' + t[key].replace(/&/g, () => '&amp;') + '"' : '';
+    if (on) {
+      return '  <span class="mr-tab is-on" aria-current="page"' + lab + '>' + body + '</span>';
+    }
+    return '  <a class="mr-tab" href="' + href + '"' + lab + '>' + body + '</a>';
+  });
+  return '<nav class="mr-tabs" aria-label="' + t.tabAria + '">\n'
+       + rows.join('\n') + '\n'
+       + '</nav>';
+}
+
 const files = [];
 for (const dir of ['.', 'en']) {
   const abs = path.join(ROOT, dir);
@@ -137,24 +209,63 @@ for (const dir of ['.', 'en']) {
   for (const f of fs.readdirSync(abs).filter((x) => x.endsWith('.html')).sort()) {
     const rel = dir === '.' ? f : dir + '/' + f;
     const html = fs.readFileSync(path.join(ROOT, rel), 'utf8');
-    if (html.includes('<nav class="mr-side"')) files.push({ rel, html });
+    /* ★どちらか一方だけのページが在る（世界の航空会社一覧は下タブだけ）。 */
+    if (html.includes('<nav class="mr-side"') || /^<nav class="mr-tabs"/m.test(html))
+      files.push({ rel, html });
   }
 }
 
 const check = process.argv.includes('--check');
 let changed = 0;
-for (const { rel, html } of files) {
+let tabPages = 0;
+for (const f of files) {
+  const { rel } = f;
   const lang = rel.startsWith('en/') ? 'en' : 'ja';
   const base = path.basename(rel);
-  const want = buildNav(lang, CURRENT[base] || '');
-  const re = /<nav class="mr-side"[\s\S]*?<\/nav>/;
-  const got = html.match(re);
-  if (!got) { console.log(`⚠️ ${rel} — <nav class="mr-side"> の閉じが見つからない`); continue; }
-  if (got[0] === want) continue;
+  const cur = CURRENT[base] || '';
+  let html = f.html;
+  let dirty = false;
+
+  /* ① 左メニュー。マイページ系にだけ在る。 */
+  if (/<nav class="mr-side"/.test(html)) {
+    const want = buildNav(lang, cur);
+    const re = /<nav class="mr-side"[\s\S]*?<\/nav>/;
+    const got = html.match(re);
+    if (!got) console.log(`⚠️ ${rel} — <nav class="mr-side"> の閉じが見つからない`);
+    else if (got[0] !== want) { html = html.replace(re, () => want); dirty = true; }
+  }
+
+  /* ② 下タブ。入れ物が在るページにだけ書く（無いページには作らない）。
+     ⚠️ **行頭に錨を打つ。** 入れ物は必ず桁0から書き出す（このスクリプトがそう書く）。
+        錨が無いと、ページのコメントや <style> の中に同じ字面が1回でも出た瞬間、
+        そこから最初の </nav> までを丸ごと呑み込む。
+        2026-09-05、world-airlines.html に置いた注意書きの中の字面に当たり、
+        CSS 240行とヘッダーが消えた（ファイルは壊れたが検査は静かなまま）。 */
+  /* 錨は**始まり側だけ**。空の入れ物は <nav …></nav> と1行で書かれるので、
+     閉じ側にも ^ を打つと初回だけ当たらない。呑み込みは下の見張りで止める。 */
+  const TAB_RE = /^<nav class="mr-tabs"[\s\S]*?<\/nav>/m;
+  if (TAB_RE.test(html)) {
+    tabPages++;
+    const want = buildTabs(lang, cur);
+    const got = html.match(TAB_RE);
+    /* ★呑み込みの見張り。入れ物の中にこれらが在るはずが無い。 */
+    if (/<\/style>|<!--|<script/.test(got[0])) {
+      console.log(`❌ ${rel} — 下タブの入れ物が他の中身まで呑み込んでいる。書かずに止める`);
+      process.exitCode = 1;
+      continue;
+    }
+    if (got[0] !== want) { html = html.replace(TAB_RE, () => want); dirty = true; }
+  } else if (html.includes('class="mr-tabs"')) {
+    console.log(`⚠️ ${rel} — 下タブの入れ物が桁0から始まっていない（行頭に置く）`);
+    process.exitCode = 1;
+  }
+
+  if (!dirty) continue;
   changed++;
   console.log(`${check ? '差分' : '書換'} ${rel}`);
-  if (!check) fs.writeFileSync(path.join(ROOT, rel), html.replace(re, () => want));
+  if (!check) fs.writeFileSync(path.join(ROOT, rel), html);
 }
 
-console.log(`\n.mr-side を持つページ ${files.length} 枚 / ${check ? '食い違い' : '書き換え'} ${changed} 枚`);
+console.log(`\n配った先 ${files.length} 枚（うち下タブ ${tabPages} 枚）`
+          + ` / ${check ? '食い違い' : '書き換え'} ${changed} 枚`);
 if (check && changed) process.exitCode = 1;

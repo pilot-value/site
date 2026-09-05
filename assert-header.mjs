@@ -116,6 +116,9 @@ const MIN_GAP = 19;          /* search.js の BREATH=20 に測定誤差ぶんの
    物理的に取れないし、そこで要るのは「はみ出さない・2行に折れない」だけ
    （search.js の fit() も段④だけは BREATH を見ない。同じ理由）。 */
 const GAP_FROM = 390;
+/* ★下タブを見る幅（2026-09-05）。GAP_FROM と同じ数だが意味が別なので分けてある。
+     あちらは「ここから中身の隙間を見る」、こちらは「iPhone の幅」。 */
+const IPHONE_W = 390;
 
 /* ★並列にしたので console.log を直に呼ばない。行はページごとの箱へ積み、
    全部終わってから **宣言順に** まとめて吐く（PAGES の順・幅の昇順・FORM_PAGES の順）。
@@ -338,6 +341,32 @@ async function runPage(href, label, opt, ok) {
     ok(m.twoLine === 0, `${tag} 2行に折れた項目が無い`, m.twoLine ? m.twoNames.join(' / ') : '');
     ok(!m.hScroll, `${tag} ページが横に溢れていない`,
        m.hScroll ? 'iOS はここでレイアウト幅を広げ、position:fixed の常設バーが画面より広くなる' : '');
+    /* ★下タブ（2026-09-05・オーナー指摘「REAL PAY から他所へ行くとタブが消える」）。
+         REAL PAY 側の細かい所は assert-pay-rows.mjs が見ている。ここで見るのは
+         **他のページにも同じ帯が出ていること**と、足元の逃がしが効いていること。
+       ★中身に被さらないかは「いちばん下まで送って測る」ではなく、本文の下の余白で見る。
+         送ると scroll-behavior:smooth の途中を読むことがある
+         （2026-08-28 に assert-referral.mjs で実際に踏んだ形）。 */
+    if (w === IPHONE_W) {
+      const t = await page.evaluate(() => {
+        const n = document.querySelector('.mr-tabs');
+        if (!n) return null;
+        const b = n.getBoundingClientRect();
+        /* ★足元の逃がしは2通り。マイページ系は .mr-shell が空け、
+             それ以外（世界の航空会社一覧）は <body class="mr-tabs-pad"> が空ける。 */
+        const sh = document.querySelector('.mr-shell') || document.body;
+        return { h: Math.round(b.height), l: Math.round(b.left), r: Math.round(b.right),
+                 w: innerWidth, n: document.querySelectorAll('.mr-tab').length,
+                 pad: Math.round(parseFloat(getComputedStyle(sh).paddingBottom)) };
+      });
+      if (t) {
+        ok(t.h > 0 && t.n === 5 && t.l >= 0 && t.r <= t.w,
+           `${tag} 下タブが5つ出て窓に収まっている`,
+           `${t.n}つ / ${t.l}〜${t.r} / 幅 ${t.w}`);
+        ok(t.pad >= t.h, `${tag} 下タブのぶん本文の足元が空けてある`,
+           `余白 ${t.pad}px / タブ ${t.h}px`);
+      }
+    }
     if (w >= GAP_FROM) {
       ok(m.minGap === null || m.minGap >= MIN_GAP, `${tag} 中身どうしが ${MIN_GAP}px 以上あいている`,
          m.minGap === null ? '' : `いちばん狭いところ ${m.minGap}px`);

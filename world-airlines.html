@@ -47,13 +47,21 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'"/><noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet"/></noscript>
+<!-- 足元の帯（狭い画面だけ出る画面切り替え）。中身は patch-side-nav.mjs が配る。
+     pv-tokens.css は --pv-* の定義だけ＝このページの見た目は1pxも変わらない。 -->
+<link rel="stylesheet" href="pv-tokens.css">
+<link rel="stylesheet" href="tabs.css">
 <style>
 *,*::before,*::after{box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{background:#0a0c0f;color:#e8edf2;font-family:'Inter','Noto Sans JP',sans-serif;line-height:1.7;-webkit-font-smoothing:antialiased}
 body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");background-size:128px;opacity:.3}
-nav{position:fixed;top:0;left:0;right:0;z-index:200;transition:background .4s}
-nav.scrolled{background:rgba(10,12,15,.92);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.06)}
+/* ★#main-nav に絞る（2026-09-05）。要素名 nav のままだと足元の帯（.mr-tabs）にも当たり、
+     top:0 と bottom:0 の両方が効いて帯が画面いっぱいに伸びる。実際に踏んだ。
+     nav はこのページに2つ（ヘッダーと足元の帯）。.scrolled の付け外しは
+     getElementById('main-nav') なので、絞っても動きは変わらない。 */
+#main-nav{position:fixed;top:0;left:0;right:0;z-index:200;transition:background .4s}
+#main-nav.scrolled{background:rgba(10,12,15,.92);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.06)}
 .nav-link{color:rgba(255,255,255,.6);font-size:.85rem;font-weight:500;letter-spacing:.04em;transition:color .2s;text-decoration:none}
 .nav-link:hover{color:#fff}
 .btn-ghost{display:inline-flex;align-items:center;gap:8px;padding:11px 24px;border-radius:10px;background:rgba(255,255,255,.07);color:#e8edf2;font-size:.875rem;font-weight:600;border:1px solid rgba(255,255,255,.12);text-decoration:none;transition:background .2s}
@@ -174,8 +182,8 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 [data-theme="light"] body{background-color:#f3f5f8;color:#0f172a}
 [data-theme="light"] body::before{opacity:.03}
 /* Nav — always visible in light mode */
-[data-theme="light"] nav{background:rgba(243,245,248,.96)!important;border-bottom:1px solid rgba(0,0,0,.07)!important;backdrop-filter:blur(16px)!important}
-[data-theme="light"] nav.scrolled{background:rgba(243,245,248,.99)!important;border-bottom-color:rgba(0,0,0,.09)!important}
+[data-theme="light"] #main-nav{background:rgba(243,245,248,.96)!important;border-bottom:1px solid rgba(0,0,0,.07)!important;backdrop-filter:blur(16px)!important}
+[data-theme="light"] #main-nav.scrolled{background:rgba(243,245,248,.99)!important;border-bottom-color:rgba(0,0,0,.09)!important}
 [data-theme="light"] .nav-link{color:rgba(15,23,42,.6)!important}
 [data-theme="light"] .nav-link:hover{color:#0f172a!important}
 [data-theme="light"] .btn-ghost{background:rgba(0,0,0,.06);color:#0f172a;border-color:rgba(0,0,0,.12)}
@@ -272,7 +280,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <!--/PV-3P-->
 <script src="pv-session.js"></script>
 </head>
-<body class="relative">
+<body class="relative mr-tabs-pad">
 
 <!-- ── NAV ────────────────────────────────────────────────────────── -->
 <nav id="main-nav">
@@ -982,5 +990,12 @@ applyThemeW(localStorage.getItem('pv-theme')||'light');
 <script src="search.js"></script>
 <script src="lang-toggle.js"></script>
 <script src="currency.js"></script>
+<nav class="mr-tabs" aria-label="画面の切り替え">
+  <a class="mr-tab" href="my-value.html">マイレポート</a>
+  <a class="mr-tab" href="roadmap.html" aria-label="ROADMAP &amp; REQUESTS"><span>Roadmap</span><span class="mr-tab-am">&amp;</span><span>Requests</span></a>
+  <a class="mr-tab" href="actual-pay.html">REAL PAY</a>
+  <span class="mr-tab is-on" aria-current="page">各航空会社</span>
+  <a class="mr-tab" href="profile.html">マイページ</a>
+</nav>
 </body>
 </html>

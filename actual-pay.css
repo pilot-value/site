@@ -18,6 +18,21 @@
    ★ このファイルのクラスは全部 .ap-* 。my-value.css の .mv-* と
      衝突しないための約束。
 
+   ★ 2026-09-04、**開いている行に限って割合（％）を出す**ことにした（オーナー判断）。
+     それまでは「％の数字を1つも出さない」だった。
+     出しても増える情報が無い ── ％は帯の中点から作っていて、中点は
+     **画面に出ている両端2つを足して2で割っただけ**。同じ比は今までも
+     style="flex:0.7031 1 0" として小数4桁で DOM に入っていた。
+     つまり ％ は、バーが既に持っている長さを読める字で書き直しただけ。
+     守るのは4つ ──
+       1. **閉じている行（paylock）には1文字も出さない。** あちらの幅は
+          :nth-child が持つ全員同じ作り物で、％にすると発明した数字を公開することになる
+       2. **整数だけ。** 端数は最大剰余法で配って合計をちょうど 100 にする
+       3. **概算だと必ず添える**（一覧は .ap-shn、面は .ap-dw-stn。片方だけ消さない）
+       4. **％×年収を画面に書かない。** 金額は今までどおり帯のまま
+     ⚠️ 割合を「数」として持ち回さない（変数名 pct・toFixed(n)+'%' は静的検査が禁じている）。
+        画面に出るまでの間、整数のまま持つ。
+
    ── 色 ────────────────────────────────────────────────────────
    値は書かず --pv-* を使う（pv-tokens.css）。ここで新しい色を作らない。
    この画面はオレンジ（--pv-orange-*）だけを使う。
@@ -75,6 +90,13 @@
       空っぽの「機材」プルダウンが出ていた。帯（.ap-filter）と枠（.ap-f）の両方に要る。 */
 .ap-filter[hidden]{display:none}
 .ap-f[hidden]{display:none}
+/* ★2026-09-04、狭い幅のために器を2つ足した（.ap-fbar / .ap-sheet）。
+     広い幅では display:contents で**器そのものを消す** ── 中の3つの口が
+     そのまま .ap-filter の flex の子に戻るので、今までと1pxも変わらない。
+   ⚠️ [hidden] は display:contents にも勝つ必要がある。上の2行と同じ理由。 */
+.ap-fbar,.ap-sheet,.ap-sheet-b{display:contents}
+.ap-fbar[hidden],.ap-sheet[hidden]{display:none}
+.ap-fbtn,.ap-fbar-n,.ap-sheet-hd,.ap-sheet-ft{display:none}
 .ap-filter{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;
   margin-bottom:var(--pv-s-3);padding:16px 18px;
   background:var(--pv-surface);border:1px solid var(--pv-line);
@@ -228,6 +250,51 @@
    ⚠️ 見出しを押せるようにしない・並べ替えの矢印を付けない。
       並びに投稿の新しさが乗ると「誰が最近出したか」が読める。 */
 .ap-age{font-size:.7rem;font-weight:600;white-space:nowrap;color:var(--pv-ink-3)}
+
+/* ══ カードのときだけ出るもの（2026-09-04）════════════════════════
+   ★<table> の DOM は1バイトも変えていない。狭い幅（下の @media (max-width:720px)）で
+     見せ方だけをカードに組み替える。ここに並ぶのはそのときの部品で、
+     **広い幅では display:none** ── innerText に1文字も出ない＝
+     見出し6語・件数・約束の言い回しを見ている既存の検査に1つも触らない。
+   ★語は JS の辞書から**本物の要素**として入る（content:attr() ではない）。
+     CSS に日本語を直書きしないため＝英語版がそのまま効く。 */
+.ap-cl,.ap-cbh,.ap-cb,.ap-cb-l,.ap-shn{display:none}
+
+/* セルの中の見出し語（「年収」「月あたり」）。カードには表の見出し行が無い。 */
+.ap-cl{font-size:.64rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--pv-ink-3)}
+
+/* 乗務の帯（例「60〜70 時間 / 月」）。★サーバが既に返している work.bh をそのまま出す。
+   ⚠️ ここから時間あたりの単価（額 ÷ 時間）を作らない。あれは年収そのものではないし、
+      2つの帯を割ると、丸めた両端よりも細かい数が画面に生まれる。 */
+.ap-cbh{margin-top:6px;font-size:.75rem;font-weight:700;color:var(--pv-ink-2);
+  font-variant-numeric:tabular-nums}
+.ap-cbh-k{margin-right:8px;font-size:.66rem;font-weight:700;letter-spacing:.04em;
+  color:var(--pv-ink-3)}
+.ap-cbh-u{margin-left:4px;font-size:.66rem;font-weight:600;color:var(--pv-ink-3)}
+
+/* 報酬の内訳 ── 面の1本のバー（.ap-dw-st）と同じものをカードに小さく置く。
+   ★色は下の .ap-dw-c-* が持つ。**あちらはこのファイルの後ろにある＝勝つ**ので、
+     ここの橙は知らない鍵が来たときの受け皿（.ap-dw-sti と同じ作り）。
+   ★閉じている行（paylock）には出ない ── JS の cardCompHTML が先頭で返している。
+     あちらの幅は全員同じ作り物なので、％にすると発明した数字を公開することになる。 */
+.ap-cb{width:100%;height:8px;margin-bottom:8px;
+  border-radius:999px;overflow:hidden;
+  background:var(--pv-surface-2);box-shadow:inset 0 0 0 1px var(--pv-line)}
+.ap-cb-s{display:block;min-width:4px;background:var(--pv-orange)}
+.ap-cb-s+.ap-cb-s{box-shadow:inset 1.5px 0 0 var(--pv-surface)}
+/* 凡例（区分名＋％）。★丸はバーと同じ色・同じ並び。 */
+.ap-cb-l{flex-wrap:wrap;gap:3px 12px;margin-bottom:9px;
+  font-size:.69rem;font-weight:600;line-height:1.6;color:var(--pv-ink-3)}
+.ap-cb-i{display:inline-flex;align-items:center;white-space:nowrap}
+.ap-cb-i b{margin-left:5px;font-weight:800;color:var(--pv-ink-2);
+  font-variant-numeric:tabular-nums}
+.ap-cb-d{flex:none;display:inline-block;width:8px;height:8px;margin-right:6px;
+  border-radius:999px;background:var(--pv-orange)}
+/* その内訳が概算だと断る1行。表の下に1つだけ置く（面では .ap-dw-stn が同じことを言う）。
+   ⚠️ ％を出すなら、この1行を必ず同じ画面に置く。片方だけ消さない。 */
+.ap-shn{margin:12px 2px 0;font-size:.68rem;line-height:1.7;color:var(--pv-ink-3);
+  line-break:strict;word-break:auto-phrase}
 
 /* ══ ページ送り ═══════════════════════════════════════════════════
    ★2026-08-24、オーナー判断で**件数を出す**ことにした（「全N件中 1〜10件を表示」）。
@@ -409,6 +476,12 @@
              -2px 0 8px -4px rgba(10,22,40,.22);
   transform:translateX(100%);
   transition:transform .32s var(--pv-ease)}
+/* ⚠️ 面そのものの焦点の枠は消す。開いた瞬間 JS がここへ焦点を移すので
+     （× に飛ばすと「閉じる」がいちばん光るため・2026-09-03）、消さないと
+     **ブラウザ既定の青い枠**が面を一周する。ブランド色ではないし、
+     iPhone では画面いっぱいなので窓に青い縁が付いたように見える。
+     焦点が消えるわけではない ── Tab を押すと中の口が1つずつ光る。 */
+.ap-dw:focus{outline:none}
 .ap-dw-back.is-in .ap-dw{transform:none}
 .ap-dw-b{padding:20px 22px 28px}
 
@@ -466,13 +539,19 @@
 .ap-dw-v{font-size:.82rem;font-weight:700;color:var(--pv-ink);white-space:nowrap;
   font-variant-numeric:tabular-nums;text-align:right}
 .ap-dw-u{margin-left:5px;font-size:.7rem;font-weight:600;color:var(--pv-ink-3)}
+/* 帯の右に添える割合（2026-09-04・オーナー指示で出すことにした）。
+   ★整数だけ・合計はちょうど 100（端数は最大剰余法で配る＝actual-pay.js の shareInts）。
+   ★金額（.ap-dw-v）より弱く。主役は帯そのもので、％はその読み取りの補助。 */
+.ap-dw-sh{margin-left:8px;font-size:.72rem;font-weight:700;color:var(--pv-ink-3);
+  font-variant-numeric:tabular-nums}
 
 /* 報酬の内訳 ── 1本の積み上げバー（2026-09-03）。
    ★前は行ごとに横棒を1本ずつ描いていた（帯の下端から上端まで）。長さが金額の
      大小に読めてしまうので消した。いまは「その人の報酬を、どの区分がどれくらい
      占めているか」を1本で出す。
-   ★長さは帯の中点から出した**おおよその構成**。％の数字は1つも出さない
-     （バーの下の .ap-dw-stn がそう断っている）。
+   ★長さは帯の中点から出した**おおよその構成**。2026-09-04 から、その中点を
+     整数の％にして各行の右に添えている（上の冒頭を読む）。
+     バーの下の .ap-dw-stn が「概算だ」と断る役で、こちらは消さない。
    ★色は区分ごと（2026-09-03 その2・オーナー指示）。
      はじめ橙1色の濃淡9段にしたが「オレンジだけじゃわかりづらい」。
      12px の細い帯では隣り合う2段が見分けられず、1色で9段に割る以上
@@ -629,7 +708,10 @@
 /* 狭いところでは下から出るシートにする（横スクロールを作らない）。 */
 @media (max-width:720px){
   .ap-dw{top:auto;left:0;right:0;bottom:0;
-    width:auto;max-width:none;height:88vh;
+    width:auto;max-width:none;
+    /* ★vh を先に、dvh を後ろに。iOS の vh はアドレスバーを勘定に入れないので、
+         下が切れて閉じるボタンに指が届かない（2026-09-04）。 */
+    height:88vh;height:88dvh;
     border-left:0;border-top:1px solid var(--pv-line);
     border-radius:var(--pv-r-lg) var(--pv-r-lg) 0 0;
     box-shadow:0 -24px 60px -30px rgba(10,22,40,.45);
@@ -643,4 +725,238 @@
   .ap-dw-x,.ap-dw-sim,.ap-dw-cta,.ap-dw-cta2{transition:none}
   .ap-go:active,.ap-dw-x:active,.ap-dw-sim:active,.ap-dw-cta:active{transform:none}
   .ap-dw{transform:none}
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   絞り込みのシート（2026-09-04）
+   ★口は1つも増えていない。中身は今までと同じ3つ（検索・航空会社・職位）で、
+     広い幅では上の display:contents で器そのものが消え、.ap-filter の
+     横1列にそのまま戻る。**別の絞り込みを作ったのではない。**
+   ★作法は行を押すと出る面（.ap-dw）と同じ ── role="dialog" / aria-modal /
+     焦点の閉じ込め / ×・幕・Escape の3経路 / 閉じたら開いたボタンへ焦点を戻す。
+   ★サーバへは1本も投げない。数えるのも絞るのも、既に手元にある行の上でやる。
+   ⚠️ 幕は**単色の rgba だけ**。後ろを霞ませない（この画面の約束・上の .ap-dw-back と同じ）。
+   ══════════════════════════════════════════════════════════════ */
+.ap-sh-back{position:fixed;inset:0;z-index:210;
+  background:rgba(10,22,40,.52);opacity:0;
+  transition:opacity .32s var(--pv-ease)}
+.ap-sh-back.is-in{opacity:1}
+
+/* ══════════════════════════════════════════════════════════════
+   狭い幅（iPhone）── 表をカードに組み替える（2026-09-04）
+   ★DOM は1バイトも変えていない。<table>/<thead>/<tr>/<td> はそのまま残る。
+     広い幅では今までと1px も変わらず、ここだけが別の見せ方をする。
+     ⚠️ カードにするために <div> へ書き換えないこと。行の押下・[data-ap-row]・
+        見出し6語の照合が、全部この骨組みの上に乗っている。
+   ★見出し行（thead）は消さずに読み上げ用へ逃がす。目で読む列の名前は
+     セルの中の .ap-cl が持つ（JS の辞書から来る＝英語版もそのまま効く）。
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width:720px){
+  /* ★数のカード3枚は**横に3つ並べたまま**、縦に組み替えて詰める。
+       600px で1列に積む決まりだったが、iPhone だと帯が3本ぶら下がって
+       **本題（1人1人の給与）が1画面目から押し出される**。
+       この画面は「開いたら実給与が見えている」ことが第一。 */
+  .ap-stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  .ap-st{flex-direction:column;align-items:flex-start;gap:7px;padding:12px 11px}
+  .ap-st-i{width:28px;height:28px}
+  .ap-st-n{font-size:1.12rem}
+  .ap-st-u{font-size:.7rem}
+  .ap-st-l{margin-top:3px;font-size:.63rem;line-height:1.35;letter-spacing:0}
+
+  /* 表を包んでいた白い箱は外す ── 箱はカード1枚1枚が持つ。 */
+  .ap-tw{background:none;border:0;border-radius:0;box-shadow:none;overflow:visible}
+  .ap-tscroll{overflow-x:visible}
+  .ap-tbl{display:block;font-size:.9rem}
+  /* ★消さずに逃がす。列の名前が読み上げから無くなると、表であることが伝わらない。 */
+  .ap-tbl thead{position:absolute;width:1px;height:1px;margin:-1px;padding:0;
+    overflow:hidden;white-space:nowrap;clip-path:inset(50%);border:0}
+  /* ★2026-09-05、オーナーが実機で見て「2件で画面いっぱい」。1枚 約295px を
+       **約120px** まで詰めた（iPhone の1画面に4〜5枚）。
+       減らしたのは**行数**で、消した情報は1つも無い ──
+         ① 社名と年収を同じ段に上げた（1段ぶん）
+         ② 機材と乗務を職位の次の行に**繋いだ**（· で区切る。2段ぶん）
+         ③ 「年収」「月あたり」の見出し語を値の**前**に置いた（2段ぶん）
+         ④ 内訳の凡例をいちばん大きい区分1つに絞った（JS 側の cardCompHTML。2段ぶん）
+       ⚠️ 数字そのものは1つも変えていない。％も年収も面と同じ値のまま。 */
+  .ap-tbl tbody{display:grid;gap:8px}
+  .ap-tbl tbody tr.ap-r{display:grid;
+    grid-template-columns:minmax(0,1fr) auto auto;
+    grid-template-areas:"air amt age" "pos pos age" "vf vf vf";
+    gap:2px 10px;align-items:start;
+    padding:10px 12px;
+    background:var(--pv-surface);border:1px solid var(--pv-line);
+    border-radius:var(--pv-r);box-shadow:var(--pv-shadow)}
+  .ap-tbl tbody tr.ap-r>td{display:block;min-width:0;padding:0;border:0;
+    text-align:left;line-height:1.45}
+  .ap-tbl tbody tr.ap-r>td:nth-child(1){grid-area:air}
+  .ap-tbl tbody tr.ap-r>td:nth-child(2){grid-area:pos}
+  .ap-tbl tbody tr.ap-r>td:nth-child(3){grid-area:amt;text-align:right}
+  /* ★月あたりは狭い幅では伏せる（2026-09-05）。
+       あれは**画面に出ている年収を12で割っただけ**で、新しい情報が1つも無い
+       （JS 側の moneyMonth のコメントと同じ話）。iPhone の1画面に4〜5枚入れるために、
+       職位と機材の行に幅を全部渡した。
+       ⚠️ 伏せるだけで**消していない** ── 広い幅の表にも、行を押すと出る面にも
+          今までどおり出る。textContent には残るので、
+          「月あたり＝年収÷12」を見ている検査（assert-pay-rows.mjs）はそのまま通る。 */
+  .ap-tbl tbody tr.ap-r>td:nth-child(4){display:none}
+  /* 内訳の帯・凡例・出典の札を**1つの段**に畳む。帯だけが幅いっぱいで改行を作り、
+     凡例と札はその下に横並びで座る（flex:none が無いと3つとも1行に潰れる）。 */
+  .ap-tbl tbody tr.ap-r>td:nth-child(5){grid-area:vf;margin-top:6px;
+    display:flex;align-items:center;flex-wrap:wrap;gap:5px 8px}
+  /* 投稿時期と › は右端の1列に縦積み。★› は最初から見えている（触る端末に hover は無い）。 */
+  .ap-tbl tbody tr.ap-r>td:nth-child(6){grid-area:age;justify-self:end;align-self:center;
+    max-width:70px;
+    display:flex;flex-direction:column;align-items:center;gap:3px}
+  /* ★英語の「Within 1 month」は1行で 85px ある。折り返させて列を細くし、
+       その幅を社名に渡す（3行に折れていた社名が2行になる）。 */
+  .ap-tbl td:last-child .ap-age{margin-right:0;white-space:normal;text-align:center}
+  .ap-amt{font-size:1.05rem}
+  .ap-mon{font-size:.72rem}
+  /* 見出し語は値の**前**に小さく（段を1つ増やさない）。
+     ★英語は ANNUAL の6文字が横幅を食う。字を落として社名に幅を渡す。 */
+  .ap-cl{display:inline;margin:0 4px 0 0;font-size:.55rem;letter-spacing:.02em}
+  /* 職位と機材は1行に繋ぐ。★区切りの · は機材が在るときだけ出す
+     （隣接の + で見ている＝機材の無い行の頭に · がぶら下がらない）。
+     ⚠️ ここに日本語を書かない。語は今までどおり JS の辞書から本物の要素で入る。 */
+  .ap-pos{display:inline;font-size:.84rem}
+  .ap-flt{display:inline;margin-top:0}
+  .ap-pos+.ap-flt::before{content:'\00B7';margin:0 6px;color:var(--pv-ink-3)}
+  /* 乗務の帯は次の行。★数字が入る行なので、機材と混ぜて折り返させない。 */
+  .ap-cbh{display:block;margin-top:1px;font-size:.72rem;font-weight:600}
+  .ap-cbh-k{margin-right:4px}
+  .ap-cb{display:flex;flex:none;height:7px;margin-bottom:0}
+  .ap-cb-l{display:flex;flex-wrap:wrap;margin-bottom:0;gap:2px 8px;min-width:0}
+  /* 「ほか3区分」── 名前を出すのは最大の1つだけ、残りは数だけ言う。 */
+  .ap-cb-m{flex:none}
+  .ap-vf-no{padding:2px 7px;font-size:.62rem}
+  .ap-shn{display:block;margin-top:10px}
+  /* ★触る端末では hover が貼り付いたまま残る。押した色を作らない。 */
+  .ap-tbl tbody tr.ap-r:hover,.ap-tbl tbody tr.ap-r:focus-within{background:var(--pv-surface)}
+  /* hover でしか出ない予告の1行は、触る端末では永久に出ない。場所ごと空けない。 */
+  .ap-hint{display:none}
+  .ap-logo{width:24px;height:24px}
+  .ap-cell-air{gap:8px}
+  .ap-air{font-size:.84rem}
+  /* 触れる的を 44px 以上に（› とページ送り）。 */
+  .ap-go{width:44px;height:44px;font-size:1.15rem}
+  .ap-pg{min-height:44px}
+  .ap-pg--n{min-width:44px}
+  /* .ap-tw の箱を外したので、ページ送りは自分で箱になる。 */
+  .ap-pager{margin-top:12px;padding:12px;justify-content:center;
+    border:1px solid var(--pv-line);border-radius:var(--pv-r)}
+
+  /* ── 上に張り付く帯 ───────────────────────────────────────── */
+  /* ★.mr-top（60px・sticky）のすぐ下に付ける。z は .mr-top(200) より下、
+       幕(210)・シート(215)より更に下。 */
+  .ap-filter{position:sticky;top:60px;z-index:100;
+    display:flex;align-items:center;gap:10px;
+    padding:10px 12px;border-radius:var(--pv-r-sm)}
+  .ap-fbar{display:flex;align-items:center;gap:10px;min-width:0;width:100%}
+  .ap-fbtn{display:inline-flex;align-items:center;justify-content:center;
+    flex:none;min-height:44px;padding:10px 20px;border-radius:999px;
+    border:1px solid var(--pv-line);background:var(--pv-bg);color:var(--pv-ink);
+    font-family:inherit;font-size:.84rem;font-weight:700;cursor:pointer;
+    transition:color .18s var(--pv-ease),border-color .18s var(--pv-ease),
+               background-color .18s var(--pv-ease),transform .18s var(--pv-ease)}
+  .ap-fbtn:hover{color:var(--pv-orange-ink);border-color:var(--pv-orange-ink);
+    background:var(--pv-orange-soft)}
+  .ap-fbtn:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}
+  .ap-fbtn:active{transform:scale(.97)}
+  .ap-fbar-n{display:inline-block;min-width:0;
+    font-size:.76rem;font-weight:600;color:var(--pv-ink-3);
+    font-variant-numeric:tabular-nums;white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis}
+
+  /* ── 下から出るシート ─────────────────────────────────────── */
+  .ap-sheet{display:none;position:fixed;left:0;right:0;bottom:0;z-index:215;
+    box-sizing:border-box;max-width:100vw;
+    flex-direction:column;
+    max-height:86vh;max-height:86dvh;
+    background:var(--pv-surface);
+    border-top:1px solid var(--pv-line);
+    border-radius:var(--pv-r-lg) var(--pv-r-lg) 0 0;
+    box-shadow:0 -24px 60px -30px rgba(10,22,40,.45);
+    transform:translateY(100%);
+    transition:transform .32s var(--pv-ease)}
+  /* ★開いている間だけ出す。[role] は JS が開くときに付ける印。 */
+  .ap-sheet[role]{display:flex;transform:none}
+  /* ⚠️ 器そのものの焦点の枠は消す。開いた瞬間 JS がここへ焦点を移すので、
+       消さないと**ブラウザ既定の青い枠**がシートを一周する（ブランド色ではない）。
+       焦点が消えるわけではない ── Tab を押すと中の口が1つずつ光る。 */
+  .ap-sheet[role]:focus{outline:none}
+  /* ★閉じるときも下へ滑らせる ── 幕が消えるまでの 0.32 秒、器を残しておくため
+       body ごしに幕の有無を見る。:has() が無いブラウザは上の [role] だけが効き、
+       消え方が瞬時になるだけで壊れない。 */
+  body:has(.ap-sh-back) .ap-sheet{display:flex}
+  body:has(.ap-sh-back:not(.is-in)) .ap-sheet{transform:translateY(100%)}
+
+  /* ⚠️ 開いている間だけ、器（.ap-filter）ごと幕より前に出す。
+       .ap-filter は position:sticky なので、それ自体が「重なりの入れ物」を作る。
+       中のシートに z-index:215 と書いても、比べる相手は入れ物の中の兄弟だけで、
+       body 直下の幕（210）とは比べてもらえない ── **シートが幕の裏に潜る**。
+       見た目は正しく出ているのに、押した先が全部幕になって「閉じるだけ」になる
+       （すべてクリアが効かない形で実際に踏んだ・2026-09-05）。
+       器を 300 に上げて幕より前へ出し、器そのものは opacity:0 ＋ pointer-events:none で
+       見えなく・触れなくして、シートだけが触れると名乗り直す。
+       ⚠️ **visibility:hidden で消してはいけない。**あれは焦点も取り上げるので、
+       閉じたときに「開いたボタンへ焦点を戻す」が黙って空振りする（実際に踏んだ）。
+       opacity:0 なら焦点は残る。pointer-events:none なら上の空きを押すと幕に当たる。
+       ap-sh-on は閉じた瞬間に外れるので、下へ滑る 0.32 秒ぶんは :has() が受け持つ。
+       :has() を知らないブラウザのために、2組を別々の行で書く
+       （1行にまとめると、読めない選択子のせいで両方まとめて捨てられる）。 */
+  body.ap-sh-on .ap-filter{z-index:300;pointer-events:none;
+    background:none;border-color:transparent;box-shadow:none}
+  body.ap-sh-on .ap-fbar{opacity:0}
+  body.ap-sh-on .ap-sheet{pointer-events:auto}
+  body:has(.ap-sh-back) .ap-filter{z-index:300;pointer-events:none;
+    background:none;border-color:transparent;box-shadow:none}
+  body:has(.ap-sh-back) .ap-fbar{opacity:0}
+  body:has(.ap-sh-back) .ap-sheet{pointer-events:auto}
+  .ap-sheet-hd{display:flex;align-items:center;justify-content:space-between;gap:12px;
+    flex:none;padding:16px 18px 12px;border-bottom:1px solid var(--pv-line-soft)}
+  .ap-sheet-t{margin:0;font-size:.92rem;font-weight:800;letter-spacing:-.01em;
+    color:var(--pv-ink)}
+  .ap-sheet-x{flex:none;width:44px;height:44px;margin:-6px -8px -6px 0;
+    display:grid;place-items:center;
+    border:1px solid var(--pv-line);border-radius:12px;background:none;
+    color:var(--pv-ink-3);font-family:inherit;font-size:1.3rem;line-height:1;cursor:pointer;
+    transition:color .18s var(--pv-ease),border-color .18s var(--pv-ease),
+               background-color .18s var(--pv-ease)}
+  .ap-sheet-x:hover{color:var(--pv-orange-ink);border-color:var(--pv-orange-ink);
+    background:var(--pv-orange-soft)}
+  .ap-sheet-x:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}
+  .ap-sheet-x:active{transform:scale(.94)}
+  /* 中だけがスクロールする（後ろのページは body の overflow で止めてある）。 */
+  .ap-sheet-b{display:grid;gap:14px;align-content:start;
+    padding:16px 18px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .ap-clear{width:100%;min-height:44px}
+  /* 下に固定の主ボタン。★足元は端末の丸みのぶんだけ足す。
+     ⚠️ viewport-fit=cover は足さない。env() が 0 なのが正しい。 */
+  .ap-sheet-ft{display:block;flex:none;
+    padding:12px 18px calc(12px + env(safe-area-inset-bottom));
+    border-top:1px solid var(--pv-line-soft);background:var(--pv-surface)}
+  .ap-sheet-go{display:block;width:100%;min-height:48px;padding:13px 18px;
+    border:0;border-radius:999px;text-align:center;cursor:pointer;
+    font-family:inherit;font-size:.86rem;font-weight:700;
+    color:#fff;background:var(--pv-orange);
+    box-shadow:0 10px 24px -14px rgba(249,115,22,.8);
+    transition:background-color .18s var(--pv-ease),transform .18s var(--pv-ease)}
+  .ap-sheet-go:hover{background:var(--pv-orange-ink)}
+  .ap-sheet-go:focus-visible{outline:2px solid var(--pv-orange);outline-offset:3px}
+  .ap-sheet-go:active{transform:scale(.98)}
+
+  /* ── 下タブ ───────────────────────────────────────────────── */
+  /* ★2026-09-05、この画面から**出ていった**。オーナーの指摘
+       「real pay から別のページへ移ると下のタブが消える」──
+       行き先が7画面あるのに、帯が1画面にしか無いと、移った先が行き止まりに見える。
+     実体（.mr-tabs / .mr-tab）は tabs.css に移した。帯を出す16枚が読む唯一の CSS で、
+     DOM は patch-side-nav.mjs が同じ16枚へ配る（マイページ系14枚＋世界の航空会社一覧2枚）。
+     ⚠️ ここに .ap-tabs を書き戻さない。2か所になった瞬間に片方だけ古くなる。 */
+}
+
+@media (prefers-reduced-motion:reduce){
+  /* ★要素を消さない。動きだけ止める。 */
+  .ap-sh-back,.ap-sheet,.ap-fbtn,.ap-sheet-x,.ap-sheet-go{transition:none}
+  .ap-fbtn:active,.ap-sheet-x:active,.ap-sheet-go:active{transform:none}
 }

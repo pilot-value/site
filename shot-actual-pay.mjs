@@ -16,11 +16,15 @@
              picked   会社で絞った状態（絞り込みが効いているところ）
              find     会社を打ち込んで絞ったところ
              nostat   ★サーバがまだ古い（stats を返さない）＝カードが1枚だけ出る
+             sheet    ★下から出る絞り込み（2026-09-05）。w=390 など**狭い幅でしか出ない**
              drawer   ★行を押して開いた面（2026-09-03）。その1人ぶんの帯が出る
              drawer-lock ★自分の内訳をまだ出していない人が同じ面を開いたところ
                          （報酬の内訳が閉じている。帯は**サーバから届いていない**）
      lang  = ja | en
      第3引数以降  open  撮らずに見える窓で開いたままにする
+                  h=844 open ＝ iPhone の1画面ぶんの窓で開く（既定の高さは 1100）
+                  top  撮るとき縦につなげず1画面ぶんだけにする（w= h= と一緒に使う）
+                  y=600 top と一緒に使うと、そこまで送ってから撮る
                   dark  暗いほうで撮る
                   w=900 幅を変えて撮る（既定 1440）。★カードと6列の表が畳まれる幅を見る
                         ★720px 未満で面は右からではなく**下から**出る（別物になる）
@@ -53,6 +57,18 @@ const theme = process.argv.slice(4).includes('dark') ? 'dark' : 'light';
    「畳まれた側」を見ないと崩れに気づけない。 */
 const wArg = process.argv.slice(4).find((a) => /^w=\d+$/.test(a));
 const W = wArg ? Number(wArg.slice(2)) : 1440;
+/* ★高さ（2026-09-05）。open のとき「iPhone の1画面ぶん」をそのまま見せるために足した。
+     既定は今までどおり 1100 ── **撮る絵は1pxも変わらない**。
+     h=844 で iPhone 14/15、h=812 で iPhone 13 mini / SE 以降の背の低いほう。 */
+/* ★top ＝縦につなげず**1画面ぶんだけ**撮る（2026-09-05）。
+     「iPhone の1画面に何件入るか」は、つないだ絵を目で数えると必ず間違える。 */
+const top1 = process.argv.slice(4).includes('top');
+/* ★y=600 ＝そこまで送ってから撮る。top と一緒に使う。
+     一覧は数のカードの下から始まるので、上から1画面ぶんだけ撮ると
+     「読んでいる最中の見え方」にならない（数のカードは送れば消える）。 */
+const yArg = process.argv.slice(4).find((a) => /^y=\d+$/.test(a));
+const hArg = process.argv.slice(4).find((a) => /^h=\d+$/.test(a));
+const H = hArg ? Number(hArg.slice(2)) : 1100;
 /* drawer のとき、どの行を押すか。★1ページ目に載っている行しか押せない（10件で改頁）。 */
 const rArg = process.argv.slice(4).find((a) => /^row=\d+$/.test(a));
 /* drawer のとき、面の主 CTA まで押す。★飛び先は DEEP PAY ではなく、
@@ -339,6 +355,8 @@ const SCENES = {
   nostat: { pay: { ok: true, state: 'open', rows: ROWS } },
   /* ★行を押して開いた面。どの行を押すかは row=N（既定 0）。 */
   drawer: { pay: { ok: true, state: 'open', rows: DRAWER, stats: ST(14, 9) }, open: 0 },
+  /* ★絞り込みのボトムシート（2026-09-05）。**狭い幅でしか出ない**ので w=390 などと一緒に使う。 */
+  sheet:  { pay: { ok: true, state: 'open', rows: MERGED, stats: ST(24, 13) }, sheet: true },
   /* ★まだ自分の内訳を出していない人が同じ行を押したところ。
        帯の代わりに骨組みと門が出る。row=2 は「内訳がそもそも無い人」で、門は出ない。 */
   'drawer-lock': { pay: { ok: true, state: 'open', rows: DRAWER_LOCK, stats: ST(14, 9),
@@ -388,10 +406,10 @@ function stub(page, pay) {
 }
 
 const browser = await puppeteer.launch(show
-  ? { headless: false, defaultViewport: null, args: ['--window-size=' + W + ',1100'] }
+  ? { headless: false, defaultViewport: null, args: ['--window-size=' + W + ',' + H] }
   : { headless: 'shell', args: ['--no-sandbox'] });
 const page = await browser.newPage();
-if (!show) await page.setViewport({ width: W, height: 1100 });
+if (!show) await page.setViewport({ width: W, height: H });
 await stub(page, S.pay);
 await page.goto(BASE + (lang === 'en' ? '/en/' : '/') + 'actual-pay.html',
                 { waitUntil: 'networkidle2', timeout: 40000 });
@@ -463,7 +481,82 @@ if (S.open !== undefined) {
   }
 }
 
+/* ★下から出る絞り込みを開く（2026-09-05）。
+     ⚠️ 「絞り込み」のボタンは 720px 未満でしか出ない。広い幅で呼ばれたら止める
+     （何も出ていない絵を撮って「直った」と勘違いしないため）。 */
+if (S.sheet) {
+  const hit = await page.evaluate(() => {
+    const b = document.getElementById('ap-open-f');
+    if (!b) return 'no-btn';
+    if (!b.offsetParent) return 'wide';
+    b.click();
+    return 'ok';
+  });
+  if (hit !== 'ok') {
+    console.error(hit === 'wide'
+      ? 'この幅では絞り込みは下から出ない。w=390 のように 720px 未満で呼ぶ。'
+      : '「絞り込み」のボタンが無い。');
+    process.exit(1);
+  }
+  /* ★時間ではなく「幕が濃くなり、シートが窓の下辺に着いたこと」で待つ。 */
+  await page.waitForFunction(() => {
+    const d = document.querySelector('.ap-sh-back');
+    const s2 = document.getElementById('ap-sheet');
+    if (!d || !d.classList.contains('is-in') || !s2) return false;
+    return Math.abs(s2.getBoundingClientRect().bottom - window.innerHeight) <= 1;
+  }, { timeout: 5000 });
+}
+
+/* ★カード1枚の高さを数える（2026-09-05）。「iPhone の1画面に何枚入るか」は
+     絵を目で数えると間違えるので、実測を1行で出す。判定は assert-pay-rows.mjs
+     （390px でカード1枚が 130px 以下）が持つ。ここは iPhone で確かめる用の道具。 */
+if (process.argv.slice(4).includes('measure')) {
+  const m = await page.evaluate(() => {
+    const rs = Array.prototype.slice.call(document.querySelectorAll('#ap-rows tbody tr'));
+    const hs = rs.map((e) => Math.round(e.getBoundingClientRect().height));
+    const top = document.querySelector('.mr-top');
+    const flt = document.querySelector('.ap-filter');
+    const tab = document.querySelector('.mr-tabs');
+    const h = (e) => (e ? Math.round(e.getBoundingClientRect().height) : 0);
+    return { hs: hs, top: h(top), flt: h(flt), tab: h(tab) };
+  });
+  const max = Math.max.apply(null, m.hs);
+  const room = 844 - m.top - m.flt - m.tab;
+  console.log(`カード ${m.hs.length}枚: 最小${Math.min.apply(null, m.hs)} / 最大${max}px`
+    + ` … ${m.hs.join(' ')}`);
+  console.log(`帯 上${m.top} + 絞り込み${m.flt} + 下タブ${m.tab} → 残り${room}px`
+    + ` ＝ 最大の高さ(+8)で ${(room / (max + 8)).toFixed(1)}枚`);
+}
+
 if (show) {
+  /* ★見せる窓を iPhone の1画面ぶんにする（2026-09-05）。
+     ⚠️ **窓の大きさでは 390px にできない。** macOS の Chrome には窓の最小幅（実測 500px）が
+        あって、--window-size に 390 を渡しても 500 にされる。
+     ⚠️ **窓より高い画面をこしらえてもいけない。** 中身だけ 844px にすると、画面の低い Mac では
+        下の 100px ほどが窓の外に出て、**足元に張り付く物（下タブ）が丸ごと見えなくなる**。
+        2026-09-05、オーナーの画面で実際にそうなった（『下のタブはどこに行った？』）。
+     なので、入りきらないときは**縮めて全部見せる**（開発者ツールの『画面に合わせる』と同じ）。 */
+  if (hArg || wArg) {
+    const cdp = await page.createCDPSession();
+    const { windowId } = await cdp.send('Browser.getWindowForTarget');
+    const m0 = await page.evaluate(() => ({ iw: innerWidth, ih: innerHeight,
+      ow: outerWidth, oh: outerHeight, sw: screen.availWidth, sh: screen.availHeight }));
+    const padW = m0.ow - m0.iw, padH = m0.oh - m0.ih;   /* 窓の枠がとる幅と高さ */
+    await cdp.send('Browser.setWindowBounds', { windowId, bounds: {
+      left: 0, top: 0,
+      width:  Math.min(Math.max(W, 520) + padW + 24, m0.sw),
+      height: Math.min(H + padH + 24, m0.sh) } });
+    await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+    const m1 = await page.evaluate(() => ({ iw: innerWidth, ih: innerHeight }));
+    /* 実際に見えている広さに収まる倍率。1 を超えない（大きくは見せない）。 */
+    const scale = Math.min(1, m1.iw / W, m1.ih / H);
+    await cdp.send('Emulation.setDeviceMetricsOverride',
+      { width: W, height: H, deviceScaleFactor: 0, mobile: true, scale: scale });
+    await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+    const a = await page.evaluate(() => innerWidth + '×' + innerHeight);
+    console.log(`中身の大きさ ${a}（狙い ${W}×${H}）`
+      + (scale < 1 ? ` ── 画面が足りないので ${Math.round(scale * 100)}% に縮めて全部見せている` : ''));
+  }
   console.log(`見える窓で開いた（${scene} / ${lang}）。閉じるとこのコマンドも終わる。`);
   await new Promise(() => {});
 }
@@ -480,7 +573,19 @@ const out = path.join(dir,
    ★面が開いているときは伸ばさない ── 面は画面の高さいっぱいに立つので、
      縦に伸ばすと**誰も見ることのない縦長の面**を撮ることになる。
      代わりに、面の中身が窓より長ければその分だけ伸ばす。 */
-if (S.open !== undefined) {
+if (top1) {
+  await page.setViewport({ width: W, height: H, isMobile: true, hasTouch: true });
+  if (yArg) {
+    const y = Number(yArg.slice(2));
+    /* ★送り終わるまで待つ（時間で待たない）。scroll-behavior:smooth の途中を撮らない。 */
+    await page.evaluate((yy) => window.scrollTo({ top: yy, behavior: 'instant' }), y);
+    await page.waitForFunction((yy) => Math.abs(window.scrollY - yy) < 2 ||
+      window.scrollY >= document.documentElement.scrollHeight - innerHeight - 2, {}, y);
+  }
+} else if (S.sheet) {
+  /* シートは窓に立つので縦に伸ばさない（伸ばすと誰も見ない縦長のシートを撮る）。 */
+  await page.setViewport({ width: W, height: 844 });
+} else if (S.open !== undefined) {
   const h = await page.evaluate(() => {
     const b = document.querySelector('.ap-dw-b');
     return b ? Math.ceil(b.getBoundingClientRect().height) + 40 : 0;
