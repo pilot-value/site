@@ -43,6 +43,7 @@ const NOINDEX = new Set([
   'roadmap.html',
   /* 2026-08-15、求人の掲載を停止した。ページは残すが検索には出さない。 */
   'world-jobs.html',
+  'invite.html',
 ]);
 
 const listHtml = (dir) => (fs.existsSync(path.join(ROOT, dir))

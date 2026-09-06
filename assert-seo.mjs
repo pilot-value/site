@@ -52,6 +52,7 @@ const NOINDEX = new Set([
      しないため）が、中身が「停止中」の1行だけなので検索には出さない。
      gen-sitemap.mjs / seo-normalize.mjs の同名の集合と3つで対にしてある。 */
   'world-jobs.html',
+  'invite.html',
 ]);
 
 const isNoindexPage = (rel) => NOINDEX.has(path.basename(rel))

@@ -72,6 +72,7 @@ const NOINDEX = new Set([
      404 にしないため）が、中身が「停止中」の1行だけなので検索には出さない。
      gen-sitemap.mjs の同名の集合と対にしてある。 */
   'world-jobs.html',
+  'invite.html',
 ]);
 
 /* ════════════════════════════════════════════════════════════════
@@ -233,6 +234,13 @@ const COPY = {
           d: '勤務スケジュール・キャリア・休暇・手当について、あなたの会社の仕組みを教えてください。答えられるところだけで構いません。氏名も社員番号も受け取りません。' },
     en: { t: 'Tell Us About Your Working Conditions',
           d: 'Rostering, career, leave and allowances: tell us how the system actually works at your airline. Answer only what you know. We never collect your name or staff number.' },
+  },
+  /* 自分の招待リンクを出す画面。noindex だが <title> は出るので必ず書く。 */
+  'invite.html': {
+    ja: { t: 'パイロットの仲間を招待する',
+          d: '同じ会社・同じ機種のパイロットが増えるほど、あなたの区分の数字は確かになります。招待した相手が誰かは、こちらでは分かりません。' },
+    en: { t: 'Invite a Fellow Pilot',
+          d: 'The more pilots at your airline and on your fleet record their pay, the more solid your own comparison gets. We never see who accepted an invitation.' },
   },
   'pay-report.html': {
     ja: { t: '給与レポートを出す｜明細から自動入力',

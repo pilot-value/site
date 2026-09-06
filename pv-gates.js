@@ -199,20 +199,39 @@
   }
 
   /* ── Give → Get の3段（ロック画面とパネルで同じものを使う）──────
-     ★2か所に書き写さない。actual-pay.js もこの関数を呼ぶ。 */
-  function giveGetHTML() {
+     ★2か所に書き写さない。actual-pay.js もこの関数を呼ぶ。
+
+     ★★押せるのは **DEEP PAY の札だけ**（2026-09-06 オーナー確定）。
+        もともとこの説明は左メニューの DEEP PAY / VERIFIED PAY を押して開いていたが、
+        ナビを7項目へ畳んだときにその2段を撤去した。DEEP PAY だけは撤去すると
+        「あと79人」も「内訳を共有すると」も**開く道が無くなる**
+        （2026-08-25 のオーナー指示そのものが消える）ので、札を入口にした。
+        ⚠️ これは DEEP PAY への入口ではない。開くのは説明パネルだけで、
+           deep-pay.html へは1本も繋がっていない。
+     ⚠️ **VERIFIED PAY の札は押さない。** 本人確認の機能がまだ無いので、
+        新しいクリック導線も目立たせる見た目も作らない
+        （説明パネルのコードは消さない ── 機能ができた日に戻せるようにしておく）。
+     ⚠️ パネルの中に描く3段は押せないままにする（inPanel）。
+        自分自身を開き直すだけの札になるので、押しどころに見せない。 */
+  function giveGetHTML(inPanel) {
     var rows = TIERS.map(function (tier, i) {
       var t = T.tiers[i];
       var live = tier.state === 'live';
       var goal = (tier.key === 'deep' && !live && deepN() !== null);
+      var hit = (tier.key === 'deep') && !live && !inPanel;   /* ★deep だけ */
       return '<li class="pv-give-r' + (live ? ' is-live' : '')
            + (goal ? ' is-goal' : '') + '">'
            + '<span class="pv-give-g">' + esc(t.give) + '</span>'
            + '<span class="pv-give-ar" aria-hidden="true">→</span>'
            + '<span class="pv-give-t">' + esc(t.get) + '</span>'
-           + '<span class="pv-give-s"><span class="pv-give-p">'
-           + esc(pill(tier, live))
-           + '</span></span></li>';
+           + '<span class="pv-give-s">'
+           + (hit
+               ? '<button type="button" class="pv-give-p"'
+                 + ' data-pv-give="' + esc(tier.key) + '"'
+                 + ' aria-label="' + esc(t.get + (L === 'en' ? ' — ' : '・') + T.hint) + '">'
+                 + esc(pill(tier, live)) + '</button>'
+               : '<span class="pv-give-p">' + esc(pill(tier, live)) + '</span>')
+           + '</span></li>';
     }).join('');
     return '<div class="pv-give">'
          + '<div class="pv-give-hd"><span>' + esc(T.giveHd) + '</span>'
@@ -224,8 +243,10 @@
      ★描き直すのはこの3段だけ。まわりの文章には手を触れない。 */
   function refreshGive() {
     Array.prototype.slice.call(d.querySelectorAll('.pv-give')).forEach(function (el) {
+      /* ★パネルの中の3段は押せないまま作り直す（自分を開き直すだけの札にしない）。 */
+      var inPanel = !!(panel && panel.contains(el));
       var box = d.createElement('div');
-      box.innerHTML = giveGetHTML();
+      box.innerHTML = giveGetHTML(inPanel);
       if (el.parentNode) el.parentNode.replaceChild(box.firstChild, el);
     });
     if (panel && panel.getAttribute('data-kind') === 'deep') openPanel('deep');
@@ -371,7 +392,7 @@
       + '<div class="mr-gate-t">' + esc(p.t) + '</div>'
       + '<p class="mr-gate-s">' + esc(p.s) + '</p>'
       + (deep ? deepBody() : '')
-      + giveGetHTML()
+      + giveGetHTML(true)
       + (deep ? '' : '<a class="mr-gate-cta" href="' + PAY_URL + '">' + esc(T.cta) + '</a>');
 
     main.insertBefore(panel, main.firstChild);
@@ -410,7 +431,17 @@
     openPanel(k);
   }
 
+  /* ★札のほうは document で受ける。refreshGive() が3段を作り直すので、
+       札そのものに付けると数が届いた瞬間に聞き手が消える。 */
+  function onPill(ev) {
+    var b = ev.target && ev.target.closest ? ev.target.closest('[data-pv-give]') : null;
+    if (!b) return;
+    ev.preventDefault();
+    openPanel(b.getAttribute('data-pv-give'));
+  }
+
   function boot() {
+    d.addEventListener('click', onPill);
     var list = items();
     if (!list.length) return;
     mark(keyOpen());

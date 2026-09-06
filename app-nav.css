@@ -1,0 +1,418 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   app-nav.css ── サイト全体のナビ（広い画面＝左レール／狭い画面＝右ドロワー）
+   ══════════════════════════════════════════════════════════════════════════
+   ★このファイルは tabs.css の後継。2026-09-06 に足元の5タブを廃止した。
+     経緯 ── 同じ人に3種類のナビが出ていた。
+       ① 広い画面の左メニュー（7項目・うち2つは押せない錠前）
+       ② 狭い画面の下タブ5つ（中身も並びも①と別物）
+       ③ search.js が右から出す引き出し6項目（また別物）
+     ①②③ を1つに畳み、狭い画面は**右から出るドロワー**にした
+     （≡ が右上に在るので、指と板が同じ側になる。2026-09-06 に左から反転）。
+
+   ★読ませる先は 408枚（オーナー確定事項10・2026-09-06）──
+       公開392枚（トップ・VOTE・AIRLINES・航空会社110社・国別・記事…）
+       ＋ アプリ16枚（.mr-shell を持つ画面）
+     **入れないのは6枚だけ** ── login / signup（日英4枚）・auth-callback・
+     給与フォーム（pay-report 日英。書きかけの値が消えるため）。
+
+   ⚠️ 公開ページが読む CSS は **pv-tokens.css ＋ このファイルの2枚だけ**。
+      my-value.css は読ませない（.mr-shell や body の規則ごと 392枚に降りてしまう）。
+      だから板の見た目は全部ここに在る。ここから my-value.css へ戻さない。
+
+   ★入れ物は増やさない。ドロワーの中身は左レールと**同じ <nav class="mr-side">**。
+     CSS で置き場所だけ変える。実行時に複製すると
+     pv-gates.js の錠前が片方にしか付かず、aria-current が2つになる。
+
+   ★≡ ボタンは2通りの生まれ方をする（app-nav.js のコメントに全部書いてある）。
+       アプリ16枚と airlines/ の日本語115枚 → app-nav.js が自分で作る
+       それ以外の公開ページ                 → search.js が作ったものを繋ぎ直す
+     後者では **search.js の style がこの <link> より後に来る**。
+     同じ強さだと向こうが勝つので、上書きは必ず `body.pv-anav-shell …`（0,2,0）で書く。
+
+   ★色は pv-tokens.css の --pv-* を使う。hex を直接書かない
+     （明暗の切り替えが効かなくなる）。
+
+   ★動きは transform と opacity だけ。transition-all は使わない。
+
+   使い方（ページを1枚足すとき）:
+     1. <head> で pv-tokens.css → app-nav.css の順に読む
+        （アプリ画面は pv-tokens.css → my-value.css → app-nav.css。
+          app-nav.css は my-value.css より**後**）
+     2. </body> の直前で app-nav.js を読む
+        ⚠️ 公開ページでは search.js より**後**（あちらの ≡ を繋ぎ直すため）、
+           アプリ画面では search.js より**先**（あちらを丸ごと止めるため）。
+           どちらも app-nav.js が自分で見分ける。読み込む位置は最後でよい。
+     3. 空の <nav class="mr-side" aria-label="…"></nav> を <body> の直後に置き、
+        patch-side-nav.mjs の CURRENT に足してから node patch-side-nav.mjs を流す
+   ────────────────────────────────────────────────────────────────────────── */
+
+/* ══ 0) 板そのもの ═══════════════════════════════════════════════
+   ★2026-09-06、ここが .mr-side の**唯一の置き場**になった。
+     もとは my-value.css に在ったが、あちらを読むのはアプリ16枚だけで、
+     板は 408枚（公開392 ＋ アプリ16）に出る。
+     公開ページが読むのは pv-tokens.css ＋ app-nav.css の2枚だけ。
+   ⚠️ 色は --pv-* だけを使う。hex を直接書かない
+      （公開ページは明暗を切り替える。直書きすると片方で読めなくなる）。 */
+.mr-side{position:sticky;top:84px;display:flex;flex-direction:column;gap:2px}
+
+.mr-side-a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--pv-r-sm);
+           color:var(--pv-ink-2);text-decoration:none;font-size:.84rem;font-weight:600;
+           border:1px solid transparent;
+           transition:background-color .18s var(--pv-ease),color .18s var(--pv-ease),
+                      border-color .18s var(--pv-ease)}
+.mr-side-a svg{flex:none;opacity:.7}
+/* ★hidden を効かせる ── 1つ上の .mr-side-a{display:flex} は作者側の規則なので、
+   ブラウザ既定の [hidden]{display:none} に**出所の差**で勝ってしまう（強さの話ではない）。
+   ヘッダーから助け出した CTA（app-nav.js の moveCta）は既定で隠してあり、
+   ドロワーを開けた瞬間に、ヘッダーの CTA が実際に消えているときだけ出す。
+   ここが無いと、広い画面のレールに8つ目の行が生えて板が枚数ごとに変わる。 */
+.mr-side-a[hidden]{display:none}
+.mr-side-a:hover{background:var(--pv-line-soft);color:var(--pv-ink)}
+.mr-side-a:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}
+.mr-side-a:active{background:var(--pv-line)}
+.mr-side-a.is-on{background:var(--pv-surface);color:var(--pv-ink);font-weight:700;
+                 border-color:var(--pv-line);box-shadow:var(--pv-shadow)}
+.mr-side-a.is-on svg{opacity:1;color:var(--pv-orange)}
+/* 「給与を追加」＝このサイトで一番押してほしいもの。3つの中で1つだけ色を持たせる。 */
+.mr-side-a.is-add{color:var(--pv-orange-ink);font-weight:700}
+.mr-side-a.is-add svg{opacity:1}
+.mr-side-a.is-add:hover{background:var(--pv-orange-soft);color:var(--pv-orange-ink)}
+/* まだ開いていない段（REAL PAY を出す前 / DEEP PAY / VERIFIED PAY）。
+   ★2026-08-25、<span aria-disabled> をやめて <button> にした。押すと
+     pv-gates.js が「何を出すと何が見られるか」を説明する（Give-to-Get）。
+     だから死んだ見た目にしない ── 薄くはするが、hover / focus / active は付ける。 */
+.mr-side-a.is-locked{color:var(--pv-ink-3);background:none;border-color:transparent;
+                     font:inherit;font-size:.84rem;font-weight:600;text-align:left;
+                     width:100%;cursor:pointer;-webkit-appearance:none;appearance:none}
+.mr-side-a.is-locked:hover{background:var(--pv-line-soft);color:var(--pv-ink-2)}
+.mr-side-a.is-locked:active{background:var(--pv-line)}
+.mr-side-a.is-locked > svg:first-of-type{opacity:.5}
+/* 錠前はラベルの右端へ寄せる（項目の名前とぶつからない位置） */
+.mr-side-lk{margin-left:auto;opacity:.75}
+.mr-side-note{margin-top:14px;padding:0 12px;font-size:.68rem;line-height:1.65;color:var(--pv-ink-3)}
+
+/* ══ 0-b) 広い画面 ── 左レール（≥1001px）══════════════════════════
+   ★Marit と同じ組み方（オーナーの添付・2026-09-06）──
+     **ヘッダーは全幅のまま上に置き、その下から左レールが始まる。**
+     だから公開ページの `nav{position:fixed;left:0;right:0}` を1行も触らない。
+     足すのは <body> の左余白だけで、本文はそのぶん右へ寄る。
+
+   ★レールの上端 = ヘッダーの高さ。**公開ページは4通りある**（実測・1280px）──
+       h-[64px] ＋ 境界線 1px = 65px   国別51枚 ＋ 地域ハブなど
+       h-[68px] ＋ 境界線 1px = 69px   community ほか
+       h-[70px] ＋ 境界線 1px = 71px   world-airlines 日英
+       h-[72px] ＋ 境界線 1px = 73px   トップ・航空会社110社・記事（最多）
+       .mr-top-in 60px ＋ 境界線 1px = 61px   アプリ16枚
+     どれを使うかは <body> の class が選ぶ。**patch-side-nav.mjs が
+     ヘッダーの h-[…] を読んで書く**ので、人が数を写さない。
+   ⚠️ ずれると、ヘッダーとレールの間に地の色の帯が出る（低いほうを書いた場合）か、
+      レールの頭がヘッダーの下に潜る（高いほうを書いた場合）。
+
+   ★幅 144px（2026-09-06。**208px から絞った**・オーナー決定）──
+     もとは my-value.css:54 の grid の左列と同じ 208px だった。
+     段を「絵の上・文字の下」に組み替えたら**文字が横幅を要らなくなった**ので、
+     そのぶん本文へ返した（1280px で本文 1072 → 1136px。トップの hero も同じだけ広がる）。
+   ⚠️ **これ以上は絞れない。** 実測（1280px・12.8px の字）──
+       208px … 全項目1行
+       144px … ROADMAP & REQUESTS だけ2行・ほかは1行  ← ここ
+       120px … ROADMAP と「匿名で給与を追加」の2つが2行
+       104px … ROADMAP が**3行**（オーナーの条件「3行以上にしない」を割る）
+     幅を触るときは必ず measure し直す。
+   ⚠️ my-value.css:54 の 208px はもう揃えなくてよい ── アプリ16枚の grid の
+      左列は下の `body.pv-anav-app .mr-shell{grid-template-columns:minmax(0,1fr)}` で
+      畳んであり、狭い画面では my-value.css が1段組みにする＝**あの 208px は死んでいる**。 */
+body.pv-anav-pub{--pv-topbar:73px}   /* 既定（h-[72px]）。下の t** が上書きする */
+body.pv-anav-app{--pv-topbar:61px}
+body.pv-anav-t65{--pv-topbar:65px}
+body.pv-anav-t69{--pv-topbar:69px}
+body.pv-anav-t71{--pv-topbar:71px}
+body.pv-anav-t73{--pv-topbar:73px}
+
+@media(min-width:1001px){
+  body.pv-anav-shell{padding-left:144px}
+
+  /* ⚠️ `.mr-col .mr-side` も並べる ── my-value.css の
+       `.mr-col .mr-side{position:static}`（0,2,0）に素の `.mr-side`（0,1,0）では
+       負ける。負けるのはマイレポート日英の2枚だけなので、他を見ても気づけない。 */
+  body.pv-anav-shell .mr-side,
+  body.pv-anav-shell .mr-col .mr-side{
+    /* ★z は 160 ── 150 では足りない（2026-09-06）。招待リンク（?ref=）で来た人に
+         出す着地の1枚（pv-referral.js の .pvr-strip）が **z-index:150 で画面いっぱい**に
+         広がる。同じ 150 だと後から DOM に入るあちらが勝ち、**レールが丸ごと隠れて
+         行き先が1つも押せなくなる**（ヘッダーは z:200 なので生き残り、
+         「ロゴは押せるのにナビだけ死ぬ」という気づきにくい形になる）。
+         上は 190（search.js の暗幕）・200（ヘッダー）・240/245（狭い画面の暗幕と板）。 */
+    position:fixed;top:var(--pv-topbar);left:0;bottom:0;z-index:160;
+    box-sizing:border-box;width:144px;
+    padding:16px 8px calc(16px + env(safe-area-inset-bottom));
+    background:var(--pv-bg);border-right:1px solid var(--pv-line);
+    overflow-y:auto;overscroll-behavior:contain;
+    transform:none;visibility:visible}
+
+  /* アプリ16枚は grid の左列を畳む（板は fixed で外へ出た）。 */
+  body.pv-anav-app .mr-shell{grid-template-columns:minmax(0,1fr)}
+  /* マイレポートの包みも畳む（中の札は板の下に出す）。 */
+  body.pv-anav-shell .mr-col{position:static;display:contents}
+
+  /* ── ★オーナー指示（2026-09-06）── 広い画面も「絵の上・文字の下」に揃える ──
+     狭い画面（節4）は前からこの形で、広い画面だけ横並びだった＝**同じ板が幅で
+     2つの形を持っていた**。片方に揃える。
+
+     ⚠️ 狭い画面（節4）と同じ数字を写さない。あちらは iPhone SE の 667px に
+        9行を収めるために極限まで詰めてある（段 65px・字 11.2px）。
+        こちらは「文字を極端に小さくしない」が条件なので **.8rem（12.8px）**。
+        字が大きいぶん段も高く、そのぶん高さの低い画面では下が溢れる。
+        → レールは上（節0-b）で overflow-y:auto にしてあるので中でスクロールする
+          （オーナー許可済み。1280×768 で実測して確かめる）。
+
+     ⚠️ 強さは 0,2,0 で書く ── 素の .mr-side-a は 0,1,0 だが、
+        .mr-side-a.is-on / .is-add / .is-locked が 0,2,0 で背景・文字寄せ・
+        字の大きさを持っている。同じ 0,2,0 にして**後ろに置く**ことで勝つ。
+        `body.` を頭に付けているのは要素なので強さには効かない ──
+        効いているのは .pv-anav-shell の1個。 */
+  body.pv-anav-shell .mr-side-a,
+  body.pv-anav-shell .mr-col .mr-side-a{
+    position:relative;flex:none;
+    flex-direction:column;align-items:center;justify-content:center;gap:5px;
+    min-height:44px;padding:9px 6px;
+    text-align:center;white-space:normal;
+    font-size:.8rem;font-weight:600;line-height:1.3;letter-spacing:-.01em;
+    background:none;border-color:transparent;box-shadow:none}
+
+  /* 絵は角丸の枠に入れる。**枠が「いまここ」を言う担当**（下の is-on）。 */
+  body.pv-anav-shell .mr-side-a>svg:not(.mr-side-lk){
+    width:20px;height:20px;box-sizing:content-box;
+    padding:6px;border-radius:10px;opacity:.7;
+    transition:background-color .18s var(--pv-ease),color .18s var(--pv-ease),
+               opacity .18s var(--pv-ease)}
+  body.pv-anav-shell .mr-side-a:hover{background:var(--pv-line-soft);color:var(--pv-ink)}
+  body.pv-anav-shell .mr-side-a:hover>svg:not(.mr-side-lk){opacity:1}
+
+  /* ★「いまここ」── **絵の枠に色が入る**。狭い画面の板と同じ言い方にする。
+       今まで  … 薄い面＋枠＋影のカード（絵も文字も他の段と同じ色＝分かりにくい）
+       これから … 面も枠も影も外し、**絵の枠だけ**を橙に塗って字を太くする。
+     板が広い画面と狭い画面で同じ見え方になる（オーナー指示 2026-09-06・
+     「モバイルのメニュー表のようなイメージ」）。
+     ⚠️ 新しい色は作らない。--pv-orange-soft / --pv-orange-ink は
+        「匿名で給与を追加」が既に使っている pv-tokens.css の色。 */
+  body.pv-anav-shell .mr-side-a.is-on{
+    background:none;border-color:transparent;box-shadow:none;
+    color:var(--pv-ink);font-weight:800}
+  body.pv-anav-shell .mr-side-a.is-on>svg:not(.mr-side-lk),
+  body.pv-anav-shell .mr-side-a.is-add>svg:not(.mr-side-lk){
+    background:var(--pv-orange-soft);color:var(--pv-orange-ink);opacity:1}
+
+  /* まだ開いていない段（pv-gates.js が <button> に付ける）。
+     中央揃えの並びなので、あちらの text-align:left を打ち消す。 */
+  body.pv-anav-shell .mr-side-a.is-locked{
+    text-align:center;font-size:.8rem;background:none;border-color:transparent}
+  /* 錠前は札の右上へ。中央揃えの並びで「ラベルの右端」は意味を持たない
+     （狭い画面の節4 と同じ扱い）。 */
+  body.pv-anav-shell .mr-side-lk{position:absolute;top:6px;right:6px;margin-left:0}
+
+  /* 注記も中央へ。板の中が全部中央なので、ここだけ左端から始まると
+     板からはみ出した別の物に見える（狭い画面で先に踏んだ）。 */
+  body.pv-anav-shell .mr-side-note{margin-top:12px;padding:10px 4px 0;text-align:center}
+
+  /* ★≡ は出さない。レールが常に見えているので用が無い。
+     ⚠️ !important が要る ── search.js が実行時に差す style は
+        この <link> より**後**に来て、`#main-nav.pv-nav-compact .pv-ham-btn`（0,3,0）と
+        `header.mr-top .pv-ham-btn`（0,2,0）で display:flex を当ててくる。
+        1001px 以上に閉じ込めてあるので、狭い画面には一切届かない。 */
+  body.pv-anav-shell .pv-ham-btn{display:none!important}
+}
+
+/* ══ 0-c) 狭い画面で ≡ を必ず出す（≤1000px）═══════════════════════
+   ⚠️ search.js に任せると 768〜1000px に穴が空く。あちらが公開ページで
+      ≡ を出すのは `#main-nav.pv-nav-compact`（＝入りきらないと判定したとき）と
+      `@media(max-width:767px)` の2つだけ。2026-09-06 にヘッダーの横並びリンクを
+      外したので、768〜1000px は「入りきる」＝ compact が付かない＝**≡ が消える**。
+      板が唯一の移動手段なので、幅で必ず出す。
+   ★大きさだけ 44px に揃える（search.js の 38px に勝つ 0,2,0 で書く）。
+      狭い画面ではこれが唯一の移動手段なので、指で押せる下限を下回らせない。
+   ⚠️ **色はここで上書きしない。** search.js の ≡ は半透明で、トップの暗い hero の
+      上でも航空会社ページの写真の上でも成立している。--pv-surface（明るい面）で
+      塗り直すと、hero の上に白い箱が1つ浮く。色を揃えるのは逆向きに解く ──
+      search.js を読まない 115枚のために、下の 1) が**あちらの色を写して**いる。 */
+@media(max-width:1000px){
+  body.pv-anav-shell .pv-ham-btn{display:flex;width:44px;height:44px}
+}
+
+/* ══ 1) ≡ ボタン ═══════════════════════════════════════════════
+   ここが効くのは **search.js を読まない115枚**（airlines/ の日本語ページ）だけ。
+   それ以外では search.js が実行時に差す同じ強さ（0,1,0）の style が
+   この <link> より後に来て勝つ ── だから**あちらと同じ色を写してある**。
+   写さずに --pv-* で塗ると、115枚だけ ≡ の色が違う。
+   ⚠️ search.js:427-430 を変えたらここも変える。逆も同じ。
+      （共有しないのは「search.js を1バイトも触らない」がこの Phase の約束だから）
+
+   ★大きさだけは 0-c が 44px に揃える。狭い画面ではこれが唯一の移動手段。
+   ★広い画面では出さない。左レールが常に見えているので用が無い
+     （旧 search.js は幅に関係なく出していた ── 当時の左メニューに
+       HOME も VOTE も AIRLINES も無く、サイトへの出口が ≡ だけだったため。
+       7項目に畳んだいま、出口は左レールそのものが持っている）。 */
+.pv-ham-btn{display:none;flex-direction:column;justify-content:center;align-items:center;
+  width:38px;height:38px;gap:5px;padding:0;flex-shrink:0;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
+  border-radius:10px;cursor:pointer;
+  -webkit-appearance:none;appearance:none;transition:background .2s}
+.pv-ham-btn:hover{background:rgba(255,255,255,.13)}
+[data-theme=light] .pv-ham-btn{background:rgba(0,0,0,.06);border-color:rgba(0,0,0,.12)}
+[data-theme=light] .pv-ham-btn:hover{background:rgba(0,0,0,.11)}
+.pv-ham-btn:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}
+.pv-ham-line{display:block;width:18px;height:1.8px;border-radius:1px;
+  background:rgba(255,255,255,.75)}
+[data-theme=light] .pv-ham-line{background:rgba(15,23,42,.7)}
+
+/* ══ 2) ドロワーの頭（× で閉じる）════════════════════════════════
+   ★app-nav.js が実行時に <nav class="mr-side"> の先頭へ入れる。
+     patch-side-nav.mjs が配る中身（16枚一致を検査が見ている）には手を出さない。
+   ★広い画面では出さない。左レールに × は要らない。 */
+.mr-side-head{display:none}
+.mr-side-ttl{font-size:.7rem;font-weight:800;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--pv-ink-3)}
+/* ★44×44（2026-09-06、40px から上げた）── サイト全体で守っている指の的の下限。
+     ドロワーを閉じる唯一のボタンがそれを割っていた。**assert-header.mjs が
+     板の中の押せるもの全部を測るようになったので、ここを縮めると赤くなる。** */
+.mr-side-x{display:flex;align-items:center;justify-content:center;
+  width:44px;height:44px;margin-right:-8px;padding:0;flex:none;
+  background:none;border:1px solid transparent;border-radius:var(--pv-r-sm);
+  color:var(--pv-ink-3);cursor:pointer;-webkit-appearance:none;appearance:none;
+  transition:background-color .18s var(--pv-ease),color .18s var(--pv-ease)}
+.mr-side-x:hover{background:var(--pv-line-soft);color:var(--pv-ink)}
+.mr-side-x:focus-visible{outline:2px solid var(--pv-orange);outline-offset:-2px}
+
+/* ══ 3) 覆い ═══════════════════════════════════════════════════
+   ★z は overlay 240 / 板 245。.mr-top(200) と REAL PAY の暗幕(210) より上に置く
+     ── 下に置くと、給与の面が開いているときにドロワーが後ろへ潜る。
+   ★display:none にしない（動きを減らす設定で中身ごと消える罠を踏まない）。 */
+#pv-anav-ov{position:fixed;inset:0;z-index:240;
+  background:rgba(10,22,40,.55);opacity:0;pointer-events:none;
+  transition:opacity .3s var(--pv-ease)}
+body.pv-anav-open #pv-anav-ov{opacity:1;pointer-events:auto}
+
+/* ══ 4) 狭い画面 ── 右から出るドロワー ══════════════════════════
+   ★境目は 1000px。my-value.css が同じ幅で .mr-shell を1段組みにしている。
+     読み込み順は my-value.css → app-nav.css なので、同じ強さならこちらが勝つ。
+   ⚠️ my-value.css の「横並びの札」だった規則はあちらから消してある。
+      ここが狭い画面の .mr-side の**唯一の置き場**。
+
+   ★2026-09-06、左から右へ反転した（オーナー指示。確定事項12 をここで更新する）。
+     ≡ は右上に在るので、**指と板が同じ側**に来る。左から出していた頃は
+     画面の対角へ手を運ばされていた。
+   ⚠️ 向きは CSS だけの話にしてある。app-nav.js は左右を1文字も知らない
+      （開閉・暗幕・×・Escape・焦点の戻り・背景のスクロール止めは全部あちら）。
+   ⚠️ 検査も同じコミットで直す ── assert-header.mjs の
+      「閉じている板は画面の外に居る」が**字面で左を見ていた**。 */
+@media(max-width:1000px){
+  header.mr-top .pv-ham-btn{display:flex}
+  body.pv-anav-open{overflow:hidden}
+
+  /* ⚠️ `.mr-col .mr-side` も並べる。my-value.css:63 が
+       `.mr-col .mr-side{position:static;top:auto}` を持っていて、
+       素の `.mr-side` では**強さで負ける**（0,1,0 対 0,2,0。読み込み順は関係ない）。
+       負けると板が fixed にならず、閉じたまま画面の左端に 16px はみ出したうえ
+       grid の中に居座る。**マイレポートだけ**そうなるので、他の15枚を見ても気づけない。 */
+  /* ⚠️ left:auto を**書く** ── 素の .mr-side は position:sticky で left を持たないが、
+       ここで right:0 だけ足すと、将来どこかが left を足した瞬間に
+       「左右とも 0 ＝ 幅いっぱい」に化ける。左右を同時に指定して打ち消す。
+     ⚠️ 右側は env(safe-area-inset-right) を見る（横向きの iPhone で、
+        板の中身がノッチ側の帯に潜らないように）。左は板の外なので要らない。 */
+  .mr-side,
+  .mr-col .mr-side{position:fixed;top:0;right:0;left:auto;bottom:0;z-index:245;
+    box-sizing:border-box;width:min(78vw,212px);max-width:100vw;
+    display:flex;flex-direction:column;flex-wrap:nowrap;gap:2px;
+    padding:0 calc(8px + env(safe-area-inset-right))
+            calc(16px + env(safe-area-inset-bottom)) 8px;
+    background:var(--pv-bg);border-left:1px solid var(--pv-line);
+    overflow-y:auto;overscroll-behavior:contain;
+    transform:translateX(100%);visibility:hidden;
+    transition:transform .32s var(--pv-ease),visibility 0s linear .32s}
+  /* 影は**左へ**落とす（板は右端に居る）。右へ落とすと画面の外を照らして何も見えない。 */
+  body.pv-anav-open .mr-side,
+  body.pv-anav-open .mr-col .mr-side{transform:none;visibility:visible;
+    box-shadow:-24px 0 60px -20px rgba(10,22,40,.45),
+               -4px 0 16px -6px rgba(10,22,40,.18);
+    transition:transform .32s var(--pv-ease),visibility 0s}
+
+  /* マイレポートだけ nav が <div class="mr-col"> に包まれている。
+     板を fixed で抜いたあと、包みが grid の行を1つ食って 20px の隙間になる。
+     display:contents で包みごと消す（中の .mv-priv は下で隠している）。 */
+  .mr-col{position:static;display:contents}
+  .mv-priv{display:none}
+
+  .mr-side-head{display:flex;align-items:center;justify-content:space-between;
+    gap:8px;position:sticky;top:0;z-index:1;
+    min-height:60px;padding:0 4px 0 10px;margin-bottom:6px;
+    background:var(--pv-bg);border-bottom:1px solid var(--pv-line-soft)}
+
+  /* ★オーナー指示（2026-09-06）── 「絵があってその下に文字」。
+       アイコンを上、ラベルを下に置いて中央で揃える。
+       いま居る段と「匿名で給与を追加」は、アイコンを角丸の四角で塗る。 */
+  /* ⚠️ 段の高さは 63px（2026-09-06 に実測して詰めた）。
+       「絵の下に文字」を素直に組むと1段 83px になり、板の中身が 875px ＝
+       **iPhone SE（390×667）で MY PAGE・ログイン・お問い合わせの3つが折り返しの下**
+       に沈む。板は縦に流れるので押せなくはないが、7項目のうち1つと
+       **削除依頼の窓口**が最初の画面に出ないのは通らない。
+       絵 20px＋余白6px・段の余白6px・絵と字の間 4px まで詰めて 63px。
+       ⚠️ これ以上詰めない ── 触れる的は 44px 以上（assert-header.mjs と同じ約束）。 */
+  .mr-side-a{position:relative;flex:none;flex-direction:column;align-items:center;
+    justify-content:flex-start;gap:4px;
+    padding:6px 4px;border-radius:var(--pv-r-sm);
+    text-align:center;white-space:normal;
+    font-size:.7rem;font-weight:700;line-height:1.35;
+    background:none;border-color:transparent;box-shadow:none}
+  .mr-side-a>svg:not(.mr-side-lk){width:20px;height:20px;box-sizing:content-box;
+    padding:6px;border-radius:10px;opacity:.7;
+    transition:background-color .18s var(--pv-ease),color .18s var(--pv-ease),
+               opacity .18s var(--pv-ease)}
+  .mr-side-a:hover{background:var(--pv-line-soft)}
+  .mr-side-a.is-on{background:none;border-color:transparent;box-shadow:none;
+    color:var(--pv-ink);font-weight:800}
+  .mr-side-a.is-on>svg:not(.mr-side-lk),
+  .mr-side-a.is-add>svg:not(.mr-side-lk){background:var(--pv-orange-soft);
+    color:var(--pv-orange-ink);opacity:1}
+  .mr-side-a.is-locked{background:none;border-color:transparent;
+    text-align:center;font-size:.7rem}
+  /* 錠前は札の右上へ。中央揃えの並びで「ラベルの右端」は意味を持たない。 */
+  .mr-side-lk{position:absolute;top:6px;right:6px;margin-left:0}
+
+  /* 札は板の足元に残す（横並びの札だった頃は場所が無くて隠していた）。
+     ★中央で揃える ── 板の中は「絵の下に文字」で全部中央なので、
+       ここだけ左端から始まると、板からはみ出した別の物に見える。 */
+  /* ⚠️ 左右の詰めは 12px → 4px（my-value.css:254 の上書き）。
+       板は 212px しか無く、12px のままだと日本語の一文が 3px はみ出して
+       「…受け取りませ / ん。」と最後の1文字だけ折り返す。 */
+  .mr-side-note{display:block;margin-top:auto;padding:10px 4px 0;text-align:center}
+  .mr-col .mr-side-note{display:block}
+}
+
+/* ══ 5) 出口（お問い合わせ）════════════════════════════════════
+   ★アプリ画面にはフッターが無い。旧 search.js の引き出しには
+     お問い合わせが入っていたので、それを畳んだぶんをここで受ける。
+     色は付けない ── 色を持つのは「匿名で給与を追加」1つだけ。 */
+.mr-side-sub{display:block;margin-top:10px;padding:8px 12px;
+  font-size:.72rem;font-weight:600;color:var(--pv-ink-3);text-decoration:none;
+  border-radius:var(--pv-r-sm);
+  transition:background-color .18s var(--pv-ease),color .18s var(--pv-ease)}
+.mr-side-sub:hover{background:var(--pv-line-soft);color:var(--pv-ink-2)}
+.mr-side-sub:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}
+/* ★2本目以降は詰める ── 10px は「7項目の塊から離す」ための間隔で、
+   小さい行どうしの間隔ではない。ログイン済みで1本目（ログイン）が
+   消えたときは、残ったお問い合わせが1本目になって 10px に戻る。 */
+.mr-side-sub+.mr-side-sub{margin-top:2px}
+@media(max-width:1000px){
+  .mr-side-sub{text-align:center;margin-top:6px}
+  .mr-side-sub+.mr-side-sub{margin-top:2px}
+}
+
+/* 動きを減らす設定のとき。★ 要素を display:none にしない
+   （トップページで実際に踏んだ罠。中身ごと消える）。
+   ⚠️ visibility の遅延だけは残す。0s にすると閉じている板が
+      タブ移動で拾えてしまう（画面の外に居るのに焦点だけ入る）。 */
+@media(prefers-reduced-motion:reduce){
+  #pv-anav-ov,.pv-ham-btn,.mr-side-x,.mr-side-sub,
+  .mr-side-a>svg:not(.mr-side-lk){transition-duration:.01ms}
+  .mr-side{transition:transform .01ms,visibility 0s linear .01ms}
+  body.pv-anav-open .mr-side{transition:transform .01ms,visibility 0s}
+}

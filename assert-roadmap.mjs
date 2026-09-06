@@ -665,12 +665,16 @@ ok('assert-header.mjs が日英2枚を測る',
 ok('assert-founding.mjs が称号を出さない一覧に入れている',
    /'roadmap\.html',\s*'en\/roadmap\.html'/.test(read('./assert-founding.mjs')));
 /* ★2026-09-05、左メニューの項目名を「ROADMAP & REQUESTS」にした（オーナー指示）。
-     ページの大見出しと同じ綴りにするため。下タブは幅が無いので3行に割ってある
-     （Roadmap / & / Requests）が、読み上げには同じ1語を渡している。 */
+     ページの大見出しと同じ綴りにするため。
+   ★2026-09-06、足元の下タブを廃止した。狭い画面も右から出るドロワーで
+     同じ1語を出すので、幅のために3行へ割る必要がなくなった。
+   ⚠️ 単数（REQUEST）に変えるなら、ページの大見出しとここを同じコミットで直す。 */
 ok('patch-side-nav.mjs に ROADMAP & REQUESTS が在る（日英2か所）',
    (read('./patch-side-nav.mjs').match(/roadmap:\s*'ROADMAP & REQUESTS'/g) || []).length === 2);
-ok('★下タブは3行に割ってある（Roadmap / & / Requests）',
-   /TAB_ROADMAP\s*=\s*'<span>Roadmap<\/span><span class="mr-tab-am">&amp;<\/span><span>Requests<\/span>'/
+ok('★下タブの残骸が生成器に無い（TAB_ROADMAP / buildTabs を戻さない）',
+   !/TAB_ROADMAP|buildTabs/.test(read('./patch-side-nav.mjs')));
+ok('★ドロワーは roadmap.html を指している',
+   /roadmap:[\s\S]{0,40}'roadmap\.html'|'roadmap\.html',\s*icon: 'roadmap'/
      .test(read('./patch-side-nav.mjs')));
 ok('notify-admin が pv_requests を知っている',
    /pv_requests:\s*buildRequest/.test(read('./supabase/functions/notify-admin/index.ts')));

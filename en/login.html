@@ -290,15 +290,17 @@
         return u.origin === location.origin ? u.pathname + u.search + u.hash : '';
       } catch (e) { return ''; }
     }
-    /* ★既定は '/en/profile.html'。'profile.html' にしない。
+    /* ★既定の着地先は REAL PAY（2026-09-06）。ログインした人が最初に見るのは
+         「他のパイロットが実際にいくら貰っているか」にする。
+       ★必ず絶対パス '/en/actual-pay.html' で書く。'actual-pay.html' にしない。
          この戻り先は下で auth-callback へ ?next= として渡され、ルートの
-         /auth-callback.html から解決される。そこから見た 'profile.html' は
-         /profile.html ＝日本語のマイページで、英語版から素でログインした人が
-         いきなり日本語の画面に落ちていた（2026-08-22 修正）。
+         /auth-callback.html から解決される。そこから見た 'actual-pay.html' は
+         /actual-pay.html ＝日本語の画面で、英語版から素でログインした人が
+         いきなり日本語の画面に落ちていた（2026-08-22 修正・当時は profile.html）。
          ?next= 付きで来た場合は safePath が /en/… の絶対パスを返すので元から正しい。 */
     function getRedirect(){
       const q = new URLSearchParams(location.search);
-      return safePath(q.get('next') || q.get('redirect') || q.get('return')) || '/en/profile.html';
+      return safePath(q.get('next') || q.get('redirect') || q.get('return')) || '/en/actual-pay.html';
     }
 
     /* ★Do not drop the destination when handing off to "Sign up".
@@ -310,7 +312,7 @@
       const a = document.getElementById('to-signup');
       if (!a) return;
       const to = getRedirect();
-      if (to && to !== '/en/profile.html') a.href = 'signup.html?next=' + encodeURIComponent(to);
+      if (to && to !== '/en/actual-pay.html') a.href = 'signup.html?next=' + encodeURIComponent(to);
     })();
 
     // Notice shown when pv-session.js expired the session (show once, then clear)
@@ -488,9 +490,10 @@
            再設定で来た人が設定画面を一度も見ずに元の場所へ飛ばされる。 */
       /* ★en/ 側は絶対パスで書く。emailRedirectTo が指すのは「ルートの」auth-callback.html で、
            そこは next を自分の場所 (/auth-callback.html) から解決する。
-           'profile.html' と書くと /profile.html＝日本語版に着地してしまう。
-           ★next を省く分岐を置かない。省くと auth-callback の既定 'profile.html' が効いて
-             やはり日本語版に落ちる。getRedirect() は必ず /en/… を返すので常に渡す。 */
+           'actual-pay.html' と書くと /actual-pay.html＝日本語版に着地してしまう。
+           ★next を省く分岐を置かない。省くと auth-callback の既定（日本語の
+             /actual-pay.html）が効いて、やはり日本語版に落ちる。
+             getRedirect() は必ず /en/… を返すので常に渡す。 */
       const to = (otpIntent === 'reset') ? '/en/profile.html#password-card' : getRedirect();
       const { error } = await sb.auth.signInWithOtp({
         email,

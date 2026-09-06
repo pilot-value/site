@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="light">
+<head>
+  <meta charset="UTF-8"/>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png"/>
+<link rel="apple-touch-icon" href="assets/favicon-180.png"/>
+  <script>(function(){var t=localStorage.getItem('pv-theme')||'light';document.documentElement.setAttribute('data-theme',t);}());</script>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <!-- 自分の招待リンクを出す画面。ログインが要るので検索に出してはいけない -->
+  <title>パイロットの仲間を招待する | PILOT VALUE</title>
+<!--PV-SEO-->
+<!--PV-SRC t="パイロットの仲間を招待する" d=""-->
+<meta name="description" content="同じ会社・同じ機種のパイロットが増えるほど、あなたの区分の数字は確かになります。招待した相手が誰かは、こちらでは分かりません。"/>
+<meta name="robots" content="noindex,follow"/>
+<link rel="canonical" href="https://pilot-value.com/invite.html"/>
+<link rel="alternate" hreflang="ja" href="https://pilot-value.com/invite.html"/>
+<link rel="alternate" hreflang="en" href="https://pilot-value.com/en/invite.html"/>
+<link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/invite.html"/>
+<meta property="og:title" content="パイロットの仲間を招待する | PILOT VALUE"/>
+<meta property="og:description" content="同じ会社・同じ機種のパイロットが増えるほど、あなたの区分の数字は確かになります。招待した相手が誰かは、こちらでは分かりません。"/>
+<meta property="og:url" content="https://pilot-value.com/invite.html"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="PILOT VALUE"/>
+<meta property="og:locale" content="ja_JP"/>
+<meta property="og:locale:alternate" content="en_US"/>
+<meta property="og:image" content="https://pilot-value.com/assets/og/default-ja.jpg"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta property="og:image:alt" content="パイロットの仲間を招待する | PILOT VALUE"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="パイロットの仲間を招待する | PILOT VALUE"/>
+<meta name="twitter:description" content="同じ会社・同じ機種のパイロットが増えるほど、あなたの区分の数字は確かになります。招待した相手が誰かは、こちらでは分かりません。"/>
+<meta name="twitter:image" content="https://pilot-value.com/assets/og/default-ja.jpg"/>
+<!--/PV-SEO-->
+
+  <!-- ⚠️ URL は my-value.html と1文字も変えない。同じURLならキャッシュに当たる。 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'"/><noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet"/></noscript>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- 配色・角丸・余白・影のトークン。読まないと --pv-* が全部 undefined になる。 -->
+  <link rel="stylesheet" href="pv-tokens.css">
+  <!-- ページの骨格（.mr-*）。マイレポートと同じ殻を使う（日英で共有） -->
+  <link rel="stylesheet" href="my-value.css">
+  <!-- ★app-nav.css は my-value.css より**後**。狭い画面の .mr-side を上書きする -->
+  <link rel="stylesheet" href="app-nav.css">
+
+  <style>
+    /* ここに置くのは「CSS が届く前に見えてしまう部分」だけ。
+       ★ 招待カードの見た目（.pvr-…）を書き戻さないこと。pv-referral.js が持っている
+          ＝マイページとこの画面で2種類にならないための唯一の置き場所。 */
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--pv-bg-sub);color:var(--pv-ink);
+         font-family:Inter,'Noto Sans JP',sans-serif;min-height:100vh;
+         -webkit-font-smoothing:antialiased}
+  </style>
+<!-- Google tag (gtag.js) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-3XYF69VQ3X');
+</script>
+<!--PV-3P-->
+<script>
+/* 広告と解析は、表示が終わるまで読まない。async でも帯域は奪うため。
+   利用者が最初に触った時か load の、どちらか早いほうで読み込む。
+   戻すときは node defer-third-party.mjs --undo */
+(function(){
+  var done=false;
+  function boot(){
+    if(done)return; done=true;
+    [{"src":"https://www.googletagmanager.com/gtag/js?id=G-3XYF69VQ3X","cross":false}].forEach(function(it){
+      var s=document.createElement('script');
+      s.src=it.src; s.async=true;
+      if(it.cross)s.crossOrigin='anonymous';
+      document.head.appendChild(s);
+    });
+  }
+  ['pointerdown','keydown','touchstart','scroll','wheel'].forEach(function(ev){
+    addEventListener(ev,boot,{once:true,passive:true});
+  });
+  if(document.readyState==='complete')boot();
+  else addEventListener('load',boot,{once:true});
+})();
+</script>
+<!--/PV-3P-->
+<script src="pv-session.js"></script>
+</head>
+<body class="pv-anav-shell pv-anav-app">
+  <header class="mr-top">
+    <div class="mr-top-in">
+      <a class="mr-brand" href="index.html" aria-label="PILOT VALUE トップへ">
+        <img src="assets/logo.png" alt="PILOT VALUE" height="28"/>
+      </a>
+      <!-- ★ #theme-toggle は消さない。lang-toggle.js がこのボタンの隣に
+           自分のボタンを差し込む（無いとナビ末尾に落ちる）。
+           app-nav.js は ≡ をこの .mr-top-r の末尾に足す。 -->
+      <div class="mr-top-r">
+        <button id="theme-toggle" class="theme-toggle" aria-label="テーマ切替"></button>
+      </div>
+    </div>
+  </header>
+
+  <div class="mr-shell">
+    <!-- ★中身は patch-side-nav.mjs が16枚へ配る。ここを手で足さない
+         （node patch-side-nav.mjs --check が食い違いを落とす）。 -->
+    <nav class="mr-side" aria-label="メニュー">
+      <a class="mr-side-a is-add" href="pay-report.html#ps">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+        <span>匿名で給与を追加</span>
+      </a>
+      <a class="mr-side-a" href="index.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9.5 12 2l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg>
+        <span>HOME</span>
+      </a>
+      <a class="mr-side-a" href="actual-pay.html" data-mr-gate="real">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>REAL PAY</span>
+      </a>
+      <a class="mr-side-a" href="community.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z"/></svg>
+        <span>VOTE</span>
+      </a>
+      <a class="mr-side-a" href="roadmap.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V4s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+        <span>ROADMAP & REQUESTS</span>
+      </a>
+      <a class="mr-side-a" href="world-airlines.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>
+        <span>AIRLINES</span>
+      </a>
+      <a class="mr-side-a is-on" href="invite.html" aria-current="page">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+        <span>INVITE</span>
+      </a>
+      <a class="mr-side-a" href="profile.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>MY PAGE</span>
+      </a>
+      <a class="mr-side-sub" id="pv-anav-login" data-pv-auth="out" href="login.html">ログイン</a>
+      <a class="mr-side-sub" href="contact.html">お問い合わせ</a>
+      <p class="mr-side-note">氏名も社員番号も受け取りません。</p>
+    </nav>
+
+    <main class="mr-main">
+      <div class="mr-hd">
+        <h1 class="mr-hd-t">INVITE</h1>
+      </div>
+
+      <!-- 中身は pv-referral.js の mountInvite() が描く。
+           ★マイページ（profile.html）と同じ関数を呼ぶ。文面をここに書き写さない
+             ── 2種類に割れて、送られる文が入口によって変わる。 -->
+      <div id="pv-invite-slot">
+        <div class="mr-skel" style="height:34px;width:44%"></div>
+        <div class="mr-skel" style="height:14px;width:70%;margin-top:14px"></div>
+        <div class="mr-skel" style="height:120px;margin-top:28px"></div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const SB_URL = 'https://vzgmnkrggrwtsrpqndsm.supabase.co';
+    const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6Z21ua3JnZ3J3dHNycHFuZHNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0MzkwOTcsImV4cCI6MjA5MDAxNTA5N30.wE4cJbqeYGCgn5ZvHd80hYWgQuySKvOMJMbsJWOvmtw';
+    const sb = supabase.createClient(SB_URL, SB_KEY);
+
+    const SUN = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
+    const MOON = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+    function applyTheme(t){document.documentElement.setAttribute('data-theme',t);localStorage.setItem('pv-theme',t);const b=document.getElementById('theme-toggle');if(b)b.innerHTML=t==='dark'?SUN:MOON;}
+    applyTheme(localStorage.getItem('pv-theme')||'light');
+    document.getElementById('theme-toggle').addEventListener('click',function(){applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');});
+
+    /* ★招待リンクは「自分の」コードなので、ログインしていないと1本も作れない。
+         エラー文言を出さずログインへ送る（戻り先に search と hash を付ける）。 */
+    window.PV_SESSION = (async function () {
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) {
+        window.location.href = 'login.html?redirect='
+          + encodeURIComponent('invite.html' + (window.location.search || '') + (window.location.hash || ''));
+        return null;
+      }
+      return session;
+    }());
+
+    /* ログインが確かめられてから描く。先に描くと、未ログインの人に一瞬だけ
+       カードが見えてから画面が飛ぶ（押しても何も作れないのに見える）。
+       ★DOMContentLoaded も待つ。getSession() がキャッシュから即返ると、
+         下の pv-referral.js より先にここが走って window.PVReferral がまだ無い。 */
+    Promise.all([window.PV_SESSION, new Promise(function (done) {
+      if (document.readyState !== 'loading') done();
+      else document.addEventListener('DOMContentLoaded', function () { done(); });
+    })]).then(function (r) {
+      if (!r[0] || !window.PVReferral) return;
+      /* 招待リンクから来た人を紹介者に結びつける。鍵が無ければ即座に戻るので、
+         profile.html と二重に呼んでも害は無い（_claimed で1回に畳まれる）。 */
+      try { window.PVReferral.claim(sb); } catch (e) {}
+      const slot = document.getElementById('pv-invite-slot');
+      slot.innerHTML = '';
+      /* ★描画は mountInvite に任せる。[data-pvr-go] / [data-pvr-copy] を
+           この画面で拾い直さない ── 配線の置き場は pv-referral.js の
+           wireShare 1か所だけ（assert-referral.mjs がそれを見張っている）。 */
+      window.PVReferral.mountInvite(slot, { sb: sb, surface: 'invite_page' });
+    });
+  </script>
+
+<!-- ★ pv-referral.js は lang-toggle.js より前に読む。あちらは pv-lang==='en' の人を
+     location.replace() で /en/ へ飛ばす。読み込みの時点で ?ref= を localStorage へ
+     写しておかないと、クエリごと捨てられる。 -->
+<script src="pv-referral.js"></script>
+<script src="search.js"></script>
+<script src="lang-toggle.js"></script>
+<!-- Give → Get の門。左メニューの錠前と、その説明を出す。 -->
+<script src="pv-gates.js"></script>
+<!-- PV-NAV: ナビの開け閉め。★search.js より**後**に読む ──
+     あちらが作った ≡ を繋ぎ直すため（先に読むと search.js:416 の二重注入ガードで
+     ヘッダーの自動折り畳みごと止まる）。search.js が無いページでは自分で ≡ を作る。 -->
+<script src="app-nav.js"></script>
+</body>
+</html>

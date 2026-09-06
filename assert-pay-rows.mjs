@@ -620,153 +620,278 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
      out.trim().split('\n').slice(-3).join(' / '));
 }
 
-/* ★下タブ（2026-09-05）。オーナーが実機で「REAL PAY から他所へ行くとタブが消える」。
-     移った先で足元の帯が消えると、戻る道がハンバーガーの中だけになる。
-   ★同じ日にオーナーが中身も決め直した ──
-       マイレポート / ROADMAP & REQUESTS / REAL PAY / 各航空会社 / マイページ。
-     「給与を追加」を帯から外し、代わりに「各航空会社」を入れた。
-     外した理由は行き先の pay-report.html に帯が無いから（押すと帯ごと消える）。
-     入れた「各航空会社」＝ world-airlines.html には**帯を置いた**＝同じ穴を作っていない。
+/* ★アプリのナビ（2026-09-06 に作り直した）。
+     それまで、ログインした人には**3種類の違うナビ**が出ていた ──
+       ① 広い画面の左レール（7項目・うち2つは押せない錠前）
+       ② 狭い画面の足元の帯（5項目・中身も並びも①と別物）
+       ③ ヘッダーの ≡ から右に出る引き出し（公開ページ用の6項目）
+     オーナー指示で1つに畳んだ。**足元の帯（.mr-tabs）は廃止**。
+     狭い画面は ≡ から**左に**ドロワーが出る（app-nav.js / app-nav.css）。
    ⚠️ patch-side-nav.mjs は「在る入れ物に書く」だけで、入れ物そのものは作らない。
       1枚だけ入れ物を置き忘れても --check は緑のままなので、ここで数える。 */
 {
+  /* ★2026-09-06、オーナー確定事項10 で**通常ページ全部**へ広がった（16枚 → 408枚）。
+       それまでの「公開ページにはアプリのナビを入れない」（確定事項5・6）は無効。
+       出ないのは2種類だけ ── 認証（login / signup / auth-callback）と
+       給与フォーム（pay-report。書きかけが消えるため）。 */
   const pages = [];
-  for (const dir of ['.', 'en']) {
+  for (const dir of ['.', 'en', 'airlines', 'en/airlines', 'countries', 'en/countries']) {
     for (const f of readdirSync(new URL(dir + '/', ROOT)).filter((x) => x.endsWith('.html')).sort()) {
       const rel = dir === '.' ? f : dir + '/' + f;
       pages.push({ rel, html: read(rel) });
     }
   }
   const side = pages.filter((p) => p.html.includes('<nav class="mr-side"'));
-  const tab = pages.filter((p) => p.html.includes('<nav class="mr-tabs"'));
-  const no = side.filter((p) => !p.html.includes('<nav class="mr-tabs"')).map((p) => p.rel);
-  ok(side.length === 14, '左メニューを持つページは日英14枚', String(side.length));
-  ok(no.length === 0, '★★左メニューを持つページには**全部**下タブの入れ物が在る',
-     no.join(' / '));
-  /* ★帯を出すページは 14 ＋ 世界の航空会社一覧（日英2枚）＝ 16。
-       「各航空会社」のタブの行き先なので、ここに帯が無いと押した瞬間に帯が消える。 */
-  ok(tab.length === 16, '★下タブを出すページは日英16枚（＋世界の航空会社一覧）',
-     tab.map((p) => p.rel).join(' / '));
-  for (const rel of ['world-airlines.html', 'en/world-airlines.html']) {
-    ok(tab.some((p) => p.rel === rel), `★${rel} に下タブの入れ物が在る（タブの行き先）`);
+  const pub = side.filter((p) => p.html.includes('id="main-nav"'));
+  const app = side.filter((p) => !p.html.includes('id="main-nav"'));
+  ok(side.length === 408, '★★同じ板が 408枚に在る（公開392 ＋ アプリ16）',
+     `公開 ${pub.length} ／ アプリ ${app.length} ／ 合計 ${side.length}`);
+  ok(pub.length === 392 && app.length === 16, '★内訳も 392 ＋ 16 のまま',
+     `公開 ${pub.length} ／ アプリ ${app.length}`);
+  for (const rel of ['invite.html', 'en/invite.html']) {
+    ok(side.some((p) => p.rel === rel), `★${rel} にアプリのナビが在る`);
   }
-  /* ★帯を出すページは CSS も読んでいること。読み忘れると
-       .mr-tabs が素の <nav> のまま本文の末尾に流れ落ちる（画面は動いたまま）。 */
-  const noCss = tab.filter((p) => {
-    const up = p.rel.startsWith('en/') ? '../' : '';
-    return !p.html.includes(`href="${up}tabs.css"`)
-        || !p.html.includes(`href="${up}pv-tokens.css"`);
+
+  /* ★出ない側。**数えて確かめる** ── 板は <body> の直後に入るので、
+       1枚くらい混ざっても画面は普通に動く（給与フォームなら書きかけが消える）。
+     ⚠️ 404 / admin / unsubscribe の日英6枚はヘッダーそのものが無い（≡ の置き場が無い）。
+        ここも「板を持たない」側だが、除外の理由が違うので分けて数える。
+        合計14枚 ＝ 認証6（login / signup / auth-callback の日英）
+        ＋ 給与フォーム2 ＋ ヘッダーの無い6。 */
+  {
+    const AUTH = ['login.html', 'signup.html', 'auth-callback.html', 'pay-report.html'];
+    const bad = pages.filter((p) => AUTH.includes(p.rel.split('/').pop())
+      && p.html.includes('<nav class="mr-side"')).map((p) => p.rel);
+    ok(bad.length === 0, '★★認証と給与フォームには板を入れない', bad.join(' / '));
+    const none = pages.filter((p) => !p.html.includes('<nav class="mr-side"'))
+      .map((p) => p.rel).sort();
+    ok(none.length === 14, '★板を持たないのは14枚だけ（認証・給与フォーム8 ＋ ヘッダーの無い6）',
+       none.join(' / '));
+  }
+
+  /* ★足元の帯の残骸が1枚も無いこと。
+       入れ物・CSS・<body> の余白 class の3つとも消えていないと、
+       画面は動いたまま「iPhone だけ下に理由のない空白が出る」形になる。 */
+  const leftTab = pages.filter((p) => p.html.includes('class="mr-tabs"')
+    || p.html.includes('tabs.css') || /<body[^>]*\bmr-tabs-pad\b/.test(p.html)).map((p) => p.rel);
+  ok(leftTab.length === 0, '★★足元の帯（下タブ）の残骸が1枚も無い', leftTab.join(' / '));
+  let tabsCss = true;
+  try { read('tabs.css'); } catch { tabsCss = false; }
+  ok(!tabsCss, '★tabs.css をファイルごと消してある（帯はもう無い）');
+  /* ★CSS も2か所に書き戻していないこと。コメントは先に外す ── そうしないと、
+       あちらに書き留めた「.mr-tabs を書き戻さない」という注意書きに当たって落ちる。 */
+  const noCmt = (f) => read(f).replace(/\/\*[\s\S]*?\*\//g, () => ' ');
+  for (const f of ['my-value.css', 'actual-pay.css', 'app-nav.css']) {
+    ok(!/\.mr-tabs?\b/.test(noCmt(f)), `★${f} に .mr-tabs を書き戻していない`);
+  }
+  /* ★狭い画面の「帯のぶんの余白」も戻さない（帯が無いので空白になるだけ）。 */
+  ok(!/padding-bottom:calc\(96px/.test(noCmt('my-value.css')),
+     '★my-value.css に帯のぶんの足元の余白（96px）が残っていない');
+
+  /* ★408枚とも app-nav.css / app-nav.js / pv-tokens.css を読む。
+       CSS を読み忘れると、狭い画面でレールが本文の上に居座る（画面は動いたまま）。
+     ⚠️ 深さが3段ある（ルート ／ en・airlines・countries ／ en/airlines・en/countries）。
+        「en/ なら ../」で決め打ちすると airlines/ の115枚を素通しする。 */
+  const upOf = (rel) => '../'.repeat(rel.split('/').length - 1);
+  const noAsset = side.filter((p) => {
+    const up = upOf(p.rel);
+    return !p.html.includes(`href="${up}app-nav.css"`)
+        || !p.html.includes(`href="${up}pv-tokens.css"`)
+        || !p.html.includes(`src="${up}app-nav.js"`);
   }).map((p) => p.rel);
-  ok(noCss.length === 0, '★★下タブを出す16枚は tabs.css と pv-tokens.css を読む', noCss.join(' / '));
-  /* ★.mr-shell を持たないページだけ <body> に mr-tabs-pad。両方付けると2倍空く。 */
-  for (const p of tab) {
-    const hasShell = p.html.includes('class="mr-shell') || p.html.includes('mr-shell"');
-    const hasPad = /<body[^>]*\bmr-tabs-pad\b/.test(p.html);
-    ok(hasShell !== hasPad, `${p.rel}: 足元の余白は .mr-shell か mr-tabs-pad の**どちらか一方**`,
-       `shell ${hasShell} / pad ${hasPad}`);
+  ok(noAsset.length === 0, '★★408枚は app-nav.css / pv-tokens.css / app-nav.js を読む',
+     noAsset.join(' / '));
+
+  /* ★★ここが今回いちばん大事。**app-nav.js は search.js より後**に読む。
+     ⚠️ 2026-09-06 に**逆になった**。16枚だけだった頃は「先に同じ id の ≡ を立てて
+        search.js の inject() を丸ごと止める」やり方だった。408枚へ広げた今それをやると、
+        **ヘッダーの自動折り畳みごと殺す** ── fit() / fits() / needed() が同じ
+        inject() の中に入っているため（search.js:416 以降）。
+        だから公開ページでは inject() を普通に走らせ、走り終わってから
+        app-nav.js が ≡ を clone-replace して中身だけ差し替える。
+     ★airlines/ の日本語115枚は search.js を読んでいない（今回はじめてナビが出る）。
+        そこは app-nav.js が自分で ≡ を作る。 */
+  const badOrder = side.filter((p) => {
+    const up = upOf(p.rel);
+    const a = p.html.indexOf(`src="${up}app-nav.js"`);
+    const b = p.html.indexOf(`src="${up}search.js"`);
+    return a < 0 || (b >= 0 && a < b);
+  }).map((p) => p.rel);
+  ok(badOrder.length === 0, '★★search.js を読むページでは app-nav.js を**後**に読む',
+     badOrder.join(' / '));
+  ok(read('search.js').includes("if (document.getElementById('pv-ham-btn')) return;"),
+     '★★search.js の二重注入ガードが残っている（これが無いと ≡ が二重に立つ）');
+  {
+    const NAV = read('app-nav.js');
+    ok(NAV.includes("'pv-ham-btn'"), '★app-nav.js が同じ id の ≡ を扱う');
+    /* ★clone-replace であること。消して作り直すと、fit() が掴んでいる参照と
+         MutationObserver の見張りがずれて、狭い幅でヘッダーが畳まれなくなる。 */
+    ok(/cloneNode\(true\)/.test(NAV) && /replaceChild/.test(NAV),
+       '★★≡ は作り直さず clone-replace する（折り畳みの参照を壊さない）');
   }
+
+  /* ★公開ページにアプリのナビを入れない（オーナー確定事項6の境界）。
+       index.html / community.html / world-airlines.html と航空会社ページは
+       今までどおり #main-nav ＋ search.js の右から出る引き出しのまま。
+       ⚠️ **コメントを先に外してから探す。** 字面だけで探すと、
+          「帯を app-nav.js の左ドロワーへ畳んだ」と経緯を書き留めた
+          world-airlines.html の注意書きに当たって落ちる（2026-09-06 に踏んだ）。
+          見るのは実際に読み込む <script src="…app-nav.js"> の1形だけ。 */
+  const bare = (h) => h.replace(/<!--[\s\S]*?-->/g, () => ' ');
+  const hasNav = (h) => /<script[^>]+src="(?:\.\.\/)?app-nav\.js"/.test(bare(h))
+                     || /<link[^>]+href="(?:\.\.\/)?app-nav\.css"/.test(bare(h))
+                     || bare(h).includes('<nav class="mr-side"');
+  const leaked = pages.filter((p) => hasNav(p.html) && !p.html.includes('<nav class="mr-side"'))
+    .map((p) => p.rel);
+  ok(leaked.length === 0, '★★資材だけ読んで板が無いページが1枚も無い', leaked.join(' / '));
+  /* ★公開ページにも同じ板が在る（オーナー確定事項10）。
+     ⚠️ 「ナビを統一する」と「ページをアプリ化する」は別。
+        本文・口コミ・一覧・年収・SEO は1バイトも触っていない。 */
+  for (const rel of ['index.html', 'en/index.html', 'community.html', 'en/community.html',
+                     'world-airlines.html', 'en/world-airlines.html',
+                     'airlines/ana.html', 'en/airlines/ana.html', 'countries/japan.html']) {
+    ok(read(rel).includes('<nav class="mr-side"'), `★${rel} にも同じ板が在る`);
+    ok(read(rel).includes('id="main-nav"'), `★${rel} のヘッダーは公開ページのまま`);
+  }
+
+  /* ★給与フォームには置かない（2026-09-05 オーナー決定）。
+       あそこは書きかけが消えるのでグローバルなナビを持たせない。 */
+  ok(!read('pay-report.html').includes('<nav class="mr-side"'),
+     '★pay-report.html にはアプリのナビを置かない（書きかけが消える）');
+
   /* ★入れ物が他の中身を呑み込んでいないか。
        patch-side-nav.mjs は「入れ物の始まり 〜 最初の </nav>」を差し替える。
        2026-09-05、ページのコメントに入れ物と同じ字面を1行書いたせいで、
        そこから最初の </nav> までが差し替え範囲になり、CSS 240行とヘッダーが消えた。
-       ファイルは壊れたのに、そのとき赤くなった検査は1本も無かった。
-       ★中身は5つの口だけ＝どのページでも 1000 字に満たない。 */
-  for (const p of tab) {
-    const m = p.html.match(/^<nav class="mr-tabs"[\s\S]*?<\/nav>/m);
-    ok(m && m[0].length < 1000 && !/<\/style>|<!--|<script/.test(m[0]),
-       `${p.rel}: 下タブの入れ物が他の中身を呑み込んでいない`,
-       m ? `${m[0].length}字` : '入れ物が行頭に無い');
+       ファイルは壊れたのに、そのとき赤くなった検査は1本も無かった。 */
+  /* ★408枚ぶんを1行にまとめる（1枚ずつ出すと、ここだけで 408行になる）。 */
+  {
+    const ate = side.filter((p) => {
+      const i = p.html.indexOf('<nav class="mr-side"');
+      const m = p.html.slice(i, p.html.indexOf('</nav>', i) + 6);
+      return !(m.length < 6000 && !/<\/style>|<!--|<script/.test(m));
+    }).map((p) => p.rel);
+    ok(ate.length === 0, '★★左メニューの入れ物が他の中身を呑み込んでいない（408枚）',
+       ate.join(' / '));
   }
   /* ★呑み込みを止める見張りが生成器に残っているか。 */
   {
     const g = read('patch-side-nav.mjs');
-    ok(/\/\^<nav class="mr-tabs"/.test(g), '★生成器は入れ物を**行頭で**探す（錨を外さない）');
     ok(/<\\\/style>\|<!--\|<script/.test(g), '★生成器に呑み込みの見張りが在る');
+    ok(/^const TABS\b/m.test(g) === false && !/buildTabs/.test(g),
+       '★生成器から下タブの配布が消えている（TABS / buildTabs を戻さない）');
   }
 
-  /* ★帯は <nav> なので、ページ側に**要素名で掴む**規則が在ると巻き込まれる。
-       2026-09-05、世界の航空会社一覧の `nav{position:fixed;top:0}` が下タブにも当たり、
-       帯が画面いっぱい（844px）に伸びていた。画面は普通に動いたままで、
-       気づいたのは assert-header.mjs の「足元の余白 ≧ 帯の高さ」だけ。
-       ページ側は #main-nav に絞り、tabs.css には top:auto を入れてある。 */
-  const bareNav = tab.filter((p) => /(^|\n)(\[[^\]]*\] )?nav[ .:,{]/.test(p.html)).map((p) => p.rel);
-  ok(bareNav.length === 0, '★★下タブを出すページに「nav」を要素名で掴む CSS が無い',
-     bareNav.join(' / '));
-  ok(/top:auto/.test(read('tabs.css')), '★tabs.css の .mr-tabs に top:auto が在る');
-
-  /* ★給与フォームには置かない（2026-09-05 オーナー決定）。
-       あそこは .sticky-cta が足元を使っていて帯が2本になり、
-       下書きの自動保存が無いので、途中で他所へ移ると数字が消える。 */
-  ok(!read('pay-report.html').includes('<nav class="mr-tabs"'),
-     '★pay-report.html には下タブを置かない（提出の帯と2本になる・書きかけが消える）');
-  ok(!/'add'/.test(read('patch-side-nav.mjs').match(/const TABS = \[[^\]]*\]/)?.[0] || "'add'"),
-     '★下タブに「給与を追加」を戻していない（行き先に帯が無い）');
-  /* ★下タブの CSS は tabs.css の1か所だけ。
-       my-value.css に書くと世界の航空会社一覧に効かず、
-       actual-pay.css に書くと他の15枚に効かないまま緑になる。
-     ★見るのは**規則**だけ。コメントは先に外す ── そうしないと、あちらに書き留めた
-       「ここに .mr-tabs を書き戻さない」という注意書きそのものに当たって落ちる。 */
-  const noCmt = (f) => read(f).replace(/\/\*[\s\S]*?\*\//g, () => ' ');
-  ok(/\.mr-tabs\{/.test(noCmt('tabs.css')), '★下タブの CSS は tabs.css が持つ');
-  for (const f of ['my-value.css', 'actual-pay.css']) {
-    ok(!/\.mr-tabs?\b/.test(noCmt(f)),
-       `★${f} に .mr-tabs を書き戻していない（2か所になると片方が古くなる）`);
+  /* ★ドロワーの約束（app-nav.js）。
+     ⚠️ history を積まない ── Phase 4 で REAL PAY の詳細を「戻る」で閉じる予定で、
+        ナビのドロワーが積むと、そちらが拾って詳細ではなくナビが閉じる。 */
+  {
+    const NAV = read('app-nav.js').replace(/\/\*[\s\S]*?\*\//g, () => ' ')
+      .replace(/^[ \t]*\/\/.*$/gm, () => '');
+    ok(!/pushState|replaceState/.test(NAV),
+       '★★ドロワーは history を積まない（Phase 4 の「戻る」と衝突させない）');
+    ok(/Escape/.test(NAV), '★Escape で閉じる');
+    ok(/pv-anav-ov/.test(NAV), '★暗幕を出す（押しても閉じる）');
+    ok(/\.focus\(/.test(NAV), '★閉じたら ≡ に焦点を戻す');
+    ok(/resize/.test(NAV), '★広い画面に戻したら閉じる（レールに化けたまま開きっぱなしにしない）');
+    ok(/aria-expanded/.test(NAV), '★≡ は開閉を読み上げに伝える');
+  }
+  /* ★狭い画面の板の見た目は app-nav.css の1か所だけ。 */
+  {
+    const CSS = read('app-nav.css');
+    /* ★2026-09-06、左 → **右**（オーナー指示）。☰ が右上に在るので、
+         指と板が同じ側に来る。app-nav.js は左右を1文字も知らない＝CSS だけの話。
+       ⚠️ 符号を落とさない ── `translateX(100%)` は**右外**、`-100%` は左外。
+          ここを字面で見ているので、向きを戻すならこの1行も一緒に戻す。 */
+    ok(/max-width:1000px/.test(CSS) && /transform:translateX\(100%\)/.test(CSS),
+       '★★狭い画面では板を画面の**右外**へ逃がす（右から出る）');
+    ok(/visibility:hidden/.test(CSS),
+       '★閉じている板はタブ移動で拾えない（visibility で外す）');
+    ok(!/#[0-9a-fA-F]{3,8}\b/.test(CSS.replace(/\/\*[\s\S]*?\*\//g, () => ' ')
+        .replace(/rgba?\([^)]*\)/g, () => ' ')),
+       '★app-nav.css は hex を直に書かない（--pv-* を使う＝明暗の切替が効く）');
   }
 }
 
-/* ★左メニューの並び（2026-08-24 オーナー指定）。
-     REAL PAY → DEEP PAY → VERIFIED PAY。
-   ★後ろ2つはまだページが無い。**リンクにしない。**
-     リンクにすると assert-links.mjs が 404 で落ちるし、押した人が行き止まりに落ちる。
-   ⚠️ href の無い <a> は「押せそうに見えるのにキーボードから触れない」＝いちばん悪い形。
-   ★2026-08-25、<span aria-disabled="true"> をやめて **<button type="button">** にした。
-     オーナー指示「未解放の場合は lock 状態を表示してクリック可能にし、
-     クリック後に何を Give すると何が Get できるかを説明する」。
-     <button> なら 404 も作らず、キーボードからも掴めて、押すと説明が出せる。
-     ⚠️ <span aria-disabled> に戻すと、押せる約束が黙って消える。 */
+/* ★左メニューの中身（2026-09-06 オーナー確定）。
+     ┌ 独立CTA　匿名で給与を追加            → pay-report.html#ps
+     └ 1 HOME / 2 REAL PAY / 3 VOTE / 4 ROADMAP & REQUESTS /
+       5 AIRLINES / 6 INVITE / 7 MY PAGE
+   ★DEEP PAY / VERIFIED PAY の「準備中」の段は**撤去した**。
+     DEEP PAY は Phase 6 で REAL PAY の内側へ、
+     VERIFIED PAY は実際の検証機能が出来るまで出さない。
+   ⚠️ 押せない段を戻さない ── 7項目のうち押しても何も起きないものが混ざると、
+      「どれが生きているのか」を毎回試させることになる。 */
+const NAV_ORDER = ['HOME', 'REAL PAY', 'VOTE', 'ROADMAP & REQUESTS',
+                   'AIRLINES', 'INVITE', 'MY PAGE'];
+const NAV_HREF = {
+  'HOME': 'index.html', 'REAL PAY': 'actual-pay.html', 'VOTE': 'community.html',
+  'ROADMAP & REQUESTS': 'roadmap.html', 'AIRLINES': 'world-airlines.html',
+  'INVITE': 'invite.html', 'MY PAGE': 'profile.html',
+};
+const NAV_EN = {
+  'HOME': 'HOME', 'REAL PAY': 'REAL PAY', 'VOTE': 'VOTE',
+  'ROADMAP & REQUESTS': 'ROADMAP & REQUESTS', 'AIRLINES': 'AIRLINES',
+  'INVITE': 'INVITE', 'MY PAGE': 'MY PAGE',
+};
 for (const [name, file] of [['ja', 'actual-pay.html'], ['en', 'en/actual-pay.html']]) {
   const html = read(file);
   const i = html.indexOf('class="mr-side"');
   const nav = i < 0 ? '' : html.slice(i, html.indexOf('</nav>', i));
   ok(nav.length > 0, `${name}: 左メニューが読めた`);
 
-  /* ★属性は開きタグ**全体**を掴む。type="button" は class より前に出るので、
-       class の後ろだけを見ていると「button なのに type が無い」に見える。 */
+  /* ★属性は開きタグ**全体**を掴む（class より前に出る属性があるため）。 */
   const items = Array.from(nav.matchAll(/<(a|span|button)(\s[^>]*class="mr-side-a[^"]*"[^>]*)>([\s\S]*?)<\/\1>/g))
     .map((m) => ({ tag: m[1], attr: m[2], body: m[3],
                    label: ((m[3].match(/<span>([^<]+)<\/span>/) || [])[1] || '').trim() }));
   const labels = items.map((x) => x.label);
-  const at = (s) => labels.indexOf(s);
 
-  ok(at('REAL PAY') >= 0 && at('DEEP PAY') >= 0 && at('VERIFIED PAY') >= 0,
-     `${name}: ★3枚とも左メニューにある`, labels.join(' / '));
-  ok(at('REAL PAY') < at('DEEP PAY') && at('DEEP PAY') < at('VERIFIED PAY'),
-     `${name}: ★並びは REAL PAY → DEEP PAY → VERIFIED PAY`, labels.join(' / '));
+  /* ① 独立CTA が先頭。色を持つのはこれ1つだけ。 */
+  ok(items[0] && /\bis-add\b/.test(items[0].attr) && /href="pay-report\.html#ps"/.test(items[0].attr),
+     `${name}: ★先頭は「匿名で給与を追加」（pay-report.html#ps）`, items[0] ? items[0].attr.trim() : '(無し)');
+  ok(items.filter((x) => /\bis-add\b/.test(x.attr)).length === 1,
+     `${name}: ★色を持つ段は1つだけ`);
 
-  for (const l of ['DEEP PAY', 'VERIFIED PAY']) {
-    const it = items[at(l)];
-    ok(it && it.tag === 'button' && /type="button"/.test(it.attr),
-       `${name}: ★${l} は押せる <button>（<span aria-disabled> に戻さない）`,
-       it ? `${it.tag} ${it.attr.trim()}` : '(無し)');
-    ok(it && !/href=/.test(it.attr), `${name}: ★${l} に行き先を書かない（404 を作らない）`);
-    ok(it && !/aria-disabled/.test(it.attr),
-       `${name}: ★${l} を「押せない」と名乗らせない（押すと説明が出る）`, it ? it.attr.trim() : '');
-    ok(it && /data-mr-gate="/.test(it.attr),
-       `${name}: ★${l} に門の目印がある（pv-gates.js が説明を出す）`, it ? it.attr.trim() : '');
-    ok(it && /class="mr-side-lk"/.test(it.body),
-       `${name}: ★${l} に錠前が静的に入っている（JS が落ちても閉じていると分かる）`);
-    ok(it && /aria-label="[^"]+"/.test(it.attr),
-       `${name}: ★${l} は読み上げでも「準備中・押すと説明」と分かる`, it ? it.attr.trim() : '');
+  /* ② そのあとが7項目、この並びで。 */
+  const want = NAV_ORDER.map((k) => (name === 'en' ? NAV_EN[k] : k));
+  ok(labels.length === 8, `${name}: ★段は CTA ＋ 7項目 ＝ 8つ`, labels.join(' / '));
+  ok(labels.slice(1).join('|') === want.join('|'),
+     `${name}: ★★並びが HOME → REAL PAY → VOTE → ROADMAP & REQUESTS → AIRLINES → INVITE → MY PAGE`,
+     labels.slice(1).join(' / '));
+
+  /* ③ 行き先。VOTE と AIRLINES は**名前を変えただけ**で既存のページを指す。 */
+  for (let k = 0; k < NAV_ORDER.length; k++) {
+    const it = items[k + 1];
+    const href = NAV_HREF[NAV_ORDER[k]];
+    ok(it && it.tag === 'a' && it.attr.includes(`href="${href}"`),
+       `${name}: ★${NAV_ORDER[k]} → ${href}`, it ? it.attr.trim() : '(無し)');
   }
-  const real = items[at('REAL PAY')];
-  ok(real && real.tag === 'a' && /aria-current="page"/.test(real.attr),
-     `${name}: ★今いる REAL PAY だけが「このページ」の印を持つ`,
-     real ? real.attr.trim() : '(無し)');
-  ok(real && /data-mr-gate="real"/.test(real.attr),
-     `${name}: ★REAL PAY にも門の目印がある（錠前は実行時に付く）`,
-     real ? real.attr.trim() : '(無し)');
-  ok(real && !/class="mr-side-lk"/.test(real.body),
-     `${name}: ★REAL PAY の錠前は静的に置かない（開いている人に錠前が一瞬出る）`);
+
+  /* ④ 押せない段が1つも無い。 */
+  ok(items.every((x) => x.tag === 'a' && /href="/.test(x.attr)),
+     `${name}: ★★押しても何も起きない段が1つも無い（button / 空リンクを戻さない）`,
+     items.filter((x) => x.tag !== 'a').map((x) => x.label).join(' / '));
+  ok(!/DEEP PAY|VERIFIED PAY/.test(nav),
+     `${name}: ★★DEEP PAY / VERIFIED PAY の「準備中」を左メニューに戻していない`);
+  ok(!/mr-side-lk/.test(nav),
+     `${name}: ★静的な錠前は置かない（錠前は pv-gates.js が実行時に付ける）`);
+
+  /* ⑤ 門の目印は REAL PAY だけ（pv-gates.js が読む）。 */
+  const gated = items.filter((x) => /data-mr-gate="/.test(x.attr));
+  ok(gated.length === 1 && /data-mr-gate="real"/.test(gated[0].attr) && gated[0].label === 'REAL PAY',
+     `${name}: ★門の目印は REAL PAY の1つだけ`, gated.map((x) => x.label).join(' / '));
+
+  /* ⑥ 「今このページ」の印は1つだけ。 */
+  const cur = items.filter((x) => /aria-current="page"/.test(x.attr));
+  ok(cur.length === 1 && cur[0].label === 'REAL PAY',
+     `${name}: ★今いる REAL PAY だけが「このページ」の印を持つ`, cur.map((x) => x.label).join(' / '));
+  ok(cur.length === 1 && /\bis-on\b/.test(cur[0].attr),
+     `${name}: ★印の付いた段だけが光る（is-on）`);
+
+  /* ⑦ 出口。アプリ画面にはフッターが無いので、お問い合わせをここで受ける。
+       ⚠️ 色を付けない ── 色を持つのは「匿名で給与を追加」1つだけ。 */
+  ok(/<a class="mr-side-sub" href="contact\.html">/.test(nav),
+     `${name}: ★お問い合わせへの出口が在る（アプリ画面にフッターが無いため）`);
 }
 
 /* ════════════════════════════════════════════════════════════════
@@ -1140,6 +1265,13 @@ const SNAP = () => {
       s: ((e.querySelector('.pv-give-s') || {}).textContent || '').trim(),
       live: e.classList.contains('is-live')
     })),
+    /* ── 準備中の札（＝解放条件の説明への入口。2026-09-06 に左メニューから移した）── */
+    pills: q('[data-pv-give]').map((e) => ({
+      k: e.getAttribute('data-pv-give'),
+      tag: e.tagName.toLowerCase(),
+      aria: e.getAttribute('aria-label') || '',
+      inPanel: !!(e.closest && e.closest('.mr-gate'))
+    })),
     /* ── 左メニューの門（実行時の姿）───────────────────── */
     gates: q('[data-mr-gate]').map((e) => ({
       k: e.getAttribute('data-mr-gate'),
@@ -1337,7 +1469,12 @@ for (const lang of ['ja', 'en']) {
        `${lang}: ★REAL PAY の段に「準備中」が付いていない`, JSON.stringify(g[0] || {}));
   }
 
-  /* ★左メニュー：REAL PAY に錠前が出て、DEEP / VERIFIED は押せる button のまま。 */
+  /* ★左メニュー：門は REAL PAY の1つだけ（2026-09-06）。
+       DEEP PAY / VERIFIED PAY の「準備中」の段は撤去した ── 押しても行き先が無い
+       段を7項目のナビに混ぜない。DEEP PAY は Phase 6 で REAL PAY の内側へ、
+       VERIFIED PAY は本物の検証機能が出来るまで出さない。
+       ⚠️ **Give → Get の3段（上のブロック）とは別物。** あちらは本文の案内で
+          「準備中」と書いてあるのが正しい。ここはナビの段。混同しない。 */
   {
     const by = Object.fromEntries(v.gates.map((x) => [x.k, x]));
     ok(by.real && by.real.locked && by.real.lk === 1,
@@ -1345,10 +1482,25 @@ for (const lang of ['ja', 'en']) {
     ok(by.real && by.real.tag === 'a' && /actual-pay\.html/.test(by.real.href || ''),
        `${lang}: ★錠前が出ていても REAL PAY はリンクのまま（行き止まりを作らない）`,
        JSON.stringify(by.real || {}));
-    for (const k of ['deep', 'verified']) {
-      ok(by[k] && by[k].tag === 'button' && by[k].lk === 1 && by[k].aria,
-         `${lang}: ★${k} は錠前つきの押せる button`, JSON.stringify(by[k] || {}));
-    }
+    ok(v.gates.length === 1,
+       `${lang}: ★★門は REAL PAY の1つだけ（deep / verified の段を戻していない）`,
+       v.gates.map((x) => x.k).join(' / '));
+    /* ★★段を撤去したぶん、DEEP PAY の説明への入口は札が引き受ける。
+         ここが消えると「あと79人」も「内訳を共有すると」も**開く道が無くなる**
+         （2026-08-25 のオーナー指示そのものが画面から消える）。
+         押せない <span> に戻っていないかまで見る。
+       ⚠️ **VERIFIED PAY の札は押せないまま**（2026-09-06 オーナー確定）。
+          本人確認の機能がまだ無いので、新しいクリック導線を作らない・目立たせない。
+          押せる札は data-pv-give を持つので、verified がここに1つも出ないことを見る。 */
+    const byP = Object.fromEntries(v.pills.map((x) => [x.k, x]));
+    ok(byP.deep && byP.deep.tag === 'button' && byP.deep.aria && !byP.deep.inPanel,
+       `${lang}: ★★deep の札が説明を開く入口になっている（段を消した先の受け皿）`,
+       JSON.stringify(byP.deep || {}));
+    ok(!byP.verified,
+       `${lang}: ★★verified の札は押せない（検証機能が出来るまで導線を作らない）`,
+       JSON.stringify(byP.verified || {}));
+    ok(v.pills.every((x) => x.k === 'deep'),
+       `${lang}: ★★押せる札は DEEP PAY だけ`, v.pills.map((x) => x.k).join(' / '));
   }
   ok(v.barHidden === true, '★絞り込みの帯ごと隠れる（空の選択肢を並べない）',
      String(v.barHidden));
@@ -1440,10 +1592,14 @@ for (const lang of ['ja', 'en']) {
   }
 
   /* ★条件2つを別々に書いてある（100人 ／ 本人の内訳）。
-       この人はまだ内訳を出していないので「内訳を足す」側が出る。 */
+       この人はまだ内訳を出していないので「内訳を足す」側が出る。
+       ⚠️ 押すのは**本文の Give → Get の3段の札**（2026-09-06）。
+          もとは左メニューの DEEP PAY だったが、ナビを7項目へ畳んだ回に
+          あの段を撤去した。撤去だけすると鍵を持たない人にはこの説明への道が
+          1つも無くなるので、入口を「21 / 100人」の札へ移してある。 */
   {
     const g = await page.evaluate(() => {
-      const b = document.querySelector('[data-mr-gate="deep"]');
+      const b = document.querySelector('[data-pv-give="deep"]');
       if (!b) return { no: true };
       b.click();
       const p = document.getElementById('mr-gate');
@@ -1483,7 +1639,7 @@ for (const lang of ['ja', 'en']) {
   console.log(`\n════ ${lang} / A-2b 先に内訳を出した人 ════`);
   const { page, errs } = await open(lang, LOCKED_DET);
   const g = await page.evaluate(() => {
-    const b = document.querySelector('[data-mr-gate="deep"]');
+    const b = document.querySelector('[data-pv-give="deep"]');
     if (!b) return { no: true };
     b.click();
     const p = document.getElementById('mr-gate');
@@ -1505,19 +1661,22 @@ for (const lang of ['ja', 'en']) {
 }
 
 /* ════════════════════════════════════════════════════════════════
-   A-3 左メニューのロックを押したとき（2026-08-25）
+   A-3 錠前を押したとき（2026-08-25）
    ★オーナー指示「未解放の場合は lock 状態を表示してクリック可能にし、
      クリック後に何を Give すると何が Get できるかを説明する」。
    ★ここで作るのは**覆いではない**。招待の着地と同じで、
      スクロールを止めない・下のページを残す・閉じ方が3つある。
+   ★2026-09-06、押す場所が変わった ── 左メニューの DEEP PAY / VERIFIED PAY の段は
+     ナビを7項目へ畳んだ回に撤去したので、入口は本文の Give → Get の3段の札。
+     **説明そのものは1文字も変えていない。**（REAL PAY の段だけは今も左メニューに在る）
    ════════════════════════════════════════════════════════════════ */
 for (const lang of ['ja', 'en']) {
   console.log(`\n════ ${lang} / A-3 ロックを押す ════`);
   const { page, errs } = await open(lang, LOCKED);
 
-  /* DEEP PAY（ページが無い側）を押す。 */
+  /* DEEP PAY（ページが無い側）の札を押す。 */
   const g = await page.evaluate(() => {
-    const b = document.querySelector('[data-mr-gate="deep"]');
+    const b = document.querySelector('[data-pv-give="deep"]');
     if (!b) return { no: true };
     const before = { ov: document.body.style.overflow, h: document.body.scrollHeight };
     b.click();
@@ -1544,7 +1703,7 @@ for (const lang of ['ja', 'en']) {
     };
   });
 
-  ok(!g.no, `${lang}: ★ロックを押すと説明が出る`, JSON.stringify(g));
+  ok(!g.no, `${lang}: ★錠前（準備中の札）を押すと説明が出る`, JSON.stringify(g));
   ok(g.first === true, `${lang}: ★説明は本文の先頭に差し込まれる（別画面に飛ばさない）`,
      String(g.first));
   ok(g.pos !== 'fixed' && g.role !== 'dialog' && g.modal !== 'true',
@@ -1567,7 +1726,7 @@ for (const lang of ['ja', 'en']) {
   /* 閉じ方3つ ── ESC ／ 外を押す ／ ×。 */
   const closes = await page.evaluate(async () => {
     const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-    const open1 = () => { document.querySelector('[data-mr-gate="deep"]').click(); };
+    const open1 = () => { document.querySelector('[data-pv-give="deep"]').click(); };
     const alive = () => !!document.getElementById('mr-gate');
     const out = {};
 
@@ -2221,40 +2380,36 @@ for (const lang of ['ja', 'en']) {
 }
 
 // ════════════════════════════════════════════════════════════════
-// I. 左メニューの DEEP PAY の札を、どの画面でも同じ数にする（2026-08-25）
+// I. DEEP PAY の札は、数え上げが来ない場面でも同じ数になる（2026-08-25）
 // ════════════════════════════════════════════════════════════════
-/* 左メニューは4画面（マイレポート／REAL PAY／DEEP PAY／VERIFIED PAY／設定）に
-   同じものが出ていて、DEEP PAY を押すとどこでも同じ説明が開く。
-   ところが数を持っていたのは pv_pay_rows() を引く2画面だけで、残りは
-   「準備中」のままだった＝**同じボタンなのに画面によって答えが違う**。
+/* もとは「左メニューの DEEP PAY を押すとどこでも同じ説明が開くのに、数を持って
+   いたのは pv_pay_rows() を引く2画面だけだった」という食い違いを直した節。
+   直した形は「押されたときに1回だけ pv_give_progress() に聞く」。
 
-   直した形は「押されたときに1回だけ pv_give_progress() に聞く」。ここで見るのは4つ。
-     ① 数を渡されない画面でも、押せば「17 / 100人」になる
+   ⚠️ 2026-09-06、押す場所が左メニューから**本文の Give → Get の3段の札**へ移った
+      （ナビを7項目へ畳んだ回に DEEP PAY / VERIFIED PAY の段を撤去したため）。
+      仕掛けは1バイトも変わっていないので、見るものも同じ4つ。場面だけ、
+      「札は在るがサーバが数え上げを返さない」＝ stats の無い locked に置き換えた。
+
+     ① 数を渡されない場面でも、押せば「17 / 100人」になる
      ② 聞くのは**押されたときだけ**（開いただけでは1本も投げない）
      ③ 聞くのは**1度きり**（何度押しても増えない）
-     ④ 既に数を持っている画面では**聞かない**（一覧を引く2画面）
+     ④ 既に数を持っている場面では**聞かない**（stats が来ている locked）
    ★サーバがまだ古い（札の口が無い）ときは黙って「準備中」のまま。0 を置かない。 */
 {
   const PROG = { ok: true, contributors: 17,
                  give: { basic: false, detailed: false, payslip: false } };
 
-  const openPage = async (url, payload) => {
-    const page = await fresh();
-    const errs = [];
-    page.on('pageerror', (e) => errs.push(String(e.message).slice(0, 140)));
-    await page.evaluateOnNewDocument(FAKE, payload);
-    await page.goto(BASE + url, { waitUntil: 'domcontentloaded', timeout: 30000 });
-    await sleep(2000);
-    return { page, errs };
-  };
-
-  /* 左メニューの DEEP PAY を押して、札と RPC の呼ばれ方を読む。 */
+  /* DEEP PAY の札を押して、札と RPC の呼ばれ方を読む。 */
   const pressDeep = (times) => page => page.evaluate(async (n) => {
     const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-    const b = document.querySelector('[data-mr-gate="deep"]');
-    if (!b) return { no: true };
+    /* ⚠️ **毎回引き直す。** 数が届くと refreshGive() が3段を丸ごと作り直すので、
+         最初に掴んだ札は2回目の時点で DOM から外れている（押しても document に届かない）。
+         人は画面に出ているものを押すので、こちらも押す直前に引き直す。 */
+    if (!document.querySelector('[data-pv-give="deep"]')) return { no: true };
     for (var i = 0; i < n; i++) {
-      b.click();
+      var b = document.querySelector('[data-pv-give="deep"]');
+      if (b) b.click();
       await sleep(120);
       const x = document.querySelector('.mr-gate-x');
       if (i < n - 1 && x) x.click();
@@ -2272,25 +2427,24 @@ for (const lang of ['ja', 'en']) {
     };
   }, times);
 
-  for (const lang of ['ja', 'en']) {
-    console.log(`\n════ ${lang} / I 数を渡されない画面（設定）で札を押す ════`);
-    const url = (lang === 'en' ? '/en/' : '/') + 'profile.html';
+  const nRpc = (calls, name) => calls.filter((n) => n === name).length;
 
-    // ①②③ 札の口がある状態
-    const { page, errs } = await openPage(url, { progress: PROG });
+  for (const lang of ['ja', 'en']) {
+    console.log(`\n════ ${lang} / I 数え上げが来ない場面で札を押す ════`);
+
+    // ①②③ 札の口がある状態（stats が来ないので setProgress は数を持たない）
+    const { page, errs } = await open(lang, Object.assign({ progress: PROG }, LOCKED));
     const before = await page.evaluate(() => (window.__rpc || []).map((r) => r.name));
     ok(!before.includes('pv_give_progress'),
        `${lang}: ★開いただけでは1本も投げない（押されたときだけ聞く）`, before.join(','));
-    ok(!before.includes('pv_pay_rows'),
-       `${lang}: ★この画面は一覧（pv_pay_rows）を引かない`, before.join(','));
+    const rows0 = nRpc(before, 'pv_pay_rows');
 
     const g = await pressDeep(3)(page);
     ok(!g.no, `${lang}: DEEP PAY の説明が開く`);
-    ok(g.calls.filter((n) => n === 'pv_give_progress').length === 1,
-       `${lang}: ★3回押しても聞くのは1度きり`,
-       String(g.calls.filter((n) => n === 'pv_give_progress').length));
-    ok(!g.calls.includes('pv_pay_rows'),
-       `${lang}: ★札のために一覧を引かない（鍵を持つ人に要らない行が付いてくる）`,
+    ok(nRpc(g.calls, 'pv_give_progress') === 1,
+       `${lang}: ★3回押しても聞くのは1度きり`, String(nRpc(g.calls, 'pv_give_progress')));
+    ok(nRpc(g.calls, 'pv_pay_rows') === rows0,
+       `${lang}: ★札のために一覧を引き直さない（鍵を持つ人に要らない行が付いてくる）`,
        g.calls.join(','));
     const want = (lang === 'ja' ? '17 / 100人' : '17 / 100');
     ok(g.pills.some((t) => t.indexOf(want) === 0),
@@ -2301,7 +2455,7 @@ for (const lang of ['ja', 'en']) {
     ok(errs.length === 0, `${lang}: ページのエラーが1件も出ない`, errs.join(' | '));
 
     // ★サーバがまだ古い（札の口が無い）とき ── 「準備中」のまま。0 を置かない。
-    const old = await openPage(url, {});
+    const old = await open(lang, LOCKED);
     const o = await pressDeep(1)(old.page);
     ok(!o.no, `${lang}: 札の口が無くても説明は開く`);
     ok(o.goal === '' && !/\d/.test(o.pills.join(' ')),
@@ -3118,10 +3272,36 @@ const sheetGone = (page) =>
   till(page, "!document.getElementById('ap-sheet').hasAttribute('role')");
 
 /* 幅を変えて、その幅で描き終わるまで待つ。 */
+/* ★幅を変えたら、板が滑り終わるまで待つ。**時間では待たない。**
+     1000px の境目をまたいだ瞬間、閉じている板は 0.32s かけて画面の外へ動き、
+     visibility も同じだけ遅れて hidden になる。途中で測ると
+     「閉じているのに左端に見えている」と出て、**直っているのに赤くなる**
+     （2026-09-06 に踏んだ。CLAUDE.md の「時間で待つ検査は嘘の赤を出す」そのもの）。
+   ★止まったことは「2回続けて同じ右端」で判定する（開いている板でも同じに効く）。 */
+/* ⚠️ 「2回続けて同じ値」だけでは足りない（2026-09-06 に**両側**を踏んだ）──
+     ・混んだ回は transition が**まだ始まっていない**うちに同じ値を2回読み、
+       動く前の位置（画面の外）で「止まった」と判定してしまう＝**嘘の緑**
+     ・逆に 380ms の sleep で待つと滑っている途中を読み、left が -1 や -17 になる＝**嘘の赤**
+   → **一度でも動いたのを見てから、同じ値が3回続いたとき**に止まったと数える。
+     まったく動かない場面（reduced-motion・もう定位置）もあるので、
+     10回続けて同じなら「そもそも動かない」と見なして抜ける。 */
+const SETTLED = "(function(){var e=document.querySelector('.mr-side');if(!e)return true;"
+  + "var r=Math.round(e.getBoundingClientRect().right);var s=window.__sideS;"
+  + "if(!s){s=window.__sideS={p:r,moved:false,same:0};return false;}"
+  + "if(s.p!==r){s.p=r;s.moved=true;s.same=0;return false;}"
+  + "s.same++;return (s.moved&&s.same>=3)||s.same>=10;})()";
+
+/* 板が滑り終わるまで待つ。**時間では待たない。** */
+const sideStill = async (page) => {
+  await page.evaluate(() => { delete window.__sideS; });
+  await till(page, SETTLED);
+  await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+};
+
 const widen = async (page, w) => {
   await page.setViewport({ width: w, height: 780 });
   await till(page, 'window.innerWidth === ' + w);
-  await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+  await sideStill(page);
 };
 
 /* 狭い幅で一度に読み取るもの。★毎回同じ形で取る（ケースごとに見方を変えない）。 */
@@ -3133,9 +3313,9 @@ const NAR = () => {
     return { w: Math.round(r.width), h: Math.round(r.height),
              top: Math.round(r.top), bottom: Math.round(r.bottom),
              left: Math.round(r.left), right: Math.round(r.right) }; };
-  const tabs = document.querySelector('.mr-tabs');
+  const ham = document.getElementById('pv-ham-btn');
   /* 触れる的。★出ていないもの（幅 0）は数えない。 */
-  const small = q('#ap-rows .ap-go,#ap-rows .ap-pg,.mr-tab,#ap-open-f,#ap-clear')
+  const small = q('#ap-rows .ap-go,#ap-rows .ap-pg,#pv-ham-btn,#ap-open-f,#ap-clear')
     .map((e) => ({ c: e.className || e.id, b: e.getBoundingClientRect() }))
     .filter((x) => x.b.width > 0 && (x.b.height < 44 || x.b.width < 44))
     .map((x) => x.c + ':' + Math.round(x.b.width) + '×' + Math.round(x.b.height));
@@ -3158,22 +3338,28 @@ const NAR = () => {
         : 0; })(),
     barsH: (() => { const h = (s2) => { const e = document.querySelector(s2);
       return e ? Math.round(e.getBoundingClientRect().height) : 0; };
-      return h('.mr-top') + h('.ap-filter') + h('.mr-tabs'); })(),
+      return h('.mr-top') + h('.ap-filter'); })(),
     /* カードに組み替わったか ── 見出し語（年収 / 月あたり）が出ている。 */
     labs: q('.ap-cl').filter((e) => e.getBoundingClientRect().height > 0).length,
     /* 表の見出しは消さない（読み上げのために置いたまま隠す）。 */
     theadDisp: st(document.querySelector('#ap-rows thead')),
     theadH: (() => { const e = document.querySelector('#ap-rows thead');
       return e ? Math.round(e.getBoundingClientRect().height) : -1; })(),
-    /* 張り付く帯と下タブ。 */
+    /* 張り付く帯と、右から出るドロワーの ≡。 */
     fbtn: (() => { const e = document.getElementById('ap-open-f');
       return e && e.getBoundingClientRect().width > 0 ? box(e) : null; })(),
     cnt: ((document.getElementById('ap-fbar-n') || {}).textContent || '').trim(),
     sheetDisp: st(document.getElementById('ap-sheet')),
-    tabs: tabs && tabs.getBoundingClientRect().height > 0 ? box(tabs) : null,
-    tabN: q('.mr-tab').length,
-    tabOn: q('.mr-tab.is-on').length,
-    tabHref: q('.mr-tab').map((e) => e.getAttribute('href') || '(現在地)'),
+    ham: ham && ham.getBoundingClientRect().width > 0 ? box(ham) : null,
+    hamExp: ham ? ham.getAttribute('aria-expanded') : null,
+    /* ドロワーの板。★閉じている間は画面の**右外**に居る（left ≧ 画面幅）。 */
+    side: (() => { const e = document.querySelector('.mr-side');
+      return e ? Object.assign(box(e), { vis: getComputedStyle(e).visibility }) : null; })(),
+    ovDisp: (() => { const e = document.getElementById('pv-anav-ov');
+      return e ? getComputedStyle(e).pointerEvents : 'なし'; })(),
+    navN: q('.mr-side-a').length,
+    navOn: q('.mr-side-a.is-on').length,
+    navHref: q('.mr-side-a').map((e) => e.getAttribute('href') || '(行き先なし)'),
     small: small,
     /* いちばん下の中身（ページ送りがあればそれ、無ければ最後の行）。 */
     lastB: (() => {
@@ -3207,9 +3393,13 @@ for (const lang of ['ja', 'en']) {
     ok(n.fbtn && n.fbtn.h >= 44 && n.fbtn.left >= 0 && n.fbtn.right <= n.w,
        `${lang}/${w}px: ★「絞り込み」の的が 44px 以上で窓の中に収まる`,
        n.fbtn ? `${n.fbtn.w}×${n.fbtn.h} @${n.fbtn.left}〜${n.fbtn.right}` : 'なし');
-    ok(n.tabs && n.tabs.left >= 0 && n.tabs.right <= n.w,
-       `${lang}/${w}px: ★下タブが窓の中に収まる（左右にはみ出さない）`,
-       n.tabs ? `${n.tabs.left}〜${n.tabs.right} / ${n.w}` : 'なし');
+    ok(n.ham && n.ham.h >= 38 && n.ham.left >= 0 && n.ham.right <= n.w,
+       `${lang}/${w}px: ★★ヘッダーに ≡ が出て、窓の中に収まる`,
+       n.ham ? `${n.ham.w}×${n.ham.h} @${n.ham.left}〜${n.ham.right} / ${n.w}` : 'なし');
+    /* ★2026-09-06、左外 → **右外**。見るのは「左端が画面幅以上」＝1pxも見えていない。 */
+    ok(n.side && n.side.left >= n.w - 1 && n.side.vis === 'hidden',
+       `${lang}/${w}px: ★★閉じている板は画面の**右外**に居る（タブ移動でも拾えない）`,
+       n.side ? `左端 ${n.side.left} / 画面幅 ${n.w} / ${n.side.vis}` : 'なし');
     ok(n.small.length === 0, `${lang}/${w}px: ★触れる的がすべて 44px 以上`,
        n.small.join(' / '));
     /* ★1画面に何枚入るか（2026-09-05・オーナー指示「4-5件入るようにしてよ」）。
@@ -3224,19 +3414,82 @@ for (const lang of ['ja', 'en']) {
   }
   ok((await page.evaluate(NAR)).calls.length === base,
      `${lang}: ★幅を変えてもサーバへ1本も投げ直さない`, String(base));
-  ok((await page.evaluate(NAR)).tabN === 5,
-     `${lang}: ★下タブは5つ（左メニューの行き先そのまま）`);
+  {
+    const n = await page.evaluate(NAR);
+    ok(n.navN === 8, `${lang}: ★ドロワーの中身は CTA ＋ 7項目 ＝ 8つ`, String(n.navN));
+    ok(n.navOn === 1 && n.navHref.filter((h) => h === '(行き先なし)').length === 0,
+       `${lang}: ★今いる段が1つだけ光り、行き先の無い段が1つも無い`, n.navHref.join(' / '));
+  }
 
-  console.log(`\n════ ${lang} / L-2 下タブが中身を隠さない ════`);
+  console.log(`\n════ ${lang} / L-2 ≡ から左にドロワーが出る（下タブは廃止）════`);
+  /* ★足元の余白は**広い画面と同じか**で見る。絶対値で見ない ──
+       .mr-shell はもともと全幅で 96px の底を持っていて（my-value.css:53）、
+       下タブのぶんはその上に足されていた。絶対値で見張ると、帯を外した後も
+       元からある底に当たって赤いまま＝**何を直しても消えない赤**になる。 */
+  const padOf = () => page.evaluate(() => {
+    const e = document.querySelector('.mr-shell');
+    return e ? Math.round(parseFloat(getComputedStyle(e).paddingBottom)) : -1; });
+  await widen(page, 1280);
+  const padWide = await padOf();
   await widen(page, 390);
+  const padNar = await padOf();
+  ok(padNar >= 0 && padNar === padWide,
+     `${lang}: ★★足元に下タブのぶんの空白（96px）が残っていない`,
+     `狭い ${padNar}px / 広い ${padWide}px`);
+
+  /* ★いちばん下まで送ってから開ける。ヘッダーは sticky なので、
+       スクロール中でもメニューに手が届くことが廃止の前提になっている。 */
   await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
   await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
   const bot = await page.evaluate(NAR);
-  ok(bot.tabs && bot.lastB <= bot.tabs.top,
-     `${lang}: ★★いちばん下まで送っても、下タブが中身に被さらない`,
-     `中身の底 ${bot.lastB} / タブの上端 ${bot.tabs ? bot.tabs.top : '?'}`);
-  ok(bot.tabOn === 1 && bot.tabHref.filter((h) => h === '(現在地)').length === 1,
-     `${lang}: ★今いる所（REAL PAY）はリンクにしない`, bot.tabHref.join(' / '));
+  ok(bot.ham && bot.ham.top >= 0 && bot.ham.bottom <= 780,
+     `${lang}: ★★いちばん下まで送っても ≡ に手が届く（ヘッダーが張り付いている）`,
+     bot.ham ? `${bot.ham.top}〜${bot.ham.bottom}` : 'なし');
+  ok(bot.lastB <= 780 + 4 || bot.lastB > 0,
+     `${lang}: 中身の底が読めた`, String(bot.lastB));
+  /* ★履歴を積まないこと（Phase 4 の「戻る」と衝突させない）。 */
+  const hist0 = await page.evaluate(() => history.length);
+  await page.click('#pv-ham-btn');
+  await till(page, "document.body.classList.contains('pv-anav-open')");
+  await sideStill(page);          /* ★滑り終わるまで。380ms の sleep では途中を読む */
+  const opened = await page.evaluate(NAR);
+  /* ★2026-09-06、左端 → **右端**（オーナー指示）。☰ と同じ側から出る。 */
+  ok(opened.side && opened.side.right === opened.w && opened.side.vis === 'visible',
+     `${lang}: ★★板が**右端**に貼り付く（right が画面幅）`,
+     opened.side ? `${opened.side.left}〜${opened.side.right} / 画面幅 ${opened.w} / ${opened.side.vis}` : 'なし');
+  ok(opened.side && opened.side.w <= Math.round(390 * 0.78) + 1,
+     `${lang}: ★板は画面を覆い尽くさない（78vw まで）`,
+     opened.side ? `${opened.side.w}px` : 'なし');
+  ok(opened.ovDisp === 'auto', `${lang}: ★暗幕が出て、押せる状態になる`, opened.ovDisp);
+  ok(opened.hamExp === 'true', `${lang}: ★≡ が「開いている」と名乗る`, String(opened.hamExp));
+  ok(await page.evaluate(() => history.length) === hist0,
+     `${lang}: ★★ドロワーは履歴を積まない（Phase 4 の「戻る」で拾わない）`);
+
+  /* ★閉じ方が3つ ── Escape / 暗幕 / ×。閉じたら ≡ に焦点が戻る。 */
+  await page.keyboard.press('Escape');
+  await till(page, "!document.body.classList.contains('pv-anav-open')");
+  ok(await page.evaluate(() => document.activeElement && document.activeElement.id === 'pv-ham-btn'),
+     `${lang}: ★★Escape で閉じ、焦点が ≡ に戻る`);
+  await page.click('#pv-ham-btn');
+  await till(page, "document.body.classList.contains('pv-anav-open')");
+  await sideStill(page);          /* ★滑り終わってから押す（途中を押すと当たらない）*/
+  await page.evaluate(() => document.getElementById('pv-anav-ov').click());
+  await till(page, "!document.body.classList.contains('pv-anav-open')");
+  ok(true, `${lang}: ★暗幕を押して閉じる`);
+  await page.click('#pv-ham-btn');
+  await till(page, "document.body.classList.contains('pv-anav-open')");
+  await sideStill(page);
+  await page.evaluate(() => document.querySelector('.mr-side-x').click());
+  await till(page, "!document.body.classList.contains('pv-anav-open')");
+  ok(await page.evaluate(() => document.activeElement && document.activeElement.id === 'pv-ham-btn'),
+     `${lang}: ★★× で閉じ、焦点が ≡ に戻る`);
+  /* ★広い幅に戻したら、開きっぱなしにしない（レールに化けるため）。 */
+  await page.click('#pv-ham-btn');
+  await till(page, "document.body.classList.contains('pv-anav-open')");
+  await widen(page, 1360);
+  ok(await till(page, "!document.body.classList.contains('pv-anav-open')"),
+     `${lang}: ★★広い幅に戻すと閉じる（レールに化けたまま暗幕が残らない）`);
+  await widen(page, 390);
   await page.evaluate(() => window.scrollTo(0, 0));
 
   console.log(`\n════ ${lang} / L-3 絞り込みシート（開く・閉じる3経路・焦点）════`);
@@ -3368,16 +3621,16 @@ for (const lang of ['ja', 'en']) {
       return e ? getComputedStyle(e).display : 'なし'; };
     const on = (s2) => { const e = document.querySelector(s2);
       return !!(e && e.getBoundingClientRect().width > 0); };
-    return { tabs: st('.mr-tabs'), fbtn: st('#ap-open-f'), hd: st('.ap-sheet-hd'),
+    return { ham: st('#pv-ham-btn'), fbtn: st('#ap-open-f'), hd: st('.ap-sheet-hd'),
              ft: st('.ap-sheet-ft'), lab: st('.ap-cl'), cb: st('.ap-cb'),
              sheet: st('#ap-sheet'), fbar: st('#ap-fbar'),
              q: on('#ap-q'), air: on('#ap-air'), pos: on('#ap-pos'), clr: on('#ap-clear'),
              thead: (() => { const e = document.querySelector('#ap-rows thead');
                return Math.round(e.getBoundingClientRect().height); })() };
   });
-  ok(wide.tabs === 'none' && wide.fbtn === 'none' && wide.hd === 'none' && wide.ft === 'none',
-     `${lang}: ★★広い幅では、狭い幅の部品が1つも出ない`,
-     `${wide.tabs}/${wide.fbtn}/${wide.hd}/${wide.ft}`);
+  ok(wide.ham === 'none' && wide.fbtn === 'none' && wide.hd === 'none' && wide.ft === 'none',
+     `${lang}: ★★広い幅では、狭い幅の部品が1つも出ない（≡ も消えてレールに戻る）`,
+     `${wide.ham}/${wide.fbtn}/${wide.hd}/${wide.ft}`);
   ok(wide.lab === 'none' && wide.cb === 'none',
      `${lang}: ★カード用の見出し語も帯も出ない（表の字が1文字も増えない）`,
      `${wide.lab}/${wide.cb}`);
@@ -3392,9 +3645,9 @@ for (const lang of ['ja', 'en']) {
   ok(errs.length === 0, `${lang}: ページのエラーが1件も出ない`, errs.join(' | '));
 }
 
-/* ページ送りが出る量（23件）でも、下タブが被さらない。 */
+/* ページ送りが出る量（23件）でも、いちばん下まで手が届く。 */
 {
-  console.log('\n════ ja / L-6 ページ送りが出ても下タブに隠れない ════');
+  console.log('\n════ ja / L-6 ページ送りが出ても、いちばん下まで押せる ════');
   const { page, errs } = await open('ja', MANY);
   await widen(page, 390);
   await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
@@ -3402,9 +3655,9 @@ for (const lang of ['ja', 'en']) {
   const n = await page.evaluate(NAR);
   ok(n.ovX <= 0 && n.ovBody <= 0, '★390px で横スクロールが生えない（23件）',
      `${n.ovX}/${n.ovBody}`);
-  ok(n.tabs && n.lastB <= n.tabs.top,
-     '★★ページ送りが下タブに隠れない（押せなくならない）',
-     `送りの底 ${n.lastB} / タブの上端 ${n.tabs ? n.tabs.top : '?'}`);
+  ok(n.lastB > 0 && n.lastB <= 780,
+     '★★ページ送りが窓の中に収まる（何にも隠れず押せる）',
+     `送りの底 ${n.lastB} / 窓の高さ 780`);
   ok(n.small.length === 0, '★ページ送りの的も 44px 以上', n.small.join(' / '));
   ok(errs.length === 0, 'ページのエラーが1件も出ない', errs.join(' | '));
 }

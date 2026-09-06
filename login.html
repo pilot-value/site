@@ -296,9 +296,17 @@
         return u.origin === location.origin ? u.pathname + u.search + u.hash : '';
       } catch (e) { return ''; }
     }
+    /* ★既定の着地先は REAL PAY（2026-09-06）。ログインした人が最初に見るのは
+         「他のパイロットが実際にいくら貰っているか」にする。
+       ⚠️ この字面はこのファイルの中に3か所ある（to-signup の書き換え・
+          emailRedirectTo ・redirectTo の「next を省く分岐」）。変えるなら四つ同時に。
+          古い字面が1つでも残ると、何も指定せずに来た人に ?next= が付き始め、
+          「新規登録」が素の pay-report.html ではなく signup.html?next=… に化ける。
+       ⚠️ auth-callback.html の既定も同じ先にしておくこと。next を省いた人の
+          行き先を決めているのはここではなくあちら。 */
     function getRedirect(){
       const q = new URLSearchParams(location.search);
-      return safePath(q.get('next') || q.get('redirect') || q.get('return')) || 'profile.html';
+      return safePath(q.get('next') || q.get('redirect') || q.get('return')) || 'actual-pay.html';
     }
 
     /* ★「新規登録」へ渡すときに戻り先を落とさない。
@@ -309,7 +317,7 @@
       const a = document.getElementById('to-signup');
       if (!a) return;
       const to = getRedirect();
-      if (to && to !== 'profile.html') a.href = 'signup.html?next=' + encodeURIComponent(to);
+      if (to && to !== 'actual-pay.html') a.href = 'signup.html?next=' + encodeURIComponent(to);
     })();
 
     // pv-session.js が期限切れで消したときの案内（一度出したら消す）
@@ -488,7 +496,7 @@
         email,
         options: {
           emailRedirectTo: 'https://pilot-value.com/auth-callback.html'
-                         + (to === 'profile.html' ? '' : '?next=' + encodeURIComponent(to)),
+                         + (to === 'actual-pay.html' ? '' : '?next=' + encodeURIComponent(to)),
           shouldCreateUser: true,
         }
       });
@@ -643,7 +651,7 @@
         provider: 'google',
         options: {
           redirectTo: 'https://pilot-value.com/auth-callback.html'
-                    + (to === 'profile.html' ? '' : '?next=' + encodeURIComponent(to)),
+                    + (to === 'actual-pay.html' ? '' : '?next=' + encodeURIComponent(to)),
         }
       });
     }

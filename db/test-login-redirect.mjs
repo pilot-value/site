@@ -17,22 +17,34 @@ const ok = (c, m, got) => { c ? (pass++, console.log(`  ✅ ${m}`))
 
 /* 期待値は「どのディレクトリのログイン画面から入ったか」で変わる。
    /en/login.html?next=pay-report.html は /en/pay-report.html に解決されるのが正しい
-   （英語の人を日本語ページに落とさない）。だから dir を受け取る形で書く。 */
+   （英語の人を日本語ページに落とさない）。だから dir を受け取る形で書く。
+
+   ★2つめの引数 def は「何も指定せずに来た人の着地先」。画面ごとに違う ──
+     login.html は REAL PAY（actual-pay.html）、signup.html は登録直後だけ
+     MY PAGE（profile.html?welcome=1。ようこそバナーがそこにしか無い）。
+     ここを1つの定数に固めると、片方を直したときにもう片方が黙って道連れになる。 */
 const CASES = [
-  // [クエリ, 期待(dir => path), 説明]
-  ['',                                   (d) => `${d}/profile.html`,      '指定なし → profile'],
+  // [クエリ, 期待((dir, 既定) => path), 説明]
+  ['',                                   (d, f) => `${d}/${f}`,           '指定なし → 既定の着地先'],
   ['?redirect=profile.html',             (d) => `${d}/profile.html`,      'redirect=（既存の名前）'],
   ['?next=pay-report.html',              (d) => `${d}/pay-report.html`,   'next=（給与レポート。ここが壊れていた）'],
   ['?next=submit-review.html',           (d) => `${d}/submit-review.html`,'next=（口コミ投稿）'],
   ['?return=%2Fairlines%2Fjal.html',     ()  => '/airlines/jal.html',     'return=（航空会社ページ。絶対パスで来る）'],
   ['?return=..%2Fpay-report.html',       ()  => '/pay-report.html',       'return= の相対パス'],
   // ここから下は「外へ飛ばせないこと」
-  ['?next=https://evil.com/x.html',      (d) => `${d}/profile.html`,      '外部URL → 捨てる'],
-  ['?next=//evil.com/x.html',            (d) => `${d}/profile.html`,      'プロトコル相対 → 捨てる'],
-  ['?next=javascript:alert(1)',          (d) => `${d}/profile.html`,      'javascript: → 捨てる'],
-  ['?next=%5C%5Cevil.com',               (d) => `${d}/profile.html`,      'バックスラッシュ → 捨てる'],
-  ['?next=http:%2F%2Fevil.com%2Fa.html', (d) => `${d}/profile.html`,      'エンコードされた外部URL → 捨てる'],
+  ['?next=https://evil.com/x.html',      (d, f) => `${d}/${f}`,           '外部URL → 捨てる'],
+  ['?next=//evil.com/x.html',            (d, f) => `${d}/${f}`,           'プロトコル相対 → 捨てる'],
+  ['?next=javascript:alert(1)',          (d, f) => `${d}/${f}`,           'javascript: → 捨てる'],
+  ['?next=%5C%5Cevil.com',               (d, f) => `${d}/${f}`,           'バックスラッシュ → 捨てる'],
+  ['?next=http:%2F%2Fevil.com%2Fa.html', (d, f) => `${d}/${f}`,           'エンコードされた外部URL → 捨てる'],
 ];
+
+/* 既定の着地先。**3か所に同じ字面がある**（login.html / en/login.html の getRedirect と
+   auth-callback.html の onSuccess）ので、ずれたらここが落ちる。
+   ⚠️ login.html は「既定のときだけ ?next= を付けない」形なので、素でログインした人の
+      行き先を最後に決めているのは auth-callback。だから3つとも同じでなければならない。 */
+const LOGIN_DEFAULT  = 'actual-pay.html';    // ログイン後は REAL PAY（2026-09-06）
+const SIGNUP_DEFAULT = 'profile.html';       // 登録直後だけ MY PAGE（?welcome=1 のバナー）
 
 const browser = await puppeteer.launch({ headless: 'shell' });
 const page = await browser.newPage();
@@ -49,7 +61,8 @@ for (const dir of ['', '/en']) {
     const got = await page.evaluate(() => {
       try { return new URL(getRedirect(), location.href).pathname; } catch (e) { return 'THREW:' + e.message; }
     });
-    ok(got === want(dir), `${desc}  ${q || '(なし)'} → ${want(dir)}`, got);
+    ok(got === want(dir, LOGIN_DEFAULT),
+       `${desc}  ${q || '(なし)'} → ${want(dir, LOGIN_DEFAULT)}`, got);
   }
 
   /* ★signup.html も同じ3つの名前を受けること。
@@ -66,7 +79,8 @@ for (const dir of ['', '/en']) {
     const got = await page.evaluate(() => {
       try { return new URL(getRedirect(), location.href).pathname; } catch (e) { return 'THREW:' + e.message; }
     });
-    ok(got === want(dir), `${desc}  ${q || '(なし)'} → ${want(dir)}`, got);
+    ok(got === want(dir, SIGNUP_DEFAULT),
+       `${desc}  ${q || '(なし)'} → ${want(dir, SIGNUP_DEFAULT)}`, got);
   }
 
   /* ★登録完了画面。?next= で来た人を、登録前にやろうとしていた場所へ戻す。
@@ -157,14 +171,15 @@ for (const dir of ['', '/en']) {
   console.log(`\n${label} auth-callback.html の next 判定（本物の関数を呼ぶ）\n`);
   for (const [q, want, desc] of CASES.filter((c) => c[0].startsWith('?next='))) {
     await page.goto(`${BASE}${dir}/auth-callback.html${q}`, { waitUntil: 'domcontentloaded' });
-    const got = await page.evaluate(() => {
+    const got = await page.evaluate((def) => {
       if (typeof pvSafeNext !== 'function') return 'NOT_FOUND: pvSafeNext が無い（本体が書き換わった？）';
       try {
         const next = pvSafeNext(new URLSearchParams(location.search).get('next'));
-        return new URL(next || 'profile.html', location.href).pathname;
+        return new URL(next || def, location.href).pathname;
       } catch (e) { return 'THREW:' + e.message; }
-    });
-    ok(got === want(dir), `${desc}  ${q} → ${want(dir)}`, got);
+    }, LOGIN_DEFAULT);
+    ok(got === want(dir, LOGIN_DEFAULT),
+       `${desc}  ${q} → ${want(dir, LOGIN_DEFAULT)}`, got);
   }
 
   /* ★失敗して戻されるときの行き先。ここが今回の穴だった。
@@ -291,6 +306,45 @@ const names = await page.evaluate(async () => {
 });
 ok(names.every((n) => ['next', 'redirect', 'return'].includes(n)),
    `使われている名前 = ${names.join(' / ')}（3つとも getRedirect が受ける）`, names);
+
+/* ★着地先の3か所と、残すと決めた例外3つ。
+   上の getRedirect の検査は「ログイン画面の中だけ」を見ている。だが素でログインした人が
+   最後に着く場所を決めているのは auth-callback で、しかも login.html は
+   「既定のときだけ ?next= を付けない」形。＝3つのファイルが同じ字面でないと、
+   ?next= 付きの人だけ正しく、素で来た人だけ古い画面に落ちる（どちらも普通に動いたまま）。
+   ここは判定式ではなく**行き先の字面**を見る（写経ではなく契約）。 */
+console.log('\n着地先（3か所が同じ）と、残すと決めた例外3つ\n');
+const src = {};
+for (const f of ['/login.html', '/en/login.html', '/auth-callback.html',
+                 '/signup.html', '/en/signup.html']) {
+  src[f] = await (await fetch(BASE + f)).text();
+}
+const has = (f, needle) => src[f].includes(needle);
+
+ok(has('/login.html', `|| '${LOGIN_DEFAULT}';`),
+   `login.html の既定が ${LOGIN_DEFAULT}`, LOGIN_DEFAULT);
+ok(has('/en/login.html', `|| '/en/${LOGIN_DEFAULT}';`),
+   `en/login.html の既定が /en/${LOGIN_DEFAULT}（絶対パス。相対だと日本語版に落ちる）`, LOGIN_DEFAULT);
+ok(has('/auth-callback.html', `(inEn ? '/en/${LOGIN_DEFAULT}' : '/${LOGIN_DEFAULT}')`),
+   `auth-callback.html の既定も同じ ── next を省いた人はここが決める`, LOGIN_DEFAULT);
+ok(!/\|\| '(\/en\/)?profile\.html';/.test(src['/login.html'] + src['/en/login.html']),
+   '★login.html に古い既定（profile.html）が残っていない');
+
+// 例外① ?next= が優先される … 上の CASES が見ている（ここでは字面だけ確かめる）
+ok(has('/login.html', "q.get('next') || q.get('redirect') || q.get('return')")
+   && has('/en/login.html', "q.get('next') || q.get('redirect') || q.get('return')"),
+   '例外① ?next= / redirect= / return= が既定より優先される');
+
+// 例外② パスワード再設定だけは設定画面のパスワード欄へ
+ok(has('/login.html', "'profile.html#password-card'"),
+   '例外② 再設定だけは profile.html#password-card に固定');
+ok(has('/en/login.html', "'/en/profile.html#password-card'"),
+   '例外② 英語も /en/profile.html#password-card（絶対パス）');
+
+// 例外③ 新規登録直後だけは MY PAGE（ようこそバナーがそこにしか無い）
+ok(has('/signup.html', "'profile.html?welcome=1'")
+   && has('/en/signup.html', "'profile.html?welcome=1'"),
+   '例外③ 登録直後だけ profile.html?welcome=1（ようこそバナー）');
 
 await browser.close();
 console.log(`\n${pass} pass / ${fail} fail\n`);

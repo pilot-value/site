@@ -7,7 +7,7 @@
    実行: node shot-actual-pay.mjs <scene> <lang> [open]
      scene = locked   鍵が無い人（金額が1つも出ない・骨組みと導線だけ）
              locked-nostat ★サーバをまだ貼り替えていない＝数字カードが1枚も出ない
-             locked-panel ★左メニューの DEEP PAY を押して説明を出したところ
+             locked-panel ★Give → Get の DEEP PAY の札を押して説明を出したところ
              locked-ready ★先に内訳を出してくれた人（✓ 準備は完了しています）
              empty    鍵はあるが1件も無い（正直な1枚）
              rows     SQL を貼る前（明細だけの13人・全員が手入力＝✓ は付かない）
@@ -17,6 +17,7 @@
              find     会社を打ち込んで絞ったところ
              nostat   ★サーバがまだ古い（stats を返さない）＝カードが1枚だけ出る
              sheet    ★下から出る絞り込み（2026-09-05）。w=390 など**狭い幅でしか出ない**
+             nav      ★右から出るナビのドロワー（2026-09-06 に左→右へ反転）。同じく w=390 などで
              drawer   ★行を押して開いた面（2026-09-03）。その1人ぶんの帯が出る
              drawer-lock ★自分の内訳をまだ出していない人が同じ面を開いたところ
                          （報酬の内訳が閉じている。帯は**サーバから届いていない**）
@@ -357,6 +358,9 @@ const SCENES = {
   drawer: { pay: { ok: true, state: 'open', rows: DRAWER, stats: ST(14, 9) }, open: 0 },
   /* ★絞り込みのボトムシート（2026-09-05）。**狭い幅でしか出ない**ので w=390 などと一緒に使う。 */
   sheet:  { pay: { ok: true, state: 'open', rows: MERGED, stats: ST(24, 13) }, sheet: true },
+  /* ★右から出るナビのドロワー（2026-09-06 に下タブと置き換え、同日 左→右へ反転）。
+       これも **1000px 未満でしか出ない**ので w=390 などと一緒に使う。 */
+  nav:    { pay: { ok: true, state: 'open', rows: MERGED, stats: ST(24, 13) }, nav: true },
   /* ★まだ自分の内訳を出していない人が同じ行を押したところ。
        帯の代わりに骨組みと門が出る。row=2 は「内訳がそもそも無い人」で、門は出ない。 */
   'drawer-lock': { pay: { ok: true, state: 'open', rows: DRAWER_LOCK, stats: ST(14, 9),
@@ -435,12 +439,51 @@ if (S.q) {
   await new Promise((r) => setTimeout(r, 500));
 }
 
+/* ⚠️ 2026-09-06、押す場所が変わった。左メニューの DEEP PAY / VERIFIED PAY の段は
+     ナビを7項目へ畳んだときに撤去したので、いまの入口は**本文の Give → Get の
+     DEEP PAY の札**（data-pv-give="deep"）。VERIFIED PAY の札は押せない
+     ＝ gate: 'verified' では撮れない。★押せなかったら止める ── 説明の出ていない絵を
+     撮って「出ている」と勘違いしないため。 */
 if (S.gate) {
-  await page.evaluate((k) => {
-    const b = document.querySelector('[data-mr-gate="' + k + '"]');
-    if (b) b.click();
+  const hit = await page.evaluate((k) => {
+    const b = document.querySelector('[data-pv-give="' + k + '"]');
+    if (!b) return 'no-pill';
+    b.click();
+    return 'ok';
   }, S.gate);
-  await new Promise((r) => setTimeout(r, 500));
+  if (hit !== 'ok') {
+    console.error('Give → Get の札（' + S.gate + '）が無い。鍵を持つ人の画面では出ない。');
+    process.exit(1);
+  }
+  await page.waitForFunction(() => !!document.querySelector('#mr-gate'), { timeout: 5000 });
+  await new Promise((r) => setTimeout(r, 400));
+}
+
+/* ★右から出るドロワーを開く（2026-09-06）。**1000px 未満でしか出ない。**
+     広い幅では左レールが常に見えていて ≡ そのものが無いので、そこで呼ばれたら止める。
+     ★待つのは時間ではなく「板が左端に着いたこと」。 */
+if (S.nav) {
+  const hit = await page.evaluate(() => {
+    const b = document.getElementById('pv-ham-btn');
+    if (!b) return 'no-btn';
+    if (!b.offsetParent) return 'wide';
+    b.click();
+    return 'ok';
+  });
+  if (hit !== 'ok') {
+    console.error(hit === 'wide'
+      ? 'この幅では ≡ は出ない（左レールが常に見えている）。w=390 のように 1000px 未満で呼ぶ。'
+      : '≡ が無い。app-nav.js が search.js より先に読まれているか確かめる。');
+    process.exit(1);
+  }
+  /* ★板は**右**から出る（2026-09-06 に反転）。開いた＝右端が画面の右端に貼り付いた。
+       ⚠️ ここを `left === 0` のままにすると、製品は正しいのに永久に待って落ちる。 */
+  await page.waitForFunction(() => {
+    const e = document.querySelector('.mr-side');
+    return !!e && Math.round(e.getBoundingClientRect().right) === Math.round(innerWidth)
+        && getComputedStyle(e).visibility === 'visible';
+  }, { timeout: 5000 });
+  await new Promise((r) => setTimeout(r, 300));
 }
 
 /* ★行を押して面を開く（2026-09-03）。
@@ -516,15 +559,15 @@ if (process.argv.slice(4).includes('measure')) {
     const hs = rs.map((e) => Math.round(e.getBoundingClientRect().height));
     const top = document.querySelector('.mr-top');
     const flt = document.querySelector('.ap-filter');
-    const tab = document.querySelector('.mr-tabs');
     const h = (e) => (e ? Math.round(e.getBoundingClientRect().height) : 0);
-    return { hs: hs, top: h(top), flt: h(flt), tab: h(tab) };
+    return { hs: hs, top: h(top), flt: h(flt) };
   });
   const max = Math.max.apply(null, m.hs);
-  const room = 844 - m.top - m.flt - m.tab;
+  /* ★2026-09-06、足元の帯を廃止した。引くのは上の2本だけ。 */
+  const room = 844 - m.top - m.flt;
   console.log(`カード ${m.hs.length}枚: 最小${Math.min.apply(null, m.hs)} / 最大${max}px`
     + ` … ${m.hs.join(' ')}`);
-  console.log(`帯 上${m.top} + 絞り込み${m.flt} + 下タブ${m.tab} → 残り${room}px`
+  console.log(`帯 上${m.top} + 絞り込み${m.flt} → 残り${room}px`
     + ` ＝ 最大の高さ(+8)で ${(room / (max + 8)).toFixed(1)}枚`);
 }
 
@@ -533,8 +576,9 @@ if (show) {
      ⚠️ **窓の大きさでは 390px にできない。** macOS の Chrome には窓の最小幅（実測 500px）が
         あって、--window-size に 390 を渡しても 500 にされる。
      ⚠️ **窓より高い画面をこしらえてもいけない。** 中身だけ 844px にすると、画面の低い Mac では
-        下の 100px ほどが窓の外に出て、**足元に張り付く物（下タブ）が丸ごと見えなくなる**。
+        下の 100px ほどが窓の外に出て、**足元に張り付く物が丸ごと見えなくなる**。
         2026-09-05、オーナーの画面で実際にそうなった（『下のタブはどこに行った？』）。
+        その下タブ自体は 2026-09-06 に廃止したが、絞り込みの帯とシートが同じ場所に居る。
      なので、入りきらないときは**縮めて全部見せる**（開発者ツールの『画面に合わせる』と同じ）。 */
   if (hArg || wArg) {
     const cdp = await page.createCDPSession();
@@ -573,7 +617,12 @@ const out = path.join(dir,
    ★面が開いているときは伸ばさない ── 面は画面の高さいっぱいに立つので、
      縦に伸ばすと**誰も見ることのない縦長の面**を撮ることになる。
      代わりに、面の中身が窓より長ければその分だけ伸ばす。 */
-if (top1) {
+if (S.nav) {
+  /* ⚠️ **ここで setViewport を呼ばない。** isMobile / hasTouch が変わると
+       Puppeteer はページを**読み直す**（実際に踏んだ ── 板は開いているのに
+       撮れた絵は閉じたまま、body の印も消えていた）。窓は起動時から W×H のままでよい。 */
+  await page.setViewport({ width: W, height: 844 });
+} else if (top1) {
   await page.setViewport({ width: W, height: H, isMobile: true, hasTouch: true });
   if (yArg) {
     const y = Number(yArg.slice(2));

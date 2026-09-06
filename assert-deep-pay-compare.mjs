@@ -537,6 +537,22 @@ async function choose(page, sel, expect) {
     && !document.getElementById('dc-pk-a').disabled, { timeout: 20000 }, n + expect);
 }
 
+/* 社名の辞書が着くまで待つ。
+   ★「`.dp-msg` が出た」だけでは足りない（2026-09-06 に実際に踏んだ）──
+     入口の「比べる2社を選んでください」も同じ `.dp-msg` で、**辞書が届く前から
+     出ている**。deep-pay-compare.js の fewAir() は S.airs が空のうちは判定を
+     保留する（「社名の辞書がまだ届いていないだけ」）ので、待たずに写すと
+     **選択欄が出たままの途中の絵**を撮ってしまう。46本を並列で走らせた回に
+     ここで嘘の赤が3本出た（単独では 259/0 で緑）。
+   ★着いたかどうかは #dc-pick の data-sig の2つ目（S.airs.length）で分かる。
+   ★「欄が消えた」ほうを待たないのは**わざと**。本当に壊れた回には待ちが
+     時間切れになるだけで、下の検査がちゃんと赤くなる。 */
+const airsIn = (page) => page.waitForFunction(() => {
+  const b = document.getElementById('dc-pick');
+  const g = b && b.getAttribute('data-sig');
+  return !!g && Number(g.split('|')[1]) > 0;
+}, { timeout: 20000 }).catch(() => {});
+
 async function open(lang, payload, theme, sel, expect, width) {
   const jar = await browser.createBrowserContext();
   jars.push(jar);
@@ -966,6 +982,7 @@ for (const lang of ['ja', 'en']) {
     const { page, errs } = await open('ja', pl, 'light');
     await page.waitForFunction(
       () => !!document.querySelector('#dc-sides .dp-msg'), { timeout: 20000 });
+    await airsIn(page);   /* ★辞書が着くまで（.dp-msg だけでは途中を写す）*/
     const s = await page.evaluate(SNAP);
     ok(s.pickShown === false && !s.opt.a && !s.opt.b && s.pick.length === 0,
        `★★${nm}ときは選択欄を出さない（110社を並べる逃げ道は置かない）`,
@@ -1032,6 +1049,7 @@ for (const lang of ['ja', 'en']) {
     const { page, errs } = await open('ja', ONE, 'light');
     await page.waitForFunction(
       () => !!document.querySelector('#dc-sides .dp-msg'), { timeout: 20000 });
+    await airsIn(page);   /* ★辞書が着くまで（.dp-msg だけでは途中を写す）*/
     const s = await page.evaluate(SNAP);
     ok(s.pickHidden === true && s.pickShown === false,
        '★★比べられる会社が1社なら選択欄を出さない', `hidden=${s.pickHidden}`);
@@ -1051,6 +1069,7 @@ for (const lang of ['ja', 'en']) {
     const { page: p2 } = await open('en', ONE, 'light');
     await p2.waitForFunction(
       () => !!document.querySelector('#dc-sides .dp-msg'), { timeout: 20000 });
+    await airsIn(p2);     /* ★辞書が着くまで（.dp-msg だけでは途中を写す）*/
     const e = await p2.evaluate(SNAP);
     ok(e.pickShown === false && /Not enough airlines/.test(e.msg),
        '★英語側も同じ（日本語だけ直した、にしない）', e.msg.slice(0, 60));

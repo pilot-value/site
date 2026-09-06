@@ -201,9 +201,14 @@ function pvLoginUrl(reason) {
 
     try { if (window.pvCheckReunlock) await pvCheckReunlock(sb, u.id); } catch(e) {}
 
-    // next パラメータがあればそこへ、なければ profile（判定は上の pvSafeNext に1本化）。
+    /* next パラメータがあればそこへ、なければ REAL PAY（判定は上の pvSafeNext に1本化）。
+       ★2026-09-06、既定を profile.html から actual-pay.html へ移した。
+         login.html / en/login.html は「既定のときだけ ?next= を付けない」形なので、
+         next 無しで着いた人の行き先を決めているのは**ここ**。あちらの既定と
+         必ず同じ先にしておく（片方だけ直すと、素でログインした人だけが
+         古い画面に落ちる ── どちらも普通に動いたまま）。 */
     window.location.replace(pvSafeNext(new URLSearchParams(location.search).get('next')) ||
-                            (inEn ? '/en/profile.html' : '/profile.html'));
+                            (inEn ? '/en/actual-pay.html' : '/actual-pay.html'));
   }
 
   // onAuthStateChange でSIGNED_INを待つ（PKCEの自動交換後に発火）

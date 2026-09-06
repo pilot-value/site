@@ -273,7 +273,11 @@ for (const lang of ['ja', 'en']) {
   await sleep(1000);
   let v = await page.evaluate(() => {
     const s = document.querySelector('.pvr-strip');
-    const nav = document.querySelector('nav');
+    /* ★'nav' と書かない（2026-09-06）── 板 <nav class="mr-side"> が <body> の
+         直後に入った日から、querySelector('nav') は**ヘッダーではなく板**を拾う。
+         板は top:73px・fixed なので「nav の位置を動かさない（0px）」が嘘の赤になる。
+         見たいのは画面上端のヘッダーなので名指しにする。 */
+    const nav = document.getElementById('main-nav');
     return {
       strip: !!s,
       pos: s ? getComputedStyle(s).position : '',
@@ -378,14 +382,22 @@ for (const lang of ['ja', 'en']) {
     }
     const roomLeft = room();
     scrollTo(0, 0);
-    const nav = document.querySelector('nav');
+    /* ★ここも名指し（上と同じ理由）。あわせて**板**も見る ── 広い画面では
+         板がナビの本体で、これが着地の1枚に覆われると行き先が1つも押せなくなる。
+         板は画面に出ていないこともある（狭い幅・閉じているとき）ので、
+         出ていないときだけ 999 を入れて「覆っていない」と読ませる。 */
+    const nav = document.getElementById('main-nav');
+    const rail = document.querySelector('.mr-side');
+    const railOn = rail && rail.getBoundingClientRect().width > 0;
     return { overflow: before, y: y, room: roomLeft,
              z: Number(getComputedStyle(document.querySelector('.pvr-strip')).zIndex),
+             railZ: railOn ? Number(getComputedStyle(rail).zIndex) : 999,
              navZ: nav ? Number(getComputedStyle(nav).zIndex) : 0 };
   });
   ok(trap.overflow !== 'hidden', '★背後のスクロールを止めない（閉じ込めが起きない）', trap.overflow);
   ok(trap.y > 100, '★出ている間もページを下へ動かせる', `動いた ${trap.y}px ／ 下の余白 ${trap.room}px`);
   ok(trap.z < trap.navZ, '★nav より下に置く（ロゴも操作も生きたまま）', `${trap.z} / ${trap.navZ}`);
+  ok(trap.z < trap.railZ, '★左の板より下に置く（行き先が押せたまま）', `${trap.z} / ${trap.railZ}`);
 
   // × は「招待を断る」ではない。この1枚だけ消して、コードは預かったままにする
   await page.evaluate(() => document.querySelector('.pvr-strip [data-pvr-x]').click());

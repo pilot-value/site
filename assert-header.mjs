@@ -77,26 +77,42 @@ const JOBS = Math.max(1,
   || Math.min(6, Math.max(2, os.cpus().length >> 1)));
 
 /* テンプレートが違うものを1枚ずつ。同じ生成物を並べても同じ形が増えるだけ。 */
+/* ★ham の3種類（2026-09-06）
+     'nav'    … 新しい共通ナビが入っているページ ＝ 408枚。広い画面は左のレール、
+                狭い画面（≦1000px）だけ ≡ から左にドロワー。**≡ は常には出ない。**
+     'always' … 認証4枚。畳む段が無いので、どの幅でも ≡ を出す。
+     既定      … 共通ナビを入れないページ ＝ 給与フォーム日英2枚だけ。
+                search.js のまま ＝ ≡ は「畳んだときだけ」出る。 */
 const PAGES = [
-  ['/',                     'ja トップ'],
-  ['/en/',                  'en トップ'],
-  ['/world-airlines.html',  'ja 航空会社一覧'],
-  ['/community.html',       'ja 口コミ'],
-  ['/airlines/ana.html',    'ja 航空会社ページ'],
-  ['/en/airlines/ana.html', 'en 航空会社ページ'],
-  /* ★ここから下が 2026-08-27 に足した4枚。上の6枚と違うのは
-       「ログインの先」＝アプリ側の画面だということ。 */
+  ['/',                     'ja トップ',        { ham: 'nav' }],
+  ['/en/',                  'en トップ',        { ham: 'nav' }],
+  ['/world-airlines.html',  'ja 航空会社一覧',  { ham: 'nav' }],
+  ['/community.html',       'ja 口コミ',        { ham: 'nav' }],
+  ['/airlines/ana.html',    'ja 航空会社ページ', { ham: 'nav' }],
+  ['/en/airlines/ana.html', 'en 航空会社ページ', { ham: 'nav' }],
+  /* ★給与フォームの日英2枚だけが「共通ナビを入れない通常ページ」。
+       書きかけが消えるのでナビを持たせない（オーナー確定事項10 の例外）。
+       ＝ ここだけ search.js の畳み方がそのまま残っている。 */
   ['/pay-report.html',      'ja 給与を出す'],
-  ['/submit-review.html',   'ja 口コミを出す'],
   ['/en/pay-report.html',   'en 給与を出す'],
+  ['/submit-review.html',   'ja 口コミを出す',  { ham: 'nav' }],
   /* マイページ系（header.mr-top）。ログインしないとヘッダーごと出ないので
-     セッションを差し込む。畳む段が無いので ≡ は常に出ているのが正しい。 */
-  ['/my-value.html',        'ja マイレポート', { ham: 'always', login: true }],
+     セッションを差し込む。
+     ★2026-09-06、この16枚だけ ≡ の出方が変わった（ham:'app'）。
+       app-nav.js が先に #pv-ham-btn を作り、search.js:416 の二重注入ガードで
+       あちらは何もせず戻る。広い画面は左のレール、狭い画面（≦1000px）だけ
+       ≡ から左にドロワーが出る ＝ **≡ は常には出ない**のが正しい。
+       ⚠️ ham:'always' に戻さない。戻すと「レールも ≡ も両方出ている」を
+          正解として通してしまう。 */
+  ['/my-value.html',        'ja マイレポート', { ham: 'nav', login: true }],
   /* ★ロードマップと要望。テンプレートは同じ .mr-shell だが、これは
        このリポジトリで唯一「自由に書ける textarea を持つマイページ」で、
        下の FORM_PAGES にも自動で入る（390px で入力欄が 16px 未満なら iOS が拡大する）。 */
-  ['/roadmap.html',         'ja ロードマップ', { ham: 'always', login: true }],
-  ['/en/roadmap.html',      'en ロードマップ', { ham: 'always', login: true }],
+  ['/roadmap.html',         'ja ロードマップ', { ham: 'nav', login: true }],
+  ['/en/roadmap.html',      'en ロードマップ', { ham: 'nav', login: true }],
+  /* ★招待（2026-09-06 新設）。中身は既存の PVReferral.mountInvite。 */
+  ['/invite.html',          'ja 招待',        { ham: 'nav', login: true }],
+  ['/en/invite.html',       'en 招待',        { ham: 'nav', login: true }],
   /* ★認証4枚。2026-08-27 に header.mr-top 型へ揃えた。それまでは body 直下に
        fixed の div を2つ置くだけの「第3のヘッダー」で、search.js の inject() が
        #main-nav も header.mr-top も見つけられず即 return ＝ ≡ も引き出しも
@@ -116,9 +132,35 @@ const MIN_GAP = 19;          /* search.js の BREATH=20 に測定誤差ぶんの
    物理的に取れないし、そこで要るのは「はみ出さない・2行に折れない」だけ
    （search.js の fit() も段④だけは BREATH を見ない。同じ理由）。 */
 const GAP_FROM = 390;
-/* ★下タブを見る幅（2026-09-05）。GAP_FROM と同じ数だが意味が別なので分けてある。
+/* ★狭い画面のメニューを見る幅。GAP_FROM と同じ数だが意味が別なので分けてある。
      あちらは「ここから中身の隙間を見る」、こちらは「iPhone の幅」。 */
 const IPHONE_W = 390;
+/* 足元の余白を比べる相手（レールが出ている広い画面）。WIDTHS に在る数を使う。 */
+const WIDE_W = 1280;
+/* ★広い画面のレールを見る幅（オーナー指定 2026-09-06）。全部 WIDTHS に在る数。 */
+const RAIL_W = [1024, 1280, 1440];
+/* ★狭い画面で板を**開けて**測る幅（オーナー指定の⑥「320 / 390 で横に溢れない」）。
+     390 だけだと、いちばん狭い機種で板が本文を押し広げても気づけない。 */
+const NARROW_W = [320, 390];
+/* ★レールの寸法。app-nav.css の @media(min-width:1001px) と**対**。
+     もとは 208px。段を「絵の上・文字の下」に組み替えて字が横幅を要らなくなった
+     ぶん、本文へ返した（オーナー決定 2026-09-06）。
+   ⚠️ 片方だけ変えない。ここを直すときは app-nav.css の
+      `body.pv-anav-shell{padding-left:…}` と `width:…` の2か所も同時に直す。 */
+const RAIL_PX = 144;
+/* ★触れる的の下限。サイト全体で守っている数。
+   ⚠️ .mr-side-sub（ログイン・お問い合わせ）だけは**別の床**を使う。下の SUB_MIN 参照。 */
+const TAP_MIN = 44;
+/* ★.mr-side-sub の床。2026-09-06 に実測 33.3px。
+     44px に上げるかをオーナーに諮り、「いらない」＝**現状のままでよい**と決まった。
+     ただし**黙って縮むのは止める** ── 今回いちばんの反省が
+     「33px を誰も見ていなかった」ことなので、数を書いて床を張る。
+     44 に届かない理由は「板の主役ではない小さな出口2本だから」であって、
+     測っていないからではない。 */
+const SUB_MIN = 30;
+/* ☰ の置き場（右上）。画面の右端・上端からこれ以内に居ること。
+   実測 ── 右から 12〜16px / 上から 12〜14px（ヘッダーの高さで変わる）。 */
+const HAM_EDGE = 24;
 
 /* ★並列にしたので console.log を直に呼ばない。行はページごとの箱へ積み、
    全部終わってから **宣言順に** まとめて吐く（PAGES の順・幅の昇順・FORM_PAGES の順）。
@@ -191,21 +233,34 @@ const measure = () => {
 };
 
 /* ── 引き出しの中身を読む ──────────────────────────────────────── */
+/* ★引き出しは2種類ある（2026-09-06）。
+     ① 公開ページ292枚 … search.js が右から出す #pv-nav-drawer
+     ② アプリ画面16枚 … app-nav.js が右から出す .mr-side
+   ≡ のボタンの id は同じ（pv-ham-btn）── それが二重注入ガードの鍵なので、
+   押したあと**どちらの板が立ったか**で見分ける。 */
 const readDrawer = () => {
   const btn = document.getElementById('pv-ham-btn');
   if (btn) btn.click();
-  const d = document.getElementById('pv-nav-drawer');
+  const pub = document.getElementById('pv-nav-drawer');
+  const app = pub ? null : document.querySelector('.mr-side');
+  const d = pub || app;
   if (!d) return { noDrawer: true };
-  const links = [...d.querySelectorAll('.pv-nd-link')].map((a) => ({
+  const links = [...d.querySelectorAll(pub ? '.pv-nd-link' : '.mr-side-a,.mr-side-sub')].map((a) => ({
     text: (a.textContent || '').trim(),
     href: a.getAttribute('href') || '',
   }));
-  const cta = d.querySelector('.pv-nd-cta');
+  /* ★バーから消えた CTA の写し。公開ページでは search.js が .pv-nd-cta として
+     右の引き出しに置いていたものを、app-nav.js が板へ移し替えている
+     （class は板の見た目に揃えるので、目印は data-pv-nd-cta のほう）。 */
+  const cta = d.querySelector('.pv-nd-cta,[data-pv-nd-cta]');
+  /* ★ヘッダーの CTA そのものの行き先。バーから消えていても href は読める。 */
+  const bar = document.querySelector('#main-nav .btn-primary, #main-nav .btn-orange');
   /* マイページ系のヘッダーには a.nav-link が無い（写す物がゼロ＝共通の6本が出る）。 */
   const navHrefs = [...document.querySelectorAll('#main-nav a.nav-link')].map((a) => a.getAttribute('href') || '');
   return {
     links,
     cta: cta ? { text: (cta.textContent || '').trim(), href: cta.getAttribute('href') || '' } : null,
+    ctaHref: bar ? bar.getAttribute('href') || '' : '',
     navHrefs,
   };
 };
@@ -296,6 +351,45 @@ const settleFn = (refitMs, maxMs) => new Promise((done) => {
   tick();
 });
 
+/* ── 板（ドロワー）が動き終わるのを待つ ──────────────────────────
+   ⚠️ **時間で待たない**（CLAUDE.md「混んだ回に嘘の赤を出す」）。
+      transform のアニメーションは .32s。途中を読むと右端が 390.3px のように
+      **0.3px だけ画面の外**に出た値が返る ── 2026-09-06 に実際に踏んだ。
+      「誤差 0.5px 以内」のような幅を持たせて逃げると、今度は**本当に
+      ずれている板を通してしまう**。だから幅を持たせず、**止まるまで待つ**。
+   ⚠️ **「2回続けて同じ値」では足りない**（2026-09-06、13マスが嘘の赤になった）──
+      混んだ回は transition が**まだ始まっていない**うちに同じ値を 2 回読み、
+      **閉じた位置**で「止まった」と判定する。そのまま測るので
+      「開いた板が右端に無い」と落ちる ── **製品は正しいのに赤い**。
+   ★止まった＝**一度でも動いたのを見てから**、同じ値が 3 回続いたとき。
+      まったく動かない場面（既に開いている・動きを減らす設定）もあるので、
+      **動きを一度も見ないまま 800ms**（transition の .32s より十分長い）経ったら抜ける。
+      数え方は `assert-pay-rows.mjs` の SETTLED と同じ。
+      transitionend に頼らない ── 動きを減らす設定では発火しないことがある。 */
+const drawerSettleFn = (maxMs) => new Promise((done) => {
+  const n = document.querySelector('.mr-side');
+  if (!n) return done('nodrawer');
+  const t0 = performance.now();
+  const sig = () => {
+    const b = n.getBoundingClientRect();
+    return b.left.toFixed(2) + ',' + b.right.toFixed(2) + ',' + getComputedStyle(n).visibility;
+  };
+  let prev = sig(), same = 0, moved = false;
+  const tick = () => {
+    const cur = sig();
+    if (cur === prev) same += 1; else { same = 0; moved = true; }
+    prev = cur;
+    const el = performance.now() - t0;
+    if (same >= 3 && (moved || el >= 800)) return done('ok');
+    if (el >= maxMs) return done('timeout');
+    let fired = false;
+    const go = () => { if (!fired) { fired = true; tick(); } };
+    requestAnimationFrame(go);
+    setTimeout(go, 40);
+  };
+  tick();
+});
+
 let settleTimeouts = 0;
 const settle = async (page) => {
   try { if (await page.evaluate(settleFn, REFIT_MS, SETTLE_MAX) === 'timeout') settleTimeouts++; }
@@ -318,6 +412,11 @@ async function runPage(href, label, opt, ok) {
   const ctx = await browser.createBrowserContext();
   try {
   let drawerDone = false;
+  /* 足元の余白は「狭い画面だけ余分に空いていないか」で見る。絶対値では見ない ──
+     .mr-shell の base は 2026-08-20 から `padding:28px 24px 96px` で、これは
+     下タブとは無関係な本文の余白（広い画面にも同じだけ在る）。閾値で切ると
+     「帯を廃止したのに落ちる」検査になる。広い幅と比べる。 */
+  const shellPad = {};
 
   for (const w of WIDTHS) {
     const page = await ctx.newPage();
@@ -341,38 +440,224 @@ async function runPage(href, label, opt, ok) {
     ok(m.twoLine === 0, `${tag} 2行に折れた項目が無い`, m.twoLine ? m.twoNames.join(' / ') : '');
     ok(!m.hScroll, `${tag} ページが横に溢れていない`,
        m.hScroll ? 'iOS はここでレイアウト幅を広げ、position:fixed の常設バーが画面より広くなる' : '');
-    /* ★下タブ（2026-09-05・オーナー指摘「REAL PAY から他所へ行くとタブが消える」）。
-         REAL PAY 側の細かい所は assert-pay-rows.mjs が見ている。ここで見るのは
-         **他のページにも同じ帯が出ていること**と、足元の逃がしが効いていること。
-       ★中身に被さらないかは「いちばん下まで送って測る」ではなく、本文の下の余白で見る。
-         送ると scroll-behavior:smooth の途中を読むことがある
-         （2026-08-28 に assert-referral.mjs で実際に踏んだ形）。 */
-    if (w === IPHONE_W) {
+    /* ★共通のナビ（2026-09-06、足元の帯を廃止して左のドロワーに畳んだ）。
+         中身の細かい所は assert-pay-rows.mjs が見ている。ここで見るのは
+         **公開ページでもアプリ画面でも同じように出ること**と、
+         閉じている板が邪魔をしないこと。
+       ★「送っていちばん下を測る」はしない。scroll-behavior:smooth の途中を
+         読むことがある（2026-08-28 に assert-referral.mjs で実際に踏んだ形）。 */
+    if (NARROW_W.includes(w) && opt.ham === 'nav') {
       const t = await page.evaluate(() => {
-        const n = document.querySelector('.mr-tabs');
+        const n = document.querySelector('.mr-side');
         if (!n) return null;
         const b = n.getBoundingClientRect();
-        /* ★足元の逃がしは2通り。マイページ系は .mr-shell が空け、
-             それ以外（世界の航空会社一覧）は <body class="mr-tabs-pad"> が空ける。 */
         const sh = document.querySelector('.mr-shell') || document.body;
-        return { h: Math.round(b.height), l: Math.round(b.left), r: Math.round(b.right),
-                 w: innerWidth, n: document.querySelectorAll('.mr-tab').length,
+        const h = document.getElementById('pv-ham-btn');
+        const hb = h ? h.getBoundingClientRect() : null;
+        return { w: innerWidth, left: b.left, right: b.right, width: b.width,
+                 vis: getComputedStyle(n).visibility,
+                 /* ★助け出したヘッダーの CTA は数に入れない（下の readDrawer 参照）。
+                      板そのものは 408枚どこでも CTA ＋ 7項目の8つ。 */
+                 n: document.querySelectorAll('.mr-side-a:not([data-pv-nd-cta])').length,
+                 ham: !!h,
+                 hamBox: hb ? { right: innerWidth - hb.right, top: hb.top, left: hb.left,
+                                w: hb.width, h: hb.height } : null,
+                 tabs: !!document.querySelector('.mr-tabs'),
+                 pos: getComputedStyle(n).position,
+                 side: getComputedStyle(n).borderLeftWidth + '/' + getComputedStyle(n).borderRightWidth,
                  pad: Math.round(parseFloat(getComputedStyle(sh).paddingBottom)) };
       });
       if (t) {
-        ok(t.h > 0 && t.n === 5 && t.l >= 0 && t.r <= t.w,
-           `${tag} 下タブが5つ出て窓に収まっている`,
-           `${t.n}つ / ${t.l}〜${t.r} / 幅 ${t.w}`);
-        ok(t.pad >= t.h, `${tag} 下タブのぶん本文の足元が空けてある`,
-           `余白 ${t.pad}px / タブ ${t.h}px`);
+        ok(t.ham && t.n === 8, `${tag} ≡ が出て、ドロワーの中身は CTA ＋ 7項目`,
+           `≡ ${t.ham} / ${t.n}つ`);
+        /* ★position も見る。fixed で無いと板が grid に居座ったまま translate されて
+             閉じているのに画面の端へ数 px はみ出す（マイレポートで実際に起きた形）。 */
+        ok(t.pos === 'fixed', `${tag} 閉じている板は本文の外（fixed）に居る`, `position ${t.pos}`);
+        /* ★2026-09-06、**左外 → 右外**（オーナー指示。板を右から出すようにした）。
+           ⚠️ ここは長らく「右端 ≤ 0」＝左外を見ていた。向きを反転したとき
+              この1行を直し忘れると、板が右から出ているのに検査は左を見たまま
+              落ち続ける（＝直し方を間違える）。**app-nav.css の節4 と対。**
+           ★見るのは「左端が画面幅以上」── 板の**幅ぶん丸ごと**右へ逃げていること。
+              `left >= innerWidth` は「1pxも見えていない」と同義。 */
+        ok(t.left >= t.w - 0.5 && t.vis === 'hidden',
+           `${tag} 閉じている板は画面の右外に居る（完全に外）`,
+           `左端 ${t.left.toFixed(1)} / 画面幅 ${t.w} / ${t.vis}`);
+        /* 線は板の**左**側に立つ（板は右端に居る）。右に立っていたら向きの直し漏れ。 */
+        ok(/^1px\//.test(t.side), `${tag} 板の境界線は左側にある（右から出る板の形）`, t.side);
+        ok(!t.tabs, `${tag} 足元の帯（下タブ）が残っていない`);
+        /* ★☰ は右上（オーナー指定 2026-09-06）。板と同じ側＝指を動かす距離が短い。 */
+        if (t.hamBox) {
+          ok(t.hamBox.right <= HAM_EDGE && t.hamBox.top <= HAM_EDGE,
+             `${tag} ☰ が右上にある`,
+             `右から ${t.hamBox.right.toFixed(0)}px / 上から ${t.hamBox.top.toFixed(0)}px（上限 ${HAM_EDGE}）`);
+          ok(t.hamBox.left > t.w / 2, `${tag} ☰ は画面の右半分にある`,
+             `左端 ${t.hamBox.left.toFixed(0)} / 画面の中央 ${t.w / 2}`);
+          ok(t.hamBox.w >= TAP_MIN && t.hamBox.h >= TAP_MIN,
+             `${tag} ☰ の的が ${TAP_MIN}px 以上`,
+             `${t.hamBox.w.toFixed(0)}×${t.hamBox.h.toFixed(0)}`);
+        }
       }
+
+      /* ── 板を**開けて**測る（オーナー指定の①③⑥）─────────────────
+         ここまでは「閉じている板」しか見ていなかった。開いた形は
+         `assert-pay-rows.mjs` も見ておらず、**33px の的を誰も測っていなかった**。 */
+      if (t && t.ham) {
+        await page.click('#pv-ham-btn');
+        /* ★まず「開いた」印（body.pv-anav-open）が付くのを待つ。
+             印が付く前に測ると、閉じたままの位置で止まって見える。 */
+        try {
+          await page.waitForFunction(
+            "document.body.classList.contains('pv-anav-open')", { timeout: 4000, polling: 60 });
+        } catch (e) { settleTimeouts++; }
+        if (await page.evaluate(drawerSettleFn, 4000) === 'timeout') settleTimeouts++;
+        const o = await page.evaluate((TAP, SUB) => {
+          const n = document.querySelector('.mr-side');
+          const b = n.getBoundingClientRect();
+          const vis = (e) => !e.hidden && e.getBoundingClientRect().width > 0;
+          const nameOf = (e) => ((e.querySelector('span') || e).textContent || '').trim() || '×';
+          const box = (e) => e.getBoundingClientRect();
+          const main = [...n.querySelectorAll('.mr-side-a,.mr-side-x')].filter(vis)
+            .map((e) => ({ t: nameOf(e), h: +box(e).height.toFixed(1) }));
+          const subs = [...n.querySelectorAll('.mr-side-sub')].filter(vis)
+            .map((e) => ({ t: nameOf(e), h: +box(e).height.toFixed(1) }));
+          return {
+            left: b.left, right: b.right, w: innerWidth,
+            vis: getComputedStyle(n).visibility,
+            zSide: getComputedStyle(n).zIndex,
+            zOv: (() => { const v = document.getElementById('pv-anav-ov');
+                          return v ? getComputedStyle(v).zIndex : null; })(),
+            hScroll: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+            small: main.filter((r) => r.h < TAP),
+            smallSub: subs.filter((r) => r.h < SUB),
+            minMain: main.length ? Math.min(...main.map((r) => r.h)) : null,
+            minSub: subs.length ? Math.min(...subs.map((r) => r.h)) : null,
+            nMain: main.length, nSub: subs.length,
+          };
+        }, TAP_MIN, SUB_MIN);
+
+        /* ★①「開いたら右端に正しく貼り付く」── 幅を持たせずに厳密に見る。
+             上の drawerSettleFn が**止まるまで待って**いるので、
+             動いている途中の 390.3px を読むことはない。 */
+        ok(Math.abs(o.right - o.w) < 0.5 && o.vis === 'visible',
+           `${tag} 開いた板は画面の右端に貼り付く`,
+           `右端 ${o.right.toFixed(1)} / 画面幅 ${o.w} / ${o.vis}`);
+        ok(o.left > 0, `${tag} 開いた板の左側に背景が見えている（全画面を覆わない）`,
+           `左端 ${o.left.toFixed(1)}`);
+        /* ⑥ 開いていても横スクロールを生やさない。**右から出す板ならではの罠** ──
+             position:fixed が効いていないと、右へ逃がした板が本文の幅を押し広げる。 */
+        ok(!o.hScroll, `${tag} 板を開いても横スクロールが生えない`);
+        ok(Number(o.zSide) > Number(o.zOv), `${tag} 板は暗幕より上にある`,
+           `板 ${o.zSide} / 幕 ${o.zOv}`);
+        /* ★③ 板の中の押せるもの**全部**を測る。ここが今回の反省の本体。 */
+        ok(o.small.length === 0 && o.nMain > 0,
+           `${tag} ★板の中の口（項目・×）が ${TAP_MIN}px 以上`,
+           o.small.length ? o.small.map((r) => `${r.t}=${r.h}px`).join(' / ')
+                          : `${o.nMain}個・いちばん小さくて ${o.minMain}px`);
+        /* ★ログイン・お問い合わせは 44px に届かない（33px）。オーナーが
+             「上げなくてよい」と決めた ── ただし**測ってはいる**。
+             黙って縮むことだけを止める。 */
+        ok(o.smallSub.length === 0,
+           `${tag} 出口2本（ログイン・お問い合わせ）が ${SUB_MIN}px を割っていない`,
+           o.smallSub.length ? o.smallSub.map((r) => `${r.t}=${r.h}px`).join(' / ')
+                             : `${o.nSub}本・いちばん小さくて ${o.minSub}px（44px の例外・オーナー了承済み）`);
+      }
+    }
+
+    /* ── 広い画面のレール（オーナー指定の⑤⑦）────────────────────
+       「絵の上・文字の下」であること・幅と本文の余白が合っていること・
+       ☰ が出ていないこと。1024 / 1280 / 1440 の3幅で見る。 */
+    if (opt.ham === 'nav' && RAIL_W.includes(w)) {
+      const r = await page.evaluate((RAIL) => {
+        const n = document.querySelector('.mr-side');
+        if (!n) return null;
+        const b = n.getBoundingClientRect();
+        const cs = getComputedStyle(n);
+        const rows = [...n.querySelectorAll('.mr-side-a')]
+          .filter((e) => !e.hidden && e.getBoundingClientRect().width > 0)
+          .map((e) => {
+            const sv = e.querySelector('svg:not(.mr-side-lk)');
+            const sp = e.querySelector('span');
+            const eb = e.getBoundingClientRect();
+            const st = getComputedStyle(e);
+            const lh = parseFloat(st.lineHeight) || parseFloat(st.fontSize) * 1.3;
+            return {
+              t: ((sp || e).textContent || '').trim(),
+              h: +eb.height.toFixed(1),
+              font: +parseFloat(st.fontSize).toFixed(1),
+              /* 絵の下端 ≤ 文字の上端 ＝ 縦積み。横並びだと重なる。 */
+              stacked: !!(sv && sp) &&
+                       sv.getBoundingClientRect().bottom <= sp.getBoundingClientRect().top + 0.5,
+              lines: sp ? Math.round(sp.getBoundingClientRect().height / lh) : 0,
+            };
+          });
+        return {
+          width: +b.width.toFixed(1), left: +b.left.toFixed(1),
+          pos: cs.position, top: +b.top.toFixed(1),
+          pad: Math.round(parseFloat(getComputedStyle(document.body).paddingLeft)),
+          canScroll: cs.overflowY === 'auto' || cs.overflowY === 'scroll',
+          fits: n.scrollHeight <= n.clientHeight + 1,
+          scrollH: n.scrollHeight, clientH: n.clientHeight,
+          rows,
+          want: RAIL,
+        };
+      }, RAIL_PX);
+      if (r) {
+        ok(Math.abs(r.width - RAIL_PX) < 0.5 && r.pad === RAIL_PX,
+           `${tag} レールは ${RAIL_PX}px・本文の左余白も同じ`,
+           `幅 ${r.width} / padding-left ${r.pad}`);
+        ok(r.pos === 'fixed' && Math.abs(r.left) < 0.5,
+           `${tag} レールは画面の左端に固定`, `${r.pos} / 左端 ${r.left}`);
+        /* ★⑤ 絵の上・文字の下。1つでも横並びが残っていたら落とす。 */
+        const flat = r.rows.filter((x) => !x.stacked);
+        ok(flat.length === 0 && r.rows.length > 0,
+           `${tag} ★レールの段は「絵の上・文字の下」`,
+           flat.length ? flat.map((x) => x.t).join(' / ') : `${r.rows.length}段`);
+        /* 的の大きさ。縦積みにしたぶん背は伸びるので、割ることは無いはずだが測る。 */
+        const shortRows = r.rows.filter((x) => x.h < TAP_MIN);
+        ok(shortRows.length === 0, `${tag} レールの段が ${TAP_MIN}px 以上`,
+           shortRows.length ? shortRows.map((x) => `${x.t}=${x.h}px`).join(' / ')
+                            : `いちばん低くて ${Math.min(...r.rows.map((x) => x.h))}px`);
+        /* ★文字を極端に小さくしない（オーナー条件）。狭い画面の 11.2px より大きく。 */
+        const tiny = r.rows.filter((x) => x.font < 12);
+        ok(tiny.length === 0, `${tag} レールの文字が 12px を下回らない`,
+           tiny.length ? tiny.map((x) => `${x.t}=${x.font}px`).join(' / ')
+                       : `${r.rows[0].font}px`);
+        /* ★ROADMAP & REQUESTS が3行以上にならない（オーナー条件）。
+             ⚠️ 名前で探さない ── 英語版も日本語版も同じ段なので、
+                **いちばん行数の多い段**を見て、それが2行以内であればよい。 */
+        const worst = r.rows.reduce((a, x) => (x.lines > a.lines ? x : a), r.rows[0]);
+        ok(worst.lines <= 2, `${tag} レールの段が3行以上に折れていない`,
+           `いちばん多い段「${worst.t}」が ${worst.lines}行`);
+        /* ★高さの低い画面でも下の項目に手が届く（オーナー条件）。
+             入りきらないときは**中でスクロールできること**が条件（許可済み）。
+             ⚠️ 「必ず入る」にしない ── 768px の画面では物理的に入らない。 */
+        ok(r.fits || r.canScroll,
+           `${tag} レールに入りきらないときは中でスクロールできる`,
+           r.fits ? '全部入っている' : `中身 ${r.scrollH}px / 見える ${r.clientH}px・overflow-y で届く`);
+      }
+    }
+    if (opt.ham === 'nav' && (w === IPHONE_W || w === WIDE_W)) {
+      shellPad[w] = await page.evaluate(() => {
+        const sh = document.querySelector('.mr-shell') || document.body;
+        return Math.round(parseFloat(getComputedStyle(sh).paddingBottom));
+      });
     }
     if (w >= GAP_FROM) {
       ok(m.minGap === null || m.minGap >= MIN_GAP, `${tag} 中身どうしが ${MIN_GAP}px 以上あいている`,
          m.minGap === null ? '' : `いちばん狭いところ ${m.minGap}px`);
     }
-    if (opt.ham === 'always') {
-      /* マイページ系には畳む段が無い（リンクも CTA も無いので fits() が素通りする）。
+    if (opt.ham === 'nav') {
+      /* ★共通ナビの408枚。広い画面は左のレール、狭い画面（≦1000px）だけ ≡。
+           app-nav.css の @media(max-width:1000px) と対。
+         ⚠️ 「畳んだときだけ」に戻さない ── search.js は 768〜1000px では
+            まだ畳んでいないので、そこでレールも ≡ も出ない穴になる
+            （app-nav.css の 0-c がその穴を塞いでいる）。
+         ⚠️ 「常に出ている」にも戻さない ── レールと ≡ が両方出ている状態を
+            正解として通してしまう。 */
+      ok(m.hamVisible === (w <= 1000), `${tag} ≡ は狭い画面（≦1000px）だけ出る`,
+         `≡=${m.hamVisible}`);
+    } else if (opt.ham === 'always') {
+      /* 認証4枚には畳む段が無い（リンクも CTA も無いので fits() が素通りする）。
          ここで見るのは「≡ がどの幅でも出ている」＝オーナー指示「どの画面も」。 */
       ok(m.hamVisible, `${tag} ≡ が常に出ている`);
     } else {
@@ -403,12 +688,23 @@ async function runPage(href, label, opt, ok) {
         ok(paths.some((p) => /community\.html$/.test(p)), '引き出しから口コミへ行ける');
         /* CTA を持たないページ（← トップ だけの一覧・航空会社ページ）にも
            pv-nav-min は付く。持っているページだけ見る。 */
-        if (m.ctaHidden && m.ctaInBar !== null) {
-          ok(!!d.cta, 'バーから消した CTA が引き出しの先頭にある', d.cta ? d.cta.text : '');
+        /* ★見るのは「写しが在るか」ではなく**行き先へ辿れるか**（2026-09-06）。
+             板の1行目が既に同じページを指していることがある ── トップの日英2枚が
+             それで、CTA も板も pay-report.html。写しを足すと同じ行が2つ並ぶので
+             app-nav.js は足さない。それでも道は塞がっていない。 */
+        if (m.ctaHidden && m.ctaInBar !== null && d.ctaHref) {
+          const want = abs(d.ctaHref, BASE + href);
+          ok(paths.includes(want), 'バーから消した CTA の行き先が板から辿れる',
+             paths.includes(want) ? '' : `${want} が板に無い`);
         }
       }
     }
     } finally { await page.close(); }   /* ★continue でも例外でも閉じ漏れない */
+  }
+  if (opt.ham === 'nav' && shellPad[IPHONE_W] != null && shellPad[WIDE_W] != null) {
+    ok(shellPad[IPHONE_W] <= shellPad[WIDE_W],
+       '狭い画面だけ足元を余分に空けていない（帯のぶんの余白が残っていない）',
+       `${IPHONE_W}px ${shellPad[IPHONE_W]}px / ${WIDE_W}px ${shellPad[WIDE_W]}px`);
   }
   } finally { await ctx.close(); }
 }
@@ -471,6 +767,72 @@ async function runForm(href, ok) {
   } finally { await ctx.close(); }
 }
 
+/* ═══ 8) 招待の着地でもレールが押せる（オーナー指定の⑧）══════════════════
+   `?ref=` で来た人には pv-referral.js が**画面いっぱいの招待状**を出す
+   （`.pvr-strip` … `position:absolute;width:100%;height:100vh;z-index:150`）。
+   レールは `z-index:160` で**その上**に居る決まりにしてある。
+   ⚠️ 数字を見るだけにしない ── z-index は「積み重ね文脈」が別なら効かない。
+      **本当に指が届くか**（elementFromPoint がレールの中を返すか）で見る。
+   ⚠️ ここは招待の中身を見る検査ではない（それは assert-referral.mjs の担当）。
+      見るのは**ナビが生きているか**だけ。 */
+const REF_CODE = 'K7QD3XZM';   /* ★実在のコードではない。assert-referral.mjs と同じ8文字 */
+
+async function runInviteRail(href, label, needSession, wantStrip, ok) {
+  const ctx = await browser.createBrowserContext();
+  try {
+    const page = await ctx.newPage();
+    try {
+      await page.setViewport({ width: WIDE_W, height: 900 });
+      page.setDefaultNavigationTimeout(60000);
+      if (needSession) await page.evaluateOnNewDocument(FAKE_SESSION);
+      await page.goto(BASE + href, { waitUntil: 'networkidle2' });
+      if (wantStrip) {
+        try { await page.waitForSelector('.pvr-strip', { timeout: 15000 }); }
+        catch (e) { ok(false, `${label} 招待状が出る（この検査の前提）`, String(e.message || e).slice(0, 80)); return; }
+      }
+      await settle(page);
+
+      const r = await page.evaluate((RAIL) => {
+        const n = document.querySelector('.mr-side');
+        if (!n) return { noRail: true, url: location.pathname };
+        const b = n.getBoundingClientRect();
+        const st = document.querySelector('.pvr-strip');
+        /* レールの中の、いちばん上の項目の真ん中を狙う。 */
+        const a = [...n.querySelectorAll('.mr-side-a')]
+          .find((e) => e.getBoundingClientRect().height > 0);
+        let hit = null, inRail = false;
+        if (a) {
+          const ab = a.getBoundingClientRect();
+          const el = document.elementFromPoint(ab.left + ab.width / 2, ab.top + ab.height / 2);
+          /* ⚠️ SVG の className は SVGAnimatedString で、文字列化すると
+               `[object SVGAnimatedString]` になる。baseVal を先に見る。 */
+          const cn = (e) => (typeof e.className === 'string' ? e.className
+                             : (e.className && e.className.baseVal) || '');
+          const c0 = el ? cn(el).trim().split(/\s+/)[0] : '';
+          hit = el ? el.tagName.toLowerCase() + (c0 ? '.' + c0 : '') : null;
+          inRail = !!(el && n.contains(el));
+        }
+        return {
+          width: +b.width.toFixed(1), vis: getComputedStyle(n).visibility,
+          zRail: getComputedStyle(n).zIndex,
+          zStrip: st ? getComputedStyle(st).zIndex : null,
+          strip: !!st, hit, inRail, want: RAIL,
+        };
+      }, RAIL_PX);
+
+      if (r.noRail) { ok(false, `${label} レールがある`, `いま ${r.url}`); return; }
+      ok(Math.abs(r.width - RAIL_PX) < 0.5 && r.vis === 'visible',
+         `${label} レールが ${RAIL_PX}px で出ている`, `幅 ${r.width} / ${r.vis}`);
+      if (r.strip) {
+        ok(Number(r.zRail) > Number(r.zStrip),
+           `${label} レールは招待状より上にある`, `レール ${r.zRail} / 招待状 ${r.zStrip}`);
+      }
+      ok(r.inRail, `${label} ★レールの項目を押すと、当たるのはレール自身`,
+         r.inRail ? `${r.hit}` : `当たったのは ${r.hit}（招待状に食われている）`);
+    } finally { await page.close(); }
+  } finally { await ctx.close(); }
+}
+
 /* ═══ 走らせる ═══════════════════════════════════════════════════════
    **出す順は宣言順に固定し、走らせる順だけプールに任せる。**
    重い仕事（1ページ＝10幅で約25秒）が先に並び、軽い FORM（1枚 約2.6秒）が
@@ -486,6 +848,17 @@ tasks.push({ label: '(見出し)',   /* 走らせるものは無い。行の場�
 for (const href of FORM_PAGES) {
   const lines = [];
   tasks.push({ label: href, lines, run: () => runForm(href, mkOk(lines)) });
+}
+tasks.push({ label: '(見出し)',
+  lines: [`\n═══ 招待の着地でもレールが生きている（${WIDE_W}px）═══`] });
+for (const [href, label, sess, strip] of [
+  ['/?ref=' + REF_CODE, 'トップ ＋ 招待状', false, true],
+  ['/en/?ref=' + REF_CODE, 'en トップ ＋ 招待状', false, true],
+  ['/invite.html', 'INVITE', true, false],
+  ['/en/invite.html', 'en INVITE', true, false],
+]) {
+  const lines = [];
+  tasks.push({ label, lines, run: () => runInviteRail(href, label, sess, strip, mkOk(lines)) });
 }
 const formTasks = tasks.slice(pageTasks.length);
 

@@ -88,10 +88,25 @@ const cssC = decomment(CSS);
 // ════════════════════════════════════════════════════════════════
 console.log('\n════ ① 錠前（この決定を持続させるのはここだけ）════');
 {
-  const nav = read('patch-side-nav.mjs');
-  const line = (decomment(nav).split('\n').find((l) => /key:\s*'deep'/.test(l)) || '');
-  ok(/href:\s*''/.test(line), '★左メニューの DEEP PAY は行き先を持たない（href が空）', line.trim().slice(0, 90));
-  ok(/soon:\s*true/.test(line), '★左メニューの DEEP PAY は soon（錠前）のまま', line.trim().slice(0, 90));
+  /* ★2026-09-06、左メニューから DEEP PAY / VERIFIED PAY の段そのものを撤去した
+       （ナビを7項目へ畳んだ回）。以前はここで「href が空・soon のまま」を見張っていたが、
+       段が無いほうが強い ── 行き先を持ちようがない。
+       ⚠️ 段を戻すときは、**必ず `href: ''` ＋ `soon: true` で戻す**。
+          `href: 'deep-pay.html'` で戻すと、その1行だけで錠前が外れる。
+          だから「無い」ことと「在るなら空」の両方を見る。
+       ★解放条件の説明は消していない。入口が本文の Give → Get の **DEEP PAY の札**へ移った
+         （pv-gates.js の data-pv-give。assert-pay-rows.mjs が見張っている）。
+       ⚠️ VERIFIED PAY のほうは札も押せない ── 本人確認の機能が出来るまで導線を作らない
+          （2026-09-06 オーナー確定）。説明パネルのコードは消していない。 */
+  const nav = decomment(read('patch-side-nav.mjs'));
+  for (const k of ['deep', 'verified']) {
+    const line = (nav.split('\n').find((l) => new RegExp("key:\\s*'" + k + "'").test(l)) || '');
+    ok(line === '' || (/href:\s*''/.test(line) && /soon:\s*true/.test(line)),
+       `★左メニューに ${k.toUpperCase()} の行き先を作らない（段が無いか、在るなら空＋soon）`,
+       line.trim().slice(0, 90));
+  }
+  ok(!/deep-pay(-compare)?\.html/.test(nav),
+     '★★左メニューの配り元が deep-pay の URL を1つも持たない', nav.match(/deep-pay[^'"\s]*/g) ? String(nav.match(/deep-pay[^'"\s]*/g)) : '');
 
   const gates = decomment(read('pv-gates.js'));
   const soon = gates.match(/state:\s*'soon'/g) || [];

@@ -53,7 +53,9 @@
 .mr-shell{max-width:1280px;margin:0 auto;padding:28px 24px 96px;
           display:grid;grid-template-columns:208px minmax(0,1fr);gap:36px;align-items:start}
 
-.mr-side{position:sticky;top:84px;display:flex;flex-direction:column;gap:2px}
+/* ⚠️ .mr-side / .mr-side-a / .mr-side-lk / .mr-side-note は **app-nav.css** へ移した
+     （2026-09-06）。ナビは 408枚に出るが、my-value.css を読むのはアプリ16枚だけ。
+     ここに書き戻すと、公開392枚では板が素のリンクの列になる。 */
 
 /* ★マイレポートだけ、サイドバーの下にプライバシーの札を置く（オーナーの画像どおり）。
      札は <nav class="mr-side"> の **外** ── nav の中は patch-side-nav.mjs が8枚へ配っていて、
@@ -78,34 +80,6 @@
            transition:border-color .18s var(--pv-ease),color .18s var(--pv-ease)}
 .mv-priv-a:hover{border-bottom-color:currentColor}
 .mv-priv-a:focus-visible{outline:2px solid var(--pv-orange);outline-offset:3px;border-radius:4px}
-.mr-side-a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--pv-r-sm);
-           color:var(--pv-ink-2);text-decoration:none;font-size:.84rem;font-weight:600;
-           border:1px solid transparent;
-           transition:background-color .18s var(--pv-ease),color .18s var(--pv-ease),
-                      border-color .18s var(--pv-ease)}
-.mr-side-a svg{flex:none;opacity:.7}
-.mr-side-a:hover{background:var(--pv-line-soft);color:var(--pv-ink)}
-.mr-side-a:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}
-.mr-side-a:active{background:var(--pv-line)}
-.mr-side-a.is-on{background:var(--pv-surface);color:var(--pv-ink);font-weight:700;
-                 border-color:var(--pv-line);box-shadow:var(--pv-shadow)}
-.mr-side-a.is-on svg{opacity:1;color:var(--pv-orange)}
-/* 「給与を追加」＝このサイトで一番押してほしいもの。3つの中で1つだけ色を持たせる。 */
-.mr-side-a.is-add{color:var(--pv-orange-ink);font-weight:700}
-.mr-side-a.is-add svg{opacity:1}
-.mr-side-a.is-add:hover{background:var(--pv-orange-soft);color:var(--pv-orange-ink)}
-/* まだ開いていない段（REAL PAY を出す前 / DEEP PAY / VERIFIED PAY）。
-   ★2026-08-25、<span aria-disabled> をやめて <button> にした。押すと
-     pv-gates.js が「何を出すと何が見られるか」を説明する（Give-to-Get）。
-     だから死んだ見た目にしない ── 薄くはするが、hover / focus / active は付ける。 */
-.mr-side-a.is-locked{color:var(--pv-ink-3);background:none;border-color:transparent;
-                     font:inherit;font-size:.84rem;font-weight:600;text-align:left;
-                     width:100%;cursor:pointer;-webkit-appearance:none;appearance:none}
-.mr-side-a.is-locked:hover{background:var(--pv-line-soft);color:var(--pv-ink-2)}
-.mr-side-a.is-locked:active{background:var(--pv-line)}
-.mr-side-a.is-locked > svg:first-of-type{opacity:.5}
-/* 錠前はラベルの右端へ寄せる（項目の名前とぶつからない位置） */
-.mr-side-lk{margin-left:auto;opacity:.75}
 
 /* ── Give → Get の説明パネル ────────────────────────────────
    ★覆いではない。position:fixed も aria-modal も使わない。
@@ -215,6 +189,23 @@
 /* いま開く段だけが色を持つ。「準備中」を色で強調しない（開くと読める）。 */
 .pv-give-r.is-live .pv-give-t{color:var(--pv-ink)}
 .pv-give-r.is-live .pv-give-p{background:var(--pv-orange-soft);color:var(--pv-orange-ink)}
+/* **DEEP PAY の札だけ**が押せる（2026-09-06 オーナー確定）── 押すと解放条件の説明が開く。
+   ★もとは左メニューの DEEP PAY / VERIFIED PAY が入口だった。ナビを7項目へ畳んだ回に
+     その2段を撤去したので、DEEP PAY の説明への道だけをここへ移した。
+   ⚠️ VERIFIED PAY の札は <span> のまま＝この規則が当たらない。
+      本人確認の機能が出来るまで、押せる導線も目立たせる見た目も作らない。
+   ★色は足さない。「準備中」を色で強調しないという上の決めごとを崩さない。
+     押せることは、指の形と輪郭と押し込みだけで伝える。 */
+button.pv-give-p{appearance:none;-webkit-appearance:none;font:inherit;font-size:.7rem;
+                 font-weight:700;cursor:pointer;
+                 /* ★罫線のぶん札が太らないよう padding を1px ずつ引く
+                      （このリポジトリは box-sizing を指定していない）。 */
+                 padding:2px 8px;border:1px solid transparent;
+                 transition:border-color .18s var(--pv-ease),color .18s var(--pv-ease),
+                            transform .18s var(--pv-ease)}
+button.pv-give-p:hover{border-color:var(--pv-line);color:var(--pv-ink-2)}
+button.pv-give-p:focus-visible{outline:2px solid var(--pv-orange);outline-offset:3px}
+button.pv-give-p:active{transform:scale(.96)}
 
 @media (max-width:520px){
   /* 狭いところでは3段を横に並べきれない。1段ずつの grid に戻して
@@ -236,7 +227,6 @@
   .mr-gate-x,.mr-gate-cta,.mr-gate-inv{transition:none}
   .mr-gate-x:active,.mr-gate-cta:active,.mr-gate-inv:active{transform:none}
 }
-.mr-side-note{margin-top:14px;padding:0 12px;font-size:.68rem;line-height:1.65;color:var(--pv-ink-3)}
 
 .mr-main{min-width:0}
 
@@ -749,28 +739,15 @@
 /* ══ 5) 狭い画面 ═══════════════════════════════════════════════
    横スクロールを作らない（§24）。横長の表は元から作っていない。 */
 
-/* サイドバーを畳んで、横並びのタブにする。マークアップは1つのまま。
-   ★2026-08-24 に項目が 4 → 6 になった（DEEP PAY / VERIFIED PAY）。
-     1行に押し込むと「匿名で給与を追加」だけが2行に折れて背が高くなるので、
-     折り返しを許して 2行に流す。 */
+/* 狭い画面では左のレールを本文の外へ出し、1列にする。
+   ★2026-09-06、レールを「横並びのタブ」に畳むのをやめた。
+     狭い画面のメニューは **ヘッダーの ≡ から左に出るドロワー**（app-nav.js）で、
+     板そのものの見た目（fixed・幅・出入り・アイコンの下に文字）は
+     **app-nav.css が持つ**。ここに .mr-side を書き戻さない ── 2か所になると
+     「広い画面は直ったのに iPhone だけ古い形」が黙って起きる。
+   ★ここが受け持つのは骨格（.mr-shell）だけ。 */
 @media(max-width:1000px){
   .mr-shell{grid-template-columns:minmax(0,1fr);gap:20px;padding-top:20px}
-  .mr-side{position:static;flex-direction:row;flex-wrap:wrap;gap:6px;overflow:visible}
-  .mr-side-a{flex:1 1 150px;justify-content:center;padding:9px 6px;font-size:.78rem;
-             white-space:nowrap;
-             background:var(--pv-surface);border-color:var(--pv-line)}
-  .mr-side-a.is-on{box-shadow:none;border-color:var(--pv-orange);background:var(--pv-orange-soft)}
-  .mr-side-a.is-on svg{color:var(--pv-orange-ink)}
-  /* 横並びでは中央揃えなので、錠前を右端へ飛ばさない（項目名の直後に置く）。
-     ★ロックされた段も他と同じ札の形にする。透明のままだと穴が空いて見える。 */
-  .mr-side-lk{margin-left:0}
-  .mr-side-a.is-locked{background:var(--pv-surface);border-color:var(--pv-line-soft);
-                       text-align:center;font-size:.78rem}
-  .mr-side-note{display:none}
-  /* 横タブに畳んだら札は出さない。縦に場所を取るだけで、
-     同じ約束は本文の最後の1行が言う。 */
-  .mr-col{position:static;display:block}
-  .mv-priv{display:none}
 }
 @media(max-width:760px){
   .mr-top-in,.mr-shell{padding-left:16px;padding-right:16px}
@@ -789,9 +766,8 @@
   .mr-opp-f{margin-top:12px}
   /* 項目名に1行使わせて、その下に「前 → 今 ＋増減」を並べる */
   .mv-c .k{flex:1 1 100%}
-  .mr-side-a span{font-size:.75rem}
 }
-/* ★search.js が ≡ を .mr-top-r に足すので、狭い幅では 4つ並ぶ
+/* ★app-nav.js が ≡ を .mr-top-r に足すので、狭い幅では 4つ並ぶ
    （テーマ・言語・通貨・≡）。320px（iPhone SE 1 / 5s）で溢れないよう詰める。
    ボタンそのものは小さくしない（38px は指で押せる下限）。 */
 @media(max-width:400px){
@@ -799,35 +775,19 @@
   .mr-top-r{gap:6px}
 }
 @media(max-width:420px){
-  /* 3つ並べるとラベルが折れるので、アイコンの下に文字を置く */
-  .mr-side-a{flex-direction:column;gap:4px;padding:8px 4px;flex:1 1 92px}
   .mr-ms .ym{width:100%}
   .mr-ms li{flex-wrap:wrap;gap:2px}
   .mr-ml-g{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 
-/* ══ 6) 下タブに合わせた骨格の調整（狭い画面だけ）══════════════
-   ★帯そのものの見た目は tabs.css が持つ。**ここに .mr-tabs を書き戻さない。**
-     2026-09-05、オーナーが下タブの中身を
-     「マイレポート / ROADMAP & REQUESTS / REAL PAY / 各航空会社 / マイページ」
-     に決め直した。「各航空会社」＝ world-airlines.html はマイページ系ではなく
-     このファイルを読まないので、帯だけ tabs.css へ切り出してある。
-   ★DOM は patch-side-nav.mjs が16枚へ配る。手で書き足さない。 */
-@media(max-width:720px){
-  /* 帯のぶん、本文の足元を空ける。★骨格の padding は上書きだけ。
-     3行のタブが一番背が高いので、そこに合わせる。
-     ⚠️ tabs.css の .mr-tabs-pad を <body> に足さない ── 2倍空く。 */
-  .mr-shell{padding-bottom:calc(96px + env(safe-area-inset-bottom))}
-
-  /* 左メニューは、下タブと行き先がかぶるものだけ隠す（二度出さない）。
-     残るのは 錠前つきの3つ（REAL PAY / DEEP PAY / VERIFIED PAY）と
-     ★「匿名で給与を追加」（.is-add）。
-     ⚠️ .is-add を隠さない ── 2026-09-05 に下タブから「給与を追加」が外れた。
-        ここまで隠すと、狭い画面から給与を出す入口が本文の橙ボタンだけになる。
-     ⚠️ DOM は1バイトも触らない。16枚が一致していることを検査が見ている。
-     ⚠️ DEEP PAY / VERIFIED PAY の錠前を消さない ── 消すと iPhone から辿れなくなる。 */
-  .mr-side>.mr-side-a:not([data-mr-gate]):not(.is-add){display:none}
-}
+/* ══ 6) 下タブ（廃止済み）═══════════════════════════════════════
+   ★2026-09-06 に足元の帯を廃止した。ここには
+     「帯のぶん 96px 空ける」規則と「左メニューの大半を隠す」規則が在ったが、
+     どちらも帯があることが前提だったので一緒に外した。
+     狭い画面のメニューは左から出るドロワーが受け持つ（app-nav.js / app-nav.css）。
+   ⚠️ .mr-shell に padding-bottom を足し直さない ── 帯はもう無いので、
+      足すと本文の下に理由のない空白が出るだけ。
+   ⚠️ .mr-side の項目を隠す規則を書き戻さない ── ドロワーは7項目ぜんぶ出す。 */
 
 /* 動きを減らす設定のとき。★ 要素を display:none にしない
    （トップページで実際に踏んだ罠。中身ごと消える）。 */
