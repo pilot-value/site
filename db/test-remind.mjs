@@ -24,7 +24,7 @@
    ════════════════════════════════════════════════════════════════ */
 import { PGlite } from '@electric-sql/pglite';
 import { pgcrypto } from '@electric-sql/pglite/contrib/pgcrypto';
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -400,16 +400,31 @@ const mk = (o) => build({
 sec('⑦ マイページの2つのスイッチが食い違って見えないこと');
 // ════════════════════════════════════════════════════════════════
 {
-  const tracker = read('pay-tracker.js');
-  ok(/w\.PVRemindSync\s*=\s*function/.test(tracker), 'pay-tracker.js が PVRemindSync を公開している');
-  ok(/PVOptInSync/.test(tracker), 'pay-tracker.js が親のスイッチに結果を伝えている');
-  ok(!/PVRemindSync[\s\S]{0,400}?SB\.rpc/.test(tracker),
+  /* ★2026-09-06、親子同期の在り処が pay-tracker.js → my-value.js に移った。
+       明細トラッカーを廃止して MY PAGE に一本化したとき、あの462行を消したので、
+       同期のコードだけ my-value.js へそのまま引き取っている。
+     ⚠️ ここで見ているのは「同期が在ること」であって、置き場所そのものではない。
+        消えたら、親を切っても子のスイッチがオンのまま残る画面が生まれる。 */
+  const mv = read('my-value.js');
+  ok(/w\.PVRemindSync\s*=\s*function/.test(mv), 'my-value.js が PVRemindSync を公開している');
+  ok(/PVOptInSync/.test(mv), 'my-value.js が親のスイッチに結果を伝えている');
+  ok(!/PVRemindSync[\s\S]{0,400}?SB\.rpc/.test(mv),
     'PVRemindSync は書きに行かない（DB が返した値に画面を合わせるだけ）');
+  /* ★子のスイッチが1つだけであること（3つ目だった pay-tracker.js を消した）。 */
+  ok((mv.match(/id="mv-remind-sw"/g) || []).length === 1,
+    '月次リマインドのスイッチは my-value.js に1つだけ');
+  ok(!existsSync(path.join(ROOT, 'pay-tracker.js')),
+    'pay-tracker.js は残っていない（子スイッチが2つに戻らない）');
+  /* ★保存先を変えていないこと。子は set_mail_optin 以外を呼ばない。 */
+  ok(/rpc\('set_mail_optin'/.test(mv), '子の保存は set_mail_optin のまま');
+  /* ★親 OFF のとき子が有効に見えないこと ── 画面の判定は AND のまま。 */
+  ok(/mail_optin\s*&&\s*[a-zA-Z.]*email_opt_in/.test(mv),
+    '★画面の「オン」は 子 AND 親（親を切ると子もオフに見える）');
   for (const f of ['profile.html', 'en/profile.html']) {
     const src = read(f);
     ok(/window\.PVOptInSync\s*=\s*function/.test(src), `${f} が PVOptInSync を公開している`);
     ok(/window\.PVRemindSync\s*===\s*'function'\s*\)\s*window\.PVRemindSync\(next\)/.test(src),
-      `${f} がオフにしたときトラッカー側にも伝える`);
+      `${f} がオフにしたとき子のスイッチにも伝える`);
   }
 }
 

@@ -41,7 +41,8 @@
 - 判定は [pay-viz.js](../pay-viz.js) の `segments()` が返す **`noBreakdown`**（色の付く分が0かどうか）。
   ⚠️ **呼ぶ側は必ず `notes.noBreakdown` を渡す**（`restOnly` の1行）。渡さないと
   灰色100%の円が言い放しになり、「これで全部」と読まれる。
-  [my-value.js](../my-value.js) と [pay-tracker.js](../pay-tracker.js) の**2画面とも**。
+  描くのは [my-value.js](../my-value.js) 1本（MY PAGE の ③ YOUR PAY と、
+  給与を出した直後の完了カード）。★2026-09-06 に pay-tracker.js を廃止して寄せた。
 - 灰色1色の行では、下の**3本の棒（固定／変動／判別できない）を出さない**。
   「判別できない 100%」と刷るだけで何も言っていない。代わりに入口（`pt-btn`）を1つ置く。
 - **見本（ぼかし）の道は残っている。** 円そのものが描けない行 ──
@@ -68,7 +69,7 @@
 **列は `guarantee_pay` のまま・DB は1バイトも変わらない。**英語は "Flight time guarantee / Duty allowance"。
 ⚠️ **「職位手当」（`command_pay`）とは別物。**あちらは4番目のまま動かさない
 （位置も名前も触らない。hint が「職務手当（上の欄）とは別」と1行で断っている）。
-レポートの凡例（[my-value.js](my-value.js) / [pay-tracker.js](pay-tracker.js) の `segGuarantee`）も
+レポートの凡例（[my-value.js](my-value.js) の `segGuarantee`）も
 同じ併記に揃えてある。**キー名 `guarantee` は変えない。**
 
 ⚠️ **`other_allowance` は 変動給＋その他 の合計、`flight_variable_pay` はその内訳。**

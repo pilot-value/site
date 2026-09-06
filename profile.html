@@ -185,7 +185,7 @@
        ★ 2層目の #pv-value .pt-* は id で閉じているので、このページの図には効かない。 -->
   <link rel="stylesheet" href="my-value.css">
   <link rel="stylesheet" href="app-nav.css">
-  <!-- 明細まわりの図の見た目。pay-tracker と my-value が共有する -->
+  <!-- 明細まわりの図の見た目。my-value.js と給与フォームの完了カードが共有する -->
   <link rel="stylesheet" href="pay-viz.css">
 <!-- Google tag (gtag.js) -->
 <script>
@@ -277,6 +277,20 @@
     </nav>
 
     <main class="mr-main">
+    <!-- ══ MY PAGE は6層。上ほど強く、下へ行くほど畳む ══════════════
+         ① YOUR STATUS ② NEXT ACTION ③ YOUR PAY
+         ④ YOUR CONTRIBUTIONS ⑤ INVITE PILOTS ⑥ SETTINGS
+         ★実額（金額）が出るのは ③ の <section id="your-pay"> の中だけ。
+           将来「金額を隠す」を入れるときは、あの箱ひとつに hidden を掛ければ
+           全部隠れる。ほかの層へ実額を撒かない。
+         ★節の見出しは日英とも英語（左のレールと同じ言い方に揃える）。 -->
+
+    <!-- ① YOUR STATUS ─ 開いた瞬間に見える層 -->
+    <section class="mp-sec" id="your-status">
+      <div class="mp-hd">
+        <h1 class="mp-h1">MY PAGE</h1>
+        <p class="mp-lead">あなたの状態・次にやること・自分の数字・出したもの・設定を1枚にまとめています。</p>
+      </div>
     <!-- FOUNDING PILOT 100（創設メンバー）。中身は pv-founding.js が描く。
          ★番号を持っていない人にも板は出る（沈んだ姿・数字なし）。
          ★人数・残り枠は1文字も出さない（会員の規模が読めてしまう）。 -->
@@ -295,27 +309,6 @@
             <div class="skeleton" style="width:180px;height:14px;margin-top:6px"></div>
           </div>
         </div>
-        <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
-          <button class="btn-ghost" onclick="startEdit()">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            編集
-          </button>
-          <button class="btn-logout" onclick="handleLogout()">ログアウト</button>
-        </div>
-      </div>
-
-      <div id="welcome-banner" style="display:none;background:linear-gradient(135deg,rgba(245,200,66,.10),rgba(249,115,22,.06));border:1px solid rgba(245,200,66,.28);border-radius:14px;padding:18px 20px;margin-bottom:20px">
-        <div style="font-size:1.02rem;font-weight:800;margin-bottom:6px">PILOT VALUE へようこそ、<span id="welcome-name">パイロット</span>さん ✈️</div>
-        <div class="pv-b-body" style="font-size:.8rem;line-height:1.7;margin-bottom:14px">登録ありがとうございます。ここは <b class="pv-b-gold">GIVE &amp; GET</b>。</div>
-        <ol class="pv-b-list" style="margin:0 0 14px;padding-left:1.1rem;font-size:.8rem;line-height:1.9">
-          <li><b>給与明細を1枚出す</b>と、<b>全社の年収データが90日間</b>読めます（写真1枚。画像は端末から出ません）</li>
-          <li><b>口コミを1件、匿名で投稿</b>すると、<b>全社の口コミが読めます</b>（所要3分）</li>
-        </ol>
-        <a href="pay-report.html" class="pv-cta-fill">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
-          匿名で給与を追加 →
-        </a>
-        <a href="submit-review.html" class="pv-cta-ghost">匿名で口コミを投稿する</a>
       </div>
 
       <!-- 鍵は2つある。年収（明細で90日・本当に切れる）と口コミ（投稿で解放・期限なし）は別物なので、
@@ -331,21 +324,13 @@
           口コミ未解放
         </span>
       </div>
-      <div id="unlock-cta" style="display:none;background:rgba(245,200,66,.06);border:1px solid rgba(245,200,66,.2);border-radius:12px;padding:16px 18px;margin-bottom:20px">
-        <div id="cta-title" class="pv-b-gold" style="font-size:.85rem;font-weight:700;margin-bottom:10px">GIVE &amp; GET</div>
-        <!-- ★何が返るのかを書く。ボタン2つだけだと「GIVE & GET」が何のことか分からない。
-             文言は上の welcome-banner と同じものを使う（新しい言い回しを増やさない）。
-             行の出し分けはボタンの出し分けと同じ条件にする。 -->
-        <ul class="pv-b-list" style="margin:0 0 14px;padding-left:1.1rem;font-size:.8rem;line-height:1.9">
-          <li id="cta-line-payslip"><b>給与明細を1枚出す</b>と、<b>全社の年収データが90日間</b>読めます</li>
-          <li id="cta-line-review"><b>口コミを1件、匿名で投稿</b>すると、<b>全社の口コミが読めます</b></li>
-        </ul>
-        <a href="pay-report.html" id="cta-payslip" class="pv-cta-fill">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
-          匿名で給与を追加
-        </a>
-        <a href="submit-review.html" id="cta-review" class="pv-cta-ghost">匿名で口コミを投稿する</a>
-      </div>
+
+      <!-- ★旧「明細トラッカー」にしか無かった3つの数字をここへ移した
+           （解放の残り日数・連続提出・出した明細の枚数）。
+           出どころは my_pay_reports() を1回引いた結果。新しい通信を足さない。
+           ★引けなかった数字は行ごと出さない（0 で埋めない）。
+           ★ここに金額は出さない。実額は ③ YOUR PAY の中だけ。 -->
+      <div class="pt-stats mp-stats" id="status-stats" hidden></div>
 
       <div id="info-rows">
         <div class="info-row"><div class="info-label">氏名</div><div class="info-value" id="v-name">—</div></div>
@@ -356,23 +341,88 @@
         <div class="info-row"><div class="info-label">職位</div><div class="info-value" id="v-position">—</div></div>
         <div class="info-row"><div class="info-label">登録日</div><div class="info-value" id="v-joined">—</div></div>
       </div>
-
-      <!-- 招待の常設入口。中身は pv-referral.js（mountInvite）が描く。
-           ★ここは「招待したい」と思った人が行ける唯一の場所。文脈カード
-             （マイレポート／給与を出した直後）は、自分で給与を1件も記録して
-             いないと出ない・5人そろっていても出ない・回数制限もある。
-             この1行を消すと、招待の入口がサイトからゼロになる -->
-      <div id="pv-invite-slot"></div>
     </div>
+    </section>
 
+    <!-- ② NEXT ACTION ─ ★強いものは常に1つだけ。同じ強さの CTA を並べない。
+         判定は init() の pickNext()（すでに引いてある値だけで決める）。
+         Give → Get の文面は PVGates.giveGetHTML() の1つだけを差す。
+         ★id="pay-tracker" は捨てない ── 給与を出した直後とログイン経由の導線が
+           profile.html#pay-tracker の形で来る。リンクを死なせない。 -->
+    <section class="mp-sec" id="pay-tracker">
+      <h2 class="mp-h2">NEXT ACTION</h2>
+      <div class="glass mp-next" id="next-action">
+        <div class="mp-next-t" id="na-title">読み込み中…</div>
+        <p class="mp-next-s" id="na-sub"></p>
+        <a class="mp-cta mp-next-c" id="na-cta" href="pay-report.html#ps" hidden></a>
+        <div class="mp-next-g" id="na-give"></div>
+      </div>
+    </section>
+
+    <!-- ③ YOUR PAY ─ ★実額が出る唯一の箱。中身は my-value.js（旧マイレポート）。
+         pv-no-cur ＝ currency.js の自動スキャンを止める。金額は SVG の中にも
+         入るので、span で包む方式では追えない。切替は 'pv-currency-change' で
+         描き直す（my-value.js が自分で聞いている）。 -->
+    <section class="mp-sec" id="your-pay">
+      <h2 class="mp-h2">YOUR PAY</h2>
+      <div class="pv-no-cur" id="pv-value">
+        <div class="mr-skel" style="height:34px;width:56%"></div>
+        <div class="mr-skel" style="height:14px;width:76%;margin-top:14px"></div>
+        <div class="mr-skel" style="height:190px;margin-top:22px"></div>
+      </div>
+    </section>
+
+    <!-- ④ YOUR CONTRIBUTIONS ─ ★この層に金額は出さない（実額は ③ の中だけ）。 -->
+    <section class="mp-sec" id="your-contributions">
+      <h2 class="mp-h2">YOUR CONTRIBUTIONS</h2>
     <!-- 待遇の二次導線（pv-conditions.js）。★ここに質問を出しっぱなしにしない。
          「1問だけ答える →」を押した人にだけモーダルが1問開く。
          給与をまだ1件も出していない人・聞くことが無い人には、カードごと出ない。
          出せない理由はすべて向こうで黙って諦める -->
     <div id="cond-slot"></div>
 
-    <!-- 明細トラッカー（pay-tracker.js が中身を描く） -->
-    <div class="glass pv-no-cur" id="pay-tracker" style="margin-top:20px;display:none"></div>
+    <!-- あなたが出したもの。口コミも給与も user_id を持たない匿名テーブルなので、
+         pv-reunlock.js が proof_hash を作り直して本人の行だけを引き当てる。
+         ★ここを固定のゼロ件にすると、出した本人に「投稿はありません」と出続ける。 -->
+    <div class="glass" id="my-reviews-card" style="margin-top:20px">
+      <div style="font-size:.92rem;font-weight:700;margin-bottom:16px">あなたが出したもの</div>
+
+      <div class="mine-h">口コミ</div>
+      <div id="my-reviews-list" class="mine-empty">読み込み中…</div>
+
+      <!-- ログインした瞬間に預かり証を拾えたときだけ出す1行。★金額は出さない。 -->
+      <div id="claim-note" class="claim-note">出していただいた給与レポートを、あなたのものにしました ✓</div>
+
+      <div class="mine-h" style="margin-top:20px">給与レポート</div>
+      <div id="my-pay-list" class="mine-empty">読み込み中…</div>
+    </div>
+    </section>
+
+    <!-- ⑤ INVITE PILOTS ─ ★招待の SSOT は invite.html（レールの項目）。
+         ここに共有UI・リンク生成・コピーの部品を作らない。説明1つと入口1つだけ。 -->
+    <section class="mp-sec" id="invite-pilots">
+      <h2 class="mp-h2">INVITE PILOTS</h2>
+      <div class="glass mp-inv">
+        <p class="mp-inv-s">同じ会社の人が増えるほど、あなたの比較の精度が上がります。招待リンクの作り方と使い道は招待のページにまとめてあります。</p>
+        <a class="mp-cta ghost mp-inv-a" href="invite.html">招待のページを開く</a>
+      </div>
+    </section>
+
+    <!-- ⑥ SETTINGS ─ ★既定で畳む（確定事項8）。 -->
+    <details class="mp-set" id="settings-card">
+      <summary class="mp-set-sum"><span class="mp-h2">SETTINGS</span></summary>
+      <div class="mp-set-b">
+        <!-- プロフィール編集。★ボタンは #profile-card から移した（開くのは同じ startEdit）。 -->
+        <div class="glass mp-row">
+          <div class="mp-row-b">
+            <div class="mp-row-t">プロフィール編集</div>
+            <div class="mp-row-s">氏名・性別・生年月日・居住国・在籍企業・職位</div>
+          </div>
+          <button class="btn-ghost" onclick="startEdit()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            編集
+          </button>
+        </div>
     <!-- Edit form -->
     <div class="glass" id="edit-card" style="display:none;margin-top:20px">
       <div style="font-size:1rem;font-weight:700;margin-bottom:20px">プロフィール編集</div>
@@ -432,6 +482,15 @@
       <div id="optin-hint" class="optin-hint"></div>
     </div>
 
+        <!-- 月次給与リマインド（子）。★上の「メール通知」（親 email_opt_in）とは
+             別の設定。1つに融合しない・片方を廃止しない。
+             送信条件は 親 ON かつ 子 ON の AND（db/pay-reminder.sql の pv_reminder_due）。
+             保存先は従来どおり set_mail_optin → profiles.mail_optin。
+             ★スイッチの実体は my-value.js が1つだけ描く（同じ設定を2つ置かない。
+               3つ目だった pay-tracker.js のスイッチはこの版で消した）。 -->
+        <div class="glass mp-remind" id="remind-card">
+          <div id="mv-remind-slot" class="mp-remind-slot">読み込み中…</div>
+        </div>
     <!-- Password -->
     <div class="glass" id="password-card" style="margin-top:20px">
       <div style="font-size:.92rem;font-weight:700;margin-bottom:4px">パスワード</div>
@@ -449,21 +508,21 @@
       </form>
     </div>
 
-    <!-- あなたが出したもの。口コミも給与も user_id を持たない匿名テーブルなので、
-         pv-reunlock.js が proof_hash を作り直して本人の行だけを引き当てる。
-         ★ここを固定のゼロ件にすると、出した本人に「投稿はありません」と出続ける。 -->
-    <div class="glass" id="my-reviews-card" style="margin-top:20px">
-      <div style="font-size:.92rem;font-weight:700;margin-bottom:16px">あなたが出したもの</div>
+        <div class="glass mp-row">
+          <div class="mp-row-b">
+            <div class="mp-row-t">ログアウト</div>
+            <div class="mp-row-s">この端末からサインアウトします</div>
+          </div>
+          <button class="btn-logout" onclick="handleLogout()">ログアウト</button>
+        </div>
 
-      <div class="mine-h">口コミ</div>
-      <div id="my-reviews-list" class="mine-empty">読み込み中…</div>
-
-      <!-- ログインした瞬間に預かり証を拾えたときだけ出す1行。★金額は出さない。 -->
-      <div id="claim-note" class="claim-note">出していただいた給与レポートを、あなたのものにしました ✓</div>
-
-      <div class="mine-h" style="margin-top:20px">給与レポート</div>
-      <div id="my-pay-list" class="mine-empty">読み込み中…</div>
-    </div>
+        <p class="mp-set-lk">
+          <a href="contact.html">お問い合わせ</a>
+          <span aria-hidden="true">·</span>
+          <a href="personal-data.html">パーソナルデータの扱い</a>
+        </p>
+      </div>
+    </details>
     </main>
   </div>
 
@@ -492,12 +551,27 @@
     let currentUser = null;
     let profile     = null;
 
+    /* ★ ③ YOUR PAY（my-value.js）に順番を守らせるための約束。
+         ここは **同期で** 作る ── my-value.js はこの下で読まれ、その場で
+         `await window.PV_SESSION` に入るので、そのとき既に在る必要がある。
+         解決するのは「招待の結びつけ → 預かり証の引き取り → 解放の復活」が
+         全部終わったあと。先に解決すると、いま引き取った1件が ③ の一覧から
+         抜ける（my-value.js:1679 に同じ理由が書いてある）。
+       ★PV_MYPAGE_HOST … ③ は MY PAGE の中の1節。my-value.js に
+         自前の大見出しと「解放中／枚数」の札を描かせない（この画面では重複する）。
+       ★PV_HOST_CLAIMED … claim と sweep はここで済ませた。同じ通信を
+         my-value.js 側でもう一度やらせない。 */
+    window.PV_MYPAGE_HOST = true;
+    let _sessionResolve;
+    window.PV_SESSION = new Promise(function (r) { _sessionResolve = r; });
+
     async function init() {
       const { data:{ session } } = await sb.auth.getSession();
       // ★#pay-tracker を落とさない。明細を出した直後の導線がこの形で来るので、
       //   ログインを挟んだ人だけページの一番上に着地する、という差を作らない。
       //   login.html の safePath() は u.hash を残す（login.html:114）。
       if (!session) {
+        _sessionResolve(null);          // ③ を待たせたままにしない
         window.location.href = 'login.html?redirect='
           + encodeURIComponent('profile.html' + (window.location.hash || ''));
         return;
@@ -513,6 +587,12 @@
 
       const isWelcome = new URLSearchParams(location.search).get('welcome') === '1';
 
+      /* 招待リンクから来た人を紹介者に結びつける。★ここは Google で登録した人の
+         戻り先。給与のページを一度も通らずに終わる人が居るので、ここでも拾う。
+         冪等なので他の3か所と重なっても害は無い。落ちてもこの画面は止めない。
+         ★預かり証の引き取りより **先**（順番は下の PV_SESSION の注記のとおり）。 */
+      try { if (window.PVReferral) await window.PVReferral.claim(sb); } catch (e) {}
+
       // 匿名で出した給与データの預かり証を拾う（最後の網）。
       // ★pvCheckReunlock より先に回す。いま入った1件を、下の一覧と解放の判定に含めるため。
       try {
@@ -526,8 +606,19 @@
       // 解放の復活（匿名 reviews_v2 を proof_hash 群で照合＋給与明細の access_until）
       try { if (window.pvCheckReunlock) await pvCheckReunlock(sb, currentUser.id); } catch(e) {}
 
+      /* ここまで来て初めて ③ YOUR PAY を動かす（claim → sweep → 解放の復活の順）。
+         ★claim と sweep は済んだ。my-value.js に同じ通信をやり直させない。 */
+      window.PV_HOST_CLAIMED = true;
+      _sessionResolve(session);
+
       // 出したものを一覧にする（上と同じ proof_hash の照合結果を使う）
       renderMyPosts();
+
+      /* ★給与レポートはページ全体で **1回だけ** 引く（pv-reunlock.js のキャッシュ経由）。
+         同じ答えを ④ の一覧・① の3つの数字・② の判定・③ YOUR PAY・
+         待遇の二次導線が使い回す。ここで新しい通信を足さない。 */
+      let mine = null;
+      try { if (window.pvMyPayReports) mine = await window.pvMyPayReports(sb, currentUser.id); } catch (e) {}
 
       // 鍵は2つ。年収（明細で90日）と口コミ（投稿で解放・期限なし）は別物なので混ぜない。
       // 上の pvCheckReunlock が別端末でも復元済みなので、ここは読むだけでよい。
@@ -553,41 +644,20 @@
       setBadge('unlock-status-salary', salaryOn, salaryExp, '年収データ');
       setBadge('unlock-status',        reviewOn, 0,         '口コミ');   // ← 0 ＝ 日付なし
 
-      if (salaryOn && reviewOn) {
-        // 両方開いている人に出すことは何も無い
-      } else if (isWelcome) {
-        // ようこそバナー内にCTAを内包するため、別枠の unlock-cta は表示しない
-        const wn = document.getElementById('welcome-name');
-        if (wn && profile && profile.name) wn.textContent = profile.name;
-        document.getElementById('welcome-banner').style.display = 'block';
-      } else {
-        // すでに開いている方は勧めない（出した人に「出せ」と言い続けない）。
-        if (salaryOn) {
-          document.getElementById('cta-payslip').style.display = 'none';
-          document.getElementById('cta-line-payslip').style.display = 'none';
-          document.getElementById('cta-review').style.marginLeft = '0';
-        }
-        if (reviewOn) {
-          document.getElementById('cta-review').style.display = 'none';
-          document.getElementById('cta-line-review').style.display = 'none';
-        }
-        document.getElementById('unlock-cta').style.display = 'block';
+      /* ★ ようこそバナーと手書きの Give & Get（#welcome-banner / #unlock-cta）は
+           2026-09-06 に廃止した。同じ文面が3種類に育っていたので、
+           Give → Get の説明は PVGates.giveGetHTML() の1つだけにする。
+           名前で迎える役目は下の1行（mp-lead）が引き取っている。 */
+      if (isWelcome && profile && profile.name) {
+        const lead = document.querySelector('#your-status .mp-lead');
+        if (lead) lead.textContent = 'ようこそ、' + profile.name + 'さん ✈️ ここがあなたのページです。';
       }
+
+      renderStatusStats(mine);
+      pickNext(mine, salaryOn, reviewOn);
 
       flashPasswordCard();
       openEditIfAsked();
-
-      /* 招待リンクから来た人を紹介者に結びつける。★ここは Google で登録した人の
-         戻り先。給与のページを一度も通らずに終わる人が居るので、ここでも拾う。
-         冪等なので他の3か所と重なっても害は無い。落ちてもこの画面は止めない。 */
-      try { if (window.PVReferral) await window.PVReferral.claim(sb); } catch (e) {}
-
-      /* 招待の常設入口を描く。★条件で消さない（給与を1件も出していない人にも出す）。
-         落ちてもこの画面は止めない。 */
-      try {
-        if (window.PVReferral) window.PVReferral.mountInvite(
-          document.getElementById('pv-invite-slot'), { sb: sb });
-      } catch (e) {}
 
       /* FOUNDING PILOT 100 の板。★称号がまだ無い人にも出す（何が入るかが分かる姿で）。
          RPC が答えないときは何も描かない（持っている人に
@@ -601,10 +671,131 @@
          見返り（給与レポート）を渡す前に頼むのは通行料に見えるため、
          勝手に開くのは「給与を出した直後」だけ（pay-report.html 側）。
          ここは押されたときだけ開くカードを1枚置く。 */
-      if (window.PVConditions) {
-        window.PVConditions.secondaryCTA(document.getElementById('cond-slot'),
-          { sb: sb, cardClass: 'glass' });
+      let condShown = false;
+      try {
+        if (window.PVConditions) {
+          const r = window.PVConditions.secondaryCTA(document.getElementById('cond-slot'),
+            { sb: sb, cardClass: 'glass' });
+          if (r && typeof r.then === 'function') condShown = !!(await r);
+        }
+      } catch (e) {}
+      /* ★待遇は ② の中でいちばん弱い（順位4）。上に何か在るときは横取りさせない。
+           判定は非同期でしか分からないので、ここまで来てから格上げする。 */
+      if (condShown) upgradeNextToConditions();
+    }
+
+    /* ── ① 状態帯 ───────────────────────────────────────────
+       旧「明細トラッカー」（pay-tracker.js・2026-09-06 廃止）にしか無かった3つ。
+       数えているのはサーバ（my_pay_reports の答えそのもの）＝ここで数え直さない。
+       ★引けなかった数字は行ごと出さない。0 で埋めると「1枚も出していない」に読める。
+       ★ここに金額は出さない（実額は ③ YOUR PAY の中だけ）。 */
+    function renderStatusStats(dat) {
+      const el = document.getElementById('status-stats');
+      if (!el || !dat) return;
+      const rows = dat.reports || [];
+      if (!rows.length) return;                 // まだ1枚も出していない人には帯そのものを出さない
+      const until = dat.access_until ? Date.parse(dat.access_until) : 0;
+      const left  = until ? Math.max(0, Math.ceil((until - Date.now()) / 86400000)) : null;
+      const cell  = (v, unit, lab, on) =>
+        '<div class="pt-stat"><b' + (on ? ' style="color:#48c78e"' : '') + '>' + v +
+        (unit ? '<i>' + unit + '</i>' : '') + '</b><span>' + lab + '</span></div>';
+      const cells = [];
+      if (left != null)              cells.push(cell(left, '日', '解放の残り', left > 0));
+      if (dat.streak_months != null) cells.push(cell(dat.streak_months, 'ヶ月', '連続提出', false));
+      const n = (dat.report_count != null) ? dat.report_count : rows.length;
+      cells.push(cell(n, '枚', '出した明細', false));
+      el.setAttribute('data-n', String(cells.length));
+      el.innerHTML = cells.join('');
+      el.hidden = false;
+    }
+
+    /* ── ② NEXT ACTION ──────────────────────────────────────
+       ★強いものは常に1つだけ。同じ強さの口を並べない。
+       ★すでに引いてある値だけで決める（このために新しい通信を足さない）。
+       ★引けなかった条件はその行ごと飛ばす（0 で埋めない・REAL PAY と同じ決まり）。
+
+         順1 給与レポートが0件            → 匿名で給与を追加
+         順2 解放が切れている／14日以内   → 今月ぶんの給与を追加
+         順3 口コミが未解放               → 匿名で口コミを投稿
+         順4 待遇に聞くことが残っている   → 1問だけ答える（非同期なので後から格上げ）
+         順5 どれも無い                   → 次の月を名指しで追加
+
+       Give → Get の説明は PVGates.giveGetHTML() の1つだけを差す。
+       ★ただし給与が0件の人には差さない ── そのときは ③ YOUR PAY の空画面
+         （my-value.js の renderEmpty）が同じものを描くので、1画面に2つ出る。 */
+    let nextRank = 99;
+    function setNext(rank, title, sub, label, href, onClick) {
+      if (rank >= nextRank) return;
+      nextRank = rank;
+      document.getElementById('na-title').textContent = title;
+      const s2 = document.getElementById('na-sub');
+      s2.textContent = sub;
+      const a = document.getElementById('na-cta');
+      a.textContent = label;
+      a.href = href;
+      a.hidden = false;
+      a.onclick = onClick || null;
+    }
+    function pickNext(dat, salaryOn, reviewOn) {
+      const rows = (dat && dat.reports) || [];
+      const box  = document.getElementById('next-action');
+
+      if (!dat) {                                   // 引けなかった＝勝手に決めつけない
+        document.getElementById('na-title').textContent = '次にやることを読み込めませんでした';
+        document.getElementById('na-sub').textContent = '時間をおいて開き直してください。下の YOUR PAY はそのまま使えます。';
+        return;
       }
+
+      /* 順5 … 次に出すべき月（いちばん新しい1件の翌月。無ければ今月）。 */
+      let ny, nm;
+      if (rows.length) {
+        const last = rows[rows.length - 1];
+        ny = last.period_year; nm = (last.period_month || 0) + 1;
+        if (nm > 12) { nm = 1; ny += 1; }
+      } else { const t = new Date(); ny = t.getFullYear(); nm = t.getMonth() + 1; }
+      setNext(5, NEXT_YM(ny, nm) + 'ぶんの給与を追加してください',
+              "毎月1件ずつ足していくと、推移と節目が下の YOUR PAY に出ます。", "今月ぶんの給与を追加", 'pay-report.html#ps');
+
+      /* 順3 … 口コミの鍵。年収の鍵とは別物なので混ぜない。 */
+      if (!reviewOn) setNext(3, "口コミがまだ解放されていません", "口コミを1件出すと、110社ぶんの口コミが読めるようになります。",
+                             "匿名で口コミを投稿", 'submit-review.html');
+
+      /* 順2 … 解放が切れている／もうすぐ切れる（14日）。
+               access_until が無い人は順1 が拾うので、ここでは日数が読めるときだけ見る。 */
+      const until = dat.access_until ? Date.parse(dat.access_until) : 0;
+      if (rows.length && (!until || until - Date.now() <= 14 * 86400000)) {
+        const d = until ? Math.max(0, Math.ceil((until - Date.now()) / 86400000)) : 0;
+        setNext(2, (d > 0 ? '年収データの解放が、あと' + d + '日で切れます' : '年収データの解放が切れています'),
+          "今月ぶんを1件出すと、そこからまた90日ぶん続きます。", "今月ぶんの給与を追加", 'pay-report.html#ps');
+      }
+
+      /* 順1 … まだ1件も出していない。ここがいちばん強い。 */
+      if (!rows.length) setNext(1, "まず、給与を1件だけ出してください", "明細1枚で、あなたの数字が出せるようになります。氏名も社員番号も受け取りません。",
+                                "匿名で給与を追加", 'pay-report.html#ps');
+
+      /* Give → Get の説明（共有版1つ）。★0件の人には差さない（③ が描くので二重になる）。 */
+      if (rows.length && window.PVGates && window.PVGates.giveGetHTML) {
+        document.getElementById('na-give').innerHTML = window.PVGates.giveGetHTML();
+      }
+      if (box) box.hidden = false;
+    }
+    function NEXT_YM(y, m) { return y + '年' + m + '月'; }
+
+    /* 順4 … 待遇。★上に何か在るときは横取りしない（setNext が順位で弾く）。
+       ★入口をここで作り直さない ── ④ に出ている本物のボタンを押すだけ。
+         判定と文面を2か所に増やさないため。 */
+    function upgradeNextToConditions() {
+      const btn = document.querySelector('#cond-slot .pvc-btn');
+      if (!btn) return;
+      setNext(4, "待遇について、まだ答えていない項目があります", "1問だけです。答えるほど、同じ会社の人の比較が正確になります。", "1問だけ答える",
+              '#your-contributions', function (e) { e.preventDefault(); btn.click(); });
+    }
+
+    /* ⑥ SETTINGS は既定で畳んである。中のカードへ直接来た人には開けてやる
+       （開かないと、リンクを踏んでも画面が変わらない＝壊れて見える）。 */
+    function openSettings() {
+      const d = document.getElementById('settings-card');
+      if (d && !d.open) d.open = true;
     }
 
     /* 明細レポートのあとの「プロフィールを設定する」から来た人は #edit-card 付き。
@@ -624,6 +815,7 @@
       if (window.location.hash !== '#password-card') return;
       const card = document.getElementById('password-card');
       if (!card) return;
+      openSettings();                       // ⑥ は畳んである。開けないと寄れない
       setTimeout(function () {
         card.scrollIntoView({ behavior: 'smooth', block: 'center' });
         card.classList.add('is-flash');
@@ -676,16 +868,19 @@
       profile = { ...profile, ...updates };
       localStorage.setItem('pv_user', JSON.stringify({...profile, email: currentUser.email}));
       renderOptIn();
-      /* このページには同意のスイッチが2つある（ここ＝メール全般 / 明細トラッカー内＝月次リマインド）。
+      /* このページには同意のスイッチが2つある（ここ＝メール全般＝親 /
+         ⑥ SETTINGS の下＝月次給与リマインド＝子）。**別の設定のまま**で、
          これをオフにすると DB のトリガー profiles_mail_consent_sync が
-         月次リマインドも落とす。下のカードにもそれを伝える
-         ＝「解除したのにオンのまま見えている」を作らない。 */
+         子も落とす。子のカードにもそれを伝える
+         ＝「解除したのにオンのまま見えている」を作らない。
+         ★2026-09-06、3つ目だった pay-tracker.js のスイッチだけを消した。
+           親と子の意味・保存先・送信条件は1文字も変えていない。 */
       if (typeof window.PVRemindSync === 'function') window.PVRemindSync(next);
       const toast = document.getElementById('toast');
       if (toast) { toast.textContent = next ? 'メール通知をオンにしました ✓' : 'メール通知をオフにしました'; toast.style.display='block'; setTimeout(()=>{toast.style.display='none';}, 2500); }
     }
 
-    /* 逆向き。明細トラッカーで月次リマインドをオンにすると、サーバ側で
+    /* 逆向き。⑥ SETTINGS の子（月次給与リマインド）をオンにすると、サーバ側で
        親の同意（email_opt_in）も立つ（set_mail_optin）。その結果をここに反映する。
        ★ここでは書きに行かない。DB が返した値に画面を合わせるだけ。 */
     window.PVOptInSync = function (on) {
@@ -757,7 +952,8 @@
       if (!el) return;
       if (!reports) { el.textContent = '読み込めませんでした。時間をおいて開き直してください'; return; }
       if (!reports.length) { el.textContent = 'まだ出していません'; return; }
-      // ★金額は出さない。マイページは人に見せる場面がある。実額は my-value.html 側。
+      // ★④ の一覧は金額を出さない（人に見せる場面がある）。実額は ③ YOUR PAY の中だけ。
+      //   将来「金額を隠す」を入れるときは、あの1箱に hidden を掛ければ全部隠れる。
       el.innerHTML = reports.map(r => {
         const name = (r.airline === 'other' && r.airline_other) ? r.airline_other : airlineLabel(r.airline);
         const period = (r.period_year && r.period_month) ? `${r.period_year}年${r.period_month}月分` : '';
@@ -786,6 +982,7 @@
     }
 
     function startEdit() {
+      openSettings();                       // ⑥ は畳んである。開けないと寄れない
       document.getElementById('edit-card').style.display = 'block';
       document.getElementById('edit-card').scrollIntoView({behavior:'smooth',block:'nearest'});
       document.getElementById('e-name').value    = profile.name || '';
@@ -886,7 +1083,10 @@
      ⚠️ actual-pay.js より**前**に読む（PVGates.giveGetHTML() を使う）。 -->
 <script src="pv-gates.js"></script>
 <script src="pay-viz.js"></script>
-<script src="pay-tracker.js"></script>
+<!-- ③ YOUR PAY の中身（旧マイレポート）。★pay-viz.js の **後**に読む。
+     2026-09-06、pay-tracker.js（462行）を廃止してこの1本に寄せた ──
+     同じ my_pay_reports() を叩き、同じ pay-viz.js で図を描く実装が2つあった。 -->
+<script src="my-value.js"></script>
 <!-- PV-NAV: ナビの開け閉め。★search.js より**後**に読む ──
      あちらが作った ≡ を繋ぎ直すため（先に読むと search.js:416 の二重注入ガードで
      ヘッダーの自動折り畳みごと止まる）。search.js が無いページでは自分で ≡ を作る。 -->

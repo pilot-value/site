@@ -1,8 +1,13 @@
 /* patch-pay-viz.mjs — profile.html / en/profile.html を pay-viz.css / pay-viz.js に載せ替える。
 
+   ⚠️ **2026-09-06 に役目を終えた一発物。もう流さない。**
+      profile.html は既に pay-viz.css を読んでいるので先頭で skip して戻るが、
+      仮に skip を外すと ② の錨（pay-tracker.js の script タグ）がもう無い
+      ＝ once() が落ちる。pay-tracker.js は同じ日に削除した。
+
    背景：.pt-* の約60ルールが両ファイルにインラインで入っていて、数字と図の
-   コードは pay-tracker.js に閉じていた。my-value.html（市場価値レポート）が
-   同じ図を出すので、そのままだと 4ファイルへの手写しになって必ずドリフトする。
+   コードは pay-tracker.js（当時）に閉じていた。マイレポートが同じ図を出すので、
+   そのままだと 4ファイルへの手写しになって必ずドリフトする。
 
    やることは2つだけ。見た目は1pxも動かさない：
      ① <style> の中の .pt-* ブロックを消し、</style> の直後に pay-viz.css を貼る

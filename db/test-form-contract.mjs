@@ -78,8 +78,6 @@ console.log('\n式の置き場所（pay-viz.js に1つだけ）');
   const holders = files.filter((f) => read(f).includes(NUMER));
   ok(holders.length === 1 && holders[0] === 'pay-viz.js',
      `時給の分子を持っているのは pay-viz.js だけ`, holders.join(','));
-  ok(!/function calc\(/.test(read('pay-tracker.js')),
-     `pay-tracker.js は calc() を持ち帰っていない`);
 
   /* 総支給（差引支給額 ＋ 控除合計）も同じ。pay_reports に総支給の列は無いので
      足して出すしかないが、my-value.js の §4（額面と手取り）・§6（前回との差）・
@@ -90,15 +88,18 @@ console.log('\n式の置き場所（pay-viz.js に1つだけ）');
   ok(gHolders.length === 1 && gHolders[0] === 'pay-viz.js',
      `総支給の式を持っているのは pay-viz.js だけ`, gHolders.join(','));
 
-  // 読み込み順（pay-viz.js が後だと PVViz が未定義でカードごと消える）
+  /* 読み込み順（pay-viz.js が後だと PVViz が未定義でカードごと消える）
+     ★2026-09-06、明細トラッカー（pay-tracker.js・462行）を廃止して
+       MY PAGE の ③ YOUR PAY に一本化した。図を描くのは my-value.js 1本だけ。 */
   for (const [f, up] of [['profile.html', ''], ['en/profile.html', '../']]) {
     const s = read(f);
-    // ★ファイル名だけで探さない。どちらも本文のコメントに出てくる（JA 側は
-    //   <!-- 明細トラッカー（pay-tracker.js が中身を描く） --> が先に当たる）。
+    // ★ファイル名だけで探さない。どちらも本文のコメントに出てくる。
     const viz = s.indexOf(`<script src="${up}pay-viz.js">`);
-    const trk = s.indexOf(`<script src="${up}pay-tracker.js">`);
-    ok(viz > 0 && trk > 0 && viz < trk,
-       `${f}: pay-viz.js を pay-tracker.js より先に読む`, `viz=${viz} trk=${trk}`);
+    const mv  = s.indexOf(`<script src="${up}my-value.js">`);
+    ok(viz > 0 && mv > 0 && viz < mv,
+       `${f}: pay-viz.js を my-value.js より先に読む`, `viz=${viz} mv=${mv}`);
+    ok(!/<script src="(\.\.\/)?pay-tracker\.js">/.test(s),
+       `${f}: 廃止した pay-tracker.js を読み戻していない`);
     ok(s.includes(`${up}pay-viz.css`), `${f}: pay-viz.css を読む`);
     ok(!s.includes('.pt-top{'), `${f}: .pt-* をインラインに書き戻していない`);
   }
@@ -117,8 +118,11 @@ console.log('\n市場価値レポート（my-value）');
     .replace(/(^|[^:])\/\/.*$/gm, '$1');       // 行コメント（https:// を守る）
   const MV = strip(read('my-value.js'));
 
-  // ① 読み込み順。PVViz が未定義だと my-value.js は黙ってページごと出さない
-  for (const [f, up] of [['my-value.html', ''], ['en/my-value.html', '../']]) {
+  /* ① 器と CSS。PVViz が未定義だと my-value.js は黙ってページごと出さない。
+     ★2026-09-06、レポートの置き場が my-value.html → profile.html（MY PAGE の
+       ③ YOUR PAY）に移った。my-value.html は転送1枚になったので、
+       器を見るのは MY PAGE の側。 */
+  for (const [f, up] of [['profile.html', ''], ['en/profile.html', '../']]) {
     const s = read(f);
     const viz = s.indexOf(`<script src="${up}pay-viz.js">`);
     const mv  = s.indexOf(`<script src="${up}my-value.js">`);
@@ -181,9 +185,15 @@ for (const f of ['pay-report.html', 'en/pay-report.html']) {
   // ⑥ 明細を出した直後の着地先が Get 側（レポート）に向いている
   for (const f of ['pay-report.html', 'en/pay-report.html']) {
     const s = read(f);
-    ok(s.includes('href="my-value.html?new=1"'), `${f}: 投稿後CTAが市場価値レポートへ向く`);
+    /* ★2026-09-06、レポートは MY PAGE の ③ YOUR PAY に統合した。
+         ?new=1 は「出した直後」の合図で、レポート側の書き出しが変わる。
+         #your-pay まで書くのは、①②を飛ばして実額のところへ着けるため。 */
+    ok(s.includes('href="profile.html?new=1#your-pay"'),
+       `${f}: 投稿後CTAが MY PAGE の YOUR PAY へ向く`);
+    ok(!s.includes('href="my-value.html?new=1"'),
+       `${f}: 旧CTA（転送1枚になった my-value.html）が残っていない`);
     ok(!s.includes('href="profile.html#pay-tracker"'),
-       `${f}: 旧CTA（記録の一覧）が残っていない`);
+       `${f}: さらに古い CTA（記録の一覧）も残っていない`);
   }
 
   /* ⑦ 桁区切り（2026-08-13）。金額の欄だけ type="text" ＋ class="money" にして
@@ -2932,7 +2942,7 @@ console.log('\n市場価値レポート（§6 の差・§7 の線は同一会社
         value: { createClient: () => FAKE }, writable: false, configurable: false
       });
     }, reports);
-    await page.goto('http://localhost:3000/my-value.html',
+    await page.goto('http://localhost:3000/profile.html',
       { waitUntil: 'domcontentloaded', timeout: 30000 });
     await new Promise((r) => setTimeout(r, 1200));
 

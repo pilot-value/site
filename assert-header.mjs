@@ -78,7 +78,7 @@ const JOBS = Math.max(1,
 
 /* テンプレートが違うものを1枚ずつ。同じ生成物を並べても同じ形が増えるだけ。 */
 /* ★ham の3種類（2026-09-06）
-     'nav'    … 新しい共通ナビが入っているページ ＝ 408枚。広い画面は左のレール、
+     'nav'    … 新しい共通ナビが入っているページ ＝ 406枚。広い画面は左のレール、
                 狭い画面（≦1000px）だけ ≡ から左にドロワー。**≡ は常には出ない。**
      'always' … 認証4枚。畳む段が無いので、どの幅でも ≡ を出す。
      既定      … 共通ナビを入れないページ ＝ 給与フォーム日英2枚だけ。
@@ -98,13 +98,15 @@ const PAGES = [
   ['/submit-review.html',   'ja 口コミを出す',  { ham: 'nav' }],
   /* マイページ系（header.mr-top）。ログインしないとヘッダーごと出ないので
      セッションを差し込む。
-     ★2026-09-06、この16枚だけ ≡ の出方が変わった（ham:'app'）。
+     ★2026-09-06、このアプリ14枚だけ ≡ の出方が変わった（ham:'app'）。
        app-nav.js が先に #pv-ham-btn を作り、search.js:416 の二重注入ガードで
        あちらは何もせず戻る。広い画面は左のレール、狭い画面（≦1000px）だけ
        ≡ から左にドロワーが出る ＝ **≡ は常には出ない**のが正しい。
        ⚠️ ham:'always' に戻さない。戻すと「レールも ≡ も両方出ている」を
           正解として通してしまう。 */
-  ['/my-value.html',        'ja マイレポート', { ham: 'nav', login: true }],
+  /* ★2026-09-06、マイレポートは MY PAGE（profile.html）の ③ YOUR PAY へ統合した。
+     my-value.html は転送1枚になり、**ヘッダーそのものを持たない**ので一覧から外す。
+     URL は消せない（送信済みのお知らせメールが指している）。 */
   /* ★ロードマップと要望。テンプレートは同じ .mr-shell だが、これは
        このリポジトリで唯一「自由に書ける textarea を持つマイページ」で、
        下の FORM_PAGES にも自動で入る（390px で入力欄が 16px 未満なら iOS が拡大する）。 */
@@ -235,7 +237,7 @@ const measure = () => {
 /* ── 引き出しの中身を読む ──────────────────────────────────────── */
 /* ★引き出しは2種類ある（2026-09-06）。
      ① 公開ページ292枚 … search.js が右から出す #pv-nav-drawer
-     ② アプリ画面16枚 … app-nav.js が右から出す .mr-side
+     ② アプリ画面14枚 … app-nav.js が右から出す .mr-side
    ≡ のボタンの id は同じ（pv-ham-btn）── それが二重注入ガードの鍵なので、
    押したあと**どちらの板が立ったか**で見分ける。 */
 const readDrawer = () => {
@@ -457,7 +459,7 @@ async function runPage(href, label, opt, ok) {
         return { w: innerWidth, left: b.left, right: b.right, width: b.width,
                  vis: getComputedStyle(n).visibility,
                  /* ★助け出したヘッダーの CTA は数に入れない（下の readDrawer 参照）。
-                      板そのものは 408枚どこでも CTA ＋ 7項目の8つ。 */
+                      板そのものは 406枚どこでも CTA ＋ 7項目の8つ。 */
                  n: document.querySelectorAll('.mr-side-a:not([data-pv-nd-cta])').length,
                  ham: !!h,
                  hamBox: hb ? { right: innerWidth - hb.right, top: hb.top, left: hb.left,
@@ -647,7 +649,7 @@ async function runPage(href, label, opt, ok) {
          m.minGap === null ? '' : `いちばん狭いところ ${m.minGap}px`);
     }
     if (opt.ham === 'nav') {
-      /* ★共通ナビの408枚。広い画面は左のレール、狭い画面（≦1000px）だけ ≡。
+      /* ★共通ナビの406枚。広い画面は左のレール、狭い画面（≦1000px）だけ ≡。
            app-nav.css の @media(max-width:1000px) と対。
          ⚠️ 「畳んだときだけ」に戻さない ── search.js は 768〜1000px では
             まだ畳んでいないので、そこでレールも ≡ も出ない穴になる

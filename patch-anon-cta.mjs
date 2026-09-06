@@ -59,9 +59,9 @@ const EDITS = [
   ['en/profile.html', '\n          Submit your first payslip →\n', '\n          Submit your first payslip anonymously →\n'],
   ['en/profile.html', '\n          Submit a payslip\n', '\n          Submit a payslip anonymously\n'],
   ['en/profile.html', 'class="pv-cta-ghost">Post a review</a>', 'class="pv-cta-ghost">Post a review anonymously</a>', 2],
-  // ── マイレポート／待遇ページのヘッダーボタン
-  ['my-value.html', '<span>給与を追加</span>', '<span>匿名で給与を追加</span>'],
-  ['en/my-value.html', '<span>Add pay</span>', '<span>Add pay anonymously</span>'],
+  /* ── 待遇ページのヘッダーボタン
+     ★2026-09-06、my-value.html の2行を外した。あの住所は MY PAGE への
+       転送1枚になり、ヘッダーそのものが無い（本体は ③ YOUR PAY）。 */
   ['airline-conditions.html', '<span>給与を追加</span>', '<span>匿名で給与を追加</span>'],
   ['en/airline-conditions.html', '<span>Add pay</span>', '<span>Add pay anonymously</span>'],
   // ── マイレポート本体（日英1ファイル）

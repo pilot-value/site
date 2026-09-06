@@ -9,9 +9,9 @@
      ①②③ を1つに畳み、狭い画面は**右から出るドロワー**にした
      （≡ が右上に在るので、指と板が同じ側になる。2026-09-06 に左から反転）。
 
-   ★読ませる先は 408枚（オーナー確定事項10・2026-09-06）──
+   ★読ませる先は 406枚（オーナー確定事項10・2026-09-06）──
        公開392枚（トップ・VOTE・AIRLINES・航空会社110社・国別・記事…）
-       ＋ アプリ16枚（.mr-shell を持つ画面）
+       ＋ アプリ14枚（.mr-shell を持つ画面）
      **入れないのは6枚だけ** ── login / signup（日英4枚）・auth-callback・
      給与フォーム（pay-report 日英。書きかけの値が消えるため）。
 
@@ -24,7 +24,7 @@
      pv-gates.js の錠前が片方にしか付かず、aria-current が2つになる。
 
    ★≡ ボタンは2通りの生まれ方をする（app-nav.js のコメントに全部書いてある）。
-       アプリ16枚と airlines/ の日本語115枚 → app-nav.js が自分で作る
+       アプリ14枚と airlines/ の日本語115枚 → app-nav.js が自分で作る
        それ以外の公開ページ                 → search.js が作ったものを繋ぎ直す
      後者では **search.js の style がこの <link> より後に来る**。
      同じ強さだと向こうが勝つので、上書きは必ず `body.pv-anav-shell …`（0,2,0）で書く。
@@ -48,8 +48,8 @@
 
 /* ══ 0) 板そのもの ═══════════════════════════════════════════════
    ★2026-09-06、ここが .mr-side の**唯一の置き場**になった。
-     もとは my-value.css に在ったが、あちらを読むのはアプリ16枚だけで、
-     板は 408枚（公開392 ＋ アプリ16）に出る。
+     もとは my-value.css に在ったが、あちらを読むのはアプリ14枚だけで、
+     板は 406枚（公開392 ＋ アプリ14）に出る。
      公開ページが読むのは pv-tokens.css ＋ app-nav.css の2枚だけ。
    ⚠️ 色は --pv-* だけを使う。hex を直接書かない
       （公開ページは明暗を切り替える。直書きすると片方で読めなくなる）。 */
@@ -102,7 +102,7 @@
        h-[68px] ＋ 境界線 1px = 69px   community ほか
        h-[70px] ＋ 境界線 1px = 71px   world-airlines 日英
        h-[72px] ＋ 境界線 1px = 73px   トップ・航空会社110社・記事（最多）
-       .mr-top-in 60px ＋ 境界線 1px = 61px   アプリ16枚
+       .mr-top-in 60px ＋ 境界線 1px = 61px   アプリ14枚
      どれを使うかは <body> の class が選ぶ。**patch-side-nav.mjs が
      ヘッダーの h-[…] を読んで書く**ので、人が数を写さない。
    ⚠️ ずれると、ヘッダーとレールの間に地の色の帯が出る（低いほうを書いた場合）か、
@@ -118,7 +118,7 @@
        120px … ROADMAP と「匿名で給与を追加」の2つが2行
        104px … ROADMAP が**3行**（オーナーの条件「3行以上にしない」を割る）
      幅を触るときは必ず measure し直す。
-   ⚠️ my-value.css:54 の 208px はもう揃えなくてよい ── アプリ16枚の grid の
+   ⚠️ my-value.css:54 の 208px はもう揃えなくてよい ── アプリ14枚の grid の
       左列は下の `body.pv-anav-app .mr-shell{grid-template-columns:minmax(0,1fr)}` で
       畳んであり、狭い画面では my-value.css が1段組みにする＝**あの 208px は死んでいる**。 */
 body.pv-anav-pub{--pv-topbar:73px}   /* 既定（h-[72px]）。下の t** が上書きする */
@@ -149,7 +149,7 @@ body.pv-anav-t73{--pv-topbar:73px}
     overflow-y:auto;overscroll-behavior:contain;
     transform:none;visibility:visible}
 
-  /* アプリ16枚は grid の左列を畳む（板は fixed で外へ出た）。 */
+  /* アプリ14枚は grid の左列を畳む（板は fixed で外へ出た）。 */
   body.pv-anav-app .mr-shell{grid-template-columns:minmax(0,1fr)}
   /* マイレポートの包みも畳む（中の札は板の下に出す）。 */
   body.pv-anav-shell .mr-col{position:static;display:contents}
@@ -266,7 +266,7 @@ body.pv-anav-t73{--pv-topbar:73px}
 
 /* ══ 2) ドロワーの頭（× で閉じる）════════════════════════════════
    ★app-nav.js が実行時に <nav class="mr-side"> の先頭へ入れる。
-     patch-side-nav.mjs が配る中身（16枚一致を検査が見ている）には手を出さない。
+     patch-side-nav.mjs が配る中身（枚数の一致を検査が見ている）には手を出さない。
    ★広い画面では出さない。左レールに × は要らない。 */
 .mr-side-head{display:none}
 .mr-side-ttl{font-size:.7rem;font-weight:800;letter-spacing:.08em;

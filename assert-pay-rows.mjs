@@ -633,7 +633,10 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
   /* ★2026-09-06、オーナー確定事項10 で**通常ページ全部**へ広がった（16枚 → 408枚）。
        それまでの「公開ページにはアプリのナビを入れない」（確定事項5・6）は無効。
        出ないのは2種類だけ ── 認証（login / signup / auth-callback）と
-       給与フォーム（pay-report。書きかけが消えるため）。 */
+       給与フォーム（pay-report。書きかけが消えるため）。
+     ★同じ日の Phase 2 で **406枚**になった。マイレポート（my-value.html 日英）を
+       MY PAGE の ③ YOUR PAY に統合し、あの2枚は「転送するだけの1枚」になった
+       ＝ ヘッダーも板も持たない。**URL は消せない**（送信済みのメールが指している）。 */
   const pages = [];
   for (const dir of ['.', 'en', 'airlines', 'en/airlines', 'countries', 'en/countries']) {
     for (const f of readdirSync(new URL(dir + '/', ROOT)).filter((x) => x.endsWith('.html')).sort()) {
@@ -644,9 +647,9 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
   const side = pages.filter((p) => p.html.includes('<nav class="mr-side"'));
   const pub = side.filter((p) => p.html.includes('id="main-nav"'));
   const app = side.filter((p) => !p.html.includes('id="main-nav"'));
-  ok(side.length === 408, '★★同じ板が 408枚に在る（公開392 ＋ アプリ16）',
+  ok(side.length === 406, '★★同じ板が 406枚に在る（公開392 ＋ アプリ14）',
      `公開 ${pub.length} ／ アプリ ${app.length} ／ 合計 ${side.length}`);
-  ok(pub.length === 392 && app.length === 16, '★内訳も 392 ＋ 16 のまま',
+  ok(pub.length === 392 && app.length === 14, '★内訳も 392 ＋ 14 のまま',
      `公開 ${pub.length} ／ アプリ ${app.length}`);
   for (const rel of ['invite.html', 'en/invite.html']) {
     ok(side.some((p) => p.rel === rel), `★${rel} にアプリのナビが在る`);
@@ -656,8 +659,8 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
        1枚くらい混ざっても画面は普通に動く（給与フォームなら書きかけが消える）。
      ⚠️ 404 / admin / unsubscribe の日英6枚はヘッダーそのものが無い（≡ の置き場が無い）。
         ここも「板を持たない」側だが、除外の理由が違うので分けて数える。
-        合計14枚 ＝ 認証6（login / signup / auth-callback の日英）
-        ＋ 給与フォーム2 ＋ ヘッダーの無い6。 */
+        合計16枚 ＝ 認証6（login / signup / auth-callback の日英）
+        ＋ 給与フォーム2 ＋ ヘッダーの無い6 ＋ **転送だけの2**（my-value 日英）。 */
   {
     const AUTH = ['login.html', 'signup.html', 'auth-callback.html', 'pay-report.html'];
     const bad = pages.filter((p) => AUTH.includes(p.rel.split('/').pop())
@@ -665,8 +668,16 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
     ok(bad.length === 0, '★★認証と給与フォームには板を入れない', bad.join(' / '));
     const none = pages.filter((p) => !p.html.includes('<nav class="mr-side"'))
       .map((p) => p.rel).sort();
-    ok(none.length === 14, '★板を持たないのは14枚だけ（認証・給与フォーム8 ＋ ヘッダーの無い6）',
+    ok(none.length === 16, '★板を持たないのは16枚だけ（認証・給与フォーム8 ＋ ヘッダーの無い6 ＋ 転送2）',
        none.join(' / '));
+    /* ★転送の2枚が「本当に転送だけ」であること。中身が戻ると、
+         同じレポートを2つの実装が描く元の姿に戻る。 */
+    for (const rel of ['my-value.html', 'en/my-value.html']) {
+      const s = read(rel);
+      ok(/location\.replace\('profile\.html'/.test(s), `★${rel} は MY PAGE へ転送する1枚`);
+      ok(!s.includes('id="pv-value"'), `★${rel} にレポートの器が戻っていない`);
+      ok(!s.includes('my-value.js'), `★${rel} が my-value.js を読み戻していない`);
+    }
   }
 
   /* ★足元の帯の残骸が1枚も無いこと。
@@ -688,7 +699,7 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
   ok(!/padding-bottom:calc\(96px/.test(noCmt('my-value.css')),
      '★my-value.css に帯のぶんの足元の余白（96px）が残っていない');
 
-  /* ★408枚とも app-nav.css / app-nav.js / pv-tokens.css を読む。
+  /* ★406枚とも app-nav.css / app-nav.js / pv-tokens.css を読む。
        CSS を読み忘れると、狭い画面でレールが本文の上に居座る（画面は動いたまま）。
      ⚠️ 深さが3段ある（ルート ／ en・airlines・countries ／ en/airlines・en/countries）。
         「en/ なら ../」で決め打ちすると airlines/ の115枚を素通しする。 */
@@ -699,12 +710,12 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
         || !p.html.includes(`href="${up}pv-tokens.css"`)
         || !p.html.includes(`src="${up}app-nav.js"`);
   }).map((p) => p.rel);
-  ok(noAsset.length === 0, '★★408枚は app-nav.css / pv-tokens.css / app-nav.js を読む',
+  ok(noAsset.length === 0, '★★406枚は app-nav.css / pv-tokens.css / app-nav.js を読む',
      noAsset.join(' / '));
 
   /* ★★ここが今回いちばん大事。**app-nav.js は search.js より後**に読む。
-     ⚠️ 2026-09-06 に**逆になった**。16枚だけだった頃は「先に同じ id の ≡ を立てて
-        search.js の inject() を丸ごと止める」やり方だった。408枚へ広げた今それをやると、
+     ⚠️ 2026-09-06 に**逆になった**。アプリ画面だけだった頃は「先に同じ id の ≡ を立てて
+        search.js の inject() を丸ごと止める」やり方だった。全ページへ広げた今それをやると、
         **ヘッダーの自動折り畳みごと殺す** ── fit() / fits() / needed() が同じ
         inject() の中に入っているため（search.js:416 以降）。
         だから公開ページでは inject() を普通に走らせ、走り終わってから
@@ -764,14 +775,14 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
        2026-09-05、ページのコメントに入れ物と同じ字面を1行書いたせいで、
        そこから最初の </nav> までが差し替え範囲になり、CSS 240行とヘッダーが消えた。
        ファイルは壊れたのに、そのとき赤くなった検査は1本も無かった。 */
-  /* ★408枚ぶんを1行にまとめる（1枚ずつ出すと、ここだけで 408行になる）。 */
+  /* ★406枚ぶんを1行にまとめる（1枚ずつ出すと、ここだけで 406行になる）。 */
   {
     const ate = side.filter((p) => {
       const i = p.html.indexOf('<nav class="mr-side"');
       const m = p.html.slice(i, p.html.indexOf('</nav>', i) + 6);
       return !(m.length < 6000 && !/<\/style>|<!--|<script/.test(m));
     }).map((p) => p.rel);
-    ok(ate.length === 0, '★★左メニューの入れ物が他の中身を呑み込んでいない（408枚）',
+    ok(ate.length === 0, '★★左メニューの入れ物が他の中身を呑み込んでいない（406枚）',
        ate.join(' / '));
   }
   /* ★呑み込みを止める見張りが生成器に残っているか。 */

@@ -148,7 +148,7 @@ await page.evaluateOnNewDocument((scene, theme) => {
     })
   };
 
-  // 差し替えクライアント。profile.html / pv-reunlock.js / pay-tracker.js が
+  // 差し替えクライアント。profile.html / pv-reunlock.js / my-value.js が
   // 実際に呼ぶ形（thenable なチェーン）だけを満たす最小の作り。
   function q(rows) {
     const o = {

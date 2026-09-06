@@ -1,15 +1,16 @@
 /* ════════════════════════════════════════════════════════════════
    patch-side-nav.mjs — サイト全体のナビ（7項目）を1か所から配る
 
-   ★2026-09-06、配り先を 16枚 → **408枚**にした（オーナー確定事項10）。
+   ★2026-09-06、配り先を 16枚 → **406枚**にした（オーナー確定事項10）。
        公開392枚 … トップ（Landing Page）／ VOTE（community）／
                     AIRLINES（world-airlines）／ 航空会社110社 ／ 国別 ／ 記事 …
-       アプリ16枚 … .mr-shell を持つ画面（actual-pay / profile / my-value /
-                    roadmap / deep-pay / deep-pay-compare / airline-conditions ＋ invite）
-     **入れないのは6枚だけ** ── login / signup（日英4枚）・auth-callback ・
-     給与フォーム（pay-report 日英。書きかけの値が消えるため従来どおり出さない）。
+       アプリ14枚 … .mr-shell を持つ画面（actual-pay / profile / roadmap /
+                    deep-pay / deep-pay-compare / airline-conditions ＋ invite）
+     **入れないのは8枚だけ** ── login / signup（日英4枚）・auth-callback ・
+     給与フォーム（pay-report 日英。書きかけの値が消えるため従来どおり出さない）
+     ・**my-value 日英**（同じ日の Phase 2 で MY PAGE への転送1枚になった）。
 
-   なぜ1か所から配るのか ── 同じ項目を人が408か所に書き写せば、必ず古いまま残る。
+   なぜ1か所から配るのか ── 同じ項目を人が406か所に書き写せば、必ず古いまま残る。
    実際に 2026-08-23 まで、my-value / airline-conditions の両方に
    「3つだけ」というコメントが残っていた。
 
@@ -81,17 +82,17 @@ const ICON = {
      VERIFIED PAY は実際の検証機能ができるまで出さない。
      ⚠️ deep-pay.html / deep-pay-compare.html は消していない。導線から来る画面になっただけ。
 
-   ★my-value.html（マイレポート）もナビには出さない。
-     Phase 2 で profile.html へ統合する予定で、それまでの入口は2つ残っている ──
-       pay-tracker.js:315（MY PAGE の「マイレポートを見る →」）
-       pay-report.html:3518（給与を出した直後の完了カード）
-     ⚠️ URL そのものは生かしたまま（送信済みのリマインドメールが指している）。
+   ★my-value.html（マイレポート）は 2026-09-06 の Phase 2 で
+     **MY PAGE（profile.html）の ③ YOUR PAY** に統合した。
+     残った2枚は「転送するだけの1枚」で、ヘッダーも板も持たない
+     ＝ 下の検出（mr-top / #main-nav）に当たらず、自動で配布対象から外れる。
+     ⚠️ URL そのものは消せない（送信済みのお知らせメールが指している）。
 
    ★href は**言語の根から見た相対**で書く。'en/' を頭に付けない。
      各ページの深さぶんの '../' は下の navPre() が足す。
 
    ★data-mr-gate は pv-gates.js の目印。錠前は実行時にあちらが付け外しする。
-     ⚠️ pv-gates.js を読むのはアプリ16枚だけ。公開392枚では素通しの
+     ⚠️ pv-gates.js を読むのはアプリ14枚だけ。公開392枚では素通しの
         ただのリンクになる（actual-pay.html 側が自分で錠前を持っている）。 */
 const ITEMS = [
   { key: 'add',      href: 'pay-report.html#ps',  icon: 'add',      add: true },
@@ -134,7 +135,7 @@ const TEXT = {
 };
 
 /* どのページがどの項目で光るか。**言語の根から見た道**で引く。
-   ここに無いページ（my-value / deep-pay / deep-pay-compare / airline-conditions /
+   ここに無いページ（deep-pay / deep-pay-compare / airline-conditions /
    航空会社110社 / 国別 / 記事）はどれも光らせない。
    ★航空会社ページで AIRLINES を光らせないのは、aria-current="page" が
      「まさにこのページ」を意味するから。似た場所という理由で嘘を書かない。 */

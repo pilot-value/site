@@ -50,9 +50,9 @@
 
   // 同じログインの中で何度も総当たりしない。マイページは pvCheckReunlock の
   // 直後に一覧を出すので、ここが無いと同じ問い合わせを2回投げることになる。
-  var cache = { userId: null, reviews: null, pay: null };
+  var cache = { userId: null, reviews: null, pay: null, flight: null };
   function resetCache(userId) {
-    if (cache.userId !== userId) cache = { userId: userId, reviews: null, pay: null };
+    if (cache.userId !== userId) cache = { userId: userId, reviews: null, pay: null, flight: null };
   }
 
   function setUnlock() {
@@ -76,13 +76,23 @@
     if (!sb) return null;
     resetCache(userId || cache.userId);
     if (cache.pay !== null) return cache.pay;
-    try {
-      var res = await sb.rpc("my_pay_reports");
-      cache.pay = (res && res.data) || null;
-    } catch (e) {
-      cache.pay = null;
+    /* ★「答え」ではなく「飛んでいる問い合わせ」を覚える。
+         2026-09-06 に MY PAGE を1枚に統合して、①②③④と待遇の二次導線が
+         同じ瞬間にここを呼ぶようになった。答えだけを覚える書き方だと、
+         最初の1本が返るまで cache.pay は null のままなので、全員が
+         それぞれ RPC を投げる（画面は普通に動いたまま通信だけ4本になる）。 */
+    if (!cache.flight) {
+      cache.flight = (async function () {
+        try {
+          var res = await sb.rpc("my_pay_reports");
+          cache.pay = (res && res.data) || null;
+        } catch (e) {
+          cache.pay = null;
+        }
+        return cache.pay;
+      })();
     }
-    return cache.pay;
+    return await cache.flight;
   };
 
   // 給与枠のクロスデバイス復活。給与明細を出すと submit_pay_report が

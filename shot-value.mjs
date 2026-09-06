@@ -1,4 +1,5 @@
-/* shot-value.mjs — 市場価値レポート（my-value.html）を localhost の実ページで撮る。
+/* shot-value.mjs — 市場価値レポート（MY PAGE の ③ YOUR PAY）を localhost の実ページで撮る。
+   ★2026-09-06、レポートは profile.html の中の1節になった（my-value.html は転送1枚）。
 
    shot-tracker.mjs と同型。my_pay_reports() はオーナーが SQL を流すまで本番に
    入らないので、Supabase クライアントごと差し替えて合成データで実物を描かせる。
@@ -80,7 +81,7 @@ let n = 1;
 while (fs.existsSync(path.join(dir, `screenshot-${n}-${label}.png`))) n++;
 const outPath = path.join(dir, `screenshot-${n}-${label}.png`);
 
-const url = `http://localhost:3000/${lang === 'en' ? 'en/' : ''}my-value.html` +
+const url = `http://localhost:3000/${lang === 'en' ? 'en/' : ''}profile.html` +
             (scene === 'new' ? '?new=1' : '');
 
 /* ★ headless:'new' はこの環境で page.screenshot() が永久に返ってこない
@@ -422,7 +423,7 @@ await page.evaluateOnNewDocument((scene, theme, REALROW) => {
     }
   };
 
-  // 差し替えクライアント。my-value.html / currency.js / lang-toggle.js が実際に
+  // 差し替えクライアント。profile.html / currency.js / lang-toggle.js が実際に
   // 呼ぶ形（thenable なチェーン）だけを満たす最小の作り。
   function q(rows) {
     const o = {

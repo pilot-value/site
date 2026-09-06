@@ -1,7 +1,9 @@
 /* ════════════════════════════════════════════════════════════════
    my-value.js — マイレポート（明細を出した人に返すもの）
 
-   my-value.html / en/my-value.html の #pv-value に載る。
+   ★2026-09-06、MY PAGE（profile.html / en/profile.html）の
+     ③ YOUR PAY ＝ <div id="pv-value"> に載る。my-value.html は転送1枚になった
+     （送信済みメールが指しているので URL は消せない）。
    ページ側の inline script より **後**、pay-viz.js より **後** に読むこと。
    日英で1本。<html lang> を見て T を切り替える＝文言が2ファイルに散らない。
 
@@ -239,7 +241,6 @@
       mlGoal: function (g) { return g + 'ヶ月'; },
       mlMax: '36ヶ月ぶんそろいました。ここから先は、記録するほど過去の自分との比較が効いてきます。',
       mlNote: '点数は付けません。増えるのは、あなた自身の記録です。',
-      nextTracker: 'マイページで記録を見る →',
       remind: '明細のリマインドを受け取る',
       remindOn: 'あなたの給料日ごろに、月1回だけ届きます。',
       remindOff: '現在オフ。リマインドは届きません。',
@@ -437,7 +438,6 @@
       mlGoal: function (g) { return g + 'm'; },
       mlMax: '36 months on record. From here, every payslip you add deepens the comparison with your own past.',
       mlNote: 'There are no points here. What grows is your own record.',
-      nextTracker: 'See your record →',
       remind: 'Remind me when my payslip lands',
       remindOn: 'Once a month, around your own payday.',
       remindOff: 'Off. No reminders will be sent.',
@@ -533,7 +533,6 @@
   }
 
   var payHref = function () { return 'pay-report.html#ps'; };
-  var trackerHref = function () { return 'profile.html#pay-tracker'; };
 
   /* ── 小物 ───────────────────────────────────────────────── */
   function sec(title, body, sub, mod) {
@@ -1352,10 +1351,41 @@
     return T.ym(y, m);
   }
 
-  function next(dat, rows, r) {
+  /* ── 月次リマインド（子）のスイッチ ─────────────────────────
+     ★2026-09-06、MY PAGE に統合した。あちらでは ⑥ SETTINGS の中の
+       #mv-remind-slot に描く（親のスイッチのすぐ下＝親子が並んで見える）。
+       差込口が無いページでは、今までどおり「次の1枚」の中に出す。
+     ★どちらの場合も、押したときに走るのは toggleRemind ひとつだけ。
+       set_mail_optin 以外は呼ばない（保存先も送信条件も一切変えない）。 */
+  function remindBlock(dat) {
     var on = remindOn(dat);
     var day = dat && dat.pay_day_of_month;
     var when = (on && day) ? note(esc(T.remindWhen(day))) : '';
+    return '<div class="pt-sec pt-remind-row" style="margin-top:0">' +
+        '<div><div class="pt-remind-h">' + esc(T.remind) + '</div>' +
+        '<div class="pt-note" id="mv-remind-hint">' + esc(on ? T.remindOn : T.remindOff) + '</div>' + when + '</div>' +
+        '<button id="mv-remind-sw" role="switch" aria-checked="' + (on ? 'true' : 'false') + '" ' +
+          'aria-label="' + esc(T.remind) + '" class="pt-sw' + (on ? ' on' : '') + '"><span></span></button>' +
+      '</div>' + note(esc(T.remindNote));
+  }
+
+  function bindRemind(scope) {
+    var sw = scope && scope.querySelector('#mv-remind-sw');
+    if (sw) sw.addEventListener('click', toggleRemind);
+  }
+
+  /* ⑥ SETTINGS の差込口へ描く。★rows が 0 件の人にも描く
+     ── 設定は「まだ1枚も出していない」ことと関係が無い。 */
+  function paintRemind(dat) {
+    var slot = d.getElementById('mv-remind-slot');
+    if (!slot) return;
+    if (!dat) { slot.textContent = T.remindErr; return; }
+    slot.innerHTML = remindBlock(dat);
+    bindRemind(slot);
+  }
+
+  function next(dat, rows, r) {
+    var here = !d.getElementById('mv-remind-slot');   // 差込口が無いページだけ、ここに出す
     return sec(T.next,
       '<ul class="mr-next">' + T.nextWhat(nextYm(r)).map(function (x) {
         return '<li><span class="mr-next-i">' + PLUS + '</span>' +
@@ -1364,18 +1394,17 @@
       mlStrip(rows.length) +
       '<div style="display:flex;gap:10px;flex-wrap:wrap">' +
         '<a class="pt-btn" href="' + payHref() + '">' + esc(T.nextAdd) + '</a>' +
-        '<a class="pt-btn ghost" href="' + trackerHref() + '">' + esc(T.nextTracker) + '</a>' +
       '</div>' +
-      '<div class="pt-sec pt-remind-row" style="margin-top:22px">' +
-        '<div><div class="pt-remind-h">' + esc(T.remind) + '</div>' +
-        '<div class="pt-note" id="mv-remind-hint">' + esc(on ? T.remindOn : T.remindOff) + '</div>' + when + '</div>' +
-        '<button id="mv-remind-sw" role="switch" aria-checked="' + (on ? 'true' : 'false') + '" ' +
-          'aria-label="' + esc(T.remind) + '" class="pt-sw' + (on ? ' on' : '') + '"><span></span></button>' +
-      '</div>' + note(esc(T.remindNote)));
+      (here ? '<div style="margin-top:22px">' + remindBlock(dat) + '</div>' : ''));
   }
 
   /* ── 描画 ────────────────────────────────────────────────── */
+  /* ★MY PAGE（profile.html）の中では、h1 も「解放中／あと N 日」も「N 枚」も
+       ① YOUR STATUS がもう出している。同じ数字を1画面に2回書くと、
+       食い違ったときにどちらが本物か分からなくなる。ここでは
+       会社・機材・職位・基地・更新日だけにする（見出しは節の h2 が持つ）。 */
   function header(dat, r, rows) {
+    var host = !!w.PV_MYPAGE_HOST;
     var until = dat.access_until ? new Date(dat.access_until) : null;
     var left = until ? Math.max(0, Math.ceil((until - Date.now()) / 86400000)) : 0;
     var chips =
@@ -1383,11 +1412,11 @@
       chip(T.kFleet, fleetName(r)) +
       chip(T.kPos, posName(r)) +
       (r.base_iata ? chip(T.kBase, String(r.base_iata).toUpperCase()) : '') +
-      chip(T.kSheets, T.sheets(rows.length)) +
+      (host ? '' : chip(T.kSheets, T.sheets(rows.length))) +
       chip(T.kUpdated, r.created_at ? T.date(r.created_at) : '—') +
-      chip('', left > 0 ? T.unlockOn(left) : T.unlockOff);
+      (host ? '' : chip('', left > 0 ? T.unlockOn(left) : T.unlockOff));
     return '<div class="mr-hd">' +
-      '<h1 class="mr-hd-t">' + esc(T.titleOf(personName())) + '</h1>' +
+      (host ? '' : '<h1 class="mr-hd-t">' + esc(T.titleOf(personName())) + '</h1>') +
       '<p class="mr-hd-s">' + esc(isNew ? T.leadNew : T.lead) + '</p>' +
       '<div class="mr-chips">' + chips + '</div></div>';
   }
@@ -1508,7 +1537,8 @@
       + '</div></section>';
 
     root.innerHTML =
-      '<div class="mr-hd"><h1 class="mr-hd-t">' + esc(T.eTitle) + '</h1>'
+      '<div class="mr-hd">'
+      + (w.PV_MYPAGE_HOST ? '' : '<h1 class="mr-hd-t">' + esc(T.eTitle) + '</h1>')
       + '<p class="mr-hd-s">' + esc(T.eLead) + '</p></div>'
       + rep + band + give + add
       + '<p class="mv-e-foot">' + IC_LOCK + '<span>' + esc(T.eFoot) + '</span></p>';
@@ -1517,6 +1547,7 @@
   function render() {
     var dat = state.data;
     if (!dat) return;
+    paintRemind(dat);                      // ★0 件で戻る前に描く（設定は件数と無関係）
     var rows = dat.reports || [];
     if (!rows.length) return renderEmpty();
     var r = rows[rows.length - 1];
@@ -1570,8 +1601,7 @@
         drawChart();                       // タブはグラフだけ差し替える（全部組み直さない）
       });
     });
-    var sw = d.getElementById('mv-remind-sw');
-    if (sw) sw.addEventListener('click', toggleRemind);
+    bindRemind(root);                      // ★差込口の側は paintRemind が繋いでいる
   }
 
   async function toggleRemind() {
@@ -1586,7 +1616,14 @@
          こちらから推測で書かず、返ってきた値をそのまま入れる。 */
       var got = res.data || {};
       state.data.mail_optin = (got.mail_optin != null) ? !!got.mail_optin : nextOn;
-      if (got.email_opt_in != null) state.data.email_opt_in = !!got.email_opt_in;
+      /* ★同じ画面に親のスイッチ（メール通知 全般 ＝ email_opt_in）がある。
+           リマインドをオンにするとサーバ側で親も立つので、それを伝えないと
+           「実際はオンなのに、親だけオフのまま」の画面が残る。
+           2026-09-06 に pay-tracker.js から引き取った（あちらは削除）。 */
+      if (got.email_opt_in != null) {
+        state.data.email_opt_in = !!got.email_opt_in;
+        if (typeof w.PVOptInSync === 'function') w.PVOptInSync(!!got.email_opt_in);
+      }
       render();
     } catch (e) {
       if (hint) hint.textContent = T.remindErr;
@@ -1675,17 +1712,26 @@
     /* 招待リンクから来てここまで辿り着いた人を紹介者に結びつける。冪等なので
        他の3か所（profile / pay-report ×2）と重なっても害は無い。
        ★失敗してもレポートは止めない。 */
-    try { if (w.PVReferral) await w.PVReferral.claim(SB); } catch (e) {}
+    try { if (w.PVReferral && !w.PV_HOST_CLAIMED) await w.PVReferral.claim(SB); } catch (e) {}
     /* 匿名で出した給与データの預かり証を拾う（最後の網。profile.html:477 と同じ実体）。
        ★my_pay_reports() より **前**。引き取りに成功すると submit_pay_report が走って
          その1件が本人のものになるので、直後に引く一覧に最初から載る。
          後ろに置くと、1回目だけ「出したのに無い」画面が出る。
        ★takeFromUrl() を自分で呼ばない ── sweep() が中で先に呼んでいる。
        ★失敗しても画面は止めない（profile.html と同じ扱い）。 */
-    try { if (w.PVClaimPending) await w.PVClaimPending.sweep(SB); } catch (e) {}
+    try { if (w.PVClaimPending && !w.PV_HOST_CLAIMED) await w.PVClaimPending.sweep(SB); } catch (e) {}
+    /* ★問い合わせは pv-reunlock.js のキャッシュを通す。直に rpc を投げない。
+         MY PAGE では ①②③④ と待遇の二次導線が同じ my_pay_reports() を要る。
+         それぞれが投げると1画面で4本になる（画面は普通に動いたまま通信だけ増える）。
+       ★PV_HOST_CLAIMED が立っているとき＝ host 側が claim → sweep → 問い合わせまで
+         済ませている。ここで来るのは、その答えの写し。 */
     var res;
-    try { res = await SB.rpc('my_pay_reports'); } catch (e) { res = { error: e }; }
-    if (!res || res.error || !res.data) { root.innerHTML = empty(T.err); return; }
+    try {
+      res = (typeof w.pvMyPayReports === 'function')
+        ? { data: await w.pvMyPayReports(SB) }
+        : await SB.rpc('my_pay_reports');
+    } catch (e) { res = { error: e }; }
+    if (!res || res.error || !res.data) { paintRemind(null); root.innerHTML = empty(T.err); return; }
     state.data = res.data;
     /* ★左メニューの錠前は localStorage の写しで暫定的に出ている。
          ここはサーバの access_until を持っているので、そちらで上書きする
@@ -1718,6 +1764,18 @@
     state.name = await loadName(sess);
     render();
   }
+
+  /* 親（メール通知 全般 ＝ email_opt_in）が切られたら、子のリマインドも切れる。
+     切るのは DB のトリガー profiles_mail_consent_sync（db/pay-reminder.sql）なので、
+     画面はその結果に合わせるだけ。★ここで RPC を呼び直さない
+     ＝画面の都合でもう一度書きに行くと、真の値がどちらか分からなくなる。
+     2026-09-06 に pay-tracker.js:440 からそのまま引き取った（あちらは削除）。 */
+  w.PVRemindSync = function (parentOn) {
+    if (!state.data) return;
+    state.data.email_opt_in = !!parentOn;
+    if (!parentOn) state.data.mail_optin = false;
+    render();
+  };
 
   // 通貨を切り替えたら SVG の中の数字も追随させる（自動スキャンは届かない）
   w.addEventListener('pv-currency-change', function () { if (state.data) render(); });

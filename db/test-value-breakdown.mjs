@@ -303,9 +303,11 @@ console.log('\n⑦ donut()（画面に出る形）');
 }
 
 // ── ⑧ 画面の文言が揃っているか ────────────────────────────
-console.log('\n⑧ 名前の対応表（my-value.js / pay-tracker.js の両方）');
+/* ★2026-09-06、pay-tracker.js（462行）を廃止して my-value.js 1本にした。
+     凡例の語を2か所で持っていたのをやめたので、見るのも1本だけ。 */
+console.log('\n⑧ 名前の対応表（my-value.js）');
 {
-  for (const f of ['my-value.js', 'pay-tracker.js']) {
+  for (const f of ['my-value.js']) {
     const src = readFileSync(path.join(ROOT, f), 'utf8');
     ok(/bonus:\s*T\.segBonus/.test(src) && /rest:\s*T\.segRest/.test(src),
        `${f}: SEGNAME に bonus / rest がある（無いと凡例が undefined になる）`);

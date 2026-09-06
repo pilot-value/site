@@ -2629,7 +2629,7 @@
          載らなかった → f-flightvar ＋ f-other（今までどおりの二重書き）
        どちらでも金額はまったく同じ。両方に書くと変動給だけが二重になるので、
        sumKind() が row 付きの行を外している。
-       ★「f-other から抜けばいい」ではない。pay-tracker の donut は flight_variable_pay を
+       ★「f-other から抜けばいい」ではない。支給構成の donut は flight_variable_pay を
          other_allowance の部分集合として扱い、pv_annual_total() は other_allowance しか
          足していない。抜くと年収が丸ごと下がるうえ、annualTotal() と pv_annual_total() が
          対称に下がるので test-form-contract では検出できない。 */
@@ -3072,7 +3072,7 @@
 
   /* 円 → 表示。サイト全体の通貨切替に載せる（PVCurrency.fmt 経由）。
      カードは pv-no-cur で自動スキャンから外し、pv-currency-change で描き直す
-     ＝salary-leveling.js / pay-tracker.js と同じ作り。 */
+     ＝salary-leveling.js / my-value.js と同じ作り。 */
   /* ★万の単位に丸めてから渡す。PVCurrency.fmt は「1万で割り切れる円」しか
      「¥◯◯万」にしないので、38,188,800 をそのまま渡すと ¥38,188,800 と出て、
      同じカードの中の ¥3,350万 と見た目が揃わない（実測）。

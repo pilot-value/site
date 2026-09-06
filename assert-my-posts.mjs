@@ -373,10 +373,19 @@ for (const lang of ['ja', 'en']) {
 
   ok(v.airlineQ === 1, '社名は1回だけ引く（使うコードだけ）', String(v.airlineQ));
 
+  /* ★★MY PAGE の1回の表示で my_pay_reports() が **1回しか飛ばない**こと。
+     2026-09-06 に明細トラッカー（pay-tracker.js）を廃止してマイレポートを
+     同じページへ統合した。統合前は 3か所（pv-reunlock のキャッシュ／
+     pay-tracker.js の直呼び／pv-conditions.js の直呼び）が別々に投げていて、
+     そのまま足すと 4回になるところだった。
+     ★いまは ①②③④ と待遇の二次導線が全部 window.pvMyPayReports を通る。
+       誰かが「手っ取り早く」直に rpc('my_pay_reports') を書くと、ここが2以上になる。 */
+  ok(v.rpc.filter((n) => n === 'my_pay_reports').length === 1,
+     '★★1回の表示で本人の給与を1回しか引かない（キャッシュを迂回した直呼びが無い）',
+     v.rpc.join(','));
+
   /* ★解放の復活と一覧が同じ結果を使っていること＝もう一度呼んでも通信が増えないこと。
-     ここが効かないと、マイページを開くたびに 119社ぶんの総当たりを二重に投げる。
-     （ページ全体の回数では測れない。pv-conditions.js も自分の用で my_pay_reports を
-       呼ぶので、数えると人のぶんまで数えてしまう。） */
+     ここが効かないと、マイページを開くたびに 119社ぶんの総当たりを二重に投げる。 */
   const again = await probe(page);
   ok(again.rpcAdded === 0, '★もう一度 pvMyPayReports を呼んでも問い合わせが増えない', JSON.stringify(again));
   ok(again.qAdded === 0, '★もう一度 pvFindMyReviews を呼んでも総当たりを投げ直さない', JSON.stringify(again));

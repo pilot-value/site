@@ -798,3 +798,114 @@ button.pv-give-p:active{transform:scale(.96)}
   #pv-value .pt-btn:hover{transform:none}
   .mr-rail{scroll-behavior:auto}
 }
+
+/* ══ 7) MY PAGE の6層（2026-09-06・Phase 2）══════════════════════
+   profile.html / en/profile.html が ① YOUR STATUS ② NEXT ACTION
+   ③ YOUR PAY ④ YOUR CONTRIBUTIONS ⑤ INVITE PILOTS ⑥ SETTINGS の
+   6つの節になった。その節・見出し・CTA だけをここに置く。
+
+   ★中身（#pv-value）の見た目は上の 1)〜5) がそのまま持っている。
+     ここは「入れ物」だけ。実額を描く規則を足さない。
+   ⚠️ 読み込みの並びは pv-tokens → **my-value** → app-nav → pay-viz。
+      ＝ pay-viz.css のほうが後に来る。同じ強さで書くとあちらが勝つので、
+      .pt-* を上書きする2つ（.mp-stats の列数）は属性まで付けて1段強くする。
+   ⚠️ 塗りに --pv-orange-ink を使わない ── ダークで明るいオレンジになり、
+      白字が読めなくなる。#c2410c は白字と 4.9:1 で両モード成立（上の .pt-btn と同じ）。 */
+
+.mp-sec{margin-bottom:var(--pv-s-4)}
+.mp-sec:last-of-type{margin-bottom:var(--pv-s-3)}
+
+.mp-hd{margin-bottom:var(--pv-s-3)}
+.mp-h1{font-size:1.62rem;font-weight:800;letter-spacing:-.03em;line-height:1.2;
+  color:var(--pv-ink);margin:0 0 6px}
+.mp-lead{font-size:.82rem;color:var(--pv-ink-2);line-height:1.7;margin:0;max-width:52ch}
+
+/* 節の見出し。日英とも英語（左のレールと同じ言い方）。 */
+.mp-h2{display:block;font-size:.7rem;font-weight:800;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--pv-ink-3);margin:0 0 12px}
+
+/* ── ① 状態帯 ── 3つ並ぶ日と、2つ・1つしか出せない日がある。
+   引けなかった数字は行ごと出さないので、列数を数に合わせる（余白が空かない）。 */
+.mp-stats{margin-bottom:var(--pv-s-2)}
+.pt-stats.mp-stats[data-n="1"]{grid-template-columns:minmax(0,1fr)}
+.pt-stats.mp-stats[data-n="2"]{grid-template-columns:repeat(2,minmax(0,1fr))}
+
+/* ── CTA。この層で色が付くのはここだけ（同じ強さの口を並べない）。 */
+.mp-cta{display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  min-height:44px;padding:12px 22px;background:#c2410c;color:#fff;border:none;
+  border-radius:var(--pv-r-sm);font-size:.85rem;font-weight:800;letter-spacing:-.01em;
+  text-decoration:none;cursor:pointer;
+  box-shadow:0 1px 2px rgba(120,45,10,.25),0 10px 24px -12px rgba(194,65,12,.7),
+             0 3px 8px -3px rgba(249,115,22,.28);
+  transition:background-color .18s var(--pv-ease),transform .18s var(--pv-ease),
+             box-shadow .18s var(--pv-ease)}
+.mp-cta:hover{background:#9a3412;transform:translateY(-1px);
+  box-shadow:0 2px 4px rgba(120,45,10,.28),0 16px 32px -14px rgba(194,65,12,.8),
+             0 5px 12px -4px rgba(249,115,22,.34)}
+.mp-cta:focus-visible{outline:2px solid var(--pv-orange);outline-offset:3px}
+.mp-cta:active{transform:translateY(0)}
+.mp-cta.ghost{background:var(--pv-surface);color:var(--pv-ink);
+  border:1px solid var(--pv-line);box-shadow:none}
+.mp-cta.ghost:hover{background:var(--pv-line-soft);color:var(--pv-ink);
+  box-shadow:var(--pv-shadow)}
+
+/* ── ② NEXT ACTION ── 1枚だけ強い面にする（base → elevated）。 */
+.mp-next{background:linear-gradient(152deg,var(--pv-orange-soft) 0%,transparent 62%),var(--pv-surface);
+  box-shadow:var(--pv-shadow-lift)}
+.mp-next-t{font-size:1.05rem;font-weight:800;letter-spacing:-.02em;line-height:1.5;
+  color:var(--pv-ink);margin-bottom:8px}
+.mp-next-s{font-size:.8rem;color:var(--pv-ink-2);line-height:1.75;margin:0 0 18px}
+.mp-next-s:empty{display:none;margin:0}
+.mp-next-c{margin-top:0}
+/* Give → Get の説明（PVGates.giveGetHTML）。ここは説明であって口ではない。 */
+.mp-next-g{margin-top:18px}
+.mp-next-g:empty{display:none;margin:0}
+
+/* ── ⑤ INVITE PILOTS ── 共有UIは置かない。説明1つと入口1つだけ。 */
+.mp-inv-s{font-size:.82rem;color:var(--pv-ink-2);line-height:1.75;margin:0 0 16px;max-width:56ch}
+.mp-inv-a{margin:0}
+
+/* ── ⑥ SETTINGS ── 既定で畳む（確定事項8）。 */
+.mp-set{border-top:1px solid var(--pv-line);padding-top:var(--pv-s-3)}
+.mp-set-sum{display:flex;align-items:center;gap:10px;min-height:44px;
+  list-style:none;cursor:pointer;user-select:none;
+  transition:opacity .18s var(--pv-ease)}
+.mp-set-sum::-webkit-details-marker{display:none}
+.mp-set-sum .mp-h2{margin:0}
+.mp-set-sum::after{content:'';width:8px;height:8px;border-right:2px solid var(--pv-ink-3);
+  border-bottom:2px solid var(--pv-ink-3);transform:rotate(45deg) translateY(-2px);
+  transition:transform .2s var(--pv-ease)}
+.mp-set[open]>.mp-set-sum::after{transform:rotate(-135deg) translateY(-2px)}
+.mp-set-sum:hover{opacity:.72}
+.mp-set-sum:focus-visible{outline:2px solid var(--pv-orange);outline-offset:4px;border-radius:var(--pv-r-sm)}
+.mp-set-b{margin-top:var(--pv-s-2)}
+.mp-set-b>.glass{margin-top:20px}
+.mp-set-b>.glass:first-child{margin-top:0}
+.mp-set-lk{margin-top:var(--pv-s-3);font-size:.76rem;color:var(--pv-ink-3);
+  display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.mp-set-lk a{color:var(--pv-ink-2);text-decoration:none;
+  min-height:44px;display:inline-flex;align-items:center;
+  transition:color .18s var(--pv-ease)}
+.mp-set-lk a:hover{color:var(--pv-ink);text-decoration:underline}
+.mp-set-lk a:focus-visible{outline:2px solid var(--pv-orange);outline-offset:3px;border-radius:6px}
+
+/* 設定の1行（左に見出し＋説明、右に口）。 */
+.mp-row{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.mp-row-b{min-width:0}
+.mp-row-t{font-size:.92rem;font-weight:700;color:var(--pv-ink);margin-bottom:4px}
+.mp-row-s{font-size:.76rem;color:var(--pv-ink-3);line-height:1.6}
+
+/* 月次リマインド（子）。スイッチの実体は my-value.js が1つだけ描く。 */
+.mp-remind{margin-top:20px}
+.mp-remind-slot{font-size:.8rem;color:var(--pv-ink-3)}
+
+@media(max-width:520px){
+  .mp-h1{font-size:1.42rem}
+  .mp-sec{margin-bottom:var(--pv-s-3)}
+  .mp-cta{width:100%}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .mp-cta,.mp-set-sum,.mp-set-sum::after,.mp-set-lk a{transition-duration:.01ms}
+  .mp-cta:hover{transform:none}
+}

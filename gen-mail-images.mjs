@@ -31,7 +31,7 @@ const OUT = path.join(ROOT, 'assets', 'mail');
 fs.mkdirSync(OUT, { recursive: true });
 
 const BASE = 'http://localhost:3000';
-/* my-value.html が持っているのと同じ project ref。ここを間違えると
+/* profile.html が持っているのと同じ project ref。ここを間違えると
    偽セッションが別の鍵で入り、ログイン画面へ飛ばされる。 */
 const SB_REF = 'vzgmnkrggrwtsrpqndsm';
 
@@ -48,9 +48,11 @@ const RPC = {
   pay_day_of_month: 25,
 };
 
+/* ★2026-09-06、レポートは MY PAGE（profile.html）の ③ YOUR PAY に統合した。
+     my-value.html は転送1枚になったので、絵はこちらから撮る。 */
 const CASES = [
-  { lang: 'ja', url: `${BASE}/my-value.html`,    tag: '見本', bd: '支給構成' },
-  { lang: 'en', url: `${BASE}/en/my-value.html`, tag: 'SAMPLE', bd: 'How your pay is made up' },
+  { lang: 'ja', url: `${BASE}/profile.html`,    tag: '見本', bd: '支給構成' },
+  { lang: 'en', url: `${BASE}/en/profile.html`, tag: 'SAMPLE', bd: 'How your pay is made up' },
 ];
 
 const browser = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox'] });
@@ -59,7 +61,7 @@ for (const c of CASES) {
   const page = await browser.newPage();
   page.on('pageerror', (e) => console.log('  JSERR', c.lang, e.message));
 
-  /* ① 期限が未来の偽セッションを置く。my-value.html の PV_SESSION は
+  /* ① 期限が未来の偽セッションを置く。profile.html の PV_SESSION は
         getSession() を見るだけ＝これでログイン画面へ飛ばされない。 */
   await page.evaluateOnNewDocument((ref) => {
     const exp = Math.floor(Date.now() / 1000) + 86400 * 365;

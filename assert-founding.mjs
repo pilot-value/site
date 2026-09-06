@@ -220,7 +220,10 @@ const look = () => ({
   bodyOv:  getComputedStyle(document.body).overflow,
   card:    !!document.getElementById('profile-card'),
   cardTxt: (document.getElementById('profile-card') || { innerText: '' }).innerText.length,
-  invite:  !!document.querySelector('.pvr'),
+  /* ★2026-09-06、招待そのもの（.pvr）は invite.html へ移した（SSOT を1つにする）。
+       マイページに残るのは ⑤ INVITE PILOTS の説明と、そこへの1本のリンクだけ。
+       ＝ ここで見張るのは「その1本が板に押し出されて消えていないか」。 */
+  invite:  !!document.querySelector('#invite-pilots a[href="invite.html"]'),
   /* 重なりを見る。プロフィールカード・招待カード・待遇モーダル、
      それに上部バーとサイドバー。
      ★ 'nav' と書かない。.mr-side ができた日から querySelector('nav') は
@@ -237,7 +240,7 @@ const look = () => ({
       return !(a.right <= b.left + 0.5 || a.left >= b.right - 0.5 ||
                a.bottom <= b.top + 0.5 || a.top >= b.bottom - 0.5);
     };
-    return ['.mr-top', '.mr-side', '#profile-card', '.pvr', '[data-pvc]'].filter(over);
+    return ['.mr-top', '.mr-side', '#profile-card', '#invite-pilots', '[data-pvc]'].filter(over);
   })(),
   /* ★セレクタが空振りしても over() は false を返す＝「何とも重ならない」に見える。
        骨格の3つが本当に見つかったかを別に持つ。名前を変えた日に黙って通らないように。 */
@@ -278,8 +281,8 @@ for (const lang of ['ja', 'en']) {
   ok(Number(v.logoW) >= 800, 'ワードマークが本文と同じ見え方にならない（太さ）', v.logoW);
   ok(parseFloat(v.logoLs) > 0.5, 'ワードマークの字間が開いている（題字として読める）', v.logoLs);
   ok(v.card && v.cardTxt > 40, 'プロフィールカードが今までどおり出る', String(v.cardTxt));
-  /* 招待の常設入口が板に押し出されて消えていないか（2026-08-19 に消えた前科がある）。 */
-  ok(v.invite, '★招待の常設入口が消えていない');
+  /* 招待への入口が板に押し出されて消えていないか（2026-08-19 に消えた前科がある）。 */
+  ok(v.invite, '★招待のページ（invite.html）への入口が消えていない');
   seen[lang] = v.text;
   await page.close();
 }
@@ -327,7 +330,7 @@ for (const lang of ['ja', 'en']) {
   const v = await page.evaluate(look);
   ok(!v.found, '★板を1枚も描かない（持っている人に「まだ」と見せない）', v.text);
   ok(v.card && v.cardTxt > 40, 'ページは止まらない（プロフィールカードは出る）', String(v.cardTxt));
-  ok(v.invite, '招待の常設入口も出る');
+  ok(v.invite, '招待のページへの入口も出る');
   await page.close();
 }
 

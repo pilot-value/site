@@ -5,7 +5,12 @@
    へ行っていた。記録は Give の控えであって、Get ではない。
 
    やることは1つだけ：
-     投稿完了カードの主ボタンを my-value.html?new=1 に向け、文言を Get 側に直す。
+     投稿完了カードの主ボタンをレポート本体へ向け、文言を Get 側に直す。
+
+   ★2026-09-06、レポートの置き場が変わった。my-value.html（1枚のページ）は
+     MY PAGE の ③ YOUR PAY に統合され、あの住所は転送1枚になった。
+     行き先を profile.html?new=1#your-pay に直してある。
+     #your-pay まで書くのは、①②を飛ばして実額のところへ着けるため。
 
    ★ ?new=1 は **文言だけ** 変える印。数字は my_pay_reports() から作るので、
      初回の着地と翌月の再訪でページは同一になる（my-value.js の isNew を参照）。
@@ -17,13 +22,13 @@ import { readFileSync, writeFileSync } from 'fs';
 const FILES = [
   {
     f: 'pay-report.html',
-    from: '<a href="profile.html#pay-tracker" class="btn-orange justify-center flex-1">自分の記録を見る →</a>',
-    to:   '<a href="my-value.html?new=1" class="btn-orange justify-center flex-1">市場価値レポートを見る →</a>',
+    from: '<a href="my-value.html?new=1" class="btn-orange justify-center flex-1">マイレポートを見る →</a>',
+    to:   '<a href="profile.html?new=1#your-pay" class="btn-orange justify-center flex-1">マイレポートを見る →</a>',
   },
   {
     f: 'en/pay-report.html',
-    from: '<a href="profile.html#pay-tracker" class="btn-orange justify-center flex-1">See your record →</a>',
-    to:   '<a href="my-value.html?new=1" class="btn-orange justify-center flex-1">See your market value report →</a>',
+    from: '<a href="my-value.html?new=1" class="btn-orange justify-center flex-1">See my report →</a>',
+    to:   '<a href="profile.html?new=1#your-pay" class="btn-orange justify-center flex-1">See my report →</a>',
   },
 ];
 

@@ -115,17 +115,36 @@ const tagAt = (s, name) =>
      String(mv.split('refSlot()').length - 1));
   ok(mv.includes('PVReferral.mountCohort'), 'my-value.js が mountCohort を呼ぶ');
   ok(mv.includes('PVReferral.claim'), 'my-value.js が load() で claim を呼ぶ');
+  /* ★2026-09-06、レポートは MY PAGE の中の1節になった。器（profile.html）が
+     先に claim → sweep を済ませているときは、こちらは飛ばす＝同じ通信を2回しない。
+     旗を落とすと、1回の表示で claim が2回飛ぶ（画面は普通に動いたまま）。 */
+  ok(/PV_HOST_CLAIMED[\s\S]{0,80}?PVReferral\.claim/.test(mv),
+     '★器が済ませているときは my-value.js の claim を飛ばす');
 
-  /* ★マイページは2つの役目を持つ。裏で claim を呼ぶ（招待リンクから来た人の紐づけ）のと、
-     常設の招待入口を描くの2つ。片方だけ入れる事故を止めるため両方を見る。
-     常設入口はサイトで唯一「招待したいと思ったときに自分から行ける場所」で、
+  /* ★常設入口はサイトで唯一「招待したいと思ったときに自分から行ける場所」で、
      文脈カード（マイレポート／給与を出した直後）は条件が揃わないと出ない。
-     この1行を消すと、招待の入口がサイトからゼロになる（2026-08-19 に本番でそうなっていた）。 */
+     ここを消すと招待の入口がサイトからゼロになる（2026-08-19 に本番でそうなっていた）。
+     ★2026-09-06、その常設入口は profile.html → **invite.html**（レールの項目）へ移した。
+       見る目的は同じ ── 「入口がゼロにならない」。見る場所だけ移した。 */
+  for (const f of ['invite.html', 'en/invite.html']) {
+    const h = nohtml(read('./' + f));
+    ok(h.includes('id="pv-invite-slot"'), `${f} に常設入口の差込口がある`);
+    ok(h.includes('PVReferral.mountInvite'), `${f} が mountInvite を呼ぶ`);
+    ok(h.includes('PVReferral.claim'), `${f} が claim を呼ぶ（招待リンクから来た人の紐づけ）`);
+  }
+
+  /* ★マイページに残る役目は claim だけ（Google 登録の戻り先がここになる）。
+     招待の UI を重ねて持たせない ── 2つの実装が育つと、片方だけ直した日に
+     送られる文面が2種類になる（patch-payslip.mjs が5本に増えたのと同じ形）。
+     代わりに **invite.html への入口が1つ**あることを見る。無いと辿り着けない。 */
   for (const f of ['profile.html', 'en/profile.html']) {
     const h = nohtml(read('./' + f));
     ok(h.includes('PVReferral.claim'), `${f} が claim を呼ぶ（Google 登録の戻り先）`);
-    ok(h.includes('id="pv-invite-slot"'), `${f} に常設入口の差込口がある`);
-    ok(h.includes('PVReferral.mountInvite'), `${f} が mountInvite を呼ぶ`);
+    ok(!h.includes('PVReferral.mountInvite'),
+       `★${f} は招待の UI を重ねて持たない（SSOT は invite.html）`);
+    ok(!h.includes('data-pvr-go') && !h.includes('data-pvr-copy'),
+       `★${f} に送る配線が生えていない`);
+    ok(/href="invite\.html"/.test(h), `★${f} から invite.html への入口が1つある`);
   }
 
   /* ★「招待する」「リンクをコピー」の配線は1組しか無い。
@@ -735,7 +754,8 @@ for (const lang of ['ja', 'en']) {
 }
 
 // ════════════════════════════════════════════════════════════════
-// 4. マイレポート（my-value.html／card 姿）
+// 4. マイレポート（MY PAGE の ③ YOUR PAY／card 姿）
+//    ★2026-09-06、my-value.html は転送1枚になった。中身は profile.html にある。
 // ════════════════════════════════════════════════════════════════
 for (const lang of ['ja', 'en']) {
   console.log(`\n════ ${lang} / マイページ ════`);
@@ -743,7 +763,7 @@ for (const lang of ['ja', 'en']) {
   const errs = [];
   page.on('pageerror', (e) => errs.push(String(e.message).slice(0, 140)));
   await page.evaluateOnNewDocument(FAKE, GAP.near2, CODE);
-  await page.goto(BASE + (lang === 'en' ? '/en/' : '/') + 'my-value.html',
+  await page.goto(BASE + (lang === 'en' ? '/en/' : '/') + 'profile.html',
                   { waitUntil: 'domcontentloaded', timeout: 30000 });
   await sleep(2800);
   /* ★「機会」の節はページのずっと下。画面に入れないと交差監視が動かない
@@ -793,7 +813,7 @@ for (const lang of ['ja', 'en']) {
     JSON.stringify({ n: 1, last: Date.now() - 2 * 86400000, off: 0, dismiss: 0 })));
   await page.evaluateOnNewDocument(FAKE,
     { ok: true, state: 'near', remaining: 2, gained: 2, crossed: false }, CODE);
-  await page.goto(BASE + '/my-value.html', { waitUntil: 'domcontentloaded', timeout: 30000 });
+  await page.goto(BASE + '/profile.html', { waitUntil: 'domcontentloaded', timeout: 30000 });
   await sleep(2800);
   await page.evaluate(() => { const c = document.querySelector('.pvr'); if (c) c.scrollIntoView({ block: 'center' }); });
   await sleep(1000);
@@ -810,14 +830,19 @@ for (const lang of ['ja', 'en']) {
 }
 
 // ════════════════════════════════════════════════════════════════
-// 5. マイページの常設入口（profile.html／profile 姿）
+// 5. 招待の常設入口（invite.html／profile 姿）
 // ════════════════════════════════════════════════════════════════
 /* ★ここは「招待したい」と思った人が自分から行ける唯一の場所。
    文脈カード（マイレポート／給与を出した直後）には消える道が3つある
    ── 給与を1件も記録していない（state:'none'）／5人そろっている（state:'open'）／
    回数制限の休み中 ── ので、条件で消えない入口が別に要る。
    2026-08-19、本番のマイページに招待の導線が1つも無いことにオーナーが気づいた。
-   下の1つ目と2つ目が、その穴そのものの再発検知。 */
+   下の1つ目と2つ目が、その穴そのものの再発検知。
+   ★2026-09-06、その常設入口は profile.html から **invite.html**（レールの1項目）へ移した。
+   招待の作りが在るのはこの1枚だけ。マイページに残るのは短い説明と、このページへの
+   1本のリンクだけで、共有の口は置かない（同じ物が2つあると片方だけ直されて食い違う）。
+   マイページ側は 124行目あたりの静的な検査が「共有の口が無いこと」と
+   「invite.html への1本が在ること」の両方を見ている。 */
 
 /* 押したときに何が clipboard へ行ったかを見る。実際の clipboard は
    ヘッドレスでは読めないので、書き込み口だけ差し替えて控えを取る。 */
@@ -832,19 +857,19 @@ const CLIP = function () {
 };
 
 for (const lang of ['ja', 'en']) {
-  console.log(`\n════ ${lang} / マイページの常設入口 ════`);
+  console.log(`\n════ ${lang} / 招待の常設入口（invite.html）════`);
   const page = await fresh(() => localStorage.setItem('pv-theme', 'dark'));
   const errs = [];
   page.on('pageerror', (e) => errs.push(String(e.message).slice(0, 140)));
   await page.evaluateOnNewDocument(CLIP);
   await page.evaluateOnNewDocument(FAKE, GAP.none, CODE);      // ★給与を1件も出していない人
-  await page.goto(BASE + (lang === 'en' ? '/en/' : '/') + 'profile.html',
+  await page.goto(BASE + (lang === 'en' ? '/en/' : '/') + 'invite.html',
                   { waitUntil: 'domcontentloaded', timeout: 30000 });
   await sleep(2200);
 
   const v = await page.evaluate(() => {
     const c = document.querySelector('.pvr[data-v="profile"]');
-    const box = document.getElementById('profile-card');
+    const box = document.getElementById('pv-invite-slot');
     return {
       card: !!c,
       inside: !!(c && box && box.contains(c)),
@@ -859,7 +884,7 @@ for (const lang of ['ja', 'en']) {
   });
 
   ok(v.card, '★給与を1件も出していない人にも招待の入口が出る', JSON.stringify(v).slice(0, 120));
-  ok(v.inside, 'プロフィールカードの中に入っている（カードを1枚増やさない）');
+  ok(v.inside, '差込口（#pv-invite-slot）の中に入っている（カードを1枚増やさない）');
   ok(v.go && v.copy, '「招待する」と「リンクをコピー」が両方ある');
 
   /* ★このカードには数字が1文字も出ない。招待した数・成立した数・残り何人・順位、
@@ -891,7 +916,7 @@ for (const lang of ['ja', 'en']) {
   ok(a.t.includes('?ref=' + CODE), 'コピーされた文面に招待リンクが入る', a.t);
   ok(/PILOT VALUE/.test(a.t) && /Know your value\. Raise our value\./.test(a.t),
      '★文面はレポート側と同じ VISION（配線が1組だから同じになる）', a.t);
-  ok(!/ZIPAIR/.test(a.t), '★勤務先の名前が入らない（この画面は ZIPAIR を表示しているのに）', a.t);
+  ok(!/ZIPAIR/.test(a.t), '★勤務先の名前が入らない（見本の在籍は ZIPAIR）', a.t);
   ok(!/19,?440,?000|130,?248|万円|¥|\$/.test(a.t), '金額が1つも入らない', a.t);
   ok(!/pilot-value\.com\/(my-value|pay-report|profile)/.test(a.t),
      '自分のページのURLを渡さない', a.t);
@@ -902,7 +927,7 @@ for (const lang of ['ja', 'en']) {
   /* ★5人そろっている人（勧誘カードが引っ込む状態）でも入口は残る。 */
   const p2 = await fresh(() => localStorage.setItem('pv-theme', 'dark'));
   await p2.evaluateOnNewDocument(FAKE, GAP.open, CODE);
-  await p2.goto(BASE + (lang === 'en' ? '/en/' : '/') + 'profile.html',
+  await p2.goto(BASE + (lang === 'en' ? '/en/' : '/') + 'invite.html',
                 { waitUntil: 'domcontentloaded', timeout: 30000 });
   await sleep(2200);
   ok(await p2.evaluate(() => !!document.querySelector('.pvr[data-v="profile"]')),

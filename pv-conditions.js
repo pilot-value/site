@@ -709,15 +709,23 @@
      ★聞くことが無い人にも出さない（押しても何も開かないボタンを置かない）。 */
   function secondaryCTA(el, ctx) {
     try {
-      if (!el || !ctx || !ctx.sb) return;
-      if (el.querySelector('[data-pvc-cta]')) return;
-      ctx.sb.rpc('my_pay_reports')
+      if (!el || !ctx || !ctx.sb) return Promise.resolve(false);
+      if (el.querySelector('[data-pvc-cta]')) return Promise.resolve(false);
+      /* ★問い合わせは pv-reunlock.js のキャッシュを通す。直に rpc を投げない。
+           MY PAGE では ①②③④とここが同じ答えを見ている（2026-09-06 の統合）。
+           キャッシュが無い画面のために、素の rpc へ落ちる道は残す。
+         ★戻り値は「入口を出したか」。② NEXT ACTION がこれを待って順位を決める
+           （出していないのに「1問だけ答える」と書かないため）。 */
+      var ask = (typeof w.pvMyPayReports === 'function')
+        ? w.pvMyPayReports(ctx.sb).then(function (data) { return { data: data }; })
+        : ctx.sb.rpc('my_pay_reports');
+      return ask
         .then(function (res) {
-          if (!res || res.error || !res.data) return;            // 関数がまだ本番に無い等
+          if (!res || res.error || !res.data) return false;       // 関数がまだ本番に無い等
           var rows = res.data.reports || [];
-          if (!rows.length) return;
+          if (!rows.length) return false;
           var last = rows[rows.length - 1];                       // period_ym の昇順で返る
-          if (!last || !last.airline) return;
+          if (!last || !last.airline) return false;
           var c = {
             sb: ctx.sb,
             airline: last.airline,
@@ -728,7 +736,7 @@
             base_iata: last.base_iata, contract_type: last.contract_type
           };
           return fetchItems(c, 1).then(function (got) {
-            if (!got) return;                                     // 聞くことが無い
+            if (!got) return false;                               // 聞くことが無い
             ensureStyle();
             var box = d.createElement('div');
             box.className = (ctx.cardClass || 'glass') + ' pvc-cta';
@@ -747,10 +755,11 @@
               track('condition_detail_clicked',
                 { trigger: 'profile_secondary', airline_code: c.airline });
             });
+            return true;                                          // 入口を出した
           });
         })
-        .catch(function () {});
-    } catch (e) {}
+        .catch(function () { return false; });
+    } catch (e) { return Promise.resolve(false); }
   }
 
   /* ════════════════════════════════════════════════════════════

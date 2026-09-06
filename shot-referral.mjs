@@ -8,7 +8,9 @@
 
    実行: node shot-referral.mjs <scene> <lang> <theme> <width> [open|page]
      scene: strip … トップページの着地の1枚（/?ref=…・画面の中央に出る招待状）
-            invite… マイページの常設入口（★条件に関係なく必ず出るのが正しい）
+            invite… 招待ページ invite.html の常設入口
+                    （★2026-09-06、招待の入口は invite.html の1か所だけになった。
+                      マイページに在るのは短い説明と、そこへの1本のリンクだけ）
             few   … マイページ。n≦2（★人数を推測できる数字が出ないのが正しい）
             near2 … マイページ。あと2人
             near1 … マイページ。あと1人
@@ -73,9 +75,9 @@ const outPath = path.join(dir, `screenshot-${n}-${label}.png`);
 
 const base = `http://localhost:3000/${lang === 'en' ? 'en/' : ''}`;
 const url = scene === 'strip'  ? base + '?ref=' + CODE
-          : scene === 'invite' ? base + 'profile.html'
+          : scene === 'invite' ? base + 'invite.html'
           : BENCH ? base + 'pay-report.html'
-          : base + 'my-value.html';
+          : base + 'profile.html';   /* ★2026-09-06、レポートは MY PAGE の中の1節 */
 
 /* ★ headless:'new' はこの環境で page.screenshot() が返ってこない（shot-tracker.mjs 参照）。 */
 const browser = await puppeteer.launch(open
@@ -170,14 +172,9 @@ if (BENCH) {
 
 /* 撮る対象を画面の真ん中へ持ってくる（マイページの「機会」は下の方にある）。 */
 const target = scene === 'strip' ? '.pvr-strip' : BENCH ? '#bench-gap, .pvr' : '.pvr';
-/* 常設入口はプロフィールカードの中。カードごと見たいので、上の登録情報から入れる。 */
-if (scene === 'invite' && !full) {
-  await page.evaluate(() => {
-    const el = document.getElementById('profile-card');
-    if (el) el.scrollIntoView({ block: 'start' });
-  });
-  await new Promise((r) => setTimeout(r, 400));
-}
+/* ★2026-09-06、常設入口は invite.html の1枚になった（マイページの中ではない）。
+   あのページは招待カードそのものが本題なので、下の共通の寄せ（'.pvr' を画面の
+   中央へ）だけで足りる。プロフィールカードから入れる細工は要らなくなった。 */
 if (!full && scene !== 'strip') {
   await page.evaluate((sel) => {
     const el = document.querySelector(sel);
