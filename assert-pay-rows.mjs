@@ -4064,6 +4064,39 @@ for (const lang of ['ja', 'en']) {
        'ja: ★★会社・職位・金額・レコード ID を history に載せない', gOpen.st);
     ok(errs.length === 0, 'ja: ページのエラーが1件も出ない', errs.join(' | '));
   }
+
+  /* ── M-8 再読み込みのあと、開き直さずに戻る（2026-09-07 追加）──────
+       ★M-3 とは別の話。M-3 は「読み込み直して**開いた**とき積み増さない」。
+         こちらは「読み込み直して**開かないまま**戻ったとき、REAL PAY へ
+         来る前のページへ帰れる」。
+       ⚠️ ここは実際に落ちていた ── 開いたまま再読み込みすると同じ URL の段が
+         1つ余り（履歴から段を消す手立ては browser に無い）、戻るがその段に
+         1回ぶん吸われて**一覧に留まった**。同じ URL なので画面は何も変わらず、
+         利用者からは「戻るが効かない」ようにしか見えない。 */
+  {
+    console.log('\n════ ja / M-8 再読み込みのあと、開かずに戻る ════');
+    const { page, errs } = await open('ja', OPEN);
+    /* ★「別ページ → REAL PAY」の形にする。前の段が無いとこの確認は成立しない。
+         前の段には Supabase を読まないページを選ぶ（偽の Supabase を差し込む
+         都合で、読むページだと本題と無関係な所で転ぶ）。 */
+    await page.goto(BASE + '/help.html', { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await page.goto(BASE + '/actual-pay.html', { waitUntil: 'domcontentloaded', timeout: 30000 });
+    ok(await till(page, "document.querySelectorAll('#ap-rows [data-ap-row]').length > 0", 15000),
+       'ja: 別ページから REAL PAY へ来られる');
+    ok(await tap(page, 0), 'ja: 詳細を開ける');
+    await page.reload({ waitUntil: 'domcontentloaded', timeout: 30000 });
+    ok(await till(page, "document.querySelectorAll('#ap-rows [data-ap-row]').length > 0", 15000),
+       'ja: 再読み込みでも一覧が出る');
+    const r0 = await page.evaluate(HIS);
+    ok(r0.dw === 0, 'ja: 読み込み直後は閉じている', String(r0.dw));
+
+    /* ★開き直さずに戻る。取り残された段に吸われて一覧へ留まってはいけない。 */
+    await page.evaluate(() => history.back());
+    const left = await till(page, "location.pathname.indexOf('/help.html') >= 0", 8000);
+    ok(left, 'ja: ★★戻る1回で REAL PAY へ来る前のページへ帰れる',
+       await page.evaluate(() => location.pathname));
+    ok(errs.length === 0, 'ja: ページのエラーが1件も出ない', errs.join(' | '));
+  }
 }
 
 for (const jar of jars) { try { await jar.close(); } catch (e) {} }
