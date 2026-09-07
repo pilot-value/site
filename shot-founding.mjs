@@ -6,9 +6,11 @@
    描くのは本物の pv-founding.js ＝撮った絵がそのまま本番の絵になる。
 
    実行: node shot-founding.mjs <scene> <lang> <theme> <width> [open|page]
-     scene: has   … 称号あり
+     scene: has   … 称号あり（★数字が1文字も出ないのが正しい）
             none  … 称号なし（まだ給与も口コミも出していない人）
-                    ★どちらも数字が1文字も出ないのが正しい
+                    ★2026-09-07 から**板が1枚も出ないのが正しい**（オーナー指示）。
+                      称号は給与か口コミを出した100人のもので、登録しただけの人には
+                      沈んだ姿も見せない。この場面の絵は「板が無い」ことの確認用
             gone  … RPC が答えない＝db/founding.sql をまだ貼っていない状態
                     （★板が1枚も出ないのが正しい）
      lang : ja | en    theme: dark | light    width: 390 / 1280 など
@@ -128,9 +130,15 @@ const seen = await page.evaluate(() => {
   const p = document.querySelector('.pvf');
   return { found: !!p, state: p ? p.getAttribute('data-pvf') : '', text: p ? p.innerText : '' };
 });
-if (scene === 'gone') {
-  if (seen.found) { console.error('❌ SQL 未適用のときに板が出ている（出ないのが正しい）'); process.exit(1); }
-  console.log('板は出ていない（gone ではこれが正しい）。ページ全体を撮る。');
+/* ★2026-09-07 から、板が出ないのが正しい場面は2つある ──
+     gone（SQL 未適用）と none（まだ給与も口コミも出していない人・オーナー指示）。
+     どちらも「板が無いこと」を確かめてページ全体を撮る。 */
+if (scene === 'gone' || scene === 'none') {
+  if (seen.found) {
+    console.error(`❌ ${scene} で板が出ている（出ないのが正しい）`);
+    process.exit(1);
+  }
+  console.log(`板は出ていない（${scene} ではこれが正しい）。ページ全体を撮る。`);
 } else if (!seen.found) {
   console.error('❌ 板が出ていない。node serve.mjs は動いているか？');
   process.exit(1);

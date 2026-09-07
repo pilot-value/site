@@ -651,7 +651,6 @@ button.pv-give-p:active{transform:scale(.96)}
 #pv-value .mv-e-badge{display:inline-flex;align-items:center;padding:3px 9px;
   border-radius:999px;font-size:.68rem;font-weight:800;letter-spacing:.03em;
   background:var(--pv-line-soft);color:var(--pv-ink-3);border:1px solid var(--pv-line)}
-#pv-value .mv-e-badge.is-rec{background:var(--pv-orange);color:#fff;border-color:transparent}
 #pv-value .mv-e-rep-t{margin:14px 0 6px;font-size:.94rem;font-weight:800;
   letter-spacing:-.01em;color:var(--pv-ink)}
 #pv-value .mv-e-rep .pt-btn{margin-top:16px}
@@ -705,33 +704,15 @@ button.pv-give-p:active{transform:scale(.96)}
 /* ③ 3段の Give → Get（中身は pv-gates.js。ここは器だけ）────── */
 #pv-value .mv-e-give{margin-top:var(--pv-s-3);padding:18px}
 
-/* ④ 給与を追加する ───────────────────────────────────────── */
-#pv-value .mv-e-add{margin-top:var(--pv-s-3)}
-#pv-value .mv-e-ways{margin-top:16px;display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-#pv-value .mv-e-way{min-width:0;padding:18px;border-radius:var(--pv-r);
-  border:1px solid var(--pv-line);background:var(--pv-surface);
-  display:flex;flex-direction:column;align-items:flex-start;gap:8px}
-#pv-value .mv-e-way.is-rec{border-color:rgba(249,115,22,.34);
-  background:linear-gradient(150deg,var(--pv-orange-soft) 0%,transparent 64%),var(--pv-surface)}
-#pv-value .mv-e-way.is-ps{border-color:var(--pv-blue-line);
-  background:linear-gradient(150deg,var(--pv-blue-soft) 0%,transparent 64%),var(--pv-surface)}
-#pv-value .mv-e-way-t{font-size:.92rem;font-weight:800;letter-spacing:-.01em}
-#pv-value .mv-e-way .pt-btn{margin-top:auto}
-#pv-value .mv-e-way.is-ps .pt-btn.ghost{color:var(--pv-blue-ink);border-color:var(--pv-blue-line)}
-#pv-value .mv-e-way.is-ps .pt-btn.ghost:hover{background:var(--pv-blue-soft)}
-
-/* ⑤ 最後の1行 ───────────────────────────────────────────── */
-#pv-value .mv-e-foot{margin:18px 0 0;display:flex;align-items:flex-start;gap:8px;
-  font-size:.74rem;line-height:1.7;color:var(--pv-ink-3)}
-#pv-value .mv-e-foot svg{flex:0 0 auto;margin-top:3px;color:var(--pv-orange-ink)}
+/* ★「④ 給与を追加する」の2枚組と「⑤ 最後の1行」は 2026-09-07 に廃止した
+   （オーナー指示・スクリーンショットで名指し）。橙の口が1画面に3つ並んでいた。
+   入口は ② NEXT ACTION と「レポートを作成する →」の2つに任せる。 */
 
 @media(max-width:900px){
   #pv-value .mv-e-rep{grid-template-columns:minmax(0,1fr)}
   #pv-value .mv-e-stats{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
 }
 @media(max-width:640px){
-  #pv-value .mv-e-ways{grid-template-columns:minmax(0,1fr)}
   #pv-value .mv-e-stats{grid-template-columns:minmax(0,1fr)}
   #pv-value .mv-e-link{flex:1 1 100%}
 }
@@ -854,6 +835,8 @@ button.pv-give-p:active{transform:scale(.96)}
   box-shadow:var(--pv-shadow-lift)}
 .mp-next-t{font-size:1.05rem;font-weight:800;letter-spacing:-.02em;line-height:1.5;
   color:var(--pv-ink);margin-bottom:8px}
+/* ★見出しが空の順位がある（順1）。空の箱が余白だけ残さないように畳む。 */
+.mp-next-t:empty{display:none;margin:0}
 .mp-next-s{font-size:.8rem;color:var(--pv-ink-2);line-height:1.75;margin:0 0 18px}
 .mp-next-s:empty{display:none;margin:0}
 .mp-next-c{margin-top:0}
@@ -862,22 +845,35 @@ button.pv-give-p:active{transform:scale(.96)}
 .mp-next-g:empty{display:none;margin:0}
 
 /* ── ⑤ INVITE PILOTS ── 共有UIは置かない。説明1つと入口1つだけ。 */
-.mp-inv-s{font-size:.82rem;color:var(--pv-ink-2);line-height:1.75;margin:0 0 16px;max-width:56ch}
-.mp-inv-a{margin:0}
 
-/* ── ⑥ SETTINGS ── 既定で畳む（確定事項8）。 */
+/* ── ⑥ SETTINGS ── 既定で畳む（確定事項8）。
+   ★2026-09-07、オーナーから「settings から下が折りたたまれてて見えない」。
+     実測すると畳む動きは正しく、見えていなかったのは**押せる物に見えないこと**だった ──
+     ページの最後（7,300px 目）に、いちばん薄い字の SETTINGS が枠も地色も無いまま
+     宙に浮き、下は空白。開く手掛かりが 8px の薄い山形1つしか無かった。
+     直したのは3つ。**畳む既定は変えていない。**
+       ・行そのものを枠と地色のある「押せる帯」にする
+       ・山形を右端へ寄せる（開閉の記号として読める位置）
+       ・字を1段明るくし、開いているときはさらに明るくする */
 .mp-set{border-top:1px solid var(--pv-line);padding-top:var(--pv-s-3)}
 .mp-set-sum{display:flex;align-items:center;gap:10px;min-height:44px;
+  padding:12px 14px;border:1px solid var(--pv-line);border-radius:var(--pv-r);
+  background:var(--pv-surface-2);
   list-style:none;cursor:pointer;user-select:none;
-  transition:opacity .18s var(--pv-ease)}
+  transition:border-color .18s var(--pv-ease),background-color .18s var(--pv-ease)}
 .mp-set-sum::-webkit-details-marker{display:none}
-.mp-set-sum .mp-h2{margin:0}
-.mp-set-sum::after{content:'';width:8px;height:8px;border-right:2px solid var(--pv-ink-3);
-  border-bottom:2px solid var(--pv-ink-3);transform:rotate(45deg) translateY(-2px);
+.mp-set-sum .mp-h2{margin:0;color:var(--pv-ink-2);
+  transition:color .18s var(--pv-ease)}
+.mp-set-sum::after{content:'';margin-left:auto;flex:none;
+  width:8px;height:8px;border-right:2px solid var(--pv-ink-2);
+  border-bottom:2px solid var(--pv-ink-2);transform:rotate(45deg) translateY(-2px);
   transition:transform .2s var(--pv-ease)}
-.mp-set[open]>.mp-set-sum::after{transform:rotate(-135deg) translateY(-2px)}
-.mp-set-sum:hover{opacity:.72}
-.mp-set-sum:focus-visible{outline:2px solid var(--pv-orange);outline-offset:4px;border-radius:var(--pv-r-sm)}
+.mp-set[open]>.mp-set-sum{background:var(--pv-surface)}
+.mp-set[open]>.mp-set-sum .mp-h2{color:var(--pv-ink)}
+.mp-set[open]>.mp-set-sum::after{transform:rotate(-135deg) translateY(2px)}
+.mp-set-sum:hover{border-color:var(--pv-ink-3);background:var(--pv-surface)}
+.mp-set-sum:hover .mp-h2{color:var(--pv-ink)}
+.mp-set-sum:focus-visible{outline:2px solid var(--pv-orange);outline-offset:4px;border-radius:var(--pv-r)}
 .mp-set-b{margin-top:var(--pv-s-2)}
 .mp-set-b>.glass{margin-top:20px}
 .mp-set-b>.glass:first-child{margin-top:0}

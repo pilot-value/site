@@ -14,8 +14,9 @@
      総数はそもそもサーバから出てこない（db/founding.sql:4）。
      「残り86枠」を出すと、そこから会員の規模が読める。
    ・他人の番号・一覧・「あなたは何番目に早かった」。
-   ・番号を持っていない人への煽り。板は沈んだ姿で出て、
-     「給与か口コミをひとつ出すと、この称号が入ります。」とだけ言う。急かさない。
+   ・番号を持っていない人への煽り。★そもそも板を出さない
+     （2026-09-07 オーナー指示）。称号は給与か口コミを出した100人のもので、
+     登録しただけの人の画面には1枚も描かない。急かさない。
 
    ── 置き場所は1つだけ ────────────────────────────────────────
    マイページ（profile.html / en/profile.html）の <main> のいちばん上。
@@ -48,22 +49,15 @@
   var T = (L === 'en') ? {
     logo:   'FOUNDING PILOT 100',
     sub:    'Founding Member',
-    /* ★持っている人に添える一文は無い。称号だけを出す（オーナー判断）。
-       英語は語の間で折れるので、そのまま1つの文字列で渡す。 */
-    /* ★件数も残り枠も書かない。「あと◯人」と書きたくなるが、
-       それは会員数を漏らすのと同じこと。 */
-    none:   'Share one pay report or one review, and this becomes yours.',
+    /* ★添える一文は持っている人にも、まだの人にも無い（2026-09-07 オーナー指示）。
+       板は称号だけを出す。何が入るかは沈んだ姿そのものが言っている。 */
     aria:   'Founding pilot badge'
   } : {
     logo:   'FOUNDING PILOT 100',
     sub:    '創設メンバー',
-    /* ★配列は「ここでは折らない」塊。日本語はどこでも折れるので、
-       390px で「口コミをひと／つ出すと」のように語の途中で切れる（実際に切れた）。
-       塊ごとに white-space:nowrap を掛けて、折れる場所をこちらで決める。 */
     /* ★ここに算用数字を書かない。「1件」でも意味は同じだが、
        数字を1文字でも許すと「残り86枠」を足す道が開く。
        assert-founding.mjs は板の数字が0文字であることを見ている。 */
-    none:   ['給与か口コミをひとつ出すと、', 'この称号が入ります。'],
     aria:   '創設メンバーの称号'
   };
 
@@ -71,14 +65,6 @@
     return String(s == null ? '' : s)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-  }
-
-  /* 文字列ならそのまま、配列なら塊ごとに折れないようにして繋ぐ。 */
-  function note(v) {
-    if (Object.prototype.toString.call(v) !== '[object Array]') return esc(v);
-    var out = '';
-    for (var i = 0; i < v.length; i++) out += '<span class="pvf-nb">' + esc(v[i]) + '</span>';
-    return out;
   }
 
   // ══════════════════════════════════════════════════════════════
@@ -125,18 +111,6 @@
       'text-shadow:0 1px 12px rgba(245,200,66,.28)}',
     '.pvf-sub{font-size:.74rem;font-weight:700;letter-spacing:.06em;line-height:1.5;',
       'margin-top:7px;color:rgba(245,200,66,.78)}',
-    '.pvf-note{font-size:.76rem;line-height:1.7;margin-top:6px;color:#93a5b8}',
-    '.pvf-nb{white-space:nowrap}',
-
-    /* まだ持っていない人。同じ板を沈める（別の姿を作らない＝何が入るか分かる） */
-    '.pvf.is-locked{border-color:rgba(245,200,66,.13);',
-      'background:',
-        'radial-gradient(ellipse 60% 120% at 8% 0%,rgba(245,200,66,.05) 0%,transparent 62%),',
-        'linear-gradient(135deg,rgba(22,25,32,.86),rgba(17,22,32,.80));',
-      'box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 2px 10px -4px rgba(0,0,0,.5)}',
-    '.pvf.is-locked .pvf-mark{color:#6b7d93;filter:none}',
-    '.pvf.is-locked .pvf-logo{color:#8d9bab;text-shadow:none}',
-    '.pvf.is-locked .pvf-sub{color:#6b7d93}',
 
     /* ── 明るい側。金色は文字に使わない（白地で読めない）────────── */
     '[data-theme="light"] .pvf{border-color:rgba(160,114,0,.34);',
@@ -151,12 +125,6 @@
     '[data-theme="light"] .pvf-mark{color:#a07200;filter:none}',
     '[data-theme="light"] .pvf-logo{color:#8a6100;text-shadow:none}',
     '[data-theme="light"] .pvf-sub{color:#a07200}',
-    '[data-theme="light"] .pvf-note{color:#5b6b7d}',
-    '[data-theme="light"] .pvf.is-locked{border-color:rgba(15,23,42,.10);',
-      'background:linear-gradient(135deg,#f7f8fa,#fff);box-shadow:0 2px 8px -4px rgba(15,23,42,.09)}',
-    '[data-theme="light"] .pvf.is-locked .pvf-mark{color:#94a3b8}',
-    '[data-theme="light"] .pvf.is-locked .pvf-logo{color:#64748b}',
-    '[data-theme="light"] .pvf.is-locked .pvf-sub{color:#7c8b9c}',
 
     /* 狭い画面。★FOUNDING PILOT 100 は 390px で1行に収まりにくいので、
        字間を詰めたうえで少し小さくする（2行に折ると称号に見えない）。 */
@@ -204,22 +172,20 @@
   /* no は「持っているか」を決めるためだけに使う。★画面には出さない。
      通し番号は、100人で締めるためにサーバー側が持っている道具であって、
      本人に見せるものではない（オーナー判断 2026-08-23）。
-     持っている人には称号だけを出す。説明の一文も付けない。 */
-  function paint(el, no) {
-    var has = (no !== null && no !== undefined && Number(no) > 0);
+     持っている人には称号だけを出す。説明の一文も付けない。
+     ★呼ぶのは has が真のときだけ（沈んだ姿はもう作らない）。 */
+  function paint(el) {
     ensureStyle();
-    el.setAttribute('data-pvf', has ? 'has' : 'none');
+    el.setAttribute('data-pvf', 'has');
     el.setAttribute('role', 'img');
     el.setAttribute('aria-label', T.aria);
-    el.className = 'pvf' + (has ? '' : ' is-locked');
+    el.className = 'pvf';
     el.innerHTML =
       '<div class="pvf-in">' +
         '<div class="pvf-mark">' + MARK + '</div>' +
         '<div class="pvf-body">' +
           '<div class="pvf-logo">' + esc(T.logo) + '</div>' +
           '<div class="pvf-sub">' + esc(T.sub) + '</div>' +
-          /* 一文が付くのは、まだ持っていない人の側だけ。 */
-          (has ? '' : '<div class="pvf-note">' + note(T.none) + '</div>') +
         '</div>' +
       '</div>';
     requestAnimationFrame(function () { el.classList.add('is-in'); });
@@ -228,13 +194,20 @@
   /* 呼び出し側は落ちても止まらないよう try で囲っている（profile.html）。
      こちらでも、答えが取れなければ**何も描かない**。
      取れないときに沈んだ板を出すと、番号を持っている人に
-     「まだ持っていません」と見せてしまう。それがいちばん失礼。 */
+     「まだ持っていません」と見せてしまう。それがいちばん失礼。
+
+     ★2026-09-07（オーナー指示）── 板は**番号を持っている人にだけ**出す。
+       給与も口コミも出していない、登録しただけの人には1枚も描かない。
+       称号は「出した100人」のものなので、出していない人の画面に
+       沈んだ姿で置いておく意味が無い。 */
   function mount(el, opts) {
     if (!el || el.getAttribute('data-pvf')) return;
     var o = opts || {};
     return fetchNo(o.sb).then(function (r) {
       if (!r || r.ok !== true) return;
-      paint(el, r.no);
+      var no = r.no;
+      if (!(no !== null && no !== undefined && Number(no) > 0)) return;   // 持っていない＝描かない
+      paint(el);
     }).catch(function () {});
   }
 

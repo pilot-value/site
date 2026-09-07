@@ -289,10 +289,14 @@
     <section class="mp-sec" id="your-status">
       <div class="mp-hd">
         <h1 class="mp-h1">MY PAGE</h1>
-        <p class="mp-lead">Your status, what to do next, your own numbers, what you have submitted, and your settings — all on one page.</p>
+        <!-- ★この1行は既定では空で出さない（2026-09-07 オーナー指示で説明文を削除）。
+           ただし要素は捨てない ── ?welcome=1 で来た人を名前で迎える唯一の置き場。 -->
+        <p class="mp-lead" hidden></p>
       </div>
     <!-- FOUNDING PILOT 100. Drawn by pv-founding.js.
-         It also renders for someone with no number yet (dimmed, no digits).
+         ★2026-09-07 (owner): the plaque renders ONLY for people who hold a number.
+           Someone who has filed neither pay nor a review gets nothing drawn here
+           (this div stays empty; it carries no class, so it leaves no gap).
          Never shows a member count or how many slots are left. -->
     <div id="pv-founding-slot"></div>
 
@@ -398,15 +402,9 @@
     </div>
     </section>
 
-    <!-- ⑤ INVITE PILOTS ─ ★招待の SSOT は invite.html（レールの項目）。
-         ここに共有UI・リンク生成・コピーの部品を作らない。説明1つと入口1つだけ。 -->
-    <section class="mp-sec" id="invite-pilots">
-      <h2 class="mp-h2">INVITE PILOTS</h2>
-      <div class="glass mp-inv">
-        <p class="mp-inv-s">The more pilots from your airline join, the sharper your comparison gets. How to create and share your invite link is all on the invite page.</p>
-        <a class="mp-cta ghost mp-inv-a" href="invite.html">Open the invite page</a>
-      </div>
-    </section>
+    <!-- ⑤ INVITE PILOTS は 2026-09-07 に外した（オーナー指示）。
+         招待はレールの INVITE（invite.html）が唯一の入口。
+         ★ここに作り直さない ── 招待の SSOT は invite.html の1枚だけ。 -->
 
     <!-- ⑥ SETTINGS ─ ★既定で畳む（確定事項8）。 -->
     <details class="mp-set" id="settings-card">
@@ -651,7 +649,7 @@
            名前で迎える役目は下の1行（mp-lead）が引き取っている。 */
       if (isWelcome && profile && profile.name) {
         const lead = document.querySelector('#your-status .mp-lead');
-        if (lead) lead.textContent = 'Welcome, ' + profile.name + ' ✈️ This is your page.';
+        if (lead) { lead.textContent = 'Welcome, ' + profile.name + ' ✈️ This is your page.'; lead.hidden = false; }
       }
 
       renderStatusStats(mine);
@@ -770,9 +768,11 @@
           "File this month and it runs for another 90 days from there.", "Add this month’s pay", 'pay-report.html#ps');
       }
 
-      /* 順1 … まだ1件も出していない。ここがいちばん強い。 */
-      if (!rows.length) setNext(1, "Start by filing one payslip", "One payslip is all it takes to see your own numbers. We never take your name or staff number.",
-                                "Add pay anonymously", 'pay-report.html#ps');
+      /* 順1 … まだ1件も出していない。ここがいちばん強い。
+         ★見出しも説明も置かない（2026-09-07 オーナー指示で文言を削除）。
+           口の文字がそのまま用件になる。空の見出し・説明は CSS が畳む
+           （my-value.css の .mp-next-t:empty / .mp-next-s:empty）。 */
+      if (!rows.length) setNext(1, "", "", "Add pay anonymously", 'pay-report.html#ps');
 
       /* Give → Get の説明（共有版1つ）。★0件の人には差さない（③ が描くので二重になる）。 */
       if (rows.length && window.PVGates && window.PVGates.giveGetHTML) {

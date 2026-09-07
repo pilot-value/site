@@ -220,10 +220,10 @@ const look = () => ({
   bodyOv:  getComputedStyle(document.body).overflow,
   card:    !!document.getElementById('profile-card'),
   cardTxt: (document.getElementById('profile-card') || { innerText: '' }).innerText.length,
-  /* ★2026-09-06、招待そのもの（.pvr）は invite.html へ移した（SSOT を1つにする）。
-       マイページに残るのは ⑤ INVITE PILOTS の説明と、そこへの1本のリンクだけ。
-       ＝ ここで見張るのは「その1本が板に押し出されて消えていないか」。 */
-  invite:  !!document.querySelector('#invite-pilots a[href="invite.html"]'),
+  /* ★2026-09-07、⑤ INVITE PILOTS ごとマイページから外した（オーナー指示）。
+       招待はレールの INVITE（invite.html）だけ。入口がゼロでないことは
+       assert-referral.mjs が invite.html 側で見張っている。 */
+  invite:  !!document.querySelector('#invite-pilots'),
   /* 重なりを見る。プロフィールカード・招待カード・待遇モーダル、
      それに上部バーとサイドバー。
      ★ 'nav' と書かない。.mr-side ができた日から querySelector('nav') は
@@ -240,7 +240,7 @@ const look = () => ({
       return !(a.right <= b.left + 0.5 || a.left >= b.right - 0.5 ||
                a.bottom <= b.top + 0.5 || a.top >= b.bottom - 0.5);
     };
-    return ['.mr-top', '.mr-side', '#profile-card', '#invite-pilots', '[data-pvc]'].filter(over);
+    return ['.mr-top', '.mr-side', '#profile-card', '#your-pay', '[data-pvc]'].filter(over);
   })(),
   /* ★セレクタが空振りしても over() は false を返す＝「何とも重ならない」に見える。
        骨格の3つが本当に見つかったかを別に持つ。名前を変えた日に黙って通らないように。 */
@@ -282,7 +282,7 @@ for (const lang of ['ja', 'en']) {
   ok(parseFloat(v.logoLs) > 0.5, 'ワードマークの字間が開いている（題字として読める）', v.logoLs);
   ok(v.card && v.cardTxt > 40, 'プロフィールカードが今までどおり出る', String(v.cardTxt));
   /* 招待への入口が板に押し出されて消えていないか（2026-08-19 に消えた前科がある）。 */
-  ok(v.invite, '★招待のページ（invite.html）への入口が消えていない');
+  ok(!v.invite, '★マイページに招待の節を作り直していない（SSOT は invite.html）');
   seen[lang] = v.text;
   await page.close();
 }
@@ -298,23 +298,21 @@ for (const no of [1, 100]) {
 }
 
 // ════════════════════════════════════════════════════════════════
-// 2. 番号がまだ無い人 — ★数字が1文字も出ないこと
+// 2. 番号がまだ無い人 — ★板を1枚も描かない
 // ════════════════════════════════════════════════════════════════
+/* ★2026-09-07（オーナー指示）── 称号は給与か口コミを出した100人のもの。
+   登録しただけの人には見せさえしない。以前は「沈んだ板 ＋ 入れ方の一文」を
+   出していたが、出していない人に称号の枠を見せる意味が無い。
+   ⚠️ 沈んだ姿（.pvf.is-locked）と説明文（.pvf-note）は pv-founding.js から
+   まるごと消してある。どちらかが戻ると、ここが落ちる。 */
 for (const lang of ['ja', 'en']) {
   console.log(`\n════ ${lang} / 番号なし ════`);
   const page = await open(lang, { ok: true, no: null });
   const v = await page.evaluate(look);
 
-  ok(v.found, '板は出る（何が入るのかが分かる姿で）');
-  ok(v.state === 'none', '「まだ無い」姿で出る', v.state);
-  ok(v.digits === '', '★数字が1文字も出ない（残り枠・会員数を漏らさない）', JSON.stringify(v.text));
-  ok(lang === 'ja' ? /給与か口コミをひとつ出すと/.test(v.text) : /Share one pay report or one review/.test(v.text),
-     '入れ方だけを1行で言う', JSON.stringify(v.text));
-  ok(!/(残り|あと|slots? left|remaining)/i.test(v.text), '★「残り◯枠」を書かない', JSON.stringify(v.text));
-  ok(v.first, 'プロフィールカードより上に出る');
-  ok(v.frame.length === 3, '重なりを見る相手が本当に居る', v.frame.join(','));
-  ok(v.hits.length === 0, '何とも重ならない', v.hits.join(','));
-  ok(v.card && v.cardTxt > 40, 'プロフィールカードが今までどおり出る');
+  ok(!v.found, '★板を1枚も描かない（出していない人に称号の枠を見せない）', JSON.stringify(v.text));
+  ok(v.noteCount === 0, '★説明文も出ない', String(v.noteCount));
+  ok(v.card && v.cardTxt > 40, 'ページは止まらない（プロフィールカードは出る）');
   await page.close();
 }
 
@@ -330,7 +328,6 @@ for (const lang of ['ja', 'en']) {
   const v = await page.evaluate(look);
   ok(!v.found, '★板を1枚も描かない（持っている人に「まだ」と見せない）', v.text);
   ok(v.card && v.cardTxt > 40, 'ページは止まらない（プロフィールカードは出る）', String(v.cardTxt));
-  ok(v.invite, '招待のページへの入口も出る');
   await page.close();
 }
 
@@ -369,8 +366,8 @@ console.log('\n════ テーマ ════');
 // 5. 狭い画面 — ワードマークが2行に折れない・説明文が語の途中で切れない
 // ════════════════════════════════════════════════════════════════
 console.log('\n════ 390px ════');
-/* ★称号あり・称号なしの両方を見る。沈んだ板のほうが説明文が長い。 */
-for (const [scene, payload] of [['称号あり', { ok: true, no: 100 }], ['称号なし', { ok: true, no: null }]]) {
+/* ★称号なしはもう板が出ない（上の 2. で見張っている）。ここは持っている人だけ。 */
+for (const [scene, payload] of [['称号あり', { ok: true, no: 100 }]]) {
   console.log('  — ' + scene);
   const page = await open('ja', payload, 'dark', 390);
   const v = await page.evaluate(() => {

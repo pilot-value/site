@@ -117,7 +117,7 @@ export const SAMPLE_ROWS = [2, 3, 4, 5, 6, 7].map((mo) => ({
         実際に push 直後の確認で起き、同じ URL が端末によって 404 と 200 に割れた。
    ★中身から作った指紋。gen-mail-images.mjs が画像と一緒に出す。
      作り直したのに直し忘れると db/test-announce.mjs が正しい値を出して落ちる。 */
-export const IMG_VER = '2f7197ed';
+export const IMG_VER = 'cf0dde80';
 
 /* ── レポートの見本 ─────────────────────────────────────────
    ★項目名の一覧（「年換算の総額 … 明細1ヶ月ぶんから」）だけを載せていたが、

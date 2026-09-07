@@ -252,7 +252,6 @@
          前は「明細を1枚落とすと〜」だけで、**明細が要る**と読めていた。
          実際は手入力でも同じように解放される。★見出し・ボタンにカッコの注記を足さない。 */
       eTitle: 'マイレポート',
-      eLead: 'あなたの給与レポートと、給与共有で解放される価値を確認できます。',
       eRepT: 'あなたの給与レポート',
       eRepBadge: '未作成',
       eRepH: '給与をまだ共有していません',
@@ -276,16 +275,6 @@
       eStRep: '実給与の投稿', eStRepU: '件',
       eStAir: '航空会社',     eStAirU: '社',
       eStMon: '1ヶ月以内の新規投稿', eStMonU: '件',
-      eAddT: '給与を追加する',
-      eRec: 'おすすめ',
-      eWay1T: '匿名で手入力',
-      eWay1S: '明細がなくても大丈夫です。最短50秒で終わり、すぐに REAL PAY が解放されます。',
-      eWay1C: '匿名で手入力する →',
-      eWay2T: '給与明細から入力',
-      eWay2S: '画像は端末の中で黒塗りしてから送られ、保存はされません。読み取った金額だけが残ります。',
-      eWay2C: '明細をアップロードする →',
-      eFoot: '氏名・社員番号・メールは公開されません。'
-           + '画像は保存せず、個人が特定できる情報は一切取得しません。',
       err: 'レポートを読み込めませんでした。時間をおいて開き直してください。',
       /* sfo / tri_tre は 2026-08-18 に選択肢から外した旧コード。過去の投稿がまだ持っているので、
          ラベルだけ残す（消すと本人のマイページに生の 'sfo' が出る）。 */
@@ -447,7 +436,6 @@
 
       /* Same screen in English. A payslip is not required — typing it in unlocks the same thing. */
       eTitle: 'My report',
-      eLead: 'Your own pay report, and what sharing your pay unlocks.',
       eRepT: 'Your pay report',
       eRepBadge: 'Not started',
       eRepH: 'You have not shared your pay yet',
@@ -470,16 +458,6 @@
       eStRep: 'Pay records',      eStRepU: '',
       eStAir: 'Airlines',         eStAirU: '',
       eStMon: 'Added within 1 month', eStMonU: '',
-      eAddT: 'Add your pay',
-      eRec: 'Recommended',
-      eWay1T: 'Type it in anonymously',
-      eWay1S: 'No payslip needed. It takes about 50 seconds, and REAL PAY opens straight away.',
-      eWay1C: 'Type it in anonymously →',
-      eWay2T: 'Start from a payslip',
-      eWay2S: 'The image is redacted on your own device before it is sent, and it is never stored. Only the figures are kept.',
-      eWay2C: 'Upload a payslip →',
-      eFoot: 'Your name, staff number and email are never published. '
-           + 'Images are not stored, and nothing that identifies you is collected.',
       err: 'Could not load your report. Please try again in a moment.',
       /* sfo / tri_tre are retired codes (removed from the form 2026-08-18). Old reports still carry
          them, so keep the labels — otherwise the raw code shows up on the member's own page. */
@@ -1519,29 +1497,15 @@
     var give = (w.PVGates && w.PVGates.giveGetHTML)
       ? '<section class="mr-card mv-e-give">' + w.PVGates.giveGetHTML() + '</section>' : '';
 
-    var add =
-      '<section class="mr-card mv-e-add">'
-      + '<h2 class="mv-e-h">' + esc(T.eAddT) + '</h2>'
-      + '<div class="mv-e-ways">'
-      +   '<div class="mv-e-way is-rec">'
-      +     '<span class="mv-e-badge is-rec">' + esc(T.eRec) + '</span>'
-      +     '<div class="mv-e-way-t">' + esc(T.eWay1T) + '</div>'
-      +     '<p class="mv-e-s">' + esc(T.eWay1S) + '</p>'
-      +     '<a class="pt-btn" href="' + payHref() + '">' + esc(T.eWay1C) + '</a>'
-      +   '</div>'
-      +   '<div class="mv-e-way is-ps">'
-      +     '<div class="mv-e-way-t">' + esc(T.eWay2T) + '</div>'
-      +     '<p class="mv-e-s">' + esc(T.eWay2S) + '</p>'
-      +     '<a class="pt-btn ghost" href="' + payHref() + '">' + esc(T.eWay2C) + '</a>'
-      +   '</div>'
-      + '</div></section>';
+    /* ★「給与を追加する」の2枚組（匿名で手入力／給与明細から入力）と、
+         その下の錠前の注記は 2026-09-07 に廃止した（オーナー指示）。
+         同じ画面に ② NEXT ACTION の橙の口と、下の「レポートを作成する →」が
+         既に在り、橙の口が3つ並んでいた。入口は上の2つに任せる。 */
 
-    root.innerHTML =
-      '<div class="mr-hd">'
-      + (w.PV_MYPAGE_HOST ? '' : '<h1 class="mr-hd-t">' + esc(T.eTitle) + '</h1>')
-      + '<p class="mr-hd-s">' + esc(T.eLead) + '</p></div>'
-      + rep + band + give + add
-      + '<p class="mv-e-foot">' + IC_LOCK + '<span>' + esc(T.eFoot) + '</span></p>';
+    var head = w.PV_MYPAGE_HOST ? ''       // MY PAGE では ③ の見出しが上に在る
+      : '<div class="mr-hd"><h1 class="mr-hd-t">' + esc(T.eTitle) + '</h1></div>';
+
+    root.innerHTML = head + rep + band + give;
   }
 
   function render() {
