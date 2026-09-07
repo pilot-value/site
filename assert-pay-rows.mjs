@@ -3704,6 +3704,368 @@ for (const lang of ['ja', 'en']) {
   ok(errs.length === 0, 'ページのエラーが1件も出ない', errs.join(' | '));
 }
 
+/* ════════════════════════════════════════════════════════════════
+   M ブラウザの「戻る」で詳細だけを閉じる（Phase 4・2026-09-07）
+
+   ★見るのは**押した結果**だけ。「actual-pay.js に pushState と書いてある」では
+     1つも通さない（字を見るのは K-0 の担当）。
+   ★history.length は back() では**減らない**（進む先が残るだけ）。
+     だから「履歴が増殖しない」は **開く前 + 1 を超えない**ことで見る。
+     開き直すと進む先が切り捨てられて積み直されるので、何度やっても +1 のまま。
+   ★「前のページへ飛んでいない」は**目印**で見る ── 開く前に window へ置いた値が
+     一連の操作のあとも残っているか。ページを離れて戻れば読み込み直しで消える。
+   ⚠️ 時間で待たない。開き終わり・閉じ終わりは条件で待つ
+     （面は 320ms かけて消えるので、待たずに数えると「閉じたのに残っている」と出る）。
+   ════════════════════════════════════════════════════════════════ */
+{
+  /* 面が開き切るまで待って押す。行のどこを押しても同じ面が開く。 */
+  const tap = async (page, i) => {
+    await page.evaluate((n) => {
+      const tr = document.querySelector('#ap-rows [data-ap-row="' + n + '"]');
+      const b = tr && (tr.querySelector('.ap-go') || tr);
+      if (b) b.click();
+    }, i);
+    return till(page, "document.querySelector('.ap-dw-back.is-in') !== null");
+  };
+  const gone = (page) => till(page, "document.querySelectorAll('.ap-dw-back').length === 0");
+  /* 一度に読み取るもの。★毎回同じ形で取る。 */
+  const HIS = () => ({
+    n: history.length,
+    st: JSON.stringify(history.state || null),
+    href: location.href,
+    y: Math.round(window.scrollY),
+    dw: document.querySelectorAll('.ap-dw-back').length,
+    mark: window.__pvMark || 0,
+    act: document.activeElement
+      ? (document.activeElement.className || document.activeElement.tagName)
+      : 'なし',
+    actRow: (function () {
+      const a = document.activeElement;
+      const tr = a && a.closest ? a.closest('[data-ap-row]') : null;
+      return tr ? tr.getAttribute('data-ap-row') : '';
+    })()
+  });
+  const mark = (page) => page.evaluate(() => { window.__pvMark = 1; });
+  const back = async (page) => {
+    await page.evaluate(() => history.back());
+    return gone(page);
+  };
+
+  /* ── M-1 開く → 別の行へ替える → 戻る1回で詳細だけ閉じる ───────── */
+  for (const lang of ['ja', 'en']) {
+    console.log(`\n════ ${lang} / M-1 戻る1回で詳細だけ閉じる（絞り込み・位置・焦点）════`);
+    const { page, errs } = await open(lang, MANY);
+    /* ★窓を低くする ── 既定の 1200px だと絞り込んだ一覧が丸ごと収まって
+         **1px も送れない**。送っていない状態で「位置が動かない」を見ても
+         何も担保できない（実際に最初そうなっていた）。 */
+    await page.setViewport({ width: 1360, height: 620 });
+    await till(page, 'window.innerHeight === 620');
+
+    /* 絞り込みを1つ掛けてから開く。閉じたあとも残っていること。 */
+    await page.evaluate(() => {
+      const s = document.getElementById('ap-air');
+      s.value = 'ana';
+      s.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    await till(page, "location.search.indexOf('air=ana') >= 0");
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    await till(page, 'window.scrollY > 0');
+    await mark(page);
+    const a0 = await page.evaluate(HIS);
+    ok(a0.y > 0, `${lang}: 前提 ── 一覧を送った状態で開く`, `scrollY ${a0.y}`);
+
+    const rowN = await page.evaluate(() =>
+      document.querySelector('#ap-rows [data-ap-row]').getAttribute('data-ap-row'));
+    ok(await tap(page, rowN), `${lang}: 行を押すと詳細が開く`);
+    const a1 = await page.evaluate(HIS);
+    ok(a1.n === a0.n + 1, `${lang}: ★履歴は1段だけ積む`, `${a0.n} → ${a1.n}`);
+    ok(a1.href === a0.href, `${lang}: ★★URL が1文字も変わらない`, a1.href);
+    ok(a1.st === '{"pvDw":1}',
+       `${lang}: ★★履歴に載せるのは目印だけ（会社・職位・金額・ID を持たない）`, a1.st);
+
+    /* 開いたまま別の給与行へ替える（面の中の「類似の記録」）。 */
+    const sw = await page.evaluate(() => {
+      const b = document.querySelector('.ap-dw [data-ap-row]');
+      if (!b) return '';
+      b.click();
+      return b.getAttribute('data-ap-row');
+    });
+    await till(page, "document.querySelectorAll('.ap-dw-back').length === 1");
+    const a2 = await page.evaluate(HIS);
+    ok(sw !== '', `${lang}: 前提 ── 面の中に別の行がある`, sw || 'なし');
+    ok(a2.n === a1.n && a2.dw === 1,
+       `${lang}: ★★別の行へ替えても履歴を積み増さない`, `${a1.n} → ${a2.n}`);
+
+    /* Desktop ⇄ Mobile を跨いでも重複させない（同じ面なので開いたまま）。 */
+    await page.setViewport({ width: 390, height: 780 });
+    await till(page, 'window.innerWidth === 390');
+    await page.setViewport({ width: 1360, height: 620 });
+    await till(page, 'window.innerWidth === 1360');
+    const a3 = await page.evaluate(HIS);
+    ok(a3.n === a1.n, `${lang}: ★★Desktop / Mobile を跨いでも重複しない`,
+       `${a1.n} → ${a3.n}`);
+
+    ok(await back(page), `${lang}: ★★ブラウザの戻るで詳細が閉じる`);
+    const a4 = await page.evaluate(HIS);
+    ok(a4.mark === 1, `${lang}: ★★ページは動いていない（目印が残っている）`,
+       String(a4.mark));
+    ok(a4.href === a0.href && /air=ana/.test(a4.href),
+       `${lang}: ★★絞り込みがそのまま残る`, a4.href);
+    ok(a4.y === a0.y, `${lang}: ★★一覧のスクロール位置が動かない`,
+       `${a0.y} → ${a4.y}`);
+    ok(!/pvDw/.test(a4.st), `${lang}: ★積んだ段が外れている`, a4.st);
+    ok(a4.actRow === rowN,
+       `${lang}: ★★焦点が押した行へ戻る`, `${a4.actRow || 'なし'} / ${a4.act}`);
+    ok(errs.length === 0, `${lang}: ページのエラーが1件も出ない`, errs.join(' | '));
+  }
+
+  /* ── M-2 ×・Escape・背景 で閉じても履歴が増殖しない ─────────── */
+  {
+    console.log('\n════ ja / M-2 閉じ方を変えて往復しても履歴が増えない ════');
+    const { page, errs } = await open('ja', OPEN);
+    await mark(page);
+    const b0 = await page.evaluate(HIS);
+    const ways = [
+      ['×', async () => { await page.evaluate(() =>
+        document.querySelector('.ap-dw [data-ap-close]').click()); }],
+      ['Escape', async () => { await page.keyboard.press('Escape'); }],
+      ['背景', async () => { await page.evaluate(() => {
+        const b = document.querySelector('.ap-dw-back');
+        b.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+        b.click();
+      }); }]
+    ];
+    let worst = 0;
+    for (let round = 0; round < 2; round++) {
+      for (const [name, close] of ways) {
+        const up = await tap(page, 0);
+        const h = await page.evaluate(() => history.length);
+        worst = Math.max(worst, h);
+        await close();
+        const off = await gone(page);
+        if (round === 0) {
+          ok(up && off, `ja: ${name} で開いて閉じられる`);
+        }
+      }
+    }
+    const b1 = await page.evaluate(HIS);
+    ok(worst <= b0.n + 1,
+       'ja: ★★6回開け閉めしても履歴が増殖しない（開く前 +1 を超えない）',
+       `開く前 ${b0.n} / いちばん多いとき ${worst}`);
+    ok(b1.mark === 1, 'ja: ★ページを離れていない', String(b1.mark));
+
+    /* × の連打 ── 二重に戻らない（前のページへ飛ばない）。 */
+    await tap(page, 0);
+    await page.evaluate(() => {
+      const b = document.querySelector('.ap-dw [data-ap-close]');
+      b.click(); b.click(); b.click();
+    });
+    await gone(page);
+    await page.evaluate(() => new Promise((r) => setTimeout(r, 400)));
+    const b2 = await page.evaluate(HIS);
+    ok(b2.mark === 1 && b2.href === b0.href,
+       'ja: ★★× を連打しても前のページへ飛ばない',
+       `目印 ${b2.mark} / ${b2.href}`);
+    ok(b2.dw === 0, 'ja: ★連打のあとも面は閉じたまま', String(b2.dw));
+    ok(errs.length === 0, 'ja: ページのエラーが1件も出ない', errs.join(' | '));
+  }
+
+  /* ── M-3 開いたまま再読み込みしても破綻しない ─────────────── */
+  {
+    console.log('\n════ ja / M-3 開いたまま再読み込み ════');
+    const { page, errs } = await open('ja', OPEN);
+    await tap(page, 0);
+    await page.reload({ waitUntil: 'domcontentloaded', timeout: 30000 });
+    await sleep(2600);
+    const c0 = await page.evaluate(HIS);
+    ok(c0.dw === 0, 'ja: ★読み込み直後は閉じている', String(c0.dw));
+    await mark(page);
+
+    /* ★取り残された段を引き継ぐので、ここで積み増さない。 */
+    ok(await tap(page, 0), 'ja: 読み込み直しても行を開ける');
+    const c1 = await page.evaluate(HIS);
+    ok(c1.dw === 1, 'ja: ★詳細が二重に出ない', String(c1.dw));
+    ok(c1.n <= c0.n, 'ja: ★★取り残された段を引き継ぐ（積み増さない）',
+       `${c0.n} → ${c1.n}`);
+    ok(await back(page), 'ja: ★★戻る1回で閉じる');
+    const c2 = await page.evaluate(HIS);
+    ok(c2.mark === 1, 'ja: ★★戻るでページを離れない（目印が残っている）',
+       String(c2.mark));
+
+    /* もう一度往復しても同じ。 */
+    await tap(page, 0);
+    const c3 = await page.evaluate(HIS);
+    ok(c3.n <= c0.n + 1, 'ja: ★2度目も増えない', `${c0.n} → ${c3.n}`);
+    ok(await back(page), 'ja: ★2度目の戻るも効く');
+    ok(errs.length === 0, 'ja: ページのエラーが1件も出ない', errs.join(' | '));
+  }
+
+  /* ── M-4 絞り込み → 詳細 → 給与フォーム → 既存の戻り経路 ─────── */
+  {
+    console.log('\n════ ja / M-4 給与フォームへの往復（reopenBack を壊さない）════');
+    /* ★戻り先を書くのは**内訳の門のボタンだけ**（actual-pay.js の
+         `[data-ap-detail]`）。だから内訳が閉じている行が要る ── K と同じ形。 */
+    const M_LOCK = { ok: true, state: 'open', mine: MINE, stats: ST,
+      rows: [row('ana', 'cap', 180000, true, 0,
+                 { fleet: 'b787', ten: 1, work: WORK,
+                   paylock: ['fixed', 'variable', 'other', 'bonus'] }),
+             row('jal', 'fo', 110000, false, 4, { fleet: 'a320', ten: 0, work: WORK })],
+      give: { basic: true, detailed: false, full: false, payslip: false } };
+    const { page, errs } = await open('ja', M_LOCK);
+    await page.evaluate(() => {
+      const s = document.getElementById('ap-air');
+      s.value = 'ana';
+      s.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    await till(page, "location.search.indexOf('air=ana') >= 0");
+    await tap(page, 0);
+    /* ★飛ばさずに押す（K-4 と同じ手）。飛ぶと偽の Supabase が
+         給与フォーム側にも入って、この検査の話ではない所で転ぶ。 */
+    const saved = await page.evaluate(() => {
+      const a = document.querySelector('.ap-dw-lk-c');
+      if (!a) return '';
+      const stop = (e) => e.preventDefault();
+      document.addEventListener('click', stop, true);
+      a.click();
+      document.removeEventListener('click', stop, true);
+      return sessionStorage.getItem('pv_realpay_back') || '';
+    });
+    const keys = (() => { try { return Object.keys(JSON.parse(saved)); } catch (e) { return []; } })();
+    ok(keys.length === 3 && keys.indexOf('a') >= 0 && keys.indexOf('p') >= 0
+       && keys.indexOf('v') >= 0,
+       'ja: ★★戻り先の形は今までどおり（会社・職位・年収の3つだけ）', keys.join(','));
+
+    /* 給与フォームから帰ってきた形（読み込み直し）。 */
+    await page.goto(BASE + '/actual-pay.html?air=ana',
+                    { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await sleep(2600);
+    const opened = await till(page, "document.querySelectorAll('.ap-dw-back').length === 1");
+    ok(opened, 'ja: ★★reopenBack が今までどおり同じ面を開く');
+    await mark(page);
+    const d1 = await page.evaluate(HIS);
+    ok(await back(page), 'ja: ★★そこから戻る1回で詳細だけ閉じる');
+    const d2 = await page.evaluate(HIS);
+    ok(d2.mark === 1, 'ja: ★★給与フォームの往復のあとでもページを離れない',
+       String(d2.mark));
+    ok(/air=ana/.test(d2.href), 'ja: ★絞り込みが残っている', d2.href);
+    ok(d2.n <= d1.n, 'ja: ★履歴が増えたままにならない', `${d1.n} → ${d2.n}`);
+    ok(errs.length === 0, 'ja: ページのエラーが1件も出ない', errs.join(' | '));
+  }
+
+  /* ── M-5 狭い画面（390px）でも同じ結果 ───────────────────── */
+  {
+    console.log('\n════ ja / M-5 狭い画面（390px）でも戻るで詳細だけ閉じる ════');
+    const { page, errs } = await open('ja', MANY);
+    await widen(page, 390);
+    await page.evaluate(() => window.scrollTo(0, 260));
+    await mark(page);
+    const e0 = await page.evaluate(HIS);
+    ok(e0.y > 0, 'ja: 前提 ── 送った状態で開く', `scrollY ${e0.y}`);
+
+    /* ★絞り込みのシートは history を積まない（積むと戻るがシートを閉じてしまう）。 */
+    const up = await sheetUp(page);
+    const e1 = await page.evaluate(HIS);
+    ok(up, 'ja: 前提 ── 絞り込みのシートが開く');
+    ok(e1.n === e0.n, 'ja: ★★絞り込みのシートは履歴を積まない', `${e0.n} → ${e1.n}`);
+    await page.click('#ap-sheet-x');
+    await sheetGone(page);
+
+    const rowN = await page.evaluate(() =>
+      document.querySelector('#ap-rows [data-ap-row]').getAttribute('data-ap-row'));
+    ok(await tap(page, rowN), 'ja: 390px で行を押すと詳細が開く');
+    const e2 = await page.evaluate(HIS);
+    ok(e2.n === e0.n + 1, 'ja: ★390px でも1段だけ', `${e0.n} → ${e2.n}`);
+    ok(await back(page), 'ja: ★★390px でも戻るで詳細だけ閉じる');
+    const e3 = await page.evaluate(HIS);
+    ok(e3.mark === 1, 'ja: ★★390px でもページを離れない', String(e3.mark));
+    ok(e3.y === e0.y, 'ja: ★★390px でもスクロール位置が動かない', `${e0.y} → ${e3.y}`);
+    ok(e3.actRow === rowN, 'ja: ★390px でも焦点が押した行へ戻る',
+       `${e3.actRow || 'なし'} / ${e3.act}`);
+    ok(errs.length === 0, 'ja: ページのエラーが1件も出ない', errs.join(' | '));
+  }
+
+  /* ── M-6 共通ナビと干渉しない ──────────────────────────── */
+  {
+    console.log('\n════ ja / M-6 共通ナビと干渉しない ════');
+    const { page, errs } = await open('ja', OPEN);
+    await widen(page, 390);
+    await mark(page);
+    const f0 = await page.evaluate(HIS);
+    await page.click('#pv-ham-btn');
+    await till(page, "document.body.classList.contains('pv-anav-open')");
+    await sideStill(page);
+    const f1 = await page.evaluate(HIS);
+    ok(f1.n === f0.n, 'ja: ★★共通ナビの開閉は履歴を増やさない', `${f0.n} → ${f1.n}`);
+    await page.keyboard.press('Escape');
+    await till(page, "!document.body.classList.contains('pv-anav-open')");
+
+    /* ナビを触ったあとでも、詳細の戻るは正しく効く。 */
+    ok(await tap(page, 0), 'ja: ナビのあとでも行を開ける');
+    const f2 = await page.evaluate(HIS);
+    ok(f2.n === f0.n + 1, 'ja: ★ナビのあとでも1段だけ', `${f0.n} → ${f2.n}`);
+    ok(await back(page), 'ja: ★★戻るで詳細だけ閉じる');
+    const f3 = await page.evaluate(HIS);
+    ok(f3.mark === 1 && !f3.dw, 'ja: ★★ページを離れず、面だけ閉じている',
+       `目印 ${f3.mark} / 面 ${f3.dw}`);
+    ok(await page.evaluate(() => !document.body.classList.contains('pv-anav-open')),
+       'ja: ★戻るで共通ナビが開いてしまわない');
+    ok(errs.length === 0, 'ja: ページのエラーが1件も出ない', errs.join(' | '));
+  }
+
+  /* ── M-7 URL と通信（開閉を原因とする通信が1本も出ない）────────── */
+  {
+    console.log('\n════ ja / M-7 開閉で通信が1本も出ない ════');
+    const { page, errs } = await open('ja', OPEN);
+    /* ★数える仕掛けは**起動が落ち着いてから**入れる。最初から数えると、
+         語彙と航空会社名の取得（開閉と無関係）を詰め込んでしまう。 */
+    await till(page, "document.querySelectorAll('#ap-rows [data-ap-row]').length > 0");
+    await page.evaluate(() => {
+      window.__net = [];
+      const f = window.fetch;
+      window.fetch = function (u) { window.__net.push('fetch:' + u); return f.apply(this, arguments); };
+      const s = XMLHttpRequest.prototype.send;
+      XMLHttpRequest.prototype.send = function () { window.__net.push('xhr'); return s.apply(this, arguments); };
+      if (navigator.sendBeacon) {
+        const b = navigator.sendBeacon.bind(navigator);
+        navigator.sendBeacon = function (u) { window.__net.push('beacon:' + u); return b.apply(null, arguments); };
+      }
+      const img = window.Image;
+      window.Image = function () { window.__net.push('img'); return new img(); };
+      window.__rpcN = (window.__rpc || []).length;
+    });
+    const g0 = await page.evaluate(HIS);
+    await tap(page, 0);
+    const gOpen = await page.evaluate(() => ({
+      href: location.href, st: JSON.stringify(history.state || null) }));
+    await page.evaluate(() => {
+      const b = document.querySelector('.ap-dw [data-ap-row]');
+      if (b) b.click();
+    });
+    await page.evaluate(() =>
+      document.querySelector('.ap-dw [data-ap-close]').click());
+    await gone(page);
+    await tap(page, 0);
+    await back(page);
+    await page.evaluate(() => new Promise((r) => setTimeout(r, 400)));
+    const net = await page.evaluate(() => ({
+      net: window.__net, rpc: (window.__rpc || []).length, was: window.__rpcN }));
+    const g1 = await page.evaluate(HIS);
+
+    ok(net.net.length === 0,
+       'ja: ★★開閉を原因とする通信が1本も出ない（fetch / XHR / beacon / img）',
+       net.net.join(' | '));
+    ok(net.rpc === net.was, 'ja: ★★給与を取り直さない（RPC が増えない）',
+       `${net.was} → ${net.rpc}`);
+    ok(gOpen.href === g0.href && g1.href === g0.href,
+       'ja: ★★開いても閉じても URL が変わらない', `${g0.href} / ${gOpen.href}`);
+    ok(gOpen.st === '{"pvDw":1}',
+       'ja: ★★history に載るのは目印だけ', gOpen.st);
+    ok(!/ana|jal|emirates|cap|180000|170000|annual|airline/i.test(gOpen.st),
+       'ja: ★★会社・職位・金額・レコード ID を history に載せない', gOpen.st);
+    ok(errs.length === 0, 'ja: ページのエラーが1件も出ない', errs.join(' | '));
+  }
+}
+
 for (const jar of jars) { try { await jar.close(); } catch (e) {} }
 await browser.close();
 console.log(`\n══ ${pass} pass / ${fail} fail ══`);

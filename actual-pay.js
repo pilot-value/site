@@ -750,6 +750,47 @@
      ══════════════════════════════════════════════════════════════ */
   var DW = null;      // 開いていれば { back, box, i, prevFocus, prevOverflow, onKey }
 
+  /* ── ブラウザの「戻る」で詳細だけを閉じる（2026-09-07）──────────
+     ★積むのは**同じ URL の段が1つ**だけ。URL は1文字も変えない ──
+       会社・職位・年収・レコード ID をアドレス欄にも GA4 にも出さない
+       （saveBack が sessionStorage を使っているのと同じ理由）。
+     ★state に置くのは {pvDw:1} の目印だけ。中身を持たせない。
+       ⚠️ null にしない ── 再読み込みすると旗（下の DWH）はメモリごと消えるのに
+          段は残る。目印が無いと「この段は詳細のものか」を見分けられず、
+          開き直したときにもう1段積んで**戻るが二度要る**形になる。
+     ⚠️ 画面内の「←」とは別物。あちらは saveBack / reopenBack の
+        sessionStorage で、論理的な親ページへ帰る道。ここでは触らない。
+     ⚠️ 共通ナビ（app-nav.js）は history を積まない約束になっている。
+        あちらが積むと、戻るが詳細ではなくナビを閉じてしまう。 */
+  var DWH = false;    // 詳細のために1段積んでいる
+  var DWO = false;    // 再読み込みで取り残された段を1つ引き継げる
+
+  function histMark() {
+    try { var s = w.history && w.history.state; return !!(s && s.pvDw); }
+    catch (e) { return false; }
+  }
+
+  function histPush() {
+    if (DWH) return;                 // 行を替えただけ・二度目の open では積み増さない
+    if (DWO) { DWO = false; DWH = true; return; }   // 取り残された段を引き継ぐ
+    if (!(w.history && w.history.pushState)) return;
+    try { w.history.pushState({ pvDw: 1 }, '', w.location.href); DWH = true; } catch (e) {}
+  }
+
+  /* 自分で閉じたとき（× ・ESC ・背景 ・門へ移るとき）だけ1回戻す。
+     ★先に旗を落とす ── back() が呼ぶ popstate は、そのとき既に面が閉じているので
+       何もせずに済む（＝閉じる処理と popstate が循環しない）。
+     ★連打は closeDrawer の入口の `if (!DW) return;` が受け止める。
+       ここへ二度入ってこないので、二重に戻ることはない。
+     ★積んでいないとき（DWH が false）は**何も呼ばない**
+       ── 無条件に back() すると、前のページへ飛び出す。 */
+  function histPop() {
+    if (!DWH) return;
+    DWH = false;
+    if (!(w.history && w.history.back)) return;
+    try { w.history.back(); } catch (e) {}
+  }
+
   /* 行の番号 → 行。★ページ送りでも絞り込みでも変わらない番号を使う
        （サーバから受け取った順に振ってある）。 */
   function rowOf(i) {
@@ -1156,6 +1197,11 @@
        類似の記録を押したときに、面が一度閉じてまた開くと居場所を見失う。 */
     if (DW) { DW.i = i; paintDrawer(); return; }
 
+    /* ★ここが「本当に開くとき」の1か所。段を積むのはここだけ ──
+         行の入れ替えは上の早期 return で戻るので積み増さない。
+         Desktop と Mobile は同じ面（.ap-dw）なので、幅を変えても重複しない。 */
+    histPush();
+
     var back = d.createElement('div');
     back.className = 'ap-dw-back';
     /* ★tabindex="-1" ── 開いたときの居場所をここに置くため。Tab の順番には入らない。 */
@@ -1206,10 +1252,13 @@
   }
 
   /* noFocus ＝ 閉じたあと居場所を一覧へ戻さない。
-     ★門を開くときだけ true。戻すと、門が focus を取った直後に一覧へ引き戻される。 */
-  function closeDrawer(noFocus) {
+     ★門を開くときだけ true。戻すと、門が focus を取った直後に一覧へ引き戻される。
+     fromPop ＝ ブラウザの「戻る」から呼ばれた。
+     ★そのときは段がもう外れているので、こちらから back() を呼ばない。 */
+  function closeDrawer(noFocus, fromPop) {
     if (!DW) return;
     var x = DW; DW = null;
+    if (fromPop) DWH = false; else histPop();
     d.removeEventListener('keydown', x.onKey, true);
     d.body.style.overflow = x.prevOverflow || '';
     x.back.classList.remove('is-in');
@@ -1229,7 +1278,12 @@
           var tr = d.querySelector('#ap-rows [data-ap-row="' + x.from + '"]');
           f = tr ? tr.querySelector('.ap-go') : null;
         }
-        if (f && f.focus) f.focus();
+        /* ★居場所を戻すだけで**画面を動かさない**。素の focus() だと、
+             送った先から押した行まで画面が飛ぶ（一覧の位置を保つ約束と喧嘩する）。
+             preventScroll を知らない古い browser では素の focus() に落ちる。 */
+        if (f && f.focus) {
+          try { f.focus({ preventScroll: true }); } catch (e2) { f.focus(); }
+        }
       } catch (e) {}
     }, 320);
   }
@@ -1490,7 +1544,13 @@
       [['air', S.fAir], ['pos', S.fPos], ['q', qv]].forEach(function (p) {
         if (p[1]) u.searchParams.set(p[0], p[1]); else u.searchParams.delete(p[0]);
       });
-      w.history.replaceState(null, '', u.pathname + (u.search || '') + u.hash);
+      /* ⚠️ state を null で潰さない（2026-09-07）。ここは絞り込みだけでなく
+           **通貨を切り替えたときにも走る**（pv-currency-change → render()）ので、
+           面を開いている最中に潰すと「戻る」の目印が消える。
+           消えた状態で × を押すと、こちらは段を積んだつもりのまま
+           browser 側の目印だけ無くなる＝旗と履歴がずれる。 */
+      w.history.replaceState(w.history.state || null, '',
+                             u.pathname + (u.search || '') + u.hash);
     } catch (e) {}
   }
 
@@ -1614,6 +1674,24 @@
     /* ★通貨の切替は描き直すだけ。pv_pay_rows() を引き直さない。
        ★開いている面も同時に描き直す（開いたまま、帯だけが付いてくる）。 */
     w.addEventListener('pv-currency-change', function () { render(); paintDrawer(true); });
+
+    /* ── ブラウザの「戻る」──────────────────────────────────
+       ★面が開いていれば、それだけを閉じる。ページは動かさない。
+       ★開いていなければ**何もしない** ── 詳細と関係のない普通の移動を妨げない。
+         そのとき目印が残っていれば「進む」でこの段へ帰ってきたということなので、
+         次に開くときに引き継げるよう覚えておく（新しく積み増さない）。 */
+    w.addEventListener('popstate', function () {
+      if (DW) { closeDrawer(false, true); return; }
+      DWO = histMark();
+    });
+
+    /* ★再読み込みと、browser によるページの復元（bfcache）。
+         旗はメモリなので消えるが、積んだ段は履歴に残る。
+         ずれたままだと、開き直したときにもう1段積んでしまう
+         ＝ 戻るを二度押さないと閉じない。ここで拾い直しておく。
+       ⚠️ 復元で面が開いたまま帰ってきたときは旗も生きているので触らない。 */
+    w.addEventListener('pageshow', function () { if (!DW) DWO = histMark(); });
+    if (!DW) DWO = histMark();          // 通常の読み込み（pageshow より前に効かせる）
 
     /* ★語彙から読むのは職位と機材（2026-09-03 に機材を出すことにした）。
          ⚠️ 名前はカッコの中に機種の並びを抱えている。表の2行目には長すぎるので
