@@ -12,8 +12,11 @@
    ★読ませる先は 406枚（オーナー確定事項10・2026-09-06）──
        公開392枚（トップ・VOTE・AIRLINES・航空会社110社・国別・記事…）
        ＋ アプリ14枚（.mr-shell を持つ画面）
-     **入れないのは6枚だけ** ── login / signup（日英4枚）・auth-callback・
-     給与フォーム（pay-report 日英。書きかけの値が消えるため）。
+     ★2026-09-07、**ログイン・新規登録・給与フォーム（日英6枚）にも入れた**
+       （オーナー指示）。除いていた間、その6枚だけ旧 search.js の右の引き出しが
+       残り、広い画面ではレールが消えて ≡ だけが出ていた。
+     入れないのは、ヘッダーを持たない画面（auth-callback / 404 / admin /
+     unsubscribe / my-value）だけ ── 配る先が無い。
 
    ⚠️ 公開ページが読む CSS は **pv-tokens.css ＋ このファイルの2枚だけ**。
       my-value.css は読ませない（.mr-shell や body の規則ごと 392枚に降りてしまう）。
@@ -89,7 +92,8 @@
 .mr-side-a.is-locked > svg:first-of-type{opacity:.5}
 /* 錠前はラベルの右端へ寄せる（項目の名前とぶつからない位置） */
 .mr-side-lk{margin-left:auto;opacity:.75}
-.mr-side-note{margin-top:14px;padding:0 12px;font-size:.68rem;line-height:1.65;color:var(--pv-ink-3)}
+/* ⚠️ .mr-side-note は 2026-09-07 に廃止（オーナー指示・板の下の
+     「氏名も社員番号も受け取りません。」）。規則を戻さない。 */
 
 /* ══ 0-b) 広い画面 ── 左レール（≥1001px）══════════════════════════
    ★Marit と同じ組み方（オーナーの添付・2026-09-06）──
@@ -210,9 +214,24 @@ body.pv-anav-t73{--pv-topbar:73px}
      （狭い画面の節4 と同じ扱い）。 */
   body.pv-anav-shell .mr-side-lk{position:absolute;top:6px;right:6px;margin-left:0}
 
-  /* 注記も中央へ。板の中が全部中央なので、ここだけ左端から始まると
-     板からはみ出した別の物に見える（狭い画面で先に踏んだ）。 */
-  body.pv-anav-shell .mr-side-note{margin-top:12px;padding:10px 4px 0;text-align:center}
+
+  /* ── ★給与フォームの確認画面（.ps-edit）をレールの上に載せない ──────────
+     pay-report.css:428 は本文の段組み（640px）から**外へはみ出させて**明細を
+     読める大きさで出している（そこは変えない ── 読めない確認は、確認していないのと同じ）。
+     ただしあちらの基準は `94vw` ＝**画面の幅**で、2026-09-06 に足したレール 144px を
+     知らない。1280px では左端が x≒110 まで来て、**「確認しました」のチェックが
+     レール（fixed・z:160）の下に潜る**。押すと MY PAGE のリンクが反応してページが
+     移り、**読み込み中の明細ごと消える**。画面は普通に動いたまま壊れる形。
+     ★はみ出す先を「画面」から「レールの右の本文域」へ付け替える。
+       .ps-edit は 640px の親の中央から左右対称に広がるので、
+       幅 ≦ 本文域 − 余白×2 なら**左端は必ずレールに届かない**。
+     ⚠️ 100vw は縦スクロールバーを含む＝実際の本文域より最大 17px 広い。
+        192px（レール 144 ＋ 48）引いてあるのはその吸収も兼ねる（残る隙間 16〜24px）。
+     ⚠️ 画面が約1076px より狭いと、レール 144 と「読める幅 900」は物理的に両立しない。
+        そこでは明細が 900px より小さく出る。**レールの下へ隠すよりは良い**という判断。 */
+  body.pv-anav-shell .ps-edit{
+    width:min(1440px,calc(100vw - 192px));max-width:none;
+    margin-left:calc((100% - min(1440px,calc(100vw - 192px))) / 2)}
 
   /* ★≡ は出さない。レールが常に見えているので用が無い。
      ⚠️ !important が要る ── search.js が実行時に差す style は
@@ -377,14 +396,6 @@ body.pv-anav-open #pv-anav-ov{opacity:1;pointer-events:auto}
   /* 錠前は札の右上へ。中央揃えの並びで「ラベルの右端」は意味を持たない。 */
   .mr-side-lk{position:absolute;top:6px;right:6px;margin-left:0}
 
-  /* 札は板の足元に残す（横並びの札だった頃は場所が無くて隠していた）。
-     ★中央で揃える ── 板の中は「絵の下に文字」で全部中央なので、
-       ここだけ左端から始まると、板からはみ出した別の物に見える。 */
-  /* ⚠️ 左右の詰めは 12px → 4px（my-value.css:254 の上書き）。
-       板は 212px しか無く、12px のままだと日本語の一文が 3px はみ出して
-       「…受け取りませ / ん。」と最後の1文字だけ折り返す。 */
-  .mr-side-note{display:block;margin-top:auto;padding:10px 4px 0;text-align:center}
-  .mr-col .mr-side-note{display:block}
 }
 
 /* ══ 5) 出口（お問い合わせ）════════════════════════════════════

@@ -316,6 +316,53 @@ for (const fx of fixtures) {
     `${view.cvW}px（元 ${view.cvNat}px／要 ${wantW}px 以上）`);
   ok(view.stageBack, '★探し終われば明細が戻る（隠したまま詰まらない）');
 
+  /* ── 確認画面が**左のレールの下に潜っていない**こと ────────────────
+     ★2026-09-07 に実際に壊れた。確認画面（.ps-edit）は本文の段組みより外へ
+       はみ出す（すぐ上の検査が守っている広さ）が、その広げ方が `94vw` ＝
+       **画面の幅**基準で、あとから足した左のレール 144px を知らなかった。
+       1280px で左端が x≒110 まで来て、「確認しました」のチェックが
+       レール（position:fixed・z:160）の**下に潜った**。押すと MY PAGE の
+       リンクが反応してページが移り、**読み込み中の明細ごと消える**。
+       絵は正しく出ていて、検査も「読める幅」は緑のまま通っていた。
+     ★横だけで見る。レールは画面の高さいっぱいに固定されているので、
+       「中心の x がレールの右端より左」＝覆われている、で必要十分。
+       縦に測ると scroll-behavior:smooth のアニメーション途中を読んでしまう
+       （CLAUDE.md の「時間で待つ検査は嘘の赤を出す」）。 */
+  const rail = await page.evaluate(() => {
+    const n = document.querySelector('.mr-side');
+    if (!n) return { has: false };
+    const cs = getComputedStyle(n);
+    if (cs.position !== 'fixed' || cs.visibility === 'hidden') return { has: false };
+    const r = n.getBoundingClientRect();
+    const pick = (sel) => {
+      const e = document.querySelector(sel);
+      if (!e) return null;
+      const b = e.getBoundingClientRect();
+      return { sel, cx: b.left + b.width / 2, left: b.left };
+    };
+    const edit = document.querySelector('.ps-edit');
+    return {
+      has: true, right: r.right,
+      editLeft: edit ? edit.getBoundingClientRect().left : null,
+      hits: ['#ps-confirm', '#ps-send'].map(pick).filter(Boolean),
+    };
+  });
+  if (!rail.has) {
+    ok(true, '★確認画面が左のレールに潜っていない', 'レールが出ていない幅（対象外）');
+  } else {
+    ok(rail.editLeft !== null && rail.editLeft >= rail.right,
+      '★確認画面がレールの右で始まっている（はみ出す先は画面ではなく本文域）',
+      `左端 ${Math.round(rail.editLeft)}px／レール右端 ${Math.round(rail.right)}px`);
+    for (const h of rail.hits) {
+      ok(h.cx > rail.right,
+        `★押せるものがレールの下に潜っていない ${h.sel}`,
+        `中心 x=${Math.round(h.cx)}px／レール右端 ${Math.round(rail.right)}px`);
+    }
+    ok(rail.hits.length === 2,
+      '★見ている的が2つとも在る（セレクタが空振りして緑になっていない）',
+      `${rail.hits.length} 個`);
+  }
+
   /* ── 送る枠 ────────────────────────────────────────────────
      ★守りが2枚になった。1枚目は**枠の外を画像ごと切り落とす**こと、
        2枚目はこれまでどおり枠の中を黒く塗ること。

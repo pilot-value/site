@@ -230,7 +230,6 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
       </a>
       <a class="mr-side-sub" id="pv-anav-login" data-pv-auth="out" href="login.html">ログイン</a>
       <a class="mr-side-sub" href="contact.html">お問い合わせ</a>
-      <p class="mr-side-note">氏名も社員番号も受け取りません。</p>
     </nav>
 
 
@@ -1215,8 +1214,9 @@ const CAT_LABELS = {culture:'企業文化',salary:'給与',benefits:'福利厚�
   other: 'その他',
 };/*END:FLEET_LABELS*/
 /* 役職・区分は複数選択。値は hidden の #f-jobrole がカンマ区切りで持つ。
-   ⚠️ reviews_v2 には列を足さない（airlines/airline-reviews-ui.js が select('*') で
-      読むので、足した列はそのまま公開される）。既にある job_role にそのまま入れる。 */
+   ⚠️ reviews_v2 には列を足さない。2026-09-07 に本文の列を DB 側で隠したが、
+      **隠すのは「隠す」と名指しした8列だけ**で、あとから足した列は
+      pv_reviews() が丸ごと返す＝そのまま公開される。既にある job_role に入れる。 */
 const ROLE_BOXES = [].slice.call(document.querySelectorAll('input[name="f-jobrole"]'));
 function roleValue() {
   const v = ROLE_BOXES.filter((b) => b.checked).map((b) => b.value).join(',');

@@ -270,8 +270,9 @@ baland_ass/                            ブランド資産（※ brand_assets の
    抱えたまま残っている（直す場所が3つになる）ことと、`deep-pay.sql` が `pay-rows.sql` より
    **後**に貼るファイルで依存すると適用順が逆転するため。
 5. **`reviews_v2` に列を足さない。**
-   [airlines/airline-reviews-ui.js](airlines/airline-reviews-ui.js) が `select('*')` で読む＝
-   足した列はそのまま公開される。役職・区分は既存の `job_role` にカンマ区切りで入れる
+   2026-09-07 に本文の列を DB 側で隠したが（[db/reviews-gate.sql](db/reviews-gate.sql)）、
+   **隠すのは「隠す」と名指しした8列だけ**で、あとから足した列は `pv_reviews()` が
+   丸ごと返す＝そのまま公開される。役職・区分は既存の `job_role` にカンマ区切りで入れる
 6. **必須（`req-tag`）を役割モジュールに置かない。** 「なし」「含まれている」を選んだ人が
    数クリックで抜けられることが、この5モジュールが成立している理由
 

@@ -43,6 +43,7 @@
       // 未解放でも全件カードは出る（本文の先頭1/8だけ素で読める）ので「残りN件」ではない。
       gateAll: function (n) { return n + '件の口コミを全文で読む'; },
       lockedCta: '匿名で口コミを投稿して解放する',
+      srvLockNote: '本文は、口コミを1件出した方だけが読めます。',
       gateDesc: '匿名の口コミを1件投稿するだけで<br>全社の口コミがまるごと読めます。',
       gateBtn: '匿名で口コミを投稿して解放する',
       gateLogin: 'ログイン（投稿済みの方）',
@@ -100,6 +101,7 @@
       gateTitle: 'Members-only data',
       gateAll: function (n) { return 'Read all ' + n + (n === 1 ? ' review' : ' reviews') + ' in full'; },
       lockedCta: 'Post a review anonymously to unlock',
+      srvLockNote: 'Only pilots who have shared one review can read the full text.',
       gateDesc: 'Post one anonymous review and every airline&rsquo;s<br>reviews open up.',
       gateBtn: 'Post a review anonymously to unlock',
       gateLogin: 'Log in (already posted)',
@@ -451,6 +453,29 @@
       '      </div>';
   }
 
+  /* 本文がサーバから来ていない行の面。ぼかす本文が手元に無いので、
+     書かれたカテゴリの名前だけを出す（REAL PAY の「実数は返さないが
+     帯と項目名は出す」と同じ形）。カテゴリを出さないと、未解放の人の
+     画面でカテゴリ別の件数が全部 0 になる。 */
+  function srvLockHTML(catKeys) {
+    var names = (catKeys || []).map(function (k) {
+      var c = REVIEW_CATS.filter(function (x) { return x.key === k; })[0];
+      return c ? c.label : '';
+    }).filter(Boolean);
+    return '\n      <div class="rv-srv-lock">\n' +
+      (names.length ? '        <div class="rv-cat-row">' + names.map(function (n) {
+        return '<span class="rv-cat-chip">' + rvEsc(n) + '</span>';
+      }).join('') + '</div>\n' : '') +
+      '        <p class="rv-srv-note">' + L.srvLockNote + '</p>\n' +
+      '        <div>\n' +
+      '          <button type="button" class="rv-locked-btn" onclick="openReviewModal()">\n' +
+      '            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>\n' +
+      '            ' + L.lockedCta + '\n' +
+      '          </button>\n' +
+      '        </div>\n' +
+      '      </div>';
+  }
+
   // 口コミ本文は利用者が書いた文字列。innerHTML / 属性値に入る前に必ずここを通す。
   // review-i18n.js が読まれていればそちらの実装を共有する。
   function rvEsc(s) {
@@ -507,12 +532,14 @@
       '        <span class="rv-score">' + score + '</span>\n' +
       '      </div>' : '') + '\n' +
       '      ' + salaryTableHTML(r, locked && idx >= 1) + '\n' +
-      '      <div class="rv-comment" id="' + uid + '_text">' + preview + (hasMore && !locked ? '…' : '') +
-             (locked ? lockedTailHTML(tail) : '') + '</div>\n' +
+      '      <div class="rv-comment" id="' + uid + '_text">' +
+             (r.serverLocked ? srvLockHTML(r.catKeys)
+                             : preview + (hasMore && !locked ? '…' : '') +
+                               (locked ? lockedTailHTML(tail) : '')) + '</div>\n' +
       // 未解放で原文トグルを出すと、翻訳元の全文がその場で読めてしまいゲートが素通しになる。
       // 「自動翻訳」バッジだけ残し、トグルは解放済みのときにだけ出す。
-      '      ' + (r.translated ? PVReviewI18n.noteHTML(r.from) + (locked ? '' : PVReviewI18n.origHTML(r.origText)) : '') + '\n' +
-      '      ' + (hasMore && !locked ? '<button class="rv-read-more" id="' + uid + '_btn" data-full="' + rvEsc(comment) +
+      '      ' + (r.translated && !r.serverLocked ? PVReviewI18n.noteHTML(r.from) + (locked ? '' : PVReviewI18n.origHTML(r.origText)) : '') + '\n' +
+      '      ' + (hasMore && !locked && !r.serverLocked ? '<button class="rv-read-more" id="' + uid + '_btn" data-full="' + rvEsc(comment) +
              '" onclick="pvReadMore(\'' + uid + '\',this.dataset.full)">' + L.readMore(fullLen) + '</button>' : '') + '\n' +
       '      ' + (r.src ? '<div class="rv-src">' + L.source + ': ' + (r.url
              ? '<a href="' + rvEsc(r.url) + '" target="_blank" rel="nofollow noopener">' + rvEsc(r.src) + '</a>'
@@ -668,6 +695,8 @@
       avgRating: avgRating,
       comment: body.text, en: body.text,
       translated: body.translated, origText: body.origText, from: body.from,
+      // 本文がサーバから来ていない行（鍵を持っていない）。ぼかす本文が手元に無い。
+      serverLocked: !!body.locked,
       // 総額の優先順位：総額(annual_salary) ＞ 成分合算(基本給+乗務手当+賞与) ＞ 月給×12+賞与
       // ※1件の自己申告を本人の成分から合算するのは可（円のブレンド禁止は複数人平均への制約）
       salaryTotal: r.annual_salary ? r.annual_salary
@@ -744,11 +773,23 @@
     if (_v2Promise) return _v2Promise;
     _v2Promise = _initSB().then(function (sb) {
       if (!sb) return [];
-      // select('*') は orig_lang / translations も含むので明示列は足さない
-      // （足すと列が無い環境で 42703 になる）。
-      return sb.from('reviews_v2').select('*').in('airline', airlineCodes())
-        .order('created_at', { ascending: false })
-        .then(function (res) { return (res && res.data) || []; });
+      /* ★ reviews_v2 を直接読まない。本文の列は DB 側で anon / authenticated から
+         外してあり（db/reviews-gate.sql）、鍵を持つ人にだけ本文を返すのは
+         pv_reviews() の仕事。画面は「ぼかす側」ではなく「受け取らない側」になる。
+         ⚠️ 旧実装の select('*') はもう通らない（テーブル全体の権限が無い）。 */
+      return PVReviewI18n.fetchRows(sb, { airlines: airlineCodes(), limit: 500 })
+        .then(function (res) {
+          if (!res) return [];
+          /* サーバが「鍵を持っている」と言ったら端末の写しを合わせる（写しは鍵ではない）。
+             ★保険も遠い未来にする ── pv-session.js より先に走った回に短い期限を
+               書くと、その端末だけ黙って締め出される（assert-unlock.mjs ②）。 */
+          if (res.unlocked && !isUnlocked()) {
+            var until = (w.PVUnlock && w.PVUnlock.reviewUntil)
+              ? w.PVUnlock.reviewUntil() : Date.now() + 100 * 365 * 24 * 60 * 60 * 1000;
+            try { localStorage.setItem('pv_unlock_expiry', String(until)); } catch (e) {}
+          }
+          return res.rows;
+        });
     }).catch(function () { return []; })
       .then(function (rows) {
         _v2Rows = rows;

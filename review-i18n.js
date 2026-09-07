@@ -65,12 +65,36 @@
   }
 
   /* 1行から表示用テキストを組み立てる。
-     戻り値 { lang, from, translated, cats, text, origCats, origText } */
+     戻り値 { lang, from, translated, locked, cats, text, origCats, origText }
+
+     ★ locked = true は「サーバが本文を送ってこなかった」行。
+       鍵を持たない人には pv_reviews() が *_comment と translations を
+       鍵ごと落として返し、代わりに cats（書かれたカテゴリの名前だけ）を付ける。
+       ＝ 本文はここに**存在しない**（ぼかしているのではない）。
+       REAL PAY が「実数は返さず、帯と項目名だけ出す」のと同じ形。
+       これが無いと、未解放の人の画面でカテゴリ別の件数が全部 0 になる。 */
   function pick(row) {
     var to = lang();
     var from = (row && row.orig_lang) || 'ja';
     var tr = (row && row.translations && row.translations[to]) || null;
     var lab = LABELS[to], wrap = WRAP[to];
+
+    // 本文の列が1つも来ていない＝鍵を持っていない。cats だけで組み立てる。
+    var hasBody = false;
+    for (var h = 0; h < KEYS.length; h++) {
+      if (row && (KEYS[h] + '_comment') in row) { hasBody = true; break; }
+    }
+    if (!hasBody && row && Object.prototype.toString.call(row.cats) === '[object Array]') {
+      var locked = [];
+      for (var c = 0; c < row.cats.length; c++) {
+        var ck = row.cats[c];
+        if (lab[ck]) locked.push({ k: ck, label: lab[ck], text: '' });
+      }
+      return {
+        lang: to, from: from, translated: false, locked: true,
+        cats: locked, text: '', origCats: [], origText: '',
+      };
+    }
 
     var cats = [], origCats = [], usedTranslation = false;
     for (var i = 0; i < KEYS.length; i++) {
@@ -92,10 +116,33 @@
       return list.map(function (c) { return wrap(c.label, c.text); }).join(' / ');
     };
     return {
-      lang: to, from: from, translated: usedTranslation,
+      lang: to, from: from, translated: usedTranslation, locked: false,
       cats: cats, text: join(cats),
       origCats: origCats, origText: usedTranslation ? join(origCats) : '',
     };
+  }
+
+  /* ══ 口コミを読む唯一の口 ═══════════════════════════════════════
+     reviews_v2 は直接 select しない。DB 側で本文の列を anon / authenticated
+     から外してあり（db/reviews-gate.sql）、鍵を持つ人にだけ本文を返すのは
+     pv_reviews() の仕事。画面はぼかす側ではなく、**受け取らない側**になる。
+
+     戻り値
+       { unlocked:boolean, rows:Array }  … 取れた
+       null                              … 取れなかった（0件と区別する）
+     ★ null と [] を混ぜない。「取れなかった」を「0件」と言うと、
+        通信が落ちた人の画面に「まだ投稿がありません」と嘘が出る
+        （pv-reunlock.js に同じ決まりが書いてある）。 */
+  function fetchRows(sb, params) {
+    if (!sb || !sb.rpc) return Promise.resolve(null);
+    return Promise.resolve(sb.rpc('pv_reviews', { p: params || {} }))
+      .then(function (res) {
+        if (!res || res.error) return null;
+        var d0 = res.data;
+        if (!d0 || Object.prototype.toString.call(d0.rows) !== '[object Array]') return null;
+        return { unlocked: !!d0.unlocked, rows: d0.rows };
+      })
+      .catch(function () { return null; });
   }
 
   /* orig_lang / translations は後から足す列。DDL 未適用の環境では
@@ -165,5 +212,6 @@
     KEYS: KEYS, labels: function () { return LABELS[lang()]; }, lang: lang,
     esc: esc, pick: pick, noteHTML: noteHTML, origHTML: origHTML, toggle: toggle,
     EXTRA_COLS: EXTRA_COLS, fetchWithFallback: fetchWithFallback,
+    fetchRows: fetchRows,
   };
 })(window, document);

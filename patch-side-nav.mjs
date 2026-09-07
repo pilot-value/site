@@ -6,9 +6,19 @@
                     AIRLINES（world-airlines）／ 航空会社110社 ／ 国別 ／ 記事 …
        アプリ14枚 … .mr-shell を持つ画面（actual-pay / profile / roadmap /
                     deep-pay / deep-pay-compare / airline-conditions ＋ invite）
-     **入れないのは8枚だけ** ── login / signup（日英4枚）・auth-callback ・
-     給与フォーム（pay-report 日英。書きかけの値が消えるため従来どおり出さない）
-     ・**my-value 日英**（同じ日の Phase 2 で MY PAGE への転送1枚になった）。
+
+   ★2026-09-07、**ログイン・新規登録・給与フォームにも配るようにした**（オーナー指示）。
+     除いていた6枚は、除いたせいで**旧 search.js の右の引き出しがそのまま残り**、
+     広い画面では左のレールが消えて ≡ だけが出ていた
+     ＝ 同じ人に2種類のナビが出る状態が、この6枚にだけ残っていた。
+     ⚠️ 確定事項10 の「認証4枚と給与フォームは入れない」はここで無効になる。
+     ⚠️ 給与フォームは「書きかけが消える」ことを理由に外していた。ナビを置く以上、
+        pay-report.html 側に **ページを離れるときに書きかけを控える**処理を足してある
+        （`pagehide` → `savePreset`）。片方だけ戻さないこと。
+
+   **入れないのは、ヘッダーを持たない画面だけ**（このスクリプトが自動で飛ばす）──
+     auth-callback / 404 / admin / unsubscribe / my-value（日英）。
+     どれも ≡ もレールも元から無いので、配る先が無い。
 
    なぜ1か所から配るのか ── 同じ項目を人が406か所に書き写せば、必ず古いまま残る。
    実際に 2026-08-23 まで、my-value / airline-conditions の両方に
@@ -44,11 +54,12 @@ const ROOT = fileURLToPath(new URL('.', import.meta.url));
 /* HTML が置いてある6つのフォルダ。ここに無いページは配布の対象外。 */
 const DIRS = ['.', 'en', 'airlines', 'en/airlines', 'countries', 'en/countries'];
 
-/* ★入れない6枚（ファイル名で外す）。
-     login / signup / auth-callback … 認証の流れを壊さない
-     pay-report                     … 書きかけの給与が消える（オーナー確定事項10）
-   ⚠️ ここから外すと、給与フォームの途中でナビを押した人の入力が消える。 */
-const SKIP = new Set(['login.html', 'signup.html', 'auth-callback.html', 'pay-report.html']);
+/* ★名指しで外す1枚。
+     auth-callback … ログインの折り返しだけを担う中継ページ。表示するものが無い。
+   ⚠️ 2026-09-07、login / signup / pay-report をここから**外した**（オーナー指示）。
+      戻すと、その6枚だけ旧 search.js の右の引き出しに逆戻りし、
+      広い画面で左のレールが消える。 */
+const SKIP = new Set(['auth-callback.html']);
 
 const ICON = {
   /* 家。HOME は Landing Page そのもの（index.html）。 */
@@ -114,7 +125,6 @@ const ITEMS = [
 const TEXT = {
   ja: {
     aria: 'メニュー',
-    note: '氏名も社員番号も受け取りません。',
     add: '匿名で給与を追加',
     home: 'HOME', others: 'REAL PAY', vote: 'VOTE',
     roadmap: 'ROADMAP & REQUESTS', airlines: 'AIRLINES',
@@ -124,7 +134,6 @@ const TEXT = {
   },
   en: {
     aria: 'Menu',
-    note: 'We never collect your name or staff number.',
     add: 'Add pay anonymously',
     home: 'HOME', others: 'REAL PAY', vote: 'VOTE',
     roadmap: 'ROADMAP & REQUESTS', airlines: 'AIRLINES',
@@ -178,7 +187,8 @@ function buildNav(lang, current, pre) {
        + '      <a class="mr-side-sub" id="pv-anav-login" data-pv-auth="out" href="'
        + pre + 'login.html">' + t.login + '</a>\n'
        + '      <a class="mr-side-sub" href="' + pre + 'contact.html">' + t.sub + '</a>\n'
-       + '      <p class="mr-side-note">' + t.note + '</p>\n'
+       /* ★2026-09-07、板の下にあった「氏名も社員番号も受け取りません。」を消した
+            （オーナー指示）。同じ約束は給与フォームと口コミフォームの中で言っている。 */
        + '    </nav>';
 }
 

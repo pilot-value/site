@@ -139,6 +139,20 @@
   var COLS = "id,airline,created_at,culture_comment,salary_comment,benefits_comment," +
              "wlb_comment,ops_comment,training_comment,mgmt_comment";
 
+  /* サーバに「自分の口コミ」を聞く。取れなければ null（0件と区別する）。
+     ★ review-i18n.js には依存しない ── login.html / auth-callback.html は
+       あれを読んでいないので、ここで呼ぶと再解放だけが黙って効かなくなる。 */
+  async function askServer(sb) {
+    if (!sb || !sb.rpc) return null;
+    try {
+      var res = await sb.rpc("pv_reviews", { p: { mine: true, limit: 500 } });
+      if (!res || res.error) return null;
+      var d0 = res.data;
+      if (!d0 || Object.prototype.toString.call(d0.rows) !== "[object Array]") return null;
+      return d0.rows;
+    } catch (e) { return null; }
+  }
+
   /**
    * 本人の口コミを全部返す。user_id は使わない（列が無い）。
    *   opts.extraCols … 追加で欲しい列（例: PVReviewI18n.EXTRA_COLS）。
@@ -156,6 +170,19 @@
     // キャッシュは「追加列つきで取れたもの」だけ再利用する。extra を後から
     // 足したくなったときに、列の足りない結果を返してしまわないようにする。
     if (cache.reviews && cache.reviews.extra === extra) return cache.reviews.rows;
+
+    /* ★ まず pv_reviews({mine:true}) に聞く（db/reviews-gate.sql）。
+       本文の列は DB 側で anon / authenticated から外してあり、鍵を持つ人にだけ
+       本文を返すのはサーバの仕事。自分の口コミなら鍵は必ず持っている。
+       ⚠️ 下の proof_hash 総当たりは**移行用の受け皿**として残してある ──
+         鍵の SQL を本番へ貼る前は RPC が無い（total 側が null で返る）ので
+         こちらが働き、貼った後は列の権限が無くなってこちらが必ず失敗する。
+         どちらか一方だけが必ず働く形なので、貼る順番で口コミが消えない。 */
+    var viaRpc = await askServer(sb);
+    if (viaRpc) {
+      cache.reviews = { extra: extra, rows: viaRpc };
+      return viaRpc;
+    }
 
     try {
       var hashes = await buildHashes(userId);

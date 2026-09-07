@@ -270,6 +270,24 @@
 .rv-locked-btn:focus-visible{outline:2px solid #f5c842;outline-offset:3px}
 .rv-locked-btn:active{transform:translateY(0);opacity:.85}
 
+/* ── 鍵を持たない人のカード（本文がサーバから来ていない）──────────
+   REAL PAY の「実数は返さない（ぼかさない）が帯と項目名は出す」と同じ形。
+   ぼかす本文がそもそも手元に無いので、書かれたカテゴリの名前だけを出す。 */
+.rv-srv-lock{
+  margin-top:10px;padding:12px 14px;border-radius:10px;
+  background:rgba(107,125,147,.08);border:1px solid rgba(107,125,147,.18);
+}
+[data-theme="light"] .rv-srv-lock{background:rgba(15,23,42,.04);border-color:rgba(15,23,42,.12)}
+.rv-cat-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.rv-cat-chip{
+  display:inline-block;padding:2px 9px;border-radius:999px;
+  font-size:.7rem;font-weight:600;letter-spacing:.02em;
+  background:rgba(107,125,147,.16);color:#8fa0b4;border:1px solid rgba(107,125,147,.26);
+}
+[data-theme="light"] .rv-cat-chip{background:rgba(15,23,42,.06);color:#475569;border-color:rgba(15,23,42,.16)}
+.rv-srv-note{margin:0 0 10px;font-size:.78rem;line-height:1.6;color:#8fa0b4}
+[data-theme="light"] .rv-srv-note{color:#475569}
+
 /* 年収の先頭2桁マスク（2件目以降・未解放時のみ）
    DOM を割らず ::before の backdrop-filter で覆うので、currency.js の
    textContent 総書き換え（通貨切替）でもマスクが消えない。
@@ -370,7 +388,6 @@
       </a>
       <a class="mr-side-sub" id="pv-anav-login" data-pv-auth="out" href="login.html">ログイン</a>
       <a class="mr-side-sub" href="contact.html">お問い合わせ</a>
-      <p class="mr-side-note">氏名も社員番号も受け取りません。</p>
     </nav>
 
 
@@ -726,16 +743,26 @@ function renderReviews(filter) {
 
     // 未解放なら本文の先頭 1/8 だけ素で見せ、残りはぼかし帯に入れる。
     // ★ DOM からは消さない。消すと各国SEOのロングテールが飛ぶ。隠すのは表示層だけ。
-    const comment = r.comment || '';
+    // ★ serverLocked＝本文がサーバから来ていない行（鍵を持っていない）。
+    //   ぼかす本文が手元に無いので、書かれたカテゴリの名前だけを出す。
+    //   ぼかし帯（rv-locked-tail）はシード・端末内の口コミ用に残す。
+    const comment = r.serverLocked ? '' : (r.comment || '');
     const L = comment.length;
     // 切れ目が金額トークンの内側に落ちないよう pvSafeCut で後ろへずらす（上のコメント参照）
     const visible = pvSafeCut(comment, Math.max(30, Math.ceil(L / 8)));
-    const cut = locked && L > visible;   // 短い本文に空のぼかし帯を出さない
+    const cut = locked && !r.serverLocked && L > visible;   // 短い本文に空のぼかし帯を出さない
     const bodyText = cut ? comment.slice(0, visible) : comment;
-    const tailHTML = cut ? `<div class="rv-locked-tail">
+    const chipsHTML = (r.catNames && r.catNames.length)
+      ? `<div class="rv-cat-row">${r.catNames.map(n => `<span class="rv-cat-chip">${PVReviewI18n.esc(n)}</span>`).join('')}</div>`
+      : '';
+    const tailHTML = r.serverLocked ? `<div class="rv-srv-lock">
+        ${chipsHTML}
+        <p class="rv-srv-note">本文は、口コミを1件出した方だけが読めます。</p>
+        <div><button type="button" class="rv-locked-btn" onclick="openModal()">匿名で口コミを投稿して解放する</button></div>
+      </div>` : (cut ? `<div class="rv-locked-tail">
         <div class="rv-locked-tail-text rv-body" style="font-size:.87rem;line-height:1.75">${PVReviewI18n.esc(comment.slice(visible))}</div>
         <div class="rv-locked-cta"><button type="button" class="rv-locked-btn" onclick="openModal()">匿名で口コミを投稿して解放する</button></div>
-      </div>` : '';
+      </div>` : '');
 
     // 年収は2件目以降だけ先頭2文字を覆う（オーナー指定）。
     // ★数字を1文字ずつ span に割らないこと。currency.js:227(applyAll) が通貨切替のたびに
@@ -753,7 +780,7 @@ function renderReviews(filter) {
         <span class="rv-meta" style="font-size:.72rem;margin-left:auto">経験 ${r.exp} · ${r.date}</span>
       </div>
       <div style="font-size:.85rem;font-weight:700;color:${color};margin-bottom:8px">${salHTML} <span class="rv-meta" style="font-size:.72rem;font-weight:400">年収（概算）</span></div>
-      <p class="rv-body" style="font-size:.87rem;line-height:1.75;margin:0">${PVReviewI18n.esc(bodyText)}${r.translated ? PVReviewI18n.noteHTML(r.from) : ''}</p>
+      ${bodyText ? `<p class="rv-body" style="font-size:.87rem;line-height:1.75;margin:0">${PVReviewI18n.esc(bodyText)}${r.translated ? PVReviewI18n.noteHTML(r.from) : ''}</p>` : ''}
       ${tailHTML}
       ${(!locked && r.translated) ? PVReviewI18n.origHTML(r.origText) : ''}
     </div>`;
@@ -773,15 +800,23 @@ async function loadSupabaseReviews() {
   try {
     const V2_CAT_KEYS = ['culture_score','salary_score','benefits_score','wlb_score','ops_score','training_score'];
 
-    // reviews_v2（新スキーマ）を優先取得
-    // orig_lang / translations が日↔英の出し分けを決める（review-i18n.js）。
-    // 2列がまだ無い環境では自動で外して引き直すので口コミは消えない。
-    const V2_COLS = 'id,airline,position,tenure_bucket,monthly_salary,bonus,culture_score,salary_score,benefits_score,wlb_score,ops_score,training_score,culture_comment,salary_comment,benefits_comment,wlb_comment,ops_comment,training_comment,mgmt_comment,created_at';
-    const { data: v2 } = await PVReviewI18n.fetchWithFallback(extra =>
-      _sbC.from('reviews_v2')
-        .select(V2_COLS + extra)
-        .order('created_at', { ascending: false })
-        .limit(200));
+    // ★ reviews_v2 を直接読まない。本文の列は DB 側で anon / authenticated から
+    //   外してあり（db/reviews-gate.sql）、鍵を持つ人にだけ本文を返すのは
+    //   pv_reviews() の仕事。画面は「ぼかす側」ではなく「受け取らない側」になる。
+    //   orig_lang / translations が日↔英の出し分けを決める（review-i18n.js）。
+    const res = await PVReviewI18n.fetchRows(_sbC, { limit: 200 });
+    if (!res) return;                 // 取れなかった。0件と言わない（件数も書き換えない）
+    const v2 = res.rows;
+
+    // サーバが「鍵を持っている」と言ったら端末の写しを合わせる。
+    // ★ 写しは鍵ではない。サーバが正で、こちらは追随するだけ（勝手に消しもしない）。
+    if (res.unlocked && !isUnlocked()) {
+      const until = (window.PVUnlock && window.PVUnlock.reviewUntil)
+        ? window.PVUnlock.reviewUntil() : Date.now() + 100 * 365 * 24 * 60 * 60 * 1000;
+      localStorage.setItem('pv_unlock_expiry', String(until));
+      syncUnlockBadge();
+      const gp = document.getElementById('gate-panel'); if (gp) gp.style.display = 'none';
+    }
 
     const v2Formatted = (v2 || []).map(r => {
       const scores = V2_CAT_KEYS.map(k=>r[k]).filter(s=>s>0);
@@ -795,6 +830,7 @@ async function loadSupabaseReviews() {
         exp: r.tenure_bucket||'—',
         rating: Math.round(avgScore),
         comment: body.text, translated: body.translated, origText: body.origText, from: body.from,
+        serverLocked: body.locked, catNames: body.cats.map(c => c.label),
         date: r.created_at ? r.created_at.slice(0,7).replace('-','.') : '—',
       };
     });

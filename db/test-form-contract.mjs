@@ -1122,10 +1122,30 @@ const browser = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox
    どのページも毎回まっさらな言語設定から始める。
    ★消すのは document ができる前（evaluateOnNewDocument）。
      goto の後に消しても、その時にはもう飛ばされている。 */
+/* ★2026-09-07: 給与フォームの書きかけ（pv_pay_last）も、ページを開く前に消す。
+     この日オーナー指示で左のナビを置いたので、pay-report.html が
+     pagehide / visibilitychange のたびに savePreset() を呼ぶようになった
+     ＝ **この検査の中で、前のページが次のページへ下書きを残すようになった**。
+     製品としては正しい（書きかけを失わないための対）が、検査は
+     「開いた直後は空」を前提に 100 項目以上を数えている。
+     実際に ja の1件と en の15件が落ちた（会社も年代も入った状態で開くので
+     §2 が最初から出る／額面に前回の額が乗って年換算が合わない）。
+   ★消すのは document ができる前（evaluateOnNewDocument）。goto の後に
+     消しても、その時にはもう loadPreset() が戻し終えている。
+   ★ただし **そのページの最初の1回だけ**。2回目以降の訪問（reload）で
+     前回の内容が戻ることを見ている節が下に在り、そこまで消すと
+     「復元したことを知らせている」が落ちる。sessionStorage は reload を
+     またいで残るので、それを目印にする。 */
 async function newPage() {
   const p = await browser.newPage();
   await p.evaluateOnNewDocument(() => {
     try { localStorage.removeItem('pv-lang'); } catch (e) {}
+    try {
+      if (!sessionStorage.getItem('pv-test-fresh')) {
+        sessionStorage.setItem('pv-test-fresh', '1');
+        localStorage.removeItem('pv_pay_last');
+      }
+    } catch (e) {}
   });
   return p;
 }

@@ -359,17 +359,13 @@
     var grid = d.getElementById('voices-grid');
     if (!grid) return;
 
-    var COLS = 'id,airline,position,tenure_bucket,culture_comment,salary_comment,benefits_comment,' +
-               'wlb_comment,ops_comment,training_comment,mgmt_comment,created_at,' +
-               // 星の6項目（1〜5）。mgmt_score も列はあるが、カードが6枚なのでここでは引かない。
-               V2_CAT_KEYS.join(',');
-    var q = 'reviews_v2?select=' + COLS + ',orig_lang,translations&order=created_at.desc&limit=30';
-
-    rest(q).then(function (rows) {
-      // orig_lang / translations が未適用の環境では 42703 で空が返る。2列を外して引き直す。
-      if (rows && rows.length) return rows;
-      return rest('reviews_v2?select=' + COLS + '&order=created_at.desc&limit=30');
-    }).then(function (rows) {
+    /* ★ reviews_v2 を直に読まない。本文の列は DB 側で anon から外してあり
+       （db/reviews-gate.sql）、トップの抜粋だけは pv_review_voices() が
+       **新しい4件・1欄あたり80字まで**に切って返す。
+       ここはオーナーが「今のまま開けておく」と決めた唯一の穴。
+       ⚠️ 件数も字数も画面側で広げない（決めているのはサーバの数字1つ）。
+          今までは30件ぶんの**全文**が誰にでも返っていたので、穴は今より小さい。 */
+    rest('rpc/pv_review_voices').then(function (rows) {
       var cards = [];
       (rows || []).forEach(function (r) {
         if (cards.length >= 4) return;   // §10：デスクトップ1行に収める（6件・2行だと縦に伸びる）

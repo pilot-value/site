@@ -56,7 +56,15 @@ function stub(page, { hasReview, accessUntil, preset }) {
         onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }),
       },
       rpc: (name) => {
-        const res = { data: name === 'my_pay_reports' ? REPORTS : { ok: true }, error: null };
+        let data = { ok: true };
+        if (name === 'my_pay_reports') data = REPORTS;
+        /* 口コミの本文はサーバ側で止めてある（db/reviews-gate.sql）。
+           絵を撮る側も同じ道を通す＝本番と同じ見た目になる。 */
+        if (name === 'pv_reviews') {
+          data = { ok: true, unlocked: hasReview,
+                   rows: hasReview ? [{ id: 'r1', airline: 'ana', cats: [] }] : [] };
+        }
+        const res = { data: data, error: null };
         return { then: (y, n) => Promise.resolve(res).then(y, n) };
       },
       from: (t) => q(t === 'reviews_v2' && hasReview ? [{ id: 'r1' }] : []),

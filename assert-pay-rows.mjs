@@ -636,7 +636,12 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
        給与フォーム（pay-report。書きかけが消えるため）。
      ★同じ日の Phase 2 で **406枚**になった。マイレポート（my-value.html 日英）を
        MY PAGE の ③ YOUR PAY に統合し、あの2枚は「転送するだけの1枚」になった
-       ＝ ヘッダーも板も持たない。**URL は消せない**（送信済みのメールが指している）。 */
+       ＝ ヘッダーも板も持たない。**URL は消せない**（送信済みのメールが指している）。
+     ★2026-09-07、オーナー指示で **412枚**になった。除外していた6枚のうち
+       ログイン・新規登録の日英4枚と給与フォームの日英2枚を**入れた**。
+       入れていなかった間、その6枚だけ右上の ≡ から**旧 search.js の引き出し**が出て、
+       広い画面には左のレールが無かった（画面は普通に動いたまま、そこだけ別のサイトの顔）。
+       残る除外は auth-callback（ログインの折り返しだけを担う中継ページ）だけ。 */
   const pages = [];
   for (const dir of ['.', 'en', 'airlines', 'en/airlines', 'countries', 'en/countries']) {
     for (const f of readdirSync(new URL(dir + '/', ROOT)).filter((x) => x.endsWith('.html')).sort()) {
@@ -647,9 +652,9 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
   const side = pages.filter((p) => p.html.includes('<nav class="mr-side"'));
   const pub = side.filter((p) => p.html.includes('id="main-nav"'));
   const app = side.filter((p) => !p.html.includes('id="main-nav"'));
-  ok(side.length === 406, '★★同じ板が 406枚に在る（公開392 ＋ アプリ14）',
+  ok(side.length === 412, '★★同じ板が 412枚に在る（公開394 ＋ アプリ18）',
      `公開 ${pub.length} ／ アプリ ${app.length} ／ 合計 ${side.length}`);
-  ok(pub.length === 392 && app.length === 14, '★内訳も 392 ＋ 14 のまま',
+  ok(pub.length === 394 && app.length === 18, '★内訳も 394 ＋ 18 のまま',
      `公開 ${pub.length} ／ アプリ ${app.length}`);
   for (const rel of ['invite.html', 'en/invite.html']) {
     ok(side.some((p) => p.rel === rel), `★${rel} にアプリのナビが在る`);
@@ -659,16 +664,17 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
        1枚くらい混ざっても画面は普通に動く（給与フォームなら書きかけが消える）。
      ⚠️ 404 / admin / unsubscribe の日英6枚はヘッダーそのものが無い（≡ の置き場が無い）。
         ここも「板を持たない」側だが、除外の理由が違うので分けて数える。
-        合計16枚 ＝ 認証6（login / signup / auth-callback の日英）
-        ＋ 給与フォーム2 ＋ ヘッダーの無い6 ＋ **転送だけの2**（my-value 日英）。 */
+        合計10枚 ＝ auth-callback 日英2 ＋ ヘッダーの無い6
+        ＋ **転送だけの2**（my-value 日英）。
+     ★2026-09-07、ここから login / signup / pay-report を**外した**（板を持つ側へ移した）。 */
   {
-    const AUTH = ['login.html', 'signup.html', 'auth-callback.html', 'pay-report.html'];
+    const AUTH = ['auth-callback.html'];
     const bad = pages.filter((p) => AUTH.includes(p.rel.split('/').pop())
       && p.html.includes('<nav class="mr-side"')).map((p) => p.rel);
-    ok(bad.length === 0, '★★認証と給与フォームには板を入れない', bad.join(' / '));
+    ok(bad.length === 0, '★★ログインの折り返し（auth-callback）には板を入れない', bad.join(' / '));
     const none = pages.filter((p) => !p.html.includes('<nav class="mr-side"'))
       .map((p) => p.rel).sort();
-    ok(none.length === 16, '★板を持たないのは16枚だけ（認証・給与フォーム8 ＋ ヘッダーの無い6 ＋ 転送2）',
+    ok(none.length === 10, '★板を持たないのは10枚だけ（折り返し2 ＋ ヘッダーの無い6 ＋ 転送2）',
        none.join(' / '));
     /* ★転送の2枚が「本当に転送だけ」であること。中身が戻ると、
          同じレポートを2つの実装が描く元の姿に戻る。 */
@@ -699,7 +705,7 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
   ok(!/padding-bottom:calc\(96px/.test(noCmt('my-value.css')),
      '★my-value.css に帯のぶんの足元の余白（96px）が残っていない');
 
-  /* ★406枚とも app-nav.css / app-nav.js / pv-tokens.css を読む。
+  /* ★412枚とも app-nav.css / app-nav.js / pv-tokens.css を読む。
        CSS を読み忘れると、狭い画面でレールが本文の上に居座る（画面は動いたまま）。
      ⚠️ 深さが3段ある（ルート ／ en・airlines・countries ／ en/airlines・en/countries）。
         「en/ なら ../」で決め打ちすると airlines/ の115枚を素通しする。 */
@@ -710,7 +716,7 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
         || !p.html.includes(`href="${up}pv-tokens.css"`)
         || !p.html.includes(`src="${up}app-nav.js"`);
   }).map((p) => p.rel);
-  ok(noAsset.length === 0, '★★406枚は app-nav.css / pv-tokens.css / app-nav.js を読む',
+  ok(noAsset.length === 0, '★★412枚は app-nav.css / pv-tokens.css / app-nav.js を読む',
      noAsset.join(' / '));
 
   /* ★★ここが今回いちばん大事。**app-nav.js は search.js より後**に読む。
@@ -765,24 +771,49 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
     ok(read(rel).includes('id="main-nav"'), `★${rel} のヘッダーは公開ページのまま`);
   }
 
-  /* ★給与フォームには置かない（2026-09-05 オーナー決定）。
-       あそこは書きかけが消えるのでグローバルなナビを持たせない。 */
-  ok(!read('pay-report.html').includes('<nav class="mr-side"'),
-     '★pay-report.html にはアプリのナビを置かない（書きかけが消える）');
+  /* ★給与フォームとログイン・新規登録にも同じ板を置く（2026-09-07 オーナー指示。
+       2026-09-05 の「置かない」を**取り消した**）。
+       置かなかった間、この6枚だけ右上の ≡ から旧 search.js の引き出しが出て、
+       広い画面ではレールが消えていた。
+     ⚠️ **書きかけの心配は消えていない。** 板の行き先は7つ在るので、
+        書きかけのまま離れる道が一気に増えた。pay-report.html は
+        pagehide と visibilitychange で savePreset() を呼んで控えている。
+        **この対で成立している。片方だけ外さない。** */
+  for (const rel of ['pay-report.html', 'en/pay-report.html',
+                     'login.html', 'en/login.html', 'signup.html', 'en/signup.html']) {
+    ok(read(rel).includes('<nav class="mr-side"'), `★${rel} にも同じ板が在る`);
+  }
+  for (const rel of ['pay-report.html', 'en/pay-report.html']) {
+    const s = read(rel);
+    ok(/addEventListener\('pagehide'/.test(s) && /visibilitychange/.test(s)
+       && /savePreset\(\)/.test(s),
+       `★★${rel} はページを離れるときに書きかけを控える（板を置いた対の片割れ）`);
+  }
+  /* ★給与フォームの右上に「← 世界の航空会社」を戻さない（2026-09-07 オーナー指示）。
+       行き先は左の板に在る。
+     ⚠️ 見るのは **#main-nav の中だけ**。同じ行き先の「やめる」（btn-ghost）が
+        本文の下にも在るので、ページ全体で探すと必ず当たる。 */
+  for (const [rel, w] of [['pay-report.html', '世界の航空会社'],
+                          ['en/pay-report.html', 'World airlines']]) {
+    const h = read(rel);
+    const i = h.indexOf('id="main-nav"');
+    const head = i < 0 ? '' : h.slice(i, h.indexOf('</nav>', i));
+    ok(!head.includes(w), `★${rel} のヘッダーに「← ${w}」を戻していない`);
+  }
 
   /* ★入れ物が他の中身を呑み込んでいないか。
        patch-side-nav.mjs は「入れ物の始まり 〜 最初の </nav>」を差し替える。
        2026-09-05、ページのコメントに入れ物と同じ字面を1行書いたせいで、
        そこから最初の </nav> までが差し替え範囲になり、CSS 240行とヘッダーが消えた。
        ファイルは壊れたのに、そのとき赤くなった検査は1本も無かった。 */
-  /* ★406枚ぶんを1行にまとめる（1枚ずつ出すと、ここだけで 406行になる）。 */
+  /* ★412枚ぶんを1行にまとめる（1枚ずつ出すと、ここだけで 412行になる）。 */
   {
     const ate = side.filter((p) => {
       const i = p.html.indexOf('<nav class="mr-side"');
       const m = p.html.slice(i, p.html.indexOf('</nav>', i) + 6);
       return !(m.length < 6000 && !/<\/style>|<!--|<script/.test(m));
     }).map((p) => p.rel);
-    ok(ate.length === 0, '★★左メニューの入れ物が他の中身を呑み込んでいない（406枚）',
+    ok(ate.length === 0, '★★左メニューの入れ物が他の中身を呑み込んでいない（412枚）',
        ate.join(' / '));
   }
   /* ★呑み込みを止める見張りが生成器に残っているか。 */

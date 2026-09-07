@@ -77,12 +77,14 @@ const JOBS = Math.max(1,
   || Math.min(6, Math.max(2, os.cpus().length >> 1)));
 
 /* テンプレートが違うものを1枚ずつ。同じ生成物を並べても同じ形が増えるだけ。 */
-/* ★ham の3種類（2026-09-06）
-     'nav'    … 新しい共通ナビが入っているページ ＝ 406枚。広い画面は左のレール、
-                狭い画面（≦1000px）だけ ≡ から左にドロワー。**≡ は常には出ない。**
-     'always' … 認証4枚。畳む段が無いので、どの幅でも ≡ を出す。
-     既定      … 共通ナビを入れないページ ＝ 給与フォーム日英2枚だけ。
-                search.js のまま ＝ ≡ は「畳んだときだけ」出る。 */
+/* ★ham の2種類（2026-09-07 に 'always' を廃止）
+     'nav'    … 共通ナビが入っているページ ＝ **この一覧の全部**。広い画面は
+                左のレール、狭い画面（≦1000px）だけ ≡ から右にドロワー。
+                **広い画面に ≡ は出ない。**
+     既定      … 共通ナビを持たないページ。いまこの一覧には1枚も無い。
+   ⚠️ 'always'（＝どの幅でも ≡ を出す）は消した。オーナー指示
+      「pc画面では右上の3本線はいらないでしょ」と真逆のことを見ていて、
+      ログイン・新規登録の4枚だけ広い画面に ≡ が残る状態を**緑で通していた**。 */
 const PAGES = [
   ['/',                     'ja トップ',        { ham: 'nav' }],
   ['/en/',                  'en トップ',        { ham: 'nav' }],
@@ -90,11 +92,12 @@ const PAGES = [
   ['/community.html',       'ja 口コミ',        { ham: 'nav' }],
   ['/airlines/ana.html',    'ja 航空会社ページ', { ham: 'nav' }],
   ['/en/airlines/ana.html', 'en 航空会社ページ', { ham: 'nav' }],
-  /* ★給与フォームの日英2枚だけが「共通ナビを入れない通常ページ」。
-       書きかけが消えるのでナビを持たせない（オーナー確定事項10 の例外）。
-       ＝ ここだけ search.js の畳み方がそのまま残っている。 */
-  ['/pay-report.html',      'ja 給与を出す'],
-  ['/en/pay-report.html',   'en 給与を出す'],
+  /* ★2026-09-07、給与フォームにも共通ナビを入れた（オーナー指示）。
+       入れていなかった間、ここだけ右上の ≡ から**旧 search.js の引き出し**が出て、
+       広い画面には左のレールが無く「← 世界の航空会社」が1本だけ出ていた。
+       書きかけは pay-report.html の pagehide → savePreset() が控える。 */
+  ['/pay-report.html',      'ja 給与を出す',    { ham: 'nav' }],
+  ['/en/pay-report.html',   'en 給与を出す',    { ham: 'nav' }],
   ['/submit-review.html',   'ja 口コミを出す',  { ham: 'nav' }],
   /* マイページ系（header.mr-top）。ログインしないとヘッダーごと出ないので
      セッションを差し込む。
@@ -120,11 +123,13 @@ const PAGES = [
        #main-nav も header.mr-top も見つけられず即 return ＝ ≡ も引き出しも
        原理的に出なかった。この一覧にも撮影にも入っていなかったので誰も見ていなかった。
      ⚠️ login:true を付けない。セッションがあると login.html の「もう入っている人は
-        マイページへ」が働いてヘッダーごと消え、必ず落ちる。 */
-  ['/login.html',           'ja ログイン',   { ham: 'always' }],
-  ['/signup.html',          'ja 新規登録',   { ham: 'always' }],
-  ['/en/login.html',        'en ログイン',   { ham: 'always' }],
-  ['/en/signup.html',       'en 新規登録',   { ham: 'always' }],
+        マイページへ」が働いてヘッダーごと消え、必ず落ちる。
+     ★2026-09-07、この4枚にも共通ナビを入れた（オーナー指示）。それまでは
+       ≡ を押すと旧 search.js の引き出しが出て、広い画面ではレールが消えていた。 */
+  ['/login.html',           'ja ログイン',   { ham: 'nav' }],
+  ['/signup.html',          'ja 新規登録',   { ham: 'nav' }],
+  ['/en/login.html',        'en ログイン',   { ham: 'nav' }],
+  ['/en/signup.html',       'en 新規登録',   { ham: 'nav' }],
 ];
 /* ★320px は iPhone SE(1) / 5s の実幅。ここが入っていなかったので
    「最後の段まで畳んでもまだ 30〜40px 足りない」を長いあいだ見逃していた。 */
@@ -658,10 +663,6 @@ async function runPage(href, label, opt, ok) {
             正解として通してしまう。 */
       ok(m.hamVisible === (w <= 1000), `${tag} ≡ は狭い画面（≦1000px）だけ出る`,
          `≡=${m.hamVisible}`);
-    } else if (opt.ham === 'always') {
-      /* 認証4枚には畳む段が無い（リンクも CTA も無いので fits() が素通りする）。
-         ここで見るのは「≡ がどの幅でも出ている」＝オーナー指示「どの画面も」。 */
-      ok(m.hamVisible, `${tag} ≡ が常に出ている`);
     } else {
       ok(m.collapsed === m.hamVisible || (w <= 767 && m.hamVisible),
          `${tag} ≡ は畳んだときだけ出る`, `畳んだ=${m.collapsed} ≡=${m.hamVisible}`);

@@ -64,9 +64,26 @@
       rating: Math.max(1, Math.min(5, Math.round(avg))),
       salary: man(total),
       cat: (body.cats[0] || {}).k || '',
+      // 本文がサーバから来ていない行（鍵を持っていない）。ぼかす本文が手元に無い。
+      locked: !!body.locked,
+      catNames: body.cats.map(function (c) { return c.label; }),
       text: body.text, translated: body.translated, origText: body.origText, from: body.from,
       date: r.created_at ? r.created_at.slice(0, 7).replace('-', '.') : '—',
     };
+  }
+
+  /* 本文がサーバから来ていない行の面。ぼかす本文が手元に無いので、
+     書かれたカテゴリの名前だけを出す（REAL PAY の「実数は返さないが
+     帯と項目名は出す」と同じ形）。ここにボタンは置かない ── この画面は
+     一覧の下に大きな enrv-gate があり、上にも投稿ボタンが常設されている。 */
+  function srvLockHTML(names) {
+    var list = (names || []).filter(Boolean);
+    return '<div class="enrv-srv-lock">' +
+      (list.length ? '<div class="enrv-cat-row">' + list.map(function (n) {
+        return '<span class="enrv-cat-chip">' + esc(n) + '</span>';
+      }).join('') + '</div>' : '') +
+      '<p class="enrv-srv-note">Only pilots who have shared one review can read the full text.</p>' +
+    '</div>';
   }
 
   function cardHTML(r) {
@@ -80,9 +97,10 @@
       '</div>' +
       (r.salary ? '<div class="enrv-salary">' + r.salary +
         ' <span class="enrv-meta enrv-salary-note">Annual salary (approx.)</span></div>' : '') +
-      '<p class="enrv-body">' + esc(r.text) +
-        (r.translated ? PVReviewI18n.noteHTML(r.from) : '') + '</p>' +
-      (r.translated ? PVReviewI18n.origHTML(r.origText) : '') +
+      (r.locked ? srvLockHTML(r.catNames)
+        : '<p class="enrv-body">' + esc(r.text) +
+            (r.translated ? PVReviewI18n.noteHTML(r.from) : '') + '</p>' +
+          (r.translated ? PVReviewI18n.origHTML(r.origText) : '')) +
     '</div>';
   }
 
@@ -173,6 +191,11 @@
       '.enrv-salary-note{font-weight:400}',
       '.enrv-body{font-size:.87rem;line-height:1.75;margin:0;color:#c3d0e0}',
       '.enrv-empty{font-size:.9rem;color:#6b7d93;padding:20px 0;margin:0}',
+      // 鍵を持たない読み手のカード（本文はサーバから出ていない）。
+      '.enrv-srv-lock{padding:12px 14px;border-radius:10px;background:rgba(107,125,147,.08);border:1px solid rgba(107,125,147,.18)}',
+      '.enrv-cat-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}',
+      '.enrv-cat-chip{display:inline-block;padding:2px 9px;border-radius:999px;font-size:.7rem;font-weight:600;color:#9ca3af;background:rgba(107,125,147,.16)}',
+      '.enrv-srv-note{font-size:.78rem;color:#8fa0b4;margin:0}',
       '.enrv-gate{text-align:center;padding:28px 16px;border-radius:14px;background:rgba(24,33,47,.85);border:1px solid rgba(245,200,66,.2)}',
       '.enrv-gate-lock{font-size:1.5rem;margin-bottom:6px}',
       '.enrv-gate-title{font-weight:700;font-size:1.05rem;margin-bottom:4px}',
@@ -186,6 +209,9 @@
       '[data-theme="light"] .enrv-chip{border-color:rgba(0,0,0,.12)!important;color:#64748b!important}',
       '[data-theme="light"] .enrv-chip.active{color:#0f172a!important;background:rgba(0,0,0,.07)!important;border-color:rgba(0,0,0,.18)!important}',
       '[data-theme="light"] .enrv-empty{color:#475569!important}',
+      '[data-theme="light"] .enrv-srv-lock{background:rgba(15,23,42,.04)!important;border-color:rgba(15,23,42,.10)!important}',
+      '[data-theme="light"] .enrv-cat-chip{background:rgba(15,23,42,.07)!important;color:#475569!important}',
+      '[data-theme="light"] .enrv-srv-note{color:#475569!important}',
       // ライトテーマのゴールドは JP 側（airline-base.css）と同じ #7a5800 系に寄せる。
       // 白面に #f5c842 を置くとほぼ読めず、白面に白のゲートは輪郭が消える。
       '[data-theme="light"] .enrv-count{background:rgba(161,120,0,.10)!important;color:#92690a!important;border-color:rgba(161,120,0,.28)!important}',
@@ -201,16 +227,27 @@
   async function load() {
     if (!CODE || !w.supabase || !w.PVReviewI18n) return;
     var sb = w.supabase.createClient(SB_URL, SB_ANON);
-    // orig_lang/translations がまだ無い環境では2列を外して引き直す
-    var COLS = 'id,position,tenure_bucket,annual_salary,base_annual,flight_allowance_annual,monthly_salary,bonus,' +
-      SCORE_KEYS.join(',') + ',' + PVReviewI18n.KEYS.map(function (k) { return k + '_comment'; }).join(',') + ',created_at';
-    var res = await PVReviewI18n.fetchWithFallback(function (extra) {
-      return sb.from('reviews_v2').select(COLS + extra)
-        .eq('airline', CODE).order('created_at', { ascending: false }).limit(200);
-    });
-    // 本文も年収も無い行は情報が無いのでカードにしない（空カード防止）
-    rows = (res && res.data ? res.data : []).map(mapRow)
-      .filter(function (r) { return r.text || r.salary; });
+    /* ★ reviews_v2 を直接読まない。本文の列は DB 側で anon / authenticated から
+       外してあり（db/reviews-gate.sql）、鍵を持つ人にだけ本文を返すのは
+       pv_reviews() の仕事。画面は「ぼかす側」ではなく「受け取らない側」になる。 */
+    var res = await PVReviewI18n.fetchRows(sb, { airline: CODE, limit: 200 });
+    if (!res) { loaded = true; render(); return; }   // 取れなかった。0件と言わない
+
+    /* サーバが「鍵を持っている」と言ったら端末の写しを合わせる（写しは鍵ではない）。
+       ★保険も遠い未来にする ── pv-session.js より先に走った回に短い期限を書くと、
+         その端末だけ黙って締め出される（assert-unlock.mjs ② が見ている）。 */
+    if (res.unlocked && !unlocked()) {
+      var until = (w.PVUnlock && w.PVUnlock.reviewUntil)
+        ? w.PVUnlock.reviewUntil() : Date.now() + 100 * 365 * 24 * 60 * 60 * 1000;
+      try { localStorage.setItem('pv_unlock_expiry', String(until)); } catch (e) {}
+    }
+
+    /* 情報が1つも無い行はカードにしない（空カード防止）。
+       ★ 鍵を持たない人の行は本文が無いのが正常なので、locked を外さない
+         ── ここを text||salary のままにすると、年収を書いていない口コミが
+            未解放の人の画面から丸ごと消える（件数も分類も狂う）。 */
+    rows = res.rows.map(mapRow)
+      .filter(function (r) { return r.text || r.salary || r.locked; });
     loaded = true;
     render();
   }

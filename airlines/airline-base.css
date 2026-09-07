@@ -225,6 +225,26 @@
 .rv-locked-btn:focus-visible{outline:2px solid #f5c842;outline-offset:3px}
 .rv-locked-btn:active{transform:translateY(0);opacity:.85}
 
+/* ── 鍵を持たない人のカード（本文がサーバから来ていない）──────────
+   REAL PAY の「実数は返さない（ぼかさない）が帯と項目名は出す」と同じ形。
+   ぼかす本文がそもそも手元に無いので、書かれたカテゴリの名前だけを出す。
+   ⚠️ community.html / en/community.html は airline-base.css を読まないので、
+      同じクラス名・同じ値をあちらのインライン <style> に複製してある。 */
+.rv-srv-lock{
+  margin-top:10px;padding:12px 14px;border-radius:10px;
+  background:rgba(107,125,147,.08);border:1px solid rgba(107,125,147,.18);
+}
+[data-theme="light"] .rv-srv-lock{background:rgba(15,23,42,.04);border-color:rgba(15,23,42,.12)}
+.rv-cat-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.rv-cat-chip{
+  display:inline-block;padding:2px 9px;border-radius:999px;
+  font-size:.7rem;font-weight:600;letter-spacing:.02em;
+  background:rgba(107,125,147,.16);color:#8fa0b4;border:1px solid rgba(107,125,147,.26);
+}
+[data-theme="light"] .rv-cat-chip{background:rgba(15,23,42,.06);color:#475569;border-color:rgba(15,23,42,.16)}
+.rv-srv-note{margin:0 0 10px;font-size:.78rem;line-height:1.6;color:#8fa0b4}
+[data-theme="light"] .rv-srv-note{color:#475569}
+
 /* 年収の先頭2文字マスク（2件目以降・未解放時のみ）
    DOM を割らず ::before の backdrop-filter で覆う。currency.js:227 は通貨切替のたびに
    金額要素の textContent を丸ごと書き換えるので、数字を <span> に割ると切替の瞬間に

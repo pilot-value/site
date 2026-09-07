@@ -137,8 +137,9 @@ const REV_WJ = {
   translations: { en: { ops: 'Winter operations run late often, but coordination with the ground is good.' } },
 };
 /* ★他人の行。同じテーブルに置いておく。出てきたら匿名設計ごと壊れている。 */
+const OTHER_HASH = H(STRANGER, 'ana');
 const REV_OTHER = {
-  id: 'rev-x', proof_hash: H(STRANGER, 'ana'), airline: 'ana',
+  id: 'rev-x', proof_hash: OTHER_HASH, airline: 'ana',
   created_at: '2026-08-19T00:00:00Z',
   culture_comment: 'ヨソノヒトノクチコミ', salary_comment: '', benefits_comment: '',
   wlb_comment: '', ops_comment: '', training_comment: '', mgmt_comment: '',
@@ -217,6 +218,13 @@ const FAKE = function (cfg) {
     my_cohort_gap: () => ({ ok: true, state: 'none' }),
     next_condition_questions: () => ({ ok: true, airline: 'jal', mine_count: 0, questions: [] }),
     my_airline_conditions: () => ({ ok: true, answers: [], answered_total: 0, questions_total: 32 }),
+    /* ★鍵の SQL（db/reviews-gate.sql）を本番へ貼ったあとの形。
+       本文の列は表から読めなくなり、本人の口コミはサーバが選んで返す。
+       cfg.mineRows が無い場面では ok:true だけを返す＝rows が無いので、
+       画面は従来の proof_hash 総当たりに落ちる（貼る前と同じ動き）。 */
+    pv_reviews: () => cfg.mineRows
+      ? { ok: true, unlocked: true, rows: cfg.mineRows }
+      : { ok: true },
   };
 
   const CLIENT = {
@@ -254,6 +262,8 @@ const SCENES = {
   failExtra: { ...base, failExtra: true },
   hardError: { ...base, hardError: true },
   payError:  { ...base, payError: true },
+  // 鍵の SQL を貼ったあと。本文はサーバが返し、表への総当たりは1回も要らない
+  gated:     { ...base, mineRows: [REV_JAL, REV_WJ] },
 };
 
 const browser = await puppeteer.launch(OPEN
@@ -443,6 +453,28 @@ for (const lang of ['ja', 'en']) {
   const cols = v.q.filter((x) => x.t === 'reviews_v2').map((x) => x.cols);
   ok(cols.some((c) => c.includes('orig_lang')) && cols.some((c) => !c.includes('orig_lang')),
      '訳文の列つきで1回試してから、外して引き直している', JSON.stringify(cols.length));
+  ok(errs.length === 0, 'ページのエラーが1件も出ない', errs.join(' | '));
+}
+
+// ════════════════════════════════════════════════════════════════
+// 5. 鍵の SQL を本番へ貼ったあと ── 本文はサーバが返し、表は読まない
+//    （db/reviews-gate.sql。本文の列は anon / authenticated から外れる）
+// ════════════════════════════════════════════════════════════════
+for (const lang of ['ja', 'en']) {
+  console.log(`\n════ ${lang} / 鍵をサーバ側に置いたあと ════`);
+  const { page, errs } = await open('gated', lang);
+  const v = await look(page);
+  ok(v.revRows === 2, '★自分の口コミがそのまま2件出る', JSON.stringify(v.revText).slice(0, 160));
+  ok(v.revBadge, '口コミ解放中のバッジが点く', v.badgeText);
+  /* ★ここが本題 ── 119社ぶんの proof_hash 総当たりが1回も飛んでいないこと。
+     飛んでいたら、本文の列が読めない本番では必ず失敗して口コミが消える。 */
+  ok(v.q.filter((x) => x.t === 'reviews_v2').length === 0,
+     '★表への総当たりを1回も投げていない（サーバが選んで返している）',
+     JSON.stringify(v.q.map((x) => x.t)));
+  ok(v.rpc.includes('pv_reviews'), 'サーバの口（pv_reviews）を通っている', v.rpc.join(','));
+  ok(!/ヨソノヒトノクチコミ|SomebodyElsesReview|全日本空輸|All Nippon/.test(v.cardText),
+     '★他人の行が1件も混ざらない', JSON.stringify(v.cardText).slice(0, 160));
+  ok(!JSON.stringify(v.q).includes(UID), '★本人の uid そのものは1度も乗らない');
   ok(errs.length === 0, 'ページのエラーが1件も出ない', errs.join(' | '));
 }
 

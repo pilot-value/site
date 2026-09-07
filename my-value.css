@@ -53,7 +53,7 @@
 .mr-shell{max-width:1280px;margin:0 auto;padding:28px 24px 96px;
           display:grid;grid-template-columns:208px minmax(0,1fr);gap:36px;align-items:start}
 
-/* ⚠️ .mr-side / .mr-side-a / .mr-side-lk / .mr-side-note は **app-nav.css** へ移した
+/* ⚠️ .mr-side / .mr-side-a / .mr-side-lk は **app-nav.css** へ移した
      （2026-09-06）。ナビは 408枚に出るが、my-value.css を読むのはアプリ16枚だけ。
      ここに書き戻すと、公開392枚では板が素のリンクの列になる。 */
 
@@ -63,8 +63,6 @@
      札を持つのはマイレポート日英の2枚だけで、ほかの6枚は今までどおり nav の中の1行のまま。 */
 .mr-col{position:sticky;top:84px;display:flex;flex-direction:column;gap:16px}
 .mr-col .mr-side{position:static;top:auto}
-/* 同じことを2度言わない。札があるページでは nav の中の1行を出さない。 */
-.mr-col .mr-side-note{display:none}
 .mv-priv{padding:16px;border-radius:var(--pv-r);background:var(--pv-surface);
          border:1px solid var(--pv-line);box-shadow:var(--pv-shadow)}
 /* 緑＝信頼（ブランドの決まり）。押せるものだけを橙にする。 */

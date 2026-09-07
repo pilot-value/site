@@ -603,8 +603,10 @@ Office 勤務時間・配属期間・配属理由は**聞かない**（オーナ
 | 給与 `pay_reports` | ★`job_roles text[]` を足した（`revoke all` なので公開されない）|
 | 口コミ `reviews_v2` | ★**列を足さない。**既存の `job_role text` にカンマ区切り |
 
-⚠️ **`reviews_v2` に列を足さない**のは [airlines/airline-reviews-ui.js](airlines/airline-reviews-ui.js) が
-`select('*')` で読むから（足した列はそのまま公開される）。
+⚠️ **`reviews_v2` に列を足さない**のは、本文の列を DB 側で隠したあと
+（[db/reviews-gate.sql](db/reviews-gate.sql)・2026-09-07）も
+**隠すのは名指しした8列だけ**で、あとから足した列は `pv_reviews()` が丸ごと返すから
+（＝そのまま公開される）。
 - ⚠️ **単数の `job_role` を消さない。** 先頭（主たる役割）が入る。過去の行・明細読み取り・
   管理者メールがこれを読んでいる。
 - 画面は**チェックボックス群**（`input[name="f-jobrole"]`）＋ **値を持つのは hidden の `#f-jobrole`**
