@@ -406,9 +406,13 @@
          招待はレールの INVITE（invite.html）が唯一の入口。
          ★ここに作り直さない ── 招待の SSOT は invite.html の1枚だけ。 -->
 
-    <!-- ⑥ SETTINGS ─ ★既定で畳む（確定事項8）。 -->
-    <details class="mp-set" id="settings-card">
-      <summary class="mp-set-sum"><span class="mp-h2">SETTINGS</span></summary>
+    <!-- ⑥ SETTINGS ─ ★畳まない（2026-09-07 オーナー指示「setting を折りたたむ理由ない」）。
+         確定事項8 の「既定で畳む」はここで撤回した。<details> ではなく、
+         上の4つと同じ普通の節にしてある ── 開閉の状態を持たない＝
+         リンクで直接来た人のために開けてやる処理も要らない（openSettings を削除した）。
+         ★ここを再び <details> に戻さない。 -->
+    <section class="mp-sec mp-set" id="settings-card">
+      <h2 class="mp-h2">SETTINGS</h2>
       <div class="mp-set-b">
         <!-- プロフィール編集。★ボタンは #profile-card から移した（開くのは同じ startEdit）。 -->
         <div class="glass mp-row">
@@ -520,7 +524,7 @@
           <a href="personal-data.html">パーソナルデータの扱い</a>
         </p>
       </div>
-    </details>
+    </section>
     </main>
   </div>
 
@@ -791,13 +795,6 @@
               '#your-contributions', function (e) { e.preventDefault(); btn.click(); });
     }
 
-    /* ⑥ SETTINGS は既定で畳んである。中のカードへ直接来た人には開けてやる
-       （開かないと、リンクを踏んでも画面が変わらない＝壊れて見える）。 */
-    function openSettings() {
-      const d = document.getElementById('settings-card');
-      if (d && !d.open) d.open = true;
-    }
-
     /* 明細レポートのあとの「プロフィールを設定する」から来た人は #edit-card 付き。
        このカードは既定で display:none なので、素のアンカーだけでは何も起きない
        （リンクを踏んでも画面が変わらない＝壊れて見える）。ここで開く。
@@ -815,7 +812,6 @@
       if (window.location.hash !== '#password-card') return;
       const card = document.getElementById('password-card');
       if (!card) return;
-      openSettings();                       // ⑥ は畳んである。開けないと寄れない
       setTimeout(function () {
         card.scrollIntoView({ behavior: 'smooth', block: 'center' });
         card.classList.add('is-flash');
@@ -982,7 +978,6 @@
     }
 
     function startEdit() {
-      openSettings();                       // ⑥ は畳んである。開けないと寄れない
       document.getElementById('edit-card').style.display = 'block';
       document.getElementById('edit-card').scrollIntoView({behavior:'smooth',block:'nearest'});
       document.getElementById('e-name').value    = profile.name || '';

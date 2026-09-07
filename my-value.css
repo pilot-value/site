@@ -846,34 +846,14 @@ button.pv-give-p:active{transform:scale(.96)}
 
 /* ── ⑤ INVITE PILOTS ── 共有UIは置かない。説明1つと入口1つだけ。 */
 
-/* ── ⑥ SETTINGS ── 既定で畳む（確定事項8）。
-   ★2026-09-07、オーナーから「settings から下が折りたたまれてて見えない」。
-     実測すると畳む動きは正しく、見えていなかったのは**押せる物に見えないこと**だった ──
-     ページの最後（7,300px 目）に、いちばん薄い字の SETTINGS が枠も地色も無いまま
-     宙に浮き、下は空白。開く手掛かりが 8px の薄い山形1つしか無かった。
-     直したのは3つ。**畳む既定は変えていない。**
-       ・行そのものを枠と地色のある「押せる帯」にする
-       ・山形を右端へ寄せる（開閉の記号として読める位置）
-       ・字を1段明るくし、開いているときはさらに明るくする */
+/* ── ⑥ SETTINGS ── ★畳まない（2026-09-07 オーナー指示）。
+   経緯 ── もとは <details> で既定で畳んでいた（確定事項8）。
+   「settings から下が折りたたまれてて見えない」と言われて開閉の見た目を直したが、
+   オーナーの答えは「setting を折りたたむ理由ない」だった。**畳むのをやめた。**
+   いまは上の4つと同じ普通の節で、開閉の状態を持たない。
+   ★.mp-set-sum（押せる帯・山形）は消した。<details> に戻さない。
+   残した border-top は「ここから下は設定」の区切り線。 */
 .mp-set{border-top:1px solid var(--pv-line);padding-top:var(--pv-s-3)}
-.mp-set-sum{display:flex;align-items:center;gap:10px;min-height:44px;
-  padding:12px 14px;border:1px solid var(--pv-line);border-radius:var(--pv-r);
-  background:var(--pv-surface-2);
-  list-style:none;cursor:pointer;user-select:none;
-  transition:border-color .18s var(--pv-ease),background-color .18s var(--pv-ease)}
-.mp-set-sum::-webkit-details-marker{display:none}
-.mp-set-sum .mp-h2{margin:0;color:var(--pv-ink-2);
-  transition:color .18s var(--pv-ease)}
-.mp-set-sum::after{content:'';margin-left:auto;flex:none;
-  width:8px;height:8px;border-right:2px solid var(--pv-ink-2);
-  border-bottom:2px solid var(--pv-ink-2);transform:rotate(45deg) translateY(-2px);
-  transition:transform .2s var(--pv-ease)}
-.mp-set[open]>.mp-set-sum{background:var(--pv-surface)}
-.mp-set[open]>.mp-set-sum .mp-h2{color:var(--pv-ink)}
-.mp-set[open]>.mp-set-sum::after{transform:rotate(-135deg) translateY(2px)}
-.mp-set-sum:hover{border-color:var(--pv-ink-3);background:var(--pv-surface)}
-.mp-set-sum:hover .mp-h2{color:var(--pv-ink)}
-.mp-set-sum:focus-visible{outline:2px solid var(--pv-orange);outline-offset:4px;border-radius:var(--pv-r)}
 .mp-set-b{margin-top:var(--pv-s-2)}
 .mp-set-b>.glass{margin-top:20px}
 .mp-set-b>.glass:first-child{margin-top:0}
@@ -902,6 +882,6 @@ button.pv-give-p:active{transform:scale(.96)}
 }
 
 @media(prefers-reduced-motion:reduce){
-  .mp-cta,.mp-set-sum,.mp-set-sum::after,.mp-set-lk a{transition-duration:.01ms}
+  .mp-cta,.mp-set-lk a{transition-duration:.01ms}
   .mp-cta:hover{transform:none}
 }
