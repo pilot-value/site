@@ -4,7 +4,9 @@
    Supabase クライアントごと差し替えて、合成データで実物の profile.html を描かせる。
    ★ ここで使う数字は全部でたらめ。実物の明細の数値はこのリポジトリに1つも無い。
 
-   実行: node shot-tracker.mjs <scene> <lang> <theme>
+   実行: node shot-tracker.mjs <scene> <lang> <theme> <width> [open]
+     ★第5引数 open ＝撮らずに見える窓で開いたままにする（オーナーに見せる用）。
+       マイページはログインが要るので、素の localhost URL を渡しても中身が出ない。
      scene: empty | one | many | bench | hand | simple
             hand … かんたん入力（額面1本＋パーディアム＋住宅手当＋今月の賞与）。
                    内訳の節が「入っている分だけ色＋残りは灰色」で出ることの確認
@@ -24,6 +26,7 @@ const theme = process.argv[4] || 'dark';
 /* 第5引数＝ビューポート幅。pay-viz.css の @media(max-width:520px) で
    統計行が 4-up → 2-up に落ちるところは、幅を変えないと確かめられない。 */
 const vw    = Number(process.argv[5]) || 1440;
+const open  = process.argv[6] === 'open';
 
 const dir = path.join(__dirname, 'temporary screenshots');
 if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
@@ -39,9 +42,11 @@ const url = `http://localhost:3000/${lang === 'en' ? 'en/' : ''}profile.html`;
    puppeteer 側ではなく Chrome 側の問題。args を振っても直らない（実測:
    baseline / --disable-gpu / swiftshader / headless:true すべて TIMEOUT、
    headless:'shell' だけ OK）。よって chrome-headless-shell を使う。 */
-const browser = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox'] });
-const page = await browser.newPage();
-await page.setViewport({ width: vw, height: 1000 });
+const browser = await puppeteer.launch(open
+  ? { headless: false, defaultViewport: null, args: ['--no-sandbox', `--window-size=${vw},1100`] }
+  : { headless: 'shell', args: ['--no-sandbox'] });
+const page = (await browser.pages())[0] || await browser.newPage();
+if (!open) await page.setViewport({ width: vw, height: 1000 });
 
 /* ★ setRequestInterception は使わない。有効にすると page.screenshot() が返ってこない
    （CDP のデッドロック。撮る直前に false に戻しても解けない＝実測）。
@@ -189,6 +194,15 @@ await page.evaluateOnNewDocument((scene, theme) => {
 
 await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
 await new Promise((r) => setTimeout(r, 2500));
+
+if (open) {
+  console.log(`開きました（${scene} / ${lang} / ${theme} / ${vw}px）。窓を閉じると終わります。`);
+  /* ★時間で待たない。puppeteer の待ちは既定30秒で、時間切れを握りつぶすと
+     誰も触っていないのに窓が消える（shot-founding.mjs と同じ理由）。 */
+  await new Promise((r) => browser.on('disconnected', r));
+  process.exit(0);
+}
+
 await page.screenshot({ path: outPath, fullPage: true });
 await browser.close();
 console.log(outPath);
