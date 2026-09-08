@@ -42,6 +42,11 @@ const SQL = [
   ['db/test-payslip-extras.mjs', 10], ['db/test-unlock-rule.mjs', 10],
   ['db/test-remind.mjs', 10], ['db/test-deep-pay.mjs', 2],
   ['db/test-requests.mjs', 5], ['db/test-reviews-gate.mjs', 6],
+  /* ★写しの見張り（Phase 5・2026-09-08）。確認画面の「公開イメージ」は
+     pv_sig2 / pv_band_grid / pv_band と8区分の切り分けを JS へ写している
+     （出す前の行はサーバのどこにも無いので写す以外に道が無い）。
+     写しが腐ったことに気づく仕掛けはこれ1本だけ。外さないこと。 */
+  ['db/test-pay-preview.mjs', 3],
 ];
 
 // localhost:3000 が要るもの。長い順に並べてある。
