@@ -199,7 +199,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
 
       <!-- 明細から自動入力 ── 端末の中で黒塗り → 本人が見る → 送る -->
       <div class="ps" id="ps" hidden>
-        <p class="ps-step" id="ps-step">ステップ 1/2 — 明細を読み込む</p>
+        <p class="ps-step" id="ps-step">明細を読み込む（任意）</p>
         <button type="button" class="ps-drop" id="ps-drop">
           <span class="ps-ico" aria-hidden="true">📄</span>
           <span class="ps-drop-txt">
@@ -246,7 +246,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           <!-- 進み具合のゲージ。中身は markProgress() が書く。押すと最初の未入力欄へ飛ぶ。 -->
           <button type="button" class="sec-prog" hidden></button>
         </div>
-        <p class="sec-sub">所要 約50秒。埋めると、下に次が出てきます。</p>
+        <p class="sec-sub">全部で5つ。所要 約50秒。</p>
 
         <div class="fld">
           <label class="form-label" for="f-airline">会社<span class="req-tag">必須</span></label>
@@ -1479,12 +1479,26 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
            行は形のまま jsonb で残す。f-psdetail と同じ考え方。 -->
       <input type="hidden" id="f-payitems">
 
-      <!-- ★エラーの置き場所。#submit-block は必須が全部そろうまで hidden なので、
-           中に置いていると「途中で押した人」に何も見えない（2026-08-27）。
+      <!-- ★エラーの置き場所。この節そのものは動かさない ── ウィザードが
+           show() のたびに**今出ているステップの中へ移す**（pay-wizard.js）。
+           置きっぱなしにすると、s1 で Next を押した人のエラーが画面の
+           ずっと下（s5 の中）に出て、本人には何も起きていないように見える。
            空のときは高さゼロ。showErr / clearErr は今までどおりここへ書く。 -->
       <div id="err" style="margin-top:18px"></div>
 
-      <div class="step" id="submit-block" hidden>
+      <!-- ══ 5/5 確認（Phase 5・2026-09-08）════════════════════════════
+           上＝本人が入れた実額の読み返し（#wz-review）
+           下＝匿名で公開される見込みの形（#wz-public）
+           ★この2つを1枚に混ぜない。混ぜると「入れた額がそのまま出る」と読まれる。
+           ★中身は pay-wizard.js が組む。ここに文言を置かない（日英で1本のため）。 -->
+      <div class="card sec step" id="s5" hidden>
+        <div class="sec-head">
+          <span class="sec-title">5. 確認</span>
+        </div>
+        <div id="wz-review"></div>
+        <div id="wz-public"></div>
+
+      <div class="step wz-err-here" id="submit-block" hidden>
         <div class="sal-total pv-no-cur" style="margin-bottom:8px">
           <span class="sal-total-lab">年換算の総額<br>（あなたの入力から）</span>
           <span class="sal-total-val" id="live-total">—</span>
@@ -1507,20 +1521,24 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
              ボタンのすぐ下で言っていることが1歩ずれると、そこで信用を落とす。 -->
         <p class="sal-hint" style="text-align:center;margin-top:14px">アカウントを作ると<b>給与詳細が90日間</b>開きます。次の明細を出すたびに、そこから90日に伸びます。個人の利用は永久に無料です。</p>
       </div>
+      </div><!-- /s5 -->
 
-      <!-- ★常設の提出バー（2026-08-27 オーナー指示「3. 報酬の画面を出したあたりから
-           『匿名で提出』ボタンを常に下に表示させて」＋「その上の『年換算の総額』も一緒に」）。
-           ・出すのは §3 が出てから。一度出したら二度と隠さない（段の考え方と同じ）。
-           ・押すのは #submit-btn と同じ submitPayReport()。2本目の経路を作らない。
+      <!-- ★下端の帯（2026-09-08 オーナー指示で作り替え）。
+           2026-08-27 の「『匿名で提出』ボタンを常に下に表示させて」は、5ステップ化に
+           合わせてオーナーが更新した ── **押す物はここに置かない**。
+           ・押すのは各ステップ末尾の Next と、5/5 の確認画面の提出ボタンだけ。
+             途中のステップから直接は送らない（送信の入口を1つにする）。
+           ・残すのは年換算の合計の表示だけ。出すのは「3. 報酬」の段にいる間のみ
+             （pay-wizard.js の show() が totalBar で出し入れする）。
            ・金額は recalc() が #live-total と同じものをここへも書く（式は1本のまま）。
-           ・長い説明（#live-hint）はここには載せない。バーは金額とボタンだけ。 -->
+           ・body.has-cta の下余白はそのまま使う（最後の欄と Next を隠さないための、
+             既に検証済みの仕組み）。 -->
       <div id="sticky-submit" class="sticky-cta" hidden>
         <div class="sticky-cta-in">
           <div class="sticky-cta-sum pv-no-cur">
             <span class="sticky-cta-lab">年換算の総額</span>
             <span class="sticky-cta-val" id="sticky-total">—</span>
           </div>
-          <button type="button" id="sticky-btn" class="btn-orange justify-center">匿名で提出する</button>
         </div>
       </div>
 
@@ -1547,6 +1565,10 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
   </div>
 </footer>
 
+<!-- ★5ステップの器（Phase 5・2026-09-08）。日英でこの1本を共有する。
+     読み込みに失敗したら window.PVPayWizard が無いまま＝下のインラインは
+     これまでどおり「埋めると下が生える」1枚の長いページとして動く。 -->
+<script src="pay-wizard.js"></script>
 <script>
 // ── Supabase ──────────────────────────────────────────────────
 const _sb = supabase.createClient(
@@ -1570,6 +1592,13 @@ const TAX_TABLE = {"JP":{"cur":"JPY","emp":[[1900000,0,650000],[3600000,0.3,8000
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
+
+/* ── 5ステップの器（Phase 5・2026-09-08）───────────────────────
+   ★pay-wizard.js が読めなかったら null のまま。そのときは下の関数が
+     これまでどおり「埋めると下が生える」1枚の長いページとして動く
+     ＝共有 JS が落ちても、給与が出せなくなることは無い。 */
+const WZ = window.PVPayWizard || null;
+const STEP_IDS = ['s1', 's2', 's3', 's4', 's5'];
 
 /* ── 計測（GA4。既存の gtag をそのまま使う。新しい業者は入れない）──────────
    ★en/pay-report.html にも同じものが入っている。片方だけ直すと日英で数字がずれる。
@@ -1649,10 +1678,12 @@ function recapLine() {
 const BTN_LABEL_IN  = '送信して結果を見る →';
 const BTN_LABEL_OUT = '匿名で提出する';
 let _btnLabel = BTN_LABEL_IN;
-/* ── 送信ボタンは2つある ────────────────────────────────────────
-   #submit-btn（全段そろったとき下に出る本体）と、常設バーの #sticky-btn。
-   ★状態は必ず両方へ配る。片方だけ止めると、送信中にもう片方が押せてしまう。 */
-const SUBMIT_BTNS = () => ['submit-btn', 'sticky-btn'].map($).filter(Boolean);
+/* ── 送信ボタン ─────────────────────────────────────────────────
+   2026-09-08 から #submit-btn の1つだけ（常設バーの #sticky-btn は廃止。
+   帯に残ったのは年換算の合計の表示だけで、押す物は置いていない）。
+   ★一覧の形は残す。ログイン後の再送で「送信中」を配る先が増えたときに、
+     配り忘れた1つが押せてしまう事故を、ここ1か所で防いでいる。 */
+const SUBMIT_BTNS = () => ['submit-btn'].map($).filter(Boolean);
 function setSubmitBusy(busy, label) {
   for (const b of SUBMIT_BTNS()) { b.disabled = busy; b.textContent = label; }
 }
@@ -1669,6 +1700,9 @@ function showGate(saved) {
      「登録の箱まで来た回数」が数えられない）。フォームを全部埋めきった人の数＝
      このイベントの数になり、pay_login_* → pay_report_submit と1本につながる。 */
   track('pay_login_shown', { saved: saved ? 1 : 0 });
+  /* ★箱は 5/5 の中にある。別の段に居るまま出すと、画面に無いものへ
+     scrollIntoView することになって何も起きない。先に運ぶ。 */
+  if (WZ) { WZ.goLast(); $('submit-block').hidden = false; }
   mountLogin(saved, 0);
   $('login-gate').style.display = '';
   $('login-gate').scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1721,6 +1755,9 @@ async function afterSignedIn() {
    両方がここを通る。★片方だけ直すと「90日が開かない」「メールが出ない」が起きる。 */
 function afterSaved(data, payload, airline) {
   try { localStorage.removeItem(PENDING_KEY); } catch (e) {}
+  /* ★出し切ったら下書きも消す（オーナー指示）。預かり（PENDING_KEY）と
+     同じ場所で消す ── 片方だけ消すと、次に開いた人に「まだ途中です」と出る。 */
+  if (WZ) WZ.clearDraft();
   /* この箱から会員になった人の「メールを受け取る」を、ここで1回だけ立てる。
      ★どの入口を通っても必ず最後にここへ来る。認証の直後に書くと、
        ページを離れる経路（Google・メール内リンク）が抜ける。 */
@@ -2400,16 +2437,26 @@ function updateSteps(quiet) {
      （2026-08-13 オーナー指摘）。
      飛ばさない代わりに、送信ボタンは全段そろったときだけ出す。これで
      「基本給が見えないのに送信ボタンだけ生きている」という元の懸念も起きない。 */
-  let last = -1;
-  for (let i = 0; i < STEPS.length; i++) { if (!STEPS[i][1]()) break; last = i; }
-  for (let i = 0; i <= last; i++) show(STEPS[i][0]);
-  if (last === STEPS.length - 1 && GATE_CONTRACT()) show('submit-block');
-  /* ★§3「報酬」が出たら、下端の常設バーも出す（2026-08-27 オーナー指示）。
-     途中で出したい人が押せる所を、いつでも持っている状態にする。 */
-  if (!$('s3').hidden) showSticky();
+  /* ★ウィザードが居るあいだ、段は生やさない（1画面1段が約束）。
+     hidden の出し入れは pay-wizard.js の show() だけが持つ。ここで触ると、
+     戻ったときに前の段まで一緒に画面へ出てくる。
+     送信ボタンは 5/5 の中にあり、そこへは Next でしか着けない
+     ＝「全段そろってから」は forward() が受け持っている。 */
+  if (WZ) {
+    $('submit-block').hidden = false;
+  } else {
+    let last = -1;
+    for (let i = 0; i < STEPS.length; i++) { if (!STEPS[i][1]()) break; last = i; }
+    for (let i = 0; i <= last; i++) show(STEPS[i][0]);
+    if (last === STEPS.length - 1 && GATE_CONTRACT()) show('submit-block');
+    /* ★§3「報酬」が出たら、下端の帯も出す（2026-08-27）。 */
+    if (!$('s3').hidden) showSticky();
+  }
   markRequired();
   markRail();
   markProgress();
+  /* 下書きは2秒のデバウンス。打鍵のたびに localStorage を叩かない。 */
+  if (WZ) WZ.sync();
   $('ai-legend').hidden = !document.querySelector('.form-input.ai-filled');
   /* ★「給与の内訳を入力する」から来た人を、§3 が出た**1回だけ**内訳まで寄せる。
      旗は使ったら消す（そのあと勝手に飛ばない）。 */
@@ -2442,6 +2489,14 @@ function markRequired() {
       const t = lab.querySelector('.miss-tag');
       if (t) t.remove();
     }
+  }
+  /* ★赤い箱も一緒に落とす。落とすのは markMissing() が書いたものだけ
+     （dataset.from）。ほかのエラー（額面と時間の食い違いなど）は
+     「空かどうか」では消せないので、そのまま残す。 */
+  const eb = $('err');
+  if (eb && eb.dataset.from === 'miss' && !document.querySelector('.fld.is-miss')) {
+    eb.innerHTML = '';
+    delete eb.dataset.from;
   }
 }
 /* 内訳の欄の左のレール（2026-09-03 その3・オーナー指示
@@ -2506,6 +2561,10 @@ function progParts(el) {
 function markProgress() {
   for (const [id, gate] of SEC_GATE) {
     const sec = $(id);
+    /* ★出ていない段は数えない。openReq/visReq は offsetParent で数えるので、
+       隠れている段は「欄ゼロ」＝0% になり、戻ってきたとき 0% のまま焼き付く。
+       出し直したときは pay-wizard.js の onStep がここを呼び直す。 */
+    if (sec.hidden) continue;
     const el = sec.querySelector('.sec-prog');
     if (!el) continue;
     el.hidden = false;
@@ -2555,9 +2614,14 @@ function enterMode(mode) {
   $('entry').hidden = true;
   $('ps').hidden = false;
   $('ps').classList.toggle('is-slim', slim);
-  if (slim && $('form-body').hidden) {
-    $('form-body').hidden = false;
-    updateSteps(true);        // 隠れている間に復元された値の分を出す
+  if (slim) {
+    if ($('form-body').hidden) {
+      $('form-body').hidden = false;
+      updateSteps(true);      // 隠れている間に復元された値の分を出す
+    }
+    /* ★ここで初めて段を歩き始める（入口の2択に居るあいだは器を動かさない）。
+       下書きがある人は、その続きの段から始まる。2回目以降は何も起きない。 */
+    if (WZ) WZ.start();
   }
 }
 window.PVEnterMode = enterMode;
@@ -2999,6 +3063,86 @@ varNoneSync();
 markRail();
 updateSteps(true);
 
+/* ══ 5ステップの器を起こす（Phase 5・2026-09-08）══════════════════════
+   ★ここで渡すのは「この画面の読み方」だけ。給与の計算も、保存の契約も、
+     匿名化の判断も pay-wizard.js は1つも持たず、下の既存の関数を呼んでいる。
+     年換算は annualTotal()、送る中身は buildPayload()、足りない欄は
+     missingAll() ── どれもこの画面が前から持っているもの。 */
+
+/* ★下書きに入れるのは構造化された入力値だけ。f-psdetail（明細の読み取り原文）は
+     許可リストから**明示的に外す** ── 氏名・社員番号が混じりうる生テキストで、
+     オーナーの指示「明細画像・PDF・OCR 原文は下書きに保存しない」に当たる。
+   ★除外リストではなく許可リストで濾すこと。欄が増えた日に黙って漏れる。 */
+const DRAFT_IDS = ALL_IDS.filter((id) => id !== 'f-psdetail');
+
+/* 為替は「サーバが使うのと同じ表」から取る（fx_rates は誰でも読める）。
+   ★currency.js の RATES は切替メニューに出る7通貨しか持っていないので使えない。
+     45通貨のうち残り38通貨の人に、画面だけ「内訳は出ません」と嘘をつくことになる。
+   ★取れなくてよい。取れなければ帯を出さず、理由を1行書く。 */
+let FX = null;
+async function loadFx() {
+  if (FX) return FX;
+  const m = {};
+  try {
+    const { data, error } = await _sb.from('fx_rates').select('code,to_usd');
+    if (error) throw error;
+    for (const r of data || []) m[r.code] = Number(r.to_usd);
+  } catch (e) { /* 取れないことは画面に出る。ここでは黙る */ }
+  FX = m;
+  return FX;
+}
+
+/* 選択肢の文字は画面の <option> から取る（日英で自動的に正しい）。 */
+const optLabel = (id) => {
+  const sel = $(id);
+  if (!sel || !sel.options) return '';
+  const o = sel.options[sel.selectedIndex];
+  return o && sel.value ? o.textContent.trim() : '';
+};
+
+/* 公開イメージに添える注記。★こちらに**実在する判定だけ**を出す
+   （Marit の「5パーセンタイル未満」のような、持っていない判定を作らない）。 */
+function payNotes() {
+  const out = [];
+  if (num('f-gross') > 0 && monthlyDetail() > num('f-gross') + 1) {
+    out.push('内訳の合計が、その月の総支給を超えています。そのまま出せますが、内訳の帯は付きません。');
+  }
+  return out;
+}
+
+if (WZ) {
+  WZ.init({
+    lang: LANG,
+    bodyId: 'form-body',
+    totalBarId: 'sticky-submit',
+    reviewId: 'wz-review',
+    publicId: 'wz-public',
+    errId: 'err',
+    /* ★合計の帯を出すのは「3. 報酬」の段だけ（オーナー指示）。 */
+    steps: [{ id: 's1' }, { id: 's2' }, { id: 's3', totalBar: true }, { id: 's4' }, { id: 's5' }],
+    draftIds: DRAFT_IDS,
+    read: (id) => { const e = $(id); return e ? e.value : ''; },
+    restore: restoreInto,
+    missing: missingAll,
+    markMissing: markMissing,
+    clearErr: clearErr,
+    payload: () => buildPayload(),
+    annualOrig: annualTotal,
+    fx: () => { const v = FX ? FX[$('f-currency').value] : null; return v == null ? null : v; },
+    nameOf: optLabel,
+    onStep: (id) => {
+      /* 段を出し直したので、印とゲージを引き直す（隠れている間は数えていない）。 */
+      markRequired();
+      markProgress();
+      if (id !== 's5') return;
+      const draw = () => WZ.render(payNotes());
+      draw();
+      /* レートがまだなら、着いてからもう一度描く（まだ 5/5 に居るときだけ）。 */
+      if (!FX) loadFx().then(() => { if (WZ.current() === 's5') draw(); });
+    }
+  });
+}
+
 /* ── 先月の内容をサーバから埋める ──────────────────────────────
    ★端末の localStorage だけだと、機種変・別ブラウザ・明細から入った人に効かない。
      ログイン済みなら本人の直近の行から埋める（my_pay_reports は本人の行しか返さない）。
@@ -3085,7 +3229,11 @@ updateSteps(true);
    ★送るときだけ、呼ぶ直前に消す。送ってから消すと失敗やリロードで二重送信になる。 */
 const PENDING_MAX_AGE = 14 * 24 * 60 * 60 * 1000;   // 2週間より古い下書きは持たない
 (async function () {
-  const signedIn = !!(await sessionUserId());
+  const _uid = await sessionUserId();
+  const signedIn = !!_uid;
+  /* ★下書きの持ち主を確かめる。別のアカウントの下書きは戻さず捨てる。
+     未ログインで書いたものは、同じブラウザで本人が認証しただけなので押印し直す。 */
+  if (WZ) WZ.setUid(_uid);
   setSubmitLabel(signedIn);
 
   const drop = () => { try { localStorage.removeItem(PENDING_KEY); } catch (e) {} };
@@ -3155,7 +3303,7 @@ function showErr(msg, title) {
   $('err').innerHTML = '<div class="form-alert"><span class="fa-title">' + esc(title || '送信できませんでした') + '</span>' + esc(msg) + '</div>';
   $('err').scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
-function clearErr() { $('err').innerHTML = ''; clearMissMarks(); }
+function clearErr() { const e = $('err'); e.innerHTML = ''; delete e.dataset.from; clearMissMarks(); }
 
 /* ── 足りない必須項目を、まとめて拾う（2026-08-27 オーナー指示）──
    前は早期 return で1件ずつだったので、3つ空いている人は3回押し直していた。
@@ -3175,6 +3323,27 @@ function missingRequired() {
     return !(row && ![...row.querySelectorAll('input, select')].some((e) => e.value.trim()));
   });
 }
+/* ★送信の直前だけは、**全部の段を一時的に出して**数える。
+   missingRequired() は offsetParent で「条件が揃っていない欄」を落としているが、
+   その目は「別の段に居るから隠れている欄」と区別が付かない。数え終えたら必ず戻す
+   ＝画面には1度も2段は出ない（同じ関数の中で開いて閉じる）。 */
+function missingAll() {
+  if (!WZ) return missingRequired();
+  const back = STEP_IDS.map((id) => [id, $(id).hidden]);
+  for (const [id] of back) $(id).hidden = false;
+  /* 畳んだ「4. 契約と税」も一度開く。畳んだままだと在籍年数が空でも
+     数えられず、送信の1件ずつの判定でしか出てこない（その欄は画面に無い）。 */
+  const folded = $('s4-body').hidden;
+  if (folded) { $('s4-sum').hidden = true; $('s4-body').hidden = false; $('s4-sub').hidden = false; }
+  const m = missingRequired();
+  for (const [id, h] of back) $(id).hidden = h;
+  /* 足りない欄が無ければ畳み直す（見た目を勝手に変えない）。 */
+  if (folded && !m.some((f) => $('s4-body').contains(f))) {
+    $('s4-sum').hidden = false; $('s4-body').hidden = true; $('s4-sub').hidden = true;
+  }
+  return m;
+}
+
 const reqLabel = (f) => {
   const lab = f.querySelector('.form-label');
   if (!lab) return '';
@@ -3186,8 +3355,12 @@ const reqLabel = (f) => {
    その欄が画面に無い、という行き止まりになる。段だけ開ける。
    ★#submit-block は開けない（全段そろったときだけ、は維持）。 */
 function revealSteps() {
-  for (const [id] of STEPS) $(id).hidden = false;
-  showSticky();
+  /* ★ウィザードでは段を全部出さない（1画面1段が約束）。代わりに
+     markMissing() が「足りない欄のある段」へ本人を運ぶ。 */
+  if (!WZ) {
+    for (const [id] of STEPS) $(id).hidden = false;
+    showSticky();
+  }
   markRequired();
   markProgress();
 }
@@ -3219,7 +3392,15 @@ function markMissing(list) {
     t.textContent = MISS_TAG;
     lab.appendChild(t);
   }
+  /* ★先頭の欄が別の段に居ることがある。**エラーを書く前に**運ぶ
+     （#err はウィザードが今の段の中へ引っ越すので、順番を逆にすると
+       書いた直後に別の段へ持って行かれて、本人には何も出ない）。 */
+  if (WZ) WZ.goToField(list[0]);
   $('err').innerHTML = '<div class="form-alert"><span class="fa-title">入力していない必須項目があります</span>赤く囲った欄がまだ空です。</div>';
+  /* ★この赤箱は「空の欄がある」としか言っていない。全部埋まったら markRequired() が
+     自分で消す（下の dataset を見ている）。1画面1段になった今、消さないと
+     埋め終わった段の下にいつまでも赤が残り、押せないように見える。 */
+  $('err').dataset.from = 'miss';
   /* ★飛ぶのは先頭ひとつ。印は上で全部に付けてある。 */
   const inp = jumpTarget(list[0]);
   if (!inp) return;
@@ -3247,64 +3428,16 @@ const sumField = (...ids) => {
   return any ? String(+t.toFixed(2)) : null;
 };
 
-async function submitPayReport() {
-  clearErr();
-  hideGate();
-
-  /* ★まず「空のままの必須欄」を全部まとめて出す（2026-08-27 オーナー指示）。
-     常設バーで途中からでも押せるので、1件ずつ返すと何度も押し直しになる。
-     ここを抜けた後の判定（額面・変動給の種類・時給との組み合わせ）は
-     「空かどうか」ではないので箇条書きにできない。今までどおり1件ずつ残す。 */
-  revealSteps();
-  const miss = missingRequired();
-  if (miss.length) return markMissing(miss);
-
-  const airline = val('f-airline');
-  if (!airline) return showErr('会社を選んでください。');
-  if (airline === 'other' && !val('f-airline-other')) return showErr('「一覧にない会社」を選んだ場合は、会社名を入力してください。');
-  if (!val('f-position')) return showErr('職位を選んでください。');
-  if (!val('f-fleet')) return showErr('機材を選んでください。');
-  if (!val('f-jobrole')) return showErr('役職・区分を選んでください。');
-  if (!val('f-age')) return showErr('年代を選んでください。');
-  if (!val('f-currency')) return showErr('通貨を選んでください。');
-  /* ★飛んだ時間は必須。0 は許す（地上勤務・病欠の月）。空欄だけを弾く。
-     これが無いと時間あたり報酬が出せず、国と会社をまたいだ比較ができない。 */
-  if (!val('f-block')) {
-    return showErr('フライトタイムを入れてください。飛んでいない月や、時間を管理していない場合は 0 と入れてください。');
-  }
-  if (!val('f-stay')) {
-    return showErr('ステイ日数を入れてください。基地の外で泊まらなかった月は 0 と入れてください。');
-  }
-  /* ★段のゲートと同じ payEntered() を通す（見る場所を1本にしてある）。
-     金額が 0 のときだけここで弾く。 */
-  /* ★2026-08-26 その2、内訳を開いているかで分けるのをやめた。総支給はいつでも必須で、
-     基本給は任意（「該当なし」もある）。分けたままだと、内訳を開いて「該当なし」を付けた人が、
-     送信ボタンは出ているのに押すと止まる。f-hourly は明細読み取り専用の hidden なので、
-     その人には埋めようが無い。 */
-  if (num('f-gross') <= 0) {
-    return showErr('その月の総支給額を入れてください。手当だけでは、他社と比べる軸がありません。');
-  }
-  if (!val('f-netpay')) return showErr('その月の手取り額を入れてください（明細の「差引支給額」「Net Pay」）。');
-  if (!val('f-bonus-mo')) return showErr('今月出たボーナスを入れてください。出ていない月は 0 と入れてください。');
-  if (!val('f-perdiem')) return showErr('パーディアムを入れてください。付かない会社・出なかった月は 0 と入れてください。');
-  if (!val('f-housing')) return showErr('住居を選んでください。');
-  if ($('f-housing').value === 'allowance' && !val('f-housing-amt')) {
-    return showErr('「住宅手当（現金）」を選んだ場合は、その月額も入れてください。');
-  }
-  /* ★変動給の行を足したときだけ「何に連動する支給か」は必須（2026-08-26 その2 オーナー指示）。
-     分からない人には「わからない」がある。行を1つも足していない人は素通り。
-     ★判定は pdRead('var') に任せる（＋を押しただけの空の行を落とす条件を2か所に書かない）。 */
-  if (pdRead('var').some((r) => !r.basis)) {
-    return showErr('変動給の「何に連動する支給か」を選んでください。当てはまるものが分からないときは「わからない」を選んでください。');
-  }
-  /* ★4. 契約と税（2026-08-13 に必須化）。畳まれていても値は入っているので同じ判定で通る。 */
-  if (!val('f-contract')) return showErr('契約形態を選んでください。');
-  if (!val('f-taxcountry')) return showErr('居住国（納税地）を選んでください。');
-  if (!val('f-seniority')) return showErr('在籍年数を入れてください。');
-  if (num('f-hourly') > 0 && num('f-block') <= 0 && num('f-guar') <= 0) {
-    return showErr('時給を入れた場合は、フライトタイムか保証フライトタイムのどちらかが必要です。');
-  }
-
+/* ── payload の組み立て（2026-09-08 に関数へ出した）─────────────────
+   ★中身は1行も変えていない。切り出した理由はひとつだけ ──
+     5/5 の確認画面が出す「公開イメージ」は、**実際に送るのと同じ物**から
+     作らなければならない。2つ目の組み立てを書いた瞬間、画面の予告と
+     サーバに入る物が、どちらも普通に動いたまま静かにズレる。
+   ★引数を省くと今の選択から読む（確認画面はこちらで呼ぶ）。
+   ★切り出しの前後でバイト単位に一致することを、3つの型（総支給だけ／
+     内訳あり／役割モジュール5つ＋組合払い）× 日英で突き合わせてある。 */
+function buildPayload(airline) {
+  if (airline === undefined) airline = val('f-airline');
   const payload = {
     airline:             airline,
     airline_other:       val('f-airline-other'),
@@ -3391,6 +3524,70 @@ async function submitPayReport() {
     source:              val('f-source') || 'web',
     lang:                LANG,
   };
+  return payload;
+}
+
+async function submitPayReport() {
+  clearErr();
+  hideGate();
+
+  /* ★まず「空のままの必須欄」を全部まとめて出す（2026-08-27 オーナー指示）。
+     常設バーで途中からでも押せるので、1件ずつ返すと何度も押し直しになる。
+     ここを抜けた後の判定（額面・変動給の種類・時給との組み合わせ）は
+     「空かどうか」ではないので箇条書きにできない。今までどおり1件ずつ残す。 */
+  revealSteps();
+  /* ★ウィザードでは missingAll()。今出ている段（5/5 確認）だけを見る missingRequired() は
+     1〜4段の空欄を offsetParent で落とすので、空のまま送信できてしまう。 */
+  const miss = missingAll();
+  if (miss.length) return markMissing(miss);
+
+  const airline = val('f-airline');
+  if (!airline) return showErr('会社を選んでください。');
+  if (airline === 'other' && !val('f-airline-other')) return showErr('「一覧にない会社」を選んだ場合は、会社名を入力してください。');
+  if (!val('f-position')) return showErr('職位を選んでください。');
+  if (!val('f-fleet')) return showErr('機材を選んでください。');
+  if (!val('f-jobrole')) return showErr('役職・区分を選んでください。');
+  if (!val('f-age')) return showErr('年代を選んでください。');
+  if (!val('f-currency')) return showErr('通貨を選んでください。');
+  /* ★飛んだ時間は必須。0 は許す（地上勤務・病欠の月）。空欄だけを弾く。
+     これが無いと時間あたり報酬が出せず、国と会社をまたいだ比較ができない。 */
+  if (!val('f-block')) {
+    return showErr('フライトタイムを入れてください。飛んでいない月や、時間を管理していない場合は 0 と入れてください。');
+  }
+  if (!val('f-stay')) {
+    return showErr('ステイ日数を入れてください。基地の外で泊まらなかった月は 0 と入れてください。');
+  }
+  /* ★段のゲートと同じ payEntered() を通す（見る場所を1本にしてある）。
+     金額が 0 のときだけここで弾く。 */
+  /* ★2026-08-26 その2、内訳を開いているかで分けるのをやめた。総支給はいつでも必須で、
+     基本給は任意（「該当なし」もある）。分けたままだと、内訳を開いて「該当なし」を付けた人が、
+     送信ボタンは出ているのに押すと止まる。f-hourly は明細読み取り専用の hidden なので、
+     その人には埋めようが無い。 */
+  if (num('f-gross') <= 0) {
+    return showErr('その月の総支給額を入れてください。手当だけでは、他社と比べる軸がありません。');
+  }
+  if (!val('f-netpay')) return showErr('その月の手取り額を入れてください（明細の「差引支給額」「Net Pay」）。');
+  if (!val('f-bonus-mo')) return showErr('今月出たボーナスを入れてください。出ていない月は 0 と入れてください。');
+  if (!val('f-perdiem')) return showErr('パーディアムを入れてください。付かない会社・出なかった月は 0 と入れてください。');
+  if (!val('f-housing')) return showErr('住居を選んでください。');
+  if ($('f-housing').value === 'allowance' && !val('f-housing-amt')) {
+    return showErr('「住宅手当（現金）」を選んだ場合は、その月額も入れてください。');
+  }
+  /* ★変動給の行を足したときだけ「何に連動する支給か」は必須（2026-08-26 その2 オーナー指示）。
+     分からない人には「わからない」がある。行を1つも足していない人は素通り。
+     ★判定は pdRead('var') に任せる（＋を押しただけの空の行を落とす条件を2か所に書かない）。 */
+  if (pdRead('var').some((r) => !r.basis)) {
+    return showErr('変動給の「何に連動する支給か」を選んでください。当てはまるものが分からないときは「わからない」を選んでください。');
+  }
+  /* ★4. 契約と税（2026-08-13 に必須化）。畳まれていても値は入っているので同じ判定で通る。 */
+  if (!val('f-contract')) return showErr('契約形態を選んでください。');
+  if (!val('f-taxcountry')) return showErr('居住国（納税地）を選んでください。');
+  if (!val('f-seniority')) return showErr('在籍年数を入れてください。');
+  if (num('f-hourly') > 0 && num('f-block') <= 0 && num('f-guar') <= 0) {
+    return showErr('時給を入れた場合は、フライトタイムか保証フライトタイムのどちらかが必要です。');
+  }
+
+  const payload = buildPayload(airline);
 
   setSubmitBusy(true, '送信中…');
 
@@ -3487,7 +3684,8 @@ function showSticky() {
   document.body.classList.add('has-cta');
   stickyWatch();
 }
-$('sticky-btn').addEventListener('click', submitPayReport);
+/* ★#sticky-btn は 2026-09-08 に廃止（帯は年換算の合計の表示だけ）。
+   押す物はステップ末尾の Next と 5/5 の提出ボタンの2つで、送信の入口は後者だけ。 */
 
 // ── 結果（★入力させずに返す。これが投稿の見返り）─────────────
 function renderResult(d, p) {

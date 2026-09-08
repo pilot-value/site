@@ -333,6 +333,17 @@ function el(tag, cls, txt) {
   if (txt != null) e.textContent = txt;
   return e;
 }
+/* 文言の中の **…** だけを太字にする。innerHTML は使わない
+   （文言は日英の表から来るが、いつか本人の入力が混ざったときに穴を開けない）。
+   ★textContent に投げっぱなしにすると、画面に ** がそのまま出る。 */
+function emph(tag, cls, txt) {
+  var e = el(tag, cls);
+  String(txt == null ? '' : txt).split('**').forEach(function (part, i) {
+    if (part === '') return;
+    e.appendChild(i % 2 ? el('strong', null, part) : document.createTextNode(part));
+  });
+  return e;
+}
 function stepEls(i) {
   var s = C.steps[i], out = [$(s.id)];
   (s.also || []).forEach(function (id) { var e = $(id); if (e) out.push(e); });
@@ -386,6 +397,17 @@ function show(i) {
     stepEls(k).forEach(function (e) { e.hidden = k !== i; });
   });
   cur = i;
+  /* ★エラーの箱を、今出ている段の中へ引っ越す。置きっぱなしにすると、
+     1/5 で Next を押して止まった人のエラーが画面のずっと下（5/5 の中）に出て、
+     本人には「押しても何も起きない」ようにしか見えない。
+     置き場所は .wz-err-here があればその直前（＝提出ボタンの真上）、
+     無ければ 戻る／次へ の直前（＝押したボタンの真上）。 */
+  var err = C.errId ? $(C.errId) : null;
+  if (err) {
+    var ebox = $(C.steps[i].id);
+    var anchor = ebox.querySelector('.wz-err-here') || ebox.querySelector('.wz-nav');
+    if (anchor) ebox.insertBefore(err, anchor); else ebox.appendChild(err);
+  }
   /* 報酬の段だけ、下端に年換算の合計を出す（ボタンは置かない）。 */
   var st = $(C.totalBarId);
   if (st) st.hidden = !C.steps[i].totalBar;
@@ -396,8 +418,10 @@ function show(i) {
 function go(i, opt) {
   if (i < 0 || i >= C.steps.length) return;
   if (i === cur && started) return;
-  saveDraft();
   show(i);
+  /* ★控えるのは show() の**あと**。前に書くと「今いた段」が残り、
+     再開したとき必ず1つ手前から始まる（値は全部あるのに、もう一度 Next を押す）。 */
+  saveDraft();
   if (!opt || !opt.quiet) {
     var top = $('wz-top');
     if (top && top.scrollIntoView) top.scrollIntoView({ block: 'start', behavior: 'smooth' });
@@ -425,9 +449,9 @@ function goToField(node) {
 function sync() {
   if (!started) return;
   var n = C.steps.length;
-  var pct = Math.round(((cur + 1) / n) * 100);
   var fill = $('wz-bar-fill');
-  if (fill) fill.style.width = pct + '%';
+  /* ★width ではなく scaleX で伸ばす（動かすのは transform と opacity だけ、が家のきまり）。 */
+  if (fill) fill.style.transform = 'scaleX(' + ((cur + 1) / n) + ')';
   var cnt = $('wz-count');
   if (cnt) cnt.textContent = L.stepOf(cur + 1, n);
   var nm = $('wz-name');
@@ -472,7 +496,7 @@ function restoreDraft(d) {
   var n = C.restore(d.fields);
   if (!n) return false;
   var i = C.steps.findIndex(function (s) { return s.id === d.step; });
-  if (i > 0) show(i);
+  show(i > 0 ? i : 0);
   var box = $('wz-draft');
   if (box) {
     box.hidden = false;
@@ -509,13 +533,20 @@ function fieldValue(fld) {
     });
     return out.join('、');
   }
-  var e = fld.querySelector('select, input:not([type="hidden"]), textarea');
-  if (!e) return '';
-  if (e.tagName === 'SELECT') {
-    var o = e.options[e.selectedIndex];
-    return o && e.value ? o.textContent.trim() : '';
-  }
-  return String(e.value || '').trim();
+  /* ★1つの欄が入力を2つ以上持つことがある（「対象月」＝年と月の2つ、
+     内訳の行＝連動・金額・呼び名の3つ）。先頭だけ読むと、確認画面から
+     月が丸ごと消える。全部つないで出す。 */
+  var parts = [];
+  fld.querySelectorAll('select, input:not([type="hidden"]), textarea').forEach(function (e) {
+    if (e.disabled || e.type === 'checkbox' || e.type === 'radio') return;
+    if (e.tagName === 'SELECT') {
+      var o = e.options[e.selectedIndex];
+      if (e.value && o) parts.push(o.textContent.trim());
+    } else if (String(e.value || '').trim() !== '') {
+      parts.push(String(e.value).trim());
+    }
+  });
+  return parts.join(' ');
 }
 function renderReview() {
   var host = $(C.reviewId);
@@ -524,6 +555,12 @@ function renderReview() {
   var h = el('h3', 'wz-h', L.revTitle);
   var p = el('p', 'wz-p', L.revSub);
   host.append(h, p);
+  /* ★読むあいだだけ全部の段を出す。他の段は隠れていて offsetParent が無く、
+     「条件で隠れている欄」と「別の段に居る欄」の区別が付かない。区別しないと、
+     住居を『社宅』に変えた人の確認画面に、前に打った住宅手当の額がまだ出る。
+     出しっぱなしにはしない（この関数の中で開いて閉じる＝画面は一度も2段見えない）。 */
+  var back = C.steps.map(function (s) { var e = $(s.id); return [e, e.hidden]; });
+  back.forEach(function (x) { if (x[0]) x[0].hidden = false; });
   C.steps.forEach(function (s, i) {
     if (i >= C.steps.length - 1) return;
     var box = $(s.id);
@@ -539,7 +576,7 @@ function renderReview() {
     sec.appendChild(head);
     var rows = 0;
     box.querySelectorAll('.fld').forEach(function (fld) {
-      if (!fld.offsetParent && !box.hidden) return;    // 条件で隠れている欄は出さない
+      if (!fld.offsetParent) return;                   // 条件で隠れている欄は出さない
       var v = fieldValue(fld);
       if (!v) return;
       var lab = fieldLabel(fld);
@@ -551,6 +588,7 @@ function renderReview() {
     });
     if (rows) host.appendChild(sec);
   });
+  back.forEach(function (x) { if (x[0]) x[0].hidden = x[1]; });
 }
 
 function fmtBand(r, unit) {
@@ -600,7 +638,7 @@ function renderPublic(row, notes) {
                el('span', 'wz-seg-v', '$' + fmtBand(s.r)));
       comp.appendChild(r);
     });
-    comp.appendChild(el('p', 'wz-note', L.bandNote));
+    comp.appendChild(emph('p', 'wz-note', L.bandNote));
     host.appendChild(comp);
   } else if (row.why === 'nodetail') {
     host.appendChild(el('p', 'wz-note', L.noComp));
@@ -619,7 +657,7 @@ function renderPublic(row, notes) {
   if (row.usd != null && row.usd < 10000) lines.push(L.outLow);
   if (row.usd != null && row.usd > 700000) lines.push(L.outHigh);
   (notes || []).forEach(function (x) { lines.push(x); });
-  lines.forEach(function (x) { hedge.appendChild(el('li', null, x)); });
+  lines.forEach(function (x) { hedge.appendChild(emph('li', null, x)); });
   host.appendChild(hedge);
 }
 
@@ -633,24 +671,22 @@ var API = {
     L = T[cfg.lang] || T.ja;
     buildChrome();
     var d = draftRead();
-    /* 未ログインで書いた下書きは、同じブラウザなのでそのまま戻す。
-       押印済みのものは setUid() が呼ばれるまで戻さない（他人の下書きを開かない）。 */
-    if (d && d.uid === 'anon') { this._pending = null; restoreDraft(d); }
+    /* 未ログインで書いた下書きは、同じブラウザなのでそのまま戻す（ただし
+       画面を出すのは start() ＝入口の2択を抜けてから。ここで出すと、
+       まだ「どちらで入力しますか？」を選んでいない人の後ろで段が動く）。
+       押印済みのものは setUid() が「今の人のものだ」と言うまで戻さない。 */
+    if (d && d.uid === 'anon') { this._pending = null; this._resume = d; }
     else { this._pending = d; }
     return this;
   },
   start: function () {
     if (started) return;
     started = true;
-    var i = 0;
-    if (this._pending == null) {
-      var d = draftRead();
-      if (d && d.uid === 'anon') {
-        var k = C.steps.findIndex(function (s) { return s.id === d.step; });
-        if (k > 0) i = k;
-      }
-    }
-    show(i);
+    var d = this._resume;
+    this._resume = null;
+    /* 戻せたら restoreDraft が段まで合わせる。戻せなければ 1/5 から。 */
+    if (d && restoreDraft(d)) return;
+    show(0);
   },
   /* ログインの結果が分かった時点で1回だけ呼ぶ。 */
   setUid: function (uid) {
@@ -659,11 +695,17 @@ var API = {
     uidFp = f;
     if (!d) return;
     if (d.uid === 'anon') { d.uid = f; draftWrite(d); }   // 同じブラウザで本人が認証しただけ
-    else if (d.uid !== f) { draftClear(); this._pending = null; return; }
-    if (this._pending) { this._pending = null; if (started) restoreDraft(d); }
+    else if (d.uid !== f) { draftClear(); this._pending = null; this._resume = null; return; }
+    if (this._pending) {
+      this._pending = null;
+      /* まだ入口の2択に居るなら、戻すのは start() のとき。ここで戻すと
+         画面に出ていない段へ値を入れて、そのまま忘れられる。 */
+      if (started) restoreDraft(d); else this._resume = d;
+    }
   },
   sync: function () { sync(); saveSoon(); },
   go: go,
+  goLast: function () { go(C.steps.length - 1); },
   goToField: goToField,
   current: function () { return C ? C.steps[cur].id : null; },
   isLast: function () { return !!C && cur === C.steps.length - 1; },

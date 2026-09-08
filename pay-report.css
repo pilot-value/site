@@ -22,7 +22,11 @@ nav.scrolled{background:rgba(10,12,15,.92);backdrop-filter:blur(20px);border-bot
 .btn-ghost{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:10px;font-weight:600;font-size:.9rem;color:#e8edf2;border:1px solid rgba(255,255,255,.15);background:transparent;cursor:pointer;transition:border-color .2s,background .2s;text-decoration:none}
 .btn-ghost:hover{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.05)}
 .btn-ghost:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
-.card{background:rgba(17,22,32,.7);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:28px}
+.card{background:rgba(17,22,32,.7);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:32px}
+/* ★内側の余白は Marit の実測と同じ 32px（カラム幅も両方 640px）。
+     狭い画面だけ 20px に落とす ── 32px のままだと 390px の端末で
+     入力欄が 294px まで痩せ、通貨と金額を並べた行が窮屈になる。 */
+@media (max-width:600px){.card{padding:20px}}
 /* ★項目名は小さい・薄い・全部大文字の3つ重ねで読みにくかった（2026-08-27 オーナー指摘
    「対象月」「勤務時間（Duty time）」…が灰色の薄い文字で見えにくい）。
    明るさを上げ・少し大きくし・字間と全部大文字をやめる。入力欄の文字（#e8edf2）よりは
@@ -84,12 +88,17 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 /* ── セクション（必須 / 推奨 / 任意）─────────────────────── */
 .sec{margin-bottom:20px}
 .sec-head{display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap}
-.sec-title{font-size:1.02rem;font-weight:800;letter-spacing:-.015em}
+/* ★段の見出しは、ウィザードでは「その画面の題」になった。Marit の実機は
+   見出し 約23px・説明 16px・行間 1.5（2026-09-08 に ink.mjs で実測）。
+   日本語は同じ px でも字面が大きいので、そのまま写さず 22 / 14 に落として
+   見た目の重さを合わせる（英語版も同じ CSS を読む）。 */
+.sec-title{font-size:1.375rem;font-weight:700;letter-spacing:-.02em;line-height:1.35}
+@media (max-width:600px){.sec-title{font-size:1.25rem}}
 .sec-tag{font-size:.62rem;font-weight:800;padding:3px 10px;border-radius:999px;letter-spacing:.05em;white-space:nowrap}
 .sec-tag.req{background:rgba(249,115,22,.14);color:#fb923c;border:1px solid rgba(249,115,22,.32)}
 .sec-tag.rec{background:rgba(61,155,255,.12);color:#5fb0ff;border:1px solid rgba(61,155,255,.3)}
 .sec-tag.opt{background:rgba(255,255,255,.06);color:#9ca3af;border:1px solid rgba(255,255,255,.14)}
-.sec-sub{font-size:.78rem;color:#6b7d93;margin-bottom:18px;line-height:1.65}
+.sec-sub{font-size:.875rem;color:#6b7d93;margin-bottom:20px;line-height:1.6}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
 .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 16px}
 /* ラベルが1行の列と2行の列が混ざると input の上端がズレる（EN で実測18px）。
@@ -607,6 +616,157 @@ body.has-cta #form-wrap{padding-bottom:96px}
 .ps-next .btn-orange{margin-top:11px;padding:10px 20px;font-size:.85rem}
 @media (prefers-reduced-motion:reduce){.ps-edit,.ps-res{animation:none}}
 /* ── Light mode ─────────────────────────────────────────── */
+/* ══ ウィザード（Phase 5・2026-09-08）═══════════════════════════════
+   1枚の長いページを5つの段に分けた器。骨組みは pay-wizard.js が組む。
+   見た目の手本は Marit Health の給与フォーム（実機のスクリーンショットを実測した）。
+
+   ★画素をそのまま写していない。実測して比べたら、**縦のリズムはもともと一致していた**
+     ── 欄の下端から次の欄の上端まで、こちらが 44.9px・向こうが 44px。
+     カラムの幅も両方 640px。入力の高さだけ違う（こちら 43px / 向こう 40px）が、
+     日本語の字面と指の当たりを考えるとこちらのほうが正しいので**下げない**。
+     つまり足りなかったのは寸法ではなく**器**（進捗・段の行き来・確認・公開イメージ）で、
+     ここで作るのはその4つだけ。既存の規則は1行も上書きしない。
+
+   Marit 実測値（1439×813 CSS ＝ 2倍のスクリーンショットを走査）
+     カード 640px 中央寄せ／内側の余白 32px／進捗バー 高さ 8px・カード幅いっぱい
+     入力 外寸 40px・枠 1px・角丸 6px／欄と欄 44px／ピル 29px
+   色は向こうの緑（#05a87d）を持ってこない。ブランドの橙と金のまま。 */
+
+/* ── 進捗（1/5〜5/5）── ヘッダーの下に貼り付く ─────────────────── */
+.wz-top{position:sticky;top:var(--pv-topbar,69px);z-index:5;
+  padding:13px 0 11px;margin-bottom:18px;
+  background:rgba(10,12,15,.93);backdrop-filter:blur(14px)}
+.wz-bar{height:8px;border-radius:999px;overflow:hidden;background:rgba(255,255,255,.10)}
+/* ★width ではなく scaleX で伸ばす（transform と opacity だけ動かす、が家のきまり）。
+     伸ばす向きを決めないと中央から広がるので transform-origin を左に固定する。 */
+.wz-bar>i{display:block;width:100%;height:100%;border-radius:999px;
+  transform:scaleX(0);transform-origin:left center;
+  background:linear-gradient(90deg,#f97316,#f5c842);
+  transition:transform .45s cubic-bezier(.16,1,.3,1)}
+.wz-meta{display:flex;align-items:baseline;gap:10px;margin-top:9px;min-width:0}
+.wz-count{flex:none;font-size:.68rem;font-weight:800;letter-spacing:.06em;color:#fb923c;
+  font-variant-numeric:tabular-nums}
+/* 段の名前は長いほうが折り返さず切れるほうがよい（バーの高さが動くと目が滑る）。 */
+.wz-name{min-width:0;font-size:.78rem;font-weight:700;color:#a8b3c2;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (prefers-reduced-motion:reduce){.wz-bar>i{transition:none}}
+
+/* ── 下書きの状態 ── 「このブラウザに」を必ず出す（保存の範囲が読めば分かる形）── */
+.wz-draft{display:flex;align-items:center;gap:9px;flex-wrap:wrap;
+  margin:-8px 0 16px;font-size:.72rem;line-height:1.6;color:#6b7d93}
+.wz-draft.is-ng{color:#f87171}
+.wz-draft-drop{font-size:.7rem;font-weight:700;color:#9ca3af;background:transparent;
+  border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:3px 10px;cursor:pointer;
+  transition:color .2s,border-color .2s}
+.wz-draft-drop:hover{color:#e8edf2;border-color:rgba(255,255,255,.32)}
+.wz-draft-drop:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.wz-draft-drop:active{transform:translateY(1px)}
+
+/* ── 段の末尾の 戻る／次へ ─────────────────────────────────────
+   ★常設の提出バーは廃止した（2026-09-08 オーナー指示）。送信は最後の確認画面だけ。
+     途中の段から直接送れる口をここに作らない。 */
+.wz-nav{display:flex;align-items:center;gap:12px;margin-top:26px;padding-top:22px;
+  border-top:1px solid rgba(255,255,255,.07)}
+.wz-next{flex:1 1 auto;min-height:52px;padding:0 22px;border-radius:12px;border:none;
+  font-size:.95rem;font-weight:700;font-family:inherit;letter-spacing:.01em;
+  background:linear-gradient(135deg,#f97316,#f5c842);color:#000;cursor:pointer;
+  transition:opacity .2s,transform .2s cubic-bezier(.16,1,.3,1)}
+.wz-next:hover{opacity:.9;transform:translateY(-1px)}
+.wz-next:focus-visible{outline:2px solid rgba(245,200,66,.7);outline-offset:3px}
+.wz-next:active{transform:translateY(1px)}
+.wz-back{flex:0 0 auto;min-height:52px;padding:0 20px;border-radius:12px;
+  font-size:.88rem;font-weight:600;font-family:inherit;color:#e8edf2;
+  border:1px solid rgba(255,255,255,.15);background:transparent;cursor:pointer;
+  transition:color .2s,border-color .2s,background .2s}
+.wz-back:hover{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.05)}
+.wz-back:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.wz-back:active{transform:translateY(1px)}
+@media (prefers-reduced-motion:reduce){.wz-next{transition:none}}
+
+/* ── 確認画面（5/5）の見出し ─────────────────────────────────── */
+.wz-h{font-size:1.02rem;font-weight:800;letter-spacing:-.015em;color:#e8edf2}
+.wz-p{font-size:.78rem;color:#6b7d93;margin:5px 0 18px;line-height:1.65}
+.wz-note{font-size:.72rem;color:#6b7d93;margin-top:10px;line-height:1.7}
+
+/* ── 上の面：入力内容の確認（本人用・実額そのまま）───────────────── */
+.wz-rev-sec{margin-bottom:22px}
+.wz-rev-sec:last-of-type{margin-bottom:0}
+.wz-rev-head{display:flex;align-items:center;gap:10px;
+  padding-bottom:8px;margin-bottom:6px;border-bottom:1px solid rgba(255,255,255,.09)}
+.wz-rev-t{min-width:0;font-size:.9rem;font-weight:800;letter-spacing:-.01em;color:#e8edf2}
+.wz-rev-edit{margin-left:auto;flex:none;font-size:.72rem;font-weight:700;color:#f5c842;
+  background:transparent;border:1px solid rgba(245,200,66,.32);border-radius:999px;
+  padding:3px 12px;cursor:pointer;transition:color .2s,border-color .2s,background .2s}
+.wz-rev-edit:hover{background:rgba(245,200,66,.1);border-color:rgba(245,200,66,.55)}
+.wz-rev-edit:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.wz-rev-edit:active{transform:translateY(1px)}
+.wz-rev-row{display:flex;align-items:baseline;justify-content:space-between;gap:16px;
+  padding:7px 0;border-bottom:1px solid rgba(255,255,255,.045)}
+.wz-rev-row:last-child{border-bottom:none}
+.wz-rev-k{flex:none;max-width:52%;font-size:.78rem;color:#6b7d93;line-height:1.5}
+.wz-rev-v{min-width:0;font-size:.85rem;font-weight:700;text-align:right;line-height:1.5;
+  font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+
+/* ── 下の面：匿名で公開されるイメージ ───────────────────────────
+   ★上の面と**見た目からして別物**にする。同じ白い行が続くと、
+     実額の確認と公開の見え方が地続きに見える。青＝公開情報（pv-tokens.css の約束）。 */
+.wz-pub{border:1px solid rgba(61,155,255,.26);border-radius:14px;padding:16px 18px;
+  background:rgba(61,155,255,.06)}
+.wz-pub-row{display:flex;align-items:baseline;justify-content:space-between;gap:14px;
+  padding:6px 0}
+.wz-pub-k{flex:none;font-size:.75rem;color:#8496ad}
+.wz-pub-v{min-width:0;font-size:.86rem;font-weight:700;text-align:right;
+  font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.wz-pub-comp{margin-top:12px;border:1px solid rgba(255,255,255,.08);border-radius:14px;
+  padding:14px 18px;background:rgba(255,255,255,.025)}
+.wz-pub-comp-t{font-size:.72rem;font-weight:800;letter-spacing:.05em;color:#9ca3af;
+  margin-bottom:8px}
+.wz-pub-seg{display:flex;align-items:center;gap:9px;padding:5px 0;font-size:.78rem}
+.wz-seg-k{min-width:0;color:#a8b3c2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wz-seg-v{margin-left:auto;flex:none;font-weight:700;font-variant-numeric:tabular-nums}
+/* ★色は REAL PAY の帯（actual-pay.css の .ap-dw-c-*）と**同じ9色**。
+     ここを勝手に変えると、同じ人が確認画面と REAL PAY で違う色の内訳を見る。
+     ズレは db/test-pay-preview.mjs の C) が見張っている。 */
+.wz-seg-dot{flex:none;width:9px;height:9px;border-radius:3px}
+.wz-seg-dot.is-fixed   {background:#34d399}
+.wz-seg-dot.is-variable{background:#f5c842}
+.wz-seg-dot.is-command {background:#5fb0ff}
+.wz-seg-dot.is-role    {background:#e8604c}
+.wz-seg-dot.is-perdiem {background:#f472b6}
+.wz-seg-dot.is-housing {background:#fb923c}
+.wz-seg-dot.is-other   {background:#a78bfa}
+.wz-seg-dot.is-rest    {background:#5c6675}
+.wz-seg-dot.is-bonus   {background:#22d3ee}
+/* 出さないものを名前で並べる。**「出さない」は文字で読めなければ約束にならない。** */
+.wz-pub-no{margin-top:12px;padding:11px 14px;border-radius:12px;
+  border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.02)}
+.wz-pub-no-t{display:block;font-size:.7rem;font-weight:800;letter-spacing:.04em;
+  color:#9ca3af;margin-bottom:4px}
+.wz-pub-no-v{display:block;font-size:.74rem;color:#6b7d93;line-height:1.7}
+/* サーバ側で決まる部分の断り書き。「こう出ます」と言い切らないための行。 */
+.wz-hedge{list-style:none;margin:12px 0 0;padding:0;
+  font-size:.71rem;color:#6b7d93;line-height:1.75}
+.wz-hedge li{position:relative;padding-left:14px}
+.wz-hedge li::before{content:'·';position:absolute;left:4px;top:0}
+
+/* ── 狭い画面 ────────────────────────────────────────────────
+   Marit のモバイルと同じで、押せるものは縦に伸ばして指が当たる大きさにする。 */
+@media (max-width:600px){
+  .wz-top{padding:11px 0 9px;margin-bottom:14px}
+  .wz-nav{gap:10px;margin-top:22px;padding-top:18px}
+  .wz-next,.wz-back{min-height:52px}
+  .wz-back{padding:0 16px}
+  .wz-rev-k{max-width:46%}
+  .wz-pub{padding:14px}
+  .wz-pub-comp{padding:12px 14px}
+}
+/* 320px（iPhone SE 1 / 5s）。「戻る」の字数は言語で違うので幅を決め打ちしない。 */
+@media (max-width:340px){
+  .wz-nav{gap:8px}
+  .wz-back{padding:0 12px;font-size:.82rem}
+  .wz-next{padding:0 14px;font-size:.88rem}
+}
+
 [data-theme="light"] body{background:#f3f5f8!important;color:#0f172a!important}
 [data-theme="light"] nav{background:rgba(243,245,248,.95)!important;backdrop-filter:blur(16px);border-bottom:1px solid rgba(0,0,0,.07)!important}
 [data-theme="light"] nav.scrolled{background:rgba(243,245,248,.98)!important}
@@ -804,3 +964,39 @@ body.has-cta #form-wrap{padding-bottom:96px}
 [data-theme="light"] .ps-q-q{color:#475569}
 [data-theme="light"] .ps-next{border-color:rgba(13,138,99,.28);background:rgba(13,138,99,.06)}
 [data-theme="light"] .ps-next-t{color:#0d8a63}
+
+/* ── ウィザード（ライト）── ダーク側と同じ順・同じ粒度で対にする ─────── */
+[data-theme="light"] .wz-top{background:rgba(243,245,248,.94)}
+[data-theme="light"] .wz-bar{background:rgba(15,23,42,.10)}
+[data-theme="light"] .wz-count{color:#c2410c}
+[data-theme="light"] .wz-name{color:#475569}
+[data-theme="light"] .wz-draft{color:#64748b}
+[data-theme="light"] .wz-draft.is-ng{color:#b91c1c}
+[data-theme="light"] .wz-draft-drop{color:#64748b;border-color:rgba(0,0,0,.16)}
+[data-theme="light"] .wz-draft-drop:hover{color:#0f172a;border-color:rgba(0,0,0,.34)}
+[data-theme="light"] .wz-nav{border-top-color:rgba(0,0,0,.09)}
+[data-theme="light"] .wz-back{color:#0f172a;border-color:rgba(0,0,0,.16)}
+[data-theme="light"] .wz-back:hover{border-color:rgba(0,0,0,.34);background:rgba(0,0,0,.04)}
+[data-theme="light"] .wz-h{color:#0f172a}
+[data-theme="light"] .wz-p,[data-theme="light"] .wz-note{color:#64748b}
+[data-theme="light"] .wz-rev-head{border-bottom-color:rgba(0,0,0,.12)}
+[data-theme="light"] .wz-rev-t{color:#0f172a}
+/* ★金の字（#f5c842）は白に置くとコントラスト 1.65 でほぼ見えない。
+     ライトでは必ず濃い側（--pv-gold-ink と同じ #8a6e00）へ落とす。 */
+[data-theme="light"] .wz-rev-edit{color:#8a6e00;border-color:rgba(180,140,20,.4)}
+[data-theme="light"] .wz-rev-edit:hover{background:rgba(245,200,66,.16);border-color:rgba(180,140,20,.6)}
+[data-theme="light"] .wz-rev-row{border-bottom-color:rgba(0,0,0,.07)}
+[data-theme="light"] .wz-rev-k{color:#64748b}
+[data-theme="light"] .wz-pub{border-color:rgba(37,99,235,.24);background:rgba(37,99,235,.06)}
+[data-theme="light"] .wz-pub-k{color:#475569}
+[data-theme="light"] .wz-pub-comp{border-color:rgba(0,0,0,.09);background:rgba(255,255,255,.72)}
+[data-theme="light"] .wz-pub-comp-t{color:#475569}
+[data-theme="light"] .wz-seg-k{color:#334155}
+/* ★帯の9色のうち、白に乗らないものだけ濃い側へ。REAL PAY のライトと同じ考え方。 */
+[data-theme="light"] .wz-seg-dot.is-fixed{background:#059669}
+[data-theme="light"] .wz-seg-dot.is-variable{background:#b5920a}
+[data-theme="light"] .wz-seg-dot.is-command{background:#2563eb}
+[data-theme="light"] .wz-seg-dot.is-bonus{background:#0891b2}
+[data-theme="light"] .wz-pub-no{border-color:rgba(0,0,0,.09);background:rgba(255,255,255,.6)}
+[data-theme="light"] .wz-pub-no-t{color:#475569}
+[data-theme="light"] .wz-pub-no-v,[data-theme="light"] .wz-hedge{color:#64748b}
