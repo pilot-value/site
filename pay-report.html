@@ -3231,6 +3231,15 @@ function markMissing(list) {
 /* ★unc() を通す。金額の欄は画面に 1,150,000 と出ているので、そのまま送ると
    サーバの ::numeric が落ちる（送るのは常に素の数字）。 */
 const val = (id) => { const v = unc($(id).value).trim(); return v === '' ? null : v; };
+/* ★役職・区分だけは val() を通してはいけない（2026-09-08）。
+   val() は中で unc() ── 金額の桁区切りを外す関数 ── を通すので、
+   #f-jobrole が区切りに使っているカンマまで一緒に消える。
+   'line,instructor' が 'lineinstructor' になり、サーバの語彙検査
+   （pv_validate_pay_payload）に落ちて「役職・区分が不正です」で
+   **送信そのものが失敗していた**。1つしか選ばない人には区切りが無いので
+   何も起きず、2つ以上選んだ人だけが最後の最後で弾かれる。
+   ここは値をそのまま読む。 */
+const roleCodes = () => String($('f-jobrole').value || '').split(',').filter(Boolean);
 /* いくつかの欄を足して1つの列へ送る。全部空なら null（0 を送らない）。 */
 const sumField = (...ids) => {
   let t = 0, any = false;
@@ -3303,8 +3312,8 @@ async function submitPayReport() {
     fleet:               val('f-fleet'),
     /* ★役職・区分は複数選択。job_roles が正で、job_role には先頭（主たる役割）を入れる。
        古い行・明細読み取り・管理者メールが job_role を見ているので残す。 */
-    job_roles:           val('f-jobrole').split(',').filter(Boolean),
-    job_role:            val('f-jobrole').split(',')[0] || '',
+    job_roles:           roleCodes(),
+    job_role:            roleCodes()[0] || '',
     age_bucket:          val('f-age'),
     base_iata:           val('f-base-iata'),
     period_year:         val('f-year'),

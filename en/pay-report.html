@@ -3311,6 +3311,15 @@ function markMissing(list) {
 /* ★Goes through unc(). A money box reads 1,150,000 on screen; sent raw it
    makes the server's ::numeric fail (we always send bare digits). */
 const val = (id) => { const v = unc($(id).value).trim(); return v === '' ? null : v; };
+/* ★Never run the job-role field through val() (2026-09-08).
+   val() pipes through unc() -- the helper that strips thousand separators --
+   so it also eats the commas that #f-jobrole uses as its own separator.
+   'line,instructor' became 'lineinstructor', failed the server-side vocabulary
+   check (pv_validate_pay_payload) and made **the whole submission fail** with
+   "role/category is invalid". Anyone picking a single role has no separator, so
+   nothing happens; only people picking two or more got rejected at the very end.
+   Read the value as-is here. */
+const roleCodes = () => String($('f-jobrole').value || '').split(',').filter(Boolean);
 /* Add a few fields up into one column. All empty -> null (never send a 0). */
 const sumField = (...ids) => {
   let t = 0, any = false;
@@ -3388,8 +3397,8 @@ async function submitPayReport() {
     fleet:               val('f-fleet'),
     /* ★役職・区分は複数選択。job_roles が正で、job_role には先頭（主たる役割）を入れる。
        古い行・明細読み取り・管理者メールが job_role を見ているので残す。 */
-    job_roles:           val('f-jobrole').split(',').filter(Boolean),
-    job_role:            val('f-jobrole').split(',')[0] || '',
+    job_roles:           roleCodes(),
+    job_role:            roleCodes()[0] || '',
     age_bucket:          val('f-age'),
     base_iata:           val('f-base-iata'),
     period_year:         val('f-year'),
