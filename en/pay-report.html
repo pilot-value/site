@@ -199,7 +199,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
 
       <!-- Auto-fill from a payslip — redacted on your device, you approve it, then it is sent -->
       <div class="ps" id="ps" hidden>
-        <p class="ps-step" id="ps-step">STEP 1 OF 2 — READ THE PAYSLIP</p>
+        <p class="ps-step" id="ps-step">READ THE PAYSLIP (OPTIONAL)</p>
         <button type="button" class="ps-drop" id="ps-drop">
           <span class="ps-ico" aria-hidden="true">📄</span>
           <span class="ps-drop-txt">
@@ -1487,12 +1487,26 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
            空のままなら val() が null を返して列も NULL。 -->
       <input type="hidden" id="f-hourly">
 
-      <!-- ★エラーの置き場所。#submit-block は必須が全部そろうまで hidden なので、
-           中に置いていると「途中で押した人」に何も見えない（2026-08-27）。
+      <!-- ★エラーの置き場所。この節そのものは動かさない ── ウィザードが
+           show() のたびに**今出ているステップの中へ移す**（pay-wizard.js）。
+           置きっぱなしにすると、s1 で Next を押した人のエラーが画面の
+           ずっと下（s5 の中）に出て、本人には何も起きていないように見える。
            空のときは高さゼロ。showErr / clearErr は今までどおりここへ書く。 -->
       <div id="err" style="margin-top:18px"></div>
 
-      <div class="step" id="submit-block" hidden>
+      <!-- ══ 5/5 確認（Phase 5・2026-09-08）════════════════════════════
+           上＝本人が入れた実額の読み返し（#wz-review）
+           下＝匿名で公開される見込みの形（#wz-public）
+           ★この2つを1枚に混ぜない。混ぜると「入れた額がそのまま出る」と読まれる。
+           ★中身は pay-wizard.js が組む。ここに文言を置かない（日英で1本のため）。 -->
+      <div class="card sec step" id="s5" hidden>
+        <div class="sec-head">
+          <span class="sec-title">5. Review</span>
+        </div>
+        <div id="wz-review"></div>
+        <div id="wz-public"></div>
+
+      <div class="step wz-err-here" id="submit-block" hidden>
         <div class="sal-total pv-no-cur" style="margin-bottom:8px">
           <span class="sal-total-lab">Annualised total<br>(from what you entered)</span>
           <span class="sal-total-val" id="live-total">—</span>
@@ -1516,21 +1530,24 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
              the button and that is where the trust goes. -->
         <p class="sal-hint" style="text-align:center;margin-top:14px">Creating an account unlocks <b>full pay detail for 90 days</b>. Each new payslip you file pushes that out another 90 days. Free for individual pilots, forever.</p>
       </div>
+      </div><!-- /s5 -->
 
-      <!-- ★Always-there submit bar (2026-08-27, owner). Shows the annualised total and
-           the submit button from section 3 onward, so a pilot who wants to file
-           part-way through always has somewhere to press.
-           ・Appears once §3 is visible, and never hides again (same rule as the steps).
-           ・Calls the same submitPayReport() as #submit-btn. No second code path.
-           ・recalc() writes the same figure here and into #live-total (one formula).
-           ・The long explanation (#live-hint) stays in #submit-block only. -->
+      <!-- ★下端の帯（2026-09-08 オーナー指示で作り替え）。
+           2026-08-27 の「『匿名で提出』ボタンを常に下に表示させて」は、5ステップ化に
+           合わせてオーナーが更新した ── **押す物はここに置かない**。
+           ・押すのは各ステップ末尾の Next と、5/5 の確認画面の提出ボタンだけ。
+             途中のステップから直接は送らない（送信の入口を1つにする）。
+           ・残すのは年換算の合計の表示だけ。出すのは「3. 報酬」の段にいる間のみ
+             （pay-wizard.js の show() が totalBar で出し入れする）。
+           ・金額は recalc() が #live-total と同じものをここへも書く（式は1本のまま）。
+           ・body.has-cta の下余白はそのまま使う（最後の欄と Next を隠さないための、
+             既に検証済みの仕組み）。 -->
       <div id="sticky-submit" class="sticky-cta" hidden>
         <div class="sticky-cta-in">
           <div class="sticky-cta-sum pv-no-cur">
             <span class="sticky-cta-lab">Annualised total</span>
             <span class="sticky-cta-val" id="sticky-total">—</span>
           </div>
-          <button type="button" id="sticky-btn" class="btn-orange justify-center">Submit anonymously</button>
         </div>
       </div>
 
@@ -1557,6 +1574,10 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
   </div>
 </footer>
 
+<!-- ★5ステップの器（Phase 5・2026-09-08）。日英でこの1本を共有する。
+     読み込みに失敗したら window.PVPayWizard が無いまま＝下のインラインは
+     これまでどおり「埋めると下が生える」1枚の長いページとして動く。 -->
+<script src="../pay-wizard.js"></script>
 <script>
 // ── Supabase ──────────────────────────────────────────────────
 const _sb = supabase.createClient(
@@ -1582,6 +1603,13 @@ const MONTH_NAMES = ['January','February','March','April','May','June','July','A
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
+
+/* ── 5ステップの器（Phase 5・2026-09-08）───────────────────────
+   ★pay-wizard.js が読めなかったら null のまま。そのときは下の関数が
+     これまでどおり「埋めると下が生える」1枚の長いページとして動く
+     ＝共有 JS が落ちても、給与が出せなくなることは無い。 */
+const WZ = window.PVPayWizard || null;
+const STEP_IDS = ['s1', 's2', 's3', 's4', 's5'];
 
 /* ── Analytics (GA4. Reuse the existing gtag — no new vendor) ──────────────
    ★The same block exists in pay-report.html. Change one and not the other and
@@ -1664,11 +1692,12 @@ function recapLine() {
 const BTN_LABEL_IN  = 'Submit and see the numbers →';
 const BTN_LABEL_OUT = 'Submit anonymously';
 let _btnLabel = BTN_LABEL_IN;
-/* ── There are two submit buttons ───────────────────────────────
-   #submit-btn (the real one, revealed once every step is filled) and the
-   always-there bar's #sticky-btn.
-   ★State goes to both. Disable only one and the other is still clickable mid-send. */
-const SUBMIT_BTNS = () => ['submit-btn', 'sticky-btn'].map($).filter(Boolean);
+/* ── The submit button ──────────────────────────────────────────
+   Since 2026-09-08 there is only #submit-btn (the bar's #sticky-btn is gone —
+   the bar now carries the annualised total and nothing to press).
+   ★The list shape stays. It is the one place that stops a newly added button
+     from staying clickable mid-send because someone forgot to disable it. */
+const SUBMIT_BTNS = () => ['submit-btn'].map($).filter(Boolean);
 function setSubmitBusy(busy, label) {
   for (const b of SUBMIT_BTNS()) { b.disabled = busy; b.textContent = label; }
 }
@@ -1685,6 +1714,9 @@ function showGate(saved) {
      「登録の箱まで来た回数」が数えられない）。フォームを全部埋めきった人の数＝
      このイベントの数になり、pay_login_* → pay_report_submit と1本につながる。 */
   track('pay_login_shown', { saved: saved ? 1 : 0 });
+  /* ★箱は 5/5 の中にある。別の段に居るまま出すと、画面に無いものへ
+     scrollIntoView することになって何も起きない。先に運ぶ。 */
+  if (WZ) { WZ.goLast(); $('submit-block').hidden = false; }
   mountLogin(saved, 0);
   $('login-gate').style.display = '';
   $('login-gate').scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1740,6 +1772,9 @@ async function afterSignedIn() {
    never opened" or "no email ever went out". */
 function afterSaved(data, payload, airline) {
   try { localStorage.removeItem(PENDING_KEY); } catch (e) {}
+  /* ★出し切ったら下書きも消す（オーナー指示）。預かり（PENDING_KEY）と
+     同じ場所で消す ── 片方だけ消すと、次に開いた人に「まだ途中です」と出る。 */
+  if (WZ) WZ.clearDraft();
   /* Raise the "email me" flag for anyone who joined from this box, exactly once.
      ★Every route ends up here. Written straight after auth instead, the routes
        that leave the page (Google, the emailed link) would miss it. */
@@ -2455,16 +2490,26 @@ function updateSteps(quiet) {
      Nothing is skipped now, so the submit button only appears once every gate
      passes — which also kills the original worry (a live submit button with
      the pilot's own base pay nowhere on screen). */
-  let last = -1;
-  for (let i = 0; i < STEPS.length; i++) { if (!STEPS[i][1]()) break; last = i; }
-  for (let i = 0; i <= last; i++) show(STEPS[i][0]);
-  if (last === STEPS.length - 1 && GATE_CONTRACT()) show('submit-block');
-  /* ★§3「報酬」が出たら、下端の常設バーも出す（2026-08-27 オーナー指示）。
-     途中で出したい人が押せる所を、いつでも持っている状態にする。 */
-  if (!$('s3').hidden) showSticky();
+  /* ★ウィザードが居るあいだ、段は生やさない（1画面1段が約束）。
+     hidden の出し入れは pay-wizard.js の show() だけが持つ。ここで触ると、
+     戻ったときに前の段まで一緒に画面へ出てくる。
+     送信ボタンは 5/5 の中にあり、そこへは Next でしか着けない
+     ＝「全段そろってから」は forward() が受け持っている。 */
+  if (WZ) {
+    $('submit-block').hidden = false;
+  } else {
+    let last = -1;
+    for (let i = 0; i < STEPS.length; i++) { if (!STEPS[i][1]()) break; last = i; }
+    for (let i = 0; i <= last; i++) show(STEPS[i][0]);
+    if (last === STEPS.length - 1 && GATE_CONTRACT()) show('submit-block');
+    /* ★§3「報酬」が出たら、下端の帯も出す（2026-08-27）。 */
+    if (!$('s3').hidden) showSticky();
+  }
   markRequired();
   markRail();
   markProgress();
+  /* 下書きは2秒のデバウンス。打鍵のたびに localStorage を叩かない。 */
+  if (WZ) WZ.sync();
   $('ai-legend').hidden = !document.querySelector('.form-input.ai-filled');
   /* ★「給与の内訳を入力する」から来た人を、§3 が出た**1回だけ**内訳まで寄せる。
      旗は使ったら消す（そのあと勝手に飛ばない）。 */
@@ -2497,6 +2542,14 @@ function markRequired() {
       const t = lab.querySelector('.miss-tag');
       if (t) t.remove();
     }
+  }
+  /* ★赤い箱も一緒に落とす。落とすのは markMissing() が書いたものだけ
+     （dataset.from）。ほかのエラー（額面と時間の食い違いなど）は
+     「空かどうか」では消せないので、そのまま残す。 */
+  const eb = $('err');
+  if (eb && eb.dataset.from === 'miss' && !document.querySelector('.fld.is-miss')) {
+    eb.innerHTML = '';
+    delete eb.dataset.from;
   }
 }
 /* 内訳の欄の左のレール（2026-09-03 その3・オーナー指示
@@ -2561,6 +2614,10 @@ function progParts(el) {
 function markProgress() {
   for (const [id, gate] of SEC_GATE) {
     const sec = $(id);
+    /* ★出ていない段は数えない。openReq/visReq は offsetParent で数えるので、
+       隠れている段は「欄ゼロ」＝0% になり、戻ってきたとき 0% のまま焼き付く。
+       出し直したときは pay-wizard.js の onStep がここを呼び直す。 */
+    if (sec.hidden) continue;
     const el = sec.querySelector('.sec-prog');
     if (!el) continue;
     el.hidden = false;
@@ -2610,9 +2667,14 @@ function enterMode(mode) {
   $('entry').hidden = true;
   $('ps').hidden = false;
   $('ps').classList.toggle('is-slim', slim);
-  if (slim && $('form-body').hidden) {
-    $('form-body').hidden = false;
-    updateSteps(true);        // catch up on anything restored while it was hidden
+  if (slim) {
+    if ($('form-body').hidden) {
+      $('form-body').hidden = false;
+      updateSteps(true);      // catch up on anything restored while it was hidden
+    }
+    /* ★ここで初めて段を歩き始める（入口の2択に居るあいだは器を動かさない）。
+       下書きがある人は、その続きの段から始まる。2回目以降は何も起きない。 */
+    if (WZ) WZ.start();
   }
 }
 window.PVEnterMode = enterMode;
@@ -3065,6 +3127,86 @@ varNoneSync();
 markRail();
 updateSteps(true);
 
+/* ══ 5ステップの器を起こす（Phase 5・2026-09-08）══════════════════════
+   ★ここで渡すのは「この画面の読み方」だけ。給与の計算も、保存の契約も、
+     匿名化の判断も pay-wizard.js は1つも持たず、下の既存の関数を呼んでいる。
+     年換算は annualTotal()、送る中身は buildPayload()、足りない欄は
+     missingAll() ── どれもこの画面が前から持っているもの。 */
+
+/* ★下書きに入れるのは構造化された入力値だけ。f-psdetail（明細の読み取り原文）は
+     許可リストから**明示的に外す** ── 氏名・社員番号が混じりうる生テキストで、
+     オーナーの指示「明細画像・PDF・OCR 原文は下書きに保存しない」に当たる。
+   ★除外リストではなく許可リストで濾すこと。欄が増えた日に黙って漏れる。 */
+const DRAFT_IDS = ALL_IDS.filter((id) => id !== 'f-psdetail');
+
+/* 為替は「サーバが使うのと同じ表」から取る（fx_rates は誰でも読める）。
+   ★currency.js の RATES は切替メニューに出る7通貨しか持っていないので使えない。
+     45通貨のうち残り38通貨の人に、画面だけ「内訳は出ません」と嘘をつくことになる。
+   ★取れなくてよい。取れなければ帯を出さず、理由を1行書く。 */
+let FX = null;
+async function loadFx() {
+  if (FX) return FX;
+  const m = {};
+  try {
+    const { data, error } = await _sb.from('fx_rates').select('code,to_usd');
+    if (error) throw error;
+    for (const r of data || []) m[r.code] = Number(r.to_usd);
+  } catch (e) { /* 取れないことは画面に出る。ここでは黙る */ }
+  FX = m;
+  return FX;
+}
+
+/* 選択肢の文字は画面の <option> から取る（日英で自動的に正しい）。 */
+const optLabel = (id) => {
+  const sel = $(id);
+  if (!sel || !sel.options) return '';
+  const o = sel.options[sel.selectedIndex];
+  return o && sel.value ? o.textContent.trim() : '';
+};
+
+/* 公開イメージに添える注記。★こちらに**実在する判定だけ**を出す
+   （Marit の「5パーセンタイル未満」のような、持っていない判定を作らない）。 */
+function payNotes() {
+  const out = [];
+  if (num('f-gross') > 0 && monthlyDetail() > num('f-gross') + 1) {
+    out.push('The breakdown adds up to more than the gross for that month. You can still file it, but no breakdown band will be shown.');
+  }
+  return out;
+}
+
+if (WZ) {
+  WZ.init({
+    lang: LANG,
+    bodyId: 'form-body',
+    totalBarId: 'sticky-submit',
+    reviewId: 'wz-review',
+    publicId: 'wz-public',
+    errId: 'err',
+    /* ★合計の帯を出すのは「3. 報酬」の段だけ（オーナー指示）。 */
+    steps: [{ id: 's1' }, { id: 's2' }, { id: 's3', totalBar: true }, { id: 's4' }, { id: 's5' }],
+    draftIds: DRAFT_IDS,
+    read: (id) => { const e = $(id); return e ? e.value : ''; },
+    restore: restoreInto,
+    missing: missingAll,
+    markMissing: markMissing,
+    clearErr: clearErr,
+    payload: () => buildPayload(),
+    annualOrig: annualTotal,
+    fx: () => { const v = FX ? FX[$('f-currency').value] : null; return v == null ? null : v; },
+    nameOf: optLabel,
+    onStep: (id) => {
+      /* 段を出し直したので、印とゲージを引き直す（隠れている間は数えていない）。 */
+      markRequired();
+      markProgress();
+      if (id !== 's5') return;
+      const draw = () => WZ.render(payNotes());
+      draw();
+      /* レートがまだなら、着いてからもう一度描く（まだ 5/5 に居るときだけ）。 */
+      if (!FX) loadFx().then(() => { if (WZ.current() === 's5') draw(); });
+    }
+  });
+}
+
 /* ── Fill in last month from the server ────────────────────────────────
    ★localStorage alone reaches nobody who changed phone, changed browser, or
      arrived from a payslip. If they are signed in, fill from their own most
@@ -3163,7 +3305,11 @@ updateSteps(true);
      failure or a reload. */
 const PENDING_MAX_AGE = 14 * 24 * 60 * 60 * 1000;   // don't hold a draft older than 2 weeks
 (async function () {
-  const signedIn = !!(await sessionUserId());
+  const _uid = await sessionUserId();
+  const signedIn = !!_uid;
+  /* ★下書きの持ち主を確かめる。別のアカウントの下書きは戻さず捨てる。
+     未ログインで書いたものは、同じブラウザで本人が認証しただけなので押印し直す。 */
+  if (WZ) WZ.setUid(_uid);
   setSubmitLabel(signedIn);
 
   const drop = () => { try { localStorage.removeItem(PENDING_KEY); } catch (e) {} };
@@ -3236,7 +3382,7 @@ function showErr(msg, title) {
   $('err').innerHTML = '<div class="form-alert"><span class="fa-title">' + esc(title || 'Could not submit') + '</span>' + esc(msg) + '</div>';
   $('err').scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
-function clearErr() { $('err').innerHTML = ''; clearMissMarks(); }
+function clearErr() { const e = $('err'); e.innerHTML = ''; delete e.dataset.from; clearMissMarks(); }
 
 /* ── Collect every empty required field at once (2026-08-27, owner) ───
    It used to early-return one message at a time, so someone with three gaps
@@ -3257,6 +3403,27 @@ function missingRequired() {
     return !(row && ![...row.querySelectorAll('input, select')].some((e) => e.value.trim()));
   });
 }
+/* ★送信の直前だけは、**全部の段を一時的に出して**数える。
+   missingRequired() は offsetParent で「条件が揃っていない欄」を落としているが、
+   その目は「別の段に居るから隠れている欄」と区別が付かない。数え終えたら必ず戻す
+   ＝画面には1度も2段は出ない（同じ関数の中で開いて閉じる）。 */
+function missingAll() {
+  if (!WZ) return missingRequired();
+  const back = STEP_IDS.map((id) => [id, $(id).hidden]);
+  for (const [id] of back) $(id).hidden = false;
+  /* 畳んだ「4. 契約と税」も一度開く。畳んだままだと在籍年数が空でも
+     数えられず、送信の1件ずつの判定でしか出てこない（その欄は画面に無い）。 */
+  const folded = $('s4-body').hidden;
+  if (folded) { $('s4-sum').hidden = true; $('s4-body').hidden = false; $('s4-sub').hidden = false; }
+  const m = missingRequired();
+  for (const [id, h] of back) $(id).hidden = h;
+  /* 足りない欄が無ければ畳み直す（見た目を勝手に変えない）。 */
+  if (folded && !m.some((f) => $('s4-body').contains(f))) {
+    $('s4-sum').hidden = false; $('s4-body').hidden = true; $('s4-sub').hidden = true;
+  }
+  return m;
+}
+
 const reqLabel = (f) => {
   const lab = f.querySelector('.form-label');
   if (!lab) return '';
@@ -3268,8 +3435,12 @@ const reqLabel = (f) => {
    that isn't on the page. Open the steps.
    ★#submit-block stays closed (it appears only once every step is filled). */
 function revealSteps() {
-  for (const [id] of STEPS) $(id).hidden = false;
-  showSticky();
+  /* ★ウィザードでは段を全部出さない（1画面1段が約束）。代わりに
+     markMissing() が「足りない欄のある段」へ本人を運ぶ。 */
+  if (!WZ) {
+    for (const [id] of STEPS) $(id).hidden = false;
+    showSticky();
+  }
   markRequired();
   markProgress();
 }
@@ -3299,7 +3470,15 @@ function markMissing(list) {
     t.textContent = MISS_TAG;
     lab.appendChild(t);
   }
+  /* ★先頭の欄が別の段に居ることがある。**エラーを書く前に**運ぶ
+     （#err はウィザードが今の段の中へ引っ越すので、順番を逆にすると
+       書いた直後に別の段へ持って行かれて、本人には何も出ない）。 */
+  if (WZ) WZ.goToField(list[0]);
   $('err').innerHTML = '<div class="form-alert"><span class="fa-title">Some required fields are still empty</span>The fields outlined in red are still empty.</div>';
+  /* ★この赤箱は「空の欄がある」としか言っていない。全部埋まったら markRequired() が
+     自分で消す（下の dataset を見ている）。1画面1段になった今、消さないと
+     埋め終わった段の下にいつまでも赤が残り、押せないように見える。 */
+  $('err').dataset.from = 'miss';
   /* ★飛ぶのは先頭ひとつ。印は上で全部に付けてある。 */
   const inp = jumpTarget(list[0]);
   if (!inp) return;
@@ -3327,69 +3506,16 @@ const sumField = (...ids) => {
   return any ? String(+t.toFixed(2)) : null;
 };
 
-async function submitPayReport() {
-  clearErr();
-  hideGate();
-
-  /* ★First, show every still-empty required field at once (2026-08-27, owner).
-     The always-there bar means people press part-way through, so returning one
-     message at a time turns into pressing over and over.
-     The checks after this point (gross, variable-pay basis, hourly vs block) are
-     not "is it empty" questions, so they stay one at a time as before. */
-  revealSteps();
-  const miss = missingRequired();
-  if (miss.length) return markMissing(miss);
-
-  const airline = val('f-airline');
-  if (!airline) return showErr('Please choose your airline.');
-  if (airline === 'other' && !val('f-airline-other')) return showErr('You picked “Other” — please type the airline name.');
-  if (!val('f-position')) return showErr('Please choose your rank.');
-  if (!val('f-fleet')) return showErr('Please choose your fleet.');
-  if (!val('f-jobrole')) return showErr('Please choose your role.');
-  if (!val('f-age')) return showErr('Please choose your age band.');
-  if (!val('f-currency')) return showErr('Please choose the currency.');
-  /* ★Hours flown is required. 0 is allowed (ground duty, sick month) — only a blank
-     is rejected. Without it there is no pay per block hour, and no way to compare
-     across countries and airlines. */
-  if (!val('f-block')) {
-    return showErr('Please enter your flight time for the month. If you did not fly, or you do not track hours, enter 0.');
-  }
-  if (!val('f-stay')) {
-    return showErr('Please enter your layover nights. If you never stayed away from base, enter 0.');
-  }
-  /* ★Same split as payEntered() used by the step gate (one place decides where to
-     look). Only the amount being 0 is caught here. */
-  /* ★2026-08-26 (2nd): stopped branching on whether the breakdown is open. Gross is
-     always required, base pay is optional and has a "not applicable" box. With the
-     branch in place, anyone who ticked that box saw the submit button appear and
-     then got stopped — f-hourly is a payslip-only hidden field they cannot fill. */
-  if (num('f-gross') <= 0) {
-    return showErr('Please enter your gross pay for that month. Allowances alone give nothing to compare against.');
-  }
-  if (!val('f-netpay')) return showErr('Please enter your net pay for that month ("Net Pay" on your payslip).');
-  if (!val('f-bonus-mo')) return showErr('Please enter the bonus paid this month. Enter 0 if none was paid.');
-  if (!val('f-perdiem')) return showErr('Please enter your per diem for the month. Enter 0 if none was paid.');
-  if (!val('f-housing')) return showErr('Please choose your housing.');
-  if ($('f-housing').value === 'allowance' && !val('f-housing-amt')) {
-    return showErr('You picked “Housing allowance (cash)” — please enter the monthly amount as well.');
-  }
-  /* ★Once a variable pay row is added, "What it is paid on" is required (owner,
-     2026-08-26, 2nd). "Not sure" is there for anyone who cannot tell. Add no rows
-     and nothing changes.
-     ★pdRead('var') decides what counts as a row, so the rule that drops an empty
-     one is not written down twice. */
-  if (pdRead('var').some((r) => !r.basis)) {
-    return showErr('Please choose “What it is paid on” for each variable pay row. Pick “Not sure” if you cannot tell.');
-  }
-  /* ★4. Contract & tax (required since 2026-08-13). Folded or not, the values are
-     there, so the same check works. */
-  if (!val('f-contract')) return showErr('Please choose your contract type.');
-  if (!val('f-taxcountry')) return showErr('Please choose your country of tax residence.');
-  if (!val('f-seniority')) return showErr('Please enter your years at the airline.');
-  if (num('f-hourly') > 0 && num('f-block') <= 0 && num('f-guar') <= 0) {
-    return showErr('With an hourly rate we also need flight time or guaranteed flight time.');
-  }
-
+/* ── payload の組み立て（2026-09-08 に関数へ出した）─────────────────
+   ★中身は1行も変えていない。切り出した理由はひとつだけ ──
+     5/5 の確認画面が出す「公開イメージ」は、**実際に送るのと同じ物**から
+     作らなければならない。2つ目の組み立てを書いた瞬間、画面の予告と
+     サーバに入る物が、どちらも普通に動いたまま静かにズレる。
+   ★引数を省くと今の選択から読む（確認画面はこちらで呼ぶ）。
+   ★切り出しの前後でバイト単位に一致することを、3つの型（総支給だけ／
+     内訳あり／役割モジュール5つ＋組合払い）× 日英で突き合わせてある。 */
+function buildPayload(airline) {
+  if (airline === undefined) airline = val('f-airline');
   const payload = {
     airline:             airline,
     airline_other:       val('f-airline-other'),
@@ -3479,6 +3605,75 @@ async function submitPayReport() {
     source:              val('f-source') || 'web',
     lang:                LANG,
   };
+  return payload;
+}
+
+async function submitPayReport() {
+  clearErr();
+  hideGate();
+
+  /* ★First, show every still-empty required field at once (2026-08-27, owner).
+     The always-there bar means people press part-way through, so returning one
+     message at a time turns into pressing over and over.
+     The checks after this point (gross, variable-pay basis, hourly vs block) are
+     not "is it empty" questions, so they stay one at a time as before. */
+  revealSteps();
+  /* ★ウィザードでは missingAll()。今出ている段（5/5 確認）だけを見る missingRequired() は
+     1〜4段の空欄を offsetParent で落とすので、空のまま送信できてしまう。 */
+  const miss = missingAll();
+  if (miss.length) return markMissing(miss);
+
+  const airline = val('f-airline');
+  if (!airline) return showErr('Please choose your airline.');
+  if (airline === 'other' && !val('f-airline-other')) return showErr('You picked “Other” — please type the airline name.');
+  if (!val('f-position')) return showErr('Please choose your rank.');
+  if (!val('f-fleet')) return showErr('Please choose your fleet.');
+  if (!val('f-jobrole')) return showErr('Please choose your role.');
+  if (!val('f-age')) return showErr('Please choose your age band.');
+  if (!val('f-currency')) return showErr('Please choose the currency.');
+  /* ★Hours flown is required. 0 is allowed (ground duty, sick month) — only a blank
+     is rejected. Without it there is no pay per block hour, and no way to compare
+     across countries and airlines. */
+  if (!val('f-block')) {
+    return showErr('Please enter your flight time for the month. If you did not fly, or you do not track hours, enter 0.');
+  }
+  if (!val('f-stay')) {
+    return showErr('Please enter your layover nights. If you never stayed away from base, enter 0.');
+  }
+  /* ★Same split as payEntered() used by the step gate (one place decides where to
+     look). Only the amount being 0 is caught here. */
+  /* ★2026-08-26 (2nd): stopped branching on whether the breakdown is open. Gross is
+     always required, base pay is optional and has a "not applicable" box. With the
+     branch in place, anyone who ticked that box saw the submit button appear and
+     then got stopped — f-hourly is a payslip-only hidden field they cannot fill. */
+  if (num('f-gross') <= 0) {
+    return showErr('Please enter your gross pay for that month. Allowances alone give nothing to compare against.');
+  }
+  if (!val('f-netpay')) return showErr('Please enter your net pay for that month ("Net Pay" on your payslip).');
+  if (!val('f-bonus-mo')) return showErr('Please enter the bonus paid this month. Enter 0 if none was paid.');
+  if (!val('f-perdiem')) return showErr('Please enter your per diem for the month. Enter 0 if none was paid.');
+  if (!val('f-housing')) return showErr('Please choose your housing.');
+  if ($('f-housing').value === 'allowance' && !val('f-housing-amt')) {
+    return showErr('You picked “Housing allowance (cash)” — please enter the monthly amount as well.');
+  }
+  /* ★Once a variable pay row is added, "What it is paid on" is required (owner,
+     2026-08-26, 2nd). "Not sure" is there for anyone who cannot tell. Add no rows
+     and nothing changes.
+     ★pdRead('var') decides what counts as a row, so the rule that drops an empty
+     one is not written down twice. */
+  if (pdRead('var').some((r) => !r.basis)) {
+    return showErr('Please choose “What it is paid on” for each variable pay row. Pick “Not sure” if you cannot tell.');
+  }
+  /* ★4. Contract & tax (required since 2026-08-13). Folded or not, the values are
+     there, so the same check works. */
+  if (!val('f-contract')) return showErr('Please choose your contract type.');
+  if (!val('f-taxcountry')) return showErr('Please choose your country of tax residence.');
+  if (!val('f-seniority')) return showErr('Please enter your years at the airline.');
+  if (num('f-hourly') > 0 && num('f-block') <= 0 && num('f-guar') <= 0) {
+    return showErr('With an hourly rate we also need flight time or guaranteed flight time.');
+  }
+
+  const payload = buildPayload(airline);
 
   setSubmitBusy(true, 'Submitting…');
 
@@ -3582,7 +3777,8 @@ function showSticky() {
   document.body.classList.add('has-cta');
   stickyWatch();
 }
-$('sticky-btn').addEventListener('click', submitPayReport);
+/* ★#sticky-btn は 2026-09-08 に廃止（帯は年換算の合計の表示だけ）。
+   押す物はステップ末尾の Next と 5/5 の提出ボタンの2つで、送信の入口は後者だけ。 */
 
 // ── Result (★ never typed in by the pilot — this is what they get back) ──
 function renderResult(d, p) {

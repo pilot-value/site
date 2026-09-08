@@ -88,7 +88,7 @@ var T = {
     pubHedge:  'This is how it is expected to appear. The final values are decided on the server.',
     pubShown:  'Published',
     pubHidden: 'Never published',
-    hiddenList: 'Base／age band／nationality／contract type／tax country／original currency／report id／the exact submission date／any airline name you typed in',
+    hiddenList: 'Base · age band · nationality · contract type · tax country · original currency · report id · the exact submission date · any airline name you typed in',
     lblAirline: 'Airline',
     lblPos:     'Position',
     lblFleet:   'Fleet',
