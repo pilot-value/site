@@ -165,10 +165,10 @@ baland_ass/                            ブランド資産（※ brand_assets の
 | コマンド | 中身 | 目安 |
 |---|---|---|
 | `node check.mjs fast` | 静的検査＋ネット不要の単体（17本）| 2秒 |
-| `node check.mjs sql` | PGlite の SQL テスト（11本）| 70秒 |
+| `node check.mjs sql` | PGlite の SQL テスト（13本）| 80秒 |
 | `node check.mjs web` | Puppeteer の画面検査（20本）| 7分半 |
-| `node check.mjs all` | 全部（48本）| 8分半 |
-| `node check.mjs` | 既定 ＝ `fast` ＋ `sql`（画面を触っていない回はこれで足りる）| 70秒 |
+| `node check.mjs all` | 全部（50本）| 10分 |
+| `node check.mjs` | 既定 ＝ `fast` ＋ `sql`（画面を触っていない回はこれで足りる）| 80秒 |
 
 - 画面・CSS・共有 JS を触ったら `web` か `all` まで流す。
 - ブラウザ検査は `serve.mjs` を必要なときだけ自分で起動し、自分で止める（すでに動いていたら触らない）。
@@ -201,7 +201,8 @@ baland_ass/                            ブランド資産（※ brand_assets の
 | `assert-admin.mjs` | 管理者ページが**ログインした管理者にしか見えない**（合言葉を持たない）|
 | `assert-unlock.mjs` | **口コミの鍵と給与の鍵が混ざらない**（口コミ1件で年収が開かない）|
 | `assert-pay-rows.mjs` | REAL PAY の7つの約束（Give → Get・準識別子は粗い段だけ・有効数字2桁・1行＝1人…）＋**行を押すと出る面**（帯の両端が刻みの倍数・％も生の額も出ない・押してもサーバへ投げない）|
-| `assert-pay-report-sync.mjs` | 給与レポートの**日英が片方だけ直されていない**か（骨格だけ照合・文言は見ない）|
+| `assert-pay-report-sync.mjs` | 給与レポートの**日英が片方だけ直されていない**か（骨格だけ照合・文言は見ない）＋共有 `pay-wizard.js` が日英とも読まれているか |
+| `db/test-pay-preview.mjs` | 確認画面の「公開イメージ」が **SQL と同じ答え**を返すか（`pv_sig2` / `pv_band_grid` / `pv_band` と8区分の切り分けを JS へ写しているため。写しが腐ったことに気づく仕掛けはこれ1本だけ）|
 | `assert-deep-pay.mjs` | DEEP PAY ── **錠前が掛かったまま**（対の外から入口ゼロ）・「時給」と呼ばない・順位を書かない・0 で埋めない・**選んだ区分が3人未満なら広い区分の数字で埋めない**・**選ぶまで何も出さない** |
 | `assert-deep-pay-compare.mjs` | 会社比較 ── **片側が3人未満でももう片側は普通に出る**・勝ち負けの語を書かない・賞与を月々の棒に入れない・人数を JS で数えない（壁は SQL の1か所）|
 | `assert-roadmap.mjs` | ROADMAP & REQUESTS ── **匿名が解けない**（一覧の SQL が `author_hash` に触れない）・要望の本文が `textContent` で入る・**日英の文言の鍵が完全に同じ**・区分と状態の白リストが SQL と画面で一致・取れないときに 0 で埋めない・hex と `prefers-color-scheme` の直書きが無い |
@@ -225,9 +226,16 @@ baland_ass/                            ブランド資産（※ brand_assets の
 
 **⚠️ この画面を触る前に [workflows/pay-form.md](workflows/pay-form.md) を読む。**
 2026-08-26〜27 の作り直しの判断が全部そこにある（役割ごとの5モジュール・明細読み取りの対応表・
-`pay_items` の形・超過の注意の出し場所・常設の「匿名で提出」）。
+`pay_items` の形・超過の注意の出し場所）。
 **どれも「画面は普通に動いたまま静かに壊れる」形**をしているので、ここに置くのは
 読まずに触ると即座に壊れるものだけ。
+
+★**2026-09-08 から5段のウィザード**（`#s1`〜`#s5`・歩かせるのは日英で共有の
+[pay-wizard.js](pay-wizard.js)）。**送信ボタンは `#s5` の中だけ**で、途中の段からは送れない
+（2026-08-27 の「常設の匿名で提出バー」はオーナー指示で廃止。下端に残したのは年換算の合計表示だけ）。
+⚠️ **共有 JS が落ちたら元の1枚ものに戻る二形態**なので、この画面を機械で触る道具は
+両方で動かないといけない。下書きは `pv_pay_draft`（このブラウザだけ・DB は触らない）。
+詳細と罠は手順書の冒頭の節。
 
 **目的は明細の再現ではない。** 固定／変動／変動の理由／その他の現金の4つに分けて、
 **航空会社をまたいで比べられる形**にすること。
@@ -279,9 +287,10 @@ baland_ass/                            ブランド資産（※ brand_assets の
 ### 見るもの
 `node db/test-form-contract.mjs`（画面の契約）／`npm run test:sql`（保存と検品）／
 `node db/test-payslip-extras.mjs`（隠し欄 → payload）／`node assert-admin-notify.mjs`（メール）／
-`node db/test-value-breakdown.mjs`（支給構成の切れ）。
-絵は `node shot-pay.mjs`（3a〜4 の16枚）と `node shot-value.mjs both ja`、
-はみ出しは `node measure-pay.mjs`。
+`node db/test-value-breakdown.mjs`（支給構成の切れ）／
+`node db/test-pay-preview.mjs`（確認画面の公開イメージ ⇄ SQL）。
+絵は `node shot-pay.mjs`（日英 × Desktop/Mobile × ライト/ダークで 198枚）と
+`node shot-value.mjs both ja`、はみ出しは `node measure-pay.mjs`（5段を歩く）。
 [db/pay-reports.verify.sql](db/pay-reports.verify.sql) は**オーナーが Supabase に貼る検算**（16行が ✅）。
 中身は `db/test-pay-reports.mjs` が毎回流している＝**検算だけ古い**にはならない。
 
