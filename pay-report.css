@@ -994,11 +994,12 @@ body.has-cta #form-wrap{padding-bottom:96px}
 [data-theme="light"] .wz-pub-comp{border-color:rgba(0,0,0,.09);background:rgba(255,255,255,.72)}
 [data-theme="light"] .wz-pub-comp-t{color:#475569}
 [data-theme="light"] .wz-seg-k{color:#334155}
-/* ★帯の9色のうち、白に乗らないものだけ濃い側へ。REAL PAY のライトと同じ考え方。 */
-[data-theme="light"] .wz-seg-dot.is-fixed{background:#059669}
-[data-theme="light"] .wz-seg-dot.is-variable{background:#b5920a}
-[data-theme="light"] .wz-seg-dot.is-command{background:#2563eb}
-[data-theme="light"] .wz-seg-dot.is-bonus{background:#0891b2}
+/* ★帯の9色はライトでも**そのまま**。ここに [data-theme="light"] を書かない。
+     REAL PAY（actual-pay.css の .ap-dw-c-*）はライトとダークで同じ色を使うと
+     決めてある（オーナー確定 2026-08-29「同じ項目がマイレポートと同じ色になる」）。
+     片方だけ濃い側へ寄せると、同じ人が確認画面と REAL PAY で違う色の内訳を見る。
+     2026-09-08 に4色ぶん書いていたのを取り消した。
+     db/test-pay-preview.mjs の C) が9色の一致と、この分岐が無いことを見ている。 */
 [data-theme="light"] .wz-pub-no{border-color:rgba(0,0,0,.09);background:rgba(255,255,255,.6)}
 [data-theme="light"] .wz-pub-no-t{color:#475569}
 [data-theme="light"] .wz-pub-no-v,[data-theme="light"] .wz-hedge{color:#64748b}

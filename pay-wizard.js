@@ -767,6 +767,10 @@ if (typeof window !== 'undefined') window.PVPayWizard = API;
 /* Node（検査）からも同じ関数を呼べるようにする。ブラウザでは何も起きない。 */
 if (typeof module === 'object' && module.exports) {
   module.exports = { sig2: sig2, bandGrid: bandGrid, band: band, shelf: shelf,
-                     row: publicRow, unionOutside: unionOutside, hasItems: hasItems };
+                     row: publicRow, unionOutside: unionOutside, hasItems: hasItems,
+                     /* 帯に出る区分の全部（固定順＋その他・未分類＋賞与）。
+                        db/test-pay-preview.mjs の C) が、この並びぶんの色が
+                        2つの CSS に同じ値であることを見る。 */
+                     segKeys: SEG_ORDER.concat(['rest', 'bonus']) };
 }
 })();

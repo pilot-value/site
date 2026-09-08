@@ -11,11 +11,17 @@
      8区分の切り分け（shelf）を**写している**。写しは必ず腐る。
      腐ったことに気づくための唯一の仕掛けがこのファイル。
 
-   ★見ているのは2つ。
+   ★見ているのは3つ。
      A) 純関数（pv_sig2 / pv_band_grid / pv_band）が、境界・ゼロ・負・null で
         1つ残らず同じ答えを返すこと
      B) 実際に submit_pay_report() を通した行を pv_pay_rows() で取り出し、
         同じ payload を pay-wizard.js に渡した結果と**行ごと一致**すること
+     C) 帯の9色が、確認画面（pay-report.css の .wz-seg-dot.is-*）と
+        REAL PAY（actual-pay.css の .ap-dw-c-*）で**同じ値**であること。
+        ここは数字が合っていても静かに壊れる側 ── 同じ人が同じ月の内訳を
+        2つの画面で見比べたときに、基本給が緑と青になる。
+        ライト／ダークで分岐させないことも見る（REAL PAY は分岐させないと
+        決めてあるので、片方だけ濃い側へ寄せると必ずズレる）。
 
    ★ここで見ていないもの（別の検査の担当）。
      ・年換算そのもの（pv_annual_total）── 画面側は annualTotal() の答えを
@@ -443,6 +449,73 @@ for (const m of made) {
   ok(same(locked.paylock, js.pay.map(x => x.k)),
      '★閉じている面に届く「区分の名前」も、写しの並びと一致する',
      JSON.stringify([locked.paylock, js.pay.map(x => x.k)]));
+}
+
+
+// ── C) 帯の9色が2つの画面で同じか（CSS を字で読む）────────────
+{
+  console.log('\nC) 帯の色 ── 確認画面（.wz-seg-dot.is-*）と REAL PAY（.ap-dw-c-*）');
+
+  /* 平らな規則だけ拾う。@media の中も中身は平らなので、この1本で両方取れる。 */
+  const rules = (css) => [...css.matchAll(/([^{}@]+)\{([^{}]*)\}/g)]
+    .map((m) => ({ sel: m[1].trim(), body: m[2].trim(), at: m.index }));
+
+  /* @media / @supports の塊の範囲。中に色を書いたら「分岐させた」ことになる。 */
+  const atBlocks = (css) => {
+    const out = [];
+    for (const m of css.matchAll(/@(media|supports)[^{]*\{/g)) {
+      let i = m.index + m[0].length, depth = 1;
+      while (i < css.length && depth > 0) {
+        if (css[i] === '{') depth++;
+        else if (css[i] === '}') depth--;
+        i++;
+      }
+      out.push([m.index, i]);
+    }
+    return out;
+  };
+
+  const esc = (t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  /* ⚠️ CSS のコメントを先に落とす。落とさないと直前の注記が丸ごと選択子に化けて、
+     「.ap-dw-c-fixed」の後ろに注記がぶら下がった嘘の食い違いが出る
+     （assert-pay-report-sync.mjs が同じ罠を踏んで、同じ対処をしている）。 */
+  const grab = (file, cls) => {
+    const css = read(file).replace(/\/\*[\s\S]*?\*\//g, () => '');
+    const at = atBlocks(css);
+    const bare = new RegExp('^' + esc(cls) + '([a-z]+)$');
+    const color = {}, forked = [];
+    for (const r of rules(css)) {
+      if (r.sel.indexOf(cls) < 0) continue;
+      const hex = (r.body.match(/background:\s*(#[0-9a-fA-F]{3,8})/) || [])[1];
+      /* 色を持たない規則（形や大きさだけ）は分岐ではない。 */
+      if (!hex) continue;
+      const m = r.sel.match(bare);
+      const inAt = at.some(([a, b]) => r.at > a && r.at < b);
+      if (m && !inAt) { color[m[1]] = hex.toLowerCase(); continue; }
+      forked.push(r.sel + (inAt ? '（@media の中）' : ''));
+    }
+    return { color, forked };
+  };
+
+  const W_ = grab('pay-report.css', '.wz-seg-dot.is-');
+  const A_ = grab('actual-pay.css', '.ap-dw-c-');
+  const KEYS = W.segKeys;
+
+  ok(JSON.stringify(Object.keys(W_.color).sort()) === JSON.stringify([...KEYS].sort()),
+     '★確認画面の色が、写しの出す区分と過不足なく同じ顔ぶれ',
+     `\n     CSS: ${Object.keys(W_.color).sort().join(',')}\n     JS : ${[...KEYS].sort().join(',')}`);
+  ok(JSON.stringify(Object.keys(A_.color).sort()) === JSON.stringify([...KEYS].sort()),
+     '★REAL PAY の色も同じ顔ぶれ（片方にだけ区分が増えていない）',
+     `\n     CSS: ${Object.keys(A_.color).sort().join(',')}`);
+
+  const diff = KEYS.filter((k) => W_.color[k] !== A_.color[k]);
+  ok(diff.length === 0,
+     '★9色が1つ残らず同じ値（同じ項目が2画面で違う色にならない）',
+     diff.map((k) => `\n     ${k}: 確認画面 ${W_.color[k]} / REAL PAY ${A_.color[k]}`).join(''));
+
+  ok(W_.forked.length === 0 && A_.forked.length === 0,
+     '★ライト／ダークで色を分岐させていない（REAL PAY が分岐しないので必ずズレる）',
+     [...W_.forked, ...A_.forked].join(' / '));
 }
 
 console.log(`\n${fail === 0 ? '✅' : '❌'} 通過 ${pass} / 失敗 ${fail}`);
