@@ -26,7 +26,12 @@ nav.scrolled{background:rgba(10,12,15,.92);backdrop-filter:blur(20px);border-bot
 /* ★内側の余白は Marit の実測と同じ 32px（カラム幅も両方 640px）。
      狭い画面だけ 20px に落とす ── 32px のままだと 390px の端末で
      入力欄が 294px まで痩せ、通貨と金額を並べた行が窮屈になる。 */
-@media (max-width:600px){.card{padding:20px}}
+/*   左右はさらに 16px まで詰める。Marit のモバイルは**カードそのものが無く**、
+     本文が画面の左右 16px から始まる（648px の実機画像を 1.62 倍で割って実測）。
+     こちらはカードを残す（ブランドの面を捨てない）ので、その 16px にページ側の
+     16px が乗って合計 36px ── 入力欄が向こうより 40px 細い。上下の 20px は
+     そのままに、左右だけ 16px に詰めて 4px 返す。 */
+@media (max-width:600px){.card{padding:20px 16px}}
 /* ★項目名は小さい・薄い・全部大文字の3つ重ねで読みにくかった（2026-08-27 オーナー指摘
    「対象月」「勤務時間（Duty time）」…が灰色の薄い文字で見えにくい）。
    明るさを上げ・少し大きくし・字間と全部大文字をやめる。入力欄の文字（#e8edf2）よりは
@@ -113,7 +118,19 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
    税率は2〜3桁、乗務日数は2桁しか入らないため狭くてよい。 */
 .grid2.tax-row{grid-template-columns:1.6fr .9fr}
 .grid3.role-row{grid-template-columns:1.5fr .75fr .75fr}
-@media(max-width:600px){.grid2,.grid3,.grid2.tax-row,.grid3.role-row{grid-template-columns:1fr}}
+/* ★1列に畳んだら subgrid をやめる。
+     畳んだだけだと、縦に並んだ2つの欄のあいだが **0px** になる
+     （row-gap は 0・子の margin-bottom も 0 ＝ 上の欄の下端に次のラベルが直に付く。
+      390px で「職位」の入力の下端 652.9px ＝「機材」のラベルの上端 652.9px を実測）。
+     row-gap で開けてはいけない ── 子が3行ぶんの subgrid を跨いでいるので、
+     同じ隙間が**ラベルと入力のあいだ**にも入る（上の注記のとおり）。
+     跨ぎをやめて、欄と欄の 16px を .fld の margin に戻す。
+     display は grid のまま触らない（block にすると hidden の欄が出てくる）。 */
+@media(max-width:600px){
+  .grid2,.grid3,.grid2.tax-row,.grid3.role-row{grid-template-columns:1fr}
+  .grid2>.fld,.grid3>.fld{grid-template-rows:none;grid-row:auto;margin-bottom:16px}
+  .grid2>.fld:last-child,.grid3>.fld:last-child{margin-bottom:0}
+}
 .fld{margin-bottom:16px}
 .fld:last-child{margin-bottom:0}
 /* 必須の欄には左にレールを引く。埋まったら中立色に落とす（.is-done は updateSteps() が付ける）。
@@ -209,6 +226,14 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
   transition:opacity .22s cubic-bezier(.16,1,.3,1),transform .22s cubic-bezier(.16,1,.3,1)}
 .sticky-cta.is-off{opacity:0;transform:translateY(105%);pointer-events:none}
 .sticky-cta[hidden]{display:none}
+/* ★左の柱のぶんだけ避ける。
+     バーは position:fixed ＝ 画面の左端から始まるが、フォームの列は
+     body の padding-left:144px（app-nav.css の @media(min-width:1001px)）の内側にある。
+     どちらも 640px を中央寄せしているので、そのままだと**バーだけ 72px 左**にずれる
+     （1440px で実測：フォームの列 x=472 / バー x=400）。
+     ⚠️ 幅の条件は app-nav.css の 1001px と必ず同じにする。片方だけ動かすと、
+     柱が消える幅とバーが戻る幅がズレて、1000px 台で 144px ぶん右に寄る。 */
+@media(min-width:1001px){body.pv-anav-shell .sticky-cta{left:144px}}
 .sticky-cta-in{max-width:640px;margin:0 auto;display:flex;align-items:center;gap:14px}
 .sticky-cta-sum{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
 .sticky-cta-lab{font-size:.66rem;font-weight:700;color:#9ca3af;letter-spacing:.05em}
