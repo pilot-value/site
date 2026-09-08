@@ -183,7 +183,9 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 @media (prefers-reduced-motion:reduce){.sec-prog-bar>i{transition:none}}
 .fld-hint{font-size:.72rem;color:#6b7d93;margin-top:6px;line-height:1.6}
 .fld-hint b{color:#a8b3c2;font-weight:700}
-.cur-row{display:grid;grid-template-columns:210px 1fr;gap:10px}
+/* ★幅は「いちばん長い通貨名が入るか」で決める。210px では日本語の
+   「KWD — クウェートディナール」が 19px はみ出して切れていた（node measure-pay.mjs）。 */
+.cur-row{display:grid;grid-template-columns:260px 1fr;gap:10px}
 @media(max-width:420px){.cur-row{grid-template-columns:1fr}}
 /* ── 年換算のライブ表示 ─────────────────────────────────── */
 .sal-total{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:15px 18px;border-radius:14px;border:1px solid rgba(245,200,66,.25);background:radial-gradient(130% 170% at 100% 0%,rgba(245,200,66,.11),transparent 60%),rgba(245,200,66,.04)}

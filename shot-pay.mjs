@@ -5,41 +5,57 @@
    使い方: node shot-pay.mjs        （出力は ./temporary screenshots/ ではなく round ディレクトリ）
            node shot-pay.mjs open detail   撮らずに、見える窓で #pay-detail を開く
 
-   撮る状態（2026-08-13 に 3〜5 を追加、同日その2で 0 を追加）:
+   撮る状態（2026-08-13 に 3〜5 を追加、同日その2で 0 を追加。
+             2026-09-08、5ステップのウィザードに合わせて組み直した）:
      0  entry       開いた直後＝入口の2択（明細から自動入力／手で入力）だけ
-     0b payslip     明細を選んだ状態＝ステップ 1/2（読まずに手で入力する逃げ道つき）
-     1  empty       手入力に入った直後＝S1 だけ（上に明細の細い帯が残る）
-     2 simple       かんたん入力（通貨＋その月の額面）で送信まで開いた状態
-     3 detail-open  「＋給与の内訳を追加」を開いた状態
+     0b payslip     明細を選んだ状態＝「明細を読み込む（任意）」（読まずに手で入力する逃げ道つき）
+     1  empty       手入力に入った直後＝1/5「会社と職務」が空のまま
+     1b s2-empty    2/5「対象月と乗務」が空のまま
+     1c s3-empty    3/5「報酬」が空のまま ★下端に年換算の帯が出る唯一の段
+     1d s4-empty    4/5「契約と税」が空のまま
+     2 simple       かんたん入力（通貨＋その月の額面）まで全部埋めた 3/5
+     3a detail-plus 「＋給与の内訳を追加」を開いた直後
+                    ★出ているのは基本給だけで、保証給・変動給・職位手当・その他の現金は
+                      「＋」で足す（オーナー指示の Progressive Disclosure）
+     3 detail-open  内訳を開いて埋めた状態
                     ★2026-08-26 から、額面の欄は**本人の入力のまま**（読み取り専用にしない）。
                       変動給・その他の現金手当は行で足す
      3b detail-over 内訳の合計が額面を超えた状態＝注意の1行が出る（送信は止めない）
-     3c instructor  教官・訓練の手当を埋めた状態（§1で教官を選んだ人にだけ出る節）
+     3c instructor  教官・訓練の手当を埋めた状態（1/5で教官を選んだ人にだけ出る節）
                     ★変動給・その他・額面のどれも増えていないことをログで見る
      3d instructor-off 教官を外した状態＝節ごと消えて中身も消える
-     3e examiner    審査・査察の手当を埋めた状態（§1で審査を選んだ人にだけ出る節）
+     3e examiner    審査・査察の手当を埋めた状態（1/5で審査を選んだ人にだけ出る節）
                     ★教官の額まで含めて、どの合計も増えていないことをログで見る
      3f examiner-off 審査を外した状態＝節ごと消えて中身も消える
-     3g union      組合・乗員代表の手当を埋めた状態（§1で組合を選んだ人にだけ出る節）
+     3g union      組合・乗員代表の手当を埋めた状態（1/5で組合を選んだ人にだけ出る節）
                    ★支給元を「組合」にしてあるので、額面との突き合わせ（#pd-over）が
                      動かないこともログで見る（会社の明細に無いお金なので）
      3h union-off  組合を外した状態＝節ごと消えて中身も消える（教官・審査は残る）
-     3i mgmt       管理・マネジメントの手当を埋めた状態（§1で管理職を選んだ人にだけ出る節）
+     3i mgmt       管理・マネジメントの手当を埋めた状態（1/5で管理職を選んだ人にだけ出る節）
                    ★組合とは逆に、この額は会社が払う＝額面の中にある。だから
                      内訳の合計（#pd-over の材料）には**足される**ことをログで見る
      3j mgmt-off   管理職を外した状態＝節ごと消えて中身も消える（教官・審査・組合は残る）
-     3k nonline    その他の兼務・配属の手当を埋めた状態（§1で兼務・配属を選んだ人にだけ出る節）
+     3k nonline    その他の兼務・配属の手当を埋めた状態（1/5で兼務・配属を選んだ人にだけ出る節）
                    ★聞くのは3つだけ（分野・日数・追加報酬）。部署名も出向先も聞かない
      3l nonline-off 兼務・配属を外した状態＝節ごと消えて中身も消える（ほかの4つは残る）
      3m over-slot  ★超過の注意が「打った欄のすぐ下」に出る（2026-08-27 オーナー指摘
                    「なんか変なところに出るよこれ」）。管理職の額で超えさせて、
                    pd-over-mgmt だけが出て既定の pd-over が出ないことをログで見る
-     3n sticky-miss ★常設の「匿名で提出」を途中で押した状態＝足りない必須の欄まで飛んで
-                   赤く囲い、右横に「未入力」の札が出る（2026-08-27 オーナー指示で
-                   箇条書きから作り直した。年換算の総額もバーに一緒に出ている）
-     4 detail-shut  閉じた状態 ★額面も内訳も消えずに残っている
-     5 second       2回目の訪問（プリセットあり）★飛んだ時間が空なので §3 以降は出ない
-     6 result       送信後の結果パネル */
+     3n miss-jump  ★必須が3つ空いたまま 5/5 の送信を押した状態。足りない欄すべてが
+                   赤く囲われて右横に「未入力」の札が付き、先頭の欄のある段（3/5）まで
+                   本人が運ばれる（確認の段に居座らせない）。
+                   ★2026-09-08、常設バーの「匿名で提出」は廃止した ── 帯に残るのは
+                     年換算の合計の表示だけで、押す口は 5/5 の送信ただ1つ
+     4 detail-shut  内訳を閉じた状態 ★額面も内訳も消えずに残っている
+     4b review      ★5/5 の確認（Phase 5）。上＝本人が入れた実額の読み返し（節ごとに
+                    「変更する」でその段へ戻る）／下＝匿名で公開される見込みの形
+                    （REAL PAY の1行と同じ粗さ。入れた実額をそのまま公開の姿にしない）
+     5a second-entry 2回目の訪問の入口
+     5 second       2回目 1/5 ★前回の会社・職位が入ったまま出る
+     5b second-hours 2回目 2/5 ★飛んだ時間とステイ日数は持ち越さない（毎月変わる）
+     6 result       送信後の結果パネル
+     7a detail-link DEEP PAY の「給与内訳を追加する」で来たときの着地
+     7b detail-open 1/5・2/5 を埋めて 3/5 に着いたところ（内訳が開いた状態で現れる） */
 import puppeteer from 'puppeteer';
 import fs from 'fs';
 import path from 'path';
@@ -181,17 +197,26 @@ async function shoot(page, name) {
 async function open(url, width, theme) {
   const page = await browser.newPage();
   await page.setViewport({ width, height: 900, deviceScaleFactor: 1 });
-  if (theme) {
-    await page.evaluateOnNewDocument((t) => { try { localStorage.setItem('pv-theme', t); } catch (e) {} }, theme);
-  }
+  /* ja と en は同一オリジン。前の回が savePreset() した内容が残っていると
+     「開いた直後＝S1 だけ」の画面を撮れない。
+
+     ⚠️ 開いてから消して読み直す、では消えない。読み直しの瞬間に**古いほうの画面**が
+     pagehide で savePreset() を呼び（pay-report.html の saveDraftOnLeave）、
+     さっき消したはずの pv_pay_last を、まだ埋まっている欄から書き戻す。
+     2026-09-08、これで役割手当が次の回へ持ち越され、内訳の合計が 77,300 のはずの絵で
+     165,100 と出ていた（画面は普通に動いたまま、絵だけ嘘になる）。
+     だから**最初の1枚が走り出す前**に消す。あとの読み直し（2回目の訪問の絵）では
+     消さない ── sessionStorage の目印で1回だけにする。 */
+  await page.evaluateOnNewDocument((t) => {
+    try {
+      if (!sessionStorage.getItem('pv-shot-wiped')) {
+        localStorage.clear();
+        sessionStorage.setItem('pv-shot-wiped', '1');
+      }
+      if (t) localStorage.setItem('pv-theme', t);
+    } catch (e) {}
+  }, theme || '');
   await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
-  /* ja と en は同一オリジン。前の言語が savePreset() した内容が残っていると
-     「開いた直後＝S1 だけ」の画面を撮れない。 */
-  await page.evaluate((t) => {
-    localStorage.clear();
-    try { localStorage.setItem('pv-theme', t); } catch (e) {}
-  }, theme || 'light');
-  await page.reload({ waitUntil: 'networkidle2', timeout: 30000 });
   await new Promise((r) => setTimeout(r, 900));
   return page;
 }
@@ -213,13 +238,49 @@ const put = (page, o) => page.evaluate((obj) => {
 }, o);
 const pick = (o, ...ids) => Object.fromEntries(ids.map((k) => [k, o[k]]));
 
-/* 段階表示を順に開けながら埋める。まとめて入れると「生えていく様子」ではなく
-   最終形しか撮れないので、ゲートの順に3回に分ける。 */
+/* ★段を1つ出す（2026-09-08）。撮るのが目的なので Next の判定は通さず直接運ぶ。
+   ウィザードが読めなかったときは1枚ものに戻るので、その回は何もしない
+   ── 同じ台本が新旧どちらの画面でも走る。 */
+const goStep = async (page, i) => {
+  const moved = await page.evaluate((n) => {
+    if (!window.PVPayWizard) return false;
+    window.PVPayWizard.go(n, { quiet: true });
+    return true;
+  }, i);
+  if (moved) await new Promise((r) => setTimeout(r, 300));
+  return moved;
+};
+
+/* 「4. 契約と税」は、前回の内容が入っていると要約1行に畳まれている（foldContract）。
+   撮る前に開く ── 畳んだままだと中の欄が1つも写らない。 */
+const unfoldContract = (page) => page.evaluate(() => {
+  const b = document.getElementById('s4-body'), e = document.getElementById('s4-edit');
+  if (b && b.hidden && e) e.click();
+});
+
+/* 為替は本番の fx_rates を読む。撮影では叩かず、手元の1行を差し込む
+   （見たいのは公開イメージの**形**。レートと式の正しさは db/test-pay-preview.mjs が見る）。 */
+const stubFx = (page, code, rate) => page.evaluate((c, r) => {
+  if (typeof _sb === 'undefined' || !_sb.from) return;
+  const real = _sb.from.bind(_sb);
+  _sb.from = (t) => (t === 'fx_rates'
+    ? { select: async () => ({ data: [{ code: c, to_usd: r }], error: null }) }
+    : real(t));
+}, code, rate);
+
+/* 段を順に歩きながら埋める。まとめて入れると「進んでいく様子」ではなく
+   最終形しか撮れないので、段の区切りで4回に分ける。
+   ★ウィザードでは値を入れても段は動かない。go() で1つずつ運ぶ。 */
 async function fillSimple(page) {
+  await goStep(page, 0);
   await put(page, pick(SIMPLE, 'f-airline', 'f-position', 'f-fleet', 'f-jobrole', 'f-age'));
+  await goStep(page, 1);
   await put(page, pick(SIMPLE, 'f-block', 'f-stay'));
+  await goStep(page, 2);
   await put(page, pick(SIMPLE, 'f-currency', 'f-gross', 'f-netpay', 'f-bonus-mo',
                                'f-perdiem', 'f-housing', 'f-housing-amt'));
+  await goStep(page, 3);
+  await unfoldContract(page);
   await put(page, pick(SIMPLE, 'f-contract', 'f-taxcountry', 'f-seniority'));
   /* 任意項目はチップを押して初めて欄が出る。検品では全部開けて溢れを見る。
      ★内訳（#pay-detail）の中のチップはここでは押さない。開いた直後は「基本給だけ ＋
@@ -230,6 +291,8 @@ async function fillSimple(page) {
     }
   });
   await put(page, SIMPLE);
+  /* 撮るのは「3. 報酬」の段（内訳・役割モジュール・下端の帯が全部ここにある）。 */
+  await goStep(page, 2);
   await new Promise((r) => setTimeout(r, 400));
 }
 
@@ -371,7 +434,25 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
       await shoot(page, `${tag}-0b-payslip`);
       await page.click('#ps-skip');
       await new Promise((r) => setTimeout(r, 350));
-      await shoot(page, `${tag}-1-empty`);
+      /* 為替を差し込む（5/5 の公開イメージを描くのに要る）。本番は叩かない。 */
+      await stubFx(page, SIMPLE['f-currency'], 0.2723);
+
+      /* ★空のまま4つの段を歩く（2026-09-08）。「これから埋める姿」が段ごとに
+         どう見えるかは、Marit と突き合わせるときの土台になる。
+         あわせて、下端の帯が「3. 報酬」の段でしか出ないことをログで見る
+         ── ほかの段で出ていたら、入力欄と Next を隠す物が増えたということ。 */
+      const WALK = [['1', 0, 'empty'], ['1b', 1, 's2-empty'],
+                    ['1c', 2, 's3-empty'], ['1d', 3, 's4-empty']];
+      const barSeen = [];
+      for (const [n, i, name] of WALK) {
+        await goStep(page, i);
+        if (i === 3) await unfoldContract(page);
+        await shoot(page, `${tag}-${n}-${name}`);
+        const on = await page.evaluate(() => !document.getElementById('sticky-submit').hidden);
+        barSeen.push(`${name}=${on ? '帯' : '—'}`);
+      }
+      console.log(`     下端の帯: ${barSeen.join(' / ')}（s3-empty だけ「帯」が正しい）`);
+
       await fillSimple(page);
       await shoot(page, `${tag}-2-simple`);
 
@@ -404,10 +485,12 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
       await shoot(page, `${tag}-3b-detail-over`);
       const over = await page.evaluate(() => ({
         over: document.getElementById('pd-over').offsetParent !== null,
-        submit: document.getElementById('submit-block').offsetParent !== null,
+        /* ★注意が出ても送信は止めない。5ステップでは「送信ボタンが出ているか」では
+           見えない（ボタンは 5/5 の中に常にある）ので、送信をふさぐ空欄の数で見る。 */
+        block: typeof missingAll === 'function' ? missingAll().length : -1,
       }));
       console.log(`     超えさせたとき: 注意 = ${over.over ? '出' : '—'}`
-                  + ` / 送信ボタン = ${over.submit ? '出' : '—'}`);
+                  + ` / 送信をふさぐ空欄 = ${over.block} 件（0 が正しい）`);
       await put(page, { 'f-base': DETAIL['f-base'] });
       await new Promise((r) => setTimeout(r, 200));
 
@@ -728,11 +811,11 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
         on: ['pd-over', 'pd-over-instr', 'pd-over-exam',
              'pd-over-union', 'pd-over-mgmt', 'pd-over-nonline']
           .filter((id) => !document.getElementById(id).hidden),
-        submit: document.getElementById('submit-block').offsetParent !== null,
+        block: typeof missingAll === 'function' ? missingAll().length : -1,
       }));
       console.log(`     ★管理職の額で超えさせたとき: 出ている注意 = ${slot.on.join(',') || '—'}`
                   + `（pd-over-mgmt の1つだけが正しい）`
-                  + ` / 送信ボタン = ${slot.submit ? '出' : '—'}（止めないのが正しい）`);
+                  + ` / 送信をふさぐ空欄 = ${slot.block} 件（止めないので 0 が正しい）`);
       /* 内訳の欄を触ったら既定の受け皿へ戻る（受け皿は常に1つだけ）。 */
       await put(page, { 'f-base': String(Number(SIMPLE['f-gross']) + 1000) });
       await new Promise((r) => setTimeout(r, 250));
@@ -744,17 +827,23 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
       await put(page, { 'f-base': DETAIL['f-base'], 'f-mgmt-pay': MGMT['f-mgmt-pay'] });
       await new Promise((r) => setTimeout(r, 250));
 
-      /* 3n. ★B（2026-08-27 オーナー指示 → 同日その2で作り直し）。常設の「匿名で提出」を、
-             必須が3つ空いている状態で押す。箇条書きは組まず、足りない欄すべてを赤く囲って
-             右横に「未入力」を出し、先頭の欄まで運ぶ。
-             ★バーには「年換算の総額」も一緒に出ている（押す前に金額が見えている）。
+      /* 3n. ★必須が3つ空いたまま、5/5 の確認画面の送信を押す（2026-09-08 に作り直し）。
+             2026-08-27 の「常設の『匿名で提出』」は、5ステップ化に合わせてオーナーが
+             廃止した ── 下端の帯に残るのは年換算の合計の**表示だけ**で、押す口は
+             5/5 の送信ただ1つ。ここで見たいのは3つ。
+             ① 足りない欄すべてが赤く囲われ、右横に「未入力」の札が付く
+             ② 先頭の欄のある段（3/5）まで本人が運ばれる＝確認の段に居座らせない
+                （「押しても何も起きない」に見せない）
+             ③ 帯の中に押す物が生き返っていない
              ★押したあとに撮るので、絵には赤い欄が画面の真ん中に写る。 */
       const MISS = ['f-netpay', 'f-contract', 'f-seniority'];
       await put(page, { 'f-netpay': '', 'f-contract': '', 'f-seniority': '' });
       await new Promise((r) => setTimeout(r, 200));
-      await page.evaluate(() => document.getElementById('sticky-btn').click());
+      await goStep(page, 4);                      // 5/5 確認まで歩く
+      await new Promise((r) => setTimeout(r, 400));
+      await page.evaluate(() => document.getElementById('submit-btn').click());
       await new Promise((r) => setTimeout(r, 700));   // scrollIntoView({behavior:'smooth'}) の着地を待つ
-      await shoot(page, `${tag}-3n-sticky-miss`);
+      await shoot(page, `${tag}-3n-miss-jump`);
       const missShot = await page.evaluate(() => {
         const miss = [...document.querySelectorAll('.fld.is-miss')];
         const box = (id) => {
@@ -764,9 +853,12 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
           return Math.round(r.top + r.height / 2);
         };
         return {
+          step: window.PVPayWizard ? window.PVPayWizard.current() : '—',
+          onLast: !document.getElementById('s5').hidden,
           bar: !document.getElementById('sticky-submit').hidden,
           total: document.getElementById('sticky-total').textContent.trim(),
-          btn: document.getElementById('sticky-btn').textContent.trim(),
+          /* ★押す物が帯に戻っていないか（廃止した口が生き返っていないか）。 */
+          btnInBar: !!document.querySelector('#sticky-submit button, #sticky-submit a'),
           marked: miss.map((f) => (f.querySelector('input, select') || {}).id || ''),
           tags: miss.map((f) => {
             const t = f.querySelector('.form-label .miss-tag');
@@ -779,12 +871,12 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
           ul: !!document.querySelector('#err ul'),
           mid: box('f-netpay'),
           half: Math.round(window.innerHeight / 2),
-          steps: ['s2', 's3', 's4'].map((id) => !document.getElementById(id).hidden),
-          block: !document.getElementById('submit-block').hidden,
         };
       });
-      console.log(`     常設バー = ${missShot.bar ? '出' : '—'}`
-                  + ` / 年換算の総額 = ${missShot.total} / 文言 = ${missShot.btn}`);
+      console.log(`     ★運ばれた先 = ${missShot.step}（期待 s3）`
+                  + ` / 確認の段に居座っていない = ${missShot.onLast === false}`);
+      console.log(`     下端の帯 = ${missShot.bar ? '出' : '—'} / 年換算の総額 = ${missShot.total}`
+                  + ` / 帯の中の押す物 = ${missShot.btnInBar ? '★ある（廃止したはず）' : '無し（正しい）'}`);
       console.log(`     ★赤くなった欄 ${missShot.marked.length} 件（期待 ${MISS.length}）`
                   + ` = ${missShot.marked.join(' / ')}`
                   + ` / 右横の札 = ${missShot.tags.join(' / ')}`);
@@ -793,11 +885,6 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
                   + ` / 画面の中央から ${Math.abs(missShot.mid - missShot.half)}px`);
       console.log(`     ★#err = 「${missShot.title}」`
                   + ` / 箇条書き = ${missShot.ul ? '★出ている（やめたはず）' : '無し'}`);
-      console.log(`     押したあとの段 = ${missShot.steps.map((v) => (v ? '出' : '—')).join('')}`
-                  + `（§2〜§4 は全部出る）`
-                  + ` / 送信ボタンの枠 = ${missShot.block ? '出' : '—'}`
-                  + `（この場面では先に出ていたもの。この経路が開けたのではない`
-                  + ` ── revealSteps() が submit-block を触らないことは db/test-form-contract.mjs が見る）`);
       await put(page, pick(SIMPLE, 'f-netpay', 'f-contract', 'f-seniority'));
       await new Promise((r) => setTimeout(r, 250));
 
@@ -813,10 +900,81 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
                   + ` / 基本給 = ${back.base}（期待 ${DETAIL['f-base']}）`
                   + ` / 行 = ${back.items ? '残' : '—'}`);
 
+      /* 4b. ★5/5 の確認（Phase 5・2026-09-08）。1枚に2つの面があり、混ぜない。
+             上（#wz-review）＝本人が入れた実額の読み返し。節ごとに「変更する」で
+                               その段へ戻る（入れ直させない）
+             下（#wz-public）＝匿名で公開される**見込みの**形。REAL PAY の1行と同じ粗さで、
+                               入れた実額をそのまま公開の姿として見せない。
+                               出さないものを名前で並べ、サーバ側で変わる分は断言しない。
+             ★為替は上で手元の1行を差し込んである（本番は叩かない）。 */
+      /* ★撮る前に、辻褄の合う1人にしておく。3c〜3l は役割モジュールを順に足していく
+         台本なので、ここまで来ると「月 77,800 の人に管理職手当 50,000」という
+         あり得ない形で残っている。内訳の合計が総支給を超えている行は、公開イメージが
+         わざと帯を描かない（pay-wizard.js の why='over'）＝**確認画面の本題である帯が
+         1本も写らない**。管理職だけ外し、総支給を内訳と揃えてから撮る。
+         ここで見たいのは版面であって、超過の注意は 3b・3m の2枚が受け持っている。 */
+      await untickRole(page, 'management');
+      await untickRole(page, 'nonline');
+      await new Promise((r) => setTimeout(r, 300));
+      /* 総支給は固定の数字で書かない ── 上の台本に1行足すたびに内訳だけが増えて、
+         ある日また帯が消える。そのときの内訳の合計をそのまま総支給に写す
+         （組合ぶんは monthlyDetail() の側で既に外れている）。 */
+      await page.evaluate(() => {
+        const g = document.getElementById('f-gross');
+        g.value = String(Math.round(monthlyDetail()));
+        g.dispatchEvent(new Event('input', { bubbles: true }));
+        g.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+      await new Promise((r) => setTimeout(r, 300));
+
+      await goStep(page, 4);
+      await new Promise((r) => setTimeout(r, 700));
+      await shoot(page, `${tag}-4b-review`);
+      const rv = await page.evaluate(() => {
+        const R = document.getElementById('wz-review'), P = document.getElementById('wz-public');
+        const txt = (e) => (e ? e.textContent.replace(/\s+/g, ' ').trim() : '');
+        return {
+          secs: R ? R.querySelectorAll('.wz-rev-sec').length : 0,
+          rows: R ? R.querySelectorAll('.wz-rev-row').length : 0,
+          edits: R ? R.querySelectorAll('.wz-rev-edit').length : 0,
+          pubRows: P ? P.querySelectorAll('.wz-pub-row').length : 0,
+          segs: P ? P.querySelectorAll('.wz-pub-seg').length : 0,
+          hedge: P ? P.querySelectorAll('.wz-hedge li').length : 0,
+          notYet: P ? !!P.querySelector('.wz-note') && !P.querySelector('.wz-pub') : false,
+          /* ★公開イメージに「出さない」と約束したものが混ざっていないか（字で見る）。
+             基地・年代・契約形態・税の国・原本通貨・生の額・％は1つも出さない。 */
+          leak: (() => {
+            const t = txt(P);
+            const bad = [];
+            for (const w of ['DXB', 'AED', '77,800', '77800', '%']) if (t.indexOf(w) >= 0) bad.push(w);
+            return bad;
+          })(),
+          /* ★2つの面が別の箱に分かれていること（混ぜると「入れた額がそのまま出る」と読まれる）。 */
+          split: !!R && !!P && R !== P,
+          /* 帯が描けなかったときに理由を切り分けるための2つ（超過なら帯は出ない）。 */
+          sum: typeof monthlyDetail === 'function' ? monthlyDetail() : null,
+          gross: document.getElementById('f-gross').value,
+        };
+      });
+      console.log(`     ★入力内容の確認: 節 ${rv.secs} / 行 ${rv.rows} / 「変更する」${rv.edits} 個`
+                  + `（節の数と同じが正しい）`);
+      console.log(`     ★公開イメージ: 行 ${rv.pubRows} / 支給の帯 ${rv.segs} 本`
+                  + `（内訳の合計 ${rv.sum} ≤ 総支給 ${rv.gross} なら出る）`
+                  + ` / 断り書き ${rv.hedge} 行`
+                  + `${rv.notYet ? ' ★まだ描けていない（為替が入っていない）' : ''}`);
+      console.log(`     ★混ざっていないこと = ${rv.split}`
+                  + ` / 出さないと約束したものの混入 = ${rv.leak.length ? '★' + rv.leak.join(',') : '無し（正しい）'}`);
+
       /* 5. 2回目の訪問。savePreset() は送信が通ったときに走るので、ここでは
-            直接呼んで同じ状態を作る。★プリセットは対象月と飛んだ時間を
-            保存しないので、§3 以降は出ないのが正しい。 */
-      await page.evaluate(() => { if (typeof savePreset === 'function') savePreset(); });
+            直接呼んで同じ状態を作る。
+            ★下書き（pv_pay_draft）は「出しきれなかった人」のもの。ここで見たいのは
+              先月ちゃんと出した人の2回目なので、提出が通ったときと同じに消す
+              （消さないと下書きから再開して、居た段の途中から始まる）。
+            ★プリセットは対象月と飛んだ時間を保存しない＝2/5 は空で出るのが正しい。 */
+      await page.evaluate(() => {
+        if (typeof savePreset === 'function') savePreset();
+        if (window.PVPayWizard) window.PVPayWizard.clearDraft();
+      });
       await page.reload({ waitUntil: 'networkidle2', timeout: 30000 });
       await new Promise((r) => setTimeout(r, 900));
       /* ★2回目でも入口の2択から始まる（オーナー決定）。「手で入力」側に
@@ -824,9 +982,26 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
       await shoot(page, `${tag}-5a-second-entry`);
       await startManual(page);
       await shoot(page, `${tag}-5-second`);
-      const steps = await page.evaluate(() => ['s1', 's2', 's3', 's4', 'submit-block']
-        .map((id) => id + '=' + (document.getElementById(id).offsetParent !== null ? '出' : '—')).join(' '));
-      console.log(`     2回目: ${steps}`);
+      /* 5b. 2回目の 2/5。★飛んだ時間とステイ日数だけは持ち越さない（毎月変わる）。
+             打ち直させないもの（会社・職位）と、打ち直してもらうもの（時間）が
+             1枚で分かるかを見る。 */
+      await goStep(page, 1);
+      await shoot(page, `${tag}-5b-second-hours`);
+      const sec2 = await page.evaluate(() => ({
+        step: window.PVPayWizard ? window.PVPayWizard.current() : '—',
+        restore: document.getElementById('restore-bar').offsetParent !== null,
+        airline: document.getElementById('f-airline').value,
+        pos: document.getElementById('f-position').value,
+        block: document.getElementById('f-block').value,
+        stay: document.getElementById('f-stay').value,
+        fold: document.getElementById('s4-body').hidden,
+      }));
+      console.log(`     2回目: 段 = ${sec2.step} / 「前回の内容」の知らせ = ${sec2.restore ? '出' : '—'}`);
+      console.log(`     ★持ち越す = 会社 '${sec2.airline}'・職位 '${sec2.pos}'`
+                  + ` / ★持ち越さない = 飛んだ時間 '${sec2.block}'・ステイ '${sec2.stay}'`
+                  + `（この2つが空なのが正しい）`);
+      console.log(`     「4. 契約と税」は要約1行に畳まれている = ${sec2.fold}（2回目は畳むのが正しい）`);
+      await goStep(page, 0);
 
       // 6. 結果パネル（RPC 不要。表示の検品だけ）
       const ok = await page.evaluate((d) => {
@@ -842,15 +1017,17 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
       await page.close();
 
       /* 7. DEEP PAY の説明から「給与内訳を追加する」で来たとき（#pay-detail）。
-            ★着いた瞬間に内訳の欄は出ない。段階表示が §1・§2 を先に求めるうえ、
-              飛んだ時間は前回の値を持ち越さないので、誰が来ても必ず §1 から。
+            ★着いた瞬間に内訳の欄は出ない。誰が来ても必ず 1/5 から始まるうえ、
+              飛んだ時間は前回の値を持ち越さないので、報酬の段はまだ先。
               ここでやっているのは「先に開いておく」ことなので、2枚で見る。
-              7a = 着地（入口の2択を越えてフォームの先頭に居る）
-              7b = §1・§2 を埋めて §3 が出たところ（もう開いた状態で現れる） */
+              7a = 着地（入口の2択を越えて 1/5 に居る）
+              7b = 1/5・2/5 を埋めて 3/5 に着いたところ（もう開いた状態で現れる） */
       const dp = await open(url + '#pay-detail', w, theme);
       await shoot(dp, `${tag}-7a-detail-link`);
       await put(dp, pick(SIMPLE, 'f-airline', 'f-position', 'f-fleet', 'f-jobrole', 'f-age'));
+      await goStep(dp, 1);
       await put(dp, pick(SIMPLE, 'f-block', 'f-stay'));
+      await goStep(dp, 2);
       await new Promise((r) => setTimeout(r, 350));
       await shoot(dp, `${tag}-7b-detail-open`);
       const arrived = await dp.evaluate(() => ({
