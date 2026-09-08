@@ -2512,11 +2512,14 @@ function updateSteps(quiet) {
   if (WZ) WZ.sync();
   $('ai-legend').hidden = !document.querySelector('.form-input.ai-filled');
   /* ★「給与の内訳を入力する」から来た人を、§3 が出た**1回だけ**内訳まで寄せる。
-     旗は使ったら消す（そのあと勝手に飛ばない）。 */
-  if (PEND_DETAIL && $('pay-detail') && $('pay-detail').open && detailShown($('f-base'))) {
+     旗は使ったら消す（そのあと勝手に飛ばない）。
+     ★ウィザードが居るときは、旗を落とすのは pay-wizard.js の onStep（3/5 に着いた瞬間）。
+       ここに任せると「着いたあと**最初に欄を触った瞬間**」まで旗が残り、打鍵ひとつで
+       画面が飛ぶ（2026-09-08 に踏んだ ── 段が出るのは Next であって入力ではない）。
+       1画面1段なので、そもそも寄せ直す先も要らない。 */
+  if (!WZ && PEND_DETAIL && $('pay-detail') && $('pay-detail').open && detailShown($('f-base'))) {
     PEND_DETAIL = false;
-    if (window.requestAnimationFrame) requestAnimationFrame(scrollToPaySec);
-    else setTimeout(scrollToPaySec, 0);
+    afterLoad(scrollToPaySec);
   }
 }
 
@@ -2693,6 +2696,21 @@ $('ps-skip').addEventListener('click', () => { track('pay_entry_manual', { from:
    ★Only opens it. The input-mode switch is not copied here
      (.open = true fires toggle and updatePayMode above runs as it always does).
    ★Also on hashchange — the link can be followed while already on this page. */
+/* ★寄せる／カーソルを入れるのは、読み込みが**終わってから**。
+   ハッシュ付き（#pay-detail）で来ると、ブラウザは読み込み完了の時点で自分でも
+   「その id の要素へ移動する」を行い、そのときカーソルを外す
+   （<details> は focus できないので、行き先が body に落ちる）。
+   解析の途中で focus すると、この後始末に上書きされて先頭に入らない。
+   ⚠️ 速い回だけ起きる。2026-09-08、英語版だけが「カーソルが先頭に無い」で落ちたが、
+      日本語版との差は読み込みの速さだけだった（同じ形はどちらでも起きる）。 */
+function afterLoad(fn) {
+  var run = function () {
+    if (window.requestAnimationFrame) requestAnimationFrame(fn);
+    else setTimeout(fn, 0);
+  };
+  if (document.readyState === 'complete') run();
+  else window.addEventListener('load', run, { once: true });
+}
 var PEND_DETAIL = false;
 function openDetailFromHash() {
   if (location.hash !== '#pay-detail') return;
@@ -2712,8 +2730,7 @@ function openDetailFromHash() {
      ここで諦めると、§1・§2 を埋め終えたあとも §3 は画面のずっと下のままで、
      自分で探すことになる。updateSteps() が §3 を出した**1回だけ**寄せる。 */
   if (!detailShown($('f-base'))) PEND_DETAIL = true;
-  if (window.requestAnimationFrame) requestAnimationFrame(scrollToPaySec);
-  else setTimeout(scrollToPaySec, 0);
+  afterLoad(scrollToPaySec);
 }
 function detailShown(el) { return !!el && el.getBoundingClientRect().height > 0; }
 /* 寄せ先は §3「3. 報酬」の**頭**（2026-09-03 その5・オーナー指摘
@@ -3198,6 +3215,9 @@ if (WZ) {
       /* 段を出し直したので、印とゲージを引き直す（隠れている間は数えていない）。 */
       markRequired();
       markProgress();
+      /* ★「内訳を入力する」から来た旗は、3/5 に着いた**その瞬間**に落とす。
+         go() が段の頭まで運んで先頭の欄に入れているので、ここで寄せ直さない。 */
+      if (id === 's3') PEND_DETAIL = false;
       if (id !== 's5') return;
       const draw = () => WZ.render(payNotes());
       draw();

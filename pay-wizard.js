@@ -324,7 +324,14 @@ var L = null;          // 言葉
 var cur = 0;           // 今のステップ（0 始まり）
 var started = false;
 var saveTimer = null;
+/* 提出が通ったあとは、もう控えない（下の clearDraft の但し書き）。 */
+var doneSaving = false;
 var uidFp = 'anon';
+/* ★init() より先に start() が呼ばれることがある（2026-09-08 に踏んだ）。
+   pay-report.html#pay-detail で来た人は、器を起こす行より**上**の
+   openDetailFromHash() が enterMode('manual') を呼ぶ。順番を直す代わりに
+   ここで覚えておく ── 呼ぶ側の並びに、器の生死を預けない。 */
+var wantStart = false;
 
 function $(id) { return document.getElementById(id); }
 function el(tag, cls, txt) {
@@ -392,6 +399,22 @@ function buildChrome() {
 }
 
 /* ── 移動 ─────────────────────────────────────────────────────── */
+/* 段の頭へ運ぶ。
+   ⚠️ 進捗バー（#wz-top）を scrollIntoView しない。あれは position:sticky ＝
+      貼り付いているあいだ「今いる場所」が自分の位置なので、頭に合わせろと言うと
+      **貼り付いている高さのぶんだけ下へ**動く。押すたびに少しずつ流れ、
+      速い回には一気に流れる（2026-09-08、英語版で 398px → 1224px まで落ちた。
+      日本語版も毎回 59px ずつ下がっていた ── 目には「少しズレる」としか映らない）。
+   貼り付かない親（フォーム本体）の文書上の位置から出して、そこへ運ぶ。 */
+function scrollToTop() {
+  var top = $('wz-top');
+  var host = top && top.parentNode;
+  if (!host || !host.getBoundingClientRect) return;
+  var off = parseFloat((window.getComputedStyle ? getComputedStyle(top).top : '') || '') || 0;
+  var y = Math.max(0, host.getBoundingClientRect().top + (window.pageYOffset || 0) - off);
+  try { window.scrollTo({ top: y, behavior: 'smooth' }); }
+  catch (e) { window.scrollTo(0, y); }
+}
 function show(i) {
   C.steps.forEach(function (s, k) {
     stepEls(k).forEach(function (e) { e.hidden = k !== i; });
@@ -423,8 +446,7 @@ function go(i, opt) {
      再開したとき必ず1つ手前から始まる（値は全部あるのに、もう一度 Next を押す）。 */
   saveDraft();
   if (!opt || !opt.quiet) {
-    var top = $('wz-top');
-    if (top && top.scrollIntoView) top.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    scrollToTop();
     var first = $(C.steps[i].id).querySelector('.form-input:not([type="hidden"]), .rolebox input');
     if (first) { try { first.focus({ preventScroll: true }); } catch (e) {} }
   }
@@ -438,6 +460,7 @@ function forward(i) {
 }
 /* その欄のあるステップへ運ぶ（送信で止まったときに使う）。 */
 function goToField(node) {
+  if (!C) return -1;
   for (var i = 0; i < C.steps.length; i++) {
     var box = $(C.steps[i].id);
     if (box && box.contains(node)) { if (i !== cur) go(i, { quiet: true }); return i; }
@@ -470,7 +493,7 @@ function draftState() {
   return { v: DRAFT_V, uid: uidFp, step: C.steps[cur].id, ts: Date.now(), fields: f };
 }
 function saveDraft() {
-  if (!started) return;
+  if (!started || doneSaving) return;
   var ok = draftWrite(draftState());
   var box = $('wz-draft');
   if (!box) return;
@@ -677,9 +700,14 @@ var API = {
        押印済みのものは setUid() が「今の人のものだ」と言うまで戻さない。 */
     if (d && d.uid === 'anon') { this._pending = null; this._resume = d; }
     else { this._pending = d; }
+    /* 先に start() が来ていたら、ここで起こす（上の wantStart）。 */
+    if (wantStart) { wantStart = false; this.start(); }
     return this;
   },
   start: function () {
+    /* ★まだ init() が走っていない（呼ぶ側の並びの都合）。覚えておいて
+       init() の最後で起こす。ここで先に進むと C が null のまま落ちる。 */
+    if (!C) { wantStart = true; return; }
     if (started) return;
     started = true;
     var d = this._resume;
@@ -703,14 +731,25 @@ var API = {
       if (started) restoreDraft(d); else this._resume = d;
     }
   },
-  sync: function () { sync(); saveSoon(); },
+  sync: function () { if (!C) return; sync(); saveSoon(); },
   go: go,
-  goLast: function () { go(C.steps.length - 1); },
+  goLast: function () { if (C) go(C.steps.length - 1); },
   goToField: goToField,
   current: function () { return C ? C.steps[cur].id : null; },
   isLast: function () { return !!C && cur === C.steps.length - 1; },
   saveDraft: saveDraft,
-  clearDraft: draftClear,
+  /* ★提出が通ったあとの後始末（pay-report.html の afterSaved から呼ぶ）。
+     控えを消すだけでなく、**これ以降は控えない**。消した直後に、直前の打鍵で
+     仕掛かっていた2秒の遅延保存が発火して、出し切ったはずの下書きが黙って生き返る
+     （2026-09-08 に踏んだ ── 次に開いた人に「まだ途中です」と出て、しかも
+     5/5 から始まる。画面はどこも壊れていないので目では気づけない）。 */
+  clearDraft: function () {
+    doneSaving = true;
+    clearTimeout(saveTimer);
+    draftClear();
+    var box = $('wz-draft');
+    if (box) box.hidden = true;
+  },
   render: function (notes) {
     renderReview();
     var p = C.payload ? C.payload() : null;
