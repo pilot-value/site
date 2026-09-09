@@ -496,8 +496,25 @@ body.has-cta #form-wrap{padding-bottom:96px}
 .ps-skip:active{transform:translateY(1px)}
 /* 手動で入力を選んだあと ── 明細の入口は1行の帯にして上に残す */
 .ps.is-slim .ps-step,.ps.is-slim .ps-benefits,.ps.is-slim .ps-skip,.ps.is-slim .ps-drop-txt small{display:none}
-.ps.is-slim .ps-drop{padding:11px 14px}
-.ps.is-slim .ps-drop-txt b{font-size:.82rem}
+/* 2026-09-09 オーナー指示 ── 段の上に残る帯を「札」にする。
+   役割の「◯◯の手当を追加」（.pay-detail>summary）と同じ形。
+   全幅の破線の箱は入力欄の枠に見え、押せるものだと伝わっていなかった。
+   ★的が小さくなりすぎないよう、高さは 42px 前後を保つ（左右だけ詰める）。
+   ★ドラッグして落とす動作は document 全体で受けている（payslip.js の root）。
+     札を小さくしても、落とす操作は今までどおり効く。
+   ★.ps-drop:hover は (0,2,0)、こちらは (0,3,0) で勝ってしまうので、
+     hover と is-over は下で必ず書き直す（書かないと押した感じが消える）。 */
+.ps.is-slim .ps-drop{width:fit-content;max-width:100%;gap:9px;padding:9px 17px 9px 10px;
+  border-radius:999px;border:1px solid rgba(245,200,66,.55);color:#f5c842;
+  background:radial-gradient(120% 160% at 0% 50%,rgba(245,200,66,.18),transparent 70%),rgba(245,200,66,.07);
+  box-shadow:0 10px 26px -18px rgba(245,200,66,.75)}
+.ps.is-slim .ps-drop:hover,.ps.is-slim .ps-drop.is-over{color:#ffd968;border-color:rgba(245,200,66,.85);transform:translateY(-1px);
+  background:radial-gradient(120% 160% at 0% 50%,rgba(245,200,66,.26),transparent 70%),rgba(245,200,66,.12)}
+.ps.is-slim .ps-drop:active{transform:translateY(1px)}
+.ps.is-slim .ps-ico{width:24px;height:24px;border-radius:999px;display:inline-flex;
+  align-items:center;justify-content:center;font-size:.8rem;
+  background:rgba(245,200,66,.2);border:1px solid rgba(245,200,66,.5)}
+.ps.is-slim .ps-drop-txt b{font-size:.84rem;font-weight:800;letter-spacing:-.01em}
 .ps{margin-bottom:18px}
 .ps-drop{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:14px 16px;border-radius:12px;border:1px dashed rgba(245,200,66,.3);background:linear-gradient(180deg,rgba(245,200,66,.06),rgba(245,200,66,.02));color:#e8edf2;cursor:pointer;transition:border-color .2s,background .2s,transform .2s cubic-bezier(.16,1,.3,1)}
 .ps-drop:hover,.ps-drop.is-over{border-color:rgba(245,200,66,.6);background:linear-gradient(180deg,rgba(245,200,66,.12),rgba(245,200,66,.04))}
@@ -1004,6 +1021,12 @@ body.has-cta #form-wrap{padding-bottom:96px}
 [data-theme="light"] .ps-drop{color:#0f172a;border-color:rgba(200,149,0,.4);background:linear-gradient(180deg,rgba(200,149,0,.08),rgba(200,149,0,.02))}
 [data-theme="light"] .ps-drop:hover,[data-theme="light"] .ps-drop.is-over{border-color:rgba(200,149,0,.7);background:linear-gradient(180deg,rgba(200,149,0,.14),rgba(200,149,0,.05))}
 [data-theme="light"] .ps-drop-txt small{color:#64748b}
+[data-theme="light"] .ps.is-slim .ps-drop{color:#a97e00;border-color:rgba(200,149,0,.55);
+  background:radial-gradient(120% 160% at 0% 50%,rgba(200,149,0,.16),transparent 70%),rgba(200,149,0,.06);
+  box-shadow:0 10px 26px -20px rgba(200,149,0,.7)}
+[data-theme="light"] .ps.is-slim .ps-drop:hover,[data-theme="light"] .ps.is-slim .ps-drop.is-over{color:#8a6600;border-color:rgba(200,149,0,.85);
+  background:radial-gradient(120% 160% at 0% 50%,rgba(200,149,0,.24),transparent 70%),rgba(200,149,0,.11)}
+[data-theme="light"] .ps.is-slim .ps-ico{background:rgba(200,149,0,.18);border-color:rgba(200,149,0,.5)}
 [data-theme="light"] .ps-fold{border-top-color:rgba(0,0,0,.09)}
 [data-theme="light"] .ps-fold-s{color:#64748b}
 [data-theme="light"] .ps-fold-s:hover{color:#0f172a}
