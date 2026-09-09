@@ -438,8 +438,8 @@ body.has-cta #form-wrap{padding-bottom:96px}
 .entry-q{font-size:.84rem;font-weight:700;color:#a8b3c2;letter-spacing:-.01em;margin:0 0 12px}
 .entry-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:6px}
 @media (max-width:640px){.entry-grid{grid-template-columns:1fr}}
-.entry-card{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:7px;width:100%;
-  text-align:left;padding:22px 18px 18px;border-radius:16px;cursor:pointer;color:#e8edf2;
+.entry-card{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:10px;width:100%;
+  text-align:left;padding:16px 16px 16px;border-radius:16px;cursor:pointer;color:#e8edf2;
   border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.025);
   box-shadow:0 20px 44px -32px rgba(0,0,0,.95),0 2px 6px -3px rgba(0,0,0,.55);
   transition:border-color .22s,background .22s,box-shadow .22s,transform .3s cubic-bezier(.16,1,.3,1)}
@@ -450,8 +450,24 @@ body.has-cta #form-wrap{padding-bottom:96px}
   box-shadow:0 26px 54px -30px rgba(245,200,66,.55),0 3px 8px -3px rgba(0,0,0,.6)}
 .entry-card:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:3px}
 .entry-card:active{transform:translateY(0)}
-.entry-ico{font-size:1.45rem;line-height:1;color:#f5c842}
-.entry-t{font-size:1rem;font-weight:800;letter-spacing:-.02em}
+/* 入口の2択の見出しは**札**にする（2026-09-09 オーナー指示）── 役割の
+   「◯◯の手当を追加」（.pay-detail>summary）と同じ形。押せるものだと一目で分かり、
+   明細の側だけ山吹色にすることで「こちらが本命」が色で伝わる。
+   ★カード全体が押せることは変えない。札だけを的にすると、モバイルで的が小さくなる。 */
+.entry-t{display:inline-flex;align-items:center;gap:9px;max-width:100%;
+  font-size:.92rem;font-weight:800;letter-spacing:-.01em;color:#a8b3c2;
+  padding:9px 17px 9px 10px;border-radius:999px;
+  border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);
+  transition:color .2s,border-color .2s,background .2s,transform .25s cubic-bezier(.16,1,.3,1)}
+.entry-t .p{flex:none;width:24px;height:24px;border-radius:999px;display:inline-flex;
+  align-items:center;justify-content:center;font-size:.8rem;line-height:1;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14)}
+.entry-card.is-primary .entry-t{color:#f5c842;border-color:rgba(245,200,66,.5);background:rgba(245,200,66,.13)}
+.entry-card.is-primary .entry-t .p{background:rgba(245,200,66,.2);border-color:rgba(245,200,66,.5)}
+.entry-card:hover .entry-t{transform:translateY(-1px)}
+.entry-card.is-primary:hover .entry-t{color:#ffd968;border-color:rgba(245,200,66,.8);background:rgba(245,200,66,.19)}
+.entry-card:not(.is-primary):hover .entry-t{color:#e8edf2;border-color:rgba(255,255,255,.26)}
+@media (prefers-reduced-motion:reduce){.entry-t{transition:none}}
 /* 選ぶ材料（2026-08-13 その4）。説明1行だと「明細を読ませると何が良いのか」が伝わらない。
    ✓ は緑 ── この画面で緑は既に「安全側／こちらが入れた値」の色（.form-input.ai-filled）。 */
 .entry-benefits{display:flex;flex-direction:column;gap:5px;margin-top:1px;width:100%}
@@ -973,7 +989,12 @@ body.has-cta #form-wrap{padding-bottom:96px}
   box-shadow:0 24px 50px -34px rgba(200,149,0,.6),0 2px 6px -3px rgba(15,23,42,.14)}
 [data-theme="light"] .entry-card:hover{border-color:rgba(200,149,0,.7)}
 [data-theme="light"] .entry-card:focus-visible{outline-color:rgba(200,149,0,.85)}
-[data-theme="light"] .entry-ico{color:#a97e00}
+[data-theme="light"] .entry-t{color:#475569;border-color:rgba(0,0,0,.12);background:rgba(0,0,0,.03)}
+[data-theme="light"] .entry-t .p{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.12)}
+[data-theme="light"] .entry-card.is-primary .entry-t{color:#a97e00;border-color:rgba(200,149,0,.5);background:rgba(200,149,0,.12)}
+[data-theme="light"] .entry-card.is-primary .entry-t .p{background:rgba(200,149,0,.16);border-color:rgba(200,149,0,.5)}
+[data-theme="light"] .entry-card.is-primary:hover .entry-t{color:#8a6600;border-color:rgba(200,149,0,.8);background:rgba(200,149,0,.17)}
+[data-theme="light"] .entry-card:not(.is-primary):hover .entry-t{color:#0f172a;border-color:rgba(0,0,0,.24)}
 [data-theme="light"] .entry-tag{background:rgba(0,0,0,.04);color:#64748b;border-color:rgba(0,0,0,.12)}
 [data-theme="light"] .entry-card.is-primary .entry-tag{background:rgba(200,149,0,.12);color:#a97e00;border-color:rgba(200,149,0,.35)}
 [data-theme="light"] .ps-step{color:#a97e00}
