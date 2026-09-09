@@ -258,16 +258,6 @@ const unfoldContract = (page) => page.evaluate(() => {
   if (b && b.hidden && e) e.click();
 });
 
-/* 為替は本番の fx_rates を読む。撮影では叩かず、手元の1行を差し込む
-   （見たいのは公開イメージの**形**。レートと式の正しさは db/test-pay-preview.mjs が見る）。 */
-const stubFx = (page, code, rate) => page.evaluate((c, r) => {
-  if (typeof _sb === 'undefined' || !_sb.from) return;
-  const real = _sb.from.bind(_sb);
-  _sb.from = (t) => (t === 'fx_rates'
-    ? { select: async () => ({ data: [{ code: c, to_usd: r }], error: null }) }
-    : real(t));
-}, code, rate);
-
 /* 段を順に歩きながら埋める。まとめて入れると「進んでいく様子」ではなく
    最終形しか撮れないので、段の区切りで4回に分ける。
    ★ウィザードでは値を入れても段は動かない。go() で1つずつ運ぶ。 */
@@ -434,9 +424,6 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
       await shoot(page, `${tag}-0b-payslip`);
       await page.click('#ps-skip');
       await new Promise((r) => setTimeout(r, 350));
-      /* 為替を差し込む（5/5 の公開イメージを描くのに要る）。本番は叩かない。 */
-      await stubFx(page, SIMPLE['f-currency'], 0.2723);
-
       /* ★空のまま4つの段を歩く（2026-09-08）。「これから埋める姿」が段ごとに
          どう見えるかは、Marit と突き合わせるときの土台になる。
          あわせて、下端の帯が「3. 報酬」の段でしか出ないことをログで見る
@@ -900,19 +887,16 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
                   + ` / 基本給 = ${back.base}（期待 ${DETAIL['f-base']}）`
                   + ` / 行 = ${back.items ? '残' : '—'}`);
 
-      /* 4b. ★5/5 の確認（Phase 5・2026-09-08）。1枚に2つの面があり、混ぜない。
-             上（#wz-review）＝本人が入れた実額の読み返し。節ごとに「変更する」で
-                               その段へ戻る（入れ直させない）
-             下（#wz-public）＝匿名で公開される**見込みの**形。REAL PAY の1行と同じ粗さで、
-                               入れた実額をそのまま公開の姿として見せない。
-                               出さないものを名前で並べ、サーバ側で変わる分は断言しない。
-             ★為替は上で手元の1行を差し込んである（本番は叩かない）。 */
+      /* 4b. ★5/5 の確認（Phase 5）。出すのは**本人が入れた実額**だけ。
+             一番上に「支給の内訳（今月）」の横棒と明細、その下に打った欄の読み返し。
+             節ごとに「変更する」でその段へ戻る（入れ直させない）。
+             ⚠️ 2026-09-09 に「匿名で公開されるイメージ」を廃止した（オーナー指示）。
+                あちらは**年額の帯**で、すぐ上の月額と桁が違って別の話に読めた。
+                公開の形は REAL PAY 側で見せる（ここで二度説明しない）。 */
       /* ★撮る前に、辻褄の合う1人にしておく。3c〜3l は役割モジュールを順に足していく
          台本なので、ここまで来ると「月 77,800 の人に管理職手当 50,000」という
-         あり得ない形で残っている。内訳の合計が総支給を超えている行は、公開イメージが
-         わざと帯を描かない（pay-wizard.js の why='over'）＝**確認画面の本題である帯が
-         1本も写らない**。管理職だけ外し、総支給を内訳と揃えてから撮る。
-         ここで見たいのは版面であって、超過の注意は 3b・3m の2枚が受け持っている。 */
+         あり得ない形で残っている。管理職だけ外し、総支給を内訳と揃えてから撮る
+         ── ここで見たいのは版面であって、超過の注意は 3b・3m の2枚が受け持っている。 */
       await untickRole(page, 'management');
       await untickRole(page, 'nonline');
       await new Promise((r) => setTimeout(r, 300));
@@ -931,39 +915,31 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
       await new Promise((r) => setTimeout(r, 700));
       await shoot(page, `${tag}-4b-review`);
       const rv = await page.evaluate(() => {
-        const R = document.getElementById('wz-review'), P = document.getElementById('wz-public');
-        const txt = (e) => (e ? e.textContent.replace(/\s+/g, ' ').trim() : '');
+        const R = document.getElementById('wz-review');
+        const comp = R ? R.querySelector('.wz-rev-comp') : null;
+        const sec = R ? R.querySelector('.wz-rev-sec') : null;
         return {
           secs: R ? R.querySelectorAll('.wz-rev-sec').length : 0,
           rows: R ? R.querySelectorAll('.wz-rev-row').length : 0,
           edits: R ? R.querySelectorAll('.wz-rev-edit').length : 0,
-          pubRows: P ? P.querySelectorAll('.wz-pub-row').length : 0,
-          segs: P ? P.querySelectorAll('.wz-pub-seg').length : 0,
-          hedge: P ? P.querySelectorAll('.wz-hedge li').length : 0,
-          notYet: P ? !!P.querySelector('.wz-note') && !P.querySelector('.wz-pub') : false,
-          /* ★公開イメージに「出さない」と約束したものが混ざっていないか（字で見る）。
-             基地・年代・契約形態・税の国・原本通貨・生の額・％は1つも出さない。 */
-          leak: (() => {
-            const t = txt(P);
-            const bad = [];
-            for (const w of ['DXB', 'AED', '77,800', '77800', '%']) if (t.indexOf(w) >= 0) bad.push(w);
-            return bad;
-          })(),
-          /* ★2つの面が別の箱に分かれていること（混ぜると「入れた額がそのまま出る」と読まれる）。 */
-          split: !!R && !!P && R !== P,
-          /* 帯が描けなかったときに理由を切り分けるための2つ（超過なら帯は出ない）。 */
+          segs: R ? R.querySelectorAll('.wz-rev-seg').length : 0,
+          bars: comp ? (comp.querySelector('.wz-cbar') || { children: [] }).children.length : 0,
+          /* ★内訳が読み返しより**上**にあること（2026-09-09 オーナー指示）。 */
+          compFirst: (comp && sec)
+            ? !!(comp.compareDocumentPosition(sec) & Node.DOCUMENT_POSITION_FOLLOWING) : null,
+          /* ★廃止した公開イメージが復活していないこと。 */
+          pubBox: !!document.getElementById('wz-public'),
+          /* 内訳が1区分に潰れていないかを切り分けるための2つ。 */
           sum: typeof monthlyDetail === 'function' ? monthlyDetail() : null,
           gross: document.getElementById('f-gross').value,
         };
       });
       console.log(`     ★入力内容の確認: 節 ${rv.secs} / 行 ${rv.rows} / 「変更する」${rv.edits} 個`
                   + `（節の数と同じが正しい）`);
-      console.log(`     ★公開イメージ: 行 ${rv.pubRows} / 支給の帯 ${rv.segs} 本`
-                  + `（内訳の合計 ${rv.sum} ≤ 総支給 ${rv.gross} なら出る）`
-                  + ` / 断り書き ${rv.hedge} 行`
-                  + `${rv.notYet ? ' ★まだ描けていない（為替が入っていない）' : ''}`);
-      console.log(`     ★混ざっていないこと = ${rv.split}`
-                  + ` / 出さないと約束したものの混入 = ${rv.leak.length ? '★' + rv.leak.join(',') : '無し（正しい）'}`);
+      console.log(`     ★支給の内訳（今月）: 明細 ${rv.segs} 行 / 帯 ${rv.bars} 欠片`
+                  + `（内訳の合計 ${rv.sum} / 総支給 ${rv.gross}）`
+                  + ` / 読み返しより上 = ${rv.compFirst}`
+                  + `${rv.pubBox ? ' ★廃止した公開イメージが復活している' : ''}`);
 
       /* 5. 2回目の訪問。savePreset() は送信が通ったときに走るので、ここでは
             直接呼んで同じ状態を作る。

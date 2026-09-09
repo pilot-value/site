@@ -22,21 +22,27 @@ nav.scrolled{background:rgba(10,12,15,.92);backdrop-filter:blur(20px);border-bot
 .btn-ghost{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:10px;font-weight:600;font-size:.9rem;color:#e8edf2;border:1px solid rgba(255,255,255,.15);background:transparent;cursor:pointer;transition:border-color .2s,background .2s;text-decoration:none}
 .btn-ghost:hover{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.05)}
 .btn-ghost:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
-.card{background:rgba(17,22,32,.7);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:32px}
-/* ★内側の余白は Marit の実測と同じ 32px（カラム幅も両方 640px）。
-     狭い画面だけ 20px に落とす ── 32px のままだと 390px の端末で
-     入力欄が 294px まで痩せ、通貨と金額を並べた行が窮屈になる。 */
-/*   左右はさらに 16px まで詰める。Marit のモバイルは**カードそのものが無く**、
-     本文が画面の左右 16px から始まる（648px の実機画像を 1.62 倍で割って実測）。
-     こちらはカードを残す（ブランドの面を捨てない）ので、その 16px にページ側の
-     16px が乗って合計 36px ── 入力欄が向こうより 40px 細い。上下の 20px は
-     そのままに、左右だけ 16px に詰めて 4px 返す。 */
-@media (max-width:600px){.card{padding:20px 16px}}
+.card{background:rgba(17,22,32,.7);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:26px}
+/* ★内側の余白（2026-09-08 オーナー指摘「全体的に枠とかもデカすぎませんか」で
+     32 → 26px、角丸も 20 → 16px）。Marit の実機はカラム幅 640px でこちらと同じ。
+   ★狭い画面では枠を二重に掛けない。ページ側が左右 16px、カードがさらに 16px 持っていて、
+     390px のうち欄に使えるのが 324px しか無かった
+     （Marit のモバイルは**カードそのものが無く** 358px ＝ 左右 16px の1枚だけ。
+      実機画像 648px を 1.641 倍で割って実測）。
+     こちらはカードを残す（ブランドの面を捨てない）ので、内側を 12px に詰めたうえで
+     カードを 8px ずつ外へ出し、二重ぶんを取り戻す。**それ以上は出さない**
+     ── ちょうど 16px 出すと画面と同じ幅になり、丸めの誤差で横スクロールが出る。 */
+@media (max-width:600px){
+  .card{padding:16px 12px;border-radius:13px;margin-left:-8px;margin-right:-8px}
+}
 /* ★項目名は小さい・薄い・全部大文字の3つ重ねで読みにくかった（2026-08-27 オーナー指摘
    「対象月」「勤務時間（Duty time）」…が灰色の薄い文字で見えにくい）。
    明るさを上げ・少し大きくし・字間と全部大文字をやめる。入力欄の文字（#e8edf2）よりは
-   一段落として、項目名 → 入力値 → 補足（.fld-hint）の順に読める強さを保つ。 */
-.form-label{display:block;font-size:.83rem;font-weight:700;color:#ccd6e2;margin-bottom:8px;letter-spacing:.01em;line-height:1.5}
+   一段落として、項目名 → 入力値 → 補足（.fld-hint）の順に読める強さを保つ。
+   ⚠️ **font-size の下限は .83rem。** db/test-form-contract.mjs が字で見張っている
+      （2026-09-08、全体を詰めたときに .8rem まで落として落ちた）。
+      Marit の実機も約 13px ＝ .83rem とほぼ同じなので、これ以上は詰めない。 */
+.form-label{display:block;font-size:.83rem;font-weight:600;color:#ccd6e2;margin-bottom:6px;letter-spacing:.01em;line-height:1.45}
 /* 欄の小札は3つ。★色の役割を分ける（2026-08-13 その4）。
    これまでは「任意」だけが在り、しかもブランド最強色の金だった＝いちばん目立つ色が
    「入れなくていい欄」に付いていた。必須の欄には印すら無かった。
@@ -45,7 +51,7 @@ nav.scrolled{background:rgba(10,12,15,.92);backdrop-filter:blur(20px);border-bot
      任意 = 中立グレー（.sec-tag.opt と同じ色）
    ★.req-tag が付く欄は「ゲートが実際に見ている欄」と一致していること。
      ズレると画面と送信の判定が食い違う。db/test-form-contract.mjs の静的検査⑧が見張る。 */
-.opt-tag,.req-tag,.auto-tag,.miss-tag{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:999px;font-size:.62rem;font-weight:700;letter-spacing:.04em;text-transform:none}
+.opt-tag,.req-tag,.auto-tag,.miss-tag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;font-size:.6rem;font-weight:700;letter-spacing:.04em;text-transform:none}
 .opt-tag{color:#9ca3af;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14)}
 .req-tag{color:#fb923c;background:rgba(249,115,22,.13);border:1px solid rgba(249,115,22,.3)}
 .auto-tag{color:#34d399;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.28)}
@@ -54,7 +60,7 @@ nav.scrolled{background:rgba(10,12,15,.92);backdrop-filter:blur(20px);border-bot
    ★ラベルの中に流し込む（.fld.is-req::after の ✓ と同じ右上に浮かせると、
      「パーディアム（その月の合計）」のような長いラベルと2列組みで重なる）。 */
 .miss-tag{color:#f87171;background:rgba(239,68,68,.13);border:1px solid rgba(239,68,68,.36)}
-.form-input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:11px 14px;color:#e8edf2;font-size:.9rem;transition:border-color .2s,background .2s;outline:none;font-family:'Inter','Noto Sans JP',sans-serif}
+.form-input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:9px 12px;color:#e8edf2;font-size:.86rem;line-height:1.45;transition:border-color .2s,background .2s;outline:none;font-family:'Inter','Noto Sans JP',sans-serif}
 /* ★iOS は 16px 未満の入力欄に触れるとページごと拡大し、戻らない。拡大した画面では
    position:fixed のヘッダーと常設バーが窓より広い箱になり、左右とも切れる
    （2026-08-27、オーナーの iPhone 16 で実測 1.09 倍）。⚠️ この 16px を下げない。 */
@@ -68,7 +74,15 @@ nav.scrolled{background:rgba(10,12,15,.92);backdrop-filter:blur(20px);border-bot
    触れないことは破線の枠とわずかに沈んだ面で示す。 */
 .form-input[readonly]{cursor:default;border-style:dashed;background:rgba(255,255,255,.03)}
 .form-input[readonly]:focus{border-color:rgba(255,255,255,.1);background:rgba(255,255,255,.03)}
-select.form-input option,select.form-input optgroup{background:#111620}
+/* ★選択肢の一覧（option）は OS が描く。ここでやることは「ページが今どちらの明るさか」を
+   伝えるだけ ── color-scheme を渡せば、暗い画面では暗い一覧が出る。
+   ⚠️ **option に background を直に敷かない**（2026-09-08 オーナー指摘
+      「モバイルで選択する時の項目の画面デカすぎるんだが」）。
+      macOS の Chrome は option に色が付いていると OS の一覧をあきらめて
+      **自前の大きい一覧**を描く。それが「デカすぎる」の正体で、
+      色を消して color-scheme を渡すと OS の詰まった一覧に戻る。
+      色を付け直したくなったら、まずここを読む。 */
+select.form-input{color-scheme:dark}
 .theme-toggle{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.07);color:#e8edf2;border:1px solid rgba(255,255,255,.12);cursor:pointer;transition:background .2s,color .2s;flex-shrink:0}
 footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 ::-webkit-scrollbar{width:6px}
@@ -83,7 +97,33 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
      いけない場所だった。実数を出しても人数が外から分かるだけなので出さない。
      代わりに Give & Get（1件出すと読める）そのものを書く。
      数字が戻ってこないことは db/test-form-contract.mjs が見張る。 */
-.pay-count{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:999px;
+/* ── ページ頭の塊を詰める（2026-09-08 オーナー指摘「全体的に枠とかもデカすぎませんか」）──
+   Marit の実機は「最初の入力欄が上から 279px」。うちは 500px あって、
+   スマホの1画面の半分以上が入力の前置きで埋まっていた。
+   ⚠️ Tailwind CDN は pay-report.css より**後**に読み込まれる。
+      `.text-3xl` `.mb-9` に勝つには、要素名を足して詳しさで上回るしかない
+      （!important は使わない。使うと次に触る人が理由を追えない）。 */
+main h1.text-3xl{font-size:1.6rem;line-height:1.25}
+main .text-center.mb-9{margin-bottom:22px}
+/* ── モバイルの「縦の前置き」を削る（2026-09-09 オーナー指摘
+     「marit くらい枠とか文字小さくしていいよ／特に枠は marit の1.5倍ある」）───
+   ★実測して分かったのは、**欄も字ももう Marit と同じ**（誤差5%）で、
+     1.5倍だったのは「最初の欄に着くまでの縦」と「1段の長さ」だったこと。
+     だから削るのは板であって、欄の大きさでも字の大きさでもない。
+     .form-input の 16px（iOS の自動拡大よけ）と .form-label の .83rem は**下げない**
+     （db/test-form-contract.mjs が字で見張っている）。
+   計り方は「高さ ÷ 本文の幅」。倍率が消えるので実機の画像とそのまま比べられる。
+   Marit ＝ 0.87（最初の欄まで）／2.51（1段目の総高）。
+   直す前は ja 1.29 / 2.95・en 1.38 / 3.27 だった。 */
+@media (max-width:600px){
+  main h1.text-3xl{font-size:1.4rem}
+  main .max-w-2xl.py-12{padding-top:16px;padding-bottom:32px}
+  main h1.text-3xl.mb-3{margin-bottom:6px}
+  main .text-center.mb-9{margin-bottom:10px}
+  .pay-count{padding:5px 12px;font-size:.78rem}
+  .card.sec{padding-top:12px}
+}
+.pay-count{display:inline-flex;align-items:center;gap:8px;padding:8px 15px;border-radius:999px;
   background:radial-gradient(120% 160% at 0% 50%,rgba(245,200,66,.14),transparent 70%),rgba(245,200,66,.05);
   border:1px solid rgba(245,200,66,.24);color:#f5c842;font-size:.82rem;font-weight:700;letter-spacing:-.01em;
   /* 狭い画面で2行になったとき、2行目に数文字だけ残さない。
@@ -95,15 +135,20 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 .sec-head{display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap}
 /* ★段の見出しは、ウィザードでは「その画面の題」になった。Marit の実機は
    見出し 約23px・説明 16px・行間 1.5（2026-09-08 に ink.mjs で実測）。
-   日本語は同じ px でも字面が大きいので、そのまま写さず 22 / 14 に落として
-   見た目の重さを合わせる（英語版も同じ CSS を読む）。 */
-.sec-title{font-size:1.375rem;font-weight:700;letter-spacing:-.02em;line-height:1.35}
-@media (max-width:600px){.sec-title{font-size:1.25rem}}
+   日本語は同じ px でも字面が大きいので、そのまま写さず 20 / 13.3 に落として
+   見た目の重さを合わせる（英語版も同じ CSS を読む）。
+   ⚠️ px をそのまま写すと日本語だけ大きく見える。数字を動かすなら実機で撮って比べる。 */
+.sec-title{font-size:1.25rem;font-weight:700;letter-spacing:-.02em;line-height:1.35}
+@media (max-width:600px){.sec-title{font-size:1.14rem}}
 .sec-tag{font-size:.62rem;font-weight:800;padding:3px 10px;border-radius:999px;letter-spacing:.05em;white-space:nowrap}
 .sec-tag.req{background:rgba(249,115,22,.14);color:#fb923c;border:1px solid rgba(249,115,22,.32)}
 .sec-tag.rec{background:rgba(61,155,255,.12);color:#5fb0ff;border:1px solid rgba(61,155,255,.3)}
 .sec-tag.opt{background:rgba(255,255,255,.06);color:#9ca3af;border:1px solid rgba(255,255,255,.14)}
-.sec-sub{font-size:.875rem;color:#6b7d93;margin-bottom:20px;line-height:1.6}
+.sec-sub{font-size:.83rem;color:#6b7d93;margin-bottom:16px;line-height:1.55}
+/* 説明を持たない段（1・3・5）は、見出しのすぐ下に最初のラベルが来て詰まって見える。
+   .sec-sub の下余白のかわりに、次に来る中身へ最小限の間を入れる
+   （説明がある段には効かない ── 隣接セレクタなので .sec-sub が挟まると外れる）。 */
+.sec-head+.fld,.sec-head+.grid2,.sec-head+#wz-review{margin-top:10px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
 .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 16px}
 /* ラベルが1行の列と2行の列が混ざると input の上端がズレる（EN で実測18px）。
@@ -112,7 +157,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
    row-gap を 0 にするのは、残すと label→input の間にも同じ隙間が入るため
    （縦の間隔は .form-label の margin-bottom と .fld-hint の margin-top が持つ）。 */
 .grid2>.fld,.grid3>.fld{display:grid;grid-template-rows:subgrid;grid-row:span 3;margin-bottom:0}
-.grid2:has(>.fld),.grid3:has(>.fld){margin-bottom:16px}
+.grid2:has(>.fld),.grid3:has(>.fld){margin-bottom:14px}
 /* 国名・役職は選択肢が長い（最長「セントビンセント及びグレナディーン諸島」274px）。
    241カ国すべてが収まる幅は存在しないので、実際に選ばれる国が読み切れる配分を優先する。
    税率は2〜3桁、乗務日数は2桁しか入らないため狭くてよい。 */
@@ -128,10 +173,10 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
      display は grid のまま触らない（block にすると hidden の欄が出てくる）。 */
 @media(max-width:600px){
   .grid2,.grid3,.grid2.tax-row,.grid3.role-row{grid-template-columns:1fr}
-  .grid2>.fld,.grid3>.fld{grid-template-rows:none;grid-row:auto;margin-bottom:16px}
+  .grid2>.fld,.grid3>.fld{grid-template-rows:none;grid-row:auto;margin-bottom:14px}
   .grid2>.fld:last-child,.grid3>.fld:last-child{margin-bottom:0}
 }
-.fld{margin-bottom:16px}
+.fld{margin-bottom:14px}
 .fld:last-child{margin-bottom:0}
 /* 必須の欄には左にレールを引く。埋まったら中立色に落とす（.is-done は updateSteps() が付ける）。
    ＝列を上から眺めるだけで「まだ残っている欄」が分かる。小札だけだと、
@@ -209,10 +254,12 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 .sal-total-lab{font-size:.75rem;font-weight:700;color:#9ca3af;letter-spacing:.04em}
 .sal-total-val{font-size:1.7rem;font-weight:800;letter-spacing:-.02em;color:#f5c842;font-variant-numeric:tabular-nums;line-height:1.1}
 .sal-total-val .u{font-size:.8rem;font-weight:600;color:#9ca3af;margin-left:5px;letter-spacing:0}
-/* ── 常設の提出バー（2026-08-27 オーナー指示）──────────────────────
-   「3. 報酬」が出たところから、画面の下に**年換算の総額と「匿名で提出」**を置く。
-   途中で出したい人が押せる所を、いつでも持っている状態にする。
-   ★#submit-block が画面に入っている間は .is-off で沈める（同じボタンを2つ並べない）。
+/* ── 下端の帯（2026-08-27 → 2026-09-08 に作り替え）──────────────────
+   出すのは「3. 報酬」と「5. 確認」の2つの段だけ（pay-wizard.js の steps[].totalBar）。
+   ★載っているのは**年換算の合計の表示だけ**。押す物は無い
+     （2026-09-08、「匿名で提出」を降ろして提出は 5/5 の1か所に寄せた）。
+     同じボタンを2つ並べないために沈めていた .is-off も、そのとき一緒に外した
+     ── 確認画面でいちばん見たい数字が黙って消えていたため。
    ★動かすのは transform と opacity だけ（transition-all は使わない）。 */
 .sticky-cta{position:fixed;left:0;right:0;bottom:0;z-index:120;
   /* ★箱を画面より広くしない。iOS はページが横に溢れるとレイアウト幅を広げ、
@@ -224,7 +271,6 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
   background:linear-gradient(180deg,rgba(10,12,15,0),rgba(10,12,15,.93) 26%,rgba(10,12,15,.985));
   border-top:1px solid rgba(245,200,66,.18);backdrop-filter:blur(14px);
   transition:opacity .22s cubic-bezier(.16,1,.3,1),transform .22s cubic-bezier(.16,1,.3,1)}
-.sticky-cta.is-off{opacity:0;transform:translateY(105%);pointer-events:none}
 .sticky-cta[hidden]{display:none}
 /* ★左の柱のぶんだけ避ける。
      バーは position:fixed ＝ 画面の左端から始まるが、フォームの列は
@@ -310,11 +356,11 @@ body.has-cta #form-wrap{padding-bottom:96px}
 .chip:active{transform:translateY(1px)}
 .chip .p{font-size:.95rem;line-height:1;font-weight:800;color:#f5c842}
 /* 役職・区分（複数選択）。中身は node gen-vocab.mjs が配る。 */
-.roleboxes{display:flex;flex-wrap:wrap;gap:8px}
-.rolebox{display:inline-flex;align-items:center;gap:9px;padding:9px 14px;border-radius:12px;font-size:.82rem;font-weight:600;color:#a8b3c2;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);cursor:pointer;transition:color .2s,border-color .2s,background .2s,transform .18s cubic-bezier(.16,1,.3,1)}
+.roleboxes{display:flex;flex-wrap:wrap;gap:7px}
+.rolebox{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border-radius:10px;font-size:.78rem;font-weight:600;color:#a8b3c2;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);cursor:pointer;transition:color .2s,border-color .2s,background .2s,transform .18s cubic-bezier(.16,1,.3,1)}
 .rolebox:hover{color:#e8edf2;border-color:rgba(245,200,66,.4);background:rgba(245,200,66,.06)}
 .rolebox:active{transform:translateY(1px)}
-.rolebox input{flex:none;width:16px;height:16px;margin:0;accent-color:#f5c842;cursor:pointer}
+.rolebox input{flex:none;width:15px;height:15px;margin:0;accent-color:#f5c842;cursor:pointer}
 .rolebox:has(input:checked){color:#f5c842;border-color:rgba(245,200,66,.55);background:rgba(245,200,66,.1)}
 .rolebox:has(input:focus-visible){outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){.rolebox{transition:none}}
@@ -661,16 +707,16 @@ body.has-cta #form-wrap{padding-bottom:96px}
 
 /* ── 進捗（1/5〜5/5）── ヘッダーの下に貼り付く ─────────────────── */
 .wz-top{position:sticky;top:var(--pv-topbar,69px);z-index:5;
-  padding:13px 0 11px;margin-bottom:18px;
+  padding:11px 0 9px;margin-bottom:14px;
   background:rgba(10,12,15,.93);backdrop-filter:blur(14px)}
-.wz-bar{height:8px;border-radius:999px;overflow:hidden;background:rgba(255,255,255,.10)}
+.wz-bar{height:6px;border-radius:999px;overflow:hidden;background:rgba(255,255,255,.10)}
 /* ★width ではなく scaleX で伸ばす（transform と opacity だけ動かす、が家のきまり）。
      伸ばす向きを決めないと中央から広がるので transform-origin を左に固定する。 */
 .wz-bar>i{display:block;width:100%;height:100%;border-radius:999px;
   transform:scaleX(0);transform-origin:left center;
   background:linear-gradient(90deg,#f97316,#f5c842);
   transition:transform .45s cubic-bezier(.16,1,.3,1)}
-.wz-meta{display:flex;align-items:baseline;gap:10px;margin-top:9px;min-width:0}
+.wz-meta{display:flex;align-items:baseline;gap:10px;margin-top:7px;min-width:0}
 .wz-count{flex:none;font-size:.68rem;font-weight:800;letter-spacing:.06em;color:#fb923c;
   font-variant-numeric:tabular-nums}
 /* 段の名前は長いほうが折り返さず切れるほうがよい（バーの高さが動くと目が滑る）。 */
@@ -692,17 +738,17 @@ body.has-cta #form-wrap{padding-bottom:96px}
 /* ── 段の末尾の 戻る／次へ ─────────────────────────────────────
    ★常設の提出バーは廃止した（2026-09-08 オーナー指示）。送信は最後の確認画面だけ。
      途中の段から直接送れる口をここに作らない。 */
-.wz-nav{display:flex;align-items:center;gap:12px;margin-top:26px;padding-top:22px;
+.wz-nav{display:flex;align-items:center;gap:12px;margin-top:22px;padding-top:18px;
   border-top:1px solid rgba(255,255,255,.07)}
-.wz-next{flex:1 1 auto;min-height:52px;padding:0 22px;border-radius:12px;border:none;
-  font-size:.95rem;font-weight:700;font-family:inherit;letter-spacing:.01em;
+.wz-next{flex:1 1 auto;min-height:46px;padding:0 20px;border-radius:11px;border:none;
+  font-size:.9rem;font-weight:700;font-family:inherit;letter-spacing:.01em;
   background:linear-gradient(135deg,#f97316,#f5c842);color:#000;cursor:pointer;
   transition:opacity .2s,transform .2s cubic-bezier(.16,1,.3,1)}
 .wz-next:hover{opacity:.9;transform:translateY(-1px)}
 .wz-next:focus-visible{outline:2px solid rgba(245,200,66,.7);outline-offset:3px}
 .wz-next:active{transform:translateY(1px)}
-.wz-back{flex:0 0 auto;min-height:52px;padding:0 20px;border-radius:12px;
-  font-size:.88rem;font-weight:600;font-family:inherit;color:#e8edf2;
+.wz-back{flex:0 0 auto;min-height:46px;padding:0 18px;border-radius:11px;
+  font-size:.85rem;font-weight:600;font-family:inherit;color:#e8edf2;
   border:1px solid rgba(255,255,255,.15);background:transparent;cursor:pointer;
   transition:color .2s,border-color .2s,background .2s}
 .wz-back:hover{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.05)}
@@ -734,27 +780,36 @@ body.has-cta #form-wrap{padding-bottom:96px}
 .wz-rev-v{min-width:0;font-size:.85rem;font-weight:700;text-align:right;line-height:1.5;
   font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 
-/* ── 下の面：匿名で公開されるイメージ ───────────────────────────
-   ★上の面と**見た目からして別物**にする。同じ白い行が続くと、
-     実額の確認と公開の見え方が地続きに見える。青＝公開情報（pv-tokens.css の約束）。 */
-.wz-pub{border:1px solid rgba(61,155,255,.26);border-radius:14px;padding:16px 18px;
-  background:rgba(61,155,255,.06)}
-.wz-pub-row{display:flex;align-items:baseline;justify-content:space-between;gap:14px;
-  padding:6px 0}
-.wz-pub-k{flex:none;font-size:.75rem;color:#8496ad}
-.wz-pub-v{min-width:0;font-size:.86rem;font-weight:700;text-align:right;
-  font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
-.wz-pub-comp{margin-top:12px;border:1px solid rgba(255,255,255,.08);border-radius:14px;
+/* 支給の内訳（その月の実額）。★確認画面の**一番上**に出る
+   （2026-09-09 オーナー指示・Marit と同じ並び）。青く塗らない ──
+   青＝公開情報という pv-tokens.css の約束に、公開されない面を乗せない。 */
+.wz-rev-comp{margin-bottom:18px;border:1px solid rgba(255,255,255,.08);border-radius:14px;
   padding:14px 18px;background:rgba(255,255,255,.025)}
-.wz-pub-comp-t{font-size:.72rem;font-weight:800;letter-spacing:.05em;color:#9ca3af;
+.wz-rev-comp-t{font-size:.72rem;font-weight:800;letter-spacing:.05em;color:#9ca3af;
   margin-bottom:8px}
-.wz-pub-seg{display:flex;align-items:center;gap:9px;padding:5px 0;font-size:.78rem}
+.wz-rev-seg{display:flex;align-items:center;gap:9px;padding:5px 0;font-size:.78rem}
 .wz-seg-k{min-width:0;color:#a8b3c2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .wz-seg-v{margin-left:auto;flex:none;font-weight:700;font-variant-numeric:tabular-nums}
 /* ★色は REAL PAY の帯（actual-pay.css の .ap-dw-c-*）と**同じ9色**。
      ここを勝手に変えると、同じ人が確認画面と REAL PAY で違う色の内訳を見る。
      ズレは db/test-pay-preview.mjs の C) が見張っている。 */
 .wz-seg-dot{flex:none;width:9px;height:9px;border-radius:3px}
+/* ── 内訳の横棒（2026-09-09 オーナー指示「バーは出さないの？」）──────
+   作りは REAL PAY の帯（actual-pay.css の .ap-dw-st）の写し。
+   ★名前は .wz-cbar。**.wz-bar は上の .wz-top が 1/5 の進捗バーに使っている**。
+     同じ名前を付けると、あとに書いたこちらが高さ 6px を 12px に上書きして
+     進捗バーが黙って太くなる（2026-09-09 に一度やった）。
+   ★色を持たない。欠片には下の .wz-seg-dot.is-* がそのまま効く
+     ＝一覧の丸と必ず同じ色になる（片方だけ塗り替えられない）。
+   ★ここに background:#… を書かない。db/test-pay-preview.mjs の C) が
+     「.wz-seg-dot.is- を含み色を書いた規則」を9個ちょうどで数えている。 */
+.wz-cbar{display:flex;width:100%;height:12px;margin:0 0 10px;
+  border-radius:999px;overflow:hidden;
+  background:var(--pv-surface-2);box-shadow:inset 0 0 0 1px var(--pv-line)}
+.wz-cbar .wz-seg-dot{display:block;width:auto;height:auto;min-width:6px;border-radius:0}
+/* 隣の区分との境目。★多色でも要る（役割手当=赤 と パーディアム=桃 が隣接する）。
+   色はトークン任せ ── ライトとダークで自動的に地の色になる。 */
+.wz-cbar .wz-seg-dot+.wz-seg-dot{box-shadow:inset 1.5px 0 0 var(--pv-surface)}
 .wz-seg-dot.is-fixed   {background:#34d399}
 .wz-seg-dot.is-variable{background:#f5c842}
 .wz-seg-dot.is-command {background:#5fb0ff}
@@ -764,28 +819,38 @@ body.has-cta #form-wrap{padding-bottom:96px}
 .wz-seg-dot.is-other   {background:#a78bfa}
 .wz-seg-dot.is-rest    {background:#5c6675}
 .wz-seg-dot.is-bonus   {background:#22d3ee}
-/* 出さないものを名前で並べる。**「出さない」は文字で読めなければ約束にならない。** */
-.wz-pub-no{margin-top:12px;padding:11px 14px;border-radius:12px;
-  border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.02)}
-.wz-pub-no-t{display:block;font-size:.7rem;font-weight:800;letter-spacing:.04em;
-  color:#9ca3af;margin-bottom:4px}
-.wz-pub-no-v{display:block;font-size:.74rem;color:#6b7d93;line-height:1.7}
-/* サーバ側で決まる部分の断り書き。「こう出ます」と言い切らないための行。 */
-.wz-hedge{list-style:none;margin:12px 0 0;padding:0;
-  font-size:.71rem;color:#6b7d93;line-height:1.75}
-.wz-hedge li{position:relative;padding-left:14px}
-.wz-hedge li::before{content:'·';position:absolute;left:4px;top:0}
 
 /* ── 狭い画面 ────────────────────────────────────────────────
    Marit のモバイルと同じで、押せるものは縦に伸ばして指が当たる大きさにする。 */
 @media (max-width:600px){
-  .wz-top{padding:11px 0 9px;margin-bottom:14px}
-  .wz-nav{gap:10px;margin-top:22px;padding-top:18px}
-  .wz-next,.wz-back{min-height:52px}
+  /* ★狭い画面では「バー」と「ステップ 1/5」を**1行に並べる**（2026-09-09）。
+     段の名前は、すぐ下の .sec-title が同じ文字を出しているので**ここでは出さない**
+     ── 2つ並ぶと縦に 19px 積まれるうえ、同じ見出しが2回出る。
+     ⚠️ 読み上げは消していない。.wz-top 自身の aria-label に「ステップ 1/5」が
+        入っている（pay-wizard.js の sync()）。 */
+  /* ⚠️ ここから下は「素の規則より後ろ」でないと効かない ──
+        @media は詳しさを足さないので、.ps（468行）や .sec-head（122行）を
+        上書きしたければ**それより下**に書く。上の 108 行の @media に置くと
+        画面は普通に動いたまま、モバイルの値だけ黙って無視される（2026-09-09 に一度やった）。 */
+  /* 明細の入口（1行の帯）と本体のすき間。 */
+  .ps{margin-bottom:10px}
+  .ps.is-slim .ps-drop{padding:9px 14px}
+  .sec-sub{margin-bottom:12px}
+  /* 進み具合の小札。英語の「1. Company & role」＋「Required」＋小札が
+     358px に収まらず2行になっていた（実測 57px）。字は縮めず小札だけ詰める。 */
+  .sec-head{gap:8px}
+  .sec-prog{padding:3px 8px;gap:6px}
+  .sec-prog-bar{width:32px}
+  .sec-prog-num{min-width:38px}
+  .wz-top{display:flex;align-items:center;gap:10px;padding:7px 0 6px;margin-bottom:10px}
+  .wz-bar{flex:1;min-width:0}
+  .wz-meta{flex:none;margin-top:0}
+  .wz-name{display:none}
+  .wz-nav{gap:10px;margin-top:18px;padding-top:16px}
+  .wz-next,.wz-back{min-height:46px}
   .wz-back{padding:0 16px}
   .wz-rev-k{max-width:46%}
-  .wz-pub{padding:14px}
-  .wz-pub-comp{padding:12px 14px}
+  .wz-rev-comp{padding:12px 14px}
 }
 /* 320px（iPhone SE 1 / 5s）。「戻る」の字数は言語で違うので幅を決め打ちしない。 */
 @media (max-width:340px){
@@ -807,7 +872,7 @@ body.has-cta #form-wrap{padding-bottom:96px}
 [data-theme="light"] .form-input:focus{border-color:rgba(200,149,0,.5);background:rgba(0,0,0,.06)}
 [data-theme="light"] .form-input[readonly],
 [data-theme="light"] .form-input[readonly]:focus{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.18)}
-[data-theme="light"] select.form-input option,[data-theme="light"] select.form-input optgroup{background:#fff}
+[data-theme="light"] select.form-input{color-scheme:light}
 [data-theme="light"] .theme-toggle{background:rgba(0,0,0,.06);color:#0f172a;border-color:rgba(0,0,0,.13)}
 [data-theme="light"] .btn-ghost{color:#0f172a!important;border-color:rgba(0,0,0,.15)!important}
 [data-theme="light"] .btn-ghost:hover{border-color:rgba(0,0,0,.3)!important;background:rgba(0,0,0,.04)!important}
@@ -1014,10 +1079,8 @@ body.has-cta #form-wrap{padding-bottom:96px}
 [data-theme="light"] .wz-rev-edit:hover{background:rgba(245,200,66,.16);border-color:rgba(180,140,20,.6)}
 [data-theme="light"] .wz-rev-row{border-bottom-color:rgba(0,0,0,.07)}
 [data-theme="light"] .wz-rev-k{color:#64748b}
-[data-theme="light"] .wz-pub{border-color:rgba(37,99,235,.24);background:rgba(37,99,235,.06)}
-[data-theme="light"] .wz-pub-k{color:#475569}
-[data-theme="light"] .wz-pub-comp{border-color:rgba(0,0,0,.09);background:rgba(255,255,255,.72)}
-[data-theme="light"] .wz-pub-comp-t{color:#475569}
+[data-theme="light"] .wz-rev-comp{border-color:rgba(0,0,0,.09);background:rgba(255,255,255,.72)}
+[data-theme="light"] .wz-rev-comp-t{color:#475569}
 [data-theme="light"] .wz-seg-k{color:#334155}
 /* ★帯の9色はライトでも**そのまま**。ここに [data-theme="light"] を書かない。
      REAL PAY（actual-pay.css の .ap-dw-c-*）はライトとダークで同じ色を使うと
@@ -1025,6 +1088,3 @@ body.has-cta #form-wrap{padding-bottom:96px}
      片方だけ濃い側へ寄せると、同じ人が確認画面と REAL PAY で違う色の内訳を見る。
      2026-09-08 に4色ぶん書いていたのを取り消した。
      db/test-pay-preview.mjs の C) が9色の一致と、この分岐が無いことを見ている。 */
-[data-theme="light"] .wz-pub-no{border-color:rgba(0,0,0,.09);background:rgba(255,255,255,.6)}
-[data-theme="light"] .wz-pub-no-t{color:#475569}
-[data-theme="light"] .wz-pub-no-v,[data-theme="light"] .wz-hedge{color:#64748b}

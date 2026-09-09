@@ -8,13 +8,13 @@
      ／サーバの pv_annual_total が正で、ここはその答えを**受け取るだけ**。
      ここで足し算を始めた瞬間、同じ数字の出どころが3つになる。
 
-   ★下の「公開イメージ」だけは例外で、SQL の式を写している（写す以外に道が無い
-     ── 出す前の人の行は、まだサーバのどこにも無い）。写した先は
-     db/test-pay-preview.mjs が SQL と突き合わせている。式を直すときは
-     必ずそちらも一緒に流すこと。
+   ★8区分への切り分け（shelf）だけは例外で、SQL の式を写している
+     （写す以外に道が無い ── 出す前の人の行は、まだサーバのどこにも無い）。
+     写した先は db/test-pay-preview.mjs が SQL と突き合わせている。
+     式を直すときは必ずそちらも一緒に流すこと。
 
    中身は3つ：
-     ① 公開イメージの数値処理（DOM を1つも触らない純関数）
+     ① 公開される1行ぶんの数値処理（DOM を1つも触らない純関数）
      ② 下書き（localStorage の pv_pay_draft）
      ③ ウィザード本体（ステップ移動・進捗・確認画面の描画）        */
 (function () {
@@ -36,38 +36,10 @@ var T = {
     draftDrop: '下書きを消す',
     revTitle:  '入力内容の確認',
     revSub:    '出す前に、入れた内容をひととおり見てください。直すところは各節の「編集」から戻れます。',
-    pubTitle:  '匿名で公開されるイメージ',
-    pubSub:    'REAL PAY の一覧には、この形の1行だけが出ます。入れた実額はそのままでは出ません。',
-    pubNotYet: '会社・職位・その月の総支給を入れると、ここに公開イメージが出ます。',
-    pubHedge:  'この形で出る見込みです。最終的な値はサーバー側で決まります。',
-    pubShown:  '出るもの',
-    pubHidden: '出さないもの',
-    hiddenList: '基地／年代／国籍／契約形態／納税地／原本の通貨／レポートの番号／提出した日そのもの／自由入力した社名',
-    lblAirline: '会社',
-    lblPos:     '職位',
-    lblFleet:   '機材',
-    lblAnnual:  '年収（有効数字2桁）',
-    lblAge:     '投稿の時期',
-    lblTen:     '在籍',
-    lblWork:    '勤務',
-    lblComp:    '支給の内訳',
-    age0:       '1ヶ月以内',
-    tenFo:      ['5年未満', '5年以上'],
-    tenCap:     ['10年未満', '10〜20年', '20年以上'],
-    bh:         '乗務時間',
-    dd:         '乗務日数',
-    hours:      '時間',
-    days:       '日',
+    lblComp:    '支給の内訳（今月）',
     seg: { fixed: '固定・保証給', variable: '変動給', command: '職位手当', role: '役割手当',
            perdiem: 'パーディアム', housing: '住宅手当', other: 'その他の現金', rest: 'その他',
            bonus: '賞与・プロフィットシェア' },
-    noComp:    '内訳を書いていないので、この行は年収だけの1行として出ます。',
-    overComp:  '内訳の合計が総支給を超えているので、内訳の帯は付きません（年収の行はそのまま出ます）。',
-    noFx:      '為替はサーバー側のレートで確定します。この通貨のレートがまだ無いときは、レートが入るまで一覧に出ません。',
-    manyMonths:'複数の月を出している人は、月ごとの年換算の**中央値**が公開値になります（この1ヶ月の値ではありません）。',
-    outLow:    '年換算が低すぎます（年 $10,000 未満）。打ち間違いでなければそのまま出せますが、この行は一覧には出ません。',
-    outHigh:   '年換算が高すぎます（年 $700,000 超）。打ち間違いでなければそのまま出せますが、この行は一覧には出ません。',
-    bandNote:  '内訳と勤務は、下端と上端の**幅**だけが出ます。生の額や割合は出ません。',
     empty:     '（未入力）'
   },
   en: {
@@ -82,38 +54,10 @@ var T = {
     draftDrop: 'Discard draft',
     revTitle:  'Review your entry',
     revSub:    'Check what you entered before you submit. Use "Edit" on any section to go back.',
-    pubTitle:  'How it appears anonymously',
-    pubSub:    'REAL PAY publishes one row in this shape. The exact amounts you typed are not published.',
-    pubNotYet: 'Enter the airline, position and monthly gross to see the anonymous preview.',
-    pubHedge:  'This is how it is expected to appear. The final values are decided on the server.',
-    pubShown:  'Published',
-    pubHidden: 'Never published',
-    hiddenList: 'Base · age band · nationality · contract type · tax country · original currency · report id · the exact submission date · any airline name you typed in',
-    lblAirline: 'Airline',
-    lblPos:     'Position',
-    lblFleet:   'Fleet',
-    lblAnnual:  'Annual (2 significant figures)',
-    lblAge:     'Posted',
-    lblTen:     'Tenure',
-    lblWork:    'Workload',
-    lblComp:    'Pay composition',
-    age0:       'within 1 month',
-    tenFo:      ['under 5 yrs', '5 yrs or more'],
-    tenCap:     ['under 10 yrs', '10–20 yrs', '20 yrs or more'],
-    bh:         'Block hours',
-    dd:         'Duty days',
-    hours:      'h',
-    days:       'd',
+    lblComp:    'Pay composition (this month)',
     seg: { fixed: 'Fixed / guarantee', variable: 'Variable', command: 'Command', role: 'Role',
            perdiem: 'Per diem', housing: 'Housing', other: 'Other cash', rest: 'Other',
            bonus: 'Bonus / profit share' },
-    noComp:    'You did not enter a breakdown, so this row is published as an annual figure only.',
-    overComp:  'Your breakdown adds up to more than the gross, so no composition bars are attached (the annual row still appears).',
-    noFx:      'The exchange rate is fixed on the server. If there is no rate for this currency yet, the row stays out of the list until one is added.',
-    manyMonths:'If you submit several months, the published figure is the **median** of the annualised months — not this single month.',
-    outLow:    'The annualised total is below $10,000/yr. You can still submit, but this row will not appear in the list.',
-    outHigh:   'The annualised total is above $700,000/yr. You can still submit, but this row will not appear in the list.',
-    bandNote:  'Composition and workload are published as a range only — never as a raw amount or a percentage.',
     empty:     '(blank)'
   }
 };
@@ -232,11 +176,17 @@ function shelf(p) {
 
 var SEG_ORDER = ['fixed', 'variable', 'command', 'role', 'perdiem', 'housing', 'other'];
 
-/* 公開イメージ1行ぶん。
+/* REAL PAY に公開される1行ぶんを、そのまま JS で作る。
    p    … submitPayReport() が組むのと同じ形の payload
    opt  … { annualOrig: 原本通貨の年換算, fx: to_usd（無ければ null）}
    ★年換算はここで作らない。ページ側の annualTotal()（＝サーバの
-     pv_annual_total と同じ式）が出した数を受け取るだけ。 */
+     pv_annual_total と同じ式）が出した数を受け取るだけ。
+   ⚠️ **画面はもうこれを描かない**（確認画面の「公開イメージ」は 2026-09-09 に
+      オーナー指示で廃止）。それでも残してあるのは、db/test-pay-preview.mjs の
+      B) が**これと本物の pv_pay_rows() を突き合わせる**ため。
+      消すと、確認画面の帯を描く shelf() が SQL の写しとして腐ったことに
+      気づく仕掛けが**1つも無くなる**（CLAUDE.md の「写しが腐ったことに
+      気づく仕掛けはこれ1本だけ」がこれ）。消さないこと。 */
 function publicRow(p, opt) {
   var s = shelf(p);
   var fx = opt && opt.fx != null ? Number(opt.fx) : null;
@@ -307,8 +257,17 @@ function fp(uid) {                       // FNV-1a。短く畳むだけ。
   for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = (h * 0x01000193) >>> 0; }
   return h.toString(16);
 }
+/* ★預かり（pv_pay_pending）と同じ14日。ts は前から書いていたが**読んでいなかった**
+   （2026-09-09 に気づいた）。無期限だと、半年前に途中でやめた人が、今月の話として
+   半年前の総支給・飛んだ時間を持ったまま 3/5 から再開する。値はそれらしく埋まっていて、
+   本人も「前に入れたやつだ」としか思わないので、目でも検査でも気づけない。 */
+var DRAFT_MAX_AGE = 14 * 24 * 60 * 60 * 1000;
 function draftRead() {
-  try { return JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null'); } catch (e) { return null; }
+  var d = null;
+  try { d = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null'); } catch (e) { return null; }
+  /* ts を持たない形は歳が分からないので捨てない（v=1 は必ず持っている）。 */
+  if (d && Number(d.ts) && Date.now() - Number(d.ts) > DRAFT_MAX_AGE) { draftClear(); return null; }
+  return d;
 }
 /* ★戻り値は成否。呼び手はこれを見てから「保存しました」と出す。
      握り潰すと、プライベートモードの人に嘘の安心を出すことになる。 */
@@ -554,7 +513,9 @@ function fieldValue(fld) {
       var lab = b.closest('label');
       out.push(lab ? lab.textContent.trim() : b.value);
     });
-    return out.join('、');
+    /* ★区切りは言語で変える。英語ページに「、」を出すと日本語の文字が混ざる
+       （2026-09-09。確認画面の『役職・区分』が Line pilot、Instructor と出ていた）。 */
+    return out.join(C.lang === 'en' ? ', ' : '、');
   }
   /* ★1つの欄が入力を2つ以上持つことがある（「対象月」＝年と月の2つ、
      内訳の行＝連動・金額・呼び名の3つ）。先頭だけ読むと、確認画面から
@@ -571,13 +532,77 @@ function fieldValue(fld) {
   });
   return parts.join(' ');
 }
-function renderReview() {
+/* ── 内訳の横棒 ────────────────────────────────────────────────
+   長さの出どころは呼ぶ側が決める（本人用は生の月額・公開イメージは帯の中点）。
+   ここは並んだ数を横幅へ割るだけ。作りは REAL PAY の帯（actual-pay.js の
+   .ap-dw-st）の写しで、`flex:N 1 0` と `min-width:6px` まで同じにしてある。
+   ★色をここで持たない。欠片に `.wz-seg-dot.is-<区分>` を付けて、下の一覧の丸と
+     **同じ CSS 規則**から取る。2画面で色がズレない形はこれだけ
+     （db/test-pay-preview.mjs の C) が9色の一致を見張っている）。
+   ★aria-hidden。同じ内訳を、すぐ下の一覧が項目名と数字で出している。 */
+function barEl(parts) {
+  var sum = 0;
+  parts.forEach(function (x) { if (x.w > 0) sum += x.w; });
+  if (!(sum > 0)) return null;
+  var bar = el('div', 'wz-cbar');
+  bar.setAttribute('aria-hidden', 'true');
+  parts.forEach(function (x) {
+    if (!(x.w > 0)) return;
+    var seg = el('span', 'wz-seg-dot is-' + x.k);
+    seg.style.flex = (x.w / sum).toFixed(4) + ' 1 0';
+    bar.appendChild(seg);
+  });
+  return bar;
+}
+/* 本人用の内訳＝shelf の**生の月額**。公開イメージ（帯の中点）とは別物。
+   ★丸めも帯も掛けない。ここは本人しか見ない面なので、打った額のままでよい。
+   ★内訳を書いていない人にも出す ── 総支給ぜんぶが「その他」1色になるだけだが、
+     「受け取った額はこれです」が見える（2026-09-02 オーナー指示の
+     「給与を出した人には支給構成を必ず出す」と同じ扱い）。 */
+function reviewComp(p) {
+  var s = shelf(p), parts = [], sum = 0;
+  for (var i = 0; i < SEG_ORDER.length; i++) {
+    var k = SEG_ORDER[i];
+    if (s.a[k] > 0) { parts.push({ k: k, w: s.a[k] }); sum += s.a[k]; }
+  }
+  var rest = Math.max(s.cash_m - sum, 0);
+  if (rest > 0) parts.push({ k: 'rest', w: rest });
+  return parts;
+}
+/* 本人用の額。原本の通貨のまま出す（換算はサーバの仕事）。 */
+function moneyOrig(v) {
+  var cur = C.read ? String(C.read('f-currency') || '').trim() : '';
+  var n = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Math.round(v));
+  return cur ? cur + ' ' + n : n;
+}
+
+function renderReview(pay) {
   var host = $(C.reviewId);
   if (!host) return;
   host.textContent = '';
   var h = el('h3', 'wz-h', L.revTitle);
   var p = el('p', 'wz-p', L.revSub);
   host.append(h, p);
+  /* ★入れた額が、どの区分にどれだけ乗っているかを1本で見せる。
+     ★置き場所は**一番上**（2026-09-09 オーナー指示・Marit と同じ並び）。
+       下に置くと、打った欄の読み返しを全部抜けないと全体像に届かない。
+     ★出すのは**その月の額**。年額に直さない ── 直すと、すぐ下に並ぶ
+       「総支給」「パーディアム」等の月額と桁が変わって別の話に見える。 */
+  var parts = pay ? reviewComp(pay) : [];
+  if (parts.length) {
+    var comp = el('div', 'wz-rev-comp');
+    comp.appendChild(el('p', 'wz-rev-comp-t', L.lblComp));
+    var cb = barEl(parts);
+    if (cb) comp.appendChild(cb);
+    parts.forEach(function (x) {
+      var cr = el('div', 'wz-rev-seg');
+      cr.append(el('span', 'wz-seg-dot is-' + x.k),
+                el('span', 'wz-seg-k', L.seg[x.k] || x.k),
+                el('span', 'wz-seg-v', moneyOrig(x.w)));
+      comp.appendChild(cr);
+    });
+    host.appendChild(comp);
+  }
   /* ★読むあいだだけ全部の段を出す。他の段は隠れていて offsetParent が無く、
      「条件で隠れている欄」と「別の段に居る欄」の区別が付かない。区別しないと、
      住居を『社宅』に変えた人の確認画面に、前に打った住宅手当の額がまだ出る。
@@ -614,79 +639,9 @@ function renderReview() {
   back.forEach(function (x) { if (x[0]) x[0].hidden = x[1]; });
 }
 
-function fmtBand(r, unit) {
-  if (!r) return '';
-  var f = function (x) { return new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(x); };
-  return f(r[0]) + '–' + f(r[1]) + (unit ? ' ' + unit : '');
-}
-function renderPublic(row, notes) {
-  var host = $(C.publicId);
-  if (!host) return;
-  host.textContent = '';
-  host.append(el('h3', 'wz-h', L.pubTitle), el('p', 'wz-p', L.pubSub));
-  if (!row || row.annual_usd == null) {
-    host.appendChild(el('p', 'wz-note', L.pubNotYet));
-    return;
-  }
-  var card = el('div', 'wz-pub');
-  var add = function (k, v) {
-    if (v == null || v === '') return;
-    var r = el('div', 'wz-pub-row');
-    r.append(el('span', 'wz-pub-k', k), el('span', 'wz-pub-v', v));
-    card.appendChild(r);
-  };
-  add(L.lblAirline, C.nameOf('f-airline'));
-  add(L.lblPos, C.nameOf('f-position'));
-  add(L.lblFleet, C.nameOf('f-fleet'));
-  add(L.lblAnnual, '$' + new Intl.NumberFormat('en-US').format(row.annual_usd));
-  add(L.lblAge, L.age0);
-  if (row.ten != null) {
-    add(L.lblTen, (row.pos === 'fo' ? L.tenFo : L.tenCap)[row.ten]);
-  }
-  if (row.work) {
-    var w = [];
-    if (row.work.bh) w.push(L.bh + ' ' + fmtBand(row.work.bh, L.hours));
-    if (row.work.dd) w.push(L.dd + ' ' + fmtBand(row.work.dd, L.days));
-    if (w.length) add(L.lblWork, w.join(' / '));
-  }
-  host.appendChild(card);
-
-  if (row.pay) {
-    var comp = el('div', 'wz-pub-comp');
-    comp.appendChild(el('p', 'wz-pub-comp-t', L.lblComp));
-    row.pay.forEach(function (s) {
-      var r = el('div', 'wz-pub-seg');
-      r.append(el('span', 'wz-seg-dot ' + 'is-' + s.k),
-               el('span', 'wz-seg-k', L.seg[s.k] || s.k),
-               el('span', 'wz-seg-v', '$' + fmtBand(s.r)));
-      comp.appendChild(r);
-    });
-    comp.appendChild(emph('p', 'wz-note', L.bandNote));
-    host.appendChild(comp);
-  } else if (row.why === 'nodetail') {
-    host.appendChild(el('p', 'wz-note', L.noComp));
-  } else if (row.why === 'over') {
-    host.appendChild(el('p', 'wz-note', L.overComp));
-  }
-
-  /* 出さないものを、名前で並べて見せる。 */
-  var no = el('div', 'wz-pub-no');
-  no.append(el('span', 'wz-pub-no-t', L.pubHidden), el('span', 'wz-pub-no-v', L.hiddenList));
-  host.appendChild(no);
-
-  /* サーバ側で変わる部分を、確定した結果として書かない。 */
-  var hedge = el('ul', 'wz-hedge');
-  var lines = [L.pubHedge, L.manyMonths, L.noFx];
-  if (row.usd != null && row.usd < 10000) lines.push(L.outLow);
-  if (row.usd != null && row.usd > 700000) lines.push(L.outHigh);
-  (notes || []).forEach(function (x) { lines.push(x); });
-  lines.forEach(function (x) { hedge.appendChild(emph('li', null, x)); });
-  host.appendChild(hedge);
-}
-
 /* ═══ 5. 外へ出す口 ════════════════════════════════════════════════ */
 var API = {
-  /* cfg = { lang, bodyId, totalBarId, reviewId, publicId, steps:[{id, also, totalBar}],
+  /* cfg = { lang, bodyId, totalBarId, reviewId, steps:[{id, also, totalBar}],
              draftIds, read(id), restore(obj), missing(), markMissing(list), clearErr(),
              payload(), annualOrig(), fx(), nameOf(id), onStep(id,i) } */
   init: function (cfg) {
@@ -731,6 +686,13 @@ var API = {
       if (started) restoreDraft(d); else this._resume = d;
     }
   },
+  /* ★預かり（pv_pay_pending）を戻した回は、下書きから戻さない。
+     下書きは2秒の遅延保存（saveSoon）なので、最後の打鍵の直後に送信を押した人の
+     下書きは**送った内容より古い**。あとから start() が上書きすると、本人には
+     「送ったはずの値が勝手に古いものに戻った」ようにしか見えない。
+     ★localStorage は消さない（この回だけ使わない）。預かりを送り切れずに
+       帰った人が、次に普通に開いたときは下書きから続けられる。 */
+  skipDraft: function () { this._resume = null; this._pending = null; },
   sync: function () { if (!C) return; sync(); saveSoon(); },
   go: go,
   goLast: function () { if (C) go(C.steps.length - 1); },
@@ -750,12 +712,11 @@ var API = {
     var box = $('wz-draft');
     if (box) box.hidden = true;
   },
-  render: function (notes) {
-    renderReview();
-    var p = C.payload ? C.payload() : null;
-    var row = p ? publicRow(p, { annualOrig: C.annualOrig(), fx: C.fx() }) : null;
-    renderPublic(row, notes);
-    return row;
+  render: function () {
+    /* ★payload を先に作る。renderReview() が支給の内訳（8区分）を出すのに要る。
+       renderReview() は段の hidden を開けて閉じるだけで元に戻すので、
+       payload() をその前に呼んでも後に呼んでも同じ答えになる。 */
+    renderReview(C.payload ? C.payload() : null);
   },
   /* db/test-pay-preview.mjs が呼ぶ純関数（DOM を1つも触らない）。 */
   preview: { sig2: sig2, bandGrid: bandGrid, band: band, shelf: shelf, row: publicRow,

@@ -135,17 +135,17 @@ for (const [dir, tag] of [['', '(日本語)'], ['/en', '/en']]) {
   const reachable = await p.evaluate(() => {
     const g = document.getElementById('login-gate');
     const f = document.getElementById('f-airline');
-    return { gateHidden: !g || getComputedStyle(g).display === 'none', formThere: !!f && !f.disabled };
+    return { gateHidden: !g || !g.offsetParent, formThere: !!f && !f.disabled };
   });
   ok(reachable.gateHidden && reachable.formThere, '読み込み直後はログイン壁が出ず、フォームが触れる', reachable);
 
   /* 1-b) 押す前に「アカウントを作らなくても出せる」と分かること。
-         ここが元の文言のままだと、押すまで登録が要ると思われる。 */
-  const label = await p.evaluate(() => (document.getElementById('submit-btn').textContent || '').trim());
-  ok(/匿名で提出|Submit anonymously/.test(label), '未ログインの送信ボタンが「匿名で提出する」になっている', label);
+         ★見るのは 2) の中（5/5 まで歩いて**ボタンが見えた**時点）。
+           ここで textContent だけ読むと、ボタンが1ピクセルも見えていなくても
+           文言が合っているというだけで緑になる。 */
 
   // 2) 必須欄を埋めて送信 → その場でサーバへ預かる
-  const err = await p.evaluate(async () => {
+  await p.evaluate(async () => {
     const set = (id, v) => {
       const el = document.getElementById(id);
       if (!el) return;
@@ -173,6 +173,25 @@ for (const [dir, tag] of [['', '(日本語)'], ['/en', '/en']]) {
     ['f-block', 'f-stay', 'f-bonus-mo', 'f-perdiem', 'f-seniority'].forEach((id) => set(id, '0'));
     set('f-gross', '1080000');
     set('f-netpay', '842000');
+    /* ★ウィザードでは送信ボタンは 5/5 の中にしか無い。歩かずに押さない。
+       1枚もの形態（共有 JS が落ちた形）には PVPayWizard が居ないので何もしない
+       ── 同じ台本が両方で走る。 */
+    if (window.PVPayWizard) window.PVPayWizard.goLast();
+    await new Promise((r) => setTimeout(r, 700));
+    return null;
+  });
+  /* ★可視は offsetParent で見る。getComputedStyle().display は
+     **祖先が消えていても自分の block を返す**ので、箱が1ピクセルも見えないまま
+     「出ている」と言えてしまう。 */
+  const reach = await p.evaluate(() => {
+    const b = document.getElementById('submit-btn');
+    return { btn: !!(b && b.offsetParent), step: window.PVPayWizard ? window.PVPayWizard.current() : null,
+             label: ((b || {}).textContent || '').trim() };
+  });
+  ok(reach.btn, '★最後まで埋めると、送信ボタンに本当に手が届く（見えている）', reach);
+  ok(/匿名で提出|Submit anonymously/.test(reach.label),
+     '★手が届いた時点でも「匿名で提出する」と書いてある', reach.label);
+  const err = await p.evaluate(async () => {
     document.getElementById('submit-btn').click();
     await new Promise((r) => setTimeout(r, 800));
     const e = document.querySelector('.err, #err, [id*="err"]');
@@ -195,7 +214,8 @@ for (const [dir, tag] of [['', '(日本語)'], ['/en', '/en']]) {
     let claims = [];
     try { claims = JSON.parse(localStorage.getItem('pv_pay_claim') || '[]'); } catch (e) {}
     return {
-      shown: g && getComputedStyle(g).display !== 'none',
+      /* ★祖先ごと消えていないかまで見る（display だけだと #s5 が閉じていても通る）。 */
+      shown: !!(g && g.offsetParent),
       ev,
       hasBox: !!document.getElementById('pl-up-btn'),
       title: (document.getElementById('pl-title') || {}).textContent || '',
@@ -304,7 +324,7 @@ for (const [dir, tag] of [['', '(日本語)'], ['/en', '/en']]) {
     gross: document.getElementById('f-gross').value,
     kept: !!localStorage.getItem('pv_pay_pending'),
     claims: (() => { try { return JSON.parse(localStorage.getItem('pv_pay_claim') || '[]').length; } catch (e) { return -1; } })(),
-    gateShown: getComputedStyle(document.getElementById('login-gate')).display !== 'none',
+    gateShown: !!document.getElementById('login-gate').offsetParent,
     title: (document.getElementById('pl-title') || {}).textContent || '',
   }));
   ok(back.entryHidden && back.gross !== '', 'ログインせずに戻っても入力が残り、入口の2択に戻されない', back);
