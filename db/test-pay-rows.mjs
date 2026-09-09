@@ -166,7 +166,7 @@ const pv2 = (v) => Number(v.toPrecision(2));
 // 会社コードは語彙から取る（このテストのために特定の社名を覚えない）
 const VOCAB = (await rows(
   `select code, name_ja, name_en from pv_airlines
-    where code <> 'other' and active order by code limit 46`
+    where code <> 'other' and active order by code limit 47`
 ));
 const AIR = VOCAB.map(r => r.code);
 const [A_ONE, A_M12, A_MIX, A_OLD, A_ORD, A_VF, A_OUT, A_FOTHER,
@@ -182,7 +182,9 @@ const [A_ONE, A_M12, A_MIX, A_OLD, A_ORD, A_VF, A_OUT, A_FOTHER,
        A_GT_FULL, A_GT_NONE, A_GT_M1, A_GT_M2, A_GT_M3,
        A_GT_ROW, A_GT_OLD, A_GT_PLAIN,
        // ★1区分だけの内訳（基本給＝総支給）。閉じている面に名前も渡さない側。
-       A_GT_1SEG] = AIR;
+       A_GT_1SEG,
+       // ★2026-09-10。本人の依頼で一覧から下ろす（pay_hidden）。1社＝1人。
+       A_HIDE] = AIR;
 const nameOf = (code) => VOCAB.find(r => r.code === code);
 
 // ════════════════════════════════════════════════════════════
@@ -1769,7 +1771,7 @@ console.log('\n▼ 13. 自己点検 SQL（ファイル末尾のものをその�
   const src = read('db/pay-rows.sql');
   const q = src.slice(src.lastIndexOf('with f as ('));
   const res = await rows(q);
-  ok(res.length === 61, `自己点検が61行ぜんぶ出る（= ${res.length}行）`);
+  ok(res.length === 63, `自己点検が63行ぜんぶ出る（= ${res.length}行）`);
   for (const row of res) {
     ok(row['結果'] === '✅', `${row['#']}. ${row['見るところ']}`);
   }
@@ -1803,6 +1805,71 @@ console.log('\n▼ 14. 8-20（pay_reports を読む関数が anon に開いて�
   const exc = await rows(cut('-- 8-22.'));
   ok(exc.length === 2 && exc.every((c) => c['内訳を捨てている'] === false),
      '総支給が来ても内訳を捨てていない（排他が復活していない）', JSON.stringify(exc));
+}
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 15. 本人の依頼で一覧から下ろす（pay_hidden・2026-09-10）');
+// ════════════════════════════════════════════════════════════
+/* 「自分の年収情報を消してほしい」と言われたときの仕掛け。
+   ★行は消さない。落ちるのは一覧の1行だけで、人数にも本人の鍵にも触らない。
+   ★運営（pv_is_operator）には今までどおり出る。
+   ⚠️ 静かに壊れる形が2つある ──
+      ① 数え上げ側にも同じ絞りを書いてしまい、出してくれた人が
+         「出していない人」に戻る（DEEP PAY の N/100 が黙って1つ減る）。
+      ② shelf の側で落としてしまい、口コミの重複よけ（自己点検30）が
+         効かなくなって、下ろしたはずの人が口コミ側から出てくる。 */
+{
+  const HID_U = await person(A_HIDE, 'cap', [{ fleet: 'b777', month: 6, gross: 12000 }]);
+  await asViewer();
+
+  const seen = async () => (await payRows()).rows.some((x) => x.airline === A_HIDE);
+  const heads = async () => (await one(`select pv_deep_contributors() n`)).n;
+
+  ok(await seen(), '下ろす前は一覧に出ている（前提）');
+  const headsBefore = await heads();
+
+  await db.query(
+    `insert into public.pay_hidden(proof_hash, reason)
+     select r.proof_hash, '本人の依頼' from public.pay_reports r
+      where r.airline = $1 on conflict (proof_hash) do nothing`, [A_HIDE]);
+
+  ok(!(await seen()), '★下ろすと一覧から消える（鍵を持っている人にも出ない）');
+  const headsAfter = await heads();
+  ok(headsAfter === headsBefore,
+     '★★下ろしても人数は1つも減らない（出してくれた事実は残す）',
+     `${headsBefore} → ${headsAfter}`);
+
+  // 本棚（DB）にはそのまま残っている
+  ok((await one(`select count(*)::int n from pay_reports where airline = $1`, [A_HIDE])).n === 1,
+     '★行はデータベースに残っている（消していない）');
+
+  // 本人の鍵（Give & Get）も、本人のマイページも、今までどおり
+  await db.query(`select set_config('pv.uid', $1, false)`, [uid(HID_U)]);
+  const give = (await one(`select pv_my_give() g`)).g;
+  ok(give.basic === true,
+     '★下ろされた本人の鍵は開いたまま（アカウントは今までどおり使える）',
+     JSON.stringify(give));
+  const mine = (await one(`select my_pay_reports() j`)).j;
+  ok((mine.reports || []).length === 1,
+     '★本人のマイページには今までどおり出る（自分の控えは消さない）');
+
+  /* ── 運営（pv_admins）だけは今までどおり見える ──
+     この検査は db/admin.sql を流していないので、名簿をここで作る。
+     pv_is_operator は to_regclass で名簿の実在を見ているので、後から作っても効く。 */
+  await db.exec(`create table if not exists public.pv_admins (user_id uuid primary key)`);
+  await db.query(`insert into public.pv_admins(user_id) values($1) on conflict do nothing`,
+    [uid(VIEWER)]);
+  await asViewer();
+  ok(await seen(), '★★運営には今までどおり出る（下ろせたかを目で確かめられる）');
+
+  await db.query(`delete from public.pv_admins where user_id = $1`, [uid(VIEWER)]);
+  ok(!(await seen()), '運営を名簿から外すと、また消える（名簿ひとつで切り替わっている）');
+
+  // 戻せる
+  await db.query(`delete from public.pay_hidden`);
+  ok(await seen(), '★名簿から消せば元どおり出る（片道の操作にしない）');
+
+  await db.exec(`drop table if exists public.pv_admins`);
 }
 
 // ── まとめ ───────────────────────────────────────────────────

@@ -1115,6 +1115,53 @@ comment on function public.pv_is_operator() is
   '名簿が無い環境では必ず false。誰にも grant しない。';
 
 
+-- ════════════════════════════════════════════════════════════════
+-- 1-e1. pay_hidden — 本人の依頼で一覧から下ろした人（2026-09-10）
+--
+-- 「自分の年収情報を消してほしい」と言われたときに使う。
+--
+-- ★行そのものは消さない。消すのは最後の手段で、消したら二度と戻せない。
+--   ここに proof_hash を1つ入れると、その人のその会社の行が
+--   **一覧（pv_pay_rows）から落ちるだけ**。本棚（pay_reports）はそのまま残る。
+-- ★落ちるのは一覧の1行だけ。人数（pv_deep_contributors・pv_contributors）も、
+--   本人の鍵（pv_my_give）も、マイページ（my_pay_reports）も触らない
+--   ── 出してくれた事実は残り、その人はアカウントを今までどおり使える。
+-- ★運営（pv_is_operator）にだけは今までどおり出る。何を下ろしたか目で確かめられないと、
+--   効いているかどうかが分からなくなる。
+-- ⚠️ 鍵は proof_hash（＝人×会社）。行の id ではない。
+--    一覧は同じ人の12か月ぶんを1行に畳んでいるので、
+--    id で1件だけ下ろしても行は残ってしまう（画面は普通に動いたまま）。
+--    入れるときは必ず「id から proof_hash を引いて入れる」形で書く。
+-- ⚠️ 口コミに書かれた給与（一覧の材料③）も同じ pkey で畳まれているので、
+--    この1行でそちらも一緒に下りる。
+--
+-- 入れ方（オーナーが Supabase の SQL Editor に貼る）:
+--   insert into public.pay_hidden(proof_hash, reason)
+--   select r.proof_hash, '本人の依頼'
+--     from public.pay_reports r where r.id = '<行のid>'
+--   on conflict (proof_hash) do nothing;
+-- 戻し方:
+--   delete from public.pay_hidden where proof_hash = (
+--     select proof_hash from public.pay_reports where id = '<行のid>');
+-- ════════════════════════════════════════════════════════════════
+create table if not exists public.pay_hidden (
+  proof_hash text primary key,
+  hidden_at  timestamptz not null default now(),
+  -- ★誰が言ってきたかは書かない（氏名・メールを DB に残さない）。
+  --   書くのは「本人の依頼」「調査中」程度の一言だけ。
+  reason     text
+);
+
+alter table public.pay_hidden enable row level security;
+revoke all on table public.pay_hidden from public, anon, authenticated;
+
+comment on table public.pay_hidden is
+  '本人の依頼で REAL PAY の一覧から下ろした人（proof_hash ＝ 人×会社）。'
+  '★行は消さない。落ちるのは pv_pay_rows の一覧だけで、人数にも本人の鍵にも触らない。'
+  '★運営（pv_is_operator）には今までどおり出る。'
+  'RLS 有効・ポリシー無し・grant 無し＝security definer の中からしか読めない。';
+
+
 create or replace function public.pv_my_give()
 returns jsonb
 language sql
@@ -1520,6 +1567,9 @@ declare
   /* ★報酬の内訳の門（Give & Get）。上の鍵とは**別の錠前**。
      access_until を持っていても、自分の内訳を出していなければ開かない。 */
   v_comp  boolean;
+  /* ★「下ろした行を載せるか」。上の鍵とはまったく別の旗。
+     鍵は「開くか」、こちらは「載せるか」。混ぜないこと。 */
+  v_op    boolean;
   v_out   jsonb;
 begin
   if v_uid is null then
@@ -1540,6 +1590,10 @@ begin
   -- ⚠️ 足すのはこの1行の中だけ。分岐を増やさない（自己点検36 が旗の出現数を
   --    きっかり4と数えている＝宣言・ここ・state・rows）。
   v_open := (v_until is not null and v_until > now()) or public.pv_is_operator();
+
+  /* ★本人の依頼で下ろした行（pay_hidden）は、運営にだけ今までどおり出す。
+     効いているかを目で確かめられないと、下ろせたかどうかが分からない。 */
+  v_op := public.pv_is_operator();
 
   /* ── 報酬の内訳の門（Give & Get・2026-09-03）─────────────────
      オーナー指示 ──「自分の給与内訳を共有した人だけ、他人の給与内訳を見られる」。
@@ -1749,6 +1803,15 @@ begin
     select * from src
      where usd is not null
        and usd between 10000 and 700000
+       /* ★本人の依頼で下ろした人はここで落とす（2026-09-10）。
+          ★落とすのはこの1か所だけ。材料3つ（本棚・預かり・口コミ）が
+            すべて src に集まった後なので、口コミ側の給与も一緒に下りる。
+          ⚠️ 上の shelf では落とさないこと。あちらは口コミの重複を
+             はじく材料（自己点検30）にも使っていて、そこから消すと
+             **下ろしたはずの人が口コミ側から出てくる**。
+          ⚠️ 人数（stats）はここを通らない＝下ろしても数からは外れない。 */
+       and (v_op or not exists (select 1 from public.pay_hidden h
+                                 where src.pkey = 'r:' || h.proof_hash))
   ),
   person as (
     -- ★人ごとに畳む。ここが「1行＝1人」の実体。
@@ -2092,7 +2155,7 @@ comment on function public.pv_give_progress() is
 --
 -- ★1本の SELECT にしてある。Supabase の SQL Editor は複数文を流すと
 --   最後の1本の結果しか出さないので、分けて書くと上から順に消えていく。
--- 期待：56行すべて ✅。1つでも ❌ なら、そこが効いていない。
+-- 期待：63行すべて ✅。1つでも ❌ なら、そこが効いていない。
 --
 -- 特に 4・8・12・13・14・16・22・23・30・31・36・37・40・41・42・44・45・46・47・
 --      50・51・52・53・54・55・56 は
@@ -2122,7 +2185,8 @@ with f as (
          to_regprocedure('public.pv_deep_contributors()')   as f_dctb,
          to_regprocedure('public.pv_pay_person_map()')      as f_pmap,
          to_regprocedure('public.pv_give_progress()')       as f_prog,
-         to_regclass('public.pv_deep_launch')               as t_lch
+         to_regclass('public.pv_deep_launch')               as t_lch,
+         to_regclass('public.pay_hidden')                   as t_hide
 )
 select n as "#", case when ok then '✅' else '❌' end as 結果, 見るところ
 from (
@@ -2623,6 +2687,26 @@ from (
                and not has_function_privilege('authenticated', f.f_pdet, 'execute')
                and pg_get_functiondef(f_pdet) !~
                    '(base_iata|seniority_years|age_bucket|contract_type|tax_country|nationality|period_month|airline_other)'
+         end from f
+  union all
+  -- ── 本人の依頼で一覧から下ろす（2026-09-10）────────────────
+  select 62, '★下ろした人の名簿は誰にも開いていない（一覧の中からだけ読める）',
+         /* proof_hash がそのまま入っている表。開けると
+            「誰が消してと言ってきたか」の手がかりが外へ出る。 */
+         case when t_hide is null then false
+              else not has_table_privilege('anon',          t_hide, 'select')
+               and not has_table_privilege('authenticated', t_hide, 'select')
+               and (select c.relrowsecurity from pg_class c where c.oid = f.t_hide)
+         end from f
+  union all
+  select 63, '★下ろしても人数からは外れない（載せるのをやめるだけ・行は消さない）',
+         /* 静かに壊れる。数え上げ側にも同じ絞りを書いてしまうと、
+            出してくれた人が「出していない人」に戻り、DEEP PAY の
+            「N / 100人」が黙って1つ減る（オーナー指示：数には残す）。 */
+         case when f_rows is null or f_dctb is null then false
+              else pg_get_functiondef(f_rows) like '%pay_hidden%'
+               and pg_get_functiondef(f_dctb) not like '%pay_hidden%'
+               and pg_get_functiondef(f_give) not like '%pay_hidden%'
          end from f
 ) t
 order by n;

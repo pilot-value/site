@@ -195,7 +195,7 @@ async function authUsers() {
    ★口コミは航空会社コードを付け替えた移行（db/migrate-airline-codes.sql）より前の行だと
      hash が旧コードのままなので一致しない。古い自分の投稿は落としきれないことがある。
    ⚠️ 下の「3-c」も同じ写し取りをしている。あちらは db/pay-rows.sql の
-      数え方（sane / person / tally / airs）を写している。
+      数え方（sane / person / tally / airs）を写している（pay_hidden の絞りも含む）。
       **pay-rows.sql の数え方を変えたら 3-c も直す**（金額の出し方は写していない。
       本物の関数を呼んでいる＝上の rpcRead）。
    ★人数の数え方は 3節・3-c 節で**同じ1つの関数**を通す（下の payPersonMap）。
@@ -561,7 +561,7 @@ async function foundingReport(users, testIds, real) {
     };
     const MONTHS24 = monthsAgo(24);
     const MONTH1 = monthsAgo(1);
-    const [prAll, pdAll, rvAll, vocab, poss, fx, links] = await Promise.all([
+    const [prAll, pdAll, rvAll, vocab, poss, fx, links, hideAll] = await Promise.all([
       rest('pay_reports', 'select=created_at,airline,airline_other,position,annual_total_usd,proof_hash&limit=5000'),
       rest('pay_reports_pending', 'select=created_at,claimed_at,airline,ip_day_hash,payload&limit=5000'),
       rest('reviews_v2', 'select=id,created_at,airline,position,proof_hash,annual_salary,base_annual,flight_allowance_annual,monthly_salary,bonus&limit=5000'),
@@ -569,6 +569,11 @@ async function foundingReport(users, testIds, real) {
       rest('pv_positions', 'select=code&limit=100'),
       rest('fx_rates', 'select=to_usd&code=eq.JPY'),
       rest('pv_review_person', 'select=review_id,pkey&limit=5000'),
+      /* ★本人の依頼で一覧から下ろした人（2026-09-10）。
+         まだ db/pay-rows.sql を本番に貼っていない環境には表そのものが無いので、
+         そのときは null にして「誰も下ろしていない」として続ける
+         ── 数える道具がそれで落ちてはいけない。 */
+      rest('pay_hidden', 'select=proof_hash&limit=5000').catch(() => null),
     ]);
     const codes = new Set(vocab.map((a) => a.code));
     const posOk = new Set(poss.map((p) => p.code));
@@ -638,8 +643,16 @@ async function foundingReport(users, testIds, real) {
     }
 
     /* 常識の幅（⑦）。打ち間違いだけを落とす。 */
-    const sane = src.filter((r) => r.usd != null && r.usd >= 10000 && r.usd <= 700000);
-    const dropped = src.length - sane.length;
+    const inRange = src.filter((r) => r.usd != null && r.usd >= 10000 && r.usd <= 700000);
+    const dropped = src.length - inRange.length;
+
+    /* 本人の依頼で一覧から下ろした人（pay_hidden・2026-09-10）。
+       ★db/pay-rows.sql の sane と同じ絞り。あちらを変えたらここも直す。
+       ★下ろすのは「表に載せるのをやめる」だけ。行は残っているし、
+         下の「出したパイロット」（prAll から数える）からも外さない。 */
+    const hidden = new Set((hideAll ?? []).map((h) => 'r:' + h.proof_hash));
+    const sane = inRange.filter((r) => !hidden.has(r.pkey));
+    const hiddenRows = inRange.length - sane.length;
 
     /* 1行＝1人。社数はここから数える（＝表に実際に出てくる会社）。 */
     const seen = new Set();
@@ -680,6 +693,10 @@ async function foundingReport(users, testIds, real) {
     const FROM = [['shelf', '本棚（会員が出した）'], ['pending', '預かり（登録前）'], ['review', '昔の口コミの給与']];
     for (const [k, label] of FROM) line('  ' + label, `${sane.filter((r) => r.from === k).length}件`);
     if (dropped) line('  常識の幅で落とした', `${dropped}件`, '　（年 $10,000〜$700,000 の外＝打ち間違い）');
+    if (hiddenRows) line('  本人の依頼で下ろした', `${hiddenRows}件`,
+      '　（行は消していません。運営には今までどおり出ます）');
+    if (hideAll === null)
+      console.log('   ※ pay_hidden の表がまだ本番にありません（db/pay-rows.sql を貼ると出来ます）。');
     if (unmapped) {
       console.log(`   ※ 名簿に当たらなかった給与レポートが ${unmapped}件あります（人数に入れていません）。`);
       console.log(`      退会などで profiles 行が消えた人の投稿です。画面の数え方（fail closed）と同じ扱いです。`);
