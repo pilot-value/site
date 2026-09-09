@@ -32,9 +32,13 @@
       title: 'あと一歩でレポートが出ます',
       lead: '入力した内容は<b>この端末に預けてあります</b>。ログインするとそのまま送信され、レポートが出ます。メールアドレスはレポートに含まれません。',
       /* ★預かりが済んでいるときの見出し。上の title/lead は「まだ送れていない」
-         ときの言葉なので、預かった後に出すと嘘になる（もうサーバにある）。 */
-      savedTitle: '給与データを受け取りました ✓',
-      savedLead: '<b>あなた専用レポートを保存する。</b>アカウントを作ると、いま提出していただいた給与データがそのままレポートになり、<b>給与詳細が90日間</b>開きます。メールアドレスはレポートに含まれません。',
+         ときの言葉なので、預かった後に出すと嘘になる（もうサーバにある）。
+         ★2026-09-09 に「給与データを受け取りました ✓」をやめた。
+           ✓ と紙吹雪でここが終点に見え、19人中4人が預けたまま登録に来なかった
+           （引き取りは全件 0〜5分。その場で登録しない人は戻ってこない）。
+           預かった安心は lead に落とし、見出しは残りの1歩を指す。 */
+      savedTitle: 'あと1ステップでレポートが出ます',
+      savedLead: '<b>入力はサーバーに預けてあります。</b>アカウントを作ると、いま提出していただいた給与データがそのままレポートになり、<b>給与詳細が90日間</b>開きます。メールアドレスはレポートに含まれません。',
       /* ★入口は1つ。2026-08-22 まで「はじめての方」と「お持ちの方」の2ブロックで、
          押せるものが5つ・入力欄が3つあった。signInWithOtp({shouldCreateUser:true}) は
          新規も既存も同じ1本で通るので、どちらかを選ばせる意味がそもそも無い。 */
@@ -75,8 +79,8 @@
     en: {
       title: 'One step left before your report',
       lead: 'What you entered is <b>held on this device</b>. Sign in and it is submitted straight away. Your email address is never part of the report.',
-      savedTitle: 'We have your pay data ✓',
-      savedLead: '<b>Save your own report.</b> Create an account and what you just submitted becomes your report, unlocking <b>full pay detail for 90 days</b>. Your email address is never part of the report.',
+      savedTitle: 'One step left before your report',
+      savedLead: '<b>What you submitted is held on our server.</b> Create an account and it becomes your report, unlocking <b>full pay detail for 90 days</b>. Your email address is never part of the report.',
       google: 'Continue with Google',
       orLine: 'or',
       email: 'Email address',
@@ -231,6 +235,9 @@
          打ちかけのメールや6桁の段を作り直さずに、状態だけ最新にするため。 */
     var head = o.saved ? t.savedTitle : t.title;
     var body = o.saved ? t.savedLead : t.lead;
+    /* ★どちらの状態かを機械が読める形で残す。文言は変わるが、これは変えない。
+         検査が見出しの字で状態を判定していると、言い回しを直すたびに赤くなる。 */
+    mount.setAttribute('data-saved', o.saved ? '1' : '0');
     /* ★受け取った中身を1行だけ返す。ここが無いと「届いたのか分からない」ので、
          同じ人が同じ内容をもう一度送る（2026-08-21 20:11 と 20:17 に実際に起きた）。
        ★金額は1つも出さない。年収も比較も出さない＝ Give to Get は崩さない。

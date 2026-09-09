@@ -69,7 +69,7 @@ const WEB = [
   ['assert-jp.mjs', 143], ['assert-referral.mjs', 120],
   ['assert-perf.mjs', 94], ['assert-currency.mjs', 85],
   ['assert-pay-rows.mjs', 73], ['assert-conditions.mjs', 62],
-  ['db/test-form-contract.mjs', 52], ['db/test-pay-gate.mjs', 35],
+  ['db/test-form-contract.mjs', 52], ['db/test-pay-gate.mjs', 72],
   ['assert-unlock.mjs', 29], ['assert-my-posts.mjs', 26],
   ['assert-founding.mjs', 21], ['assert-admin.mjs', 13],
   ['assert-langtoggle.mjs', 12], ['db/test-login-redirect.mjs', 3],

@@ -1497,6 +1497,28 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                （最後まで入力した人を別ページへ送ると、そこで落ちる）。 -->
         <div id="login-gate" class="card" style="display:none;margin-top:18px">
           <div id="pay-login"></div>
+          <!-- ★登録の箱そのものが描けなかったときの逃げ道（2026-09-09）。
+               中身を JS で組まないのは、描けなかった原因がその JS だから。
+               pay-login.js はページのいちばん最後に読み込まれる1枚で、これだけ
+               届かないと箱が高さ34pxの空枠になり、押せるものが1つも無くなる
+               （匿名の提出そのものは成功しているので、本人には「出したのに
+               登録できない」画面だけが残る）。
+               ★.pl-* を当てない。あれは pay-login.js が注入する CSS で、
+               落ちているときには存在しない。ここは pay-report.css の .plfb-* を使う。
+               ⚠️ このリンクに預かり証（claim トークン）を載せない。login.html は
+               GA4 を持っていて、URL が page_location として Google へ渡る
+               （auth-callback.html にわざと gtag が無いのと同じ理由）。
+               載せなくてよい ── 預かり証はこの端末の localStorage にあり、
+               戻り先の pay-report.html も既定の actual-pay.html も sweep する。
+               ★next は絶対パスで書く。戻り先は /auth-callback.html から解決される。 -->
+          <div id="pay-login-fallback" class="plfb" hidden>
+            <div class="plfb-t">登録の画面を読み込めませんでした</div>
+            <p class="plfb-l"><b>入力はサーバーに預けてあります。消えていません。</b>通信がうまくいかなかったようです。下のボタンからログイン／登録すると、預けた内容がそのままレポートになります。</p>
+            <div class="plfb-a">
+              <a class="btn-orange" href="login.html?next=%2Fpay-report.html">ログイン／登録へ進む →</a>
+              <button type="button" class="plfb-r" id="pay-login-retry">このページを再読み込みする</button>
+            </div>
+          </div>
         </div>
 
         <div class="mt-7 flex flex-col sm:flex-row gap-3">
@@ -1616,7 +1638,6 @@ async function sessionUserId() {
 const CLAIM_MAX_AGE = PVClaimPending.CLAIM_MAX_AGE;
 const readClaims    = () => PVClaimPending.read();
 const rememberClaim = (tok, key) => PVClaimPending.remember(tok, key);
-const markPopped    = (tok) => PVClaimPending.markPopped(tok);
 
 /* ★?claim= は「預かり分があるか」を誰かが聞くより先に URL から取り込む。
    別のブラウザに着地した人にとって、預かり証は URL にしか無い。
@@ -1680,13 +1701,14 @@ function setSubmitLabel(signedIn) {
 }
 
 /* ★ここでページを離れさせない。中身は pay-login.js が作る（日英で1枚）。
-   saved=true … もうサーバに預かってある（「受け取りました」の見出しになる）
+   saved=true … もうサーバに預かってある（「あと1ステップ」の見出しになる）
    saved=false … 預けそこねた。これまで通り、ログインできた所でその場から送る */
+/* ★ここで数えない（2026-09-09）。数えるのは mountLogin が箱を実際に描けたとき。
+   以前はここで数えていたので、箱が空枠のまま終わった人まで「登録欄を見たのに
+   登録しなかった人」として GA4 に載っていた。
+   PVPayLogin の中で数えないのは今までどおり（あちらは plReady で2回目を捨てるので
+   「登録の箱まで来た回数」が数えられない）。 */
 function showGate(saved) {
-  /* ★ここで数える。PVPayLogin の中ではない（あちらは plReady で2回目を捨てるので
-     「登録の箱まで来た回数」が数えられない）。フォームを全部埋めきった人の数＝
-     このイベントの数になり、pay_login_* → pay_report_submit と1本につながる。 */
-  track('pay_login_shown', { saved: saved ? 1 : 0 });
   /* ★箱は 5/5 の中にある。別の段に居るまま出すと、画面に無いものへ
      scrollIntoView することになって何も起きない。先に運ぶ。 */
   if (WZ) { WZ.goLast(); $('submit-block').hidden = false; }
@@ -1696,7 +1718,17 @@ function showGate(saved) {
 }
 /* ★pay-login.js はこの塊より後ろ（ページ末尾）で読み込まれる。ボタンを押して
    呼ぶぶんには必ず間に合うが、ページを開いた直後にも呼ぶようになった（②の経路）ので、
-   来るまで待ってから組む。待たずに諦めると、箱が空のまま枠だけ出る。 */
+   来るまで待ってから組む。
+   ★2026-09-09、待ちきれなかったときに黙って諦めるのをやめた。それまでは5秒で
+     return するだけで、画面には高さ34pxの空枠が残り、押せるものが1つも無く、
+     記録も残らなかった。匿名の提出そのものは成功しているので、本人には
+     「出したのに登録できない」画面だけが残る。いまはこうする ──
+       ・5秒で逃げ道（#pay-login-fallback）を出す。待たせない
+       ・そのあとも15秒までは試し続け、遅れて届いたら逃げ道を畳んで本物を出す
+       ・pay_login_mount_fail を残す。これが無いと起きたことに永久に気づけない
+   ★イベントに金額・メール・預かり証を1文字も入れない（名前だけ）。 */
+var PLM_FALLBACK_AT = 50;    // 5秒。ここで逃げ道を出す
+var PLM_GIVE_UP_AT  = 150;   // 15秒。ここまで来ないなら本当に届いていない
 function mountLogin(saved, tries) {
   if (typeof window.PVPayLogin === 'function') {
     window.PVPayLogin({
@@ -1708,16 +1740,28 @@ function mountLogin(saved, tries) {
       /* 受け取った中身を1行だけ返す。★金額は入れない（Give to Get の壁）。 */
       recap: saved ? recapLine() : '',
     });
-    /* 丸い 🎉 もここで置く。showGate の中ではない。
-       ★戻ってきた人の経路では、ページを開いた直後にこれが呼ばれる。その時点では
-         まだ confetti.js が読めていないことがあり、showGate に置くと黙って何も出ない
-         （実際そうなった）。pay-login.js は confetti.js より後ろで読み込まれるので、
-         PVPayLogin が居るならクラッカー側も必ず居る。 */
-    if (saved && window.PVConfetti && window.PVConfetti.badge) window.PVConfetti.badge($('login-gate'));
+    /* ★2026-09-09、ここに在った 🎉 バッジをやめた。祝いは会員登録が済んだ
+         結果カードの1か所だけにする（下の renderResult）。預けた時点で祝うと
+         そこが終点に見え、19人中4人が預けたまま登録に来なかった。 */
+    /* 遅れて届いた回。逃げ道が出ていれば畳む。 */
+    if ($('pay-login-fallback')) $('pay-login-fallback').hidden = true;
+    /* ★箱が実際に描けたときだけ数える。
+       過去の GA4 と比べるとき：新しい pay_login_shown ＋ pay_login_mount_fail
+       ＝ 古い pay_login_shown。 */
+    track('pay_login_shown', { saved: saved ? 1 : 0 });
     return;
   }
-  if (tries > 50) return;                                  // 5秒。ここまで来ないなら読み込み自体が失敗している
+  if (tries === PLM_FALLBACK_AT) {
+    if ($('pay-login-fallback')) $('pay-login-fallback').hidden = false;
+    track('pay_login_mount_fail');
+  }
+  if (tries > PLM_GIVE_UP_AT) return;
   setTimeout(function () { mountLogin(saved, tries + 1); }, 100);
+}
+/* 逃げ道の「再読み込み」。入力はこの端末と（預けた分は）サーバに残っているので、
+   読み直しても打ち直しにはならない。 */
+if ($('pay-login-retry')) {
+  $('pay-login-retry').addEventListener('click', function () { location.reload(); });
 }
 function hideGate() { $('login-gate').style.display = 'none'; }
 
@@ -3655,10 +3699,9 @@ async function submitPayReport() {
       if (error) throw error;
       if (!data || !data.ok || !data.claim_token) throw new Error('サーバから預かり証が返りませんでした');
       rememberClaim(data.claim_token, dupKey);
-      /* 出し切った瞬間をここで祝う。鳴らすのは新しく預けたこの1回だけで、
-         アカウントを作って戻ってきた結果カードでは鳴らさない（_gatePopped）。 */
-      markPopped(data.claim_token);
-      try { if (typeof window.PVConfetti === 'function') window.PVConfetti(); } catch (e) {}
+      /* ★ここでは祝わない（2026-09-09）。預かりはまだ本人のものになっていない。
+         markPopped も呼ばない ── 呼ぶと _gatePopped が立って、登録を終えた
+         あとの結果カードで鳴らなくなる。 */
       savePreset();
       track('pay_report_pending');
       setSubmitBusy(false, _btnLabel);
@@ -3811,8 +3854,10 @@ function renderResult(d, p) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
   /* 出し終わりを静かに終わらせない。ただし鳴らすのは新しい月のときだけ。
      同じ月の出し直し（is_new:false＝訂正）は上書きで件数が増えないので、
-     ここで紙吹雪まで出すと「1件増えた」の合図が意味を失う。🎉 バッジは出したまま。
-     ★預かり分は「受け取りました」で既に鳴らしているので、ここでは鳴らさない。 */
+     ここで紙吹雪まで出すと「1件増えた」の合図が意味を失う。
+     ★匿名で預けた人も、ここで初めて鳴る（2026-09-09。それまでは預けた時点で
+       鳴らして _gatePopped を立てていた）。_gatePopped は、既に印の付いた
+       古い預かり証を持っている人のためだけに残してある。 */
   if (d.is_new && !_gatePopped) {
     try { if (typeof window.PVConfetti === 'function') window.PVConfetti(); } catch (e) {}
   }

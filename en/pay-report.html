@@ -1505,6 +1505,29 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                （最後まで入力した人を別ページへ送ると、そこで落ちる）。 -->
         <div id="login-gate" class="card" style="display:none;margin-top:18px">
           <div id="pay-login"></div>
+          <!-- ★The way out when the sign-in box itself could not be drawn (2026-09-09).
+               Its contents are not built in JS, because the JS is exactly what failed:
+               pay-login.js is the last script on the page, and when only that one is
+               missing the box renders as an empty 34px frame with nothing to press
+               (the anonymous hand-over itself succeeded, so all the person is left
+               with is a screen that says they submitted but cannot register).
+               ★Do not use .pl-* here — that CSS is injected by pay-login.js and is
+               not present when it fails. Use .plfb-* from pay-report.css.
+               ⚠️ Never put the claim token on this link. login.html carries GA4, so the
+               URL reaches Google as page_location (the same reason auth-callback.html
+               deliberately has no gtag). It is not needed: the token lives in this
+               browser's localStorage and both pay-report.html and the default landing
+               /en/actual-pay.html sweep for it.
+               ★Write next as an absolute path — the return is resolved from
+               /auth-callback.html, so 'pay-report.html' would land on the Japanese page. -->
+          <div id="pay-login-fallback" class="plfb" hidden>
+            <div class="plfb-t">The sign-in panel could not load</div>
+            <p class="plfb-l"><b>What you submitted is held on our server. Nothing is lost.</b> The connection looks to have dropped. Use the button below to sign in or create an account, and what you handed over becomes your report.</p>
+            <div class="plfb-a">
+              <a class="btn-orange" href="login.html?next=%2Fen%2Fpay-report.html">Sign in or create an account →</a>
+              <button type="button" class="plfb-r" id="pay-login-retry">Reload this page</button>
+            </div>
+          </div>
         </div>
 
         <div class="mt-7 flex flex-col sm:flex-row gap-3">
@@ -1629,7 +1652,6 @@ async function sessionUserId() {
 const CLAIM_MAX_AGE = PVClaimPending.CLAIM_MAX_AGE;
 const readClaims    = () => PVClaimPending.read();
 const rememberClaim = (tok, key) => PVClaimPending.remember(tok, key);
-const markPopped    = (tok) => PVClaimPending.markPopped(tok);
 
 /* ★Pull ?claim= out of the URL first, before anything asks whether a claim
    exists. Someone who landed here from another browser has the token in the
@@ -1694,13 +1716,14 @@ function setSubmitLabel(signedIn) {
 }
 
 /* ★Never send them off this page. pay-login.js builds the box (one copy, JP+EN).
-   saved=true  … the server already has it (the box says "We have your pay data")
+   saved=true  … the server already has it (the box says "One step left")
    saved=false … handing it over failed; sign in and submit from here as before */
+/* ★ここで数えない（2026-09-09）。数えるのは mountLogin が箱を実際に描けたとき。
+   以前はここで数えていたので、箱が空枠のまま終わった人まで「登録欄を見たのに
+   登録しなかった人」として GA4 に載っていた。
+   PVPayLogin の中で数えないのは今までどおり（あちらは plReady で2回目を捨てるので
+   「登録の箱まで来た回数」が数えられない）。 */
 function showGate(saved) {
-  /* ★ここで数える。PVPayLogin の中ではない（あちらは plReady で2回目を捨てるので
-     「登録の箱まで来た回数」が数えられない）。フォームを全部埋めきった人の数＝
-     このイベントの数になり、pay_login_* → pay_report_submit と1本につながる。 */
-  track('pay_login_shown', { saved: saved ? 1 : 0 });
   /* ★箱は 5/5 の中にある。別の段に居るまま出すと、画面に無いものへ
      scrollIntoView することになって何も起きない。先に運ぶ。 */
   if (WZ) { WZ.goLast(); $('submit-block').hidden = false; }
@@ -1710,7 +1733,17 @@ function showGate(saved) {
 }
 /* ★pay-login.js loads after this block (end of the page). Coming from a button
    press it is always there in time, but this is now called on load too (route ②),
-   so wait for it. Give up too early and the frame appears with an empty box. */
+   so wait for it.
+   ★2026-09-09: giving up in silence is gone. It used to just return after 5s,
+     leaving a 34px empty frame with nothing to press and no record anywhere —
+     and since the anonymous hand-over itself succeeded, all the person was left
+     with was a screen saying they submitted but could not register. Now:
+       ・at 5s show the way out (#pay-login-fallback) — do not keep them waiting
+       ・keep trying to 15s; if it arrives late, fold the way out and mount for real
+       ・record pay_login_mount_fail — without it we never learn this happened
+   ★Never put an amount, an email or a claim token in the event (name only). */
+var PLM_FALLBACK_AT = 50;    // 5s — show the way out here
+var PLM_GIVE_UP_AT  = 150;   // 15s — past this it really did not arrive
 function mountLogin(saved, tries) {
   if (typeof window.PVPayLogin === 'function') {
     window.PVPayLogin({
@@ -1722,15 +1755,29 @@ function mountLogin(saved, tries) {
       /* 受け取った中身を1行だけ返す。★金額は入れない（Give to Get の壁）。 */
       recap: saved ? recapLine() : '',
     });
-    /* The round 🎉 goes here too, not inside showGate.
-       ★On the way back this is called the moment the page opens, and confetti.js
-         may not be in yet — placed in showGate it silently drew nothing.
-         pay-login.js loads after confetti.js, so if PVPayLogin is here so is it. */
-    if (saved && window.PVConfetti && window.PVConfetti.badge) window.PVConfetti.badge($('login-gate'));
+    /* ★2026-09-09: the 🎉 badge that sat here is gone. The celebration now happens
+         in exactly one place — the result card after the account exists (renderResult
+         below). Popping at hand-over made that look like the finish line, and 4 of
+         19 people stopped there without ever registering. */
+    /* It arrived late. Fold the way out if it is showing. */
+    if ($('pay-login-fallback')) $('pay-login-fallback').hidden = true;
+    /* ★Count only when the box was actually drawn.
+       Comparing with older GA4: new pay_login_shown + pay_login_mount_fail
+       = the old pay_login_shown. */
+    track('pay_login_shown', { saved: saved ? 1 : 0 });
     return;
   }
-  if (tries > 50) return;                                  // 5s. Past this the script itself failed to load
+  if (tries === PLM_FALLBACK_AT) {
+    if ($('pay-login-fallback')) $('pay-login-fallback').hidden = false;
+    track('pay_login_mount_fail');
+  }
+  if (tries > PLM_GIVE_UP_AT) return;
   setTimeout(function () { mountLogin(saved, tries + 1); }, 100);
+}
+/* The "reload" on the way out. What was typed is still in this browser (and what was
+   handed over is on the server), so reloading never means typing it again. */
+if ($('pay-login-retry')) {
+  $('pay-login-retry').addEventListener('click', function () { location.reload(); });
 }
 function hideGate() { $('login-gate').style.display = 'none'; }
 
@@ -3747,10 +3794,9 @@ async function submitPayReport() {
       if (error) throw error;
       if (!data || !data.ok || !data.claim_token) throw new Error('No claim token came back from the server');
       rememberClaim(data.claim_token, dupKey);
-      /* Celebrate the moment it is all handed over. Only this one new hand-over
-         pops; the result card after signing up stays quiet (_gatePopped). */
-      markPopped(data.claim_token);
-      try { if (typeof window.PVConfetti === 'function') window.PVConfetti(); } catch (e) {}
+      /* ★No celebration here (2026-09-09). What is held is not theirs yet.
+         markPopped is not called either — calling it sets _gatePopped, which would
+         silence the result card once they finish registering. */
       savePreset();
       track('pay_report_pending');
       setSubmitBusy(false, _btnLabel);
@@ -3903,8 +3949,10 @@ function renderResult(d, p) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
   /* Do not let the submission end in silence — but only for a new month. Re-sending the
      same month (is_new:false = a correction) overwrites the row and adds no count, so
-     firing confetti there would drain the meaning out of it. The 🎉 badge still shows.
-     ★A hand-over already popped at "we have your pay data", so it stays quiet here. */
+     firing confetti there would drain the meaning out of it.
+     ★People who handed over anonymously now pop here for the first time (2026-09-09;
+       before that it popped at hand-over and set _gatePopped). _gatePopped is kept
+       only for people still holding a token stamped under the old behaviour. */
   if (d.is_new && !_gatePopped) {
     try { if (typeof window.PVConfetti === 'function') window.PVConfetti(); } catch (e) {}
   }

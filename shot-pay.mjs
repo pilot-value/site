@@ -67,27 +67,6 @@ const ROUND = process.argv[2] || 'r1';
 const dir = path.join(ROOT, 'temporary screenshots', `pay-${ROUND}`);
 fs.mkdirSync(dir, { recursive: true });
 
-/* ★見える窓で開いたままにする（撮らない）。ほかの shot-*.mjs と同じ open。
-     node shot-pay.mjs open            手入力の入口から
-     node shot-pay.mjs open detail     DEEP PAY の「給与内訳を追加する」で来たとき
-     node shot-pay.mjs open detail en  英語で
-   このページはログイン不要なので素の URL でも出るが、ほかの画面と同じ渡し方に揃える。 */
-if (process.argv.includes('open')) {
-  const lang = process.argv.includes('en') ? 'en' : 'ja';
-  const url = `http://localhost:3000/${lang === 'en' ? 'en/' : ''}pay-report.html`
-            + (process.argv.includes('detail') ? '#pay-detail' : '');
-  const b = await puppeteer.launch({
-    headless: false, defaultViewport: null, args: ['--no-sandbox', '--window-size=1440,1000'],
-  });
-  const [pg] = await b.pages();
-  await pg.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
-  console.log(`見える窓で開いた（${url}）。閉じるとこのコマンドも終わる。`);
-  /* ★時間で待たない。待つのは「窓が閉じられたこと」＝接続が切れたこと
-     （時間で待つと、誰も触っていないのに 30 秒で勝手に消える）。 */
-  await new Promise((r) => b.on('disconnected', r));
-  process.exit(0);
-}
-
 const browser = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox'] });
 
 /* 入力のサンプル（湾岸＝最初の主戦場を想定）。ラベル溢れを見たいので長めの値を使う。
@@ -406,6 +385,67 @@ const setDetail = async (page, open) => {
   }, open);
   await new Promise((r) => setTimeout(r, 250));
 };
+
+/* ★見える窓で開いたままにする（撮らない）。ほかの shot-*.mjs と同じ open。
+     node shot-pay.mjs open              手入力の入口から
+     node shot-pay.mjs open detail       DEEP PAY の「給与内訳を追加する」で来たとき
+     node shot-pay.mjs open gate         匿名で提出したあとの「登録の箱」まで進めて渡す
+     node shot-pay.mjs open fallback     その箱が描けなかったとき（pay-login.js を落とす）
+     どれも en を足すと英語（例: node shot-pay.mjs open gate en）
+   このページはログイン不要なので素の URL でも出るが、ほかの画面と同じ渡し方に揃える。
+   ★gate / fallback は5段を全部埋めて送信まで押す。そこまで手で歩かせないための道。
+   ⚠️ その2つでは Supabase 宛ての通信を1本残らず横取りする。素通しにすると
+      **本番に架空の給与が1件入る**（localhost が見ている Supabase は本番）。 */
+if (process.argv.includes('open')) {
+  await browser.close();                    // 撮影用の頭は要らない
+  const lang = process.argv.includes('en') ? 'en' : 'ja';
+  const wantFb   = process.argv.includes('fallback');
+  const wantGate = wantFb || process.argv.includes('gate');
+  const url = `http://localhost:3000/${lang === 'en' ? 'en/' : ''}pay-report.html`
+            + (process.argv.includes('detail') ? '#pay-detail' : '');
+  const b = await puppeteer.launch({
+    headless: false, defaultViewport: null, args: ['--no-sandbox', '--window-size=1440,1000'],
+  });
+  const [pg] = await b.pages();
+  if (wantGate) {
+    await pg.setRequestInterception(true);
+    pg.on('request', (r) => {
+      const u = r.url();
+      if (wantFb && /\/pay-login\.js/.test(u)) return r.abort();
+      if (!/vzgmnkrggrwtsrpqndsm\.supabase\.co/.test(u)) return r.continue();
+      const H = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': '*',
+                  'Access-Control-Allow-Methods': 'POST, GET, PATCH, OPTIONS' };
+      if (r.method() === 'OPTIONS') return r.respond({ status: 204, headers: H, body: '' });
+      const json = (o) => r.respond({ status: 200, headers: H, contentType: 'application/json', body: JSON.stringify(o) });
+      if (/submit_pay_report_pending/.test(u)) return json({ ok: true, claim_token: 'a'.repeat(48), id: '0'.repeat(8) });
+      if (/\/rest\/v1\//.test(u)) return json([]);
+      return json({});
+    });
+  }
+  await pg.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+  if (wantGate) {
+    await startManual(pg);
+    await fillSimple(pg);
+    await pg.evaluate(() => { if (window.PVPayWizard) window.PVPayWizard.goLast(); });
+    await new Promise((r) => setTimeout(r, 600));
+    await pg.evaluate(() => document.getElementById('submit-btn').click());
+    /* 逃げ道は5秒で出る。出るまでは高さ34pxの空枠のままなので、待たずに渡すと
+       「何も無い」画面を見せることになる。 */
+    await new Promise((r) => setTimeout(r, wantFb ? 7500 : 2000));
+    await pg.evaluate(() => {
+      const g = document.getElementById('login-gate');
+      if (g) g.scrollIntoView({ block: 'center' });
+    });
+    console.log(wantFb
+      ? '匿名で提出 → 登録の箱が描けなかったとき（逃げ道）まで進めた。本番には1件も入っていない。'
+      : '匿名で提出 → 登録の箱まで進めた。本番には1件も入っていない。');
+  }
+  console.log(`見える窓で開いた（${url}）。閉じるとこのコマンドも終わる。`);
+  /* ★時間で待たない。待つのは「窓が閉じられたこと」＝接続が切れたこと
+     （時間で待つと、誰も触っていないのに 30 秒で勝手に消える）。 */
+  await new Promise((r) => b.on('disconnected', r));
+  process.exit(0);
+}
 
 for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
                            ['en', 'http://localhost:3000/en/pay-report.html']]) {

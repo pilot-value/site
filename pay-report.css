@@ -398,6 +398,20 @@ body.has-cta #form-wrap{padding-bottom:96px}
 .pd-del:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
 .pd-warn{margin:4px 0 16px;padding:11px 14px;border-radius:12px;font-size:.8rem;line-height:1.6;color:#f0b8b8;background:rgba(214,92,92,.1);border:1px solid rgba(214,92,92,.32)}
 .pd-warn[hidden]{display:none}
+/* ── 登録の箱が描けなかったときの逃げ道（#pay-login-fallback）───────────
+   ★ここだけは pay-login.js が注入する .pl-* を使えない。落ちているのが
+     その pay-login.js だからで、.pl-* を当てると素の文字が並ぶだけになる。
+     だから pay-report.css（<head> の <link>）側に置く。 */
+.plfb{border:1px solid rgba(245,200,66,.28);border-left:3px solid #f5c842;background:rgba(245,200,66,.06);border-radius:12px;padding:16px 18px}
+.plfb[hidden]{display:none}
+.plfb-t{margin-bottom:8px;font-size:1.02rem;font-weight:800;letter-spacing:-.01em;color:#e8edf2}
+.plfb-l{margin-bottom:16px;font-size:.82rem;line-height:1.7;color:#a8b3c2}
+.plfb-l b{color:#e8edf2}
+.plfb-a{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.plfb-r{padding:0;background:none;border:none;cursor:pointer;font-size:.8rem;color:#a8b3c2;text-decoration:underline;text-underline-offset:3px;transition:color .18s}
+.plfb-r:hover{color:#f5c842}
+.plfb-r:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:3px;border-radius:4px}
+.plfb-r:active{transform:translateY(1px)}
 .pd-year{margin-top:22px;padding-top:20px;border-top:1px solid rgba(255,255,255,.09)}
 .pd-year-h{margin-bottom:14px;font-size:.74rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#8a95a3}
 @media (prefers-reduced-motion:reduce){.pd-del{transition:none}}
@@ -984,6 +998,12 @@ body.has-cta #form-wrap{padding-bottom:96px}
 [data-theme="light"] .pd-del{color:#64748b;border-color:rgba(0,0,0,.14)}
 [data-theme="light"] .pd-del:hover{color:#1e293b;border-color:rgba(0,0,0,.28);background:rgba(0,0,0,.04)}
 [data-theme="light"] .pd-warn{color:#9c3535;background:rgba(214,92,92,.08);border-color:rgba(214,92,92,.3)}
+[data-theme="light"] .plfb{background:rgba(200,149,0,.07);border-color:rgba(200,149,0,.3);border-left-color:#c89500}
+[data-theme="light"] .plfb-t{color:#0f172a}
+[data-theme="light"] .plfb-l{color:#475569}
+[data-theme="light"] .plfb-l b{color:#0f172a}
+[data-theme="light"] .plfb-r{color:#475569}
+[data-theme="light"] .plfb-r:hover{color:#8a6600}
 [data-theme="light"] .pd-year{border-top-color:rgba(0,0,0,.1)}
 [data-theme="light"] .pd-year-h{color:#64748b}
 [data-theme="light"] .pay-detail{border-top-color:rgba(0,0,0,.08)}

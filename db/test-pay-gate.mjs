@@ -73,9 +73,59 @@ function installFakeSession(uid) {
   }));
 }
 
+/* 必須欄を全部埋めて、ウィザードを 5/5（送信ボタンのある段）まで歩かせる。
+   ★2026-09-09、ここを関数にした。①の再現（pay-login.js を落とした回）でも
+     まったく同じ埋め方をしないと、比べているものがずれる。
+   ★1枚もの形態（共有 JS が落ちた形）には PVPayWizard が居ないので何もしない
+     ── 同じ台本が両方で走る。 */
+async function fillForm() {
+    const set = (id, v) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.value = v;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+    const firstOpt = (id) => {
+      const s = document.getElementById(id);
+      const o = [...s.options].find((x) => x.value && x.value !== 'other');
+      return o ? o.value : '';
+    };
+    set('f-airline', firstOpt('f-airline'));
+    set('f-position', firstOpt('f-position'));
+    set('f-fleet', firstOpt('f-fleet'));
+    /* ★役職・区分は 2026-08-26 からチェックボックス群（値は hidden の #f-jobrole）。
+       絵の側を押して、ページの sync に hidden を書かせる。 */
+    const role = document.querySelector('input[name="f-jobrole"]');
+    if (role) { role.checked = true; role.dispatchEvent(new Event('change', { bubbles: true })); }
+    set('f-age', firstOpt('f-age'));
+    set('f-currency', firstOpt('f-currency'));
+    set('f-housing', firstOpt('f-housing'));
+    set('f-contract', firstOpt('f-contract'));
+    set('f-taxcountry', firstOpt('f-taxcountry'));
+    ['f-block', 'f-stay', 'f-bonus-mo', 'f-perdiem', 'f-seniority'].forEach((id) => set(id, '0'));
+    set('f-gross', '1080000');
+    set('f-netpay', '842000');
+    /* ★ウィザードでは送信ボタンは 5/5 の中にしか無い。歩かずに押さない。
+       1枚もの形態（共有 JS が落ちた形）には PVPayWizard が居ないので何もしない
+       ── 同じ台本が両方で走る。 */
+    if (window.PVPayWizard) window.PVPayWizard.goLast();
+    await new Promise((r) => setTimeout(r, 700));
+}
+
 for (const [dir, tag] of [['', '(日本語)'], ['/en', '/en']]) {
   const p = await b.newPage();
   await p.setViewport({ width: 1100, height: 900 });
+  /* ★紙吹雪は数えるだけの偽物に差し替える（本物の confetti.js は下で落とす）。
+     2026-09-09 に鳴る場所を「預かった瞬間」から「登録が済んだ結果カード」へ
+     移した。ここで見たいのは絵ではなく **いつ鳴ったか** なので数だけ持つ。
+     ★数はページを読み込むたびに 0 に戻る（毎回この台本が走り直すため）。 */
+  await p.evaluateOnNewDocument(() => {
+    window.__pop = 0;
+    window.__badge = 0;
+    window.PVConfetti = function () { window.__pop++; };
+    window.PVConfetti.badge = function () { window.__badge++; };
+  });
   await p.setRequestInterception(true);
 
   /* Supabase 宛ては1本残らずここで受ける。
@@ -92,10 +142,18 @@ for (const [dir, tag] of [['', '(日本語)'], ['/en', '/en']]) {
   const otpSent = [];      // signInWithOtp の宛先URL（戻り先が載っている）
   let verifyCalls = 0;     // verifyOtp を呼んだ回数
   let claimReply = { ok: false, reason: 'blocked_by_test' };
+  let blockPayLogin = false;   // ①の再現。登録の箱を描く1枚だけ届かせない
 
   p.on('request', (r) => {
     const u = r.url();
     if (/googletagmanager|google-analytics/.test(u)) return r.abort();
+    /* 本物の紙吹雪は落とす。落とさないと上で入れた偽物を上書きしてしまう
+       （confetti.js は window.PVConfetti = function … と素で代入する）。 */
+    if (/\/confetti\.js/.test(u)) return r.abort();
+    /* ★①の再現。pay-login.js はページのいちばん最後に読み込まれる1枚で、
+       これだけ届かないと登録の箱が高さ34pxの空枠になる（押せるものが0個）。
+       細い電波・機内 Wi-Fi・広告ブロッカーで実際に起きうる形。 */
+    if (blockPayLogin && /\/pay-login\.js/.test(u)) return r.abort();
     if (!SB_HOST.test(u)) return r.continue();
     if (r.method() === 'OPTIONS') return r.respond({ status: 204, headers: CORS, body: '' });
     const json = (o, status = 200) =>
@@ -145,41 +203,7 @@ for (const [dir, tag] of [['', '(日本語)'], ['/en', '/en']]) {
            文言が合っているというだけで緑になる。 */
 
   // 2) 必須欄を埋めて送信 → その場でサーバへ預かる
-  await p.evaluate(async () => {
-    const set = (id, v) => {
-      const el = document.getElementById(id);
-      if (!el) return;
-      el.value = v;
-      el.dispatchEvent(new Event('input', { bubbles: true }));
-      el.dispatchEvent(new Event('change', { bubbles: true }));
-    };
-    const firstOpt = (id) => {
-      const s = document.getElementById(id);
-      const o = [...s.options].find((x) => x.value && x.value !== 'other');
-      return o ? o.value : '';
-    };
-    set('f-airline', firstOpt('f-airline'));
-    set('f-position', firstOpt('f-position'));
-    set('f-fleet', firstOpt('f-fleet'));
-    /* ★役職・区分は 2026-08-26 からチェックボックス群（値は hidden の #f-jobrole）。
-       絵の側を押して、ページの sync に hidden を書かせる。 */
-    const role = document.querySelector('input[name="f-jobrole"]');
-    if (role) { role.checked = true; role.dispatchEvent(new Event('change', { bubbles: true })); }
-    set('f-age', firstOpt('f-age'));
-    set('f-currency', firstOpt('f-currency'));
-    set('f-housing', firstOpt('f-housing'));
-    set('f-contract', firstOpt('f-contract'));
-    set('f-taxcountry', firstOpt('f-taxcountry'));
-    ['f-block', 'f-stay', 'f-bonus-mo', 'f-perdiem', 'f-seniority'].forEach((id) => set(id, '0'));
-    set('f-gross', '1080000');
-    set('f-netpay', '842000');
-    /* ★ウィザードでは送信ボタンは 5/5 の中にしか無い。歩かずに押さない。
-       1枚もの形態（共有 JS が落ちた形）には PVPayWizard が居ないので何もしない
-       ── 同じ台本が両方で走る。 */
-    if (window.PVPayWizard) window.PVPayWizard.goLast();
-    await new Promise((r) => setTimeout(r, 700));
-    return null;
-  });
+  await p.evaluate(fillForm);
   /* ★可視は offsetParent で見る。getComputedStyle().display は
      **祖先が消えていても自分の block を返す**ので、箱が1ピクセルも見えないまま
      「出ている」と言えてしまう。 */
@@ -219,11 +243,24 @@ for (const [dir, tag] of [['', '(日本語)'], ['/en', '/en']]) {
       ev,
       hasBox: !!document.getElementById('pl-up-btn'),
       title: (document.getElementById('pl-title') || {}).textContent || '',
+      /* ★見出しの「字」ではなく、箱が持つ印を見る（2026-09-09）。
+         文言は変わる（「受け取りました ✓」→「あと1ステップ」）が、
+         **保存済みの側の箱かどうか**という状態は変わらない。
+         字で見ていると、言い回しを直すたびにここが赤くなる。 */
+      saved: (document.getElementById('pay-login') || {}).getAttribute
+        ? document.getElementById('pay-login').getAttribute('data-saved') : null,
+      pop: window.__pop, badge: window.__badge,
       claims,
     };
   });
   ok(gate.shown && gate.hasBox, '預かったあと、ページ内に登録の箱が出る', { shown: gate.shown, hasBox: gate.hasBox });
-  ok(/受け取りました|We have your pay data/.test(gate.title), '見出しが「受け取りました」になっている', gate.title);
+  ok(gate.saved === '1', '保存済みの側の箱が描かれている（data-saved="1"）', { saved: gate.saved, title: gate.title });
+  /* ★2026-09-09。ここで鳴らすのをやめた。
+     ✓ と紙吹雪でこの画面が終点に見え、8/22 以降 19人中4人が預けたまま
+     登録に来なかった（引き取りは全件 0〜5分。その場で登録しない人は戻らない）。
+     祝いは会員登録が済んだ結果カードの1か所だけにした（下の 経路2 で見る）。 */
+  ok(gate.pop === 0, '★預かっただけでは紙吹雪を鳴らさない（ここを終点に見せない）', gate.pop);
+  ok(gate.badge === 0, '★預かった箱に 🎉 バッジを付けない', gate.badge);
   ok(gate.claims.length === 1 && gate.claims[0].t === FAKE_TOKEN, '預かり証を端末に残している', gate.claims);
   ok(gate.ev.includes('pay_report_pending'), 'pay_report_pending が出ている', gate.ev);
   ok(gate.ev.includes('pay_login_shown'), 'pay_login_shown が出ている', gate.ev);
@@ -326,12 +363,14 @@ for (const [dir, tag] of [['', '(日本語)'], ['/en', '/en']]) {
     claims: (() => { try { return JSON.parse(localStorage.getItem('pv_pay_claim') || '[]').length; } catch (e) { return -1; } })(),
     gateShown: !!document.getElementById('login-gate').offsetParent,
     title: (document.getElementById('pl-title') || {}).textContent || '',
+    saved: (document.getElementById('pay-login') || {}).getAttribute
+      ? document.getElementById('pay-login').getAttribute('data-saved') : null,
   }));
   ok(back.entryHidden && back.gross !== '', 'ログインせずに戻っても入力が残り、入口の2択に戻されない', back);
   ok(back.kept, '預けた下書きを消していない', back);
   ok(back.claims === 1, '預かり証も消していない（登録できるまで持ち続ける）', back);
-  ok(back.gateShown && /受け取りました|We have your pay data/.test(back.title),
-    '戻ってきたら「受け取りました」の箱がそのまま出る（もう一度送らせない）', back);
+  ok(back.gateShown && back.saved === '1',
+    '戻ってきたら保存済みの側の箱がそのまま出る（もう一度送らせない）', back);
   ok(stashed.length === 1, '戻ってきただけで二重に預けない', stashed.length);
   ok(claimed.length === 0, '未ログインのあいだは紐付けを呼ばない', claimed.length);
 
@@ -350,6 +389,55 @@ for (const [dir, tag] of [['', '(日本語)'], ['/en', '/en']]) {
     gone: !localStorage.getItem('pv_pay_pending'),
   }));
   ok(stale.entryShown && stale.gone, '2週間より古い下書きは捨てる（預かり証が無いとき）', stale);
+
+  /* ── ①：登録の箱そのものが描けなかった回 ─────────────────────
+     pay-login.js はページのいちばん最後に読み込まれる1枚。これだけ届かないと、
+     フォームも匿名の提出も**成功したまま**、そのあと出る登録の箱だけが
+     高さ34pxの空枠になる（Google のボタンもメール欄も無い）。
+     2026-09-09 まではそこで5秒待って黙って諦めていた ──
+       本人の画面は「受け取りました ✓」で終わり、押せるものが1つも無い
+       こちらの GA4 には pay_login_shown だけが立ち、**登録欄を見たのに
+       登録しなかった人**に化けていた（箱ができる前に数えていたため）
+     8/22 以降、預けたまま登録に来ていない人が19人中4人いる。本番で
+     これが起きたかは記録が無いので**分からない**。ここを直すと次から分かる。
+     ★見るのは4つ：預かりだけは成立していること・逃げ道が本当に見えること・
+       失敗が記録に残ること・箱が無いのに pay_login_shown を立てないこと。 */
+  console.log(`\n${tag} ①：pay-login.js が届かなかった回\n`);
+  blockPayLogin = true;
+  stashed.length = 0;
+  await p.evaluate(() => { localStorage.clear(); });
+  await p.goto(`${BASE}${dir}/pay-report.html`, { waitUntil: 'networkidle0' });
+  await p.click('#entry-manual');
+  await p.evaluate(fillForm);
+  await p.evaluate(() => { document.getElementById('submit-btn').click(); });
+  await new Promise((r) => setTimeout(r, 7500));   // 逃げ道は5秒で出る
+  const fb = await p.evaluate(() => {
+    const el = document.getElementById('pay-login-fallback');
+    const a = el ? el.querySelector('a[href]') : null;
+    return {
+      box: !!document.getElementById('pl-up-btn'),
+      /* ★可視は offsetParent。hidden を外し忘れても display だけなら通ってしまう。 */
+      shown: !!(el && el.offsetParent),
+      href: a ? a.getAttribute('href') : '',
+      ev: (window.dataLayer || []).filter((x) => x[0] === 'event').map((x) => x[1]),
+    };
+  });
+  ok(stashed.length === 1, 'pay-login.js が無くても、預かりだけは成立している', stashed.length);
+  ok(!fb.box, '（前提）登録の箱は描けていない', fb.box);
+  ok(fb.shown, '★描けなかったとき、逃げ道が本当に見えている（空枠で終わらせない）', fb);
+  ok(/login\.html/.test(fb.href), '逃げ道にログイン／登録へのリンクがある', fb.href);
+  /* ★預かり証を URL に載せない。login.html は GA4 を持っていて、URL が
+     page_location として Google に渡る（auth-callback.html にわざと gtag が
+     無いのと同じ理由）。載せなくても、預かり証は同じブラウザの localStorage に
+     あり、戻り先の pay-report.html も既定の actual-pay.html も拾う。 */
+  ok(!/[0-9a-f]{48}/i.test(fb.href), '★逃げ道の URL に預かり証を載せていない', fb.href);
+  ok(fb.ev.includes('pay_login_mount_fail'),
+    '描けなかったことが記録に残る（これが無いと永久に気づけない）', fb.ev);
+  /* ★過去の GA4 と比べるとき：新しい pay_login_shown ＋ pay_login_mount_fail
+     ＝ 古い pay_login_shown。 */
+  ok(!fb.ev.includes('pay_login_shown'),
+    '★箱が描けていないのに pay_login_shown を立てない', fb.ev);
+  blockPayLogin = false;
 
   /* ── 経路2：別のブラウザに着地した人（?claim=） ─────────────────
      メールのリンクを押した人・Google の往復で環境が変わった人は、端末に預かり証を
@@ -373,16 +461,22 @@ for (const [dir, tag] of [['', '(日本語)'], ['/en', '/en']]) {
   ok(twice === 1, '同じ URL をもう一度開いても増えない', twice);
 
   // ログインが済んだ状態で着地すると、その1枚がそのまま本人のものになる
-  claimReply = { ok: true, id: '00000000-0000-0000-0000-000000000002', payload: {} };
+  /* ★is_new を立てる。claim_pending_report は中で submit_pay_report を呼んで
+     結果をそのまま返すので、初回の引き取りでは本物も真になる。 */
+  claimReply = { ok: true, is_new: true, id: '00000000-0000-0000-0000-000000000002', payload: {} };
   claimed.length = 0;
   await p.evaluate(installFakeSession, FAKE_UID);
   await p.goto(`${BASE}${dir}/pay-report.html?claim=${URL_TOKEN}`, { waitUntil: 'networkidle0' });
   await new Promise((r) => setTimeout(r, 1200));
   const landed = await p.evaluate(() => ({
     claims: (() => { try { return JSON.parse(localStorage.getItem('pv_pay_claim') || '[]').length; } catch (e) { return -1; } })(),
+    pop: window.__pop,
   }));
   ok(claimed.some((x) => (x || '').includes(URL_TOKEN)), 'ログイン済みで着地すると URL の1枚を紐付けに出す', claimed.length);
   ok(landed.claims === 0, '紐付けが通った預かり証は端末から消す', landed);
+  /* ★祝いは1か所だけ。預かった時点では鳴らさず（上で見ている）、
+     引き取りが通ったここで初めて鳴る＝祝いと本当の完了が一致する。 */
+  ok(landed.pop === 1, '★紙吹雪は引き取り（会員登録）が済んだここで1回だけ鳴る', landed.pop);
 
   /* ── 経路3：マイページ（最後の網） ───────────────────────────
      login.html / signup.html から入った人は pay-report.html を通らずにここへ着く。
