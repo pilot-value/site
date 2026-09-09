@@ -2626,8 +2626,20 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
      すぐ上に出るうえ、押したボタンは元に戻る（送信は成功しているので当然）ので、
      「反応が無かった」と思った人はもう一度押す。
      サーバ側でも畳んでいる（db/pay-report-pending.sql）が、あちらは IP が取れる
-     本番でしか働かない枝なので、ここでは端末側のガードを見る。 */
-  await page.click('#submit-btn');
+     本番でしか働かない枝なので、ここでは端末側のガードを見る。
+     ★2026-09-10、そもそも押せなくした（預かったら提出ボタンの行ごと畳む）。
+       だから**まず「押せないこと」を見る**。これが本当の直しで、下のガードは
+       その後ろに残る保険 ── 別のタブ・遅れて届いた1押し・共有 JS が落ちて
+       1枚ものに戻った形態では、まだ2回目が飛びうる。
+     ⚠️ page.click は使わない（見えない要素は puppeteer が押せず、
+        ガードではなく検査そのものが落ちる）。JS から直に呼んで枝を通す。 */
+  ok(!(await page.evaluate(() => {
+    const b = document.getElementById('submit-btn');
+    return !!(b && b.offsetParent);
+  })), '★預かったあとは「匿名で提出する」がもう押せない（二度押しの元を断つ）');
+  ok(!!(await page.evaluate(() => !!document.getElementById('submit-btn'))),
+     '（前提）提出ボタンは隠すだけで DOM からは消さない');
+  await page.evaluate(() => { document.getElementById('submit-btn').click(); });
   await new Promise((r) => setTimeout(r, 400));
   ok(stash.length === 1, `★未ログインでもう一度押しても預けは1回のまま → ${stash.length} 回`);
   const stashed2 = (await db.query(
@@ -2647,10 +2659,14 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   const live = Number(liveText.replace(/[^0-9.]/g, '').replace(/\.$/, ''));
 
   // セッションを持たせて送り直す（＝ログインから戻ってきた状態）
+  /* ★2026-09-10、ここも page.click をやめた。預かったあとは提出ボタンの行ごと
+     畳んであるので puppeteer は押せない。**製品もここでは押させない** ──
+     登録が済むと afterSignedIn() が呼ばれ、預かり分を引き取れなかったときだけ
+     submitPayReport() をこちらから呼ぶ。JS からの click はその1本と同じ枝を通る。 */
   await page.evaluate((uid) => {
     _sb.auth.getSession = async () => ({ data: { session: { user: { id: uid } } } });
   }, UID);
-  await page.click('#submit-btn');
+  await page.evaluate(() => { document.getElementById('submit-btn').click(); });
   await page.waitForFunction(
     () => document.getElementById('result-wrap') &&
           document.getElementById('result-wrap').offsetParent !== null,

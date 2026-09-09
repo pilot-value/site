@@ -143,6 +143,7 @@ for (const [dir, tag] of [['', '(日本語)'], ['/en', '/en']]) {
   let verifyCalls = 0;     // verifyOtp を呼んだ回数
   let claimReply = { ok: false, reason: 'blocked_by_test' };
   let blockPayLogin = false;   // ①の再現。登録の箱を描く1枚だけ届かせない
+  let stashFail = false;       // 預けそこねの再現。預かり証を返さない
 
   p.on('request', (r) => {
     const u = r.url();
@@ -161,6 +162,9 @@ for (const [dir, tag] of [['', '(日本語)'], ['/en', '/en']]) {
 
     if (/\/rest\/v1\/rpc\/submit_pay_report_pending\b/.test(u)) {
       stashed.push(r.postData() || '');
+      /* ★預けそこねの再現。ok:false を返すと画面は showGate(false) に落ちる
+         （通信が切れた・上限に当たった回と同じ枝）。 */
+      if (stashFail) return json({ ok: false, reason: 'blocked_by_test' });
       return json({ ok: true, claim_token: FAKE_TOKEN, id: '00000000-0000-0000-0000-000000000000' });
     }
     if (/\/rest\/v1\/rpc\/claim_pending_report\b/.test(u)) {
@@ -265,6 +269,35 @@ for (const [dir, tag] of [['', '(日本語)'], ['/en', '/en']]) {
   ok(gate.ev.includes('pay_report_pending'), 'pay_report_pending が出ている', gate.ev);
   ok(gate.ev.includes('pay_login_shown'), 'pay_login_shown が出ている', gate.ev);
 
+  /* 2-a) 提出が済んだ画面になっていること（2026-09-10）。
+          ここまで「ステップ 5/5　確認」「公開イメージ」「戻る」「匿名で提出する」が
+          そのまま残っていた。もう一度押しても同じ会社・同じ月は弾かれる（findKey）ので、
+          **押しても何も起きない＝壊れて見える**。オーナーが実物を見て
+          「これは提出できていないのでは」と読み違えた。
+          ★可視は offsetParent。hidden を外し忘れても display だけなら通ってしまうし、
+            .wz-nav は display:flex、提出の行は Tailwind の .flex を持っていて
+            [hidden] より強い＝hidden を立てただけでは消えない。
+          ★#submit-btn そのものは DOM に残す（隠すだけ）。SUBMIT_BTNS() が掴んでいる。 */
+  const screen = await p.evaluate(() => {
+    const v = (id) => { const el = document.getElementById(id); return !!(el && el.offsetParent); };
+    const s5 = document.getElementById('s5');
+    const nav = s5 ? s5.querySelector('.wz-nav') : null;
+    const head = s5 ? s5.querySelector('.sec-head') : null;
+    return { actions: v('submit-actions'), note: v('submit-note'), top: v('wz-top'),
+             review: v('wz-review'), nav: !!(nav && nav.offsetParent), done: v('gate-done'),
+             head: !!(head && head.offsetParent), draft: v('wz-draft'),
+             btnInDom: !!document.getElementById('submit-btn'),
+             total: v('live-hint') || !!document.querySelector('.sal-total') };
+  });
+  ok(!screen.actions, '★預かったあと「匿名で提出する」の行を残さない（押しても何も起きないボタン）', screen);
+  ok(!screen.top && !screen.review && !screen.nav && !screen.head,
+    '★預かったあと「ステップ 5/5 確認」「5. 確認」「公開イメージ」「戻る」を残さない', screen);
+  /* ★「このブラウザに下書きを保存しました」はもう嘘（サーバに預けてある）。
+     隣の「下書きを消す」を押させる場面でもない。 */
+  ok(!screen.draft, '★預かったあと「下書きを保存しました／下書きを消す」を残さない', screen);
+  ok(screen.done, '★預かったことが画面に1行出ている（#gate-done）', screen);
+  ok(screen.btnInDom, '（前提）提出ボタンは隠すだけで DOM からは消さない', screen.btnInDom);
+
   /* 2-b) 入口の形。2026-08-22 まで「はじめての方」「お持ちの方」の2ブロックで、
           押せるものが5つ・入力欄が3つあった。ここに戻すと、どちらを選ぶかで迷わせる。
           signInWithOtp({shouldCreateUser:true}) は新規も既存も同じ1本を通るので分ける意味が無い。 */
@@ -365,12 +398,18 @@ for (const [dir, tag] of [['', '(日本語)'], ['/en', '/en']]) {
     title: (document.getElementById('pl-title') || {}).textContent || '',
     saved: (document.getElementById('pay-login') || {}).getAttribute
       ? document.getElementById('pay-login').getAttribute('data-saved') : null,
+    /* ★戻ってきた人も showGate(true) を通る（読み込み時の②の枝）。
+       押した直後の道だけ直っていて、こちらが元のままという状態を作らせない。 */
+    actions: (() => { const el = document.getElementById('submit-actions'); return !!(el && el.offsetParent); })(),
+    done: (() => { const el = document.getElementById('gate-done'); return !!(el && el.offsetParent); })(),
   }));
   ok(back.entryHidden && back.gross !== '', 'ログインせずに戻っても入力が残り、入口の2択に戻されない', back);
   ok(back.kept, '預けた下書きを消していない', back);
   ok(back.claims === 1, '預かり証も消していない（登録できるまで持ち続ける）', back);
   ok(back.gateShown && back.saved === '1',
     '戻ってきたら保存済みの側の箱がそのまま出る（もう一度送らせない）', back);
+  ok(!back.actions && back.done,
+    '★戻ってきた回も提出が済んだ画面のまま（提出ボタンを出し直さない）', back);
   ok(stashed.length === 1, '戻ってきただけで二重に預けない', stashed.length);
   ok(claimed.length === 0, '未ログインのあいだは紐付けを呼ばない', claimed.length);
 
@@ -419,6 +458,7 @@ for (const [dir, tag] of [['', '(日本語)'], ['/en', '/en']]) {
       /* ★可視は offsetParent。hidden を外し忘れても display だけなら通ってしまう。 */
       shown: !!(el && el.offsetParent),
       href: a ? a.getAttribute('href') : '',
+      done: (() => { const d = document.getElementById('gate-done'); return !!(d && d.offsetParent); })(),
       ev: (window.dataLayer || []).filter((x) => x[0] === 'event').map((x) => x[1]),
     };
   });
@@ -437,7 +477,38 @@ for (const [dir, tag] of [['', '(日本語)'], ['/en', '/en']]) {
      ＝ 古い pay_login_shown。 */
   ok(!fb.ev.includes('pay_login_shown'),
     '★箱が描けていないのに pay_login_shown を立てない', fb.ev);
+  /* ★箱が描けなくても、預かりは成立している。それだけは画面に出す。
+     #gate-done を HTML に直接置いてあるのはこのため（pay-login.js に頼らない）。 */
+  ok(fb.done, '★登録の箱が描けなくても「預かりました」の1行は出ている', fb.done);
   blockPayLogin = false;
+
+  /* ── 預けそこねた回：提出ボタンを消さない ───────────────────────
+     通信が切れた・上限に当たった回は showGate(false) に落ちる。あちらは
+     「ログインできた所からその場で送る」経路なので、提出ボタンを畳むと
+     **送る手段が1つも無い画面**になる（サーバにも端末にも何も残らない）。
+     2026-09-10 に上の畳み込みを入れたので、ここが一番効く1本。 */
+  console.log(`\n${tag} 預けそこねた回（提出ボタンを残す）\n`);
+  stashFail = true;
+  stashed.length = 0;
+  await p.evaluate(() => { localStorage.clear(); });
+  await p.goto(`${BASE}${dir}/pay-report.html`, { waitUntil: 'networkidle0' });
+  await p.click('#entry-manual');
+  await p.evaluate(fillForm);
+  await p.evaluate(() => { document.getElementById('submit-btn').click(); });
+  await new Promise((r) => setTimeout(r, 1500));
+  const miss = await p.evaluate(() => {
+    const v = (id) => { const el = document.getElementById(id); return !!(el && el.offsetParent); };
+    let claims = [];
+    try { claims = JSON.parse(localStorage.getItem('pv_pay_claim') || '[]'); } catch (e) {}
+    return { actions: v('submit-actions'), btn: v('submit-btn'), done: v('gate-done'),
+             gate: v('login-gate'), claims: claims.length };
+  });
+  ok(miss.claims === 0, '（前提）預かり証は返ってきていない', miss.claims);
+  ok(miss.gate, '預けそこねても登録の箱は出る（ログインしてその場から送るため）', miss);
+  ok(miss.actions && miss.btn,
+    '★★預けそこねた回は「匿名で提出する」を残す（送る手段の無い画面にしない）', miss);
+  ok(!miss.done, '預かっていないのに「預かりました」と言わない', miss.done);
+  stashFail = false;
 
   /* ── 経路2：別のブラウザに着地した人（?claim=） ─────────────────
      メールのリンクを押した人・Google の往復で環境が変わった人は、端末に預かり証を

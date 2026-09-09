@@ -1496,6 +1496,17 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
              ★中身は pay-login.js が日英1枚で組む。login.html へ飛ばさない
                （最後まで入力した人を別ページへ送ると、そこで落ちる）。 -->
         <div id="login-gate" class="card" style="display:none;margin-top:18px">
+          <!-- ★預かりが成立したことを、静かに1行だけ言う（2026-09-10）。
+               ここが無いと、提出はもう済んでいるのに画面がそう見えない。実際
+               オーナーが「この画面で匿名で提出するを押したら？」と読み違えた
+               （押しても二重には入らないので、押しても何も起きない＝壊れて見える）。
+               ★見出しにしない。見出しは箱の中の「あと1ステップ」のまま。
+                 2026-09-09 に消したのは「✓ が見出しで、しかも紙吹雪が鳴る」形で、
+                 事実を小さく置くのはその戻しではない。
+               ★HTML に直接置く。pay-login.js が落ちた回（上の逃げ道が出る回）でも
+                 「消えていない」ことだけは伝わらなければならない。
+               ★会社・機材・対象月の控えは箱の中（.pl-recap）にある。ここに二重に書かない。 -->
+          <div id="gate-done" class="gate-done" hidden><span class="gd-i" aria-hidden="true">✓</span> 給与データを預かりました</div>
           <div id="pay-login"></div>
           <!-- ★登録の箱そのものが描けなかったときの逃げ道（2026-09-09）。
                中身を JS で組まないのは、描けなかった原因がその JS だから。
@@ -1521,14 +1532,14 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           </div>
         </div>
 
-        <div class="mt-7 flex flex-col sm:flex-row gap-3">
+        <div class="mt-7 flex flex-col sm:flex-row gap-3" id="submit-actions">
           <button type="button" id="submit-btn" class="btn-orange justify-center flex-1">送信して結果を見る →</button>
           <a href="world-airlines.html" class="btn-ghost justify-center">やめる</a>
         </div>
         <!-- ★「送信すると」ではない。2026-08-17 から送信の時点ではまだ開かない
              （先にサーバへ預かり、アカウントを作った時に本棚へ入って90日が付く）。
              ボタンのすぐ下で言っていることが1歩ずれると、そこで信用を落とす。 -->
-        <p class="sal-hint" style="text-align:center;margin-top:14px">アカウントを作ると<b>給与詳細が90日間</b>開きます。次の明細を出すたびに、そこから90日に伸びます。個人の利用は永久に無料です。</p>
+        <p class="sal-hint" style="text-align:center;margin-top:14px" id="submit-note">アカウントを作ると<b>給与詳細が90日間</b>開きます。次の明細を出すたびに、そこから90日に伸びます。個人の利用は永久に無料です。</p>
       </div>
       </div><!-- /s5 -->
 
@@ -1708,13 +1719,61 @@ function setSubmitLabel(signedIn) {
    登録しなかった人」として GA4 に載っていた。
    PVPayLogin の中で数えないのは今までどおり（あちらは plReady で2回目を捨てるので
    「登録の箱まで来た回数」が数えられない）。 */
+/* ── 提出が済んだ画面へ切り替える（2026-09-10）─────────────────────
+   預かりが成立しているのに、確認の段の持ち物がそのまま残っていた ──
+   進捗バー「ステップ 5/5　確認」・見出し「5. 確認」・公開イメージ・「戻る」・
+   「匿名で提出する」。
+   もう一度押しても同じ会社・同じ月は弾かれる（下の findKey）ので、
+   **押しても何も起きない＝壊れて見える**。オーナーが実物を見て読み違えた。
+   ★消すのは意味が無くなったものだけ。年換算の総額（あなたの入力から）は
+     本人が入れた数なので残す。
+   ★「戻る」も畳む。戻って直しても同じ会社・同じ月は重複として弾かれる
+     ＝直せない。元から罠だった。
+   ★預けそこねた回（saved=false）では**何も畳まない**。あちらはログインできた
+     所からその場で送るので、提出ボタンを消すと送る手段の無い画面になる。
+   ⚠️ hidden だけでは消えない。.wz-nav は display:flex、提出ボタンの行は
+      Tailwind の .flex を持っていて、どちらも [hidden] より強い。
+      style.display も一緒に触る（戻すときは '' でシートの値へ返す）。
+   ⚠️ 共有 JS が落ちて1枚ものに戻った形態では #wz-top も .wz-nav も無い。
+      あるものとして書かない（CLAUDE.md の「二形態」）。
+   ⚠️ #submit-btn を DOM から消さない。隠すだけ。SUBMIT_BTNS() と検査が
+      この id を掴んでいて、消すと setSubmitBusy の配り先が消える。 */
+function vis(el, show) {
+  if (!el) return;
+  el.hidden = !show;
+  el.style.display = show ? '' : 'none';
+}
+function setSubmitScreen(done) {
+  ['wz-top', 'wz-review', 'submit-actions', 'submit-note']
+    .forEach(function (id) { vis($(id), !done); });
+  var s5 = $('s5');
+  vis(s5 ? s5.querySelector('.wz-nav') : null, !done);
+  /* ★「5. 確認」の見出しも畳む。進捗バーだけ消してここを残すと、画面は
+     まだ「確認している」と言ったまま＝読み違えの元がそのまま残る。
+     ⚠️ pay-wizard.js は .sec-title の textContent を読む（表示は見ない）ので、
+        畳んでも段の名前は今までどおり出る。 */
+  vis(s5 ? s5.querySelector('.sec-head') : null, !done);
+  /* ★下書きの帯も畳む。ただし**畳むだけ・戻さない**。
+     「このブラウザに下書きを保存しました」はもう嘘（サーバに預けてある）で、
+     隣の「下書きを消す」を押させたい場面でもない。
+     ⚠️ 戻してはいけない。既定が hidden で、出す・消すを決めているのは
+        pay-wizard.js（下書きを書いた瞬間だけ出す）。ここで戻すと
+        下書きが無いのに空の帯が出る。入力が再開すれば向こうが出し直す。
+     ★下書きそのものは消さない。消すのは出し切ったとき（afterSaved の clearDraft）。 */
+  if (done) vis($('wz-draft'), false);
+  vis($('gate-done'), !!done);
+}
 function showGate(saved) {
   /* ★箱は 5/5 の中にある。別の段に居るまま出すと、画面に無いものへ
      scrollIntoView することになって何も起きない。先に運ぶ。 */
   if (WZ) { WZ.goLast(); $('submit-block').hidden = false; }
   mountLogin(saved, 0);
   $('login-gate').style.display = '';
-  $('login-gate').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  /* ★goLast() のあとに畳む。先に畳むと show() と renderReview() が開け直す。 */
+  setSubmitScreen(!!saved);
+  /* ★時間で待たない。畳んだのと同じ同期処理の中で運ぶ（CLAUDE.md）。 */
+  if (saved) $('submit-block').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  else $('login-gate').scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 /* ★pay-login.js はこの塊より後ろ（ページ末尾）で読み込まれる。ボタンを押して
    呼ぶぶんには必ず間に合うが、ページを開いた直後にも呼ぶようになった（②の経路）ので、
@@ -1763,7 +1822,8 @@ function mountLogin(saved, tries) {
 if ($('pay-login-retry')) {
   $('pay-login-retry').addEventListener('click', function () { location.reload(); });
 }
-function hideGate() { $('login-gate').style.display = 'none'; }
+/* ★畳んだものを必ず戻す。状態を残したまま別の画面（結果カード）を描かせない。 */
+function hideGate() { $('login-gate').style.display = 'none'; setSubmitScreen(false); }
 
 /* アカウントが出来た直後。預かり証があれば、それを本人のものへ移すだけで終わる
    （入力し直しも再送信も要らない）。預けそこねていた人だけ、その場で送る。 */

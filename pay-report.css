@@ -412,6 +412,17 @@ body.has-cta #form-wrap{padding-bottom:96px}
 .plfb-r:hover{color:#f5c842}
 .plfb-r:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:3px;border-radius:4px}
 .plfb-r:active{transform:translateY(1px)}
+
+/* ── 預かりが成立したことを言う1行（#gate-done）─────────────────
+   ★小さく・太字にしない。見出しは箱の中の「あと1ステップ」のままにする。
+     ここを大きくすると 2026-09-09 に消した「✓ が終点に見える」形に戻る。
+   ★色は新しく作らない。字は .plfb-l と同じ、✓ だけ山吹。 */
+.gate-done{margin-bottom:14px;font-size:.78rem;line-height:1.6;color:#a8b3c2}
+.gate-done[hidden]{display:none}
+.gate-done .gd-i{margin-right:2px;color:#f5c842;font-weight:800}
+/* ★提出が済んだら #submit-block の頭へ運ぶ。ヘッダーは position:fixed で
+     上に乗っているので、その分をここで逃がす（JS で px を数えない）。 */
+#submit-block{scroll-margin-top:calc(var(--pv-topbar, 69px) + 18px)}
 .pd-year{margin-top:22px;padding-top:20px;border-top:1px solid rgba(255,255,255,.09)}
 .pd-year-h{margin-bottom:14px;font-size:.74rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#8a95a3}
 @media (prefers-reduced-motion:reduce){.pd-del{transition:none}}
@@ -1004,6 +1015,8 @@ body.has-cta #form-wrap{padding-bottom:96px}
 [data-theme="light"] .plfb-l b{color:#0f172a}
 [data-theme="light"] .plfb-r{color:#475569}
 [data-theme="light"] .plfb-r:hover{color:#8a6600}
+[data-theme="light"] .gate-done{color:#475569}
+[data-theme="light"] .gate-done .gd-i{color:#c89500}
 [data-theme="light"] .pd-year{border-top-color:rgba(0,0,0,.1)}
 [data-theme="light"] .pd-year-h{color:#64748b}
 [data-theme="light"] .pay-detail{border-top-color:rgba(0,0,0,.08)}

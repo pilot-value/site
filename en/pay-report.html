@@ -1504,6 +1504,19 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
              ★中身は pay-login.js が日英1枚で組む。login.html へ飛ばさない
                （最後まで入力した人を別ページへ送ると、そこで落ちる）。 -->
         <div id="login-gate" class="card" style="display:none;margin-top:18px">
+          <!-- ★One quiet line saying the hand-over went through (2026-09-10).
+               Without it the submission has already succeeded but the screen does
+               not look that way — pressing the button again is silently de-duped,
+               so it reads as broken.
+               ★Not a heading. The heading stays "One step left" inside the box.
+                 What was removed on 2026-09-09 was the ✓ *as the heading* plus
+                 confetti; stating the fact quietly is not a revert of that.
+               ★Written in the HTML on purpose: on the run where pay-login.js failed
+                 (the way-out above), this is the only thing that still says
+                 "nothing is lost".
+               ★The airline / fleet / month recap lives inside the box (.pl-recap).
+                 Do not repeat it here. -->
+          <div id="gate-done" class="gate-done" hidden><span class="gd-i" aria-hidden="true">✓</span> We have your pay data</div>
           <div id="pay-login"></div>
           <!-- ★The way out when the sign-in box itself could not be drawn (2026-09-09).
                Its contents are not built in JS, because the JS is exactly what failed:
@@ -1530,7 +1543,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           </div>
         </div>
 
-        <div class="mt-7 flex flex-col sm:flex-row gap-3">
+        <div class="mt-7 flex flex-col sm:flex-row gap-3" id="submit-actions">
           <button type="button" id="submit-btn" class="btn-orange justify-center flex-1">Submit and see the numbers →</button>
           <a href="world-airlines.html" class="btn-ghost justify-center">Cancel</a>
         </div>
@@ -1538,7 +1551,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
              the data is held server-side first, and the 90 days start when the
              account is made and it lands on the shelf. Say otherwise right under
              the button and that is where the trust goes. -->
-        <p class="sal-hint" style="text-align:center;margin-top:14px">Creating an account unlocks <b>full pay detail for 90 days</b>. Each new payslip you file pushes that out another 90 days. Free for individual pilots, forever.</p>
+        <p class="sal-hint" style="text-align:center;margin-top:14px" id="submit-note">Creating an account unlocks <b>full pay detail for 90 days</b>. Each new payslip you file pushes that out another 90 days. Free for individual pilots, forever.</p>
       </div>
       </div><!-- /s5 -->
 
@@ -1723,13 +1736,61 @@ function setSubmitLabel(signedIn) {
    登録しなかった人」として GA4 に載っていた。
    PVPayLogin の中で数えないのは今までどおり（あちらは plReady で2回目を捨てるので
    「登録の箱まで来た回数」が数えられない）。 */
+/* ── 提出が済んだ画面へ切り替える（2026-09-10）─────────────────────
+   預かりが成立しているのに、確認の段の持ち物がそのまま残っていた ──
+   進捗バー「ステップ 5/5　確認」・見出し「5. 確認」・公開イメージ・「戻る」・
+   「匿名で提出する」。
+   もう一度押しても同じ会社・同じ月は弾かれる（下の findKey）ので、
+   **押しても何も起きない＝壊れて見える**。オーナーが実物を見て読み違えた。
+   ★消すのは意味が無くなったものだけ。年換算の総額（あなたの入力から）は
+     本人が入れた数なので残す。
+   ★「戻る」も畳む。戻って直しても同じ会社・同じ月は重複として弾かれる
+     ＝直せない。元から罠だった。
+   ★預けそこねた回（saved=false）では**何も畳まない**。あちらはログインできた
+     所からその場で送るので、提出ボタンを消すと送る手段の無い画面になる。
+   ⚠️ hidden だけでは消えない。.wz-nav は display:flex、提出ボタンの行は
+      Tailwind の .flex を持っていて、どちらも [hidden] より強い。
+      style.display も一緒に触る（戻すときは '' でシートの値へ返す）。
+   ⚠️ 共有 JS が落ちて1枚ものに戻った形態では #wz-top も .wz-nav も無い。
+      あるものとして書かない（CLAUDE.md の「二形態」）。
+   ⚠️ #submit-btn を DOM から消さない。隠すだけ。SUBMIT_BTNS() と検査が
+      この id を掴んでいて、消すと setSubmitBusy の配り先が消える。 */
+function vis(el, show) {
+  if (!el) return;
+  el.hidden = !show;
+  el.style.display = show ? '' : 'none';
+}
+function setSubmitScreen(done) {
+  ['wz-top', 'wz-review', 'submit-actions', 'submit-note']
+    .forEach(function (id) { vis($(id), !done); });
+  var s5 = $('s5');
+  vis(s5 ? s5.querySelector('.wz-nav') : null, !done);
+  /* ★「5. 確認」の見出しも畳む。進捗バーだけ消してここを残すと、画面は
+     まだ「確認している」と言ったまま＝読み違えの元がそのまま残る。
+     ⚠️ pay-wizard.js は .sec-title の textContent を読む（表示は見ない）ので、
+        畳んでも段の名前は今までどおり出る。 */
+  vis(s5 ? s5.querySelector('.sec-head') : null, !done);
+  /* ★下書きの帯も畳む。ただし**畳むだけ・戻さない**。
+     「このブラウザに下書きを保存しました」はもう嘘（サーバに預けてある）で、
+     隣の「下書きを消す」を押させたい場面でもない。
+     ⚠️ 戻してはいけない。既定が hidden で、出す・消すを決めているのは
+        pay-wizard.js（下書きを書いた瞬間だけ出す）。ここで戻すと
+        下書きが無いのに空の帯が出る。入力が再開すれば向こうが出し直す。
+     ★下書きそのものは消さない。消すのは出し切ったとき（afterSaved の clearDraft）。 */
+  if (done) vis($('wz-draft'), false);
+  vis($('gate-done'), !!done);
+}
 function showGate(saved) {
   /* ★箱は 5/5 の中にある。別の段に居るまま出すと、画面に無いものへ
      scrollIntoView することになって何も起きない。先に運ぶ。 */
   if (WZ) { WZ.goLast(); $('submit-block').hidden = false; }
   mountLogin(saved, 0);
   $('login-gate').style.display = '';
-  $('login-gate').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  /* ★goLast() のあとに畳む。先に畳むと show() と renderReview() が開け直す。 */
+  setSubmitScreen(!!saved);
+  /* ★時間で待たない。畳んだのと同じ同期処理の中で運ぶ（CLAUDE.md）。 */
+  if (saved) $('submit-block').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  else $('login-gate').scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 /* ★pay-login.js loads after this block (end of the page). Coming from a button
    press it is always there in time, but this is now called on load too (route ②),
@@ -1779,7 +1840,8 @@ function mountLogin(saved, tries) {
 if ($('pay-login-retry')) {
   $('pay-login-retry').addEventListener('click', function () { location.reload(); });
 }
-function hideGate() { $('login-gate').style.display = 'none'; }
+/* ★畳んだものを必ず戻す。状態を残したまま別の画面（結果カード）を描かせない。 */
+function hideGate() { $('login-gate').style.display = 'none'; setSubmitScreen(false); }
 
 /* Straight after the account exists. If a token is held, moving it is the whole
    job — nothing is retyped and nothing is resent. Only those whose hand-over
