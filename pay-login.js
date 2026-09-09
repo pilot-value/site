@@ -37,7 +37,7 @@
            ✓ と紙吹雪でここが終点に見え、19人中4人が預けたまま登録に来なかった
            （引き取りは全件 0〜5分。その場で登録しない人は戻ってこない）。
            預かった安心は lead に落とし、見出しは残りの1歩を指す。 */
-      savedTitle: 'あと1ステップでレポートが出ます',
+      savedTitle: '✅完了まであと１ステップです！',
       savedLead: '<b>入力はサーバーに預けてあります。</b>アカウントを作ると、いま提出していただいた給与データがそのままレポートになり、<b>給与詳細が90日間</b>開きます。メールアドレスはレポートに含まれません。',
       /* ★入口は1つ。2026-08-22 まで「はじめての方」と「お持ちの方」の2ブロックで、
          押せるものが5つ・入力欄が3つあった。signInWithOtp({shouldCreateUser:true}) は
@@ -79,7 +79,7 @@
     en: {
       title: 'One step left before your report',
       lead: 'What you entered is <b>held on this device</b>. Sign in and it is submitted straight away. Your email address is never part of the report.',
-      savedTitle: 'One step left before your report',
+      savedTitle: '✅ One step left to finish!',
       savedLead: '<b>What you submitted is held on our server.</b> Create an account and it becomes your report, unlocking <b>full pay detail for 90 days</b>. Your email address is never part of the report.',
       google: 'Continue with Google',
       orLine: 'or',
@@ -123,6 +123,11 @@
   var CSS = [
     '.pl-wrap{text-align:left}',
     '.pl-title{font-size:1.05rem;font-weight:800;letter-spacing:-.01em;color:#e8edf2;margin-bottom:6px}',
+    /* ★預かりが済んだ側の見出しだけ大きくする（オーナー指示・2026-09-10）。
+         まだ送れていない側は1歩目の案内なので、ここは触らない。
+       ★字の色は変えない。目立たせるのは大きさと余白でやる（✅ が既に色を持っている）。 */
+    '.pl-title.is-done{font-size:1.34rem;line-height:1.4;margin-bottom:10px}',
+    '@media (max-width:400px){.pl-title.is-done{font-size:1.18rem}}',
     '.pl-lead{font-size:.82rem;line-height:1.7;color:#a8b3c2;margin-bottom:20px}',
     '.pl-block+.pl-block{margin-top:22px;padding-top:22px;border-top:1px solid rgba(255,255,255,.09)}',
     '.pl-head{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#f5c842;margin-bottom:12px}',
@@ -247,7 +252,7 @@
       var ti = document.getElementById('pl-title');
       var le = document.getElementById('pl-lead');
       var rc = document.getElementById('pl-recap');
-      if (ti) ti.textContent = head;
+      if (ti) { ti.textContent = head; ti.className = 'pl-title' + (o.saved ? ' is-done' : ''); }
       if (le) le.innerHTML = body;
       if (rc) { rc.textContent = recap; rc.style.display = recap ? 'block' : 'none'; }
       return;
@@ -273,7 +278,7 @@
 
     mount.innerHTML =
       '<div class="pl-wrap">' +
-        '<div class="pl-title" id="pl-title">' + esc(head) + '</div>' +
+        '<div class="pl-title' + (o.saved ? ' is-done' : '') + '" id="pl-title">' + esc(head) + '</div>' +
         '<p class="pl-lead" id="pl-lead">' + body + '</p>' +
 
         '<div class="pl-recap" id="pl-recap"' + (recap ? ' style="display:block"' : '') + '>' + esc(recap) + '</div>' +

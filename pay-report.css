@@ -414,12 +414,40 @@ body.has-cta #form-wrap{padding-bottom:96px}
 .plfb-r:active{transform:translateY(1px)}
 
 /* ── 預かりが成立したことを言う1行（#gate-done）─────────────────
-   ★小さく・太字にしない。見出しは箱の中の「あと1ステップ」のままにする。
+   ★小さく・太字にしない。見出しは箱の中の「✅完了まであと1ステップです！」のまま。
      ここを大きくすると 2026-09-09 に消した「✓ が終点に見える」形に戻る。
    ★色は新しく作らない。字は .plfb-l と同じ、✓ だけ山吹。 */
 .gate-done{margin-bottom:14px;font-size:.78rem;line-height:1.6;color:#a8b3c2}
 .gate-done[hidden]{display:none}
 .gate-done .gd-i{margin-right:2px;color:#f5c842;font-weight:800}
+/* ── 登録の枠そのもの（#login-gate）─────────────────────────
+   ★画面の中でここが一番大事な1枚。既定の .card は線がほとんど見えず、
+     背景に溶けて「まだ1歩ある」ことに気づかない（オーナー指示・2026-09-10）。
+   ★色は新しく作らない。既存の山吹 #f5c842 の濃さ違いだけで組む。
+   ★影を平らな1枚にしない。山吹を含んだ層を重ねて面を1段浮かせる（CLAUDE.md）。
+   ⚠️ ライト側の .card は background と border-color に !important が付いている
+      （pay-report.css の [data-theme="light"] .card）。id だけでは勝てないので
+      ライトの対にも !important を置く。片方だけ直すと白いままになる。 */
+#login-gate{
+  border-color:rgba(245,200,66,.40);
+  background:
+    radial-gradient(120% 140% at 50% 0%, rgba(245,200,66,.11) 0%, rgba(245,200,66,0) 58%),
+    rgba(22,26,36,.82);
+  box-shadow:
+    0 0 0 1px rgba(245,200,66,.14),
+    0 18px 44px -18px rgba(245,200,66,.30),
+    0 10px 30px -12px rgba(0,0,0,.55);
+}
+[data-theme="light"] #login-gate{
+  border-color:rgba(200,149,0,.42)!important;
+  background:
+    radial-gradient(120% 140% at 50% 0%, rgba(245,200,66,.20) 0%, rgba(245,200,66,0) 58%),
+    rgba(255,255,255,.95)!important;
+  box-shadow:
+    0 0 0 1px rgba(200,149,0,.13),
+    0 18px 40px -20px rgba(200,149,0,.34),
+    0 8px 24px -14px rgba(15,23,42,.16);
+}
 /* ★提出が済んだら #submit-block の頭へ運ぶ。ヘッダーは position:fixed で
      上に乗っているので、その分をここで逃がす（JS で px を数えない）。 */
 #submit-block{scroll-margin-top:calc(var(--pv-topbar, 69px) + 18px)}

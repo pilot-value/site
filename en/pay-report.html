@@ -1508,7 +1508,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                Without it the submission has already succeeded but the screen does
                not look that way — pressing the button again is silently de-duped,
                so it reads as broken.
-               ★Not a heading. The heading stays "One step left" inside the box.
+               ★Not a heading. The heading stays "✅ One step left to finish!" inside the box.
                  What was removed on 2026-09-09 was the ✓ *as the heading* plus
                  confetti; stating the fact quietly is not a revert of that.
                ★Written in the HTML on purpose: on the run where pay-login.js failed
@@ -1729,7 +1729,7 @@ function setSubmitLabel(signedIn) {
 }
 
 /* ★Never send them off this page. pay-login.js builds the box (one copy, JP+EN).
-   saved=true  … the server already has it (the box says "One step left")
+   saved=true  … the server already has it (the box says "✅ One step left to finish!")
    saved=false … handing it over failed; sign in and submit from here as before */
 /* ★ここで数えない（2026-09-09）。数えるのは mountLogin が箱を実際に描けたとき。
    以前はここで数えていたので、箱が空枠のまま終わった人まで「登録欄を見たのに

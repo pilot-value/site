@@ -248,7 +248,7 @@ for (const [dir, tag] of [['', '(日本語)'], ['/en', '/en']]) {
       hasBox: !!document.getElementById('pl-up-btn'),
       title: (document.getElementById('pl-title') || {}).textContent || '',
       /* ★見出しの「字」ではなく、箱が持つ印を見る（2026-09-09）。
-         文言は変わる（「受け取りました ✓」→「あと1ステップ」）が、
+         文言は変わる（「受け取りました ✓」→「あと1ステップ」→「✅完了まであと1ステップです！」）が、
          **保存済みの側の箱かどうか**という状態は変わらない。
          字で見ていると、言い回しを直すたびにここが赤くなる。 */
       saved: (document.getElementById('pay-login') || {}).getAttribute
