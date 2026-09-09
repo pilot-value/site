@@ -18,6 +18,17 @@
    検証（showErr）の数と val/num で読む欄。
    片方にだけ欄・関数・保存先が増えたら、ここで落ちる。
 
+   ── D) 共有 JS（2026-09-08 に追加）─────────────────────────────
+   5ステップの器は pay-wizard.js へ切り出して**日英で1本を共有**する。
+   共有にすると、日英のズレは減る代わりに新しい静かな壊れ方が3つ増える:
+     ・片方のページが読み込む <script src> を書き忘れる
+       （window.PVPayWizard が無いまま＝その言語だけ器が消え、
+         1枚の長いページに戻る。画面は普通に動くので気づかない）
+     ・ページが呼んでいる WZ.〜 が pay-wizard.js に無い
+       （押した瞬間だけ TypeError。撮った絵には出ない）
+     ・片方の言語だけ新しい WZ.〜 を使い始める（動作が日英でズレる）
+   この3つを下で見る。
+
    ⚠️ コメントは必ず落としてから照合する。落とさないと英語の
    地の文（"would have left…" / "default: anything already…"）が
    関数名やキーに化けて、嘘の食い違いが3件出る。
@@ -43,7 +54,11 @@ function mainScript(html, label) {
   let best = '';
   for (const m of html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g))
     if (m[1].length > best.length) best = m[1];
-  if (best.length < 20000) {
+  /* ★2026-09-08、下限を 2万文字から 5千文字へ下げた。
+     この数字は「本体を取り違えていないか」を見るためだけのもので、
+     **インラインを外へ出すことを禁じる意味は無い**（5ステップの器は
+     pay-wizard.js へ出した）。切り出しの安全は下の D) が見ている。 */
+  if (best.length < 5000) {
     console.log('❌ ' + label + ': 本体の <script> が見つからない（' + best.length + '文字）');
     console.log('   外部ファイルへ切り出したなら、このスクリプトの読む先を直すこと。');
     process.exit(1);
@@ -136,6 +151,59 @@ for (const [name, re] of [['showErr（送信前に止める数）', /showErr\(/g
   checked++;
   if (a !== b) fail++;
   console.log((a === b ? '✅' : '❌') + ' ' + name + '  （日 ' + a + ' / 英 ' + b + '）');
+}
+
+/* ── D) 共有 JS（pay-wizard.js）─────────────────────────────────
+   ★生の HTML を見る（mainScript() は src 付きの <script> を捨てるので、
+     読み込みそのものはあちらでは見えない）。 */
+const jaHtml = read('pay-report.html');
+const enHtml = read('en/pay-report.html');
+
+/* D-1 それぞれが正しい相対パスで読み込んでいるか。en/ は1つ上。 */
+for (const [label, html, want] of [['日 pay-report.html', jaHtml, 'pay-wizard.js'],
+                                   ['英 en/pay-report.html', enHtml, '../pay-wizard.js']]) {
+  const re = new RegExp('<script[^>]*\\bsrc="' + want.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '"');
+  const ok = re.test(html);
+  checked++;
+  if (!ok) fail++;
+  console.log((ok ? '✅' : '❌') + ' 共有 JS の読み込み  （' + label + ' → ' + want + '）');
+  if (!ok) console.log('      これが無いと window.PVPayWizard が undefined のまま＝'
+                     + 'その言語だけ5ステップが消える（画面は普通に動く）。');
+}
+
+/* D-2 ページが呼ぶ WZ.〜 が、pay-wizard.js の API に実在するか。
+   ★呼ぶ側の綴り間違いは、押した瞬間にしか出ない（絵にも撮れない）。 */
+const wiz = read('pay-wizard.js');
+const apiHave = new Set();
+{
+  const body = wiz.slice(wiz.indexOf('var API = {'));
+  for (const m of body.matchAll(/^  ([A-Za-z_$][\w$]*)\s*:/gm)) apiHave.add(m[1]);
+}
+const used = (src) => {
+  const out = new Set();
+  for (const m of src.matchAll(/\bWZ\.([A-Za-z_$][\w$]*)/g)) out.add(m[1]);
+  return out;
+};
+const jaUse = used(ja), enUse = used(en);
+{
+  const missing = [...new Set([...jaUse, ...enUse])].filter((k) => !apiHave.has(k));
+  checked++;
+  if (missing.length) fail++;
+  console.log((missing.length ? '❌' : '✅') + ' WZ の参照先  （呼ぶ ' + new Set([...jaUse, ...enUse]).size
+            + ' / pay-wizard.js が持つ ' + apiHave.size + '）');
+  if (missing.length) console.log('      pay-wizard.js に無い: ' + missing.join(', '));
+}
+
+/* D-3 日英が同じ WZ.〜 を使っているか（＝器の使い方が同じか）。 */
+{
+  const onlyJa = [...jaUse].filter((k) => !enUse.has(k));
+  const onlyEn = [...enUse].filter((k) => !jaUse.has(k));
+  const ok = !onlyJa.length && !onlyEn.length;
+  checked++;
+  if (!ok) fail++;
+  console.log((ok ? '✅' : '❌') + ' WZ の使い方が日英で同じ  （日 ' + jaUse.size + ' / 英 ' + enUse.size + '）');
+  if (onlyJa.length) console.log('      日本語にしか無い: ' + onlyJa.join(', '));
+  if (onlyEn.length) console.log('      英語にしか無い  : ' + onlyEn.join(', '));
 }
 
 console.log('\n══ ' + (checked - fail) + ' 通過 / ' + fail + ' 失敗 ══');

@@ -16,9 +16,10 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   const page = await browser.newPage();
   await page.setViewport({ width: 1440, height: 900 });
   await page.goto(url, { waitUntil: 'networkidle2' });
-  /* S2〜S4 は条件を満たすまで hidden。閉じたまま測ると幅が 0 になり、
-     全部の select が「溢れている」と出る。先に開けてから測る。
-     ja と en は同一オリジンなので、前の言語のプリセットも消しておく。 */
+  /* 値を先にまとめて入れる（欄は段が隠れていても値は入る）。
+     ja と en は同一オリジンなので、前の言語のプリセットも消しておく。
+     ★2026-09-08、フォームが1画面1段になった。以前は「全部の段を開けてから
+       1回で測る」だったが、同時には出せないので下で段を1つずつ出して測る。 */
   await page.evaluate(() => {
     localStorage.clear();
     /* ★2026-08-13 から、入口の2択で「手で入力」を押すまでフォームが出ない。
@@ -31,9 +32,8 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
       el.dispatchEvent(new Event('change', { bubbles: true }));
       el.dispatchEvent(new Event('input', { bubbles: true }));
     };
-    /* ★段（s2〜s4）は前の段のゲートを満たすまで hidden。ゲートは
-       pay-report.html の GATE_ROLE / GATE_HOURS / GATE_PAY と同じ顔ぶれ。
-       あちらに必須を1つ足したらここも足す（足さないと「開けきれていない」で落ちる）。 */
+    /* ★段のゲート（GATE_ROLE / GATE_HOURS / GATE_PAY / GATE_CONTRACT）を全部満たす値を入れる。
+       あちらに必須を1つ足したらここも足す（足さないと下で「1度も測れなかった」に出る）。 */
     put('f-airline', 'emirates'); put('f-position', 'cap'); put('f-fleet', 'b777');
     /* ★教官も選ぶ。選ばないと教官の節ごと hidden で、中の select が測れない。 */
     put('f-jobrole', 'line,instructor,examiner,union,management,nonline');
@@ -65,11 +65,8 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
     }
   });
   await new Promise((r) => setTimeout(r, 400));
-  const hidden = await page.evaluate(() =>
-    ['s1', 's2', 's3', 's4'].filter((id) => document.getElementById(id).offsetParent === null));
-  if (hidden.length) throw new Error('測る前に開けきれていない: ' + hidden.join(','));
 
-  const r = await page.evaluate(() => {
+  const measure = () => page.evaluate(() => {
     const cv = document.createElement('canvas').getContext('2d');
     const out = [];
     /* ★measure するのは <select> だけ。f-nationality は 2026-08-12 に欄ごと廃止、
@@ -86,8 +83,12 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
       const el = document.getElementById(id);
       if (el) targets.push([`${id}〈${nm}〉`, el]);
     }
+    const names = targets.filter(([, el]) => el && el.options).map(([id]) => id);
     for (const [id, el] of targets) {
       if (!el || !el.options) continue;
+      /* ★今出ている段のものだけ測る。隠れている段の select は幅が 0 になり、
+         そのまま数えると全部が「溢れている」になる。 */
+      if (el.offsetParent === null) continue;
       const cs = getComputedStyle(el);
       cv.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
       // select の中身が使える横幅 = box幅 - 左右padding - 矢印分
@@ -105,23 +106,58 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
     // ラベルの行数ズレ（grid の中で input の上端が揃っているか）
     const rows = [];
     for (const g of document.querySelectorAll('.grid2, .grid3')) {
+      if (g.offsetParent === null) continue;      // 今出ていない段は測らない
       const tops = [...g.querySelectorAll('.form-input')].map((i) => Math.round(i.getBoundingClientRect().top));
       const labs = [...g.querySelectorAll('.form-label')].map((l) => Math.round(l.getBoundingClientRect().height));
       if (new Set(tops).size > 1) rows.push({ tops, labelHeights: labs, txt: [...g.querySelectorAll('.form-label')].map((l) => l.textContent.trim()) });
     }
-    return { out, rows };
+    return { out, rows, names };
   });
+
+  /* ── 段を1つずつ出して測り、足し合わせる ───────────────────────
+     ★「開けきれていない」で throw するのはやめた（1画面1段では起こせない）。
+       代わりに、最後まで1度も測れなかった欄を名指しで出す
+       ── 欄が段から消えた・ゲートが変わったときに、ここで気づける。 */
+  const STEP_IDS = ['s1', 's2', 's3', 's4'];
+  const hasWz = await page.evaluate(() => !!window.PVPayWizard);
+  const r = { out: [], rows: [], names: [] };
+  for (let i = 0; i < (hasWz ? STEP_IDS.length : 1); i++) {
+    if (hasWz) {
+      await page.evaluate((n) => window.PVPayWizard.go(n, { quiet: true }), i);
+      await new Promise((r2) => setTimeout(r2, 260));
+    }
+    /* ★「4. 契約と税」は、前回の内容が入っていると要約1行に畳まれている
+       （foldContract）。畳んだままだと中の select が測れない ── 英語版は
+       日本語版のプリセットを引き継ぐので、こちらだけ畳まれていた。 */
+    await page.evaluate(() => {
+      const b = document.getElementById('s4-body'), e = document.getElementById('s4-edit');
+      if (b && b.hidden && e) e.click();
+    });
+    await new Promise((r2) => setTimeout(r2, 120));
+    const part = await measure();
+    r.out.push(...part.out);
+    r.rows.push(...part.rows);
+    for (const n of part.names) if (r.names.indexOf(n) < 0) r.names.push(n);
+  }
+  const never = r.names.filter((n) => !r.out.some((o) => o.id === n));
 
   console.log(`\n════ ${lang} ════`);
   for (const o of r.out) {
     const flag = o.over > 0 ? `❌ ${o.over}px はみ出す` : '✅';
     console.log(`${flag}  #${o.id}  box=${o.box} 使える=${o.avail} 最長=${o.need} 「${o.worst}」`);
   }
+  if (never.length) console.log(`❌ 1度も測れなかった欄（どの段にも出てこない）: ${never.join(', ')}`);
   console.log(`--- input の上端が揃っていない grid: ${r.rows.length} 箇所 ---`);
   for (const x of r.rows) console.log(`  tops=${x.tops.join(',')}  labelH=${x.labelHeights.join(',')}  ${x.txt.join(' | ')}`);
 
   /* ── 狭い幅：常設バーと横溢れ ─────────────────────────────── */
-  console.log('--- 狭い幅（常設バー / 横溢れ）---');
+  console.log('--- 狭い幅（合計バー / 横溢れ）---');
+  /* ★バーは「3. 報酬」の段にいる間だけ出る（pay-wizard.js の totalBar）。
+     ほかの段で測ると必ず hidden ＝ 何も見ていないのと同じになる。 */
+  if (hasWz) {
+    await page.evaluate(() => window.PVPayWizard.go(2, { quiet: true }));
+    await new Promise((r2) => setTimeout(r2, 260));
+  }
   for (const w of [320, 360, 390]) {
     await page.setViewport({ width: w, height: 760 });
     await page.evaluate(() => window.scrollTo(0, 0));
@@ -157,7 +193,7 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
     if (b.none)  { console.log(`  ${w}px  ❌ #sticky-submit が無い`); continue; }
     const hs = b.sw > b.cw ? `❌ 横に溢れている scrollWidth=${b.sw} > ${b.cw}` : '✅ 横に溢れていない';
     const navOK = b.navR <= w + 0.5 && b.navL >= -0.5 ? '✅' : `❌ ヘッダーが [${b.navL},${b.navR}]`;
-    if (b.hidden) { console.log(`  ${w}px  バーは hidden（§3 がまだ出ていない）  ${hs}  ヘッダー${navOK}`); continue; }
+    if (b.hidden) { console.log(`  ${w}px  ❌ バーが hidden（「3. 報酬」の段では出るはず）  ${hs}  ヘッダー${navOK}`); continue; }
     const barOK = b.left === 0 && b.right === w ? '✅' : `❌ [${b.left},${b.right}] であるべきは [0,${w}]`;
     const short = b.valNeed - b.valHave;
     const valOK = short > 0 ? `❌ 金額が ${short}px 切れている` : '✅ 金額が切れていない';

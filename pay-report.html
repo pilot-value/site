@@ -148,7 +148,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
          注意書きを読まされていた。匿名の約束は下の2択カードの1行目に移した。 -->
     <div class="text-center mb-9">
       <h1 class="text-3xl font-extrabold mb-3" style="letter-spacing:-.02em">給与を追加</h1>
-      <p class="pay-count" id="pay-count">1件共有すると、他のパイロットの実給与データが見られます</p>
+      <p class="pay-count" id="pay-count">1件出すと、他のパイロットの実給与が見られます</p>
     </div>
 
     <!-- Form ── levels.fyi 型：埋めると下に次が生える -->
@@ -173,8 +173,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                ・簡単 ………… 落とすだけで金額の欄が埋まる
                事実の要約であって、盛った言い方に書き換えない。 -->
           <button type="button" class="entry-card is-primary" id="entry-payslip">
-            <span class="entry-ico" aria-hidden="true">📄</span>
-            <span class="entry-t">明細から自動入力</span>
+            <span class="entry-t"><span class="p" aria-hidden="true">📄</span>明細から自動入力</span>
             <span class="entry-benefits">
               <span class="entry-b"><i aria-hidden="true">✓</i>匿名</span>
               <!-- 盾を付けるのはここだけ。3つのうちこれだけが「こちら側の仕組み」の話で、
@@ -185,8 +184,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
             <span class="entry-formats">PDF · PNG · JPG · WebP</span>
           </button>
           <button type="button" class="entry-card" id="entry-manual">
-            <span class="entry-ico" aria-hidden="true">✎</span>
-            <span class="entry-t">手動で入力</span>
+            <span class="entry-t"><span class="p" aria-hidden="true">✎</span>手動で入力</span>
             <span class="entry-benefits">
               <span class="entry-b"><i aria-hidden="true">✓</i>匿名</span>
               <span class="entry-b"><i aria-hidden="true">✓</i>明細を見ながら、金額を自分で入れます</span>
@@ -199,7 +197,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
 
       <!-- 明細から自動入力 ── 端末の中で黒塗り → 本人が見る → 送る -->
       <div class="ps" id="ps" hidden>
-        <p class="ps-step" id="ps-step">ステップ 1/2 — 明細を読み込む</p>
+        <p class="ps-step" id="ps-step">明細を読み込む（任意）</p>
         <button type="button" class="ps-drop" id="ps-drop">
           <span class="ps-ico" aria-hidden="true">📄</span>
           <span class="ps-drop-txt">
@@ -246,7 +244,6 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           <!-- 進み具合のゲージ。中身は markProgress() が書く。押すと最初の未入力欄へ飛ぶ。 -->
           <button type="button" class="sec-prog" hidden></button>
         </div>
-        <p class="sec-sub">所要 約50秒。埋めると、下に次が出てきます。</p>
 
         <div class="fld">
           <label class="form-label" for="f-airline">会社<span class="req-tag">必須</span></label>
@@ -388,7 +385,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
         <div class="fld" id="wrap-other" style="display:none">
           <label class="form-label" for="f-airline-other">会社名（一覧にない会社）<span class="req-tag">必須</span></label>
           <input type="text" id="f-airline-other" class="form-input" maxlength="80" placeholder="例：Wizz Air Abu Dhabi"/>
-          <p class="fld-hint">自由入力の社名は<b>公開集計に出しません</b>（社名そのものが個人の手がかりになるため）。後日、一覧の会社に名寄せします。</p>
+          <p class="fld-hint">自由入力の社名は<b>公開集計に出しません</b>。後日、一覧の会社に名寄せします。</p>
         </div>
         <div class="grid2">
           <div class="fld">
@@ -450,7 +447,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
             <!--END:BOXES:f-jobrole-->
           </div>
           <input type="hidden" id="f-jobrole"/>
-          <p class="fld-hint">あてはまるものを<b>すべて</b>選んでください。ラインを飛びながら教官、のように複数の役割を持つ人がいます。</p>
+          <p class="fld-hint">あてはまるものを<b>すべて</b>選んでください。</p>
         </div>
         <div class="fld">
           <!-- ★中身は node gen-vocab.mjs が pv-vocab.mjs の AGE_BUCKETS から生成する。手で足さない。 -->
@@ -463,7 +460,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
             <option value="50-59">50〜59歳</option>
             <option value="60+">60歳以上</option>
           </select>
-          <p class="fld-hint">年収は年齢とともに上がるので、同じ会社・同じ職位でも年代が違えば別の数字になります。10歳の幅までしか聞きません。</p>
+          <p class="fld-hint">10歳の幅までしか聞きません。</p>
         </div>
       </div>
 
@@ -481,7 +478,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
             <select id="f-year" class="form-input" aria-label="対象年"></select>
             <select id="f-month" class="form-input" aria-label="対象月"></select>
           </div>
-          <p class="fld-hint">その明細1枚の月です。<b>毎月1件ずつ</b>出せます（同じ会社・同じ月の出し直しは訂正として上書きされます）。</p>
+          <p class="fld-hint">同じ会社・同じ月の出し直しは、訂正として上書きされます。</p>
         </div>
         <!-- ★実績と保証を並べて聞く。時給の欄と一緒に隠していたので、月給制の人には
              保証時間を聞く画面が一度も出ていなかった。中東の75〜80時間保証と、
@@ -493,24 +490,24 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           <div class="fld">
             <label class="form-label" for="f-block">フライトタイム<span class="req-tag">必須</span></label>
             <input type="number" id="f-block" class="form-input" min="0" max="200" step="any" inputmode="decimal" placeholder="例：78.5"/>
-            <p class="fld-hint"><b>実際に飛んだ時間</b>（block hours）。時間あたり報酬の分母になります。国と会社をまたいで比較できる唯一の物差しです。<br>飛んでいない月や、時間を管理していない場合は <b>0</b> と入れてください。</p>
+            <p class="fld-hint">実際に飛んだ時間（block hours）。飛んでいない月・時間を管理していない場合は <b>0</b>。</p>
           </div>
           <div class="fld">
             <label class="form-label" for="f-duty-h">勤務時間（Duty time）<span class="opt-tag">任意</span></label>
             <input type="number" id="f-duty-h" class="form-input" min="0" max="400" step="any" inputmode="decimal" placeholder="例：160"/>
-            <p class="fld-hint">出頭から解散までの<b>月の合計</b>。待機・地上業務まで含むので、同じフライトタイムでも会社によって大きく違います。</p>
+            <p class="fld-hint">出頭から解散までの<b>月の合計</b>。待機・地上業務を含みます。</p>
           </div>
         </div>
         <div class="grid2">
           <div class="fld">
             <label class="form-label" for="f-guar">保証フライトタイム<span class="opt-tag">任意</span></label>
             <input type="number" id="f-guar" class="form-input" min="0" max="200" step="any" inputmode="decimal" placeholder="例：75"/>
-            <p class="fld-hint">飛ばなくても<b>この時間ぶんは払う</b>、という契約上の下限（<b>Minimum Guarantee / MG</b>）。<br>日本の航空会社のように<b>契約に無ければ空欄のまま</b>で構いません。</p>
+            <p class="fld-hint">飛ばなくても<b>この時間ぶんは払う</b>、という契約上の下限（Minimum Guarantee）。契約に無ければ空欄。</p>
           </div>
           <div class="fld">
             <label class="form-label" for="f-stay">ステイ日数<span class="req-tag">必須</span></label>
             <input type="number" id="f-stay" class="form-input" min="0" max="31" step="1" inputmode="numeric" placeholder="例：8"/>
-            <p class="fld-hint">基地の外で泊まった<b>泊数</b>（レイオーバー）。日帰りだけの月は <b>0</b> と入れてください。<br>同じ年収でも、家に帰れない日数は会社ごとにまったく違います。</p>
+            <p class="fld-hint">基地の外で泊まった<b>泊数</b>。日帰りだけの月は <b>0</b>。</p>
           </div>
         </div>
 
@@ -525,7 +522,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
             <label class="form-label" for="f-base-iata">基地（IATA 3文字）<span class="opt-tag">任意</span></label>
             <input type="text" id="f-base-iata" class="form-input" maxlength="3" style="text-transform:uppercase" placeholder="DXB"/>
           </div>
-          <p class="fld-hint">基地は<b>公開集計に一切出しません</b>。会社・機材・職位まで絞ったうえで基地まで分かると、人数が少ない区分では個人が特定できてしまうためです。</p>
+          <p class="fld-hint">基地は<b>公開集計に一切出しません</b>。会社・機材・職位まで絞ったうえで基地まで分かると、個人が特定できてしまうためです。</p>
         </div>
         <div class="chips">
           <button type="button" class="chip" data-open="f-duty"><span class="p">+</span>乗務日数</button>
@@ -539,7 +536,6 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           <span class="sec-tag req">必須</span>
           <button type="button" class="sec-prog" hidden></button>
         </div>
-        <p class="sec-sub">明細に出ているとおりの額を入れてください。手当ごとに分けたい方は下で分けられます。</p>
 
         <div class="fld">
           <label class="form-label" for="f-currency">明細に書かれている通貨<span class="req-tag">必須</span></label>
@@ -593,7 +589,6 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
               <option value="COP">COP — コロンビアペソ</option>
             </select>
           </div>
-          <p class="fld-hint">円でもドルでも、<b>明細に書かれているそのままの通貨</b>を選んでください。円やドルへの換算はこちらで行います。</p>
         </div>
 
         <!-- ★「基本給」「1時間あたりの単価」「保証時間」を全員に聞くのをやめた（2026-08-12）。
@@ -608,13 +603,13 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
         <div class="fld" id="pay-gross-fld">
           <label class="form-label" for="f-gross">その月の総支給額<span class="req-tag">必須</span></label>
           <input type="text" id="f-gross" class="form-input money" inputmode="decimal" placeholder="例：1,080,000"/>
-          <p class="fld-hint" id="gross-hint-own">税・保険が引かれる<b>前</b>の合計です（明細の「総支給額」「Gross Pay」）。<br>手当もボーナスも含めて、<b>明細に出ているそのままの額</b>を入れてください。</p>
+          <p class="fld-hint" id="gross-hint-own">税引き前の<b>額面</b>（明細の「総支給額」「Gross Pay」）。</p>
         </div>
 
         <div class="fld">
           <label class="form-label" for="f-netpay">その月の手取り額<span class="req-tag">必須</span></label>
           <input type="text" id="f-netpay" class="form-input money" inputmode="decimal" placeholder="例：842,000"/>
-          <p class="fld-hint">税・保険が引かれた<b>後</b>に振り込まれた額です（明細の「差引支給額」「Net Pay」）。<br>総支給との差が、そのまま<b>あなたの控除額</b>になります。</p>
+          <p class="fld-hint">税・保険が引かれた<b>後</b>に振り込まれた額（「差引支給額」「Net Pay」）。</p>
         </div>
 
         <!-- ★ボーナスは「今月出た額」と「年間の合計」を分けて聞く（2026-08-13 オーナー指摘）。
@@ -625,14 +620,14 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           <div class="fld">
             <label class="form-label" for="f-perdiem">パーディアム（その月の合計）<span class="req-tag">必須</span></label>
             <input type="text" id="f-perdiem" class="form-input money" inputmode="decimal" placeholder="滞在手当の月合計"/>
-            <p class="fld-hint">上の総支給に含まれている<b>滞在手当の月合計</b>。<br>付かない会社・出なかった月は <b>0</b> と入れてください。</p>
+            <p class="fld-hint"><b>滞在手当の月合計</b>。付かない会社・出なかった月は <b>0</b>。</p>
           </div>
           <div class="fld">
             <label class="form-label" for="f-bonus-mo">今月の賞与・ボーナス<span class="req-tag">必須</span></label>
             <!-- ★placeholder の薄い 0 ではなく、値として 0 を入れておく（2026-08-13 オーナー指摘）。
                  薄い 0 は「入れなくていい欄」に見え、必須なのにここで止まる。 -->
             <input type="text" id="f-bonus-mo" class="form-input money" inputmode="decimal" value="0"/>
-            <p class="fld-hint">上の総支給に含まれている賞与・ボーナス。<b>出ていない月は 0 のまま</b>。<br>年換算するときに、この額だけ外します。</p>
+            <p class="fld-hint">年換算するときに、この額だけ外します。</p>
           </div>
         </div>
 
@@ -645,19 +640,18 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
               <option value="allowance">住宅手当（現金）</option>
               <option value="none">なし</option>
             </select>
-            <p class="fld-hint" id="housing-hint"><b>同じ年収でも、社宅が付くかどうかで手元に残る額が変わります。</b></p>
           </div>
           <div class="fld">
             <label class="form-label" for="f-housing-amt">住宅手当（月額）<span class="req-tag">必須</span></label>
             <input type="text" id="f-housing-amt" class="form-input money" inputmode="decimal" placeholder="現金支給の額" disabled/>
-            <p class="fld-hint" id="housing-amt-hint">左の住居で「住宅手当（現金）」を選ぶと入力できます。</p>
+            <p class="fld-hint" id="housing-amt-hint">「住宅手当（現金）」を選ぶと入力できます。</p>
           </div>
         </div>
 
         <div class="fld">
           <label class="form-label" for="f-bonus">年間ボーナス<span class="opt-tag">任意</span></label>
           <input type="text" id="f-bonus" class="form-input money" inputmode="decimal" placeholder="1年の合計"/>
-          <p class="fld-hint">1年でもらうボーナスの<b>合計</b>（見込みで構いません）。年換算にそのまま足します。</p>
+          <p class="fld-hint">年換算にそのまま足します（見込みで構いません）。</p>
         </div>
 
         <!-- ── 給与の内訳（畳んで残す）────────────────────────────
@@ -671,14 +665,12 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
         <details class="pay-detail" id="pay-detail">
           <summary><span class="p">+</span>給与の内訳を追加</summary>
           <div class="pay-detail-b">
-            <p class="fld-hint" style="margin:0 0 16px">明細に<b>書かれている金額をそのまま</b>入れてください。足し算・単価の計算・時給換算は、こちらでやります。<br>上の「その月の総支給額」は<b>そのまま残ります</b>。ここに入れた額で書き換えることはしません。合計が総支給と合わなくても構いません。</p>
 
-            <p class="fld-hint pd-gate" id="pd-gate" hidden>この3つ（<b>基本給</b>・<b>Flight time 保証手当 / 職務手当</b>・<b>変動給</b>）を答えると、<b>REAL PAY の給与内訳</b>が開きます。金額が明細に無い項目は「該当なし」を選んでください。</p>
+            <p class="fld-hint pd-gate" id="pd-gate" hidden>この3つを答えると <b>REAL PAY の給与内訳</b>が開きます。明細に無い項目は「該当なし」を選んでください。</p>
 
             <div class="fld is-rail is-rail-key">
               <label class="form-label" for="f-base">基本給</label>
               <input type="text" id="f-base" class="form-input money" inputmode="decimal" placeholder="例：480,000"/>
-              <p class="fld-hint">明細に載っている基本給の金額を、そのまま入れてください。<b>ほかの手当を足し合わせないでください。</b></p>
               <label class="rolebox pd-none"><input type="checkbox" id="f-base-none"><span>該当なし</span></label>
             </div>
 
@@ -686,7 +678,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
               <div class="fld is-rail is-rail-key">
                 <label class="form-label" for="f-guarantee">Flight time 保証手当 / 職務手当</label>
                 <input type="text" id="f-guarantee" class="form-input money" inputmode="decimal" placeholder="例：90,000"/>
-                <p class="fld-hint">Minimum Guarantee・保証給・<b>職務手当</b>など、呼び名は会社ごとに違います。基本給とは<b>別に金額として明細に出ている場合だけ</b>入れてください。<b>保証時間 × 単価を計算する必要はありません</b>（保証時間は上で聞いています）。</p>
+                <p class="fld-hint">基本給とは<b>別に金額として明細に出ている</b>場合だけ（Minimum Guarantee・保証給・職務手当）。</p>
                 <label class="rolebox pd-none"><input type="checkbox" id="f-guarantee-none"><span>該当なし</span></label>
               </div>
             </div>
@@ -694,7 +686,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
             <div class="opt-fld" id="opt-pd-var">
               <div class="pd-block is-rail is-rail-key">
                 <div class="form-label">変動給</div>
-                <p class="fld-hint" style="margin-top:0">乗務時間・セクター数・待機などで<b>月ごとに変わる支給</b>です。<b>明細に出ているとおりの金額と名称</b>を書き写してください。単価やルールを計算する必要はありません。</p>
+                <p class="fld-hint" style="margin-top:0">乗務時間・セクター数・待機などで<b>月ごとに変わる支給</b>。明細のとおりの金額と名称を書き写してください。</p>
                 <div class="pd-rows" id="pd-var-rows"></div>
                 <button type="button" class="chip" id="pd-var"><span class="p">+</span>変動給を追加</button>
                 <label class="rolebox pd-none"><input type="checkbox" id="f-variable-none"><span>該当なし</span></label>
@@ -705,14 +697,14 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
               <div class="fld is-rail">
                 <label class="form-label" for="f-command">職位手当</label>
                 <input type="text" id="f-command" class="form-input money" inputmode="decimal"/>
-                <p class="fld-hint">Captain Allowance / Senior FO Allowance のように、<b>職位に対して毎月つく手当</b>が基本給と別に出ている場合です。上の「Flight time 保証手当 / 職務手当」に入れた分は、ここに入れません。教官の手当は下の<b>「教官・訓練の手当」</b>へ（審査などは役割ごとにあとで聞きます）。</p>
+                <p class="fld-hint">Captain Allowance のように<b>職位に対して毎月つく手当</b>。上の「Flight time 保証手当 / 職務手当」に入れた分は、ここに入れません。</p>
               </div>
             </div>
 
             <div class="opt-fld" id="opt-pd-oth" hidden>
               <div class="pd-block is-rail">
                 <div class="form-label">その他の現金手当</div>
-                <p class="fld-hint" style="margin-top:0">上に当てはまらない現金の支給です。パーディアムと住宅手当は前に聞いているので、ここには入れません。</p>
+                <p class="fld-hint" style="margin-top:0">パーディアムと住宅手当は前に聞いているので、ここには入れません。</p>
                 <div class="pd-rows" id="pd-oth-rows"></div>
                 <button type="button" class="chip" id="pd-oth"><span class="p">+</span>その他の手当を追加</button>
               </div>
@@ -738,7 +730,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                   <label class="form-label" for="f-pension">年金 会社負担（%）</label>
                   <input type="number" id="f-pension" class="form-input" min="0" max="100" step="any" inputmode="decimal"/>
                 </div>
-                <p class="fld-hint">年金の会社負担分は<b>年換算総額に含めません</b>（受け取り方が国ごとに違うため）。</p>
+                <p class="fld-hint">会社負担分は<b>年換算総額に含めません</b>。</p>
               </div>
               <div class="chips">
                 <button type="button" class="chip" data-open="f-profit"><span class="p">+</span>プロフィットシェア</button>
@@ -762,7 +754,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           <details class="pay-detail" id="instr-detail">
             <summary><span class="p">+</span>教官・訓練の手当を追加</summary>
             <div class="pay-detail-b">
-              <p class="fld-hint" style="margin:0 0 16px">教官の仕事は、会社によって呼び名も払われ方も違います。<b>明細に出ている金額</b>と、<b>何を単位に払われるか</b>を教えてください。教官業務を時間に換算する必要はありません。</p>
+              <p class="fld-hint" style="margin:0 0 16px"><b>明細に出ている金額</b>と、<b>何を単位に払われるか</b>を教えてください。</p>
 
               <div class="fld">
                 <div class="form-label">担当している訓練</div>
@@ -778,7 +770,6 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
               <div class="fld">
                 <label class="form-label" for="f-instr-label">会社・資格上の名称</label>
                 <input type="text" id="f-instr-label" class="form-input" maxlength="60" placeholder="例：TRI、SFI、Training Captain"/>
-                <p class="fld-hint">明細や辞令に出ている呼び名を、そのまま書き写してください。</p>
               </div>
 
               <div class="fld">
@@ -816,7 +807,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 <div class="fld">
                   <label class="form-label" for="f-instructor">今月の教官・訓練の支給額</label>
                   <input type="text" id="f-instructor" class="form-input money" inputmode="decimal" placeholder="例：60,000"/>
-                  <p class="fld-hint">明細に出ている金額をそのまま入れてください。この額は<b>職位手当・変動給・その他の現金手当には入れないでください</b>（同じお金を2回数えることになります）。</p>
+                  <p class="fld-hint">この額は<b>職位手当・変動給・その他の現金手当には入れないでください</b>（同じお金を2回数えることになります）。</p>
                 </div>
                 <!-- ★超過の注意は、その額を打った欄の下に出す（2026-08-27 オーナー指摘）。
                      文言と条件は #pd-over と同じ。recalc() が OVER_SLOT を見て1つだけ出す。 -->
@@ -827,7 +818,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                     <label class="form-label" for="f-instr-qty" id="lab-instr-qty">回数</label>
                     <input type="text" id="f-instr-qty" class="form-input" inputmode="decimal"/>
                   </div>
-                  <p class="fld-hint" style="margin-top:0">今月、何回ぶん出たかを書き写してください。<b>1回あたりの額はこちらで出します。</b></p>
+                  <p class="fld-hint" style="margin-top:0"><b>1回あたりの額はこちらで出します。</b></p>
                 </div>
               </div>
             </div>
@@ -847,7 +838,6 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           <details class="pay-detail" id="exam-detail">
             <summary><span class="p">+</span>審査・査察の手当を追加</summary>
             <div class="pay-detail-b">
-              <p class="fld-hint" style="margin:0 0 16px">審査の呼び名も払われ方も会社ごとに違います。<b>明細に出ている金額</b>と、<b>何を単位に払われるか</b>を教えてください。</p>
 
               <div class="fld">
                 <div class="form-label">担当している Check</div>
@@ -863,7 +853,6 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
               <div class="fld">
                 <label class="form-label" for="f-exam-label">会社・資格上の名称</label>
                 <input type="text" id="f-exam-label" class="form-input" maxlength="60" placeholder="例：TRE、Check Airman、Line Check Captain"/>
-                <p class="fld-hint">明細や辞令に出ている呼び名を、そのまま書き写してください。</p>
               </div>
 
               <div class="fld">
@@ -876,7 +865,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                   <option value="none">追加の支給はない</option>
                   <option value="unknown">わからない</option>
                 </select>
-                <p class="fld-hint">教官の手当と<b>まとめて</b>払われている場合は、上の「教官・訓練の手当」に入れた額がその分です。ここで二重に入れないでください。</p>
+                <p class="fld-hint">教官の手当と<b>まとめて</b>払われている場合は、ここで二重に入れないでください。</p>
               </div>
 
               <!-- ★「別途支給されている」を選んだ人にだけ、ここから先を出す。
@@ -906,7 +895,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 <div class="fld">
                   <label class="form-label" for="f-examiner">今月の審査・査察の支給額</label>
                   <input type="text" id="f-examiner" class="form-input money" inputmode="decimal" placeholder="例：40,000"/>
-                  <p class="fld-hint">明細に出ている金額をそのまま入れてください。この額は<b>教官・訓練の手当・職位手当・変動給・その他の現金手当には入れないでください</b>（同じお金を2回数えることになります）。</p>
+                  <p class="fld-hint">この額は<b>教官・訓練の手当・職位手当・変動給・その他の現金手当には入れないでください</b>（同じお金を2回数えることになります）。</p>
                 </div>
                 <!-- ★超過の注意は、その額を打った欄の下に出す（2026-08-27 オーナー指摘）。
                      文言と条件は #pd-over と同じ。recalc() が OVER_SLOT を見て1つだけ出す。 -->
@@ -915,7 +904,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 <div class="fld" id="exam-unit" hidden>
                   <label class="form-label" for="f-exam-qty" id="lab-exam-qty">今月の回数</label>
                   <input type="text" id="f-exam-qty" class="form-input" inputmode="decimal"/>
-                  <p class="fld-hint">今月、何回ぶん出たかを書き写してください。<b>1回あたりの額はこちらで出します。</b></p>
+                  <p class="fld-hint"><b>1回あたりの額はこちらで出します。</b></p>
                 </div>
               </div>
             </div>
@@ -938,12 +927,11 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           <details class="pay-detail" id="union-detail">
             <summary><span class="p">+</span>組合・乗員代表の手当を追加</summary>
             <div class="pay-detail-b">
-              <p class="fld-hint" style="margin:0 0 16px">組合・乗員代表の役割が、その月の給与にどう出ているかだけを教えてください。<b>活動の中身は聞きません。</b></p>
+              <p class="fld-hint" style="margin:0 0 16px"><b>活動の中身は聞きません。</b></p>
 
               <div class="fld">
                 <label class="form-label" for="f-union-days">今月、組合・乗員代表として活動した日数</label>
                 <input type="text" id="f-union-days" class="form-input" inputmode="decimal" placeholder="例：12"/>
-                <p class="fld-hint">乗務を外れて組合・乗員代表の業務にあたった日数です。</p>
               </div>
 
               <div class="fld">
@@ -962,7 +950,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 <div class="fld">
                   <label class="form-label" for="f-union-pay">今月の追加支給額</label>
                   <input type="text" id="f-union-pay" class="form-input money" inputmode="decimal" placeholder="例：30,000"/>
-                  <p class="fld-hint">明細に出ている金額をそのまま入れてください。この額は<b>職位手当・変動給・その他の現金手当・教官・審査の手当には入れないでください</b>（同じお金を2回数えることになります）。</p>
+                  <p class="fld-hint">この額は<b>職位手当・変動給・その他の現金手当・教官・審査の手当には入れないでください</b>（同じお金を2回数えることになります）。</p>
                 </div>
                 <!-- ★超過の注意は、その額を打った欄の下に出す（2026-08-27 オーナー指摘）。
                      文言と条件は #pd-over と同じ。recalc() が OVER_SLOT を見て1つだけ出す。 -->
@@ -1001,12 +989,11 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           <details class="pay-detail" id="mgmt-detail">
             <summary><span class="p">+</span>管理・マネジメントの手当を追加</summary>
             <div class="pay-detail-b">
-              <p class="fld-hint" style="margin:0 0 16px">管理・マネジメント業務が、その月の給与にどう出ているかだけを教えてください。<b>担当部署や業務の中身は聞きません。</b></p>
+              <p class="fld-hint" style="margin:0 0 16px"><b>担当部署や業務の中身は聞きません。</b></p>
 
               <div class="fld">
                 <label class="form-label" for="f-mgmt-days">今月、管理・マネジメント業務を行った日数</label>
                 <input type="text" id="f-mgmt-days" class="form-input" inputmode="decimal" placeholder="例：8"/>
-                <p class="fld-hint">乗務を外れて管理・マネジメント業務にあたった日数です。Block Hours が少ない月の理由が、後から分かるようになります。</p>
               </div>
 
               <div class="fld">
@@ -1026,7 +1013,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 <div class="fld">
                   <label class="form-label" for="f-mgmt-pay">今月の追加支給額</label>
                   <input type="text" id="f-mgmt-pay" class="form-input money" inputmode="decimal" placeholder="例：50,000"/>
-                  <p class="fld-hint">明細に出ている金額をそのまま入れてください。この額は<b>職位手当・変動給・その他の現金手当・教官・審査・組合の手当には入れないでください</b>（同じお金を2回数えることになります）。</p>
+                  <p class="fld-hint">この額は<b>職位手当・変動給・その他の現金手当・教官・審査・組合の手当には入れないでください</b>（同じお金を2回数えることになります）。</p>
                 </div>
                 <!-- ★超過の注意は、その額を打った欄の下に出す（2026-08-27 オーナー指摘）。
                      文言と条件は #pd-over と同じ。recalc() が OVER_SLOT を見て1つだけ出す。 -->
@@ -1055,7 +1042,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           <details class="pay-detail" id="nonline-detail">
             <summary><span class="p">+</span>その他の兼務・配属の手当を追加</summary>
             <div class="pay-detail-b">
-              <p class="fld-hint" style="margin:0 0 16px">ライン乗務のほかに、継続的な兼務・配属・出向がある場合だけ答えてください。<b>部署名や出向先の会社名、仕事の中身は聞きません。</b></p>
+              <p class="fld-hint" style="margin:0 0 16px">継続的な兼務・配属・出向がある場合だけ。<b>部署名や出向先、仕事の中身は聞きません。</b></p>
 
               <div class="fld">
                 <div class="form-label">担当している分野</div>
@@ -1072,7 +1059,6 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
               <div class="fld">
                 <label class="form-label" for="f-nonline-days">今月、この兼務・配属に関連する業務を行った日数</label>
                 <input type="text" id="f-nonline-days" class="form-input" inputmode="decimal" placeholder="例：8"/>
-                <p class="fld-hint">乗務を外れて、この兼務・配属の業務にあたった日数です。</p>
               </div>
 
               <div class="fld">
@@ -1092,7 +1078,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 <div class="fld">
                   <label class="form-label" for="f-nonline-pay">今月の追加支給額</label>
                   <input type="text" id="f-nonline-pay" class="form-input money" inputmode="decimal" placeholder="例：50,000"/>
-                  <p class="fld-hint">明細に出ている金額をそのまま入れてください。この額は<b>職位手当・変動給・その他の現金手当・教官・審査・組合・管理職の手当には入れないでください</b>（同じお金を2回数えることになります）。</p>
+                  <p class="fld-hint">この額は<b>職位手当・変動給・その他の現金手当・教官・審査・組合・管理職の手当には入れないでください</b>（同じお金を2回数えることになります）。</p>
                 </div>
                 <!-- ★超過の注意は、その額を打った欄の下に出す（2026-08-27 オーナー指摘）。
                      文言と条件は #pd-over と同じ。recalc() が OVER_SLOT を見て1つだけ出す。 -->
@@ -1441,7 +1427,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           </div>
         </div>
         <div id="tax-warn" class="warn-row" style="display:none;margin-top:2px"></div>
-        <p class="fld-hint" style="margin-top:10px">居住国を選ぶと、その国の税率表と年収から<b>おおよその率を入れます</b>（日本・英国・米国・所得税のない国）。それ以外の国は空欄のままです。<b>あくまで目安なので、明細の数字で上書きしてください。</b>所得税率だけは空欄でも送信できます（手取りの推定が出ないだけです）。</p>
+        <p class="fld-hint" style="margin-top:10px">居住国を選ぶと<b>おおよその率を入れます</b>（日本・英国・米国・所得税のない国）。目安なので、明細の数字で上書きしてください。空欄でも送信できます。</p>
         </div><!-- /s4-body -->
       </div>
 
@@ -1479,12 +1465,27 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
            行は形のまま jsonb で残す。f-psdetail と同じ考え方。 -->
       <input type="hidden" id="f-payitems">
 
-      <!-- ★エラーの置き場所。#submit-block は必須が全部そろうまで hidden なので、
-           中に置いていると「途中で押した人」に何も見えない（2026-08-27）。
+      <!-- ★エラーの置き場所。この節そのものは動かさない ── ウィザードが
+           show() のたびに**今出ているステップの中へ移す**（pay-wizard.js）。
+           置きっぱなしにすると、s1 で Next を押した人のエラーが画面の
+           ずっと下（s5 の中）に出て、本人には何も起きていないように見える。
            空のときは高さゼロ。showErr / clearErr は今までどおりここへ書く。 -->
       <div id="err" style="margin-top:18px"></div>
 
-      <div class="step" id="submit-block" hidden>
+      <!-- ══ 5/5 確認（Phase 5・2026-09-08）════════════════════════════
+           本人が入れた実額の読み返し（#wz-review）だけを出す。
+           ★一番上に「支給の内訳」の横棒と明細（その月の額）。以下は打った欄の読み返し。
+           ★「匿名で公開されるイメージ」は 2026-09-09 にオーナー指示で廃止した。
+             年額の帯を並べていたので、すぐ上の月額と桁が違って読めた。
+             公開の形は REAL PAY 側で見せる（ここで二度説明しない）。
+           ★中身は pay-wizard.js が組む。ここに文言を置かない（日英で1本のため）。 -->
+      <div class="card sec step" id="s5" hidden>
+        <div class="sec-head">
+          <span class="sec-title">5. 確認</span>
+        </div>
+        <div id="wz-review"></div>
+
+      <div class="step wz-err-here" id="submit-block" hidden>
         <div class="sal-total pv-no-cur" style="margin-bottom:8px">
           <span class="sal-total-lab">年換算の総額<br>（あなたの入力から）</span>
           <span class="sal-total-val" id="live-total">—</span>
@@ -1507,20 +1508,24 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
              ボタンのすぐ下で言っていることが1歩ずれると、そこで信用を落とす。 -->
         <p class="sal-hint" style="text-align:center;margin-top:14px">アカウントを作ると<b>給与詳細が90日間</b>開きます。次の明細を出すたびに、そこから90日に伸びます。個人の利用は永久に無料です。</p>
       </div>
+      </div><!-- /s5 -->
 
-      <!-- ★常設の提出バー（2026-08-27 オーナー指示「3. 報酬の画面を出したあたりから
-           『匿名で提出』ボタンを常に下に表示させて」＋「その上の『年換算の総額』も一緒に」）。
-           ・出すのは §3 が出てから。一度出したら二度と隠さない（段の考え方と同じ）。
-           ・押すのは #submit-btn と同じ submitPayReport()。2本目の経路を作らない。
+      <!-- ★下端の帯（2026-09-08 オーナー指示で作り替え）。
+           2026-08-27 の「『匿名で提出』ボタンを常に下に表示させて」は、5ステップ化に
+           合わせてオーナーが更新した ── **押す物はここに置かない**。
+           ・押すのは各ステップ末尾の Next と、5/5 の確認画面の提出ボタンだけ。
+             途中のステップから直接は送らない（送信の入口を1つにする）。
+           ・残すのは年換算の合計の表示だけ。出すのは「3. 報酬」の段にいる間のみ
+             （pay-wizard.js の show() が totalBar で出し入れする）。
            ・金額は recalc() が #live-total と同じものをここへも書く（式は1本のまま）。
-           ・長い説明（#live-hint）はここには載せない。バーは金額とボタンだけ。 -->
+           ・body.has-cta の下余白はそのまま使う（最後の欄と Next を隠さないための、
+             既に検証済みの仕組み）。 -->
       <div id="sticky-submit" class="sticky-cta" hidden>
         <div class="sticky-cta-in">
           <div class="sticky-cta-sum pv-no-cur">
             <span class="sticky-cta-lab">年換算の総額</span>
             <span class="sticky-cta-val" id="sticky-total">—</span>
           </div>
-          <button type="button" id="sticky-btn" class="btn-orange justify-center">匿名で提出する</button>
         </div>
       </div>
 
@@ -1547,6 +1552,10 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
   </div>
 </footer>
 
+<!-- ★5ステップの器（Phase 5・2026-09-08）。日英でこの1本を共有する。
+     読み込みに失敗したら window.PVPayWizard が無いまま＝下のインラインは
+     これまでどおり「埋めると下が生える」1枚の長いページとして動く。 -->
+<script src="pay-wizard.js"></script>
 <script>
 // ── Supabase ──────────────────────────────────────────────────
 const _sb = supabase.createClient(
@@ -1570,6 +1579,13 @@ const TAX_TABLE = {"JP":{"cur":"JPY","emp":[[1900000,0,650000],[3600000,0.3,8000
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
+
+/* ── 5ステップの器（Phase 5・2026-09-08）───────────────────────
+   ★pay-wizard.js が読めなかったら null のまま。そのときは下の関数が
+     これまでどおり「埋めると下が生える」1枚の長いページとして動く
+     ＝共有 JS が落ちても、給与が出せなくなることは無い。 */
+const WZ = window.PVPayWizard || null;
+const STEP_IDS = ['s1', 's2', 's3', 's4', 's5'];
 
 /* ── 計測（GA4。既存の gtag をそのまま使う。新しい業者は入れない）──────────
    ★en/pay-report.html にも同じものが入っている。片方だけ直すと日英で数字がずれる。
@@ -1649,10 +1665,12 @@ function recapLine() {
 const BTN_LABEL_IN  = '送信して結果を見る →';
 const BTN_LABEL_OUT = '匿名で提出する';
 let _btnLabel = BTN_LABEL_IN;
-/* ── 送信ボタンは2つある ────────────────────────────────────────
-   #submit-btn（全段そろったとき下に出る本体）と、常設バーの #sticky-btn。
-   ★状態は必ず両方へ配る。片方だけ止めると、送信中にもう片方が押せてしまう。 */
-const SUBMIT_BTNS = () => ['submit-btn', 'sticky-btn'].map($).filter(Boolean);
+/* ── 送信ボタン ─────────────────────────────────────────────────
+   2026-09-08 から #submit-btn の1つだけ（常設バーの #sticky-btn は廃止。
+   帯に残ったのは年換算の合計の表示だけで、押す物は置いていない）。
+   ★一覧の形は残す。ログイン後の再送で「送信中」を配る先が増えたときに、
+     配り忘れた1つが押せてしまう事故を、ここ1か所で防いでいる。 */
+const SUBMIT_BTNS = () => ['submit-btn'].map($).filter(Boolean);
 function setSubmitBusy(busy, label) {
   for (const b of SUBMIT_BTNS()) { b.disabled = busy; b.textContent = label; }
 }
@@ -1669,6 +1687,9 @@ function showGate(saved) {
      「登録の箱まで来た回数」が数えられない）。フォームを全部埋めきった人の数＝
      このイベントの数になり、pay_login_* → pay_report_submit と1本につながる。 */
   track('pay_login_shown', { saved: saved ? 1 : 0 });
+  /* ★箱は 5/5 の中にある。別の段に居るまま出すと、画面に無いものへ
+     scrollIntoView することになって何も起きない。先に運ぶ。 */
+  if (WZ) { WZ.goLast(); $('submit-block').hidden = false; }
   mountLogin(saved, 0);
   $('login-gate').style.display = '';
   $('login-gate').scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1721,6 +1742,9 @@ async function afterSignedIn() {
    両方がここを通る。★片方だけ直すと「90日が開かない」「メールが出ない」が起きる。 */
 function afterSaved(data, payload, airline) {
   try { localStorage.removeItem(PENDING_KEY); } catch (e) {}
+  /* ★出し切ったら下書きも消す（オーナー指示）。預かり（PENDING_KEY）と
+     同じ場所で消す ── 片方だけ消すと、次に開いた人に「まだ途中です」と出る。 */
+  if (WZ) WZ.clearDraft();
   /* この箱から会員になった人の「メールを受け取る」を、ここで1回だけ立てる。
      ★どの入口を通っても必ず最後にここへ来る。認証の直後に書くと、
        ページを離れる経路（Google・メール内リンク）が抜ける。 */
@@ -1859,7 +1883,12 @@ function instrToggle() {
   const on = String($('f-jobrole').value || '').split(',').indexOf('instructor') >= 0;
   if (box.hidden !== on) return;                  // 変わっていない
   box.hidden = !on;
-  if (on) return;
+  /* ★選んだら、その手当の欄を最初から開いておく（2026-09-09 オーナー指示）。
+     畳んだままだと、一行目の見出しだけが出て中に何があるか見えない。
+     ★この関数は先頭の `box.hidden !== on` で**変わったときだけ**走るので、
+       本人があとで畳んだものを勝手に開き直したりはしない。
+     ★必須（req-tag）は1つも増やさない ── 見え方だけを変える。 */
+  if (on) { $('instr-detail').open = true; return; }
   for (const b of INSTR_BOXES) b.checked = false;
   for (const id of INSTR_ALL_IDS) $(id).value = '';
   $('instr-detail').open = false;
@@ -1927,7 +1956,12 @@ function examToggle() {
   const on = String($('f-jobrole').value || '').split(',').indexOf('examiner') >= 0;
   if (box.hidden !== on) return;                  // 変わっていない
   box.hidden = !on;
-  if (on) return;
+  /* ★選んだら、その手当の欄を最初から開いておく（2026-09-09 オーナー指示）。
+     畳んだままだと、一行目の見出しだけが出て中に何があるか見えない。
+     ★この関数は先頭の `box.hidden !== on` で**変わったときだけ**走るので、
+       本人があとで畳んだものを勝手に開き直したりはしない。
+     ★必須（req-tag）は1つも増やさない ── 見え方だけを変える。 */
+  if (on) { $('exam-detail').open = true; return; }
   for (const b of EXAM_BOXES) b.checked = false;
   for (const id of EXAM_ALL_IDS) $(id).value = '';
   $('exam-detail').open = false;
@@ -2001,7 +2035,12 @@ function unionToggle() {
   const on = String($('f-jobrole').value || '').split(',').indexOf('union') >= 0;
   if (box.hidden !== on) return;                  // 変わっていない
   box.hidden = !on;
-  if (on) return;
+  /* ★選んだら、その手当の欄を最初から開いておく（2026-09-09 オーナー指示）。
+     畳んだままだと、一行目の見出しだけが出て中に何があるか見えない。
+     ★この関数は先頭の `box.hidden !== on` で**変わったときだけ**走るので、
+       本人があとで畳んだものを勝手に開き直したりはしない。
+     ★必須（req-tag）は1つも増やさない ── 見え方だけを変える。 */
+  if (on) { $('union-detail').open = true; return; }
   for (const id of UNION_ALL_IDS) $(id).value = '';
   $('union-detail').open = false;
   unionSync();
@@ -2051,7 +2090,12 @@ function mgmtToggle() {
   const on = String($('f-jobrole').value || '').split(',').indexOf('management') >= 0;
   if (box.hidden !== on) return;                  // 変わっていない
   box.hidden = !on;
-  if (on) return;
+  /* ★選んだら、その手当の欄を最初から開いておく（2026-09-09 オーナー指示）。
+     畳んだままだと、一行目の見出しだけが出て中に何があるか見えない。
+     ★この関数は先頭の `box.hidden !== on` で**変わったときだけ**走るので、
+       本人があとで畳んだものを勝手に開き直したりはしない。
+     ★必須（req-tag）は1つも増やさない ── 見え方だけを変える。 */
+  if (on) { $('mgmt-detail').open = true; return; }
   for (const id of MGMT_ALL_IDS) $(id).value = '';
   $('mgmt-detail').open = false;
   mgmtSync();
@@ -2103,7 +2147,12 @@ function nonlineToggle() {
   const on = String($('f-jobrole').value || '').split(',').indexOf('nonline') >= 0;
   if (box.hidden !== on) return;                  // 変わっていない
   box.hidden = !on;
-  if (on) return;
+  /* ★選んだら、その手当の欄を最初から開いておく（2026-09-09 オーナー指示）。
+     畳んだままだと、一行目の見出しだけが出て中に何があるか見えない。
+     ★この関数は先頭の `box.hidden !== on` で**変わったときだけ**走るので、
+       本人があとで畳んだものを勝手に開き直したりはしない。
+     ★必須（req-tag）は1つも増やさない ── 見え方だけを変える。 */
+  if (on) { $('nonline-detail').open = true; return; }
   for (const b of NONLINE_BOXES) b.checked = false;
   for (const id of NONLINE_ALL_IDS) $(id).value = '';
   $('nonline-detail').open = false;
@@ -2155,6 +2204,12 @@ const DETAIL_IDS = ['f-base','f-guarantee','f-hourly',
    の3つを守るだけになった。差は pay-viz.js が「どの項目にも入れていない分」として描く。 */
 function updatePayMode() { recalc(); }
 $('pay-detail').addEventListener('toggle', updatePayMode);
+/* ★内訳は最初から開けておく（2026-09-08 オーナー指示「入力してくれるかもしれない」）。
+   ⚠️ HTML に `open` 属性で書かない。属性で開いた <details> は初期表示で
+      toggle を**発火しない**ので、上の updatePayMode() が一度も走らないまま
+      「開いている」状態になる（画面は普通に見えたまま計算だけ動かない）。
+      既存の流儀（restoreInto() / pdRestore() の `.open = true`）に合わせる。 */
+$('pay-detail').open = true;
 
 /* ── 税：居住国と年収から概算して差し出す ─────────────────────
    ★決めつけない。入れるのは本人が触っていない間だけで、上書きは常にできる。
@@ -2384,7 +2439,7 @@ const GATE_PAY    = () => filled('f-currency') && payEntered() && filled('f-netp
 /* ★4. 契約と税は 2026-08-13 に必須化（オーナー指摘）。所得税率だけは任意のまま
      （税率表を持っていない国の人が、そこで詰まって送れなくなる）。 */
 const GATE_CONTRACT = () => filled('f-contract') && filled('f-taxcountry') && filled('f-seniority');
-const STEPS = [['s2', GATE_ROLE], ['s3', GATE_HOURS], ['s4', GATE_PAY]];
+const STEPS = [['s2', GATE_ROLE], ['s3', GATE_HOURS], ['s4', GATE_PAY], ['s5', GATE_CONTRACT]];
 
 function updateSteps(quiet) {
   const show = (id) => {
@@ -2400,23 +2455,36 @@ function updateSteps(quiet) {
      （2026-08-13 オーナー指摘）。
      飛ばさない代わりに、送信ボタンは全段そろったときだけ出す。これで
      「基本給が見えないのに送信ボタンだけ生きている」という元の懸念も起きない。 */
-  let last = -1;
-  for (let i = 0; i < STEPS.length; i++) { if (!STEPS[i][1]()) break; last = i; }
-  for (let i = 0; i <= last; i++) show(STEPS[i][0]);
-  if (last === STEPS.length - 1 && GATE_CONTRACT()) show('submit-block');
-  /* ★§3「報酬」が出たら、下端の常設バーも出す（2026-08-27 オーナー指示）。
-     途中で出したい人が押せる所を、いつでも持っている状態にする。 */
-  if (!$('s3').hidden) showSticky();
+  /* ★ウィザードが居るあいだ、段は生やさない（1画面1段が約束）。
+     hidden の出し入れは pay-wizard.js の show() だけが持つ。ここで触ると、
+     戻ったときに前の段まで一緒に画面へ出てくる。
+     送信ボタンは 5/5 の中にあり、そこへは Next でしか着けない
+     ＝「全段そろってから」は forward() が受け持っている。 */
+  if (WZ) {
+    $('submit-block').hidden = false;
+  } else {
+    let last = -1;
+    for (let i = 0; i < STEPS.length; i++) { if (!STEPS[i][1]()) break; last = i; }
+    for (let i = 0; i <= last; i++) show(STEPS[i][0]);
+    if (last === STEPS.length - 1 && GATE_CONTRACT()) show('submit-block');
+    /* ★§3「報酬」が出たら、下端の帯も出す（2026-08-27）。 */
+    if (!$('s3').hidden) showSticky();
+  }
   markRequired();
   markRail();
   markProgress();
+  /* 下書きは2秒のデバウンス。打鍵のたびに localStorage を叩かない。 */
+  if (WZ) WZ.sync();
   $('ai-legend').hidden = !document.querySelector('.form-input.ai-filled');
   /* ★「給与の内訳を入力する」から来た人を、§3 が出た**1回だけ**内訳まで寄せる。
-     旗は使ったら消す（そのあと勝手に飛ばない）。 */
-  if (PEND_DETAIL && $('pay-detail') && $('pay-detail').open && detailShown($('f-base'))) {
+     旗は使ったら消す（そのあと勝手に飛ばない）。
+     ★ウィザードが居るときは、旗を落とすのは pay-wizard.js の onStep（3/5 に着いた瞬間）。
+       ここに任せると「着いたあと**最初に欄を触った瞬間**」まで旗が残り、打鍵ひとつで
+       画面が飛ぶ（2026-09-08 に踏んだ ── 段が出るのは Next であって入力ではない）。
+       1画面1段なので、そもそも寄せ直す先も要らない。 */
+  if (!WZ && PEND_DETAIL && $('pay-detail') && $('pay-detail').open && detailShown($('f-base'))) {
     PEND_DETAIL = false;
-    if (window.requestAnimationFrame) requestAnimationFrame(scrollToPaySec);
-    else setTimeout(scrollToPaySec, 0);
+    afterLoad(scrollToPaySec);
   }
 }
 
@@ -2442,6 +2510,14 @@ function markRequired() {
       const t = lab.querySelector('.miss-tag');
       if (t) t.remove();
     }
+  }
+  /* ★赤い箱も一緒に落とす。落とすのは markMissing() が書いたものだけ
+     （dataset.from）。ほかのエラー（額面と時間の食い違いなど）は
+     「空かどうか」では消せないので、そのまま残す。 */
+  const eb = $('err');
+  if (eb && eb.dataset.from === 'miss' && !document.querySelector('.fld.is-miss')) {
+    eb.innerHTML = '';
+    delete eb.dataset.from;
   }
 }
 /* 内訳の欄の左のレール（2026-09-03 その3・オーナー指示
@@ -2506,6 +2582,10 @@ function progParts(el) {
 function markProgress() {
   for (const [id, gate] of SEC_GATE) {
     const sec = $(id);
+    /* ★出ていない段は数えない。openReq/visReq は offsetParent で数えるので、
+       隠れている段は「欄ゼロ」＝0% になり、戻ってきたとき 0% のまま焼き付く。
+       出し直したときは pay-wizard.js の onStep がここを呼び直す。 */
+    if (sec.hidden) continue;
     const el = sec.querySelector('.sec-prog');
     if (!el) continue;
     el.hidden = false;
@@ -2555,9 +2635,14 @@ function enterMode(mode) {
   $('entry').hidden = true;
   $('ps').hidden = false;
   $('ps').classList.toggle('is-slim', slim);
-  if (slim && $('form-body').hidden) {
-    $('form-body').hidden = false;
-    updateSteps(true);        // 隠れている間に復元された値の分を出す
+  if (slim) {
+    if ($('form-body').hidden) {
+      $('form-body').hidden = false;
+      updateSteps(true);      // 隠れている間に復元された値の分を出す
+    }
+    /* ★ここで初めて段を歩き始める（入口の2択に居るあいだは器を動かさない）。
+       下書きがある人は、その続きの段から始まる。2回目以降は何も起きない。 */
+    if (WZ) WZ.start();
   }
 }
 window.PVEnterMode = enterMode;
@@ -2575,6 +2660,21 @@ $('ps-skip').addEventListener('click', () => { track('pay_entry_manual', { from:
    ★開くところまでしかやらない。入力モードの切り替えは書き写さない
      （.open = true が toggle を出し、上の updatePayMode がそのまま走る）。
    ★同じページに居るまま踏まれることもあるので hashchange でも同じことをする。 */
+/* ★寄せる／カーソルを入れるのは、読み込みが**終わってから**。
+   ハッシュ付き（#pay-detail）で来ると、ブラウザは読み込み完了の時点で自分でも
+   「その id の要素へ移動する」を行い、そのときカーソルを外す
+   （<details> は focus できないので、行き先が body に落ちる）。
+   解析の途中で focus すると、この後始末に上書きされて先頭に入らない。
+   ⚠️ 速い回だけ起きる。2026-09-08、英語版だけが「カーソルが先頭に無い」で落ちたが、
+      日本語版との差は読み込みの速さだけだった（同じ形はどちらでも起きる）。 */
+function afterLoad(fn) {
+  var run = function () {
+    if (window.requestAnimationFrame) requestAnimationFrame(fn);
+    else setTimeout(fn, 0);
+  };
+  if (document.readyState === 'complete') run();
+  else window.addEventListener('load', run, { once: true });
+}
 var PEND_DETAIL = false;
 function openDetailFromHash() {
   if (location.hash !== '#pay-detail') return;
@@ -2594,8 +2694,7 @@ function openDetailFromHash() {
      ここで諦めると、§1・§2 を埋め終えたあとも §3 は画面のずっと下のままで、
      自分で探すことになる。updateSteps() が §3 を出した**1回だけ**寄せる。 */
   if (!detailShown($('f-base'))) PEND_DETAIL = true;
-  if (window.requestAnimationFrame) requestAnimationFrame(scrollToPaySec);
-  else setTimeout(scrollToPaySec, 0);
+  afterLoad(scrollToPaySec);
 }
 function detailShown(el) { return !!el && el.getBoundingClientRect().height > 0; }
 /* 寄せ先は §3「3. 報酬」の**頭**（2026-09-03 その5・オーナー指摘
@@ -2999,6 +3098,57 @@ varNoneSync();
 markRail();
 updateSteps(true);
 
+/* ══ 5ステップの器を起こす（Phase 5・2026-09-08）══════════════════════
+   ★ここで渡すのは「この画面の読み方」だけ。給与の計算も、保存の契約も、
+     匿名化の判断も pay-wizard.js は1つも持たず、下の既存の関数を呼んでいる。
+     年換算は annualTotal()、送る中身は buildPayload()、足りない欄は
+     missingAll() ── どれもこの画面が前から持っているもの。 */
+
+/* ★下書きに入れるのは構造化された入力値だけ。f-psdetail（明細の読み取り原文）は
+     許可リストから**明示的に外す** ── 氏名・社員番号が混じりうる生テキストで、
+     オーナーの指示「明細画像・PDF・OCR 原文は下書きに保存しない」に当たる。
+   ★除外リストではなく許可リストで濾すこと。欄が増えた日に黙って漏れる。 */
+const DRAFT_IDS = ALL_IDS.filter((id) => id !== 'f-psdetail');
+
+/* 選択肢の文字は画面の <option> から取る（日英で自動的に正しい）。 */
+const optLabel = (id) => {
+  const sel = $(id);
+  if (!sel || !sel.options) return '';
+  const o = sel.options[sel.selectedIndex];
+  return o && sel.value ? o.textContent.trim() : '';
+};
+
+if (WZ) {
+  WZ.init({
+    lang: LANG,
+    bodyId: 'form-body',
+    totalBarId: 'sticky-submit',
+    reviewId: 'wz-review',
+    errId: 'err',
+    /* ★合計の帯を出すのは「3. 報酬」の段だけ（オーナー指示）。 */
+    steps: [{ id: 's1' }, { id: 's2' }, { id: 's3', totalBar: true }, { id: 's4' }, { id: 's5', totalBar: true }],
+    draftIds: DRAFT_IDS,
+    read: (id) => { const e = $(id); return e ? e.value : ''; },
+    restore: restoreInto,
+    missing: missingAll,
+    markMissing: markMissing,
+    clearErr: clearErr,
+    payload: () => buildPayload(),
+    annualOrig: annualTotal,
+    nameOf: optLabel,
+    onStep: (id) => {
+      /* 段を出し直したので、印とゲージを引き直す（隠れている間は数えていない）。 */
+      markRequired();
+      markProgress();
+      /* ★「内訳を入力する」から来た旗は、3/5 に着いた**その瞬間**に落とす。
+         go() が段の頭まで運んで先頭の欄に入れているので、ここで寄せ直さない。 */
+      if (id === 's3') PEND_DETAIL = false;
+      if (id !== 's5') return;
+      WZ.render();
+    }
+  });
+}
+
 /* ── 先月の内容をサーバから埋める ──────────────────────────────
    ★端末の localStorage だけだと、機種変・別ブラウザ・明細から入った人に効かない。
      ログイン済みなら本人の直近の行から埋める（my_pay_reports は本人の行しか返さない）。
@@ -3085,7 +3235,11 @@ updateSteps(true);
    ★送るときだけ、呼ぶ直前に消す。送ってから消すと失敗やリロードで二重送信になる。 */
 const PENDING_MAX_AGE = 14 * 24 * 60 * 60 * 1000;   // 2週間より古い下書きは持たない
 (async function () {
-  const signedIn = !!(await sessionUserId());
+  const _uid = await sessionUserId();
+  const signedIn = !!_uid;
+  /* ★下書きの持ち主を確かめる。別のアカウントの下書きは戻さず捨てる。
+     未ログインで書いたものは、同じブラウザで本人が認証しただけなので押印し直す。 */
+  if (WZ) WZ.setUid(_uid);
   setSubmitLabel(signedIn);
 
   const drop = () => { try { localStorage.removeItem(PENDING_KEY); } catch (e) {} };
@@ -3105,7 +3259,13 @@ const PENDING_MAX_AGE = 14 * 24 * 60 * 60 * 1000;   // 2週間より古い下書
   if (pending) {
     if (!restoreInto(pending)) { drop(); pending = null; }
     else {
+      /* ★下書きより預かりのほうが新しい。start() に上書きさせない（2026-09-09）。 */
+      if (WZ) WZ.skipDraft();
       enterMode('manual');   // ★入口の2択に戻さない（送るところまで済ませて帰ってきた人）
+      /* ★値は全部戻っているのに 1/5 から始まると、本人には消えたように見える。
+         預かり証が取れなかった人（下の ③ の枝）はここで止まるので、
+         showGate() の goLast() には乗らない。ここで運んでおく。 */
+      if (WZ) WZ.goLast();
       $('restore-bar').style.display = 'none';
     }
   }
@@ -3155,7 +3315,7 @@ function showErr(msg, title) {
   $('err').innerHTML = '<div class="form-alert"><span class="fa-title">' + esc(title || '送信できませんでした') + '</span>' + esc(msg) + '</div>';
   $('err').scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
-function clearErr() { $('err').innerHTML = ''; clearMissMarks(); }
+function clearErr() { const e = $('err'); e.innerHTML = ''; delete e.dataset.from; clearMissMarks(); }
 
 /* ── 足りない必須項目を、まとめて拾う（2026-08-27 オーナー指示）──
    前は早期 return で1件ずつだったので、3つ空いている人は3回押し直していた。
@@ -3175,6 +3335,27 @@ function missingRequired() {
     return !(row && ![...row.querySelectorAll('input, select')].some((e) => e.value.trim()));
   });
 }
+/* ★送信の直前だけは、**全部の段を一時的に出して**数える。
+   missingRequired() は offsetParent で「条件が揃っていない欄」を落としているが、
+   その目は「別の段に居るから隠れている欄」と区別が付かない。数え終えたら必ず戻す
+   ＝画面には1度も2段は出ない（同じ関数の中で開いて閉じる）。 */
+function missingAll() {
+  if (!WZ) return missingRequired();
+  const back = STEP_IDS.map((id) => [id, $(id).hidden]);
+  for (const [id] of back) $(id).hidden = false;
+  /* 畳んだ「4. 契約と税」も一度開く。畳んだままだと在籍年数が空でも
+     数えられず、送信の1件ずつの判定でしか出てこない（その欄は画面に無い）。 */
+  const folded = $('s4-body').hidden;
+  if (folded) { $('s4-sum').hidden = true; $('s4-body').hidden = false; $('s4-sub').hidden = false; }
+  const m = missingRequired();
+  for (const [id, h] of back) $(id).hidden = h;
+  /* 足りない欄が無ければ畳み直す（見た目を勝手に変えない）。 */
+  if (folded && !m.some((f) => $('s4-body').contains(f))) {
+    $('s4-sum').hidden = false; $('s4-body').hidden = true; $('s4-sub').hidden = true;
+  }
+  return m;
+}
+
 const reqLabel = (f) => {
   const lab = f.querySelector('.form-label');
   if (!lab) return '';
@@ -3186,8 +3367,12 @@ const reqLabel = (f) => {
    その欄が画面に無い、という行き止まりになる。段だけ開ける。
    ★#submit-block は開けない（全段そろったときだけ、は維持）。 */
 function revealSteps() {
-  for (const [id] of STEPS) $(id).hidden = false;
-  showSticky();
+  /* ★ウィザードでは段を全部出さない（1画面1段が約束）。代わりに
+     markMissing() が「足りない欄のある段」へ本人を運ぶ。 */
+  if (!WZ) {
+    for (const [id] of STEPS) $(id).hidden = false;
+    showSticky();
+  }
   markRequired();
   markProgress();
 }
@@ -3219,7 +3404,15 @@ function markMissing(list) {
     t.textContent = MISS_TAG;
     lab.appendChild(t);
   }
+  /* ★先頭の欄が別の段に居ることがある。**エラーを書く前に**運ぶ
+     （#err はウィザードが今の段の中へ引っ越すので、順番を逆にすると
+       書いた直後に別の段へ持って行かれて、本人には何も出ない）。 */
+  if (WZ) WZ.goToField(list[0]);
   $('err').innerHTML = '<div class="form-alert"><span class="fa-title">入力していない必須項目があります</span>赤く囲った欄がまだ空です。</div>';
+  /* ★この赤箱は「空の欄がある」としか言っていない。全部埋まったら markRequired() が
+     自分で消す（下の dataset を見ている）。1画面1段になった今、消さないと
+     埋め終わった段の下にいつまでも赤が残り、押せないように見える。 */
+  $('err').dataset.from = 'miss';
   /* ★飛ぶのは先頭ひとつ。印は上で全部に付けてある。 */
   const inp = jumpTarget(list[0]);
   if (!inp) return;
@@ -3227,10 +3420,37 @@ function markMissing(list) {
   inp.focus({ preventScroll: true });
 }
 
+/* ── 空ではないが不正、で止まったとき（2026-09-09）─────────────
+   markMissing() が運ぶのは**空の必須欄**だけ。「通貨を選んでください」
+   「変動給の『何に連動する支給か』を選んでください」のような1件ずつの判定は、
+   止めた欄が別の段に居ても運んでいなかった。赤箱だけ今の段（5/5 確認）に出て、
+   直すべき欄は画面のどこにも無い ── 本人には「押しても何も起きない」としか映らない。
+   ★運んでから書く。逆にすると #err はウィザードが段ごと引っ越すので、
+     書いた直後に別の段へ持って行かれて何も出ない（markMissing と同じ注意）。 */
+function stopAt(id, msg) {
+  const host = $(id);
+  if (WZ && host) WZ.goToField(host);
+  showErr(msg);
+  /* 焦点は**見えている入力**にだけ当てる。#f-jobrole は hidden（本体はチェックの絵）で、
+     #pd-var-rows は行の入れ物なので、その中の最初の入力を探す。 */
+  const el = host && /^(INPUT|SELECT|TEXTAREA)$/.test(host.tagName)
+    ? host : (host && host.querySelector('select, input, textarea'));
+  if (el && el.offsetParent) { try { el.focus({ preventScroll: true }); } catch (e) {} }
+}
+
 // ── 送信 ──────────────────────────────────────────────────────
 /* ★unc() を通す。金額の欄は画面に 1,150,000 と出ているので、そのまま送ると
    サーバの ::numeric が落ちる（送るのは常に素の数字）。 */
 const val = (id) => { const v = unc($(id).value).trim(); return v === '' ? null : v; };
+/* ★役職・区分だけは val() を通してはいけない（2026-09-08）。
+   val() は中で unc() ── 金額の桁区切りを外す関数 ── を通すので、
+   #f-jobrole が区切りに使っているカンマまで一緒に消える。
+   'line,instructor' が 'lineinstructor' になり、サーバの語彙検査
+   （pv_validate_pay_payload）に落ちて「役職・区分が不正です」で
+   **送信そのものが失敗していた**。1つしか選ばない人には区切りが無いので
+   何も起きず、2つ以上選んだ人だけが最後の最後で弾かれる。
+   ここは値をそのまま読む。 */
+const roleCodes = () => String($('f-jobrole').value || '').split(',').filter(Boolean);
 /* いくつかの欄を足して1つの列へ送る。全部空なら null（0 を送らない）。 */
 const sumField = (...ids) => {
   let t = 0, any = false;
@@ -3238,64 +3458,16 @@ const sumField = (...ids) => {
   return any ? String(+t.toFixed(2)) : null;
 };
 
-async function submitPayReport() {
-  clearErr();
-  hideGate();
-
-  /* ★まず「空のままの必須欄」を全部まとめて出す（2026-08-27 オーナー指示）。
-     常設バーで途中からでも押せるので、1件ずつ返すと何度も押し直しになる。
-     ここを抜けた後の判定（額面・変動給の種類・時給との組み合わせ）は
-     「空かどうか」ではないので箇条書きにできない。今までどおり1件ずつ残す。 */
-  revealSteps();
-  const miss = missingRequired();
-  if (miss.length) return markMissing(miss);
-
-  const airline = val('f-airline');
-  if (!airline) return showErr('会社を選んでください。');
-  if (airline === 'other' && !val('f-airline-other')) return showErr('「一覧にない会社」を選んだ場合は、会社名を入力してください。');
-  if (!val('f-position')) return showErr('職位を選んでください。');
-  if (!val('f-fleet')) return showErr('機材を選んでください。');
-  if (!val('f-jobrole')) return showErr('役職・区分を選んでください。');
-  if (!val('f-age')) return showErr('年代を選んでください。');
-  if (!val('f-currency')) return showErr('通貨を選んでください。');
-  /* ★飛んだ時間は必須。0 は許す（地上勤務・病欠の月）。空欄だけを弾く。
-     これが無いと時間あたり報酬が出せず、国と会社をまたいだ比較ができない。 */
-  if (!val('f-block')) {
-    return showErr('フライトタイムを入れてください。飛んでいない月や、時間を管理していない場合は 0 と入れてください。');
-  }
-  if (!val('f-stay')) {
-    return showErr('ステイ日数を入れてください。基地の外で泊まらなかった月は 0 と入れてください。');
-  }
-  /* ★段のゲートと同じ payEntered() を通す（見る場所を1本にしてある）。
-     金額が 0 のときだけここで弾く。 */
-  /* ★2026-08-26 その2、内訳を開いているかで分けるのをやめた。総支給はいつでも必須で、
-     基本給は任意（「該当なし」もある）。分けたままだと、内訳を開いて「該当なし」を付けた人が、
-     送信ボタンは出ているのに押すと止まる。f-hourly は明細読み取り専用の hidden なので、
-     その人には埋めようが無い。 */
-  if (num('f-gross') <= 0) {
-    return showErr('その月の総支給額を入れてください。手当だけでは、他社と比べる軸がありません。');
-  }
-  if (!val('f-netpay')) return showErr('その月の手取り額を入れてください（明細の「差引支給額」「Net Pay」）。');
-  if (!val('f-bonus-mo')) return showErr('今月出たボーナスを入れてください。出ていない月は 0 と入れてください。');
-  if (!val('f-perdiem')) return showErr('パーディアムを入れてください。付かない会社・出なかった月は 0 と入れてください。');
-  if (!val('f-housing')) return showErr('住居を選んでください。');
-  if ($('f-housing').value === 'allowance' && !val('f-housing-amt')) {
-    return showErr('「住宅手当（現金）」を選んだ場合は、その月額も入れてください。');
-  }
-  /* ★変動給の行を足したときだけ「何に連動する支給か」は必須（2026-08-26 その2 オーナー指示）。
-     分からない人には「わからない」がある。行を1つも足していない人は素通り。
-     ★判定は pdRead('var') に任せる（＋を押しただけの空の行を落とす条件を2か所に書かない）。 */
-  if (pdRead('var').some((r) => !r.basis)) {
-    return showErr('変動給の「何に連動する支給か」を選んでください。当てはまるものが分からないときは「わからない」を選んでください。');
-  }
-  /* ★4. 契約と税（2026-08-13 に必須化）。畳まれていても値は入っているので同じ判定で通る。 */
-  if (!val('f-contract')) return showErr('契約形態を選んでください。');
-  if (!val('f-taxcountry')) return showErr('居住国（納税地）を選んでください。');
-  if (!val('f-seniority')) return showErr('在籍年数を入れてください。');
-  if (num('f-hourly') > 0 && num('f-block') <= 0 && num('f-guar') <= 0) {
-    return showErr('時給を入れた場合は、フライトタイムか保証フライトタイムのどちらかが必要です。');
-  }
-
+/* ── payload の組み立て（2026-09-08 に関数へ出した）─────────────────
+   ★中身は1行も変えていない。切り出した理由はひとつだけ ──
+     5/5 の確認画面が出す「公開イメージ」は、**実際に送るのと同じ物**から
+     作らなければならない。2つ目の組み立てを書いた瞬間、画面の予告と
+     サーバに入る物が、どちらも普通に動いたまま静かにズレる。
+   ★引数を省くと今の選択から読む（確認画面はこちらで呼ぶ）。
+   ★切り出しの前後でバイト単位に一致することを、3つの型（総支給だけ／
+     内訳あり／役割モジュール5つ＋組合払い）× 日英で突き合わせてある。 */
+function buildPayload(airline) {
+  if (airline === undefined) airline = val('f-airline');
   const payload = {
     airline:             airline,
     airline_other:       val('f-airline-other'),
@@ -3303,8 +3475,8 @@ async function submitPayReport() {
     fleet:               val('f-fleet'),
     /* ★役職・区分は複数選択。job_roles が正で、job_role には先頭（主たる役割）を入れる。
        古い行・明細読み取り・管理者メールが job_role を見ているので残す。 */
-    job_roles:           val('f-jobrole').split(',').filter(Boolean),
-    job_role:            val('f-jobrole').split(',')[0] || '',
+    job_roles:           roleCodes(),
+    job_role:            roleCodes()[0] || '',
     age_bucket:          val('f-age'),
     base_iata:           val('f-base-iata'),
     period_year:         val('f-year'),
@@ -3382,6 +3554,70 @@ async function submitPayReport() {
     source:              val('f-source') || 'web',
     lang:                LANG,
   };
+  return payload;
+}
+
+async function submitPayReport() {
+  clearErr();
+  hideGate();
+
+  /* ★まず「空のままの必須欄」を全部まとめて出す（2026-08-27 オーナー指示）。
+     常設バーで途中からでも押せるので、1件ずつ返すと何度も押し直しになる。
+     ここを抜けた後の判定（額面・変動給の種類・時給との組み合わせ）は
+     「空かどうか」ではないので箇条書きにできない。今までどおり1件ずつ残す。 */
+  revealSteps();
+  /* ★ウィザードでは missingAll()。今出ている段（5/5 確認）だけを見る missingRequired() は
+     1〜4段の空欄を offsetParent で落とすので、空のまま送信できてしまう。 */
+  const miss = missingAll();
+  if (miss.length) return markMissing(miss);
+
+  const airline = val('f-airline');
+  if (!airline) return stopAt('f-airline', '会社を選んでください。');
+  if (airline === 'other' && !val('f-airline-other')) return stopAt('f-airline-other', '「一覧にない会社」を選んだ場合は、会社名を入力してください。');
+  if (!val('f-position')) return stopAt('f-position', '職位を選んでください。');
+  if (!val('f-fleet')) return stopAt('f-fleet', '機材を選んでください。');
+  if (!val('f-jobrole')) return stopAt('f-jobrole', '役職・区分を選んでください。');
+  if (!val('f-age')) return stopAt('f-age', '年代を選んでください。');
+  if (!val('f-currency')) return stopAt('f-currency', '通貨を選んでください。');
+  /* ★飛んだ時間は必須。0 は許す（地上勤務・病欠の月）。空欄だけを弾く。
+     これが無いと時間あたり報酬が出せず、国と会社をまたいだ比較ができない。 */
+  if (!val('f-block')) {
+    return stopAt('f-block', 'フライトタイムを入れてください。飛んでいない月や、時間を管理していない場合は 0 と入れてください。');
+  }
+  if (!val('f-stay')) {
+    return stopAt('f-stay', 'ステイ日数を入れてください。基地の外で泊まらなかった月は 0 と入れてください。');
+  }
+  /* ★段のゲートと同じ payEntered() を通す（見る場所を1本にしてある）。
+     金額が 0 のときだけここで弾く。 */
+  /* ★2026-08-26 その2、内訳を開いているかで分けるのをやめた。総支給はいつでも必須で、
+     基本給は任意（「該当なし」もある）。分けたままだと、内訳を開いて「該当なし」を付けた人が、
+     送信ボタンは出ているのに押すと止まる。f-hourly は明細読み取り専用の hidden なので、
+     その人には埋めようが無い。 */
+  if (num('f-gross') <= 0) {
+    return stopAt('f-gross', 'その月の総支給額を入れてください。手当だけでは、他社と比べる軸がありません。');
+  }
+  if (!val('f-netpay')) return stopAt('f-netpay', 'その月の手取り額を入れてください（明細の「差引支給額」「Net Pay」）。');
+  if (!val('f-bonus-mo')) return stopAt('f-bonus-mo', '今月出たボーナスを入れてください。出ていない月は 0 と入れてください。');
+  if (!val('f-perdiem')) return stopAt('f-perdiem', 'パーディアムを入れてください。付かない会社・出なかった月は 0 と入れてください。');
+  if (!val('f-housing')) return stopAt('f-housing', '住居を選んでください。');
+  if ($('f-housing').value === 'allowance' && !val('f-housing-amt')) {
+    return stopAt('f-housing-amt', '「住宅手当（現金）」を選んだ場合は、その月額も入れてください。');
+  }
+  /* ★変動給の行を足したときだけ「何に連動する支給か」は必須（2026-08-26 その2 オーナー指示）。
+     分からない人には「わからない」がある。行を1つも足していない人は素通り。
+     ★判定は pdRead('var') に任せる（＋を押しただけの空の行を落とす条件を2か所に書かない）。 */
+  if (pdRead('var').some((r) => !r.basis)) {
+    return stopAt('pd-var-rows', '変動給の「何に連動する支給か」を選んでください。当てはまるものが分からないときは「わからない」を選んでください。');
+  }
+  /* ★4. 契約と税（2026-08-13 に必須化）。畳まれていても値は入っているので同じ判定で通る。 */
+  if (!val('f-contract')) return stopAt('f-contract', '契約形態を選んでください。');
+  if (!val('f-taxcountry')) return stopAt('f-taxcountry', '居住国（納税地）を選んでください。');
+  if (!val('f-seniority')) return stopAt('f-seniority', '在籍年数を入れてください。');
+  if (num('f-hourly') > 0 && num('f-block') <= 0 && num('f-guar') <= 0) {
+    return stopAt('f-block', '時給を入れた場合は、フライトタイムか保証フライトタイムのどちらかが必要です。');
+  }
+
+  const payload = buildPayload(airline);
 
   setSubmitBusy(true, '送信中…');
 
@@ -3459,26 +3695,20 @@ async function submitPayReport() {
 }
 $('submit-btn').addEventListener('click', submitPayReport);
 
-/* ── 常設バー（2026-08-27）────────────────────────────────────
-   §3「報酬」が出たら下端に出し、以後は隠さない（段と同じ規則）。
-   #submit-block が画面に入っているあいだだけ .is-off で沈める（同じボタンを2つ見せない）。 */
-function stickyWatch() {
-  const bar = $('sticky-submit'), blk = $('submit-block');
-  if (!bar || !blk || bar._io) return;
-  if (typeof IntersectionObserver !== 'function') return;   // 無い環境では出したまま
-  bar._io = new IntersectionObserver((es) => {
-    for (const e of es) bar.classList.toggle('is-off', e.isIntersecting);
-  }, { rootMargin: '0px 0px -60px 0px' });
-  bar._io.observe(blk);
-}
+/* ── 下端の帯（2026-08-27 → 2026-09-08 に作り替え）───────────────
+   出すのは「3. 報酬」と「5. 確認」の2つ（pay-wizard.js の steps[].totalBar）。
+   ★2026-09-08、提出ボタンが画面に入ったら沈める仕掛けをやめた。
+     あれは帯に「匿名で提出」が載っていたころ、同じボタンを2つ見せないためのもの。
+     帯が**年換算の合計の表示だけ**になった今それを残すと、確認画面で
+     いちばん見たい数字が黙って消える（オーナー指摘）。押す物は載っていない。 */
 function showSticky() {
   const bar = $('sticky-submit');
   if (!bar || !bar.hidden) return;
   bar.hidden = false;
   document.body.classList.add('has-cta');
-  stickyWatch();
 }
-$('sticky-btn').addEventListener('click', submitPayReport);
+/* ★#sticky-btn は 2026-09-08 に廃止（帯は年換算の合計の表示だけ）。
+   押す物はステップ末尾の Next と 5/5 の提出ボタンの2つで、送信の入口は後者だけ。 */
 
 // ── 結果（★入力させずに返す。これが投稿の見返り）─────────────
 function renderResult(d, p) {

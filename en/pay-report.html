@@ -148,7 +148,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
          注意書きを読まされていた。匿名の約束は下の2択カードの1行目に移した。 -->
     <div class="text-center mb-9">
       <h1 class="text-3xl font-extrabold mb-3" style="letter-spacing:-.02em">Add your pay</h1>
-      <p class="pay-count" id="pay-count">Share one and you can see other pilots' real pay data</p>
+      <p class="pay-count" id="pay-count">Share one and you can see other pilots' pay</p>
     </div>
 
     <!-- Form ── levels.fyi 型：埋めると下に次が生える -->
@@ -173,8 +173,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                ・Quick ………… 落とすだけで金額の欄が埋まる
                事実の要約であって、盛った言い方に書き換えない。 -->
           <button type="button" class="entry-card is-primary" id="entry-payslip">
-            <span class="entry-ico" aria-hidden="true">📄</span>
-            <span class="entry-t">Auto-fill from a payslip</span>
+            <span class="entry-t"><span class="p" aria-hidden="true">📄</span>Auto-fill from a payslip</span>
             <span class="entry-benefits">
               <span class="entry-b"><i aria-hidden="true">✓</i>Anonymous</span>
               <!-- 盾を付けるのはここだけ。3つのうちこれだけが「こちら側の仕組み」の話で、
@@ -185,8 +184,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
             <span class="entry-formats">PDF · PNG · JPG · WebP</span>
           </button>
           <button type="button" class="entry-card" id="entry-manual">
-            <span class="entry-ico" aria-hidden="true">✎</span>
-            <span class="entry-t">Enter manually</span>
+            <span class="entry-t"><span class="p" aria-hidden="true">✎</span>Enter manually</span>
             <span class="entry-benefits">
               <span class="entry-b"><i aria-hidden="true">✓</i>Anonymous</span>
               <span class="entry-b"><i aria-hidden="true">✓</i>Type the figures in while looking at your payslip</span>
@@ -199,7 +197,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
 
       <!-- Auto-fill from a payslip — redacted on your device, you approve it, then it is sent -->
       <div class="ps" id="ps" hidden>
-        <p class="ps-step" id="ps-step">STEP 1 OF 2 — READ THE PAYSLIP</p>
+        <p class="ps-step" id="ps-step">READ THE PAYSLIP (OPTIONAL)</p>
         <button type="button" class="ps-drop" id="ps-drop">
           <span class="ps-ico" aria-hidden="true">📄</span>
           <span class="ps-drop-txt">
@@ -246,7 +244,6 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           <!-- 進み具合のゲージ。中身は markProgress() が書く。押すと最初の未入力欄へ飛ぶ。 -->
           <button type="button" class="sec-prog" hidden></button>
         </div>
-        <p class="sec-sub">About 50 seconds. The next section opens up as you fill this one in.</p>
 
         <div class="fld">
           <label class="form-label" for="f-airline">Airline<span class="req-tag">Required</span></label>
@@ -388,7 +385,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
         <div class="fld" id="wrap-other" style="display:none">
           <label class="form-label" for="f-airline-other">Airline name (not in the list)<span class="req-tag">Required</span></label>
           <input type="text" id="f-airline-other" class="form-input" maxlength="80" placeholder="e.g. Wizz Air Abu Dhabi"/>
-          <p class="fld-hint">Free-text airline names are <b>excluded from public aggregates</b> (the name itself can identify you). We match them to a listed airline later.</p>
+          <p class="fld-hint">Free-text airline names are <b>excluded from public aggregates</b>. We match them to a listed airline later.</p>
         </div>
         <div class="grid2">
           <div class="fld">
@@ -449,7 +446,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
             <!--END:BOXES:f-jobrole-->
           </div>
           <input type="hidden" id="f-jobrole"/>
-          <p class="fld-hint">Tick <b>everything</b> that applies. Plenty of pilots fly the line and instruct at the same time.</p>
+          <p class="fld-hint">Tick <b>everything</b> that applies.</p>
         </div>
         <div class="fld">
           <!-- ★中身は node gen-vocab.mjs が pv-vocab.mjs の AGE_BUCKETS から生成する。手で足さない。 -->
@@ -462,7 +459,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
             <option value="50-59">50–59</option>
             <option value="60+">60 or over</option>
           </select>
-          <p class="fld-hint">Pay rises with age at every airline, so the same seat at the same carrier means a different number at a different age. We only ask for a 10-year band.</p>
+          <p class="fld-hint">We only ask for a 10-year band.</p>
         </div>
       </div>
 
@@ -480,7 +477,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
             <select id="f-year" class="form-input" aria-label="Year"></select>
             <select id="f-month" class="form-input" aria-label="Month"></select>
           </div>
-          <p class="fld-hint">The month of that one payslip. <b>One report per month</b> &mdash; re-filing the same airline and month is treated as a correction and overwrites it.</p>
+          <p class="fld-hint">Re-filing the same airline and month is treated as a correction and overwrites it.</p>
         </div>
         <!-- ★Ask actual and guaranteed side by side. These used to be hidden behind
              the hourly-pay branch, so salaried pilots were never asked about the
@@ -493,24 +490,24 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           <div class="fld">
             <label class="form-label" for="f-block">Flight time<span class="req-tag">Required</span></label>
             <input type="number" id="f-block" class="form-input" min="0" max="200" step="any" inputmode="decimal" placeholder="e.g. 78.5"/>
-            <p class="fld-hint">What you <b>actually flew</b> that month (block hours). It is the denominator of pay per block hour &mdash; the only measure that compares across countries and airlines.<br>If you did not fly that month, or you do not track hours, enter <b>0</b>.</p>
+            <p class="fld-hint">What you actually flew that month (block hours). Enter <b>0</b> if you did not fly, or do not track hours.</p>
           </div>
           <div class="fld">
             <label class="form-label" for="f-duty-h">Duty time<span class="opt-tag">optional</span></label>
             <input type="number" id="f-duty-h" class="form-input" min="0" max="400" step="any" inputmode="decimal" placeholder="e.g. 160"/>
-            <p class="fld-hint">Total hours <b>from report to release</b> for the month. It includes standby and ground duties, so the same flight time can mean very different duty at another airline.</p>
+            <p class="fld-hint">Total hours from report to release for the month, standby and ground duties included.</p>
           </div>
         </div>
         <div class="grid2">
           <div class="fld">
             <label class="form-label" for="f-guar">Guaranteed flight time<span class="opt-tag">optional</span></label>
             <input type="number" id="f-guar" class="form-input" min="0" max="200" step="any" inputmode="decimal" placeholder="e.g. 75"/>
-            <p class="fld-hint">The contractual floor you are paid <b>even if you do not fly it</b> (<b>Minimum Guarantee / MG</b>).<br>Many carriers &mdash; Japanese ones among them &mdash; have no guarantee at all: <b>leave it blank</b>.</p>
+            <p class="fld-hint">The contractual floor you are paid <b>even if you do not fly it</b> (Minimum Guarantee). Leave it blank if your contract has none.</p>
           </div>
           <div class="fld">
             <label class="form-label" for="f-stay">Layover nights<span class="req-tag">Required</span></label>
             <input type="number" id="f-stay" class="form-input" min="0" max="31" step="1" inputmode="numeric" placeholder="e.g. 8"/>
-            <p class="fld-hint"><b>Nights spent away from base</b>. If every trip was a day return, enter <b>0</b>.<br>Two contracts can pay the same and keep you away from home a completely different number of nights.</p>
+            <p class="fld-hint">Nights spent away from base. Enter <b>0</b> if every trip was a day return.</p>
           </div>
         </div>
 
@@ -525,7 +522,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
             <label class="form-label" for="f-base-iata">Base (3-letter IATA)<span class="opt-tag">optional</span></label>
             <input type="text" id="f-base-iata" class="form-input" maxlength="3" style="text-transform:uppercase" placeholder="DXB"/>
           </div>
-          <p class="fld-hint">Base <b>never appears in any public aggregate</b>. Once the data is narrowed to airline, fleet and rank, adding base would pin it to one person in any thin segment.</p>
+          <p class="fld-hint">Base <b>never appears in any public aggregate</b>. Narrowed to airline, fleet and rank, adding base would pin it to one person in a thin segment.</p>
         </div>
         <div class="chips">
           <button type="button" class="chip" data-open="f-duty"><span class="p">+</span>Duty days</button>
@@ -539,7 +536,6 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           <span class="sec-tag req">Required</span>
           <button type="button" class="sec-prog" hidden></button>
         </div>
-        <p class="sec-sub">Enter the figures exactly as printed on the payslip. If you would rather split it by allowance, you can do that below.</p>
 
         <div class="fld">
           <label class="form-label" for="f-currency">Currency shown on your payslip<span class="req-tag">Required</span></label>
@@ -593,7 +589,6 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
               <option value="COP">COP — Colombian Peso</option>
             </select>
           </div>
-          <p class="fld-hint">Pick the currency <b>exactly as printed on your payslip</b> — dollars, dirhams, yen, whatever it says. We handle the conversion.</p>
         </div>
 
         <!-- ★Stopped asking everyone for "base pay", "rate per hour" and "guaranteed
@@ -611,13 +606,13 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
         <div class="fld" id="pay-gross-fld">
           <label class="form-label" for="f-gross">Gross pay that month<span class="req-tag">Required</span></label>
           <input type="text" id="f-gross" class="form-input money" inputmode="decimal" placeholder="e.g. 48,500"/>
-          <p class="fld-hint" id="gross-hint-own">The <b>total before tax and deductions</b> ("Gross Pay" on your payslip).<br>Enter it <b>exactly as printed</b>, allowances and bonus included.</p>
+          <p class="fld-hint" id="gross-hint-own">The <b>gross</b>, before tax and deductions (&ldquo;Gross Pay&rdquo; on your payslip).</p>
         </div>
 
         <div class="fld">
           <label class="form-label" for="f-netpay">Net pay that month<span class="req-tag">Required</span></label>
           <input type="text" id="f-netpay" class="form-input money" inputmode="decimal" placeholder="e.g. 41,200"/>
-          <p class="fld-hint">What actually reached your account, <b>after tax and deductions</b> ("Net Pay" on your payslip).<br>Gross minus this is <b>your total deductions</b>.</p>
+          <p class="fld-hint">What reached your account after tax and deductions (&ldquo;Net Pay&rdquo;).</p>
         </div>
 
         <!-- ★Bonus is asked twice on purpose (owner, 2026-08-13): once as the amount
@@ -629,13 +624,13 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           <div class="fld">
             <label class="form-label" for="f-perdiem">Per diem (total for the month)<span class="req-tag">Required</span></label>
             <input type="text" id="f-perdiem" class="form-input money" inputmode="decimal" placeholder="Monthly total"/>
-            <p class="fld-hint">The <b>monthly total of per diem</b> included in the gross above.<br>If your airline pays none, or none was paid that month, enter <b>0</b>.</p>
+            <p class="fld-hint">The <b>monthly total of per diem</b>. Enter <b>0</b> if none was paid, or your airline pays none.</p>
           </div>
           <div class="fld">
             <label class="form-label" for="f-bonus-mo">Bonus paid this month<span class="req-tag">Required</span></label>
             <!-- ★A greyed-out placeholder 0 reads as "you can skip this". Put a real 0 in. -->
             <input type="text" id="f-bonus-mo" class="form-input money" inputmode="decimal" value="0"/>
-            <p class="fld-hint">The bonus sitting inside the gross above. <b>Enter 0 in an ordinary month.</b><br>We take it out before annualising.</p>
+            <p class="fld-hint">We take it out before annualising.</p>
           </div>
         </div>
 
@@ -648,19 +643,18 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
               <option value="allowance">Housing allowance (cash)</option>
               <option value="none">None</option>
             </select>
-            <p class="fld-hint"><b>The same salary leaves a very different amount in your pocket depending on whether housing comes with it.</b></p>
           </div>
           <div class="fld">
             <label class="form-label" for="f-housing-amt">Housing allowance (per month)<span class="req-tag">Required</span></label>
             <input type="text" id="f-housing-amt" class="form-input money" inputmode="decimal" placeholder="Cash amount" disabled/>
-            <p class="fld-hint" id="housing-amt-hint">Enabled when you pick “Housing allowance (cash)” on the left.</p>
+            <p class="fld-hint" id="housing-amt-hint">Enabled when you pick &ldquo;Housing allowance (cash)&rdquo; on the left.</p>
           </div>
         </div>
 
         <div class="fld">
           <label class="form-label" for="f-bonus">Annual bonus<span class="opt-tag">optional</span></label>
           <input type="text" id="f-bonus" class="form-input money" inputmode="decimal" placeholder="Total for the year"/>
-          <p class="fld-hint">The <b>full-year total</b> of bonuses (an estimate is fine). We add it to the annual figure as it is.</p>
+          <p class="fld-hint">Added to the annual figure as it is (an estimate is fine).</p>
         </div>
 
         <!-- ── Split it by allowance (kept, folded away) ───────────────────
@@ -673,14 +667,12 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
         <details class="pay-detail" id="pay-detail">
           <summary><span class="p">+</span>Add pay breakdown</summary>
           <div class="pay-detail-b">
-            <p class="fld-hint" style="margin:0 0 16px">Enter <b>the amounts printed on your payslip, as they are</b>. We do the adding up, the hourly rates and the conversions on our side.<br>The "Gross pay that month" box above <b>stays exactly as you typed it</b> &mdash; nothing here overwrites it, and the breakdown does not have to add up to it.</p>
 
-            <p class="fld-hint pd-gate" id="pd-gate" hidden>Answer these three &mdash; <b>base pay</b>, <b>flight time guarantee / duty allowance</b> and <b>variable pay</b> &mdash; and the <b>pay breakdown in REAL PAY</b> opens up. Tick &ldquo;None of this applies&rdquo; for anything that is not on your payslip.</p>
+            <p class="fld-hint pd-gate" id="pd-gate" hidden>Answer these three and the <b>pay breakdown in REAL PAY</b> opens up. Tick &ldquo;None of this applies&rdquo; for anything not on your payslip.</p>
 
             <div class="fld is-rail is-rail-key">
               <label class="form-label" for="f-base">Base pay</label>
               <input type="text" id="f-base" class="form-input money" inputmode="decimal" placeholder="e.g. 31,000"/>
-              <p class="fld-hint">The base pay figure as printed on your payslip. <b>Please do not add other allowances into it.</b></p>
               <label class="rolebox pd-none"><input type="checkbox" id="f-base-none"><span>None of this applies</span></label>
             </div>
 
@@ -688,7 +680,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
               <div class="fld is-rail is-rail-key">
                 <label class="form-label" for="f-guarantee">Flight time guarantee / Duty allowance</label>
                 <input type="text" id="f-guarantee" class="form-input money" inputmode="decimal" placeholder="e.g. 6,000"/>
-                <p class="fld-hint">Minimum Guarantee, guaranteed pay, <b>duty allowance</b> &mdash; airlines call it different things. Enter it only if it appears on your payslip <b>as an amount separate from base pay</b>. <b>There is no need to work out guaranteed hours &times; rate</b> &mdash; the guaranteed hours are asked above.</p>
+                <p class="fld-hint">Only if it appears on your payslip <b>as an amount separate from base pay</b> (Minimum Guarantee, guaranteed pay, duty allowance).</p>
                 <label class="rolebox pd-none"><input type="checkbox" id="f-guarantee-none"><span>None of this applies</span></label>
               </div>
             </div>
@@ -696,7 +688,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
             <div class="opt-fld" id="opt-pd-var">
               <div class="pd-block is-rail is-rail-key">
                 <div class="form-label">Variable pay</div>
-                <p class="fld-hint" style="margin-top:0">Pay that <b>changes month to month</b> with block hours, sectors, standby and so on. Copy across <b>the amount and the name exactly as they appear on your payslip</b> &mdash; you never have to work out a rate or a rule.</p>
+                <p class="fld-hint" style="margin-top:0">Pay that <b>changes month to month</b> with block hours, sectors and standby. Copy the amount and the name across exactly as printed.</p>
                 <div class="pd-rows" id="pd-var-rows"></div>
                 <button type="button" class="chip" id="pd-var"><span class="p">+</span>Add variable pay</button>
                 <label class="rolebox pd-none"><input type="checkbox" id="f-variable-none"><span>None of this applies</span></label>
@@ -707,14 +699,14 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
               <div class="fld is-rail">
                 <label class="form-label" for="f-command">Rank / position allowance</label>
                 <input type="text" id="f-command" class="form-input money" inputmode="decimal"/>
-                <p class="fld-hint">Captain Allowance, Senior FO Allowance and the like &mdash; <b>a monthly allowance attached to your rank</b>, shown separately from base pay. Anything you already entered under &ldquo;Flight time guarantee / Duty allowance&rdquo; does not go here. Instructor allowances go in <b>&ldquo;Instructor / training pay&rdquo;</b> below; examiner and other roles are asked separately later on.</p>
+                <p class="fld-hint">A <b>monthly allowance attached to your rank</b>, shown separately from base pay. Anything already entered under &ldquo;Flight time guarantee / Duty allowance&rdquo; does not go here.</p>
               </div>
             </div>
 
             <div class="opt-fld" id="opt-pd-oth" hidden>
               <div class="pd-block is-rail">
                 <div class="form-label">Other cash allowances</div>
-                <p class="fld-hint" style="margin-top:0">Any other cash payment. Per diem and housing allowance are asked earlier, so leave those out.</p>
+                <p class="fld-hint" style="margin-top:0">Per diem and housing allowance are asked earlier, so leave those out.</p>
                 <div class="pd-rows" id="pd-oth-rows"></div>
                 <button type="button" class="chip" id="pd-oth"><span class="p">+</span>Add another allowance</button>
               </div>
@@ -740,7 +732,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                   <label class="form-label" for="f-pension">Employer pension (%)</label>
                   <input type="number" id="f-pension" class="form-input" min="0" max="100" step="any" inputmode="decimal"/>
                 </div>
-                <p class="fld-hint">The employer contribution is <b>not added to the annualised total</b> &mdash; how it is paid out differs too much by country.</p>
+                <p class="fld-hint">The employer contribution is <b>not added to the annualised total</b>.</p>
               </div>
               <div class="chips">
                 <button type="button" class="chip" data-open="f-profit"><span class="p">+</span>Profit share</button>
@@ -766,7 +758,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           <details class="pay-detail" id="instr-detail">
             <summary><span class="p">+</span>Add instructor / training pay</summary>
             <div class="pay-detail-b">
-              <p class="fld-hint" style="margin:0 0 16px">Airlines name and pay instructor work in very different ways. Tell us <b>the amount printed on your payslip</b> and <b>what it is paid by</b>. You never have to convert instructor work into hours.</p>
+              <p class="fld-hint" style="margin:0 0 16px">Tell us the <b>amount printed on your payslip</b> and <b>what it is paid by</b>.</p>
 
               <div class="fld">
                 <div class="form-label">Training you deliver</div>
@@ -782,7 +774,6 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
               <div class="fld">
                 <label class="form-label" for="f-instr-label">Title your airline uses</label>
                 <input type="text" id="f-instr-label" class="form-input" maxlength="60" placeholder="e.g. TRI, SFI, Training Captain"/>
-                <p class="fld-hint">Copy across the wording that appears on your payslip or appointment letter.</p>
               </div>
 
               <div class="fld">
@@ -821,7 +812,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 <div class="fld">
                   <label class="form-label" for="f-instructor">Instructor pay this month</label>
                   <input type="text" id="f-instructor" class="form-input money" inputmode="decimal" placeholder="e.g. 600"/>
-                  <p class="fld-hint">Enter the amount as printed on your payslip. <b>Do not enter it again under Rank / position allowance, Variable pay or Other cash allowances</b> &mdash; that would count the same money twice.</p>
+                  <p class="fld-hint"><b>Do not enter it again under Rank / position allowance, Variable pay or Other cash allowances</b> &mdash; that would count the same money twice.</p>
                 </div>
                 <!-- ★The over-gross warning belongs under the field that caused it (2026-08-27).
                      Same wording and same condition as #pd-over; recalc() shows exactly one. -->
@@ -832,7 +823,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                     <label class="form-label" for="f-instr-qty" id="lab-instr-qty">Sessions</label>
                     <input type="text" id="f-instr-qty" class="form-input" inputmode="decimal"/>
                   </div>
-                  <p class="fld-hint" style="margin-top:0">Copy across how many you did this month. <b>We work out the amount per session.</b></p>
+                  <p class="fld-hint" style="margin-top:0"><b>We work out the amount per session.</b></p>
                 </div>
               </div>
             </div>
@@ -854,7 +845,6 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           <details class="pay-detail" id="exam-detail">
             <summary><span class="p">+</span>Add examiner / check pay</summary>
             <div class="pay-detail-b">
-              <p class="fld-hint" style="margin:0 0 16px">Airlines name and pay check work in very different ways. Tell us <b>the amount printed on your payslip</b> and <b>what it is paid by</b>.</p>
 
               <div class="fld">
                 <div class="form-label">Checks you conduct</div>
@@ -870,7 +860,6 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
               <div class="fld">
                 <label class="form-label" for="f-exam-label">Title your airline uses</label>
                 <input type="text" id="f-exam-label" class="form-input" maxlength="60" placeholder="e.g. TRE, Check Airman, Line Check Captain"/>
-                <p class="fld-hint">Copy across the title printed on your payslip or letter of appointment.</p>
               </div>
 
               <div class="fld">
@@ -883,7 +872,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                   <option value="none">No extra pay</option>
                   <option value="unknown">Not sure</option>
                 </select>
-                <p class="fld-hint">If it is paid <b>together</b> with instructor pay, the amount you entered under Instructor / training pay already covers it. Do not enter it twice.</p>
+                <p class="fld-hint">If it is paid together with instructor pay, do not enter it twice.</p>
               </div>
 
               <!-- ★Only "Paid separately" opens the rest. "Together", "Included" and
@@ -913,7 +902,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 <div class="fld">
                   <label class="form-label" for="f-examiner">Examiner pay this month</label>
                   <input type="text" id="f-examiner" class="form-input money" inputmode="decimal" placeholder="e.g. 400"/>
-                  <p class="fld-hint">Enter the amount as printed on your payslip. <b>Do not enter it again under Instructor / training pay, Rank / position allowance, Variable pay or Other cash allowances</b> &mdash; that would count the same money twice.</p>
+                  <p class="fld-hint"><b>Do not enter it again under Instructor / training pay, Rank / position allowance, Variable pay or Other cash allowances</b> &mdash; that would count the same money twice.</p>
                 </div>
                 <!-- ★The over-gross warning belongs under the field that caused it (2026-08-27).
                      Same wording and same condition as #pd-over; recalc() shows exactly one. -->
@@ -922,7 +911,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 <div class="fld" id="exam-unit" hidden>
                   <label class="form-label" for="f-exam-qty" id="lab-exam-qty">Checks this month</label>
                   <input type="text" id="f-exam-qty" class="form-input" inputmode="decimal"/>
-                  <p class="fld-hint">Copy across how many you did this month. <b>We work out the amount per check.</b></p>
+                  <p class="fld-hint"><b>We work out the amount per check.</b></p>
                 </div>
               </div>
             </div>
@@ -947,12 +936,11 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           <details class="pay-detail" id="union-detail">
             <summary><span class="p">+</span>Add union / representative pay</summary>
             <div class="pay-detail-b">
-              <p class="fld-hint" style="margin:0 0 16px">Just tell us how the union / representative role shows up in this month's pay. <b>We do not ask what the work involved.</b></p>
+              <p class="fld-hint" style="margin:0 0 16px"><b>We do not ask what the work involved.</b></p>
 
               <div class="fld">
                 <label class="form-label" for="f-union-days">Days spent as a union / pilot representative this month</label>
                 <input type="text" id="f-union-days" class="form-input" inputmode="decimal" placeholder="e.g. 12"/>
-                <p class="fld-hint">Days off the line, spent on union or pilot representative duties.</p>
               </div>
 
               <div class="fld">
@@ -970,7 +958,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 <div class="fld">
                   <label class="form-label" for="f-union-pay">Extra pay this month</label>
                   <input type="text" id="f-union-pay" class="form-input money" inputmode="decimal" placeholder="e.g. 300"/>
-                  <p class="fld-hint">Enter the amount as printed on your payslip. <b>Do not enter it again under Rank / position allowance, Variable pay, Other cash allowances, Instructor / training pay or Examiner / check pay</b> &mdash; that would count the same money twice.</p>
+                  <p class="fld-hint"><b>Do not enter it again under Rank / position allowance, Variable pay, Other cash allowances, Instructor / training pay or Examiner / check pay</b> &mdash; that would count the same money twice.</p>
                 </div>
                 <!-- ★The over-gross warning belongs under the field that caused it (2026-08-27).
                      Same wording and same condition as #pd-over; recalc() shows exactly one. -->
@@ -1011,12 +999,11 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           <details class="pay-detail" id="mgmt-detail">
             <summary><span class="p">+</span>Add management / leadership pay</summary>
             <div class="pay-detail-b">
-              <p class="fld-hint" style="margin:0 0 16px">Just tell us how management work shows up in this month's pay. <b>We do not ask which department, or what the work involved.</b></p>
+              <p class="fld-hint" style="margin:0 0 16px"><b>We do not ask which department, or what the work involved.</b></p>
 
               <div class="fld">
                 <label class="form-label" for="f-mgmt-days">Days spent on management / leadership work this month</label>
                 <input type="text" id="f-mgmt-days" class="form-input" inputmode="decimal" placeholder="e.g. 8"/>
-                <p class="fld-hint">Days off the line, spent on management or leadership duties. This is what explains a month with few block hours.</p>
               </div>
 
               <div class="fld">
@@ -1035,7 +1022,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 <div class="fld">
                   <label class="form-label" for="f-mgmt-pay">Extra pay this month</label>
                   <input type="text" id="f-mgmt-pay" class="form-input money" inputmode="decimal" placeholder="e.g. 500"/>
-                  <p class="fld-hint">Enter the amount as printed on your payslip. <b>Do not enter it again under Rank / position allowance, Variable pay, Other cash allowances, Instructor / training pay, Examiner / check pay or Union / representative pay</b> &mdash; that would count the same money twice.</p>
+                  <p class="fld-hint"><b>Do not enter it again under Rank / position allowance, Variable pay, Other cash allowances, Instructor / training pay, Examiner / check pay or Union / representative pay</b> &mdash; that would count the same money twice.</p>
                 </div>
                 <!-- ★The over-gross warning belongs under the field that caused it (2026-08-27).
                      Same wording and same condition as #pd-over; recalc() shows exactly one. -->
@@ -1065,7 +1052,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           <details class="pay-detail" id="nonline-detail">
             <summary><span class="p">+</span>Add other / non-line assignment pay</summary>
             <div class="pay-detail-b">
-              <p class="fld-hint" style="margin:0 0 16px">Answer this only if you hold an ongoing assignment, posting or secondment alongside line flying. <b>We do not ask which department, which company, or what the work involved.</b></p>
+              <p class="fld-hint" style="margin:0 0 16px">Only if you hold an ongoing assignment alongside line flying. <b>We do not ask which department, which company, or what the work involved.</b></p>
 
               <div class="fld">
                 <div class="form-label">Area you are assigned to</div>
@@ -1082,7 +1069,6 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
               <div class="fld">
                 <label class="form-label" for="f-nonline-days">Days spent on this assignment this month</label>
                 <input type="text" id="f-nonline-days" class="form-input" inputmode="decimal" placeholder="e.g. 8"/>
-                <p class="fld-hint">Days off the line, spent on the duties of this assignment.</p>
               </div>
 
               <div class="fld">
@@ -1101,7 +1087,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 <div class="fld">
                   <label class="form-label" for="f-nonline-pay">Extra pay this month</label>
                   <input type="text" id="f-nonline-pay" class="form-input money" inputmode="decimal" placeholder="e.g. 500"/>
-                  <p class="fld-hint">Enter the amount as printed on your payslip. <b>Do not enter it again under Rank / position allowance, Variable pay, Other cash allowances, Instructor / training pay, Examiner / check pay, Union / representative pay or Management / leadership pay</b> &mdash; that would count the same money twice.</p>
+                  <p class="fld-hint"><b>Do not enter it again under Rank / position allowance, Variable pay, Other cash allowances, Instructor / training pay, Examiner / check pay, Union / representative pay or Management / leadership pay</b> &mdash; that would count the same money twice.</p>
                 </div>
                 <!-- ★The over-gross warning belongs under the field that caused it (2026-08-27).
                      Same wording and same condition as #pd-over; recalc() shows exactly one. -->
@@ -1452,7 +1438,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           </div>
         </div>
         <div id="tax-warn" class="warn-row" style="display:none;margin-top:2px"></div>
-        <p class="fld-hint" style="margin-top:10px">Pick your tax residence and we fill in <b>a rough rate</b> from that country's published table and your annual pay (Japan, the UK, the US, and countries with no income tax). Everywhere else stays blank. <b>It is only an estimate — overwrite it with the figure on your payslip.</b> The tax rate is the one box you can leave blank; you just do not get the take-home estimate.</p>
+        <p class="fld-hint" style="margin-top:10px">Pick your tax residence and we fill in <b>a rough rate</b> (Japan, the UK, the US, and countries with no income tax). Overwrite it with the figure on your payslip. You can leave it blank.</p>
         </div>
       </div>
 
@@ -1487,12 +1473,27 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
            空のままなら val() が null を返して列も NULL。 -->
       <input type="hidden" id="f-hourly">
 
-      <!-- ★エラーの置き場所。#submit-block は必須が全部そろうまで hidden なので、
-           中に置いていると「途中で押した人」に何も見えない（2026-08-27）。
+      <!-- ★エラーの置き場所。この節そのものは動かさない ── ウィザードが
+           show() のたびに**今出ているステップの中へ移す**（pay-wizard.js）。
+           置きっぱなしにすると、s1 で Next を押した人のエラーが画面の
+           ずっと下（s5 の中）に出て、本人には何も起きていないように見える。
            空のときは高さゼロ。showErr / clearErr は今までどおりここへ書く。 -->
       <div id="err" style="margin-top:18px"></div>
 
-      <div class="step" id="submit-block" hidden>
+      <!-- ══ 5/5 確認（Phase 5・2026-09-08）════════════════════════════
+           本人が入れた実額の読み返し（#wz-review）だけを出す。
+           ★一番上に「支給の内訳」の横棒と明細（その月の額）。以下は打った欄の読み返し。
+           ★「匿名で公開されるイメージ」は 2026-09-09 にオーナー指示で廃止した。
+             年額の帯を並べていたので、すぐ上の月額と桁が違って読めた。
+             公開の形は REAL PAY 側で見せる（ここで二度説明しない）。
+           ★中身は pay-wizard.js が組む。ここに文言を置かない（日英で1本のため）。 -->
+      <div class="card sec step" id="s5" hidden>
+        <div class="sec-head">
+          <span class="sec-title">5. Review</span>
+        </div>
+        <div id="wz-review"></div>
+
+      <div class="step wz-err-here" id="submit-block" hidden>
         <div class="sal-total pv-no-cur" style="margin-bottom:8px">
           <span class="sal-total-lab">Annualised total<br>(from what you entered)</span>
           <span class="sal-total-val" id="live-total">—</span>
@@ -1516,21 +1517,24 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
              the button and that is where the trust goes. -->
         <p class="sal-hint" style="text-align:center;margin-top:14px">Creating an account unlocks <b>full pay detail for 90 days</b>. Each new payslip you file pushes that out another 90 days. Free for individual pilots, forever.</p>
       </div>
+      </div><!-- /s5 -->
 
-      <!-- ★Always-there submit bar (2026-08-27, owner). Shows the annualised total and
-           the submit button from section 3 onward, so a pilot who wants to file
-           part-way through always has somewhere to press.
-           ・Appears once §3 is visible, and never hides again (same rule as the steps).
-           ・Calls the same submitPayReport() as #submit-btn. No second code path.
-           ・recalc() writes the same figure here and into #live-total (one formula).
-           ・The long explanation (#live-hint) stays in #submit-block only. -->
+      <!-- ★下端の帯（2026-09-08 オーナー指示で作り替え）。
+           2026-08-27 の「『匿名で提出』ボタンを常に下に表示させて」は、5ステップ化に
+           合わせてオーナーが更新した ── **押す物はここに置かない**。
+           ・押すのは各ステップ末尾の Next と、5/5 の確認画面の提出ボタンだけ。
+             途中のステップから直接は送らない（送信の入口を1つにする）。
+           ・残すのは年換算の合計の表示だけ。出すのは「3. 報酬」の段にいる間のみ
+             （pay-wizard.js の show() が totalBar で出し入れする）。
+           ・金額は recalc() が #live-total と同じものをここへも書く（式は1本のまま）。
+           ・body.has-cta の下余白はそのまま使う（最後の欄と Next を隠さないための、
+             既に検証済みの仕組み）。 -->
       <div id="sticky-submit" class="sticky-cta" hidden>
         <div class="sticky-cta-in">
           <div class="sticky-cta-sum pv-no-cur">
             <span class="sticky-cta-lab">Annualised total</span>
             <span class="sticky-cta-val" id="sticky-total">—</span>
           </div>
-          <button type="button" id="sticky-btn" class="btn-orange justify-center">Submit anonymously</button>
         </div>
       </div>
 
@@ -1557,6 +1561,10 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
   </div>
 </footer>
 
+<!-- ★5ステップの器（Phase 5・2026-09-08）。日英でこの1本を共有する。
+     読み込みに失敗したら window.PVPayWizard が無いまま＝下のインラインは
+     これまでどおり「埋めると下が生える」1枚の長いページとして動く。 -->
+<script src="../pay-wizard.js"></script>
 <script>
 // ── Supabase ──────────────────────────────────────────────────
 const _sb = supabase.createClient(
@@ -1582,6 +1590,13 @@ const MONTH_NAMES = ['January','February','March','April','May','June','July','A
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
+
+/* ── 5ステップの器（Phase 5・2026-09-08）───────────────────────
+   ★pay-wizard.js が読めなかったら null のまま。そのときは下の関数が
+     これまでどおり「埋めると下が生える」1枚の長いページとして動く
+     ＝共有 JS が落ちても、給与が出せなくなることは無い。 */
+const WZ = window.PVPayWizard || null;
+const STEP_IDS = ['s1', 's2', 's3', 's4', 's5'];
 
 /* ── Analytics (GA4. Reuse the existing gtag — no new vendor) ──────────────
    ★The same block exists in pay-report.html. Change one and not the other and
@@ -1664,11 +1679,12 @@ function recapLine() {
 const BTN_LABEL_IN  = 'Submit and see the numbers →';
 const BTN_LABEL_OUT = 'Submit anonymously';
 let _btnLabel = BTN_LABEL_IN;
-/* ── There are two submit buttons ───────────────────────────────
-   #submit-btn (the real one, revealed once every step is filled) and the
-   always-there bar's #sticky-btn.
-   ★State goes to both. Disable only one and the other is still clickable mid-send. */
-const SUBMIT_BTNS = () => ['submit-btn', 'sticky-btn'].map($).filter(Boolean);
+/* ── The submit button ──────────────────────────────────────────
+   Since 2026-09-08 there is only #submit-btn (the bar's #sticky-btn is gone —
+   the bar now carries the annualised total and nothing to press).
+   ★The list shape stays. It is the one place that stops a newly added button
+     from staying clickable mid-send because someone forgot to disable it. */
+const SUBMIT_BTNS = () => ['submit-btn'].map($).filter(Boolean);
 function setSubmitBusy(busy, label) {
   for (const b of SUBMIT_BTNS()) { b.disabled = busy; b.textContent = label; }
 }
@@ -1685,6 +1701,9 @@ function showGate(saved) {
      「登録の箱まで来た回数」が数えられない）。フォームを全部埋めきった人の数＝
      このイベントの数になり、pay_login_* → pay_report_submit と1本につながる。 */
   track('pay_login_shown', { saved: saved ? 1 : 0 });
+  /* ★箱は 5/5 の中にある。別の段に居るまま出すと、画面に無いものへ
+     scrollIntoView することになって何も起きない。先に運ぶ。 */
+  if (WZ) { WZ.goLast(); $('submit-block').hidden = false; }
   mountLogin(saved, 0);
   $('login-gate').style.display = '';
   $('login-gate').scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1740,6 +1759,9 @@ async function afterSignedIn() {
    never opened" or "no email ever went out". */
 function afterSaved(data, payload, airline) {
   try { localStorage.removeItem(PENDING_KEY); } catch (e) {}
+  /* ★出し切ったら下書きも消す（オーナー指示）。預かり（PENDING_KEY）と
+     同じ場所で消す ── 片方だけ消すと、次に開いた人に「まだ途中です」と出る。 */
+  if (WZ) WZ.clearDraft();
   /* Raise the "email me" flag for anyone who joined from this box, exactly once.
      ★Every route ends up here. Written straight after auth instead, the routes
        that leave the page (Google, the emailed link) would miss it. */
@@ -1878,7 +1900,12 @@ function instrToggle() {
   const on = String($('f-jobrole').value || '').split(',').indexOf('instructor') >= 0;
   if (box.hidden !== on) return;                  // unchanged
   box.hidden = !on;
-  if (on) return;
+  /* ★選んだら、その手当の欄を最初から開いておく（2026-09-09 オーナー指示）。
+     畳んだままだと、一行目の見出しだけが出て中に何があるか見えない。
+     ★この関数は先頭の `box.hidden !== on` で**変わったときだけ**走るので、
+       本人があとで畳んだものを勝手に開き直したりはしない。
+     ★必須（req-tag）は1つも増やさない ── 見え方だけを変える。 */
+  if (on) { $('instr-detail').open = true; return; }
   for (const b of INSTR_BOXES) b.checked = false;
   for (const id of INSTR_ALL_IDS) $(id).value = '';
   $('instr-detail').open = false;
@@ -1949,7 +1976,12 @@ function examToggle() {
   const on = String($('f-jobrole').value || '').split(',').indexOf('examiner') >= 0;
   if (box.hidden !== on) return;                  // unchanged
   box.hidden = !on;
-  if (on) return;
+  /* ★選んだら、その手当の欄を最初から開いておく（2026-09-09 オーナー指示）。
+     畳んだままだと、一行目の見出しだけが出て中に何があるか見えない。
+     ★この関数は先頭の `box.hidden !== on` で**変わったときだけ**走るので、
+       本人があとで畳んだものを勝手に開き直したりはしない。
+     ★必須（req-tag）は1つも増やさない ── 見え方だけを変える。 */
+  if (on) { $('exam-detail').open = true; return; }
   for (const b of EXAM_BOXES) b.checked = false;
   for (const id of EXAM_ALL_IDS) $(id).value = '';
   $('exam-detail').open = false;
@@ -2027,7 +2059,12 @@ function unionToggle() {
   const on = String($('f-jobrole').value || '').split(',').indexOf('union') >= 0;
   if (box.hidden !== on) return;                  // nothing changed
   box.hidden = !on;
-  if (on) return;
+  /* ★選んだら、その手当の欄を最初から開いておく（2026-09-09 オーナー指示）。
+     畳んだままだと、一行目の見出しだけが出て中に何があるか見えない。
+     ★この関数は先頭の `box.hidden !== on` で**変わったときだけ**走るので、
+       本人があとで畳んだものを勝手に開き直したりはしない。
+     ★必須（req-tag）は1つも増やさない ── 見え方だけを変える。 */
+  if (on) { $('union-detail').open = true; return; }
   for (const id of UNION_ALL_IDS) $(id).value = '';
   $('union-detail').open = false;
   unionSync();
@@ -2079,7 +2116,12 @@ function mgmtToggle() {
   const on = String($('f-jobrole').value || '').split(',').indexOf('management') >= 0;
   if (box.hidden !== on) return;                  // unchanged
   box.hidden = !on;
-  if (on) return;
+  /* ★選んだら、その手当の欄を最初から開いておく（2026-09-09 オーナー指示）。
+     畳んだままだと、一行目の見出しだけが出て中に何があるか見えない。
+     ★この関数は先頭の `box.hidden !== on` で**変わったときだけ**走るので、
+       本人があとで畳んだものを勝手に開き直したりはしない。
+     ★必須（req-tag）は1つも増やさない ── 見え方だけを変える。 */
+  if (on) { $('mgmt-detail').open = true; return; }
   for (const id of MGMT_ALL_IDS) $(id).value = '';
   $('mgmt-detail').open = false;
   mgmtSync();
@@ -2132,7 +2174,12 @@ function nonlineToggle() {
   const on = String($('f-jobrole').value || '').split(',').indexOf('nonline') >= 0;
   if (box.hidden !== on) return;                  // unchanged
   box.hidden = !on;
-  if (on) return;
+  /* ★選んだら、その手当の欄を最初から開いておく（2026-09-09 オーナー指示）。
+     畳んだままだと、一行目の見出しだけが出て中に何があるか見えない。
+     ★この関数は先頭の `box.hidden !== on` で**変わったときだけ**走るので、
+       本人があとで畳んだものを勝手に開き直したりはしない。
+     ★必須（req-tag）は1つも増やさない ── 見え方だけを変える。 */
+  if (on) { $('nonline-detail').open = true; return; }
   for (const b of NONLINE_BOXES) b.checked = false;
   for (const id of NONLINE_ALL_IDS) $(id).value = '';
   $('nonline-detail').open = false;
@@ -2193,6 +2240,12 @@ const DETAIL_IDS = ['f-base','f-guarantee','f-hourly',
    pay-viz.js as "not broken down yet". */
 function updatePayMode() { recalc(); }
 $('pay-detail').addEventListener('toggle', updatePayMode);
+/* ★内訳は最初から開けておく（2026-09-08 オーナー指示「入力してくれるかもしれない」）。
+   ⚠️ HTML に `open` 属性で書かない。属性で開いた <details> は初期表示で
+      toggle を**発火しない**ので、上の updatePayMode() が一度も走らないまま
+      「開いている」状態になる（画面は普通に見えたまま計算だけ動かない）。
+      既存の流儀（restoreInto() / pdRestore() の `.open = true`）に合わせる。 */
+$('pay-detail').open = true;
 
 /* ── Tax: estimated from residence + annual pay ────────────────
    ★We never decide it. We fill it only while you have not touched the field,
@@ -2437,7 +2490,7 @@ const GATE_PAY    = () => filled('f-currency') && payEntered() && filled('f-netp
      stays optional — we have no table for most countries, and requiring it would
      dead-end everyone living in one of them. */
 const GATE_CONTRACT = () => filled('f-contract') && filled('f-taxcountry') && filled('f-seniority');
-const STEPS = [['s2', GATE_ROLE], ['s3', GATE_HOURS], ['s4', GATE_PAY]];
+const STEPS = [['s2', GATE_ROLE], ['s3', GATE_HOURS], ['s4', GATE_PAY], ['s5', GATE_CONTRACT]];
 
 function updateSteps(quiet) {
   const show = (id) => {
@@ -2455,23 +2508,36 @@ function updateSteps(quiet) {
      Nothing is skipped now, so the submit button only appears once every gate
      passes — which also kills the original worry (a live submit button with
      the pilot's own base pay nowhere on screen). */
-  let last = -1;
-  for (let i = 0; i < STEPS.length; i++) { if (!STEPS[i][1]()) break; last = i; }
-  for (let i = 0; i <= last; i++) show(STEPS[i][0]);
-  if (last === STEPS.length - 1 && GATE_CONTRACT()) show('submit-block');
-  /* ★§3「報酬」が出たら、下端の常設バーも出す（2026-08-27 オーナー指示）。
-     途中で出したい人が押せる所を、いつでも持っている状態にする。 */
-  if (!$('s3').hidden) showSticky();
+  /* ★ウィザードが居るあいだ、段は生やさない（1画面1段が約束）。
+     hidden の出し入れは pay-wizard.js の show() だけが持つ。ここで触ると、
+     戻ったときに前の段まで一緒に画面へ出てくる。
+     送信ボタンは 5/5 の中にあり、そこへは Next でしか着けない
+     ＝「全段そろってから」は forward() が受け持っている。 */
+  if (WZ) {
+    $('submit-block').hidden = false;
+  } else {
+    let last = -1;
+    for (let i = 0; i < STEPS.length; i++) { if (!STEPS[i][1]()) break; last = i; }
+    for (let i = 0; i <= last; i++) show(STEPS[i][0]);
+    if (last === STEPS.length - 1 && GATE_CONTRACT()) show('submit-block');
+    /* ★§3「報酬」が出たら、下端の帯も出す（2026-08-27）。 */
+    if (!$('s3').hidden) showSticky();
+  }
   markRequired();
   markRail();
   markProgress();
+  /* 下書きは2秒のデバウンス。打鍵のたびに localStorage を叩かない。 */
+  if (WZ) WZ.sync();
   $('ai-legend').hidden = !document.querySelector('.form-input.ai-filled');
   /* ★「給与の内訳を入力する」から来た人を、§3 が出た**1回だけ**内訳まで寄せる。
-     旗は使ったら消す（そのあと勝手に飛ばない）。 */
-  if (PEND_DETAIL && $('pay-detail') && $('pay-detail').open && detailShown($('f-base'))) {
+     旗は使ったら消す（そのあと勝手に飛ばない）。
+     ★ウィザードが居るときは、旗を落とすのは pay-wizard.js の onStep（3/5 に着いた瞬間）。
+       ここに任せると「着いたあと**最初に欄を触った瞬間**」まで旗が残り、打鍵ひとつで
+       画面が飛ぶ（2026-09-08 に踏んだ ── 段が出るのは Next であって入力ではない）。
+       1画面1段なので、そもそも寄せ直す先も要らない。 */
+  if (!WZ && PEND_DETAIL && $('pay-detail') && $('pay-detail').open && detailShown($('f-base'))) {
     PEND_DETAIL = false;
-    if (window.requestAnimationFrame) requestAnimationFrame(scrollToPaySec);
-    else setTimeout(scrollToPaySec, 0);
+    afterLoad(scrollToPaySec);
   }
 }
 
@@ -2497,6 +2563,14 @@ function markRequired() {
       const t = lab.querySelector('.miss-tag');
       if (t) t.remove();
     }
+  }
+  /* ★赤い箱も一緒に落とす。落とすのは markMissing() が書いたものだけ
+     （dataset.from）。ほかのエラー（額面と時間の食い違いなど）は
+     「空かどうか」では消せないので、そのまま残す。 */
+  const eb = $('err');
+  if (eb && eb.dataset.from === 'miss' && !document.querySelector('.fld.is-miss')) {
+    eb.innerHTML = '';
+    delete eb.dataset.from;
   }
 }
 /* 内訳の欄の左のレール（2026-09-03 その3・オーナー指示
@@ -2561,6 +2635,10 @@ function progParts(el) {
 function markProgress() {
   for (const [id, gate] of SEC_GATE) {
     const sec = $(id);
+    /* ★出ていない段は数えない。openReq/visReq は offsetParent で数えるので、
+       隠れている段は「欄ゼロ」＝0% になり、戻ってきたとき 0% のまま焼き付く。
+       出し直したときは pay-wizard.js の onStep がここを呼び直す。 */
+    if (sec.hidden) continue;
     const el = sec.querySelector('.sec-prog');
     if (!el) continue;
     el.hidden = false;
@@ -2610,9 +2688,14 @@ function enterMode(mode) {
   $('entry').hidden = true;
   $('ps').hidden = false;
   $('ps').classList.toggle('is-slim', slim);
-  if (slim && $('form-body').hidden) {
-    $('form-body').hidden = false;
-    updateSteps(true);        // catch up on anything restored while it was hidden
+  if (slim) {
+    if ($('form-body').hidden) {
+      $('form-body').hidden = false;
+      updateSteps(true);      // catch up on anything restored while it was hidden
+    }
+    /* ★ここで初めて段を歩き始める（入口の2択に居るあいだは器を動かさない）。
+       下書きがある人は、その続きの段から始まる。2回目以降は何も起きない。 */
+    if (WZ) WZ.start();
   }
 }
 window.PVEnterMode = enterMode;
@@ -2631,6 +2714,21 @@ $('ps-skip').addEventListener('click', () => { track('pay_entry_manual', { from:
    ★Only opens it. The input-mode switch is not copied here
      (.open = true fires toggle and updatePayMode above runs as it always does).
    ★Also on hashchange — the link can be followed while already on this page. */
+/* ★寄せる／カーソルを入れるのは、読み込みが**終わってから**。
+   ハッシュ付き（#pay-detail）で来ると、ブラウザは読み込み完了の時点で自分でも
+   「その id の要素へ移動する」を行い、そのときカーソルを外す
+   （<details> は focus できないので、行き先が body に落ちる）。
+   解析の途中で focus すると、この後始末に上書きされて先頭に入らない。
+   ⚠️ 速い回だけ起きる。2026-09-08、英語版だけが「カーソルが先頭に無い」で落ちたが、
+      日本語版との差は読み込みの速さだけだった（同じ形はどちらでも起きる）。 */
+function afterLoad(fn) {
+  var run = function () {
+    if (window.requestAnimationFrame) requestAnimationFrame(fn);
+    else setTimeout(fn, 0);
+  };
+  if (document.readyState === 'complete') run();
+  else window.addEventListener('load', run, { once: true });
+}
 var PEND_DETAIL = false;
 function openDetailFromHash() {
   if (location.hash !== '#pay-detail') return;
@@ -2650,8 +2748,7 @@ function openDetailFromHash() {
      ここで諦めると、§1・§2 を埋め終えたあとも §3 は画面のずっと下のままで、
      自分で探すことになる。updateSteps() が §3 を出した**1回だけ**寄せる。 */
   if (!detailShown($('f-base'))) PEND_DETAIL = true;
-  if (window.requestAnimationFrame) requestAnimationFrame(scrollToPaySec);
-  else setTimeout(scrollToPaySec, 0);
+  afterLoad(scrollToPaySec);
 }
 function detailShown(el) { return !!el && el.getBoundingClientRect().height > 0; }
 /* 寄せ先は §3「3. 報酬」の**頭**（2026-09-03 その5・オーナー指摘
@@ -3065,6 +3162,57 @@ varNoneSync();
 markRail();
 updateSteps(true);
 
+/* ══ 5ステップの器を起こす（Phase 5・2026-09-08）══════════════════════
+   ★ここで渡すのは「この画面の読み方」だけ。給与の計算も、保存の契約も、
+     匿名化の判断も pay-wizard.js は1つも持たず、下の既存の関数を呼んでいる。
+     年換算は annualTotal()、送る中身は buildPayload()、足りない欄は
+     missingAll() ── どれもこの画面が前から持っているもの。 */
+
+/* ★下書きに入れるのは構造化された入力値だけ。f-psdetail（明細の読み取り原文）は
+     許可リストから**明示的に外す** ── 氏名・社員番号が混じりうる生テキストで、
+     オーナーの指示「明細画像・PDF・OCR 原文は下書きに保存しない」に当たる。
+   ★除外リストではなく許可リストで濾すこと。欄が増えた日に黙って漏れる。 */
+const DRAFT_IDS = ALL_IDS.filter((id) => id !== 'f-psdetail');
+
+/* 選択肢の文字は画面の <option> から取る（日英で自動的に正しい）。 */
+const optLabel = (id) => {
+  const sel = $(id);
+  if (!sel || !sel.options) return '';
+  const o = sel.options[sel.selectedIndex];
+  return o && sel.value ? o.textContent.trim() : '';
+};
+
+if (WZ) {
+  WZ.init({
+    lang: LANG,
+    bodyId: 'form-body',
+    totalBarId: 'sticky-submit',
+    reviewId: 'wz-review',
+    errId: 'err',
+    /* ★合計の帯を出すのは「3. 報酬」の段だけ（オーナー指示）。 */
+    steps: [{ id: 's1' }, { id: 's2' }, { id: 's3', totalBar: true }, { id: 's4' }, { id: 's5', totalBar: true }],
+    draftIds: DRAFT_IDS,
+    read: (id) => { const e = $(id); return e ? e.value : ''; },
+    restore: restoreInto,
+    missing: missingAll,
+    markMissing: markMissing,
+    clearErr: clearErr,
+    payload: () => buildPayload(),
+    annualOrig: annualTotal,
+    nameOf: optLabel,
+    onStep: (id) => {
+      /* 段を出し直したので、印とゲージを引き直す（隠れている間は数えていない）。 */
+      markRequired();
+      markProgress();
+      /* ★「内訳を入力する」から来た旗は、3/5 に着いた**その瞬間**に落とす。
+         go() が段の頭まで運んで先頭の欄に入れているので、ここで寄せ直さない。 */
+      if (id === 's3') PEND_DETAIL = false;
+      if (id !== 's5') return;
+      WZ.render();
+    }
+  });
+}
+
 /* ── Fill in last month from the server ────────────────────────────────
    ★localStorage alone reaches nobody who changed phone, changed browser, or
      arrived from a payslip. If they are signed in, fill from their own most
@@ -3163,7 +3311,11 @@ updateSteps(true);
      failure or a reload. */
 const PENDING_MAX_AGE = 14 * 24 * 60 * 60 * 1000;   // don't hold a draft older than 2 weeks
 (async function () {
-  const signedIn = !!(await sessionUserId());
+  const _uid = await sessionUserId();
+  const signedIn = !!_uid;
+  /* ★下書きの持ち主を確かめる。別のアカウントの下書きは戻さず捨てる。
+     未ログインで書いたものは、同じブラウザで本人が認証しただけなので押印し直す。 */
+  if (WZ) WZ.setUid(_uid);
   setSubmitLabel(signedIn);
 
   const drop = () => { try { localStorage.removeItem(PENDING_KEY); } catch (e) {} };
@@ -3183,7 +3335,13 @@ const PENDING_MAX_AGE = 14 * 24 * 60 * 60 * 1000;   // don't hold a draft older 
   if (pending) {
     if (!restoreInto(pending)) { drop(); pending = null; }
     else {
+      /* ★The pending copy is newer than the local draft. Don't let start() overwrite it. */
+      if (WZ) WZ.skipDraft();
       enterMode('manual');   // ★don't drop them back on the two-way entry screen
+      /* ★Every value is back but we'd start them at 1/5 — to them it looks lost.
+         People whose claim token didn't survive stop at branch ③ below and never
+         reach showGate()'s goLast(), so carry them there now. */
+      if (WZ) WZ.goLast();
       $('restore-bar').style.display = 'none';
     }
   }
@@ -3236,7 +3394,7 @@ function showErr(msg, title) {
   $('err').innerHTML = '<div class="form-alert"><span class="fa-title">' + esc(title || 'Could not submit') + '</span>' + esc(msg) + '</div>';
   $('err').scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
-function clearErr() { $('err').innerHTML = ''; clearMissMarks(); }
+function clearErr() { const e = $('err'); e.innerHTML = ''; delete e.dataset.from; clearMissMarks(); }
 
 /* ── Collect every empty required field at once (2026-08-27, owner) ───
    It used to early-return one message at a time, so someone with three gaps
@@ -3257,6 +3415,27 @@ function missingRequired() {
     return !(row && ![...row.querySelectorAll('input, select')].some((e) => e.value.trim()));
   });
 }
+/* ★送信の直前だけは、**全部の段を一時的に出して**数える。
+   missingRequired() は offsetParent で「条件が揃っていない欄」を落としているが、
+   その目は「別の段に居るから隠れている欄」と区別が付かない。数え終えたら必ず戻す
+   ＝画面には1度も2段は出ない（同じ関数の中で開いて閉じる）。 */
+function missingAll() {
+  if (!WZ) return missingRequired();
+  const back = STEP_IDS.map((id) => [id, $(id).hidden]);
+  for (const [id] of back) $(id).hidden = false;
+  /* 畳んだ「4. 契約と税」も一度開く。畳んだままだと在籍年数が空でも
+     数えられず、送信の1件ずつの判定でしか出てこない（その欄は画面に無い）。 */
+  const folded = $('s4-body').hidden;
+  if (folded) { $('s4-sum').hidden = true; $('s4-body').hidden = false; $('s4-sub').hidden = false; }
+  const m = missingRequired();
+  for (const [id, h] of back) $(id).hidden = h;
+  /* 足りない欄が無ければ畳み直す（見た目を勝手に変えない）。 */
+  if (folded && !m.some((f) => $('s4-body').contains(f))) {
+    $('s4-sum').hidden = false; $('s4-body').hidden = true; $('s4-sub').hidden = true;
+  }
+  return m;
+}
+
 const reqLabel = (f) => {
   const lab = f.querySelector('.form-label');
   if (!lab) return '';
@@ -3268,8 +3447,12 @@ const reqLabel = (f) => {
    that isn't on the page. Open the steps.
    ★#submit-block stays closed (it appears only once every step is filled). */
 function revealSteps() {
-  for (const [id] of STEPS) $(id).hidden = false;
-  showSticky();
+  /* ★ウィザードでは段を全部出さない（1画面1段が約束）。代わりに
+     markMissing() が「足りない欄のある段」へ本人を運ぶ。 */
+  if (!WZ) {
+    for (const [id] of STEPS) $(id).hidden = false;
+    showSticky();
+  }
   markRequired();
   markProgress();
 }
@@ -3299,7 +3482,15 @@ function markMissing(list) {
     t.textContent = MISS_TAG;
     lab.appendChild(t);
   }
+  /* ★先頭の欄が別の段に居ることがある。**エラーを書く前に**運ぶ
+     （#err はウィザードが今の段の中へ引っ越すので、順番を逆にすると
+       書いた直後に別の段へ持って行かれて、本人には何も出ない）。 */
+  if (WZ) WZ.goToField(list[0]);
   $('err').innerHTML = '<div class="form-alert"><span class="fa-title">Some required fields are still empty</span>The fields outlined in red are still empty.</div>';
+  /* ★この赤箱は「空の欄がある」としか言っていない。全部埋まったら markRequired() が
+     自分で消す（下の dataset を見ている）。1画面1段になった今、消さないと
+     埋め終わった段の下にいつまでも赤が残り、押せないように見える。 */
+  $('err').dataset.from = 'miss';
   /* ★飛ぶのは先頭ひとつ。印は上で全部に付けてある。 */
   const inp = jumpTarget(list[0]);
   if (!inp) return;
@@ -3307,10 +3498,38 @@ function markMissing(list) {
   inp.focus({ preventScroll: true });
 }
 
+/* ── Stopped by a "filled in but wrong" check (2026-09-09) ────────
+   markMissing() only carries people to **empty** required fields. The one-at-a-time
+   checks below ("Please choose the currency", "What it is paid on") never moved
+   anyone, so the red box appeared on whatever step they were on (5/5, the review)
+   while the field to fix was on no screen at all — to them the button just does nothing.
+   ★Move first, write second. #err is relocated into the current step by the wizard,
+     so writing first means it is carried away the moment it appears (same note as
+     markMissing). */
+function stopAt(id, msg) {
+  const host = $(id);
+  if (WZ && host) WZ.goToField(host);
+  showErr(msg);
+  /* Only focus something **on screen**: #f-jobrole is hidden (the checkboxes are the
+     real control) and #pd-var-rows is a row container, so look inside it. */
+  const el = host && /^(INPUT|SELECT|TEXTAREA)$/.test(host.tagName)
+    ? host : (host && host.querySelector('select, input, textarea'));
+  if (el && el.offsetParent) { try { el.focus({ preventScroll: true }); } catch (e) {} }
+}
+
 // ── Submit ───────────────────────────────────────────────────────
 /* ★Goes through unc(). A money box reads 1,150,000 on screen; sent raw it
    makes the server's ::numeric fail (we always send bare digits). */
 const val = (id) => { const v = unc($(id).value).trim(); return v === '' ? null : v; };
+/* ★Never run the job-role field through val() (2026-09-08).
+   val() pipes through unc() -- the helper that strips thousand separators --
+   so it also eats the commas that #f-jobrole uses as its own separator.
+   'line,instructor' became 'lineinstructor', failed the server-side vocabulary
+   check (pv_validate_pay_payload) and made **the whole submission fail** with
+   "role/category is invalid". Anyone picking a single role has no separator, so
+   nothing happens; only people picking two or more got rejected at the very end.
+   Read the value as-is here. */
+const roleCodes = () => String($('f-jobrole').value || '').split(',').filter(Boolean);
 /* Add a few fields up into one column. All empty -> null (never send a 0). */
 const sumField = (...ids) => {
   let t = 0, any = false;
@@ -3318,69 +3537,16 @@ const sumField = (...ids) => {
   return any ? String(+t.toFixed(2)) : null;
 };
 
-async function submitPayReport() {
-  clearErr();
-  hideGate();
-
-  /* ★First, show every still-empty required field at once (2026-08-27, owner).
-     The always-there bar means people press part-way through, so returning one
-     message at a time turns into pressing over and over.
-     The checks after this point (gross, variable-pay basis, hourly vs block) are
-     not "is it empty" questions, so they stay one at a time as before. */
-  revealSteps();
-  const miss = missingRequired();
-  if (miss.length) return markMissing(miss);
-
-  const airline = val('f-airline');
-  if (!airline) return showErr('Please choose your airline.');
-  if (airline === 'other' && !val('f-airline-other')) return showErr('You picked “Other” — please type the airline name.');
-  if (!val('f-position')) return showErr('Please choose your rank.');
-  if (!val('f-fleet')) return showErr('Please choose your fleet.');
-  if (!val('f-jobrole')) return showErr('Please choose your role.');
-  if (!val('f-age')) return showErr('Please choose your age band.');
-  if (!val('f-currency')) return showErr('Please choose the currency.');
-  /* ★Hours flown is required. 0 is allowed (ground duty, sick month) — only a blank
-     is rejected. Without it there is no pay per block hour, and no way to compare
-     across countries and airlines. */
-  if (!val('f-block')) {
-    return showErr('Please enter your flight time for the month. If you did not fly, or you do not track hours, enter 0.');
-  }
-  if (!val('f-stay')) {
-    return showErr('Please enter your layover nights. If you never stayed away from base, enter 0.');
-  }
-  /* ★Same split as payEntered() used by the step gate (one place decides where to
-     look). Only the amount being 0 is caught here. */
-  /* ★2026-08-26 (2nd): stopped branching on whether the breakdown is open. Gross is
-     always required, base pay is optional and has a "not applicable" box. With the
-     branch in place, anyone who ticked that box saw the submit button appear and
-     then got stopped — f-hourly is a payslip-only hidden field they cannot fill. */
-  if (num('f-gross') <= 0) {
-    return showErr('Please enter your gross pay for that month. Allowances alone give nothing to compare against.');
-  }
-  if (!val('f-netpay')) return showErr('Please enter your net pay for that month ("Net Pay" on your payslip).');
-  if (!val('f-bonus-mo')) return showErr('Please enter the bonus paid this month. Enter 0 if none was paid.');
-  if (!val('f-perdiem')) return showErr('Please enter your per diem for the month. Enter 0 if none was paid.');
-  if (!val('f-housing')) return showErr('Please choose your housing.');
-  if ($('f-housing').value === 'allowance' && !val('f-housing-amt')) {
-    return showErr('You picked “Housing allowance (cash)” — please enter the monthly amount as well.');
-  }
-  /* ★Once a variable pay row is added, "What it is paid on" is required (owner,
-     2026-08-26, 2nd). "Not sure" is there for anyone who cannot tell. Add no rows
-     and nothing changes.
-     ★pdRead('var') decides what counts as a row, so the rule that drops an empty
-     one is not written down twice. */
-  if (pdRead('var').some((r) => !r.basis)) {
-    return showErr('Please choose “What it is paid on” for each variable pay row. Pick “Not sure” if you cannot tell.');
-  }
-  /* ★4. Contract & tax (required since 2026-08-13). Folded or not, the values are
-     there, so the same check works. */
-  if (!val('f-contract')) return showErr('Please choose your contract type.');
-  if (!val('f-taxcountry')) return showErr('Please choose your country of tax residence.');
-  if (!val('f-seniority')) return showErr('Please enter your years at the airline.');
-  if (num('f-hourly') > 0 && num('f-block') <= 0 && num('f-guar') <= 0) {
-    return showErr('With an hourly rate we also need flight time or guaranteed flight time.');
-  }
-
+/* ── payload の組み立て（2026-09-08 に関数へ出した）─────────────────
+   ★中身は1行も変えていない。切り出した理由はひとつだけ ──
+     5/5 の確認画面が出す「公開イメージ」は、**実際に送るのと同じ物**から
+     作らなければならない。2つ目の組み立てを書いた瞬間、画面の予告と
+     サーバに入る物が、どちらも普通に動いたまま静かにズレる。
+   ★引数を省くと今の選択から読む（確認画面はこちらで呼ぶ）。
+   ★切り出しの前後でバイト単位に一致することを、3つの型（総支給だけ／
+     内訳あり／役割モジュール5つ＋組合払い）× 日英で突き合わせてある。 */
+function buildPayload(airline) {
+  if (airline === undefined) airline = val('f-airline');
   const payload = {
     airline:             airline,
     airline_other:       val('f-airline-other'),
@@ -3388,8 +3554,8 @@ async function submitPayReport() {
     fleet:               val('f-fleet'),
     /* ★役職・区分は複数選択。job_roles が正で、job_role には先頭（主たる役割）を入れる。
        古い行・明細読み取り・管理者メールが job_role を見ているので残す。 */
-    job_roles:           val('f-jobrole').split(',').filter(Boolean),
-    job_role:            val('f-jobrole').split(',')[0] || '',
+    job_roles:           roleCodes(),
+    job_role:            roleCodes()[0] || '',
     age_bucket:          val('f-age'),
     base_iata:           val('f-base-iata'),
     period_year:         val('f-year'),
@@ -3470,6 +3636,75 @@ async function submitPayReport() {
     source:              val('f-source') || 'web',
     lang:                LANG,
   };
+  return payload;
+}
+
+async function submitPayReport() {
+  clearErr();
+  hideGate();
+
+  /* ★First, show every still-empty required field at once (2026-08-27, owner).
+     The always-there bar means people press part-way through, so returning one
+     message at a time turns into pressing over and over.
+     The checks after this point (gross, variable-pay basis, hourly vs block) are
+     not "is it empty" questions, so they stay one at a time as before. */
+  revealSteps();
+  /* ★ウィザードでは missingAll()。今出ている段（5/5 確認）だけを見る missingRequired() は
+     1〜4段の空欄を offsetParent で落とすので、空のまま送信できてしまう。 */
+  const miss = missingAll();
+  if (miss.length) return markMissing(miss);
+
+  const airline = val('f-airline');
+  if (!airline) return stopAt('f-airline', 'Please choose your airline.');
+  if (airline === 'other' && !val('f-airline-other')) return stopAt('f-airline-other', 'You picked “Other” — please type the airline name.');
+  if (!val('f-position')) return stopAt('f-position', 'Please choose your rank.');
+  if (!val('f-fleet')) return stopAt('f-fleet', 'Please choose your fleet.');
+  if (!val('f-jobrole')) return stopAt('f-jobrole', 'Please choose your role.');
+  if (!val('f-age')) return stopAt('f-age', 'Please choose your age band.');
+  if (!val('f-currency')) return stopAt('f-currency', 'Please choose the currency.');
+  /* ★Hours flown is required. 0 is allowed (ground duty, sick month) — only a blank
+     is rejected. Without it there is no pay per block hour, and no way to compare
+     across countries and airlines. */
+  if (!val('f-block')) {
+    return stopAt('f-block', 'Please enter your flight time for the month. If you did not fly, or you do not track hours, enter 0.');
+  }
+  if (!val('f-stay')) {
+    return stopAt('f-stay', 'Please enter your layover nights. If you never stayed away from base, enter 0.');
+  }
+  /* ★Same split as payEntered() used by the step gate (one place decides where to
+     look). Only the amount being 0 is caught here. */
+  /* ★2026-08-26 (2nd): stopped branching on whether the breakdown is open. Gross is
+     always required, base pay is optional and has a "not applicable" box. With the
+     branch in place, anyone who ticked that box saw the submit button appear and
+     then got stopped — f-hourly is a payslip-only hidden field they cannot fill. */
+  if (num('f-gross') <= 0) {
+    return stopAt('f-gross', 'Please enter your gross pay for that month. Allowances alone give nothing to compare against.');
+  }
+  if (!val('f-netpay')) return stopAt('f-netpay', 'Please enter your net pay for that month ("Net Pay" on your payslip).');
+  if (!val('f-bonus-mo')) return stopAt('f-bonus-mo', 'Please enter the bonus paid this month. Enter 0 if none was paid.');
+  if (!val('f-perdiem')) return stopAt('f-perdiem', 'Please enter your per diem for the month. Enter 0 if none was paid.');
+  if (!val('f-housing')) return stopAt('f-housing', 'Please choose your housing.');
+  if ($('f-housing').value === 'allowance' && !val('f-housing-amt')) {
+    return stopAt('f-housing-amt', 'You picked “Housing allowance (cash)” — please enter the monthly amount as well.');
+  }
+  /* ★Once a variable pay row is added, "What it is paid on" is required (owner,
+     2026-08-26, 2nd). "Not sure" is there for anyone who cannot tell. Add no rows
+     and nothing changes.
+     ★pdRead('var') decides what counts as a row, so the rule that drops an empty
+     one is not written down twice. */
+  if (pdRead('var').some((r) => !r.basis)) {
+    return stopAt('pd-var-rows', 'Please choose “What it is paid on” for each variable pay row. Pick “Not sure” if you cannot tell.');
+  }
+  /* ★4. Contract & tax (required since 2026-08-13). Folded or not, the values are
+     there, so the same check works. */
+  if (!val('f-contract')) return stopAt('f-contract', 'Please choose your contract type.');
+  if (!val('f-taxcountry')) return stopAt('f-taxcountry', 'Please choose your country of tax residence.');
+  if (!val('f-seniority')) return stopAt('f-seniority', 'Please enter your years at the airline.');
+  if (num('f-hourly') > 0 && num('f-block') <= 0 && num('f-guar') <= 0) {
+    return stopAt('f-block', 'With an hourly rate we also need flight time or guaranteed flight time.');
+  }
+
+  const payload = buildPayload(airline);
 
   setSubmitBusy(true, 'Submitting…');
 
@@ -3553,27 +3788,21 @@ async function submitPayReport() {
 }
 $('submit-btn').addEventListener('click', submitPayReport);
 
-/* ── The always-there submit bar (2026-08-27) ───────────────────
-   Appears once section 3 (pay) is on screen and never hides again — same rule
-   as the steps. While #submit-block is in view the bar sinks away (.is-off)
-   so the same button is never shown twice. */
-function stickyWatch() {
-  const bar = $('sticky-submit'), blk = $('submit-block');
-  if (!bar || !blk || bar._io) return;
-  if (typeof IntersectionObserver !== 'function') return;   // no IO: just leave it up
-  bar._io = new IntersectionObserver((es) => {
-    for (const e of es) bar.classList.toggle('is-off', e.isIntersecting);
-  }, { rootMargin: '0px 0px -60px 0px' });
-  bar._io.observe(blk);
-}
+/* ── The bar at the bottom (2026-08-27, rebuilt 2026-09-08) ──────
+   Shown on two steps: 3 (pay) and 5 (review) — pay-wizard.js steps[].totalBar.
+   ★2026-09-08: dropped the observer that sank the bar once #submit-block came
+     into view. That existed while the bar carried the "Submit anonymously"
+     button, so the same button was never shown twice. Now the bar is nothing
+     but the annualised total, and sinking it silently removes the one number
+     the review screen exists to show (owner). Nothing on it is pressable. */
 function showSticky() {
   const bar = $('sticky-submit');
   if (!bar || !bar.hidden) return;
   bar.hidden = false;
   document.body.classList.add('has-cta');
-  stickyWatch();
 }
-$('sticky-btn').addEventListener('click', submitPayReport);
+/* ★#sticky-btn は 2026-09-08 に廃止（帯は年換算の合計の表示だけ）。
+   押す物はステップ末尾の Next と 5/5 の提出ボタンの2つで、送信の入口は後者だけ。 */
 
 // ── Result (★ never typed in by the pilot — this is what they get back) ──
 function renderResult(d, p) {
