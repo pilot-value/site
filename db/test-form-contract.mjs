@@ -2604,6 +2604,129 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
     ok(await vis('submit-block'), '★B: 埋め直すと確認の段へ戻って送信できる');
   }
 
+  /* ── C) 金額の読み方が決まるまで送らない（N-1・2026-09-11）──────────
+     ヨーロッパ式に 1.000,00 と書いた人の総支給が 1 になり、年収が REAL PAY の
+     常識の幅（$10,000〜$700,000）を外れて**行ごと黙って消えて**いた。
+     直したのは「黙って推測しない」ところ ── 2通りに読める入力は欄の下で聞き、
+     選ぶまで送信を止める。ここでは**押して**その2つを確かめる。 */
+  {
+    const gross0 = await fv('f-gross');
+    const cur0 = await page.$eval('#f-currency', (el) => el.value);
+    const stashB = stash.length, seenB = seen.length;
+
+    await setF({ 'f-gross': '1.000' });
+    /* ★欄を離れたことにする。setF は change → input の順に投げるので、
+       打鍵中の input が「まだ打っている途中」として二択を畳んでしまう
+       （本物のブラウザは input → 離れたときに change の順）。 */
+    await page.evaluate(() => {
+      document.getElementById('f-gross').dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    await new Promise((r) => setTimeout(r, 150));
+    await page.evaluate(() => { window.PVPayWizard.goLast(); });
+    await new Promise((r) => setTimeout(r, 250));
+    await page.evaluate(() => document.getElementById('submit-btn').click());
+    await new Promise((r) => setTimeout(r, 300));
+    const mb = await page.evaluate(() => {
+      const el = document.getElementById('f-gross');
+      const box = el.nextElementSibling;
+      const has = !!(box && box.classList && box.classList.contains('money-ask'));
+      return {
+        ask: has,
+        btns: has ? Array.prototype.map.call(box.querySelectorAll('.ma-b'), (b) => b.textContent) : [],
+        rule: has ? !!box.querySelector('.ma-rule') : false,
+        blocked: !!window.moneyBlocker(),
+      };
+    });
+    ok(mb.ask && mb.blocked,
+       '★★C: 読み方が2通りある金額のままでは送信できない（黙って推測しない）', JSON.stringify(mb));
+    ok(mb.btns.length === 2 && mb.btns.indexOf('1,000') >= 0 && mb.btns.indexOf('1') >= 0,
+       '★C: 欄の下に「1,000」と「1」の二択が出る', mb.btns.join(' / '));
+    ok(mb.rule, 'C: 入力規則の説明はこの二択の中だけに置く（普通の人の画面に足さない）');
+    ok(stash.length === stashB && seen.length === seenB,
+       '★★C: 読み方が決まらないうちは、預かりにも本棚にも1行も送らない',
+       `${stash.length - stashB} / ${seen.length - seenB}`);
+
+    await page.evaluate(() => {
+      const el = document.getElementById('f-gross');
+      const box = el.nextElementSibling;
+      const b = box && box.querySelectorAll
+        ? Array.prototype.find.call(box.querySelectorAll('.ma-b'), (x) => x.textContent === '1,000')
+        : null;
+      if (b) b.click();
+    });
+    await new Promise((r) => setTimeout(r, 250));
+    const picked = await page.evaluate(() => ({
+      v: document.getElementById('f-gross').value,
+      blocked: !!window.moneyBlocker(),
+    }));
+    ok(picked.v === '1,000' && !picked.blocked,
+       '★C: 選べばその読み方で確定し、送信も止まらない', JSON.stringify(picked));
+
+    /* ── D) 桁のおかしい金額を、送信の直前に一度だけ確かめる（オーナー承認）──
+       ★読み取りの修理の代わりではない（上の C が先に効いている）。
+       ★数字そのものでは決めない。通貨と月額／年額を通した年換算で見る。 */
+    const amt = () => page.evaluate(() => {
+      const b = document.getElementById('amt-confirm');
+      return {
+        shown: !!b && !b.hidden,
+        t: ((b.querySelector('.ac-t') || {}).textContent || '').trim(),
+        rows: Array.prototype.map.call(b.querySelectorAll('.ac-d div'), (d) =>
+          [d.querySelector('dt').textContent.trim(), d.querySelector('dd').textContent.trim()]),
+        fix: !!b.querySelector('#ac-fix'), go: !!b.querySelector('#ac-go'),
+      };
+    });
+
+    /* D-1 普通の金額には1手も増やさない。 */
+    await setF({ 'f-currency': cur0, 'f-gross': gross0 });
+    await new Promise((r) => setTimeout(r, 200));
+    ok((await page.evaluate(() => amtConfirmNeeded())) === false && !(await amt()).shown,
+       '★D: 普通の金額では確認を出さない（通常の入力に操作を増やさない）');
+
+    /* D-2 同じ「54250」でも、通貨が違えば答えが違う。
+           ＝数字そのものを見て「異常」と決めていない。 */
+    await setF({ 'f-currency': 'JPY' });
+    await new Promise((r) => setTimeout(r, 200));
+    const low = await page.evaluate(() => amtConfirmNeeded());
+    const lowBox = await amt();
+    ok(low === true,
+       '★★D: 同じ数字でも通貨が違えば確認が出る（数字の桁だけで決めていない）');
+    ok(lowBox.rows.length === 2 && lowBox.rows.every((r) => /\d/.test(r[1])),
+       '★D: 解釈した「その月の総支給額」と「年換算の総額」を出す',
+       lowBox.rows.map((r) => r.join('=')).join(' / '));
+    ok(lowBox.rows.every((r) => r[1].indexOf('JPY') >= 0),
+       '★D: 選ばれている通貨のまま出す（別の通貨に換算して見せない）',
+       lowBox.rows.map((r) => r[1]).join(' / '));
+    ok(lowBox.fix && lowBox.go, '★D: 「修正する」と「この金額で提出する」の両方が選べる');
+    ok(stash.length === stashB && seen.length === seenB,
+       'D: 確認を出しているあいだは1行も送らない',
+       `${stash.length - stashB} / ${seen.length - seenB}`);
+
+    /* D-3 「この金額で提出する」で素通りする＝正しい少額も出せる。
+       ★ここで本当に送ると、このあとの「1押しで1回だけ預ける」が測れなくなる。
+         送信の入口だけ数える形に差し替えて、押されたことを見る。 */
+    const went = await page.evaluate(() => {
+      const real = window.submitPayReport;
+      let n = 0;
+      window.submitPayReport = function () { n++; };
+      document.getElementById('ac-go').click();
+      window.submitPayReport = real;
+      return { n: n, hidden: document.getElementById('amt-confirm').hidden };
+    });
+    ok(went.n === 1 && went.hidden,
+       '★★D: 「この金額で提出する」で素通りする（正しい少額を止めない）', JSON.stringify(went));
+    ok((await page.evaluate(() => amtConfirmNeeded())) === false,
+       '★D: 同じ金額には二度と出さない（押すたびに聞かない）');
+
+    /* 通しの続きのために戻す。 */
+    await setF({ 'f-currency': cur0, 'f-gross': gross0 });
+    await page.evaluate(() => { document.getElementById('amt-confirm').hidden = true; });
+    await new Promise((r) => setTimeout(r, 250));
+    ok((await fv('f-gross')) === gross0 && (await page.$eval('#f-currency', (el) => el.value)) === cur0,
+       'D: 通貨と総支給を元に戻せている', `${await fv('f-gross')} / ${cur0}`);
+    await page.evaluate(() => { window.PVPayWizard.goLast(); });
+    await new Promise((r) => setTimeout(r, 300));
+  }
+
   const pendBefore = (await db.query(`select count(*)::int n from pay_reports_pending`)).rows[0].n;
   await page.click('#submit-btn');
   await new Promise((r) => setTimeout(r, 400));

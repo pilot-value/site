@@ -1121,11 +1121,29 @@ ok(moved && moved.proof_hash ===
 ok(new Date((await one(`select access_until a from profiles where id=$1`, [uid(90)])).a) > new Date(),
    '解放は紐付けた時点で付く');
 
-// 4) 二度押し・再読み込みでも二重に入らない
+/* 4) 二度押し・再読み込みでも二重に入らない
+   ★2026-09-11 から「無い」ではなく「もう移してある」と答える。
+     これが not_found だった間、給与フォームは
+     **サーバでは成功したが応答が届かなかった**再試行を「預かりが無い」と読み、
+     新規保存へ流れて祝っていた。預かり行は未引き取りのまま残るので、
+     同じ人が REAL PAY に2行・pv_contributors() に2人として載る（最大24か月）。
+     ＝画面の枝はこの reason だけを頼りにしている。文字列を変えたら画面も直す。 */
 const twice = (await one(`select claim_pending_report($1) r`, [held.claim_token])).r;
-ok(twice.ok === false && twice.reason === 'not_found', '同じ預かり証の2回目は静かに空振りする');
+ok(twice.ok === false && twice.reason === 'already_claimed',
+   '★同じ預かり証の2回目は「もう移してある」と答える（「無い」ではない）', JSON.stringify(twice));
+ok(!('payload' in twice),
+   '★済んだ後は payload を返さない（預かり証を持っているだけの人に中身を読ませ続けない）');
 ok(Number((await one(`select count(*) n from pay_reports where airline='jal' and period_month=4`)).n) === 1,
    '二度押ししても本棚の行は1本のまま');
+/* ★応答だけ落ちた再試行を、そのまま5回。行も件数も1のまま動かないこと。
+   （画面側は already_claimed を見て保存し直さないが、万一叩かれても増えない） */
+for (let i = 0; i < 5; i++) await one(`select claim_pending_report($1) r`, [held.claim_token]);
+ok(Number((await one(`select count(*) n from pay_reports where airline='jal' and period_month=4`)).n) === 1,
+   '★何度再試行しても本棚は1行のまま');
+ok(Number((await one(`select count(*) n from pay_reports_pending where claim_token=$1`,
+  [held.claim_token])).n) === 1, '★何度再試行しても置き場も1行のまま');
+/* ★人数（pv_contributors）の二重計上は db/pay-rows.sql 側の関数なので
+   db/test-pay-rows.mjs で見る（ここは pay-reports.sql までしか読み込まない）。 */
 // 移した行も消さない（出したのに会員にならなかった人を数えるための分母）
 ok((await one(`select claimed_at c from pay_reports_pending where claim_token=$1`, [held.claim_token])).c !== null,
    '移したあとも置き場に行が残る（claimed_at が入る）');
@@ -1133,6 +1151,8 @@ ok((await one(`select claimed_at c from pay_reports_pending where claim_token=$1
 // 5) 知らない預かり証は例外にしない（利用者に見せる異常ではない）
 const nosuch = (await one(`select claim_pending_report($1) r`, ['0'.repeat(48)])).r;
 ok(nosuch.ok === false && nosuch.reason === 'not_found', '知らない預かり証はエラーにせず空振り');
+ok((await one(`select claim_pending_report('x') r`)).r.reason === 'not_found',
+   '短すぎる預かり証も not_found（長さの門をくぐった先と同じ答え）');
 
 // 6) ログインしていない人は紐付けられない
 await db.query(`select set_config('pv.uid', '', false)`);
@@ -1196,6 +1216,10 @@ await db.query(`update pay_reports_pending set created_at = now() - interval '31
 await asUser(92);
 const tooOld = (await one(`select claim_pending_report($1) r`, [old.claim_token])).r;
 ok(tooOld.ok === false, '30日を過ぎた預かりは移さない');
+/* ★「切れた」と「無い」を分ける。画面は expired を「もう受け取れません」と
+   言い切れるが、not_found のままだと同じ文言が別端末の預かり証にも出る。 */
+ok(tooOld.reason === 'expired', '★30日を過ぎた預かりは expired と答える（not_found ではない）',
+   JSON.stringify(tooOld));
 ok(Number((await one(`select count(*) n from pay_reports_pending where claim_token=$1`,
   [old.claim_token])).n) === 1, '移さなくても行は消さない（データとしては数える）');
 

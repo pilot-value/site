@@ -166,7 +166,7 @@ const pv2 = (v) => Number(v.toPrecision(2));
 // 会社コードは語彙から取る（このテストのために特定の社名を覚えない）
 const VOCAB = (await rows(
   `select code, name_ja, name_en from pv_airlines
-    where code <> 'other' and active order by code limit 47`
+    where code <> 'other' and active order by code limit 48`
 ));
 const AIR = VOCAB.map(r => r.code);
 const [A_ONE, A_M12, A_MIX, A_OLD, A_ORD, A_VF, A_OUT, A_FOTHER,
@@ -184,7 +184,9 @@ const [A_ONE, A_M12, A_MIX, A_OLD, A_ORD, A_VF, A_OUT, A_FOTHER,
        // ★1区分だけの内訳（基本給＝総支給）。閉じている面に名前も渡さない側。
        A_GT_1SEG,
        // ★2026-09-10。本人の依頼で一覧から下ろす（pay_hidden）。1社＝1人。
-       A_HIDE] = AIR;
+       A_HIDE,
+       // ★2026-09-11。引き取りに失敗したまま新規保存された人（N-2）。1社＝1人。
+       A_N2] = AIR;
 const nameOf = (code) => VOCAB.find(r => r.code === code);
 
 // ════════════════════════════════════════════════════════════
@@ -1878,6 +1880,63 @@ console.log('\n▼ 15. 本人の依頼で一覧から下ろす（pay_hidden・20
   ok(await seen(), '★名簿から消せば元どおり出る（片道の操作にしない）');
 
   await db.exec(`drop table if exists public.pv_admins`);
+}
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 16. ★引き取れなかった預かりを残したまま新規保存すると二重になる（N-2）');
+// ════════════════════════════════════════════════════════════
+/* 2026-09-11 の監査で見つかった形。給与フォームは引き取りの通信が落ちた回を
+   「預かりが無い」と同じ扱いにして、そのまま新規保存へ流れ、しかも祝っていた。
+   預かり行は未引き取りのまま残るので ──
+     ・REAL PAY の一覧に、**同じ人が2行**（本棚の行 ＋ 未引き取りの預かり）
+     ・pv_contributors()（Give & Get の分母）に **2人** として載る
+   どちらも画面は普通に動いたまま静かにずれる。★ここはその仕様を固定する節で、
+   画面側の枝（showClaimState）と db/pay-report-pending.sql の
+   already_claimed／expired／not_found が対になっている。 */
+{
+  const rowsFor = async (air) => only((await payRows()).rows, (x) => x.airline === air);
+  const heads2 = async () => (await one(`select pv_contributors() n`)).n;
+
+  // (a) 匿名で1件預ける（回線のハッシュがあるので一覧に出る）
+  const p = await pend(A_N2, { fleet: 'b777', month: 7, gross: 16000, iph: 'iph-n2' });
+  await asViewer();
+  const h0 = await heads2();
+  ok((await rowsFor(A_N2)).length === 1, '預かりが1行として出る（前提）');
+
+  // (b) 同じ人が会員になり、**引き取らずに**同じ月を出し直す（＝落ちた回の挙動）
+  const u = ++seat;
+  await asUser(u);
+  await submit({ ...BASE, airline: A_N2, position: 'cap', fleet: 'b777',
+                 period_year: YEAR, period_month: 7, gross_monthly: 16000 });
+  await asViewer();
+  ok((await rowsFor(A_N2)).length === 2,
+     '★引き取らずに保存すると、同じ人が一覧に2行出る（これが N-2 の見え方）',
+     `= ${(await rowsFor(A_N2)).length}行`);
+  ok((await heads2()) === h0 + 1,
+     '★人数も1人ぶん増える（本棚の1人 ＋ 未引き取りの預かり1人 ＝ 同じ人を2回）',
+     `${h0} → ${await heads2()}`);
+
+  // (c) 預かりを引き取ると、1行・1人に戻る
+  await asUser(u);
+  const got = (await one(`select claim_pending_report($1) r`, [p.claim_token])).r;
+  ok(got.ok === true, '　引き取れた', JSON.stringify(got).slice(0, 80));
+  await asViewer();
+  ok((await rowsFor(A_N2)).length === 1,
+     '★引き取れば一覧は1行に戻る（本棚の側で上書きされる）');
+  ok((await heads2()) === h0,
+     '★人数も元どおり（同じ人が1人に戻る）', `= ${await heads2()}`);
+
+  /* (d) ★応答だけ落ちた再試行。何度叩いても行も人数も動かない。
+     ここが動いてしまうと、画面が「もう一度取り込む」を出す意味が無くなる。 */
+  await asUser(u);
+  for (let i = 0; i < 3; i++) {
+    const again = (await one(`select claim_pending_report($1) r`, [p.claim_token])).r;
+    ok(again.ok === false && again.reason === 'already_claimed',
+       `　再試行 ${i + 1} 回目は「もう移してある」`, JSON.stringify(again));
+  }
+  await asViewer();
+  ok((await rowsFor(A_N2)).length === 1, '★再試行しても一覧は1行のまま');
+  ok((await heads2()) === h0, '★再試行しても人数は動かない');
 }
 
 // ── まとめ ───────────────────────────────────────────────────

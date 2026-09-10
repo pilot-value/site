@@ -52,6 +52,7 @@ const URL_TOKEN  = 'b'.repeat(48);   // 別のブラウザに着地した人が 
 const LATE_TOKEN = 'c'.repeat(48);   // confetti.js が遅れて届いた回に引き取る1枚
 const SB_HOST    = /vzgmnkrggrwtsrpqndsm\.supabase\.co/;
 const FAKE_UID   = '00000000-0000-0000-0000-000000000001';
+const OTHER_UID  = '00000000-0000-0000-0000-0000000000ff';   // 共有端末の「次の人」
 
 /* ログイン済みの人を、本番の認証に1回も触らずに作る。
    supabase-js は localStorage の sb-<ref>-auth-token を読むだけで、access_token の
@@ -100,7 +101,12 @@ async function fillForm() {
     const role = document.querySelector('input[name="f-jobrole"]');
     if (role) { role.checked = true; role.dispatchEvent(new Event('change', { bubbles: true })); }
     set('f-age', firstOpt('f-age'));
-    set('f-currency', firstOpt('f-currency'));
+    /* ★通貨は JPY を名指しする（2026-09-11）。先頭の選択肢は USD で、下の
+       f-gross=1,080,000 と合わせると年 $12,960,000 ＝ 5/5 の確認画面が
+       「この金額でよろしいですか？」を出す（極端な金額の確認・オーナー承認）。
+       ここで見たいのは預かりの経路なので、金額はありえる範囲に置く。
+       確認そのものは db/test-form-contract.mjs が見る。 */
+    set('f-currency', 'JPY');
     set('f-housing', firstOpt('f-housing'));
     set('f-contract', firstOpt('f-contract'));
     set('f-taxcountry', firstOpt('f-taxcountry'));
@@ -153,6 +159,7 @@ for (const [dir, tag] of [['', '(日本語)'], ['/en', '/en']]) {
   const otpSent = [];      // signInWithOtp の宛先URL（戻り先が載っている）
   let verifyCalls = 0;     // verifyOtp を呼んだ回数
   let claimReply = { ok: false, reason: 'blocked_by_test' };
+  let claimStatus = 200;       // 500 にすると「答えが返らなかった回」になる（N-2）
   let blockPayLogin = false;   // ①の再現。登録の箱を描く1枚だけ届かせない
   let stashFail = false;       // 預けそこねの再現。預かり証を返さない
 
@@ -180,6 +187,9 @@ for (const [dir, tag] of [['', '(日本語)'], ['/en', '/en']]) {
     }
     if (/\/rest\/v1\/rpc\/claim_pending_report\b/.test(u)) {
       claimed.push(r.postData() || '');
+      /* ★通信で落ちた回の再現。supabase-js は 5xx を throw せず error で返すので、
+         呼んだ側が「預かりが無い」と読み違えられる（N-2 の正体）。 */
+      if (claimStatus !== 200) return json({ message: 'blocked_by_test' }, claimStatus);
       return json(claimReply);
     }
     // 本送信は預かり分の紐付けで置き換わったはず。万一呼ばれても本番へは通さない
@@ -520,6 +530,360 @@ for (const [dir, tag] of [['', '(日本語)'], ['/en', '/en']]) {
     '★★預けそこねた回は「匿名で提出する」を残す（送る手段の無い画面にしない）', miss);
   ok(!miss.done, '預かっていないのに「預かりました」と言わない', miss.done);
   stashFail = false;
+
+  /* ── N-1 金額の読み方（2026-09-11）──────────────────────────────
+     ヨーロッパ式に 1.000,00 と書いた人の総支給が **1** になっていた
+     （カンマを全部落として parseFloat していた）。画面は普通に動いたまま
+     年収が REAL PAY の常識の幅（$10,000〜$700,000）を外れ、行ごと黙って消える
+     ＝「出したのに自分の行が出てこない」。本番で実際に起きうる形。
+     ★直し方の骨は「黙って推測しない」。2通りに読める入力は欄の下で本人に聞き、
+       選ぶまで送信も止める。ここで固定するのはその3つ ──
+       ① 正しく読めるものは正しく読む（小数も含めて）
+       ② 打っている途中で文字を消さない
+       ③ 曖昧なものは聞く／送信を止める・選べば通る */
+  console.log(`\n${tag} N-1 金額の読み方（黙って推測しない）\n`);
+  await p.evaluate(() => { localStorage.clear(); });
+  await p.goto(`${BASE}${dir}/pay-report.html`, { waitUntil: 'networkidle0' });
+  const money = await p.evaluate(() => {
+    const R = (x) => { const r = window.readMoney(x); return [r.state, r.n]; };
+    return {
+      euro: R('1.000,00'), anglo: R('1,234.56'), group: R('1,150,000'),
+      dec:  R('1234.56'),  half:  R('0.5'),      plain: R('1150000'),
+      amb1: R('1.000'),    amb2:  R('1,5'),      bad:   R('12万'),
+    };
+  });
+  ok(money.euro[0] === 'ok' && money.euro[1] === 1000,
+    '★★1.000,00（欧州式）を 1000 と読む ── ここが 1 になって行が消えていた', money.euro);
+  ok(money.anglo[0] === 'ok' && money.anglo[1] === 1234.56, '1,234.56（英米式）を 1234.56 と読む', money.anglo);
+  ok(money.group[0] === 'ok' && money.group[1] === 1150000, '1,150,000 は桁区切り', money.group);
+  ok(money.dec[0] === 'ok' && money.dec[1] === 1234.56, '★小数はそのまま通す（「給与に小数は無い」と決めつけない）', money.dec);
+  ok(money.half[0] === 'ok' && money.half[1] === 0.5, '★0.5 も通す', money.half);
+  ok(money.plain[0] === 'ok' && money.plain[1] === 1150000, '区切りの無い数はそのまま', money.plain);
+  ok(money.amb1[0] === 'ambiguous', '★1.000 は 1000 とも 1.0 とも読める＝聞く（勝手に決めない）', money.amb1);
+  ok(money.amb2[0] === 'ambiguous', '★1,5 も聞く', money.amb2);
+  ok(money.bad[0] === 'bad', '数字として読めないものは、読めないと言う', money.bad);
+
+  /* ② 打鍵中に文字を消さない。桁区切りを足すのは数字だけのときに限る。 */
+  const keys = await p.evaluate(async () => {
+    document.getElementById('entry-manual').click();
+    const el = document.getElementById('f-gross');
+    el.value = '';
+    const steps = [];
+    for (const c of '1.000,00') {
+      el.value += c;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      steps.push(el.value);
+    }
+    const mid = el.value;
+    el.value = '1150000';
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    return { mid, steps, plain: el.value };
+  });
+  ok(keys.mid === '1.000,00', '★★打っている間、入れた文字がそのまま残る（消さない）', keys.steps);
+  ok(keys.plain === '1,150,000', '数字だけを打っている人には、今までどおり桁区切りが付く', keys.plain);
+
+  /* ③ 曖昧なら欄の下で聞く。選ぶまで送信を止める。 */
+  const amb = await p.evaluate(async () => {
+    const el = document.getElementById('f-gross');
+    el.value = '1.000';
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 120));
+    const box = el.nextElementSibling;
+    const has = !!(box && box.classList && box.classList.contains('money-ask'));
+    return {
+      ask: has,
+      btns: has ? Array.prototype.map.call(box.querySelectorAll('.ma-b'), (b) => b.textContent) : [],
+      rule: has ? !!box.querySelector('.ma-rule') : false,
+      blocked: !!window.moneyBlocker(),
+    };
+  });
+  ok(amb.ask, '★曖昧な入力には、その欄の下に二択を出す', amb);
+  ok(amb.btns.length === 2 && amb.btns.indexOf('1,000') >= 0 && amb.btns.indexOf('1') >= 0,
+    '二択の中身が「1,000」と「1」', amb.btns);
+  ok(amb.rule, '入力規則（桁区切りは , 小数点は .）はこの二択の中だけに書く', amb.rule);
+  ok(amb.blocked, '★選ぶまでは送信を止める（推測して送らない）', amb.blocked);
+
+  const chosen = await p.evaluate(async () => {
+    const el = document.getElementById('f-gross');
+    const b = Array.prototype.find.call(
+      el.nextElementSibling.querySelectorAll('.ma-b'), (x) => x.textContent === '1,000');
+    b.click();
+    await new Promise((r) => setTimeout(r, 120));
+    const nx = el.nextElementSibling;
+    return {
+      value: el.value, n: window.moneyRead(el).n, blocked: !!window.moneyBlocker(),
+      ask: !!(nx && nx.classList && nx.classList.contains('money-ask')),
+    };
+  });
+  ok(chosen.value === '1,000' && chosen.n === 1000, '選んだ読み方がそのまま欄に入る', chosen);
+  ok(!chosen.ask && !chosen.blocked, '選んだら二択は消え、送信も止まらない', chosen);
+
+  /* ── N-2 引き取りの答えが返らなかった回（2026-09-11）───────────
+     それまで claim は「預かりが無い」と「通信で落ちた」を同じ null で返していた。
+     フォームは後者を前者と読んで**新規保存へ流れ、しかも祝っていた**。
+     サーバ側の預かり行は未引き取りのまま残るので、同じ人が REAL PAY に2行、
+     pv_contributors() に2人として載る（最大24か月ぶん）。 */
+  console.log(`\n${tag} N-2 引き取りに失敗した回（祝わない・二重にしない）\n`);
+  claimStatus = 500;
+  claimed.length = 0; stashed.length = 0;
+  /* ★台本ではなく、実際に歩かせて預かりを作る。預かり証も預けた入力も
+     ページ自身に書かせないと、戻ってきた人の画面（5/5・入力が入った状態）に
+     ならず、見ているものが本番と違ってしまう。 */
+  await p.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
+  await p.goto(`${BASE}${dir}/pay-report.html`, { waitUntil: 'networkidle0' });
+  await p.click('#entry-manual');
+  await p.evaluate(fillForm);
+  await p.evaluate(() => { document.getElementById('submit-btn').click(); });
+  await new Promise((r) => setTimeout(r, 1500));
+  ok(stashed.length === 1, '（前提）匿名で預かるところまでは進んでいる', stashed.length);
+  stashed.length = 0;
+  /* ここで登録が済んだ ── メールのコードでも Google でも、戻り先は同じこの画面。 */
+  await p.evaluate(installFakeSession, FAKE_UID);
+  await p.goto(`${BASE}${dir}/pay-report.html`, { waitUntil: 'networkidle0' });
+  await new Promise((r) => setTimeout(r, 2000));
+  const nf = await p.evaluate(() => {
+    const cs = document.getElementById('claim-state');
+    const b = document.getElementById('submit-btn');
+    let claims = [];
+    try { claims = JSON.parse(localStorage.getItem('pv_pay_claim') || '[]'); } catch (e) {}
+    return {
+      shown: !!(cs && cs.offsetParent), retry: !!document.getElementById('cs-retry'),
+      claims: claims.length, pop: window.__pop, btn: !!(b && b.offsetParent),
+      ev: (window.dataLayer || []).filter((x) => x[0] === 'event').map((x) => x[1]),
+    };
+  });
+  ok(claimed.length === 1, '（前提）引き取りには行っている', claimed.length);
+  ok(nf.shown && nf.retry, '★答えが返らなかったら「もう一度取り込む」を出す', nf);
+  ok(nf.claims === 1, '★預かり証を消さない（もう一度取りに行けることが唯一の出口）', nf.claims);
+  ok(nf.pop === 0, '★祝わない（まだ本人のものになっていない）', nf.pop);
+  ok(stashed.length === 0,
+    '★★新規保存へ流さない ── ここが二重（REAL PAY に2行・人数に2人）の正体', stashed.length);
+  ok(!nf.btn, '新規保存のボタンを出したままにしない', nf.btn);
+  ok(nf.ev.includes('pay_claim_state'), '起きたことが記録に残る', nf.ev);
+
+  /* サーバでは成功していて、答えだけ落ちていた回。もう一度押しても重複しない。 */
+  claimStatus = 200;
+  claimReply = { ok: false, reason: 'already_claimed' };
+  claimed.length = 0;
+  await p.evaluate(() => { document.getElementById('cs-retry').click(); });
+  await new Promise((r) => setTimeout(r, 1500));
+  const ac = await p.evaluate(() => ({
+    retry: !!document.getElementById('cs-retry'),
+    shown: (() => { const c = document.getElementById('claim-state'); return !!(c && c.offsetParent); })(),
+    claims: (() => { try { return JSON.parse(localStorage.getItem('pv_pay_claim') || '[]').length; } catch (e) { return -1; } })(),
+    pop: window.__pop,
+  }));
+  ok(claimed.length === 1, '再試行はもう一度サーバに聞きに行く', claimed.length);
+  ok(ac.shown && !ac.retry,
+    '★サーバが「もう移してある」と答えたら、再試行のボタンは出さない', ac);
+  ok(stashed.length === 0,
+    '★★「もう移してある」でも新規保存へ流さない（応答だけ落ちた回の二重を止める）', stashed.length);
+  ok(ac.claims === 0, '答えが返った預かり証は端末から消す', ac.claims);
+  ok(ac.pop === 0, '保存し直していないので祝わない', ac.pop);
+  claimReply = { ok: false, reason: 'blocked_by_test' };
+
+  /* ── N-3 / N-4 端末に残った入力は、持ち主のものだけ（2026-09-11）──
+     pv_pay_last と pv_pay_claim には持ち主が書かれておらず、共有端末や
+     ログアウト後に**前の人の会社・総支給が次の人の画面へ戻り**、
+     **次の人が前の人の給与を引き取れた**。下書き（pv_pay_draft）だけは
+     持ち主を見ていたので、3つの作法がばらばらだった。 */
+  console.log(`\n${tag} N-3/N-4 端末に残った入力は持ち主のものだけ\n`);
+  /* ⚠️ 仕込みは**別のページで**やる。pay-report.html は離れる拍子に
+     pv_pay_last を書き戻す（pagehide → savePreset）ので、この画面の上で
+     置いた細工は goto した瞬間に空の入力で上書きされ、**何を置いても
+     通ってしまう検査**になる（実際そうなった）。 */
+  /* ★仕込み用の別ページ。**HTML を返すもの**にする（robots.txt は
+     application/octet-stream ＝ブラウザが「保存」に回して遷移が起きない）。 */
+  const STAGE = `${BASE}/404.html`;
+  await p.goto(`${BASE}${dir}/pay-report.html`, { waitUntil: 'networkidle0' });
+  /* 押印は本物の関数に作らせる（写すと、指紋の作り方を変えた日に嘘をつく）。 */
+  const FP_A = await p.evaluate((uid) => window.PVPayLocal.fp(uid), FAKE_UID);
+  /* A が置いていった「前回の内容」。 */
+  const putLast = async (own) => {
+    await p.goto(STAGE, { waitUntil: 'domcontentloaded' });
+    await p.evaluate((o) => {
+      localStorage.clear(); sessionStorage.clear();
+      localStorage.setItem('pv_pay_last', JSON.stringify({
+        'f-airline': 'ana', 'f-gross': '1,080,000', _own: o, _ts: Date.now(),
+      }));
+    }, own);
+  };
+  await putLast(FP_A);
+  await p.evaluate(installFakeSession, OTHER_UID);
+  await p.goto(`${BASE}${dir}/pay-report.html`, { waitUntil: 'networkidle0' });
+  await new Promise((r) => setTimeout(r, 1500));
+  const bee = await p.evaluate(() => ({
+    gross: (document.getElementById('f-gross') || {}).value || '',
+    airline: (document.getElementById('f-airline') || {}).value || '',
+    /* ★入口の2択に立っている段階なので、見えている印はこちら
+       （#restore-bar は「手動で入力」を選んだ先にあり、まだ描かれていない）。 */
+    prev: !document.getElementById('entry-prev').hidden,
+  }));
+  ok(!bee.gross && !bee.airline,
+    '★★別のアカウントで開いても、前の人の会社・総支給が戻らない', bee);
+  ok(!bee.prev, '入口の「前回の内容が入ります」も出さない', bee.prev);
+
+  await putLast(FP_A);
+  await p.evaluate(installFakeSession, FAKE_UID);
+  await p.goto(`${BASE}${dir}/pay-report.html`, { waitUntil: 'networkidle0' });
+  await new Promise((r) => setTimeout(r, 1500));
+  const own = await p.evaluate(() => ({
+    gross: (document.getElementById('f-gross') || {}).value || '',
+    prev: !document.getElementById('entry-prev').hidden,
+  }));
+  ok(own.gross === '1,080,000' && own.prev,
+    '本人が開けば「前回の内容」は今までどおり戻る（締めすぎていない）', own);
+
+  /* 匿名で置いた分は今までどおり戻る＝匿名入力→登録→引き取りを壊していない。 */
+  await putLast('anon');   // ログインもしていない（上の clear で鍵ごと消えている）
+  await p.goto(`${BASE}${dir}/pay-report.html`, { waitUntil: 'networkidle0' });
+  await new Promise((r) => setTimeout(r, 1200));
+  const anon = await p.evaluate(() => (document.getElementById('f-gross') || {}).value || '');
+  ok(anon === '1,080,000', '★匿名で置いた分は今までどおり戻る（登録前の入力を捨てない）', anon);
+
+  /* 預かり証も同じ規則。次の人が前の人のレポートを引き取らない。 */
+  claimed.length = 0;
+  await p.goto(STAGE, { waitUntil: 'domcontentloaded' });
+  await p.evaluate((own, tok) => {
+    localStorage.clear(); sessionStorage.clear();
+    localStorage.setItem('pv_pay_claim', JSON.stringify([{ t: tok, ts: Date.now(), own: own }]));
+  }, FP_A, FAKE_TOKEN);
+  await p.evaluate(installFakeSession, OTHER_UID);
+  await p.goto(`${BASE}${dir}/pay-report.html`, { waitUntil: 'networkidle0' });
+  await new Promise((r) => setTimeout(r, 1500));
+  const kept = await p.evaluate(() => {
+    try { return JSON.parse(localStorage.getItem('pv_pay_claim') || '[]').length; } catch (e) { return -1; }
+  });
+  ok(claimed.length === 0,
+    '★★共有端末で、次の人が前の人の預かりを引き取らない', claimed.length);
+  ok(kept === 1, '前の人の預かり証は消さずに残す（本人が戻れば取れる）', kept);
+
+  /* ★匿名で預けた分の扱い（PVPayLocal.owns の 'anon' の枝・2026-09-11）。
+     押印が 'anon' の預かり証は誰のものとも言えないので、時間で決めている ──
+       ・同じタブの続き（sessionStorage の印がある）  → 引き取れる
+       ・作ってから60分以内                          → 引き取れる
+       ・それ以外                                    → 渡さない（消しもしない）
+     この2つが「匿名で入力 → その場で登録 → 引き取り」を通したまま、
+     共有端末で置き去りにされた分が次の人のものになるのを止めている。
+     ⚠️ 時計は動かせないので、預かり証の日付を倒して同じ状態を作る。 */
+  const anonClaim = async (ageMs, mark) => {
+    claimed.length = 0;
+    claimReply = { ok: true, is_new: true, id: '00000000-0000-0000-0000-0000000000c1' };
+    await p.goto(STAGE, { waitUntil: 'domcontentloaded' });
+    await p.evaluate((tok, age, m) => {
+      localStorage.clear(); sessionStorage.clear();
+      localStorage.setItem('pv_pay_claim',
+        JSON.stringify([{ t: tok, ts: Date.now() - age, own: 'anon' }]));
+      if (m) sessionStorage.setItem('pv_pay_tab', '1');
+    }, FAKE_TOKEN, ageMs, mark);
+    await p.evaluate(installFakeSession, OTHER_UID);
+    await p.goto(`${BASE}${dir}/pay-report.html`, { waitUntil: 'networkidle0' });
+    await new Promise((r) => setTimeout(r, 1500));
+    return { calls: claimed.length, left: await p.evaluate(() => {
+      try { return JSON.parse(localStorage.getItem('pv_pay_claim') || '[]').length; } catch (e) { return -1; }
+    }) };
+  };
+  const fresh = await anonClaim(60 * 1000, true);
+  ok(fresh.calls === 1,
+    '匿名で預けて、その場で登録した人は引き取れる（正規の流れを塞がない）', fresh.calls);
+  const leftover = await anonClaim(3 * 60 * 60 * 1000, false);
+  ok(leftover.calls === 0,
+    '★★匿名の預かりでも、別のタブで時間が経っていたら次の人に渡さない', leftover.calls);
+  ok(leftover.left === 1, '渡さないだけで消さない（置いていった本人が戻れば取れる）', leftover.left);
+  claimReply = { ok: false, reason: 'blocked_by_test' };
+
+  /* ログアウトで4つとも忘れる（profile.html の handleLogout → PVPayLocal.forget）。 */
+  const forgot = await p.evaluate(() => {
+    localStorage.setItem('pv_pay_last', '{}');
+    localStorage.setItem('pv_pay_draft', '{}');
+    localStorage.setItem('pv_pay_pending', '{}');
+    window.PVPayLocal.forget();
+    return ['pv_pay_last', 'pv_pay_draft', 'pv_pay_claim', 'pv_pay_pending']
+      .filter((k) => localStorage.getItem(k) != null);
+  });
+  ok(forgot.length === 0, '★出ていくときは4つとも忘れる（1行消して終わりにしない）', forgot);
+
+  /* ── N-4 下書きを消したら、再読み込みで復活しない ─────────────
+     「下書きを消す」は pv_pay_draft しか消していなかった。pv_pay_last が
+     残っているので、再読み込みで会社・職位・総支給が戻ってくる
+     （本人には、消したはずのものが勝手に生き返って見える）。 */
+  console.log(`\n${tag} N-4 下書きを消したら、再読み込みで復活しない\n`);
+  await p.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
+  await p.goto(`${BASE}${dir}/pay-report.html`, { waitUntil: 'networkidle0' });
+  await p.click('#entry-manual');
+  await p.evaluate(fillForm);
+  const dropped = await p.evaluate(async () => {
+    /* 離れる拍子の控え（pagehide）まで含めて、実際と同じ順に起こす。 */
+    window.dispatchEvent(new Event('pagehide'));
+    if (window.PVPayWizard) window.PVPayWizard.saveDraft();
+    await new Promise((r) => setTimeout(r, 100));
+    const had = ['pv_pay_last', 'pv_pay_draft'].filter((k) => localStorage.getItem(k) != null);
+    const b = document.querySelector('#wz-draft .wz-draft-drop');
+    if (b) b.click();
+    await new Promise((r) => setTimeout(r, 100));
+    window.dispatchEvent(new Event('pagehide'));   // 消した直後に離れても書き戻さない
+    return {
+      had,
+      left: ['pv_pay_last', 'pv_pay_draft'].filter((k) => localStorage.getItem(k) != null),
+      bar: (() => { const x = document.getElementById('restore-bar'); return !!(x && x.offsetParent); })(),
+    };
+  });
+  ok(dropped.had.length === 2, '（前提）下書きと「前回の内容」の両方が端末にある', dropped.had);
+  ok(dropped.left.length === 0,
+    '★★「下書きを消す」で両方消える（片方だけ残るから復活していた）', dropped.left);
+  ok(!dropped.bar, '「前回の内容」の帯も畳む', dropped.bar);
+  await p.goto(`${BASE}${dir}/pay-report.html`, { waitUntil: 'networkidle0' });
+  await new Promise((r) => setTimeout(r, 800));
+  const revived = await p.evaluate(() => ({
+    gross: (document.getElementById('f-gross') || {}).value || '',
+    airline: (document.getElementById('f-airline') || {}).value || '',
+  }));
+  ok(!revived.gross && !revived.airline,
+    '★★再読み込みしても会社・総支給が復活しない', revived);
+
+  /* 「保存を消す」（#btn-forget）も同じ後始末を通る。片方だけ消える形をなくす。 */
+  await p.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
+  await p.goto(`${BASE}${dir}/pay-report.html`, { waitUntil: 'networkidle0' });
+  await p.click('#entry-manual');
+  await p.evaluate(fillForm);
+  const forget2 = await p.evaluate(async () => {
+    window.dispatchEvent(new Event('pagehide'));
+    if (window.PVPayWizard) window.PVPayWizard.saveDraft();
+    await new Promise((r) => setTimeout(r, 100));
+    document.getElementById('restore-bar').style.display = '';   // 帯を出した状態にする
+    document.getElementById('btn-forget').click();
+    await new Promise((r) => setTimeout(r, 100));
+    window.dispatchEvent(new Event('pagehide'));
+    return ['pv_pay_last', 'pv_pay_draft'].filter((k) => localStorage.getItem(k) != null);
+  });
+  ok(forget2.length === 0, '★「保存を消す」でも下書きまで一緒に消える', forget2);
+
+  /* ── 逃げ道の文言が、預かりの有無で変わる（2026-09-11）─────────
+     預かりに失敗した回にも「入力はサーバーに預けてあります。消えていません。」
+     と出ていた。その人の入力はこのブラウザにしか無いので、これは嘘になる。 */
+  console.log(`\n${tag} 逃げ道の文言は、預けられたかどうかで変わる\n`);
+  stashFail = true;
+  blockPayLogin = true;
+  stashed.length = 0;
+  await p.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
+  await p.goto(`${BASE}${dir}/pay-report.html`, { waitUntil: 'networkidle0' });
+  await p.click('#entry-manual');
+  await p.evaluate(fillForm);
+  await p.evaluate(() => { document.getElementById('submit-btn').click(); });
+  await new Promise((r) => setTimeout(r, 7500));
+  const words = await p.evaluate(() => {
+    const el = document.getElementById('pay-login-fallback');
+    const l = el ? el.querySelector('.plfb-l') : null;
+    return { shown: !!(el && el.offsetParent), text: l ? (l.textContent || '').trim() : '' };
+  });
+  ok(words.shown, '（前提）預けそこねて箱も描けないときも、逃げ道は出る', words.shown);
+  ok(!/サーバーに預けてあります|held on our server/.test(words.text),
+    '★★預けられていない人に「サーバーに預けてあります」と言わない', words.text.slice(0, 80));
+  ok(/このブラウザ|this browser/.test(words.text),
+    '★どこに残っているかを正しく言う（このブラウザ）', words.text.slice(0, 80));
+  stashFail = false;
+  blockPayLogin = false;
 
   /* ── 経路2：別のブラウザに着地した人（?claim=） ─────────────────
      メールのリンクを押した人・Google の往復で環境が変わった人は、端末に預かり証を
