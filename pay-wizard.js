@@ -252,7 +252,12 @@ function publicRow(p, opt) {
 var DRAFT_KEY = 'pv_pay_draft';
 var DRAFT_V = 1;
 
+/* ★指紋は pv-session.js（PVPayLocal.fp）に1本だけ置く。下書き・前回の内容・
+   預かり証の3つが**同じ印**でなければ、同じ人なのに片方だけ捨てられる。
+   下は pv-session.js を読んでいない画面（検査の器など）のための同じ式の控え。 */
 function fp(uid) {                       // FNV-1a。短く畳むだけ。
+  var P = typeof window !== 'undefined' && window.PVPayLocal;
+  if (P && P.fp) return P.fp(uid);
   var h = 0x811c9dc5, s = String(uid || '');
   for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = (h * 0x01000193) >>> 0; }
   return h.toString(16);
@@ -276,6 +281,23 @@ function draftWrite(o) {
   catch (e) { return false; }
 }
 function draftClear() { try { localStorage.removeItem(DRAFT_KEY); } catch (e) {} }
+
+/* 下書きを捨てて帯を畳む。呼ぶだけ（外へは知らせない）。 */
+function dropDraft() {
+  draftClear();
+  var box = $('wz-draft');
+  if (box) box.hidden = true;
+}
+/* ★「下書きを消す」を押した人の言う「前回の内容」は pv_pay_draft だけではない。
+     pay-report.html は同じ入力を pv_pay_last にも控えている。片方だけ消すと、
+     消したはずの会社・職位・総支給が**再読み込みで戻ってくる**（2026-09-11）。
+     押した本人には消し方が分からないので、以後この画面は信用されない。
+   ★ここから localStorage を直接触らない（キーの名前を2か所に持たない）。
+     知らせるだけにして、消すのは持ち主のページに任せる。 */
+function dropDraftFromUser() {
+  dropDraft();
+  try { window.dispatchEvent(new CustomEvent('pv-pay-draft-drop')); } catch (e) {}
+}
 
 /* ═══ 3. ウィザード本体 ════════════════════════════════════════════ */
 var C = null;          // init() で受け取る設定
@@ -465,7 +487,7 @@ function saveDraft() {
   box.append(document.createTextNode(L.draftOk(hm) + ' '));
   var b = el('button', 'wz-draft-drop', L.draftDrop);
   b.type = 'button';
-  b.addEventListener('click', function () { draftClear(); box.hidden = true; });
+  b.addEventListener('click', dropDraftFromUser);
   box.appendChild(b);
 }
 function saveSoon() {
@@ -486,7 +508,7 @@ function restoreDraft(d) {
     box.textContent = L.draftBack + ' ';
     var b = el('button', 'wz-draft-drop', L.draftDrop);
     b.type = 'button';
-    b.addEventListener('click', function () { draftClear(); box.hidden = true; });
+    b.addEventListener('click', dropDraftFromUser);
     box.appendChild(b);
   }
   return true;
@@ -700,6 +722,11 @@ var API = {
   current: function () { return C ? C.steps[cur].id : null; },
   isLast: function () { return !!C && cur === C.steps.length - 1; },
   saveDraft: saveDraft,
+  /* ★下書きの押印。pay-report.html が pv_pay_last と pv_pay_claim に
+     **同じ印**を押すために要る（別々に作ると同じ人に違う印が付く）。 */
+  fp: fp,
+  /* 「保存を消す」（pay-report.html）から呼ぶ。下書きも一緒に捨てる。 */
+  dropDraft: dropDraft,
   /* ★提出が通ったあとの後始末（pay-report.html の afterSaved から呼ぶ）。
      控えを消すだけでなく、**これ以降は控えない**。消した直後に、直前の打鍵で
      仕掛かっていた2秒の遅延保存が発火して、出し切ったはずの下書きが黙って生き返る

@@ -271,19 +271,35 @@ begin
     return jsonb_build_object('ok', false, 'reason', 'not_found');
   end if;
 
-  -- 30日を過ぎた預かりは移さない。行は残る（データとしては数える）が、
-  -- 何ヶ月も前に打った数字が、忘れた頃に本人の履歴へ入るのは事故になる。
+  /* ★トークンだけで引く。「無い」と「もう済んでいる」と「切れた」を分けて返すため。
+     2026-09-11 まで claimed_at is null と 30日 を where に混ぜていたので、
+     **サーバでは成功したが応答が届かなかった**再試行が not_found に見えていた。
+     画面はそれを「預かりが無い」と読んで新規保存へ流れ、同じ人が REAL PAY に
+     2行・人数に2重に載っていた（最大24か月ぶん）。
+     ★for update で待たせる。2つのタブが同時に叩いても、後から入ったほうは
+       claimed_at が入った後の行を読む＝already_claimed で止まる。 */
   select * into v_row
     from public.pay_reports_pending
    where claim_token = btrim(p_token)
-     and claimed_at is null
-     and created_at > now() - interval '30 days'
    for update;
 
-  -- ★見つからないのは例外にしない。二度押し・再読み込み・古い預かり証は
-  --   「もう済んでいる」か「無い」だけで、利用者に見せる異常ではない。
+  -- ★見つからないのは例外にしない。古い預かり証・別端末の預かり証は
+  --   利用者に見せる異常ではない。
   if not found then
     return jsonb_build_object('ok', false, 'reason', 'not_found');
+  end if;
+
+  /* もう移してある。**保存し直さない**（画面は「すでに保存済み」と出して
+     レポートへ送る）。payload は返さない ── 預かり証を持っているだけの人に、
+     済んだ後まで中身を読ませ続ける必要が無い。 */
+  if v_row.claimed_at is not null then
+    return jsonb_build_object('ok', false, 'reason', 'already_claimed');
+  end if;
+
+  -- 30日を過ぎた預かりは移さない。行は残る（データとしては数える）が、
+  -- 何ヶ月も前に打った数字が、忘れた頃に本人の履歴へ入るのは事故になる。
+  if v_row.created_at <= now() - interval '30 days' then
+    return jsonb_build_object('ok', false, 'reason', 'expired');
   end if;
 
   v_res := public.submit_pay_report(v_row.payload);

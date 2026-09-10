@@ -61,6 +61,50 @@
     }
   };
 
+  /* ── この端末の給与入力は誰のものか（2026-09-11）────────────────
+     給与フォームは4つの鍵を端末に置く。今まで**持ち主を見ていたのは
+     pv_pay_draft だけ**で、残る3つは誰でも読めた。共有端末で次に使った人の
+     画面に前の人の会社・職位・総支給が戻り（pv_pay_last）、
+     ログインすると前の人の給与レポートがその人のものになっていた（pv_pay_claim）。
+     画面はどこも壊れていないので、本人にも運営にも気づけない。
+
+     ★押印は uid の指紋だけ。秘密を守るためのものではなく、
+       「同じ端末の中で同じ人か」を見るためのもの（pay-wizard.js の下書きと同じ）。
+     ★指紋の作り方をここ1か所にする。2つ目の実装を作ると、同じ人に違う印が
+       付いて下書きだけ捨てられる、という形で静かに壊れる。
+     ★匿名で書いたものを本人が引き継げないと、匿名入力→登録→引き取りという
+       この画面の本筋が通らない。引き継ぐ条件は「同じタブの続き」か「60分以内」。 */
+  var PAY_KEYS = ['pv_pay_last', 'pv_pay_draft', 'pv_pay_claim', 'pv_pay_pending'];
+  var PAY_TAB  = 'pv_pay_tab';                  // sessionStorage ＝ タブごと
+  var ANON_GRACE = 60 * 60 * 1000;
+
+  function fp(uid) {                            // FNV-1a。短く畳むだけ。
+    var h = 0x811c9dc5, t = String(uid || '');
+    for (var i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = (h * 0x01000193) >>> 0; }
+    return h.toString(16);
+  }
+  function markTab() { try { sessionStorage.setItem(PAY_TAB, '1'); } catch (e) {} }
+  function sameTab() {
+    try { return sessionStorage.getItem(PAY_TAB) === '1'; } catch (e) { return false; }
+  }
+  /* own = 押印（'anon' か指紋）／me = 今の人の指紋（未ログインなら 'anon'）。 */
+  function owns(own, me, ts) {
+    if (own && own !== 'anon') return own === me;
+    if (sameTab()) return true;
+    return Date.now() - Number(ts || 0) <= ANON_GRACE;
+  }
+  /* 端末から給与の入力を全部消す。ログアウト・自動失効・管理者の切替から呼ぶ。
+     ★1行だけ消して済ませない。4つのうち1つでも残ると、次の人の画面に戻る。 */
+  function forget() {
+    PAY_KEYS.forEach(del);
+    try { sessionStorage.removeItem(PAY_TAB); } catch (e) {}
+  }
+
+  window.PVPayLocal = {
+    KEYS: PAY_KEYS, TAB_KEY: PAY_TAB, ANON_GRACE: ANON_GRACE,
+    fp: fp, markTab: markTab, sameTab: sameTab, owns: owns, forget: forget
+  };
+
   // supabase-js v2 の保存キー。プロジェクト参照が入るのでパターンで拾う。
   var AUTH_RE = /^sb-.+-auth-token$/;
   var SB_RE   = /^sb-.+-(auth-token|code-verifier)/;
@@ -161,6 +205,12 @@
     del(K_SALARY);   // 年収の鍵も一緒に。共有端末に機微な解放を残さない
     del(K_LAST);
     del(K_START);
+
+    /* ★給与の入力も置いていかない（2026-09-11）。ここが今まで抜けていた。
+       共有端末で7日／30日の期限が来て切れたあと、次に使った人の画面に
+       前の人の会社・総支給が戻り、その人がログインすると前の人の
+       給与レポートまでその人のものになっていた。 */
+    forget();
 
     // login.html が「安全のため自動的にログアウトしました」を出すための目印。
     try { sessionStorage.setItem('pv_expired', '1'); } catch (e) {}
