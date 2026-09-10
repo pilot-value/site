@@ -1834,6 +1834,14 @@ console.log('\n▼ 15. 本人の依頼で一覧から下ろす（pay_hidden・20
       where r.airline = $1 on conflict (proof_hash) do nothing`, [A_HIDE]);
 
   ok(!(await seen()), '★下ろすと一覧から消える（鍵を持っている人にも出ない）');
+
+  /* ★出した本人自身にも出ないこと。
+     除外は運営（pv_is_operator）の1つだけで、本人もその中に入らない。
+     ☆本人の控え（my_pay_reports）はこの下で別に見ている。 */
+  await db.query(`select set_config('pv.uid', $1, false)`, [uid(HID_U)]);
+  ok(!(await payRows()).rows.some((x) => x.airline === A_HIDE),
+     '★★出した本人が見ても一覧から消えている');
+  await asViewer();
   const headsAfter = await heads();
   ok(headsAfter === headsBefore,
      '★★下ろしても人数は1つも減らない（出してくれた事実は残す）',
