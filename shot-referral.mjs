@@ -19,7 +19,8 @@
             bnear … 給与を出した直後。あと2人
             bopen … 給与を出した直後。5人そろった
             floor … 給与を出した直後、招待が読めなかったとき
-                    （★いまの「まだ5人に届いていません」が残るのが正しい）
+                    （★何も書かれていない受け皿だけが残るのが正しい。
+                      2026-09-10 に断り書きを落とした ── 招待カードの置き場所だけ残す）
      lang : ja | en    theme: dark | light    width: 390 / 1280 など
      第5引数 open ＝撮らずに見える窓で開いたままにする（自分の目で見る用）
      第5引数 page ＝1画面ぶんでなくページ全体を撮る
@@ -209,7 +210,7 @@ const die = async (msg) => { await browser.close(); console.error('❌ ' + msg);
 if (scene === 'strip' && !seen.strip) await die('招待状が出ていない');
 if (scene === 'floor') {
   if (seen.card) await die('招待が読めていないのにカードが出ている');
-  if (!seen.floor) await die('床（まだ5人に届いていません）が消えている');
+  if (!seen.floor) await die('受け皿（bench-gap）が消えている＝招待カードの置き場所が無い');
 }
 if (scene !== 'strip' && scene !== 'floor' && !seen.card) await die('招待カードが出ていない');
 /* ★常設入口の約束。gap を引かない＝人数の話をしないので、数字が1文字も出ない。 */

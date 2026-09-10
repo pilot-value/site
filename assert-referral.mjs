@@ -95,7 +95,7 @@ const tagAt = (s, name) =>
   /* 日英2ファイルの罠（pay-report.html:1687 の警告）。片方だけ直すと本番で割れる。 */
   for (const f of ['pay-report.html', 'en/pay-report.html']) {
     const s = nohtml(read('./' + f));
-    ok(s.includes('id="bench-gap"'), `${f} に床（id="bench-gap"）がある`);
+    ok(s.includes('id="bench-gap"'), `${f} に受け皿（id="bench-gap"）がある`);
     ok(s.includes('mountAfterReport'), `${f} が mountAfterReport を呼ぶ`);
     ok(s.includes('PVReferral.settle'), `${f} が afterSaved で settle を呼ぶ`);
     ok((s.split('PVReferral.claim').length - 1) === 2,
@@ -234,7 +234,7 @@ const FAKE = function (gapPayload, code) {
 };
 
 /* 給与レポートの見た目を作る入口。本番の submit と同じ形で renderResult を呼ぶ。
-   ★benchmark: null ＝「まだ5人に届いていない」経路（床が出るところ）。 */
+   ★benchmark: null ＝5人に届いていない経路（招待カードの受け皿が出るところ）。 */
 const RENDER = function () {
   window.renderResult(
     { ok: true, is_new: true, currency: 'JPY', annual_total_orig: 19440000,
@@ -563,9 +563,11 @@ for (const lang of ['ja', 'en']) {
     const shown = ev.filter((e) => e.n === 'referral_prompt_shown');
 
     if (key === 'none') {
-      ok(!v.card && v.floor, '★state:none では床（いまの一文）がそのまま残る');
-      ok(lang === 'ja' ? /5人/.test(v.floorText) : /five pilots/i.test(v.floorText),
-         '床の文言は今までどおり', JSON.stringify(v.floorText).slice(0, 80));
+      ok(!v.card && v.floor, '★state:none でも受け皿（bench-gap）は残る');
+      /* ★2026-09-10、「まだ5人に届いていません」の断り書きはオーナー指示で落とした。
+         残しているのは空の受け皿だけ。ここに文が戻ったら気づけるようにしておく。 */
+      ok(v.floorText.trim() === '', '★受け皿には何も書かない（断り書きを戻さない）',
+         JSON.stringify(v.floorText).slice(0, 80));
     } else {
       ok(v.card && !v.floor, '床がカードに置き換わる', JSON.stringify(v).slice(0, 120));
     }
@@ -621,7 +623,7 @@ for (const lang of ['ja', 'en']) {
 // 3. 床が抜けない・モーダルと共存する・送る文面
 // ════════════════════════════════════════════════════════════════
 {
-  console.log('\n════ 床が抜けない（PVReferral が読めなかったとき）════');
+  console.log('\n════ 受け皿が抜けない（PVReferral が読めなかったとき）════');
   const page = await fresh();
   await page.evaluateOnNewDocument(FAKE, GAP.near2, CODE);
   await page.goto(BASE + '/pay-report.html', { waitUntil: 'domcontentloaded', timeout: 30000 });
@@ -633,8 +635,12 @@ for (const lang of ['ja', 'en']) {
     const f = document.getElementById('bench-gap');
     return { floor: !!f, text: f ? f.innerText : '', card: !!document.querySelector('.pvr') };
   });
-  ok(v.floor && !v.card, '★pv-referral.js が無くても、いまの一文はそのまま出る');
-  ok(/まだ5人に届いていません/.test(v.text), '床の文言が壊れていない', JSON.stringify(v.text).slice(0, 80));
+  /* ★2026-09-10、「まだ5人に届いていません」の断り書きはオーナー指示で落とした。
+     残しているのは**空の受け皿**だけ。ここが招待カードの置き場所なので、
+     消すと「あと2人／あと1人」のカードが黙って出なくなる。 */
+  ok(v.floor && !v.card, '★pv-referral.js が無くても、招待カードの置き場所は残っている');
+  ok(v.text.trim() === '', '★受け皿には何も書かない（断り書きを戻さない）',
+     JSON.stringify(v.text).slice(0, 80));
 }
 
 {

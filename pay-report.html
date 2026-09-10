@@ -3884,10 +3884,13 @@ function renderResult(d, p) {
         '</div>' +
       '</div>';
   } else {
-    /* ★この一文は「床」。pv-referral.js が読めても読めなくても、RPC が落ちても、
-       ここは必ず残る。上書きするのは mountAfterReport だけで、上書きできない
-       ときは今までどおりこの文が出る（id を1つ足す以外は1文字も変えていない）。 */
-    bench = '<div class="bench" id="bench-gap"><div style="font-size:.82rem;color:#9ca3af">この区分（会社・職位・機材・年）は<b>まだ5人に届いていません</b>。5人そろった時点で位置が出ます。個人が特定されない人数に達するまで、集計は出しません。</div></div>';
+    /* ★空の受け皿。文は書かない（2026-09-10 オーナー指示。
+       「まだ5人に届いていません」の断り書きは、出した直後の人には要らない）。
+       ⚠️ **この div は消さないこと。** pv-referral.js の mountAfterReport が
+          この id を目印にして、招待カードをここへ置き換える。
+          消すと「あと2人／あと1人」の招待カードが**黙って出なくなる**
+          （画面は普通に動いたまま、招待の導線だけが1つ消える）。 */
+    bench = '<div id="bench-gap" hidden></div>';
   }
 
   /* ★門から来た人には、押した行の面まで戻す。開き直しと鍵の後始末は
@@ -3919,9 +3922,11 @@ function renderResult(d, p) {
         rows.map((r) => '<div class="res-row"><span class="res-k">' + esc(r[0]) + '</span><span class="res-v ' + r[2] + '">' + r[1] + '</span></div>').join('') +
       '</div>' +
       bench + backNote + fxNote +
+      /* ★「検証済みバッジは付きません」の一文は 2026-09-10 に落とした（オーナー指示）。
+         出した直後の画面で、付かないものの話をしない。仕組みそのものの説明は
+         index.html の「準備中」の板に残っている。 */
       '<div class="res-note">この内容は<b>この端末にだけ</b>保存しました。来月は変わったところを直すだけで済みます。' +
-        '次の明細を出すと、その日から90日に伸びます。<br>' +
-        '<b>「検証済み」バッジは、入力を続けても付きません。</b>本物のパイロットであることを確かめられたときだけ付きます（準備中）。</div>' +
+        '次の明細を出すと、その日から90日に伸びます。</div>' +
       '<div class="mt-6 flex flex-col sm:flex-row gap-3">' +
         '<a href="profile.html?new=1#your-pay" class="btn-orange justify-center flex-1">マイレポートを見る →</a>' +
         /* ★Give した瞬間に Get を見せる。ここを出したことで REAL PAY が開いている。 */
