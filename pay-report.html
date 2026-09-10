@@ -1524,6 +1524,9 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                ★next は絶対パスで書く。戻り先は /auth-callback.html から解決される。 -->
           <div id="pay-login-fallback" class="plfb" hidden>
             <div class="plfb-t">登録の画面を読み込めませんでした</div>
+            <!-- ★この本文は JS が書き替える（mountLogin の PLFB_COPY）。
+                 預かりに失敗した回にも「預けてあります」と出ていた。ここに在るのは
+                 預かれたときの文で、JS が落ちていれば箱ごと出ない。 -->
             <p class="plfb-l"><b>入力はサーバーに預けてあります。消えていません。</b>通信がうまくいかなかったようです。下のボタンからログイン／登録すると、預けた内容がそのままレポートになります。</p>
             <div class="plfb-a">
               <a class="btn-orange" href="login.html?next=%2Fpay-report.html">ログイン／登録へ進む →</a>
@@ -1532,6 +1535,19 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           </div>
         </div>
 
+        <!-- ★極端な金額のときだけ、送信の直前に一度だけ聞く（2026-09-11 オーナー承認）。
+             ★読み取りの修理の代わりではない。読み方が2通りある入力は欄の下で
+               先に聞くので（.money-ask）、ここまで来ない。
+             ★普通の入力では出ない。出るのは年換算が REAL PAY の常識の幅を
+               外れたときだけで、同じ金額には二度出ない。
+             ★中身は JS が組む。ここに文言を書かない（出す条件と対で持つ）。 -->
+        <!-- ★引き取りが「移せた」以外で終わったときだけ出す（2026-09-11）。
+             ⚠️ これが無かった頃、通信で落ちた回も「預かりが無い」と同じ扱いで
+                新規保存へ流れ、しかも祝っていた。預かり行は未引き取りのまま残るので、
+                同じ人が REAL PAY に2行・人数に2重に載る（最大24か月ぶん）。
+             ★中身は JS が組む（出す条件と対で持つ）。 -->
+        <div id="claim-state" class="claim-st" hidden></div>
+        <div id="amt-confirm" class="amt-cf" hidden></div>
         <div class="mt-7 flex flex-col sm:flex-row gap-3" id="submit-actions">
           <button type="button" id="submit-btn" class="btn-orange justify-center flex-1">送信して結果を見る →</button>
           <a href="world-airlines.html" class="btn-ghost justify-center">やめる</a>
@@ -1661,9 +1677,44 @@ let _gatePopped = false;                 // 「受け取りました」で鳴ら
    ★戻り先URLに載せた ?claim= もここで拾う（別のブラウザに着地した人の唯一の綱）。
    返り値＝移せた中の最後の1件。そのままレポートを描く。 */
 async function claimPending() {
-  const won = await PVClaimPending.sweep(_sb);
-  if (won && won.popped) _gatePopped = true;
-  return won;
+  /* ★sweepDetail。sweep は「預かりが無い」と「通信で落ちた」を同じ null で返す。
+     見分けられないと、後者を前者と読んで新規保存へ流れる（N-2）。 */
+  const res = await PVClaimPending.sweepDetail(_sb);
+  if (res.won && res.won.popped) _gatePopped = true;
+  return res;
+}
+
+/* ── 引き取りが「移せた」以外で終わったとき（2026-09-11）──────────
+   ★ここから submitPayReport() へ流さない。サーバには預かり行が残っていて、
+     未引き取りのまま新しく1行入れると、同じ人が REAL PAY に2行、
+     pv_contributors() に2人として載る（最大24か月ぶん）。
+   ★預かり証も入力も消さない。もう一度取りに行けることが唯一の出口。
+   ★祝わない。まだ本人のものになっていない。
+   kind='failed'  … サーバの答えが返らなかった（通信）
+   kind='already' … サーバが「もう移してある」と答えた */
+function showClaimState(kind) {
+  /* ★箱は 5/5 の中にある。別の段に居るまま出すと、画面に無いものへ
+     scrollIntoView することになって何も起きない（showGate と同じ理由）。 */
+  if (WZ) { WZ.goLast(); $('submit-block').hidden = false; }
+  /* ★送信ボタンを出したままにしない。預かり行が未引き取りのうちに新規保存を
+     通すと、まさに二重（REAL PAY に2行・人数に2人）になる。 */
+  setSubmitScreen(true);
+  const box = $('claim-state');
+  const retry = kind === 'failed';
+  box.innerHTML =
+    '<div class="cs-t">' + (retry ? "受け取りが終わっていません" : "この分はすでに保存済みです") + '</div>' +
+    '<p class="cs-l">' + (retry ? '<b>預けた内容はサーバーに残っています。消えていません。</b>通信がうまくいかなかったようです。もう一度取り込んでください。' : 'この月のレポートは、すでにあなたのものとして保存されています。二重には保存しません。') + '</p>' +
+    '<div class="cs-a">' + (retry
+      ? '<button type="button" class="btn-orange justify-center" id="cs-retry">' + "もう一度取り込む" + '</button>'
+      : '<a class="btn-orange justify-center" href="profile.html#your-pay">' + "マイレポートを見る →" + '</a>') +
+    '</div>';
+  box.hidden = false;
+  if (retry && $('cs-retry')) {
+    $('cs-retry').addEventListener('click', function () { box.hidden = true; afterSignedIn(); });
+  }
+  box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  /* ★段の名前だけ。金額・メール・預かり証は入れない。 */
+  track('pay_claim_state', { kind: kind });
 }
 
 /* ── 受け取った中身の1行 ──────────────────────────────────────
@@ -1786,6 +1837,15 @@ function showGate(saved) {
        ・そのあとも15秒までは試し続け、遅れて届いたら逃げ道を畳んで本物を出す
        ・pay_login_mount_fail を残す。これが無いと起きたことに永久に気づけない
    ★イベントに金額・メール・預かり証を1文字も入れない（名前だけ）。 */
+/* 逃げ道の本文。預かれたか（saved）で言うことが変わる。
+   ★local のほうは「サーバに無い」とはっきり言う。ここで安心させると、
+     ブラウザを変えた人・履歴を消した人の入力が本当に消える。 */
+var PLFB_COPY = {
+  saved: '<b>入力はサーバーに預けてあります。消えていません。</b>通信がうまくいかなかったようです。'
+       + '下のボタンからログイン／登録すると、預けた内容がそのままレポートになります。',
+  local: '<b>入力はこのブラウザに残してあります。</b>ただし、サーバーにはまだ預けられていません。'
+       + '下のボタンからログイン／登録して、<b>同じブラウザで</b>この画面に戻り、もう一度送信してください。',
+};
 var PLM_FALLBACK_AT = 50;    // 5秒。ここで逃げ道を出す
 var PLM_GIVE_UP_AT  = 150;   // 15秒。ここまで来ないなら本当に届いていない
 function mountLogin(saved, tries) {
@@ -1811,8 +1871,16 @@ function mountLogin(saved, tries) {
     return;
   }
   if (tries === PLM_FALLBACK_AT) {
-    if ($('pay-login-fallback')) $('pay-login-fallback').hidden = false;
-    track('pay_login_mount_fail');
+    /* ★預かれた人にしか「預けてあります」と言わない（2026-09-11）。
+       showGate(false) ＝ 預かりそのものが落ちた回にも同じ文が出ていた。
+       その人の入力はこのブラウザにしか無いので、「消えていません」は嘘になる。 */
+    var fb = $('pay-login-fallback');
+    if (fb) {
+      var fbl = fb.querySelector('.plfb-l');
+      if (fbl) fbl.innerHTML = saved ? PLFB_COPY.saved : PLFB_COPY.local;
+      fb.hidden = false;
+    }
+    track('pay_login_mount_fail', { saved: saved ? 1 : 0 });
   }
   if (tries > PLM_GIVE_UP_AT) return;
   setTimeout(function () { mountLogin(saved, tries + 1); }, 100);
@@ -1834,11 +1902,15 @@ async function afterSignedIn() {
      （紹介の成立は profiles.pay_report_count > referrals.baseline_reports で導出する）。
      冪等なので他の3か所と重なっても害は無い。落ちても給与の経路は止めない。 */
   try { if (window.PVReferral) await window.PVReferral.claim(_sb); } catch (e) {}
-  const won = await claimPending();
-  if (won) {
+  const res = await claimPending();
+  if (res.won) {
     hideGate();
-    return afterSaved(won, won.payload || {}, (won.payload || {}).airline);
+    return afterSaved(res.won, res.won.payload || {}, (res.won.payload || {}).airline);
   }
+  /* ★答えが返らなかった預かりがある。ここで新規保存へ流すと二重になる。 */
+  if (res.failed > 0) { hideGate(); return showClaimState('failed'); }
+  /* ★サーバが「もう移してある」と答えた。保存し直さない。 */
+  if (res.already > 0) { hideGate(); return showClaimState('already'); }
   submitPayReport();
 }
 
@@ -1950,7 +2022,7 @@ const INSTR_ALL_IDS = ['f-instr-label', 'f-instr-extra'].concat(INSTR_PAY_IDS);
 function instrRead() {
   if ($('s3-instr').hidden) return null;          // 教官でない人の分は組み立てない
   const t = (id) => $(id).value.trim();
-  const n = (id) => { const v = parseFloat(unc($(id).value)); return isFinite(v) && v > 0 ? v : null; };
+  const n = (id) => { const r = moneyRead($(id)); return r.state === 'ok' && r.n > 0 ? r.n : null; };
   const trainings = INSTR_BOXES.filter((b) => b.checked).map((b) => b.value);
   const o = { trainings: trainings, label: t('f-instr-label') || null, extra: t('f-instr-extra') || null,
               method: null, amount: null, qty: null };
@@ -2019,7 +2091,7 @@ const EXAM_ALL_IDS = ['f-exam-label', 'f-exam-extra'].concat(EXAM_PAY_IDS);
 function examRead() {
   if ($('s3-exam').hidden) return null;           // 審査担当でない人の分は組み立てない
   const t = (id) => $(id).value.trim();
-  const n = (id) => { const v = parseFloat(unc($(id).value)); return isFinite(v) && v > 0 ? v : null; };
+  const n = (id) => { const r = moneyRead($(id)); return r.state === 'ok' && r.n > 0 ? r.n : null; };
   const checks = EXAM_BOXES.filter((b) => b.checked).map((b) => b.value);
   const o = { checks: checks, label: t('f-exam-label') || null, extra: t('f-exam-extra') || null,
               method: null, method_label: null, amount: null, qty: null };
@@ -2091,7 +2163,7 @@ const UNION_ALL_IDS = ['f-union-days', 'f-union-extra'].concat(UNION_PAY_IDS);
 function unionRead() {
   if ($('s3-union').hidden) return null;          // 組合でない人の分は組み立てない
   const t = (id) => $(id).value.trim();
-  const n = (id) => { const v = parseFloat(unc($(id).value)); return isFinite(v) && v > 0 ? v : null; };
+  const n = (id) => { const r = moneyRead($(id)); return r.state === 'ok' && r.n > 0 ? r.n : null; };
   const o = { days: n('f-union-days'), extra: t('f-union-extra') || null,
               source: null, amount: null };
   /* 「あり」以外は金額の欄そのものが出ていない。 */
@@ -2169,7 +2241,7 @@ const MGMT_ALL_IDS = ['f-mgmt-days', 'f-mgmt-extra'].concat(MGMT_PAY_IDS);
 function mgmtRead() {
   if ($('s3-mgmt').hidden) return null;           // 管理職でない人の分は組み立てない
   const t = (id) => $(id).value.trim();
-  const n = (id) => { const v = parseFloat(unc($(id).value)); return isFinite(v) && v > 0 ? v : null; };
+  const n = (id) => { const r = moneyRead($(id)); return r.state === 'ok' && r.n > 0 ? r.n : null; };
   const o = { days: n('f-mgmt-days'), extra: t('f-mgmt-extra') || null,
               method: null, amount: null };
   /* 「別途支給されている」以外は金額の欄そのものが出ていない。 */
@@ -2228,7 +2300,7 @@ const NONLINE_ALL_IDS = ['f-nonline-days', 'f-nonline-extra'].concat(NONLINE_PAY
 function nonlineRead() {
   if ($('s3-nonline').hidden) return null;        // 兼務・配属でない人の分は組み立てない
   const t = (id) => $(id).value.trim();
-  const n = (id) => { const v = parseFloat(unc($(id).value)); return isFinite(v) && v > 0 ? v : null; };
+  const n = (id) => { const r = moneyRead($(id)); return r.state === 'ok' && r.n > 0 ? r.n : null; };
   const areas = NONLINE_BOXES.filter((b) => b.checked).map((b) => b.value);
   const o = { areas: areas, days: n('f-nonline-days'), extra: t('f-nonline-extra') || null,
               amount: null };
@@ -2395,40 +2467,213 @@ function countryName(code) {
 $('f-taxcountry').addEventListener('change', updateTax);
 $('f-tax').addEventListener('input', () => { $('f-tax').dataset.touched = '1'; });
 
-/* ── 金額の桁区切り（2026-08-13 オーナー指摘）────────────────────
-   1150000 は読めない。1,150,000 と出す。
+/* ── 金額の読み取り（2026-09-11 に1か所へ集めた）──────────────────
+   ★以前は「カンマを全部落として parseFloat」だけだった。ヨーロッパ式に
+     1.000,00 と書いた人の値が 1.00000 → **1** になり、画面は普通に動いたまま
+     年収が REAL PAY の常識の幅（$10,000〜$700,000）を外れて、行ごと黙って消えた。
+     「出したのに自分の行が出てこない」はこれ。
+   ★曖昧なもの（1.000 は 1000 か 1.0 か）は**推測しない**。欄の下で本人に選んでもらい、
+     選ぶまでは送信も止める（moneyBlocker）。黙って決めるのがこの欠陥の正体だった。
+   ★このサイトの書き方は「, が桁区切り・. が小数点」で、grp() が出すのもこれ。
+     いま正しく入れている人（1234.56 / 0.5 / 1,150,000）は今までどおり素通りする。
    ★<input type="number"> にはカンマを入れられない（ブラウザが値ごと捨てる）ので、
      金額の欄だけ type="text" inputmode="decimal" にしてある（class="money"）。
      時間・日数・％の欄は number のまま＝上限の検査が効く。
-   ★これ以降、金額の .value にはカンマが混じる。読むときは必ず unc() を通すこと
-     （生のまま payload に入れるとサーバの ::numeric が落ちる）。 */
-const unc = (s) => String(s == null ? '' : s).replace(/,/g, '');
+   ★金額を読むところは全部 moneyRead() / readMoney() を通す。
+     .value を parseFloat に直接渡さない（それがこの欠陥そのもの）。 */
 function grp(s) {
-  const t = unc(s).replace(/[^0-9.]/g, '');
+  const t = String(s == null ? '' : s).replace(/[^0-9.]/g, '');
   const i = t.split('.')[0];
   const d = t.indexOf('.') >= 0 ? '.' + t.split('.').slice(1).join('') : '';
   return i.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + d;
 }
-/* 打っている最中に整形する。カンマが増えると文字数が変わるので、
-   「キャレットより前にある数字の個数」を数えて同じ位置に戻す。 */
+/* 文字列を金額として読む。返す物 { n, canon, state, alts }
+     state 'ok'        n＝数値・canon＝正規形
+           'empty'     空
+           'ambiguous' 2通りに読める。alts に両方入れて本人に選んでもらう
+           'bad'       数字として読めない */
+function readMoney(s) {
+  const raw = String(s == null ? '' : s).trim();
+  if (!raw) return { n: null, canon: '', state: 'empty', alts: [] };
+  /* 全角・空白・通貨記号は落とす。残りが数字と区切りだけでなければ読まない。 */
+  const t = raw
+    .replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
+    .replace(/[．｡。]/g, '.').replace(/[，、､]/g, ',')
+    .replace(/[\s\u00A0'’_]/g, '')
+    .replace(/^[¥￥$＄€£₩]+/, '');
+  const bad = { n: null, canon: raw, state: 'bad', alts: [] };
+  if (!/^[0-9.,]+$/.test(t) || !/[0-9]/.test(t)) return bad;
+
+  const asDec = (str, sep) => {            // sep を小数点として読む
+    const i = str.lastIndexOf(sep);
+    const ip = str.slice(0, i).replace(/[.,]/g, ''), dp = str.slice(i + 1);
+    if (/[.,]/.test(dp)) return null;
+    const v = parseFloat((ip || '0') + '.' + (dp || '0'));
+    return isFinite(v) ? v : null;
+  };
+  const asPlain = (str) => { const v = parseFloat(str.replace(/[.,]/g, '')); return isFinite(v) ? v : null; };
+  const grouped = (str, sep) => new RegExp('^\\d{1,3}(\\' + sep + '\\d{3})+$').test(str);
+  const ok = (n) => ({ n: n, canon: grp(String(n)), state: 'ok', alts: [] });
+  const ask = (a, b) => (a == null || b == null || a === b) ? bad
+    : { n: null, canon: raw, state: 'ambiguous', alts: [{ n: a, canon: grp(String(a)) }, { n: b, canon: grp(String(b)) }] };
+
+  const dot = t.indexOf('.') >= 0, com = t.indexOf(',') >= 0;
+
+  /* 1) 区切りが2種類 ── 後ろに出たほうが小数点。ここに曖昧さは無い。
+        1,234.56（英米式）も 1.234,56（欧州式）も、これ1本で正しく読める。 */
+  if (dot && com) {
+    const d = t.lastIndexOf('.') > t.lastIndexOf(',') ? '.' : ',';
+    const g = d === '.' ? ',' : '.';
+    if (t.split(d).length > 2) return bad;
+    if (!grouped(t.slice(0, t.lastIndexOf(d)), g)) return bad;
+    const v = asDec(t, d);
+    return v == null ? bad : ok(v);
+  }
+  /* 2) カンマだけ ── 3桁ずつに割れていれば桁区切り（1,150,000）。
+        割れていない（1,5 / 1234,56）のは、小数点のつもりか打ち間違いか分からない。 */
+  if (com) {
+    if (grouped(t, ',')) return ok(asPlain(t));
+    return ask(asDec(t, ','), asPlain(t));
+  }
+  /* 3) ピリオドだけ */
+  if (dot) {
+    /* 1.234.567 は小数点が2つある数にはなり得ない＝桁区切りしかない。 */
+    if (t.split('.').length > 2) return grouped(t, '.') ? ok(asPlain(t)) : bad;
+    const ip = t.slice(0, t.indexOf('.')), dp = t.slice(t.indexOf('.') + 1);
+    const v = asDec(t, '.');
+    if (v == null) return bad;
+    /* 1.000 / 500.000 だけは 1000 とも 1.0 とも読める。ここだけ聞く。 */
+    if (/^\d{1,3}$/.test(ip) && /^\d{3}$/.test(dp)) return ask(asPlain(t), v);
+    return ok(v);
+  }
+  /* 4) 区切り無し */
+  const v = asPlain(t);
+  return v == null ? bad : ok(v);
+}
+/* 欄そのものを読む。本人が読み方を選んだ欄は、その選択を使う
+   （data-money-raw が今の値と一致している間だけ有効）。 */
+function moneyRead(el) {
+  if (!el) return { n: null, canon: '', state: 'empty', alts: [] };
+  const raw = String(el.value == null ? '' : el.value);
+  if (el.dataset && el.dataset.moneyRaw === raw && el.dataset.moneyN != null) {
+    const v = parseFloat(el.dataset.moneyN);
+    if (isFinite(v)) return { n: v, canon: raw, state: 'ok', alts: [] };
+  }
+  return readMoney(raw);
+}
+/* 打っている最中に桁区切りを足すのは、値が**数字だけ**のときに限る（2026-09-11）。
+   区切りが1文字でも混じったら、打ち終わる（change）まで一切触らない ──
+   途中を整形すると 1.000,00 が別の数に化けて、直したはずの誤読が戻る。
+   カンマが増えると文字数が変わるので、キャレットより前の数字の個数で位置を戻す。 */
 function fmtMoneyEl(el) {
+  if (!/^\d*$/.test(String(el.value == null ? '' : el.value).replace(/,/g, ''))) return;
   const pos = el.selectionStart;
-  const keep = pos == null ? -1 : unc(el.value.slice(0, pos)).replace(/[^0-9.]/g, '').length;
+  const keep = pos == null ? -1 : el.value.slice(0, pos).replace(/[^0-9]/g, '').length;
   el.value = grp(el.value);
   if (keep < 0) return;
   let n = 0, p = 0;
-  while (p < el.value.length && n < keep) { if (/[0-9.]/.test(el.value[p])) n++; p++; }
+  while (p < el.value.length && n < keep) { if (/[0-9]/.test(el.value[p])) n++; p++; }
   try { el.setSelectionRange(p, p); } catch (e) {}
 }
-const MONEY_EL = Array.prototype.slice.call(document.querySelectorAll('input.money'));
-for (const el of MONEY_EL) el.addEventListener('input', () => fmtMoneyEl(el));
-/* 値を代入で入れたあと（プリセット復元・先月の値・明細の読み取り）に呼ぶ */
-function fmtMoneyAll() { for (const el of MONEY_EL) if (el.value) el.value = grp(el.value); }
+/* 値を代入で入れたあと（プリセット復元・先月の値・明細の読み取り）に呼ぶ。
+   ★1回きりの配列（旧 MONEY_EL）をやめた。あとから生える per-diem の行も同じ道を通る。 */
+function moneyEls() { return Array.prototype.slice.call(document.querySelectorAll('input.money')); }
+function fmtMoneyAll() {
+  for (const el of moneyEls()) {
+    if (!el.value) continue;
+    const r = moneyRead(el);
+    if (r.state === 'ok') el.value = r.canon;
+  }
+}
+
+/* ── 曖昧なときだけ、その欄の下に二択を出す ─────────────────────
+   ★普通に入っている人の画面には1文字も足さない（不要な注記を置かない方針）。
+   ★入力規則（桁区切りは , 小数点は .）はこの二択の中だけに書く。 */
+function clearMoneyAsk(el) {
+  if (!el) return;
+  el.classList.remove('is-money-ask');
+  const nx = el.nextElementSibling;
+  if (nx && nx.classList && nx.classList.contains('money-ask')) nx.remove();
+}
+function askMoney(el, r) {
+  clearMoneyAsk(el);
+  const box = document.createElement('div');
+  box.className = 'money-ask';
+  const q = document.createElement('p');
+  q.className = 'ma-q';
+  if (r.state === 'bad') {
+    q.textContent = '「' + el.value + '」は金額として読めません。半角の数字で入れ直してください。';
+  } else {
+    q.textContent = '「' + el.value + '」は、どちらの金額ですか？';
+  }
+  box.appendChild(q);
+  const rule = document.createElement('p');
+  rule.className = 'ma-rule';
+  rule.textContent = '桁区切りは , 　小数点は .';
+  box.appendChild(rule);
+  if (r.state === 'ambiguous') {
+    const row = document.createElement('div');
+    row.className = 'ma-a';
+    for (const a of r.alts) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'ma-b';
+      b.textContent = a.canon;
+      b.addEventListener('click', () => {
+        el.value = a.canon;
+        el.dataset.moneyRaw = a.canon;
+        el.dataset.moneyN = String(a.n);
+        clearMoneyAsk(el);
+        try { el.dispatchEvent(new Event('input', { bubbles: true })); } catch (e) {}
+        try { el.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
+        try { el.focus({ preventScroll: true }); } catch (e) {}
+      });
+      row.appendChild(b);
+    }
+    box.appendChild(row);
+  }
+  el.insertAdjacentElement('afterend', box);
+  el.classList.add('is-money-ask');
+}
+/* 欄を離れたときに読み方を確定する。読めたら正規形へ書き直し、
+   読めなければ二択を出す（送信も moneyBlocker が止める）。 */
+function moneySettle(el) {
+  const raw = String(el.value == null ? '' : el.value);
+  if (el.dataset.moneyRaw === raw) return;      // 本人が選んだ読み方はそのまま
+  const r = readMoney(raw);
+  clearMoneyAsk(el);
+  delete el.dataset.moneyN;
+  delete el.dataset.moneyRaw;
+  if (r.state === 'ok') { if (el.value !== r.canon) el.value = r.canon; return; }
+  if (r.state === 'empty') return;
+  askMoney(el, r);
+}
+/* ★委譲で1本。あとから生える行にも、明細の読み取りが差し込む値にも同じ道を通す。 */
+document.addEventListener('input', (e) => {
+  const el = e.target;
+  if (!el || !el.classList || !el.classList.contains('money')) return;
+  if (el.dataset.moneyRaw !== String(el.value)) { delete el.dataset.moneyN; delete el.dataset.moneyRaw; clearMoneyAsk(el); }
+  fmtMoneyEl(el);
+}, true);
+document.addEventListener('change', (e) => {
+  const el = e.target;
+  if (!el || !el.classList || !el.classList.contains('money')) return;
+  moneySettle(el);
+}, true);
+/* 読み方が決まっていない欄を1つ返す（無ければ null）。送信の直前に見る。 */
+function moneyBlocker() {
+  for (const el of moneyEls()) {
+    const r = moneyRead(el);
+    if (r.state === 'ok' || r.state === 'empty') continue;
+    return el;
+  }
+  return null;
+}
 
 // ── 年換算のライブ計算（DB の pv_annual_total と同じ式）──────────
 // ★式を2箇所で書いていることになるので、変えるときは必ず両方直すこと。
 //   最終的な正はサーバの返り値で、送信後はそちらで上書き表示する。
-const num = (id) => { const v = parseFloat(unc($(id).value)); return isFinite(v) && v > 0 ? v : 0; };
+const num = (id) => { const r = moneyRead($(id)); return r.state === 'ok' && r.n > 0 ? r.n : 0; };
 
 /* 内訳の合計（月）。★2026-08-26 から、この数を額面の欄に書き戻さない。
    使い道は「内訳の合計が総支給を超えていないか」を見るところだけ。
@@ -2863,7 +3108,10 @@ function pdRead(kind) {
   const out = [];
   for (const row of PD[kind].rows.children) {
     const g = (sel) => { const e = row.querySelector(sel); return e ? e.value.trim() : ''; };
-    const a = parseFloat(unc(g('.pd-amt')));
+    /* ★.pd-amt も moneyRead() を通す（2026-09-11）。ここだけ素の parseFloat だと、
+       1.000,00 の誤読がこの行にだけ残る。 */
+    const ar = moneyRead(row.querySelector('.pd-amt'));
+    const a = ar.state === 'ok' ? ar.n : NaN;
     const o = { amount: isFinite(a) && a > 0 ? a : null, label: g('.pd-label') || null };
     /* ★支給単価・ルールは聞かない（2026-08-26 オーナー指示）。
        「¥4,500 / Block Hour」のような計算をパイロットにさせない。 */
@@ -2916,9 +3164,9 @@ function pdAdd(kind, quiet) {
   const row = box.tpl.content.firstElementChild.cloneNode(true);
   box.rows.appendChild(row);
   row.querySelector('.pd-del').addEventListener('click', () => { row.remove(); pdSync(); });
-  /* ★あとから生えた行は MONEY_EL に入っていないので、桁区切りをここで付ける。 */
+  /* ★桁区切りと金額の読み取りは、フォーム全体の委譲リスナー1本が見ている（2026-09-11）。
+     ここで足すと二重に整形されてキャレットが飛ぶ。 */
   for (const el of row.querySelectorAll('input, select')) {
-    if (el.classList.contains('money')) el.addEventListener('input', () => fmtMoneyEl(el));
     el.addEventListener('input', pdSync);
     el.addEventListener('change', pdSync);
   }
@@ -3084,6 +3332,17 @@ $('f-airline').dispatchEvent(new Event('change'));
 
 // ── この端末へのプリセット保存（次回30秒で終わらせるため）──────
 // ★対象月は保存しない（毎回そのとき出すべき月が違う）。金額は端末内だけに残す。
+/* ── この端末の給与入力は誰のものか（2026-09-11）──────────────────
+   同じ画面が端末に置く鍵は4つある（pv_pay_last / pv_pay_draft /
+   pv_pay_claim / pv_pay_pending）。持ち主を見ていたのは**下書きだけ**で、
+   残る3つは誰でも読めた。共有端末で次に使った人の 1/5 に前の人の会社・職位・
+   総支給が入った状態で出て、その人がログインすると前の人の給与レポートまで
+   その人のものになっていた。画面はどこも壊れないので目でも検査でも気づけない。
+   ★押印と照合の実体は pv-session.js の PVPayLocal（4つで同じ印・同じ判定）。 */
+let _payOwn = 'anon';    // 今この画面を見ている人の指紋（認証が確定した時点で入る）
+let _noSave = false;     // 「保存を消す」を押された／別タブで人が入れ替わった
+let _presetIn = false;   // 「前回の内容」をもう戻したか
+
 const LS_KEY = 'pv_pay_last';
 // ★f-paytype は 2026-08-12 に欄ごと廃止。f-gross（その月の額面）が入った。
 const PRESET_IDS = ['f-airline','f-airline-other','f-position','f-fleet','f-currency','f-gross','f-base','f-hourly',
@@ -3115,10 +3374,16 @@ addEventListener('pagehide', saveDraftOnLeave);
 addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') saveDraftOnLeave(); });
 
 function savePreset() {
+  if (_noSave) return;   // 消してくれと言われたものを、離れる拍子に書き戻さない
   const o = {};
   /* ★2026-08-26 から総支給も普通に保存する。内訳の合計を映していた欄ではなく、
      いつでも本人が手で入れた数字になったため。 */
   for (const id of PRESET_IDS) { const v = $(id).value; if (v) o[id] = v; }
+  /* ★誰のものかを一緒に書く。読むときの判定は pv-session.js の owns() 1か所。
+     ★このタブにも印を付ける（登録に1時間かかっても、同じタブなら戻せる）。 */
+  o._own = _payOwn;
+  o._ts = Date.now();
+  try { PVPayLocal.markTab(); } catch (e) {}
   try { localStorage.setItem(LS_KEY, JSON.stringify(o)); } catch (e) {}
 }
 function snapshot() {
@@ -3176,16 +3441,42 @@ $('s4-edit').addEventListener('click', () => {
   $('s4-sub').hidden = false;
   $('f-contract').focus();
 });
-function loadPreset() {
+/* ★引数なしで呼ぶ＝まだ誰か分かっていない段階。押印済みのものには触らない。
+     認証が確定したところで loadPreset(_payOwn) がもう一度呼ばれる。
+   ★押印が 'anon'（未ログインで書いた）ものは、同じタブの続きか60分以内なら戻す
+     ── 匿名で書いて、その場で登録して受け取る、というこの画面の本筋を塞がない。 */
+function loadPreset(me) {
+  if (_presetIn) return;
   let o = null;
   try { o = JSON.parse(localStorage.getItem(LS_KEY) || 'null'); } catch (e) {}
-  if (!o || !restoreInto(o)) return;
+  if (!o) return;
+  const own = o._own || 'anon';
+  if (me === undefined && own !== 'anon') return;      // 本人確定待ち
+  if (!PVPayLocal.owns(own, me || 'anon', o._ts)) return;
+  if (!restoreInto(o)) return;
+  _presetIn = true;
   $('restore-bar').style.display = '';
   $('entry-prev').hidden = false;   // 入口の「手動で入力」に、前回の内容があると出す
 }
-$('btn-forget').addEventListener('click', () => {
+/* ── 「保存を消す」と「下書きを消す」は同じ後始末をする（2026-09-11）──────
+   本人の言う「前回の内容」は pv_pay_last と pv_pay_draft の2つに入っている。
+   片方だけ消すと、消したはずの会社・職位・総支給が**再読み込みで戻ってくる**。
+   押した本人には消し方が分からないので、以後この画面は信用されない。 */
+function dropLocalPay(alsoDraft) {
+  _noSave = true;
   try { localStorage.removeItem(LS_KEY); } catch (e) {}
+  if (alsoDraft && window.PVPayWizard && PVPayWizard.dropDraft) PVPayWizard.dropDraft();
   $('restore-bar').style.display = 'none';
+  $('entry-prev').hidden = true;
+}
+$('btn-forget').addEventListener('click', () => dropLocalPay(true));
+/* pay-wizard.js の「下書きを消す」（2つある）から届く。 */
+addEventListener('pv-pay-draft-drop', () => dropLocalPay(false));
+/* ★別タブで人が入れ替わったら、このタブは以後もう書き戻さない。
+   開いたままの古いタブは前の人のセッションを握ったまま pagehide で
+   pv_pay_last を書く。押印してあるので次の人の画面は読まないが、書くほうも止める。 */
+addEventListener('storage', (e) => {
+  if ((!e.key || e.key === 'pv_user') && e.newValue !== e.oldValue) _noSave = true;
 });
 loadPreset();
 /* ★変動給の入力欄を最初から1本出す（2026-09-03 その3・オーナー指示
@@ -3344,10 +3635,16 @@ const PENDING_MAX_AGE = 14 * 24 * 60 * 60 * 1000;   // 2週間より古い下書
   /* ★下書きの持ち主を確かめる。別のアカウントの下書きは戻さず捨てる。
      未ログインで書いたものは、同じブラウザで本人が認証しただけなので押印し直す。 */
   if (WZ) WZ.setUid(_uid);
+  /* ★預かり証と「前回の内容」にも**同じ印**を配る（2026-09-11）。
+     ここを飛ばすと、共有端末で次に入った人が前の人の給与レポートを引き取る。 */
+  _payOwn = _uid ? PVPayLocal.fp(_uid) : 'anon';
+  PVClaimPending.setOwner(_payOwn);
+  /* 押印済みの「前回の内容」は、誰か分からないうちは戻していない。ここで戻す。 */
+  loadPreset(_payOwn);
   setSubmitLabel(signedIn);
 
   const drop = () => { try { localStorage.removeItem(PENDING_KEY); } catch (e) {} };
-  const hasClaim = readClaims().length > 0;
+  const hasClaim = PVClaimPending.has();   // ★今の人のぶんだけ（前の人の預かりを数えない）
   let pending = null;
   try { pending = JSON.parse(localStorage.getItem(PENDING_KEY) || 'null'); } catch (e) {}
   /* ★預かり証があるあいだは下書きも捨てない（預かり証は30日、下書きは14日）。
@@ -3356,6 +3653,10 @@ const PENDING_MAX_AGE = 14 * 24 * 60 * 60 * 1000;   // 2週間より古い下書
   const ts = pending ? Number(pending._ts || 0) : 0;
   const maxAge = hasClaim ? CLAIM_MAX_AGE : PENDING_MAX_AGE;
   if (pending && ts && Date.now() - ts > maxAge) { drop(); pending = null; }
+  /* ★預けた入力にも持ち主を見る（2026-09-11）。抜けていると、共有端末で次に
+     開いた人の 5/5 に前の人の総支給が入ったまま出る。**消しはしない** ──
+     置いていった本人が同じタブ・60分以内なら、まだ自分で受け取れる。 */
+  if (pending && !PVPayLocal.owns(pending._own || 'anon', _payOwn, pending._ts)) pending = null;
 
   /* ★フォームへ戻すのは、預かり分を移すより先。移せたらそのままレポートを描くが、
      描くときに会社名・機材・職位を選択肢の文字から取るので、空のフォームだと
@@ -3383,11 +3684,16 @@ const PENDING_MAX_AGE = 14 * 24 * 60 * 60 * 1000;   // 2週間より古い下書
   try { if (window.PVReferral) await window.PVReferral.claim(_sb); } catch (e) {}
 
   if (signedIn && hasClaim) {
-    const won = await claimPending();
-    if (won) {
+    const res = await claimPending();
+    if (res.won) {
       drop();
       track('pay_report_resume', { signed_in: 1, claimed: 1 });
-      return afterSaved(won, won.payload || pending || {}, (won.payload || {}).airline);
+      return afterSaved(res.won, res.won.payload || pending || {}, (res.won.payload || {}).airline);
+    }
+    /* ★drop() しない。預かり証も下書きも残す＝もう一度取りに行ける（N-2）。 */
+    if (res.failed > 0 || res.already > 0) {
+      track('pay_report_resume', { signed_in: 1, claimed: 0 });
+      return showClaimState(res.failed > 0 ? 'failed' : 'already');
     }
   }
 
@@ -3531,34 +3837,50 @@ function markMissing(list) {
    直すべき欄は画面のどこにも無い ── 本人には「押しても何も起きない」としか映らない。
    ★運んでから書く。逆にすると #err はウィザードが段ごと引っ越すので、
      書いた直後に別の段へ持って行かれて何も出ない（markMissing と同じ注意）。 */
-function stopAt(id, msg) {
-  const host = $(id);
+function stopAtEl(host, msg) {
   if (WZ && host) WZ.goToField(host);
   showErr(msg);
   /* 焦点は**見えている入力**にだけ当てる。#f-jobrole は hidden（本体はチェックの絵）で、
      #pd-var-rows は行の入れ物なので、その中の最初の入力を探す。 */
   const el = host && /^(INPUT|SELECT|TEXTAREA)$/.test(host.tagName)
     ? host : (host && host.querySelector('select, input, textarea'));
+  /* ★畳んである内訳の中で止まったときは、その節を開いてから寄せる（2026-09-11）。
+     開けないと「送信できません」だけが出て、直す場所が画面に無い。 */
+  if (el) { const d = el.closest('details'); if (d && !d.open) d.open = true; }
   if (el && el.offsetParent) { try { el.focus({ preventScroll: true }); } catch (e) {} }
 }
+function stopAt(id, msg) { return stopAtEl($(id), msg); }
 
 // ── 送信 ──────────────────────────────────────────────────────
-/* ★unc() を通す。金額の欄は画面に 1,150,000 と出ているので、そのまま送ると
-   サーバの ::numeric が落ちる（送るのは常に素の数字）。 */
-const val = (id) => { const v = unc($(id).value).trim(); return v === '' ? null : v; };
-/* ★役職・区分だけは val() を通してはいけない（2026-09-08）。
-   val() は中で unc() ── 金額の桁区切りを外す関数 ── を通すので、
-   #f-jobrole が区切りに使っているカンマまで一緒に消える。
+/* ★金額の欄（.money）は moneyRead() で解釈して素の数字にする。画面には
+   1,150,000 と出ているので、そのまま送るとサーバの ::numeric が落ちる。
+   ★金額以外の欄は値をそのまま返す ── カンマを落とさない（2026-09-08 の
+     #f-jobrole の 'line,instructor' が 'lineinstructor' になった件）。 */
+const val = (id) => {
+  const el = $(id);
+  if (!el) return null;
+  if (el.classList && el.classList.contains('money')) {
+    const r = moneyRead(el);
+    return r.state === 'ok' ? String(r.n) : null;
+  }
+  const v = String(el.value == null ? '' : el.value).trim();
+  return v === '' ? null : v;
+};
+/* ★役職・区分は val() を通さず、値をそのまま読む（2026-09-08）。
+   当時の val() は中で unc() ── 金額の桁区切りを外す関数 ── を通していたので、
+   #f-jobrole が区切りに使っているカンマまで一緒に消えた。
    'line,instructor' が 'lineinstructor' になり、サーバの語彙検査
    （pv_validate_pay_payload）に落ちて「役職・区分が不正です」で
    **送信そのものが失敗していた**。1つしか選ばない人には区切りが無いので
    何も起きず、2つ以上選んだ人だけが最後の最後で弾かれる。
-   ここは値をそのまま読む。 */
+   ★2026-09-11 に val() を作り替え、カンマを解釈するのは金額の欄（.money）だけに
+     なった＝この欄はもう通しても壊れない。それでも直接読むままにしてある
+     （ここを通し始めると、2つ以上選んだ人だけが黙って弾かれる形に戻る道が開く）。 */
 const roleCodes = () => String($('f-jobrole').value || '').split(',').filter(Boolean);
 /* いくつかの欄を足して1つの列へ送る。全部空なら null（0 を送らない）。 */
 const sumField = (...ids) => {
   let t = 0, any = false;
-  for (const id of ids) { const v = parseFloat(unc($(id).value)); if (isFinite(v)) { t += v; any = true; } }
+  for (const id of ids) { const r = moneyRead($(id)); if (r.state === 'ok') { t += r.n; any = true; } }
   return any ? String(+t.toFixed(2)) : null;
 };
 
@@ -3649,16 +3971,100 @@ function buildPayload(airline) {
     duty_hours:          val('f-duty-h'),
     night_hours:         val('f-night-h'),
     credit_hours:        val('f-credit-h'),
-    /* ★val() を通さない。unc() がカンマを全部落とすので、JSON が壊れる。
-       画面には出さない値で、送るのは payslip.js が組んだ文字列そのまま。 */
+    /* ★val() を通さない。画面には出さない値で、送るのは payslip.js が組んだ
+       文字列そのまま（2026-09-11 より前は val() の中の unc() がカンマを
+       全部落として JSON を壊していた）。 */
     payslip_detail:      $('f-psdetail').value || null,
     /* ★内訳の行そのもの。合計は上の列へ寄せてあるので、ここは形を残すためだけ。
-       val() を通さない（unc() がカンマを落として JSON が壊れる）。 */
+       val() を通さない（2026-09-11 より前は unc() がカンマを落として JSON が壊れた）。 */
     pay_items:           $('f-payitems').value ? JSON.parse($('f-payitems').value) : null,
     source:              val('f-source') || 'web',
     lang:                LANG,
   };
   return payload;
+}
+
+/* ── 極端な金額を、送信の直前に一度だけ確かめる（2026-09-11 オーナー承認）──
+   ★読み取りの修理の代わりではない。読み方が2通りある入力は欄の下で先に聞くので
+     （.money-ask）、ここへは来ない。ここが見ているのは「読めたが桁がおかしい」だけ。
+   ★数字が 1 だから止める、ではない。通貨と月額／年額を通した**年換算**が
+     REAL PAY の常識の幅（$10,000〜$700,000）を外れたときだけ出す
+     （db/pay-rows.sql が黙って捨てる幅と同じ。ここで気づけないと行ごと消える）。
+   ★正しい少額もそのまま出せる。「この金額で提出する」で素通りする。
+   ★同じ金額には二度出さない。普通の入力には1手も増えない。
+   ⚠️ 換算できるのは currency.js の RATES にある7通貨だけ（画面の切替に出る分）。
+      45通貨のレートはサーバ側にあるが画面からは引けない（pv_pending_usd は
+      anon にも authenticated にも grant されていない）。**換算できない通貨では
+      確認を出さない** ── 推測のレートで「おかしい」と言うほうが害が大きい。
+   ★金額は画面に出すだけ。track() にも解析にも渡さない。 */
+const AMT_BAND = [10000, 700000];
+let AMT_OK = '';
+function amtUsd(v, cur) {
+  const R = (window.PVCurrency && window.PVCurrency.rates) || null;
+  if (!R || !R[cur] || !R.USD) return null;
+  return v * R[cur] / R.USD;
+}
+/* 出すべきなら箱を組んで true を返す（＝送信はここで一旦止まる）。 */
+function amtConfirmNeeded() {
+  const box = $('amt-confirm');
+  if (!box) return false;
+  const cur = $('f-currency').value;
+  const monthly = num('f-gross');
+  const annual = annualTotal();
+  if (!(annual > 0)) return false;
+  const usd = amtUsd(annual, cur);
+  if (usd == null) return false;
+  const low = usd < AMT_BAND[0], high = usd > AMT_BAND[1];
+  if (!low && !high) return false;
+  const key = cur + '|' + monthly + '|' + annual;
+  if (AMT_OK === key) return false;
+
+  box.textContent = '';
+  const t = document.createElement('p');
+  t.className = 'ac-t';
+  t.textContent = 'この金額でよろしいですか？';
+  box.appendChild(t);
+  const dl = document.createElement('dl');
+  dl.className = 'ac-d';
+  const row = (lab, v) => {
+    const d = document.createElement('div');
+    const dt = document.createElement('dt'); dt.textContent = lab;
+    const dd = document.createElement('dd'); dd.textContent = v;
+    d.appendChild(dt); d.appendChild(dd); dl.appendChild(d);
+  };
+  row('その月の総支給額', fmtCur(monthly, cur));
+  row('年換算の総額', fmtCur(annual, cur));
+  box.appendChild(dl);
+  const n = document.createElement('p');
+  n.className = 'ac-n';
+  n.textContent = low
+    ? '他社と比べられる範囲より低い金額です。桁が1つ足りない、単位（千円・万円）で入っている、通貨の選び間違い ── このどれかかもしれません。合っているならそのまま提出してください。'
+    : '他社と比べられる範囲より高い金額です。桁が1つ多い、年額を月額の欄に入れている ── このどちらかかもしれません。合っているならそのまま提出してください。';
+  box.appendChild(n);
+  const a = document.createElement('div');
+  a.className = 'ac-a';
+  const fix = document.createElement('button');
+  fix.type = 'button'; fix.className = 'ac-b ac-fix'; fix.id = 'ac-fix';
+  fix.textContent = '修正する';
+  fix.addEventListener('click', () => {
+    box.hidden = true;
+    if (WZ) WZ.goToField($('f-gross'));
+    try { $('f-gross').focus({ preventScroll: true }); } catch (e) {}
+  });
+  const go = document.createElement('button');
+  go.type = 'button'; go.className = 'ac-b ac-go'; go.id = 'ac-go';
+  go.textContent = 'この金額で提出する';
+  go.addEventListener('click', () => {
+    AMT_OK = key;
+    box.hidden = true;
+    submitPayReport();
+  });
+  a.appendChild(fix); a.appendChild(go);
+  box.appendChild(a);
+  box.hidden = false;
+  box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  track('pay_amount_confirm');
+  return true;
 }
 
 async function submitPayReport() {
@@ -3683,6 +4089,12 @@ async function submitPayReport() {
   if (!val('f-jobrole')) return stopAt('f-jobrole', '役職・区分を選んでください。');
   if (!val('f-age')) return stopAt('f-age', '年代を選んでください。');
   if (!val('f-currency')) return stopAt('f-currency', '通貨を選んでください。');
+  /* ★金額の読み方が決まっていない欄があるうちは送らない（2026-09-11）。
+     黙って推測すると、1.000,00 が 1 になって行ごと消える形が戻る。 */
+  const mb = moneyBlocker();
+  if (mb) return stopAtEl(mb, moneyRead(mb).state === 'bad'
+    ? '「' + mb.value + '」を金額として読めません。半角の数字で入れ直してください。'
+    : '「' + mb.value + '」の読み方が決まっていません。欄の下で、どちらの金額かを選んでください。');
   /* ★飛んだ時間は必須。0 は許す（地上勤務・病欠の月）。空欄だけを弾く。
      これが無いと時間あたり報酬が出せず、国と会社をまたいだ比較ができない。 */
   if (!val('f-block')) {
@@ -3721,6 +4133,11 @@ async function submitPayReport() {
     return stopAt('f-block', '時給を入れた場合は、フライトタイムか保証フライトタイムのどちらかが必要です。');
   }
 
+  /* ★桁がおかしいときは、ここで一度だけ聞く（2026-09-11 オーナー承認）。
+     出るのは年換算が常識の幅を外れたときだけ。「この金額で提出する」を
+     押した人はそのまま通る（正しい少額を止めない）。 */
+  if (amtConfirmNeeded()) return;
+
   const payload = buildPayload(airline);
 
   setSubmitBusy(true, '送信中…');
@@ -3728,7 +4145,8 @@ async function submitPayReport() {
   /* ★下書きは送る前に必ず端末へ残す。ここから先で何が起きても入力は消えない。
      ★預けた時刻も一緒に残す。ログインせずに離れた人の下書きはそのまま残るので、
        これが無いと何ヶ月も前の入力が次の月のフォームに載る。 */
-  try { localStorage.setItem(PENDING_KEY, JSON.stringify({ ...snapshot(), _ts: Date.now() })); } catch (e) {}
+  try { PVPayLocal.markTab(); } catch (e) {}
+  try { localStorage.setItem(PENDING_KEY, JSON.stringify({ ...snapshot(), _ts: Date.now(), _own: _payOwn })); } catch (e) {}
 
   /* ── ログインしていない人：この1押しでサーバへ預かる ──────────────
      ★今回の反転の要。保存を先に済ませ、アカウントはそのあとで作ってもらう。

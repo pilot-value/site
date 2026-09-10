@@ -1535,6 +1535,9 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                /auth-callback.html, so 'pay-report.html' would land on the Japanese page. -->
           <div id="pay-login-fallback" class="plfb" hidden>
             <div class="plfb-t">The sign-in panel could not load</div>
+            <!-- ★JS rewrites this line (PLFB_COPY in mountLogin). What sits here is the
+                 wording for the case where the server did take the report; the other
+                 case used to get the same sentence, which was a lie. -->
             <p class="plfb-l"><b>What you submitted is held on our server. Nothing is lost.</b> The connection looks to have dropped. Use the button below to sign in or create an account, and what you handed over becomes your report.</p>
             <div class="plfb-a">
               <a class="btn-orange" href="login.html?next=%2Fen%2Fpay-report.html">Sign in or create an account →</a>
@@ -1543,6 +1546,24 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           </div>
         </div>
 
+        <!-- ★Asked once, right before submit, only when the amount is extreme
+             (owner-approved 2026-09-11).
+             ★Not a substitute for the reading fix: anything with two possible
+               readings is settled under the box (.money-ask) and never gets here.
+             ★Invisible for ordinary input. It appears only when the annualised
+               figure falls outside REAL PAY's sanity band, and never twice for
+               the same amount.
+             ★Built by JS — no wording here (it belongs with the condition). -->
+        <!-- ★Only shown when the claim ended as anything other than "moved"
+             (2026-09-11).
+             ⚠️ Before this existed, a dropped response looked exactly like
+                "nothing was held" — the page fell through to a fresh save and
+                celebrated. The pending row stays unclaimed, so the same person
+                shows up as two rows in REAL PAY and is counted twice in
+                pv_contributors() (up to 24 months of them).
+             ★The JS builds the contents (they live with the condition). -->
+        <div id="claim-state" class="claim-st" hidden></div>
+        <div id="amt-confirm" class="amt-cf" hidden></div>
         <div class="mt-7 flex flex-col sm:flex-row gap-3" id="submit-actions">
           <button type="button" id="submit-btn" class="btn-orange justify-center flex-1">Submit and see the numbers →</button>
           <a href="world-airlines.html" class="btn-ghost justify-center">Cancel</a>
@@ -1677,9 +1698,45 @@ let _gatePopped = false;                 // a hand-over that already popped was 
    Also picks up ?claim= — the token carried back from another browser.
    Returns the last one that moved; that is what the report is drawn from. */
 async function claimPending() {
-  const won = await PVClaimPending.sweep(_sb);
-  if (won && won.popped) _gatePopped = true;
-  return won;
+  /* ★sweepDetail。sweep は「預かりが無い」と「通信で落ちた」を同じ null で返す。
+     見分けられないと、後者を前者と読んで新規保存へ流れる（N-2）。 */
+  const res = await PVClaimPending.sweepDetail(_sb);
+  if (res.won && res.won.popped) _gatePopped = true;
+  return res;
+}
+
+/* ── When the claim ended as anything but "moved" (2026-09-11) ────
+   ★Never fall through to submitPayReport() from here. The pending row is still
+     on the server; inserting a fresh one while it is unclaimed puts the same
+     person into REAL PAY twice and counts them twice in pv_contributors()
+     (up to 24 months of them).
+   ★Keep the token and keep what they typed. Retrying is the only way out.
+   ★Do not celebrate. It is not theirs yet.
+   kind='failed'  … the server never answered (network)
+   kind='already' … the server said it had already been moved */
+function showClaimState(kind) {
+  /* ★箱は 5/5 の中にある。別の段に居るまま出すと、画面に無いものへ
+     scrollIntoView することになって何も起きない（showGate と同じ理由）。 */
+  if (WZ) { WZ.goLast(); $('submit-block').hidden = false; }
+  /* ★送信ボタンを出したままにしない。預かり行が未引き取りのうちに新規保存を
+     通すと、まさに二重（REAL PAY に2行・人数に2人）になる。 */
+  setSubmitScreen(true);
+  const box = $('claim-state');
+  const retry = kind === 'failed';
+  box.innerHTML =
+    '<div class="cs-t">' + (retry ? "We have not finished taking it in" : "This month is already saved") + '</div>' +
+    '<p class="cs-l">' + (retry ? '<b>What you handed over is still on the server. Nothing is lost.</b> The connection did not go through. Please take it in once more.' : 'This month is already saved as yours. We will not save it twice.') + '</p>' +
+    '<div class="cs-a">' + (retry
+      ? '<button type="button" class="btn-orange justify-center" id="cs-retry">' + "Take it in again" + '</button>'
+      : '<a class="btn-orange justify-center" href="profile.html#your-pay">' + "See my report →" + '</a>') +
+    '</div>';
+  box.hidden = false;
+  if (retry && $('cs-retry')) {
+    $('cs-retry').addEventListener('click', function () { box.hidden = true; afterSignedIn(); });
+  }
+  box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  /* ★段の名前だけ。金額・メール・預かり証は入れない。 */
+  track('pay_claim_state', { kind: kind });
 }
 
 /* ── One line of what we took in ──────────────────────────────
@@ -1803,6 +1860,15 @@ function showGate(saved) {
        ・keep trying to 15s; if it arrives late, fold the way out and mount for real
        ・record pay_login_mount_fail — without it we never learn this happened
    ★Never put an amount, an email or a claim token in the event (name only). */
+/* Wording for the escape hatch. It changes with whether the server took the report.
+   ★The 'local' line says plainly that the server does not have it. Reassuring someone
+     here is how a person who switches browsers loses everything they typed. */
+var PLFB_COPY = {
+  saved: '<b>What you submitted is held on our server. Nothing is lost.</b> The connection looks to have '
+       + 'dropped. Use the button below to sign in or create an account, and what you handed over becomes your report.',
+  local: '<b>Your answers are still in this browser.</b> They have <b>not</b> reached our server yet. '
+       + 'Sign in or create an account with the button below, come back to this page <b>in the same browser</b>, and submit again.',
+};
 var PLM_FALLBACK_AT = 50;    // 5s — show the way out here
 var PLM_GIVE_UP_AT  = 150;   // 15s — past this it really did not arrive
 function mountLogin(saved, tries) {
@@ -1829,8 +1895,16 @@ function mountLogin(saved, tries) {
     return;
   }
   if (tries === PLM_FALLBACK_AT) {
-    if ($('pay-login-fallback')) $('pay-login-fallback').hidden = false;
-    track('pay_login_mount_fail');
+    /* ★Only tell people it is on the server when it actually is (2026-09-11).
+       showGate(false) — the hand-over itself failed — showed the same sentence.
+       That person's answers live only in this browser, so "nothing is lost" was false. */
+    var fb = $('pay-login-fallback');
+    if (fb) {
+      var fbl = fb.querySelector('.plfb-l');
+      if (fbl) fbl.innerHTML = saved ? PLFB_COPY.saved : PLFB_COPY.local;
+      fb.hidden = false;
+    }
+    track('pay_login_mount_fail', { saved: saved ? 1 : 0 });
   }
   if (tries > PLM_GIVE_UP_AT) return;
   setTimeout(function () { mountLogin(saved, tries + 1); }, 100);
@@ -1855,11 +1929,15 @@ async function afterSignedIn() {
      Idempotent, so overlapping with the other three call sites is harmless.
      Never blocks the pay flow. */
   try { if (window.PVReferral) await window.PVReferral.claim(_sb); } catch (e) {}
-  const won = await claimPending();
-  if (won) {
+  const res = await claimPending();
+  if (res.won) {
     hideGate();
-    return afterSaved(won, won.payload || {}, (won.payload || {}).airline);
+    return afterSaved(res.won, res.won.payload || {}, (res.won.payload || {}).airline);
   }
+  /* ★答えが返らなかった預かりがある。ここで新規保存へ流すと二重になる。 */
+  if (res.failed > 0) { hideGate(); return showClaimState('failed'); }
+  /* ★サーバが「もう移してある」と答えた。保存し直さない。 */
+  if (res.already > 0) { hideGate(); return showClaimState('already'); }
   submitPayReport();
 }
 
@@ -1972,7 +2050,7 @@ const INSTR_ALL_IDS = ['f-instr-label', 'f-instr-extra'].concat(INSTR_PAY_IDS);
 function instrRead() {
   if ($('s3-instr').hidden) return null;          // not an instructor: build nothing
   const t = (id) => $(id).value.trim();
-  const n = (id) => { const v = parseFloat(unc($(id).value)); return isFinite(v) && v > 0 ? v : null; };
+  const n = (id) => { const r = moneyRead($(id)); return r.state === 'ok' && r.n > 0 ? r.n : null; };
   const trainings = INSTR_BOXES.filter((b) => b.checked).map((b) => b.value);
   const o = { trainings: trainings, label: t('f-instr-label') || null, extra: t('f-instr-extra') || null,
               method: null, amount: null, qty: null };
@@ -2044,7 +2122,7 @@ const EXAM_ALL_IDS = ['f-exam-label', 'f-exam-extra'].concat(EXAM_PAY_IDS);
 function examRead() {
   if ($('s3-exam').hidden) return null;           // not an examiner -> build nothing
   const t = (id) => $(id).value.trim();
-  const n = (id) => { const v = parseFloat(unc($(id).value)); return isFinite(v) && v > 0 ? v : null; };
+  const n = (id) => { const r = moneyRead($(id)); return r.state === 'ok' && r.n > 0 ? r.n : null; };
   const checks = EXAM_BOXES.filter((b) => b.checked).map((b) => b.value);
   const o = { checks: checks, label: t('f-exam-label') || null, extra: t('f-exam-extra') || null,
               method: null, method_label: null, amount: null, qty: null };
@@ -2118,7 +2196,7 @@ const UNION_ALL_IDS = ['f-union-days', 'f-union-extra'].concat(UNION_PAY_IDS);
 function unionRead() {
   if ($('s3-union').hidden) return null;          // not a rep — do not build it
   const t = (id) => $(id).value.trim();
-  const n = (id) => { const v = parseFloat(unc($(id).value)); return isFinite(v) && v > 0 ? v : null; };
+  const n = (id) => { const r = moneyRead($(id)); return r.state === 'ok' && r.n > 0 ? r.n : null; };
   const o = { days: n('f-union-days'), extra: t('f-union-extra') || null,
               source: null, amount: null };
   /* Anything but "Yes" and the amount fields are not on screen at all. */
@@ -2200,7 +2278,7 @@ const MGMT_ALL_IDS = ['f-mgmt-days', 'f-mgmt-extra'].concat(MGMT_PAY_IDS);
 function mgmtRead() {
   if ($('s3-mgmt').hidden) return null;           // not a manager — do not build it
   const t = (id) => $(id).value.trim();
-  const n = (id) => { const v = parseFloat(unc($(id).value)); return isFinite(v) && v > 0 ? v : null; };
+  const n = (id) => { const r = moneyRead($(id)); return r.state === 'ok' && r.n > 0 ? r.n : null; };
   const o = { days: n('f-mgmt-days'), extra: t('f-mgmt-extra') || null,
               method: null, amount: null };
   /* Anything but "Paid separately" and the amount fields are not on screen. */
@@ -2260,7 +2338,7 @@ const NONLINE_ALL_IDS = ['f-nonline-days', 'f-nonline-extra'].concat(NONLINE_PAY
 function nonlineRead() {
   if ($('s3-nonline').hidden) return null;        // not on a non-line assignment — do not build it
   const t = (id) => $(id).value.trim();
-  const n = (id) => { const v = parseFloat(unc($(id).value)); return isFinite(v) && v > 0 ? v : null; };
+  const n = (id) => { const r = moneyRead($(id)); return r.state === 'ok' && r.n > 0 ? r.n : null; };
   const areas = NONLINE_BOXES.filter((b) => b.checked).map((b) => b.value);
   const o = { areas: areas, days: n('f-nonline-days'), extra: t('f-nonline-extra') || null,
               amount: null };
@@ -2446,40 +2524,219 @@ const countryPhrase = (code, atSentenceStart) =>
 $('f-taxcountry').addEventListener('change', updateTax);
 $('f-tax').addEventListener('input', () => { $('f-tax').dataset.touched = '1'; });
 
-/* ── Thousands separators on money boxes (owner, 2026-08-13) ──────
-   1150000 is unreadable. Show 1,150,000.
+/* ── Reading money (pulled into one place, 2026-09-11) ─────────────
+   ★It used to be "drop every comma, then parseFloat". Someone writing the
+     European 1.000,00 ended up with 1.00000 → **1**: the screen looked fine
+     while the annual figure fell outside REAL PAY's sanity band
+     ($10,000–$700,000) and the row vanished. That is the "I submitted but my
+     row never showed up" report.
+   ★Anything genuinely ambiguous (is 1.000 one thousand, or 1.0?) is **never
+     guessed**. We ask, right under the box, and block the submit until the
+     person picks (moneyBlocker). Guessing silently *was* the defect.
+   ★This site writes "," for thousands and "." for the decimal point, which is
+     what grp() emits. Anyone already typing 1234.56 / 0.5 / 1,150,000 is
+     untouched.
    ★<input type="number"> cannot hold a comma (the browser throws the value away),
      so the money boxes are type="text" inputmode="decimal" (class="money").
      Hours / days / percent stay number, so their min-max checks keep working.
-   ★From here on, a money .value may contain commas. Always read it through
-     unc() — a raw value in the payload makes the server's ::numeric fail. */
-const unc = (s) => String(s == null ? '' : s).replace(/,/g, '');
+   ★Every read of a money box goes through moneyRead() / readMoney().
+     Never hand a .value straight to parseFloat — that is the defect itself. */
 function grp(s) {
-  const t = unc(s).replace(/[^0-9.]/g, '');
+  const t = String(s == null ? '' : s).replace(/[^0-9.]/g, '');
   const i = t.split('.')[0];
   const d = t.indexOf('.') >= 0 ? '.' + t.split('.').slice(1).join('') : '';
   return i.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + d;
 }
-/* Reformat while typing. Commas change the length, so count the digits before the
-   caret and put it back at the same digit. */
+/* Read a string as money. Returns { n, canon, state, alts }
+     state 'ok'        n = the number, canon = the canonical form
+           'empty'     blank
+           'ambiguous' two readings; alts holds both, the person picks
+           'bad'       not a number */
+function readMoney(s) {
+  const raw = String(s == null ? '' : s).trim();
+  if (!raw) return { n: null, canon: '', state: 'empty', alts: [] };
+  /* Drop full-width digits, spaces and currency marks. If anything other than
+     digits and separators is left, we do not read it. */
+  const t = raw
+    .replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
+    .replace(/[．｡。]/g, '.').replace(/[，、､]/g, ',')
+    .replace(/[\s\u00A0'’_]/g, '')
+    .replace(/^[¥￥$＄€£₩]+/, '');
+  const bad = { n: null, canon: raw, state: 'bad', alts: [] };
+  if (!/^[0-9.,]+$/.test(t) || !/[0-9]/.test(t)) return bad;
+
+  const asDec = (str, sep) => {            // read sep as the decimal point
+    const i = str.lastIndexOf(sep);
+    const ip = str.slice(0, i).replace(/[.,]/g, ''), dp = str.slice(i + 1);
+    if (/[.,]/.test(dp)) return null;
+    const v = parseFloat((ip || '0') + '.' + (dp || '0'));
+    return isFinite(v) ? v : null;
+  };
+  const asPlain = (str) => { const v = parseFloat(str.replace(/[.,]/g, '')); return isFinite(v) ? v : null; };
+  const grouped = (str, sep) => new RegExp('^\\d{1,3}(\\' + sep + '\\d{3})+$').test(str);
+  const ok = (n) => ({ n: n, canon: grp(String(n)), state: 'ok', alts: [] });
+  const ask = (a, b) => (a == null || b == null || a === b) ? bad
+    : { n: null, canon: raw, state: 'ambiguous', alts: [{ n: a, canon: grp(String(a)) }, { n: b, canon: grp(String(b)) }] };
+
+  const dot = t.indexOf('.') >= 0, com = t.indexOf(',') >= 0;
+
+  /* 1) Both separators — the later one is the decimal point. No ambiguity here:
+        this single rule reads 1,234.56 and 1.234,56 correctly. */
+  if (dot && com) {
+    const d = t.lastIndexOf('.') > t.lastIndexOf(',') ? '.' : ',';
+    const g = d === '.' ? ',' : '.';
+    if (t.split(d).length > 2) return bad;
+    if (!grouped(t.slice(0, t.lastIndexOf(d)), g)) return bad;
+    const v = asDec(t, d);
+    return v == null ? bad : ok(v);
+  }
+  /* 2) Commas only — groups of three means thousands (1,150,000). Anything else
+        (1,5 / 1234,56) could be a decimal comma or a typo. We ask. */
+  if (com) {
+    if (grouped(t, ',')) return ok(asPlain(t));
+    return ask(asDec(t, ','), asPlain(t));
+  }
+  /* 3) Dots only */
+  if (dot) {
+    /* 1.234.567 cannot be a number with two decimal points: it is grouping. */
+    if (t.split('.').length > 2) return grouped(t, '.') ? ok(asPlain(t)) : bad;
+    const ip = t.slice(0, t.indexOf('.')), dp = t.slice(t.indexOf('.') + 1);
+    const v = asDec(t, '.');
+    if (v == null) return bad;
+    /* Only 1.000 / 500.000 read both ways (1000 or 1.0). This is where we ask. */
+    if (/^\d{1,3}$/.test(ip) && /^\d{3}$/.test(dp)) return ask(asPlain(t), v);
+    return ok(v);
+  }
+  /* 4) No separator */
+  const v = asPlain(t);
+  return v == null ? bad : ok(v);
+}
+/* Read the box itself. A box whose reading the person picked keeps that pick
+   (only while data-money-raw still matches the current value). */
+function moneyRead(el) {
+  if (!el) return { n: null, canon: '', state: 'empty', alts: [] };
+  const raw = String(el.value == null ? '' : el.value);
+  if (el.dataset && el.dataset.moneyRaw === raw && el.dataset.moneyN != null) {
+    const v = parseFloat(el.dataset.moneyN);
+    if (isFinite(v)) return { n: v, canon: raw, state: 'ok', alts: [] };
+  }
+  return readMoney(raw);
+}
+/* Only add separators while typing when the value is **digits only** (2026-09-11).
+   One separator in the box and we leave it alone until change — reformatting
+   mid-word turns 1.000,00 into a different number and brings the misread back.
+   Commas change the length, so count the digits before the caret to restore it. */
 function fmtMoneyEl(el) {
+  if (!/^\d*$/.test(String(el.value == null ? '' : el.value).replace(/,/g, ''))) return;
   const pos = el.selectionStart;
-  const keep = pos == null ? -1 : unc(el.value.slice(0, pos)).replace(/[^0-9.]/g, '').length;
+  const keep = pos == null ? -1 : el.value.slice(0, pos).replace(/[^0-9]/g, '').length;
   el.value = grp(el.value);
   if (keep < 0) return;
   let n = 0, p = 0;
-  while (p < el.value.length && n < keep) { if (/[0-9.]/.test(el.value[p])) n++; p++; }
+  while (p < el.value.length && n < keep) { if (/[0-9]/.test(el.value[p])) n++; p++; }
   try { el.setSelectionRange(p, p); } catch (e) {}
 }
-const MONEY_EL = Array.prototype.slice.call(document.querySelectorAll('input.money'));
-for (const el of MONEY_EL) el.addEventListener('input', () => fmtMoneyEl(el));
-/* Call after values are assigned (preset, last month, payslip read) */
-function fmtMoneyAll() { for (const el of MONEY_EL) if (el.value) el.value = grp(el.value); }
+/* Call after values are assigned (preset, last month, payslip read).
+   ★The one-shot array (old MONEY_EL) is gone: per-diem rows born later use the
+     same path. */
+function moneyEls() { return Array.prototype.slice.call(document.querySelectorAll('input.money')); }
+function fmtMoneyAll() {
+  for (const el of moneyEls()) {
+    if (!el.value) continue;
+    const r = moneyRead(el);
+    if (r.state === 'ok') el.value = r.canon;
+  }
+}
+
+/* ── Ask, under the box, only when it is ambiguous ─────────────────
+   ★Nothing is added to the screen of someone typing normally.
+   ★The input rule (comma groups, dot decimal) lives inside this prompt only. */
+function clearMoneyAsk(el) {
+  if (!el) return;
+  el.classList.remove('is-money-ask');
+  const nx = el.nextElementSibling;
+  if (nx && nx.classList && nx.classList.contains('money-ask')) nx.remove();
+}
+function askMoney(el, r) {
+  clearMoneyAsk(el);
+  const box = document.createElement('div');
+  box.className = 'money-ask';
+  const q = document.createElement('p');
+  q.className = 'ma-q';
+  if (r.state === 'bad') {
+    q.textContent = '“' + el.value + '” is not a number we can read. Please type it again in digits.';
+  } else {
+    q.textContent = 'Which amount is “' + el.value + '”?';
+  }
+  box.appendChild(q);
+  const rule = document.createElement('p');
+  rule.className = 'ma-rule';
+  rule.textContent = 'Comma groups thousands · dot is the decimal point';
+  box.appendChild(rule);
+  if (r.state === 'ambiguous') {
+    const row = document.createElement('div');
+    row.className = 'ma-a';
+    for (const a of r.alts) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'ma-b';
+      b.textContent = a.canon;
+      b.addEventListener('click', () => {
+        el.value = a.canon;
+        el.dataset.moneyRaw = a.canon;
+        el.dataset.moneyN = String(a.n);
+        clearMoneyAsk(el);
+        try { el.dispatchEvent(new Event('input', { bubbles: true })); } catch (e) {}
+        try { el.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
+        try { el.focus({ preventScroll: true }); } catch (e) {}
+      });
+      row.appendChild(b);
+    }
+    box.appendChild(row);
+  }
+  el.insertAdjacentElement('afterend', box);
+  el.classList.add('is-money-ask');
+}
+/* Settle the reading when the box loses focus: rewrite to the canonical form if
+   we can read it, otherwise put the two choices up (moneyBlocker stops submit). */
+function moneySettle(el) {
+  const raw = String(el.value == null ? '' : el.value);
+  if (el.dataset.moneyRaw === raw) return;      // the person's own pick stands
+  const r = readMoney(raw);
+  clearMoneyAsk(el);
+  delete el.dataset.moneyN;
+  delete el.dataset.moneyRaw;
+  if (r.state === 'ok') { if (el.value !== r.canon) el.value = r.canon; return; }
+  if (r.state === 'empty') return;
+  askMoney(el, r);
+}
+/* ★One delegated pair. Rows born later and values injected by the payslip read
+   all travel the same path. */
+document.addEventListener('input', (e) => {
+  const el = e.target;
+  if (!el || !el.classList || !el.classList.contains('money')) return;
+  if (el.dataset.moneyRaw !== String(el.value)) { delete el.dataset.moneyN; delete el.dataset.moneyRaw; clearMoneyAsk(el); }
+  fmtMoneyEl(el);
+}, true);
+document.addEventListener('change', (e) => {
+  const el = e.target;
+  if (!el || !el.classList || !el.classList.contains('money')) return;
+  moneySettle(el);
+}, true);
+/* Return one box whose reading is not settled (null if none). Checked on submit. */
+function moneyBlocker() {
+  for (const el of moneyEls()) {
+    const r = moneyRead(el);
+    if (r.state === 'ok' || r.state === 'empty') continue;
+    return el;
+  }
+  return null;
+}
 
 // ── Live annualised total (same formula as pv_annual_total in the DB) ──
 // ★ The formula therefore lives in two places — change both, always.
 //   The server’s return value is authoritative and replaces this after submit.
-const num = (id) => { const v = parseFloat(unc($(id).value)); return isFinite(v) && v > 0 ? v : 0; };
+const num = (id) => { const r = moneyRead($(id)); return r.state === 'ok' && r.n > 0 ? r.n : 0; };
 
 /* The monthly figure built from the breakdown. ★The mirror shown in the gross
    field and annualTotal() share this one expression — two different ways of
@@ -2924,7 +3181,10 @@ function pdRead(kind) {
   const out = [];
   for (const row of PD[kind].rows.children) {
     const g = (sel) => { const e = row.querySelector(sel); return e ? e.value.trim() : ''; };
-    const a = parseFloat(unc(g('.pd-amt')));
+    /* ★.pd-amt reads through moneyRead() too (2026-09-11) — a bare parseFloat
+       here would leave the 1.000,00 misread alive in this one row. */
+    const ar = moneyRead(row.querySelector('.pd-amt'));
+    const a = ar.state === 'ok' ? ar.n : NaN;
     const o = { amount: isFinite(a) && a > 0 ? a : null, label: g('.pd-label') || null };
     /* ★We do not ask for the rate or the rule (owner, 2026-08-26). Working out
        "EUR 30 / Sector" is arithmetic, and arithmetic is our job, not the pilot's. */
@@ -2979,9 +3239,9 @@ function pdAdd(kind, quiet) {
   const row = box.tpl.content.firstElementChild.cloneNode(true);
   box.rows.appendChild(row);
   row.querySelector('.pd-del').addEventListener('click', () => { row.remove(); pdSync(); });
-  /* ★Rows born later are not in MONEY_EL, so the separators are wired up here. */
+  /* ★Separators and money reading are handled by the one delegated pair on the
+     document (2026-09-11). Wiring it again here formats twice and jumps the caret. */
   for (const el of row.querySelectorAll('input, select')) {
-    if (el.classList.contains('money')) el.addEventListener('input', () => fmtMoneyEl(el));
     el.addEventListener('input', pdSync);
     el.addEventListener('change', pdSync);
   }
@@ -3150,6 +3410,17 @@ $('f-airline').dispatchEvent(new Event('change'));
 
 // ── Preset saved on this device (so next month takes 30 seconds) ──────
 // ★ The period is never saved (it differs every time). Figures stay on the device.
+/* ── この端末の給与入力は誰のものか（2026-09-11）──────────────────
+   同じ画面が端末に置く鍵は4つある（pv_pay_last / pv_pay_draft /
+   pv_pay_claim / pv_pay_pending）。持ち主を見ていたのは**下書きだけ**で、
+   残る3つは誰でも読めた。共有端末で次に使った人の 1/5 に前の人の会社・職位・
+   総支給が入った状態で出て、その人がログインすると前の人の給与レポートまで
+   その人のものになっていた。画面はどこも壊れないので目でも検査でも気づけない。
+   ★押印と照合の実体は pv-session.js の PVPayLocal（4つで同じ印・同じ判定）。 */
+let _payOwn = 'anon';    // 今この画面を見ている人の指紋（認証が確定した時点で入る）
+let _noSave = false;     // 「保存を消す」を押された／別タブで人が入れ替わった
+let _presetIn = false;   // 「前回の内容」をもう戻したか
+
 const LS_KEY = 'pv_pay_last';
 // ★f-paytype was removed as a field on 2026-08-12. f-gross (that month's gross) took its place.
 const PRESET_IDS = ['f-airline','f-airline-other','f-position','f-fleet','f-currency','f-gross','f-base','f-hourly',
@@ -3182,10 +3453,16 @@ addEventListener('pagehide', saveDraftOnLeave);
 addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') saveDraftOnLeave(); });
 
 function savePreset() {
+  if (_noSave) return;   // 消してくれと言われたものを、離れる拍子に書き戻さない
   const o = {};
   /* ★Since 2026-08-26 the gross is saved like anything else — it is always a
      figure the pilot typed, never a mirrored sum. */
   for (const id of PRESET_IDS) { const v = $(id).value; if (v) o[id] = v; }
+  /* ★誰のものかを一緒に書く。読むときの判定は pv-session.js の owns() 1か所。
+     ★このタブにも印を付ける（登録に1時間かかっても、同じタブなら戻せる）。 */
+  o._own = _payOwn;
+  o._ts = Date.now();
+  try { PVPayLocal.markTab(); } catch (e) {}
   try { localStorage.setItem(LS_KEY, JSON.stringify(o)); } catch (e) {}
 }
 function snapshot() {
@@ -3245,16 +3522,42 @@ $('s4-edit').addEventListener('click', () => {
   $('s4-sub').hidden = false;
   $('f-contract').focus();
 });
-function loadPreset() {
+/* ★引数なしで呼ぶ＝まだ誰か分かっていない段階。押印済みのものには触らない。
+     認証が確定したところで loadPreset(_payOwn) がもう一度呼ばれる。
+   ★押印が 'anon'（未ログインで書いた）ものは、同じタブの続きか60分以内なら戻す
+     ── 匿名で書いて、その場で登録して受け取る、というこの画面の本筋を塞がない。 */
+function loadPreset(me) {
+  if (_presetIn) return;
   let o = null;
   try { o = JSON.parse(localStorage.getItem(LS_KEY) || 'null'); } catch (e) {}
-  if (!o || !restoreInto(o)) return;
+  if (!o) return;
+  const own = o._own || 'anon';
+  if (me === undefined && own !== 'anon') return;      // 本人確定待ち
+  if (!PVPayLocal.owns(own, me || 'anon', o._ts)) return;
+  if (!restoreInto(o)) return;
+  _presetIn = true;
   $('restore-bar').style.display = '';
   $('entry-prev').hidden = false;   // tell the "Enter manually" card that last time's answers are in
 }
-$('btn-forget').addEventListener('click', () => {
+/* ── 「保存を消す」と「下書きを消す」は同じ後始末をする（2026-09-11）──────
+   本人の言う「前回の内容」は pv_pay_last と pv_pay_draft の2つに入っている。
+   片方だけ消すと、消したはずの会社・職位・総支給が**再読み込みで戻ってくる**。
+   押した本人には消し方が分からないので、以後この画面は信用されない。 */
+function dropLocalPay(alsoDraft) {
+  _noSave = true;
   try { localStorage.removeItem(LS_KEY); } catch (e) {}
+  if (alsoDraft && window.PVPayWizard && PVPayWizard.dropDraft) PVPayWizard.dropDraft();
   $('restore-bar').style.display = 'none';
+  $('entry-prev').hidden = true;
+}
+$('btn-forget').addEventListener('click', () => dropLocalPay(true));
+/* pay-wizard.js の「下書きを消す」（2つある）から届く。 */
+addEventListener('pv-pay-draft-drop', () => dropLocalPay(false));
+/* ★別タブで人が入れ替わったら、このタブは以後もう書き戻さない。
+   開いたままの古いタブは前の人のセッションを握ったまま pagehide で
+   pv_pay_last を書く。押印してあるので次の人の画面は読まないが、書くほうも止める。 */
+addEventListener('storage', (e) => {
+  if ((!e.key || e.key === 'pv_user') && e.newValue !== e.oldValue) _noSave = true;
 });
 loadPreset();
 /* ★変動給の入力欄を最初から1本出す（2026-09-03 その3・オーナー指示
@@ -3425,10 +3728,16 @@ const PENDING_MAX_AGE = 14 * 24 * 60 * 60 * 1000;   // don't hold a draft older 
   /* ★下書きの持ち主を確かめる。別のアカウントの下書きは戻さず捨てる。
      未ログインで書いたものは、同じブラウザで本人が認証しただけなので押印し直す。 */
   if (WZ) WZ.setUid(_uid);
+  /* ★預かり証と「前回の内容」にも**同じ印**を配る（2026-09-11）。
+     ここを飛ばすと、共有端末で次に入った人が前の人の給与レポートを引き取る。 */
+  _payOwn = _uid ? PVPayLocal.fp(_uid) : 'anon';
+  PVClaimPending.setOwner(_payOwn);
+  /* 押印済みの「前回の内容」は、誰か分からないうちは戻していない。ここで戻す。 */
+  loadPreset(_payOwn);
   setSubmitLabel(signedIn);
 
   const drop = () => { try { localStorage.removeItem(PENDING_KEY); } catch (e) {} };
-  const hasClaim = readClaims().length > 0;
+  const hasClaim = PVClaimPending.has();   // ★今の人のぶんだけ（前の人の預かりを数えない）
   let pending = null;
   try { pending = JSON.parse(localStorage.getItem(PENDING_KEY) || 'null'); } catch (e) {}
   /* ★While a claim token is held, keep the draft too (token 30 days, draft 14).
@@ -3437,6 +3746,10 @@ const PENDING_MAX_AGE = 14 * 24 * 60 * 60 * 1000;   // don't hold a draft older 
   const ts = pending ? Number(pending._ts || 0) : 0;
   const maxAge = hasClaim ? CLAIM_MAX_AGE : PENDING_MAX_AGE;
   if (pending && ts && Date.now() - ts > maxAge) { drop(); pending = null; }
+  /* ★預けた入力にも持ち主を見る（2026-09-11）。抜けていると、共有端末で次に
+     開いた人の 5/5 に前の人の総支給が入ったまま出る。**消しはしない** ──
+     置いていった本人が同じタブ・60分以内なら、まだ自分で受け取れる。 */
+  if (pending && !PVPayLocal.owns(pending._own || 'anon', _payOwn, pending._ts)) pending = null;
 
   /* ★Put it back on the form before claiming, not after. A claim draws the
      report straight away, and the report reads the airline, fleet and seat off
@@ -3466,11 +3779,16 @@ const PENDING_MAX_AGE = 14 * 24 * 60 * 60 * 1000;   // don't hold a draft older 
   try { if (window.PVReferral) await window.PVReferral.claim(_sb); } catch (e) {}
 
   if (signedIn && hasClaim) {
-    const won = await claimPending();
-    if (won) {
+    const res = await claimPending();
+    if (res.won) {
       drop();
       track('pay_report_resume', { signed_in: 1, claimed: 1 });
-      return afterSaved(won, won.payload || pending || {}, (won.payload || {}).airline);
+      return afterSaved(res.won, res.won.payload || pending || {}, (res.won.payload || {}).airline);
+    }
+    /* ★drop() しない。預かり証も下書きも残す＝もう一度取りに行ける（N-2）。 */
+    if (res.failed > 0 || res.already > 0) {
+      track('pay_report_resume', { signed_in: 1, claimed: 0 });
+      return showClaimState(res.failed > 0 ? 'failed' : 'already');
     }
   }
 
@@ -3615,34 +3933,50 @@ function markMissing(list) {
    ★Move first, write second. #err is relocated into the current step by the wizard,
      so writing first means it is carried away the moment it appears (same note as
      markMissing). */
-function stopAt(id, msg) {
-  const host = $(id);
+function stopAtEl(host, msg) {
   if (WZ && host) WZ.goToField(host);
   showErr(msg);
   /* Only focus something **on screen**: #f-jobrole is hidden (the checkboxes are the
      real control) and #pd-var-rows is a row container, so look inside it. */
   const el = host && /^(INPUT|SELECT|TEXTAREA)$/.test(host.tagName)
     ? host : (host && host.querySelector('select, input, textarea'));
+  /* ★If we stop inside a collapsed breakdown, open that section first (2026-09-11):
+     otherwise all they get is "cannot submit" with nothing on screen to fix. */
+  if (el) { const d = el.closest('details'); if (d && !d.open) d.open = true; }
   if (el && el.offsetParent) { try { el.focus({ preventScroll: true }); } catch (e) {} }
 }
+function stopAt(id, msg) { return stopAtEl($(id), msg); }
 
 // ── Submit ───────────────────────────────────────────────────────
-/* ★Goes through unc(). A money box reads 1,150,000 on screen; sent raw it
-   makes the server's ::numeric fail (we always send bare digits). */
-const val = (id) => { const v = unc($(id).value).trim(); return v === '' ? null : v; };
-/* ★Never run the job-role field through val() (2026-09-08).
-   val() pipes through unc() -- the helper that strips thousand separators --
-   so it also eats the commas that #f-jobrole uses as its own separator.
+/* ★Money boxes (.money) are read through moneyRead() and sent as bare digits:
+   the screen shows 1,150,000 and the server's ::numeric would fail on that.
+   ★Every other box is returned as-is — commas are NOT stripped (the 2026-09-08
+     bug where #f-jobrole's 'line,instructor' became 'lineinstructor'). */
+const val = (id) => {
+  const el = $(id);
+  if (!el) return null;
+  if (el.classList && el.classList.contains('money')) {
+    const r = moneyRead(el);
+    return r.state === 'ok' ? String(r.n) : null;
+  }
+  const v = String(el.value == null ? '' : el.value).trim();
+  return v === '' ? null : v;
+};
+/* ★The job-role field is read as-is, never through val() (2026-09-08).
+   Back then val() piped through unc() -- the helper that stripped thousand
+   separators -- so it also ate the commas #f-jobrole uses as its own separator.
    'line,instructor' became 'lineinstructor', failed the server-side vocabulary
    check (pv_validate_pay_payload) and made **the whole submission fail** with
    "role/category is invalid". Anyone picking a single role has no separator, so
    nothing happens; only people picking two or more got rejected at the very end.
-   Read the value as-is here. */
+   ★val() was rebuilt on 2026-09-11 and now only interprets separators inside the
+     money boxes (.money), so this field would survive it. We still read it
+     directly -- routing it through val() reopens the road back to that bug. */
 const roleCodes = () => String($('f-jobrole').value || '').split(',').filter(Boolean);
 /* Add a few fields up into one column. All empty -> null (never send a 0). */
 const sumField = (...ids) => {
   let t = 0, any = false;
-  for (const id of ids) { const v = parseFloat(unc($(id).value)); if (isFinite(v)) { t += v; any = true; } }
+  for (const id of ids) { const r = moneyRead($(id)); if (r.state === 'ok') { t += r.n; any = true; } }
   return any ? String(+t.toFixed(2)) : null;
 };
 
@@ -3735,17 +4069,103 @@ function buildPayload(airline) {
     duty_hours:          val('f-duty-h'),
     night_hours:         val('f-night-h'),
     credit_hours:        val('f-credit-h'),
-    /* ★val() を通さない。unc() がカンマを全部落とすので、JSON が壊れる。
-       画面には出さない値で、送るのは payslip.js が組んだ文字列そのまま。 */
+    /* ★val() を通さない。画面には出さない値で、送るのは payslip.js が組んだ
+       文字列そのまま（2026-09-11 より前は val() の中の unc() がカンマを
+       全部落として JSON を壊していた）。 */
     payslip_detail:      $('f-psdetail').value || null,
     /* ★The rows themselves. The totals already went into the columns above, so this
-       is purely about keeping their shape. Not passed through val() (unc() would
-       strip the commas and break the JSON). */
+       is purely about keeping their shape. Not passed through val() (before
+       2026-09-11, unc() stripped the commas and broke the JSON). */
     pay_items:           $('f-payitems').value ? JSON.parse($('f-payitems').value) : null,
     source:              val('f-source') || 'web',
     lang:                LANG,
   };
   return payload;
+}
+
+/* ── Ask once, right before submit, when the amount is extreme (owner, 2026-09-11) ──
+   ★Not a substitute for the reading fix: anything with two possible readings is
+     settled under the box (.money-ask) and never reaches here. This only catches
+     "we read it fine, but the magnitude looks wrong".
+   ★It does not stop on the digit 1. It runs the amount through the currency and
+     the monthly/annual step, and asks only when the **annualised** figure falls
+     outside REAL PAY's sanity band ($10,000–$700,000) — the same band
+     db/pay-rows.sql drops rows by. Miss it here and the row disappears.
+   ★A genuinely small amount still goes through: "Submit this amount" passes.
+   ★Never asked twice for the same amount. Ordinary input gains no extra step.
+   ⚠️ Only the seven currencies in currency.js RATES can be converted (the ones in
+      the switcher). The 45-currency table lives server-side and the page cannot
+      read it (pv_pending_usd is granted to nobody). **No confirmation for the
+      other currencies** — calling an amount wrong on a guessed rate is worse.
+   ★The amount is only ever drawn on screen. It is never passed to track(). */
+const AMT_BAND = [10000, 700000];
+let AMT_OK = '';
+function amtUsd(v, cur) {
+  const R = (window.PVCurrency && window.PVCurrency.rates) || null;
+  if (!R || !R[cur] || !R.USD) return null;
+  return v * R[cur] / R.USD;
+}
+/* Builds the box and returns true when it should be shown (submit pauses here). */
+function amtConfirmNeeded() {
+  const box = $('amt-confirm');
+  if (!box) return false;
+  const cur = $('f-currency').value;
+  const monthly = num('f-gross');
+  const annual = annualTotal();
+  if (!(annual > 0)) return false;
+  const usd = amtUsd(annual, cur);
+  if (usd == null) return false;
+  const low = usd < AMT_BAND[0], high = usd > AMT_BAND[1];
+  if (!low && !high) return false;
+  const key = cur + '|' + monthly + '|' + annual;
+  if (AMT_OK === key) return false;
+
+  box.textContent = '';
+  const t = document.createElement('p');
+  t.className = 'ac-t';
+  t.textContent = 'Is this the right amount?';
+  box.appendChild(t);
+  const dl = document.createElement('dl');
+  dl.className = 'ac-d';
+  const row = (lab, v) => {
+    const d = document.createElement('div');
+    const dt = document.createElement('dt'); dt.textContent = lab;
+    const dd = document.createElement('dd'); dd.textContent = v;
+    d.appendChild(dt); d.appendChild(dd); dl.appendChild(d);
+  };
+  row('Gross pay that month', fmtCur(monthly, cur));
+  row('Annualised total', fmtCur(annual, cur));
+  box.appendChild(dl);
+  const n = document.createElement('p');
+  n.className = 'ac-n';
+  n.textContent = low
+    ? 'That is below the range we can compare against other airlines. A missing digit, an amount typed in thousands, or the wrong currency would all look like this. If it is right, submit it as it is.'
+    : 'That is above the range we can compare against other airlines. An extra digit, or an annual figure typed into the monthly box, would both look like this. If it is right, submit it as it is.';
+  box.appendChild(n);
+  const a = document.createElement('div');
+  a.className = 'ac-a';
+  const fix = document.createElement('button');
+  fix.type = 'button'; fix.className = 'ac-b ac-fix'; fix.id = 'ac-fix';
+  fix.textContent = 'Change it';
+  fix.addEventListener('click', () => {
+    box.hidden = true;
+    if (WZ) WZ.goToField($('f-gross'));
+    try { $('f-gross').focus({ preventScroll: true }); } catch (e) {}
+  });
+  const go = document.createElement('button');
+  go.type = 'button'; go.className = 'ac-b ac-go'; go.id = 'ac-go';
+  go.textContent = 'Submit this amount';
+  go.addEventListener('click', () => {
+    AMT_OK = key;
+    box.hidden = true;
+    submitPayReport();
+  });
+  a.appendChild(fix); a.appendChild(go);
+  box.appendChild(a);
+  box.hidden = false;
+  box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  track('pay_amount_confirm');
+  return true;
 }
 
 async function submitPayReport() {
@@ -3771,6 +4191,12 @@ async function submitPayReport() {
   if (!val('f-jobrole')) return stopAt('f-jobrole', 'Please choose your role.');
   if (!val('f-age')) return stopAt('f-age', 'Please choose your age band.');
   if (!val('f-currency')) return stopAt('f-currency', 'Please choose the currency.');
+  /* ★Never submit while a money box has an unsettled reading (2026-09-11).
+     Guessing silently is what turned 1.000,00 into 1 and dropped the row. */
+  const mb = moneyBlocker();
+  if (mb) return stopAtEl(mb, moneyRead(mb).state === 'bad'
+    ? '“' + mb.value + '” is not a number we can read. Please type it again in digits.'
+    : 'We do not know how to read “' + mb.value + '”. Please pick the amount you meant, under the box.');
   /* ★Hours flown is required. 0 is allowed (ground duty, sick month) — only a blank
      is rejected. Without it there is no pay per block hour, and no way to compare
      across countries and airlines. */
@@ -3813,6 +4239,11 @@ async function submitPayReport() {
     return stopAt('f-block', 'With an hourly rate we also need flight time or guaranteed flight time.');
   }
 
+  /* ★One last look at the magnitude (owner-approved 2026-09-11). It only shows
+     when the annualised figure is outside the sanity band, and "Submit this
+     amount" carries straight through (a genuinely small figure is never blocked). */
+  if (amtConfirmNeeded()) return;
+
   const payload = buildPayload(airline);
 
   setSubmitBusy(true, 'Submitting…');
@@ -3822,7 +4253,8 @@ async function submitPayReport() {
      ★Stamp the time too. A draft from someone who left without signing in now
        survives, so without this an entry from months ago would load into the
        form for a later month. */
-  try { localStorage.setItem(PENDING_KEY, JSON.stringify({ ...snapshot(), _ts: Date.now() })); } catch (e) {}
+  try { PVPayLocal.markTab(); } catch (e) {}
+  try { localStorage.setItem(PENDING_KEY, JSON.stringify({ ...snapshot(), _ts: Date.now(), _own: _payOwn })); } catch (e) {}
 
   /* ── No session: this one press hands it to the server ───────────
      ★This is the whole point of the change. Saving happens first and the

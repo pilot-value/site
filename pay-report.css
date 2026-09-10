@@ -1193,3 +1193,79 @@ body.has-cta #form-wrap{padding-bottom:96px}
      片方だけ濃い側へ寄せると、同じ人が確認画面と REAL PAY で違う色の内訳を見る。
      2026-09-08 に4色ぶん書いていたのを取り消した。
      db/test-pay-preview.mjs の C) が9色の一致と、この分岐が無いことを見ている。 */
+
+/* ── 金額の読み方を聞く箱（.money-ask）── 2026-09-11 ───────────────
+   ★普通に入っている人の画面には出ない。1.000 や 1,5 のように**2通りに読める**
+     ときだけ、その欄の下に出て、選ぶまで送信を止める。
+   ★赤（.form-alert / .fld.is-miss）にしない。間違いではなく質問なので、
+     注意の琥珀（.warn-row と同じ系）に寄せる。赤にすると、正しく打った人が
+     打ち間違えたと受け取る。 */
+.money-ask{margin-top:8px;padding:11px 13px;border-radius:11px;
+  background:rgba(245,200,66,.06);border:1px solid rgba(245,200,66,.28)}
+.money-ask .ma-q{margin:0;font-size:.8rem;line-height:1.6;color:#f5c842;font-weight:700}
+.money-ask .ma-rule{margin:4px 0 0;font-size:.72rem;line-height:1.6;color:#8a95a3}
+.money-ask .ma-a{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.money-ask .ma-b{min-height:40px;padding:0 16px;border-radius:10px;
+  border:1px solid rgba(245,200,66,.42);background:rgba(245,200,66,.09);
+  color:#f5c842;font-weight:700;font-size:.92rem;font-variant-numeric:tabular-nums;
+  cursor:pointer;transition:background .18s,border-color .18s,color .18s}
+.money-ask .ma-b:hover{background:rgba(245,200,66,.16);border-color:rgba(245,200,66,.6)}
+.money-ask .ma-b:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.money-ask .ma-b:active{transform:translateY(1px)}
+.form-input.is-money-ask{border-color:rgba(245,200,66,.6);background:rgba(245,200,66,.05)}
+[data-theme="light"] .money-ask{background:rgba(200,149,0,.07);border-color:rgba(200,149,0,.3)}
+[data-theme="light"] .money-ask .ma-q{color:#8a6600}
+[data-theme="light"] .money-ask .ma-rule{color:#64748b}
+[data-theme="light"] .money-ask .ma-b{border-color:rgba(200,149,0,.42);background:rgba(200,149,0,.09);color:#8a6600}
+[data-theme="light"] .money-ask .ma-b:hover{background:rgba(200,149,0,.16);border-color:rgba(200,149,0,.6)}
+[data-theme="light"] .form-input.is-money-ask{border-color:rgba(200,149,0,.55);background:rgba(200,149,0,.05)}
+
+/* ── 極端な金額の確認（#amt-confirm）── 2026-09-11 ─────────────────
+   ★普通の入力では出ない。年換算が REAL PAY の常識の幅を外れたときだけ、
+     送信の直前に一度だけ出る。
+   ★止めるための箱ではない ── 「この金額で提出する」が正規の出口で、
+     赤くしない（正しい少額を出す人を犯人扱いしない）。 */
+.amt-cf{margin-top:18px;padding:16px 17px;border-radius:14px;
+  background:rgba(245,200,66,.06);border:1px solid rgba(245,200,66,.3)}
+.amt-cf[hidden]{display:none}
+.amt-cf .ac-t{margin:0;font-size:.98rem;font-weight:800;color:#f5c842;letter-spacing:.01em}
+.amt-cf .ac-d{margin:12px 0 0;display:flex;flex-direction:column;gap:7px}
+.amt-cf .ac-d > div{display:flex;align-items:baseline;justify-content:space-between;gap:14px}
+.amt-cf .ac-d dt{margin:0;font-size:.78rem;color:#8a95a3}
+.amt-cf .ac-d dd{margin:0;font-size:1.02rem;font-weight:800;color:#e8edf2;
+  font-variant-numeric:tabular-nums;text-align:right}
+.amt-cf .ac-n{margin:12px 0 0;font-size:.78rem;line-height:1.7;color:#a8b3c2}
+.amt-cf .ac-a{display:flex;flex-wrap:wrap;gap:10px;margin-top:15px}
+.amt-cf .ac-b{min-height:46px;padding:0 20px;border-radius:11px;font-weight:700;font-size:.9rem;
+  cursor:pointer;transition:background .18s,border-color .18s,color .18s}
+.amt-cf .ac-fix{flex:0 0 auto;border:1px solid rgba(255,255,255,.18);background:transparent;color:#e8edf2}
+.amt-cf .ac-fix:hover{border-color:rgba(255,255,255,.34);background:rgba(255,255,255,.05)}
+.amt-cf .ac-go{flex:1 1 auto;border:1px solid rgba(245,200,66,.5);background:rgba(245,200,66,.12);color:#f5c842}
+.amt-cf .ac-go:hover{background:rgba(245,200,66,.2);border-color:rgba(245,200,66,.7)}
+.amt-cf .ac-b:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.amt-cf .ac-b:active{transform:translateY(1px)}
+[data-theme="light"] .amt-cf{background:rgba(200,149,0,.07);border-color:rgba(200,149,0,.32)}
+[data-theme="light"] .amt-cf .ac-t{color:#8a6600}
+[data-theme="light"] .amt-cf .ac-d dt{color:#64748b}
+[data-theme="light"] .amt-cf .ac-d dd{color:#0f172a}
+[data-theme="light"] .amt-cf .ac-n{color:#475569}
+[data-theme="light"] .amt-cf .ac-fix{border-color:rgba(15,23,42,.18);color:#0f172a}
+[data-theme="light"] .amt-cf .ac-fix:hover{border-color:rgba(15,23,42,.34);background:rgba(15,23,42,.04)}
+[data-theme="light"] .amt-cf .ac-go{border-color:rgba(200,149,0,.5);background:rgba(200,149,0,.12);color:#8a6600}
+[data-theme="light"] .amt-cf .ac-go:hover{background:rgba(200,149,0,.2);border-color:rgba(200,149,0,.7)}
+
+/* ── 引き取りが終わらなかったとき（#claim-state）── 2026-09-11 ────
+   ★エラーの赤にしない。預けた物は消えていない ── 本人がやることは
+     「もう一度押す」だけで、失敗を責める画面ではない。 */
+.claim-st{margin-top:18px;padding:17px 18px;border-radius:14px;
+  background:rgba(93,169,255,.07);border:1px solid rgba(93,169,255,.32)}
+.claim-st[hidden]{display:none}
+.claim-st .cs-t{font-size:1rem;font-weight:800;color:#5da9ff;letter-spacing:.01em}
+.claim-st .cs-l{margin:9px 0 0;font-size:.86rem;line-height:1.8;color:#a8b3c2}
+.claim-st .cs-l b{color:#e8edf2;font-weight:700}
+.claim-st .cs-a{display:flex;flex-wrap:wrap;gap:10px;margin-top:15px}
+.claim-st .cs-a > *{min-height:46px;padding:0 20px;display:inline-flex;align-items:center}
+[data-theme="light"] .claim-st{background:rgba(29,110,201,.07);border-color:rgba(29,110,201,.28)}
+[data-theme="light"] .claim-st .cs-t{color:#1d6ec9}
+[data-theme="light"] .claim-st .cs-l{color:#475569}
+[data-theme="light"] .claim-st .cs-l b{color:#0f172a}
