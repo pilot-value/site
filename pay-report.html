@@ -3814,6 +3814,27 @@ function showSticky() {
    押す物はステップ末尾の Next と 5/5 の提出ボタンの2つで、送信の入口は後者だけ。 */
 
 // ── 結果（★入力させずに返す。これが投稿の見返り）─────────────
+/* ── 祝いを鳴らす（会員登録が済んだ、この1か所だけ）───────────────
+   ★2026-09-09 に「預かった瞬間」からここへ移した。預けた時点で祝うと
+     そこが終点に見え、19人中4人が預けたまま登録に来なかった。
+   ⚠️ **届くまで待つ。typeof で見て諦めない。**
+      confetti.js はページのいちばん最後に読み込まれる1枚。ところが
+      ログインから戻ってきた人の経路は、ページを開いた直後にここへ来る
+      （上の async の IIFE → claimPending → afterSaved → ここ）。
+      その順番はページの読み込み具合で変わるので、confetti.js がまだ
+      実行されていないことがある。そこで諦めると
+      **登録を終えた人にだけ、何も鳴らないまま静かに終わる**。
+      ★pay-login.js が届かなかった回（2026-09-09 の逃げ道）とまったく同じ形。
+        あちらは空の枠が見えるので気づけたが、こちらは何も出ないので気づけない。 */
+function popWhenReady(tries) {
+  if (typeof window.PVConfetti === 'function') {
+    try { window.PVConfetti(); } catch (e) {}
+    return;
+  }
+  if (tries > 60) return;      // 6秒。ここまで来ないなら confetti.js の読み込み自体が失敗している
+  setTimeout(function () { popWhenReady(tries + 1); }, 100);
+}
+
 function renderResult(d, p) {
   const cur = d.currency || p.currency;
   const usd = (v) => '$' + new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Math.round(v));
@@ -3918,9 +3939,7 @@ function renderResult(d, p) {
      ★匿名で預けた人も、ここで初めて鳴る（2026-09-09。それまでは預けた時点で
        鳴らして _gatePopped を立てていた）。_gatePopped は、既に印の付いた
        古い預かり証を持っている人のためだけに残してある。 */
-  if (d.is_new && !_gatePopped) {
-    try { if (typeof window.PVConfetti === 'function') window.PVConfetti(); } catch (e) {}
-  }
+  if (d.is_new && !_gatePopped) popWhenReady(0);
 
   $('btn-again').addEventListener('click', () => {
     $('result-wrap').style.display = 'none';

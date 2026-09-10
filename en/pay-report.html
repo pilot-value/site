@@ -3913,6 +3913,27 @@ function showSticky() {
    押す物はステップ末尾の Next と 5/5 の提出ボタンの2つで、送信の入口は後者だけ。 */
 
 // ── Result (★ never typed in by the pilot — this is what they get back) ──
+/* ── Fire the celebration (only here: the moment the account is finished) ──
+   ★Moved here from "the moment we took the report" on 2026-09-09. Popping at
+     hand-over made that screen look like the finish line; 4 of 19 people never
+     came back to register.
+   ⚠️ **Wait for it to arrive. Do not give up on a typeof check.**
+      confetti.js is the very last script on the page, but people returning from
+      login reach this point right as the page opens (the async IIFE above →
+      claimPending → afterSaved → here). Depending on load timing confetti.js may
+      not have run yet, and giving up there means **the people who just finished
+      registering are the only ones who get silence.**
+      ★Exactly the shape of the pay-login.js failure (2026-09-09): that one left a
+        visible empty box, this one leaves nothing at all to notice. */
+function popWhenReady(tries) {
+  if (typeof window.PVConfetti === 'function') {
+    try { window.PVConfetti(); } catch (e) {}
+    return;
+  }
+  if (tries > 60) return;      // 6 seconds. Past that, confetti.js itself failed to load.
+  setTimeout(function () { popWhenReady(tries + 1); }, 100);
+}
+
 function renderResult(d, p) {
   const cur = d.currency || p.currency;
   const usd = (v) => '$' + new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Math.round(v));
@@ -4015,9 +4036,7 @@ function renderResult(d, p) {
      ★People who handed over anonymously now pop here for the first time (2026-09-09;
        before that it popped at hand-over and set _gatePopped). _gatePopped is kept
        only for people still holding a token stamped under the old behaviour. */
-  if (d.is_new && !_gatePopped) {
-    try { if (typeof window.PVConfetti === 'function') window.PVConfetti(); } catch (e) {}
-  }
+  if (d.is_new && !_gatePopped) popWhenReady(0);
 
   $('btn-again').addEventListener('click', () => {
     $('result-wrap').style.display = 'none';

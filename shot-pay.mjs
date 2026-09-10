@@ -391,6 +391,7 @@ const setDetail = async (page, open) => {
      node shot-pay.mjs open detail       DEEP PAY の「給与内訳を追加する」で来たとき
      node shot-pay.mjs open gate         匿名で提出したあとの「登録の箱」まで進めて渡す
      node shot-pay.mjs open fallback     その箱が描けなかったとき（pay-login.js を落とす）
+     node shot-pay.mjs open done         会員登録まで済んだ結果カード（祝いが鳴るところ）
      どれも en を足すと英語（例: node shot-pay.mjs open gate en）
    このページはログイン不要なので素の URL でも出るが、ほかの画面と同じ渡し方に揃える。
    ★gate / fallback は5段を全部埋めて送信まで押す。そこまで手で歩かせないための道。
@@ -400,7 +401,11 @@ if (process.argv.includes('open')) {
   await browser.close();                    // 撮影用の頭は要らない
   const lang = process.argv.includes('en') ? 'en' : 'ja';
   const wantFb   = process.argv.includes('fallback');
-  const wantGate = wantFb || process.argv.includes('gate');
+  /* ★done は gate の続き。5段を埋めて匿名で提出したところまで同じ道を歩き、
+     そのあと「会員登録が済んだ」結果カードを出す。祝いはそこで鳴る。
+     ⚠️ 通信は gate と同じく1本残らず横取りしている＝本番には1件も入らない。 */
+  const wantDone = process.argv.includes('done');
+  const wantGate = wantFb || wantDone || process.argv.includes('gate');
   const url = `http://localhost:3000/${lang === 'en' ? 'en/' : ''}pay-report.html`
             + (process.argv.includes('detail') ? '#pay-detail' : '');
   const b = await puppeteer.launch({
@@ -436,7 +441,23 @@ if (process.argv.includes('open')) {
       const g = document.getElementById('login-gate');
       if (g) g.scrollIntoView({ block: 'center' });
     });
-    console.log(wantFb
+    if (wantDone) {
+      /* ★ページ自身の renderResult をそのまま呼ぶ。見せたいのは「登録が済んだ
+         あとに出る画面」で、そこへ至る経路（引き取り）が正しいかは
+         db/test-pay-gate.mjs が見ている。ここは絵を渡すためだけの窓。 */
+      await pg.evaluate(() => {
+        renderResult(
+          { ok: true, is_new: true, currency: 'JPY', annual_total_orig: 14400000,
+            annual_total_usd: 96000, annual_total_jpy: 14400000,
+            access_until: new Date(Date.now() + 90 * 864e5).toISOString() },
+          { airline: 'ana', period_year: 2026, period_month: 8,
+            position: 'fo', fleet: 'b787', currency: 'JPY' });
+      });
+      await new Promise((r) => setTimeout(r, 500));
+    }
+    console.log(wantDone
+      ? '匿名で提出 → 会員登録まで済んだ結果カードを出した（祝いが鳴るところ）。本番には1件も入っていない。'
+      : wantFb
       ? '匿名で提出 → 登録の箱が描けなかったとき（逃げ道）まで進めた。本番には1件も入っていない。'
       : '匿名で提出 → 登録の箱まで進めた。本番には1件も入っていない。');
   }

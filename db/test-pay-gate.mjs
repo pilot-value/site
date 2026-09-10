@@ -49,6 +49,7 @@ const ok = (c, m, got) => { c ? console.log(`  ✅ ${m}`) : (fail++, console.log
 
 const FAKE_TOKEN = 'a'.repeat(48);   // サーバが返す形（24バイトの hex）に合わせる
 const URL_TOKEN  = 'b'.repeat(48);   // 別のブラウザに着地した人が URL で持ってくる1枚
+const LATE_TOKEN = 'c'.repeat(48);   // confetti.js が遅れて届いた回に引き取る1枚
 const SB_HOST    = /vzgmnkrggrwtsrpqndsm\.supabase\.co/;
 const FAKE_UID   = '00000000-0000-0000-0000-000000000001';
 
@@ -123,8 +124,18 @@ for (const [dir, tag] of [['', '(日本語)'], ['/en', '/en']]) {
   await p.evaluateOnNewDocument(() => {
     window.__pop = 0;
     window.__badge = 0;
-    window.PVConfetti = function () { window.__pop++; };
-    window.PVConfetti.badge = function () { window.__badge++; };
+    const install = () => {
+      window.PVConfetti = function () { window.__pop++; };
+      window.PVConfetti.badge = function () { window.__badge++; };
+    };
+    /* ★URL に late=1 が付いている回だけ、入れずに待つ。confetti.js は
+       ページのいちばん最後に読み込まれる1枚で、細い電波では実際に遅れて届く。
+       **普段どおり最初から入れてしまうと、遅れて届く形は永久に再現できない**
+       （偽物が常に先に居るため）。
+       ⚠️ 時間で入れない。goto の待ち方しだいで「もう入っている」状態から
+          測り始めてしまう（実際そうなった）。台本の側から明示的に入れる。 */
+    window.__installConfetti = install;
+    if (!/[?&]late=1/.test(location.search)) install();
   });
   await p.setRequestInterception(true);
 
@@ -548,6 +559,31 @@ for (const [dir, tag] of [['', '(日本語)'], ['/en', '/en']]) {
   /* ★祝いは1か所だけ。預かった時点では鳴らさず（上で見ている）、
      引き取りが通ったここで初めて鳴る＝祝いと本当の完了が一致する。 */
   ok(landed.pop === 1, '★紙吹雪は引き取り（会員登録）が済んだここで1回だけ鳴る', landed.pop);
+
+  /* ── confetti.js が遅れて届いた回 ────────────────────────────
+     ★これが**いちばん効く1本**。祝いは登録が済んだこの1か所にしか無いので、
+       ここで鳴りそこねると「登録を終えた人にだけ、何も起きない」になる。
+       しかも画面は普通に動いたままで、誰も気づけない。
+     ★pay-login.js が届かなかった回（2026-09-09 の逃げ道）と同じ形。
+       あちらは空の枠が見えたが、こちらは見えるものが何も無い。 */
+  claimReply = { ok: true, is_new: true, id: '00000000-0000-0000-0000-000000000003', payload: {} };
+  claimed.length = 0;
+  await p.goto(`${BASE}${dir}/pay-report.html?late=1`, { waitUntil: 'networkidle0' });
+  await p.evaluate(installFakeSession, FAKE_UID);
+  await p.evaluate((tok) => {
+    localStorage.setItem('pv_pay_claim', JSON.stringify([{ t: tok, ts: Date.now() }]));
+  }, LATE_TOKEN);
+  await p.goto(`${BASE}${dir}/pay-report.html?late=1`, { waitUntil: 'networkidle0' });
+  await new Promise((r) => setTimeout(r, 900));
+  const beforeArrival = await p.evaluate(() => window.__pop);
+  /* ここで初めて confetti.js が届いた、という形 */
+  await p.evaluate(() => window.__installConfetti());
+  await new Promise((r) => setTimeout(r, 400));
+  const afterArrival = await p.evaluate(() => window.__pop);
+  ok(claimed.some((x) => (x || '').includes(LATE_TOKEN)), '（前提）遅れて届く回でも引き取りには出している', claimed.length);
+  ok(beforeArrival === 0, '（前提）confetti.js が届くまでは鳴っていない', beforeArrival);
+  ok(afterArrival === 1, '★★confetti.js が遅れて届いた回でも、待って1回だけ鳴る',
+     { 届く前: beforeArrival, 届いた後: afterArrival });
 
   /* ── 経路3：マイページ（最後の網） ───────────────────────────
      login.html / signup.html から入った人は pay-report.html を通らずにここへ着く。
