@@ -35,6 +35,10 @@
 <!--/PV-SEO-->
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- 匿名で出した給与データの預かり証を見る（pv-claim-pending.js）。
+       ★ここでは移さない。登録が済んだ画面で「もう1回出してください」と
+       言わないために、預かりがあるかどうかだけを見る（has）。 -->
+  <script src="pv-claim-pending.js"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     /* ★ body 直下に .mr-top が入ったので、body の flex は「ヘッダー ／ 本文」の縦積みに使う。
@@ -413,6 +417,30 @@
     /* 登録完了画面の主ボタン。?next= で来た人は、登録の前にやろうとしていたこと
        （口コミ／明細）へ戻す。ここを既定の submit-review.html 固定にしていたため、
        明細を出しに来た人まで口コミへ送っていた。 */
+    /* 預かり証がこの端末にあるか。pv-claim-pending.js が落ちても画面は出す（false）。 */
+    /* ★通信で落ちたのか、こちらの言い分があるのかを分ける（2026-09-11）。
+       supabase-js は通信の失敗も throw せず error で返す（status は 0）。
+       それを素の英語のまま「エラーが発生しました: Failed to fetch」と出していたので、
+       登録できなかった理由が本人に伝わらなかった。
+       ★理由が分かるものだけ文にする。分からないものは null を返して従来どおりに任せる。 */
+    function netErrMsg(err) {
+      const st   = Number(err && err.status) || 0;
+      const code = String((err && err.code) || '');
+      const name = String((err && err.name) || '');
+      if ((typeof navigator !== 'undefined' && navigator.onLine === false)
+          || st === 0 || name === 'AuthRetryableFetchError' || name === 'TypeError')
+        return 'サーバーに接続できませんでした。通信を確かめて、もう一度お試しください。';
+      if (st === 429 || code.indexOf('rate_limit') >= 0)
+        return '短い時間に何度も試したため、一時的に受け付けを止めています。少し待ってからもう一度お試しください。';
+      if (st >= 500)
+        return 'サーバー側で問題が起きています。少し待ってからもう一度お試しください。';
+      return null;
+    }
+
+    function hasPending(){
+      try { return !!(window.PVClaimPending && PVClaimPending.has()); } catch (e) { return false; }
+    }
+
     function showSuccessCta(){
       const b = document.getElementById('success-cta');
       const to = explicitNext();
@@ -422,12 +450,19 @@
       //   パス全体で比べると英語側が分岐に入らない（英語版で実際に起きた）。両方同じ形にする。
       const p = to.split(/[?#]/)[0].split('/').pop();
       if (p === 'pay-report.html') {
-        b.textContent = '給与明細を出す（約2分）';
+        /* ★預かりがある人には「出してください」と言わない（2026-09-11）。
+           匿名で入力 →（サーバーが預かる）→ ここで登録、という順で来た人に
+           「給与明細を出す」と出していたので、同じ内容をもう一度書かされる。
+           実際に出すのは戻った先の pay-report.html（預かりを自動で引き取る）。 */
+        const kept = hasPending();
+        b.textContent = kept ? '預けたレポートを受け取る →' : '給与明細を出す（約2分）';
         // 年収の解放は明細だけ（pay-report.html の submit_pay_report が access_until を90日先へ延ばす）
         const lead = document.getElementById('success-lead');
-        if (lead) lead.innerHTML = '明細を1枚出すと、<b style="color:#f5c842">全社の年収データが90日間解放</b>されます。';
+        if (lead) lead.innerHTML = kept
+          ? '先ほど入力したレポートはサーバーで預かっています。受け取ると、<b style="color:#f5c842">全社の年収データが90日間解放</b>されます。'
+          : '明細を1枚出すと、<b style="color:#f5c842">全社の年収データが90日間解放</b>されます。';
         const later = document.getElementById('success-later');
-        if (later) later.textContent = 'あとで出す → サイトへ';
+        if (later) later.textContent = kept ? 'あとで受け取る → サイトへ' : 'あとで出す → サイトへ';
       } else if (p !== 'submit-review.html') {
         b.textContent = '続ける →';
       }
@@ -669,9 +704,10 @@
         // metadata は JSON なので未知キーでも安全。email_opt_in はトリガー側で profiles に反映。
         const { data, error } = await sb.auth.signUp({ email, password: pass, options: { data: meta } });
         if(error){
-          return fail(error.message === 'User already registered'
-            ? 'このメールアドレスは既に登録されています'
-            : 'エラーが発生しました: ' + error.message);
+          return fail(netErrMsg(error)
+            || (error.message === 'User already registered'
+              ? 'このメールアドレスは既に登録されています'
+              : 'エラーが発生しました: ' + error.message));
         }
         if(!data.user){
           return fail('Supabase管理画面でメール確認をOFFにしてください（Authentication → Sign In / Providers → Confirm email）');
@@ -679,7 +715,7 @@
         // セッションが未確立の場合はサインインしてセッションを取得
         if(!data.session){
           const { error: signInErr } = await sb.auth.signInWithPassword({ email, password: pass });
-          if(signInErr) return fail('ログインに失敗しました: ' + signInErr.message);
+          if(signInErr) return fail(netErrMsg(signInErr) || ('ログインに失敗しました: ' + signInErr.message));
         }
         userId = data.user.id;
       }

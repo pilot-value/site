@@ -425,6 +425,29 @@
       window.location.href = getRedirect();
     }
 
+    /* ★失敗の理由を分ける（2026-09-11）。
+       それまでは何が起きても「メールアドレスまたはパスワードが正しくありません」で、
+       電波が切れた人・回数制限に当たった人まで、自分の打ち間違いだと思って
+       同じものを何度も打ち直していた（打ち直すほど回数制限に近づく）。
+       ⚠️ supabase-js は通信の失敗を throw せず error として返す
+          （AuthRetryableFetchError・status は 0）。error が来た＝入力が違う、ではない。
+       ★status を先に見る。message の文字列は Supabase 側の都合で変わる。 */
+    function authErrMsg(err) {
+      const st   = Number(err && err.status) || 0;
+      const code = String((err && err.code) || '');
+      const name = String((err && err.name) || '');
+      const off  = (typeof navigator !== 'undefined' && navigator.onLine === false);
+      if (off || st === 0 || name === 'AuthRetryableFetchError' || name === 'TypeError')
+        return 'サーバーに接続できませんでした。通信を確かめて、もう一度お試しください。';
+      if (st === 429 || code.indexOf('rate_limit') >= 0)
+        return '短い時間に何度も試したため、一時的に受け付けを止めています。少し待ってからもう一度お試しください。';
+      if (st >= 500)
+        return 'サーバー側で問題が起きています。少し待ってからもう一度お試しください。';
+      if (code === 'email_not_confirmed')
+        return 'メールアドレスの確認がまだ済んでいません。届いているメールをご確認ください。';
+      return 'メールアドレスまたはパスワードが正しくありません';
+    }
+
     async function handleLogin(e) {
       e.preventDefault();
       const email    = document.getElementById('email').value.trim().toLowerCase();
@@ -434,10 +457,15 @@
       errEl.style.display = 'none';
       btn.textContent = 'ログイン中…'; btn.disabled = true;
 
-      const { data, error } = await sb.auth.signInWithPassword({ email, password });
+      /* fetch そのものが投げてくる経路もある（拡張機能・オフライン）。握りつぶさない。 */
+      let data = null, error = null;
+      try {
+        const r = await sb.auth.signInWithPassword({ email, password });
+        data = r.data; error = r.error;
+      } catch (e) { error = e; }
 
-      if (error) {
-        errEl.textContent = 'メールアドレスまたはパスワードが正しくありません';
+      if (error || !data || !data.user) {
+        errEl.textContent = authErrMsg(error);
         errEl.style.display = 'block';
         btn.textContent = 'ログイン'; btn.disabled = false;
         return;

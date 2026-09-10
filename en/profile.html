@@ -1059,6 +1059,11 @@
       localStorage.removeItem('pv_user');
       localStorage.removeItem('pv_unlock_expiry');
       localStorage.removeItem('pv_salary_unlock_expiry');   // clear the salary key too
+      /* ★給与の入力も置いていかない（2026-09-11）。pv_pay_last / pv_pay_draft /
+         pv_pay_claim / pv_pay_pending の4つ。1つでも残ると、次にこの端末を
+         使った人の給与フォームに前の人の会社・総支給が戻り、その人がログイン
+         すると前の人の給与レポートまでその人のものになる。 */
+      try { PVPayLocal.forget(); } catch (e) {}
       window.location.href = 'index.html';
     }
 

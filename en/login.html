@@ -422,6 +422,29 @@
       window.location.href = getRedirect();
     }
 
+    /* ★Separate the reasons a sign-in failed (2026-09-11).
+       Everything used to come out as "your email address or password is incorrect", so
+       someone whose connection dropped — or who had hit the rate limit — retyped the same
+       correct password over and over (and every retry pushed them closer to the limit).
+       ⚠️ supabase-js returns network failures as error, it does not throw
+          (AuthRetryableFetchError, status 0). An error is not proof of a typo.
+       ★Read status first. The message string is Supabase's to change. */
+    function authErrMsg(err) {
+      const st   = Number(err && err.status) || 0;
+      const code = String((err && err.code) || '');
+      const name = String((err && err.name) || '');
+      const off  = (typeof navigator !== 'undefined' && navigator.onLine === false);
+      if (off || st === 0 || name === 'AuthRetryableFetchError' || name === 'TypeError')
+        return "We couldn't reach the server. Check your connection and try again.";
+      if (st === 429 || code.indexOf('rate_limit') >= 0)
+        return 'Too many attempts in a short time, so sign-in is paused for a moment. Please wait and try again.';
+      if (st >= 500)
+        return 'Something is wrong on our side. Please wait a moment and try again.';
+      if (code === 'email_not_confirmed')
+        return "Your email address hasn't been confirmed yet. Please check your inbox.";
+      return 'Your email address or password is incorrect';
+    }
+
     async function handleLogin(e) {
       e.preventDefault();
       const email    = document.getElementById('email').value.trim().toLowerCase();
@@ -431,10 +454,15 @@
       errEl.style.display = 'none';
       btn.textContent = 'Logging in…'; btn.disabled = true;
 
-      const { data, error } = await sb.auth.signInWithPassword({ email, password });
+      /* fetch そのものが投げてくる経路もある（拡張機能・オフライン）。握りつぶさない。 */
+      let data = null, error = null;
+      try {
+        const r = await sb.auth.signInWithPassword({ email, password });
+        data = r.data; error = r.error;
+      } catch (e) { error = e; }
 
-      if (error) {
-        errEl.textContent = 'Your email address or password is incorrect';
+      if (error || !data || !data.user) {
+        errEl.textContent = authErrMsg(error);
         errEl.style.display = 'block';
         btn.textContent = 'Log in'; btn.disabled = false;
         return;

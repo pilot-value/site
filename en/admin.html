@@ -239,6 +239,7 @@
       btn.style.display = 'block';
       btn.onclick = async (e) => {
         e.preventDefault();
+        try { PVPayLocal.forget(); } catch (e) {}   // 給与の入力も端末に置いていかない
         await sb.auth.signOut();
         location.href = 'login.html?next=admin.html';
       };
@@ -403,6 +404,7 @@
   }
 
   async function adminLogout() {
+    try { PVPayLocal.forget(); } catch (e) {}   // 給与の入力も端末に置いていかない
     await sb.auth.signOut();
     location.href = 'index.html';
   }

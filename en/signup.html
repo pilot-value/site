@@ -35,6 +35,10 @@
 <!--/PV-SEO-->
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Reads (does not move) the receipt for pay submitted anonymously — pv-claim-pending.js.
+       ★Only has() is used here, so the finished screen never tells someone who already
+       submitted to go and submit again. -->
+  <script src="../pv-claim-pending.js"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     /* ★ body 直下に .mr-top が入ったので、body の flex は「ヘッダー ／ 本文」の縦積みに使う。
@@ -412,6 +416,30 @@
     /* Primary button on the completion screen. People who arrived with ?next= (they hit the
        login wall on the review or payslip form and were sent here) go back to what they
        were doing. Hard-coding submit-review.html sent payslip arrivals to the wrong place. */
+    /* Is a receipt sitting in this browser? If pv-claim-pending.js failed to load, say no. */
+    /* ★Separate "the network dropped" from "we have something to tell you" (2026-09-11).
+       supabase-js returns network failures as error rather than throwing (status 0), and
+       that was being shown raw as "An error occurred: Failed to fetch", which tells the
+       person nothing about why they could not register.
+       ★Only put words to what we can actually tell. Otherwise return null and leave it alone. */
+    function netErrMsg(err) {
+      const st   = Number(err && err.status) || 0;
+      const code = String((err && err.code) || '');
+      const name = String((err && err.name) || '');
+      if ((typeof navigator !== 'undefined' && navigator.onLine === false)
+          || st === 0 || name === 'AuthRetryableFetchError' || name === 'TypeError')
+        return "We couldn't reach the server. Check your connection and try again.";
+      if (st === 429 || code.indexOf('rate_limit') >= 0)
+        return 'Too many attempts in a short time, so sign-up is paused for a moment. Please wait and try again.';
+      if (st >= 500)
+        return 'Something is wrong on our side. Please wait a moment and try again.';
+      return null;
+    }
+
+    function hasPending(){
+      try { return !!(window.PVClaimPending && PVClaimPending.has()); } catch (e) { return false; }
+    }
+
     function showSuccessCta(){
       const b = document.getElementById('success-cta');
       const to = explicitNext();
@@ -421,10 +449,16 @@
       //   パス全体で比べると英語側だけ分岐に入らない（実際に入っていなかった）。
       const p = to.split(/[?#]/)[0].split('/').pop();
       if (p === 'pay-report.html') {
-        b.textContent = 'Submit a payslip (about 2 min)';
+        /* ★Never say "submit" to someone whose report is already held (2026-09-11).
+           Anonymous entry →（server holds it）→ sign up here: that person was being
+           asked to type the whole thing again. The claim happens back on pay-report.html. */
+        const kept = hasPending();
+        b.textContent = kept ? 'Claim the report you submitted →' : 'Submit a payslip (about 2 min)';
         // The salary unlock comes from payslips only (submit_pay_report pushes access_until 90 days out).
         const lead = document.getElementById('success-lead');
-        if (lead) lead.innerHTML = 'Submit one payslip and <b style="color:#f5c842">the pay data for every airline unlocks for 90 days</b>.';
+        if (lead) lead.innerHTML = kept
+          ? 'The report you just filled in is held on the server. Claim it and <b style="color:#f5c842">the pay data for every airline unlocks for 90 days</b>.'
+          : 'Submit one payslip and <b style="color:#f5c842">the pay data for every airline unlocks for 90 days</b>.';
         const later = document.getElementById('success-later');
         if (later) later.textContent = 'Later → Go to the site';
       } else if (p !== 'submit-review.html') {
@@ -669,9 +703,10 @@
         //    metadata is JSON, so unknown keys are safe. email_opt_in is written to profiles by the trigger.
         const { data, error } = await sb.auth.signUp({ email, password: pass, options: { data: meta } });
         if(error){
-          return fail(error.message === 'User already registered'
-            ? 'This email address is already registered'
-            : 'An error occurred: ' + error.message);
+          return fail(netErrMsg(error)
+            || (error.message === 'User already registered'
+              ? 'This email address is already registered'
+              : 'An error occurred: ' + error.message));
         }
         if(!data.user){
           return fail('Please turn off email confirmation in the Supabase dashboard (Authentication → Sign In / Providers → Confirm email)');
@@ -679,7 +714,7 @@
         // 2. If no session was established, sign in to obtain one
         if(!data.session){
           const { error: signInErr } = await sb.auth.signInWithPassword({ email, password: pass });
-          if(signInErr) return fail('Login failed: ' + signInErr.message);
+          if(signInErr) return fail(netErrMsg(signInErr) || ('Login failed: ' + signInErr.message));
         }
         userId = data.user.id;
       }
