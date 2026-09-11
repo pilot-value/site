@@ -267,6 +267,30 @@ function fp(uid) {                       // FNV-1a。短く畳むだけ。
    半年前の総支給・飛んだ時間を持ったまま 3/5 から再開する。値はそれらしく埋まっていて、
    本人も「前に入れたやつだ」としか思わないので、目でも検査でも気づけない。 */
 var DRAFT_MAX_AGE = 14 * 24 * 60 * 60 * 1000;
+/* ★匿名のまま置いてある下書きを、いま画面を見ている人のものと見てよいか
+   （2026-09-11）。共有端末で、A が匿名で書きかけて帰ったあと B が開くと、
+   A の会社・職位・総支給が入った状態の 3/5 から始まっていた。
+   判定は pv-session.js の owns() 1か所（預かり証・前回の内容と同じ規則）。
+   下は pv-session.js を読んでいない画面のための、同じ意味の控え。
+
+   ★ただし下書きだけは1つ緩める ── **見ている人も匿名なら、14日はそのまま戻す。**
+     理由は2つ。
+     ① ここには「14日は残す」という約束があり（DRAFT_MAX_AGE・帯にも日時が出る）、
+        タブの合言葉で切ると、匿名で書きかけて数日後に戻ってきた人の下書きが、
+        期限内なのに黙って消えたようにしか見えない。
+     ② 見ている人も匿名なら、A と B を見分ける手がかりがそもそも無い。
+        どちらに転んでも当て推量になる。
+     危ないのは「**名前のある口座**が、匿名の書きかけを勝手に受け継ぐ」ほうなので、
+     そこだけは同じタブの続きに限る（setUid は uidFp を入れてからここを呼ぶ）。 */
+function ownsDraft(d) {
+  if (!d) return false;
+  var me = uidFp || 'anon';
+  if (d.uid === 'anon' && me === 'anon') return true;
+  var P = typeof window !== 'undefined' && window.PVPayLocal;
+  if (P && P.owns) return P.owns(d.uid, me, d.ts, d.tab);
+  if (d.uid && d.uid !== 'anon') return d.uid === uidFp;
+  return true;
+}
 function draftRead() {
   var d = null;
   try { d = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null'); } catch (e) { return null; }
@@ -471,7 +495,11 @@ function sync() {
 function draftState() {
   var f = {};
   C.draftIds.forEach(function (id) { var v = C.read(id); if (v) f[id] = v; });
-  return { v: DRAFT_V, uid: uidFp, step: C.steps[cur].id, ts: Date.now(), fields: f };
+  /* ★タブの合言葉も残す（2026-09-11）。匿名で書いたものを引き継げるのは
+     同じタブの続きだけ ── 別のタブの人には渡さない。 */
+  var tab = '';
+  try { if (window.PVPayLocal && window.PVPayLocal.markTab) tab = window.PVPayLocal.markTab(); } catch (e) {}
+  return { v: DRAFT_V, uid: uidFp, step: C.steps[cur].id, ts: Date.now(), tab: tab, fields: f };
 }
 function saveDraft() {
   if (!started || doneSaving) return;
@@ -675,7 +703,11 @@ var API = {
        画面を出すのは start() ＝入口の2択を抜けてから。ここで出すと、
        まだ「どちらで入力しますか？」を選んでいない人の後ろで段が動く）。
        押印済みのものは setUid() が「今の人のものだ」と言うまで戻さない。 */
-    if (d && d.uid === 'anon') { this._pending = null; this._resume = d; }
+    /* ★ここではまだ誰も名乗っていない（uidFp は空）。匿名の下書きは
+       14日そのまま戻す ── 同じブラウザで書きかけた本人が続きから入れる。
+       名前のある口座が受け継いでよいかは setUid() が判定する（同じタブの続きだけ）。
+       ⚠️ 消しはしない（A の書きかけを B のログインで捨てない）。使わないだけ。 */
+    if (d && d.uid === 'anon') { this._pending = null; this._resume = ownsDraft(d) ? d : null; }
     else { this._pending = d; }
     /* 先に start() が来ていたら、ここで起こす（上の wantStart）。 */
     if (wantStart) { wantStart = false; this.start(); }
@@ -699,7 +731,13 @@ var API = {
     var f = fp(uid), d = this._pending || draftRead();
     uidFp = f;
     if (!d) return;
-    if (d.uid === 'anon') { d.uid = f; draftWrite(d); }   // 同じブラウザで本人が認証しただけ
+    /* ★匿名の下書きを本人のものにするのは、**同じタブの続き**のときだけ
+       （2026-09-11）。前は無条件で、A が匿名で書いた下書きが、B が
+       別のタブでログインした拍子に B のものになっていた。 */
+    if (d.uid === 'anon') {
+      if (!ownsDraft(d)) { this._pending = null; this._resume = null; return; }
+      d.uid = f; draftWrite(d);                           // 同じタブで本人が認証しただけ
+    }
     else if (d.uid !== f) { draftClear(); this._pending = null; this._resume = null; return; }
     if (this._pending) {
       this._pending = null;

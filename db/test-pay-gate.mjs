@@ -755,6 +755,66 @@ for (const [dir, tag] of [['', '(日本語)'], ['/en', '/en']]) {
   const anon = await p.evaluate(() => (document.getElementById('f-gross') || {}).value || '');
   ok(anon === '1,080,000', '★匿名で置いた分は今までどおり戻る（登録前の入力を捨てない）', anon);
 
+  /* ★★同じ場面を「前回の内容」の側でも見る ── A が匿名で入れたまま席を立ち、
+     60分以内に B が別のタブから普通にログインして開く。預かり証だけ塞いでも、
+     ここが開いていれば **A の会社と総支給が B の画面に出てしまう**。 */
+  await p.goto(STAGE, { waitUntil: 'domcontentloaded' });
+  await p.evaluate(() => {
+    localStorage.clear(); sessionStorage.clear();
+    var mine = window.PVPayLocal.tabId();          // B のタブの合言葉
+    localStorage.setItem('pv_pay_last', JSON.stringify({
+      'f-airline': 'ana', 'f-gross': '1,080,000',
+      _own: 'anon', _ts: Date.now() - 60 * 1000, _tab: mine + '-b',   // A のタブ
+    }));
+  });
+  await p.evaluate(installFakeSession, OTHER_UID);
+  await p.goto(`${BASE}${dir}/pay-report.html`, { waitUntil: 'networkidle0' });
+  await new Promise((r) => setTimeout(r, 1500));
+  const anonOther = await p.evaluate(() => ({
+    gross: (document.getElementById('f-gross') || {}).value || '',
+    airline: (document.getElementById('f-airline') || {}).value || '',
+    prev: !document.getElementById('entry-prev').hidden,
+  }));
+  ok(!anonOther.gross && !anonOther.airline,
+    '★★A の匿名入力が、60分以内に別のタブで入った B の画面に戻らない', anonOther);
+  ok(!anonOther.prev, '入口の「前回の内容が入ります」も出さない', anonOther.prev);
+
+  /* ★下書き（pv_pay_draft）も同じ場面で見る。ここは3つのうち唯一
+     「14日は残す」と約束している入れ物なので、規則が1段だけ違う ──
+       ・見ている人も匿名  → 14日そのまま戻す（A と B を見分ける手がかりが無い）
+       ・名前のある口座    → **同じタブの続きのときだけ**受け継ぐ
+     下で見るのは後者。B がログイン済みで開いても A の書きかけを拾わないこと。 */
+  const draftAsB = async (tab) => {
+    await p.goto(STAGE, { waitUntil: 'domcontentloaded' });
+    await p.evaluate((t) => {
+      localStorage.clear(); sessionStorage.clear();
+      var mine = window.PVPayLocal.tabId();
+      localStorage.setItem('pv_pay_draft', JSON.stringify({
+        v: 1, uid: 'anon', step: 's3', ts: Date.now() - 60 * 1000,
+        tab: t === 'same' ? mine : mine + '-b',
+        fields: { 'f-airline': 'ana', 'f-gross': '1,080,000' },
+      }));
+    }, tab);
+    await p.evaluate(installFakeSession, OTHER_UID);
+    await p.goto(`${BASE}${dir}/pay-report.html`, { waitUntil: 'networkidle0' });
+    await new Promise((r) => setTimeout(r, 1500));
+    await p.click('#entry-manual');
+    await new Promise((r) => setTimeout(r, 600));
+    return p.evaluate(() => ({
+      gross: (document.getElementById('f-gross') || {}).value || '',
+      step: window.PVPayWizard ? window.PVPayWizard.current() : '',
+      left: localStorage.getItem('pv_pay_draft') != null,
+    }));
+  };
+  const dOther = await draftAsB('other');
+  ok(!dOther.gross,
+    '★★A の書きかけの下書きが、別のタブでログインした B の画面に入らない', dOther);
+  ok(dOther.step === 's1', 'B は 1/5 から始まる（A の 3/5 に置き去りにしない）', dOther.step);
+  ok(dOther.left, 'A の下書きは消さない（A が同じタブに戻れば続きから入れる）', dOther.left);
+  const dSame = await draftAsB('same');
+  ok(dSame.gross === '1,080,000',
+    '★同じタブで匿名から登録した人は、書きかけの続きから入れる', dSame.gross);
+
   /* 預かり証も同じ規則。次の人が前の人のレポートを引き取らない。 */
   claimed.length = 0;
   await p.goto(STAGE, { waitUntil: 'domcontentloaded' });
@@ -772,24 +832,31 @@ for (const [dir, tag] of [['', '(日本語)'], ['/en', '/en']]) {
     '★★共有端末で、次の人が前の人の預かりを引き取らない', claimed.length);
   ok(kept === 1, '前の人の預かり証は消さずに残す（本人が戻れば取れる）', kept);
 
-  /* ★匿名で預けた分の扱い（PVPayLocal.owns の 'anon' の枝・2026-09-11）。
-     押印が 'anon' の預かり証は誰のものとも言えないので、時間で決めている ──
-       ・同じタブの続き（sessionStorage の印がある）  → 引き取れる
-       ・作ってから60分以内                          → 引き取れる
-       ・それ以外                                    → 渡さない（消しもしない）
-     この2つが「匿名で入力 → その場で登録 → 引き取り」を通したまま、
-     共有端末で置き去りにされた分が次の人のものになるのを止めている。
+  /* ★匿名で預けた分は誰のものか（PVPayLocal.owns の 'anon' の枝・2026-09-11）。
+     押印が 'anon' の預かり証は名前では決められないので、**タブの合言葉**で決める ──
+       ① 名前のある押印     → その人だけ（ひとつ上の塊で確認済み）
+       ② 匿名 ＋ 合言葉あり → **同じタブの続きのときだけ**。時間では通さない
+       ③ 匿名 ＋ 合言葉なし → この直しより前に置かれた分だけ。作って60分以内の経過措置
+     合言葉はタブごとの乱数（sessionStorage）。タブを閉じれば消え、別のタブとは一致しない。
+     これで「匿名で入力 → その場で登録 → 引き取り」は今までどおり通り、
+     共有端末で置き去りにされた分が次の人のものになる道だけが閉じる。
+     ⚠️ 2026-09-11 より前は合言葉が定数の '1' で、pay-report.html を開いて離れる
+        （pagehide → savePreset → markTab）だけでどのタブにも押されていた。
+        つまり実質「60分以内なら次の人でも引き取れる」だった。
      ⚠️ 時計は動かせないので、預かり証の日付を倒して同じ状態を作る。 */
-  const anonClaim = async (ageMs, mark) => {
+  const anonClaim = async (ageMs, tab) => {
     claimed.length = 0;
     claimReply = { ok: true, is_new: true, id: '00000000-0000-0000-0000-0000000000c1' };
     await p.goto(STAGE, { waitUntil: 'domcontentloaded' });
-    await p.evaluate((tok, age, m) => {
+    await p.evaluate((tok, age, t) => {
       localStorage.clear(); sessionStorage.clear();
+      /* 合言葉は本物の関数に作らせる（写すと、作り方を変えた日に嘘をつく）。
+         sessionStorage はタブに付くので、このあと遷移しても同じ値が続く。 */
+      var mine = window.PVPayLocal.tabId();
+      var stamp = t === 'same' ? mine : (t === 'other' ? mine + '-b' : '');
       localStorage.setItem('pv_pay_claim',
-        JSON.stringify([{ t: tok, ts: Date.now() - age, own: 'anon' }]));
-      if (m) sessionStorage.setItem('pv_pay_tab', '1');
-    }, FAKE_TOKEN, ageMs, mark);
+        JSON.stringify([{ t: tok, ts: Date.now() - age, own: 'anon', tab: stamp }]));
+    }, FAKE_TOKEN, ageMs, tab);
     await p.evaluate(installFakeSession, OTHER_UID);
     await p.goto(`${BASE}${dir}/pay-report.html`, { waitUntil: 'networkidle0' });
     await new Promise((r) => setTimeout(r, 1500));
@@ -797,12 +864,30 @@ for (const [dir, tag] of [['', '(日本語)'], ['/en', '/en']]) {
       try { return JSON.parse(localStorage.getItem('pv_pay_claim') || '[]').length; } catch (e) { return -1; }
     }) };
   };
-  const fresh = await anonClaim(60 * 1000, true);
-  ok(fresh.calls === 1,
-    '匿名で預けて、その場で登録した人は引き取れる（正規の流れを塞がない）', fresh.calls);
-  const leftover = await anonClaim(3 * 60 * 60 * 1000, false);
+  const same = await anonClaim(60 * 1000, 'same');
+  ok(same.calls === 1,
+    '★匿名で入れて、その流れで登録した人は引き取れる（正規の道を塞がない）', same.calls);
+
+  /* ★★オーナーが名指しした場面（2026-09-11）──
+     A が匿名で入力して置いていき、60分以内に B が**別のタブ**から普通に
+     ログインして入ってくる。時間だけで決めていたら渡ってしまう。 */
+  const other = await anonClaim(60 * 1000, 'other');
+  ok(other.calls === 0,
+    '★★A の匿名入力が、60分以内に別のタブでログインした B へ自動で渡らない', other.calls);
+  ok(other.left === 1, '渡さないだけで消さない（A が同じタブに戻れば取れる）', other.left);
+
+  /* 同じタブの続きなら時間では切らない ── 本人が3時間かけて登録しても取れる。 */
+  const late = await anonClaim(3 * 60 * 60 * 1000, 'same');
+  ok(late.calls === 1,
+    '同じタブの続きなら、60分を超えていても本人は引き取れる', late.calls);
+
+  /* ③合言葉なし＝この直しより前に置かれた預かり証だけの経過措置。 */
+  const legacy = await anonClaim(60 * 1000, null);
+  ok(legacy.calls === 1,
+    '直す前に預けた分（合言葉なし）は60分の経過措置で取れる', legacy.calls);
+  const leftover = await anonClaim(3 * 60 * 60 * 1000, null);
   ok(leftover.calls === 0,
-    '★★匿名の預かりでも、別のタブで時間が経っていたら次の人に渡さない', leftover.calls);
+    '★★合言葉がなく、時間も経っていたら次の人に渡さない', leftover.calls);
   ok(leftover.left === 1, '渡さないだけで消さない（置いていった本人が戻れば取れる）', leftover.left);
   claimReply = { ok: false, reason: 'blocked_by_test' };
 

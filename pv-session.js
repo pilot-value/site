@@ -73,9 +73,18 @@
      ★指紋の作り方をここ1か所にする。2つ目の実装を作ると、同じ人に違う印が
        付いて下書きだけ捨てられる、という形で静かに壊れる。
      ★匿名で書いたものを本人が引き継げないと、匿名入力→登録→引き取りという
-       この画面の本筋が通らない。引き継ぐ条件は「同じタブの続き」か「60分以内」。 */
+       この画面の本筋が通らない。引き継ぐ条件は**「同じタブの続き」ただ1つ**。
+     ⚠️ 2026-09-11 の朝まで「同じタブ **または** 60分以内」だった。後半が穴で、
+        A が匿名で入れて帰ったあと、B が60分以内に**別のタブから普通にログイン
+        しただけ**で A の給与レポート・前回の内容・下書きが丸ごと B のものに
+        なった。B の画面には身に覚えの無い年収が出て、A の行は二度と本人へ
+        渡らない。どちらの画面も壊れていないので、目でも検査でも気づけない。 */
   var PAY_KEYS = ['pv_pay_last', 'pv_pay_draft', 'pv_pay_claim', 'pv_pay_pending'];
   var PAY_TAB  = 'pv_pay_tab';                  // sessionStorage ＝ タブごと
+  /* ★2026-09-11 より前に置かれた（タブの合言葉を持たない）ものだけに残す経過措置。
+     これより後に書いたものは必ず合言葉を持つので、ここを通らない。
+     切ってしまうと、その朝に匿名で出して登録の途中だった人の1件が
+     その場で行方不明になる（本人にはどうにもできない）。 */
   var ANON_GRACE = 60 * 60 * 1000;
 
   function fp(uid) {                            // FNV-1a。短く畳むだけ。
@@ -83,14 +92,36 @@
     for (var i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = (h * 0x01000193) >>> 0; }
     return h.toString(16);
   }
-  function markTab() { try { sessionStorage.setItem(PAY_TAB, '1'); } catch (e) {} }
-  function sameTab() {
-    try { return sessionStorage.getItem(PAY_TAB) === '1'; } catch (e) { return false; }
+  /* このタブの合言葉。sessionStorage はタブごとに別（閉じれば消える・
+     別のタブからは読めない）。★中身に意味は無い。**別のタブと違う値である**
+     ことだけが要る。 */
+  function tabId() {
+    try {
+      var v = sessionStorage.getItem(PAY_TAB);
+      /* '1' は 2026-09-11 より前の印。どのタブでも同じ値＝区別が付かないので捨てる。 */
+      if (!v || v === '1') {
+        v = fp(String(Math.random()) + ':' + String(Date.now())) + fp(String(Math.random()));
+        sessionStorage.setItem(PAY_TAB, v);
+      }
+      return v;
+    } catch (e) { return ''; }          // プライベートモード等。合言葉なしとして扱う
   }
-  /* own = 押印（'anon' か指紋）／me = 今の人の指紋（未ログインなら 'anon'）。 */
-  function owns(own, me, ts) {
+  function markTab() { return tabId(); }
+  function sameTab(tab) { return !!tab && tab === tabId(); }
+  /* own = 押印（'anon' か指紋）／me = 今の人の指紋（未ログインなら 'anon'）
+     ts  = 書いた時刻／tab = 書いたタブの合言葉（2026-09-11 以降は必ず入る）。
+
+     ①名前のあるもの      → その人だけ。ログインしていない人には誰のものも渡さない
+     ②匿名＋合言葉あり    → **同じタブの続きのときだけ**。時間では通さない
+     ③匿名＋合言葉なし    → この直しより前に置いたものだけ。60分の経過措置
+
+     ★②が本筋（匿名で入れる → その流れで登録・認証 → 引き取り）を支えている。
+       同じタブで続けているかぎり、登録に何時間かかっても自分のぶんは戻る。
+       別のタブ・別のウィンドウで開き直した時点で、その人には渡らない
+       （サーバの預かりは14日残るので、預かり証さえ手元にあれば取りに行ける）。 */
+  function owns(own, me, ts, tab) {
     if (own && own !== 'anon') return own === me;
-    if (sameTab()) return true;
+    if (tab) return sameTab(tab);
     return Date.now() - Number(ts || 0) <= ANON_GRACE;
   }
   /* 端末から給与の入力を全部消す。ログアウト・自動失効・管理者の切替から呼ぶ。
@@ -102,7 +133,7 @@
 
   window.PVPayLocal = {
     KEYS: PAY_KEYS, TAB_KEY: PAY_TAB, ANON_GRACE: ANON_GRACE,
-    fp: fp, markTab: markTab, sameTab: sameTab, owns: owns, forget: forget
+    fp: fp, tabId: tabId, markTab: markTab, sameTab: sameTab, owns: owns, forget: forget
   };
 
   // supabase-js v2 の保存キー。プロジェクト参照が入るのでパターンで拾う。

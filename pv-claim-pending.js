@@ -64,14 +64,16 @@
      ★押印の実体は pv-session.js の PVPayLocal（下書き・前回の内容と同じ印）。
        ここで2つ目の指紋を作らない。
      ★匿名で出した人が、その場で登録して受け取る道は塞がない。
-       引き継ぐ条件は「同じタブの続き」か「作ってから60分以内」。 */
+       引き継ぐ条件は**「同じタブの続き」ただ1つ**（2026-09-11）。
+       「60分以内」も通していたのが穴で、B が別のタブから普通にログインしただけで
+       A の預かりが B のものになった。条件は pv-session.js の owns() 1か所。 */
   function local() {
     return (typeof window !== 'undefined' && window.PVPayLocal) || null;
   }
   function fpOf(uid) { var P = local(); return P ? P.fp(uid) : String(uid || ''); }
-  function owns(own, me, ts) {
+  function owns(own, me, ts, tab) {
     var P = local();
-    if (P) return P.owns(own, me, ts);
+    if (P) return P.owns(own, me, ts, tab);
     return !own || own === 'anon' || own === me;
   }
   var _own = null;                    // 今この画面を見ている人の指紋（未確定は null）
@@ -81,7 +83,7 @@
        最長30日で自然に消える。 */
   function isMine(it, me) {
     if (!it || !('own' in it)) return true;
-    return owns(it.own, me || 'anon', it.ts);
+    return owns(it.own, me || 'anon', it.ts, it.tab);
   }
 
   /* ログインの結果が分かった時点で呼ぶ。匿名のまま置いてある引き継げるぶんは、
@@ -138,10 +140,11 @@
     if (!TOKEN_RE.test(String(tok || ''))) return '';
     var a = read().filter(function (x) { return x.t !== tok; });
     /* ★押印して残す。未ログインなら 'anon'（引き継げる印）。
-       ★同時にこのタブに印を付ける ── 登録に1時間かかった人が、同じタブで
-         続けているかぎり自分のぶんを受け取れるようにするため。 */
-    var P = local(); if (P) P.markTab();
-    var row = { t: tok, ts: Date.now(), own: _own || 'anon' };
+       ★このタブの合言葉も一緒に残す ── 登録に何時間かかっても、同じタブで
+         続けているかぎり自分のぶんを受け取れる。逆に、**別のタブの人には
+         渡らない**（2026-09-11。時間だけで通していたのが穴だった）。 */
+    var P = local();
+    var row = { t: tok, ts: Date.now(), own: _own || 'anon', tab: P ? P.markTab() : '' };
     if (key) row.k = String(key);
     a.push(row);
     write(a);

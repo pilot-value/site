@@ -3570,11 +3570,12 @@ function savePreset() {
   /* ★Since 2026-08-26 the gross is saved like anything else — it is always a
      figure the pilot typed, never a mirrored sum. */
   for (const id of PRESET_IDS) { const v = $(id).value; if (v) o[id] = v; }
-  /* ★誰のものかを一緒に書く。読むときの判定は pv-session.js の owns() 1か所。
-     ★このタブにも印を付ける（登録に1時間かかっても、同じタブなら戻せる）。 */
+  /* ★Stamp who it belongs to. The one place that decides is owns() in pv-session.js.
+     ★Stamp this tab's password too (2026-09-11): however long signing up takes,
+       the same tab gets it back and **another tab's person never does**. */
   o._own = _payOwn;
   o._ts = Date.now();
-  try { PVPayLocal.markTab(); } catch (e) {}
+  try { o._tab = PVPayLocal.markTab(); } catch (e) {}
   try { localStorage.setItem(LS_KEY, JSON.stringify(o)); } catch (e) {}
 }
 function snapshot() {
@@ -3646,7 +3647,7 @@ function loadPreset(me) {
   if (!o) return;
   const own = o._own || 'anon';
   if (me === undefined && own !== 'anon') return;      // 本人確定待ち
-  if (!PVPayLocal.owns(own, me || 'anon', o._ts)) return;
+  if (!PVPayLocal.owns(own, me || 'anon', o._ts, o._tab)) return;
   if (!restoreInto(o)) return;
   _presetIn = true;
   $('restore-bar').style.display = '';
@@ -3861,8 +3862,12 @@ const PENDING_MAX_AGE = 14 * 24 * 60 * 60 * 1000;   // don't hold a draft older 
   if (pending && ts && Date.now() - ts > maxAge) { drop(); pending = null; }
   /* ★預けた入力にも持ち主を見る（2026-09-11）。抜けていると、共有端末で次に
      開いた人の 5/5 に前の人の総支給が入ったまま出る。**消しはしない** ──
-     置いていった本人が同じタブ・60分以内なら、まだ自分で受け取れる。 */
-  if (pending && !PVPayLocal.owns(pending._own || 'anon', _payOwn, pending._ts)) pending = null;
+     置いていった本人が**同じタブ**で戻れば、時間が経っていても受け取れる。
+     ⚠️ ここだけは下書き（pay-wizard.js の ownsDraft）より厳しくしてある。
+        あちらは 3/5 から続けるだけだが、こちらは**送信ボタンのある 5/5 に
+        値が全部入った状態**で出る。タブを閉じて開き直した人は入れ直しになるが、
+        知らない人の年収を送れてしまうより、そちらを取った。 */
+  if (pending && !PVPayLocal.owns(pending._own || 'anon', _payOwn, pending._ts, pending._tab)) pending = null;
 
   /* ★Put it back on the form before claiming, not after. A claim draws the
      report straight away, and the report reads the airline, fleet and seat off
@@ -4377,8 +4382,8 @@ async function submitPayReport() {
      ★Stamp the time too. A draft from someone who left without signing in now
        survives, so without this an entry from months ago would load into the
        form for a later month. */
-  try { PVPayLocal.markTab(); } catch (e) {}
-  try { localStorage.setItem(PENDING_KEY, JSON.stringify({ ...snapshot(), _ts: Date.now(), _own: _payOwn })); } catch (e) {}
+  let _tab = ''; try { _tab = PVPayLocal.markTab(); } catch (e) {}
+  try { localStorage.setItem(PENDING_KEY, JSON.stringify({ ...snapshot(), _ts: Date.now(), _own: _payOwn, _tab })); } catch (e) {}
 
   /* ── No session: this one press hands it to the server ───────────
      ★This is the whole point of the change. Saving happens first and the
