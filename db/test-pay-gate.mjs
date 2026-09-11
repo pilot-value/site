@@ -1014,6 +1014,45 @@ console.log('\n(共通) メールにリンクが無い前提と、サイトの�
   ok(ja && en && ja === en, 'メール本文の原本で有効期限の数字が日英で一致する', { ja, en });
 }
 
+/* ⑧b 登録で聞くのは3つだけ（2026-09-11 オーナー指示）──────────────
+      「居住国・在籍企業・職位だけ必須。名前とか生年月日はそもそも要らない（匿名だし）」。
+      ★ここは**日英で同時に**直さないと、英語圏だけ6項目のまま残る（前に一度そうなった）。
+      ⚠️ 列は消していない。マイページからは今までどおり入れられるし、
+         既に入れた人の値もそのまま残る（handle_new_user は coalesce）。
+      ⚠️ 氏名を持たない会員が生まれる＝**ヘッダーを u.name で判定している場所が
+         「ログイン」を出したまま**になる。ログイン済みの人に毎ページ「ログイン」と
+         出るのは、本人には「登録できていない」としか見えない。6か所を一緒に見る。 */
+console.log('\n(共通) 登録で聞くのは居住国・在籍企業・職位の3つだけ\n');
+{
+  for (const f of ['signup.html', 'en/signup.html']) {
+    const t = readFileSync(ROOT + f, 'utf8');
+    for (const [id, label] of [['s2-name', '氏名'], ['s2-birth', '生年月日']]) {
+      ok(!new RegExp('id="' + id + '"').test(t), `${f} が${label}の欄を持たない`, id);
+    }
+    ok(!/name="gender"/.test(t), `${f} が性別の欄を持たない`, 'gender');
+    for (const [id, label] of [['s2-country', '居住国'], ['s2-company', '在籍企業']]) {
+      ok(new RegExp('id="' + id + '"').test(t), `${f} は${label}を聞く`, id);
+    }
+    ok(/name="position"/.test(t), `${f} は職位を聞く`, 'position');
+    /* 欄だけ消して、送るほうに残っていると **undefined を DB へ書きに行く**。 */
+    ok(!/\bbirthdate\s*[:,]/.test(t), `${f} が生年月日を送らない`, 'birthdate');
+    ok(!/gender\s*:\s*gender/.test(t), `${f} が性別を送らない`, 'gender:');
+    /* ★「もう登録済みか」の判定。ここが p.name のままだと、登録を終えた人が
+       開くたびにこの画面へ戻される（本人には理由が分からない）。 */
+    ok(/p\.country\s*&&\s*p\.company\s*&&\s*p\.position/.test(t),
+      `${f} の「登録済み」判定が今の必須3つを見ている`, f);
+  }
+  /* ヘッダー6か所。氏名が無くてもログイン済みならマイページへ行けること。 */
+  for (const f of ['search.js', 'airlines/airline-base.js', 'community.html',
+                   'world-airlines.html', 'en/community.html', 'en/world-airlines.html']) {
+    const t = readFileSync(ROOT + f, 'utf8');
+    ok(!/u\s*&&\s*u\.name\b/.test(t),
+      `${f} が「氏名があるか」でログイン済みを判定していない`, f);
+    ok(/u\.name\s*\|\|\s*String\(u\.email/.test(t),
+      `${f} は氏名が無ければメールの @ より前を出す`, f);
+  }
+}
+
 /* ⑨ 英語版の戻り先：?next= を付けずに en/login.html から入った人が /en/ に着くこと。
       ここは既定が 'profile.html' で、しかも「既定のときだけ next を付けない」分岐が
       あったため、ルートの auth-callback.html が /profile.html＝日本語版へ落としていた。

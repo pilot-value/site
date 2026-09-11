@@ -237,9 +237,12 @@ document.addEventListener('DOMContentLoaded', function() {
     authBtn.id = 'nav-auth-btn';
     try {
       var u = JSON.parse(localStorage.getItem('pv_user') || 'null');
-      if (u && u.name) {
+      /* ★氏名を持たない会員がいる（2026-09-11 に登録で氏名を聞くのをやめた）。
+         名前で判定すると、ログイン済みの人に「ログイン」が出たままになる。 */
+      var nm = (u && (u.name || String(u.email || '').split('@')[0])) || '';
+      if (nm) {
         authBtn.href = '../profile.html';
-        authBtn.textContent = u.name.replace(/[\s　].*/, ''); // first name
+        authBtn.textContent = nm.replace(/[\s　].*/, ''); // first name
         authBtn.className = 'hidden md:inline-flex';
         authBtn.style.cssText = 'font-size:.82rem;font-weight:700;color:#f5c842;padding:7px 0;text-decoration:none;letter-spacing:.01em';
       } else {

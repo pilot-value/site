@@ -301,16 +301,12 @@
       <div class="step-sub">口コミの信頼性のため必須です（匿名で表示されます）</div>
       <form id="step2-form" onsubmit="handleSignup(event)" novalidate>
         <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:18px">
-          <div><div class="field-label">氏名</div><input class="auth-input" type="text" id="s2-name" placeholder="山田 太郎" required/></div>
-          <div>
-            <div class="field-label">性別</div>
-            <div class="radio-group">
-              <div class="radio-chip"><input type="radio" name="gender" id="g-male" value="male"/><label for="g-male">男性</label></div>
-              <div class="radio-chip"><input type="radio" name="gender" id="g-female" value="female"/><label for="g-female">女性</label></div>
-              <div class="radio-chip"><input type="radio" name="gender" id="g-other" value="other"/><label for="g-other">その他</label></div>
-            </div>
-          </div>
-          <div><div class="field-label">生年月日</div><input class="auth-input" type="date" id="s2-birth" required style="color-scheme:dark"/></div>
+          <!-- ★2026-09-11 オーナー指示。氏名・性別・生年月日はこの画面から外した。
+               このサイトは匿名で、氏名は表示にも集計にも一切出さない。それを入口で
+               6つも聞いていたので、**メールから登録する人だけ**が重い思いをしていた
+               （給与フォームの中で登録する人はメールアドレスだけで通る）。
+               ★列は消していない。マイページ（profile.html）では今までどおり
+                 氏名・性別・生年月日を入れられるし、入れた人の値もそのまま残る。 -->
           <div>
             <div class="field-label">居住国</div>
             <select class="auth-input" id="s2-country" required>
@@ -632,11 +628,8 @@
     function prefillProfile(user, profile){
       const m = (user && user.user_metadata) || {};
       const set = function(id, v){ if(v) document.getElementById(id).value = v; };
-      set('s2-name',    (profile && profile.name) || m.full_name || m.name);
       set('s2-company', profile && profile.company);
       set('s2-country', profile && profile.country);
-      set('s2-birth',   profile && profile.birthdate);
-      const g = profile && profile.gender;   if(g){ const el=document.querySelector('input[name="gender"][value="'+g+'"]');   if(el) el.checked=true; }
       const p = profile && profile.position; if(p){ const el=document.querySelector('input[name="position"][value="'+p+'"]'); if(el) el.checked=true; }
     }
 
@@ -646,7 +639,10 @@
       const { data:{ session } } = await sb.auth.getSession();
       if(!session) return;
       const { data: p } = await sb.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
-      if(p && p.name && p.company && p.position){ window.location.href = getRedirect(); return; }
+      /* ★登録済みかどうかを p.name で見ない（2026-09-11 に氏名を聞くのをやめた）。
+           見るのは今の必須3つ。ここが古いままだと、登録を終えた人が開くたびに
+           この画面へ戻される（本人には「登録できていない」としか見えない）。 */
+      if(p && p.country && p.company && p.position){ window.location.href = getRedirect(); return; }
       authMode = 'session';
       if(signupMethod === 'email') signupMethod = 'google';   // OTP は verifyOtpCode で既に立っている
       prefillProfile(session.user, p);
@@ -659,24 +655,20 @@
       const btn   = document.getElementById('signup-btn');
       errEl.style.display='none';
 
-      const name     = document.getElementById('s2-name').value.trim();
-      const gender   = document.querySelector('input[name="gender"]:checked');
-      const birth    = document.getElementById('s2-birth').value;
+      /* ★必須は居住国・在籍企業・職位の3つだけ（2026-09-11 オーナー指示）。
+         ここに1つ足すたび、メールから登録する人だけが入口で重くなる。 */
       const country  = document.getElementById('s2-country').value;
       const company  = document.getElementById('s2-company').value.trim();
       const position = document.querySelector('input[name="position"]:checked');
 
-      if(!name)    {errEl.textContent='氏名を入力してください';errEl.style.display='block';return;}
-      if(!gender)  {errEl.textContent='性別を選択してください';errEl.style.display='block';return;}
-      if(!birth)   {errEl.textContent='生年月日を入力してください';errEl.style.display='block';return;}
       if(!country) {errEl.textContent='居住国を選択してください';errEl.style.display='block';return;}
       if(!company) {errEl.textContent='在籍企業を入力してください';errEl.style.display='block';return;}
       if(!position){errEl.textContent='職位を選択してください';errEl.style.display='block';return;}
 
       const optIn   = !!(document.getElementById('s2-optin') && document.getElementById('s2-optin').checked);
       const optInAt = optIn ? new Date().toISOString() : null;
-      const meta = { name, gender: gender.value, birthdate: birth, country, company,
-                     position: position.value, email_opt_in: optIn, email_opt_in_at: optInAt };
+      const meta = { country, company, position: position.value,
+                     email_opt_in: optIn, email_opt_in_at: optInAt };
 
       btn.textContent='登録中…'; btn.disabled=true;
 
@@ -720,7 +712,9 @@
         userId = data.user.id;
       }
 
-      const profileData = { name, gender: gender.value, birthdate: birth, country, company, position: position.value };
+      /* ★氏名・性別・生年月日は送らない。upsert の対象から外しただけなので、
+         以前に入れた人の値は DB にそのまま残る（handle_new_user も coalesce）。 */
+      const profileData = { country, company, position: position.value };
       const optInCols  = { email_opt_in: optIn, email_opt_in_at: optInAt };
 
       // 3. プロフィールをDBに保存（トリガーでも自動作成されるため、RLS等で失敗しても登録は継続）
@@ -744,8 +738,7 @@
 
       // 4. localStorageにも保存（ナビ表示用）
       localStorage.setItem('pv_user', JSON.stringify({
-        id: userId, email, name, gender: gender.value,
-        birthdate: birth, country, company, position: position.value,
+        id: userId, email, country, company, position: position.value,
         joinedAt: new Date().toISOString()
       }));
 

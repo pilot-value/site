@@ -576,7 +576,12 @@ var PV_SEARCH_L10N = {
     try {
       var u = JSON.parse(localStorage.getItem('pv_user') || 'null');
       var lnk = document.getElementById('pv-nd-login-lnk');
-      if (u && u.name && lnk) { lnk.textContent = u.name.replace(/[\s\u3000].*/, ''); lnk.href = pageHref('profile.html'); }
+      /* ★氏名を持たない会員がいる（2026-09-11 に登録で氏名を聞くのをやめた）。
+         u.name だけを見ていると、**ログイン済みの人にここだけ「ログイン」が
+         出たまま**になる。index.html が前からやっている形に合わせて、
+         氏名が無ければメールの @ より前を出す。 */
+      var nm = (u && (u.name || String(u.email || '').split('@')[0])) || '';
+      if (nm && lnk) { lnk.textContent = nm.replace(/[\s\u3000].*/, ''); lnk.href = pageHref('profile.html'); }
     } catch(e) {}
 
     /* ── 入らなくなったら畳む ──────────────────────────────────────

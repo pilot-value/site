@@ -4392,26 +4392,30 @@ function renderResult(d, p) {
 }
 
 /* ── レポートのあとに、プロフィールが空の人にだけ1枚出す ──────────
-   ★会員登録のときに6項目を聞かない代わりがこれ。先にレポートを見せる。
-     レポートの保存自体はプロフィールが無くても通る（submit_pay_report が
-     profiles の行を自分で作る）ので、ここで止める理由は何も無い。
-   ★書くのは本当のことだけ。氏名を入れるとマイレポートの見出しがその名前になる
-     （my-value.js の loadName）。それ以上の効能は今のところ無いので書かない。
+   ★給与フォームから登録する人にはメールアドレスしか聞かない。その代わりがこれ。
+     先にレポートを見せる。レポートの保存自体はプロフィールが無くても通る
+     （submit_pay_report が profiles の行を自分で作る）ので、止める理由が無い。
+   ★書くのは本当のことだけ。埋めた3つは次に出すときの初期値になる。
+     氏名は 2026-09-11 に登録画面から外したので、ここでも氏名の話をしない。
    ★signup.html へ送らない。アカウントはもうあるので、二重登録に見える。 */
 async function profileNudge() {
   try {
     const uid = await sessionUserId();
     if (!uid) return;
-    const { data, error } = await _sb.from('profiles').select('name').eq('id', uid).maybeSingle();
+    /* ★空かどうかを氏名で見ない（2026-09-11）。signup.html が氏名を聞くのを
+         やめたので、名前で見ると**全員に毎回出る**。見るのは登録画面の必須3つ。 */
+    const { data, error } = await _sb.from('profiles')
+      .select('country, company, position').eq('id', uid).maybeSingle();
     if (error) return;                              // 取れなければ黙って出さない
-    if (data && String(data.name || '').trim()) return;   // 埋まっている人には出さない
+    const has = (k) => !!(data && String(data[k] || '').trim());
+    if (has('country') && has('company') && has('position')) return;   // 埋まっている人には出さない
     const box = document.createElement('div');
     box.className = 'res';
     box.style.marginTop = '18px';
     box.innerHTML =
       '<div style="font-size:.95rem;font-weight:800;letter-spacing:-.01em;margin-bottom:6px">プロフィールがまだ空です</div>' +
       '<div style="font-size:.82rem;line-height:1.7;color:#a8b3c2;margin-bottom:16px">' +
-        '氏名を登録すると、マイレポートの見出しがあなたの名前になります。あとからでも設定できます。</div>' +
+        '居住国・在籍企業・職位を入れておくと、次からは入力が減ります。あとからでも設定できます。</div>' +
       '<a href="profile.html#edit-card" class="btn-ghost justify-center">プロフィールを設定する →</a>';
     $('result-wrap').appendChild(box);
   } catch (e) { /* 出せなくてもレポートは出ている。黙って諦める */ }

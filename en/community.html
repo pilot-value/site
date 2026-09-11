@@ -895,7 +895,7 @@ setTimeout(() => { document.querySelectorAll('.fade-up:not(.visible)').forEach(e
 renderReviews('all');
 loadSupabaseReviews(); // fetch reviews for all airlines asynchronously → re-render
 syncUnlockBadge();
-(function(){try{var u=JSON.parse(localStorage.getItem('pv_user')||'null');var b=document.getElementById('nav-auth-btn');if(!b)return;if(u&&u.name){b.textContent=u.name.replace(/[\s　].*/,'');b.href='../profile.html';b.style.color='#f5c842';b.style.fontWeight='700';}}catch(e){}})();
+(function(){try{var u=JSON.parse(localStorage.getItem('pv_user')||'null');var b=document.getElementById('nav-auth-btn');if(!b)return;var nm=(u&&(u.name||String(u.email||'').split('@')[0]))||'';if(nm){b.textContent=nm.replace(/[\s　].*/,'');b.href='../profile.html';b.style.color='#f5c842';b.style.fontWeight='700';}}catch(e){}})();
 </script>
 
 <script src="../search.js"></script>

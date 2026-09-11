@@ -301,16 +301,12 @@
       <div class="step-sub">Required to keep reviews credible (displayed anonymously)</div>
       <form id="step2-form" onsubmit="handleSignup(event)" novalidate>
         <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:18px">
-          <div><div class="field-label">Full name</div><input class="auth-input" type="text" id="s2-name" placeholder="John Smith" required/></div>
-          <div>
-            <div class="field-label">Gender</div>
-            <div class="radio-group">
-              <div class="radio-chip"><input type="radio" name="gender" id="g-male" value="male"/><label for="g-male">Male</label></div>
-              <div class="radio-chip"><input type="radio" name="gender" id="g-female" value="female"/><label for="g-female">Female</label></div>
-              <div class="radio-chip"><input type="radio" name="gender" id="g-other" value="other"/><label for="g-other">Other</label></div>
-            </div>
-          </div>
-          <div><div class="field-label">Date of birth</div><input class="auth-input" type="date" id="s2-birth" required style="color-scheme:dark"/></div>
+          <!-- ★2026-09-11, owner's call. Full name / gender / date of birth were
+               removed from this screen. The site is anonymous — a real name is never
+               shown or counted anywhere — yet this was the only door asking for six
+               fields up front (registering inside the pay form asks for an email only).
+               ★The columns still exist. MY PAGE (profile.html) can still set name,
+                 gender and date of birth, and existing values are untouched. -->
           <div>
             <div class="field-label">Country of residence</div>
             <select class="auth-input" id="s2-country" required>
@@ -631,11 +627,8 @@
     function prefillProfile(user, profile){
       const m = (user && user.user_metadata) || {};
       const set = function(id, v){ if(v) document.getElementById(id).value = v; };
-      set('s2-name',    (profile && profile.name) || m.full_name || m.name);
       set('s2-company', profile && profile.company);
       set('s2-country', profile && profile.country);
-      set('s2-birth',   profile && profile.birthdate);
-      const g = profile && profile.gender;   if(g){ const el=document.querySelector('input[name="gender"][value="'+g+'"]');   if(el) el.checked=true; }
       const p = profile && profile.position; if(p){ const el=document.querySelector('input[name="position"][value="'+p+'"]'); if(el) el.checked=true; }
     }
 
@@ -645,7 +638,10 @@
       const { data:{ session } } = await sb.auth.getSession();
       if(!session) return;
       const { data: p } = await sb.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
-      if(p && p.name && p.company && p.position){ window.location.href = getRedirect(); return; }
+      /* ★登録済みかどうかを p.name で見ない（2026-09-11 に氏名を聞くのをやめた）。
+           見るのは今の必須3つ。ここが古いままだと、登録を終えた人が開くたびに
+           この画面へ戻される（本人には「登録できていない」としか見えない）。 */
+      if(p && p.country && p.company && p.position){ window.location.href = getRedirect(); return; }
       authMode = 'session';
       if(signupMethod === 'email') signupMethod = 'google';   // OTP は verifyOtpCode で既に立っている
       prefillProfile(session.user, p);
@@ -658,24 +654,20 @@
       const btn   = document.getElementById('signup-btn');
       errEl.style.display='none';
 
-      const name     = document.getElementById('s2-name').value.trim();
-      const gender   = document.querySelector('input[name="gender"]:checked');
-      const birth    = document.getElementById('s2-birth').value;
+      /* ★Only three are required: country, employer, position (owner, 2026-09-11).
+         Every extra field here is weight carried by email sign-ups alone. */
       const country  = document.getElementById('s2-country').value;
       const company  = document.getElementById('s2-company').value.trim();
       const position = document.querySelector('input[name="position"]:checked');
 
-      if(!name)    {errEl.textContent='Please enter your full name';errEl.style.display='block';return;}
-      if(!gender)  {errEl.textContent='Please select your gender';errEl.style.display='block';return;}
-      if(!birth)   {errEl.textContent='Please enter your date of birth';errEl.style.display='block';return;}
       if(!country) {errEl.textContent='Please select your country of residence';errEl.style.display='block';return;}
       if(!company) {errEl.textContent='Please enter your current employer';errEl.style.display='block';return;}
       if(!position){errEl.textContent='Please select your position';errEl.style.display='block';return;}
 
       const optIn   = !!(document.getElementById('s2-optin') && document.getElementById('s2-optin').checked);
       const optInAt = optIn ? new Date().toISOString() : null;
-      const meta = { name, gender: gender.value, birthdate: birth, country, company,
-                     position: position.value, email_opt_in: optIn, email_opt_in_at: optInAt };
+      const meta = { country, company, position: position.value,
+                     email_opt_in: optIn, email_opt_in_at: optInAt };
 
       btn.textContent='Registering…'; btn.disabled=true;
 
@@ -719,7 +711,9 @@
         userId = data.user.id;
       }
 
-      const profileData = { name, gender: gender.value, birthdate: birth, country, company, position: position.value };
+      /* ★氏名・性別・生年月日は送らない。upsert の対象から外しただけなので、
+         以前に入れた人の値は DB にそのまま残る（handle_new_user も coalesce）。 */
+      const profileData = { country, company, position: position.value };
       const optInCols  = { email_opt_in: optIn, email_opt_in_at: optInAt };
 
       // 3. Save the profile to the DB (the trigger also creates it, so registration continues even if this fails due to RLS etc.)
@@ -744,8 +738,7 @@
 
       // 4. Also store in localStorage (for the nav display)
       localStorage.setItem('pv_user', JSON.stringify({
-        id: userId, email, name, gender: gender.value,
-        birthdate: birth, country, company, position: position.value,
+        id: userId, email, country, company, position: position.value,
         joinedAt: new Date().toISOString()
       }));
 
