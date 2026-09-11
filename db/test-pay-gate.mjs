@@ -540,7 +540,9 @@ for (const [dir, tag] of [['', '(日本語)'], ['/en', '/en']]) {
        選ぶまで送信も止める。ここで固定するのはその3つ ──
        ① 正しく読めるものは正しく読む（小数も含めて）
        ② 打っている途中で文字を消さない
-       ③ 曖昧なものは聞く／送信を止める・選べば通る */
+       ③ 曖昧なものは聞く／送信を止める・選べば通る
+     ★ただし「聞く」のは**両方の読み方が書式として成立する**ときだけ（1.000 など）。
+       1,5 のように片方が成立しないものは聞かずに小数として読む（2026-09-11 オーナー指摘）。 */
   console.log(`\n${tag} N-1 金額の読み方（黙って推測しない）\n`);
   await p.evaluate(() => { localStorage.clear(); });
   await p.goto(`${BASE}${dir}/pay-report.html`, { waitUntil: 'networkidle0' });
@@ -549,7 +551,8 @@ for (const [dir, tag] of [['', '(日本語)'], ['/en', '/en']]) {
     return {
       euro: R('1.000,00'), anglo: R('1,234.56'), group: R('1,150,000'),
       dec:  R('1234.56'),  half:  R('0.5'),      plain: R('1150000'),
-      amb1: R('1.000'),    amb2:  R('1,5'),      bad:   R('12万'),
+      amb1: R('1.000'),    comdec: R('1,5'),     bad:   R('12万'),
+      comdec2: R('1000,50'), zero: R('0.500'),    weird: R('1,23,456'),
     };
   });
   ok(money.euro[0] === 'ok' && money.euro[1] === 1000,
@@ -560,7 +563,17 @@ for (const [dir, tag] of [['', '(日本語)'], ['/en', '/en']]) {
   ok(money.half[0] === 'ok' && money.half[1] === 0.5, '★0.5 も通す', money.half);
   ok(money.plain[0] === 'ok' && money.plain[1] === 1150000, '区切りの無い数はそのまま', money.plain);
   ok(money.amb1[0] === 'ambiguous', '★1.000 は 1000 とも 1.0 とも読める＝聞く（勝手に決めない）', money.amb1);
-  ok(money.amb2[0] === 'ambiguous', '★1,5 も聞く', money.amb2);
+  /* ★2026-09-11 にオーナー指摘で作り直したところ。以前はここも「聞く」にしていたが、
+     「カンマを取れば 15 になる」は読み方ではない（桁区切りとして成立しない書式）。
+     普通に小数を書いた人に、要らない二択を出していた。 */
+  ok(money.comdec[0] === 'ok' && money.comdec[1] === 1.5,
+    '★★1,5 は 1.5（15 とは読まない・普通の小数入力に二択を出さない）', money.comdec);
+  ok(money.comdec2[0] === 'ok' && money.comdec2[1] === 1000.5,
+    '★1000,50 も 1000.50 と同じ扱い', money.comdec2);
+  ok(money.zero[0] === 'ok' && money.zero[1] === 0.5,
+    '★0.500 は 0.5（500 を 0.500 とは書かない＝桁区切りとして成立しない）', money.zero);
+  ok(money.weird[0] === 'bad',
+    '1,23,456 はどちらにも読めない＝読めないと言う（黙って数にしない）', money.weird);
   ok(money.bad[0] === 'bad', '数字として読めないものは、読めないと言う', money.bad);
 
   /* ② 打鍵中に文字を消さない。桁区切りを足すのは数字だけのときに限る。 */

@@ -1219,6 +1219,13 @@ body.has-cta #form-wrap{padding-bottom:96px}
 [data-theme="light"] .money-ask .ma-b{border-color:rgba(200,149,0,.42);background:rgba(200,149,0,.09);color:#8a6600}
 [data-theme="light"] .money-ask .ma-b:hover{background:rgba(200,149,0,.16);border-color:rgba(200,149,0,.6)}
 [data-theme="light"] .form-input.is-money-ask{border-color:rgba(200,149,0,.55);background:rgba(200,149,0,.05)}
+/* ★明細の表の中でも同じ箱を使う（2026-09-11）。あそこの金額の升は
+   display:flex ＋ white-space:nowrap なので、そのままだと二択が横に並んで
+   潰れ、文言も折り返さない。この升の中でだけ、下へ回して普通に折り返す。 */
+.ps-tbl-edit .ps-amt{flex-wrap:wrap}
+.ps-tbl-edit .ps-amt .money-ask{flex:0 0 100%;white-space:normal;text-align:left}
+.ps-amt-in.is-money-ask{border-color:rgba(245,200,66,.6);background:rgba(245,200,66,.07)}
+[data-theme="light"] .ps-amt-in.is-money-ask{border-color:rgba(200,149,0,.55);background:rgba(200,149,0,.07)}
 
 /* ── 極端な金額の確認（#amt-confirm）── 2026-09-11 ─────────────────
    ★普通の入力では出ない。年換算が REAL PAY の常識の幅を外れたときだけ、

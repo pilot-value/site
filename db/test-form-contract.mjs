@@ -198,8 +198,8 @@ for (const f of ['pay-report.html', 'en/pay-report.html']) {
 
   /* ⑦ 桁区切り（2026-08-13）。金額の欄だけ type="text" ＋ class="money" にして
      こちらで整形する。type="number" のままだとブラウザがカンマごと値を捨てる。
-     ★時間・日数・％の欄に money を付けない。付けると上限の検査（min/max）が
-       効かない欄が黙って増える。 */
+     ★時間・日数・％の欄に money を付けない。あちらは「, は桁区切り」なので、
+       5,5 が 55 に読める。別のクラス（num）と別の読み手を使う ── ⑦-h。 */
   /* ★2026-08-26、内訳の作り直しで f-transport / f-other は画面から消えて
        <input type="hidden"> になった（明細読み取りだけが書く）。人が打つ欄は
        繰り返し行の .pd-amt に変わり、id を持たない＝下の extra には出てこない。 */
@@ -222,6 +222,61 @@ for (const f of ['pay-report.html', 'en/pay-report.html']) {
       .map((m) => m[1]);
     const extra = withMoney.filter((id) => !MONEY.includes(id));
     ok(extra.length === 0, `${f}: 金額以外の欄に money が付いていない`, extra.join(','));
+  }
+
+  /* ⑦-h 時間・日数・率の欄（2026-09-11 オーナー指摘）────────────────
+     ここも type="number" のままだと**ブラウザが 85,5 のカンマごと値を捨てる**。
+     85,5 と書いた人の飛行時間は 855、5,5 と書いた人の税率は 55% になり、
+     欄には 855 / 55 と出るだけで画面はどこも壊れていない。
+     ★money を付けて直さない。あちらには「, は桁区切り」の規則があり、
+       5,5 が 55 に読める道が戻ってくる。**別のクラス（num）で別の読み手**。
+     ★上下限は data-min / data-max に持たせる。min / max のままでは効かない
+       ── このページには <form> が無いので checkValidity が一度も走らない。 */
+  const NUMF = { 'f-block': ['0', '200', false], 'f-duty-h': ['0', '400', false],
+                 'f-guar': ['0', '200', false], 'f-stay': ['0', '31', true],
+                 'f-duty': ['0', '31', true], 'f-pension': ['0', '100', false],
+                 'f-seniority': ['0', '60', true], 'f-tax': ['0', '100', false] };
+  for (const f of ['pay-report.html', 'en/pay-report.html']) {
+    const s = read(f);
+    for (const [id, [lo, hi, int]] of Object.entries(NUMF)) {
+      const m = s.match(new RegExp(`<input[^>]*id="${id}"[^>]*>`));
+      ok(!!m && /type="text"/.test(m[0]) && /class="form-input num"/.test(m[0]),
+         `${f}: ${id} はカンマを持てる欄（text ＋ num）`, m ? m[0] : 'なし');
+      ok(!!m && m[0].includes(`data-min="${lo}"`) && m[0].includes(`data-max="${hi}"`),
+         `${f}: ${id} の上下限が data-min / data-max にある（${lo}〜${hi}）`);
+      ok(!!m && /\bdata-dec="0"/.test(m[0]) === int,
+         `${f}: ${id} の整数／小数の区別が保たれている`);
+      ok(!!m && !/\bclass="[^"]*\bmoney\b/.test(m[0]),
+         `${f}: ${id} に money が付いていない（桁区切りの規則を持ち込まない）`);
+    }
+    const nums = [...s.matchAll(/<input[^>]*id="([a-z0-9-]+)"[^>]*class="[^"]*\bnum\b/g)].map((m) => m[1]);
+    ok(nums.filter((id) => !NUMF[id]).length === 0,
+       `${f}: num が付いているのはこの8つだけ`, nums.filter((id) => !NUMF[id]).join(','));
+    /* ★本物の欄だけを見る（解説のコメントにも <input type="number"> と書いてある）。
+       人が打つ欄は必ず id を持っているので、そこで絞る。 */
+    const leftover = [...s.matchAll(/<input[^>]*type="number"[^>]*id="([a-z0-9-]+)"/g)].map((m) => m[1])
+      .concat([...s.matchAll(/<input[^>]*id="([a-z0-9-]+)"[^>]*type="number"/g)].map((m) => m[1]));
+    ok(leftover.length === 0,
+       `${f}: type="number" の欄が残っていない（残ると打ったカンマが黙って消える）`, leftover.join(','));
+  }
+  /* ★明細読み取りの中の飛行時間（#ps-ask-block）も同じ。あれは #f-block へ
+     そのまま書き込むので、number のままだとここだけカンマが消える。 */
+  ok(!/id="ps-ask-block"[^>]*type="number"|type="number"[^>]*id="ps-ask-block"/.test(read('payslip.js')),
+     'payslip.js: 明細側の飛行時間も type="number" ではない');
+  /* ★明細を読んだあとの「直す表」の金額欄（.ps-amt-in）。ここは
+     type="number" ＋ Number(...)||0 で、1.234,56 と打ち直した行が**黙って 0**
+     になっていた（表には打った文字が出たまま）。読み方はフォーム本体と
+     同じ1本（readMoney）に寄せ、2通りに読めるときは額を書き換えない。 */
+  {
+    const t = read('payslip.js');
+    ok(!/class="ps-amt-in"[^>]*type="number"/.test(t),
+       'payslip.js: 表の金額欄も type="number" ではない');
+    ok(/window\.readMoney/.test(t),
+       'payslip.js: 表の金額は readMoney で読む（独自の読み方を持たない）');
+    ok(!/lastTrace\[i\]\.amount\s*=\s*Number\(t2\.value\)\s*\|\|\s*0;\s*\n\s*pushTrace/.test(t),
+       'payslip.js: Number(value)||0 の素読みが残っていない');
+    ok(/window\.askMoney/.test(t),
+       'payslip.js: 2通りに読める金額はその場で聞く（黙って決めない）');
   }
 
   /* ⑦-b 変動給の「種類」は日英でまったく同じ10択（2026-08-26 オーナー指定）。
@@ -2723,6 +2778,101 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
     await new Promise((r) => setTimeout(r, 250));
     ok((await fv('f-gross')) === gross0 && (await page.$eval('#f-currency', (el) => el.value)) === cur0,
        'D: 通貨と総支給を元に戻せている', `${await fv('f-gross')} / ${cur0}`);
+    await page.evaluate(() => { window.PVPayWizard.goLast(); });
+    await new Promise((r) => setTimeout(r, 300));
+  }
+
+  /* ── E) 時間・率のカンマ（2026-09-11 オーナー指摘）──────────────────
+     金額と同じ誤変換が、飛行時間・税率・年金率でも起きていた。ただし**直し方は
+     金額と違う** ── ここに桁区切りは無い（上限が 200時間・100%・31日・60年）。
+     カンマもピリオドも小数点として読む。金額の規則を持ち込むと 5,5 が 55 に
+     読める道が戻る。ここではそれが**戻っていない**ことまで見る。 */
+  {
+    const back = { 'f-block': SAMPLE['f-block'], 'f-tax': SAMPLE['f-tax'],
+                   'f-stay': SAMPLE['f-stay'], 'f-seniority': SAMPLE['f-seniority'] };
+    const settle = (id) => page.evaluate((i) => {
+      document.getElementById(i).dispatchEvent(new Event('change', { bubbles: true }));
+    }, id);
+    const readNumOf = (id) => page.evaluate((i) => {
+      const el = document.getElementById(i);
+      return { shown: el.value, sent: val(i), n: num(i),
+               blocked: (window.numBlocker() || {}).id || null,
+               note: (el.nextElementSibling && el.nextElementSibling.classList
+                      && el.nextElementSibling.classList.contains('money-ask'))
+                     ? el.nextElementSibling.textContent.trim() : '' };
+    }, id);
+
+    /* E-1 85,5 は 85.5。画面・計算・送信の3つとも同じ数になる。 */
+    await setF({ 'f-block': '85,5' });
+    await settle('f-block');
+    const b1 = await readNumOf('f-block');
+    ok(b1.shown === '85.5' && b1.sent === '85.5' && b1.n === 85.5 && !b1.blocked,
+       '★★E: 飛行時間 85,5 が 85.5 として表示・計算・送信される（855 にならない）',
+       JSON.stringify(b1));
+
+    /* E-2 税率 5,5 も 5.5。ここは 0〜100 の中に収まってしまうので、
+           直さないと**10倍の値が誰にも気づかれずに保存される**唯一の欄。 */
+    await setF({ 'f-tax': '5,5' });
+    await settle('f-tax');
+    const t1 = await readNumOf('f-tax');
+    ok(t1.shown === '5.5' && t1.sent === '5.5' && t1.n === 5.5 && !t1.blocked,
+       '★★E: 所得税率 5,5 が 5.5 になる（55% にならない）', JSON.stringify(t1));
+
+    /* E-3 ★金額の規則が漏れていない。1,000 を桁区切りと読めば 1000 時間になるが、
+           この欄の上限は 200 ── そもそも 1,000 を「千」のつもりで打つ人は居ない。
+           ここでは , は小数点だけを意味するので 1.0 と読む。
+           ⚠️ この欄の上限は 31日・60年・200/400時間・100% で、**どれも千に届かない**。
+              区切りのうしろの3桁が桁区切りとして成立する欄がひとつも無いから、
+              この規則には曖昧さが残らない。金額（1.000 を聞き返す）との違いはそこ。 */
+    await setF({ 'f-block': '1,000' });
+    await settle('f-block');
+    const b2 = await readNumOf('f-block');
+    ok(b2.n === 1 && b2.shown === '1' && b2.sent === '1' && !b2.blocked,
+       '★★E: 時間の欄で 1,000 を桁区切り（1000時間）と読まない', JSON.stringify(b2));
+
+    /* E-4 上下限が初めて実際に効く（<form> が無いので min / max は飾りだった）。 */
+    await setF({ 'f-tax': '500' });
+    await settle('f-tax');
+    const t2 = await readNumOf('f-tax');
+    ok(t2.sent === null && t2.blocked === 'f-tax' && /0/.test(t2.note) && /100/.test(t2.note),
+       '★E: 範囲の外（税率 500%）は送らない', JSON.stringify(t2));
+
+    /* E-5 整数の欄の約束は残す。ステイ日数 1,5 を 1.5 日にも 15 日にもしない。 */
+    await setF({ 'f-stay': '1,5' });
+    await settle('f-stay');
+    const s1 = await readNumOf('f-stay');
+    ok(s1.n !== 15 && s1.sent === null && s1.blocked === 'f-stay' && s1.note.length > 0,
+       '★E: 整数の欄（ステイ日数）は小数を受け取らない・15 にもしない', JSON.stringify(s1));
+
+    /* E-6 0 は空ではない。ここを取り違えると「0 と入れてください」と言いながら
+           入れた人を弾く（税率・飛行時間・ステイ日数はどれも 0 がふつうにある）。 */
+    await setF({ 'f-stay': '0', 'f-tax': '0', 'f-block': '0' });
+    await settle('f-stay'); await settle('f-tax'); await settle('f-block');
+    const zero = await page.evaluate(() => ({
+      stay: val('f-stay'), tax: val('f-tax'), block: val('f-block'),
+      blocked: !!window.numBlocker(),
+    }));
+    ok(zero.stay === '0' && zero.tax === '0' && zero.block === '0' && !zero.blocked,
+       '★E: 0 は「空」ではなく 0 として送る', JSON.stringify(zero));
+
+    /* E-7 送信の直前でも止まる（画面を見ずに送られない）。 */
+    await setF({ 'f-block': '85,,5' });
+    await settle('f-block');
+    const stashE = stash.length, seenE = seen.length;
+    await page.evaluate(() => { window.PVPayWizard.goLast(); });
+    await new Promise((r) => setTimeout(r, 250));
+    await page.evaluate(() => document.getElementById('submit-btn').click());
+    await new Promise((r) => setTimeout(r, 300));
+    ok(stash.length === stashE && seen.length === seenE,
+       '★★E: 読めない時間のままでは、預かりにも本棚にも1行も送らない',
+       `${stash.length - stashE} / ${seen.length - seenE}`);
+
+    /* 通しの続きのために戻す。 */
+    await setF(back);
+    for (const id of Object.keys(back)) await settle(id);
+    await new Promise((r) => setTimeout(r, 200));
+    ok(!(await page.evaluate(() => !!window.numBlocker())),
+       'E: 元に戻せている（このあとの通しを邪魔しない）');
     await page.evaluate(() => { window.PVPayWizard.goLast(); });
     await new Promise((r) => setTimeout(r, 300));
   }

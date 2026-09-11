@@ -2774,7 +2774,7 @@
         return '<tr><td>' + esc2(t.label) + '</td><td class="ps-to" data-to="' + i + '">' +
                esc2(lbl(t.field) + (t.unc && !t.asked && !t.hint ? T.uncTag : '')) +
                '</td><td class="ps-amt"><span class="ps-cur">' + cur.trim() + '</span>' +
-               '<input class="ps-amt-in" type="number" step="any" inputmode="decimal" data-i="' + i +
+               '<input class="ps-amt-in" type="text" inputmode="decimal" data-i="' + i +
                '" value="' + Math.round(t.amount) + '"></td></tr>';
       }).join('');
       var tbl = el('table', 'ps-tbl ps-tbl-edit',
@@ -2785,7 +2785,18 @@
         if (!t2.classList.contains('ps-amt-in')) return;
         var i = Number(t2.getAttribute('data-i'));
         if (!lastTrace[i]) return;
-        lastTrace[i].amount = Number(t2.value) || 0;
+        /* ★2026-09-11。ここは type="number" ＋ Number(...)||0 だった。
+           欧州式に 1.234,56 と打ち直した人の行が**黙って 0 になり**、
+           明細から読めていた額ごと消えていた（画面は普通に動いたまま）。
+           読み方はフォーム本体と同じ1本（readMoney）に寄せる。
+           ⚠️ 2通りに読める入力は勝手に決めない。その場で二択を出し、
+              選ばれるまで額を書き換えない＝出ている数と使う数がずれない。 */
+        var R = window.readMoney ? window.readMoney(t2.value) : null;
+        if (!R) { lastTrace[i].amount = Number(t2.value) || 0; pushTrace(); return; }
+        if (window.clearMoneyAsk) window.clearMoneyAsk(t2);
+        if (R.state === 'empty') { lastTrace[i].amount = 0; pushTrace(); return; }
+        if (R.state !== 'ok') { if (window.askMoney) window.askMoney(t2, R); return; }
+        lastTrace[i].amount = R.n;
         pushTrace();
       });
       box.appendChild(tbl);
@@ -2963,7 +2974,11 @@
       '<div class="ps-ask" id="ps-ask" hidden>' +
         '<div class="ps-ask-t" id="ps-ask-t">' + esc2(T.askBlockT) + '</div>' +
         '<p class="ps-ask-l" id="ps-ask-l">' + esc2(T.askBlockL) + '</p>' +
-        '<div class="ps-ask-in"><input type="number" step="any" min="0" max="200" ' +
+        /* ★type="number" にしない（2026-09-11）。ブラウザが 85,5 のカンマごと値を
+           捨てるので、打った人の飛行時間が空になって消える。ここは打った文字を
+           そのまま #f-block へ渡し、読み方は向こうの readNum に1本化する
+           （上下限 0〜200 も #f-block の data-min / data-max が持っている）。 */
+        '<div class="ps-ask-in"><input type="text" ' +
           'inputmode="decimal" id="ps-ask-block" placeholder="78.5"><span>h</span></div>' +
         '<p class="ps-note" id="ps-ask-f" hidden>' + esc2(T.askBlockF) + '</p>' +
       '</div>' +

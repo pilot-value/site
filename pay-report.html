@@ -489,24 +489,24 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
         <div class="grid2">
           <div class="fld">
             <label class="form-label" for="f-block">フライトタイム<span class="req-tag">必須</span></label>
-            <input type="number" id="f-block" class="form-input" min="0" max="200" step="any" inputmode="decimal" placeholder="例：78.5"/>
+            <input type="text" id="f-block" class="form-input num" inputmode="decimal" placeholder="例：78.5" data-min="0" data-max="200"/>
             <p class="fld-hint">実際に飛んだ時間（block hours）。飛んでいない月・時間を管理していない場合は <b>0</b>。</p>
           </div>
           <div class="fld">
             <label class="form-label" for="f-duty-h">勤務時間（Duty time）<span class="opt-tag">任意</span></label>
-            <input type="number" id="f-duty-h" class="form-input" min="0" max="400" step="any" inputmode="decimal" placeholder="例：160"/>
+            <input type="text" id="f-duty-h" class="form-input num" inputmode="decimal" placeholder="例：160" data-min="0" data-max="400"/>
             <p class="fld-hint">出頭から解散までの<b>月の合計</b>。待機・地上業務を含みます。</p>
           </div>
         </div>
         <div class="grid2">
           <div class="fld">
             <label class="form-label" for="f-guar">保証フライトタイム<span class="opt-tag">任意</span></label>
-            <input type="number" id="f-guar" class="form-input" min="0" max="200" step="any" inputmode="decimal" placeholder="例：75"/>
+            <input type="text" id="f-guar" class="form-input num" inputmode="decimal" placeholder="例：75" data-min="0" data-max="200"/>
             <p class="fld-hint">飛ばなくても<b>この時間ぶんは払う</b>、という契約上の下限（Minimum Guarantee）。契約に無ければ空欄。</p>
           </div>
           <div class="fld">
             <label class="form-label" for="f-stay">ステイ日数<span class="req-tag">必須</span></label>
-            <input type="number" id="f-stay" class="form-input" min="0" max="31" step="1" inputmode="numeric" placeholder="例：8"/>
+            <input type="text" id="f-stay" class="form-input num" inputmode="numeric" placeholder="例：8" data-min="0" data-max="31" data-dec="0"/>
             <p class="fld-hint">基地の外で泊まった<b>泊数</b>。日帰りだけの月は <b>0</b>。</p>
           </div>
         </div>
@@ -514,7 +514,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
         <div class="opt-fld" id="opt-f-duty" hidden>
           <div class="fld">
             <label class="form-label" for="f-duty">乗務日数（月）<span class="opt-tag">任意</span></label>
-            <input type="number" id="f-duty" class="form-input" min="0" max="31" step="1" inputmode="numeric"/>
+            <input type="text" id="f-duty" class="form-input num" inputmode="numeric" data-min="0" data-max="31" data-dec="0"/>
           </div>
         </div>
         <div class="opt-fld" id="opt-f-base-iata" hidden>
@@ -728,7 +728,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
               <div class="opt-fld" id="opt-f-pension" hidden>
                 <div class="fld is-rail">
                   <label class="form-label" for="f-pension">年金 会社負担（%）</label>
-                  <input type="number" id="f-pension" class="form-input" min="0" max="100" step="any" inputmode="decimal"/>
+                  <input type="text" id="f-pension" class="form-input num" inputmode="decimal" data-min="0" data-max="100"/>
                 </div>
                 <p class="fld-hint">会社負担分は<b>年換算総額に含めません</b>。</p>
               </div>
@@ -1166,7 +1166,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           </div>
           <div class="fld">
             <label class="form-label" for="f-seniority">在籍年数<span class="req-tag">必須</span></label>
-            <input type="number" id="f-seniority" class="form-input" min="0" max="60" step="1" inputmode="numeric" placeholder="例：7"/>
+            <input type="text" id="f-seniority" class="form-input num" inputmode="numeric" placeholder="例：7" data-min="0" data-max="60" data-dec="0"/>
           </div>
         </div>
         <div class="grid2 tax-row">
@@ -1423,7 +1423,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           </div>
           <div class="fld">
             <label class="form-label" for="f-tax">所得税率（%）<span class="auto-tag">自動</span></label>
-            <input type="number" id="f-tax" class="form-input" min="0" max="100" step="any" inputmode="decimal" placeholder="例：0"/>
+            <input type="text" id="f-tax" class="form-input num" inputmode="decimal" placeholder="例：0" data-min="0" data-max="100"/>
           </div>
         </div>
         <div id="tax-warn" class="warn-row" style="display:none;margin-top:2px"></div>
@@ -2478,7 +2478,8 @@ $('f-tax').addEventListener('input', () => { $('f-tax').dataset.touched = '1'; }
      いま正しく入れている人（1234.56 / 0.5 / 1,150,000）は今までどおり素通りする。
    ★<input type="number"> にはカンマを入れられない（ブラウザが値ごと捨てる）ので、
      金額の欄だけ type="text" inputmode="decimal" にしてある（class="money"）。
-     時間・日数・％の欄は number のまま＝上限の検査が効く。
+     時間・日数・％の欄も 2026-09-11 から type="text"（class="num"）── あちらは
+     ブラウザがカンマごと値を捨てていた（85,5 → 855）。読み手は readNum で別物。
    ★金額を読むところは全部 moneyRead() / readMoney() を通す。
      .value を parseFloat に直接渡さない（それがこの欠陥そのもの）。 */
 function grp(s) {
@@ -2529,11 +2530,19 @@ function readMoney(s) {
     const v = asDec(t, d);
     return v == null ? bad : ok(v);
   }
-  /* 2) カンマだけ ── 3桁ずつに割れていれば桁区切り（1,150,000）。
-        割れていない（1,5 / 1234,56）のは、小数点のつもりか打ち間違いか分からない。 */
+  /* 2) カンマだけ（2026-09-11 にオーナー指摘で作り直した）──────────────
+        ★聞くのは「読み方が2つとも成立する」ときだけ。「カンマを取れば 15 になる」は
+          読み方ではない。1,5 を 15 のつもりで書く人は居ないし、桁区切りとしても
+          成立しない書式（区切りの後ろが3桁でない）。**書式まで見て判断する。**
+        ・3桁ずつに割れる（1,150,000 / 1,000）→ 桁区切り。これはこのサイトの標準の
+          書き方で、打鍵中に fmtMoneyEl が**自分で出す形**でもある。ここで聞き返すと、
+          こちらが整えた値を本人に問い直すことになる。
+        ・割れない（1,5 / 1000,50 / 1234,56）→ 小数点のカンマ。1.5 / 1000.50 と同じ。 */
   if (com) {
     if (grouped(t, ',')) return ok(asPlain(t));
-    return ask(asDec(t, ','), asPlain(t));
+    if (t.split(',').length > 2) return bad;     // 1,23,456 はどちらにも読めない
+    const v = asDec(t, ',');
+    return v == null ? bad : ok(v);
   }
   /* 3) ピリオドだけ */
   if (dot) {
@@ -2542,8 +2551,10 @@ function readMoney(s) {
     const ip = t.slice(0, t.indexOf('.')), dp = t.slice(t.indexOf('.') + 1);
     const v = asDec(t, '.');
     if (v == null) return bad;
-    /* 1.000 / 500.000 だけは 1000 とも 1.0 とも読める。ここだけ聞く。 */
-    if (/^\d{1,3}$/.test(ip) && /^\d{3}$/.test(dp)) return ask(asPlain(t), v);
+    /* 1.000 / 500.000 だけは 1000 とも 1.0 とも読める。**ここだけ聞く。**
+       ★先頭が 0 の 0.500 は外す。500 を 0.500 と書く人は居ない＝桁区切りとしては
+         成立しない書式なので、上のカンマと同じく聞かずに 0.5 と読む。 */
+    if (/^[1-9]\d{0,2}$/.test(ip) && /^\d{3}$/.test(dp)) return ask(asPlain(t), v);
     return ok(v);
   }
   /* 4) 区切り無し */
@@ -2665,6 +2676,95 @@ function moneyBlocker() {
   for (const el of moneyEls()) {
     const r = moneyRead(el);
     if (r.state === 'ok' || r.state === 'empty') continue;
+    /* ★止めるだけでなく、その場に二択を出す（2026-09-11）。復元した値・先月の値・
+       明細の読み取りが入れた値は change を通らないので、これが無いと
+       「読み方が決まっていません」とだけ出て、選ぶ場所が画面のどこにも無い。 */
+    askMoney(el, r);
+    return el;
+  }
+  return null;
+}
+
+/* ── 数値の欄（金額ではない）の読み取り ── class="num"（2026-09-11 オーナー指摘）
+   フライトタイム・デューティ時間・ステイ日数・在籍年数・年金率・所得税率。
+   ここは長らく <input type="number"> のままで、**打ったカンマをブラウザが黙って
+   捨てていた**。85,5 と書いた人の飛行時間は 855 になり、5,5 と書いた人の税率は
+   55% になる。欄には 855 / 55 と出るだけで、画面はどこも壊れていない。
+   フライトタイムは 0〜200 の外に出るのでサーバの検査に当たって送信が失敗する＝
+   まだ気づける。**年金率と所得税率は 0〜100 の中に収まる**＝10倍の値が
+   そのまま保存され、誰も気づかない。
+
+   ★金額の readMoney をここへ流用しない。この欄に桁区切りは存在しない
+     （上限が 31日・60年・400時間・100%）。「, は桁区切り」の規則を持ち込むと、
+     5,5 が 55 に読める道が戻ってくる。**この欄では , も . も小数点。**
+   ★欄ごとの約束（整数か小数か・0 の可否・上下限）は data-* に持たせ、
+     この1関数だけが見る。type="number" のときブラウザがやっていた仕事
+     （数字以外を弾く・上下限）は、やめずにここで引き継ぐ。
+     ── 上下限は今まで一度も効いていなかった。このページに <form> が無いので
+        checkValidity が走らず、min / max は飾りだった。ここで初めて実際に効く。 */
+function readNum(el) {
+  const raw = String(el && el.value != null ? el.value : '').trim();
+  if (!raw) return { n: null, canon: '', state: 'empty', msg: '' };
+  const t = raw
+    .replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
+    .replace(/[．｡。，、､,]/g, '.')            /* ★, も . も小数点。桁区切りにしない */
+    .replace(/[\s ]/g, '');
+  const shape = '「' + raw + '」は数字として読めません。半角の数字で入れ直してください。';
+  const bad = (m) => ({ n: null, canon: raw, state: 'bad', msg: m });
+  if (!/^\d*\.?\d*$/.test(t) || !/\d/.test(t)) return bad(shape);
+  if (t.indexOf('.') >= 0 && el.dataset.dec === '0') return bad('ここは整数で入れてください。');
+  const v = parseFloat(t);
+  if (!isFinite(v)) return bad(shape);
+  const lo = el.dataset.min === undefined ? null : parseFloat(el.dataset.min);
+  const hi = el.dataset.max === undefined ? null : parseFloat(el.dataset.max);
+  if ((lo != null && v < lo) || (hi != null && v > hi)) {
+    return bad(lo + '〜' + hi + ' の範囲で入れてください。');
+  }
+  return { n: v, canon: String(v), state: 'ok', msg: '' };
+}
+function numEls() { return Array.prototype.slice.call(document.querySelectorAll('input.num')); }
+/* 値を代入で入れたあと（下書きの復元・先月の値・明細の読み取り）に呼ぶ。 */
+function fmtNumAll() {
+  for (const el of numEls()) {
+    if (!el.value) continue;
+    const r = readNum(el);
+    if (r.state === 'ok' && el.value !== r.canon) el.value = r.canon;
+  }
+}
+/* 二択のいらない一言（読めない・整数でない・範囲外）。見た目は金額の二択と同じ箱。 */
+function noteAt(el, msg) {
+  clearMoneyAsk(el);
+  const box = document.createElement('div');
+  box.className = 'money-ask';
+  const q = document.createElement('p');
+  q.className = 'ma-q';
+  q.textContent = msg;
+  box.appendChild(q);
+  el.insertAdjacentElement('afterend', box);
+  el.classList.add('is-money-ask');
+}
+/* 欄を離れたときに 85,5 → 85.5 と書き直す。読めなければその場に理由を出す。 */
+function numSettle(el) {
+  const r = readNum(el);
+  clearMoneyAsk(el);
+  if (r.state === 'empty') return;
+  if (r.state === 'ok') { if (el.value !== r.canon) el.value = r.canon; return; }
+  noteAt(el, r.msg);
+}
+document.addEventListener('input', (e) => {
+  const el = e.target;
+  if (el && el.classList && el.classList.contains('num')) clearMoneyAsk(el);
+}, true);
+document.addEventListener('change', (e) => {
+  const el = e.target;
+  if (el && el.classList && el.classList.contains('num')) numSettle(el);
+}, true);
+/* 読めない欄を1つ返す（無ければ null）。送信の直前に見る。 */
+function numBlocker() {
+  for (const el of numEls()) {
+    const r = readNum(el);
+    if (r.state !== 'bad') continue;
+    noteAt(el, r.msg);
     return el;
   }
   return null;
@@ -2673,7 +2773,13 @@ function moneyBlocker() {
 // ── 年換算のライブ計算（DB の pv_annual_total と同じ式）──────────
 // ★式を2箇所で書いていることになるので、変えるときは必ず両方直すこと。
 //   最終的な正はサーバの返り値で、送信後はそちらで上書き表示する。
-const num = (id) => { const r = moneyRead($(id)); return r.state === 'ok' && r.n > 0 ? r.n : 0; };
+const num = (id) => {
+  const el = $(id);
+  if (!el) return 0;
+  /* ★時間・日数・率は readNum（桁区切りを持ち込まない）。金額は moneyRead。 */
+  const r = el.classList && el.classList.contains('num') ? readNum(el) : moneyRead(el);
+  return r.state === 'ok' && r.n > 0 ? r.n : 0;
+};
 
 /* 内訳の合計（月）。★2026-08-26 から、この数を額面の欄に書き戻さない。
    使い道は「内訳の合計が総支給を超えていないか」を見るところだけ。
@@ -3402,6 +3508,7 @@ function restoreInto(o) {
   if (!n) return 0;
   syncRoleBoxes();  // hidden に入った値をチェックの絵に戻す
   fmtMoneyAll();   // 代入では input が出ない＝桁区切りが付かないので、ここで付け直す
+  fmtNumAll();     // 同じ理由で、時間・率も 85,5 のまま残さない
   /* ★内訳が1つでも入っていたら「給与の内訳を追加」を開いておく（畳んだままだと
      入っていることに気づけない）。★消しはしない。総支給と内訳は排他ではない。 */
   pdRestore(o['f-payitems']);
@@ -3863,6 +3970,12 @@ const val = (id) => {
     const r = moneyRead(el);
     return r.state === 'ok' ? String(r.n) : null;
   }
+  /* ★時間・日数・率は 85,5 → '85.5' に直して送る（2026-09-11）。
+     0 は '0' を返す ── 必須の判定（!val('f-block')）が 0 を空と取らないように。 */
+  if (el.classList && el.classList.contains('num')) {
+    const r = readNum(el);
+    return r.state === 'ok' ? String(r.n) : null;
+  }
   const v = String(el.value == null ? '' : el.value).trim();
   return v === '' ? null : v;
 };
@@ -4095,6 +4208,10 @@ async function submitPayReport() {
   if (mb) return stopAtEl(mb, moneyRead(mb).state === 'bad'
     ? '「' + mb.value + '」を金額として読めません。半角の数字で入れ直してください。'
     : '「' + mb.value + '」の読み方が決まっていません。欄の下で、どちらの金額かを選んでください。');
+  /* ★時間・日数・率も、読めない／整数でない／範囲外のまま送らない（2026-09-11）。
+     理由は欄の下にも出る（numBlocker が置く）。 */
+  const nb = numBlocker();
+  if (nb) return stopAtEl(nb, readNum(nb).msg);
   /* ★飛んだ時間は必須。0 は許す（地上勤務・病欠の月）。空欄だけを弾く。
      これが無いと時間あたり報酬が出せず、国と会社をまたいだ比較ができない。 */
   if (!val('f-block')) {

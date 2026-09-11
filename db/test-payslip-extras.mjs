@@ -64,8 +64,12 @@ console.log('\n① 隠しフィールドと payload（JA / EN の両方）');
    外すのは「隠し欄であること」だけ。
    ★2026-08-13（その2）に、金額の欄は桁区切りを出すため type="text" になった
    （type="number" にはカンマを表示できない。ブラウザが値ごと捨てる）。
-   時間の欄は上限の検査を残したいので number のまま。だから見る型が2つある。 */
-const NOW_VISIBLE = { 'f-netpay': 'text', 'f-duty-h': 'number' };
+   ★2026-09-11、時間・率の欄も text になった。number のままだと `160,5` と打った人の
+     値をブラウザが丸ごと捨て、欄が黙って空＝0 になる（画面には打った文字が出たまま）。
+     上限は type の属性ではなく data-min / data-max と readNum が見る。
+     ⚠️ このページには <form> が無いので、min / max はそもそも一度も効いていなかった
+        （checkValidity を呼ぶ場所がどこにも無い）。number をやめて失うものは無い。 */
+const NOW_VISIBLE = { 'f-netpay': 'text', 'f-duty-h': 'text' };
 
 for (const [name, s] of [['pay-report.html', JA], ['en/pay-report.html', EN]]) {
   for (const id of Object.keys(MAP)) {

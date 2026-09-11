@@ -489,24 +489,24 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
         <div class="grid2">
           <div class="fld">
             <label class="form-label" for="f-block">Flight time<span class="req-tag">Required</span></label>
-            <input type="number" id="f-block" class="form-input" min="0" max="200" step="any" inputmode="decimal" placeholder="e.g. 78.5"/>
+            <input type="text" id="f-block" class="form-input num" inputmode="decimal" placeholder="e.g. 78.5" data-min="0" data-max="200"/>
             <p class="fld-hint">What you actually flew that month (block hours). Enter <b>0</b> if you did not fly, or do not track hours.</p>
           </div>
           <div class="fld">
             <label class="form-label" for="f-duty-h">Duty time<span class="opt-tag">optional</span></label>
-            <input type="number" id="f-duty-h" class="form-input" min="0" max="400" step="any" inputmode="decimal" placeholder="e.g. 160"/>
+            <input type="text" id="f-duty-h" class="form-input num" inputmode="decimal" placeholder="e.g. 160" data-min="0" data-max="400"/>
             <p class="fld-hint">Total hours from report to release for the month, standby and ground duties included.</p>
           </div>
         </div>
         <div class="grid2">
           <div class="fld">
             <label class="form-label" for="f-guar">Guaranteed flight time<span class="opt-tag">optional</span></label>
-            <input type="number" id="f-guar" class="form-input" min="0" max="200" step="any" inputmode="decimal" placeholder="e.g. 75"/>
+            <input type="text" id="f-guar" class="form-input num" inputmode="decimal" placeholder="e.g. 75" data-min="0" data-max="200"/>
             <p class="fld-hint">The contractual floor you are paid <b>even if you do not fly it</b> (Minimum Guarantee). Leave it blank if your contract has none.</p>
           </div>
           <div class="fld">
             <label class="form-label" for="f-stay">Layover nights<span class="req-tag">Required</span></label>
-            <input type="number" id="f-stay" class="form-input" min="0" max="31" step="1" inputmode="numeric" placeholder="e.g. 8"/>
+            <input type="text" id="f-stay" class="form-input num" inputmode="numeric" placeholder="e.g. 8" data-min="0" data-max="31" data-dec="0"/>
             <p class="fld-hint">Nights spent away from base. Enter <b>0</b> if every trip was a day return.</p>
           </div>
         </div>
@@ -514,7 +514,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
         <div class="opt-fld" id="opt-f-duty" hidden>
           <div class="fld">
             <label class="form-label" for="f-duty">Duty days (month)<span class="opt-tag">optional</span></label>
-            <input type="number" id="f-duty" class="form-input" min="0" max="31" step="1" inputmode="numeric"/>
+            <input type="text" id="f-duty" class="form-input num" inputmode="numeric" data-min="0" data-max="31" data-dec="0"/>
           </div>
         </div>
         <div class="opt-fld" id="opt-f-base-iata" hidden>
@@ -730,7 +730,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
               <div class="opt-fld" id="opt-f-pension" hidden>
                 <div class="fld is-rail">
                   <label class="form-label" for="f-pension">Employer pension (%)</label>
-                  <input type="number" id="f-pension" class="form-input" min="0" max="100" step="any" inputmode="decimal"/>
+                  <input type="text" id="f-pension" class="form-input num" inputmode="decimal" data-min="0" data-max="100"/>
                 </div>
                 <p class="fld-hint">The employer contribution is <b>not added to the annualised total</b>.</p>
               </div>
@@ -1177,7 +1177,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           </div>
           <div class="fld">
             <label class="form-label" for="f-seniority">Years at this airline<span class="req-tag">Required</span></label>
-            <input type="number" id="f-seniority" class="form-input" min="0" max="60" step="1" inputmode="numeric" placeholder="e.g. 7"/>
+            <input type="text" id="f-seniority" class="form-input num" inputmode="numeric" placeholder="e.g. 7" data-min="0" data-max="60" data-dec="0"/>
           </div>
         </div>
         <div class="grid2 tax-row">
@@ -1434,7 +1434,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           </div>
           <div class="fld">
             <label class="form-label" for="f-tax">Income tax rate (%)<span class="auto-tag">auto</span></label>
-            <input type="number" id="f-tax" class="form-input" min="0" max="100" step="any" inputmode="decimal" placeholder="e.g. 0"/>
+            <input type="text" id="f-tax" class="form-input num" inputmode="decimal" placeholder="e.g. 0" data-min="0" data-max="100"/>
           </div>
         </div>
         <div id="tax-warn" class="warn-row" style="display:none;margin-top:2px"></div>
@@ -2538,7 +2538,8 @@ $('f-tax').addEventListener('input', () => { $('f-tax').dataset.touched = '1'; }
      untouched.
    ★<input type="number"> cannot hold a comma (the browser throws the value away),
      so the money boxes are type="text" inputmode="decimal" (class="money").
-     Hours / days / percent stay number, so their min-max checks keep working.
+     Hours / days / percent are type="text" (class="num") too since 2026-09-11 —
+     the browser was throwing their commas away (85,5 -> 855). readNum reads those.
    ★Every read of a money box goes through moneyRead() / readMoney().
      Never hand a .value straight to parseFloat — that is the defect itself. */
 function grp(s) {
@@ -2590,11 +2591,21 @@ function readMoney(s) {
     const v = asDec(t, d);
     return v == null ? bad : ok(v);
   }
-  /* 2) Commas only — groups of three means thousands (1,150,000). Anything else
-        (1,5 / 1234,56) could be a decimal comma or a typo. We ask. */
+  /* 2) Commas only — rewritten 2026-09-11 after the owner pushed back ─────────
+        ★Ask only when BOTH readings are valid. "drop the comma and it is 15" is
+          not a reading: nobody writes 15 as 1,5, and it is not a valid grouped
+          format either (the run after a separator is not three digits).
+          **Check the format, not just whether digits remain.**
+        · Groups of three (1,150,000 / 1,000) → thousands. This is the site's own
+          notation and the shape fmtMoneyEl produces while typing, so asking here
+          would mean questioning a value we formatted ourselves.
+        · Not groups of three (1,5 / 1000,50 / 1234,56) → decimal comma, exactly
+          the same as 1.5 / 1000.50. */
   if (com) {
     if (grouped(t, ',')) return ok(asPlain(t));
-    return ask(asDec(t, ','), asPlain(t));
+    if (t.split(',').length > 2) return bad;     // 1,23,456 reads neither way
+    const v = asDec(t, ',');
+    return v == null ? bad : ok(v);
   }
   /* 3) Dots only */
   if (dot) {
@@ -2603,8 +2614,11 @@ function readMoney(s) {
     const ip = t.slice(0, t.indexOf('.')), dp = t.slice(t.indexOf('.') + 1);
     const v = asDec(t, '.');
     if (v == null) return bad;
-    /* Only 1.000 / 500.000 read both ways (1000 or 1.0). This is where we ask. */
-    if (/^\d{1,3}$/.test(ip) && /^\d{3}$/.test(dp)) return ask(asPlain(t), v);
+    /* Only 1.000 / 500.000 read both ways (1000 or 1.0). **This is the one ask.**
+       ★A leading zero is excluded: nobody writes 500 as 0.500, so it is not a
+         valid grouped format either — read it as 0.5 without asking, same rule
+         as the comma case above. */
+    if (/^[1-9]\d{0,2}$/.test(ip) && /^\d{3}$/.test(dp)) return ask(asPlain(t), v);
     return ok(v);
   }
   /* 4) No separator */
@@ -2728,6 +2742,98 @@ function moneyBlocker() {
   for (const el of moneyEls()) {
     const r = moneyRead(el);
     if (r.state === 'ok' || r.state === 'empty') continue;
+    /* ★Show the two choices right here, not just block (2026-09-11). A restored
+       draft, last month's value and the payslip reader all assign .value without
+       firing change, so without this the person is told the reading is unsettled
+       and there is nowhere on the page to settle it. */
+    askMoney(el, r);
+    return el;
+  }
+  return null;
+}
+
+/* ── Reading the number boxes (not money) ── class="num" (2026-09-11) ─────────
+   Block hours, duty hours, days away, years of service, pension %, income tax %.
+   These stayed <input type="number"> for a long time, and the browser was
+   **silently throwing away the comma**: 85,5 became 855 block hours and 5,5
+   became a 55% tax rate. The box just shows 855 / 55 and nothing looks broken.
+   Block hours land outside 0-200 and the server check rejects the submit, so
+   that one is still catchable. **Pension % and tax % stay inside 0-100** — a
+   value ten times too large is stored and nobody ever notices.
+
+   ★Do not reuse readMoney here. There are no thousands in these boxes (the caps
+     are 31 days, 60 years, 400 hours, 100%). Bringing "comma groups thousands"
+     back would bring back the path where 5,5 reads as 55. **Here both , and .
+     are the decimal point.**
+   ★Each box carries its own promise (integer or decimal, min, max) in data-*,
+     and this one function is the only reader. The work the browser used to do
+     for type="number" (reject non-digits, hold the range) is taken over here,
+     not dropped — and the range is actually enforced for the first time: this
+     page has no <form>, so checkValidity never ran and min / max were decoration. */
+function readNum(el) {
+  const raw = String(el && el.value != null ? el.value : '').trim();
+  if (!raw) return { n: null, canon: '', state: 'empty', msg: '' };
+  const t = raw
+    .replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
+    .replace(/[．｡。，、､,]/g, '.')            /* ★both , and . are the decimal point */
+    .replace(/[\s ]/g, '');
+  const shape = '“' + raw + '” is not a number we can read. Please type it again in digits.';
+  const bad = (m) => ({ n: null, canon: raw, state: 'bad', msg: m });
+  if (!/^\d*\.?\d*$/.test(t) || !/\d/.test(t)) return bad(shape);
+  if (t.indexOf('.') >= 0 && el.dataset.dec === '0') return bad('Please use a whole number here.');
+  const v = parseFloat(t);
+  if (!isFinite(v)) return bad(shape);
+  const lo = el.dataset.min === undefined ? null : parseFloat(el.dataset.min);
+  const hi = el.dataset.max === undefined ? null : parseFloat(el.dataset.max);
+  if ((lo != null && v < lo) || (hi != null && v > hi)) {
+    return bad('Please enter a value between ' + lo + ' and ' + hi + '.');
+  }
+  return { n: v, canon: String(v), state: 'ok', msg: '' };
+}
+function numEls() { return Array.prototype.slice.call(document.querySelectorAll('input.num')); }
+/* Call after values are assigned (draft restore, last month, payslip reader). */
+function fmtNumAll() {
+  for (const el of numEls()) {
+    if (!el.value) continue;
+    const r = readNum(el);
+    if (r.state === 'ok' && el.value !== r.canon) el.value = r.canon;
+  }
+}
+/* A single line with no choice to make (unreadable, not whole, out of range).
+   Same box as the money question. */
+function noteAt(el, msg) {
+  clearMoneyAsk(el);
+  const box = document.createElement('div');
+  box.className = 'money-ask';
+  const q = document.createElement('p');
+  q.className = 'ma-q';
+  q.textContent = msg;
+  box.appendChild(q);
+  el.insertAdjacentElement('afterend', box);
+  el.classList.add('is-money-ask');
+}
+/* On leaving the box, rewrite 85,5 as 85.5. If it cannot be read, say why here. */
+function numSettle(el) {
+  const r = readNum(el);
+  clearMoneyAsk(el);
+  if (r.state === 'empty') return;
+  if (r.state === 'ok') { if (el.value !== r.canon) el.value = r.canon; return; }
+  noteAt(el, r.msg);
+}
+document.addEventListener('input', (e) => {
+  const el = e.target;
+  if (el && el.classList && el.classList.contains('num')) clearMoneyAsk(el);
+}, true);
+document.addEventListener('change', (e) => {
+  const el = e.target;
+  if (el && el.classList && el.classList.contains('num')) numSettle(el);
+}, true);
+/* Return one box we cannot read (null if none). Checked on submit. */
+function numBlocker() {
+  for (const el of numEls()) {
+    const r = readNum(el);
+    if (r.state !== 'bad') continue;
+    noteAt(el, r.msg);
     return el;
   }
   return null;
@@ -2736,7 +2842,13 @@ function moneyBlocker() {
 // ── Live annualised total (same formula as pv_annual_total in the DB) ──
 // ★ The formula therefore lives in two places — change both, always.
 //   The server’s return value is authoritative and replaces this after submit.
-const num = (id) => { const r = moneyRead($(id)); return r.state === 'ok' && r.n > 0 ? r.n : 0; };
+const num = (id) => {
+  const el = $(id);
+  if (!el) return 0;
+  /* ★Hours / days / percent go through readNum (no thousands). Money: moneyRead. */
+  const r = el.classList && el.classList.contains('num') ? readNum(el) : moneyRead(el);
+  return r.state === 'ok' && r.n > 0 ? r.n : 0;
+};
 
 /* The monthly figure built from the breakdown. ★The mirror shown in the gross
    field and annualTotal() share this one expression — two different ways of
@@ -3481,6 +3593,7 @@ function restoreInto(o) {
   if (!n) return 0;
   syncRoleBoxes();  // hidden に入った値をチェックの絵に戻す
   fmtMoneyAll();   // assignment fires no input event — put the separators back on
+  fmtNumAll();     // same reason: do not leave 85,5 sitting in an hours box
   /* ★If even one breakdown box came back, leave the breakdown open — folded away,
      nobody can tell there is anything in there. ★Nothing is cleared: the gross and
      the breakdown are not exclusive. */
@@ -3959,6 +4072,12 @@ const val = (id) => {
     const r = moneyRead(el);
     return r.state === 'ok' ? String(r.n) : null;
   }
+  /* ★Hours / days / percent are sent as 85,5 -> '85.5' (2026-09-11).
+     0 returns '0' so the required checks (!val('f-block')) do not read it as blank. */
+  if (el.classList && el.classList.contains('num')) {
+    const r = readNum(el);
+    return r.state === 'ok' ? String(r.n) : null;
+  }
   const v = String(el.value == null ? '' : el.value).trim();
   return v === '' ? null : v;
 };
@@ -4197,6 +4316,11 @@ async function submitPayReport() {
   if (mb) return stopAtEl(mb, moneyRead(mb).state === 'bad'
     ? '“' + mb.value + '” is not a number we can read. Please type it again in digits.'
     : 'We do not know how to read “' + mb.value + '”. Please pick the amount you meant, under the box.');
+  /* ★Same for hours / days / percent: never submit one we cannot read, that is
+     not whole, or that is out of range (2026-09-11). numBlocker also puts the
+     reason under the box. */
+  const nb = numBlocker();
+  if (nb) return stopAtEl(nb, readNum(nb).msg);
   /* ★Hours flown is required. 0 is allowed (ground duty, sick month) — only a blank
      is rejected. Without it there is no pay per block hour, and no way to compare
      across countries and airlines. */
