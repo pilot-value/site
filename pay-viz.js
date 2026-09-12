@@ -174,6 +174,23 @@
     return (num(r.union_pay) || 0) * fx;
   }
 
+  /* ★不就労減額（欠勤控除・遅刻早退など）の合計（円）。
+     明細に印字されている総支給は、この減額を**すでに引いたあとの額**。
+     いっぽう下の vals（基本給・変動給・その他…）は引く**前**の額なので、
+     そのまま比べると合計が総支給を減額のぶんだけ超え、rest < -1 で
+     **図が丸ごと消える**（＝減額のあった月だけ、給与を出した本人に
+     他人の見本がぼかして出る）。組合の outsideGross とまったく同じ理由で、
+     円ぜんぶの側に足し戻す。
+     ⚠️ 足すのは「円ぜんぶ」だけ。年収（pv_annual_total）にも総支給の列にも
+        1円も足さない ── 二重に引かないし、二重に足しもしない。
+     ⚠️ 材料は my_pay_reports() の absence_total（pv_absence_total が出す絶対値）。
+        返し忘れると 0 になり、この直しが黙って効かなくなる。 */
+  function absenceJpy(r) {
+    var fx = num(r.fx_to_jpy);
+    if (fx == null) return 0;
+    return Math.abs(num(r.absence_total) || 0) * fx;
+  }
+
   /* ── これまでの累計 ──────────────────────────────────────────
      記録した月の支給額を積み上げる。1回出すごとに増える数字。
 
@@ -323,13 +340,14 @@
       vals.bonus = (num(r.bonus_month) || 0) * fx;
       var known = 0;
       for (var k in vals) if (k !== 'rest') known += vals[k];
-      /* ★円ぜんぶ＝**総支給 ＋ 総支給の外で組合が払った分**（2026-09-02）。
+      /* ★円ぜんぶ＝**総支給 ＋ 総支給の外で組合が払った分 ＋ 不就労減額**（2026-09-12）。
+         3つめは「印字の総支給が減額後・内訳は減額前」だから足し戻すもの。
          足さないと、上の union を known に数えたぶんだけ known が円を超え、
          rest < -1 で**図が丸ごと消える**。実際、乗員代表の1件がそうなっていた
          （本人が書いた組合の額が総支給の91%だったため）。
          ⚠️ ここを触ったら「基本給が総支給に占める割合」の分母（呼ぶ側は
             この total をそのまま使う）も必ず一緒に確かめる。 */
-      var rest = gross * fx + outsideGross - known;
+      var rest = gross * fx + outsideGross + absenceJpy(r) - known;
       /* ★色の付く分が1つも無い行でも円を出す（2026-09-02・オーナー指示）。
          前はここで図ごと降ろし、呼ぶ側が**他人の割合の見本**をぼかして出していた。
          給与を出してくれた人の画面に、自分の数字が1つも無い図が並ぶほうが悪い。
@@ -378,6 +396,10 @@
        円には受け取った額として入れてあるので、「明細と足し算が合わない」と
        読まれないように、その1点だけ断る。 */
     if (unionOutsideJpy(r) > 0 && notes.unionOut) ns.push(notes.unionOut);
+    /* ★不就労減額のあった月（2026-09-12）。円ぜんぶは減額を足し戻した額なので、
+       真ん中の数字が明細の総支給より減額のぶんだけ大きい。黙って出すと
+       「明細と合わない」と読まれるので、その1点だけ断る。 */
+    if (absenceJpy(r) > 0 && notes.absence) ns.push(notes.absence);
     if (r.housing_type && r.housing_type !== 'allowance' && num(r.housing_amount) && notes.housing)
       ns.push(notes.housing);
     /* ★灰色1色の円（総支給1本だけの行）。何が足りないのかをここで1行だけ言う。
@@ -564,7 +586,8 @@
     SEG: SEG, LINE: LINE, COMP: COMP,
     esc: esc, num: num, fmt: fmt,
     calc: calc, metricOf: metricOf, segments: segments,
-    grossOrig: grossOrig, unionOutsideJpy: unionOutsideJpy, totals: totals,
+    grossOrig: grossOrig, unionOutsideJpy: unionOutsideJpy,
+    absenceJpy: absenceJpy, totals: totals,
     donut: donut, donutFromSegs: donutFromSegs, compSegs: compSegs,
     chart: chart, widthOf: widthOf
   };

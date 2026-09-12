@@ -258,6 +258,13 @@ baland_ass/                            ブランド資産（※ brand_assets の
    「基本給が総支給に占める割合」の分母も・DEEP PAY の支給構成も**全部これ1つ**。
    どこかで引き算を始めない（2026-09-02 に割合の分母だけ引いてみて、同じ日に戻した）。
    額そのものは `unionOutsideJpy` の1か所だけ
+   ⚠️ **不就労減額（欠勤控除など）は、同じ話の逆向き**（2026-09-12）。印字の総支給は減額**後**・
+   内訳の欄は減額**前**なので、**比べる側の分母にだけ足し戻す**（`pv_absence_total` →
+   `my_pay_reports` の `absence_total`）。**年収にも総支給の列にも1円も足さない。**
+   足し戻す所は4つ ── フォームの注意（`recalc` の `showOver`）／[pay-viz.js](pay-viz.js) の円／
+   [db/deep-pay.sql](db/deep-pay.sql) の `cash_m`／[db/pay-rows.sql](db/pay-rows.sql) の
+   `shelf` と `pv_pending_detail`。1つ忘れると、**休んだ月だけが黙って落ちる**
+   （注意が出たまま・円が消える・段が下りて別の集団の数字になる・帯が出ない）
 2. **役割ごとの手当は専用の列に入れる。二重計上させない。**
    教官 `instructor_pay` ／ 審査 `examiner_pay` ／ 組合 `union_pay` ／
    管理 `management_pay` ／ 兼務 `nonline_pay`。
@@ -296,7 +303,7 @@ baland_ass/                            ブランド資産（※ brand_assets の
 ★**列や鍵を足した回は [db/pay-reports.roundtrip.sql](db/pay-reports.roundtrip.sql) も貼る**（2026-09-12）。
 あちらは関数の計算しか見ていないので、「保存はされたが**その鍵だけ黙って消えている**」を捕まえられない
 （`pay_items` はサーバ側の白リストを通って作り直される）。こちらは**保存 → 再取得 → 表示**を実際に通して
-15項目を判定し、最後にわざと例外を投げて**巻き戻す**＝検証用の行が REAL PAY・DEEP PAY・公開集計に1件も混ざらない。
+16項目を判定し、最後にわざと例外を投げて**巻き戻す**＝検証用の行が REAL PAY・DEEP PAY・公開集計に1件も混ざらない。
 ⚠️ 赤い枠で出るのが正常（中に結果表が入っている）。これも `db/test-pay-reports.mjs` が毎回流している。
 
 **`supabase/functions/` を触ったら push だけでは本番に反映されない。**

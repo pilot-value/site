@@ -627,6 +627,19 @@ async function choose(page, sel) {
     && !document.getElementById('dp-pk-air').disabled, { timeout: 15000 }, n + 1);
 }
 
+/* ★選択欄が生えるまで待つ（2026-09-12）。deep-pay.js は一覧（RPC）と
+   語彙（pv-vocab.json / salary-data.json）が**両方**着いてから <select> を作る。
+   open() が待っているのは見出しと KPI までなので、区分を読む筋書きは
+   ここで待たないと、混んだ回に **一覧が空だったのか、まだ来ていないのか**の
+   区別が付かないまま読み出して落ちる（2026-09-12、check.mjs all で実際に
+   「null の n を読んだ」で止まった）。時間では待たない。 */
+async function waitPicks(page) {
+  await page.waitForFunction(() => {
+    const e = document.getElementById('dp-pk-air');
+    return !!e && e.options.length > 1;
+  }, { timeout: 15000 });
+}
+
 /* 画面から一度に読み取るもの（ケースごとに見方を変えない）。 */
 const SNAP = () => {
   const q = (s) => Array.prototype.slice.call(document.querySelectorAll(s));
@@ -974,6 +987,7 @@ for (const lang of ['ja', 'en']) {
    クリアで「選んでください」に戻る。 */
 {
   const { page, errs } = await open('ja', PICKABLE);
+  await waitPicks(page);
   const a = await page.evaluate(SNAP);
   ok(!a.pick.hidden && a.pick.shown && a.pick.air && a.pick.pos && a.pick.flt,
      '★会社・役職・機材の3つとも選べる');
@@ -1162,6 +1176,7 @@ for (const lang of ['ja', 'en']) {
       貼る前に push すると選択欄が空になる ── それが**正しい**ことを見張る）。 */
 {
   const { page, errs } = await open('ja', HASPICKS);
+  await waitPicks(page);
   const a = await page.evaluate(SNAP);
 
   // (a) 会社は一覧にある2社だけ。110社は並ばない

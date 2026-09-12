@@ -500,6 +500,18 @@ console.log('\n⑥ 不就労減額 ── 保存 → 取り出し');
      「中身が無い殻」の判定に absence を足し忘れると、ここだけ黙って null になる。 */
   eq(Number(m7 && m7.other_allowance), 4100,
      '★減額を足しても、その月の金額は1円も動かない');
+
+  /* ★減額の合計だけは別に返す（絶対値・2026-09-12）。支給構成の円を描く側
+     （pay-viz.js の segments）が、印字の総支給が減額後・内訳が減額前で
+     食い違うぶんを足し戻すために要る。返し忘れると 0 になり、
+     **減額のあった月だけ図が丸ごと消える**（画面はどこも壊れない）。 */
+  ok(m7 && Number(m7.absence_total) === 18000,
+     '★減額の合計を absence_total として返す（符号は落として絶対値）',
+     String(m7 && m7.absence_total));
+  const m6 = (mine2.reports || []).find((r) => Number(r.period_month) === 6);
+  ok(!m6 || Number(m6.absence_total) === 0,
+     '★減額の無い月は 0（null を返して図の足し算を壊さない）',
+     String(m6 && m6.absence_total));
 }
 
 console.log(`\n${'─'.repeat(46)}\n${pass} pass / ${fail} fail`);

@@ -1460,7 +1460,7 @@ console.log('\n▼ db/pay-reports.roundtrip.sql（オーナーが貼る通し確
   ok(/これはエラーではありません/.test(msg),
      '★最後まで走って、わざと巻き戻している（途中で落ちていない）', msg.slice(0, 300));
   const marks = (msg.match(/[✅❌]/g) || []);
-  ok(marks.length === 15, `判定は15項目（増やしたら CLAUDE.md も直す）→ ${marks.length}`);
+  ok(marks.length === 16, `判定は16項目（増やしたら CLAUDE.md も直す）→ ${marks.length}`);
   ok(marks.length > 0 && marks.every((m) => m === '✅'),
      '★通し確認が全項目 ✅',
      msg.split('\n').filter((l) => l.indexOf('❌') >= 0).join(' | '));

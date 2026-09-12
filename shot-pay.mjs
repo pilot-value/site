@@ -421,6 +421,7 @@ const setDetail = async (page, open) => {
      node shot-pay.mjs open done         会員登録まで済んだ結果カード（祝いが鳴るところ）
      node shot-pay.mjs open second       ★2回目以降（今月の入力 → 確認の2画面）
      node shot-pay.mjs open second slip  ★2回目以降で明細を落とした人の画面
+     node shot-pay.mjs open absence      ★不就労減額のある明細を読ませたところ（2026-09-12）
      どれも en を足すと英語（例: node shot-pay.mjs open gate en）
    このページはログイン不要なので素の URL でも出るが、ほかの画面と同じ渡し方に揃える。
    ★gate / fallback は5段を全部埋めて送信まで押す。そこまで手で歩かせないための道。
@@ -443,6 +444,13 @@ if (process.argv.includes('open')) {
      ⚠️ 金額は架空。実在の人の明細ではない。 */
   const wantSecond = process.argv.includes('second');
   const wantSlip   = wantSecond && process.argv.includes('slip');
+  /* ★不就労減額（2026-09-12）。読み取りの応答だけを横取りして、減額のある明細を
+     読ませたところで渡す。見るのは2つ ──
+       ① 読み取り結果の面に「− 18,000 欠勤控除（減額）」が薄い行で出る
+       ② 5/5 の確認に「減額：欠勤控除」が1行出る
+     ⚠️ 横取りするのは読み取り（parse-payslip）だけ。提出は押さないので
+        本番には1件も入らない。金額は架空（db/fixtures の jp-compact と同じ勘定）。 */
+  const wantAbsence = process.argv.includes('absence');
   const url = `http://localhost:3000/${lang === 'en' ? 'en/' : ''}pay-report.html`
             + (process.argv.includes('detail') ? '#pay-detail' : '');
   const b = await puppeteer.launch({
@@ -475,7 +483,90 @@ if (process.argv.includes('open')) {
       } catch (e) {}
     }, Object.assign({}, LAST_MONTH, { _entry: wantSlip ? 'payslip' : 'manual' }), Date.now());
   }
+  if (wantAbsence) {
+    /* 読み取りの応答だけを作る。Edge Function の本物の後処理（sanitize / reconcile /
+       applyChecks）をそのまま import して通す ── ここを手で写すと、あちらが変わった
+       ときに窓だけ古い形を出し続ける。 */
+    globalThis.Deno = globalThis.Deno || { env: { get: () => '' }, serve: () => {} };
+    const { sanitize, reconcile, applyChecks } =
+      await import('./supabase/functions/parse-payslip/index.ts');
+    const RAW = {
+      currency: 'JPY', period: { year: 2026, month: 7 },
+      earnings: [
+        { label: '基本給',   amount: 360000, kind: 'base' },
+        { label: '乗務手当', amount: 224000, kind: 'flight_variable', basis: 'block' },
+        { label: '家族手当', amount:   8000, kind: 'other' },
+        { label: '欠勤控除', amount: -18000, kind: 'absence' },
+        { label: '日当',     amount:   9000, kind: 'per_diem' },
+      ],
+      hours: [{ label: '乗務時間', value: 70, kind: 'block' }],
+      gross_total: 583000, deductions_total: 120000, net_pay: 463000,
+      unmapped: [], confidence: 'high',
+    };
+    const q = sanitize(RAW);
+    const FAKE = { ok: true, result: applyChecks(q, reconcile(q)) };
+    await pg.setRequestInterception(true);
+    pg.on('request', (r) => {
+      const u = r.url();
+      if (!u.includes('/functions/v1/parse-payslip')) return r.continue();
+      const H = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': '*',
+                  'Access-Control-Allow-Methods': 'POST, OPTIONS' };
+      if (r.method() === 'OPTIONS') return r.respond({ status: 204, headers: H, body: '' });
+      r.respond({ status: 200, headers: H, contentType: 'application/json',
+                  body: JSON.stringify(FAKE) });
+    });
+  }
   await pg.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+  if (wantAbsence) {
+    await pg.evaluate(() => localStorage.clear());
+    await pg.reload({ waitUntil: 'networkidle2', timeout: 30000 });
+    await pg.click('#entry-payslip');
+    await pg.waitForFunction(() => {
+      const n = document.getElementById('ps');
+      return !!n && !n.hidden && n.offsetHeight > 0;
+    }, { timeout: 10000 });
+    const f = await pg.$('#ps-file');
+    await f.uploadFile(path.join(ROOT, 'db/fixtures/payslip-pdf-gulf.pdf'));
+    await pg.waitForFunction(() => {
+      const b = document.getElementById('ps-confirm');
+      return !!b && !b.disabled;
+    }, { timeout: 60000 });
+    await pg.click('#ps-confirm');
+    await pg.click('#ps-send');
+    await pg.waitForFunction(() => {
+      const e = document.getElementById('f-gross');
+      return !!e && Math.abs(Number(String(e.value).replace(/[^0-9.]/g, '')) - 583000) < 0.5;
+    }, { timeout: 60000 });
+    /* ★減額の行は「読み取った明細の内訳を見る」の中。畳んだまま渡すと
+       「出ていない」と読まれるので、開いた状態で渡す。 */
+    await pg.evaluate(() => {
+      document.querySelectorAll('#ps-panel details').forEach((d) => { d.open = true; });
+      const p = document.getElementById('ps-panel');
+      if (p) p.scrollIntoView({ block: 'center' });
+    });
+    await new Promise((r) => setTimeout(r, 300));
+    const seen = await pg.evaluate(() => {
+      const t = (document.getElementById('ps-panel') || {}).textContent || '';
+      const a = document.getElementById('f-absence');
+      return { panel: t.indexOf('欠勤控除') >= 0, hidden: a ? a.value : null };
+    });
+    console.log('不就労減額のある明細を読ませた（金額は架空・提出は押していない＝本番には1件も入らない）。');
+    console.log(`  読み取り結果の面に「欠勤控除」が出ている: ${seen.panel ? 'はい' : 'いいえ'}`);
+    console.log(`  送信まで運ぶ隠し欄 f-absence: ${seen.hidden}`);
+    /* ★オーナーが赤い注意を見たのはここ（3/5・報酬）。読ませたまま渡すと
+       「直ったのか」が画面から読めないので、その段まで運んでから渡す。 */
+    await pg.evaluate(() => { if (window.PVPayWizard) window.PVPayWizard.go(2); });
+    await new Promise((r) => setTimeout(r, 500));
+    const warn = await pg.evaluate(() => {
+      const on = [...document.querySelectorAll('[id^="pd-over"], #pd-over')]
+        .filter((e) => !e.hidden && e.offsetHeight > 0).map((e) => e.id);
+      const g = document.getElementById('f-gross');
+      if (g) g.scrollIntoView({ block: 'center' });
+      return on;
+    });
+    console.log(`  3/5（報酬）で「内訳の合計が総支給を超えています」: ${warn.length ? '出ている（' + warn.join(',') + '）' : '出ていない'}`);
+    console.log('  5/5 の確認は、右下の「次へ」で最後まで進むと「減額：欠勤控除」が1行出る。');
+  }
   if (wantSecond) {
     await new Promise((r) => setTimeout(r, 500));
     if (!wantSlip) await startManual(pg);

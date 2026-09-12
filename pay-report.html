@@ -2857,6 +2857,25 @@ function monthlyDetail() {
          + num('f-nonline-pay');
 }
 
+/* 不就労減額（欠勤控除・遅刻早退など）の合計。明細に印字されている
+   「その月の総支給額」は、この減額を**すでに引いたあとの額**。いっぽう内訳の
+   各項目は引く**前**の額なので、そのまま比べると内訳の合計が総支給を減額の
+   ぶんだけ超え、**本人が何も間違えていないのに**「見直してください」が出る
+   （2026-09-12 オーナーが画面で発見）。
+   ★足すのは「比べる相手」だけ。総支給の欄にも annualTotal() にも1円も足さない
+     ── 二重に引かないし、二重に足しもしない。
+   ★同じ足し戻しを pay-viz.js の segments() も持っている（あちらは図が消える側）。
+     片方だけ直すと、注意は出ないのにレポートの図だけ描けない行ができる。 */
+function absenceTotal() {
+  const el = $('f-absence');
+  if (!el || !el.value) return 0;
+  try {
+    const a = JSON.parse(el.value);
+    if (!Array.isArray(a)) return 0;
+    return a.reduce((s, r) => s + Math.abs(Number(r && r.amount) || 0), 0);
+  } catch (e) { return 0; }
+}
+
 /* ── 超過の注意を「その額を打った欄の下」に出す（2026-08-27 オーナー指摘）──
    注意は1つのまま。文言も条件も増やさず、**出す場所だけ**を打った欄の下へ移す。
    役割ごとの節（教官・審査・組合・管理職）は <details id="pay-detail"> の**後ろ**に
@@ -2912,7 +2931,8 @@ function recalc() {
      おかしいのは内訳の合計が総支給を**超えた**ときだけで、そのときだけ1行出す。
      一致は強制しないし、送信も止めない。 */
   const gross = num('f-gross');
-  showOver(gross > 0 && monthlyDetail() > gross + 1);
+  /* ★不就労減額のぶんは足し戻してから比べる（印字の総支給は減額後・内訳は減額前）。 */
+  showOver(gross > 0 && monthlyDetail() > gross + absenceTotal() + 1);
   const t = annualTotal();
   /* ★同じ文字列を2か所へ。#sticky-total は常設バーの中（式は annualTotal() の1本のまま）。 */
   const totalHTML = t > 0

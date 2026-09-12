@@ -5520,10 +5520,14 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
    起きていたこと（どれも画面はどこも壊れないまま）──
      ① 項目名がどこにも残らない … 本人の画面にも確認画面にも1行も出ないので、
         誤読でも気づけず直せない。DEEP PAY の内訳にも名前は一生出ない
-     ② 総支給から二重に引かれる … 明細に印字されている総支給は**すでに減額後**。
-        その総支給から支給構成を作っているのに、other_allowance の側でも引くので、
-        「その他手当」が greatest(other - flight_variable, 0) で 0 に潰れ、
-        本物のその他手当が帯から丸ごと消える
+     ② 同じ欄に入った本物の手当まで道連れになる … 金額の欄は readMoney でしか
+        読まない決まりで、readMoney は ^[0-9.,]+$ しか通さない＝**マイナスの
+        文字列は bad**。sumField は state === 'ok' の欄しか足さないので、
+        負の額を書いた欄は**まるごと読み飛ばされる**。行（#pd-oth-rows）を
+        持たない画面では f-other に「その他手当 ＋ 減額」が一緒に入るため、
+        その他手当ごと消える
+     ★保存される金額の列は1円も変わらない（前から届いていなかったため）。
+       変わるのは「残るか・見えるか」だけ＝過去の行の移行は要らない。
    ここは実ページに本物の経路で明細を読ませ、①②の両方を見る。
    ★回答者の必須操作は1つも増えていない（f-absence は hidden で req-tag を持たない）。 */
 console.log('\n★20 不就労減額（読み取り → 画面 → 送信 → 確認画面）');
@@ -5609,7 +5613,7 @@ console.log('\n★20 不就労減額（読み取り → 画面 → 送信 → �
          欄に書くと、その欄ごと黙って読み飛ばされる（＝減額が消えていた真因）。 */
       const negRead = (typeof window.readMoney === 'function')
         ? window.readMoney('-18000').state : null;
-      return { other: g('f-other'), abs: abs, negRead: negRead,
+      return { other: g('f-other'), abs: abs, negRead: negRead, gross: g('f-gross'),
                other_allowance: p ? p.other_allowance : null,
                flight: p ? p.flight_variable_pay : null,
                piAbs: (p && p.pay_items) ? p.pay_items.absence : null };
@@ -5642,7 +5646,24 @@ console.log('\n★20 不就労減額（読み取り → 画面 → 送信 → �
        `${T} ★20 支給構成の「その他手当」が 0 に潰れない（家族手当が帯に残る）`,
        String(Math.max(n(got.other_allowance) - n(got.flight), 0)));
 
-    /* ③ 確認画面（5/5）に1行出る */
+    /* ③ 本人は何も間違えていないのに「見直してください」が出ない（2026-09-12）。
+       印字の総支給（583,000）は減額後・内訳の合計（601,000）は減額前なので、
+       素直に比べると必ず 18,000 超える。オーナーが実画面で踏んだ形。
+       ★ここを直したら pay-viz.js の segments() も同じだけ足し戻す
+         （片方だけだと、注意は出ないのに図だけ描けない行ができる）。 */
+    const over = await page.evaluate(() => {
+      const ids = ['pd-over', 'pd-over-instr', 'pd-over-exam', 'pd-over-union',
+                   'pd-over-mgmt', 'pd-over-nonline'];
+      return ids.filter((id) => { const e = document.getElementById(id); return e && !e.hidden; });
+    });
+    ok(over.length === 0,
+       `${T} ★20 減額のぶんで「内訳の合計が総支給を超えています」が出ない`,
+       JSON.stringify(over));
+    /* ★足し戻しは比べる相手だけ。総支給そのものは明細のとおりのまま。 */
+    ok(n(got.gross) === 583000,
+       `${T} ★20 総支給の欄には1円も足し戻さない（明細のとおり）`, String(got.gross));
+
+    /* ④ 確認画面（5/5）に1行出る */
     await page.evaluate(() => { if (window.PVPayWizard) window.PVPayWizard.goLast(); });
     await page.waitForFunction(() => {
       const r = document.getElementById('wz-review');
@@ -5654,14 +5675,14 @@ console.log('\n★20 不就労減額（読み取り → 画面 → 送信 → �
     ok(/-\s?18,?000/.test(rev),
        `${T} ★20 その額もマイナスのまま出る（手当と見分けが付く）`, rev.slice(0, 200));
 
-    /* ④ なぜ金額の欄に置けないのか（真因をここに固定する）。
+    /* ⑤ なぜ金額の欄に置けないのか（真因をここに固定する）。
        これが 'ok' に変わったら、負の額を欄に置く道が開いたということ。
        そのときは置き場所を見直してよいが、**項目名が残ること**だけは崩さない。 */
     ok(got.negRead === 'bad',
        `${T} ★20 金額の欄はマイナスの文字列を読まない（置けば黙って消える）`,
        String(got.negRead));
 
-    /* ⑤ 必須操作は1つも増えていない */
+    /* ⑥ 必須操作は1つも増えていない */
     ok((await page.$$('#f-absence[required], #f-absence.req-tag')).length === 0,
        `${T} ★20 回答者の必須操作は増えない（f-absence は hidden・必須でない）`);
 

@@ -166,7 +166,7 @@ const pv2 = (v) => Number(v.toPrecision(2));
 // 会社コードは語彙から取る（このテストのために特定の社名を覚えない）
 const VOCAB = (await rows(
   `select code, name_ja, name_en from pv_airlines
-    where code <> 'other' and active order by code limit 48`
+    where code <> 'other' and active order by code limit 49`
 ));
 const AIR = VOCAB.map(r => r.code);
 const [A_ONE, A_M12, A_MIX, A_OLD, A_ORD, A_VF, A_OUT, A_FOTHER,
@@ -186,7 +186,9 @@ const [A_ONE, A_M12, A_MIX, A_OLD, A_ORD, A_VF, A_OUT, A_FOTHER,
        // ★2026-09-10。本人の依頼で一覧から下ろす（pay_hidden）。1社＝1人。
        A_HIDE,
        // ★2026-09-11。引き取りに失敗したまま新規保存された人（N-2）。1社＝1人。
-       A_N2] = AIR;
+       A_N2,
+       // ★2026-09-12。不就労減額のあった月（帯が消えないこと）。1社＝1人。
+       A_ABS] = AIR;
 const nameOf = (code) => VOCAB.find(r => r.code === code);
 
 // ════════════════════════════════════════════════════════════
@@ -387,6 +389,21 @@ await pend(A_NULLIP, { fleet: 'b787', month: 3, gross: 15000, iph: null });
   const u2 = ++seat; await asUser(u2);
   await submit({ ...BASE, airline: A_WRK, position: 'fo', fleet: 'b787',
                  period_year: YEAR, period_month: 6, gross_monthly: 8000 });
+}
+
+/* (p) ★不就労減額のあった月（2026-09-12）。印字の総支給は減額を引いたあと、
+   内訳は引く前なので、そのままだと内訳の合計が総支給を超えて
+   **帯がまるごと出なくなる**（画面は普通に動いたまま、その人だけ内訳が無い）。
+   組合の分と同じ理由で、cash_m に減額を足し戻す。
+   基本給3,600／変動2,240／その他80／日当90 ＝ 6,010、印字の総支給 5,830。 */
+{
+  const u = ++seat; await asUser(u);
+  await submit({ ...BASE, airline: A_ABS, position: 'fo', fleet: 'b737',
+                 period_year: YEAR, period_month: 6,
+                 gross_monthly: 5830, base_pay: 3600,
+                 flight_variable_pay: 2240, other_allowance: 2320, per_diem: 90,
+                 pay_items: { v: 2,
+                              absence: [{ label: 'Unpaid leave', amount: -180 }] } });
 }
 
 /* ★2026-09-03、報酬の内訳に Give & Get の門が入った。
@@ -620,6 +637,17 @@ console.log('\n▼ 7-c. ★帯（2026-09-03。行を押すと見えるもの）'
   ok(w.every(v => Object.keys(v).every(k => ['bh', 'dd', 'off'].includes(k))),
      '★勤務は3つだけ（便数・ステイ日数・拘束時間などが増えていない）',
      JSON.stringify([...new Set(w.flatMap(v => Object.keys(v)))]));
+
+  /* ── 不就労減額のあった月（2026-09-12）───────────────── */
+  {
+    const a = only(R, x => x.airline === A_ABS)[0];
+    ok(a && Array.isArray(a.pay) && a.pay.length > 0,
+       '★★ 減額のあった月にも帯が出る（足し戻さないと内訳ごと消える）★★',
+       JSON.stringify(a && { air: a.airline, pay: a.pay }));
+    ok(a && (a.pay || []).some(x => x.k === 'fixed'),
+       '　固定給の帯が出ている（内訳を書いた人として扱われる）',
+       JSON.stringify(a && a.pay));
+  }
 
   /* ── 総支給しか書いていない人 ───────────────────────── */
   {

@@ -205,6 +205,9 @@
       /* ★この円は総支給の中だけ。組合が外で払った分が抜けていることを断る
          （断らないと「自分が書いた70万が消えた」と読める）。 */
       unionOutNote: '※ 組合から別に受け取った分は、会社の明細には印字されません。受け取った額としてこの円に入れています。',
+      /* ★不就労の減額があった月（2026-09-12）。明細の総支給は減額後、この円の
+         内訳は減額前なので、合計が総支給より大きくなる。その1点だけ断る。 */
+      absenceNote: '※ 不就労の減額（欠勤控除など）は、明細では総支給から引かれています。この円は引く前の内訳なので、合計は明細の総支給より減額のぶんだけ大きくなります。',
 
       /* 推移と節目 */
       trend: '月ごとの推移',
@@ -402,6 +405,7 @@
       noMetric: 'No month has the data this metric needs yet.',
       trendScoped: 'Payslips from your other airline are not on this line. Across an airline change both the currency and the contract change, so joining them would not mean anything.',
       unionOutNote: '※ Money your union pays you directly is not printed on the company payslip. It is included here as pay you received.',
+      absenceNote: '※ Unpaid-absence deductions are taken off the gross on your payslip. This circle shows the items before that deduction, so the total here is larger than the printed gross by that amount.',
       msH: 'Milestones',
       msSub: 'Picked up from where your own records change',
       msPos: function (a, b) { return 'Seat: ' + a + ' → ' + b; },
@@ -1148,7 +1152,8 @@
   function breakdown(r) {
     var dn = V.donut(r, {
       title: T.ym(r.period_year, r.period_month), name: SEGNAME,
-      notes: { housing: T.housingNote, unionOut: T.unionOutNote, noBreakdown: T.restOnly }
+      notes: { housing: T.housingNote, unionOut: T.unionOutNote,
+               absence: T.absenceNote, noBreakdown: T.restOnly }
     });
     /* 円そのものが描けない行（＝その月の総支給が無い・レートが無い・手当の合計が
        総支給を大きく超えている）。空欄で終わらせず、見本をぼかして出す。

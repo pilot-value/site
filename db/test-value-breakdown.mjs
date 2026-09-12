@@ -249,6 +249,62 @@ console.log('\n④-b 組合が総支給の外で払われている行（2026-09-
      '会社払いの組合手当はスライスとして出る', String(inn && val(inn, 'union')));
 }
 
+// ── ④-c 不就労減額（欠勤控除など）があった月 ───────────────
+console.log('\n④-c 不就労減額があった月（2026-09-12）');
+{
+  /* 明細に印字された総支給は、減額を**引いたあと**の額。いっぽう下の内訳
+     （基本給・変動給・その他…）は引く**前**の額なので、そのまま比べると
+     合計が総支給を超え、rest < -1 で**図が丸ごと消える**。
+     ＝ 欠勤のあった月だけ、給与を出した本人に他人の見本がぼかして出る。
+     組合の outsideGross とまったく同じ形の欠陥。だから同じ直し方をする。
+     ★材料はサーバが付けてくる absence_total（pv_absence_total が出す絶対値）。
+       my_pay_reports() が返し忘れると 0 になり、この直しが黙って効かなくなる。 */
+  /* 材料は db/fixtures の合成明細（pdf-gulf）と同じ形 ── 基本給360,000・
+     乗務手当224,000・家族手当8,000・日当9,000、欠勤控除 −18,000、
+     印字の総支給 583,000（＝601,000 − 18,000）。
+     ⚠️ other_allowance には変動給も写っている（フォームの作り）。だから
+        232,000 ＝ 乗務手当224,000 ＋ 家族手当8,000。 */
+  const r = mk({ gross_monthly: 583000, base_pay: 360000,
+                 flight_variable_pay: 224000, other_allowance: 232000,
+                 per_diem: 9000, absence_total: 18000 });
+  const out = V.segments(r);
+  ok(out !== null, '★ 減額のあった月に図が消えない（消えていたのが症状）');
+  ok(out && near(out.total, 601000),
+     '★ 円ぜんぶ＝総支給 ＋ 不就労減額（583,000 ＋ 18,000）', String(out && out.total));
+  ok(out && val(out, 'rest') === 0,
+     '★ 説明しきっているので灰色を生やさない', String(out && val(out, 'rest')));
+  ok(out && val(out, 'base') === 360000,
+     '★ 各スライスは減額前のまま（按分して薄めない）', String(out && val(out, 'base')));
+  ok(out && !out.partial && Math.round(val(out, 'base') / out.total * 100) === 60,
+     '★ 基本給の割合も減額前どうしで割る（360,000 / 601,000 ＝ 60%）',
+     String(out && Math.round(val(out, 'base') / out.total * 100)));
+
+  /* ★足すのは円ぜんぶだけ。列そのものには1円も足さない（二重に引かない・
+     二重に足さない）。総支給の列を読む側は今までどおり印字の額を見る。 */
+  ok(V.grossOrig(r) === 583000,
+     '★ 総支給そのものは明細のまま（583,000）', String(V.grossOrig(r)));
+  ok(V.totals([r]).gross === 583000,
+     '★ 累計も明細のまま（減額を足し戻すのは円の中だけ）', String(V.totals([r]).gross));
+
+  ok(typeof V.absenceJpy === 'function', 'absenceJpy() がある');
+  ok(V.absenceJpy(mk({ absence_total: 18000 })) === 18000, '★ そのまま円で返す');
+  ok(V.absenceJpy(mk({ absence_total: -18000 })) === 18000,
+     '★ 符号がマイナスで来ても絶対値（足す側に回す）');
+  ok(V.absenceJpy(mk({})) === 0, '★ 列そのものが無い古い行は 0（undefined を足さない）');
+  ok(V.absenceJpy(mk({ currency: 'AED', fx_to_jpy: 30, absence_total: 100 })) === 3000,
+     '★ 原本通貨はその行のレートで円に直す');
+
+  /* ★断りを1行出す。出さないと真ん中の数字が明細の総支給と合わず、
+     「どこから来た額か」が無言になる。 */
+  const html = V.donut(r, { title: 'x', name: { base: '基本給' },
+                            notes: { absence: '※減額の断り' } });
+  ok(html.includes('※減額の断り'), '★ 減額のあった月だけ断りが出る');
+  const html2 = V.donut(mk({ gross_monthly: 583000, base_pay: 360000 }),
+                        { title: 'x', name: { base: '基本給' },
+                          notes: { absence: '※減額の断り' } });
+  ok(!html2.includes('※減額の断り'), '★ 減額の無い月には出さない');
+}
+
 // ── ⑤ ぴったり説明しきった行に灰色を生やさない ────────────
 console.log('\n⑤ 端数の灰色を出さない（1円の遊び）');
 {
@@ -351,6 +407,14 @@ console.log('\n⑧ 名前の対応表（my-value.js）');
        ここで見張る。片方だけ直すと、その画面だけ「明細と合わない円」になる。 */
     ok(/notes:\s*\{[^}]*unionOut:\s*T\.unionOutNote/.test(src),
        `${f}: ★ donut() に unionOut の断りを渡している（無いと円から消えた額が無言になる）`);
+    /* ★不就労減額のあった月の断り（2026-09-12）。円ぜんぶが明細の総支給より
+       大きくなる唯一の理由なので、渡していないと「合わない円」になる。 */
+    ok(/notes:\s*\{[^}]*absence:\s*T\.absenceNote/.test(src),
+       `${f}: ★ donut() に absence の断りを渡している（無いと明細と合わない円が無言になる）`);
+    ok(src.includes('absenceNote:') && src.includes('この円は引く前の内訳なので'),
+       `${f}: 減額の断りの日本語がある`);
+    ok(/absenceNote: '※ Unpaid-absence deductions/.test(src),
+       `${f}: 減額の断りの英語がある`);
     /* ★「基本給が総支給に占める割合」の分母は**円ぜんぶ**（＝受け取った額）。
        総支給は会社から＋組合から、というのがオーナーの決めた定義で、年収も
        DEEP PAY の支給構成も同じ数え方をしている。

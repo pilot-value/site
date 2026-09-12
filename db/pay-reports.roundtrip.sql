@@ -147,6 +147,10 @@ begin
     || case when v_shape ? 'absence' then 'ある' else 'ない' end || ' / ない   '
     || case when not coalesce(v_shape ? 'absence', false) then '✅' else '❌' end;
 
+  n := n + 1; v_out := v_out || E'\n  ' || n || '  表示：減額の合計を絶対値で返す（円が消えない材料）    '
+    || coalesce((v_m->>'absence_total'), 'null') || ' / 1800   '
+    || case when (v_m->>'absence_total')::numeric = 1800 then '✅' else '❌' end;
+
   n := n + 1; v_out := v_out || E'\n  ' || n || '  表示：ひな型に項目名は残る（次の月に手打ちさせない）  '
     || coalesce(v_shape->'variable'->0->>'label', 'null') || ' / Flying Pay   '
     || case when v_shape->'variable'->0->>'label' = 'Flying Pay' then '✅' else '❌' end;

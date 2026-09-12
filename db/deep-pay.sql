@@ -390,6 +390,12 @@ begin
                         まるごと集計から落ちる。pv_annual_total と同じ1行。 */
                    + case when public.pv_union_outside_gross(r.pay_items)
                           then coalesce(r.union_pay, 0) else 0 end
+                   /* ★不就労減額（欠勤控除など）も足し戻す（2026-09-12）。
+                      印字の総支給は減額を**引いたあと**、下の8区分は引く**前**。
+                      足さないと分母だけ小さく、同じ理由で 1.02 倍の関所に
+                      引っかかってこの行がまるごと集計から落ちる。
+                      年収（pv_annual_total）には1円も足さない。 */
+                   + public.pv_absence_total(r.pay_items)
                 else coalesce(r.base_pay, 0)
                    + coalesce(r.guarantee_pay, 0)
                    + coalesce(r.hourly_rate, 0)

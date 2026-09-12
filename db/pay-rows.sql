@@ -537,6 +537,9 @@ as $$
                    then greatest(x.gross - coalesce(x.bonus_m, 0), 0)
                       + case when public.pv_union_outside_gross(x.items)
                              then coalesce(x.upay, 0) else 0 end
+                      /* ★不就労減額も足し戻す（2026-09-12）。印字の総支給は
+                         減額後・下の8区分は減額前。deep-pay.sql の cash_m と同じ1行。 */
+                      + public.pv_absence_total(x.items)
                    else coalesce(x.base, 0) + coalesce(x.gpay, 0)
                       + coalesce(x.hourly, 0)
                         * greatest(coalesce(x.bh, 0), coalesce(x.guar, 0))
@@ -1644,6 +1647,8 @@ begin
                 then greatest(r.gross_monthly - coalesce(r.bonus_month, 0), 0)
                    + case when public.pv_union_outside_gross(r.pay_items)
                           then coalesce(r.union_pay, 0) else 0 end
+                   /* ★不就労減額も足し戻す（2026-09-12）。deep-pay.sql と同じ1行。 */
+                   + public.pv_absence_total(r.pay_items)
                 else coalesce(r.base_pay, 0) + coalesce(r.guarantee_pay, 0)
                    + coalesce(r.hourly_rate, 0)
                      * greatest(coalesce(r.block_hours, 0),

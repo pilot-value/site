@@ -157,11 +157,11 @@ const openKey = (n) => db.query(
   [uid(n), `p${n}@example.com`]);
 
 const VOCAB = await rows(
-  `select code from pv_airlines where code <> 'other' and active order by code limit 22`);
+  `select code from pv_airlines where code <> 'other' and active order by code limit 23`);
 const AIR = VOCAB.map(r => r.code);
 const [A_HOME, A_CAT, A_FILL1, A_FILL2, A_FILL3, A_OTHER1, A_DUP, A_BAND,
        A_ROUND, A_DOUBLE, A_REST, A_BASIS, A_NWH, A_WORK, A_SIG,
-       A_PEER, A_PEND, A_RV, A_BONUS, A_SPARE, A_UNION, A_PART] = AIR;
+       A_PEER, A_PEND, A_RV, A_BONUS, A_SPARE, A_UNION, A_PART, A_ABS] = AIR;
 
 // 呼び手（オーナー役）。この人の最新の1行が区分を決める。
 const V = 9500;
@@ -550,6 +550,47 @@ console.log('\n▼ 7-b. ★組合が総支給の外で払われている行（20
   ok(seg('fixed') && seg('fixed').pct === 32,
      '★分母は総支給＋組合（19,000）。固定は32%（総支給だけなら60%になる）',
      String(seg('fixed')?.pct));
+}
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 7-b2. ★不就労減額のあった月（2026-09-12）');
+// ════════════════════════════════════════════════════════════
+/* 明細に印字された総支給は、欠勤控除などの減額を**引いたあと**の額。いっぽう
+   下の8区分（基本給・変動給…）は引く**前**の額。そのまま比べると内訳の合計が
+   総支給を超え、上の ok（1.02倍の関所）でこの行がまるごと落ちる ──
+   組合の 7-b とまったく同じ形の欠陥で、画面は普通に動いたまま。
+   cash_m に減額を足し戻すと普通に数えられる。
+   ⚠️ 足すのは分母（その月の現金）だけ。年収（pv_annual_total）には足さない。 */
+{
+  const mk = (m) => ({ ...BASE, airline: A_ABS, position: 'fo', fleet: 'b737',
+                       period_year: YEAR, period_month: m,
+                       gross_monthly: 5830, base_pay: 3600,
+                       flight_variable_pay: 2240, other_allowance: 2320,
+                       per_diem: 90,
+                       pay_items: { v: 2,
+                                    absence: [{ label: 'Unpaid leave', amount: -180 }] } });
+  const uA = ++seat; await asUser(uA); await submit(mk(2));
+  const a2 = ++seat; await asUser(a2); await submit(mk(3));
+  const a3 = ++seat; await asUser(a3); await submit(mk(4));
+  await openKey(uA); await asUser(uA);
+  const d = await deep();
+  ok(d.cohort.level === 'airline_pos_fleet' && d.cohort.n === 3,
+     '★減額のあった行が関所で落ちない（落ちると段が下りて別の集団の数字になる）',
+     JSON.stringify(d.cohort));
+  const seg = (k) => (d.comp?.segs || []).find(s => s.k === k);
+  ok((d.comp?.segs || []).reduce((a, s) => a + s.pct, 0) === 100,
+     '★割合の合計はちょうど100のまま', JSON.stringify(d.comp?.segs));
+  /* ★分母は 5,830 ＋ 180 ＝ 6,010（減額前）。固定 3,600 は 60%。
+     足し戻さないと分母 5,830 に内訳 6,010 が乗り、そもそも行ごと落ちる。 */
+  ok(seg('fixed') && seg('fixed').pct === 60,
+     '★分母は総支給＋減額（6,010）。固定は60%', String(seg('fixed')?.pct));
+  /* ★年収は印字の総支給のまま（5,830 × 12 ＝ 69,960）。分母へ足し戻したぶんを
+     年収に持ち込まない ── 持ち込むと、休んだ月がある人の年収だけ高く出る。 */
+  const ann = await one(
+    `select round(annual_total_usd) a from pay_reports where airline = $1 limit 1`,
+    [A_ABS]);
+  ok(Number(ann.a) === 69960,
+     '★年収には1円も足し戻さない（5,830 × 12 のまま）', String(ann.a));
 }
 
 // ════════════════════════════════════════════════════════════

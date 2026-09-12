@@ -471,6 +471,33 @@ comment on function public.pv_union_outside_gross(jsonb) is
   '組合の手当が総支給の外で払われているか。pay_items.union.source が組合のときだけ真。会社／両方／その他／空は「中」に倒す（年収を盛らない側）';
 
 
+-- ── 不就労減額（欠勤控除・遅刻早退など）の合計 ───────────────────
+-- 2026-09-12 追加。返すのは**正の合計の絶対値**1つだけ（項目名は返さない）。
+--
+-- ★なぜ要るか。明細に印字されている「その月の総支給額」は、この減額を**すでに
+--   引いたあとの額**。いっぽう内訳の各項目（基本給・変動給・その他…）は引く前の額。
+--   だから素直に比べると、内訳の合計が総支給を減額のぶんだけ超える。
+--   ・フォーム … 本人が何も間違えていないのに「内訳の合計が総支給を超えています」
+--   ・レポート … pay-viz.js の segments() が rest < -1 で**支給構成の円を降ろす**
+--   どちらも「給与を出した人には必ず円を出す」（2026-09-02 オーナー指示）に反する。
+-- ★足すのは**比べる相手**だけ。総支給の列にも年収にも1円も足さない
+--   （＝二重に引かないし、二重に足しもしない）。
+-- ★pay_items そのものは今までどおり返さない。出すのはこの数1つ。
+create or replace function public.pv_absence_total(p_items jsonb)
+returns numeric
+language sql immutable as $$
+  select coalesce((
+    select sum(abs((e->>'amount')::numeric))
+    from jsonb_array_elements(case when jsonb_typeof(p_items->'absence') = 'array'
+                                   then p_items->'absence' else '[]'::jsonb end) as e
+    where (e->>'amount') ~ '^-?[0-9]+(\.[0-9]+)?$'
+  ), 0);
+$$;
+
+comment on function public.pv_absence_total(jsonb) is
+  '不就労減額の合計（絶対値）。印字の総支給は減額後なので、内訳と突き合わせる側だけがこれを足し戻す。年収・総支給には足さない';
+
+
 -- ── 変動給・その他の「行の形」だけを返す ─────────────────────────
 -- 2026-09-12 追加。翌月のフォームを開いた人に、前回と同じ項目名・支給単位・
 -- 並び順の行を用意するためだけの関数。
@@ -1494,6 +1521,12 @@ begin
            --    組合払いの人の図が「組合手当がほぼ全部」になるか、合計が総支給を
            --    超えて図ごと消える（rest < -1）。年収の式（pv_annual_total）と同じ判定。
            public.pv_union_outside_gross(r.pay_items) as union_outside_gross,
+           -- ★ 2026-09-12。不就労減額の合計（絶対値）だけ。項目名は返さない。
+           --    印字の総支給は減額後・内訳は減額前なので、これが無いと
+           --    pay-viz.js の segments() で合計が総支給を超え、減額のあった月だけ
+           --    支給構成の円が丸ごと消える（rest < -1）。
+           --    ⚠️ 総支給・年収には足さない。足すのは「比べる相手」だけ。
+           public.pv_absence_total(r.pay_items) as absence_total,
            -- ★ 2026-09-12。翌月のフォームのひな型に使う「行の形」だけ。
            --    ★金額も数量も1円/1件も入っていない（pv_pay_items_shape の白リスト）。
            --    これが無いと、機種変・別ブラウザ・明細から入った人は毎月

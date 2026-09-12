@@ -356,7 +356,7 @@ SQL は変更不要（`submit_pay_report` が版をそのまま往復させて�
    関数の計算しか見ていないのでこれを捕まえられない。
    ★**検証用の行は1件も残らない** ── 最後にわざと例外を投げてトランザクションごと
    巻き戻している。REAL PAY・DEEP PAY・公開集計に1件も混ざらない。
-   ⚠️ **赤い枠で出るのが正常**（その中に15項目の結果表が入っている）。
+   ⚠️ **赤い枠で出るのが正常**（その中に16項目の結果表が入っている）。
    ⚠️ 運営の口座（`info@pilot-value.com`）を借りて保存を試すので、**その口座が要る**。
 
 ⚠️ `pv_pay_items_shape()` は**画面の `payItemsShape()` と同じ物を返す**。片方だけ直すと、
@@ -1036,6 +1036,27 @@ Office 勤務時間・配属期間・配属理由は**聞かない**（オーナ
   ⚠️ **必須は1つも増えない**（`#f-absence` は hidden で `req-tag` を持たない）。
   見張りは `db/test-form-contract.mjs` の ★20（画面〜送信）と
   `db/test-payslip-extras.mjs` の ★19（コードの形）・⑥（保存 → 取り出し）。
+- ★**減額は「引く」のではなく「比べる側に足し戻す」。**（2026-09-12・上と同じ日の続き）
+  印字の**総支給は減額後**、内訳の欄は**減額前**。この食い違いを放っておくと、
+  **合計が総支給を超える**という理由だけで、休んだ月がまるごと落ちる。実際に4か所で落ちていた ──
+
+  | 落ちていた所 | 見え方 |
+  |---|---|
+  | フォームの注意（`recalc()` の `showOver`）| 正しく書いたのに**赤い注意が出たまま**（オーナーが画面で踏んだ）|
+  | 支給構成の円（[pay-viz.js](../pay-viz.js) の `segments()`）| `rest < -1` で**図が丸ごと消え**、他人の見本がぼかして出る |
+  | DEEP PAY の支給構成（[db/deep-pay.sql](../db/deep-pay.sql) の `cash_m`）| 1.02倍の関所で行ごと落ち、**段が下りて別の集団の数字**になる |
+  | REAL PAY の帯（[db/pay-rows.sql](../db/pay-rows.sql) の `shelf` と `pv_pending_detail`）| その人の行だけ**内訳の帯が出ない** |
+
+  直し方は**組合の「総支給の外」とまったく同じ形**（[db/pay-reports.sql](../db/pay-reports.sql) の
+  `pv_absence_total()` が絶対値を返し、`my_pay_reports()` が `absence_total` で渡す）。
+  ★**足すのは「比べる側の分母」だけ。** 年収（`pv_annual_total`）にも総支給の列にも**1円も足さない**
+  ── 二重に引かないし、二重に足しもしない。
+  ⚠️ **`monthlyDetail()`（フォーム）と `segments()`（円）は必ず一緒に動かす。**
+  片方だけ直すと、注意は出ないのに図が描けない行ができる（この規則はフォーム側にも書いてある）。
+  ⚠️ **円ぜんぶが印字の総支給より大きくなる唯一の理由**なので、**但し書きを1行必ず出す**
+  （`absenceNote`。[my-value.js](../my-value.js) が日英とも持つ）。無いと「明細と合わない円」になる。
+  見張りは `db/test-value-breakdown.mjs` の ④-c、`db/test-deep-pay.mjs` の 7-b2、
+  `db/test-pay-rows.mjs` の 7-c、`db/test-form-contract.mjs` の ★20。
 - **6択（`UNC_CHOICES`）は広げない。** `asked` の語彙は
   [db/pay-reports.sql](db/pay-reports.sql) の `pv_label_hints` が門になっていて、
   広げるとオーナーに SQL をもう1枚貼らせることになる。
@@ -1196,7 +1217,7 @@ hidden のまま見張っている。
 [db/pay-reports.verify.sql](db/pay-reports.verify.sql) は**オーナーが Supabase に貼る検算**
 （16行が全部 ✅ になる。手元では PGlite に流して確かめてある）。
 ★列や鍵を足した回は [db/pay-reports.roundtrip.sql](db/pay-reports.roundtrip.sql) も貼る
-（保存 → 再取得 → 表示 を実際に通す15項目。**行は1件も残らない**）。どちらも `db/test-pay-reports.mjs`
+（保存 → 再取得 → 表示 を実際に通す16項目。**行は1件も残らない**）。どちらも `db/test-pay-reports.mjs`
 が毎回流しているので、**確認だけ古い**にはならない。
 絵は `node shot-pay.mjs`（3a＝開いた直後＝基本給と4つの「＋」だけ / 3＝全部開いた状態 /
 3b＝超えたときの注意 / 3c＝教官の節を書いた状態 / 3d＝教官を外して消えた状態 /
