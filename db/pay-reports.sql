@@ -479,7 +479,8 @@ comment on function public.pv_union_outside_gross(jsonb) is
 --   今月の入力欄に初期値として入る道ができる（それがこの作り直しの発端）。
 --   返すのは
 --     ・変動給／その他の行の label（項目名）と basis（支給単位）と並び順
---     ・「該当なし」3つ（fixed_none / guarantee_none / variable_none）
+--     ・「該当なし」のうち2つ（fixed_none / guarantee_none）。variable_none は写さない
+--       ── あれは毎月変わる今月の事実で、翌月へ運ぶと一度も聞かれないまま「なし」になる
 --     ・役割の札（担当・会社での呼び名・支給のされ方）
 --   だけ。amount / days / count / sessions などの**数**はどれも写さない。
 -- ★画面の payItemsShape()（pay-report.html）と同じ物を返す。片方だけ直さない
@@ -506,8 +507,13 @@ begin
   --    「<> 'object'」だけでは真にならず、中身の無い {"v":1} が翌月へ運ばれてしまう。
   if p_items is null or jsonb_typeof(p_items) <> 'object' then return null; end if;
 
-  -- 「該当なし」は形の一部（会社にその項目が無い、という去年から変わらない事実）
-  foreach k in array array['fixed_none', 'guarantee_none', 'variable_none'] loop
+  -- 「該当なし」のうち、形の一部なのは2つだけ（会社にその項目が無い、という去年から変わらない事実）。
+  -- ★『変動給なし』は写さない（2026-09-12 オーナー指示）。あれは毎月変わる**今月の事実**で、
+  --   翌月のひな型に運ぶと、前月に「なし」と答えた人が今月も一度も聞かれないまま
+  --   「なし」で提出できる（画面のチェックが自動で入り、必須の判定も回答済みとして通る）。
+  -- ★過去に保存した行は1件も書き換えない。保存済みの月を開けば今までどおり読める。
+  --   変わるのは『翌月のひな型に持ち込むか』だけ。
+  foreach k in array array['fixed_none', 'guarantee_none'] loop
     if coalesce((p_items->>k)::boolean, false) then
       out_j := out_j || jsonb_build_object(k, true);
     end if;

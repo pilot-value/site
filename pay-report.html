@@ -3352,13 +3352,25 @@ function pdSync() {
   /* ★答えた行が1つも無ければ**空**。0 と書くと「支給なし」と答えたことになる。 */
   $('f-var-sum').value = tv.answered ? String(tv.total) : '';
   $('f-oth-sum').value = to.answered ? String(to.total) : '';
+  /* ★金額が入っている欄の「該当なし」は送らない（2026-09-12 オーナー指示）。
+     古い「該当なし」が、いま打った新しい金額に優先しないようにする。
+     ★対のチェックもここで外す ── 欄と印が食い違ったまま画面に残らないように。 */
+  for (const p of [['f-base', 'f-base-none'], ['f-guarantee', 'f-guarantee-none']]) {
+    if (String($(p[0]).value || '').trim() === '' || !$(p[1]).checked) continue;
+    $(p[1]).checked = false;
+    $(p[0]).disabled = false;
+  }
   const none = $('f-base-none').checked;
   const gnone = $('f-guarantee-none').checked;
   const vnone = $('f-variable-none').checked;
   /* ★教官の行も同じ入れ物に乗せる。合計はどこにも寄せない
      （寄せると職位手当・変動給・その他と二重に数えることになる）。 */
   const ins = instrRead(), exm = examRead(), uni = unionRead(), mgt = mgmtRead(), nol = nonlineRead();
-  const pi = { v: 1, fixed_none: none, guarantee_none: gnone, variable_none: vnone,
+  /* ★v: 2 ＝「内訳の欠けを判定した版」（2026-09-12・指摘4）。
+     v が無い／1 の行は**判定していない**ので、「欠けが無かった」とは言えない。
+     partial の有無だけで過去データを「揃っている」と読まないための印。
+     ★過去の行は1件も書き換えない。集計からも外さない（限界は報告に書く）。 */
+  const pi = { v: 2, fixed_none: none, guarantee_none: gnone, variable_none: vnone,
                variable: v, other: o };
   /* ★内訳の一部が未回答であることの印（2026-09-12）。**閲覧の資格ではない。**
      これを門にすると、条件を満たした人が「行を1本書き足した」だけで閉め出される。
@@ -3428,7 +3440,7 @@ function pdAdd(kind, quiet) {
      （下書きの復元・明細の読み取り）に**空の行がそのまま先頭に残る**。
      ⚠️ 送信は止まらない（missingRequired() は空の行を数えない）ので、
      画面は普通に動いたまま「空の行のあと本物の行」という並びだけが残る。
-     ★入れ物は1つにしてある。pdRestore() と payslip.js の seedVarRows() が両方これを呼ぶ。 */
+     ★入れ物は1つにしてある。pdRestore() と payslip.js の seedRows() が両方これを呼ぶ。 */
 function pdDropEmpty(kind) {
   const box = PD[kind];
   if (!box) return;
@@ -3482,10 +3494,17 @@ function varNoneSync() {
 $('f-variable-none').addEventListener('change', () => { varNoneSync(); pdSync(); });
 
 /* 保存した内容から行を組み立て直す。開き直しと合計の書き戻しまでここで済ませる。 */
-function pdRestore(raw) {
+/* ★opts.carry ＝「翌月への引き継ぎ」（restoreInto の mode:'carry' から来る）。
+     同じ月の下書きを戻すときは false ── あちらは本人がこの月に答えたものそのものなので、
+     今までどおりチェックを復元する（過去の回答との互換）。
+   ★戻り値は「こちらが書き込んだ欄の id」。呼んだ側が snapPrev に混ぜる
+     （混ぜないと、明細を落としたときに引き継いだ 0 が残り続ける）。 */
+function pdRestore(raw, opts) {
+  const carry = !!(opts && opts.carry);
+  const wrote = [];
   let o = null;
-  try { o = JSON.parse(raw || ''); } catch (e) { return; }
-  if (!o || typeof o !== 'object') return;
+  try { o = JSON.parse(raw || ''); } catch (e) { return wrote; }
+  if (!o || typeof o !== 'object') return wrote;
   for (const kind of ['var', 'oth']) {
     const list = Array.isArray(o[kind === 'var' ? 'variable' : 'other']) ? o[kind === 'var' ? 'variable' : 'other'] : [];
     if (!list.length) continue;
@@ -3512,9 +3531,27 @@ function pdRestore(raw) {
       if (kind === 'var') put('.pd-basis', it.basis);
     }
   }
-  if (o.fixed_none) { $('f-base-none').checked = true; $('f-base').disabled = true; }
-  if (o.guarantee_none) { $('f-guarantee-none').checked = true; $('f-guarantee').disabled = true; }
-  if (o.variable_none) { $('f-variable-none').checked = true; varNoneSync(); }
+  /* ── 「該当なし」の戻し方は、下書きと引き継ぎで違う（2026-09-12 オーナー指示）──────
+     下書き（同じ月の続き）… 今までどおりチェックを戻す。本人がこの月に答えたものだから。
+     引き継ぎ（翌月のひな型）… **チェックでは戻さない。**「前回の 0」として金額欄に置き、
+       〔前回から引き継ぎ〕の印を付ける。欄は使えるまま・チェックも入れない ＝
+       **新しい金額をそのまま打ち替えられる**（チェックを外す操作が要らない）。
+     ★「変動給なし」は引き継ぎ側に無い（payItemsShape が写さない）。万一
+       古いひな型に残っていても、ここで見ない ＝ 今月も必ず聞く。 */
+  if (carry) {
+    for (const p of [['fixed_none', 'f-base'], ['guarantee_none', 'f-guarantee']]) {
+      if (!o[p[0]]) continue;
+      const el = $(p[1]);
+      if (!el || el.disabled || String(el.value || '').trim() !== '') continue;
+      el.value = '0';
+      el.classList.add('pv-carried');
+      wrote.push(p[1]);
+    }
+  } else {
+    if (o.fixed_none) { $('f-base-none').checked = true; $('f-base').disabled = true; }
+    if (o.guarantee_none) { $('f-guarantee-none').checked = true; $('f-guarantee').disabled = true; }
+    if (o.variable_none) { $('f-variable-none').checked = true; varNoneSync(); }
+  }
   /* ★教官の分。ここに来る前に syncRoleBoxes() が走っているので、教官を選んで
      いる人なら s3-instr は既に出ている。出ていないなら書き戻さない
      （画面に無いものを送らないため）。 */
@@ -3584,6 +3621,7 @@ function pdRestore(raw) {
     nonlineSync();   // 中で pdSync も走る
   }
   pdSync();
+  return wrote;
 }
 /* ?airline= で 'other' が入ったときは change が出ていないので会社名欄が
    出ない。出ないと S2 のゲートが開かず、理由も見えないまま詰まる。 */
@@ -3653,13 +3691,16 @@ const ROLE_MONTH_IDS = ['f-instr-qty', 'f-exam-qty', 'f-union-days', 'f-mgmt-day
    翌月のひな型に残すのは、項目名・支給単位・並び順・役割の札まで。
    ★金額・回数・日数は1つも残さない。残すと先月の実績が今月の入力欄に初期値で入り、
      本人が気づかないまま提出される（画面はどこも壊れない）。
-   ★「該当なし」の3つは会社にその項目が無いという契約の事実なので残す。 */
+   ★「基本給なし」「保証給なし」は残す ── 会社にその項目が無いという、月では変わらない事実。
+   ★「変動給なし」は残さない（2026-09-12 オーナー指示）。あれは**今月の事実**で毎月変わる。
+     残すと、前月に「なし」と答えた人が今月も一度も聞かれないまま「なし」で提出できる
+     （チェックが自動で入り、必須の判定も回答済みとして通る）。 */
 function payItemsShape(raw) {
   let o = null;
   try { o = JSON.parse(raw || ''); } catch (e) { return ''; }
   if (!o || typeof o !== 'object') return '';
   const out = { v: 1 };
-  for (const k of ['fixed_none', 'guarantee_none', 'variable_none']) if (o[k]) out[k] = true;
+  for (const k of ['fixed_none', 'guarantee_none']) if (o[k]) out[k] = true;
   for (const k of ['variable', 'other']) {
     const rows = [];
     for (const it of (Array.isArray(o[k]) ? o[k] : [])) {
@@ -3787,7 +3828,11 @@ function restoreInto(o, opts) {
      １行も無かった月は避ける対象にならず、先月の行がそのまま並ぶ。
      ★f-payitems は PAYSLIP_MONTH_IDS にも入れてある（欄と行で同じ扱い）。 */
   /* ★引き継ぎのときは、行が1本でも入っていれば触らない（本人の行を消さない）。 */
-  if (!psIn && !(carry && pdHasRows())) pdRestore(o['f-payitems']);
+  /* ★pdRestore が書いた欄（引き継いだ「前回の 0」）も wrote に混ぜる ── 混ぜないと
+       snapPrev に載らず、明細を落としても 0 が残る（オーナー指示5）。 */
+  if (!psIn && !(carry && pdHasRows()))
+    for (const id of pdRestore(o['f-payitems'], { carry: carry }))
+      if (wrote.indexOf(id) < 0) wrote.push(id);
   if (DETAIL_IDS.some((id) => String(o[id] || '').trim() !== '')) $('pay-detail').open = true;
   $('f-airline').dispatchEvent(new Event('change'));
   $('f-housing').dispatchEvent(new Event('change'));
@@ -3808,7 +3853,7 @@ function restoreInto(o, opts) {
        「戻した直後の値と1文字も違わない＝本人が触っていない」と見なされて
        まとめて消える（本人には、同じ月の明細を足しただけで、前に打った
        総支給・乗務時間・教官手当が黙って空になったようにしか見えない）。 */
-  if (carry) snapPrev(wrote);
+  if (carry) { snapPrev(wrote); snapCarryKey(); }
   return n;
 }
 
@@ -3926,6 +3971,49 @@ function dropMonthActuals(reason) {
   if (n || all) { pdSync(); foldContract(); foldIdentity(); updateSteps(true); }   // pdSync の中で recalc と markRail も走る
   return n;
 }
+/* ── 会社・職位・契約・通貨が変わったら、引き継いだ固定額も見直す（2026-09-12 オーナー指示）──
+   固定額（基本給・保証給・職位手当・住宅手当）は「この会社の・この職位の・この契約の・
+   この通貨での額」だ。転職・昇格・契約の切り替え・通貨の変更があれば、前回の額はもう
+   同じ意味を持たない。**引き継ぎの印（.pv-carried）がまだ付いている欄だけ**を空にする。
+   ⚠️ 本人が打ち直した額・明細から入った額には触らない（触った時点で印が外れている）。
+   ⚠️ サーバ側の引き継ぎは「同じ会社の直近の行」に絞ってあるが、端末の pv_pay_last は
+      絞っていない ── 機種変も別ブラウザもしていない人は端末側が先に入るので、
+      ここが抜けていると転職しても前の会社の基本給が初期値のまま出る。 */
+const CARRY_KEY_IDS = ['f-airline', 'f-airline-other', 'f-position', 'f-contract', 'f-currency'];
+let _carryKey = null;
+
+function snapCarryKey() {
+  _carryKey = {};
+  for (const id of CARRY_KEY_IDS) { const e = $(id); if (e) _carryKey[id] = e.value; }
+}
+
+function carryKeyChanged() {
+  if (!_carryKey) return 0;                       // 引き継いでいない画面では何もしない
+  let moved = false;
+  for (const id of CARRY_KEY_IDS) { const e = $(id); if (e && e.value !== _carryKey[id]) moved = true; }
+  if (!moved) return 0;
+  let n = 0;
+  for (const id of CARRY.fixed) {
+    const e = $(id);
+    if (!e || !e.classList.contains('pv-carried')) continue;
+    if (String(e.value || '').trim() !== '') n++;
+    e.value = '';
+    e.classList.remove('pv-carried');
+    if (_prevVals) delete _prevVals[id];
+  }
+  snapCarryKey();                                 // 新しい顔ぶれを基準にし直す（同じ変更で2度落とさない）
+  if (n) { pdSync(); updateSteps(true); }         // pdSync の中で recalc も markRail も走る
+  return n;
+}
+for (const id of CARRY_KEY_IDS) {
+  const e = $(id);
+  if (!e) continue;
+  e.addEventListener('change', carryKeyChanged);
+  e.addEventListener('input', carryKeyChanged);   // 会社名の自由入力は change が blur まで来ない
+}
+/* ★検査から呼べるように外へ出す（戻り値は空にした欄の数）。 */
+window.PVPayCarryKeyChanged = function () { return carryKeyChanged(); };
+
 /* ★落とした「前回の額」の控え（上の dropMonthActuals が書く）。payslip.js が
    「前回の額を使う」の候補を出すために読む。**こちらからは1円も入れない。** */
 const _droppedCarry = {};

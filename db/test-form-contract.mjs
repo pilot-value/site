@@ -402,8 +402,8 @@ for (const f of ['pay-report.html', 'en/pay-report.html']) {
          （1 → 2 → 4 → 8）。本番で同じ手当が8回並んだ行が1件保存されていた。
          欄は代入で上書きされるから、この二重復元は**行だけ**を壊す＝目で気づけない。
        ⚠️ pdDropEmpty() は消さない。明細が行を生やす側（payslip.js の
-          seedVarRows）がまだ使っている。 */
-    const pdres = (s.match(/function pdRestore\(raw\)[\s\S]*?\n}/) || [''])[0];
+          seedRows）がまだ使っている。 */
+    const pdres = (s.match(/function pdRestore\(raw, opts\)[\s\S]*?\n}/) || [''])[0];
     ok(pdres.length > 200 && /rows\.children[\s\S]{0,40}\.remove\(\)/.test(pdres)
        && !/pdDropEmpty/.test(pdres),
        `${f}: ★下書きを戻すときは、いま並んでいる行を全部片づける（後ろに足さない）`,
@@ -5337,6 +5337,182 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   ok(m.guar === '0', `${T} ★12 保証給の 0 が「回答済み」として1行出る（空欄として捨てない）`,
      String(m.guar));
   await page.close();
+}
+
+/* ══ ★13 前月の「該当なし」の引き継ぎ（2026-09-12・指摘2）═════════════════════════
+   翌月のひな型に写す「該当なし」は**2つだけ**にした。
+
+     基本給なし・保証給なし … 会社にその項目が無いという、去年から変わらない事実。
+                              ★引き継ぐ。ただし**チェックではなく「前回の 0」**として
+                                金額欄に置く（打ち替えるだけで新しい額になる）。
+     変動給なし             … **毎月変わる今月の事実**。★翌月へ持ち込まない。
+                              持ち込むと、前月に「なし」と答えた人が今月も一度も
+                              聞かれないまま「なし」で提出できる（チェックが自動で入り、
+                              必須の判定も回答済みとして通る＝画面はどこも壊れない）。
+
+   ⚠️ 端末に残っている古いひな型には variable_none が入っている。下の NONE_LAST は
+      **わざとそれを入れてある** ── 画面側でも落としていることの証拠。
+   ⚠️ 過去に保存した行は1件も書き換えない。同じ月の下書きから戻すときは
+      今までどおりチェックが復元される（互換）。ここで見ているのは
+      「翌月のひな型に持ち込むか」だけ。 */
+console.log('\n★13 前月の「該当なし」の引き継ぎ（指摘2）');
+
+const NONE_LAST = {
+  'f-airline': 'emirates', 'f-position': 'cap', 'f-fleet': 'b777', 'f-currency': 'AED',
+  'f-age': '40-49', 'f-jobrole': 'line', 'f-housing': 'allowance',
+  'f-contract': 'direct', 'f-seniority': '12', 'f-taxcountry': 'AE', 'f-tax': '0',
+  'f-command': '3200', 'f-housing-amt': '17500',
+  'f-payitems': JSON.stringify({ v: 2, fixed_none: true, guarantee_none: true,
+                                 variable_none: true }),
+};
+
+for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
+                           ['en', 'http://localhost:3000/en/pay-report.html']]) {
+  const T = `${lang}:`;
+  const open = async () => {
+    const page = await newPage();
+    await page.setViewport({ width: 1440, height: 1200 });
+    await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+    await page.evaluate(() => localStorage.clear());
+    await page.evaluateOnNewDocument((o, t) => {
+      try { localStorage.setItem('pv_pay_last',
+        JSON.stringify(Object.assign({}, o, { _own: 'anon', _ts: t, _tab: '' }))); } catch (e) {}
+    }, NONE_LAST, Date.now());
+    await page.reload({ waitUntil: 'networkidle2', timeout: 30000 });
+    await new Promise((r) => setTimeout(r, 500));
+    await page.click('#entry-manual');
+    await new Promise((r) => setTimeout(r, 350));
+    return page;
+  };
+
+  const page = await open();
+  const st = (id) => page.evaluate((i2) => {
+    const e = document.getElementById(i2);
+    return e ? { v: String(e.value), carried: e.classList.contains('pv-carried'),
+                 disabled: !!e.disabled } : null;
+  }, id);
+  const chk = (id) => page.evaluate((i2) => {
+    const e = document.getElementById(i2); return e ? !!e.checked : null;
+  }, id);
+
+  /* ── ★13 「変動給なし」は翌月へ持ち込まない ───────────────────── */
+  ok((await chk('f-variable-none')) === false,
+     `${T} ★13 前月「変動給なし」でも、今月のチェックは入っていない`);
+  ok((await st('f-var-sum')).v === '',
+     `${T} ★13 変動給の合計が勝手に 0 で埋まっていない`, (await st('f-var-sum')).v);
+  {
+    /* いちばんの証拠 ── **今月も書ける**。前月のチェックが入ったままだと
+       varNoneSync() が「変動給を追加」も行の欄も触れなくするので、
+       今月は変動給を1行も書けないまま「なし」で提出できてしまう。 */
+    const st13 = await page.evaluate(() => ({
+      btn: !!document.getElementById('pd-var').disabled,
+      rows: document.getElementById('pd-var-rows').children.length,
+      locked: [...document.getElementById('pd-var-rows')
+        .querySelectorAll('input,select')].filter((e) => e.disabled).length,
+    }));
+    ok(st13.btn === false && st13.locked === 0,
+       `${T} ★13 今月も変動給を書ける（前月の「なし」で入力欄を塞がない）`,
+       JSON.stringify(st13));
+  }
+  {
+    const p = await page.evaluate(() => buildPayload());
+    const pi = p.pay_items || {};
+    ok(pi.variable_none !== true,
+       `${T} ★13 送る中身にも「変動給なし」が入っていない`, JSON.stringify(pi).slice(0, 160));
+  }
+
+  /* ── ★14 「基本給なし・保証給なし」は前回の 0 として金額欄に出る ─────── */
+  const b14 = await st('f-base'), g14 = await st('f-guarantee');
+  ok(b14.v === '0' && g14.v === '0',
+     `${T} ★14 前月「なし」は「前回の 0」として金額欄に出る`,
+     `base=${b14.v} / guarantee=${g14.v}`);
+  ok(b14.carried && g14.carried,
+     `${T} ★14 引き継ぎの印が付く（確認画面で「前回から引き継ぎ」と出る根拠）`);
+  ok(!b14.disabled && !g14.disabled,
+     `${T} ★14 欄は使えるまま（チェックを外す操作をさせない）`);
+  ok((await chk('f-base-none')) === false && (await chk('f-guarantee-none')) === false,
+     `${T} ★14 「該当なし」のチェックは入れない（打ち替えるだけで新しい額になる）`);
+
+  /* ── ★15 金額を入れたら、古い「該当なし」が優先しない ────────────── */
+  await page.evaluate(() => {
+    const e = document.getElementById('f-base');
+    e.value = '48500';
+    e.dispatchEvent(new Event('input', { bubbles: true }));
+    e.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  await new Promise((r) => setTimeout(r, 200));
+  {
+    const p = await page.evaluate(() => buildPayload());
+    const pi = p.pay_items || {};
+    ok(pi.fixed_none !== true && String(p.base_pay).replace(/,/g, '') === '48500',
+       `${T} ★15 新しい金額が勝つ（古い「基本給なし」は送らない）`,
+       `base_pay=${p.base_pay} / pay_items=${JSON.stringify(pi).slice(0, 120)}`);
+  }
+  {
+    /* 同じ月の下書きから戻した人（チェックが入ったまま金額も入る形）にも効く。 */
+    const r = await page.evaluate(() => {
+      document.getElementById('f-guarantee-none').checked = true;
+      const e = document.getElementById('f-guarantee');
+      e.value = '7200';
+      e.dispatchEvent(new Event('input', { bubbles: true }));
+      pdSync();
+      let pi = null;
+      try { pi = JSON.parse(document.getElementById('f-payitems').value || 'null'); } catch (e2) {}
+      return { checked: document.getElementById('f-guarantee-none').checked,
+               disabled: !!document.getElementById('f-guarantee').disabled, pi };
+    });
+    ok(r.checked === false && r.disabled === false && !(r.pi && r.pi.guarantee_none),
+       `${T} ★15 金額が入っている欄の「該当なし」は自動で外れる（送らない）`,
+       JSON.stringify(r));
+  }
+
+  /* ── ★16 会社・職位・契約・通貨が変わったら、引き継いだ固定額を見直す ──── */
+  {
+    /* f-command は本人が打ち直した（＝印が外れる）。f-housing-amt は引き継いだまま。 */
+    await page.evaluate(() => {
+      const e = document.getElementById('f-command');
+      e.value = '9900';
+      e.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    const before = { cmd: (await st('f-command')), hou: (await st('f-housing-amt')) };
+    const n = await page.evaluate(() => {
+      const e = document.getElementById('f-position');
+      e.value = 'fo';
+      e.dispatchEvent(new Event('change', { bubbles: true }));
+      return window.PVPayCarryKeyChanged ? 0 : -1;   // リスナー側で既に走っている
+    });
+    await new Promise((r) => setTimeout(r, 200));
+    const after = { cmd: (await st('f-command')), hou: (await st('f-housing-amt')),
+                    base: (await st('f-base')) };
+    ok(after.hou.v === '' && !after.hou.carried,
+       `${T} ★16 職位が変わったら、引き継いだ住宅手当は空になる`,
+       `前=${before.hou.v} 後=${after.hou.v} / n=${n}`);
+    ok(after.cmd.v.replace(/,/g, '') === '9900' && after.base.v.replace(/,/g, '') === '48500',
+       `${T} ★16 本人が打ち直した額には触らない`,
+       `command=${after.cmd.v} / base=${after.base.v}`);
+  }
+  await page.close();
+
+  /* ── ★17 アップロードでは「前回の 0」を残さない（今回の明細を基準にする）── */
+  {
+    const p2 = await open();
+    const b0 = await p2.$eval('#f-base', (e) => String(e.value));
+    const drop = await p2.evaluate(() => ({
+      n: window.PVPayDropPrevMonth(),
+      carried: Object.assign({}, window.PVPayCarriedDropped()),
+    }));
+    const b1 = await p2.$eval('#f-base', (e) => String(e.value));
+    const g1 = await p2.$eval('#f-guarantee', (e) => String(e.value));
+    ok(b0 === '0' && b1 === '' && g1 === '',
+       `${T} ★17 明細を落としたら「前回の 0」は消える（読めなかった額を 0 にしない）`,
+       `落とす前=${b0} / 落とした後=${b1},${g1} / n=${drop.n}`);
+    ok(drop.carried['f-base'] === '0' && drop.carried['f-guarantee'] === '0',
+       `${T} ★17 前回の 0 は「候補」として控えるだけ（押されたときだけ入る）`,
+       JSON.stringify(drop.carried));
+    ok((await p2.evaluate(() => document.getElementById('f-base-none').checked)) === false,
+       `${T} ★17 「該当なし」のチェックも入らない`);
+    await p2.close();
+  }
 }
 
 await browser.close();

@@ -3440,6 +3440,14 @@ function pdSync() {
   /* ★Blank when no row was answered. Writing 0 would claim "nothing was paid". */
   $('f-var-sum').value = tv.answered ? String(tv.total) : '';
   $('f-oth-sum').value = to.answered ? String(to.total) : '';
+  /* ★A box that holds an amount never sends its "not applicable" flag (2026-09-12,
+     owner's decision). An old "not applicable" must not win over the amount just typed.
+     ★The paired tick box is cleared here too, so box and mark never disagree on screen. */
+  for (const p of [['f-base', 'f-base-none'], ['f-guarantee', 'f-guarantee-none']]) {
+    if (String($(p[0]).value || '').trim() === '' || !$(p[1]).checked) continue;
+    $(p[1]).checked = false;
+    $(p[0]).disabled = false;
+  }
   const none = $('f-base-none').checked;
   const gnone = $('f-guarantee-none').checked;
   const vnone = $('f-variable-none').checked;
@@ -3447,7 +3455,11 @@ function pdSync() {
      nothing — folding it in would count the same money twice against rank/position
      allowance, variable pay and other cash allowances. */
   const ins = instrRead(), exm = examRead(), uni = unionRead(), mgt = mgmtRead(), nol = nonlineRead();
-  const pi = { v: 1, fixed_none: none, guarantee_none: gnone, variable_none: vnone,
+  /* ★v: 2 = "completeness was judged" (2026-09-12, point 4).
+     Rows with no v, or v 1, were never judged — the absence of `partial` there does NOT
+     mean nothing was missing. This mark is what keeps the two apart.
+     ★No past row is rewritten, and none is dropped from aggregation (the limit is reported). */
+  const pi = { v: 2, fixed_none: none, guarantee_none: gnone, variable_none: vnone,
                variable: v, other: o };
   /* ★A mark that part of the breakdown is unanswered (2026-09-12). **Not an entitlement.**
      Gating on it would shut out someone who already qualifies the moment they add a row.
@@ -3516,7 +3528,7 @@ function pdAdd(kind, quiet) {
      （下書きの復元・明細の読み取り）に**空の行がそのまま先頭に残る**。
      ⚠️ 送信は止まらない（missingRequired() は空の行を数えない）ので、
      画面は普通に動いたまま「空の行のあと本物の行」という並びだけが残る。
-     ★入れ物は1つにしてある。pdRestore() と payslip.js の seedVarRows() が両方これを呼ぶ。 */
+     ★入れ物は1つにしてある。pdRestore() と payslip.js の seedRows() が両方これを呼ぶ。 */
 function pdDropEmpty(kind) {
   const box = PD[kind];
   if (!box) return;
@@ -3571,10 +3583,17 @@ function varNoneSync() {
 $('f-variable-none').addEventListener('change', () => { varNoneSync(); pdSync(); });
 
 /* Rebuild the rows from what was saved, reopening the sections and refreshing the totals. */
-function pdRestore(raw) {
+/* ★opts.carry = "carried into next month" (restoreInto's mode:'carry').
+     False when a same-month draft is restored — that is what the person answered for
+     THIS month, so the tick boxes are restored exactly as before (backwards compatible).
+   ★Returns the ids this function wrote, so the caller can fold them into snapPrev
+     (without that, a carried 0 survives a payslip upload). */
+function pdRestore(raw, opts) {
+  const carry = !!(opts && opts.carry);
+  const wrote = [];
   let o = null;
-  try { o = JSON.parse(raw || ''); } catch (e) { return; }
-  if (!o || typeof o !== 'object') return;
+  try { o = JSON.parse(raw || ''); } catch (e) { return wrote; }
+  if (!o || typeof o !== 'object') return wrote;
   for (const kind of ['var', 'oth']) {
     const key = kind === 'var' ? 'variable' : 'other';
     const list = Array.isArray(o[key]) ? o[key] : [];
@@ -3602,9 +3621,28 @@ function pdRestore(raw) {
       if (kind === 'var') put('.pd-basis', it.basis);
     }
   }
-  if (o.fixed_none) { $('f-base-none').checked = true; $('f-base').disabled = true; }
-  if (o.guarantee_none) { $('f-guarantee-none').checked = true; $('f-guarantee').disabled = true; }
-  if (o.variable_none) { $('f-variable-none').checked = true; varNoneSync(); }
+  /* ── "Not applicable" is restored differently for a draft and for a carry-over ──────
+     Draft (same month, continued) … tick boxes come back exactly as before. That is what
+       the person answered for this month.
+     Carry-over (next month's template) … **no tick box.** The previous "0" is put into the
+       amount box and marked 〔carried over〕. The box stays enabled and unticked, so a new
+       amount can simply be typed over it — no un-ticking step.
+     ★"No variable pay" never reaches the carry branch (payItemsShape drops it). Even if an
+       old template still holds it, it is not read here — this month is always asked. */
+  if (carry) {
+    for (const p of [['fixed_none', 'f-base'], ['guarantee_none', 'f-guarantee']]) {
+      if (!o[p[0]]) continue;
+      const el = $(p[1]);
+      if (!el || el.disabled || String(el.value || '').trim() !== '') continue;
+      el.value = '0';
+      el.classList.add('pv-carried');
+      wrote.push(p[1]);
+    }
+  } else {
+    if (o.fixed_none) { $('f-base-none').checked = true; $('f-base').disabled = true; }
+    if (o.guarantee_none) { $('f-guarantee-none').checked = true; $('f-guarantee').disabled = true; }
+    if (o.variable_none) { $('f-variable-none').checked = true; varNoneSync(); }
+  }
   /* ★The instructor block. syncRoleBoxes() has already run by the time we get here,
      so s3-instr is on screen for anyone who instructs. If it is not on screen we
      restore nothing (never send what is not on screen). */
@@ -3675,6 +3713,7 @@ function pdRestore(raw) {
     nonlineSync();   // pdSync runs inside
   }
   pdSync();
+  return wrote;
 }
 /* ?airline= can select 'other' without firing change, so the
    free-text name box stays hidden — and then the S2 gate never opens
@@ -3749,13 +3788,17 @@ const ROLE_MONTH_IDS = ['f-instr-qty', 'f-exam-qty', 'f-union-days', 'f-mgmt-day
    What survives into next month: item name, pay unit, row order, role labels.
    ★Not one amount, count or day is kept. Keeping them puts last month's actuals into
      this month's boxes as starting values and they get submitted unnoticed.
-   ★The three "not applicable" flags stay — they are contract facts, not amounts. */
+   ★"No base pay" / "No guarantee pay" stay — facts about the company that do not change.
+   ★"No variable pay" does NOT stay (2026-09-12, owner's decision). That one is a fact about
+     **this month** and changes every month. Keeping it lets someone who answered "none" last
+     month submit "none" again without ever being asked (the box ticks itself and the
+     required-field check counts it as answered). */
 function payItemsShape(raw) {
   let o = null;
   try { o = JSON.parse(raw || ''); } catch (e) { return ''; }
   if (!o || typeof o !== 'object') return '';
   const out = { v: 1 };
-  for (const k of ['fixed_none', 'guarantee_none', 'variable_none']) if (o[k]) out[k] = true;
+  for (const k of ['fixed_none', 'guarantee_none']) if (o[k]) out[k] = true;
   for (const k of ['variable', 'other']) {
     const rows = [];
     for (const it of (Array.isArray(o[k]) ? o[k] : [])) {
@@ -3888,7 +3931,11 @@ function restoreInto(o, opts) {
      underneath it untouched.
      ★f-payitems is in PAYSLIP_MONTH_IDS too — boxes and rows are treated alike. */
   /* ★When carrying over, leave the rows alone if any already have content (never delete theirs). */
-  if (!psIn && !(carry && pdHasRows())) pdRestore(o['f-payitems']);
+  /* ★Fold in what pdRestore wrote (the carried "previous 0") — without this it never
+       reaches snapPrev, so a payslip upload leaves the 0 behind (owner's condition 5). */
+  if (!psIn && !(carry && pdHasRows()))
+    for (const id of pdRestore(o['f-payitems'], { carry: carry }))
+      if (wrote.indexOf(id) < 0) wrote.push(id);
   if (DETAIL_IDS.some((id) => String(o[id] || '').trim() !== '')) $('pay-detail').open = true;
   $('f-airline').dispatchEvent(new Event('change'));
   $('f-housing').dispatchEvent(new Event('change'));
@@ -3910,7 +3957,7 @@ function restoreInto(o, opts) {
        drop treat them as "untouched since restore" and wipe them in one go — from
        the person's side, adding a payslip to the same month silently empties the
        gross, block hours and instructor pay they had already entered. */
-  if (carry) snapPrev(wrote);
+  if (carry) { snapPrev(wrote); snapCarryKey(); }
   return n;
 }
 
@@ -4033,6 +4080,53 @@ function dropMonthActuals(reason) {
   if (n || all) { pdSync(); foldContract(); foldIdentity(); updateSteps(true); }   // recalc and markRail run inside pdSync
   return n;
 }
+/* ── Airline / position / contract / currency changed → revisit the carried fixed amounts
+   (2026-09-12, owner's decision). The fixed amounts (base, guarantee, rank allowance,
+   housing) belong to "this airline, this position, this contract, in this currency".
+   After a move, a promotion, a contract switch or a currency change the previous figure no
+   longer means the same thing. **Only boxes still carrying the 〔carried over〕 mark** are
+   cleared.
+   ⚠️ An amount the person retyped, or one read from a payslip, is never touched — the mark
+      comes off the moment it is touched.
+   ⚠️ The server-side carry-over is already limited to "the latest row for the same airline",
+      but this device's pv_pay_last is not. For anyone who did not change device or browser
+      the local copy lands first, so without this the old airline's base pay would show up
+      as the starting value after a move. */
+const CARRY_KEY_IDS = ['f-airline', 'f-airline-other', 'f-position', 'f-contract', 'f-currency'];
+let _carryKey = null;
+
+function snapCarryKey() {
+  _carryKey = {};
+  for (const id of CARRY_KEY_IDS) { const e = $(id); if (e) _carryKey[id] = e.value; }
+}
+
+function carryKeyChanged() {
+  if (!_carryKey) return 0;                       // nothing was carried into this screen
+  let moved = false;
+  for (const id of CARRY_KEY_IDS) { const e = $(id); if (e && e.value !== _carryKey[id]) moved = true; }
+  if (!moved) return 0;
+  let n = 0;
+  for (const id of CARRY.fixed) {
+    const e = $(id);
+    if (!e || !e.classList.contains('pv-carried')) continue;
+    if (String(e.value || '').trim() !== '') n++;
+    e.value = '';
+    e.classList.remove('pv-carried');
+    if (_prevVals) delete _prevVals[id];
+  }
+  snapCarryKey();                                 // re-baseline, so one change never fires twice
+  if (n) { pdSync(); updateSteps(true); }         // recalc and markRail run inside pdSync
+  return n;
+}
+for (const id of CARRY_KEY_IDS) {
+  const e = $(id);
+  if (!e) continue;
+  e.addEventListener('change', carryKeyChanged);
+  e.addEventListener('input', carryKeyChanged);   // the free-text airline box only fires change on blur
+}
+/* ★Exposed for the tests (returns how many boxes were cleared). */
+window.PVPayCarryKeyChanged = function () { return carryKeyChanged(); };
+
 /* ★What was dropped (written by dropMonthActuals above). payslip.js reads it to
    offer "use last month's amount". **Nothing is ever written back from here.** */
 const _droppedCarry = {};

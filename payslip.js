@@ -468,6 +468,7 @@
     /* ★欄ではなく「行」に入るもの（2026-08-27）。id ではないので getElementById には
        渡らない。確認の表に行き先として出すためだけの名前。 */
     'pd-var': { ja: '変動給', en: 'Variable pay' },
+    'pd-oth': { ja: 'その他の現金手当', en: 'Other cash allowance' },
   };
 
   /* 役割ごとの手当 → 専用の列。KIND_FIELD と分けているのは行き先が1欄ではないから
@@ -2504,41 +2505,59 @@
   /* ── 変動給を「行」に載せる（2026-08-27）────────────────────────
      pay-report.html の繰り返し行（tpl-pd-var）は素の <script> の中で定義されていて
      global に居る。無ければ今までどおり隠しの合計へ落ちるだけ＝古い HTML でも壊れない。 */
-  function canRows() {
+  function canRows(kind) {
     return typeof pdAdd === 'function' && typeof pdSync === 'function' &&
-           !!document.getElementById('tpl-pd-var');
+           !!document.getElementById('tpl-pd-' + (kind || 'var'));
   }
-  var seededRows = [];         // 前回この明細から生やした行（落とし直したら消す）
-  function seedVarRows(seed) {
+  /* 前回この明細から生やした行（落とし直したら消す）。種類ごとに分けて覚える。 */
+  var seededRows = { var: [], oth: [] };
+  var SUM_OF = { var: 'f-var-sum', oth: 'f-oth-sum' };
+  /* ── 読めた手当を「行」に載せる（2026-08-27 変動給／2026-09-12 その他の現金手当）──
+     ★kind='oth' は指摘3 の直し。前は「家族手当」「株式積立奨励金」のような、
+       語彙に無い／その他に分類された行が、隠し欄 f-other に**合算**されていた。
+       金額は other_allowance に届いていたが、**項目名は診断用の控えの中にしか残らず**、
+       本人の画面にも確認画面にも1行も出ない＝見ても直せない。
+       手で打つ人と同じ入れ物（pd-oth の行）に載せれば、項目名と金額がそのまま
+       pay_items.other[] に入り、確認画面にも出て、本人がその場で直せる。
+     ★行に載せた分は f-other に書かない（f-oth-sum が拾う＝二重計上になる）。
+     ★必須は1つも増えない（tpl-pd-oth に req-tag は無い）。 */
+  function seedRows(kind, seed) {
     /* ★明細を落とし直したら、前に生やした行は必ず消す。足すだけにすると
        2回落とした人の変動給が2倍になる（欄なら上書きで済んでいた所）。
        本人が自分で足した行には触らない（こちらが作った行だけを覚えている）。 */
-    seededRows.forEach(function (r) { if (r && r.parentNode) r.parentNode.removeChild(r); });
-    seededRows = [];
-    if (!seed || !seed.length || !canRows()) { if (typeof pdSync === 'function') pdSync(); return; }
+    seededRows[kind].forEach(function (r) { if (r && r.parentNode) r.parentNode.removeChild(r); });
+    seededRows[kind] = [];
+    if (!seed || !seed.length || !canRows(kind)) { if (typeof pdSync === 'function') pdSync(); return; }
     /* ★本物の行を載せる前に、空のまま置いてある行を片づける（2026-09-03 その4）。
        pay-report.html が読み込みのときに変動給を1本出している。消さないと
        「空の行のあと明細から入った行」という並びになる（送信は止まらないので
        画面は普通に動いたまま残る）。古い HTML には無い＝あれば呼ぶ。 */
-    if (typeof pdDropEmpty === 'function') pdDropEmpty('var');
-    if (typeof openOpt === 'function') openOpt('pd-var', true);   // 節そのものを開ける
+    if (typeof pdDropEmpty === 'function') pdDropEmpty(kind);
+    if (typeof openOpt === 'function') openOpt('pd-' + kind, true);   // 節そのものを開ける
     seed.forEach(function (t) {
-      var row = pdAdd('var', true);
+      var row = pdAdd(kind, true);
       if (!row) return;
       t.row = row;
-      seededRows.push(row);
+      seededRows[kind].push(row);
       var set = function (sel, v) {
         var e2 = row.querySelector(sel);
         if (!e2 || v == null || v === '') return;
         e2.value = String(v);
         /* 行の中の欄にも「AIが入れた」印を付ける（本人が触ったら外れる）。 */
         e2.classList.add('ai-filled');
+        /* ★setField と同じ順で change → input を出す（2026-09-12）。金額の欄は
+           change を受けたときだけ桁区切りに整う（moneySettle）ので、出さないと
+           明細から入った行だけ 28000 と素の数字で並ぶ（手で打った欄は 28,000）。
+           ★unmark を付けるのは dispatch の後。先に付けると、いま自分が出した
+           イベントで自分のハイライトを消す。 */
+        e2.dispatchEvent(new Event('change', { bubbles: true }));
+        e2.dispatchEvent(new Event('input', { bubbles: true }));
         e2.addEventListener('input', unmark);
         e2.addEventListener('change', unmark);
       };
       /* ★basis は必ず入れる。空のままだと必須（req-tag）に引っかかって、
          明細から入った人だけが送信できなくなる。分からない行は 'unknown'。 */
-      set('.pd-basis', t.basis || 'unknown');
+      if (kind === 'var') set('.pd-basis', t.basis || 'unknown');
       set('.pd-amt', String(Math.round(t.amount || 0)));
       set('.pd-label', t.label);
     });
@@ -2548,7 +2567,7 @@
     /* ★行を1本でも生やしたら、下書きの復元に f-payitems を触らせない。
        pdRestore は空の行しか片づけないので、明細の行の**後ろ**に下書きの行が足され、
        DOM の行／f-var-sum／f-payitems の三者が食い違う（送信は止まらない）。 */
-    if (seededRows.length) { mark('f-payitems'); mark('f-var-sum'); }
+    if (seededRows[kind].length) { mark('f-payitems'); mark(SUM_OF[kind]); }
   }
 
   /* ── 教官・審査の節を出して額を入れる（2026-08-27）──────────────
@@ -2603,7 +2622,9 @@
     var sums = {}, trace = [], notional = [], counts = [];
     var roleLabel = {};        // 教官・審査の「明細上の名称」（最初に読めた1つだけ）
     var varSeed = [];          // 変動給。欄ではなく「行」に載せる（下で pdAdd する）
-    var rowsOK = canRows();
+    var othSeed = [];          // その他の現金手当・未分類。同じく「行」に載せる（2026-09-12）
+    var rowsOK = canRows('var');
+    var othOK = canRows('oth');
     (res.earnings || []).forEach(function (e2) {
       /* 相殺項目（航空券課税など）。控除欄に同額が立つので手取りは1円も動かない。
          収入に足すと時給が水増しになるので分子から外す。ただし黙って消さず、
@@ -2631,6 +2652,18 @@
         var tv = { label: e2.label, field: 'pd-var', amount: e2.amount, kind: e2.kind,
                    basis: e2.basis || 'unknown' };
         varSeed.push(tv); trace.push(tv);
+        return;
+      }
+      /* ★その他の現金手当も「行」に載せる（2026-09-12・指摘3）。
+         隠し欄 f-other に合算すると、金額は other_allowance に届くのに
+         **項目名がどこにも残らない**（診断用の控えの中だけ）。本人の画面にも
+         確認画面にも出ないので、読み違えていても気づけず直せない。
+         ★absence（不就労減額）はここへ回さない ── **マイナスの行**なので、
+           「その他の現金手当」に負の金額を並べると読めないうえ、合計の検算も壊れる。
+         ★notional（現物給付）は上で既に外してある（収入に数えていない）。 */
+      if (e2.kind === 'other' && othOK) {
+        var to = { label: e2.label, field: 'pd-oth', amount: e2.amount, kind: e2.kind };
+        othSeed.push(to); trace.push(to);
         return;
       }
       sums[id] = (sums[id] || 0) + e2.amount;
@@ -2664,6 +2697,15 @@
         sums[c.field] = (sums[c.field] || 0) + amt;
         trace.push({ label: u.label, field: c.field, amount: amt, kind: c.kind,
                      unc: true, asked: null, hint: c.asked });
+        return;
+      }
+      /* ★分類できなかった行も「行」に載せる（2026-09-12・指摘3）。名前が分からない
+         行こそ、項目名を残さないと二度と正体が分からない。6択はこれまでどおり出る
+         （答えると下の answerUnc が行き先を移す）。 */
+      if (othOK) {
+        var tu = { label: u.label, field: 'pd-oth', amount: amt, kind: 'unclassified',
+                   unc: true, asked: null };
+        othSeed.push(tu); trace.push(tu);
         return;
       }
       sums['f-other'] = (sums['f-other'] || 0) + amt;
@@ -2717,8 +2759,17 @@
     /* 6択に答えると行き先が変わる。そのとき「前は書いたが今は空にすべき欄」を
        知っている必要がある（pushTrace を参照）。 */
     lastFields = Object.keys(sums);
+    /* ★行に回したぶんを f-other に残さない（2026-09-12・指摘3）。
+       f-other は type="hidden" ＝ payslip.js しか書かない欄。明細を落とし直して、
+       前の明細では欄へ入っていた手当が今回は行に載った場合、前の合計が残ったままだと
+       f-oth-sum と**二重に**足される（画面は普通に動いたまま年収だけ増える）。 */
+    if (othOK && sums['f-other'] === undefined) {
+      var eo = document.getElementById('f-other');
+      if (eo && eo.value !== '') { eo.value = ''; }
+    }
 
-    seedVarRows(varSeed);
+    seedRows('var', varSeed);
+    seedRows('oth', othSeed);
 
     writeExtras(res, trace);
 
@@ -3233,11 +3284,22 @@
     if (!t) return;
     t.asked = c.asked;              // ★本人の答えをそのまま残す＝語彙の正解データ
     t.kind = c.kind;
-    t.field = c.field;
+    /* ★行に載っている未分類に答えたら、答えが「その他」でない限り行から出す
+       （2026-09-12）。pushTrace は row 付きの行を**行へ書き戻す**ので、
+       出さないまま field だけ変えると、本人の答えが1円も反映されない。
+       ★「その他」を選んだときは行のまま ── それがこの行の正体だから。 */
+    if (t.row && c.asked !== 'other') {
+      var k2 = seededRows.oth.indexOf(t.row);
+      if (k2 >= 0) seededRows.oth.splice(k2, 1);
+      if (t.row.parentNode) t.row.parentNode.removeChild(t.row);
+      t.row = null;
+      if (typeof pdSync === 'function') pdSync();
+    }
+    t.field = t.row ? 'pd-oth' : c.field;
     /* 表の「入れた欄」を書き換える。表は作り直さない（金額を打ちかけの
        入力欄があると、作り直した瞬間にフォーカスと打ちかけの値が飛ぶ）。 */
     var td = panel.querySelector('.ps-to[data-to="' + i + '"]');
-    if (td) td.textContent = lbl(c.field);
+    if (td) td.textContent = lbl(t.field);
     pushTrace();                    // 欄・専用列・内訳JSON・年収・時給をまとめて直す
     renderAsk();                    // 次の1件へ（無ければカードごと消える）
   }

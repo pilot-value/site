@@ -162,10 +162,64 @@ for (const c of ['union', 'management', 'nonline']) {
   ok(roleField && !new RegExp(`\\b${c}:`).test(roleField[0]),
      `★${c} は読まない（明細から当てられない／組合名は返してはいけない）`);
 }
-ok(/basis/.test(PAYSLIP) && /pdAdd\('var'/.test(PAYSLIP),
+ok(/basis/.test(PAYSLIP) && /seedRows\('var', varSeed\)/.test(PAYSLIP),
    '★変動給は「行」に載せる（手で打った人と同じ入れ物。種類 basis も入る）');
 ok(/seededRows/.test(PAYSLIP),
    '★落とし直したら前に生やした行を消す（足すだけだと2回落とした人の変動給が2倍になる）');
+
+/* ── ★18・★19 明細から読めた手当が、項目名ごと残る（2026-09-12・指摘3）──────
+   前は「家族手当」「株式積立奨励金」のような行が、隠し欄 f-other に**合算**されていた。
+   金額は other_allowance に届くので年収は正しいが、**項目名はどこにも残らない**
+   （診断用の控えの中だけ）。本人の画面にも確認画面にも1行も出ないので、
+   読み違えていても気づけず直せない。DEEP PAY の内訳にも名前は一生出ない。
+   ⚠️ 画面はどこも壊れないまま静かに消える形。 */
+console.log('\n②-c 明細の その他手当・未分類 が「行」に載る（2026-09-12・指摘3）');
+ok(/seedRows\('oth', othSeed\)/.test(PAYSLIP),
+   '★18 その他の現金手当も「行」に載せる（手で打った人と同じ入れ物）');
+ok(/othOK = canRows\('oth'\)/.test(PAYSLIP),
+   '★18 行の型が無い古い HTML では今までどおり欄へ落ちる（壊れない）');
+ok(/kind === 'other' && othOK/.test(PAYSLIP),
+   '★18 その他の支給は f-other に合算せず行へ回す');
+{
+  /* 行へ回した枝が、そのまま sums['f-other'] にも足していないか（＝二重計上）。
+     行へ回す if の中身だけを切り出して見る。 */
+  const i = PAYSLIP.indexOf("if (e2.kind === 'other' && othOK) {");
+  const blk = i > 0 ? PAYSLIP.slice(i, PAYSLIP.indexOf('\n      }', i)) : '';
+  ok(i > 0 && /othSeed\.push/.test(blk) && !/sums\[/.test(blk),
+     '★18 行に載せた分を f-other にも書かない（f-oth-sum が拾う＝二重計上になる）');
+}
+ok(/othOK && sums\['f-other'\] === undefined/.test(PAYSLIP),
+   '★18 落とし直したとき、前の明細で f-other に入れた合計を残さない');
+{
+  const i = PAYSLIP.indexOf("if (othOK) {");
+  const blk = i > 0 ? PAYSLIP.slice(i, PAYSLIP.indexOf('\n      }', i)) : '';
+  ok(i > 0 && /kind: 'unclassified'/.test(blk) && !/sums\[/.test(blk),
+     '★18 分類できなかった行も「行」に載せる（名前が分からない行こそ項目名を残す）');
+}
+ok(/'pd-oth':\s*\{\s*ja:/.test(PAYSLIP),
+   '★18 確認の表に出る行き先の名前がある（pd-oth）');
+{
+  /* ★19 現物給付・不就労減額は行に載せない。
+     notional は earnings の輪の頭で外している（収入に数えない）。
+     absence は KIND_FIELD で f-other へ行くが、行へ回す枝の条件は kind==='other' だけ。 */
+  ok(/if \(e2\.kind === 'notional'\) \{ notional\.push\(e2\); return; \}/.test(PAYSLIP),
+     '★19 現物給付（航空券課税など）は今までどおり収入に数えない＝行にも載らない');
+  ok(!/kind === 'absence'[\s\S]{0,120}othSeed/.test(PAYSLIP),
+     '★19 不就労減額（マイナスの行）は「その他の現金手当」に並べない');
+  const kf = PAYSLIP.match(/var KIND_FIELD[\s\S]*?\n  \};/);
+  ok(!!kf && /absence:\s*'f-other'/.test(kf[0]),
+     '★19 不就労減額は今までどおり隠し欄へ（マイナスのまま総額から引かれる）');
+}
+{
+  /* ★18 6択に答えたら行から出す。pushTrace は row 付きを**行へ書き戻す**ので、
+     出さないまま field だけ変えると本人の答えが1円も反映されない。 */
+  const i = PAYSLIP.indexOf('function answerUnc(');
+  const blk = i > 0 ? PAYSLIP.slice(i, i + 1200) : '';
+  ok(i > 0 && /t\.row && c\.asked !== 'other'/.test(blk) && /t\.row = null/.test(blk),
+     '★18 6択に「その他」以外で答えたら行から出す（答えが反映されないのを防ぐ）');
+  ok(/t\.field = t\.row \? 'pd-oth' : c\.field/.test(blk),
+     '★18 行に残す答え（その他）は行き先も pd-oth のまま');
+}
 
 /* ══ ③ 出荷されるコードをそのまま走らせる ═════════════════════
    writeHidden〜writeExtras を payslip.js から切り出して、偽の document で実行する。

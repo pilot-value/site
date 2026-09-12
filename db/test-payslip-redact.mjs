@@ -564,6 +564,13 @@ for (const fx of fixtures) {
             return { basis: q('.pd-basis'), amt: q('.pd-amt'), label: q('.pd-label') };
           }),
         varSum: g('f-var-sum'), othSum: g('f-oth-sum'), flightvar: g('f-flightvar'),
+        /* その他の現金手当も「行」に載る（2026-09-12・指摘3）。
+           分類できなかった行は、隠し欄に合算せず項目名ごとここへ来る。 */
+        othRows: [...(document.getElementById('pd-oth-rows') || { children: [] }).children]
+          .map((r) => {
+            const q = (sel) => { const e = r.querySelector(sel); return e ? e.value.trim() : ''; };
+            return { amt: q('.pd-amt'), label: q('.pd-label') };
+          }),
         /* ★payload と同じ式を「本物の sumField」で引く（写さない）。 */
         fvPay: typeof sumField === 'function' ? sumField('f-flightvar', 'f-var-sum') : null,
         othPay: typeof sumField === 'function' ? sumField('f-other', 'f-var-sum', 'f-oth-sum') : null,
@@ -583,11 +590,21 @@ for (const fx of fixtures) {
     ok(dg(v.command) === '185000', '職務手当が機長・役職手当に入る', v.command);
     /* ★2026-08-14：分類できなかった「特別加算 12,000」もここに入る（148200+23400+12000）。
        前はどの欄にも入らず、年収から黙って消えていた。 */
-    /* ★2026-08-27、変動給は「行」へ移った。その他手当の欄に残るのは
-       分類できなかった「特別加算 12,000」だけ。**金額の合計は1円も変わらない**
-       ── f-var-sum が other_allowance にも1回入るので、下の ★不変条件 で見る。 */
-    ok(dg(v.other) === '12000',
-       '★その他手当の欄に残るのは分類できなかった行だけ（変動給は行へ移った）', v.other);
+    /* ★2026-08-27 に変動給が「行」へ移り、★2026-09-12 に分類できなかった行も
+       「行」へ移った（指摘3）。いま隠し欄（f-other）に残るものは**何も無い**。
+       分類できなかった「特別加算 12,000」は、項目名ごと その他の現金手当の行に出る
+       ＝ 本人が確認画面で見て直せるようになった。
+       **金額の合計は1円も変わらない** ── 下の ★不変条件 で見る。 */
+    ok(dg(v.other) === '',
+       '★隠し欄には何も残さない（分類できなかった行も「行」へ移った）', v.other);
+    ok(v.othRows.length === 1, '★分類できなかった行が1行になる', `${v.othRows.length} 行`);
+    if (v.othRows.length === 1) {
+      ok(dg(v.othRows[0].amt) === '12000', '★その行に金額が入る', v.othRows[0].amt);
+      ok(v.othRows[0].label === '特別加算',
+         '★明細上の名称がそのまま残る（前はどこにも残らなかった）', v.othRows[0].label);
+    }
+    ok(dg(v.othSum) === '12000',
+       '★行の合計が「その他の現金手当」の合計欄に入る（隠し欄の代わり）', v.othSum);
     ok(dg(v.perdiem) === '42000', 'パーディアムが入る', v.perdiem);
     ok(dg(v.transport) === '18000', '交通費が入る', v.transport);
     ok(v.housing === 'allowance' && dg(v.housingAmt) === '60000', '住宅手当が現金として入る', v.housingAmt);
@@ -631,7 +648,8 @@ for (const fx of fixtures) {
     ok(v.fvPay === '171600',
        '★★flight_variable_pay は行に移す前と1円も変わらない', String(v.fvPay));
     ok(v.othPay === '183600',
-       '★★other_allowance も変わらない（12000 + 171600）', String(v.othPay));
+       '★★other_allowance も変わらない（12000 + 171600）。'
+       + '12000 の出どころが隠し欄から行に変わっただけ', String(v.othPay));
 
     /* 役割ごとの手当。専用の列があるので、その他手当にも職位手当にも足し込まない。 */
     ok(v.instrShown && v.examShown, '★教官・審査の節が出ている',

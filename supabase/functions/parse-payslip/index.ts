@@ -42,6 +42,8 @@
 
    ★上限を変えたいときは secret の値を書き換えるだけでよい（貼り直し不要）。
    ★今どれだけ使ったかは SQL Editor で: select * from pv_parse_usage();
+   ★貼られている版を費用ゼロで確かめる: node db/smoke-parse-payslip.mjs の段0
+     （中身は { "ping": 1 } を POST するだけ。Anthropic も DB も呼ばない）
    ════════════════════════════════════════════════════════════════ */
 
 /* ★この関数専用のキーがあればそれを使い、無ければ共通のものに落ちる。
@@ -49,6 +51,16 @@
    ここだけ独立して revoke できるようにしておく（口コミ翻訳を巻き込まない）。
    ついでに Anthropic のコンソールで費用が別々に見える＝1枚あたりの原価が分かる。
    ※専用キーを登録し忘れても動く（＝新しい落ち方を増やしていない）。 */
+/* ★貼った版が手元から読めるようにする札（2026-09-12）。
+   これまで、本番に貼られているのがどの版かを確かめる道が
+   「実際に明細を1枚読ませて、返ってきた金額を見る」しか無かった（1回 ≒ $0.02）。
+   下の { "ping": 1 } は Anthropic を1回も呼ばないので**費用ゼロ**で版が読める。
+   ⚠️ 日付を手で上げる。**このファイルを直したら必ずここも直す**
+      （上げ忘れると「貼り替えたのに古い日付」で、かえって判断を誤らせる）。
+   ⚠️ この札そのものが貼り直しなので、**今ある本番の版の証拠にはならない**。
+      次に貼った回から効く。 */
+const BUILD = '2026-09-12';
+
 const ANTHROPIC_API_KEY =
   Deno.env.get('ANTHROPIC_API_KEY_PAYSLIP') || Deno.env.get('ANTHROPIC_API_KEY') || '';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
@@ -913,6 +925,20 @@ Deno.serve(async (req) => {
 
   let body: Parsed = {};
   try { body = await req.json(); } catch { return json({ ok: false, reason: 'bad_request' }, 400); }
+  /* ★版だけ返す（2026-09-12）。Anthropic も DB も1回も呼ばない＝**費用ゼロ**。
+     返すのは版の札と「secret が有るか無いか」の真偽だけ。
+     ⚠️ **値は1文字も返さない。** 鍵そのものはもちろん、長さも先頭も返さない
+        （公開リポジトリで anon キーが誰でも使える＝これは誰でも叩ける口）。
+     ⚠️ 回数制限より手前に置いてある。ここを数えると、版を見ただけで
+        その人のその日の残り回数が減る。 */
+  if (body.ping) {
+    return json({
+      ok: true, build: BUILD,
+      has_key: !!ANTHROPIC_API_KEY,
+      has_db: !!(SUPABASE_URL && SERVICE_ROLE),
+      has_salt: !!IP_SALT,
+    });
+  }
   /* ★ここから下、body の中身を console に出さない（画像も金額もラベルも）。 */
 
   const b64 = typeof body.image_b64 === 'string' ? body.image_b64 : '';

@@ -829,6 +829,53 @@ async function foundingReport(users, testIds, real) {
     console.log('   ※ 読めた回数ではありません。読み取りに失敗した分もここに入っています。');
   } catch (e) { line('取得できず', e.message); }
 
+  /* ── 4-b. 内訳の完全性（2026-09-12・指摘4）────────────────────
+     ★「過去の行を書き換えていない」は「内訳が揃っている」の根拠にならない。
+       揃っているかを**判定した記録が無い**行が、いま大半を占める。
+     区分は3つだけ。判定の印は pay_items.v（版）。
+       v >= 2 で partial 無し … 判定して、欠けが無かった
+       v >= 2 で partial あり … 判定して、一部が未回答
+       v が無い・v < 2       … **判定情報なし**（2026-09-12 より前に出された行）
+     ⚠️ 過去データは一括で書き換えない。一括で除外もしない。
+        DEEP PAY の割合は今までどおり partial の付いた行だけを母数から外す
+        ＝判定情報なしの行は入ったまま。**その限界をここで数える。**
+     ⚠️ 「内訳なし」は欠陥ではない。総支給だけ出した人で、年収は正しい。 */
+  console.log('\n■ 内訳の完全性（「揃っている」と言える行はどれだけか）');
+  try {
+    const pr4 = await rest('pay_reports', 'select=created_at,pay_items&order=created_at.desc&limit=5000');
+    const c = { judgedFull: 0, judgedPartial: 0, unjudged: 0, none: 0 };
+    const cIn = { judgedFull: 0, judgedPartial: 0, unjudged: 0, none: 0 };
+    for (const r of pr4) {
+      const it = r.pay_items;
+      let k;
+      if (!it || typeof it !== 'object' || !Object.keys(it).length) k = 'none';
+      else if (Number(it.v || 1) >= 2) k = it.partial === true ? 'judgedPartial' : 'judgedFull';
+      else k = 'unjudged';
+      c[k]++;
+      if (inSpan(r.created_at)) cIn[k]++;
+    }
+    const tot = pr4.length;
+    const pct = (n) => (tot ? Math.round((n / tot) * 100) : 0) + '%';
+    line('判定して欠けなし', `${c.judgedFull}件（${pct(c.judgedFull)}）`,
+         sinceIso ? `　期間内 ${cIn.judgedFull}件` : '');
+    line('判定して一部未回答', `${c.judgedPartial}件（${pct(c.judgedPartial)}）`,
+         sinceIso ? `　期間内 ${cIn.judgedPartial}件` : '');
+    line('★判定情報なし', `${c.unjudged}件（${pct(c.unjudged)}）`,
+         sinceIso ? `　期間内 ${cIn.unjudged}件` : '');
+    line('内訳そのものが無い', `${c.none}件（${pct(c.none)}）`,
+         sinceIso ? `　期間内 ${cIn.none}件` : '');
+    line('合計', `${tot}件`);
+    if (c.unjudged) {
+      console.log('   ※ ★の ' + c.unjudged + '件について「内訳が揃っている」とは言えません。');
+      console.log('      欠けが無かったのか、判定していないだけなのかを区別できないためです。');
+      console.log('      ★書き換えません。集計からも外しません（外すと今出ている数字が全部動く）。');
+    }
+    if (c.judgedPartial) {
+      console.log('   ※ 一部未回答の ' + c.judgedPartial + '件は、割合の母数からだけ外れています。');
+      console.log('      金額も年収も、これまでどおり数えています。');
+    }
+  } catch (e) { line('取得できず', e.message); }
+
   /* ── 5. お問い合わせ ───────────────────────────────────── */
   console.log('\n■ お問い合わせ');
   try {

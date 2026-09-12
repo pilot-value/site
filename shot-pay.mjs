@@ -85,6 +85,24 @@ const SIMPLE = {   // 誰にでも聞く欄（2026-08-13 に手取り・今月�
   'f-contract': 'direct', 'f-seniority': '12', 'f-taxcountry': 'AE', 'f-tax': '0',
   'f-duty': '17', 'f-base-iata': 'DXB',
 };
+/* ★「前回の内容」＝翌月のフォームに引き継がれるもの（2026-09-12・open second 専用）。
+   ★ここに**その月の実績を1つも置かない**のが要点 ── 総支給・手取り・乗務時間・日当・
+     当月賞与・変動給の金額・役割の月次手当は、翌月のひな型には保存しない側。
+     置くと「先月の実績が今月の欄に残る」という、この作り直しが直した形そのものになる。
+   ★変動給は**項目名と支給単位だけ**（金額は持たない）。
+   ⚠️ 金額は架空。実在の人の明細ではない。 */
+const LAST_MONTH = {
+  'f-airline': 'emirates', 'f-position': 'cap', 'f-fleet': 'b777', 'f-currency': 'AED',
+  'f-age': '40-49', 'f-jobrole': 'line,instructor,union', 'f-housing': 'allowance',
+  'f-contract': 'direct', 'f-seniority': '12', 'f-taxcountry': 'AE', 'f-tax': '0',
+  'f-base': '36000', 'f-guarantee': '0', 'f-command': '3200', 'f-housing-amt': '17500',
+  'f-payitems': JSON.stringify({
+    v: 1,
+    variable: [{ label: 'Flight Pay', basis: 'block' },
+               { label: 'Layover Allowance', basis: 'day' }],
+  }),
+};
+
 /* <details id="pay-detail"> の中（パーディアムと住居はもう外）。
    ★2026-08-26、交通とその他の専用欄は無くなった（hidden ＝明細読み取り専用）。
      人が打つのは下の VAR / OTH の行。 */
@@ -285,7 +303,13 @@ const putRows = (page, kind, list) => page.evaluate((k, items) => {
     const row = pdAdd(k, true);
     const set = (sel, v) => {
       const e = row.querySelector(sel);
-      if (e && v) { e.value = v; e.dispatchEvent(new Event('input', { bubbles: true })); }
+      /* ★change も出す。金額の欄が桁区切りに整うのは change のときだけで、
+         出さないと本人が打った行だけ 12400 と素の数字で絵に残る。 */
+      if (e && v) {
+        e.value = v;
+        e.dispatchEvent(new Event('input', { bubbles: true }));
+        e.dispatchEvent(new Event('change', { bubbles: true }));
+      }
     };
     set('.pd-amt', it.amount); set('.pd-basis', it.basis);
     set('.pd-label', it.label);
@@ -395,6 +419,8 @@ const setDetail = async (page, open) => {
      node shot-pay.mjs open gate         匿名で提出したあとの「登録の箱」まで進めて渡す
      node shot-pay.mjs open fallback     その箱が描けなかったとき（pay-login.js を落とす）
      node shot-pay.mjs open done         会員登録まで済んだ結果カード（祝いが鳴るところ）
+     node shot-pay.mjs open second       ★2回目以降（今月の入力 → 確認の2画面）
+     node shot-pay.mjs open second slip  ★2回目以降で明細を落とした人の画面
      どれも en を足すと英語（例: node shot-pay.mjs open gate en）
    このページはログイン不要なので素の URL でも出るが、ほかの画面と同じ渡し方に揃える。
    ★gate / fallback は5段を全部埋めて送信まで押す。そこまで手で歩かせないための道。
@@ -409,6 +435,14 @@ if (process.argv.includes('open')) {
      ⚠️ 通信は gate と同じく1本残らず横取りしている＝本番には1件も入らない。 */
   const wantDone = process.argv.includes('done');
   const wantGate = wantFb || wantDone || process.argv.includes('gate');
+  /* ★2回目以降（2026-09-12）。「前回の内容」を端末に置いてから開く。
+     ⚠️ 本番の DB は読まない。置くのは localStorage だけ＝この窓を閉じれば消える。
+     ★slug を足すと、その入口から入ったところで渡す：
+        second        → 手入力（1画面に畳まれた「今月の入力」）
+        second slip   → 明細の入口（前回使ったほうが先に並ぶ）
+     ⚠️ 金額は架空。実在の人の明細ではない。 */
+  const wantSecond = process.argv.includes('second');
+  const wantSlip   = wantSecond && process.argv.includes('slip');
   const url = `http://localhost:3000/${lang === 'en' ? 'en/' : ''}pay-report.html`
             + (process.argv.includes('detail') ? '#pay-detail' : '');
   const b = await puppeteer.launch({
@@ -430,7 +464,27 @@ if (process.argv.includes('open')) {
       return json({});
     });
   }
+  if (wantSecond) {
+    /* ⚠️ 置くのは evaluateOnNewDocument（次の文書が動き出す前）。素の evaluate で
+       書いてから reload すると、離れる拍子の savePreset() が空のフォームで上書きする
+       ── db/test-form-contract.mjs と同じ順。 */
+    await pg.evaluateOnNewDocument((f, t) => {
+      try {
+        localStorage.setItem('pv_pay_last',
+          JSON.stringify(Object.assign({}, f, { _own: 'anon', _ts: t, _tab: '' })));
+      } catch (e) {}
+    }, Object.assign({}, LAST_MONTH, { _entry: wantSlip ? 'payslip' : 'manual' }), Date.now());
+  }
   await pg.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+  if (wantSecond) {
+    await new Promise((r) => setTimeout(r, 500));
+    if (!wantSlip) await startManual(pg);
+    await new Promise((r) => setTimeout(r, 400));
+    const n = await pg.evaluate(() => (window.PVPayWizard ? PVPayWizard.count() : 0));
+    console.log(wantSlip
+      ? '2回目以降・明細の入口（前回使ったほうが先に並ぶ）。前回の内容は端末に置いただけ＝本番は読んでいない。'
+      : `2回目以降の手入力。段は ${n} 枚（初回は5枚）。前回の内容は端末に置いただけ＝本番は読んでいない。`);
+  }
   if (wantGate) {
     await startManual(pg);
     await fillSimple(pg);
@@ -468,6 +522,245 @@ if (process.argv.includes('open')) {
   /* ★時間で待たない。待つのは「窓が閉じられたこと」＝接続が切れたこと
      （時間で待つと、誰も触っていないのに 30 秒で勝手に消える）。 */
   await new Promise((r) => b.on('disconnected', r));
+  process.exit(0);
+}
+
+/* ══ node shot-pay.mjs second ── 2か月目を通しで撮る（2026-09-12・指摘1）══
+   オーナー指摘「2か月分の操作を、実際の画面で通して確認する」に答えるための回。
+   ⚠️ **実機ではない。** ブラウザのスマホ表示（幅390px）。実機での確認は宿題に残す。
+
+   撮るもの（日英 × 手入力／明細アップロードの2本立て）
+     1 entry        2か月目の入口（前回使ったほうが先に並ぶ）
+     2 input        今月の入力（1画面）★基本給・保証給が「前回の 0」で出る
+                                        ★変動給は**未回答のまま**（前月の「なし」を持ち込まない）
+     3 review       確認（5/5 相当）
+     4 result       提出後の結果 ＝ 戻り先
+     5 slip-entry   明細アップロードの入口
+     6 slip-read    読み取り結果 ★家族手当・株式積立奨励金が**行として**出る
+     7 slip-input   読み取りを受けた今月の入力
+     8 slip-review  確認
+     9 slip-result  提出後の結果
+
+   ⚠️ **本番には1件も入らない。** Supabase 宛ての通信は1本残らず横取りする。
+      明細も db/fixtures/ の合成 PDF で、読み取りの応答はこちらで作る
+      （ただし**本物のサーバ実装に通してから**返す ── 写経した複製で作ると、
+        サーバ側の金額の読み方が腐っても絵は正しいまま出てしまう）。
+   ⚠️ 金額は架空。実在の人の明細ではない。 */
+if (ROUND === 'second') {
+  await browser.close();
+
+  /* 本物の parse-payslip を読むための最小の Deno（db/test-form-contract.mjs と同じ手）。
+     読むだけ＝ネットにも Anthropic にも触らない。 */
+  globalThis.Deno = { env: { get: () => '' }, serve: () => {} };
+  const { sanitize, reconcile, applyChecks } =
+    await import('./supabase/functions/parse-payslip/index.ts');
+
+  /* 前月ぶん。★その月の実績は1つも置かない。
+     ★「基本給なし・保証給なし・変動給なし」を全部立ててある ── 2つは「前回の 0」として
+       金額欄に出て、変動給だけは持ち込まれない、という指摘2の直しを1枚で見るため。 */
+  const LAST_NONE = {
+    'f-airline': 'emirates', 'f-position': 'cap', 'f-fleet': 'b777', 'f-currency': 'AED',
+    'f-age': '40-49', 'f-jobrole': 'line', 'f-housing': 'allowance',
+    'f-contract': 'direct', 'f-seniority': '12', 'f-taxcountry': 'AE', 'f-tax': '0',
+    'f-command': '3200', 'f-housing-amt': '17500',
+    'f-payitems': JSON.stringify({
+      v: 1, fixed_none: true, guarantee_none: true, variable_none: true,
+      variable: [{ label: 'Flight Pay', basis: 'block' }],
+    }),
+  };
+
+  /* モデルの生の出力（日本の明細を想定）。★家族手当は語彙に無い＝unmapped へ、
+     株式積立奨励金は other へ落ちる ── 指摘3で「行として出す」ようにした2つ。 */
+  const RAW = {
+    currency: 'JPY', period: { year: 2026, month: 8 },
+    earnings: [
+      { label: '基本給', amount: 420000, kind: 'base' },
+      { label: '職務手当', amount: 185000, kind: 'command' },
+      { label: '変動付加乗務手当', amount: 148200, kind: 'flight_variable' },
+      { label: '住宅手当', amount: 60000, kind: 'housing' },
+      { label: '日当（非課税）', amount: 42000, kind: 'per_diem' },
+      { label: '株式積立奨励金', amount: 1000, kind: 'other' },
+    ],
+    /* ★時間は value（金額は amount）── サーバ側の型がそうなっている。 */
+    hours: [{ label: '乗務時間', value: 78.2, kind: 'block' },
+            { label: '総勤務時間', value: 168.5, kind: 'duty' }],
+    gross_total: 884200,          // 明細に印字された総支給（内訳の合計と1円まで合う）
+    deductions_total: 221354, net_pay: 662846,
+    unmapped: [{ label: '家族手当', amount: 28000 }],
+  };
+  const FAKE = (() => { const p = sanitize(RAW); return { ok: true, result: applyChecks(p, reconcile(p)) }; })();
+  const FN = '/functions/v1/parse-payslip';
+  /* ★authorization はワイルドカードの対象外（仕様）。名指ししないと、送信の
+     preflight だけがブラウザに止められて「Failed to fetch」になる。 */
+  const CORS = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers':
+      'authorization, apikey, content-type, content-profile, accept-profile, prefer, '
+      + 'range, x-client-info, x-supabase-api-version, *',
+    'Access-Control-Allow-Methods': '*',
+  };
+  const PDF = path.join(ROOT, 'db/fixtures/payslip-pdf-gulf.pdf');
+
+  const b2 = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox'] });
+  /* 今月ぶんに、本人が打ち直す分だけ。★基本給は「前回の 0」を打ち替える（指摘2）。 */
+  const NOW = { 'f-year': '2026', 'f-month': '8', 'f-block': '81.4', 'f-stay': '9',
+                'f-gross': '68400', 'f-netpay': '68400',
+                'f-perdiem': '4200', 'f-bonus-mo': '0' };
+
+  for (const lang of ['ja', 'en']) {
+    const url = `http://localhost:3000/${lang === 'en' ? 'en/' : ''}pay-report.html`;
+
+    /* 1つの窓を開いて、前月ぶんを置き、通信を横取りするところまで。 */
+    const openSecond = async (entry) => {
+      const p = await b2.newPage();
+      await p.setViewport({ width: 390, height: 844, deviceScaleFactor: 2 });
+      p.on('pageerror', (e) => console.log('  ⚠ ページ例外: ' + e.message));
+      /* ★落ちた通信は黙って「送信できませんでした」になるだけ。理由をここで出す。 */
+      p.on('requestfailed', (r) => /google-analytics|googletagmanager|\/g\/collect/.test(r.url()) ? 0
+        : console.log('  ⚠ 通信が落ちた: ' + r.method() + ' '
+        + r.url().replace(/^https?:\/\/[^/]+/, '') + ' — ' + ((r.failure() || {}).errorText || '?')));
+      await p.setRequestInterception(true);
+      p.on('request', (r) => {
+        const u = r.url();
+        const J = { ...CORS, 'Content-Type': 'application/json' };
+        if (u.includes(FN)) {
+          if (r.method() === 'OPTIONS') return r.respond({ status: 204, headers: CORS, body: '' });
+          return r.respond({ status: 200, headers: J, body: JSON.stringify(FAKE) });
+        }
+        /* ★ここを素通しにすると、本番に架空の給与が1件入る（localhost が
+           見ている Supabase は本番）。1本残らず横取りする。 */
+        if (!/supabase\.co/.test(u)) return r.continue();
+        if (r.method() === 'OPTIONS') return r.respond({ status: 204, headers: CORS, body: '' });
+        /* ★本物の submit_pay_report は { ok: true, … } を返す。ok が無いと画面は
+           「サーバから結果が返りませんでした」で止まる（結果パネルまで撮れない）。 */
+        if (/submit_pay_report/.test(u)) {
+          return r.respond({ status: 200, headers: J,
+            body: JSON.stringify(Object.assign({ ok: true }, RESULT)) });
+        }
+        if (/\/rest\/v1\//.test(u)) return r.respond({ status: 200, headers: J, body: '[]' });
+        return r.respond({ status: 200, headers: J, body: '{}' });
+      });
+      await p.evaluateOnNewDocument((o, t, e2) => {
+        try {
+          localStorage.clear();
+          localStorage.setItem('pv-theme', 'light');
+          localStorage.setItem('pv_pay_last',
+            JSON.stringify(Object.assign({}, o, { _own: 'anon', _ts: t, _tab: '', _entry: e2 })));
+        } catch (err) {}
+      }, LAST_NONE, Date.now(), entry);
+      await p.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+      await new Promise((r) => setTimeout(r, 900));
+      /* 送信のときだけログイン済みにする（結果パネルまで撮るため）。 */
+      await p.evaluate(() => {
+        _sb.auth.getSession = async () => ({
+          data: { session: { user: { id: '00000000-0000-4000-8000-00000000ff01' } } } });
+      });
+      return p;
+    };
+
+    /* 最後の段まで運んで確認を撮り、送信して結果まで撮る。 */
+    const finish = async (p, tag) => {
+      await p.evaluate(() => { if (window.PVPayWizard) window.PVPayWizard.goLast(); });
+      await new Promise((r) => setTimeout(r, 600));
+      await shoot(p, `${lang}-${tag}-review`);
+      const miss = await p.evaluate(() => (typeof missingAll !== 'function' ? ['?'] :
+        missingAll().map((x) => {
+          const e = x.querySelector('input,select,textarea');
+          return e ? (e.id || e.className) : (x.id || '?');
+        })));
+      if (miss.length) console.log(`  ⚠ 足りない必須: ${miss.join(' / ')}（送信は止まる）`);
+      await p.evaluate(() => document.getElementById('submit-btn').click());
+      await new Promise((r) => setTimeout(r, 1600));
+      await shoot(p, `${lang}-${tag}-result`);
+    };
+
+    /* ── A. 手入力 ───────────────────────────────────────── */
+    console.log(`\n${lang} / 2か月目・手入力（幅390px＝ブラウザのスマホ表示）`);
+    {
+      const p = await openSecond('manual');
+      await shoot(p, `${lang}-1-entry`);
+      await startManual(p);
+      await new Promise((r) => setTimeout(r, 500));
+      await shoot(p, `${lang}-2-input`);
+      const st = await p.evaluate(() => {
+        const g = (id) => { const e = document.getElementById(id); return e ? String(e.value) : null; };
+        const c = (id) => { const e = document.getElementById(id); return e ? !!e.checked : null; };
+        const mk = (id) => { const e = document.getElementById(id);
+                             return e && e.classList.contains('pv-carried'); };
+        return { base: g('f-base'), guar: g('f-guarantee'), carried: mk('f-base') && mk('f-guarantee'),
+                 vnone: c('f-variable-none'), vsum: g('f-var-sum'),
+                 vbtn: !!document.getElementById('pd-var').disabled,
+                 steps: window.PVPayWizard ? PVPayWizard.count() : 0 };
+      });
+      console.log(`     段 ${st.steps} 枚 / 基本給 '${st.base}'・保証給 '${st.guar}'`
+                  + `（引き継ぎの印 ${st.carried ? 'あり' : '—'}）`);
+      console.log(`     ★変動給: チェック ${st.vnone ? '入ってしまっている' : '入っていない'}`
+                  + ` / 合計 '${st.vsum}' / 「追加」ボタン ${st.vbtn ? '塞がっている' : '押せる'}`
+                  + '（＝今月も聞く。指摘2の直しが効いている証拠）');
+      await put(p, NOW);
+      await put(p, { 'f-base': '38000' });      // 「前回の 0」を打ち替える
+      await putRows(p, 'var', [{ amount: '12400', label: 'Flight Pay', basis: 'block' }]);
+      await new Promise((r) => setTimeout(r, 400));
+      await finish(p, '3');
+      await p.close();
+    }
+
+    /* ── B. 明細アップロード ──────────────────────────────── */
+    console.log(`${lang} / 2か月目・明細アップロード`);
+    {
+      const p = await openSecond('payslip');
+      await shoot(p, `${lang}-5-slip-entry`);
+      /* ★前回使ったほうが先に並ぶだけで、押すのは今までどおり本人。 */
+      await p.click('#entry-payslip');
+      await new Promise((r) => setTimeout(r, 400));
+      await p.waitForFunction(() => {
+        const n = document.getElementById('ps');
+        return !!n && !n.hidden && n.offsetHeight > 0;
+      }, { timeout: 10000 });
+      const input = await p.$('#ps-file');
+      await input.uploadFile(PDF);
+      await p.waitForSelector('.ps-edit', { timeout: 40000 });
+      await p.waitForFunction(() => {
+        const b3 = document.getElementById('ps-confirm');
+        return !!b3 && !b3.disabled;
+      }, { timeout: 60000 });
+      await p.click('#ps-confirm');
+      await p.click('#ps-send');
+      await p.waitForFunction(() => !!document.querySelector('.ps-res, .ps-msg-warn'),
+        { timeout: 30000 });
+      await new Promise((r) => setTimeout(r, 700));
+      await shoot(p, `${lang}-6-slip-read`);
+      /* ★指摘3の証拠 ── 家族手当（語彙に無い）と株式積立奨励金（その他）が、
+         隠し欄に合算されずに**行として**出ているか。 */
+      const oth = await p.evaluate(() => {
+        const box = document.getElementById('pd-oth-rows');
+        const rows = [...box.querySelectorAll('.pd-row')].map((r) => ({
+          label: (r.querySelector('.pd-label') || {}).value,
+          amount: (r.querySelector('.pd-amt') || {}).value,
+        }));
+        const h = document.getElementById('f-other');
+        return { rows: rows, sum: document.getElementById('f-oth-sum').value,
+                 hidden: h ? String(h.value) : null };
+      });
+      console.log('     ★その他の現金手当の行: '
+                  + (oth.rows.length ? oth.rows.map((r) => `${r.label}=${r.amount}`).join(' / ') : 'なし'));
+      console.log(`     合計 '${oth.sum}' / 隠し欄 f-other '${oth.hidden}'（空でないと二重計上）`);
+      /* 明細に載らないもの（ステイ日数・当月賞与）だけ本人が足してから撮る。
+         ★日当は明細から入っている＝ここでは触らない。
+         ★先に撮ると6枚目と1ドットも変わらない絵になる（読み取り結果と同じ画面）。 */
+      await put(p, { 'f-stay': '9', 'f-bonus-mo': '0' });
+      await new Promise((r) => setTimeout(r, 400));
+      await shoot(p, `${lang}-7-slip-input`);
+      await finish(p, '8');
+      await p.close();
+    }
+  }
+  await b2.close();
+  console.log('\n保存先: ' + dir);
+  console.log('⚠ 実機ではない ── ブラウザのスマホ表示（幅390px）で通した絵。');
+  console.log('⚠ 本番の給与には1件も入っていない（Supabase 宛ては1本残らず横取りした）。');
+  const st2 = fs.readdirSync(dir).filter((f2) => f2.endsWith('.png') && !shotNames.has(f2));
+  if (st2.length) console.log(`\n⚠ この回で撮っていない絵が ${st2.length} 枚 残っている: ` + st2.sort().join(' '));
   process.exit(0);
 }
 

@@ -12,7 +12,7 @@
    既定では走らない。--live を付けたときだけ。
 
    実行:
-     node db/smoke-parse-payslip.mjs             # 費用ゼロ。ここまでで十分
+     node db/smoke-parse-payslip.mjs             # 費用ゼロ。ここまでで十分（段0 で版も出る）
      node db/smoke-parse-payslip.mjs --live      # 実画像1枚（≒$0.02）
      node db/smoke-parse-payslip.mjs --live-cap  # ★上限まで回す（≒$0.60）
 
@@ -49,6 +49,27 @@ async function call(body) {
 }
 
 console.log(`\n${FN}\n`);
+
+/* ── 段0：貼られている版（費用ゼロ）───────────────────────────
+   { "ping": 1 } は Anthropic も DB も1回も呼ばず、版の札と
+   「secret が有るか無いか」の真偽だけを返す（値は1文字も返さない）。
+   ⚠️ **古い版には無い枝**。無ければ 400 no_image が返るだけで、
+      それは「貼られているのが 2026-09-12 より前の版」という意味。
+      ここで止めない ── 段1〜4 は今までどおり見られる。 */
+console.log('段0 貼られている版');
+const r0 = await call({ ping: 1 });
+if (r0.status === 200 && r0.json?.ok === true && r0.json?.build) {
+  console.log(`  ✅ build = ${r0.json.build}`);
+  ok(r0.json.has_key === true, '専用または共通の Anthropic の鍵が入っている');
+  ok(r0.json.has_db === true, 'DB への接続情報が入っている');
+  ok(r0.json.has_salt === true, 'IP を平文で持たないための鍵が入っている');
+  /* ★鍵そのものを返していないこと（この検査が漏れの見張りでもある）。 */
+  ok(!JSON.stringify(r0.json).match(/sk-ant|eyJ[A-Za-z0-9_-]{20,}/),
+     '★鍵の値は1文字も返っていない');
+} else {
+  console.log('  ⚠️ 版を返さない ＝ 2026-09-12 より前の版が貼られている');
+  console.log(`     実際: ${r0.status} ${JSON.stringify(r0.json)}`);
+}
 
 // ── 段1：そもそも生きているか（費用ゼロ）─────────────────────
 console.log('段1 デプロイと secret');
