@@ -260,6 +260,11 @@
         /* 開いた瞬間の焦点は板の中（× ではなく最初の行き先）。
            ★visibility が切り替わるのを待たずに focus すると効かないブラウザがある。 */
         window.requestAnimationFrame(function () {
+          /* ⚠️ このフレームが遅れて届くことがある（混んだ端末・重い回）。
+             届いたときには本人がもう閉じていて、焦点だけが閉じた板の中へ
+             引きずり込まれる＝キーボードの人が行き先を見失う。
+             **いま開いているか**をもう一度見てから動かす（2026-09-11 に再現）。 */
+          if (!d.body.classList.contains('pv-anav-open')) return;
           var f = focusables();
           var first = null;
           for (var i = 0; i < f.length; i++) {

@@ -16,6 +16,11 @@ const FAKE = {
   ok: true,
   result: {
     currency: 'JPY', period: { year: 2026, month: 7 },
+    /* ★総支給を入れておく（2026-09-11）。無いと「あなたの時給」の枠が
+       題名とチェックだけになり、絵を見た人が壊れたと思う。製品は正しくて、
+       時給は総支給から出すので元が無ければ何も出さないのが正しい振る舞い。
+       221,354（控除）と 690,146（手取り）と辻褄が合う額にしてある。 */
+    gross_total: 911500,
     earnings: [
       { label: '基本給', amount: 420000, kind: 'base' },
       { label: '職務手当', amount: 185000, kind: 'command' },
@@ -65,17 +70,33 @@ for (const lang of ['ja', 'en']) {
     await page.reload({ waitUntil: 'networkidle2', timeout: 30000 });
     await new Promise((r) => setTimeout(r, 700));
 
+    /* ★2026-09-08 から5段のウィザード。明細の枠は入口の「明細から自動入力」を
+       押すまで hidden で、押さずに撮ると
+       「Node is either not visible」で落ちる（2026-09-11 に踏んだ）。 */
+    await page.waitForSelector('#entry-payslip', { visible: true, timeout: 8000 });
+    await page.click('#entry-payslip');
+    await page.waitForSelector('#ps', { visible: true, timeout: 8000 });
+
     const tag = `r${ROUND}-ps-${lang}-${theme}`;
     await shot(await page.$('#ps'), `${tag}-1drop`);
 
     const inp = await page.$('#ps-file');
     await inp.uploadFile(path.join(DIR, 'fixtures', 'payslip-jp-major.png'));
-    await page.waitForSelector('.ps-rect', { timeout: 8000 });
+    /* ★黒塗りが出るまで待つ。画像は OCR に落ちるので**数十秒**かかる
+       （db/test-payslip-redact.mjs も 40秒の予算で回している）。8秒では足りない。 */
+    await page.waitForSelector('.ps-rect', { timeout: 60000 });
     await new Promise((r) => setTimeout(r, 600));
     await shot(await page.$('#ps'), `${tag}-2edit`);
 
+    /* ★「送る」の前に、黒塗りを確かめる同意が要る（#ps-confirm）。
+       探し終わるまで disabled なので、**時間ではなく条件で**待つ。 */
+    await page.waitForFunction(() => {
+      const b = document.getElementById('ps-confirm');
+      return !!b && !b.disabled;
+    }, { timeout: 60000 });
+    await page.click('#ps-confirm');
     await page.click('#ps-send');
-    await page.waitForSelector('.ps-res', { timeout: 15000 });
+    await page.waitForSelector('.ps-res', { timeout: 30000 });
     await new Promise((r) => setTimeout(r, 600));
     await shot(await page.$('#ps'), `${tag}-3read`);
     const rate = await page.$('#ps-rate');

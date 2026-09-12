@@ -167,7 +167,10 @@ const RESULT = {
                median_usd_per_bh: 258.0, percentile: 76 },
 };
 
+const shotNames = new Set();   // この回で実際に撮った名前（末尾の見張りが使う）
+
 async function shoot(page, name) {
+  shotNames.add(name + '.png');
   const out = path.join(dir, `${name}.png`);
   await page.screenshot({ path: out, fullPage: true });
   console.log('  → ' + path.basename(out));
@@ -1079,3 +1082,14 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
 
 await browser.close();
 console.log('\n保存先: ' + dir);
+
+/* ★同じ回（pay-r1）へ撮り直すと、前の版が作った名前の絵がそのまま残る。
+   2026-09-11、5週間前の -3-result.png を今日の絵だと思って読み、
+   「undefined年undefined月」「上位 NaN%」を今の不具合として報告しかけた。
+   絵には日付が写らないので、見る側には古いかどうかが分からない。名指しで言う。 */
+const stale = fs.readdirSync(dir).filter((f) => f.endsWith('.png') && !shotNames.has(f));
+if (stale.length) {
+  console.log(`\n⚠ この回で撮っていない絵が ${stale.length} 枚 残っている（前の版の置き土産。読むと古い画面を今の画面だと思う）:`);
+  console.log('  ' + stale.sort().join('\n  '));
+  console.log('  消すなら: rm ' + JSON.stringify(dir) + '/*.png してから撮り直す');
+}

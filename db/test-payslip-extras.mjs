@@ -171,7 +171,11 @@ const BLOCK = PAYSLIP.slice(s0, s1);
    「どの欄が setField を通ったか」を記録する。
    2026-08-13 に手取りと勤務時間が表の欄へ出たので、この2つは writeHidden ではなく
    setField を通らないといけない（通らないと値は入るのに段階表示が進まない）。 */
-const build = new Function('document', 'lastHours', 'setField',
+/* ★mark も切り出す範囲の外にある（本体は payslip.js のモジュール変数 filled に足す）。
+   writeHidden は .ai-filled を付けないので、この印だけが
+   「明細が書いた隠し欄を下書きで上書きさせない」根拠になっている（2026-09-11）。
+   受け皿を差し込まないと ReferenceError で落ちる＝印を外したらここが赤くなる。 */
+const build = new Function('document', 'lastHours', 'setField', 'mark',
   BLOCK + '\nreturn { writeExtras: writeExtras, okAmount: okAmount, okHours: okHours, sumKind: sumKind };');
 
 const fakeDoc = (ids) => {
@@ -179,6 +183,7 @@ const fakeDoc = (ids) => {
   (ids || Object.keys(MAP)).forEach((i) => { els[i] = { value: '' }; });
   return { getElementById: (i) => els[i] || null, els };
 };
+const mkMark = (into) => (id) => { into.push(id); };
 const mkSetField = (doc, seen) => (id, v) => {
   const e = doc.getElementById(id);
   if (!e) return false;
@@ -191,7 +196,9 @@ const mkSetField = (doc, seen) => (id, v) => {
 {
   const doc = fakeDoc();
   const seen = [];
-  const api = build(doc, { block: 86.5, duty: 171.2, night: 12.5, credit: 90 }, mkSetField(doc, seen));
+  const marked = [];
+  const api = build(doc, { block: 86.5, duty: 171.2, night: 12.5, credit: 90 },
+                    mkSetField(doc, seen), mkMark(marked));
   api.writeExtras(
     { net_pay: 812345.6, ytd_taxable: 5400000, deductions_total: 233654 },
     [{ field: 'f-other', amount: 120000, kind: 'flight_variable' },
@@ -213,6 +220,11 @@ const mkSetField = (doc, seen) => (id, v) => {
      seen.join(','));
   ok(!seen.includes('f-ytd') && !seen.includes('f-deduct') && !seen.includes('f-flightvar'),
      '画面に出ていない欄は writeHidden のまま（1枚で7回描き直さない）', seen.join(','));
+  /* ★ここが④の要。緑枠（.ai-filled）は writeHidden の欄には付かないので、
+     この印が無いと f-ytd・f-deduct・f-source などが下書きで黙って書き戻される。 */
+  ok(['f-ytd', 'f-deduct', 'f-night-h', 'f-credit-h', 'f-source', 'f-flightvar']
+       .every((id) => marked.includes(id)),
+     '★★隠し欄も「明細が書いた」と印を付ける（下書きが上書きしない根拠）', marked.join(','));
 }
 
 // ── ★2026-08-27：保証時間と、行に載った変動給 ──────────────────
@@ -222,7 +234,8 @@ const mkSetField = (doc, seen) => (id, v) => {
      黙って捨てられていた（米国の見本は実際に GUARANTEE 73.00 を印字している）。 */
   const doc = fakeDoc([...Object.keys(MAP), 'f-guar']);
   const seen = [];
-  const api = build(doc, { block: 78.2, duty: 168.5, guarantee: 65 }, mkSetField(doc, seen));
+  const api = build(doc, { block: 78.2, duty: 168.5, guarantee: 65 },
+                    mkSetField(doc, seen), mkMark([]));
   api.writeExtras({ net_pay: 832246 },
     [/* 行に載った変動給。f-var-sum が持つので、こちらでは数えない。 */
      { field: 'pd-var', amount: 148200, kind: 'flight_variable', row: {} },
@@ -243,7 +256,8 @@ const mkSetField = (doc, seen) => (id, v) => {
 {
   const doc = fakeDoc();
   const seen = [];
-  const api = build(doc, { block: 80, duty: 999, night: 0, credit: -3 }, mkSetField(doc, seen));
+  const api = build(doc, { block: 80, duty: 999, night: 0, credit: -3 },
+                    mkSetField(doc, seen), mkMark([]));
   api.writeExtras({ net_pay: -1, ytd_taxable: null, deductions_total: undefined }, []);
   const v = (id) => doc.els[id].value;
   ok(seen.length === 0, '読めなかった欄は setField を呼ばない（空で上書きするだけ）', seen.join(','));
@@ -258,7 +272,7 @@ const mkSetField = (doc, seen) => (id, v) => {
 
 // ── 境界 ──
 {
-  const api = build(fakeDoc(), {}, () => false);
+  const api = build(fakeDoc(), {}, () => false, () => {});
   eq(api.okHours(400), 400, '400h ちょうどは通す');
   eq(api.okHours(400.1), null, '400.1h は落とす');
   eq(api.okAmount(0), 0, '0 は有効な値として通す（無給の月は実在する）');
@@ -271,7 +285,7 @@ const mkSetField = (doc, seen) => (id, v) => {
 // ── 隠し欄が無い古いHTMLでも落ちない ──
 {
   const doc = { getElementById: () => null };
-  const api = build(doc, { duty: 100 }, () => false);
+  const api = build(doc, { duty: 100 }, () => false, () => {});
   let threw = false;
   try { api.writeExtras({ net_pay: 1 }, []); } catch (e) { threw = true; }
   ok(!threw, '隠し欄が無いページでも例外を投げない');

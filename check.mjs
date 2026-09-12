@@ -53,28 +53,36 @@ const SQL = [
 
 // localhost:3000 が要るもの。長い順に並べてある。
 //
-// ⚠️ ここの秒数は **同時4本で回したときの実測**（2026-08-28 に測り直した）。
+// ⚠️ ここの秒数は **同時4本で回したときの実測**（2026-09-11 に測り直した）。
 //    単独で走らせた秒数とは違う。ここが実物とずれると LPT が効かなくなる：
 //    2026-08-27 版は db/test-payslip-redact.mjs を 40 と書いていたが実測は 204 で、
 //    いちばん重いものが9番目に流れていた（＝終盤に1本だけ残って待つ形）。
 //    測り直したら、この表もその場で直す。
 //
 // 2026-08-28: assert-header.mjs を内部で並列化して 383 → 217 になった
-//             （単独なら 98秒。ここでは下の INNER_ENV で2本に絞っているので 217秒）。
+//             （単独なら 98秒。ここでは下の INNER_ENV で2本に絞っている）。
 //             db/test-payslip-redact.mjs は同じ日から下の SOLO で外に出したので、
-//             ここの 258 は並べ替えには効かない（一覧に載せるためだけに残してある）。
-//             ＝ プールの中でいちばん長いのは assert-header.mjs。
+//             ここの秒数は並べ替えには効かない（一覧に載せるためだけに残してある）。
+//
+// 2026-09-11: `node check.mjs all` の実測で**全部**書き直した。
+//             重い3本が古い秒数のせいで後ろへ流れていた（＝終盤に1本だけ残って待つ形）──
+//               assert-pay-rows.mjs        73 → 210（Phase 4 の「戻る」で M-1〜M-8 が増えた）
+//               db/test-pay-gate.mjs       72 → 194
+//               db/test-form-contract.mjs  52 → 179（明細→REAL PAY の通しを足した）
+//             ＝ プールの中でいちばん長いのは今も assert-header.mjs。
+//             ⚠️ 下の SQL / FAST は**この回では測っていない**（あちらは -j8・
+//                ブラウザ無しで走る＝条件が違う）。直すならその区分で測り直す。
 const WEB = [
-  ['db/test-payslip-redact.mjs', 258], ['assert-header.mjs', 217],
-  ['assert-jp.mjs', 143], ['assert-referral.mjs', 120],
-  ['assert-perf.mjs', 94], ['assert-currency.mjs', 85],
-  ['assert-pay-rows.mjs', 73], ['assert-conditions.mjs', 62],
-  ['db/test-form-contract.mjs', 52], ['db/test-pay-gate.mjs', 72],
-  ['assert-unlock.mjs', 29], ['assert-my-posts.mjs', 26],
-  ['assert-founding.mjs', 21], ['assert-admin.mjs', 13],
-  ['assert-langtoggle.mjs', 12], ['db/test-login-redirect.mjs', 3],
-  ['assert-deep-pay-compare.mjs', 2.5], ['assert-deep-pay.mjs', 2.2],
-  ['assert-review-quality.mjs', 1.5], ['db/test-session-expiry.mjs', 0.9],
+  ['db/test-payslip-redact.mjs', 203], ['assert-header.mjs', 279],
+  ['assert-pay-rows.mjs', 210], ['db/test-pay-gate.mjs', 194],
+  ['db/test-form-contract.mjs', 179], ['assert-jp.mjs', 153],
+  ['assert-referral.mjs', 126], ['assert-perf.mjs', 110],
+  ['assert-currency.mjs', 93], ['assert-conditions.mjs', 60],
+  ['assert-unlock.mjs', 59], ['assert-my-posts.mjs', 32],
+  ['assert-langtoggle.mjs', 24], ['assert-founding.mjs', 20],
+  ['assert-admin.mjs', 12], ['db/test-login-redirect.mjs', 7],
+  ['assert-deep-pay-compare.mjs', 5.7], ['assert-deep-pay.mjs', 5.0],
+  ['assert-review-quality.mjs', 2.0], ['db/test-session-expiry.mjs', 0.9],
 ];
 
 const argv = process.argv.slice(2);
@@ -203,6 +211,11 @@ const HINTS = {
     '★ 2026-08-28 から、これは単独で流している（上の SOLO）。'
     + 'つまり CPU の食い合いではなく**本物の赤**の可能性が高い。'
     + 'それでも `語 0／行 0／0ms` と出ていたら、裏で重い別プロセスが動いていないか見る',
+  'db/test-form-contract.mjs':
+    '★ 明細を1枚通す節（2026-09-11 追加）は、parse-payslip を interception で**偽の応答**に'
+    + 'すり替えて回している。ネットも課金も無い。ここが落ちたら、先に '
+    + '`node db/test-payslip-extras.mjs` と `node db/test-payslip-parse.mjs`（どちらも1秒）を流す ── '
+    + '金額の読み方かフォームの契約が先に壊れていれば、そちらが赤くなる',
 };
 
 for (const f of failed) {

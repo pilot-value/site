@@ -3525,6 +3525,35 @@ for (const lang of ['ja', 'en']) {
   await till(page, "!document.body.classList.contains('pv-anav-open')");
   ok(await page.evaluate(() => document.activeElement && document.activeElement.id === 'pv-ham-btn'),
      `${lang}: ★★× で閉じ、焦点が ≡ に戻る`);
+
+  /* ★★遅れて届いたフレームに焦点をさらわれない（2026-09-11 に踏んで直した）──
+       開けた瞬間の焦点移動は「次のフレーム」に預けてある（visibility が
+       切り替わる前に focus しても効かないブラウザがあるため）。混んだ回は
+       そのフレームが何百 ms も遅れて届き、**そのときには本人がもう閉じている**。
+       すると焦点だけが閉じた板の中へ引きずり込まれ、キーボードの人が行き先を
+       見失う。実際に `check.mjs all`（同時4本）でここだけが赤くなり、
+       単独では 1280/1280 通るという形で出た。
+     ⚠️ 時間では待たない・混ませもしない。**フレームそのものを止めて**
+       「遅れて届いた1枚」を手で流し込む＝混み具合によらず毎回同じ答えになる。 */
+  const late = await page.evaluate(() => new Promise((res) => {
+    const keep = [];
+    const real = window.requestAnimationFrame.bind(window);
+    window.requestAnimationFrame = (cb) => { keep.push(cb); return 0; };
+    document.getElementById('pv-ham-btn').click();          // 開く（焦点はフレーム待ち）
+    setTimeout(() => {
+      document.querySelector('.mr-side-x').click();         // 遅れている間に閉じる
+      window.requestAnimationFrame = real;
+      keep.forEach((cb) => { try { cb(); } catch (e) { /* 追わない */ } });
+      const a = document.activeElement;
+      res({ at: a ? (a.id || a.className || a.tagName) : '',
+            open: document.body.classList.contains('pv-anav-open') });
+    }, 400);
+  }));
+  ok(late.at === 'pv-ham-btn' && !late.open,
+     `${lang}: ★★遅れて届いたフレームが、閉じた板へ焦点を引きずり込まない`,
+     `焦点 ${late.at} / 開いている ${late.open}`);
+  await till(page, "!document.body.classList.contains('pv-anav-open')");
+
   /* ★広い幅に戻したら、開きっぱなしにしない（レールに化けるため）。 */
   await page.click('#pv-ham-btn');
   await till(page, "document.body.classList.contains('pv-anav-open')");

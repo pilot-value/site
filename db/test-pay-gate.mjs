@@ -576,24 +576,58 @@ for (const [dir, tag] of [['', '(日本語)'], ['/en', '/en']]) {
     '1,23,456 はどちらにも読めない＝読めないと言う（黙って数にしない）', money.weird);
   ok(money.bad[0] === 'bad', '数字として読めないものは、読めないと言う', money.bad);
 
-  /* ② 打鍵中に文字を消さない。桁区切りを足すのは数字だけのときに限る。 */
-  const keys = await p.evaluate(async () => {
+  /* ② 打鍵中は1文字も書き換えない。桁区切りを出すのは**欄を離れたとき**だけ
+     （2026-09-11 オーナー決定。時間・率の欄＝class="num" と同じ形に揃えた）。
+
+     ★それまでは打っている最中にも桁区切りを出していて、その判定が
+       「カンマを落としてから数字だけか見る」形だった ＝ **本人が打ったカンマが
+       判定から消える**。3500,50 が 350,050 になり、100倍の額が警告ひとつ無く
+       保存されていた。. と全角は守られていて、カンマだけが穴だった。
+     ★パーサー（readMoney）は最初から正しく 3500,50 を 3500.5 と読める。
+       打鍵中に画面が文字列を壊すので、**パーサーがその文字列を見ることが無かった**。
+     ⚠️ だからここは**1文字ずつ打つ**。値を代入して input を撒く形（他の検査の setF）では
+       この欠陥を一度も踏めない ── 実際、検査を全部素通りしていた。
+     ⚠️ 「欄を離れたら整える」まで見ること。打鍵中だけ見ると、整え忘れに気づけない。 */
+  const TYPED = [
+    // 打つ文字列      離れたあとの表示   送られる数
+    ['1.000,00',      '1,000',          1000],
+    ['3500,50',       '3,500.5',        3500.5],     // ★100倍になっていた形
+    ['1,5',           '1.5',            1.5],        // ★10倍になっていた形
+    ['1150000',       '1,150,000',      1150000],
+    ['8.450,00',      '8,450',          8450],
+  ];
+  const moneyKeys = await p.evaluate(async (list) => {
     document.getElementById('entry-manual').click();
     const el = document.getElementById('f-gross');
-    el.value = '';
-    const steps = [];
-    for (const c of '1.000,00') {
-      el.value += c;
+    const out = [];
+    for (const row of list) {
+      const src = row[0];
+      el.value = '';
       el.dispatchEvent(new Event('input', { bubbles: true }));
-      steps.push(el.value);
+      for (const c of src) {                      // ★1文字ずつ
+        el.value += c;
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+      const mid = el.value;
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+      out.push({ src, mid, after: el.value, n: window.moneyRead(el).n });
     }
-    const mid = el.value;
-    el.value = '1150000';
+    /* 貼り付け（1回の input で丸ごと入る）も同じ道を通ること。 */
+    el.value = '3500,50';
     el.dispatchEvent(new Event('input', { bubbles: true }));
-    return { mid, steps, plain: el.value };
-  });
-  ok(keys.mid === '1.000,00', '★★打っている間、入れた文字がそのまま残る（消さない）', keys.steps);
-  ok(keys.plain === '1,150,000', '数字だけを打っている人には、今までどおり桁区切りが付く', keys.plain);
+    const pasteMid = el.value;
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+    return { rows: out, pasteMid, pasteAfter: el.value, pasteN: window.moneyRead(el).n };
+  }, TYPED);
+  for (let i = 0; i < TYPED.length; i++) {
+    const src = TYPED[i][0], after = TYPED[i][1], n = TYPED[i][2];
+    const g = moneyKeys.rows[i];
+    ok(g.mid === src, `★★打っている間は1文字も書き換えない（${src}）`, g.mid);
+    ok(g.after === after, `欄を離れたら整える（${src} → ${after}）`, g.after);
+    ok(g.n === n, `★★送られる数は ${n}（${src}）`, g.n);
+  }
+  ok(moneyKeys.pasteMid === '3500,50' && moneyKeys.pasteAfter === '3,500.5' && moneyKeys.pasteN === 3500.5,
+    '★貼り付けでも同じ（3500,50 → 3,500.5 → 3500.5）', moneyKeys);
 
   /* ③ 曖昧なら欄の下で聞く。選ぶまで送信を止める。 */
   const amb = await p.evaluate(async () => {

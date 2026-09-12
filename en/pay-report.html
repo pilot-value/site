@@ -2597,8 +2597,9 @@ function readMoney(s) {
           format either (the run after a separator is not three digits).
           **Check the format, not just whether digits remain.**
         · Groups of three (1,150,000 / 1,000) → thousands. This is the site's own
-          notation and the shape fmtMoneyEl produces while typing, so asking here
-          would mean questioning a value we formatted ourselves.
+          notation and **the shape we produce when the field is left** (since
+          2026-09-11 we never touch it while typing), so asking here would mean
+          questioning a value we formatted ourselves.
         · Not groups of three (1,5 / 1000,50 / 1234,56) → decimal comma, exactly
           the same as 1.5 / 1000.50. */
   if (com) {
@@ -2636,20 +2637,19 @@ function moneyRead(el) {
   }
   return readMoney(raw);
 }
-/* Only add separators while typing when the value is **digits only** (2026-09-11).
-   One separator in the box and we leave it alone until change — reformatting
-   mid-word turns 1.000,00 into a different number and brings the misread back.
-   Commas change the length, so count the digits before the caret to restore it. */
-function fmtMoneyEl(el) {
-  if (!/^\d*$/.test(String(el.value == null ? '' : el.value).replace(/,/g, ''))) return;
-  const pos = el.selectionStart;
-  const keep = pos == null ? -1 : el.value.slice(0, pos).replace(/[^0-9]/g, '').length;
-  el.value = grp(el.value);
-  if (keep < 0) return;
-  let n = 0, p = 0;
-  while (p < el.value.length && n < keep) { if (/[0-9]/.test(el.value[p])) n++; p++; }
-  try { el.setSelectionRange(p, p); } catch (e) {}
-}
+/* ★While typing we do not touch a money field at all (owner's call, 2026-09-11).
+
+   fmtMoneyEl used to live here and re-grouped the value on every keystroke.
+   It meant to act "only when the value is digits only", but the test ran
+   `.replace(/,/g,'')` **first** — so **the comma the person typed vanished from
+   the test**. 3500,50 became 350,050 and a 100x amount was saved without a
+   single warning (dots and full-width digits were guarded; only the comma leaked).
+   readMoney has always read 3500,50 as 3500.5 — but the field rewrote the string
+   before readMoney ever saw it.
+
+   Grouping now happens **when the field is left**: moneySettle → readMoney's
+   canon. Same shape as the hours/days/rate fields (class="num"). ★Do not bring
+   it back. Guarded by db/test-pay-gate.mjs ② — the only test that types. */
 /* Call after values are assigned (preset, last month, payslip read).
    ★The one-shot array (old MONEY_EL) is gone: per-diem rows born later use the
      same path. */
@@ -2730,7 +2730,7 @@ document.addEventListener('input', (e) => {
   const el = e.target;
   if (!el || !el.classList || !el.classList.contains('money')) return;
   if (el.dataset.moneyRaw !== String(el.value)) { delete el.dataset.moneyN; delete el.dataset.moneyRaw; clearMoneyAsk(el); }
-  fmtMoneyEl(el);
+  /* ★Do not reformat here. change (moneySettle) is the only place. See above. */
 }, true);
 document.addEventListener('change', (e) => {
   const el = e.target;
@@ -3429,9 +3429,20 @@ function pdRestore(raw) {
     const key = kind === 'var' ? 'variable' : 'other';
     const list = Array.isArray(o[key]) ? o[key] : [];
     if (!list.length) continue;
-    /* ★戻す前に、空のまま置いてある行を片づける（読み込みのときに1本出している）。
-         残すと「空の行のあと本物の行」という並びになる。 */
-    pdDropEmpty(kind);
+    /* ★戻す前に、いま並んでいる行を**全部**片づける（2026-09-11）。
+         前は空の行だけ片づけて、本物の行の後ろに足していた。ところが
+         **同じ入力が1回の読み込みで2回戻る** ── 先に loadPreset() が
+         「前回の内容」（pv_pay_last）を戻し、そのあと入口で「手動で入力」を
+         押した時点でウィザードが「下書き」（pv_pay_draft）を戻す。
+         どちらも同じ f-payitems を持っているので、行が毎回**倍**になる。
+         1 → 2 → 4 → 8 と増え、変動給の合計もそのぶん膨らむ。
+         欄なら代入で上書きされるので、この二重復元は**行だけを壊していた**。
+         本番で実際に、同じ手当が8回並んだ給与レポートが1件保存されている
+         （内訳の合計が総支給の2.2倍になり、REAL PAY が支給構成の帯を出さない）。
+         ★戻すのは保存された一覧そのもの＝何度戻しても同じ形になるのが正しい。
+         ★明細が行を生やしているときは、そもそもここへ来ない
+           （下の呼び出しが keep.has('f-payitems') で止めている）。 */
+    for (const r of Array.prototype.slice.call(PD[kind].rows.children)) r.remove();
     openOpt('pd-' + kind, true);
     for (const it of list) {
       const row = pdAdd(kind, true);
@@ -3583,14 +3594,39 @@ function snapshot() {
   for (const id of ALL_IDS) { const v = $(id).value; if (v) o[id] = v; }
   return o;
 }
-function restoreInto(o) {
+/* ★opts.keep ＝「この欄は触るな」。渡すのは**下書きの復元だけ**（WZ.init の restore）。
+   入口で「明細から自動入力」を選んだ人は、読み取りの直後に PVEnterMode('manual') で
+   ウィザードが走り出し、そこで先月の下書きが戻る。順番の都合で、いま明細から入れた
+   数字がその場で先月の値に置き換わっていた（緑枠は残るので画面は嘘をつく）。
+   ⚠️ サーバから読み直す3経路（loadPreset / my_pay_reports / 預かりの引き取り）には
+      渡さない。あちらは「サーバの値のほうが新しいので上書きしてよい」という前提で
+      できている（下の「食い違ったらサーバを優先する」の注記を参照）。
+   ⚠️ これを「空でない欄は上書きしない」に読み替えて全経路へ広げないこと。 */
+function restoreInto(o, opts) {
+  const keep = (opts && opts.keep) || null;
+  const psIn = !!(keep && keep.size);              // restoring on top of a payslip we just read?
+  const wrote = [];
   let n = 0;
   for (const id of ALL_IDS) {
     if (!o[id]) continue;
+    if (keep && keep.has(id)) continue;            // 明細が入れた欄。下書きで戻さない
+    /* ★Once a payslip has been read, put back none of this month's amounts (2026-09-11).
+       We used to skip only the boxes the payslip itself filled. But an allowance the
+       payslip does NOT show — a guarantee or a per diem that was paid last month and
+       not this one — is not in that set, so last month's figure stays put. The gross
+       is replaced by the payslip's, the breakdown is not, and the breakdown then adds
+       up to more than the gross. When that happens REAL PAY shows no pay-mix band at
+       all (one live row hit exactly this).
+       ★An empty box is the right answer when the payslip did not show it — §3 is
+       where the person fills it back in. */
+    if (psIn && PAYSLIP_MONTH_IDS.indexOf(id) >= 0) continue;
     const el = $(id);
     if (el.tagName === 'SELECT' && !Array.prototype.some.call(el.options, (x) => x.value === o[id])) continue;
-    el.value = o[id]; n++;
+    el.value = o[id]; n++; wrote.push(id);
   }
+  /* ★keep で全部飛ばされて n===0 になると、呼んだ側は「下書きは無かった」として
+     1/5 から始める。これは**正しい**（明細を読んだ直後は1段目から確認させたい）。
+     ここを「keep があるときは 1 を返す」に直さないこと。 */
   if (!n) return 0;
   syncRoleBoxes();  // hidden に入った値をチェックの絵に戻す
   fmtMoneyAll();   // assignment fires no input event — put the separators back on
@@ -3598,7 +3634,12 @@ function restoreInto(o) {
   /* ★If even one breakdown box came back, leave the breakdown open — folded away,
      nobody can tell there is anything in there. ★Nothing is cleared: the gross and
      the breakdown are not exclusive. */
-  pdRestore(o['f-payitems']);
+  /* ★Once a payslip has been read, add none of the draft's rows (2026-09-11).
+     We used to skip this only when the payslip had seeded rows of its own; in a month
+     where the payslip carried no variable pay at all, last month's rows lined up
+     underneath it untouched.
+     ★f-payitems is in PAYSLIP_MONTH_IDS too — boxes and rows are treated alike. */
+  if (!psIn) pdRestore(o['f-payitems']);
   if (DETAIL_IDS.some((id) => String(o[id] || '').trim() !== '')) $('pay-detail').open = true;
   $('f-airline').dispatchEvent(new Event('change'));
   $('f-housing').dispatchEvent(new Event('change'));
@@ -3606,8 +3647,84 @@ function restoreInto(o) {
   for (const f of CHIP_FIELDS) if ($(f).value.trim() !== '') openOpt(f, true);
   foldContract();
   updateSteps(true);
+  snapPrev(wrote);
   return n;
 }
+
+/* ── Remember what a restore put on the screen (2026-09-11) ─────────────
+   By the time somebody drops a payslip, "last time's entry" (pv_pay_last) is already
+   on the screen: gross, guarantee, per diem, right down to the variable-pay rows, all
+   carrying last month's figures. The payslip **overwrites** what it can see, but an
+   allowance it does not show is never overwritten and simply stays. Those leftovers
+   push the breakdown total up, and once the breakdown exceeds the gross, REAL PAY
+   stops drawing the pay-mix band (one live row: breakdown 2.2x the gross).
+   ★Only a box that is still exactly as the restore left it may be cleared. If the
+     value differs, the person edited it — hands off.
+   ★We compare values, not the CSS marker: our own assignments fire input events, so
+     a marker-based test would wipe its own marker. */
+let _prevVals = null;
+
+function snapPrev(ids) {
+  if (!ids.length) return;
+  _prevVals = _prevVals || {};
+  /* Snapshot **after** digit grouping and row rebuilding, not the raw restored string. */
+  for (const id of ids) { const e = $(id); if (e) _prevVals[id] = e.value; }
+}
+
+/* ★"This month's amounts" — everything that necessarily changes when the month does.
+     Reading a payslip levels this whole set to empty first, then writes the payslip in.
+   ⚠️ Only fields the person has **never touched** are cleared (value still byte-identical
+     to what was restored), so a figure they typed is always left alone.
+   ⚠️ What must NOT go in here is anything month-independent — airline, position, fleet,
+     currency, contract, seniority, tax country, the role chips (f-jobrole), pension rate.
+     Those must not be retyped every month. */
+const PAYSLIP_MONTH_IDS = ['f-gross','f-base','f-guarantee','f-command','f-housing-amt','f-other',
+  'f-perdiem','f-transport','f-bonus-mo','f-profit','f-instructor','f-examiner','f-payitems',
+  'f-block','f-guar','f-duty-h','f-night-h','f-credit-h',
+  'f-netpay','f-ytd','f-deduct','f-flightvar','f-psdetail',
+  /* ★The fields a payslip CANNOT read are the dangerous ones (added 2026-09-11).
+       Union / management / non-line "extra paid this month" never appear on a payslip and
+       payslip.js never writes them, so **last month's figure survives with nothing to
+       overwrite it**. All three go straight into monthlyDetail(), so the leftover pushes
+       the breakdown past the gross and **REAL PAY silently drops the pay-mix band**
+       — the exact shape of the production case. f-hourly is a payslip-only hidden field
+       that today's payslip.js never writes, so any value in it is a leftover; it counts as
+       `f-hourly × hours`, so it goes for the same reason. */
+  'f-hourly','f-union-pay','f-mgmt-pay','f-nonline-pay'];
+
+/* ★Capture "what an untouched form looks like" here, before anything restores into it.
+   ⚠️ `input type="hidden"` keeps **value and defaultValue identical** (hidden is the one
+      type whose value IDL attribute is the content attribute itself), so
+      `el.value = el.defaultValue` is a **no-op on every hidden field**.
+      f-transport / f-other / f-ytd / f-deduct / f-flightvar / f-hourly are all hidden, and
+      f-other and f-transport feed the breakdown total directly — so nothing was cleared and
+      REAL PAY silently dropped the band. Nothing shows on screen; no existing check saw it. */
+const PAYSLIP_MONTH_DEFAULT = {};
+for (const id of PAYSLIP_MONTH_IDS) { const e = $(id); if (e) PAYSLIP_MONTH_DEFAULT[id] = e.value; }
+
+/* ★payslip.js calls this the moment a payslip is read. Returns how many boxes it
+     cleared (that is what the tests read). */
+window.PVPayDropPrevMonth = function () {
+  if (!_prevVals) return 0;
+  let n = 0;
+  for (const id of PAYSLIP_MONTH_IDS) {
+    if (!(id in _prevVals)) continue;
+    const el = $(id);
+    if (!el || el.value !== _prevVals[id]) continue;      // the person edited it — leave it
+    if (id === 'f-payitems') {
+      /* Rows are DOM, not a value. Fold them only while they are still exactly as the
+         restore left them. pdSync() below rebuilds f-payitems from whatever remains. */
+      for (const kind of ['var', 'oth'])
+        for (const r of Array.prototype.slice.call(PD[kind].rows.children)) r.remove();
+    } else {
+      el.value = PAYSLIP_MONTH_DEFAULT[id] || '';   // boxes with a default (this month's bonus 0) go back to it
+    }
+    delete _prevVals[id];
+    n++;
+  }
+  if (n) { pdSync(); foldContract(); updateSteps(true); }   // recalc and markRail run inside pdSync
+  return n;
+};
 
 /* ── 4. Contract & tax: fold to one line when it is already filled ─────
    ★These are not monthly questions (contract type, tax residence and years at
@@ -3719,13 +3836,41 @@ if (WZ) {
     steps: [{ id: 's1' }, { id: 's2' }, { id: 's3', totalBar: true }, { id: 's4' }, { id: 's5', totalBar: true }],
     draftIds: DRAFT_IDS,
     read: (id) => { const e = $(id); return e ? e.value : ''; },
-    restore: restoreInto,
+    /* ★下書きの復元だけ、明細が入れた欄を飛ばす（PVPayslipFilled は payslip.js が
+       書き込みのたびに記録している。payslip.js が無い／読み取り前なら null＝従来どおり）。 */
+    restore: (o) => restoreInto(o, { keep: (window.PVPayslipFilled && window.PVPayslipFilled()) || null }),
     missing: missingAll,
     markMissing: markMissing,
     clearErr: clearErr,
     payload: () => buildPayload(),
     annualOrig: annualTotal,
     nameOf: optLabel,
+    /* ★Values read from the payslip that have no field on screen (2026-09-11).
+       They are saved and they feed the maths, yet they never appeared on 5/5,
+       so nobody could read them back before submitting.
+       ⚠️ f-psdetail stays out (it is the stored JSON copy, not for human eyes).
+       ⚠️ f-flightvar stays out too: the same amount already shows on the
+          "Variable" row, so it would read as double.
+       ⚠️ Formatting lives in pay-wizard.js (money:true = a number in the
+          original currency). Writing it here would rot in one of the two pages. */
+    reviewExtras: () => {
+      const rows = [];
+      const add = (id, k, kind) => {
+        const e = $(id);
+        const n = parseFloat(String((e && e.value) || '').trim());
+        if (!isFinite(n)) return;
+        if (kind === 'money') rows.push({ k, v: n, money: true });
+        else rows.push({ k, v: n + ' h' });
+      };
+      add('f-ytd',       'Year-to-date taxable pay', 'money');
+      add('f-deduct',    'Total deductions',         'money');
+      add('f-transport', 'Commuting allowance',      'money');
+      add('f-night-h',   'Night hours',              'h');
+      add('f-credit-h',  'Credit hours',             'h');
+      const src = $('f-source');
+      if (src && src.value === 'payslip') rows.push({ k: 'Entry method', v: 'Read from payslip' });
+      return rows;
+    },
     onStep: (id) => {
       /* 段を出し直したので、印とゲージを引き直す（隠れている間は数えていない）。 */
       markRequired();

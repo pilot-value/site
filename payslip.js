@@ -65,6 +65,10 @@
       pdfPages: function (n) { return '（' + n + 'ページのうち1ページ目だけを読み込んでいます）'; },
       pdfLocked: 'この PDF はパスワードで保護されています。パスワードを外して保存し直すか、開いた画面のスクリーンショットを落としてください。',
       pdf: 'PDF を開けませんでした。開いた画面のスクリーンショットを撮って落としてください。',
+      /* ★「開けた」のに中身が出ない PDF が2種類ある。どちらも以前は真っ白な紙を
+         送って「明細として読み取れません」で終わっていた＝本人には原因が分からない。 */
+      pdfXfa: 'この PDF は特殊な形式（XFA フォーム）で、この画面では中身を描き出せません。開いた画面のスクリーンショットを撮って落としてください。',
+      pdfBlank: 'この PDF の中身を描き出せませんでした（白紙になります）。開いた画面のスクリーンショットを撮って落としてください。',
       errNet: '送れませんでした。通信を確かめて、もう一度試してください。',
       /* ★読み取りに失敗したときは、必ず「このまま手で入力できます」で終える。
          下の doSend が同時に入力フォームを開くので、文章と画面が一致する。
@@ -112,6 +116,14 @@
         return '※ 明細に印字された<b>支給合計</b>と、読み取った内訳の合計が合いません（差 ' + d +
                '）。行が抜けているか、金額を読み違えています。下の内訳を明細と見比べて直してください。';
       },
+      /* ★桁がずれた／通貨が選べない、も同じ場所で言う。ここは本人が数字を
+         見比べる唯一の場所で、say() は次の描画で消えてしまう。 */
+      chkCur: function (c) {
+        return '※ 明細の通貨（<b>' + c + '</b>）は、まだこのフォームで選べません。' +
+               'いちばん近い通貨を選ぶか、金額をその通貨のまま入れて送ってください（数字はそのまま残ります）。';
+      },
+      chkMoney: '※ 小数点とけた区切りの見分けがつきませんでした。金額が1000倍ずれていないか、明細と見比べてください。',
+      chkScale: '※ 読み取った支給合計が、月の金額としては小さすぎます。小数点を読み違えている可能性が高いので、必ず明細と見比べてください。',
       chkNet: function (d) {
         return '※ <b>支給合計 − 控除合計</b>と、読み取った<b>差引支給額</b>が合いません（差 ' + d +
                '）。どちらかを読み違えています。手取りの欄を明細と見比べてください。';
@@ -183,6 +195,9 @@
       pdfPages: function (n) { return ' (page 1 of ' + n + ' only)'; },
       pdfLocked: 'This PDF is password-protected. Save a copy without the password, or drop a screenshot of it instead.',
       pdf: 'That PDF could not be opened. Open it and drop a screenshot instead.',
+      /* ★Same two cases as above: the file opens but nothing can be drawn from it. */
+      pdfXfa: 'This PDF uses a special form format (XFA) that cannot be drawn here. Open it and drop a screenshot instead.',
+      pdfBlank: 'Nothing could be drawn from this PDF — it comes out blank. Open it and drop a screenshot instead.',
       errNet: 'Could not send it. Check your connection and try again.',
       /* ★A failed read must always end with “you can type it in”. doSend opens the
          form at the same moment, so the words match what is on screen. A dead end
@@ -225,6 +240,14 @@
                '(off by ' + d + '). A line is missing, or an amount was misread. ' +
                'Please compare the breakdown below with your payslip and correct it.';
       },
+      /* ★Same place as the reconcile warnings — this is the one screen where the
+         person actually compares figures, and say() is wiped by the next paint. */
+      chkCur: function (c) {
+        return '※ Your payslip is in <b>' + c + '</b>, which this form cannot select yet. ' +
+               'Pick the closest currency, or leave the amounts as they are and send them (the figures are kept).';
+      },
+      chkMoney: '※ We could not tell the decimal point from the thousands separator. Please check the amounts — they may be off by a factor of 1,000.',
+      chkScale: '※ The gross total we read is too small for a monthly figure. A decimal point was probably misread — please compare every amount with your payslip.',
       chkNet: function (d) {
         return '※ <b>Gross − deductions</b> does not match the <b>net pay</b> we read (off by ' + d +
                '). One of them was misread. Please check the take-home figure against your payslip.';
@@ -536,9 +559,19 @@
         srcNote = r.pages > 1 ? T.pdfPages(r.pages) : '';
         beginEdit(r.canvas, r.words);
       }).catch(function (e) {
-        var locked = e && (e.name === 'PasswordException' || /password/i.test(String(e.message || '')));
-        track('payslip_reject', { reason: locked ? 'pdf_locked' : 'pdf_broken' });
-        say('warn', locked ? T.pdfLocked : T.pdf);
+        /* ★4つに分ける。以前は「パスワードか、それ以外」の2つしか無く、
+           **開けたのに中身が出ない** PDF はそもそもここへ来なかった
+           ＝真っ白な紙がそのまま送られ、「明細として読み取れません」で終わっていた。
+           pvReason は renderPdf が付ける。付いていない例外だけ、ここで見分ける。
+           ★/password/i の緩い判定は残す。pdf.js の版が上がって例外名が変わっても、
+             パスワードの文言だけは落ちないようにするため。 */
+        var why = (e && e.pvReason) ||
+          ((e && (e.name === 'PasswordException' ||
+                  /password/i.test(String(e.message || '')))) ? 'locked' : 'broken');
+        track('payslip_reject', { reason: 'pdf_' + why });
+        say('warn', why === 'locked' ? T.pdfLocked
+                  : why === 'xfa' ? T.pdfXfa
+                  : why === 'blank' ? T.pdfBlank : T.pdf);
       });
       return;
     }
@@ -605,19 +638,58 @@
     return pdfLib;
   }
 
+  /* 動的 XFA の PDF は、中身のかわりに Adobe の案内ページ1枚だけが描かれる。
+     真っ白ではないので白紙判定には掛からない。この文面は本物の明細には絶対に出ないので、
+     IsXFAPresent と**両方そろったときだけ**見る＝静的 XFA（普通に描ける様式）を巻き込まない。 */
+  var XFA_WRAP = /eventually replaced|proper contents of the document|正しい内容に置き|このメッセージが表示/i;
+  function isXfaWrapper(words) {
+    var s = '';
+    for (var i = 0; i < words.length && s.length < 4000; i++) s += (words[i].t || '') + ' ';
+    return XFA_WRAP.test(s);
+  }
+
+  /* 描き出した1ページ目が「一様な1色」か。縮めてから読む（原寸は数千万画素ある）。
+     ★PDF の経路だけで使う。白紙の**画像**を選んだのは本人の選択、
+       白紙になった**PDF**はこちらが描けなかった結果で、責任が違う。
+     ★読めないときは「白紙ではない」に倒す＝疑わしきは通す（送信を止めない）。 */
+  function isBlankCanvas(c) {
+    try {
+      var w = 64, h = Math.max(1, Math.round(64 * c.height / (c.width || 1)));
+      var t = document.createElement('canvas');
+      t.width = w; t.height = h;
+      var tx = t.getContext('2d');
+      tx.fillStyle = '#fff';
+      tx.fillRect(0, 0, w, h);
+      tx.drawImage(c, 0, 0, w, h);
+      var d = tx.getImageData(0, 0, w, h).data;
+      var lo = 255, hi = 0;
+      for (var i = 0; i < d.length; i += 4) {
+        var v = (d[i] * 299 + d[i + 1] * 587 + d[i + 2] * 114) / 1000;
+        if (v < lo) lo = v;
+        if (v > hi) hi = v;
+      }
+      return (hi - lo) < 8;
+    } catch (e) { return false; }
+  }
+
   function renderPdf(file) {
-    var L = null;
-    return loadPdf().then(function (lib) {
-      L = lib;
-      L.GlobalWorkerOptions.workerSrc = PDF_WORKER;
+    /* ★この変数を L と名付けない。ファイル先頭の L（＝言語）を遮蔽してしまい、
+       この中で文言を言語で出し分けた瞬間に壊れる。 */
+    var lib = null;
+    return loadPdf().then(function (l) {
+      lib = l;
+      lib.GlobalWorkerOptions.workerSrc = PDF_WORKER;
       return file.arrayBuffer ? file.arrayBuffer() : new Response(file).arrayBuffer();
     }).then(function (buf) {
       /* isEvalSupported:false＝PDF の中の JavaScript を動かさない。
          他人が作った PDF を開くので、こちらから実行の道を開けない。 */
-      return L.getDocument({ data: new Uint8Array(buf), isEvalSupported: false }).promise;
+      return lib.getDocument({ data: new Uint8Array(buf), isEvalSupported: false }).promise;
     }).then(function (doc) {
       var pages = doc.numPages;
-      return doc.getPage(1).then(function (page) {
+      /* メタが取れないのは致命ではないので、失敗したら空で進む。 */
+      return doc.getMetadata().then(function (m) { return (m && m.info) || {}; },
+                                    function () { return {}; })
+        .then(function (info) { return doc.getPage(1).then(function (page) {
         var base = page.getViewport({ scale: 1 });
         var s = Math.min(PDF_W / base.width, Math.sqrt(PDF_MAXPX / (base.width * base.height)));
         var vp = page.getViewport({ scale: Math.max(1, s) });
@@ -629,11 +701,36 @@
            黒塗りの判定も、送る JPEG も、透明の扱いで崩れる。 */
         cx.fillStyle = '#fff';
         cx.fillRect(0, 0, c.width, c.height);
+        /* ⚠️ ここを1つの catch でまとめない。**描けなかった**ことが
+           「白紙の成功」に化け、真っ白な JPEG がそのまま送られていた。
+           描画は致命、文字の層は致命ではない（無ければ OCR に落ちればよい）。 */
         return page.render({ canvasContext: cx, viewport: vp }).promise
-          .then(function () { return page.getTextContent(); })
-          .then(function (tc) { return { canvas: c, pages: pages, words: pdfWords(L, tc, vp, c) }; })
-          .catch(function () { return { canvas: c, pages: pages, words: [] }; });
-      });
+          .then(function () {
+            /* ⚠️ AcroForm（入力欄つき）の PDF では、金額も氏名も widget の中にあり
+               getTextContent() に**出てこない**。文字の層があるように見えるので
+               findPii が OCR を動かさず、氏名・社員番号が画素のまま
+               ＝黒塗りが1枚も乗らない。だから文字の層を捨てて OCR に落とす。
+               ⚠️ annotationMode を ENABLE_FORMS(2) にしないこと。既定では widget の
+                  見た目がそのまま canvas に描かれるが、2 にすると描画が HTML 側に
+                  委ねられ、canvas から**金額が消える**（pdf.js 3.11.174 で実測）。 */
+            if (info.IsAcroFormPresent) return [];
+            return page.getTextContent().then(
+              function (tc) { return pdfWords(lib, tc, vp, c); },
+              function () { return []; }
+            );
+          })
+          .then(function (words) {
+            var why = words.length
+              ? ((info.IsXFAPresent && isXfaWrapper(words)) ? 'xfa' : '')
+              : (isBlankCanvas(c) ? (info.IsXFAPresent ? 'xfa' : 'blank') : '');
+            if (why) {
+              var e = new Error(why);
+              e.pvReason = why;                 // take() の catch がこれで文言を選ぶ
+              throw e;
+            }
+            return { canvas: c, pages: pages, words: words };
+          });
+      }); });
     });
   }
 
@@ -644,12 +741,12 @@
      PDF の座標は下が原点。viewport の変換を通すと画面の向きになる。
      1つの item に語がいくつも入ることがあるので空白で割り、
      文字数で幅を按分する（厳密ではないが、帯は語の**塊**に置くので足りる）。 */
-  function pdfWords(L, tc, vp, c) {
+  function pdfWords(lib, tc, vp, c) {    // ★L と名付けない（先頭の L＝言語を遮蔽する）
     var out = [];
     (tc && tc.items || []).forEach(function (it) {
       var s = String(it.str || '');
       if (!s.trim() || !it.transform) return;
-      var m = L.Util.transform(vp.transform, it.transform);
+      var m = lib.Util.transform(vp.transform, it.transform);
       var h = Math.sqrt(m[2] * m[2] + m[3] * m[3]) || (it.height * vp.scale) || 10;
       var w = (it.width || 0) * vp.scale;
       if (!(w > 0)) return;
@@ -1703,38 +1800,38 @@
 
   /* 送れる形の文字列にする。呼ぶ側（画面のボタン・テスト）はこれを使う。 */
   function diagText() {
-    var L = [];
-    L.push('PILOT VALUE 明細診断（個人情報は構造上含みません）');
+    var out = [];
+    out.push('PILOT VALUE 明細診断（個人情報は構造上含みません）');
     if (ocrDiag) {
-      L.push('元 ' + ocrDiag.src + ' → 読み ' + ocrDiag.ocr + '／' + (ocrDiag.lang || '?')
+      out.push('元 ' + ocrDiag.src + ' → 読み ' + ocrDiag.ocr + '／' + (ocrDiag.lang || '?')
         + '／語 ' + ocrDiag.words + '（信頼 ' + ocrDiag.conf + '）／行 ' + ocrDiag.lines
         + '／手がかり ' + ocrDiag.hit + '／' + ocrDiag.ms + 'ms');
     }
     var f = frame || fullFrame();
-    L.push('枠 ' + (frameAuto ? '自動' : '自動で置けず＝画像全体')
+    out.push('枠 ' + (frameAuto ? '自動' : '自動で置けず＝画像全体')
       + ' x ' + f3(f.x / W) + '..' + f3((f.x + f.w) / W)
       + ' y ' + f3(f.y / H) + '..' + f3((f.y + f.h) / H));
     if (frameDiag) {
-      L.push('枠の内訳 行送り ' + f3(frameDiag.pitch) + '／候補行 ' + frameDiag.sig
+      out.push('枠の内訳 行送り ' + f3(frameDiag.pitch) + '／候補行 ' + frameDiag.sig
         + '／束 ' + frameDiag.runs.length
         + (frameDiag.why ? '／採らなかった理由 ' + frameDiag.why : ''));
       frameDiag.runs.forEach(function (r, i) {
-        L.push('  束' + (i + 1) + ' ' + (r.add ? '拾い直し' : r.kept ? '採用' : '不採用') + ' ' + r.n + '行'
+        out.push('  束' + (i + 1) + ' ' + (r.add ? '拾い直し' : r.kept ? '採用' : '不採用') + ' ' + r.n + '行'
           + (r.strong ? '・強' : '・弱') + ' y ' + f3(r.y0) + '..' + f3(r.y1)
           + ' x ' + f3(r.x0) + '..' + f3(r.x1));
       });
     }
-    L.push('黒塗り ' + rects.length + ' 箇所');
+    out.push('黒塗り ' + rects.length + ' 箇所');
     rects.forEach(function (r) {
-      L.push('  x ' + f3(r.x / W) + '..' + f3((r.x + r.w) / W)
+      out.push('  x ' + f3(r.x / W) + '..' + f3((r.x + r.w) / W)
         + ' y ' + f3(r.y / H) + '..' + f3((r.y + r.h) / H));
     });
-    L.push('読んだ行 ' + ((lineDiag && lineDiag.length) || 0));
+    out.push('読んだ行 ' + ((lineDiag && lineDiag.length) || 0));
     (lineDiag || []).forEach(function (ln) {
-      L.push('  y ' + f3(ln.y0) + '..' + f3(ln.y1) + ' x ' + f3(ln.x0) + '..' + f3(ln.x1)
+      out.push('  y ' + f3(ln.y0) + '..' + f3(ln.y1) + ' x ' + f3(ln.x0) + '..' + f3(ln.x1)
         + ' 信頼' + ln.c + '  ' + ln.w.join(' / '));
     });
-    return L.join('\n');
+    return out.join('\n');
   }
 
   /* 行を診断の形にして覚える。OCR でも PDF でも同じ場所を通る。 */
@@ -2281,6 +2378,59 @@
   // ════════════════════════════════════════════════════════
   // ⑤ フォームに下書きする（★投稿はしない）
   // ════════════════════════════════════════════════════════
+  /* ── 明細が入れた欄を覚えておく（2026-09-11）──────────────────────
+     ★入口で「明細から自動入力」を選んだ人は、読み取りが終わった瞬間に
+       PVEnterMode('manual') でウィザードが走り出し、そこで**先月の下書き**が
+       復元される。順番の都合で、いま明細から入れた数字がその場で先月の値へ
+       戻っていた（.ai-filled の緑枠は残るので、画面は「明細から読み取りました」と
+       言い続ける＝そのままマイページと REAL PAY にも入る）。
+     ⚠️ どの欄を守るかを「.ai-filled」で決めてはいけない。writeHidden はあの印を
+        付けないので、控除合計・年初来累計・出所など7欄が今までどおり上書きされる
+        ＝直したつもりで半分しか直らない。**書いた関数自身に記録させる**ので、
+        将来 apply() が新しい欄を埋めても自動で守られる。
+     ★null のままなら「明細は何も入れていない」＝復元側は今までどおり全部戻す。 */
+  var filled = null;
+  function mark(id) { if (filled) filled.add(id); }
+  window.PVPayslipFilled = function () { return filled; };
+
+  /* ── 落とし直したとき、前の明細の値を残さない（2026-09-11）─────────────
+     1枚目に GUARANTEE 73.00 がある明細、2枚目に無い明細を続けて落とすと、
+     f-guar に 73.00 が**緑枠（明細から入った欄です）のまま**残っていた。
+     annualTotal() の Math.max(f-block, f-guar) が時給の分母に効くので、
+     **画面は普通に動いたまま、時給だけが前の明細の数で出る**。
+     sums の欄（f-base / f-command / f-perdiem …）も同じで、2枚目に無い項目は
+     1枚目の値がそのまま残り、しかも「明細から読み取りました」と言い続ける。
+     ★消すのは「まだ .ai-filled が付いている欄」だけ。本人が触った欄は unmark で
+       印が外れているので触らない（せっかく直した値を消さない）。
+     ★何を書いたかは filled が知っている（setField も writeHidden も自分で記録する）。
+       将来 apply() が新しい欄を埋めても、足し忘れようがない。
+     ⚠️ 選択肢の欄は「空の選択肢を持つもの」だけ戻す（通貨・住居）。
+        対象年・対象月には空の選択肢が無く、先月が既定で必ず選ばれている
+        ＝空にすると必須の欄が選べない状態になるので触らない。
+     ⚠️ 役職（f-jobrole）と明細上の名称は残す。あれは本人が選んだものに
+        明細の分を足した結果なので、消すと本人の選択まで消える。 */
+  var KEEP_ON_RELOAD = { 'f-jobrole': 1, 'f-instr-label': 1, 'f-exam-label': 1, 'f-source': 1 };
+  function clearPrevFilled() {
+    if (!filled) return;                                  // 1枚目＝消すものが無い
+    filled.forEach(function (id) {
+      if (KEEP_ON_RELOAD[id]) return;
+      var e2 = document.getElementById(id);
+      if (!e2) return;
+      if (e2.type === 'hidden') { e2.value = ''; return; }        // writeHidden と同じで静かに
+      if (!e2.classList.contains('ai-filled')) return;            // 本人が触った欄
+      if (e2.tagName === 'SELECT') {
+        var blank = Array.prototype.some.call(e2.options, function (o) { return o.value === ''; });
+        if (!blank) return;
+        e2.value = '';
+      } else {
+        e2.value = '';
+      }
+      e2.classList.remove('ai-filled');
+      e2.dispatchEvent(new Event('change', { bubbles: true }));
+      e2.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+  }
+
   function setField(id, value) {
     var e2 = document.getElementById(id);
     if (!e2) return false;
@@ -2290,6 +2440,7 @@
     }
     e2.value = String(value);
     e2.classList.add('ai-filled');
+    mark(id);
     /* ★順番が要る。先に unmark を付けてから dispatch すると、
        いま自分が出したイベントで自分のハイライトを消してしまう。 */
     e2.dispatchEvent(new Event('change', { bubbles: true }));
@@ -2344,6 +2495,10 @@
     var det = document.getElementById('pay-detail');
     if (det) det.open = true;
     pdSync();                        // f-var-sum と f-payitems を組み直す（中で recalc）
+    /* ★行を1本でも生やしたら、下書きの復元に f-payitems を触らせない。
+       pdRestore は空の行しか片づけないので、明細の行の**後ろ**に下書きの行が足され、
+       DOM の行／f-var-sum／f-payitems の三者が食い違う（送信は止まらない）。 */
+    if (seededRows.length) { mark('f-payitems'); mark('f-var-sum'); }
   }
 
   /* ── 教官・審査の節を出して額を入れる（2026-08-27）──────────────
@@ -2372,6 +2527,24 @@
   }
 
   function apply(res) {
+    /* ★落とし直した人のために、毎回作り直す（前の明細の分を引きずらない）。
+       ★順番が要る。filled を作り直す**前**に、前回書いた欄を空にする。 */
+    clearPrevFilled();
+    if (typeof window.PVPayDropPrevMonth === 'function') {
+      try { window.PVPayDropPrevMonth(); } catch (e) {}
+    }
+    /* ★「前回の内容」が残した先月の額も、ここで落とす（2026-09-11）。
+       上の clearPrevFilled() が消すのは**前の明細**が書いた欄だけで、
+       明細を落とす前から画面に入っていた先月の額はそのまま残る。
+       明細に載っている手当は下で上書きされるが、明細に載っていない手当
+       ── 先月あって今月は出ていない保証給や日当 ── は誰も上書きしない。
+       総支給だけ明細の額に入れ替わるので、内訳の合計が総支給を超える。
+       超えた行に REAL PAY は支給構成の帯を出さない（本番で実際に１件・
+       内訳が総支給の 2.2 倍になり、その人の帯だけが出ていなかった）。
+       ★消すのは「戻ったまま本人が一度も触っていない欄」だけ。判定は
+         pay-report.html 側の１か所（PVPayDropPrevMonth）に置いてある。
+       ★先に呼ぶ。あとで呼ぶと、いま明細が入れた値まで消える。 */
+    filled = new Set();
     lastHours = {};
     (res.hours || []).forEach(function (h) { lastHours[h.kind] = h.value; });
 
@@ -2449,7 +2622,14 @@
     res._notional = notional;
     res._counts = counts;
 
-    if (res.currency) setField('f-currency', res.currency);
+    /* ★45通貨の外（NGN / PKR / RUB …）は setField が false を返して**黙って終わる**。
+       通貨欄が空のまま、画面にも診断にも何も残らない ── どの通貨が足りないのかが
+       オーナーに永久に届かない。印を置いて renderResult に1行出させ、GA4 にも送る。
+       ★金額はそのまま残す。通貨が選べないことと、数字が読めたことは別。 */
+    if (res.currency) {
+      res._curMissed = setField('f-currency', res.currency) ? '' : String(res.currency);
+      if (res._curMissed) track('payslip_currency_missing', { code: res._curMissed });
+    }
     /* ★総支給を必ず入れる（2026-08-26）。この日から f-gross は明細から来た人にも
        必須になった。前は「内訳を開いた人には合計を映す」作りだったので、明細から
        来た人の欄は空のままでよかったが、いまは書き戻しが無いので誰も埋めない。
@@ -2516,6 +2696,7 @@
     var e2 = document.getElementById(id);
     if (!e2) return;                                  // 隠し欄の無い古いHTMLでも落ちない
     e2.value = (v === null || v === undefined) ? '' : String(v);
+    mark(id);                                         // ★緑枠は付かないが、守る対象ではある
   }
 
   /* DB の CHECK に触れる値は送らない。制約違反はその列だけ落ちるのではなく
@@ -2618,7 +2799,7 @@
        ★annualTotal() の Math.max(f-block, f-guar) はそのまま効く。時給の分母が
          「飛んだ時間」から「保証時間」に上がるのは意図どおり（下限までは払われている）。 */
     var gh = okHours(lastHours.guarantee);
-    if (gh != null) setField('f-guar', gh);
+    if (gh != null) setField('f-guar', gh); else writeHidden('f-guar', null);
     writeHidden('f-ytd',      okAmount(res.ytd_taxable));
     writeHidden('f-deduct',   okAmount(res.deductions_total));
     writeHidden('f-night-h',  okHours(lastHours.night));
@@ -2739,6 +2920,15 @@
     if (chk.net === 'mismatch' && typeof chk.net_diff === 'number') {
       chkMsg.push(T.chkNet(cur + nf2.format(Math.abs(chk.net_diff))));
     }
+    /* ★通貨・小数点・桁の3つも同じ場所で言う（2026-09-11）。
+       say() ではなく chkMsg に積むこと ── say() は panel.innerHTML='' で全消しするので、
+       この直後の clearPanel() で消える。ここは本人が数字を見比べる唯一の場所。
+       ★chkCur に渡す前に esc2 する（el() が innerHTML で入れるため）。
+       ★_curMissed は checks が無くても立つ（画面側で拾った印なので、
+         関数が古いまま本番に残っていてもこの1行だけは出る）。 */
+    if (res._curMissed) chkMsg.push(T.chkCur(esc2(res._curMissed)));
+    if (chk.money === 'assumed') chkMsg.push(T.chkMoney);
+    if (chk.scale === 'suspect') chkMsg.push(T.chkScale);
     if (chkMsg.length) {
       chkMsg.forEach(function (m) { box.appendChild(el('p', 'ps-warn', m)); });
     } else if (res.confidence === 'low') {

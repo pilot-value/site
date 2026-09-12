@@ -522,6 +522,9 @@ export function systemPrompt(lang: string): string {
     '- Ignore hour boxes that are printed but left blank.',
     '',
     'Amounts: strip thousands separators and currency symbols; return plain numbers.',
+    '- If you are not sure which mark is the decimal point, return the amount as a STRING exactly',
+    '  as printed ("8.450,00", "1 234,56") and let the server decide. Never move a decimal point',
+    '  yourself and never drop the last three digits.',
     'currency: ISO 4217 (JPY, USD, AED, QAR, SAR, KWD, CNY, KRW, EUR, ...). null if not printed.',
     '- A currency SYMBOL never decides this on its own. "¥" is printed on BOTH Japanese and',
     '  Chinese slips, and Chinese slips also print "￥" or "元" for CNY. If the labels are in',
@@ -533,6 +536,124 @@ export function systemPrompt(lang: string): string {
   ].join('\n');
 }
 
+/* ────────────────────────────────────────────────────────────────
+   金額の読み方（2026-09-11）。
+
+   なぜ要るか。カンマを小数点に使う国は45通貨のうち20を超える（EUR 圏・BRL・IDR …）。
+   そこの明細には 8.450,00 と印字される。これを parseFloat で読むと 8.45 になり、
+   **全行が同じ倍率でずれる**ので支給合計の検算も手取りの検算も両方 ok のまま通り、
+   confidence も high のまま画面に出る。1/1000 になった年収が REAL PAY まで届く。
+   db/fixtures/make-payslips.mjs が罠として自分で書き残していたが、対策が無かった。
+
+   規則は**画面に既にある正解の写し** ── pay-report.html の readMoney()。
+   ① 区切りが2種類 → 後に出たほうが小数点（1,234.56 も 1.234,56 も一発）
+   ② カンマだけ → 3桁ずつ割れれば桁区切り、割れなければ小数のカンマ
+   ③ ピリオドだけ → 2つ以上あれば桁区切りか、さもなくば読まない
+   ④ 区切り無し
+
+   ★写しなので腐る。db/test-payslip-parse.mjs の §①-g が pay-report.html から
+     readMoney を切り出して同じ見本表で突き合わせる。片方だけ直すと赤くなる。
+
+   ★画面と1つだけ違うところ。1.000 / 500.000 は 1000 とも 1.0 とも読めるので
+     画面は本人に聞く。サーバは聞けないので**通貨の小数桁で決める**。
+     dec が 3 でない通貨（EUR/USD/JPY …）で小数3桁の金額はその通貨では
+     成立しない書式 ＝ 推測ではなく消去法で桁区切り。
+     dec === 3（KWD/BHD/OMR/JOD）だけ小数として読む。
+     通貨が読めなかったときは dec=2 を仮定し、checks.money = 'assumed' を立てる。
+   ★どちらに倒すかの根拠：1000 を 1.0 と読む誤りは静かに消える（REAL PAY の
+     常識の幅を外れて行ごと落ちる）。1.0 を 1000 と読む誤りは検算と画面の桁で
+     うるさく落ちる。**うるさく失敗する側を選ぶ。**
+   ──────────────────────────────────────────────────────────── */
+
+/* 通貨ごとの小数桁。SSOT は pv-vocab.mjs の CURRENCIES（#f-currency の45option も
+   gen-vocab.mjs もそこから出ている）。Edge Function は .mjs を import できないので
+   ここに写してある ── db/test-payslip-parse.mjs が1件でも違えば落とす。 */
+export const CUR_DEC: Record<string, number> = {
+  USD: 2, EUR: 2, JPY: 0, GBP: 2, AED: 2,
+  QAR: 2, SAR: 2, KWD: 3, BHD: 3, OMR: 3,
+  JOD: 3, TRY: 2, CHF: 2, SEK: 2, NOK: 2,
+  DKK: 2, ISK: 0, PLN: 2, HUF: 0, CZK: 2,
+  RON: 2, CAD: 2, AUD: 2, NZD: 2, FJD: 2,
+  SGD: 2, HKD: 2, TWD: 2, KRW: 0, CNY: 2,
+  THB: 2, MYR: 2, IDR: 0, PHP: 2, VND: 0,
+  BND: 2, INR: 2, EGP: 2, ETB: 2, KES: 2,
+  ZAR: 2, MXN: 2, BRL: 2, CLP: 0, COP: 2,
+};
+
+/* 数字と区切りだけの形に均す。読めない形は null（＝黙って0にしない）。
+   ・マイナスは「-」だけではない。△21,802 / ▲ / 全角の − / (21,802) も同じ意味
+   ・空白・NBSP・アポストロフィは桁区切りに使う国がある（1 234,56 / 1'234.56）ので先に落とす
+   ・通貨記号や ISO コードは**両端から**削る。真ん中は削らない
+     （د.إ のように記号の中に「.」を持つものがあり、中を削ると区切りが混ざる） */
+function normMoney(v: unknown): { t: string; neg: boolean } | null {
+  const raw = String(v ?? '').trim();
+  if (!raw) return null;
+  const s0 = raw.replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xfee0));
+  const neg = /^[\s(]*[-−–—△▲]/.test(s0) || /\)\s*$/.test(s0);
+  const t = s0
+    .replace(/[．｡。]/g, '.').replace(/[，、､]/g, ',')
+    .replace(/[\s '’_]/g, '')
+    .replace(/^[^0-9]+/, '').replace(/[^0-9]+$/, '');
+  if (!/^[0-9][0-9.,]*$/.test(t) || /[.,]{2,}/.test(t)) return null;
+  return { t, neg };
+}
+
+const grouped = (s: string, sep: string) => new RegExp('^\\d{1,3}(\\' + sep + '\\d{3})+$').test(s);
+const asPlain = (s: string) => { const v = parseFloat(s.replace(/[.,]/g, '')); return Number.isFinite(v) ? v : null; };
+const asDec = (s: string, sep: string) => {
+  const i = s.lastIndexOf(sep);
+  const ip = s.slice(0, i).replace(/[.,]/g, ''), dp = s.slice(i + 1);
+  if (/[.,]/.test(dp)) return null;
+  const v = parseFloat((ip || '0') + '.' + (dp || '0'));
+  return Number.isFinite(v) ? v : null;
+};
+
+/* 1.000 / 500.000 の形か。通貨が読めなかったときだけ意味を持つ
+   （＝仮定で決めたことを checks.money で本人に伝えるため）。 */
+export function isAmbiguousMoney(v: unknown): boolean {
+  if (typeof v === 'number') return false;
+  const m = normMoney(v);
+  if (!m || m.t.indexOf(',') >= 0) return false;
+  if (m.t.split('.').length !== 2) return false;
+  const i = m.t.indexOf('.');
+  return /^[1-9]\d{0,2}$/.test(m.t.slice(0, i)) && /^\d{3}$/.test(m.t.slice(i + 1));
+}
+
+/* 金額を読む。dec は通貨の小数桁（読めなければ 2 を渡す）。 */
+export function readMoneyNum(v: unknown, dec: number): number | null {
+  if (typeof v === 'number') return Number.isFinite(v) ? v : null;
+  const m = normMoney(v);
+  if (!m) return null;
+  const t = m.t;
+  const sign = (n: number | null) => (n === null ? null : m.neg ? -n : n);
+  const dot = t.indexOf('.') >= 0, com = t.indexOf(',') >= 0;
+
+  if (dot && com) {                                    // ① 区切りが2種類
+    const d = t.lastIndexOf('.') > t.lastIndexOf(',') ? '.' : ',';
+    const g = d === '.' ? ',' : '.';
+    if (t.split(d).length > 2) return null;
+    if (!grouped(t.slice(0, t.lastIndexOf(d)), g)) return null;
+    return sign(asDec(t, d));
+  }
+  if (com) {                                           // ② カンマだけ
+    if (grouped(t, ',')) return sign(asPlain(t));
+    if (t.split(',').length > 2) return null;          // 1,23,456 はどちらにも読めない
+    return sign(asDec(t, ','));
+  }
+  if (dot) {                                           // ③ ピリオドだけ
+    if (t.split('.').length > 2) return grouped(t, '.') ? sign(asPlain(t)) : null;
+    const i = t.indexOf('.');
+    const ip = t.slice(0, i), dp = t.slice(i + 1);
+    /* ★ここだけが画面と違う。聞き返せないので通貨の小数桁で決める。
+       先頭が 0 の 0.500 は外す（500 を 0.500 と書く人は居ない＝小数）。 */
+    if (/^[1-9]\d{0,2}$/.test(ip) && /^\d{3}$/.test(dp)) {
+      return sign(dec === 3 ? asDec(t, '.') : asPlain(t));
+    }
+    return sign(asDec(t, '.'));
+  }
+  return sign(asPlain(t));                             // ④ 区切り無し
+}
+
 type Parsed = Record<string, unknown>;
 
 /* モデルの出力は信用しない。語彙に無い kind は unmapped へ落とす。
@@ -542,6 +663,10 @@ type Parsed = Record<string, unknown>;
      **この実体をそのまま** import して回す（assert-translate-review.mjs と同じ手）。
      写経した複製を測ると「テストは通るが本番は直っていない」が起きる。 */
 export function sanitize(raw: Parsed): Parsed {
+  /* ★numOr は年・月・時間のためのもの。**金額には使わない**（下の money() を使う）。
+     ここは「数字以外を全部落として parseFloat」なので、8.450,00 が 8.45000 になり
+     カンマを小数点に使う国の明細が丸ごと 1/1000 になる。時間のほうは 111H59 を
+     11159 にしないための別の規則（parseHours）が先に効いていて、金額の規則とは両立しない。 */
   const numOr = (v: unknown): number | null => {
     if (typeof v === 'number') return Number.isFinite(v) ? v : null;
     /* 日本の明細のマイナスは「-」だけではない。△21,802 や ▲21,802、全角の −21,802 も同じ意味。
@@ -563,6 +688,28 @@ export function sanitize(raw: Parsed): Parsed {
      読み違いで隣の列を連結した形なので、切っても失うものが無い。 */
   const lbl = (v: unknown) => str(v).replace(/\d{5,}/g, '…').slice(0, 40).trim();
 
+  /* ★通貨は金額より先に決める。1.000 を 1000 と読むか 1.0 と読むかが
+     通貨の小数桁で決まるため（readMoneyNum の ③）。
+     45通貨の外（NGN / PKR / RUB …）でもコードはそのまま返す。落とすと
+     「通貨が読めなかった」のか「まだ選べない通貨だった」のか区別がつかなくなり、
+     どの通貨を足すべきかがオーナーに永久に届かない（reconcile が checks.currency を立てる）。 */
+  const cur = str(raw.currency).toUpperCase();
+  const code = /^[A-Z]{3}$/.test(cur) ? cur : null;
+  const dec = code !== null && Object.prototype.hasOwnProperty.call(CUR_DEC, code) ? CUR_DEC[code] : null;
+  /* 通貨が分からないときは dec=2 を仮定する。仮定したことが**実際に効いた**
+     ときだけ印を立てる（1.000 の形が1つも無ければ黙っている）。
+     ★小数3桁の通貨（KWD / BHD / OMR / JOD）でも印を立てる（2026-09-11）。
+       dec が 0 や 2 のとき 1.000 を 1000 と読むのは**消去法**（その通貨に小数3桁は
+       無い＝1.0 とは読めない）なので、迷う余地が無く印は要らない。
+       dec === 3 のときだけ 1000 とも 1.000 とも読めて、根拠が「通貨の小数桁」しか無い。
+       ⚠️ 数字は変えない。checks.money = 'assumed' を立てて画面に1行出すだけ。
+       ⚠️ EUR の 8.450 まで広げない。欧州の明細が毎回この注意を出すことになる。 */
+  let assumed = false;
+  const money = (v: unknown): number | null => {
+    if ((dec === null || dec === 3) && isAmbiguousMoney(v)) assumed = true;
+    return readMoneyNum(v, dec === null ? 2 : dec);
+  };
+
   const earnings: Array<{ label: string; amount: number; kind: string; basis?: string }> = [];
   /* count:true ＝ 金額ではない行（乗務日数など）。付けるのはここ1か所で、
      支給合計の検算も画面側の集計も、この印を見て外す。 */
@@ -573,7 +720,7 @@ export function sanitize(raw: Parsed): Parsed {
 
   for (const e of Array.isArray(raw.earnings) ? raw.earnings : []) {
     const row = e as Parsed;
-    let amount = numOr(row.amount);
+    let amount = money(row.amount);
     const label = lbl(row.label);
     /* ★ここで amount <= 0 を弾いてはいけない。支給欄にはマイナスが立つ（不就労減額）。
          落とすと支給合計と合わなくなり、しかも黙って合計が水増しされる方向にずれる。 */
@@ -595,7 +742,7 @@ export function sanitize(raw: Parsed): Parsed {
   }
   for (const u of Array.isArray(raw.unmapped) ? raw.unmapped : []) {
     const row = u as Parsed;
-    const amount = numOr(row.amount);
+    const amount = money(row.amount);
     const label = lbl(row.label);
     if (amount !== null && label) putUnmapped(label, amount);
   }
@@ -629,20 +776,21 @@ export function sanitize(raw: Parsed): Parsed {
       ? { year: Math.round(y), month: Math.round(m) }
       : null;
 
-  const cur = str(raw.currency).toUpperCase();
-
   return {
-    currency: /^[A-Z]{3}$/.test(cur) ? cur : null,
+    currency: code,
+    /* 小数点とけた区切りの見分けを「通貨は分からないが dec=2 だろう」で決めた行があった。
+       reconcile が checks.money に写して画面に出す。 */
+    money_assumed: assumed,
     period,
     earnings,
     /* 印字された支給合計。reconcile() の突き合わせ相手にしか使わない。
        読めなければ null＝検算 unknown（失敗ではない）。 */
-    gross_total: numOr(raw.gross_total),
-    deductions_total: numOr(raw.deductions_total),
-    net_pay: numOr(raw.net_pay),
+    gross_total: money(raw.gross_total),
+    deductions_total: money(raw.deductions_total),
+    net_pay: money(raw.net_pay),
     /* 累積課税支給額。これが読めると明細1枚から年収の実績ペースが出る（＝×12より遥かに正確）。
        今は返すだけで、使うのは 7-B。ここで拾っておかないと二度と手に入らない。 */
-    ytd_taxable: numOr(raw.ytd_taxable),
+    ytd_taxable: money(raw.ytd_taxable),
     hours,
     unmapped,
     confidence: ['high', 'medium', 'low'].includes(str(raw.confidence)) ? str(raw.confidence) : 'medium',
@@ -665,8 +813,15 @@ export function sanitize(raw: Parsed): Parsed {
      読めなかったことを「間違い」として扱うと、正しい明細まで警告だらけになる。
    ──────────────────────────────────────────────────────────── */
 export type CheckState = 'ok' | 'mismatch' | 'unknown';
+/* 足し算の検算（gross / net）とは別に、「読み方」の検査を3つ持つ。
+   currency … 明細の通貨が45通貨の中にあるか。unsupported でも金額はそのまま返す
+   money    … 1.000 の形を「通貨が分からないので dec=2 と仮定して」決めたか
+   scale    … 支給合計が月額としてあり得ないほど小さい（＝小数点の読み違い）
+   ★どれも送信は止めない。画面の同じ場所（renderResult の chkMsg）に1行出すだけ。 */
+export type CurState = 'ok' | 'unsupported' | 'unknown';
 export type Checks = {
   gross: CheckState; net: CheckState;
+  currency: CurState; money: 'ok' | 'assumed'; scale: 'ok' | 'suspect';
   gross_printed: number | null; gross_summed: number | null; gross_diff: number | null;
   net_printed: number | null; net_expected: number | null; net_diff: number | null;
 };
@@ -721,8 +876,20 @@ export function reconcile(parsed: Parsed): Checks {
     netState = Math.abs(netDiff) <= payTolerance(printed) ? 'ok' : 'mismatch';
   }
 
+  /* ── ここから3つは足し算ではなく「読み方」の検査（2026-09-11）─────────
+     どれも parsed を見るだけで済む＝ reconcile 1か所で作る。 */
+  const code = typeof parsed.currency === 'string' ? parsed.currency : '';
+  const currency: CurState = !code ? 'unknown'
+    : Object.prototype.hasOwnProperty.call(CUR_DEC, code) ? 'ok' : 'unsupported';
+  /* ★月の支給合計が100を下回る通貨は45件のどれにも無い（いちばん単位の大きい KWD でも
+     機長の月給は4桁になる）。100未満は小数点を1つ読み違えて 1/1000 になった形。
+     数字はいじらない。旗を立てて本人に見比べてもらう（confidence も low に落ちる）。 */
+  const scale: 'ok' | 'suspect' =
+    printed !== null && printed !== 0 && Math.abs(printed) < 100 ? 'suspect' : 'ok';
+
   return {
     gross, net: netState,
+    currency, money: parsed.money_assumed === true ? 'assumed' : 'ok', scale,
     gross_printed: printed, gross_summed: summed, gross_diff: grossDiff,
     net_printed: net, net_expected: netExpected, net_diff: netDiff,
   };
@@ -733,7 +900,7 @@ export function reconcile(parsed: Parsed): Checks {
    ★payslip.js は confidence === 'low' のときだけ警告を出す。落とさないと、
      checks を返しても画面には何も出ない。 */
 export function applyChecks(parsed: Parsed, checks: Checks): Parsed {
-  const bad = checks.gross === 'mismatch' || checks.net === 'mismatch';
+  const bad = checks.gross === 'mismatch' || checks.net === 'mismatch' || checks.scale === 'suspect';
   return { ...parsed, checks, confidence: bad ? 'low' : parsed.confidence };
 }
 

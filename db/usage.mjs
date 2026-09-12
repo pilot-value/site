@@ -26,6 +26,7 @@
      node db/usage.mjs --since=2026-08-11  その日から今日まで
      node db/usage.mjs --all               開設以来
      node db/usage.mjs --emails            メールをマスクしない
+     node db/usage.mjs --scale             保存済みの金額を通貨ごとに全部出す（桁ちがい探し）
      node db/usage.mjs --founding          FOUNDING PILOT 100 の番号（誰が何番か＋貼るSQL）
 
    ── 要るもの（mail-bot/.env・gitignore 済み）────────────────────
@@ -833,6 +834,159 @@ async function foundingReport(users, testIds, real) {
   try {
     const ct = await rest('contacts', 'select=created_at&order=created_at.desc&limit=5000');
     line('期間内', `${ct.filter((c) => inSpan(c.created_at)).length}件`, `　累計 ${ct.length}件`);
+  } catch (e) { line('取得できず', e.message); }
+
+  /* ── 6. 金額の桁ちがい（2026-09-11）─────────────────────────
+     きっかけは、金額の欄が**打っている最中に**カンマを食べていたこと。
+     3500,50（＝3500.50 のつもり）が 350,050 になり、100倍の額が
+     警告ひとつ無く保存されていた（画面側は同じ日に直した）。
+     直したので新しくは起きないが、**それ以前に保存された行は残ったまま**。
+     ★数字は一切変えない。「怪しい」と名指しするだけ。
+       直すなら本人に出し直してもらう（同じ会社・同じ月なら上書きされる）。
+     ★中央値と比べるのは「同じ通貨の中だけ」。円とドルを混ぜたら全部が外れ値になる。 */
+  console.log('\n■ 桁ちがいの疑い（保存済みの金額を通貨ごとに見比べる）');
+  try {
+    const [prS, pdS] = await Promise.all([
+      rest('pay_reports', 'select=created_at,currency,gross_monthly,net_pay_actual,period_year,period_month,airline,source,payslip_detail&order=created_at.desc&limit=5000'),
+      rest('pay_reports_pending', 'select=created_at,claimed_at,payload&order=created_at.desc&limit=5000'),
+    ]);
+    const rows = [];
+    for (const r of prS) {
+      const g = Number(r.gross_monthly);
+      if (Number.isFinite(g) && g > 0)
+        rows.push({ cur: r.currency, g, n: Number(r.net_pay_actual) || null, air: r.airline,
+                    ym: `${r.period_year}/${String(r.period_month).padStart(2, '0')}`,
+                    at: day(r.created_at), from: '本編' });
+    }
+    for (const q of pdS) {
+      const pl = q.payload || {};
+      const g = Number(pl.gross_monthly);
+      if (Number.isFinite(g) && g > 0)
+        rows.push({ cur: pl.currency || '???', g, n: Number(pl.net_pay_actual) || null,
+                    air: pl.airline || '?', ym: `${pl.period_year}/${String(pl.period_month).padStart(2, '0')}`,
+                    at: day(q.created_at), from: q.claimed_at ? '預かり(引取済)' : '預かり' });
+    }
+    if (!rows.length) { line('保存済みの金額', '0件'); }
+    else {
+      const byCur = {};
+      for (const r of rows) (byCur[r.cur] ??= []).push(r);
+      const med = (a) => { const x = [...a].sort((p, q) => p - q); const i = x.length >> 1;
+        return x.length % 2 ? x[i] : (x[i - 1] + x[i]) / 2; };
+      const fmt = (v) => new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(v);
+      const suspects = [];
+      const lonely = [];
+      /* ★手取りとの釣り合いも見る（2026-09-11）。
+         中央値と比べるだけでは、総支給 12,000,000 円・手取り 870,000 円のような
+         「10倍」の行が網から漏れる（中央値の 10倍は外れ値に見えないため）。
+         控除がどれだけ重くても、手取りが総支給の 1/4 を下回る形は普通は起きない。
+         ここもやはり**名指しするだけ**。どちらの数字が桁ちがいかは本人にしか分からない。 */
+      const ratioBad = rows.filter((r) => r.n && (r.g / r.n >= 4 || r.n > r.g * 1.05));
+      for (const cur of Object.keys(byCur).sort()) {
+        const a = byCur[cur];
+        const m = med(a.map((r) => r.g));
+        line(cur, `${a.length}件　中央値 ${fmt(m)}　最小 ${fmt(Math.min(...a.map((r) => r.g)))}　最大 ${fmt(Math.max(...a.map((r) => r.g)))}`);
+        if (a.length < 3) { lonely.push(...a); continue; }   // 比べる相手が足りない
+        for (const r of a) {
+          const ratio = r.g / m;
+          if (ratio >= 50 || ratio <= 1 / 50) suspects.push({ ...r, m, ratio });
+        }
+      }
+      console.log('');
+      if (suspects.length) {
+        console.log('   \x1b[31m━━ 同じ通貨の中央値から2桁ちかく離れている行 ━━\x1b[0m');
+        for (const s2 of suspects) {
+          const near = s2.ratio >= 50 ? '100で割ると' : '100を掛けると';
+          const alt = s2.ratio >= 50 ? s2.g / 100 : s2.g * 100;
+          console.log(`   \x1b[31m${s2.at} ${s2.from} ${s2.air} ${s2.ym} ${s2.cur} ${fmt(s2.g)}\x1b[0m`
+            + `　（中央値 ${fmt(s2.m)} の ${s2.ratio >= 50 ? Math.round(s2.ratio) + '倍' : '1/' + Math.round(1 / s2.ratio)}。`
+            + `${near} ${fmt(alt)}）`);
+        }
+        console.log('   → 数字はこちらで直しません。本人に出し直してもらいます');
+        console.log('     （同じ会社・同じ月で出し直すと上書きされます）。');
+      } else if (!ratioBad.length) {
+        console.log('   桁ちがいの疑いがある行はありません。');
+      }
+      if (ratioBad.length) {
+        console.log('');
+        console.log('   \x1b[31m━━ 総支給と手取りの釣り合いがおかしい行 ━━\x1b[0m');
+        for (const r of ratioBad) {
+          const pct = (r.n / r.g) * 100;
+          const why = r.n > r.g   ? '手取りが総支給より多い'
+                    : pct < 1     ? `手取りが総支給の 1/${fmt(Math.round(r.g / r.n))}`   // 0% と出さない
+                                  : `手取りが総支給の ${Math.round(pct)}%しかない`;
+          console.log(`   \x1b[31m${r.at} ${r.from} ${r.air} ${r.ym} ${r.cur} ${fmt(r.g)}　手取り ${fmt(r.n)}\x1b[0m　（${why}）`);
+        }
+        console.log('   → 総支給と手取りのどちらが桁ちがいかは本人にしか分かりません。');
+        console.log('     ここでも数字は直さず、出し直してもらいます。');
+      }
+      if (lonely.length) {
+        console.log('');
+        console.log(`   ※ 同じ通貨が3件に満たず、比べる相手がいない行が ${lonely.length}件 あります（下に全部出します）。`);
+        for (const r of lonely)
+          console.log(`     ${r.at} ${r.from} ${r.air} ${r.ym} ${r.cur} ${fmt(r.g)}`
+            + (r.n ? `　手取り ${fmt(r.n)}` : ''));
+      }
+      /* ── 明細を読ませた行だけ、印字と保存を突き合わせる（2026-09-11）──────
+         2026-09-11 に直した「先月の額が上に積み上がる」欠陥は、**保存された総支給が
+         明細の印字と違う**という1点に必ず現れる（明細が読んだ額ではなく、前の月の
+         総支給がそのまま残るため）。
+         ★ここでは内訳の合計を組み直さない。`db/pay-rows.sql` の数え方を手で写すと
+           必ず腐るし、写しが要るほどの精度もここでは要らない。印字は明細の読み取りが
+           自分で残した checks.gross_printed をそのまま使う。
+         ★直った版が本番に出たあとは、新しい行がここに出なくなるのが正しい姿。 */
+      const psRows = prS.filter((r) => r.payslip_detail && r.payslip_detail.checks);
+      if (psRows.length) {
+        console.log('');
+        console.log(`   ── 明細から出された行 ${psRows.length}件 の、印字と保存の突き合わせ ──`);
+        const drift = [];
+        const noGross = [];
+        for (const r of psRows) {
+          const printed = Number(r.payslip_detail.checks.gross_printed);
+          if (!Number.isFinite(printed) || printed <= 0) continue;
+          const saved = Number(r.gross_monthly);
+          /* ★総支給の欄が空（null / 0）は「違う額が入った」ではない。年換算は
+             内訳の合計へ落ちる決まりなので（pv_annual_total の coalesce）年収は出る。
+             ここを赤にすると、正しく数えられている行を毎回疑うことになる。
+             ⚠️ Number(null) は 0 で、しかも Number.isFinite(0) は true。
+                「有限か」だけで弾くと、空の行が差 -印字 の巨大なズレに化ける。 */
+          if (!(saved > 0)) { noGross.push({ r, printed }); continue; }
+          if (Math.abs(saved - printed) > Math.max(1, printed * 0.001))
+            drift.push({ r, printed, saved });
+        }
+        if (!drift.length) {
+          console.log('   総支給はどの行も明細の印字どおりです。');
+        } else {
+          console.log(`   \x1b[31m━━ 保存された総支給が、明細の印字と違う行 ${drift.length}件 ━━\x1b[0m`);
+          for (const d of drift) {
+            const ym = `${d.r.period_year}/${String(d.r.period_month).padStart(2, '0')}`;
+            console.log(`   \x1b[31m${day(d.r.created_at)} ${d.r.airline} ${ym} ${d.r.currency}\x1b[0m`
+              + `　明細 ${fmt(d.printed)} → 保存 ${fmt(d.saved)}`
+              + `　（差 ${fmt(d.saved - d.printed)}）`);
+          }
+          console.log('   → 前の月の額が残ったまま送られた疑いがあります。');
+          console.log('     数字はこちらで直さず、本人に出し直してもらいます');
+          console.log('     （同じ会社・同じ月で出し直すと上書きされます）。');
+        }
+        if (noGross.length) {
+          console.log('');
+          console.log(`   ── 総支給の欄が空のまま保存された行 ${noGross.length}件 ──`);
+          for (const d of noGross) {
+            const ym = `${d.r.period_year}/${String(d.r.period_month).padStart(2, '0')}`;
+            console.log(`   ${day(d.r.created_at)} ${d.r.airline} ${ym} ${d.r.currency}`
+              + `　明細には ${fmt(d.printed)} と印字`);
+          }
+          console.log('   → 年収は内訳の合計から出す決まりなので、この行も数えられています。');
+          console.log('     欠けているのは「その月の総支給」という1つの数字だけです。');
+        }
+      }
+      if (has('--scale')) {
+        console.log('');
+        console.log('   ── 保存済みの金額を全部（--scale）──');
+        for (const r of rows.sort((p, q) => (p.cur === q.cur ? q.g - p.g : p.cur < q.cur ? -1 : 1)))
+          console.log(`     ${r.at} ${r.from} ${r.air} ${r.ym} ${r.cur} ${fmt(r.g)}`
+            + (r.n ? `　手取り ${fmt(r.n)}` : ''));
+      }
+    }
   } catch (e) { line('取得できず', e.message); }
 
   /* ── まとめ ────────────────────────────────────────────── */

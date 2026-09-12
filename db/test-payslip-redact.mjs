@@ -943,6 +943,111 @@ console.log('\n══ 退化画像（何も読めないとき、画面が黙っ�
   await page.close();
 }
 
+/* ══ 開けない PDF（鍵付き・XFA・白紙）══════════════════════════════
+   オーナーの報告（2026-09-11）:「会社によっては明細の PDF に鍵がかかっている。
+   そのままアップロードすると空白になるみたい」。
+
+   調べたら**空白の原因は2つ**あった。
+   ① 鍵付き ── 分岐も文言も最初から在ったが、暗号化 PDF の見本が1枚も無く
+      **一度も実行されたことのない経路**だった。
+   ② 描画の失敗を裸の catch が「成功」に化かしていた ── 先に白で塗った canvas を
+      そのまま返すので、真っ白な JPEG が Edge Function へ送られて not_a_payslip で返る。
+      本人には「読めませんでした」としか見えない。
+
+   ★見本はリポジトリに置かない。ここでバイトを組み立てて一時ディレクトリに書く
+     （すぐ上の「退化画像」と同じやり方）。db/fixtures/make-payslips.mjs は触らない
+     ── Puppeteer の page.pdf() では暗号化できないし、あちらは [data-pii] 必須の
+     「様式」台帳で、開けない PDF は様式ではない。
+
+   ★RC4 は実装しない。pdf.js は鍵を作る**前**に /U を検算して合わなければ
+     PasswordException を投げるので、最小の本体＋ /Encrypt 辞書だけで足りる。
+     xref のバイト位置がずれると InvalidPDFException になって**赤くなる**
+     ＝静かに通り抜けることはない。
+
+   ここで見るのは2つだけ。**正しい文言が出ること**と、
+   **送る道に1歩も乗らないこと**（.ps-edit が出ない＝#ps-confirm が存在しない）。 */
+console.log('\n══ 開けない PDF（鍵付き・XFA・白紙）');
+{
+  const buildPdf = (objs, trailerExtra) => {
+    let out = '%PDF-1.4\n';
+    const off = [];
+    objs.forEach((body, i) => {
+      off.push(Buffer.byteLength(out, 'latin1'));
+      out += (i + 1) + ' 0 obj\n' + body + '\nendobj\n';
+    });
+    const xref = Buffer.byteLength(out, 'latin1');
+    out += 'xref\n0 ' + (objs.length + 1) + '\n0000000000 65535 f \n';
+    off.forEach((o) => { out += String(o).padStart(10, '0') + ' 00000 n \n'; });
+    out += 'trailer\n<< /Size ' + (objs.length + 1) + ' /Root 1 0 R ' + trailerExtra + ' >>\n' +
+           'startxref\n' + xref + '\n%%EOF\n';
+    return Buffer.from(out, 'latin1');
+  };
+  const hx = (n) => Array.from({ length: n }, (_, i) => ((i * 7 + 3) & 0xff).toString(16).padStart(2, '0')).join('');
+  const BODY = [
+    '<< /Type /Catalog /Pages 2 0 R >>',
+    '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+    '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>',
+  ];
+
+  const cases = [
+    ['鍵付き（パスワードで保護されている）', 'locked',
+     buildPdf([...BODY,
+       /* V1/R2・40bit。/U はわざと合わない値 ── pdf.js は鍵を作る前にここで落ちる。 */
+       '<< /Filter /Standard /V 1 /R 2 /Length 40 /O <' + hx(32) + '> /U <' + hx(32) + '> /P -1 >>'],
+       '/Encrypt 4 0 R /ID [<' + hx(16) + '> <' + hx(16) + '>]'),
+     'パスワードで保護されています'],
+    ['XFA フォーム（中身が XML 側にあり、ページは空）', 'xfa',
+     buildPdf([
+       '<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R >>',
+       BODY[1], BODY[2],
+       '<< /Fields [] /XFA [ (preamble) 5 0 R ] >>',
+       '<< /Length 9 >>\nstream\n<xdp:xdp>\nendstream'], ''),
+     '特殊な形式'],
+    ['白紙（正しい PDF だが描き出すものが無い）', 'blank', buildPdf(BODY, ''),
+     '描き出せませんでした'],
+  ];
+
+  const page = await browser.newPage();
+  await page.setViewport({ width: 1280, height: 1400 });
+  /* ★送る道に乗らないことを、画面だけでなく**実際に出ていく通信**でも見る。 */
+  let posted = 0;
+  await page.setRequestInterception(true);
+  page.on('request', (req) => {
+    if (req.url().includes('/functions/v1/parse-payslip')) { posted++; return req.abort(); }
+    return req.continue();
+  });
+  await page.goto(URL_JA, { waitUntil: 'networkidle2', timeout: 30000 });
+  await page.evaluate(() => localStorage.clear());
+  await page.reload({ waitUntil: 'networkidle2', timeout: 30000 });
+  await openPayslip(page);
+
+  for (const [name, slug, buf, want] of cases) {
+    const p = path.join(TMP, `pdf-${slug}.pdf`);
+    writeFileSync(p, buf);
+    await page.evaluate(() => { const n = document.getElementById('ps-panel'); if (n) n.innerHTML = ''; });
+    const inp = await page.$('#ps-file');
+    await inp.uploadFile(p);
+    /* ★時間で待たない。警告が出るか、確認画面が出るか、どちらかが起きるまで待つ。
+       確認画面が出てしまったら、その時点で下の判定が赤くなる。 */
+    await page.waitForFunction(
+      () => !!document.querySelector('#ps-panel .ps-msg-warn') || !!document.querySelector('.ps-edit'),
+      { timeout: 30000 });
+    const m = await page.evaluate(() => ({
+      warn: (document.querySelector('#ps-panel .ps-msg-warn') || {}).textContent || '',
+      edit: !!document.querySelector('.ps-edit'),
+      confirm: !!document.getElementById('ps-confirm'),
+    }));
+    ok(m.warn.includes(want), `★正しい文言が出る：${name}`, `出た文言「${m.warn.slice(0, 60)}」`);
+    ok(!m.edit && !m.confirm, `★送る道に乗らない（明細の確認画面が出ない）：${name}`,
+       `.ps-edit ${m.edit ? '有' : '無'} / #ps-confirm ${m.confirm ? '有' : '無'}`);
+  }
+  ok(posted === 0, '★開けない PDF は1度も Edge Function へ送っていない', `${posted} 回`);
+
+  /* ★白紙の JPEG が送られる道（真因）を塞いだままか。
+     裸の catch に戻すと、ここは全部緑のまま**本番だけ**が壊れる。 */
+  await page.close();
+}
+
 // ── コード側の約束：画像・ラベルをログに出していないこと ──────
 console.log('\n══ Edge Function のログ検査');
 const fn = readFileSync(path.join(DIR, '..', 'supabase', 'functions', 'parse-payslip', 'index.ts'), 'utf8');
@@ -1172,6 +1277,19 @@ const IMPL = [
   [/['"]iban['"][\s\S]{0,200}|['"]account['"]/, 'ラベル語に英語圏・湾岸の口座語がある'],
   [/ps-confirm/, '送信前の確認チェックがある'],
   [/getTextContent/, 'PDF の文字の層を読んでいる'],
+  /* ★開けない PDF を「成功」に化かさない（2026-09-11）。
+     鍵付き・XFA・白紙のどれも、裸の catch に戻すと真っ白な JPEG が送られる。 */
+  [/PasswordException/, '★パスワード付き PDF を名指しで見分けている'],
+  [/IsXFAPresent/, '★XFA フォームかどうかを PDF の情報から見ている'],
+  [/function isBlankCanvas/, '★描き出した結果が白紙かどうかを見ている'],
+  [/pvReason/, '★描画の失敗の理由を4つに割っている（locked / xfa / blank / broken）'],
+  /* ★AcroForm（欄が widget になっている PDF）は文字の層に値が出てこない。
+     そのまま通すと「文字の層がある」判定で OCR が動かず、氏名も口座も
+     画素としてだけ現れて**黒塗りが1枚も乗らない**。値を捨てて OCR へ落とす。
+     ⚠ annotationMode: 2（ENABLE_FORMS）にしてはいけない。実測すると
+     widget の見た目が canvas から消えて金額が描かれなくなる。 */
+  [/IsAcroFormPresent/, '★欄が widget の PDF は OCR に落として黒塗りを効かせる'],
+  [/annotationMode/, '★annotationMode を 2 にしない理由が書いてある'],
   /* ★PDF に文字の層があるのに OCR へ落ちたら、それは静かな後退。
      読み違いが起きない経路を持っているのに使っていない、という壊れ方は
      画面には一切現れない（どちらでも「塗りました」と出る）。 */

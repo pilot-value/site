@@ -43,7 +43,8 @@ const SRC = readFileSync(path.join(ROOT, 'supabase/functions/parse-payslip/index
 
 globalThis.Deno = { env: { get: () => '' }, serve: () => {} };
 const { sanitize, parseHours, reconcile, applyChecks, payTolerance, systemPrompt,
-        EARNING_KINDS, HOUR_KINDS, VARIABLE_BASIS, isCountRow, COUNT_MAX } =
+        EARNING_KINDS, HOUR_KINDS, VARIABLE_BASIS, isCountRow, COUNT_MAX,
+        readMoneyNum, isAmbiguousMoney, CUR_DEC } =
   await import('../supabase/functions/parse-payslip/index.ts');
 
 let pass = 0, fail = 0;
@@ -201,6 +202,103 @@ eq(slip({ currency: '¥' }).currency, null, '記号は通貨コードではな�
 eq(slip({ currency: 'JPYEN' }).currency, null, '3文字でないものは通さない');
 eq(slip({ confidence: 'とても自信あり' }).confidence, 'medium', '語彙外の confidence は medium に倒す');
 
+console.log('\n③-b 金額の読み方（小数点とけた区切り）');
+{
+  /* ★ここが唯一の防波堤（2026-09-11）。
+     カンマを小数点に使う国は45通貨のうち20を超える（EUR圏・BRL・IDR …）。
+     8.450,00 を parseFloat で読むと 8.45 になり、**全行が同じ倍率でずれる**ので
+     支給合計の検算も手取りの検算も両方 ok のまま通り、confidence も high のまま
+     画面に出る。1/1000 になった年収がそのまま REAL PAY まで届く。
+     検算では絶対に捕まらないので、読み方そのものを固定する。 */
+  // [印字, 通貨の小数桁, 期待]
+  const M = [
+    ['1,234.56', 2, 1234.56], ['1.234,56', 2, 1234.56], ['8.450,00', 2, 8450],
+    ['1,150,000', 0, 1150000], ['1.234.567', 2, 1234567],
+    ['1,5', 2, 1.5], ['1000,50', 2, 1000.5], ['0.500', 2, 0.5], ['1.0', 2, 1],
+    ['1,23,456', 2, null], ['12.34.56', 2, null], ['', 2, null], [null, 2, null],
+    [12345, 2, 12345], ['1234', 0, 1234], ['０', 0, 0],
+  ];
+  for (const [s, dec, want] of M)
+    eq(readMoneyNum(s, dec), want, `${JSON.stringify(s)}（小数${dec}桁）→ ${want}`);
+
+  /* ★1.000 / 500.000 だけは 1000 とも 1.0 とも読める。画面は本人に聞くが、
+     サーバは聞けないので**通貨の小数桁で決める**。dec が 3 でない通貨で
+     小数3桁の金額はその通貨では成立しない書式＝推測ではなく消去法。 */
+  for (const [s, dec, want] of [
+    ['1.000', 0, 1000], ['1.000', 2, 1000], ['1.000', 3, 1],
+    ['500.000', 0, 500000], ['500.000', 2, 500000], ['500.000', 3, 500],
+  ]) eq(readMoneyNum(s, dec), want, `★曖昧は通貨で決める: ${s}（小数${dec}桁）→ ${want}`);
+  ok(isAmbiguousMoney('1.000') && isAmbiguousMoney('500.000'), '★曖昧な形を見分けられる');
+  ok(!isAmbiguousMoney('0.500') && !isAmbiguousMoney('1.0') && !isAmbiguousMoney('8.450,00'),
+     '★曖昧でない形に印を立てない（毎回警告が出ると読み飛ばされる）');
+  ok(!isAmbiguousMoney(1000), '★数で返ってきたものは曖昧ではない');
+
+  /* 明細の印字そのまま（記号・通貨コード・全角・△▲・括弧）でも読む。
+     プロンプトが「分からなければ印字のまま文字列で返してよい」と言うため。 */
+  for (const [s, want] of [
+    ['¥18,000', 18000], ['18,000円', 18000], ['USD 1,234.56', 1234.56],
+    ['1.234,56 EUR', 1234.56], ['1 234,56', 1234.56], ['１２３４', 1234],
+    ['△18,000', -18000], ['▲21,802', -21802], ['−21,802', -21802],
+    ['-1,234.56', -1234.56], ['(1.234,56)', -1234.56],
+    ['5,000 (net 4,000)', null], ['abc', null],
+  ]) eq(readMoneyNum(s, 2), want, `印字のまま読む: ${JSON.stringify(s)} → ${want}`);
+
+  /* ★CUR_DEC は pv-vocab.mjs の写し（Edge Function は .mjs を import できない）。
+     小数桁が1つ違うだけで 1.000 の読み方が画面と食い違う。 */
+  const { CURRENCIES } = await import('../pv-vocab.mjs');
+  const want = Object.fromEntries(CURRENCIES.map((c) => [c.code, c.dec]));
+  eq(Object.keys(CUR_DEC).sort(), Object.keys(want).sort(),
+     `★CUR_DEC の通貨が pv-vocab.mjs と同じ（${CURRENCIES.length}件）`);
+  eq(Object.keys(want).filter((k) => CUR_DEC[k] !== want[k]), [],
+     '★小数桁が1件も違わない');
+
+  /* ★画面（pay-report.html の readMoney）と同じ答えを返すか。
+     これは写しなので腐る。写経した複製ではなく実体を切り出して動かす
+     （①-f と同じ手）。切り出せなくなったらその場で落ちる。 */
+  const HTML = readFileSync(path.join(ROOT, 'pay-report.html'), 'utf8');
+  const cutG = HTML.match(/\nfunction grp\(s\) \{[\s\S]*?\n\}/);
+  const cutR = HTML.match(/\nfunction readMoney\(s\) \{[\s\S]*?\n\}/);
+  ok(!!cutG && !!cutR, '★pay-report.html から grp / readMoney を切り出せた');
+  const front = new Function(cutG[0] + cutR[0] + '\nreturn readMoney;')();
+  /* 画面は「本人が欄に打った文字」を読む＝記号や単位は付かない。
+     両方が受け取る素の書式だけを突き合わせる。 */
+  const SHARED = [
+    ['1,234.56', 2, 1234.56], ['1.234,56', 2, 1234.56], ['8.450,00', 2, 8450],
+    ['1,150,000', 0, 1150000], ['1.234.567', 2, 1234567], ['1,5', 2, 1.5],
+    ['1000,50', 2, 1000.5], ['0.500', 2, 0.5], ['1.0', 2, 1], ['1234', 0, 1234],
+    ['1,23,456', 2, null], ['12.34.56', 2, null],
+    ['1.000', 0, 1000], ['1.000', 3, 1], ['500.000', 2, 500000], ['500.000', 3, 500],
+  ];
+  for (const [s, dec, wantN] of SHARED) {
+    const f = front(s);
+    /* 画面が「2通りに読める」と言ったときは、サーバが通貨で選ぶほうと同じになるか。
+       alts[0] ＝ けた区切り（1000）／ alts[1] ＝ 小数（1.0）。 */
+    const mine = f.state === 'ok' ? f.n
+      : f.state === 'ambiguous' ? (dec === 3 ? f.alts[1].n : f.alts[0].n)
+      : null;
+    ok(mine === wantN && readMoneyNum(s, dec) === wantN,
+       `画面とサーバで同じ答え: ${JSON.stringify(s)}（小数${dec}桁）→ ${wantN}`,
+       `画面=${mine} / サーバ=${readMoneyNum(s, dec)}`);
+  }
+}
+
+console.log('\n③-c 金額の規則を年・月・時間に持ち込んでいない');
+{
+  /* ★numOr（数字以外を全部落として parseFloat）は金額には使えないが、
+     時間には要る。111H59 に金額の規則を当てると読めずに分母が消える。
+     逆に金額に numOr を当てると 8.450,00 が 8.45 になる。**両立しない。**
+     どちらがどちらに使われているかを固定する。 */
+  const r = slip({ currency: 'EUR',
+                   earnings: [E('Basic', '8.450,00', 'base')],
+                   gross_total: '8.450,00',
+                   period: { year: '2026', month: '7' },
+                   hours: [{ label: 'BLOCK', raw: '111H59', value: 111.59, kind: 'block' }] });
+  eq(r.earnings[0].amount, 8450, '★金額は金額の規則で読む（8.450,00 → 8450）');
+  eq(r.gross_total, 8450, '★支給合計も同じ');
+  eq(r.period, { year: 2026, month: 7 }, '年・月は今までどおり');
+  near(r.hours[0].value, 112, 0.05, '★時間は raw を優先（111H59 → 111.98…）');
+}
+
 // ═══ ④ 検算 ══════════════════════════════════════════════════════
 /* 合成明細 payslip-jp-compact.png と同じ（全部でたらめな）数字。 */
 const JP = [
@@ -340,6 +438,58 @@ console.log('\n⑤ 検算が外れたら confidence を low に落とす');
   ok(!('checks' in p), 'applyChecks は元のオブジェクトを書き換えない');
 }
 
+console.log('\n⑤-b 読み方の検査（通貨・小数点・桁）');
+{
+  /* どれも送信は止めない。画面の同じ場所（chkMsg）に1行出すだけ。 */
+  const eu = slip({ currency: 'EUR', earnings: JP, gross_total: GROSS });
+  const c1 = reconcile(eu);
+  eq(c1.currency, 'ok', '45通貨の中なら ok');
+  eq(c1.money, 'ok', '通貨が分かっていれば仮定していない');
+  eq(c1.scale, 'ok', '普通の金額');
+
+  /* ★45通貨の外（NGN / PKR / RUB …）。いまは #f-currency に無いので
+     画面の通貨欄が空のまま、どの通貨が足りないかがオーナーに永久に届かなかった。 */
+  const ngn = slip({ currency: 'NGN', earnings: [E('Basic', 900000, 'base')], gross_total: 900000 });
+  eq(ngn.currency, 'NGN', '★45通貨の外でもコードは落とさずに返す');
+  eq(reconcile(ngn).currency, 'unsupported', '★「まだ選べない通貨」と分かる形で返す');
+  eq(reconcile(slip({ currency: '¥', earnings: [E('本給A', 150000, 'base')] })).currency, 'unknown',
+     '読めなかったときは unknown（unsupported と区別する）');
+
+  /* ★通貨が分からないまま 1.000 を読んだときだけ「仮定した」と言う。
+     曖昧な形が1つも無ければ黙っている（毎回出ると読み飛ばされる）。 */
+  const amb = slip({ currency: null, earnings: [E('Basic', '1.000', 'base')], gross_total: '1.000' });
+  eq(amb.gross_total, 1000, '通貨不明のときは小数2桁を仮定＝けた区切りとして読む');
+  eq(reconcile(amb).money, 'assumed', '★仮定したことを画面に伝える');
+  const amb2 = slip({ currency: null, earnings: [E('Basic', '1,234.56', 'base')], gross_total: '1,234.56' });
+  eq(reconcile(amb2).money, 'ok', '★曖昧な形が無ければ通貨不明でも黙っている');
+  const amb3 = slip({ currency: 'KWD', earnings: [E('Basic', '1.000', 'base')], gross_total: '1.000' });
+  eq(amb3.gross_total, 1, '★KWD は小数3桁なので 1.000 は 1.000（数字は変えない）');
+  /* ★2026-09-11。ここは前まで 'ok' だった＝「通貨が分かっているなら迷っていない」。
+     小数3桁の通貨（KWD / BHD / OMR / JOD）だけは**それが成り立たない**。
+     1.000 は 1000 とも 1.000 とも読めて、どちらを採るかの根拠が「通貨の小数桁」
+     しか無い。KWD 1.000 と KWD 1000 では年収が1000倍ちがう。 */
+  eq(reconcile(amb3).money, 'assumed', '★小数3桁の通貨は「そう読んだ」と画面に出す');
+  /* ★広げない。dec が 0 や 2 の通貨で 1.000 を 1000 と読むのは**消去法**
+     （その通貨に小数3桁は無い＝1.0 とは読めない）＝迷う余地が無い。
+     EUR まで旗を立てると、欧州の明細が毎回この注意を出して読み飛ばされる。 */
+  const amb4 = slip({ currency: 'EUR', earnings: [E('Basic', '8.450', 'base')], gross_total: '8.450' });
+  eq(amb4.gross_total, 8450, 'EUR の 8.450 は 8450');
+  eq(reconcile(amb4).money, 'ok', '★EUR には旗を立てない（消去法で決まる）');
+  const amb5 = slip({ currency: 'JPY', earnings: [E('本給A', '1.000', 'base')], gross_total: '1.000' });
+  eq(reconcile(amb5).money, 'ok', '★JPY（小数0桁）にも立てない');
+
+  /* ★月の支給合計が100を下回る通貨は45件のどれにも無い。
+     小数点を1つ読み違えて 1/1000 になった形。数字はいじらず旗だけ立てる。 */
+  const small = slip({ currency: 'EUR', earnings: [E('Basic', 8.45, 'base')], gross_total: 8.45 });
+  const cs = reconcile(small);
+  eq(cs.scale, 'suspect', '★支給合計が100未満なら桁を疑う');
+  eq(applyChecks(small, cs).confidence, 'low', '★confidence も落とす（落とさないと内訳が畳まれたまま）');
+  eq(reconcile(slip({ currency: 'EUR', earnings: [E('Basic', 100, 'base')], gross_total: 100 })).scale,
+     'ok', '100 ちょうどは疑わない');
+  eq(reconcile(slip({ currency: 'JPY', gross_total: null })).scale, 'ok',
+     '★読めなかったものを疑わない（unknown は失敗ではない）');
+}
+
 // ═══ ⑥ 画面が checks を読んでいるか ══════════════════════════════
 console.log('\n⑥ 画面（payslip.js）が検算の結果を使っている');
 {
@@ -350,6 +500,16 @@ console.log('\n⑥ 画面（payslip.js）が検算の結果を使っている');
   ok(/chkGross:/.test(FRONT) && /chkNet:/.test(FRONT), 'JA/EN 両方の文言が定義されている');
   ok((FRONT.match(/chkGross:/g) || []).length === 2, '日本語と英語で2本（片方だけ足していない）');
   ok(/gross_diff/.test(FRONT) && /net_diff/.test(FRONT), '★差額を画面に出す（出さないと見比べる先が分からない）');
+  /* 通貨・小数点・桁の3つも同じ場所（chkMsg）に積む。★say() に書くと
+     直後の clearPanel() で消える＝画面には何も出ない。 */
+  ok(/chkMsg\.push\(T\.chkCur\(/.test(FRONT) && /chkMsg\.push\(T\.chkMoney\)/.test(FRONT) &&
+     /chkMsg\.push\(T\.chkScale\)/.test(FRONT),
+     '★通貨・小数点・桁の3つも chkMsg に積んでいる（say() ではない）');
+  for (const k of ['chkCur:', 'chkMoney:', 'chkScale:'])
+    ok((FRONT.match(new RegExp(k, 'g')) || []).length === 2, `${k} が日英2本ある`);
+  ok(/T\.chkCur\(esc2\(/.test(FRONT), '★通貨コードは esc2 してから文言に渡す（el が innerHTML で入れる）');
+  ok(/payslip_currency_missing/.test(FRONT),
+     '★選べない通貨を GA4 に送る（どれを足すべきかが分かる唯一の経路）');
   ok(!/checks[\s\S]{0,200}return;/.test(FRONT.slice(FRONT.indexOf('function renderResult'),
                                                     FRONT.indexOf('function renderResult') + 1200)),
      '★検算が外れても送信を止めていない（止めると一次データが減る）');

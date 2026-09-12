@@ -37,6 +37,7 @@ var T = {
     revTitle:  '入力内容の確認',
     revSub:    '出す前に、入れた内容をひととおり見てください。直すところは各節の「編集」から戻れます。',
     lblComp:    '支給の内訳（今月）',
+    lblExtras:  '明細から読み取った値（欄が無いもの）',
     seg: { fixed: '固定・保証給', variable: '変動給', command: '職位手当', role: '役割手当',
            perdiem: 'パーディアム', housing: '住宅手当', other: 'その他の現金', rest: 'その他',
            bonus: '賞与・プロフィットシェア' },
@@ -55,6 +56,7 @@ var T = {
     revTitle:  'Review your entry',
     revSub:    'Check what you entered before you submit. Use "Edit" on any section to go back.',
     lblComp:    'Pay composition (this month)',
+    lblExtras:  'Read from your payslip (no field on screen)',
     seg: { fixed: 'Fixed / guarantee', variable: 'Variable', command: 'Command', role: 'Role',
            perdiem: 'Per diem', housing: 'Housing', other: 'Other cash', rest: 'Other',
            bonus: 'Bonus / profit share' },
@@ -687,6 +689,30 @@ function renderReview(pay) {
     if (rows) host.appendChild(sec);
   });
   back.forEach(function (x) { if (x[0]) x[0].hidden = x[1]; });
+
+  /* ★明細から読み取ったのに、画面に欄が無くて本人が読み返せない値（2026-09-11）。
+     保存にも計算にも使うのに、上の .fld 巡回には一度も現れない ── 隠し欄は
+     offsetParent を持たないので、あの巡回が**必ず**飛ばすため。
+     ⚠️ 文言が日英で分かれるので、何を出すかは呼ぶ側（pay-report.html）が決める。
+        ここは generic のまま保つ（.fld 巡回には手を入れない）。
+     ⚠️ 金額の整形はここでやる（moneyOrig）。2枚の HTML に同じ式を写すと片方だけ
+        腐る。x.money が true のとき x.v は**原本通貨のままの数**。
+     ⚠️ 「編集」は付けない。画面に欄が無いので飛び先が無い。
+     ⚠️ 空の値は呼ぶ側が落としている ＝ 明細を使っていない人の画面には1行も増えない。 */
+  var ex = typeof C.reviewExtras === 'function' ? (C.reviewExtras() || []) : [];
+  if (ex.length) {
+    var xsec = el('section', 'wz-rev-sec');
+    var xhead = el('div', 'wz-rev-head');
+    xhead.appendChild(el('span', 'wz-rev-t', L.lblExtras));
+    xsec.appendChild(xhead);
+    ex.forEach(function (x) {
+      var xr = el('div', 'wz-rev-row');
+      xr.append(el('span', 'wz-rev-k', x.k),
+                el('span', 'wz-rev-v', x.money ? moneyOrig(x.v) : String(x.v)));
+      xsec.appendChild(xr);
+    });
+    host.appendChild(xsec);
+  }
 }
 
 /* ═══ 5. 外へ出す口 ════════════════════════════════════════════════ */
