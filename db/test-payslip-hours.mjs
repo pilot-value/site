@@ -147,7 +147,24 @@ ok(/ytd_taxable/.test(SRC), '累積課税支給額を拾っている');
 ok(/NEVER return 組合費/.test(SRC), '組合名は返させない（どの組合かは極めて機微）');
 
 const FRONT = readFileSync(path.join(ROOT, 'payslip.js'), 'utf8');
-ok(/absence: 'f-other'/.test(FRONT), 'absence は符号のまま「その他手当」に足し込まれる');
+/* ★2026-09-12（指摘2）。ここは長らく `absence: 'f-other'` を見ていた ──
+   不就労減額を隠しの「その他手当」に**符号のまま足し込む**作り。
+   ところが金額の欄は readMoney で読む決まりで、readMoney は
+   `^[0-9.,]+$` しか通さない＝**マイナスの文字列はまるごと bad**。
+   つまり `-18,000` を書き込んだ欄は sumField に**読まれずに飛ばされ**、
+   減額は other_allowance に1円も届いていなかった（実測で確認した）。
+   ＝「負の金額を表示できないから捨てていた」そのもの。しかも
+   **項目名も符号も金額もどこにも残らない**ので、本人は気づけず直せない。
+   いまはどの金額の欄にも割り当てず、専用の隠し欄 f-absence に
+   項目名・符号・金額のまま持って保存まで運ぶ。
+   ⚠️ **保存される金額の列は1つも変わらない**（前から届いていなかったため）。
+      変わるのは「残るか・見えるか」だけ。 */
+ok(!/absence:\s*'f-/.test(FRONT),
+   'absence をどの金額の欄にも割り当てない（負の文字列は readMoney が読まず消える）');
+ok(/if \(e2\.kind === 'absence'\) \{ absence\.push\(e2\); return; \}/.test(FRONT),
+   'absence は捨てずに専用の入れ物へ寄せる');
+ok(/getElementById\('f-absence'\)/.test(FRONT),
+   '隠し欄 f-absence に項目名・符号ごと書き出して送信まで運ぶ');
 ok(/kind === 'notional'/.test(FRONT), 'notional は分子から外している');
 ok(!/notional:\s*'f-/.test(FRONT), 'notional に入力欄を割り当てていない（＝合計に入らない）');
 ok(/notionalNote/.test(FRONT) && /not counted as income/.test(FRONT), '数えていないことを JP/EN で言っている');

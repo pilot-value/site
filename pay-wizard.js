@@ -148,8 +148,12 @@ function unionOutside(items) {
    実際には出ない、という食い違いになる（どちらも普通に動いたまま）。 */
 function hasItems(items) {
   if (!items || typeof items !== 'object') return false;
+  /* ★absence（不就労減額）も「中身」に数える（2026-09-12・指摘2）。
+     金額の列は1円も動かさないが、減額しか読めなかった月でもその事実は残す。
+     ⚠️ 向こう（db/pay-reports.sql の空の殻の判定）にも同じ鍵が入っている。
+        片方だけ足すと、画面が「内訳が出ます」と言った行がサーバで潰れる。 */
   return !!(items.variable || items.other || items.instructor || items.examiner
-            || items.union || items.management || items.nonline
+            || items.union || items.management || items.nonline || items.absence
             || items.fixed_none === true || items.guarantee_none === true
             || items.variable_none === true);
 }

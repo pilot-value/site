@@ -5515,6 +5515,160 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   }
 }
 
+/* ── ★20 不就労減額（2026-09-12・指摘2）────────────────────────────
+   前は KIND_FIELD が absence を隠し欄 f-other へ送り、符号のまま合算していた。
+   起きていたこと（どれも画面はどこも壊れないまま）──
+     ① 項目名がどこにも残らない … 本人の画面にも確認画面にも1行も出ないので、
+        誤読でも気づけず直せない。DEEP PAY の内訳にも名前は一生出ない
+     ② 総支給から二重に引かれる … 明細に印字されている総支給は**すでに減額後**。
+        その総支給から支給構成を作っているのに、other_allowance の側でも引くので、
+        「その他手当」が greatest(other - flight_variable, 0) で 0 に潰れ、
+        本物のその他手当が帯から丸ごと消える
+   ここは実ページに本物の経路で明細を読ませ、①②の両方を見る。
+   ★回答者の必須操作は1つも増えていない（f-absence は hidden で req-tag を持たない）。 */
+console.log('\n★20 不就労減額（読み取り → 画面 → 送信 → 確認画面）');
+{
+  const FN = '/functions/v1/parse-payslip';
+  const CORS = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  };
+  const PDF = path.join(ROOT, 'db/fixtures/payslip-pdf-gulf.pdf');
+  /* db/fixtures/payslips.expected.json の jp-compact と同じ勘定
+     （支給の合計が印字の総支給と1円まで一致し、その中に減額が入っている）。 */
+  const RAW = {
+    currency: 'JPY', period: { year: 2026, month: 7 },
+    earnings: [
+      { label: '基本給',   amount: 360000, kind: 'base' },
+      { label: '乗務手当', amount: 224000, kind: 'flight_variable', basis: 'block' },
+      { label: '家族手当', amount:   8000, kind: 'other' },
+      { label: '欠勤控除', amount: -18000, kind: 'absence' },
+      { label: '日当',     amount:   9000, kind: 'per_diem' },
+    ],
+    hours: [{ label: '乗務時間', value: 70, kind: 'block' }],
+    gross_total: 583000, deductions_total: 120000, net_pay: 463000,
+    unmapped: [], confidence: 'high',
+  };
+  const FAKE = (() => { const q = sanitize(RAW); return { ok: true, result: applyChecks(q, reconcile(q)) }; })();
+
+  for (const [T, url] of [['ja', 'http://localhost:3000/pay-report.html'],
+                          ['en', 'http://localhost:3000/en/pay-report.html']]) {
+    const page = await newPage();
+    await page.setViewport({ width: 1440, height: 1200 });
+    page.on('pageerror', (e) => { fail++; console.log(`  ❌ [${T}] ページ例外: ${e.message}`); });
+    await page.setRequestInterception(true);
+    page.on('request', (req) => {
+      const u = req.url();
+      if (!u.includes(FN)) return req.continue();
+      if (req.method() === 'OPTIONS') return req.respond({ status: 204, headers: CORS, body: '' });
+      req.respond({ status: 200, headers: { ...CORS, 'Content-Type': 'application/json' },
+                    body: JSON.stringify(FAKE) });
+    });
+    await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+    await page.evaluate(() => localStorage.clear());
+    await page.reload({ waitUntil: 'networkidle2', timeout: 30000 });
+    await page.click('#entry-payslip');
+    await page.waitForFunction(() => {
+      const n = document.getElementById('ps');
+      return !!n && !n.hidden && n.offsetHeight > 0;
+    }, { timeout: 10000 });
+    const input = await page.$('#ps-file');
+    await input.uploadFile(PDF);
+    await page.waitForSelector('#ps-confirm', { timeout: 60000 });
+    await page.waitForFunction(() => {
+      const b = document.getElementById('ps-confirm');
+      return !!b && !b.disabled;
+    }, { timeout: 60000 });
+    await page.click('#ps-confirm');
+    await page.click('#ps-send');
+    await page.waitForFunction(() => {
+      const e = document.getElementById('f-gross');
+      return !!e && Math.abs(Number(String(e.value).replace(/[^0-9.]/g, '')) - 583000) < 0.5;
+    }, { timeout: 60000 });
+
+    /* ★読み取り結果の面（#ps-panel）は ps-send のあとに描かれる
+       （#ps-confirm は塗りつぶしの確認ボタン）。 */
+    const panelText = await page.$eval('#ps-panel', (n) => n.textContent);
+    ok(panelText.indexOf('欠勤控除') >= 0,
+       `${T} ★20 読み取り結果の面に減額の項目名が出る（黙って消さない）`,
+       panelText.replace(/\s+/g, ' ').slice(0, 160));
+    ok(/18,?000/.test(panelText), `${T} ★20 その額も出る`,
+       panelText.replace(/\s+/g, ' ').slice(0, 160));
+
+    const got = await page.evaluate(() => {
+      const g = (id) => { const e = document.getElementById(id); return e ? String(e.value) : null; };
+      let abs = null;
+      try { abs = JSON.parse(g('f-absence') || 'null'); } catch (e) {}
+      /* ★ページが実際に送る中身そのもの。検査用の写しを作らない
+         （写すと、写しだけ正しくて本物が壊れている形を見逃す）。 */
+      let p = null;
+      try { p = window.buildPayload('ANA'); } catch (e) { p = { _err: String(e) }; }
+      /* ★根っこの事実。金額の欄は readMoney でしか読まない決まりで、readMoney は
+         ^[0-9.,]+$ しか通さない＝**マイナスの文字列は bad**。だから負の額を金額の
+         欄に書くと、その欄ごと黙って読み飛ばされる（＝減額が消えていた真因）。 */
+      const negRead = (typeof window.readMoney === 'function')
+        ? window.readMoney('-18000').state : null;
+      return { other: g('f-other'), abs: abs, negRead: negRead,
+               other_allowance: p ? p.other_allowance : null,
+               flight: p ? p.flight_variable_pay : null,
+               piAbs: (p && p.pay_items) ? p.pay_items.absence : null };
+    });
+    const n = (v) => Number(String(v == null ? '' : v).replace(/[^0-9.-]/g, ''));
+
+    /* ① 項目名・符号・金額が残る */
+    ok(Array.isArray(got.abs) && got.abs.length === 1,
+       `${T} ★20 減額が隠し欄 f-absence に1行残る`, JSON.stringify(got.abs));
+    if (Array.isArray(got.abs) && got.abs.length === 1) {
+      ok(got.abs[0].label === '欠勤控除',
+         `${T} ★20 明細上の名称がそのまま残る`, String(got.abs[0].label));
+      ok(got.abs[0].amount === -18000,
+         `${T} ★20 符号もマイナスのまま残る`, String(got.abs[0].amount));
+    }
+    ok(Array.isArray(got.piAbs) && got.piAbs.length === 1 && got.piAbs[0].amount === -18000,
+       `${T} ★20 送る pay_items.absence[] にそのまま入る（保存まで運ぶ）`,
+       JSON.stringify(got.piAbs));
+
+    /* ② どの金額の列にも足していない＝二重に引かない */
+    ok(n(got.other) === 0,
+       `${T} ★20 隠し欄 f-other に符号のまま合算しない（項目名が消える形）`, String(got.other));
+    ok(n(got.other_allowance) === 232000,
+       `${T} ★20 その他手当の列に減額を混ぜない（変動給224,000＋家族手当8,000のまま）`,
+       String(got.other_allowance));
+    ok(n(got.flight) === 224000, `${T} ★20 変動給の列も動かない`, String(got.flight));
+    /* 支給構成の「その他手当」＝ greatest(other - flight, 0) が 0 に潰れないこと。
+       ここが潰れると、本物の家族手当が帯から丸ごと消える。 */
+    ok(Math.max(n(got.other_allowance) - n(got.flight), 0) === 8000,
+       `${T} ★20 支給構成の「その他手当」が 0 に潰れない（家族手当が帯に残る）`,
+       String(Math.max(n(got.other_allowance) - n(got.flight), 0)));
+
+    /* ③ 確認画面（5/5）に1行出る */
+    await page.evaluate(() => { if (window.PVPayWizard) window.PVPayWizard.goLast(); });
+    await page.waitForFunction(() => {
+      const r = document.getElementById('wz-review');
+      return !!r && r.textContent.indexOf('欠勤控除') >= 0;
+    }, { timeout: 10000 }).catch(() => {});
+    const rev = await page.$eval('#wz-review', (e) => e.textContent);
+    ok(rev.indexOf('欠勤控除') >= 0,
+       `${T} ★20 確認画面に減額の項目名が1行出る（隠し欄のままにしない）`, rev.slice(0, 140));
+    ok(/-\s?18,?000/.test(rev),
+       `${T} ★20 その額もマイナスのまま出る（手当と見分けが付く）`, rev.slice(0, 200));
+
+    /* ④ なぜ金額の欄に置けないのか（真因をここに固定する）。
+       これが 'ok' に変わったら、負の額を欄に置く道が開いたということ。
+       そのときは置き場所を見直してよいが、**項目名が残ること**だけは崩さない。 */
+    ok(got.negRead === 'bad',
+       `${T} ★20 金額の欄はマイナスの文字列を読まない（置けば黙って消える）`,
+       String(got.negRead));
+
+    /* ⑤ 必須操作は1つも増えていない */
+    ok((await page.$$('#f-absence[required], #f-absence.req-tag')).length === 0,
+       `${T} ★20 回答者の必須操作は増えない（f-absence は hidden・必須でない）`);
+
+    await page.close();
+  }
+}
+
 await browser.close();
 await db.close();
 console.log(`\n══ ${pass} pass / ${fail} fail ══`);

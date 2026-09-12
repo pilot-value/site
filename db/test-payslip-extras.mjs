@@ -199,16 +199,34 @@ ok(/othOK && sums\['f-other'\] === undefined/.test(PAYSLIP),
 ok(/'pd-oth':\s*\{\s*ja:/.test(PAYSLIP),
    '★18 確認の表に出る行き先の名前がある（pd-oth）');
 {
-  /* ★19 現物給付・不就労減額は行に載せない。
-     notional は earnings の輪の頭で外している（収入に数えない）。
-     absence は KIND_FIELD で f-other へ行くが、行へ回す枝の条件は kind==='other' だけ。 */
+  /* ★19 現物給付は行に載せない（収入に数えない）。
+     ★不就労減額は 2026-09-12 に扱いを変えた（指摘2）──
+       前 … KIND_FIELD が f-other へ送り、符号のまま合算していた。
+             ＝ 項目名がどこにも残らず、印字の総支給（すでに減額後）から
+                もう一度引かれて、その他手当が 0 に潰れていた
+       後 … どの金額の欄にも足さず、専用の隠し欄 f-absence に
+             項目名・符号・金額をそのまま残して保存まで運ぶ。
+     「その他の現金手当」の行に並べないのは前と同じ（負の行は読めないうえ合計の検算が壊れる）。 */
   ok(/if \(e2\.kind === 'notional'\) \{ notional\.push\(e2\); return; \}/.test(PAYSLIP),
      '★19 現物給付（航空券課税など）は今までどおり収入に数えない＝行にも載らない');
   ok(!/kind === 'absence'[\s\S]{0,120}othSeed/.test(PAYSLIP),
      '★19 不就労減額（マイナスの行）は「その他の現金手当」に並べない');
   const kf = PAYSLIP.match(/var KIND_FIELD[\s\S]*?\n  \};/);
-  ok(!!kf && /absence:\s*'f-other'/.test(kf[0]),
-     '★19 不就労減額は今までどおり隠し欄へ（マイナスのまま総額から引かれる）');
+  ok(!!kf && !/absence:/.test(kf[0]),
+     '★19 不就労減額をどの金額の欄にも割り当てない（足すと総支給から二重に引かれる）');
+  ok(/if \(e2\.kind === 'absence'\) \{ absence\.push\(e2\); return; \}/.test(PAYSLIP),
+     '★19 代わりに専用の入れ物へ寄せる');
+  ok(/res\._absence = absence;/.test(PAYSLIP),
+     '★19 読み取り結果に載せる（本人の画面に1行出せる）');
+  {
+    const i = PAYSLIP.indexOf("var absEl = document.getElementById('f-absence')");
+    const blk = i > 0 ? PAYSLIP.slice(i, i + 500) : '';
+    ok(i > 0, '★19 隠し欄 f-absence に書き出している（送信まで運ぶ）');
+    ok(/a\.label \|\| null/.test(blk),
+       '★19 明細上の項目名をそのまま残す（名前が消えると誤読に気づけない）');
+    ok(/-Math\.abs\(/.test(blk),
+       '★19 符号もマイナスのまま残す（手当と見分けが付く）');
+  }
 }
 {
   /* ★18 6択に答えたら行から出す。pushTrace は row 付きを**行へ書き戻す**ので、
@@ -433,6 +451,56 @@ eq(Number(r0.ytd_taxable), 402000, 'my_pay_reports が ytd_taxable を返す');
 /* Gross は列を足さずに出せる（VERIFIED-PILOT 3-4） */
 eq(Number(r0.net_pay_actual) + Number(r0.deduction_total), 71000,
    'Gross = net_pay_actual + deduction_total で出せる（新しい列は要らない）');
+
+/* ── ⑥ 不就労減額が保存され、取り出せる（2026-09-12・指摘2/指摘4）────────
+   ここは**本物の submit_pay_report / my_pay_reports** を通している。
+   ⚠️ pay_items はサーバ側で白リスト（jsonb_build_object）を通って作り直される。
+      鍵を1つ足し忘れると**その鍵だけ黙って消える**（画面はどこも壊れない）。
+      画面側の検査（db/test-form-contract.mjs ★20）は「送るところ」までしか見ないので、
+      保存されたかを見るのはここ1本だけ。 */
+console.log('\n⑥ 不就労減額 ── 保存 → 取り出し');
+{
+  const p2 = Object.assign({}, payload, {
+    period_month: 7,
+    other_allowance: 4100,
+    pay_items: { v: 2, absence: [{ label: '欠勤控除', amount: -18000 }] },
+  });
+  const r2 = (await db.query(`select public.submit_pay_report($1::jsonb) as r`,
+                             [JSON.stringify(p2)])).rows[0].r;
+  ok(r2 && r2.ok, 'RPC が ok を返す');
+
+  const saved = (await db.query(`
+    select pay_items, other_allowance from public.pay_reports
+      where period_month = 7 limit 1`)).rows[0];
+  const pi = saved.pay_items;
+  ok(pi && Array.isArray(pi.absence) && pi.absence.length === 1,
+     '★減額が pay_items.absence[] として保存される（白リストに鍵がある）',
+     JSON.stringify(pi));
+  if (pi && Array.isArray(pi.absence) && pi.absence.length === 1) {
+    eq(pi.absence[0].label, '欠勤控除', '★明細上の項目名がそのまま残る');
+    eq(Number(pi.absence[0].amount), -18000, '★符号もマイナスのまま残る');
+  }
+  /* ★印字された総支給は**すでに減額後**。ここでもう一度引くと二重になる。 */
+  eq(Number(saved.other_allowance), 4100,
+     '★その他手当の列から減額を引かない（印字の総支給から二重に引かない）');
+
+  const mine2 = (await db.query(`select public.my_pay_reports() as r`)).rows[0].r;
+  const m7 = (mine2.reports || []).find((r) => Number(r.period_month) === 7);
+  ok(!!m7, '★取り出せる（my_pay_reports がその月を返す）');
+  /* ⚠️ my_pay_reports() は pay_items そのものを**返さない**（前からの約束・1492行目）。
+     返すのは翌月のひな型に写す pay_items_shape だけ。減額はそこに入ってはいけない
+     ── 先月休んだことを今月のひな型に持ち込むと、休んでいない月にも減額が付く。 */
+  ok(m7 && !('pay_items' in m7),
+     '★取り出しても pay_items そのものは返さない（前からの約束を変えていない）');
+  ok(m7 && m7.pay_items_shape && !('absence' in m7.pay_items_shape),
+     '★減額は翌月のひな型に持ち込まない（その月だけの事実）',
+     JSON.stringify(m7 && m7.pay_items_shape));
+
+  /* ★減額だけしか無い月でも pay_items が空扱いで捨てられない。
+     「中身が無い殻」の判定に absence を足し忘れると、ここだけ黙って null になる。 */
+  eq(Number(m7 && m7.other_allowance), 4100,
+     '★減額を足しても、その月の金額は1円も動かない');
+}
 
 console.log(`\n${'─'.repeat(46)}\n${pass} pass / ${fail} fail`);
 if (fail) process.exitCode = 1;

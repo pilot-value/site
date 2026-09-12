@@ -1485,6 +1485,14 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
       <!-- ★繰り返し行そのもの（pay_items）。合計だけを既存の列に寄せ、
            行は形のまま jsonb で残す。f-psdetail と同じ考え方。 -->
       <input type="hidden" id="f-payitems">
+      <!-- ★不就労減額・欠勤控除（2026-09-12・指摘2）。明細から読めた行を
+           [{label, amount}] の形で溜める（amount は必ずマイナス）。
+           ★どの金額の列にも足さない。印字されている総支給は**すでに減額後**なので、
+             ここで引くと二重に引くことになる。持つのは「何がいくら引かれたか」
+             という事実だけで、pay_items.absence[] として保存し、確認画面に出す。
+           ★前は隠し欄 f-other に符号のまま合算していた ── 金額は届くのに項目名が
+             どこにも残らず、本人の画面にも確認画面にも1行も出なかった。 -->
+      <input type="hidden" id="f-absence">
 
       <!-- ★エラーの置き場所。この節そのものは動かさない ── ウィザードが
            show() のたびに**今出ているステップの中へ移す**（pay-wizard.js）。
@@ -3370,8 +3378,19 @@ function pdSync() {
      v が無い／1 の行は**判定していない**ので、「欠けが無かった」とは言えない。
      partial の有無だけで過去データを「揃っている」と読まないための印。
      ★過去の行は1件も書き換えない。集計からも外さない（限界は報告に書く）。 */
+  /* ★不就労減額（2026-09-12・指摘2）。明細から読めた分をそのまま持って出す。
+     ★金額は1円もどの列にも足さない（印字の総支給が既に減額後）。ここに残すのは
+       「項目名・符号・金額」だけ。壊れた JSON は黙って落とす（送信は止めない）。
+     ★db/pay-reports.sql の jsonb_build_object にも 'absence' を足してある。
+       足し忘れると、送っても保存の瞬間に鍵ごと消える。 */
+  let abs = null;
+  try {
+    const raw = JSON.parse($('f-absence').value || 'null');
+    if (Array.isArray(raw) && raw.length) abs = raw;
+  } catch (e) { abs = null; }
   const pi = { v: 2, fixed_none: none, guarantee_none: gnone, variable_none: vnone,
                variable: v, other: o };
+  if (abs) pi.absence = abs;
   /* ★内訳の一部が未回答であることの印（2026-09-12）。**閲覧の資格ではない。**
      これを門にすると、条件を満たした人が「行を1本書き足した」だけで閉め出される。
      使い道は「全額が揃った内訳として足してよいか」を決めるところだけ
@@ -3384,7 +3403,7 @@ function pdSync() {
   if (nol) pi.nonline = nol;
   /* 何も入っていないときは列ごと空にする（意味の無い {} を送らない）。 */
   $('f-payitems').value = (v.length || o.length || none || gnone || vnone
-                           || ins || exm || uni || mgt || nol) ? JSON.stringify(pi) : '';
+                           || ins || exm || uni || mgt || nol || abs) ? JSON.stringify(pi) : '';
   recalc();
   markRail();
   pdZeroSync(tv);
@@ -3671,7 +3690,7 @@ const CARRY = {
     'f-transport','f-other','f-hourly','f-flightvar','f-deduct','f-ytd',
     'f-block','f-duty','f-stay','f-duty-h','f-night-h','f-credit-h',
     'f-instructor','f-examiner','f-union-pay','f-mgmt-pay','f-nonline-pay',
-    'f-source','f-psdetail'],
+    'f-source','f-psdetail','f-absence'],
 };
 /* ★この端末のひな型に残す顔ぶれ。合計の2つ（f-var-sum / f-oth-sum）は
      pdSync() が出し直すので、どの区分にも入れない。 */
@@ -3893,7 +3912,9 @@ const PAYSLIP_MONTH_IDS = ['f-gross','f-base','f-guarantee','f-command','f-housi
        **REAL PAY の支給構成の帯が黙って消える**（今回の1件と同じ形）。
        f-hourly は「明細読み取り専用の hidden」だが今の payslip.js は書かない＝
        値が入っていれば必ず前の月の残り。`f-hourly × 時間` で効くので同じ理由で消す。 */
-  'f-hourly','f-union-pay','f-mgmt-pay','f-nonline-pay'];
+  'f-hourly','f-union-pay','f-mgmt-pay','f-nonline-pay',
+  /* ★不就労減額も「その月の事実」。落とし直したら payslip.js が必ず入れ直す。 */
+  'f-absence'];
 
 /* ★「何も入っていない状態」を、誰かが戻す前にここで控える（2026-09-11）。
    ⚠️ `input type="hidden"` は **value と defaultValue が常に同じ**になる
@@ -4304,6 +4325,19 @@ if (WZ) {
       add('f-transport', '通勤手当',           'money');
       add('f-night-h',   '深夜の時間',         'h');
       add('f-credit-h',  'クレジット時間',     'h');
+      /* ★不就労減額（2026-09-12・指摘2）。読み取ったのに画面に欄が無い値の
+         いちばん大事な1つ。ここに出さないと、本人は「何がいくら引かれた明細
+         として出すのか」を一度も読み返せないまま送ることになる。
+         ★金額はマイナスのまま出す。符号を落とすと手当と見分けが付かない。
+         ★これは注意書きではなく事実の読み返し ── 総支給から二重に引くことはしない。 */
+      try {
+        const ab = JSON.parse($('f-absence').value || 'null');
+        if (Array.isArray(ab)) ab.forEach((a) => {
+          const n = parseFloat(a && a.amount);
+          if (!isFinite(n)) return;
+          rows.push({ k: '減額：' + String((a && a.label) || '不就労'), v: n, money: true });
+        });
+      } catch (e) {}
       const src = $('f-source');
       if (src && src.value === 'payslip') rows.push({ k: '入力方法', v: '明細から読み取り' });
       return rows;

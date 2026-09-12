@@ -1073,6 +1073,16 @@ begin
                             and jsonb_array_length(v_items->'variable') <= 40 then v_items->'variable' end,
         'other',      case when jsonb_typeof(v_items->'other') = 'array'
                             and jsonb_array_length(v_items->'other') <= 40 then v_items->'other' end,
+        -- ★ 2026-09-12 追加。不就労減額・欠勤控除（明細から読めた**マイナスの行**）。
+        --    形は other と同じ [{label, amount}]。amount は必ずマイナス。
+        --    ⚠️ **どの金額の列にも足していない。** 明細に印字されている総支給は
+        --       すでに減額後なので、こちらで引くと二重に引くことになる
+        --       （支給構成の a_other が greatest(…,0) で 0 に潰れる）。
+        --       ここに入るのは「何がいくら引かれたか」という事実だけ。
+        --    ⚠️ 書き忘れると、この組み直しで黙って落ちる ＝ 減額の項目名が
+        --       どこにも残らない状態（2026-09-12 より前）に戻る。
+        'absence',    case when jsonb_typeof(v_items->'absence') = 'array'
+                            and jsonb_array_length(v_items->'absence') <= 40 then v_items->'absence' end,
         -- ★ 2026-08-26 追加。教官・訓練の中身（担当している訓練・会社での呼び名・
         --    支給の有無と支給単位・数量）。ここは配列ではなく**オブジェクト**。
         --    ⚠️ 足し忘れると、教官が書いた中身がこの組み直しで黙って消える
@@ -1114,9 +1124,11 @@ begin
       -- ★「該当なし」3つは、それだけでも中身として扱う（2026-09-03）。
       --   3つとも「会社に無い」と答えるのは立派な回答で、REAL PAY の門は
       --   それで開く。ここで潰すと、その人の答えがどこにも残らない。
+      -- ★ absence も「中身」に数える（2026-09-12）。減額しか読めなかった月でも、
+      --   その事実は残す（ここで潰すと、読めたのに何も残らない月ができる）。
       if not (v_items ? 'variable' or v_items ? 'other' or v_items ? 'instructor'
               or v_items ? 'examiner' or v_items ? 'union' or v_items ? 'management'
-              or v_items ? 'nonline'
+              or v_items ? 'nonline' or v_items ? 'absence'
               or coalesce((v_items->>'fixed_none')::boolean, false)
               or coalesce((v_items->>'guarantee_none')::boolean, false)
               or coalesce((v_items->>'variable_none')::boolean, false)) then

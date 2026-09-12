@@ -1431,5 +1431,49 @@ console.log('\n▼ db/pay-reports.verify.sql（オーナーが貼る検算）');
      bad.map((x) => `${x['検査']}: 実際 ${x['実際']} / 期待 ${x['期待']}`).join(' | '));
 }
 
+// ── オーナーが貼る「保存 → 再取得 → 表示」の通し確認（2026-09-12・指摘4）──
+/* db/pay-reports.roundtrip.sql は、列や鍵を足したときにだけ起きる
+   「保存はされたが、その鍵だけ黙って消えている」を見るためのもの。
+   ★わざと例外を投げて巻き戻す作りなので、ここでも例外が返るのが正常。
+   ★ここで流しておかないと、鍵を1つ足したのに確認だけ古いまま＝
+     オーナーの画面には ✅ が並ぶのに実際は確かめていない、という形になる。 */
+console.log('\n▼ db/pay-reports.roundtrip.sql（オーナーが貼る通し確認）');
+{
+  /* 本番の auth.uid() は JWT の sub を読む。roundtrip.sql はそれを
+     set_config('request.jwt.claims', …) で差し替えるので、ここだけ本番と同じ形にする。 */
+  await db.exec(`
+    create table if not exists auth.users (id uuid primary key, email text);
+    create or replace function auth.uid() returns uuid language sql stable as $$
+      select nullif(current_setting('request.jwt.claims', true)::json->>'sub', '')::uuid $$;
+  `);
+  const OPS = '00000000-0000-4000-8000-0000000000aa';
+  await db.query(`insert into auth.users(id,email) values($1,$2) on conflict do nothing`,
+                 [OPS, 'info@pilot-value.com']);
+  await db.query(`insert into profiles(id,email) values($1,$2) on conflict do nothing`,
+                 [OPS, 'info@pilot-value.com']);
+  const before = Number((await one(`select count(*) c from pay_reports`)).c);
+
+  let msg = '';
+  try { await db.exec(read('db/pay-reports.roundtrip.sql')); }
+  catch (e) { msg = String(e.message || e); }
+
+  ok(/これはエラーではありません/.test(msg),
+     '★最後まで走って、わざと巻き戻している（途中で落ちていない）', msg.slice(0, 300));
+  const marks = (msg.match(/[✅❌]/g) || []);
+  ok(marks.length === 15, `判定は15項目（増やしたら CLAUDE.md も直す）→ ${marks.length}`);
+  ok(marks.length > 0 && marks.every((m) => m === '✅'),
+     '★通し確認が全項目 ✅',
+     msg.split('\n').filter((l) => l.indexOf('❌') >= 0).join(' | '));
+  /* ★いちばん大事なのはこれ ── 検証用の行が1件も残っていないこと。
+     残ると REAL PAY・DEEP PAY・公開集計に混ざる。 */
+  const after = Number((await one(`select count(*) c from pay_reports`)).c);
+  ok(after === before,
+     '★検証用の行が1件も残らない（集計に混ざらない）', `${before} → ${after}`);
+
+  /* 後片付け：auth.uid() をこの検査の前の形（pv.uid を読む）に戻す。 */
+  await db.exec(`create or replace function auth.uid() returns uuid language sql stable as $$
+    select nullif(current_setting('pv.uid', true), '')::uuid $$;`);
+}
+
 console.log(`\n══ ${pass} pass / ${fail} fail ══`);
 process.exit(fail ? 1 : 0);

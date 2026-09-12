@@ -149,6 +149,8 @@
       deduct: '控除合計', net: '差引支給額', dutyH: '総勤務時間', nightH: '深夜時間', blockH: '乗務時間', creditH: 'クレジットアワー',
       notionalTag: '（収入に数えていません）',
       notionalNote: '※ 控除欄に同額が立つ現物給与の課税処理（航空券課税など）です。手取りが動かないので、時給の計算には入れていません。',
+      absenceTag: '（減額）',
+      absenceNote: '※ 明細に印字されている総支給額は、この減額を引いたあとの金額です。こちらで二重に引くことはしません。項目名と金額はそのまま記録します。',
       aiMark: 'AIが読んだ値',
       ahaT: 'この明細だと、年収はいくらのペースか',
       ahaPace: '年間ペース',
@@ -284,6 +286,8 @@
       deduct: 'Total deductions', net: 'Net pay', dutyH: 'Duty hours', nightH: 'Night hours', blockH: 'Block hours', creditH: 'Credit hours',
       notionalTag: ' (not counted as income)',
       notionalNote: '※ Imputed income that is taken straight back in the deductions column by the same amount (e.g. taxable staff travel). Your take-home does not change, so it is left out of the hourly figures.',
+      absenceTag: ' (reduction)',
+      absenceNote: '※ The gross printed on your slip is already net of this reduction. We do not subtract it a second time. The line name and the amount are recorded as they are.',
       aiMark: 'read by AI',
       ahaT: 'What this slip puts you on for the year',
       ahaPace: 'Annual pace',
@@ -359,9 +363,15 @@
     flight_variable: 'f-other',
     per_diem: 'f-perdiem',
     transport: 'f-transport',
-    /* 不就労減額などのマイナス行。同じ「その他手当」に、符号のまま足し込む。
-       （sums は加算なので、マイナスはそのまま引かれる＝支給合計と勘定が合う） */
-    absence: 'f-other',
+    /* ★absence（不就労減額・欠勤控除）はここに載せない（2026-09-12・指摘2）。
+       前は other と同じ隠し欄 f-other に符号のまま足し込んでいた。金額は
+       other_allowance に届くが、**項目名がどこにも残らず、画面にも確認画面にも
+       1行も出ない**（隠し欄は誰も読まない）＝本人は減額に気づけず直せない。
+       しかも印字されている総支給は**すでに減額後**なので、内訳の側でもう一度
+       引くことになる ── 支給構成の「その他手当」が greatest(…,0) で 0 に潰れ、
+       その人の帯から本物のその他手当が丸ごと消える。
+       行き先は res._absence（＝隠し欄 f-absence → pay_items.absence[]）。
+       apply() で別扱いにして、金額も符号も項目名もそのまま残す。 */
     other: 'f-other',
     /* ★明細に印字されているのは「その月に出た額」。年間ボーナス(f-bonus)へ入れると、
        1ヶ月ぶんが年額として年収に丸ごと乗る（2026-08-13 に f-bonus-mo へ変更）。 */
@@ -2619,7 +2629,7 @@
     (res.hours || []).forEach(function (h) { lastHours[h.kind] = h.value; });
 
     // 手当を欄ごとに足し合わせる（同じ欄に行く行が複数あることがある）
-    var sums = {}, trace = [], notional = [], counts = [];
+    var sums = {}, trace = [], notional = [], counts = [], absence = [];
     var roleLabel = {};        // 教官・審査の「明細上の名称」（最初に読めた1つだけ）
     var varSeed = [];          // 変動給。欄ではなく「行」に載せる（下で pdAdd する）
     var othSeed = [];          // その他の現金手当・未分類。同じく「行」に載せる（2026-09-12）
@@ -2631,6 +2641,14 @@
          「読めたが数えていない」と画面に出す（unmapped に落として本人に聞くのも違う。
           何の項目かは分かっていて、数えないと決めているだけなので）。 */
       if (e2.kind === 'notional') { notional.push(e2); return; }
+      /* ★不就労減額・欠勤控除（2026-09-12・指摘2）。**マイナスの行**なので、
+         金額の欄にも「その他の現金手当」の行にも入れない。
+         ★捨てているのではない ── 項目名・符号・金額をそのまま res._absence に
+           持ち、画面（読み取り結果）と確認画面に1行ずつ出し、
+           pay_items.absence[] として保存する。
+         ★どの金額の列にも足さない。明細に印字された総支給は**すでに減額後**で、
+           年収も支給構成もその総支給から出しているため、ここで引くと二重になる。 */
+      if (e2.kind === 'absence') { absence.push(e2); return; }
       /* ★役割ごとの手当（教官・審査）。専用の列があるので、その他手当にも
          職位手当にも1円も足し込まない。受け皿は下の openRoles() が作る。 */
       var rid = ROLE_FIELD[e2.kind];
@@ -2714,6 +2732,19 @@
 
     res._notional = notional;
     res._counts = counts;
+    /* ★不就労減額を隠し欄に持たせて、そのまま送信・保存まで運ぶ（2026-09-12・指摘2）。
+       ★JSON をそのまま入れる（f-absence は素の hidden なので、桁区切りの解釈に
+         触られない）。空なら空文字＝列にも何も入らない。
+       ★f-absence は CARRY.never と PAYSLIP_MONTH_IDS の両方に入っている
+         ＝翌月へ持ち越さないし、明細を落とし直せば必ず作り直される。 */
+    res._absence = absence;
+    var absEl = document.getElementById('f-absence');
+    if (absEl) {
+      absEl.value = absence.length ? JSON.stringify(absence.map(function (a) {
+        return { label: a.label || null, amount: -Math.abs(Math.round(a.amount || 0)) };
+      })) : '';
+      mark('f-absence');
+    }
 
     /* ★45通貨の外（NGN / PKR / RUB …）は setField が false を返して**黙って終わる**。
        通貨欄が空のまま、画面にも診断にも何も残らない ── どの通貨が足りないのかが
@@ -3193,6 +3224,16 @@
                '</td><td class="ps-amt">' + cur + nf.format(Math.round(n.amount)) + '</td></tr>';
       }).join('') + '</tbody>'));
       box.appendChild(el('p', 'ps-note', esc2(T.notionalNote)));
+    }
+
+    /* ★不就労減額（2026-09-12・指摘2）。黙って消さない。額と符号をそのまま出し、
+       「総支給からは既に引かれている」＝こちらで二重には引かない、と言い切る。 */
+    if (res._absence && res._absence.length) {
+      box.appendChild(el('table', 'ps-tbl ps-tbl-dim', '<tbody>' + res._absence.map(function (a) {
+        return '<tr><td colspan="2">' + esc2(a.label) + esc2(T.absenceTag) +
+               '</td><td class="ps-amt">−' + cur + nf.format(Math.round(Math.abs(a.amount))) + '</td></tr>';
+      }).join('') + '</tbody>'));
+      box.appendChild(el('p', 'ps-note', esc2(T.absenceNote)));
     }
 
     /* 金額として数えなかった行（乗務日数など）。読めたことは出すが、聞かない。

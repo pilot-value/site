@@ -293,6 +293,11 @@ baland_ass/                            ブランド資産（※ brand_assets の
 `node shot-value.mjs both ja`、はみ出しは `node measure-pay.mjs`（5段を歩く）。
 [db/pay-reports.verify.sql](db/pay-reports.verify.sql) は**オーナーが Supabase に貼る検算**（16行が ✅）。
 中身は `db/test-pay-reports.mjs` が毎回流している＝**検算だけ古い**にはならない。
+★**列や鍵を足した回は [db/pay-reports.roundtrip.sql](db/pay-reports.roundtrip.sql) も貼る**（2026-09-12）。
+あちらは関数の計算しか見ていないので、「保存はされたが**その鍵だけ黙って消えている**」を捕まえられない
+（`pay_items` はサーバ側の白リストを通って作り直される）。こちらは**保存 → 再取得 → 表示**を実際に通して
+15項目を判定し、最後にわざと例外を投げて**巻き戻す**＝検証用の行が REAL PAY・DEEP PAY・公開集計に1件も混ざらない。
+⚠️ 赤い枠で出るのが正常（中に結果表が入っている）。これも `db/test-pay-reports.mjs` が毎回流している。
 
 **`supabase/functions/` を触ったら push だけでは本番に反映されない。**
 Supabase ダッシュボード → Edge Functions → 該当関数 → コードを貼り替えて Deploy（オーナー作業）。

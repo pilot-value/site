@@ -1483,6 +1483,16 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
       <input type="hidden" id="f-var-sum">
       <input type="hidden" id="f-oth-sum">
       <input type="hidden" id="f-payitems">
+      <!-- ★Absence / non-working reductions (2026-09-12, point 2). Rows read from
+           the payslip, kept as [{label, amount}] with amount always negative.
+           ★Added to no money column: the printed gross is ALREADY net of them, so
+             subtracting here would subtract twice. What is kept is only the fact of
+             what was reduced and by how much — saved as pay_items.absence[] and
+             shown on the review screen.
+           ★They used to be summed, sign and all, into the hidden f-other: the amount
+             arrived but the line name survived nowhere, so neither the person's screen
+             nor the review ever showed a single line for it. -->
+      <input type="hidden" id="f-absence">
       <input type="hidden" id="f-deduct">
       <input type="hidden" id="f-night-h">
       <input type="hidden" id="f-credit-h">
@@ -3459,8 +3469,20 @@ function pdSync() {
      Rows with no v, or v 1, were never judged — the absence of `partial` there does NOT
      mean nothing was missing. This mark is what keeps the two apart.
      ★No past row is rewritten, and none is dropped from aggregation (the limit is reported). */
+  /* ★Absence / non-working reductions (2026-09-12, point 2). Carried through as read.
+     ★Not a single unit is added to any column (the printed gross is already net of
+       them). What survives here is the line name, the sign and the amount.
+       Broken JSON is dropped silently — submission is never blocked by it.
+     ★'absence' is also listed in the jsonb_build_object in db/pay-reports.sql.
+       Miss it there and the key is dropped the moment the row is saved. */
+  let abs = null;
+  try {
+    const raw = JSON.parse($('f-absence').value || 'null');
+    if (Array.isArray(raw) && raw.length) abs = raw;
+  } catch (e) { abs = null; }
   const pi = { v: 2, fixed_none: none, guarantee_none: gnone, variable_none: vnone,
                variable: v, other: o };
+  if (abs) pi.absence = abs;
   /* ★A mark that part of the breakdown is unanswered (2026-09-12). **Not an entitlement.**
      Gating on it would shut out someone who already qualifies the moment they add a row.
      It is only ever read to decide "may this be summed as a complete breakdown?"
@@ -3473,7 +3495,7 @@ function pdSync() {
   if (nol) pi.nonline = nol;
   /* Nothing entered -> leave the column empty rather than send a meaningless {}. */
   $('f-payitems').value = (v.length || o.length || none || gnone || vnone
-                           || ins || exm || uni || mgt || nol) ? JSON.stringify(pi) : '';
+                           || ins || exm || uni || mgt || nol || abs) ? JSON.stringify(pi) : '';
   recalc();
   markRail();
   pdZeroSync(tv);
@@ -3768,7 +3790,7 @@ const CARRY = {
     'f-transport','f-other','f-hourly','f-flightvar','f-deduct','f-ytd',
     'f-block','f-duty','f-stay','f-duty-h','f-night-h','f-credit-h',
     'f-instructor','f-examiner','f-union-pay','f-mgmt-pay','f-nonline-pay',
-    'f-source','f-psdetail'],
+    'f-source','f-psdetail','f-absence'],
 };
 /* ★What this device keeps as the template. The two totals (f-var-sum / f-oth-sum)
      are derived by pdSync(), so they belong to no group. */
@@ -4000,7 +4022,10 @@ const PAYSLIP_MONTH_IDS = ['f-gross','f-base','f-guarantee','f-command','f-housi
        — the exact shape of the production case. f-hourly is a payslip-only hidden field
        that today's payslip.js never writes, so any value in it is a leftover; it counts as
        `f-hourly × hours`, so it goes for the same reason. */
-  'f-hourly','f-union-pay','f-mgmt-pay','f-nonline-pay'];
+  'f-hourly','f-union-pay','f-mgmt-pay','f-nonline-pay',
+  /* ★Absence reductions are a fact of THAT month too. Re-read a slip and payslip.js
+     always writes them back in. */
+  'f-absence'];
 
 /* ★Capture "what an untouched form looks like" here, before anything restores into it.
    ⚠️ `input type="hidden"` keeps **value and defaultValue identical** (hidden is the one
@@ -4433,6 +4458,19 @@ if (WZ) {
       add('f-transport', 'Commuting allowance',      'money');
       add('f-night-h',   'Night hours',              'h');
       add('f-credit-h',  'Credit hours',             'h');
+      /* ★Absence / non-working reductions (2026-09-12, point 2). The most important
+         of the values that were read but have no box on screen: without this line
+         nobody can read back what was deducted, or by how much, before submitting.
+         ★Shown with the minus sign intact — drop the sign and it reads as an allowance.
+         ★This is a read-back of a fact, not a warning: the gross is never reduced twice. */
+      try {
+        const ab = JSON.parse($('f-absence').value || 'null');
+        if (Array.isArray(ab)) ab.forEach((a) => {
+          const n = parseFloat(a && a.amount);
+          if (!isFinite(n)) return;
+          rows.push({ k: 'Reduction: ' + String((a && a.label) || 'Absence'), v: n, money: true });
+        });
+      } catch (e) {}
       const src = $('f-source');
       if (src && src.value === 'payslip') rows.push({ k: 'Entry method', v: 'Read from payslip' });
       return rows;
