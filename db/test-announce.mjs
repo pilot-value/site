@@ -48,7 +48,7 @@ let pass = 0, fail = 0;
 const ok = (c, m, x = '') => { c ? (pass++, console.log(`  ✅ ${m}`)) : (fail++, console.log(`  ❌ ${m}${x ? '\n     ' + x : ''}`)); };
 
 const { build, buildFounding, buildRealPay, buildUpdate, realPayLangOf, langModeOf,
-        SAMPLE, IMG_VER, UPDATE_STATS, UPDATE_AIRLINES } = await import(join(ROOT, 'mail-bot/announce-mail.mjs'));
+        SAMPLE, IMG_VER, UPDATE_STATS, UPDATE_AIRLINES, UPDATE_FALLBACK_LANG } = await import(join(ROOT, 'mail-bot/announce-mail.mjs'));
 
 /* 架空の人。実在の氏名は使わない（このリポジトリは PUBLIC）。 */
 const P = {
@@ -855,8 +855,8 @@ for (const [k, b] of UALL) {
     }
     ok(b.text.includes(String(S.added)) && b.text.includes(String(S.milestone)),
        `update/${k}: この1ヶ月の増加と累計の両方が本文に出ている`);
-    ok(b.subject.includes(String(S.milestone)) === (b.lang !== 'en'),
-       `update/${k}: 件名の数字（日本語の件名にだけ入る）`, b.subject);
+    ok(b.subject.includes(String(S.milestone)),
+       `update/${k}: 件名に累計の件数が入っている`, b.subject);
   }
 }
 
@@ -922,15 +922,22 @@ for (const [k, b] of UALL) {
 }
 ok(!/[぀-ヿ一-鿿]/.test(buildUpdate(UP.en, O).text), 'update: 英語だけの人に日本語を混ぜない');
 
-/* 言語の決め方は buildRealPay と同じものを借りている（新しい判定を作っていない）。 */
+/* ★送り分け（2026-09-12 オーナー指示）。日本の会員は日本語・海外は英語。
+   居住国も勤務先も分からない人だけ日英ともに1通（updateLangOf の最後の1行）。 */
 {
   const over = { ...UP.both, airline_region: 'mideast' };
   ok(buildUpdate(over, O).lang === 'en' && !/[぀-ヿ一-鿿]/.test(buildUpdate(over, O).text),
      'update: 勤務先が海外の航空会社なら英語だけ');
-  ok(buildUpdate({ ...UP.both, airline_region: 'japan' }, O).lang === 'both',
-     'update: 勤務先が日本の航空会社なら日英ともに');
+  ok(buildUpdate({ ...UP.both, airline_region: 'japan' }, O).lang === 'ja',
+     'update: 勤務先が日本の航空会社なら日本語だけ');
   ok(buildUpdate({ ...UP.ja, airline_region: 'mideast' }, O).lang === 'ja',
      'update: 氏名から分かる人は勤務先で上書きしない');
+  ok(buildUpdate({ ...UP.en, airline_region: 'japan' }, O).lang === 'en',
+     'update: 居住国から分かる人も勤務先で上書きしない');
+  /* ★手がかりが1つも無い人だけが日英ともに。ここを片方に変えると、
+     その人たちの半分が読めない1通を受け取る（2026-09-12 オーナー判断）。 */
+  ok(UPDATE_FALLBACK_LANG === 'both' && buildUpdate(UP.both, O).lang === 'both',
+     'update: 居住国も勤務先も分からない人には日英ともに1通');
 }
 
 /* ★1種類しか作れないこと。提出の有無で文面を割ると、割った側が必ず勧誘になる。 */

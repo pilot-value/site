@@ -965,14 +965,40 @@ export const UPDATE_AIRLINES = {
 
 /* ★日英ともに入れるときは日本語が上・英語が下（buildRealPay と同じ向き）。
    REALPAY_BOTH_ORDER を共有せず別に持つのは、あちらは過去に送った1通の
-   記録でもあるため。片方の都合でもう片方の並びを動かさない。 */
+   記録でもあるため。片方の都合でもう片方の並びを動かさない。
+   ★これが選ばれるのは「手がかりが1つも無い人」だけ（下の updateLangOf）。 */
 const UPDATE_BOTH_ORDER = ['ja', 'en'];
+
+/* ★送り分け（2026-09-12 オーナー指示「日本の会員には日本語、海外の会員には英語」）。
+
+     氏名か居住国から分かる人 …… langOf のまま（日本語 or 英語）
+     手がかりが無い人 ………… 勤務先の航空会社が海外なら英語、日本の航空会社なら日本語
+     それも無い人 …………… UPDATE_FALLBACK_LANG ＝ 日英ともに1通
+
+   ★最後の1行はオーナーが選んだ（同日）。67人中35人が居住国も在籍企業も空で、
+     日本の人か海外の人かを言い当てる手がかりが1つも無い。当てずっぽうで片方に
+     決めて読めない1通を送るより、2言語を1通に入れるほうがよい、という判断。
+     ここを 'ja' や 'en' に変えると、その35人の半分が読めない1通を受け取る。
+
+   ★realPayLangOf と langModeOf は書き換えない。あちらは過去に送った3通の
+     判定でもあり、動かすと「同じ人に過去と違う言語で届いた」が後から起きる。
+     このメールが1つだけ違うのは、勤務先が日本の航空会社の人（あちらは日英ともに、
+     こちらは日本語だけ）。 */
+export const UPDATE_FALLBACK_LANG = 'both';
+
+export function updateLangOf(p) {
+  const mode = realPayLangOf(p);            // ja | en | both
+  if (mode !== 'both') return mode;
+  const region = String(p?.airline_region ?? '').trim().toLowerCase();
+  if (region === 'japan') return 'ja';      // 勤務先が日本の航空会社＝日本の会員
+  return UPDATE_FALLBACK_LANG;              // 手がかりがまったく無い人
+}
 
 function updateCopy(lang, s = UPDATE_STATS) {
   const a = UPDATE_AIRLINES[lang === 'en' ? 'en' : 'ja'];
   if (lang === 'ja') {
     return {
-      subject: `【PILOT VALUE】給与提出が累計${s.milestone}件突破`,
+      subject: `給与提出が累計${s.milestone}件突破 ！✈︎`,
       /* ★以下、オーナーの原稿そのまま。数字だけ差し込む。 */
       lead: [
         'いつもPilot Valueをご利用いただきありがとうございます。',
@@ -1002,7 +1028,7 @@ function updateCopy(lang, s = UPDATE_STATS) {
     };
   }
   return {
-    subject: 'PILOT VALUE is growing ✈️',
+    subject: `Total payroll submissions have passed ${s.milestone} !✈︎`,
     lead: [
       'Thank you for being part of Pilot Value.',
       `Over the past month, more pilots have joined the platform, and around ${s.added} new pay reports have been submitted, bringing the total to more than ${s.milestone}.`,
@@ -1036,8 +1062,8 @@ function updateCopy(lang, s = UPDATE_STATS) {
 export function buildUpdate(p, o = {}) {
   const opt = { ...DEFAULTS, ...o };
   const site = String(opt.siteUrl).replace(/\/+$/, '');
-  /* 言語の決め方は buildRealPay と同じものを借りる（新しい判定を作らない）。 */
-  const lang = opt.lang || realPayLangOf(p);
+  /* ★送り分けはこのメール専用の updateLangOf（上のコメント）。 */
+  const lang = opt.lang || updateLangOf(p);
   const langs = lang === 'both' ? UPDATE_BOTH_ORDER : [lang];
 
   const pre = (l) => (l === 'en' ? 'en/' : '');

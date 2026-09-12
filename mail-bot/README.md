@@ -316,6 +316,10 @@ node mail-bot/send.mjs update --to=info@pilot-value.com --send --lang=en  #    �
 node mail-bot/send.mjs update --send                # ⑤ 本番
 ```
 
+- **★送り分けは `updateLangOf`（このメールだけの判定）。** 日本の会員は日本語・海外は英語
+  （2026-09-12 オーナー指示）。**居住国も在籍企業も空の人だけ日英ともに1通**
+  ―― 2026-09-12 時点で 67人中35人がこれで、日本の人か海外の人かを言い当てる手がかりが無い。
+  `UPDATE_FALLBACK_LANG` を片方に変えると、その人たちの半分が読めない1通を受け取る。
 - **★数字は `UPDATE_STATS` の1か所だけ**（`asOf` / `total` / `milestone` / `added`）。
   本文に直書きしない。②の1行目がその数字をそのまま出すので、**何件と書いたメールが飛ぶのかを
   送る前に必ず目で見る**。今日が `asOf` と違えば警告が出る＝そのときは①から数え直す。
