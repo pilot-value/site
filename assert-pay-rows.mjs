@@ -3237,7 +3237,15 @@ for (const lang of ['ja', 'en']) {
     const bk = (() => { try { return JSON.parse(cl.back); } catch (e) { return null; } })();
     ok(bk && bk.a === 'ana' && bk.p === 'cap' && bk.v === 180000,
        `${lang}: ★押した行だけを覚える（会社・職位・年収の3つ）`, cl.back);
-    ok(Object.keys(bk || {}).length === 3,
+    /* ★持ってよい鍵はこれだけ（2026-09-12 に 3 → 7）。
+         a/p/v ＝ 押した行を引き当てる3つ。
+         fa/fp/fq/pg ＝ **画面に既に出ている絞り込み**（会社・職位・打ち込み・ページ）。
+         提出のあと「REAL PAY へ戻る」で帰る先は素の actual-pay.html でクエリが無いため、
+         ここに入れておかないと出す前に見ていた一覧が全件に戻る（オーナーの⑦）。
+       ⚠️ 数を増やすこと自体が危ないのではなく、**新しく何かを渡す**のが危ない。
+          レコード ID・proof_hash・氏名・メールが混ざっていないことを白リストで見る。 */
+    const BACK_KEYS = ['a', 'p', 'v', 'fa', 'fp', 'fq', 'pg'];
+    ok(Object.keys(bk || {}).every((k) => BACK_KEYS.indexOf(k) >= 0),
        `${lang}: ★それ以上は持たない`, Object.keys(bk || {}).join(','));
 
     console.log(`\n════ ${lang} / K-5 戻ってくると同じ面が開き、鍵は消える ════`);
@@ -3960,10 +3968,12 @@ for (const lang of ['ja', 'en']) {
       return sessionStorage.getItem('pv_realpay_back') || '';
     });
     const keys = (() => { try { return Object.keys(JSON.parse(saved)); } catch (e) { return []; } })();
-    ok(keys.length === 3 && keys.indexOf('a') >= 0 && keys.indexOf('p') >= 0
-       && keys.indexOf('v') >= 0,
-       'ja: ★★戻り先の形は今までどおり（会社・職位・年収の3つだけ）', keys.join(','));
-
+    /* ★行を引き当てる3つは今までどおり。2026-09-12 に**画面に既に出ている
+         絞り込み**（fa/fp/fq/pg）が加わった ── 提出後に戻る先が素の
+         actual-pay.html でクエリを持たないため。新しく何かを渡してはいない。 */
+    ok(keys.indexOf('a') >= 0 && keys.indexOf('p') >= 0 && keys.indexOf('v') >= 0
+       && keys.every((k) => ['a', 'p', 'v', 'fa', 'fp', 'fq', 'pg'].indexOf(k) >= 0),
+       'ja: ★★戻り先の形（会社・職位・年収＋見ていた絞り込みだけ）', keys.join(','));
     /* 給与フォームから帰ってきた形（読み込み直し）。 */
     await page.goto(BASE + '/actual-pay.html?air=ana',
                     { waitUntil: 'domcontentloaded', timeout: 30000 });

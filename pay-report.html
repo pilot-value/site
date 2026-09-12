@@ -245,6 +245,15 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           <button type="button" class="sec-prog" hidden></button>
         </div>
 
+        <!-- ★2回目以降は要約1行に畳む（「4. 契約と税」と同じ形）。会社・職位・機材・
+             通貨は月では変わらないので、毎月同じ4問を通り直させない。
+             畳むのは前回の内容が入っているときだけ。変わった人は「変更する」で開く。 -->
+        <div class="sum-row" id="s1-sum" hidden>
+          <span id="s1-sum-txt"></span>
+          <button type="button" id="s1-edit">変更する</button>
+        </div>
+
+        <div id="s1-body">
         <div class="fld">
           <label class="form-label" for="f-airline">会社<span class="req-tag">必須</span></label>
           <select id="f-airline" class="form-input">
@@ -462,6 +471,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           </select>
           <p class="fld-hint">10歳の幅までしか聞きません。</p>
         </div>
+        </div><!-- /s1-body -->
       </div>
 
       <div class="card sec step" id="s2" hidden>
@@ -505,9 +515,12 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
             <p class="fld-hint">飛ばなくても<b>この時間ぶんは払う</b>、という契約上の下限（Minimum Guarantee）。契約に無ければ空欄。</p>
           </div>
           <div class="fld">
-            <label class="form-label" for="f-stay">ステイ日数<span class="req-tag">必須</span></label>
+            <!-- ★2026-09-12、必須 → 任意（オーナー決定5）。泊数を数えていない人に
+                 「0」か「思い出した数」を書かせるより、空欄＝不明のまま預かるほうが正しい。
+                 列は元から null を許している＝ SQL の変更は要らない。 -->
+            <label class="form-label" for="f-stay">ステイ日数<span class="opt-tag">任意</span></label>
             <input type="text" id="f-stay" class="form-input num" inputmode="numeric" placeholder="例：8" data-min="0" data-max="31" data-dec="0"/>
-            <p class="fld-hint">基地の外で泊まった<b>泊数</b>。日帰りだけの月は <b>0</b>。</p>
+            <p class="fld-hint">基地の外で泊まった<b>泊数</b>。日帰りだけの月は <b>0</b>。数えていなければ空欄のままで構いません。</p>
           </div>
         </div>
 
@@ -624,10 +637,14 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           </div>
           <div class="fld">
             <label class="form-label" for="f-bonus-mo">今月の賞与・ボーナス<span class="req-tag">必須</span></label>
-            <!-- ★placeholder の薄い 0 ではなく、値として 0 を入れておく（2026-08-13 オーナー指摘）。
-                 薄い 0 は「入れなくていい欄」に見え、必須なのにここで止まる。 -->
-            <input type="text" id="f-bonus-mo" class="form-input money" inputmode="decimal" value="0"/>
-            <p class="fld-hint">年換算するときに、この額だけ外します。</p>
+            <!-- ★値の 0 を置かない（2026-09-12 オーナー決定）。新しい月の実績の欄に、
+                 まだ誰も答えていない 0 が最初から入っていると、賞与が出た月に直し忘れた
+                 0 がそのまま「賞与なし」として保存される。
+                 2026-08-13 は「薄い 0 だと、必須なのに入れなくていい欄に見える」という
+                 理由で値の 0 を置いた。そちらは案内の文で受ける ── すぐ左の
+                 パーディアムの欄と同じ形（あちらも必須で、値は置いていない）。 -->
+            <input type="text" id="f-bonus-mo" class="form-input money" inputmode="decimal" placeholder="出なかった月は 0"/>
+            <p class="fld-hint">出なかった月は <b>0</b>。年換算するときに、この額だけ外します。</p>
           </div>
         </div>
 
@@ -689,6 +706,10 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 <p class="fld-hint" style="margin-top:0">乗務時間・セクター数・待機などで<b>月ごとに変わる支給</b>。明細のとおりの金額と名称を書き写してください。</p>
                 <div class="pd-rows" id="pd-var-rows"></div>
                 <button type="button" class="chip" id="pd-var"><span class="p">+</span>変動給を追加</button>
+                <!-- ★入力補助（2026-09-12 オーナー決定4）。**必須のチェックではない。**
+                     押すと、項目名か支給単位だけ書いて金額が空のままの行に 0 が入る。
+                     ⚠️ 入力済みの金額は1つも変えない。空欄の行が無いときは出さない。 -->
+                <button type="button" class="chip" id="pd-var-zero" hidden>残りを0にする</button>
                 <label class="rolebox pd-none"><input type="checkbox" id="f-variable-none"><span>該当なし</span></label>
               </div>
             </div>
@@ -1760,6 +1781,20 @@ function setSubmitBusy(busy, label) {
 function setSubmitLabel(signedIn) {
   _btnLabel = signedIn ? BTN_LABEL_IN : BTN_LABEL_OUT;
   for (const b of SUBMIT_BTNS()) if (!b.disabled) b.textContent = _btnLabel;
+  _signedIn = !!signedIn;
+  syncSubmitNote();
+}
+/* ★ログイン済みの人に、新規登録の説明を繰り返さない（2026-09-12・オーナーの⑦）。
+   #submit-note は「アカウントを作ると給与詳細が90日間開きます」＝**まだ
+   アカウントが無い人**への案内で、2回目に出しに来た会員には当たらない
+   （その人の90日は既に始まっている）。
+   ⚠️ DOM から消さない。setSubmitScreen が同じ id を出し入れしていて、
+      消すとそちらの配り先が1つ減る。隠すだけ。 */
+let _signedIn = false;
+function syncSubmitNote() {
+  const n = $('submit-note');
+  if (!n) return;
+  if (_signedIn) { n.hidden = true; n.style.display = 'none'; }
 }
 
 /* ★ここでページを離れさせない。中身は pay-login.js が作る（日英で1枚）。
@@ -1797,6 +1832,10 @@ function vis(el, show) {
 function setSubmitScreen(done) {
   ['wz-top', 'wz-review', 'submit-actions', 'submit-note']
     .forEach(function (id) { vis($(id), !done); });
+  /* ★戻すときに、登録の案内だけは戻さない（ログイン済みなら出さないまま）。
+       hideGate() がここを !done で呼ぶので、入れ直さないと
+       「登録できた人の画面に、登録のお願いがまた出る」。 */
+  if (!done) syncSubmitNote();
   var s5 = $('s5');
   vis(s5 ? s5.querySelector('.wz-nav') : null, !done);
   /* ★「5. 確認」の見出しも畳む。進捗バーだけ消してここを残すと、画面は
@@ -2671,6 +2710,15 @@ document.addEventListener('change', (e) => {
   if (!el || !el.classList || !el.classList.contains('money')) return;
   moneySettle(el);
 }, true);
+/* ★引き継いだ値に本人が触ったら、出どころの印を外す（＝「本人が入力」になる）。
+   委譲で1本。あとから生える行にも同じ道を通す。 */
+function dropCarried(e) {
+  const el = e.target;
+  if (el && el.classList && el.classList.contains('pv-carried')) el.classList.remove('pv-carried');
+}
+document.addEventListener('input', dropCarried, true);
+document.addEventListener('change', dropCarried, true);
+
 /* 読み方が決まっていない欄を1つ返す（無ければ null）。送信の直前に見る。 */
 function moneyBlocker() {
   for (const el of moneyEls()) {
@@ -3104,9 +3152,31 @@ window.PVEnterMode = enterMode;
 /* ★目印は enterMode の中ではなく、押されたボタンの側に置く。
    読み取りに失敗したとき payslip.js が enterMode('manual') を自分で呼ぶので、
    関数の中に置くと「本人が手入力を選んだ数」に機械の分が混ざる。 */
-$('entry-payslip').addEventListener('click', () => { track('pay_entry_payslip'); enterMode('payslip'); $('ps-drop').focus(); });
-$('entry-manual').addEventListener('click', () => { track('pay_entry_manual', { from: 'button' }); enterMode('manual'); $('f-airline').focus(); });
-$('ps-skip').addEventListener('click', () => { track('pay_entry_manual', { from: 'skip' }); enterMode('manual'); });
+/* ── 入口の記憶（2026-09-12・オーナーの②「入口は前回使ったほうを先に」）──────
+   2択は毎回出す（2026-08-13 のオーナー決定）。**並べ替えるだけ**で、片方を消さない。
+   ⚠️ 記録するのは本人がボタンを押したときだけ。読み取りに失敗すると payslip.js が
+      enterMode('manual') を自分で呼ぶので、enterMode の中に置くと
+      「明細を選んだ人」が次の月から手入力の側に寄る（track の目印と同じ理由）。 */
+let _entry = '';
+function rememberEntry(mode) {
+  if (mode !== 'manual' && mode !== 'payslip') return;
+  _entry = mode;
+}
+function orderEntry(mode) {
+  if (mode !== 'manual' && mode !== 'payslip') return;
+  const grid = document.querySelector('.entry-grid');
+  const ps = $('entry-payslip'), mn = $('entry-manual');
+  if (!grid || !ps || !mn) return;
+  const first = mode === 'manual' ? mn : ps;
+  const second = first === mn ? ps : mn;
+  grid.appendChild(first);          // 2枚しか無いので、先に置きたいほうから入れ直す
+  grid.appendChild(second);
+  first.classList.add('is-primary');
+  second.classList.remove('is-primary');
+}
+$('entry-payslip').addEventListener('click', () => { track('pay_entry_payslip'); rememberEntry('payslip'); enterMode('payslip'); $('ps-drop').focus(); });
+$('entry-manual').addEventListener('click', () => { track('pay_entry_manual', { from: 'button' }); rememberEntry('manual'); enterMode('manual'); const h = formHead(); if (h) h.focus(); });
+$('ps-skip').addEventListener('click', () => { track('pay_entry_manual', { from: 'skip' }); rememberEntry('manual'); enterMode('manual'); });
 
 /* ── #pay-detail で来たら「くわしく入れる」を開く ────────────────
    DEEP PAY の説明の「内訳を入力する」（pv-gates.js の DETAIL_URL）から来る。
@@ -3161,8 +3231,21 @@ function detailShown(el) { return !!el && el.getBoundingClientRect().height > 0;
       年収は総支給から出す（pv_annual_total の coalesce 第1引数）＝内訳を
       いくら埋めても、総支給が空のままなら年収は1円も出ない。
    §3 がまだ出ていないうちはフォームの先頭へ（どの人もそこから始まる）。 */
+/* ★フォームの先頭は、いつも会社の欄とは限らない（2026-09-12）。
+     前回の内容がある人は「1. 会社と職務」が要約1行に畳まれていて、#f-airline は
+     画面に無い。隠れた欄へ focus() を投げても何も起きず、カーソルは body に落ちる
+     ── 本人には「押したのに何も始まらない」としか映らない。
+   ★畳んだ節は消えていない（「変更する」でその場で開く）。だからここで探すのは
+     **いま画面に出ている最初の入力欄**（畳まれていなければ今までどおり会社の欄）。 */
+function formHead() {
+  const host = $('form-body');
+  if (!host) return null;
+  return Array.prototype.find.call(
+    host.querySelectorAll('input:not([type=hidden]), select, textarea'),
+    (e) => !e.disabled && e.offsetParent !== null) || null;
+}
 function scrollToPaySec() {
-  const s3 = $('s3'), head = $('f-airline');
+  const s3 = $('s3'), head = formHead();
   const shown = detailShown(s3);
   const box = shown ? s3 : head;
   const to = shown ? $('f-currency') : head;
@@ -3217,8 +3300,11 @@ function pdRead(kind) {
     /* ★.pd-amt も moneyRead() を通す（2026-09-11）。ここだけ素の parseFloat だと、
        1.000,00 の誤読がこの行にだけ残る。 */
     const ar = moneyRead(row.querySelector('.pd-amt'));
-    const a = ar.state === 'ok' ? ar.n : NaN;
-    const o = { amount: isFinite(a) && a > 0 ? a : null, label: g('.pd-label') || null };
+    /* ★0 は「支給なし」という回答。空欄だけが未回答（2026-09-12 オーナー決定）。
+       ⚠️ 数に落としてから 0 かどうかを見ると、この2つが混ざる。前は
+          `a > 0 ? a : null` と書いてあって、本人が打った 0 が黙って未回答に化けていた。
+          見るのは moneyRead() の state ── 'ok' なら 0 も金額、'empty' なら未回答。 */
+    const o = { amount: ar.state === 'ok' ? ar.n : null, label: g('.pd-label') || null };
     /* ★支給単価・ルールは聞かない（2026-08-26 オーナー指示）。
        「¥4,500 / Block Hour」のような計算をパイロットにさせない。 */
     if (kind === 'var') o.basis = g('.pd-basis') || null;
@@ -3240,11 +3326,32 @@ function realpayBack() {
 }
 if (realpayBack() && $('pd-gate')) $('pd-gate').hidden = false;
 
+/* ── 行の集まりを3つの状態で読む（2026-09-12 オーナー決定）────────────
+     answered … 金額が入っている行（本人が打った 0 も1つと数える）
+     unknown  … 項目名か支給単位だけがあって金額が空の行＝**未回答の実項目**
+     partial  … 答えた行と未回答の行が混ざっている
+   ★「＋」を押しただけの完全に空の行は pdRead() が落としているので、ここには来ない
+     ＝行を1本足しただけで一生 partial になる、ということが起きない。
+   ★合計の意味が3つに分かれる：
+       全部未回答      → 空（0 と書かない。0 は「支給なし」という回答だから）
+       答えた行だけ    → その合計（本人が 0 だけ入れたなら 0）
+       未回答が混ざる  → 「入力済み分の合計」。全額が揃った内訳ではない */
+function pdTally(list) {
+  let answered = 0, unknown = 0, total = 0;
+  for (const x of list) {
+    if (x.amount == null) unknown++;
+    else { answered++; total += x.amount; }
+  }
+  return { answered: answered, unknown: unknown, total: total,
+           partial: answered > 0 && unknown > 0 };
+}
+
 function pdSync() {
   const v = pdRead('var'), o = pdRead('oth');
-  const sum = (list) => list.reduce((t, x) => t + (x.amount || 0), 0);
-  $('f-var-sum').value = sum(v) || '';
-  $('f-oth-sum').value = sum(o) || '';
+  const tv = pdTally(v), to = pdTally(o);
+  /* ★答えた行が1つも無ければ**空**。0 と書くと「支給なし」と答えたことになる。 */
+  $('f-var-sum').value = tv.answered ? String(tv.total) : '';
+  $('f-oth-sum').value = to.answered ? String(to.total) : '';
   const none = $('f-base-none').checked;
   const gnone = $('f-guarantee-none').checked;
   const vnone = $('f-variable-none').checked;
@@ -3253,6 +3360,11 @@ function pdSync() {
   const ins = instrRead(), exm = examRead(), uni = unionRead(), mgt = mgmtRead(), nol = nonlineRead();
   const pi = { v: 1, fixed_none: none, guarantee_none: gnone, variable_none: vnone,
                variable: v, other: o };
+  /* ★内訳の一部が未回答であることの印（2026-09-12）。**閲覧の資格ではない。**
+     これを門にすると、条件を満たした人が「行を1本書き足した」だけで閉め出される。
+     使い道は「全額が揃った内訳として足してよいか」を決めるところだけ
+     （pay-viz.js の segments / db/pay-rows.sql の shelf / db/deep-pay.sql の8区分）。 */
+  if (tv.partial || to.partial) pi.partial = true;
   if (ins) pi.instructor = ins;
   if (exm) pi.examiner = exm;
   if (uni) pi.union = uni;
@@ -3263,7 +3375,29 @@ function pdSync() {
                            || ins || exm || uni || mgt || nol) ? JSON.stringify(pi) : '';
   recalc();
   markRail();
+  pdZeroSync(tv);
 }
+
+/* ── 「残りを0にする」（2026-09-12 オーナー決定4・入力補助）──────────────
+   ★出すのは「答えた行があって、未回答の行も残っている」ときだけ。
+     1行も答えていない人に押させると、聞いていない 0 が一気に回答になる。
+   ★押しても入るのは**空欄の行だけ**。入力済みの金額は1つも変えない。
+   ★押さなくても提出できる（必須の判定はどこからもこのボタンを見ていない）。 */
+function pdZeroSync(tv) {
+  const b = $('pd-var-zero');
+  if (!b) return;
+  b.hidden = !(tv.answered > 0 && tv.unknown > 0) || $('f-variable-none').checked;
+}
+$('pd-var-zero').addEventListener('click', () => {
+  for (const row of PD.var.rows.children) {
+    const a = row.querySelector('.pd-amt');
+    const lb = row.querySelector('.pd-label'), bs = row.querySelector('.pd-basis');
+    /* 項目名も支給単位も無い「＋を押しただけの行」は埋めない（送られない行だから）。 */
+    const real = (lb && lb.value.trim()) || (bs && bs.value.trim());
+    if (a && real && a.value.trim() === '') a.value = '0';
+  }
+  pdSync();
+});
 
 function pdAdd(kind, quiet) {
   const box = PD[kind];
@@ -3303,6 +3437,14 @@ function pdDropEmpty(kind) {
                                           (e) => String(e.value || '').trim() !== '');
     if (!has) r.remove();
   }
+}
+
+/* 変動給・その他の行に、中身のあるものが1つでもあるか（2026-09-12）。
+   引き継ぎが本人の行を消してしまわないための見張り。 */
+function pdHasRows() {
+  return ['var', 'oth'].some((k) => Array.prototype.some.call(PD[k].rows.children,
+    (r) => Array.prototype.some.call(r.querySelectorAll('input, select'),
+                                    (e) => String(e.value || '').trim() !== '')));
 }
 
 /* 節を開いたときに空の行を1つ出す。「＋」だけ置くと、押すものがもう一つ増える。 */
@@ -3461,20 +3603,94 @@ let _noSave = false;     // 「保存を消す」を押された／別タブで�
 let _presetIn = false;   // 「前回の内容」をもう戻したか
 
 const LS_KEY = 'pv_pay_last';
-// ★f-paytype は 2026-08-12 に欄ごと廃止。f-gross（その月の額面）が入った。
-const PRESET_IDS = ['f-airline','f-airline-other','f-position','f-fleet','f-currency','f-gross','f-base','f-hourly',
-  'f-guar','f-perdiem','f-housing','f-housing-amt','f-contract','f-seniority','f-taxcountry',
-  'f-tax','f-guarantee','f-command','f-transport','f-other','f-bonus','f-profit','f-pension','f-jobrole','f-age','f-base-iata',
-  /* ★内訳の繰り返し行。合計の2つ（f-var-sum / f-oth-sum）は pdSync() が出し直すので保存しない。 */
-  'f-payitems',
-  /* ★教官・審査の支給額。行の形（担当・呼び名・支給単位）は f-payitems 側が
-     持つので、ここに入れるのは列へ送る金額だけ。 */
-  'f-instructor','f-examiner','f-union-pay','f-mgmt-pay','f-nonline-pay'];
-// ★ログイン後の再送用。プリセットと違って対象月も含める（そのまま送るため）。
-const ALL_IDS = PRESET_IDS.concat(['f-year','f-month','f-block','f-duty',
-  /* ★その月にしか無い値。PRESET_IDS には入れない（翌月のフォームに持ち越すと壊れる）。 */
-  'f-stay','f-bonus-mo',
-  'f-netpay','f-ytd','f-flightvar','f-deduct','f-duty-h','f-night-h','f-credit-h','f-source','f-psdetail']);
+/* ── 引き継ぎの台帳（2026-09-12）──────────────────────────────────
+   ★「次の月のひな型に何を残すか」を決める表は**これ1つだけ**。
+     前は端末側（PRESET_IDS）とサーバ側（下の id 対応表）で顔ぶれが違い、
+     片方だけ直すと、同じ人なのに端末とサーバで違う欄が埋まった。
+   ★f-paytype は 2026-08-12 に欄ごと廃止。f-gross（その月の額面）が入った。
+
+   info  … 月では変わらない基本情報。**手入力でも明細アップロードでも引き継ぐ。**
+           ⚠️ 年間賞与・利益配分・年金の率も金額だが、**明細に印字されない**ので
+              こちらに置く（明細と食い違いようがない＝候補にする意味が無い）。
+   fixed … 契約で決まっていて明細にも印字される固定の額。
+           手入力では前回額を初期表示する（**0 も有効な前回額**）。
+           明細を読んだときは自動で入れず、候補として出す。
+   shape … 内訳の行の「形」だけ（項目名・支給単位・並び順・役割の札）。
+           **金額は1円も残さない**（payItemsShape() が落とす）。
+   never … その月にしかない実績。**翌月のひな型には保存しない。**
+           ⚠️「常に空」という意味ではない。当月の下書き（pv_pay_draft）にも
+              提出データにも普通に入る。**持ち越さないだけ。**
+           ⚠️ ここが「先月の実績が今月の欄に残る」の出どころだった ── 総支給・
+              日当・時給・その他・通勤手当・教官／審査／組合／管理／兼務の月次手当が、
+              前はひな型側（PRESET_IDS）に入っていた。 */
+const CARRY = {
+  info: ['f-airline','f-airline-other','f-position','f-fleet','f-currency',
+    'f-housing','f-contract','f-seniority','f-taxcountry','f-tax',
+    'f-bonus','f-profit','f-pension','f-jobrole','f-age','f-base-iata'],
+  fixed: ['f-base','f-guar','f-guarantee','f-command','f-housing-amt'],
+  shape: ['f-payitems'],
+  never: ['f-year','f-month','f-gross','f-netpay','f-perdiem','f-bonus-mo',
+    'f-transport','f-other','f-hourly','f-flightvar','f-deduct','f-ytd',
+    'f-block','f-duty','f-stay','f-duty-h','f-night-h','f-credit-h',
+    'f-instructor','f-examiner','f-union-pay','f-mgmt-pay','f-nonline-pay',
+    'f-source','f-psdetail'],
+};
+/* ★この端末のひな型に残す顔ぶれ。合計の2つ（f-var-sum / f-oth-sum）は
+     pdSync() が出し直すので、どの区分にも入れない。 */
+const PRESET_IDS = CARRY.info.concat(CARRY.fixed, CARRY.shape);
+// ★ログイン後の再送用。ひな型と違って対象月も実績も含める（そのまま送るため）。
+const ALL_IDS = PRESET_IDS.concat(CARRY.never);
+/* id → 区分。引きやすくするだけで、正は上の CARRY 1つ。 */
+const CARRY_OF = {};
+for (const k of ['info', 'fixed', 'shape', 'never']) for (const id of CARRY[k]) CARRY_OF[id] = k;
+/* ★新しい月を始めたときに空にする顔ぶれ。対象月そのものは本人が選び直すので外す。 */
+const NEW_MONTH_IDS = CARRY.never.filter((id) => id !== 'f-year' && id !== 'f-month');
+/* ★役割モジュールの「今月ぶん」── 活動日数・回数。金額は上に入っているが、
+     この2種類は f-payitems の中にしか無いので、id で名指しして落とす。 */
+const ROLE_MONTH_IDS = ['f-instr-qty', 'f-exam-qty', 'f-union-days', 'f-mgmt-days', 'f-nonline-days'];
+
+/* ── 内訳の「形」だけを取り出す（2026-09-12）───────────────────────
+   翌月のひな型に残すのは、項目名・支給単位・並び順・役割の札まで。
+   ★金額・回数・日数は1つも残さない。残すと先月の実績が今月の入力欄に初期値で入り、
+     本人が気づかないまま提出される（画面はどこも壊れない）。
+   ★「該当なし」の3つは会社にその項目が無いという契約の事実なので残す。 */
+function payItemsShape(raw) {
+  let o = null;
+  try { o = JSON.parse(raw || ''); } catch (e) { return ''; }
+  if (!o || typeof o !== 'object') return '';
+  const out = { v: 1 };
+  for (const k of ['fixed_none', 'guarantee_none', 'variable_none']) if (o[k]) out[k] = true;
+  for (const k of ['variable', 'other']) {
+    const rows = [];
+    for (const it of (Array.isArray(o[k]) ? o[k] : [])) {
+      if (!it || typeof it !== 'object') continue;
+      const r = {};
+      if (it.label) r.label = it.label;
+      if (it.basis) r.basis = it.basis;
+      if (r.label || r.basis) rows.push(r);      // 名前も単位も無い行は「形」を持たない
+    }
+    if (rows.length) out[k] = rows;
+  }
+  /* 役割の札（担当・呼び名・支給のされ方）は残す。今月の額・回数・日数は落とす。 */
+  const SHAPE_KEYS = { instructor: ['trainings', 'label', 'extra', 'method'],
+                       examiner: ['checks', 'label', 'extra', 'method', 'method_label'],
+                       union: ['extra', 'source'],
+                       management: ['extra', 'method'],
+                       nonline: ['areas', 'extra'] };
+  for (const k of Object.keys(SHAPE_KEYS)) {
+    const src = o[k];
+    if (!src || typeof src !== 'object') continue;
+    const d = {};
+    let any = false;
+    for (const f of SHAPE_KEYS[k]) {
+      const v = src[f];
+      if (v == null || v === '' || (Array.isArray(v) && !v.length)) continue;
+      d[f] = v; any = true;
+    }
+    if (any) out[k] = d;
+  }
+  return JSON.stringify(out);
+}
 
 /* ★ページを離れるときにも控える（2026-09-07・オーナー指示で左のナビを置いたため）。
      ここへ来るまで savePreset() は**送信を押した瞬間にしか**走っていなかった。
@@ -3495,10 +3711,18 @@ function savePreset() {
   const o = {};
   /* ★2026-08-26 から総支給も普通に保存する。内訳の合計を映していた欄ではなく、
      いつでも本人が手で入れた数字になったため。 */
-  for (const id of PRESET_IDS) { const v = $(id).value; if (v) o[id] = v; }
+  for (const id of PRESET_IDS) {
+    let v = $(id).value;
+    /* ★内訳は「形」だけ残す（金額・回数・日数は落とす）。ここを素通しすると、
+       先月の変動給の額が今月の入力欄に初期値で入る。 */
+    if (CARRY_OF[id] === 'shape') v = payItemsShape(v);
+    if (v) o[id] = v;
+  }
   /* ★誰のものかを一緒に書く。読むときの判定は pv-session.js の owns() 1か所。
      ★このタブの合言葉も一緒に書く（2026-09-11）。登録に何時間かかっても
        同じタブなら戻せて、**別のタブの人には戻らない**。 */
+  /* ★前回どちらの入口から入ったか（2026-09-12）。値ではないので PRESET_IDS には入れない。 */
+  if (_entry) o._entry = _entry;
   o._own = _payOwn;
   o._ts = Date.now();
   try { o._tab = PVPayLocal.markTab(); } catch (e) {}
@@ -3519,6 +3743,13 @@ function snapshot() {
    ⚠️ これを「空でない欄は上書きしない」に読み替えて全経路へ広げないこと。 */
 function restoreInto(o, opts) {
   const keep = (opts && opts.keep) || null;
+  /* ★mode:'carry' ＝「引き継ぎ」。**空いている欄にだけ**入れる（2026-09-12）。
+     サーバの取得は await をまたいで遅れて届くので、そのころには本人が打ち始めて
+     いる／明細が入れている。上書きすると、打った値と読み取った値が黙って
+     先月の値に戻る（緑枠は残るので画面は嘘をつく）。
+     ⚠️ これを既定にしない。下書きの復元（同じ月の続き）は今までどおり上書きする
+        ── あちらは「本人が打ったものそのもの」を戻す場面。 */
+  const carry = !!(opts && opts.mode === 'carry');
   const psIn = !!(keep && keep.size);              // 明細を読んだあとの復元か
   const wrote = [];
   let n = 0;
@@ -3534,8 +3765,13 @@ function restoreInto(o, opts) {
        ★明細が読めなかった欄は空で正しい。本人が §3 で入れ直せる。 */
     if (psIn && PAYSLIP_MONTH_IDS.indexOf(id) >= 0) continue;
     const el = $(id);
+    if (!el) continue;
+    if (carry && String(el.value || '').trim() !== '') continue;   // 本人と明細が先。後から来ても上書きしない
     if (el.tagName === 'SELECT' && !Array.prototype.some.call(el.options, (x) => x.value === o[id])) continue;
     el.value = o[id]; n++; wrote.push(id);
+    /* ★出どころの印。確認画面が「前回から引き継ぎ」と出すのはこれ1つ（JS に2つ目の表を作らない）。
+       ⚠️ 明細の緑枠（.ai-filled）とは同時に付かない ── 引き継ぎは空の欄にしか入らない。 */
+    if (carry) el.classList.add('pv-carried');
   }
   /* ★keep で全部飛ばされて n===0 になると、呼んだ側は「下書きは無かった」として
      1/5 から始める。これは**正しい**（明細を読んだ直後は1段目から確認させたい）。
@@ -3550,15 +3786,29 @@ function restoreInto(o, opts) {
      前は「明細が変動給の行を生やしたときだけ」避けていたので、明細に変動給が
      １行も無かった月は避ける対象にならず、先月の行がそのまま並ぶ。
      ★f-payitems は PAYSLIP_MONTH_IDS にも入れてある（欄と行で同じ扱い）。 */
-  if (!psIn) pdRestore(o['f-payitems']);
+  /* ★引き継ぎのときは、行が1本でも入っていれば触らない（本人の行を消さない）。 */
+  if (!psIn && !(carry && pdHasRows())) pdRestore(o['f-payitems']);
   if (DETAIL_IDS.some((id) => String(o[id] || '').trim() !== '')) $('pay-detail').open = true;
   $('f-airline').dispatchEvent(new Event('change'));
   $('f-housing').dispatchEvent(new Event('change'));
+  /* ★上の2行が dropCarried を起こして、いま付けたばかりの印を外す（2026-09-12）。
+     委譲した1本のリスナーは「本人が触った」と「こちらが揃えるために投げた」を
+     区別しない。この2つだけ付け直す ── 外れたままだと、確認画面で会社と住居が
+     「本人が入力」に見え、前回から引き継いだ会社に気づけないまま提出される。 */
+  if (carry) for (const id of ['f-airline', 'f-housing'])
+    if (wrote.indexOf(id) >= 0) $(id).classList.add('pv-carried');
   recalc();   // 中で updateTax() も走る
   for (const f of CHIP_FIELDS) if ($(f).value.trim() !== '') openOpt(f, true);
   foldContract();
+  foldIdentity();
   updateSteps(true);
-  snapPrev(wrote);
+  /* ★控えるのは「引き継ぎで入れた欄」だけ（2026-09-12）。
+       下書きの復元・預かりの引き取りで戻した値は、**本人がこの月に打ったもの**だ。
+       ここで一緒に控えると、そのあと明細を落とした瞬間に
+       「戻した直後の値と1文字も違わない＝本人が触っていない」と見なされて
+       まとめて消える（本人には、同じ月の明細を足しただけで、前に打った
+       総支給・乗務時間・教官手当が黙って空になったようにしか見えない）。 */
+  if (carry) snapPrev(wrote);
   return n;
 }
 
@@ -3611,34 +3861,164 @@ const PAYSLIP_MONTH_IDS = ['f-gross','f-base','f-guarantee','f-command','f-housi
 const PAYSLIP_MONTH_DEFAULT = {};
 for (const id of PAYSLIP_MONTH_IDS) { const e = $(id); if (e) PAYSLIP_MONTH_DEFAULT[id] = e.value; }
 
-/* ★明細を読んだ瞬間に payslip.js が呼ぶ。戻り値は消した欄の数（検査用）。 */
-window.PVPayDropPrevMonth = function () {
-  if (!_prevVals) return 0;
+/* ── その月の実績を落とす（2026-09-12）─────────────────────────────
+   ★1本にまとめてあるが、**目的ごとにふるまいが違う**。ここを一緒にすると静かに壊れる。
+
+   'payslip'   … 明細を落とした／落とし直した。消すのは**本人がこの月に一度も触って
+                 いない欄だけ**（戻した直後の値と1文字も違わない欄）。
+                 ＝**当月の手入力を守る場面。** 食い違いは上書きせず一覧で聞く。
+   'new-month' … 新しい月を始めた。CARRY.never を**全部**空にする。
+                 **本人が前月に打った実績でも落とす** ── 教官・審査・組合・管理・兼務の
+                 月次手当、活動日数、回数（Sessions 数）まで。別の月の実績だから。
+                 元の月の下書きは**残す**（月ごとに控えてある）。
+
+   ⚠️「触っていない欄だけ」を new-month にも当てると、前月に本人が打った実績が
+      そのまま今月の欄に残る。前の書き方はそこが矛盾していた（2026-09-12 オーナー指摘）。 */
+function dropMonthActuals(reason) {
+  const all = reason === 'new-month';
+  const ids = all ? NEW_MONTH_IDS : PAYSLIP_MONTH_IDS;
+  if (!all && !_prevVals) return 0;
   let n = 0;
-  for (const id of PAYSLIP_MONTH_IDS) {
-    if (!(id in _prevVals)) continue;
+  for (const id of ids) {
     const el = $(id);
-    if (!el || el.value !== _prevVals[id]) continue;      // 本人が直した欄は触らない
+    if (!el) continue;
+    if (!all) {
+      if (!(id in _prevVals)) continue;
+      if (el.value !== _prevVals[id]) continue;           // 本人が直した欄は触らない
+    }
+    /* ★引き継いだ固定額を落としたら、落とした値を控えておく（2026-09-12）。
+       明細から読めなかった欄に**勝手に前回の額を入れない**（オーナー決定6）。
+       そのかわり「前回の 480,000 を使う」という候補として出せるようにする。
+       ★控えは溜める（消さない）。落とし直しのときも候補が消えないため。 */
+    if (!all && el.classList.contains('pv-carried') && String(el.value || '').trim() !== '')
+      _droppedCarry[id] = el.value;
     if (id === 'f-payitems') {
       /* 行は値ではなく DOM。控えと同じ形のまま＝誰も触っていないときだけ畳む。
          f-payitems そのものは下の pdSync() が残った状態から組み直す。 */
       for (const kind of ['var', 'oth'])
         for (const r of Array.prototype.slice.call(PD[kind].rows.children)) r.remove();
     } else {
-      el.value = PAYSLIP_MONTH_DEFAULT[id] || '';   // 既定値を持つ欄（その月の賞与の 0）は既定へ戻す
+      el.value = PAYSLIP_MONTH_DEFAULT[id] || '';
     }
-    delete _prevVals[id];
+    el.classList.remove('pv-carried');
+    el.classList.remove('ai-filled');
+    if (_prevVals) delete _prevVals[id];
     n++;
   }
-  if (n) { pdSync(); foldContract(); updateSteps(true); }   // pdSync の中で recalc と markRail も走る
+  if (all) {
+    /* ★変動給・その他の行は「形」だけ残して金額を空にする（2026-09-12）。
+       項目名・支給単位・並び順は毎月同じなので引き継ぐが、額は別の月の実績。
+       ⚠️ f-payitems は CARRY.shape 側なので NEW_MONTH_IDS に入っていない。
+          ここで名指ししないと、先月の変動給の額がそのまま今月の行に残る
+          ── 行の名前も並びも正しいので、本人にも運営にも気づけない。 */
+    for (const kind of ['var', 'oth'])
+      for (const r of Array.prototype.slice.call(PD[kind].rows.children)) {
+        const a = r.querySelector('.pd-amt');
+        if (!a) continue;
+        a.value = '';
+        a.classList.remove('pv-carried');
+        a.classList.remove('ai-filled');
+      }
+    /* ★活動日数・回数は f-payitems の中にしか無い。id で名指しして落とす。 */
+    for (const id of ROLE_MONTH_IDS) { const e = $(id); if (e) e.value = ''; }
+    syncRoleBoxes();
+  }
+  if (n || all) { pdSync(); foldContract(); foldIdentity(); updateSteps(true); }   // pdSync の中で recalc と markRail も走る
   return n;
-};
+}
+/* ★落とした「前回の額」の控え（上の dropMonthActuals が書く）。payslip.js が
+   「前回の額を使う」の候補を出すために読む。**こちらからは1円も入れない。** */
+const _droppedCarry = {};
+window.PVPayCarriedDropped = function () { return _droppedCarry; };
+/* ★明細を読んだ瞬間に payslip.js が呼ぶ。戻り値は消した欄の数（検査用）。名前は据え置き。 */
+window.PVPayDropPrevMonth = function () { return dropMonthActuals('payslip'); };
+/* ★新しい月を始める（要約カードのボタンから）。検査からも呼べるように外へ出す。 */
+window.PVPayNewMonth = function () { return dropMonthActuals('new-month'); };
+
+/* ★「新しい月を入力する」（下書きの帯のボタン）────────────────────
+     ① いま画面に出ている月ぶんを棚へ移す → ② その月にしか無い値を空にする
+     → ③ 対象月の欄まで運ぶ。
+   ⚠️ 順番を入れ替えない。先に空にすると、棚へ移す中身がもう無い
+      ＝ 押した人の先月の入力が、画面からも控えからも消える。
+   ★対象月そのものは空にしない（選択肢に空が無い）。本人に選び直してもらう。 */
+function startNewMonth() {
+  if (window.PVPayWizard && PVPayWizard.archiveMonth) PVPayWizard.archiveMonth();
+  dropMonthActuals('new-month');
+  const off = $('wz-offer');
+  if (off) { off.hidden = true; off.textContent = ''; }
+  const fld = $('f-year').closest('.fld');
+  if (WZ && fld) WZ.goToField(fld);
+  try { $('f-year').focus({ preventScroll: true }); } catch (e) {}
+}
+/* ★対象月を変えたら、その月の控えがあるかを見る。
+   ⚠️ 出すだけ。押されるまで画面の値は1つも変えない
+      ── 勝手に戻すと、いま打っている途中の月が消える。 */
+for (const id of ['f-year', 'f-month'])
+  $(id).addEventListener('change', () => {
+    if (window.PVPayWizard && PVPayWizard.offerMonth)
+      PVPayWizard.offerMonth($('f-year').value + '-' + $('f-month').value);
+  });
 
 /* ── 4. 契約と税：前回の内容が入っていれば要約1行に畳む ──────────
    ★毎月聞き直す欄ではない（契約形態・納税地・在籍年数は月では変わらない）。
      ここを毎月開いたままにすると、2ヶ月目以降も同じ4問を通らされる。
    ★畳むのは「入っているとき」だけ。初回は開いたまま出す
      （オーナー方針＝必ずどこかで一度は入力させる）。 */
+/* ── 折りたたみの開け閉め ── s1 と s4 で同じ形にする（2026-09-12）。
+   ★2か所に書くと、片方だけ「説明文も畳む」のような差が入って静かにズレる。 */
+function openFold(body, sum, sub) {
+  $(sum).hidden = true; $(body).hidden = false; if (sub) $(sub).hidden = false;
+}
+/* ★いま人が居る節は畳まない（2026-09-12）。畳むのを呼ぶのは loadPreset や
+     サーバからの引き継ぎで、どちらも**遅れて届く**。打っている最中の欄が
+     足元から要約1行に化け、カーソルが body に落ちる ── 本人には
+     「入力が消えた」ようにしか見えない（値は残っているのに）。
+   ⚠️ 畳めなかったときも要約の行は作ってある。次にこの関数が呼ばれたとき
+      （本人がその節から出たあと）に畳まれる。 */
+function shutFold(body, sum, sub) {
+  const b = $(body);
+  if (b && document.activeElement && b.contains(document.activeElement)) return;
+  /* ★いま「この節を入れてください」と出している段は畳まない（2026-09-12）。
+       畳むと、その段が**要約1行と「次へ」だけの空の画面**になる。5段の道では
+       §1 が丸ごとそれになり、開いた人は入れる物を1つも見ないまま次へ押すことになる
+       （カーソルの行き先も無くなる ── 押したのに何も始まらない、と映る）。
+     ★2画面の道では §1・§4 は §2 に連れられて出る＝ primary ではないので、
+       今までどおり要約1行に畳まれる。そちらが本来の狙い（毎月読み直させない）。 */
+  const own = body.replace('-body', '');
+  const W = window.PVPayWizard;
+  /* ★ウィザードがまだ組み上がっていない間も畳まない（2026-09-12）。
+       loadPreset() はスクリプトの途中で走り、そのとき current() は null を返す。
+       ここで畳むと、あとから5段で組み上がったときに §1 が
+       **要約1行と「次へ」だけの空の画面**になる（入れる物が1つも無い）。
+       組み上がった直後に syncFolds() がもう一度呼ぶので、畳み損ねにはならない。 */
+  if (!W || !W.current || W.current() === own) return;
+  $(sum).hidden = false; b.hidden = true; if (sub) $(sub).hidden = true;
+}
+const SEC_LABEL = (sel) => {
+  const o = Array.prototype.find.call(sel.options, (x) => x.value === sel.value);
+  return o ? o.textContent : sel.value;
+};
+/* ── 1. 会社と職務：前回の内容が入っていれば要約1行に畳む（2026-09-12）──
+   ★「4. 契約と税」と同じ形。会社・職位・機材・通貨は月では変わらない。
+   ★畳むのは**全部入っているとき**だけ。1つでも空なら開いたまま出す
+     ── 初回の人が要約1行だけを見て、何も聞かれないまま先へ行くのを防ぐ。
+   ⚠️ optLabel() は下にある const なので、ここからは呼べない（まだ作られていない）。
+      loadPreset() はこの関数をスクリプトの途中で呼ぶ。 */
+function foldIdentity() {
+  const need = ['f-airline', 'f-position', 'f-fleet', 'f-currency', 'f-age'];
+  if (need.some((id) => !$(id).value)) return;
+  const other = $('f-airline').value === 'other';
+  if (other && !($('f-airline-other').value || '').trim()) return;
+  const bits = [other ? $('f-airline-other').value.trim() : SEC_LABEL($('f-airline')),
+                SEC_LABEL($('f-position')), SEC_LABEL($('f-fleet')), $('f-currency').value];
+  $('s1-sum-txt').innerHTML = '<b>' + esc(bits.filter(Boolean).join(' ／ ')) + '</b>';
+  shutFold('s1-body', 's1-sum', null);
+}
+$('s1-edit').addEventListener('click', () => {
+  openFold('s1-body', 's1-sum', null);
+  $('f-airline').focus();
+});
+
 function foldContract() {
   const c = $('f-contract'), t = $('f-taxcountry');
   if (!c.value || !t.value) return;                 // 初回・空欄は開いたまま
@@ -3650,14 +4030,25 @@ function foldContract() {
   if ($('f-tax').value !== '') bits.push('所得税 ' + $('f-tax').value + '%');
   if ($('f-seniority').value !== '') bits.push('在籍 ' + $('f-seniority').value + '年');
   $('s4-sum-txt').innerHTML = '<b>' + esc(bits.join(' ／ ')) + '</b>';
-  $('s4-sum').hidden = false;
-  $('s4-body').hidden = true;
-  $('s4-sub').hidden = true;      // 畳んだら説明文も消す（要約1行だけを残す）
+  shutFold('s4-body', 's4-sum', 's4-sub');      // 畳んだら説明文も消す（要約1行だけを残す）
 }
+/* ── 畳む／開くを1か所で決める（2026-09-12）──────────────────────
+   ★いま人が居る段は**必ず開く**。畳まれたまま出てくると、その画面は
+     要約1行と「次へ」だけになり、入れる物が1つも無い。
+   ★それ以外の段は、値が全部入っていれば要約1行に畳む（毎月読み直させない）。
+   ⚠️ 開くのが先。foldIdentity / foldContract は「いま居る段」を飛ばすので、
+      先に畳んでから開き直す形にすると、順番しだいで畳まれたまま残る。 */
+function syncFolds() {
+  const W = window.PVPayWizard;
+  const at = (W && W.current) ? W.current() : null;
+  if (at === 's1') openFold('s1-body', 's1-sum', null);
+  if (at === 's4') openFold('s4-body', 's4-sum', 's4-sub');
+  foldIdentity();
+  foldContract();
+}
+
 $('s4-edit').addEventListener('click', () => {
-  $('s4-sum').hidden = true;
-  $('s4-body').hidden = false;
-  $('s4-sub').hidden = false;
+  openFold('s4-body', 's4-sum', 's4-sub');
   $('f-contract').focus();
 });
 /* ★引数なしで呼ぶ＝まだ誰か分かっていない段階。押印済みのものには触らない。
@@ -3672,7 +4063,11 @@ function loadPreset(me) {
   const own = o._own || 'anon';
   if (me === undefined && own !== 'anon') return;      // 本人確定待ち
   if (!PVPayLocal.owns(own, me || 'anon', o._ts, o._tab)) return;
-  if (!restoreInto(o)) return;
+  /* ★端末に取ってある「前回の内容」も引き継ぎ（2026-09-12）。空いている欄にだけ入れ、
+       印（.pv-carried）を付ける。本人が打ち始めたあと・明細を読んだあとに
+       本人確定でもう一度呼ばれる経路があり、そこで打った値が前回の値に戻っていた。 */
+  orderEntry(o._entry);          // 2択は消さない。前回のほうを先に置くだけ
+  if (!restoreInto(o, { mode: 'carry' })) return;
   _presetIn = true;
   $('restore-bar').style.display = '';
   $('entry-prev').hidden = false;   // 入口の「手動で入力」に、前回の内容があると出す
@@ -3732,6 +4127,34 @@ const optLabel = (id) => {
   return o && sel.value ? o.textContent.trim() : '';
 };
 
+/* ── 2回目以降は「今月の入力 → 確認」の2画面にする（2026-09-12・オーナー決定2）──
+   ★判定は**画面に前回の内容がもう入っているか**だけ。pv_pay_last は上の
+     loadPreset() が同期で当てているので、ここで読める。
+   ⚠️ サーバからの引き継ぎは await をまたいで遅れて届く。届いた時点で段を組み替えない
+      ── 打ち始めた人の画面が足元から入れ替わる。初回の人は5段のまま。
+   ★畳むのは「1. 会社と職務」と「4. 契約と税」＝月では変わらないもの。
+     どちらも要約1行＋「変更する」で開く（畳んだままでも missingAll() が必ず捕まえる）。 */
+function twoScreenReady() {
+  const need = ['f-airline', 'f-position', 'f-fleet', 'f-currency', 'f-age',
+                'f-contract', 'f-taxcountry'];
+  if (need.some((id) => !$(id).value)) return false;
+  return !($('f-airline').value === 'other' && !($('f-airline-other').value || '').trim());
+}
+const TWO_SCREEN = twoScreenReady();
+/* ★2回目以降は、初回向けの手引きを「くわしく」の中へ畳む（決定2）。
+   ★文言は消さない ── 初回の人には今までどおり開いたまま出る。 */
+if (TWO_SCREEN) for (const id of ['s2', 's3']) {
+  const subs = Array.prototype.slice.call($(id).querySelectorAll(':scope > .sec-sub'));
+  if (!subs.length) continue;
+  const d = document.createElement('details');
+  d.className = 'sec-more';
+  const sm = document.createElement('summary');
+  sm.textContent = 'くわしく';
+  d.appendChild(sm);
+  subs[0].before(d);
+  for (const p of subs) d.appendChild(p);
+}
+
 if (WZ) {
   WZ.init({
     lang: LANG,
@@ -3740,7 +4163,16 @@ if (WZ) {
     reviewId: 'wz-review',
     errId: 'err',
     /* ★合計の帯を出すのは「3. 報酬」の段だけ（オーナー指示）。 */
-    steps: [{ id: 's1' }, { id: 's2' }, { id: 's3', totalBar: true }, { id: 's4' }, { id: 's5', totalBar: true }],
+    /* ★合計の帯を出すのは「3. 報酬」の段だけ（オーナー指示）。
+       2画面のときは「3. 報酬」が1画面目の中に居るので、1画面目に出す。 */
+    steps: TWO_SCREEN
+      ? [{ id: 's2', also: ['s1', 's3', 's4'], totalBar: true }, { id: 's5', totalBar: true }]
+      : [{ id: 's1' }, { id: 's2' }, { id: 's3', totalBar: true }, { id: 's4' }, { id: 's5', totalBar: true }],
+    /* ★いま画面に出ている対象月。月ごとの下書きの棚の鍵になる
+       （「新しい月を入力する」を押した人の元の月を、この鍵で戻す）。 */
+    ym: () => ($('f-year').value && $('f-month').value)
+      ? $('f-year').value + '-' + $('f-month').value : '',
+    newMonth: startNewMonth,
     draftIds: DRAFT_IDS,
     read: (id) => { const e = $(id); return e ? e.value : ''; },
     /* ★下書きの復元だけ、明細が入れた欄を飛ばす（PVPayslipFilled は payslip.js が
@@ -3752,6 +4184,18 @@ if (WZ) {
     payload: () => buildPayload(),
     annualOrig: annualTotal,
     nameOf: optLabel,
+    /* ★確認画面のあいだだけ開ける箱（2026-09-12）。
+       2回目以降は「1. 会社と職務」「4. 契約と税」を要約1行に畳んでいる。
+       畳んだままだと中の欄は offsetParent を持たず、確認画面から**丸ごと落ちる**
+       ── 出す直前に「どの会社の、どの職位として出すのか」を確かめられない。
+       ⚠️ 名指しした2つだけを渡す。条件で隠れている欄（社宅を選んだ人の住宅手当など）は
+          隠れたままにする ── 開けると、消したはずの額が確認画面に戻ってくる。 */
+    reviewPeek: () => [$('s1-body'), $('s4-body')],
+    /* 確認画面の「編集」で戻ったとき、その節が畳まれていたら開く。 */
+    reviewOpen: (id) => {
+      if (id === 's1') openFold('s1-body', 's1-sum', null);
+      if (id === 's4') openFold('s4-body', 's4-sum', 's4-sub');
+    },
     /* ★明細から読み取ったのに、画面に欄が無い値（2026-09-11）。保存にも計算にも
        使うのに 5/5 に一度も出てこず、本人が読み返せないまま送られていた。
        ⚠️ f-psdetail は出さない（人が読むためのものではない控えの JSON）。
@@ -3777,6 +4221,8 @@ if (WZ) {
       return rows;
     },
     onStep: (id) => {
+      /* ★出した段は必ず開き、出ていない段は畳み直す（2026-09-12）。 */
+      syncFolds();
       /* 段を出し直したので、印とゲージを引き直す（隠れている間は数えていない）。 */
       markRequired();
       markProgress();
@@ -3787,62 +4233,98 @@ if (WZ) {
       WZ.render();
     }
   });
+  /* ★組み上がったところで、畳む／開くをもう一度そろえる（2026-09-12）。
+       loadPreset() は WZ.init() より前に走るので、そこでの畳みは見送られている。 */
+  syncFolds();
 }
 
-/* ── 先月の内容をサーバから埋める ──────────────────────────────
+/* ── 前回の内容をサーバから引き継ぐ ──────────────────────────────
    ★端末の localStorage だけだと、機種変・別ブラウザ・明細から入った人に効かない。
-     ログイン済みなら本人の直近の行から埋める（my_pay_reports は本人の行しか返さない）。
-   ★持ち越さないもの：対象月と飛んだ時間（毎月変わる）、明細から読めた実額7つ
-     （その月の明細にしか無い数字。持ち越すと先月の手取りが今月の行に入る）。
-   ★サーバの値は端末の値より新しいので、食い違ったらサーバを優先する
-     （restoreInto は入っている値を上書きする）。 */
+     ログイン済みなら本人の直近の行から引き継ぐ（my_pay_reports は本人の行しか返さない）。
+   ★引き継ぐのは CARRY.info（会社・職位・契約・納税地…）と CARRY.fixed（契約で
+     決まっていて毎月同じ額）と CARRY.shape（変動給の行の形）だけ。CARRY.never ＝
+     その月の実績は1つも持ち越さない（総支給・手取り・日当・乗務時間・役割ごとの月次手当…）。
+   ★★ここは以前「サーバの値は端末の値より新しいので、食い違ったらサーバを優先する」
+     と書いてあった。2回目以降ではそれが偽になる ── 本人がいま打っている今月の値や、
+     たった今読み取った明細のほうが新しい。mode:'carry' で**空いている欄にだけ**入れる。
+   ★★同じ会社の行からしか取らない。画面に会社が入っていて該当する行が無ければ
+     何も引き継がない（他社の額を今月の欄に入れない）。
+   ★★取りに行った時点の（利用者・会社・対象月）を控え、返ってきたときに変わって
+     いたら一切当てない。 */
 (async function () {
   /* ★ログイン後の再送（PENDING）が控えているときは何もしない。await をまたいで
      フォームを書き換えると、送信中のペイロードに別の月の値が混ざる。
      この判定は await の前に済ませる（下の PENDING の処理がキーを消す前に読む）。 */
   try { if (localStorage.getItem(PENDING_KEY)) return; } catch (e) {}
   if (readClaims().length) return;   // 預かり分がレポートを描く直前。その下でフォームを書き換えない
-  if (!(await sessionUserId())) return;
+  const uid = await sessionUserId();
+  if (!uid) return;
+  /* ★端末に控えてある「前回の内容」を先に当てる（下の PENDING の枝でも呼ぶが、
+     どちらの await が先に解けるかは決まっていない）。端末が先・サーバが後、を固定する。
+     _presetIn が立つので二重には入らない。 */
+  loadPreset(PVPayLocal.fp(uid));
+  /* ★取りに行く前の状態を控える。await の向こうで人も会社も対象月も変わりうる。 */
+  const stamp = () => uid + '|' + $('f-airline').value + '|' +
+    ($('f-airline-other').value || '').trim().toLowerCase() + '|' +
+    $('f-year').value + '-' + $('f-month').value;
+  const before = stamp();
   let rows = null;
   try {
     const { data, error } = await _sb.rpc('my_pay_reports');
     if (error) throw error;
     rows = data && data.reports;
-  } catch (e) { return; }                 // 埋まらないだけ。フォームは普通に使える
+  } catch (e) { return; }                 // 引き継げないだけ。フォームは普通に使える
+  if (stamp() !== before) return;         // ★届いたときには別の画面になっていた。当てずに捨てる
   if (!Array.isArray(rows) || !rows.length) return;
-  const r = rows[rows.length - 1];        // period_ym 昇順で返るので最後が直近
+  /* ★同じ会社の直近行だけ。会社が未選択のときだけ全体の直近行を使い、その会社も引き継ぐ。 */
+  const air = $('f-airline').value;
+  const oth = ($('f-airline-other').value || '').trim().toLowerCase();
+  const same = !air ? rows : rows.filter((x) => x && x.airline === air &&
+    (air !== 'other' || !oth || String(x.airline_other || '').trim().toLowerCase() === oth));
+  if (!same.length) return;               // 他社の行は持ち込まない
+  const r = same[same.length - 1];        // period_ym 昇順で返るので最後が直近
   if (!r) return;
+
+  /* ★行の形だけ。サーバが古くて pay_items_shape を返さないうちは undefined ＝ 空。
+     返ってきても payItemsShape() をもう一度通す（万一 pay_items そのものが来ても、
+     先月の金額がこの画面の入力欄に入る道を作らない）。 */
+  let shape = '';
+  try {
+    const ps = r.pay_items_shape;
+    shape = payItemsShape(typeof ps === 'string' ? ps : JSON.stringify(ps == null ? null : ps));
+    const q = JSON.parse(shape || 'null');
+    if (!q || Object.keys(q).length <= 1) shape = '';
+  } catch (e) { shape = ''; }
 
   const s = (v) => (v === null || v === undefined || v === '' ? '' : String(v));
   const o = {
+    /* CARRY.info ── 契約と身分。毎月ここを通り直させないために引き継ぐ。 */
     'f-airline': s(r.airline), 'f-airline-other': s(r.airline_other),
     'f-position': s(r.position), 'f-fleet': s(r.fleet),
     /* ★複数選択にしたので配列のほうが正。古い行は job_role（1つ）しか持たない。 */
     'f-jobrole': (Array.isArray(r.job_roles) && r.job_roles.length) ? r.job_roles.join(',') : s(r.job_role),
     'f-age': s(r.age_bucket),
     'f-base-iata': s(r.base_iata), 'f-currency': s(r.currency),
-    'f-gross': s(r.gross_monthly), 'f-base': s(r.base_pay),
-    'f-guarantee': s(r.guarantee_pay),
-    'f-guar': s(r.guaranteed_hours), 'f-perdiem': s(r.per_diem),
-    'f-housing': s(r.housing_type), 'f-housing-amt': s(r.housing_amount),
-    'f-transport': s(r.transport), 'f-command': s(r.command_pay),
-    'f-other': s(r.other_allowance), 'f-bonus': s(r.bonus_annual),
-    'f-instructor': s(r.instructor_pay), 'f-examiner': s(r.examiner_pay),
-    'f-union-pay': s(r.union_pay),
-    'f-mgmt-pay': s(r.management_pay),
-    'f-nonline-pay': s(r.nonline_pay),
-    'f-profit': s(r.profit_share_annual), 'f-pension': s(r.pension_pct),
+    'f-housing': s(r.housing_type),
     'f-contract': s(r.contract_type), 'f-taxcountry': s(r.tax_country),
     'f-tax': s(r.tax_rate_pct), 'f-seniority': s(r.seniority_years),
+    'f-bonus': s(r.bonus_annual), 'f-profit': s(r.profit_share_annual),
+    'f-pension': s(r.pension_pct),
+    /* CARRY.fixed ── 契約で決まっていて毎月同じ額。★0 も有効な前回額（支給なしと答えてある）。 */
+    'f-base': s(r.base_pay), 'f-guarantee': s(r.guarantee_pay),
+    'f-guar': s(r.guaranteed_hours), 'f-command': s(r.command_pay),
+    'f-housing-amt': s(r.housing_amount),
+    /* CARRY.shape ── 項目名・支給単位・並び順だけ。★金額は1円も入っていない。 */
+    'f-payitems': shape,
   };
   for (const k of Object.keys(o)) if (!o[k]) delete o[k];
-  if (!restoreInto(o)) return;
+  if (!restoreInto(o, { mode: 'carry' })) return;
   /* 税率は前回の行の値。ここで touched を立てて、居住国から引き直した概算で
      上書きされないようにする（本人が明細を見て直した数字のほうが正しい）。 */
   if (o['f-tax']) $('f-tax').dataset.touched = '1';
   const ym = r.period_year && r.period_month ? r.period_year + '年' + r.period_month + '月' : '前回';
   $('restore-bar').firstElementChild.textContent =
-    ym + 'の内容で埋めました。変わったところだけ直してください。';
+    ym + 'の会社・契約と、毎月同じ額を引き継ぎました。今月の実績を入れてください。';
   $('restore-bar').style.display = '';
   $('entry-prev').hidden = false;
 })();
@@ -4002,16 +4484,17 @@ function missingAll() {
   if (!WZ) return missingRequired();
   const back = STEP_IDS.map((id) => [id, $(id).hidden]);
   for (const [id] of back) $(id).hidden = false;
-  /* 畳んだ「4. 契約と税」も一度開く。畳んだままだと在籍年数が空でも
-     数えられず、送信の1件ずつの判定でしか出てこない（その欄は画面に無い）。 */
-  const folded = $('s4-body').hidden;
-  if (folded) { $('s4-sum').hidden = true; $('s4-body').hidden = false; $('s4-sub').hidden = false; }
+  /* 畳んだ「1. 会社と職務」「4. 契約と税」も一度開く。畳んだままだと在籍年数が
+     空でも数えられず、送信の1件ずつの判定でしか出てこない（その欄は画面に無い）。 */
+  const FOLDS = [['s1-body', 's1-sum', null], ['s4-body', 's4-sum', 's4-sub']];
+  const was = FOLDS.map(([body]) => !!($(body) && $(body).hidden));
+  FOLDS.forEach((f, i) => { if (was[i]) openFold(f[0], f[1], f[2]); });
   const m = missingRequired();
   for (const [id, h] of back) $(id).hidden = h;
-  /* 足りない欄が無ければ畳み直す（見た目を勝手に変えない）。 */
-  if (folded && !m.some((f) => $('s4-body').contains(f))) {
-    $('s4-sum').hidden = false; $('s4-body').hidden = true; $('s4-sub').hidden = true;
-  }
+  /* 足りない欄が無ければ畳み直す（見た目を勝手に変えない）。
+     ★足りない欄があるほうは開けたままにする ── 閉じ直すと、赤く囲った欄が
+       そのまま画面から消えて、本人には「押しても何も起きない」に見える。 */
+  FOLDS.forEach((f, i) => { if (was[i] && !m.some((x) => $(f[0]).contains(x))) shutFold(f[0], f[1], f[2]); });
   return m;
 }
 

@@ -904,8 +904,12 @@ for (const f of ['pay-report.html', 'en/pay-report.html']) {
      ★f-year / f-month（対象月）は select で常に値が入るためゲートに書かれていないが、
        中身は必須。ここだけ「ゲートに現れなくてよい欄」として明示的に許す。 */
   const GATE_FREE = ['f-year', 'f-month'];
+  /* ★f-stay（ステイ日数）は 2026-09-12 に 必須 → 任意 へ戻した（オーナー決定5）。
+       毎月変わる実績で、明細に載らない会社もある。ここで止めると、
+       **書ける人の内訳ごと提出が落ちる**。空欄は 0 ではなく「不明（null）」で保存する。
+     ⚠️ 乗務日数（f-duty）は元から任意。2つを取り違えない。 */
   const REQ = ['f-airline', 'f-airline-other', 'f-position', 'f-fleet', 'f-jobrole', 'f-age', 'f-year',
-               'f-block', 'f-stay', 'f-currency', 'f-gross', 'f-netpay', 'f-bonus-mo',
+               'f-block', 'f-currency', 'f-gross', 'f-netpay', 'f-bonus-mo',
                'f-perdiem', 'f-housing', 'f-housing-amt',
                'f-contract', 'f-taxcountry', 'f-seniority'];
   for (const f of ['pay-report.html', 'en/pay-report.html']) {
@@ -1305,6 +1309,18 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html#pay-det
       formShown: box($('form-body')).height > 0,
       airlineShown: box($('f-airline')).height > 0,
       atTop: document.activeElement === $('f-airline'),
+      /* ★「フォームの先頭」は会社の欄とは限らない（2026-09-12）。前回の内容が
+         サーバから届いた人は「1. 会社と職務」が要約1行に畳まれているので、
+         先頭は対象月になる。#f-airline を決め打ちすると、畳まれた回だけ
+         嘘の赤が出る（本番は正しく動いているのに）。 */
+      atHead: (() => {
+        const host = $('form-body');
+        if (!host) return false;
+        const h = Array.prototype.find.call(
+          host.querySelectorAll('input:not([type=hidden]), select, textarea'),
+          (e) => !e.disabled && e.offsetParent !== null);
+        return !!h && document.activeElement === h;
+      })(),
       act: document.activeElement ? (document.activeElement.id || document.activeElement.tagName) : '',
       baseShown: box($('f-base')).height > 0,
       grossReadOnly: !!($('f-gross') || {}).readOnly,
@@ -1312,7 +1328,12 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html#pay-det
       detailTop: Math.round(box($('pay-detail')).top),
       s3Top: Math.round(box($('s3')).top),
       /* 進捗バーは画面の上に貼り付く。段の頭はその下に来るのが正しい。 */
-      barBottom: Math.round(box($('wz-top')).bottom || 0)
+      barBottom: Math.round(box($('wz-top')).bottom || 0),
+      /* 落ちたときに「なぜ先頭が無いのか」が分かるように、段の状態も一緒に出す。 */
+      cur: (window.PVPayWizard && window.PVPayWizard.current) ? window.PVPayWizard.current() : '',
+      s1Hidden: !!($('s1') || {}).hidden,
+      s1BodyHidden: !!($('s1-body') || {}).hidden,
+      entryOff: !!(($('entry') || {}).offsetParent)
     };
   });
 
@@ -1320,8 +1341,17 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html#pay-det
   ok(v.open, `${lang}: ★#pay-detail で来たら「くわしく入れる」が開いている`, JSON.stringify(v));
   ok(v.entryHidden && v.formShown,
      `${lang}: ★入口の2択を越えて、入力の画面まで進んでいる`, JSON.stringify(v));
-  ok(v.airlineShown && v.atTop,
-     `${lang}: ★カーソルがフォームの先頭に入っている（内訳はまだ出ていない）`, JSON.stringify(v));
+  ok(v.atHead,
+     `${lang}: ★カーソルがフォームの先頭の欄に入っている（内訳はまだ出ていない）`, JSON.stringify(v));
+  /* ★いま出ている段が要約1行に畳まれていない（2026-09-12）。
+       前回の内容がある人は「1. 会社と職務」が畳まれるが、その段が
+       **いま入力を求めている段**なら畳んではいけない。畳むと画面は
+       要約1行と「次へ」だけになり、入れる物が1つも無い
+       ── 本人には「押したのに何も始まらない」としか映らない。
+     ⚠️ 実際に起きた形：loadPreset() は WZ.init() より前に走るので、
+        そのとき「いま居る段」はまだ決まっていない（current() が null）。 */
+  ok(!(v.cur === 's1' && v.s1BodyHidden),
+     `${lang}: ★★いま入力を求めている段を要約1行に畳まない（空の画面を作らない）`, JSON.stringify(v));
   /* ★2026-08-26、総支給と内訳は排他ではなくなった（オーナー指示
        「入力した総支給額を給与内訳の合計で上書きしない」）。内訳を開いても
        総支給の欄は本人の入力のままで、読み取り専用にしない。
@@ -1540,8 +1570,15 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   await new Promise((r) => setTimeout(r, 150));
   ok(await page.$eval('#ps', (el) => el.classList.contains('is-slim')),
      '手で入力に切り替えても、明細の入口は細い帯で残る');
-  ok((await page.$eval('#f-bonus-mo', (el) => el.value)) === '0',
-     '★今月の賞与・ボーナスは最初から 0 が入っている（薄い placeholder では「入れなくていい欄」に見える）');
+  /* ★2026-09-12、オーナー決定5で value="0" の直書きを外した。
+     初期値の 0 は**本人の回答ではない**（未回答の 0）。0 ＝ 回答済み・空欄 ＝ 未回答、
+     という決定1の土台をここで崩さないために、欄は空で始めて案内で 0 と言う。 */
+  ok((await page.$eval('#f-bonus-mo', (el) => el.value)) === '',
+     '★今月の賞与・ボーナスは空で始まる（未回答の 0 を初期値に置かない）',
+     await page.$eval('#f-bonus-mo', (el) => el.value));
+  ok(/0/.test(await page.$eval('#f-bonus-mo', (el) => el.placeholder || '')),
+     '★代わりに「出なかった月は 0」と案内する',
+     await page.$eval('#f-bonus-mo', (el) => el.placeholder || ''));
 
   /* ── 5ステップ（2026-09-08）────────────────────────────────────
      ★オーナー指示で「埋めた分だけ下に生える」をやめ、1画面1段にした。
@@ -1563,9 +1600,11 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
     .find((i) => { const e = document.getElementById(i); return e && !e.hidden; }) || ''));
   const tap = async (cls) => {
     const hit = await page.evaluate((c) => {
-      const box = ['s1', 's2', 's3', 's4', 's5'].map((i) => document.getElementById(i))
-        .find((e) => e && !e.hidden);
-      const b = box && box.querySelector(c);
+      /* ★2026-09-12：2回目以降は1つの段に箱が4つ出る（s2 が s1/s3/s4 を連れて出す）。
+           「最初の見えている箱の中」で探すと、押す物を持たない #s1 を見て
+           「押せなかった」と読んでしまう ── 画面には次へが出ているのに。
+         押す物は**画面に出ているものを探す**（本人が押すのと同じ見つけ方）。 */
+      const b = [...document.querySelectorAll(c)].find((e) => e.offsetParent !== null);
       if (!b) return false;
       b.click();
       return true;
@@ -1603,11 +1642,13 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
 
   bad.push(...await setF(pick('f-block')));
   await goNext();
-  ok(!(await vis('s3')),
-     '★フライトタイムだけでは 3/5 へ進めない（ステイ日数も必須になった）');
+  /* ★2026-09-12（オーナー決定5）ステイ日数を任意に戻したので、飛んだ時間だけで進む。
+       ⚠️ ここで空のまま進めることと、空を 0 にしないことは別の約束。
+          下の「★ステイ日数を空のまま進んでも 0 が入らない」がそちらを見ている。 */
+  ok(await vis('s3'), '★フライトタイムだけで 3/5 へ進む（ステイ日数は任意）');
+  ok((await fv('f-stay')) === '',
+     '★ステイ日数を空のまま進んでも 0 が入らない（不明のまま送る）', await fv('f-stay'));
   bad.push(...await setF(pick('f-stay')));
-  await goNext();
-  ok(await vis('s3'), 'フライトタイムとステイ日数で 3/5 へ進む');
   ok(!(await vis('s4')), 'まだ 4/5 と送信ボタンは出ない');
   /* ── 帯（2026-09-08 オーナー指示で作り替えた）────────────────
      2026-08-27 の「3.報酬から『匿名で提出』を常に下に出す」は、5ステップ化に
@@ -1641,9 +1682,12 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   await goNext();
   ok(!(await vis('s4')),
      '★通貨と額面だけでは 4/5 へ進めない（手取り・今月のボーナス・パーディアム・住居が要る）');
-  /* ★今月のボーナスは触らない。最初から 0 が入っているので、ここで止まらないのが正しい
-     （初期値を placeholder に戻すと、この検査が落ちる）。 */
   bad.push(...await setF({ 'f-netpay': NET_M, 'f-perdiem': '6200' }));
+  await goNext();
+  ok(!(await vis('s4')),
+     '★今月の賞与が空のあいだは 4/5 へ進めない（空欄は未回答。0 とは違う）');
+  /* ★出なかった月は 0 と入れてもらう。**0 は回答**であって未入力ではない。 */
+  bad.push(...await setF({ 'f-bonus-mo': '0' }));
   await goNext();
   ok(!(await vis('s4')), '住居を答えるまでは 4/5 へ進めない');
   bad.push(...await setF({ 'f-housing': 'allowance' }));
@@ -3246,42 +3290,59 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   ok(await vis('entry-prev'), '★前回の内容が残っていることを「手で入力」側に書く');
   await page.click('#entry-manual');
   await new Promise((r) => setTimeout(r, 300));
-  ok((await cur()) === 's1', '2回目の訪問でも 1/5 から始まる');
+  /* ★2026-09-12（オーナー決定2）2回目以降は「① 今月の入力 → ② 確認」の2画面。
+       会社・契約を毎月通り直させない。
+     ⚠️ 段の数は**画面に聞く**。ここで 5 を決め打ちすると、2画面の道では
+        存在しない段を叩いて「進めない」と読み、初回の段は測り落とす。 */
+  const nStep = await page.evaluate(() => window.PVPayWizard.count());
+  ok(nStep === 2, '★前回の内容がある人は2画面で終わる（今月の入力 → 確認）', String(nStep));
+  ok((await page.evaluate(() => window.PVPayWizard.current())) === 's2',
+     '★1画面目は「今月の入力」');
+  for (const id of ['s1', 's2', 's3', 's4']) {
+    ok(await vis(id), `★1画面目に会社・対象月・報酬・契約が同居している（#${id}）`);
+  }
+  ok(!(await vis('s5')), '★確認はまだ出さない（押す物は最後の1つ）');
+  ok(!(await vis('submit-block')), '★1画面目からは送れない（送信の口は確認の中だけ）');
   ok(await page.$eval('#restore-bar', (el) => el.offsetParent !== null), '復元したことを知らせている');
-  /* ★1/5 は会社・職位・機材・年代。全部プリセットに入っているので、
-     何も打たずに次へ進める（＝入力する数が減っている、の実体）。 */
+  /* ★会社・職位は要約1行に畳むが、値は入ったまま（打ち直させない）。 */
   ok((await fv('f-airline')) === SAMPLE['f-airline'] && (await fv('f-position')) === SAMPLE['f-position'],
      '★前回の会社と職位が入ったまま出てくる',
      `${await fv('f-airline')} / ${await fv('f-position')}`);
-  await goNext();
-  ok((await cur()) === 's2', '前回の値のまま 2/5 へ進める（打ち直させない）');
+  ok(await page.$eval('#s1-body', (el) => el.hidden)
+     && await page.$eval('#s1-sum', (el) => !el.hidden),
+     '★会社と職務は要約1行に畳んである（毎月読み直させない）');
+  ok(await page.$eval('#s4-body', (el) => el.hidden)
+     && await page.$eval('#s4-sum', (el) => !el.hidden),
+     '★契約と納税地も畳んである');
+  /* ★畳んでも「変更する」で開ける（畳む＝隠すではない）。 */
+  await page.click('#s1-edit');
+  await new Promise((r) => setTimeout(r, 150));
+  ok(!(await page.$eval('#s1-body', (el) => el.hidden)),
+     '★「変更する」を押せばその場で開く（最初からやり直させない）');
 
-  /* ★飛んだ時間とステイ日数は「その月にしか無い値」なのでプリセットに入れない。 */
-  ok((await fv('f-block')) === '' && (await fv('f-stay')) === '',
-     '★飛んだ時間とステイ日数は前回の値で埋めない（毎月変わる）',
-     `${await fv('f-block')} / ${await fv('f-stay')}`);
+  /* ★その月にしか無い値（CARRY.never）は、前回の額でも 0 でも埋めない。
+     埋まっていると、先月の実績が今月の実データとして黙って送られる。 */
+  const NEVER6 = ['f-block', 'f-stay', 'f-gross', 'f-netpay', 'f-perdiem', 'f-bonus-mo'];
+  const vals6 = {};
+  for (const id of NEVER6) vals6[id] = await fv(id);
+  ok(NEVER6.every((id) => vals6[id] === ''),
+     '★飛んだ時間・ステイ日数・総支給・手取り・パーディアム・今月の賞与は前回の値でも 0 でも埋めない',
+     NEVER6.map((id) => `${id}=${vals6[id] === '' ? '空' : vals6[id]}`).join(' / '));
   await goNext();
-  ok((await cur()) === 's2', '★空のままでは 2/5 から進めない');
-  bad.push(...await setF(pick('f-block', 'f-stay')));
+  ok((await page.evaluate(() => window.PVPayWizard.current())) === 's2',
+     '★今月の実績が空のままでは確認へ進めない');
+  /* ★ステイ日数は任意（決定5）なので、ここでは入れずに進む。
+     それでも進めることと、空が 0 に化けないことを下で見る。 */
+  bad.push(...await setF({ 'f-block': SAMPLE['f-block'], 'f-gross': GROSS_M, 'f-netpay': NET_M,
+                           'f-perdiem': '6200', 'f-bonus-mo': '0' }));
   await new Promise((r) => setTimeout(r, 150));
   await goNext();
-  ok((await cur()) === 's3', '飛んだ時間とステイ日数を入れると 3/5 へ進む');
-
-  /* ★手取りと今月出たボーナスも同じ。入れると、先月の手取りが
-     今月の実データとして黙って送られる。 */
-  /* ★今月のボーナスは欄の既定が 0（「出ていない月は 0」）。前回の額ではない。 */
-  ok((await fv('f-netpay')) === '' && (await fv('f-bonus-mo')) === '0',
-     '★手取りと今月のボーナスは前回の値で埋めない（毎月変わる）',
-     `${await fv('f-netpay')} / ${await fv('f-bonus-mo')}`);
-  await goNext();
-  ok((await cur()) === 's3', '★空のままでは 3/5 から進めない');
-  bad.push(...await setF(pick('f-netpay', 'f-bonus-mo')));
-  await new Promise((r) => setTimeout(r, 150));
-  await goNext();
-  ok((await cur()) === 's4', 'その2つを入れると 4/5 へ進む');
-  await goNext();
-  ok((await cur()) === 's5' && (await submitOn()),
-     '★契約と税は前回の値のまま 5/5（確認）まで行ける');
+  ok((await page.evaluate(() => window.PVPayWizard.current())) === 's5' && (await submitOn()),
+     '★今月の分だけ入れれば確認まで行ける（会社・契約は前回のまま）');
+  ok((await fv('f-stay')) === '',
+     '★任意のステイ日数は空のまま確認まで来る（0 を入れて埋めない）', await fv('f-stay'));
+  ok((await fv('f-bonus-mo')) === '0',
+     '★本人が入れた 0 は 0 のまま残る（未回答に戻さない）', await fv('f-bonus-mo'));
   // 復元が生きていること（段だけ出て金額が空なら「30秒で終わる」が嘘になる）
   ok((await fv('f-base')) === SAMPLE['f-base'],
      `前回の基本給が入ったまま出てくる → ${await fv('f-base')}`, `期待 ${SAMPLE['f-base']}`);
@@ -3291,8 +3352,13 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
      いつでも本人が手で入れた数字になったため。 */
   ok(await page.$eval('#pay-detail', (el) => el.open),
      '内訳で入れた人は内訳側が開いた状態で戻る');
-  ok((await fv('f-gross')) === GROSS_M,
-     `前回の額面も入ったまま出てくる → ${await fv('f-gross')}`, `期待 ${GROSS_M}`);
+  /* ★2026-09-12：額面は CARRY.never ＝ 引き継がない（上で今月の額を手で入れた）。
+     戻ってくるのは「契約で決まっていて毎月同じ額」の側だけ。
+     ★引き継いだ欄には印が付く（確認画面が「前回から引き継ぎ」と出すのはこれ1つ）。 */
+  ok(await page.$eval('#f-base', (el) => el.classList.contains('pv-carried')),
+     '★引き継いだ基本給には「前回から引き継ぎ」の印が付く');
+  ok(!(await page.$eval('#f-base', (el) => el.classList.contains('ai-filled'))),
+     '★引き継ぎに「明細から読み取り」の緑枠は付かない（本人に嘘をつかない）');
   ok(!(await page.$eval('#f-gross', (el) => el.readOnly)),
      '戻ってきた額面も自分で入れられる');
 
@@ -3740,6 +3806,20 @@ console.log('\n明細1枚が REAL PAY に出るまで（＋下書きが上書き
     ok(green.some((g) => g.id === 'f-gross'),
        `[${c.tag}] 総支給に緑枠が付いている（この検査の信号が生きている）`,
        green.map((g) => g.id).join(','));
+
+    /* ★明細に印字されていない「今月の賞与」は、明細からは読めない。
+       ここで先月の下書きの 0 を戻すと**未回答の 0 が本人の回答に化ける**ので、
+       この欄は空のまま残る ── 本人が答える。2026-09-12 の決定1・5・6。 */
+    ok(await page.$eval('#f-bonus-mo', (el) => el.value === ''),
+       `[${c.tag}] ★明細に無い当月賞与は空のまま（先月の下書きの 0 を戻さない）`,
+       await page.$eval('#f-bonus-mo', (el) => el.value));
+    await page.evaluate(() => {
+      const e = document.getElementById('f-bonus-mo');
+      e.value = '0';
+      e.dispatchEvent(new Event('input', { bubbles: true }));
+      e.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    await new Promise((r) => setTimeout(r, 200));
 
     // ── 通し：5/5 → 送信 → pay_reports → マイページ → REAL PAY ──────
     await page.evaluate(() => { if (window.PVPayWizard) window.PVPayWizard.goLast(); });
@@ -4349,8 +4429,15 @@ console.log('\n下書き（このブラウザだけ・pv_pay_draft）');
   ok(await page.$eval('#f-block', (el) => el.value === '86.5'),
      '★同じ人なら、次に開いたときに下書きから続けられる',
      await page.$eval('#f-block', (el) => el.value));
-  ok(await page.$eval('#wz-draft', (el) => !el.hidden && /続けています|Continuing/.test(el.textContent)),
-     '★「下書きから続けています」と知らせる',
+  ok(await page.$eval('#wz-draft',
+       (el) => !el.hidden && /続けています|Continuing|戻しました|Restored/.test(el.textContent)),
+     '★「このブラウザの下書きから戻した」と知らせる',
+     await page.$eval('#wz-draft', (el) => el.textContent.trim()));
+  /* ★2026-09-12（オーナー決定8）どの月の入力を戻したのかを名指しする。
+       月を書かないと、新しい月を始めたつもりの人が**先月の実績を今月として送る**。
+       画面はどこも壊れていないので、本人にも運営にも気づけない。 */
+  ok(await page.$eval('#wz-draft', (el) => /(19|20)\d\d/.test(el.textContent)),
+     '★戻した下書きが「どの月のものか」を名指しする',
      await page.$eval('#wz-draft', (el) => el.textContent.trim()));
 
   await page.reload({ waitUntil: 'networkidle2', timeout: 30000 });
@@ -4859,6 +4946,397 @@ console.log('\n内訳の横棒（確認の段）');
       await page.close();
     }
   }
+}
+
+/* ══ ★2回目以降の入力 ── オーナー決定の10項目（2026-09-12）══════════════════
+   ここは「画面は普通に動いたまま静かに壊れる」ものだけを並べてある。
+   どれも本番で起きた／起こしかけた形で、直したあと必ずここへ固定している。
+
+     ★1  基本給あり・保証給 0・変動給1行で提出に手が届く
+     ★2  未回答が 0 に変わらない（画面・下書き・payload）
+     ★3  別の月を始めたら前月の実績が残らない
+     ★4  同じ月の再開では打ったものが全部戻る
+     ★5  基本給 0 ＝ 回答済み／空欄 ＝ 入力不足（保証給も同じ）
+     ★6  合計の3状態（全行未入力＝空／0 だけの1行＝'0'／未回答混在＝partial）
+     ★7  追加用の空の行を「未回答」に数えない
+     ★8  新しい月では、前月に本人が打った実績も落ちる（月次手当・活動日数・回数まで）
+          ＋ 元の月の下書きは残っている
+     ★9  同じ月の再アップロードでは、本人が打った値は落ちない
+     ★10 明細を落としても基本情報は引き継がれる（候補にするのは固定金額だけ）
+
+   ⚠️ 0 と空欄は「数に落としてから」では見分けられない（オーナー指摘）。
+      見ているのは moneyRead() の state と、送る payload の null / '0' そのもの。 */
+console.log('\n★2回目以降の入力（オーナー決定の10項目）');
+
+/* 前回の内容（＝翌月のひな型）。CARRY.info と CARRY.fixed と shape だけ。
+   ★実績（CARRY.never）は1つも入れない ── 入れてはいけないものが入っていないことは
+     すぐ下の「前月の実績が1つも戻らない」が見ている。 */
+const CARRY_LAST = {
+  'f-airline': 'emirates', 'f-position': 'cap', 'f-fleet': 'b777', 'f-currency': 'AED',
+  'f-age': '40-49', 'f-jobrole': 'line,instructor,union', 'f-housing': 'allowance',
+  'f-contract': 'direct', 'f-seniority': '12', 'f-taxcountry': 'AE', 'f-tax': '0',
+  'f-base': '48500', 'f-guarantee': '0', 'f-command': '3200', 'f-housing-amt': '17500',
+  'f-payitems': JSON.stringify({ v: 1, variable: [{ label: 'Flight Pay', basis: 'block' }] }),
+};
+
+for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
+                           ['en', 'http://localhost:3000/en/pay-report.html']]) {
+  const T = `${lang}:`;
+  const page = await newPage();
+  await page.setViewport({ width: 1440, height: 1200 });
+  const errs = [];
+  page.on('pageerror', (e) => errs.push(String(e.message).slice(0, 160)));
+  await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+  await page.evaluate(() => localStorage.clear());
+  /* ⚠️ 置くのは evaluateOnNewDocument（次の文書が動き出す前）。素の evaluate で
+     書いて reload すると、離れる拍子の savePreset() が空のフォームで上書きする。 */
+  await page.evaluateOnNewDocument((f, t) => {
+    try { localStorage.setItem('pv_pay_last',
+      JSON.stringify(Object.assign({}, f, { _own: 'anon', _ts: t, _tab: '' }))); } catch (e) {}
+  }, CARRY_LAST, Date.now());
+  await page.reload({ waitUntil: 'networkidle2', timeout: 30000 });
+  await new Promise((r) => setTimeout(r, 500));
+
+  const set = (o) => page.evaluate((obj) => {
+    const out = [];
+    for (const [id, v] of Object.entries(obj)) {
+      const el = document.getElementById(id);
+      if (!el) { out.push(id + ': 要素が無い'); continue; }
+      el.value = v;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    return out;
+  }, o);
+  const fv = (id) => page.$eval('#' + id, (el) => String(el.value).replace(/,/g, ''));
+  const fvs = (ids) => page.evaluate((list) => {
+    const o = {};
+    for (const id of list) { const e = document.getElementById(id); o[id] = e ? e.value : null; }
+    return o;
+  }, ids);
+  /* 送る中身そのもの。画面の見た目ではなく、**保存に渡る値**で 0 と未回答を見分ける。 */
+  const pay = () => page.evaluate(() => buildPayload());
+  /* 変動給・その他の行を丸ごと入れ替える（本物の pdAdd / pdSync を使う）。 */
+  const rows = (kind, list) => page.evaluate((k, items) => {
+    const box = document.getElementById('pd-' + k + '-rows');
+    while (box.children.length) box.firstElementChild.remove();
+    for (const it of items) {
+      const row = pdAdd(k, true);
+      const put = (sel, v) => { const e = row.querySelector(sel); if (e && v != null) e.value = v; };
+      put('.pd-label', it.label); put('.pd-basis', it.basis); put('.pd-amt', it.amount);
+    }
+    pdSync();
+    let pi = null;
+    try { pi = JSON.parse(document.getElementById('f-payitems').value || 'null'); } catch (e) {}
+    return { pi, sum: document.getElementById('f-var-sum').value };
+  }, kind, list);
+
+  await page.click('#entry-manual');
+  await new Promise((r) => setTimeout(r, 350));
+
+  /* ── ★3（入口）前月の実績は、ひな型に1つも入っていない ───────────── */
+  const NEVER_SHOWN = ['f-gross', 'f-netpay', 'f-block', 'f-stay', 'f-duty', 'f-perdiem',
+                       'f-bonus-mo', 'f-other', 'f-transport', 'f-hourly',
+                       'f-instructor', 'f-union-pay', 'f-mgmt-pay', 'f-nonline-pay'];
+  const n0 = await fvs(NEVER_SHOWN);
+  ok(NEVER_SHOWN.every((id) => n0[id] === ''),
+     `${T} ★3 2回目の画面に前月の実績が1つも入っていない`,
+     Object.entries(n0).filter(([, v]) => v !== '').map(([k, v]) => k + '=' + v).join(' / '));
+  /* 固定と分かる額は逆に入っている（打ち直させない）。**0 も有効な前回額**。 */
+  ok((await fv('f-base')) === '48500' && (await fv('f-guarantee')) === '0',
+     `${T} ★3 契約で決まる額は前回のまま出てくる（保証給の 0 も引き継ぐ）`,
+     `${await fv('f-base')} / ${await fv('f-guarantee')}`);
+  ok(await page.$eval('#f-base', (el) => el.classList.contains('pv-carried'))
+     && !(await page.$eval('#f-base', (el) => el.classList.contains('ai-filled'))),
+     `${T} ★3 引き継いだ額には「前回から引き継ぎ」の印だけが付く（明細の緑枠は付けない）`);
+  /* 変動給は形だけ ── 項目名は戻り、金額は空。 */
+  const vr0 = await page.evaluate(() => Array.from(document.querySelectorAll('#pd-var-rows .pd-row'))
+    .map((r) => ({ label: (r.querySelector('.pd-label') || {}).value || '',
+                   amt: (r.querySelector('.pd-amt') || {}).value || '' })));
+  ok(vr0.length === 1 && vr0[0].label === 'Flight Pay' && vr0[0].amt === '',
+     `${T} ★3 変動給は項目名と支給単位だけ引き継ぎ、金額は空で出す`, JSON.stringify(vr0));
+
+  /* ── ★5 基本給・保証給の 0 と空欄 ──────────────────────────────── */
+  await page.evaluate(() => { const d = document.getElementById('pay-detail'); if (d) d.open = true; });
+  await set({ 'f-base': '0', 'f-guarantee': '0' });
+  let p = await pay();
+  ok(p.base_pay === '0' && p.guarantee_pay === '0',
+     `${T} ★5 基本給 0・保証給 0 は「回答済み」として送る（未回答に化けない）`,
+     JSON.stringify({ base: p.base_pay, guar: p.guarantee_pay }));
+  await set({ 'f-base': '', 'f-guarantee': '' });
+  p = await pay();
+  ok(p.base_pay === null && p.guarantee_pay === null,
+     `${T} ★5 空欄は未回答（null）のまま送る（0 に書き換えない）`,
+     JSON.stringify({ base: p.base_pay, guar: p.guarantee_pay }));
+  /* ⚠️ 数に落としてからでは見分けられない。画面側の見分け役は moneyRead() の state。 */
+  const st = await page.evaluate(() => {
+    const b = document.getElementById('f-base');
+    const r = [];
+    b.value = '0'; r.push(moneyRead(b).state);
+    b.value = '';  r.push(moneyRead(b).state);
+    return r;
+  });
+  ok(st[0] === 'ok' && st[1] === 'empty',
+     `${T} ★5 見分けているのは「入っているか」であって「0 より大きいか」ではない`, st.join(' / '));
+  await set({ 'f-base': '48500' });
+
+  /* ── ★6 合計の3状態 ＋ ★7 追加用の空の行 ─────────────────────── */
+  let r6 = await rows('var', [{ label: 'Flight Pay', basis: 'block' }]);
+  ok(r6.sum === '' && !(r6.pi && r6.pi.partial),
+     `${T} ★6 実項目が全部未入力なら合計は空（0 と書かない）`, JSON.stringify(r6));
+  ok((await pay()).other_allowance === null,
+     `${T} ★6 そのとき送るその他手当も未回答（null）`, String((await pay()).other_allowance));
+
+  r6 = await rows('var', [{ label: 'Flight Pay', basis: 'block', amount: '0' }]);
+  ok(r6.sum === '0' && !(r6.pi && r6.pi.partial),
+     `${T} ★6 本人が入れた 0 は回答 ── 合計も 0（空欄に戻さない）`, JSON.stringify(r6));
+  ok((await pay()).other_allowance === '0',
+     `${T} ★6 そのとき送るその他手当も '0'`, String((await pay()).other_allowance));
+
+  r6 = await rows('var', [{ label: 'Flight Pay', basis: 'block', amount: '4000' },
+                          { label: 'Sector Pay', basis: 'sector' }]);
+  ok(r6.sum === '4000' && r6.pi && r6.pi.partial === true,
+     `${T} ★6 未回答の実項目が混じれば「入力済み分の合計」＝ partial を立てる`, JSON.stringify(r6));
+
+  r6 = await rows('var', [{ label: 'Flight Pay', basis: 'block', amount: '4000' }, {}]);
+  ok(r6.sum === '4000' && !(r6.pi && r6.pi.partial),
+     `${T} ★7 ＋を押しただけの空の行は「未回答」に数えない（押すたび partial にしない）`,
+     JSON.stringify(r6));
+
+  /* ── ★1 基本給あり・保証給 0・変動給1行で、送信に手が届く ───────── */
+  await rows('var', [{ label: 'Flight Pay', basis: 'block', amount: '4000' }]);
+  await set({ 'f-year': '2026', 'f-month': '7', 'f-base': '48500', 'f-guarantee': '0',
+              'f-gross': '54250', 'f-netpay': '41200', 'f-block': '86.5',
+              'f-perdiem': '6200', 'f-bonus-mo': '0' });
+  await new Promise((r) => setTimeout(r, 200));
+  const miss = await page.evaluate(() => missingAll().map((f) => {
+    const e = f.querySelector('input,select,textarea');
+    return e ? (e.id || e.name) : (f.id || '?');
+  }));
+  ok(miss.length === 0,
+     `${T} ★1 基本給あり・保証給 0・変動給1行で、足りない必須が1つも無い`, miss.join(' / '));
+
+  /* ── ★2 未回答が 0 に変わらない（画面・下書き・payload）───────────── */
+  ok((await fv('f-stay')) === '' && (await fv('f-duty')) === '',
+     `${T} ★2 任意のステイ日数・乗務日数は空のまま（0 を置かない）`,
+     `${await fv('f-stay')} / ${await fv('f-duty')}`);
+  p = await pay();
+  ok(p.stay_nights === null && p.duty_days === null,
+     `${T} ★2 送るときも未回答（null）── 0 で埋めない`,
+     JSON.stringify({ stay: p.stay_nights, duty: p.duty_days }));
+  ok(p.bonus_month === '0',
+     `${T} ★2 本人が入れた 0 は 0 のまま送る（未回答に戻さない）`, String(p.bonus_month));
+  await page.evaluate(() => window.PVPayWizard.saveDraft());
+  const dr = await page.evaluate(() => {
+    try { return JSON.parse(localStorage.getItem('pv_pay_draft') || 'null'); } catch (e) { return null; }
+  });
+  ok(dr && dr.fields && !('f-stay' in dr.fields) && dr.fields['f-bonus-mo'] === '0',
+     `${T} ★2 下書きでも同じ ── 未回答は控えず、本人の 0 だけを控える`,
+     JSON.stringify({ stay: dr && dr.fields ? dr.fields['f-stay'] : '?',
+                      bonus: dr && dr.fields ? dr.fields['f-bonus-mo'] : '?' }));
+
+  /* ── ★4 同じ月の再開では、打ったものが全部戻る ──────────────────── */
+  await page.reload({ waitUntil: 'networkidle2', timeout: 30000 });
+  await new Promise((r) => setTimeout(r, 900));
+  /* ⚠️ 下書きを戻すのは入口の2択を抜けてから（start()）。ここを飛ばすと
+     「戻らなかった」ではなく「まだ戻す場面ではない」を見てしまう。 */
+  await page.click('#entry-manual');
+  await new Promise((r) => setTimeout(r, 500));
+  const back = await fvs(['f-year', 'f-month', 'f-gross', 'f-netpay', 'f-block',
+                          'f-bonus-mo', 'f-perdiem', 'f-base', 'f-stay']);
+  ok(back['f-gross'].replace(/,/g, '') === '54250' && back['f-netpay'].replace(/,/g, '') === '41200'
+     && back['f-block'] === '86.5' && back['f-year'] === '2026' && back['f-month'] === '7',
+     `${T} ★4 同じ月の続きは、その月の実績まで全部戻る`, JSON.stringify(back));
+  ok(back['f-bonus-mo'] === '0',
+     `${T} ★4 本人が入れた 0 も 0 のまま戻る`, back['f-bonus-mo']);
+  ok(back['f-stay'] === '',
+     `${T} ★4 空欄は空欄のまま戻る（再開のついでに 0 を置かない）`, back['f-stay']);
+  const vrBack = await page.evaluate(() => Array.from(document.querySelectorAll('#pd-var-rows .pd-row'))
+    .map((r) => ((r.querySelector('.pd-amt') || {}).value || '').replace(/,/g, ''))
+    .filter((x) => x !== ''));
+  ok(vrBack.length === 1 && vrBack[0] === '4000',
+     `${T} ★4 変動給の行も金額ごと戻る（形だけにしない）`, JSON.stringify(vrBack));
+
+  /* ── ★8 新しい月では、前月に本人が打った実績も落ちる ────────────── */
+  /* 役割モジュールの「今月ぶん」を入れる。ここが残ると、内訳の合計が総支給を超えて
+     REAL PAY の支給構成の帯が黙って消える（2026-09-11 に本番で1件）。 */
+  await page.evaluate(() => {
+    for (const b of document.querySelectorAll('input[name="f-jobrole"]'))
+      if (['line', 'instructor', 'union'].indexOf(b.value) >= 0 && !b.checked) {
+        b.checked = true; b.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+  });
+  await new Promise((r) => setTimeout(r, 200));
+  /* ⚠️ 金額の欄は「別途支給されている」「あり」を選ぶまで出ていない
+     （選ばない人は2〜3クリックで抜けられる作り）。先に開けてから入れる。 */
+  await set({ 'f-instr-extra': 'separate', 'f-union-extra': 'yes' });
+  await new Promise((r) => setTimeout(r, 150));
+  await set({ 'f-instr-method': 'session', 'f-union-src': 'airline' });
+  await new Promise((r) => setTimeout(r, 150));
+  await set({ 'f-instructor': '21000', 'f-instr-qty': '4',
+              'f-union-pay': '30000', 'f-union-days': '3' });
+  const before8 = await fvs(['f-instructor', 'f-instr-qty', 'f-union-pay', 'f-union-days']);
+  ok(Object.values(before8).every((v) => v && v !== ''),
+     `${T} ★8 前提 ── 月次手当と活動日数・回数が入っている`, JSON.stringify(before8));
+
+  await page.evaluate(() => startNewMonth());
+  await new Promise((r) => setTimeout(r, 300));
+  const MONTHLY = ['f-gross', 'f-netpay', 'f-block', 'f-perdiem', 'f-bonus-mo', 'f-stay', 'f-duty',
+                   'f-instructor', 'f-examiner', 'f-union-pay', 'f-mgmt-pay', 'f-nonline-pay',
+                   'f-instr-qty', 'f-exam-qty', 'f-union-days', 'f-mgmt-days', 'f-nonline-days'];
+  const after8 = await fvs(MONTHLY);
+  ok(MONTHLY.every((id) => after8[id] === '' || after8[id] === null),
+     `${T} ★8 新しい月では、本人が打った実績も月次手当も活動日数・回数も落ちる`,
+     Object.entries(after8).filter(([, v]) => v).map(([k, v]) => k + '=' + v).join(' / '));
+  const keep8 = await fvs(['f-airline', 'f-position', 'f-fleet', 'f-contract', 'f-taxcountry', 'f-base']);
+  ok(keep8['f-airline'] === 'emirates' && keep8['f-position'] === 'cap'
+     && keep8['f-contract'] === 'direct' && keep8['f-taxcountry'] === 'AE'
+     && keep8['f-base'].replace(/,/g, '') === '48500',
+     `${T} ★8 会社・職位・契約・納税地・固定額はそのまま（毎月通り直させない）`,
+     JSON.stringify(keep8));
+  const vr8 = await page.evaluate(() => Array.from(document.querySelectorAll('#pd-var-rows .pd-row'))
+    .map((r) => ((r.querySelector('.pd-amt') || {}).value || '')).filter((x) => x !== ''));
+  ok(vr8.length === 0, `${T} ★8 変動給の金額も残らない`, JSON.stringify(vr8));
+
+  /* 元の月の下書きは残っている ── 月を戻せば「戻しますか」が出て、押せば全部返る。 */
+  await set({ 'f-year': '2026', 'f-month': '7' });
+  await new Promise((r) => setTimeout(r, 250));
+  ok(await page.$eval('#wz-offer', (el) => !el.hidden && /(19|20)\d\d/.test(el.textContent)),
+     `${T} ★8 元の月の下書きは残っていて、その月を選ぶと名指しで知らせる`,
+     await page.$eval('#wz-offer', (el) => el.textContent.trim()));
+  await page.evaluate(() => window.PVPayWizard.restoreMonth('2026-7'));
+  await new Promise((r) => setTimeout(r, 300));
+  ok((await fv('f-gross')) === '54250' && (await fv('f-instructor')) === '21000',
+     `${T} ★8 押せば元の月の実績が全部返る（新しい月を始めても失わない）`,
+     `${await fv('f-gross')} / ${await fv('f-instructor')}`);
+
+  /* ── ★9 同じ月の再アップロードでは、本人が打った値は落ちない ───────
+     ＋ ★10 基本情報は引き継いだまま・候補にするのは固定金額だけ。 */
+  const drop = await page.evaluate(() => ({
+    n: window.PVPayDropPrevMonth(),
+    carried: Object.assign({}, window.PVPayCarriedDropped()),
+  }));
+  const after9 = await fvs(['f-gross', 'f-instructor', 'f-netpay']);
+  ok(after9['f-gross'].replace(/,/g, '') === '54250'
+     && after9['f-instructor'].replace(/,/g, '') === '21000',
+     `${T} ★9 明細を落とし直しても、本人がこの月に打った値は消えない`,
+     JSON.stringify(after9) + ' / ' + JSON.stringify(drop));
+  const keep10 = await fvs(['f-airline', 'f-position', 'f-fleet', 'f-contract', 'f-taxcountry']);
+  ok(keep10['f-airline'] === 'emirates' && keep10['f-position'] === 'cap'
+     && keep10['f-fleet'] === 'b777' && keep10['f-contract'] === 'direct'
+     && keep10['f-taxcountry'] === 'AE',
+     `${T} ★10 明細を落としても会社・職位・機材・契約・納税地は引き継いだまま`,
+     JSON.stringify(keep10));
+  ok((await fv('f-command')) === '' && drop.carried['f-command'] === '3,200',
+     `${T} ★10 触っていない固定額は空にして、前回額は候補として控えるだけ（勝手に入れ直さない）`,
+     `画面=${await fv('f-command')} / 控え=${JSON.stringify(drop.carried)}`);
+
+  ok(errs.length === 0, `${T} この経路で JS が1つも落ちない`, errs.join(' / '));
+  await page.close();
+}
+
+/* ══ ★11 確認画面の「出どころの札」が、行の外へ出ない（2026-09-12）══════════
+   .wz-rev-src は order:3 + width:100% で「自分の行へ落ちる」つもりで書いてある。
+   ところが親の .wz-rev-row に flex-wrap が無いと、札は同じ行に居座ったまま
+   幅 100% を主張し、欄名と金額を**1文字ずつの縦書き**に潰して、
+   札だけカードの外へはみ出す。── 実際にそうなっていた（shot-pay の絵で気づいた）。
+   ⚠️ ページ全体の横溢れ（measure-pay.mjs の②）では捕まらない。1440px では
+      はみ出した札が画面の中に収まってしまうし、狭い幅の測定は「3. 報酬」の段しか見ない。
+   ⚠️ 札が1枚も無いと、この検査は黙って何も見なくなる。先に枚数を数える。 */
+console.log('\n★確認画面の出どころの札（行からはみ出さない）');
+for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
+                           ['en', 'http://localhost:3000/en/pay-report.html']]) {
+  const T = `${lang}:`;
+  const page = await newPage();
+  await page.setViewport({ width: 390, height: 1400 });
+  await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+  await page.evaluate(() => localStorage.clear());
+  await page.evaluateOnNewDocument((f, t) => {
+    try { localStorage.setItem('pv_pay_last',
+      JSON.stringify(Object.assign({}, f, { _own: 'anon', _ts: t, _tab: '' }))); } catch (e) {}
+  }, CARRY_LAST, Date.now());
+  await page.reload({ waitUntil: 'networkidle2', timeout: 30000 });
+  await new Promise((r) => setTimeout(r, 600));
+  await page.click('#entry-manual');
+  await new Promise((r) => setTimeout(r, 400));
+  await page.evaluate(() => window.PVPayWizard.goLast());
+  await new Promise((r) => setTimeout(r, 700));
+
+  const m = await page.evaluate(() => {
+    const rows = Array.from(document.querySelectorAll('#wz-review .wz-rev-row'));
+    const out = { srcs: 0, sameLine: [], outside: [], thin: [],
+                  secs: [], missing: [], guar: null };
+    /* ★12 の材料。欄名は画面から読む（日英で文言を書き写さない）。 */
+    out.secs = Array.from(document.querySelectorAll('#wz-review section.wz-rev-sec .wz-rev-t'))
+      .map((e) => e.textContent.trim());
+    const keyOf = (r) => { const k = r.querySelector('.wz-rev-k'); return k ? k.textContent.trim() : ''; };
+    const valOf = (r) => { const v = r.querySelector('.wz-rev-v'); return v ? v.textContent.trim() : ''; };
+    for (const id of ['f-base', 'f-guarantee', 'f-command', 'f-housing-amt']) {
+      const l = document.querySelector('label[for="' + id + '"]');
+      if (!l) continue;
+      /* ★「必須」「任意」の札は欄名ではない（pay-wizard.js の fieldLabel が落としている）。
+         ここで落とさないと「住宅手当（月額）必須」を探して、出ている行を見落とす。 */
+      const c = l.cloneNode(true);
+      c.querySelectorAll('.req-tag, .opt-tag, .auto-tag, .miss-tag').forEach((t) => t.remove());
+      const want = c.textContent.trim();
+      const hit = rows.find((r) => keyOf(r) === want);
+      if (!hit) out.missing.push(id + '（' + want + '）');
+      else if (id === 'f-guarantee') out.guar = valOf(hit);
+    }
+    for (const row of rows) {
+      const rr = row.getBoundingClientRect();
+      for (const c of Array.from(row.children)) {
+        const cr = c.getBoundingClientRect();
+        if (cr.width === 0 && cr.height === 0) continue;
+        if (cr.right > rr.right + 1 || cr.left < rr.left - 1)
+          out.outside.push((c.className || '') + ' ' + Math.round(cr.left) + '..'
+                           + Math.round(cr.right) + ' / 行 ' + Math.round(rr.left) + '..'
+                           + Math.round(rr.right));
+      }
+      const src = row.querySelector('.wz-rev-src');
+      const v = row.querySelector('.wz-rev-v');
+      if (!src) continue;
+      out.srcs++;
+      if (v) {
+        const sr = src.getBoundingClientRect(), vr = v.getBoundingClientRect();
+        /* 札が金額と同じ行に居る＝折り返していない。 */
+        if (sr.top < vr.bottom - 1) out.sameLine.push(src.textContent.trim());
+        /* ★金額の欄が潰れると、1文字ずつ縦に折れて**高さだけ**が伸びる。
+           ⚠️ 幅だけで見ない。「0」も「12」も普通に幅が狭い（中身に合わせた箱なので）。
+              見るのは「行数が文字数に近いか」── 1文字ずつ折れている形だけを捕まえる。 */
+        const lh = parseFloat(getComputedStyle(v).lineHeight) || 20;
+        const lines = Math.max(1, Math.round(vr.height / lh));
+        const chars = (v.textContent || '').replace(/\s/g, '').length;
+        if (lines > 1 && chars > 0 && lines >= chars * 0.6)
+          out.thin.push(v.textContent.trim() + ' ' + lines + '行 / ' + chars + '文字');
+      }
+    }
+    return out;
+  });
+  ok(m.srcs > 0, `${T} ★11 出どころの札が実際に出ている（検査が空振りしていない）`,
+     String(m.srcs));
+  ok(m.sameLine.length === 0, `${T} ★11 札は自分の行へ落ちる（金額と同じ行に居座らない）`,
+     m.sameLine.join(' / '));
+  ok(m.outside.length === 0, `${T} ★11 確認画面の行から、はみ出す要素が1つも無い`,
+     m.outside.join(' / '));
+  ok(m.thin.length === 0, `${T} ★11 金額の欄が1文字ずつの縦書きに潰れない`,
+     m.thin.join(' / '));
+
+  /* ── ★12 確認画面に「出すもの」が全部載る（2026-09-12）────────────────
+     2回目以降は1段目が s2 で、s1・s3・s4 を steps[].also で連れて出している。
+     確認画面が $(s.id) だけを読んでいたあいだ、**「3. 報酬」が1行も出なかった**
+     ── 本人がその画面で打ったばかりの総支給も基本給も、出す前に読み返せない。
+     さらに fieldValue() が「札があれば札だけ読む」と分岐していたので、
+     **基本給と保証給は「該当なし」の札と同居しているせいで行ごと落ちていた。**
+     どちらも画面はどこも壊れないまま静かに消える形。
+     ⚠️ 保証給の 0 も1行として出す（0 ＝ 回答済み。空欄と区別がつかなくなる）。 */
+  ok(m.secs.length === 4, `${T} ★12 確認画面に4つの節が全部出る（畳んだ節・連れて出した箱も読む）`,
+     m.secs.join(' | '));
+  ok(m.missing.length === 0, `${T} ★12 基本給・保証給・職位手当・住宅手当が確認画面に出る`,
+     m.missing.join(' / '));
+  ok(m.guar === '0', `${T} ★12 保証給の 0 が「回答済み」として1行出る（空欄として捨てない）`,
+     String(m.guar));
+  await page.close();
 }
 
 await browser.close();

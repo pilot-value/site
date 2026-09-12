@@ -312,8 +312,13 @@
      ⚠️ **URL に載せない。** クエリでもハッシュでも、他人の年収がアドレス欄に出て
         そのまま GA4 の画面URLに載る（english-funnel-dead-end-2026-09-02 と同じ理屈）。
         sessionStorage はそのタブの中だけで、閉じれば消える。
-     ★持つのは行を引き当てるための3つだけ（会社・職位・年収）。年収は帯にした後の
-        数字で、一覧にそのまま出ている。新しく何かを渡してはいない。 */
+     ★持つのは行を引き当てるための3つ（会社・職位・年収）と、**画面に既に出ている
+        絞り込み**（会社・職位・打ち込み・ページ）だけ。年収は帯にした後の数字で、
+        一覧にそのまま出ている。絞り込みは本人が自分で選んだもので、URL にも
+        載っている（urlWrite）。どちらも新しく何かを渡してはいない。
+     ★絞り込みを一緒に持つ理由（2026-09-12・オーナーの⑦）── 提出のあと
+        「REAL PAY に戻る」で帰ってくる先は素の actual-pay.html で、クエリが無い。
+        ここに入れておかないと、出す前に見ていた一覧が消えて全件に戻る。 */
   var RP_BACK = 'pv_realpay_back';
 
   // ── 状態 ───────────────────────────────────────────────────────
@@ -1034,8 +1039,13 @@
   function saveBack(r) {
     if (!r) return;
     try {
+      /* ★q は**打った字のまま**持つ（S.fQ は小文字に均した内部用）。
+           まだ絞り込みに効いていない打ちかけは持たない（urlWrite と同じ条件）。 */
+      var qi = el('ap-q');
       w.sessionStorage.setItem(RP_BACK, JSON.stringify(
-        { a: r.airline, p: r.pos, v: r.annual_usd }));
+        { a: r.airline, p: r.pos, v: r.annual_usd,
+          fa: S.fAir, fp: S.fPos, fq: S.fQ ? ((qi && qi.value) || S.fQ) : '',
+          pg: S.page }));
     } catch (e) {}
   }
 
@@ -1051,6 +1061,19 @@
     var b = null;
     try { b = JSON.parse(raw); } catch (e) { b = null; }
     if (!b) return;
+    /* ★見ていた絞り込みも戻す（2026-09-12）。行を探すより**先**に戻す
+         ── 後だと、全件の並びでページを数えてから絞ることになり居場所がずれる。
+       ⚠️ いまの URL に絞り込みが載っているときは触らない。本人がアドレスで
+          指定したほうが強い（共有されたリンクを黙って書き換えない）。 */
+    if (!S.fAir && !S.fPos && !S.fQ && (b.fa || b.fp || b.fq)) {
+      S.fAir = b.fa || '';
+      S.fPos = b.fp || '';
+      S.fQ = norm(b.fq || '');
+      var qb = el('ap-q');
+      if (qb) qb.value = b.fq || '';
+      S.page = Number(b.pg) || 1;
+      render();
+    }
     var rs = S.rows || [], hit = null, k;
     for (k = 0; k < rs.length; k++) {
       if (rs[k].airline === b.a && rs[k].pos === b.p && rs[k].annual_usd === b.v) {

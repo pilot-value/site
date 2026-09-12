@@ -827,6 +827,113 @@ const nb = (await one(`select * from pay_reports where airline='qantas' and peri
 ok(nb && nb.guarantee_none === undefined && nb.variable_none === undefined,
   `★真偽でない「該当なし」は落ちる（文字列で門を開けさせない） → ${JSON.stringify(nb)}`);
 
+/* ── 内訳の「形」だけを返す（2026-09-12・翌月のひな型の材料）──────────
+   ★pv_pay_items_shape は my_pay_reports() が呼ぶ。金額を1円でも返すと、
+     翌月のフォームに**先月の実績**が初期値として入る＝本人に嘘をつく。
+     ここが「金額も数量も出ていない」ことの唯一の見張り。 */
+console.log('\n▼ 内訳の形だけを返す（翌月のひな型）');
+const SHAPE_IN = {
+  v: 1, variable_none: false, guarantee_none: true,
+  variable: [
+    { amount: 180000, basis: 'block', label: 'Flight Pay', rule: 'AED 250 / Block Hour' },
+    { amount: 0, basis: 'day', label: 'Layover' },
+    { amount: 4000 },                      // 名前も単位も無い＝形を持たない行
+  ],
+  other: [{ amount: 12000, label: '通勤手当' }, {}],
+  instructor: { trainings: 3, amount: 60000, label: 'OJT', extra: true, method: 'per', pay: 999 },
+  examiner: { checks: 2, amount: 40000, method_label: 'LOSA' },
+  union: { extra: true, source: 'union', amount: 12345 },
+  management: { extra: true, method: 'fixed', amount: 777 },
+  nonline: { areas: ['safety'], extra: true, days: 4, amount: 5555 },
+  partial: true,
+};
+const SH = (await one(`select public.pv_pay_items_shape($1::jsonb) s`,
+  [JSON.stringify(SHAPE_IN)])).s;
+const SHJ = JSON.stringify(SH);
+
+// ★これが本丸。金額・数量が1つでも混ざったら落ちる。
+ok(!/180000|12000|60000|40000|12345|777|5555|4000|999/.test(SHJ),
+  `★形だけ ── 金額が1円も出ない → ${SHJ}`);
+ok(SH.variable && SH.variable.length === 2
+   && SH.variable[0].label === 'Flight Pay' && SH.variable[0].basis === 'block'
+   && SH.variable[1].label === 'Layover'    && SH.variable[1].basis === 'day',
+  `★項目名・支給単位・並び順は残る → ${JSON.stringify(SH.variable)}`);
+ok(SH.variable && SH.variable.every((x) => x.amount === undefined && x.rule === undefined),
+  '★行に amount も rule も付けない（rule は「AED 250 / Block Hour」＝単価そのもの）');
+ok(SH.variable && SH.variable.length === 2 && SH.other && SH.other.length === 1,
+  `★名前も単位も無い行は落とす（＋を押しただけの空の行を翌月へ運ばない） → 変動${SH.variable?.length} / その他${SH.other?.length}`);
+ok(SH.guarantee_none === true && SH.variable_none === undefined,
+  `★「該当なし」は true のものだけ形に入る → ${SHJ}`);
+// 役割の札は白リスト。増えた鍵が黙って混ざらないこと。
+ok(SH.instructor && SH.instructor.trainings === 3 && SH.instructor.method === 'per'
+   && SH.instructor.amount === undefined && SH.instructor.pay === undefined,
+  `★役割は白リストの鍵だけ（金額は入らない） → ${JSON.stringify(SH.instructor)}`);
+ok(SH.examiner && SH.examiner.checks === 2 && SH.examiner.method_label === 'LOSA'
+   && SH.examiner.amount === undefined,
+  `★審査も同じ → ${JSON.stringify(SH.examiner)}`);
+ok(SH.nonline && String(SH.nonline.areas) === 'safety'
+   && SH.nonline.days === undefined && SH.nonline.amount === undefined,
+  `★兼務は分野だけ（日数も金額も出さない） → ${JSON.stringify(SH.nonline)}`);
+ok(SH.partial === undefined,
+  `★partial は形ではない（翌月のひな型に「一部未回答」を持ち越さない） → ${SHJ}`);
+ok((await one(`select public.pv_pay_items_shape('null'::jsonb) s`)).s === null
+   && (await one(`select public.pv_pay_items_shape(null::jsonb) s`)).s === null,
+  '内訳が無い行では null（形も作らない）');
+
+// my_pay_reports() が実際にその形を返すか（ここに写し忘れると機種変の人に効かない）
+await asUser(44);
+const MYR = (await one(`select my_pay_reports() j`)).j;
+const mrow = (MYR.reports || []).find((x) => x.airline === 'ana' && x.period_month === 5);
+ok(mrow && mrow.pay_items_shape && mrow.pay_items_shape.variable?.[0]?.label === 'Flight Pay',
+  `★my_pay_reports() が形を返す → ${JSON.stringify(mrow?.pay_items_shape)}`);
+ok(mrow && !/180000|12000/.test(JSON.stringify(mrow.pay_items_shape || {})),
+  '★my_pay_reports() の形にも金額が入らない');
+ok(mrow && mrow.pay_items === undefined,
+  '★pay_items そのものは今までどおり返さない（形だけに限って広げた）');
+
+/* ── partial（内訳が一部未回答）────────────────────────────────
+   ★これは「閲覧の資格」ではない。集計で「全額が揃った内訳」として
+     足してよいかだけを決める印。pv_my_give の門はこれを読まない。 */
+console.log('\n▼ partial（内訳が一部未回答）');
+await asUser(54);
+await submit({
+  ...BASE, gross_monthly: 54250, airline: 'qantas', period_year: 2025, period_month: 10,
+  pay_items: { v: 1, variable: [{ amount: 1000, label: 'Flight Pay' },
+                                { label: 'Layover' }], partial: true },
+});
+const pt = (await one(`select * from pay_reports where airline='qantas' and period_year=2025 and period_month=10`)).pay_items;
+ok(pt && pt.partial === true,
+  `★partial が組み直しを生き延びる（写し忘れると、一部未回答の月が「揃った内訳」に混ざる） → ${JSON.stringify(pt)}`);
+
+// partial だけの殻は中身ではない（行も「該当なし」も無いなら今までどおり保存しない）
+await asUser(55);
+await submit({
+  ...BASE, gross_monthly: 54250, airline: 'qantas', period_year: 2025, period_month: 11,
+  pay_items: { v: 1, partial: true },
+});
+ok((await one(`select * from pay_reports where airline='qantas' and period_year=2025 and period_month=11`)).pay_items === null,
+  '★partial だけの殻は保存しない（中身のない「一部未回答」は意味を持たない）');
+
+// 真偽でなければ落とす（文字列の 'yes' で門を開けさせない）
+await asUser(56);
+await submit({
+  ...BASE, gross_monthly: 54250, airline: 'qantas', period_year: 2025, period_month: 12,
+  pay_items: { v: 1, other: [{ amount: 500, label: 'x' }], partial: 'yes' },
+});
+const pf = (await one(`select * from pay_reports where airline='qantas' and period_year=2025 and period_month=12`)).pay_items;
+ok(pf && pf.partial === undefined, `真偽でない partial は落ちる → ${JSON.stringify(pf)}`);
+
+// ★partial は閲覧の資格ではない ── 内訳の門（base_pay is not null ほか）を塞がない
+await asUser(57);
+await submit({
+  ...BASE, gross_monthly: 54250, airline: 'qantas', period_year: 2026, period_month: 6,
+  base_pay: 0, pay_items: { v: 1, variable: [{ amount: 0, label: 'Flight Pay' },
+                                             { label: 'Layover' }], partial: true },
+});
+const pg6 = await one(`select * from pay_reports where airline='qantas' and period_month=6`);
+ok(Number(pg6.base_pay) === 0 && pg6.pay_items?.partial === true,
+  `★基本給 0（＝回答済み）と partial が両立する → base_pay=${pg6.base_pay} / ${JSON.stringify(pg6.pay_items)}`);
+
 // 語彙に無い役職は弾く（job_roles には外部キーを張れないので、ここが唯一の関門）
 ok((await boom(`select submit_pay_report($1::jsonb)`, [JSON.stringify({
   ...BASE, gross_monthly: 54250, airline: 'ana', period_year: 2026, period_month: 3,

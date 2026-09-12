@@ -245,6 +245,16 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           <button type="button" class="sec-prog" hidden></button>
         </div>
 
+        <!-- ★From the second month on this folds to a single summary line (the same
+             shape as "4. Contract & tax"). Airline, position, fleet and currency do
+             not change month to month, so we do not ask them again. It only folds
+             when last time's answers are there; "Change" opens it back up. -->
+        <div class="sum-row" id="s1-sum" hidden>
+          <span id="s1-sum-txt"></span>
+          <button type="button" id="s1-edit">Change</button>
+        </div>
+
+        <div id="s1-body">
         <div class="fld">
           <label class="form-label" for="f-airline">Airline<span class="req-tag">Required</span></label>
           <select id="f-airline" class="form-input">
@@ -461,6 +471,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           </select>
           <p class="fld-hint">We only ask for a 10-year band.</p>
         </div>
+        </div><!-- /s1-body -->
       </div>
 
       <div class="card sec step" id="s2" hidden>
@@ -505,9 +516,13 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
             <p class="fld-hint">The contractual floor you are paid <b>even if you do not fly it</b> (Minimum Guarantee). Leave it blank if your contract has none.</p>
           </div>
           <div class="fld">
-            <label class="form-label" for="f-stay">Layover nights<span class="req-tag">Required</span></label>
+            <!-- ★2026-09-12, required → optional (owner decision 5). Asking someone who
+                 never counted their nights for "0" or a half-remembered number is worse
+                 than taking a blank and keeping it as unknown. The column already
+                 allows null, so no SQL change is needed. -->
+            <label class="form-label" for="f-stay">Layover nights<span class="opt-tag">optional</span></label>
             <input type="text" id="f-stay" class="form-input num" inputmode="numeric" placeholder="e.g. 8" data-min="0" data-max="31" data-dec="0"/>
-            <p class="fld-hint">Nights spent away from base. Enter <b>0</b> if every trip was a day return.</p>
+            <p class="fld-hint">Nights spent away from base. Enter <b>0</b> if every trip was a day return. Leave it blank if you did not count.</p>
           </div>
         </div>
 
@@ -628,9 +643,14 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           </div>
           <div class="fld">
             <label class="form-label" for="f-bonus-mo">Bonus paid this month<span class="req-tag">Required</span></label>
-            <!-- ★A greyed-out placeholder 0 reads as "you can skip this". Put a real 0 in. -->
-            <input type="text" id="f-bonus-mo" class="form-input money" inputmode="decimal" value="0"/>
-            <p class="fld-hint">We take it out before annualising.</p>
+            <!-- ★No value="0" here (owner, 2026-09-12). A 0 sitting in a new month's
+                 actual figure before anyone has answered gets saved as "no bonus" in the
+                 months a bonus WAS paid and the pilot forgot to overwrite it.
+                 2026-08-13 put the real 0 in because a greyed-out 0 reads as "you can skip
+                 this" on a required field. The hint carries that instead — the same shape
+                 as the per diem field on the left (also required, also no value). -->
+            <input type="text" id="f-bonus-mo" class="form-input money" inputmode="decimal" placeholder="0 if none"/>
+            <p class="fld-hint">Enter <b>0</b> if none was paid. We take it out before annualising.</p>
           </div>
         </div>
 
@@ -691,6 +711,11 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 <p class="fld-hint" style="margin-top:0">Pay that <b>changes month to month</b> with block hours, sectors and standby. Copy the amount and the name across exactly as printed.</p>
                 <div class="pd-rows" id="pd-var-rows"></div>
                 <button type="button" class="chip" id="pd-var"><span class="p">+</span>Add variable pay</button>
+                <!-- ★An input helper (owner, 2026-09-12). **Not a required checkbox.**
+                     It puts 0 into rows that have a name or a basis but no amount yet.
+                     ⚠️ It never changes an amount that is already filled in, and it
+                     stays hidden while there is no blank row to fill. -->
+                <button type="button" class="chip" id="pd-var-zero" hidden>Fill the rest with 0</button>
                 <label class="rolebox pd-none"><input type="checkbox" id="f-variable-none"><span>None of this applies</span></label>
               </div>
             </div>
@@ -1783,6 +1808,20 @@ function setSubmitBusy(busy, label) {
 function setSubmitLabel(signedIn) {
   _btnLabel = signedIn ? BTN_LABEL_IN : BTN_LABEL_OUT;
   for (const b of SUBMIT_BTNS()) if (!b.disabled) b.textContent = _btnLabel;
+  _signedIn = !!signedIn;
+  syncSubmitNote();
+}
+/* ★ログイン済みの人に、新規登録の説明を繰り返さない（2026-09-12・オーナーの⑦）。
+   #submit-note は「アカウントを作ると給与詳細が90日間開きます」＝**まだ
+   アカウントが無い人**への案内で、2回目に出しに来た会員には当たらない
+   （その人の90日は既に始まっている）。
+   ⚠️ DOM から消さない。setSubmitScreen が同じ id を出し入れしていて、
+      消すとそちらの配り先が1つ減る。隠すだけ。 */
+let _signedIn = false;
+function syncSubmitNote() {
+  const n = $('submit-note');
+  if (!n) return;
+  if (_signedIn) { n.hidden = true; n.style.display = 'none'; }
 }
 
 /* ★Never send them off this page. pay-login.js builds the box (one copy, JP+EN).
@@ -1820,6 +1859,10 @@ function vis(el, show) {
 function setSubmitScreen(done) {
   ['wz-top', 'wz-review', 'submit-actions', 'submit-note']
     .forEach(function (id) { vis($(id), !done); });
+  /* ★戻すときに、登録の案内だけは戻さない（ログイン済みなら出さないまま）。
+       hideGate() がここを !done で呼ぶので、入れ直さないと
+       「登録できた人の画面に、登録のお願いがまた出る」。 */
+  if (!done) syncSubmitNote();
   var s5 = $('s5');
   vis(s5 ? s5.querySelector('.wz-nav') : null, !done);
   /* ★「5. 確認」の見出しも畳む。進捗バーだけ消してここを残すと、画面は
@@ -2737,6 +2780,15 @@ document.addEventListener('change', (e) => {
   if (!el || !el.classList || !el.classList.contains('money')) return;
   moneySettle(el);
 }, true);
+/* ★Once the person touches a carried-over value, drop the provenance mark
+   (it becomes "typed by them"). One delegated listener, so rows added later behave the same. */
+function dropCarried(e) {
+  const el = e.target;
+  if (el && el.classList && el.classList.contains('pv-carried')) el.classList.remove('pv-carried');
+}
+document.addEventListener('input', dropCarried, true);
+document.addEventListener('change', dropCarried, true);
+
 /* Return one box whose reading is not settled (null if none). Checked on submit. */
 function moneyBlocker() {
   for (const el of moneyEls()) {
@@ -3180,9 +3232,33 @@ window.PVEnterMode = enterMode;
 /* ★Track on the buttons, not inside enterMode(). payslip.js calls
    enterMode('manual') itself after a failed read, so putting it in the function
    would mix the machine's calls into "how many people chose manual". */
-$('entry-payslip').addEventListener('click', () => { track('pay_entry_payslip'); enterMode('payslip'); $('ps-drop').focus(); });
-$('entry-manual').addEventListener('click', () => { track('pay_entry_manual', { from: 'button' }); enterMode('manual'); $('f-airline').focus(); });
-$('ps-skip').addEventListener('click', () => { track('pay_entry_manual', { from: 'skip' }); enterMode('manual'); });
+/* ── Which entry the person used last time (2026-09-12, owner's item 2) ──────
+   Both cards are always shown (owner's 2026-08-13 decision). We only **reorder**
+   them; neither card is ever hidden.
+   ⚠️ Only record it when the person actually presses a button. payslip.js calls
+      enterMode('manual') by itself when a read fails, so putting this inside
+      enterMode would drift people who chose "from payslip" over to manual
+      next month (same reason the track() marks sit on the buttons). */
+let _entry = '';
+function rememberEntry(mode) {
+  if (mode !== 'manual' && mode !== 'payslip') return;
+  _entry = mode;
+}
+function orderEntry(mode) {
+  if (mode !== 'manual' && mode !== 'payslip') return;
+  const grid = document.querySelector('.entry-grid');
+  const ps = $('entry-payslip'), mn = $('entry-manual');
+  if (!grid || !ps || !mn) return;
+  const first = mode === 'manual' ? mn : ps;
+  const second = first === mn ? ps : mn;
+  grid.appendChild(first);          // only two cards, so re-append in the order we want
+  grid.appendChild(second);
+  first.classList.add('is-primary');
+  second.classList.remove('is-primary');
+}
+$('entry-payslip').addEventListener('click', () => { track('pay_entry_payslip'); rememberEntry('payslip'); enterMode('payslip'); $('ps-drop').focus(); });
+$('entry-manual').addEventListener('click', () => { track('pay_entry_manual', { from: 'button' }); rememberEntry('manual'); enterMode('manual'); const h = formHead(); if (h) h.focus(); });
+$('ps-skip').addEventListener('click', () => { track('pay_entry_manual', { from: 'skip' }); rememberEntry('manual'); enterMode('manual'); });
 
 /* ── Open "add the breakdown" when arriving at #pay-detail ───────
    Comes from the "add the breakdown" link in the DEEP PAY panel
@@ -3238,8 +3314,22 @@ function detailShown(el) { return !!el && el.getBoundingClientRect().height > 0;
       年収は総支給から出す（pv_annual_total の coalesce 第1引数）＝内訳を
       いくら埋めても、総支給が空のままなら年収は1円も出ない。
    §3 がまだ出ていないうちはフォームの先頭へ（どの人もそこから始まる）。 */
+/* ★The top of the form is not always the airline field (2026-09-12).
+     For someone who already has last time’s entry, “1. Airline & role” is folded
+     into a one-line summary and #f-airline is not on screen. focus() on a hidden
+     field does nothing and the cursor drops to <body> — which reads as
+     “I pressed it and nothing happened”.
+   ★A folded section is not gone (“Change” reopens it in place), so what we look
+     for here is **the first input that is actually on screen**. */
+function formHead() {
+  const host = $('form-body');
+  if (!host) return null;
+  return Array.prototype.find.call(
+    host.querySelectorAll('input:not([type=hidden]), select, textarea'),
+    (e) => !e.disabled && e.offsetParent !== null) || null;
+}
 function scrollToPaySec() {
-  const s3 = $('s3'), head = $('f-airline');
+  const s3 = $('s3'), head = formHead();
   const shown = detailShown(s3);
   const box = shown ? s3 : head;
   const to = shown ? $('f-currency') : head;
@@ -3296,8 +3386,12 @@ function pdRead(kind) {
     /* ★.pd-amt reads through moneyRead() too (2026-09-11) — a bare parseFloat
        here would leave the 1.000,00 misread alive in this one row. */
     const ar = moneyRead(row.querySelector('.pd-amt'));
-    const a = ar.state === 'ok' ? ar.n : NaN;
-    const o = { amount: isFinite(a) && a > 0 ? a : null, label: g('.pd-label') || null };
+    /* ★0 is an answer ("nothing was paid"). Only a blank is unanswered (owner, 2026-09-12).
+       ⚠️ Deciding once the value is already a number mixes the two. This used to read
+          `a > 0 ? a : null`, so a 0 the pilot typed turned silently into "unanswered".
+          Read moneyRead()'s state instead — 'ok' is a figure (0 included),
+          'empty' is unanswered. */
+    const o = { amount: ar.state === 'ok' ? ar.n : null, label: g('.pd-label') || null };
     /* ★We do not ask for the rate or the rule (owner, 2026-08-26). Working out
        "EUR 30 / Sector" is arithmetic, and arithmetic is our job, not the pilot's. */
     if (kind === 'var') o.basis = g('.pd-basis') || null;
@@ -3320,11 +3414,32 @@ function realpayBack() {
 }
 if (realpayBack() && $('pd-gate')) $('pd-gate').hidden = false;
 
+/* ── Read a set of rows as three states (owner, 2026-09-12) ───────────────
+     answered … rows that carry a figure (a 0 the pilot typed counts as one)
+     unknown  … rows with only a name or a basis and no figure = **a real unanswered item**
+     partial  … answered rows and unanswered rows are mixed
+   ★A row that is completely empty (someone pressed "+") never reaches here — pdRead()
+     drops it — so adding one row can never pin the report to partial forever.
+   ★The total therefore means three different things:
+       nothing answered   → blank (never 0; a 0 is the answer "nothing was paid")
+       answered rows only → their total (0 if the pilot only entered zeros)
+       mixed              → "total of what has been entered", not a complete breakdown */
+function pdTally(list) {
+  let answered = 0, unknown = 0, total = 0;
+  for (const x of list) {
+    if (x.amount == null) unknown++;
+    else { answered++; total += x.amount; }
+  }
+  return { answered: answered, unknown: unknown, total: total,
+           partial: answered > 0 && unknown > 0 };
+}
+
 function pdSync() {
   const v = pdRead('var'), o = pdRead('oth');
-  const sum = (list) => list.reduce((t, x) => t + (x.amount || 0), 0);
-  $('f-var-sum').value = sum(v) || '';
-  $('f-oth-sum').value = sum(o) || '';
+  const tv = pdTally(v), to = pdTally(o);
+  /* ★Blank when no row was answered. Writing 0 would claim "nothing was paid". */
+  $('f-var-sum').value = tv.answered ? String(tv.total) : '';
+  $('f-oth-sum').value = to.answered ? String(to.total) : '';
   const none = $('f-base-none').checked;
   const gnone = $('f-guarantee-none').checked;
   const vnone = $('f-variable-none').checked;
@@ -3334,6 +3449,11 @@ function pdSync() {
   const ins = instrRead(), exm = examRead(), uni = unionRead(), mgt = mgmtRead(), nol = nonlineRead();
   const pi = { v: 1, fixed_none: none, guarantee_none: gnone, variable_none: vnone,
                variable: v, other: o };
+  /* ★A mark that part of the breakdown is unanswered (2026-09-12). **Not an entitlement.**
+     Gating on it would shut out someone who already qualifies the moment they add a row.
+     It is only ever read to decide "may this be summed as a complete breakdown?"
+     (pay-viz.js segments / db/pay-rows.sql shelf / db/deep-pay.sql's eight buckets). */
+  if (tv.partial || to.partial) pi.partial = true;
   if (ins) pi.instructor = ins;
   if (exm) pi.examiner = exm;
   if (uni) pi.union = uni;
@@ -3344,7 +3464,29 @@ function pdSync() {
                            || ins || exm || uni || mgt || nol) ? JSON.stringify(pi) : '';
   recalc();
   markRail();
+  pdZeroSync(tv);
 }
+
+/* ── "Fill the rest with 0" (owner, 2026-09-12, decision 4 — an input helper) ──
+   ★Shown only when some rows are answered AND some are still blank. Offering it
+     to someone who has answered nothing would turn silence into a pile of zeroes.
+   ★It only fills blank rows. An amount already typed is never changed.
+   ★Submitting works without it — no required check looks at this button. */
+function pdZeroSync(tv) {
+  const b = $('pd-var-zero');
+  if (!b) return;
+  b.hidden = !(tv.answered > 0 && tv.unknown > 0) || $('f-variable-none').checked;
+}
+$('pd-var-zero').addEventListener('click', () => {
+  for (const row of PD.var.rows.children) {
+    const a = row.querySelector('.pd-amt');
+    const lb = row.querySelector('.pd-label'), bs = row.querySelector('.pd-basis');
+    /* A row with no name and no basis is just an empty "+" row — not sent, so not filled. */
+    const real = (lb && lb.value.trim()) || (bs && bs.value.trim());
+    if (a && real && a.value.trim() === '') a.value = '0';
+  }
+  pdSync();
+});
 
 function pdAdd(kind, quiet) {
   const box = PD[kind];
@@ -3383,6 +3525,14 @@ function pdDropEmpty(kind) {
                                           (e) => String(e.value || '').trim() !== '');
     if (!has) r.remove();
   }
+}
+
+/* Does any variable-pay / other-cash row have content in it (2026-09-12)?
+   The guard that stops a carry-over from wiping rows the person already typed. */
+function pdHasRows() {
+  return ['var', 'oth'].some((k) => Array.prototype.some.call(PD[k].rows.children,
+    (r) => Array.prototype.some.call(r.querySelectorAll('input, select'),
+                                    (e) => String(e.value || '').trim() !== '')));
 }
 
 /* Opening a section drops one empty row in. A bare "+" would be one more thing to press. */
@@ -3545,21 +3695,98 @@ let _noSave = false;     // 「保存を消す」を押された／別タブで�
 let _presetIn = false;   // 「前回の内容」をもう戻したか
 
 const LS_KEY = 'pv_pay_last';
-// ★f-paytype was removed as a field on 2026-08-12. f-gross (that month's gross) took its place.
-const PRESET_IDS = ['f-airline','f-airline-other','f-position','f-fleet','f-currency','f-gross','f-base','f-hourly',
-  'f-guar','f-perdiem','f-housing','f-housing-amt','f-contract','f-seniority','f-taxcountry',
-  'f-tax','f-guarantee','f-command','f-transport','f-other','f-bonus','f-profit','f-pension','f-jobrole','f-age','f-base-iata',
-  /* ★The repeating rows. The two totals (f-var-sum / f-oth-sum) are not saved — pdSync() derives them. */
-  'f-payitems',
-  /* ★Instructor and examiner pay. The shape (what you teach or check, the title,
-     the pay unit) rides in f-payitems, so all that belongs here are the amounts
-     bound for their columns. */
-  'f-instructor','f-examiner','f-union-pay','f-mgmt-pay','f-nonline-pay'];
-// ★For re-sending after login. Unlike the preset, this includes the period.
-const ALL_IDS = PRESET_IDS.concat(['f-year','f-month','f-block','f-duty',
-  /* ★その月にしか無い値。PRESET_IDS には入れない（翌月のフォームに持ち越すと壊れる）。 */
-  'f-stay','f-bonus-mo',
-  'f-netpay','f-ytd','f-flightvar','f-deduct','f-duty-h','f-night-h','f-credit-h','f-source','f-psdetail']);
+/* ── What carries over to next month (2026-09-12) ────────────────────
+   ★This is the ONLY table that decides what survives into next month's form.
+     It used to be split in two — the device list (PRESET_IDS) and the server id map
+     further down — with different members, so fixing one left the same person with
+     different boxes filled depending on where the values came from.
+   ★f-paytype was removed as a field on 2026-08-12. f-gross (that month's gross) took its place.
+
+   info  … Facts that do not change month to month. **Carried in BOTH modes —
+           typed in by hand and read off a payslip.**
+           ⚠️ Annual bonus, profit share and the pension rate are amounts too, but a
+              payslip never prints them, so they live here (nothing to disagree with).
+   fixed … Amounts fixed by the contract that a payslip does print.
+           Typed by hand, last month's figure is shown as the starting value
+           (**a saved 0 is a valid last-month figure**).
+           After a payslip is read they are NOT filled in — they are offered as a suggestion.
+   shape … The SHAPE of the breakdown rows only (item name, pay unit, order, role labels).
+           **Not one unit of currency is kept** (payItemsShape() strips it).
+   never … This month's actuals. **Never saved into next month's template.**
+           ⚠️ This does not mean "always empty". They go into this month's draft
+              (pv_pay_draft) and into the submitted data as usual. They just do not carry.
+           ⚠️ This is where "last month's figures are still in this month's boxes" came
+              from — gross, per diem, hourly, other, commuting and the instructor /
+              examiner / union / management / non-line monthly allowances all used to
+              sit on the template side (PRESET_IDS). */
+const CARRY = {
+  info: ['f-airline','f-airline-other','f-position','f-fleet','f-currency',
+    'f-housing','f-contract','f-seniority','f-taxcountry','f-tax',
+    'f-bonus','f-profit','f-pension','f-jobrole','f-age','f-base-iata'],
+  fixed: ['f-base','f-guar','f-guarantee','f-command','f-housing-amt'],
+  shape: ['f-payitems'],
+  never: ['f-year','f-month','f-gross','f-netpay','f-perdiem','f-bonus-mo',
+    'f-transport','f-other','f-hourly','f-flightvar','f-deduct','f-ytd',
+    'f-block','f-duty','f-stay','f-duty-h','f-night-h','f-credit-h',
+    'f-instructor','f-examiner','f-union-pay','f-mgmt-pay','f-nonline-pay',
+    'f-source','f-psdetail'],
+};
+/* ★What this device keeps as the template. The two totals (f-var-sum / f-oth-sum)
+     are derived by pdSync(), so they belong to no group. */
+const PRESET_IDS = CARRY.info.concat(CARRY.fixed, CARRY.shape);
+// ★For re-sending after login. Unlike the template this includes the period and the actuals.
+const ALL_IDS = PRESET_IDS.concat(CARRY.never);
+/* id → group. A lookup only; the CARRY table above is the single source. */
+const CARRY_OF = {};
+for (const k of ['info', 'fixed', 'shape', 'never']) for (const id of CARRY[k]) CARRY_OF[id] = k;
+/* ★Cleared when a new month is started. The period itself is left — the person picks it. */
+const NEW_MONTH_IDS = CARRY.never.filter((id) => id !== 'f-year' && id !== 'f-month');
+/* ★The role modules' "this month" numbers — activity days and counts. The amounts are
+     in the list above, but these two only exist inside f-payitems, so they are named here. */
+const ROLE_MONTH_IDS = ['f-instr-qty', 'f-exam-qty', 'f-union-days', 'f-mgmt-days', 'f-nonline-days'];
+
+/* ── Keep the SHAPE of the breakdown, nothing else (2026-09-12) ──────────
+   What survives into next month: item name, pay unit, row order, role labels.
+   ★Not one amount, count or day is kept. Keeping them puts last month's actuals into
+     this month's boxes as starting values and they get submitted unnoticed.
+   ★The three "not applicable" flags stay — they are contract facts, not amounts. */
+function payItemsShape(raw) {
+  let o = null;
+  try { o = JSON.parse(raw || ''); } catch (e) { return ''; }
+  if (!o || typeof o !== 'object') return '';
+  const out = { v: 1 };
+  for (const k of ['fixed_none', 'guarantee_none', 'variable_none']) if (o[k]) out[k] = true;
+  for (const k of ['variable', 'other']) {
+    const rows = [];
+    for (const it of (Array.isArray(o[k]) ? o[k] : [])) {
+      if (!it || typeof it !== 'object') continue;
+      const r = {};
+      if (it.label) r.label = it.label;
+      if (it.basis) r.basis = it.basis;
+      if (r.label || r.basis) rows.push(r);      // a row with neither name nor unit has no shape
+    }
+    if (rows.length) out[k] = rows;
+  }
+  /* Keep the role labels (what you teach, its title, how it is paid). Drop this month's numbers. */
+  const SHAPE_KEYS = { instructor: ['trainings', 'label', 'extra', 'method'],
+                       examiner: ['checks', 'label', 'extra', 'method', 'method_label'],
+                       union: ['extra', 'source'],
+                       management: ['extra', 'method'],
+                       nonline: ['areas', 'extra'] };
+  for (const k of Object.keys(SHAPE_KEYS)) {
+    const src = o[k];
+    if (!src || typeof src !== 'object') continue;
+    const d = {};
+    let any = false;
+    for (const f of SHAPE_KEYS[k]) {
+      const v = src[f];
+      if (v == null || v === '' || (Array.isArray(v) && !v.length)) continue;
+      d[f] = v; any = true;
+    }
+    if (any) out[k] = d;
+  }
+  return JSON.stringify(out);
+}
 
 /* ★ページを離れるときにも控える（2026-09-07・オーナー指示で左のナビを置いたため）。
      ここへ来るまで savePreset() は**送信を押した瞬間にしか**走っていなかった。
@@ -3580,10 +3807,18 @@ function savePreset() {
   const o = {};
   /* ★Since 2026-08-26 the gross is saved like anything else — it is always a
      figure the pilot typed, never a mirrored sum. */
-  for (const id of PRESET_IDS) { const v = $(id).value; if (v) o[id] = v; }
+  for (const id of PRESET_IDS) {
+    let v = $(id).value;
+    /* ★Keep only the SHAPE of the breakdown (amounts, counts and days are stripped).
+       Pass it through as-is and last month's variable pay lands in this month's boxes. */
+    if (CARRY_OF[id] === 'shape') v = payItemsShape(v);
+    if (v) o[id] = v;
+  }
   /* ★Stamp who it belongs to. The one place that decides is owns() in pv-session.js.
      ★Stamp this tab's password too (2026-09-11): however long signing up takes,
        the same tab gets it back and **another tab's person never does**. */
+  /* ★Which entry was used last time (2026-09-12). It is not a field value, so it is not in PRESET_IDS. */
+  if (_entry) o._entry = _entry;
   o._own = _payOwn;
   o._ts = Date.now();
   try { o._tab = PVPayLocal.markTab(); } catch (e) {}
@@ -3604,6 +3839,13 @@ function snapshot() {
    ⚠️ これを「空でない欄は上書きしない」に読み替えて全経路へ広げないこと。 */
 function restoreInto(o, opts) {
   const keep = (opts && opts.keep) || null;
+  /* ★mode:'carry' means "carry over": fill ONLY the boxes that are still empty (2026-09-12).
+     The server fetch lands after an await, by which time the person has started typing
+     or a payslip has filled things in. Overwriting silently reverts what they typed and
+     what was read back to last month's values (the green border stays, so the screen lies).
+     ⚠️ Do not make this the default. Restoring a draft (same month, continued) still
+        overwrites — that path puts back exactly what the person typed. */
+  const carry = !!(opts && opts.mode === 'carry');
   const psIn = !!(keep && keep.size);              // restoring on top of a payslip we just read?
   const wrote = [];
   let n = 0;
@@ -3621,8 +3863,14 @@ function restoreInto(o, opts) {
        where the person fills it back in. */
     if (psIn && PAYSLIP_MONTH_IDS.indexOf(id) >= 0) continue;
     const el = $(id);
+    if (!el) continue;
+    if (carry && String(el.value || '').trim() !== '') continue;   // the person and the payslip come first
     if (el.tagName === 'SELECT' && !Array.prototype.some.call(el.options, (x) => x.value === o[id])) continue;
     el.value = o[id]; n++; wrote.push(id);
+    /* ★Where the value came from. This one class is what the review screen reads to say
+       "carried over from last time" (no second table in JS).
+       ⚠️ It never coexists with the payslip's green border (.ai-filled) — carry only fills empties. */
+    if (carry) el.classList.add('pv-carried');
   }
   /* ★keep で全部飛ばされて n===0 になると、呼んだ側は「下書きは無かった」として
      1/5 から始める。これは**正しい**（明細を読んだ直後は1段目から確認させたい）。
@@ -3639,15 +3887,30 @@ function restoreInto(o, opts) {
      where the payslip carried no variable pay at all, last month's rows lined up
      underneath it untouched.
      ★f-payitems is in PAYSLIP_MONTH_IDS too — boxes and rows are treated alike. */
-  if (!psIn) pdRestore(o['f-payitems']);
+  /* ★When carrying over, leave the rows alone if any already have content (never delete theirs). */
+  if (!psIn && !(carry && pdHasRows())) pdRestore(o['f-payitems']);
   if (DETAIL_IDS.some((id) => String(o[id] || '').trim() !== '')) $('pay-detail').open = true;
   $('f-airline').dispatchEvent(new Event('change'));
   $('f-housing').dispatchEvent(new Event('change'));
+  /* ★The two lines above fire dropCarried and strip the mark we just set
+     (2026-09-12). The single delegated listener cannot tell "the person
+     touched it" from "we dispatched it to keep things in sync". Put it back
+     on these two: without it the review reads "Typed by you" for airline and
+     housing, and a carried-over airline goes out unnoticed. */
+  if (carry) for (const id of ['f-airline', 'f-housing'])
+    if (wrote.indexOf(id) >= 0) $(id).classList.add('pv-carried');
   recalc();   // updateTax() runs inside
   for (const f of CHIP_FIELDS) if ($(f).value.trim() !== '') openOpt(f, true);
   foldContract();
+  foldIdentity();
   updateSteps(true);
-  snapPrev(wrote);
+  /* ★Remember only the boxes this carry wrote (2026-09-12).
+       Values put back by a draft restore or a pending claim are **what the person
+       typed for this very month**. Snapshotting those too makes the next payslip
+       drop treat them as "untouched since restore" and wipe them in one go — from
+       the person's side, adding a payslip to the same month silently empties the
+       gross, block hours and instructor pay they had already entered. */
+  if (carry) snapPrev(wrote);
   return n;
 }
 
@@ -3702,29 +3965,107 @@ const PAYSLIP_MONTH_IDS = ['f-gross','f-base','f-guarantee','f-command','f-housi
 const PAYSLIP_MONTH_DEFAULT = {};
 for (const id of PAYSLIP_MONTH_IDS) { const e = $(id); if (e) PAYSLIP_MONTH_DEFAULT[id] = e.value; }
 
-/* ★payslip.js calls this the moment a payslip is read. Returns how many boxes it
-     cleared (that is what the tests read). */
-window.PVPayDropPrevMonth = function () {
-  if (!_prevVals) return 0;
+/* ── Drop this month's actuals (2026-09-12) ──────────────────────────────
+   ★One function, but the behaviour differs by purpose. Merging them breaks things quietly.
+
+   'payslip'   … a payslip was dropped (or re-dropped). Clear ONLY boxes the person has
+                 not touched this month (value still identical to what was restored).
+                 ＝ **the case where this month's typing must be protected.** Disagreements
+                 are listed for confirmation, never overwritten.
+   'new-month' … a new month was started. Clear ALL of CARRY.never.
+                 **Including actuals the person typed last month** — instructor, examiner,
+                 union, management and non-line monthly allowances, activity days and
+                 counts (sessions). They belong to a different month.
+                 The original month's draft is **kept** (drafts are held per month).
+
+   ⚠️ Applying "only untouched boxes" to new-month leaves last month's typed actuals
+      sitting in this month's form. That was the contradiction in the old shape. */
+function dropMonthActuals(reason) {
+  const all = reason === 'new-month';
+  const ids = all ? NEW_MONTH_IDS : PAYSLIP_MONTH_IDS;
+  if (!all && !_prevVals) return 0;
   let n = 0;
-  for (const id of PAYSLIP_MONTH_IDS) {
-    if (!(id in _prevVals)) continue;
+  for (const id of ids) {
     const el = $(id);
-    if (!el || el.value !== _prevVals[id]) continue;      // the person edited it — leave it
+    if (!el) continue;
+    if (!all) {
+      if (!(id in _prevVals)) continue;
+      if (el.value !== _prevVals[id]) continue;           // leave anything they edited
+    }
+    /* ★When a carried-over fixed amount is cleared, remember what it was (2026-09-12).
+       An amount the payslip could not read is never filled in from last month
+       (owner, decision 6) — it is offered as "use last month's 480,000" instead.
+       ★The record accumulates and is never cleared, so a re-upload keeps the offer. */
+    if (!all && el.classList.contains('pv-carried') && String(el.value || '').trim() !== '')
+      _droppedCarry[id] = el.value;
     if (id === 'f-payitems') {
       /* Rows are DOM, not a value. Fold them only while they are still exactly as the
          restore left them. pdSync() below rebuilds f-payitems from whatever remains. */
       for (const kind of ['var', 'oth'])
         for (const r of Array.prototype.slice.call(PD[kind].rows.children)) r.remove();
     } else {
-      el.value = PAYSLIP_MONTH_DEFAULT[id] || '';   // boxes with a default (this month's bonus 0) go back to it
+      el.value = PAYSLIP_MONTH_DEFAULT[id] || '';
     }
-    delete _prevVals[id];
+    el.classList.remove('pv-carried');
+    el.classList.remove('ai-filled');
+    if (_prevVals) delete _prevVals[id];
     n++;
   }
-  if (n) { pdSync(); foldContract(); updateSteps(true); }   // recalc and markRail run inside pdSync
+  if (all) {
+    /* ★Keep the shape of the variable / other rows, clear their amounts (2026-09-12).
+       Label, basis and order repeat every month and are carried; the amount is
+       last month's actual.
+       ⚠️ f-payitems belongs to CARRY.shape, so it is NOT in NEW_MONTH_IDS.
+          Without naming it here, last month's variable pay stays in this month's
+          rows — the labels and order look right, so nobody notices. */
+    for (const kind of ['var', 'oth'])
+      for (const r of Array.prototype.slice.call(PD[kind].rows.children)) {
+        const a = r.querySelector('.pd-amt');
+        if (!a) continue;
+        a.value = '';
+        a.classList.remove('pv-carried');
+        a.classList.remove('ai-filled');
+      }
+    /* ★Activity days and counts live only inside f-payitems, so they are cleared by id. */
+    for (const id of ROLE_MONTH_IDS) { const e = $(id); if (e) e.value = ''; }
+    syncRoleBoxes();
+  }
+  if (n || all) { pdSync(); foldContract(); foldIdentity(); updateSteps(true); }   // recalc and markRail run inside pdSync
   return n;
-};
+}
+/* ★What was dropped (written by dropMonthActuals above). payslip.js reads it to
+   offer "use last month's amount". **Nothing is ever written back from here.** */
+const _droppedCarry = {};
+window.PVPayCarriedDropped = function () { return _droppedCarry; };
+/* ★payslip.js calls this the moment a payslip is read. Returns how many boxes were cleared. */
+window.PVPayDropPrevMonth = function () { return dropMonthActuals('payslip'); };
+/* ★Start a new month (from the summary card's button). Exported so the tests can call it. */
+window.PVPayNewMonth = function () { return dropMonthActuals('new-month'); };
+
+/* ★"Start a new month" (the button on the draft bar) ─────────────────
+     ① move what is on screen into the per-month shelf → ② blank the values that
+     only belong to that month → ③ take the person to the period field.
+   ⚠️ Do not reorder. Blanking first leaves nothing to move to the shelf, so last
+      month's entry disappears from the screen AND from the shelf.
+   ★The period itself is not blanked (the selects have no empty option).
+     The person picks the new month. */
+function startNewMonth() {
+  if (window.PVPayWizard && PVPayWizard.archiveMonth) PVPayWizard.archiveMonth();
+  dropMonthActuals('new-month');
+  const off = $('wz-offer');
+  if (off) { off.hidden = true; off.textContent = ''; }
+  const fld = $('f-year').closest('.fld');
+  if (WZ && fld) WZ.goToField(fld);
+  try { $('f-year').focus({ preventScroll: true }); } catch (e) {}
+}
+/* ★When the period changes, check whether a draft for that month is on the shelf.
+   ⚠️ It only offers. Nothing on screen changes until the button is pressed —
+      restoring on its own would wipe the month the person is typing right now. */
+for (const id of ['f-year', 'f-month'])
+  $(id).addEventListener('change', () => {
+    if (window.PVPayWizard && PVPayWizard.offerMonth)
+      PVPayWizard.offerMonth($('f-year').value + '-' + $('f-month').value);
+  });
 
 /* ── 4. Contract & tax: fold to one line when it is already filled ─────
    ★These are not monthly questions (contract type, tax residence and years at
@@ -3732,6 +4073,65 @@ window.PVPayDropPrevMonth = function () {
      same four questions again.
    ★Fold only when filled. The first visit stays open
      (owner's rule: it has to be asked once, somewhere). */
+/* ── Folding, opened and shut in one place — s1 and s4 share the shape (2026-09-12).
+   ★Written twice, the two drift silently (one folds the blurb, the other does not). */
+function openFold(body, sum, sub) {
+  $(sum).hidden = true; $(body).hidden = false; if (sub) $(sub).hidden = false;
+}
+/* ★Never fold the section the person is standing in (2026-09-12). Folding is
+     called from loadPreset and from the server carry-over, and both arrive
+     **late**. The box being typed into would turn into a one-line summary under
+     the person's hands and focus would drop to <body> — which reads as
+     "my input disappeared" even though the value is still there.
+   ⚠️ The summary line is still built. The next call (once the person has left
+      the section) folds it. */
+function shutFold(body, sum, sub) {
+  const b = $(body);
+  if (b && document.activeElement && b.contains(document.activeElement)) return;
+  /* ★Never fold the step the form is currently asking the person to fill in
+       (2026-09-12). Folding turns that step into **a one-line summary and a Next
+       button — an empty screen**. On the 5-step path §1 becomes exactly that: the
+       person sees nothing to fill and the cursor has nowhere to land, which reads
+       as “I pressed it and nothing happened”.
+     ★On the 2-screen path §1/§4 ride along with §2 (they are not the primary box),
+       so they still fold into one line — which is the whole point: no one should
+       have to re-read their airline and contract every month. */
+  const own = body.replace('-body', '');
+  const W = window.PVPayWizard;
+  /* ★Do not fold while the wizard is still being built either (2026-09-12).
+       loadPreset() runs part-way down the script and current() returns null then.
+       Folding here leaves §1 as **a summary line and a Next button and nothing to
+       fill in** once the five-step wizard does come up. syncFolds() runs again
+       right after the wizard mounts, so nothing stays unfolded by mistake. */
+  if (!W || !W.current || W.current() === own) return;
+  $(sum).hidden = false; b.hidden = true; if (sub) $(sub).hidden = true;
+}
+const SEC_LABEL = (sel) => {
+  const o = Array.prototype.find.call(sel.options, (x) => x.value === sel.value);
+  return o ? o.textContent : sel.value;
+};
+/* ── "1. Company & role": fold to one summary line when last time's answers
+     are already in (2026-09-12). Same shape as "4. Contract & tax" — airline,
+     position, fleet and currency do not change month to month.
+   ★It only folds when **everything** is in. One blank and it stays open, so a
+     first-time visitor never sails past a summary line without being asked.
+   ⚠️ optLabel() is a const further down, so it cannot be called from here —
+     loadPreset() calls this partway through the script. */
+function foldIdentity() {
+  const need = ['f-airline', 'f-position', 'f-fleet', 'f-currency', 'f-age'];
+  if (need.some((id) => !$(id).value)) return;
+  const other = $('f-airline').value === 'other';
+  if (other && !($('f-airline-other').value || '').trim()) return;
+  const bits = [other ? $('f-airline-other').value.trim() : SEC_LABEL($('f-airline')),
+                SEC_LABEL($('f-position')), SEC_LABEL($('f-fleet')), $('f-currency').value];
+  $('s1-sum-txt').innerHTML = '<b>' + esc(bits.filter(Boolean).join(' / ')) + '</b>';
+  shutFold('s1-body', 's1-sum', null);
+}
+$('s1-edit').addEventListener('click', () => {
+  openFold('s1-body', 's1-sum', null);
+  $('f-airline').focus();
+});
+
 function foldContract() {
   const c = $('f-contract'), t = $('f-taxcountry');
   if (!c.value || !t.value) return;                 // first visit / blank stays open
@@ -3743,14 +4143,27 @@ function foldContract() {
   if ($('f-tax').value !== '') bits.push('income tax ' + $('f-tax').value + '%');
   if ($('f-seniority').value !== '') bits.push($('f-seniority').value + ' yrs at the airline');
   $('s4-sum-txt').innerHTML = '<b>' + esc(bits.join(' / ')) + '</b>';
-  $('s4-sum').hidden = false;
-  $('s4-body').hidden = true;
-  $('s4-sub').hidden = true;      // folded: the one-line summary is all that stays
+  shutFold('s4-body', 's4-sum', 's4-sub');      // folded: the one-line summary is all that stays
 }
+/* ── One place decides what is folded and what is open (2026-09-12) ─────
+   ★The step the person is standing on is **always opened**. A folded step
+     that comes up as the current screen shows a summary line and a Next
+     button with nothing at all to fill in.
+   ★Every other step folds to its one-line summary once it is complete
+     (so nobody re-reads it every month).
+   ⚠️ Open first. foldIdentity / foldContract skip the current step, so
+      folding first and re-opening afterwards can leave it folded. */
+function syncFolds() {
+  const W = window.PVPayWizard;
+  const at = (W && W.current) ? W.current() : null;
+  if (at === 's1') openFold('s1-body', 's1-sum', null);
+  if (at === 's4') openFold('s4-body', 's4-sum', 's4-sub');
+  foldIdentity();
+  foldContract();
+}
+
 $('s4-edit').addEventListener('click', () => {
-  $('s4-sum').hidden = true;
-  $('s4-body').hidden = false;
-  $('s4-sub').hidden = false;
+  openFold('s4-body', 's4-sum', 's4-sub');
   $('f-contract').focus();
 });
 /* ★引数なしで呼ぶ＝まだ誰か分かっていない段階。押印済みのものには触らない。
@@ -3765,7 +4178,12 @@ function loadPreset(me) {
   const own = o._own || 'anon';
   if (me === undefined && own !== 'anon') return;      // 本人確定待ち
   if (!PVPayLocal.owns(own, me || 'anon', o._ts, o._tab)) return;
-  if (!restoreInto(o)) return;
+  /* ★The device copy of "last time" is a carry-over too (2026-09-12). It only fills
+       empty boxes and marks them (.pv-carried). This runs a second time once the
+       account is known, and until now that second run overwrote what the person had
+       just typed — or what the payslip had just read — with last month's values. */
+  orderEntry(o._entry);          // never hide a card — just put last time’s one first
+  if (!restoreInto(o, { mode: 'carry' })) return;
   _presetIn = true;
   $('restore-bar').style.display = '';
   $('entry-prev').hidden = false;   // tell the "Enter manually" card that last time's answers are in
@@ -3825,6 +4243,37 @@ const optLabel = (id) => {
   return o && sel.value ? o.textContent.trim() : '';
 };
 
+/* ── From the second month on, the form is "this month → review": two screens
+     (2026-09-12, owner decision 2).
+   ★The test is only "are last time's answers already on screen". loadPreset() applies
+     pv_pay_last synchronously above, so it can be read here.
+   ⚠️ The server carry-over arrives later, across an await. Do not re-shape the steps
+      when it lands — the screen would change under someone who is already typing.
+      First-timers keep all five steps.
+   ★What folds is "1. Company & role" and "4. Contract & tax" — the parts that do not
+     change month to month. Each folds to one summary line with "Change", and
+     missingAll() still catches anything missing inside a folded section. */
+function twoScreenReady() {
+  const need = ['f-airline', 'f-position', 'f-fleet', 'f-currency', 'f-age',
+                'f-contract', 'f-taxcountry'];
+  if (need.some((id) => !$(id).value)) return false;
+  return !($('f-airline').value === 'other' && !($('f-airline-other').value || '').trim());
+}
+const TWO_SCREEN = twoScreenReady();
+/* ★From the second month on, the first-timer guidance folds into "More about this"
+     (decision 2). ★The words are not deleted — a first-timer still sees them. */
+if (TWO_SCREEN) for (const id of ['s2', 's3']) {
+  const subs = Array.prototype.slice.call($(id).querySelectorAll(':scope > .sec-sub'));
+  if (!subs.length) continue;
+  const d = document.createElement('details');
+  d.className = 'sec-more';
+  const sm = document.createElement('summary');
+  sm.textContent = 'More about this';
+  d.appendChild(sm);
+  subs[0].before(d);
+  for (const p of subs) d.appendChild(p);
+}
+
 if (WZ) {
   WZ.init({
     lang: LANG,
@@ -3833,7 +4282,16 @@ if (WZ) {
     reviewId: 'wz-review',
     errId: 'err',
     /* ★合計の帯を出すのは「3. 報酬」の段だけ（オーナー指示）。 */
-    steps: [{ id: 's1' }, { id: 's2' }, { id: 's3', totalBar: true }, { id: 's4' }, { id: 's5', totalBar: true }],
+    /* ★Only "3. Pay" carries the total bar (owner's call). On the two-screen path
+       "3. Pay" lives inside the first screen, so the bar belongs there. */
+    steps: TWO_SCREEN
+      ? [{ id: 's2', also: ['s1', 's3', 's4'], totalBar: true }, { id: 's5', totalBar: true }]
+      : [{ id: 's1' }, { id: 's2' }, { id: 's3', totalBar: true }, { id: 's4' }, { id: 's5', totalBar: true }],
+    /* ★The period currently on screen. It is the key for the per-month draft shelf
+       (how "Start a new month" gives the previous month back). */
+    ym: () => ($('f-year').value && $('f-month').value)
+      ? $('f-year').value + '-' + $('f-month').value : '',
+    newMonth: startNewMonth,
     draftIds: DRAFT_IDS,
     read: (id) => { const e = $(id); return e ? e.value : ''; },
     /* ★下書きの復元だけ、明細が入れた欄を飛ばす（PVPayslipFilled は payslip.js が
@@ -3845,6 +4303,20 @@ if (WZ) {
     payload: () => buildPayload(),
     annualOrig: annualTotal,
     nameOf: optLabel,
+    /* ★Boxes to open only while the review is being read (2026-09-12).
+       From the second visit on, "1. Airline and role" and "4. Contract and tax"
+       are folded into a one-line summary. Folded, their fields have no
+       offsetParent, so they drop out of the review entirely: nobody can check
+       which airline and which seat they are about to submit under.
+       ⚠️ Name only these two. Fields hidden by a condition (housing allowance
+          for someone on company housing) must stay hidden, or an amount the
+          person cleared comes back on the review. */
+    reviewPeek: () => [$('s1-body'), $('s4-body')],
+    /* When "Edit" on the review sends them back, open that section if folded. */
+    reviewOpen: (id) => {
+      if (id === 's1') openFold('s1-body', 's1-sum', null);
+      if (id === 's4') openFold('s4-body', 's4-sum', 's4-sub');
+    },
     /* ★Values read from the payslip that have no field on screen (2026-09-11).
        They are saved and they feed the maths, yet they never appeared on 5/5,
        so nobody could read them back before submitting.
@@ -3872,6 +4344,8 @@ if (WZ) {
       return rows;
     },
     onStep: (id) => {
+      /* ★Open the step just shown; fold the ones that are not on screen (2026-09-12). */
+      syncFolds();
       /* 段を出し直したので、印とゲージを引き直す（隠れている間は数えていない）。 */
       markRequired();
       markProgress();
@@ -3882,17 +4356,27 @@ if (WZ) {
       WZ.render();
     }
   });
+  /* ★Once the wizard is up, settle what is folded and what is open (2026-09-12).
+       loadPreset() runs before WZ.init(), so its folds were deliberately skipped. */
+  syncFolds();
 }
 
-/* ── Fill in last month from the server ────────────────────────────────
+/* ── Carry the previous entry over from the server ──────────────────────
    ★localStorage alone reaches nobody who changed phone, changed browser, or
-     arrived from a payslip. If they are signed in, fill from their own most
+     arrived from a payslip. If they are signed in, carry from their own most
      recent row (my_pay_reports only ever returns the caller's own rows).
-   ★Never carried over: the pay period and hours flown (they change monthly),
-     and the seven payslip-only figures (they exist for that one month —
-     carrying them over would put last month's take-home on this month's row).
-   ★The server's values are newer than the device's, so the server wins on a
-     conflict (restoreInto overwrites whatever is present). */
+   ★Carried: CARRY.info (airline, position, contract, tax country …), CARRY.fixed
+     (the amounts their contract fixes) and CARRY.shape (the shape of the variable
+     rows). CARRY.never — everything that is this month's result — is never carried
+     (gross, take-home, per diem, hours, the per-role monthly allowances …).
+   ★★This used to say "the server's values are newer than the device's, so the
+     server wins on a conflict". From the second month on that is false — what
+     they are typing now, or what the payslip just read, is newer. mode:'carry'
+     only ever writes into an empty box.
+   ★★Only rows from the same airline. If the form has an airline and no row
+     matches, carry nothing (never put another airline's amounts into this month).
+   ★★Stamp (user, airline, period) before the fetch and re-check it after. If any
+     of them changed while it was in flight, throw the result away. */
 (async function () {
   /* ★Do nothing when a post-login re-send (PENDING) is queued. Rewriting the
      form across an await would mix another month's values into the payload
@@ -3900,41 +4384,69 @@ if (WZ) {
      clears the key). */
   try { if (localStorage.getItem(PENDING_KEY)) return; } catch (e) {}
   if (readClaims().length) return;   // a claim is about to draw the report; don't touch the form under it
-  if (!(await sessionUserId())) return;
+  const uid = await sessionUserId();
+  if (!uid) return;
+  /* ★Apply the device's own "last entry" first (the PENDING branch below calls
+     this too, but which await settles first is not defined). Device first, server
+     second — fixed here. _presetIn keeps it from going in twice. */
+  loadPreset(PVPayLocal.fp(uid));
+  /* ★Stamp the state before the fetch. User, airline and period can all change across the await. */
+  const stamp = () => uid + '|' + $('f-airline').value + '|' +
+    ($('f-airline-other').value || '').trim().toLowerCase() + '|' +
+    $('f-year').value + '-' + $('f-month').value;
+  const before = stamp();
   let rows = null;
   try {
     const { data, error } = await _sb.rpc('my_pay_reports');
     if (error) throw error;
     rows = data && data.reports;
-  } catch (e) { return; }                 // it simply does not prefill; the form still works
+  } catch (e) { return; }                 // it simply does not carry over; the form still works
+  if (stamp() !== before) return;         // ★A different screen by the time it landed. Throw it away.
   if (!Array.isArray(rows) || !rows.length) return;
-  const r = rows[rows.length - 1];        // returned in ascending period_ym, so the last is newest
+  /* ★Only the newest row from the same airline. With no airline picked yet, use the newest row overall and carry its airline too. */
+  const air = $('f-airline').value;
+  const oth = ($('f-airline-other').value || '').trim().toLowerCase();
+  const same = !air ? rows : rows.filter((x) => x && x.airline === air &&
+    (air !== 'other' || !oth || String(x.airline_other || '').trim().toLowerCase() === oth));
+  if (!same.length) return;               // never bring another airline's row in
+  const r = same[same.length - 1];        // returned in ascending period_ym, so the last is newest
   if (!r) return;
+
+  /* ★Shape only. While the server is still the old one, pay_items_shape is
+     undefined — that lands as empty. Even when it does arrive, run it through
+     payItemsShape() again (if pay_items itself ever came back, last month's
+     amounts still must not reach an input on this screen). */
+  let shape = '';
+  try {
+    const ps = r.pay_items_shape;
+    shape = payItemsShape(typeof ps === 'string' ? ps : JSON.stringify(ps == null ? null : ps));
+    const q = JSON.parse(shape || 'null');
+    if (!q || Object.keys(q).length <= 1) shape = '';
+  } catch (e) { shape = ''; }
 
   const s = (v) => (v === null || v === undefined || v === '' ? '' : String(v));
   const o = {
+    /* CARRY.info ── contract and standing. Carried so they never walk through it again. */
     'f-airline': s(r.airline), 'f-airline-other': s(r.airline_other),
     'f-position': s(r.position), 'f-fleet': s(r.fleet),
     /* ★複数選択にしたので配列のほうが正。古い行は job_role（1つ）しか持たない。 */
     'f-jobrole': (Array.isArray(r.job_roles) && r.job_roles.length) ? r.job_roles.join(',') : s(r.job_role),
     'f-age': s(r.age_bucket),
     'f-base-iata': s(r.base_iata), 'f-currency': s(r.currency),
-    'f-gross': s(r.gross_monthly), 'f-base': s(r.base_pay),
-    'f-guarantee': s(r.guarantee_pay),
-    'f-guar': s(r.guaranteed_hours), 'f-perdiem': s(r.per_diem),
-    'f-housing': s(r.housing_type), 'f-housing-amt': s(r.housing_amount),
-    'f-transport': s(r.transport), 'f-command': s(r.command_pay),
-    'f-other': s(r.other_allowance), 'f-bonus': s(r.bonus_annual),
-    'f-instructor': s(r.instructor_pay), 'f-examiner': s(r.examiner_pay),
-    'f-union-pay': s(r.union_pay),
-    'f-mgmt-pay': s(r.management_pay),
-    'f-nonline-pay': s(r.nonline_pay),
-    'f-profit': s(r.profit_share_annual), 'f-pension': s(r.pension_pct),
+    'f-housing': s(r.housing_type),
     'f-contract': s(r.contract_type), 'f-taxcountry': s(r.tax_country),
     'f-tax': s(r.tax_rate_pct), 'f-seniority': s(r.seniority_years),
+    'f-bonus': s(r.bonus_annual), 'f-profit': s(r.profit_share_annual),
+    'f-pension': s(r.pension_pct),
+    /* CARRY.fixed ── fixed by their contract, same every month. ★0 is a valid previous value (they answered "none"). */
+    'f-base': s(r.base_pay), 'f-guarantee': s(r.guarantee_pay),
+    'f-guar': s(r.guaranteed_hours), 'f-command': s(r.command_pay),
+    'f-housing-amt': s(r.housing_amount),
+    /* CARRY.shape ── label, basis and order only. ★Not one unit of currency. */
+    'f-payitems': shape,
   };
   for (const k of Object.keys(o)) if (!o[k]) delete o[k];
-  if (!restoreInto(o)) return;
+  if (!restoreInto(o, { mode: 'carry' })) return;
   /* The tax rate came from the previous row. Mark it touched here so the
      country-based estimate does not overwrite it — a figure they read off their
      own payslip is the better number. */
@@ -3947,7 +4459,8 @@ if (WZ) {
     ? MON[r.period_month - 1] + ' ' + r.period_year
     : 'last';
   $('restore-bar').firstElementChild.textContent =
-    'Filled in from your ' + ym + ' report. Just update what has changed since then.';
+    'Carried over the airline, contract and fixed amounts from your ' + ym +
+    ' report. Fill in this month.';
   $('restore-bar').style.display = '';
   $('entry-prev').hidden = false;
 })();
@@ -4113,16 +4626,18 @@ function missingAll() {
   if (!WZ) return missingRequired();
   const back = STEP_IDS.map((id) => [id, $(id).hidden]);
   for (const [id] of back) $(id).hidden = false;
-  /* 畳んだ「4. 契約と税」も一度開く。畳んだままだと在籍年数が空でも
-     数えられず、送信の1件ずつの判定でしか出てこない（その欄は画面に無い）。 */
-  const folded = $('s4-body').hidden;
-  if (folded) { $('s4-sum').hidden = true; $('s4-body').hidden = false; $('s4-sub').hidden = false; }
+  /* Open the folded "1. Company & role" and "4. Contract & tax" too. Folded, a blank
+     seniority is never counted and only surfaces in the per-field check
+     (the box is not on screen). */
+  const FOLDS = [['s1-body', 's1-sum', null], ['s4-body', 's4-sum', 's4-sub']];
+  const was = FOLDS.map(([body]) => !!($(body) && $(body).hidden));
+  FOLDS.forEach((f, i) => { if (was[i]) openFold(f[0], f[1], f[2]); });
   const m = missingRequired();
   for (const [id, h] of back) $(id).hidden = h;
-  /* 足りない欄が無ければ畳み直す（見た目を勝手に変えない）。 */
-  if (folded && !m.some((f) => $('s4-body').contains(f))) {
-    $('s4-sum').hidden = false; $('s4-body').hidden = true; $('s4-sub').hidden = true;
-  }
+  /* Fold back only what has nothing missing (don't change the view on our own).
+     ★The one holding a missing field stays open — folding it again would take the
+       red-outlined box off the screen, and pressing Next would look like a no-op. */
+  FOLDS.forEach((f, i) => { if (was[i] && !m.some((x) => $(f[0]).contains(x))) shutFold(f[0], f[1], f[2]); });
   return m;
 }
 

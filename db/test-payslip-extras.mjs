@@ -93,16 +93,26 @@ for (const [name, s] of [['pay-report.html', JA], ['en/pay-report.html', EN]]) {
        `${name}: payload に ${key} がある（隠し欄 ${id} から来ている）`);
   }
 
-  // ★ ALL_IDS には入れる（未ログイン→ログイン後の再送で落ちないため）
-  const all = s.match(/const ALL_IDS = PRESET_IDS\.concat\(\[[\s\S]*?\]\);/);
-  ok(!!all, `${name}: ALL_IDS を読めた`);
-  for (const id of Object.keys(MAP)) ok(all && all[0].includes(`'${id}'`), `${name}: ALL_IDS に ${id} がある`);
-
-  // ★ PRESET_IDS には入れない（翌月のフォームに持ち越すと静かに壊れる）
-  const preset = s.match(/const PRESET_IDS = \[[\s\S]*?\];/);
-  ok(!!preset, `${name}: PRESET_IDS を読めた`);
+  /* ★2026-09-12、引き継ぎの一覧は CARRY という台帳1つになった（前は端末側の
+       PRESET_IDS とサーバ側の id 対応表で顔ぶれが違った）。見ている中身は前と同じ ──
+       明細由来の欄は「送るもの」には入り、「翌月のひな型」には入らない。 */
+  const ledger = s.match(/const CARRY = \{[\s\S]*?\n\};/);
+  ok(!!ledger, `${name}: 引き継ぎの台帳 CARRY を読めた`);
+  const grp = (k) => {
+    const m = (ledger ? ledger[0] : '').match(new RegExp(k + ': \\[([\\s\\S]*?)\\],'));
+    return m ? m[1] : '';
+  };
+  ok(/const PRESET_IDS = CARRY\.info\.concat\(CARRY\.fixed, CARRY\.shape\);/.test(s),
+     `${name}: ひな型（PRESET_IDS）は台帳から導いている`);
+  ok(/const ALL_IDS = PRESET_IDS\.concat\(CARRY\.never\);/.test(s),
+     `${name}: 送るもの（ALL_IDS）も台帳から導いている`);
   for (const id of Object.keys(MAP)) {
-    ok(preset && !preset[0].includes(`'${id}'`), `${name}: ★PRESET_IDS に ${id} が混ざっていない`);
+    // ★ 送るものには入る（未ログイン→ログイン後の再送で落ちないため）
+    ok(grp('never').includes(`'${id}'`), `${name}: CARRY.never に ${id} がある（＝ALL_IDS に入る）`);
+    // ★ 翌月のひな型には入れない（持ち越すと先月の実績が今月の欄に残る）
+    for (const k of ['info', 'fixed', 'shape']) {
+      ok(!grp(k).includes(`'${id}'`), `${name}: ★${id} が翌月のひな型（CARRY.${k}）に混ざっていない`);
+    }
   }
 
   // ★ 乗務日数(duty_days)の f-duty と、勤務時間の f-duty-h は別物

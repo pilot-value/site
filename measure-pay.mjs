@@ -118,10 +118,15 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
      ★「開けきれていない」で throw するのはやめた（1画面1段では起こせない）。
        代わりに、最後まで1度も測れなかった欄を名指しで出す
        ── 欄が段から消えた・ゲートが変わったときに、ここで気づける。 */
-  const STEP_IDS = ['s1', 's2', 's3', 's4'];
+  /* ★段の数は画面に聞く（2026-09-12）。初回は5段だが、前回の内容がある人は
+     「① 今月の入力 ② 確認」の2画面になる。ここで 4 を決め打ちすると、
+     2画面の道では存在しない段を叩き、逆に初回の段を測り落とす。 */
   const hasWz = await page.evaluate(() => !!window.PVPayWizard);
+  const nSteps = hasWz
+    ? await page.evaluate(() => (window.PVPayWizard.count && window.PVPayWizard.count()) || 4)
+    : 1;
   const r = { out: [], rows: [], names: [] };
-  for (let i = 0; i < (hasWz ? STEP_IDS.length : 1); i++) {
+  for (let i = 0; i < nSteps; i++) {
     if (hasWz) {
       await page.evaluate((n) => window.PVPayWizard.go(n, { quiet: true }), i);
       await new Promise((r2) => setTimeout(r2, 260));

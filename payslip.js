@@ -80,6 +80,17 @@
            サーバ側で本人の回数は戻してあるので、残り回数の一文は本当のこと。 */
       errQuotaGlobal: 'いま自動読み取りが混み合っていて、今日はこれ以上お受けできません。<b>このまま手で入力できます</b>（下のフォームを開きました）。あなたの残り回数は減っていません。',
       errServer: 'いま自動読み取りが使えません。<b>このまま手で入力できます</b>（下のフォームを開きました）。',
+      /* ★食い違いの一覧（2026-09-12 オーナー決定6）。本人が打った値は上書きしない。 */
+      cfTitle: 'あなたの入力と、明細の値が違うところ',
+      cfLead: '<b>どれも書き換えていません。</b>明細のほうが正しいものだけ押してください。',
+      cfMine: 'あなたの入力',
+      cfSlip: '明細',
+      cfUse: '明細の値にする',
+      /* ★明細から読めなかった固定の額（2026-09-12 オーナー決定6）。
+         前回の額を勝手に入れない ── 押されたときだけ入る。 */
+      cdTitle: '明細から読めなかった欄',
+      cdLead: '前回の額を入れることもできます。<b>押さなければ空のまま</b>です。',
+      cdUse: function (v) { return '前回の ' + v + ' を使う'; },
       resultTitle: '読み取りました',
       resultLead: 'AIが読んだ値です。<b>明細と見比べて</b>、違うところは直してください。<b>この時点ではまだ投稿されていません。</b>',
       col1: '明細の項目', col2: '入れた欄', col3: '金額',
@@ -207,6 +218,17 @@
       errQuota: 'You have used today’s automatic reads. <b>You can type it in below</b> — the form is now open. Automatic reading is available again tomorrow.',
       errQuotaGlobal: 'Automatic reading is busy right now and we cannot take any more today. <b>You can type it in below</b> — the form is now open. This did not use one of your reads.',
       errServer: 'Automatic reading is unavailable right now. <b>You can type it in below</b> — the form is now open.',
+      /* ★The disagreement list (owner, 2026-09-12, decision 6). What you typed is never overwritten. */
+      cfTitle: 'Where your entry and the payslip differ',
+      cfLead: '<b>Nothing here was changed.</b> Press only the ones where the payslip is right.',
+      cfMine: 'You entered',
+      cfSlip: 'Payslip',
+      cfUse: 'Use the payslip value',
+      /* ★Fixed amounts the payslip did not show (owner, 2026-09-12, decision 6).
+         Last month's figure is never filled in on its own — only when pressed. */
+      cdTitle: 'Amounts the payslip did not show',
+      cdLead: 'You can reuse last month&rsquo;s figure. <b>Leave it alone and the box stays empty.</b>',
+      cdUse: function (v) { return 'Use last month&rsquo;s ' + v; },
       resultTitle: 'Here is what we read',
       resultLead: 'These are the figures the AI read. <b>Check them against your slip</b> and fix anything wrong. <b>Nothing has been submitted yet.</b>',
       col1: 'Line on your slip', col2: 'Goes into', col3: 'Amount',
@@ -421,6 +443,7 @@
   }
 
   var FIELD_LABEL = {
+    'f-gross': { ja: 'その月の総支給額', en: 'Gross pay for the month' },
     'f-base': { ja: '基本給', en: 'Base pay' },
     'f-guarantee': { ja: 'Flight time 保証手当 / 職務手当',
                      en: 'Flight time guarantee / Duty allowance' },
@@ -2431,9 +2454,36 @@
     });
   }
 
+  /* ── 本人が打った金額は上書きしない（2026-09-12 オーナー決定6）─────────
+     ★ここに来る時点で、前の明細が入れた値は clearPrevFilled() が、
+       前回から引き継いだ値は PVPayDropPrevMonth() が、それぞれ空にしている。
+       ＝**空でない金額が残っていたら、それは本人がこの月に打った値**。
+     ★黙って上書きすると、本人が明細を見ながら直した数字が消える。しかも
+       .ai-filled の緑枠が付くので、画面は「明細から読み取りました」と言い続ける。
+     ★止めるだけにしない。食い違いは cfRows に積んで、あとで一覧に出す
+       （行ごとに「明細の値にする」を置く ── 押されたときだけ入る）。
+     ⚠️ 対象は**金額と時間の欄だけ**。通貨・対象月・役職の札は明細のほうが
+        その月の事実なので、今までどおり上書きする。 */
+  var CONFLICT_IDS = { 'f-gross': 1, 'f-netpay': 1, 'f-base': 1, 'f-guarantee': 1,
+    'f-command': 1, 'f-housing-amt': 1, 'f-perdiem': 1, 'f-bonus-mo': 1,
+    'f-instructor': 1, 'f-examiner': 1, 'f-block': 1, 'f-guar': 1, 'f-duty-h': 1 };
+  var cfRows = [];
+  /* 桁区切り・小数点の書き方だけの違いを「食い違い」と呼ばない。 */
+  function sameNum(a, b) {
+    var f = function (s) { return String(s).replace(/[^0-9.-]/g, ''); };
+    var x = parseFloat(f(a)), y = parseFloat(f(b));
+    return isFinite(x) && isFinite(y) && Math.abs(x - y) < 0.005;
+  }
   function setField(id, value) {
     var e2 = document.getElementById(id);
     if (!e2) return false;
+    if (CONFLICT_IDS[id] && e2.type !== 'hidden' && e2.tagName !== 'SELECT') {
+      var have = String(e2.value || '').trim();
+      if (have !== '' && !e2.classList.contains('ai-filled')) {
+        if (!sameNum(have, value)) cfRows.push({ id: id, mine: have, slip: String(value) });
+        return false;                      // ★本人の値を残す
+      }
+    }
     if (e2.tagName === 'SELECT') {
       var ok = Array.prototype.some.call(e2.options, function (o) { return o.value === String(value); });
       if (!ok) return false;
@@ -2545,6 +2595,7 @@
          pay-report.html 側の１か所（PVPayDropPrevMonth）に置いてある。
        ★先に呼ぶ。あとで呼ぶと、いま明細が入れた値まで消える。 */
     filled = new Set();
+    cfRows = [];                 // ★落とし直したら食い違いの控えも作り直す
     lastHours = {};
     (res.hours || []).forEach(function (h) { lastHours[h.kind] = h.value; });
 
@@ -2897,6 +2948,75 @@
     return need;
   }
 
+  /* ── 食い違いの一覧（2026-09-12 オーナー決定6）───────────────────
+     ★出すのは「本人が打った値があって、明細の値と違った」欄だけ。
+       setField が上書きを見送った所と1対1（一覧を2つ持たない）。
+     ★押されたときだけ明細の値を入れる。押した欄は「本人が入力」のまま
+       （.ai-filled を付けない ── 本人が選んだ結果なので）。 */
+  function conflictCard() {
+    if (!cfRows.length) return null;
+    var c = el('div', 'ps-cf');
+    c.appendChild(el('div', 'ps-cf-t', esc2(T.cfTitle)));
+    c.appendChild(el('p', 'ps-cf-lead', T.cfLead));
+    cfRows.forEach(function (r) {
+      var row = el('div', 'ps-cf-row');
+      row.appendChild(el('span', 'ps-cf-n', esc2(lbl(r.id))));
+      row.appendChild(el('span', 'ps-cf-v',
+        esc2(T.cfMine) + ' <b>' + esc2(r.mine) + '</b> ／ ' +
+        esc2(T.cfSlip) + ' <b>' + esc2(r.slip) + '</b>'));
+      var b = el('button', 'ps-cf-b', esc2(T.cfUse));
+      b.type = 'button';
+      b.addEventListener('click', function () {
+        var e2 = document.getElementById(r.id);
+        if (!e2) return;
+        e2.value = r.slip;
+        e2.dispatchEvent(new Event('input', { bubbles: true }));
+        e2.dispatchEvent(new Event('change', { bubbles: true }));
+        row.remove();
+        if (!c.querySelector('.ps-cf-row')) c.remove();
+      });
+      row.appendChild(b);
+      c.appendChild(row);
+    });
+    return c;
+  }
+
+  /* ── 読めなかった固定額の候補（2026-09-12 オーナー決定6）──────────
+     ★前回の額は**入れない**。押されたときだけ入る。
+     ★いま空の欄だけを出す（明細が読めた欄・本人が打った欄は候補にしない）。 */
+  function candidateCard() {
+    var src = (typeof window.PVPayCarriedDropped === 'function')
+      ? window.PVPayCarriedDropped() : null;
+    if (!src) return null;
+    var ids = Object.keys(src).filter(function (id) {
+      var e2 = document.getElementById(id);
+      return e2 && String(e2.value || '').trim() === '' && String(src[id] || '').trim() !== '';
+    });
+    if (!ids.length) return null;
+    var c = el('div', 'ps-cd');
+    c.appendChild(el('div', 'ps-cd-t', esc2(T.cdTitle)));
+    c.appendChild(el('p', 'ps-cd-lead', T.cdLead));
+    ids.forEach(function (id) {
+      var row = el('div', 'ps-cd-row');
+      row.appendChild(el('span', 'ps-cd-n', esc2(lbl(id))));
+      var b = el('button', 'ps-cd-b', T.cdUse(esc2(src[id])));
+      b.type = 'button';
+      b.addEventListener('click', function () {
+        var e2 = document.getElementById(id);
+        if (!e2) return;
+        if (typeof openOpt === 'function') openOpt(id, true);
+        e2.value = src[id];
+        e2.dispatchEvent(new Event('input', { bubbles: true }));
+        e2.dispatchEvent(new Event('change', { bubbles: true }));
+        row.remove();
+        if (!c.querySelector('.ps-cd-row')) c.remove();
+      });
+      row.appendChild(b);
+      c.appendChild(row);
+    });
+    return c;
+  }
+
   function renderResult(res, trace) {
     lastTrace = trace;
     lastRes = res;
@@ -2935,6 +3055,13 @@
       box.appendChild(el('p', 'ps-warn', esc2(T.lowConf)));
     }
 
+    /* ★「あなたの入力と違う」「読めなかった」の2枚は、畳んだ中に入れない。
+       どちらも**本人が押さないと何も起きない**ので、見えない所に置くと
+       黙って空のまま・黙って古い数字のまま提出される。 */
+    var cf = conflictCard();
+    if (cf) box.appendChild(cf);
+    var cd = candidateCard();
+    if (cd) box.appendChild(cd);
     /* ★時給を表より先に出す。明細を落とした人が見たいのはこれ1つ。
        前は送信ブロックの中（2,800px 下）に入れていたので誰も見なかった。 */
     box.appendChild(rateCard(guessBlock(res)));

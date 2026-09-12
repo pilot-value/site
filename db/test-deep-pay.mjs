@@ -157,11 +157,11 @@ const openKey = (n) => db.query(
   [uid(n), `p${n}@example.com`]);
 
 const VOCAB = await rows(
-  `select code from pv_airlines where code <> 'other' and active order by code limit 21`);
+  `select code from pv_airlines where code <> 'other' and active order by code limit 22`);
 const AIR = VOCAB.map(r => r.code);
 const [A_HOME, A_CAT, A_FILL1, A_FILL2, A_FILL3, A_OTHER1, A_DUP, A_BAND,
        A_ROUND, A_DOUBLE, A_REST, A_BASIS, A_NWH, A_WORK, A_SIG,
-       A_PEER, A_PEND, A_RV, A_BONUS, A_SPARE, A_UNION] = AIR;
+       A_PEER, A_PEND, A_RV, A_BONUS, A_SPARE, A_UNION, A_PART] = AIR;
 
 // 呼び手（オーナー役）。この人の最新の1行が区分を決める。
 const V = 9500;
@@ -550,6 +550,59 @@ console.log('\n▼ 7-b. ★組合が総支給の外で払われている行（20
   ok(seg('fixed') && seg('fixed').pct === 32,
      '★分母は総支給＋組合（19,000）。固定は32%（総支給だけなら60%になる）',
      String(seg('fixed')?.pct));
+}
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 7-c. ★内訳が一部未回答の月（partial・2026-09-12）');
+// ════════════════════════════════════════════════════════════
+/* 変動給の行を1つだけ書いて、残りは「分からないので空のまま」にした月。
+   その月の金額は**入力済み分の合計**でしかないのに、そのまま割合へ混ぜると
+   変動給が実際より低く、未分類が実際より高く出る（画面は普通に動いたまま）。
+   det（内訳を1つも書いていない月）と同じ理由 ── 観測していないものを 0% と読まない。
+   ⚠️ これは**閲覧の資格ではない**。この人の鍵は今までどおり開く（最後の1本）。 */
+{
+  const full = (m) => ({ ...BASE, airline: A_PART, position: 'fo', fleet: 'b737',
+                         period_year: YEAR, period_month: m,
+                         gross_monthly: 10000, base_pay: 6000,
+                         flight_variable_pay: 4000, other_allowance: 4000,
+                         command_pay: null, per_diem: null,
+                         housing_type: null, housing_amount: null,
+                         pay_items: { v: 1, variable: [
+                           { amount: 3000, basis: 'block', label: 'Flight' },
+                           { amount: 1000, basis: 'day',   label: 'Layover' }] } });
+  // 同じ形の翌月。2行のうち1行だけ書いて、もう1行は空 ＝ 一部未回答。
+  const part = (m) => ({ ...full(m),
+                         flight_variable_pay: 1000, other_allowance: 1000,
+                         pay_items: { v: 1, partial: true, variable: [
+                           { amount: 1000, basis: 'block', label: 'Flight' },
+                           { basis: 'day', label: 'Layover' }] } });
+  const seats = [];
+  for (let i = 0; i < 3; i++) {
+    const u = ++seat; await asUser(u);
+    await submit(full(2)); await submit(part(3));
+    seats.push(u);
+  }
+  await openKey(seats[0]); await asUser(seats[0]);
+  const d = await deep();
+  ok(d.cohort && d.cohort.n === 3,
+     '一部未回答の月があっても3人そろう（人を落としていない）', JSON.stringify(d.cohort));
+  const seg = (k) => (d.comp?.segs || []).find(s => s.k === k);
+  ok(seg('fixed') && seg('fixed').pct === 60,
+     '固定は60%（6,000 / 10,000）', String(seg('fixed')?.pct));
+  ok(seg('variable') && seg('variable').pct === 40,
+     '★変動は40%のまま（入力済み分だけの月を割合に混ぜていない。混ぜると25%へ下がる）',
+     JSON.stringify(d.comp?.segs));
+  ok(!seg('rest'),
+     '★未分類が生えない（未回答を「どこにも入れていない現金」として数えない）',
+     JSON.stringify(d.comp?.segs));
+  ok(Number(d.head?.annual_usd) > 0,
+     '★年収は一部未回答の月も使う（総支給は欠けていない）', String(d.head?.annual_usd));
+
+  // ★資格と完全性は別 ── 一部未回答の月しか出していない人でも鍵は開く
+  const uOnly = ++seat; await asUser(uOnly);
+  await submit(part(4));
+  ok((await give()).detailed === true,
+     '★partial だけを理由に内訳の鍵を閉めない（閲覧の資格と、集計に使える完全性は別物）');
 }
 
 // ════════════════════════════════════════════════════════════

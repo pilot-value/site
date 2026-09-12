@@ -485,7 +485,17 @@ body.has-cta #form-wrap{padding-bottom:96px}
 .sum-row button{margin-left:auto;flex:none;font-size:.74rem;font-weight:700;color:#a8b3c2;background:transparent;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:5px 12px;cursor:pointer;transition:color .2s,border-color .2s}
 .sum-row button:hover{color:#f5c842;border-color:rgba(245,200,66,.45)}
 .sum-row button:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
-.sum-row[hidden],#s4-body[hidden]{display:none}
+.sum-row[hidden],#s4-body[hidden],#s1-body[hidden]{display:none}
+/* ★2回目以降、初回向けの手引きは「くわしく」の中へ畳む（文言は消さない）。 */
+.sec-more{margin:0 0 14px}
+.sec-more>summary{display:inline-block;font-size:.76rem;font-weight:700;color:#8b98a8;
+  cursor:pointer;list-style:none;padding:2px 0;transition:color .2s}
+.sec-more>summary::-webkit-details-marker{display:none}
+.sec-more>summary::before{content:'＋ ';font-weight:800}
+.sec-more[open]>summary::before{content:'− '}
+.sec-more>summary:hover{color:#f5c842}
+.sec-more>summary:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:3px;border-radius:6px}
+.sec-more .sec-sub{margin:8px 0 0}
 /* ── 明細から自動入力 ── 端末の中で黒塗り → 本人が見る → 送る ── */
 /* 入口の2択（明細から自動入力／手動で入力）*/
 .entry-q{font-size:.84rem;font-weight:700;color:#a8b3c2;letter-spacing:-.01em;margin:0 0 12px}
@@ -672,6 +682,36 @@ body.has-cta #form-wrap{padding-bottom:96px}
 .ps-res-title.ps-sm{font-size:.82rem;color:#a8b3c2;margin-top:18px}
 .ps-res-lead{font-size:.78rem;color:#a8b3c2;line-height:1.7;margin-top:4px}
 .ps-res-lead b{color:#e8edf2}
+/* ── 明細の値と本人の入力が食い違ったところ（2026-09-12）──────────
+   ★本人の入力は書き換えていない。押されたときだけ入る。
+     だから「読み飛ばされたら黙って古い数字のまま出る」＝赤ではなく、
+     必ず目に入る琥珀の枠で出す（.ps-frwarn の赤は「紙が丸ごと出ていく」専用）。 */
+.ps-cf{margin-top:14px;border:1px solid rgba(245,200,66,.34);border-left:3px solid #f5c842;
+  border-radius:12px;padding:13px 15px;background:rgba(245,200,66,.06)}
+.ps-cf-t{font-size:.82rem;font-weight:800;color:#f5c842;letter-spacing:-.01em}
+.ps-cf-lead{margin-top:4px;font-size:.74rem;line-height:1.7;color:#a8b3c2}
+.ps-cf-lead b{color:#e8edf2}
+.ps-cf-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:11px;
+  padding-top:11px;border-top:1px solid rgba(255,255,255,.07)}
+.ps-cf-n{font-size:.76rem;font-weight:700;color:#e8edf2}
+.ps-cf-v{font-size:.74rem;color:#a8b3c2}
+.ps-cf-v b{color:#e8edf2;font-weight:700}
+.ps-cf-b,.ps-cd-b{margin-left:auto;flex:none;font-size:.7rem;font-weight:800;color:#f5c842;
+  background:rgba(245,200,66,.08);border:1px solid rgba(245,200,66,.38);border-radius:999px;
+  padding:5px 12px;cursor:pointer;
+  transition:color .2s,border-color .2s,background-color .2s,transform .12s}
+.ps-cf-b:hover,.ps-cd-b:hover{color:#fde68a;border-color:rgba(245,200,66,.6);background:rgba(245,200,66,.14)}
+.ps-cf-b:focus-visible,.ps-cd-b:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.ps-cf-b:active,.ps-cd-b:active{transform:translateY(1px)}
+/* ── 明細から読めなかった欄（前回の額は候補としてだけ出す）────────── */
+.ps-cd{margin-top:14px;border:1px solid rgba(255,255,255,.10);border-radius:12px;
+  padding:13px 15px;background:rgba(255,255,255,.03)}
+.ps-cd-t{font-size:.82rem;font-weight:800;color:#e8edf2;letter-spacing:-.01em}
+.ps-cd-lead{margin-top:4px;font-size:.74rem;line-height:1.7;color:#a8b3c2}
+.ps-cd-lead b{color:#e8edf2}
+.ps-cd-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:11px;
+  padding-top:11px;border-top:1px solid rgba(255,255,255,.07)}
+.ps-cd-n{font-size:.76rem;font-weight:700;color:#e8edf2}
 .ps-tbl{width:100%;margin-top:10px;border-collapse:collapse;font-size:.78rem}
 .ps-tbl th{text-align:left;font-weight:700;color:#6b7d93;font-size:.68rem;letter-spacing:.04em;padding:0 0 6px}
 .ps-tbl td{padding:7px 0;border-top:1px solid rgba(255,255,255,.07);color:#e8edf2;vertical-align:top}
@@ -820,6 +860,16 @@ body.has-cta #form-wrap{padding-bottom:96px}
 .wz-draft-drop:hover{color:#e8edf2;border-color:rgba(255,255,255,.32)}
 .wz-draft-drop:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
 .wz-draft-drop:active{transform:translateY(1px)}
+/* ★「新しい月を入力する」。下書きを消すより目立たせる（押し間違いは戻せる側だが、
+     消すほうは戻せない）。色はブランドの琥珀を薄く敷くだけで、面は増やさない。 */
+.wz-new-month{font-size:.7rem;font-weight:800;color:#f5c842;background:rgba(245,200,66,.08);
+  border:1px solid rgba(245,200,66,.34);border-radius:8px;padding:3px 10px;cursor:pointer;
+  transition:color .2s,border-color .2s,background-color .2s}
+.wz-new-month:hover{color:#fde68a;border-color:rgba(245,200,66,.6);background:rgba(245,200,66,.14)}
+.wz-new-month:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.wz-new-month:active{transform:translateY(1px)}
+/* 別の月の控えがあることを知らせる帯。下書きの帯のすぐ下に出る。 */
+#wz-offer{margin:-12px 0 16px}
 
 /* ── 段の末尾の 戻る／次へ ─────────────────────────────────────
    ★常設の提出バーは廃止した（2026-09-08 オーナー指示）。送信は最後の確認画面だけ。
@@ -850,6 +900,15 @@ body.has-cta #form-wrap{padding-bottom:96px}
 /* ── 上の面：入力内容の確認（本人用・実額そのまま）───────────────── */
 .wz-rev-sec{margin-bottom:22px}
 .wz-rev-sec:last-of-type{margin-bottom:0}
+/* 「保存するその他の値」は details。既定の三角は消して ＋／− で開閉を示す
+   （.sec-more と同じ作り）。 */
+.wz-rev-more>summary{list-style:none;cursor:pointer;color:#a8b3c2;
+  transition:color .2s,border-color .2s}
+.wz-rev-more>summary::-webkit-details-marker{display:none}
+.wz-rev-more>summary .wz-rev-t::before{content:'＋ ';font-weight:800}
+.wz-rev-more[open]>summary .wz-rev-t::before{content:'− '}
+.wz-rev-more>summary:hover .wz-rev-t{color:#f5c842}
+.wz-rev-more>summary:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:3px;border-radius:6px}
 .wz-rev-head{display:flex;align-items:center;gap:10px;
   padding-bottom:8px;margin-bottom:6px;border-bottom:1px solid rgba(255,255,255,.09)}
 .wz-rev-t{min-width:0;font-size:.9rem;font-weight:800;letter-spacing:-.01em;color:#e8edf2}
@@ -859,9 +918,20 @@ body.has-cta #form-wrap{padding-bottom:96px}
 .wz-rev-edit:hover{background:rgba(245,200,66,.1);border-color:rgba(245,200,66,.55)}
 .wz-rev-edit:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
 .wz-rev-edit:active{transform:translateY(1px)}
-.wz-rev-row{display:flex;align-items:baseline;justify-content:space-between;gap:16px;
-  padding:7px 0;border-bottom:1px solid rgba(255,255,255,.045)}
+/* ★flex-wrap:wrap が要る（2026-09-12）。下の .wz-rev-src は
+     order:3 + width:100% で「自分の行へ落ちる」つもりで書いてあるが、
+     折り返しを許さないと同じ行に居座り、幅 100% を主張して
+     欄名と金額を1文字ずつの縦書きに潰し、札だけカードの外へはみ出す。
+     ── 画面は動いたまま、確認画面の金額が読めなくなる。 */
+.wz-rev-row{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;
+  gap:16px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.045)}
 .wz-rev-row:last-child{border-bottom:none}
+/* ★出どころの札（2026-09-12 オーナー決定7）。「明細から読み取り」だけ緑
+   ── 入力欄の緑枠（.ai-filled）と同じ色にして、2画面で同じ意味に見せる。
+   「前回から引き継ぎ」は灰。本人が入力した行には札を出さない（既定だから）。 */
+.wz-rev-src{flex:none;order:3;width:100%;text-align:right;margin-top:-2px;
+  font-size:.66rem;font-weight:700;letter-spacing:.02em;color:#6b7d93}
+.wz-rev-src.is-ai{color:#34d399}
 .wz-rev-k{flex:none;max-width:52%;font-size:.78rem;color:#6b7d93;line-height:1.5}
 .wz-rev-v{min-width:0;font-size:.85rem;font-weight:700;text-align:right;line-height:1.5;
   font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
@@ -1056,6 +1126,8 @@ body.has-cta #form-wrap{padding-bottom:96px}
 [data-theme="light"] .pay-detail[open]>summary{color:#0f172a;border-color:rgba(200,149,0,.4);background:rgba(0,0,0,.03)}
 [data-theme="light"] .pay-detail[open]>summary:hover{color:#a97e00;background:rgba(200,149,0,.07)}
 [data-theme="light"] .sum-row{background:rgba(0,0,0,.025);border-color:rgba(0,0,0,.08);color:#475569}
+[data-theme="light"] .sec-more>summary{color:#64748b}
+[data-theme="light"] .sec-more>summary:hover{color:#8a6206}
 [data-theme="light"] .sum-row b{color:#0f172a}
 [data-theme="light"] .sum-row button{color:#475569;border-color:rgba(0,0,0,.15)}
 [data-theme="light"] .sum-row button:hover{color:#a97e00;border-color:rgba(200,149,0,.5)}
@@ -1123,6 +1195,17 @@ body.has-cta #form-wrap{padding-bottom:96px}
 [data-theme="light"] .ps-res-title.ps-sm{color:#475569}
 [data-theme="light"] .ps-res-lead{color:#475569}
 [data-theme="light"] .ps-res-lead b{color:#0f172a}
+[data-theme="light"] .ps-cf{border-color:rgba(180,140,20,.42);border-left-color:#b48c14;background:rgba(245,200,66,.14)}
+[data-theme="light"] .ps-cf-t{color:#8a6206}
+[data-theme="light"] .ps-cf-lead,[data-theme="light"] .ps-cf-v{color:#475569}
+[data-theme="light"] .ps-cf-lead b,[data-theme="light"] .ps-cf-v b,[data-theme="light"] .ps-cf-n{color:#0f172a}
+[data-theme="light"] .ps-cf-row,[data-theme="light"] .ps-cd-row{border-top-color:rgba(0,0,0,.09)}
+[data-theme="light"] .ps-cf-b,[data-theme="light"] .ps-cd-b{color:#8a6206;background:rgba(245,200,66,.16);border-color:rgba(180,140,20,.42)}
+[data-theme="light"] .ps-cf-b:hover,[data-theme="light"] .ps-cd-b:hover{color:#5c4104;border-color:rgba(180,140,20,.7);background:rgba(245,200,66,.26)}
+[data-theme="light"] .ps-cd{border-color:rgba(0,0,0,.10);background:rgba(0,0,0,.03)}
+[data-theme="light"] .ps-cd-t,[data-theme="light"] .ps-cd-n{color:#0f172a}
+[data-theme="light"] .ps-cd-lead{color:#475569}
+[data-theme="light"] .ps-cd-lead b{color:#0f172a}
 [data-theme="light"] .ps-tbl th{color:#64748b}
 [data-theme="light"] .ps-tbl td{color:#0f172a;border-top-color:rgba(0,0,0,.08)}
 [data-theme="light"] .ps-tbl .ps-to,[data-theme="light"] .ps-tbl-dim td{color:#475569}
@@ -1171,6 +1254,8 @@ body.has-cta #form-wrap{padding-bottom:96px}
 [data-theme="light"] .wz-draft.is-ng{color:#b91c1c}
 [data-theme="light"] .wz-draft-drop{color:#64748b;border-color:rgba(0,0,0,.16)}
 [data-theme="light"] .wz-draft-drop:hover{color:#0f172a;border-color:rgba(0,0,0,.34)}
+[data-theme="light"] .wz-new-month{color:#8a6206;background:rgba(245,200,66,.16);border-color:rgba(180,140,20,.42)}
+[data-theme="light"] .wz-new-month:hover{color:#5c4104;border-color:rgba(180,140,20,.7);background:rgba(245,200,66,.26)}
 [data-theme="light"] .wz-nav{border-top-color:rgba(0,0,0,.09)}
 [data-theme="light"] .wz-back{color:#0f172a;border-color:rgba(0,0,0,.16)}
 [data-theme="light"] .wz-back:hover{border-color:rgba(0,0,0,.34);background:rgba(0,0,0,.04)}
@@ -1183,6 +1268,9 @@ body.has-cta #form-wrap{padding-bottom:96px}
 [data-theme="light"] .wz-rev-edit{color:#8a6e00;border-color:rgba(180,140,20,.4)}
 [data-theme="light"] .wz-rev-edit:hover{background:rgba(245,200,66,.16);border-color:rgba(180,140,20,.6)}
 [data-theme="light"] .wz-rev-row{border-bottom-color:rgba(0,0,0,.07)}
+[data-theme="light"] .wz-rev-src{color:#64748b}
+[data-theme="light"] .wz-rev-src.is-ai{color:#047857}
+[data-theme="light"] .wz-rev-more>summary{color:#475569}
 [data-theme="light"] .wz-rev-k{color:#64748b}
 [data-theme="light"] .wz-rev-comp{border-color:rgba(0,0,0,.09);background:rgba(255,255,255,.72)}
 [data-theme="light"] .wz-rev-comp-t{color:#475569}

@@ -471,6 +471,100 @@ comment on function public.pv_union_outside_gross(jsonb) is
   '組合の手当が総支給の外で払われているか。pay_items.union.source が組合のときだけ真。会社／両方／その他／空は「中」に倒す（年収を盛らない側）';
 
 
+-- ── 変動給・その他の「行の形」だけを返す ─────────────────────────
+-- 2026-09-12 追加。翌月のフォームを開いた人に、前回と同じ項目名・支給単位・
+-- 並び順の行を用意するためだけの関数。
+--
+-- ★★金額は1円も返さない。★★ 数量も日数も回数も返さない。返すと、先月の実績が
+--   今月の入力欄に初期値として入る道ができる（それがこの作り直しの発端）。
+--   返すのは
+--     ・変動給／その他の行の label（項目名）と basis（支給単位）と並び順
+--     ・「該当なし」3つ（fixed_none / guarantee_none / variable_none）
+--     ・役割の札（担当・会社での呼び名・支給のされ方）
+--   だけ。amount / days / count / sessions などの**数**はどれも写さない。
+-- ★画面の payItemsShape()（pay-report.html）と同じ物を返す。片方だけ直さない
+--   ── 端末に控えがある人とない人で、翌月に出る行が変わる。
+-- ★本人の行しか返さない関数（my_pay_reports）からしか呼ばない。
+create or replace function public.pv_pay_items_shape(p_items jsonb)
+returns jsonb
+language plpgsql
+immutable
+as $fn$
+declare
+  out_j  jsonb := jsonb_build_object('v', 1);
+  k      text;
+  arr    jsonb;
+  rows_j jsonb;
+  it     jsonb;
+  r      jsonb;
+  d      jsonb;
+  f      text;
+  v      jsonb;
+  keys   text[];
+begin
+  -- ★ p_items 自体が NULL のときも形は作らない。jsonb_typeof(NULL) は NULL を返すので
+  --    「<> 'object'」だけでは真にならず、中身の無い {"v":1} が翌月へ運ばれてしまう。
+  if p_items is null or jsonb_typeof(p_items) <> 'object' then return null; end if;
+
+  -- 「該当なし」は形の一部（会社にその項目が無い、という去年から変わらない事実）
+  foreach k in array array['fixed_none', 'guarantee_none', 'variable_none'] loop
+    if coalesce((p_items->>k)::boolean, false) then
+      out_j := out_j || jsonb_build_object(k, true);
+    end if;
+  end loop;
+
+  -- 行そのもの。★label と basis だけ。amount には触れない
+  foreach k in array array['variable', 'other'] loop
+    arr := p_items->k;
+    if jsonb_typeof(arr) <> 'array' then continue; end if;
+    rows_j := '[]'::jsonb;
+    for it in select value from jsonb_array_elements(arr) loop
+      if jsonb_typeof(it) <> 'object' then continue; end if;
+      r := '{}'::jsonb;
+      if nullif(it->>'label', '') is not null then
+        r := r || jsonb_build_object('label', it->>'label');
+      end if;
+      if nullif(it->>'basis', '') is not null then
+        r := r || jsonb_build_object('basis', it->>'basis');
+      end if;
+      -- 名前も単位も無い行は「形」を持たない（＋を押しただけの空の行）
+      if r <> '{}'::jsonb then rows_j := rows_j || jsonb_build_array(r); end if;
+    end loop;
+    if jsonb_array_length(rows_j) > 0 then
+      out_j := out_j || jsonb_build_object(k, rows_j);
+    end if;
+  end loop;
+
+  -- 役割の札。★列挙した鍵だけを写す（白リスト）。amount / days / count は入れない
+  for k, keys in
+    select * from (values
+      ('instructor', array['trainings', 'label', 'extra', 'method']),
+      ('examiner',   array['checks', 'label', 'extra', 'method', 'method_label']),
+      ('union',      array['extra', 'source']),
+      ('management', array['extra', 'method']),
+      ('nonline',    array['areas', 'extra'])
+    ) t(a, b)
+  loop
+    if jsonb_typeof(p_items->k) <> 'object' then continue; end if;
+    d := '{}'::jsonb;
+    foreach f in array keys loop
+      v := (p_items->k)->f;
+      if v is null or jsonb_typeof(v) = 'null' then continue; end if;
+      if jsonb_typeof(v) = 'string' and (p_items->k)->>f = '' then continue; end if;
+      if jsonb_typeof(v) = 'array' and jsonb_array_length(v) = 0 then continue; end if;
+      d := d || jsonb_build_object(f, v);
+    end loop;
+    if d <> '{}'::jsonb then out_j := out_j || jsonb_build_object(k, d); end if;
+  end loop;
+
+  return out_j;
+end;
+$fn$;
+
+comment on function public.pv_pay_items_shape(jsonb) is
+  '変動給・その他の「行の形」だけ（項目名・支給単位・並び順・該当なし・役割の札）。★金額も数量も1円/1件も返さない。翌月のフォームのひな型専用';
+
+
 -- ── 時間あたり（block hour）の金額 ────────────────────────────
 -- 2026-09-02 追加。分子は「**飛んだことへの対価**」で、年収そのものではない。
 -- ★組合が総支給の外で払った分を抜く（オーナー判断）。あれは乗務の対価ではなく、
@@ -994,9 +1088,23 @@ begin
         -- ★ 2026-08-27 追加。その他の兼務・配属の中身（担当分野・関連業務日数・
         --    追加報酬の有無）。同じくオブジェクト。同じく足し忘れると黙って消える。
         'nonline',    case when jsonb_typeof(v_items->'nonline') = 'object'
-                            and length((v_items->'nonline')::text) <= 2000 then v_items->'nonline' end
+                            and length((v_items->'nonline')::text) <= 2000 then v_items->'nonline' end,
+        -- ★ 2026-09-12 追加。**内訳の一部が未回答**であることの印
+        --    （画面の pdSync が、金額の入った行と空の行が混ざったときだけ立てる）。
+        --    ⚠️ **閲覧の資格ではない。** REAL PAY / DEEP PAY の門（pv_my_give の
+        --       detailed・access_until）はこれを見ない。見せると、行を1本
+        --       書き足しただけで条件を満たした人が閉め出される。
+        --    ⚠️ 使い道は「全額が揃った内訳として**集計に足してよいか**」だけ
+        --       （db/deep-pay.sql の給与構成の割合）。
+        --    ⚠️ ここに書き忘れると、この組み直しで黙って落ちる ＝ 一部だけ答えた月が
+        --       「全部答えた月」として割合の母数に入る（画面は普通に動いたまま）。
+        --    ★false は書かない（jsonb_strip_nulls が落とす）。無いこと＝揃っている。
+        'partial',    case when jsonb_typeof(v_items->'partial') = 'boolean'
+                            and (v_items->>'partial')::boolean then to_jsonb(true) end
       ));
       -- 行も「該当なし」も無い＝中身が無い。空の殻を溜めない。
+      -- ★ partial はここに足さない（2026-09-12）。あれは中身ではなく
+      --   「中身の一部が未回答」という印なので、印だけの殻を溜める理由が無い。
       -- ★「該当なし」3つは、それだけでも中身として扱う（2026-09-03）。
       --   3つとも「会社に無い」と答えるのは立派な回答で、REAL PAY の門は
       --   それで開く。ここで潰すと、その人の答えがどこにも残らない。
@@ -1368,6 +1476,12 @@ begin
            --    組合払いの人の図が「組合手当がほぼ全部」になるか、合計が総支給を
            --    超えて図ごと消える（rest < -1）。年収の式（pv_annual_total）と同じ判定。
            public.pv_union_outside_gross(r.pay_items) as union_outside_gross,
+           -- ★ 2026-09-12。翌月のフォームのひな型に使う「行の形」だけ。
+           --    ★金額も数量も1円/1件も入っていない（pv_pay_items_shape の白リスト）。
+           --    これが無いと、機種変・別ブラウザ・明細から入った人は毎月
+           --    変動給の項目名と支給単位を手で作り直すことになる。
+           --    ⚠️ pay_items そのものは今までどおり返さない。
+           public.pv_pay_items_shape(r.pay_items) as pay_items_shape,
            r.flight_variable_pay,
            r.per_diem, r.transport, r.other_allowance,
            -- ★ 総支給と手取りは明細のとおり（ボーナス込み）。うち今月出たぶんを返さないと

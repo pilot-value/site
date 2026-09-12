@@ -23,6 +23,9 @@
 /* ═══ 0. 言葉 ══════════════════════════════════════════════════════
    ★日英で**鍵を完全に同じ**にする。片方にしか無い鍵を作らない
      （assert-pay-report-sync.mjs と同じ考え方）。 */
+/* 英語の月名。Intl に頼らない（環境で表記が揺れると検査が不安定になる）。 */
+var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
+              'July', 'August', 'September', 'October', 'November', 'December'];
 var T = {
   ja: {
     stepOf:    function (i, n) { return 'ステップ ' + i + '/' + n; },
@@ -33,11 +36,18 @@ var T = {
     draftOk:   function (hm) { return 'このブラウザに下書きを保存しました（' + hm + '）'; },
     draftNg:   'このブラウザには下書きを保存できませんでした（プライベートモードなどでは保存されません）',
     draftBack: 'このブラウザに保存した下書きから続けています。',
+    draftBackYm: function (t) { return t + 'の入力を、このブラウザから戻しました。'; },
     draftDrop: '下書きを消す',
+    newMonth:  '新しい月を入力する',
+    monthBack: function (t) { return t + 'の入力が残っています。'; },
+    monthTake: '戻す',
+    ymText:    function (y, m) { return y + '年' + m + '月'; },
     revTitle:  '入力内容の確認',
     revSub:    '出す前に、入れた内容をひととおり見てください。直すところは各節の「編集」から戻れます。',
     lblComp:    '支給の内訳（今月）',
     lblExtras:  '明細から読み取った値（欄が無いもの）',
+    /* ★確認画面の出どころの札（2026-09-12）。判定は fieldFrom() が DOM の class だけで行う。 */
+    src: { ai: '明細から読み取り', carry: '前回から引き継ぎ' },
     seg: { fixed: '固定・保証給', variable: '変動給', command: '職位手当', role: '役割手当',
            perdiem: 'パーディアム', housing: '住宅手当', other: 'その他の現金', rest: 'その他',
            bonus: '賞与・プロフィットシェア' },
@@ -52,11 +62,18 @@ var T = {
     draftOk:   function (hm) { return 'Draft saved in this browser (' + hm + ')'; },
     draftNg:   'Could not save a draft in this browser (private mode blocks it)',
     draftBack: 'Continuing from a draft saved in this browser.',
+    draftBackYm: function (t) { return 'Restored your ' + t + ' entry from this browser.'; },
     draftDrop: 'Discard draft',
+    newMonth:  'Start a new month',
+    monthBack: function (t) { return 'You still have an entry for ' + t + '.'; },
+    monthTake: 'Restore it',
+    ymText:    function (y, m) { return MONTHS[m - 1] + ' ' + y; },
     revTitle:  'Review your entry',
     revSub:    'Check what you entered before you submit. Use "Edit" on any section to go back.',
     lblComp:    'Pay composition (this month)',
     lblExtras:  'Read from your payslip (no field on screen)',
+    /* ★Provenance chips on the review screen (2026-09-12). fieldFrom() decides from DOM classes alone. */
+    src: { ai: 'read from your payslip', carry: 'carried over from last time' },
     seg: { fixed: 'Fixed / guarantee', variable: 'Variable', command: 'Command', role: 'Role',
            perdiem: 'Per diem', housing: 'Housing', other: 'Other cash', rest: 'Other',
            bonus: 'Bonus / profit share' },
@@ -310,6 +327,7 @@ function draftClear() { try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
 
 /* 下書きを捨てて帯を畳む。呼ぶだけ（外へは知らせない）。 */
 function dropDraft() {
+  archive = [];
   draftClear();
   var box = $('wz-draft');
   if (box) box.hidden = true;
@@ -383,6 +401,10 @@ function buildChrome() {
   /* 下書きの状態。**「このブラウザに」を必ず書く**（保存範囲が読めば分かる形）。 */
   var d = el('p', 'wz-draft'); d.id = 'wz-draft'; d.hidden = true;
   top.after(d);
+  /* ★別の月に切り替えた人へ「その月の入力が残っています／戻す」。
+     出すだけで、押されるまで画面の値は1つも変えない。 */
+  var of = el('p', 'wz-draft'); of.id = 'wz-offer'; of.hidden = true;
+  d.after(of);
 
   /* 各ステップの末尾に 戻る／次へ。日英で同じ形になるよう JS が組む。 */
   C.steps.forEach(function (s, i) {
@@ -494,6 +516,14 @@ function sync() {
 }
 
 /* ── 下書き ───────────────────────────────────────────────────── */
+/* ★「別の月の控え」（2026-09-12）。下書きは1本だが、中に月ごとの棚を持たせる。
+   ⚠️ 形は v=1 のまま。ym も prev も**足しただけ**なので、古い下書き
+      （ym を持たない）も、外から v=1 を書く検査も、今までどおり戻る。
+   ★なぜ要るか ── 「新しい月を入力する」を押した人の、元の月の入力を捨てないため。
+     押した瞬間にその月ぶんをここへ移し、実績の欄を空にして新しい月を始める。 */
+var archive = [];
+var ARCHIVE_MAX = 3;
+function ymNow() { return (C && C.ym) ? String(C.ym() || '') : ''; }
 function draftState() {
   var f = {};
   C.draftIds.forEach(function (id) { var v = C.read(id); if (v) f[id] = v; });
@@ -501,24 +531,101 @@ function draftState() {
      同じタブの続きだけ ── 別のタブの人には渡さない。 */
   var tab = '';
   try { if (window.PVPayLocal && window.PVPayLocal.markTab) tab = window.PVPayLocal.markTab(); } catch (e) {}
-  return { v: DRAFT_V, uid: uidFp, step: C.steps[cur].id, ts: Date.now(), tab: tab, fields: f };
+  var st = { v: DRAFT_V, uid: uidFp, step: C.steps[cur].id, ts: Date.now(), tab: tab, fields: f };
+  var ym = ymNow();
+  if (ym) st.ym = ym;
+  if (archive.length) st.prev = archive;
+  return st;
+}
+/* ★いま画面に出ている月ぶんを棚へ移す。「新しい月を入力する」から呼ぶ。
+   戻り値は移したかどうか（空の画面では何も移さない）。 */
+function archiveMonth() {
+  if (!C || !started) return false;
+  var d = draftState();
+  if (!d.ym || !Object.keys(d.fields).length) return false;
+  archive = archive.filter(function (a) { return a && a.ym !== d.ym; });
+  archive.unshift({ ym: d.ym, step: d.step, ts: d.ts, fields: d.fields });
+  if (archive.length > ARCHIVE_MAX) archive.length = ARCHIVE_MAX;
+  return draftWrite(draftState());
+}
+/* '2026-7' を画面の言葉に。読めない形はそのまま出す（推測で書き換えない）。 */
+function ymLabel(ym) {
+  var p = String(ym || '').split('-');
+  var y = parseInt(p[0], 10), m = parseInt(p[1], 10);
+  if (!y || !m || m < 1 || m > 12) return String(ym || '');
+  return L.ymText(y, m);
+}
+/* ★下書きの帯。文と、そのうしろに並ぶボタンを1か所で組む
+     （saveDraft・restoreDraft・restoreMonth の3か所で同じ形になるように）。
+   ⚠️ 「新しい月を入力する」は C.newMonth を渡した画面にだけ出す。 */
+function draftBar(text, cls) {
+  var box = $('wz-draft');
+  if (!box) return null;
+  box.hidden = false;
+  box.className = 'wz-draft ' + (cls || 'is-ok');
+  box.textContent = '';
+  box.append(document.createTextNode(text + ' '));
+  var b = el('button', 'wz-draft-drop', L.draftDrop);
+  b.type = 'button';
+  b.addEventListener('click', dropDraftFromUser);
+  box.appendChild(b);
+  if (C.newMonth) {
+    var nm = el('button', 'wz-new-month', L.newMonth);
+    nm.type = 'button';
+    nm.id = 'wz-new-month';
+    nm.addEventListener('click', function () { C.newMonth(); });
+    box.appendChild(nm);
+  }
+  return box;
+}
+/* その月の控えがあるか（無ければ null）。画面に「戻す」を出すかの判定に使う。 */
+function monthDraft(ym) {
+  ym = String(ym || '');
+  if (!ym) return null;
+  for (var i = 0; i < archive.length; i++) if (archive[i] && archive[i].ym === ym) return archive[i];
+  return null;
+}
+/* ★その月の控えを画面へ戻す。戻せたら true。
+   ⚠️ 棚からは消さない ── 戻したあとにまた月を変える人が居る。 */
+function restoreMonth(ym) {
+  var a = monthDraft(ym);
+  if (!a || !C.restore(a.fields)) return false;
+  var i = C.steps.findIndex(function (x) { return x.id === a.step; });
+  show(i > 0 ? i : 0);
+  draftWrite(draftState());
+  draftBar(L.draftBackYm(ymLabel(a.ym)));
+  return true;
+}
+/* ★対象月を変えた人に、その月の控えがあることを知らせる。
+   ⚠️ 押されるまで画面の値は1つも変えない（勝手に戻すと、いま打っている月が消える）。 */
+function offerMonth(ym) {
+  var box = $('wz-offer');
+  if (!box) return false;
+  var a = monthDraft(ym);
+  box.hidden = true;
+  box.textContent = '';
+  if (!a) return false;
+  box.hidden = false;
+  box.className = 'wz-draft is-ok';
+  box.append(document.createTextNode(L.monthBack(ymLabel(a.ym)) + ' '));
+  var b = el('button', 'wz-draft-drop', L.monthTake);
+  b.type = 'button';
+  b.addEventListener('click', function () {
+    box.hidden = true; box.textContent = '';
+    restoreMonth(a.ym);
+  });
+  box.appendChild(b);
+  return true;
 }
 function saveDraft() {
   if (!started || doneSaving) return;
   var ok = draftWrite(draftState());
   var box = $('wz-draft');
   if (!box) return;
-  box.hidden = false;
-  box.className = ok ? 'wz-draft is-ok' : 'wz-draft is-ng';
-  if (!ok) { box.textContent = L.draftNg; return; }
+  if (!ok) { box.hidden = false; box.className = 'wz-draft is-ng'; box.textContent = L.draftNg; return; }
   var d = new Date();
   var hm = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
-  box.textContent = '';
-  box.append(document.createTextNode(L.draftOk(hm) + ' '));
-  var b = el('button', 'wz-draft-drop', L.draftDrop);
-  b.type = 'button';
-  b.addEventListener('click', dropDraftFromUser);
-  box.appendChild(b);
+  draftBar(L.draftOk(hm));
 }
 function saveSoon() {
   clearTimeout(saveTimer);
@@ -527,20 +634,17 @@ function saveSoon() {
 /* 戻す。戻せたら true。 */
 function restoreDraft(d) {
   if (!d || d.v !== DRAFT_V || !d.fields) return false;
+  /* ★別の月の棚も一緒に戻す（この1本しか持ち物が無いので、ここで拾い損ねると
+     「新しい月を入力する」を押した人の元の月が、再読み込みで消える）。 */
+  archive = Array.isArray(d.prev) ? d.prev.filter(function (a) { return a && a.ym && a.fields; }) : [];
+  if (archive.length > ARCHIVE_MAX) archive.length = ARCHIVE_MAX;
   var n = C.restore(d.fields);
   if (!n) return false;
   var i = C.steps.findIndex(function (s) { return s.id === d.step; });
   show(i > 0 ? i : 0);
-  var box = $('wz-draft');
-  if (box) {
-    box.hidden = false;
-    box.className = 'wz-draft is-ok';
-    box.textContent = L.draftBack + ' ';
-    var b = el('button', 'wz-draft-drop', L.draftDrop);
-    b.type = 'button';
-    b.addEventListener('click', dropDraftFromUser);
-    box.appendChild(b);
-  }
+  /* ★どの月を戻したのかを書く（月ごとの棚を持つようになったため）。
+     古い下書き（ym を持たない）は今までどおりの文。 */
+  draftBar(d.ym ? L.draftBackYm(ymLabel(d.ym)) : L.draftBack);
   return true;
 }
 
@@ -556,25 +660,50 @@ function fieldLabel(fld) {
   c.querySelectorAll('.req-tag, .opt-tag, .auto-tag, .miss-tag').forEach(function (t) { t.remove(); });
   return c.textContent.trim();
 }
+/* ── 出どころの札（2026-09-12 オーナー決定7）──────────────────────
+   ★2つ目の表を作らない。見るのは欄に付いている class 1つだけ。
+       .ai-filled   … 明細から読み取り（本人が触ったら payslip.js が外す）
+       .pv-carried  … 前回から引き継ぎ（本人が触ったら pay-report.html が外す）
+       どちらも無い … 本人が入力
+   ★この2つは同時に付かない（引き継ぎは空の欄にしか入らない）。
+   ⚠️ 1つの .fld に欄が2つ以上あるときは、**1つでも印があればその印**にする
+     （対象月＝年＋月、内訳の行＝連動・金額・呼び名）。混ざっていたら
+     「本人が入力」に倒す ── 嘘の「明細から読み取り」を出さないため。 */
+function fieldFrom(fld) {
+  var ai = 0, cr = 0, plain = 0;
+  fld.querySelectorAll('select, input, textarea').forEach(function (e) {
+    if (e.disabled || e.type === 'hidden') return;
+    if (e.type === 'checkbox' || e.type === 'radio') { if (!e.checked) return; }
+    else if (String(e.value || '').trim() === '') return;
+    if (e.classList.contains('ai-filled')) ai++;
+    else if (e.classList.contains('pv-carried')) cr++;
+    else plain++;
+  });
+  if (plain) return '';
+  if (ai && !cr) return 'ai';
+  if (cr && !ai) return 'carry';
+  return '';
+}
 function fieldValue(fld) {
-  var out = [];
-  var boxes = fld.querySelectorAll('input[type="checkbox"], input[type="radio"]');
-  if (boxes.length) {
-    boxes.forEach(function (b) {
-      if (!b.checked) return;
-      var lab = b.closest('label');
-      out.push(lab ? lab.textContent.trim() : b.value);
-    });
-    /* ★区切りは言語で変える。英語ページに「、」を出すと日本語の文字が混ざる
-       （2026-09-09。確認画面の『役職・区分』が Line pilot、Instructor と出ていた）。 */
-    return out.join(C.lang === 'en' ? ', ' : '、');
-  }
   /* ★1つの欄が入力を2つ以上持つことがある（「対象月」＝年と月の2つ、
      内訳の行＝連動・金額・呼び名の3つ）。先頭だけ読むと、確認画面から
-     月が丸ごと消える。全部つないで出す。 */
-  var parts = [];
+     月が丸ごと消える。全部つないで出す。
+     ★札（チェック）と入力欄が**同じ欄に同居する**ことがある ── 基本給・保証給は
+       金額の欄のすぐ横に「該当なし」の札を持っている。ここで「札があれば札だけ読む」と
+       分岐していたあいだ、**確認画面に基本給も保証給も1行も出なかった**
+       （札は普通どちらも付いていない＝空文字になり、行ごと落ちるため）。
+       画面はどこも壊れないまま、出す直前に自分の基本給を読み返せない状態だった。
+       ⚠️ 札だけの欄（役職・区分、担当している訓練）は今までどおり札を読む。 */
+  var parts = [], boxed = [], free = 0;
   fld.querySelectorAll('select, input:not([type="hidden"]), textarea').forEach(function (e) {
-    if (e.disabled || e.type === 'checkbox' || e.type === 'radio') return;
+    if (e.disabled) return;
+    if (e.type === 'checkbox' || e.type === 'radio') {
+      if (!e.checked) return;
+      var lab = e.closest('label');
+      boxed.push(lab ? lab.textContent.trim() : e.value);
+      return;
+    }
+    free++;
     if (e.tagName === 'SELECT') {
       var o = e.options[e.selectedIndex];
       if (e.value && o) parts.push(o.textContent.trim());
@@ -582,7 +711,10 @@ function fieldValue(fld) {
       parts.push(String(e.value).trim());
     }
   });
-  return parts.join(' ');
+  /* ★区切りは言語で変える。英語ページに「、」を出すと日本語の文字が混ざる
+     （2026-09-09。確認画面の『役職・区分』が Line pilot、Instructor と出ていた）。 */
+  if (!free) return boxed.join(C.lang === 'en' ? ', ' : '、');
+  return parts.concat(boxed).join(' ');
 }
 /* ── 内訳の横棒 ────────────────────────────────────────────────
    長さの出どころは呼ぶ側が決める（本人用は生の月額・公開イメージは帯の中点）。
@@ -659,19 +791,42 @@ function renderReview(pay) {
      「条件で隠れている欄」と「別の段に居る欄」の区別が付かない。区別しないと、
      住居を『社宅』に変えた人の確認画面に、前に打った住宅手当の額がまだ出る。
      出しっぱなしにはしない（この関数の中で開いて閉じる＝画面は一度も2段見えない）。 */
-  var back = C.steps.map(function (s) { var e = $(s.id); return [e, e.hidden]; });
-  back.forEach(function (x) { if (x[0]) x[0].hidden = false; });
+  /* ★段に「連れて出している箱」（steps[].also）も必ず読む（2026-09-12）。
+     2回目以降は 1段目が s2 で、s1・s3・s4 を also で連れて出している。
+     ここで $(s.id) だけを読むと、**確認画面に「3. 報酬」が1行も出ない**
+     ── 本人がその画面で打ったばかりの総支給も基本給も、出す前に読み返せない。
+     画面はどこも壊れないので、絵を撮るまで気づけなかった。 */
+  var boxes = [];                                      // [[箱, どの段か], …]
   C.steps.forEach(function (s, i) {
-    if (i >= C.steps.length - 1) return;
-    var box = $(s.id);
-    if (!box) return;
+    if (i >= C.steps.length - 1) return;               // 最後の段（確認）は自分自身
+    stepEls(i).forEach(function (e) { boxes.push([e, i]); });
+  });
+  /* 並びは HTML のとおり（also は s2 → s1 → s3 → s4 の順で入っている）。 */
+  boxes.sort(function (a, b) {
+    return (a[0].compareDocumentPosition(b[0]) & Node.DOCUMENT_POSITION_FOLLOWING) ? -1 : 1;
+  });
+  /* ★畳んである節（要約1行＋「変更」）の中身も、読むあいだだけ開ける。
+     開けないと、会社・職位・機材・契約・納税地が確認画面から丸ごと落ちる
+     ── 出す直前に「どの会社の給与として出すのか」を確かめられない。
+     ⚠️ 開けてよい箱は呼ぶ側が名指しする（条件で隠れている欄まで開けない）。 */
+  var peek = typeof C.reviewPeek === 'function' ? (C.reviewPeek() || []) : [];
+  var back = boxes.map(function (x) { return [x[0], x[0].hidden]; })
+    .concat(peek.filter(Boolean).map(function (e) { return [e, e.hidden]; }));
+  back.forEach(function (x) { if (x[0]) x[0].hidden = false; });
+  boxes.forEach(function (pair) {
+    var box = pair[0], i = pair[1];
     var sec = el('section', 'wz-rev-sec');
     var head = el('div', 'wz-rev-head');
     var t = box.querySelector('.sec-title');
     head.appendChild(el('span', 'wz-rev-t', t ? t.textContent : ''));
     var ed = el('button', 'wz-rev-edit', L.edit);
     ed.type = 'button';
-    ed.addEventListener('click', function () { go(i); });
+    ed.addEventListener('click', function () {
+      go(i);
+      /* ★その節が畳まれているなら開いてから渡す。開けないと「編集」を押した人が
+         要約1行の前に立たされ、もう一度「変更」を探すことになる。 */
+      if (typeof C.reviewOpen === 'function') C.reviewOpen(box.id);
+    });
     head.appendChild(ed);
     sec.appendChild(head);
     var rows = 0;
@@ -683,6 +838,8 @@ function renderReview(pay) {
       if (!lab) return;
       var r = el('div', 'wz-rev-row');
       r.append(el('span', 'wz-rev-k', lab), el('span', 'wz-rev-v', v));
+      var frm = fieldFrom(fld);
+      if (frm) r.appendChild(el('span', 'wz-rev-src is-' + frm, L.src[frm]));
       sec.appendChild(r);
       rows++;
     });
@@ -701,8 +858,11 @@ function renderReview(pay) {
      ⚠️ 空の値は呼ぶ側が落としている ＝ 明細を使っていない人の画面には1行も増えない。 */
   var ex = typeof C.reviewExtras === 'function' ? (C.reviewExtras() || []) : [];
   if (ex.length) {
-    var xsec = el('section', 'wz-rev-sec');
-    var xhead = el('div', 'wz-rev-head');
+    /* ★畳む（2026-09-12 オーナー決定7「確認は短く」）。捨てるのではない ──
+       明細から読めた控除・年初来・深夜時間は画面に欄が無く、ここが唯一
+       読み返せる場所なので、開けば今までどおり全部出る。 */
+    var xsec = el('details', 'wz-rev-sec wz-rev-more');
+    var xhead = el('summary', 'wz-rev-head');
     xhead.appendChild(el('span', 'wz-rev-t', L.lblExtras));
     xsec.appendChild(xhead);
     ex.forEach(function (x) {
@@ -785,7 +945,18 @@ var API = {
   goToField: goToField,
   current: function () { return C ? C.steps[cur].id : null; },
   isLast: function () { return !!C && cur === C.steps.length - 1; },
+  /* 段の数。★2回目以降は2つになる（① 今月の入力 ② 確認）ので、
+     外から歩く道具（measure-pay.mjs）が 5 を決め打ちしないために要る。 */
+  count: function () { return C ? C.steps.length : 0; },
   saveDraft: saveDraft,
+  /* ── 月ごとの棚（2026-09-12）────────────────────────────────
+     「新しい月を入力する」を押した人の、元の月の入力を失わないためだけの仕掛け。
+     ⚠️ archiveMonth() は**実績を消す前**に呼ぶ（消したあとでは移す中身が無い）。 */
+  archiveMonth: archiveMonth,
+  monthDraft: function (ym) { return monthDraft(ym); },
+  restoreMonth: restoreMonth,
+  /* 対象月を変えた人に「その月の入力が残っています／戻す」を出す（出すだけ）。 */
+  offerMonth: offerMonth,
   /* ★下書きの押印。pay-report.html が pv_pay_last と pv_pay_claim に
      **同じ印**を押すために要る（別々に作ると同じ人に違う印が付く）。 */
   fp: fp,
@@ -799,6 +970,7 @@ var API = {
   clearDraft: function () {
     doneSaving = true;
     clearTimeout(saveTimer);
+    archive = [];
     draftClear();
     var box = $('wz-draft');
     if (box) box.hidden = true;

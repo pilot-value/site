@@ -368,6 +368,15 @@ begin
            -- 内訳を書いたか。pv_my_give の detailed と**同じ条件**にそろえる
            (r.base_pay is not null or r.guarantee_pay is not null
             or r.command_pay is not null or r.pay_items is not null) as det,
+           /* ★内訳のうち、金額を書いていない行がある月（2026-09-12）。
+              画面が pay_items.partial に立てる。ここで拾わないと、
+              「変動給を1行だけ書いて、残りは分からないので空にした」月が
+              **全額が揃った内訳**として割合の母集団に入り、固定給の割合が
+              実際より高く出る。det と同じ考え方で、観測していないものを
+              0% と読まないための印。
+              ⚠️ これは**閲覧の資格ではない**（pv_my_give の門はこれを読まない）。
+                 その人の REAL PAY / DEEP PAY は今までどおり開く。 */
+           coalesce((r.pay_items->>'partial')::boolean, false)          as part,
            /* ── その月の現金（賞与ぬき）──────────────────────
               総支給がある人はそこから当月賞与を引く。無い人は
               pv_annual_total の第2分岐と**同じ並び**を12で割った形。
@@ -672,32 +681,37 @@ begin
            end                                                             as ucm,
            bool_or(vf)                                                     as vf,
            /* ── 給与構成の割合（8本）────────────────────────────
-              ★ここだけ filter (where det) を掛ける（2026-09-01）。
+              ★ここだけ filter (where det and not part) を掛ける
+                （det は 2026-09-01・part は 2026-09-12）。
                 内訳を書いていない月は「固定給 0%」ではなく**観測していない**。
                 混ぜると、内訳を書いた月が少ない人ほど割合が低く出て、
                 「1人が3か月出して内訳は1か月だけ」で固定給が 100% → 33% に化ける。
                 会社どうしの比較が静かに壊れる（画面は普通に動いたまま）。
               ⚠️ 上の年収（usd_y）・Pay per Block Hour（ubh）・働き方（block_h /
                  duty_h / duty_d / stay_n）・賞与（b_share / ucm）には**掛けない。**
-                 総支給しか書いていない月も、そちらの統計には引き続き使う。 */
+                 総支給しか書いていない月も、**内訳を一部だけ書いた月**も、
+                 そちらの統計には引き続き使う（年収は総支給から出ていて欠けていない）。
+              ⚠️ having は bool_or(det) のまま。part で母集団から人を落とすと、
+                 その人の年収・時間あたりまで DEEP PAY から消える。
+                 落とすのは**割合の計算に使う月**だけ。 */
            (percentile_cont(0.5) within group (order by a_fixed / cash_m)
-              filter (where det))::numeric as s_fixed,
+              filter (where det and not part))::numeric as s_fixed,
            (percentile_cont(0.5) within group (order by a_var   / cash_m)
-              filter (where det))::numeric as s_var,
+              filter (where det and not part))::numeric as s_var,
            (percentile_cont(0.5) within group (order by a_cmd   / cash_m)
-              filter (where det))::numeric as s_cmd,
+              filter (where det and not part))::numeric as s_cmd,
            (percentile_cont(0.5) within group (order by a_role  / cash_m)
-              filter (where det))::numeric as s_role,
+              filter (where det and not part))::numeric as s_role,
            (percentile_cont(0.5) within group (order by a_pd    / cash_m)
-              filter (where det))::numeric as s_pd,
+              filter (where det and not part))::numeric as s_pd,
            (percentile_cont(0.5) within group (order by a_house / cash_m)
-              filter (where det))::numeric as s_house,
+              filter (where det and not part))::numeric as s_house,
            (percentile_cont(0.5) within group (order by a_other / cash_m)
-              filter (where det))::numeric as s_other,
+              filter (where det and not part))::numeric as s_other,
            (percentile_cont(0.5) within group (order by
               greatest(cash_m - (a_fixed + a_var + a_cmd + a_role
                                  + a_pd + a_house + a_other), 0) / cash_m)
-              filter (where det))::numeric as s_rest
+              filter (where det and not part))::numeric as s_rest
       from mrow
      group by human
     having bool_or(det)          -- 総支給だけの人は「給与の中身」の母集団に入れない
