@@ -908,3 +908,209 @@ export function buildRealPay(p, o = {}) {
 
   return { lang, subject, html, text, unsubUrl, oneClickUrl, payUrl: payUrl(langs[0]) };
 }
+
+/* ════════════════════════════════════════════════════════════════
+   この1ヶ月のお知らせ（buildUpdate）
+
+   ── 誰に送るか ────────────────────────────────────────────────
+   buildFounding / buildRealPay と同じ。**登録者全員**（email_opt_in で絞らない）。
+   だから勧誘を1文も含まない「サービスからのお知らせ」に保つ。勧誘が入った
+   時点で特定電子メール法の広告宣伝メールになり、4条の「送信者の氏名・住所」の
+   表示義務が発生する（運営者の身元を守る方針と正面からぶつかる）。
+   オーナーの原稿にあった末尾の「ぜひPilot Valueを紹介してください」は、
+   その理由で「マイページの INVITE から招待できます」という事実の案内に
+   置き換えてある（2026-09-12 オーナー決定）。
+
+   ── ★文面はオーナーの原稿そのまま ────────────────────────────
+   2026-09-12、こちらで作文して差し戻された。**書き直さない。**
+   原稿から変えてよいのは次の3つだけで、どれも理由がある。
+     A 航空会社の行を1ブロック挿入（★海外が先・日本があと。オーナー指示）
+     B 「約35件増加」→「約44件増加」。35 は pay_reports だけの数で、
+       「累計50件」は REAL PAY の画面の数＝基準が違う。同じ基準に揃えた
+     C 末尾の紹介の1文 → INVITE の案内（上の理由）
+   原稿に無いものを足さない ── 見出し・箇条書き・締めのタグライン・
+   21社や67人といった他の数字。器（黒帯＋白いカード＋金のボタン）だけ
+   buildRealPay から借りる。
+
+   ── 本文に入れないもの ────────────────────────────────────────
+   ・金額・職位名・明細の項目名（build() / buildFounding() と同じ）
+   ・★1件しか記録の無い航空会社の名前。その1人が誰か絞られる。
+     下の UPDATE_AIRLINES は全社が2件以上あることを確認して選んである
+   ・★UPDATE_STATS 以外の数字（人数・会員数）。会員の規模が読める
+   → db/test-announce.mjs の⑥が全部を検査して固定している。
+   ════════════════════════════════════════════════════════════════ */
+
+/* ★本文に出る数字はここ1か所だけ。原稿に直書きしない（2か所に割れる）。
+     total     … REAL PAY の画面に出る実給与の件数
+     milestone … 本文の「累計◯件を突破」。total を超えない値しか書けない
+     added     … 直近30日で増えた数（同じ基準）
+   ★送る前に node db/usage.mjs --days 30 の 3-c で取り直す。
+     asOf より後に送るなら必ず数え直す（腐る数字なので日付を持たせてある）。 */
+export const UPDATE_STATS = { asOf: '2026-09-12', total: 51, milestone: 50, added: 44 };
+
+/* ★名前を出す航空会社。★海外（intl）が先・日本（jp）があと（オーナー指示）。
+   2026-09-12 時点で全社が2件以上ある。**1件しかない社をここに足さない**
+   ── 名指した瞬間、その1人が誰か絞られる。
+   表記はオーナーの原稿どおり（salary-data.mjs の slug ではなく表示名を持つ）。 */
+export const UPDATE_AIRLINES = {
+  ja: {
+    intl: ['キャセイパシフィック航空', 'エティハド航空', 'シンガポール航空', 'カンタス航空'],
+    jp:   ['全日本空輸（ANA）', '日本航空（JAL）', 'ジェットスター・ジャパン'],
+  },
+  en: {
+    intl: ['Cathay Pacific', 'Etihad Airways', 'Singapore Airlines', 'Qantas'],
+    jp:   ['All Nippon Airways (ANA)', 'Japan Airlines (JAL)', 'Jetstar Japan'],
+  },
+};
+
+/* ★日英ともに入れるときは日本語が上・英語が下（buildRealPay と同じ向き）。
+   REALPAY_BOTH_ORDER を共有せず別に持つのは、あちらは過去に送った1通の
+   記録でもあるため。片方の都合でもう片方の並びを動かさない。 */
+const UPDATE_BOTH_ORDER = ['ja', 'en'];
+
+function updateCopy(lang, s = UPDATE_STATS) {
+  const a = UPDATE_AIRLINES[lang === 'en' ? 'en' : 'ja'];
+  if (lang === 'ja') {
+    return {
+      subject: `【PILOT VALUE】給与提出が累計${s.milestone}件突破`,
+      /* ★以下、オーナーの原稿そのまま。数字だけ差し込む。 */
+      lead: [
+        'いつもPilot Valueをご利用いただきありがとうございます。',
+        `この1ヶ月で新しいパイロットの参加が増え、給与データも約${s.added}件増加。累計${s.milestone}件を突破しました。`,
+        '日本だけでなく、海外のパイロットからも少しずつデータが集まり始めています。',
+      ],
+      airlines: [a.intl.join('／'), a.jp.join('／') + '　ほか'],
+      body: [
+        '同時にPilot Valueでは、REAL PAYを中心に、給与提出のしやすさ、スマホUI、データ精度、プライバシー保護など、サイト全体を大きく改善しています。',
+        'これからも参加航空会社・国・機能をさらに拡大していきます。',
+        'Pilot Valueは、参加するパイロットが増えるほど価値が高まるサービスです。',
+      ],
+      /* ★C。原稿の「ぜひPilot Valueを紹介してください」の置き換え。
+         link の文字だけが招待ページへのリンクになる。 */
+      invite: {
+        pre: '同期、元同僚、訓練仲間、海外のパイロットなど、周りに興味を持ってくれそうな方がいれば、マイページの',
+        link: 'INVITE',
+        post: 'から匿名のままPilot Valueに招待できます。',
+      },
+      close: [
+        '世界中のパイロットが、自分の待遇を知り、より良いキャリアを選べる場所へ。',
+        '一緒にPilot Valueを大きくしていけたら嬉しいです。✈️',
+      ],
+      cta: 'REAL PAY を見る',
+      why: 'このメールは、PILOT VALUE にご登録いただいた方へ、サービスからのお知らせとしてお送りしています。',
+      unsub: '配信を停止する',
+    };
+  }
+  return {
+    subject: 'PILOT VALUE is growing ✈️',
+    lead: [
+      'Thank you for being part of Pilot Value.',
+      `Over the past month, more pilots have joined the platform, and around ${s.added} new pay reports have been submitted, bringing the total to more than ${s.milestone}.`,
+      "We're also starting to see contributions from pilots outside Japan.",
+    ],
+    airlines: [a.intl.join(' / '), a.jp.join(' / ') + ', and others'],
+    body: [
+      "At the same time, we've been improving Pilot Value across the board — including REAL PAY, the pay submission flow, mobile usability, data quality, and privacy protection.",
+      'And this is just the beginning.',
+      'Pilot Value becomes more valuable as more pilots take part.',
+    ],
+    invite: {
+      pre: 'If you know pilots who may find it useful — colleagues, former coworkers, training friends, or pilots overseas — you can invite them from ',
+      link: 'INVITE',
+      post: ' on your account page, anonymously.',
+    },
+    close: [
+      'Our goal is to build a place where pilots around the world can better understand their value, compare working conditions, and make better career decisions.',
+      "Let's grow Pilot Value together. ✈️",
+    ],
+    cta: 'Open REAL PAY',
+    why: 'This is a service notice sent to people registered with PILOT VALUE.',
+    unsub: 'Unsubscribe',
+  };
+}
+
+/* p = { name, country, airline_region, unsub_token }
+   o = { siteUrl, supabaseUrl, adminEmail, lang }  ← lang を渡すと判定を上書き
+
+   ★name は言語の判定にしか使わない。宛名には出さない（他の3通と同じ）。 */
+export function buildUpdate(p, o = {}) {
+  const opt = { ...DEFAULTS, ...o };
+  const site = String(opt.siteUrl).replace(/\/+$/, '');
+  /* 言語の決め方は buildRealPay と同じものを借りる（新しい判定を作らない）。 */
+  const lang = opt.lang || realPayLangOf(p);
+  const langs = lang === 'both' ? UPDATE_BOTH_ORDER : [lang];
+
+  const pre = (l) => (l === 'en' ? 'en/' : '');
+  const payUrl = (l) => `${site}/${pre(l)}actual-pay.html`;
+  /* ★招待の入口は invite.html の1枚だけ（profile.html に作り直さない）。
+     追跡用のパラメータを付けない ── 受信者ごとの識別子を URL に残さない。 */
+  const inviteUrl = (l) => `${site}/${pre(l)}invite.html`;
+  const unsubPage = (l) => `${site}/${pre(l)}unsubscribe.html?token=${encodeURIComponent(p?.unsub_token || '')}`;
+  const unsubUrl = unsubPage(langs[0]);
+  const oneClickUrl = opt.supabaseUrl
+    ? `${String(opt.supabaseUrl).replace(/\/+$/, '')}/functions/v1/remind-payslip?u=${encodeURIComponent(p?.unsub_token || '')}`
+    : '';
+
+  const parts = langs.map((l) => ({ l, t: updateCopy(l), u: payUrl(l), iv: inviteUrl(l) }));
+
+  const subject = lang === 'both'
+    ? `${parts[0].t.subject} / ${parts[1].t.subject}`
+    : parts[0].t.subject;
+
+  const para = (s) => `<p style="margin:0 0 16px;color:#333">${esc(s)}</p>`;
+
+  const blockHtml4 = (t, u, iv) => `
+    ${t.lead.map(para).join('')}
+    <p style="margin:0 0 18px;padding:12px 16px;background:#f7f9fb;border-left:3px solid #f5c842;color:#1a1a1a;font-size:13px;line-height:1.9;font-weight:700">${
+      t.airlines.map(esc).join('<br>')}</p>
+    ${t.body.map(para).join('')}
+    <p style="margin:0 0 16px;color:#333">${esc(t.invite.pre)}<a href="${esc(iv)}" style="color:#b8860b;font-weight:800;text-decoration:underline">${esc(t.invite.link)}</a>${esc(t.invite.post)}</p>
+    ${t.close.map(para).join('')}
+    <p style="margin:22px 0 0">
+      <a href="${esc(u)}" style="display:inline-block;background:#f5c842;color:#111;text-decoration:none;font-weight:800;padding:12px 22px;border-radius:10px">${esc(t.cta)}</a>
+    </p>`;
+
+  /* 文字版にはアンカーが無いので、招待の URL を裸で1行足す。 */
+  const blockText4 = (t, u, iv) => [
+    ...t.lead.flatMap((s) => [strip(s), '']),
+    ...t.airlines.map(strip), '',
+    ...t.body.flatMap((s) => [strip(s), '']),
+    strip(t.invite.pre + t.invite.link + t.invite.post),
+    '  ' + iv, '',
+    ...t.close.flatMap((s) => [strip(s), '']),
+    `${strip(t.cta)}: ${u}`,
+  ].join('\n');
+
+  /* ★足元は日英ともに出す（全員に送るので、解除のしかたが読めない人を作らない）。 */
+  const feet = parts.map((x) => x.t);
+  const unsubLink = parts
+    .map((x) => `<a href="${esc(unsubPage(x.l))}" style="color:#6b7280">${esc(x.t.unsub)}</a>`)
+    .join(' / ');
+
+  const html =
+    `<div style="background:#f3f5f8;padding:24px 12px;font-family:-apple-system,'Segoe UI','Noto Sans JP',sans-serif">
+      <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;border:1px solid #e6e9ef">
+        <div style="background:#0a0c0f;padding:18px 24px">
+          <span style="color:#f5c842;font-weight:800;letter-spacing:.04em;font-size:15px">PILOT VALUE</span>
+        </div>
+        <div style="padding:26px 24px;color:#1f2937;font-size:14px;line-height:1.8">
+          ${parts.map((x) => blockHtml4(x.t, x.u, x.iv))
+            .reduce((acc, b, i) => acc + dividerFor(langs[i]) + b)}
+        </div>
+        <div style="padding:16px 24px;border-top:1px solid #eef0f4;color:#9aa5b1;font-size:11px;line-height:1.7">
+          ${feet.map((t) => esc(t.why)).join('<br>')}<br>
+          ${unsubLink}
+          ・<a href="${esc(site)}" style="color:#6b7280">${esc(site.replace(/^https?:\/\//, ''))}</a>
+        </div>
+      </div>
+    </div>`;
+
+  const text = [
+    parts.map((x) => blockText4(x.t, x.u, x.iv)).join('\n\n— — —\n\n'),
+    '', '--',
+    ...feet.map((t) => strip(t.why)),
+    ...parts.map((x) => `${strip(x.t.unsub)}: ${unsubPage(x.l)}`),
+  ].join('\n');
+
+  return { lang, subject, html, text, unsubUrl, oneClickUrl, payUrl: payUrl(langs[0]), inviteUrl: inviteUrl(langs[0]) };
+}

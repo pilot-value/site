@@ -302,6 +302,39 @@ node mail-bot/send.mjs announce --send                # 本番
 - 解除は受信箱のワンクリック（`List-Unsubscribe`）と本文のリンクの両方。
   押した先は本番で動いている `remind-payslip?u=` で、`email_opt_in` が落ちる。
 
+### この1ヶ月のお知らせ（send.mjs update）
+
+1ヶ月ぶんの伸びを登録者全員に報告する1通。文面は
+[announce-mail.mjs](announce-mail.mjs) の `buildUpdate`。**cron には登録しない**（一度きり）。
+
+```
+node db/usage.mjs --days 30                         # ① まず本番の数字を数え直す（読むだけ）
+node mail-bot/send.mjs update                       # ② 送らない。誰に何が届くか＋本文に書く数字が出る
+node shot-remind.mjs --update                       # ③ 本文を絵で見る（5通り）
+node mail-bot/send.mjs update --to=info@pilot-value.com --send            # ④ ★自分の受信箱で現物を見る
+node mail-bot/send.mjs update --to=info@pilot-value.com --send --lang=en  #    英語版も
+node mail-bot/send.mjs update --send                # ⑤ 本番
+```
+
+- **★数字は `UPDATE_STATS` の1か所だけ**（`asOf` / `total` / `milestone` / `added`）。
+  本文に直書きしない。②の1行目がその数字をそのまま出すので、**何件と書いたメールが飛ぶのかを
+  送る前に必ず目で見る**。今日が `asOf` と違えば警告が出る＝そのときは①から数え直す。
+  出どころは `db/usage.mjs` の 3-c「REAL PAY の画面に出る数」。
+  ⚠️ **`pay_reports` だけの件数と混ぜない。** 会員がサイトを開いて数えたときに合うのは 3-c のほう。
+- **★名前を出す航空会社は `UPDATE_AIRLINES` の7社だけ**（海外4社 → 日本3社の順）。
+  **1件しかない社を足さない** ―― 名指した瞬間、その1人が誰か絞られる。
+  一覧を変えると `db/test-announce.mjs` の⑥が落ちる。落ちたら、直す前に件数を数え直すこと。
+- **文面はオーナーの原稿。書き直さない**（2026-09-12 に作文して差し戻された）。
+  見出し・箇条書き・締めのタグラインを足さない。⑥がそれも見ている。
+- **`update` も既定は「送らない」。** 飛ぶのは `--send` を書いたときだけ。
+- **1人1通。** 控えは `.send-state.json` の **`updateSent`**（`announceSent` /
+  `foundingSent` / `realPaySent` とは別の鍵。使い回すと過去のお知らせを受け取った人に届かない）。
+- **`email_opt_in` で絞らず登録者全員に送る。** だから本文に勧誘を1文も入れない
+  ―― 入れた時点で広告宣伝メールになり、特定電子メール法4条で送信者の氏名・住所を
+  本文に書く義務が出る（運営者の身元を守る方針と正面からぶつかる）。
+- 招待は「マイページの INVITE から匿名のまま招待できます」という**事実の案内**。
+  リンク先は `invite.html` の1枚だけで、追跡用のパラメータは付けない。
+
 ---
 
 ## 定期実行（cron 例）

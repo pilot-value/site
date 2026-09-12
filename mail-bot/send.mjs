@@ -63,10 +63,10 @@ const langArg  = (args.find(a => a.startsWith('--lang=')) || '').split('=')[1]; 
 const toArg    = (args.find(a => a.startsWith('--to=')) || '').split('=')[1];    // 自分宛の下見だけに使う
 /* announce は「--send と書いたときだけ送る」。他のモードは従来どおり
    「--dry-run と書いたときだけ送らない」。既定を逆にしてあるのはわざと。 */
-const NEEDS_SEND = MODE === 'announce' || MODE === 'founding' || MODE === 'realpay';
+const NEEDS_SEND = MODE === 'announce' || MODE === 'founding' || MODE === 'realpay' || MODE === 'update';
 const DRY = NEEDS_SEND ? !args.includes('--send') : args.includes('--dry-run');
 
-if (!['welcome', 'digest', 'announce', 'founding', 'realpay'].includes(MODE)) { console.error('使い方: node mail-bot/send.mjs <welcome|digest|announce|founding|realpay> [--dry-run] [--send] [--only=ADDR] [--to=ADDR] [--lang=ja|en|both] [--backfill] [--since=ISO]'); process.exit(1); }
+if (!['welcome', 'digest', 'announce', 'founding', 'realpay', 'update'].includes(MODE)) { console.error('使い方: node mail-bot/send.mjs <welcome|digest|announce|founding|realpay|update> [--dry-run] [--send] [--only=ADDR] [--to=ADDR] [--lang=ja|en|both] [--backfill] [--since=ISO]'); process.exit(1); }
 if (!SUPABASE_URL || !SERVICE_KEY) { console.error('❌ SUPABASE_URL / SUPABASE_SERVICE_KEY 未設定'); process.exit(1); }
 if (!DRY && !RESEND_KEY) { console.error('❌ RESEND_API_KEY 未設定（実送信には必須）'); process.exit(1); }
 
@@ -132,7 +132,9 @@ const stateFile = join(__dir, '.send-state.json');
    受け取った人が FOUNDING PILOT 100 のお知らせを受け取れない（逆も同じ）。 */
 /* realPaySent も別の鍵。announce / founding と同じ鍵にすると、
    前のお知らせを受け取った人に REAL PAY のお知らせが届かなくなる。 */
-let state = { lastWelcomeAt: null, lastDigestAt: null, announceSent: {}, foundingSent: {}, realPaySent: {} };
+/* updateSent も別の鍵。ここを使い回すと、過去3通のどれかを受け取った人に
+   今回のお知らせが1通も届かない（しかも黙って「送信済み」と数えられる）。 */
+let state = { lastWelcomeAt: null, lastDigestAt: null, announceSent: {}, foundingSent: {}, realPaySent: {}, updateSent: {} };
 if (existsSync(stateFile)) { try { state = { ...state, ...JSON.parse(readFileSync(stateFile, 'utf8')) }; } catch {} }
 const saveState = () => writeFileSync(stateFile, JSON.stringify(state, null, 2));
 const nowIso = new Date().toISOString();
@@ -495,12 +497,101 @@ async function runRealPay() {
   if (DRY) console.log('          本文を絵で見る: node shot-remind.mjs --realpay');
 }
 
+/* ════════════════════ update（この1ヶ月のお知らせ）════════════════════
+   realpay と同じ形。★email_opt_in で絞らず登録者全員に送るので、文面は
+   勧誘を1文も含まない「サービスからのお知らせ」でなければならない
+   （mail-bot/announce-mail.mjs の buildUpdate の頭に理由が書いてある）。
+   ★鍵は updateSent。realPaySent を使い回すと、REAL PAY のお知らせを
+   受け取った41人に今回が1通も届かない。 */
+async function runUpdate() {
+  const { buildUpdate, langModeOf, UPDATE_STATS } = await import('./announce-mail.mjs');
+  const S = UPDATE_STATS;
+
+  /* ★何件と書いたメールが飛ぶのかを、送る前に必ず目で見る。
+     数字は本文の1か所（UPDATE_STATS）から来る＝ここに出るものが本文に載る。 */
+  const today = nowIso.slice(0, 10);
+  console.log(`[update] 本文に書く数字： 累計 ${S.milestone}件突破（実測 ${S.total}件）／この1ヶ月 +${S.added}件（AS_OF ${S.asOf}）`);
+  if (today !== S.asOf) {
+    console.log(`         ⚠️ 今日は ${today}。AS_OF と違うので node db/usage.mjs --days 30 で数え直すこと`);
+  }
+
+  /* ★自分の受信箱で現物を見る逃げ道。会員には1通も出さない。 */
+  if (toArg) {
+    const me = { id: 'self-preview', email: toArg, name: null, country: null, unsub_token: 'preview-token' };
+    const b = buildUpdate(me, { siteUrl: SITE_URL, supabaseUrl: SUPABASE_URL, adminEmail: ADMIN_EMAIL, lang: langArg });
+    console.log(`[update] 自分宛のプレビュー（会員には送りません）… ${b.lang}`);
+    console.log(`          ${b.subject}`);
+    if (DRY) return console.log('          ※ 送りません。実際に送るには --send を付けてください。');
+    await sendEmail(toArg, '[preview] ' + b.subject, b.html, { text: b.text, replyTo: ADMIN_EMAIL });
+    return console.log('  ✓ 送りました');
+  }
+
+  if (TEST_PATTERNS.length === 0) {
+    console.error('❌ PV_TEST_EMAILS が mail-bot/.env にありません。');
+    console.error('   動作確認用のアカウントを外せないので止めます（送信は取り消せません）。');
+    process.exit(1);
+  }
+
+  /* ★email_opt_in を条件に入れない。全員が対象。 */
+  const people = await sbSelect('profiles', 'id,name,email,country,company,unsub_token',
+    [['order', 'created_at.asc']]);
+
+  const sentBefore = state.updateSent || {};
+  let targets = people.filter(m => m.email && String(m.email).includes('@'));
+  const total = targets.length;
+  const testers = targets.filter(m => isTestEmail(m.email)).length;
+  targets = targets.filter(m => !isTestEmail(m.email));
+  const already = targets.filter(m => sentBefore[m.id]).length;
+  targets = targets.filter(m => !sentBefore[m.id]);
+  if (onlyArg) targets = targets.filter(m => String(m.email).toLowerCase() === onlyArg.toLowerCase());
+
+  /* 勤務先を見るのは「氏名も居住国も手がかりが無い人」だけ（realpay と同じ）。 */
+  const needRegion = [...new Set(targets
+    .filter(m => langModeOf(m) === 'both' && String(m.company ?? '').trim())
+    .map(m => String(m.company).trim()))];
+  const regions = await airlineRegionMap(needRegion);
+  for (const m of targets) m.airline_region = regions.get(String(m.company ?? '').trim()) || '';
+
+  console.log(`[update] 登録 ${total} 名／動作確認 ${testers} 名を除外／送信済み ${already} 名／今回の対象 ${targets.length} 名`
+    + (onlyArg ? `（--only=${onlyArg}）` : ''));
+  if (DRY) console.log('          ※ 送りません。実際に送るには --send を付けてください。');
+  if (targets.length === 0) return;
+
+  let sent = 0;
+  const tally = { ja: 0, en: 0, both: 0 };
+  for (const m of targets) {
+    const b = buildUpdate(m, { siteUrl: SITE_URL, supabaseUrl: SUPABASE_URL, adminEmail: ADMIN_EMAIL, lang: langArg });
+    tally[b.lang] = (tally[b.lang] || 0) + 1;
+    const headers = {
+      'List-Unsubscribe': (b.oneClickUrl ? `<${b.oneClickUrl}>, ` : '') + `<${b.unsubUrl}>, <mailto:${ADMIN_EMAIL}?subject=unsubscribe>`,
+      ...(b.oneClickUrl ? { 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' } : {}),
+    };
+    try {
+      await sendEmail(m.email, b.subject, b.html, {
+        text: b.text, headers, replyTo: ADMIN_EMAIL,
+        /* ★月を含める。次の月次お知らせと鍵がぶつからない。 */
+        idempotencyKey: `pv-update-${S.asOf.slice(0, 7)}-${m.id}`,
+      });
+      sent++;
+      if (!DRY) { (state.updateSent ||= {})[m.id] = nowIso; saveState(); }
+      /* 宛先は出さない。ここの出力を貼って渡すと会員のメールが漏れる。 */
+      const L = { ja: '日本語', en: '英語', both: '日英ともに' }[b.lang] || b.lang;
+      console.log(`${DRY ? '  [dry]' : '  ✓'} ${L.padEnd(5, '\u3000')} … ${b.subject}`);
+      if (!DRY) await new Promise(r => setTimeout(r, 320));
+    } catch (e) { console.error(`  ❌ 1名ぶん失敗: ${e.message}`); }
+  }
+  console.log(`[update] ${DRY ? 'プレビュー' : '送信'} ${sent}/${targets.length}`
+    + `（日本語 ${tally.ja} / 英語 ${tally.en} / 日英ともに ${tally.both}）`);
+  if (DRY) console.log('          本文を絵で見る: node shot-remind.mjs --update');
+}
+
 (async () => {
   try {
     if (MODE === 'welcome') await runWelcome();
     else if (MODE === 'announce') await runAnnounce();
     else if (MODE === 'founding') await runFounding();
     else if (MODE === 'realpay') await runRealPay();
+    else if (MODE === 'update') await runUpdate();
     else await runDigest();
   } catch (e) { console.error('❌', e.message); process.exit(1); }
 })();

@@ -29,6 +29,12 @@
       ④と同じく登録者全員に送る。加えて、書いた主張が actual-pay.js と
       1文字違わないことを見る（画面の文言を直したらここが落ちる＝
       メールに古い主張が残らない）。
+
+   ⑥ この1ヶ月のお知らせ（buildUpdate）
+      ★このメールだけ航空会社の名前と件数を**わざと書く**（2026-09-12 オーナー決定）。
+      だから①④⑤の「社名ゼロ・数字ゼロ」は当てられない。代わりに逆向きに縛る
+      ―― 出てよい社名は UPDATE_AIRLINES の7社だけ・出てよい数字は
+      UPDATE_STATS から来る2つだけ。あとから1件しかない社や会員数を足したら落ちる。
    ════════════════════════════════════════════════════════════════ */
 import { readFileSync, statSync, readdirSync } from 'fs';
 import { createHash } from 'crypto';
@@ -41,7 +47,8 @@ const read = (p) => readFileSync(join(ROOT, p), 'utf8');
 let pass = 0, fail = 0;
 const ok = (c, m, x = '') => { c ? (pass++, console.log(`  ✅ ${m}`)) : (fail++, console.log(`  ❌ ${m}${x ? '\n     ' + x : ''}`)); };
 
-const { build, buildFounding, buildRealPay, realPayLangOf, langModeOf, SAMPLE, IMG_VER } = await import(join(ROOT, 'mail-bot/announce-mail.mjs'));
+const { build, buildFounding, buildRealPay, buildUpdate, realPayLangOf, langModeOf,
+        SAMPLE, IMG_VER, UPDATE_STATS, UPDATE_AIRLINES } = await import(join(ROOT, 'mail-bot/announce-mail.mjs'));
 
 /* 架空の人。実在の氏名は使わない（このリポジトリは PUBLIC）。 */
 const P = {
@@ -722,6 +729,235 @@ for (const [k, b] of RALL) ok(b.subject.length <= 78, `realpay/${k}: 件名が 7
      && RALL.every(([, b]) => b.text.includes('Know your value. Raise our value.')),
      'realpay: 共通のタグラインが pv-referral.js と同じ');
 }
+
+/* ════════ ⑥ この1ヶ月のお知らせ ══════════════════════════════════
+   buildUpdate()。④⑤と同じく登録者全員へ送るので、勧誘・金額・明細の
+   項目名の見張りはそのまま継ぐ。**違うのは2つだけ**で、どちらも
+   2026-09-12 のオーナー決定。
+
+   ・★航空会社の名前を出す。①④⑤の「社名が1つも入っていない」は当てない。
+     代わりに UPDATE_AIRLINES の7社と**完全に一致**することを見る。
+     ここを「含む」で見ると、1件しかない社をあとから足しても通ってしまう
+     ―― 名指した瞬間、その1社の1人が誰か絞られる。
+   ・★件数を出す。⑤の「数字ゼロ」は当てない。代わりに UPDATE_STATS から
+     来る数字だけが出ることを見る（会員数・人数を足したら落ちる）。
+
+   ・★文面はオーナーの原稿。こちらで作文して一度差し戻された（同日）。
+     原稿に無い見出し・箇条書き・締めのタグラインが混ざっていないことも見る。
+   ════════════════════════════════════════════════════════════════ */
+console.log('\n── ⑥ この1ヶ月のお知らせ ──');
+
+const UP = {
+  ja:   { name: '高橋 蓮',     country: '日本', unsub_token: 'up-ja' },
+  en:   { name: 'Alex Mercer', country: 'UAE',  unsub_token: 'up-en' },
+  both: { name: 'Ren Aoki',    country: null,   unsub_token: 'up-both' },
+};
+const UALL = Object.entries(UP).map(([k, x]) => [k, buildUpdate(x, O)]);
+
+/* 数字の土台。milestone は total を超えられない（超えたら本文が嘘になる）。 */
+{
+  const S = UPDATE_STATS;
+  ok(/^\d{4}-\d{2}-\d{2}$/.test(S.asOf), `update: 数字にいつ数えたかが付いている（${S.asOf}）`);
+  ok(Number.isInteger(S.total) && Number.isInteger(S.milestone) && Number.isInteger(S.added),
+     'update: 件数が整数');
+  ok(S.milestone <= S.total, `update: 「${S.milestone}件突破」が実測 ${S.total} 件を超えていない`);
+  ok(S.added <= S.total, `update: この1ヶ月の増加が累計を超えていない`);
+}
+
+/* 入れてはいけないもの。①④⑤と同じ物差し（★社名だけ外す。上のコメント）。 */
+for (const [k, b] of UALL) {
+  const body = b.html + '\n' + b.subject + '\n' + b.text;
+  const money = MONEY.find(([re]) => re.test(body));
+  ok(!money, `update/${k}: 金額が1つも入っていない`, money ? `${money[1]} → ${body.match(money[0])[0]}` : '');
+  const low = body.toLowerCase();
+  const ded = DEDUCT.find((w) => low.includes(w.toLowerCase()));
+  ok(!ded, `update/${k}: 控除の項目名が入っていない`, ded || '');
+  const slip = SLIP.find((w) => low.includes(w.toLowerCase()));
+  ok(!slip, `update/${k}: 明細の項目名が入っていない`, slip || '');
+  ok(!/賞与|ボーナス|\bbonus/.test(low), `update/${k}: 賞与のことを書いていない`);
+  const over = OVERCLAIM.find((re) => re.test(body));
+  ok(!over, `update/${k}: 特定されないと言い切っていない`, over ? String(over) : '');
+}
+
+/* ★勧誘の言い回しが入っていないこと。原稿の末尾「ぜひPilot Valueを
+   紹介してください」は INVITE の案内に置き換えてある（戻すと広告宣伝メールになり、
+   本文に運営者の氏名・住所を書く義務が出る）。 */
+for (const [k, b] of UALL) {
+  const low = (b.html + b.subject + b.text).toLowerCase();
+  const hit = SOLICIT.find((w) => low.includes(w.toLowerCase()));
+  ok(!hit, `update/${k}: 勧誘の言い回しが入っていない`, hit || '');
+  ok(!/pay-report\.html/.test(b.html + b.text), `update/${k}: 給与フォームへの導線が無い`);
+}
+
+/* ★出てよい社名は7社だけ。SSOT の112社を全部当てて、
+   UPDATE_AIRLINES に無い社が1つでも出たら落とす。 */
+/* ★出す7社をここにも書き写して固定する。
+   この検査は鍵もネットも使わない＝**どの社が何件あるかを知る手段が無い**。
+   だから「1件しかない社に差し替えられていないか」は機械では見られない。
+   代わりに、一覧を1文字でも変えたらここが落ちるようにしてある。
+   落ちたら、直す前に db/usage.mjs で**その社が2件以上あることを数え直す**こと
+   ―― 1件しかない社を名指した瞬間、その1人が誰か絞られる。 */
+{
+  const PINNED = {
+    ja: { intl: ['キャセイパシフィック航空', 'エティハド航空', 'シンガポール航空', 'カンタス航空'],
+          jp:   ['全日本空輸（ANA）', '日本航空（JAL）', 'ジェットスター・ジャパン'] },
+    en: { intl: ['Cathay Pacific', 'Etihad Airways', 'Singapore Airlines', 'Qantas'],
+          jp:   ['All Nippon Airways (ANA)', 'Japan Airlines (JAL)', 'Jetstar Japan'] },
+  };
+  ok(JSON.stringify(UPDATE_AIRLINES) === JSON.stringify(PINNED),
+     'update: 出す航空会社が決めた7社のまま（変えたなら件数を数え直す）',
+     JSON.stringify(UPDATE_AIRLINES));
+}
+
+{
+  const listed = [...UPDATE_AIRLINES.ja.intl, ...UPDATE_AIRLINES.ja.jp,
+                  ...UPDATE_AIRLINES.en.intl, ...UPDATE_AIRLINES.en.jp];
+  ok(UPDATE_AIRLINES.ja.intl.length === 4 && UPDATE_AIRLINES.ja.jp.length === 3
+     && UPDATE_AIRLINES.en.intl.length === 4 && UPDATE_AIRLINES.en.jp.length === 3,
+     'update: 出す社は海外4社・日本3社（日英とも）');
+  for (const [k, b] of UALL) {
+    const body = b.html + b.subject + b.text;
+    /* 載せると決めた社名を消してから、残りに112社の名前が出ないかを見る。
+       長い方から消す（「日本航空（JAL）」を消す前に「JAL」で切らない）。 */
+    const rest = [...listed].sort((a, c) => c.length - a.length)
+      .reduce((acc, w) => acc.split(w).join(' '), body);
+    const stray = NAMES.find((n) => hitsName(rest, n));
+    ok(!stray, `update/${k}: 決めた7社のほかに航空会社名が出ない`, stray || '');
+  }
+}
+
+/* ★並びは海外が先・日本があと（オーナー指示）。日本が上に来たら落ちる。 */
+for (const [k, b] of UALL) {
+  const langs = b.lang === 'both' ? ['ja', 'en'] : [b.lang];
+  for (const l of langs) {
+    const A = UPDATE_AIRLINES[l];
+    const idx = [...A.intl, ...A.jp].map((n) => b.text.indexOf(n));
+    ok(idx.every((i) => i >= 0), `update/${k}/${l}: 7社とも本文に出ている`, idx.join(','));
+    ok(idx.every((i, j) => j === 0 || i > idx[j - 1]),
+       `update/${k}/${l}: 海外4社 → 日本3社 の順に並んでいる`, idx.join(','));
+  }
+}
+
+/* ★出てよい数字は UPDATE_STATS から来る2つだけ（＋日本語の「1ヶ月」）。
+   会員数・人数をあとから足したらここで落ちる。 */
+{
+  const S = UPDATE_STATS;
+  const allow = new Set([String(S.added), String(S.milestone), '1']);
+  for (const [k, b] of UALL) {
+    const visible = b.html
+      .replace(/<(script|style)[\s\S]*?<\/\1>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/&[a-z]+;/gi, ' ');
+    for (const [what, src] of [['文字版', b.subject + '\n' + b.text], ['HTML の見える文字', visible]]) {
+      const nums = [...new Set(String(src).match(/\d+/g) || [])];
+      const stray = nums.filter((n) => !allow.has(n));
+      ok(stray.length === 0, `update/${k}: ${what}に UPDATE_STATS 以外の数字が無い`, stray.join(','));
+    }
+    ok(b.text.includes(String(S.added)) && b.text.includes(String(S.milestone)),
+       `update/${k}: この1ヶ月の増加と累計の両方が本文に出ている`);
+    ok(b.subject.includes(String(S.milestone)) === (b.lang !== 'en'),
+       `update/${k}: 件名の数字（日本語の件名にだけ入る）`, b.subject);
+  }
+}
+
+/* ★招待のリンク（2026-09-12 オーナー指示）。入口は invite.html の1枚だけ。 */
+for (const [k, b] of UALL) {
+  const langs = b.lang === 'both' ? ['ja', 'en'] : [b.lang];
+  const n = (b.html.match(/invite\.html/g) || []).length;
+  ok(n === langs.length, `update/${k}: 招待のリンクが言語ごとに1つ`, String(n));
+  ok(b.text.includes('/invite.html'), `update/${k}: 文字版にも招待の URL がある（アンカーが無いため）`);
+  ok(!/invite\.html[?#]/.test(b.html + b.text), `update/${k}: 招待の URL に追跡用の印が付いていない`);
+  ok(b.html.includes('>INVITE</a>'), `update/${k}: 本文の「INVITE」の文字がそのままリンク`);
+  /* ボタンは REAL PAY へ行く1つだけ（招待は文字リンク）。 */
+  const btn = (b.html.match(/actual-pay\.html/g) || []).length;
+  ok(btn === langs.length, `update/${k}: 押すボタンは言語ごとに1つだけ`, String(btn));
+}
+ok(buildUpdate(UP.ja, O).text.includes('/invite.html')
+   && !buildUpdate(UP.ja, O).text.includes('/en/invite.html'),
+   'update: 日本語の人は日本語の招待ページへ');
+ok(buildUpdate(UP.en, O).text.includes('/en/invite.html'), 'update: 英語の人は英語の招待ページへ');
+
+/* ★原稿に無いものを足していない（2026-09-12、作文して差し戻された）。 */
+for (const [k, b] of UALL) {
+  ok(!/<h[1-6]|<li|<ul|<ol/i.test(b.html), `update/${k}: 見出しも箇条書きも足していない`);
+  ok(!/Know your value/i.test(b.text), `update/${k}: 締めのタグラインを足していない（原稿に無い）`);
+  ok(!/<img/i.test(b.html), `update/${k}: 画像を使っていない`);
+}
+/* 原稿の書き出しと結びが1文字違わず入っている。 */
+{
+  const bJa = buildUpdate(UP.ja, O), bEn = buildUpdate(UP.en, O);
+  ok(bJa.text.startsWith('いつもPilot Valueをご利用いただきありがとうございます。'),
+     'update/ja: 原稿どおりの書き出し');
+  ok(bJa.text.includes('一緒にPilot Valueを大きくしていけたら嬉しいです。✈️'),
+     'update/ja: 原稿どおりの結び');
+  ok(bEn.text.startsWith('Thank you for being part of Pilot Value.'),
+     'update/en: 原稿どおりの書き出し');
+  ok(bEn.text.includes("Let's grow Pilot Value together. ✈️"),
+     'update/en: 原稿どおりの結び');
+}
+
+/* 解除の導線。全員に送るぶん、欠けたときの傷が深い。 */
+for (const [k, b] of UALL) {
+  ok(b.unsubUrl.includes(UP[k].unsub_token), `update/${k}: 解除リンクがその人のトークンを持っている`);
+  ok(b.html.includes(b.unsubUrl), `update/${k}: HTML 版に解除リンクがある`);
+  ok(b.text.includes(b.unsubUrl), `update/${k}: 文字版にも解除リンクがある`);
+  ok(/functions\/v1\/remind-payslip\?u=/.test(b.oneClickUrl), `update/${k}: ワンクリック解除の宛先がある`);
+  ok(!/希望|opted in|opt-in/i.test(b.text), `update/${k}: 「希望した方に」と書いていない（全員に送るため）`);
+  ok(/お知らせとしてお送り|service notice/i.test(b.text), `update/${k}: 全員に送る理由を正直に書いている`);
+}
+{
+  const b = buildUpdate(UP.both, O);
+  ok(b.html.includes('/unsubscribe.html') && b.html.includes('/en/unsubscribe.html'),
+     'update/both: 解除リンクが日英2本ある');
+}
+
+/* ★日英ともは日本語が上・英語が下（realpay と同じ向き）。 */
+{
+  const b = buildUpdate(UP.both, O);
+  const jaAt = b.text.search(/[぀-ヿ一-鿿]/);
+  const enAt = b.text.search(/[A-Za-z]{4,}/);
+  ok(jaAt >= 0 && enAt >= 0 && jaAt < enAt, 'update/both: 日本語が上・英語が下', `ja@${jaAt} en@${enAt}`);
+  ok(b.html.includes('English follows.'), 'update/both: 仕切りが「English follows.」');
+  ok(!b.html.includes('日本語は下に続きます。'), 'update/both: 逆向きの仕切りが残っていない');
+}
+ok(!/[぀-ヿ一-鿿]/.test(buildUpdate(UP.en, O).text), 'update: 英語だけの人に日本語を混ぜない');
+
+/* 言語の決め方は buildRealPay と同じものを借りている（新しい判定を作っていない）。 */
+{
+  const over = { ...UP.both, airline_region: 'mideast' };
+  ok(buildUpdate(over, O).lang === 'en' && !/[぀-ヿ一-鿿]/.test(buildUpdate(over, O).text),
+     'update: 勤務先が海外の航空会社なら英語だけ');
+  ok(buildUpdate({ ...UP.both, airline_region: 'japan' }, O).lang === 'both',
+     'update: 勤務先が日本の航空会社なら日英ともに');
+  ok(buildUpdate({ ...UP.ja, airline_region: 'mideast' }, O).lang === 'ja',
+     'update: 氏名から分かる人は勤務先で上書きしない');
+}
+
+/* ★1種類しか作れないこと。提出の有無で文面を割ると、割った側が必ず勧誘になる。 */
+{
+  const a = buildUpdate({ name: '高橋 蓮', country: '日本', unsub_token: 'x' }, O);
+  const b = buildUpdate({ name: '高橋 蓮', country: '日本', unsub_token: 'x',
+    pay_report_count: 9, review_count: 4, founding_no: 7 }, O);
+  ok(a.html === b.html && a.subject === b.subject,
+     'update: 提出の有無を渡しても本文が変わらない（1種類しか作れない）');
+}
+
+/* 氏名を出さない（①④⑤と同じ理由）。 */
+for (const [k, b] of UALL) {
+  const nm = String(UP[k].name).split(/\s+/).filter((w) => w.length >= 2);
+  const hit = nm.find((w) => (b.subject + b.html + b.text).includes(w));
+  ok(!hit, `update/${k}: 氏名が件名にも本文にも出ない`, hit || '');
+}
+{
+  const evil = buildUpdate({ name: '<script>x</script>', country: '日本', unsub_token: 't' }, O);
+  ok(!evil.html.includes('<script>') && !evil.html.includes('&lt;script&gt;'),
+     'update: 氏名に入れられたタグが本文に出ない');
+  const anon = buildUpdate({ name: null, country: null, unsub_token: 't' }, O);
+  ok(anon.html.length > 500 && !/null|undefined/.test(anon.text), 'update: 氏名が空でも本文が壊れない');
+}
+
+/* 件名の長さ。 */
+for (const [k, b] of UALL) ok(b.subject.length <= 78, `update/${k}: 件名が 78 文字以内（${b.subject.length}）`);
 
 console.log(`\n${pass} pass / ${fail} fail\n`);
 process.exit(fail ? 1 : 0);
