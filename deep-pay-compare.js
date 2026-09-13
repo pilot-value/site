@@ -30,14 +30,16 @@
   if (!V) return;                       // pay-viz.js が先に要る（HTML の順序）
   var esc = V.esc, num = V.num, fmt = V.fmt;
 
-  /* ★ページ相対で書くと /en/ から /en/salary-data.json を見に行って 404 になる
+  /* ★ページ相対で書くと /en/ から /en/pv-airlines.json を見に行って 404 になる
        （actual-pay.js:77 と同じ理由）。絶対パスは公開リポジトリなので書けない。 */
-  var AIR_URL = 'salary-data.json', VOCAB_URL = 'pv-vocab.json';
+  // ★社名の辞書は pv-airlines.json（2026-09-13 に salary-data.json から移した）。
+  //   あちらは年収の帯を持つ112社だけで、チャーター/ビジネスジェットの社が入っていない。
+  var AIR_URL = 'pv-airlines.json', VOCAB_URL = 'pv-vocab.json';
   var LOGO_BASE = 'assets/airline-logos/';
   try {
     var _self = (d.currentScript && d.currentScript.src) || '';
     if (_self) {
-      AIR_URL = new URL('salary-data.json', _self).href;
+      AIR_URL = new URL('pv-airlines.json', _self).href;
       VOCAB_URL = new URL('pv-vocab.json', _self).href;
       LOGO_BASE = new URL('assets/airline-logos/', _self).href;
     }
@@ -265,7 +267,7 @@
   }
 
   /* ロゴ。★ブランド色を持たない版（actual-pay.js:274）。
-     salary-data.json は色を持っていないので、色付きの版は使えない。 */
+     pv-airlines.json は色を持っていないので、色付きの版は使えない。 */
   function logoHtml(code) {
     var ext = (w.PV_LOGOS || {})[code];
     if (code !== 'other' && ext) {

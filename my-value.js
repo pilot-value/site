@@ -64,9 +64,16 @@
      ＝ salary-leveling.js と同じやり方。currentScript は同期実行中しか
      取れないので、ここ（IIFE の冒頭）で確定させる。 */
   var PUB_URL = 'salary-data.json';
+  /* 会社コード → 社名の辞書。★ salary-data.json ではない。あちらは
+     「年収の帯を持つ112社」で、小規模航空会社・チャーター会社・
+     ビジネスジェット運航会社が入っていない＝その社だけコードが生のまま出る。 */
+  var AIR_URL = 'pv-airlines.json';
   try {
     var _self = (d.currentScript && d.currentScript.src) || '';
-    if (_self) PUB_URL = new URL('salary-data.json', _self).href;
+    if (_self) {
+      PUB_URL = new URL('salary-data.json', _self).href;
+      AIR_URL = new URL('pv-airlines.json', _self).href;
+    }
   } catch (e) {}
 
   var T = {
@@ -633,12 +640,28 @@
     var n = r.airline_other || r.airline;
     return n ? String(n).toUpperCase() : '—';
   }
+  /* 会社コード → 社名の辞書（pv-airlines.json）。gen-airline-codes.mjs が書く。
+     ★ここに社名を写さない。二重持ちになって必ずずれる。
+     ★読めなかった回は黙って落ちる（下の codeLabel が大文字の略号に戻る）。 */
+  var AIRN = null;
+  async function loadAirNames() {
+    if (AIRN) return AIRN;
+    try {
+      var res = await fetch(AIR_URL);
+      if (!res.ok) return (AIRN = {});
+      var j = await res.json();
+      AIRN = (j && j.airlines) || {};
+    } catch (e) { AIRN = {}; }
+    return AIRN;
+  }
+
   /* 一覧の会社コード（'singapore-airlines'）を読める形に。
-     ★ 頭文字だけ大文字にすると 'ana' が「Ana」、'jal' が「Jal」、'klm' が「Klm」になる。
-       正しい社名の対応表はフォームの <option>（約110行）にしか無く、ここに写すと
-       二重持ちになって必ずずれる。左端の「現在」の札が airlineName() で
-       全部大文字にしているので、こちらも全部大文字で揃える＝略号が壊れない。 */
+     ★ 辞書が届いていれば正しい社名。届かなければ全部大文字に落とす
+       （頭文字だけ大文字にすると 'ana' が「Ana」、'klm' が「Klm」になる。
+        左端の「現在」の札が airlineName() で全部大文字なので、そちらに揃う）。 */
   function codeLabel(code) {
+    var a = AIRN && AIRN[code];
+    if (a) return (L === 'en' && a.en) ? a.en : (a.ja || a.en || code);
     return String(code || '').split('-').join(' ').toUpperCase();
   }
   function sameAirline(rows, r) {
@@ -1715,7 +1738,10 @@
       /* 会員の記録（pay_benchmarks）を先に見て、無いときだけ掲載額を読む。
          いつも両方読むと、使わない 60KB を毎回落とすことになる。 */
       state.bench = await loadBench(last);
-      if (!state.bench || !state.bench.cells.length) state.pub = await loadPub(last);
+      /* 候補カードの社名の辞書は、会員の記録を使う回だけ読む。
+         掲載額に落ちた回（loadPub）は salary-data.json 側が社名を持っている。 */
+      if (state.bench && state.bench.cells.length) await loadAirNames();
+      else state.pub = await loadPub(last);
     } else {
       /* ★まだ1件も出していない人のときだけ、数え上げを取りに行く。
            pv_pay_rows() は鍵が無くても stats（件数・社数・直近1ヶ月ぶん・出した人数）と

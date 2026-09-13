@@ -306,7 +306,7 @@ if (PICK) {
      value に無い値を入れると空文字のまま静かに素通りし、「選んだのに何も
      出ない」という嘘の絵になる。本物の操作と同じ順番でしか踏めない。 */
   const put = async (part) => {
-    /* 選択肢が生えるのを待つ。語彙（pv-vocab.json / salary-data.json）は
+    /* 選択肢が生えるのを待つ。語彙（pv-vocab.json / pv-airlines.json）は
        RPC より遅れて着くことがある。 */
     await page.waitForFunction((p, ids) => Object.keys(p).every((k) =>
       !!document.querySelector('#' + ids[k] + ' option[value="' + p[k] + '"]')),

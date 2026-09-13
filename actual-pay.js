@@ -93,18 +93,20 @@
   'use strict';
   if (!w || !d) return;
 
-  /* ★ページ相対で書くと /en/ から /en/salary-data.json を見に行って 404 になる。
+  /* ★ページ相対で書くと /en/ から /en/pv-airlines.json を見に行って 404 になる。
        このスクリプト自身の URL を基準に解く（my-value.js の PUB_URL と同じ）。
        currentScript は同期実行中しか取れないので、ここで確定させる。
-     ★salary-data.json はもう金額のためには読まない。**社名の辞書**として読む
-       （pv-vocab.json は機材と職位しか持っていない）。 */
-  var AIR_URL = 'salary-data.json';
+     ★社名の辞書は pv-airlines.json（gen-airline-codes.mjs が書く）。
+       2026-09-13 に salary-data.json から移した。あちらは「年収の帯を持つ112社」で、
+       小規模航空会社・チャーター会社・ビジネスジェット運航会社が入っていない＝
+       その会社の投稿だけコードが生のまま出ていた。 */
+  var AIR_URL = 'pv-airlines.json';
   var VOCAB_URL = 'pv-vocab.json';
   var LOGO_BASE = 'assets/airline-logos/';
   try {
     var _self = (d.currentScript && d.currentScript.src) || '';
     if (_self) {
-      AIR_URL = new URL('salary-data.json', _self).href;
+      AIR_URL = new URL('pv-airlines.json', _self).href;
       VOCAB_URL = new URL('pv-vocab.json', _self).href;
       LOGO_BASE = new URL('assets/airline-logos/', _self).href;
     }
@@ -443,7 +445,7 @@
 
   /* 社ロゴ。airline-logos.js（window.PV_LOGOS）が「コード → 拡張子」を持っている。
      ★salary-leveling.js の logoHtml は流用しない。あちらはブランド色（a.color）を
-       前提にしていて、salary-data.json はその色を持っていない（レベリング図が
+       前提にしていて、pv-airlines.json はその色を持っていない（レベリング図が
        自前の表から引いている）。ここは色を使わない小さい版を持つ。
      ★alt="" にする。社名はすぐ隣に必ず文字で出るので、読み上げが二重になる。
        画像が落ちても行は読める。
