@@ -257,6 +257,23 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
         <div id="s1-body">
         <div class="fld">
           <label class="form-label" for="f-airline">Airline<span class="req-tag">Required</span></label>
+          <!-- ★Find the company by name (2026-09-13). Searching is **optional** —
+               leave it alone and the list below works exactly as before.
+               Candidates come from the <option>s of the <select> itself
+               (value / label / data-alias / parent optgroup label) — the company
+               names are never held in two places.
+               ⚠️ Never remove or hide the <select>. shot-pay.mjs / measure-pay.mjs /
+                  db/test-pay-gate.mjs / db/test-form-contract.mjs / payslip.js /
+                  shot-aha.mjs all set .value = code directly, and the fallback
+                  single-page form (shared JS failed to load) has the same shape.
+               ⚠️ Do not add a form-label or a req-tag here (one required badge only).
+               ⚠️ Do not put form-input in the class. Two places grab the **first**
+                  .form-input inside the same .fld (the gauge jump and the
+                  missing-field jump); the search box would stand in for the <select>. -->
+          <input type="search" id="f-airline-q" class="air-q" autocomplete="off"
+                 placeholder="Search by company name (optional)" aria-label="Search by company name">
+          <p id="f-airline-qn" class="air-qn" aria-live="polite"></p>
+          <div id="f-airline-hits" class="air-hits" hidden></div>
           <select id="f-airline" class="form-input">
             <option value="">Select…</option>
               <optgroup label="Middle East">
@@ -269,6 +286,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 <option value="riyadh-air">Riyadh Air</option>
                 <option value="royal-jordanian">Royal Jordanian</option>
                 <option value="saudia">Saudia</option>
+                <option value="royal-jet" data-alias="ロイヤルジェット|RoyalJet">Royal Jet</option>
               </optgroup>
               <optgroup label="Asia">
                 <option value="cathay-pacific">Cathay Pacific</option>
@@ -324,6 +342,10 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 <option value="virgin-atlantic">Virgin Atlantic</option>
                 <option value="vueling">Vueling Airlines</option>
                 <option value="wizz-air">Wizz Air UK</option>
+                <option value="vistajet" data-alias="ビスタジェット|Vista Global|ヴィスタジェット">VistaJet</option>
+                <option value="jet-aviation" data-alias="ジェット・アビエーション">Jet Aviation</option>
+                <option value="luxaviation" data-alias="ラクスアビエーション|Luxaviation Group">Luxaviation</option>
+                <option value="gama-aviation" data-alias="ガマ・アビエーション|Gama Aviation Plc">Gama Aviation</option>
               </optgroup>
               <optgroup label="North America">
                 <option value="united">United Airlines</option>
@@ -340,6 +362,12 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 <option value="porter">Porter Airlines</option>
                 <option value="spirit">Spirit Airlines</option>
                 <option value="westjet">WestJet Airlines</option>
+                <option value="netjets" data-alias="ネットジェッツ|NetJets Inc.|ネットジェット">NetJets</option>
+                <option value="executive-jet-management" data-alias="エグゼクティブ・ジェット・マネジメント">Executive Jet Management (EJM)</option>
+                <option value="flexjet" data-alias="フレックスジェット|Flexjet, LLC">Flexjet</option>
+                <option value="wheels-up" data-alias="ウィールズ・アップ|Wheels Up Experience">Wheels Up</option>
+                <option value="flyexclusive" data-alias="フライエクスクルーシブ|Exclusive Jets">flyExclusive</option>
+                <option value="clay-lacy" data-alias="クレイ・レイシー・アビエーション|Clay Lacy">Clay Lacy Aviation</option>
               </optgroup>
               <optgroup label="Oceania">
                 <option value="qantas">Qantas</option>
@@ -386,6 +414,11 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 <option value="shin-nihon">Shin Nihon Airlines</option>
                 <option value="toho-air">Toho Air Service</option>
                 <option value="toki-air">Toki Air</option>
+                <option value="aero-toyota" data-alias="朝日航洋|Aero Asahi|エアロトヨタ株式会社|えあろとよた">AERO TOYOTA</option>
+                <option value="nakanihon-air" data-alias="中日本航空株式会社|なかにほんこうくう">Nakanihon Air (NNK)</option>
+                <option value="honda-airways" data-alias="本田航空株式会社|ホンダ航空|ほんだこうくう|ホンダエアポート">Honda Airways</option>
+                <option value="fuji-business-jet" data-alias="フジビジネスジェット株式会社|ふじびじねすじぇっと">Fuji Business Jet (FBJ)</option>
+                <option value="japan-biz-aviation" data-alias="株式会社Japan Biz Aviation|ジャパン・ビズ・アビエーション">Japan Biz Aviation</option>
               </optgroup>
               <optgroup label="Not listed">
                 <option value="other">Other (enter manually)</option>
@@ -2059,6 +2092,146 @@ function afterSaved(data, payload, airline) {
   const sel = $('f-airline');
   const ok = Array.prototype.some.call(sel.options, (o) => o.value === a);
   sel.value = ok ? a : 'other';
+  /* ★Do not throw away the name we were handed (2026-09-13). This used to fall
+     to other and leave #f-airline-other empty, so anyone arriving from an invite
+     or an outside link had to type their own company name again. */
+  if (!ok) $('f-airline-other').value = a.slice(0, 80);
+})();
+
+// ── Find the company by name (optional) ────────────────────────────────
+/* ★Candidates come from the <option>s of the <select> below, so the company
+   names are never held in two places. Short names come from two things we already have:
+     ① <option data-alias="…"> (the alias field of airline-ops.mjs — operators with no salary yet)
+     ② window.PV_DB from search.js (the 112 salaried carriers already carry 'ANA' / 'NH' / …)
+   ⚠️ Never add an operator to PV_DB in search.js. Its f: is a link to the airline
+      page, so a company with no page would grow a 404 out of the header search.
+   ★Zero hits never blocks the submission: what was typed is handed to the
+     "company not on the list" field and the select falls to other. */
+(function () {
+  const sel = $('f-airline'), qbox = $('f-airline-q');
+  const hits = $('f-airline-hits'), qnote = $('f-airline-qn');
+  if (!sel || !qbox || !hits || !qnote) return;
+  const AIR_Q_MAX = 8;
+  const AIR_Q_TXT = {
+    hits: (k) => k + (k === 1 ? ' match' : ' matches'),
+    other: 'Submit as a company not on the list',
+    zero: 'No match — you can still submit under this name.',
+  };
+  /* Normalize for matching: drop spaces, dots, brackets and dashes, lowercase.
+     ★Not the same thing as pv_airline_norm in the DB. That one resolves a **stored**
+       company name to a code; this one matches a **half-typed** string to a candidate. */
+  const airQnorm = (s) => String(s == null ? '' : s).toLowerCase()
+    .replace(/[\s　ー・･'".,\/_()（）\[\]-]+/g, '');
+  let AIR_Q_IDX = null;
+  /* Built once by walking the <option>s, so every keystroke stays cheap. */
+  function airQindex() {
+    if (AIR_Q_IDX) return AIR_Q_IDX;
+    const extra = {};
+    const db = window.PV_DB;
+    if (db && db.length) for (const row of db) {
+      const m = /airlines\/([a-z0-9-]+)\.html/.exec(row.f || '');
+      if (m) extra[m[1]] = (row.t || []).concat([row.n || '', row.e || '']);
+    }
+    AIR_Q_IDX = [];
+    for (const o of sel.options) {
+      if (!o.value || o.value === 'other') continue;
+      const alias = (o.getAttribute('data-alias') || '').split('|').filter(Boolean);
+      const keys = [o.value, o.textContent].concat(alias, extra[o.value] || []);
+      AIR_Q_IDX.push({
+        v: o.value,
+        t: (o.textContent || '').trim(),
+        g: (o.parentNode && o.parentNode.label) || '',
+        k: keys.map(airQnorm).filter(Boolean),
+      });
+    }
+    return AIR_Q_IDX;
+  }
+  /* Prefix matches first, mid-string matches after. Top 8 only. */
+  function airQfind(q) {
+    const nq = airQnorm(q);
+    if (!nq) return [];
+    const head = [], tail = [];
+    for (const a of airQindex()) {
+      let at = -1;
+      for (const k of a.k) { const i = k.indexOf(nq); if (i >= 0 && (at < 0 || i < at)) at = i; }
+      if (at === 0) head.push(a);
+      else if (at > 0) tail.push(a);
+    }
+    return head.concat(tail).slice(0, AIR_Q_MAX);
+  }
+  function airQclear() {
+    hits.textContent = '';
+    hits.hidden = true;
+    qnote.textContent = '';
+  }
+  /* ★textContent — the name can contain whatever the pilot typed. */
+  function airQrow(code, name, side, cls) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'air-hit' + cls;
+    b.setAttribute('data-v', code);
+    const n = document.createElement('span');
+    n.className = 'ah-n';
+    n.textContent = name;
+    const g = document.createElement('span');
+    g.className = 'ah-g';
+    g.textContent = side;
+    b.appendChild(n);
+    b.appendChild(g);
+    hits.appendChild(b);
+  }
+  function airQrender() {
+    const q = (qbox.value || '').trim();
+    hits.textContent = '';
+    if (!q) { airQclear(); return; }
+    const list = airQfind(q);
+    for (const a of list) airQrow(a.v, a.t, a.g, '');
+    if (!list.length) airQrow('other', q.slice(0, 80), AIR_Q_TXT.other, ' air-hit--other');
+    hits.hidden = false;
+    qnote.textContent = list.length ? AIR_Q_TXT.hits(list.length) : AIR_Q_TXT.zero;
+  }
+  /* All this does is re-select the list and fire change. #wrap-other, the AHA
+     redraw, the gates and the draft all hang off that one event. */
+  function airQpick(code, typed) {
+    if (code === 'other') $('f-airline-other').value = typed.slice(0, 80);
+    sel.value = code;
+    sel.dispatchEvent(new Event('change'));
+    qbox.value = '';
+    airQclear();
+    sel.focus();
+  }
+  let airQtimer = 0;
+  qbox.addEventListener('input', () => {
+    clearTimeout(airQtimer);
+    airQtimer = setTimeout(airQrender, 250);
+  });
+  qbox.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { qbox.value = ''; airQclear(); return; }
+    if (e.key !== 'ArrowDown' && e.key !== 'Enter') return;
+    e.preventDefault();
+    clearTimeout(airQtimer);
+    airQrender();
+    const first = hits.querySelector('.air-hit');
+    if (first) first.focus();
+  });
+  hits.addEventListener('click', (e) => {
+    const b = e.target.closest && e.target.closest('.air-hit');
+    if (b) airQpick(b.getAttribute('data-v'), (qbox.value || '').trim());
+  });
+  hits.addEventListener('keydown', (e) => {
+    const b = e.target.closest && e.target.closest('.air-hit');
+    if (!b) return;
+    if (e.key === 'Escape') { qbox.focus(); return; }
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    e.preventDefault();
+    const all = [].slice.call(hits.querySelectorAll('.air-hit'));
+    const at = all.indexOf(b) + (e.key === 'ArrowDown' ? 1 : -1);
+    if (at < 0) qbox.focus();
+    else if (all[at]) all[at].focus();
+  });
+  /* Picking straight from the list clears a half-typed query (otherwise
+     "what am I selecting" is visible in two places at once). */
+  sel.addEventListener('change', () => { if (qbox.value) { qbox.value = ''; airQclear(); } });
 })();
 
 // ── Free-text name when “Other” is picked ────────────────────────

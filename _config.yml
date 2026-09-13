@@ -35,6 +35,8 @@ exclude:
 #   *.js              currency.js / salary-leveling.js / payslip.js ほか
 #                     ＋ airlines/airline-base.js, airline-reviews-ui.js, premium-auth-lock.js
 #   salary-data.json  salary-leveling.js と payslip.js が実行時に fetch する
+#   pv-airlines.json  actual-pay.js / deep-pay.js / deep-pay-compare.js / my-value.js が
+#                     社名の辞書として fetch する（2026-09-13〜）
 #   airline-codes.json / pv-vocab.json
 #   assets/ airlines/ en/ countries/ overseas-rep/
 #   sitemap.xml robots.txt 404.html CNAME

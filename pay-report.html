@@ -256,6 +256,22 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
         <div id="s1-body">
         <div class="fld">
           <label class="form-label" for="f-airline">会社<span class="req-tag">必須</span></label>
+          <!-- ★会社を名前で探せるようにする（2026-09-13）。**検索は任意**で、
+               触らなければ今までどおり下の一覧から選べる。
+               候補の元データは下の <select> の <option> そのもの
+               （value ／ 表示名 ／ data-alias ／ 親 optgroup の label）＝社名を2か所で持たない。
+               ⚠️ <select> は消しも隠しもしない。shot-pay.mjs / measure-pay.mjs /
+                  db/test-pay-gate.mjs / db/test-form-contract.mjs / payslip.js /
+                  shot-aha.mjs の6本が .value = code で直接触っており、
+                  共有 JS が落ちたときの1枚もの退避形も同じ形。
+               ⚠️ ここに form-label と req-tag を足さない（必須の印は会社の1つだけ）。
+               ⚠️ class に form-input を付けない。同じ .fld の**最初の** .form-input を
+                  掴む所が2つあり（ゲージの飛び先・未入力の飛び先）、検索欄が
+                  <select> の身代わりになってしまう。 -->
+          <input type="search" id="f-airline-q" class="air-q" autocomplete="off"
+                 placeholder="会社名で探す（任意・略称やカタカナでも）" aria-label="会社名で探す">
+          <p id="f-airline-qn" class="air-qn" aria-live="polite"></p>
+          <div id="f-airline-hits" class="air-hits" hidden></div>
           <select id="f-airline" class="form-input">
             <option value="">選択してください</option>
               <optgroup label="日本">
@@ -285,6 +301,11 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 <option value="shin-nihon">新日本航空</option>
                 <option value="toho-air">東邦航空</option>
                 <option value="toki-air">トキエア</option>
+                <option value="aero-toyota" data-alias="朝日航洋|Aero Asahi|エアロトヨタ株式会社|えあろとよた">エアロトヨタ</option>
+                <option value="nakanihon-air" data-alias="中日本航空株式会社|なかにほんこうくう">中日本航空（NNK）</option>
+                <option value="honda-airways" data-alias="本田航空株式会社|ホンダ航空|ほんだこうくう|ホンダエアポート">本田航空</option>
+                <option value="fuji-business-jet" data-alias="フジビジネスジェット株式会社|ふじびじねすじぇっと">フジビジネスジェット（FBJ）</option>
+                <option value="japan-biz-aviation" data-alias="株式会社Japan Biz Aviation|ジャパン・ビズ・アビエーション">Japan Biz Aviation</option>
               </optgroup>
               <optgroup label="中東">
                 <option value="emirates">エミレーツ</option>
@@ -296,6 +317,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 <option value="riyadh-air">リヤド航空</option>
                 <option value="royal-jordanian">ロイヤル・ヨルダン航空</option>
                 <option value="saudia">サウジア航空</option>
+                <option value="royal-jet" data-alias="ロイヤルジェット|RoyalJet">Royal Jet</option>
               </optgroup>
               <optgroup label="アジア">
                 <option value="cathay-pacific">キャセイパシフィック</option>
@@ -351,6 +373,10 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 <option value="virgin-atlantic">ヴァージン・アトランティック航空</option>
                 <option value="vueling">ブエリング航空</option>
                 <option value="wizz-air">ウィズ・エアー</option>
+                <option value="vistajet" data-alias="ビスタジェット|Vista Global|ヴィスタジェット">VistaJet</option>
+                <option value="jet-aviation" data-alias="ジェット・アビエーション">Jet Aviation</option>
+                <option value="luxaviation" data-alias="ラクスアビエーション|Luxaviation Group">Luxaviation</option>
+                <option value="gama-aviation" data-alias="ガマ・アビエーション|Gama Aviation Plc">Gama Aviation</option>
               </optgroup>
               <optgroup label="北米">
                 <option value="united">ユナイテッド航空</option>
@@ -367,6 +393,12 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 <option value="porter">ポーター航空</option>
                 <option value="spirit">スピリット航空</option>
                 <option value="westjet">ウェストジェット航空</option>
+                <option value="netjets" data-alias="ネットジェッツ|NetJets Inc.|ネットジェット">NetJets</option>
+                <option value="executive-jet-management" data-alias="エグゼクティブ・ジェット・マネジメント">Executive Jet Management（EJM）</option>
+                <option value="flexjet" data-alias="フレックスジェット|Flexjet, LLC">Flexjet</option>
+                <option value="wheels-up" data-alias="ウィールズ・アップ|Wheels Up Experience">Wheels Up</option>
+                <option value="flyexclusive" data-alias="フライエクスクルーシブ|Exclusive Jets">flyExclusive</option>
+                <option value="clay-lacy" data-alias="クレイ・レイシー・アビエーション|Clay Lacy">Clay Lacy Aviation</option>
               </optgroup>
               <optgroup label="オセアニア">
                 <option value="qantas">カンタス航空</option>
@@ -2026,6 +2058,145 @@ function afterSaved(data, payload, airline) {
   const sel = $('f-airline');
   const ok = Array.prototype.some.call(sel.options, (o) => o.value === a);
   sel.value = ok ? a : 'other';
+  /* ★一覧に無いコードで来たとき、渡された社名を捨てない（2026-09-13）。
+     もとは other に落とすだけで #f-airline-other が空のままだったので、
+     招待リンクや外部リンクから来た人は会社名を自分で打ち直すことになっていた。 */
+  if (!ok) $('f-airline-other').value = a.slice(0, 80);
+})();
+
+// ── 会社を名前で探す（検索は任意） ────────────────────────────────
+/* ★候補の元は下の <select> の <option> そのもの。社名を2か所で持たない。
+   略称は既にある2つの資産から引く ──
+     ① <option data-alias="…">（airline-ops.mjs の alias。年収がまだ無い運航会社）
+     ② search.js の window.PV_DB（年収のある112社が 'ANA' / 'NH' / '全日空' を既に持つ）
+   ⚠️ 運航会社を search.js の PV_DB に足してはいけない。あの表の f: は
+      会社ページへのリンクで、ページを持たない会社を入れるとヘッダー検索から 404 が生える。
+   ★0件でも提出は止めない。打った文字列を「一覧にない会社」の欄へ渡して other に落とす。 */
+(function () {
+  const sel = $('f-airline'), qbox = $('f-airline-q');
+  const hits = $('f-airline-hits'), qnote = $('f-airline-qn');
+  if (!sel || !qbox || !hits || !qnote) return;
+  const AIR_Q_MAX = 8;
+  const AIR_Q_TXT = {
+    hits: (k) => '候補 ' + k + '件',
+    other: '一覧にない会社として送る',
+    zero: '候補が見つかりません。この名前のまま送れます。',
+  };
+  /* 突き合わせ用の正規化。空白・中黒・長音・括弧・記号を落として小文字に潰すだけ。
+     ★DB 側の pv_airline_norm とは別物。あちらは**保存された社名**を会社コードへ
+       解決するためのもので、こちらは**打ちかけの文字列**を候補に当てるためのもの。 */
+  const airQnorm = (s) => String(s == null ? '' : s).toLowerCase()
+    .replace(/[\s　ー・･'".,\/_()（）\[\]-]+/g, '');
+  let AIR_Q_IDX = null;
+  /* 候補の索引。<option> を1度だけ舐めて作る（作り直さないので毎打鍵が軽い）。 */
+  function airQindex() {
+    if (AIR_Q_IDX) return AIR_Q_IDX;
+    const extra = {};
+    const db = window.PV_DB;
+    if (db && db.length) for (const row of db) {
+      const m = /airlines\/([a-z0-9-]+)\.html/.exec(row.f || '');
+      if (m) extra[m[1]] = (row.t || []).concat([row.n || '', row.e || '']);
+    }
+    AIR_Q_IDX = [];
+    for (const o of sel.options) {
+      if (!o.value || o.value === 'other') continue;
+      const alias = (o.getAttribute('data-alias') || '').split('|').filter(Boolean);
+      const keys = [o.value, o.textContent].concat(alias, extra[o.value] || []);
+      AIR_Q_IDX.push({
+        v: o.value,
+        t: (o.textContent || '').trim(),
+        g: (o.parentNode && o.parentNode.label) || '',
+        k: keys.map(airQnorm).filter(Boolean),
+      });
+    }
+    return AIR_Q_IDX;
+  }
+  /* 頭から一致したものを先に、途中で一致したものを後に。上位8件だけ返す。 */
+  function airQfind(q) {
+    const nq = airQnorm(q);
+    if (!nq) return [];
+    const head = [], tail = [];
+    for (const a of airQindex()) {
+      let at = -1;
+      for (const k of a.k) { const i = k.indexOf(nq); if (i >= 0 && (at < 0 || i < at)) at = i; }
+      if (at === 0) head.push(a);
+      else if (at > 0) tail.push(a);
+    }
+    return head.concat(tail).slice(0, AIR_Q_MAX);
+  }
+  function airQclear() {
+    hits.textContent = '';
+    hits.hidden = true;
+    qnote.textContent = '';
+  }
+  /* ★textContent で入れる。名前には本人が打ち込んだ文字列が混ざる。 */
+  function airQrow(code, name, side, cls) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'air-hit' + cls;
+    b.setAttribute('data-v', code);
+    const n = document.createElement('span');
+    n.className = 'ah-n';
+    n.textContent = name;
+    const g = document.createElement('span');
+    g.className = 'ah-g';
+    g.textContent = side;
+    b.appendChild(n);
+    b.appendChild(g);
+    hits.appendChild(b);
+  }
+  function airQrender() {
+    const q = (qbox.value || '').trim();
+    hits.textContent = '';
+    if (!q) { airQclear(); return; }
+    const list = airQfind(q);
+    for (const a of list) airQrow(a.v, a.t, a.g, '');
+    if (!list.length) airQrow('other', q.slice(0, 80), AIR_Q_TXT.other, ' air-hit--other');
+    hits.hidden = false;
+    qnote.textContent = list.length ? AIR_Q_TXT.hits(list.length) : AIR_Q_TXT.zero;
+  }
+  /* 押したときにやるのは「一覧を選び直して change を飛ばす」だけ。
+     #wrap-other の開閉・AHA の描き直し・ゲート・下書きが全部 change にぶら下がっている。 */
+  function airQpick(code, typed) {
+    if (code === 'other') $('f-airline-other').value = typed.slice(0, 80);
+    sel.value = code;
+    sel.dispatchEvent(new Event('change'));
+    qbox.value = '';
+    airQclear();
+    sel.focus();
+  }
+  let airQtimer = 0;
+  qbox.addEventListener('input', () => {
+    clearTimeout(airQtimer);
+    airQtimer = setTimeout(airQrender, 250);
+  });
+  qbox.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { qbox.value = ''; airQclear(); return; }
+    if (e.key !== 'ArrowDown' && e.key !== 'Enter') return;
+    e.preventDefault();
+    clearTimeout(airQtimer);
+    airQrender();
+    const first = hits.querySelector('.air-hit');
+    if (first) first.focus();
+  });
+  hits.addEventListener('click', (e) => {
+    const b = e.target.closest && e.target.closest('.air-hit');
+    if (b) airQpick(b.getAttribute('data-v'), (qbox.value || '').trim());
+  });
+  hits.addEventListener('keydown', (e) => {
+    const b = e.target.closest && e.target.closest('.air-hit');
+    if (!b) return;
+    if (e.key === 'Escape') { qbox.focus(); return; }
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    e.preventDefault();
+    const all = [].slice.call(hits.querySelectorAll('.air-hit'));
+    const at = all.indexOf(b) + (e.key === 'ArrowDown' ? 1 : -1);
+    if (at < 0) qbox.focus();
+    else if (all[at]) all[at].focus();
+  });
+  /* 一覧から直接選んだら、打ちかけの検索語を片づける
+     （残ると「いま何を選んでいるのか」が2か所に見える）。 */
+  sel.addEventListener('change', () => { if (qbox.value) { qbox.value = ''; airQclear(); } });
 })();
 
 // ── 会社「その他」の自由入力 ──────────────────────────────────

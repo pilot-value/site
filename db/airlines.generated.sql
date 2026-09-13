@@ -1,11 +1,16 @@
 -- ════════════════════════════════════════════════════════════════
 -- db/airlines.generated.sql — ★自動生成。手で編集しない。
---   生成元: salary-data.mjs（SSOT）
+--   生成元: salary-data.mjs（年収がある社）＋ airline-ops.mjs（投稿先だけの社）
 --   再生成: node gen-airline-codes.mjs
 --
 -- pay_reports.airline / reviews の会社コードを DB 側で検証するためのマスタ。
--- 何度流しても安全（upsert）。SSOT から消えた社は無効化するだけで消さない
+-- 何度流しても安全（upsert）。名簿から消えた社は無効化するだけで消さない
 -- （過去の投稿が外部キーで残っているため）。
+--
+-- ★このファイルを貼ると、過去の「その他（自由入力）」の投稿のうち
+--   社名が新しく登録した会社と完全一致するものは、行を1行も書き換えずに
+--   REAL PAY で正しい社名に出るようになる（pv_airline_resolve が実行時に引くため）。
+--   pay_reports を update してはいけない（持ち主の proof_hash が外れる）。
 -- ════════════════════════════════════════════════════════════════
 
 create table if not exists public.pv_airlines (
@@ -129,6 +134,22 @@ insert into public.pv_airlines (code, name_ja, name_en, region) values
   ('porter', 'ポーター航空', 'Porter Airlines', 'us'),
   ('spirit', 'スピリット航空', 'Spirit Airlines', 'us'),
   ('westjet', 'ウェストジェット航空', 'WestJet Airlines', 'us'),
+  ('aero-toyota', 'エアロトヨタ', 'AERO TOYOTA', 'japan'),
+  ('nakanihon-air', '中日本航空（NNK）', 'Nakanihon Air (NNK)', 'japan'),
+  ('honda-airways', '本田航空', 'Honda Airways', 'japan'),
+  ('fuji-business-jet', 'フジビジネスジェット（FBJ）', 'Fuji Business Jet (FBJ)', 'japan'),
+  ('japan-biz-aviation', 'Japan Biz Aviation', 'Japan Biz Aviation', 'japan'),
+  ('netjets', 'NetJets', 'NetJets', 'us'),
+  ('executive-jet-management', 'Executive Jet Management（EJM）', 'Executive Jet Management (EJM)', 'us'),
+  ('flexjet', 'Flexjet', 'Flexjet', 'us'),
+  ('wheels-up', 'Wheels Up', 'Wheels Up', 'us'),
+  ('flyexclusive', 'flyExclusive', 'flyExclusive', 'us'),
+  ('clay-lacy', 'Clay Lacy Aviation', 'Clay Lacy Aviation', 'us'),
+  ('vistajet', 'VistaJet', 'VistaJet', 'europe'),
+  ('jet-aviation', 'Jet Aviation', 'Jet Aviation', 'europe'),
+  ('luxaviation', 'Luxaviation', 'Luxaviation', 'europe'),
+  ('gama-aviation', 'Gama Aviation', 'Gama Aviation', 'europe'),
+  ('royal-jet', 'Royal Jet', 'Royal Jet', 'mideast'),
   ('other', 'その他（自由入力）', 'Other (free text)', 'other')
 on conflict (code) do update
   set name_ja = excluded.name_ja,
@@ -136,13 +157,13 @@ on conflict (code) do update
       region  = excluded.region,
       active  = true;
 
--- SSOT から消えた社は残したまま active=false にする（投稿の参照先を壊さない）
+-- 名簿から消えた社は残したまま active=false にする（投稿の参照先を壊さない）
 update public.pv_airlines set active = false
- where code not in ('ana', 'jal', 'zipair', 'jetstar-japan', 'peach', 'solaseed', 'spring-japan', 'airdo', 'starflyer', 'skymark', 'fda', 'emirates', 'qantas', 'cathay-pacific', 'singapore-airlines', 'etihad', 'qatar-airways', 'korean-air', 'asiana', 'starlux', 'china-airlines', 'thai-airways', 'eva-air', 'united', 'delta', 'american', 'southwest', 'klm', 'air-france', 'lufthansa', 'air-canada', 'british-airways', 'airjapan', 'amx', 'ana-wings', 'daiichi-air', 'hac', 'ibex', 'j-air', 'jac', 'jta', 'orc', 'rac', 'shin-central', 'shin-nihon', 'toho-air', 'toki-air', 'air-china', 'china-eastern', 'china-southern', 'hainan-airlines', 'airx-charter', 'eagle-jet', 'root-aviation', 'solairus', 'air-india', 'airasia', 'bamboo-airways', 'batik-air', 'garuda-indonesia', 'hong-kong-express', 'indigo', 'malaysia-airlines', 'philippine-airlines', 'scoot', 'vietjet', 'vietnam-airlines', 'egyptair', 'ethiopian-airlines', 'gulf-air', 'kenya-airways', 'kuwait-airways', 'oman-air', 'riyadh-air', 'royal-brunei', 'royal-jordanian', 'saudia', 'south-african-airways', 'turkish-airlines', 'aegean', 'aer-lingus', 'austrian', 'easyjet', 'eurowings', 'finnair', 'iberia', 'icelandair', 'ita-airways', 'lot', 'norwegian', 'ryanair', 'sas', 'swiss', 'tap', 'virgin-atlantic', 'vueling', 'wizz-air', 'aeromexico', 'air-new-zealand', 'alaska-airlines', 'allegiant', 'avianca', 'breeze-airways', 'copa-airlines', 'fiji-airways', 'frontier', 'jetblue', 'jetstar', 'latam', 'porter', 'spirit', 'westjet', 'other');
+ where code not in ('ana', 'jal', 'zipair', 'jetstar-japan', 'peach', 'solaseed', 'spring-japan', 'airdo', 'starflyer', 'skymark', 'fda', 'emirates', 'qantas', 'cathay-pacific', 'singapore-airlines', 'etihad', 'qatar-airways', 'korean-air', 'asiana', 'starlux', 'china-airlines', 'thai-airways', 'eva-air', 'united', 'delta', 'american', 'southwest', 'klm', 'air-france', 'lufthansa', 'air-canada', 'british-airways', 'airjapan', 'amx', 'ana-wings', 'daiichi-air', 'hac', 'ibex', 'j-air', 'jac', 'jta', 'orc', 'rac', 'shin-central', 'shin-nihon', 'toho-air', 'toki-air', 'air-china', 'china-eastern', 'china-southern', 'hainan-airlines', 'airx-charter', 'eagle-jet', 'root-aviation', 'solairus', 'air-india', 'airasia', 'bamboo-airways', 'batik-air', 'garuda-indonesia', 'hong-kong-express', 'indigo', 'malaysia-airlines', 'philippine-airlines', 'scoot', 'vietjet', 'vietnam-airlines', 'egyptair', 'ethiopian-airlines', 'gulf-air', 'kenya-airways', 'kuwait-airways', 'oman-air', 'riyadh-air', 'royal-brunei', 'royal-jordanian', 'saudia', 'south-african-airways', 'turkish-airlines', 'aegean', 'aer-lingus', 'austrian', 'easyjet', 'eurowings', 'finnair', 'iberia', 'icelandair', 'ita-airways', 'lot', 'norwegian', 'ryanair', 'sas', 'swiss', 'tap', 'virgin-atlantic', 'vueling', 'wizz-air', 'aeromexico', 'air-new-zealand', 'alaska-airlines', 'allegiant', 'avianca', 'breeze-airways', 'copa-airlines', 'fiji-airways', 'frontier', 'jetblue', 'jetstar', 'latam', 'porter', 'spirit', 'westjet', 'aero-toyota', 'nakanihon-air', 'honda-airways', 'fuji-business-jet', 'japan-biz-aviation', 'netjets', 'executive-jet-management', 'flexjet', 'wheels-up', 'flyexclusive', 'clay-lacy', 'vistajet', 'jet-aviation', 'luxaviation', 'gama-aviation', 'royal-jet', 'other');
 
 alter table public.pv_airlines enable row level security;
 drop policy if exists pv_airlines_read on public.pv_airlines;
 create policy pv_airlines_read on public.pv_airlines for select to anon, authenticated using (true);
 
--- 検算：113 件（112社 ＋ other）
+-- 検算：129 件（128社 ＋ other）
 select count(*) filter (where active) as 有効, count(*) as 全件 from public.pv_airlines;

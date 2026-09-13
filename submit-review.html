@@ -333,6 +333,11 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
                 <option value="shin-nihon">新日本航空</option>
                 <option value="toho-air">東邦航空</option>
                 <option value="toki-air">トキエア</option>
+                <option value="aero-toyota" data-alias="朝日航洋|Aero Asahi|エアロトヨタ株式会社|えあろとよた">エアロトヨタ</option>
+                <option value="nakanihon-air" data-alias="中日本航空株式会社|なかにほんこうくう">中日本航空（NNK）</option>
+                <option value="honda-airways" data-alias="本田航空株式会社|ホンダ航空|ほんだこうくう|ホンダエアポート">本田航空</option>
+                <option value="fuji-business-jet" data-alias="フジビジネスジェット株式会社|ふじびじねすじぇっと">フジビジネスジェット（FBJ）</option>
+                <option value="japan-biz-aviation" data-alias="株式会社Japan Biz Aviation|ジャパン・ビズ・アビエーション">Japan Biz Aviation</option>
               </optgroup>
               <optgroup label="中東">
                 <option value="emirates">エミレーツ</option>
@@ -344,6 +349,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
                 <option value="riyadh-air">リヤド航空</option>
                 <option value="royal-jordanian">ロイヤル・ヨルダン航空</option>
                 <option value="saudia">サウジア航空</option>
+                <option value="royal-jet" data-alias="ロイヤルジェット|RoyalJet">Royal Jet</option>
               </optgroup>
               <optgroup label="アジア">
                 <option value="cathay-pacific">キャセイパシフィック</option>
@@ -399,6 +405,10 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
                 <option value="virgin-atlantic">ヴァージン・アトランティック航空</option>
                 <option value="vueling">ブエリング航空</option>
                 <option value="wizz-air">ウィズ・エアー</option>
+                <option value="vistajet" data-alias="ビスタジェット|Vista Global|ヴィスタジェット">VistaJet</option>
+                <option value="jet-aviation" data-alias="ジェット・アビエーション">Jet Aviation</option>
+                <option value="luxaviation" data-alias="ラクスアビエーション|Luxaviation Group">Luxaviation</option>
+                <option value="gama-aviation" data-alias="ガマ・アビエーション|Gama Aviation Plc">Gama Aviation</option>
               </optgroup>
               <optgroup label="北米">
                 <option value="united">ユナイテッド航空</option>
@@ -415,6 +425,12 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
                 <option value="porter">ポーター航空</option>
                 <option value="spirit">スピリット航空</option>
                 <option value="westjet">ウェストジェット航空</option>
+                <option value="netjets" data-alias="ネットジェッツ|NetJets Inc.|ネットジェット">NetJets</option>
+                <option value="executive-jet-management" data-alias="エグゼクティブ・ジェット・マネジメント">Executive Jet Management（EJM）</option>
+                <option value="flexjet" data-alias="フレックスジェット|Flexjet, LLC">Flexjet</option>
+                <option value="wheels-up" data-alias="ウィールズ・アップ|Wheels Up Experience">Wheels Up</option>
+                <option value="flyexclusive" data-alias="フライエクスクルーシブ|Exclusive Jets">flyExclusive</option>
+                <option value="clay-lacy" data-alias="クレイ・レイシー・アビエーション|Clay Lacy">Clay Lacy Aviation</option>
               </optgroup>
               <optgroup label="オセアニア">
                 <option value="qantas">カンタス航空</option>
@@ -838,7 +854,7 @@ function updateTotalChars() {
 // ── Step navigation ───────────────────────────────────────────
 const POS_MAP = { captain: '機長', fo: '副操縦士', cadet: '訓練生' };
 /*BEGIN:LABELS*/const AIRLINE_LABELS = {
-  // ★手で書かない。node gen-airline-codes.mjs が SSOT から生成する。
+  // ★手で書かない。node gen-airline-codes.mjs が名簿から生成する。
   ana: '全日本空輸（ANA）',
   jal: '日本航空（JAL）',
   zipair: 'ZIPAIR Tokyo',
@@ -951,6 +967,22 @@ const POS_MAP = { captain: '機長', fo: '副操縦士', cadet: '訓練生' };
   porter: 'ポーター航空',
   spirit: 'スピリット航空',
   westjet: 'ウェストジェット航空',
+  'aero-toyota': 'エアロトヨタ',
+  'nakanihon-air': '中日本航空（NNK）',
+  'honda-airways': '本田航空',
+  'fuji-business-jet': 'フジビジネスジェット（FBJ）',
+  'japan-biz-aviation': 'Japan Biz Aviation',
+  netjets: 'NetJets',
+  'executive-jet-management': 'Executive Jet Management（EJM）',
+  flexjet: 'Flexjet',
+  'wheels-up': 'Wheels Up',
+  flyexclusive: 'flyExclusive',
+  'clay-lacy': 'Clay Lacy Aviation',
+  vistajet: 'VistaJet',
+  'jet-aviation': 'Jet Aviation',
+  luxaviation: 'Luxaviation',
+  'gama-aviation': 'Gama Aviation',
+  'royal-jet': 'Royal Jet',
   other: 'その他',
 };/*END:LABELS*/
 
