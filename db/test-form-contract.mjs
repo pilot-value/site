@@ -1458,6 +1458,11 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html#pay-det
   await page.close();
 }
 
+/* 会社の検索欄の結果を言語ごとに控えておき、2周目（en）で日本語と突き合わせる。
+   日英は同じ索引・同じ式で動いているので、**同じ語を打てば行数も同じになる**のが正しい。
+   ずれたら「片方だけ直した」＝2026-09-13 に実際に踏みかけた形。 */
+const AIRQ = {};
+
 for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
                            ['en', 'http://localhost:3000/en/pay-report.html']]) {
   console.log(`\n▼ ${lang}  ${url}`);
@@ -1579,6 +1584,128 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   ok(/0/.test(await page.$eval('#f-bonus-mo', (el) => el.placeholder || '')),
      '★代わりに「出なかった月は 0」と案内する',
      await page.$eval('#f-bonus-mo', (el) => el.placeholder || ''));
+
+  /* ── 会社を名前で探す（2026-09-13）─────────────────────────────
+     ★オーナーが localhost で踏んだ形 ── 「rian」と打つとオーストリア航空
+       （コードが austrian）が1件だけ当たり、**逃げ道が消えていた**。
+       RIAN航空のような一覧に無い会社を出したい人は、そこで手が止まる。
+       プルダウンの一番下に「その他」は在るが、検索欄を使っている人には見えない。
+     ⚠️ **画面はどこも壊れない。** 候補は正しいしプルダウンも生きている。
+        だから検査が要る ── この欄には 2026-09-13 まで検査が1本も無かった。
+     見るのは「候補が何件あっても、最後の1本は必ず逃げ道」。 */
+  const airQ = async (q) => {
+    await page.evaluate((s) => {
+      const e = document.getElementById('f-airline-q');
+      e.value = s;
+      e.dispatchEvent(new Event('input', { bubbles: true }));
+    }, q);
+    /* 打鍵のデバウンスは 250ms。越えるまで待つ（時間ではなく描き直しを待ちたいが、
+       「0件で行が1本」と「まだ描いていない」を外から見分けられないため）。 */
+    await new Promise((r) => setTimeout(r, 420));
+    return page.evaluate(() => [...document.querySelectorAll('#f-airline-hits .air-hit')]
+      .map((b) => ({
+        v: b.getAttribute('data-v'),
+        n: ((b.querySelector('.ah-n') || {}).textContent || ''),
+        html: ((b.querySelector('.ah-n') || {}).innerHTML || ''),
+        other: b.classList.contains('air-hit--other'),
+      })));
+  };
+
+  ok(!(await page.$eval('#f-airline-q', (e) => e.classList.contains('form-input'))),
+     `${lang}: 検索欄に form-input を付けない（同じ .fld の**最初の** .form-input を掴む所が2つある）`);
+
+  const hitsMid = await airQ('rian');
+  ok(hitsMid.length >= 2,
+     `${lang}: ★途中一致で候補が当たっても、行はそれだけで終わらない`, JSON.stringify(hitsMid));
+  ok(hitsMid.length > 0 && hitsMid[hitsMid.length - 1].other,
+     `${lang}: ★候補が当たっていても「一覧にない会社として送る」が必ず最後に出る`,
+     JSON.stringify(hitsMid.map((h) => h.v)));
+  ok(hitsMid.slice(0, -1).every((h) => !h.other && h.v !== 'other'),
+     `${lang}: 逃げ道は1本だけ（候補の中に混ざらない）`, JSON.stringify(hitsMid.map((h) => h.v)));
+  const noteMid = await page.$eval('#f-airline-qn', (e) => e.textContent);
+  ok(noteMid.includes(String(hitsMid.length - 1)),
+     `${lang}: ★件数は候補だけを数える（逃げ道は候補ではない）`,
+     `${noteMid} / 行 ${hitsMid.length}`);
+
+  const hitsZero = await airQ('zzzqqqxx');
+  ok(hitsZero.length === 1 && hitsZero[0].other,
+     `${lang}: 候補0件のときも行はちょうど1本（逃げ道だけ）`, JSON.stringify(hitsZero));
+  ok(hitsZero[0] && hitsZero[0].n === 'zzzqqqxx',
+     `${lang}: 打った名前がそのまま行に出る`, (hitsZero[0] || {}).n);
+
+  /* ★行の名前には**本人が打った文字**が混ざる。textContent で入れる約束を固定する。 */
+  const hitsTag = await airQ('<b>x</b>');
+  const gold = hitsTag[hitsTag.length - 1];
+  ok(!!gold && gold.other && gold.n === '<b>x</b>' && !/<b>/.test(gold.html),
+     `${lang}: ★打った文字は textContent で入る（タグとして解釈されない）`, JSON.stringify(gold));
+
+  /* 逃げ道を押したとき ── 会社名の欄が開き、打った文字が入り、そこにカーソルが立つ。
+     ★選択状態まで見る。検索語は途中までのことが多く（rian → 本当は RIAN航空）、
+       打ち直せない形で渡すと、逃げ道を足したぶんだけ欠けた社名が増える。 */
+  await airQ('rian');
+  await page.evaluate(() => {
+    const all = [...document.querySelectorAll('#f-airline-hits .air-hit')];
+    all[all.length - 1].click();
+  });
+  await new Promise((r) => setTimeout(r, 200));
+  const picked = await page.evaluate(() => {
+    const o = document.getElementById('f-airline-other');
+    const on = document.activeElement === o;
+    return {
+      air: document.getElementById('f-airline').value,
+      other: o.value,
+      wrap: document.getElementById('wrap-other').offsetParent !== null,
+      focus: (document.activeElement || {}).id || '',
+      s0: on ? o.selectionStart : -1,
+      s1: on ? o.selectionEnd : -1,
+      q: document.getElementById('f-airline-q').value,
+      closed: document.getElementById('f-airline-hits').hidden,
+    };
+  });
+  ok(picked.air === 'other', `${lang}: ★逃げ道を押すと「一覧にない会社」になる`, picked.air);
+  ok(picked.other === 'rian',
+     `${lang}: ★打った文字が会社名の欄に入る（名前を失わない）`, picked.other);
+  ok(picked.wrap, `${lang}: 会社名の欄が開く`, JSON.stringify(picked));
+  ok(picked.focus === 'f-airline-other',
+     `${lang}: ★カーソルが会社名の欄に立つ（そのまま打ち直せる）`, picked.focus);
+  ok(picked.s0 === 0 && picked.s1 === picked.other.length,
+     `${lang}: ★打ちかけの文字は選択状態（打ち始めれば丸ごと置き換わる）`,
+     `${picked.s0}-${picked.s1} / 長さ ${picked.other.length}`);
+  ok(picked.q === '' && picked.closed,
+     `${lang}: 選んだら検索語と候補は片づく`, JSON.stringify(picked));
+
+  /* 普通の候補を押す道を、逃げ道を足して壊していないこと。 */
+  const hitsAgain = await airQ('rian');
+  await page.evaluate(() => document.querySelector('#f-airline-hits .air-hit').click());
+  await new Promise((r) => setTimeout(r, 200));
+  const normal = await page.evaluate(() => ({
+    air: document.getElementById('f-airline').value,
+    wrap: document.getElementById('wrap-other').offsetParent !== null,
+  }));
+  ok(normal.air === hitsAgain[0].v,
+     `${lang}: 普通の候補を押すと、その会社が一覧に入る`, `${normal.air} / ${hitsAgain[0].v}`);
+  ok(!normal.wrap,
+     `${lang}: そのときは会社名の自由入力は閉じたまま`, JSON.stringify(normal));
+
+  AIRQ[lang] = { mid: hitsMid.length, zero: hitsZero.length };
+  if (lang === 'en' && AIRQ.ja) {
+    ok(AIRQ.en.mid === AIRQ.ja.mid && AIRQ.en.zero === AIRQ.ja.zero,
+       '★日英で同じ語を打つと行数まで同じ（片方だけ直していない）',
+       `ja ${JSON.stringify(AIRQ.ja)} / en ${JSON.stringify(AIRQ.en)}`);
+  }
+
+  /* ここから先の検査は「会社の欄が空」から始まる前提なので、必ず戻す。 */
+  await page.evaluate(() => {
+    document.getElementById('f-airline-q').value = '';
+    document.getElementById('f-airline-other').value = '';
+    const s = document.getElementById('f-airline');
+    s.value = '';
+    s.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  await new Promise((r) => setTimeout(r, 150));
+  ok(!(await vis('wrap-other')) && (await fv('f-airline')) === '',
+     `${lang}: （後続のため、会社の欄を空に戻した）`,
+     await fv('f-airline'));
 
   /* ── 5ステップ（2026-09-08）────────────────────────────────────
      ★オーナー指示で「埋めた分だけ下に生える」をやめ、1画面1段にした。

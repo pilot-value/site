@@ -2151,19 +2151,35 @@ function afterSaved(data, payload, airline) {
     if (!q) { airQclear(); return; }
     const list = airQfind(q);
     for (const a of list) airQrow(a.v, a.t, a.g, '');
-    if (!list.length) airQrow('other', q.slice(0, 80), AIR_Q_TXT.other, ' air-hit--other');
+    /* ★逃げ道は候補があっても必ず最後に出す（2026-09-13 オーナー指摘）。
+       もとは0件のときだけ出していたので、「rian」のように**別の会社の途中に当たる**
+       語で探した人には候補が1件出て、そこで手が止まっていた（オーストリア航空 ＝
+       austrian）。プルダウンの一番下に「その他」はあるが、検索欄を使っている人には
+       見えない。
+       ⚠️ ここを条件つきに戻さない。**画面はどこも壊れないまま提出だけが止まる。**
+       ★金色の行は候補ではないので、下の qnote の件数には数えない。 */
+    airQrow('other', q.slice(0, 80), AIR_Q_TXT.other, ' air-hit--other');
     hits.hidden = false;
     qnote.textContent = list.length ? AIR_Q_TXT.hits(list.length) : AIR_Q_TXT.zero;
   }
   /* 押したときにやるのは「一覧を選び直して change を飛ばす」だけ。
      #wrap-other の開閉・AHA の描き直し・ゲート・下書きが全部 change にぶら下がっている。 */
   function airQpick(code, typed) {
-    if (code === 'other') $('f-airline-other').value = typed.slice(0, 80);
+    const other = code === 'other';
+    if (other) $('f-airline-other').value = typed.slice(0, 80);
     sel.value = code;
     sel.dispatchEvent(new Event('change'));
     qbox.value = '';
     airQclear();
-    sel.focus();
+    /* ★「一覧にない会社」を選んだときは、会社名の欄へカーソルを移して打った文字を
+       選択状態にする。検索語は途中までのことが多く（「rian」→ 本当は「RIAN航空」）、
+       そのまま送ると**欠けた社名が保存される**。
+       #wrap-other は1つ上の dispatchEvent が同期で開けているので、この時点で見えている。 */
+    if (other) {
+      const o = $('f-airline-other');
+      o.focus();
+      if (o.setSelectionRange) o.setSelectionRange(0, o.value.length);
+    } else sel.focus();
   }
   let airQtimer = 0;
   qbox.addEventListener('input', () => {

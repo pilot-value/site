@@ -2186,19 +2186,37 @@ function afterSaved(data, payload, airline) {
     if (!q) { airQclear(); return; }
     const list = airQfind(q);
     for (const a of list) airQrow(a.v, a.t, a.g, '');
-    if (!list.length) airQrow('other', q.slice(0, 80), AIR_Q_TXT.other, ' air-hit--other');
+    /* ★The escape hatch is always the last row, even when there are matches
+       (2026-09-13, owner). It used to appear only at zero matches, so anyone who
+       typed a fragment that lands **inside another company's name** ("rian" is
+       inside "austrian") got one wrong match and no way forward. The <select> still
+       has "Other" at the very bottom, but you cannot see it from the search box.
+       ⚠️ Do not put this back behind a condition. **Nothing looks broken — only
+          the submission stops.**
+       ★The gold row is not a match, so it is not counted in qnote below. */
+    airQrow('other', q.slice(0, 80), AIR_Q_TXT.other, ' air-hit--other');
     hits.hidden = false;
     qnote.textContent = list.length ? AIR_Q_TXT.hits(list.length) : AIR_Q_TXT.zero;
   }
   /* All this does is re-select the list and fire change. #wrap-other, the AHA
      redraw, the gates and the draft all hang off that one event. */
   function airQpick(code, typed) {
-    if (code === 'other') $('f-airline-other').value = typed.slice(0, 80);
+    const other = code === 'other';
+    if (other) $('f-airline-other').value = typed.slice(0, 80);
     sel.value = code;
     sel.dispatchEvent(new Event('change'));
     qbox.value = '';
     airQclear();
-    sel.focus();
+    /* ★When "not on the list" is picked, move the caret into the company-name box
+       and select what was typed. A search term is usually only half the name
+       ("rian" → really "RIAN Airlines"), and sending it as-is **stores a truncated
+       company name**. #wrap-other is already visible — the dispatchEvent above
+       opens it synchronously. */
+    if (other) {
+      const o = $('f-airline-other');
+      o.focus();
+      if (o.setSelectionRange) o.setSelectionRange(0, o.value.length);
+    } else sel.focus();
   }
   let airQtimer = 0;
   qbox.addEventListener('input', () => {

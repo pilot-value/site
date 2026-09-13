@@ -1394,8 +1394,12 @@ body.has-cta #form-wrap{padding-bottom:96px}
   overflow-wrap:anywhere}
 .air-hit .ah-g{flex:0 0 auto;font-size:.66rem;font-weight:700;letter-spacing:.04em;
   color:#9ca3af;white-space:nowrap}
-/* 候補が0件のときの逃げ道。押すと「一覧にない会社」に落ちて、打った名前がそのまま残る。
-   ★これがあるので、検索が当たらなくても提出は止まらない。 */
+/* ★逃げ道。候補が何件あっても**必ず最後に出る**（2026-09-13 オーナー指摘で常設にした）。
+   押すと「一覧にない会社」に落ち、打った名前が会社名の欄に入って、そこにカーソルが立つ
+   ＝ そのまま打ち直せる。
+   ★これがあるので、検索が当たらなくても・**違う会社が1件だけ当たっても**、提出は止まらない。
+   候補の下に続くときだけ少し離す（候補と地続きに見えると、もう1つの候補だと読まれる）。 */
+.air-hit + .air-hit--other{margin-top:4px}
 .air-hit--other{border-color:rgba(245,200,66,.34);background:rgba(245,200,66,.08)}
 .air-hit--other:hover{background:rgba(245,200,66,.15);border-color:rgba(245,200,66,.5)}
 .air-hit--other .ah-g{color:#f5c842;white-space:normal}
