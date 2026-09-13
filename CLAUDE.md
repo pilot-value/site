@@ -11,6 +11,7 @@
 |---|---|
 | 年収の数値 | [workflows/update-salary.md](workflows/update-salary.md) |
 | 航空会社を1社足す | [workflows/add-airline.md](workflows/add-airline.md) |
+| 年収の無い運航会社（チャーター・ビジネスジェット）を投稿先に足す | [workflows/add-airline.md](workflows/add-airline.md) の「道B」 |
 | 給与フォーム（`pay-report.html`）| [workflows/pay-form.md](workflows/pay-form.md) |
 | 落ちた検査を直す・その画面を触る | [workflows/deploy-checklist.md](workflows/deploy-checklist.md) |
 | 削除依頼・開示請求が来た | [workflows/handle-disclosure-request.md](workflows/handle-disclosure-request.md) |
@@ -38,6 +39,12 @@ baland_ass/                            ブランド資産（※ brand_assets の
 - `salary-data.json` は**生成物。手編集禁止。** [gen-salary-json.mjs](gen-salary-json.mjs) が書き出す。
 - 数値を触ったら必ず `node check-salary.mjs` で全ページ整合を検証する。
 - **年収を更新する手順は [workflows/update-salary.md](workflows/update-salary.md) にある。必ず読むこと。**
+- **年収を載せない「投稿先だけの会社」は [airline-ops.mjs](airline-ops.mjs) の `OPS`。**
+  小規模・チャーター・ビジネスジェットなど、年収の出典が無い会社の置き場。
+  [gen-airline-codes.mjs](gen-airline-codes.mjs) が `SALARY` と合流させて8つの成果物へ配る
+  （フォームの選択肢・`pv-airlines.json`・`db/airlines.generated.sql` ほか）。
+  **`SALARY` に年収なしの社を混ぜない**（`check-salary.mjs` と「112社」の表記が全部ずれる）。
+  手順は [workflows/add-airline.md](workflows/add-airline.md) の**道B**。
 - **航空会社を1社追加する手順は [workflows/add-airline.md](workflows/add-airline.md) にある。** SSOT だけ足してページを置かないと国別ページから 404 リンクが生える。ページは [gen-new-airline.mjs](gen-new-airline.mjs) で起こす（`gen_*` を再実行しない）。
 - 数字を盛らない。確認できない数値を推測で埋めない。検証できないものを「Verified」と表示しない（[VERIFIED-PILOT.md](VERIFIED-PILOT.md)）。
 - **数値の出所は [salary-sources.mjs](salary-sources.mjs)、方針は [DATA-PROVENANCE.md](DATA-PROVENANCE.md)。** 数値を変えたら出所を同じコミットで入れる。SALARY 本体に `src` を足さない（[gen-salary-json.mjs](gen-salary-json.mjs) が `{ ...d }` で展開するので出所URLが `salary-data.json` に載って公開される）。出所資料の原本は `sources-raw/`（gitignore 済み）に置き、リポジトリに commit しない。
