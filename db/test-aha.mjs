@@ -25,6 +25,7 @@ import { readFileSync } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { SALARY } from '../salary-data.mjs';
+import { OPS } from '../airline-ops.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (f) => readFileSync(path.join(ROOT, f), 'utf8');
@@ -105,23 +106,45 @@ console.log('\n② currency.js の RATES ＝ DB の fx_rates（画面と保存�
   Object.keys(front).forEach((c) => ok(front[c] === back[c], c + ' のレートが一致（' + front[c] + '）'));
 }
 
-// ── ③ フォームの選択肢が全部 SSOT に着地する ───────────
-console.log('\n③ フォームの110社・3職位が SSOT に着地する');
+// ── ③ フォームの選択肢が全部どちらかの名簿に着地する ───────────
+console.log('\n③ フォームの会社・職位が名簿に着地する（日英2枚とも）');
 {
   const html = read('pay-report.html');
-  const grab = (id) => {
-    const m = html.match(new RegExp('<select[^>]*id="' + id + '"[\\s\\S]*?</select>'));
+  const grab = (id, src) => {
+    const m = (src || html).match(new RegExp('<select[^>]*id="' + id + '"[\\s\\S]*?</select>'));
     return [...(m ? m[0] : '').matchAll(/value="([^"]*)"/g)].map((x) => x[1]).filter(Boolean);
   };
-  const airlines = grab('f-airline').filter((v) => v !== 'other');
-  const missing = airlines.filter((k) => !SALARY[k]);
-  ok(missing.length === 0, 'f-airline の ' + airlines.length + '社が全部 SSOT にある' +
-     (missing.length ? '  ← 無い: ' + missing.join(',') : ''));
 
-  const noBand = airlines.filter((k) => !(SALARY[k].cap && SALARY[k].cap.avg > 0) ||
-                                        !(SALARY[k].fo && SALARY[k].fo.avg > 0));
-  ok(noBand.length === 0, '全社が cap / fo の平均を持っている' +
+  /* ★日英2枚を見る。以前は日本語版しか読んでおらず、英語版だけ
+       gen-airline-codes.mjs を流し忘れても素通りしていた。 */
+  const pages = [['pay-report.html', html], ['en/pay-report.html', read('en/pay-report.html')]];
+  for (const [name, src] of pages) {
+    const airlines = grab('f-airline', src).filter((v) => v !== 'other');
+    const missing = airlines.filter((k) => !SALARY[k] && !OPS[k]);
+    ok(missing.length === 0, name + ' の ' + airlines.length + '社が全部どちらかの名簿にある' +
+       (missing.length ? '  ← 無い: ' + missing.join(',') : ''));
+  }
+  const sorted = (src) => grab('f-airline', src).slice().sort().join(',');
+  ok(sorted(pages[0][1]) === sorted(pages[1][1]),
+     '★日英の会社コードが完全に同じ集合（片方だけ生成し忘れていない）');
+
+  const airlines = grab('f-airline').filter((v) => v !== 'other');
+
+  /* ★2段に分ける（2026-09-13）。年収の帯を持つのは SALARY の社だけで、
+       airline-ops.mjs の社（小規模・チャーター・ビジネスジェット）は
+       公開年収が無い＝帯を持たないのが**正しい**。
+       ここを1つにすると、帯の無い社を足した瞬間に落ちる。 */
+  const withSal = airlines.filter((k) => SALARY[k]);
+  const noBand = withSal.filter((k) => !(SALARY[k].cap && SALARY[k].cap.avg > 0) ||
+                                       !(SALARY[k].fo && SALARY[k].fo.avg > 0));
+  ok(noBand.length === 0, 'SALARY の ' + withSal.length + '社は全部 cap / fo の平均を持っている' +
      (noBand.length ? '  ← 欠け: ' + noBand.join(',') : ''));
+
+  const opsCodes = airlines.filter((k) => OPS[k]);
+  const opsWithBand = opsCodes.filter((k) => SALARY[k]);
+  ok(opsWithBand.length === 0,
+     'airline-ops.mjs の ' + opsCodes.length + '社は帯を持たない（持つなら SALARY へ昇格させる）' +
+     (opsWithBand.length ? '  ← 両方にいる: ' + opsWithBand.join(',') : ''));
 
   /* payslip.js の BAND は cadet を持たない＝訓練生には比較を出さない。
      出さないことは正しいが、「黙って別の帯の数字を出す」に化けていないか見る。

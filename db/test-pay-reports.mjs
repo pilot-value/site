@@ -19,6 +19,7 @@ import { readFileSync } from 'fs';
 /* 会社数の期待値は SSOT から取る。ここを固定値にすると、1社足すたびに
    「SQL は正しいのにテストだけ落ちる」になり、落ちたテストを疑わなくなる。 */
 import { SALARY } from '../salary-data.mjs';
+import { OPS } from '../airline-ops.mjs';
 
 const read = (f) => readFileSync(new URL('../' + f, import.meta.url), 'utf8');
 
@@ -80,7 +81,10 @@ const cnt = await one(`select
   (select count(*) from pv_age_buckets where active) g,
   (select count(*) from pv_currencies where active) c,
   (select count(*) from fx_rates) fx`);
-const N_AIRLINES = Object.keys(SALARY).length + 1;   // SSOT の全社 ＋ other
+/* ★会社の名簿は2つある（2026-09-13）。年収がある社（SALARY）と、
+   年収を持たない投稿先だけの社（airline-ops.mjs の OPS）。
+   どちらも db/airlines.generated.sql に入る。 */
+const N_AIRLINES = Object.keys(SALARY).length + Object.keys(OPS).length + 1;  // 全社 ＋ other
 ok(Number(cnt.a) === N_AIRLINES, `会社 ${N_AIRLINES}（other 込み）→ ${cnt.a}`);
 ok(Number(cnt.f) === 19, `機種 19 → ${cnt.f}`);
 /* ★2026-09-02、訓練生（cadet）を選択肢から外した（オーナー指示）。

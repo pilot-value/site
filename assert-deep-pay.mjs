@@ -604,7 +604,7 @@ async function open(lang, payload, theme, pick) {
 }
 
 /* 区分を選ぶ。★選択肢が生えるのを待ってから値を入れる。語彙（pv-vocab.json /
-   salary-data.json）は RPC より遅れて着くことがあり、待たずに value を入れると
+   pv-airlines.json）は RPC より遅れて着くことがあり、待たずに value を入れると
    空文字のまま静かに素通りする＝「選んだのに何も出ない」という**嘘の緑**になる。 */
 const PK_ID = { airline: 'dp-pk-air', position: 'dp-pk-pos', fleet: 'dp-pk-flt' };
 async function choose(page, sel) {
@@ -628,7 +628,7 @@ async function choose(page, sel) {
 }
 
 /* ★選択欄が生えるまで待つ（2026-09-12）。deep-pay.js は一覧（RPC）と
-   語彙（pv-vocab.json / salary-data.json）が**両方**着いてから <select> を作る。
+   語彙（pv-vocab.json / pv-airlines.json）が**両方**着いてから <select> を作る。
    open() が待っているのは見出しと KPI までなので、区分を読む筋書きは
    ここで待たないと、混んだ回に **一覧が空だったのか、まだ来ていないのか**の
    区別が付かないまま読み出して落ちる（2026-09-12、check.mjs all で実際に

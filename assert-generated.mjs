@@ -54,6 +54,7 @@ const GENERATORS = [
   ['gen-sitemap.mjs',     'sitemap.xml（検索エンジンに渡す一覧）'],
   ['gen-en-manifest.mjs', 'lang-toggle.js の EN_PAGES（英語版がある頁の一覧）'],
   ['gen-vocab.mjs',       'pv-vocab.json / db/vocab.generated.sql（選択肢と為替）'],
+  ['gen-airline-codes.mjs', 'airline-codes.json / pv-airlines.json / 投稿フォーム4枚 / db/airlines.generated.sql'],
 ];
 
 // 4本とも読まない重いもの。展開しないぶん速くなる。
@@ -143,10 +144,50 @@ try {
     for (const f of stale) console.log(`    ${f}`);
     console.log('\n  直し方: 下を流して、出た差分をそのまま commit する。');
     console.log('    node gen-salary-json.mjs && node gen-sitemap.mjs \\');
-    console.log('      && node gen-en-manifest.mjs && node gen-vocab.mjs');
+    console.log('      && node gen-en-manifest.mjs && node gen-vocab.mjs \\');
+    console.log('      && node gen-airline-codes.mjs');
     console.log('\n  ⚠ db/vocab.generated.sql が入っていたら、Supabase に貼るまで');
     console.log('    本番の選択肢・為替は古いまま（貼るのはオーナー作業）。');
+    console.log('  ⚠ db/airlines.generated.sql も同じ。貼るまで新しい会社の投稿は弾かれ、');
+    console.log('    過去の「一覧にない会社」も正しい社名に出ない。');
     console.log('');
+  }
+
+  /* ── 3b. 社名の衝突検査そのものが効いているか（2026-09-13）──────────
+     gen-airline-codes.mjs は「別法人どうしの社名が正規化後に一致したら落ちる」
+     検査を持っている（pv_airline_resolve は複数当たると code の若い順に
+     1つ選ぶので、止めないと片方の会社の投稿が黙ってもう片方に混ざる）。
+     ここが効かなくなっていても、生成物は何も変わらない＝上の照合では気づけない。
+     ★--check は1バイトも書かない。PV_OPS_INJECT も --check のときだけ効く。 */
+  {
+    const gen = join(work, 'gen-airline-codes.mjs');
+    if (!existsSync(gen)) {
+      console.log('  （gen-airline-codes.mjs が HEAD に無いので衝突検査は見ない）');
+    } else {
+      const run = (env) => spawnSync('node', [gen, '--check'],
+        { cwd: work, encoding: 'utf8', env: { ...process.env, ...env } });
+      const clean = run({});
+      if (clean.status !== 0) {
+        fail++;
+        console.log('✗ いまの名簿が gen-airline-codes.mjs --check で落ちる\n');
+        console.log((clean.stderr || '').trim().split('\n').slice(-4).map(l => '    ' + l).join('\n') + '\n');
+      }
+      const poison = JSON.stringify({ 'pv-collision-probe': {
+        ja: '全日本空輸（ANA）', en: 'Probe', region: 'japan', kind: 'charter', src: 'probe' } });
+      const bad = run({ PV_OPS_INJECT: poison });
+      if (bad.status === 0) {
+        fail++;
+        console.log('✗ 社名の衝突検査が効いていない ── 別会社の社名がぶつかっても通ってしまう\n');
+        console.log('    gen-airline-codes.mjs の「検査③：社名の衝突」を直す。');
+        console.log('    ここが効かないと、別法人の投稿が黙って1社の中央値に混ざる。\n');
+      } else if (!/社名が別の会社どうしで一致する/.test(bad.stderr || '')) {
+        fail++;
+        console.log('✗ 衝突検査は落ちたが、理由が社名の衝突ではない\n');
+        console.log((bad.stderr || '').trim().split('\n').slice(-4).map(l => '    ' + l).join('\n') + '\n');
+      } else {
+        console.log('  ・社名の衝突検査が効いている（わざとぶつけたら落ちた）');
+      }
+    }
   }
 
   if (!fail) console.log(`✅ 生成物は全部いまの元データと一致している（${before.size} 本を照合）`);

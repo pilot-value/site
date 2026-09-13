@@ -201,6 +201,27 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
   ok(!/filter[^)]*\.verified|verified[^)]*filter|ap-vf-only|onlyVerified/.test(j),
      '「Verified だけ」の絞り込みが無い');
   ok(/localeCompare/.test(j), '絞り込みの選択肢は名前順（localeCompare）である');
+  /* ★2026-09-13、オーナー指定「会社名だけ変わって絞り込みでは見つからない状態に
+     しない」の画面側。サーバは解決済みの会社を1列で返すだけなので、あとは
+     **画面がその1列を4か所すべてで読んでいるか**が残りの半分になる ──
+       表示（一覧の札・行を押した面）／絞り込み（r.airline との突き合わせ）／
+       検索（打ち込み）／プルダウンの選択肢づくり。
+     どれか1つが別の材料（社名の文字列や別の列）を読み始めると、
+     「一覧には新しい社名で出ているのに、その名前で絞ると0件」になる。
+     ★名前の引き当ては airName() の1本だけ、という形で押さえる。 */
+  ok((j.match(/function airName\(/g) || []).length === 1,
+     '★社名の引き当ては airName() の1本だけ');
+  ok(/function hitQ\(code\)[\s\S]{0,200}?norm\(airName\(code\)\)/.test(j),
+     '★検索は表示と同じ airName() で当てている（出ている名前で必ず引ける）');
+  ok(/hitQ\(r\.airline\)/.test(j) && /r\.airline !== S\.fAir/.test(j),
+     '★検索も会社の絞り込みも、サーバが返した r.airline を読んでいる');
+  ok(/listOf\('airline', airName,/.test(j),
+     '★プルダウンの選択肢も同じ列・同じ airName() から作っている');
+  ok((j.match(/esc\(airName\(r\.airline\)\)/g) || []).length === 2,
+     '★一覧の札と、行を押した面の見出しも同じ列から出ている',
+     String((j.match(/esc\(airName\(r\.airline\)\)/g) || []).length));
+  ok(!/\.airline_other\b|airline_other/.test(j),
+     '★打ち込まれた社名を画面が読む場所は1つも無い');
   ok(!/PVReferral|mountInvite|mountCohort/.test(j),
      '★招待カードをこの画面に描かない（my_cohort_gap の「あと2人で見える」はもう合わない）');
   ok(!/renderPub|ap-range|ap-plist|salaryRange/.test(j),
@@ -423,6 +444,20 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
     ok(/revoke all on function public\.pv_airline_resolve\(text\) from public, anon, authenticated/
        .test(SQL), '★社名を寄せる関数は誰にも開いていない');
   }
+  /* ★2026-09-13。年収の公開レンジを持たない運航会社（小規模・チャーター・
+     ビジネスジェット）も pv_airlines に入れられるようにした（airline-ops.mjs →
+     gen-airline-codes.mjs → db/airlines.generated.sql）。入れた瞬間、過去の
+     「一覧にない航空会社」の行は**1行も書き換えないまま**正しい社名で出る
+     （resolve は保存時ではなく**読むたび**に走るため）。
+     オーナー指定「会社名だけ変わって絞り込みでは見つからない状態にしない」を
+     ここで固定する ── 行が持つ会社の鍵は**解決済みの airline 1本だけ**。
+     ⚠️ 打ち込まれた社名を「表示用」に別の鍵で返し始めたら、ここが落ちる。
+        そのときは絞り込みだけ古い列を読む形になり、同じ会社が2つに割れる。 */
+  ok((FN.match(/'airline',/g) || []).length === 1,
+     '★行が持つ会社の鍵は1つだけ（表示用の別名を足していない）',
+     String((FN.match(/'airline',/g) || []).length));
+  ok(!/'airline_other',|'airline_raw',|'airline_name',|'air_name',/.test(FN),
+     '★打ち込まれた社名を別の鍵で返していない');
   ok(/group by pkey, airline, pos/.test(FN), '★1行＝1人にまとめている');
   /* ★2026-09-03、オーナー判断で機材を返すことにした（2026-08-24 に外したもの）。
        返すのは**語彙のコードだけ**で、fleet_cat（大分類）は返さない。

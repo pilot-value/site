@@ -516,7 +516,7 @@ const jars = [];
 
 const PK = { a: 'dc-pk-a', b: 'dc-pk-b', pos: 'dc-pk-pos',
              fltA: 'dc-pk-fa', fltB: 'dc-pk-fb' };
-/* ★選択肢が生えるのを待ってから値を入れる。語彙 JSON と salary-data.json は
+/* ★選択肢が生えるのを待ってから値を入れる。語彙 JSON と pv-airlines.json は
    RPC より遅れて着くので、待たずに入れると空文字が入って**静かに空振りする**。
    待ちは全部「条件が満たされるまで」── sleep で待つと混んだ回に嘘の赤が出る。 */
 async function choose(page, sel, expect) {
@@ -965,7 +965,7 @@ for (const lang of ['ja', 'en']) {
     await page.waitForFunction(() => !!document.querySelector('#dc-pk-a option[value="ana"]'),
                                { timeout: 20000 });
     const s = await page.evaluate(SNAP);
-    /* ★並び順は語彙（salary-data.json）の順で、一覧の順ではない。集合で見る。 */
+    /* ★並び順は語彙（pv-airlines.json）の順で、一覧の順ではない。集合で見る。 */
     const want = 'ana,emirates,jal,lufthansa,qatar-airways,sas';
     const set = (l) => (l || []).slice().sort().join(',');
     ok(set(s.opt.a) === want && set(s.opt.b) === want,

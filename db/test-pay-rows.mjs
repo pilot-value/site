@@ -33,6 +33,7 @@
 import { PGlite } from '@electric-sql/pglite';
 import { pgcrypto } from '@electric-sql/pglite/contrib/pgcrypto';
 import { readFileSync } from 'fs';
+import { OPS } from '../airline-ops.mjs';
 
 const read = (f) => readFileSync(new URL('../' + f, import.meta.url), 'utf8');
 
@@ -1415,6 +1416,119 @@ console.log('\n▼ 12-f. ★打ち込まれた社名を「知っている航空�
      && (await one(`select public.pv_airline_resolve($1) c`, [''])).c === 'other'
      && (await one(`select public.pv_airline_resolve(null) c`)).c === 'other',
      "★当たらない・空・null はすべて 'other'（前方一致や部分一致で当てない）");
+}
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 12-x. 年収の無い運航会社（小規模・チャーター・ビジネスジェット）');
+/* ★2026-09-13。会社の一覧が年収の唯一の正（salary-data.mjs）と**同じ物**だったので、
+   年収の出典が無い会社はそもそも選択肢に置けなかった。ビジネスジェットや
+   チャーターのパイロットは「その他」しか道が無く、REAL PAY では
+   「一覧にない航空会社」の札に置き換わっていた。
+   airline-ops.mjs を**別のマスタ**として足し、gen-airline-codes.mjs が
+   両方を db/airlines.generated.sql へ流し込む。ここで見るのは5つ ──
+     ① 新しいコードでそのまま提出できる（pv_validate_pay_payload の active の門を通る）
+     ② 既存の航空会社は今までどおり提出できる（道を塞いでいない）
+     ③ ★行を1行も書き換えずに、過去の「その他」が新しい会社の行として出る
+        （pay_reports.airline は other のまま・proof_hash も1文字も動かない）
+     ④ 違う「一覧外」の会社が1社に混ざらない
+     ⑤ 寄せても寄せなくても、打ち込まれた文字列そのものは返らない
+
+   ⚠️ ③ が今回の土台。pv_pay_rows は**返すたびに** pv_airline_resolve を通すので、
+      pv_airlines に会社が入った瞬間、過去の投稿が正しい社名で出る。
+      逆に pay_reports.airline を実コードへ update すると、持ち主を割り出す4か所
+      （my_pay_reports / pv_my_give / pv_my_keys / pv_pay_person_map）が
+      lower(airline_other) から鍵を作り直しているので、**本人が自分の投稿を開けなくなる**。
+      だからここは「行は触らない」ことそのものを検査にしている。 */
+// ════════════════════════════════════════════════════════════
+{
+  /* 年収を持たない会社だけを取り出す。上の VOCAB（先頭49社）と重なると
+     別の検査の座席を奪うので、重なった分は外す。 */
+  const OPS_CODES = Object.keys(OPS).filter((c) => AIR.indexOf(c) < 0);
+  ok(OPS_CODES.length >= 3,
+     '年収の無い運航会社が3社以上 pv_airlines に入っている（airline-ops.mjs 経由）',
+     ` = ${OPS_CODES.length}社`);
+  const [O_NEW, O_RETRO, O_MIX] = OPS_CODES;
+
+  // ── ① 新しいコードでそのまま提出できる ────────────────────
+  const uNew = ++seat;
+  await asUser(uNew);
+  const rNew = (await submit({ ...BASE, airline: O_NEW, position: 'cap', fleet: 'b737',
+                               period_year: YEAR, period_month: 11, gross_monthly: 21000 })).r;
+  ok(rNew && rNew.ok === true,
+     `★年収の無い会社でも、そのまま提出できる（${O_NEW}）`, JSON.stringify(rNew));
+
+  // ── ② 既存の航空会社は今までどおり ───────────────────────
+  const uOld = ++seat;
+  await asUser(uOld);
+  const rOld = (await submit({ ...BASE, airline: A_ONE, position: 'cap', fleet: 'b737',
+                               period_year: YEAR, period_month: 10, gross_monthly: 22000 })).r;
+  ok(rOld && rOld.ok === true,
+     `既存の航空会社は今までどおり提出できる（${A_ONE}）`, JSON.stringify(rOld));
+
+  // ── ③ 過去の「その他」が、行を書き換えずに正しい社名で出る ──
+  /* マスタに入る**前**に打たれた投稿と同じ形を作る＝会社は other で、
+     打ち込まれた社名だけが airline_other に入っている状態。 */
+  const uRetro = ++seat;
+  await asUser(uRetro);
+  const typed = (await one(`select name_ja from pv_airlines where code = $1`, [O_RETRO])).name_ja;
+  await submit({ ...BASE, airline: 'other', airline_other: typed, position: 'fo',
+                 fleet: 'a320', period_year: YEAR, period_month: 9, gross_monthly: 13000 });
+  const before = await one(
+    `select airline, airline_other, proof_hash from pay_reports
+      where airline = 'other' and lower(airline_other) = lower($1)`, [typed]);
+  ok(!!before && before.airline === 'other' && before.airline_other === typed,
+     '　保存された行は「その他」＋打ち込まれた社名のまま（保存の時点では寄せない）',
+     JSON.stringify(before));
+
+  await asViewer();
+  const RX = (await payRows()).rows;
+  ok(only(RX, (x) => x.airline === O_RETRO).length === 1,
+     `★行を1行も書き換えずに、過去の「その他」が正しい会社の行として出る（${O_RETRO}）`,
+     ` = ${only(RX, (x) => x.airline === O_RETRO).length}行`);
+
+  const after = await one(
+    `select airline, airline_other, proof_hash from pay_reports
+      where airline = 'other' and lower(airline_other) = lower($1)`, [typed]);
+  ok(!!after && after.airline === 'other' && after.airline_other === typed
+     && after.proof_hash === before.proof_hash,
+     '★表示のあとも行は「その他」のまま・proof_hash も動いていない（持ち主が外れない）');
+
+  // ── ④ 違う「一覧外」の会社が1社に混ざらない ─────────────
+  /* ★本番にある2件がこれ。どちらも運航区分・一般名詞であって会社名ではないので、
+     マスタに入れていない（入れると別の人の給与が同じ会社の中央値に混ざる）。 */
+  const uP91 = ++seat;
+  await asUser(uP91);
+  await submit({ ...BASE, airline: 'other', airline_other: 'Part 91 Corporate', position: 'cap',
+                 fleet: 'b737', period_year: YEAR, period_month: 8, gross_monthly: 17000 });
+  const uPriv = ++seat;
+  await asUser(uPriv);
+  await submit({ ...BASE, airline: 'other', airline_other: 'Private Airlines', position: 'cap',
+                 fleet: 'b737', period_year: YEAR, period_month: 7, gross_monthly: 18000 });
+  const hashes = await rows(
+    `select distinct proof_hash from pay_reports
+      where airline = 'other' and airline_other in ('Part 91 Corporate','Private Airlines')`);
+  ok(hashes.length === 2,
+     '★会社を特定できない2件は、別々の人・別々の行のまま（1社にまとめない）',
+     ` = ${hashes.length}通り`);
+  ok((await one(`select public.pv_airline_resolve('Part 91 Corporate') c`)).c === 'other'
+     && (await one(`select public.pv_airline_resolve('Private Airlines') c`)).c === 'other',
+     '★運航区分や一般名詞は寄せない（どちらも「その他」のまま）');
+
+  // ── ⑤ 打ち込まれた文字列そのものは返らない ──────────────
+  const uMix = ++seat;
+  await asUser(uMix);
+  const mixName = (await one(`select name_en from pv_airlines where code = $1`, [O_MIX])).name_en;
+  await submit({ ...BASE, airline: 'other', airline_other: mixName.toLowerCase(), position: 'cap',
+                 fleet: 'b777', period_year: YEAR, period_month: 6, gross_monthly: 19000 });
+  await asViewer();
+  const RY = (await payRows()).rows;
+  ok(only(RY, (x) => x.airline === O_MIX).length === 1,
+     `　英名を小文字で打っても寄る（${O_MIX}）`,
+     ` = ${only(RY, (x) => x.airline === O_MIX).length}行`);
+  const rawOps = (await one(`select pv_pay_rows()::text t`)).t;
+  ok(!rawOps.includes('Part 91 Corporate') && !rawOps.includes('Private Airlines')
+     && !rawOps.includes('airline_other'),
+     '★運航会社でも、打ち込まれた文字列そのものは1文字も返っていない');
 }
 {
   /* 口コミ側は社名の欄そのものが自由入力になりうる（submit-review.html の

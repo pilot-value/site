@@ -432,7 +432,7 @@ const MUST_404 = [
 const MUST_200 = [
   '', 'sitemap.xml', 'robots.txt',
   'currency.js', 'salary-leveling.js', 'payslip.js',
-  'salary-data.json', 'airline-codes.json', 'pv-vocab.json',
+  'salary-data.json', 'airline-codes.json', 'pv-vocab.json', 'pv-airlines.json',
   'airlines/ana.html', 'airlines/airline-base.js',
   'en/index.html', 'countries/japan.html', 'assets/logo.png',
 ];
