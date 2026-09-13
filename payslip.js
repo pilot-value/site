@@ -159,6 +159,8 @@
       ahaPickB: '会社と職位を選ぶ →',
       ahaNoAirline: '「その他」の会社は公開レンジを持っていないので、比較は出せません。',
       ahaNoBand: '訓練生の公開レンジはまだありません。副操縦士から比較が出ます。',
+      ahaNoRange: 'この会社の公開レンジはまだありません（入力が間違っているわけではありません）。'
+        + '提出すると REAL PAY で、実際に出された給与と比べられます。',
       ahaNoFx: function (c) { return c + ' の為替レートがまだ入っていないので、円に直せません（いま対応：JPY / USD / EUR / GBP / AUD / SGD / AED）。'; },
       ahaRangeT: function (a, p) { return a + '・' + p + 'の公開レンジ'; },
       ahaAvgTick: '公開平均',
@@ -296,6 +298,8 @@
       ahaPickB: 'Pick airline and seat →',
       ahaNoAirline: '“Other” has no published range, so there is nothing to compare against.',
       ahaNoBand: 'There is no published range for cadets yet. Comparison starts at first officer.',
+      ahaNoRange: 'There is no published range for this company yet — nothing is wrong with what you entered. '
+        + 'Submit and you can compare against the pay reports themselves in REAL PAY.',
       ahaNoFx: function (c) { return 'We do not have an FX rate for ' + c + ' yet, so this cannot be converted (supported today: JPY / USD / EUR / GBP / AUD / SGD / AED).'; },
       ahaRangeT: function (a, p) { return 'Published range — ' + a + ', ' + p; },
       ahaAvgTick: 'Published average',
@@ -3585,7 +3589,15 @@
 
     if (!SAL) { loadSalary(); host.innerHTML = out; return; }
     var me = SAL[air], band = BAND[pos], r = me && me[band];
-    if (!r || !(r.hi > r.lo)) { host.innerHTML = out; return; }
+    /* ★年収の公開レンジを持たない会社（小規模・チャーター・ビジネスジェット）も
+       選べるようにしたので（2026-09-13 / airline-ops.mjs）、ここへ落ちるのが常態になった。
+       もとは黙って何も出さなかった＝本人には「入力を間違えたので出ない」ように見える。
+       ★比較の1節だけを説明に差し替える。支給内訳・時間あたり・税の節は帯に依らないので、
+         今までどおりそのまま出る。 */
+    if (!r || !(r.hi > r.lo)) {
+      host.innerHTML = out + '<p class="ps-aha-msg">' + esc2(T.ahaNoRange) + '</p>';
+      return;
+    }
 
     var man = jpy / 10000;                            // SSOT の単位は万円
     var nameOf = function (a) { return (L === 'en' ? a.en : a.ja) || ''; };
