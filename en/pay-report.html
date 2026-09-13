@@ -3456,33 +3456,22 @@ window.PVEnterMode = enterMode;
 /* ★Track on the buttons, not inside enterMode(). payslip.js calls
    enterMode('manual') itself after a failed read, so putting it in the function
    would mix the machine's calls into "how many people chose manual". */
-/* ── Which entry the person used last time (2026-09-12, owner's item 2) ──────
-   Both cards are always shown (owner's 2026-08-13 decision). We only **reorder**
-   them; neither card is ever hidden.
-   ⚠️ Only record it when the person actually presses a button. payslip.js calls
-      enterMode('manual') by itself when a read fails, so putting this inside
-      enterMode would drift people who chose "from payslip" over to manual
-      next month (same reason the track() marks sit on the buttons). */
-let _entry = '';
-function rememberEntry(mode) {
-  if (mode !== 'manual' && mode !== 'payslip') return;
-  _entry = mode;
-}
-function orderEntry(mode) {
-  if (mode !== 'manual' && mode !== 'payslip') return;
-  const grid = document.querySelector('.entry-grid');
-  const ps = $('entry-payslip'), mn = $('entry-manual');
-  if (!grid || !ps || !mn) return;
-  const first = mode === 'manual' ? mn : ps;
-  const second = first === mn ? ps : mn;
-  grid.appendChild(first);          // only two cards, so re-append in the order we want
-  grid.appendChild(second);
-  first.classList.add('is-primary');
-  second.classList.remove('is-primary');
-}
-$('entry-payslip').addEventListener('click', () => { track('pay_entry_payslip'); rememberEntry('payslip'); enterMode('payslip'); $('ps-drop').focus(); });
-$('entry-manual').addEventListener('click', () => { track('pay_entry_manual', { from: 'button' }); rememberEntry('manual'); enterMode('manual'); const h = formHead(); if (h) h.focus(); });
-$('ps-skip').addEventListener('click', () => { track('pay_entry_manual', { from: 'skip' }); rememberEntry('manual'); enterMode('manual'); });
+/* ── The two entry cards never move (2026-09-13, owner) ─────────────────
+   "Put last time's entry first" went in on 2026-09-12 as owner's item 2 and came
+   back out the next day. Gold reads as **recommended**. A payslip read gives more
+   accurate numbers and is the only path that will ever earn Verified — yet anyone
+   who had typed manually last month saw "Enter manually" on the left, in gold
+   (the owner found it on localhost).
+   ⚠️ Do not put the reordering back. "Faster for repeat visitors" loses to
+      "recommend the accurate one". A repeat visitor only pays one extra click and
+      is never lost — #entry-prev (the third ✓ on the manual card) is what tells
+      them their last answers are waiting.
+   ⚠️ Both cards are always shown (owner's 2026-08-13 decision). Never hide one.
+   Watched by db/test-form-contract.mjs: "★the payslip card is first and gold
+   however many times you come back". */
+$('entry-payslip').addEventListener('click', () => { track('pay_entry_payslip'); enterMode('payslip'); $('ps-drop').focus(); });
+$('entry-manual').addEventListener('click', () => { track('pay_entry_manual', { from: 'button' }); enterMode('manual'); const h = formHead(); if (h) h.focus(); });
+$('ps-skip').addEventListener('click', () => { track('pay_entry_manual', { from: 'skip' }); enterMode('manual'); });
 
 /* ── Open "add the breakdown" when arriving at #pay-detail ───────
    Comes from the "add the breakdown" link in the DEEP PAY panel
@@ -4096,8 +4085,6 @@ function savePreset() {
   /* ★Stamp who it belongs to. The one place that decides is owns() in pv-session.js.
      ★Stamp this tab's password too (2026-09-11): however long signing up takes,
        the same tab gets it back and **another tab's person never does**. */
-  /* ★Which entry was used last time (2026-09-12). It is not a field value, so it is not in PRESET_IDS. */
-  if (_entry) o._entry = _entry;
   o._own = _payOwn;
   o._ts = Date.now();
   try { o._tab = PVPayLocal.markTab(); } catch (e) {}
@@ -4515,7 +4502,6 @@ function loadPreset(me) {
        empty boxes and marks them (.pv-carried). This runs a second time once the
        account is known, and until now that second run overwrote what the person had
        just typed — or what the payslip had just read — with last month's values. */
-  orderEntry(o._entry);          // never hide a card — just put last time’s one first
   if (!restoreInto(o, { mode: 'carry' })) return;
   _presetIn = true;
   $('restore-bar').style.display = '';

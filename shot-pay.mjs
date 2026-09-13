@@ -440,7 +440,7 @@ if (process.argv.includes('open')) {
      ⚠️ 本番の DB は読まない。置くのは localStorage だけ＝この窓を閉じれば消える。
      ★slug を足すと、その入口から入ったところで渡す：
         second        → 手入力（1画面に畳まれた「今月の入力」）
-        second slip   → 明細の入口（前回使ったほうが先に並ぶ）
+        second slip   → 明細の入口（並びは常に「明細から」が先）
      ⚠️ 金額は架空。実在の人の明細ではない。 */
   const wantSecond = process.argv.includes('second');
   const wantSlip   = wantSecond && process.argv.includes('slip');
@@ -481,7 +481,7 @@ if (process.argv.includes('open')) {
         localStorage.setItem('pv_pay_last',
           JSON.stringify(Object.assign({}, f, { _own: 'anon', _ts: t, _tab: '' })));
       } catch (e) {}
-    }, Object.assign({}, LAST_MONTH, { _entry: wantSlip ? 'payslip' : 'manual' }), Date.now());
+    }, Object.assign({}, LAST_MONTH), Date.now());
   }
   if (wantAbsence) {
     /* 読み取りの応答だけを作る。Edge Function の本物の後処理（sanitize / reconcile /
@@ -573,7 +573,7 @@ if (process.argv.includes('open')) {
     await new Promise((r) => setTimeout(r, 400));
     const n = await pg.evaluate(() => (window.PVPayWizard ? PVPayWizard.count() : 0));
     console.log(wantSlip
-      ? '2回目以降・明細の入口（前回使ったほうが先に並ぶ）。前回の内容は端末に置いただけ＝本番は読んでいない。'
+      ? '2回目以降・明細の入口（並びは常に「明細から」が先）。前回の内容は端末に置いただけ＝本番は読んでいない。'
       : `2回目以降の手入力。段は ${n} 枚（初回は5枚）。前回の内容は端末に置いただけ＝本番は読んでいない。`);
   }
   if (wantGate) {
@@ -621,7 +621,7 @@ if (process.argv.includes('open')) {
    ⚠️ **実機ではない。** ブラウザのスマホ表示（幅390px）。実機での確認は宿題に残す。
 
    撮るもの（日英 × 手入力／明細アップロードの2本立て）
-     1 entry        2か月目の入口（前回使ったほうが先に並ぶ）
+     1 entry        2か月目の入口（並びは常に「明細から」が先・2026-09-13）
      2 input        今月の入力（1画面）★基本給・保証給が「前回の 0」で出る
                                         ★変動給は**未回答のまま**（前月の「なし」を持ち込まない）
      3 review       確認（5/5 相当）
@@ -702,7 +702,7 @@ if (ROUND === 'second') {
     const url = `http://localhost:3000/${lang === 'en' ? 'en/' : ''}pay-report.html`;
 
     /* 1つの窓を開いて、前月ぶんを置き、通信を横取りするところまで。 */
-    const openSecond = async (entry) => {
+    const openSecond = async () => {
       const p = await b2.newPage();
       await p.setViewport({ width: 390, height: 844, deviceScaleFactor: 2 });
       p.on('pageerror', (e) => console.log('  ⚠ ページ例外: ' + e.message));
@@ -736,9 +736,9 @@ if (ROUND === 'second') {
           localStorage.clear();
           localStorage.setItem('pv-theme', 'light');
           localStorage.setItem('pv_pay_last',
-            JSON.stringify(Object.assign({}, o, { _own: 'anon', _ts: t, _tab: '', _entry: e2 })));
+            JSON.stringify(Object.assign({}, o, { _own: 'anon', _ts: t, _tab: '' })));
         } catch (err) {}
-      }, LAST_NONE, Date.now(), entry);
+      }, LAST_NONE, Date.now());
       await p.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
       await new Promise((r) => setTimeout(r, 900));
       /* 送信のときだけログイン済みにする（結果パネルまで撮るため）。 */
@@ -768,7 +768,7 @@ if (ROUND === 'second') {
     /* ── A. 手入力 ───────────────────────────────────────── */
     console.log(`\n${lang} / 2か月目・手入力（幅390px＝ブラウザのスマホ表示）`);
     {
-      const p = await openSecond('manual');
+      const p = await openSecond();
       await shoot(p, `${lang}-1-entry`);
       await startManual(p);
       await new Promise((r) => setTimeout(r, 500));
@@ -799,9 +799,9 @@ if (ROUND === 'second') {
     /* ── B. 明細アップロード ──────────────────────────────── */
     console.log(`${lang} / 2か月目・明細アップロード`);
     {
-      const p = await openSecond('payslip');
+      const p = await openSecond();
       await shoot(p, `${lang}-5-slip-entry`);
-      /* ★前回使ったほうが先に並ぶだけで、押すのは今までどおり本人。 */
+      /* ★入口は2か月目でも「明細から自動入力」が先で金色（2026-09-13）。押すのは本人。 */
       await p.click('#entry-payslip');
       await new Promise((r) => setTimeout(r, 400));
       await p.waitForFunction(() => {

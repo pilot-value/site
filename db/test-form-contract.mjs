@@ -1563,6 +1563,22 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   ok(!(await vis('s1')), '★どちらかを選ぶまでフォームは出さない');
   ok(!(await vis('ps')), '明細の読み込み画面も、選ぶまでは出さない');
 
+  /* ── 入口の並びは動かさない（2026-09-13 オーナー指摘）────────────────
+     2026-09-12 に②として「前回使ったほうを先に」を入れ、翌日に戻した。
+     金色は**おすすめ**に読める。明細から読ませたほうが数字は正確で、将来の
+     Verified もそちらにしか付かないのに、前回手入力した人の画面では
+     「手動で入力」が左に来て金色になっていた。
+     ⚠️ 押す先も飛び先も正しいまま、**勧める向きだけが裏返る**形。 */
+  const entryOrder = () => page.evaluate(() =>
+    [...document.querySelectorAll('.entry-grid .entry-card')]
+      .map((b) => b.id + (b.classList.contains('is-primary') ? '★' : '')));
+  ok(JSON.stringify(await entryOrder()) === '["entry-payslip★","entry-manual"]',
+     '★入口は「明細から自動入力」が先で金色（★＝is-primary）',
+     JSON.stringify(await entryOrder()));
+  ok((await entryOrder()).length === 2,
+     '2択は両方出す（片方を消さない・2026-08-13 のオーナー決定）',
+     JSON.stringify(await entryOrder()));
+
   await page.click('#entry-payslip');
   await new Promise((r) => setTimeout(r, 150));
   ok((await vis('ps')) && !(await vis('entry')),
@@ -4256,9 +4272,12 @@ console.log('\n前回の内容の上に明細を落とす（先月の額が積�
         **空のフォームの内容で上書きする**（pagehide → savePreset）。
         書いたはずの前回の内容が {"f-currency":"JPY"} だけになり、
         この検査は「直っていないのに前提で赤くなる」という一番たちの悪い形で落ちる。 */
+  /* ★_entry は 2026-09-12 に入れて翌日に外した「前回使ったほうを先に」の名残。
+     端末に残っている古い下書きには入ったままなので、**読まれていないこと**を
+     ここで見る（読んでいたら、この行があるだけで入口の並びが裏返る）。 */
   await page.evaluateOnNewDocument((f, t) => {
     try { localStorage.setItem('pv_pay_last',
-      JSON.stringify(Object.assign({}, f, { _own: 'anon', _ts: t, _tab: '' }))); } catch (e) {}
+      JSON.stringify(Object.assign({}, f, { _own: 'anon', _ts: t, _tab: '', _entry: 'manual' }))); } catch (e) {}
   }, LAST, Date.now());
   await page.reload({ waitUntil: 'networkidle2', timeout: 30000 });
   await page.waitForFunction(() => {
@@ -4276,6 +4295,14 @@ console.log('\n前回の内容の上に明細を落とす（先月の額が積�
   ok(num(await v('f-perdiem')) === 42000, '前提：前回の日当が戻っている', await v('f-perdiem'));
   ok((await varRows()).length === 1,
      '前提：前回の変動給は1行だけ', JSON.stringify(await varRows()));
+
+  ok(await page.evaluate(() =>
+       JSON.stringify([...document.querySelectorAll('.entry-grid .entry-card')]
+         .map((b) => b.id + (b.classList.contains('is-primary') ? '★' : '')))
+       === '["entry-payslip★","entry-manual"]'),
+     '★2回目以降でも入口は「明細から自動入力」が先で金色（前回の入口で並べ替えない）',
+     await page.evaluate(() => JSON.stringify([...document.querySelectorAll('.entry-grid .entry-card')]
+       .map((b) => b.id + (b.classList.contains('is-primary') ? '★' : '')))));
 
   // ── 入口で「明細から自動入力」を選び、明細を1枚落とす ──────────────
   await page.click('#entry-payslip');

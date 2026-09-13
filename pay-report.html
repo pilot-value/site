@@ -3367,31 +3367,20 @@ window.PVEnterMode = enterMode;
 /* ★目印は enterMode の中ではなく、押されたボタンの側に置く。
    読み取りに失敗したとき payslip.js が enterMode('manual') を自分で呼ぶので、
    関数の中に置くと「本人が手入力を選んだ数」に機械の分が混ざる。 */
-/* ── 入口の記憶（2026-09-12・オーナーの②「入口は前回使ったほうを先に」）──────
-   2択は毎回出す（2026-08-13 のオーナー決定）。**並べ替えるだけ**で、片方を消さない。
-   ⚠️ 記録するのは本人がボタンを押したときだけ。読み取りに失敗すると payslip.js が
-      enterMode('manual') を自分で呼ぶので、enterMode の中に置くと
-      「明細を選んだ人」が次の月から手入力の側に寄る（track の目印と同じ理由）。 */
-let _entry = '';
-function rememberEntry(mode) {
-  if (mode !== 'manual' && mode !== 'payslip') return;
-  _entry = mode;
-}
-function orderEntry(mode) {
-  if (mode !== 'manual' && mode !== 'payslip') return;
-  const grid = document.querySelector('.entry-grid');
-  const ps = $('entry-payslip'), mn = $('entry-manual');
-  if (!grid || !ps || !mn) return;
-  const first = mode === 'manual' ? mn : ps;
-  const second = first === mn ? ps : mn;
-  grid.appendChild(first);          // 2枚しか無いので、先に置きたいほうから入れ直す
-  grid.appendChild(second);
-  first.classList.add('is-primary');
-  second.classList.remove('is-primary');
-}
-$('entry-payslip').addEventListener('click', () => { track('pay_entry_payslip'); rememberEntry('payslip'); enterMode('payslip'); $('ps-drop').focus(); });
-$('entry-manual').addEventListener('click', () => { track('pay_entry_manual', { from: 'button' }); rememberEntry('manual'); enterMode('manual'); const h = formHead(); if (h) h.focus(); });
-$('ps-skip').addEventListener('click', () => { track('pay_entry_manual', { from: 'skip' }); rememberEntry('manual'); enterMode('manual'); });
+/* ── 入口の並びは動かさない（2026-09-13・オーナー指示）────────────────
+   2026-09-12 に②として「前回使ったほうを先に」を入れたが、翌日に戻した。
+   金色は**おすすめ**に読める。明細から読ませたほうが数字は正確で、将来の
+   Verified もそちらにしか付かないのに、前回手入力した人の画面では
+   「手動で入力」が左に来て金色になっていた（オーナーが localhost で見つけた）。
+   ⚠️ 並べ替えを足し直さない。「前回の続きが速い」より「正確なほうを勧める」が上。
+      2回目以降の人は押す手間が1回増えるだけで、迷子にはならない
+      （前回の内容が入ることは #entry-prev ＝ 手動の側の3つ目の ✓ が伝えている）。
+   ⚠️ 2択は毎回出す（2026-08-13 のオーナー決定）。片方を消さない。
+   見張っているのは db/test-form-contract.mjs の
+   「★入口は何回目でも『明細から自動入力』が先で金色」。 */
+$('entry-payslip').addEventListener('click', () => { track('pay_entry_payslip'); enterMode('payslip'); $('ps-drop').focus(); });
+$('entry-manual').addEventListener('click', () => { track('pay_entry_manual', { from: 'button' }); enterMode('manual'); const h = formHead(); if (h) h.focus(); });
+$('ps-skip').addEventListener('click', () => { track('pay_entry_manual', { from: 'skip' }); enterMode('manual'); });
 
 /* ── #pay-detail で来たら「くわしく入れる」を開く ────────────────
    DEEP PAY の説明の「内訳を入力する」（pv-gates.js の DETAIL_URL）から来る。
@@ -3988,8 +3977,6 @@ function savePreset() {
   /* ★誰のものかを一緒に書く。読むときの判定は pv-session.js の owns() 1か所。
      ★このタブの合言葉も一緒に書く（2026-09-11）。登録に何時間かかっても
        同じタブなら戻せて、**別のタブの人には戻らない**。 */
-  /* ★前回どちらの入口から入ったか（2026-09-12）。値ではないので PRESET_IDS には入れない。 */
-  if (_entry) o._entry = _entry;
   o._own = _payOwn;
   o._ts = Date.now();
   try { o._tab = PVPayLocal.markTab(); } catch (e) {}
@@ -4382,7 +4369,6 @@ function loadPreset(me) {
   /* ★端末に取ってある「前回の内容」も引き継ぎ（2026-09-12）。空いている欄にだけ入れ、
        印（.pv-carried）を付ける。本人が打ち始めたあと・明細を読んだあとに
        本人確定でもう一度呼ばれる経路があり、そこで打った値が前回の値に戻っていた。 */
-  orderEntry(o._entry);          // 2択は消さない。前回のほうを先に置くだけ
   if (!restoreInto(o, { mode: 'carry' })) return;
   _presetIn = true;
   $('restore-bar').style.display = '';
