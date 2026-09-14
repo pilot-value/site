@@ -197,8 +197,7 @@
       /* ★「明細を1枚」と書かない。手入力（source='web'）でも解放される。
            明細は VERIFIED PAY の話になったので、ここで要求すると Give を1つ減らす。 */
       lockT: '他のパイロットが実際に提出した給与を見る',
-      lockS: 'あなたの給与を1件共有すると解放されます。給与明細でも手入力でもかまいません。'
-           + '氏名も社員番号も受け取りません。'
+      lockS: '氏名も社員番号も受け取りません。'
            + '明細を使う場合、画像は端末の中だけで処理され、サーバーには送られません。',
       lockS2: '一覧に出るのは、航空会社・職位・機材と、帯にした年収・月あたりです。'
             + '行を押すと、その人の報酬の内訳と勤務も帯で見られます。',
@@ -274,9 +273,7 @@
       dash: '–', under: 'Under {v}',
       pgPrev: 'Previous', pgNext: 'Next', pgRange: 'Showing {a}–{b} of {n}',
       lockT: 'See what other pilots actually get paid',
-      lockS: 'Share one of your own pay records and this opens. '
-           + 'A payslip is not required — typing it in works too. '
-           + 'We never take your name or staff number, '
+      lockS: 'We never take your name or staff number, '
            + 'and any payslip image is processed on your own device.',
       lockS2: 'A row carries the airline, the rank and the aircraft, '
             + 'with the yearly and monthly figures as ranges. '
@@ -329,13 +326,59 @@
     pos: {},          // 職位コード → 表示名
     flt: {},          // 機材コード → 表示名（2026-09-03）
     rows: null,       // pv_pay_rows() の行（そのまま持つ）
-    mode: '',         // 'locked' | 'open' | 'error'
+    mode: '',         // 'preview' | 'open' | 'error'
+    auth: null,       // null=まだ判定中 / false=未ログイン / true=ログイン済み
     fAir: '', fPos: '', fQ: '',   // fQ ＝ 社名の打ち込み（絞り込みの1つ）
     stats: null,      // サーバから来る数え上げ { reports, month }。無ければそのカードを出さない
     page: 1           // 1始まり。絞り込みを変えたら1に戻す（行き止まりを作らない）
   };
 
   var PER_PAGE = 10;
+
+  /* ══ プレビュー（2026-09-13）═══════════════════════════════════
+     鍵の無い人（未ログイン・登録しただけ）に見せる5行。実体は ap-preview.js。
+     ★あちらとこちらは**一方通行**。ここから本物を書き込まないし、
+       本物の行をあちらへ写さない。読み込めていなければプレビューの節そのものを
+       出さず、今までどおりの灰色の骨組みに落ちる（画面は壊れない）。 */
+  function pvData() { return w.PV_AP_PREVIEW || null; }
+
+  /* プレビューの行を**複製して**返す。★原本に _i を書き込まない
+       （描き直すたびに同じ物を配ると、前回の絞り込みの痕が残る）。 */
+  function pvRows() {
+    var p = pvData();
+    if (!p || !p.rows || !p.rows.length) return [];
+    return p.rows.map(function (r, k) {
+      var o = {}, key;
+      for (key in r) if (Object.prototype.hasOwnProperty.call(r, key)) o[key] = r[key];
+      o._i = k;
+      return o;
+    });
+  }
+
+  /* プレビュー専用の文言。★T（本物の画面の文言）には混ぜない。
+       あちらは mail-bot/announce-mail.mjs と突き合わせている行を抱えている。 */
+  function PT(k) {
+    var p = pvData();
+    var t = (p && p.t) ? (p.t[L] || p.t.ja) : null;
+    return (t && t[k]) || '';
+  }
+
+  function isPreview() { return S.mode === 'preview'; }
+
+  /* ══ 計測（2026-09-13）═════════════════════════════════════════
+     ★送るのは「どの状態の画面を見たか」だけ。
+       金額・社名・メールアドレス・明細の中身は**1つも送らない**。
+     ★gtag が無いところ（検査の中・解析を切っている人）では黙って何もしない。 */
+  var TRACKED = {};
+  function track(name, params) {
+    if (typeof w.gtag !== 'function') return;
+    try { w.gtag('event', name, params || {}); } catch (e) {}
+  }
+  function trackOnce(name, params) {
+    if (TRACKED[name]) return;
+    TRACKED[name] = 1;
+    track(name, params);
+  }
 
   var esc = function (s) {
     return String(s == null ? '' : s)
@@ -532,7 +575,10 @@
          ── サーバーの数え上げ（stats.airlines）から取る。
          ★読めなかったカードは、そのカードごと出さない（0 を並べて嘘の数字を作らない）。 */
     var open = (S.mode === 'open' && S.rows && S.rows.length);
-    if (!open && S.mode !== 'locked') { box.hidden = true; box.innerHTML = ''; return; }
+    /* ★プレビューのときは**サーバから来た数だけ**出す（S.stats）。
+         プレビューの5行は1件も数えない。未ログインは S.stats が無い＝
+         カードごと出ない（0 を置いて嘘の数字を作らない）。 */
+    if (!open && S.mode !== 'preview') { box.hidden = true; box.innerHTML = ''; return; }
 
     var st = S.stats || {};
     var airs;
@@ -570,12 +616,15 @@
        「まだありません」が一瞬出てから行が現れる。 */
     if (!S.mode) return;
 
-    if (S.mode === 'locked') {
-      /* ★ここに金額を1文字も出さない。鍵の無い人に数字を見せない、が
-           この画面の一番外側の約束。 */
+    if (S.mode === 'preview') {
+      /* ★ここに**本物の金額を1文字も出さない**。描くのは ap-preview.js の5行だけで、
+           pv_pay_rows() はそもそも引いていない（未ログイン）か、
+           引いても行ゼロで返っている（ログイン済み・鍵なし）。
+         ⚠️ 本物を取ってきて CSS で隠す、はしない（指示書の §6）。 */
       box.innerHTML = lockScreen();
       renderFilters();
       renderStats();
+      trackOnce('realpay_preview_view', { signed_in: S.auth ? 1 : 0 });
       return;
     }
     if (S.mode === 'error') {
@@ -891,7 +940,9 @@
   function payHTML(r) {
     /* ★閉じている行。サーバが返しているのは paylock ── 区分の**名前だけ**
          （区分が1つしか無い行は真偽1つ）。金額は1円も来ていない。 */
-    if (r.paylock) return payLockHTML(r.paylock);
+    /* ★プレビューの行は「内訳の欄」へ直接送らない。初めて来た人を
+         フォームの途中に落とすと、前の段（総支給）を飛ばしたまま埋め始める。 */
+    if (r.paylock) return payLockHTML(r.paylock, r._p ? PAY_URL : DETAIL_URL);
     if (!r.pay || !r.pay.length) return '';
 
     var mid = r.pay.map(segMid), wsum = 0;
@@ -993,7 +1044,7 @@
         （assert-pay-rows.mjs が、毒を仕込んだ行を開いて面に数字が
          1文字も出ないことを実測している）。
      ⚠️ サーバから来た語をそのまま class に流さない。T.seg が白名簿。 */
-  function payLockHTML(keys) {
+  function payLockHTML(keys, href) {
     var ks = [];
     if (keys && keys.length && typeof keys !== 'boolean') {
       for (var n = 0; n < keys.length; n++) {
@@ -1032,14 +1083,17 @@
       + '<div class="ap-dw-lk">'
       +   '<p class="ap-dw-lk-t">' + esc(T.lockPT) + '</p>'
       +   '<p class="ap-dw-lk-s2">' + esc(T.lockPS) + '</p>'
-      +   '<a class="ap-dw-cta ap-dw-lk-c" data-ap-detail="1" href="'
-      +     DETAIL_URL + '">' + esc(T.lockPC) + '</a>'
+      +   '<a class="ap-dw-cta ap-dw-lk-c" data-ap-detail="1" data-ap-cta="detail" href="'
+      +     (href || DETAIL_URL) + '">' + esc(T.lockPC) + '</a>'
       + '</div>';
   }
 
   /* 押した行を覚えておく（戻ってきたときに同じ面を開くため）。 */
   function saveBack(r) {
     if (!r) return;
+    /* ★プレビューの行は置かない。作り物の行を覚えて帰ってくると、
+         本物が開いたときに開き直す行が居ない（指示書の §5）。 */
+    if (r._p) return;
     try {
       /* ★q は**打った字のまま**持つ（S.fQ は小文字に均した内部用）。
            まだ絞り込みに効いていない打ちかけは持たない（urlWrite と同じ条件）。 */
@@ -1112,6 +1166,9 @@
   /* 同じ会社・同じ職位のほかの記録。★S.rows から作る（サーバに投げない）。
        0件なら節ごと出さない（空の枠を並べない）。 */
   function simHTML(r) {
+    /* ★プレビューの行には出さない。5行しか無いので「ほかの記録」は
+         プレビューの中を指すことになり、投稿が集まっているように読める。 */
+    if (r._p) return '';
     var sim = (S.rows || []).filter(function (x) {
       return x !== r && x.airline === r.airline && x.pos === r.pos;
     }).slice(0, 5);
@@ -1127,7 +1184,24 @@
         }).join('') + '</div>';
   }
 
+  /* 面の上に出る大きな金額。★プレビューの3〜5件目は**数字を持っていない**
+       （ap-preview.js の annual_usd が null）ので、中身の空いた板を置く。
+       ぼかしではない ── 霞ませる数字がそもそも無い。 */
+  function dwAmt(r, month) {
+    if (r._p && (r.lock || r.annual_usd == null)) {
+      return '<span class="ap-amt-lk ap-dw-av-lk">'
+           + '<span class="ap-amt-lk-p" aria-hidden="true"></span>'
+           + '<span class="ap-pv-sr">' + esc(PT('lkA')) + '</span></span>';
+    }
+    return '<span class="ap-dw-av">'
+         + esc(month ? moneyMonth(r.annual_usd) : money(r.annual_usd)) + '</span>';
+  }
+
   function dwHTML(r) {
+    /* ★プレビューの行（ap-preview.js）。ここだけは「誰かが実際に出した」と
+         読める表示を**1つも出さない** ── 出典（✓ Verified / 本人申告）も
+         投稿時期（◯か月以内）も欄ごと出さない。 */
+    var pv = !!r._p;
     var meta = [posName(r.pos)];
     var fl = fleetName(r.fleet); if (fl) meta.push(fl);
     var tn = tenName(r);         if (tn) meta.push(tn);
@@ -1142,20 +1216,22 @@
 
     return '<div class="ap-dw-top">'
       + '<div class="ap-dw-air">' + logoHtml(r.airline)
-      +   '<span class="ap-dw-name" id="ap-dw-t">' + esc(airName(r.airline)) + '</span></div>'
+      +   '<span class="ap-dw-name" id="ap-dw-t">' + esc(airName(r.airline)) + '</span>'
+      +   (pv ? '<span class="ap-pv-tag">' + esc(PT('tag')) + '</span>' : '') + '</div>'
       + '<button type="button" class="ap-dw-x" data-ap-close="1" aria-label="'
       +   esc(T.dwClose) + '">×</button>'
       + '</div>'
       + '<p class="ap-dw-meta">' + esc(meta.join(' · ')) + '</p>'
       + '<div class="ap-dw-amt">'
       +   '<div class="ap-dw-a"><span class="ap-dw-al">' + esc(T.dwYear) + '</span>'
-      +     '<span class="ap-dw-av">' + esc(money(r.annual_usd)) + '</span></div>'
+      +     dwAmt(r, 0) + '</div>'
       +   '<div class="ap-dw-a"><span class="ap-dw-al">' + esc(T.dwMonth) + '</span>'
-      +     '<span class="ap-dw-av">' + esc(moneyMonth(r.annual_usd)) + '</span></div>'
+      +     dwAmt(r, 1) + '</div>'
       + '</div>'
-      + '<p class="ap-dw-src">'
+      /* ★出典と投稿時期はプレビューでは**行ごと出さない**（上のコメント）。 */
+      + (pv ? '' : '<p class="ap-dw-src">'
       +   (r.verified ? vfMark() : '<span class="ap-vf-no">' + esc(T.vfNo) + '</span>')
-      +   '<span class="ap-dw-age">' + esc(ageName(r.age)) + '</span></p>'
+      +   '<span class="ap-dw-age">' + esc(ageName(r.age)) + '</span></p>')
       + bd + work
       + (miss ? '<p class="ap-dw-miss">' + esc(miss) + '</p>' : '')
       + simHTML(r)
@@ -1163,13 +1239,21 @@
            左メニューと**まったく同じ門**（pv-gates.js の説明パネル）を開く。
            門の部品が読めていなければ**この行ごと出さない** ── 押しても何も起きない
            ボタンを置かない。下の副 CTA は必ず残るので、面が行き止まりにはならない。 */
-      + (hasGate()
-          ? '<button type="button" class="ap-dw-cta" data-ap-gate="deep">'
-            + esc(T.dwGo) + '</button>'
-          : '')
+      + (pv
+          /* ★プレビューの面は DEEP PAY の門へ行かない（あちらは鍵が2つ要る）。
+               行き先は1つだけ ── 給与を出す画面。 */
+          ? '<a class="ap-dw-cta" data-ap-cta="detail" href="' + PAY_URL + '">'
+            + esc(T.lockC) + '</a>'
+          : (hasGate()
+              ? '<button type="button" class="ap-dw-cta" data-ap-gate="deep">'
+                + esc(T.dwGo) + '</button>'
+              : ''))
       /* ★副 ── 出す側へ戻す。消さずに順位だけ下げる。 */
-      + '<a class="ap-dw-cta2" href="' + PAY_URL + '">' + esc(T.dwCta) + '</a>'
-      + '<p class="ap-dw-note">' + esc(T.dwNote) + '</p>';
+      + (pv ? '' : '<a class="ap-dw-cta2" href="' + PAY_URL + '">' + esc(T.dwCta) + '</a>')
+      /* ★下の1行（「匿名化のため帯で表示しています」）もプレビューでは出さない。
+           あれは**誰かが出した数字をどう扱っているか**の説明で、作り物の5行に
+           付けると「この金額も誰かの投稿を匿名化したもの」と読める。 */
+      + (pv ? '' : '<p class="ap-dw-note">' + esc(T.dwNote) + '</p>');
   }
 
   function hasGate() { return !!(w.PVGates && w.PVGates.open); }
@@ -1226,6 +1310,7 @@
          行の入れ替えは上の早期 return で戻るので積み増さない。
          Desktop と Mobile は同じ面（.ap-dw）なので、幅を変えても重複しない。 */
     histPush();
+    if (rowOf(i)._p) track('realpay_preview_detail', { row: i + 1 });
 
     var back = d.createElement('div');
     back.className = 'ap-dw-back';
@@ -1256,7 +1341,12 @@
       /* ★門のボタン ── 戻り先を置くだけ。**止めない**（そのままリンクが飛ぶ）。
            preventDefault して自分で location を書くと、真ん中クリックや
            「新しいタブで開く」が効かなくなる。 */
-      if (t.closest('[data-ap-detail]')) { saveBack(rowOf(DW.i)); return; }
+      if (t.closest('[data-ap-detail]')) {
+        saveBack(rowOf(DW.i));                 // プレビューの行は中で弾かれる
+        track('realpay_cta_click', { place: 'detail' });
+        return;
+      }
+      if (t.closest('[data-ap-cta]')) { track('realpay_cta_click', { place: 'detail' }); return; }
       if (t.closest('[data-ap-gate]')) { toDeep(); return; }
       var sm = t.closest('[data-ap-row]');
       if (sm) { DW.i = Number(sm.getAttribute('data-ap-row')); paintDrawer(); }
@@ -1322,6 +1412,74 @@
     }, 320);
   }
 
+  /* ── ログアウト・失効・別ユーザーへの切替（2026-09-13・指示書の §6）───
+     ★本物の行を画面からも手元の state からも**消してから**プレビューへ落とす。
+     ⚠️ 面はその場で外す（滑らせない）。普通の閉じ方は 320ms 待ってから
+        DOM を消すので、その間だけ他人の帯が残る。
+     ⚠️ ここから history.back() を呼ばない（ログアウトは「戻る」ではない）。 */
+  function dropDrawer() {
+    if (!DW) return;
+    var x = DW; DW = null; DWH = false;
+    d.removeEventListener('keydown', x.onKey, true);
+    d.body.style.overflow = x.prevOverflow || '';
+    if (x.back.parentNode) x.back.parentNode.removeChild(x.back);
+  }
+
+  function wipeReal() {
+    dropDrawer();
+    sheetClose(true);
+    S.auth = false;
+    S.stats = null;
+    S.rows = pvRows();
+    S.mode = 'preview';
+    S.page = 1;
+    /* ★戻り先（他人の年収を含む）も捨てる。残すと、次に誰かがログインした
+         ときに前の人の行を開き直そうとする。 */
+    try { w.sessionStorage.removeItem(RP_BACK); } catch (e) {}
+    if (w.PVGates && w.PVGates.mark) w.PVGates.mark(false);
+    render();
+  }
+
+  /* 本物を持っている状態から落ちる道は3つ。全部 wipeReal() に集める。 */
+  function watchAuth(client) {
+    try {
+      if (client.auth && client.auth.onAuthStateChange) {
+        client.auth.onAuthStateChange(function (ev) {
+          if (ev === 'SIGNED_OUT' || ev === 'USER_DELETED') wipeReal();
+        });
+      }
+    } catch (e) {}
+    /* 別のタブでログアウトした・別の人でログインし直した。
+       ★見る鍵は pv-session.js と同じ（あちらは自分の画面を直すだけ）。 */
+    w.addEventListener('storage', function (e) {
+      if (e && e.key && e.key !== 'pv_user' && !/auth-token/.test(e.key)) return;
+      var inn = !!(w.PVSession && w.PVSession.isLoggedIn && w.PVSession.isLoggedIn());
+      if (!inn && S.mode === 'open') wipeReal();
+    });
+    /* 「戻る」でブラウザが画面を丸ごと復元した（bfcache）。
+       ★旗ではなく**サーバの答え**を取り直す。null なら本物を捨てる
+         ＝ 戻る操作で他人の年収が生き返らない。 */
+    w.addEventListener('pageshow', function (e) {
+      if (!(e && e.persisted) || S.mode !== 'open') return;
+      try {
+        Promise.resolve(client.auth.getSession()).then(function (g) {
+          var ss = (g && g.data) ? g.data.session : null;
+          if (!ss) wipeReal();
+        }, function () {});
+      } catch (e2) {}
+    });
+  }
+
+  /* 鍵の無い画面へ落とす。★本物を1つも持たない状態にしてから描く。 */
+  function toPreview() {
+    S.rows = pvRows();
+    S.stats = null;
+    S.mode = 'preview';
+    S.page = 1;
+    if (w.PVGates && w.PVGates.mark) w.PVGates.mark(false);
+    render();
+  }
+
   function msg(kind, t, s, cta, extra) {
     return '<div class="ap-msg' + (kind === 'lock' ? ' ap-msg--lock' : '') + '">'
          + '<div class="ap-msg-t">' + esc(t) + '</div>'
@@ -1373,6 +1531,118 @@
     return out + '</div>';
   }
 
+  /* ── プレビューの一覧（2026-09-13）─────────────────────────
+     ★本物の表と**同じ骨組み**で描く（.ap-tbl・6つのセル・[data-ap-row]）。
+       狭い幅でカードに組み替える CSS も、キーボードの入口（› のボタン）も、
+       そのまま効く。
+     ★**出典**と**投稿時期**の欄は空にする ── どちらも「誰かが実際に提出した」
+       という事実の主張になる。プレビューは提出物ではない。
+     ★金額が入るのは最初の2行だけ。残りは中身の空いた板（.ap-amt-lk）で、
+       ぼかしではない（数字が最初から無い）。 */
+  function amtCell(r, month) {
+    if (r.lock || r.annual_usd == null) {
+      return '<span class="ap-amt-lk' + (month ? ' ap-amt-lk--m' : '') + '">'
+           + '<span class="ap-amt-lk-p" aria-hidden="true"></span>'
+           + '<span class="ap-pv-sr">' + esc(PT('lkA')) + '</span></span>';
+    }
+    return month
+      ? '<span class="ap-mon">' + esc(moneyMonth(r.annual_usd)) + '</span>'
+      : '<span class="ap-amt">' + esc(money(r.annual_usd)) + '</span>';
+  }
+
+  /* 一覧に馴染む解放案内。★2件目の直後に1枚だけ。
+       ⚠️ 全画面の覆いにしない・点滅させない・動かさない（指示書の §3）。 */
+  function unlockRow() {
+    return '<tr class="ap-pv-un-r"><td colspan="6">'
+      + '<div class="ap-pv-un">'
+      +   '<div class="ap-pv-un-b">'
+      +     '<p class="ap-pv-un-t">' + esc(PT('unT')) + '</p>'
+      +     '<p class="ap-pv-un-s">' + esc(PT('unS')) + '</p>'
+      +   '</div>'
+      +   '<a class="ap-cta ap-pv-un-c" data-ap-cta="list" href="' + PAY_URL + '">'
+      +     esc(T.lockC) + '</a>'
+      + '</div></td></tr>';
+  }
+
+  function previewList() {
+    var rows = visibleRows();
+    var head =
+      '<h2 class="ap-lock-h">' + esc(PT('h') || T.skelT)
+      + '<span class="ap-pv-tag">' + esc(PT('tag')) + '</span></h2>';
+
+    /* 絞り込みで1件も残らなかった（＝プレビューに居ない会社を選んだ）。
+       ★**その会社に投稿がある／ない**とは書かない ── 数はサーバしか持っていない。
+       ★選んだ社名をどの行にも貼らない。 */
+    if (!rows.length) {
+      return '<section class="ap-lock-skel">' + head
+        + '<div class="ap-pv-msg">'
+        +   '<p class="ap-pv-msg-t">' + esc(PT('msgT')) + '</p>'
+        +   '<p class="ap-pv-msg-s">' + esc(PT('msgS')) + '</p>'
+        +   '<a class="ap-cta" data-ap-cta="list" href="' + PAY_URL + '">'
+        +     esc(T.lockC) + '</a>'
+        + '</div></section>';
+    }
+
+    var h = '<div class="ap-tw"><div class="ap-tscroll">'
+          + '<table class="ap-tbl ap-tbl--pv">'
+          + '<thead><tr><th>' + esc(T.thAir) + '</th><th>' + esc(T.thPos) + '</th>'
+          + '<th class="ap-num">' + esc(T.thAmt) + '</th>'
+          + '<th class="ap-num">' + esc(T.thMon) + '</th>'
+          + '<th></th><th></th></tr></thead><tbody>';
+    for (var i = 0; i < rows.length; i++) {
+      var r = rows[i];
+      var fl = fleetName(r.fleet);
+      h += '<tr class="ap-r ap-r--pv' + (r.lock ? ' is-lk' : '')
+         +   '" data-ap-row="' + esc(String(r._i)) + '">'
+         + '<td><span class="ap-cell-air">' + logoHtml(r.airline)
+         +   '<span class="ap-air">' + esc(airName(r.airline)) + '</span></span>'
+         +   hintHtml(r)
+         + '</td>'
+         + '<td><span class="ap-pos">' + esc(posName(r.pos)) + '</span>'
+         +   (fl ? '<span class="ap-flt">' + esc(fl) + '</span>' : '')
+         +   cardBhHTML(r)
+         + '</td>'
+         + '<td class="ap-num"><span class="ap-cl" aria-hidden="true">' + esc(T.thAmt) + '</span>'
+         +   amtCell(r, 0) + '</td>'
+         + '<td class="ap-num"><span class="ap-cl" aria-hidden="true">' + esc(T.thMon) + '</span>'
+         +   amtCell(r, 1) + '</td>'
+         /* ★出典の欄は空（プレビューに「✓ Verified」も「本人申告」も出さない）。 */
+         + '<td></td>'
+         /* ★投稿時期も出さない。› のボタンだけを置く（押す道は塞がない）。 */
+         + '<td><button type="button" class="ap-go" aria-label="' + esc(openLabel(r))
+         +   '">\u203a</button></td>'
+         + '</tr>';
+      /* 2件目の直後（2件に満たなければ最後の行の直後）に解放案内。 */
+      if (i === 1 || (i === rows.length - 1 && rows.length < 2)) h += unlockRow();
+    }
+    h += '</tbody></table></div></div>';
+
+    /* ★ページ送りは出さない（「全N件中…」はこの5行についての件数の主張になる）。 */
+    return '<section class="ap-lock-skel">' + head + h
+      + '<p class="ap-skel-lock">' + LOCK_I + '<span>' + esc(T.skelL) + '</span></p>'
+      + '<p class="ap-foot">' + esc(T.foot) + '</p>'
+      + '</section>';
+  }
+
+  /* ap-preview.js が読めていないときに落ちる先（今までの灰色の骨組み）。 */
+  function skelSection() {
+    /* ★列は実物と同じ6つ。賞与の列は無い（この画面に賞与は無い）。
+         見出しの字も実物のまま ── 注記のカッコを足さない。 */
+    var ths = [T.thAir, T.thPos, T.thAmt, T.thMon, T.thVf, T.thAge];
+    return '<section class="ap-lock-skel">'
+      + '<h2 class="ap-lock-h">' + esc(T.skelT) + '</h2>'
+      + '<div class="ap-skel">'
+      +   '<div class="ap-skel-hd" aria-hidden="true">'
+      +     ths.map(function (t) { return '<span>' + esc(t) + '</span>'; }).join('')
+      +   '</div>'
+      +   '<div class="ap-skel-body">'
+      +     skelRow() + skelRow() + skelRow() + skelRow() + skelRow()
+      +     '<p class="ap-skel-lock">' + LOCK_I + '<span>' + esc(T.skelL) + '</span></p>'
+      +   '</div>'
+      + '</div>'
+      + '</section>';
+  }
+
   /* 鍵が無い人の画面（2026-08-25）。
      ⚠️ 骨組みは**ぼかしではない**。隠しているのではなく、サーバーが行を返していないので
         中身が最初から無い。blur / filter のたぐいは1文字も書かない。
@@ -1385,28 +1655,23 @@
       +   '<p class="ap-msg-s">' + esc(T.lockS) + '</p>'
       +   '<p class="ap-msg-s">' + esc(T.lockS2) + '</p>'
       +   giveGet()
-      +   '<a class="ap-cta" href="' + PAY_URL + '">' + esc(T.lockC) + '</a>'
+      +   '<a class="ap-cta" data-ap-cta="hero" href="' + PAY_URL + '">'
+      +     esc(T.lockC) + '</a>'
       +   '<p class="ap-lock-n">' + esc(T.lockN) + '</p>'
+      /* ★未ログインのときだけ。登録は済んでいて給与がまだ、という人に
+           「登録してください」と言わない（指示書の §5）。 */
+      +   (S.auth === false && PT('signIn')
+           ? '<p class="ap-pv-in">' + esc(PT('have'))
+             + '<a class="ap-pv-in-a" href="login.html?redirect=actual-pay.html">'
+             + esc(PT('signIn')) + '</a></p>'
+           : '')
       + '</div>'
       + '<div class="ap-lockhero-a" aria-hidden="true">' + LOCK_ART + '</div>'
       + '</div>';
 
-    /* ★列は実物と同じ6つ。賞与の列は無い（この画面に賞与は無い）。
-         見出しの字も実物のまま ── 注記のカッコを足さない。 */
-    var ths = [T.thAir, T.thPos, T.thAmt, T.thMon, T.thVf, T.thAge];
-    var skel =
-      '<section class="ap-lock-skel">'
-      + '<h2 class="ap-lock-h">' + esc(T.skelT) + '</h2>'
-      + '<div class="ap-skel">'
-      +   '<div class="ap-skel-hd" aria-hidden="true">'
-      +     ths.map(function (t) { return '<span>' + esc(t) + '</span>'; }).join('')
-      +   '</div>'
-      +   '<div class="ap-skel-body">'
-      +     skelRow() + skelRow() + skelRow() + skelRow() + skelRow()
-      +     '<p class="ap-skel-lock">' + LOCK_I + '<span>' + esc(T.skelL) + '</span></p>'
-      +   '</div>'
-      + '</div>'
-      + '</section>';
+    /* ★骨組みの節をプレビューに差し替える（2026-09-13）。
+         ap-preview.js が読めていなければ今までの骨組みに落ちる。 */
+    var skel = (S.rows && S.rows.length) ? previewList() : skelSection();
 
     var see =
       '<section class="ap-lock-see">'
@@ -1459,8 +1724,37 @@
     }).join('');
   }
 
+  /* プレビューの会社プルダウン。★公開している会社マスタ（S.air ＝ pv-airlines.json）
+       をそのまま並べる。打ち込みがあればそれで絞る（129社は多い）。
+     ★選んでも本物の投稿も件数も取りに行かない（サーバへは1本も投げない）。
+     ★件数を出さない・件数で並べ替えない（数はサーバしか持っていない）。 */
+  function masterAirList() {
+    var out = [];
+    Object.keys(S.air).forEach(function (c) {
+      if (!hitQ(c)) return;
+      out.push({ v: c, label: airName(c) });
+    });
+    out.sort(function (a, b) { return a.label.localeCompare(b.label, L); });
+    /* 選んでいる会社が打ち込みから外れても選択肢からは消さない
+       （消すと自分で解除できなくなる）。 */
+    var has = false;
+    for (var i = 0; i < out.length; i++) if (out[i].v === S.fAir) { has = true; break; }
+    if (S.fAir && !has) out.unshift({ v: S.fAir, label: airName(S.fAir) });
+    return out;
+  }
+
   function renderFilters() {
     var bar = el('ap-filter');
+    if (isPreview()) {
+      /* ★プレビューでも帯は**出しっぱなし**にする。0件になったときに隠すと、
+           自分で選んだ会社を自分で解除できなくなる。 */
+      var pvHas = !!(S.rows && S.rows.length);
+      if (bar) bar.hidden = !pvHas;
+      if (!pvHas) { S.fAir = ''; S.fPos = ''; S.fQ = ''; return; }
+      fill('ap-air', masterAirList(), S.fAir);
+      fill('ap-pos', listOf('pos', posName, function () { return true; }), S.fPos);
+      return;
+    }
     /* 行が1つも無いとき（鍵が無い・エラー・本当に0件）は帯ごと隠す。
        空のプルダウンが3つ並ぶと、何かを隠しているように見える。 */
     var has = !!(S.rows && S.rows.length);
@@ -1551,6 +1845,15 @@
   /* 帯の件数とシートの主ボタン。★数えるのは手元の行そのもの（実数）。
      この画面に伏せ字の規則は無い（DEEP PAY の n≧3 とは別の画面）。 */
   function syncBar() {
+    if (isPreview()) {
+      /* ★プレビューでは件数を出さない。「◯件の実給与」はこの5行についての
+           嘘になる（本物の投稿ではない）。 */
+      var c0 = el('ap-fbar-n');
+      if (c0) c0.textContent = '';
+      var g0 = el('ap-sheet-go');
+      if (g0) g0.textContent = PT('fGo');
+      return;
+    }
     var n = visibleRows().length;
     /* ★#ap-fbar は #ap-filter の中にある＝行が無いときは帯ごと消える
          （renderFilters が #ap-filter を hidden にする）。ここでは数だけ直す。 */
@@ -1599,7 +1902,32 @@
     } catch (e) {}
   }
 
-  function render() { renderRows(); syncBar(); urlWrite(); }
+  /* プレビューで選んだ会社を、給与を出して戻ってきたときに**一度だけ**効かせる。
+     ⚠️ URL に載せない（GA4 の画面URLに会社名が載る所へ置かない・指示書の §7）。
+     ★これは「見るために選んだ会社」で、その人の勤務先とは限らない。
+        給与フォームの勤務先に自動入力しない（指示書の §5）。 */
+  var PRE_AIR = 'pv_ap_pre_air';
+  function preAirSave() {
+    try {
+      if (S.fAir) w.sessionStorage.setItem(PRE_AIR, S.fAir);
+      else w.sessionStorage.removeItem(PRE_AIR);
+    } catch (e) {}
+  }
+  function preAirTake() {
+    var v = null;
+    try {
+      v = w.sessionStorage.getItem(PRE_AIR);
+      w.sessionStorage.removeItem(PRE_AIR);
+    } catch (e) { v = null; }
+    return v || '';
+  }
+
+  function render() {
+    renderRows();
+    syncBar();
+    /* ★プレビューでは URL に絞り込みを書き足さない（上の PRE_AIR のコメント）。 */
+    if (!isPreview()) urlWrite();
+  }
 
   /* 別の <script> が宣言した const sb を読む。宣言前に呼ばれると
      ReferenceError になるので、必ず try で包んだ側から呼ぶ。 */
@@ -1645,7 +1973,7 @@
       if (!s) return;
       s.addEventListener('change', function () {
         /* 上の段を変えたら下の段は落とす（残すと「選んだのに0件」になる）。 */
-        if (id === 'ap-air') { S.fAir = s.value; S.fPos = ''; }
+        if (id === 'ap-air') { S.fAir = s.value; S.fPos = ''; preAirSave(); }
         else S.fPos = s.value;
         S.page = 1;
         render();
@@ -1655,6 +1983,7 @@
     if (clr) clr.addEventListener('click', function () {
       S.fAir = ''; S.fPos = ''; S.fQ = ''; S.page = 1;
       if (q) q.value = '';
+      preAirSave();
       render();
     });
 
@@ -1688,6 +2017,9 @@
       var t = ev.target;
       var q = (t && t.closest) ? function (sel) { return t.closest(sel); }
                                : function () { return null; };
+      /* ★CTA を数える。**止めない**（そのままリンクが飛ぶ）。 */
+      var ct = q('[data-ap-cta]');
+      if (ct) track('realpay_cta_click', { place: ct.getAttribute('data-ap-cta') || 'list' });
       var b = q('[data-ap-page]');
       if (b) {
         if (b.disabled) return;
@@ -1763,10 +2095,21 @@
     var client = null;
     try { client = sb0(); } catch (e) { client = null; }
     if (!client || !client.rpc) { S.mode = 'error'; render(); return; }
+    watchAuth(client);
     var ready = w.PV_SESSION && typeof w.PV_SESSION.then === 'function'
       ? w.PV_SESSION : { then: function (f) { f(null); return { catch: function () {} }; } };
     ready.then(function (session) {
-      if (!session) return;                       // ページ側がログインへ送っている
+      if (!session) {
+        /* ★未ログイン（2026-09-13）。ここで pv_pay_rows() を**1本も投げない**
+             ── 預かりの sweep も投げない。サーバは 42501 で落とすので撃っても
+             何も返らないが、撃たないこと自体が「鍵の無いブラウザへ本物が渡る
+             経路が無い」の実体になる（指示書の §6）。
+           ⚠️ ログイン画面へ送らない。転送は actual-pay.html 側からも外した。 */
+        S.auth = false;
+        toPreview();
+        return;
+      }
+      S.auth = true;
       /* 匿名で出した給与データの預かり証を拾う（最後の網。profile.html:477 と同じ実体）。
          ★pv_pay_rows() より **前**。引き取りに成功すると submit_pay_report が走って
            90日の解放が立つので、直後に引けば1回目から開いた画面になる。
@@ -1776,6 +2119,10 @@
       var swept = null;
       try { if (w.PVClaimPending) swept = w.PVClaimPending.sweep(client); } catch (e) { swept = null; }
       Promise.resolve(swept).catch(function () { return null; }).then(function () { fetchRows(client); });
+    }, function () {
+      /* ★session が読めなかった。**「未提出」と断定しない**（指示書の §2）。
+           再試行の案内（既存の error）を出すだけで、本物を引きにも行かない。 */
+      S.mode = 'error'; render();
     });
 
     /* 一覧を取りに行く。上の預かりの引き取りが終わってから呼ばれる。 */
@@ -1785,19 +2132,46 @@
       Promise.resolve(client.rpc('pv_pay_rows')).then(function (res) {
         if (res && res.error) { S.mode = 'error'; render(); return; }
         var v = res && res.data;
-        S.mode = (v && v.state === 'open') ? 'open' : 'locked';
+        var isOpen = !!(v && v.state === 'open');
         /* ★左メニューの錠前は localStorage の写しで暫定的に出ている。
              ここはサーバの答えを持っているので、そちらで上書きする。
              ⚠️ my_pay_reports() は引かない（この画面は本人の明細を読まない）。 */
-        if (w.PVGates && w.PVGates.mark) w.PVGates.mark(S.mode === 'open');
+        if (w.PVGates && w.PVGates.mark) w.PVGates.mark(isOpen);
+        /* ★数え上げ。古いサーバ（stats を返さない）でも画面は止めない
+             ＝ そのカードだけ出ない（0 を置いて嘘の数字を作らない）。
+           ★鍵が無くてもこれは**本物**。プレビューの5行は1件も混ぜない。 */
+        S.stats = (v && v.stats) || null;
+        if (!isOpen) {
+          /* ★鍵が無い。サーバは行を1つも返していない（db/pay-rows.sql）。
+               ここで v.rows を読まずに**プレビューへ差し替える** ──
+               本物と作り物を同じ入れ物に入れる形そのものを作らない。 */
+          S.mode = 'preview';
+          S.rows = pvRows();
+          S.page = 1;
+          if (w.PVGates && w.PVGates.setProgress) {
+            w.PVGates.setProgress({
+              n: (v && v.stats) ? v.stats.contributors : null,
+              detailed: (v && v.give) ? v.give.detailed : null
+            });
+          }
+          render();
+          return;
+        }
+        S.mode = 'open';
         S.rows = (v && v.rows) || [];
         /* ★行に「受け取った順の番号」を振る。押された行を引き当てるのはこれ1つ。
              ページ送りでも絞り込みでも動かない番号でないと、押した行と
              開く行がずれる（並びはサーバが決めているので順番は安定している）。 */
         S.rows.forEach(function (r, k) { r._i = k; });
-        /* ★数え上げ。古いサーバ（stats を返さない）でも画面は止めない
-             ＝ そのカードだけ出ない（0 を置いて嘘の数字を作らない）。 */
-        S.stats = (v && v.stats) || null;
+        /* ★プレビューで選んでいた会社を**一度だけ**引き継ぐ。
+             ⚠️ その会社の行が1つも無ければ適用しない ── 出した直後の人を
+                「0件」の画面に落とさない。 */
+        var pre = preAirTake();
+        if (pre && !S.fAir) {
+          for (var pk = 0; pk < S.rows.length; pk++) {
+            if (S.rows[pk].airline === pre) { S.fAir = pre; break; }
+          }
+        }
         /* ★DEEP PAY の札（N / 100人）と、本人が内訳を出したかどうか。
              数を作るのはサーバーだけで、pv-gates.js は渡された数を出すだけ。
              来なければ札は「準備中」のまま＝古いサーバでも画面は壊れない。
@@ -1809,10 +2183,11 @@
           });
         }
         render();
+        trackOnce('realpay_open_view', { rows: S.rows.length });
         /* ★フォームから戻ってきた人の面を開き直す（オーナーの §8）。
              render() の**後**。中でページを送り直すことがあるので、
              一度描き終わってからでないと居場所がずれる。 */
-        if (S.mode === 'open') reopenBack();
+        reopenBack();
       }).catch(function () { S.mode = 'error'; render(); });
     }
   }

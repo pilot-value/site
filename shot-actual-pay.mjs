@@ -5,7 +5,13 @@
    中身が出ないので、ここで Supabase ごと差し替えて開く。
 
    実行: node shot-actual-pay.mjs <scene> <lang> [open]
-     scene = locked   鍵が無い人（金額が1つも出ない・骨組みと導線だけ）
+     scene = preview  ★未ログインの人（2026-09-13）。転送されずにプレビューが出る。
+                      ⚠️ ここでは pv_pay_rows を**差し替えない**＝呼ばれたら素の {ok:true} が返る。
+                      本物の一覧が出ないことを絵でも確かめられる（判定は assert-pay-rows.mjs）
+             preview-in ★ログイン済み・まだ給与を出していない人。行は作り物のまま、
+                      上の数え上げカードだけ**本物**が出る
+             preview-drawer ★未ログインの人がプレビューの行を押して開いた面
+             locked   ★2026-09-13 より前の骨組み（ap-preview.js が読めないときの落ち先）
              locked-nostat ★サーバをまだ貼り替えていない＝数字カードが1枚も出ない
              locked-panel ★Give → Get の DEEP PAY の札を押して説明を出したところ
              locked-ready ★先に内訳を出してくれた人（✓ 準備は完了しています）
@@ -159,11 +165,11 @@ const ST = (reports, month) => ({ reports: reports, month: month });
    行が1件も返らないので、社数もサーバーが数えて渡す。
    contributors ＝ 給与を出したユニークな人数（DEEP PAY の「N / 100人」の分子）。
    ⚠️ ここは絵を見るための**見本**であって、本番の値そのものではない。
-      2026-08-26 に `node db/usage.mjs --all` の「REAL PAY の画面に出る数」を写した
-      （オーナーが動作確認ぶんを本番から消したあとの実測）。
+      2026-09-14 に `node db/usage.mjs --all` の「REAL PAY の画面に出る数」を写した
+      （口コミに給与を書いただけの人も数えるようにした後の実測）。
       **腐る。** 数字の当たりを見たいときは、写す前にもう一度その節を走らせる。
       分子を大きく作ると、本番に無い絵を見ることになる。 */
-const ST_LOCK = { reports: 27, month: 22, airlines: 12, contributors: 17 };
+const ST_LOCK = { reports: 52, month: 45, airlines: 21, contributors: 41 };
 
 /* ★いまの本番をそのまま写した13行（2026-08-23 に読んで確認した実測）。
    内訳は 本棚8人 ＋ 登録前の預かり5人。会社は7社。
@@ -325,6 +331,18 @@ const DRAWER_LOCK = DRAWER.map(function (r) {
   .forEach(([l, t]) => checkRows(l, t));
 
 const SCENES = {
+  /* ★未ログインの人（2026-09-13）。ページは開く（login.html へ飛ばさない）。
+     行は ap-preview.js の作り物5件。**pv_pay_rows は差し替えない**ので、
+     もし呼んでいたら素の {ok:true} が返る＝本物の一覧は絶対に出ない。
+     数え上げカードも出ない（本物の数が無いので 0 で埋めない）。 */
+  preview: { anon: true },
+  /* ★ログイン済みだが、まだ給与を出していない人。行は同じ作り物。
+     数え上げカードは**本物**（サーバが返す stats）が出る。 */
+  'preview-in': { pay: { ok: true, state: 'locked', rows: [], stats: ST_LOCK,
+                         give: { basic: false, detailed: false, payslip: false } } },
+  /* ★未ログインの人がプレビューの行を押して開いた面。金額は空の板・項目名は読める。
+     row=0 は金額の読める行、row=2 は金額を持たない行。 */
+  'preview-drawer': { anon: true, open: 0 },
   /* ★鍵が無い人の画面（2026-08-25 に作り直した）。
      数え上げは見せる。行は1件も返らないので、一覧は中身の無い骨組みで出る。
      ⚠️ 骨組みは**ぼかしではない**。隠しているのではなく、渡されていない。 */
@@ -373,16 +391,18 @@ if (!S) { console.error('scene は ' + Object.keys(SCENES).join(' / ')); process
 
 /* assert-pay-rows.mjs と同じ差し替え。
    ⚠️ rpc は本物と同じ「then だけを持つ箱」＝ async にしない。 */
-function stub(page, pay) {
-  return page.evaluateOnNewDocument((uid, pay, theme) => {
+function stub(page, pay, anon) {
+  return page.evaluateOnNewDocument((uid, pay, theme, anon) => {
     localStorage.clear(); sessionStorage.clear();
     localStorage.setItem('pv-theme', theme);
     /* ★my_pay_reports は置かない。この画面はもう本人の明細を引かないので、
        置くと「引いても気づかない」状態を自分で作ることになる。 */
     const RPC = {
-      pv_pay_rows: pay,
       my_referral_code: { ok: true, code: 'K7QD3XZM', invited: 0, converted: 0 },
     };
+    /* ★pay を渡さない回（preview）は **pv_pay_rows を置かない**。
+       呼ばれたら素の {ok:true} が返るだけで、本物の行は1件も出ない。 */
+    if (pay) RPC.pv_pay_rows = pay;
     function q(rows) {
       const o = { data: rows, error: null,
         select: () => o, eq: () => o, in: () => o, order: () => o, limit: () => o,
@@ -393,8 +413,10 @@ function stub(page, pay) {
     }
     const FAKE = {
       auth: {
-        getSession: async () => ({ data: { session: { user: { id: uid, email: 'pilot@example.com' } } } }),
-        getUser:    async () => ({ data: { user: { id: uid, email: 'pilot@example.com' } } }),
+        getSession: async () => ({ data: { session: anon
+          ? null : { user: { id: uid, email: 'pilot@example.com' } } } }),
+        getUser:    async () => ({ data: { user: anon
+          ? null : { id: uid, email: 'pilot@example.com' } } }),
         signOut:    async () => ({ error: null }),
         onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }),
       },
@@ -406,7 +428,7 @@ function stub(page, pay) {
     };
     Object.defineProperty(window, 'supabase',
       { value: { createClient: () => FAKE }, writable: false, configurable: false });
-  }, UID, pay, theme);
+  }, UID, pay || null, theme, !!anon);
 }
 
 const browser = await puppeteer.launch(show
@@ -414,7 +436,7 @@ const browser = await puppeteer.launch(show
   : { headless: 'shell', args: ['--no-sandbox'] });
 const page = await browser.newPage();
 if (!show) await page.setViewport({ width: W, height: H });
-await stub(page, S.pay);
+await stub(page, S.pay, S.anon);
 await page.goto(BASE + (lang === 'en' ? '/en/' : '/') + 'actual-pay.html',
                 { waitUntil: 'networkidle2', timeout: 40000 });
 await new Promise((r) => setTimeout(r, 2200));
@@ -623,7 +645,13 @@ if (S.nav) {
        撮れた絵は閉じたまま、body の印も消えていた）。窓は起動時から W×H のままでよい。 */
   await page.setViewport({ width: W, height: 844 });
 } else if (top1) {
-  await page.setViewport({ width: W, height: H, isMobile: true, hasTouch: true });
+  /* ⚠️ **面が開いているときは setViewport を呼ばない。** isMobile / hasTouch が変わると
+       Puppeteer はページを**読み直す**＝開いた面が消える（nav で踏んだのと同じ罠。
+       2026-09-13、preview-drawer を top 付きで撮って実際に消えた）。
+       窓は起動時から W×H なので、そのまま撮ればよい。 */
+  if (S.open === undefined) {
+    await page.setViewport({ width: W, height: H, isMobile: true, hasTouch: true });
+  }
   if (yArg) {
     const y = Number(yArg.slice(2));
     /* ★送り終わるまで待つ（時間で待たない）。scroll-behavior:smooth の途中を撮らない。 */

@@ -40,7 +40,8 @@ const NOINDEX = new Set([
   'unsubscribe.html', '404.html', 'submit-review.html',
   /* 本人が自分の会社の待遇を答える画面。ログインが要るので検索に出さない。 */
   'airline-conditions.html',
-  /* 給与明細を出した人だけが読める画面。ログインが要るので検索に出さない。 */
+  /* 給与を出した人だけが本物の一覧を読める画面。未ログインの人にはプレビュー（作り物の
+     5行。ap-preview.js）しか出さないので、検索には出さない。 */
   'actual-pay.html',
   /* 給与の中身（集計）まで読める画面。鍵が要るので検索に出さない。 */
   'deep-pay.html',

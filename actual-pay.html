@@ -6,7 +6,7 @@
 <link rel="apple-touch-icon" href="assets/favicon-180.png"/>
   <script>(function(){var t=localStorage.getItem('pv-theme')||'light';document.documentElement.setAttribute('data-theme',t);}());</script>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <!-- 給与明細を出した人だけが読める画面。ログインが要るので検索に出してはいけない -->
+  <!-- 本物の一覧は給与を出した人だけが読める。未ログインにはプレビューしか出さないので検索に出してはいけない -->
   <title>他のパイロットの実給与を見る | PILOT VALUE</title>
 <!--PV-SEO-->
 <!--PV-SRC t="他のパイロットの実給与を見る" d=""-->
@@ -227,17 +227,18 @@
     applyTheme(localStorage.getItem('pv-theme')||'light');
     document.getElementById('theme-toggle').addEventListener('click',function(){applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');});
 
-    /* ★ pv_pay_rows() は未ログインだと 42501 で落ちる。エラー文言を出すのではなく
-         ログインへ送る（login.html の safePath() は pathname + search + hash を返す）。
-       actual-pay.js はこの Promise を待ってから RPC を撃つ＝二重に走らない。 */
+    /* ★ pv_pay_rows() は未ログインだと 42501 で落ちる。それでも**ログインへ送らない**
+         ── 未ログインの人には actual-pay.js が独立したプレビュー（ap-preview.js）を出す
+         （2026-09-13 オーナー指示。検索や LP から来た人が、この画面に何が載っているのかを
+          一度も見ないままログイン画面へ着地していた）。
+       ★session が無ければ null を返すだけ。actual-pay.js はこの Promise を待ち、
+         null なら pv_pay_rows() を1本も投げない
+         ＝ 鍵の無いブラウザへ本物の個別給与が渡る経路そのものが無い。
+       ⚠️ この画面は pv-session.js の GUARDED に入っていない（入れない）。
+          守っているのは画面ではなくサーバ側 ── 未ログインは 42501、鍵が無ければ行ゼロ。 */
     window.PV_SESSION = (async function () {
       const { data: { session } } = await sb.auth.getSession();
-      if (!session) {
-        window.location.href = 'login.html?redirect='
-          + encodeURIComponent('actual-pay.html' + (window.location.search || '') + (window.location.hash || ''));
-        return null;
-      }
-      return session;
+      return session || null;
     }());
   </script>
 
@@ -261,6 +262,9 @@
 <!-- 社ロゴの一覧（コード → 拡張子）。生成物なので手で足さない。
      ★actual-pay.js より前に置く。無くても落ちないが、全社が頭2文字の札になる。 -->
 <script src="airline-logos.js"></script>
+<!-- プレビューの5行（未ログイン・登録しただけの人に見せる）。
+     ★actual-pay.js より**前**に読む。本物の投稿とは1バイトも混ざらない別ファイル。 -->
+<script src="ap-preview.js"></script>
 <script src="actual-pay.js"></script>
 <!-- PV-NAV: ナビの開け閉め。★search.js より**後**に読む ──
      あちらが作った ≡ を繋ぎ直すため（先に読むと search.js:416 の二重注入ガードで

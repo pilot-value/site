@@ -93,8 +93,10 @@
         }
       },
       tiers: [
-        { give: '給与を1件。手入力でもかまいません', get: 'REAL PAY' },
-        { give: '内訳まで詳しく', get: 'DEEP PAY' },
+        { give: '手動入力か明細読み取り', get: 'REAL PAY' },
+        /* ★2026-09-13 オーナー指示で「内訳まで詳しく」を消した。
+             空のときは矢印も出さない（下の giveGetHTML）。 */
+        { give: '', get: 'DEEP PAY' },
         { give: '給与明細から', get: 'VERIFIED PAY' }
       ],
       unit: 'PILOTS',
@@ -136,8 +138,8 @@
         }
       },
       tiers: [
-        { give: 'One pay record — typing it in is fine', get: 'REAL PAY' },
-        { give: 'The full breakdown', get: 'DEEP PAY' },
+        { give: 'Manual entry or payslip scan', get: 'REAL PAY' },
+        { give: '', get: 'DEEP PAY' },
         { give: 'From a payslip', get: 'VERIFIED PAY' }
       ],
       unit: 'PILOTS',
@@ -222,7 +224,10 @@
       return '<li class="pv-give-r' + (live ? ' is-live' : '')
            + (goal ? ' is-goal' : '') + '">'
            + '<span class="pv-give-g">' + esc(t.give) + '</span>'
-           + '<span class="pv-give-ar" aria-hidden="true">→</span>'
+           /* ★出すものが空の段では矢印も出さない（何も指していない矢印になる）。
+                升そのものは消さない ── subgrid の列がずれて罫線が食い違う。 */
+           + '<span class="pv-give-ar" aria-hidden="true">'
+           + (t.give ? '→' : '') + '</span>'
            + '<span class="pv-give-t">' + esc(t.get) + '</span>'
            + '<span class="pv-give-s">'
            + (hit

@@ -962,3 +962,117 @@
   .ap-sh-back,.ap-sheet,.ap-fbtn,.ap-sheet-x,.ap-sheet-go{transition:none}
   .ap-fbtn:active,.ap-sheet-x:active,.ap-sheet-go:active{transform:none}
 }
+
+/* ══════════════════════════════════════════════════════════════
+   プレビュー（2026-09-13）
+   鍵の無い人（未ログイン・登録しただけ）に見せる5行。中身は ap-preview.js。
+   ⚠️ **ぼかしを1文字も書かない。** 3〜5件目に数字が出ないのは隠しているからではなく、
+      あちらが annual_usd を持っていないから（中身の空いた板を置いているだけ）。
+      このファイルで filter/blur を書いてよいのは、今までどおり
+      .ap-dw-lk-r.is-real .ap-dw-lk-p2 の1つだけ。
+   ★色は既存のトークンだけ（--pv-orange* / --pv-line* / --pv-ink*）。新しい色を作らない。
+   ══════════════════════════════════════════════════════════════ */
+
+/* 見出しの横の小さな札。★「ダミー」「架空」とは書かない（JS の辞書が「プレビュー」）。 */
+.ap-pv-tag{display:inline-flex;align-items:center;margin-left:8px;
+  padding:3px 9px;border-radius:999px;
+  background:var(--pv-orange-soft);color:var(--pv-orange-ink);
+  border:1px solid rgba(249,115,22,.28);
+  font-size:.62rem;font-weight:800;letter-spacing:.04em;line-height:1.4;
+  vertical-align:middle}
+
+/* 読み上げにだけ「ロック中」と伝える（見た目は板だけ）。 */
+.ap-pv-sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;
+  overflow:hidden;white-space:nowrap;clip-path:inset(50%);border:0}
+
+/* 中身の空いた板。★ここに数字は入っていない。 */
+.ap-amt-lk{position:relative;display:inline-flex;align-items:center;
+  justify-content:flex-end;min-height:20px}
+.ap-amt-lk-p{display:block;width:86px;height:13px;border-radius:999px;
+  background:var(--pv-line)}
+.ap-amt-lk--m .ap-amt-lk-p{width:58px;height:10px}
+/* 面の上の大きな金額のところ。左揃え・.ap-dw-av と同じ高さを取る。 */
+.ap-dw-av-lk{justify-content:flex-start;margin-top:4px;min-height:26px}
+.ap-dw-av-lk .ap-amt-lk-p{width:104px;height:15px}
+
+/* 表そのもの。★行の骨組みは本物と同じ（.ap-r）。 */
+.ap-tbl--pv .ap-r--pv.is-lk .ap-air{color:var(--pv-ink-2)}
+
+/* 2件目の直後に1枚だけ挟む解放案内。
+   ⚠️ 全画面の覆いにしない・点滅させない・動かさない（指示書の §3）。 */
+/* ⚠️ .ap-tbl td:last-child は nowrap（末尾の「投稿時期」を折らないため）。
+   この段は td が1つ＝last-child なので、戻さないと英語の1文が折り返せず、
+   表そのものが横に伸びて**横スクロールしないと読めない**（2026-09-13 に実際にそうなった）。 */
+.ap-pv-un-r>td{padding:0;border-bottom:1px solid var(--pv-line-soft)}
+.ap-tbl .ap-pv-un-r>td:last-child{white-space:normal}
+.ap-pv-un{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px var(--pv-s-3);
+  align-items:center;padding:18px 16px;
+  background:linear-gradient(180deg,var(--pv-orange-soft) 0%,transparent 100%)}
+.ap-pv-un-b{min-width:0}
+.ap-pv-un-t{font-size:.86rem;font-weight:800;letter-spacing:-.01em;line-height:1.45;
+  color:var(--pv-ink);line-break:strict;word-break:auto-phrase}
+.ap-pv-un-s{margin-top:6px;font-size:.75rem;line-height:1.7;color:var(--pv-ink-2);
+  max-width:56ch;line-break:strict;word-break:auto-phrase}
+.ap-pv-un-c{flex:none;margin-top:0;white-space:nowrap}
+
+/* プレビューに居ない会社を選んだとき。
+   ★「その会社に投稿がある／ない」とは書かない（数はサーバしか持っていない）。 */
+.ap-pv-msg{margin-top:16px;padding:20px 18px;
+  border:1px solid var(--pv-line);border-radius:var(--pv-r);
+  background:var(--pv-surface-2)}
+.ap-pv-msg-t{font-size:.86rem;font-weight:800;letter-spacing:-.01em;line-height:1.45;
+  color:var(--pv-ink);line-break:strict;word-break:auto-phrase}
+.ap-pv-msg-s{margin-top:7px;font-size:.75rem;line-height:1.7;color:var(--pv-ink-2);
+  max-width:60ch;line-break:strict;word-break:auto-phrase}
+
+/* ヒーローの下の「すでにアカウントをお持ちの方：ログイン」。
+   ★未ログインのときだけ JS が出す。登録済みの人には出さない。 */
+.ap-pv-in{margin-top:14px;font-size:.75rem;font-weight:600;color:var(--pv-ink-3)}
+.ap-pv-in-a{margin-left:8px;color:var(--pv-orange-ink);font-weight:800;
+  text-decoration:underline;text-underline-offset:3px;
+  border-radius:4px;
+  transition:opacity .18s var(--pv-ease)}
+.ap-pv-in-a:hover{opacity:.8}
+.ap-pv-in-a:focus-visible{outline:2px solid var(--pv-orange);outline-offset:3px}
+.ap-pv-in-a:active{opacity:.65}
+
+/* ロックの帯は、骨組みのときのように真ん中へ浮かせない
+   （プレビューは中身が読めるので、上に被せると読めない行が出る）。 */
+.ap-lock-skel>.ap-skel-lock{position:static;transform:none;
+  margin:14px auto 0;white-space:normal}
+.ap-lock-skel>.ap-foot{margin-top:12px}
+
+/* プレビューのときだけ、左右2段組を**やめて幅いっぱい**にする。
+   ★1.35fr の側に本物と同じ6列の表が入るので、PC で列が潰れる。
+     「REAL PAY で見えること」の節は表の下へ回す（消さない）。 */
+.ap-lock-cols:has(.ap-tbl--pv){grid-template-columns:minmax(0,1fr)}
+
+@media (max-width:720px){
+  /* 430×932 を最優先（オーナー指示）。ヒーローの見出し・CTA・1件目のカードの
+     主要部分が1画面目に入るよう、上の余白だけを詰める。 */
+  .ap-lock-skel{padding:16px 14px}
+  /* ★指示書の §3 ── プレビューの主な金額は 24〜28px。
+       本物の一覧（.ap-amt は 1.05rem）は触らない。ここだけ大きくする。 */
+  .ap-tbl--pv .ap-amt{font-size:1.5rem;line-height:1.25}
+  .ap-tbl--pv .ap-amt-lk{min-height:30px}
+  .ap-tbl--pv .ap-amt-lk-p{width:104px;height:16px}
+  /* 出典の欄はプレビューでは空。段を1つ空けない。 */
+  .ap-tbl--pv tbody tr.ap-r>td:nth-child(5){display:none}
+  /* 解放案内は、カードに組み替わった一覧の中で1枚のカードとして座る。 */
+  .ap-pv-un-r{display:block}
+  .ap-pv-un-r>td{display:block;border-bottom:0}
+  .ap-pv-un{grid-template-columns:minmax(0,1fr);gap:12px;
+    padding:16px 14px;
+    background:var(--pv-surface);
+    border:1px solid rgba(249,115,22,.32);border-radius:var(--pv-r);
+    box-shadow:var(--pv-shadow)}
+  .ap-pv-un-c{width:100%;justify-content:center;margin-top:2px}
+  .ap-pv-msg{padding:16px 14px}
+  .ap-pv-msg .ap-cta{width:100%;justify-content:center}
+  .ap-dw-av-lk .ap-amt-lk-p{width:92px}
+}
+
+@media (prefers-reduced-motion:reduce){
+  /* ★要素を消さない。動きだけ止める。 */
+  .ap-pv-in-a{transition:none}
+}

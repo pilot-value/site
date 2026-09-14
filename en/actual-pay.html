@@ -6,7 +6,7 @@
 <link rel="apple-touch-icon" href="../assets/favicon-180.png"/>
   <script>(function(){var t=localStorage.getItem('pv-theme')||'light';document.documentElement.setAttribute('data-theme',t);}());</script>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <!-- Readable only by pilots who have submitted a payslip. Login required, so keep it out of search. -->
+  <!-- The real list is readable only by pilots who shared their pay; signed-out visitors get a preview only, so keep it out of search. -->
   <title>What Other Pilots Actually Earn | PILOT VALUE</title>
 <!--PV-SEO-->
 <!--PV-SRC t="What Other Pilots Actually Earn" d=""-->
@@ -228,17 +228,18 @@
     applyTheme(localStorage.getItem('pv-theme')||'light');
     document.getElementById('theme-toggle').addEventListener('click',function(){applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');});
 
-    /* ★ pv_pay_rows() raises 42501 when signed out. Send people to login rather than
-         showing an error (login.html safePath() keeps pathname + search + hash).
-       actual-pay.js awaits this promise before firing the RPC, so it never runs twice. */
+    /* ★ pv_pay_rows() raises 42501 when signed out — and we still do NOT send people to
+         login. Signed-out visitors get a standalone preview instead (ap-preview.js),
+         owner's call on 2026-09-13: people arriving from search or the landing page were
+         landing on the login screen without ever seeing what this page holds.
+       ★No session, no redirect: just resolve to null. actual-pay.js awaits this promise
+         and fires no pv_pay_rows() call at all when it is null — so there is no path by
+         which real per-pilot pay reaches a browser without a key.
+       ⚠️ This page is deliberately NOT in pv-session.js's GUARDED list. What protects the
+          data is the server, not the screen: 42501 when signed out, zero rows when locked. */
     window.PV_SESSION = (async function () {
       const { data: { session } } = await sb.auth.getSession();
-      if (!session) {
-        window.location.href = 'login.html?redirect='
-          + encodeURIComponent('actual-pay.html' + (window.location.search || '') + (window.location.hash || ''));
-        return null;
-      }
-      return session;
+      return session || null;
     }());
   </script>
 
@@ -262,6 +263,9 @@
 <!-- 社ロゴの一覧（コード → 拡張子）。生成物なので手で足さない。
      ★actual-pay.js より前に置く。無くても落ちないが、全社が頭2文字の札になる。 -->
 <script src="../airline-logos.js"></script>
+<!-- プレビューの5行（未ログイン・登録しただけの人に見せる）。
+     ★actual-pay.js より**前**に読む。本物の投稿とは1バイトも混ざらない別ファイル。 -->
+<script src="../ap-preview.js"></script>
 <script src="../actual-pay.js"></script>
 <!-- PV-NAV: opens and closes the navigation. Loads AFTER search.js so it can adopt
      the hamburger that file creates; on pages without search.js it makes its own. -->
