@@ -286,6 +286,31 @@
     return /^\/en\//.test(location.pathname) ? '../' : '';
   }
 
+  /* 右上のボタンを「ログイン」に戻す（2026-09-14）。
+     ★開きっぱなしのタブのための処置。読み込み直した画面は、名前を捨てたあとで
+       ページ側が pv_user を読むので元から正しく出る。直せないのは
+       「別のタブでログアウトした／その場で期限が来た」ときに**既に描き終わった**
+       ヘッダーで、放っておくと名前が出たままになる（押すとログイン画面）。
+     ★読み込むのではなく書き戻す。読み込み直すと、書きかけのフォームが消える。
+     ⚠️ ページ側の paint（updateNavAuth）は色と太さも足すので、そこも戻す。
+     ⚠️ login.html の位置はページの深さで変わる（/airlines/… は1つ上）。
+        /en/ は同じ階層に自分の login.html を持っている。 */
+  function loginHref() {
+    var parts = location.pathname.split('/').filter(function (x) { return x; });
+    var depth = parts.length - 1;                 // 最後はファイル名
+    if (parts[0] === 'en') depth -= 1;            // /en/ 自体は数えない
+    return new Array(Math.max(depth, 0) + 1).join('../') + 'login.html';
+  }
+
+  function repaintAuth() {
+    var b = document.getElementById('nav-auth-btn');
+    if (!b) return;
+    b.textContent = /^\/en\//.test(location.pathname) ? 'Log in' : 'ログイン';
+    b.setAttribute('href', loginHref());
+    b.style.color = '';
+    b.style.fontWeight = '';
+  }
+
   var booted = false;   // 初回の同期チェックが済んだか
 
   function check() {
@@ -296,6 +321,7 @@
          開きっぱなしの画面に中身が残ったままにしない。 */
     if (!hasToken()) {
       dropName();
+      repaintAuth();
       if (booted && GUARDED.test(location.pathname)) {
         location.replace(prefix() + 'login.html');
       }
@@ -308,6 +334,7 @@
     if (idle <= IDLE_MS && age <= MAX_MS) return false;
 
     wipe();
+    repaintAuth();   // 開いたままのタブでも、右上を「ログイン」に戻す
 
     /* 初回チェック（head での同期実行）で切れた場合は、ページ側の
        getSession() ゲートがこの後リダイレクトしてくれるので何もしない。
@@ -349,6 +376,7 @@
 
   window.PVSession = {
     check: check, touch: touch, wipe: wipe, hasToken: hasToken, dropName: dropName,
+    repaintAuth: repaintAuth,
     readStoredSession: readStoredSession,
     isLoggedIn: isLoggedIn, sessionStart: sessionStart, lastActive: lastActive,
     IDLE_MS: IDLE_MS, MAX_MS: MAX_MS

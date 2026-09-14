@@ -583,6 +583,35 @@ console.log('\n════ 名前だけ残った端末 ════');
   ok(split.user !== null,
      '★★鍵が ".0" ".1" に割れていても「在る」と数える（生きたログインを切らない）',
      String(split.btn));
+
+  /* E-4 開きっぱなしのタブ（2026-09-14）。別のタブでログアウトした・その場で
+     期限が来た、のどちらでも、**既に描き終わったヘッダー**が名前を出したままに
+     なる。読み込み直すまで気づけないので、書き戻すところまで見る。
+     ★読み込み直す形にはしない（書きかけのフォームが消える）。 */
+  const TOKEN = 'sb-vzgmnkrggrwtsrpqndsm-auth-token';
+  const open1 = await browser.newPage();
+  await seed(open1, { pv_user: JSON.stringify(NAME), [TOKEN]: 'base64-xxxx',
+                      pv_unlock_expiry: Date.now() + 50 * YEAR,
+                      pv_last_active: Date.now() });
+  await open1.goto(BASE + '/index.html', { waitUntil: 'networkidle2', timeout: 30000 });
+  const painted = await open1.evaluate(() =>
+    (document.getElementById('nav-auth-btn') || {}).textContent || '');
+  ok(painted.trim() === 'Test', '★開いたタブ：鍵がある間は名前が出ている（前提）', painted);
+
+  await open1.evaluate((k) => localStorage.removeItem(k), TOKEN);   // 別タブでのログアウトと同じ形
+  await open1.evaluate(() => window.PVSession && window.PVSession.check());
+  const repaint = await open1.evaluate(() => ({
+    btn: (document.getElementById('nav-auth-btn') || {}).textContent || '',
+    href: (document.getElementById('nav-auth-btn') || {}).getAttribute('href') || '',
+    user: localStorage.getItem('pv_user'),
+    review: localStorage.getItem('pv_unlock_expiry'),
+  }));
+  ok(repaint.btn.trim() === 'ログイン',
+     '★開いたタブ：鍵が消えたら右上も「ログイン」に戻る（読み込み直さずに）', JSON.stringify(repaint));
+  ok(/login\.html$/.test(repaint.href), '★その押す先もログイン画面', repaint.href);
+  ok(repaint.user === null && repaint.review === null,
+     '★開いたタブでも名前と解放の写しは残らない', JSON.stringify(repaint));
+  await open1.close();
 }
 
 // ── F: ログアウトが名前と解放の写しも消す（admin は鍵しか消していなかった）──
