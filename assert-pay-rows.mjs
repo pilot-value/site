@@ -113,7 +113,10 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
        DEEP PAY の担当にした。残る図は分布の棒1枚で、それは actual-pay.js が自前で描く。
        ⚠️ pay-viz.css は暗い前提の .pt-* を持っていて、actual-pay.css と詳細度が同じ（0,2,0）。
           読み込みを戻すと、明るい画面に暗い前提の色が漏れる。 */
-  const at = (file) => html.search(new RegExp('(?:src|href)="[^"]*' + file.replace('.', '\\.') + '"'));
+  /* ★?v=<指紋> が付いていても掴む（2026-09-14）。actual-pay.css / ap-preview.js /
+     actual-pay.js には中身の指紋を付けた（古い JS が最長4時間残るのを塞ぐため）。
+     引用符で閉じる形のままだと、指紋を付けた瞬間に「読んでいない」と誤判定する。 */
+  const at = (file) => html.search(new RegExp('(?:src|href)="[^"]*' + file.replace('.', '\\.') + '(?:\\?[^"]*)?"'));
   ok(at('pay-viz.css') < 0, `${name}: ★pay-viz.css を読んでいない`);
   ok(at('pay-viz.js') < 0, `${name}: ★pay-viz.js を読んでいない`);
   ok(at('actual-pay.css') >= 0 && at('actual-pay.js') >= 0,
@@ -170,7 +173,7 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
   /* ★<script src> の位置で見る。ファイル名は本文の説明にも出るので、
      素の indexOf だと解説の一行を掴んで順番を取り違える。 */
   const srcAt = (file) => {
-    const m = html.match(new RegExp('<script[^>]+src="[^"]*' + file + '"'));
+    const m = html.match(new RegExp('<script[^>]+src="[^"]*' + file + '(?:\\?[^"]*)?"'));
     return m ? html.indexOf(m[0]) : -1;
   };
   const iLogo = srcAt('airline-logos\\.js');

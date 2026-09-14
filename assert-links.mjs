@@ -46,6 +46,7 @@
    ══════════════════════════════════════════════════════════════ */
 import fs from 'fs';
 import path from 'path';
+import { createHash } from 'crypto';
 import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ORIGIN = 'https://pilot-value.com';
@@ -216,6 +217,37 @@ const noFont = [...doc.keys()].filter((k) => {
 });
 show('Inter を指定しているのに読み込んでいない（端末の既定書体で出る）', noFont, (x) => x);
 
+/* ── 版スタンプ（キャッシュの食い違い）────────────────────────
+   2026-09-14、本番の iPhone で REAL PAY が骨組みだけになり何も出なかった。
+   壊れていたのはコードではなく**組み合わせ**。GitHub Pages が返す寿命は
+   HTML が max-age=600（10分）・.js と .css が max-age=14400（4時間）で、
+   出した直後の4時間は「新しい HTML ＋ 端末に残った古い JS」が成立する。
+   古い actual-pay.js は未ログインのとき `if (!session) return;` で黙って
+   止まる作りだったので、見出しも行も出ないまま骨組みが残った。
+   （実測で再現済み：新しい HTML に古い JS を差し込むと同じ絵になる）
+
+   ★直し方は、HTML 側が**中身の指紋**を付けて読むこと。
+     ?v=4 のような数字は上げ忘れるが、指紋なら中身が変われば URL も変わる。
+   ⚠️ この3つを直すと指紋が変わる＝ここが落ちる。出た値を日英2枚に写す。
+     この検査は check.mjs fast（push 前の関所）に入っているので、
+     写し忘れたまま本番へ出ることはない。 */
+const STAMP_PAGES = [['actual-pay.html', ''], ['en/actual-pay.html', '../']];
+const STAMP_FILES = ['actual-pay.css', 'ap-preview.js', 'actual-pay.js'];
+const stampIssues = [];
+for (const [page, pre] of STAMP_PAGES) {
+  const d = doc.get(page);
+  if (!d) { stampIssues.push(`${page} が見つからない`); continue; }
+  for (const file of STAMP_FILES) {
+    const want = createHash('sha256')
+      .update(fs.readFileSync(path.join(__dirname, file))).digest('hex').slice(0, 8);
+    const esc = (pre + file).replace(/[.*+?^${}()|[\]\\\/]/g, '\\$&');
+    const m = d.html.match(new RegExp('"' + esc + '\\?v=([0-9a-f]+)"'));
+    if (!m) stampIssues.push(`${page}: ${file} を ?v=指紋 付きで読んでいない`);
+    else if (m[1] !== want) stampIssues.push(`${page}: ${file} の指紋が古い（?v=${m[1]} → ?v=${want} に直す）`);
+  }
+}
+show('版スタンプが中身と合っていない（古い JS が最長4時間そのまま残る）', stampIssues, (x) => x);
+
 /* ── 外部リンクの生存（--online のときだけ）─────────────────────
    相手のサイトが作り替えられて 404 になっていないかを実際に叩く。
    ・HEAD にだけ 404 を返すサーバーがあるので、駄目なら GET でもう一度見る
@@ -288,6 +320,6 @@ Object.entries(dist).sort((a, b) => (a[0] === '到達不可' ? 1 : b[0] === '到
   .forEach(([d, n]) => console.log(`   深さ${pad(d, 8)} ${n}ページ`));
 
 const total = hreflangIssues.length + broken.length + orphans.length + unreached.length + noH1.length + multiH1.length
-  + repIssues.length + noMenu.length + noIcon.length + noFont.length;
+  + repIssues.length + noMenu.length + noIcon.length + noFont.length + stampIssues.length;
 console.log(`\n══ 合計 ${total} 件の指摘 ══\n`);
 process.exitCode = total ? 1 : 0;
