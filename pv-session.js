@@ -181,7 +181,35 @@
 
   function isLoggedIn() {
     if (get('pv_user')) return true;
-    return keys().some(function (x) { return AUTH_RE.test(x); });
+    return hasToken();
+  }
+
+  /* この端末に supabase の鍵がまだ在るか。
+     ★"sb-…-auth-token" が正だが、中身が大きいと ".0" ".1" に割って入れる実装が
+       ある。割れた形を数え落とすと**生きているログインを切ってしまう**ので、
+       こちらは広く数える（消すほうの SB_RE は元から前方一致で両方消える）。 */
+  function hasToken() {
+    return keys().some(function (x) { return /^sb-.+-auth-token(\.\d+)?$/.test(x); });
+  }
+
+  /* 名前だけが残った状態を捨てる（2026-09-14）。
+     pv_user は**認証に成功した直後にしか書かれない**（login / signup /
+     auth-callback / profile / pay-login のどれも）。だから supabase の鍵が
+     無いのに pv_user だけ在る端末は、そのログインがもう死んでいる。
+     ここを見ていなかったので、右上にアカウント名が出たまま・押すと
+     ログイン画面、という食い違いが本番で出ていた（admin.html の
+     ログアウトが鍵だけ消して pv_user を残していたのが1つ。ほかに
+     リフレッシュトークンの失効でも同じ形になる）。
+     ⚠️ wipe() は呼ばない。あちらは給与フォームの4つ（pv_pay_draft ほか）まで
+        捨てるので、匿名で入れて登録の途中の人の1件がその場で消える。
+        あの4つは自分で持ち主の印を持っている（PVPayLocal.owns）ので、
+        ここで触る必要が無い。 */
+  function dropName() {
+    del('pv_user');
+    del(K_REVIEW);
+    del(K_SALARY);   // 解放の写しも置いていかない（錠は pv_user とこの鍵で開く）
+    del(K_LAST);
+    del(K_START);
   }
 
   /* セッションの開始時刻。
@@ -263,6 +291,17 @@
   function check() {
     if (!isLoggedIn()) return false;
 
+    /* 鍵が無いのに名前だけ在る＝死んだログイン。期限を数えるまでもない。
+       ★ここでも GUARDED は送り返す。別のタブでログアウトしたとき、
+         開きっぱなしの画面に中身が残ったままにしない。 */
+    if (!hasToken()) {
+      dropName();
+      if (booted && GUARDED.test(location.pathname)) {
+        location.replace(prefix() + 'login.html');
+      }
+      return true;
+    }
+
     var now  = Date.now();
     var idle = now - lastActive();
     var age  = now - sessionStart();
@@ -309,7 +348,7 @@
   });
 
   window.PVSession = {
-    check: check, touch: touch, wipe: wipe,
+    check: check, touch: touch, wipe: wipe, hasToken: hasToken, dropName: dropName,
     readStoredSession: readStoredSession,
     isLoggedIn: isLoggedIn, sessionStart: sessionStart, lastActive: lastActive,
     IDLE_MS: IDLE_MS, MAX_MS: MAX_MS

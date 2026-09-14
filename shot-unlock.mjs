@@ -35,6 +35,10 @@ function stub(page, { hasReview, accessUntil, preset }) {
     localStorage.clear(); sessionStorage.clear();
     localStorage.setItem('pv-theme', 'dark');
     localStorage.setItem('pv_user', JSON.stringify({ id: uid, name: 'Test Pilot', email: 'unlock-test@example.com' }));
+    /* 本物のログインした端末には supabase の鍵も在る（2026-09-14）。
+       これを置かないと pv-session.js が「名前だけ残った死んだログイン」と見なして
+       pv_user と解放の写しを捨てる＝ここから下の検査が全部すり抜ける。 */
+    localStorage.setItem('sb-vzgmnkrggrwtsrpqndsm-auth-token', 'base64-dGVzdA==');
     localStorage.setItem('pv_last_active', String(Date.now()));
     for (const [k, v] of Object.entries(preset || {})) localStorage.setItem(k, String(v));
 

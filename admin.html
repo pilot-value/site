@@ -243,6 +243,12 @@
         e.preventDefault();
         try { PVPayLocal.forget(); } catch (e) {}   // 給与の入力も端末に置いていかない
         await sb.auth.signOut();
+        /* ★名前と解放の写しも置いていかない（2026-09-14）。ここが抜けていたので、
+           ログアウトした端末の右上にアカウント名が出たままになっていた
+           （profile.html の handleLogout は元からこの3行を消している）。 */
+        localStorage.removeItem('pv_user');
+        localStorage.removeItem('pv_unlock_expiry');
+        localStorage.removeItem('pv_salary_unlock_expiry');
         location.href = 'login.html?next=admin.html';
       };
       return;
@@ -408,6 +414,12 @@
   async function adminLogout() {
     try { PVPayLocal.forget(); } catch (e) {}   // 給与の入力も端末に置いていかない
     await sb.auth.signOut();
+    /* ★名前と解放の写しも置いていかない（2026-09-14）。ここが抜けていたので、
+       ログアウトした端末の右上にアカウント名が出たままになっていた
+       （profile.html の handleLogout は元からこの3行を消している）。 */
+    localStorage.removeItem('pv_user');
+    localStorage.removeItem('pv_unlock_expiry');
+    localStorage.removeItem('pv_salary_unlock_expiry');
     location.href = 'index.html';
   }
 

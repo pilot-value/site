@@ -271,6 +271,10 @@ function stub(page, { hasReview, accessUntil, preset, gated }) {
     localStorage.clear(); sessionStorage.clear();
     localStorage.setItem('pv-theme', 'dark');
     localStorage.setItem('pv_user', JSON.stringify({ id: uid, name: 'Test Pilot', email: 'unlock-test@example.com' }));
+    /* 本物のログインした端末には supabase の鍵も在る（2026-09-14）。
+       これを置かないと pv-session.js が「名前だけ残った死んだログイン」と見なして
+       pv_user と解放の写しを捨てる＝ここから下の検査が全部すり抜ける。 */
+    localStorage.setItem('sb-vzgmnkrggrwtsrpqndsm-auth-token', 'base64-dGVzdA==');
     localStorage.setItem('pv_last_active', String(Date.now()));
     for (const [k, v] of Object.entries(preset || {})) localStorage.setItem(k, String(v));
 
@@ -521,6 +525,74 @@ for (const [lang, url] of [['ja', '/profile.html'], ['en', '/en/profile.html']])
   ok(!/\d/.test(b.review), '口コミバッジに数字（日付）が出ない', JSON.stringify(b));
   ok(/\d/.test(b.salary), '年収バッジには期限の日付が出る（本当に切れるので）', JSON.stringify(b));
   await page.close();
+}
+
+// ── E: 端末に「名前」だけ残った状態は、ログインとして扱わない（2026-09-14）──
+/* 本番で「右上にアカウント名が出ているのに、押すとログイン画面へ飛ぶ」が起きた。
+   pv_user（表示用の写し）は認証に成功した直後にしか書かれないので、supabase の
+   鍵が無いのに pv_user だけ在る端末は、そのログインがもう死んでいる。
+   ★逆向きの事故のほうが痛い ── 生きているログインを切ってはいけない。
+     鍵は中身が大きいと "….0" ".1" に割って入る実装があるので、割れた形も
+     「在る」と数える（E-3）。 */
+console.log('\n════ 名前だけ残った端末 ════');
+{
+  const seed = (page, keys) => page.evaluateOnNewDocument((keys) => {
+    localStorage.clear(); sessionStorage.clear();
+    for (const [k, v] of Object.entries(keys)) localStorage.setItem(k, String(v));
+  }, keys);
+  const NAME = { id: '00000000-0000-4000-8000-00000000b009', name: 'Test Pilot',
+                 email: 'stale-test@example.com' };
+  const look = async (keys) => {
+    const page = await browser.newPage();
+    await seed(page, keys);
+    await page.goto(BASE + '/index.html', { waitUntil: 'domcontentloaded', timeout: 30000 });
+    const v = await page.evaluate(() => ({
+      btn: (document.getElementById('nav-auth-btn') || {}).textContent || '',
+      href: (document.getElementById('nav-auth-btn') || {}).getAttribute('href') || '',
+      user: localStorage.getItem('pv_user'),
+      review: localStorage.getItem('pv_unlock_expiry'),
+      salary: localStorage.getItem('pv_salary_unlock_expiry')
+    }));
+    await page.close();
+    return v;
+  };
+
+  const dead = await look({ pv_user: JSON.stringify(NAME),
+                            pv_unlock_expiry: Date.now() + 50 * YEAR,
+                            pv_salary_unlock_expiry: Date.now() + 90 * DAY });
+  ok(dead.btn.trim() === 'ログイン',
+     '★鍵の無い端末では、右上にアカウント名が出ない（「ログイン」のまま）', JSON.stringify(dead.btn));
+  ok(dead.href === 'login.html', '★押す先もログイン画面（マイページへ送らない）', dead.href);
+  ok(dead.user === null, '★死んだ名前の写しは消える', String(dead.user));
+  ok(dead.review === null && dead.salary === null,
+     '★解放の写しも置いていかない（口コミ・年収の両方）',
+     JSON.stringify([dead.review, dead.salary]));
+
+  const live = await look({ pv_user: JSON.stringify(NAME),
+                            'sb-vzgmnkrggrwtsrpqndsm-auth-token': 'base64-xxxx',
+                            pv_unlock_expiry: Date.now() + 50 * YEAR,
+                            pv_last_active: Date.now() });
+  ok(live.btn.trim() === 'Test' && live.user !== null,
+     '★★鍵がある端末は今までどおり名前が出る（切らない）', JSON.stringify(live.btn));
+  ok(live.review !== null, '★★そのとき解放の写しも消さない', String(live.review));
+
+  const split = await look({ pv_user: JSON.stringify(NAME),
+                             'sb-vzgmnkrggrwtsrpqndsm-auth-token.0': 'base64-xx',
+                             'sb-vzgmnkrggrwtsrpqndsm-auth-token.1': 'yy',
+                             pv_last_active: Date.now() });
+  ok(split.user !== null,
+     '★★鍵が ".0" ".1" に割れていても「在る」と数える（生きたログインを切らない）',
+     String(split.btn));
+}
+
+// ── F: ログアウトが名前と解放の写しも消す（admin は鍵しか消していなかった）──
+console.log('\n════ ログアウトで端末に残るもの ════');
+for (const f of ['profile.html', 'admin.html', 'en/profile.html', 'en/admin.html']) {
+  const t = read(f);
+  const outs = (t.match(/signOut\(\)/g) || []).length;
+  const names = (t.match(/removeItem\('pv_user'\)/g) || []).length;
+  ok(outs > 0 && names >= outs,
+     f + ': ログアウトの数だけ pv_user も消している', 'signOut ' + outs + ' / removeItem ' + names);
 }
 
 await browser.close();
