@@ -1024,6 +1024,11 @@ comment on function public.pv_request_comment_set_hidden(uuid, boolean) is
 --   **折れ線の右端がヒーローの人数と食い違う**（同じ画面に「23人」と「25」が並ぶ）。
 --   式を写さず、同じ地図（pv_pay_person_map）を呼ぶこと。
 --
+-- ★昔の口コミに給与を書いただけの人も数える（2026-09-14・オーナー指示）。
+--   pv_deep_contributors() がそうしたので、こちらも同じにする
+--   ── 片方だけ古いと**右端がヒーローの人数と食い違う**（上と同じ壊れ方）。
+--   その人の「はじめて出した日」は口コミを書いた日。
+--
 -- ★預かり（pay_reports_pending）は数えない。pv_deep_contributors() と同じ理由で、
 --   ip_day_hash は「端末 × 日」であって人ではない。
 --
@@ -1046,10 +1051,19 @@ as $fn$
   ),
   firsts as (
     -- 1人につき「はじめて給与を出した日」1つだけ
-    select m.human as human, min(r.created_at) as t
-      from public.pay_reports r
-      join public.pv_pay_person_map() m on m.h = r.proof_hash
-     group by m.human
+    select z.human as human, min(z.t) as t
+      from (
+        select m.human, r.created_at as t
+          from public.pay_reports r
+          join public.pv_pay_person_map() m on m.h = r.proof_hash
+        union all
+        -- 昔の口コミに給与を書いただけの人（2026-09-14）。日は口コミを書いた日。
+        select m.human, v.created_at
+          from public.pv_review_person l
+          join public.reviews_v2 v on v.id = l.review_id
+          join public.pv_pay_person_map() m on l.pkey = 'r:' || m.h
+      ) z
+     group by z.human
   )
   select jsonb_agg(jsonb_build_object(
            'd', (wk.w)::date,
@@ -1065,4 +1079,5 @@ grant execute on function public.pv_give_growth(int) to authenticated;
 comment on function public.pv_give_growth(int) is
   'コミュニティの伸び。週ごとの「給与を出したパイロット」の累計人数だけを返す。'
   '数え方は pv_deep_contributors() と同じ実人物単位（pv_pay_person_map を通す）。'
+  '★昔の口コミに給与を書いただけの人も含む（2026-09-14）。あちらと同じにするため。'
   '右端の値は必ず pv_deep_contributors() と一致する。';

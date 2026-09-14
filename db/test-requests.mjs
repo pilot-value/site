@@ -605,6 +605,33 @@ console.log('\n▼ ⑩ コミュニティの伸び（折れ線の材料）');
   ok(raw === 4 && last.n === 3,
      '★proof_hash で数えていない（4件・3人）', `proof_hash=${raw} 折れ線=${last.n}`);
 
+  /* ★昔の口コミに給与を書いただけの人も、この折れ線に乗る（2026-09-14・オーナー指示）。
+     入れ忘れても画面は普通に動き、**右端だけ**がヒーローの人数より小さく出る。
+     塩は submit-review.html から読み取る（写すとテストだけ通り続ける）。 */
+  {
+    const SR = read('submit-review.html');
+    const SALT = SR.match(/encode\(\s*userId \+ '([^']+)' \+ airline \+ '([^']+)'\s*\)/);
+    ok(!!SALT, '口コミの持ち主キーの作り方を submit-review.html から読み取れた');
+    const { createHash } = await import('node:crypto');
+    const RU = '00000000-0000-4000-8000-0000000000d1';
+    await db.query(`insert into auth.users(id,email) values($1,$2)
+                    on conflict (id) do nothing`, [RU, 'gr@example.com']);
+    await db.query(`insert into public.profiles(id,email) values($1,$2)
+                    on conflict (id) do nothing`, [RU, 'gr@example.com']);
+    await db.query(
+      `insert into public.reviews_v2(proof_hash, airline, "position", annual_salary, created_at)
+       values($1,$2,'captain',1800, now() - interval '3 days')`,
+      [createHash('sha256').update(RU + SALT[1] + A1 + SALT[2]).digest('hex'), A1]);
+    await db.exec(read('db/pay-rows.sql'));   // 口コミの対応表を作り直す
+    const c2 = (await db.query(`select public.pv_deep_contributors() n`)).rows[0].n;
+    ok(c2 === 4, '★口コミに給与を書いただけの人が1人ふえる（3人 → 4人）', String(c2));
+    const s2 = await growth(A);
+    const l2 = s2[s2.length - 1];
+    ok(l2.n === c2,
+       '★★折れ線の右端も一緒にふえる（片方だけ古いと同じ画面に2つの人数が出る）',
+       `折れ線=${l2.n} ヒーロー=${c2}`);
+  }
+
   ok(series.every((x, i) => i === 0 || x.n >= series[i - 1].n),
      '累計なので下がらない', JSON.stringify(series.map((x) => x.n)));
   ok(series.every((x) => /^\d{4}-\d{2}-\d{2}$/.test(String(x.d))),

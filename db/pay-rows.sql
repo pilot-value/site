@@ -1343,6 +1343,10 @@ comment on function public.pv_contributors() is
 --
 -- ★総当たりの相手は**実際に投稿のある会社だけ**（pv_airlines 全部ではない）。
 --   proof_hash 側には必ずその会社が入っているので、これで取りこぼさない。
+--   ★2026-09-14、口コミ側の会社も相手に入れた（オーナー指示で、口コミに給与を
+--     書いただけの人も人数に入れるため。下の pv_deep_contributors）。
+--     増えるのは**当てられる鍵の種類**だけで、pay_reports の proof_hash には
+--     当たらない ── 給与フォーム側の人数は1人も動かない（本番で確認済み）。
 --
 --   ⚠️ 性能の分岐点（今は最適化しない・オーナー指示 2026-09-01）
 --      計算量は profiles の行数 × 投稿のある会社数ぶんの sha256。
@@ -1371,7 +1375,13 @@ as $fn$
         from public.profiles p
         cross join (select distinct airline as code
                       from public.pay_reports
-                     where airline <> 'other') a
+                     where airline <> 'other'
+                    union
+                    -- 口コミ側の会社（2026-09-14）。その人の会社が本棚に
+                    -- 1件も無いことがあるので、こちらも相手に入れる。
+                    select distinct airline
+                      from public.reviews_v2
+                     where airline is not null and airline <> 'other') a
       union all
       -- 「一覧にない会社」：ハッシュに自由入力の社名が入っている
       select encode(extensions.digest(
@@ -1381,6 +1391,14 @@ as $fn$
         cross join (select distinct lower(airline_other) as nm
                       from public.pay_reports
                      where airline = 'other' and airline_other is not null) o
+      union all
+      /* 口コミ側の「一覧にない会社」（2026-09-14）。
+         口コミの対応表（1-d）は**打ち込んだ社名を鍵に入れない**（'::pv_pay::other'
+         で終わる）。この形も作っておかないと、その人だけ人数から落ちる。 */
+      select encode(extensions.digest(
+               p.id::text || '::pv_pay::other', 'sha256'), 'hex'),
+             p.id
+        from public.profiles p
     ) z;
 $fn$;
 
@@ -1400,6 +1418,14 @@ comment on function public.pv_pay_person_map() is
 --
 -- pv_contributors（1-f）との違いは1つだけ ── **同じ人が2社に出しても 1**。
 -- 画面に出るのは「給与を出したパイロットが100人」なので、こちらが正しい数え方。
+--
+-- ★2026-09-14、オーナー指示で**昔の口コミに給与を書いただけの人も数える**。
+--   その人の給与は REAL PAY の表に**1行として出ている**のに、人数には入って
+--   いなかった ──「52件あるのに35人しか居ない」の、説明のつかないぶんがこれ。
+--   当てるのは口コミの対応表（1-d）。給与フォームも通っている人なら
+--   union が1つにまとめる（同じ人を2回数えない）。
+--   ⚠️ 対応表に入るのは**金額を書いた口コミだけ**（1-d）。金額の無い口コミしか
+--      書いていない人は入らない ── 表にも1行も出ていないので、数だけ増やさない。
 --
 -- ★これは表示と門の**両方**が呼ぶ。分けない（オーナー確定 2026-09-01）。
 --   「表示上100人なのに門は開かない」という状態を作らないため、
@@ -1423,9 +1449,18 @@ security definer
 stable
 set search_path = public, extensions
 as $fn$
-  select (select count(distinct m.human)
-            from public.pay_reports r
-            join public.pv_pay_person_map() m on m.h = r.proof_hash)::int;
+  with map as (select * from public.pv_pay_person_map())
+  select count(*)::int from (
+    -- ① 給与フォームを通った人
+    select m.human
+      from public.pay_reports r
+      join map m on m.h = r.proof_hash
+    union   -- ★union が重複を落とす（両方に居る人は 1）
+    -- ② 昔の口コミに給与を書いただけの人（2026-09-14・オーナー指示）
+    select m.human
+      from public.pv_review_person l
+      join map m on l.pkey = 'r:' || m.h
+  ) z;
 $fn$;
 
 revoke all on function public.pv_deep_contributors() from public, anon, authenticated;
@@ -1435,6 +1470,8 @@ comment on function public.pv_deep_contributors() is
   '同じ人が2社に給与を出しても 1（pv_contributors は proof_hash 単位なので 2 になる）。'
   '★表示（pv_pay_rows の stats・pv_give_progress）と門（pv_deep_pay）が同じこれを呼ぶ。'
   '★名簿に当たらない行は数えない（fail closed）。'
+  '★昔の口コミに給与を書いただけの人も数える（2026-09-14・オーナー指示）。'
+  '　その人の給与は表に1行出ているため。金額の無い口コミしか書いていない人は入らない。'
   '★登録前の預かりは数えない（ip_day_hash は端末×日であって人ではない）。'
   '★誰にも grant しない。security definer の中からだけ呼ぶ。';
 
@@ -1517,7 +1554,8 @@ drop function if exists public.pv_deep_goal();
 --     こちらは「何人のパイロットが参加したか」という別の問い。
 --     sane から数えると、レートの無い通貨の人・24ヶ月より古い人が
 --     参加していないことになってしまう。給与フォームを通った人を素直に数える。
---     ⚠️ 口コミに金額を書いた人は数えない（給与フォームは通っていない）。
+--     ★口コミに金額を書いただけの人も数える（2026-09-14・オーナー指示）。
+--       表に1行出ているのに人数に入っていなかったため。
 --     ⚠️ 預かりは日ごとにキーが変わるので、登録前に2日に分けて出した人は2と数える
 --        （登録して本棚へ移った時点で claimed_at が立ち、こちらからは消える）。
 --
@@ -2712,6 +2750,14 @@ from (
               else pg_get_functiondef(f_rows) like '%pay_hidden%'
                and pg_get_functiondef(f_dctb) not like '%pay_hidden%'
                and pg_get_functiondef(f_give) not like '%pay_hidden%'
+         end from f
+  union all
+  -- ── 口コミに給与を書いただけの人も数える（2026-09-14）──────────
+  select 64, '★口コミに給与を書いただけの人も人数に入る（表に行が出ているため）',
+         /* 静かに壊れる。抜けても画面は普通に動き、表に出ている人だけが
+            「パイロット◯人」から落ちる（「52件あるのに35人」の形に戻る）。 */
+         case when f_dctb is null then false
+              else pg_get_functiondef(f_dctb) like '%pv_review_person%'
          end from f
 ) t
 order by n;

@@ -219,18 +219,41 @@ const reviewHash = (uid, airline) =>
    ⚠️ pay-rows.sql の数え方を変えたらここも直す。
    ⚠️ 会社は「実際に投稿のある会社」だけで総当たりする（全110社ではない）。
       profiles の行数 × 会社数ぶんの sha256 で済ませるため。 */
-function payPersonMap(payRows, profileRows) {
+function payPersonMap(payRows, profileRows, reviewRows = []) {
   const airSeen = new Map();
   for (const r of payRows) {
     const k = r.airline === 'other'
       ? 'other::' + String(r.airline_other || '').toLowerCase() : r.airline;
     if (!airSeen.has(k)) airSeen.set(k, r);
   }
+  /* 口コミ側の会社（2026-09-14）。口コミに給与を書いただけの人は、その会社に
+     本棚の投稿が1件も無いことがある。増えるのは**当てられる鍵の種類**だけで、
+     pay_reports の proof_hash には当たらない＝給与フォーム側の人数は動かない。 */
+  for (const v of reviewRows)
+    if (v.airline && v.airline !== 'other' && !airSeen.has(v.airline))
+      airSeen.set(v.airline, { airline: v.airline, airline_other: null });
   const h2u = new Map();
-  for (const pf of profileRows)
+  for (const pf of profileRows) {
     for (const r of airSeen.values())
       h2u.set(payHash(pf.id, r.airline, r.airline_other), pf.id);
+    /* 口コミ側の「一覧にない会社」。口コミの対応表は打ち込んだ社名を鍵に入れない。 */
+    h2u.set(payHash(pf.id, 'other', null), pf.id);
+  }
   return h2u;
+}
+/* 口コミの対応表（pv_review_person）を人に戻す。pkey は 'r:' + 明細側と同じ形。
+   ⚠️ db/pay-rows.sql の pv_deep_contributors の②と同じ引き方。あちらを変えたらここも。 */
+function reviewPeople(links, h2u, testIds) {
+  const byKey = new Map();
+  for (const [h, u] of h2u) byKey.set('r:' + h, u);
+  const real = new Set(), test = new Set();
+  let unmapped = 0;
+  for (const l of links) {
+    const u = byKey.get(l.pkey);
+    if (!u) { unmapped++; continue; }
+    (testIds.has(u) ? test : real).add(u);
+  }
+  return { real, test, unmapped };
 }
 /* 対応表に通して人を数える。{ real, test, unmapped } を返す。 */
 function countPeople(payRows, h2u, testIds) {
@@ -666,8 +689,15 @@ async function foundingReport(users, testIds, real) {
          proof_hash は（本人 × 会社）で1つなので、2社に出した1人が2人に見えていた。
          数え方は上の payPersonMap / countPeople に1つにまとめてある
          （3節も同じ関数を通す。db/pay-rows.sql の pv_deep_contributors() と同じ）。 */
+    const h2uAll = payPersonMap(prAll, profiles, rvAll);
     const { real: contribReal, test: contribTest, unmapped } =
-      countPeople(prAll, payPersonMap(prAll, profiles), testIds);
+      countPeople(prAll, h2uAll, testIds);
+    /* ★2026-09-14、オーナー指示で「昔の口コミに給与を書いただけの人」も足す。
+         その人の給与は上の表に1行出ているのに、人数からは落ちていた。
+         両方に居る人は Set が1つにまとめる。 */
+    const rvWho = reviewPeople(links, h2uAll, testIds);
+    for (const u of rvWho.real) contribReal.add(u);
+    for (const u of rvWho.test) contribTest.add(u);
 
     /* ★預かり（登録前の投稿）は人数に数えない（2026-09-01・オーナー確定）。
          ip_day_hash は「端末 × 日」であって人ではない ── 同じ人が翌日出せば 2、

@@ -1272,6 +1272,48 @@ ok(!(await one(`select has_table_privilege('anon','public.pv_review_person','sel
    && !(await one(`select has_table_privilege('authenticated','public.pv_review_person','select') b`)).b,
    '★対応表は anon にも会員にも開いていない');
 
+/* ★2026-09-14、オーナー指示で「昔の口コミに給与を書いただけの人」も
+     DEEP PAY の分子（pv_deep_contributors）に数えるようにした。
+     その人の給与は**上の表に1行出ている**のに、人数からは落ちていた
+     ──「52件あるのに35人しか居ない」の、説明のつかないぶんがこれ。
+   ⚠️ 静かに壊れる形。抜けても画面は普通に動き、数だけが小さく出る。
+   ★会社は上で使い終えた2社を borrow する（1352行の SKIP に入っていて、
+     ここから先はどの検査も件数を見ていない）。人は review() が毎回新しく作る。 */
+{
+  const heads = async () => Number((await one(`select pv_deep_contributors() n`)).n);
+  const h0 = await heads();
+
+  // (a) 金額つきの口コミを1件だけ足す → 人数が1つ増える
+  const ru = await review(A_RV_MON, 'captain', { ann: 1800 });
+  await db.exec(read('db/pay-rows.sql'));
+  const h1 = await heads();
+  ok(h1 === h0 + 1,
+     '★口コミに給与を書いただけの人が、1人として人数に入る（2026-09-14）',
+     `${h0} → ${h1}`);
+
+  // (b) 金額の無い口コミしか書いていない人は数えない（表にも1行も出ていない）
+  await review(A_RV_NONE, 'fo', {});
+  await db.exec(read('db/pay-rows.sql'));
+  ok((await heads()) === h1,
+     '★金額の無い口コミしか書いていない人は数えない（表に出ていないため）',
+     `${h1} → ${await heads()}`);
+
+  /* (c) 口コミと給与の**両方**を出した人は1人。増えるのは1つだけ。
+       ★給与のほうは A_RV_DUP（口コミ用ではない社）に出す。上の12-e(b) は
+         口コミ用の社を突き合わせから外しているので、あちらに本棚の行を作らない。
+       ★会社が違っても同じ人としてまとまること自体が、ここで見たいこと
+         （proof_hash は 本人×会社 で1つなので、素直に数えると2になる）。 */
+  const ru2 = await review(A_RV_MON, 'captain', { ann: 1900 });
+  await asUser(ru2);
+  await submit({ ...BASE, airline: A_RV_DUP, position: 'cap', fleet: 'b777',
+                 period_year: YEAR, period_month: 5, gross_monthly: 12000 });
+  await db.exec(read('db/pay-rows.sql'));
+  ok((await heads()) === h1 + 1,
+     '★★口コミと給与の両方を出した人は1人（会社が違っても二重に数えない）',
+     `${h1} → ${await heads()}`);
+  await asViewer();
+}
+
 // ════════════════════════════════════════════════════════════
 console.log('\n▼ 12-d. ★投稿の時期は5段の粗い区分だけ');
 // ════════════════════════════════════════════════════════════
@@ -1915,7 +1957,7 @@ console.log('\n▼ 13. 自己点検 SQL（ファイル末尾のものをその�
   const src = read('db/pay-rows.sql');
   const q = src.slice(src.lastIndexOf('with f as ('));
   const res = await rows(q);
-  ok(res.length === 63, `自己点検が63行ぜんぶ出る（= ${res.length}行）`);
+  ok(res.length === 64, `自己点検が64行ぜんぶ出る（= ${res.length}行）`);
   for (const row of res) {
     ok(row['結果'] === '✅', `${row['#']}. ${row['見るところ']}`);
   }
