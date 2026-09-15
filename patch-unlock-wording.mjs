@@ -89,17 +89,13 @@ const EDITS = [
 
   /* ── マイページ ───────────────────────────────────────────── */
 
-  ['profile.html',    '<b>全社の口コミが30日間</b>読めます', '<b>全社の口コミが読めます</b>', 2],
-  ['en/profile.html', '<b>reviews unlock for 30 days</b>',   '<b>reviews unlock</b>',        2],
+  // ★同じく 2026-09-07 の作り直しで、profile.html から「30日間」の文ごと無くなった。
+  //   直す対象が無いので表から外す（残すと不一致1件でこの表全体が流れない）。
 
   /* ── 登録完了 ─────────────────────────────────────────────── */
 
-  ['signup.html',
-   '<b style="color:#f5c842">全社の口コミが30日間解放</b>されます。',
-   '<b style="color:#f5c842">全社の口コミが解放</b>されます。', 1],
-  ['en/signup.html',
-   '<b style="color:#f5c842">every airline\'s reviews unlock for 30 days</b>.',
-   '<b style="color:#f5c842">every airline\'s reviews unlock</b>.', 1],
+  // ★signup.html の口コミの文は 2026-09-15 に HTML から showSuccessCta() の中へ移った
+  //   （登録完了画面の既定は給与）。「30日間」は最初から入っていない。ここでは触らない。
 
   /* ── 転職ガイド ───────────────────────────────────────────── */
 

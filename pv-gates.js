@@ -64,7 +64,7 @@
   var T = {
     ja: {
       giveHd: 'あなたが出すもの', getHd: '見られるもの',
-      now: 'いま開きます', soon: '準備中',
+      now: '給与提出で解放', soon: '準備中',
       cta: '匿名で給与を追加する',
       close: '閉じる',
       lockedNote: '（未解放）', soonNote: '（準備中）',
@@ -110,7 +110,7 @@
     },
     en: {
       giveHd: 'What you share', getHd: 'What you can see',
-      now: 'Open now', soon: 'In preparation',
+      now: 'Share pay to unlock', soon: 'In preparation',
       cta: 'Add your pay anonymously',
       close: 'Close',
       lockedNote: ' (locked)', soonNote: ' (in preparation)',
@@ -195,7 +195,10 @@
   /* 段ごとの「状態」の札。live は今までどおり。
      DEEP PAY だけ、人数が分かっているときに「N / 100人」に変わる。 */
   function pill(tier, live) {
-    if (live) return '✓ ' + T.now;
+    /* ★2026-09-15 オーナー指示。「いま開きます」は、まだ出していない人には
+         もう見られると読めてしまう。開くための条件をそのまま札に書く。
+         ✓ も外す（済んだことを表す印なので、条件と並ぶと逆の意味になる）。 */
+    if (live) return T.now;
     if (tier.key === 'deep' && deepN() !== null) return T.goal(deepN());
     return T.soon;
   }

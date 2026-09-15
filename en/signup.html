@@ -93,6 +93,34 @@
     .error-msg{color:#f87171;font-size:.79rem;padding:8px 12px;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);border-radius:8px;display:none;margin-top:4px}
     .profile-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:rgba(245,200,66,.1);border:1px solid rgba(245,200,66,.25);border-radius:999px;font-size:.73rem;color:#f5c842;font-weight:600;letter-spacing:.04em;margin-bottom:16px}
     .success-screen{text-align:center;display:none}
+    /* ★登録はゴールではない、と一目で分かる2段（2026-09-15 オーナー指示）。
+         色は発明しない ── 金は既にこのファイルが使っている #f5c842、
+         済んだ段は本文と同じ #6b7d93 に落とす。 */
+    .su-steps{display:flex;align-items:center;justify-content:center;gap:7px;margin:0 0 16px}
+    .su-step{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:999px;
+             font-size:.73rem;font-weight:700;letter-spacing:.01em;white-space:nowrap}
+    .su-step.is-done{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#6b7d93}
+    .su-step.is-now{background:rgba(245,200,66,.12);border:1px solid rgba(245,200,66,.35);color:#f5c842}
+    .su-steps-ar{color:#6b7d93;font-size:.78rem}
+    /* ★ライトでは下の [style*="color:#f5c842"] が当たらない（インラインではなくクラスのため）。
+         金は白地で 1.8:1 しか出ないので、ここでも同じ濃さへ落とす。 */
+    [data-theme="light"] .su-step.is-done{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.12);color:#64748b}
+    [data-theme="light"] .su-step.is-now{background:rgba(138,110,0,.09);border-color:rgba(138,110,0,.3);color:#8a6e00}
+    /* Give → Get の3段は pv-gates.js が描き、見た目は my-value.css が持っている。
+       ここでは置き場所だけ決める（表そのものの CSS を書き写さない）。 */
+    #success-give{margin:14px 0 20px;text-align:left}
+    #success-give:empty{display:none}
+    #success-give .pv-give{margin-top:0}
+    /* 「あとで」は小さく下に置く（2026-09-15 オーナー指示）。
+       ボタンの形にすると、隣の主ボタンと同じ重さに見える。 */
+    .su-later{display:inline-block;margin:2px auto 0;padding:6px 10px;background:none;
+              border:0;border-radius:8px;font:inherit;font-size:.78rem;color:#6b7d93;
+              text-decoration:underline;text-underline-offset:3px;cursor:pointer;
+              transition:color .18s cubic-bezier(.2,.8,.2,1)}
+    .su-later:hover{color:#c9d4e0}
+    .su-later:focus-visible{outline:2px solid #f5c842;outline-offset:2px}
+    [data-theme="light"] .su-later{color:#64748b}
+    [data-theme="light"] .su-later:hover{color:#1f2937}
     /* インラインの #c9d4e0 を白地に置いていて読めなかった。テーマごとに出し分ける。 */
     .optin-text{font-size:.76rem;color:#c9d4e0;line-height:1.6}
     [data-theme="light"] .optin-text{color:#3f4a5a}
@@ -348,21 +376,29 @@
     <!-- SUCCESS -->
     <div class="success-screen" id="success-screen">
       <div style="font-size:3rem;margin-bottom:16px">✈️</div>
-      <div style="font-size:1.1rem;font-weight:700;margin-bottom:8px">Registration complete!</div>
-      <!-- 次にやることを1つだけ出す。明細は端末内匿名化を挟む重い経路なので、
-           登録直後に見せない（口コミ → そのあと明細の順）。 -->
-      <p style="font-size:.84rem;color:#6b7d93;line-height:1.7;margin-bottom:24px">
-        Welcome to PILOT VALUE.<br>
-        <span id="success-lead">Post one review and <b style="color:#f5c842">every airline's reviews unlock</b>.</span>
+      <!-- ★Signing up is not the finish line (owner, 2026-09-15). More than half of the
+           members never shared any pay, and this screen was pitching reviews, not pay.
+           Say one step is left, and offer exactly one next thing: pay. -->
+      <div style="font-size:1.1rem;font-weight:700;margin-bottom:12px">Registration complete! <span style="color:#f5c842">One step to go!</span></div>
+      <div class="su-steps">
+        <span class="su-step is-done">✓ Sign up</span>
+        <span class="su-steps-ar" aria-hidden="true">→</span>
+        <span class="su-step is-now">② Add your pay</span>
+      </div>
+      <p style="font-size:.84rem;color:#6b7d93;line-height:1.7;margin-bottom:0">
+        <span id="success-lead">Share one pay record and <b style="color:#f5c842">the pay data for every airline unlocks for 90 days</b>.</span>
       </p>
+      <!-- The three tiers of "what you share → what you can see". pv-gates.js draws them,
+           so the wording and the look live in one place; showSuccessCta() fills this in.
+           If that fails, the button and the lead line below still work. -->
+      <div id="success-give"></div>
       <div style="display:flex;flex-direction:column;gap:10px;max-width:280px;margin:0 auto">
-        <!-- ★Defaults to "write a review", but anyone who arrived via ?next= (they hit the
-             login wall on the review or payslip form and were routed into signup) is sent
-             back there. showSuccessCta() rewrites the lead line, the button label and the
-             destination — changing only the button leaves "Post one review" sitting above
-             a "Submit a payslip" button. -->
-        <button class="btn-primary" id="success-cta" onclick="window.location.href=(this.dataset.href||'submit-review.html')">Write a review anonymously (about 60s)</button>
-        <button class="btn-secondary" id="success-later" onclick="window.location.href='profile.html?welcome=1'">Later → Go to the site</button>
+        <!-- ★Defaults to pay. Anyone who arrived via ?next= (they hit the login wall on the
+             review or pay form and were routed into signup) is sent back there instead.
+             showSuccessCta() rewrites the lead line, the button label and the destination —
+             changing only the button leaves "Share one pay record" above a review button. -->
+        <button class="btn-primary" id="success-cta" data-choice="pay" data-fallback="pay-report.html#ps" onclick="goNext(this)">Add your pay anonymously</button>
+        <button type="button" class="su-later" id="success-later" data-choice="later" data-fallback="actual-pay.html" onclick="goNext(this)">Later</button>
       </div>
     </div>
   </div>
@@ -409,9 +445,10 @@
     }
     function getRedirect(){ return explicitNext() || 'profile.html?welcome=1'; }
 
-    /* Primary button on the completion screen. People who arrived with ?next= (they hit the
-       login wall on the review or payslip form and were sent here) go back to what they
-       were doing. Hard-coding submit-review.html sent payslip arrivals to the wrong place. */
+    /* Primary button on the completion screen. ★It defaults to pay now (owner, 2026-09-15):
+       more than half of the members left without ever seeing the pay proposition.
+       ⚠️ Only people who arrived with ?next= (they hit the login wall on the review or pay
+          form) go back there. Drop the review branch and their errand disappears. */
     /* Is a receipt sitting in this browser? If pv-claim-pending.js failed to load, say no. */
     /* ★Separate "the network dropped" from "we have something to tell you" (2026-09-11).
        supabase-js returns network failures as error rather than throwing (status 0), and
@@ -436,29 +473,58 @@
       try { return !!(window.PVClaimPending && PVClaimPending.has()); } catch (e) { return false; }
     }
 
+    /* Record what the new member chose right after signing up (GA4). Until now only
+       sign_up was sent, so nothing told apart "left straight away" from "went on to pay".
+       ★If the measurement fails, the destination is unaffected. */
+    function goNext(el){
+      if (!el) return;
+      const to = el.dataset.href || el.dataset.fallback || '';
+      try { if (typeof gtag === 'function')
+              gtag('event', 'signup_next', { choice: el.dataset.choice || '' }); } catch (e) {}
+      if (to) window.location.href = to;
+    }
+
     function showSuccessCta(){
-      const b = document.getElementById('success-cta');
+      const b     = document.getElementById('success-cta');
+      const lead  = document.getElementById('success-lead');
+      const later = document.getElementById('success-later');
+      /* ★The two dots above count the steps of the signup form; the indicator below counts
+         sign up → share pay. Side by side, neither number can be read. Hide the dots here. */
+      const dots = document.querySelector('.step-dots');
+      if (dots) dots.style.display = 'none';
+      /* The three Give → Get tiers. ★Always pass true (inPanel) — with false the DEEP PAY
+         chip becomes a button that tries to open an explanation panel this page does not
+         have. If the table cannot be drawn, the button and the lead line still work. */
+      try {
+        const g = document.getElementById('success-give');
+        if (g && window.PVGates) g.innerHTML = PVGates.giveGetHTML(true);
+      } catch (e) {}
+      if (!b) return;
       const to = explicitNext();
-      if (!b || !to) return;
-      b.dataset.href = to;
+      if (to) b.dataset.href = to;
       // ★ファイル名だけで見る。/en/ 配下では to が '/en/pay-report.html' になるので、
       //   パス全体で比べると英語側だけ分岐に入らない（実際に入っていなかった）。
-      const p = to.split(/[?#]/)[0].split('/').pop();
-      if (p === 'pay-report.html') {
-        /* ★Never say "submit" to someone whose report is already held (2026-09-11).
-           Anonymous entry →（server holds it）→ sign up here: that person was being
-           asked to type the whole thing again. The claim happens back on pay-report.html. */
-        const kept = hasPending();
-        b.textContent = kept ? 'Claim the report you submitted →' : 'Submit a payslip (about 2 min)';
-        // The salary unlock comes from payslips only (submit_pay_report pushes access_until 90 days out).
-        const lead = document.getElementById('success-lead');
-        if (lead) lead.innerHTML = kept
-          ? 'The report you just filled in is held on the server. Claim it and <b style="color:#f5c842">the pay data for every airline unlocks for 90 days</b>.'
-          : 'Submit one payslip and <b style="color:#f5c842">the pay data for every airline unlocks for 90 days</b>.';
-        const later = document.getElementById('success-later');
-        if (later) later.textContent = 'Later → Go to the site';
-      } else if (p !== 'submit-review.html') {
+      const p = to ? to.split(/[?#]/)[0].split('/').pop() : '';
+      if (p === 'submit-review.html') {
+        b.dataset.choice = 'review';
+        b.textContent = 'Write a review anonymously (about 60s)';
+        if (lead) lead.innerHTML = 'Post one review and <b style="color:#f5c842">every airline\'s reviews unlock</b>.';
+        if (later) later.textContent = 'Later';
+        return;
+      }
+      if (p && p !== 'pay-report.html') {
+        b.dataset.choice = 'other';
         b.textContent = 'Continue →';
+        return;
+      }
+      /* ★Never say "submit" to someone whose report is already held (2026-09-11).
+         Anonymous entry →（server holds it）→ sign up here: that person was being
+         asked to type the whole thing again. The claim happens back on pay-report.html. */
+      if (hasPending()) {
+        b.textContent = 'Claim the report you submitted →';
+        // The salary unlock comes from pay reports only (submit_pay_report pushes access_until 90 days out).
+        if (lead) lead.innerHTML = 'The report you just filled in is held on the server. Claim it and <b style="color:#f5c842">the pay data for every airline unlocks for 90 days</b>.';
+        if (later) later.textContent = 'Later';
       }
     }
 
@@ -758,6 +824,10 @@
 <script src="../search.js"></script>
 <script src="../lang-toggle.js"></script>
 <script src="../currency.js"></script>
+<!-- PV-GATES: 登録完了画面の「出すもの → 見られるもの」の3段を描く。
+     ついでに左メニューの REAL PAY に錠前が付く（他の16枚と同じ挙動。押せば普通に飛ぶ）。
+     ★データは1バイトも隠さない。止めているのはサーバ側（db/pay-rows.sql）。 -->
+<script src="../pv-gates.js"></script>
 <!-- PV-NAV: opens and closes the navigation. Loads AFTER search.js so it can adopt
      the hamburger that file creates; on pages without search.js it makes its own. -->
 <script src="../app-nav.js"></script>

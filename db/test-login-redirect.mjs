@@ -83,24 +83,30 @@ for (const dir of ['', '/en']) {
        `${desc}  ${q || '(なし)'} → ${want(dir, SIGNUP_DEFAULT)}`, got);
   }
 
-  /* ★登録完了画面。?next= で来た人を、登録前にやろうとしていた場所へ戻す。
-     ここが submit-review.html 固定だと、明細を出しに来た人まで口コミへ送ってしまう。
+  /* ★登録完了画面。**既定は給与**（2026-09-15 オーナー指示）。
+     登録だけして帰る人が半分以上いて、その人たちは給与の話を一度も見ていなかった。
+     ⚠️ それでも ?next= で来た人は、登録前にやろうとしていた場所へ戻す。
+        口コミの枝を消すと、口コミを書きに来た人のやろうとしたことが行方不明になる。
 
      行き先だけでなく**3行の文言**も見る。ボタンの行き先が正しくても、
      見出し「口コミを1件投稿すると…」が残っていると画面が食い違う。実際に
      英語側が `to` = '/en/pay-report.html' でファイル名比較に入らず、
-     行き先は正しいのにボタンが "Continue →" のままだった（行き先だけの検査は通っていた）。 */
+     行き先は正しいのにボタンが "Continue →" のままだった（行き先だけの検査は通っていた）。
+
+     ★既定の行き先を**この検査の中に書かない**。data-fallback を読む。
+       ここに 'submit-review.html' と書いてあったせいで、画面の既定を給与へ変えても
+       検査だけが古い口コミのまま通ってしまう形になっていた。 */
   console.log(`\n${label} signup.html 登録完了画面の行き先と文言\n`);
   // [クエリ, 期待パス, {見出しとボタンに要る語, 「あとで」の行}, 説明]
-  const R = dir ? { word: 'review',  later: 'Later → Go to the site' }
-                : { word: '口コミ',  later: 'あとで書く → サイトへ' };
-  const P = dir ? { word: 'payslip', later: 'Later → Go to the site' }
-                : { word: '明細',    later: 'あとで出す → サイトへ' };
+  const R = dir ? { word: 'review', later: 'Later' }
+                : { word: '口コミ', later: 'あとで書く' };
+  const P = dir ? { word: 'pay',    later: 'Later' }
+                : { word: '給与',   later: 'あとで出す' };
   const CTA = [
-    ['',                              `${dir}/submit-review.html`, R, '指定なし → 既定の口コミ'],
-    ['?next=submit-review.html',      `${dir}/submit-review.html`, R, 'next=口コミ → 口コミ'],
-    ['?next=pay-report.html',         `${dir}/pay-report.html`,    P, 'next=明細 → 明細（ここが固定だと迷子になる）'],
-    ['?next=https://evil.com/x.html', `${dir}/submit-review.html`, R, '外部URL → 捨てて既定へ'],
+    ['',                              `${dir}/pay-report.html`,    P, '指定なし → 既定の給与（登録だけで帰らせない）'],
+    ['?next=submit-review.html',      `${dir}/submit-review.html`, R, 'next=口コミ → 口コミ（この枝を消さない）'],
+    ['?next=pay-report.html',         `${dir}/pay-report.html`,    P, 'next=給与 → 給与（ここが固定だと迷子になる）'],
+    ['?next=https://evil.com/x.html', `${dir}/pay-report.html`,    P, '外部URL → 捨てて既定へ'],
   ];
   for (const [q, want, exp, desc] of CTA) {
     await page.goto(`${BASE}${dir}/signup.html${q}`, { waitUntil: 'domcontentloaded' });
@@ -110,14 +116,27 @@ for (const dir of ['', '/en']) {
       showSuccessCta();
       const txt = (id) => (document.getElementById(id) || {}).textContent || '';
       return {
-        path: new URL(b.dataset.href || 'submit-review.html', location.href).pathname,
+        path: new URL(b.dataset.href || b.dataset.fallback || '', location.href).pathname,
         cta: b.textContent, lead: txt('success-lead'), later: txt('success-later'),
+        // Give → Get の3段。段が3つ出ていること、そして**押せる札が1つも無い**こと
+        // （inPanel を渡し忘れると DEEP の札がボタンになり、この画面に無いパネルを開こうとする）
+        give: document.querySelectorAll('#success-give .pv-give-r').length,
+        givePress: document.querySelectorAll('#success-give button.pv-give-p').length,
+        pill: ((document.querySelector('#success-give .pv-give-r.is-live .pv-give-p')
+                || {}).textContent || '').trim(),
       };
     });
     ok(got.path === want, `${desc}  ${q || '(なし)'} → ${want}`, got.path || got.err);
     ok([got.cta, got.lead].every((t) => t && t.includes(exp.word)) && got.later === exp.later,
        `${desc}  見出し・ボタン・あとでの3行が「${exp.word}」で揃っている`,
        [got.cta, got.lead, got.later]);
+    ok(got.give === 3 && got.givePress === 0,
+       `${desc}  Give → Get の3段が出て、押せる札が1つも無い`,
+       [got.give, got.givePress]);
+    /* ★「いま開きます」と書かない（2026-09-15 オーナー指示）。まだ出していない人には
+         もう見られると読めてしまう。札には**開くための条件**を書く。 */
+    ok(got.pill === (dir ? 'Share pay to unlock' : '給与提出で解放'),
+       `${desc}  REAL PAY の札が「開く条件」になっている（開いているとは書かない）`, got.pill);
   }
 
   /* ★login.html →「新規登録」リンクで戻り先を落とさないこと。

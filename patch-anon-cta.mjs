@@ -53,12 +53,10 @@ const EDITS = [
   ['en/index.html', 'data-pv-ev="salary_contribution_start">Add your pay and compare</a>', 'data-pv-ev="salary_contribution_start">Add your pay anonymously</a>'],
   ['en/index.html', 'data-pv-ev="mobile_cta">Add your pay and compare</a>', 'data-pv-ev="mobile_cta">Add your pay anonymously</a>'],
   // ── マイページ
-  ['profile.html', '\n          給与を追加 →\n', '\n          匿名で給与を追加 →\n'],
-  ['profile.html', '\n          給与を追加\n', '\n          匿名で給与を追加\n'],
-  ['profile.html', 'class="pv-cta-ghost">口コミを投稿する</a>', 'class="pv-cta-ghost">匿名で口コミを投稿する</a>', 2],
-  ['en/profile.html', '\n          Submit your first payslip →\n', '\n          Submit your first payslip anonymously →\n'],
-  ['en/profile.html', '\n          Submit a payslip\n', '\n          Submit a payslip anonymously\n'],
-  ['en/profile.html', 'class="pv-cta-ghost">Post a review</a>', 'class="pv-cta-ghost">Post a review anonymously</a>', 2],
+  // ★profile.html / en/profile.html は NEXT ACTION を作り直した回（2026-09-07）に
+  //   ここが狙っていた札ごと無くなった。いまの文言は **最初から**「匿名で」が入っている
+  //   （profile.html:244 の「匿名で給与を追加」、my-value.js の nextAdd / sampleBtn）。
+  //   直す対象が無いので表から外す。⚠️ 残しておくと**この表全体が1件も書かれなくなる**。
   /* ── 待遇ページのヘッダーボタン
      ★2026-09-06、my-value.html の2行を外した。あの住所は MY PAGE への
        転送1枚になり、ヘッダーそのものが無い（本体は ③ YOUR PAY）。 */
@@ -83,8 +81,8 @@ const EDITS = [
   ['en/pilot-tenshoku.html', 'class="btn-orange py-2 px-4 text-sm">Post a Review</a>', 'class="btn-orange py-2 px-4 text-sm">Post a Review Anonymously</a>'],
   ['privacy-pilot.html', 'class="btn-orange py-2 px-5 text-sm">口コミを投稿する →</a>', 'class="btn-orange py-2 px-5 text-sm">匿名で口コミを投稿する →</a>'],
   ['en/privacy-pilot.html', 'class="btn-orange py-2 px-5 text-sm">Submit a review →</a>', 'class="btn-orange py-2 px-5 text-sm">Submit a review anonymously →</a>'],
-  ['signup.html', ">口コミを書く（約60秒）</button>", ">匿名で口コミを書く（約60秒）</button>"],
-  ['en/signup.html', ">Write a review (about 60s)</button>", ">Write a review anonymously (about 60s)</button>"],
+  // ★signup.html の口コミボタンは 2026-09-15 に画面から消えた（登録完了画面は給与だけ）。
+  //   文言は showSuccessCta() の中へ移り「匿名で」が最初から入っている。ここでは触らない。
   // ── 待遇モーダルの中の導線（日英1ファイル）
   ['pv-conditions.js', "voicesLink: '口コミを書く →'", "voicesLink: '匿名で口コミを書く →'"],
   ['pv-conditions.js', "voicesLink: 'Write a review →'", "voicesLink: 'Write a review anonymously →'"],

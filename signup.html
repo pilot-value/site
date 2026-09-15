@@ -93,6 +93,34 @@
     .error-msg{color:#f87171;font-size:.79rem;padding:8px 12px;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);border-radius:8px;display:none;margin-top:4px}
     .profile-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:rgba(245,200,66,.1);border:1px solid rgba(245,200,66,.25);border-radius:999px;font-size:.73rem;color:#f5c842;font-weight:600;letter-spacing:.04em;margin-bottom:16px}
     .success-screen{text-align:center;display:none}
+    /* ★登録はゴールではない、と一目で分かる2段（2026-09-15 オーナー指示）。
+         色は発明しない ── 金は既にこのファイルが使っている #f5c842、
+         済んだ段は本文と同じ #6b7d93 に落とす。 */
+    .su-steps{display:flex;align-items:center;justify-content:center;gap:7px;margin:0 0 16px}
+    .su-step{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:999px;
+             font-size:.73rem;font-weight:700;letter-spacing:.01em;white-space:nowrap}
+    .su-step.is-done{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#6b7d93}
+    .su-step.is-now{background:rgba(245,200,66,.12);border:1px solid rgba(245,200,66,.35);color:#f5c842}
+    .su-steps-ar{color:#6b7d93;font-size:.78rem}
+    /* ★ライトでは下の [style*="color:#f5c842"] が当たらない（インラインではなくクラスのため）。
+         金は白地で 1.8:1 しか出ないので、ここでも同じ濃さへ落とす。 */
+    [data-theme="light"] .su-step.is-done{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.12);color:#64748b}
+    [data-theme="light"] .su-step.is-now{background:rgba(138,110,0,.09);border-color:rgba(138,110,0,.3);color:#8a6e00}
+    /* Give → Get の3段は pv-gates.js が描き、見た目は my-value.css が持っている。
+       ここでは置き場所だけ決める（表そのものの CSS を書き写さない）。 */
+    #success-give{margin:14px 0 20px;text-align:left}
+    #success-give:empty{display:none}
+    #success-give .pv-give{margin-top:0}
+    /* 「あとで出す」は小さく下に置く（2026-09-15 オーナー指示）。
+       ボタンの形にすると、隣の「匿名で給与を追加する」と同じ重さに見える。 */
+    .su-later{display:inline-block;margin:2px auto 0;padding:6px 10px;background:none;
+              border:0;border-radius:8px;font:inherit;font-size:.78rem;color:#6b7d93;
+              text-decoration:underline;text-underline-offset:3px;cursor:pointer;
+              transition:color .18s cubic-bezier(.2,.8,.2,1)}
+    .su-later:hover{color:#c9d4e0}
+    .su-later:focus-visible{outline:2px solid #f5c842;outline-offset:2px}
+    [data-theme="light"] .su-later{color:#64748b}
+    [data-theme="light"] .su-later:hover{color:#1f2937}
     /* インラインの #c9d4e0 を白地に置いていて読めなかった。テーマごとに出し分ける。 */
     .optin-text{font-size:.76rem;color:#c9d4e0;line-height:1.6}
     [data-theme="light"] .optin-text{color:#3f4a5a}
@@ -350,20 +378,28 @@
     <!-- SUCCESS -->
     <div class="success-screen" id="success-screen">
       <div style="font-size:3rem;margin-bottom:16px">✈️</div>
-      <div style="font-size:1.1rem;font-weight:700;margin-bottom:8px">登録完了！</div>
-      <!-- 次にやることを1つだけ出す。明細は端末内匿名化を挟む重い経路なので、
-           登録直後に見せない（口コミ → そのあと明細の順）。 -->
-      <p style="font-size:.84rem;color:#6b7d93;line-height:1.7;margin-bottom:24px">
-        PILOT VALUE へようこそ。<br>
-        <span id="success-lead">口コミを1件投稿すると、<b style="color:#f5c842">全社の口コミが解放</b>されます。</span>
+      <!-- ★登録はゴールではない（2026-09-15 オーナー指示）。会員だけ作って帰る人が
+           半分以上いたのは、この画面が給与ではなく口コミを勧めていたため。
+           残り1歩だと言い、次にやることは**給与ひとつだけ**にする。 -->
+      <div style="font-size:1.1rem;font-weight:700;margin-bottom:12px">登録完了！ <span style="color:#f5c842">あと1ステップです！</span></div>
+      <div class="su-steps">
+        <span class="su-step is-done">✓ 会員登録</span>
+        <span class="su-steps-ar" aria-hidden="true">→</span>
+        <span class="su-step is-now">② 匿名で給与を追加</span>
+      </div>
+      <p style="font-size:.84rem;color:#6b7d93;line-height:1.7;margin-bottom:0">
+        <span id="success-lead">給与を1件出すと、<b style="color:#f5c842">全社の年収データが90日間解放</b>されます。</span>
       </p>
+      <!-- 「何を出すと何が見られるか」の3段。描くのは pv-gates.js（文言も見た目も1か所に集める）。
+           中身は showSuccessCta() が入れる。あれが落ちても下のボタンと文言は生きる。 -->
+      <div id="success-give"></div>
       <div style="display:flex;flex-direction:column;gap:10px;max-width:280px;margin:0 auto">
-        <!-- ★既定は「口コミを書く」。ただし ?next= で来た人（口コミ／明細を出そうとして
-             ログイン壁に当たり、そこから登録に回された人）は、その元の場所へ戻す。
+        <!-- ★既定は給与。ただし ?next= で来た人（口コミ／給与を出そうとしてログイン壁に
+             当たり、そこから登録に回された人）は、その元の場所へ戻す。
              本文・ボタンの文言・行き先の3つとも showSuccessCta() が差し替える
-             （ボタンだけ替えると「明細を出す」の上に「口コミを投稿すると」が残る）。 -->
-        <button class="btn-primary" id="success-cta" onclick="window.location.href=(this.dataset.href||'submit-review.html')">匿名で口コミを書く（約60秒）</button>
-        <button class="btn-secondary" id="success-later" onclick="window.location.href='profile.html?welcome=1'">あとで書く → サイトへ</button>
+             （ボタンだけ替えると「口コミを書く」の上に「給与を1件出すと」が残る）。 -->
+        <button class="btn-primary" id="success-cta" data-choice="pay" data-fallback="pay-report.html#ps" onclick="goNext(this)">匿名で給与を追加する</button>
+        <button type="button" class="su-later" id="success-later" data-choice="later" data-fallback="actual-pay.html" onclick="goNext(this)">あとで出す</button>
       </div>
     </div>
   </div>
@@ -410,9 +446,10 @@
     }
     function getRedirect(){ return explicitNext() || 'profile.html?welcome=1'; }
 
-    /* 登録完了画面の主ボタン。?next= で来た人は、登録の前にやろうとしていたこと
-       （口コミ／明細）へ戻す。ここを既定の submit-review.html 固定にしていたため、
-       明細を出しに来た人まで口コミへ送っていた。 */
+    /* 登録完了画面の主ボタン。★既定は「匿名で給与を追加する」（2026-09-15 オーナー指示）。
+       登録だけして帰る人が半分以上いて、その人たちは給与の話を一度も見ていなかった。
+       ⚠️ ?next= で来た人（口コミ／給与を出そうとしてログイン壁に当たった人）だけは
+          元の場所へ戻す。口コミの枝を消すと、その人がやろうとしたことが行方不明になる。 */
     /* 預かり証がこの端末にあるか。pv-claim-pending.js が落ちても画面は出す（false）。 */
     /* ★通信で落ちたのか、こちらの言い分があるのかを分ける（2026-09-11）。
        supabase-js は通信の失敗も throw せず error で返す（status は 0）。
@@ -437,30 +474,59 @@
       try { return !!(window.PVClaimPending && PVClaimPending.has()); } catch (e) { return false; }
     }
 
+    /* 登録の直後に何を選んだかを残す（GA4）。いままで sign_up しか送っておらず、
+       「登録だけして帰った人」と「給与へ進んだ人」を分ける材料が1件も無かった。
+       ★計測が落ちても行き先は変えない。 */
+    function goNext(el){
+      if (!el) return;
+      const to = el.dataset.href || el.dataset.fallback || '';
+      try { if (typeof gtag === 'function')
+              gtag('event', 'signup_next', { choice: el.dataset.choice || '' }); } catch (e) {}
+      if (to) window.location.href = to;
+    }
+
     function showSuccessCta(){
-      const b = document.getElementById('success-cta');
+      const b     = document.getElementById('success-cta');
+      const lead  = document.getElementById('success-lead');
+      const later = document.getElementById('success-later');
+      /* ★上の2つの点は「登録フォームの2段」、この下のステップ表示は「登録 → 給与」。
+         2つ並ぶと、どちらの数を読めばいいのか分からなくなる。完了画面では点を消す。 */
+      const dots = document.querySelector('.step-dots');
+      if (dots) dots.style.display = 'none';
+      /* 「何を出すと何が見られるか」の3段。★引数 true（inPanel）を必ず渡す ──
+         false だと DEEP PAY の札が押せるボタンになり、この画面に無い説明パネルを
+         開こうとする。表が出なくてもボタンと文言は生きる（黙って何もしない）。 */
+      try {
+        const g = document.getElementById('success-give');
+        if (g && window.PVGates) g.innerHTML = PVGates.giveGetHTML(true);
+      } catch (e) {}
+      if (!b) return;
       const to = explicitNext();
-      if (!b || !to) return;
-      b.dataset.href = to;
+      if (to) b.dataset.href = to;
       // ★ファイル名だけで見る。/en/ 配下では to が '/en/pay-report.html' になり、
       //   パス全体で比べると英語側が分岐に入らない（英語版で実際に起きた）。両方同じ形にする。
-      const p = to.split(/[?#]/)[0].split('/').pop();
-      if (p === 'pay-report.html') {
-        /* ★預かりがある人には「出してください」と言わない（2026-09-11）。
-           匿名で入力 →（サーバーが預かる）→ ここで登録、という順で来た人に
-           「給与明細を出す」と出していたので、同じ内容をもう一度書かされる。
-           実際に出すのは戻った先の pay-report.html（預かりを自動で引き取る）。 */
-        const kept = hasPending();
-        b.textContent = kept ? '預けたレポートを受け取る →' : '給与明細を出す（約2分）';
-        // 年収の解放は明細だけ（pay-report.html の submit_pay_report が access_until を90日先へ延ばす）
-        const lead = document.getElementById('success-lead');
-        if (lead) lead.innerHTML = kept
-          ? '先ほど入力したレポートはサーバーで預かっています。受け取ると、<b style="color:#f5c842">全社の年収データが90日間解放</b>されます。'
-          : '明細を1枚出すと、<b style="color:#f5c842">全社の年収データが90日間解放</b>されます。';
-        const later = document.getElementById('success-later');
-        if (later) later.textContent = kept ? 'あとで受け取る → サイトへ' : 'あとで出す → サイトへ';
-      } else if (p !== 'submit-review.html') {
+      const p = to ? to.split(/[?#]/)[0].split('/').pop() : '';
+      if (p === 'submit-review.html') {
+        b.dataset.choice = 'review';
+        b.textContent = '匿名で口コミを書く（約60秒）';
+        if (lead) lead.innerHTML = '口コミを1件投稿すると、<b style="color:#f5c842">全社の口コミが解放</b>されます。';
+        if (later) later.textContent = 'あとで書く';
+        return;
+      }
+      if (p && p !== 'pay-report.html') {
+        b.dataset.choice = 'other';
         b.textContent = '続ける →';
+        return;
+      }
+      /* ★預かりがある人には「出してください」と言わない（2026-09-11）。
+         匿名で入力 →（サーバーが預かる）→ ここで登録、という順で来た人に
+         「給与を追加する」と出すと、同じ内容をもう一度書かされる。
+         実際に引き取るのは戻った先の pay-report.html（預かりを自動で受け取る）。 */
+      if (hasPending()) {
+        b.textContent = '預けたレポートを受け取る →';
+        // 年収の解放は給与だけ（pay-report.html の submit_pay_report が access_until を90日先へ延ばす）
+        if (lead) lead.innerHTML = '先ほど入力したレポートはサーバーで預かっています。受け取ると、<b style="color:#f5c842">全社の年収データが90日間解放</b>されます。';
+        if (later) later.textContent = 'あとで受け取る';
       }
     }
 
@@ -758,6 +824,10 @@
 <script src="search.js"></script>
 <script src="lang-toggle.js"></script>
 <script src="currency.js"></script>
+<!-- PV-GATES: 登録完了画面の「出すもの → 見られるもの」の3段を描く。
+     ついでに左メニューの REAL PAY に錠前が付く（他の16枚と同じ挙動。押せば普通に飛ぶ）。
+     ★データは1バイトも隠さない。止めているのはサーバ側（db/pay-rows.sql）。 -->
+<script src="pv-gates.js"></script>
 <!-- PV-NAV: ナビの開け閉め。★search.js より**後**に読む ──
      あちらが作った ≡ を繋ぎ直すため（先に読むと search.js:416 の二重注入ガードで
      ヘッダーの自動折り畳みごと止まる）。search.js が無いページでは自分で ≡ を作る。 -->

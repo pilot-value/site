@@ -1759,7 +1759,7 @@ for (const lang of ['ja', 'en']) {
     const g = v.give;
     ok(g.length === 3, `${lang}: ★Give → Get が3段そろっている`, JSON.stringify(g));
     ok(g[0] && g[0].t === 'REAL PAY' && g[0].live,
-       `${lang}: ★REAL PAY だけが「いま開きます」`, JSON.stringify(g[0] || {}));
+       `${lang}: ★REAL PAY だけが今日ひらく段`, JSON.stringify(g[0] || {}));
     for (const i of [1, 2]) {
       const r = g[i];
       const soon = lang === 'ja' ? /準備中/ : /in preparation/i;
@@ -1770,6 +1770,11 @@ for (const lang of ['ja', 'en']) {
     const soonWord = lang === 'ja' ? /準備中/ : /in preparation/i;
     ok(g[0] && !soonWord.test(g[0].s),
        `${lang}: ★REAL PAY の段に「準備中」が付いていない`, JSON.stringify(g[0] || {}));
+    /* ★「いま開きます」と書かない（2026-09-15 オーナー指示）。まだ給与を出していない人が
+         この画面を見ているのに「開いている」と読めてしまう。札には条件をそのまま書く。 */
+    const openNow = lang === 'ja' ? /いま開き|今開き/ : /open now/i;
+    ok(g[0] && !openNow.test(g[0].s),
+       `${lang}: ★REAL PAY の札が「もう開いている」と読めない`, JSON.stringify(g[0] || {}));
   }
 
   /* ★左メニュー：門は REAL PAY の1つだけ（2026-09-06）。
