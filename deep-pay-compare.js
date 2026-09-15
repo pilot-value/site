@@ -156,14 +156,18 @@
     }
   }[L];
 
-  /* 給与構成の8区分。順は db/deep-pay.sql の cseg と同じ。
-     ★bonus はここに無い（年額なので月々の現金の100%に混ぜられない）。 */
-  var SEGK = ['fixed', 'variable', 'command', 'role', 'perdiem', 'housing', 'other', 'rest'];
+  /* 給与構成の9区分。順は db/deep-pay.sql の cseg と同じ。
+     ★bonus はここに無い（年額なので月々の現金の100%に混ぜられない）。
+     ★2026-09-15、fixed を base と guarantee に割った（オーナー指示）。 */
+  var SEGK = ['base', 'guarantee', 'variable', 'command', 'role',
+              'perdiem', 'housing', 'other', 'rest'];
   var CN = {
-    ja: { fixed: '基本給・保証給', variable: '変動給', command: '職位手当',
+    ja: { base: '基本給', guarantee: '保証手当・職務手当',
+          variable: '変動給', command: '職位手当',
           role: '役割手当', perdiem: 'パーディアム', housing: '住宅手当',
           other: 'その他の現金', rest: 'その他・未分類' },
-    en: { fixed: 'Base & guaranteed', variable: 'Variable (flying)', command: 'Rank pay',
+    en: { base: 'Base pay', guarantee: 'Guarantee / duty pay',
+          variable: 'Variable (flying)', command: 'Rank pay',
           role: 'Role pay', perdiem: 'Per diem', housing: 'Housing allowance',
           other: 'Other cash', rest: 'Other / unclassified' }
   }[L];
@@ -173,7 +177,8 @@
   var SEGCOL = {};
   (V.SEG || []).forEach(function (s) { SEGCOL[s.k] = s.c; });
   var COL = {
-    fixed:    SEGCOL.base,
+    base:     SEGCOL.base,
+    guarantee: SEGCOL.guarantee,
     variable: SEGCOL.flight,
     command:  SEGCOL.command,
     role:     SEGCOL.instructor,
@@ -304,8 +309,8 @@
 
   /* 表に出す9項目。順はモックのまま。
      ★variable は segPct から取る。「100 − 固定・保証給比率」では出さない
-       （db/deep-pay.sql の fixed_pct は固定＋職位＋役割＋住宅で、
-         残りにはパーディアム・その他・未分類も入っている）。 */
+       （db/deep-pay.sql の fixed_pct は基本給＋保証手当＋職位＋役割で、
+         残りにはパーディアム・住宅・その他・未分類も入っている）。 */
   var MET = {
     annual:   { lab: T.mAnnual, f: money,
                 get: function (x) { return num(x.head && x.head.annual_usd); } },

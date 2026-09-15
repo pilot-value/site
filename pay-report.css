@@ -287,9 +287,9 @@ main .text-center.mb-9{margin-bottom:22px}
 .sticky-cta-val .u{font-size:.68rem;font-weight:600;color:#9ca3af;margin-left:4px;letter-spacing:0}
 .sticky-cta .btn-orange{flex:0 0 auto;padding:11px 20px;font-size:.86rem}
 /* ── 内訳の割合バー（2026-09-15 オーナー指示）──────────────────────
-   ★色を1行も書かない。欠片は .wz-seg-dot.is-* の9規則がそのまま塗る。
-     ここに .sticky-cta .wz-seg-dot.is-fixed{background:…} のような規則を足すと、
-     db/test-pay-preview.mjs の C) が「色を書いた規則」を10個数えて落ちる
+   ★色を1行も書かない。欠片は .wz-seg-dot.is-* の10規則がそのまま塗る。
+     ここに .sticky-cta .wz-seg-dot.is-base{background:…} のような規則を足すと、
+     db/test-pay-preview.mjs の C) が「色を書いた規則」を11個数えて落ちる
      （@media や [data-theme] の中に色を書いた場合も同じ）。
    ★メディアクエリを使わない。flex-wrap で、広い画面では金額の横に並び、
      狭い画面では自動的に金額の下へ回り込む。
@@ -974,7 +974,7 @@ body.has-cta #form-wrap{padding-bottom:120px}
    ★色を持たない。欠片には下の .wz-seg-dot.is-* がそのまま効く
      ＝一覧の丸と必ず同じ色になる（片方だけ塗り替えられない）。
    ★ここに background:#… を書かない。db/test-pay-preview.mjs の C) が
-     「.wz-seg-dot.is- を含み色を書いた規則」を9個ちょうどで数えている。 */
+     「.wz-seg-dot.is- を含み色を書いた規則」を10個ちょうどで数えている。 */
 .wz-cbar{display:flex;width:100%;height:12px;margin:0 0 10px;
   border-radius:999px;overflow:hidden;
   background:var(--pv-surface-2);box-shadow:inset 0 0 0 1px var(--pv-line)}
@@ -982,7 +982,11 @@ body.has-cta #form-wrap{padding-bottom:120px}
 /* 隣の区分との境目。★多色でも要る（役割手当=赤 と パーディアム=桃 が隣接する）。
    色はトークン任せ ── ライトとダークで自動的に地の色になる。 */
 .wz-cbar .wz-seg-dot+.wz-seg-dot{box-shadow:inset 1.5px 0 0 var(--pv-surface)}
-.wz-seg-dot.is-fixed   {background:#34d399}
+/* ★2026-09-15、is-fixed を is-base と is-guarantee に割った（オーナー指示）。
+   色は pay-viz.js の SEG が最初から持っていたもの（base=緑・guarantee=黄緑）で、
+   マイページの支給構成のドーナツは前からこの2色で描いている。新しい色は作っていない。 */
+.wz-seg-dot.is-base     {background:#34d399}
+.wz-seg-dot.is-guarantee{background:#a3e635}
 .wz-seg-dot.is-variable{background:#f5c842}
 .wz-seg-dot.is-command {background:#5fb0ff}
 .wz-seg-dot.is-role    {background:#e8604c}

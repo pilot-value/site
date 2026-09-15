@@ -591,8 +591,8 @@ console.log('\n▼ 7-c. ★帯（2026-09-03。行を押すと見えるもの）'
   ok(b && b.fleet === 'a320' && b.pos === 'fo' && b.ten === 0,
      '★オーナーの例：A320 / First Officer / 1〜5年の段',
      JSON.stringify(b && { fleet: b.fleet, pos: b.pos, ten: b.ten }));
-  ok(same('fixed', 130000, 135000),
-     '★オーナーの例：Base 130,000〜135,000', JSON.stringify(seg('fixed')));
+  ok(same('base', 130000, 135000),
+     '★オーナーの例：Base 130,000〜135,000', JSON.stringify(seg('base')));
   ok(same('variable', 30000, 35000),
      '★オーナーの例：Flight Pay 30,000〜35,000', JSON.stringify(seg('variable')));
   ok(same('other', 10000, 15000),
@@ -645,8 +645,8 @@ console.log('\n▼ 7-c. ★帯（2026-09-03。行を押すと見えるもの）'
     ok(a && Array.isArray(a.pay) && a.pay.length > 0,
        '★★ 減額のあった月にも帯が出る（足し戻さないと内訳ごと消える）★★',
        JSON.stringify(a && { air: a.airline, pay: a.pay }));
-    ok(a && (a.pay || []).some(x => x.k === 'fixed'),
-       '　固定給の帯が出ている（内訳を書いた人として扱われる）',
+    ok(a && (a.pay || []).some(x => x.k === 'base'),
+       '　基本給の帯が出ている（内訳を書いた人として扱われる）',
        JSON.stringify(a && a.pay));
   }
 
@@ -892,7 +892,7 @@ console.log('\n▼ 7-b. ★支給の内訳（DEEP PAY 用。REAL PAY からは�
 
   /* ★REAL PAY が返すのは「帯」であって「割合」ではない。
      割合は {"m":87,"b":0,"d":0,"h":0,"o":13} という**1文字キーに整数**の形をしている。
-     REAL PAY 側は {"k":"fixed","r":[130000,135000]} ＝ 区分名と2つの数の配列。
+     REAL PAY 側は {"k":"base","r":[130000,135000]} ＝ 区分名と2つの数の配列。
      ⚠️ 帯のキーに 'b' を使わないこと。使うとこの検査が当たらなくなる
         （検査は緑のまま意味を失う）。db/pay-rows.sql の listed にも同じ注意がある。 */
   const rawC = (await one(`select pv_pay_rows()::text t`)).t;
@@ -1879,13 +1879,13 @@ console.log('\n▼ 12-i. ★報酬の内訳の門（Give & Get・2026-09-03）')
      '★★ 入っているのは文字列だけ（帯も金額も1つも混ざっていない）★★',
      JSON.stringify(lb && lb.paylock));
   ok(!!lb && JSON.stringify(lb.paylock)
-        === JSON.stringify(['fixed', 'variable', 'other', 'bonus']),
+        === JSON.stringify(['base', 'variable', 'other', 'bonus']),
      '★オーナーの例の行は「基本給・変動給・その他・賞与」の4つ（中身は帯と同じ）',
      JSON.stringify(lb && lb.paylock));
   /* ★並びは金額の大きい順ではなく **paid が組んだ固定順**。
      大きい順にすると「変動給 > 基本給」という順位が、
      数字を1文字も書かないまま漏れる。 */
-  const SEGORD = ['fixed', 'variable', 'command', 'role', 'perdiem',
+  const SEGORD = ['base', 'guarantee', 'variable', 'command', 'role', 'perdiem',
                   'housing', 'other', 'rest', 'bonus'];
   const lord = (lb && lb.paylock || []).map(k => SEGORD.indexOf(k));
   ok(lord.length > 0 && lord.every(i => i >= 0)
@@ -1911,11 +1911,11 @@ console.log('\n▼ 12-i. ★報酬の内訳の門（Give & Get・2026-09-03）')
   /* ★「130000 が無いこと」では見ない。あの数は年収の丸め（有効数字2桁）で
      ほかの行にも普通に出る（134,000 → 130,000）。実際にそれで一度赤くなった。
      見るのは**帯の形**と、帯にしか出ない上端の2つ。 */
-  /* ★paylock に入るのは **裸の名前**（"fixed"）。帯は
-     {"k":"fixed","r":[…]} という対なので、この3つは今も
+  /* ★paylock に入るのは **裸の名前**（"base"）。帯は
+     {"k":"base","r":[…]} という対なので、この3つは今も
      ゼロのままでなければならない。名前を渡しただけでここが
      赤くなったら、帯そのものを渡している。 */
-  const bandLike = ['"r":[', '"k":"fixed"', '"k":"variable"'].filter(w => lraw.includes(w));
+  const bandLike = ['"r":[', '"k":"base"', '"k":"variable"'].filter(w => lraw.includes(w));
   ok(bandLike.length === 0,
      '★★ 帯の形（区分名と下端・上端の組）が返り値に1つも無い ── ぼかしではなく不在 ★★',
      JSON.stringify(bandLike));

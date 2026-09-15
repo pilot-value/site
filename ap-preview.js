@@ -49,7 +49,7 @@
     /* 'jal' cap.avg = 2700万円（salary-data.mjs）→ 27,000,000 / 158.95 ≒ $169,865 → 2桁 */
     { airline: 'jal', pos: 'cap', fleet: 'b787', ten: 1,
       annual_usd: 170000, _man: 2700, _rank: 'cap', _p: 1, lock: false,
-      paylock: ['fixed', 'variable', 'command', 'perdiem'],
+      paylock: ['base', 'variable', 'command', 'perdiem'],
       work: { bh: [60, 70], dd: [12, 14], off: [10, 12] } },
 
     /* 'etihad' cap.avg = 3400万円 → 34,000,000 / 158.95 ≒ $213,904
@@ -59,24 +59,24 @@
             ドル表示側は画面が2桁に丸めるので $210K のまま。 */
     { airline: 'etihad', pos: 'cap', fleet: 'b787', ten: 0,
       annual_usd: 214000, _man: 3400, _rank: 'cap', _p: 1, lock: false,
-      paylock: ['fixed', 'variable', 'command', 'housing', 'perdiem'],
+      paylock: ['base', 'variable', 'command', 'housing', 'perdiem'],
       work: { bh: [70, 80], dd: [14, 16], off: [10, 12] } },
 
     /* ここから下は annual_usd を持たない（null）。隠しているのではなく、
        最初から金額が入っていない。 */
     { airline: 'ana', pos: 'fo', fleet: 'b777', ten: 0,
       annual_usd: null, _p: 1, lock: true,
-      paylock: ['fixed', 'variable', 'perdiem'],
+      paylock: ['base', 'variable', 'perdiem'],
       work: { bh: [60, 70], dd: [12, 14], off: [10, 12] } },
 
     { airline: 'cathay-pacific', pos: 'cap', fleet: 'a350', ten: 2,
       annual_usd: null, _p: 1, lock: true,
-      paylock: ['fixed', 'variable', 'command', 'housing'],
+      paylock: ['base', 'variable', 'command', 'housing'],
       work: { bh: [70, 80], dd: [14, 16], off: [8, 10] } },
 
     { airline: 'singapore-airlines', pos: 'fo', fleet: 'a350', ten: 1,
       annual_usd: null, _p: 1, lock: true,
-      paylock: ['fixed', 'variable', 'perdiem', 'housing'],
+      paylock: ['base', 'variable', 'perdiem', 'housing'],
       work: { bh: [60, 70], dd: [12, 14], off: [10, 12] } }
   ];
 

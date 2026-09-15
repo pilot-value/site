@@ -281,7 +281,7 @@ console.log('\n════ ⑦ 絵の実体は1か所だけ ════');
   ok(!/stroke-dasharray/.test(jsC), '★deep-pay.js が stroke-dasharray を自前で持たない');
   ok(!/Math\.PI/.test(jsC), '★deep-pay.js が 2πr を自前で持たない');
   /* ★compSegs は使わない。あちらは pv_pay_rows() の5バケツ {m,b,d,h,o} と
-     COMP の色に固定されていて**年額前提**。こちらは8区分・月額・賞与抜き。 */
+     COMP の色に固定されていて**年額前提**。こちらは9区分・月額・賞与抜き。 */
   ok(!/compSegs/.test(jsC), '★PVViz.compSegs を使っていない（5バケツ・年額前提）');
   for (const [name, raw] of [['ja', JA], ['en', EN]]) {
     const html = nohtmlcomment(raw);
@@ -479,7 +479,7 @@ const FULL = {
        **全員まったく同じ値の区分**をわざと作って、中央値を個人の値に潰している。 */
   head: { annual_usd: 110000, per_block_usd: 93, detailed_n: 12, verified_n: 4, fixed_pct: 62 },
   comp: { total_kind: 'monthly_cash', n: 12,
-    segs: [{ k: 'fixed', pct: 52, med_usd: 4800 }, { k: 'variable', pct: 24, med_usd: 2200 },
+    segs: [{ k: 'base', pct: 52, med_usd: 4800 }, { k: 'variable', pct: 24, med_usd: 2200 },
            { k: 'command', pct: 8, med_usd: 730 }, { k: 'perdiem', pct: 7, med_usd: 640 },
            { k: 'housing', pct: 5, med_usd: 460 }, { k: 'other', pct: 4, med_usd: 370 }],
     bonus: { pct_of_annual: 5, n: 9 } },
@@ -541,7 +541,7 @@ const NOLIST = Object.assign(clone(FULL), { __nopicks: true });
    （0% とも「100 − 固定給」とも書かない）を見るための見本。 */
 const NOVAR = Object.assign(clone(FULL), {
   comp: { total_kind: 'monthly_cash', n: 12,
-    segs: [{ k: 'fixed', pct: 52, med_usd: 4800 }, { k: 'command', pct: 8, med_usd: 730 },
+    segs: [{ k: 'base', pct: 52, med_usd: 4800 }, { k: 'command', pct: 8, med_usd: 730 },
            { k: 'perdiem', pct: 7, med_usd: 640 }, { k: 'housing', pct: 5, med_usd: 460 }],
     bonus: { pct_of_annual: 5, n: 9 } }
 });

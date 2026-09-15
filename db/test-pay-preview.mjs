@@ -8,7 +8,7 @@
      確認画面（5/5）は「出したらこう見えます」を**出す前に**見せる。
      その行はまだサーバのどこにも無いので、サーバに聞くことができない。
      だから pay-wizard.js は pv_sig2 / pv_band_grid / pv_band と
-     8区分の切り分け（shelf）を**写している**。写しは必ず腐る。
+     9区分の切り分け（shelf）を**写している**。写しは必ず腐る。
      腐ったことに気づくための唯一の仕掛けがこのファイル。
 
    ★見ているのは3つ。
@@ -230,7 +230,7 @@ const FIX = [
     p: { gross_monthly: 10000, seniority_years: 12, block_hours: 80, duty_days: 15 },
     note: '帯は付かない（why=nodetail）。勤務の帯と在籍の段だけ出る' },
 
-  { name: '内訳を全部書いた人（8区分＋賞与）',
+  { name: '内訳を全部書いた人（9区分＋賞与）',
     p: { gross_monthly: 20000, seniority_years: 3, position: 'fo',
          base_pay: 9000, guarantee_pay: 1000, command_pay: 800,
          instructor_pay: 300, examiner_pay: 200, union_pay: 100,
@@ -257,7 +257,7 @@ const FIX = [
 
   { name: '区分が1つだけ（基本給＝総支給）',
     p: { gross_monthly: 15000, base_pay: 15000 },
-    note: '余りが 0 なので落ち、fixed 1本だけになる' },
+    note: '余りが 0 なので落ち、base 1本だけになる' },
 
   { name: '変動給を「行」だけで書いた人',
     p: { gross_monthly: 10000, base_pay: 5000, guarantee_pay: 1000,
@@ -389,8 +389,8 @@ for (const m of made) {
      JSON.stringify(Object.keys(nd.sql)));
 
   const one1 = pick('区分が1つだけ（基本給＝総支給）');
-  ok(one1.js.pay && one1.js.pay.length === 1 && one1.js.pay[0].k === 'fixed',
-     '　基本給＝総支給の人は fixed 1本（余りは 0 で落ちる）',
+  ok(one1.js.pay && one1.js.pay.length === 1 && one1.js.pay[0].k === 'base',
+     '　基本給＝総支給の人は base 1本（余りは 0 で落ちる）',
      JSON.stringify(one1.js.pay));
 
   const rowsOnly = pick('変動給を「行」だけで書いた人');
@@ -410,9 +410,9 @@ for (const m of made) {
   ok(JPY > 0 && JPY < 1, '　JPY の to_usd は fx_rates から読んでいる（写していない）', String(JPY));
 
   const edge = pick('帯の下端ちょうど（60000 = 12×5000）');
-  ok(same(edge.js.pay.find(x => x.k === 'fixed').r, [60000, 65000]),
+  ok(same(edge.js.pay.find(x => x.k === 'base').r, [60000, 65000]),
      '★下端ちょうどは上の帯（60000 は 55000〜60000 ではない）',
-     JSON.stringify(edge.js.pay.find(x => x.k === 'fixed')));
+     JSON.stringify(edge.js.pay.find(x => x.k === 'base')));
 
   const b2 = pick('賞与が 2×刻み ちょうど（畳まない）');
   const b1 = pick('賞与が 2×刻み 未満（畳む）');
@@ -421,10 +421,10 @@ for (const m of made) {
      '★賞与の帯 ── ちょうどは畳まない／未満は畳む',
      JSON.stringify([b2.js.pay.find(x => x.k === 'bonus'), b1.js.pay.find(x => x.k === 'bonus')]));
 
-  const all = pick('内訳を全部書いた人（8区分＋賞与）');
+  const all = pick('内訳を全部書いた人（9区分＋賞与）');
   ok(JSON.stringify(all.js.pay.map(x => x.k))
-     === JSON.stringify(['fixed', 'variable', 'command', 'role', 'perdiem',
-                         'housing', 'other', 'rest', 'bonus']),
+     === JSON.stringify(['base', 'guarantee', 'variable', 'command', 'role',
+                         'perdiem', 'housing', 'other', 'rest', 'bonus']),
      '★区分の並びは金額順ではなく固定順（順位を漏らさない）',
      JSON.stringify(all.js.pay.map(x => x.k)));
   ok(same(all.js.work, { bh: [80, 90], dd: [16, 18], off: [8, 10] }),
@@ -440,7 +440,7 @@ for (const m of made) {
     [uid(NOGIVE), 'nogive@example.com']);
   await db.query(`select set_config('pv.uid', $1, false)`, [uid(NOGIVE)]);
   const L = (await one(`select pv_pay_rows() r`)).r;
-  const m = made.find(x => x.name === '内訳を全部書いた人（8区分＋賞与）');
+  const m = made.find(x => x.name === '内訳を全部書いた人（9区分＋賞与）');
   const locked = L.rows.find(x => x.airline === m.airline);
   const js = W.row(m.payload, { annualOrig: m.annualOrig, fx: m.fx });
   ok(L.give.full === false && locked && !('pay' in locked),
@@ -452,7 +452,7 @@ for (const m of made) {
 }
 
 
-// ── C) 帯の9色が2つの画面で同じか（CSS を字で読む）────────────
+// ── C) 帯の10色が2つの画面で同じか（CSS を字で読む）───────────
 {
   console.log('\nC) 帯の色 ── 確認画面（.wz-seg-dot.is-*）と REAL PAY（.ap-dw-c-*）');
 
@@ -477,7 +477,7 @@ for (const m of made) {
 
   const esc = (t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   /* ⚠️ CSS のコメントを先に落とす。落とさないと直前の注記が丸ごと選択子に化けて、
-     「.ap-dw-c-fixed」の後ろに注記がぶら下がった嘘の食い違いが出る
+     「.ap-dw-c-base」の後ろに注記がぶら下がった嘘の食い違いが出る
      （assert-pay-report-sync.mjs が同じ罠を踏んで、同じ対処をしている）。 */
   const grab = (file, cls) => {
     const css = read(file).replace(/\/\*[\s\S]*?\*\//g, () => '');
@@ -510,7 +510,7 @@ for (const m of made) {
 
   const diff = KEYS.filter((k) => W_.color[k] !== A_.color[k]);
   ok(diff.length === 0,
-     '★9色が1つ残らず同じ値（同じ項目が2画面で違う色にならない）',
+     '★10色が1つ残らず同じ値（同じ項目が2画面で違う色にならない）',
      diff.map((k) => `\n     ${k}: 確認画面 ${W_.color[k]} / REAL PAY ${A_.color[k]}`).join(''));
 
   ok(W_.forked.length === 0 && A_.forked.length === 0,

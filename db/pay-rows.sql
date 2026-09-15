@@ -89,8 +89,9 @@
 --                                機長は3段（1〜10年／10〜20年／20年〜）。
 --                                年そのものは1つも返さない。訓練生と、
 --                                在籍を書いていない人は段を作らない（空欄になる）。
---                     ・内訳   … 8区分（基本給・保証給／変動給／職位手当／役割手当／
---                                パーディアム／住宅手当／その他の現金／未分類）と賞与。
+--                     ・内訳   … 9区分（基本給／保証手当・職務手当／変動給／職位手当／
+--                                役割手当／パーディアム／住宅手当／その他の現金／
+--                                未分類）と賞与。
 --                                **1区分につき返すのは帯の下端と上端の2つの数だけ。**
 --                                0 の区分は行ごと消える。割合（％）は返さない。
 --                     ・勤務   … 乗務時間・乗務日数・休日の3つ。同じく帯の2つの数だけ。
@@ -238,7 +239,7 @@
 --   2026-09-03 に戻したが、**戻したのは内訳であって、あのときの形ではない。**
 --     ・図は戻していない（円グラフも棒も無い）。**帯の文字だけ。**
 --     ・割合（％）は戻していない。返すのは金額の帯だけで、pv_pct5 は呼ばない。
---     ・区分は DEEP PAY と同じ8区分をそのまま使う。**新しい分類を発明しない。**
+--     ・区分は DEEP PAY と同じ9区分をそのまま使う。**新しい分類を発明しない。**
 --       発明すると、同じ人について2つの画面が違う内訳を出す。
 --   ＝ 役割の線は今も引いてある。**REAL PAY はその1人・DEEP PAY は集団。**
 --
@@ -508,13 +509,13 @@ comment on function public.pv_pending_usd(jsonb) is
 -- ════════════════════════════════════════════════════════════════
 -- 1-b3. pv_pending_detail — 預かりの payload から「帯の材料」を出す（2026-09-03）
 --
--- 本棚（pay_reports）は8区分の材料を**列で持っている**。預かりは payload の中。
+-- 本棚（pay_reports）は9区分の材料を**列で持っている**。預かりは payload の中。
 -- 形をそろえて1つの jsonb で返し、pv_pay_rows 側は本棚と同じ式で帯にする。
 --
 -- ★pv_pending_usd（1-b）は今までどおり金額の欄しか読まない。**あちらは触らない。**
 --   年収は今も pv_pending_usd が出す。ここが出すのは内訳と勤務だけ。
 --
--- ★★ 8区分の式は db/deep-pay.sql の sane（a_fixed〜a_other）と同じもの。★★
+-- ★★ 9区分の式は db/deep-pay.sql の sane（a_base〜a_other）と同じもの。★★
 --    片方だけ直すと、DEEP PAY のドーナツと REAL PAY の帯が
 --    同じ人について違う内訳を出す（どちらも普通に動いたまま）。
 --
@@ -538,7 +539,7 @@ as $$
                       + case when public.pv_union_outside_gross(x.items)
                              then coalesce(x.upay, 0) else 0 end
                       /* ★不就労減額も足し戻す（2026-09-12）。印字の総支給は
-                         減額後・下の8区分は減額前。deep-pay.sql の cash_m と同じ1行。 */
+                         減額後・下の9区分は減額前。deep-pay.sql の cash_m と同じ1行。 */
                       + public.pv_absence_total(x.items)
                    else coalesce(x.base, 0) + coalesce(x.gpay, 0)
                       + coalesce(x.hourly, 0)
@@ -551,21 +552,25 @@ as $$
                       + coalesce(x.epay, 0)  + coalesce(x.upay, 0)
                       + coalesce(x.mpay, 0)  + coalesce(x.npay, 0)
               end,
-    -- ① 固定・保証給
-    'fixed',  coalesce(x.base, 0) + coalesce(x.gpay, 0),
-    -- ② 変動給。書いていない人は「時給 × 実績と保証時間の大きい方」
+    /* ①基本給 ②保証手当・職務手当
+       ★2026-09-15、1つだった 'fixed' を2つに割った（オーナー指示）。
+         足した数は1円も変わらない（cash_m も rest の引き算も両方を足す）。
+         変わるのは「どの色の欠片として出るか」だけ。 */
+    'base',      coalesce(x.base, 0),
+    'guarantee', coalesce(x.gpay, 0),
+    -- ③ 変動給。書いていない人は「時給 × 実績と保証時間の大きい方」
     'var',    coalesce(x.fvp, coalesce(x.hourly, 0)
                               * greatest(coalesce(x.bh, 0), coalesce(x.guar, 0))),
-    -- ③ 職位手当
+    -- ④ 職位手当
     'cmd',    coalesce(x.cmd, 0),
-    -- ④ 役割手当（教官・審査・組合・管理・兼務）
+    -- ⑤ 役割手当（教官・審査・組合・管理・兼務）
     'role',   coalesce(x.ipay, 0) + coalesce(x.epay, 0) + coalesce(x.upay, 0)
               + coalesce(x.mpay, 0) + coalesce(x.npay, 0),
-    -- ⑤ パーディアム
+    -- ⑥ パーディアム
     'pd',     coalesce(x.perdiem, 0),
-    -- ⑥ 住宅手当。現物支給の社宅は現金ではないので数えない
+    -- ⑦ 住宅手当。現物支給の社宅は現金ではないので数えない
     'house',  case when x.htype = 'allowance' then coalesce(x.hamt, 0) else 0 end,
-    /* ⑦ その他の現金手当
+    /* ⑧ その他の現金手当
        ★★ この引き算が命綱。★★ 給与フォームが変動の合計を
        flight_variable_pay **と** other_allowance の**両方**に写すので、
        素直に足すと変動給を二重に数える。
@@ -622,7 +627,7 @@ $$;
 revoke all on function public.pv_pending_detail(jsonb) from public, anon, authenticated;
 
 comment on function public.pv_pending_detail(jsonb) is
-  '預かり payload の内訳（8区分）と勤務。帯にするための材料で、金額そのものは外へ出ない。'
+  '預かり payload の内訳（9区分）と勤務。帯にするための材料で、金額そのものは外へ出ない。'
   '誰にも grant しない＝pv_pay_rows の中からだけ使う。';
 
 
@@ -1699,16 +1704,19 @@ begin
                    + coalesce(r.examiner_pay, 0) + coalesce(r.union_pay, 0)
                    + coalesce(r.management_pay, 0) + coalesce(r.nonline_pay, 0)
            end                  as cash_m,
-           -- ① 固定・保証給
-           coalesce(r.base_pay, 0) + coalesce(r.guarantee_pay, 0)    as a_fixed,
-           -- ② 変動給。書いていない人は「時給 × 実績と保証時間の大きい方」
+           /* ①基本給 ②保証手当・職務手当
+              ★2026-09-15、1つだった a_fixed を2つに割った（オーナー指示）。
+                足した数は1円も変わらない。変わるのは色の分かれ方だけ。 */
+           coalesce(r.base_pay, 0)                                   as a_base,
+           coalesce(r.guarantee_pay, 0)                              as a_gtee,
+           -- ③ 変動給。書いていない人は「時給 × 実績と保証時間の大きい方」
            coalesce(r.flight_variable_pay,
                     coalesce(r.hourly_rate, 0)
                     * greatest(coalesce(r.block_hours, 0),
                                coalesce(r.guaranteed_hours, 0)))     as a_var,
-           -- ③ 職位手当
+           -- ④ 職位手当
            coalesce(r.command_pay, 0)                                as a_cmd,
-           -- ④ 役割手当（教官・審査・組合・管理・兼務）
+           -- ⑤ 役割手当（教官・審査・組合・管理・兼務）
            coalesce(r.instructor_pay, 0) + coalesce(r.examiner_pay, 0)
            + coalesce(r.union_pay, 0) + coalesce(r.management_pay, 0)
            + coalesce(r.nonline_pay, 0)                              as a_role,
@@ -1766,7 +1774,8 @@ begin
            nullif(q.payload->>'seniority_years', '')::smallint,
            (d.j->>'fx')::numeric,
            (d.j->>'cash_m')::numeric,
-           (d.j->>'fixed')::numeric,
+           (d.j->>'base')::numeric,
+           (d.j->>'guarantee')::numeric,
            (d.j->>'var')::numeric,
            (d.j->>'cmd')::numeric,
            (d.j->>'role')::numeric,
@@ -1827,7 +1836,7 @@ begin
            null::text, null::smallint, null::numeric, null::numeric,
            null::numeric, null::numeric, null::numeric, null::numeric,
            null::numeric, null::numeric, null::numeric, null::numeric,
-           null::numeric, null::smallint, null::smallint, false
+           null::numeric, null::numeric, null::smallint, null::smallint, false
       from public.reviews_v2 v
       join public.pv_review_person l on l.review_id = v.id
       join public.fx_rates jpy on jpy.code = 'JPY'
@@ -1890,7 +1899,8 @@ begin
          pv_band を通した帯だけ。この CTE の値を行に混ぜないこと。 */
     select distinct on (s.pkey, s.airline, s.pos)
            s.pkey, s.airline, s.pos, s.fleet, s.sen, s.fx, s.cash_m, s.det,
-           s.a_fixed, s.a_var, s.a_cmd, s.a_role, s.a_pd, s.a_house, s.a_other,
+           s.a_base, s.a_gtee, s.a_var, s.a_cmd, s.a_role,
+           s.a_pd, s.a_house, s.a_other,
            s.bonus_y, s.bh, s.dd, s.dof
       from sane s
       join person p
@@ -1931,23 +1941,24 @@ begin
       join grid gr
         on gr.pkey = k.pkey and gr.airline = k.airline and gr.pos = k.pos
       cross join lateral (values
-        (1, 'fixed',    k.a_fixed * 12 * k.fx),
-        (2, 'variable', k.a_var   * 12 * k.fx),
-        (3, 'command',  k.a_cmd   * 12 * k.fx),
-        (4, 'role',     k.a_role  * 12 * k.fx),
-        (5, 'perdiem',  k.a_pd    * 12 * k.fx),
-        (6, 'housing',  k.a_house * 12 * k.fx),
-        (7, 'other',    k.a_other * 12 * k.fx),
-        (8, 'rest',     greatest(k.cash_m - (k.a_fixed + k.a_var + k.a_cmd
-                                             + k.a_role + k.a_pd + k.a_house
-                                             + k.a_other), 0) * 12 * k.fx),
+        (1, 'base',      k.a_base  * 12 * k.fx),
+        (2, 'guarantee', k.a_gtee  * 12 * k.fx),
+        (3, 'variable',  k.a_var   * 12 * k.fx),
+        (4, 'command',   k.a_cmd   * 12 * k.fx),
+        (5, 'role',      k.a_role  * 12 * k.fx),
+        (6, 'perdiem',   k.a_pd    * 12 * k.fx),
+        (7, 'housing',   k.a_house * 12 * k.fx),
+        (8, 'other',     k.a_other * 12 * k.fx),
+        (9, 'rest',      greatest(k.cash_m - (k.a_base + k.a_gtee + k.a_var
+                                              + k.a_cmd + k.a_role + k.a_pd
+                                              + k.a_house + k.a_other), 0) * 12 * k.fx),
         -- ★賞与は**年額**なので12倍しない。月々の帯にも混ぜない。
-        (9, 'bonus',    k.bonus_y * k.fx)
+        (10, 'bonus',    k.bonus_y * k.fx)
       ) as x(ord, seg, amt)
      where k.det                 -- 総支給しか書いていない人には帯を作らない
        and k.fx is not null
        and k.cash_m is not null and k.cash_m > 0
-       and (k.a_fixed + k.a_var + k.a_cmd + k.a_role
+       and (k.a_base + k.a_gtee + k.a_var + k.a_cmd + k.a_role
             + k.a_pd + k.a_house + k.a_other) <= k.cash_m * 1.02
        and gr.g is not null
        and x.amt > 0
@@ -2362,7 +2373,7 @@ from (
               今も1つも呼んでいない ── あれは「割合」を出す関数で、
               こちらが要るのは「金額の帯」。混ぜると2画面が食い違う。
             ・列名そのものをキーにしていない（'base_pay' などが返り値に出ない）。
-              出ているのは 'fixed' 'variable' … という区分名だけ。 */
+              出ているのは 'base' 'guarantee' 'variable' … という区分名だけ。 */
          case when f_rows is null then false
               else pg_get_functiondef(f_rows) not like '%pv_pct5(%'
                and pg_get_functiondef(f_rows) not like '%pv_pay_comp(%'

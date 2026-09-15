@@ -384,16 +384,16 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
   const colBlock = (dp.match(/var\s+COL\s*=\s*\{([\s\S]*?)\n\s*\};/) || [])[1] || '';
   const COL = {};
   for (const m of colBlock.matchAll(/(\w+)\s*:\s*SEGCOL\.(\w+)/g)) COL[m[1]] = m[2];
-  ok(Object.keys(COL).length === 8, '★deep-pay.js の COL を読めた（8区分）', String(Object.keys(COL).length));
+  ok(Object.keys(COL).length === 9, '★deep-pay.js の COL を読めた（9区分）', String(Object.keys(COL).length));
 
   /* 3) 面が持つ区分は T.seg の鍵。★名前の表が白名簿を兼ねている（segCls）。 */
   const segKeys = Object.keys(
     Object.fromEntries([...((j.match(/seg:\s*\{([\s\S]*?)\}/) || [])[1] || '')
       .matchAll(/(\w+)\s*:/g)].map((m) => [m[1], 1])));
-  ok(segKeys.length === 9,
-     '★面の区分はちょうど9つ（8つは DEEP PAY と共通・賞与だけこの画面）', segKeys.join(','));
+  ok(segKeys.length === 10,
+     '★面の区分はちょうど10（9つは DEEP PAY と共通・賞与だけこの画面）', segKeys.join(','));
 
-  /* 4) 9つとも、CSS の色が SEG から出る色と一致する */
+  /* 4) 10 とも、CSS の色が SEG から出る色と一致する */
   for (const k of segKeys) {
     const want = SEGC[k === 'bonus' ? 'bonus' : COL[k]];
     const got = (c.match(new RegExp('\\.ap-dw-c-' + k + '\\s*\\{background:(#[0-9a-f]{6})\\}', 'i')) || [])[1];
@@ -1260,8 +1260,8 @@ const row = (airline, pos, usd, vf, age, extra) => Object.assign(
      18万ドルなら 5,000・25万ドルなら 10,000。下の R_GRID がその写し。
    ★わざと**4通りの欠け方**を混ぜてある ── 全部そろい / 内訳だけ / 勤務だけ / 年収だけ。
      いちばん下（口コミ由来）が「年収だけ」で、押しても空にならないことを見る。 */
-const bnd = (fixed, variable, other, bonus) => [
-  { k: 'fixed', r: fixed }, { k: 'variable', r: variable },
+const bnd = (base, variable, other, bonus) => [
+  { k: 'base', r: base }, { k: 'variable', r: variable },
   { k: 'other', r: other }, { k: 'bonus', r: bonus }];
 const WORK = { bh: [60, 70], dd: [14, 16], off: [12, 14] };
 
@@ -3275,12 +3275,12 @@ for (const lang of ['ja', 'en']) {
                  その人の金額ではなく位置だけで決まることを見るため
      3行目 …… そもそも内訳が無い（§15 の C。門を出してはいけない）
      4行目 …… 区分が1つだけ（名前も来ない）。今までどおりの灰色の骨組み */
-  const LOCK_KEYS = ['fixed', 'variable', 'other', 'bonus'];
+  const LOCK_KEYS = ['base', 'variable', 'other', 'bonus'];
   const LOCK_ROWS = [
     row('ana', 'cap', 180000, true, 0, Object.assign({}, POISON, {
       fleet: 'b787', ten: 1, paylock: LOCK_KEYS, work: WORK })),
     row('jal', 'cap', 170000, false, 3, { fleet: 'b777', ten: 0,
-      paylock: ['fixed', 'command', 'housing', 'rest'] }),
+      paylock: ['base', 'command', 'housing', 'rest'] }),
     row('jal', 'fo', 110000, false, 4, { fleet: 'a320', ten: 0, work: WORK }),
     row('ana', 'fo', 120000, false, 2, { fleet: 'a320', ten: 0, paylock: true })
   ];
@@ -4226,7 +4226,7 @@ for (const lang of ['ja', 'en']) {
     const M_LOCK = { ok: true, state: 'open', mine: MINE, stats: ST,
       rows: [row('ana', 'cap', 180000, true, 0,
                  { fleet: 'b787', ten: 1, work: WORK,
-                   paylock: ['fixed', 'variable', 'other', 'bonus'] }),
+                   paylock: ['base', 'variable', 'other', 'bonus'] }),
              row('jal', 'fo', 110000, false, 4, { fleet: 'a320', ten: 0, work: WORK })],
       give: { basic: true, detailed: false, full: false, payslip: false } };
     const { page, errs } = await open('ja', M_LOCK);

@@ -46,7 +46,7 @@
 
 ### 確認画面の「公開イメージ」は、SQL を JS へ**写している**
 出す前の行はサーバのどこにも無いので、写す以外に道が無い。写したのは
-`pv_sig2` / `pv_band_grid` / `pv_band` と、8区分に分ける切り分け。
+`pv_sig2` / `pv_band_grid` / `pv_band` と、9区分に分ける切り分け。
 **腐ったことに気づく仕掛けは [db/test-pay-preview.mjs](../db/test-pay-preview.mjs) 1本だけ。**
 `db/pay-rows.sql` か `db/deep-pay.sql` の式を触ったら、ここも直す。
 
@@ -981,9 +981,12 @@ Office 勤務時間・配属期間・配属理由は**聞かない**（オーナ
   フォームの中に3つ目を書き起こすと、**同じ人について REAL PAY の帯とこのバーが違う内訳を出す**
   （どちらも普通に動いたまま）。**必ず `compBar()` を呼ぶ。**
 - 灰色の `rest` ＝ まだどの項目にも入れていない分。**内訳を入れるほど灰色が色に食われる。**
-- ⚠️ **10個目の区分を作らない・新しい色の規則を書かない。** 区分は9つで固定され、
-  `db/test-pay-preview.mjs` の C) が `.wz-seg-dot.is-*` で**色を書いた規則をちょうど9個**数えている。
-  `.sticky-cta .wz-seg-dot.is-fixed{...}` のような上書きも**落ちる**。CSS に足すのは寸法だけ。
+- ⚠️ **11個目の区分を作らない・新しい色の規則を書かない。** 区分は10で固定され、
+  `db/test-pay-preview.mjs` の C) が `.wz-seg-dot.is-*` で**色を書いた規則をちょうど10個**数えている。
+  `.sticky-cta .wz-seg-dot.is-base{...}` のような上書きも**落ちる**。CSS に足すのは寸法だけ。
+  ★2026-09-15、オーナー指示で `fixed` を `base`（基本給）と `guarantee`（保証手当・職務手当）に
+  割った＝9 → 10。色は発明していない（`pay-viz.js` の `SEG` が前から持っていた
+  #34d399 と #a3e635 ＝ マイページのドーナツと同じ2色）。
 - ⚠️ **バーの中に押す物（`<button>` / `<a>`）を置かない**（送信の入口は 5/5 の1つだけ）。
 - ⚠️ `<div id="sticky-submit" class="sticky-cta" hidden>` と `class="sticky-cta-sum pv-no-cur"` の
   2行は `db/test-form-contract.mjs` が**文字列そのまま**で見ている。1文字も変えない。

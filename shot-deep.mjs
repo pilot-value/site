@@ -99,7 +99,7 @@ await page.evaluateOnNewDocument((scene, theme) => {
     comp: {
       total_kind: 'monthly_cash', n: 12,
       segs: [
-        { k: 'fixed',    pct: 52, med_usd: 4800 },
+        { k: 'base',     pct: 52, med_usd: 4800 },
         { k: 'variable', pct: 24, med_usd: 2200 },
         { k: 'command',  pct: 8,  med_usd: 730 },
         { k: 'perdiem',  pct: 7,  med_usd: 640 },
@@ -135,7 +135,7 @@ await page.evaluateOnNewDocument((scene, theme) => {
     comp: {
       total_kind: 'monthly_cash', n: 5,
       segs: [
-        { k: 'fixed',    pct: 58, med_usd: 2900 },
+        { k: 'base',     pct: 58, med_usd: 2900 },
         { k: 'variable', pct: 26, med_usd: 1300 },
         { k: 'perdiem',  pct: 7,  med_usd: 350 },
         { k: 'rest',     pct: 9,  med_usd: null }

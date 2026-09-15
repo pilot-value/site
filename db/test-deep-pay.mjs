@@ -401,11 +401,16 @@ console.log('\n▼ 5. 給与構成（割合・合計ちょうど100）');
   ok(d.comp.total_kind === 'monthly_cash', '構成の分母は「その月の現金」');
   const k = segs.map(s => s.k);
   ok(new Set(k).size === k.length, '同じ区分が二度出てこない');
-  ok(k.every(x => ['fixed','variable','command','role','perdiem','housing','other','rest'].includes(x)),
-     '区分の名前は決めた8つだけ', JSON.stringify(k));
-  // 固定9000 / 17000 ≒ 53%
-  const f = segs.find(s => s.k === 'fixed');
-  ok(f && f.pct >= 50 && f.pct <= 56, '★固定・保証給は約53%（9000 / 17000）', JSON.stringify(f));
+  ok(k.every(x => ['base','guarantee','variable','command','role',
+                   'perdiem','housing','other','rest'].includes(x)),
+     '区分の名前は決めた9つだけ', JSON.stringify(k));
+  /* 基本給9000 / 17000 ≒ 53%
+     ★2026-09-15、'fixed' を 'base'（基本給）と 'guarantee'（保証手当）に割った。
+       この見本は guarantee_pay を持たないので、額はそのまま base に出る。 */
+  const f = segs.find(s => s.k === 'base');
+  ok(f && f.pct >= 50 && f.pct <= 56, '★基本給は約53%（9000 / 17000）', JSON.stringify(f));
+  ok(!segs.find(s => s.k === 'guarantee'),
+     '　保証手当を書いていない見本には guarantee の区分が出ない（0 を印字しない）');
   const v = segs.find(s => s.k === 'variable');
   ok(v && v.pct >= 21 && v.pct <= 26, '★変動給は約24%（4000 / 17000）', JSON.stringify(v));
   ok(d.head.fixed_pct !== null && d.head.fixed_pct > 0 && d.head.fixed_pct < 100,
@@ -413,7 +418,7 @@ console.log('\n▼ 5. 給与構成（割合・合計ちょうど100）');
   const cmd = segs.find(s => s.k === 'command'), hou = segs.find(s => s.k === 'housing');
   const rol = segs.find(s => s.k === 'role');
   ok(d.head.fixed_pct === f.pct + (cmd ? cmd.pct : 0) + (rol ? rol.pct : 0),
-     '★固定・保証給比率＝固定＋職位＋役割（配列と食い違わない）',
+     '★固定・保証給比率＝基本給＋保証手当＋職位＋役割（配列と食い違わない）',
      `${d.head.fixed_pct} vs ${f.pct}+${cmd ? cmd.pct : 0}+${rol ? rol.pct : 0}`);
   /* ★住宅手当は固定側に入らない（2026-09-01・オーナー確定）。
      住宅手当は働きに対する報酬ではなく住居の補填で、現物の社宅を出す会社では
@@ -426,9 +431,9 @@ console.log('\n▼ 5. 給与構成（割合・合計ちょうど100）');
 
   // ── 月額（中央値）── 画面の3列目。割合の「おまけ」。
   ok(segs.every(s => 'med_usd' in s), 'どの区分にも med_usd のキーが在る');
-  ok(Number(f.med_usd) > 0, '★固定・保証給の月額（USD）が出ている', String(f.med_usd));
+  ok(Number(f.med_usd) > 0, '★基本給の月額（USD）が出ている', String(f.med_usd));
   ok(Number(v.med_usd) > 0 && Number(v.med_usd) < Number(f.med_usd),
-     '変動給の月額は固定給より小さい', `${v.med_usd} vs ${f.med_usd}`);
+     '変動給の月額は基本給より小さい', `${v.med_usd} vs ${f.med_usd}`);
   ok(segs.every(s => s.med_usd == null
                   || String(Math.round(Number(s.med_usd))).replace(/0+$/, '').length <= 2),
      '★月額も有効数字2桁', JSON.stringify(segs.map(s => s.med_usd)));
@@ -483,7 +488,7 @@ console.log('\n▼ 6. 二重計上（変動給とその他手当）');
   const d = await deep();
   ok(d.cohort.level === 'airline_pos_fleet' && d.cohort.n === 3,
      '二重計上の検査用に3人そろった', JSON.stringify(d.cohort));
-  const f = d.comp.segs.find(s => s.k === 'fixed');
+  const f = d.comp.segs.find(s => s.k === 'base');
   const v = d.comp.segs.find(s => s.k === 'variable');
   const o = d.comp.segs.find(s => s.k === 'other');
   ok(f && f.pct === 67 && v && v.pct === 33,
@@ -504,7 +509,7 @@ console.log('\n▼ 7. 未分類（総支給に届かない分を吸う）');
   const u3 = ++seat; await asUser(u3); await submit(mk(4));
   await openKey(uR); await asUser(uR);
   const d = await deep();
-  const f = d.comp.segs.find(s => s.k === 'fixed');
+  const f = d.comp.segs.find(s => s.k === 'base');
   const rest = d.comp.segs.find(s => s.k === 'rest');
   ok(f && f.pct === 60, '★固定は60%（6000 / 10000）', JSON.stringify(f));
   ok(rest && rest.pct === 40,
@@ -541,15 +546,15 @@ console.log('\n▼ 7-b. ★組合が総支給の外で払われている行（20
      '★組合払いの行が関所で落ちない（落ちると段が下りて別の集団の数字になる）',
      JSON.stringify(d.cohort));
   const seg = (k) => (d.comp?.segs || []).find(s => s.k === k);
-  ok(seg('role') && seg('fixed') && seg('role').pct > seg('fixed').pct,
+  ok(seg('role') && seg('base') && seg('role').pct > seg('base').pct,
      '★役割手当（9,000）が固定給（6,000）より大きい割合で出る',
      JSON.stringify(d.comp?.segs));
   ok((d.comp?.segs || []).reduce((a, s) => a + s.pct, 0) === 100,
      '★割合の合計はちょうど100のまま', JSON.stringify(d.comp?.segs));
   /* ★分母が総支給＋組合であること。19,000 の 6,000 ＝ 32%（10,000 のままなら 60%）。 */
-  ok(seg('fixed') && seg('fixed').pct === 32,
+  ok(seg('base') && seg('base').pct === 32,
      '★分母は総支給＋組合（19,000）。固定は32%（総支給だけなら60%になる）',
-     String(seg('fixed')?.pct));
+     String(seg('base')?.pct));
 }
 
 // ════════════════════════════════════════════════════════════
@@ -582,8 +587,8 @@ console.log('\n▼ 7-b2. ★不就労減額のあった月（2026-09-12）');
      '★割合の合計はちょうど100のまま', JSON.stringify(d.comp?.segs));
   /* ★分母は 5,830 ＋ 180 ＝ 6,010（減額前）。固定 3,600 は 60%。
      足し戻さないと分母 5,830 に内訳 6,010 が乗り、そもそも行ごと落ちる。 */
-  ok(seg('fixed') && seg('fixed').pct === 60,
-     '★分母は総支給＋減額（6,010）。固定は60%', String(seg('fixed')?.pct));
+  ok(seg('base') && seg('base').pct === 60,
+     '★分母は総支給＋減額（6,010）。基本給は60%', String(seg('base')?.pct));
   /* ★年収は印字の総支給のまま（5,830 × 12 ＝ 69,960）。分母へ足し戻したぶんを
      年収に持ち込まない ── 持ち込むと、休んだ月がある人の年収だけ高く出る。 */
   const ann = await one(
@@ -628,8 +633,8 @@ console.log('\n▼ 7-c. ★内訳が一部未回答の月（partial・2026-09-12
   ok(d.cohort && d.cohort.n === 3,
      '一部未回答の月があっても3人そろう（人を落としていない）', JSON.stringify(d.cohort));
   const seg = (k) => (d.comp?.segs || []).find(s => s.k === k);
-  ok(seg('fixed') && seg('fixed').pct === 60,
-     '固定は60%（6,000 / 10,000）', String(seg('fixed')?.pct));
+  ok(seg('base') && seg('base').pct === 60,
+     '基本給は60%（6,000 / 10,000）', String(seg('base')?.pct));
   ok(seg('variable') && seg('variable').pct === 40,
      '★変動は40%のまま（入力済み分だけの月を割合に混ぜていない。混ぜると25%へ下がる）',
      JSON.stringify(d.comp?.segs));
@@ -1379,7 +1384,7 @@ ok(EX2.length >= 7, '▼21 用の会社が足りている', String(EX2.length));
   await asUser(V);
   const d = await deep({ airline: C, position: 'cap', fleet: 'b777' });
   ok(d.cohort.n === 3, '3人そろっている', String(d.cohort.n));
-  const seg = (d.comp.segs || []).find(s => s.k === 'fixed');
+  const seg = (d.comp.segs || []).find(s => s.k === 'base');
   ok(seg && Number(seg.pct) === 100,
      '★★内訳を書いた月だけで割合を出す（3か月のうち1か月しか書いていなくても固定給100%）',
      JSON.stringify(d.comp.segs));

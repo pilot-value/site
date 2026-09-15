@@ -149,7 +149,7 @@ console.log('\n════ ③ 数え方・出し方 ════');
   const segk = /var SEGK = \[([^\]]*)\]/.exec(jsC);
   ok(!!segk, 'SEGK（棒の区分）が読める');
   const keys = segk ? segk[1].split(',').map((s) => s.trim().replace(/'/g, '')).filter(Boolean) : [];
-  ok(keys.length === 8, '★棒の区分は8つ（db/deep-pay.sql の cseg と同じ）', keys.join(' '));
+  ok(keys.length === 9, '★棒の区分は9つ（db/deep-pay.sql の cseg と同じ）', keys.join(' '));
   ok(keys.indexOf('bonus') < 0, '★賞与は棒の区分に入っていない（年額なので月々の現金に混ぜない）');
   ok(/mBonus/.test(jsC), '賞与は表の行としては残っている');
 
@@ -400,7 +400,7 @@ const FAKE = function (payload) {
    qatar-…     … 年収と Pay/BH は上・Block と ステイは下 → 対が割れてトレードオフは出ない
    sas         … air に無い＝薄い側 */
 const SEG5 = (fx, va, pd, ho, ot) => [
-  { k: 'fixed', pct: fx }, { k: 'variable', pct: va }, { k: 'perdiem', pct: pd },
+  { k: 'base', pct: fx }, { k: 'variable', pct: va }, { k: 'perdiem', pct: pd },
   { k: 'housing', pct: ho }, { k: 'other', pct: ot }
 ];
 const ANA = { n: 21, annual: 110000, pbh: 93, fixed: 62.2, block: 74.0, stay: 9,
@@ -410,7 +410,7 @@ const AIR = {
   jal: { n: 17, annual: 128000, pbh: 105, fixed: 55, block: 79.5, stay: 12,
          bonus: 8, segs: SEG5(55, 24, 9, 7, 5) },
   lufthansa: { n: 12, annual: 96000, pbh: 84, fixed: 71, block: 66.0, stay: 6,
-               bonus: null, segs: [{ k: 'fixed', pct: 71 }, { k: 'variable', pct: 14 },
+               bonus: null, segs: [{ k: 'base', pct: 71 }, { k: 'variable', pct: 14 },
                                    { k: 'housing', pct: 10 }, { k: 'other', pct: 5 }] },
   emirates: { n: 14, annual: 110000, pbh: 93, fixed: 61.8, block: 74.04, stay: 9,
               bonus: 5, segs: SEG5(62, 18, 7, 8, 5) },

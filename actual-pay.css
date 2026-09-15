@@ -583,7 +583,10 @@
       ズレは assert-pay-rows.mjs が3枚を突き合わせて落とす
       （pay-viz.js の SEG → deep-pay.js の COL → この9行）。
    ⚠️ 上の .ap-dw-sti / .ap-dw-dot の橙は消さない。知らない鍵が来たときの受け皿。 */
-.ap-dw-c-fixed   {background:#34d399}   /* 基本給・保証給   ← SEG.base       */
+/* ★2026-09-15、fixed を base と guarantee に割った（オーナー指示）。色はどちらも
+   pay-viz.js の SEG が前から持っていたもの＝マイページのドーナツと同じ2色。 */
+.ap-dw-c-base    {background:#34d399}   /* 基本給           ← SEG.base       */
+.ap-dw-c-guarantee{background:#a3e635}  /* 保証手当・職務手当 ← SEG.guarantee  */
 .ap-dw-c-variable{background:#f5c842}   /* 変動給           ← SEG.flight     */
 .ap-dw-c-command {background:#5fb0ff}   /* 職位手当         ← SEG.command    */
 .ap-dw-c-role    {background:#e8604c}   /* 役割手当         ← SEG.instructor */

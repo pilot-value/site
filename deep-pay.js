@@ -227,12 +227,16 @@
     }
   }[L];
 
-  /* 給与構成の名前。★区分は8つで固定（db/deep-pay.sql の cseg と同じ順・同じ鍵）。 */
+  /* 給与構成の名前。★区分は9つで固定（db/deep-pay.sql の cseg と同じ順・同じ鍵）。
+     ★2026-09-15、fixed を base と guarantee に割った（オーナー指示）。フォームでは
+     基本給と保証手当が別々の欄なのに、図では同じ緑の1本に見えていたため。 */
   var CN = {
-    ja: { fixed: '基本給・保証給', variable: '変動給', command: '職位手当',
+    ja: { base: '基本給', guarantee: '保証手当・職務手当',
+          variable: '変動給', command: '職位手当',
           role: '役割手当', perdiem: 'パーディアム', housing: '住宅手当',
           other: 'その他の現金', rest: 'その他・未分類' },
-    en: { fixed: 'Base & guaranteed', variable: 'Variable (flying)', command: 'Rank pay',
+    en: { base: 'Base pay', guarantee: 'Guarantee / duty pay',
+          variable: 'Variable (flying)', command: 'Rank pay',
           role: 'Role pay', perdiem: 'Per diem', housing: 'Housing allowance',
           other: 'Other cash', rest: 'Other / unclassified' }
   }[L];
@@ -272,7 +276,8 @@
   var SEGCOL = {};
   (V.SEG || []).forEach(function (s) { SEGCOL[s.k] = s.c; });
   var COL = {
-    fixed:    SEGCOL.base,
+    base:     SEGCOL.base,
+    guarantee: SEGCOL.guarantee,
     variable: SEGCOL.flight,
     command:  SEGCOL.command,
     role:     SEGCOL.instructor,
@@ -636,7 +641,7 @@
     var a = money(h.annual_usd), am = moneyMonth(h.annual_usd, bp);
     var fx = num(h.fixed_pct), pb = moneyExact(h.per_block_usd);
     /* ★変動給比率は「100 − 固定・保証給比率」ではない。db/deep-pay.sql の fixed_pct は
-       固定＋職位＋役割で、残りにはパーディアム・住宅・その他・未分類も入っている。
+       基本給＋保証手当＋職位＋役割で、残りにはパーディアム・住宅・その他・未分類も入っている。
        引き算だとそれを全部「変動給」と呼んでしまう。無い区分は行ごと出さない。 */
     var vp = segPct((S.data && S.data.comp && S.data.comp.segs) || [], 'variable');
     var cards = [

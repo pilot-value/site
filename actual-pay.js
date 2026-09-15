@@ -186,7 +186,8 @@
              cap: ['1〜10年', '10〜20年', '20年以上'] },
       /* 区分の名前。★deep-pay.js の CN と同じ語（2画面で違う名前を付けない）。
            bonus だけこの画面の新規（DEEP PAY は賞与を月々の棒に入れない）。 */
-      seg: { fixed: '基本給・保証給', variable: '変動給', command: '職位手当',
+      seg: { base: '基本給', guarantee: '保証手当・職務手当',
+             variable: '変動給', command: '職位手当',
              role: '役割手当', perdiem: 'パーディアム', housing: '住宅手当',
              other: 'その他の現金', rest: 'その他・未分類',
              bonus: '賞与・利益分配' },
@@ -264,7 +265,8 @@
       lockPC: 'Add your pay breakdown',
       ten: { fo: ['1–5 years', '5+ years'],
              cap: ['1–10 years', '10–20 years', '20+ years'] },
-      seg: { fixed: 'Base & guaranteed', variable: 'Variable (flying)', command: 'Rank pay',
+      seg: { base: 'Base pay', guarantee: 'Guarantee / duty pay',
+             variable: 'Variable (flying)', command: 'Rank pay',
              role: 'Role pay', perdiem: 'Per diem', housing: 'Housing allowance',
              other: 'Other cash', rest: 'Other / unclassified',
              bonus: 'Bonus & profit share' },

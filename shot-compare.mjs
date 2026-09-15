@@ -87,7 +87,7 @@ await page.evaluateOnNewDocument((scene, theme) => {
       head: { annual_usd: 110000, per_block_usd: 93, detailed_n: 12, verified_n: 7, fixed_pct: 62 },
       comp: { total_kind: 'monthly_cash', n: 12, bonus: { pct_of_annual: 5, n: 9 },
         segs: [
-          { k: 'fixed',    pct: 52, med_usd: 4800 },
+          { k: 'base',     pct: 52, med_usd: 4800 },
           { k: 'variable', pct: 24, med_usd: 2200 },
           { k: 'command',  pct: 8,  med_usd: 730 },
           { k: 'perdiem',  pct: 7,  med_usd: 640 },
@@ -103,7 +103,7 @@ await page.evaluateOnNewDocument((scene, theme) => {
       head: { annual_usd: 128000, per_block_usd: 105, detailed_n: 8, verified_n: 5, fixed_pct: 55 },
       comp: { total_kind: 'monthly_cash', n: 8, bonus: { pct_of_annual: 8, n: 6 },
         segs: [
-          { k: 'fixed',    pct: 46, med_usd: 4900 },
+          { k: 'base',     pct: 46, med_usd: 4900 },
           { k: 'variable', pct: 31, med_usd: 3300 },
           { k: 'command',  pct: 9,  med_usd: 950 },
           { k: 'perdiem',  pct: 6,  med_usd: 640 },
@@ -119,7 +119,7 @@ await page.evaluateOnNewDocument((scene, theme) => {
       head: { annual_usd: 96000, per_block_usd: 84, detailed_n: 6, verified_n: 3, fixed_pct: 71 },
       comp: { total_kind: 'monthly_cash', n: 6, bonus: null,
         segs: [
-          { k: 'fixed',    pct: 68, med_usd: 5100 },
+          { k: 'base',     pct: 68, med_usd: 5100 },
           { k: 'variable', pct: 19, med_usd: 1400 },
           { k: 'housing',  pct: 8,  med_usd: 600 },
           { k: 'other',    pct: 5,  med_usd: 380 }
@@ -134,7 +134,7 @@ await page.evaluateOnNewDocument((scene, theme) => {
       head: { annual_usd: 112000, per_block_usd: 93, detailed_n: 9, verified_n: 4, fixed_pct: 62 },
       comp: { total_kind: 'monthly_cash', n: 9, bonus: { pct_of_annual: 5, n: 7 },
         segs: [
-          { k: 'fixed',    pct: 49, med_usd: 5200 },
+          { k: 'base',     pct: 49, med_usd: 5200 },
           { k: 'variable', pct: 21, med_usd: 2200 },
           { k: 'perdiem',  pct: 12, med_usd: 1250 },
           { k: 'housing',  pct: 14, med_usd: 1480 },

@@ -8,7 +8,7 @@
      ／サーバの pv_annual_total が正で、ここはその答えを**受け取るだけ**。
      ここで足し算を始めた瞬間、同じ数字の出どころが3つになる。
 
-   ★8区分への切り分け（shelf）だけは例外で、SQL の式を写している
+   ★9区分への切り分け（shelf）だけは例外で、SQL の式を写している
      （写す以外に道が無い ── 出す前の人の行は、まだサーバのどこにも無い）。
      写した先は db/test-pay-preview.mjs が SQL と突き合わせている。
      式を直すときは必ずそちらも一緒に流すこと。
@@ -48,9 +48,13 @@ var T = {
     lblExtras:  '明細から読み取った値（欄が無いもの）',
     /* ★確認画面の出どころの札（2026-09-12）。判定は fieldFrom() が DOM の class だけで行う。 */
     src: { ai: '明細から読み取り', carry: '前回から引き継ぎ' },
-    seg: { fixed: '固定・保証給', variable: '変動給', command: '職位手当', role: '役割手当',
-           perdiem: 'パーディアム', housing: '住宅手当', other: 'その他の現金', rest: 'その他',
-           bonus: '賞与・プロフィットシェア' },
+    /* ★2026-09-15、「固定・保証給」を基本給と保証手当に割った（オーナー指示）。
+       同じ緑で並んでいて、フォームの欄が2つあるのに図では1色だったため。
+       色は pay-viz.js の SEG が最初から持っている base(#34d399)/guarantee(#a3e635)。 */
+    seg: { base: '基本給', guarantee: '保証手当・職務手当',
+           variable: '変動給', command: '職位手当', role: '役割手当',
+           perdiem: 'パーディアム', housing: '住宅手当', other: 'その他の現金',
+           rest: 'その他', bonus: '賞与・プロフィットシェア' },
     empty:     '（未入力）'
   },
   en: {
@@ -74,9 +78,10 @@ var T = {
     lblExtras:  'Read from your payslip (no field on screen)',
     /* ★Provenance chips on the review screen (2026-09-12). fieldFrom() decides from DOM classes alone. */
     src: { ai: 'read from your payslip', carry: 'carried over from last time' },
-    seg: { fixed: 'Fixed / guarantee', variable: 'Variable', command: 'Command', role: 'Role',
-           perdiem: 'Per diem', housing: 'Housing', other: 'Other cash', rest: 'Other',
-           bonus: 'Bonus / profit share' },
+    seg: { base: 'Base pay', guarantee: 'Guarantee / duty pay',
+           variable: 'Variable', command: 'Command', role: 'Role',
+           perdiem: 'Per diem', housing: 'Housing', other: 'Other cash',
+           rest: 'Other', bonus: 'Bonus / profit share' },
     empty:     '(blank)'
   }
 };
@@ -84,7 +89,7 @@ var T = {
 /* ═══ 1. 公開イメージの数値処理 ═════════════════════════════════════
    ★★ ここから下の式は db/pay-rows.sql の写しである。★★
       pv_sig2 / pv_band_grid / pv_band … 3つの純関数
-      shelf の a_fixed 〜 a_other / cash_m / det … 「命綱の引き算」
+      shelf の a_base 〜 a_other / cash_m / det … 「命綱の引き算」
       listed の age / ten / work … 段と帯
    同じ式は既に SQL 側の2か所（db/pay-rows.sql の shelf と db/deep-pay.sql の
    sane）にあり、CLAUDE.md がそのことを警告している。ここは**3つ目**になる。
@@ -158,7 +163,7 @@ function hasItems(items) {
             || items.variable_none === true);
 }
 
-/* shelf の8区分＋賞与＋現金＋「内訳を書いたか」。順番は SQL の ord と同じ。 */
+/* shelf の9区分＋賞与＋現金＋「内訳を書いたか」。順番は SQL の ord と同じ。 */
 function shelf(p) {
   var items = hasItems(p.pay_items) ? p.pay_items : null;
   var hours = Math.max(n0(p.block_hours), n0(p.guaranteed_hours));
@@ -166,7 +171,12 @@ function shelf(p) {
   var house = p.housing_type === 'allowance' ? n0(p.housing_amount) : 0;
   var gross = nOrNull(p.gross_monthly);
   var a = {
-    fixed:    n0(p.base_pay) + n0(p.guarantee_pay),
+    /* ★2026-09-15、fixed を base と guarantee に割った。**足した数は1円も変わらない**
+       （cash_m も rest の引き算も、両方を足したものを引いている）。変わるのは
+       「どの色の欠片として出るか」だけ。⚠️ 割り方は db/pay-rows.sql の shelf と
+       db/deep-pay.sql の sane にも同じ形で入っている。3つとも同時に直すこと。 */
+    base:      n0(p.base_pay),
+    guarantee: n0(p.guarantee_pay),
     variable: fvp != null ? fvp : n0(p.hourly_rate) * hours,
     command:  n0(p.command_pay),
     role:     n0(p.instructor_pay) + n0(p.examiner_pay) + n0(p.union_pay)
@@ -197,7 +207,8 @@ function shelf(p) {
   };
 }
 
-var SEG_ORDER = ['fixed', 'variable', 'command', 'role', 'perdiem', 'housing', 'other'];
+var SEG_ORDER = ['base', 'guarantee', 'variable', 'command', 'role',
+                 'perdiem', 'housing', 'other'];
 
 /* REAL PAY に公開される1行ぶんを、そのまま JS で作る。
    p    … submitPayReport() が組むのと同じ形の payload
@@ -980,7 +991,7 @@ var API = {
     if (box) box.hidden = true;
   },
   render: function () {
-    /* ★payload を先に作る。renderReview() が支給の内訳（8区分）を出すのに要る。
+    /* ★payload を先に作る。renderReview() が支給の内訳（9区分）を出すのに要る。
        renderReview() は段の hidden を開けて閉じるだけで元に戻すので、
        payload() をその前に呼んでも後に呼んでも同じ答えになる。 */
     renderReview(C.payload ? C.payload() : null);
@@ -988,7 +999,7 @@ var API = {
   /* 常設バー（画面の下端）に出す内訳の割合バー（2026-09-15 オーナー指示）。
      ★中身は 5/5「支給の内訳」の帯と**まったく同じ**（reviewComp → barEl）。
        同じ画面に2本並ぶ 5/5 で、2つが違う絵を出さないことを優先した。
-     ★8区分の引き算を呼ぶ側で書き起こさない。あれは「命綱」で、
+     ★9区分の引き算を呼ぶ側で書き起こさない。あれは「命綱」で、
        db/deep-pay.sql と db/pay-rows.sql に写しが2つある（CLAUDE.md の警告）。
        3つ目を書くと、同じ人について REAL PAY の帯とこのバーが違う内訳を出す。
        ここは shelf() を通す1本だけにしてある。

@@ -53,7 +53,7 @@
 --        本文を1行変えるとあの検査が落ちる。
 --     2. db/pay-rows.sql の自己点検が **20個の型を並べた署名文字列**で
 --        to_regprocedure している。引数を1つ増やすと null になって❌になる。
---     3. そもそも5バケツ {m,b,d,h,o} では、この画面が要る8区分を表現できない。
+--     3. そもそも5バケツ {m,b,d,h,o} では、この画面が要る9区分を表現できない。
 --        あちらは**年額・賞与込み**、こちらは**月額・賞与抜き**。分母も分子も別物。
 --
 --   だから pv_pay_comp は**1バイトも触らず、誰からも呼ばれないまま**残す。
@@ -391,7 +391,7 @@ begin
                    + case when public.pv_union_outside_gross(r.pay_items)
                           then coalesce(r.union_pay, 0) else 0 end
                    /* ★不就労減額（欠勤控除など）も足し戻す（2026-09-12）。
-                      印字の総支給は減額を**引いたあと**、下の8区分は引く**前**。
+                      印字の総支給は減額を**引いたあと**、下の9区分は引く**前**。
                       足さないと分母だけ小さく、同じ理由で 1.02 倍の関所に
                       引っかかってこの行がまるごと集計から落ちる。
                       年収（pv_annual_total）には1円も足さない。 */
@@ -412,17 +412,22 @@ begin
                    + coalesce(r.management_pay, 0)
                    + coalesce(r.nonline_pay, 0)
            end                              as cash_m,
-           -- ① 固定・保証給
-           coalesce(r.base_pay, 0) + coalesce(r.guarantee_pay, 0)      as a_fixed,
-           -- ② 変動給。書いていない人は「時給 × 実績と保証時間の大きい方」で見る
+           /* ①基本給 ②保証手当・職務手当
+              ★2026-09-15、1つだった a_fixed を2つに割った（オーナー指示）。
+                フォームでは別々の欄なのに、図では同じ緑の1本に見えていた。
+                足した数は1円も変わらない（cash_m も未分類の引き算も両方を足す）。
+              ★★ db/pay-rows.sql の shelf と pv_pending_detail も同じに直す。★★ */
+           coalesce(r.base_pay, 0)                                     as a_base,
+           coalesce(r.guarantee_pay, 0)                                as a_gtee,
+           -- ③ 変動給。書いていない人は「時給 × 実績と保証時間の大きい方」で見る
            --    （pv_annual_total と同じ建て付け）
            coalesce(r.flight_variable_pay,
                     coalesce(r.hourly_rate, 0)
                     * greatest(coalesce(r.block_hours, 0),
                                coalesce(r.guaranteed_hours, 0)))       as a_var,
-           -- ③ 職位手当
+           -- ④ 職位手当
            coalesce(r.command_pay, 0)                                  as a_cmd,
-           -- ④ 役割手当（教官・審査・組合・管理・兼務）。どれも other_allowance の
+           -- ⑤ 役割手当（教官・審査・組合・管理・兼務）。どれも other_allowance の
            --    外にある別の入れ物なので、まとめてここで数える
            coalesce(r.instructor_pay, 0) + coalesce(r.examiner_pay, 0)
            + coalesce(r.union_pay, 0) + coalesce(r.management_pay, 0)
@@ -518,7 +523,7 @@ begin
   ok as (
     select * from hum
      where cash_m is not null and cash_m > 0
-       and (a_fixed + a_var + a_cmd + a_role + a_pd + a_house + a_other)
+       and (a_base + a_gtee + a_var + a_cmd + a_role + a_pd + a_house + a_other)
            <= cash_m * 1.02
   ),
 
@@ -700,8 +705,10 @@ begin
               ⚠️ having は bool_or(det) のまま。part で母集団から人を落とすと、
                  その人の年収・時間あたりまで DEEP PAY から消える。
                  落とすのは**割合の計算に使う月**だけ。 */
-           (percentile_cont(0.5) within group (order by a_fixed / cash_m)
-              filter (where det and not part))::numeric as s_fixed,
+           (percentile_cont(0.5) within group (order by a_base / cash_m)
+              filter (where det and not part))::numeric as s_base,
+           (percentile_cont(0.5) within group (order by a_gtee / cash_m)
+              filter (where det and not part))::numeric as s_gtee,
            (percentile_cont(0.5) within group (order by a_var   / cash_m)
               filter (where det and not part))::numeric as s_var,
            (percentile_cont(0.5) within group (order by a_cmd   / cash_m)
@@ -715,7 +722,7 @@ begin
            (percentile_cont(0.5) within group (order by a_other / cash_m)
               filter (where det and not part))::numeric as s_other,
            (percentile_cont(0.5) within group (order by
-              greatest(cash_m - (a_fixed + a_var + a_cmd + a_role
+              greatest(cash_m - (a_base + a_gtee + a_var + a_cmd + a_role
                                  + a_pd + a_house + a_other), 0) / cash_m)
               filter (where det and not part))::numeric as s_rest
       from mrow
@@ -751,7 +758,8 @@ begin
   -- 生の中央値と「何人が書いたか」を並べて出しておき、門は次の CTE で掛ける。
   cagg as (
     select count(*)                                                     as n,
-           (percentile_cont(0.5) within group (order by s_fixed))::numeric as f_raw,
+           (percentile_cont(0.5) within group (order by s_base))::numeric  as b_raw,
+           (percentile_cont(0.5) within group (order by s_gtee))::numeric  as g_raw,
            (percentile_cont(0.5) within group (order by s_var))::numeric   as v_raw,
            (percentile_cont(0.5) within group (order by s_cmd))::numeric   as c_raw,
            (percentile_cont(0.5) within group (order by s_role))::numeric  as r_raw,
@@ -759,7 +767,8 @@ begin
            (percentile_cont(0.5) within group (order by s_house))::numeric as h_raw,
            (percentile_cont(0.5) within group (order by s_other))::numeric as o_raw,
            (percentile_cont(0.5) within group (order by s_rest))::numeric  as u_raw,
-           count(*) filter (where s_fixed > 0) as f_n,
+           count(*) filter (where s_base  > 0) as b_n,
+           count(*) filter (where s_gtee  > 0) as g_n,
            count(*) filter (where s_var   > 0) as v_n,
            count(*) filter (where s_cmd   > 0) as c_n,
            count(*) filter (where s_role  > 0) as r_n,
@@ -769,7 +778,8 @@ begin
            /* 金額（月額・USD）。割合と違って通貨をまたげないので ucm で数える。
               ★人数の門は割合とは別に掛ける。ucm を持つ人だけで数え直すと
                 3 を割ることがあり、そのとき「2人の中央値＝その人の実額」になる。 */
-           count(*) filter (where s_fixed > 0 and ucm is not null) as f_an,
+           count(*) filter (where s_base  > 0 and ucm is not null) as b_an,
+           count(*) filter (where s_gtee  > 0 and ucm is not null) as g_an,
            count(*) filter (where s_var   > 0 and ucm is not null) as v_an,
            count(*) filter (where s_cmd   > 0 and ucm is not null) as c_an,
            count(*) filter (where s_role  > 0 and ucm is not null) as r_an,
@@ -777,8 +787,10 @@ begin
            count(*) filter (where s_house > 0 and ucm is not null) as h_an,
            count(*) filter (where s_other > 0 and ucm is not null) as o_an,
            count(*) filter (where s_rest  > 0 and ucm is not null) as u_an,
-           (percentile_cont(0.5) within group (order by s_fixed * ucm)
-              filter (where ucm is not null))::numeric as f_amt,
+           (percentile_cont(0.5) within group (order by s_base  * ucm)
+              filter (where ucm is not null))::numeric as b_amt,
+           (percentile_cont(0.5) within group (order by s_gtee  * ucm)
+              filter (where ucm is not null))::numeric as g_amt,
            (percentile_cont(0.5) within group (order by s_var   * ucm)
               filter (where ucm is not null))::numeric as v_amt,
            (percentile_cont(0.5) within group (order by s_cmd   * ucm)
@@ -804,7 +816,8 @@ begin
   cnorm as (
     select n,
            public.pv_deep_pct(array[
-             case when f_n >= 3 then coalesce(f_raw, 0) else 0 end,
+             case when b_n >= 3 then coalesce(b_raw, 0) else 0 end,
+             case when g_n >= 3 then coalesce(g_raw, 0) else 0 end,
              case when v_n >= 3 then coalesce(v_raw, 0) else 0 end,
              case when c_n >= 3 then coalesce(c_raw, 0) else 0 end,
              case when r_n >= 3 then coalesce(r_raw, 0) else 0 end,
@@ -812,7 +825,8 @@ begin
              case when h_n >= 3 then coalesce(h_raw, 0) else 0 end,
              case when o_n >= 3 then coalesce(o_raw, 0) else 0 end,
              coalesce(u_raw, 0)
-             + case when f_n >= 3 then 0 else coalesce(f_raw, 0) end
+             + case when b_n >= 3 then 0 else coalesce(b_raw, 0) end
+             + case when g_n >= 3 then 0 else coalesce(g_raw, 0) end
              + case when v_n >= 3 then 0 else coalesce(v_raw, 0) end
              + case when c_n >= 3 then 0 else coalesce(c_raw, 0) end
              + case when r_n >= 3 then 0 else coalesce(r_raw, 0) end
@@ -824,7 +838,8 @@ begin
               その区分に金額を書いた人が3人以上いるときだけ。
               ★出ない区分は 0 ではなく null を返す（画面は「—」と出す）。
                 0 と書くと「その手当が無い」と読めてしまう。 */
-           case when f_n >= 3 and f_an >= 3 then public.pv_sig2(f_amt) end as f_usd,
+           case when b_n >= 3 and b_an >= 3 then public.pv_sig2(b_amt) end as b_usd,
+           case when g_n >= 3 and g_an >= 3 then public.pv_sig2(g_amt) end as g_usd,
            case when v_n >= 3 and v_an >= 3 then public.pv_sig2(v_amt) end as v_usd,
            case when c_n >= 3 and c_an >= 3 then public.pv_sig2(c_amt) end as c_usd,
            case when r_n >= 3 and r_an >= 3 then public.pv_sig2(r_amt) end as r_usd,
@@ -835,7 +850,7 @@ begin
               畳んだ区分があるときの u_raw は畳むぶんを含んでいるが u_amt は
               含んでいない＝画面の割合と桁が合わない金額になる。 */
            case when u_an >= 3
-                 and f_n >= 3 and v_n >= 3 and c_n >= 3 and r_n >= 3
+                 and b_n >= 3 and g_n >= 3 and v_n >= 3 and c_n >= 3 and r_n >= 3
                  and p_n >= 3 and h_n >= 3 and o_n >= 3
                 then public.pv_sig2(u_amt) end as u_usd
       from cagg
@@ -846,29 +861,32 @@ begin
                                                 'med_usd', t.a)
                               order by t.p desc, t.i), '[]'::jsonb) as j
       from cnorm,
-           unnest(array['fixed','variable','command','role',
+           unnest(array['base','guarantee','variable','command','role',
                         'perdiem','housing','other','rest'],
                   cnorm.pc,
-                  array[cnorm.f_usd, cnorm.v_usd, cnorm.c_usd, cnorm.r_usd,
-                        cnorm.p_usd, cnorm.h_usd, cnorm.o_usd, cnorm.u_usd],
-                  array[1,2,3,4,5,6,7,8]) as t(k, p, a, i)
+                  array[cnorm.b_usd, cnorm.g_usd, cnorm.v_usd, cnorm.c_usd,
+                        cnorm.r_usd, cnorm.p_usd, cnorm.h_usd, cnorm.o_usd,
+                        cnorm.u_usd],
+                  array[1,2,3,4,5,6,7,8,9]) as t(k, p, a, i)
      where t.p > 0
   ),
-  /* 固定・保証給比率 ── 乗務量に左右されにくい現金だけ（固定・職位・役割）。
+  /* 固定・保証給比率 ── 乗務量に左右されにくい現金だけ（基本給・保証手当・職位・役割）。
      パーディアムと変動給は飛んだぶんだけ動くので変動側。
      未分類は**変動側に数える**（分からないものを固定と言わない）。
-     ★2026-09-01、ここから**住宅手当 pc[6] を外した**（オーナー確定）。
+     ★2026-09-01、ここから**住宅手当を外した**（オーナー確定）。
        住宅手当は働きに対する報酬ではなく住居の補填で、会社が現物の社宅を出す国では
        同じ待遇でも 0 になる。固定側に混ぜると「住宅手当が手厚い会社ほど固定給が高い」
        という読み違いが出て、会社どうしの比較が成り立たなくなる。
        ⚠️ 戻さない。戻すと db/test-deep-pay.mjs の
-          「★固定・保証給比率＝固定＋職位＋役割（住宅は入らない）」が落ちる。
+          「★固定・保証給比率＝基本給＋保証手当＋職位＋役割（住宅は入らない）」が落ちる。
+     ★2026-09-15、区分を9つに割ったので**添字が1つずつ後ろへずれた**
+       （旧 pc[1]+pc[3]+pc[4] ＝ 固定・職位・役割）。中身は同じもの。
      ★画面は「固定・保証給比率」と「変動給比率」の2つを出すが、
        **足して100にはならない**（住宅・パーディアム・その他が残る）。
        だから変動側は 100 − 固定 では出さず、配列の variable をそのまま読んでいる。 */
   cfix as (
     select case when pc is null then null
-                else pc[1] + pc[3] + pc[4] end as pct
+                else pc[1] + pc[2] + pc[4] + pc[5] end as pct
       from cnorm
   ),
   -- 賞与（ドーナツの外・オーナー確定）
