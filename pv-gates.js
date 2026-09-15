@@ -472,6 +472,14 @@
     close: closePanel
   };
 
+  /* ★文言だけを借りに来たときは、左メニューの錠前を描かない（2026-09-15）。
+       pv-give-first.js は giveGetHTML() の3段のためだけにこのファイルを読み込む。
+       そのまま boot() まで走らせると、**頼まれていない 400 枚のナビに錠前が付く**
+       （data-mr-gate は全ページの REAL PAY のリンクに付いている）。
+     ⚠️ <script> で静的に読んでいる18枚はここを通らない。この印を立てるのは
+        pv-give-first.js だけで、あちらは PVGates が既に在れば読み込みもしない。 */
+  if (w.PV_GATES_TEXT_ONLY) return;
+
   if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', boot);
   else boot();
 })(window, document);

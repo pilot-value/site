@@ -30,6 +30,11 @@
 (function () {
   'use strict';
 
+  /* このファイルの置き場所。pv-give-first.js は同じ階層にある。
+     ★currentScript は「今まさに走っている <script>」なので、
+       トップレベルのこの行でしか取れない（あとで読むと null）。 */
+  var SELF = (document.currentScript && document.currentScript.src) || '';
+
   var IDLE_MS  = 7  * 24 * 60 * 60 * 1000;  // 無操作でここまで空いたら切る
   var MAX_MS   = 30 * 24 * 60 * 60 * 1000;  // ログインからここまで経ったら切る
   var TICK_MS  = 60 * 1000;                 // 開きっぱなしのタブを見張る間隔
@@ -264,6 +269,7 @@
     del(K_SALARY);   // 年収の鍵も一緒に。共有端末に機微な解放を残さない
     del(K_LAST);
     del(K_START);
+    del(K_GF);      // 「Give → Get を見せた」の記録もこのログインのもの
 
     /* ★給与の入力も置いていかない（2026-09-11）。ここが今まで抜けていた。
        共有端末で7日／30日の期限が来て切れたあと、次に使った人の画面に
@@ -295,12 +301,16 @@
      ⚠️ ページ側の paint（updateNavAuth）は色と太さも足すので、そこも戻す。
      ⚠️ login.html の位置はページの深さで変わる（/airlines/… は1つ上）。
         /en/ は同じ階層に自分の login.html を持っている。 */
-  function loginHref() {
+  /* ルート直下のページへの相対リンク。深さの数え方はここ1本だけにする
+     （2つ目を書くと、/airlines/… だけ1つ上へ行けない形で静かに割れる）。 */
+  function hrefTo(file) {
     var parts = location.pathname.split('/').filter(function (x) { return x; });
     var depth = parts.length - 1;                 // 最後はファイル名
     if (parts[0] === 'en') depth -= 1;            // /en/ 自体は数えない
-    return new Array(Math.max(depth, 0) + 1).join('../') + 'login.html';
+    return new Array(Math.max(depth, 0) + 1).join('../') + file;
   }
+
+  function loginHref() { return hrefTo('login.html'); }
 
   function repaintAuth() {
     var b = document.getElementById('nav-auth-btn');
@@ -345,6 +355,64 @@
     return true;
   }
 
+  /* ── 登録だけで止まっている人に、Give → Get を1回だけ見せる（2026-09-15）──
+     オーナー指示「会員登録だけの人がログインしたりページに来たら毎回1回はこの画面出して」。
+
+     ★ここに置く理由は1つ ── **このファイルだけが全 420 枚の <head> に入っている**。
+       HTML を420枚触ると本題が差分に埋もれるし、</body> の直前は app-nav.js の
+       場所（patch-side-nav.mjs の決めごと）なので、そこにも足せない。
+     ★ここでやるのは「出すかどうかの判定」と「真のときだけ1本読み込む」ことだけ。
+       絵と文言は pv-give-first.js（そちらが pv-gates.js の3段をそのまま借りる）。
+     ★判定は localStorage を読むだけ。**出さないと決まった人の通信は1本も増えない**
+       （ログインしていない人＝ほとんどの訪問者は、最初の1行で終わる）。
+     ⚠️ 鍵は読むだけ。年収の鍵をここで書かない（assert-unlock.mjs が見張っている）。 */
+  var K_GF    = 'pv_give_seen';      // {t:最後に出した時刻, s:そのときのログインの印}
+  var GF_COOL = 6 * 60 * 60 * 1000;  // 同じログインのまま来た人には、これだけ空けてもう1回
+
+  /* 出さない画面。
+       入力の途中   … pay-report / submit-review / signup / login / auth-callback / contact
+       そもそも対象外 … admin / unsubscribe / 404
+       同じ3段を本文で出している … actual-pay / deep-pay / deep-pay-compare
+     ★最後の3枚を外すのが肝心。あの画面は錠前の説明として**同じ表**を本文に出すので、
+       上に同じ板を重ねると、同じことを2回言って1回ぶん道をふさぐ。 */
+  var GF_SKIP = /(?:^|\/)(pay-report|submit-review|signup|login|auth-callback|contact|admin|unsubscribe|404|actual-pay|deep-pay|deep-pay-compare)\.html$/;
+
+  function gfRead() {
+    try { return JSON.parse(get(K_GF) || '{}') || {}; } catch (e) { return {}; }
+  }
+
+  function giveFirstDue() {
+    if (!isLoggedIn() || !hasToken()) return false;      // 会員ではない／もう死んだログイン
+    if (GF_SKIP.test(location.pathname)) return false;
+    /* ★預かり証を持って戻ってきた人（?claim=…）は覆わない。
+         あれは「匿名で出した給与を自分の物として引き取る」途中で、
+         ここで板を重ねると、引き取れたのかどうかが見えないまま隠れる。
+         行き先は profile.html なので、上の GF_SKIP には引っかからない。 */
+    if (location.search.indexOf('claim=') >= 0) return false;
+    /* もう給与を出した人には出さない。
+       ★この鍵はサーバの access_until の写しなので、別の端末で初めて開いた直後は
+         空のことがある。そこは pv-reunlock.js（login / auth-callback / profile /
+         community が読む）が access_until から書き戻す＝ログインの経路では必ず埋まる。 */
+    var until = parseInt(get(K_SALARY) || '0', 10);
+    if (until && Date.now() < until) return false;
+    var rec = gfRead();
+    if (String(rec.s || '') !== String(sessionStart())) return true;   // ログインし直した
+    return Date.now() - Number(rec.t || 0) > GF_COOL;                  // 日を改めて来た
+  }
+
+  /* 出せた瞬間に pv-give-first.js が呼ぶ。★読み込みに失敗した回を「見た」と
+     数えないために、書くのは向こう側。ここで先に書くと、一度つまずいた人には二度と出ない。 */
+  function markGiveFirstSeen() {
+    set(K_GF, JSON.stringify({ t: Date.now(), s: String(sessionStart()) }));
+  }
+
+  function giveFirstLoad() {
+    if (!SELF || !giveFirstDue()) return;
+    var s = document.createElement('script');
+    try { s.src = new URL('pv-give-first.js', SELF).href; } catch (e) { return; }
+    (document.head || document.documentElement).appendChild(s);
+  }
+
   var lastTouch = 0;
   function touch() {
     if (!isLoggedIn()) return;
@@ -358,6 +426,7 @@
   check();
   booted = true;
   if (isLoggedIn()) { sessionStart(); touch(); }
+  giveFirstLoad();
 
   ['pointerdown', 'keydown', 'scroll', 'touchstart'].forEach(function (ev) {
     document.addEventListener(ev, touch, { passive: true, capture: true });
@@ -376,7 +445,9 @@
 
   window.PVSession = {
     check: check, touch: touch, wipe: wipe, hasToken: hasToken, dropName: dropName,
-    repaintAuth: repaintAuth,
+    repaintAuth: repaintAuth, hrefTo: hrefTo,
+    /* Give → Get の板（pv-give-first.js）が使う2本。判定はこちら側に1つだけ置く。 */
+    giveFirstDue: giveFirstDue, markGiveFirstSeen: markGiveFirstSeen,
     readStoredSession: readStoredSession,
     isLoggedIn: isLoggedIn, sessionStart: sessionStart, lastActive: lastActive,
     IDLE_MS: IDLE_MS, MAX_MS: MAX_MS

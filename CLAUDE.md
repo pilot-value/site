@@ -149,6 +149,7 @@ baland_ass/                            ブランド資産（※ brand_assets の
 | [assert-links.mjs](assert-links.mjs) の `APPFLOW` | ログインの先にあるページなら足す |
 | [seo-normalize.mjs](seo-normalize.mjs) の `COPY` | 日英の `t`/`d`。**noindex でも `<title>` は出る。無いと次に流した人がタイトルを空にする** |
 | [assert-founding.mjs](assert-founding.mjs) の除外リスト | FOUNDING の板は `profile.html` の最上部だけ |
+| [pv-session.js](pv-session.js) の `GF_SKIP` | **入力の途中の画面なら足す。** 足さないと、登録だけの会員がそのページを開いた瞬間に Give → Get の板が入力を覆う |
 
 ⚠️ **`defer-third-party.mjs` は流さない。** あれは PV-3P の塊を必ず `</head>` の直前へ置き直すので、
 先に入っている `pv-session.js` との前後が入れ替わり、**298枚が本題と無関係な差分になる**
@@ -165,6 +166,32 @@ baland_ass/                            ブランド資産（※ brand_assets の
 - マイページ系（`.mr-side` を持つ画面）なら [patch-side-nav.mjs](patch-side-nav.mjs) の `CURRENT` に足し、
   空の `<nav class="mr-side" aria-label="…"></nav>` を置いてから `node patch-side-nav.mjs` を流す
 - `_config.yml` は変更不要（`.html` は元から配信される）
+## 登録だけで止まっている会員に、Give → Get を1回だけ出す（全ページ）
+
+★2026-09-15 オーナー指示「会員登録だけの人がログインしたりページに来たら毎回1回はこの画面出して」。
+登録完了画面と**同じ板**を、給与を1件も出していない会員に出す。
+
+- **出すかどうかを決めるのは [pv-session.js](pv-session.js) の `giveFirstDue()` の1か所だけ。**
+  420枚すべての `<head>` に居るのはこのファイルだけなので、ここに置いてある。
+  判定は**ブラウザの保存領域を読むだけ**で、通信は1本もしない。
+- 出すと決まったときだけ [pv-give-first.js](pv-give-first.js) を動的に読む。
+  **出さない人（＝ログインしていない大多数）の通信は1本も増えない。**
+- 出さない相手 ── 未ログイン／死んだログイン／給与の鍵が生きている人／さっき見た人
+  （同じログインのまま6時間以内）。出さない画面は `GF_SKIP` と、**`?claim=` を持って
+  戻ってきた人**（匿名で出した給与を引き取る途中を覆わない）。
+- 3段の表は [pv-gates.js](pv-gates.js) の `giveGetHTML(true)` を**呼ぶ**。文言を書き写さない。
+  ⚠️ このとき `PV_GATES_TEXT_ONLY` を立ててから読む。立て忘れると `boot()` まで走り、
+  **頼まれていない約400枚のナビに錠前が付く**（`data-mr-gate` は全ページの REAL PAY のリンクにある）。
+
+⚠️ **`my-value.css` を「全ページにある」と思わない。** `<link>` で読んでいるのは **18枚だけ**
+（`pv-tokens.css` と `app-nav.css` は412枚）。2026-09-15、`.mr-gate` と `.pv-give` の見た目が
+あると思って板を出したら、残り約400枚では**下地も罫線も無い素の文字列**が画面を覆った。
+3段と板の見た目だけを [pv-give.css](pv-give.css) へ出し（8KB）、18枚には `<link>` を並べ、
+それ以外では `pv-give-first.js` が**読み終わるのを待ってから**開く。
+**マイページ専用の規則を `pv-give.css` に書き足さない。**
+
+見るもの: `node assert-give-first.mjs`（日英で82項目）。
+
 ## デプロイ前チェック
 
 **`node check.mjs` 1本で全部走る。** 中で並列に回すので、手で1本ずつ流すより速い。
@@ -207,6 +234,7 @@ baland_ass/                            ブランド資産（※ brand_assets の
 | `assert-referral.mjs` | 招待 ── **2人以下の区分では数字が1文字も出ない**・常設入口が消えない |
 | `assert-admin.mjs` | 管理者ページが**ログインした管理者にしか見えない**（合言葉を持たない）|
 | `assert-unlock.mjs` | **口コミの鍵と給与の鍵が混ざらない**（口コミ1件で年収が開かない）|
+| `assert-give-first.mjs` | 登録だけの会員に出す Give → Get の板 ── **出す相手を間違えない**（未ログイン・給与を出した人・さっき見た人には出ない）・入力の途中の画面と同じ3段を本文で出す画面では出ない・**ナビに錠前を増やさない**・閉じたらスクロールが戻る・見た目が当たっている（`pv-give.css` を読めている）|
 | `assert-pay-rows.mjs` | REAL PAY の7つの約束（Give → Get・準識別子は粗い段だけ・有効数字2桁・1行＝1人…）＋**行を押すと出る面**（帯の両端が刻みの倍数・％も生の額も出ない・押してもサーバへ投げない）|
 | `assert-pay-report-sync.mjs` | 給与レポートの**日英が片方だけ直されていない**か（骨格だけ照合・文言は見ない）＋共有 `pay-wizard.js` が日英とも読まれているか |
 | `db/test-pay-preview.mjs` | 確認画面の「公開イメージ」が **SQL と同じ答え**を返すか（`pv_sig2` / `pv_band_grid` / `pv_band` と9区分の切り分けを JS へ写しているため。写しが腐ったことに気づく仕掛けはこれ1本だけ）|
