@@ -3306,6 +3306,29 @@ function settleOver() {
 }
 document.addEventListener('change', settleOver, true);
 
+/* ── While the warning is up, that step cannot go forward (2026-09-15, owner) ──
+   "The error is showing and you can still get to the next screen." The warning has
+   been there since 2026-08-26, but Next stayed pressable — so people reached the
+   review screen without fixing either number.
+   ★Do not restate the expression here. Re-run settleOver() and then look for the
+     one slot that is showing (the judgement stays in showOver / overSlot alone).
+   ★Judge again at the moment of the click: settleOver() only runs on change, so
+     right after values are assigned (payslip parse, draft restore) it is still hidden.
+   ★All six slots live inside a <details>. Scrolling to a collapsed one shows
+     nothing, and it looks like "pressing it does nothing" (same as stopAtEl).
+   ★Do not add the red #err box. The same warning in two places hides which number
+     to fix — exactly one visible slot is the wording, unchanged since 2026-08-27. */
+function overBlocking() {
+  settleOver();
+  const p = OVER_IDS.map((id) => $(id)).find((e) => e && !e.hidden);
+  if (!p) return false;
+  const d = p.closest('details');
+  if (d && !d.open) d.open = true;
+  track('pay_form_blocked');
+  p.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  return true;
+}
+
 function annualTotal() {
   /* ★Which side is the truth is decided by whether the breakdown is open, not by
      whether the gross field holds a number: while it is open that field mirrors
@@ -4795,6 +4818,12 @@ if (WZ) {
     missing: missingAll,
     markMissing: markMissing,
     clearErr: clearErr,
+    /* ★A step showing "the breakdown adds up to more than the gross" cannot go
+       forward (2026-09-15). What to look at is decided here, not in pay-wizard.js.
+       ★Takes every box id the step carries and looks for 's3'. In the two-screen
+         layout "3. Pay" rides in screen 1's `also`, so checking only the first id
+         would walk straight past it. */
+    blocked: (ids) => ids.indexOf('s3') >= 0 && overBlocking(),
     payload: () => buildPayload(),
     annualOrig: annualTotal,
     nameOf: optLabel,

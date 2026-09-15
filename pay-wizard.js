@@ -499,6 +499,14 @@ function go(i, opt) {
 function forward(i) {
   var miss = C.missing().filter(function (f) { return $(C.steps[i].id).contains(f); });
   if (miss.length) { C.markMissing(miss); return; }
+  /* ★空ではないが「直さないと進めない」注意が出ている段からは進めない（2026-09-15）。
+     何を見るかは**呼ぶ側が決める** ── 注意の受け皿は pay-report.html にしかなく、
+     pay-wizard.js は generic のまま保つ（同じ理由で reviewExtras もそうしてある）。
+     渡すのはこの段が抱えている箱の id ぜんぶ。2画面のときは「3. 報酬」が
+     1画面目の also に居るので、C.steps[i].id だけでは足りない。
+     true を返したら止まる。画面のどこへ寄せるか・何を開くかも呼ぶ側の仕事
+     （出ている注意そのものが文言なので、ここで赤箱を足さない）。 */
+  if (C.blocked && C.blocked(stepEls(i).map(function (e) { return e.id; }), i)) return;
   C.clearErr();
   go(i + 1);
 }

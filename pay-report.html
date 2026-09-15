@@ -3211,6 +3211,28 @@ function settleOver() {
 }
 document.addEventListener('change', settleOver, true);
 
+/* ── 注意が出ているあいだは、その段から次へ進めない（2026-09-15 オーナー指示）──
+   「エラーが出てるのに次の画面にいけてしまう」。注意は 2026-08-26 から出ていたが、
+   「次へ」は普通に押せていた＝本人が直さないまま確認画面まで行けた。
+   ★式は1文字も書き起こさない。settleOver() を呼び直してから、いま出ている1枚を
+     探すだけ（判定は showOver / overSlot の1か所のまま）。
+   ★押した瞬間に判定し直す。settleOver() は change でしか走らないので、
+     代入で値が入った直後（明細の読み取り・下書きの復元）は hidden のままのことがある。
+   ★注意は6つとも <details> の中に居る。畳んだまま寄せても画面には何も出ず、
+     本人には「押しても何も起きない」に見える（stopAtEl と同じ理由で開ける）。
+   ★赤箱（#err）は足さない。同じ注意が2か所に並ぶと、どこを直せばいいのか分からない
+     ── 出ている1枚だけが文言、というのは 2026-08-27 から変えていない約束。 */
+function overBlocking() {
+  settleOver();
+  const p = OVER_IDS.map((id) => $(id)).find((e) => e && !e.hidden);
+  if (!p) return false;
+  const d = p.closest('details');
+  if (d && !d.open) d.open = true;
+  track('pay_form_blocked');
+  p.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  return true;
+}
+
 function annualTotal() {
   /* ★2026-08-26 から、年換算は**いつでも本人が入れた総支給**から出す。
      内訳は総支給の中身を説明するものであって、足し直すものではない
@@ -4641,6 +4663,11 @@ if (WZ) {
     missing: missingAll,
     markMissing: markMissing,
     clearErr: clearErr,
+    /* ★「内訳の合計が総支給を超えています」が出ている段からは進めない（2026-09-15）。
+       見るものはこちらが決める（pay-wizard.js は generic のまま）。
+       ★段の id ぜんぶを受けて 's3' を探す。2画面のときは「3. 報酬」が
+         1画面目の also に居るので、先頭の id だけを見ると素通りする。 */
+    blocked: (ids) => ids.indexOf('s3') >= 0 && overBlocking(),
     payload: () => buildPayload(),
     annualOrig: annualTotal,
     nameOf: optLabel,

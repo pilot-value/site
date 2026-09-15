@@ -3525,8 +3525,15 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   await goNext();
   ok((await page.evaluate(() => window.PVPayWizard.current())) === 's2',
      '★今月の実績が空のままでは確認へ進めない');
-  /* ★ステイ日数は 2026-09-15 から必須（オーナー指示）。ここでも入れないと進めない。 */
-  bad.push(...await setF({ 'f-block': SAMPLE['f-block'], 'f-gross': GROSS_M, 'f-netpay': NET_M,
+  /* ★ステイ日数は 2026-09-15 から必須（オーナー指示）。ここでも入れないと進めない。
+     ★総支給に GROSS_M（54,250）を使わない（2026-09-15）。あれは「内訳を開かない人」の
+       1本で、SAMPLE の内訳とは**排他**だと定義に書いてある。この節は逆に
+       前回の内訳（基本給 48,500 ＋ 住宅手当 17,500 ＋ 職位手当 3,200）が
+       引き継がれた人なので、そこへ 54,250 を入れると内訳の合計 75,400 が
+       総支給を 21,150 超える ── 2026-09-15 から、超えているあいだは
+       「次へ」で止まる（★21）。つまり**材料のほうが矛盾していた**。
+       引き継がれた額と釣り合う今月の総支給を入れる。 */
+  bad.push(...await setF({ 'f-block': SAMPLE['f-block'], 'f-gross': '92000', 'f-netpay': '70000',
                            'f-perdiem': '6200', 'f-stay': SAMPLE['f-stay'] }));
   await new Promise((r) => setTimeout(r, 150));
   await goNext();
@@ -5885,6 +5892,122 @@ console.log('\n★20 不就労減額（読み取り → 画面 → 送信 → �
     await page.close();
   }
 }
+
+/* ── ★21 「超えています」が出ている段からは次へ進めない（2026-09-15・オーナー指摘）──
+   「エラーが出てるのに次の画面にいけてしまう」。注意そのものは 2026-08-26 から
+   出ていたが、「次へ」は普通に押せていた ＝ 本人が直さないまま確認画面まで行けた。
+   ★ここで見るのは4つ。どれも「画面は普通に動いたまま」の形をしている。
+     ① 超えているあいだ「次へ」で段が変わらない
+     ② その注意が画面に**見えている**（hidden を外すだけでは足りない。6つとも
+        <details> の中に居るので、畳んだままだと寄せても何も出ず、本人には
+        「押しても何も起きない」に見える）
+     ③ 畳んである内訳は、止まったときに開く
+     ④ 直したら普通に進める（進めなくなる形に倒していない）
+   ★押すのは **画面のボタン**（PVPayWizard.go() を呼ばない）。go() は素通りする
+     道で、本人が押す道とは別。ここを go() で書くと、門が消えても緑のまま通る。 */
+console.log('\n★21 内訳が総支給を超えているあいだは次へ進めない');
+for (const [T, url] of [['ja', 'http://localhost:3000/pay-report.html'],
+                        ['en', 'http://localhost:3000/en/pay-report.html']]) {
+  const page = await newPage();
+  await page.setViewport({ width: 1440, height: 1200 });
+  page.on('pageerror', (e) => { fail++; console.log(`  ❌ [${T}] ページ例外: ${e.message}`); });
+  await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+  await page.evaluate(() => localStorage.clear());
+  await page.reload({ waitUntil: 'networkidle2', timeout: 30000 });
+  await page.click('#entry-manual');
+  await new Promise((r) => setTimeout(r, 300));
+
+  /* 値は画面の <option> から選ぶ＝日英で同じコードが動く。 */
+  const put = (o) => page.evaluate((vals) => {
+    const $ = (id) => document.getElementById(id);
+    for (const [id, v] of Object.entries(vals)) {
+      const el = $(id);
+      if (!el) continue;
+      el.value = v;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  }, o);
+  const cur = () => page.evaluate(() => window.PVPayWizard.current());
+  /* いま出ている段の「次へ」を押す。 */
+  const goNext = async () => {
+    await page.evaluate(() => {
+      const box = ['s1', 's2', 's3', 's4', 's5'].map((i) => document.getElementById(i))
+        .find((e) => e && !e.hidden);
+      const b = box && box.querySelector('.wz-next');
+      if (b) b.click();
+    });
+    await new Promise((r) => setTimeout(r, 350));
+  };
+  /* 注意は6つのうち1つだけ出る。**見えているか**まで見る（offsetHeight）。 */
+  const warnShown = () => page.evaluate(() => {
+    const ids = ['pd-over', 'pd-over-instr', 'pd-over-exam', 'pd-over-union',
+                 'pd-over-mgmt', 'pd-over-nonline'];
+    return ids.filter((id) => {
+      const e = document.getElementById(id);
+      return e && !e.hidden && e.offsetHeight > 0;
+    });
+  });
+
+  /* ★埋め方は上の「内訳への導線」の節と同じ（select は画面の <option> から、
+     それ以外は '1'）。日英で同じコードが動き、GATE_ROLE も素直に通る。 */
+  await page.evaluate(() => {
+    const $ = (id) => document.getElementById(id);
+    const fire = (el) => {
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+    for (const id of ['f-airline', 'f-position', 'f-fleet', 'f-jobrole', 'f-age']) {
+      const el = $(id);
+      if (!el) continue;
+      if (el.tagName === 'SELECT') {
+        const pick = [...el.options].find((o) => o.value && o.value !== 'other');
+        if (pick) el.value = pick.value;
+      } else el.value = '1';
+      fire(el);
+    }
+  });
+  await new Promise((r) => setTimeout(r, 300));
+  await goNext();                                   // 1/5 → 2/5
+  await put({ 'f-block': '70', 'f-stay': '8' });
+  await goNext();                                   // 2/5 → 3/5
+  ok((await cur()) === 's3', `${T} ★21 3/5「報酬」まで来た`, await cur());
+
+  /* 総支給 500,000 に対して基本給 900,000 ＝ 明らかな矛盾。 */
+  await put({ 'f-currency': 'JPY', 'f-gross': '500000', 'f-netpay': '400000',
+              'f-perdiem': '0', 'f-housing': 'none' });
+  await page.evaluate(() => { const d = document.getElementById('pay-detail'); if (d) d.open = true; });
+  await put({ 'f-base': '900000' });
+  await new Promise((r) => setTimeout(r, 200));
+  ok((await warnShown()).length === 1,
+     `${T} ★21 超えたら注意が1枚だけ出る`, JSON.stringify(await warnShown()));
+
+  /* ③ 畳んだ状態で押す＝止めたうえで、直す場所まで開いて見せる。 */
+  await page.evaluate(() => { const d = document.getElementById('pay-detail'); if (d) d.open = false; });
+  await goNext();
+  ok((await cur()) === 's3',
+     `${T} ★21 ★超えているあいだは「次へ」を押しても段が変わらない`, await cur());
+  ok(await page.$eval('#pay-detail', (e) => e.open),
+     `${T} ★21 ★畳んである内訳は、止めたときに開く（直す場所が画面に在る）`);
+  ok((await warnShown()).length === 1,
+     `${T} ★21 ★止めた理由が画面に見えている（hidden を外すだけで終わらせない）`,
+     JSON.stringify(await warnShown()));
+  ok(!(await page.evaluate(() => {
+    const e = document.getElementById('err');
+    return !!e && e.textContent.trim() !== '';
+  })), `${T} ★21 赤箱は足さない（同じ注意が2か所に並ばない）`);
+
+  /* ④ 直したら普通に進む。 */
+  await put({ 'f-base': '100000' });
+  await new Promise((r) => setTimeout(r, 200));
+  ok((await warnShown()).length === 0, `${T} ★21 直したら注意は消える`,
+     JSON.stringify(await warnShown()));
+  await goNext();
+  ok((await cur()) === 's4',
+     `${T} ★21 ★直せば今までどおり次の段へ進める`, await cur());
+  await page.close();
+}
+
 
 await browser.close();
 await db.close();
