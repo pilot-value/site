@@ -537,6 +537,16 @@ export function systemPrompt(lang: string): string {
     '- If you are not sure which mark is the decimal point, return the amount as a STRING exactly',
     '  as printed ("8.450,00", "1 234,56") and let the server decide. Never move a decimal point',
     '  yourself and never drop the last three digits.',
+    /* ★紙ぜんぶを見て「小数点はどっち」を1つだけ答えさせる（2026-09-15）。
+       サーバ側も金額の文字列から同じことを推理するが、そちらは小数が1つも
+       印字されていない明細では何も言えない。読めるのはモデルだけ（国・言語・
+       様式が見えている）。⚠️ これは**最後の決め手**で、紙の中に確定的な証拠が
+       あればそちらが勝つ（detectDecMark の順番）。 */
+    '- "decimal_mark": looking at the WHOLE slip, which character separates the whole part from',
+    '  the fraction — "." or ",". Decide it once for the slip from amounts that clearly show a',
+    '  fraction ("8.450,00" -> ","; "25,543.40" -> "."). Most of Europe, Latin America and',
+    '  Indonesia print ",". Return null if NO amount on the slip shows a fraction (most Japanese',
+    '  yen slips) — do not guess from the country alone.',
     'currency: ISO 4217 (JPY, USD, AED, QAR, SAR, KWD, CNY, KRW, EUR, ...). null if not printed.',
     '- A currency SYMBOL never decides this on its own. "¥" is printed on BOTH Japanese and',
     '  Chinese slips, and Chinese slips also print "￥" or "元" for CNY. If the labels are in',
@@ -631,14 +641,91 @@ export function isAmbiguousMoney(v: unknown): boolean {
   return /^[1-9]\d{0,2}$/.test(m.t.slice(0, i)) && /^\d{3}$/.test(m.t.slice(i + 1));
 }
 
-/* 金額を読む。dec は通貨の小数桁（読めなければ 2 を渡す）。 */
-export function readMoneyNum(v: unknown, dec: number): number | null {
+/* ────────────────────────────────────────────────────────────────
+   明細1枚ぶんの「小数点はどっちの記号か」を決める（2026-09-15）。
+
+   なぜ行ごとではなく紙ごとに決めるのか。行ごとに読むと、**同じ1枚の明細の中で
+   流儀が混ざる** ── 8.450,00 は「カンマが小数点」、1,234 は「カンマがけた区切り」と
+   読まれ、どちらも自信ありのまま画面に出る。明細は1枚ぜんぶが同じ流儀で印字されて
+   いるので、紙ごとに1回決めれば全行がそろう。
+
+   手打ちの欄（pay-report.html の readMoney）には**この手が使えない**。材料が
+   1つの数字しかなく、しかも打っている途中だから。だから画面は「カンマは常に
+   けた区切り」でよく、明細だけがこれを持つ。★意図的に違う。揃えないこと。
+
+   決め手は上から順に。上のものほど「推測ではなく確定」。
+   ① 小数の無い通貨（JPY/KRW/…）── どちらの記号も小数点ではありえない
+   ② 区切りが2種類ある行が1つでもある ── 後に出たほうが小数点（確定）
+   ③ 区切りの後ろが1〜2桁の行がある ── けた区切りは**必ず3桁**を従えるので、
+      2桁で終わる区切りは小数点しかありえない（4250,00 の ,00）
+   ④ 紙を見ているモデルの答え（decimal_mark）
+   何も言わなければ undefined ＝ 今までどおり行ごとに読む。 */
+export type DecMark = 'comma' | 'dot' | 'none';
+
+export function detectDecMark(
+  values: unknown[], dec: number | null, hint: unknown,
+): DecMark | undefined {
+  if (dec === 0) return 'none';                       // ① 小数が無い通貨
+
+  const ts: string[] = [];
+  for (const v of values) {
+    if (typeof v === 'number') continue;              // 数で返ってきた行は証拠にならない
+    const m = normMoney(v);
+    if (m) ts.push(m.t);
+  }
+
+  for (const t of ts) {                               // ② 区切りが2種類＝確定
+    if (t.indexOf('.') >= 0 && t.indexOf(',') >= 0) {
+      return t.lastIndexOf('.') > t.lastIndexOf(',') ? 'dot' : 'comma';
+    }
+  }
+
+  let comma = false, dot = false;                     // ③ 後ろが1〜2桁の区切り
+  for (const t of ts) {
+    const tail = (sep: string) => {
+      const i = t.lastIndexOf(sep);
+      return i < 0 ? -1 : t.length - i - 1;
+    };
+    const tc = tail(','), td = tail('.');
+    if (tc >= 1 && tc <= 2) comma = true;
+    if (td >= 1 && td <= 2) dot = true;
+  }
+  /* 両方出たら紙の中で矛盾している＝決めない（黙って片方に倒さない）。 */
+  if (comma !== dot) return comma ? 'comma' : 'dot';
+
+  if (hint === ',') return 'comma';                   // ④ モデルの答え
+  if (hint === '.') return 'dot';
+  return undefined;
+}
+
+/* 金額を読む。dec は通貨の小数桁（読めなければ 2 を渡す）。
+   mark は明細1枚ぶんの流儀（detectDecMark）。**省略したら今までどおり**＝
+   画面（pay-report.html の readMoney）と1文字も違わない答えを返す。
+   db/test-payslip-parse.mjs の突き合わせが2引数のまま生きているのはこのため。 */
+export function readMoneyNum(v: unknown, dec: number, mark?: DecMark): number | null {
   if (typeof v === 'number') return Number.isFinite(v) ? v : null;
   const m = normMoney(v);
   if (!m) return null;
   const t = m.t;
   const sign = (n: number | null) => (n === null ? null : m.neg ? -n : n);
   const dot = t.indexOf('.') >= 0, com = t.indexOf(',') >= 0;
+
+  /* ★紙1枚ぶんの流儀が決まっているときは、行ごとに迷わない（2026-09-15）。 */
+  if (mark) {
+    if (mark === 'none') return sign(asPlain(t));      // 小数が無い＝区切りは全部けた区切り
+    /* ★3桁の小数はその通貨に存在しない＝けた区切り（今までと同じ消去法）。
+       紙の小数点がピリオドだと分かっていても、8.450 を 8.45 と読むと1000分の1になり、
+       REAL PAY の常識の幅から外れて**黙って落ちる**。うるさく失敗する側を選ぶ。 */
+    if (mark === 'dot' && dec !== 3 && isAmbiguousMoney(t)) return sign(asPlain(t));
+    const d = mark === 'comma' ? ',' : '.';
+    const g = mark === 'comma' ? '.' : ',';
+    if (t.split(d).length > 2) return null;            // 小数点が2つ＝読めない
+    const i = t.lastIndexOf(d);
+    const ip = i < 0 ? t : t.slice(0, i);
+    /* けた区切りの形が壊れているものは読まない（黙って0にも桁落ちにもしない）。 */
+    if (ip.indexOf(g) >= 0 && !grouped(ip, g)) return null;
+    return sign(i < 0 ? asPlain(t) : asDec(t, d));
+  }
 
   if (dot && com) {                                    // ① 区切りが2種類
     const d = t.lastIndexOf('.') > t.lastIndexOf(',') ? '.' : ',';
@@ -717,10 +804,27 @@ export function sanitize(raw: Parsed): Parsed {
        dec === 3 のときだけ 1000 とも 1.000 とも読めて、根拠が「通貨の小数桁」しか無い。
        ⚠️ 数字は変えない。checks.money = 'assumed' を立てて画面に1行出すだけ。
        ⚠️ EUR の 8.450 まで広げない。欧州の明細が毎回この注意を出すことになる。 */
+  /* ★紙1枚ぶんの流儀を、金額を1つも読む前に1回だけ決める（2026-09-15）。
+     材料はこの明細に載っている金額**ぜんぶ**（支給の行・分類できなかった行・
+     印字された合計・手取り・控除計・年初来）。1行だけ見ても決まらない紙が、
+     別の行の 8.450,00 で決まる ── それが行ごとに読まない理由。
+     ⚠️ 集める場所を増やしたら、ここにも足す。足し忘れても画面は普通に動く。 */
+  const rawMoneys: unknown[] = [];
+  for (const e of Array.isArray(raw.earnings) ? raw.earnings : []) {
+    if (e && typeof e === 'object') rawMoneys.push((e as Parsed).amount);
+  }
+  for (const u of Array.isArray(raw.unmapped) ? raw.unmapped : []) {
+    if (u && typeof u === 'object') rawMoneys.push((u as Parsed).amount);
+  }
+  rawMoneys.push(raw.gross_total, raw.deductions_total, raw.net_pay, raw.ytd_taxable);
+  const mark = detectDecMark(rawMoneys, dec, raw.decimal_mark);
+
   let assumed = false;
   const money = (v: unknown): number | null => {
-    if ((dec === null || dec === 3) && isAmbiguousMoney(v)) assumed = true;
-    return readMoneyNum(v, dec === null ? 2 : dec);
+    /* 印を立てるのは「根拠が通貨の小数桁しか無かった」ときだけ。
+       紙から流儀が決まった行は迷っていないので、注意を出さない。 */
+    if (!mark && (dec === null || dec === 3) && isAmbiguousMoney(v)) assumed = true;
+    return readMoneyNum(v, dec === null ? 2 : dec, mark);
   };
 
   const earnings: Array<{ label: string; amount: number; kind: string; basis?: string }> = [];

@@ -44,7 +44,7 @@ const SRC = readFileSync(path.join(ROOT, 'supabase/functions/parse-payslip/index
 globalThis.Deno = { env: { get: () => '' }, serve: () => {} };
 const { sanitize, parseHours, reconcile, applyChecks, payTolerance, systemPrompt,
         EARNING_KINDS, HOUR_KINDS, VARIABLE_BASIS, isCountRow, COUNT_MAX,
-        readMoneyNum, isAmbiguousMoney, CUR_DEC } =
+        readMoneyNum, isAmbiguousMoney, detectDecMark, CUR_DEC } =
   await import('../supabase/functions/parse-payslip/index.ts');
 
 let pass = 0, fail = 0;
@@ -297,6 +297,99 @@ console.log('\n③-b 金額の読み方（小数点とけた区切り）');
        `画面とサーバで同じ答え: ${JSON.stringify(s)}（小数${dec}桁）→ ${wantN}`,
        `画面=${mine} / サーバ=${readMoneyNum(s, dec)}`);
   }
+}
+
+console.log('\n③-b2 ★明細1枚ぶんの流儀（小数点はどっちの記号か）');
+{
+  /* ★なぜ在るか（2026-09-15）。
+     2026-09-15 に「カンマは常にけた区切り」を画面で決めた。手打ちの欄では正しい
+     ── 材料が1つの数字しかなく、しかも打っている途中だから 200,00 が
+     「20万から0を消した人」か「欧州の200ユーロ」か本当に分からない。
+     ⚠️ **その規則を明細にそのまま持ち込むと、欧州の明細が100倍になる。**
+     4250,00 が 425000。年収データに 100倍 が入るのが一番まずい。
+
+     明細には手打ちの欄に無いものがある ── **同じ紙に金額が何十個も載っていて、
+     全部が同じ流儀**。だから紙ごとに1回だけ決めて、全行をそろえる。
+     ★画面とサーバは**意図的に違う**。上の ③-b の突き合わせ（2引数）は
+       「紙の流儀が分からないとき」の話なので今までどおり生きている。
+       揃えようとして mark を消さないこと。 */
+  const D = (vals, dec, hint) => detectDecMark(vals, dec, hint);
+
+  // [紙に載っている金額, 通貨の小数桁, モデルの答え, 期待, 何の紙か]
+  for (const [vals, dec, hint, want, note] of [
+    [['8.450,00', '1,234', '12.500,00'], 2, null, 'comma', '欧州（区切り2種の行が決め手）'],
+    [['4250,00', '3500,50'],             2, null, 'comma', '★欧州・千区切り無し（,00 で終わる）'],
+    [['25,543.40', '1,234'],             2, null, 'dot',   '米国'],
+    [['1,150,000', '450000'],            0, null, 'none',  '円＝小数が無い通貨'],
+    [['1,234', '5,678'],                 2, null, undefined, '証拠が無い＝決めない'],
+    [['1,234', '5,678'],                 2, ',',  'comma', '証拠が無いときだけモデルに従う'],
+    [['4250,00', '8.45'],                2, ',',  'comma', '紙が矛盾＝紙を見たモデルに従う'],
+    [['4250,00', '8.45'],                2, null, undefined, '矛盾＋モデルも黙り＝決めない'],
+    [[], 2, null, undefined, '金額が1つも無い'],
+    [[12345, 67890], 2, null, undefined, '★数で返ってきた行は証拠にならない'],
+  ]) eq(D(vals, dec, hint), want, `紙の流儀: ${JSON.stringify(vals)}（小数${dec}桁・模範=${hint}）→ ${want}`);
+
+  /* けた区切りは**必ず3桁**を従える。2桁で終わるカンマは小数点しかありえない
+     ── これが「4250,00 は欧州」と言い切れる根拠。3桁なら何も言わない。 */
+  eq(D(['1,234'], 2, null), undefined, '★後ろが3桁のカンマは証拠にならない（1,234 はどちらにも読める）');
+  eq(D(['1,23'], 2, null), 'comma', '★後ろが2桁のカンマは小数点で確定');
+
+  // [印字, 通貨の小数桁, 紙の流儀, 期待]
+  for (const [v, dec, mark, want] of [
+    ['4250,00',   2, 'comma', 4250],      ['3500,50', 2, 'comma', 3500.5],
+    ['8.450,00',  2, 'comma', 8450],      ['1.234.567', 2, 'comma', 1234567],
+    ['1,23,456',  2, 'comma', null],      // 小数点が2つ＝読めない（黙って0にしない）
+    ['25,543.40', 2, 'dot',   25543.4],   ['1,234', 2, 'dot', 1234],
+    ['1,150,000', 0, 'none',  1150000],   ['1.000', 0, 'none', 1000],
+    ['200,00',    0, 'none',  20000],     // 円の紙なら 2026-09-15 の規則どおり
+    /* ★紙の小数点がピリオドでも、3桁の小数はその通貨に存在しない＝けた区切り。
+       8.450 を 8.45 と読むと1000分の1になり、常識の幅から外れて**黙って落ちる**。 */
+    ['8.450',  2, 'dot', 8450],  ['500.000', 2, 'dot', 500000],  ['1.000', 3, 'dot', 1],
+  ]) eq(readMoneyNum(v, dec, mark), want, `流儀=${mark}: ${JSON.stringify(v)}（小数${dec}桁）→ ${want}`);
+
+  /* ★引数を省いたら今までどおり＝画面と1文字も違わない。
+     ③-b の突き合わせが2引数のまま生きているのはこの性質のため。 */
+  for (const [v, dec] of [['200,00', 2], ['3500,50', 2], ['1,23,456', 2], ['1.000', 2]])
+    eq(readMoneyNum(v, dec, undefined), readMoneyNum(v, dec),
+       `★流儀を渡さなければ今までどおり: ${JSON.stringify(v)}`);
+
+  /* ★ここが本番。欧州の明細を丸ごと通して、100倍が出ないこと。 */
+  const eu = slip({
+    currency: 'EUR',
+    earnings: [
+      { label: 'Grundgehalt', amount: '8.450,00', kind: 'base' },
+      { label: 'Flugzulage',  amount: '4250,00',  kind: 'flight_variable', basis: 'block_hours' },
+    ],
+    gross_total: '12.700,00', net_pay: '9.100,00',
+  });
+  eq(eu.earnings.map((e) => e.amount), [8450, 4250],
+     '★欧州の明細：千区切り無しの 4250,00 が 100倍にならない');
+  eq(eu.gross_total, 12700, '★印字された支給合計も同じ流儀で読む');
+  eq(eu.net_pay, 9100, '★手取りも同じ流儀で読む');
+  ok(eu.money_assumed === false, '★紙から決まったときは「仮定した」の注意を出さない');
+
+  /* 日本の明細が今までどおりであること（一番数が多い＝壊すと影響が最大）。 */
+  const jp = slip({
+    currency: 'JPY',
+    earnings: [{ label: '基本給', amount: '450,000', kind: 'base' }],
+    gross_total: '1,150,000', net_pay: '870,000',
+  });
+  eq([jp.earnings[0].amount, jp.gross_total, jp.net_pay], [450000, 1150000, 870000],
+     '★円の明細は今までどおり（小数が無い通貨＝区切りは全部けた区切り）');
+
+  /* 紙に何の証拠も無ければ、今までどおりの読み方に落ちる。 */
+  const us = slip({
+    currency: 'USD',
+    earnings: [{ label: 'BASE', amount: '9,500', kind: 'base' }],
+    gross_total: '9,500',
+  });
+  eq(us.earnings[0].amount, 9500, '証拠が無い紙は今までどおり読む');
+
+  /* ★モデルに聞く欄が消えたら気づく（消えるとサーバは紙の中の証拠だけが頼りになり、
+     小数が1つも印字されていない明細で流儀が決まらなくなる）。 */
+  const sp = systemPrompt('ja');
+  ok(/decimal_mark/.test(sp), '★プロンプトが decimal_mark を要求している');
+  ok(/WHOLE slip/.test(sp), '★「紙ぜんぶを見て決めろ」と言っている（行ごとに答えさせない）');
 }
 
 console.log('\n③-c 金額の規則を年・月・時間に持ち込んでいない');
