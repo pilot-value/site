@@ -59,7 +59,7 @@
       （上げ忘れると「貼り替えたのに古い日付」で、かえって判断を誤らせる）。
    ⚠️ この札そのものが貼り直しなので、**今ある本番の版の証拠にはならない**。
       次に貼った回から効く。 */
-const BUILD = '2026-09-12';
+const BUILD = '2026-09-15';
 
 const ANTHROPIC_API_KEY =
   Deno.env.get('ANTHROPIC_API_KEY_PAYSLIP') || Deno.env.get('ANTHROPIC_API_KEY') || '';
