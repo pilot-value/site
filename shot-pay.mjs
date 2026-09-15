@@ -79,7 +79,7 @@ const SIMPLE = {   // 誰にでも聞く欄（2026-08-13 に手取り・今月�
   'f-airline': 'emirates', 'f-position': 'cap', 'f-fleet': 'b777', 'f-jobrole': 'line,instructor,examiner,union,management,nonline',
   'f-age': '40-49',
   'f-block': '86.5', 'f-stay': '12', 'f-duty-h': '158.2',
-  'f-currency': 'AED', 'f-gross': '77800', 'f-netpay': '71600', 'f-bonus-mo': '0',
+  'f-currency': 'AED', 'f-gross': '77800', 'f-netpay': '71600',
   'f-perdiem': '6200', 'f-housing': 'allowance', 'f-housing-amt': '17500',
   'f-bonus': '52000',
   'f-contract': 'direct', 'f-seniority': '12', 'f-taxcountry': 'AE', 'f-tax': '0',
@@ -87,7 +87,7 @@ const SIMPLE = {   // 誰にでも聞く欄（2026-08-13 に手取り・今月�
 };
 /* ★「前回の内容」＝翌月のフォームに引き継がれるもの（2026-09-12・open second 専用）。
    ★ここに**その月の実績を1つも置かない**のが要点 ── 総支給・手取り・乗務時間・日当・
-     当月賞与・変動給の金額・役割の月次手当は、翌月のひな型には保存しない側。
+     変動給の金額・役割の月次手当は、翌月のひな型には保存しない側。
      置くと「先月の実績が今月の欄に残る」という、この作り直しが直した形そのものになる。
    ★変動給は**項目名と支給単位だけ**（金額は持たない）。
    ⚠️ 金額は架空。実在の人の明細ではない。 */
@@ -229,8 +229,13 @@ const put = (page, o) => page.evaluate((obj) => {
     /* ★役職・区分の値を持つのは hidden。絵のチェックはページ側の関数に戻させる
        （ここで自前に書くと、本物とズレたまま撮れてしまう）。 */
     if (id === 'f-jobrole' && typeof syncRoleBoxes === 'function') syncRoleBoxes();
-    el.dispatchEvent(new Event('change', { bubbles: true }));
+    /* ★2026-09-15、本物のブラウザと同じ input → change の順にした（前は逆）。
+       超過の注意は 2026-09-15 から change のときだけ判定し、どの受け皿に出すかは
+       input で覚えた「最後に触った欄」で決める。逆順で投げると change の時点で
+       その記憶が1つ古く、管理職手当で超えたのに兼務の受け皿に出る ──
+       製品は正しいのに 3m のログだけが嘘をつく。 */
     el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
     /* select は選択肢に無い値を黙って捨てる。捨てられたまま撮ると空欄が写る。
        ★金額の欄は input のたびに桁区切りが付くので、比べる前にカンマを落とす。 */
     if (el.value.replace(/,/g, '') !== String(v)) console.warn(`  ⚠ ${id}: '${v}' は選択肢に無い`);
@@ -267,7 +272,7 @@ async function fillSimple(page) {
   await goStep(page, 1);
   await put(page, pick(SIMPLE, 'f-block', 'f-stay'));
   await goStep(page, 2);
-  await put(page, pick(SIMPLE, 'f-currency', 'f-gross', 'f-netpay', 'f-bonus-mo',
+  await put(page, pick(SIMPLE, 'f-currency', 'f-gross', 'f-netpay',
                                'f-perdiem', 'f-housing', 'f-housing-amt'));
   await goStep(page, 3);
   await unfoldContract(page);
@@ -696,7 +701,7 @@ if (ROUND === 'second') {
   /* 今月ぶんに、本人が打ち直す分だけ。★基本給は「前回の 0」を打ち替える（指摘2）。 */
   const NOW = { 'f-year': '2026', 'f-month': '8', 'f-block': '81.4', 'f-stay': '9',
                 'f-gross': '68400', 'f-netpay': '68400',
-                'f-perdiem': '4200', 'f-bonus-mo': '0' };
+                'f-perdiem': '4200' };
 
   for (const lang of ['ja', 'en']) {
     const url = `http://localhost:3000/${lang === 'en' ? 'en/' : ''}pay-report.html`;
@@ -836,10 +841,12 @@ if (ROUND === 'second') {
       console.log('     ★その他の現金手当の行: '
                   + (oth.rows.length ? oth.rows.map((r) => `${r.label}=${r.amount}`).join(' / ') : 'なし'));
       console.log(`     合計 '${oth.sum}' / 隠し欄 f-other '${oth.hidden}'（空でないと二重計上）`);
-      /* 明細に載らないもの（ステイ日数・当月賞与）だけ本人が足してから撮る。
+      /* 明細に載らないもの（ステイ日数）だけ本人が足してから撮る。
+         ★「今月の賞与・ボーナス」は 2026-09-15 に欄ごと廃止（オーナー決定）。
+           明細の賞与行は f-other（その他の現金）へ入る。
          ★日当は明細から入っている＝ここでは触らない。
          ★先に撮ると6枚目と1ドットも変わらない絵になる（読み取り結果と同じ画面）。 */
-      await put(p, { 'f-stay': '9', 'f-bonus-mo': '0' });
+      await put(p, { 'f-stay': '9' });
       await new Promise((r) => setTimeout(r, 400));
       await shoot(p, `${lang}-7-slip-input`);
       await finish(p, '8');

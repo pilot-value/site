@@ -41,7 +41,7 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
     put('f-age', '40-49');
     put('f-block', '86.5'); put('f-stay', '12');
     put('f-currency', 'AED'); put('f-gross', '77800'); put('f-netpay', '71600');
-    put('f-bonus-mo', '0'); put('f-perdiem', '6200');
+    put('f-perdiem', '6200');
     put('f-housing', 'allowance'); put('f-housing-amt', '17500');
     put('f-contract', 'direct'); put('f-taxcountry', 'AE'); put('f-seniority', '12');
     put('f-base', '48500');

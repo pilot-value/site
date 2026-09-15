@@ -549,10 +549,15 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           <div class="fld">
             <!-- ★2026-09-12、必須 → 任意（オーナー決定5）。泊数を数えていない人に
                  「0」か「思い出した数」を書かせるより、空欄＝不明のまま預かるほうが正しい。
-                 列は元から null を許している＝ SQL の変更は要らない。 -->
-            <label class="form-label" for="f-stay">ステイ日数<span class="opt-tag">任意</span></label>
+                 列は元から null を許している＝ SQL の変更は要らない。
+                 ★2026-09-15、オーナー指示で**必須に戻した**。ラベルだけ「任意」になり、
+                 送信バリデーション（stopAt('f-stay')）と段ゲート（GATE_HOURS）は
+                 必須のままという食い違いが残っていて、空欄で 5/5 まで進んだ人が
+                 提出を押した瞬間に 2/5 へ突き返されていた。3つとも必須に揃える。
+                 ⚠️ 数えていない人は 0 を入れて通るので、実態と違う 0 が混ざり得る。 -->
+            <label class="form-label" for="f-stay">ステイ日数<span class="req-tag">必須</span></label>
             <input type="text" id="f-stay" class="form-input num" inputmode="numeric" placeholder="例：8" data-min="0" data-max="31" data-dec="0"/>
-            <p class="fld-hint">基地の外で泊まった<b>泊数</b>。日帰りだけの月は <b>0</b>。数えていなければ空欄のままで構いません。</p>
+            <p class="fld-hint">基地の外で泊まった<b>泊数</b>。日帰りだけの月は <b>0</b>。</p>
           </div>
         </div>
 
@@ -648,7 +653,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
         <div class="fld" id="pay-gross-fld">
           <label class="form-label" for="f-gross">その月の総支給額<span class="req-tag">必須</span></label>
           <input type="text" id="f-gross" class="form-input money" inputmode="decimal" placeholder="例：1,080,000"/>
-          <p class="fld-hint" id="gross-hint-own">税引き前の<b>額面</b>（明細の「総支給額」「Gross Pay」）。</p>
+          <p class="fld-hint" id="gross-hint-own">税引き前の<b>額面</b>（明細の「総支給額」「Gross Pay」）。賞与は下の<b>年間ボーナス</b>へ。</p>
         </div>
 
         <div class="fld">
@@ -657,27 +662,24 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           <p class="fld-hint">税・保険が引かれた<b>後</b>に振り込まれた額（「差引支給額」「Net Pay」）。</p>
         </div>
 
-        <!-- ★ボーナスは「今月出た額」と「年間の合計」を分けて聞く（2026-08-13 オーナー指摘）。
-             総支給を明細のとおりに書いてもらう以上、ボーナスが出た月の総支給には
-             ボーナスが入っている。それを ×12 すると年収が跳ね上がる。
-             年換算＝（総支給 − 今月出たボーナス）×12 ＋ 年間ボーナス。 -->
-        <div class="grid2">
-          <div class="fld">
-            <label class="form-label" for="f-perdiem">パーディアム（その月の合計）<span class="req-tag">必須</span></label>
-            <input type="text" id="f-perdiem" class="form-input money" inputmode="decimal" placeholder="滞在手当の月合計"/>
-            <p class="fld-hint"><b>滞在手当の月合計</b>。付かない会社・出なかった月は <b>0</b>。</p>
-          </div>
-          <div class="fld">
-            <label class="form-label" for="f-bonus-mo">今月の賞与・ボーナス<span class="req-tag">必須</span></label>
-            <!-- ★値の 0 を置かない（2026-09-12 オーナー決定）。新しい月の実績の欄に、
-                 まだ誰も答えていない 0 が最初から入っていると、賞与が出た月に直し忘れた
-                 0 がそのまま「賞与なし」として保存される。
-                 2026-08-13 は「薄い 0 だと、必須なのに入れなくていい欄に見える」という
-                 理由で値の 0 を置いた。そちらは案内の文で受ける ── すぐ左の
-                 パーディアムの欄と同じ形（あちらも必須で、値は置いていない）。 -->
-            <input type="text" id="f-bonus-mo" class="form-input money" inputmode="decimal" placeholder="出なかった月は 0"/>
-            <p class="fld-hint">出なかった月は <b>0</b>。年換算するときに、この額だけ外します。</p>
-          </div>
+        <!-- ★「今月の賞与・ボーナス」の欄は 2026-09-15 にオーナー決定で**廃止した**。
+             「そもそも賞与は月の給与とは別に支給されるのだから、この欄は要らない
+             （下に年間ボーナスがある）」。賞与は f-bonus（年間ボーナス）で受ける。
+             年換算＝総支給 ×12 ＋ 年間ボーナス ＋ プロフィットシェア。
+             2026-08-13 に足したときの理由は「総支給を明細のとおりに書いてもらう以上、
+             賞与が出た月の総支給には賞与が入っていて、それを ×12 すると年収が跳ね上がる」。
+             ⚠️ その形の会社（月の明細に賞与を印字する）では、今も年換算が高く出る。
+                素通りはせず、提出前の「この額で合っていますか」（amtConfirmNeeded）が
+                引っかける。総支給額のヒントにも「賞与は年間ボーナスへ」と1行置いた。
+             ⚠️ DB の bonus_month 列は消していない。過去の投稿はその値のまま計算される。
+                送る側でキーを落としただけ＝null を送るのとまったく同じ（submit_pay_report は
+                nullif(p->>'bonus_month','') で読む）＝**SQL は1行も触っていない**。
+             ⚠️ ここは元はパーディアムと組の grid2 だった。畳まないとパーディアムが
+                半分の幅で取り残される（measure-pay.mjs が grid の上端揃いを見ている）。 -->
+        <div class="fld">
+          <label class="form-label" for="f-perdiem">パーディアム（その月の合計）<span class="req-tag">必須</span></label>
+          <input type="text" id="f-perdiem" class="form-input money" inputmode="decimal" placeholder="滞在手当の月合計"/>
+          <p class="fld-hint"><b>滞在手当の月合計</b>。付かない会社・出なかった月は <b>0</b>。</p>
         </div>
 
         <div class="grid2">
@@ -768,7 +770,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
               <button type="button" class="chip" data-open="pd-oth"><span class="p">+</span>その他の現金手当</button>
             </div>
 
-            <p class="pd-warn" id="pd-over" hidden>内訳の合計が、上の総支給額を超えています。どちらかを見直してください。</p>
+            <p class="pd-warn pv-no-cur" id="pd-over" hidden>内訳の合計（<span class="pd-sum"></span>）が、上の総支給額（<span class="pd-gross"></span>）を超えています。どちらかを見直してください。</p>
 
             <div class="pd-year">
               <div class="pd-year-h">年に一度のもの</div>
@@ -864,7 +866,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 </div>
                 <!-- ★超過の注意は、その額を打った欄の下に出す（2026-08-27 オーナー指摘）。
                      文言と条件は #pd-over と同じ。recalc() が OVER_SLOT を見て1つだけ出す。 -->
-                <p class="pd-warn" id="pd-over-instr" hidden>内訳の合計が、上の総支給額を超えています。どちらかを見直してください。</p>
+                <p class="pd-warn pv-no-cur" id="pd-over-instr" hidden>内訳の合計（<span class="pd-sum"></span>）が、上の総支給額（<span class="pd-gross"></span>）を超えています。どちらかを見直してください。</p>
 
                 <div id="instr-unit" hidden>
                   <div class="fld">
@@ -952,7 +954,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 </div>
                 <!-- ★超過の注意は、その額を打った欄の下に出す（2026-08-27 オーナー指摘）。
                      文言と条件は #pd-over と同じ。recalc() が OVER_SLOT を見て1つだけ出す。 -->
-                <p class="pd-warn" id="pd-over-exam" hidden>内訳の合計が、上の総支給額を超えています。どちらかを見直してください。</p>
+                <p class="pd-warn pv-no-cur" id="pd-over-exam" hidden>内訳の合計（<span class="pd-sum"></span>）が、上の総支給額（<span class="pd-gross"></span>）を超えています。どちらかを見直してください。</p>
 
                 <div class="fld" id="exam-unit" hidden>
                   <label class="form-label" for="f-exam-qty" id="lab-exam-qty">今月の回数</label>
@@ -1007,7 +1009,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 </div>
                 <!-- ★超過の注意は、その額を打った欄の下に出す（2026-08-27 オーナー指摘）。
                      文言と条件は #pd-over と同じ。recalc() が OVER_SLOT を見て1つだけ出す。 -->
-                <p class="pd-warn" id="pd-over-union" hidden>内訳の合計が、上の総支給額を超えています。どちらかを見直してください。</p>
+                <p class="pd-warn pv-no-cur" id="pd-over-union" hidden>内訳の合計（<span class="pd-sum"></span>）が、上の総支給額（<span class="pd-gross"></span>）を超えています。どちらかを見直してください。</p>
 
                 <div class="fld">
                   <label class="form-label" for="f-union-src">支給元</label>
@@ -1070,7 +1072,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 </div>
                 <!-- ★超過の注意は、その額を打った欄の下に出す（2026-08-27 オーナー指摘）。
                      文言と条件は #pd-over と同じ。recalc() が OVER_SLOT を見て1つだけ出す。 -->
-                <p class="pd-warn" id="pd-over-mgmt" hidden>内訳の合計が、上の総支給額を超えています。どちらかを見直してください。</p>
+                <p class="pd-warn pv-no-cur" id="pd-over-mgmt" hidden>内訳の合計（<span class="pd-sum"></span>）が、上の総支給額（<span class="pd-gross"></span>）を超えています。どちらかを見直してください。</p>
 
                 <div class="fld">
                   <label class="form-label" for="f-mgmt-method">支給単位</label>
@@ -1135,7 +1137,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 </div>
                 <!-- ★超過の注意は、その額を打った欄の下に出す（2026-08-27 オーナー指摘）。
                      文言と条件は #pd-over と同じ。recalc() が OVER_SLOT を見て1つだけ出す。 -->
-                <p class="pd-warn" id="pd-over-nonline" hidden>内訳の合計が、上の総支給額を超えています。どちらかを見直してください。</p>
+                <p class="pd-warn pv-no-cur" id="pd-over-nonline" hidden>内訳の合計（<span class="pd-sum"></span>）が、上の総支給額（<span class="pd-gross"></span>）を超えています。どちらかを見直してください。</p>
               </div>
             </div>
           </details>
@@ -1551,7 +1553,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           <span class="sal-total-lab">年換算の総額<br>（あなたの入力から）</span>
           <span class="sal-total-val" id="live-total">—</span>
         </div>
-        <p class="sal-hint pv-no-cur" id="live-hint">（総支給 − 今月出たボーナス）×12 に、年間ボーナスとプロフィットシェアを足した額です。</p>
+        <p class="sal-hint pv-no-cur" id="live-hint">その月の総支給 ×12 に、年間ボーナスとプロフィットシェアを足した額です。</p>
 
         <!-- ログインは送信のときだけ。ここに出す（押した場所に出す）。
              ★中身は pay-login.js が日英1枚で組む。login.html へ飛ばさない
@@ -1636,6 +1638,13 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
             <span class="sticky-cta-lab">年換算の総額</span>
             <span class="sticky-cta-val" id="sticky-total">—</span>
           </div>
+          <!-- ★内訳の割合バー（2026-09-15 オーナー指示「real pay で出てるみたいなバー」）。
+               中身は recalc() が WZ.compBar() で組み直す。5/5「支給の内訳」の帯と同じ絵。
+               ⚠️ ここに <button> / <a> を置かない（押す物は各段の Next と 5/5 の提出だけ。
+                  shot-pay.mjs が「帯に押す物が生き返っていないか」を見張っている）。
+               ⚠️ #sticky-total の**中**に入れない（db/test-form-contract.mjs が
+                  #live-total と同じ文字から数字を拾っている）。 -->
+          <div class="sticky-cta-bar" id="sticky-bar"></div>
         </div>
       </div>
 
@@ -2727,7 +2736,7 @@ function grp(s) {
            'empty'     空
            'ambiguous' 2通りに読める。alts に両方入れて本人に選んでもらう
            'bad'       数字として読めない */
-function readMoney(s) {
+function readMoney(s, dec) {
   const raw = String(s == null ? '' : s).trim();
   if (!raw) return { n: null, canon: '', state: 'empty', alts: [] };
   /* 全角・空白・通貨記号は落とす。残りが数字と区切りだけでなければ読まない。 */
@@ -2764,19 +2773,21 @@ function readMoney(s) {
     const v = asDec(t, d);
     return v == null ? bad : ok(v);
   }
-  /* 2) カンマだけ（2026-09-11 にオーナー指摘で作り直した）──────────────
-        ★聞くのは「読み方が2つとも成立する」ときだけ。「カンマを取れば 15 になる」は
-          読み方ではない。1,5 を 15 のつもりで書く人は居ないし、桁区切りとしても
-          成立しない書式（区切りの後ろが3桁でない）。**書式まで見て判断する。**
-        ・3桁ずつに割れる（1,150,000 / 1,000）→ 桁区切り。これはこのサイトの標準の
-          書き方で、**欄を離れたときにこちらが整える形**でもある（2026-09-11 以降、
-          打っている最中は1文字も触らない）。ここで聞き返すと、こちらが整えた値を
-          本人に問い直すことになる。
-        ・割れない（1,5 / 1000,50 / 1234,56）→ 小数点のカンマ。1.5 / 1000.50 と同じ。 */
+  /* 2) カンマだけ ── **常に桁区切り**（2026-09-15 オーナー決定）────────────
+        このサイトの書き方は「, が桁区切り・. が小数点」で、二択の中の .ma-rule にも
+        そう出している。読み取りもその1本に揃える。**書式（3桁に割れるか）は見ない。**
+        ・1,150,000 → 1150000
+        ・200,00    → 20000    ← 200,000 から 0 を1つ消した形
+        ・1,100,00  → 110000
+        ・1,23,456  → 123456
+        ⚠️ 2026-09-11 は逆にしていた（3桁に割れないカンマ＝小数点）。狙いは、ヨーロッパ式に
+           3500,50 と書く人の額が 350,050（100倍）になるのを防ぐこと。2026-09-15、オーナーが
+           「3500,00 は 350,000 でいい」と決めてこちらへ戻した。100倍の網は、提出直前の
+           amtConfirmNeeded（「この額で合っていますか」）が張っている。
+        ★この規則だから「カンマを落として組み直す」操作が**可逆**になり、打鍵中の桁区切り
+          （fmtMoneyLive）を戻せた。**片方だけ戻さないこと。** 詳しくは下の fmtMoneyLive の節。 */
   if (com) {
-    if (grouped(t, ',')) return ok(asPlain(t));
-    if (t.split(',').length > 2) return bad;     // 1,23,456 はどちらにも読めない
-    const v = asDec(t, ',');
+    const v = asPlain(t);
     return v == null ? bad : ok(v);
   }
   /* 3) ピリオドだけ */
@@ -2788,13 +2799,28 @@ function readMoney(s) {
     if (v == null) return bad;
     /* 1.000 / 500.000 だけは 1000 とも 1.0 とも読める。**ここだけ聞く。**
        ★先頭が 0 の 0.500 は外す。500 を 0.500 と書く人は居ない＝桁区切りとしては
-         成立しない書式なので、上のカンマと同じく聞かずに 0.5 と読む。 */
-    if (/^[1-9]\d{0,2}$/.test(ip) && /^\d{3}$/.test(dp)) return ask(asPlain(t), v);
+         成立しない書式なので、聞かずに 0.5 と読む。
+       ★ただし小数が無い通貨（JPY/KRW/ISK/HUF/IDR/VND/CLP ＝ CUR_META の第1要素が 0）では
+         1.0 という額そのものが有り得ない＝聞く意味が無い。推測ではなく消去法。
+         サーバ側（supabase/functions/parse-payslip）は最初からこの方式で決めている
+         （あちらは聞き返せないので dec===3 側も同じ理屈で倒している）。
+         dec を渡していないとき（既定 undefined）は今までどおり聞く。 */
+    if (/^[1-9]\d{0,2}$/.test(ip) && /^\d{3}$/.test(dp)) {
+      if (dec === 0) return ok(asPlain(t));
+      return ask(asPlain(t), v);
+    }
     return ok(v);
   }
   /* 4) 区切り無し */
   const v = asPlain(t);
   return v == null ? bad : ok(v);
+}
+/* いま選ばれている通貨の小数桁。選ぶ前（空）は undefined ＝ readMoney の既定の
+   ふるまい（1.000 を二択で聞く）に落ちる。★推測しない側に倒してある。 */
+function curDec() {
+  const el = $('f-currency');
+  const m = el && el.value ? CUR_META[el.value] : null;
+  return m ? m[0] : undefined;
 }
 /* 欄そのものを読む。本人が読み方を選んだ欄は、その選択を使う
    （data-money-raw が今の値と一致している間だけ有効）。 */
@@ -2805,21 +2831,87 @@ function moneyRead(el) {
     const v = parseFloat(el.dataset.moneyN);
     if (isFinite(v)) return { n: v, canon: raw, state: 'ok', alts: [] };
   }
-  return readMoney(raw);
+  return readMoney(raw, curDec());
 }
-/* ★打っている最中は、金額の欄を1文字も触らない（2026-09-11 オーナー決定）。
+/* ★打っている最中に桁区切りを付け直す（2026-09-15 オーナー指示で復活）。
 
-   ここには fmtMoneyEl があって、打鍵のたびに桁区切りを出し直していた。
-   「値が数字だけのときに限る」つもりだったが、その判定が `.replace(/,/g,'')` で
-   **カンマを落としてから**数字かを見る形だった ＝ **本人が打ったカンマが判定から
-   消える**。3500,50 が 350,050 になり、100倍の額が警告ひとつ無く保存されていた
-   （. と全角は守られていて、カンマだけが穴だった）。
-   readMoney は最初から 3500,50 を 3500.5 と読めるのに、打鍵中に画面が文字列を
-   壊すので、**readMoney がその文字列を見ることが無かった**。
+   ── 一度これを外した理由と、戻してよくなった理由 ──────────────────
+   2026-09-11 に fmtMoneyEl を消して「打鍵中は1文字も触らない」に倒した。
+   当時の事故は、打鍵のたびの整形が `.replace(/,/g,'')` で**カンマを落としてから**
+   数字かを見る形で、**本人が打ったカンマが判定から消える**こと。ヨーロッパ式に
+   3500,50 と打った人の値が 350,050 になり、100倍の額が警告ひとつ無く保存された。
+   当時の readMoney は 3500,50 を 3500.5 と読めたのに、打鍵中に画面が文字列を
+   壊すので **readMoney がその文字列を見ることが無かった**のが本体。
 
-   桁区切りは**欄を離れたとき**に moneySettle → readMoney の canon が出す。
-   時間・日数・率の欄（class="num"）と同じ形。★復活させない。
+   2026-09-15、オーナー決定で readMoney のカンマは**常に桁区切り**になった
+   （上の readMoney の 2) の節）。3500,50 は定義上 350,050 ＝ 打鍵中に組み直しても
+   **意味が1ミリも変わらない**。カンマを落として組み直す操作が**可逆**になったので、
+   この整形を戻してよくなった。★片方だけ戻さないこと。読み取りの規則を
+   「3桁に割れないカンマ＝小数点」へ戻すなら、この整形も同時に外す。
+
+   ── 戻すのはカンマだけ ─────────────────────────────────────
+   ・値にピリオドが1文字でも入っていたら**何も触らない**（1.000,00 と打つ
+     ヨーロッパ式の人・1234.56 と打つ人を、打鍵の途中で邪魔しない）
+   ・数字とカンマ以外が混じっていても触らない（全角・通貨記号は moneySettle に任せる）
+   ・**欄がフォーカスされていないときは触らない**（プリセット復元・先月の値・
+     明細の読み取りが代入で入れる経路。ここでカーソルを動かすとフォーカスが飛ぶ）
+   ・カーソルは「その手前にある数字の個数」で数え直して戻す（素の代入だと末尾へ飛ぶ）
+   ・カンマの上で BackSpace／Delete を押したら、隣の数字ごと消す（下の keydown）。
+     そうしないとカンマが即座に戻ってきて**何度押しても消せない**欄になる。
+
+   時間・日数・率の欄（class="num"）は対象外（読み手が readNum で別物）。
    見張りは db/test-pay-gate.mjs の②（1文字ずつ打つ唯一の検査）。 */
+function fmtMoneyLive(el) {
+  if (!el || document.activeElement !== el) return;
+  const raw = String(el.value == null ? '' : el.value);
+  if (raw.indexOf('.') >= 0) return;
+  if (!/^[0-9,]*$/.test(raw)) return;
+  const digits = raw.replace(/,/g, '');
+  if (!digits) return;
+  const next = grp(digits);
+  if (next === raw) return;
+  const start = el.selectionStart;
+  if (start == null) { el.value = next; return; }
+  let before = 0;
+  for (let i = 0; i < start; i++) { const c = raw.charCodeAt(i); if (c >= 48 && c <= 57) before++; }
+  el.value = next;
+  let pos = 0;
+  if (before > 0) {
+    let seen = 0;
+    pos = next.length;
+    for (let i = 0; i < next.length; i++) {
+      const c = next.charCodeAt(i);
+      if (c >= 48 && c <= 57) { seen++; if (seen === before) { pos = i + 1; break; } }
+    }
+  }
+  try { el.setSelectionRange(pos, pos); } catch (e) {}
+}
+/* カンマの上で BackSpace／Delete ── 隣の数字ごと消す。
+   （消さないと fmtMoneyLive がカンマを即座に戻すので、永久に消えない欄になる） */
+document.addEventListener('keydown', (e) => {
+  const el = e.target;
+  if (!el || !el.classList || !el.classList.contains('money')) return;
+  if (e.key !== 'Backspace' && e.key !== 'Delete') return;
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const s = el.selectionStart, t = el.selectionEnd;
+  if (s == null || s !== t) return;
+  const raw = String(el.value == null ? '' : el.value);
+  if (raw.indexOf('.') >= 0) return;
+  let nv, pos;
+  if (e.key === 'Backspace') {
+    if (s < 2 || raw.charAt(s - 1) !== ',') return;
+    nv = raw.slice(0, s - 2) + raw.slice(s - 1);
+    pos = s - 2;
+  } else {
+    if (raw.charAt(s) !== ',' || s + 2 > raw.length) return;
+    nv = raw.slice(0, s + 1) + raw.slice(s + 2);
+    pos = s;
+  }
+  e.preventDefault();
+  el.value = nv;
+  try { el.setSelectionRange(pos, pos); } catch (err) {}
+  try { el.dispatchEvent(new Event('input', { bubbles: true })); } catch (err) {}
+}, true);
 /* 値を代入で入れたあと（プリセット復元・先月の値・明細の読み取り）に呼ぶ。
    ★1回きりの配列（旧 MONEY_EL）をやめた。あとから生える per-diem の行も同じ道を通る。 */
 function moneyEls() { return Array.prototype.slice.call(document.querySelectorAll('input.money')); }
@@ -2885,7 +2977,7 @@ function askMoney(el, r) {
 function moneySettle(el) {
   const raw = String(el.value == null ? '' : el.value);
   if (el.dataset.moneyRaw === raw) return;      // 本人が選んだ読み方はそのまま
-  const r = readMoney(raw);
+  const r = readMoney(raw, curDec());
   clearMoneyAsk(el);
   delete el.dataset.moneyN;
   delete el.dataset.moneyRaw;
@@ -2898,7 +2990,9 @@ document.addEventListener('input', (e) => {
   const el = e.target;
   if (!el || !el.classList || !el.classList.contains('money')) return;
   if (el.dataset.moneyRaw !== String(el.value)) { delete el.dataset.moneyN; delete el.dataset.moneyRaw; clearMoneyAsk(el); }
-  /* ★ここで値を整えない。整えるのは change（moneySettle）だけ。上の節を読むこと。 */
+  /* ★カンマの桁区切りだけ、その場で組み直す（ピリオドが入っていたら触らない）。
+     読み方の確定（二択・赤）は今までどおり change（moneySettle）だけ。 */
+  fmtMoneyLive(el);
 }, true);
 document.addEventListener('change', (e) => {
   const el = e.target;
@@ -3086,7 +3180,36 @@ function overSlot() {
 function showOver(on) {
   const slot = on ? overSlot() : '';
   for (const id of OVER_IDS) $(id).hidden = id !== slot;
+  if (!slot) return;
+  /* ★どちらを直せばいいのか分かるように、**両方の額**を文の中に出す（2026-09-15 オーナー指摘
+     「これは総支給額に対して？」）。左＝内訳の合計（monthlyDetail）、右＝本人が書いた総支給。
+     出すのは今まさに見せている1枚だけ。隠れている5枚には書かない（拾って読む物が増える）。
+     ★<p> に pv-no-cur を付けてある。fmtCur が通貨コード付きで書くので、
+       currency.js に二度変換させない。 */
+  const el = $(slot), cur = $('f-currency').value;
+  const s = el.querySelector('.pd-sum'), g = el.querySelector('.pd-gross');
+  if (s) s.textContent = fmtCur(monthlyDetail(), cur);
+  if (g) g.textContent = fmtCur(num('f-gross'), cur);
 }
+
+/* ── 超過の判定は「欄から離れたとき」だけ（2026-09-15 オーナー指摘）────────
+   前は recalc() の中にあり、**1文字打つたび**に判定していた。総支給を打ち始めた
+   瞬間は 1 → 11 → 110 … なので、前の月から引き継いだ基本給だけで即座に超える＝
+   打っている間ずっと赤い。オーナーが本番で見たのはこれ。
+   ★式・条件・6つの受け皿は1つも変えていない。**呼ぶ時機だけ**を change に移した。
+   ★_lastMoney（どの受け皿に出すかを決める）の代入は input のまま残す。change に
+     移すと「最後に触った欄」が1つ古くなり、管理職手当で超えたのに pd-over-mgmt
+     ではなく既定の pd-over に出る。**代入は input、判定は change。**
+   ★document の change を1本で受ける（capture）。金額欄だけでなく、住居の選択・
+     組合の支給元・繰り返し行の金額も合計を動かすので、個別に配線すると必ず取り残す。
+   ★値を代入で入れる経路（明細読み取り・下書きの復元）は change が出ない。
+     明細読み取りは payslip.js が recalc() の隣で settleOver() を呼ぶ。 */
+function settleOver() {
+  const gross = num('f-gross');
+  /* ★不就労減額のぶんは足し戻してから比べる（印字の総支給は減額後・内訳は減額前）。 */
+  showOver(gross > 0 && monthlyDetail() > gross + absenceTotal() + 1);
+}
+document.addEventListener('change', settleOver, true);
 
 function annualTotal() {
   /* ★2026-08-26 から、年換算は**いつでも本人が入れた総支給**から出す。
@@ -3094,13 +3217,18 @@ function annualTotal() {
      （オーナー指示「総支給額を給与内訳の合計で上書きしない」）。
      サーバ側の pv_annual_total も、総支給があればそちらを正とする
      （coalesce の第1引数）ので、画面とサーバで同じ数になる。 */
-  /* ★総支給は「明細のとおり」なので、ボーナスが出た月はそれが入っている。
-     ×12 する前に、その月に出たボーナスだけ外す（2026-08-13 オーナー指摘）。 */
+  /* ★2026-08-13〜2026-09-15 は、ここで「その月に出たボーナス」を ×12 の前に外していた
+     （総支給は明細のとおりなので、賞与が出た月はそれが入っているという理由）。
+     2026-09-15 にオーナー決定で欄ごと廃止 ──「そもそも賞与は月の給与とは別に支給される」。
+     賞与は年間ボーナス（f-bonus）で受けるので、総支給はそのまま ×12 する。
+     ⚠️ サーバの pv_annual_total は今も (gross − bonus_month) × 12 のまま。
+        画面が bonus_month を送らなくなった＝null＝coalesce(…,0) で同じ式になるので
+        ズレない。過去の投稿は保存済みの bonus_month でそのまま計算され続ける。 */
   /* ★例外は組合が直接払ったぶんだけ（2026-09-02）。会社の明細に印字されない＝
      本人が書いた総支給の中に無いので、ここで足さないと年収がその額のぶん
      丸ごと落ちる。サーバも同じ1行を持っている（p_union_outside_gross）。 */
   const gross = num('f-gross');
-  const monthly = Math.max(0, gross - num('f-bonus-mo'))
+  const monthly = gross
                 + (gross > 0 && unionOutsideGross() ? num('f-union-pay') : 0);
   return monthly * 12 + num('f-bonus') + num('f-profit');
 }
@@ -3117,9 +3245,8 @@ function recalc() {
      差がプラス側＝「どの項目にも入れていない分」は普通のことなので黙っている。
      おかしいのは内訳の合計が総支給を**超えた**ときだけで、そのときだけ1行出す。
      一致は強制しないし、送信も止めない。 */
-  const gross = num('f-gross');
-  /* ★不就労減額のぶんは足し戻してから比べる（印字の総支給は減額後・内訳は減額前）。 */
-  showOver(gross > 0 && monthlyDetail() > gross + absenceTotal() + 1);
+  /* ★「超えています」の判定はここには無い（2026-09-15）。打鍵のたびに走ると、
+     総支給を打ち始めた瞬間から赤くなる。判定は settleOver() が change で行う。 */
   const t = annualTotal();
   /* ★同じ文字列を2か所へ。#sticky-total は常設バーの中（式は annualTotal() の1本のまま）。 */
   const totalHTML = t > 0
@@ -3128,12 +3255,43 @@ function recalc() {
   $('live-total').innerHTML = totalHTML;
   $('sticky-total').innerHTML = totalHTML;
   updateTax();   // 税率は年収で変わる。金額を触るたびに引き直す
+  syncStickyBar();
+}
+/* ── 下端の帯の「内訳の割合バー」（2026-09-15 オーナー指示）──────────────
+   「画面下の年収額の横にバーを作って、内訳を入れるとバーの色がその割合に変わるように」。
+   灰色（rest）＝まだどの項目にも入れていない分なので、内訳を入れるほど色に食われていく。
+   ★中身は 5/5「支給の内訳」の帯と**同じ関数**（WZ.compBar → reviewComp → shelf）。
+     ここで8区分の引き算を書き起こさない。あれは「命綱」で、db/deep-pay.sql と
+     db/pay-rows.sql に写しが2つある。3つ目を書くと、同じ人について REAL PAY の帯と
+     このバーが違う内訳を出す（どちらも普通に動いたまま）。
+   ★共有 JS が落ちた1枚もの形態（WZ が null）では、バーが出ないだけ。
+     金額も提出も今までどおり動く。
+   ★帯が畳まれているあいだは組み立てない（見えない物のために毎打鍵 shelf を回さない）。
+   ★年間ボーナスは月の内訳ではないのでバーには出ない。横の数字は年換算なので、
+     そこだけ一致しない（5/5 の帯と同じ約束）。 */
+function syncStickyBar() {
+  const host = $('sticky-bar');
+  if (!host) return;
+  if (!WZ || !WZ.compBar || $('sticky-submit').hidden) { host.replaceChildren(); return; }
+  let bar = null;
+  try { bar = WZ.compBar(buildPayload()); } catch (e) { bar = null; }
+  host.replaceChildren(...(bar ? [bar] : []));
 }
 /* ★f-transport / f-other は画面から消えて hidden になった（明細読み取りだけが書く）。
    代わりに繰り返し行の合計 f-var-sum / f-oth-sum を pdSync() が書いて recalc を呼ぶ。 */
-['f-gross','f-base','f-guarantee','f-hourly','f-guar','f-block','f-perdiem','f-housing-amt','f-command','f-bonus','f-bonus-mo','f-profit','f-instructor','f-examiner','f-union-pay','f-mgmt-pay','f-nonline-pay']
+['f-gross','f-base','f-guarantee','f-hourly','f-guar','f-block','f-perdiem','f-housing-amt','f-command','f-bonus','f-profit','f-instructor','f-examiner','f-union-pay','f-mgmt-pay','f-nonline-pay']
   .forEach((id) => $(id).addEventListener('input', () => { _lastMoney = id; recalc(); }));
-$('f-currency').addEventListener('change', recalc);
+/* ★通貨を変えたら、金額の読み方を全部やり直す。
+   readMoney は通貨の小数桁で答えが変わる（JPY では 1.000＝1,000 と決め打つ）ので、
+   AED のまま 1.000 と入れて「1,000」に確定した欄が、JPY へ切り替えても
+   data-money-raw が一致して moneyRead が短絡し、古い読みのまま残ってしまう。
+   印を落としてから fmtMoneyAll() を通す。通貨をあとから変えるのは実際にある
+   （db/test-form-contract.mjs が AED→JPY を検査している）。 */
+$('f-currency').addEventListener('change', () => {
+  for (const el of moneyEls()) { delete el.dataset.moneyN; delete el.dataset.moneyRaw; clearMoneyAsk(el); }
+  fmtMoneyAll();
+  recalc();
+});
 
 /* ── 段階表示（levels.fyi 型）──────────────────────────────────
    埋めると下に次が生える。★一度出したセクションは二度と隠さない。
@@ -3153,7 +3311,7 @@ const payEntered  = () => filled('f-gross');
 const housingOk   = () => filled('f-housing')
                           && ($('f-housing').value !== 'allowance' || filled('f-housing-amt'));
 const GATE_PAY    = () => filled('f-currency') && payEntered() && filled('f-netpay')
-                          && filled('f-bonus-mo') && filled('f-perdiem') && housingOk();
+                          && filled('f-perdiem') && housingOk();
 /* ★4. 契約と税は 2026-08-13 に必須化（オーナー指摘）。所得税率だけは任意のまま
      （税率表を持っていない国の人が、そこで詰まって送れなくなる）。 */
 const GATE_CONTRACT = () => filled('f-contract') && filled('f-taxcountry') && filled('f-seniority');
@@ -3882,7 +4040,7 @@ const CARRY = {
     'f-bonus','f-profit','f-pension','f-jobrole','f-age','f-base-iata'],
   fixed: ['f-base','f-guar','f-guarantee','f-command','f-housing-amt'],
   shape: ['f-payitems'],
-  never: ['f-year','f-month','f-gross','f-netpay','f-perdiem','f-bonus-mo',
+  never: ['f-year','f-month','f-gross','f-netpay','f-perdiem',
     'f-transport','f-other','f-hourly','f-flightvar','f-deduct','f-ytd',
     'f-block','f-duty','f-stay','f-duty-h','f-night-h','f-credit-h',
     'f-instructor','f-examiner','f-union-pay','f-mgmt-pay','f-nonline-pay',
@@ -4096,7 +4254,7 @@ function snapPrev(ids) {
    ⚠️ 逆に、ここに**入れてはいけない**のは月に依らないもの ── 会社・職位・機材・通貨・
      契約・在籍年次・税の居住国・役割の札（f-jobrole）・年金の率。毎月打ち直させない。 */
 const PAYSLIP_MONTH_IDS = ['f-gross','f-base','f-guarantee','f-command','f-housing-amt','f-other',
-  'f-perdiem','f-transport','f-bonus-mo','f-profit','f-instructor','f-examiner','f-payitems',
+  'f-perdiem','f-transport','f-profit','f-instructor','f-examiner','f-payitems',
   'f-block','f-guar','f-duty-h','f-night-h','f-credit-h',
   'f-netpay','f-ytd','f-deduct','f-flightvar','f-psdetail',
   /* ★明細から読めない欄こそ危ない（2026-09-11 に足した）。
@@ -4999,9 +5157,6 @@ function buildPayload(airline) {
          逆にすると支給構成の図が壊れる。 */
     other_allowance:     sumField('f-other', 'f-var-sum', 'f-oth-sum'),
     bonus_annual:        val('f-bonus'),
-    /* ★総支給に含まれている「その月のボーナス」。年換算のとき ×12 の前に外す。
-       bonus_annual（1年の合計）とは別物なので、絶対に足し合わせない。 */
-    bonus_month:         val('f-bonus-mo'),
     profit_share_annual: val('f-profit'),
     pension_pct:         val('f-pension'),
     contract_type:       val('f-contract'),
@@ -5170,7 +5325,6 @@ async function submitPayReport() {
     return stopAt('f-gross', 'その月の総支給額を入れてください。手当だけでは、他社と比べる軸がありません。');
   }
   if (!val('f-netpay')) return stopAt('f-netpay', 'その月の手取り額を入れてください（明細の「差引支給額」「Net Pay」）。');
-  if (!val('f-bonus-mo')) return stopAt('f-bonus-mo', '今月出たボーナスを入れてください。出ていない月は 0 と入れてください。');
   if (!val('f-perdiem')) return stopAt('f-perdiem', 'パーディアムを入れてください。付かない会社・出なかった月は 0 と入れてください。');
   if (!val('f-housing')) return stopAt('f-housing', '住居を選んでください。');
   if ($('f-housing').value === 'allowance' && !val('f-housing-amt')) {

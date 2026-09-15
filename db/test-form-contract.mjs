@@ -218,7 +218,7 @@ for (const f of ['pay-report.html', 'en/pay-report.html']) {
        数量（f-instr-qty / f-exam-qty）と組合の活動日数（f-union-days）、
        管理職の管理業務日数（f-mgmt-days）、兼務・配属の業務日数（f-nonline-days）は
        金額ではないので money を付けない。 */
-  const MONEY = ['f-gross', 'f-netpay', 'f-perdiem', 'f-bonus-mo', 'f-housing-amt',
+  const MONEY = ['f-gross', 'f-netpay', 'f-perdiem', 'f-housing-amt',
                  'f-bonus', 'f-base', 'f-guarantee', 'f-command', 'f-profit',
                  'f-instructor', 'f-examiner', 'f-union-pay', 'f-mgmt-pay', 'f-nonline-pay'];
   for (const f of ['pay-report.html', 'en/pay-report.html']) {
@@ -904,12 +904,16 @@ for (const f of ['pay-report.html', 'en/pay-report.html']) {
      ★f-year / f-month（対象月）は select で常に値が入るためゲートに書かれていないが、
        中身は必須。ここだけ「ゲートに現れなくてよい欄」として明示的に許す。 */
   const GATE_FREE = ['f-year', 'f-month'];
-  /* ★f-stay（ステイ日数）は 2026-09-12 に 必須 → 任意 へ戻した（オーナー決定5）。
-       毎月変わる実績で、明細に載らない会社もある。ここで止めると、
-       **書ける人の内訳ごと提出が落ちる**。空欄は 0 ではなく「不明（null）」で保存する。
-     ⚠️ 乗務日数（f-duty）は元から任意。2つを取り違えない。 */
+  /* ★f-stay（ステイ日数）は行ったり来たりしている。2026-09-12 に 必須 → 任意
+       （数えていない人に 0 を書かせるより、空で「不明」のまま預かる、という判断）、
+       2026-09-15 にオーナー指示で **必須へ戻した**。往復の記録として両方残す。
+       ⚠️ 必須にすると、数えていない人も 0 と入れて通る＝実態と違う 0 が混ざり得る。
+          それでよい、というのがオーナー判断。
+     ⚠️ 乗務日数（f-duty）は元から任意。2つを取り違えない。
+     ★f-bonus-mo（今月の賞与・ボーナス）は 2026-09-15 に**欄ごと廃止**した
+       （「そもそも賞与は別で支給されんだろ」＝下の「年間ボーナス」で受ける。オーナー決定）。 */
   const REQ = ['f-airline', 'f-airline-other', 'f-position', 'f-fleet', 'f-jobrole', 'f-age', 'f-year',
-               'f-block', 'f-currency', 'f-gross', 'f-netpay', 'f-bonus-mo',
+               'f-block', 'f-stay', 'f-currency', 'f-gross', 'f-netpay',
                'f-perdiem', 'f-housing', 'f-housing-amt',
                'f-contract', 'f-taxcountry', 'f-seniority'];
   for (const f of ['pay-report.html', 'en/pay-report.html']) {
@@ -967,6 +971,20 @@ for (const f of ['pay-report.html', 'en/pay-report.html']) {
        `${f}: ★帯に押す物を置いていない（送信の入口は 5/5 の1つだけ）`);
     ok(/class="sticky-cta-sum pv-no-cur"/.test(s),
        `${f}: 常設バーの金額に pv-no-cur が付いている（currency.js に二度変換させない）`);
+    /* ★2026-09-15 オーナー指示 ──「画面下の年収額の横にバーを作って、内訳を入れると
+         そのバーの色が内訳の割合に変わるように」。REAL PAY の帯と同じ物で、中身は
+         pay-wizard.js の compBar()＝5/5 の「支給の内訳」とまったく同じ絵。
+       ★この7区分の引き算は「命綱」で、db/deep-pay.sql と db/pay-rows.sql に写しが
+         2つある。フォームの中に3つ目を書き起こすと、同じ人について REAL PAY の帯と
+         このバーが違う内訳を出す。**必ず compBar() を呼ぶ。** */
+    ok(/<div class="sticky-cta-bar" id="sticky-bar"><\/div>/.test(s),
+       `${f}: 帯に内訳の割合バーの置き場がある（#sticky-bar）`);
+    ok(/WZ\.compBar/.test(s),
+       `${f}: ★バーは pay-wizard.js の compBar() に描かせている（引き算を書き起こさない）`);
+    const barBox = (s.match(/<div class="sticky-cta-bar"[\s\S]{0,240}?<\/div>/) || [''])[0];
+    ok(!/<button|<a[ >]|role="button"/.test(barBox),
+       `${f}: ★バーの中に押す物を置いていない（送信の入口は 5/5 の1つだけ）`,
+       barBox.slice(0, 90));
     /* ★長い説明はバーに載せない。#live-hint は #submit-block の中の1つだけ。 */
     ok((s.match(/id="live-hint"/g) || []).length === 1,
        `${f}: 年換算の長い説明は1か所だけ（バーは金額とボタンだけ）`);
@@ -1212,10 +1230,11 @@ const SAMPLE = {
   'f-tax': '0', 'f-command': '3200', 'f-transport': '1500', 'f-other': '900',
   'f-bonus': '52000', 'f-profit': '18000', 'f-pension': '12',
   'f-duty': '17', 'f-base-iata': 'DXB',
-  /* 2026-08-13 に増えた欄。ステイ日数・手取り・今月出たボーナスは必須、
-     勤務時間（Duty time）は任意。★その月にしか無い値なので、翌月のプリセットには
-     持ち越さない（下の「2回目の訪問」でそこを確かめる）。 */
-  'f-stay': '12', 'f-netpay': '41200', 'f-bonus-mo': '0', 'f-duty-h': '158.2',
+  /* 2026-08-13 に増えた欄。ステイ日数・手取りは必須、勤務時間（Duty time）は任意。
+     ★その月にしか無い値なので、翌月のプリセットには持ち越さない
+       （下の「2回目の訪問」でそこを確かめる）。
+     ★同じ組にあった「今月の賞与・ボーナス」は 2026-09-15 に欄ごと廃止した。 */
+  'f-stay': '12', 'f-netpay': '41200', 'f-duty-h': '158.2',
 };
 /* 必須だけを埋めて「送信に手が届く」まで行く最小の一式。
    ★SAMPLE と分けてある。あちらは内訳・役割まで入る「全部入り」で、
@@ -1225,7 +1244,7 @@ const FALLBACK_FILL = {
   'f-airline': 'emirates', 'f-position': 'cap', 'f-fleet': 'b777', 'f-age': '40-49',
   'f-block': '86.5', 'f-stay': '12',
   'f-currency': 'AED', 'f-gross': '54250', 'f-netpay': '41200',
-  'f-bonus-mo': '0', 'f-perdiem': '6200',
+  'f-perdiem': '6200',
   'f-housing': 'allowance', 'f-housing-amt': '17500',
   'f-contract': 'direct', 'f-taxcountry': 'AE', 'f-seniority': '12',
 };
@@ -1591,15 +1610,13 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   await new Promise((r) => setTimeout(r, 150));
   ok(await page.$eval('#ps', (el) => el.classList.contains('is-slim')),
      '手で入力に切り替えても、明細の入口は細い帯で残る');
-  /* ★2026-09-12、オーナー決定5で value="0" の直書きを外した。
-     初期値の 0 は**本人の回答ではない**（未回答の 0）。0 ＝ 回答済み・空欄 ＝ 未回答、
-     という決定1の土台をここで崩さないために、欄は空で始めて案内で 0 と言う。 */
-  ok((await page.$eval('#f-bonus-mo', (el) => el.value)) === '',
-     '★今月の賞与・ボーナスは空で始まる（未回答の 0 を初期値に置かない）',
-     await page.$eval('#f-bonus-mo', (el) => el.value));
-  ok(/0/.test(await page.$eval('#f-bonus-mo', (el) => el.placeholder || '')),
-     '★代わりに「出なかった月は 0」と案内する',
-     await page.$eval('#f-bonus-mo', (el) => el.placeholder || ''));
+  /* ★2026-09-15、オーナー決定で「今月の賞与・ボーナス」の欄そのものを廃止した
+     （「そもそも賞与は別で支給されんだろ」）。賞与は下の「年間ボーナス」で受ける。
+     ここで見張るのは、欄が生き返っていないこと。生き返ると年換算が
+     （総支給 − 今月の賞与）×12 に戻り、賞与の出た月に出した人の年収だけ下がる。
+     ⚠️ DB の bonus_month 列は消していない。過去の行は保存済みの値のまま計算される。 */
+  ok((await page.$('#f-bonus-mo')) === null,
+     '★「今月の賞与・ボーナス」の欄は無い（2026-09-15 廃止・年間ボーナスで受ける）');
 
   /* ── 会社を名前で探す（2026-09-13）─────────────────────────────
      ★オーナーが localhost で踏んだ形 ── 「rian」と打つとオーストリア航空
@@ -1785,13 +1802,15 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
 
   bad.push(...await setF(pick('f-block')));
   await goNext();
-  /* ★2026-09-12（オーナー決定5）ステイ日数を任意に戻したので、飛んだ時間だけで進む。
-       ⚠️ ここで空のまま進めることと、空を 0 にしないことは別の約束。
-          下の「★ステイ日数を空のまま進んでも 0 が入らない」がそちらを見ている。 */
-  ok(await vis('s3'), '★フライトタイムだけで 3/5 へ進む（ステイ日数は任意）');
+  /* ★2026-09-15（オーナー指示）ステイ日数を必須へ戻した。飛んだ時間だけでは進めない。
+       ⚠️ 進めないことと、勝手に 0 を置かないことは別の約束。
+          止まっているあいだ欄が空のままであることを下で見ている。 */
+  ok(!(await vis('s3')), '★フライトタイムだけでは 3/5 へ進めない（ステイ日数も必須）');
   ok((await fv('f-stay')) === '',
-     '★ステイ日数を空のまま進んでも 0 が入らない（不明のまま送る）', await fv('f-stay'));
+     '★進めないときも 0 を置かない（本人が入れるまで空のまま）', await fv('f-stay'));
   bad.push(...await setF(pick('f-stay')));
+  await goNext();
+  ok(await vis('s3'), '★ステイ日数を入れたら 3/5 へ進む');
   ok(!(await vis('s4')), 'まだ 4/5 と送信ボタンは出ない');
   /* ── 帯（2026-09-08 オーナー指示で作り替えた）────────────────
      2026-08-27 の「3.報酬から『匿名で提出』を常に下に出す」は、5ステップ化に
@@ -1824,13 +1843,8 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   bad.push(...await setF({ 'f-currency': SAMPLE['f-currency'], 'f-gross': GROSS_M }));
   await goNext();
   ok(!(await vis('s4')),
-     '★通貨と額面だけでは 4/5 へ進めない（手取り・今月のボーナス・パーディアム・住居が要る）');
+     '★通貨と額面だけでは 4/5 へ進めない（手取り・パーディアム・住居が要る）');
   bad.push(...await setF({ 'f-netpay': NET_M, 'f-perdiem': '6200' }));
-  await goNext();
-  ok(!(await vis('s4')),
-     '★今月の賞与が空のあいだは 4/5 へ進めない（空欄は未回答。0 とは違う）');
-  /* ★出なかった月は 0 と入れてもらう。**0 は回答**であって未入力ではない。 */
-  bad.push(...await setF({ 'f-bonus-mo': '0' }));
   await goNext();
   ok(!(await vis('s4')), '住居を答えるまでは 4/5 へ進めない');
   bad.push(...await setF({ 'f-housing': 'allowance' }));
@@ -1892,15 +1906,11 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   ok(grossOnly === Number(GROSS_M) * 12,
      `額面だけのときは 額面×12 → ${grossOnly}`, `期待 ${Number(GROSS_M) * 12}`);
 
-  /* ★総支給は「明細のとおり」＝ボーナスが出た月は込みの額。×12 する前に、
-     その月に出たぶんだけ外す。外さないと、ボーナスの出た月に出した人の年収だけ
-     跳ね上がる（2026-08-13 オーナー指摘）。サーバの pv_annual_total と同じ式。 */
-  await setF({ 'f-bonus-mo': '10000' });
-  const withBonus = await page.evaluate(() => annualTotal());
-  ok(withBonus === (Number(GROSS_M) - 10000) * 12,
-     `今月出たボーナスは ×12 する前に引く → ${withBonus}`,
-     `期待 ${(Number(GROSS_M) - 10000) * 12}`);
-  await setF({ 'f-bonus-mo': '0' });
+  /* ★2026-09-15 まで、ここは「今月出たボーナスは ×12 する前に引く」を見張っていた
+     （2026-08-13 オーナー指摘。総支給は明細のとおり＝ボーナス込みの額だったため）。
+     オーナー決定で欄ごと廃止したので、いまは総支給をそのまま ×12 する。
+     ⚠️ サーバの pv_annual_total の式は1行も変えていない。キーを送らない＝null で、
+        coalesce(p_bonus_month, 0) が 0 になる＝過去の行は今までどおり計算される。 */
 
   /* ★桁区切り（2026-08-13 オーナー指摘＝1150000 が読めない）。
      画面には 1,150,000 と出し、送るのとサーバの計算に使うのは素の 1150000 のまま
@@ -2176,6 +2186,34 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   ok(gap.detail < gap.gross, `いま内訳は総支給に足りていない → ${gap.detail} / ${gap.gross}`);
   ok(!(await vis('pd-over')),
      '★内訳が総支給に足りなくても何も言わない（説明できない残りは普通のこと）');
+
+  /* ── ★帯の内訳バー（2026-09-15 オーナー指示）──────────────────────
+     「画面下の年収額の横にバーを作って、内訳を入れるとその割合に色が変わるように」。
+     灰色の rest ＝ まだどの項目にも入れていない分なので、**内訳を入れるほど
+     灰色が色に食われていく**。ここではその向きだけを見る（絵そのものは 5/5 の
+     「支給の内訳」と同じ compBar() が作っているので、数字は向こうが見ている）。
+     ⚠️ 共有 JS が落ちた1枚もの形態では WZ が無く、バーが出ないだけ（金額と提出は動く）。 */
+  const barOf = () => page.evaluate(() => {
+    const segs = [...document.querySelectorAll('#sticky-bar .wz-seg-dot')];
+    const r = segs.find((x) => x.classList.contains('is-rest'));
+    return { n: segs.length, keys: segs.map((x) => x.className.replace('wz-seg-dot is-', '')),
+             rest: r ? (parseFloat(r.style.flex) || 0) : -1 };
+  });
+  const barA = await barOf();
+  ok(barA.n >= 2 && barA.rest > 0,
+     '★帯に内訳の割合バーが出ている（説明できていない分は灰色で残る）', JSON.stringify(barA));
+  const baseNow = Number((await fv('f-base')).replace(/,/g, ''));
+  await setF({ 'f-base': String(baseNow + 3000) });
+  await new Promise((r) => setTimeout(r, 200));
+  const barB = await barOf();
+  ok(barB.rest < barA.rest,
+     '★内訳を入れるほど灰色が色に食われる（オーナーの言う見え方）',
+     JSON.stringify({ before: barA, after: barB }));
+  await setF({ 'f-base': String(baseNow) });
+  await new Promise((r) => setTimeout(r, 200));
+  const barC = await barOf();
+  ok(barC.keys.join(',') === barA.keys.join(',') && Math.abs(barC.rest - barA.rest) < 1e-6,
+     '★戻せば元の絵に戻る（毎回 compBar() が作り直している）', JSON.stringify(barC));
   await setF({ 'f-base': String(Number(GROSS_M) + 1000) });
   await new Promise((r) => setTimeout(r, 150));
   ok(await vis('pd-over'), '★内訳の合計が総支給を超えたときだけ注意が出る');
@@ -2679,11 +2717,16 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
 
   /* ★A（2026-08-27）── 超過の注意は、その額を打った欄の下に出る。
      いま最後に打ったのは兼務・配属の金額なので、出るのは pd-over-nonline だけ。 */
+  /* ⚠️ 2026-09-15、超過の判定は input ではなく **change**（欄から離れたとき）へ移した
+     （打っている途中ずっと赤くなるのをやめたため）。受け皿を選ぶ _lastMoney の代入は
+     input のままなので、**input → change の順**で投げる（本物のブラウザと同じ順）。
+     片方しか投げないと、判定が走らない／受け皿が1つ古い、のどちらかになる。 */
   await page.evaluate(() => {
     const g = document.getElementById('f-gross');
     g.value = '1'; g.dispatchEvent(new Event('input', { bubbles: true }));
     const n = document.getElementById('f-nonline-pay');
     n.dispatchEvent(new Event('input', { bubbles: true }));   // ★最後に触った欄をこちらに戻す
+    n.dispatchEvent(new Event('change', { bubbles: true }));  // ★判定が走るのはこちら
   });
   await new Promise((r) => setTimeout(r, 200));
   const warnN = await page.evaluate(() => ['pd-over', 'pd-over-instr', 'pd-over-exam',
@@ -2694,7 +2737,8 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   /* 基本給を最後に触ると、既定の受け皿（内訳の中）へ戻る。 */
   await page.evaluate(() => {
     const b = document.getElementById('f-base');
-    b.dispatchEvent(new Event('input', { bubbles: true }));
+    b.dispatchEvent(new Event('input', { bubbles: true }));   // ★受け皿はこちらで決まる
+    b.dispatchEvent(new Event('change', { bubbles: true }));  // ★判定が走るのはこちら
   });
   await new Promise((r) => setTimeout(r, 200));
   const warnB = await page.evaluate(() => ['pd-over', 'pd-over-instr', 'pd-over-exam',
@@ -3197,7 +3241,7 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
      保存されていなかった（明細画像は保存しないので、その分は復元できない）。
      「送り忘れ」は画面にも RPC のエラーにも出ないので、ここで数える。
      ★キーを増やすときはこの表も足す。減らすときは、なぜ消してよいかを考える。 */
-  const KEYS_BEFORE = [   // 手入力で埋まる34キー。1つでも欠けたら静かに壊れる
+  const KEYS_BEFORE = [   // 手入力で埋まる41キー。1つでも欠けたら静かに壊れる
     'airline', 'airline_other', 'position', 'fleet', 'job_role', 'base_iata',
     'period_year', 'period_month', 'currency', 'base_pay',
     /* 2026-08-26 追加。保証給（Minimum Guarantee などの金額）。
@@ -3214,8 +3258,10 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
        ★2026-08-26、内訳との排他はやめた。両方そのまま送り、年換算は総支給を正とする。 */
     'gross_monthly',
     /* 2026-08-13 追加。手取りと勤務時間は明細専用の隠し欄から普通の欄へ出た
-       （手取りは必須・勤務時間は任意）。ステイ日数と今月出たボーナスは新設。 */
-    'net_pay_actual', 'duty_hours', 'stay_nights', 'bonus_month',
+       （手取りは必須・勤務時間は任意）。ステイ日数も新設。
+       ★同じ日に足した bonus_month は 2026-09-15 に画面ごと廃止＝**キーを送らない**。
+         列も RPC も残してあるので、送らない＝null で過去の行と同じ扱いになる。 */
+    'net_pay_actual', 'duty_hours', 'stay_nights',
     /* 2026-08-18 追加。年代（10歳の幅）。年収は年齢とともに上がるので、
        これが無いと「同じ会社の機長」同士が実は入社3年目と定年間際の比較になる。 */
     'age_bucket',
@@ -3320,10 +3366,15 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   ok(!(p.pay_items && p.pay_items.nonline),
      '★選んでいない役割（兼務・配属）も pay_items に乗らない');
   /* 逆に、人が入れた欄はそのまま届いていること */
-  ok(p.stay_nights === SAMPLE['f-stay'] && p.bonus_month === SAMPLE['f-bonus-mo']
+  ok(p.stay_nights === SAMPLE['f-stay']
      && p.net_pay_actual === SAMPLE['f-netpay'] && p.duty_hours === SAMPLE['f-duty-h'],
-     `★手入力のステイ日数・今月のボーナス・手取り・勤務時間が届く`,
-     `${p.stay_nights} / ${p.bonus_month} / ${p.net_pay_actual} / ${p.duty_hours}`);
+     `★手入力のステイ日数・手取り・勤務時間が届く`,
+     `${p.stay_nights} / ${p.net_pay_actual} / ${p.duty_hours}`);
+  /* ★2026-09-15 に廃止した欄のキーは送らない。列は残っているので過去の行は無事。
+     送ってしまうと上の「知らないキーが増えていない」でも落ちる（二重の網）。 */
+  ok(!('bonus_month' in p),
+     '★廃止した「今月の賞与」のキーは送らない（列は残す・過去の行はそのまま）',
+     JSON.stringify(p.bonus_month));
   ok(p.source === 'web', `★手入力の出所は 'web'（'payslip' を騙らない） → ${p.source}`);
 
   // ── 契約 ②：クライアント式とサーバ式が同じ額を出すか（式の二重管理）──
@@ -3465,27 +3516,24 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
 
   /* ★その月にしか無い値（CARRY.never）は、前回の額でも 0 でも埋めない。
      埋まっていると、先月の実績が今月の実データとして黙って送られる。 */
-  const NEVER6 = ['f-block', 'f-stay', 'f-gross', 'f-netpay', 'f-perdiem', 'f-bonus-mo'];
-  const vals6 = {};
-  for (const id of NEVER6) vals6[id] = await fv(id);
-  ok(NEVER6.every((id) => vals6[id] === ''),
-     '★飛んだ時間・ステイ日数・総支給・手取り・パーディアム・今月の賞与は前回の値でも 0 でも埋めない',
-     NEVER6.map((id) => `${id}=${vals6[id] === '' ? '空' : vals6[id]}`).join(' / '));
+  const NEVER5 = ['f-block', 'f-stay', 'f-gross', 'f-netpay', 'f-perdiem'];
+  const vals5 = {};
+  for (const id of NEVER5) vals5[id] = await fv(id);
+  ok(NEVER5.every((id) => vals5[id] === ''),
+     '★飛んだ時間・ステイ日数・総支給・手取り・パーディアムは前回の値でも 0 でも埋めない',
+     NEVER5.map((id) => `${id}=${vals5[id] === '' ? '空' : vals5[id]}`).join(' / '));
   await goNext();
   ok((await page.evaluate(() => window.PVPayWizard.current())) === 's2',
      '★今月の実績が空のままでは確認へ進めない');
-  /* ★ステイ日数は任意（決定5）なので、ここでは入れずに進む。
-     それでも進めることと、空が 0 に化けないことを下で見る。 */
+  /* ★ステイ日数は 2026-09-15 から必須（オーナー指示）。ここでも入れないと進めない。 */
   bad.push(...await setF({ 'f-block': SAMPLE['f-block'], 'f-gross': GROSS_M, 'f-netpay': NET_M,
-                           'f-perdiem': '6200', 'f-bonus-mo': '0' }));
+                           'f-perdiem': '6200', 'f-stay': SAMPLE['f-stay'] }));
   await new Promise((r) => setTimeout(r, 150));
   await goNext();
   ok((await page.evaluate(() => window.PVPayWizard.current())) === 's5' && (await submitOn()),
      '★今月の分だけ入れれば確認まで行ける（会社・契約は前回のまま）');
-  ok((await fv('f-stay')) === '',
-     '★任意のステイ日数は空のまま確認まで来る（0 を入れて埋めない）', await fv('f-stay'));
-  ok((await fv('f-bonus-mo')) === '0',
-     '★本人が入れた 0 は 0 のまま残る（未回答に戻さない）', await fv('f-bonus-mo'));
+  ok((await fv('f-stay')) === SAMPLE['f-stay'],
+     '★入れたステイ日数はそのまま確認まで来る', await fv('f-stay'));
   // 復元が生きていること（段だけ出て金額が空なら「30秒で終わる」が嘘になる）
   ok((await fv('f-base')) === SAMPLE['f-base'],
      `前回の基本給が入ったまま出てくる → ${await fv('f-base')}`, `期待 ${SAMPLE['f-base']}`);
@@ -3584,7 +3632,7 @@ console.log('\n明細の内訳（hidden → RPC → payslip_detail 列）');
   await set({
     'f-airline': 'zipair', 'f-position': 'cap', 'f-fleet': 'a380', 'f-jobrole': 'line',
     'f-age': '40-49', 'f-block': '72.4', 'f-stay': '9', 'f-currency': 'JPY', 'f-gross': '663600',
-    'f-netpay': '512000', 'f-bonus-mo': '0', 'f-perdiem': '38000',
+    'f-netpay': '512000', 'f-perdiem': '38000',
     'f-housing': 'none', 'f-contract': 'direct', 'f-taxcountry': 'JP', 'f-seniority': '14',
   });
   await new Promise((r) => setTimeout(r, 250));
@@ -3730,7 +3778,7 @@ console.log('\n明細1枚が REAL PAY に出るまで（＋下書きが上書き
        （同じ値だと「守れた」のか「たまたま一致した」のか区別できない）。 */
     draft: {
       'f-airline': 'jal', 'f-position': 'cap', 'f-fleet': 'b777', 'f-jobrole': 'line',
-      'f-age': '40-49', 'f-stay': '9', 'f-bonus-mo': '0', 'f-housing': 'none',
+      'f-age': '40-49', 'f-stay': '9', 'f-housing': 'none',
       'f-contract': 'direct', 'f-taxcountry': 'JP', 'f-seniority': '14',
       'f-currency': 'USD', 'f-gross': '111111', 'f-base': '222222', 'f-netpay': '333333',
       'f-block': '55.5', 'f-perdiem': '38000', 'f-year': '2026', 'f-month': '3',
@@ -3769,7 +3817,7 @@ console.log('\n明細1枚が REAL PAY に出るまで（＋下書きが上書き
     uid: '00000000-0000-4000-8000-0000000000c5',
     draft: {
       'f-airline': 'lufthansa', 'f-position': 'fo', 'f-fleet': 'a320', 'f-jobrole': 'line',
-      'f-age': '30-39', 'f-stay': '7', 'f-bonus-mo': '0', 'f-housing': 'none',
+      'f-age': '30-39', 'f-stay': '7', 'f-housing': 'none',
       'f-contract': 'direct', 'f-taxcountry': 'DE', 'f-seniority': '6',
       'f-currency': 'USD', 'f-gross': '111111', 'f-base': '222222', 'f-netpay': '333333',
       'f-block': '55.5', 'f-perdiem': '38000', 'f-year': '2026', 'f-month': '3',
@@ -3950,19 +3998,11 @@ console.log('\n明細1枚が REAL PAY に出るまで（＋下書きが上書き
        `[${c.tag}] 総支給に緑枠が付いている（この検査の信号が生きている）`,
        green.map((g) => g.id).join(','));
 
-    /* ★明細に印字されていない「今月の賞与」は、明細からは読めない。
-       ここで先月の下書きの 0 を戻すと**未回答の 0 が本人の回答に化ける**ので、
-       この欄は空のまま残る ── 本人が答える。2026-09-12 の決定1・5・6。 */
-    ok(await page.$eval('#f-bonus-mo', (el) => el.value === ''),
-       `[${c.tag}] ★明細に無い当月賞与は空のまま（先月の下書きの 0 を戻さない）`,
-       await page.$eval('#f-bonus-mo', (el) => el.value));
-    await page.evaluate(() => {
-      const e = document.getElementById('f-bonus-mo');
-      e.value = '0';
-      e.dispatchEvent(new Event('input', { bubbles: true }));
-      e.dispatchEvent(new Event('change', { bubbles: true }));
-    });
-    await new Promise((r) => setTimeout(r, 200));
+    /* ★ここは 2026-09-15 まで「明細から読めない当月賞与に、先月の下書きの 0 が
+       戻っていないか」を見ていた（未回答の 0 が本人の回答に化ける形）。
+       オーナー決定で欄ごと廃止したので、いまは生き返っていないことだけを見る。 */
+    ok((await page.$('#f-bonus-mo')) === null,
+       `[${c.tag}] ★「今月の賞与・ボーナス」の欄は無いまま（廃止を戻していない）`);
 
     // ── 通し：5/5 → 送信 → pay_reports → マイページ → REAL PAY ──────
     await page.evaluate(() => { if (window.PVPayWizard) window.PVPayWizard.goLast(); });
@@ -4416,7 +4456,7 @@ for (const [tag, url] of [['ja', 'http://localhost:3000/pay-report.html'],
      'f-contract', 'f-taxcountry'].forEach((id) => set(id, firstOpt(id)));
     const role = document.querySelector('input[name="f-jobrole"]');
     if (role) { role.checked = true; role.dispatchEvent(new Event('change', { bubbles: true })); }
-    ['f-block', 'f-stay', 'f-bonus-mo', 'f-perdiem', 'f-seniority'].forEach((id) => set(id, '0'));
+    ['f-block', 'f-stay', 'f-perdiem', 'f-seniority'].forEach((id) => set(id, '0'));
     set('f-gross', '1080000');
     set('f-netpay', '842000');
   });
@@ -5190,7 +5230,7 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
 
   /* ── ★3（入口）前月の実績は、ひな型に1つも入っていない ───────────── */
   const NEVER_SHOWN = ['f-gross', 'f-netpay', 'f-block', 'f-stay', 'f-duty', 'f-perdiem',
-                       'f-bonus-mo', 'f-other', 'f-transport', 'f-hourly',
+                       'f-other', 'f-transport', 'f-hourly',
                        'f-instructor', 'f-union-pay', 'f-mgmt-pay', 'f-nonline-pay'];
   const n0 = await fvs(NEVER_SHOWN);
   ok(NEVER_SHOWN.every((id) => n0[id] === ''),
@@ -5261,7 +5301,7 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   await rows('var', [{ label: 'Flight Pay', basis: 'block', amount: '4000' }]);
   await set({ 'f-year': '2026', 'f-month': '7', 'f-base': '48500', 'f-guarantee': '0',
               'f-gross': '54250', 'f-netpay': '41200', 'f-block': '86.5',
-              'f-perdiem': '6200', 'f-bonus-mo': '0' });
+              'f-perdiem': '6200', 'f-stay': '12' });
   await new Promise((r) => setTimeout(r, 200));
   const miss = await page.evaluate(() => missingAll().map((f) => {
     const e = f.querySelector('input,select,textarea');
@@ -5270,24 +5310,26 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   ok(miss.length === 0,
      `${T} ★1 基本給あり・保証給 0・変動給1行で、足りない必須が1つも無い`, miss.join(' / '));
 
-  /* ── ★2 未回答が 0 に変わらない（画面・下書き・payload）───────────── */
-  ok((await fv('f-stay')) === '' && (await fv('f-duty')) === '',
-     `${T} ★2 任意のステイ日数・乗務日数は空のまま（0 を置かない）`,
-     `${await fv('f-stay')} / ${await fv('f-duty')}`);
+  /* ── ★2 未回答が 0 に変わらない（画面・下書き・payload）─────────────
+     ★2026-09-15、ステイ日数は必須へ戻った（オーナー指示）ので、ここで空のまま
+       残るのは乗務日数（f-duty）だけ。「任意の欄に勝手に 0 を置かない」という
+       約束そのものは何も変わっていない ── 見張る欄が1つ減っただけ。 */
+  ok((await fv('f-duty')) === '',
+     `${T} ★2 任意の乗務日数は空のまま（0 を置かない）`, await fv('f-duty'));
   p = await pay();
-  ok(p.stay_nights === null && p.duty_days === null,
+  ok(p.duty_days === null,
      `${T} ★2 送るときも未回答（null）── 0 で埋めない`,
-     JSON.stringify({ stay: p.stay_nights, duty: p.duty_days }));
-  ok(p.bonus_month === '0',
-     `${T} ★2 本人が入れた 0 は 0 のまま送る（未回答に戻さない）`, String(p.bonus_month));
+     JSON.stringify({ duty: p.duty_days }));
+  ok(p.stay_nights === '12',
+     `${T} ★2 必須になったステイ日数は本人が入れた数で送る`, String(p.stay_nights));
   await page.evaluate(() => window.PVPayWizard.saveDraft());
   const dr = await page.evaluate(() => {
     try { return JSON.parse(localStorage.getItem('pv_pay_draft') || 'null'); } catch (e) { return null; }
   });
-  ok(dr && dr.fields && !('f-stay' in dr.fields) && dr.fields['f-bonus-mo'] === '0',
-     `${T} ★2 下書きでも同じ ── 未回答は控えず、本人の 0 だけを控える`,
-     JSON.stringify({ stay: dr && dr.fields ? dr.fields['f-stay'] : '?',
-                      bonus: dr && dr.fields ? dr.fields['f-bonus-mo'] : '?' }));
+  ok(dr && dr.fields && !('f-duty' in dr.fields) && dr.fields['f-stay'] === '12',
+     `${T} ★2 下書きでも同じ ── 未回答は控えず、本人が入れた数だけを控える`,
+     JSON.stringify({ duty: dr && dr.fields ? dr.fields['f-duty'] : '?',
+                      stay: dr && dr.fields ? dr.fields['f-stay'] : '?' }));
 
   /* ── ★4 同じ月の再開では、打ったものが全部戻る ──────────────────── */
   await page.reload({ waitUntil: 'networkidle2', timeout: 30000 });
@@ -5297,14 +5339,14 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   await page.click('#entry-manual');
   await new Promise((r) => setTimeout(r, 500));
   const back = await fvs(['f-year', 'f-month', 'f-gross', 'f-netpay', 'f-block',
-                          'f-bonus-mo', 'f-perdiem', 'f-base', 'f-stay']);
+                          'f-perdiem', 'f-base', 'f-stay', 'f-duty']);
   ok(back['f-gross'].replace(/,/g, '') === '54250' && back['f-netpay'].replace(/,/g, '') === '41200'
      && back['f-block'] === '86.5' && back['f-year'] === '2026' && back['f-month'] === '7',
      `${T} ★4 同じ月の続きは、その月の実績まで全部戻る`, JSON.stringify(back));
-  ok(back['f-bonus-mo'] === '0',
-     `${T} ★4 本人が入れた 0 も 0 のまま戻る`, back['f-bonus-mo']);
-  ok(back['f-stay'] === '',
-     `${T} ★4 空欄は空欄のまま戻る（再開のついでに 0 を置かない）`, back['f-stay']);
+  ok(back['f-stay'] === '12',
+     `${T} ★4 必須のステイ日数も打った数のまま戻る`, back['f-stay']);
+  ok(back['f-duty'] === '',
+     `${T} ★4 空欄は空欄のまま戻る（再開のついでに 0 を置かない）`, back['f-duty']);
   const vrBack = await page.evaluate(() => Array.from(document.querySelectorAll('#pd-var-rows .pd-row'))
     .map((r) => ((r.querySelector('.pd-amt') || {}).value || '').replace(/,/g, ''))
     .filter((x) => x !== ''));
@@ -5335,7 +5377,7 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
 
   await page.evaluate(() => startNewMonth());
   await new Promise((r) => setTimeout(r, 300));
-  const MONTHLY = ['f-gross', 'f-netpay', 'f-block', 'f-perdiem', 'f-bonus-mo', 'f-stay', 'f-duty',
+  const MONTHLY = ['f-gross', 'f-netpay', 'f-block', 'f-perdiem', 'f-stay', 'f-duty',
                    'f-instructor', 'f-examiner', 'f-union-pay', 'f-mgmt-pay', 'f-nonline-pay',
                    'f-instr-qty', 'f-exam-qty', 'f-union-days', 'f-mgmt-days', 'f-nonline-days'];
   const after8 = await fvs(MONTHLY);

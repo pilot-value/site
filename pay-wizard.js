@@ -985,6 +985,16 @@ var API = {
        payload() をその前に呼んでも後に呼んでも同じ答えになる。 */
     renderReview(C.payload ? C.payload() : null);
   },
+  /* 常設バー（画面の下端）に出す内訳の割合バー（2026-09-15 オーナー指示）。
+     ★中身は 5/5「支給の内訳」の帯と**まったく同じ**（reviewComp → barEl）。
+       同じ画面に2本並ぶ 5/5 で、2つが違う絵を出さないことを優先した。
+     ★8区分の引き算を呼ぶ側で書き起こさない。あれは「命綱」で、
+       db/deep-pay.sql と db/pay-rows.sql に写しが2つある（CLAUDE.md の警告）。
+       3つ目を書くと、同じ人について REAL PAY の帯とこのバーが違う内訳を出す。
+       ここは shelf() を通す1本だけにしてある。
+     ★返すのは <div class="wz-cbar">。中身が1つも無ければ null。
+       呼ぶ側は null のとき帯を空にする（0 で埋めない）。 */
+  compBar: function (p) { return barEl(reviewComp(p)); },
   /* db/test-pay-preview.mjs が呼ぶ純関数（DOM を1つも触らない）。 */
   preview: { sig2: sig2, bandGrid: bandGrid, band: band, shelf: shelf, row: publicRow,
              unionOutside: unionOutside, hasItems: hasItems }

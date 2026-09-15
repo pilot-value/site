@@ -714,22 +714,27 @@ for (const fx of fixtures) {
       ok(q.chips.length === 6, '6択', q.chips.join('／'));
       ok(!q.inFold, '★畳んだ内訳の外に出ている（中だと既定で閉じていて誰にも見えない）');
 
-      /* 「賞与・一時金」を押す＝6択のうち年収が実際に動く2つの片方。
-         その他手当から抜けて賞与の欄へ移る。移した先を空にし忘れると二重に数える。 */
+      /* 「賞与・一時金」を押す。
+         ⚠️ 2026-09-15、フォームから「今月の賞与・ボーナス」の欄が消えた（オーナー決定
+            「そもそも賞与は別で支給されんだろ」）。行き先だけ f-other（その他の現金）に
+            移してある ── 欄が無い id のままにすると setField が黙って落として、
+            **金額がどこにも残らない**。
+         ★見るのは2つ。① 金額が f-other に残っていること（消えていない）。
+                        ② 内訳データに "asked":"bonus" が残ること（これが語彙の正解データ）。
+         ★6択は6択のまま。減らすと、この上の chips.length === 6 と chip[3] が両方ずれる。 */
       await page.evaluate(() => {
         const b = document.querySelectorAll('.ps-q-c .chip')[3];
         if (b) b.click();
       });
       const after = await page.evaluate(() => {
         const g = (id) => (document.getElementById(id) || {}).value;
-        return { other: g('f-other'), bonus: g('f-bonus-mo'), detail: g('f-psdetail'),
-                 card: !!document.querySelector('.ps-q') };
+        return { other: g('f-other'), bonusBox: !!document.getElementById('f-bonus-mo'),
+                 detail: g('f-psdetail'), card: !!document.querySelector('.ps-q') };
       });
-      ok(dg(after.bonus) === '12000', '答えると賞与の欄へ移る', after.bonus);
-      /* ★2026-08-27、変動給が行へ移ったので、その他手当の欄に残っていたのは
-         この12,000だけ。移したら空になる（0 も書かない）。 */
-      ok(dg(after.other) === '', '★移した元（その他手当）から抜けている＝二重に数えない',
-         after.other || '(空)');
+      ok(after.bonusBox === false,
+         '★「今月の賞与・ボーナス」の欄はもう無い（2026-09-15 に廃止）');
+      ok(dg(after.other) === '12000',
+         '★賞与と答えても金額はその他の現金に残る（どこにも消えない）', after.other || '(空)');
       ok(!after.card, '答え終わったらカードごと消える（1件しか無かった）');
       ok(/"asked":"bonus"/.test(after.detail || ''),
          '★本人の答えが内訳データに残る（これが語彙の正解データになる）');

@@ -559,7 +559,7 @@ export function systemPrompt(lang: string): string {
 
    規則は**画面に既にある正解の写し** ── pay-report.html の readMoney()。
    ① 区切りが2種類 → 後に出たほうが小数点（1,234.56 も 1.234,56 も一発）
-   ② カンマだけ → 3桁ずつ割れれば桁区切り、割れなければ小数のカンマ
+   ② カンマだけ → **常に桁区切り**（2026-09-15 オーナー決定。書式は見ない）
    ③ ピリオドだけ → 2つ以上あれば桁区切りか、さもなくば読まない
    ④ 区切り無し
 
@@ -647,10 +647,11 @@ export function readMoneyNum(v: unknown, dec: number): number | null {
     if (!grouped(t.slice(0, t.lastIndexOf(d)), g)) return null;
     return sign(asDec(t, d));
   }
-  if (com) {                                           // ② カンマだけ
-    if (grouped(t, ',')) return sign(asPlain(t));
-    if (t.split(',').length > 2) return null;          // 1,23,456 はどちらにも読めない
-    return sign(asDec(t, ','));
+  if (com) {                                           // ② カンマだけ ＝ **常に桁区切り**
+    /* 2026-09-15 オーナー決定。書式（3桁に割れるか）は見ない。
+       200,00 → 20000 ／ 1,100,00 → 110000 ／ 1,23,456 → 123456。
+       画面側（pay-report.html の readMoney）と同じ1本。片方だけ直さないこと。 */
+    return sign(asPlain(t));
   }
   if (dot) {                                           // ③ ピリオドだけ
     if (t.split('.').length > 2) return grouped(t, '.') ? sign(asPlain(t)) : null;

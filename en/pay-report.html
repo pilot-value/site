@@ -552,10 +552,16 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
             <!-- ★2026-09-12, required → optional (owner decision 5). Asking someone who
                  never counted their nights for "0" or a half-remembered number is worse
                  than taking a blank and keeping it as unknown. The column already
-                 allows null, so no SQL change is needed. -->
-            <label class="form-label" for="f-stay">Layover nights<span class="opt-tag">optional</span></label>
+                 allows null, so no SQL change is needed.
+                 ★2026-09-15, the owner asked for it **back as required**. Only the label
+                 had turned optional: the submit check (stopAt('f-stay')) and the step
+                 gate (GATE_HOURS) both still demanded it, so someone who left it blank
+                 walked to 5/5 and was thrown back to 2/5 on submit. All three now agree.
+                 ⚠️ People who never counted will type 0 to get through, so some of the
+                 zeroes will not be real. -->
+            <label class="form-label" for="f-stay">Layover nights<span class="req-tag">Required</span></label>
             <input type="text" id="f-stay" class="form-input num" inputmode="numeric" placeholder="e.g. 8" data-min="0" data-max="31" data-dec="0"/>
-            <p class="fld-hint">Nights spent away from base. Enter <b>0</b> if every trip was a day return. Leave it blank if you did not count.</p>
+            <p class="fld-hint">Nights spent away from base. Enter <b>0</b> if every trip was a day return.</p>
           </div>
         </div>
 
@@ -654,7 +660,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
         <div class="fld" id="pay-gross-fld">
           <label class="form-label" for="f-gross">Gross pay that month<span class="req-tag">Required</span></label>
           <input type="text" id="f-gross" class="form-input money" inputmode="decimal" placeholder="e.g. 48,500"/>
-          <p class="fld-hint" id="gross-hint-own">The <b>gross</b>, before tax and deductions (&ldquo;Gross Pay&rdquo; on your payslip).</p>
+          <p class="fld-hint" id="gross-hint-own">The <b>gross</b>, before tax and deductions (&ldquo;Gross Pay&rdquo; on your payslip). Bonuses go in <b>Annual bonus</b> below.</p>
         </div>
 
         <div class="fld">
@@ -663,28 +669,27 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           <p class="fld-hint">What reached your account after tax and deductions (&ldquo;Net Pay&rdquo;).</p>
         </div>
 
-        <!-- ★Bonus is asked twice on purpose (owner, 2026-08-13): once as the amount
-             inside this month's gross, once as the full-year total. Since the gross is
-             entered exactly as printed, a bonus month carries the bonus inside it, and
-             ×12 would inflate the annual figure.
-             Annual = (gross − bonus this month) × 12 + annual bonus. -->
-        <div class="grid2">
-          <div class="fld">
-            <label class="form-label" for="f-perdiem">Per diem (total for the month)<span class="req-tag">Required</span></label>
-            <input type="text" id="f-perdiem" class="form-input money" inputmode="decimal" placeholder="Monthly total"/>
-            <p class="fld-hint">The <b>monthly total of per diem</b>. Enter <b>0</b> if none was paid, or your airline pays none.</p>
-          </div>
-          <div class="fld">
-            <label class="form-label" for="f-bonus-mo">Bonus paid this month<span class="req-tag">Required</span></label>
-            <!-- ★No value="0" here (owner, 2026-09-12). A 0 sitting in a new month's
-                 actual figure before anyone has answered gets saved as "no bonus" in the
-                 months a bonus WAS paid and the pilot forgot to overwrite it.
-                 2026-08-13 put the real 0 in because a greyed-out 0 reads as "you can skip
-                 this" on a required field. The hint carries that instead — the same shape
-                 as the per diem field on the left (also required, also no value). -->
-            <input type="text" id="f-bonus-mo" class="form-input money" inputmode="decimal" placeholder="0 if none"/>
-            <p class="fld-hint">Enter <b>0</b> if none was paid. We take it out before annualising.</p>
-          </div>
+        <!-- ★"Bonus paid this month" was **removed** on 2026-09-15 (owner's call):
+             "a bonus is paid separately from the monthly salary anyway, so this field is
+             not needed — there is an annual bonus field below". Bonuses now go into
+             f-bonus (annual bonus).
+             Annual = gross × 12 + annual bonus + profit share.
+             It was added on 2026-08-13 because the gross is entered exactly as printed,
+             so a bonus month carries the bonus inside it and ×12 inflates the annual.
+             ⚠️ For airlines that DO print a bonus on the monthly payslip, the annual
+                figure now reads high. It is not silent: the pre-submit "is this amount
+                right?" check (amtConfirmNeeded) catches it, and the gross hint carries
+                one line pointing bonuses at the annual field.
+             ⚠️ The bonus_month COLUMN is still there. Past reports keep computing from
+                their stored value. We merely stopped sending the key — identical to
+                sending null (submit_pay_report reads nullif(p->>'bonus_month','')).
+                **No SQL changed.**
+             ⚠️ This used to be a grid2 paired with per diem. Collapse it, or per diem is
+                left stranded at half width (measure-pay.mjs checks grid top alignment). -->
+        <div class="fld">
+          <label class="form-label" for="f-perdiem">Per diem (total for the month)<span class="req-tag">Required</span></label>
+          <input type="text" id="f-perdiem" class="form-input money" inputmode="decimal" placeholder="Monthly total"/>
+          <p class="fld-hint">The <b>monthly total of per diem</b>. Enter <b>0</b> if none was paid, or your airline pays none.</p>
         </div>
 
         <div class="grid2">
@@ -775,7 +780,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
               <button type="button" class="chip" data-open="pd-oth"><span class="p">+</span>Other cash allowances</button>
             </div>
 
-            <p class="pd-warn" id="pd-over" hidden>The breakdown adds up to more than the gross pay above. Please check one of the two.</p>
+            <p class="pd-warn pv-no-cur" id="pd-over" hidden>The breakdown (<span class="pd-sum"></span>) adds up to more than the gross pay above (<span class="pd-gross"></span>). Please check one of the two.</p>
 
             <div class="pd-year">
               <div class="pd-year-h">Once a year</div>
@@ -874,7 +879,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 </div>
                 <!-- ★The over-gross warning belongs under the field that caused it (2026-08-27).
                      Same wording and same condition as #pd-over; recalc() shows exactly one. -->
-                <p class="pd-warn" id="pd-over-instr" hidden>The breakdown adds up to more than the gross pay above. Please check one of the two.</p>
+                <p class="pd-warn pv-no-cur" id="pd-over-instr" hidden>The breakdown (<span class="pd-sum"></span>) adds up to more than the gross pay above (<span class="pd-gross"></span>). Please check one of the two.</p>
 
                 <div id="instr-unit" hidden>
                   <div class="fld">
@@ -964,7 +969,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 </div>
                 <!-- ★The over-gross warning belongs under the field that caused it (2026-08-27).
                      Same wording and same condition as #pd-over; recalc() shows exactly one. -->
-                <p class="pd-warn" id="pd-over-exam" hidden>The breakdown adds up to more than the gross pay above. Please check one of the two.</p>
+                <p class="pd-warn pv-no-cur" id="pd-over-exam" hidden>The breakdown (<span class="pd-sum"></span>) adds up to more than the gross pay above (<span class="pd-gross"></span>). Please check one of the two.</p>
 
                 <div class="fld" id="exam-unit" hidden>
                   <label class="form-label" for="f-exam-qty" id="lab-exam-qty">Checks this month</label>
@@ -1020,7 +1025,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 </div>
                 <!-- ★The over-gross warning belongs under the field that caused it (2026-08-27).
                      Same wording and same condition as #pd-over; recalc() shows exactly one. -->
-                <p class="pd-warn" id="pd-over-union" hidden>The breakdown adds up to more than the gross pay above. Please check one of the two.</p>
+                <p class="pd-warn pv-no-cur" id="pd-over-union" hidden>The breakdown (<span class="pd-sum"></span>) adds up to more than the gross pay above (<span class="pd-gross"></span>). Please check one of the two.</p>
 
                 <div class="fld">
                   <label class="form-label" for="f-union-src">Who pays it</label>
@@ -1084,7 +1089,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 </div>
                 <!-- ★The over-gross warning belongs under the field that caused it (2026-08-27).
                      Same wording and same condition as #pd-over; recalc() shows exactly one. -->
-                <p class="pd-warn" id="pd-over-mgmt" hidden>The breakdown adds up to more than the gross pay above. Please check one of the two.</p>
+                <p class="pd-warn pv-no-cur" id="pd-over-mgmt" hidden>The breakdown (<span class="pd-sum"></span>) adds up to more than the gross pay above (<span class="pd-gross"></span>). Please check one of the two.</p>
 
                 <div class="fld">
                   <label class="form-label" for="f-mgmt-method">Pay unit</label>
@@ -1149,7 +1154,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 </div>
                 <!-- ★The over-gross warning belongs under the field that caused it (2026-08-27).
                      Same wording and same condition as #pd-over; recalc() shows exactly one. -->
-                <p class="pd-warn" id="pd-over-nonline" hidden>The breakdown adds up to more than the gross pay above. Please check one of the two.</p>
+                <p class="pd-warn pv-no-cur" id="pd-over-nonline" hidden>The breakdown (<span class="pd-sum"></span>) adds up to more than the gross pay above (<span class="pd-gross"></span>). Please check one of the two.</p>
               </div>
             </div>
           </details>
@@ -1566,7 +1571,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           <span class="sal-total-lab">Annualised total<br>(from what you entered)</span>
           <span class="sal-total-val" id="live-total">—</span>
         </div>
-        <p class="sal-hint pv-no-cur" id="live-hint">(gross &minus; bonus paid this month) &times; 12, plus the annual bonus and profit share.</p>
+        <p class="sal-hint pv-no-cur" id="live-hint">Your monthly gross &times; 12, plus the annual bonus and profit share.</p>
 
         <!-- ログインは送信のときだけ。ここに出す（押した場所に出す）。
              ★中身は pay-login.js が日英1枚で組む。login.html へ飛ばさない
@@ -1660,6 +1665,14 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
             <span class="sticky-cta-lab">Annualised total</span>
             <span class="sticky-cta-val" id="sticky-total">—</span>
           </div>
+          <!-- ★Share-of-pay bar (owner, 2026-09-15: "a bar like the one REAL PAY shows").
+               recalc() rebuilds it through WZ.compBar() — the same picture as the
+               "pay breakdown" bar on 5/5.
+               ⚠️ No <button> / <a> in here (the only things to press are each step's Next
+                  and the submit on 5/5; shot-pay.mjs watches for one coming back).
+               ⚠️ Not INSIDE #sticky-total (db/test-form-contract.mjs reads a number out
+                  of the same text as #live-total). -->
+          <div class="sticky-cta-bar" id="sticky-bar"></div>
         </div>
       </div>
 
@@ -2797,7 +2810,7 @@ function grp(s) {
            'empty'     blank
            'ambiguous' two readings; alts holds both, the person picks
            'bad'       not a number */
-function readMoney(s) {
+function readMoney(s, dec) {
   const raw = String(s == null ? '' : s).trim();
   if (!raw) return { n: null, canon: '', state: 'empty', alts: [] };
   /* Drop full-width digits, spaces and currency marks. If anything other than
@@ -2835,21 +2848,25 @@ function readMoney(s) {
     const v = asDec(t, d);
     return v == null ? bad : ok(v);
   }
-  /* 2) Commas only — rewritten 2026-09-11 after the owner pushed back ─────────
-        ★Ask only when BOTH readings are valid. "drop the comma and it is 15" is
-          not a reading: nobody writes 15 as 1,5, and it is not a valid grouped
-          format either (the run after a separator is not three digits).
-          **Check the format, not just whether digits remain.**
-        · Groups of three (1,150,000 / 1,000) → thousands. This is the site's own
-          notation and **the shape we produce when the field is left** (since
-          2026-09-11 we never touch it while typing), so asking here would mean
-          questioning a value we formatted ourselves.
-        · Not groups of three (1,5 / 1000,50 / 1234,56) → decimal comma, exactly
-          the same as 1.5 / 1000.50. */
+  /* 2) Commas only — **always a thousands separator** (owner's call, 2026-09-15) ──
+        This site's notation is "`,` groups, `.` is the decimal point", and that is
+        what the two-choice box prints in .ma-rule. The reader now follows that one
+        rule. **The shape (whether it splits into threes) is not checked.**
+        · 1,150,000 → 1150000
+        · 200,00    → 20000    ← 200,000 with one zero deleted
+        · 1,100,00  → 110000
+        · 1,23,456  → 123456
+        ⚠️ 2026-09-11 had it the other way round (a comma that does not split into
+           threes = a decimal point). That was meant to stop a European writing
+           3500,50 from being saved as 350,050 (100x). On 2026-09-15 the owner
+           decided 3500,00 should simply be 350,000, so we came back here. The net
+           under the 100x case is amtConfirmNeeded ("is this the right amount?")
+           just before submit.
+        ★This rule is what makes "drop the commas and re-group" **reversible**, which
+          is why grouping while typing (fmtMoneyLive) could come back. **Do not undo
+          only one of the two.** See the fmtMoneyLive note below. */
   if (com) {
-    if (grouped(t, ',')) return ok(asPlain(t));
-    if (t.split(',').length > 2) return bad;     // 1,23,456 reads neither way
-    const v = asDec(t, ',');
+    const v = asPlain(t);
     return v == null ? bad : ok(v);
   }
   /* 3) Dots only */
@@ -2861,14 +2878,30 @@ function readMoney(s) {
     if (v == null) return bad;
     /* Only 1.000 / 500.000 read both ways (1000 or 1.0). **This is the one ask.**
        ★A leading zero is excluded: nobody writes 500 as 0.500, so it is not a
-         valid grouped format either — read it as 0.5 without asking, same rule
-         as the comma case above. */
-    if (/^[1-9]\d{0,2}$/.test(ip) && /^\d{3}$/.test(dp)) return ask(asPlain(t), v);
+         valid grouped format either — read it as 0.5 without asking.
+       ★But in a currency with no decimals (JPY/KRW/ISK/HUF/IDR/VND/CLP — the first
+         entry of CUR_META is 0) the amount 1.0 cannot exist, so there is nothing to
+         ask. This is elimination, not a guess. The server side
+         (supabase/functions/parse-payslip) has always decided it this way — it
+         cannot ask back, so it settles dec===3 on the same reasoning.
+         When dec is not passed (default undefined) we ask, exactly as before. */
+    if (/^[1-9]\d{0,2}$/.test(ip) && /^\d{3}$/.test(dp)) {
+      if (dec === 0) return ok(asPlain(t));
+      return ask(asPlain(t), v);
+    }
     return ok(v);
   }
   /* 4) No separator */
   const v = asPlain(t);
   return v == null ? bad : ok(v);
+}
+/* Decimal places of the currency currently picked. Before one is picked (blank)
+   this is undefined = readMoney's default behaviour (ask about 1.000).
+   ★Falls to the side that does not guess. */
+function curDec() {
+  const el = $('f-currency');
+  const m = el && el.value ? CUR_META[el.value] : null;
+  return m ? m[0] : undefined;
 }
 /* Read the box itself. A box whose reading the person picked keeps that pick
    (only while data-money-raw still matches the current value). */
@@ -2879,21 +2912,92 @@ function moneyRead(el) {
     const v = parseFloat(el.dataset.moneyN);
     if (isFinite(v)) return { n: v, canon: raw, state: 'ok', alts: [] };
   }
-  return readMoney(raw);
+  return readMoney(raw, curDec());
 }
-/* ★While typing we do not touch a money field at all (owner's call, 2026-09-11).
+/* ★Group thousands while typing (brought back on the owner's call, 2026-09-15).
 
-   fmtMoneyEl used to live here and re-grouped the value on every keystroke.
-   It meant to act "only when the value is digits only", but the test ran
-   `.replace(/,/g,'')` **first** — so **the comma the person typed vanished from
-   the test**. 3500,50 became 350,050 and a 100x amount was saved without a
-   single warning (dots and full-width digits were guarded; only the comma leaked).
-   readMoney has always read 3500,50 as 3500.5 — but the field rewrote the string
-   before readMoney ever saw it.
+   ── Why it was removed once, and why it is safe again ─────────────────────
+   On 2026-09-11 fmtMoneyEl was deleted and the field was left untouched while
+   typing. The incident: the per-keystroke re-group ran `.replace(/,/g,'')`
+   **first**, so **the comma the person typed vanished from the test**. A European
+   typing 3500,50 had it saved as 350,050 — 100x, without a single warning. The
+   real cause was that readMoney could read 3500,50 as 3500.5, but the field
+   rewrote the string **before readMoney ever saw it**.
 
-   Grouping now happens **when the field is left**: moneySettle → readMoney's
-   canon. Same shape as the hours/days/rate fields (class="num"). ★Do not bring
-   it back. Guarded by db/test-pay-gate.mjs ② — the only test that types. */
+   On 2026-09-15 the owner decided a comma is **always a thousands separator**
+   (see section 2 of readMoney above). 3500,50 is 350,050 by definition, so
+   re-grouping while typing **changes the meaning not one bit**. Dropping the
+   commas and re-grouping is now **reversible**, which is what makes this safe.
+   ★Do not undo only one of the two. If the reader ever goes back to "a comma
+   that does not split into threes is a decimal point", remove this too.
+
+   ── Only commas come back ────────────────────────────────────────────────
+   · If the value holds even one period, **do nothing** (do not get in the way of
+     someone typing the European 1.000,00, or 1234.56)
+   · Anything other than digits and commas: do nothing (full-width digits and
+     currency marks are moneySettle's job)
+   · **Never touch a field that is not focused** (preset restore, last month's
+     values, the payslip read all assign values — moving the caret there would
+     steal focus)
+   · The caret is restored by counting the digits in front of it (a plain
+     assignment sends it to the end)
+   · Backspace/Delete on a comma removes the neighbouring digit too (keydown
+     below). Without that the comma comes straight back and the field becomes
+     **impossible to delete from**.
+
+   Hours/days/rate fields (class="num") are out of scope — readNum reads those.
+   Guarded by db/test-pay-gate.mjs ② — the only test that types. */
+function fmtMoneyLive(el) {
+  if (!el || document.activeElement !== el) return;
+  const raw = String(el.value == null ? '' : el.value);
+  if (raw.indexOf('.') >= 0) return;
+  if (!/^[0-9,]*$/.test(raw)) return;
+  const digits = raw.replace(/,/g, '');
+  if (!digits) return;
+  const next = grp(digits);
+  if (next === raw) return;
+  const start = el.selectionStart;
+  if (start == null) { el.value = next; return; }
+  let before = 0;
+  for (let i = 0; i < start; i++) { const c = raw.charCodeAt(i); if (c >= 48 && c <= 57) before++; }
+  el.value = next;
+  let pos = 0;
+  if (before > 0) {
+    let seen = 0;
+    pos = next.length;
+    for (let i = 0; i < next.length; i++) {
+      const c = next.charCodeAt(i);
+      if (c >= 48 && c <= 57) { seen++; if (seen === before) { pos = i + 1; break; } }
+    }
+  }
+  try { el.setSelectionRange(pos, pos); } catch (e) {}
+}
+/* Backspace/Delete on a comma — take the neighbouring digit with it.
+   (Otherwise fmtMoneyLive puts the comma straight back and it never deletes.) */
+document.addEventListener('keydown', (e) => {
+  const el = e.target;
+  if (!el || !el.classList || !el.classList.contains('money')) return;
+  if (e.key !== 'Backspace' && e.key !== 'Delete') return;
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const s = el.selectionStart, t = el.selectionEnd;
+  if (s == null || s !== t) return;
+  const raw = String(el.value == null ? '' : el.value);
+  if (raw.indexOf('.') >= 0) return;
+  let nv, pos;
+  if (e.key === 'Backspace') {
+    if (s < 2 || raw.charAt(s - 1) !== ',') return;
+    nv = raw.slice(0, s - 2) + raw.slice(s - 1);
+    pos = s - 2;
+  } else {
+    if (raw.charAt(s) !== ',' || s + 2 > raw.length) return;
+    nv = raw.slice(0, s + 1) + raw.slice(s + 2);
+    pos = s;
+  }
+  e.preventDefault();
+  el.value = nv;
+  try { el.setSelectionRange(pos, pos); } catch (err) {}
+  try { el.dispatchEvent(new Event('input', { bubbles: true })); } catch (err) {}
+}, true);
 /* Call after values are assigned (preset, last month, payslip read).
    ★The one-shot array (old MONEY_EL) is gone: per-diem rows born later use the
      same path. */
@@ -2960,7 +3064,7 @@ function askMoney(el, r) {
 function moneySettle(el) {
   const raw = String(el.value == null ? '' : el.value);
   if (el.dataset.moneyRaw === raw) return;      // the person's own pick stands
-  const r = readMoney(raw);
+  const r = readMoney(raw, curDec());
   clearMoneyAsk(el);
   delete el.dataset.moneyN;
   delete el.dataset.moneyRaw;
@@ -2974,7 +3078,9 @@ document.addEventListener('input', (e) => {
   const el = e.target;
   if (!el || !el.classList || !el.classList.contains('money')) return;
   if (el.dataset.moneyRaw !== String(el.value)) { delete el.dataset.moneyN; delete el.dataset.moneyRaw; clearMoneyAsk(el); }
-  /* ★Do not reformat here. change (moneySettle) is the only place. See above. */
+  /* ★Re-group the thousands commas in place (untouched if a period is present).
+     Settling the reading (two choices, red) is still change (moneySettle) only. */
+  fmtMoneyLive(el);
 }, true);
 document.addEventListener('change', (e) => {
   const el = e.target;
@@ -3165,7 +3271,40 @@ function overSlot() {
 function showOver(on) {
   const slot = on ? overSlot() : '';
   for (const id of OVER_IDS) $(id).hidden = id !== slot;
+  if (!slot) return;
+  /* ★Put **both amounts** in the sentence so it is obvious which side to fix
+     (owner, 2026-09-15: "is this against the gross?"). Left = the breakdown sum
+     (monthlyDetail), right = the gross the pilot typed.
+     Only the one slot on screen is filled — the five hidden ones stay empty.
+     ★The <p> carries pv-no-cur: fmtCur already writes the currency code, so
+       currency.js must not convert it a second time. */
+  const el = $(slot), cur = $('f-currency').value;
+  const s = el.querySelector('.pd-sum'), g = el.querySelector('.pd-gross');
+  if (s) s.textContent = fmtCur(monthlyDetail(), cur);
+  if (g) g.textContent = fmtCur(num('f-gross'), cur);
 }
+
+/* ── The over-check now runs only when a field is LEFT (owner, 2026-09-15) ────
+   It used to live inside recalc(), i.e. it re-judged on **every keystroke**. While
+   the gross is being typed it reads 1 → 11 → 110 …, so last month's carried-over
+   basic pay alone trips it instantly — the warning stays red the whole time you
+   type. That is what the owner hit in production.
+   ★The expression, the condition and the six slots are unchanged. Only **when**
+     it runs moved to change.
+   ★_lastMoney (which slot to use) stays on input. Moving it to change leaves it
+     one field stale, so an over caused by management pay shows in the default
+     pd-over instead of pd-over-mgmt. **Assign on input, judge on change.**
+   ★One capturing change listener on document. Housing choice, union source and the
+     repeating rows all move the sum too; wiring them one by one always misses some.
+   ★Paths that assign values directly (payslip parsing, draft restore) fire no
+     change event — payslip.js calls settleOver() next to its recalc(). */
+function settleOver() {
+  const gross = num('f-gross');
+  /* ★Add unpaid-absence deductions back before comparing (the printed gross is
+     already net of them; the breakdown fields are not). */
+  showOver(gross > 0 && monthlyDetail() > gross + absenceTotal() + 1);
+}
+document.addEventListener('change', settleOver, true);
 
 function annualTotal() {
   /* ★Which side is the truth is decided by whether the breakdown is open, not by
@@ -3174,15 +3313,20 @@ function annualTotal() {
      mirror and drop the items. Same result as the server's
      coalesce(p_gross_monthly, sum of the breakdown) — while open we send no
      gross_monthly, so the server adds the breakdown up too. */
-  /* ★The gross is entered exactly as printed, so a bonus month carries the bonus
-     inside it. Take it out before ×12 (owner, 2026-08-13). A breakdown sum never
-     contains a bonus, so that side is used as it is. */
+  /* ★From 2026-08-13 to 2026-09-15 this took "bonus paid this month" out before ×12
+     (the gross is entered exactly as printed, so a bonus month carries it inside).
+     On 2026-09-15 the owner removed the field entirely — "a bonus is paid separately
+     from the monthly salary anyway". Bonuses go in the annual bonus field (f-bonus),
+     so the gross is multiplied by 12 as it stands.
+     ⚠️ The server's pv_annual_total still computes (gross − bonus_month) × 12. The
+        page no longer sends bonus_month ⇒ null ⇒ coalesce(…,0) ⇒ the same expression.
+        Past reports keep computing from their stored bonus_month. */
   /* ★The one exception is union-paid money (2026-09-02). It is not printed on the
      company payslip, so it is not inside the gross the pilot typed. Leaving it out
      drops that whole amount from the annual figure. The server carries the same
      line (p_union_outside_gross). */
   const gross = num('f-gross');
-  const monthly = Math.max(0, gross - num('f-bonus-mo'))
+  const monthly = gross
                 + (gross > 0 && unionOutsideGross() ? num('f-union-pay') : 0);
   return monthly * 12 + num('f-bonus') + num('f-profit');
 }
@@ -3200,10 +3344,8 @@ function recalc() {
      quiet about it. The only wrong case is a breakdown that adds up to MORE
      than the gross, and that is the one line we show. Matching is never
      required and never blocks the submit. */
-  const gross = num('f-gross');
-  /* ★Add the absence reductions back before comparing (printed gross is net of
-     them; the breakdown is gross of them). */
-  showOver(gross > 0 && monthlyDetail() > gross + absenceTotal() + 1);
+  /* ★The over-check is NOT here (2026-09-15). Running it per keystroke turns the
+     warning red from the first digit of the gross. settleOver() does it on change. */
   const t = annualTotal();
   /* ★同じ文字列を2か所へ。#sticky-total は常設バーの中（式は annualTotal() の1本のまま）。 */
   const totalHTML = t > 0
@@ -3212,12 +3354,46 @@ function recalc() {
   $('live-total').innerHTML = totalHTML;
   $('sticky-total').innerHTML = totalHTML;
   updateTax();   // the rate depends on annual pay, so redo it whenever a figure changes
+  syncStickyBar();
+}
+/* ── The share-of-pay bar in the sticky footer (owner, 2026-09-15) ──────────────
+   "Put a bar next to the annual figure at the bottom, and make its colours change to
+   the proportions as the breakdown is filled in." The grey segment (rest) is the part
+   not yet assigned to any line, so it gets eaten by colour as the pilot fills things in.
+   ★It runs the **same function** as the "pay breakdown" bar on 5/5
+     (WZ.compBar → reviewComp → shelf).
+     Do NOT rewrite the 8-bucket subtraction here. It is a lifeline expression with two
+     copies already (db/deep-pay.sql and db/pay-rows.sql). A third copy makes REAL PAY's
+     band and this bar show different breakdowns for the same person — both looking fine.
+   ★With the shared JS gone (WZ null) the bar simply does not appear. Amounts and submit
+     keep working exactly as before.
+   ★Nothing is built while the footer is collapsed (no shelf() per keystroke for
+     something nobody can see).
+   ★The annual bonus is not part of a month's breakdown, so it is not in the bar. The
+     number beside it is annualised, so those two do not match — same as on 5/5. */
+function syncStickyBar() {
+  const host = $('sticky-bar');
+  if (!host) return;
+  if (!WZ || !WZ.compBar || $('sticky-submit').hidden) { host.replaceChildren(); return; }
+  let bar = null;
+  try { bar = WZ.compBar(buildPayload()); } catch (e) { bar = null; }
+  host.replaceChildren(...(bar ? [bar] : []));
 }
 /* ★f-transport / f-other are hidden now (only payslip parsing writes them).
    The repeating rows report through f-var-sum / f-oth-sum, written by pdSync(). */
-['f-gross','f-base','f-guarantee','f-hourly','f-guar','f-block','f-perdiem','f-housing-amt','f-command','f-bonus','f-bonus-mo','f-profit','f-instructor','f-examiner','f-union-pay','f-mgmt-pay','f-nonline-pay']
+['f-gross','f-base','f-guarantee','f-hourly','f-guar','f-block','f-perdiem','f-housing-amt','f-command','f-bonus','f-profit','f-instructor','f-examiner','f-union-pay','f-mgmt-pay','f-nonline-pay']
   .forEach((id) => $(id).addEventListener('input', () => { _lastMoney = id; recalc(); }));
-$('f-currency').addEventListener('change', recalc);
+/* ★When the currency changes, read every money box again.
+   readMoney's answer depends on the currency's decimal places (in JPY we settle
+   1.000 as 1,000), so a box entered as 1.000 under AED and pinned to "1,000"
+   would keep that old reading after a switch to JPY — data-money-raw matches and
+   moneyRead short-circuits. Drop the marks, then run fmtMoneyAll(). Changing the
+   currency afterwards does happen (db/test-form-contract.mjs tests AED→JPY). */
+$('f-currency').addEventListener('change', () => {
+  for (const el of moneyEls()) { delete el.dataset.moneyN; delete el.dataset.moneyRaw; clearMoneyAsk(el); }
+  fmtMoneyAll();
+  recalc();
+});
 
 /* ── Progressive disclosure (the levels.fyi mechanic) ─────────
    Fill one part, the next grows below it. ★A revealed section is
@@ -3239,7 +3415,7 @@ const payEntered  = () => filled('f-gross');
 const housingOk   = () => filled('f-housing')
                           && ($('f-housing').value !== 'allowance' || filled('f-housing-amt'));
 const GATE_PAY    = () => filled('f-currency') && payEntered() && filled('f-netpay')
-                          && filled('f-bonus-mo') && filled('f-perdiem') && housingOk();
+                          && filled('f-perdiem') && housingOk();
 /* ★4. Contract & tax became required on 2026-08-13 (owner). The tax rate itself
      stays optional — we have no table for most countries, and requiring it would
      dead-end everyone living in one of them. */
@@ -3989,7 +4165,7 @@ const CARRY = {
     'f-bonus','f-profit','f-pension','f-jobrole','f-age','f-base-iata'],
   fixed: ['f-base','f-guar','f-guarantee','f-command','f-housing-amt'],
   shape: ['f-payitems'],
-  never: ['f-year','f-month','f-gross','f-netpay','f-perdiem','f-bonus-mo',
+  never: ['f-year','f-month','f-gross','f-netpay','f-perdiem',
     'f-transport','f-other','f-hourly','f-flightvar','f-deduct','f-ytd',
     'f-block','f-duty','f-stay','f-duty-h','f-night-h','f-credit-h',
     'f-instructor','f-examiner','f-union-pay','f-mgmt-pay','f-nonline-pay',
@@ -4212,7 +4388,7 @@ function snapPrev(ids) {
      currency, contract, seniority, tax country, the role chips (f-jobrole), pension rate.
      Those must not be retyped every month. */
 const PAYSLIP_MONTH_IDS = ['f-gross','f-base','f-guarantee','f-command','f-housing-amt','f-other',
-  'f-perdiem','f-transport','f-bonus-mo','f-profit','f-instructor','f-examiner','f-payitems',
+  'f-perdiem','f-transport','f-profit','f-instructor','f-examiner','f-payitems',
   'f-block','f-guar','f-duty-h','f-night-h','f-credit-h',
   'f-netpay','f-ytd','f-deduct','f-flightvar','f-psdetail',
   /* ★The fields a payslip CANNOT read are the dangerous ones (added 2026-09-11).
@@ -5160,9 +5336,6 @@ function buildPayload(airline) {
          which is why variable pay lands in both. Swap them and the chart breaks. */
     other_allowance:     sumField('f-other', 'f-var-sum', 'f-oth-sum'),
     bonus_annual:        val('f-bonus'),
-    /* ★The bonus sitting inside this month's gross. Taken out before ×12.
-       A different thing from bonus_annual — never add the two together. */
-    bonus_month:         val('f-bonus-mo'),
     profit_share_annual: val('f-profit'),
     pension_pct:         val('f-pension'),
     contract_type:       val('f-contract'),
@@ -5337,7 +5510,6 @@ async function submitPayReport() {
     return stopAt('f-gross', 'Please enter your gross pay for that month. Allowances alone give nothing to compare against.');
   }
   if (!val('f-netpay')) return stopAt('f-netpay', 'Please enter your net pay for that month ("Net Pay" on your payslip).');
-  if (!val('f-bonus-mo')) return stopAt('f-bonus-mo', 'Please enter the bonus paid this month. Enter 0 if none was paid.');
   if (!val('f-perdiem')) return stopAt('f-perdiem', 'Please enter your per diem for the month. Enter 0 if none was paid.');
   if (!val('f-housing')) return stopAt('f-housing', 'Please choose your housing.');
   if ($('f-housing').value === 'allowance' && !val('f-housing-amt')) {

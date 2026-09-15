@@ -110,7 +110,7 @@ async function fillForm() {
     set('f-housing', firstOpt('f-housing'));
     set('f-contract', firstOpt('f-contract'));
     set('f-taxcountry', firstOpt('f-taxcountry'));
-    ['f-block', 'f-stay', 'f-bonus-mo', 'f-perdiem', 'f-seniority'].forEach((id) => set(id, '0'));
+    ['f-block', 'f-stay', 'f-perdiem', 'f-seniority'].forEach((id) => set(id, '0'));
     set('f-gross', '1080000');
     set('f-netpay', '842000');
     /* ★ウィザードでは送信ボタンは 5/5 の中にしか無い。歩かずに押さない。
@@ -542,17 +542,27 @@ for (const [dir, tag] of [['', '(日本語)'], ['/en', '/en']]) {
        ② 打っている途中で文字を消さない
        ③ 曖昧なものは聞く／送信を止める・選べば通る
      ★ただし「聞く」のは**両方の読み方が書式として成立する**ときだけ（1.000 など）。
-       1,5 のように片方が成立しないものは聞かずに小数として読む（2026-09-11 オーナー指摘）。 */
+     ★2026-09-15、オーナー決定で規則が1本になった ── **カンマは常に桁区切り。
+       小数点はピリオドだけ。** サイトが元から画面に書いている規則（二択の中の
+       .ma-rule「桁区切りは , 　小数点は .」）を、読み取りにもそのまま当てる。
+       200,000 から 0 を1つ消した 200,00 が「読めません」でも 200 でもなく
+       20,000 になるのは、この規則。
+       ⚠️ 交換条件として、3500,50 と書く人の額は 350,050（100倍）になる。
+          網は提出直前の「この額で合っていますか」（amtConfirmNeeded）。
+     ★さらに、小数桁が 0 の通貨（JPY/KRW/ISK/HUF/IDR/VND/CLP）では 1.000 の二択も
+       出さない ── 円に 1.0 という額が無いので聞く意味が無い（推測でなく消去法）。 */
   console.log(`\n${tag} N-1 金額の読み方（黙って推測しない）\n`);
   await p.evaluate(() => { localStorage.clear(); });
   await p.goto(`${BASE}${dir}/pay-report.html`, { waitUntil: 'networkidle0' });
   const money = await p.evaluate(() => {
-    const R = (x) => { const r = window.readMoney(x); return [r.state, r.n]; };
+    const R = (x, d) => { const r = window.readMoney(x, d); return [r.state, r.n]; };
     return {
       euro: R('1.000,00'), anglo: R('1,234.56'), group: R('1,150,000'),
       dec:  R('1234.56'),  half:  R('0.5'),      plain: R('1150000'),
       amb1: R('1.000'),    comdec: R('1,5'),     bad:   R('12万'),
       comdec2: R('1000,50'), zero: R('0.500'),    weird: R('1,23,456'),
+      del0: R('200,00'),   del1: R('1,100,00'),  euro2: R('3500,50'),
+      yen1000: R('1.000', 0), usd1000: R('1.000', 2), kwd1000: R('1.000', 3),
     };
   });
   ok(money.euro[0] === 'ok' && money.euro[1] === 1000,
@@ -563,74 +573,162 @@ for (const [dir, tag] of [['', '(日本語)'], ['/en', '/en']]) {
   ok(money.half[0] === 'ok' && money.half[1] === 0.5, '★0.5 も通す', money.half);
   ok(money.plain[0] === 'ok' && money.plain[1] === 1150000, '区切りの無い数はそのまま', money.plain);
   ok(money.amb1[0] === 'ambiguous', '★1.000 は 1000 とも 1.0 とも読める＝聞く（勝手に決めない）', money.amb1);
-  /* ★2026-09-11 にオーナー指摘で作り直したところ。以前はここも「聞く」にしていたが、
-     「カンマを取れば 15 になる」は読み方ではない（桁区切りとして成立しない書式）。
-     普通に小数を書いた人に、要らない二択を出していた。 */
-  ok(money.comdec[0] === 'ok' && money.comdec[1] === 1.5,
-    '★★1,5 は 1.5（15 とは読まない・普通の小数入力に二択を出さない）', money.comdec);
-  ok(money.comdec2[0] === 'ok' && money.comdec2[1] === 1000.5,
-    '★1000,50 も 1000.50 と同じ扱い', money.comdec2);
+  /* ★2026-09-15 オーナー決定。カンマは常に桁区切り。書式（3桁に割れるか）は見ない。
+     ここが「3桁に割れないカンマ＝小数点」だったころ、200,000 から 0 を1つ消した人の
+     欄が 200 に書き換わり、1,100,00 は赤で「読めません」と言われていた。 */
+  ok(money.comdec[0] === 'ok' && money.comdec[1] === 15,
+    '★★1,5 は 15（カンマは桁区切り。小数点はピリオドだけ）', money.comdec);
+  ok(money.comdec2[0] === 'ok' && money.comdec2[1] === 100050,
+    '★1000,50 は 100050', money.comdec2);
+  ok(money.del0[0] === 'ok' && money.del0[1] === 20000,
+    '★★200,00（200,000 から 0 を1つ消した形）は 20,000 ── ここが 200 になっていた', money.del0);
+  ok(money.del1[0] === 'ok' && money.del1[1] === 110000,
+    '★★1,100,00 は 110,000 ── ここが「読めません」になっていた', money.del1);
+  ok(money.euro2[0] === 'ok' && money.euro2[1] === 350050,
+    '★3500,50 は 350,050（100倍の網は提出直前の「この額で合っていますか」）', money.euro2);
   ok(money.zero[0] === 'ok' && money.zero[1] === 0.5,
     '★0.500 は 0.5（500 を 0.500 とは書かない＝桁区切りとして成立しない）', money.zero);
-  ok(money.weird[0] === 'bad',
-    '1,23,456 はどちらにも読めない＝読めないと言う（黙って数にしない）', money.weird);
+  ok(money.weird[0] === 'ok' && money.weird[1] === 123456,
+    '1,23,456 も桁区切りとして読む（規則を1本にした結果）', money.weird);
   ok(money.bad[0] === 'bad', '数字として読めないものは、読めないと言う', money.bad);
+  /* ★通貨の小数桁で二択を出すか決める。円に 1.0 という額は無い。 */
+  ok(money.yen1000[0] === 'ok' && money.yen1000[1] === 1000,
+    '★小数の無い通貨（JPY 等）では 1.000 を聞かずに 1,000 と読む', money.yen1000);
+  ok(money.usd1000[0] === 'ambiguous', 'USD では 1.000 を今までどおり聞く', money.usd1000);
+  ok(money.kwd1000[0] === 'ambiguous', 'KWD（小数3桁）でも聞く', money.kwd1000);
 
-  /* ② 打鍵中は1文字も書き換えない。桁区切りを出すのは**欄を離れたとき**だけ
-     （2026-09-11 オーナー決定。時間・率の欄＝class="num" と同じ形に揃えた）。
+  /* ② 打っている最中に桁区切りを付け直す（2026-09-15 オーナー指示で復活）。
 
-     ★それまでは打っている最中にも桁区切りを出していて、その判定が
-       「カンマを落としてから数字だけか見る」形だった ＝ **本人が打ったカンマが
-       判定から消える**。3500,50 が 350,050 になり、100倍の額が警告ひとつ無く
-       保存されていた。. と全角は守られていて、カンマだけが穴だった。
-     ★パーサー（readMoney）は最初から正しく 3500,50 を 3500.5 と読める。
-       打鍵中に画面が文字列を壊すので、**パーサーがその文字列を見ることが無かった**。
-     ⚠️ だからここは**1文字ずつ打つ**。値を代入して input を撒く形（他の検査の setF）では
-       この欠陥を一度も踏めない ── 実際、検査を全部素通りしていた。
+     ★2026-09-11 に「打鍵中は1文字も触らない」へ倒した検査を、ここで反転させている。
+       当時の事故は、打鍵のたびの整形が「カンマを落としてから数字だけか見る」形で、
+       **本人が打ったカンマが判定から消える**こと。3500,50 が 350,050 になり、
+       100倍の額が警告ひとつ無く保存されていた。
+       2026-09-15 の規則変更で 3500,50 は**定義上** 350,050 になった ＝ 打鍵中に
+       組み直しても意味が変わらない。カンマを落として組み直す操作が**可逆**に
+       なったので戻した。⚠️ 読み取りの規則を戻すなら、この整形も同時に外す。
+     ★戻したのはカンマだけ。**値にピリオドが1文字でもあれば打鍵中は触らない**
+       （1.000,00 と打つヨーロッパ式の人・1234.56 と打つ人を邪魔しない）。
+     ⚠️ ここは**本物のキーボードで打つ**。値を代入して input を撒く形では、
+       カーソルの位置も BackSpace の既定動作も再現できない ── オーナーが報告した
+       「0 を1つ消すと文字が消える」はまさにそこに出た。
      ⚠️ 「欄を離れたら整える」まで見ること。打鍵中だけ見ると、整え忘れに気づけない。 */
-  const TYPED = [
-    // 打つ文字列      離れたあとの表示   送られる数
-    ['1.000,00',      '1,000',          1000],
-    ['3500,50',       '3,500.5',        3500.5],     // ★100倍になっていた形
-    ['1,5',           '1.5',            1.5],        // ★10倍になっていた形
-    ['1150000',       '1,150,000',      1150000],
-    ['8.450,00',      '8,450',          8450],
-  ];
-  const moneyKeys = await p.evaluate(async (list) => {
-    document.getElementById('entry-manual').click();
+  await p.evaluate(() => { document.getElementById('entry-manual').click(); });
+  await new Promise((r) => setTimeout(r, 200));
+  /* 打つには欄が見えている必要がある（.step[hidden] は display:none）。
+     5段を歩かせる代わりに、この検査の間だけ全部の段を出す。 */
+  await p.evaluate(() => {
+    document.querySelectorAll('.step[hidden]').forEach((e) => { e.hidden = false; });
+  });
+  const clearGross = () => p.evaluate(() => {
     const el = document.getElementById('f-gross');
-    const out = [];
-    for (const row of list) {
-      const src = row[0];
-      el.value = '';
-      el.dispatchEvent(new Event('input', { bubbles: true }));
-      for (const c of src) {                      // ★1文字ずつ
-        el.value += c;
-        el.dispatchEvent(new Event('input', { bubbles: true }));
-      }
-      const mid = el.value;
-      el.dispatchEvent(new Event('change', { bubbles: true }));
-      out.push({ src, mid, after: el.value, n: window.moneyRead(el).n });
-    }
-    /* 貼り付け（1回の input で丸ごと入る）も同じ道を通ること。 */
+    el.value = '';
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  const grossState = () => p.evaluate(() => {
+    const el = document.getElementById('f-gross');
+    return { v: el.value, sel: el.selectionStart };
+  });
+  const TYPED = [
+    // 打つ文字列      打鍵中の表示    離れたあとの表示  送られる数
+    ['1.000,00',      '1.000,00',     '1,000',         1000],      // ピリオドが在る＝触らない
+    ['8.450,00',      '8.450,00',     '8,450',         8450],      // 同上
+    ['1150000',       '1,150,000',    '1,150,000',     1150000],   // ★打鍵中に区切る
+    ['3500,50',       '350,050',      '350,050',       350050],    // ★カンマは桁区切り
+  ];
+  for (const [src, mid, after, n] of TYPED) {
+    await clearGross();
+    await p.focus('#f-gross');
+    await p.keyboard.type(src);
+    const got = await grossState();
+    await p.evaluate(() => document.getElementById('f-gross').blur());
+    const done = await p.evaluate(() => {
+      const el = document.getElementById('f-gross');
+      return { v: el.value, n: window.moneyRead(el).n };
+    });
+    ok(got.v === mid, `★★打っている間の表示（${src} → ${mid}）`, got.v);
+    ok(done.v === after, `欄を離れたら整える（${src} → ${after}）`, done.v);
+    ok(done.n === n, `★★送られる数は ${n}（${src}）`, done.n);
+  }
+
+  /* ★オーナーが報告した操作そのもの（2026-09-15）──
+     「金額入力してから、一つゼロを消すとエラーが出る。それに消える部分もある。」 */
+  await clearGross();
+  await p.focus('#f-gross');
+  await p.keyboard.type('200000');
+  const bs0 = await grossState();
+  ok(bs0.v === '200,000', '★欄の外を押さなくても、打った時点で 200,000', bs0.v);
+  await p.keyboard.press('Backspace');
+  const bs1 = await grossState();
+  ok(bs1.v === '20,000', '★★0 を1つ消したら、その場で 20,000（200 にならない・赤も出ない）', bs1.v);
+  ok(bs1.sel === bs1.v.length, '★カーソルが末尾から動いていない', bs1);
+  const bsAsk = await p.evaluate(() => {
+    const el = document.getElementById('f-gross');
+    const nx = el.nextElementSibling;
+    return !!(nx && nx.classList && nx.classList.contains('money-ask'));
+  });
+  ok(!bsAsk, '★二択も「読めません」も出ない', bsAsk);
+
+  /* ★真ん中を直したときにカーソルが末尾へ飛ばない（飛ぶと打ち直せない）。 */
+  await clearGross();
+  await p.focus('#f-gross');
+  await p.keyboard.type('1234567');
+  for (let i = 0; i < 4; i++) await p.keyboard.press('ArrowLeft');   // 1,234|,567
+  await p.keyboard.press('Backspace');                               // 4 を消す
+  const midEdit = await grossState();
+  ok(midEdit.v === '123,567', '真ん中の数字を消すと組み直す（1,234,567 → 123,567）', midEdit.v);
+  ok(midEdit.sel === 3, '★カーソルは消した場所に残る（末尾へ飛ばない）', midEdit);
+
+  /* ★カンマの上で BackSpace ── 隣の数字ごと消す。
+     消さないと桁区切りが即座に戻ってきて、何度押しても消せない欄になる。 */
+  await clearGross();
+  await p.focus('#f-gross');
+  await p.keyboard.type('200000');
+  for (let i = 0; i < 3; i++) await p.keyboard.press('ArrowLeft');   // 200,|000
+  await p.keyboard.press('Backspace');
+  const comBs = await grossState();
+  ok(comBs.v === '20,000', '★★カンマの直後で BackSpace を押すと、手前の数字ごと消える', comBs.v);
+  ok(comBs.sel === 2, 'カーソルは消した場所', comBs);
+
+  /* ★代入で入る経路（プリセット復元・先月の値・明細の読み取り）は打鍵中の整形の
+     対象外 ── フォーカスされていない欄を書き換えるとフォーカスが飛ぶ。
+     整えるのは今までどおり change（moneySettle）。 */
+  const assigned = await p.evaluate(() => {
+    const el = document.getElementById('f-gross');
+    el.blur();
     el.value = '3500,50';
     el.dispatchEvent(new Event('input', { bubbles: true }));
-    const pasteMid = el.value;
+    const mid = el.value;
     el.dispatchEvent(new Event('change', { bubbles: true }));
-    return { rows: out, pasteMid, pasteAfter: el.value, pasteN: window.moneyRead(el).n };
-  }, TYPED);
-  for (let i = 0; i < TYPED.length; i++) {
-    const src = TYPED[i][0], after = TYPED[i][1], n = TYPED[i][2];
-    const g = moneyKeys.rows[i];
-    ok(g.mid === src, `★★打っている間は1文字も書き換えない（${src}）`, g.mid);
-    ok(g.after === after, `欄を離れたら整える（${src} → ${after}）`, g.after);
-    ok(g.n === n, `★★送られる数は ${n}（${src}）`, g.n);
-  }
-  ok(moneyKeys.pasteMid === '3500,50' && moneyKeys.pasteAfter === '3,500.5' && moneyKeys.pasteN === 3500.5,
-    '★貼り付けでも同じ（3500,50 → 3,500.5 → 3500.5）', moneyKeys);
+    return { mid, after: el.value, n: window.moneyRead(el).n };
+  });
+  ok(assigned.mid === '3500,50', '★フォーカスされていない欄は打鍵中の整形で触らない', assigned.mid);
+  ok(assigned.after === '350,050' && assigned.n === 350050,
+    '★離れたときに整える（3500,50 → 350,050）', assigned);
 
-  /* ③ 曖昧なら欄の下で聞く。選ぶまで送信を止める。 */
+  /* ③ 曖昧なら欄の下で聞く。選ぶまで送信を止める。
+     ⚠️ 2026-09-15 から「曖昧」は通貨で決まる。小数の無い通貨（JPY 等）に 1.0 という
+        額は存在しないので聞かない。★日本語ページの既定が JPY なので、ここで通貨を
+        明示しないと二択が出ず、この節が丸ごと素通りする。 */
+  const yen = await p.evaluate(async () => {
+    const cur = document.getElementById('f-currency');
+    cur.value = 'JPY';
+    cur.dispatchEvent(new Event('change', { bubbles: true }));
+    const el = document.getElementById('f-gross');
+    el.value = '1.000';
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 120));
+    const nx = el.nextElementSibling;
+    return { v: el.value, n: window.moneyRead(el).n,
+             ask: !!(nx && nx.classList && nx.classList.contains('money-ask')) };
+  });
+  ok(!yen.ask && yen.v === '1,000' && yen.n === 1000,
+    '★円では 1.000 を聞かずに 1,000 と読む（円に 1.0 という額は無い）', yen);
+
   const amb = await p.evaluate(async () => {
+    const cur = document.getElementById('f-currency');
+    cur.value = 'USD';
+    cur.dispatchEvent(new Event('change', { bubbles: true }));
     const el = document.getElementById('f-gross');
     el.value = '1.000';
     el.dispatchEvent(new Event('input', { bubbles: true }));

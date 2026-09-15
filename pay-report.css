@@ -286,8 +286,24 @@ main .text-center.mb-9{margin-bottom:22px}
 .sticky-cta-val{font-size:1.18rem;font-weight:800;letter-spacing:-.02em;color:#f5c842;font-variant-numeric:tabular-nums;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sticky-cta-val .u{font-size:.68rem;font-weight:600;color:#9ca3af;margin-left:4px;letter-spacing:0}
 .sticky-cta .btn-orange{flex:0 0 auto;padding:11px 20px;font-size:.86rem}
-/* バーの下に隠れる欄が出ないよう、出ているあいだだけ足元を空ける。 */
-body.has-cta #form-wrap{padding-bottom:96px}
+/* ── 内訳の割合バー（2026-09-15 オーナー指示）──────────────────────
+   ★色を1行も書かない。欠片は .wz-seg-dot.is-* の9規則がそのまま塗る。
+     ここに .sticky-cta .wz-seg-dot.is-fixed{background:…} のような規則を足すと、
+     db/test-pay-preview.mjs の C) が「色を書いた規則」を10個数えて落ちる
+     （@media や [data-theme] の中に色を書いた場合も同じ）。
+   ★メディアクエリを使わない。flex-wrap で、広い画面では金額の横に並び、
+     狭い画面では自動的に金額の下へ回り込む。
+   ⚠️ .sticky-cta-sum は上で flex:1（＝basis 0）。そのままだとバーと等分になって
+      「JPY / 年」が省略記号に化ける。basis auto にして金額の幅を先に確保する。 */
+.sticky-cta-in{flex-wrap:wrap}
+.sticky-cta-sum{flex:1 1 auto}
+.sticky-cta-bar{flex:1 1 150px;min-width:0}
+.sticky-cta-bar:empty{display:none}
+.sticky-cta .wz-cbar{margin:0;height:10px}
+/* バーの下に隠れる欄が出ないよう、出ているあいだだけ足元を空ける。
+   ★96 → 120px（2026-09-15）。狭い画面では割合バーが金額の下へ回り込むので、
+     帯そのものが 24px ほど高くなる。据え置くと最後の欄と Next が隠れる。 */
+body.has-cta #form-wrap{padding-bottom:120px}
 @media (max-width:430px){
   .sticky-cta-in{gap:10px}
   .sticky-cta-val{font-size:1rem}

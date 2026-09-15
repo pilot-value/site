@@ -377,9 +377,14 @@
        行き先は res._absence（＝隠し欄 f-absence → pay_items.absence[]）。
        apply() で別扱いにして、金額も符号も項目名もそのまま残す。 */
     other: 'f-other',
-    /* ★明細に印字されているのは「その月に出た額」。年間ボーナス(f-bonus)へ入れると、
-       1ヶ月ぶんが年額として年収に丸ごと乗る（2026-08-13 に f-bonus-mo へ変更）。 */
-    bonus: 'f-bonus-mo',
+    /* ★2026-09-15、フォームから「今月の賞与・ボーナス」の欄が消えた（オーナー決定）。
+       行き先だけ f-other（その他の現金・隠し欄）に移す。欄が無い id のままにすると
+       setField が黙って落として**金額がどこにも残らない**。
+       ⚠️ 分類（kind:'bonus' / asked:'bonus'）は変えない。語彙の正解データであり、
+          サーバ側の白リストと Edge Function の語彙に入っている。
+       ⚠️ 年間ボーナス(f-bonus)へは入れない。明細に印字されているのは「その月に出た額」
+          なので、1ヶ月ぶんが年額として年収に丸ごと乗る（2026-08-13 の事故）。 */
+    bonus: 'f-other',
     profit: 'f-profit',
     /* notional（航空券課税などの現物給与）はここに載せない。
        控除欄に同額が立って手取りが1円も動かないので、収入に足すと時給が水増しになる。
@@ -410,7 +415,7 @@
     { field: 'f-other',    kind: 'flight_variable', asked: 'flight_variable' },
     { field: 'f-other',    kind: 'flight_variable', asked: 'night_ot' },
     { field: 'f-command',  kind: 'command',         asked: 'command' },
-    { field: 'f-bonus-mo', kind: 'bonus',           asked: 'bonus' },
+    { field: 'f-other',    kind: 'bonus',           asked: 'bonus' },
     { field: 'f-perdiem',  kind: 'per_diem',        asked: 'per_diem' },
     { field: 'f-other',    kind: 'other',           asked: 'other' },
   ];
@@ -471,7 +476,6 @@
     'f-perdiem': { ja: 'パーディアム', en: 'Per diem' },
     'f-transport': { ja: '交通費', en: 'Transport' },
     'f-other': { ja: 'その他手当', en: 'Other allowances' },
-    'f-bonus-mo': { ja: '今月出たボーナス', en: 'Bonus paid this month' },
     'f-bonus': { ja: '年間ボーナス', en: 'Annual bonus' },
     'f-profit': { ja: 'プロフィットシェア（年）', en: 'Profit share (annual)' },
     'f-block': { ja: 'フライトタイム', en: 'Flight time' },
@@ -2480,7 +2484,7 @@
      ⚠️ 対象は**金額と時間の欄だけ**。通貨・対象月・役職の札は明細のほうが
         その月の事実なので、今までどおり上書きする。 */
   var CONFLICT_IDS = { 'f-gross': 1, 'f-netpay': 1, 'f-base': 1, 'f-guarantee': 1,
-    'f-command': 1, 'f-housing-amt': 1, 'f-perdiem': 1, 'f-bonus-mo': 1,
+    'f-command': 1, 'f-housing-amt': 1, 'f-perdiem': 1,
     'f-instructor': 1, 'f-examiner': 1, 'f-block': 1, 'f-guar': 1, 'f-duty-h': 1 };
   var cfRows = [];
   /* 桁区切り・小数点の書き方だけの違いを「食い違い」と呼ばない。 */
@@ -2815,6 +2819,9 @@
 
     if (typeof updateSteps === 'function') updateSteps(true);
     if (typeof recalc === 'function') recalc();
+    /* ★代入で入れた値では change が出ない＝「超えています」の判定が走らない
+       （2026-09-15 に判定を change へ移した）。読み取りの直後だけ手で呼ぶ。 */
+    if (typeof settleOver === 'function') settleOver();
 
     renderResult(res, trace);
     renderRate();
@@ -3007,6 +3014,9 @@
     /* 行を直したら f-var-sum と f-payitems を組み直す（中で recalc も走る）。 */
     if (touchedRow && typeof pdSync === 'function') pdSync();
     if (typeof recalc === 'function') recalc();
+    /* ★代入で入れた値では change が出ない＝「超えています」の判定が走らない
+       （2026-09-15 に判定を change へ移した）。読み取りの直後だけ手で呼ぶ。 */
+    if (typeof settleOver === 'function') settleOver();
     renderRate();
   }
 
@@ -3194,7 +3204,12 @@
            読み方はフォーム本体と同じ1本（readMoney）に寄せる。
            ⚠️ 2通りに読める入力は勝手に決めない。その場で二択を出し、
               選ばれるまで額を書き換えない＝出ている数と使う数がずれない。 */
-        var R = window.readMoney ? window.readMoney(t2.value) : null;
+        /* ⚠️ 通貨を渡す（2026-09-15）。readMoney の答えは通貨の小数桁で変わる
+              （円に 1.0 は無いので 1.000 を二択で聞かない）。渡し忘れると、
+              この表だけが既定の 2 で読んでフォーム本体と食い違う。 */
+        var R = window.readMoney
+          ? window.readMoney(t2.value, window.curDec ? window.curDec() : undefined)
+          : null;
         if (!R) { lastTrace[i].amount = Number(t2.value) || 0; pushTrace(); return; }
         if (window.clearMoneyAsk) window.clearMoneyAsk(t2);
         if (R.state === 'empty') { lastTrace[i].amount = 0; pushTrace(); return; }
