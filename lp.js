@@ -142,25 +142,28 @@
 
      金額は必ず SSOT（salary-data.mjs の SALARY）のレンジ内に置く。
      範囲外を書くと check-salary.mjs の PASS 2 が ❌ で落ちる。
+     ★2026-09-16 オーナー指示で 100万円単位（末尾2桁は必ず 00）に丸めてある。
+        細かい端数が並んでいると「自分のはこんなにきれいな数字じゃない」と手が止まるため。
+        表示側の丸めは mqAmt()。ここの値も同じ粒度で書く（片方だけ細かくしない）。
      並びは固定。Math.random() を使わない（スクショ差分と目視比較のため）。
      ══════════════════════════════════════════════════════════════ */
   var PV_DEMO = {
     // [slug, 年収(万円), 内訳ラベル, 職位, 機種, 経験, ベース, 社名]
     marquee: [
-      ['emirates',           3980, '年俸＋住宅手当（非課税）', '機長',   'B777', '10〜15年', 'ドバイ',        'エミレーツ航空'],
-      ['ana',                2840, '月給＋賞与＋乗務手当',     '機長',   'B787', '15〜20年', '羽田',          '全日本空輸'],
-      ['delta',              6480, '年俸（税引前）',           '機長',   'A350', '20年以上', 'アトランタ',    'デルタ航空'],
-      ['jal',                1760, '月給＋賞与＋乗務手当',     '副操縦士', 'B737', '5〜10年',  '羽田',          '日本航空'],
-      ['qatar-airways',      3120, '年俸＋住宅手当（非課税）', '機長',   'A350', '10〜15年', 'ドーハ',        'カタール航空'],
-      ['singapore-airlines', 1940, '基本給＋乗務手当',         '副操縦士', 'B787', '5〜10年',  'シンガポール',  'シンガポール航空'],
-      ['cathay-pacific',     3740, '年俸＋住宅手当',           '機長',   'A330', '15〜20年', '香港',          'キャセイパシフィック航空'],
-      ['united',             3260, '年俸（税引前）',           '副操縦士', 'B737', '5〜10年',  'サンフランシスコ', 'ユナイテッド航空'],
-      ['ana',                1580, '月給＋賞与',               '副操縦士', 'A320', '3〜5年',   '伊丹',          '全日本空輸'],
-      ['lufthansa',          3180, '年俸＋年金拠出',           '機長',   'A320', '10〜15年', 'フランクフルト', 'ルフトハンザ'],
-      ['peach',              2420, '月給＋賞与＋乗務手当',     '機長',   'A320', '10〜15年', '関西',          'Peach'],
-      ['qantas',             4120, '年俸（税引前）',           '機長',   'B787', '15〜20年', 'シドニー',      'カンタス航空'],
-      ['jal',                3180, '月給＋賞与＋乗務手当',     '機長',   'A350', '20年以上', '羽田',          '日本航空'],
-      ['turkish-airlines',   1520, '基本給＋乗務手当',         '副操縦士', 'B737', '5〜10年',  'イスタンブール', 'ターキッシュ エアラインズ'],
+      ['emirates',           4000, '年俸＋住宅手当（非課税）', '機長',   'B777', '10〜15年', 'ドバイ',        'エミレーツ航空'],
+      ['ana',                2800, '月給＋賞与＋乗務手当',     '機長',   'B787', '15〜20年', '羽田',          '全日本空輸'],
+      ['delta',              6500, '年俸（税引前）',           '機長',   'A350', '20年以上', 'アトランタ',    'デルタ航空'],
+      ['jal',                1800, '月給＋賞与＋乗務手当',     '副操縦士', 'B737', '5〜10年',  '羽田',          '日本航空'],
+      ['qatar-airways',      3100, '年俸＋住宅手当（非課税）', '機長',   'A350', '10〜15年', 'ドーハ',        'カタール航空'],
+      ['singapore-airlines', 1900, '基本給＋乗務手当',         '副操縦士', 'B787', '5〜10年',  'シンガポール',  'シンガポール航空'],
+      ['cathay-pacific',     3700, '年俸＋住宅手当',           '機長',   'A330', '15〜20年', '香港',          'キャセイパシフィック航空'],
+      ['united',             3300, '年俸（税引前）',           '副操縦士', 'B737', '5〜10年',  'サンフランシスコ', 'ユナイテッド航空'],
+      ['ana',                1600, '月給＋賞与',               '副操縦士', 'A320', '3〜5年',   '伊丹',          '全日本空輸'],
+      ['lufthansa',          3200, '年俸＋年金拠出',           '機長',   'A320', '10〜15年', 'フランクフルト', 'ルフトハンザ'],
+      ['peach',              2400, '月給＋賞与＋乗務手当',     '機長',   'A320', '10〜15年', '関西',          'Peach'],
+      ['qantas',             4100, '年俸（税引前）',           '機長',   'B787', '15〜20年', 'シドニー',      'カンタス航空'],
+      ['jal',                3200, '月給＋賞与＋乗務手当',     '機長',   'A350', '20年以上', '羽田',          '日本航空'],
+      ['turkish-airlines',   1500, '基本給＋乗務手当',         '副操縦士', 'B737', '5〜10年',  'イスタンブール', 'ターキッシュ エアラインズ'],
     ],
   };
 
@@ -406,17 +409,43 @@
   /* ── ❾ Hero の流れる給与カード（Marit Health 型）─────────────────────
      ★PV_DEMO の中身を横一列に並べ、CSS の @keyframes hero-mq で左へ流す。
      JS はタイマーを持たない（transform を CSS に任せる。タブが裏に回れば止まる）。 */
+  /* 帯の金額は「だいたいこのくらい」を出す所なので、どの通貨でも有効数字2桁まで丸める
+     （¥4,000万 / $250K / €220K）。細かい端数が出ていると、見た人が自分の額と見比べて
+     手を止める ── というのがオーナーの指摘（2026-09-16）。丸めるのは表示だけで、
+     data-jpy には元の円をそのまま持たせてある＝通貨を替えても戻ってこられる。
+     ⚠️ span に pv-no-cur を付けて currency.js の走査から外してある。外さないと
+        あちらが ¥4,000万 を拾い直して $252K と細かく書き戻す。代わりに repaintMarquee()
+        が pv-currency-change を受けて書き直す（salary-leveling.js と同じ作り）。 */
+  function mqAmt(jpy) {
+    if (w.PVCurrency && typeof w.PVCurrency.fmt === 'function') return w.PVCurrency.fmt(jpy, 2);
+    return '¥' + Math.round(jpy / 10000).toLocaleString('en-US') + '万';   // currency.js が落ちたとき
+  }
+
+  function repaintMarquee() {
+    var els = d.querySelectorAll('#hero-mq-track .hero-mq-amt');
+    for (var i = 0; i < els.length; i++) {
+      els[i].textContent = mqAmt(parseInt(els[i].getAttribute('data-jpy'), 10));
+    }
+  }
+
   function mqCard(row, dup) {
     var slug = row[0], man = row[1], brk = row[2], pos = row[3],
         fleet = row[4], years = row[5], base = row[6], name = row[7];
-    // 金額はサイト標準の円表記。currency.js がこの文字列を拾って通貨切替に追随させる。
-    var amt = '¥' + man.toLocaleString('en-US') + '万';
+    var jpy = man * 10000;
     // 2周目は読み上げとタブ移動から外す（同じカードが2回読まれるのを防ぐ）
     var dupAttr = dup ? ' aria-hidden="true" tabindex="-1"' : '';
-    // 飛び先は日英で同じ相対パス（/ → airlines/、/en/ → en/airlines/ に解決される）。
-    return '<a class="hero-mq-c" href="airlines/' + esc(slug) + '.html"' + dupAttr +
+    /* ★2026-09-16 オーナー指示 ── どのカードを押しても REAL PAY（actual-pay.html）へ飛ばす。
+       帯に並んでいるのはサンプルなので、その会社のページへ送るより
+       「本物の投稿が並んでいる所」へ送るほうが話がつながる。
+       飛び先は日英で同じ相対パス（/ → actual-pay.html、/en/ → en/actual-pay.html）。
+       ⚠️ data-mr-gate="real" は付けない。付けると pv-gates.js が28枚ぜんぶに
+          錠前の SVG を挿し込む（左メニュー用の形なので帯の中では崩れる）。
+          鍵が要ることの説明は、飛んだ先の REAL PAY が本文で持っている。
+       ⚠️ ?air= で会社を絞って渡さない。サンプルの会社に本物の行が無いと、
+          押した先が空の一覧になる。 */
+    return '<a class="hero-mq-c" href="actual-pay.html"' + dupAttr +
              ' data-pv-ev="hero_mq_card">' +
-      '<span class="hero-mq-amt">' + amt + '</span>' +
+      '<span class="hero-mq-amt pv-no-cur" data-jpy="' + jpy + '">' + mqAmt(jpy) + '</span>' +
       '<span class="hero-mq-brk">' + esc(tw(brk)) + '</span>' +
       '<span class="hero-mq-role">' + esc(tw(pos)) + T.sep + esc(fleet) + '</span>' +
       // 日本語は配列が持っている呼び名をそのまま（帯が狭いので「全日本空輸（ANA）」まで要らない）。
@@ -434,10 +463,10 @@
     var html = rows.map(function (r) { return mqCard(r, false); }).join('') +
                rows.map(function (r) { return mqCard(r, true); }).join('');
     track.innerHTML = html;
-    // currency.js は MutationObserver でも拾うが、初回描画のちらつきを避けて明示的に走らせる。
-    if (w.PVCurrency && typeof w.PVCurrency.scan === 'function') {
-      try { w.PVCurrency.scan(track); } catch (e) {}
-    }
+    // 金額は pv-no-cur ＝ currency.js の走査から外してある（mqAmt が自分で書く）ので、
+    // 通貨の切替はここで受ける。currency.js は「保存された通貨が非JPY」の初期表示でも
+    // 同じ報せを出すので、戻ってきた人もこれ1本で拾える。
+    w.addEventListener('pv-currency-change', repaintMarquee);
   }
 
   /* ── 開発時だけ：?pv_demo=live で実データ経路を目視する用のログ ─────────

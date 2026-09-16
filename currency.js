@@ -72,14 +72,29 @@
   // 現在通貨で jpy を整形。JPY はサイト表記（¥…万 / ¥…）、非JPYは記号＋K/M圧縮。
   // ★「万」は日本語ページだけ。英語ページで JPY を選んだ人に「¥36万」と出しても読めない
   //   （万＝1万という位取りは日本語圏の知識）。英語ページでは桁を省略せず ¥360,000 と出す。
-  function fmt(jpy) {
+  // 有効数字 sig 桁へ丸める（表示だけ。data-jpy も SSOT の円も触らない）。
+  function sigRound(v, sig) {
+    if (!v || !isFinite(v)) return v;
+    var step = Math.pow(10, Math.floor(Math.log(Math.abs(v)) / Math.LN10) - (sig - 1));
+    return Math.round(v / step) * step;
+  }
+
+  // 第2引数 sig は「だいたいこのくらい」を出したい所（Hero の流れる給与カード）専用。
+  // ★換算したあとにもう一度丸める。円だけ丸めても、割った先で端数が戻るため
+  //   （¥4,000万 → USD 251,651 → 素のままだと $252K）。丸めてから出すと $250K。
+  // sig を渡さなければ今までどおり丸めない＝既存の呼び出し（salary-leveling.js の
+  // fmtMan など）は1文字も変わらない。
+  function fmt(jpy, sig) {
     jpy = Number(jpy) || 0;
+    if (sig) jpy = sigRound(jpy, sig);
     if (state === 'JPY') {
       if (LANG !== 'en' && jpy >= 10000 && jpy % 10000 === 0) return '¥' + (jpy / 10000).toLocaleString('en-US') + '万';
       return '¥' + Math.round(jpy).toLocaleString('en-US');
     }
     var rate = RATES[state] || 1;
-    return SYM[state] + compact(jpy / rate);
+    var v = jpy / rate;
+    if (sig) v = sigRound(v, sig);
+    return SYM[state] + compact(v);
   }
 
   // span に出す文字。JPY のときは原表記に戻す＝日本語ページは完全ノーオペ（回帰ゼロ）。
@@ -398,7 +413,8 @@
 
   // ── 公開 API ──────────────────────────────────────────────────
   w.PVCurrency = {
-    fmt: fmt,                 // fmt(jpy) → 現在通貨の整形文字列（salary-leveling.js fmtMan が利用）
+    fmt: fmt,                 // fmt(jpy[, sig]) → 現在通貨の整形文字列（salary-leveling.js fmtMan が利用）
+                              // sig を渡すと換算後に有効数字 sig 桁へ丸める（lp.js の Hero 帯）
     scan: scan,               // scan(root) → 円トークンを包む
     apply: applyAll,          // 既存 span を現在通貨へ再反映
     get: function () { return state; },
