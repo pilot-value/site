@@ -244,7 +244,8 @@ for (const f of ['pay-report.html', 'en/pay-report.html']) {
   const NUMF = { 'f-block': ['0', '200', false], 'f-duty-h': ['0', '400', false],
                  'f-guar': ['0', '200', false], 'f-stay': ['0', '31', true],
                  'f-duty': ['0', '31', true], 'f-pension': ['0', '100', false],
-                 'f-seniority': ['0', '60', true], 'f-tax': ['0', '100', false] };
+                 'f-seniority': ['0', '60', true], 'f-rankyears': ['0', '60', true],
+                 'f-tax': ['0', '100', false] };
   for (const f of ['pay-report.html', 'en/pay-report.html']) {
     const s = read(f);
     for (const [id, [lo, hi, int]] of Object.entries(NUMF)) {
@@ -915,7 +916,7 @@ for (const f of ['pay-report.html', 'en/pay-report.html']) {
   const REQ = ['f-airline', 'f-airline-other', 'f-position', 'f-fleet', 'f-jobrole', 'f-age', 'f-year',
                'f-block', 'f-stay', 'f-currency', 'f-gross', 'f-netpay',
                'f-perdiem', 'f-housing', 'f-housing-amt',
-               'f-contract', 'f-taxcountry', 'f-seniority'];
+               'f-contract', 'f-taxcountry', 'f-seniority', 'f-rankyears'];
   for (const f of ['pay-report.html', 'en/pay-report.html']) {
     const s = read(f);
     /* ラベル1枚ずつ取り出して、付いている札を見る。
@@ -1226,7 +1227,9 @@ const SAMPLE = {
   'f-guar': '80', 'f-perdiem': '6200', 'f-housing': 'allowance', 'f-housing-amt': '17500',
   /* 国籍は 2026-08-12 に聞くのをやめた（居住国だけ）。f-nationality をここに
      戻すと setF() が「要素が無い」で落ちる＝復活に気づける。 */
-  'f-contract': 'direct', 'f-seniority': '12', 'f-taxcountry': 'AE',
+  /* ★在籍年数と昇格後年数は**わざと違う数**にしてある（2026-09-16）。
+     同じ数にすると、片方を取り違えたまま全部通ってしまう。 */
+  'f-contract': 'direct', 'f-seniority': '12', 'f-rankyears': '4', 'f-taxcountry': 'AE',
   'f-tax': '0', 'f-command': '3200', 'f-transport': '1500', 'f-other': '900',
   'f-bonus': '52000', 'f-profit': '18000', 'f-pension': '12',
   'f-duty': '17', 'f-base-iata': 'DXB',
@@ -1247,6 +1250,7 @@ const FALLBACK_FILL = {
   'f-perdiem': '6200',
   'f-housing': 'allowance', 'f-housing-amt': '17500',
   'f-contract': 'direct', 'f-taxcountry': 'AE', 'f-seniority': '12',
+  'f-rankyears': '4',
 };
 
 /* かんたん入力（内訳を開かない人）が入れる1本。★SAMPLE の内訳とは排他。 */
@@ -1857,9 +1861,9 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
 
   /* ③ 送信ボタンは 5/5（確認）の中だけ。§4 が埋まるまでそこへ着けない。 */
   ok(!(await vis('submit-block')), '★契約と税が空のあいだは送信ボタンへ着けない');
-  bad.push(...await setF(pick('f-contract', 'f-taxcountry', 'f-seniority')));
+  bad.push(...await setF(pick('f-contract', 'f-taxcountry', 'f-seniority', 'f-rankyears')));
   await goNext();
-  ok(await vis('s5'), '契約形態・居住国・在籍年数で 5/5（確認）へ進む');
+  ok(await vis('s5'), '契約形態・居住国・在籍年数・昇格後年数で 5/5（確認）へ進む');
   ok(await vis('submit-block'), '送信ボタンは 5/5 の中に在る');
   /* ★2026-09-08 オーナー指摘「最後の入力確認画面はバーは出さないの？」。
      確認の段でも年換算の合計を出す。あわせて、提出ボタンが画面に入ると帯を
@@ -2772,7 +2776,7 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
      「役職・区分で line 業務以外を選んだ人は該当する『追加手当』を最初から開いておいて」。
      これまでは外側の箱（#s3-instr など）だけが出て、中の <details> は畳んだままで、
      「＋教官・訓練の手当を追加」の1行しか見えなかった＝中に何を聞かれるか分からない。
-     ★開くのは見え方だけ。必須（req-tag）は1つも増えない（手順書「絶対に破らない6つ」の6番）。
+     ★開くのは見え方だけ。必須（req-tag）は1つも増えない（手順書「絶対に破らない7つ」の6番）。
      ★外したら畳み直し、中の値も消える（元からの約束）。ここも同時に見る。
      ⚠️ 畳んだ <details> の中身は offsetParent が null にならない
         （Chrome の ::details-content は content-visibility:hidden ＝ レイアウトを残す）。
@@ -3065,7 +3069,8 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
      読める道が戻る。ここではそれが**戻っていない**ことまで見る。 */
   {
     const back = { 'f-block': SAMPLE['f-block'], 'f-tax': SAMPLE['f-tax'],
-                   'f-stay': SAMPLE['f-stay'], 'f-seniority': SAMPLE['f-seniority'] };
+                   'f-stay': SAMPLE['f-stay'], 'f-seniority': SAMPLE['f-seniority'],
+                   'f-rankyears': SAMPLE['f-rankyears'] };
     const settle = (id) => page.evaluate((i) => {
       document.getElementById(i).dispatchEvent(new Event('change', { bubbles: true }));
     }, id);
@@ -3253,6 +3258,10 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
     'housing_amount', 'transport', 'command_pay', 'other_allowance',
     'bonus_annual', 'profit_share_annual', 'pension_pct', 'contract_type',
     'tax_country', 'tax_rate_pct', 'seniority_years', 'lang',
+    /* ★2026-09-16 追加。いまの職位になってから何年か（昇格後年数）。
+       REAL PAY の行に出る段はこちらから作る。在籍年数（seniority_years）とは別物で、
+       足し引きで作れないので欄を1つ増やして両方聞いている。 */
+    'rank_years',
     /* 2026-08-12 追加。かんたん入力の「その月の額面（総支給）」。
        ★base_pay へ入れない（支給構成が「基本給100%」の嘘の図になる）。
        ★2026-08-26、内訳との排他はやめた。両方そのまま送り、年換算は総支給を正とする。 */
@@ -3380,7 +3389,7 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   // ── 契約 ②：クライアント式とサーバ式が同じ額を出すか（式の二重管理）──
   const row = await db.query(
     `select annual_total_orig, currency, gross_monthly, base_pay, block_hours, fleet_cat, job_role,
-            housing_type, housing_amount, seniority_years, tax_country, nationality, lang
+            housing_type, housing_amount, seniority_years, rank_years, tax_country, nationality, lang
        from pay_reports order by created_at desc limit 1`);
   const r = row.rows[0] || {};
   ok(Number(r.annual_total_orig) === live,
@@ -3402,6 +3411,12 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   ok(r.housing_type === 'allowance' && Number(r.housing_amount) === 17500,
      `住居が現金手当として保存 → ${r.housing_type} / ${r.housing_amount}`);
   ok(r.tax_country === 'AE', `居住国が保存されている → ${r.tax_country}`);
+  /* ★2026-09-16。年数の欄は2つあり、**入れ替わっていない**ことを見る。
+     見本はわざと違う数（在籍12年・昇格後4年）。同じ数にすると取り違えに気づけない。
+     入れ替わると REAL PAY の行の段が丸ごと別の意味になる（画面は普通に動いたまま）。 */
+  ok(Number(r.seniority_years) === 12 && Number(r.rank_years) === 4,
+     `★在籍年数と昇格後年数が別々に保存されている → 在籍 ${r.seniority_years} / 昇格後 ${r.rank_years}`,
+     '期待 在籍 12 / 昇格後 4');
   /* 国籍は聞かないので必ず NULL。ここが 'GB' に戻ったら、どこかで欄が復活している。 */
   ok(r.nationality === null, `国籍は保存しない（欄を廃止した）→ ${r.nationality}`);
   ok(r.lang === lang, `lang がページの言語で入る → ${r.lang}`);
@@ -3640,7 +3655,8 @@ console.log('\n明細の内訳（hidden → RPC → payslip_detail 列）');
     'f-airline': 'zipair', 'f-position': 'cap', 'f-fleet': 'a380', 'f-jobrole': 'line',
     'f-age': '40-49', 'f-block': '72.4', 'f-stay': '9', 'f-currency': 'JPY', 'f-gross': '663600',
     'f-netpay': '512000', 'f-perdiem': '38000',
-    'f-housing': 'none', 'f-contract': 'direct', 'f-taxcountry': 'JP', 'f-seniority': '14',
+    'f-housing': 'none', 'f-contract': 'direct', 'f-taxcountry': 'JP',
+    'f-seniority': '14', 'f-rankyears': '6',
   });
   await new Promise((r) => setTimeout(r, 250));
 
@@ -3786,7 +3802,7 @@ console.log('\n明細1枚が REAL PAY に出るまで（＋下書きが上書き
     draft: {
       'f-airline': 'jal', 'f-position': 'cap', 'f-fleet': 'b777', 'f-jobrole': 'line',
       'f-age': '40-49', 'f-stay': '9', 'f-housing': 'none',
-      'f-contract': 'direct', 'f-taxcountry': 'JP', 'f-seniority': '14',
+      'f-contract': 'direct', 'f-taxcountry': 'JP', 'f-seniority': '14', 'f-rankyears': '6',
       'f-currency': 'USD', 'f-gross': '111111', 'f-base': '222222', 'f-netpay': '333333',
       'f-block': '55.5', 'f-perdiem': '38000', 'f-year': '2026', 'f-month': '3',
       'f-source': 'manual',
@@ -3815,7 +3831,7 @@ console.log('\n明細1枚が REAL PAY に出るまで（＋下書きが上書き
     },
     /* 明細が触らない欄（下書きから来てよい側）。 */
     keep: { 'f-airline': 'jal', 'f-contract': 'direct', 'f-taxcountry': 'JP',
-            'f-seniority': '14', 'f-stay': '9' },
+            'f-seniority': '14', 'f-rankyears': '6', 'f-stay': '9' },
     rows: [{ amount: 148200, basis: 'block' }, { amount: 23400, basis: 'night' }],
     db: { airline: 'jal', gross: 633600, currency: 'JPY' },
   }, {
@@ -3825,7 +3841,7 @@ console.log('\n明細1枚が REAL PAY に出るまで（＋下書きが上書き
     draft: {
       'f-airline': 'lufthansa', 'f-position': 'fo', 'f-fleet': 'a320', 'f-jobrole': 'line',
       'f-age': '30-39', 'f-stay': '7', 'f-housing': 'none',
-      'f-contract': 'direct', 'f-taxcountry': 'DE', 'f-seniority': '6',
+      'f-contract': 'direct', 'f-taxcountry': 'DE', 'f-seniority': '6', 'f-rankyears': '2',
       'f-currency': 'USD', 'f-gross': '111111', 'f-base': '222222', 'f-netpay': '333333',
       'f-block': '55.5', 'f-perdiem': '38000', 'f-year': '2026', 'f-month': '3',
       'f-source': 'manual',
@@ -3856,7 +3872,7 @@ console.log('\n明細1枚が REAL PAY に出るまで（＋下書きが上書き
       'f-source': 'payslip',
     },
     keep: { 'f-airline': 'lufthansa', 'f-contract': 'direct', 'f-taxcountry': 'DE',
-            'f-seniority': '6', 'f-stay': '7' },
+            'f-seniority': '6', 'f-rankyears': '2', 'f-stay': '7' },
     rows: [{ amount: 2150.5, basis: 'sector' }],
     db: { airline: 'lufthansa', gross: 8450, currency: 'EUR' },
   }];
@@ -4265,7 +4281,7 @@ console.log('\n前回の内容の上に明細を落とす（先月の額が積�
   const LAST = {
     'f-airline': 'ana', 'f-position': 'fo', 'f-fleet': 'a320', 'f-jobrole': 'line',
     'f-age': '30-39', 'f-housing': 'none', 'f-currency': 'JPY',
-    'f-contract': 'direct', 'f-taxcountry': 'JP', 'f-seniority': '5',
+    'f-contract': 'direct', 'f-taxcountry': 'JP', 'f-seniority': '5', 'f-rankyears': '2',
     'f-gross': '1250305', 'f-guarantee': '507000', 'f-perdiem': '42000',
     /* ★明細が**絶対に読めない**3つ。印字が無いので payslip.js は触らず、
        前の月の額が誰にも上書きされないまま残る。管理職手当と時給は
@@ -4403,7 +4419,8 @@ console.log('\n前回の内容の上に明細を落とす（先月の額が積�
 
   // ── 明細が触らない欄まで捨てていない ─────────────────────────
   for (const [id, want] of Object.entries({ 'f-airline': 'ana', 'f-position': 'fo',
-      'f-fleet': 'a320', 'f-contract': 'direct', 'f-taxcountry': 'JP', 'f-seniority': '5' })) {
+      'f-fleet': 'a320', 'f-contract': 'direct', 'f-taxcountry': 'JP',
+      'f-seniority': '5', 'f-rankyears': '2' })) {
     ok(String(await v(id)) === want, `${id} は前回の内容から残る（明細が触らない欄）`, await v(id));
   }
 
@@ -4463,7 +4480,8 @@ for (const [tag, url] of [['ja', 'http://localhost:3000/pay-report.html'],
      'f-contract', 'f-taxcountry'].forEach((id) => set(id, firstOpt(id)));
     const role = document.querySelector('input[name="f-jobrole"]');
     if (role) { role.checked = true; role.dispatchEvent(new Event('change', { bubbles: true })); }
-    ['f-block', 'f-stay', 'f-perdiem', 'f-seniority'].forEach((id) => set(id, '0'));
+    ['f-block', 'f-stay', 'f-perdiem', 'f-seniority', 'f-rankyears']
+      .forEach((id) => set(id, '0'));
     set('f-gross', '1080000');
     set('f-netpay', '842000');
   });
@@ -5175,7 +5193,7 @@ console.log('\n★2回目以降の入力（オーナー決定の10項目）');
 const CARRY_LAST = {
   'f-airline': 'emirates', 'f-position': 'cap', 'f-fleet': 'b777', 'f-currency': 'AED',
   'f-age': '40-49', 'f-jobrole': 'line,instructor,union', 'f-housing': 'allowance',
-  'f-contract': 'direct', 'f-seniority': '12', 'f-taxcountry': 'AE', 'f-tax': '0',
+  'f-contract': 'direct', 'f-seniority': '12', 'f-rankyears': '4', 'f-taxcountry': 'AE', 'f-tax': '0',
   'f-base': '48500', 'f-guarantee': '0', 'f-command': '3200', 'f-housing-amt': '17500',
   'f-payitems': JSON.stringify({ v: 1, variable: [{ label: 'Flight Pay', basis: 'block' }] }),
 };
@@ -5563,7 +5581,7 @@ console.log('\n★13 前月の「該当なし」の引き継ぎ（指摘2）');
 const NONE_LAST = {
   'f-airline': 'emirates', 'f-position': 'cap', 'f-fleet': 'b777', 'f-currency': 'AED',
   'f-age': '40-49', 'f-jobrole': 'line', 'f-housing': 'allowance',
-  'f-contract': 'direct', 'f-seniority': '12', 'f-taxcountry': 'AE', 'f-tax': '0',
+  'f-contract': 'direct', 'f-seniority': '12', 'f-rankyears': '4', 'f-taxcountry': 'AE', 'f-tax': '0',
   'f-command': '3200', 'f-housing-amt': '17500',
   'f-payitems': JSON.stringify({ v: 2, fixed_none: true, guarantee_none: true,
                                  variable_none: true }),

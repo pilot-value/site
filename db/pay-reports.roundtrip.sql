@@ -40,6 +40,10 @@ declare
   v_payload constant jsonb := jsonb_build_object(
     'airline', 'emirates', 'position', 'cap', 'fleet', 'b777', 'job_role', 'line',
     'period_year', 2015, 'period_month', 1, 'currency', 'AED',
+    -- ★年数は2つある。**わざと違う数**を入れる（12 と 4）。
+    --   どちらか片方をもう片方で埋める作りに戻ると、この2つが同じ数になって落ちる。
+    'seniority_years', 12,
+    'rank_years', 4,
     'gross_monthly', 54250,
     'flight_variable_pay', 3200,
     'other_allowance', 4100,
@@ -123,6 +127,11 @@ begin
     || coalesce(v_items->'variable'->0->>'label', 'null') || ' / Flying Pay   '
     || case when v_items->'variable'->0->>'label' = 'Flying Pay' then '✅' else '❌' end;
 
+  n := n + 1; v_out := v_out || E'\n  ' || n || '  保存：在籍年数と昇格後年数が別々に入る                '
+    || coalesce(v_row.seniority_years::text, 'null') || ' / ' || coalesce(v_row.rank_years::text, 'null')
+    || ' / 12 / 4   '
+    || case when v_row.seniority_years = 12 and v_row.rank_years = 4 then '✅' else '❌' end;
+
   n := n + 1; v_out := v_out || E'\n  ' || n || '  保存：年換算は総支給×12（減額で動かない）            '
     || coalesce(v_row.annual_total_orig::text, 'null') || ' / 651000   '
     || case when v_row.annual_total_orig = 651000 then '✅' else '❌' end;
@@ -134,6 +143,10 @@ begin
   n := n + 1; v_out := v_out || E'\n  ' || n || '  再取得：my_pay_reports がその月を返す                 '
     || case when v_m is null then 'なし' else 'あり' end || ' / あり   '
     || case when v_m is not null then '✅' else '❌' end;
+
+  n := n + 1; v_out := v_out || E'\n  ' || n || '  再取得：昇格後年数がそのまま戻る（REAL PAY の段の元）  '
+    || coalesce((v_m->>'rank_years'), 'null') || ' / 4   '
+    || case when (v_m->>'rank_years')::int = 4 then '✅' else '❌' end;
 
   n := n + 1; v_out := v_out || E'\n  ' || n || '  表示：翌月のひな型に金額・数量が1つも無い             '
     || coalesce(v_nums::text, 'null') || ' / 1（版だけ）   '

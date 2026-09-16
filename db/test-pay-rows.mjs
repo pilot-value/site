@@ -367,28 +367,34 @@ await pend(A_NULLIP, { fleet: 'b787', month: 3, gross: 15000, iph: null });
                  flight_variable_pay: 2600, other_allowance: 3600,
                  bonus_annual: 7000,
                  block_hours: 65, duty_days: 15, days_off: 13,
-                 seniority_years: 3 });
+                 seniority_years: 3, rank_years: 3 });
 }
 
-/* (n) 在籍の段。FO は5年で2段・CAP は10年と20年で3段（オーナー確定）。
-   境目のちょうどの値を入れる ── 5年は「5年〜」側、10年・20年も上の段。 */
+/* (n) 昇格後年数の段。5年幅で5段・**職位で分けない**（2026-09-16 オーナー指示）。
+   境目のちょうどの値を入れる ── 5年・10年・15年・20年はどれも上の段。
+   ⚠️ **在籍年数は全員 40 に揃えてある。** 段が在籍年数から作られていたら、
+      全員が最上段（4）になって下の検査がまとめて落ちる ── つまりこの1行が
+      「行に出ているのが昇格後年数のほうだ」という証拠になっている。
+      2026-09-16 までは、まさにその在籍年数が行に出ていた。 */
 {
   const ten = async (pos, years, month) => {
     const u = ++seat; await asUser(u);
     await submit({ ...BASE, airline: A_TEN, position: pos, fleet: 'b777',
                    period_year: YEAR, period_month: month, gross_monthly: 15000,
-                   seniority_years: years });
+                   seniority_years: 40, rank_years: years });
   };
   await ten('fo',   4, 1);   // → 0
   await ten('fo',   5, 2);   // → 1（境目は上の段）
-  await ten('cap',  9, 3);   // → 0
-  await ten('cap', 10, 4);   // → 1
-  await ten('cap', 19, 5);   // → 1
-  await ten('cap', 20, 6);   // → 2
+  await ten('cap',  9, 3);   // → 1
+  await ten('cap', 10, 4);   // → 2
+  await ten('cap', 14, 5);   // → 2
+  await ten('cap', 15, 6);   // → 3
+  await ten('cap', 20, 7);   // → 4
   // 年数を書いていない人 → 段そのものが出ない（「不明」を置かない）
   const u = ++seat; await asUser(u);
   await submit({ ...BASE, airline: A_TEN, position: 'cap', fleet: 'b777',
-                 period_year: YEAR, period_month: 7, gross_monthly: 15000 });
+                 period_year: YEAR, period_month: 8, gross_monthly: 15000,
+                 seniority_years: 40 });
 }
 
 /* (o) 勤務だけ書いた人・総支給だけの人。
@@ -532,7 +538,7 @@ console.log('\n▼ 6. ★並びは新しい順（2026-08-25。前は md5 順だ�
 // ════════════════════════════════════════════════════════════
 console.log('\n▼ 7. ★返り値に何が入っているか');
 // ════════════════════════════════════════════════════════════
-/* ★2026-09-03、オーナー判断で機材・在籍の段・内訳の帯・勤務の帯を返すようにした。
+/* ★2026-09-03、オーナー判断で機材・年数の段・内訳の帯・勤務の帯を返すようにした。
    （2026-08-24 に「返さない」と決めたのを取り消したもの。経緯は db/pay-rows.sql の冒頭）
    ここの検査は「返すか返さないか」から **「返るのが帯と段だけか」** に移っている。
    ⚠️ ALLOWED に語を足すのは設計判断。足す前に db/pay-rows.sql の②を読むこと。 */
@@ -546,7 +552,7 @@ ok(R.every(x => !('fleet_cat' in x)),
    '★機材の区分（狭胴・中型・広胴）は返していない（2粒度を揃えない）');
 
 const raw = (await one(`select pv_pay_rows()::text t`)).t;
-const BANNED = ['proof_hash', 'base_iata', 'seniority', 'age_bucket', 'period_month',
+const BANNED = ['proof_hash', 'base_iata', 'seniority', 'rank_years', 'age_bucket', 'period_month',
                 'period_year', 'created_at', 'annual_total_orig', 'currency',
                 'contract_type', 'tax_country', 'nationality', 'verify_level',
                 'base_pay', 'housing_amount', 'housing_type', 'per_diem',
@@ -600,7 +606,7 @@ console.log('\n▼ 7-c. ★帯（2026-09-03。行を押すと見えるもの）'
     return !!g && Number(g.r[0]) === lo && Number(g.r[1]) === hi;
   };
   ok(b && b.fleet === 'a320' && b.pos === 'fo' && b.ten === 0,
-     '★オーナーの例：A320 / First Officer / 1〜5年の段',
+     '★オーナーの例：A320 / First Officer / 昇格後5年未満の段',
      JSON.stringify(b && { fleet: b.fleet, pos: b.pos, ten: b.ten }));
   ok(same('base', 130000, 135000),
      '★オーナーの例：Base 130,000〜135,000', JSON.stringify(seg('base')));
@@ -668,27 +674,36 @@ console.log('\n▼ 7-c. ★帯（2026-09-03。行を押すと見えるもの）'
        '★★ 総支給しか書いていない人に帯を作っていない（キーごと無い）★★',
        JSON.stringify(only1));
     ok(only1 && !('work' in only1) && !('ten' in only1),
-       '　勤務も在籍も書いていなければキーごと出ない（「不明」を置かない）');
+       '　勤務も年数も書いていなければキーごと出ない（「不明」を置かない）');
     const wOnly = only(R, x => x.airline === A_WRK && x.pos === 'cap')[0];
     ok(wOnly && !('pay' in wOnly) && wOnly.work && Number(wOnly.work.bh[0]) === 70,
        '　勤務だけ書いた人は勤務だけ出る（内訳は作らない）',
        JSON.stringify(wOnly && wOnly.work));
   }
 
-  /* ── 在籍の段 ─────────────────────────────────────── */
+  /* ── 昇格後年数の段 ───────────────────────────────── */
   {
     const t = only(R, x => x.airline === A_TEN);
-    const ten = (pos, m) => t.filter(x => x.pos === pos).map(x => x.ten);
     const fo  = t.filter(x => x.pos === 'fo').map(x => x.ten).sort();
     const cap = t.filter(x => x.pos === 'cap').map(x => x.ten)
                  .filter(v => v !== undefined).sort();
-    ok(fo.join(',') === '0,1', '★FO の段は2つだけ（5年が境目・境目は上の段）', fo.join(','));
-    ok(cap.join(',') === '0,1,1,2',
-       '★CAP の段は3つだけ（10年・20年が境目）', cap.join(','));
+    ok(fo.join(',') === '0,1',
+       '★FO：4年→0 / 5年→1（境目は上の段）', fo.join(','));
+    ok(cap.join(',') === '1,2,2,3,4',
+       '★CAP：9→1 / 10→2 / 14→2 / 15→3 / 20→4（刻みは FO と同じ5年幅）',
+       cap.join(','));
+    ok(!cap.includes(0) && !fo.includes(4),
+       '★★職位で段を変えていない（同じ年数なら FO も CAP も同じ段）★★',
+       `fo=${fo.join(',')} cap=${cap.join(',')}`);
     ok(t.filter(x => !('ten' in x)).length === 1,
        '★年数を書いていない人には段そのものが無い（「不明」を置かない）');
-    ok(R.every(x => x.ten === undefined || [0, 1, 2].includes(x.ten)),
-       '★段は 0・1・2 だけ（年そのものが混ざっていない）');
+    ok(R.every(x => x.ten === undefined || [0, 1, 2, 3, 4].includes(x.ten)),
+       '★段は 0〜4 だけ（年そのものが混ざっていない）');
+    /* ★★ 段の材料が在籍年数に戻っていないこと。上の submit は全員
+           seniority_years: 40（＝最上段）で出しているので、戻っていれば全部 4 になる。 */
+    ok(!t.every(x => x.ten === 4),
+       '★★段は在籍年数ではなく昇格後年数から作られている★★',
+       JSON.stringify(t.map(x => x.ten)));
   }
 }
 

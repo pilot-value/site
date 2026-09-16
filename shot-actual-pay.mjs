@@ -96,8 +96,9 @@ const UID = '00000000-0000-4000-8000-00000000c001';
    ★2026-09-03、機材・在籍の段・報酬の内訳・勤務が返るようになった（行を押すと出る面の中身）。
      2026-08-24 に「返さない」と書いてあったのはこの日に取り消した。
        fleet … 語彙のコード（pv-vocab.json の fleets）。表の職位セルの2行目に出る
-       ten  … 在籍の**段**だけ。fo は 0〜1（1〜5年 / 5年以上）、
-              cap は 0〜2（1〜10年 / 10〜20年 / 20年以上）。年そのものは来ない
+       ten  … **昇格後年数**の段だけ（2026-09-16 に在籍年数から差し替えた）。
+              0〜4 の5年幅（5年未満 / 5〜10 / 10〜15 / 15〜20 / 20年以上）で、
+              **職位では分けない**（fo も cap も同じ5段）。年そのものは来ない
        pay  … [{ k: 区分, r: [下端, 上端] }] ── **両端の2つだけ**。中間の位置は無い
        work … { bh / dd / off: [下端, 上端] } ── この3つだけ（便数もステイも来ない）
      ⚠️ 帯の刻みは**年収から決まる**（年収 ÷ 40 を 1/2/5 へ切り上げ ＝ pv_band_grid）。
@@ -134,14 +135,15 @@ const gridOf = (annual) => {
 const W_GRID = { bh: 10, dd: 2, off: 2 };
 const FLEETS = new Set((JSON.parse(
   readFileSync(path.join(ROOT, 'pv-vocab.json'), 'utf8')).fleets || []).map((f) => f.code));
-const TEN_MAX = { fo: 1, cap: 2 };
+/* ★段は職位で分けない（2026-09-16）。fo でも cap でも 0〜4 のどれもありうる。 */
+const TEN_MAX = 4;
 function checkRows(list, tag) {
   const bad = [];
   list.forEach((r, i) => {
     const at = tag + '[' + i + '] ' + r.airline + ' ' + r.pos;
     if (r.fleet && !FLEETS.has(r.fleet)) bad.push(at + ' 機材 ' + r.fleet + ' は語彙に無い');
-    if (typeof r.ten === 'number' && r.ten > (TEN_MAX[r.pos] === undefined ? -1 : TEN_MAX[r.pos]))
-      bad.push(at + ' 在籍の段 ' + r.ten + ' は ' + r.pos + ' に無い');
+    if (typeof r.ten === 'number' && (r.ten < 0 || r.ten > TEN_MAX))
+      bad.push(at + ' 昇格後の段 ' + r.ten + ' は 0〜' + TEN_MAX + ' の外');
     const g = gridOf(r.annual_usd);
     (r.pay || []).forEach((p) => {
       if (p.r[0] % g || p.r[1] % g) bad.push(at + ' ' + p.k + ' が刻み ' + g + ' の倍数でない');
@@ -196,7 +198,7 @@ const ROWS = [
                perdiem: [5000, 10000], bonus: [0, 10000] }),
       work: WK([60, 70], [14, 16], [12, 14]) }),
   R('singapore-airlines', 'cap', 330000, false, 0,  // 預かり ── 内訳だけ（勤務は書いていない）
-    { fleet: 'a380', ten: 2,
+    { fleet: 'a380', ten: 4,   // いちばん長い札（昇格後20年以上）を絵に入れる
       pay: P({ base: [190000, 200000], variable: [70000, 80000],
                perdiem: [20000, 30000], bonus: [0, 20000] }) }),
   R('ana', 'fo',  94000, false, 0,                  // 預かり ── 勤務だけ

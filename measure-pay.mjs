@@ -43,7 +43,8 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
     put('f-currency', 'AED'); put('f-gross', '77800'); put('f-netpay', '71600');
     put('f-perdiem', '6200');
     put('f-housing', 'allowance'); put('f-housing-amt', '17500');
-    put('f-contract', 'direct'); put('f-taxcountry', 'AE'); put('f-seniority', '12');
+    put('f-contract', 'direct'); put('f-taxcountry', 'AE');
+    put('f-seniority', '12'); put('f-rankyears', '4');
     put('f-base', '48500');
     for (const c of [...document.querySelectorAll('.chip[data-open]')]) c.click();
     /* ★変動給の「種類」は行の中にあるので、1行足さないと測れない

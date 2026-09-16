@@ -1228,19 +1228,31 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
         </div>
 
         <div id="s4-body">
+        <div class="fld">
+          <label class="form-label" for="f-contract">Contract type<span class="req-tag">Required</span></label>
+          <select id="f-contract" class="form-input">
+            <option value="">Select…</option>
+            <option value="direct">Direct employment</option>
+            <option value="contract">Contract (incl. self-employed)</option>
+            <option value="agency">Via agency</option>
+          </select>
+        </div>
+        <!-- ★2026-09-16: two year fields now (owner's call). Only the RIGHT one
+             (years in current rank) shows on the REAL PAY row. The row prints it
+             right next to the rank, so printing years-at-airline there read as
+             "a brand-new captain with 10-20 years in rank" — a lie on screen.
+             Years at the airline moves off the row and feeds upgrade-speed stats.
+             ⚠️ Keeping both side by side is deliberate: one alone is ambiguous. -->
         <div class="grid2">
-          <div class="fld">
-            <label class="form-label" for="f-contract">Contract type<span class="req-tag">Required</span></label>
-            <select id="f-contract" class="form-input">
-              <option value="">Select…</option>
-              <option value="direct">Direct employment</option>
-              <option value="contract">Contract (incl. self-employed)</option>
-              <option value="agency">Via agency</option>
-            </select>
-          </div>
           <div class="fld">
             <label class="form-label" for="f-seniority">Years at this airline<span class="req-tag">Required</span></label>
             <input type="text" id="f-seniority" class="form-input num" inputmode="numeric" placeholder="e.g. 7" data-min="0" data-max="60" data-dec="0"/>
+            <p class="fld-hint">Since you joined this airline — <b>training included</b>.</p>
+          </div>
+          <div class="fld">
+            <label class="form-label" for="f-rankyears">Years in current rank<span class="req-tag">Required</span></label>
+            <input type="text" id="f-rankyears" class="form-input num" inputmode="numeric" placeholder="e.g. 3" data-min="0" data-max="60" data-dec="0"/>
+            <p class="fld-hint">Since you were promoted. Training does not count. <b>Include the same rank at other airlines.</b></p>
           </div>
         </div>
         <div class="grid2 tax-row">
@@ -3442,7 +3454,7 @@ const GATE_PAY    = () => filled('f-currency') && payEntered() && filled('f-netp
 /* ★4. Contract & tax became required on 2026-08-13 (owner). The tax rate itself
      stays optional — we have no table for most countries, and requiring it would
      dead-end everyone living in one of them. */
-const GATE_CONTRACT = () => filled('f-contract') && filled('f-taxcountry') && filled('f-seniority');
+const GATE_CONTRACT = () => filled('f-contract') && filled('f-taxcountry') && filled('f-seniority') && filled('f-rankyears');
 const STEPS = [['s2', GATE_ROLE], ['s3', GATE_HOURS], ['s4', GATE_PAY], ['s5', GATE_CONTRACT]];
 
 function updateSteps(quiet) {
@@ -4184,7 +4196,7 @@ const LS_KEY = 'pv_pay_last';
               sit on the template side (PRESET_IDS). */
 const CARRY = {
   info: ['f-airline','f-airline-other','f-position','f-fleet','f-currency',
-    'f-housing','f-contract','f-seniority','f-taxcountry','f-tax',
+    'f-housing','f-contract','f-seniority','f-rankyears','f-taxcountry','f-tax',
     'f-bonus','f-profit','f-pension','f-jobrole','f-age','f-base-iata'],
   fixed: ['f-base','f-guar','f-guarantee','f-command','f-housing-amt'],
   shape: ['f-payitems'],
@@ -4661,6 +4673,7 @@ function foldContract() {
   const bits = [label(c), 'resident in ' + label(t)];
   if ($('f-tax').value !== '') bits.push('income tax ' + $('f-tax').value + '%');
   if ($('f-seniority').value !== '') bits.push($('f-seniority').value + ' yrs at the airline');
+  if ($('f-rankyears').value !== '') bits.push($('f-rankyears').value + ' yrs in rank');
   $('s4-sum-txt').innerHTML = '<b>' + esc(bits.join(' / ')) + '</b>';
   shutFold('s4-body', 's4-sum', 's4-sub');      // folded: the one-line summary is all that stays
 }
@@ -4973,6 +4986,7 @@ if (WZ) {
     'f-housing': s(r.housing_type),
     'f-contract': s(r.contract_type), 'f-taxcountry': s(r.tax_country),
     'f-tax': s(r.tax_rate_pct), 'f-seniority': s(r.seniority_years),
+    'f-rankyears': s(r.rank_years),
     'f-bonus': s(r.bonus_annual), 'f-profit': s(r.profit_share_annual),
     'f-pension': s(r.pension_pct),
     /* CARRY.fixed ── fixed by their contract, same every month. ★0 is a valid previous value (they answered "none"). */
@@ -5373,6 +5387,9 @@ function buildPayload(airline) {
        The DB column stays, so submissions from now on land as NULL. */
     tax_rate_pct:        val('f-tax'),
     seniority_years:     val('f-seniority'),
+    /* ★Years in the current rank (2026-09-16). A different number from years at
+       the airline — the REAL PAY band is built from THIS one. Can't be derived. */
+    rank_years:          val('f-rankyears'),
 
     /* ── 明細から読めた値 ────────────────────────────────────────
        手取り（f-netpay）と勤務時間（f-duty-h）は 2026-08-13 に表の欄へ出したので、
@@ -5557,6 +5574,7 @@ async function submitPayReport() {
   if (!val('f-contract')) return stopAt('f-contract', 'Please choose your contract type.');
   if (!val('f-taxcountry')) return stopAt('f-taxcountry', 'Please choose your country of tax residence.');
   if (!val('f-seniority')) return stopAt('f-seniority', 'Please enter your years at the airline.');
+  if (!val('f-rankyears')) return stopAt('f-rankyears', 'Please enter your years in your current rank.');
   if (num('f-hourly') > 0 && num('f-block') <= 0 && num('f-guar') <= 0) {
     return stopAt('f-block', 'With an hourly rate we also need flight time or guaranteed flight time.');
   }

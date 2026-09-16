@@ -227,11 +227,12 @@ const B = { currency: 'USD', lang: 'ja', tax_rate_pct: 0, fleet: 'b777',
 let ai = 0;
 const FIX = [
   { name: '総支給だけ（内訳を書いていない人）',
-    p: { gross_monthly: 10000, seniority_years: 12, block_hours: 80, duty_days: 15 },
-    note: '帯は付かない（why=nodetail）。勤務の帯と在籍の段だけ出る' },
+    p: { gross_monthly: 10000, seniority_years: 12, rank_years: 12,
+         block_hours: 80, duty_days: 15 },
+    note: '帯は付かない（why=nodetail）。勤務の帯と昇格後年数の段だけ出る' },
 
   { name: '内訳を全部書いた人（9区分＋賞与）',
-    p: { gross_monthly: 20000, seniority_years: 3, position: 'fo',
+    p: { gross_monthly: 20000, seniority_years: 3, rank_years: 3, position: 'fo',
          base_pay: 9000, guarantee_pay: 1000, command_pay: 800,
          instructor_pay: 300, examiner_pay: 200, union_pay: 100,
          management_pay: 50, nonline_pay: 50,
@@ -275,8 +276,8 @@ const FIX = [
 
   { name: '時給制（総支給を書いていない）',
     p: { hourly_rate: 150, block_hours: 80, guaranteed_hours: 75, command_pay: 500,
-         seniority_years: 22 },
-    note: '★現金は総支給ではなく内訳の足し算から出る。在籍は上の段' },
+         seniority_years: 22, rank_years: 22 },
+    note: '★現金は総支給ではなく内訳の足し算から出る。段はいちばん上' },
 
   { name: '帯の下端ちょうど（60000 = 12×5000）',
     p: { gross_monthly: 10000, base_pay: 5000 },
@@ -292,17 +293,30 @@ const FIX = [
 
   { name: '円で出した人（為替を掛ける）',
     p: { currency: 'JPY', gross_monthly: 1500000, base_pay: 900000, guarantee_pay: 100000,
-         block_hours: 78, duty_days: 14, seniority_years: 9 },
+         block_hours: 78, duty_days: 14, seniority_years: 9, rank_years: 9 },
     note: '★掛け算の順番と丸めが写せているか。JS は二進小数なのでここが本番' },
 
-  { name: '在籍4年の副操縦士（下の段）',
-    p: { gross_monthly: 9000, position: 'fo', seniority_years: 4 }, note: 'ten = 0' },
-  { name: '在籍5年の副操縦士（上の段）',
-    p: { gross_monthly: 9000, position: 'fo', seniority_years: 5 }, note: 'ten = 1' },
-  { name: '在籍20年の機長（いちばん上の段）',
-    p: { gross_monthly: 9000, position: 'cap', seniority_years: 20 }, note: 'ten = 2' },
-  { name: '在籍を書いていない人',
-    p: { gross_monthly: 9000, position: 'cap' }, note: 'ten はキーごと消える' },
+  /* ★昇格後年数の段（2026-09-16 に在籍年数から差し替え）。5年幅で5段・職位で分けない。
+       ⚠️ どの行も **在籍年数だけ 40（＝最上段）** を入れてある。段が在籍年数から
+          作られていたら全部 4 になって、ここがまとめて落ちる。 */
+  { name: '昇格後4年の副操縦士（いちばん下の段）',
+    p: { gross_monthly: 9000, position: 'fo', seniority_years: 40, rank_years: 4 },
+    note: 'ten = 0' },
+  { name: '昇格後5年の副操縦士（境目は上の段）',
+    p: { gross_monthly: 9000, position: 'fo', seniority_years: 40, rank_years: 5 },
+    note: 'ten = 1' },
+  { name: '昇格後9年の機長（FO と同じ刻み）',
+    p: { gross_monthly: 9000, position: 'cap', seniority_years: 40, rank_years: 9 },
+    note: '★ten = 1。職位で刻みを変えていない' },
+  { name: '昇格後15年の機長',
+    p: { gross_monthly: 9000, position: 'cap', seniority_years: 40, rank_years: 15 },
+    note: 'ten = 3' },
+  { name: '昇格後20年の機長（いちばん上の段）',
+    p: { gross_monthly: 9000, position: 'cap', seniority_years: 40, rank_years: 20 },
+    note: 'ten = 4' },
+  { name: '昇格後年数を書いていない人（在籍だけ書いてある）',
+    p: { gross_monthly: 9000, position: 'cap', seniority_years: 40 },
+    note: '★ten はキーごと消える（在籍年数で埋め合わせない）' },
 
   { name: '常識の幅の下（年 $10,000 未満）',
     p: { gross_monthly: 500 }, note: '★一覧に1行も出ない。画面は「出ません」と言う' },

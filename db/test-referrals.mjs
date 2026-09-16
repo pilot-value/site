@@ -85,7 +85,7 @@ const BASE = {
   airline: 'emirates', currency: 'AED',
   base_pay: 20000, hourly_rate: 250, guaranteed_hours: 75, block_hours: 85,
   per_diem: 3000, housing_type: 'allowance', housing_amount: 10000,
-  base_iata: 'DXB', seniority_years: 15, tax_rate_pct: 0, lang: 'en',
+  base_iata: 'DXB', seniority_years: 15, rank_years: 4, tax_rate_pct: 0, lang: 'en',
   age_bucket: '40-49',
 };
 /* 区分（会社・職位・機材・年）を丸ごと1つ占有して、n 人ぶんの行を作る。

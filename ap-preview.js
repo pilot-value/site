@@ -34,6 +34,8 @@
 
    ── 形は本物の行と同じ ────────────────────────────────────────
    airline / pos / fleet / ten / annual_usd / paylock / work
+   ★ten は**昇格後年数の段**（0〜4。5年幅）。2026-09-16 までは在籍年数の段で、
+     職位ごとに刻みが違った（fo は 0〜1・cap は 0〜2）。
    ＝ actual-pay.js の logoHtml・posName・fleetName・tenName・payLockHTML・
       workHTML がそのまま効く（プレビュー用の描画を別に作らない）。
    ⚠️ pay（金額の入った内訳）は持たせない。持たせると帯と％が描かれ、
@@ -47,7 +49,7 @@
        ここは金額が読める2行が先、というだけの並び。 */
   var ROWS = [
     /* 'jal' cap.avg = 2700万円（salary-data.mjs）→ 27,000,000 / 158.95 ≒ $169,865 → 2桁 */
-    { airline: 'jal', pos: 'cap', fleet: 'b787', ten: 1,
+    { airline: 'jal', pos: 'cap', fleet: 'b787', ten: 2,
       annual_usd: 170000, _man: 2700, _rank: 'cap', _p: 1, lock: false,
       paylock: ['base', 'variable', 'command', 'perdiem'],
       work: { bh: [60, 70], dd: [12, 14], off: [10, 12] } },
@@ -69,7 +71,7 @@
       paylock: ['base', 'variable', 'perdiem'],
       work: { bh: [60, 70], dd: [12, 14], off: [10, 12] } },
 
-    { airline: 'cathay-pacific', pos: 'cap', fleet: 'a350', ten: 2,
+    { airline: 'cathay-pacific', pos: 'cap', fleet: 'a350', ten: 4,
       annual_usd: null, _p: 1, lock: true,
       paylock: ['base', 'variable', 'command', 'housing'],
       work: { bh: [70, 80], dd: [14, 16], off: [8, 10] } },

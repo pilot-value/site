@@ -82,7 +82,8 @@ const SIMPLE = {   // 誰にでも聞く欄（2026-08-13 に手取り・今月�
   'f-currency': 'AED', 'f-gross': '77800', 'f-netpay': '71600',
   'f-perdiem': '6200', 'f-housing': 'allowance', 'f-housing-amt': '17500',
   'f-bonus': '52000',
-  'f-contract': 'direct', 'f-seniority': '12', 'f-taxcountry': 'AE', 'f-tax': '0',
+  'f-contract': 'direct', 'f-seniority': '12', 'f-rankyears': '4',
+  'f-taxcountry': 'AE', 'f-tax': '0',
   'f-duty': '17', 'f-base-iata': 'DXB',
 };
 /* ★「前回の内容」＝翌月のフォームに引き継がれるもの（2026-09-12・open second 専用）。
@@ -94,7 +95,8 @@ const SIMPLE = {   // 誰にでも聞く欄（2026-08-13 に手取り・今月�
 const LAST_MONTH = {
   'f-airline': 'emirates', 'f-position': 'cap', 'f-fleet': 'b777', 'f-currency': 'AED',
   'f-age': '40-49', 'f-jobrole': 'line,instructor,union', 'f-housing': 'allowance',
-  'f-contract': 'direct', 'f-seniority': '12', 'f-taxcountry': 'AE', 'f-tax': '0',
+  'f-contract': 'direct', 'f-seniority': '12', 'f-rankyears': '4',
+  'f-taxcountry': 'AE', 'f-tax': '0',
   'f-base': '36000', 'f-guarantee': '0', 'f-command': '3200', 'f-housing-amt': '17500',
   'f-payitems': JSON.stringify({
     v: 1,
@@ -276,7 +278,7 @@ async function fillSimple(page) {
                                'f-perdiem', 'f-housing', 'f-housing-amt'));
   await goStep(page, 3);
   await unfoldContract(page);
-  await put(page, pick(SIMPLE, 'f-contract', 'f-taxcountry', 'f-seniority'));
+  await put(page, pick(SIMPLE, 'f-contract', 'f-taxcountry', 'f-seniority', 'f-rankyears'));
   /* 任意項目はチップを押して初めて欄が出る。検品では全部開けて溢れを見る。
      ★内訳（#pay-detail）の中のチップはここでは押さない。開いた直後は「基本給だけ ＋
        4つの『＋』」が正しい絵なので、それを 3a で撮ってから押す。 */
@@ -657,7 +659,8 @@ if (ROUND === 'second') {
   const LAST_NONE = {
     'f-airline': 'emirates', 'f-position': 'cap', 'f-fleet': 'b777', 'f-currency': 'AED',
     'f-age': '40-49', 'f-jobrole': 'line', 'f-housing': 'allowance',
-    'f-contract': 'direct', 'f-seniority': '12', 'f-taxcountry': 'AE', 'f-tax': '0',
+    'f-contract': 'direct', 'f-seniority': '12', 'f-rankyears': '4',
+    'f-taxcountry': 'AE', 'f-tax': '0',
     'f-command': '3200', 'f-housing-amt': '17500',
     'f-payitems': JSON.stringify({
       v: 1, fixed_none: true, guarantee_none: true, variable_none: true,

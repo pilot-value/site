@@ -208,7 +208,7 @@ const BASE = {
   airline: 'emirates', position: 'cap', fleet: 'b777', currency: 'AED',
   base_pay: 20000, hourly_rate: 250, guaranteed_hours: 75, block_hours: 85,
   per_diem: 3000, housing_type: 'allowance', housing_amount: 10000,
-  base_iata: 'DXB', seniority_years: 15, tax_rate_pct: 0, lang: 'en',
+  base_iata: 'DXB', seniority_years: 15, rank_years: 6, tax_rate_pct: 0, lang: 'en',
   age_bucket: '40-49',
 };
 
@@ -316,6 +316,7 @@ const viewCols = (await rows(`select column_name c from information_schema.colum
   where table_schema='public' and table_name='pay_benchmarks'`)).map((x) => x.c);
 ok(!viewCols.includes('base_iata'), `公開集計に base_iata が無い → [${viewCols.join(', ')}]`);
 ok(!viewCols.includes('seniority_years'), '公開集計に seniority_years が無い');
+ok(!viewCols.includes('rank_years'), '公開集計に rank_years が無い（準識別子）');
 ok(!viewCols.includes('proof_hash'), '公開集計に proof_hash が無い');
 
 // 5人目の投稿にはベンチマークが返る
@@ -1464,7 +1465,7 @@ console.log('\n▼ db/pay-reports.roundtrip.sql（オーナーが貼る通し確
   ok(/これはエラーではありません/.test(msg),
      '★最後まで走って、わざと巻き戻している（途中で落ちていない）', msg.slice(0, 300));
   const marks = (msg.match(/[✅❌]/g) || []);
-  ok(marks.length === 16, `判定は16項目（増やしたら CLAUDE.md も直す）→ ${marks.length}`);
+  ok(marks.length === 18, `判定は18項目（増やしたら CLAUDE.md も直す）→ ${marks.length}`);
   ok(marks.length > 0 && marks.every((m) => m === '✅'),
      '★通し確認が全項目 ✅',
      msg.split('\n').filter((l) => l.indexOf('❌') >= 0).join(' | '));

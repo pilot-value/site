@@ -117,6 +117,12 @@ create table if not exists public.pay_reports (
   nationality     char(2) check (nationality is null or nationality ~ '^[A-Z]{2}$'),
   tax_rate_pct    numeric(5,2)  check (tax_rate_pct    is null or tax_rate_pct    between 0 and 100),
   seniority_years smallint      check (seniority_years is null or seniority_years between 0 and 60),
+  -- ★2026-09-16 追加。いまの職位になってから何年か（昇格後年数・通算）。
+  --    ⚠️ seniority_years（在籍年数）とは**別物**。足し引きで作れない。
+  --       転職してきた機長は「機長12年目・在籍2年目」があり得る（通算で数えると
+  --       オーナーが決めた）ので、rank_years > seniority_years は正常な行。
+  --       だから2列のあいだに check を張らない。
+  rank_years      smallint      check (rank_years is null or rank_years between 0 and 60),
 
   -- ── 検証（法人に売り物になるのは verify_level >= 1 の行だけ）
   verify_level  smallint not null default 0 check (verify_level between 0 and 3),
@@ -249,7 +255,13 @@ alter table public.pay_reports
   --      この列を読まなくてよい。ここは「何に対して払われているか」を残すため。
   --    ★payslip_detail と同じ扱い：Verified の判定に使わない（クライアント申告）。
   --      公開面に出る道も同じく無い（pay_reports は revoke all）。
-  add column if not exists pay_items           jsonb;
+  add column if not exists pay_items           jsonb,
+  -- ★2026-09-16 追加。昇格後年数（いまの職位になってから何年か・通算）。
+  --    REAL PAY の行に出る「段」は、この日からこちらを材料にする
+  --    （在籍年数は行から下ろした。理由は db/pay-rows.sql 冒頭の②）。
+  --    ⚠️ 既存の行はすべて null＝段が付かない＝札ごと出ない。
+  --       在籍年数で代用しないこと（それが今回直した嘘そのもの）。
+  add column if not exists rank_years          smallint;
 
 do $$
 begin
@@ -295,6 +307,13 @@ begin
     alter table public.pay_reports add constraint pay_reports_bonus_month_chk
       check (bonus_month is null or bonus_month >= 0);
   end if;
+  -- 昇格後年数。在籍年数と同じ 0〜60。
+  -- ★在籍年数との大小は**見ない**（上の列コメント）。転職してきた機長は
+  --   rank_years > seniority_years になる。ここで弾くと、その人だけが提出できない。
+  if not exists (select 1 from pg_constraint where conname = 'pay_reports_rank_years_chk') then
+    alter table public.pay_reports add constraint pay_reports_rank_years_chk
+      check (rank_years is null or rank_years between 0 and 60);
+  end if;
 end $$;
 
 create index if not exists pay_reports_seg_idx
@@ -320,6 +339,16 @@ comment on column public.pay_reports.stay_nights is
   'ステイ日数＝基地の外で泊まった泊数（レイオーバー）。日帰りだけの月は 0。'
   '★「月の日数 − 乗務日数」で作らない（days_off と同じ罠）。'
   '同じ年収でも家に帰れない日数は会社ごとにまったく違う。ここにしか出ない。';
+comment on column public.pay_reports.seniority_years is
+  '在籍年数＝この航空会社に何年いるか（入社から）。★2026-09-16 から REAL PAY の行には出さない。'
+  '号俸表はたいてい入社年次で決まるので金額の理由としては筋が通るが、職位の隣に置くと'
+  '「その職位になって何年」と読まれる（実際にそう読まれて誤りの報告が来た）。'
+  '行に出るのは rank_years のほう。この列は昇格速度（seniority_years − rank_years）の集計に使う。';
+comment on column public.pay_reports.rank_years is
+  '昇格後年数＝いまの職位になってから何年か。★会社をまたいで通算する（オーナー確定 2026-09-16）。'
+  '他社で12年機長をやってこの会社に2年目の人は rank_years=12 / seniority_years=2。'
+  '★したがって rank_years > seniority_years は正常。2列のあいだに check を張らない。'
+  '★昇格速度が取れるのは rank_years < seniority_years の行だけ（＝社内で昇格した人）。';
 comment on column public.pay_reports.bonus_month is
   'その月の総支給（gross_monthly）に含まれているボーナス。出ていない月は 0。'
   '★ bonus_annual（1年の合計）とは別物。足し合わせないこと。'
@@ -1252,7 +1281,7 @@ begin
     stay_nights, per_diem,
     housing_type, housing_amount, transport, command_pay, other_allowance,
     bonus_month, bonus_annual, profit_share_annual, pension_pct,
-    contract_type, tax_country, nationality, tax_rate_pct, seniority_years,
+    contract_type, tax_country, nationality, tax_rate_pct, seniority_years, rank_years,
     annual_total_orig, annual_total_usd, annual_total_jpy, usd_per_block_hour, net_annual_jpy,
     -- ★ Step7-B2：明細に印字されている実額。キーを増やしただけで、
     --    上の既存26キーは名前も作り方も1つも変えていない。
@@ -1282,6 +1311,7 @@ begin
     nullif(btrim(p->>'contract_type'),''),
     upper(nullif(btrim(p->>'tax_country'),'')), upper(nullif(btrim(p->>'nationality'),'')),
     v_tax, nullif(p->>'seniority_years','')::smallint,
+    nullif(p->>'rank_years','')::smallint,
     v_ann, v_usd, v_jpy, v_pbh, v_net,
     nullif(p->>'net_pay_actual','')::numeric,      nullif(p->>'ytd_taxable','')::numeric,
     v_fvp,                                         nullif(p->>'deduction_total','')::numeric,
@@ -1335,7 +1365,7 @@ begin
     profit_share_annual = excluded.profit_share_annual, pension_pct = excluded.pension_pct,
     contract_type = excluded.contract_type, tax_country = excluded.tax_country,
     nationality = excluded.nationality, tax_rate_pct = excluded.tax_rate_pct,
-    seniority_years = excluded.seniority_years,
+    seniority_years = excluded.seniority_years, rank_years = excluded.rank_years,
     annual_total_orig = excluded.annual_total_orig, annual_total_usd = excluded.annual_total_usd,
     annual_total_jpy = excluded.annual_total_jpy,
     usd_per_block_hour = excluded.usd_per_block_hour, net_annual_jpy = excluded.net_annual_jpy,
@@ -1545,7 +1575,7 @@ begin
            r.block_hours, r.guaranteed_hours, r.duty_hours, r.night_hours, r.credit_hours,
            -- 契約と税。★ 翌月の投稿フォームを前月の値で埋める（＝2ヶ月目以降は
            --    「額面」と「飛んだ時間」だけで終わる）ために返す。
-           r.contract_type, r.tax_country, r.tax_rate_pct, r.seniority_years,
+           r.contract_type, r.tax_country, r.tax_rate_pct, r.seniority_years, r.rank_years,
            -- 稼働日数。フォームは前から集めて列にも入っていたが、ここに書き忘れていた
            -- ので画面に出せなかった。本人の行しか返さない関数なので、
            -- pay_benchmarks 側の匿名性ルール（base で絞らせない）とは無関係。
@@ -1688,7 +1718,7 @@ having count(*) >= 5;
 grant select on public.pay_benchmarks to anon, authenticated;
 
 comment on view public.pay_benchmarks is
-  '公開集計。k≧5 未満のセルは having で消える。base_iata と seniority_years は'
+  '公開集計。k≧5 未満のセルは having で消える。base_iata・seniority_years・rank_years は'
   '準識別子なので列にも group by にも入れない。粒度をこれより細かくしないこと。'
   '任意入力の項目（days_off/sectors/housing）は、セルの人数ではなく'
   'その項目を書いた人数が5人以上のときだけ値を出す。';
@@ -1856,7 +1886,7 @@ select c.relname, c.reloptions
 --      ここには引っかからない。
 select column_name from information_schema.columns
  where table_schema='public' and table_name='pay_benchmarks'
-   and column_name in ('base_iata','seniority_years','proof_hash','airline_other',
+   and column_name in ('base_iata','seniority_years','rank_years','proof_hash','airline_other',
                        'period_month','days_off','sectors','housing_type','housing_amount');
 
 -- 8-6. 語彙の外部キーが効いていること

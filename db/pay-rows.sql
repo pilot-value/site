@@ -43,7 +43,7 @@
 --   基本給が厚い会社と、乗務手当で積み上げる会社は、**同じ年収でも別の仕事で
 --   別のリスク**を負っている。そこが読めないと、並べても比べたことにならない。
 --   ＝ **比べるための画面が、比べられないままだった。** それを直すために匿名性を
---   一段渡した。行に機材が付き、行を押すと在籍年数の段・支給の内訳・勤務が出る。
+--   一段渡した。行に機材が付き、行を押すと昇格後年数の段・支給の内訳・勤務が出る。
 --   ★ただし**数そのものは1つも出さない。帯（下端と上端）だけを出す。**
 --     どこまで粗くするかは下の「★帯について」に全部書いた。
 --   ★機材は全行に出す（人数の門は掛けない。オーナー確定）。
@@ -56,7 +56,7 @@
 --   2026-09-03 より前、行に出るのは会社と職位だけだった。それでも
 --   「うちの機長は3人しか居ない」が成り立つ規模なら、候補はそこまで絞れていた。
 --   同じ日の判断で、そこから**もう一段下げた**。同じ会社の同僚から見れば、
---   「787 の機長で在籍20年以上」まで揃った時点で1人に当たる会社は珍しくない。
+--   「787 の機長で昇格後20年以上」まで揃った時点で1人に当たる会社は珍しくない。
 --   **そこまで含めて、これは承知のうえで選んだ形。**
 --
 --   ★落としていないものも同じだけ正直に書く。ここは1つも動かしていない。
@@ -66,7 +66,7 @@
 --     ・引数はゼロのまま（⑤）。狙った1人を指定して引く面は無い
 --     ・1行＝1人のまま（④）。押しても出るのは、その1行の人のぶんだけ
 --
---   ★いちばん危ないのは「重ねると効く」ほう。会社・職位・機材・在籍の段・
+--   ★いちばん危ないのは「重ねると効く」ほう。会社・職位・機材・昇格後の段・
 --     勤務の帯は、1つずつ見れば粗い。重ねると1人に当たる。
 --     だから **これ以上1つも足さない。** 次に何かを足したくなったら、
 --     まずここにあるどれかを外すこと。足し算だけで済ませないこと。
@@ -85,10 +85,22 @@
 --                     ・機材   … pv_fleets のコードを1つ。**全行に出す**。
 --                                人数の門は置かない（オーナー確定）。
 --                                コードだけで、fleet_cat（区分）は返さない。
---                     ・在籍   … **段だけ**。副操縦士は2段（1〜5年／5年〜）、
---                                機長は3段（1〜10年／10〜20年／20年〜）。
+--                     ・昇格後 … **段だけ**。いまの職位になってから何年か。
+--                                5年幅で5段（5年未満／5〜10年／10〜15年／
+--                                15〜20年／20年以上）。職位で段を変えない。
 --                                年そのものは1つも返さない。訓練生と、
---                                在籍を書いていない人は段を作らない（空欄になる）。
+--                                書いていない人は段を作らない（空欄になる）。
+--                                ★2026-09-16、ここは**在籍年数だった**。
+--                                  行では職位のすぐ隣に出るので「昇格して何年目」と
+--                                  読まれる。自社養成は訓練の年も在籍に入るから、
+--                                  入ったばかりの機長が「10〜20年」と出ていた。
+--                                  ＝ **画面が嘘をついていた。** 欄を1つ足して
+--                                  両方聞き、行に出すほうを昇格後年数に替えた
+--                                  （オーナー指示）。在籍年数は行から下ろし、
+--                                  昇格速度の集計に回す（この関数は返さない）。
+--                                ★段を職位で分けないのは、分けると「機長の
+--                                  1〜10年」のような、その職位にしか無い段が
+--                                  できるため。幅をそろえたほうが粗い。
 --                     ・内訳   … 9区分（基本給／保証手当・職務手当／変動給／職位手当／
 --                                役割手当／パーディアム／住宅手当／その他の現金／
 --                                未分類）と賞与。
@@ -103,7 +115,7 @@
 --                     レポートID・提出日そのもの・打ち込まれた社名。
 --                   ★投稿の「時期」だけは 5段の粗い区分で返す
 --                     （2026-08-24。下の「★投稿の時期について」）。
---                   ★機材でも在籍でも**絞り込ませない**。⑤のとおりサーバには
+--                   ★機材でも年数でも**絞り込ませない**。⑤のとおりサーバには
 --                     引数が無い。画面側にも作らないこと。
 --     ③ 有効数字2桁  $183,456 は $180,000 として出る。1円まで一致する個票が存在しない
 --     ④ 1行＝1人    同じ人の複数月は年換算の中央値で1行に畳む（回数から常連が割れない）
@@ -275,7 +287,7 @@
 --   ・帯の中の位置（中央値・平均・何割のところか）を返すこと
 --   ・帯を細かくすること（grid を小さくすること）
 --   ・便数・ステイ日数・拘束時間・深夜時間・クレジット時間を返すこと
---   ・機材や在籍で絞れるようにすること（列と絞り込みは常に別。
+--   ・機材や年数で絞れるようにすること（列と絞り込みは常に別。
 --     出しているものでも絞らせない）
 --   ・行1つを指定して引く関数を足すこと（⑤。1回の呼び出しで全部返している）
 --   ・自由入力の社名を読むこと・返すこと
@@ -1655,7 +1667,7 @@ begin
      ★判定はここ（サーバ）だけ。閉じている人のブラウザには
        **金額そのものを1つも返さない**。画面でぼかす作りにしない
        ── DevTools でぼかしを外せば見えてしまう。
-     ★開けるのは「報酬の内訳」だけ。会社・職位・機材・在籍の段・年収・
+     ★開けるのは「報酬の内訳」だけ。会社・職位・機材・昇格後の段・年収・
        月あたり・本人申告・投稿時期・勤務の帯は、閉じている人にもそのまま出す。 */
   -- ★未ログインでは呼ばない。航空会社の総当たりでハッシュを作り直す重い関数で、
   --   ログインしていない人には返すものが何も無い（画面は null を受ける形に既になっている）。
@@ -1689,7 +1701,12 @@ begin
            case when exists (select 1 from public.pv_fleets f
                               where f.code = r.fleet and f.active)
                 then r.fleet end as fleet,
-           r.seniority_years    as sen,
+           /* ★2026-09-16、ここは在籍年数（入社何年目）を読んでいた。
+              行に出すのは**昇格後年数**に替えた（オーナー指示）。
+              在籍年数のほうはこの関数では1つも読まない ── 自己点検 8 が、
+              その列名が関数の定義に1文字も無いことを見ている。
+              ⚠️ だからここに列名をそのまま書かないこと（注釈も定義の一部）。 */
+           r.rank_years         as rk,
            r.fx_to_usd          as fx,
            /* その月の現金（賞与ぬき）。db/deep-pay.sql の cash_m と1行ずつ同じ。
               ★組合が直接払った分だけは総支給の外にある（2026-09-02）。
@@ -1779,7 +1796,7 @@ begin
                               where f.code = nullif(btrim(q.payload->>'fleet'), '')
                                 and f.active)
                 then nullif(btrim(q.payload->>'fleet'), '') end,
-           nullif(q.payload->>'seniority_years', '')::smallint,
+           nullif(q.payload->>'rank_years', '')::smallint,
            (d.j->>'fx')::numeric,
            (d.j->>'cash_m')::numeric,
            (d.j->>'base')::numeric,
@@ -1838,7 +1855,7 @@ begin
                  )::numeric * 10000 * jpy.to_usd, 2),
            false,
            v.created_at,
-           /* ★口コミは機材も在籍も内訳も勤務も**持っていない**（金額だけ）。
+           /* ★口コミは機材も年数も内訳も勤務も**持っていない**（金額だけ）。
               ここを埋めるための推測をしないこと。行は総額だけの行として出て、
               画面は「この行は年収だけです」と正直に書く。 */
            null::text, null::smallint, null::numeric, null::numeric,
@@ -1906,7 +1923,7 @@ begin
        ★ここで採った月の**生の額**が下の paid へ渡るが、外へ出るのは
          pv_band を通した帯だけ。この CTE の値を行に混ぜないこと。 */
     select distinct on (s.pkey, s.airline, s.pos)
-           s.pkey, s.airline, s.pos, s.fleet, s.sen, s.fx, s.cash_m, s.det,
+           s.pkey, s.airline, s.pos, s.fleet, s.rk, s.fx, s.cash_m, s.det,
            s.a_base, s.a_gtee, s.a_var, s.a_cmd, s.a_role,
            s.a_pd, s.a_house, s.a_other,
            s.bonus_y, s.bh, s.dd, s.dof
@@ -2009,21 +2026,30 @@ begin
              --     揃うと、機材を書いていない人の区分まで推測の材料になる。
              --     自己点検 23 が、その列名がこの関数に1語も無いことを見ている。
              'fleet',      k.fleet,
-             /* 在籍は**段だけ**。年そのものは返さない。
-                FO＝5年で2段 / CAP＝10年・20年で3段（オーナー確定）。
+             /* 昇格後年数は**段だけ**。年そのものは返さない。
+                5年幅で5段（0=5年未満 / 1=5〜10 / 2=10〜15 / 3=15〜20 / 4=20年以上）。
+                **職位で段を変えない。** 上端だけ開いていて、あとは同じ幅。
                 cadet と、年数を書いていない人は null ＝ キーごと消える。
-                ★キー名は ten（tenure の頭3文字）。在籍を表す英単語を
+                ★2026-09-16、ここは在籍年数を FO＝2段 / CAP＝3段 で出していた。
+                  行では職位のすぐ隣に出るので「昇格して何年目」と読まれるのに、
+                  中身は入社何年目だった（自社養成は訓練の年も入る）。
+                  ＝ **入ったばかりの機長が「10〜20年」と出ていた。**
+                  幅を持たせて職位で分けないのはオーナー指示
+                  （「決め打ちしたら個人バレる」）。
+                ★いちばん下の段は「5年未満」であって「1〜5年」ではない。
+                  今年上がった人は 0 か 1 と答える。「1〜5年」と出すと、
+                  今回直した嘘と同じものをもう一度作ることになる。
+                ★キー名は ten（tenure の頭3文字）。年数を表す英単語を
                   そのままキーにしないこと ── 画面側の禁止語であり、
                   自己点検 51 もその語が関数に無いことを見ている
                   （注意書きのつもりで書くと注意書きだけで赤くなる）。 */
-             'ten',        case when k.sen is null then null
-                                when p.pos = 'fo'
-                                  then case when k.sen < 5 then 0 else 1 end
-                                when p.pos = 'cap'
-                                  then case when k.sen < 10 then 0
-                                            when k.sen < 20 then 1
-                                            else 2 end
-                           end,
+             'ten',        case when k.rk is null then null
+                                when p.pos not in ('fo','cap') then null
+                                when k.rk < 5  then 0
+                                when k.rk < 10 then 1
+                                when k.rk < 15 then 2
+                                when k.rk < 20 then 3
+                                else 4 end,
              /* ── 報酬の内訳（2026-09-03 に門がついた）─────────────
                 ★閉じている人には帯そのものを渡さない。**null にして消す**
                   （jsonb_strip_nulls が下で効くので、キーごと消える）。
@@ -2174,7 +2200,8 @@ comment on function public.pv_pay_rows() is
   '実給与の匿名一覧。1行＝1人（複数月は年換算の中央値で畳む）。出した人は全員出る。'
   '材料は3つ：本棚（pay_reports）／まだ移っていない預かり（pay_reports_pending）／'
   '昔の口コミに書かれた給与（reviews_v2。同じ人が本棚に居るなら明細を優先して落とす）。'
-  '機材・基地・在籍年数・年代・原本通貨・契約形態・自由入力の社名は返さない。'
+  '基地・在籍年数・年代・原本通貨・契約形態・自由入力の社名は返さない。'
+  '機材はコードを、昇格後年数は5年幅の段（ten 0〜4）だけを返す。年数そのものは返さない。'
   '投稿の時期は5段の粗い区分（age 0〜4）でだけ返す。日付も年月も返さない。'
   '支給の内訳も返さない（内訳は DEEP PAY の担当）。'
   '金額は有効数字2桁に丸め、年 $10,000〜$700,000 の外は打ち間違いとして出さない。'
@@ -2323,14 +2350,18 @@ from (
                and pg_get_functiondef(f_pend) not like '%airline_other%' end from f
   union all
   select 8, '準識別子を1つも読んでいない（基地・年代・投稿月・国籍・契約・税・原本通貨）',
-         /* ★2026-09-03 に seniority_years を除外語から外した（オーナー判断で
-            在籍を出すことにしたため）。**外したのはこの1語だけ。**
+         /* ★2026-09-03 に seniority_years を除外語から外し（在籍を出すことに
+            したため）、★2026-09-16 に**戻した**。行に出すのは昇格後年数
+            （rank_years）に替えたので、在籍年数はこの関数の材料ではなくなった。
             年数そのものが行へ出ていないことは 51 が別に見ている。
             ⚠️ この一覧に語を足すのは簡単だが、外すのは設計判断。
-               外すときは必ずファイル冒頭の②も同じ日付で書き換えること。 */
+               外すときは必ずファイル冒頭の②も同じ日付で書き換えること。
+            ⚠️ 見ているのは関数の定義まるごと＝**注釈も含む**。
+               「ここでは読んでいない」と書くために列名を注釈へ書くと、
+               注釈だけで赤くなる。 */
          case when f_rows is null or f_pend is null then false
               else pg_get_functiondef(f_rows) !~
-                   '(base_iata|age_bucket|contract_type|tax_country|nationality|annual_total_orig|period_month)'
+                   '(base_iata|seniority_years|age_bucket|contract_type|tax_country|nationality|annual_total_orig|period_month)'
                and pg_get_functiondef(f_pend) !~
                    '(base_iata|seniority_years|age_bucket|contract_type|tax_country|nationality|period_month)'
          end from f
@@ -2447,9 +2478,9 @@ from (
               else pg_get_functiondef(f_comp) not like '%airline_other%'
                and pg_get_functiondef(f_pcomp) not like '%airline_other%'
                and pg_get_functiondef(f_comp) !~
-                   '(base_iata|seniority_years|age_bucket|contract_type|tax_country|nationality|period_month)'
+                   '(base_iata|seniority_years|rank_years|age_bucket|contract_type|tax_country|nationality|period_month)'
                and pg_get_functiondef(f_pcomp) !~
-                   '(base_iata|seniority_years|age_bucket|contract_type|tax_country|nationality|period_month)'
+                   '(base_iata|seniority_years|rank_years|age_bucket|contract_type|tax_country|nationality|period_month)'
          end from f
   union all
   -- ── 数え上げ（2026-08-24）──────────────────────────────────
@@ -2543,7 +2574,7 @@ from (
                --   見るための列参照（r.created_at）は当たらない書き方にしてある。
                and pg_get_functiondef(f_give) not like '%''created_at''%'
                and pg_get_functiondef(f_give) !~
-                   '(base_iata|seniority_years|age_bucket|contract_type|tax_country|period_month)'
+                   '(base_iata|seniority_years|rank_years|age_bucket|contract_type|tax_country|period_month)'
          end from f
   union all
   select 57, '★経過措置の締切は定数（動く窓にしていない＝門がいつか本当に閉まる）',
@@ -2722,20 +2753,23 @@ from (
                and pg_get_functiondef(f_rows) like '%public.pv_band_grid(%'
          end from f
   union all
-  select 51, '★在籍は粗い段だけ（年数そのものは行に入っていない）',
+  select 51, '★昇格後年数は粗い段だけ（年数そのものは行に入っていない）',
          /* 静かに壊れる。段のつもりで年を入れても画面は同じに見えるが、
-            会社×職位×機材と重なった時点で1人に当たる。 */
+            会社×職位×機材と重なった時点で1人に当たる。
+            ★2026-09-16、見る語を seniority_years から rank_years に替えた。
+              行に出すのを在籍年数から昇格後年数に替えたため
+              （在籍年数のほうは 8 が「1文字も無い」を見ている）。 */
          /* ★読むのは許す・返すのは許さない、を見分ける。
-            預かりの枝は payload->>'seniority_years' で年数を読むので、
+            預かりの枝は payload->>'rank_years' で年数を読むので、
             素の like では**正しいものが赤くなる**（7番と同じ形）。
             payload の読み出しだけを消してから、その語が残らないかを見る。 */
          case when f_rows is null then false
               else pg_get_functiondef(f_rows) like '%''ten''%'
                and regexp_replace(pg_get_functiondef(f_rows),
-                     'payload->>''seniority_years''', '', 'g')
-                   not like '%''seniority_years''%'
-               and pg_get_functiondef(f_rows) not like '%''seniority''%'
-               and pg_get_functiondef(f_rows) not like '%''sen''%'
+                     'payload->>''rank_years''', '', 'g')
+                   not like '%''rank_years''%'
+               and pg_get_functiondef(f_rows) not like '%''rank''%'
+               and pg_get_functiondef(f_rows) not like '%''rk''%'
          end from f
   union all
   select 52, '★命綱の引き算が本棚にも預かりにも入っている（変動給を二重に数えていない）',
@@ -2772,7 +2806,7 @@ from (
   union all
   select 55, '★勤務は3つだけ（便数・ステイ日数・拘束時間・深夜時間・クレジット時間を読まない）',
          /* 静かに壊れる。1つ足すごとに重ね合わせが効いて、
-            会社×職位×機材×在籍の段に「勤務の形」まで加わる。 */
+            会社×職位×機材×昇格後の段に「勤務の形」まで加わる。 */
          case when f_rows is null then false
               else pg_get_functiondef(f_rows) like '%''bh''%'
                and pg_get_functiondef(f_rows) like '%''dd''%'
@@ -2788,7 +2822,7 @@ from (
               else not has_function_privilege('anon',          f.f_pdet, 'execute')
                and not has_function_privilege('authenticated', f.f_pdet, 'execute')
                and pg_get_functiondef(f_pdet) !~
-                   '(base_iata|seniority_years|age_bucket|contract_type|tax_country|nationality|period_month|airline_other)'
+                   '(base_iata|seniority_years|rank_years|age_bucket|contract_type|tax_country|nationality|period_month|airline_other)'
          end from f
   union all
   -- ── 本人の依頼で一覧から下ろす（2026-09-10）────────────────

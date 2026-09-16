@@ -1297,7 +1297,7 @@ const FAKE = function (payload, anon) {
        ・base_pay ・ block_hours …… **生の額と生の時間**。
                       画面が出すのは帯の両端だけで、この形の数は1つも出ない */
 const POISON = {
-  base_iata: 'ZQX', seniority_years: 137, age_bucket: '40s',
+  base_iata: 'ZQX', seniority_years: 137, rank_years: 137, age_bucket: '40s',
   period_year: 2026, period_month: 8, created_at: '2026-08-05T00:00:00Z',
   proof_hash: 'deadbeefcafe0001', contract_type: 'direct', tax_country: 'JP',
   nationality: 'JP', annual_total_orig: 19440000, currency: 'JPY', verify_level: 2,
@@ -1319,7 +1319,7 @@ const row = (airline, pos, usd, vf, age, extra) => Object.assign(
 /* ★行を押すと出る面の材料（2026-09-03）。サーバが返す形をそのまま置く。
      pay …… [{ k: 区分, r: [下端, 上端] }]  ── **両端の2つだけ**。中間の位置は無い
      work … { bh / dd / off: [下端, 上端] }  ── この3つだけ（便数もステイも無い）
-     ten … 在籍の**段**（fo は 0〜1・cap は 0〜2）。年そのものは来ない
+     ten … 昇格後年数の**段**（0〜4。5年幅・職位で分けない）。年そのものは来ない
    ★帯の刻み（grid）は年収のおよそ40分の1を 1/2/5 へ切り上げたもの。
      18万ドルなら 5,000・25万ドルなら 10,000。下の R_GRID がその写し。
    ★わざと**4通りの欠け方**を混ぜてある ── 全部そろい / 内訳だけ / 勤務だけ / 年収だけ。
@@ -1348,14 +1348,14 @@ const ROWS = [
   /* 勤務だけ（総支給しか書かず、明細の中身を出さなかった人）。 */
   row('jal', 'cap', 170000, false, 3, {
     fleet: 'b777', ten: 0, work: { bh: [50, 60], dd: [12, 14], off: [14, 16] } }),
-  /* ★年収だけ（口コミ由来）。機材も在籍も内訳も勤務も無い。 */
+  /* ★年収だけ（口コミ由来）。機材も年数も内訳も勤務も無い。 */
   row('jal', 'fo', 110000, false, 4),
   row('emirates', 'cap', 250000, false, 0, {
-    fleet: 'a380', ten: 1,
+    fleet: 'a380', ten: 3,
     pay: bnd([130000, 140000], [50000, 60000], [20000, 30000], [0, 20000]),
     work: { bh: [80, 90], dd: [16, 18], off: [10, 12] } }),
   row('other', 'cap', 130000, false, 2, { airline_other: 'Somewhere Air',
-    fleet: 'b737', ten: 1,
+    fleet: 'b737', ten: 4,
     pay: bnd([70000, 75000], [30000, 35000], [10000, 15000], [0, 5000]),
     work: { bh: [60, 70], dd: [14, 16], off: [12, 14] } }),
   /* ★fo の段の2つ目。fo に3段目が生えていないことは、これが出ることで見える。 */
@@ -3018,9 +3018,10 @@ for (const lang of ['ja', 'en']) {
   /* ★画面の言葉をここに書き写している（AGE_WORDS と同じ流儀）。
        黙って言い換えられたら、その場で赤くなるようにしておく。 */
   const TEN = {
-    ja: { fo: ['1〜5年', '5年以上'], cap: ['1〜10年', '10〜20年', '20年以上'] },
-    en: { fo: ['1–5 years', '5+ years'],
-          cap: ['1–10 years', '10–20 years', '20+ years'] }
+    ja: ['昇格後5年未満', '昇格後5〜10年', '昇格後10〜15年',
+         '昇格後15〜20年', '昇格後20年以上'],
+    en: ['Under 5 yrs in rank', '5–10 yrs in rank', '10–15 yrs in rank',
+         '15–20 yrs in rank', '20+ yrs in rank']
   };
   const DWT = {
     ja: { comp: '報酬の内訳', work: '勤務', sim: '同じ会社・同じ職位のほかの記録',
@@ -3292,9 +3293,9 @@ for (const lang of ['ja', 'en']) {
        `${lang}: ★一覧の丸がバーの区分と1つずつ同じ色（凡例を別に置かない根拠）`,
        dU.dotC.join(' / '));
 
-    console.log(`\n════ ${lang} / J-3 在籍は段だけ・欠けは節ごと落とす ════`);
-    ok(TN.cap.includes(dU.meta.split(' · ').pop()),
-       `${lang}: ★在籍は段の言葉で出る（年そのものは出ない）`, dU.meta);
+    console.log(`\n════ ${lang} / J-3 昇格後年数は段だけ・欠けは節ごと落とす ════`);
+    ok(TN.includes(dU.meta.split(' · ').pop()),
+       `${lang}: ★昇格後年数は段の言葉で出る（年そのものは出ない）`, dU.meta);
     ok(!/\d+\s*(年|years?)\s*\d/.test(dU.meta),
        `${lang}: ★段の中に生の年数が混ざっていない`, dU.meta);
 
@@ -3346,7 +3347,7 @@ for (const lang of ['ja', 'en']) {
                calls: (window.__rpc || []).length };
     });
     ok(dSw.n === 1, `${lang}: ★押しても面は1枚のまま（開き直さない）`, String(dSw.n));
-    ok(TN.cap[2] && dSw.meta.indexOf(TN.cap[2]) >= 0,
+    ok(TN[2] && dSw.meta.indexOf(TN[2]) >= 0,
        `${lang}: ★中身だけ入れ替わる（押した相手の段になる）`, dSw.meta);
     ok(dSw.calls === before,
        `${lang}: ★ここでもサーバへ投げない`, `${before} → ${dSw.calls}`);
@@ -3792,6 +3793,8 @@ for (const lang of ['ja', 'en']) {
 const WIDTHS = [375, 390, 393, 430];
 
 /* 条件が満たされるまで待つ。満たされなければ false を返す（例外にしない）。 */
+/* ≡ に焦点が戻ったか。★「閉じた」印だけで焦点を読まない（下の2か所で使う）。 */
+const FOCUS_HAM = "document.activeElement && document.activeElement.id === 'pv-ham-btn'";
 const till = async (page, fn, ms = 5000) => {
   try { await page.waitForFunction(fn, { timeout: ms, polling: 60 }); return true; }
   catch (e) { return false; }
@@ -4010,6 +4013,10 @@ for (const lang of ['ja', 'en']) {
   /* ★閉じ方が3つ ── Escape / 暗幕 / ×。閉じたら ≡ に焦点が戻る。 */
   await page.keyboard.press('Escape');
   await till(page, "!document.body.classList.contains('pv-anav-open')");
+  /* ★焦点そのものを待つ。閉じる印（class）が外れるのと、焦点が ≡ に戻るのは
+     同じ瞬間ではない（焦点の戻しは次のフレームに預けてある）。class だけ見て
+     その場で焦点を読むと、混んだ回に**製品は正しいのに赤くなる**（2026-09-16 に踏んだ）。 */
+  await till(page, FOCUS_HAM);
   ok(await page.evaluate(() => document.activeElement && document.activeElement.id === 'pv-ham-btn'),
      `${lang}: ★★Escape で閉じ、焦点が ≡ に戻る`);
   await page.click('#pv-ham-btn');
@@ -4023,6 +4030,7 @@ for (const lang of ['ja', 'en']) {
   await sideStill(page);
   await page.evaluate(() => document.querySelector('.mr-side-x').click());
   await till(page, "!document.body.classList.contains('pv-anav-open')");
+  await till(page, FOCUS_HAM);
   ok(await page.evaluate(() => document.activeElement && document.activeElement.id === 'pv-ham-btn'),
      `${lang}: ★★× で閉じ、焦点が ≡ に戻る`);
 

@@ -33,7 +33,7 @@ with c as (
     -- 公開集計に準識別子が出ていないこと
     (select count(*) from information_schema.columns
       where table_schema = 'public' and table_name = 'pay_benchmarks'
-        and column_name in ('base_iata', 'seniority_years', 'proof_hash',
+        and column_name in ('base_iata', 'seniority_years', 'rank_years', 'proof_hash',
                             'airline_other', 'period_month'))                  as c6,
     -- 語彙の外部キー8本
     -- （airline/position/fleet/job_role/age_bucket/currency/housing/contract）

@@ -1209,19 +1209,30 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
         </div>
 
         <div id="s4-body">
+        <div class="fld">
+          <label class="form-label" for="f-contract">契約形態<span class="req-tag">必須</span></label>
+          <select id="f-contract" class="form-input">
+            <option value="">選択してください</option>
+            <option value="direct">直接雇用</option>
+            <option value="contract">契約（有期・自営業含む）</option>
+            <option value="agency">エージェンシー経由</option>
+          </select>
+        </div>
+        <!-- ★2026-09-16、年数の欄を2つにした（オーナー指示）。
+             REAL PAY の行に出るのは**右**の「昇格後年数」だけ。行では職位のすぐ隣に
+             出るので、在籍年数を出していたときは「入ったばかりの機長が10〜20年」と
+             読める嘘になっていた。左の在籍年数は行から下ろし、昇格の速さを見る材料に回す。
+             ⚠️ 2つを並べて置くのは意図的。片方だけだと、どちらの意味か読み取れない。 -->
         <div class="grid2">
-          <div class="fld">
-            <label class="form-label" for="f-contract">契約形態<span class="req-tag">必須</span></label>
-            <select id="f-contract" class="form-input">
-              <option value="">選択してください</option>
-              <option value="direct">直接雇用</option>
-              <option value="contract">契約（有期・自営業含む）</option>
-              <option value="agency">エージェンシー経由</option>
-            </select>
-          </div>
           <div class="fld">
             <label class="form-label" for="f-seniority">在籍年数<span class="req-tag">必須</span></label>
             <input type="text" id="f-seniority" class="form-input num" inputmode="numeric" placeholder="例：7" data-min="0" data-max="60" data-dec="0"/>
+            <p class="fld-hint">この会社に入ってからの年数。<b>訓練期間も含みます。</b></p>
+          </div>
+          <div class="fld">
+            <label class="form-label" for="f-rankyears">昇格後年数<span class="req-tag">必須</span></label>
+            <input type="text" id="f-rankyears" class="form-input num" inputmode="numeric" placeholder="例：3" data-min="0" data-max="60" data-dec="0"/>
+            <p class="fld-hint">いまの職位になってからの年数。訓練期間は含めません。<b>他社での同じ職位も通算します。</b></p>
           </div>
         </div>
         <div class="grid2 tax-row">
@@ -3336,7 +3347,7 @@ const GATE_PAY    = () => filled('f-currency') && payEntered() && filled('f-netp
                           && filled('f-perdiem') && housingOk();
 /* ★4. 契約と税は 2026-08-13 に必須化（オーナー指摘）。所得税率だけは任意のまま
      （税率表を持っていない国の人が、そこで詰まって送れなくなる）。 */
-const GATE_CONTRACT = () => filled('f-contract') && filled('f-taxcountry') && filled('f-seniority');
+const GATE_CONTRACT = () => filled('f-contract') && filled('f-taxcountry') && filled('f-seniority') && filled('f-rankyears');
 const STEPS = [['s2', GATE_ROLE], ['s3', GATE_HOURS], ['s4', GATE_PAY], ['s5', GATE_CONTRACT]];
 
 function updateSteps(quiet) {
@@ -4058,7 +4069,7 @@ const LS_KEY = 'pv_pay_last';
               前はひな型側（PRESET_IDS）に入っていた。 */
 const CARRY = {
   info: ['f-airline','f-airline-other','f-position','f-fleet','f-currency',
-    'f-housing','f-contract','f-seniority','f-taxcountry','f-tax',
+    'f-housing','f-contract','f-seniority','f-rankyears','f-taxcountry','f-tax',
     'f-bonus','f-profit','f-pension','f-jobrole','f-age','f-base-iata'],
   fixed: ['f-base','f-guar','f-guarantee','f-command','f-housing-amt'],
   shape: ['f-payitems'],
@@ -4512,6 +4523,7 @@ function foldContract() {
   const bits = [label(c), label(t) + '在住'];
   if ($('f-tax').value !== '') bits.push('所得税 ' + $('f-tax').value + '%');
   if ($('f-seniority').value !== '') bits.push('在籍 ' + $('f-seniority').value + '年');
+  if ($('f-rankyears').value !== '') bits.push('昇格後 ' + $('f-rankyears').value + '年');
   $('s4-sum-txt').innerHTML = '<b>' + esc(bits.join(' ／ ')) + '</b>';
   shutFold('s4-body', 's4-sum', 's4-sub');      // 畳んだら説明文も消す（要約1行だけを残す）
 }
@@ -4808,6 +4820,7 @@ if (WZ) {
     'f-housing': s(r.housing_type),
     'f-contract': s(r.contract_type), 'f-taxcountry': s(r.tax_country),
     'f-tax': s(r.tax_rate_pct), 'f-seniority': s(r.seniority_years),
+    'f-rankyears': s(r.rank_years),
     'f-bonus': s(r.bonus_annual), 'f-profit': s(r.profit_share_annual),
     'f-pension': s(r.pension_pct),
     /* CARRY.fixed ── 契約で決まっていて毎月同じ額。★0 も有効な前回額（支給なしと答えてある）。 */
@@ -5192,6 +5205,9 @@ function buildPayload(airline) {
        DB の列は残してあるので、以後の投稿は NULL で入る。 */
     tax_rate_pct:        val('f-tax'),
     seniority_years:     val('f-seniority'),
+    /* ★いまの職位になってから何年か（2026-09-16）。在籍年数とは別物で、
+       REAL PAY の行に出る段はこちらから作る。足し引きで作れないので聞く。 */
+    rank_years:          val('f-rankyears'),
 
     /* ── 明細から読めた値 ────────────────────────────────────────
        手取り（f-netpay）と勤務時間（f-duty-h）は 2026-08-13 に表の欄へ出したので、
@@ -5367,6 +5383,7 @@ async function submitPayReport() {
   if (!val('f-contract')) return stopAt('f-contract', '契約形態を選んでください。');
   if (!val('f-taxcountry')) return stopAt('f-taxcountry', '居住国（納税地）を選んでください。');
   if (!val('f-seniority')) return stopAt('f-seniority', '在籍年数を入れてください。');
+  if (!val('f-rankyears')) return stopAt('f-rankyears', '昇格後年数を入れてください（いまの職位になってから何年か）。');
   if (num('f-hourly') > 0 && num('f-block') <= 0 && num('f-guar') <= 0) {
     return stopAt('f-block', '時給を入れた場合は、フライトタイムか保証フライトタイムのどちらかが必要です。');
   }

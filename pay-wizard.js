@@ -240,11 +240,14 @@ function publicRow(p, opt) {
     inRange: usd != null && usd >= 10000 && usd <= 700000,
     usd: usd
   };
-  /* 在籍は段だけ。年そのものは出さない。 */
-  var sen = nOrNull(p.seniority_years);
-  if (sen != null) {
-    if (p.position === 'fo') out.ten = sen < 5 ? 0 : 1;
-    else if (p.position === 'cap') out.ten = sen < 10 ? 0 : (sen < 20 ? 1 : 2);
+  /* 昇格後年数は段だけ。年そのものは出さない。
+     ★db/pay-rows.sql の 'ten' と同じ式を写してある。5年幅で5段・職位で分けない。
+       ★2026-09-16、ここは在籍年数（seniority_years）を FO＝2段 / CAP＝3段で
+         出していた。行では職位のすぐ隣に出るので「昇格して何年目」と読まれる
+         ＝入ったばかりの機長が「10〜20年」と出ていた（オーナー指摘）。 */
+  var rk = nOrNull(p.rank_years);
+  if (rk != null && (p.position === 'fo' || p.position === 'cap')) {
+    out.ten = rk < 5 ? 0 : (rk < 10 ? 1 : (rk < 15 ? 2 : (rk < 20 ? 3 : 4)));
   }
   /* 勤務は3つだけ。刻みは固定（年収の刻みに連動させない）。 */
   var work = {};

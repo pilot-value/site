@@ -110,7 +110,8 @@ async function fillForm() {
     set('f-housing', firstOpt('f-housing'));
     set('f-contract', firstOpt('f-contract'));
     set('f-taxcountry', firstOpt('f-taxcountry'));
-    ['f-block', 'f-stay', 'f-perdiem', 'f-seniority'].forEach((id) => set(id, '0'));
+    ['f-block', 'f-stay', 'f-perdiem', 'f-seniority', 'f-rankyears']
+      .forEach((id) => set(id, '0'));
     set('f-gross', '1080000');
     set('f-netpay', '842000');
     /* ★ウィザードでは送信ボタンは 5/5 の中にしか無い。歩かずに押さない。
