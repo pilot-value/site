@@ -206,6 +206,15 @@
       lockN: '約50秒・あとで内訳を追加できます',
       skelT: '解放後の一覧イメージ',
       skelL: '給与を1件共有すると一覧が見られます',
+      /* ── 伏せた一覧（2026-09-16）───────────────────────────
+         ★ここは**本物の投稿**。数も並びも開いた一覧と同じで、
+           サーバが年収と機材を渡していないだけ。
+         ★「ぼかしています」と書かない ── 隠しているのではなく、
+           そもそも渡ってきていない。 */
+      mkT: '実際に提出された給与',
+      mkS: '年収と機種は、給与を1件共有すると見られます',
+      mkA: '年収は非公開',
+      mkF: '機種は非公開',
       seeT: 'REAL PAY で見えること',
       see: ['航空会社と職位ごとの、実際に受け取っている年収',
             '年収を12で割った、月あたりの金額',
@@ -284,6 +293,10 @@
       lockN: 'About 50 seconds. You can add the breakdown later.',
       skelT: 'What the list looks like once it opens',
       skelL: 'Share one pay record to see the list',
+      mkT: 'Pay records pilots have actually submitted',
+      mkS: 'Share one pay record to see the annual figures and aircraft',
+      mkA: 'Annual figure hidden',
+      mkF: 'Aircraft hidden',
       seeT: 'What REAL PAY shows',
       see: ['What pilots at each airline and rank actually earn in a year',
             'That figure divided by twelve, as a monthly amount',
@@ -328,7 +341,12 @@
     pos: {},          // 職位コード → 表示名
     flt: {},          // 機材コード → 表示名（2026-09-03）
     rows: null,       // pv_pay_rows() の行（そのまま持つ）
-    mode: '',         // 'preview' | 'open' | 'error'
+    /* 'preview' … 作り物の5行（ap-preview.js）。サーバが行を返さないとき
+       'masked'  … **本物の行**。ただしサーバが会社・職位・出典・投稿時期しか
+                    返していない（年収と機材は渡ってきていない・2026-09-16）
+       'open'    … 年収も機材も入っている
+       'error'   … 読めなかった */
+    mode: '',         // 'preview' | 'masked' | 'open' | 'error'
     auth: null,       // null=まだ判定中 / false=未ログイン / true=ログイン済み
     fAir: '', fPos: '', fQ: '',   // fQ ＝ 社名の打ち込み（絞り込みの1つ）
     stats: null,      // サーバから来る数え上げ { reports, month }。無ければそのカードを出さない
@@ -366,6 +384,12 @@
   }
 
   function isPreview() { return S.mode === 'preview'; }
+
+  /* ★伏せた一覧（2026-09-16）。**プレビューと同じ扱いにしない。**
+       preview は作り物の5行で、出典も投稿時期も伏せる側に倒れている。
+       こちらは本物の投稿で、オーナーが出すと決めた4つ（会社・職位・出典・
+       投稿時期）はそのまま読める。 */
+  function isMasked() { return S.mode === 'masked'; }
 
   /* ══ 計測（2026-09-13）═════════════════════════════════════════
      ★送るのは「どの状態の画面を見たか」だけ。
@@ -580,7 +604,11 @@
     /* ★プレビューのときは**サーバから来た数だけ**出す（S.stats）。
          プレビューの5行は1件も数えない。未ログインは S.stats が無い＝
          カードごと出ない（0 を置いて嘘の数字を作らない）。 */
-    if (!open && S.mode !== 'preview') { box.hidden = true; box.innerHTML = ''; return; }
+    /* ★伏せた一覧（masked）でも出す（2026-09-16）。数はサーバの stats から来る
+         **本物**で、伏せた行を数えたものではない。 */
+    if (!open && S.mode !== 'preview' && !isMasked()) {
+      box.hidden = true; box.innerHTML = ''; return;
+    }
 
     var st = S.stats || {};
     var airs;
@@ -618,15 +646,18 @@
        「まだありません」が一瞬出てから行が現れる。 */
     if (!S.mode) return;
 
-    if (S.mode === 'preview') {
-      /* ★ここに**本物の金額を1文字も出さない**。描くのは ap-preview.js の5行だけで、
-           pv_pay_rows() はそもそも引いていない（未ログイン）か、
-           引いても行ゼロで返っている（ログイン済み・鍵なし）。
+    if (S.mode === 'preview' || S.mode === 'masked') {
+      /* ★ここに**本物の金額を1文字も出さない**。
+         ・preview … 描くのは ap-preview.js の5行だけ。サーバが行を1つも
+           返していない（古いサーバ・まだ0件）。
+         ・masked  … 本物の行だが、サーバが年収も機材も**渡していない**
+           （db/pay-rows.sql の mask）。板は空で、ぼかしても中身が無い。
          ⚠️ 本物を取ってきて CSS で隠す、はしない（指示書の §6）。 */
       box.innerHTML = lockScreen();
       renderFilters();
       renderStats();
-      trackOnce('realpay_preview_view', { signed_in: S.auth ? 1 : 0 });
+      trackOnce(S.mode === 'masked' ? 'realpay_masked_view' : 'realpay_preview_view',
+                { signed_in: S.auth ? 1 : 0 });
       return;
     }
     if (S.mode === 'error') {
@@ -1190,10 +1221,12 @@
        （ap-preview.js の annual_usd が null）ので、中身の空いた板を置く。
        ぼかしではない ── 霞ませる数字がそもそも無い。 */
   function dwAmt(r, month) {
-    if (r._p && (r.lock || r.annual_usd == null)) {
+    /* ★伏せた一覧（2026-09-16）では**無条件に板**。「値が無いから」ではなく
+         「この画面だから」置く ── 将来サーバがうっかり年収を混ぜても出ない。 */
+    if (isMasked() || (r._p && (r.lock || r.annual_usd == null))) {
       return '<span class="ap-amt-lk ap-dw-av-lk">'
            + '<span class="ap-amt-lk-p" aria-hidden="true"></span>'
-           + '<span class="ap-pv-sr">' + esc(PT('lkA')) + '</span></span>';
+           + '<span class="ap-pv-sr">' + esc(isMasked() ? T.mkA : PT('lkA')) + '</span></span>';
     }
     return '<span class="ap-dw-av">'
          + esc(month ? moneyMonth(r.annual_usd) : money(r.annual_usd)) + '</span>';
@@ -1204,15 +1237,25 @@
          読める表示を**1つも出さない** ── 出典（✓ Verified / 本人申告）も
          投稿時期（◯か月以内）も欄ごと出さない。 */
     var pv = !!r._p;
+    /* ★伏せた面（2026-09-16）。**プレビューと同じ扱いにしない** ── こちらは
+         本物の投稿なので、出典と投稿時期はそのまま出す（オーナーの決定）。
+       ⚠️ 伏せた面では fleetName() / money() を1つも呼ばない。機材は
+          値の有無で分岐せず、無条件に空の板を置く。 */
+    var mk = isMasked();
     var meta = [posName(r.pos)];
-    var fl = fleetName(r.fleet); if (fl) meta.push(fl);
-    var tn = tenName(r);         if (tn) meta.push(tn);
+    if (!mk) {
+      var fl = fleetName(r.fleet); if (fl) meta.push(fl);
+      var tn = tenName(r);         if (tn) meta.push(tn);
+    }
 
-    var bd = payHTML(r), work = workHTML(r), miss = '';
+    var bd = mk ? '' : payHTML(r), work = mk ? '' : workHTML(r), miss = '';
     /* ★無いものは節ごと出さない。そのうえで「なぜ空いているのか」を1文で言う
          ── 押した先が黙って短いと、隠されたように読める。
-       ★ここで作り話の 0 や「—」を置かない（オーナーの §11）。 */
-    if (!bd && !work) miss = T.dwOnly;
+       ★ここで作り話の 0 や「—」を置かない（オーナーの §11）。
+       ★伏せた面では1文も言わない ──「総支給しか書かれていません」は嘘になる
+         （書かれているかどうかを、こちらは受け取っていない）。 */
+    if (mk) miss = '';
+    else if (!bd && !work) miss = T.dwOnly;
     else if (!bd)     miss = T.dwNoComp;
     else if (!work)     miss = T.dwNoWork;
 
@@ -1223,26 +1266,35 @@
       + '<button type="button" class="ap-dw-x" data-ap-close="1" aria-label="'
       +   esc(T.dwClose) + '">×</button>'
       + '</div>'
-      + '<p class="ap-dw-meta">' + esc(meta.join(' · ')) + '</p>'
+      + '<p class="ap-dw-meta">' + esc(meta.join(' · '))
+      /* ★機材の板。伏せた面でだけ、職位のあとに無条件で置く。 */
+      +   (mk ? '<span class="ap-dw-flt-mk">'
+            + '<span class="ap-flt-lk" aria-hidden="true"></span>'
+            + '<span class="ap-pv-sr">' + esc(T.mkF) + '</span></span>' : '')
+      + '</p>'
       + '<div class="ap-dw-amt">'
       +   '<div class="ap-dw-a"><span class="ap-dw-al">' + esc(T.dwYear) + '</span>'
       +     dwAmt(r, 0) + '</div>'
       +   '<div class="ap-dw-a"><span class="ap-dw-al">' + esc(T.dwMonth) + '</span>'
       +     dwAmt(r, 1) + '</div>'
       + '</div>'
-      /* ★出典と投稿時期はプレビューでは**行ごと出さない**（上のコメント）。 */
+      /* ★出典と投稿時期はプレビューでは**行ごと出さない**（上のコメント）。
+           ★伏せた面では**出す**。本物の投稿なので「誰かが実際に出した」は
+             事実であり、オーナーが読めると決めた4つのうちの2つ。 */
       + (pv ? '' : '<p class="ap-dw-src">'
       +   (r.verified ? vfMark() : '<span class="ap-vf-no">' + esc(T.vfNo) + '</span>')
       +   '<span class="ap-dw-age">' + esc(ageName(r.age)) + '</span></p>')
       + bd + work
       + (miss ? '<p class="ap-dw-miss">' + esc(miss) + '</p>' : '')
-      + simHTML(r)
+      /* ★「同じ会社・職位のほかの記録」は伏せた面では出さない。あれは金額を
+           並べる節で、伏せた行には並べる数が無い（simHTML は money() を呼ぶ）。 */
+      + (mk ? '' : simHTML(r))
       /* ★主 ── 他社と比べる。DEEP PAY はまだ錠前が掛かっているので、リンクではなく
            左メニューと**まったく同じ門**（pv-gates.js の説明パネル）を開く。
            門の部品が読めていなければ**この行ごと出さない** ── 押しても何も起きない
            ボタンを置かない。下の副 CTA は必ず残るので、面が行き止まりにはならない。 */
-      + (pv
-          /* ★プレビューの面は DEEP PAY の門へ行かない（あちらは鍵が2つ要る）。
+      + (pv || mk
+          /* ★プレビューと伏せた面は DEEP PAY の門へ行かない（あちらは鍵が2つ要る）。
                行き先は1つだけ ── 給与を出す画面。 */
           ? '<a class="ap-dw-cta" data-ap-cta="detail" href="' + PAY_URL + '">'
             + esc(T.lockC) + '</a>'
@@ -1250,12 +1302,15 @@
               ? '<button type="button" class="ap-dw-cta" data-ap-gate="deep">'
                 + esc(T.dwGo) + '</button>'
               : ''))
-      /* ★副 ── 出す側へ戻す。消さずに順位だけ下げる。 */
-      + (pv ? '' : '<a class="ap-dw-cta2" href="' + PAY_URL + '">' + esc(T.dwCta) + '</a>')
+      /* ★副 ── 出す側へ戻す。消さずに順位だけ下げる。
+           ★伏せた面では出さない ── 上の主 CTA と行き先が同じで、同じ画面への
+             ボタンが2つ並ぶ。 */
+      + (pv || mk ? '' : '<a class="ap-dw-cta2" href="' + PAY_URL + '">' + esc(T.dwCta) + '</a>')
       /* ★下の1行（「匿名化のため帯で表示しています」）もプレビューでは出さない。
            あれは**誰かが出した数字をどう扱っているか**の説明で、作り物の5行に
-           付けると「この金額も誰かの投稿を匿名化したもの」と読める。 */
-      + (pv ? '' : '<p class="ap-dw-note">' + esc(T.dwNote) + '</p>');
+           付けると「この金額も誰かの投稿を匿名化したもの」と読める。
+           ★伏せた面でも出さない ── そこに数字が1つも出ていない。 */
+      + (pv || mk ? '' : '<p class="ap-dw-note">' + esc(T.dwNote) + '</p>');
   }
 
   function hasGate() { return !!(w.PVGates && w.PVGates.open); }
@@ -1280,6 +1335,11 @@
     if (!r) { closeDrawer(); return; }
     var sc = DW.box.parentNode;                 // 巻き取るのは .ap-dw のほう
     var y = keepFocus && sc ? sc.scrollTop : 0;
+    /* ★伏せた面の目印（2026-09-16）。ぼかしの規則は .ap-dw--mk の下だけに
+         書いてある ── これを付け忘れると板が**くっきり空**になる。
+         何も読めないので画面は正しく見えてしまう。assert-pay-rows.mjs の
+         ぼかしの下限（blurOK）だけが気づける。 */
+    if (sc && sc.classList) sc.classList.toggle('ap-dw--mk', isMasked());
     DW.box.innerHTML = dwHTML(r);
     if (sc) sc.scrollTop = y;
     if (keepFocus) return;
@@ -1427,7 +1487,7 @@
     if (x.back.parentNode) x.back.parentNode.removeChild(x.back);
   }
 
-  function wipeReal() {
+  function wipeReal(client) {
     dropDrawer();
     sheetClose(true);
     S.auth = false;
@@ -1440,6 +1500,11 @@
     try { w.sessionStorage.removeItem(RP_BACK); } catch (e) {}
     if (w.PVGates && w.PVGates.mark) w.PVGates.mark(false);
     render();
+    /* ★捨ててから取り直す（2026-09-16）。この順を入れ替えない ──
+         先に取りに行くと、答えが返るまでのあいだ他人の年収が画面に残る。
+         取り直して返るのは伏せた行（会社・職位・出典・投稿時期の4つ）だけ。
+       ★取れなくても画面は壊れない。上で見本に落としてあるので、そのまま。 */
+    if (client && client.rpc) fetchRows(client);
   }
 
   /* 本物を持っている状態から落ちる道は3つ。全部 wipeReal() に集める。 */
@@ -1447,7 +1512,7 @@
     try {
       if (client.auth && client.auth.onAuthStateChange) {
         client.auth.onAuthStateChange(function (ev) {
-          if (ev === 'SIGNED_OUT' || ev === 'USER_DELETED') wipeReal();
+          if (ev === 'SIGNED_OUT' || ev === 'USER_DELETED') wipeReal(client);
         });
       }
     } catch (e) {}
@@ -1456,7 +1521,7 @@
     w.addEventListener('storage', function (e) {
       if (e && e.key && e.key !== 'pv_user' && !/auth-token/.test(e.key)) return;
       var inn = !!(w.PVSession && w.PVSession.isLoggedIn && w.PVSession.isLoggedIn());
-      if (!inn && S.mode === 'open') wipeReal();
+      if (!inn && S.mode === 'open') wipeReal(client);
     });
     /* 「戻る」でブラウザが画面を丸ごと復元した（bfcache）。
        ★旗ではなく**サーバの答え**を取り直す。null なら本物を捨てる
@@ -1466,20 +1531,10 @@
       try {
         Promise.resolve(client.auth.getSession()).then(function (g) {
           var ss = (g && g.data) ? g.data.session : null;
-          if (!ss) wipeReal();
+          if (!ss) wipeReal(client);
         }, function () {});
       } catch (e2) {}
     });
-  }
-
-  /* 鍵の無い画面へ落とす。★本物を1つも持たない状態にしてから描く。 */
-  function toPreview() {
-    S.rows = pvRows();
-    S.stats = null;
-    S.mode = 'preview';
-    S.page = 1;
-    if (w.PVGates && w.PVGates.mark) w.PVGates.mark(false);
-    render();
   }
 
   function msg(kind, t, s, cta, extra) {
@@ -1531,6 +1586,81 @@
     var out = '<div class="ap-skel-r">';
     for (var i = 0; i < 6; i++) out += '<span class="ap-skel-bar"></span>';
     return out + '</div>';
+  }
+
+  /* ── 伏せた一覧（2026-09-16 オーナー指示）─────────────────────
+     鍵の無い人にも**本物の行**を出す。ただし年収と機材はサーバが
+     渡していない（db/pay-rows.sql の mask）ので、そこには中身の空いた板を置く。
+
+     ⚠️ ここで money() / moneyMonth() / fleetName() を**1つも呼ばない。**
+        「値が無いから板」ではなく「この画面だから板」にしておく ── そうすれば、
+        将来サーバがうっかり年収を混ぜても画面には1文字も出ない。
+        assert-pay-rows.mjs の K-0 が、この関数の中にその3つが無いことを見ている。
+     ★板は**無条件**に描く。`x ? 板 : ''` にすると、サーバが渡していない今は
+       板ごと消えて、ただ空いた列になる。
+     ★出典（✓ Verified / 本人申告）と投稿時期は**本物のまま出す**
+       （オーナーが出すと決めた4つのうちの2つ）。preview と同じ扱いにしない。
+     ★件数も並びもサーバのまま＝ページ送りを出す。 */
+  function maskedPlate(month) {
+    return '<span class="ap-amt-lk' + (month ? ' ap-amt-lk--m' : '') + '">'
+         + '<span class="ap-amt-lk-p" aria-hidden="true"></span>'
+         + '<span class="ap-pv-sr">' + esc(T.mkA) + '</span></span>';
+  }
+
+  function maskedList() {
+    var rows = visibleRows();
+    var head = '<h2 class="ap-lock-h">' + esc(T.mkT) + '</h2>'
+             + '<p class="ap-lock-sub">' + esc(T.mkS) + '</p>';
+
+    /* 絞り込みで1件も残らなかった。★選んだ社名をどの行にも貼らない。 */
+    if (!rows.length) {
+      return '<section class="ap-lock-skel">' + head
+        + msg('', T.fEmptyT, T.fEmptyS, '') + '</section>';
+    }
+
+    var pages = Math.max(1, Math.ceil(rows.length / PER_PAGE));
+    if (S.page > pages) S.page = pages;
+    if (S.page < 1) S.page = 1;
+    var from = (S.page - 1) * PER_PAGE;
+    var page = rows.slice(from, from + PER_PAGE);
+
+    var h = '<div class="ap-tw"><div class="ap-tscroll">'
+          + '<table class="ap-tbl ap-tbl--mk">'
+          + '<thead><tr><th>' + esc(T.thAir) + '</th><th>' + esc(T.thPos) + '</th>'
+          + '<th class="ap-num">' + esc(T.thAmt) + '</th>'
+          + '<th class="ap-num">' + esc(T.thMon) + '</th>'
+          + '<th>' + esc(T.thVf) + '</th>'
+          + '<th>' + esc(T.thAge) + '</th></tr></thead><tbody>';
+    for (var i = 0; i < page.length; i++) {
+      var r = page[i];
+      h += '<tr class="ap-r ap-r--mk" data-ap-row="' + esc(String(r._i)) + '">'
+         + '<td><span class="ap-cell-air">' + logoHtml(r.airline)
+         +   '<span class="ap-air">' + esc(airName(r.airline)) + '</span></span></td>'
+         /* ★機材は職位の2行目（開いている表と同じ場所）。無条件に板を置く。 */
+         + '<td><span class="ap-pos">' + esc(posName(r.pos)) + '</span>'
+         +   '<span class="ap-flt ap-flt-mk">'
+         +     '<span class="ap-flt-lk" aria-hidden="true"></span>'
+         +     '<span class="ap-pv-sr">' + esc(T.mkF) + '</span></span>'
+         + '</td>'
+         + '<td class="ap-num"><span class="ap-cl" aria-hidden="true">' + esc(T.thAmt) + '</span>'
+         +   maskedPlate(0) + '</td>'
+         + '<td class="ap-num"><span class="ap-cl" aria-hidden="true">' + esc(T.thMon) + '</span>'
+         +   maskedPlate(1) + '</td>'
+         + '<td>' + (r.verified ? vfMark()
+                                : '<span class="ap-vf-no">' + esc(T.vfNo) + '</span>') + '</td>'
+         + '<td><span class="ap-age">' + esc(ageName(r.age)) + '</span>'
+         +   '<button type="button" class="ap-go" aria-label="' + esc(openLabel(r))
+         +   '">\u203a</button>'
+         + '</td>'
+         + '</tr>';
+      /* ★2件目の直後に、一覧に馴染む解放案内を1枚だけ（プレビューと同じ形）。
+         ★文言は ap-preview.js が持っている。読めていなければ**行ごと出さない**
+           ── 空の枠を置かない。上の錠前パネルの CTA は必ず残るので、
+           出す側へ戻る道はこれが無くても塞がらない。 */
+      if (i === 1 && PT('unT')) h += unlockRow();
+    }
+    h += '</tbody></table></div>' + pager(rows.length, pages) + '</div>';
+    return '<section class="ap-lock-skel">' + head + h + '</section>';
   }
 
   /* ── プレビューの一覧（2026-09-13）─────────────────────────
@@ -1671,9 +1801,13 @@
       + '<div class="ap-lockhero-a" aria-hidden="true">' + LOCK_ART + '</div>'
       + '</div>';
 
-    /* ★骨組みの節をプレビューに差し替える（2026-09-13）。
-         ap-preview.js が読めていなければ今までの骨組みに落ちる。 */
-    var skel = (S.rows && S.rows.length) ? previewList() : skelSection();
+    /* ★骨組みの節を差し替える。3段階（2026-09-16）──
+         ① 伏せた本物の一覧（サーバが行を返している）
+         ② プレビューの5行（ap-preview.js。古いサーバ・まだ0件）
+         ③ 今までどおりの灰色の骨組み（ap-preview.js も読めていない）
+       上の錠前パネル・3段の Give → Get・CTA・ログイン行は、①②③どれでも同じ。 */
+    var skel = isMasked() ? maskedList()
+             : (S.rows && S.rows.length) ? previewList() : skelSection();
 
     var see =
       '<section class="ap-lock-see">'
@@ -2091,6 +2225,87 @@
     load();
   }
 
+  /* 一覧を取りに行く。ログイン済みなら預かりの引き取りが終わってから、
+     未ログインならすぐ呼ばれる。
+     ★load() の中から外へ出してある（2026-09-16）── ログアウトした瞬間に
+       wipeReal() からも呼ぶため。見本に落ちる条件をここ1か所で決める、という
+       約束を守るには、取り直しの道も同じ関数を通らないといけない。 */
+  function fetchRows(client) {
+    /* ★ rpc() が返すのは「then だけを持つ箱」で Promise ではない。
+         Promise.resolve() で包んでから catch を付ける（pv-referral.js:gap と同じ）。 */
+    Promise.resolve(client.rpc('pv_pay_rows')).then(function (res) {
+      if (res && res.error) { S.mode = 'error'; render(); return; }
+      var v = res && res.data;
+      var isOpen = !!(v && v.state === 'open');
+      /* ★左メニューの錠前は localStorage の写しで暫定的に出ている。
+           ここはサーバの答えを持っているので、そちらで上書きする。
+           ⚠️ my_pay_reports() は引かない（この画面は本人の明細を読まない）。 */
+      if (w.PVGates && w.PVGates.mark) w.PVGates.mark(isOpen);
+      /* ★数え上げ。古いサーバ（stats を返さない）でも画面は止めない
+           ＝ そのカードだけ出ない（0 を置いて嘘の数字を作らない）。
+         ★鍵が無くてもこれは**本物**。プレビューの5行は1件も混ぜない。 */
+      S.stats = (v && v.stats) || null;
+      if (!isOpen) {
+        /* ★鍵が無い。サーバが返すのは**伏せた行**（会社・職位・出典・投稿時期の
+             4つだけ。年収も機材も入っていない）。
+           ★行が来ていれば本物を出す。来ていなければ今までどおり
+             プレビューの5行に落ちる（古いサーバ・まだ0件）。
+             ⚠️ 混ぜない ── 本物と作り物を同じ配列に入れる形そのものを作らない。
+             見本に落ちる条件を決めているのはこの1か所だけ。 */
+        var mk = (v && v.rows) || [];
+        if (mk.length) {
+          S.mode = 'masked';
+          S.rows = mk;
+          /* 押された行を引き当てる番号。開いている一覧と同じやり方。 */
+          S.rows.forEach(function (r, k) { r._i = k; });
+        } else {
+          S.mode = 'preview';
+          S.rows = pvRows();
+        }
+        S.page = 1;
+        if (w.PVGates && w.PVGates.setProgress) {
+          w.PVGates.setProgress({
+            n: (v && v.stats) ? v.stats.contributors : null,
+            detailed: (v && v.give) ? v.give.detailed : null
+          });
+        }
+        render();
+        return;
+      }
+      S.mode = 'open';
+      S.rows = (v && v.rows) || [];
+      /* ★行に「受け取った順の番号」を振る。押された行を引き当てるのはこれ1つ。
+           ページ送りでも絞り込みでも動かない番号でないと、押した行と
+           開く行がずれる（並びはサーバが決めているので順番は安定している）。 */
+      S.rows.forEach(function (r, k) { r._i = k; });
+      /* ★プレビューで選んでいた会社を**一度だけ**引き継ぐ。
+           ⚠️ その会社の行が1つも無ければ適用しない ── 出した直後の人を
+              「0件」の画面に落とさない。 */
+      var pre = preAirTake();
+      if (pre && !S.fAir) {
+        for (var pk = 0; pk < S.rows.length; pk++) {
+          if (S.rows[pk].airline === pre) { S.fAir = pre; break; }
+        }
+      }
+      /* ★DEEP PAY の札（N / 100人）と、本人が内訳を出したかどうか。
+           数を作るのはサーバーだけで、pv-gates.js は渡された数を出すだけ。
+           来なければ札は「準備中」のまま＝古いサーバでも画面は壊れない。
+         ⚠️ renderRows() より前に渡す。3段の表はこの後で描かれる。 */
+      if (w.PVGates && w.PVGates.setProgress) {
+        w.PVGates.setProgress({
+          n: (v && v.stats) ? v.stats.contributors : null,
+          detailed: (v && v.give) ? v.give.detailed : null
+        });
+      }
+      render();
+      trackOnce('realpay_open_view', { rows: S.rows.length });
+      /* ★フォームから戻ってきた人の面を開き直す（オーナーの §8）。
+           render() の**後**。中でページを送り直すことがあるので、
+           一度描き終わってからでないと居場所がずれる。 */
+      reopenBack();
+    }).catch(function () { S.mode = 'error'; render(); });
+  }
+
   function load() {
     /* ページ側のインライン script が作った sb を借りる（my-value.js:48-49 と同じ）。
        ★ここで createClient しない。1ページに2つ作ると getSession が別々に走る。 */
@@ -2102,13 +2317,17 @@
       ? w.PV_SESSION : { then: function (f) { f(null); return { catch: function () {} }; } };
     ready.then(function (session) {
       if (!session) {
-        /* ★未ログイン（2026-09-13）。ここで pv_pay_rows() を**1本も投げない**
-             ── 預かりの sweep も投げない。サーバは 42501 で落とすので撃っても
-             何も返らないが、撃たないこと自体が「鍵の無いブラウザへ本物が渡る
-             経路が無い」の実体になる（指示書の §6）。
+        /* ★未ログイン。2026-09-16 にオーナー判断で**一覧を取りに行く**ことにした。
+             サーバが返すのは会社・職位・出典・投稿時期の4つだけの行で、
+             年収も機材も渡ってこない（db/pay-rows.sql の mask）。
+             「鍵の無いブラウザへ本物の金額が渡る経路が無い」は、撃たないことでは
+             なく**サーバが渡さないこと**で守る（指示書の §6 と同じ結論）。
+           ★投げるのは pv_pay_rows の1本だけ。預かりの sweep は今までどおり
+             投げない（引き取る相手が居ない）。
            ⚠️ ログイン画面へ送らない。転送は actual-pay.html 側からも外した。 */
         S.auth = false;
-        toPreview();
+        if (w.PVGates && w.PVGates.mark) w.PVGates.mark(false);
+        fetchRows(client);
         return;
       }
       S.auth = true;
@@ -2127,71 +2346,6 @@
       S.mode = 'error'; render();
     });
 
-    /* 一覧を取りに行く。上の預かりの引き取りが終わってから呼ばれる。 */
-    function fetchRows(client) {
-      /* ★ rpc() が返すのは「then だけを持つ箱」で Promise ではない。
-           Promise.resolve() で包んでから catch を付ける（pv-referral.js:gap と同じ）。 */
-      Promise.resolve(client.rpc('pv_pay_rows')).then(function (res) {
-        if (res && res.error) { S.mode = 'error'; render(); return; }
-        var v = res && res.data;
-        var isOpen = !!(v && v.state === 'open');
-        /* ★左メニューの錠前は localStorage の写しで暫定的に出ている。
-             ここはサーバの答えを持っているので、そちらで上書きする。
-             ⚠️ my_pay_reports() は引かない（この画面は本人の明細を読まない）。 */
-        if (w.PVGates && w.PVGates.mark) w.PVGates.mark(isOpen);
-        /* ★数え上げ。古いサーバ（stats を返さない）でも画面は止めない
-             ＝ そのカードだけ出ない（0 を置いて嘘の数字を作らない）。
-           ★鍵が無くてもこれは**本物**。プレビューの5行は1件も混ぜない。 */
-        S.stats = (v && v.stats) || null;
-        if (!isOpen) {
-          /* ★鍵が無い。サーバは行を1つも返していない（db/pay-rows.sql）。
-               ここで v.rows を読まずに**プレビューへ差し替える** ──
-               本物と作り物を同じ入れ物に入れる形そのものを作らない。 */
-          S.mode = 'preview';
-          S.rows = pvRows();
-          S.page = 1;
-          if (w.PVGates && w.PVGates.setProgress) {
-            w.PVGates.setProgress({
-              n: (v && v.stats) ? v.stats.contributors : null,
-              detailed: (v && v.give) ? v.give.detailed : null
-            });
-          }
-          render();
-          return;
-        }
-        S.mode = 'open';
-        S.rows = (v && v.rows) || [];
-        /* ★行に「受け取った順の番号」を振る。押された行を引き当てるのはこれ1つ。
-             ページ送りでも絞り込みでも動かない番号でないと、押した行と
-             開く行がずれる（並びはサーバが決めているので順番は安定している）。 */
-        S.rows.forEach(function (r, k) { r._i = k; });
-        /* ★プレビューで選んでいた会社を**一度だけ**引き継ぐ。
-             ⚠️ その会社の行が1つも無ければ適用しない ── 出した直後の人を
-                「0件」の画面に落とさない。 */
-        var pre = preAirTake();
-        if (pre && !S.fAir) {
-          for (var pk = 0; pk < S.rows.length; pk++) {
-            if (S.rows[pk].airline === pre) { S.fAir = pre; break; }
-          }
-        }
-        /* ★DEEP PAY の札（N / 100人）と、本人が内訳を出したかどうか。
-             数を作るのはサーバーだけで、pv-gates.js は渡された数を出すだけ。
-             来なければ札は「準備中」のまま＝古いサーバでも画面は壊れない。
-           ⚠️ renderRows() より前に渡す。3段の表はこの後で描かれる。 */
-        if (w.PVGates && w.PVGates.setProgress) {
-          w.PVGates.setProgress({
-            n: (v && v.stats) ? v.stats.contributors : null,
-            detailed: (v && v.give) ? v.give.detailed : null
-          });
-        }
-        render();
-        trackOnce('realpay_open_view', { rows: S.rows.length });
-        /* ★フォームから戻ってきた人の面を開き直す（オーナーの §8）。
-             render() の**後**。中でページを送り直すことがあるので、
-             一度描き終わってからでないと居場所がずれる。 */
-        reopenBack();
-      }).catch(function () { S.mode = 'error'; render(); });
-    }
   }
 
   if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', boot);

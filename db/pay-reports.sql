@@ -2039,6 +2039,12 @@ select distinct asked from public.pv_label_hints
 --         あちらは「登録前の預かり」で、anon に開いているのが正しい。
 --       ・pay_benchmarks（ビュー）は 1行＝区分・k≧5 なので anon に開いていてよい。
 --         このクエリはビューを見ていない。関数だけを見る。
+--       ・pv_pay_rows だけは名指しで外す（2026-09-16 オーナー判断）。登録していない人にも
+--         **伏せた行**（会社・職位・出典・投稿時期の4つだけ）を返すため anon に開けた。
+--         ⚠️ 外したのはこの1本だけ。何が返るかは db/pay-rows.sql の自己点検65
+--         （伏せた行に渡すのは4つだけ）と66（PUBLIC に残っていない）が別に見ている。
+--         ここを「まとめて緩める」形に書き換えないこと ── 将来足した関数が
+--         自動で引っかかる、というこの検査の狙いが消える。
 select n.nspname || '.' || p.proname
        || '(' || pg_get_function_identity_arguments(p.oid) || ')' as anonに開いている関数
   from pg_proc p
@@ -2047,6 +2053,7 @@ select n.nspname || '.' || p.proname
    and p.prosecdef
    and pg_get_functiondef(p.oid) ~ '\mpay_reports\M'
    and has_function_privilege('anon', p.oid, 'execute')
+   and p.proname <> 'pv_pay_rows'
  order by 1;
 
 -- 8-21. 2026-08-26 に足した7列が入っていること（期待：7 行とも true）

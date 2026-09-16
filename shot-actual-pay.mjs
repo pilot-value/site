@@ -11,6 +11,11 @@
              preview-in ★ログイン済み・まだ給与を出していない人。行は作り物のまま、
                       上の数え上げカードだけ**本物**が出る
              preview-drawer ★未ログインの人がプレビューの行を押して開いた面
+             masked   ★伏せた一覧（2026-09-16）。ログイン済み・口コミだけ出した人。
+                      会社・職位・出典・投稿時期は読め、年収と機材は中身の空いた板
+             masked-anon ★同じものを未ログインで。**pv_pay_rows は差し替える**
+                      （preview と違うのはここ）
+             masked-drawer ★伏せた行を押して開いた面
              locked   ★2026-09-13 より前の骨組み（ap-preview.js が読めないときの落ち先）
              locked-nostat ★サーバをまだ貼り替えていない＝数字カードが1枚も出ない
              locked-panel ★Give → Get の DEEP PAY の札を押して説明を出したところ
@@ -295,6 +300,17 @@ const MANY = [
   R('singapore-airlines', 'fo', 130000, false, 2, { fleet: 'b787', ten: 1 }),
 ];
 
+/* ★伏せた行（2026-09-16 オーナー指示）。鍵の無い人へサーバが返すのは
+     **この4つだけ** ── 会社・職位・出典・投稿時期。年収も機材も内訳も勤務も、
+     鍵ごと来ない（db/pay-rows.sql の mask）。
+   ⚠️ ここに annual_usd を書き足さない。書くと「画面が出さない」ことしか
+      確かめられず、**サーバが渡していない**という本題の絵にならない。
+   ⚠️ checkRows() に通さない。あちらは帯の刻みを**年収から**作って検算する式で、
+      ここには年収が1つも無い。 */
+const MASK_ROWS = MANY.map(function (r) {
+  return { airline: r.airline, pos: r.pos, verified: r.verified, age: r.age };
+});
+
 /* ★行を押して出る面のための9行（2026-09-03）。
      ⚠️ 9行にしてあるのは、**1ページに全部載せるため**（10件で改頁するので、
         2ページ目の行は押せない ＝ 撮れない）。
@@ -379,6 +395,20 @@ const SCENES = {
   /* ★右から出るナビのドロワー（2026-09-06 に下タブと置き換え、同日 左→右へ反転）。
        これも **1000px 未満でしか出ない**ので w=390 などと一緒に使う。 */
   nav:    { pay: { ok: true, state: 'open', rows: MERGED, stats: ST(24, 13) }, nav: true },
+  /* ★伏せた一覧（2026-09-16 オーナー指示）。鍵の無い人にも**本物の行**が出る。
+       会社・職位・出典・投稿時期は読め、年収と機材は中身の空いた板。
+     ★masked … ログイン済みで、口コミだけ出した人。
+       masked-anon … 未ログインの人。**pv_pay_rows は差し替える**
+         （preview の場面と違うのはここ。あちらは呼ばれていないことを絵で見る場面で、
+          こちらは未ログインでもサーバが伏せた行を返すことを絵で見る場面）。
+       masked-drawer … 伏せた行を押して開いた面。 */
+  masked: { pay: { ok: true, state: 'locked', rows: MASK_ROWS, stats: ST_LOCK,
+                   give: { basic: false, detailed: false, payslip: false } } },
+  'masked-anon': { anon: true,
+                   pay: { ok: true, state: 'locked', rows: MASK_ROWS, stats: ST_LOCK } },
+  'masked-drawer': { pay: { ok: true, state: 'locked', rows: MASK_ROWS, stats: ST_LOCK,
+                            give: { basic: false, detailed: false, payslip: false } },
+                     open: 0 },
   /* ★まだ自分の内訳を出していない人が同じ行を押したところ。
        帯の代わりに骨組みと門が出る。row=2 は「内訳がそもそも無い人」で、門は出ない。 */
   'drawer-lock': { pay: { ok: true, state: 'open', rows: DRAWER_LOCK, stats: ST(14, 9),

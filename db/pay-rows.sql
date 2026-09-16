@@ -1618,9 +1618,14 @@ declare
   v_op    boolean;
   v_out   jsonb;
 begin
-  if v_uid is null then
-    raise exception 'ログインが必要です' using errcode = '42501';
-  end if;
+  -- ★2026-09-16、未ログインでも通す（オーナー判断）。登録していない人にも
+  --   **伏せた行**（会社・職位・出典・投稿時期の4つだけ）を返して、
+  --   本物のデータが在ることを伝えるため。ここで raise すると画面が
+  --   エラー表示になり、作り物の見本しか出せない。
+  --   ★v_uid が null でも v_until は null・pv_is_operator() は false なので、
+  --     下の鍵の旗はそのまま「閉じている」に落ちる。分岐を増やさない。
+  --   ⚠️ ここに鍵の旗の変数名を1文字も書かないこと（自己点検36 が出現数を
+  --      きっかり4と数えている ── 注意書きだけで赤くなる）。
 
   select p.access_until into v_until from public.profiles p where p.id = v_uid;
 
@@ -1652,7 +1657,10 @@ begin
        ── DevTools でぼかしを外せば見えてしまう。
      ★開けるのは「報酬の内訳」だけ。会社・職位・機材・在籍の段・年収・
        月あたり・本人申告・投稿時期・勤務の帯は、閉じている人にもそのまま出す。 */
-  v_give := public.pv_my_give();
+  -- ★未ログインでは呼ばない。航空会社の総当たりでハッシュを作り直す重い関数で、
+  --   ログインしていない人には返すものが何も無い（画面は null を受ける形に既になっている）。
+  --   ⚠️ 呼び出しは**この1か所のまま**にする（自己点検60 が字で1回と数えている）。
+  v_give := case when v_uid is null then null else public.pv_my_give() end;
   v_comp := coalesce((v_give->>'full')::boolean, false);
 
   with shelf as (
@@ -2065,6 +2073,27 @@ begin
       left join worked wk on wk.pkey = p.pkey and wk.airline = p.airline
                          and wk.pos  = p.pos
   ),
+  mask as (
+    -- pv-mask-begin  ★この2つの印は自己点検65 が範囲を切り出すのに使う。消さない。
+    /* ── 鍵の無い人へ返す行（2026-09-16 オーナー指示）───────────────
+       ★**person からしか引かない。** 上の listed のように pick / paid /
+         worked / grid を混ぜないこと。引かないことが、出せないことの保証になる。
+         渡すのは4つだけ ── 会社・職位・出典・投稿時期。
+       ★金額と機材は「伏せて渡す」のではなく**渡さない**。画面はそこに
+         中身の空の板を描くので、DevTools でぼかしを外しても何も出てこない。
+       ★件数も並びも本物と同じ（同じ person・同じ順）。行を抜き差ししない
+         ── 数え上げのカードと表の行数が食い違う。
+       ⚠️ この節に鍵の旗の変数名を1文字も書かないこと（自己点検36 がその名前の
+          出現数をきっかり4と数えている ── 注意書きだけで赤くなる）。 */
+    select coalesce(jsonb_agg(jsonb_strip_nulls(jsonb_build_object(
+             'airline',  p.airline,
+             'pos',      p.pos,
+             'verified', p.verified,
+             'age',      p.age
+           )) order by p.last_at desc, md5(p.pkey)), '[]'::jsonb) as j
+      from person p
+    -- pv-mask-end
+  ),
   tally as (
     -- ★数え上げ。**必ず sane から数える**（＝行と同じ材料。同じ幅・同じ期間・
     --   同じ「移した預かりは読まない」）。別の場所から数え直すと、画面の
@@ -2098,9 +2127,11 @@ begin
   select jsonb_build_object(
            'ok',    true,
            'state', case when v_open then 'open' else 'locked' end,
-           -- ★行はここだけで落とす。鍵が無ければ空の配列そのもので、
+           -- ★行はここだけで落とす。鍵が無ければ mask の行（会社・職位・出典・
+           --   投稿時期の4つだけ）に差し替わる。金額と機材は**渡さない**ので、
            --   ぼかした行でも伏せ字の行でもない（渡していないものは隠せない）。
-           'rows',  case when v_open then l.j else '[]'::jsonb end,
+           -- ★2つの配列から選ぶが、旗の数はこれで今までどおり4つのまま。
+           'rows',  case when v_open then l.j else m.j end,
            'stats', jsonb_build_object('reports',      t.reports,
                                        'month',        t.mo,
                                        'airlines',     s.n,
@@ -2117,6 +2148,7 @@ begin
          )
     into v_out
     from listed l
+    cross join mask  m
     cross join tally t
     cross join airs s
     cross join contrib c;
@@ -2125,12 +2157,18 @@ begin
 end;
 $$;
 
--- ★anon に渡さない。pay_benchmarks が anon に開いているのは「1行＝区分」だから。
---   こちらは 1行＝人で粒度が一段細かいので、同じ扱いにはできない。
---   画面側でぼかす方式（index.html の .pv-mask）もここでは使えない。
---   開発者ツールから全部見えるので、Give & Get の約束はサーバ側で守る。
-revoke all on function public.pv_pay_rows() from public, anon;
-grant execute on function public.pv_pay_rows() to authenticated;
+-- ★2026-09-16、anon にも渡す（オーナー判断）。登録していない人にも
+--   **伏せた行**を見せて、本物のデータが在ることを伝えるため。
+--   渡せるようにしたのは会社・職位・出典・投稿時期の4つだけで、金額と機材は
+--   上の mask が**そもそも組み立てない**。1行＝人という粒度は変わっていないが、
+--   準識別子になる列を1つも渡さないので、1行＝区分の pay_benchmarks と同じ扱いにできる。
+--   ★画面側でぼかす方式（index.html の .pv-mask）は今も採らない。開発者ツールで
+--     外せてしまうので、Give & Get の約束はサーバ側で守る（渡さない）。
+-- ⚠️ 静かに壊れる形 ── `from public` の revoke を落として `to anon` の grant だけ
+--    足すと、PUBLIC の既定の EXECUTE が残って**全ロールが呼べる**。画面は1ドットも
+--    変わらないので目では気づけない。自己点検66 が唯一の砦。
+revoke all on function public.pv_pay_rows() from public;
+grant execute on function public.pv_pay_rows() to anon, authenticated;
 
 comment on function public.pv_pay_rows() is
   '実給与の匿名一覧。1行＝1人（複数月は年換算の中央値で畳む）。出した人は全員出る。'
@@ -2147,7 +2185,9 @@ comment on function public.pv_pay_rows() is
   '同じ回に give（本人が basic / detailed / payslip のどれを出したか）を足した。'
   'give は真偽3つだけで、金額も件数も日付も返さない。'
   '★引数を取らない＝他人の区分を狙って引く面が無い。'
-  '★鍵は給与明細の access_until のみ。口コミの鍵では開かない。';
+  '★鍵は給与明細の access_until のみ。口コミの鍵では開かない。'
+  '2026-09-16 から未ログイン（anon）でも呼べる。鍵の無い人に返る行は'
+  '会社・職位・出典・投稿時期の4つだけで、年収・機材・勤務・内訳は1つも入らない。';
 
 
 -- ════════════════════════════════════════════════════════════════
@@ -2209,7 +2249,7 @@ comment on function public.pv_give_progress() is
 --
 -- ★1本の SELECT にしてある。Supabase の SQL Editor は複数文を流すと
 --   最後の1本の結果しか出さないので、分けて書くと上から順に消えていく。
--- 期待：63行すべて ✅。1つでも ❌ なら、そこが効いていない。
+-- 期待：66行すべて ✅。1つでも ❌ なら、そこが効いていない。
 --
 -- 特に 4・8・12・13・14・16・22・23・30・31・36・37・40・41・42・44・45・46・47・
 --      50・51・52・53・54・55・56 は
@@ -2255,9 +2295,12 @@ from (
          case when f_rows is null then false
               else (select p.prosecdef from pg_proc p where p.oid = f.f_rows) end from f
   union all
-  select 4, '登録していない人（anon）は一覧を呼べない',
+  -- ★2026-09-16 に向きを反転（オーナー判断）。登録していない人にも伏せた行を
+  --   返すため、呼べること自体は正しい状態になった。「何が返るか」の守りは
+  --   下の65（渡すのは4つだけ）と66（渡っている相手は2つだけ）が持つ。
+  select 4, '★登録していない人（anon）も一覧を呼べる（伏せた行を返すため）',
          case when f_rows is null then false
-              else not has_function_privilege('anon', f_rows, 'execute') end from f
+              else has_function_privilege('anon', f_rows, 'execute') end from f
   union all
   select 5, 'ログインした人は一覧を呼べる',
          case when f_rows is null then false
@@ -2423,6 +2466,8 @@ from (
          -- ★鍵の旗（v_open）が出てよいのは4か所だけ ── 宣言・旗を立てる・state・rows。
          --   増えていたら stats か give にも鍵を掛けた疑いがある＝出す前の人に
          --   何も見えなくなる。数で釘を打っておく。
+         -- ★2026-09-16、rows は2つの配列から選ぶ形になったが、旗の数は4のまま
+         --   （同じ1か所の中で行き先が変わっただけ）。ここは無傷で残す。
          case when f_rows is null then false
               else pg_get_functiondef(f_rows) like '%case when v_open then l.j else%'
                and pg_get_functiondef(f_rows) like '%when v_open then ''open'' else ''locked''%'
@@ -2430,9 +2475,12 @@ from (
                     - length(replace(pg_get_functiondef(f_rows), 'v_open', ''))) / 6 = 4
          end from f
   union all
-  select 37, '★鍵が無い人には行が1つも入らない（空の配列そのもの。伏せた行ではない）',
+  -- ★2026-09-16、鍵が無い人にも行を返すようになった（オーナー判断）。返るのは
+  --   mask が組んだ4つだけの行で、金額も機材も入っていない（中身の検査は65）。
+  --   ここは「行を選んでいるのが1か所だけ」を見張り続ける。
+  select 37, '★鍵の有無で行を選ぶのは1か所だけ（本物の行か、伏せた行か）',
          case when f_rows is null then false
-              else pg_get_functiondef(f_rows) like '%else ''[]''::jsonb end%'
+              else pg_get_functiondef(f_rows) like '%case when v_open then l.j else m.j end%'
          end from f
   union all
   -- ── 報酬の内訳の門（Give & Get・2026-09-03）───────────────────
@@ -2769,6 +2817,47 @@ from (
             「パイロット◯人」から落ちる（「52件あるのに35人」の形に戻る）。 */
          case when f_dctb is null then false
               else pg_get_functiondef(f_dctb) like '%pv_review_person%'
+         end from f
+  union all
+  -- ── 鍵の無い人に渡す「伏せた行」（2026-09-16）─────────────────
+  select 65, '★伏せた行に渡すのは4つだけ（年収・機材・勤務・内訳は組み立てもしない）',
+         /* mask の節だけを印で切り出して見る。関数全体を見ると、本物の行を
+            組む listed 側の語に当たって必ず緑になる＝何も守れない。
+            ★材料も見る。person 以外から引いていないこと ── 引かなければ、
+              うっかり列を足しても出しようが無い。 */
+         case when f_rows is null then false
+              else (with s as (
+                      select substring(pg_get_functiondef(f.f_rows)
+                                       from 'pv-mask-begin(.*)pv-mask-end') as x
+                    )
+                    select s.x is not null
+                       and s.x like '%''airline''%' and s.x like '%''pos''%'
+                       and s.x like '%''verified''%' and s.x like '%''age''%'
+                       and s.x like '%from person p%'
+                       and s.x not like '%annual%' and s.x not like '%usd%'
+                       and s.x not like '%fleet%'  and s.x not like '%''ten''%'
+                       and s.x not like '%''pay''%' and s.x not like '%paylock%'
+                       and s.x not like '%''work''%'
+                       and s.x not like '%''bh''%' and s.x not like '%''dd''%'
+                       and s.x not like '%''off''%'
+                       and s.x not like '%join%'
+                       and s.x not like '%from pick%' and s.x not like '%from paid%'
+                       and s.x not like '%from worked%' and s.x not like '%from grid%'
+                       and s.x not like '%from sane%'
+                      from s)
+         end from f
+  union all
+  select 66, '★一覧を呼べるのは anon と登録者だけ（PUBLIC に残っていない）',
+         /* ⚠️ いちばん静かな壊れ方 ── revoke … from public を落として
+            grant … to anon だけ足すと、PUBLIC の既定の EXECUTE が残って
+            **全ロールが呼べる**。画面は1ドットも変わらない。ここだけが気づける。 */
+         case when f_rows is null then false
+              else not exists (
+                     select 1 from pg_proc p,
+                          lateral aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a
+                      where p.oid = f.f_rows
+                        and a.grantee = 0
+                        and a.privilege_type = 'EXECUTE')
          end from f
 ) t
 order by n;

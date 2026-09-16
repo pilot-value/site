@@ -195,21 +195,32 @@ const nameOf = (code) => VOCAB.find(r => r.code === code);
 // ════════════════════════════════════════════════════════════
 console.log('\n▼ 1. 鍵（ログインと access_until）');
 // ════════════════════════════════════════════════════════════
+/* ★2026-09-16 に向きが反転した（オーナー判断）。登録していない人にも
+   「伏せた行」（会社・職位・出典・投稿時期の4つだけ）を返す。
+   何が返るかの検査は下の 12-b ⑤。ここでは呼べることと権限だけを見る。 */
 await asAnon();
-ok(/ログイン/.test(await boom(`select pv_pay_rows()`) || ''),
-   'ログインしていない人は呼べない');
-ok(!(await one(`select has_function_privilege('anon','public.pv_pay_rows()','execute') b`)).b,
-   'anon に execute が渡っていない');
+const an = await payRows();
+ok(an && an.state === 'locked',
+   '★ログインしていない人も呼べる（locked が返る）', JSON.stringify(an && an.state));
+ok((await one(`select has_function_privilege('anon','public.pv_pay_rows()','execute') b`)).b,
+   '★anon に execute が渡っている');
 ok((await one(`select has_function_privilege('authenticated','public.pv_pay_rows()','execute') b`)).b,
    'ログインした人には execute が渡っている');
+/* ⚠️ いちばん静かな壊れ方 ── revoke … from public を落として grant … to anon
+   だけ足すと、PUBLIC の既定の EXECUTE が残って全ロールが呼べる。画面は無変化。 */
+ok(!(await one(`select exists(
+       select 1 from pg_proc p,
+            lateral aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a
+        where p.oid = 'public.pv_pay_rows()'::regprocedure
+          and a.grantee = 0 and a.privilege_type = 'EXECUTE') b`)).b,
+   '★PUBLIC には渡っていない（anon と登録者だけ）');
 
 await asUser(9001);                       // 一度も給与を出していない人
 let r = await payRows();
-ok(r.state === 'locked' && Array.isArray(r.rows) && r.rows.length === 0,
-   '鍵を持っていない人は locked（行はゼロ）', JSON.stringify(r));
+ok(r.state === 'locked', '鍵を持っていない人は locked', JSON.stringify(r.state));
 await db.query(`update profiles set access_until = now() - interval '1 day' where id = $1`, [uid(9001)]);
 r = await payRows();
-ok(r.state === 'locked' && r.rows.length === 0, '鍵が切れている人も locked', JSON.stringify(r));
+ok(r.state === 'locked', '鍵が切れている人も locked', JSON.stringify(r.state));
 
 /* 見る人は自分では1件も出していない。出させると、その1行が下の行数の検算に混ざる。
    鍵だけ直接開ける。 */
@@ -1169,12 +1180,19 @@ await asViewer();
           stats ごと落としていた。いまは数え上げだけ返す。
           出す前の人に「どれだけ集まっているか」が見えないと Give & Get を
           選びようがない、というのが理由。
-        ⚠️ 反転したのは数字だけ。**行は今までどおり1つも返らない**。
-          下の3つが、それを別々の角度から押さえている。 */
+        ⚠️ 2026-09-16 にもう一度動いた（オーナー指示）。行も返すようになったが、
+          返るのは**会社・職位・出典・投稿時期の4つだけ**の伏せた行で、
+          年収も機材も勤務も内訳も入っていない。下の4つが押さえている。 */
   await asUser(9001);
   const lk = await payRows();
-  ok(lk.state === 'locked' && lk.rows.length === 0,
-     '★鍵の無い人には行が1つも返らない', JSON.stringify(lk.rows));
+  ok(lk.state === 'locked' && lk.rows.length === b.n,
+     '★鍵の無い人にも行は返る（件数は開いている一覧と同じ＝抜き差ししていない）',
+     `${lk.rows.length} / ${b.n}`);
+  /* ★渡してよい4つ以外のキーが1つも無いこと。「値が null だから見えない」では
+       なく、キーごと存在しないこと ── 画面はここに中身の空の板を描く。 */
+  const lkKeys = [...new Set(lk.rows.flatMap(Object.keys))].sort();
+  ok(lkKeys.join(',') === 'age,airline,pos,verified',
+     '★伏せた行のキーは4つだけ', lkKeys.join(','));
   ok(typeof lk.stats === 'object' && lk.stats
      && typeof lk.stats.reports === 'number'
      && typeof lk.stats.airlines === 'number'
@@ -1187,6 +1205,17 @@ await asViewer();
   const lkTxt = JSON.stringify(lk);
   ok(!/annual|usd|pay_?amount|salary/i.test(lkTxt),
      '★鍵の無い人の返り値に金額らしき語が1つも無い', lkTxt.slice(0, 160));
+  /* ★金額以外の「読ませない」ものも同じ形で見る。機材・勤務・内訳・内訳の門は、
+       キーそのものが返り値の文字列に1つも出ないこと。 */
+  ok(!/"(fleet|paylock|work|bh|dd|off|pay|ten)"/.test(lkTxt),
+     '★機材・勤務・在籍・内訳のキーも1つも無い', lkTxt.slice(0, 160));
+  /* ★未ログインと「登録しただけの人」で返り値が1バイト違わないこと。
+       片方だけ広げると、伏せ方が2通りになって片方を直し忘れる。 */
+  await asAnon();
+  const anon2 = await payRows();
+  ok(JSON.stringify(anon2.rows) === JSON.stringify(lk.rows),
+     '★未ログインと「鍵の無いログイン済み」で行がまったく同じ',
+     JSON.stringify(anon2.rows).slice(0, 120));
   await asViewer();
 }
 
@@ -1957,7 +1986,7 @@ console.log('\n▼ 13. 自己点検 SQL（ファイル末尾のものをその�
   const src = read('db/pay-rows.sql');
   const q = src.slice(src.lastIndexOf('with f as ('));
   const res = await rows(q);
-  ok(res.length === 64, `自己点検が64行ぜんぶ出る（= ${res.length}行）`);
+  ok(res.length === 66, `自己点検が66行ぜんぶ出る（= ${res.length}行）`);
   for (const row of res) {
     ok(row['結果'] === '✅', `${row['#']}. ${row['見るところ']}`);
   }
