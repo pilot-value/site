@@ -66,10 +66,19 @@
       cat: (body.cats[0] || {}).k || '',
       // 本文がサーバから来ていない行（鍵を持っていない）。ぼかす本文が手元に無い。
       locked: !!body.locked,
+      /* ★鍵の無い行に付く「最初に書かれた欄の先頭40字」（2026-09-16 オーナー指示）。
+         本文（text）とは別の入れ物のまま運ぶ ── 混ぜると錠前の面ごと消える。 */
+      clipText: body.clipText || '',
       catNames: body.cats.map(function (c) { return c.label; }),
       text: body.text, translated: body.translated, origText: body.origText, from: body.from,
       date: r.created_at ? r.created_at.slice(0, 7).replace('-', '.') : '—',
     };
+  }
+
+  /* ★鍵の無い行に出す「最初に書かれた欄の先頭40字」（2026-09-16 オーナー指示）。
+     解放済みの本文と同じ .enrv-body に置く（新しい CSS は要らない）。 */
+  function snipHTML(t) {
+    return t ? '<p class="enrv-body">' + esc(t) + '</p>' : '';
   }
 
   /* 本文がサーバから来ていない行の面。ぼかす本文が手元に無いので、
@@ -97,7 +106,7 @@
       '</div>' +
       (r.salary ? '<div class="enrv-salary">' + r.salary +
         ' <span class="enrv-meta enrv-salary-note">Annual salary (approx.)</span></div>' : '') +
-      (r.locked ? srvLockHTML(r.catNames)
+      (r.locked ? (snipHTML(r.clipText) + srvLockHTML(r.catNames))
         : '<p class="enrv-body">' + esc(r.text) +
             (r.translated ? PVReviewI18n.noteHTML(r.from) : '') + '</p>' +
           (r.translated ? PVReviewI18n.origHTML(r.origText) : '')) +

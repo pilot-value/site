@@ -754,6 +754,12 @@ function renderReviews(filter) {
     //   There is nothing here to blur, so only the names of the categories that
     //   were written are shown. The blurred band stays for seed / on-device rows.
     const comment = r.serverLocked ? '' : (r.comment || '');
+    /* ★The first 40 characters of the first category this reviewer filled in
+         (owner's call, 2026-09-16) — the only text a reader without a key gets.
+       ⚠️ Keep it separate from `comment`. The moment `comment` is non-empty the
+          `cut` / `rv-locked-tail` path (seed and on-device reviews) silently
+          disappears; that path is for rows whose body IS in hand. */
+    const snip = r.serverLocked ? (r.clipText || '') : '';
     const L = comment.length;
     // pvSafeCut nudges the cut past a money token so currency.js never splits one
     const visible = pvSafeCut(comment, Math.max(30, Math.ceil(L / 8)));
@@ -787,7 +793,7 @@ function renderReviews(filter) {
         <span class="rv-meta" style="font-size:.72rem;margin-left:auto">Experience ${r.exp} · ${r.date}</span>
       </div>
       <div style="font-size:.85rem;font-weight:700;color:${color};margin-bottom:8px">${salHTML} <span class="rv-meta" style="font-size:.72rem;font-weight:400">Annual salary (approx.)</span></div>
-      ${bodyText ? `<p class="rv-body" style="font-size:.87rem;line-height:1.75;margin:0">${PVReviewI18n.esc(bodyText)}${r.translated ? PVReviewI18n.noteHTML(r.from) : ''}</p>` : ''}
+      ${(bodyText || snip) ? `<p class="rv-body" style="font-size:.87rem;line-height:1.75;margin:0">${PVReviewI18n.esc(bodyText || snip)}${r.translated ? PVReviewI18n.noteHTML(r.from) : ''}</p>` : ''}
       ${tailHTML}
       ${(!locked && r.translated) ? PVReviewI18n.origHTML(r.origText) : ''}
     </div>`;
@@ -841,6 +847,7 @@ async function loadSupabaseReviews() {
         rating: Math.round(avgScore),
         comment: body.text, translated: body.translated, origText: body.origText, from: body.from,
         serverLocked: body.locked, catNames: body.cats.map(c => c.label),
+        clipText: body.clipText || '',
         date: r.created_at ? r.created_at.slice(0,7).replace('-','.') : '—',
       };
     });

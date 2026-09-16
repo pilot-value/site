@@ -202,7 +202,39 @@ begin
       select row_number() over (order by pick.created_at desc nulls last) as ord,
              (case when v_open then to_jsonb(pick) - 'proof_hash'
                    else to_jsonb(pick) - 'proof_hash' - v_hide end)
-             || jsonb_build_object('cats', to_jsonb(array_remove(array[
+             || jsonb_build_object('cats', to_jsonb(ck.a))
+             /* ★鍵の無い人へ「先頭の1欄だけ40字」を渡す（2026-09-16 オーナー指示
+                  「いまは1文字も見れないので、最初の1行だけ読めるように」）。
+                  出すのは ck.a[1] ＝ KEYS 順で**最初に書かれている欄**の1つだけ。
+                  2欄目から先は今までどおり1文字も返らない。
+                ⚠️ キー名を *_comment にしない ── review-i18n.js は
+                   「*_comment のキーが1つでも在るか」で「鍵を持っている」と
+                   判定している。そこに触れる名前で返すと、錠前の UI ごと外れて
+                   **全文が出ている扱い**になる（本文は空なので、画面は
+                   「口コミが空っぽ」という顔で静かに壊れる）。
+                ⚠️ 41 は pv_review_clip の作法 ── 超えたら n-1 字＋「…」＝
+                   **読めるのはきっかり40字**。トップページの80字とは別の数字で、
+                   あちらは触らない。 */
+             || case when v_open or ck.a[1] is null then '{}'::jsonb
+                     else jsonb_build_object('clip', jsonb_build_object(
+                       'k', ck.a[1],
+                       'o', public.pv_review_clip(
+                              to_jsonb(pick) ->> (ck.a[1] || '_comment'), 41),
+                       't', coalesce((
+                              select jsonb_object_agg(l.key,
+                                       to_jsonb(public.pv_review_clip(
+                                         l.value ->> ck.a[1], 41)))
+                                from jsonb_each(coalesce(pick.translations,
+                                                         '{}'::jsonb)) l
+                               where jsonb_typeof(l.value) = 'object'
+                                 and nullif(l.value ->> ck.a[1], '') is not null
+                            ), '{}'::jsonb)))
+                end as j
+        from pick,
+             /* ★同じ7つの case を2度書かない（3本目を書くと assert-unlock が落ちる）。
+                  ⚠️ 並び順は review-i18n.js の KEYS と同じでなければならない。
+                     あちらを並べ替えると、抜粋に出る欄が黙って変わる。 */
+             lateral (select array_remove(array[
                   case when btrim(coalesce(pick.culture_comment,  '')) <> '' then 'culture'  end,
                   case when btrim(coalesce(pick.salary_comment,   '')) <> '' then 'salary'   end,
                   case when btrim(coalesce(pick.benefits_comment, '')) <> '' then 'benefits' end,
@@ -210,8 +242,7 @@ begin
                   case when btrim(coalesce(pick.ops_comment,      '')) <> '' then 'ops'      end,
                   case when btrim(coalesce(pick.training_comment, '')) <> '' then 'training' end,
                   case when btrim(coalesce(pick.mgmt_comment,     '')) <> '' then 'mgmt'     end
-                ], null))) as j
-        from pick
+                ], null) as a) ck
     ) z;
 
   return jsonb_build_object('ok', true, 'unlocked', v_open, 'rows', v_rows);
@@ -223,6 +254,7 @@ grant execute on function public.pv_reviews(jsonb) to anon, authenticated;
 
 comment on function public.pv_reviews(jsonb) is
   '口コミの一覧。本文（7つの *_comment と translations）は鍵を持つ人にだけ返す。'
+  '鍵の無い人には clip（先頭の1欄・40字まで）を1つだけ添える。'
   'proof_hash は誰にも返さない。';
 
 
@@ -371,7 +403,7 @@ $gate$;
 
 
 -- ════════════════════════════════════════════════════════════════
--- 8. 検算 ── 流したあと、この結果を見る（✅ が4行）
+-- 8. 検算 ── 流したあと、この結果を見る（✅ が5行）
 -- ════════════════════════════════════════════════════════════════
 select '① 本文の列に残っている読み取り権限（anon）' as 項目,
        case when count(*) = 0 then '✅ なし（これが正しい）'
@@ -404,4 +436,32 @@ select '④ 本文以外は読める列の数',
        count(*)::text || ' 列'
   from information_schema.column_privileges
  where table_schema = 'public' and table_name = 'reviews_v2'
-   and grantee = 'anon' and privilege_type = 'SELECT';
+   and grantee = 'anon' and privilege_type = 'SELECT'
+union all
+/* ★⑤ 鍵の無い人に返る形（2026-09-16）。
+     SQL Editor は auth.uid() が null ＝ pv_has_review_key() が false なので、
+     ここで呼ぶと「鍵の無い人が見る画面」と同じ答えが返る。
+   ⚠️ 本文のある行だけを見る（cats が空の行には抜粋が付かないのが正しい）。 */
+select '⑤ 鍵の無い人に返る形（抜粋は先頭の1欄だけ・40字まで）',
+       (with q as (
+          select x as r
+            from jsonb_array_elements(
+                   public.pv_reviews('{"limit":200}'::jsonb) -> 'rows') x
+           where jsonb_array_length(x -> 'cats') > 0
+        )
+        select case
+          when (select count(*) from q) = 0
+            then '⚠️ 本文のある口コミがまだ無い（入ってから見る）'
+          when exists (select 1 from q where q.r -> 'clip' is null)
+            then '❌ 抜粋の付いていない行がある'
+          when exists (select 1 from q
+                        where jsonb_exists(q.r, 'culture_comment')
+                           or jsonb_exists(q.r, 'translations'))
+            then '❌ 本文か訳文がそのまま返っている'
+          when exists (select 1 from q where length(q.r #>> '{clip,o}') > 41)
+            then '❌ 抜粋が40字を超えている'
+          when exists (select 1 from q
+                        where (q.r #>> '{clip,k}') is distinct from (q.r #>> '{cats,0}'))
+            then '❌ 先頭の欄ではない所から抜粋している'
+          else '✅ 抜粋は先頭の1欄だけ・40字まで・本文は1文字も返らない'
+        end);

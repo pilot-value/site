@@ -224,6 +224,25 @@ console.log('\n════ ⑥ 本文はサーバ側で止まる ════')
     /* ★表そのものに触らない。列名を変数に隠しても届かないように、
        .from('reviews_v2') が1つも無いことで見る（select('*') も当然消える）。 */
     ok(!/\.from\(\s*['"]reviews_v2/.test(body), `★${f} が表を直接引いていない`);
+    /* ★2026-09-16 オーナー指示「最初の1行だけ読めるように」。4つの読み口が
+       全部この抜粋を描いていること。1枚だけ直すと、日本語ページでは先頭40字が
+       読めて英語ページでは1文字も読めない、という食い違いが黙って残る。 */
+    ok(body.includes('clipText'), `★${f} が鍵の無い行にも抜粋を1つ描く`);
+  }
+  {
+    const ri = strip('review-i18n.js', read('review-i18n.js'));
+    /* ★40字の切れ目が金額の内側に落ちると、currency.js が「¥3,5」を拾って
+       **存在しない金額**を錠前の掛かったカードの中に描く。落とす所は1か所だけ。 */
+    ok(/function trimMoney\s*\(/.test(ri), '★切れた金額を落とす関数が在る（trimMoney）');
+    ok(/trimMoney\(flatten\(/.test(ri), '★抜粋は必ずそこを通ってから画面へ渡る');
+    /* ★抜粋を受け取る鍵の名前は clip。*_comment にすると review-i18n.js 自身が
+       「本文が届いた＝開いている」と判定して、錠前の面ごと消える。 */
+    ok(/row\.clip\b/.test(ri) && !/clip[a-z_]*_comment/.test(ri),
+       '★抜粋の鍵の名前が clip（_comment で終わっていない）');
+    /* ★抜粋を body.text に入れない。community.html と航空会社の口コミ UI の
+       両方が text を見ていて、空でなくなった瞬間に全文扱いへ倒れる。 */
+    ok(/locked:\s*true[\s\S]{0,400}?text:\s*''/.test(ri),
+       '★鍵の無い行の text は空のまま（抜粋は別の入れ物で運ぶ）');
   }
   {
     const lp = strip('lp.js', read('lp.js'));

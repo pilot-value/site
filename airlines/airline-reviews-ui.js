@@ -453,6 +453,13 @@
       '      </div>';
   }
 
+  /* ★鍵の無い行に出す「最初に書かれた欄の先頭40字」（2026-09-16 オーナー指示）。
+     本文と同じ .rv-comment の中に素の文で置く（preview と同じ形＝新しい CSS は要らない）。
+     ⚠️ これを body.text へ入れない ── 錠前の面ごと消えて全文扱いになる。 */
+  function snipHTML(t) {
+    return t ? rvEsc(t) : '';
+  }
+
   /* 本文がサーバから来ていない行の面。ぼかす本文が手元に無いので、
      書かれたカテゴリの名前だけを出す（REAL PAY の「実数は返さないが
      帯と項目名は出す」と同じ形）。カテゴリを出さないと、未解放の人の
@@ -533,7 +540,7 @@
       '      </div>' : '') + '\n' +
       '      ' + salaryTableHTML(r, locked && idx >= 1) + '\n' +
       '      <div class="rv-comment" id="' + uid + '_text">' +
-             (r.serverLocked ? srvLockHTML(r.catKeys)
+             (r.serverLocked ? (snipHTML(r.clipText) + srvLockHTML(r.catKeys))
                              : preview + (hasMore && !locked ? '…' : '') +
                                (locked ? lockedTailHTML(tail) : '')) + '</div>\n' +
       // 未解放で原文トグルを出すと、翻訳元の全文がその場で読めてしまいゲートが素通しになる。
@@ -697,6 +704,9 @@
       translated: body.translated, origText: body.origText, from: body.from,
       // 本文がサーバから来ていない行（鍵を持っていない）。ぼかす本文が手元に無い。
       serverLocked: !!body.locked,
+      /* ★鍵の無い行に付く「最初に書かれた欄の先頭40字」（2026-09-16 オーナー指示）。
+           本文（comment）とは別の入れ物のまま運ぶ ── 混ぜると錠前の面ごと消える。 */
+      clipText: body.clipText || '',
       // 総額の優先順位：総額(annual_salary) ＞ 成分合算(基本給+乗務手当+賞与) ＞ 月給×12+賞与
       // ※1件の自己申告を本人の成分から合算するのは可（円のブレンド禁止は複数人平均への制約）
       salaryTotal: r.annual_salary ? r.annual_salary

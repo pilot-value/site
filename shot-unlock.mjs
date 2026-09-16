@@ -8,6 +8,8 @@
      scene = profile   マイページ上部（解放バッジ2つ。口コミ側に日付が出ないこと）
              gate      航空会社ページの年収枠（鍵つき。口コミの鍵では開かない）
              locked    口コミ一覧の未解放（gate-panel）
+             snip      口コミ一覧の未解放カード1枚（先頭40字が読めること）
+             snipair   航空会社ページの未解放カード1枚（同上）
              open      口コミ一覧の解放済み（🔓バッジ）
              done      口コミ投稿の完了画面
      lang  = ja | en
@@ -65,8 +67,18 @@ function stub(page, { hasReview, accessUntil, preset }) {
         /* 口コミの本文はサーバ側で止めてある（db/reviews-gate.sql）。
            絵を撮る側も同じ道を通す＝本番と同じ見た目になる。 */
         if (name === 'pv_reviews') {
+          /* ★鍵の無い人にも「最初に書かれた欄の先頭40字」が1つだけ付く（2026-09-16）。
+               ここを空の配列に戻すと、錠前の場面に口コミカードが1枚も写らない。
+               o / t.en はどちらもきっかり40字＋「…」。 */
+          const CLIP_JA = 'ここは訓練の面倒見がよく、先輩が丁寧に教えてくれる会社です。路線も落ち着いていて…';
+          const CLIP_EN = 'Training here is thorough and the senior…';
           data = { ok: true, unlocked: hasReview,
-                   rows: hasReview ? [{ id: 'r1', airline: 'ana', cats: [] }] : [] };
+                   rows: hasReview
+                     ? [{ id: 'r1', airline: 'ana', cats: [] }]
+                     : [{ id: 'r1', airline: 'ana', position: 'captain',
+                          tenure_bucket: '5-9年', created_at: '2026-08-01T00:00:00Z',
+                          cats: ['culture'],
+                          clip: { k: 'culture', o: CLIP_JA, t: { en: CLIP_EN } } }] };
         }
         const res = { data: data, error: null };
         return { then: (y, n) => Promise.resolve(res).then(y, n) };
@@ -97,6 +109,17 @@ const SCENES = {
   locked:  { url: p('/community.html', '/community.html'),
              opt: { hasReview: false, accessUntil: null, preset: {} },
              clip: '#gate-panel' },
+  /* ★鍵の無い人のカード1枚（2026-09-16）。先頭40字＋「…」が読めて、
+       その下に錠前の面と CTA が残っていることを目で見るための場面。 */
+  snip:    { url: p('/community.html', '/community.html'),
+             opt: { hasReview: false, accessUntil: null, preset: {} },
+             clip: '.review-card' },
+  /* 同じ抜粋が航空会社ページ（110社）でも出ること。
+     ⚠️ EN の航空会社ページも読み口は airlines/airline-reviews-ui.js（日本語側と同じ1本）。
+        en/airlines/en-airline-reviews.js はどの HTML からも読まれていない。 */
+  snipair: { url: p('/airlines/ana.html', '/airlines/ana.html'),
+             opt: { hasReview: false, accessUntil: null, preset: {} },
+             tab: 'reviews', clip: '.rv-card-wrap' },
   open:    { url: p('/community.html', '/community.html'),
              opt: { hasReview: true, accessUntil: null, preset: { pv_unlock_expiry: FAR } },
              clip: '#unlock-badge' },

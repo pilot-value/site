@@ -243,9 +243,11 @@ console.log('\n▼ 3. pv_reviews ── 鍵の無い人に本文を1文字も返
 const call = async (p = {}) =>
   (await one(`select public.pv_reviews($1::jsonb) r`, [JSON.stringify(p)])).r;
 
+let ANON_JSON = '';
 await asAnon();
 {
   const r = call ? await call() : null;
+  ANON_JSON = JSON.stringify(r);
   ok(r.ok === true, '未ログインでも一覧そのものは返る（画面が空にならない）');
   ok(r.unlocked === false, '未ログインは unlocked=false');
   ok(r.rows.length >= 3, `行は返る（${r.rows.length}件）`);
@@ -253,9 +255,34 @@ await asAnon();
                               || x.translations !== undefined);
   ok(bad.length === 0, '★本文の鍵そのものが JSON に無い（ぼかしではなく不在）',
      bad.length ? JSON.stringify(bad[0]).slice(0, 160) : '');
-  const leak = r.rows.filter(x => JSON.stringify(x).includes('あああ')
-                              || JSON.stringify(x).includes('いいい'));
-  ok(leak.length === 0, '★本文の断片がどこにも紛れ込んでいない');
+  /* ★2026-09-16、オーナー指示で「先頭の1欄だけ40字」を返すことにした。
+       ここは元は「本文の断片がどこにも紛れ込んでいない」1本だった ── 渡すと
+       決めた40字と、渡さないと決めた残りを、**3つに割って**引き継ぐ。
+     ⚠️ ana の行で見る（本文のある欄が3つある唯一の行）。jal は先頭の欄が
+        wlb なので、そちらでは「い」が正しく出る。 */
+  const ana0 = r.rows.find(x => x.airline === 'ana');
+  ok(!!(ana0 && ana0.clip) && ana0.clip.k === 'culture'
+     && ana0.clip.o === LONG_A.slice(0, 40) + '…',
+     '★先頭の欄は40字まで出る（読めるのはきっかり40字）',
+     JSON.stringify(ana0 && ana0.clip || {}).slice(0, 160));
+  ok(!JSON.stringify(ana0).includes('あ'.repeat(38)),
+     '★★41字目から先は1文字も出ない');
+  ok(!JSON.stringify(ana0).includes('い'),
+     '★★★抜粋が出るのは最初に書かれた欄だけ（2欄目は1文字も出ない）',
+     JSON.stringify(ana0).slice(0, 200));
+  ok(!Object.keys(ana0).some(k => /_comment$/.test(k)),
+     '★★抜粋の鍵の名前が _comment で終わっていない'
+     + '（終わると review-i18n.js が「鍵を持っている」と誤判定して錠前ごと消える）',
+     Object.keys(ana0).join(','));
+  ok(ana0.clip.t && ana0.clip.t.en === LONG_A.slice(0, 40) + '…',
+     '★訳文の側も同じ40字で切る（英語面から全文が漏れない）',
+     JSON.stringify(ana0.clip.t || {}).slice(0, 160));
+  /* ★「先頭」は culture 固定ではなく、その行で**最初に書かれている**欄。 */
+  const jal0 = r.rows.find(x => x.airline === 'jal');
+  ok(!!(jal0 && jal0.clip) && jal0.clip.k === 'wlb'
+     && jal0.clip.o === LONG_B.slice(0, 40) + '…',
+     '★先頭は culture 固定ではない（その行で最初に書かれた欄）',
+     JSON.stringify(jal0 && jal0.clip || {}).slice(0, 160));
   ok(r.rows.every(x => x.proof_hash === undefined),
      '★proof_hash は誰にも返らない（今まで select * で外に出ていた）');
   ok(r.rows.every(x => x.id && x.airline), '社名と id は返る（カードの見出しは出せる）');
@@ -272,6 +299,10 @@ await asUser(2);
   ok(r.unlocked === false, '会員登録しただけの人も unlocked=false');
   ok(r.rows.every(x => x.culture_comment === undefined),
      '★ログインしていても、出していない人には本文を返さない');
+  /* ★未ログインと「登録しただけ」で1バイトも違わない ── 片方にだけ抜粋が付く、
+       片方にだけ本文が付く、を1本で捕まえる（2026-09-16）。 */
+  ok(JSON.stringify(r) === ANON_JSON,
+     '★★未ログインと「登録しただけ」で返る中身が1バイト違わない');
 }
 
 await asUser(1);
@@ -281,6 +312,9 @@ await asUser(1);
   const ana = r.rows.find(x => x.airline === 'ana');
   ok(ana.culture_comment === LONG_A, '★出した人には本文が丸ごと返る（切らない）');
   ok(ana.translations && ana.translations.en, '訳文も返る（言語切替が動く）');
+  ok(ana.clip === undefined,
+     '★鍵を持つ人には抜粋を付けない（全文が在るのに40字も並べない）',
+     JSON.stringify(ana.clip || null));
   ok(ana.proof_hash === undefined, '鍵を持つ人にも proof_hash は返さない');
 }
 

@@ -64,6 +64,28 @@
       .trim();
   }
 
+  /* 抜粋（先頭40字）は、金額の**途中**で切れていることがある。
+     そのまま出すと currency.js が末尾の「¥3,500」を拾って
+     **3,500円**に書き換える（元は ¥3,500万 ＝ 1万倍違う）。
+     錠前の掛かったカードの中で起きるので、まず気づけない。
+     → 切れている行（末尾が「…」）に限り、残った「通貨記号＋数字」を塊ごと落とす。
+
+     ⚠️ 落とすのは通貨記号から始まる塊だけ。数字で終わるだけの行
+        （「機材は A320…」「入社は 2019…」）は1文字も触らない。
+        万・億が付いている形（「1,800万…」）はそのままで正しい
+        ── あれは切れていても金額として正しく読める。
+     ⚠️ flatten と同じで**ここ1か所だけ**。SQL 側（pv_review_clip）は触らない
+        ── あちらを変えるとトップページの抜粋の見え方まで動く。 */
+  function trimMoney(s) {
+    if (!s) return s;
+    var t = String(s);
+    if (t.slice(-1) !== '…') return t;      // 切れていない＝落とすものは無い
+    return t.slice(0, -1)
+      .replace(/[¥＄$€£]\s*[0-9０-９][0-9０-９,.，\s]*$/, '')
+      .replace(/[¥＄$€£]\s*$/, '')
+      .replace(/[ \u3000]+$/, '') + '…';
+  }
+
   /* 1行から表示用テキストを組み立てる。
      戻り値 { lang, from, translated, locked, cats, text, origCats, origText }
 
@@ -85,13 +107,28 @@
       if (row && (KEYS[h] + '_comment') in row) { hasBody = true; break; }
     }
     if (!hasBody && row && Object.prototype.toString.call(row.cats) === '[object Array]') {
+      /* ★2026-09-16、鍵の無い人にも「最初に書かれた欄の先頭40字」だけ届く
+           （オーナー指示「いまは1文字も見れないので、最初の1行だけ読めるように」）。
+           サーバは clip = { k:欄, o:原文40字, t:{訳文40字} } を1つだけ付ける。
+         ⚠️ 抜粋を text に入れない ── community.html と airline-reviews-ui.js は
+            text が空かどうかで「錠前を出すか」を決めている。入れた瞬間、
+            **錠前の UI ごと消えて全文扱い**になる（本文は40字しか無いのに）。
+         ⚠️ translated は false のまま ── true にすると両方のテンプレートが
+            「原文を表示」を出し、origHTML() が原文を丸ごと画面に出す。 */
+      var cl = (row && row.clip) || null;
+      var snip = (cl && cl.k)
+        ? trimMoney(flatten((cl.t && cl.t[to]) || cl.o || '')) : '';
       var locked = [];
       for (var c = 0; c < row.cats.length; c++) {
         var ck = row.cats[c];
-        if (lab[ck]) locked.push({ k: ck, label: lab[ck], text: '' });
+        if (lab[ck]) {
+          locked.push({ k: ck, label: lab[ck],
+                        text: (snip && cl.k === ck) ? snip : '' });
+        }
       }
       return {
         lang: to, from: from, translated: false, locked: true,
+        clipped: !!snip, clipKey: (snip && cl.k) || '', clipText: snip,
         cats: locked, text: '', origCats: [], origText: '',
       };
     }
