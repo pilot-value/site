@@ -233,21 +233,29 @@ function publicRow(p, opt) {
     annual_usd: sig2(usd),
     verified: false,
     age: 0,                    // 出したばかり＝いちばん新しい段
-    ten: null, pay: null, work: null,
+    ten: null, tenk: null, pay: null, work: null,
     /* 画面が「なぜ帯が出ないのか」を1行で言うための理由。行には入らない。 */
     why: null,
     /* 常識の幅（⑦）。外は一覧に出ない。 */
     inRange: usd != null && usd >= 10000 && usd <= 700000,
     usd: usd
   };
-  /* 昇格後年数は段だけ。年そのものは出さない。
-     ★db/pay-rows.sql の 'ten' と同じ式を写してある。5年幅で5段・職位で分けない。
+  /* 年数は段だけ。年そのものは出さない。
+     ★db/pay-rows.sql の 'ten' / 'tenk' と同じ式を写してある。
+       5年幅で5段・職位で分けない。
        ★2026-09-16、ここは在籍年数（seniority_years）を FO＝2段 / CAP＝3段で
          出していた。行では職位のすぐ隣に出るので「昇格して何年目」と読まれる
-         ＝入ったばかりの機長が「10〜20年」と出ていた（オーナー指摘）。 */
+         ＝入ったばかりの機長が「10〜20年」と出ていた（オーナー指摘）。
+       ★同じ日のオーナー指示で、**昇格後が空の古い行だけ在籍年数で段を作る**。
+         どちらで作ったかは tenk（r／s）で必ず添える ── 添えないと古い行が
+         「昇格後20年以上」と名乗り直し、直した嘘がそのまま戻る。
+       ★材料を選んでから1つの刻みに通す（case を2本に割らない）。 */
   var rk = nOrNull(p.rank_years);
-  if (rk != null && (p.position === 'fo' || p.position === 'cap')) {
-    out.ten = rk < 5 ? 0 : (rk < 10 ? 1 : (rk < 15 ? 2 : (rk < 20 ? 3 : 4)));
+  var sy = nOrNull(p.seniority_years);
+  var yr = rk != null ? rk : sy;
+  if (yr != null && (p.position === 'fo' || p.position === 'cap')) {
+    out.ten = yr < 5 ? 0 : (yr < 10 ? 1 : (yr < 15 ? 2 : (yr < 20 ? 3 : 4)));
+    out.tenk = rk != null ? 'r' : 's';
   }
   /* 勤務は3つだけ。刻みは固定（年収の刻みに連動させない）。 */
   var work = {};

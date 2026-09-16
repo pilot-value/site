@@ -370,12 +370,17 @@ await pend(A_NULLIP, { fleet: 'b787', month: 3, gross: 15000, iph: null });
                  seniority_years: 3, rank_years: 3 });
 }
 
-/* (n) 昇格後年数の段。5年幅で5段・**職位で分けない**（2026-09-16 オーナー指示）。
+/* (n) 年数の段。5年幅で5段・**職位で分けない**（2026-09-16 オーナー指示）。
    境目のちょうどの値を入れる ── 5年・10年・15年・20年はどれも上の段。
-   ⚠️ **在籍年数は全員 40 に揃えてある。** 段が在籍年数から作られていたら、
+   ⚠️ **下の7人は在籍年数を全員 40 に揃えてある。** 段が在籍年数から作られていたら、
       全員が最上段（4）になって下の検査がまとめて落ちる ── つまりこの1行が
       「行に出ているのが昇格後年数のほうだ」という証拠になっている。
-      2026-09-16 までは、まさにその在籍年数が行に出ていた。 */
+      2026-09-16 までは、まさにその在籍年数が行に出ていた。
+   ★そのあとに2人足してある ──
+       ・在籍だけ書いた人（＝昇格後年数の欄ができる前の投稿）
+         → 段は在籍年数から作り、tenk='s' を添えて今までどおり出す
+           （オーナー指示「これまで提出してもらったものは今まで通り出して」）
+       ・どちらも書いていない人 → 段そのものが出ない（0 で埋めない） */
 {
   const ten = async (pos, years, month) => {
     const u = ++seat; await asUser(u);
@@ -390,11 +395,20 @@ await pend(A_NULLIP, { fleet: 'b787', month: 3, gross: 15000, iph: null });
   await ten('cap', 14, 5);   // → 2
   await ten('cap', 15, 6);   // → 3
   await ten('cap', 20, 7);   // → 4
-  // 年数を書いていない人 → 段そのものが出ない（「不明」を置かない）
-  const u = ++seat; await asUser(u);
-  await submit({ ...BASE, airline: A_TEN, position: 'cap', fleet: 'b777',
-                 period_year: YEAR, period_month: 8, gross_monthly: 15000,
-                 seniority_years: 40 });
+  /* 昇格後年数を書いていない古い行 → 在籍12年から段2を作り、tenk='s' を添える。
+     ★ここを 40 にしない。40 だと上の「全員 4 ではない」検査と見分けが付かない。 */
+  {
+    const u = ++seat; await asUser(u);
+    await submit({ ...BASE, airline: A_TEN, position: 'cap', fleet: 'b777',
+                   period_year: YEAR, period_month: 8, gross_monthly: 15000,
+                   seniority_years: 12 });
+  }
+  // 年数をどちらも書いていない人 → 段そのものが出ない（「不明」を置かない）
+  {
+    const u = ++seat; await asUser(u);
+    await submit({ ...BASE, airline: A_TEN, position: 'cap', fleet: 'b777',
+                   period_year: YEAR, period_month: 9, gross_monthly: 15000 });
+  }
 }
 
 /* (o) 勤務だけ書いた人・総支給だけの人。
@@ -543,9 +557,9 @@ console.log('\n▼ 7. ★返り値に何が入っているか');
    ここの検査は「返すか返さないか」から **「返るのが帯と段だけか」** に移っている。
    ⚠️ ALLOWED に語を足すのは設計判断。足す前に db/pay-rows.sql の②を読むこと。 */
 const ALLOWED = ['airline', 'pos', 'annual_usd', 'verified', 'age',
-                 'fleet', 'ten', 'pay', 'paylock', 'work'];
+                 'fleet', 'ten', 'tenk', 'pay', 'paylock', 'work'];
 const extra = [...new Set(R.flatMap(x => Object.keys(x)))].filter(k => !ALLOWED.includes(k));
-ok(extra.length === 0, '返す項目は10個だけ', JSON.stringify(extra));
+ok(extra.length === 0, '返す項目は11個だけ', JSON.stringify(extra));
 ok(R.every(x => !('comp' in x)),
    '★どの行にも支給の「割合」のキーが無い（割合は今も DEEP PAY の役目）');
 ok(R.every(x => !('fleet_cat' in x)),
@@ -673,7 +687,7 @@ console.log('\n▼ 7-c. ★帯（2026-09-03。行を押すと見えるもの）'
     ok(only1 && !('pay' in only1),
        '★★ 総支給しか書いていない人に帯を作っていない（キーごと無い）★★',
        JSON.stringify(only1));
-    ok(only1 && !('work' in only1) && !('ten' in only1),
+    ok(only1 && !('work' in only1) && !('ten' in only1) && !('tenk' in only1),
        '　勤務も年数も書いていなければキーごと出ない（「不明」を置かない）');
     const wOnly = only(R, x => x.airline === A_WRK && x.pos === 'cap')[0];
     ok(wOnly && !('pay' in wOnly) && wOnly.work && Number(wOnly.work.bh[0]) === 70,
@@ -681,12 +695,12 @@ console.log('\n▼ 7-c. ★帯（2026-09-03。行を押すと見えるもの）'
        JSON.stringify(wOnly && wOnly.work));
   }
 
-  /* ── 昇格後年数の段 ───────────────────────────────── */
+  /* ── 年数の段 ─────────────────────────────────────── */
   {
     const t = only(R, x => x.airline === A_TEN);
-    const fo  = t.filter(x => x.pos === 'fo').map(x => x.ten).sort();
-    const cap = t.filter(x => x.pos === 'cap').map(x => x.ten)
-                 .filter(v => v !== undefined).sort();
+    const rk = t.filter(x => x.tenk === 'r');
+    const fo  = rk.filter(x => x.pos === 'fo').map(x => x.ten).sort();
+    const cap = rk.filter(x => x.pos === 'cap').map(x => x.ten).sort();
     ok(fo.join(',') === '0,1',
        '★FO：4年→0 / 5年→1（境目は上の段）', fo.join(','));
     ok(cap.join(',') === '1,2,2,3,4',
@@ -695,15 +709,32 @@ console.log('\n▼ 7-c. ★帯（2026-09-03。行を押すと見えるもの）'
     ok(!cap.includes(0) && !fo.includes(4),
        '★★職位で段を変えていない（同じ年数なら FO も CAP も同じ段）★★',
        `fo=${fo.join(',')} cap=${cap.join(',')}`);
-    ok(t.filter(x => !('ten' in x)).length === 1,
-       '★年数を書いていない人には段そのものが無い（「不明」を置かない）');
     ok(R.every(x => x.ten === undefined || [0, 1, 2, 3, 4].includes(x.ten)),
        '★段は 0〜4 だけ（年そのものが混ざっていない）');
-    /* ★★ 段の材料が在籍年数に戻っていないこと。上の submit は全員
+    /* ★★ 段の材料が在籍年数に戻っていないこと。上の7人は全員
            seniority_years: 40（＝最上段）で出しているので、戻っていれば全部 4 になる。 */
-    ok(!t.every(x => x.ten === 4),
-       '★★段は在籍年数ではなく昇格後年数から作られている★★',
-       JSON.stringify(t.map(x => x.ten)));
+    ok(!rk.every(x => x.ten === 4),
+       '★★昇格後年数を書いた人の段は、在籍年数ではなく昇格後年数から作られている★★',
+       JSON.stringify(rk.map(x => x.ten)));
+
+    /* ★昇格後年数の欄ができる前の投稿（2026-09-16・オーナー指示で今までどおり出す）。
+         ⚠️ **段だけ渡して札を1種類にしない。** tenk が無いと画面が
+            「昇格後20年以上」と書いてしまい、この日直した嘘がそのまま戻る。 */
+    const sn = t.filter(x => x.tenk === 's');
+    ok(sn.length === 1 && sn[0].ten === 2,
+       '★★昇格後が空の古い行は、在籍12年から段2を作って今までどおり出る★★',
+       JSON.stringify(sn.map(x => [x.ten, x.tenk])));
+    ok(rk.length === 7 && rk.every(x => x.ten !== undefined),
+       '　昇格後を書いた人の札は r（在籍40年に引きずられていない）',
+       JSON.stringify(rk.map(x => [x.ten, x.tenk])));
+
+    const none = t.filter(x => !('ten' in x));
+    ok(none.length === 1 && !('tenk' in none[0]),
+       '★どちらの年数も書いていない人は段も札もキーごと無い（「不明」を置かない）',
+       JSON.stringify(none));
+    ok(R.every(x => x.tenk === undefined || x.tenk === 'r' || x.tenk === 's'),
+       '★tenk は r か s だけ（年数そのものを1文字も混ぜていない）',
+       JSON.stringify([...new Set(R.map(x => x.tenk))]));
   }
 }
 
@@ -1222,7 +1253,7 @@ await asViewer();
      '★鍵の無い人の返り値に金額らしき語が1つも無い', lkTxt.slice(0, 160));
   /* ★金額以外の「読ませない」ものも同じ形で見る。機材・勤務・内訳・内訳の門は、
        キーそのものが返り値の文字列に1つも出ないこと。 */
-  ok(!/"(fleet|paylock|work|bh|dd|off|pay|ten)"/.test(lkTxt),
+  ok(!/"(fleet|paylock|work|bh|dd|off|pay|ten|tenk)"/.test(lkTxt),
      '★機材・勤務・在籍・内訳のキーも1つも無い', lkTxt.slice(0, 160));
   /* ★未ログインと「登録しただけの人」で返り値が1バイト違わないこと。
        片方だけ広げると、伏せ方が2通りになって片方を直し忘れる。 */

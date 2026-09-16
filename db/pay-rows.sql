@@ -85,19 +85,29 @@
 --                     ・機材   … pv_fleets のコードを1つ。**全行に出す**。
 --                                人数の門は置かない（オーナー確定）。
 --                                コードだけで、fleet_cat（区分）は返さない。
---                     ・昇格後 … **段だけ**。いまの職位になってから何年か。
---                                5年幅で5段（5年未満／5〜10年／10〜15年／
---                                15〜20年／20年以上）。職位で段を変えない。
---                                年そのものは1つも返さない。訓練生と、
+--                     ・年数   … **段だけ**。5年幅で5段（5年未満／5〜10年／
+--                                10〜15年／15〜20年／20年以上）。職位で段を
+--                                変えない。年そのものは1つも返さない。
+--                                材料は**昇格後年数が第一**（いまの職位になってから
+--                                何年か。他社での同じ職位も通算）。それが空の
+--                                古い行だけ、在籍年数で段を作る。
+--                                どちらで作ったかは tenk で必ず添える
+--                                （r＝昇格後／s＝在籍）。訓練生と、どちらも
 --                                書いていない人は段を作らない（空欄になる）。
---                                ★2026-09-16、ここは**在籍年数だった**。
+--                                ★2026-09-16、ここは**在籍年数だけだった**。
 --                                  行では職位のすぐ隣に出るので「昇格して何年目」と
 --                                  読まれる。自社養成は訓練の年も在籍に入るから、
 --                                  入ったばかりの機長が「10〜20年」と出ていた。
 --                                  ＝ **画面が嘘をついていた。** 欄を1つ足して
---                                  両方聞き、行に出すほうを昇格後年数に替えた
---                                  （オーナー指示）。在籍年数は行から下ろし、
---                                  昇格速度の集計に回す（この関数は返さない）。
+--                                  両方聞き、行に出す第一の材料を昇格後年数に
+--                                  替えた（オーナー指示）。
+--                                ★同じ日のオーナー指示「これまで提出してもらった
+--                                  ものは今まで通り年数を出して」。既に出して
+--                                  もらった行は昇格後年数が空なので、**そこだけ
+--                                  在籍年数で段を作る**。ただし同じ札で出すと
+--                                  上の嘘をそのまま作り直すので、tenk を添えて
+--                                  画面が「在籍10〜15年」と書き分ける。
+--                                  **tenk を落とさないこと。**
 --                                ★段を職位で分けないのは、分けると「機長の
 --                                  1〜10年」のような、その職位にしか無い段が
 --                                  できるため。幅をそろえたほうが粗い。
@@ -1701,12 +1711,14 @@ begin
            case when exists (select 1 from public.pv_fleets f
                               where f.code = r.fleet and f.active)
                 then r.fleet end as fleet,
-           /* ★2026-09-16、ここは在籍年数（入社何年目）を読んでいた。
-              行に出すのは**昇格後年数**に替えた（オーナー指示）。
-              在籍年数のほうはこの関数では1つも読まない ── 自己点検 8 が、
-              その列名が関数の定義に1文字も無いことを見ている。
-              ⚠️ だからここに列名をそのまま書かないこと（注釈も定義の一部）。 */
+           /* ★年数は2本読む（2026-09-16）。
+                rk … 昇格後年数。**これが第一**。行に出す段はこれで作る。
+                sy … 在籍年数。**昇格後を書いていない古い行のためだけ**に読む
+                      （オーナー指示「これまで提出してもらったものは今まで通り出して」）。
+              ⚠️ この2つは**段の意味が違う**ので、下の tenk でどちらかを必ず伝える。
+                 同じ札で出すと、2026-09-16 に直した嘘をそのまま作り直すことになる。 */
            r.rank_years         as rk,
+           r.seniority_years    as sy,
            r.fx_to_usd          as fx,
            /* その月の現金（賞与ぬき）。db/deep-pay.sql の cash_m と1行ずつ同じ。
               ★組合が直接払った分だけは総支給の外にある（2026-09-02）。
@@ -1797,6 +1809,7 @@ begin
                                 and f.active)
                 then nullif(btrim(q.payload->>'fleet'), '') end,
            nullif(q.payload->>'rank_years', '')::smallint,
+           nullif(q.payload->>'seniority_years', '')::smallint,
            (d.j->>'fx')::numeric,
            (d.j->>'cash_m')::numeric,
            (d.j->>'base')::numeric,
@@ -1858,7 +1871,7 @@ begin
            /* ★口コミは機材も年数も内訳も勤務も**持っていない**（金額だけ）。
               ここを埋めるための推測をしないこと。行は総額だけの行として出て、
               画面は「この行は年収だけです」と正直に書く。 */
-           null::text, null::smallint, null::numeric, null::numeric,
+           null::text, null::smallint, null::smallint, null::numeric, null::numeric,
            null::numeric, null::numeric, null::numeric, null::numeric,
            null::numeric, null::numeric, null::numeric, null::numeric,
            null::numeric, null::numeric, null::smallint, null::smallint, false
@@ -1923,7 +1936,7 @@ begin
        ★ここで採った月の**生の額**が下の paid へ渡るが、外へ出るのは
          pv_band を通した帯だけ。この CTE の値を行に混ぜないこと。 */
     select distinct on (s.pkey, s.airline, s.pos)
-           s.pkey, s.airline, s.pos, s.fleet, s.rk, s.fx, s.cash_m, s.det,
+           s.pkey, s.airline, s.pos, s.fleet, s.rk, s.sy, s.fx, s.cash_m, s.det,
            s.a_base, s.a_gtee, s.a_var, s.a_cmd, s.a_role,
            s.a_pd, s.a_house, s.a_other,
            s.bonus_y, s.bh, s.dd, s.dof
@@ -2026,10 +2039,10 @@ begin
              --     揃うと、機材を書いていない人の区分まで推測の材料になる。
              --     自己点検 23 が、その列名がこの関数に1語も無いことを見ている。
              'fleet',      k.fleet,
-             /* 昇格後年数は**段だけ**。年そのものは返さない。
+             /* 年数は**段だけ**。年そのものは返さない。
                 5年幅で5段（0=5年未満 / 1=5〜10 / 2=10〜15 / 3=15〜20 / 4=20年以上）。
                 **職位で段を変えない。** 上端だけ開いていて、あとは同じ幅。
-                cadet と、年数を書いていない人は null ＝ キーごと消える。
+                cadet と、年数を1つも書いていない人は null ＝ キーごと消える。
                 ★2026-09-16、ここは在籍年数を FO＝2段 / CAP＝3段 で出していた。
                   行では職位のすぐ隣に出るので「昇格して何年目」と読まれるのに、
                   中身は入社何年目だった（自社養成は訓練の年も入る）。
@@ -2039,17 +2052,39 @@ begin
                 ★いちばん下の段は「5年未満」であって「1〜5年」ではない。
                   今年上がった人は 0 か 1 と答える。「1〜5年」と出すと、
                   今回直した嘘と同じものをもう一度作ることになる。
+                ★**昇格後が第一・在籍は控え**（2026-09-16・オーナー指示
+                  「これまで提出してもらったものは今まで通り出して」）。
+                  昇格後年数の欄はこの日に作ったばかりなので、それより前の投稿は
+                  全部 null ＝ 何もしなければ既存の行から年数が丸ごと消える。
+                  そこで**昇格後が無い行だけ**在籍年数で段を作る。
+                  ⚠️ **同じ札で出さない。** どちらで作った段かは下の tenk が必ず伝え、
+                     画面は「昇格後10〜15年」と「在籍10〜15年」を**別の言葉**で出す。
+                     ここを1つの札にまとめた瞬間、この日直した嘘が戻る。
+                ★段の式は**この1か所だけ**。coalesce で材料を選んでから
+                  同じ刻みに通している（2本の case に割らない ── 割ると
+                  片方だけ直して、同じ人が画面ごとに違う段に出る）。
                 ★キー名は ten（tenure の頭3文字）。年数を表す英単語を
                   そのままキーにしないこと ── 画面側の禁止語であり、
                   自己点検 51 もその語が関数に無いことを見ている
                   （注意書きのつもりで書くと注意書きだけで赤くなる）。 */
-             'ten',        case when k.rk is null then null
-                                when p.pos not in ('fo','cap') then null
-                                when k.rk < 5  then 0
-                                when k.rk < 10 then 1
-                                when k.rk < 15 then 2
-                                when k.rk < 20 then 3
-                                else 4 end,
+             'ten',        case when p.pos not in ('fo','cap') then null
+                                when coalesce(k.rk, k.sy) < 5  then 0
+                                when coalesce(k.rk, k.sy) < 10 then 1
+                                when coalesce(k.rk, k.sy) < 15 then 2
+                                when coalesce(k.rk, k.sy) < 20 then 3
+                                when coalesce(k.rk, k.sy) is not null then 4
+                           end,
+             /* ★その段が**どちらの年数で作られたか**（2026-09-16）。
+                  'r' ＝ 昇格後年数 / 's' ＝ 在籍年数（昇格後を書いていない古い行）。
+                ⚠️ これを返さないと画面が段の意味を言い分けられない。
+                   段だけ渡して札を1種類にすると、古い行が「昇格後20年」と
+                   名乗り直す ＝ 直した嘘がそのまま戻る。
+                ⚠️ 年数そのものは**どちらの枝からも1つも出ていない**。
+                   出るのは段の番号と、この1文字だけ。 */
+             'tenk',       case when p.pos not in ('fo','cap') then null
+                                when k.rk is not null then 'r'
+                                when k.sy is not null then 's'
+                           end,
              /* ── 報酬の内訳（2026-09-03 に門がついた）─────────────
                 ★閉じている人には帯そのものを渡さない。**null にして消す**
                   （jsonb_strip_nulls が下で効くので、キーごと消える）。
@@ -2200,8 +2235,10 @@ comment on function public.pv_pay_rows() is
   '実給与の匿名一覧。1行＝1人（複数月は年換算の中央値で畳む）。出した人は全員出る。'
   '材料は3つ：本棚（pay_reports）／まだ移っていない預かり（pay_reports_pending）／'
   '昔の口コミに書かれた給与（reviews_v2。同じ人が本棚に居るなら明細を優先して落とす）。'
-  '基地・在籍年数・年代・原本通貨・契約形態・自由入力の社名は返さない。'
-  '機材はコードを、昇格後年数は5年幅の段（ten 0〜4）だけを返す。年数そのものは返さない。'
+  '基地・年代・原本通貨・契約形態・自由入力の社名は返さない。'
+  '機材はコードを、年数は5年幅の段（ten 0〜4）だけを返す。年数そのものは返さない。'
+  '段の材料は昇格後年数が第一で、それが空の古い行だけ在籍年数で作る。'
+  'どちらで作ったかは tenk（r＝昇格後／s＝在籍）で必ず添える（札の意味が違うため）。'
   '投稿の時期は5段の粗い区分（age 0〜4）でだけ返す。日付も年月も返さない。'
   '支給の内訳も返さない（内訳は DEEP PAY の担当）。'
   '金額は有効数字2桁に丸め、年 $10,000〜$700,000 の外は打ち間違いとして出さない。'
@@ -2350,10 +2387,12 @@ from (
                and pg_get_functiondef(f_pend) not like '%airline_other%' end from f
   union all
   select 8, '準識別子を1つも読んでいない（基地・年代・投稿月・国籍・契約・税・原本通貨）',
-         /* ★2026-09-03 に seniority_years を除外語から外し（在籍を出すことに
-            したため）、★2026-09-16 に**戻した**。行に出すのは昇格後年数
-            （rank_years）に替えたので、在籍年数はこの関数の材料ではなくなった。
-            年数そのものが行へ出ていないことは 51 が別に見ている。
+         /* ★年数の2語（seniority_years / rank_years）は、この一覧に**入っていない**。
+            2026-09-03 に在籍を出すと決めた日に外し、2026-09-16 にいったん戻したが、
+            同じ日に「これまでの投稿は今まで通り年数を出す」とオーナーが決めたので
+            また外した ── 古い行の段を作るのに在籍年数を読むため。
+            年数**そのもの**が行へ出ていないことは 51 が別に見ている
+            （こちらは「読んだか」、51 は「返したか」を見る。役割が違う）。
             ⚠️ この一覧に語を足すのは簡単だが、外すのは設計判断。
                外すときは必ずファイル冒頭の②も同じ日付で書き換えること。
             ⚠️ 見ているのは関数の定義まるごと＝**注釈も含む**。
@@ -2361,7 +2400,7 @@ from (
                注釈だけで赤くなる。 */
          case when f_rows is null or f_pend is null then false
               else pg_get_functiondef(f_rows) !~
-                   '(base_iata|seniority_years|age_bucket|contract_type|tax_country|nationality|annual_total_orig|period_month)'
+                   '(base_iata|age_bucket|contract_type|tax_country|nationality|annual_total_orig|period_month)'
                and pg_get_functiondef(f_pend) !~
                    '(base_iata|seniority_years|age_bucket|contract_type|tax_country|nationality|period_month)'
          end from f
@@ -2753,23 +2792,27 @@ from (
                and pg_get_functiondef(f_rows) like '%public.pv_band_grid(%'
          end from f
   union all
-  select 51, '★昇格後年数は粗い段だけ（年数そのものは行に入っていない）',
+  select 51, '★年数は粗い段だけ（年数そのものは行に入っていない）＋どちらの年数かを必ず添える',
          /* 静かに壊れる。段のつもりで年を入れても画面は同じに見えるが、
             会社×職位×機材と重なった時点で1人に当たる。
-            ★2026-09-16、見る語を seniority_years から rank_years に替えた。
-              行に出すのを在籍年数から昇格後年数に替えたため
-              （在籍年数のほうは 8 が「1文字も無い」を見ている）。 */
+            ★2026-09-16、年数は2本になった（昇格後が第一・在籍は古い行の控え）。
+              **どちらで作った段かを tenk が必ず伝える**ことも、ここで見る ──
+              添えないと古い行が「昇格後20年」と名乗り直し、この日直した嘘が戻る。
+              （どちらの列を読んでよいかは 8 の担当。ここは「返したか」だけを見る。） */
          /* ★読むのは許す・返すのは許さない、を見分ける。
-            預かりの枝は payload->>'rank_years' で年数を読むので、
-            素の like では**正しいものが赤くなる**（7番と同じ形）。
+            預かりの枝は payload->>'rank_years' / payload->>'seniority_years' で
+            年数を読むので、素の like では**正しいものが赤くなる**（7番と同じ形）。
             payload の読み出しだけを消してから、その語が残らないかを見る。 */
          case when f_rows is null then false
               else pg_get_functiondef(f_rows) like '%''ten''%'
+               and pg_get_functiondef(f_rows) like '%''tenk''%'
                and regexp_replace(pg_get_functiondef(f_rows),
-                     'payload->>''rank_years''', '', 'g')
-                   not like '%''rank_years''%'
+                     'payload->>''(rank_years|seniority_years)''', '', 'g')
+                   !~ '''(rank_years|seniority_years)'''
                and pg_get_functiondef(f_rows) not like '%''rank''%'
                and pg_get_functiondef(f_rows) not like '%''rk''%'
+               and pg_get_functiondef(f_rows) not like '%''sen''%'
+               and pg_get_functiondef(f_rows) not like '%''sy''%'
          end from f
   union all
   select 52, '★命綱の引き算が本棚にも預かりにも入っている（変動給を二重に数えていない）',

@@ -1334,33 +1334,36 @@ const WORK = { bh: [60, 70], dd: [14, 16], off: [12, 14] };
    ★段は5つとも出るように配る（言葉が1つでも欠けていたら気づける）。 */
 const ROWS = [
   row('ana', 'cap', 180000, true, 0, Object.assign({}, POISON, {
-    fleet: 'b787', ten: 1,
+    fleet: 'b787', ten: 1, tenk: 'r',
     pay: bnd([95000, 100000], [35000, 40000], [10000, 15000], [0, 5000]),
     work: WORK })),
   row('ana', 'fo', 120000, false, 1, {
-    fleet: 'a320', ten: 0,
+    fleet: 'a320', ten: 0, tenk: 'r',
     pay: bnd([70000, 75000], [25000, 30000], [10000, 15000], [0, 5000]),
     work: { bh: [70, 80], dd: [16, 18], off: [10, 12] } }),
   /* 内訳だけ（勤務を書かなかった人）。 */
   row('ana', 'cap', 190000, false, 2, {
-    fleet: 'b787', ten: 2,
+    fleet: 'b787', ten: 2, tenk: 'r',
     pay: bnd([100000, 105000], [40000, 45000], [15000, 20000], [0, 5000]) }),
-  /* 勤務だけ（総支給しか書かず、明細の中身を出さなかった人）。 */
+  /* 勤務だけ（総支給しか書かず、明細の中身を出さなかった人）。
+     ★この1行だけ tenk:'s' ＝ 昇格後年数の欄ができる前の投稿。段は在籍年数から
+       作られているので、札は「在籍5年未満」でなければならない（J-3 が見ている）。 */
   row('jal', 'cap', 170000, false, 3, {
-    fleet: 'b777', ten: 0, work: { bh: [50, 60], dd: [12, 14], off: [14, 16] } }),
+    fleet: 'b777', ten: 0, tenk: 's',
+    work: { bh: [50, 60], dd: [12, 14], off: [14, 16] } }),
   /* ★年収だけ（口コミ由来）。機材も年数も内訳も勤務も無い。 */
   row('jal', 'fo', 110000, false, 4),
   row('emirates', 'cap', 250000, false, 0, {
-    fleet: 'a380', ten: 3,
+    fleet: 'a380', ten: 3, tenk: 'r',
     pay: bnd([130000, 140000], [50000, 60000], [20000, 30000], [0, 20000]),
     work: { bh: [80, 90], dd: [16, 18], off: [10, 12] } }),
   row('other', 'cap', 130000, false, 2, { airline_other: 'Somewhere Air',
-    fleet: 'b737', ten: 4,
+    fleet: 'b737', ten: 4, tenk: 'r',
     pay: bnd([70000, 75000], [30000, 35000], [10000, 15000], [0, 5000]),
     work: { bh: [60, 70], dd: [14, 16], off: [12, 14] } }),
   /* ★fo の段の2つ目。fo に3段目が生えていないことは、これが出ることで見える。 */
   row('other', 'fo', 90000, false, 4, {
-    fleet: 'b737', ten: 1,
+    fleet: 'b737', ten: 1, tenk: 'r',
     pay: bnd([50000, 55000], [20000, 25000], [5000, 10000], [0, 5000]),
     work: { bh: [60, 70], dd: [14, 16], off: [12, 14] } })
 ];
@@ -3017,11 +3020,21 @@ for (const lang of ['ja', 'en']) {
 {
   /* ★画面の言葉をここに書き写している（AGE_WORDS と同じ流儀）。
        黙って言い換えられたら、その場で赤くなるようにしておく。 */
+  /* ★2組ある（2026-09-16）。r＝昇格後年数から作った段 / s＝在籍年数から作った段。
+       昇格後年数の欄はこの日に作ったので、それより前の投稿は在籍年数で段を作って
+       出す（オーナー指示「これまで提出してもらったものは今まで通り出して」）。
+       ⚠️ **同じ字にしないこと。** 同じ札で出した瞬間、古い行が「昇格後20年以上」と
+          名乗り直す ＝ この日直した嘘がそのまま戻る。下の J-3 がそこを見ている。 */
   const TEN = {
-    ja: ['昇格後5年未満', '昇格後5〜10年', '昇格後10〜15年',
-         '昇格後15〜20年', '昇格後20年以上'],
-    en: ['Under 5 yrs in rank', '5–10 yrs in rank', '10–15 yrs in rank',
-         '15–20 yrs in rank', '20+ yrs in rank']
+    ja: { r: ['昇格後5年未満', '昇格後5〜10年', '昇格後10〜15年',
+              '昇格後15〜20年', '昇格後20年以上'],
+          s: ['在籍5年未満', '在籍5〜10年', '在籍10〜15年',
+              '在籍15〜20年', '在籍20年以上'] },
+    en: { r: ['Under 5 yrs in rank', '5–10 yrs in rank', '10–15 yrs in rank',
+              '15–20 yrs in rank', '20+ yrs in rank'],
+          s: ['Under 5 yrs at airline', '5–10 yrs at airline',
+              '10–15 yrs at airline', '15–20 yrs at airline',
+              '20+ yrs at airline'] }
   };
   const DWT = {
     ja: { comp: '報酬の内訳', work: '勤務', sim: '同じ会社・同じ職位のほかの記録',
@@ -3293,8 +3306,8 @@ for (const lang of ['ja', 'en']) {
        `${lang}: ★一覧の丸がバーの区分と1つずつ同じ色（凡例を別に置かない根拠）`,
        dU.dotC.join(' / '));
 
-    console.log(`\n════ ${lang} / J-3 昇格後年数は段だけ・欠けは節ごと落とす ════`);
-    ok(TN.includes(dU.meta.split(' · ').pop()),
+    console.log(`\n════ ${lang} / J-3 年数は段だけ・欠けは節ごと落とす ════`);
+    ok(TN.r.includes(dU.meta.split(' · ').pop()),
        `${lang}: ★昇格後年数は段の言葉で出る（年そのものは出ない）`, dU.meta);
     ok(!/\d+\s*(年|years?)\s*\d/.test(dU.meta),
        `${lang}: ★段の中に生の年数が混ざっていない`, dU.meta);
@@ -3315,6 +3328,17 @@ for (const lang of ['ja', 'en']) {
        `${lang}: ★内訳が無ければ積み上げバーも「概算です」の断りも出ない`,
        `${dWork.st} / ${dWork.stn}`);
 
+    /* ★昇格後年数の欄ができる前の投稿（サーバが tenk='s' で返す行）。
+         段は今までどおり出るが、**札は「在籍」**でなければならない。
+         ここが「昇格後」に戻ったら、2026-09-16 に直した嘘が復活している。 */
+    const wLast = dWork.meta.split(' · ').pop();
+    ok(TN.s.includes(wLast),
+       `${lang}: ★★昇格後年数を書いていない古い行は「在籍◯年」と出る（段は今までどおり出す）`,
+       dWork.meta);
+    ok(!TN.r.includes(wLast),
+       `${lang}: ★★その行に「昇格後」の札を付けていない（在籍年数を昇格後と名乗らせない）`,
+       dWork.meta);
+
     /* ★口コミ由来の行 ── 年収しか無い。押しても空の面にしない。 */
     const dOnly = await press(page, 4);
     ok(dOnly.n === 1 && dOnly.amts.length === 2,
@@ -3325,7 +3349,7 @@ for (const lang of ['ja', 'en']) {
        `${dOnly.pay.length}/${dOnly.work.length}`);
     ok(dOnly.miss === W.only, `${lang}: ★「年収だけです」と1文で言う`, dOnly.miss);
     ok(dOnly.meta === dOnly.meta.split(' · ')[0],
-       `${lang}: ★機材も在籍も無い行では、そこが黙って空く（「不明」を作らない）`,
+       `${lang}: ★機材も年数も無い行では、そこが黙って空く（「不明」を作らない）`,
        dOnly.meta);
     ok(!/不明|Unknown|—|N\/A/i.test(dOnly.text),
        `${lang}: ★★「不明」の札を置かない（書いていない、という情報も出さない）`,
@@ -3347,7 +3371,7 @@ for (const lang of ['ja', 'en']) {
                calls: (window.__rpc || []).length };
     });
     ok(dSw.n === 1, `${lang}: ★押しても面は1枚のまま（開き直さない）`, String(dSw.n));
-    ok(TN[2] && dSw.meta.indexOf(TN[2]) >= 0,
+    ok(TN.r[2] && dSw.meta.indexOf(TN.r[2]) >= 0,
        `${lang}: ★中身だけ入れ替わる（押した相手の段になる）`, dSw.meta);
     ok(dSw.calls === before,
        `${lang}: ★ここでもサーバへ投げない`, `${before} → ${dSw.calls}`);

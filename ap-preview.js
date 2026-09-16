@@ -33,9 +33,13 @@
      プレビューは1件も足さない。
 
    ── 形は本物の行と同じ ────────────────────────────────────────
-   airline / pos / fleet / ten / annual_usd / paylock / work
-   ★ten は**昇格後年数の段**（0〜4。5年幅）。2026-09-16 までは在籍年数の段で、
+   airline / pos / fleet / ten / tenk / annual_usd / paylock / work
+   ★ten は**年数の段**（0〜4。5年幅）。2026-09-16 までは在籍年数の段で、
      職位ごとに刻みが違った（fo は 0〜1・cap は 0〜2）。
+   ★tenk はその段をどちらの年数で作ったか（r＝昇格後／s＝在籍）。本物の行は
+     昇格後が第一で、それが空の古い行だけ在籍年数で作る。ここは見本なので
+     全部 'r'。**省くと actual-pay.js が 'r' に倒すので画面は同じだが、
+     行の形を本物とそろえるために書いてある。**
    ＝ actual-pay.js の logoHtml・posName・fleetName・tenName・payLockHTML・
       workHTML がそのまま効く（プレビュー用の描画を別に作らない）。
    ⚠️ pay（金額の入った内訳）は持たせない。持たせると帯と％が描かれ、
@@ -49,7 +53,7 @@
        ここは金額が読める2行が先、というだけの並び。 */
   var ROWS = [
     /* 'jal' cap.avg = 2700万円（salary-data.mjs）→ 27,000,000 / 158.95 ≒ $169,865 → 2桁 */
-    { airline: 'jal', pos: 'cap', fleet: 'b787', ten: 2,
+    { airline: 'jal', pos: 'cap', fleet: 'b787', ten: 2, tenk: 'r',
       annual_usd: 170000, _man: 2700, _rank: 'cap', _p: 1, lock: false,
       paylock: ['base', 'variable', 'command', 'perdiem'],
       work: { bh: [60, 70], dd: [12, 14], off: [10, 12] } },
@@ -59,24 +63,24 @@
             作られるので、210,000 だと ¥3,300万 になり**サイトの公開値と食い違う**。
             214,000 なら 34,015,300 → 有効数字2桁で 34,000,000 ＝ ¥3,400万。
             ドル表示側は画面が2桁に丸めるので $210K のまま。 */
-    { airline: 'etihad', pos: 'cap', fleet: 'b787', ten: 0,
+    { airline: 'etihad', pos: 'cap', fleet: 'b787', ten: 0, tenk: 'r',
       annual_usd: 214000, _man: 3400, _rank: 'cap', _p: 1, lock: false,
       paylock: ['base', 'variable', 'command', 'housing', 'perdiem'],
       work: { bh: [70, 80], dd: [14, 16], off: [10, 12] } },
 
     /* ここから下は annual_usd を持たない（null）。隠しているのではなく、
        最初から金額が入っていない。 */
-    { airline: 'ana', pos: 'fo', fleet: 'b777', ten: 0,
+    { airline: 'ana', pos: 'fo', fleet: 'b777', ten: 0, tenk: 'r',
       annual_usd: null, _p: 1, lock: true,
       paylock: ['base', 'variable', 'perdiem'],
       work: { bh: [60, 70], dd: [12, 14], off: [10, 12] } },
 
-    { airline: 'cathay-pacific', pos: 'cap', fleet: 'a350', ten: 4,
+    { airline: 'cathay-pacific', pos: 'cap', fleet: 'a350', ten: 4, tenk: 'r',
       annual_usd: null, _p: 1, lock: true,
       paylock: ['base', 'variable', 'command', 'housing'],
       work: { bh: [70, 80], dd: [14, 16], off: [8, 10] } },
 
-    { airline: 'singapore-airlines', pos: 'fo', fleet: 'a350', ten: 1,
+    { airline: 'singapore-airlines', pos: 'fo', fleet: 'a350', ten: 1, tenk: 'r',
       annual_usd: null, _p: 1, lock: true,
       paylock: ['base', 'variable', 'perdiem', 'housing'],
       work: { bh: [60, 70], dd: [12, 14], off: [10, 12] } }

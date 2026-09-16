@@ -296,9 +296,10 @@ const FIX = [
          block_hours: 78, duty_days: 14, seniority_years: 9, rank_years: 9 },
     note: '★掛け算の順番と丸めが写せているか。JS は二進小数なのでここが本番' },
 
-  /* ★昇格後年数の段（2026-09-16 に在籍年数から差し替え）。5年幅で5段・職位で分けない。
-       ⚠️ どの行も **在籍年数だけ 40（＝最上段）** を入れてある。段が在籍年数から
-          作られていたら全部 4 になって、ここがまとめて落ちる。 */
+  /* ★年数の段（2026-09-16 に昇格後年数を第一へ差し替え）。5年幅で5段・職位で分けない。
+       ⚠️ 下の5行はどれも **在籍年数だけ 40（＝最上段）** を入れてある。段が在籍年数から
+          作られていたら全部 4 になって、ここがまとめて落ちる。
+       ★そのあとの2行が「昇格後が空の古い行」と「どちらも空の行」。 */
   { name: '昇格後4年の副操縦士（いちばん下の段）',
     p: { gross_monthly: 9000, position: 'fo', seniority_years: 40, rank_years: 4 },
     note: 'ten = 0' },
@@ -314,9 +315,12 @@ const FIX = [
   { name: '昇格後20年の機長（いちばん上の段）',
     p: { gross_monthly: 9000, position: 'cap', seniority_years: 40, rank_years: 20 },
     note: 'ten = 4' },
-  { name: '昇格後年数を書いていない人（在籍だけ書いてある）',
-    p: { gross_monthly: 9000, position: 'cap', seniority_years: 40 },
-    note: '★ten はキーごと消える（在籍年数で埋め合わせない）' },
+  { name: '昇格後年数を書いていない人（在籍だけ書いてある＝2026-09-16 より前の投稿）',
+    p: { gross_monthly: 9000, position: 'cap', seniority_years: 12 },
+    note: '★ten = 2 を在籍年数で作り、tenk = s を添える（オーナー指示で今まで通り出す）' },
+  { name: '年数をどちらも書いていない人',
+    p: { gross_monthly: 9000, position: 'cap' },
+    note: '★ten も tenk もキーごと消える（0 で埋めない）' },
 
   { name: '常識の幅の下（年 $10,000 未満）',
     p: { gross_monthly: 500 }, note: '★一覧に1行も出ない。画面は「出ません」と言う' },
@@ -369,7 +373,8 @@ for (const m of made) {
   if (!sql) { ok(false, `${m.name} — 一覧に出るはずの行が無い`, JSON.stringify(js)); continue; }
 
   const want = { airline: js.airline, pos: js.pos, annual_usd: js.annual_usd,
-                 verified: false, age: 0, fleet: js.fleet, ten: js.ten,
+                 verified: false, age: 0, fleet: js.fleet,
+                 ten: js.ten, tenk: js.tenk,
                  pay: js.pay, work: js.work };
   ok(same(want, sql), `${m.name} — 行がまるごと一致`,
      `\n     写し: ${JSON.stringify(norm(want))}\n     本物: ${JSON.stringify(norm(sql))}`);
@@ -443,6 +448,26 @@ for (const m of made) {
      JSON.stringify(all.js.pay.map(x => x.k)));
   ok(same(all.js.work, { bh: [80, 90], dd: [16, 18], off: [8, 10] }),
      '　勤務の帯は3つだけ・刻みは年収に連動しない', JSON.stringify(all.js.work));
+
+  /* ★年数の段は「どちらで作ったか」まで写せていないと画面が札を選べない
+       （2026-09-16・オーナー指示「これまで提出してもらったものは今まで通り出して」）。 */
+  const t9 = pick('昇格後9年の機長（FO と同じ刻み）');
+  ok(t9.js.ten === 1 && t9.js.tenk === 'r'
+     && Number(t9.sql.ten) === 1 && t9.sql.tenk === 'r',
+     '★昇格後年数が有るときは、在籍年数が 40 でも段は昇格後から作る（tenk = r）',
+     JSON.stringify({ js: [t9.js.ten, t9.js.tenk], sql: [t9.sql.ten, t9.sql.tenk] }));
+
+  const told = pick('昇格後年数を書いていない人（在籍だけ書いてある＝2026-09-16 より前の投稿）');
+  ok(told.js.ten === 2 && told.js.tenk === 's'
+     && Number(told.sql.ten) === 2 && told.sql.tenk === 's',
+     '★昇格後が空の古い行は在籍年数で段を作り、tenk = s を添える（札を書き分けられる）',
+     JSON.stringify({ js: [told.js.ten, told.js.tenk], sql: [told.sql.ten, told.sql.tenk] }));
+
+  const tnone = pick('年数をどちらも書いていない人');
+  ok(tnone.js.ten === null && tnone.js.tenk === null
+     && !('ten' in tnone.sql) && !('tenk' in tnone.sql),
+     '★どちらも空なら段そのものが消える（0 で埋めない）',
+     JSON.stringify({ js: [tnone.js.ten, tnone.js.tenk], keys: Object.keys(tnone.sql) }));
 }
 
 // ── 鍵を持たない人には帯が届かない（区分の名前だけ）──────────
