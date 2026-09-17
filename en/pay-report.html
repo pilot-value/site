@@ -4805,6 +4805,27 @@ if (TWO_SCREEN) for (const id of ['s2', 's3']) {
   for (const p of subs) d.appendChild(p);
 }
 
+/* ── 段の通過（2026-09-17）───────────────────────────
+   「どこで離脱したか」を見るための1本。段に**着いた瞬間**に1回だけ送る。
+   ★名前を番号だけにしない。二回目以降は段そのものが2つになる
+     （① 今月の入力 ② 確認）ので、番号だけだと初めての人の 2/5 と混ざる。
+   ★いちばん奥まで進んだ段だけを数える（戻って進み直しても増やさない）。
+     こうすると GA4 の素のイベント一覧が、そのまま「どこまで来たか」の
+     階段になる ── カスタム定義を登録しなくても読める。
+   ★送るのは段の名前だけ。金額も社名も明細の項目名も送らない。
+   ⚠️ 日英で**同じ名前**でなければ、階段が2本に割れてどちらも半分の数で出る。
+      assert-pay-report-sync.mjs の「計測イベント名」と D-4 が見ている。 */
+const STEP_EV = TWO_SCREEN
+  ? { s2: 'pay_again1_input', s5: 'pay_again2_review' }
+  : { s1: 'pay_step1_company', s2: 'pay_step2_month', s3: 'pay_step3_pay',
+      s4: 'pay_step4_terms', s5: 'pay_step5_review' };
+let stepMax = -1;
+function trackStep(id, i) {
+  if (!(i > stepMax)) return;
+  stepMax = i;
+  if (STEP_EV[id]) track(STEP_EV[id]);
+}
+
 if (WZ) {
   WZ.init({
     lang: LANG,
@@ -4893,7 +4914,9 @@ if (WZ) {
       if (src && src.value === 'payslip') rows.push({ k: 'Entry method', v: 'Read from payslip' });
       return rows;
     },
-    onStep: (id) => {
+    onStep: (id, i) => {
+      /* 段に着いた印を1回だけ送る（どこで離脱したかを見るため）。 */
+      trackStep(id, i);
       /* ★Open the step just shown; fold the ones that are not on screen (2026-09-12). */
       syncFolds();
       /* 段を出し直したので、印とゲージを引き直す（隠れている間は数えていない）。 */
@@ -4909,6 +4932,11 @@ if (WZ) {
   /* ★Once the wizard is up, settle what is folded and what is open (2026-09-12).
        loadPreset() runs before WZ.init(), so its folds were deliberately skipped. */
   syncFolds();
+} else {
+  /* ★共有 JS が落ちて1枚ものに戻った回（2026-09-17）。段が無いので
+     どこで離脱したかは出せないが、**それが起きたこと自体**を残す。
+     ここが増えていたら、離脱の原因は読み込みの失敗のほう。 */
+  track('pay_form_plain');
 }
 
 /* ── Carry the previous entry over from the server ──────────────────────

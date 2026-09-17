@@ -112,6 +112,10 @@ const SIGS = {
   'payload のキー':        [/^[ \t]*([a-z_][a-z0-9_]*)\s*:/gm],
   'localStorage のキー':   [/localStorage\.(?:getItem|setItem|removeItem)\(\s*'([^']+)'/g],
   '読む欄（val/num/pick）': [/\b(?:val|num|pick)\(\s*'([^']+)'/g],
+  /* ★2026-09-17。GA4 のイベント名が日英でズレると、同じ1つの出来事が
+     2つの名前で数えられ、どちらも半分の数で出る（画面は両方とも正常）。 */
+  '計測イベント名':        [/\btrack\(\s*'([^']+)'/g,
+                            /\bgtag\(\s*'event',\s*'([^']+)'/g],
 };
 
 /* 直したい理由があって食い違っているものだけ、理由つきでここに置く。
@@ -204,6 +208,41 @@ const jaUse = used(ja), enUse = used(en);
   console.log((ok ? '✅' : '❌') + ' WZ の使い方が日英で同じ  （日 ' + jaUse.size + ' / 英 ' + enUse.size + '）');
   if (onlyJa.length) console.log('      日本語にしか無い: ' + onlyJa.join(', '));
   if (onlyEn.length) console.log('      英語にしか無い  : ' + onlyEn.join(', '));
+}
+
+/* ── D-4 段の通過イベントの名前（2026-09-17）────────────────────
+   「どこで離脱したか」を見る階段。名前は STEP_EV という表で持っていて、
+   track('…') の形では書いていない＝上の「計測イベント名」には映らない。
+   ここで表そのものを日英で突き合わせる。
+   あわせて、段を1つ増やして表に足し忘れていないかも見る
+   （足し忘れると、その段だけ黙って数に出てこない）。 */
+{
+  const grab = (src) => {
+    const i = src.indexOf('const STEP_EV');
+    if (i < 0) return '';
+    const j = src.indexOf('};', i);
+    return j < 0 ? '' : src.slice(i, j + 2).replace(/\s+/g, ' ');
+  };
+  const a = grab(ja), b = grab(en);
+  const ok = !!a && a === b;
+  checked++;
+  if (!ok) fail++;
+  console.log((ok ? '✅' : '❌') + ' 段の通過イベントの名前が日英で同じ');
+  if (!ok) {
+    console.log('      日: ' + (a || '（STEP_EV が無い）'));
+    console.log('      英: ' + (b || '（STEP_EV が無い）'));
+  }
+  /* 表が 5段ぶんの id を全部持っているか（2画面のときの枝は別に持っている）。 */
+  const idsM = ja.match(/STEP_IDS\s*=\s*\[([^\]]*)\]/);
+  const ids = idsM ? [...idsM[1].matchAll(/'([^']+)'/g)].map((m) => m[1]) : [];
+  const have = [...a.matchAll(/([A-Za-z0-9_]+)\s*:\s*'pay_step/g)].map((m) => m[1]);
+  const miss = ids.filter((x) => !have.includes(x));
+  checked++;
+  if (miss.length) fail++;
+  console.log((miss.length ? '❌' : '✅') + ' 段がぜんぶ表に載っている  （段 ' + ids.length
+            + ' / 表 ' + have.length + '）');
+  if (miss.length) console.log('      表に無い段: ' + miss.join(', ')
+                             + '  → その段に着いた人が1人も数に出ない。');
 }
 
 console.log('\n══ ' + (checked - fail) + ' 通過 / ' + fail + ' 失敗 ══');
