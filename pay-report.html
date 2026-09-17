@@ -1725,6 +1725,27 @@ const track = (name, params) => {
   try { gtag('event', name, params || {}); } catch (e) {}
 };
 
+/* ── 止められた理由（2026-09-17）────────────────────────────────
+   pay_form_blocked は3か所から出ていて、どれも同じ名前で送っていた。GA では
+   「必須が空」「金額の読み方が決まっていない」「総支給を超えている」が1本に混ざり、
+   1日3回止まっていることは分かっても、**どれを直せばいいのかが分からない**。
+   ★送るのは短い符号・欄の id・段の名前・件数だけ。
+     入力の中身と金額は送らない（GA へ年収が流れ込む道を作らない）。
+   ★符号（reason）は日英で1文字も違わない。違うと GA で2本に割れて、
+     どちらも本当の数より小さく見える（段の名前と同じ約束）。
+   ★符号は7つ ── over（総支給を超えている）／ missing（必須が空）／
+     need（選んでいない・空のまま送った）／ money_pick（2通りに読める）／
+     money_bad（金額として読めない）／ num（時間・日数・率が読めない）／
+     server（サーバが断った）。 */
+function trackBlocked(reason, host, n) {
+  const p = { reason: reason || 'other' };
+  if (host && host.id) p.field = String(host.id).slice(0, 40);
+  try { const s = WZ && WZ.current(); if (s) p.step = s; } catch (e) {}
+  if (n != null) p.n = n;
+  track('pay_form_blocked', p);
+}
+
+
 /* ── ログインは「送信のとき」だけ求める ──────────────────────
    読み込んだ瞬間にフォームごと隠していたが、それだとフォームを一度も
    見ないまま帰る人が丸ごと落ちる。ここでは何も判定しない。
@@ -3239,7 +3260,7 @@ function overBlocking() {
   if (!p) return false;
   const d = p.closest('details');
   if (d && !d.open) d.open = true;
-  track('pay_form_blocked');
+  trackBlocked('over', p);
   p.scrollIntoView({ block: 'center', behavior: 'smooth' });
   return true;
 }
@@ -4989,11 +5010,11 @@ const PENDING_MAX_AGE = 14 * 24 * 60 * 60 * 1000;   // 2週間より古い下書
 })();
 
 // ── エラー表示 ────────────────────────────────────────────────
-function showErr(msg, title) {
+function showErr(msg, title, blk) {
   /* ★ここに来る＝「送信を押したのに先へ進めなかった」。必須の欄が約20あるので、
      入力が多すぎて出せないのか、押してすらいないのかは、この数を見ないと分からない。
      ★文言そのものは送らない（日英で別の文字列になるうえ、入力値が混じる余地を作らない）。 */
-  track('pay_form_blocked');
+  trackBlocked(blk && blk.reason, blk && blk.host, blk && blk.n);
   $('err').innerHTML = '<div class="form-alert"><span class="fa-title">' + esc(title || '送信できませんでした') + '</span>' + esc(msg) + '</div>';
   $('err').scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
@@ -5076,7 +5097,7 @@ function clearMissMarks() {
   for (const t of document.querySelectorAll('.miss-tag')) t.remove();
 }
 function markMissing(list) {
-  track('pay_form_blocked');
+  trackBlocked('missing', list[0] && jumpTarget(list[0]), list.length);
   clearMissMarks();
   for (const f of list) {
     f.classList.add('is-miss');
@@ -5110,9 +5131,9 @@ function markMissing(list) {
    直すべき欄は画面のどこにも無い ── 本人には「押しても何も起きない」としか映らない。
    ★運んでから書く。逆にすると #err はウィザードが段ごと引っ越すので、
      書いた直後に別の段へ持って行かれて何も出ない（markMissing と同じ注意）。 */
-function stopAtEl(host, msg) {
+function stopAtEl(host, msg, why) {
   if (WZ && host) WZ.goToField(host);
-  showErr(msg);
+  showErr(msg, null, { reason: why || 'need', host: host });
   /* 焦点は**見えている入力**にだけ当てる。#f-jobrole は hidden（本体はチェックの絵）で、
      #pd-var-rows は行の入れ物なので、その中の最初の入力を探す。 */
   const el = host && /^(INPUT|SELECT|TEXTAREA)$/.test(host.tagName)
@@ -5371,13 +5392,20 @@ async function submitPayReport() {
   /* ★金額の読み方が決まっていない欄があるうちは送らない（2026-09-11）。
      黙って推測すると、1.000,00 が 1 になって行ごと消える形が戻る。 */
   const mb = moneyBlocker();
-  if (mb) return stopAtEl(mb, moneyRead(mb).state === 'bad'
-    ? '「' + mb.value + '」を金額として読めません。半角の数字で入れ直してください。'
-    : '「' + mb.value + '」の読み方が決まっていません。欄の下で、どちらの金額かを選んでください。');
+  if (mb) {
+    /* ★2つに分けて数える（2026-09-17）。「読めない」と「2通りに読める」は直し方が
+       違う ── 前者は打ち間違い、後者は 2026-09-11 に**こちらが**足した門。
+       分けないと、どちらが1日3回の正体なのかが永久に分からない。 */
+    const bad = moneyRead(mb).state === 'bad';
+    return stopAtEl(mb, bad
+      ? '「' + mb.value + '」を金額として読めません。半角の数字で入れ直してください。'
+      : '「' + mb.value + '」の読み方が決まっていません。欄の下で、どちらの金額かを選んでください。',
+      bad ? 'money_bad' : 'money_pick');
+  }
   /* ★時間・日数・率も、読めない／整数でない／範囲外のまま送らない（2026-09-11）。
      理由は欄の下にも出る（numBlocker が置く）。 */
   const nb = numBlocker();
-  if (nb) return stopAtEl(nb, readNum(nb).msg);
+  if (nb) return stopAtEl(nb, readNum(nb).msg, 'num');
   /* ★飛んだ時間は必須。0 は許す（地上勤務・病欠の月）。空欄だけを弾く。
      これが無いと時間あたり報酬が出せず、国と会社をまたいだ比較ができない。 */
   if (!val('f-block')) {
@@ -5474,7 +5502,7 @@ async function submitPayReport() {
       setSubmitBusy(false, _btnLabel);
       /* 入力そのものが受け取れない（22023）なら、その場で直してもらう。
          ここで登録の箱を出すと、直しようのない画面でアカウントだけ作らせることになる。 */
-      if (code === '22023') return showErr(String((e && (e.message || e.hint)) || 'error'));
+      if (code === '22023') return showErr(String((e && (e.message || e.hint)) || 'error'), null, { reason: 'server' });
       /* それ以外（通信・上限）は預かりそこねただけ。下書きは端末にあるので、
          これまで通り「ログイン → その場で送信」に落とす。 */
       return showGate(false);
@@ -5493,7 +5521,7 @@ async function submitPayReport() {
     /* ★保存そのものが落ちているなら、ここだけが立つ（入力不足の pay_form_blocked とは別物）。
        送るのは短い符号だけ。message には値が混じることがあるので送らない。 */
     track('pay_report_error', { reason: String((e && (e.code || e.name)) || 'error').slice(0, 40) });
-    showErr(String((e && (e.message || e.hint)) || 'error'));
+    showErr(String((e && (e.message || e.hint)) || 'error'), null, { reason: 'server' });
     setSubmitBusy(false, _btnLabel);
   }
 }

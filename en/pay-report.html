@@ -1757,6 +1757,29 @@ const track = (name, params) => {
   try { gtag('event', name, params || {}); } catch (e) {}
 };
 
+/* ── Why we stopped them (2026-09-17) ───────────────────────────
+   pay_form_blocked fired from three places under one name. In GA "a required box
+   is empty", "we cannot tell how to read this amount" and "the breakdown is over
+   the gross" all collapsed into one line: we could see people being stopped ~3x a
+   day, but **not which gate to fix**.
+   ★We send a short code, the box id, the step name and a count. Never the value
+     they typed and never an amount (no path for pay to reach GA).
+   ★The reason codes are byte-for-byte the same in JA and EN. If they differ, GA
+     splits one number into two and both look smaller than they are (same promise
+     as the step names).
+   ★Seven codes: over (breakdown exceeds gross) / missing (required box empty) /
+     need (nothing chosen, submitted blank) / money_pick (reads two ways) /
+     money_bad (not readable as money) / num (hours, days or percent unreadable) /
+     server (the server refused). */
+function trackBlocked(reason, host, n) {
+  const p = { reason: reason || 'other' };
+  if (host && host.id) p.field = String(host.id).slice(0, 40);
+  try { const s = WZ && WZ.current(); if (s) p.step = s; } catch (e) {}
+  if (n != null) p.n = n;
+  track('pay_form_blocked', p);
+}
+
+
 /* ── Login is asked for at SUBMIT time, not on load ───────────
    Hiding the whole form behind a session check loses everyone who
    would have left without ever seeing it. Nothing is checked here;
@@ -3336,7 +3359,7 @@ function overBlocking() {
   if (!p) return false;
   const d = p.closest('details');
   if (d && !d.open) d.open = true;
-  track('pay_form_blocked');
+  trackBlocked('over', p);
   p.scrollIntoView({ block: 'center', behavior: 'smooth' });
   return true;
 }
@@ -5167,12 +5190,12 @@ const PENDING_MAX_AGE = 14 * 24 * 60 * 60 * 1000;   // don't hold a draft older 
 })();
 
 // ── Errors ───────────────────────────────────────────────────────
-function showErr(msg, title) {
+function showErr(msg, title, blk) {
   /* ★Reaching here means "pressed submit and got pushed back". There are ~20
      required fields, so without this number we cannot tell "too much to fill in"
      apart from "never pressed the button".
      ★The message itself is never sent (it differs per language and could carry input). */
-  track('pay_form_blocked');
+  trackBlocked(blk && blk.reason, blk && blk.host, blk && blk.n);
   $('err').innerHTML = '<div class="form-alert"><span class="fa-title">' + esc(title || 'Could not submit') + '</span>' + esc(msg) + '</div>';
   $('err').scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
@@ -5255,7 +5278,7 @@ function clearMissMarks() {
   for (const t of document.querySelectorAll('.miss-tag')) t.remove();
 }
 function markMissing(list) {
-  track('pay_form_blocked');
+  trackBlocked('missing', list[0] && jumpTarget(list[0]), list.length);
   clearMissMarks();
   for (const f of list) {
     f.classList.add('is-miss');
@@ -5290,9 +5313,9 @@ function markMissing(list) {
    ★Move first, write second. #err is relocated into the current step by the wizard,
      so writing first means it is carried away the moment it appears (same note as
      markMissing). */
-function stopAtEl(host, msg) {
+function stopAtEl(host, msg, why) {
   if (WZ && host) WZ.goToField(host);
-  showErr(msg);
+  showErr(msg, null, { reason: why || 'need', host: host });
   /* Only focus something **on screen**: #f-jobrole is hidden (the checkboxes are the
      real control) and #pd-var-rows is a row container, so look inside it. */
   const el = host && /^(INPUT|SELECT|TEXTAREA)$/.test(host.tagName)
@@ -5557,14 +5580,21 @@ async function submitPayReport() {
   /* ★Never submit while a money box has an unsettled reading (2026-09-11).
      Guessing silently is what turned 1.000,00 into 1 and dropped the row. */
   const mb = moneyBlocker();
-  if (mb) return stopAtEl(mb, moneyRead(mb).state === 'bad'
-    ? '“' + mb.value + '” is not a number we can read. Please type it again in digits.'
-    : 'We do not know how to read “' + mb.value + '”. Please pick the amount you meant, under the box.');
+  if (mb) {
+    /* ★Count these two apart (2026-09-17). "cannot read" and "reads two ways" need
+       different fixes: the first is a typo, the second is the gate **we** added on
+       2026-09-11. Merged, we can never tell which one the ~3x a day really is. */
+    const bad = moneyRead(mb).state === 'bad';
+    return stopAtEl(mb, bad
+      ? '“' + mb.value + '” is not a number we can read. Please type it again in digits.'
+      : 'We do not know how to read “' + mb.value + '”. Please pick the amount you meant, under the box.',
+      bad ? 'money_bad' : 'money_pick');
+  }
   /* ★Same for hours / days / percent: never submit one we cannot read, that is
      not whole, or that is out of range (2026-09-11). numBlocker also puts the
      reason under the box. */
   const nb = numBlocker();
-  if (nb) return stopAtEl(nb, readNum(nb).msg);
+  if (nb) return stopAtEl(nb, readNum(nb).msg, 'num');
   /* ★Hours flown is required. 0 is allowed (ground duty, sick month) — only a blank
      is rejected. Without it there is no pay per block hour, and no way to compare
      across countries and airlines. */
@@ -5671,7 +5701,7 @@ async function submitPayReport() {
       /* If the input itself cannot be accepted (22023), say so here so it can be
          fixed. Showing the sign-up box instead means an account gets created in
          front of a screen that cannot be put right. */
-      if (code === '22023') return showErr(String((e && (e.message || e.hint)) || 'error'));
+      if (code === '22023') return showErr(String((e && (e.message || e.hint)) || 'error'), null, { reason: 'server' });
       /* Anything else (network, the daily cap) just means the hand-over missed.
          The draft is on the device, so fall back to sign in → submit from here. */
       return showGate(false);
@@ -5690,7 +5720,7 @@ async function submitPayReport() {
     /* ★If saving itself is broken, only this fires (pay_form_blocked is the
        missing-input case). Send the short code only — message can carry values. */
     track('pay_report_error', { reason: String((e && (e.code || e.name)) || 'error').slice(0, 40) });
-    showErr(String((e && (e.message || e.hint)) || 'error'));
+    showErr(String((e && (e.message || e.hint)) || 'error'), null, { reason: 'server' });
     setSubmitBusy(false, _btnLabel);
   }
 }
