@@ -3819,9 +3819,30 @@ const WIDTHS = [375, 390, 393, 430];
 /* 条件が満たされるまで待つ。満たされなければ false を返す（例外にしない）。 */
 /* ≡ に焦点が戻ったか。★「閉じた」印だけで焦点を読まない（下の2か所で使う）。 */
 const FOCUS_HAM = "document.activeElement && document.activeElement.id === 'pv-ham-btn'";
-const till = async (page, fn, ms = 5000) => {
+
+/* ★★時間切れを黙らせない（2026-09-18）──
+     false を返すだけだと、次の ok() が「焦点が ≡ に戻らない」という
+     **製品の欠陥の顔をして**落ちる。実際には混んだ回に待ちきれなかっただけで、
+     単独で流すと通る（2026-09-16、check.mjs all の同時4本でここだけが赤くなり、
+     単独では 1684/0 だった）。**待ちきれなかったのか、本当に起きなかったのかを
+     読む人が区別できないのが問題の本体。** だから切れた条件をその場で画面に出し、
+     最後にも「時間切れが N 回あった」と名乗らせる。
+   ⚠️ 5秒 → 10秒に延ばしたのは対症療法にすぎない。混めばいつかは切れるので、
+     切れたことが分かる形のほうが本命。**延ばしたから安心、とは考えない。** */
+let timedOut = 0;
+const till = async (page, fn, ms = 10000) => {
   try { await page.waitForFunction(fn, { timeout: ms, polling: 60 }); return true; }
-  catch (e) { return false; }
+  catch (e) {
+    timedOut++;
+    /* ★呼び出した行まで名乗る。条件の文字列は同じものが何度も出てくるので、
+       どの行が切れたのかが分からないと直しようがない。 */
+    const at = ((new Error().stack || '').split('\n')
+      .find((l) => l.includes('assert-pay-rows.mjs') && !l.includes('at till')) || '')
+      .replace(/^.*assert-pay-rows\.mjs:/, '').replace(/\).*$/, '').trim();
+    console.log('  ⏱ 時間切れ ' + ms + 'ms — ' + String(fn).replace(/\s+/g, ' ').slice(0, 72)
+      + (at ? '  @' + at : ''));
+    return false;
+  }
 };
 /* シートを開く。★2つ、時間では取れない待ちがある ──
      ① 閉じた直後は暗幕が 320ms だけ DOM に残る。その上から「絞り込み」を押すと
@@ -4043,14 +4064,25 @@ for (const lang of ['ja', 'en']) {
   await till(page, FOCUS_HAM);
   ok(await page.evaluate(() => document.activeElement && document.activeElement.id === 'pv-ham-btn'),
      `${lang}: ★★Escape で閉じ、焦点が ≡ に戻る`);
+  /* ★★閉じた直後に ≡ を押すときは、板が滑り終わるまで待つ（2026-09-18）──
+     板は右端に 304px（78vw）出ていて、**≡ ボタンの真上に重なっている**。
+     閉じても 320ms は visibility:visible のまま滑っているので、その間に押すと
+     板がクリックを受け取って ≡ に届かない＝ドロワーが開かない。
+     ⚠️ ここは**開かなかったことに誰も気づけなかった**。次の ok が
+     ok(true,…) と「閉じているか」だったので、開かないまま両方とも緑になる。
+     時間切れを名乗らせて初めて見つかった（同じ形が2か所あった）。 */
+  await sideStill(page);
   await page.click('#pv-ham-btn');
-  await till(page, "document.body.classList.contains('pv-anav-open')");
+  ok(await till(page, "document.body.classList.contains('pv-anav-open')"),
+     `${lang}: ★Escape で閉じたあと、≡ をもう一度押せば開く`);
   await sideStill(page);          /* ★滑り終わってから押す（途中を押すと当たらない）*/
   await page.evaluate(() => document.getElementById('pv-anav-ov').click());
-  await till(page, "!document.body.classList.contains('pv-anav-open')");
-  ok(true, `${lang}: ★暗幕を押して閉じる`);
+  ok(await till(page, "!document.body.classList.contains('pv-anav-open')"),
+     `${lang}: ★暗幕を押して閉じる`);
+  await sideStill(page);
   await page.click('#pv-ham-btn');
-  await till(page, "document.body.classList.contains('pv-anav-open')");
+  ok(await till(page, "document.body.classList.contains('pv-anav-open')"),
+     `${lang}: ★暗幕で閉じたあと、≡ をもう一度押せば開く`);
   await sideStill(page);
   await page.evaluate(() => document.querySelector('.mr-side-x').click());
   await till(page, "!document.body.classList.contains('pv-anav-open')");
@@ -4086,9 +4118,13 @@ for (const lang of ['ja', 'en']) {
      `焦点 ${late.at} / 開いている ${late.open}`);
   await till(page, "!document.body.classList.contains('pv-anav-open')");
 
-  /* ★広い幅に戻したら、開きっぱなしにしない（レールに化けるため）。 */
+  /* ★広い幅に戻したら、開きっぱなしにしない（レールに化けるため）。
+     ⚠️ **開いたことを先に確かめる。** 開いていなければ「閉じている」は
+     ただの素通りで、何も検査していない（2026-09-18 に実際そうなっていた）。 */
+  await sideStill(page);
   await page.click('#pv-ham-btn');
-  await till(page, "document.body.classList.contains('pv-anav-open')");
+  ok(await till(page, "document.body.classList.contains('pv-anav-open')"),
+     `${lang}: 広い幅に戻す前に、まず開いている`);
   await widen(page, 1360);
   ok(await till(page, "!document.body.classList.contains('pv-anav-open')"),
      `${lang}: ★★広い幅に戻すと閉じる（レールに化けたまま暗幕が残らない）`);
@@ -5026,4 +5062,8 @@ for (const lang of ['ja', 'en']) {
 for (const jar of jars) { try { await jar.close(); } catch (e) {} }
 await browser.close();
 console.log(`\n══ ${pass} pass / ${fail} fail ══`);
+if (timedOut) {
+  console.log(`  ⏱ 待ちが時間切れになった回数: ${timedOut}`);
+  console.log('     ↑ 上の ⏱ の行を見る。赤が出ていて、その直前に ⏱ が出ているなら、\n       製品ではなく**待ちきれなかった**可能性がある。その1本だけ単独で流し直す:\n         node assert-pay-rows.mjs');
+}
 process.exit(fail ? 1 : 0);
