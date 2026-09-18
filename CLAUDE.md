@@ -134,10 +134,18 @@ baland_ass/                            ブランド資産（※ brand_assets の
   リード文の直後に「機長はいくら」へその場で答える1段落を置く。数値は `SALARY` だけから作る。
   見た目は [airlines/airline-base.css](airlines/airline-base.css) の `.pv-answer`。
 - [gen-datemod.mjs](gen-datemod.mjs) … JSON-LD の Article に `datePublished` / `dateModified` を入れる。
-  **コミットの直前に流す。** 日付は git の履歴から取る。
-  ⚠️ **自分が入れた日付を「今日の変更」と数えない**仕掛けが入っている（日付の行だけ取り除いて
-  HEAD と突き合わせる）。外すと、中身が1文字も変わっていないページまで「今日直した」になる＝数字を盛る。
-  `ana-vs-jal.html` の2枚だけは JSON-LD が整形して書いてあるので入らない（そう報告する）。
+  **`seo-normalize.mjs` のあと・コミットの直前に流す。** 流し忘れは `assert-generated.mjs` が捕まえる。
+  日付の決め方は [page-dates.mjs](page-dates.mjs) の1か所で、`gen-sitemap.mjs` の `lastmod` も
+  同じものを呼ぶ（＝サイトマップと JSON-LD の日付は必ず一致する。346枚で確認済み）。
+  ⚠️ **日付を入れただけの変更を「直した」と数えない**（JSON-LD を読んで Article の日付を落としてから
+  前後を比べる。コミットした後も効く）。外すと、中身が1文字も変わっていないページまで
+  「今日直した」になる＝数字を盛る。
+  ⚠️ **分からない日付は書かない。** 履歴は 2026-08-20 の1コミットから始まっていて、それより前の
+  公開日は git から分からない。なので `datePublished` は**手で書いてあった15枚にしか無い**
+  （履歴の始まりより前の日付＝人が書いたものは残す）。初版はここを 2026-08-20 で埋め、
+  手書きの公開日 11枚を上書きしていた（2026-09-18 に戻した）。
+  ⚠️ **`seo-normalize.mjs` は管理ブロックを作り直すとき、前にあった日付を運ぶ。**
+  運ばなかった頃、ドルのレートを直すために流して **216枚の日付が黙って消えた**（画面は何も変わらない）。
 
 ## 口コミ・海外評判のコンテンツルール
 - 海外の口コミは**忠実訳の引用＋末尾に出典**。全文転載・大量リライト・出典なしの自社コンテンツ化はしない（翻案権侵害＋検索順位の毀損＋信用の毀損）。
@@ -197,7 +205,7 @@ baland_ass/                            ブランド資産（※ brand_assets の
 そのうえで `en/` 側を置いてから **`node bake-en-currency.mjs`**（英語ページの金額をドルにする）→
 **`node gen-en-manifest.mjs`**
 （[lang-toggle.js](lang-toggle.js) の `EN_PAGES` は生成物。手編集禁止）→
-`node seo-normalize.mjs` → `node gen-sitemap.mjs` の順に流す。
+`node seo-normalize.mjs` → `node gen-datemod.mjs` → `node gen-sitemap.mjs` の順に流す。
 
 - `noindex` は `<!--PV-SRC t="…" d="…"-->` を置いて `seo-normalize.mjs` に `<!--PV-SEO-->` を書かせる
   （[airline-conditions.html:14](airline-conditions.html#L14) が手本）
@@ -281,7 +289,7 @@ baland_ass/                            ブランド資産（※ brand_assets の
 | `assert-deep-pay-compare.mjs` | 会社比較 ── **片側が3人未満でももう片側は普通に出る**・勝ち負けの語を書かない・賞与を月々の棒に入れない・人数を JS で数えない（壁は SQL の1か所）|
 | `assert-roadmap.mjs` | ROADMAP & REQUESTS ── **匿名が解けない**（一覧の SQL が `author_hash` に触れない）・要望の本文が `textContent` で入る・**日英の文言の鍵が完全に同じ**・区分と状態の白リストが SQL と画面で一致・取れないときに 0 で埋めない・hex と `prefers-color-scheme` の直書きが無い |
 | `db/test-requests.mjs` | 要望と ♡ の SQL ── ハッシュが外へ出ない・**1人1票**・管理者しか状態を変えられない・隠した行が一般ユーザーの `total` にも出ない・文字数と連投の制限がサーバ側で効く |
-| `assert-generated.mjs` | 生成物（sitemap・英語版一覧・語彙）が**流し忘れで古くなっていない**か。使い捨てのコピーの中で生成スクリプトを流すので**リポジトリには書き込まない**（`.git` だけ読むために貸す）|
+| `assert-generated.mjs` | 生成物（sitemap・英語版一覧・語彙・JSON-LD の更新日）が**流し忘れで古くなっていない**か。使い捨てのコピーの中で生成スクリプトを流すので**リポジトリには書き込まない**（`.git` だけ読むために貸す）|
 | `assert-no-pii.mjs` | オーナーの身元が漏れていないか（`.githooks/pre-commit` から毎回自動で走る）|
 | `npm run test:sql` | Supabase 側（`db/*.sql`）を触ったとき。`check.mjs sql` が同じものを並列で回す |
 

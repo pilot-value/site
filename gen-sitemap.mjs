@@ -13,15 +13,17 @@
    設計
      ・URL 集合はディスクを走査して決める。手で足し引きしない。
      ・noindex は seo-normalize.mjs と同じ集合を使う（二重管理を避ける）。
-     ・lastmod は git の最終コミット日。git が使えないファイルは mtime。
+     ・lastmod は中身が最後に変わった日。決め方は page-dates.mjs の1か所で、
+       JSON-LD の dateModified（gen-datemod.mjs）と必ず同じ日付になる。
+       日付を入れただけのコミットは「変わった」に数えない。git が使えないときは mtime。
      ・日英そろっているページには xhtml:link を3本（ja / en / x-default）。
 
    実行: node gen-sitemap.mjs
 ════════════════════════════════════════════════════════════════ */
 import fs from 'fs';
 import path from 'path';
-import { execFileSync } from 'child_process';
 import { SALARY } from './salary-data.mjs';
+import { pageDates } from './page-dates.mjs';
 
 const ROOT = path.dirname(new URL(import.meta.url).pathname).replace(/%20/g, ' ');
 const ORIGIN = 'https://pilot-value.com';
@@ -65,21 +67,15 @@ const relToUrl = (rel) => (rel === 'index.html' ? `${ORIGIN}/`
   : rel === 'en/index.html' ? `${ORIGIN}/en/` : `${ORIGIN}/${rel}`);
 
 /* ── lastmod ─────────────────────────────────────────────────── */
-let gitDates = new Map();
-try {
-  /* 1ファイルずつ git log を呼ぶと 288 回のプロセス起動になる。
-     全コミットを1回で舐めて、ファイルごとの最新日だけ拾う。 */
-  const out = execFileSync('git', ['log', '--name-only', '--pretty=format:%cs', '--', '.'],
-    { cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
-  let cur = null;
-  for (const line of out.split('\n')) {
-    if (/^\d{4}-\d{2}-\d{2}$/.test(line)) { cur = line; continue; }
-    if (line && cur && !gitDates.has(line)) gitDates.set(line, cur);
-  }
-} catch { /* git が無い環境では mtime にフォールバック */ }
+/* ★2026-09-18 まで、ここは「そのファイルを最後に触ったコミットの日」を自前で数えていた。
+   JSON-LD に日付を入れただけのコミットでも「今日」になり、同じページがサイトマップでは
+   9月18日・JSON-LD では9月7日と食い違っていた。 */
+let dates = new Map();
+try { dates = pageDates(ROOT, files); } catch { /* git が無い環境では mtime にフォールバック */ }
 
-const lastmod = (rel) => gitDates.get(rel)
-  || fs.statSync(path.join(ROOT, rel)).mtime.toISOString().slice(0, 10);
+/* 分からない日付（履歴の始まりから一度も直していない）は lastmod を書かない。 */
+const lastmod = (rel) => (dates.has(rel) ? dates.get(rel).modified
+  : fs.statSync(path.join(ROOT, rel)).mtime.toISOString().slice(0, 10));
 
 /* ── 優先度と更新頻度 ────────────────────────────────────────── */
 function rank(rel) {
@@ -119,8 +115,7 @@ const rows = files.map((rel) => {
   ].join('\n') : '';
   return `  <url>
     <loc>${relToUrl(rel)}</loc>
-    <lastmod>${lastmod(rel)}</lastmod>
-    <changefreq>${changefreq}</changefreq>
+${lastmod(rel) ? `    <lastmod>${lastmod(rel)}</lastmod>\n` : ''}    <changefreq>${changefreq}</changefreq>
     <priority>${priority}</priority>${links ? '\n' + links : ''}
   </url>`;
 });

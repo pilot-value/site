@@ -25,15 +25,16 @@
 //    おまけに ── 作業ツリーが汚れていても走れる（check.mjs に入れられる）／
 //    手元の保存し忘れに影響されず、実際に push される中身を見る。
 //
-//  ★ .git だけはリンクで貸す。gen-sitemap.mjs が lastmod を git のコミット日
-//    から作っているため（gen-sitemap.mjs:72）。貸さずに流すと、あの try/catch が
+//  ★ .git だけはリンクで貸す。gen-sitemap.mjs の lastmod と gen-datemod.mjs の
+//    JSON-LD の日付を、git の履歴から作っているため（どちらも page-dates.mjs）。貸さずに流すと、あの try/catch が
 //    黙って mtime へ落ちて sitemap の 760 行が別物になり、毎回「古い」と嘘をつく。
 //    ★実際にこの検査を書いている最中に踏んだ。
-//    git を使うのは4本のうち gen-sitemap だけで、呼ぶのは git log ＝読むだけ。
+//    git を使うのは gen-sitemap と gen-datemod で、呼ぶのは ls-tree / log / cat-file ＝読むだけ
+//    （作業ツリーの判定も git diff を使わず自前でハッシュを取る＝索引に触れない）。
 //    ただし「今のコードは読むだけ」に頼りたくないので、流す前後で HEAD と index を
 //    突き合わせて、本当に書かれていないことを毎回確かめる（下の GIT_GUARD）。
 //
-//  ★ 画像は展開しない（46MB のうちほとんどが画像で、4本とも読まない）。
+//  ★ 画像は展開しない（46MB のうちほとんどが画像で、どれも読まない）。
 //    もし生成物が画像の有無で変わるなら、この検査が緑にならないので気づける。
 //
 //  ★ seo-normalize.mjs はここに入れていない。約250枚の HTML を書き換える
@@ -52,12 +53,15 @@ const ROOT = fileURLToPath(new URL('.', import.meta.url));
 const GENERATORS = [
   ['gen-salary-json.mjs', 'salary-data.json（年収の公開用JSON）'],
   ['gen-sitemap.mjs',     'sitemap.xml（検索エンジンに渡す一覧）'],
+  /* 2026-09-18 に足した。seo-normalize.mjs が管理ブロックを作り直すたびに日付を消していて、
+     216枚の日付が黙って巻き戻っていた（画面は何も変わらない）。流し忘れもこれで分かる。 */
+  ['gen-datemod.mjs',     'JSON-LD の datePublished / dateModified（ページの更新日）'],
   ['gen-en-manifest.mjs', 'lang-toggle.js の EN_PAGES（英語版がある頁の一覧）'],
   ['gen-vocab.mjs',       'pv-vocab.json / db/vocab.generated.sql（選択肢と為替）'],
   ['gen-airline-codes.mjs', 'airline-codes.json / pv-airlines.json / 投稿フォーム4枚 / db/airlines.generated.sql'],
 ];
 
-// 4本とも読まない重いもの。展開しないぶん速くなる。
+// どれも読まない重いもの。展開しないぶん速くなる。
 const SKIP = ['*.png','*.jpg','*.jpeg','*.gif','*.webp','*.ico','*.pdf',
               '*.mp4','*.zip','*.woff','*.woff2','*.ttf'];
 
@@ -91,7 +95,7 @@ try {
   console.log('HEAD を使い捨てフォルダに展開して、その中で生成スクリプトを流す');
   console.log('（このリポジトリのファイルには書き込まない）\n');
 
-  // gen-sitemap が git のコミット日を読めるように .git を貸す（読むだけのはず）
+  // gen-sitemap / gen-datemod が git の履歴を読めるように .git を貸す（読むだけのはず）
   const gitDir = join(ROOT, '.git');
   const guard = () => ['HEAD', 'index', 'ORIG_HEAD'].map(f => {
     const p = join(gitDir, f);

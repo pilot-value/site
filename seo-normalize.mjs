@@ -626,6 +626,22 @@ for (const rel of files) {
   const ogType = /(airlines|countries)\//.test(rel) ? 'article' : 'website';
   const img = ORIGIN + ogImage(rel, lang);
 
+  /* ★ 5) で管理ブロックごと消える前に、gen-datemod.mjs が Article に入れた日付を拾っておく。
+     拾わずに作り直すと、流した人の手元で日付が黙って消える（2026-09-18、ドルのレートを
+     直すためにこれを流し、216枚の datePublished / dateModified が消えた。画面は何も変わらない）。
+     日付は git の履歴から決まるもので、ここでは作らない。前にあった値をそのまま運ぶだけ。 */
+  const keptDates = {};
+  for (const [, j] of ((head.match(/<!--PV-SEO-->[\s\S]*?<!--\/PV-SEO-->/i) || [''])[0])
+    .matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)) {
+    try {
+      for (const n of JSON.parse(j)['@graph'] || []) {
+        if (n['@type'] !== 'Article') continue;
+        if (n.datePublished) keptDates.datePublished = n.datePublished;
+        if (n.dateModified) keptDates.dateModified = n.dateModified;
+      }
+    } catch { /* 読めないブロックからは拾わない */ }
+  }
+
   /* 5) 管理対象タグを head から全部剥がす（重複・古い値をここで一掃）*/
   head = head
     /* ★ 末尾を \s* で食わせない。改行の次の行の字下げまで飲み込んでしまい、
@@ -690,7 +706,8 @@ for (const rel of files) {
 
   if (!noindex && /(airlines|countries)\//.test(rel) && !hasType('Article')) {
     graph.push({
-      '@type': 'Article', headline: title.replace(/\s*[|｜]\s*PILOT VALUE\s*$/i, ''),
+      '@type': 'Article', ...keptDates,                 // 日付は @type の直後（gen-datemod.mjs と同じ位置）
+      headline: title.replace(/\s*[|｜]\s*PILOT VALUE\s*$/i, ''),
       description: desc, inLanguage: lang === 'ja' ? 'ja-JP' : 'en',
       image: img, mainEntityOfPage: selfUrl,
       author: { '@type': 'Organization', name: 'PILOT VALUE', url: `${ORIGIN}/` },
@@ -788,9 +805,9 @@ ${ld}<!--/PV-SEO-->
 `;
 
   if (/<title[^>]*>[\s\S]*?<\/title>/i.test(head)) {
-    head = head.replace(/<title[^>]*>[\s\S]*?<\/title>/i, `<title>${esc(title)}</title>${block}`);
+    head = head.replace(/<title[^>]*>[\s\S]*?<\/title>/i, () => `<title>${esc(title)}</title>${block}`);   // 関数形: タイトルの $233K を置換記号にしない
   } else {
-    head = head.replace(/(<meta\b[^>]*charset[^>]*>)/i, `$1\n<title>${esc(title)}</title>${block}`);
+    head = head.replace(/(<meta\b[^>]*charset[^>]*>)/i, (m) => `${m}\n<title>${esc(title)}</title>${block}`);
   }
 
   /* 7) 本文・構造化データ側に残った実態と違う社数表記も直す。
