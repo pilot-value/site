@@ -28,6 +28,8 @@ import fs from 'fs';
 import path from 'path';
 import { SALARY } from './salary-data.mjs';
 import { AIRLINE_COUNTRY, BY_CODE, nameIn } from './airline-countries.mjs';
+import { curCore } from './cur-core.mjs';
+const CUR = await curCore('USD', 'en');   // 金額の作り方は currency.js が正
 
 const ROOT = path.dirname(new URL(import.meta.url).pathname).replace(/%20/g, ' ');
 const ORIGIN = 'https://pilot-value.com';
@@ -36,9 +38,12 @@ const DRY = process.argv.includes('--dry');
 /* ── 数値ヘルパ（すべて SSOT 由来） ─────────────────────────── */
 const S = SALARY;
 const N = Object.keys(S).length;                       // 110
-const USD_RATE = 160;                                  // currency.js と同じ換算
 const man = (v) => `${v.toLocaleString('en-US')}万円`;
-const usd = (v) => `$${Math.round((v * 10000) / USD_RATE / 1000)}K`;
+/* ★ドルの換算レートを手で持たない（2026-09-18）。
+   ここが 160 のまま置き去りになり、currency.js（158.95）が塗る本文と食い違って
+   **同じページの中でタイトルが $231K・本文が $233K** になっていた。
+   画面では本文だけ見えるので誰も気づかない。焼き込んで初めて並んで見えた。 */
+const usd = (v) => CUR.fmt(v * 10000);                 // 画面と同じ関数で作る
 const capJa = (k) => man(S[k].cap.avg);
 const capEn = (k) => usd(S[k].cap.avg);
 const topPay = Object.entries(S).sort((a, b) => b[1].cap.avg - a[1].cap.avg)[0];

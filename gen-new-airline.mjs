@@ -31,6 +31,12 @@
 import fs from 'fs';
 import path from 'path';
 import { SALARY } from './salary-data.mjs';
+import { curCore } from './cur-core.mjs';
+/* ★ドルの換算レートを手で持たない（2026-09-18）。
+   ここが 160 のまま置き去りになり、currency.js（158.95）が塗る本文と食い違って
+   **同じページの中でタイトルが $231K・本文が $233K** になっていた。
+   画面では本文だけ見えるので誰も気づかない。焼き込んで初めて並んで見えた。 */
+const USD_RATE = (await curCore('USD', 'en')).RATES.USD;
 
 const ROOT = path.dirname(new URL(import.meta.url).pathname).replace(/%20/g, ' ');
 const FORCE = process.argv.includes('--force');
@@ -669,7 +675,7 @@ function ldJa() {
 
 function ldEn() {
   const url = `https://pilot-value.com/en/airlines/${slug}.html`;
-  const k = (v) => Math.round(v * 10000 / 160 / 1000);   // 万円 → USD千ドル（currency.js と同じ 160）
+  const k = (v) => Math.round(v * 10000 / USD_RATE / 1000);   // 万円 → USD千ドル（レートは currency.js が正）
   return JSON.stringify([
     { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'PILOT VALUE', item: 'https://pilot-value.com/en/' },
@@ -710,7 +716,7 @@ function build({ donor, lang }) {
   /* 3) title。seo-normalize.mjs が最終形にするが、生成元として妥当な値を置く。 */
   const title = lang === 'ja'
     ? `${A.ja} パイロット年収 機長${A.cap.avg.toLocaleString('en-US')}万円【2026】 | PILOT VALUE`
-    : `${A.en} Pilot Salary 2026 — Captain $${Math.round(A.cap.avg * 10000 / 160 / 1000)}K | PILOT VALUE`;
+    : `${A.en} Pilot Salary 2026 — Captain $${Math.round(A.cap.avg * 10000 / USD_RATE / 1000)}K | PILOT VALUE`;
   if (!/<title[^>]*>/i.test(html)) throw new Error(`${donor}: <title> が無い`);
   html = html.replace(/<title[^>]*>[\s\S]*?<\/title>/i, `<title>${esc(title)}</title>`);
 

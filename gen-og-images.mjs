@@ -26,6 +26,7 @@ import fs from 'fs';
 import path from 'path';
 import { SALARY } from './salary-data.mjs';
 import { COUNTRIES, airlinesOf } from './airline-countries.mjs';
+import { curCore } from './cur-core.mjs';
 
 const ROOT = path.dirname(new URL(import.meta.url).pathname).replace(/%20/g, ' ');
 const OUT = path.join(ROOT, 'assets', 'og');
@@ -47,7 +48,11 @@ const N_AIRLINES = Object.keys(SALARY).length;
    52px まで縮めると文字が潰れて「小さい黒い箱」にしか見えなかった。 */
 
 /* 万円 → 表示。通貨切替は画像では効かないので、JA は円・EN は USD で焼く。 */
-const USD = 160; // 1 USD = 160 JPY（サイト全体の換算レートに合わせる）
+/* ★ドルの換算レートを手で持たない（2026-09-18）。
+   ここが 160 のまま置き去りになり、currency.js（158.95）が塗る本文と食い違って
+   **同じページの中でタイトルが $231K・本文が $233K** になっていた。
+   画面では本文だけ見えるので誰も気づかない。焼き込んで初めて並んで見えた。 */
+const USD = (await curCore('USD', 'en')).RATES.USD;
 const fmtJa = (man) => `${man.toLocaleString('en-US')}万円`;
 const fmtEn = (man) => `$${Math.round((man * 10000) / USD / 1000)}K`;
 

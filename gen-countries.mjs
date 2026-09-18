@@ -31,6 +31,7 @@ import fs from 'fs';
 import path from 'path';
 import { SALARY } from './salary-data.mjs';
 import { AIRLINE_COUNTRY, COUNTRIES, nameIn, nameFull } from './airline-countries.mjs';
+import { curCore } from './cur-core.mjs';
 
 const ROOT = path.dirname(new URL(import.meta.url).pathname).replace(/%20/g, ' ');
 const DRY = process.argv.includes('--dry');
@@ -47,7 +48,11 @@ const range = (lo, hi) => `¥${Math.round(lo).toLocaleString('en-US')}万〜${Ma
    description に同じ書き方をすると英語版の検索結果に「¥1,850万」が
    そのまま出る。head に入る金額だけは生成時に USD へ寄せる。
    レートは currency.js / seo-normalize.mjs と同じ 160。 */
-const USD_RATE = 160;
+/* ★ドルの換算レートを手で持たない（2026-09-18）。
+   ここが 160 のまま置き去りになり、currency.js（158.95）が塗る本文と食い違って
+   **同じページの中でタイトルが $231K・本文が $233K** になっていた。
+   画面では本文だけ見えるので誰も気づかない。焼き込んで初めて並んで見えた。 */
+const USD_RATE = (await curCore('USD', 'en')).RATES.USD;
 const usd = (v) => `$${Math.round((v * 10000) / USD_RATE / 1000).toLocaleString('en-US')}K`;
 const usdRange = (lo, hi) => `${usd(lo)}–${usd(hi)}`;
 const mean = (xs) => xs.reduce((a, b) => a + b, 0) / xs.length;
