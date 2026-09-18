@@ -401,8 +401,14 @@
     injectCSS();
     injectToggle();
     scan(d.body);
+    /* ★applyAll() は必ず通す（2026-09-18）。
+       bake-en-currency.mjs が HTML に焼き込んだ span は、pv-cur が SKIP_CLASS に
+       入っているので scan() が素通りする。ここを state!=='JPY' の中に置いたままだと、
+       英語ページで JPY を選んでいる人の画面が**ドル表記のまま固まる**。
+       日本語ページ＋JPY のときは shown() が原表記を返す＝scan() の直後と同じ文字＝
+       1文字も動かない（無害な空振り）。 */
+    applyAll();
     if (state !== 'JPY') {
-      applyAll();
       // 復帰ユーザーが非JPYを保存済みの場合、初期表示時点で既に描画済みの図
       // （index/world-airlines の即時マウント）も現在通貨へ追随させる。
       try { w.dispatchEvent(new CustomEvent('pv-currency-change', { detail: { currency: state } })); }

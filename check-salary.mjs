@@ -14,6 +14,10 @@
 import { readdirSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { SALARY, buildSalaryJson } from './salary-data.mjs';
+/* 英語ページの金額は HTML の時点でドルに焼き込んである（bake-en-currency.mjs）。
+   元の円表記は span の data-orig に残っているが、**タグの中なので下の正規表現からは
+   見えない**。戻さずに読むと、英語ページ 183枚が照合から黙って外れる。 */
+import { unbake } from './cur-core.mjs';
 
 // ── 生成物 salary-data.json が buildSalaryJson() と完全一致しているか（サラリーエンジン供給の整合） ──
 // json は gen-salary-json.mjs の生成物（{spine, airlines:{slug:{...SALARY,ladder}}}）。
@@ -55,7 +59,7 @@ for (const [slug, d] of Object.entries(SALARY)) {
         他社の年収が入っている。そこを一緒に読むと、たとえば skymark のページに
         あるジェットスター・ジャパンの¥2,400万を skymark の古い数値と誤検知する
         （実際に stale:2,400万 の誤報が出た）。このページ自身の主張だけを見る。 */
-  const html = readFileSync(p, 'utf8')
+  const html = unbake(readFileSync(p, 'utf8'))
     .replace(/<!--PV-CLINK-->[\s\S]*?<!--\/PV-CLINK-->/g, '');
   const capStr = man(d.cap.avg), foStr = man(d.fo.avg);
   const hasCap = html.includes(capStr);
@@ -134,7 +138,7 @@ const files = walkHtml('.');
 let nHit = 0, nBad = 0, nWarn = 0;
 const cross = [];
 for (const f of files) {
-  const html = readFileSync(f, 'utf8').replace(/<!--PV-CLINK-->[\s\S]*?<!--\/PV-CLINK-->/g, '');
+  const html = unbake(readFileSync(f, 'utf8')).replace(/<!--PV-CLINK-->[\s\S]*?<!--\/PV-CLINK-->/g, '');
   for (const { slug, a } of ALIAS) {
     const d = SALARY[slug];
     const re = new RegExp(esc(a) + GAP + ROLE + GAP + NUM + '(?:\\s*万?\\s*[〜~–—-]\\s*' + NUM + ')?\\s*万', 'g');
