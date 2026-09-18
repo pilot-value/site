@@ -104,6 +104,41 @@ baland_ass/                            ブランド資産（※ brand_assets の
 
 独自フォーマットで書くと変換から漏れ、`node assert-currency.mjs` が落ちる。
 
+### ⚠️ 英語ページの金額は HTML の時点でドルになっている（2026-09-18）
+本文を円で書いて実行時に直していたので、**JS を動かさない読み手（AI のクローラ）には
+¥3,700万としか見えなかった**。いまは `currency.js` が実行時に作るのと同じ span を
+あらかじめ HTML に書いてある。人間の画面は1ピクセルも変わらない。
+
+```html
+<span class="pv-cur" data-jpy="37000000" data-orig="¥37M">$233K</span>
+```
+
+- **`en/` の本文に円で金額を足したら `node bake-en-currency.mjs` を流す。**
+  流さないと、その1か所だけ英語ページに円が残る（画面では JS が直すので**気づけない**）。
+  `--check` で差分だけ・`--undo` で全部元に戻る（1バイト違わず戻ることを 183枚で確認済み）。
+- **ページのソースを読んで金額を照合する道具は、必ず [cur-core.mjs](cur-core.mjs) の `unbake()` を通す。**
+  元の円表記は `data-orig` に残っているが**タグの中**なので、正規表現からは見えない。
+  通さないと英語183枚が**黙って照合から外れる**（[check-salary.mjs](check-salary.mjs) が手本）。
+- **span の作り方を写さない。** [cur-core.mjs](cur-core.mjs) が `currency.js` から
+  `fmt` / `makeRe` / `matchToParts` の**関数本体をそのまま切り出して**評価している。
+  数字の作り方はサイトに1つだけ。
+- ⚠️ **ドルの換算レートを手で持たない。** 4本のスクリプトが `160` を自前で持っていて、
+  タイトルが `$231K`・本文が `$233K` と**同じページの中で食い違っていた**（`currency.js` は 158.95）。
+  レートは `(await curCore('USD','en')).RATES.USD`、額は `CUR.fmt()` で作る。
+- ⚠️ `currency.js` の `init()` で `applyAll()` を `state !== 'JPY'` の中に戻さない。
+  焼き込んだ span は `scan()` が素通りする（`pv-cur` は `SKIP_CLASS`）ので、
+  **英語ページで円を選んでいる人の画面がドル表記のまま固まる。**
+
+### 冒頭の答え（`<p class="pv-answer">`）と JSON-LD の更新日
+- [gen-answer-lead.mjs](gen-answer-lead.mjs) … 航空会社ページ 224枚（日英112社ずつ）の
+  リード文の直後に「機長はいくら」へその場で答える1段落を置く。数値は `SALARY` だけから作る。
+  見た目は [airlines/airline-base.css](airlines/airline-base.css) の `.pv-answer`。
+- [gen-datemod.mjs](gen-datemod.mjs) … JSON-LD の Article に `datePublished` / `dateModified` を入れる。
+  **コミットの直前に流す。** 日付は git の履歴から取る。
+  ⚠️ **自分が入れた日付を「今日の変更」と数えない**仕掛けが入っている（日付の行だけ取り除いて
+  HEAD と突き合わせる）。外すと、中身が1文字も変わっていないページまで「今日直した」になる＝数字を盛る。
+  `ana-vs-jal.html` の2枚だけは JSON-LD が整形して書いてあるので入らない（そう報告する）。
+
 ## 口コミ・海外評判のコンテンツルール
 - 海外の口コミは**忠実訳の引用＋末尾に出典**。全文転載・大量リライト・出典なしの自社コンテンツ化はしない（翻案権侵害＋検索順位の毀損＋信用の毀損）。
 - 海外評判は6カテゴリ×約150字の通常の口コミ風カードに分けて混ぜる。先頭に長文を1枚置く形にしない。星は付けない。出典は必須。
@@ -159,7 +194,8 @@ baland_ass/                            ブランド資産（※ brand_assets の
 （英語ページのコメントも日本語に戻る）。新しいページに解析タグが要るときは、
 既存ページの `<!--PV-3P-->…<!--/PV-3P-->` を**そのまま写す**（置き場所は `pv-session.js` の直前）。
 
-そのうえで `en/` 側を置いてから **`node gen-en-manifest.mjs`**
+そのうえで `en/` 側を置いてから **`node bake-en-currency.mjs`**（英語ページの金額をドルにする）→
+**`node gen-en-manifest.mjs`**
 （[lang-toggle.js](lang-toggle.js) の `EN_PAGES` は生成物。手編集禁止）→
 `node seo-normalize.mjs` → `node gen-sitemap.mjs` の順に流す。
 
