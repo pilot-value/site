@@ -222,7 +222,9 @@ const pick8 = (xs) => {
   return top;
 };
 const maskSpec = (open) => {
-  const top = pick8(open.filter(eliOf));
+  /* ★2026-09-19 公開年収から大きく外れた人（far）は8行の候補から外す。
+     9行目以降で会社を伏せるかどうか（eliOf）と公開の日の8行（top0）は変えない。 */
+  const top = pick8(open.filter(x => eliOf(x) && !x.far));
   /* 公開の日の8行 ── 公開前の提出（l0）だけで並べ直す。同じ時刻は md5 の順。 */
   const top0 = pick8(open.filter(x => eliOf(x) && x.l0).sort((a, b) =>
     Date.parse(b.l0) - Date.parse(a.l0) || (md5hex(a.k) < md5hex(b.k) ? -1 : 1)));
@@ -271,6 +273,14 @@ const [A_ONE, A_M12, A_MIX, A_OLD, A_ORD, A_VF, A_OUT, A_FOTHER,
        // ★2026-09-12。不就労減額のあった月（帯が消えないこと）。1社＝1人。
        A_ABS] = AIR;
 const nameOf = (code) => VOCAB.find(r => r.code === code);
+
+/* ★2026-09-19 見本の額は、社ごとの公開年収に合わせて作っていない（社は語彙の先頭から
+   順に割り当てているだけ）。幅を残すと、年収の数字を直しただけで「公開年収から大きく
+   外れた人」（far）が入れ替わり、伏せた一覧の検査が本題と無関係に落ちる。
+   ここで使う社の幅は空にして判定から切り離す。far そのものは 12-j で、幅と為替を
+   決め打ちして見る。 */
+await db.query(`update pv_airlines set cap_lo = null, cap_hi = null, fo_lo = null, fo_hi = null
+                 where code = any($1::text[])`, [AIR]);
 
 // ════════════════════════════════════════════════════════════
 console.log('\n▼ 1. 鍵（ログインと access_until）');
@@ -636,10 +646,13 @@ console.log('\n▼ 7. ★返り値に何が入っているか');
    （2026-08-24 に「返さない」と決めたのを取り消したもの。経緯は db/pay-rows.sql の冒頭）
    ここの検査は「返すか返さないか」から **「返るのが帯と段だけか」** に移っている。
    ⚠️ ALLOWED に語を足すのは設計判断。足す前に db/pay-rows.sql の②を読むこと。 */
+/* ★2026-09-19 far を足した（公開年収から大きく外れた本人申告の行。値は true だけ）。 */
 const ALLOWED = ['airline', 'pos', 'annual_usd', 'verified', 'age',
-                 'fleet', 'ten', 'tenk', 'pay', 'paylock', 'work'];
+                 'fleet', 'ten', 'tenk', 'pay', 'paylock', 'work', 'far'];
 const extra = [...new Set(R.flatMap(x => Object.keys(x)))].filter(k => !ALLOWED.includes(k));
-ok(extra.length === 0, '返す項目は11個だけ', JSON.stringify(extra));
+ok(extra.length === 0, '返す項目は12個だけ', JSON.stringify(extra));
+ok(R.every(x => !('far' in x) || x.far === true),
+   '★far は true のときだけ入る（false や null で全行に鍵を生やさない）');
 ok(R.every(x => !('comp' in x)),
    '★どの行にも支給の「割合」のキーが無い（割合は今も DEEP PAY の役目）');
 ok(R.every(x => !('fleet_cat' in x)),
@@ -2287,13 +2300,150 @@ console.log('\n▼ 12-i. ★報酬の内訳の門（Give & Get・2026-09-03）')
 }
 
 // ════════════════════════════════════════════════════════════
+console.log('\n▼ 12-j. ★公開年収から大きく外れた本人申告の行（far・2026-09-19）');
+// ════════════════════════════════════════════════════════════
+/* ★オーナー指示（2026-09-19）。同じ会社・同じ職位の公開年収と比べて、上限の1.5倍を
+   超える／下限の半分を下回る本人申告の行に印を付ける。数字は書き換えない・行も消さない。
+   伏せた一覧では上の8行の候補から外し、印そのものは返さない。
+   ── 幅と為替を決め打ちして、境目がちょうど読める額で見る（入れた分は巻き戻す）。
+      1ドル＝150円にすると、機長の上限 2,000万 × 1.5 ＝ 3,000万 ＝ $200,000、
+      下限 1,200万 × 0.5 ＝ 600万 ＝ $40,000 と、どちらも有効数字2桁の額になる。
+      副操縦士は 1,000万 × 1.5 ＝ $100,000。 */
+{
+  const [F1, F2] = (await rows(
+    `select code from pv_airlines
+      where active and cap_hi is not null and code <> all($1::text[])
+      order by code limit 2`, [AIR])).map(r => r.code);
+  const O_FAR = Object.keys(OPS).find(c => AIR.indexOf(c) < 0);
+  const keyOf = async (air, usd) => (await one(
+    `select distinct 'r:' || proof_hash k from pay_reports
+      where airline = $1 and annual_total_usd = $2`, [air, usd])).k;
+  const typeIn = async (typed, gross) => {
+    await asUser(++seat);
+    await submit({ ...BASE, airline: 'other', airline_other: typed, position: 'cap',
+                   fleet: 'b777', period_year: YEAR, period_month: 5, gross_monthly: gross });
+  };
+  await db.exec('begin');
+  try {
+    await db.query(`update fx_rates set to_jpy = 150 where code = 'USD'`);
+    await db.query(`update pv_airlines set cap_lo = 1200, cap_hi = 2000, fo_lo = 600, fo_hi = 1000
+                     where code = any($1::text[])`, [[F1, F2]]);
+    await person(F1, 'cap', [{ fleet: 'b777', month: 5, gross: 17500 }]);   // $210,000
+    await person(F1, 'cap', [{ fleet: 'b777', month: 5, gross: 16700 }]);   // $200,400 → $200,000
+    await person(F1, 'cap', [{ fleet: 'b777', month: 5, gross:  3250 }]);   // $39,000
+    await person(F1, 'cap', [{ fleet: 'b777', month: 5, gross:  3333 }]);   // $39,996 → $40,000
+    await person(F1, 'fo',  [{ fleet: 'b777', month: 5, gross:  9000 }]);   // $108,000
+    await person(F1, 'fo',  [{ fleet: 'b777', month: 5, gross:  8300 }]);   // $99,600 → $100,000
+    await person(F1, 'cap', [{ fleet: 'b777', month: 5, gross: 20000 }]);   // $240,000 → 検証済みにする
+    await db.query(`update pay_reports set verify_level = 1 where airline = $1 and annual_total_usd = 240000`, [F1]);
+    await person(F1, 'cap', [{ fleet: 'b777', month: 5, gross: 21000 }]);   // $252,000 → 訓練生にする
+    await db.query(`update pay_reports set "position" = 'cadet' where airline = $1 and annual_total_usd = 252000`, [F1]);
+    await person(O_FAR, 'cap', [{ fleet: 'b777', month: 5, gross: 50000 }]); // 年収の無い会社
+    await typeIn('Nowhere Charter Zeta', 55000);                              // 寄せられない自由入力
+    await typeIn((await one(`select name_ja from pv_airlines where code = $1`, [F2])).name_ja, 50000);
+    /* 同じ取引の中では投稿時刻が全員同じ（now() は取引の始まり）。印の付く4人を
+       いちばん新しくして、印が無ければ8行に入る位置に置く。 */
+    await db.query(`update pay_reports set created_at = now() + interval '1 minute'
+                     where (airline = $1 and annual_total_usd in (210000, 39000, 108000))
+                        or (airline = 'other' and annual_total_usd = 600000)`, [F1]);
+
+    await asViewer();
+    const RJ = (await payRows()).rows;
+    const at = (air, pos, usd) => {
+      const m = RJ.filter(x => x.airline === air && x.pos === pos && x.annual_usd === usd);
+      return m.length === 1 ? m[0] : null;
+    };
+    const hasFar = (x) => !!x && x.far === true;
+    const noFar  = (x) => !!x && !('far' in x);
+    ok(hasFar(at(F1, 'cap', 210000)),
+       '★本人申告で上限の1.5倍を超える機長に印が付く（$210K ＝ 3,150万 ＞ 3,000万）');
+    ok(noFar(at(F1, 'cap', 200000)),
+       '★上限の1.5倍ちょうどは付かない（比べるのは画面に出る有効数字2桁の額。生の $200,400 なら超えていた）',
+       JSON.stringify(at(F1, 'cap', 200000)));
+    ok(hasFar(at(F1, 'cap', 39000)),
+       '★下限の半分を下回る機長に印が付く（$39K ＝ 585万 ＜ 600万）');
+    ok(noFar(at(F1, 'cap', 40000)),
+       '★下限の半分ちょうどは付かない（生の $39,996 なら下回っていた）',
+       JSON.stringify(at(F1, 'cap', 40000)));
+    ok(hasFar(at(F1, 'fo', 110000)) && noFar(at(F1, 'fo', 100000)),
+       '★副操縦士は副操縦士の幅で見る（$108K に付き、1.5倍ちょうどの $100K には付かない）');
+    ok(noFar(at(F1, 'cap', 240000)) && at(F1, 'cap', 240000).verified === true,
+       '★明細の裏付けがある（Verified）行には付かない', JSON.stringify(at(F1, 'cap', 240000)));
+    ok(noFar(at(F1, 'cadet', 250000)),
+       '★機長・副操縦士以外には付かない（幅を持っていない）', JSON.stringify(at(F1, 'cadet', 250000)));
+    ok(noFar(at(O_FAR, 'cap', 600000)),
+       `★年収の無い会社（投稿先だけ）には付かない（${O_FAR}）`, JSON.stringify(at(O_FAR, 'cap', 600000)));
+    ok(noFar(at('other', 'cap', 660000)),
+       '★会社に寄せられなかった自由入力には付かない', JSON.stringify(at('other', 'cap', 660000)));
+    ok(hasFar(at(F2, 'cap', 600000)),
+       `★「その他」に打たれた社名も、会社に寄せてからその会社の幅で比べる（${F2}）`,
+       JSON.stringify(at(F2, 'cap', 600000)));
+    ok(RJ.every(x => !('far' in x) || x.far === true)
+       && RJ.filter(hasFar).length === 4,
+       '★印は当たった4行だけ（ほかの行にはキーごと無い）', String(RJ.filter(hasFar).length));
+
+    /* 鍵の無い一覧。印の付いた人はいちばん新しいので、印が無ければ8行に入っていた。 */
+    await asUser(9001);
+    const lkF = await payRows();
+    const kF = await withKeys();
+    const spF = maskSpec(kF);
+    ok(kF.filter(x => x.far).length === 4
+       && kF.filter(x => x.far).every(x => pick8(kF.filter(eliOf)).includes(x)),
+       '　（印の付いた4人とも、印が無ければ8行に入っていた回で見ている）');
+    ok(spF.top.length === 8 && spF.top.every(x => !x.far),
+       '★★印の付いた人は上の8行に入らない（9行目以降へ下がる）');
+    ok(lkF.rows.length === kF.length,
+       '★行は1つも消さない（伏せた一覧の行数は開いた一覧と同じ）', `${lkF.rows.length} / ${kF.length}`);
+    ok(!JSON.stringify(lkF).includes('"far"'),
+       '★伏せた一覧のどの行にも印（far）が無い');
+    ok(!firstDiff(lkF.rows, spF.rows),
+       '★★印の付いた人がいても、伏せた一覧が決めた形と1行も違わない', firstDiff(lkF.rows, spF.rows));
+
+    /* ★8行で年収を見せていた人が、あとから印の対象になって9行目以降へ下がる
+         （公開年収の幅を直した日など）。そこで会社が出ると、8行で見えていた年収と
+         会社が1人につながる。年収を見せる型（年収型・機種型）の Y を1人置いて、幅を狭める。 */
+    let yk = '', yg = 0;
+    for (let i = 0; i < 40 && !yk; i++) {
+      const gg = 12000 + i * 10;                                           // $144,000 前後 ＝ 幅の中
+      await person(F1, 'cap', [{ fleet: 'b777', month: 5, gross: gg }]);
+      const k = await keyOf(F1, gg * 12);
+      if (tzOf(k) !== 'c') { yk = k; yg = gg; }
+    }
+    await db.query(`update pay_reports set created_at = now() + interval '2 minutes'
+                     where airline = $1 and annual_total_usd = $2`, [F1, yg * 12]);
+    await asUser(9001);
+    let lkY = await payRows();
+    let spY = maskSpec(await withKeys());
+    const iy = spY.top.findIndex(x => x.k === yk);
+    ok(iy === 0 && 'annual_usd' in lkY.rows[0] && !('airline' in lkY.rows[0]),
+       '　（年収を見せる型の Y が、8行の先頭で年収を見せている回で見ている）', String(iy));
+    await db.query(`update pv_airlines set cap_lo = 600, cap_hi = 900 where code = $1`, [F1]);
+    await asUser(9001);
+    lkY = await payRows();
+    spY = maskSpec(await withKeys());
+    const Y = spY.rest.find(x => x.k === yk);
+    ok(!!Y && Y.far === true && !spY.top.some(x => x.k === yk),
+       '　（幅を狭めて Y に印が付き、8行から外れた）');
+    const ry = spY.top.length + spY.rest.indexOf(Y);
+    ok(!!Y && canonRow(lkY.rows[ry]) === canonRow({ age: Y.age }),
+       '★★8行で年収を見せていた人は、印で9行目以降へ下がっても会社が出ない（投稿時期だけ）',
+       JSON.stringify(lkY.rows[ry]));
+    ok(!firstDiff(lkY.rows, spY.rows),
+       '　下がった後も決めた形と1行も違わない', firstDiff(lkY.rows, spY.rows));
+  } finally {
+    await db.exec('rollback');
+  }
+  await asViewer();
+}
+
+// ════════════════════════════════════════════════════════════
 console.log('\n▼ 13. 自己点検 SQL（ファイル末尾のものをそのまま流す）');
 // ════════════════════════════════════════════════════════════
 {
   const src = read('db/pay-rows.sql');
   const q = src.slice(src.lastIndexOf('with f as ('));
   const res = await rows(q);
-  ok(res.length === 66, `自己点検が66行ぜんぶ出る（= ${res.length}行）`);
+  ok(res.length === 68, `自己点検が68行ぜんぶ出る（= ${res.length}行）`);
   for (const row of res) {
     ok(row['結果'] === '✅', `${row['#']}. ${row['見るところ']}`);
   }

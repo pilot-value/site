@@ -131,6 +131,9 @@
               あちらは表の文字からこの札を取り除いてから「件」「人」が残っていないかを
               見ているので、直し忘れると**画面は正しいのに検査だけが赤くなる**。 */
       vfNo: '本人申告',
+      /* ★公開年収から大きく外れた本人申告の行（2026-09-19・オーナー指示）。
+           行の ⚠ の読み上げ・マウスを重ねた時の説明・詳細の面の1文は、全部この1文。 */
+      far: '同じ会社・同じ職位の公開年収から大きく外れた金額です。',
       /* ★投稿時期。段の番号（0〜4）を言葉にするだけ。日付は持っていない。 */
       age: ['1ヶ月以内', '3ヶ月以内', '6ヶ月以内', '1年以内', 'それより前'],
       stRep: '実給与の投稿',       stRepU: '件',
@@ -260,6 +263,7 @@
       thAmt: 'Annual', thMon: 'Per month', thVf: 'Source', thAge: 'Submitted',
       othAir: 'Airline not listed',
       vfNo: 'Self-reported',
+      far: 'This figure is far outside the published range for this airline and position.',
       age: ['Within 1 month', 'Within 3 months', 'Within 6 months',
             'Within a year', 'Over a year ago'],
       stRep: 'Pay records',      stRepU: '',
@@ -760,7 +764,8 @@
          + '<td class="ap-num"><span class="ap-cl" aria-hidden="true">' + esc(T.thMon) + '</span>'
          +   '<span class="ap-mon">' + esc(moneyMonth(r.annual_usd)) + '</span></td>'
          + '<td>' + cardCompHTML(r)
-         +   (r.verified ? vfMark() : '<span class="ap-vf-no">' + esc(T.vfNo) + '</span>') + '</td>'
+         +   (r.verified ? vfMark() : '<span class="ap-vf-no">' + esc(T.vfNo) + '</span>')
+         +   (isFar(r) ? farMark() : '') + '</td>'
          /* ★投稿時期。サーバから来るのは 0〜4 の段の番号だけ。
               段が読めない行（古いサーバ）は空欄にする＝そこだけ黙って空く。
             ★› は**文字**で描く。絵にすると表の中の svg が1つ増えて、
@@ -860,6 +865,19 @@
     return '<span class="ap-vf"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"'
          + ' stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"'
          + ' aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Verified</span>';
+  }
+
+  /* ★公開年収から大きく外れた本人申告の行（2026-09-19・オーナー指示）。
+       印を決めるのはサーバ（db/pay-rows.sql の fence）だけ。ここは far が true の行に
+       記号を置くだけで、数字には触らない（書き換えない・消さない・ぼかさない）。
+     ★記号は**文字**で描く。svg にすると表の中の svg が1つ増えて、
+       「棒グラフを描き直した人が居ないか」を見ている検査に当たる。
+     ⚠️ 伏せた一覧とプレビューには出さない。伏せた一覧は MK_KEYS に far が無いので
+        入口で捨てられるが、ここでも画面の種類で止める（2本目の鍵）。 */
+  function isFar(r) { return !!r && r.far === true && !r._p && !isMasked(); }
+  function farMark() {
+    return '<span class="ap-far" role="img" aria-label="' + esc(T.far) + '" title="'
+         + esc(T.far) + '">\u26A0\uFE0E</span>';
   }
 
   /* ══ 行を押すと出る面（2026-09-03）══════════════════════════════
@@ -1247,7 +1265,9 @@
           var b = [fleetName(x.fleet), tenName(x)].filter(Boolean);
           return '<button type="button" class="ap-dw-sim" data-ap-row="'
             + esc(String(x._i)) + '">'
-            + '<span class="ap-dw-simv">' + esc(money(x.annual_usd)) + '</span>'
+            /* ★⚠ は額の箱の中に置く（外に出すと space-between で真ん中へ離れる）。 */
+            + '<span class="ap-dw-simv">' + esc(money(x.annual_usd))
+            + (isFar(x) ? farMark() : '') + '</span>'
             + (b.length ? '<span class="ap-dw-simm">' + esc(b.join(' · ')) + '</span>' : '')
             + '</button>';
         }).join('') + '</div>';
@@ -1323,6 +1343,9 @@
       +   '<div class="ap-dw-a"><span class="ap-dw-al">' + esc(T.dwMonth) + '</span>'
       +     dwAmt(r, 1) + '</div>'
       + '</div>'
+      /* ★公開年収から大きく外れた行だけ、金額の下に1文（上の isFar）。 */
+      + (isFar(r) ? '<p class="ap-dw-far"><span aria-hidden="true">\u26A0\uFE0E</span>'
+                    + esc(T.far) + '</p>' : '')
       /* ★出典と投稿時期はプレビューでは**行ごと出さない**（上のコメント）。
            ★伏せた面では**出す**。本物の投稿なので「誰かが実際に出した」は
              事実であり、オーナーが読めると決めた4つのうちの2つ。 */

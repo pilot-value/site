@@ -33,6 +33,9 @@
              drawer   ★行を押して開いた面（2026-09-03）。その1人ぶんの帯が出る
              drawer-lock ★自分の内訳をまだ出していない人が同じ面を開いたところ
                          （報酬の内訳が閉じている。帯は**サーバから届いていない**）
+             far      ★公開年収から大きく外れた本人申告の行（2026-09-19）。2行目の出典の横に ⚠
+             far-drawer ★その行を押して開いた面（金額の下に1文）。row=0 は同じ会社・職位の
+                         ほかの記録の中に ⚠ が出るところ
      lang  = ja | en
      第3引数以降  open  撮らずに見える窓で開いたままにする
                   h=844 open ＝ iPhone の1画面ぶんの窓で開く（既定の高さは 1100）
@@ -365,6 +368,15 @@ const MASK_ROWS = (function () {
        8 口コミ由来 ── 機材も年数の札も無い。**空の面にならないことを見る**  */
 const DRAWER = [...ROWS.slice(0, 7), ROWS[11], ...FROM_REVIEWS.slice(0, 2)];
 
+/* ★公開年収から大きく外れた本人申告の行（2026-09-19）。サーバが far: true を付けた行に、
+     画面は出典の横へ ⚠ を置き、面の金額の下に1文を出す。
+   ★2行目に1人足した作り物（ANA の副操縦士・年 $300K。公開年収の上限 ¥2,100万 の1.5倍を超える）。
+     1行目も ANA の副操縦士なので、row=0 で開くと「ほかの記録」の中の ⚠ も見える。
+   ⚠️ 本番で当たった行の会社・機材・金額をここに写さない（公開リポジトリ）。
+   ⚠️ 10行に収める（DRAWER と同じ理由。2ページ目の行は押せない）。 */
+const FAR_ROWS = [DRAWER[0], R('ana', 'fo', 300000, false, 0, { fleet: 'b787', ten: 0, far: true }),
+                  ...DRAWER.slice(1, 9)];
+
 /* ★報酬の内訳の門（2026-09-03）。自分の内訳を出した人どうしで見られる。
      サーバは閉じている行の**金額を1円も返さない** ── `pay` の鍵ごと消えて、
      代わりに `paylock` が来る。中身は**区分の名前だけ**で、
@@ -385,7 +397,8 @@ const DRAWER_LOCK = DRAWER.map(function (r) {
 });
 
 /* 起動する前に帯を検算する（作れない帯を絵にしない）。 */
-[[ROWS, 'ROWS'], [FROM_REVIEWS, 'FROM_REVIEWS'], [MANY, 'MANY'], [DRAWER, 'DRAWER']]
+[[ROWS, 'ROWS'], [FROM_REVIEWS, 'FROM_REVIEWS'], [MANY, 'MANY'], [DRAWER, 'DRAWER'],
+ [FAR_ROWS, 'FAR_ROWS']]
   .forEach(([l, t]) => checkRows(l, t));
 
 const SCENES = {
@@ -432,6 +445,9 @@ const SCENES = {
   nostat: { pay: { ok: true, state: 'open', rows: ROWS } },
   /* ★行を押して開いた面。どの行を押すかは row=N（既定 0）。 */
   drawer: { pay: { ok: true, state: 'open', rows: DRAWER, stats: ST(14, 9) }, open: 0 },
+  /* ★公開年収から大きく外れた行の ⚠（2026-09-19）。far-drawer は既定で2行目（⚠ の人）を開く。 */
+  far:    { pay: { ok: true, state: 'open', rows: FAR_ROWS, stats: ST(15, 10) } },
+  'far-drawer': { pay: { ok: true, state: 'open', rows: FAR_ROWS, stats: ST(15, 10) }, open: 1 },
   /* ★絞り込みのボトムシート（2026-09-05）。**狭い幅でしか出ない**ので w=390 などと一緒に使う。 */
   sheet:  { pay: { ok: true, state: 'open', rows: MERGED, stats: ST(24, 13) }, sheet: true },
   /* ★右から出るナビのドロワー（2026-09-06 に下タブと置き換え、同日 左→右へ反転）。

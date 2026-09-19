@@ -281,10 +281,26 @@ for (const [path, lang] of [['./pay-report.html', 'ja'], ['./en/pay-report.html'
 // これが無いと DB 側で社名を検証できず、また集計不能な行が入る。
 {
   const q = (s) => `'${String(s).replace(/'/g, "''")}'`;
+  /* 公開年収の幅（万円）。REAL PAY が「公開年収から大きく外れた本人申告の行」に
+     ⚠ を付けるのに読む（db/pay-rows.sql の fence）。年収の無い社（OPS）は null
+     ＝比べる相手が無いので ⚠ は付かない。SALARY の社で幅が欠けていたら止める
+     （黙って null にすると、その社だけ ⚠ が一生付かない）。 */
+  const band = (k) => {
+    if (!(k in SALARY)) return 'null, null, null, null';
+    const out = [];
+    for (const p of ['cap', 'fo']) {
+      const r = SALARY[k][p];
+      if (!r || !Number.isInteger(r.lo) || !Number.isInteger(r.hi) || r.lo <= 0 || r.lo > r.hi)
+        throw new Error(`SALARY.${k}.${p} の lo/hi が整数の幅になっていない: ${JSON.stringify(r)}`);
+      out.push(r.lo, r.hi);
+    }
+    return out.join(', ');
+  };
   const rows = KEYS.map((k) => {
     const a = ALL[k];
-    return `  (${q(k)}, ${q(a.ja)}, ${q(a.en)}, ${q(a.region)})`;
-  }).concat([`  ('other', ${q('その他（自由入力）')}, ${q('Other (free text)')}, 'other')`]);
+    return `  (${q(k)}, ${q(a.ja)}, ${q(a.en)}, ${q(a.region)}, ${band(k)})`;
+  }).concat([`  ('other', ${q('その他（自由入力）')}, ${q('Other (free text)')}, 'other', null, null, null, null)`]);
+  const nBand = KEYS.filter((k) => k in SALARY).length;
 
   const sql = `-- ════════════════════════════════════════════════════════════════
 -- db/airlines.generated.sql — ★自動生成。手で編集しない。
@@ -299,6 +315,11 @@ for (const [path, lang] of [['./pay-report.html', 'ja'], ['./en/pay-report.html'
 --   社名が新しく登録した会社と完全一致するものは、行を1行も書き換えずに
 --   REAL PAY で正しい社名に出るようになる（pv_airline_resolve が実行時に引くため）。
 --   pay_reports を update してはいけない（持ち主の proof_hash が外れる）。
+--
+-- ★cap_lo / cap_hi / fo_lo / fo_hi は公開年収の幅（万円・salary-data.mjs のまま）。
+--   REAL PAY が「公開年収から大きく外れた本人申告の行」に ⚠ を付けるのに読む
+--   （db/pay-rows.sql の fence）。年収の幅を直したら、このファイルも流し直して貼る。
+--   貼らないと ⚠ の判定だけが古い幅のまま残る（画面は普通に動く）。
 -- ════════════════════════════════════════════════════════════════
 
 create table if not exists public.pv_airlines (
@@ -308,13 +329,21 @@ create table if not exists public.pv_airlines (
   region  text not null,
   active  boolean not null default true
 );
+alter table public.pv_airlines add column if not exists cap_lo integer;
+alter table public.pv_airlines add column if not exists cap_hi integer;
+alter table public.pv_airlines add column if not exists fo_lo  integer;
+alter table public.pv_airlines add column if not exists fo_hi  integer;
 
-insert into public.pv_airlines (code, name_ja, name_en, region) values
+insert into public.pv_airlines (code, name_ja, name_en, region, cap_lo, cap_hi, fo_lo, fo_hi) values
 ${rows.join(',\n')}
 on conflict (code) do update
   set name_ja = excluded.name_ja,
       name_en = excluded.name_en,
       region  = excluded.region,
+      cap_lo  = excluded.cap_lo,
+      cap_hi  = excluded.cap_hi,
+      fo_lo   = excluded.fo_lo,
+      fo_hi   = excluded.fo_hi,
       active  = true;
 
 -- 名簿から消えた社は残したまま active=false にする（投稿の参照先を壊さない）
@@ -325,8 +354,10 @@ alter table public.pv_airlines enable row level security;
 drop policy if exists pv_airlines_read on public.pv_airlines;
 create policy pv_airlines_read on public.pv_airlines for select to anon, authenticated using (true);
 
--- 検算：${KEYS.length + 1} 件（${KEYS.length}社 ＋ other）
-select count(*) filter (where active) as 有効, count(*) as 全件 from public.pv_airlines;
+-- 検算：${KEYS.length + 1} 件（${KEYS.length}社 ＋ other）・年収の幅あり ${nBand} 社
+select count(*) filter (where active) as 有効, count(*) as 全件,
+       count(*) filter (where active and cap_hi is not null and fo_hi is not null) as 年収の幅あり
+  from public.pv_airlines;
 `;
   writeFileSync(new URL('./db/airlines.generated.sql', import.meta.url), sql);
   console.log(`✅ db/airlines.generated.sql 書き出し: ${rows.length} 件`);

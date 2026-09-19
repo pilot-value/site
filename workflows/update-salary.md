@@ -57,6 +57,16 @@ node gen-salary-json.mjs
 ```
 → `✅ salary-data.json 書き出し: 110 社 ／ 背骨 8 段`
 
+### 2-b. レンジ（`lo` / `hi`）を変えたら、会社の表も作り直す
+```bash
+node gen-airline-codes.mjs
+```
+`db/airlines.generated.sql` が書き変わったら、**オーナーが Supabase に貼る**（中身をクリップボードに入れ、
+Finder で場所を出して渡す）。REAL PAY の ⚠（公開年収から大きく外れた本人申告の行）は、
+DB の会社の表に入っているレンジで判定している。**貼るまで古いレンジのまま判定が続く**
+（画面は普通に動いたままなので気づけない）。流し忘れは `assert-generated.mjs` が止める。
+`avg` だけ変えた回は何も書き変わらない（表に入れているのはレンジだけ）。
+
 ### 3. トップページのランキングに機械反映する
 ```bash
 node patch-site-salaries.mjs

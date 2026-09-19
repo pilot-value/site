@@ -28,6 +28,9 @@
        受け取るだけで、pay-wizard.js は足し算を1つも持たない。
        このファイルも DB の annual_total_orig を読んで渡している。
      ・為替 ── サーバのレートが正。画面は fx_rates から同じ数を読む。
+     ・⚠（far＝公開年収から大きく外れた本人申告の行・2026-09-19）── 確認画面には出さない
+       （入力の途中で気づかせるのは、効果を見て別に相談とオーナーと決めた）。
+       なので行の突き合わせでは、サーバの行から far だけ外して比べる。ほかの鍵は今までどおり全部比べる。
      ・複数の月を出した人の中央値 ── 出す前の画面には1か月ぶんしか無い。
        だから確認画面は「この1か月の値ではない」と断らなければならない。
 
@@ -376,8 +379,10 @@ for (const m of made) {
                  verified: false, age: 0, fleet: js.fleet,
                  ten: js.ten, tenk: js.tenk,
                  pay: js.pay, work: js.work };
-  ok(same(want, sql), `${m.name} — 行がまるごと一致`,
-     `\n     写し: ${JSON.stringify(norm(want))}\n     本物: ${JSON.stringify(norm(sql))}`);
+  const { far, ...seen } = sql;   // ⚠ は確認画面に出さない（冒頭の「見ていないもの」）
+  ok(far === undefined || far === true, `${m.name} — ⚠ の印は true か無しのどちらか`, JSON.stringify(far));
+  ok(same(want, seen), `${m.name} — 行がまるごと一致（⚠ の印を除く）`,
+     `\n     写し: ${JSON.stringify(norm(want))}\n     本物: ${JSON.stringify(norm(seen))}`);
 }
 
 // ── 個別に名指しで見るもの（落ちたときに理由が読める形で）──────

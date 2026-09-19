@@ -664,11 +664,21 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
            '★年収を出すのは2つの型だけで、どちらも有効数字2桁（pv_sig2）を通している',
            `${ann.length}通り`);
       }
-      /* ★材料は person と coarse（機材と年数の段だけを持つ節）の2つだけ。 */
-      ok(/from person p\b/.test(MK) && (MK.match(/\bjoin\b/g) || []).length === 1
-         && /left join coarse k on /.test(MK),
-         '★★材料は person と coarse だけ（内訳・勤務を持つ節を継ぎ足せない形）',
+      /* ★材料は person と coarse（機材と年数の段だけを持つ節）と
+           fence（公開年収から大きく外れた人の真偽1つだけ・2026-09-19）の3つだけ。 */
+      ok(/from person p\b/.test(MK) && (MK.match(/\bjoin\b/g) || []).length === 2
+         && /left join coarse k on /.test(MK) && /left join fence fe on /.test(MK),
+         '★★材料は person と coarse と fence だけ（内訳・勤務を持つ節を継ぎ足せない形）',
          (MK.match(/(?:from|join)\s+\w+/g) || []).join(' / '));
+      /* ★fence が持つのは「誰か」と真偽1つだけ。金額や内訳を足すと、上の join から
+           伏せた一覧へ流れ込める形になる。 */
+      {
+        const FE = (FN.match(/\bfence as \(([\s\S]*?)\n  \),/) || ['', ''])[1];
+        const sel = (FE.match(/\bselect\s+([\s\S]*?)\s+from person p\b/) || ['', ''])[1];
+        ok(sel.replace(/\s+/g, ' ').trim() === 'p.pkey, p.airline, p.pos, true as far',
+           '★★fence が返すのは人のキー・会社・職位と「外れている」の真偽だけ（金額を持たない）',
+           sel.replace(/\s+/g, ' '));
+      }
       ok(!/\b(?:from|join)\s+(?:pick|paid|worked|grid|sane|listed|shelf|src)\b/.test(MK),
          '★★内訳・勤務・帯を持つ節を1つも読まない');
       /* ★型は1人に固定（本人の匿名キーから）。並びの md5 と塩を分ける。 */
@@ -1572,6 +1582,26 @@ const MASK_T_LEAK_ROWS = MK_TOP.map(([i, t]) => Object.assign({}, ROWS[i], { t }
   .concat([Object.assign({}, ROWS[3]), Object.assign({}, ROWS[5], { t: 'z' })]);
 const MASKED_T_LEAK = { ok: true, state: 'locked', rows: MASK_T_LEAK_ROWS, mine: MINE,
                         stats: ST_LOCK, give: { basic: false, detailed: false, payslip: false } };
+
+/* ★公開年収から大きく外れた本人申告の行（2026-09-19 オーナー判断「記号だけ（⚠）」）。
+     サーバは当たる人の行にだけ far: true を付ける（db/pay-rows.sql の fence）。
+     見本は ROWS の2人に付けたもの ──
+       ROWS[2] … ANA の機長。同じ会社・職位の ROWS[0] を開くと「ほかの記録」に出る
+       ROWS[5] … エミレーツの機長（ほかの記録が無い）
+   ⚠️ 既存の OPEN には足さない（件数・並び・毒を見ている節が全部これを前提にしている）。
+   ⚠️ 1文は actual-pay.js の T を読まずに**ここで別に書く**（MK_SEE と同じ流儀）。 */
+const FAR_AT = [2, 5];
+const FAR_TXT = {
+  ja: '同じ会社・同じ職位の公開年収から大きく外れた金額です。',
+  en: 'This figure is far outside the published range for this airline and position.'
+};
+const OPEN_FAR = { ok: true, state: 'open', mine: MINE, stats: ST,
+                   rows: ROWS.map((r, i) => (FAR_AT.includes(i) ? Object.assign({}, r, { far: true }) : r)) };
+/* ★鍵の無い一覧には ⚠ を出さない（サーバも送らない）。わざと**全部の行に** far を混ぜて、
+     画面の入口（MK_KEYS）と isFar の両方を越えられないことを見る。 */
+const farAll = (p) => Object.assign({}, p, { rows: p.rows.map((r) => Object.assign({}, r, { far: true })) });
+const MASKED_T_FAR = farAll(MASKED_T_LEAK);
+const LOCKED_FAR = farAll(LOCKED_LEAK);
 
 /* 表示された金額の文字から数字だけを取り出す。
    単位（万 / K / M）は 10 のべき乗なので、有効数字の桁数を変えない。
@@ -5497,6 +5527,151 @@ for (const lang of ['ja', 'en']) {
        'ja: ★★本物の中身が画面に1文字も残らない',
        POISON_VALUES.filter((s) => b.bodyText.includes(s)).join(','));
     ok(errs.length === 0, 'ja: ページのエラーが1件も出ない', errs.join(' | '));
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   R 公開年収から大きく外れた本人申告の行に ⚠（2026-09-19）
+
+   ★オーナーと決めたこと ── 数字は書き換えない・行も消さない。
+     開いた一覧の出典の欄に ⚠ の記号だけ／行を押して開く面の金額の下に1文／
+     面の「ほかの記録」の額の横にも ⚠。読み上げとマウスを重ねた時の説明は同じ1文。
+   ★鍵の無い一覧には1つも出さない（サーバが送らない＋画面の入口で捨てる）。
+   ════════════════════════════════════════════════════════════════ */
+{
+  /* 画面の ⚠ まわりだけを読む。 */
+  const FARS = () => {
+    const q = (s, r) => Array.prototype.slice.call((r || document).querySelectorAll(s));
+    const t = (e) => ((e && e.textContent) || '').trim();
+    /* トークンの色を実際に塗って読む（hex を検査に書き写さない）。 */
+    const probe = document.createElement('span');
+    probe.style.color = 'var(--pv-gold-ink)';
+    document.body.appendChild(probe);
+    const gold = getComputedStyle(probe).color;
+    probe.remove();
+    return {
+      gold,
+      rows: q('#ap-rows tbody tr[data-ap-row]').map((tr) => ({
+        i: Number(tr.getAttribute('data-ap-row')),
+        n: tr.querySelectorAll('.ap-far').length,
+        /* ★出典の札と同じセルの中、札の後ろ。 */
+        inSrc: q('.ap-far', tr).every((e) => {
+          const b = e.parentElement && e.parentElement.querySelector('.ap-vf, .ap-vf-no');
+          return !!b && !!(b.compareDocumentPosition(e) & Node.DOCUMENT_POSITION_FOLLOWING);
+        })
+      })),
+      marks: q('.ap-far').map((e) => ({
+        role: e.getAttribute('role'), aria: e.getAttribute('aria-label'),
+        title: e.getAttribute('title'), t: t(e), c: getComputedStyle(e).color })),
+      dwFar: q('.ap-dw-far').map((e) => ({
+        t: t(e),
+        glyph: q('[aria-hidden="true"]', e).map(t).join(''),
+        underAmt: !!(e.previousElementSibling && e.previousElementSibling.classList.contains('ap-dw-amt')),
+        c: getComputedStyle(e).color })),
+      sims: q('.ap-dw-sim').map((e) => ({
+        i: Number(e.getAttribute('data-ap-row')),
+        n: e.querySelectorAll('.ap-far').length,
+        inV: e.querySelectorAll('.ap-dw-simv .ap-far').length })),
+      amts: q('#ap-rows .ap-amt').map(t),
+      body: document.body.innerText
+    };
+  };
+  const tapR = async (page, i) => {
+    await page.evaluate((n) => {
+      const tr = document.querySelector('#ap-rows [data-ap-row="' + n + '"]');
+      const b = tr && (tr.querySelector('.ap-go') || tr);
+      if (b) b.click();
+    }, i);
+    return till(page, "document.querySelector('.ap-dw-back.is-in') !== null");
+  };
+  const shut = async (page) => {
+    await page.evaluate(() => history.back());
+    return till(page, "document.querySelectorAll('.ap-dw-back').length === 0");
+  };
+  const WARN = '⚠︎';
+
+  {
+    /* ★検査の前提。見本の2人は本人申告で、1人は ANA の機長に兄弟がいる。 */
+    const f = FAR_AT.map((i) => ROWS[i]);
+    ok(f.every((r) => r.verified === false && ['cap', 'fo'].includes(r.pos) && r.airline !== 'other')
+       && ROWS.some((r, i) => !FAR_AT.includes(i) && r.airline === f[0].airline && r.pos === f[0].pos),
+       'R: ★見本の far は本人申告・機長か副操縦士・会社が分かる行で、1人は同じ会社・職位の兄弟がいる（fixture の前提）');
+  }
+
+  for (const lang of ['ja', 'en']) {
+    console.log(`\n════ ${lang} / R 開いた一覧の ⚠（公開年収から大きく外れた行）════`);
+    const { page, errs } = await open(lang, OPEN_FAR);
+    const v = await page.evaluate(FARS);
+    const want = ROWS.map((_, i) => (FAR_AT.includes(i) ? 1 : 0));
+    ok(v.rows.length === ROWS.length && v.rows.every((r) => r.n === want[r.i]),
+       `${lang}: ★★⚠ は far の行だけに1つずつ出る`,
+       v.rows.map((r) => `${r.i}:${r.n}`).join(' '));
+    ok(v.rows.every((r) => r.inSrc), `${lang}: ★⚠ は出典の札と同じ欄の、札の後ろ`);
+    ok(v.marks.length === FAR_AT.length && v.marks.every((m) => m.t === WARN && m.role === 'img'
+         && m.aria === FAR_TXT[lang] && m.title === FAR_TXT[lang]),
+       `${lang}: ★★記号は ⚠ だけ・読み上げとマウスを重ねた時の説明は決めた1文`,
+       JSON.stringify(v.marks[0] || {}));
+    ok(v.marks.every((m) => m.c === v.gold), `${lang}: ★⚠ の色は既存のトークン（--pv-gold-ink）`,
+       `${(v.marks[0] || {}).c} / ${v.gold}`);
+    /* ★数字は書き換えない（⚠ の無い OPEN と同じ額が並ぶ）。 */
+    {
+      const b = await open(lang, OPEN);
+      const w = await b.page.evaluate(FARS);
+      ok(JSON.stringify(v.amts) === JSON.stringify(w.amts) && v.amts.length === ROWS.length,
+         `${lang}: ★★⚠ が付いても金額は1つも変わらない・行も消えない`,
+         `${v.amts.join(',')} / ${w.amts.join(',')}`);
+      ok(w.marks.length === 0 && w.dwFar.length === 0,
+         `${lang}: ★far の無い一覧には ⚠ が1つも出ない`, String(w.marks.length));
+    }
+    /* ★一覧の本文に1文そのものは出さない（記号だけ。文は面の中と読み上げ）。 */
+    ok(!v.body.includes(FAR_TXT[lang]), `${lang}: ★一覧の本文には1文を書かない（記号だけ）`);
+
+    /* ── 面（行を押すと開く）──────────────────────────── */
+    ok(await tapR(page, FAR_AT[0]), `${lang}: ⚠ の行の詳細が開く`);
+    {
+      const d = await page.evaluate(FARS);
+      ok(d.dwFar.length === 1 && d.dwFar[0].t === WARN + FAR_TXT[lang] && d.dwFar[0].glyph === WARN,
+         `${lang}: ★★面に1文が1つだけ出る（記号は読み上げない）`, JSON.stringify(d.dwFar));
+      ok(d.dwFar.every((x) => x.underAmt), `${lang}: ★1文は金額のすぐ下`);
+      ok(d.dwFar.every((x) => x.c === d.gold), `${lang}: ★1文の色も --pv-gold-ink`,
+         `${(d.dwFar[0] || {}).c} / ${d.gold}`);
+    }
+    ok(await shut(page), `${lang}: 戻る操作で詳細だけ閉じる`);
+
+    /* ★兄弟（同じ会社・職位で far でない行）を開くと、「ほかの記録」の far の額の横に ⚠。 */
+    const sib = ROWS.findIndex((r, i) => !FAR_AT.includes(i)
+      && r.airline === ROWS[FAR_AT[0]].airline && r.pos === ROWS[FAR_AT[0]].pos);
+    ok(await tapR(page, sib), `${lang}: 兄弟の行の詳細が開く`);
+    {
+      const d = await page.evaluate(FARS);
+      ok(d.dwFar.length === 0, `${lang}: ★far でない行の面には1文を出さない`, String(d.dwFar.length));
+      const s = d.sims.find((x) => x.i === FAR_AT[0]);
+      ok(!!s && s.n === 1 && s.inV === 1 && d.sims.every((x) => x.n === (FAR_AT.includes(x.i) ? 1 : 0)),
+         `${lang}: ★★ほかの記録では、far の額の横にだけ ⚠`, JSON.stringify(d.sims));
+    }
+    ok(await shut(page), `${lang}: 戻る操作で詳細だけ閉じる（兄弟）`);
+    ok(errs.length === 0, `${lang}: ページのエラーが1件も出ない`, errs.join(' | '));
+  }
+
+  /* ── 鍵の無い一覧 ── わざと全部の行に far を混ぜても ⚠ は1つも出ない ── */
+  for (const lang of ['ja', 'en']) {
+    for (const [name, payload, opt] of [['型を無視した毒', MASKED_T_FAR, null],
+                                        ['未ログイン・全部入りの毒', LOCKED_FAR, { anon: true }]]) {
+      console.log(`\n════ ${lang} / R-2 伏せた一覧に far を混ぜる（${name}）════`);
+      const { page, errs } = await open(lang, payload, opt);
+      const v = await page.evaluate(FARS);
+      ok(v.rows.length > 0 && v.marks.length === 0,
+         `${lang}/${name}: ★★サーバが far を混ぜても、伏せた一覧に ⚠ が1つも出ない`,
+         `${v.rows.length}行 / ⚠${v.marks.length}`);
+      ok(!v.body.includes(FAR_TXT[lang]), `${lang}/${name}: ★1文もどこにも出ない`);
+      ok(await tapR(page, 0), `${lang}/${name}: 1件目の詳細が開く`);
+      const d = await page.evaluate(FARS);
+      ok(d.dwFar.length === 0 && d.marks.length === 0 && !d.body.includes(FAR_TXT[lang]),
+         `${lang}/${name}: ★★伏せた面にも ⚠ と1文が出ない`,
+         `1文${d.dwFar.length} / ⚠${d.marks.length}`);
+      ok(await shut(page), `${lang}/${name}: 戻る操作で詳細だけ閉じる`);
+      ok(errs.length === 0, `${lang}/${name}: ページのエラーが1件も出ない`, errs.join(' | '));
+    }
   }
 }
 

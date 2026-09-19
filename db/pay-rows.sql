@@ -322,6 +322,19 @@
 --     交互なので、行の位置で職位は読める。会社が出ないので個人にはつながらない。
 --   ★読み直しを何度重ねても、1人について見えるのは「その人の型の欄」から増えない。
 --     型を毎回引き直す形にしないこと（自己点検65 が見ている）。
+--   ・公開年収から大きく外れた本人申告の人は上の8行に入れない（2026-09-19。下の節）。
+--
+-- ★公開年収から大きく外れた行の印（2026-09-19 オーナー指示）
+--   本番で、同じ会社の機長の公開上限より高い副操縦士の行が、鍵の無い人の上の8行に出た。
+--   ⑦の内側なので落ちない（その人の額・会社・機材はここに書かない＝公開リポジトリ）。
+--   **数字は書き換えない・行も消さない。** 読む人に知らせるだけ。
+--   ・当たる人 … 本人申告（Verified でない）・機長か副操縦士・会社の表に公開年収の幅がある・
+--                画面に出る額が上限の1.5倍を超えるか、下限の半分を下回る
+--   ・本物の一覧 … 行に far=true を添える（画面は出典の欄に ⚠ だけ、行を押した面に1文）
+--   ・伏せた一覧 … 上の8行の候補から外すだけ。far は返さない（画面に ⚠ も出ない）
+--   ・公開年収の幅は db/airlines.generated.sql が会社の表へ入れる（salary-data.mjs のまま）。
+--     年収の幅を直したら、あのファイルも流し直して貼る。
+--   ★集計（DEEP PAY・人数・件数）からは外さない。外すかどうかは別の判断。
 --
 -- ★まだ禁じていること：
 --   ・この関数に引数を足すこと（総当たりで区分を指定する面が生える）
@@ -1590,6 +1603,20 @@ drop function if exists public.pv_deep_goal();
 
 
 -- ════════════════════════════════════════════════════════════════
+-- 1-k. 会社の表の「公開年収の幅」の列（2026-09-19）
+--
+-- ★中身を入れるのは db/airlines.generated.sql（gen-airline-codes.mjs が
+--   salary-data.mjs の cap/fo の lo/hi を万円のまま流し込む）。ここは列を作るだけ。
+-- ★同じ文を両方のファイルに置いてある。貼る順を間違えても一覧が止まらないため
+--   （列が空のあいだは ⚠ が1つも付かないだけ。自己点検67 が ❌ で知らせる）。
+-- ════════════════════════════════════════════════════════════════
+alter table public.pv_airlines add column if not exists cap_lo integer;
+alter table public.pv_airlines add column if not exists cap_hi integer;
+alter table public.pv_airlines add column if not exists fo_lo  integer;
+alter table public.pv_airlines add column if not exists fo_hi  integer;
+
+
+-- ════════════════════════════════════════════════════════════════
 -- 2. pv_pay_rows — 匿名レポート一覧（1行＝1人・出した人は全員）
 --
 -- 返り値
@@ -1641,7 +1668,11 @@ drop function if exists public.pv_deep_goal();
 --               その人のいちばん新しい提出から決める。**日付も年月も返さない。**
 --               並べ替えにも絞り込みにも使わない（契約⑥はそのまま）。
 --     ★機材は返さない（2026-08-24 に外した。理由はファイル冒頭）。
+--     far     … 公開年収から大きく外れた本人申告の人だけ true（2026-09-19）。
+--               それ以外はキーごと無い。決め方は本体の fence の1か所だけ
+--               （ファイル冒頭「★公開年収から大きく外れた行の印」）。
 --   鍵の無い人の行は、この中から型ごとの欄だけ（上の8行には型の印 t も付く）。
+--   far はどの型にも入れない。
 --
 -- 材料は3つ。本棚（会員が出したぶん）、まだ移っていない預かり、
 -- そして昔の口コミに書かれた給与。
@@ -1969,6 +2000,35 @@ begin
       from sane
      group by pkey, airline, pos
   ),
+  fence as (
+    /* ── 公開年収から大きく外れた本人申告の人（2026-09-19 オーナー指示）──────
+       ★**印を付けるだけ。** 数字は1つも書き換えない・行も消さない。
+         本番で、同じ会社の機長の公開上限より高い副操縦士の行が、鍵の無い人の
+         上の8行に出ていた。常識の幅（⑦）の内側なので落ちない。落とすかどうかを決めるのは読む人で、こちらは知らせるだけ。
+       ★当たるのは次の4つが全部そろった人だけ：
+         ・本人申告（明細の裏付けが1件も無い）── Verified には付けない
+         ・職位が機長か副操縦士（公開年収の幅はこの2つにしか無い）
+         ・会社の表に公開年収の幅がある（年収の無い運航会社・寄せられなかった
+           自由入力の社名は比べる相手が無いので付かない）
+         ・画面に出る額を万円にして、上限の1.5倍を**超える**か、下限の半分を**下回る**
+       ★しきい値はここ1か所だけ。画面は持たない（検査は境目の両側の額で確かめる）。
+       ★比べるのは画面に出る額（有効数字2桁）。読む人が画面の数字と公開年収を
+         並べて同じ答えに届くように。ドル→円は為替表の USD の1行（手で持たない）。
+       ★持つのは真偽1つだけ。本物の一覧（listed）はそれを far として返し、
+         伏せた一覧（mask）は上の8行の候補から外すのにだけ使う（返さない）。 */
+    select p.pkey, p.airline, p.pos, true as far
+      from person p
+      join public.pv_airlines a on a.code = p.airline
+      join public.fx_rates u on u.code = 'USD'
+      cross join lateral (
+        select case when p.pos = 'cap' then a.cap_lo else a.fo_lo end as lo,
+               case when p.pos = 'cap' then a.cap_hi else a.fo_hi end as hi,
+               public.pv_sig2(p.v) * u.to_jpy / 10000 as man
+      ) b
+     where not p.verified
+       and p.pos in ('cap', 'fo')
+       and (b.man > b.hi * 1.5 or b.man < b.lo * 0.5)
+  ),
   pick as (
     /* ── どの月の内訳と勤務を見せるか（2026-09-03）─────────────
        金額は person で中央値に畳んでいるので、内訳と勤務も
@@ -2134,6 +2194,9 @@ begin
              'annual_usd', public.pv_sig2(p.v),
              'verified',   p.verified,
              'age',        p.age,
+             /* 公開年収から大きく外れた本人申告の人だけ true（2026-09-19）。
+                それ以外は null ＝ キーごと消える。決め方は上の fence の1か所だけ。 */
+             'far',        fe.far,
              -- ── ここから4つが2026-09-03に足したもの。どれも段か帯だけ ──
              --   機材は語彙のコード1つ（全行。人数の門は掛けない＝オーナー確定）。
              --   ★機材の区分（狭胴・中型・広胴）のほうは返さない。2粒度が
@@ -2193,6 +2256,8 @@ begin
                          and c.pos   = p.pos
       left join worked wk on wk.pkey = p.pkey and wk.airline = p.airline
                          and wk.pos  = p.pos
+      left join fence  fe on fe.pkey = p.pkey and fe.airline = p.airline
+                         and fe.pos  = p.pos
   ),
   mask as (
     -- pv-mask-begin  ★この2つの印は自己点検65 が範囲を切り出すのに使う。消さない。
@@ -2234,8 +2299,16 @@ begin
               公開の日の8行の並べ直しも1人ずれる。
             ・公開前の提出は 24か月で一覧から落ちる（2028-09）。そのとき公開前から
               出し続けている人は本来の型に戻る。この節を見直す目安として書いておく。
+       ★**公開年収から大きく外れた本人申告の人（fence）は上の8行に入れない**（2026-09-19
+         オーナー指示）。行は消さずに9行目以降へ下がる。印（far）はここでは返さない。
+         外すのは上の8行の候補（cand）からだけ。9行目以降で会社を出すかどうか（eli）と、
+         公開の日の8行の並べ直し（rn0 / qcap0 / eli0）は**変えない** ──
+           ・eli を変えると、8行で年収を見せていた人が外れた瞬間に会社が出る
+             （前後の画面を見比べて、1人の会社と年収がつながる）
+           ・rn0 / qcap0 を変えると、公開の日の8行が別の顔ぶれになる
        ★内訳・勤務・時間あたりは、どの型にも入れない。
-         読む材料は person と coarse（機材と年数の段だけを持つ節）の2つだけ。
+         読む材料は person と coarse（機材と年数の段だけを持つ節）と
+         fence（真偽1つだけの節）の3つだけ。
          内訳や勤務を持つ節は読まない ── 読まないことが、出せないことの保証になる。
        ★型に無い欄は「伏せて渡す」のではなく**渡さない**。画面はそこに
          中身の空の板を描くので、DevTools で何を外しても何も出てこない。
@@ -2275,8 +2348,8 @@ begin
                       q.pos = 'fo'), '[]'::jsonb) as j
       from (
         select z.*,
-               z.eli and z.rn <= case when z.pos = 'cap' then z.qcap
-                                      else least(z.nfo, 8 - z.qcap) end as top,
+               z.cand and z.rn <= case when z.pos = 'cap' then z.qcap
+                                       else least(z.nfo, 8 - z.qcap) end as top,
                /* 見せる型。公開前からいて、公開の日の8行に入っていなかった人は会社型。
                   ⚠️ 下の rn0 / qcap0 は**公開の日の8行を並べ直すためだけ**の式。
                      上の8行の決め方（rn / qcap）を変えても、こちらは変えないこと。
@@ -2292,11 +2365,11 @@ begin
                    least(y.ncap0, greatest(4, 8 - y.nfo0)) as qcap0
               from (
                 select x.*,
-                       row_number() over (partition by x.eli, x.pos
+                       row_number() over (partition by x.cand, x.pos
                                           order by x.last_at desc, md5(x.pkey)) as rn,
                        row_number() over (order by x.last_at desc, md5(x.pkey)) as g,
-                       count(*) filter (where x.eli and x.pos = 'cap') over () as ncap,
-                       count(*) filter (where x.eli and x.pos = 'fo')  over () as nfo,
+                       count(*) filter (where x.cand and x.pos = 'cap') over () as ncap,
+                       count(*) filter (where x.cand and x.pos = 'fo')  over () as nfo,
                        -- 公開の日の並び（公開前の提出だけで並べる）
                        row_number() over (partition by x.eli0, x.pos
                                           order by x.l0 desc, md5(x.pkey)) as rn0,
@@ -2308,11 +2381,16 @@ begin
                            get_byte(decode(md5('pv-tz:' || p.pkey), 'hex'), 0) % 3 as t,
                            p.pkey like 'p:%' as pend,
                            p.pos in ('cap', 'fo') and p.pkey not like 'p:%' as eli,
+                           -- 上の8行の候補。eli から公開年収を大きく外れた人を抜いたもの
+                           p.pos in ('cap', 'fo') and p.pkey not like 'p:%'
+                             and fe.pkey is null as cand,
                            p.pos in ('cap', 'fo') and p.pkey not like 'p:%'
                              and p.l0 is not null as eli0
                       from person p
                       left join coarse k on k.pkey = p.pkey and k.airline = p.airline
                                         and k.pos  = p.pos
+                      left join fence fe on fe.pkey = p.pkey and fe.airline = p.airline
+                                        and fe.pos  = p.pos
                   ) x
               ) y
           ) z
@@ -2419,7 +2497,10 @@ comment on function public.pv_pay_rows() is
   '（2026-09-18。上の8行は機長と副操縦士を交互に並べ、1人に固定の型で'
   '年収・年数の段／職位・機材・年収／会社・職位のどれか。9行目以降は会社と投稿時期、'
   '上の8行から下がってきた人は投稿時期だけ。2026-09-19）。'
-  '会社と年収は同じ行に入らない。勤務・内訳は1つも入らない。';
+  '会社と年収は同じ行に入らない。勤務・内訳は1つも入らない。'
+  '2026-09-19 から、公開年収（同じ会社・同じ職位）の上限の1.5倍超か下限の半分未満の'
+  '本人申告の人に far=true を付ける（数字は書き換えない）。その人は伏せた一覧の上の8行に入れず、'
+  '伏せた行には far を入れない。';
 
 
 -- ════════════════════════════════════════════════════════════════
@@ -2481,10 +2562,10 @@ comment on function public.pv_give_progress() is
 --
 -- ★1本の SELECT にしてある。Supabase の SQL Editor は複数文を流すと
 --   最後の1本の結果しか出さないので、分けて書くと上から順に消えていく。
--- 期待：66行すべて ✅。1つでも ❌ なら、そこが効いていない。
+-- 期待：68行すべて ✅。1つでも ❌ なら、そこが効いていない。
 --
 -- 特に 4・8・12・13・14・16・22・23・30・31・36・37・40・41・42・44・45・46・47・
---      50・51・52・53・54・55・56 は
+--      50・51・52・53・54・55・56・67・68 は
 -- 「静かに壊れる」種類のもの ── 画面には何も出ないまま、他人の個票に届く経路が開く
 -- （16・30 は逆に、同じ人が二重に出る／41・45・47 は数だけが画面ごとに食い違う）。
 -- ════════════════════════════════════════════════════════════════
@@ -3092,6 +3173,8 @@ from (
                        and s.x not like '%''work''%'
                        and s.x not like '%''bh''%' and s.x not like '%''dd''%'
                        and s.x not like '%''off''%'
+                       -- 公開年収から外れた印は伏せた行に入れない（2026-09-19）
+                       and s.x not like '%''far''%'
                        and s.x !~ '(from|join)\s+(pick|paid|worked|grid|sane|listed)\M'
                        and not exists (
                              select 1
@@ -3112,6 +3195,29 @@ from (
                       where p.oid = f.f_rows
                         and a.grantee = 0
                         and a.privilege_type = 'EXECUTE')
+         end from f
+  union all
+  -- ── 公開年収から大きく外れた行の印（2026-09-19）──────────────
+  select 67, '★会社の表に公開年収の幅が入っている（❌ なら db/airlines.generated.sql を先に貼る）',
+         /* 静かに壊れる。幅が空でも一覧は普通に出て、⚠ が1つも付かないだけ。
+            このファイルを db/airlines.generated.sql より先に貼るとここが ❌ になる。 */
+         exists (select 1 from public.pv_airlines a
+                  where a.active and a.cap_lo is not null and a.cap_hi is not null
+                    and a.fo_lo is not null and a.fo_hi is not null)
+  union all
+  select 68, '★印の付いた人は伏せた一覧の上の8行に入らない（本物の一覧だけが印を返す）',
+         /* 静かに壊れる。mask が fence を読まなくなると、公開年収を大きく外れた
+            額が鍵の無い人の最初の画面にまた出る。画面は何も変わらない。 */
+         case when f_rows is null then false
+              else (with s as (
+                      select substring(pg_get_functiondef(f.f_rows)
+                                       from 'pv-mask-begin(.*)pv-mask-end') as x
+                    )
+                    select s.x is not null
+                       and s.x ~ 'join\s+fence\M'
+                       and s.x like '%z.cand and z.rn%'
+                      from s)
+               and pg_get_functiondef(f_rows) like '%''far'',%fe.far%'
          end from f
 ) t
 order by n;

@@ -243,6 +243,10 @@
   border-radius:999px;padding:3px 9px;
   color:var(--pv-ink-3);background:var(--pv-line-soft);
   border:1px solid var(--pv-line)}
+/* ★公開年収から大きく外れた本人申告の行（2026-09-19）。出典の札の後ろに記号だけ。
+   説明は title と読み上げ（actual-pay.js の farMark）。色は既存のトークンを使う。 */
+.ap-far{display:inline-block;margin-left:6px;vertical-align:middle;
+  font-size:.82rem;font-weight:700;line-height:1;color:var(--pv-gold-ink)}
 
 /* いちばん右の「投稿時期」。★出るのは5段の粗い区分の言葉だけで、日付は無い。
    ★出典の札より更に静かに。ここは「どれくらい新しいか」の目安であって、
@@ -524,6 +528,10 @@
   color:var(--pv-ink);font-variant-numeric:tabular-nums}
 .ap-dw-src{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px}
 .ap-dw-age{font-size:.72rem;font-weight:600;color:var(--pv-ink-3)}
+/* 公開年収から大きく外れた行だけ、金額の下に出る1文。 */
+.ap-dw-far{display:flex;gap:6px;margin-top:10px;
+  font-size:.75rem;font-weight:600;line-height:1.7;color:var(--pv-gold-ink);
+  line-break:strict;word-break:auto-phrase}
 
 /* 節の見出し。★h3。この画面の h2 は 0 のままにする。 */
 .ap-dw-h{margin:24px 0 10px;
