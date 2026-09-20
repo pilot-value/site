@@ -443,9 +443,10 @@
      No JS ever overwrote them, so they had nothing to do with the real data
      (= they were simply untrue). The Japanese page was fixed; this one was not,
      and it still read "247 Reviews" above a feed headed "38 reviews".
-     The review count now comes from the rows actually loaded. The member count
-     is not shown at all: it cannot be read anonymously, and any figure we could
-     show would be inflated. -->
+     The review count is now written by totalReviewCount() — the same counter that
+     fills the feed heading below, so the two can never disagree again. Never start
+     counting reviews in a second place. The member count is not shown at all: it
+     cannot be read anonymously, and any figure we could show would be inflated. -->
 <section id="stats-bar" style="background:rgba(8,10,14,.8);border-top:1px solid rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.04)">
   <div class="max-w-4xl mx-auto px-6 py-5 grid grid-cols-2 gap-4 text-center">
     <div class="fade-up">
@@ -687,6 +688,20 @@ function filterReviews(btn, airline) {
   renderReviews(airline);
 }
 
+/* The review total shown in the stats bar.
+   ★2026-09-20, owner's call: the bar and the feed heading must count the SAME thing,
+   samples included. The bar is a site-wide total, so it adds up the same three sources
+   the heading does (this browser's own posts, Supabase, the sample reviews) without
+   applying the airline filter.
+   ⚠️ Do not count reviews in two places. Two counters is exactly what produced
+      "247" above "38 reviews" — the page kept working and simply contradicted itself.
+      This function is the only place a review total is worked out. */
+function totalReviewCount() {
+  let mine = 0;
+  try { mine = JSON.parse(localStorage.getItem('pv_reviews') || '[]').length; } catch(e) {}
+  return mine + (sbReviewsCache ? sbReviewsCache.length : 0) + SEED_REVIEWS.length;
+}
+
 function renderReviews(filter) {
   const feed = document.getElementById('review-feed');
   const unlocked = isUnlocked();
@@ -723,9 +738,11 @@ function renderReviews(filter) {
   const seedFiltered = filter === 'all' ? SEED_REVIEWS : SEED_REVIEWS.filter(r => r.airline === filter);
   reviews = [...reviews, ...seedFiltered];
 
-  // Review count display
+  // Counts: the heading shows the filtered rows, the bar the total — both count the same three sources
   const countEl = document.getElementById('feed-count');
   if (countEl) countEl.textContent = reviews.length + ' reviews';
+  const statEl = document.getElementById('stat-reviews');
+  if (statEl) statEl.textContent = totalReviewCount().toLocaleString('en-US');
 
   // Way out for contributors who already posted but are on a different device:
   // pv-reunlock.js restores their unlock right after they log in.
@@ -857,13 +874,10 @@ async function loadSupabaseReviews() {
 
     // The legacy reviews table has been dropped, so there is nothing to merge
     const merged = [...v2Formatted];
-    // Show only the rows we actually managed to read (if it is 0, show 0 — never pad it)
-    const statEl = document.getElementById('stat-reviews');
-    if (statEl) statEl.textContent = merged.length.toLocaleString('en-US');
-    if (merged.length > 0) {
-      sbReviewsCache = merged;
-      renderReviews(currentFilter);
-    }
+    sbReviewsCache = merged;
+    // The bar is not written here: totalReviewCount() is the only counter.
+    // Re-render even when we read 0 rows, so the bar never stays on "—".
+    renderReviews(currentFilter);
   } catch(e) {}
 }
 

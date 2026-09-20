@@ -437,7 +437,8 @@
 <!-- STATS BAR
      ⚠️ ここには以前 247 / 17 / 1,203 という数字が直書きされていた。
      JS が一度も書き換えておらず、実データと無関係だった（＝ただの嘘）。
-     口コミ件数は読み込んだ実データから入れる。登録メンバー数は匿名では読めず、
+     口コミ件数は totalReviewCount() が入れる（＝すぐ下の見出しと同じ数え方。
+     この2つを別々に数え始めない）。登録メンバー数は匿名では読めず、
      読めても水増しになるので出さない。 -->
 <section id="stats-bar" style="background:rgba(8,10,14,.8);border-top:1px solid rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.04)">
   <div class="max-w-4xl mx-auto px-6 py-5 grid grid-cols-2 gap-4 text-center">
@@ -679,6 +680,18 @@ function filterReviews(btn, airline) {
   renderReviews(airline);
 }
 
+/* 上の帯に出す口コミの総数。
+   ★2026-09-20 オーナー指示「両方サンプルを数える」── 帯とフィードの見出しを**同じ数え方**にする。
+   帯は絞り込みと関係ない総数なので、見出しと同じ3つ（このブラウザの投稿・Supabase・サンプル）を
+   filter を通さずに足す。
+   ⚠️ 数える場所を2つに分けない。分けたのが 2026-09-19 の「上は 247・下は 38」の正体で、
+      片方だけ直しても画面は普通に動いたまま食い違う。数えるのはこの関数1つだけ。 */
+function totalReviewCount() {
+  let mine = 0;
+  try { mine = JSON.parse(localStorage.getItem('pv_reviews') || '[]').length; } catch(e) {}
+  return mine + (sbReviewsCache ? sbReviewsCache.length : 0) + SEED_REVIEWS.length;
+}
+
 function renderReviews(filter) {
   const feed = document.getElementById('review-feed');
   const unlocked = isUnlocked();
@@ -715,9 +728,11 @@ function renderReviews(filter) {
   const seedFiltered = filter === 'all' ? SEED_REVIEWS : SEED_REVIEWS.filter(r => r.airline === filter);
   reviews = [...reviews, ...seedFiltered];
 
-  // 件数表示
+  // 件数表示（見出しは絞り込み後の数・帯は総数。どちらも同じ3つを数えている）
   const countEl = document.getElementById('feed-count');
   if (countEl) countEl.textContent = reviews.length + '件';
+  const statEl = document.getElementById('stat-reviews');
+  if (statEl) statEl.textContent = totalReviewCount().toLocaleString('en-US');
 
   // 投稿済みなのに別端末で読めない人の逃げ道。ログイン後に pv-reunlock.js が解放を復活させる。
   const loginHref = 'login.html?return=' + encodeURIComponent(location.pathname + location.search);
@@ -843,13 +858,10 @@ async function loadSupabaseReviews() {
 
     // 旧 reviews テーブルは廃止済みのためマージしない
     const merged = [...v2Formatted];
-    // 口コミ件数は実際に読めた行数だけを出す（0件なら 0 と出す。埋めない）
-    const statEl = document.getElementById('stat-reviews');
-    if (statEl) statEl.textContent = merged.length.toLocaleString('en-US');
-    if (merged.length > 0) {
-      sbReviewsCache = merged;
-      renderReviews(currentFilter);
-    }
+    sbReviewsCache = merged;
+    // 帯の件数はここでは書かない。数えるのは totalReviewCount() の1か所だけ
+    // （読めた行数が 0 でも描き直す＝帯が「—」のまま残らない）。
+    renderReviews(currentFilter);
   } catch(e) {}
 }
 
