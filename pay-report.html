@@ -1622,9 +1622,14 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
              ★中身は JS が組む（出す条件と対で持つ）。 -->
         <div id="claim-state" class="claim-st" hidden></div>
         <div id="amt-confirm" class="amt-cf" hidden></div>
+        <!-- ★2026-09-20 オーナー指示で「やめる」を外した。
+             ここは5段ぜんぶを埋め終えた人だけが見る画面なのに、決める場所の真横
+             （スマホでは真下に同じ幅）へ、サイトの別のページへ飛ぶ出口を置いていた。
+             離れる道はヘッダーと左の板に在る。直したいなら各節の「編集」か下の「戻る」。
+             ⚠️ #submit-actions ごと消さない。提出が済んだ画面へ切り替えるときに
+                この id を畳んでいる（消すと配り先が1つ減って、畳み忘れになる）。 -->
         <div class="mt-7 flex flex-col sm:flex-row gap-3" id="submit-actions">
           <button type="button" id="submit-btn" class="btn-orange justify-center flex-1">送信して結果を見る →</button>
-          <a href="world-airlines.html" class="btn-ghost justify-center">やめる</a>
         </div>
         <!-- ★「送信すると」ではない。2026-08-17 から送信の時点ではまだ開かない
              （先にサーバへ預かり、アカウントを作った時に本棚へ入って90日が付く）。

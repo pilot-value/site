@@ -1649,9 +1649,15 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
              ★The JS builds the contents (they live with the condition). -->
         <div id="claim-state" class="claim-st" hidden></div>
         <div id="amt-confirm" class="amt-cf" hidden></div>
+        <!-- ★Cancel removed 2026-09-20 (owner's call). Only people who have filled
+             in all five steps ever see this screen, yet right next to the decision
+             (directly below it, full width, on a phone) sat a way off the page.
+             The header and the left rail are the way out; "Edit" on each section
+             and "Back" below are the way to change something.
+             ⚠️ Do not delete #submit-actions itself — switching to the submitted
+                screen folds this id away (drop it and one target goes missing). -->
         <div class="mt-7 flex flex-col sm:flex-row gap-3" id="submit-actions">
           <button type="button" id="submit-btn" class="btn-orange justify-center flex-1">Submit and see the numbers →</button>
-          <a href="world-airlines.html" class="btn-ghost justify-center">Cancel</a>
         </div>
         <!-- ★Not "submitting". Since 2026-08-17 nothing opens at submit time —
              the data is held server-side first, and the 90 days start when the

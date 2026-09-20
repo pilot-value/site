@@ -423,6 +423,7 @@ const setDetail = async (page, open) => {
 /* ★見える窓で開いたままにする（撮らない）。ほかの shot-*.mjs と同じ open。
      node shot-pay.mjs open              手入力の入口から
      node shot-pay.mjs open detail       DEEP PAY の「給与内訳を追加する」で来たとき
+     node shot-pay.mjs open review       ★5段を埋めて確認画面（5/5）で止める。提出は押さない
      node shot-pay.mjs open gate         匿名で提出したあとの「登録の箱」まで進めて渡す
      node shot-pay.mjs open fallback     その箱が描けなかったとき（pay-login.js を落とす）
      node shot-pay.mjs open done         会員登録まで済んだ結果カード（祝いが鳴るところ）
@@ -438,6 +439,9 @@ if (process.argv.includes('open')) {
   await browser.close();                    // 撮影用の頭は要らない
   const lang = process.argv.includes('en') ? 'en' : 'ja';
   const wantFb   = process.argv.includes('fallback');
+  /* ★確認画面で止める（2026-09-20）。「最後の1押しで何が見えているか」を見るための窓。
+     ⚠️ 提出は押さない＝Supabase へは1本も出さないので、gate と違って横取りも要らない。 */
+  const wantReview = process.argv.includes('review');
   /* ★done は gate の続き。5段を埋めて匿名で提出したところまで同じ道を歩き、
      そのあと「会員登録が済んだ」結果カードを出す。祝いはそこで鳴る。
      ⚠️ 通信は gate と同じく1本残らず横取りしている＝本番には1件も入らない。 */
@@ -582,6 +586,36 @@ if (process.argv.includes('open')) {
     console.log(wantSlip
       ? '2回目以降・明細の入口（並びは常に「明細から」が先）。前回の内容は端末に置いただけ＝本番は読んでいない。'
       : `2回目以降の手入力。段は ${n} 枚（初回は5枚）。前回の内容は端末に置いただけ＝本番は読んでいない。`);
+  }
+  if (wantReview) {
+    await startManual(pg);
+    await fillSimple(pg);
+    await pg.evaluate(() => { if (window.PVPayWizard) window.PVPayWizard.goLast(); });
+    await new Promise((r) => setTimeout(r, 600));
+    /* ★ボタンが見える所まで運んでから渡す。確認画面は2画面ぶんの高さがあり、
+       頭のまま渡すと「ボタンが無い」と読まれる。 */
+    await pg.evaluate(() => {
+      const b = document.getElementById('submit-btn');
+      if (b) b.scrollIntoView({ block: 'center' });
+    });
+    const r5 = await pg.evaluate(() => {
+      const b = document.getElementById('submit-btn');
+      const s5 = document.getElementById('s5');
+      const n = document.getElementById('submit-note');
+      const q = document.querySelector('#submit-actions .btn-ghost');
+      return {
+        label: b ? b.textContent.trim() : '(無い)',
+        note: (n && !n.hidden) ? n.textContent.replace(/\s+/g, ' ').trim() : '(出ていない)',
+        quit: q ? q.textContent.trim() + ' → ' + (q.getAttribute('href') || '') : '(無い)',
+        h: s5 ? Math.round(s5.getBoundingClientRect().height) : 0,
+        gap: (b && s5) ? Math.round(b.getBoundingClientRect().top - s5.getBoundingClientRect().top) : 0,
+      };
+    });
+    console.log('5/5 の確認画面で止めた。**提出は押していない**＝本番には1件も入らない（金額は架空）。');
+    console.log(`  ボタンの文字      : ${r5.label}`);
+    console.log(`  ボタンの下の1行   : ${r5.note}`);
+    console.log(`  すぐ下に並ぶ出口  : ${r5.quit}`);
+    console.log(`  確認画面の高さ    : ${r5.h}px（ボタンはその先頭から ${r5.gap}px 下）`);
   }
   if (wantGate) {
     await startManual(pg);
