@@ -65,7 +65,8 @@
     salDescAnon:   'Submit one payslip to unlock the detailed pay data (by aircraft & rank) for 90 days — completely free.',
     salDescLogged: 'Submit a payslip to unlock the detailed pay breakdown for 90 days.',
     salCta:        'Submit a Payslip Anonymously & Unlock',
-    salFootNote:   'The image never leaves your device · No name required · 90-day access',
+    // ⚠️ See the Japanese note below: never claim the image does not leave the device.
+    salFootNote:   'Blacked out in your browser, never stored · No name required · 90-day access',
     give:          'GIVE',
     take:          'GET',
     ctaPost:       'Post a Review Anonymously & Unlock',
@@ -81,7 +82,10 @@
     salDescAnon:   '給与明細を1枚出すだけで\n詳細な給与データ（機種別・等級別）が90日間解放されます。',
     salDescLogged: '給与明細を1枚出すと\n詳細な給与データが90日間解放されます。',
     salCta:        '匿名で給与明細を出して解放する',
-    salFootNote:   '画像は端末から出ません · 名前不要 · 90日間アクセス',
+    /* ⚠️ 「画像は端末から出ません」と書かない。**事実でない。**（2026-09-20）
+         端末から出ないのは「枠の外」と「黒塗りした部分」であって、枠の中は送っている。
+         この文言は226枚に出るので、ここが一番広く嘘をついていた。 */
+    salFootNote:   'ブラウザの中で黒塗りしてから送信・画像は保存しません · 名前不要 · 90日間アクセス',
     give:          'GIVE',
     take:          'GET',
     ctaPost:       '匿名で口コミを投稿して解放する',

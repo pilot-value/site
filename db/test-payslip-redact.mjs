@@ -1507,29 +1507,19 @@ for (const f of ['personal-data.html', 'pay-report.html']) {
      payslip.js の T.frameLead / T.note で出す。入口で先回りして約束する必要が無い。
 
    ★この検査が守るのは「短く書く」ではなく「事実だけ書く」。
-     売り文句を強くしたくなったら、消したこの行が3回目に戻ってくる。 */
-{
-  const NEVER_SAY = [
-    [/画像は送りません/, '「画像は送りません」'],
-    [/画像は(?:どこにも)?送信されません/, '「画像は送信されません」'],
-    [/端末の中で数字だけ/, '「端末の中で数字だけ取り出します」'],
-    [/The image is not sent/i, '"The image is not sent"'],
-    [/(?:figures|numbers) are read on(?: this| your)? device/i, '"read on this device"'],
-    [/never (?:leaves|leave) your device/i, '"never leaves your device"'],
-  ];
-  for (const f of ['pay-report.html', 'en/pay-report.html']) {
-    /* ★HTML コメントは外して見る。消した理由を書き残したコメントには、
-       禁止した文言そのものが引用として入っている（入っていてほしい）。
-       画面に出るのはコメントの外だけなので、そこだけを見る。 */
-    const s = readFileSync(path.join(DIR, '..', f), 'utf8').replace(/<!--[\s\S]*?-->/g, '');
-    const said = NEVER_SAY.filter(([re]) => re.test(s)).map(([, label]) => label);
-    ok(said.length === 0,
-      `${f}: ★「送らない」と読める言い回しを書いていない（枠の中は実際に送っている）`,
-      said.join(' / '));
-  }
-  /* ★personal-data.html の「枠の外は端末を出ません」は事実なので対象外。
-     そちらは上の COPY 節が「書いてあること」を要求している。 */
-}
+     売り文句を強くしたくなったら、消したこの行が3回目に戻ってくる。
+
+   ★★2026-09-20、この検査そのものを assert-claims.mjs へ移した。★★
+     ここに置いていた版は **pay-report.html の2枚しか見ていなかった**。
+     オーナーの指摘でサイト全体を見たら、同じ嘘が4か所に残っていた
+     （index.html は §4 で「画像は送りません」と書きながら、同じページの
+     §7・§8 で「黒塗りしてから送信・保存しません」と書いていた＝1枚の中で矛盾）。
+     とくに airlines/premium-auth-lock.js は226枚に出ていた。
+
+     移した先は**禁則も対象も広い上位互換**で、ブラウザが要らないぶん
+     `check.mjs fast`（push 前に毎回走る）に入っている。ここは40秒の
+     文字読み取りを持つ SOLO なので、`web` まで流さないと走らなかった。
+     二重に持つと片方だけ直されるので、ここには残さない。 */
 
 await browser.close();
 console.log(`\n══ ${pass} pass / ${fail} fail ══`);

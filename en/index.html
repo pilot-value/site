@@ -443,7 +443,12 @@
          5件未満の行が存在しないので、匿名クライアントからは n=2 と n=0 の区別がつかない。 -->
     <div class="pv-fill">
       <p class="pv-fill-t">To see the right-hand column.</p>
-      <p class="pv-fill-d">Upload a payslip or type your annual pay in by hand and it opens. About 30 seconds. The payslip is read for its numbers on your own device — the image is never sent.</p>
+      <!-- ⚠️ Never write "the image is never sent" here. **It is not true.** (2026-09-20)
+           What happens on the device is the redaction and the crop; the reading is done
+           by sending the cropped area. §7 and §8 of this same page already said
+           "blacked out in your browser … never stored" correctly — only this line
+           contradicted them. Pinned by section A) of assert-claims.mjs. -->
+      <p class="pv-fill-d">Upload a payslip or type your annual pay in by hand and it opens. About 30 seconds. Your name, staff number and bank details are blacked out in your browser before the payslip is sent, and the image itself is never stored.</p>
       <a href="pay-report.html" class="pv-btn pv-btn--primary" data-pv-ev="actual_pay_contribute_cta">Add my pay anonymously</a>
     </div>
 

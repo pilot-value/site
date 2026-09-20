@@ -297,6 +297,7 @@ baland_ass/                            ブランド資産（※ brand_assets の
 | `assert-deep-pay-compare.mjs` | 会社比較 ── **片側が3人未満でももう片側は普通に出る**・勝ち負けの語を書かない・賞与を月々の棒に入れない・人数を JS で数えない（壁は SQL の1か所）|
 | `assert-roadmap.mjs` | ROADMAP & REQUESTS ── **匿名が解けない**（一覧の SQL が `author_hash` に触れない）・要望の本文が `textContent` で入る・**日英の文言の鍵が完全に同じ**・区分と状態の白リストが SQL と画面で一致・取れないときに 0 で埋めない・hex と `prefers-color-scheme` の直書きが無い |
 | `db/test-requests.mjs` | 要望と ♡ の SQL ── ハッシュが外へ出ない・**1人1票**・管理者しか状態を変えられない・隠した行が一般ユーザーの `total` にも出ない・文字数と連投の制限がサーバ側で効く |
+| `assert-claims.mjs` | サイトが**本当のことだけ**を言っているか ── A)「画像は送らない」と書かない（**本当は送っている。**端末を出ないのは*枠の外*と*塗った部分*だけ）・正しい説明が送る直前の確認画面と `personal-data.html` に在る／B) 画面に出る数を HTML に直書きしない（JS が書き換える欄は「—」で出荷・日英で欄の集合が同じ・掲載社数は `SALARY` と一致）|
 | `assert-generated.mjs` | 生成物（sitemap・英語版一覧・語彙・JSON-LD の更新日）が**流し忘れで古くなっていない**か。使い捨てのコピーの中で生成スクリプトを流すので**リポジトリには書き込まない**（`.git` だけ読むために貸す）|
 | `assert-no-pii.mjs` | オーナーの身元が漏れていないか（`.githooks/pre-commit` から毎回自動で走る）|
 | `npm run test:sql` | Supabase 側（`db/*.sql`）を触ったとき。`check.mjs sql` が同じものを並列で回す |
@@ -425,6 +426,20 @@ baland_ass/                            ブランド資産（※ brand_assets の
 第3引数を省いた呼び出しは今までと1文字も違わないので、`db/test-payslip-parse.mjs` の
 **画面との突き合わせ（2引数）はそのまま生きている**。理由と決め手の順は
 [workflows/pay-form.md](workflows/pay-form.md) の「明細だけは紙1枚ごとに流儀を決める」。
+
+### ⚠️ 明細の扱いは、サイト全体で1つの言い方にそろえる（2026-09-20）
+**「画像は送りません」は嘘。** 端末でやっているのは *枠の外の切り落とし* と *黒塗り* で、
+読み取りは**枠の中を切り出した画像を送って**やっている（→ Edge Function → Anthropic）。
+端末を出ないのは**枠の外**と**塗った部分**であって、画像そのものではない。保存はしない
+（ストレージにも DB にもログにも書かず、読み終わったら捨てる）。
+
+> 氏名・社員番号・口座はブラウザの中で黒塗りしてから送ります。画像は保存しません。
+> Your name, staff number and bank details are blacked out in your browser before anything is sent. The image itself is never stored.
+
+2026-08-13 に `pay-report.html` で一度直したが、**検査がその2枚しか見ていなかった**ため、
+2026-09-20 まで4か所に嘘が残っていた（`index.html` は同じ1枚の中で §4 と §7 が矛盾し、
+`airlines/premium-auth-lock.js` は**226枚**に出ていた）。いまは `node assert-claims.mjs` が
+サイト全体（HTML＋共有 JS）を見ている。**売り文句を強くしたくなったら、ここへ戻る。**
 
 **`supabase/functions/` を触ったら push だけでは本番に反映されない。**
 Supabase ダッシュボード → Edge Functions → 該当関数 → コードを貼り替えて Deploy（オーナー作業）。

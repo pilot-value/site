@@ -218,8 +218,12 @@
       /* ★「明細を1枚」と書かない。手入力（source='web'）でも解放される。
            明細は VERIFIED PAY の話になったので、ここで要求すると Give を1つ減らす。 */
       lockT: '他のパイロットが実際に提出した給与を見る',
+      /* ⚠️ 「サーバーには送られません」と書かない。**事実でない。**（2026-09-20）
+           端末でやっているのは黒塗りと枠の外の切り落としで、読み取りは枠の中を
+           切り出した画像を送ってやっている。サイト全体でこの1文に揃えてある
+           （index.html §7・pay-report.html・personal-data.html・premium-auth-lock.js）。 */
       lockS: '氏名も社員番号も受け取りません。'
-           + '明細を使う場合、画像は端末の中だけで処理され、サーバーには送られません。',
+           + '明細を使う場合、氏名・社員番号・口座はブラウザの中で黒塗りしてから送り、画像は保存しません。',
       lockS2: '一覧に出るのは、航空会社・職位・機材と、帯にした年収・月あたりです。'
             + '行を押すと、その人の報酬の内訳と勤務も帯で見られます。',
       lockC: '匿名で給与を追加する',
@@ -312,8 +316,12 @@
       dash: '–', under: 'Under {v}',
       pgPrev: 'Previous', pgNext: 'Next', pgRange: 'Showing {a}–{b} of {n}',
       lockT: 'See what other pilots actually get paid',
-      lockS: 'We never take your name or staff number, '
-           + 'and any payslip image is processed on your own device.',
+      /* ⚠️ See the Japanese note above: do not write "processed on your own device"
+           as if nothing is sent. The redaction and the crop happen on the device;
+           the cropped area is then sent to be read. */
+      lockS: 'We never take your name or staff number. '
+           + 'If you use a payslip, your name, staff number and bank details are blacked out '
+           + 'in your browser before it is sent, and the image itself is never stored.',
       lockS2: 'A row carries the airline, the rank and the aircraft, '
             + 'with the yearly and monthly figures as ranges. '
             + 'Opening a row shows how that pay breaks down, and the work behind it.',

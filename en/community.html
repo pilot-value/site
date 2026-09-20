@@ -438,20 +438,23 @@
 </section>
 
 
-<!-- STATS BAR -->
+<!-- STATS BAR
+     ⚠️ This used to carry 247 / 17 / 1,203 hard-coded into the HTML.
+     No JS ever overwrote them, so they had nothing to do with the real data
+     (= they were simply untrue). The Japanese page was fixed; this one was not,
+     and it still read "247 Reviews" above a feed headed "38 reviews".
+     The review count now comes from the rows actually loaded. The member count
+     is not shown at all: it cannot be read anonymously, and any figure we could
+     show would be inflated. -->
 <section id="stats-bar" style="background:rgba(8,10,14,.8);border-top:1px solid rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.04)">
-  <div class="max-w-4xl mx-auto px-6 py-5 grid grid-cols-3 gap-4 text-center">
+  <div class="max-w-4xl mx-auto px-6 py-5 grid grid-cols-2 gap-4 text-center">
     <div class="fade-up">
-      <div class="text-2xl font-extrabold" style="color:#f5c842" id="stat-reviews">247</div>
+      <div class="text-2xl font-extrabold" style="color:#f5c842" id="stat-reviews">—</div>
       <div class="text-xs text-muted mt-0.5">Reviews</div>
     </div>
     <div class="fade-up" style="transition-delay:.05s">
-      <div class="text-2xl font-extrabold" style="color:#3d9bff" id="stat-airlines">17</div>
+      <div class="text-2xl font-extrabold" style="color:#3d9bff" id="stat-airlines">112</div>
       <div class="text-xs text-muted mt-0.5">Airlines listed</div>
-    </div>
-    <div class="fade-up" style="transition-delay:.1s">
-      <div class="text-2xl font-extrabold" style="color:#34d399" id="stat-members">1,203</div>
-      <div class="text-xs text-muted mt-0.5">Registered members</div>
     </div>
   </div>
 </section>
@@ -854,6 +857,9 @@ async function loadSupabaseReviews() {
 
     // The legacy reviews table has been dropped, so there is nothing to merge
     const merged = [...v2Formatted];
+    // Show only the rows we actually managed to read (if it is 0, show 0 — never pad it)
+    const statEl = document.getElementById('stat-reviews');
+    if (statEl) statEl.textContent = merged.length.toLocaleString('en-US');
     if (merged.length > 0) {
       sbReviewsCache = merged;
       renderReviews(currentFilter);

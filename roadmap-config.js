@@ -155,7 +155,10 @@ window.PVRoadmap = {
     { id: 'payslip-redact', state: 'done', date: '2026-08-06',
       ja: { t: '明細を端末の中で黒塗りしてから読み取る',
             d: '氏名・社員番号・住所は送る前に消す。画像は保存しない。' },
+      /* ⚠️ 日本語と同じ言い方にそろえる（2026-09-20）。「never leave the phone」は
+           氏名・住所については本当だが、読み手は「画像が」と読む。枠の中の画像は
+           実際に送っている（サイト全体の言い方は index.html §7 を見る）。 */
       en: { t: 'Payslips redacted on your device',
-            d: 'Name and address never leave the phone. Image not stored.' } }
+            d: 'Name and address are removed before sending. Image not stored.' } }
   ]
 };

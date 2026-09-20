@@ -28,7 +28,7 @@ const FAST = [
   ['assert-admin-notify.mjs', 0.1], ['assert-translate-review.mjs', 0.1],
   ['assert-jobs.mjs', 0.1], ['assert-no-pii.mjs', 1.0],
   ['assert-pay-report-sync.mjs', 0.1],
-  ['assert-roadmap.mjs', 0.1],
+  ['assert-roadmap.mjs', 0.1], ['assert-claims.mjs', 0.3],
   ['assert-generated.mjs', 0.8],
   ['db/test-aha.mjs', 1], ['db/test-announce.mjs', 1],
   ['db/test-payslip-hours.mjs', 1], ['db/test-payslip-parse.mjs', 1],
