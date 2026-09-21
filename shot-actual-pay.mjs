@@ -11,12 +11,11 @@
              preview-in ★ログイン済み・まだ給与を出していない人。行は作り物のまま、
                       上の数え上げカードだけ**本物**が出る
              preview-drawer ★未ログインの人がプレビューの行を押して開いた面
-             masked   ★伏せた一覧（2026-09-16／2026-09-18 作り直し）。ログイン済み・口コミだけ出した人。
-                      上の8行は機長 → 副操縦士の交互で、行ごとに見える欄が違う（年収型／機種型／会社型）。
-                      9行目以降は会社と投稿時期だけ（会社は会社型の人だけ）
+             masked   ★伏せた一覧（2026-09-16）。ログイン済み・口コミだけ出した人。
+                      会社・出典・投稿時期は読め、年収・職位・機材は空の板
              masked-anon ★同じものを未ログインで。**pv_pay_rows は差し替える**
                       （preview と違うのはここ）
-             masked-drawer ★伏せた行を押して開いた面（row=0 機種型 / 1 年収型 / 2 会社型 / 8 9行目以降）
+             masked-drawer ★伏せた行を押して開いた面
              locked   ★2026-09-13 より前の骨組み（ap-preview.js が読めないときの落ち先）
              locked-nostat ★サーバをまだ貼り替えていない＝数字カードが1枚も出ない
              locked-panel ★Give → Get の DEEP PAY の札を押して説明を出したところ
@@ -48,7 +47,6 @@
                         0=内訳も勤務もある人 / 1=内訳だけ / 2=勤務だけ /
                         7=昇格後年数の欄ができる前の投稿（札が「在籍◯年」になる）/
                         8=年収だけ（口コミ由来）── 空の面にならないことを見る
-                  pg=2  そのページへ送ってから撮る（10件で改頁。伏せた一覧の9行目以降を見る）
                   gate  drawer のとき、面の主 CTA まで押す（面が閉じて
                         左メニューと同じ DEEP PAY の説明パネルが出るところ）
 
@@ -92,8 +90,6 @@ const rArg = process.argv.slice(4).find((a) => /^row=\d+$/.test(a));
 /* drawer のとき、面の主 CTA まで押す。★飛び先は DEEP PAY ではなく、
    左メニューと同じ「まだ開けていない」の説明パネル（#mr-gate）。 */
 const gate = process.argv.slice(4).includes('gate');
-/* ページ送り。★押すのは本物のページ送りのボタン（data-ap-page）。 */
-const pgArg = process.argv.slice(4).find((a) => /^pg=\d+$/.test(a));
 
 const UID = '00000000-0000-4000-8000-00000000c001';
 
@@ -321,38 +317,17 @@ const MANY = [
   R('singapore-airlines', 'fo', 130000, false, 2, { fleet: 'b787', ten: 1 }),
 ];
 
-/* ★伏せた行（2026-09-16 オーナー指示／2026-09-18 作り直し）。鍵の無い人へサーバが
-     返す形を、db/pay-rows.sql の mask と同じ手順で MANY から作る。
-       上の8行 … 機長 → 副操縦士の交互（どちらも新しい順）。1人に固定の型ごとに
-                 見える欄が違う（a 年収型：年収・年数の段／f 機種型：職位・機材・年収／
-                 c 会社型：会社・職位）。どれにも出典と投稿時期が付く
-       9行目以降 … 会社と投稿時期。上の8行から下がってきた人（会社型を除く）は投稿時期だけ
-   ★型は本番では本人の匿名キーから決まる。ここは絵のために**手で置く**
-     （MANY に匿名キーが無い）。上の8行に3つの型が全部出るようにしてある。
-   ★年収は本番と同じ有効数字2桁に丸めて渡す（pv_sig2 と同じ式）。
-   ⚠️ 型に無い欄を書き足さない。書くと「画面が出さない」ことしか確かめられず、
-      **サーバが渡していない**という本題の絵にならない。
-   ⚠️ checkRows() に通さない。あちらは帯の刻みを年収から作って検算する式で、
-      ここの行は帯を持たない。
-   ⚠️ 上の8行は交互に並べ直すので、投稿時期の段が1か所だけ上へ戻る
-      （7行目が 1、8行目が 0）。本番のサーバも同じ形を返す＝作り物の逆流ではない。 */
-const MK_TYPE_TOP = ['f', 'a', 'c', 'f', 'a', 'c', 'c', 'a'];
-/* 9行目以降で、上の8行から下がってきた人（残りの並びの何番目か）＝投稿時期だけの行。
-   ★下がってくるのは8行のすぐ下＝9行目以降の上のほうに集まる。 */
-const MK_DOWN = [0, 1, 3];
-const sig2 = (v) => { const p = 10 ** (Math.floor(Math.log10(v)) - 1); return Math.round(v / p) * p; };
-const MASK_ROWS = (function () {
-  const cap = MANY.filter((r) => r.pos === 'cap'), fo = MANY.filter((r) => r.pos === 'fo');
-  const top = [];
-  for (let k = 0; k < 4; k++) { if (cap[k]) top.push(cap[k]); if (fo[k]) top.push(fo[k]); }
-  const rest = MANY.filter((r) => !top.includes(r));
-  const see = (r, t) => (t === 'a'
-    ? { annual_usd: sig2(r.annual_usd), ten: r.ten, tenk: r.tenk || 'r', verified: r.verified, age: r.age, t }
-    : t === 'f' ? { annual_usd: sig2(r.annual_usd), pos: r.pos, fleet: r.fleet, verified: r.verified, age: r.age, t }
-    : { airline: r.airline, pos: r.pos, verified: r.verified, age: r.age, t });
-  return top.map((r, i) => see(r, MK_TYPE_TOP[i]))
-    .concat(rest.map((r, i) => (MK_DOWN.includes(i) ? { age: r.age } : { airline: r.airline, age: r.age })));
-})();
+/* ★伏せた行（2026-09-16 オーナー指示）。鍵の無い人へサーバが返すのは
+     **この3つだけ** ── 会社・出典・投稿時期。年収も職位も機材も内訳も勤務も、
+     鍵ごと来ない（db/pay-rows.sql の mask）。
+   ★2026-09-21 オーナー指示で職位も落ちた（4つ → 3つ）。
+   ⚠️ ここに annual_usd を書き足さない。書くと「画面が出さない」ことしか
+      確かめられず、**サーバが渡していない**という本題の絵にならない。
+   ⚠️ checkRows() に通さない。あちらは帯の刻みを**年収から**作って検算する式で、
+      ここには年収が1つも無い。 */
+const MASK_ROWS = MANY.map(function (r) {
+  return { airline: r.airline, verified: r.verified, age: r.age };
+});
 
 /* ★行を押して出る面のための10行（2026-09-03）。
      ⚠️ 10行までにしてあるのは、**1ページに全部載せるため**（10件で改頁するので、
@@ -454,7 +429,7 @@ const SCENES = {
        これも **1000px 未満でしか出ない**ので w=390 などと一緒に使う。 */
   nav:    { pay: { ok: true, state: 'open', rows: MERGED, stats: ST(24, 13) }, nav: true },
   /* ★伏せた一覧（2026-09-16 オーナー指示）。鍵の無い人にも**本物の行**が出る。
-       上の8行は型ごとに見える欄が違い、9行目以降は会社と投稿時期だけ（MASK_ROWS の上の説明）。
+       会社・出典・投稿時期は読め、年収・職位・機材は中身の空いた板。
      ★masked … ログイン済みで、口コミだけ出した人。
        masked-anon … 未ログインの人。**pv_pay_rows は差し替える**
          （preview の場面と違うのはここ。あちらは呼ばれていないことを絵で見る場面で、
@@ -546,17 +521,6 @@ if (S.q) {
     i.value = v;
     i.dispatchEvent(new Event('input', { bubbles: true }));
   }, S.q);
-  await new Promise((r) => setTimeout(r, 500));
-}
-
-if (pgArg) {
-  const hit = await page.evaluate((p) => {
-    const b = document.querySelector('[data-ap-page="' + p + '"]');
-    if (!b) return 'no-page';
-    b.click();
-    return 'ok';
-  }, pgArg.slice(3));
-  if (hit !== 'ok') { console.error('そのページ（' + pgArg + '）のボタンが無い。'); process.exit(1); }
   await new Promise((r) => setTimeout(r, 500));
 }
 
@@ -731,7 +695,7 @@ if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
 const n = readdirSync(dir).filter((f) => /^screenshot-\d+/.test(f))
   .reduce((m, f) => Math.max(m, Number(f.match(/^screenshot-(\d+)/)[1])), 0) + 1;
 const out = path.join(dir,
-  `screenshot-${n}-actualpay-${scene}${rArg ? '-' + rArg.replace('=', '') : ''}${pgArg ? '-' + pgArg.replace('=', '') : ''}`
+  `screenshot-${n}-actualpay-${scene}${rArg ? '-' + rArg.replace('=', '') : ''}`
   + `-${lang}${W === 1440 ? '' : '-w' + W}${theme === 'dark' ? '-dark' : ''}.png`);
 
 /* ページ全体を撮る（絞り込みの帯と表の関係が見たいので、要素で切り出さない）。

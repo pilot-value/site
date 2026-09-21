@@ -446,7 +446,7 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
   ok(/create or replace function public\.pv_pay_rows\(\)/.test(SQL),
      'pv_pay_rows は引数を1つも取らない（総当たり面を作らない）');
   /* ★2026-09-16、オーナー判断で**未ログイン（anon）にも開けた**。
-       返るのは会社・職位・出典・投稿時期の4つだけで、年収も機材も内訳も
+       返るのは会社・出典・投稿時期の3つだけで、年収も職位も機材も内訳も
        サーバが1バイトも送らない（下の mask の節が見張る）。
      ⚠️ 「anon にも渡す」と「PUBLIC に渡す」は別物。revoke を落とすと
         既定の EXECUTE が残って**全ロールが呼べる**のに画面は無変化なので、
@@ -496,20 +496,13 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
      ⚠️ 打ち込まれた社名を「表示用」に別の鍵で返し始めたら、ここが落ちる。
         そのときは絞り込みだけ古い列を読む形になり、同じ会社が2つに割れる。 */
   /* ★2026-09-16、伏せた行（mask）が2つ目。どちらも同じ p.airline から出す
-       ＝鍵の名前も中身も1本のまま。
-     ★2026-09-18、mask の中で2つになった（上の8行の会社型／9行目以降の会社）。
-       どちらも q.airline ＝ mask の材料の節が person の p.airline をそのまま運んだもの。
-       ここを4以上に増やすときは、増えた1つが本当に同じ列を読んでいるかを見てから直す。 */
-  ok((FN.match(/'airline',/g) || []).length === 3,
+       ＝鍵の名前も中身も1本のまま。ここを3以上に増やすときは、増えた1つが
+       本当に同じ列を読んでいるかを見てから直す。 */
+  ok((FN.match(/'airline',/g) || []).length === 2,
      '★行が持つ会社の鍵は1つだけ（表示用の別名を足していない）',
      String((FN.match(/'airline',/g) || []).length));
-  {
-    const MK = (FN.split('-- pv-mask-begin')[1] || '').split('-- pv-mask-end')[0];
-    ok((FN.match(/'airline',\s+p\.airline/g) || []).length === 1
-       && (MK.match(/'airline',\s+q\.airline/g) || []).length === 2
-       && /select p\.pkey, p\.airline,/.test(MK) && /from person p\b/.test(MK),
-       '★★どれも解決済みの同じ列から出ている（伏せた行だけ別の材料にしない）');
-  }
+  ok((FN.match(/'airline',\s+p\.airline/g) || []).length === 2,
+     '★★どちらも解決済みの同じ列から出ている（伏せた行だけ別の材料にしない）');
   ok(!/'airline_other',|'airline_raw',|'airline_name',|'air_name',/.test(FN),
      '★打ち込まれた社名を別の鍵で返していない');
   ok(/group by pkey, airline, pos/.test(FN), '★1行＝1人にまとめている');
@@ -624,8 +617,8 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
      (FN.match(/order by\s[^\n]*/g) || []).join(' / ').slice(0, 160));
   /* ★鍵が無い人にも「数」と「本人が何を出したか」は渡す（2026-08-25 オーナー判断）。
      ★2026-09-16、行も渡すことにした（オーナー指示）。ただし渡すのは
-       **会社・職位・出典・投稿時期の4つだけ**の別の配列（mask）で、
-       年収も機材も内訳も勤務もサーバが作らない。
+       **会社・出典・投稿時期の3つだけ**の別の配列（mask）で、
+       年収も職位も機材も内訳も勤務もサーバが作らない。
      ⚠️ 見るのは「2つの配列から選んでいる」ことと、「伏せるほうが mask である」こと。
         ここが `l.j` 同士になっていたら、鍵の無い人に一覧が丸ごと渡る。 */
   {
@@ -633,81 +626,17 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
        '★鍵が無いときに返る行は、伏せた配列（mask）のほう',
        (FN.match(/'rows',[^\n]*/g) || []).join(' / '));
     {
-      /* ★2026-09-18 に作り直した（オーナー指示）。上の8行は1人に固定の型で
-           見える欄が違う ── 年収型（年収・年数の段）／機種型（職位・機材・年収）／
-           会社型（会社・職位）。9行目以降は会社と投稿時期（2026-09-19）
-           ── 上の8行から下がってきた人（会社型を除く）と預かりは投稿時期だけ。
-         ⚠️ 見るのは「出してよい鍵の一覧」と「会社と年収が同じ行に並ばないこと」。
-            年収や機材という**言葉が在ること**はもう赤くしない（年収型・機種型で出る）。 */
       const MK = (FN.match(/-- pv-mask-begin[\s\S]*?-- pv-mask-end/) || [''])[0];
       ok(!!MK, '★伏せた行を作る節に印が付いている（pv-mask-begin / pv-mask-end）');
-      /* 鍵は1行に1つ・行頭に書いてある（jsonb_build_object の並び）。 */
-      const keys = [...new Set([...MK.matchAll(/^\s+'([a-z_]+)',/gm)].map((m) => m[1]))].sort();
-      const MK_OK = ['age', 'airline', 'annual_usd', 'fleet', 'pos', 't', 'ten', 'tenk', 'verified'];
-      ok(JSON.stringify(keys) === JSON.stringify(MK_OK),
-         '★★伏せた行に入る鍵は、型ごとの白リスト（会社・職位・機材・年収・年数の段・出典・時期・型）だけ',
-         keys.join(','));
-      ok(!/paylock|'pay'|'work'|'bh'|'dd'|'off'|'comp'/.test(MK),
-         '★★伏せた行に、内訳・勤務・時間あたりの鍵が1つも無い',
+      ok(/'airline'/.test(MK) && /'verified'/.test(MK) && /'age'/.test(MK),
+         '★伏せた行に渡すのは 会社・出典・投稿時期 の3つ');
+      /* ★2026-09-21 オーナー指示「職位ださなくていいや」。画面で描かないのではなく
+           **サーバが送らない**（伏せる＝渡さない）。ここが1本目の鍵。 */
+      ok(!/annual|fleet|paylock|'pos'|'pay'|'work'|'ten'|'bh'|'dd'|'off'|'comp'/.test(MK),
+         '★★伏せた行に、年収・職位・機材・内訳・勤務の鍵が1つも無い',
          MK.replace(/\s+/g, ' ').slice(0, 200));
-      /* ★会社と年収は同じ行に並べない。型ごとの jsonb_build_object を1つずつ見る。 */
-      {
-        const objs = MK.split('jsonb_build_object(').slice(1)
-          .map((s) => s.split(/\bwhen\b|\belse\b|\bend\)/)[0]);
-        const both = objs.filter((s) => /'airline'/.test(s) && /'annual_usd'|'fleet'|'ten'/.test(s));
-        ok(objs.length === 5 && both.length === 0,
-           '★★会社名と、年収・機材・年数の段が同じ行に1つも並ばない（型は3つ＋9行目以降の2つ）',
-           `${objs.length}通り / 並んだもの ${both.map((s) => s.replace(/\s+/g, ' ').slice(0, 80)).join(' | ')}`);
-        /* 年収を出すのは年収型と機種型の2つ（機種型は 2026-09-19 オーナー指示で足した）。 */
-        const ann = objs.filter((s) => /'annual_usd'/.test(s));
-        ok(ann.length === 2 && ann.every((s) => /'annual_usd',\s*public\.pv_sig2\(/.test(s)),
-           '★年収を出すのは2つの型だけで、どちらも有効数字2桁（pv_sig2）を通している',
-           `${ann.length}通り`);
-      }
-      /* ★材料は person と coarse（機材と年数の段だけを持つ節）と
-           fence（公開年収から大きく外れた人の真偽1つだけ・2026-09-19）の3つだけ。 */
-      ok(/from person p\b/.test(MK) && (MK.match(/\bjoin\b/g) || []).length === 2
-         && /left join coarse k on /.test(MK) && /left join fence fe on /.test(MK),
-         '★★材料は person と coarse と fence だけ（内訳・勤務を持つ節を継ぎ足せない形）',
-         (MK.match(/(?:from|join)\s+\w+/g) || []).join(' / '));
-      /* ★fence が持つのは「誰か」と真偽1つだけ。金額や内訳を足すと、上の join から
-           伏せた一覧へ流れ込める形になる。 */
-      {
-        const FE = (FN.match(/\bfence as \(([\s\S]*?)\n  \),/) || ['', ''])[1];
-        const sel = (FE.match(/\bselect\s+([\s\S]*?)\s+from person p\b/) || ['', ''])[1];
-        ok(sel.replace(/\s+/g, ' ').trim() === 'p.pkey, p.airline, p.pos, true as far',
-           '★★fence が返すのは人のキー・会社・職位と「外れている」の真偽だけ（金額を持たない）',
-           sel.replace(/\s+/g, ' '));
-      }
-      ok(!/\b(?:from|join)\s+(?:pick|paid|worked|grid|sane|listed|shelf|src)\b/.test(MK),
-         '★★内訳・勤務・帯を持つ節を1つも読まない');
-      /* ★型は1人に固定（本人の匿名キーから）。並びの md5 と塩を分ける。 */
-      ok(/md5\('pv-tz:' \|\| p\.pkey\)/.test(MK) && /order by x\.last_at desc, md5\(x\.pkey\)/.test(MK),
-         '★型は本人のキーから決める（くじを引かない）・塩は並びの md5 と別');
-      ok(!/random\(|now\(\)|clock_timestamp/.test(MK), '★★型が読み込むたびに変わる材料を使っていない');
-      /* ★預かりは8行に入れず、9行目以降でも会社を出さない（引き取りでキーが変わる＝型が変わる）。 */
-      ok(/p\.pkey not like 'p:%' as eli/.test(MK)
-         && /when not q\.pend and \(q\.tt = 2 or not q\.eli\) then/.test(MK),
-         '★預かりの行は8行に入れず、9行目以降でも会社を出さない');
-      /* ★9行目以降で会社を出すかと8行の型は、どちらも「見せる型」（tt）から決める。
-           本来の型（t）で決めると、公開前から会社が出ていた人が8行に上がった瞬間に
-           年収型・機種型に戻り、消えた会社と増えた年収が1人につながる（2026-09-19）。 */
-      ok(!/q\.t\b/.test(MK) && (MK.match(/q\.tt = [012]/g) || []).length === 3,
-         '★★型の分かれ道は、どれも見せる型（tt）で決める（本来の型 t を直接読まない）',
-         (MK.match(/q\.tt? = \d/g) || []).join(','));
-      ok(/then 2 else z\.t end as tt/.test(MK)
-         && /order by x\.l0 desc, md5\(x\.pkey\)\) as rn0/.test(MK),
-         '★公開前からいて公開の日の8行にいなかった人は会社型（公開の日の8行は公開前の提出だけで並べ直す）');
-    }
-    /* ★公開の日（l0 の境目）は1か所・日付は動かさない（2026-09-19）。
-         後ろへずらすと公開の日の8行が並べ直され、8行で年収を見せた人の会社が
-         9行目以降に出る。l0 は並べ直すためだけの時刻で、行には入れない。 */
-    {
-      const LIT = FN.match(/timestamptz '[^']*'/g) || [];
-      ok(LIT.length === 1 && LIT[0] === "timestamptz '2026-09-19 00:00:00+09'"
-         && /max\(cat\) filter \(where cat < timestamptz '2026-09-19 00:00:00\+09'\) as l0/.test(FN),
-         '★★公開の日の境目は1か所だけで、2026-09-19 のまま', LIT.join(' / '));
-      ok(!/'l0'/.test(FN), '★公開前の提出の時刻（l0）は、どの行にも入れない');
+      ok(/from person p\b/.test(MK) && !/\bjoin\b/.test(MK),
+         '★★材料は person だけ（別の表を継ぎ足して列を増やせない形にしてある）');
     }
     ok(!/return v_out;/.test(FN.slice(0, FN.indexOf("'contributors'"))),
        '★locked でも途中で return せず、最後の1つの select まで進む');
@@ -1463,26 +1392,6 @@ const AGE_WORDS = {
        'Within a year', 'Over a year ago']
 };
 
-/* 年数の段の札。★画面の言葉をここに書き写している（AGE_WORDS と同じ流儀）。
-   黙って言い換えられたら、その場で赤くなるようにしておく。
-   ★伏せた一覧（年収型の行）と、行を押すと出る面の両方がこれを見る。 */
-/* ★2組ある（2026-09-16）。r＝昇格後年数から作った段 / s＝在籍年数から作った段。
-     昇格後年数の欄はこの日に作ったので、それより前の投稿は在籍年数で段を作って
-     出す（オーナー指示「これまで提出してもらったものは今まで通り出して」）。
-     ⚠️ **同じ字にしないこと。** 同じ札で出した瞬間、古い行が「昇格後20年以上」と
-        名乗り直す ＝ この日直した嘘がそのまま戻る。下の J-3 がそこを見ている。 */
-const TEN = {
-  ja: { r: ['昇格後5年未満', '昇格後5〜10年', '昇格後10〜15年',
-            '昇格後15〜20年', '昇格後20年以上'],
-        s: ['在籍5年未満', '在籍5〜10年', '在籍10〜15年',
-            '在籍15〜20年', '在籍20年以上'] },
-  en: { r: ['Under 5 yrs in rank', '5–10 yrs in rank', '10–15 yrs in rank',
-            '15–20 yrs in rank', '20+ yrs in rank'],
-        s: ['Under 5 yrs at airline', '5–10 yrs at airline',
-            '10–15 yrs at airline', '15–20 yrs at airline',
-            '20+ yrs at airline'] }
-};
-
 /* 自分の給与（my_pay_reports()）。★2026-08-24、図を外したのでこの画面は
    **もう1度も引かない**。それでも渡し続ける＝万一また引き始めたら、
    下の「本人の明細の額が画面に出ない」で即座に赤くなる（毒として置いてある）。 */
@@ -1525,12 +1434,13 @@ const MANY = { ok: true, state: 'open', rows: MANY_ROWS, mine: MINE, stats: ST_M
      数が読めない2枚は**そのカードごと出さない**＝埋めるための 0 を置かない。 */
 const NOSTAT = { ok: true, state: 'open', rows: ROWS, mine: MINE };
 
-/* ★鍵の無い人へ返る「伏せた行」（2026-09-16）。db/pay-rows.sql の mask が返すのは
-     **この4つだけ**で、年収も機材も内訳も勤務も入っていない。
-   ⚠️ ROWS から作る（手で書き写さない）── 会社・職位・出典・投稿時期の配り方が
+/* ★鍵の無い人へ返る「伏せた行」（2026-09-16／2026-09-21 に職位も落ちた）。
+     db/pay-rows.sql の mask が返すのは**この3つだけ**で、年収も職位も機材も
+     内訳も勤務も入っていない。
+   ⚠️ ROWS から作る（手で書き写さない）── 会社・出典・投稿時期の配り方が
       開いている一覧と1バイトずれると、比べているものが別物になる。 */
 const MASK_ROWS = ROWS.map((r) => ({
-  airline: r.airline, pos: r.pos, verified: r.verified, age: r.age }));
+  airline: r.airline, verified: r.verified, age: r.age }));
 const MASKED = { ok: true, state: 'locked', rows: MASK_ROWS, stats: ST_LOCK,
                  give: { basic: false, detailed: false, payslip: false } };
 /* ★同じ locked だが、サーバが**うっかり全部返してしまった**ときの姿（毒入り）。
@@ -1540,50 +1450,6 @@ const MASKED = { ok: true, state: 'locked', rows: MASK_ROWS, stats: ST_LOCK,
       ここを MASK_ROWS に差し替えると、節 P は何も守らなくなる。 */
 const LOCKED_LEAK = { ok: true, state: 'locked', rows: ROWS, mine: MINE, stats: ST_LOCK,
                       give: { basic: false, detailed: false, payslip: false } };
-
-/* ★2026-09-18 からサーバが返す形（オーナー指示）。上の8行は機長 → 副操縦士の交互で、
-     1人に固定の型（t）ごとに見える欄が違う。9行目以降は t を持たない。
-       a 年収型 … 年収・年数の段・出典・時期
-       f 機種型 … 職位・機材・年収・出典・時期（年収は 2026-09-19 に足した）
-       c 会社型 … 会社・職位・出典・時期（年収は出さない）
-       9行目以降 … 会社と時期（上の8行から下がってきた人と預かりは時期だけ）
-   ⚠️ 白リストは actual-pay.js の MK_KEYS を読まずに**ここで別に書く**。
-      同じ表を読み込んで比べると、両方が同じ向きに間違えたとき気づけない。
-   ⚠️ t の無い行は、古いサーバの4つ（会社・職位・出典・時期）まで。
-      知らない t の行は時期だけ。 */
-const MK_SEE = {
-  a: ['annual_usd', 'ten', 'tenk', 'verified', 'age'],
-  f: ['annual_usd', 'pos', 'fleet', 'verified', 'age'],
-  c: ['airline', 'pos', 'verified', 'age']
-};
-const MK_OLD4 = ['airline', 'pos', 'verified', 'age'];
-/* その行で画面に出てよい欄だけを残す（＝画面が描くべきもの）。 */
-const mkSee = (r) => {
-  const ks = r.t == null ? MK_OLD4 : (MK_SEE[r.t] || ['age']);
-  const o = {};
-  ks.forEach((k) => { if (r[k] != null) o[k] = r[k]; });
-  return o;
-};
-/* 上の8行：[ROWS の番号, 型]。機長 → 副操縦士の交互（機長5人・副操縦士3人なので
-   最後の2つは機長で埋まる）。★わざと置いた形（番号は ROWS の番号）──
-     ROWS[0] … Verified の年収型（出典の印と金額が同じ行に出る）
-     ROWS[4] … 機材の無い機種型（口コミ由来）＝機材の場所は板のまま
-     ROWS[3] … 在籍年数から作った段の年収型（札は「在籍」でなければならない） */
-const MK_TOP = [[0, 'a'], [1, 'c'], [5, 'f'], [4, 'f'], [2, 'c'], [7, 'a'], [6, 'c'], [3, 'a']];
-/* サーバが本当に返す形（型に無い鍵は最初から無い）。
-   ★10件＝1ページに収まる（8行＋9行目以降の2つ）。 */
-const MASK_T_ROWS = MK_TOP.map(([i, t]) => Object.assign(mkSee(Object.assign({}, ROWS[i], { t })), { t }))
-  .concat([{ airline: 'jal', age: 4 }, { age: 4 }]);
-const MASKED_T = { ok: true, state: 'locked', rows: MASK_T_ROWS, stats: ST_LOCK,
-                   give: { basic: false, detailed: false, payslip: false } };
-/* ★同じ並びで、サーバが**型を無視して全部入れてしまった**ときの姿（毒入り）。
-     会社型に年収・機材、年収型に会社・職位・機材、機種型に会社・年収。
-     9行目以降の1つは t の無い全部入り、もう1つは知らない型（t:'z'）の全部入り。
-     画面の白リスト（2本目の鍵）だけで、型の外の欄が1文字も出ないこと。 */
-const MASK_T_LEAK_ROWS = MK_TOP.map(([i, t]) => Object.assign({}, ROWS[i], { t }))
-  .concat([Object.assign({}, ROWS[3]), Object.assign({}, ROWS[5], { t: 'z' })]);
-const MASKED_T_LEAK = { ok: true, state: 'locked', rows: MASK_T_LEAK_ROWS, mine: MINE,
-                        stats: ST_LOCK, give: { basic: false, detailed: false, payslip: false } };
 
 /* ★公開年収から大きく外れた本人申告の行（2026-09-19 オーナー判断「記号だけ（⚠）」）。
      サーバは当たる人の行にだけ far: true を付ける（db/pay-rows.sql の fence）。
@@ -1600,9 +1466,11 @@ const FAR_TXT = {
 const OPEN_FAR = { ok: true, state: 'open', mine: MINE, stats: ST,
                    rows: ROWS.map((r, i) => (FAR_AT.includes(i) ? Object.assign({}, r, { far: true }) : r)) };
 /* ★鍵の無い一覧には ⚠ を出さない（サーバも送らない）。わざと**全部の行に** far を混ぜて、
-     画面の入口（MK_KEYS）と isFar の両方を越えられないことを見る。 */
+     画面の isFar（伏せた一覧では必ず false）を越えられないことを見る。 */
 const farAll = (p) => Object.assign({}, p, { rows: p.rows.map((r) => Object.assign({}, r, { far: true })) });
-const MASKED_T_FAR = farAll(MASKED_T_LEAK);
+/* 2つとも「鍵が無いのに far が届いた」姿。前者は伏せた3つの欄に印だけ足されたもの、
+   後者はサーバが行を丸ごと返してしまったもの（LOCKED_LEAK）。どちらも ⚠ は出ない。 */
+const MASKED_FAR = farAll(MASKED);
 const LOCKED_FAR = farAll(LOCKED_LEAK);
 
 /* 表示された金額の文字から数字だけを取り出す。
@@ -1688,6 +1556,8 @@ const SNAP = () => {
     logoImgs: q('.ap-logo', rows).length,
     logoAlt: q('img.ap-logo', rows).map((e) => e.getAttribute('alt')),
     airNames: q('.ap-air', rows).map((e) => (e.textContent || '').trim()),
+    /* ★職位の字が入るセル。伏せた一覧では**1つも無い**のが正しい（2026-09-21）。 */
+    posCells: q('.ap-pos', rows).length,
     /* ページ送り。★2026-08-24 から**総件数を出す**（オーナー判断）。
        「前へ／次へ」と「数字のページ番号」は別のものなので、別々に取る
        （同じ .ap-pg を持つので、混ぜて数えると端の判定が壊れる）。 */
@@ -1774,6 +1644,13 @@ const SNAP = () => {
     hasFleet: document.getElementById('ap-fleet') ? 1 : 0,
     hasQ: document.getElementById('ap-q') ? 1 : 0,
     airOpts: opts('ap-air'), posOpts: opts('ap-pos'),
+    /* ★職位で絞る口の枠（2026-09-21）。伏せた一覧では受け取っていない欄なので
+         枠ごと隠す ── 口だけ残すと「選べるのに必ず0件」になる。 */
+    posBoxHidden: (function () {
+      const s = document.getElementById('ap-pos');
+      const b = s && s.closest ? s.closest('.ap-f') : null;
+      return b ? b.hidden : null;
+    })(),
     /* ★並び替えと「賞与ありのみ」の口が実行時にも生えていないこと。 */
     sortEls: q('#ap-sort, #ap-order, [name="sort"], [data-ap-sort]').length,
     bonusEls: q('#ap-bonus, [data-ap-bonus], .ap-bonus').length,
@@ -1855,35 +1732,11 @@ const SNAP = () => {
     /* ★未ログインのときだけ出る「すでにアカウントをお持ちの方：ログイン」。 */
     pvIn: q('.ap-pv-in-a').map((e) => e.getAttribute('href')),
     /* ── 伏せた一覧（2026-09-16）─────────────────
-       ★鍵の無い人へサーバが返す「会社・職位・出典・投稿時期だけ」の行。
+       ★鍵の無い人へサーバが返す「会社・出典・投稿時期だけ」の行。
          作り物の5行と違って**本物**なので、件数もページ送りも出る。 */
     mkTbl: q('table.ap-tbl--mk', rows).length,
     mkTrs: q('tbody tr.ap-r--mk', rows).length,
-    /* 機材の板だけ。★2026-09-18 から会社・職位の板も同じ部品（.ap-flt-lk）なので、
-         機材の場所（.ap-flt-mk）の中だけを数える。 */
-    mkFlt: q('.ap-flt-mk .ap-flt-lk', rows).length,
-    /* ★行ごとに何が読めて何が板か（2026-09-18）。型ごとに見える欄が違うので、
-         数を足し合わせた検査では「別の行の欄が出た」を見逃す。1行ずつ取る。
-       ⚠️ 板の中の読み上げ用の字（「会社名は非公開」など）を値として数えない
-          ── 板があるかどうかは別に数え、値は板の無い欄からだけ読む。 */
-    mkRows: q('tbody tr.ap-r--mk', rows).map((tr) => {
-      const n = (s) => tr.querySelectorAll(s).length;
-      const one = (s) => { const e = tr.querySelector(s); return e ? (e.textContent || '').trim() : ''; };
-      const go = tr.querySelector('.ap-go');
-      const lg = tr.querySelector('.ap-logo');
-      return {
-        i: tr.getAttribute('data-ap-row'),
-        air: one('.ap-air'), airLk: n('.ap-flt-lk--air'),
-        logoImg: n('img.ap-logo'), logoTxt: lg && lg.tagName !== 'IMG' ? (lg.textContent || '').trim() : '',
-        posLk: n('.ap-flt-lk--pos'), pos: n('.ap-flt-lk--pos') ? '' : one('.ap-pos'),
-        sub: one('.ap-flt:not(.ap-flt-mk)'), subLk: n('.ap-flt-mk'),
-        amt: one('.ap-amt'), mon: one('.ap-mon'), amtLk: n('.ap-amt-lk'),
-        vf: n('.ap-vf'), vfNo: n('.ap-vf-no'),
-        age: one('.ap-age'),
-        go: go ? go.getAttribute('aria-label') || '' : '',
-        text: tr.textContent || ''
-      };
-    }),
+    mkFlt: q('.ap-flt-lk', rows).length,
     mkHead: (function () {
       const h = rows && rows.querySelector('.ap-lock-h');
       const b = rows && rows.querySelector('.ap-lock-sub');
@@ -1949,120 +1802,55 @@ function previewRows(v, lang, tag) {
      `${tag}: ★表の下の「出した人だけが読めます」は残っている`);
 }
 
-/* ★伏せた本物の一覧（2026-09-16／2026-09-18 に行ごとの型を入れた）。鍵の無い人に
-     出るのは**本物の行**で、どの欄が読めるかは行ごとに違う（上の MK_SEE）。
-     読めない欄は「中身の空いた板」＝ぼかしを外しても、そこには最初から何も無い。
-   sent … サーバが返した行そのもの（毒入りでもよい）。画面が描いてよいものは
-          mkSee() が決める＝**サーバが何を混ぜても、それ以上は出ない**ことを見る。
+/* ★伏せた本物の一覧（2026-09-16）。鍵の無い人に出るのは**本物の行**で、
+     読めるのは会社・出典・投稿時期の3つだけ。年収・職位・機種は
+     「中身の空いた板」＝ぼかしを外しても、そこには最初から何も無い。
    ⚠️ この関数は blurOK() と**対**で使う。板が在ることはここが、その板に
       ぼかしが掛かっているかは blurOK が見る。片方だけだと静かに壊れる
       ── .ap-r--mk を付け忘れた板は「くっきり空」で、何も読めないので
          画面は正しく見えてしまう。 */
-const MK_AIR_WORDS = (() => {
-  const a = JSON.parse(read('pv-airlines.json')).airlines || {};
-  const out = { ja: ['ANA', 'JAL', 'Somewhere Air'], en: ['ANA', 'JAL', 'Somewhere Air'] };
-  ['ana', 'jal', 'emirates'].forEach((c) => {
-    if (a[c]) { out.ja.push(a[c].ja); out.en.push(a[c].en); }
-  });
-  return out;
-})();
-const MK_POS_WORDS = { ja: ['機長', '副操縦士'], en: ['Captain', 'First Officer'] };
-const MK_OPEN = { ja: 'この記録を開く', en: 'Open this record' };
-function maskedRows(v, lang, tag, sent) {
-  const n = sent.length;
-  const want = sent.map(mkSee);
+function maskedRows(v, lang, tag, n) {
   ok(v.mkTbl === 1 && v.mkTrs === n && v.rowSel === n && v.rowGo === n,
      `${tag}: ★伏せた行が${n}行出て、どれも押して開ける`,
      `表${v.mkTbl} / 行${v.mkTrs} / 押せる${v.rowSel} / ›${v.rowGo}`);
   ok(v.pvTrs === 0 && v.pvTag.length === 0,
      `${tag}: ★★作り物の5行も「プレビュー」の札も1つも混ざらない`,
      `${v.pvTrs}行 / ${v.pvTag.join(',')}`);
-  ok(v.mkRows.length === n && v.mkRows.every((r, i) => r.i === String(i)),
-     `${tag}: ★行はサーバの並びのまま（画面で並べ替えない）`,
-     v.mkRows.map((r) => r.i).join(','));
+  /* ── 読めてよい3つ ───────────────────────────────── */
+  ok(v.airNames.length === n && v.airNames.every((t) => t !== ''),
+     `${tag}: ★会社名がどの行でも読める`, v.airNames.join(','));
+  ok(v.logoImgs === n, `${tag}: ★社ロゴもどの行にも出る`,
+     `${v.logoImgs}枚 / ${n}行`);
+  ok(v.ages.length === n && v.ages.every((t) => AGE_WORDS[lang].includes(t)),
+     `${tag}: ★投稿時期がどの行でも読める`, v.ages.join(','));
+  ok(v.vf >= 1, `${tag}: ★Verified の印も伏せない（読める3つのうちの1つ）`, String(v.vf));
   ok(JSON.stringify(v.ths) === JSON.stringify(TH6[lang]),
      `${tag}: ★列は開いている表と同じ6つ`, v.ths.join(','));
-
-  /* ── 1行ずつ：型で読めてよい欄だけが読め、ほかは板 ─────────────── */
-  const bad = [];
-  v.mkRows.forEach((r, i) => {
-    const w = want[i] || {};
-    const why = [];
-    if (w.airline != null) {
-      if (!(r.air !== '' && r.airLk === 0)) why.push('会社が読めない');
-    } else if (!(r.air === '' && r.airLk === 1 && r.logoImg === 0 && r.logoTxt === '')) {
-      why.push(`会社が板になっていない（${r.air}/${r.logoTxt}/ロゴ${r.logoImg}）`);
-    }
-    if (w.pos != null) {
-      if (!(r.pos !== '' && r.posLk === 0)) why.push('職位が読めない');
-    } else if (!(r.pos === '' && r.posLk === 1)) why.push(`職位が板でない（${r.pos}）`);
-    const tn = typeof w.ten === 'number' ? TEN[lang][w.tenk === 's' ? 's' : 'r'][w.ten] : '';
-    if (w.fleet != null) {
-      if (!(r.sub !== '' && r.subLk === 0)) why.push('機材が読めない');
-    } else if (tn) {
-      if (!(r.sub === tn && r.subLk === 0)) why.push(`段が「${tn}」でない（${r.sub}）`);
-    } else if (!(r.sub === '' && r.subLk === 1)) why.push(`機材の場所が板でない（${r.sub}）`);
-    if (w.annual_usd != null) {
-      if (!(r.amt !== '' && r.mon !== '' && r.amtLk === 0 && isSig2(amountDigits(r.amt)))) {
-        why.push(`年収が読めない（${r.amt}/${r.mon}）`);
-      }
-    } else if (!(r.amt === '' && r.mon === '' && r.amtLk === 2)) {
-      why.push(`年収が板でない（${r.amt}/${r.mon}/板${r.amtLk}）`);
-    }
-    if (w.verified != null) {
-      const y = w.verified === true;
-      if (!(r.vf === (y ? 1 : 0) && r.vfNo === (y ? 0 : 1))) why.push('出典が違う');
-    } else if (r.vf + r.vfNo !== 0) why.push('出典が出ている');
-    if (r.age !== (AGE_WORDS[lang][w.age] || '')) why.push(`時期が違う（${r.age}）`);
-    /* ★› の読み上げ。会社と職位の両方が読める行だけ名前を作る。 */
-    if (w.airline != null && w.pos != null) {
-      if (!(r.go !== MK_OPEN[lang] && r.go.includes(r.air))) why.push(`読み上げ（${r.go}）`);
-    } else if (r.go !== MK_OPEN[lang]) why.push(`読み上げに名前が入った（${r.go}）`);
-    /* ★行の文字（読み上げ用の字も含む）に、読めないはずの値が1文字も無い。 */
-    if (w.annual_usd == null && /[¥$€£＄]|万/.test(r.text)) why.push('通貨の字が出た');
-    if (w.fleet == null) {
-      const f = FLEET_WORDS.filter((x) => r.text.includes(x));
-      if (f.length) why.push('機材の名前が出た ' + f.join(','));
-    }
-    if (w.airline == null) {
-      const a = MK_AIR_WORDS[lang].filter((x) => r.text.includes(x));
-      if (a.length) why.push('会社名が出た ' + a.join(','));
-    }
-    if (w.pos == null) {
-      const p = MK_POS_WORDS[lang].filter((x) => r.text.includes(x));
-      if (p.length) why.push('職位が出た ' + p.join(','));
-    }
-    if (why.length) bad.push(`${i}(${sent[i].t || '-'}): ${why.join(' / ')}`);
-  });
-  ok(bad.length === 0, `${tag}: ★★どの行も、型で読めてよい欄だけが読め、ほかは中身の空いた板`,
-     bad.join(' | '));
-  /* ★★会社名と、年収・機材・年数の段が同じ行に並ばない（オーナー判断の芯）。 */
-  {
-    const both = v.mkRows.filter((r) => r.air !== '' && (r.amt !== '' || r.sub !== ''));
-    ok(both.length === 0, `${tag}: ★★会社名と年収・機材・年数の段が同じ行に1つも並ばない`,
-       both.map((r) => `${r.i}:${r.air}/${r.amt}/${r.sub}`).join(' | '));
-  }
-  /* ── まとめて（1行ずつの検査と、表全体の数が食い違っていないか）──────── */
-  const nAmt = want.filter((w) => w.annual_usd != null).length;
-  ok(v.amounts.length === nAmt && v.mons.length === nAmt,
-     `${tag}: ★読める金額は年収型と機種型の行の分だけ（${nAmt}行）`,
+  /* ── 読ませない2つ ───────────────────────────────── */
+  ok(v.amounts.length === 0 && v.mons.length === 0,
+     `${tag}: ★★読める金額が1つも無い`,
      `年収${v.amounts.join(',')} / 月${v.mons.join(',')}`);
-  ok(v.pvPlates === (n - nAmt) * 2 && v.pvPlateText === '',
-     `${tag}: ★ほかの行の年収と月あたりは中身の空いた板（文字が1つも入っていない）`,
+  ok(v.pvPlates === n * 2 && v.pvPlateText === '',
+     `${tag}: ★年収と月あたりは中身の空いた板（文字が1つも入っていない）`,
      `${v.pvPlates}枚 / ${JSON.stringify(v.pvPlateText)}`);
-  /* ★機材の板は「値が無いから消える」にしない。読めない行には必ず置く。 */
-  const nFlt = want.filter((w) => w.fleet == null && typeof w.ten !== 'number').length;
-  ok(v.mkFlt === nFlt, `${tag}: ★機材の場所は、読めない行にはどれも板がある（${nFlt}行）`,
-     `${v.mkFlt}枚`);
-  ok(v.ages.length === n && v.ages.every((t) => AGE_WORDS[lang].includes(t)),
-     `${tag}: ★投稿時期はどの行でも読める`, v.ages.join(','));
-  if (want.some((w) => w.verified === true)) {
-    ok(v.vf >= 1, `${tag}: ★Verified の印も伏せない（出典を出す行では）`, String(v.vf));
-  }
+  /* ★職位・機種の板は**無条件**に置く。値の有無で出し分けると、サーバが送らない
+       いまは板ごと消える＝「もともと無い欄」に見える。 */
+  ok(v.mkFlt === n, `${tag}: ★職位と機種の板がどの行にもある（値が無いから消える、にしない）`,
+     `${v.mkFlt}枚 / ${n}行`);
+  /* ★職位の字は1つも書かない（2026-09-21 オーナー指示）。受け取っていないものを
+       画面が書き足したら、伏せた一覧の約束（ぼかしではなく渡さない）が崩れる。
+     ⚠️ 欄そのものは6つのまま。1つ減らすと狭い画面のカード組みが総崩れになる。 */
+  ok(v.posCells === 0,
+     `${tag}: ★★職位の字がどの行にも無い（欄は残して板だけを置く）`, String(v.posCells));
+  ok(v.posBoxHidden === true,
+     `${tag}: ★★職位で絞る口は枠ごと隠れている（選べるのに必ず0件、にしない）`,
+     `${v.posBoxHidden} / 選択肢${v.posOpts.length}`);
   {
     const t = v.tblTexts.join(' ');
-    const p = POISON_VALUES.filter((x) => t.includes(x));
-    ok(p.length === 0, `${tag}: ★★サーバが混ぜた本物が表に1文字も出ない`, p.join(','));
+    const f = FLEET_WORDS.filter((w) => t.includes(w));
+    ok(f.length === 0, `${tag}: ★★機材の名前が表に1語も出ない`, f.join(','));
+    const m = t.match(/[¥$€£＄]|万/g) || [];
+    ok(m.length === 0, `${tag}: ★★表に通貨の記号も「万」も1文字も無い`, m.join(''));
   }
   /* ── 本物だから出すもの（作り物の5行とはここが逆）──────────── */
   ok(v.pgLabel !== '', `${tag}: ★「全N件中」を出す（数えているのが本物だから）`, v.pgLabel);
@@ -2077,85 +1865,47 @@ function maskedRows(v, lang, tag, sent) {
   ok(v.mkHead !== '' && v.mkHead.indexOf('/') > 0,
      `${tag}: ★一覧の頭に見出しと、伏せている物を言う1行が出る`, v.mkHead);
 }
-/* 板の数（blurOK の下限）。年収と月あたりで2枚、会社・職位・機材の場所で1枚ずつ。 */
-const mkPlates = (sent) => sent.map(mkSee).reduce((s, w) => s
-  + (w.annual_usd == null ? 2 : 0) + (w.airline == null ? 1 : 0) + (w.pos == null ? 1 : 0)
-  + (w.fleet == null && typeof w.ten !== 'number' ? 1 : 0), 0);
 
-/* ★伏せた行を押して開く面。一覧と同じ白リスト（mkSee）を、面の側でも見る。
-     sent … その行としてサーバが返したもの（毒入りでもよい）。 */
-function maskedDrawer(d, tag, sent, lang) {
-  const w = mkSee(sent);
+/* ★伏せた行を押して開く面。一覧と同じ約束を、面の側でも見る。
+     vf … その行が Verified かどうか（出典の欄の数が1つ変わる）。 */
+function maskedDrawer(d, tag, vf) {
   ok(/actual-pay\.html$/.test(d.path),
      `${tag}: ★詳細を押してもこの画面から動かない`, d.path);
-  if (w.annual_usd != null) {
-    ok(d.av.length === 2 && d.avLk === 0 && isSig2(amountDigits(d.av[0])),
-       `${tag}: ★年収を出す型の行は、面でも年収と月あたりが読める（有効数字2桁）`,
-       `読める${d.av.join(',')} / 板${d.avLk}`);
-  } else {
-    ok(d.av.length === 0 && d.avLk === 2,
-       `${tag}: ★★面でも年収と月あたりは中身の空いた板`,
-       `読める${d.av.length} / 板${d.avLk}`);
-  }
-  /* ── 面の題（会社）と、その下の1行（職位・機材・年数の段）─────────── */
-  if (w.airline != null) {
-    ok(d.airTxt !== '' && d.airLk === 0, `${tag}: ★会社を出す型では、面の題が会社名`,
-       `${d.airTxt} / 板${d.airLk}`);
-  } else {
-    ok(d.airTxt === '' && d.airLk === 1 && d.logoImg === 0 && d.logoTxt === '',
-       `${tag}: ★★会社を出さない型では、面の題も板（ロゴも頭文字も出さない）`,
-       `${d.airTxt} / 板${d.airLk} / ロゴ${d.logoImg} / ${d.logoTxt}`);
-  }
-  ok((w.pos != null) === (d.posLk === 0),
-     `${tag}: ★職位は、読めてよい型だけ読める（ほかは板）`, `板${d.posLk} / ${d.meta}`);
-  {
-    const tn = typeof w.ten === 'number' ? TEN[lang][w.tenk === 's' ? 's' : 'r'][w.ten] : '';
-    const tAll = TEN[lang].r.concat(TEN[lang].s).filter((x) => d.meta.includes(x));
-    ok(tn ? (tAll.length === 1 && tAll[0] === tn) : tAll.length === 0,
-       `${tag}: ★年数の段は、年収型の行にだけ出る（札は段の出どころどおり）`,
-       `${tAll.join(',')} / 期待 ${tn || 'なし'}`);
-    ok((w.fleet != null) === (d.fltLk === 0),
-       `${tag}: ★機材は、読めてよい型だけ読める（ほかは板）`, `板${d.fltLk} / ${d.meta}`);
-  }
+  ok(d.av.length === 0 && d.avLk === 2,
+     `${tag}: ★★面でも年収と月あたりは中身の空いた板`,
+     `読める${d.av.length} / 板${d.avLk}`);
   ok(d.keys.length === 0 && d.plates === '',
      `${tag}: ★内訳の帯は項目名ごと出さない（受け取っていないので）`,
      `${d.keys.length}項目 / ${JSON.stringify(d.plates)}`);
   ok(d.tag === 0, `${tag}: ★「プレビュー」の札は付けない（本物の投稿だから）`, String(d.tag));
-  /* ★出典は、出してよい行だけ。9行目以降は投稿時期だけ（「本人申告」と書くと嘘になりうる）。 */
-  ok(d.srcDw === 2 + (w.verified === true ? 1 : 0)
-     && d.vfNoDw === (w.verified === false ? 1 : 0),
-     `${tag}: ★出典は出してよい行だけ・投稿時期はどの行でも読める`,
-     `${d.srcDw} / 本人申告${d.vfNoDw}`);
+  ok(d.srcDw === (vf ? 3 : 2),
+     `${tag}: ★出典と投稿時期は面でも読める（オーナーが読めると決めた4つのうち2つ）`,
+     String(d.srcDw));
   ok(d.sim === 0, `${tag}: ★「同じ会社のほかの記録」は出さない（金額を並べる節）`,
      String(d.sim));
-  ok(d.note === 0, `${tag}: ★伏せた面に、匿名化の断り書きを付けない`, String(d.note));
+  ok(d.note === 0, `${tag}: ★数字が1つも出ていない面に、匿名化の断り書きを付けない`,
+     String(d.note));
   ok(d.cta.length === 1 && /pay-report\.html/.test(d.cta[0] || ''),
      `${tag}: ★★面から出る道は給与フォーム1つだけ（DEEP PAY の門へ行かせない）`,
      d.cta.join(' | '));
-  /* ── 面の文字に、読めないはずの値が1文字も無い ─────────────── */
   /* ⚠️ ここで MONEY（\d[\d,]{2,} を含む）を使わない。投稿時期の「1ヶ月以内」に
        当たって**製品は正しいのに赤くなる**。見るのは金額そのものの形だけ。 */
-  if (w.annual_usd == null) {
-    ok(!/[¥$€£＄]|万/.test(d.text),
-       `${tag}: ★★面に通貨の記号も「万」も1文字も無い`,
-       d.text.replace(/\n/g, ' / ').slice(0, 160));
-  }
-  if (w.fleet == null) {
-    const f = FLEET_WORDS.filter((x) => d.text.includes(x));
+  ok(!/[¥$€£＄]|万/.test(d.text),
+     `${tag}: ★★面に通貨の記号も「万」も1文字も無い`,
+     d.text.replace(/\n/g, ' / ').slice(0, 160));
+  {
+    const f = FLEET_WORDS.filter((w) => d.text.includes(w));
     ok(f.length === 0, `${tag}: ★★面にも機材の名前が1語も出ない`, f.join(','));
   }
-  if (w.airline == null) {
-    const a = MK_AIR_WORDS[lang].filter((x) => d.text.includes(x));
-    ok(a.length === 0, `${tag}: ★★面にも会社名が1語も出ない`, a.join(','));
-  }
-  if (w.pos == null) {
-    const p = MK_POS_WORDS[lang].filter((x) => d.text.includes(x));
-    ok(p.length === 0, `${tag}: ★★面にも職位が1語も出ない`, p.join(','));
-  }
-  {
-    const p = POISON_VALUES.filter((x) => d.text.includes(x));
-    ok(p.length === 0, `${tag}: ★★面にサーバが混ぜた本物が1文字も出ない`, p.join(','));
-  }
+  /* ★面の1行目は**板1枚だけ**（2026-09-21・職位も受け取っていない）。
+     ⚠️ 字が1文字も無いのに区切りの · を出さない。職位を出していた頃の名残で
+        CSS の ::before が残っていると、行頭に「·」だけが立つ。 */
+  ok(d.meta !== null && d.meta.t === '',
+     `${tag}: ★面の1行目に字が1文字も無い（職位も受け取っていないので板だけ）`,
+     JSON.stringify(d.meta));
+  ok(d.meta !== null && !/00B7|\u00b7|·/i.test(String(d.meta.before)),
+     `${tag}: ★★板の前に区切りの · を出さない（消した欄の名残）`,
+     d.meta ? String(d.meta.before) : '');
 }
 
 /* ★消したものが戻っていないか（全ケースで同じことを見る）。 */
@@ -2808,6 +2558,8 @@ for (const lang of ['ja', 'en']) {
   ok(v.airOpts.length === 5, '航空会社は「すべて」＋実在する4つだけ', v.airOpts.join(','));
   ok(v.airOpts.some((s) => s === othLabel), `「${othLabel}」も選べる`, v.airOpts.join(','));
   ok(v.posOpts.length === 3, '職位は「すべて」＋2つ', v.posOpts.join(','));
+  /* ★開いた一覧では職位の口は出したまま（隠すのは伏せた一覧だけ・2026-09-21）。 */
+  ok(v.posBoxHidden === false, '★開いた一覧では職位で絞れる', String(v.posBoxHidden));
 
   /* 会社 → 職位 と絞ると、下の段は上の段に追随する。 */
   const step = await page.evaluate(async () => {
@@ -3321,6 +3073,24 @@ for (const lang of ['ja', 'en']) {
       検査を足すときは、まず db/pay-rows.sql の契約文の
       「これ以上1つも足さない。次に足したくなったらどれかを外す」を読むこと。 */
 {
+  /* ★画面の言葉をここに書き写している（AGE_WORDS と同じ流儀）。
+       黙って言い換えられたら、その場で赤くなるようにしておく。 */
+  /* ★2組ある（2026-09-16）。r＝昇格後年数から作った段 / s＝在籍年数から作った段。
+       昇格後年数の欄はこの日に作ったので、それより前の投稿は在籍年数で段を作って
+       出す（オーナー指示「これまで提出してもらったものは今まで通り出して」）。
+       ⚠️ **同じ字にしないこと。** 同じ札で出した瞬間、古い行が「昇格後20年以上」と
+          名乗り直す ＝ この日直した嘘がそのまま戻る。下の J-3 がそこを見ている。 */
+  const TEN = {
+    ja: { r: ['昇格後5年未満', '昇格後5〜10年', '昇格後10〜15年',
+              '昇格後15〜20年', '昇格後20年以上'],
+          s: ['在籍5年未満', '在籍5〜10年', '在籍10〜15年',
+              '在籍15〜20年', '在籍20年以上'] },
+    en: { r: ['Under 5 yrs in rank', '5–10 yrs in rank', '10–15 yrs in rank',
+              '15–20 yrs in rank', '20+ yrs in rank'],
+          s: ['Under 5 yrs at airline', '5–10 yrs at airline',
+              '10–15 yrs at airline', '15–20 yrs at airline',
+              '20+ yrs at airline'] }
+  };
   const DWT = {
     ja: { comp: '報酬の内訳', work: '勤務', sim: '同じ会社・同じ職位のほかの記録',
           only: 'この投稿には年収だけが含まれています。',
@@ -3893,65 +3663,6 @@ for (const lang of ['ja', 'en']) {
     ok(MKBODY.length > 0 && mkLeak.length === 0,
        '★★伏せた一覧を描く所に money( / moneyMonth( / fleetName( が1つも無い',
        mkLeak.join(','));
-    /* ★伏せた一覧で値を描くのは mkCell() だけ（2026-09-18）。型ごとに年収・機材・
-         年数の段が出るようになったので、ここでは「呼ばない」ではなく
-         **「必ず白リスト（mkHas）を通してから呼ぶ」**を見る。
-       ⚠️ 見るのは呼び出しの**直前**。同じ欄の mkHas が無い呼び出しが1つでもあれば、
-          サーバが混ぜた値がその欄にそのまま出る。 */
-    const GATE = { 'money(': 'annual_usd', 'moneyMonth(': 'annual_usd',
-                   'fleetName(': 'fleet', 'tenName(': 'ten' };
-    const ungated = (body) => {
-      const out = [];
-      for (const [fn, key] of Object.entries(GATE)) {
-        let at = -1;
-        while ((at = body.indexOf(fn, at + 1)) >= 0) {
-          if (/[A-Za-z_]$/.test(body.slice(0, at))) continue;   // moneyMonth( の中の money( ではない
-          const back = body.slice(Math.max(0, at - 160), at);
-          if (!back.includes(`mkHas(r, '${key}')`)) out.push(fn + '@' + body.slice(at, at + 30).replace(/\s+/g, ' '));
-        }
-      }
-      return out;
-    };
-    const CELL = (j.split('function mkCell(r, k)')[1] || '').split('\n  function ')[0];
-    const cellBad = ungated(CELL);
-    ok(CELL.length > 0 && cellBad.length === 0 && /money\(/.test(CELL) && /fleetName\(/.test(CELL),
-       '★★伏せた一覧の1欄を描く所は、年収・機材・年数の書式を必ず白リストを通してから呼ぶ',
-       cellBad.join(' | ') || String(CELL.length));
-    ok(!/r\.pay|r\.work|payHTML\(|workHTML\(|simHTML\(/.test(CELL),
-       '★★その所は内訳・勤務・類似の行に1つも触らない');
-    /* ★面（押すと開く方）の伏せた枝も同じ。 */
-    const DWMK = ((j.split('function dwHTML(r)')[1] || '').split('if (!mk) {')[1] || '')
-      .split('var bd = ')[0];
-    const DWMK2 = DWMK.split('} else {')[1] || '';
-    const dwBad = ungated(DWMK2);
-    ok(DWMK2.length > 0 && dwBad.length === 0 && /fleetName\(/.test(DWMK2),
-       '★★伏せた面の職位・機材・年数も、白リストを通してから書式に渡す',
-       dwBad.join(' | ') || String(DWMK2.length));
-    const AMT = (j.split('function dwAmt(r, month)')[1] || '').split('\n  function ')[0];
-    ok(/isMasked\(\)\s*&&\s*!mkHas\(r, 'annual_usd'\)/.test(AMT),
-       '★★面の年収は、伏せた画面では年収型の白リストを通った行だけ数字になる');
-    /* ★入口で1回、表に無い鍵を**捨てる**（描く所の門をすり抜けた欄が、並べ替え・
-         絞り込み・戻り先の保存から漏れないように）。 */
-    ok(/S\.rows\s*=\s*mk\.map\(mkClean\)/.test(j),
-       '★★伏せた一覧の行は、受け取った瞬間に白リストで作り直す（表に無い鍵を持たない）');
-    /* ★画面の白リストと、この検査の白リスト（MK_SEE・別に書いたもの）が一致する。
-         どちらかだけ直すと、見本の検査が「画面が出してよいもの」を取り違える。 */
-    {
-      const m = /var MK_KEYS = \{([\s\S]*?)\};/.exec(j);
-      const tbl = {};
-      if (m) for (const [, k, v] of m[1].matchAll(/(\w+|''):\s*\[([^\]]*)\]/g)) {
-        tbl[k === "''" ? '' : k] = [...v.matchAll(/'(\w+)'/g)].map((x) => x[1]).sort().join(',');
-      }
-      const want = Object.assign({ '': MK_OLD4.slice().sort().join(',') },
-        ...Object.entries(MK_SEE).map(([k, v]) => ({ [k]: v.slice().sort().join(',') })));
-      ok(JSON.stringify(Object.keys(tbl).sort()) === JSON.stringify(Object.keys(want).sort())
-         && Object.keys(want).every((k) => tbl[k] === want[k]),
-         '★★画面の型ごとの白リストが、オーナーの決めた表と1文字も違わない',
-         JSON.stringify(tbl));
-      ok(Object.values(tbl).every((v) => !(v.split(',').includes('airline')
-           && v.split(',').some((k) => ['annual_usd', 'fleet', 'ten'].includes(k)))),
-         '★★画面のどの型にも、会社と年収・機材・年数が同居していない', JSON.stringify(tbl));
-    }
     /* ★骨組みが受け取ってよいのは**区分の名前だけ**。金額の材料
          （帯 r.pay・その中点・金額の書式）をこの関数から触らない。 */
     /* ⚠️ 2026-09-13、2つ目の引数 href が増えた。増えたのは**リンクの行き先**
@@ -5091,33 +4802,24 @@ for (const lang of ['ja', 'en']) {
       srcDw: dw ? (dw.querySelectorAll('.ap-dw-src').length
                  + dw.querySelectorAll('.ap-dw-age').length
                  + dw.querySelectorAll('.ap-vf').length) : 0,
+      /* 面の1行目（職位・機材・年数が並ぶ段）。★伏せた面では板1枚だけ。 */
+      meta: (function () {
+        const m = dw && dw.querySelector('.ap-dw-meta');
+        if (!m) return null;
+        const lk = m.querySelector('.ap-dw-flt-mk');
+        const cs = getComputedStyle(lk || m, '::before');
+        /* ★板そのものは外して数える（中の読み上げ用の1文は画面に見えない字）。 */
+        const t = Array.prototype.slice.call(m.childNodes)
+          .filter((n) => !(n.nodeType === 1 && n.classList
+                           && n.classList.contains('ap-dw-flt-mk')))
+          .map((n) => (n.textContent || '')).join('').trim();
+        return { t: t, before: cs ? cs.content : '' };
+      })(),
       sim: q('.ap-dw-sim').length,
       note: q('.ap-dw-note').length,
       cta: q('.ap-dw-cta, .ap-dw-cta2').map(
         (e) => e.getAttribute('href') || ('押しボタン:' + (e.getAttribute('data-ap-gate') || ''))),
-      text: dw ? dw.innerText : '',
-      /* ★伏せた面の欄ごと（2026-09-18）。型で見える欄が違うので、題と下の1行を分けて取る。
-         ⚠️ 板の中の読み上げ用の字を値として数えない（板は別に数える）。 */
-      airLk: dw ? dw.querySelectorAll('.ap-dw-name .ap-flt-lk--air').length : 0,
-      airTxt: (function () {
-        const e = dw && dw.querySelector('.ap-dw-name');
-        return e && !e.querySelector('.ap-flt-lk') ? (e.textContent || '').trim() : '';
-      })(),
-      logoImg: dw ? dw.querySelectorAll('.ap-dw-air img.ap-logo').length : 0,
-      logoTxt: (function () {
-        const e = dw && dw.querySelector('.ap-dw-air .ap-logo');
-        return e && e.tagName !== 'IMG' ? (e.textContent || '').trim() : '';
-      })(),
-      meta: (function () {
-        const e = dw && dw.querySelector('.ap-dw-meta');
-        if (!e) return '';
-        const c = e.cloneNode(true);
-        Array.prototype.slice.call(c.querySelectorAll('.ap-mk-lk')).forEach((x) => x.remove());
-        return (c.textContent || '').trim();
-      })(),
-      posLk: dw ? dw.querySelectorAll('.ap-dw-meta .ap-flt-lk--pos').length : 0,
-      fltLk: dw ? dw.querySelectorAll('.ap-dw-meta .ap-flt-lk:not(.ap-flt-lk--pos)').length : 0,
-      vfNoDw: dw ? dw.querySelectorAll('.ap-vf-no').length : 0
+      text: dw ? dw.innerText : ''
     };
   };
   /* ブラウザが持ち帰った物を全部並べる（§6「保存領域に本物を混ぜない」）。 */
@@ -5129,31 +4831,26 @@ for (const lang of ['ja', 'en']) {
     return out.join('\n');
   };
 
-  /* ── N ログイン済み・鍵なし（サーバは型ごとの欄だけ返す）────────── */
+  /* ── N ログイン済み・鍵なし（サーバは3つのキーだけ返す）────────── */
   {
     /* ★検査の前提そのものを先に確かめる。fixture が腐ると、以下の全部が
          「何も守っていないのに緑」になる。 */
-    const top = MASK_T_ROWS.slice(0, 8), rest = MASK_T_ROWS.slice(8);
-    const bad = top.filter((r) => !MK_SEE[r.t]
-        || Object.keys(r).some((k) => k !== 't' && !MK_SEE[r.t].includes(k)))
-      .concat(rest.filter((r) => 't' in r || Object.keys(r).some((k) => !['airline', 'age'].includes(k))));
-    ok(bad.length === 0 && ['a', 'f', 'c'].every((t) => top.some((r) => r.t === t)),
-       'N: ★★偽サーバの行は、型ごとの欄だけ・9行目以降は会社と時期だけ（fixture の前提）',
+    const bad = MASK_ROWS.filter((r) => Object.keys(r).some((k) =>
+      ['annual_usd', 'pos', 'fleet', 'fleet_cat', 'work', 'pay', 'paylock',
+       'ten', 'comp'].includes(k)));
+    ok(bad.length === 0,
+       'N: ★★偽サーバの行に、年収も職位も機材も内訳も勤務も入っていない（fixture の前提）',
        JSON.stringify(bad[0] || {}));
-    ok(MASK_T_ROWS.every((r) => !(r.airline != null && r.annual_usd != null)),
-       'N: ★★偽サーバの行に、会社と年収が並んだ行が1つも無い（fixture の前提）');
-    ok(MASK_T_LEAK_ROWS.slice(0, 8).every((r) => r.airline != null && r.annual_usd != null),
-       'N-2: ★毒入りの偽サーバは、どの型の行にも会社と年収を両方入れてある（fixture の前提）');
   }
   for (const lang of ['ja', 'en']) {
     console.log(`\n════ ${lang} / N 伏せた本物の一覧（鍵なし）════`);
-    const { page, errs } = await open(lang, MASKED_T);
+    const { page, errs } = await open(lang, MASKED);
     const v = await page.evaluate(SNAP);
     const tag = `${lang}/伏せた一覧`;
 
     ok(/actual-pay\.html$/.test(v.url), `${lang}: ★鍵が無くてもこの画面が開く`, v.url);
-    maskedRows(v, lang, tag, MASK_T_ROWS);
-    blurOK(v, tag, mkPlates(MASK_T_ROWS));
+    maskedRows(v, lang, tag, MASK_ROWS.length);
+    blurOK(v, tag, MASK_ROWS.length * 3);
     promises(v, lang, tag);
     noParen(v, tag);
     /* ★数え上げは出す。数はサーバの stats から来る**本物**で、
@@ -5164,126 +4861,26 @@ for (const lang of ['ja', 'en']) {
     ok(v.stats.map((c) => c.n.replace(/[^\d]/g, '')).join(',') === '11,7,3',
        `${lang}: ★★伏せた行を数え上げに1件も足していない`,
        JSON.stringify(v.stats.map((c) => c.n)));
-    /* ★絞り込みの帯は出す。選択肢は**読める値だけ**から作る。 */
-    {
-      const seen = (k) => new Set(MASK_T_ROWS.map((r) => mkSee(r)[k]).filter((x) => x != null)).size;
-      ok(v.barHidden === false && v.airOpts.length === 1 + seen('airline') && v.posOpts.length === 1 + seen('pos'),
-         `${lang}: ★絞り込みが使える（選択肢は、行に読める会社・職位だけから作る）`,
-         `${v.barHidden} / 社${v.airOpts.join(',')} / 職位${v.posOpts.join(',')}`);
-    }
+    /* ★絞り込みの帯は出す。行が本物なので「選べるのに0件」が起きない。
+       ★職位の口だけは隠れている（受け取っていない欄なので絞れない。maskedRows が見ている）。 */
+    ok(v.barHidden === false && v.airOpts.length >= 2,
+       `${lang}: ★絞り込みが使える（選択肢は実際に在る行から作る）`,
+       `${v.barHidden} / 社${v.airOpts.length}`);
     /* ★登録は済んでいる人なので「すでにアカウントをお持ちの方」は出さない。 */
     ok(v.pvIn.length === 0, `${lang}: ★ログイン済みの人にログインの入口を出さない`,
        v.pvIn.join(','));
 
-    /* ── 押すと開く面（型ごとに1つずつ・9行目以降の2つ）──────────── */
-    for (const [i, what] of [[0, '年収型'], [1, '会社型'], [2, '機種型'],
-                             [3, '機材の無い機種型'], [8, '9行目以降・会社あり'],
-                             [9, '9行目以降・時期だけ']]) {
-      ok(await tapRow(page, i), `${lang}: ${i + 1}件目（${what}）の詳細が開く`);
-      maskedDrawer(await page.evaluate(DW), `${tag}/面${i + 1}（${what}）`, MASK_T_ROWS[i], lang);
-      await page.evaluate(() => history.back());
-      ok(await dwGone(page), `${lang}: 戻る操作で詳細だけ閉じる（${what}）`);
-    }
-
-    /* ── 会社で絞る ─────────────────────────────────────
-         ★★会社を伏せた行（年収型・機種型）は、どの会社を選んでも1行も残らない。
-           残ったら、その行の会社が画面の外で分かっていることになる。 */
-    {
-      await page.select('#ap-air', 'ana');
-      await sleep(400);
-      const v2 = await page.evaluate(SNAP);
-      const want = MASK_T_ROWS.map((r, k) => [r, k]).filter(([r]) => mkSee(r).airline === 'ana');
-      ok(v2.mkTrs === want.length && v2.amounts.length === 0,
-         `${lang}: ★★会社で絞ると、その会社が読める行だけが残る（年収の出る行は1つも残らない）`,
-         `${v2.mkTrs}行 / 期待 ${want.length} / 年収${v2.amounts.join(',')}`);
-      ok(v2.mkRows.every((r) => r.air !== '' && r.sub === ''),
-         `${lang}: ★絞った後の行に、機材・年数の段が1つも無い`,
-         v2.mkRows.map((r) => `${r.air}/${r.sub}`).join(' | '));
-      await page.select('#ap-air', '');
-      await sleep(300);
-    }
-    ok(errs.length === 0, `${lang}: ページのエラーが1件も出ない`, errs.join(' | '));
-  }
-
-  /* ── N-古 古いサーバ（型の印を持たない4つだけの行）──────────────
-       ★JS を先に push し、SQL を後で貼る。その間は古いサーバのまま＝
-         今日までと同じ画面（会社・職位・出典・時期）がそのまま出ること。 */
-  {
-    const bad = MASK_ROWS.filter((r) => Object.keys(r).some((k) =>
-      ['annual_usd', 'fleet', 'fleet_cat', 'work', 'pay', 'paylock', 'ten', 'comp', 't'].includes(k)));
-    ok(bad.length === 0,
-       'N-古: ★★古いサーバの行に、年収も機材も内訳も勤務も型の印も入っていない（fixture の前提）',
-       JSON.stringify(bad[0] || {}));
-  }
-  for (const lang of ['ja', 'en']) {
-    console.log(`\n════ ${lang} / N-古 伏せた一覧（古いサーバの4つだけ）════`);
-    const { page, errs } = await open(lang, MASKED);
-    const v = await page.evaluate(SNAP);
-    const tag = `${lang}/古いサーバ`;
-    maskedRows(v, lang, tag, MASK_ROWS);
-    blurOK(v, tag, mkPlates(MASK_ROWS));
-    ok(v.airNames.length === MASK_ROWS.length && v.logoImgs === MASK_ROWS.length,
-       `${tag}: ★会社名と社ロゴがどの行でも読める（今日までの画面のまま）`,
-       `${v.airNames.length} / ロゴ${v.logoImgs}`);
-    ok(v.amounts.length === 0 && v.mkFlt === MASK_ROWS.length,
-       `${tag}: ★年収と機種はどの行も板（今日までの画面のまま）`,
-       `年収${v.amounts.length} / 機種の板${v.mkFlt}`);
+    /* ── 押すと開く面（Verified の行と、そうでない行の両方）───────── */
     ok(await tapRow(page, 0), `${lang}: 1件目の詳細が開く`);
-    maskedDrawer(await page.evaluate(DW), `${tag}/面1`, MASK_ROWS[0], lang);
+    maskedDrawer(await page.evaluate(DW), `${tag}/面1`, true);
     await page.evaluate(() => history.back());
     ok(await dwGone(page), `${lang}: 戻る操作で詳細だけ閉じる`);
-    ok(errs.length === 0, `${lang}: ページのエラーが1件も出ない`, errs.join(' | '));
-  }
 
-  /* ── N-2 サーバが型を無視して全部入れてしまった（毒入り）──────────
-       ★この節の値打ちは「2本目の鍵」──画面の白リストだけで、型の外の欄が
-         1文字も出ないこと。会社型に年収・機材、年収型に会社・職位・機材、
-         機種型に会社・年収、9行目以降に全部入り、知らない型にも全部入り。 */
-  for (const lang of ['ja', 'en']) {
-    console.log(`\n════ ${lang} / N-2 伏せた一覧（サーバが型を無視して全部返した）════`);
-    const { page, errs } = await open(lang, MASKED_T_LEAK);
-    const v = await page.evaluate(SNAP);
-    const tag = `${lang}/型を無視した毒`;
-    maskedRows(v, lang, tag, MASK_T_LEAK_ROWS);
-    {
-      /* ★サーバが年収型・機種型に混ぜた会社は、絞り込みの選択肢にも出ない。 */
-      const seen = (k) => new Set(MASK_T_LEAK_ROWS.map((r) => mkSee(r)[k]).filter((x) => x != null)).size;
-      ok(v.airOpts.length === 1 + seen('airline') && v.posOpts.length === 1 + seen('pos'),
-         `${lang}: ★★絞り込みの選択肢に、型の外の会社・職位が1つも入らない`,
-         `社${v.airOpts.join(',')} / 職位${v.posOpts.join(',')}`);
-    }
-    blurOK(v, tag, mkPlates(MASK_T_LEAK_ROWS));
-    {
-      const leaked = POISON_VALUES.filter((t) => v.bodyText.includes(t));
-      ok(leaked.length === 0, `${lang}: ★★サーバが混ぜた本物が画面に1文字も出ない`, leaked.join(','));
-      const st = await page.evaluate(STORE);
-      ok(POISON_VALUES.filter((t) => st.includes(t)).length === 0,
-         `${lang}: ★★ブラウザの保存領域にも本物が入らない`,
-         POISON_VALUES.filter((t) => st.includes(t)).join(','));
-    }
-    /* ★知らない型の行は投稿時期だけ（新しい型をサーバだけ足しても、画面は何も出さない）。 */
-    {
-      const z = v.mkRows[9] || {};
-      ok(z.airLk === 1 && z.posLk === 1 && z.subLk === 1 && z.amtLk === 2
-         && z.vf + z.vfNo === 0 && z.age !== '',
-         `${lang}: ★★知らない型の行は、全部入りでも投稿時期だけ`, JSON.stringify(z).slice(0, 200));
-    }
-    for (const [i, what] of [[0, '年収型'], [1, '会社型'], [2, '機種型'], [9, '知らない型']]) {
-      ok(await tapRow(page, i), `${lang}: ${i + 1}件目（${what}）の詳細が開く`);
-      maskedDrawer(await page.evaluate(DW), `${tag}/面${i + 1}（${what}）`, MASK_T_LEAK_ROWS[i], lang);
-      await page.evaluate(() => history.back());
-      ok(await dwGone(page), `${lang}: 戻る操作で詳細だけ閉じる（${what}）`);
-    }
-    /* ★会社で絞っても、年収型の行（サーバが会社を混ぜた）は残らない。 */
-    {
-      await page.select('#ap-air', 'ana');
-      await sleep(400);
-      const v2 = await page.evaluate(SNAP);
-      const want = MASK_T_LEAK_ROWS.filter((r) => mkSee(r).airline === 'ana').length;
-      ok(v2.mkTrs === want && v2.amounts.length === 0,
-         `${lang}: ★★会社で絞っても、サーバが混ぜた会社で年収の行が引っかからない`,
-         `${v2.mkTrs}行 / 期待 ${want} / 年収${v2.amounts.join(',')}`);
-    }
+    ok(await tapRow(page, 2), `${lang}: 3件目（Verified でない行）の詳細も開く`);
+    maskedDrawer(await page.evaluate(DW), `${tag}/面3`, false);
+    await page.evaluate(() => history.back());
+    ok(await dwGone(page), `${lang}: 戻る操作で詳細だけ閉じる（2回目）`);
+
     ok(errs.length === 0, `${lang}: ページのエラーが1件も出ない`, errs.join(' | '));
   }
 
@@ -5318,9 +4915,9 @@ for (const lang of ['ja', 'en']) {
        `${lang}: ★★ブラウザの保存領域にも本物が入らない`,
        POISON_VALUES.filter((t) => st0.includes(t)).join(','));
     /* ④ ぼかしが掛かっているのは**中身の空いた板**だけ。文字を霞ませていない。 */
-    blurOK(v, tag, mkPlates(ROWS));
+    blurOK(v, tag, ROWS.length * 3);
     /* ⑤ 伏せた一覧の約束（N と同じものを、毒入りのサーバ相手にもう一度）。 */
-    maskedRows(v, lang, tag, ROWS);
+    maskedRows(v, lang, tag, ROWS.length);
     promises(v, lang, tag);
     /* ⑥ 数え上げカードは出す。★2026-09-16 にここも反転した ── 前は
          「本物が無いので 0 で埋めない」＝カードごと出さない、だった。
@@ -5334,7 +4931,7 @@ for (const lang of ['ja', 'en']) {
     /* ── 詳細（押すと開く面）─────────────────────────── */
     ok(await tapRow(page, 0), `${lang}: 1件目の詳細が開く（ログイン画面へ飛ばない）`);
     const d0 = await page.evaluate(DW);
-    maskedDrawer(d0, `${tag}/面1`, ROWS[0], lang);
+    maskedDrawer(d0, `${tag}/面1`, true);
     ok(POISON_VALUES.filter((t) => d0.text.includes(t)).length === 0,
        `${lang}: ★★面の中にも本物が1文字も出ない`,
        POISON_VALUES.filter((t) => d0.text.includes(t)).join(','));
@@ -5343,7 +4940,7 @@ for (const lang of ['ja', 'en']) {
 
     ok(await tapRow(page, 2), `${lang}: 3件目の詳細も開く`);
     const d2 = await page.evaluate(DW);
-    maskedDrawer(d2, `${tag}/面3`, ROWS[2], lang);
+    maskedDrawer(d2, `${tag}/面3`, false);
     await page.evaluate(() => history.back());
     ok(await dwGone(page), `${lang}: 戻る操作で詳細だけ閉じる（2回目）`);
     const f = await page.evaluate(() => {
@@ -5657,7 +5254,7 @@ for (const lang of ['ja', 'en']) {
 
   /* ── 鍵の無い一覧 ── わざと全部の行に far を混ぜても ⚠ は1つも出ない ── */
   for (const lang of ['ja', 'en']) {
-    for (const [name, payload, opt] of [['型を無視した毒', MASKED_T_FAR, null],
+    for (const [name, payload, opt] of [['伏せた行に混ぜた毒', MASKED_FAR, null],
                                         ['未ログイン・全部入りの毒', LOCKED_FAR, { anon: true }]]) {
       console.log(`\n════ ${lang} / R-2 伏せた一覧に far を混ぜる（${name}）════`);
       const { page, errs } = await open(lang, payload, opt);

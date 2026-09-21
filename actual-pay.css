@@ -983,7 +983,7 @@
       このファイルで filter/blur を書いてよいのは次の3つだけ ──
         ① .ap-dw-lk-r.is-real .ap-dw-lk-p2（内訳の帯）
         ② .ap-r--mk / .ap-dw--mk の中の .ap-amt-lk-p（伏せた一覧の年収）
-        ③ .ap-flt-lk（伏せた一覧の機材）
+        ③ .ap-flt-lk（伏せた一覧の職位・機材）
       ②③ もぼかしているのは**中身の空いた板**で、置いた数字を霞ませてはいない。
       assert-pay-rows.mjs がこの3つ以外を実測で落とす。
    ★色は既存のトークンだけ（--pv-orange* / --pv-line* / --pv-ink*）。新しい色を作らない。
@@ -1016,9 +1016,10 @@
 
 /* ══════════════════════════════════════════════════════════════
    伏せた一覧（2026-09-16 オーナー指示）
-   鍵の無い人にも**本物の行**を出す。行ごとに見える欄が違い（2026-09-18 から。
-   上の8行は1人に固定の型で決まる）、見えない欄は**サーバが渡していない**
-   （db/pay-rows.sql の mask）。
+   鍵の無い人にも**本物の行**を出す。読めるのは会社・出典・投稿時期の3つで、
+   年収・職位・機材は**サーバが渡していない**（db/pay-rows.sql の mask）。
+   ★2026-09-21 オーナー指示で職位も渡さなくなった。欄（列）は6つのまま残す ──
+     1つ減らすと下の狭い画面のカード組み（grid-area）が総崩れになる。
    ⚠️ ここのぼかしは「置いた数字を霞ませる」ものではない。板の中は最初から空で、
       DevTools で filter を外しても出るものが1文字も無い。
    ⚠️ 板の幅を値や桁数から作らない（ch も width:auto も禁止）。幅が動くと
@@ -1029,20 +1030,17 @@
 .ap-r--mk .ap-amt-lk-p{filter:blur(3px)}
 .ap-dw--mk .ap-amt-lk-p{filter:blur(3px)}
 
-/* 機材の板。★職位の2行目（.ap-flt と同じ場所）。幅は固定。 */
+/* 職位・機材の板。★職位の欄（.ap-flt と同じ場所）。幅は固定。 */
 .ap-flt-lk{display:inline-block;width:52px;height:11px;border-radius:999px;
   background:var(--pv-line);filter:blur(3px);vertical-align:-1px}
 
-/* 会社・職位の板（2026-09-18）。★機材の板と同じ部品（.ap-flt-lk）で、幅だけ変える。
-     ぼかしの規則を増やさない（上の1つが全部に効く）。幅は固定＝値から作らない。 */
-.ap-mk-lk{position:relative;display:inline-flex;align-items:center}
-/* ★スマホのカードでは社名の列が 92px より狭くなり、板が隣の「ANNUAL」に乗っていた。
-     縮めてよいのは列の幅に合わせるときだけ（値からは作らない）。 */
-.ap-cell-air .ap-mk-lk{min-width:0}
-.ap-flt-lk--air{width:92px;height:12px}
-.ap-flt-lk--pos{width:44px}
+/* 面の職位の段に置く板。★この段に**ほかに何も無い**ので、区切りの · は出さない。
+   ⚠️ 2026-09-21 に職位も渡さなくなるまでは、ここが `::before` で「職位 · 板」の
+      区切りを出していた。職位が消えた今それを戻すと、行頭に · だけが残る
+      （assert-pay-rows.mjs の maskedDrawer がその形を見ている）。 */
+.ap-dw-flt-mk{position:relative}
 
-/* 見出しの下の1行（「ほかの項目は、給与を1件共有すると見られます」）。
+/* 見出しの下の1行（「年収・職位・機種は、給与を1件共有すると見られます」）。
    ★.ap-lock-h は見出しだけの規則で余白を持っていない。ここで空ける。 */
 .ap-lock-sub{margin:6px 0 0;font-size:.73rem;font-weight:600;line-height:1.8;
   color:var(--pv-ink-3);line-break:strict;word-break:auto-phrase}
@@ -1107,10 +1105,6 @@
   .ap-tbl--pv .ap-amt{font-size:1.5rem;line-height:1.25}
   .ap-tbl--pv .ap-amt-lk{min-height:30px}
   .ap-tbl--pv .ap-amt-lk-p{width:104px;height:16px}
-  /* ★伏せた一覧のカードでは、年収の板（86px）が社名の列を削って
-       「Lufthansa」が「ANNUAL」にくっついていた。本物の「$180K」より広かったので縮める。
-       幅は固定のまま（値から作らない）。 */
-  .ap-tbl--mk .ap-amt-lk-p{width:60px}
   /* 出典の欄はプレビューでは空。段を1つ空けない。 */
   .ap-tbl--pv tbody tr.ap-r>td:nth-child(5){display:none}
   /* 解放案内は、カードに組み替わった一覧の中で1枚のカードとして座る。 */

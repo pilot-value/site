@@ -148,6 +148,7 @@
            ⚠️ ここに「上位◯%」「時給」の語を作らない。出さないと決めたもの。 */
       hintComp: '内訳あり', hintWork: '勤務あり', hintGo: '押すと匿名の詳細',
       dwOpen: '{air}・{pos} の記録を開く',
+      dwOpenM: '{air} の記録を開く',
       dwClose: '閉じる',
       dwYear: '年収', dwMonth: '月あたり',
       dwComp: '報酬の内訳', dwWork: '勤務',
@@ -231,18 +232,14 @@
       skelT: '解放後の一覧イメージ',
       skelL: '給与を1件共有すると一覧が見られます',
       /* ── 伏せた一覧（2026-09-16）───────────────────────────
-         ★ここは**本物の投稿**。数は開いた一覧と同じで、
-           サーバが行ごとに決めた欄しか渡していないだけ（2026-09-18 から、
-           上の8行は行ごとに見える欄が違う）。
+         ★ここは**本物の投稿**。数も並びも開いた一覧と同じで、
+           サーバが年収と機材を渡していないだけ。
          ★「ぼかしています」と書かない ── 隠しているのではなく、
            そもそも渡ってきていない。 */
       mkT: '実際に提出された給与',
-      mkS: 'ほかの項目は、給与を1件共有すると見られます',
+      mkS: '年収・職位・機種は、給与を1件共有すると見られます',
       mkA: '年収は非公開',
-      mkF: '機種は非公開',
-      mkC: '会社名は非公開',
-      mkP: '職位は非公開',
-      mkO: 'この記録を開く',
+      mkF: '職位と機種は非公開',
       seeT: 'REAL PAY で見えること',
       see: ['航空会社と職位ごとの、実際に受け取っている年収',
             '年収を12で割った、月あたりの金額',
@@ -280,6 +277,7 @@
           + 'and when a row was submitted is shown only as a broad period.',
       hintComp: 'Breakdown', hintWork: 'Work', hintGo: 'Open the anonymous detail',
       dwOpen: 'Open the {pos} record at {air}',
+      dwOpenM: 'Open the record at {air}',
       dwClose: 'Close',
       dwYear: 'Per year', dwMonth: 'Per month',
       dwComp: 'Compensation', dwWork: 'Work',
@@ -330,12 +328,9 @@
       skelT: 'What the list looks like once it opens',
       skelL: 'Share one pay record to see the list',
       mkT: 'Pay records pilots have actually submitted',
-      mkS: 'Share one pay record to see the other fields',
+      mkS: 'Share one pay record to see the annual figures, rank and aircraft',
       mkA: 'Annual figure hidden',
-      mkF: 'Aircraft hidden',
-      mkC: 'Airline hidden',
-      mkP: 'Position hidden',
-      mkO: 'Open this record',
+      mkF: 'Rank and aircraft hidden',
       seeT: 'What REAL PAY shows',
       see: ['What pilots at each airline and rank actually earn in a year',
             'That figure divided by twelve, as a monthly amount',
@@ -381,8 +376,8 @@
     flt: {},          // 機材コード → 表示名（2026-09-03）
     rows: null,       // pv_pay_rows() の行（そのまま持つ）
     /* 'preview' … 作り物の5行（ap-preview.js）。サーバが行を返さないとき
-       'masked'  … **本物の行**。ただしサーバが会社・職位・出典・投稿時期しか
-                    返していない（年収と機材は渡ってきていない・2026-09-16）
+       'masked'  … **本物の行**。ただしサーバが会社・出典・投稿時期しか
+                    返していない（年収・職位・機材は渡ってきていない）
        'open'    … 年収も機材も入っている
        'error'   … 読めなかった */
     mode: '',         // 'preview' | 'masked' | 'open' | 'error'
@@ -426,7 +421,7 @@
 
   /* ★伏せた一覧（2026-09-16）。**プレビューと同じ扱いにしない。**
        preview は作り物の5行で、出典も投稿時期も伏せる側に倒れている。
-       こちらは本物の投稿で、オーナーが出すと決めた4つ（会社・職位・出典・
+       こちらは本物の投稿で、オーナーが出すと決めた3つ（会社・出典・
        投稿時期）はそのまま読める。 */
   function isMasked() { return S.mode === 'masked'; }
 
@@ -600,7 +595,10 @@
     return S.rows.filter(function (r) {
       if (!hitQ(r.airline)) return false;
       if (S.fAir && r.airline !== S.fAir) return false;
-      if (S.fPos && r.pos !== S.fPos) return false;
+      /* ★伏せた一覧では職位を受け取っていないので、職位で絞らない（2026-09-21）。
+         ⚠️ isMasked() を外さない。外すと ?pos=… を付けた住所で来た人の一覧が
+            1行残らず消える（選べる口は隠してあるが、住所は手で打てる）。 */
+      if (S.fPos && !isMasked() && r.pos !== S.fPos) return false;
       return true;
     });
   }
@@ -819,10 +817,12 @@
   }
 
   /* › のボタンの読み上げ。★社名と職位だけ。金額を読ませない。
+     ★伏せた一覧では職位を受け取っていないので社名だけで読む（2026-09-21）。
      ⚠️ replace の新しい側は関数で渡す（社名に $ が入りうる）。 */
   function openLabel(r) {
-    /* ★伏せた一覧で会社か職位を持たない行は、名前を作らずに「この記録を開く」。 */
-    if (isMasked() && !(mkHas(r, 'airline') && mkHas(r, 'pos'))) return T.mkO;
+    if (isMasked()) {
+      return T.dwOpenM.replace('{air}', function () { return airName(r.airline); });
+    }
     return T.dwOpen
       .replace('{air}', function () { return airName(r.airline); })
       .replace('{pos}', function () { return posName(r.pos); });
@@ -880,8 +880,8 @@
        記号を置くだけで、数字には触らない（書き換えない・消さない・ぼかさない）。
      ★記号は**文字**で描く。svg にすると表の中の svg が1つ増えて、
        「棒グラフを描き直した人が居ないか」を見ている検査に当たる。
-     ⚠️ 伏せた一覧とプレビューには出さない。伏せた一覧は MK_KEYS に far が無いので
-        入口で捨てられるが、ここでも画面の種類で止める（2本目の鍵）。 */
+     ⚠️ 伏せた一覧とプレビューには出さない。サーバが伏せた行に far を入れないのが
+        1本目の鍵で、ここでも画面の種類で止めるのが2本目。 */
   function isFar(r) { return !!r && r.far === true && !r._p && !isMasked(); }
   function farMark() {
     return '<span class="ap-far" role="img" aria-label="' + esc(T.far) + '" title="'
@@ -1287,8 +1287,7 @@
   function dwAmt(r, month) {
     /* ★伏せた一覧（2026-09-16）では**無条件に板**。「値が無いから」ではなく
          「この画面だから」置く ── 将来サーバがうっかり年収を混ぜても出ない。 */
-    /* ★2026-09-18 からは、白リストを通った年収型の行だけ数字を出す。 */
-    if ((isMasked() && !mkHas(r, 'annual_usd')) || (r._p && (r.lock || r.annual_usd == null))) {
+    if (isMasked() || (r._p && (r.lock || r.annual_usd == null))) {
       return '<span class="ap-amt-lk ap-dw-av-lk">'
            + '<span class="ap-amt-lk-p" aria-hidden="true"></span>'
            + '<span class="ap-pv-sr">' + esc(isMasked() ? T.mkA : PT('lkA')) + '</span></span>';
@@ -1304,20 +1303,15 @@
     var pv = !!r._p;
     /* ★伏せた面（2026-09-16）。**プレビューと同じ扱いにしない** ── こちらは
          本物の投稿なので、出典と投稿時期はそのまま出す（オーナーの決定）。
-       ⚠️ 伏せた面で fleetName() / money() / tenName() を呼ぶのは、
-          必ず mkHas() を通ったときだけ（2026-09-18・型ごとの白リスト）。 */
+       ⚠️ 伏せた面では fleetName() / money() を1つも呼ばない。機材は
+          値の有無で分岐せず、無条件に空の板を置く。 */
     var mk = isMasked();
-    var meta = [esc(posName(r.pos))];
+    /* ★伏せた面では職位も受け取っていない（2026-09-21 オーナー指示）。
+         空から始めて、下の板1枚だけがこの行に残る。 */
+    var meta = mk ? [] : [posName(r.pos)];
     if (!mk) {
-      var fl = fleetName(r.fleet); if (fl) meta.push(esc(fl));
-      var tn = tenName(r);         if (tn) meta.push(esc(tn));
-    } else {
-      /* ★伏せた面（2026-09-18）。表の行と同じ白リストを通す。
-           職位・機材は、見えない型では板を置く。年数の段は見える型だけ。 */
-      meta = [mkHas(r, 'pos') ? esc(posName(r.pos)) : mkLk('ap-flt-lk--pos', T.mkP),
-              mkHas(r, 'fleet') && fleetName(r.fleet) ? esc(fleetName(r.fleet))
-                                                      : mkLk('', T.mkF)];
-      if (mkHas(r, 'ten') && tenName(r)) meta.push(esc(tenName(r)));
+      var fl = fleetName(r.fleet); if (fl) meta.push(fl);
+      var tn = tenName(r);         if (tn) meta.push(tn);
     }
 
     var bd = mk ? '' : payHTML(r), work = mk ? '' : workHTML(r), miss = '';
@@ -1332,19 +1326,18 @@
     else if (!work)     miss = T.dwNoWork;
 
     return '<div class="ap-dw-top">'
-      + '<div class="ap-dw-air">'
-      /* ★会社を出さない型では、面の題も板にする（読み上げは「会社名は非公開」）。 */
-      +   (mk && !mkHas(r, 'airline')
-            ? '<span class="ap-logo ap-logo--mono" aria-hidden="true"></span>'
-              + '<span class="ap-dw-name" id="ap-dw-t">' + mkLk('ap-flt-lk--air', T.mkC) + '</span>'
-            : logoHtml(r.airline)
-              + '<span class="ap-dw-name" id="ap-dw-t">' + esc(airName(r.airline)) + '</span>')
+      + '<div class="ap-dw-air">' + logoHtml(r.airline)
+      +   '<span class="ap-dw-name" id="ap-dw-t">' + esc(airName(r.airline)) + '</span>'
       +   (pv ? '<span class="ap-pv-tag">' + esc(PT('tag')) + '</span>' : '') + '</div>'
       + '<button type="button" class="ap-dw-x" data-ap-close="1" aria-label="'
       +   esc(T.dwClose) + '">×</button>'
       + '</div>'
-      /* ★meta の中身は上で1つずつ esc() 済み（伏せた面では板の HTML が混ざる）。 */
-      + '<p class="ap-dw-meta">' + meta.join(' · ') + '</p>'
+      + '<p class="ap-dw-meta">' + esc(meta.join(' · '))
+      /* ★機材の板。伏せた面でだけ、職位のあとに無条件で置く。 */
+      +   (mk ? '<span class="ap-dw-flt-mk">'
+            + '<span class="ap-flt-lk" aria-hidden="true"></span>'
+            + '<span class="ap-pv-sr">' + esc(T.mkF) + '</span></span>' : '')
+      + '</p>'
       + '<div class="ap-dw-amt">'
       +   '<div class="ap-dw-a"><span class="ap-dw-al">' + esc(T.dwYear) + '</span>'
       +     dwAmt(r, 0) + '</div>'
@@ -1358,8 +1351,7 @@
            ★伏せた面では**出す**。本物の投稿なので「誰かが実際に出した」は
              事実であり、オーナーが読めると決めた4つのうちの2つ。 */
       + (pv ? '' : '<p class="ap-dw-src">'
-      +   (mk ? mkCell(r, 'vf')
-              : (r.verified ? vfMark() : '<span class="ap-vf-no">' + esc(T.vfNo) + '</span>'))
+      +   (r.verified ? vfMark() : '<span class="ap-vf-no">' + esc(T.vfNo) + '</span>')
       +   '<span class="ap-dw-age">' + esc(ageName(r.age)) + '</span></p>')
       + bd + work
       + (miss ? '<p class="ap-dw-miss">' + esc(miss) + '</p>' : '')
@@ -1579,7 +1571,7 @@
     render();
     /* ★捨ててから取り直す（2026-09-16）。この順を入れ替えない ──
          先に取りに行くと、答えが返るまでのあいだ他人の年収が画面に残る。
-         取り直して返るのは伏せた行（会社・職位・出典・投稿時期の4つ）だけ。
+         取り直して返るのは伏せた行（会社・出典・投稿時期の3つ）だけ。
        ★取れなくても画面は壊れない。上で見本に落としてあるので、そのまま。 */
     if (client && client.rpc) fetchRows(client);
   }
@@ -1665,90 +1657,19 @@
     return out + '</div>';
   }
 
-  /* ── 伏せた一覧（2026-09-16 オーナー指示・2026-09-18 に作り直した）──────
-     鍵の無い人にも**本物の行**を出す。欄ごとにサーバが渡すかどうかを決めていて
-     （db/pay-rows.sql の mask）、渡っていない欄には中身の空いた板を置く。
+  /* ── 伏せた一覧（2026-09-16 オーナー指示）─────────────────────
+     鍵の無い人にも**本物の行**を出す。ただし年収と機材はサーバが
+     渡していない（db/pay-rows.sql の mask）ので、そこには中身の空いた板を置く。
 
      ⚠️ ここで money() / moneyMonth() / fleetName() を**1つも呼ばない。**
-        値を文字にするのは mkCell() だけで、あちらは型ごとの白リスト（mkHas）を
-        通った欄しか描かない。assert-pay-rows.mjs の K-0 が両方を見ている。
+        「値が無いから板」ではなく「この画面だから板」にしておく ── そうすれば、
+        将来サーバがうっかり年収を混ぜても画面には1文字も出ない。
+        assert-pay-rows.mjs の K-0 が、この関数の中にその3つが無いことを見ている。
      ★板は**無条件**に描く。`x ? 板 : ''` にすると、サーバが渡していない今は
        板ごと消えて、ただ空いた列になる。
      ★出典（✓ Verified / 本人申告）と投稿時期は**本物のまま出す**
        （オーナーが出すと決めた4つのうちの2つ）。preview と同じ扱いにしない。
      ★件数も並びもサーバのまま＝ページ送りを出す。 */
-  /* ── 伏せた一覧の白リスト（2026-09-18 オーナー指示）──────────────
-     上の8行は、1人に固定の型（サーバが本人の匿名キーから決める）で見える欄が違う。
-       a 年収型 … 年収（と月あたり）・年数の段・出典・投稿時期
-       f 機種型 … 職位・機材・年収（と月あたり）・出典・投稿時期（年収は 2026-09-19 に足した）
-       c 会社型 … 会社・職位・出典・投稿時期（年収は出さない）
-     9行目以降は t を持たない（会社と投稿時期。上の8行から下がってきた人は投稿時期だけ）。
-     t を持たない行は、古いサーバの4つ（会社・職位・出典・時期）までを許す。
-     ★サーバ（db/pay-rows.sql の mask）と**同じ表**。サーバが送らないのが1本目の鍵、
-       ここで捨てるのが2本目の鍵。サーバがうっかり余計な値を混ぜても、
-       この表に無い欄は行から消えてから描かれる。
-     ⚠️ 会社と年収を同じ型に入れない。1つの行に並んだ瞬間、誰の年収かが割れる。
-     ⚠️ 知らない t の行は投稿時期だけにする（新しい型を足したら、ここにも足す）。 */
-  var MK_KEYS = {
-    a: ['annual_usd', 'ten', 'tenk', 'verified', 'age'],
-    f: ['annual_usd', 'pos', 'fleet', 'verified', 'age'],
-    c: ['airline', 'pos', 'verified', 'age'],
-    '': ['airline', 'pos', 'verified', 'age']
-  };
-  function mkHas(r, k) {
-    var t = (r && typeof r.t === 'string') ? r.t : '';
-    var ks = Object.prototype.hasOwnProperty.call(MK_KEYS, t) ? MK_KEYS[t] : ['age'];
-    return ks.indexOf(k) >= 0 && r[k] != null;
-  }
-  /* 入口で1回だけ通す。★表に無いキーは**捨てる**（隠すのではなく、持たない）。 */
-  function mkClean(r) {
-    var out = { t: (r && typeof r.t === 'string') ? r.t : '' };
-    ['airline', 'pos', 'fleet', 'annual_usd', 'ten', 'tenk', 'verified', 'age']
-      .forEach(function (k) { if (r && mkHas(r, k)) out[k] = r[k]; });
-    return out;
-  }
-
-  /* 中身の空いた細い板（会社・職位・機材）。★ぼかしは .ap-flt-lk の規則1つだけ。 */
-  function mkLk(cls, label) {
-    return '<span class="ap-mk-lk"><span class="ap-flt-lk ' + cls + '" aria-hidden="true"></span>'
-         + '<span class="ap-pv-sr">' + esc(label) + '</span></span>';
-  }
-
-  /* 伏せた一覧の1欄。★伏せた画面で money() / moneyMonth() / fleetName() を
-       呼んでよいのは**ここだけ**で、必ず mkHas() を通してから呼ぶ。
-       通らなかった欄は、値が来ていても板になる。 */
-  function mkCell(r, k) {
-    switch (k) {
-      case 'air':
-        return mkHas(r, 'airline')
-          ? '<span class="ap-cell-air">' + logoHtml(r.airline)
-            + '<span class="ap-air">' + esc(airName(r.airline)) + '</span></span>'
-          : '<span class="ap-cell-air"><span class="ap-logo ap-logo--mono" aria-hidden="true"></span>'
-            + mkLk('ap-flt-lk--air', T.mkC) + '</span>';
-      case 'pos':
-        return '<span class="ap-pos">'
-          + (mkHas(r, 'pos') ? esc(posName(r.pos)) : mkLk('ap-flt-lk--pos', T.mkP)) + '</span>';
-      /* 職位の2行目。機種型は機材・年収型は年数の段・それ以外は機材の板。 */
-      case 'sub':
-        var fl = mkHas(r, 'fleet') ? fleetName(r.fleet) : '';
-        if (fl) return '<span class="ap-flt">' + esc(fl) + '</span>';
-        var tn = mkHas(r, 'ten') ? tenName(r) : '';
-        if (tn) return '<span class="ap-flt">' + esc(tn) + '</span>';
-        return '<span class="ap-flt ap-flt-mk">' + mkLk('', T.mkF) + '</span>';
-      case 'amt':
-        return mkHas(r, 'annual_usd')
-          ? '<span class="ap-amt">' + esc(money(r.annual_usd)) + '</span>' : maskedPlate(0);
-      case 'mon':
-        return mkHas(r, 'annual_usd')
-          ? '<span class="ap-mon">' + esc(moneyMonth(r.annual_usd)) + '</span>' : maskedPlate(1);
-      /* 出典。★9行目以降は来ない＝欄ごと空ける（「本人申告」と書くと嘘になりうる）。 */
-      case 'vf':
-        if (!mkHas(r, 'verified')) return '';
-        return r.verified === true ? vfMark() : '<span class="ap-vf-no">' + esc(T.vfNo) + '</span>';
-    }
-    return '';
-  }
-
   function maskedPlate(month) {
     return '<span class="ap-amt-lk' + (month ? ' ap-amt-lk--m' : '') + '">'
          + '<span class="ap-amt-lk-p" aria-hidden="true"></span>'
@@ -1781,16 +1702,23 @@
           + '<th>' + esc(T.thAge) + '</th></tr></thead><tbody>';
     for (var i = 0; i < page.length; i++) {
       var r = page[i];
-      /* ★値を描くのは mkCell() だけ。ここでは欄の並びしか決めない。 */
       h += '<tr class="ap-r ap-r--mk" data-ap-row="' + esc(String(r._i)) + '">'
-         + '<td>' + mkCell(r, 'air') + '</td>'
-         /* ★職位の2行目（開いている表で機材が出る場所）。 */
-         + '<td>' + mkCell(r, 'pos') + mkCell(r, 'sub') + '</td>'
+         + '<td><span class="ap-cell-air">' + logoHtml(r.airline)
+         +   '<span class="ap-air">' + esc(airName(r.airline)) + '</span></span></td>'
+         /* ★職位も機材も、サーバが値を渡していない（2026-09-21 オーナー指示で
+              職位も送るのをやめた）。値の有無で分岐せず、無条件に板を1枚置く。
+            ⚠️ ここで posName(r.pos) を呼び戻さない。呼べば「受け取っていない物を
+               画面が書く」ことになり、伏せた一覧の約束（ぼかしではなく渡さない）が崩れる。 */
+         + '<td><span class="ap-flt ap-flt-mk">'
+         +     '<span class="ap-flt-lk" aria-hidden="true"></span>'
+         +     '<span class="ap-pv-sr">' + esc(T.mkF) + '</span></span>'
+         + '</td>'
          + '<td class="ap-num"><span class="ap-cl" aria-hidden="true">' + esc(T.thAmt) + '</span>'
-         +   mkCell(r, 'amt') + '</td>'
+         +   maskedPlate(0) + '</td>'
          + '<td class="ap-num"><span class="ap-cl" aria-hidden="true">' + esc(T.thMon) + '</span>'
-         +   mkCell(r, 'mon') + '</td>'
-         + '<td>' + mkCell(r, 'vf') + '</td>'
+         +   maskedPlate(1) + '</td>'
+         + '<td>' + (r.verified ? vfMark()
+                                : '<span class="ap-vf-no">' + esc(T.vfNo) + '</span>') + '</td>'
          + '<td><span class="ap-age">' + esc(ageName(r.age)) + '</span>'
          +   '<button type="button" class="ap-go" aria-label="' + esc(openLabel(r))
          +   '">\u203a</button>'
@@ -2043,6 +1971,12 @@
     /* ★打ち込みは会社のプルダウンにも効く。打った先に残る会社だけが選択肢になる
          ＝「選べるのに0件」がここでも起きない。 */
     fill('ap-air', listOf('airline', airName, function (r) { return hitQ(r.airline); }), S.fAir);
+    /* ★伏せた一覧は職位を受け取っていない（2026-09-21 オーナー指示）。口だけ残すと
+         空のプルダウンが1つ並び、「選べるのに必ず0件」になる。枠ごと隠す
+         ── 帯と枠の両方に [hidden] が要るのは上の .ap-filter と同じ理由。 */
+    var pSel = el('ap-pos'), pBox = pSel && pSel.closest && pSel.closest('.ap-f');
+    if (pBox) pBox.hidden = isMasked();
+    if (isMasked()) { S.fPos = ''; return; }
     fill('ap-pos', listOf('pos', posName, function (r) {
       return hitQ(r.airline) && (!S.fAir || r.airline === S.fAir);
     }), S.fPos);
@@ -2389,10 +2323,8 @@
          ★鍵が無くてもこれは**本物**。プレビューの5行は1件も混ぜない。 */
       S.stats = (v && v.stats) || null;
       if (!isOpen) {
-        /* ★鍵が無い。サーバが返すのは**伏せた行**（行ごとに決めた欄だけ。
-             内訳も勤務も入っていない）。
-           ★受け取った入口で白リスト（mkClean）を1回だけ通す。以降の描画・
-             絞り込み・読み上げは、通した後の行しか見ない。
+        /* ★鍵が無い。サーバが返すのは**伏せた行**（会社・出典・投稿時期の
+             3つだけ。年収も職位も機材も入っていない）。
            ★行が来ていれば本物を出す。来ていなければ今までどおり
              プレビューの5行に落ちる（古いサーバ・まだ0件）。
              ⚠️ 混ぜない ── 本物と作り物を同じ配列に入れる形そのものを作らない。
@@ -2400,7 +2332,7 @@
         var mk = (v && v.rows) || [];
         if (mk.length) {
           S.mode = 'masked';
-          S.rows = mk.map(mkClean);
+          S.rows = mk;
           /* 押された行を引き当てる番号。開いている一覧と同じやり方。 */
           S.rows.forEach(function (r, k) { r._i = k; });
         } else {
@@ -2463,8 +2395,8 @@
     ready.then(function (session) {
       if (!session) {
         /* ★未ログイン。2026-09-16 にオーナー判断で**一覧を取りに行く**ことにした。
-             サーバが返すのは会社・職位・出典・投稿時期の4つだけの行で、
-             年収も機材も渡ってこない（db/pay-rows.sql の mask）。
+             サーバが返すのは会社・出典・投稿時期の3つだけの行で、
+             年収も職位も機材も渡ってこない（db/pay-rows.sql の mask）。
              「鍵の無いブラウザへ本物の金額が渡る経路が無い」は、撃たないことでは
              なく**サーバが渡さないこと**で守る（指示書の §6 と同じ結論）。
            ★投げるのは pv_pay_rows の1本だけ。預かりの sweep は今までどおり

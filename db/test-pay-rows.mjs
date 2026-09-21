@@ -35,22 +35,7 @@ import { pgcrypto } from '@electric-sql/pglite/contrib/pgcrypto';
 import { readFileSync } from 'fs';
 import { OPS } from '../airline-ops.mjs';
 
-/* ★公開の日（db/pay-rows.sql の person が持つ l0 の境目）を、このテストを始めた時刻に
-     差し替えて流す。本物の日付のままだと「何日前に戻した行が公開前か」が
-     テストを走らせた日で変わる。差し替えた後は、
-       ・このテストで出した行（created_at = now()）… 公開の後
-       ・日付を戻した行 …………………………………………… 公開の前
-     と、走らせる日に関係なく決まる。
-   ⚠️ 境目の文字列が見つからなければ止める（黙って本物の日付で走らせない）。 */
-const LAUNCH_LIT = `timestamptz '2026-09-19 00:00:00+09'`;
-const LAUNCH = new Date().toISOString();
-const read = (f) => {
-  const s = readFileSync(new URL('../' + f, import.meta.url), 'utf8');
-  if (f !== 'db/pay-rows.sql') return s;
-  if (s.split(LAUNCH_LIT).length !== 2)
-    throw new Error('db/pay-rows.sql に公開の日の境目が1つだけ無い（test-pay-rows.mjs の LAUNCH_LIT を直す）');
-  return s.replace(LAUNCH_LIT, () => `timestamptz '${LAUNCH}'`);
-};
+const read = (f) => readFileSync(new URL('../' + f, import.meta.url), 'utf8');
 
 const db = new PGlite({ extensions: { pgcrypto } });
 await db.waitReady;
@@ -179,73 +164,6 @@ const only = (rs, f) => rs.filter(f);
 // 画面に出るのと同じ丸め（有効数字2桁）。畳んだ額の検算に使う。
 const pv2 = (v) => Number(v.toPrecision(2));
 
-/* ── 鍵の無い人の一覧（2026-09-18）─────────────────────────────
-   ★開いた一覧から「こうなるはず」を組み立て直し、本物の返り値と1行ずつ比べる。
-   ★型は人のキーから決まるが、開いた一覧はキーを返さない。そこで本物の関数の
-     定義を読み、行にキーを1つ足しただけの複製（pv_pay_rows_k）をこのテストの
-     中にだけ作る。式を書き写さないので、本物を直せば複製も同じに直る。
-     ⚠️ pay-rows.sql を流し直したら作り直す（呼ぶたびに作り直している）。 */
-const { createHash: hashOf } = await import('node:crypto');
-const withKeys = async () => {
-  const d = (await one(`select pg_get_functiondef('public.pv_pay_rows()'::regprocedure) d`)).d;
-  const at = `'airline',    p.airline,`;
-  if (d.split(at).length !== 2)
-    throw new Error('本物の一覧の行の組み立てが見つからない（test-pay-rows.mjs の withKeys を直す）');
-  await db.exec(d.replace('public.pv_pay_rows()', () => 'public.pv_pay_rows_k()')
-                 .replace(at, () => `'k', p.pkey, 'l0', p.l0, ` + at));
-  await asViewer();                       // 開いた一覧（鍵のある人）として引く
-  const r = (await one(`select pv_pay_rows_k() r`)).r.rows;
-  /* 写しは使い終えたら消す（残すと、下の「anon に開いている関数が無い」に引っかかる）。 */
-  await db.exec(`drop function public.pv_pay_rows_k()`);
-  return r;
-};
-const TZ = ['a', 'f', 'c'];               // 年収型・機種型・会社型
-const tzOf = (k) => TZ[hashOf('md5').update('pv-tz:' + k).digest()[0] % 3];
-const MK_KEYS = { a: ['annual_usd', 'ten', 'tenk', 'verified', 'age'],
-                  f: ['annual_usd', 'pos', 'fleet', 'verified', 'age'],
-                  c: ['airline', 'pos', 'verified', 'age'] };
-const keep = (x, ks) => Object.fromEntries(ks.filter(k => x[k] != null).map(k => [k, x[k]]));
-const isPend = (x) => x.k.startsWith('p:');
-const md5hex = (k) => hashOf('md5').update(k).digest('hex');
-const eliOf = (x) => (x.pos === 'cap' || x.pos === 'fo') && !isPend(x);
-/* 8行を選ぶ（xs は並べ終えた順）。機長の枠は、副操縦士が4人に満たなければ増やす。 */
-const pick8 = (xs) => {
-  const caps = xs.filter(x => x.pos === 'cap');
-  const fos  = xs.filter(x => x.pos === 'fo');
-  const qc = Math.min(caps.length, Math.max(4, 8 - fos.length));
-  const qf = Math.min(fos.length, 8 - qc);
-  const top = [];
-  for (let i = 0; i < Math.max(qc, qf); i++) {
-    if (i < qc) top.push(caps[i]);
-    if (i < qf) top.push(fos[i]);
-  }
-  return top;
-};
-const maskSpec = (open) => {
-  /* ★2026-09-19 公開年収から大きく外れた人（far）は8行の候補から外す。
-     9行目以降で会社を伏せるかどうか（eliOf）と公開の日の8行（top0）は変えない。 */
-  const top = pick8(open.filter(x => eliOf(x) && !x.far));
-  /* 公開の日の8行 ── 公開前の提出（l0）だけで並べ直す。同じ時刻は md5 の順。 */
-  const top0 = pick8(open.filter(x => eliOf(x) && x.l0).sort((a, b) =>
-    Date.parse(b.l0) - Date.parse(a.l0) || (md5hex(a.k) < md5hex(b.k) ? -1 : 1)));
-  /* 見せる型。公開前からいて、公開の日の8行にいなかった人は会社型。 */
-  const ty = (x) => (x.l0 && !top0.includes(x)) ? 'c' : tzOf(x.k);
-  /* 9行目以降で会社を伏せる人 ＝ 預かりと、8行から下がってきた人（会社型を除く）。 */
-  const hideAir = (x) => isPend(x) || (eliOf(x) && ty(x) !== 'c');
-  const rest = open.filter(x => !top.includes(x));
-  return { top, top0, rest, ty, hideAir, rows: [
-    ...top.map(x => ({ ...keep(x, MK_KEYS[ty(x)]), t: ty(x) })),
-    ...rest.map(x => keep(x, hideAir(x) ? ['age'] : ['airline', 'age'])),
-  ] };
-};
-const canonRow = (r) => JSON.stringify(Object.fromEntries(Object.entries(r).sort()));
-const firstDiff = (a, b) => {
-  for (let i = 0; i < Math.max(a.length, b.length); i++)
-    if (!a[i] || !b[i] || canonRow(a[i]) !== canonRow(b[i]))
-      return `${i}行目 本物 ${a[i] && canonRow(a[i])} / 期待 ${b[i] && canonRow(b[i])}`;
-  return '';
-};
-
 // 会社コードは語彙から取る（このテストのために特定の社名を覚えない）
 const VOCAB = (await rows(
   `select code, name_ja, name_en from pv_airlines
@@ -286,7 +204,7 @@ await db.query(`update pv_airlines set cap_lo = null, cap_hi = null, fo_lo = nul
 console.log('\n▼ 1. 鍵（ログインと access_until）');
 // ════════════════════════════════════════════════════════════
 /* ★2026-09-16 に向きが反転した（オーナー判断）。登録していない人にも
-   「伏せた行」（会社・職位・出典・投稿時期の4つだけ）を返す。
+   「伏せた行」（会社・出典・投稿時期の3つだけ）を返す。
    何が返るかの検査は下の 12-b ⑤。ここでは呼べることと権限だけを見る。 */
 await asAnon();
 const an = await payRows();
@@ -1319,204 +1237,44 @@ await asViewer();
           stats ごと落としていた。いまは数え上げだけ返す。
           出す前の人に「どれだけ集まっているか」が見えないと Give & Get を
           選びようがない、というのが理由。
-        ⚠️ 2026-09-16 にもう一度動いた（オーナー指示）。行も返すようになった。
-        ⚠️ 2026-09-18 に作り直した（オーナー指示）。上の8行は機長と副操縦士を
-          交互に並べ、1人に固定の型で見せる欄を変える。勤務も内訳も今までどおり入らない。
-        ⚠️ 2026-09-19（オーナー指示）。機種型にも年収を出す。9行目以降は会社と
-          投稿時期 ── ただし上の8行から下がってきた人（会社型を除く）と預かりは
-          投稿時期だけ。公開前から9行目以降にいた人は、ずっと会社型。 */
+        ⚠️ 2026-09-16 にもう一度動いた（オーナー指示）。行も返すようになったが、
+          返るのは**会社・出典・投稿時期の3つだけ**の伏せた行で、
+          年収も職位も機材も勤務も内訳も入っていない。下の4つが押さえている。
+        ⚠️ 2026-09-21 に職位も落ちた（オーナー指示「職位ださなくていいや」）。
+          画面は職位の欄に中身の空の板を置く。**送っていないから隠せる**ので、
+          ここを 4つ に戻すと約束のほうが先に崩れる。 */
   await asUser(9001);
   const lk = await payRows();
   ok(lk.state === 'locked' && lk.rows.length === b.n,
      '★鍵の無い人にも行は返る（件数は開いている一覧と同じ＝抜き差ししていない）',
      `${lk.rows.length} / ${b.n}`);
+  /* ★渡してよい3つ以外のキーが1つも無いこと。「値が null だから見えない」では
+       なく、キーごと存在しないこと ── 画面はここに中身の空の板を描く。 */
+  const lkKeys = [...new Set(lk.rows.flatMap(Object.keys))].sort();
+  ok(lkKeys.join(',') === 'age,airline,verified',
+     '★伏せた行のキーは3つだけ', lkKeys.join(','));
   ok(typeof lk.stats === 'object' && lk.stats
      && typeof lk.stats.reports === 'number'
      && typeof lk.stats.airlines === 'number'
      && typeof lk.stats.contributors === 'number',
      '★鍵の無い人にも数え上げは返る（2026-08-25 に反転）', JSON.stringify(lk.stats));
-
-  /* ★いちばん大事な1本。本物の返り値が「決めた形」と1行も違わないこと。
-       開いた一覧（同じ人・同じ順）から組み立て直した期待値と比べる。 */
-  const kOpen = await withKeys();
-  const sp = maskSpec(kOpen);
-  ok(lk.rows.length === sp.rows.length && !firstDiff(lk.rows, sp.rows),
-     '★★伏せた一覧が決めた形と1行も違わない（8行は機長→副操縦士の交互・型ごとの欄・9行目以降は会社と時期／下がってきた人は時期だけ）',
-     firstDiff(lk.rows, sp.rows));
-
-  // ── ここから下は、上の1本が落ちたときに「何が崩れたか」を読むための検査 ──
-  const nTop = (i => i < 0 ? lk.rows.length : i)(lk.rows.findIndex(x => !('t' in x)));
-  ok(nTop === 8 && lk.rows.slice(nTop).every(x => !('t' in x)),
-     '★型の印 t が付くのは先頭の8行だけ', String(nTop));
-  ok(sp.top[0].pos === 'cap'
-     && sp.top.every((x, i) => x.pos === (i % 2 ? 'fo' : 'cap'))
-     && sp.top.every(x => !isPend(x)),
-     '★上の8行は機長から始まる交互（この回は機長4・副操縦士4。訓練生・預かりは入らない）',
-     sp.top.map(x => x.pos).join(','));
-  ok(['cap', 'fo'].every(p => {
-       const ks = sp.top.filter(x => x.pos === p).map(x => kOpen.indexOf(x));
-       return ks.every((v, i) => i === 0 || ks[i - 1] < v);
-     }),
-     '★同じ職位の中は新しい順（開いた一覧の並びのまま）');
-  ok(new Set(lk.rows.slice(0, nTop).map(x => x.t)).size === 3,
-     '　（3つの型が全部出ている回で見ている）', lk.rows.slice(0, nTop).map(x => x.t).join(''));
-  ok(lk.rows.every(x => Object.keys(x).every(k =>
-       x.t ? k === 't' || MK_KEYS[x.t].includes(k) : ['airline', 'age'].includes(k))),
-     '★型ごとに決めた欄の外のキーが1つも無い（9行目以降は会社と時期だけ）',
-     JSON.stringify(lk.rows.find(x => Object.keys(x).some(k =>
-       x.t ? k !== 't' && !MK_KEYS[x.t].includes(k) : !['airline', 'age'].includes(k)))));
-  ok(!lk.rows.some(x => 'airline' in x && 'annual_usd' in x),
-     '★★会社と年収が同じ行に1つも無い');
-  ok(lk.rows.every(x => !('annual_usd' in x) || x.t === 'a' || x.t === 'f')
-     && lk.rows.every(x => !('fleet' in x) || x.t === 'f')
-     && lk.rows.every(x => !('ten' in x) || x.t === 'a'),
-     '★年収は8行の中の年収型と機種型だけ、年数の段は年収型だけ、機材は機種型だけ');
-  ok(lk.rows.slice(nTop).every((x, i) => ('airline' in x) === !sp.hideAir(sp.rest[i])),
-     '★9行目以降で会社を伏せるのは、8行から下がってきた人（会社型を除く）と預かりだけ');
-  ok(lk.rows.slice(nTop).some(x => 'airline' in x)
-     && lk.rows.slice(nTop).some(x => !('airline' in x)),
-     '　（9行目以降に会社の出る行と出ない行の両方がある回で見ている）');
-  ok(lk.rows.slice(0, nTop).every((x, i) =>
-       !('annual_usd' in x) || x.annual_usd === sp.top[i].annual_usd)
-     && lk.rows.slice(0, nTop).some(x => x.t === 'f' && 'annual_usd' in x),
-     '★上の8行の年収（年収型・機種型）は、開いた一覧の同じ人の値と同じ（有効数字2桁のまま）');
-  ok(sp.rest.some(isPend) && sp.rest.filter(isPend).every(x =>
-       canonRow(lk.rows[nTop + sp.rest.indexOf(x)]) === canonRow({ age: x.age })),
-     '★預かり（登録前に出されたぶん）は8行に入らず、投稿時期だけ');
-  /* ★金額以外の「読ませない」ものは、キーそのものが返り値に1つも出ないこと。 */
+  /* ★いちばん大事な1本。返り値の文字列のどこにも金額が無いこと。
+       stats を返すようになった以上、「うっかり金額まで載る」道は
+       件数の隣が一番近い。行の金額（下の open 側で確かめた値）が
+       1つも混ざっていないことを、丸ごとの文字列で見る。 */
   const lkTxt = JSON.stringify(lk);
-  ok(!/"(paylock|work|bh|dd|off|pay)"/.test(lkTxt),
-     '★勤務・内訳・内訳の門のキーはどこにも無い', lkTxt.slice(0, 160));
-
-  /* ★伏せたまま ── 8行から押し出されても、会社が出るのは会社型の人だけ。
-       新しい機長4人・副操縦士4人を入れて8行を丸ごと入れ替える（入れた分は巻き戻す）。
-       型を毎回引き直す作りや、8行の外で全員の会社を出す作りに戻すとここで落ちる。 */
-  const vA = sp.top.find(x => sp.ty(x) === 'a');
-  const vC = sp.top.find(x => sp.ty(x) === 'c');
-  await db.exec('begin');
-  try {
-    for (let i = 0; i < 4; i++) {
-      await person(A_ONE, 'cap', [{ fleet: 'b777', month: 5, gross: 15000 + i * 1000 }]);
-      await person(A_ONE, 'fo',  [{ fleet: 'b777', month: 5, gross:  9000 + i * 1000 }]);
-    }
-    /* 預かりを1件、いちばん新しい行として置く。型は会社型を選ぶ
-       （預かりは会社型でも会社を出さない ── 引き取られると匿名キーが変わって
-       型が引き直され、引き取りの前後で見えた欄を足し合わせられるため）。 */
-    let iph = 0;
-    while (tzOf(`p:pv-test-${iph}`) !== 'c') iph++;
-    await pend(A_ONE, { pos: 'cap', month: 6, gross: 20000, iph: `pv-test-${iph}` });
-    await db.query(`update pay_reports_pending set created_at = now() + interval '1 minute'
-                     where ip_day_hash = $1`, [`pv-test-${iph}`]);
-    await asUser(9001);
-    const lk2 = await payRows();
-    const k2 = await withKeys();
-    const sp2 = maskSpec(k2);
-    const at = (v) => sp2.top.length + sp2.rest.findIndex(y => y.k === v.k);
-    ok(!sp2.top.some(x => x.k === vA.k || x.k === vC.k) && at(vA) >= 8 && at(vC) >= 8,
-       '　（年収型と会社型の1人ずつを8行の外へ押し出せた）');
-    ok(canonRow(lk2.rows[at(vA)]) === canonRow({ age: vA.age }),
-       '★★年収型の人は8行の外へ落ちても会社が出ない（投稿時期だけ）',
-       JSON.stringify(lk2.rows[at(vA)]));
-    ok(canonRow(lk2.rows[at(vC)]) === canonRow({ airline: vC.airline, age: vC.age }),
-       '★会社型の人は8行の外では会社と投稿時期だけ（職位も出典も落ちる）',
-       JSON.stringify(lk2.rows[at(vC)]));
-    ok(isPend(k2[0]) && tzOf(k2[0].k) === 'c' && k2[0].pos === 'cap',
-       '　（いちばん新しい1件が、会社型の機長の預かりになっている回で見ている）');
-    ok(!sp2.top.includes(k2[0])
-       && canonRow(lk2.rows[at(k2[0])]) === canonRow({ age: k2[0].age }),
-       '★★いちばん新しい1件が預かりでも8行には入らず、会社型でも投稿時期だけ',
-       JSON.stringify(lk2.rows[at(k2[0])]));
-    ok(!firstDiff(lk2.rows, sp2.rows),
-       '　押し出した後も決めた形と1行も違わない', firstDiff(lk2.rows, sp2.rows));
-  } finally {
-    await db.exec('rollback');
-  }
-
-  /* ★公開の前から9行目以降にいた人（2026-09-19）。
-       この人たちは公開の時点で会社が出ている。出し直して8行に上がったときに
-       本来の型（年収型・機種型）で出すと、「9行目以降から消えた会社」と
-       「8行に増えた年収」が1人につながる。だから、ずっと会社型として出す。
-       ── 公開の日の8行を埋める8人（機長4・副操縦士4）と、それより古い1人 X を
-          公開前に置く。X は本来の型が年収型か機種型の人を選ぶ（入れた分は巻き戻す）。 */
-  await db.exec('begin');
-  try {
-    const keyOf = async (air, usd) => (await one(
-      `select distinct 'r:' || proof_hash k from pay_reports
-        where airline = $1 and annual_total_usd = $2`, [air, usd])).k;
-    const before = (air, usd, sec) => db.query(
-      `update pay_reports set created_at = $3::timestamptz - ($4 || ' seconds')::interval
-        where airline = $1 and annual_total_usd = $2`, [air, usd, LAUNCH, String(sec)]);
-    let xu = 0, xk = '', xg = 0;
-    for (let i = 0; i < 40 && !xu; i++) {
-      const g = 31000 + i * 10;
-      const u = await person(A_ONE, 'cap', [{ fleet: 'b777', month: 5, gross: g }]);
-      const k = await keyOf(A_ONE, g * 12);
-      if (tzOf(k) !== 'c') { xu = u; xk = k; xg = g; }
-    }
-    await before(A_ONE, xg * 12, 60);
-    for (let i = 0; i < 4; i++) {
-      await person(A_ONE, 'cap', [{ fleet: 'b777', month: 5, gross: 32000 + i * 10 }]);
-      await before(A_ONE, (32000 + i * 10) * 12, 10 + i);
-      await person(A_ONE, 'fo',  [{ fleet: 'b777', month: 5, gross: 12000 + i * 10 }]);
-      await before(A_ONE, (12000 + i * 10) * 12, 20 + i);
-    }
-    /* 8行に入らない職位（訓練生）を1人。公開の後に出した人。
-       ★訓練生はもう選べない（2026-09-02 から選択肢の外）ので、出してから職位を書き換える。 */
-    await person(A_ONE, 'cap', [{ fleet: 'b777', month: 5, gross: 5010 }]);
-    await db.query(`update pay_reports set "position" = 'cadet'
-                     where airline = $1 and annual_total_usd = $2`, [A_ONE, 5010 * 12]);
-    await asUser(9001);
-    let lkx = await payRows();
-    let spx = maskSpec(await withKeys());
-    const at = (sp_, k) => (i => i < 0 ? -1 : sp_.top.length + i)(sp_.rest.findIndex(y => y.k === k));
-    const X = spx.rest.find(y => y.k === xk);
-    ok(!!X && !!X.l0 && !spx.top0.includes(X) && tzOf(xk) !== 'c'
-       && spx.top0.length === 8 && spx.top0.every(y => y.k !== xk),
-       `　（公開前からいて公開の日の8行に入らなかった1人を置けた。本来の型は ${tzOf(xk)}）`);
-    ok(X && canonRow(lkx.rows[at(spx, xk)]) === canonRow({ airline: X.airline, age: X.age }),
-       '★公開前から9行目以降にいた人は、本来の型が年収型・機種型でも会社と投稿時期が出る',
-       X && JSON.stringify(lkx.rows[at(spx, xk)]));
-    const d0 = spx.top0.filter(y => spx.rest.includes(y) && tzOf(y.k) !== 'c');
-    ok(d0.length > 0 && d0.every(y => canonRow(lkx.rows[at(spx, y.k)]) === canonRow({ age: y.age })),
-       '★公開の日の8行にいた人（会社型を除く）は、9行目以降では投稿時期だけ',
-       `${d0.length}人`);
-    const ne = spx.rest.filter(y => !eliOf(y) && !isPend(y));
-    ok(ne.length > 0 && ne.every(y => canonRow(lkx.rows[at(spx, y.k)])
-                                     === canonRow({ airline: y.airline, age: y.age })),
-       '★8行に入らない職位（訓練生など）は、9行目以降で会社と投稿時期が出る', `${ne.length}人`);
-    ok(!firstDiff(lkx.rows, spx.rows), '　公開前の人を置いても決めた形と1行も違わない',
-       firstDiff(lkx.rows, spx.rows));
-
-    // X が別の月を出し直す → いちばん新しい機長として8行に上がる
-    await asUser(xu);
-    await submit({ ...BASE, airline: A_ONE, position: 'cap', fleet: 'b777',
-                   period_year: YEAR, period_month: 6, gross_monthly: xg });
-    await asUser(9001);
-    lkx = await payRows();
-    spx = maskSpec(await withKeys());
-    const ix = spx.top.findIndex(y => y.k === xk);
-    ok(ix === 0, '　（出し直した X が8行の先頭＝いちばん新しい機長になった）', String(ix));
-    const X2 = spx.top[ix] || {};
-    ok(ix >= 0 && canonRow(lkx.rows[ix]) === canonRow(
-         { airline: X2.airline, pos: X2.pos, verified: X2.verified, age: X2.age, t: 'c' }),
-       '★★公開前から会社が出ていた人は、8行に上がっても会社型（年収も機材も年数も出ない）',
-       JSON.stringify(lkx.rows[ix]));
-    ok(!firstDiff(lkx.rows, spx.rows), '　出し直した後も決めた形と1行も違わない',
-       firstDiff(lkx.rows, spx.rows));
-  } finally {
-    await db.exec('rollback');
-  }
-
+  ok(!/annual|usd|pay_?amount|salary/i.test(lkTxt),
+     '★鍵の無い人の返り値に金額らしき語が1つも無い', lkTxt.slice(0, 160));
+  /* ★金額以外の「読ませない」ものも同じ形で見る。機材・勤務・内訳・内訳の門は、
+       キーそのものが返り値の文字列に1つも出ないこと。 */
+  ok(!/"(pos|fleet|paylock|work|bh|dd|off|pay|ten|tenk)"/.test(lkTxt),
+     '★職位・機材・勤務・在籍・内訳のキーも1つも無い', lkTxt.slice(0, 160));
   /* ★未ログインと「登録しただけの人」で返り値が1バイト違わないこと。
-       片方だけ広げると、伏せ方が2通りになって片方を直し忘れる。
-       （口コミだけ出した人は、口コミを置いた後の 12-c で見る） */
-  await asUser(9001);
-  const lk3 = await payRows();
+       片方だけ広げると、伏せ方が2通りになって片方を直し忘れる。 */
   await asAnon();
   const anon2 = await payRows();
-  ok(JSON.stringify(anon2.rows) === JSON.stringify(lk3.rows)
-     && JSON.stringify(lk3.rows) === JSON.stringify(lk.rows),
-     '★未ログインと「鍵の無いログイン済み」で行がまったく同じ（巻き戻した後も元のまま）',
+  ok(JSON.stringify(anon2.rows) === JSON.stringify(lk.rows),
+     '★未ログインと「鍵の無いログイン済み」で行がまったく同じ',
      JSON.stringify(anon2.rows).slice(0, 120));
   await asViewer();
 }
@@ -1642,24 +1400,6 @@ ok(!(await one(`select has_table_privilege('anon','public.pv_review_person','sel
   ok((await heads()) === h1 + 1,
      '★★口コミと給与の両方を出した人は1人（会社が違っても二重に数えない）',
      `${h1} → ${await heads()}`);
-  await asViewer();
-}
-
-/* ★口コミだけ出した人（口コミでは給与の鍵は開かない）にも、未ログインと
-     1バイトも違わない一覧が返ること。12-b では口コミがまだ無かったので、ここで見る。
-     口コミから来た行が上の8行に入っても、決めた形は崩れないことも一緒に見る。 */
-{
-  await asUser(3001);
-  const rv = await payRows();
-  await asAnon();
-  const an = await payRows();
-  ok(rv.state === 'locked' && an.state === 'locked'
-     && JSON.stringify(rv.rows) === JSON.stringify(an.rows),
-     '★★口コミだけ出した人と未ログインで、返る行がまったく同じ',
-     `${rv.state} / ${an.state}`);
-  const sp3 = maskSpec(await withKeys());
-  ok(!firstDiff(an.rows, sp3.rows),
-     '　口コミから来た行が混ざっても、伏せた一覧は決めた形のまま', firstDiff(an.rows, sp3.rows));
   await asViewer();
 }
 
@@ -2342,7 +2082,7 @@ console.log('\n▼ 12-j. ★公開年収から大きく外れた本人申告の�
     await typeIn('Nowhere Charter Zeta', 55000);                              // 寄せられない自由入力
     await typeIn((await one(`select name_ja from pv_airlines where code = $1`, [F2])).name_ja, 50000);
     /* 同じ取引の中では投稿時刻が全員同じ（now() は取引の始まり）。印の付く4人を
-       いちばん新しくして、印が無ければ8行に入る位置に置く。 */
+       いちばん新しくして、一覧の先頭に並べる。 */
     await db.query(`update pay_reports set created_at = now() + interval '1 minute'
                      where (airline = $1 and annual_total_usd in (210000, 39000, 108000))
                         or (airline = 'other' and annual_total_usd = 600000)`, [F1]);
@@ -2382,54 +2122,21 @@ console.log('\n▼ 12-j. ★公開年収から大きく外れた本人申告の�
        && RJ.filter(hasFar).length === 4,
        '★印は当たった4行だけ（ほかの行にはキーごと無い）', String(RJ.filter(hasFar).length));
 
-    /* 鍵の無い一覧。印の付いた人はいちばん新しいので、印が無ければ8行に入っていた。 */
+    /* 鍵の無い一覧 ── 印そのものを返さない。行も消さないし、欄も増えない。 */
     await asUser(9001);
     const lkF = await payRows();
-    const kF = await withKeys();
-    const spF = maskSpec(kF);
-    ok(kF.filter(x => x.far).length === 4
-       && kF.filter(x => x.far).every(x => pick8(kF.filter(eliOf)).includes(x)),
-       '　（印の付いた4人とも、印が無ければ8行に入っていた回で見ている）');
-    ok(spF.top.length === 8 && spF.top.every(x => !x.far),
-       '★★印の付いた人は上の8行に入らない（9行目以降へ下がる）');
-    ok(lkF.rows.length === kF.length,
-       '★行は1つも消さない（伏せた一覧の行数は開いた一覧と同じ）', `${lkF.rows.length} / ${kF.length}`);
+    ok(lkF.state === 'locked', '　（鍵の無い人として見ている回）', JSON.stringify(lkF.state));
+    ok(lkF.rows.length === RJ.length,
+       '★行は1つも消さない（伏せた一覧の行数は開いた一覧と同じ）', `${lkF.rows.length} / ${RJ.length}`);
     ok(!JSON.stringify(lkF).includes('"far"'),
-       '★伏せた一覧のどの行にも印（far）が無い');
-    ok(!firstDiff(lkF.rows, spF.rows),
-       '★★印の付いた人がいても、伏せた一覧が決めた形と1行も違わない', firstDiff(lkF.rows, spF.rows));
-
-    /* ★8行で年収を見せていた人が、あとから印の対象になって9行目以降へ下がる
-         （公開年収の幅を直した日など）。そこで会社が出ると、8行で見えていた年収と
-         会社が1人につながる。年収を見せる型（年収型・機種型）の Y を1人置いて、幅を狭める。 */
-    let yk = '', yg = 0;
-    for (let i = 0; i < 40 && !yk; i++) {
-      const gg = 12000 + i * 10;                                           // $144,000 前後 ＝ 幅の中
-      await person(F1, 'cap', [{ fleet: 'b777', month: 5, gross: gg }]);
-      const k = await keyOf(F1, gg * 12);
-      if (tzOf(k) !== 'c') { yk = k; yg = gg; }
+       '★★伏せた一覧のどの行にも印（far）が無い');
+    {
+      const MK3 = ['airline', 'verified', 'age'];
+      const bad = lkF.rows.filter(r => Object.keys(r).some(k => MK3.indexOf(k) < 0));
+      ok(bad.length === 0,
+         '★伏せた行に入っているのは 会社・出典・投稿時期 の3つだけ（印で欄が増えない）',
+         JSON.stringify(bad[0] || {}));
     }
-    await db.query(`update pay_reports set created_at = now() + interval '2 minutes'
-                     where airline = $1 and annual_total_usd = $2`, [F1, yg * 12]);
-    await asUser(9001);
-    let lkY = await payRows();
-    let spY = maskSpec(await withKeys());
-    const iy = spY.top.findIndex(x => x.k === yk);
-    ok(iy === 0 && 'annual_usd' in lkY.rows[0] && !('airline' in lkY.rows[0]),
-       '　（年収を見せる型の Y が、8行の先頭で年収を見せている回で見ている）', String(iy));
-    await db.query(`update pv_airlines set cap_lo = 600, cap_hi = 900 where code = $1`, [F1]);
-    await asUser(9001);
-    lkY = await payRows();
-    spY = maskSpec(await withKeys());
-    const Y = spY.rest.find(x => x.k === yk);
-    ok(!!Y && Y.far === true && !spY.top.some(x => x.k === yk),
-       '　（幅を狭めて Y に印が付き、8行から外れた）');
-    const ry = spY.top.length + spY.rest.indexOf(Y);
-    ok(!!Y && canonRow(lkY.rows[ry]) === canonRow({ age: Y.age }),
-       '★★8行で年収を見せていた人は、印で9行目以降へ下がっても会社が出ない（投稿時期だけ）',
-       JSON.stringify(lkY.rows[ry]));
-    ok(!firstDiff(lkY.rows, spY.rows),
-       '　下がった後も決めた形と1行も違わない', firstDiff(lkY.rows, spY.rows));
   } finally {
     await db.exec('rollback');
   }
