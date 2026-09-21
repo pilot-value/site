@@ -2339,12 +2339,12 @@ function instrToggle() {
   const on = String($('f-jobrole').value || '').split(',').indexOf('instructor') >= 0;
   if (box.hidden !== on) return;                  // 変わっていない
   box.hidden = !on;
-  /* ★選んだら、その手当の欄を最初から開いておく（2026-09-09 オーナー指示）。
-     畳んだままだと、一行目の見出しだけが出て中に何があるか見えない。
-     ★この関数は先頭の `box.hidden !== on` で**変わったときだけ**走るので、
-       本人があとで畳んだものを勝手に開き直したりはしない。
-     ★必須（req-tag）は1つも増やさない ── 見え方だけを変える。 */
-  if (on) { $('instr-detail').open = true; return; }
+  /* ★選んでも、その手当の欄は閉じたまま出す（2026-09-21 オーナー指示。
+       「給与の内訳を追加」と同じく、役割ごとの「追加」も閉じておく）。
+       2026-09-09〜09-21 は選んだ瞬間に開けていた。
+     ★開くのは、前回の下書きにこの欄の答えが入っていた人だけ（restoreInto）。
+     ★必須（req-tag）は1つも無い ── 見え方だけの話。 */
+  if (on) return;
   for (const b of INSTR_BOXES) b.checked = false;
   for (const id of INSTR_ALL_IDS) $(id).value = '';
   $('instr-detail').open = false;
@@ -2412,12 +2412,12 @@ function examToggle() {
   const on = String($('f-jobrole').value || '').split(',').indexOf('examiner') >= 0;
   if (box.hidden !== on) return;                  // 変わっていない
   box.hidden = !on;
-  /* ★選んだら、その手当の欄を最初から開いておく（2026-09-09 オーナー指示）。
-     畳んだままだと、一行目の見出しだけが出て中に何があるか見えない。
-     ★この関数は先頭の `box.hidden !== on` で**変わったときだけ**走るので、
-       本人があとで畳んだものを勝手に開き直したりはしない。
-     ★必須（req-tag）は1つも増やさない ── 見え方だけを変える。 */
-  if (on) { $('exam-detail').open = true; return; }
+  /* ★選んでも、その手当の欄は閉じたまま出す（2026-09-21 オーナー指示。
+       「給与の内訳を追加」と同じく、役割ごとの「追加」も閉じておく）。
+       2026-09-09〜09-21 は選んだ瞬間に開けていた。
+     ★開くのは、前回の下書きにこの欄の答えが入っていた人だけ（restoreInto）。
+     ★必須（req-tag）は1つも無い ── 見え方だけの話。 */
+  if (on) return;
   for (const b of EXAM_BOXES) b.checked = false;
   for (const id of EXAM_ALL_IDS) $(id).value = '';
   $('exam-detail').open = false;
@@ -2491,12 +2491,12 @@ function unionToggle() {
   const on = String($('f-jobrole').value || '').split(',').indexOf('union') >= 0;
   if (box.hidden !== on) return;                  // 変わっていない
   box.hidden = !on;
-  /* ★選んだら、その手当の欄を最初から開いておく（2026-09-09 オーナー指示）。
-     畳んだままだと、一行目の見出しだけが出て中に何があるか見えない。
-     ★この関数は先頭の `box.hidden !== on` で**変わったときだけ**走るので、
-       本人があとで畳んだものを勝手に開き直したりはしない。
-     ★必須（req-tag）は1つも増やさない ── 見え方だけを変える。 */
-  if (on) { $('union-detail').open = true; return; }
+  /* ★選んでも、その手当の欄は閉じたまま出す（2026-09-21 オーナー指示。
+       「給与の内訳を追加」と同じく、役割ごとの「追加」も閉じておく）。
+       2026-09-09〜09-21 は選んだ瞬間に開けていた。
+     ★開くのは、前回の下書きにこの欄の答えが入っていた人だけ（restoreInto）。
+     ★必須（req-tag）は1つも無い ── 見え方だけの話。 */
+  if (on) return;
   for (const id of UNION_ALL_IDS) $(id).value = '';
   $('union-detail').open = false;
   unionSync();
@@ -2546,12 +2546,12 @@ function mgmtToggle() {
   const on = String($('f-jobrole').value || '').split(',').indexOf('management') >= 0;
   if (box.hidden !== on) return;                  // 変わっていない
   box.hidden = !on;
-  /* ★選んだら、その手当の欄を最初から開いておく（2026-09-09 オーナー指示）。
-     畳んだままだと、一行目の見出しだけが出て中に何があるか見えない。
-     ★この関数は先頭の `box.hidden !== on` で**変わったときだけ**走るので、
-       本人があとで畳んだものを勝手に開き直したりはしない。
-     ★必須（req-tag）は1つも増やさない ── 見え方だけを変える。 */
-  if (on) { $('mgmt-detail').open = true; return; }
+  /* ★選んでも、その手当の欄は閉じたまま出す（2026-09-21 オーナー指示。
+       「給与の内訳を追加」と同じく、役割ごとの「追加」も閉じておく）。
+       2026-09-09〜09-21 は選んだ瞬間に開けていた。
+     ★開くのは、前回の下書きにこの欄の答えが入っていた人だけ（restoreInto）。
+     ★必須（req-tag）は1つも無い ── 見え方だけの話。 */
+  if (on) return;
   for (const id of MGMT_ALL_IDS) $(id).value = '';
   $('mgmt-detail').open = false;
   mgmtSync();
@@ -2603,12 +2603,12 @@ function nonlineToggle() {
   const on = String($('f-jobrole').value || '').split(',').indexOf('nonline') >= 0;
   if (box.hidden !== on) return;                  // 変わっていない
   box.hidden = !on;
-  /* ★選んだら、その手当の欄を最初から開いておく（2026-09-09 オーナー指示）。
-     畳んだままだと、一行目の見出しだけが出て中に何があるか見えない。
-     ★この関数は先頭の `box.hidden !== on` で**変わったときだけ**走るので、
-       本人があとで畳んだものを勝手に開き直したりはしない。
-     ★必須（req-tag）は1つも増やさない ── 見え方だけを変える。 */
-  if (on) { $('nonline-detail').open = true; return; }
+  /* ★選んでも、その手当の欄は閉じたまま出す（2026-09-21 オーナー指示。
+       「給与の内訳を追加」と同じく、役割ごとの「追加」も閉じておく）。
+       2026-09-09〜09-21 は選んだ瞬間に開けていた。
+     ★開くのは、前回の下書きにこの欄の答えが入っていた人だけ（restoreInto）。
+     ★必須（req-tag）は1つも無い ── 見え方だけの話。 */
+  if (on) return;
   for (const b of NONLINE_BOXES) b.checked = false;
   for (const id of NONLINE_ALL_IDS) $(id).value = '';
   $('nonline-detail').open = false;
@@ -2660,12 +2660,16 @@ const DETAIL_IDS = ['f-base','f-guarantee','f-hourly',
    の3つを守るだけになった。差は pay-viz.js が「どの項目にも入れていない分」として描く。 */
 function updatePayMode() { recalc(); }
 $('pay-detail').addEventListener('toggle', updatePayMode);
-/* ★内訳は最初から開けておく（2026-09-08 オーナー指示「入力してくれるかもしれない」）。
-   ⚠️ HTML に `open` 属性で書かない。属性で開いた <details> は初期表示で
-      toggle を**発火しない**ので、上の updatePayMode() が一度も走らないまま
-      「開いている」状態になる（画面は普通に見えたまま計算だけ動かない）。
-      既存の流儀（restoreInto() / pdRestore() の `.open = true`）に合わせる。 */
-$('pay-detail').open = true;
+/* ★内訳は閉じた状態で始める（2026-09-21 オーナー指示「いまの給与提出は煩雑だから、
+     『給与の内訳を追加』は開かずに閉じておこうか」）。2026-09-08 から最初に開けていた。
+   ★開くのは今までどおり次の3つだけ ── 前回の下書きに内訳が入っていた人（restoreInto）／
+     明細を読んだ人（payslip.js）／#pay-detail で来た人（openDetailFromHash）。
+   ⚠️ 引き換えに、基本給・保証手当・変動給の3つ（REAL PAY の「報酬の内訳」の門）を
+      答える人は減る。畳んであった 2026-09-03 以前は本番23件で保証手当が0人だった
+      （workflows/pay-form.md「必須3項目は『＋』の奥に戻さない」）。
+   ⚠️ 開け直すときも HTML に `open` 属性で書かない。属性で開いた <details> は初期表示で
+      toggle を**発火しない**ので、上の updatePayMode() が一度も走らない。
+      `$('pay-detail').open = true;` の1行で開ける。 */
 
 /* ── 税：居住国と年収から概算して差し出す ─────────────────────
    ★決めつけない。入れるのは本人が触っていない間だけで、上書きは常にできる。
