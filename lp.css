@@ -959,137 +959,108 @@
       word-break:auto-phrase; }
     #hero-section .hero-proof-t b{ font-weight:700; color:var(--pv-text); font-variant-numeric:tabular-nums; }
 
-    /* ── 右：REAL PAY の見本（全部サンプル）────────────────────────────
-       ★全体が1本のリンク（actual-pay.html・GA4 は hero_realpay_ui）。
-       ★actual-pay.css（76KB）は読まない。見た目だけここに写した。 */
-    #hero-section .hero-shot{ position:relative; display:block; max-width:720px;
-      text-decoration:none; color:inherit; border-radius:28px; }
-    #hero-section .hero-shot:focus-visible{ outline:3px solid var(--pv-accent); outline-offset:6px; }
-    #hero-section .hero-panel{ position:relative; isolation:isolate; border-radius:28px;
-      /* 下の余白は右下のカードの分。カードは窓の下端に 7px だけ重ねる（行の文字は隠さない。
-         窓が狭く行が2段になる幅では、11px 重ねると2段目の字に触れた）。
-         ⚠️ カードの中身を増やしたら、ここと .hero-card の bottom を測り直す。 */
-      padding:40px 36px 136px;
+    /* ══ 共通：緑の面と電話の枠（2026-09-22・オーナーが Marit のスクショで示した形）══════
+       ヒーロー・REAL PAY の節・112 AIRLINES の節で使い回す。★ここに1つだけ置く（写さない）。
+       ★電話は iPhone の再現ではない（オーナー指示）。細いほぼ黒の縁・内側に1pxの明るい線・
+         上に小さな丸い棒1つ・側面のボタンなし・緑を帯びた影。主役は中の画面。
+       ★下は緑の面の下端で切る（面の overflow:hidden ＋ 電話の負の margin-bottom）。
+         切り口が行の途中に来るので「まだ下に続いている」と読める。
+       ⚠️ セレクタは :is(#…) から始める（Tailwind が後から入れる <style> に負けないように。
+          :is() の強さは中で一番強いもの＝id と同じ）。 */
+    :is(#hero-section,#lp-realpay,#lp-airlines) .lp-panel{ position:relative; isolation:isolate; overflow:hidden;
+      border-radius:28px;
       background:
         radial-gradient(110% 80% at 100% 0%,rgba(255,255,255,.16),transparent 58%),
         radial-gradient(90% 70% at 0% 100%,rgba(2,48,40,.30),transparent 62%),
         linear-gradient(155deg,var(--pv-accent) 0%,var(--pv-accent-dark) 100%);
       box-shadow:0 2px 4px rgba(6,117,99,.10), 0 34px 70px -34px rgba(6,117,99,.55); }
     /* 粒子感。⚠️ このファイルの url() は data: の SVG だけ（相対パスは /en/ から読むと壊れる）。 */
-    #hero-section .hero-panel::before{ content:''; position:absolute; inset:0; z-index:-1;
+    :is(#hero-section,#lp-realpay,#lp-airlines) .lp-panel::before{ content:''; position:absolute; inset:0; z-index:-1;
       border-radius:inherit; pointer-events:none; opacity:.2; mix-blend-mode:overlay;
       background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
       background-size:160px; }
-    #hero-section .hero-win{ position:relative; overflow:hidden; border-radius:16px;
-      background:var(--pv-surface); color:var(--pv-text);
-      box-shadow:0 1px 2px rgba(3,52,44,.20), 0 26px 50px -24px rgba(3,52,44,.60);
-      container:heroui / inline-size;
-      transition:transform .5s var(--hero-spring); }
-    #hero-section .hero-shot:hover .hero-win{ transform:translateY(-4px); }
-    #hero-section .hero-shot:active .hero-win{ transform:translateY(-1px) scale(.995); }
-    #hero-section .hero-win-bar{ display:flex; align-items:center; gap:10px; height:48px; padding:0 18px; }
+    :is(#hero-section,#lp-airlines) .lp-phone{ position:relative; width:100%; max-width:332px;
+      margin:0 auto -96px; padding:8px; border-radius:46px;
+      background:linear-gradient(160deg,#1c2624 0%,#0b1110 55%,#121a18 100%);
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,.16),
+        0 0 0 1px rgba(2,34,28,.35),
+        0 2px 4px rgba(2,40,33,.22),
+        0 22px 44px -18px rgba(2,48,40,.55),
+        0 60px 90px -40px rgba(1,36,30,.60);
+      transition:transform .5s cubic-bezier(.34,1.45,.64,1); }
+    /* 画面。上の余白は丸い棒のぶん、下の余白は切り口の下に隠れる分。 */
+    :is(#hero-section,#lp-airlines) .lp-phone-scr{ position:relative; overflow:hidden; border-radius:38px;
+      padding:44px 0 56px; background:var(--pv-surface); color:var(--pv-text);
+      box-shadow:0 0 0 1px rgba(0,0,0,.35); }
+    :is(#hero-section,#lp-airlines) .lp-phone-pill{ position:absolute; top:14px; left:50%; width:64px; height:20px;
+      margin-left:-32px; border-radius:999px; background:#0b1110; }
+
+    /* ── 右：REAL PAY の見本（全部サンプル）────────────────────────────
+       ★全体が1本のリンク（actual-pay.html・GA4 は hero_realpay_ui）。
+       ★actual-pay.css（76KB）は読まない。見た目だけここに写した。 */
+    #hero-section .hero-shot{ position:relative; display:block; width:100%;
+      text-decoration:none; color:inherit; border-radius:28px; }
+    #hero-section .hero-shot:focus-visible{ outline:3px solid var(--pv-accent); outline-offset:6px; }
+    #hero-section .hero-panel{ padding:52px 32px 0; }
+    #hero-section .hero-shot:hover .lp-phone{ transform:translateY(-6px); }
+    #hero-section .hero-shot:active .lp-phone{ transform:translateY(-2px) scale(.995); }
+    #hero-section .hero-win{ container:heroui / inline-size; }
+    #hero-section .hero-win-bar{ display:flex; align-items:center; gap:10px; height:44px; padding:0 18px;
+      border-bottom:1px solid var(--pv-border); }
     #hero-section .hero-win-name{ display:inline-flex; align-items:center; gap:8px;
-      font-size:12.5px; font-weight:800; letter-spacing:.12em; color:var(--pv-text); }
+      font-size:12.5px; font-weight:700; letter-spacing:.12em; color:var(--pv-text); }
     #hero-section .hero-win-name::before{ content:''; width:8px; height:8px; border-radius:999px;
       background:var(--pv-accent); box-shadow:0 0 0 3px var(--pv-accent-soft); }
-    /* 「サンプル」の札はここに1回だけ。★行にも重ねるカードにも付け直さない。 */
+    /* 「サンプル」の札はここに1回だけ。★行には付け直さない。 */
     #hero-section .hero-win-tag{ margin-left:auto; padding:3px 10px; border-radius:999px;
       font-size:11px; font-weight:600; line-height:1.4; letter-spacing:.02em;
       background:var(--pv-surface-soft); color:var(--pv-text-muted);
       box-shadow:inset 0 0 0 1px var(--pv-border); }
-    #hero-section .hero-win-head,
-    #hero-section .hero-win-row{ display:grid; align-items:center; column-gap:14px; padding:0 18px;
-      grid-template-columns:minmax(0,1.3fr) minmax(0,1.25fr) minmax(72px,auto); }
-    #hero-section .hero-win-head{ height:32px; background:var(--pv-surface-soft);
-      border-top:1px solid var(--pv-border); border-bottom:1px solid var(--pv-border);
-      font-size:11px; font-weight:600; letter-spacing:.02em; color:var(--pv-text-soft); white-space:nowrap; }
-    #hero-section .hero-win-head span:last-child{ text-align:right; }
-    /* ★行の高さは固定（58px）。灰色の棒の行と本物の行が同じ高さ＝描き替えてもガタつかない。 */
-    #hero-section .hero-win-row{ height:58px; }
+    /* 1行＝2段。上の段：ロゴ・社名・年収／下の段：職位・機種・経験。
+       ★行の高さは固定（64px）。灰色の棒の行と本物の行が同じ高さ＝描き替えてもガタつかない。
+       ★どの子がどこへ行くかはクラスで決める（HTML の並びに頼らない）。 */
+    #hero-section .hero-win-row{ display:grid; height:64px; padding:0 18px;
+      grid-template-columns:30px minmax(0,1fr) auto; grid-template-areas:"logo an amt" "logo meta meta";
+      align-content:center; column-gap:11px; row-gap:3px; }
     #hero-section .hero-win-row + .hero-win-row{ border-top:1px solid var(--pv-border); }
-    /* 開いている行（右下のカードがこの行の内訳）。 */
-    #hero-section .hero-win-row.is-on{ background:var(--pv-accent-soft);
-      box-shadow:inset 3px 0 0 var(--pv-accent); }
-    #hero-section .hero-win-air{ display:flex; align-items:center; gap:10px; min-width:0; }
+    #hero-section .hero-win-logo, #hero-section .hero-sk--logo{ grid-area:logo; align-self:center; }
+    #hero-section .hero-win-an, #hero-section .hero-sk--a{ grid-area:an; align-self:center; }
+    #hero-section .hero-win-amt, #hero-section .hero-sk--v{ grid-area:amt; align-self:center; }
+    #hero-section .hero-win-meta, #hero-section .hero-sk--m{ grid-area:meta; align-self:center; }
     #hero-section .hero-win-logo{ flex:none; width:30px; height:30px; object-fit:contain;
       border-radius:8px; background:#fff; padding:3px; border:1px solid var(--pv-border); }
     #hero-section .hero-win-mono{ display:inline-grid; place-items:center; padding:0;
-      font-size:10.5px; font-weight:800; color:var(--pv-text-muted); background:var(--pv-surface-soft); }
+      font-size:10.5px; font-weight:700; color:var(--pv-text-muted); background:var(--pv-surface-soft); }
     #hero-section .hero-win-an,
     #hero-section .hero-win-meta{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-    #hero-section .hero-win-an{ font-size:14px; font-weight:600; color:var(--pv-text); }
-    #hero-section .hero-win-meta{ font-size:12.5px; color:var(--pv-text-muted); }
-    #hero-section .hero-win-amt{ text-align:right; white-space:nowrap;
-      font-size:15px; font-weight:700; letter-spacing:-.01em;
+    #hero-section .hero-win-an{ font-size:14px; font-weight:600; line-height:1.3; color:var(--pv-text); }
+    #hero-section .hero-win-meta{ font-size:12px; line-height:1.3; color:var(--pv-text-muted); }
+    #hero-section .hero-win-amt{ margin-left:8px; text-align:right; white-space:nowrap;
+      font-size:15px; font-weight:700; line-height:1.3; letter-spacing:-.01em;
       font-variant-numeric:tabular-nums; color:var(--pv-text); }
     /* lp.js が描くまでの灰色の棒。 */
-    #hero-section .hero-sk{ display:block; height:10px; border-radius:6px; background:var(--pv-border); }
-    #hero-section .hero-sk--logo{ flex:none; width:30px; height:30px; border-radius:8px; }
-    #hero-section .hero-sk--a{ width:58%; }
-    #hero-section .hero-sk--m{ width:72%; }
-    #hero-section .hero-sk--v{ width:64px; margin-left:auto; }
-    /* 窓の幅で3段階に畳む。★画面幅ではなく窓の幅で決める（左の板がある幅でも、潰れる前に畳まれる）。
-       ・500px 以上：3列
-       ・360〜499px：「職位・機種・経験」を社名の下へ（2段）。ロゴは2段にまたがる。
-         ⚠️ 3列のまま狭めると「5〜10年」が「5〜1…」と切れて、違う数字に読める（1280px で踏んだ）。
-       ・360px 未満：航空会社と年収だけ。 */
-    @container heroui (max-width:499px){
-      #hero-section .hero-win-head{ grid-template-columns:minmax(0,1fr) auto; }
-      #hero-section .hero-win-hm{ display:none; }
-      #hero-section .hero-win-row{ grid-template-columns:30px minmax(0,1fr) auto;
-        grid-template-areas:"logo an amt" "logo meta amt"; align-content:center; row-gap:2px; column-gap:10px; }
-      #hero-section .hero-win-air{ display:contents; }
-      #hero-section .hero-win-air > :first-child{ grid-area:logo; align-self:center; }
-      #hero-section .hero-win-air > :last-child{ grid-area:an; }
-      #hero-section .hero-win-meta{ grid-area:meta; font-size:12px; line-height:1.35; }
-      #hero-section .hero-win-row > :last-child{ grid-area:amt; margin-left:4px; }
+    #hero-section .hero-sk{ display:block; height:9px; border-radius:6px; background:var(--pv-border); }
+    #hero-section .hero-sk--logo{ width:30px; height:30px; border-radius:8px; }
+    #hero-section .hero-sk--a{ width:62%; }
+    #hero-section .hero-sk--m{ width:48%; }
+    #hero-section .hero-sk--v{ width:58px; margin-left:8px; }
+    /* 画面が狭いとき（スマホの 360px 前後）は左右の余白を詰める＝社名を切らない。 */
+    @container heroui (max-width:279px){
+      #hero-section .hero-win-row{ padding:0 14px; column-gap:9px; }
+      #hero-section .hero-win-bar{ padding:0 14px; }
     }
-    @container heroui (max-width:359px){
+    /* 画面がとても狭いとき（幅 240px 未満）は、社名と年収だけにする。 */
+    @container heroui (max-width:239px){
       #hero-section .hero-win-row{ grid-template-areas:"logo an amt"; }
-      #hero-section .hero-win-meta{ display:none; }
+      #hero-section .hero-win-meta, #hero-section .hero-sk--m{ display:none; }
     }
 
-    /* 行を押すと開く面の小さい見本。社名は置かない。
-       ★窓と同じ絵の一部なので「サンプル」の札は付け直さない。
-       ★金額は lp.js が mqAmt() で書く（流れるカード・窓と同じ丸め・同じ通貨切替）。 */
-    #hero-section .hero-card{ position:absolute; z-index:2; left:-28px; bottom:-32px; width:272px;
-      padding:16px 18px 15px; border-radius:16px;
-      background:var(--pv-surface); color:var(--pv-text);
-      box-shadow:0 0 0 1px var(--pv-border), 0 2px 6px rgba(3,52,44,.10), 0 28px 48px -20px rgba(3,52,44,.45);
-      transition:transform .55s var(--hero-spring); }
-    #hero-section .hero-shot:hover .hero-card{ transform:translate(-3px,3px); }
-    #hero-section .hero-card-h{ margin:0; font-size:11.5px; font-weight:600; letter-spacing:.02em;
-      color:var(--pv-text-soft); }
-    #hero-section .hero-card-amt{ margin:4px 0 12px; font-size:26px; font-weight:700; line-height:1.15;
-      letter-spacing:-.025em; font-variant-numeric:tabular-nums; white-space:nowrap; color:var(--pv-text); }
-    #hero-section .hero-card-u{ margin-left:4px; font-size:13px; font-weight:500; letter-spacing:0;
-      color:var(--pv-text-soft); }
-    #hero-section .hero-card-bar{ display:flex; height:10px; border-radius:999px; overflow:hidden;
-      background:var(--pv-surface-soft); }
-    #hero-section .hero-card-bar i{ display:block; min-width:6px; }
-    #hero-section .hero-card-bar i + i{ box-shadow:inset 1.5px 0 0 var(--pv-surface); }
-    #hero-section .hero-card-leg{ list-style:none; margin:12px 0 0; padding:0;
-      font-size:12px; line-height:1.35; color:var(--pv-text-muted); }
-    #hero-section .hero-card-leg li{ display:grid; grid-template-columns:auto minmax(0,1fr) auto;
-      align-items:center; column-gap:8px; height:20px; }
-    #hero-section .hero-card-leg li i{ width:8px; height:8px; border-radius:999px; }
-    #hero-section .hero-card-leg li span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-    #hero-section .hero-card-leg li b{ font-weight:600; color:var(--pv-text); font-variant-numeric:tabular-nums; }
-    /* 区分の色は REAL PAY（actual-pay.css の .ap-dw-c-*）と同じ。
-       ⚠️ 手で写してある。あちらの色を変えたらここも直す。 */
-    #hero-section .hero-c-base{ background:#34d399; }
-    #hero-section .hero-c-variable{ background:#f5c842; }
-    #hero-section .hero-c-bonus{ background:#22d3ee; }
-
-    @media (max-width:1099px){
-      #hero-section .hero-card{ left:-20px; }
-    }
-    /* 狭い幅：1列。重ねるカードは窓の下へずらす（重ねると行が隠れる）。 */
+    /* 狭い幅：1列。電話は最大 300px で真ん中。 */
     @media (max-width:767px){
-      #hero-section .hero-panel{ padding:20px 16px 16px; border-radius:22px; }
+      #hero-section .hero-panel{ padding:32px 20px 0; border-radius:22px; }
       #hero-section .hero-shot{ border-radius:22px; }
-      #hero-section .hero-card{ position:relative; left:auto; bottom:auto; width:auto; margin:12px 0 0; }
-      #hero-section .hero-shot:hover .hero-card{ transform:none; }
+      #hero-section .lp-phone{ max-width:300px; margin-bottom:-160px; }   /* 1行ぶん多く切る（縦に長くしない） */
     }
     @media (max-width:639px){
       #hero-section{ padding:calc(var(--pv-topbar,73px) + 36px) 0 48px; }
@@ -1100,8 +1071,8 @@
     }
     /* ⚠️ 動きを減らす設定。ヒーローの定義より後に置く（同じ強さなら後が勝つ）。 */
     @media (prefers-reduced-motion:reduce){
-      #hero-section .hero-btn, #hero-section .hero-btn svg, #hero-section .hero-win,
-      #hero-section .hero-card, #hero-section .hero-proof{ transition:none; }
+      #hero-section .hero-btn, #hero-section .hero-btn svg,
+      #hero-section .hero-proof, :is(#hero-section,#lp-airlines) .lp-phone{ transition:none; }
     }
 
     /* ── ヒーローの直下：流れる給与カード（2026-09-22 にヒーローの外へ出した）──

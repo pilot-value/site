@@ -181,11 +181,12 @@
       ['turkish-airlines',   1500, '基本給＋乗務手当',         '副操縦士', 'B737', '5〜10年',  'イスタンブール', 'ターキッシュ エアラインズ'],
     ],
     /* ヒーローの右の見本の画面（2026-09-22）。行は上の marquee の何番目を使うか。
-       on ＝ 開いている行（右下のカードがこの行の内訳）。
+       6行目は電話の切り口（緑の面の下端）で半分だけ見える＝「まだ下に続く」。
+       on ＝ REAL PAY の節の白いカード（行を開いた面の見本）がどの行の内訳か。
        detail.parts は [区分, 割合%]。額は on の行の年収をそのまま使う（数字を2か所に持たない）。
-       ★割合の合計は必ず 100。区分の色は lp.css の .hero-c-*（REAL PAY と同じ色）。 */
+       ★割合の合計は必ず 100。区分の色は lp.css の .lp-c-*（REAL PAY と同じ色）。 */
     hero: {
-      rows: [0, 1, 2, 3, 5],
+      rows: [0, 1, 2, 3, 5, 4],
       on: 1,
       detail: { parts: [['base', 56], ['variable', 26], ['bonus', 18]] },
     },
@@ -488,7 +489,9 @@
      ★全部 PV_DEMO（サンプル）。本物の投稿は1件も読まない・出さない。
        小さい会社で「会社名＋時期」が出ると、書いた本人が推測されるため（オーナー）。
      ★投稿時期・Verified・本人申告の札・錠前は付けない（見本に「確認済み」は嘘になる）。
-     ★HTML には灰色の棒の行が5本あり、同じ高さ（58px）の行に描き替える＝ガタつかない。
+     ★HTML には灰色の棒の行が6本あり、同じ高さ（64px）の行に描き替える＝ガタつかない。
+     ★1行＝2段（上：ロゴ・社名・年収／下：職位・機種・経験）。置き場所は lp.css が
+       クラスで決める（grid-area）。ここで並べ替えても見た目は変わらない。
      人数だけは本物。pv_pay_rows() の stats.contributors を使う（左の板の「N / 100人」と同じ数）。
      ⚠️ あの関数は未ログインでも伏せた行を返すが、行は使わない・DOM に入れない。 */
   function heroLogo(slug, name) {
@@ -502,14 +505,13 @@
     return '<span class="hero-win-logo hero-win-mono" aria-hidden="true">' + esc(ini) + '</span>';
   }
 
-  function heroRow(r, on) {
+  function heroRow(r) {
     var slug = r[0], jpy = r[1] * 10000, pos = r[3], fleet = r[4], years = r[5];
     var name = L === 'en' ? airlineName(slug, r[7]) : r[7];
-    return '<div class="hero-win-row' + (on ? ' is-on' : '') + '">' +
-      '<div class="hero-win-air">' + heroLogo(slug, name) +
-        '<span class="hero-win-an">' + esc(name) + '</span></div>' +
-      '<span class="hero-win-meta">' + esc(tw(pos) + T.sep + fleet + T.sep + tw(years)) + '</span>' +
+    return '<div class="hero-win-row">' + heroLogo(slug, name) +
+      '<span class="hero-win-an">' + esc(name) + '</span>' +
       '<span class="hero-win-amt pv-no-cur" data-jpy="' + jpy + '">' + esc(mqAmt(jpy)) + '</span>' +
+      '<span class="hero-win-meta">' + esc(tw(pos) + T.sep + fleet + T.sep + tw(years)) + '</span>' +
     '</div>';
   }
 
@@ -517,28 +519,7 @@
     var H = PV_DEMO.hero;
     var box = d.getElementById('hero-win-rows');
     if (box) {
-      box.innerHTML = H.rows.map(function (i) {
-        return heroRow(PV_DEMO.marquee[i], i === H.rows[H.on]);
-      }).join('');
-    }
-
-    // 右下のカード（行を開いた面の小さい見本）。社名は置かない。
-    var jpy = PV_DEMO.marquee[H.rows[H.on]][1] * 10000;
-    var amt = d.getElementById('hero-card-amt');
-    if (amt) { amt.setAttribute('data-jpy', jpy); amt.textContent = mqAmt(jpy); }
-    var parts = H.detail.parts;
-    var bar = d.getElementById('hero-card-bar');
-    if (bar) {
-      bar.innerHTML = parts.map(function (p) {
-        return '<i class="hero-c-' + p[0] + '" style="flex:' + p[1] + ' 1 0"></i>';
-      }).join('');
-    }
-    var leg = d.getElementById('hero-card-leg');
-    if (leg) {
-      leg.innerHTML = parts.map(function (p) {
-        return '<li><i class="hero-c-' + p[0] + '"></i><span>' + esc(T.heroPart[p[0]]) +
-               '</span><b>' + p[1] + '%</b></li>';
-      }).join('');
+      box.innerHTML = H.rows.map(function (i) { return heroRow(PV_DEMO.marquee[i]); }).join('');
     }
 
     // 人数（本物）。取れない・3人未満なら出さない（場所は取ったまま）。0 や推測で埋めない。
