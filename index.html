@@ -332,6 +332,71 @@
   </div>
 </div>
 
+<!-- ════════════════════════════════════
+     ★ #lp-realpay — REAL PAY の節（2026-09-22・Marit のスクショ2の形）
+     左＝緑の面と白いカード（REAL PAY の行を開いた面の見本）、右＝文章。
+     ★カードは lp.js の PV_DEMO（サンプル）から描く。本物の投稿は1件も出さない。社名も出さない。
+     ★見出しと本文はオーナーの文言（本文は #give-get で承認済みの Give & Get の1文）。
+     ⚠️ 金額を HTML に書かない。見本の数字は SSOT ではないので check-salary.mjs の照合に入れない。
+════════════════════════════════════ -->
+<section id="lp-realpay" class="lp-blk" data-pv-view="realpay_block_view">
+  <div class="lp-blk-wrap">
+    <div class="lp-blk-copy">
+      <p class="lp-eyebrow">REAL PAY</p>
+      <h2 class="lp-h2"><span class="lp-ph">実際のパイロットは</span><span class="lp-ph">いくら稼いでいる？</span></h2>
+      <p class="lp-body">あなたの給与を匿名で1件共有すると、他のパイロットが記録した実際の給与が見られます。</p>
+      <a class="lp-link" href="actual-pay.html" data-pv-ev="lp_realpay_block">REAL PAY を見る<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+    </div>
+    <div class="lp-panel lp-rp-panel">
+      <div class="lp-rp-card">
+        <div class="lp-rp-top"><span class="lp-rp-h">報酬の内訳</span><span class="lp-tag">サンプル</span></div>
+        <p class="lp-rp-amt"><span class="pv-no-cur" id="lp-rp-amt"></span><span class="lp-rp-u">/ 年</span></p>
+        <p class="lp-rp-meta" id="lp-rp-meta"></p>
+        <div class="lp-rp-bar" id="lp-rp-bar"></div>
+        <ul class="lp-rp-leg" id="lp-rp-leg"><li></li><li></li><li></li></ul>
+        <div class="lp-rp-next"><span class="lp-rp-next-m" id="lp-rp-next-m"></span><span class="lp-rp-next-a pv-no-cur" id="lp-rp-next-a"></span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════
+     ★ #lp-airlines — 112 AIRLINES の節（2026-09-22・Marit のスクショ3の形）
+     左＝文章、右＝緑の面と電話（ヒーローと同じ .lp-phone）。
+     ★電話の中は本物の公開データ（salary-data.json の cap.lo〜cap.hi）。だから札は「公開情報」で、「サンプル」とは書かない。
+     ★「平均」と書かない（avg は推計で、公開資料が支えるのは lo〜hi だけ・DATA-PROVENANCE.md）。
+     ★社数は data-pv-n="airlines" の印を付けて書く。lp.js が salary-data.json の社数で上書きし、
+       assert-claims.mjs が SALARY の社数と照合する（JS を動かさない読み手にも同じ数が見える）。
+     ⚠️ 金額を HTML に書かない（lp.js が pv-no-cur ＋ data-jpy-lo/hi で描く）。
+════════════════════════════════════ -->
+<section id="lp-airlines" class="lp-blk" data-pv-view="airlines_block_view">
+  <div class="lp-blk-wrap">
+    <div class="lp-blk-copy">
+      <p class="lp-eyebrow"><span data-pv-n="airlines">112</span> AIRLINES</p>
+      <h2 class="lp-h2"><span class="lp-ph">世界の航空会社を</span><span class="lp-ph">比較できる</span></h2>
+      <p class="lp-body">公開されている情報から、世界<span data-pv-n="airlines">112</span>社の機長・副操縦士の年収レンジを並べました。各社のページでは、運航環境・訓練・福利厚生も見られます。</p>
+      <a class="lp-btn" href="world-airlines.html" data-pv-ev="lp_airlines_block">すべての航空会社を見る<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+    </div>
+    <div class="lp-panel lp-air-panel">
+      <div class="lp-phone">
+        <div class="lp-phone-scr lp-air-scr">
+          <i class="lp-phone-pill" aria-hidden="true"></i>
+          <div class="lp-air-bar"><span class="lp-air-name">機長の公開年収レンジ</span><span class="lp-air-tag">公開情報</span></div>
+          <div id="lp-air-rows">
+        <div class="lp-air-row lp-air-row--sk"><i class="lp-sk lp-sk--logo"></i><i class="lp-sk lp-sk--a"></i><i class="lp-sk lp-sk--r"></i><i class="lp-sk lp-sk--b"></i></div>
+        <div class="lp-air-row lp-air-row--sk"><i class="lp-sk lp-sk--logo"></i><i class="lp-sk lp-sk--a"></i><i class="lp-sk lp-sk--r"></i><i class="lp-sk lp-sk--b"></i></div>
+        <div class="lp-air-row lp-air-row--sk"><i class="lp-sk lp-sk--logo"></i><i class="lp-sk lp-sk--a"></i><i class="lp-sk lp-sk--r"></i><i class="lp-sk lp-sk--b"></i></div>
+        <div class="lp-air-row lp-air-row--sk"><i class="lp-sk lp-sk--logo"></i><i class="lp-sk lp-sk--a"></i><i class="lp-sk lp-sk--r"></i><i class="lp-sk lp-sk--b"></i></div>
+        <div class="lp-air-row lp-air-row--sk"><i class="lp-sk lp-sk--logo"></i><i class="lp-sk lp-sk--a"></i><i class="lp-sk lp-sk--r"></i><i class="lp-sk lp-sk--b"></i></div>
+        <div class="lp-air-row lp-air-row--sk"><i class="lp-sk lp-sk--logo"></i><i class="lp-sk lp-sk--a"></i><i class="lp-sk lp-sk--r"></i><i class="lp-sk lp-sk--b"></i></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 
 <!-- ════════════════════════════════════
      ★ #why — 「自分のキャリア」の問い（2026-08-21 追加）

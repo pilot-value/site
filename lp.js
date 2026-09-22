@@ -60,7 +60,7 @@
       emptyT:    'まだ投稿が少ないです',
       emptyD:    'ここには現役・元パイロット本人の投稿だけを載せます。件数を水増ししたり、他サイトの口コミを転載したりはしません。',
       mqMeta: function (years, base) { return '経験 ' + years + ' ・ ' + base; },
-      // ヒーローの右下のカード（報酬の内訳）の区分名。REAL PAY の行を開いた面と同じ呼び名。
+      // REAL PAY の節の白いカード（報酬の内訳）の区分名。REAL PAY の行を開いた面と同じ呼び名。
       heroPart: { base: '基本給', variable: '変動給', bonus: '賞与・利益分配' },
       voice: { culture: '企業文化', salary: '給与', benefits: '福利厚生',
                wlb: 'WLB', ops: '運航環境', training: '訓練環境', mgmt: '経営陣への提案' },
@@ -183,11 +183,14 @@
     /* ヒーローの右の見本の画面（2026-09-22）。行は上の marquee の何番目を使うか。
        6行目は電話の切り口（緑の面の下端）で半分だけ見える＝「まだ下に続く」。
        on ＝ REAL PAY の節の白いカード（行を開いた面の見本）がどの行の内訳か。
+       next ＝ そのカードの下端（緑の面の切り口）に半分だけ見える「次の行」。どちらも rows の何番目か。
        detail.parts は [区分, 割合%]。額は on の行の年収をそのまま使う（数字を2か所に持たない）。
+       ★割合は帯の長さにだけ使い、数字としては出さない（REAL PAY の開いた面も％を出さない）。
        ★割合の合計は必ず 100。区分の色は lp.css の .lp-c-*（REAL PAY と同じ色）。 */
     hero: {
       rows: [0, 1, 2, 3, 5, 4],
       on: 1,
+      next: 3,
       detail: { parts: [['base', 56], ['variable', 26], ['bonus', 18]] },
     },
   };
@@ -447,11 +450,27 @@
   }
 
   function repaintMarquee() {
-    // 流れるカードとヒーローの見本の画面の金額（どちらも pv-no-cur ＋ data-jpy）。
-    var els = d.querySelectorAll('#hero-mq-track .hero-mq-amt, #hero-section .pv-no-cur[data-jpy]');
+    // 流れるカード・ヒーローの見本の画面・REAL PAY の節のカードの金額（どれも pv-no-cur ＋ data-jpy）。
+    var els = d.querySelectorAll('#hero-mq-track .hero-mq-amt, #hero-section .pv-no-cur[data-jpy], #lp-realpay .pv-no-cur[data-jpy]');
     for (var i = 0; i < els.length; i++) {
       els[i].textContent = mqAmt(parseInt(els[i].getAttribute('data-jpy'), 10));
     }
+    // 112 の電話のレンジ（公開データ。丸めない）。
+    var rs = d.querySelectorAll('#lp-airlines .pv-no-cur[data-jpy-lo]');
+    for (var j = 0; j < rs.length; j++) {
+      rs[j].textContent = rangeAmt(parseInt(rs[j].getAttribute('data-jpy-lo'), 10), parseInt(rs[j].getAttribute('data-jpy-hi'), 10));
+    }
+  }
+
+  /* 公開年収のレンジ。★見本ではなく SSOT の値なので丸めない（mqAmt の有効数字2桁を使わない）。
+     日本語で円のときは「¥2,200万〜3,500万」。それ以外は両端を今の通貨で（salary-leveling.js の
+     fmtRange と同じ規約：英語ページは円でも「万」を使わない）。 */
+  function rangeAmt(lo, hi) {
+    var C = w.PVCurrency;
+    if (C && typeof C.fmt === 'function' && (L === 'en' || (typeof C.get === 'function' && C.get() !== 'JPY'))) {
+      return C.fmt(lo) + '–' + C.fmt(hi);
+    }
+    return '¥' + Math.round(lo / 10000).toLocaleString('en-US') + '万〜' + Math.round(hi / 10000).toLocaleString('en-US') + '万';
   }
 
   function mqCard(row, dup) {
@@ -494,7 +513,7 @@
        クラスで決める（grid-area）。ここで並べ替えても見た目は変わらない。
      人数だけは本物。pv_pay_rows() の stats.contributors を使う（左の板の「N / 100人」と同じ数）。
      ⚠️ あの関数は未ログインでも伏せた行を返すが、行は使わない・DOM に入れない。 */
-  function heroLogo(slug, name) {
+  function heroLogo(slug, name) {   // 112 の電話も同じ見た目のロゴを使う（lp.css が両方の節に当てる）
     var ext = (w.PV_LOGOS || {})[slug];
     if (ext) {
       // alt="" ＝ 社名がすぐ隣に文字で出るので、読み上げが二重にならないように。
@@ -532,6 +551,80 @@
       num.textContent = n.toLocaleString('en-US');
       proof.classList.remove('is-wait');
     });
+  }
+
+  /* ── ⓫ REAL PAY の節：白いカード（行を開いた面の見本）──────────────────
+     ★全部 PV_DEMO（サンプル）。社名は出さない。投稿時期・Verified・錠前も出さない。
+     ★割合は帯の長さにだけ使う（数字の％は出さない）。 */
+  function fillRealPay() {
+    var H = PV_DEMO.hero;
+    var on = PV_DEMO.marquee[H.rows[H.on]];
+    var jpy = on[1] * 10000;
+    var amt = d.getElementById('lp-rp-amt');
+    if (!amt) return;
+    amt.setAttribute('data-jpy', jpy);
+    amt.textContent = mqAmt(jpy);
+    var meta = d.getElementById('lp-rp-meta');
+    if (meta) meta.textContent = tw(on[3]) + T.sep + on[4] + T.sep + tw(on[5]);
+    var parts = H.detail.parts;
+    var bar = d.getElementById('lp-rp-bar');
+    if (bar) {
+      bar.innerHTML = parts.map(function (p) {
+        return '<i class="lp-c-' + p[0] + '" style="flex:' + p[1] + ' 1 0"></i>';
+      }).join('');
+    }
+    var leg = d.getElementById('lp-rp-leg');
+    if (leg) {
+      leg.innerHTML = parts.map(function (p) {
+        return '<li><i class="lp-c-' + p[0] + '"></i>' + esc(T.heroPart[p[0]]) + '</li>';
+      }).join('');
+    }
+    var nx = PV_DEMO.marquee[H.rows[H.next]];
+    var nm = d.getElementById('lp-rp-next-m');
+    var na = d.getElementById('lp-rp-next-a');
+    if (nm) nm.textContent = tw(nx[3]) + T.sep + nx[4] + T.sep + tw(nx[5]);
+    if (na) { na.setAttribute('data-jpy', nx[1] * 10000); na.textContent = mqAmt(nx[1] * 10000); }
+  }
+
+  /* ── ⓬ 112 AIRLINES の節：電話の中の6社（本物の公開データ）──────────────
+     ★salary-data.json（SALARY から生成）の cap.lo〜cap.hi。avg は使わない＝「平均」と書かない
+       （avg は推計。公開資料が支えるのは lo〜hi だけ・DATA-PROVENANCE.md）。
+     ★PVLeveling.load() は1回だけ取りに行って使い回す（下のレベリング図と同じ約束＝通信は増えない）。
+     ★同じ JSON の社数で [data-pv-n="airlines"] を上書きする。HTML の「112」は JS を動かさない
+       読み手のための控えで、assert-claims.mjs が SALARY の社数と照合している。
+     棒は6社共通の目盛り（いちばん低い下限〜いちばん高い上限を 1,000万円で丸めた幅）。 */
+  var AIR_SLUGS = ['ana', 'jal', 'emirates', 'delta', 'united', 'singapore-airlines'];
+
+  function fillAirlines() {
+    var box = d.getElementById('lp-air-rows');
+    var marks = d.querySelectorAll('[data-pv-n="airlines"]');
+    if (!box && !marks.length) return;
+    if (!w.PVLeveling || typeof w.PVLeveling.load !== 'function') return;   // 灰色の行のまま（数字を推測で埋めない）
+    w.PVLeveling.load().then(function (SAL) {
+      var all = (SAL && SAL.airlines) || {};
+      var n = Object.keys(all).length;
+      if (n > 0) for (var k = 0; k < marks.length; k++) marks[k].textContent = String(n);
+      if (!box) return;
+      var rows = AIR_SLUGS.filter(function (sl) { return all[sl] && all[sl].cap && all[sl].cap.lo && all[sl].cap.hi; });
+      if (!rows.length) return;
+      var min = Infinity, max = 0;
+      rows.forEach(function (sl) { min = Math.min(min, all[sl].cap.lo); max = Math.max(max, all[sl].cap.hi); });
+      min = Math.floor(min / 1000) * 1000;
+      max = Math.ceil(max / 1000) * 1000;
+      var span = Math.max(1, max - min);
+      box.innerHTML = rows.map(function (sl) {
+        var c = all[sl].cap, lo = c.lo * 10000, hi = c.hi * 10000;
+        var name = airlineName(sl, L === 'en' ? all[sl].en : all[sl].ja);
+        var left = ((c.lo - min) / span * 100).toFixed(1);
+        var wid = ((c.hi - c.lo) / span * 100).toFixed(1);
+        return '<a class="lp-air-row" href="airlines/' + esc(sl) + '.html" data-pv-ev="lp_airlines_row">' +
+          heroLogo(sl, name) +
+          '<span class="lp-air-an">' + esc(name) + '</span>' +
+          '<span class="lp-air-rng pv-no-cur" data-jpy-lo="' + lo + '" data-jpy-hi="' + hi + '">' + esc(rangeAmt(lo, hi)) + '</span>' +
+          '<span class="lp-air-trk" aria-hidden="true"><i style="left:' + left + '%;width:' + wid + '%"></i></span>' +
+        '</a>';
+      }).join('');
+    }).catch(function () {});
   }
 
   /* ── 開発時だけ：?pv_demo=live で実データ経路を目視する用のログ ─────────
@@ -579,8 +672,10 @@
     wireEvents();
     fillMarquee();
     fillHero();
+    fillRealPay();
+    fillAirlines();
     // 金額は pv-no-cur ＝ currency.js の走査から外してある（mqAmt が自分で書く）ので、
-    // 通貨の切替はここで受ける（流れるカードとヒーローの見本の両方）。currency.js は
+    // 通貨の切替はここで受ける（流れるカード・ヒーローの見本・REAL PAY のカード・112 の電話）。currency.js は
     // 「保存された通貨が非JPY」の初期表示でも同じ報せを出すので、戻ってきた人もこれ1本で拾える。
     w.addEventListener('pv-currency-change', repaintMarquee);
     fillActualPay();

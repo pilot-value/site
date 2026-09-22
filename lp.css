@@ -1028,9 +1028,9 @@
     #hero-section .hero-win-an, #hero-section .hero-sk--a{ grid-area:an; align-self:center; }
     #hero-section .hero-win-amt, #hero-section .hero-sk--v{ grid-area:amt; align-self:center; }
     #hero-section .hero-win-meta, #hero-section .hero-sk--m{ grid-area:meta; align-self:center; }
-    #hero-section .hero-win-logo{ flex:none; width:30px; height:30px; object-fit:contain;
+    :is(#hero-section,#lp-airlines) .hero-win-logo{ flex:none; width:30px; height:30px; object-fit:contain;
       border-radius:8px; background:#fff; padding:3px; border:1px solid var(--pv-border); }
-    #hero-section .hero-win-mono{ display:inline-grid; place-items:center; padding:0;
+    :is(#hero-section,#lp-airlines) .hero-win-mono{ display:inline-grid; place-items:center; padding:0;
       font-size:10.5px; font-weight:700; color:var(--pv-text-muted); background:var(--pv-surface-soft); }
     #hero-section .hero-win-an,
     #hero-section .hero-win-meta{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -1073,6 +1073,167 @@
     @media (prefers-reduced-motion:reduce){
       #hero-section .hero-btn, #hero-section .hero-btn svg,
       #hero-section .hero-proof, :is(#hero-section,#lp-airlines) .lp-phone{ transition:none; }
+    }
+
+    /* ══ ヒーローの下の2節：REAL PAY（#lp-realpay）と 112 AIRLINES（#lp-airlines）══════════
+       2026-09-22・オーナーが Marit のスクショ2・3で示した形。白地・黒の文字・緑の面。
+       ★緑の面と電話は上の共通（.lp-panel / .lp-phone）を使う。ここには写さない。
+       ★広い幅（1100px〜）は2列。REAL PAY は「面｜文章」、112 は「文章｜面」と左右を入れ替える。
+         狭い幅はどちらも「文章→面」の縦（HTML の順＝読み上げの順のまま）。
+       ⚠️ セレクタは :is(#lp-realpay,#lp-airlines) か #… から始める（Tailwind に負けないように）。
+       ⚠️ 金額の入る要素そのものに display:flex / gap を付けない（通貨の差し替えが崩れる）。 */
+    :is(#lp-realpay,#lp-airlines){ --lp-spring:cubic-bezier(.34,1.45,.64,1);
+      position:relative; z-index:1; background:var(--pv-bg); color:var(--pv-text); padding:88px 0; }
+    #lp-airlines{ padding-top:24px; }
+    :is(#lp-realpay,#lp-airlines) .lp-blk-wrap{ max-width:1240px; margin:0 auto; padding:0 32px;
+      display:grid; grid-template-columns:minmax(0,1fr); row-gap:40px; align-items:center; }
+    @media (min-width:1100px){
+      #lp-realpay .lp-blk-wrap{ grid-template-columns:minmax(0,1fr) minmax(0,.92fr); grid-template-areas:"panel copy"; column-gap:80px; }
+      #lp-airlines .lp-blk-wrap{ grid-template-columns:minmax(0,.92fr) minmax(0,1fr); grid-template-areas:"copy panel"; column-gap:80px; }
+      :is(#lp-realpay,#lp-airlines) .lp-blk-copy{ grid-area:copy; }
+      :is(#lp-realpay,#lp-airlines) .lp-panel{ grid-area:panel; }
+    }
+    :is(#lp-realpay,#lp-airlines) .lp-eyebrow{ display:inline-flex; align-items:center; gap:9px; margin:0 0 18px;
+      font-size:12.5px; font-weight:700; letter-spacing:.14em; line-height:1.4; color:var(--pv-accent-ink); }
+    :is(#lp-realpay,#lp-airlines) .lp-eyebrow::before{ content:''; width:8px; height:8px; border-radius:999px;
+      background:var(--pv-accent); box-shadow:0 0 0 3px var(--pv-accent-soft); }
+    :is(#lp-realpay,#lp-airlines) .lp-h2{ margin:0; max-width:14em;
+      font-size:clamp(28px,7.4vw,46px); font-weight:700; line-height:1.14; letter-spacing:-.03em;
+      color:var(--pv-text); text-wrap:balance; word-break:auto-phrase; }
+    /* 日本語の見出しは文節ごとに塊にする（auto-phrase だけでは「世界の航｜空会社を…」と切れた・390px）。 */
+    :is(#lp-realpay,#lp-airlines) .lp-ph{ display:inline-block; }
+    /* 2列のときの文章の列は約390px（1100px・左の板あり）。46px のままだと見出しが4行に割れた。
+       ⚠️ 上の .lp-h2 より後ろに置く（同じ強さなので、前に置くと負ける）。 */
+    @media (min-width:1100px){ :is(#lp-realpay,#lp-airlines) .lp-h2{ font-size:clamp(34px,3.2vw,46px); } }
+    :is(#lp-realpay,#lp-airlines) .lp-body{ margin:20px 0 0; max-width:30em;
+      font-size:clamp(16px,1.3vw,17.5px); line-height:1.75; font-weight:500;
+      color:var(--pv-text-muted); word-break:auto-phrase; line-break:strict; text-wrap:pretty; }
+    /* 文字のリンク（REAL PAY）と黒いボタン（112）。押せるものは全部 hover / focus-visible / active。 */
+    #lp-realpay .lp-link{ display:inline-flex; align-items:center; gap:8px; margin-top:28px; padding:6px 0;
+      font-size:16px; font-weight:600; line-height:1.3; color:var(--pv-accent-ink); text-decoration:none;
+      background:linear-gradient(currentColor,currentColor) 0 100% / 100% 1.5px no-repeat; }
+    #lp-realpay .lp-link svg{ flex:none; transition:transform .4s var(--lp-spring); }
+    #lp-realpay .lp-link:hover svg{ transform:translateX(4px); }
+    #lp-realpay .lp-link:active{ opacity:.7; }
+    #lp-realpay .lp-link:focus-visible{ outline:3px solid var(--pv-accent); outline-offset:4px; border-radius:4px; }
+    #lp-airlines .lp-btn{ display:inline-flex; align-items:center; justify-content:center; gap:10px;
+      min-height:52px; margin-top:32px; padding:0 26px; border-radius:999px;
+      font-size:16px; font-weight:600; line-height:1.2; text-decoration:none; white-space:nowrap;
+      background:var(--pv-cta-dark); color:var(--pv-cta-dark-ink);
+      box-shadow:0 1px 2px rgba(17,17,17,.16), 0 12px 26px -14px rgba(6,117,99,.55);
+      transition:transform .4s var(--lp-spring); }
+    #lp-airlines .lp-btn svg{ flex:none; transition:transform .4s var(--lp-spring); }
+    #lp-airlines .lp-btn:hover{ background:var(--pv-cta-dark-hover); transform:translateY(-2px); }
+    #lp-airlines .lp-btn:hover svg{ transform:translateX(3px); }
+    #lp-airlines .lp-btn:active{ transform:translateY(0) scale(.97); }
+    #lp-airlines .lp-btn:focus-visible{ outline:3px solid var(--pv-accent); outline-offset:3px; }
+
+    /* ── REAL PAY：白いカード（行を開いた面の見本・全部サンプル・社名なし）──────
+       ★下は緑の面の下端で切る。切り口に「次の行」が半分だけ見える＝一覧の中の1行を開いた面だと読める。 */
+    #lp-realpay .lp-rp-panel{ display:flex; align-items:flex-end; justify-content:center;
+      min-height:440px; padding:56px 40px 0; }
+    #lp-realpay .lp-rp-card{ position:relative; width:100%; max-width:400px; margin-bottom:-30px;
+      padding:22px 24px 0; border-radius:22px; background:var(--pv-surface); color:var(--pv-text);
+      box-shadow:
+        0 0 0 1px rgba(2,34,28,.10),
+        0 2px 4px rgba(2,40,33,.18),
+        0 24px 48px -20px rgba(2,48,40,.55),
+        0 60px 90px -40px rgba(1,36,30,.55); }
+    #lp-realpay .lp-rp-top{ display:flex; align-items:center; gap:10px; }
+    #lp-realpay .lp-rp-h{ font-size:12.5px; font-weight:600; letter-spacing:.02em; color:var(--pv-text-muted); }
+    /* 「サンプル」の札はカードに1回だけ。 */
+    #lp-realpay .lp-tag{ margin-left:auto; padding:3px 10px; border-radius:999px;
+      font-size:11px; font-weight:600; line-height:1.4; letter-spacing:.02em;
+      background:var(--pv-surface-soft); color:var(--pv-text-muted); box-shadow:inset 0 0 0 1px var(--pv-border); }
+    #lp-realpay .lp-rp-amt{ margin:10px 0 0; min-height:40px; font-size:34px; font-weight:700; line-height:1.15;
+      letter-spacing:-.02em; font-variant-numeric:tabular-nums; color:var(--pv-text); }
+    #lp-realpay .lp-rp-u{ margin-left:6px; font-size:14px; font-weight:500; letter-spacing:0; color:var(--pv-text-muted); }
+    #lp-realpay .lp-rp-meta{ margin:4px 0 0; min-height:20px; font-size:13.5px; line-height:1.5; color:var(--pv-text-muted); }
+    #lp-realpay .lp-rp-bar{ display:flex; height:12px; margin-top:18px; border-radius:999px; overflow:hidden;
+      background:var(--pv-surface-soft); }
+    #lp-realpay .lp-rp-bar i{ display:block; min-width:6px; }
+    #lp-realpay .lp-rp-bar i + i{ box-shadow:inset 2px 0 0 var(--pv-surface); }
+    #lp-realpay .lp-rp-leg{ list-style:none; margin:14px 0 0; padding:0; }
+    #lp-realpay .lp-rp-leg li{ display:flex; align-items:center; gap:10px; min-height:30px;
+      font-size:14px; line-height:1.4; color:var(--pv-text); }
+    #lp-realpay .lp-rp-leg li i{ flex:none; width:10px; height:10px; border-radius:999px; }
+    #lp-realpay .lp-rp-next{ display:grid; grid-template-columns:minmax(0,1fr) auto; column-gap:12px; align-items:center;
+      margin-top:16px; padding:18px 0 48px; border-top:1px solid var(--pv-border); }
+    #lp-realpay .lp-rp-next-m{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+      font-size:13.5px; color:var(--pv-text-muted); }
+    #lp-realpay .lp-rp-next-a{ white-space:nowrap; font-size:15px; font-weight:700; font-variant-numeric:tabular-nums;
+      color:var(--pv-text); }
+    /* 区分の色。★actual-pay.css の .ap-dw-c-* と同じ値（REAL PAY の行を開いた面と同じ色）。写しなので、
+       あちらを変えたらここも変える。 */
+    #lp-realpay .lp-c-base{ background:#34d399; }
+    #lp-realpay .lp-c-variable{ background:#f5c842; }
+    #lp-realpay .lp-c-bonus{ background:#22d3ee; }
+
+    /* ── 112 AIRLINES：電話の中＝本物の公開データ（機長の cap.lo〜cap.hi）──────────
+       ★行は各社のページへのリンク。行の高さは固定（62px）＝灰色の行から描き替えてもガタつかない。
+       ★1行＝2段。上：ロゴ・社名／下：下限〜上限の額と、6社共通の目盛りの上の細い棒。 */
+    #lp-airlines .lp-air-panel{ padding:52px 32px 0; }
+    #lp-airlines .lp-air-scr{ container:airui / inline-size; }
+    #lp-airlines .lp-air-bar{ display:flex; align-items:center; gap:10px; height:44px; padding:0 18px;
+      border-bottom:1px solid var(--pv-border); }
+    #lp-airlines .lp-air-name{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+      font-size:13px; font-weight:700; letter-spacing:-.005em; color:var(--pv-text); }
+    /* 公開データなので札は緑（「サンプル」の灰色と見分ける）。 */
+    #lp-airlines .lp-air-tag{ flex:none; margin-left:auto; padding:3px 10px; border-radius:999px;
+      font-size:11px; font-weight:600; line-height:1.4; letter-spacing:.02em;
+      background:var(--pv-accent-soft); color:var(--pv-accent-ink); box-shadow:inset 0 0 0 1px var(--pv-accent-line); }
+    #lp-airlines .lp-air-row{ display:grid; height:62px; padding:0 18px;
+      grid-template-columns:30px auto minmax(0,1fr); grid-template-areas:"logo an an" "logo rng trk";
+      align-content:center; column-gap:11px; row-gap:5px; text-decoration:none; color:inherit; }
+    #lp-airlines .lp-air-row + .lp-air-row{ border-top:1px solid var(--pv-border); }
+    #lp-airlines a.lp-air-row:hover{ background:var(--pv-surface-soft); }
+    #lp-airlines a.lp-air-row:hover .lp-air-an{ color:var(--pv-accent-ink); }
+    #lp-airlines a.lp-air-row:active{ background:var(--pv-accent-soft); }
+    #lp-airlines a.lp-air-row:focus-visible{ outline:2px solid var(--pv-accent); outline-offset:-2px; }
+    #lp-airlines .hero-win-logo, #lp-airlines .lp-sk--logo{ grid-area:logo; align-self:center; }
+    #lp-airlines .lp-air-an, #lp-airlines .lp-sk--a{ grid-area:an; align-self:center; }
+    #lp-airlines .lp-air-rng, #lp-airlines .lp-sk--r{ grid-area:rng; align-self:center; }
+    #lp-airlines .lp-air-trk, #lp-airlines .lp-sk--b{ grid-area:trk; align-self:center; }
+    #lp-airlines .lp-air-an{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+      font-size:14px; font-weight:600; line-height:1.3; color:var(--pv-text); }
+    #lp-airlines .lp-air-rng{ white-space:nowrap; font-size:12.5px; font-weight:600; line-height:1.3;
+      font-variant-numeric:tabular-nums; color:var(--pv-text-muted); }
+    #lp-airlines .lp-air-trk{ position:relative; height:6px; margin-left:2px; border-radius:999px;
+      background:var(--pv-surface-soft); box-shadow:inset 0 0 0 1px var(--pv-border); }
+    #lp-airlines .lp-air-trk i{ position:absolute; top:0; bottom:0; min-width:6px; border-radius:999px;
+      background:linear-gradient(90deg,var(--pv-accent),var(--pv-accent-dark)); }
+    /* lp.js が描くまでの灰色の棒。 */
+    #lp-airlines .lp-sk{ display:block; height:9px; border-radius:6px; background:var(--pv-border); }
+    #lp-airlines .lp-sk--logo{ width:30px; height:30px; border-radius:8px; }
+    #lp-airlines .lp-sk--a{ width:52%; }
+    #lp-airlines .lp-sk--r{ width:104px; }
+    #lp-airlines .lp-sk--b{ height:6px; }
+    @container airui (max-width:279px){
+      #lp-airlines .lp-air-row{ padding:0 14px; column-gap:9px; }
+      #lp-airlines .lp-air-bar{ padding:0 14px; }
+    }
+
+    @media (max-width:767px){
+      :is(#lp-realpay,#lp-airlines){ padding:56px 0; }
+      #lp-airlines{ padding-top:8px; }
+      #lp-realpay .lp-rp-panel{ min-height:0; padding:40px 20px 0; border-radius:22px; }
+      #lp-realpay .lp-rp-card{ padding:20px 20px 0; }
+      #lp-realpay .lp-rp-amt{ font-size:30px; min-height:35px; }
+      #lp-airlines .lp-air-panel{ padding:32px 20px 0; border-radius:22px; }
+      #lp-airlines .lp-phone{ max-width:300px; margin-bottom:-160px; }   /* ヒーローと同じ切り方（縦に長くしない） */
+    }
+    @media (max-width:639px){
+      :is(#lp-realpay,#lp-airlines) .lp-blk-wrap{ padding:0 20px; row-gap:32px; }
+      #lp-airlines .lp-btn{ width:100%; }
+    }
+    /* 360px：カードの下の行（副操縦士 ・ B737 ・ 5〜10年）が省略記号で切れた。面とカードの余白を詰める。 */
+    @media (max-width:379px){
+      #lp-realpay .lp-rp-panel{ padding:36px 14px 0; }
+      #lp-realpay .lp-rp-card{ padding:18px 16px 0; }
+      #lp-realpay .lp-rp-next-m{ font-size:13px; }
+    }
+    @media (prefers-reduced-motion:reduce){
+      #lp-realpay .lp-link svg, #lp-airlines .lp-btn, #lp-airlines .lp-btn svg{ transition:none; }
     }
 
     /* ── ヒーローの直下：流れる給与カード（2026-09-22 にヒーローの外へ出した）──

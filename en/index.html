@@ -338,6 +338,70 @@
   </div>
 </div>
 
+<!-- ════════════════════════════════════
+     ★ #lp-realpay — REAL PAY の節（2026-09-22・Marit のスクショ2の形）
+     Left: green panel with a white card (a sample of an opened REAL PAY row). Right: copy. 1:1 with the Japanese page.
+     ★The card is drawn by lp.js from PV_DEMO (samples). No real submission, no airline name.
+     ⚠️ No amounts in the HTML (samples are not the SSOT; keep them out of check-salary.mjs).
+════════════════════════════════════ -->
+<section id="lp-realpay" class="lp-blk" data-pv-view="realpay_block_view">
+  <div class="lp-blk-wrap">
+    <div class="lp-blk-copy">
+      <p class="lp-eyebrow">REAL PAY</p>
+      <h2 class="lp-h2">What do pilots actually earn?</h2>
+      <p class="lp-body">Share your pay once, anonymously, and you can see the pay other pilots have logged.</p>
+      <a class="lp-link" href="actual-pay.html" data-pv-ev="lp_realpay_block">See REAL PAY<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+    </div>
+    <div class="lp-panel lp-rp-panel">
+      <div class="lp-rp-card">
+        <div class="lp-rp-top"><span class="lp-rp-h">Compensation</span><span class="lp-tag">Sample</span></div>
+        <p class="lp-rp-amt"><span class="pv-no-cur" id="lp-rp-amt"></span><span class="lp-rp-u">/ yr</span></p>
+        <p class="lp-rp-meta" id="lp-rp-meta"></p>
+        <div class="lp-rp-bar" id="lp-rp-bar"></div>
+        <ul class="lp-rp-leg" id="lp-rp-leg"><li></li><li></li><li></li></ul>
+        <div class="lp-rp-next"><span class="lp-rp-next-m" id="lp-rp-next-m"></span><span class="lp-rp-next-a pv-no-cur" id="lp-rp-next-a"></span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════
+     ★ #lp-airlines — 112 AIRLINES の節（2026-09-22・Marit のスクショ3の形）
+     Left: copy. Right: green panel with the phone (same .lp-phone as the hero). 1:1 with the Japanese page.
+     ★The phone shows real public data (cap.lo–cap.hi in salary-data.json), so the tag says "Public data", never "Sample".
+     ★Never "Average" (avg is an estimate; public sources only support lo–hi — DATA-PROVENANCE.md).
+     ★The airline count carries data-pv-n="airlines": lp.js overwrites it from salary-data.json and
+       assert-claims.mjs checks it against SALARY.
+     ⚠️ No amounts in the HTML (lp.js draws them with pv-no-cur + data-jpy-lo/hi).
+════════════════════════════════════ -->
+<section id="lp-airlines" class="lp-blk" data-pv-view="airlines_block_view">
+  <div class="lp-blk-wrap">
+    <div class="lp-blk-copy">
+      <p class="lp-eyebrow"><span data-pv-n="airlines">112</span> AIRLINES</p>
+      <h2 class="lp-h2">Compare airlines around the world</h2>
+      <p class="lp-body">Pay ranges for captains and first officers at <span data-pv-n="airlines">112</span> airlines, built from public information. Each airline page also covers operations, training and benefits.</p>
+      <a class="lp-btn" href="world-airlines.html" data-pv-ev="lp_airlines_block">See all airlines<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+    </div>
+    <div class="lp-panel lp-air-panel">
+      <div class="lp-phone">
+        <div class="lp-phone-scr lp-air-scr">
+          <i class="lp-phone-pill" aria-hidden="true"></i>
+          <div class="lp-air-bar"><span class="lp-air-name">Captain pay range</span><span class="lp-air-tag">Public data</span></div>
+          <div id="lp-air-rows">
+        <div class="lp-air-row lp-air-row--sk"><i class="lp-sk lp-sk--logo"></i><i class="lp-sk lp-sk--a"></i><i class="lp-sk lp-sk--r"></i><i class="lp-sk lp-sk--b"></i></div>
+        <div class="lp-air-row lp-air-row--sk"><i class="lp-sk lp-sk--logo"></i><i class="lp-sk lp-sk--a"></i><i class="lp-sk lp-sk--r"></i><i class="lp-sk lp-sk--b"></i></div>
+        <div class="lp-air-row lp-air-row--sk"><i class="lp-sk lp-sk--logo"></i><i class="lp-sk lp-sk--a"></i><i class="lp-sk lp-sk--r"></i><i class="lp-sk lp-sk--b"></i></div>
+        <div class="lp-air-row lp-air-row--sk"><i class="lp-sk lp-sk--logo"></i><i class="lp-sk lp-sk--a"></i><i class="lp-sk lp-sk--r"></i><i class="lp-sk lp-sk--b"></i></div>
+        <div class="lp-air-row lp-air-row--sk"><i class="lp-sk lp-sk--logo"></i><i class="lp-sk lp-sk--a"></i><i class="lp-sk lp-sk--r"></i><i class="lp-sk lp-sk--b"></i></div>
+        <div class="lp-air-row lp-air-row--sk"><i class="lp-sk lp-sk--logo"></i><i class="lp-sk lp-sk--a"></i><i class="lp-sk lp-sk--r"></i><i class="lp-sk lp-sk--b"></i></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 
 <!-- ════════════════════════════════════
      ★ #why — 「自分のキャリア」の問い（2026-08-21 追加・日本語版と1:1）
