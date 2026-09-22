@@ -434,16 +434,10 @@
     var jpy = man * 10000;
     // 2周目は読み上げとタブ移動から外す（同じカードが2回読まれるのを防ぐ）
     var dupAttr = dup ? ' aria-hidden="true" tabindex="-1"' : '';
-    /* ★2026-09-16 オーナー指示 ── どのカードを押しても REAL PAY（actual-pay.html）へ飛ばす。
-       帯に並んでいるのはサンプルなので、その会社のページへ送るより
-       「本物の投稿が並んでいる所」へ送るほうが話がつながる。
-       飛び先は日英で同じ相対パス（/ → actual-pay.html、/en/ → en/actual-pay.html）。
-       ⚠️ data-mr-gate="real" は付けない。付けると pv-gates.js が28枚ぜんぶに
-          錠前の SVG を挿し込む（左メニュー用の形なので帯の中では崩れる）。
-          鍵が要ることの説明は、飛んだ先の REAL PAY が本文で持っている。
-       ⚠️ ?air= で会社を絞って渡さない。サンプルの会社に本物の行が無いと、
-          押した先が空の一覧になる。 */
-    return '<a class="hero-mq-c" href="actual-pay.html"' + dupAttr +
+    /* ★2026-09-22 オーナー指示 ── カードを押したら、その会社のページへ飛ばす。
+       2026-09-16〜09-22 のあいだは全カードを REAL PAY（actual-pay.html）へ送っていたが戻した。
+       飛び先は日英で同じ相対パス（/ → airlines/、/en/ → en/airlines/ に解決される）。 */
+    return '<a class="hero-mq-c" href="airlines/' + esc(slug) + '.html"' + dupAttr +
              ' data-pv-ev="hero_mq_card">' +
       '<span class="hero-mq-amt pv-no-cur" data-jpy="' + jpy + '">' + mqAmt(jpy) + '</span>' +
       '<span class="hero-mq-brk">' + esc(tw(brk)) + '</span>' +
