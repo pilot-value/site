@@ -50,40 +50,8 @@
       border:1px solid rgba(255,255,255,0.07);
       border-radius:16px;
     }
-    .glass-raised {
-      background:rgba(24,33,47,0.85);
-      backdrop-filter:blur(20px);
-      border:1px solid rgba(255,255,255,0.10);
-      border-radius:16px;
-    }
-
-    .gradient-text {
-      background:linear-gradient(135deg, #ffffff 0%, #a8c8f0 60%, #3d9bff 100%);
-      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
-      background-clip:text;
-    }
-
-    .salary-bar-track {
-      height:8px; border-radius:999px;
-      background:rgba(255,255,255,0.06); overflow:hidden;
-    }
-    .salary-bar-fill {
-      height:100%; border-radius:999px;
-      transition:width 1.4s cubic-bezier(.16,1,.3,1); width:0;
-    }
 
     /* Thick comparison bars */
-    .cmp-bar-track {
-      height:44px; border-radius:10px;
-      background:rgba(255,255,255,0.04); overflow:hidden;
-      position:relative;
-    }
-    .cmp-bar-fill {
-      height:100%; border-radius:10px;
-      transition:width 1.5s cubic-bezier(.16,1,.3,1); width:0;
-      display:flex; align-items:center; padding:0 14px;
-      font-size:.82rem; font-weight:700; white-space:nowrap;
-    }
 
     table { width:100%; border-collapse:collapse; }
     th {
@@ -107,7 +75,6 @@
     .tag-blue  { background:rgba(61,155,255,.12); color:#5fb0ff; border:1px solid rgba(61,155,255,.2); }
     .tag-gold  { background:rgba(245,200,66,.10); color:#f5c842; border:1px solid rgba(245,200,66,.2); }
     .tag-green { background:rgba(52,211,153,.10); color:#34d399; border:1px solid rgba(52,211,153,.2); }
-    .tag-gray  { background:rgba(255,255,255,.06); color:#8899aa; border:1px solid rgba(255,255,255,.1); }
     .tag-orange{ background:rgba(249,115,22,.12); color:#fb923c; border:1px solid rgba(249,115,22,.2); }
     .tag-red   { background:rgba(248,113,113,.10); color:#f87171; border:1px solid rgba(248,113,113,.2); }
 
@@ -141,27 +108,10 @@
       transition:transform .2s cubic-bezier(.16,1,.3,1), box-shadow .2s ease;
     }
     .btn-orange:hover { transform:scale(1.04); box-shadow:0 12px 40px rgba(249,115,22,.4); }
-    /* Hero の CTA は2本 → 1本になって文字が長い（日本語24字・英語46字）。
-       390px では2行に折れるので、折れても丸ゴマにならないよう行高と幅を決める。
-       ⚠️ .btn-orange 本体には触らない（他のページが使っている）。 */
-    .btn-orange--wide { max-width:min(92vw,520px); text-align:center; line-height:1.45; }
-    @media(max-width:640px){ .btn-orange--wide { padding:13px 22px; font-size:.94rem; } }
     /* .btn-orange は inline-flex。文字を直接置くと1つの塊として折れるので、
        390px で「全ての給与デー／タを見る」のように語の途中で切れた（実測）。
        かたまりは必ず .pv-cta-label で1枚に包んでから中に入れる。
        包まずに並べると2つの flex 項目になり、横並びのまま潰れる。 */
-    .pv-cta-label { min-width:0; }
-
-    .btn-outline-amber {
-      display:inline-flex; align-items:center; gap:8px;
-      padding:14px 32px; border-radius:999px;
-      background:rgba(249,115,22,.10); color:rgba(255,245,200,.9);
-      font-size:1rem; font-weight:600;
-      border:1px solid rgba(249,115,22,.3); cursor:pointer; text-decoration:none;
-      backdrop-filter:blur(8px);
-      transition:background .2s ease, border-color .2s ease, transform .2s ease;
-    }
-    .btn-outline-amber:hover { background:rgba(249,115,22,.18); border-color:rgba(249,115,22,.5); transform:scale(1.03); }
 
     .fade-up {
       opacity:0; transform:translateY(24px);
@@ -169,50 +119,7 @@
     }
     .fade-up.visible { opacity:1; transform:translateY(0); }
 
-    .job-card {
-      background:rgba(17,22,32,.6);
-      border:1px solid rgba(255,255,255,.07); border-radius:14px; padding:16px 18px;
-      transition:transform .25s cubic-bezier(.16,1,.3,1), border-color .25s ease, box-shadow .25s ease;
-      cursor:pointer; text-decoration:none; display:block;
-    }
-    .job-card:hover {
-      transform:translateY(-3px);
-      border-color:rgba(61,155,255,.30);
-      box-shadow:0 12px 40px rgba(0,0,0,.4), 0 0 0 1px rgba(61,155,255,.12);
-    }
-
-    .stat-card {
-      padding:16px 14px; border-radius:14px;
-      background:rgba(17,22,32,.6); border:1px solid rgba(255,255,255,.07);
-    }
-
-    /* Airline ranking row */
-    .airline-row {
-      display:block; text-decoration:none;
-      background:rgba(17,22,32,.5);
-      border:1px solid rgba(255,255,255,.06);
-      border-radius:12px; padding:16px 20px;
-      transition:transform .2s cubic-bezier(.16,1,.3,1), border-color .2s ease, background .2s ease;
-    }
-    .airline-row:hover {
-      transform:translateX(4px);
-      border-color:rgba(61,155,255,.25);
-      background:rgba(24,33,47,.7);
-    }
-
-    .rank-1 { background:linear-gradient(135deg,#f5c842,#ffd700); color:#000; }
-    .rank-2 { background:linear-gradient(135deg,#adb5bd,#ced4da); color:#000; }
-    .rank-3 { background:linear-gradient(135deg,#cd7f32,#e8a56a); color:#000; }
-    .rank-n { background:rgba(255,255,255,.08); color:#6b7d93; }
-
     /* Tab */
-    .tab-btn {
-      padding:9px 20px; border-radius:8px; font-size:.82rem; font-weight:600;
-      color:#6b7d93; background:transparent; border:1px solid transparent;
-      cursor:pointer; transition:color .2s, background .2s, border-color .2s; white-space:nowrap;
-    }
-    .tab-btn.active { color:#e8edf2; background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.12); }
-    .tab-btn:hover:not(.active) { color:#c5d5e8; }
 
     ::-webkit-scrollbar { width:6px; }
     ::-webkit-scrollbar-track { background:#0a0c0f; }
@@ -221,21 +128,12 @@
 
     footer { background:#060809; border-top:1px solid rgba(255,255,255,.05); }
 
-
     .section-badge {
       display:inline-flex; align-items:center; gap:8px;
       padding:6px 14px; border-radius:999px;
       background:rgba(61,155,255,.10); border:1px solid rgba(61,155,255,.25);
       font-size:.75rem; font-weight:600; color:#3d9bff;
       letter-spacing:.08em; text-transform:uppercase;
-    }
-
-    .section-num {
-      display:inline-flex; align-items:center; justify-content:center;
-      width:36px; height:36px; border-radius:10px;
-      background:linear-gradient(135deg,#f97316,#f5c842);
-      color:#000; font-size:1.1rem; font-weight:900;
-      flex-shrink:0;
     }
 
     .logo-img {
@@ -250,21 +148,6 @@
     .logo-img:hover {
       filter: brightness(1.3) drop-shadow(0 0 14px rgba(249,115,22,.7));
     }
-
-    /* Big comparison visual */
-    .region-bar-row { margin-bottom: 14px; }
-    .region-bar-bg {
-      height:26px; border-radius:8px;
-      background:rgba(255,255,255,0.04);
-      overflow:hidden; position:relative;
-    }
-    .region-bar-fill {
-      height:100%; border-radius:8px;
-      transition:width 1.6s cubic-bezier(.16,1,.3,1); width:0;
-    }
-
-    /* Number counter animation */
-    @keyframes count-up { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
 
     /* ── THEME TOGGLE BUTTON ─────────────────────────────────────────── */
     .theme-toggle {
@@ -293,33 +176,16 @@
     [data-theme="light"] ::-webkit-scrollbar-track { background:#f0f4f9; }
     [data-theme="light"] ::-webkit-scrollbar-thumb { background:#c4cfdf; }
     [data-theme="light"] ::-webkit-scrollbar-thumb:hover { background:#a8b8cc; }
-    [data-theme="light"] .gradient-text { background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 50%,#3b9eff 100%); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
     [data-theme="light"] .glass { background:rgba(255,255,255,.9) !important; border-color:rgba(0,0,0,.08) !important; }
-    [data-theme="light"] .glass-raised { background:rgba(255,255,255,.96) !important; border-color:rgba(0,0,0,.1) !important; }
-    [data-theme="light"] .stat-card { background:rgba(255,255,255,.92); border-color:rgba(0,0,0,.08); }
-    [data-theme="light"] .job-card { background:rgba(255,255,255,.85); border-color:rgba(0,0,0,.08); }
-    [data-theme="light"] .job-card:hover { border-color:rgba(61,155,255,.4); box-shadow:0 12px 40px rgba(0,0,0,.1),0 0 0 1px rgba(61,155,255,.12); }
-    [data-theme="light"] .airline-row { background:rgba(255,255,255,.8); border-color:rgba(0,0,0,.07); }
-    [data-theme="light"] .airline-row:hover { background:rgba(248,252,255,.96); border-color:rgba(61,155,255,.3); }
-    [data-theme="light"] .salary-bar-track { background:rgba(0,0,0,.07); }
-    [data-theme="light"] .cmp-bar-track { background:rgba(0,0,0,.05); }
-    [data-theme="light"] .region-bar-bg { background:rgba(0,0,0,.04); }
     [data-theme="light"] table th { color:#4a5568; border-bottom-color:rgba(0,0,0,.08); }
     [data-theme="light"] table td { border-bottom-color:rgba(0,0,0,.04); }
     [data-theme="light"] table tr:hover td { background:rgba(0,0,0,.02); }
-    [data-theme="light"] .tab-btn { color:#4a5568; }
-    [data-theme="light"] .tab-btn.active { color:#0f172a; background:rgba(0,0,0,.07); border-color:rgba(0,0,0,.12); }
-    [data-theme="light"] .tab-btn:hover:not(.active) { color:#0f172a; }
-    [data-theme="light"] .tag-gray { background:rgba(0,0,0,.05); color:#4a5568; border-color:rgba(0,0,0,.1); }
     [data-theme="light"] .btn-ghost { background:rgba(0,0,0,.06); color:#0f172a; border-color:rgba(0,0,0,.12); }
     [data-theme="light"] .btn-ghost:hover { background:rgba(0,0,0,.1); border-color:rgba(0,0,0,.18); }
     [data-theme="light"] footer { background:#dce4ef; border-top-color:rgba(0,0,0,.07); }
     [data-theme="light"] footer .border-white\/\[0\.05\] { border-top-color:rgba(0,0,0,.07) !important; }
     [data-theme="light"] .text-text { color:#0f172a !important; }
     [data-theme="light"] .section-badge { background:rgba(37,99,235,.08); border-color:rgba(37,99,235,.2); color:#2563eb; }
-    /* V3: #sec-metrics / #compare / #ranking は #salary-engine の中の div になった。
-       個別の帯色は付けず、親の1枚の面に載せる。 */
-    [data-theme="light"] #jobs { background:#eaeef5 !important; border-top:1px solid rgba(0,0,0,.07) !important; }
     /* FAQ だけ light の上書きが無く、明るいページの中で1枚だけ黒い帯になっていた。 */
     [data-theme="light"] #sec-faq { background:#eaeef5 !important; border-top:1px solid rgba(0,0,0,.07) !important; }
     /* Muted text */
@@ -333,38 +199,11 @@
     /* Gold / amber text — pale on white, darken for legibility */
     [data-theme="light"] [style*="color:#f5c842"] { color:#8a6e00 !important; }
     [data-theme="light"] .tag-gold { color:#8a6e00 !important; background:rgba(245,200,66,.16); border-color:rgba(180,140,20,.35); }
-    [data-theme="light"] .btn-outline-amber { color:#b45309 !important; background:rgba(249,115,22,.12); border-color:rgba(249,115,22,.4); }
-    [data-theme="light"] .btn-outline-amber:hover { background:rgba(249,115,22,.2); border-color:rgba(249,115,22,.6); }
-    [data-theme="light"] .tag-gray { color:#475569 !important; background:rgba(15,23,42,.05); border-color:rgba(15,23,42,.12); }
-    /* 公開情報ブロック（V3 で leveling / metrics / compare / ranking を1枚に統合した） */
-    [data-theme="light"] #salary-engine { background:#f4f6fb !important; border-color:rgba(0,0,0,.07) !important; }
-    /* caption highlight ("箱の大きさ＝推定年収") — readable on both themes */
-    #salary-engine .lvl-cap-hl { color:#eaf1f8; font-weight:700; }
-    [data-theme="light"] #salary-engine .lvl-cap-hl { color:#0f172a; }
-    /* ランキングは既定で上位10行だけ。残りは「もっと見る」で開く（行はJS生成なのでSEO本文は元から無い）。 */
-    /* ⚠️ Tailwind CDN の .flex は後から <head> に注入されるので、
-       クラス1つ（.rank-more）だと同順位で負けて 21行とも出てしまう。id で1段上げる。 */
-    #ranking .rank-more{ display:none; }
-    #ranking.rank-open .rank-more{ display:flex; }
-    /* すべての掲載航空会社：2行カード → 1行チップ。<a href> は1本も減らさない。 */
-    #airline-chips a{ display:flex; align-items:baseline; justify-content:center;
-      gap:6px; padding:8px 10px; border-radius:10px; }
-    #airline-chips a > div{ margin-top:0 !important; }
-    #airline-chips a > div:last-child{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
     /* ── Mobile / iPhone fixes ──────────────────────── */
     @media(max-width:767px){
       /* Prevent horizontal overflow */
       body,html{overflow-x:hidden;max-width:100vw}
-      /* Stat cards: single column on small phones */
-      .stat-card-grid{grid-template-columns:1fr 1fr!important}
-      /* Comparison table: horizontal scroll */
-      .compare-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-      /* Job cards: full width */
-      .job-cards-grid{grid-template-columns:1fr!important}
-      /* Section padding reduction */
-      .py-24{padding-top:3.5rem!important;padding-bottom:3.5rem!important}
-      .py-20{padding-top:3rem!important;padding-bottom:3rem!important}
     }
     @media(max-width:480px){
       /* Nav logo */
@@ -386,14 +225,6 @@
     .pv-sec--line{ border-top:1px solid var(--pv-line); }
     .pv-wrap{ max-width:1180px; margin:0 auto; padding:0 var(--pv-s-3); }
     .pv-wrap--narrow{ max-width:900px; }
-    /* 暗い面の直後がいきなり純白になる段差を、上端だけ暖色で受ける。
-       色は足していない（--pv-orange-soft をそのまま縦グラデーションにしただけ）。
-       ★暗い面の真下に来る節に付ける。2026-08-21 に暗い面が2枚（Hero と #market）に
-         なったので、受けも2か所。順番を入れ替えるときは一緒に動かす。 */
-    #why, #give-get{ background:linear-gradient(180deg,var(--pv-orange-soft) 0,transparent 240px),
-                                var(--pv-bg); }
-    /* 信頼の節は緑。いちばん白い塊なので枠線にも通す。 */
-    #trust .pv-card{ border-color:var(--pv-green-line); }
 
     /* 見出し */
     .pv-eyebrow{ display:inline-flex; align-items:center; gap:7px;
@@ -402,8 +233,6 @@
       border:1px solid rgba(249,115,22,.22); border-radius:999px;
       padding:5px 12px; margin-bottom:var(--pv-s-2); }
     /* 眉ラベルの色違い。そのセクションが扱うデータの種類に合わせる。 */
-    .pv-eyebrow--gold { color:var(--pv-gold-ink);  background:var(--pv-gold-soft);
-      border-color:var(--pv-gold-line); }
     .pv-eyebrow--green{ color:var(--pv-green-ink); background:var(--pv-green-soft);
       border-color:var(--pv-green-line); }
     .pv-h2{ font-size:clamp(1.5rem,3.2vw,2.15rem); font-weight:800;
@@ -418,139 +247,10 @@
     .pv-note{ font-size:.76rem; line-height:1.7; color:var(--pv-ink-2); }
     .pv-head{ margin-bottom:var(--pv-s-3); }
 
-    /* ── 大見出し（#why / #market / #pv-value / #give-get の顔）──────────
-       新しい書体は足さない（Hero の LCP は実測済みの弱点で、Tailwind CDN だけで
-       504ms 損している）。Inter / Noto Sans JP のまま、級数と字間だけで格を作る。
-       ⚠️ 太さは .pv-h2 と同じ 800 のまま上げない。Noto Sans JP は 400/500/700 しか
-          無いので、これ以上は偽の太字になって日本語の輪郭がにじむ。 */
-    .pv-h2--display{ font-size:clamp(1.62rem,3.9vw,2.6rem); letter-spacing:-.035em;
-      line-height:1.24;
-      /* 英語版は語が長いので、放っておくと最終行に単語1つだけ残る
-         （Choosing an airline decides the next twenty / years.）。
-         balance は行の長さを揃えてから折る。非対応ブラウザは既定の折り返しに戻るだけ。 */
-      text-wrap:balance; }
-
-    /* ── #why の見出しだけ金にする（2026-08-22 オーナー指示）──────────
-       ⚠️ 純金（#f5c842）を白地に置くとコントラスト 1.65 でほぼ読めない
-          （pv-tokens.css の --pv-star の注記と同じ罠）。読める側のトークン
-          （--pv-orange-ink / --pv-gold-ink）だけで組む。
-          白地に対して #c2410c 5.2 : #8a6e00 4.9。どちらも AA を通る。
-       ★トークン参照なので、ダークテーマでは中身が #fb923c / #f5c842 に
-          入れ替わり、Hero と同じ明るい金になる。規則は1本のまま。
-       ⚠️ 両端を同じ色にする（左右対称）。片側だけ明るくすると、モバイル幅で
-          最後の1語だけ色が浮く（.pv-tagline で実際に踏んだ）。
-       ⚠️ 使うのは #why の h2 だけ。#market / #pv-value / #give-get には付けない。
-          文字グラデがページで2か所（ここ ／ .pv-tagline）を
-          超えると署名でなくなる（2026-09-22 まではヒーローの .hero-en もあった）。 */
-    /* 日本語には語の切れ目が無いので、放っておくと「その／後」「デー／タ」のように
-       意味の途中で折れる（390px で実際に起きた）。意味のかたまりを inline-block に
-       すると、その手前が優先的に折り返し位置になる。
-       ⚠️ white-space:nowrap にはしない。もっと狭い画面でかたまりごと溢れる。
-          inline-block なら入らないときだけ中で折れて逃げ場が残る。
-       英語の行に付けても害は無い（空白で折れる位置が読点の後ろに寄るだけ）。 */
-    .pv-kata { display:inline-block; }
-
-    .pv-h2--gold{
-      color:var(--pv-orange-ink);          /* background-clip 非対応への落とし所 */
-      background-image:linear-gradient(100deg,
-        var(--pv-orange-ink) 0%, var(--pv-gold-ink) 50%, var(--pv-orange-ink) 100%);
-      -webkit-background-clip:text; background-clip:text;
-      -webkit-text-fill-color:transparent; }
-
-    /* ── #why の問い ────────────────────────────────────────────
-       問いの文字そのものが主役。装飾で埋めない。番号も振らない
-       （番号を振ると手順に見えて、自分の話でなくなる）。
-       頭のグラデーションの罫はブランドの署名（baland_ass/色.png の
-       #f97316 → #f5c842）。ページ全体でこの罫・#market の地・#market の
-       タグラインの3か所だけに使う。安売りすると署名でなくなる。 */
-    .pv-asks{ list-style:none; margin:0; padding:0;
-      display:flex; flex-direction:column; gap:var(--pv-s-2); }
-    .pv-asks li{ position:relative; padding-left:20px;
-      font-size:clamp(1.02rem,2.1vw,1.28rem); font-weight:700;
-      letter-spacing:-.015em; line-height:1.62; color:var(--pv-ink);
-      word-break:auto-phrase; }
-    .pv-asks li::before{ content:""; position:absolute; left:0; top:.42em;
-      width:3px; height:1.05em; border-radius:2px;
-      background:linear-gradient(180deg,#f97316,#f5c842); }
-    .pv-ask-close{ margin:var(--pv-s-3) 0 0; font-size:.95rem; line-height:1.85;
-      color:var(--pv-ink-2); max-width:62ch; }
-    .pv-ask-close strong{ color:var(--pv-ink); font-weight:800; }
-
-    /* ── #pv-value の4枚（英語の見出し＋日本語の説明で階層を作る）────── */
-    .pv-know-t{ font-size:clamp(.97rem,1.5vw,1.06rem); letter-spacing:-.02em;
-      line-height:1.38;
-      /* 見出しが1行の枚と2行の枚が混ざるので、下の説明の高さが揃わない。
-         2行ぶんの場所を先に取って揃える（4枚横並びのときだけ効かせる）。 */
-      min-height:2.76em; }
-    .pv-know-d{ font-size:.8rem; line-height:1.75; color:var(--pv-ink-2);
-      margin-top:10px; }
-
-    /* ── 暗い面（.pv-sec--ink）──────────────────────────────────
-       [data-theme="dark"] は使わない。ページのテーマ切替とは無関係に、
-       この節だけを暗くしたいので --pv-* をローカルに宣言し直す。
-       中の .pv-card / .pv-h2 / .pv-lede / .pv-eyebrow は自分でトークンを読むので
-       自動で反転する（pv-tokens.css の設計意図どおり）。既存規則には触らない。
-       値は pv-tokens.css の [data-theme="dark"] と同じものを写している。
-       ⚠️ 片方だけ変えるとライトとダークで色が食い違う。直すときは両方見る。 */
-    .pv-sec--ink{
-      --pv-bg:#0a0c0f;        --pv-bg-sub:#0d1118;    --pv-surface:#141b26;
-      --pv-surface-2:#18212f;
-      --pv-line:rgba(255,255,255,.09);  --pv-line-soft:rgba(255,255,255,.05);
-      --pv-ink:#e8edf2;       --pv-ink-2:#a8b8cc;     --pv-ink-3:#8496ad;
-      --pv-orange-ink:#fb923c; --pv-orange-soft:rgba(249,115,22,.14);
-      --pv-gold-ink:#f5c842;  --pv-gold-soft:rgba(245,200,66,.14);
-      --pv-gold-line:rgba(245,200,66,.28); --pv-star:#f5c842;
-      --pv-green-ink:#34d399; --pv-green-soft:rgba(52,211,153,.14);
-      --pv-green-line:rgba(52,211,153,.26);
-      --pv-teal:#5eead4;      --pv-teal-soft:rgba(94,234,212,.12);
-      color:var(--pv-ink);
-      border-top:1px solid rgba(255,255,255,.08);
-      border-bottom:1px solid rgba(255,255,255,.08);
-      /* 地はベタ塗りにしない。放射グラデーション2枚（オレンジ寄り／金寄り）に
-         SVG のノイズを重ねて粒子感を出す。外部ファイルは読まない（data: URI）。 */
-      background-color:var(--pv-bg);
-      background-image:
-        radial-gradient(1000px 460px at 14% -10%, rgba(249,115,22,.22), transparent 62%),
-        radial-gradient(820px 420px at 90% 112%, rgba(245,200,66,.15), transparent 60%),
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.05'/%3E%3C/svg%3E");
-    }
-    /* ⚠️ ダークテーマではページ全体が既に #0a0c0f なので、同じ色を置くと段差が消える。
-          地だけ1段持ち上げて、暗い"板"として浮かせる。 */
-    [data-theme="dark"] .pv-sec--ink{ --pv-bg:#11161f; }
-
-    /* ── #market の4行 ──────────────────────────────────────────
-       ⚠️ 番号（01→02→03）を振らない。振った瞬間に事業説明のフローチャートになり、
-          読む人の話でなくなる。静かに積むだけ。 */
-    .pv-chain{ display:flex; flex-direction:column; gap:var(--pv-s-2); }
-    /* ⚠️ 幅を ch で切らない。ch は Inter の "0" の幅（約 .55em）で数えるので、
-          日本語だと半分の見た目幅になり、4行とも2行に折れた（実際に踏んだ）。
-          1行1文で読ませる節なので、幅は親（.pv-wrap--narrow）に任せる。
-       ⚠️ 行頭に記号も番号も置かない。置いた瞬間にフローチャートに見えて、
-          業界の事業説明になり、読む人の話でなくなる。 */
-    .pv-chain p{ margin:0; font-size:clamp(1.04rem,2.1vw,1.3rem); font-weight:700;
-      letter-spacing:-.015em; line-height:1.62; color:var(--pv-ink);
-      word-break:auto-phrase; }
-    /* 最後の1行だけ金。ここが着地点で、次のタグラインへ渡す。 */
-    .pv-chain p:last-child{ color:var(--pv-gold-ink); }
-
-    /* ── 締めのタグライン ────────────────────────────────────────
-       ブランドの1行（PILOT DEFINES · PILOT'S VALUE）はページでここだけ。
-       2026-09-22 まではヒーローの先頭（.hero-en）にもあったが、見出しから始めるために外した。 */
-    .pv-tagline{ margin:var(--pv-s-4) 0 0;
-      font-size:clamp(.86rem,2.6vw,1.66rem); font-weight:800;
-      letter-spacing:.18em; text-transform:uppercase; white-space:nowrap;
-      color:#f5c842;
-      /* ⚠️ ハイライトは金のまま（#ffdf8f）。白に寄せると（#fff2c4）
-            モバイル幅で最後の VALUE だけが白く見えて、色が揃っていないように読める。 */
-      background:linear-gradient(100deg,#fb923c 0%,#f5c842 46%,#ffdf8f 62%,#fb923c 100%);
-      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
-      background-clip:text; }
-
     /* カード */
     .pv-card{ background:var(--pv-surface); border:1px solid var(--pv-line);
       border-radius:var(--pv-r-lg); padding:var(--pv-s-3);
       box-shadow:var(--pv-shadow); }
-    .pv-card--flat{ box-shadow:none; background:var(--pv-surface-2); }
     a.pv-card, .pv-card--hover{
       transition:transform .35s var(--pv-ease), box-shadow .35s var(--pv-ease),
                  border-color .2s ease; }
@@ -561,244 +261,13 @@
       outline:2px solid var(--pv-orange); outline-offset:3px; }
     a.pv-card:active{ transform:translateY(-1px); }
 
-    /* カード頭のアイコンの下地。色でそのカードが扱うデータの種類を示す。
-       ⚠️ 名前を .tile にしない。Tailwind の CDN が後から <style> を入れるので、
-          同じ強さの単一クラスは向こうが勝つ（#ranking .rank-more で踏んだ）。 */
-    .pv-tile{ width:34px; height:34px; border-radius:var(--pv-r-sm);
-      display:flex; align-items:center; justify-content:center; margin-bottom:14px;
-      background:var(--pv-orange-soft); color:var(--pv-orange-ink); }
-    .pv-tile--teal { background:var(--pv-teal-soft);  color:var(--pv-teal); }
-    /* アイコンだけ --gold-ink(#8a6e00) ではなく --star(#b5920a)。前者は線画にすると
-       オリーブに見えて金に読めない（文字ではないので 3:1 で足りる）。 */
-    .pv-tile--gold { background:var(--pv-gold-soft);  color:var(--pv-star); }
-    .pv-tile--green{ background:var(--pv-green-soft); color:var(--pv-green-ink); }
-
     .pv-grid{ display:grid; gap:var(--pv-s-2); }
     .pv-grid-4{ grid-template-columns:repeat(4,1fr); }
     .pv-grid-3{ grid-template-columns:repeat(3,1fr); }
     .pv-grid-2{ grid-template-columns:repeat(2,1fr); }
 
-    /* 数値タイル */
-    .pv-kpi-lab{ font-size:.72rem; font-weight:600; letter-spacing:.03em;
-      color:var(--pv-ink-2); display:block; margin-bottom:5px; }
-    .pv-kpi-val{ font-size:clamp(1.4rem,3vw,1.9rem); font-weight:800;
-      letter-spacing:-.03em; line-height:1.1; color:var(--pv-ink);
-      font-variant-numeric:tabular-nums; }
-    .pv-kpi-val--hero{ font-size:clamp(2rem,5.2vw,3rem); }
-    .pv-kpi-sub{ font-size:.7rem; color:var(--pv-ink-2); margin-top:5px; }
-
-    /* バッジ */
-    .pv-badge{ display:inline-flex; align-items:center; gap:5px;
-      font-size:.66rem; font-weight:700; letter-spacing:.02em;
-      border-radius:999px; padding:3px 9px; white-space:nowrap;
-      border:1px solid transparent; }
-    /* 公開情報（＝推定）は青。 */
-    .pv-badge--pub{ color:var(--pv-blue-ink); background:var(--pv-blue-soft);
-      border-color:var(--pv-blue-line); }
-    /* ⚠️ --pub は長いあいだ2つの意味で使い回されていた。「公開情報」と、
-          Benchmark の絞り込み条件（あなたの会社／機長／n = 34）。後者は公開情報ではないので
-          灰色のまま分けた。ここを混ぜるとサンプル画面の説明が嘘になる。 */
-    .pv-badge--meta{ color:var(--pv-ink-2); background:var(--pv-line-soft);
-      border-color:var(--pv-line); }
-    .pv-badge--actual{ color:var(--pv-orange-ink); background:var(--pv-orange-soft);
-      border-color:rgba(249,115,22,.28); }
-    .pv-badge--slip{ color:var(--pv-teal); background:var(--pv-teal-soft);
-      border-color:rgba(15,118,110,.25); }
-    [data-theme="dark"] .pv-badge--slip{ border-color:rgba(94,234,212,.25); }
-    .pv-badge--soon{ color:var(--pv-ink-2); background:transparent;
-      border-color:var(--pv-line); border-style:dashed; }
-
-    /* サンプル枠 — 「これは実データではない」を1回だけ強く言う */
-    .pv-demo{ border:1.5px dashed rgba(249,115,22,.42); border-radius:var(--pv-r-lg);
-      background:linear-gradient(180deg,var(--pv-orange-soft) 0%,transparent 190px),
-                 var(--pv-surface);
-      padding:0 0 var(--pv-s-3); overflow:hidden; }
-    .pv-demo-flag{ display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 10px;
-      padding:12px var(--pv-s-3); border-bottom:1px solid var(--pv-line); }
-    .pv-demo-flag b{ font-size:.74rem; font-weight:800; letter-spacing:.1em;
-      color:var(--pv-orange-ink); }
-    .pv-demo-flag span{ font-size:.74rem; color:var(--pv-ink-2); }
-    /* V4：実物の「あなたの報酬レポート」と同じ 2列×2段
-       （1段目 累計｜今月 ／ 2段目 内訳｜Benchmark）。
-       ★ 実物の .mr-2col（my-value.css）と同じく flex。画面幅のメディアクエリで
-          畳まない ── この枠の外側の余白はページ側の都合で変わるので、
-          「枠が何 px あるか」でしか正しく畳めない＝flex-basis が唯一の正しい規則。 */
-    .pv-demo-cols{ display:flex; flex-wrap:wrap; gap:var(--pv-s-2);
-      align-items:flex-start; padding:var(--pv-s-2) var(--pv-s-3) 0; }
-    .pv-demo-cols>*{ flex:1 1 340px; min-width:0; }
-    /* 1段目だけは仕切り線（.pv-demo-flag の下辺）から少し離す */
-    .pv-demo-cols.is-first{ padding-top:var(--pv-s-3); }
-    .pv-demo-t{ font-size:.72rem; font-weight:800; letter-spacing:.06em;
-      color:var(--pv-ink-2); margin:0 0 8px; }
-    /* 枠内の小さいKPI行。狭い画面でも1列に落とさない（落とすと縦に伸びる）。 */
-    .pv-kpi-row{ display:grid; gap:12px;
-      grid-template-columns:repeat(auto-fit,minmax(112px,1fr)); }
-
-    /* ── 累計報酬（紺）─────────────────────────────────────────
-       実物の「あなたの報酬レポート」の累計カード（my-value.css の .mr-card.is-hero）
-       と同じ面・同じ色。ここが白いUIの中で唯一の暗い面で、毎月戻ってくる理由を1枚で見せる。
-       ★ 子の色は個別に書かず、トークンを差し替えるだけにする。あとで部品を1つ足したとき、
-          必ず1つ塗り忘れて紺の上に黒い字が残るため（実物側と同じ約束）。 */
-    .pv-cum{ --pv-surface:rgba(255,255,255,.05); --pv-surface-2:rgba(255,255,255,.025);
-      --pv-line:rgba(255,255,255,.13); --pv-line-soft:rgba(255,255,255,.07);
-      --pv-ink:#eaf1f8; --pv-ink-2:#adbfd4; --pv-ink-3:#8ea3bd;
-      color:var(--pv-ink); border:1px solid rgba(255,255,255,.11);
-      border-radius:var(--pv-r-lg); padding:22px 20px;
-      background:
-        radial-gradient(118% 132% at 86% -12%,rgba(245,200,66,.17) 0%,transparent 54%),
-        radial-gradient(96% 128% at 4% 112%,rgba(249,115,22,.15) 0%,transparent 48%),
-        var(--pv-navy);
-      box-shadow:0 1px 2px rgba(10,22,40,.32),
-                 0 24px 52px -22px rgba(10,22,40,.60),
-                 0 6px 16px -6px rgba(245,200,66,.12); }
-    .pv-cum-k{ display:block; font-size:.73rem; font-weight:700; color:var(--pv-ink-3);
-      letter-spacing:.06em; text-transform:uppercase; }
-    .pv-cum-s{ display:block; margin-top:9px; font-size:.75rem; color:var(--pv-ink-2); }
-    /* 累計の額だけ金。1ページで金を使うのはここだけ（多用すると意味が消える）。
-       ★ 横に「今月」を並べたので上限を下げた（2026-08-14）。実物のレポートでも
-          この額は画面の半分の幅に収まっている。 */
-    .pv-cum-v{ display:block; margin-top:10px; font-size:clamp(1.7rem,4.4vw,2.35rem);
-      font-weight:900; letter-spacing:-.035em; line-height:1;
-      font-variant-numeric:tabular-nums; color:var(--pv-gold);
-      text-shadow:0 0 30px rgba(245,200,66,.20); }
-    .pv-cum-n{ display:block; margin-top:10px; font-size:.76rem; color:var(--pv-ink-2); line-height:1.6; }
-    /* ★ grid ではなく flex。4列にすると枠が1つ余り、その穴が罫線の色のまま残って
-          「読み取れなかった枠」に見える。flex なら最終行が伸びて埋まる。 */
-    .pv-mini{ display:flex; flex-wrap:wrap; gap:1px; margin-top:18px;
-      background:var(--pv-line-soft); border:1px solid var(--pv-line-soft);
-      border-radius:var(--pv-r); overflow:hidden; }
-    .pv-mini-i{ flex:1 1 104px; background:var(--pv-surface); padding:13px 10px;
-      text-align:center; min-width:0; }
-    .pv-mini-i b{ display:block; font-size:1.02rem; font-weight:800; letter-spacing:-.02em;
-      line-height:1.2; font-variant-numeric:tabular-nums; }
-    .pv-mini-i span{ display:block; margin-top:5px; font-size:.66rem; color:var(--pv-ink-3);
-      font-weight:600; line-height:1.4; }
-    /* 折れ線の上の見出し行。★金額を SVG の <text> に入れない。currency.js は
-       文字を <span> で包むので、SVG の中に入れると通貨を切り替えた瞬間に消える
-       （実物側は図ごと pv-no-cur で走査から外している）。ここは HTML で出す。 */
-    .pv-cum-cap{ display:flex; align-items:baseline; justify-content:space-between;
-      gap:10px; margin-top:20px; font-size:.7rem; color:var(--pv-ink-3); font-weight:600; }
-    .pv-cum-cap b{ font-size:.86rem; font-weight:800; color:var(--pv-gold);
-      font-variant-numeric:tabular-nums; letter-spacing:-.02em; }
-
-    /* ── 今月の実績（紺の右隣）───────────────────────────────────
-       実物の .mr-kpis（my-value.css）の「枠が 600px 以下のときの形」＝2×2 と同じ。
-       サンプルのカードは常に半分の幅なので、実物のコンテナクエリを写す必要はなく
-       最初から2列で書く。総支給だけ字を大きくして主役を保つ（枠は他と同じ大きさ）。 */
-    .pv-mk{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
-    .pv-mk-i{ background:var(--pv-surface-2); border:1px solid var(--pv-line-soft);
-      border-radius:var(--pv-r); padding:14px; min-width:0; }
-    .pv-mk-k{ display:block; font-size:.7rem; font-weight:600; color:var(--pv-ink-3);
-      line-height:1.4; }
-    .pv-mk-v{ display:block; margin-top:7px; font-size:1.12rem; font-weight:800;
-      letter-spacing:-.025em; line-height:1.15; font-variant-numeric:tabular-nums;
-      word-break:break-word; }
-    .pv-mk-i.is-lead .pv-mk-v{ font-size:1.5rem; }
-    .pv-mk-n{ display:block; margin-top:6px; font-size:.66rem; color:var(--pv-ink-3);
-      line-height:1.5; }
-    /* 増減の丸ピル。色は「向き」であって「良し悪し」ではない（実物 .mr-d と同じ）。 */
-    .pv-d{ display:inline-flex; align-items:center; margin-top:8px; padding:2px 8px;
-      border-radius:999px; font-size:.68rem; font-weight:800;
-      font-variant-numeric:tabular-nums; white-space:nowrap; }
-    .pv-d.up{ color:var(--pv-orange-ink); background:var(--pv-orange-soft); }
-
-    /* ── 支給構成のドーナツ（実物 pay-viz.js の donut() と同じ形・同じ色）── */
-    .pv-donut-wrap{ display:flex; gap:20px; align-items:center; flex-wrap:wrap; }
-    .pv-donut{ position:relative; flex:none; width:132px; height:132px; }
-    .pv-donut-c{ position:absolute; inset:0; display:flex; align-items:center;
-      justify-content:center; }
-    .pv-donut-c b{ font-size:.9rem; font-weight:800; letter-spacing:-.02em;
-      font-variant-numeric:tabular-nums; }
-    .pv-legend{ flex:1 1 200px; min-width:0; display:flex; flex-direction:column; gap:7px; }
-    .pv-leg{ display:flex; align-items:center; gap:8px; font-size:.75rem; }
-    .pv-leg i{ width:9px; height:9px; border-radius:3px; flex:none; }
-    .pv-leg .nm{ color:var(--pv-ink-2); flex:1; min-width:0; }
-    .pv-leg .amt{ font-weight:700; font-variant-numeric:tabular-nums; }
-    .pv-leg .pct{ color:var(--pv-ink-3); width:34px; text-align:right;
-      font-variant-numeric:tabular-nums; }
-
-    /* 比較テーブル */
-    .pv-table{ width:100%; border-collapse:collapse; font-size:.84rem; }
-    .pv-table th, .pv-table td{ padding:12px 14px; text-align:left;
-      border-bottom:1px solid var(--pv-line-soft); }
-    .pv-table thead th{ font-size:.68rem; font-weight:700; letter-spacing:.08em;
-      text-transform:uppercase; color:var(--pv-ink-2);
-      border-bottom:1px solid var(--pv-line); white-space:nowrap; }
-    .pv-table td.pv-num{ text-align:right; font-variant-numeric:tabular-nums;
-      font-weight:700; color:var(--pv-ink); white-space:nowrap; }
-    .pv-table tbody tr:last-child td{ border-bottom:none; }
-    /* 2つの列を色で分ける。左＝公開情報（青・推定）、右＝実際の給与（橙・本人記録）。
-       ⚠️ セルにタグを足して色を付けない。check-salary.mjs の2パス目は
-          社名→役職→金額をタグ24文字ぶんまでしか跨げず（check-salary.mjs の GAP）、
-          ANA の行は既に16文字ぶん使っている。1つ足すとその行が黙って照合から外れる。
-       ⚠️ id を付けて書く。単一クラスだと Tailwind の CDN が後から入れる <style> に負ける。
-       ⚠️ data-label は 767px 以下で見出しの代わりに画面へ出る文字（下の .pv-table td::before）。
-          だから英語版は英語で書く必要があり、ここも日英2つ並べる。
-          英語トップの表の data-label を変えるときは、この2行も一緒に変える。 */
-    #actual-pay .pv-table td[data-label="公開情報"],
-    #actual-pay .pv-table td[data-label="Public estimate"]{ background:var(--pv-blue-soft); }
-    #actual-pay .pv-table td[data-label="実際の給与"],
-    #actual-pay .pv-table td[data-label="Actual pay"]{ background:var(--pv-orange-soft); }
-    #actual-pay .pv-table thead th:nth-child(3){ color:var(--pv-blue-ink); }
-    #actual-pay .pv-table thead th:nth-child(4){ color:var(--pv-orange-ink); }
-
-    /* 表の直上に置く2列の定義（§5）。長い前置きの代わり。 */
-    .pv-defs{ display:flex; flex-wrap:wrap; gap:6px 24px;
-      margin-bottom:var(--pv-s-2); }
-    .pv-defs p{ display:flex; align-items:center; gap:8px;
-      font-size:.76rem; line-height:1.6; color:var(--pv-ink-2); margin:0; }
-
-    /* ── Actual Pay 右列のモザイク（community.html の .rv-locked-tail と同じ考え方）──
-       ★PV_DEMO：下に敷いている数字は実在しないサンプル。2026-08-11 のオーナー判断でこのまま公開。
-       ⚠️ Tailwind CDN の JIT が後から <style> を head に入れるので、単一クラスだと負ける。
-          #actual-pay で特異性を上げる（.rank-more で1度踏んだ罠）。
-       動かすのは transform と opacity だけ。transition-all は使わない。 */
-    /* ⚠️ 鍵の文言を数字の「上」に重ねると、数字が隠れて
-          「何も無い欄」に見える（実際にそうなった）。数字を上、鍵を下の2段に分ける。 */
-    #actual-pay .pv-mask{ display:inline-flex; flex-direction:column;
-      align-items:flex-end; gap:2px; min-width:7em;
-      text-decoration:none; cursor:pointer; border-radius:7px; }
-    #actual-pay .pv-mask-v{ filter:blur(4.6px); opacity:.86; user-select:none;
-      font-weight:800; font-size:.95rem; line-height:1.4;
-      color:var(--pv-ink); letter-spacing:.02em;
-      transition:opacity .22s var(--pv-ease); }
-    #actual-pay .pv-mask-lock{ display:inline-flex; align-items:center; gap:3px;
-      font-size:.66rem; font-weight:800; white-space:nowrap; line-height:1.3;
-      color:var(--pv-orange-ink);
-      transition:transform .22s var(--pv-ease); }
-    #actual-pay .pv-mask:hover .pv-mask-lock{ transform:translateY(-1px); }
-    #actual-pay .pv-mask:hover .pv-mask-v{ opacity:1; }
-    #actual-pay .pv-mask:focus-visible{ outline:2px solid #f97316; outline-offset:3px; }
-    /* 解放後（lp.js が is-open を付ける） */
-    #actual-pay .pv-mask.is-open{ cursor:default; }
-    #actual-pay .pv-mask.is-open .pv-mask-v{ filter:none; opacity:1; }
-    #actual-pay .pv-mask.is-open .pv-mask-lock{ display:none; }
-    @media(prefers-reduced-motion:reduce){
-      #actual-pay .pv-mask-lock, #actual-pay .pv-mask-v{ transition:none; }
-    }
-
-    /* 右列が空のときの参加導線（§4）。件数は出さない。 */
-    .pv-fill{ display:flex; flex-wrap:wrap; align-items:center;
-      gap:6px var(--pv-s-3); margin-top:var(--pv-s-2);
-      padding:var(--pv-s-2) var(--pv-s-3);
-      border:1px solid rgba(249,115,22,.3); border-radius:var(--pv-r);
-      background:var(--pv-orange-soft); }
-    .pv-fill-t{ flex:0 0 100%; font-size:.94rem; font-weight:800;
-      letter-spacing:-.01em; color:var(--pv-ink); margin:0; }
-    .pv-fill-d{ flex:1 1 300px; font-size:.78rem; line-height:1.65;
-      color:var(--pv-ink-2); margin:0; }
-    .pv-fill .pv-btn{ flex:0 0 auto; }
-
     /* 手順 (Give & Get) */
-    .pv-step{ position:relative; background:var(--pv-surface);
-      border:1px solid var(--pv-line); border-radius:var(--pv-r);
-      padding:var(--pv-s-3) var(--pv-s-2) var(--pv-s-2); }
-    .pv-step-n{ font-size:.68rem; font-weight:800; letter-spacing:.1em;
-      color:var(--pv-orange-ink); display:block; margin-bottom:6px; }
-    .pv-step-t{ font-size:.9rem; font-weight:700; color:var(--pv-ink);
-      letter-spacing:-.01em; margin-bottom:6px; }
     .pv-step-d{ font-size:.76rem; line-height:1.7; color:var(--pv-ink-2); }
-    .pv-step--get{ border-color:rgba(249,115,22,.34); background:var(--pv-orange-soft); }
 
     /* ボタン */
     .pv-btn{ display:inline-flex; align-items:center; justify-content:center; gap:8px;
@@ -850,12 +319,6 @@
     .pv-voice-meta{ font-size:.7rem; color:var(--pv-ink-2);
       border-top:1px solid var(--pv-line-soft); padding-top:9px; }
 
-    /* 分布バー (Benchmark) */
-    .pv-dist{ display:flex; align-items:flex-end; gap:4px; height:96px; }
-    .pv-dist i{ flex:1; background:var(--pv-line); border-radius:3px 3px 0 0;
-      display:block; }
-    .pv-dist i.is-you{ background:var(--pv-orange); }
-
     /* スケルトン (CLS対策: 実データが入るまで高さを保持) */
     .pv-skel{ background:linear-gradient(90deg,var(--pv-line-soft) 25%,
       var(--pv-line) 37%,var(--pv-line-soft) 63%);
@@ -866,7 +329,7 @@
       .pv-skel{ animation:none; }
       .pv-btn, a.pv-card, .pv-card--hover{ transition:none; }
       /* ⚠️ 帯（.hero-mq / .hero-mq-track / .hero-mq-c）を止める指定はここに書いても効かない。
-            帯の CSS はこの下（878行目〜）にあり、同じ強さなら後に書いたほうが勝つため。
+            帯の CSS はこの下（Hero の節のあと）にあり、同じ強さなら後に書いたほうが勝つため。
             実測で 2.5秒に 99px 動いたままだった。帯の定義の直後に置き直した。 */
     }
 
@@ -1082,7 +545,7 @@
          狭い幅はどちらも「文章→面」の縦（HTML の順＝読み上げの順のまま）。
        ⚠️ セレクタは :is(#lp-realpay,#lp-airlines) か #… から始める（Tailwind に負けないように）。
        ⚠️ 金額の入る要素そのものに display:flex / gap を付けない（通貨の差し替えが崩れる）。 */
-    :is(#lp-realpay,#lp-airlines){ --lp-spring:cubic-bezier(.34,1.45,.64,1);
+    :is(#lp-realpay,#lp-airlines,#lp-explore,#lp-why){ --lp-spring:cubic-bezier(.34,1.45,.64,1);
       position:relative; z-index:1; background:var(--pv-bg); color:var(--pv-text); padding:88px 0; }
     #lp-airlines{ padding-top:24px; }
     :is(#lp-realpay,#lp-airlines) .lp-blk-wrap{ max-width:1240px; margin:0 auto; padding:0 32px;
@@ -1093,19 +556,21 @@
       :is(#lp-realpay,#lp-airlines) .lp-blk-copy{ grid-area:copy; }
       :is(#lp-realpay,#lp-airlines) .lp-panel{ grid-area:panel; }
     }
-    :is(#lp-realpay,#lp-airlines) .lp-eyebrow{ display:inline-flex; align-items:center; gap:9px; margin:0 0 18px;
+    /* ⚠️ flex にしない。「<span data-pv-n>112</span> AIRLINES」の空白が消えて gap に置き換わる。 */
+    :is(#lp-realpay,#lp-airlines,#lp-explore,#lp-why) .lp-eyebrow{ display:block; margin:0 0 18px;
       font-size:12.5px; font-weight:700; letter-spacing:.14em; line-height:1.4; color:var(--pv-accent-ink); }
-    :is(#lp-realpay,#lp-airlines) .lp-eyebrow::before{ content:''; width:8px; height:8px; border-radius:999px;
+    :is(#lp-realpay,#lp-airlines,#lp-explore,#lp-why) .lp-eyebrow::before{ content:''; display:inline-block; vertical-align:1px;
+      width:8px; height:8px; margin-right:10px; border-radius:999px;
       background:var(--pv-accent); box-shadow:0 0 0 3px var(--pv-accent-soft); }
-    :is(#lp-realpay,#lp-airlines) .lp-h2{ margin:0; max-width:14em;
+    :is(#lp-realpay,#lp-airlines,#lp-explore,#lp-why) .lp-h2{ margin:0; max-width:14em;
       font-size:clamp(28px,7.4vw,46px); font-weight:700; line-height:1.14; letter-spacing:-.03em;
       color:var(--pv-text); text-wrap:balance; word-break:auto-phrase; }
     /* 日本語の見出しは文節ごとに塊にする（auto-phrase だけでは「世界の航｜空会社を…」と切れた・390px）。 */
-    :is(#lp-realpay,#lp-airlines) .lp-ph{ display:inline-block; }
+    :is(#lp-realpay,#lp-airlines,#lp-explore,#lp-why) .lp-ph{ display:inline-block; }
     /* 2列のときの文章の列は約390px（1100px・左の板あり）。46px のままだと見出しが4行に割れた。
        ⚠️ 上の .lp-h2 より後ろに置く（同じ強さなので、前に置くと負ける）。 */
-    @media (min-width:1100px){ :is(#lp-realpay,#lp-airlines) .lp-h2{ font-size:clamp(34px,3.2vw,46px); } }
-    :is(#lp-realpay,#lp-airlines) .lp-body{ margin:20px 0 0; max-width:30em;
+    @media (min-width:1100px){ :is(#lp-realpay,#lp-airlines,#lp-explore,#lp-why) .lp-h2{ font-size:clamp(34px,3.2vw,46px); } }
+    :is(#lp-realpay,#lp-airlines,#lp-explore,#lp-why) .lp-body{ margin:20px 0 0; max-width:30em;
       font-size:clamp(16px,1.3vw,17.5px); line-height:1.75; font-weight:500;
       color:var(--pv-text-muted); word-break:auto-phrase; line-break:strict; text-wrap:pretty; }
     /* 文字のリンク（REAL PAY）と黒いボタン（112）。押せるものは全部 hover / focus-visible / active。 */
@@ -1214,7 +679,7 @@
     }
 
     @media (max-width:767px){
-      :is(#lp-realpay,#lp-airlines){ padding:56px 0; }
+      :is(#lp-realpay,#lp-airlines,#lp-explore,#lp-why){ padding:56px 0; }
       #lp-airlines{ padding-top:8px; }
       #lp-realpay .lp-rp-panel{ min-height:0; padding:40px 20px 0; border-radius:22px; }
       #lp-realpay .lp-rp-card{ padding:20px 20px 0; }
@@ -1234,6 +699,205 @@
     }
     @media (prefers-reduced-motion:reduce){
       #lp-realpay .lp-link svg, #lp-airlines .lp-btn, #lp-airlines .lp-btn svg{ transition:none; }
+    }
+
+    /* ══ データを探す（#lp-explore）と Why PILOT VALUE（#lp-why）══════════════════════
+       2026-09-22・オーナー指示「旧トップの情報量を1節に戻さない。5つとも短い見本」。
+       ★地・小見出し・見出し・本文は上の2節と同じ束（:is(…,#lp-explore,#lp-why)）。ここには写さない。
+       ★見本カードは 768px 以上で 2×2、それより狭いと横に滑らせる1列（次のカードの端が見える）。
+         縦に4枚積むとスマホで長大になる（オーナー指示4）。
+       ★レベリング図（.lvl-*）の見た目は salary-leveling.js が持つ。ここは外枠だけ。
+       ⚠️ 金額の入る要素（.lp-ex-bv / .lp-rk-amt）に display:flex / gap を付けない。 */
+    :is(#lp-explore,#lp-why){ --lp-gut:32px; }
+    #lp-explore{ padding-top:40px; }
+    :is(#lp-explore,#lp-why) .lp-ex-wrap{ max-width:1240px; margin:0 auto; padding:0 var(--lp-gut); }
+    :is(#lp-explore,#lp-why) .lp-body{ margin-top:14px; }
+
+    /* 見出しの横・カードの下の「→」リンク。押せるものは全部 hover / focus-visible / active。 */
+    /* ⚠️ flex にしない（中の <span data-pv-n> の前後に gap が入って「全 112 社」と割れた）。 */
+    #lp-explore .lp-ex-more{ display:inline-block; padding:10px 0;
+      font-size:14.5px; font-weight:600; line-height:1.3; color:var(--pv-accent-ink); text-decoration:none; white-space:nowrap; }
+    #lp-explore .lp-ex-more svg{ display:inline-block; vertical-align:-3px; margin-left:6px; transition:transform .4s var(--lp-spring); }
+    #lp-explore .lp-ex-more:hover svg{ transform:translateX(4px); }
+    #lp-explore .lp-ex-more:hover{ text-decoration:underline; text-underline-offset:4px; text-decoration-thickness:1.5px; }
+    #lp-explore .lp-ex-more:active{ opacity:.7; }
+    #lp-explore .lp-ex-more:focus-visible{ outline:3px solid var(--pv-accent); outline-offset:3px; border-radius:4px; }
+    /* 日本語は文節で折る（「カタール航/空」「経験年/数」にしない）。actual-pay.css と同じ書き方。
+       対応していないブラウザは黙って無視する＝従来どおりの折り方。 */
+    :is(#lp-realpay,#lp-airlines,#lp-explore,#lp-why){ line-break:strict; word-break:auto-phrase; }
+    #lp-explore .lp-ex-h3{ margin:0; font-size:17px; font-weight:700; line-height:1.4; letter-spacing:-.015em; color:var(--pv-text); }
+    #lp-explore .lp-ex-note{ display:block; margin-top:2px; font-size:12.5px; font-weight:500; letter-spacing:0; color:var(--pv-text-muted); }
+
+    /* レベリング図の外枠（白い面を1段持ち上げる） */
+    #lp-explore .lp-ex-lvl{ margin-top:32px; padding:18px 24px 12px; border-radius:24px;
+      background:var(--pv-surface); border:1px solid var(--pv-border);
+      box-shadow:0 1px 2px rgba(15,23,42,.04), 0 18px 40px -28px rgba(6,117,99,.40); }
+    #lp-explore .lp-ex-head{ display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap;
+      column-gap:16px; row-gap:0; margin-bottom:6px; }
+    #lp-explore .lvl-scroll{ margin-top:8px; }
+
+    /* 見本カード4枚 */
+    /* 同じ行の2枚は同じ高さ（grid の既定の stretch）。行どうしは揃えない（1fr だと2段目が1段目の高さまで空く）。 */
+    #lp-explore .lp-ex-cards{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:20px; margin-top:20px; }
+    #lp-explore .lp-ex-card{ display:flex; flex-direction:column; min-width:0; padding:20px 24px 6px; border-radius:22px;
+      background:var(--pv-surface); border:1px solid var(--pv-border);
+      box-shadow:0 1px 2px rgba(15,23,42,.04), 0 14px 32px -24px rgba(6,117,99,.38); }
+    #lp-explore .lp-ex-card > .lp-ex-more{ margin-top:auto; align-self:flex-start; }
+    /* ナビ（search.js）の #compare・#ranking・#jobs は全ページから来る。上に固定のバー（73px）の下に
+       カードの頭が隠れないよう、飛んだ先を少し下げる（旧トップは #compare・#ranking に 88px を直書きしていた）。 */
+    #lp-explore :is(.lp-ex-lvl,.lp-ex-card){ scroll-margin-top:88px; }
+
+    /* 国別：6本の細い棒（静止。見出しの推定額は currency.js が差し替える） */
+    #lp-explore .lp-ex-bars{ list-style:none; margin:12px 0 4px; padding:0; display:grid; row-gap:7px; }
+    #lp-explore .lp-ex-bars li{ display:grid; grid-template-columns:minmax(0,1fr) auto; column-gap:12px; row-gap:4px; align-items:baseline; }
+    /* 見出しは「…」で切らずに折る（360px の英語で「Middle East majors (…」と「(tax-free)」が消えていた）。 */
+    #lp-explore .lp-ex-bl{ min-width:0; font-size:13.5px; font-weight:500; line-height:1.35; color:var(--pv-text); }
+    #lp-explore .lp-ex-bv{ white-space:nowrap; font-size:13.5px; font-weight:700; line-height:1.35;
+      font-variant-numeric:tabular-nums; color:var(--pv-text); }
+    #lp-explore .lp-ex-bars i{ grid-column:1 / -1; position:relative; display:block; height:6px; border-radius:999px;
+      background:var(--pv-surface-soft); box-shadow:inset 0 0 0 1px var(--pv-border); }
+    #lp-explore .lp-ex-bars i::before{ content:''; position:absolute; inset:0 auto 0 0; width:var(--w); min-width:6px;
+      border-radius:999px; background:linear-gradient(90deg,var(--pv-accent),var(--pv-accent-dark)); }
+
+    /* ランキング：機長／副操縦士の切替と上位5行（行は buildRankingList が描く） */
+    #lp-explore .lp-ex-tabs{ display:inline-flex; align-self:flex-start; gap:4px; margin:12px 0 4px; padding:3px;
+      border-radius:999px; background:var(--pv-surface-soft); box-shadow:inset 0 0 0 1px var(--pv-border); }
+    #lp-explore .lp-ex-tab{ min-height:32px; padding:0 16px; border:0; border-radius:999px; background:transparent;
+      font:inherit; font-size:13.5px; font-weight:600; line-height:1; color:var(--pv-text-muted); cursor:pointer;
+      transition:transform .3s var(--lp-spring); }
+    #lp-explore .lp-ex-tab:hover{ color:var(--pv-text); }
+    #lp-explore .lp-ex-tab.active{ background:var(--pv-surface); color:var(--pv-text);
+      box-shadow:0 1px 2px rgba(15,23,42,.08), 0 6px 14px -8px rgba(6,117,99,.45); }
+    #lp-explore .lp-ex-tab:active{ transform:scale(.95); }
+    #lp-explore .lp-ex-tab:focus-visible{ outline:2px solid var(--pv-accent); outline-offset:2px; }
+    #lp-explore .lp-rk{ display:grid; }
+    #lp-explore .lp-rk.hidden{ display:none; }
+    #lp-explore .lp-rk-row{ display:grid; grid-template-columns:20px minmax(0,1fr) auto; column-gap:10px; align-items:center;
+      min-height:30px; margin:0 -8px; padding:0 8px; border-radius:10px; color:var(--pv-text); text-decoration:none;
+      transition:transform .3s var(--lp-spring); }
+    #lp-explore .lp-rk-row:hover{ background:var(--pv-accent-soft); }
+    #lp-explore .lp-rk-row:hover .lp-rk-an{ color:var(--pv-accent-ink); }
+    #lp-explore .lp-rk-row:active{ transform:scale(.985); }
+    #lp-explore .lp-rk-row:focus-visible{ outline:2px solid var(--pv-accent); outline-offset:0; }
+    #lp-explore .lp-rk-n{ font-size:12px; font-weight:700; text-align:center; font-variant-numeric:tabular-nums; color:var(--pv-text-muted); }
+    #lp-explore .lp-rk-an{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:14px; font-weight:600; }
+    #lp-explore .lp-rk-amt{ white-space:nowrap; font-size:14px; font-weight:700; font-variant-numeric:tabular-nums; }
+    #lp-explore .lp-ex-fine{ margin:4px 0 0; font-size:12px; line-height:1.6; color:var(--pv-text-muted); text-wrap:balance; }
+
+    /* 航空会社：主要8社の札（ロゴ＋社名） */
+    #lp-explore .lp-ex-chips{ display:flex; flex-wrap:wrap; gap:8px; margin:12px 0 4px; }
+    #lp-explore .lp-ex-chip{ display:inline-flex; align-items:center; gap:8px; min-height:40px; padding:0 14px 0 6px;
+      border-radius:999px; background:var(--pv-surface); box-shadow:inset 0 0 0 1px var(--pv-border);
+      font-size:13.5px; font-weight:600; line-height:1.2; color:var(--pv-text); text-decoration:none;
+      transition:transform .3s var(--lp-spring); }
+    /* 社名は <wbr> の所（「カタール／航空」）でだけ折る。入りきらないときの最後の手段だけ anywhere。 */
+    #lp-explore .lp-ex-chip span{ min-width:0; word-break:keep-all; overflow-wrap:anywhere; }
+    #lp-explore .lp-ex-chip img{ flex:none; width:28px; height:28px; padding:3px; border-radius:999px; object-fit:contain;
+      background:#fff; box-shadow:inset 0 0 0 1px rgba(15,23,42,.08); }
+    #lp-explore .lp-ex-chip:hover{ box-shadow:inset 0 0 0 1px var(--pv-accent-line), 0 6px 14px -10px rgba(6,117,99,.5);
+      color:var(--pv-accent-ink); transform:translateY(-1px); }
+    #lp-explore .lp-ex-chip:active{ transform:scale(.97); }
+    #lp-explore .lp-ex-chip:focus-visible{ outline:2px solid var(--pv-accent); outline-offset:2px; }
+
+    /* 比較記事：4本＋残り5本は折りたたみ（リンクは HTML に9本とも残す） */
+    #lp-explore .lp-ex-list{ list-style:none; margin:10px 0 0; padding:0; }
+    #lp-explore .lp-ex-list a{ display:grid; grid-template-columns:minmax(0,1fr) auto; column-gap:12px; align-items:center;
+      min-height:40px; padding:6px 0; border-bottom:1px solid var(--pv-border);
+      font-size:14px; font-weight:500; line-height:1.45; color:var(--pv-text); text-decoration:none; text-wrap:balance; }
+    #lp-explore .lp-ex-list a::after{ content:'→'; color:var(--pv-accent-ink); transition:transform .3s var(--lp-spring); }
+    #lp-explore .lp-ex-list a:hover{ color:var(--pv-accent-ink); }
+    #lp-explore .lp-ex-list a:hover::after{ transform:translateX(3px); }
+    #lp-explore .lp-ex-list a:active{ opacity:.7; }
+    #lp-explore .lp-ex-list a:focus-visible{ outline:2px solid var(--pv-accent); outline-offset:2px; border-radius:6px; }
+    #lp-explore .lp-ex-all{ margin-top:2px; }
+    #lp-explore .lp-ex-all summary{ display:inline-flex; align-items:center; gap:9px; min-height:44px; cursor:pointer; list-style:none;
+      font-size:14.5px; font-weight:600; color:var(--pv-accent-ink); }
+    #lp-explore .lp-ex-all summary::-webkit-details-marker{ display:none; }
+    #lp-explore .lp-ex-all summary::after{ content:''; width:7px; height:7px; border-right:1.6px solid currentColor;
+      border-bottom:1.6px solid currentColor; transform:translateY(-2px) rotate(45deg); transition:transform .3s var(--lp-spring); }
+    #lp-explore .lp-ex-all[open] summary::after{ transform:translateY(2px) rotate(-135deg); }
+    #lp-explore .lp-ex-all summary:hover{ text-decoration:underline; text-underline-offset:4px; text-decoration-thickness:1.5px; }
+    #lp-explore .lp-ex-all summary:active{ opacity:.7; }
+    #lp-explore .lp-ex-all summary:focus-visible{ outline:2px solid var(--pv-accent); outline-offset:2px; border-radius:6px; }
+    #lp-explore .lp-ex-all .lp-ex-list{ margin-top:0; }
+
+    /* Why PILOT VALUE：3項目＋ブランド行1回（押せる物は無い） */
+    #lp-why .lp-why-grid{ list-style:none; margin:32px 0 0; padding:0; display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr)); gap:20px; }
+    #lp-why .lp-why-item{ padding:26px 26px 28px; border-radius:22px; background:var(--pv-surface); border:1px solid var(--pv-border);
+      box-shadow:0 1px 2px rgba(15,23,42,.04), 0 14px 32px -24px rgba(6,117,99,.38); }
+    #lp-why .lp-why-ic{ display:inline-grid; place-items:center; width:44px; height:44px; border-radius:14px;
+      background:var(--pv-accent-soft); color:var(--pv-accent-ink); box-shadow:inset 0 0 0 1px var(--pv-accent-line); }
+    #lp-why .lp-why-h{ margin:18px 0 0; font-size:18px; font-weight:700; line-height:1.35; letter-spacing:-.015em; color:var(--pv-text); }
+    #lp-why .lp-why-p{ margin:8px 0 0; font-size:15px; font-weight:500; line-height:1.75; color:var(--pv-text-muted);
+      word-break:auto-phrase; line-break:strict; text-wrap:pretty; }
+    #lp-why .lp-why-tag{ margin:40px 0 0; text-align:center; white-space:nowrap;
+      font-size:12px; font-weight:700; letter-spacing:.24em; color:var(--pv-text-soft); }
+
+    /* FAQ の下のボタン2本（緑と白）。FAQ 本文と JSON-LD は触らない。 */
+    #sec-faq .lp-faq-cta{ display:flex; flex-wrap:wrap; justify-content:center; gap:12px; margin-top:32px; }
+    #sec-faq .lp-btn{ display:inline-flex; align-items:center; justify-content:center; gap:10px; min-height:52px; padding:0 24px;
+      border-radius:999px; font-size:15.5px; font-weight:600; line-height:1.25; text-align:center; text-decoration:none;
+      background:var(--pv-accent-dark); color:#fff;
+      box-shadow:0 1px 2px rgba(6,117,99,.25), 0 12px 26px -14px rgba(6,117,99,.7);
+      transition:transform .4s var(--lp-spring, cubic-bezier(.34,1.45,.64,1)); }
+    /* 文字は .lp-btn-l の1枚に包んである（中の <span data-pv-n> が gap で割れないように）。 */
+    #sec-faq .lp-btn svg{ flex:none; transition:transform .4s var(--lp-spring, cubic-bezier(.34,1.45,.64,1)); }
+    #sec-faq .lp-btn:hover{ transform:translateY(-2px); box-shadow:0 2px 4px rgba(6,117,99,.25), 0 18px 34px -16px rgba(6,117,99,.75); }
+    #sec-faq .lp-btn:hover svg{ transform:translateX(3px); }
+    #sec-faq .lp-btn:active{ transform:translateY(0) scale(.97); }
+    #sec-faq .lp-btn:focus-visible{ outline:3px solid var(--pv-accent); outline-offset:3px; }
+    #sec-faq .lp-btn--ghost{ background:var(--pv-surface); color:var(--pv-text);
+      box-shadow:inset 0 0 0 1px var(--pv-border), 0 10px 24px -18px rgba(6,117,99,.45); }
+    #sec-faq .lp-btn--ghost:hover{ box-shadow:inset 0 0 0 1px var(--pv-accent-line), 0 16px 30px -18px rgba(6,117,99,.5); }
+
+    @media (max-width:900px){
+      #lp-why .lp-why-grid{ grid-template-columns:minmax(0,1fr); gap:12px; }
+      #lp-why .lp-why-item{ display:grid; grid-template-columns:44px minmax(0,1fr); column-gap:16px; padding:22px 22px 24px; }
+      #lp-why .lp-why-ic{ grid-row:span 2; }
+      #lp-why .lp-why-h{ margin-top:0; align-self:center; }
+    }
+    /* 768px 未満：見本カードは横に滑らせる1列。縦に積まない。
+       ★端まで滑らせるために、左右の余白（--lp-gut）ぶんだけ外へはみ出して、同じだけ内側を空ける。
+         ページ全体の幅は変わらない（scrollWidth＝clientWidth を確かめている）。 */
+    @media (max-width:767px){
+      #lp-explore{ padding-top:24px; }
+      #lp-explore .lp-ex-lvl{ margin-top:24px; padding:16px 16px 8px; border-radius:20px; }
+      /* ピッカーの札は横に滑らせる1列（折り返すと1社1行で縦に 170px 使っていた・390px 実測）。
+         ★札の見た目と動きは salary-leveling.js のまま。並べ方だけ。 */
+      #lp-explore .lvl-quick{ flex-wrap:nowrap; overflow-x:auto; overscroll-behavior-x:contain; scrollbar-width:none; }
+      #lp-explore .lvl-quick::-webkit-scrollbar{ display:none; }
+      #lp-explore .lvl-quick > *{ flex:none; }
+      #lp-explore .lp-ex-cards{ grid-template-columns:none; grid-auto-flow:column; grid-auto-columns:84%; grid-auto-rows:auto;
+        gap:12px; margin:16px calc(var(--lp-gut) * -1) 0; padding:2px var(--lp-gut) 14px;
+        overflow-x:auto; overscroll-behavior-x:contain; scroll-snap-type:x mandatory; scroll-padding-inline:var(--lp-gut);
+        scrollbar-width:none; }
+      #lp-explore .lp-ex-cards::-webkit-scrollbar{ display:none; }
+      #lp-explore .lp-ex-card{ scroll-snap-align:start; padding:18px 18px 4px; }
+      /* 札は2列のます目（丸い札の折り返しだと 360px で1社1行になり、4枚の中で一番高くなっていた）。
+         長い社名は札の中で2行に折る。 */
+      #lp-explore .lp-ex-chips{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; }
+      #lp-explore .lp-ex-chip{ gap:6px; min-width:0; min-height:40px; padding:4px 8px 4px 5px; border-radius:14px;
+        font-size:12.5px; line-height:1.25; }
+      #lp-explore .lp-ex-chip img{ width:24px; height:24px; padding:2px; }
+      #lp-explore .lp-ex-fine{ font-size:11.5px; }
+      #lp-why .lp-why-grid{ margin-top:24px; }
+      #lp-why .lp-why-tag{ margin-top:28px; font-size:11px; letter-spacing:.18em; }
+    }
+    /* いちばん狭い幅：「シンガポール」が札に入りきらず「シンガポー／ル航空」と割れていた（360px 実測）。 */
+    @media (max-width:380px){
+      #lp-explore .lp-ex-chip{ gap:5px; padding-right:6px; font-size:12px; }
+      #lp-explore .lp-ex-chip img{ width:22px; height:22px; }
+    }
+    @media (max-width:639px){
+      :is(#lp-explore,#lp-why){ --lp-gut:20px; }
+      #sec-faq .lp-btn{ width:100%; }
+    }
+    @media (prefers-reduced-motion:reduce){
+      #lp-explore .lp-ex-more svg, #lp-explore .lp-ex-tab, #lp-explore .lp-rk-row, #lp-explore .lp-ex-chip,
+      #lp-explore .lp-ex-list a::after, #lp-explore .lp-ex-all summary::after,
+      #sec-faq .lp-btn, #sec-faq .lp-btn svg{ transition:none; }
     }
 
     /* ── ヒーローの直下：流れる給与カード（2026-09-22 にヒーローの外へ出した）──
@@ -1332,7 +996,6 @@
     }
     @media(prefers-reduced-motion:reduce){ #pv-mcta{ transition:none } }
 
-    .pv-hide{ display:none !important; }
     /* スクリーンリーダー専用（チャートのテキスト代替に使う） */
     .pv-sr{ position:absolute; width:1px; height:1px; padding:0; margin:-1px;
       overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
@@ -1340,60 +1003,13 @@
     @media(max-width:900px){
       .pv-grid-4{ grid-template-columns:repeat(2,1fr); }
       .pv-grid-3{ grid-template-columns:repeat(2,1fr); }
-      /* ★ 段組みを畳むのは flex-basis の仕事（上の注記）。ここで触るのは左右の余白だけ。 */
-      .pv-demo-cols{ padding:var(--pv-s-2) var(--pv-s-2) 0; }
-      .pv-demo-cols.is-first{ padding-top:var(--pv-s-3); }
-      /* 紺カードは狭い画面で内側の余白を詰める（詰めないと累計の額が2行に折れる） */
-      .pv-cum{ padding:20px 16px; }
-    }
-    /* ★スマホでは2列だと「¥2,000,000」が枠に入らず桁の途中で折れる（414px 以下で実測）。
-       実物の my-value.css（760px）と同じ手当て＝総支給を横1本ぶんに戻し、
-       残りの額を一段小さくする。 */
-    @media(max-width:560px){
-      .pv-mk-i.is-lead{ grid-column:1/-1; }
-      .pv-mk-v{ font-size:1.02rem; }
-      .pv-mk-i.is-lead .pv-mk-v{ font-size:1.5rem; }
-    }
-    /* いちばん狭い機種（320〜375px）では2列にすると手取りも折れる。1列に落とす。 */
-    @media(max-width:380px){
-      .pv-mk{ grid-template-columns:1fr; }
     }
     @media(max-width:767px){
       .pv-sec{ padding:var(--pv-s-4) 0; }
-      /* 問いも連鎖も、狭い画面では本文より少しだけ大きい程度に落とす。
-         ここを詰めすぎると「問いが主役」でなくなるので、lede より下げない。 */
-      .pv-asks{ gap:var(--pv-s-2); }
       .pv-head{ margin-bottom:var(--pv-s-3); }
       .pv-btn{ width:100%; }
       .pv-cta-row .pv-btn{ width:100%; }
     }
     @media(max-width:560px){
       .pv-grid-4, .pv-grid-3, .pv-grid-2{ grid-template-columns:1fr; }
-      /* タグラインは1行で読ませたいが、狭い画面では字間ごと縮める。
-         ⚠️ white-space:nowrap のまま級数だけ下げること。折ると2行目が
-            "PILOT'S VALUE" だけになって締めに見えなくなる。 */
-      .pv-tagline{ font-size:.78rem; letter-spacing:.14em; }
-      /* ⚠️ ここは 560px。.pv-grid-4 が1列に落ちるのと同じ幅で外す。
-         767px 側に書くと 561〜767px の4列のあいだだけ高さが揃わなくなる。 */
-      .pv-know-t{ min-height:0; }
-      /* 横長テーブルは縮小せずカードに組み替える（横スクロールにしない） */
-      .pv-table, .pv-table tbody, .pv-table tr, .pv-table td{ display:block; width:100%; }
-      .pv-table thead{ display:none; }
-      .pv-table tr{ border:1px solid var(--pv-line); border-radius:var(--pv-r);
-        padding:6px 4px; margin-bottom:10px; background:var(--pv-surface); }
-      /* gap は 0。gap を入れると currency.js が割った span の間にも隙間が入って
-         「¥2,200 〜 3,500万」が三つに割れて見える。間隔は下の2つで作る。 */
-      .pv-table td{ border-bottom:none; padding:7px 12px;
-        display:flex; align-items:center; gap:0; }
-      .pv-table td .pv-badge{ margin-left:7px; }
-      /* ⚠️ ここを justify-content:space-between にしてはいけない。
-         currency.js が「¥2,200〜3,500万」を span 2個＋テキストに割るので、
-         金額の途中に隙間が空いて「¥2,200  〜  3,500万」になる。
-         ラベルだけを左へ押し出して、値は右側でひと固まりにする。 */
-      .pv-table td::before{ content:attr(data-label); margin-right:auto;
-        padding-right:12px; white-space:nowrap;
-        font-size:.7rem; font-weight:700; color:var(--pv-ink-2); }
-      .pv-table td.pv-num{ text-align:right; }
-      /* 縦積みになると td の背景が tr の角丸からはみ出して四角く見える。 */
-      #actual-pay .pv-table tr{ overflow:hidden; }
     }

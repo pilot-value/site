@@ -45,16 +45,6 @@
   var T = {
     ja: {
       sep: ' ・ ',
-      maskLock:  '🔒 記録して見る',
-      maskAria:  '実際の給与を見る（給与を記録すると解放）',
-      maskOpen:  '実際の給与',
-      openT:     'モザイクは外れています。',
-      openD:     '記録を更新すると、あなたの位置も一緒に新しくなります。',
-      openBtn:   '記録を更新する',
-      realOpenT: 'この表は、実際に記録された給与から作られています。',
-      realOpenD: 'あなたの1件が、この数字の精度を上げます。記録は約30秒、表示は中央値だけです。',
-      realLockT: '右の列のモザイクを外すには。',
-      realLockD: '給与明細をアップするか、年収を手で入力すると外れます。表示するのは中央値だけです。',
       rating:    '評価 ',
       autoTr:    '自動翻訳',
       emptyT:    'まだ投稿が少ないです',
@@ -67,16 +57,6 @@
     },
     en: {
       sep: ' · ',
-      maskLock:  '🔒 Unlock',
-      maskAria:  'See the actual pay — unlocks once you add yours',
-      maskOpen:  'Actual pay',
-      openT:     "You're in. The right-hand column is open.",
-      openD:     'Update your record and your position moves with it.',
-      openBtn:   'Update my record',
-      realOpenT: 'These numbers come from pay pilots actually reported.',
-      realOpenD: 'One more entry sharpens them. Takes about 30 seconds, and only the median is ever shown.',
-      realLockT: 'To see the right-hand column.',
-      realLockD: 'Drop in a payslip, or type your annual pay. Only the median is ever shown.',
       rating:    'Rating ',
       autoTr:    'Machine-translated',
       emptyT:    'Not many posts yet.',
@@ -142,13 +122,10 @@
   /* ══════════════════════════════════════════════════════════════
      ★PV_DEMO — 実在しないサンプル値。2026-08-11 のオーナー判断で、このまま公開する。
 
-     Hero の帯と Actual Pay のモザイクには、本人の実投稿ではなくサンプルを使う。理由：
-     ・Actual Pay の中央値は pay_benchmarks が 0件で、そもそも実在しない
-     ・Hero に実在する個人の投稿を流す必要はない（＝本人記録は流さない）
-
-     この形は「本人がアップした明細と引き換えに、誰も報告していない数字を見せる」ことになる。
-     承知のうえで出す、というのがオーナーの判断（サンプル明示も本物への差し替えも見送り）。
-     本物の投稿がたまったら pay_benchmarks 側が自動でここを上書きする（下の fillActualPay）。
+     流れるカード・ヒーローの見本の画面・REAL PAY の節のカードには、本人の実投稿ではなくサンプルを使う。
+     Hero に実在する個人の投稿を流す必要はない（＝本人記録は流さない）。
+     ★2026-09-22 まで、トップの「公開額と実際の額」の表（#actual-pay）のモザイクの下にもこの値を敷いていた。
+       表ごとトップから外したので、pay_benchmarks で上書きする処理（fillActualPay）も消した。
      ⚠️ 差し替えるときのために、印は残してある。index.html 側にも同じ印がある。
         grep PV_DEMO で全部出る。
 
@@ -228,101 +205,6 @@
     targets.forEach(function (t) { io.observe(t); });
     // Hero の検索欄は廃止した（ヘッダーの検索アイコン search.js #pv-search-btn が担う）。
     // airline_search イベントもそちらに一本化する。
-  }
-
-  /* ── 金額の書式（サイト標準の円表記。currency.js がここから変換する）──── */
-  function manYen(jpy) {
-    var man = Math.round(jpy / 10000);
-    return '¥' + man.toLocaleString('en-US') + '万';
-  }
-  // pay_benchmarks は USD 建て。サイトの表示レート（currency.js の RATES）で円に直す。
-  // currency.js より先に走ることがあるので、無ければ同じ既定値に落とす。
-  function usdToJpy(usd) {
-    var r = (w.PVCurrency && w.PVCurrency.rates && w.PVCurrency.rates.USD) || 158.95;
-    return usd * r;
-  }
-
-  /* ここは「実額の年収」なので、給与明細を出した人だけに開く。
-     pv_salary_unlock_expiry … pay-report.html が profiles.access_until（90日）から立てる。
-     口コミの鍵（pv_unlock_expiry）では開かない。口コミは金額を集めていないので、
-     それで年収まで見せると、出したものと返るものが釣り合わない。
-     鍵は pv-session.js のログアウトで消え、pv-reunlock.js が入れ直す。 */
-  function isUnlocked() {
-    var v = 0;
-    try { v = parseInt(w.localStorage.getItem('pv_salary_unlock_expiry') || '0', 10); } catch (e) { return false; }
-    return !!(v && Date.now() < v);
-  }
-
-  /* ── ❸ Actual Pay：モザイクの開閉 ＋ pay_benchmarks の実測中央値 ────────
-     右列は最初、★PV_DEMO のサンプル値にモザイクが掛かった状態で HTML に入っている。
-     ここで（1）解放済みならモザイクを外し、（2）本物の中央値が来ていればセルごと差し替える。 */
-  function fillActualPay() {
-    var cells = d.querySelectorAll('[data-ap-slug]');
-    if (!cells.length) return;
-
-    // （1）解放済み：ぼかしを外して鍵の文言を消す。見た目の切替は CSS の .is-open が持つ。
-    if (isUnlocked()) {
-      var masks = d.querySelectorAll('#actual-pay .pv-mask');
-      masks.forEach(function (a) {
-        a.classList.add('is-open');
-        a.removeAttribute('href');          // 解放後はリンクにしない（飛び先が同じ記録ページなので）
-        a.setAttribute('aria-label', T.maskOpen);
-      });
-      if (masks.length) evOnce('actual_pay_unlocked', { cells: masks.length });
-      var ut = d.querySelector('#actual-pay .pv-fill-t');
-      var ud = d.querySelector('#actual-pay .pv-fill-d');
-      var ub = d.querySelector('#actual-pay .pv-fill .pv-btn');
-      if (ut) ut.textContent = T.openT;
-      if (ud) ud.textContent = T.openD;
-      // 外れているのにボタンが「モザイクを外す」のままだと文言が食い違う。
-      if (ub) ub.textContent = T.openBtn;
-    }
-
-    var cols = 'airline,position,fleet,period_year,n,median_usd';
-    rest('pay_benchmarks?select=' + cols + '&order=n.desc&limit=500').then(function (rows) {
-      // 1件も無ければ HTML の初期表示（★PV_DEMO のサンプル値＋モザイク）のまま。
-      // 件数（あと○件）は出せない。pay_benchmarks は having count(*) >= 5 なので
-      // 5件未満のコホートは行そのものが返らず、n=2 と n=0 の区別がつかない。
-      if (!rows || !rows.length) return;
-      var best = {};                        // 会社×職位ごとに、いちばん人数の多いコホートを採る
-      rows.forEach(function (r) {
-        var k = r.airline + '|' + r.position;
-        if (!best[k] || r.n > best[k].n) best[k] = r;
-      });
-
-      // 本物が来た欄は、サンプル値を捨てて中央値で置き換える。
-      // ただし未解放の人にはモザイクを掛けたままにする。表の上で
-      // 「右の列は記録した人だけが見られます」と約束しているので、本物だけ素通しにしない。
-      var open = isUnlocked();
-      var shown = 0;
-      cells.forEach(function (td) {
-        var r = best[td.getAttribute('data-ap-slug') + '|' + td.getAttribute('data-ap-role')];
-        if (!r || r.median_usd == null) return;
-        var val = manYen(usdToJpy(+r.median_usd));
-        var badge = ' <span class="pv-badge pv-badge--actual">' +
-              (r.fleet ? String(r.fleet).toUpperCase() + ' / ' : '') + 'n=' + r.n + '</span>';
-        td.innerHTML = open
-          ? '<span class="pv-mask is-open"><span class="pv-mask-v">' + val + '</span></span>' + badge
-          : '<a class="pv-mask" href="pay-report.html" data-pv-ev="actual_pay_mask_click"' +
-              ' aria-label="' + esc(T.maskAria) + '">' +
-              '<span class="pv-mask-v">' + val + '</span>' +
-              '<span class="pv-mask-lock" aria-hidden="true">' + esc(T.maskLock) + '</span>' +
-            '</a>' + badge;
-        shown++;
-      });
-      // 後から入れた金額も通貨切替に追随させる（MutationObserver でも拾うが、初回のちらつきを避ける）。
-      if (shown && w.PVCurrency && typeof w.PVCurrency.scan === 'function') {
-        try { w.PVCurrency.scan(d.getElementById('actual-pay')); } catch (e) {}
-      }
-      if (shown) evOnce('actual_pay_filled', { rows: shown });
-      // 全部の欄が本物になったら、表の下の文言も「サンプル前提」から実態に合わせる。
-      if (shown === cells.length) {
-        var ft = d.querySelector('#actual-pay .pv-fill-t');
-        var fd = d.querySelector('#actual-pay .pv-fill-d');
-        if (ft) ft.textContent = open ? T.realOpenT : T.realLockT;
-        if (fd) fd.textContent = open ? T.realOpenD : T.realLockD;
-      }
-    });
   }
 
   /* ── ❽ Pilot Voices：reviews_v2 の実データ。本文が空の行は出さない。 ─────
@@ -678,7 +560,6 @@
     // 通貨の切替はここで受ける（流れるカード・ヒーローの見本・REAL PAY のカード・112 の電話）。currency.js は
     // 「保存された通貨が非JPY」の初期表示でも同じ報せを出すので、戻ってきた人もこれ1本で拾える。
     w.addEventListener('pv-currency-change', repaintMarquee);
-    fillActualPay();
     fillVoices();
     mobileCta();
     devProbe();
