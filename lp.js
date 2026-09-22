@@ -19,6 +19,15 @@
   var SB_URL = 'https://vzgmnkrggrwtsrpqndsm.supabase.co';
   var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6Z21ua3JnZ3J3dHNycHFuZHNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0MzkwOTcsImV4cCI6MjA5MDAxNTA5N30.wE4cJbqeYGCgn5ZvHd80hYWgQuySKvOMJMbsJWOvmtw';
 
+  /* ロゴの置き場は、このスクリプト自身の URL を基準に解く（actual-pay.js と同じ）。
+     ページ相対で書くと /en/ から en/assets/… を見に行って 404 になる。
+     currentScript は同期実行中しか取れないので、ここで確定させる（defer でも取れる）。 */
+  var LOGO_BASE = 'assets/airline-logos/';
+  try {
+    var _self = (d.currentScript && d.currentScript.src) || '';
+    if (_self) LOGO_BASE = new URL('assets/airline-logos/', _self).href;
+  } catch (e) {}
+
   function rest(path) {
     return fetch(SB_URL + '/rest/v1/' + path, {
       headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY },
@@ -51,6 +60,8 @@
       emptyT:    'まだ投稿が少ないです',
       emptyD:    'ここには現役・元パイロット本人の投稿だけを載せます。件数を水増ししたり、他サイトの口コミを転載したりはしません。',
       mqMeta: function (years, base) { return '経験 ' + years + ' ・ ' + base; },
+      // ヒーローの右下のカード（報酬の内訳）の区分名。REAL PAY の行を開いた面と同じ呼び名。
+      heroPart: { base: '基本給', variable: '変動給', bonus: '賞与・利益分配' },
       voice: { culture: '企業文化', salary: '給与', benefits: '福利厚生',
                wlb: 'WLB', ops: '運航環境', training: '訓練環境', mgmt: '経営陣への提案' },
     },
@@ -71,6 +82,7 @@
       emptyT:    'Not many posts yet.',
       emptyD:    'Only working and former pilots post here. We never pad the count, and we never repost reviews from other sites.',
       mqMeta: function (years, base) { return years + ' · ' + base; },
+      heroPart: { base: 'Base pay', variable: 'Variable (flying)', bonus: 'Bonus & profit share' },
       voice: { culture: 'Culture', salary: 'Pay', benefits: 'Benefits',
                wlb: 'WLB', ops: 'Operations', training: 'Training', mgmt: 'To management' },
     },
@@ -141,7 +153,10 @@
         grep PV_DEMO で全部出る。
 
      金額は必ず SSOT（salary-data.mjs の SALARY）のレンジ内に置く。
-     範囲外を書くと check-salary.mjs の PASS 2 が ❌ で落ちる。
+     ⚠️ check-salary.mjs はこの値を見ていない（見るのは .html だけ。ここは JS が描く）。
+        以前ここに「範囲外なら PASS 2 が落ちる」と書いてあったが誤り。値を変えたら
+        SALARY のレンジと手で突き合わせる（範囲外でも何も赤くならない）。
+     ★2026-09-22 からヒーローの右の見本の画面（fillHero）もここから描く。新しい数字は作らない。
      ★2026-09-16 オーナー指示で 100万円単位（末尾2桁は必ず 00）に丸めてある。
         細かい端数が並んでいると「自分のはこんなにきれいな数字じゃない」と手が止まるため。
         表示側の丸めは mqAmt()。ここの値も同じ粒度で書く（片方だけ細かくしない）。
@@ -165,6 +180,15 @@
       ['jal',                3200, '月給＋賞与＋乗務手当',     '機長',   'A350', '20年以上', '羽田',          '日本航空'],
       ['turkish-airlines',   1500, '基本給＋乗務手当',         '副操縦士', 'B737', '5〜10年',  'イスタンブール', 'ターキッシュ エアラインズ'],
     ],
+    /* ヒーローの右の見本の画面（2026-09-22）。行は上の marquee の何番目を使うか。
+       on ＝ 開いている行（右下のカードがこの行の内訳）。
+       detail.parts は [区分, 割合%]。額は on の行の年収をそのまま使う（数字を2か所に持たない）。
+       ★割合の合計は必ず 100。区分の色は lp.css の .hero-c-*（REAL PAY と同じ色）。 */
+    hero: {
+      rows: [0, 1, 2, 3, 5],
+      on: 1,
+      detail: { parts: [['base', 56], ['variable', 26], ['bonus', 18]] },
+    },
   };
 
   /* ── 計測（GA4。既存の gtag をそのまま使う。新しい業者は入れない）──────── */
@@ -422,7 +446,8 @@
   }
 
   function repaintMarquee() {
-    var els = d.querySelectorAll('#hero-mq-track .hero-mq-amt');
+    // 流れるカードとヒーローの見本の画面の金額（どちらも pv-no-cur ＋ data-jpy）。
+    var els = d.querySelectorAll('#hero-mq-track .hero-mq-amt, #hero-section .pv-no-cur[data-jpy]');
     for (var i = 0; i < els.length; i++) {
       els[i].textContent = mqAmt(parseInt(els[i].getAttribute('data-jpy'), 10));
     }
@@ -457,10 +482,75 @@
     var html = rows.map(function (r) { return mqCard(r, false); }).join('') +
                rows.map(function (r) { return mqCard(r, true); }).join('');
     track.innerHTML = html;
-    // 金額は pv-no-cur ＝ currency.js の走査から外してある（mqAmt が自分で書く）ので、
-    // 通貨の切替はここで受ける。currency.js は「保存された通貨が非JPY」の初期表示でも
-    // 同じ報せを出すので、戻ってきた人もこれ1本で拾える。
-    w.addEventListener('pv-currency-change', repaintMarquee);
+  }
+
+  /* ── ❿ ヒーローの右：REAL PAY の見本の画面（2026-09-22）──────────────────
+     ★全部 PV_DEMO（サンプル）。本物の投稿は1件も読まない・出さない。
+       小さい会社で「会社名＋時期」が出ると、書いた本人が推測されるため（オーナー）。
+     ★投稿時期・Verified・本人申告の札・錠前は付けない（見本に「確認済み」は嘘になる）。
+     ★HTML には灰色の棒の行が5本あり、同じ高さ（58px）の行に描き替える＝ガタつかない。
+     人数だけは本物。pv_pay_rows() の stats.contributors を使う（左の板の「N / 100人」と同じ数）。
+     ⚠️ あの関数は未ログインでも伏せた行を返すが、行は使わない・DOM に入れない。 */
+  function heroLogo(slug, name) {
+    var ext = (w.PV_LOGOS || {})[slug];
+    if (ext) {
+      // alt="" ＝ 社名がすぐ隣に文字で出るので、読み上げが二重にならないように。
+      return '<img class="hero-win-logo" src="' + esc(LOGO_BASE + slug + '.' + ext) + '"' +
+             ' alt="" width="30" height="30" decoding="async"/>';
+    }
+    var ini = String(name || '').replace(/[^0-9A-Za-z\u3040-\u30ff\u4e00-\u9fff]/g, '').slice(0, 2).toUpperCase() || '·';
+    return '<span class="hero-win-logo hero-win-mono" aria-hidden="true">' + esc(ini) + '</span>';
+  }
+
+  function heroRow(r, on) {
+    var slug = r[0], jpy = r[1] * 10000, pos = r[3], fleet = r[4], years = r[5];
+    var name = L === 'en' ? airlineName(slug, r[7]) : r[7];
+    return '<div class="hero-win-row' + (on ? ' is-on' : '') + '">' +
+      '<div class="hero-win-air">' + heroLogo(slug, name) +
+        '<span class="hero-win-an">' + esc(name) + '</span></div>' +
+      '<span class="hero-win-meta">' + esc(tw(pos) + T.sep + fleet + T.sep + tw(years)) + '</span>' +
+      '<span class="hero-win-amt pv-no-cur" data-jpy="' + jpy + '">' + esc(mqAmt(jpy)) + '</span>' +
+    '</div>';
+  }
+
+  function fillHero() {
+    var H = PV_DEMO.hero;
+    var box = d.getElementById('hero-win-rows');
+    if (box) {
+      box.innerHTML = H.rows.map(function (i) {
+        return heroRow(PV_DEMO.marquee[i], i === H.rows[H.on]);
+      }).join('');
+    }
+
+    // 右下のカード（行を開いた面の小さい見本）。社名は置かない。
+    var jpy = PV_DEMO.marquee[H.rows[H.on]][1] * 10000;
+    var amt = d.getElementById('hero-card-amt');
+    if (amt) { amt.setAttribute('data-jpy', jpy); amt.textContent = mqAmt(jpy); }
+    var parts = H.detail.parts;
+    var bar = d.getElementById('hero-card-bar');
+    if (bar) {
+      bar.innerHTML = parts.map(function (p) {
+        return '<i class="hero-c-' + p[0] + '" style="flex:' + p[1] + ' 1 0"></i>';
+      }).join('');
+    }
+    var leg = d.getElementById('hero-card-leg');
+    if (leg) {
+      leg.innerHTML = parts.map(function (p) {
+        return '<li><i class="hero-c-' + p[0] + '"></i><span>' + esc(T.heroPart[p[0]]) +
+               '</span><b>' + p[1] + '%</b></li>';
+      }).join('');
+    }
+
+    // 人数（本物）。取れない・3人未満なら出さない（場所は取ったまま）。0 や推測で埋めない。
+    var proof = d.getElementById('hero-proof');
+    var num = d.getElementById('hero-proof-n');
+    if (!proof || !num) return;
+    rest('rpc/pv_pay_rows').then(function (res) {
+      var n = res && res.stats ? res.stats.contributors : null;
+      if (typeof n !== 'number' || !isFinite(n) || n < 3) return;
+      num.textContent = n.toLocaleString('en-US');
+      proof.classList.remove('is-wait');
+    });
   }
 
   /* ── 開発時だけ：?pv_demo=live で実データ経路を目視する用のログ ─────────
@@ -507,6 +597,11 @@
   function boot() {
     wireEvents();
     fillMarquee();
+    fillHero();
+    // 金額は pv-no-cur ＝ currency.js の走査から外してある（mqAmt が自分で書く）ので、
+    // 通貨の切替はここで受ける（流れるカードとヒーローの見本の両方）。currency.js は
+    // 「保存された通貨が非JPY」の初期表示でも同じ報せを出すので、戻ってきた人もこれ1本で拾える。
+    w.addEventListener('pv-currency-change', repaintMarquee);
     fillActualPay();
     fillVoices();
     mobileCta();

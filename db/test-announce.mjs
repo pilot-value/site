@@ -720,7 +720,7 @@ for (const [k, b] of RALL) {
 /* 件名の長さ。 */
 for (const [k, b] of RALL) ok(b.subject.length <= 78, `realpay/${k}: 件名が 78 文字以内（${b.subject.length}）`);
 
-/* タグラインは実在の文言（index.html の h1／pv-referral.js の TAGLINE）。発明しない。 */
+/* タグラインは実在の文言（index.html の最後の案内の1行／pv-referral.js の TAGLINE）。発明しない。 */
 {
   ok(read('index.html').includes('パイロットの待遇に、')
      && buildRealPay(RP.ja, O).text.includes('パイロットの待遇に、匿名の実データで透明性を。'),

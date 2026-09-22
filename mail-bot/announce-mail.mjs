@@ -767,7 +767,8 @@ function realPayCopy(lang) {
       cta: 'REAL PAY を見る',
       /* ★勧誘にしない。「出すと見られます」ではなく、いまどうなっているかの事実。 */
       after: 'この一覧は、自分の給与を出したパイロットが読めるようにしています。まだ出していない方にも、いまどれだけ集まっているかは開いてご覧いただけます。',
-      /* タグラインは実在の文言。index.html の h1 と pv-referral.js の TAGLINE。 */
+      /* タグラインは実在の文言。index.html の最後の案内（#final-cta の見出しの上の1行）と pv-referral.js の TAGLINE。
+         ★2026-09-22 までは index.html の h1 だった（ヒーローを作り直したときに最後の案内へ移した）。 */
       tag: ['パイロットの待遇に、匿名の実データで透明性を。',
             'Know your value. Raise our value.'],
       why: 'このメールは、PILOT VALUE にご登録いただいた方へ、サービスからのお知らせとしてお送りしています。',

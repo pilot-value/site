@@ -41,82 +41,8 @@
     }
     .nav-link:hover { color:#fff; }
 
-    #hero-section {
-      position:relative; width:100%; height:100vh;
-      overflow:hidden; background:#000;
-    }
-    #hero-canvas {
-      position:absolute; inset:0; width:100%; height:100%;
-      touch-action:none;
-    }
-    .hero-overlay {
-      position:absolute; inset:0; z-index:10;
-      background:linear-gradient(
-        to bottom,
-        rgba(0,0,0,0.15) 0%,
-        rgba(0,0,0,0.05) 40%,
-        rgba(0,0,0,0.45) 80%,
-        rgba(10,12,15,1) 100%
-      );
-    }
-    .hero-content {
-      position:absolute; inset:0; z-index:20;
-      display:flex; flex-direction:column;
-      align-items:center; justify-content:center;
-      text-align:center; padding:0 24px;
-    }
-
-    /* ブランド行。V3 で主役から降ろした（初見が最初に理解すべきは哲学ではなく
-       「他のパイロットの実際の給与が見られる」という価値）。金のグラデーションは維持。 */
-    .hero-en {
-      font-size: clamp(.72rem, 1.5vw, .88rem);
-      font-weight: 800;
-      line-height: 1.2;
-      letter-spacing: 0.28em;
-      background: linear-gradient(135deg, #ff9b3d 0%, #ffd53d 40%, #fff5c0 65%, #ffa040 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      background-size: 200% 200%;
-      animation: grad-shift 4s ease infinite;
-      text-shadow: none;
-      margin: 0 0 1.1rem;
-    }
-    .hero-ja {
-      font-size: clamp(1rem, 2.5vw, 1.5rem);
-      font-weight: 400;
-      color: rgba(255,245,200,0.82);
-      letter-spacing: 0.12em;
-      margin-top: 0.6em;
-    }
-    @keyframes grad-shift {
-      0%   { background-position: 0% 50%; }
-      50%  { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-
-    .anim-fade-up {
-      opacity:0; transform:translateY(28px);
-      animation: fade-up 0.9s cubic-bezier(.16,1,.3,1) forwards;
-    }
-    @keyframes fade-up {
-      to { opacity:1; transform:translateY(0); }
-    }
-    .delay-1 { animation-delay:.15s; }
-    .delay-2 { animation-delay:.3s; }
-    .delay-3 { animation-delay:.5s; }
-    .delay-4 { animation-delay:.7s; }
-
-    /* ★hero の見出しが入る箱だけ、透明から出さない（2026-08-15）。
-         .anim-fade-up は opacity:0 から始まる。ブラウザは「透明な要素＝まだ描いていない」
-         と数えるので、待ち時間（.delay-2 = 0.3s）＋動き 0.9s が終わるまで、
-         ページで一番大きい文字（h1）が「表示された」ことにならない。
-         これがそのまま体感の表示速度（LCP）の遅れになっていた。
-         スマホ相当（5Mbps・遅延70ms・CPU 1/4・各3回の中央値）で LCP 3,224ms → 1,024ms。
-         ★動きは残す。上下の移動だけの keyframes に差し替えて、透明度に触らないだけ。
-         見た目の最終形は同じ（1.2s / 1.5s / 3.5s のスクリーンショットで確認済み）。 */
-    @keyframes hero-up { from { transform:translateY(28px); } to { transform:translateY(0); } }
-    .hero-content .anim-fade-up.delay-2 { opacity:1; animation-name:hero-up; }
+    /* 旧ヒーロー（黒地＋WebGL の地球儀・.hero-en・.hero-ja・.hero-content・.anim-fade-up）の規則は
+       ここにあったが、2026-09-22 の作り直しで外した。新しいヒーローは「── Hero（2026-09-22」の節。 */
 
     .glass {
       background:rgba(17,22,32,0.7);
@@ -439,8 +365,6 @@
       /* Section padding reduction */
       .py-24{padding-top:3.5rem!important;padding-bottom:3.5rem!important}
       .py-20{padding-top:3rem!important;padding-bottom:3rem!important}
-      /* Hero text fine-tuning */
-      .hero-ja{font-size:clamp(.85rem,2.2vw,1.2rem)!important;letter-spacing:.06em!important}
     }
     @media(max-width:480px){
       /* Nav logo */
@@ -486,6 +410,9 @@
       letter-spacing:-.03em; line-height:1.28; color:var(--pv-ink); margin:0; }
     .pv-h3{ font-size:clamp(1.02rem,1.9vw,1.2rem); font-weight:700;
       letter-spacing:-.02em; line-height:1.4; color:var(--pv-ink); margin:0; }
+    /* 最後の案内（#final-cta）の見出しの上の1行。2026-09-22 まではヒーローの見出しだった。 */
+    .pv-motto{ margin:0 0 10px; font-size:.86rem; font-weight:700; letter-spacing:.04em;
+      line-height:1.6; color:var(--pv-ink-3); }
     .pv-lede{ font-size:.95rem; line-height:1.75; color:var(--pv-ink-2);
       margin:var(--pv-s-2) 0 0; max-width:62ch; }
     .pv-note{ font-size:.76rem; line-height:1.7; color:var(--pv-ink-2); }
@@ -513,8 +440,8 @@
        ⚠️ 両端を同じ色にする（左右対称）。片側だけ明るくすると、モバイル幅で
           最後の1語だけ色が浮く（.pv-tagline で実際に踏んだ）。
        ⚠️ 使うのは #why の h2 だけ。#market / #pv-value / #give-get には付けない。
-          文字グラデがページで3か所（.hero-en ／ ここ ／ .pv-tagline）を
-          超えると署名でなくなる。 */
+          文字グラデがページで2か所（ここ ／ .pv-tagline）を
+          超えると署名でなくなる（2026-09-22 まではヒーローの .hero-en もあった）。 */
     /* 日本語には語の切れ目が無いので、放っておくと「その／後」「デー／タ」のように
        意味の途中で折れる（390px で実際に起きた）。意味のかたまりを inline-block に
        すると、その手前が優先的に折り返し位置になる。
@@ -607,8 +534,8 @@
     .pv-chain p:last-child{ color:var(--pv-gold-ink); }
 
     /* ── 締めのタグライン ────────────────────────────────────────
-       Hero の .hero-en で意味も分からず流し見た1行が、ここで意味を持って戻る。
-       文字自体にグラデーションを掛けるのはページでここだけ（Hero の .hero-en を除く）。 */
+       ブランドの1行（PILOT DEFINES · PILOT'S VALUE）はページでここだけ。
+       2026-09-22 まではヒーローの先頭（.hero-en）にもあったが、見出しから始めるために外した。 */
     .pv-tagline{ margin:var(--pv-s-4) 0 0;
       font-size:clamp(.86rem,2.6vw,1.66rem); font-weight:800;
       letter-spacing:.18em; text-transform:uppercase; white-space:nowrap;
@@ -938,61 +865,263 @@
     @media(prefers-reduced-motion:reduce){
       .pv-skel{ animation:none; }
       .pv-btn, a.pv-card, .pv-card--hover{ transition:none; }
-      /* 金のグラデーションは止めても色は残る（background-position が固定されるだけ）。 */
-      .hero-h1{ animation:none; }
-      /* ⚠️ .anim-fade-up が付いた要素に animation:none だけ書くと、初期値の opacity:0 が
-            残って要素ごと消える（PILOT DEFINES の行が丸ごと消えた）。
-            止めるときは終了状態（opacity:1 / transform:none）も一緒に書く。 */
-      .anim-fade-up{ animation:none; opacity:1; transform:none; }
-      /* ⚠️ 上の hero 用の上書きは詳細度が高いので、ここでも同じ強さで止めないと
-            「動きを減らす」設定の人だけ h1 が動いたままになる。 */
-      .hero-content .anim-fade-up.delay-2{ animation:none; opacity:1; transform:none; }
       /* ⚠️ 帯（.hero-mq / .hero-mq-track / .hero-mq-c）を止める指定はここに書いても効かない。
             帯の CSS はこの下（878行目〜）にあり、同じ強さなら後に書いたほうが勝つため。
             実測で 2.5秒に 99px 動いたままだった。帯の定義の直後に置き直した。 */
     }
 
-    /* ── Hero（ダークのまま。WebGLとシェーダーJSは無改造） ─────────
-       V3 で主従を逆転した。いちばん大きいのは h1 の「パイロットの待遇に、匿名の実データで透明性を。」。
-       PILOT DEFINES / PILOT'S VALUE は上の .hero-en に小さく残している。
-       金は .hero-en と同じ4色・同じ grad-shift。新しい色を作らない。 */
-    .hero-h1{ font-size:clamp(1.75rem,4.6vw,3.1rem); font-weight:900;
-      letter-spacing:-.035em; line-height:1.25;
-      /* ⚠️ color は消さない。background-clip:text が効かない環境で、
-         -webkit-text-fill-color:transparent だけが残ると見出しが丸ごと消える。 */
-      color:rgba(255,247,222,.97);
-      background:linear-gradient(135deg,#ff9b3d 0%,#ffd53d 40%,#fff5c0 65%,#ffa040 100%);
-      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
-      background-size:200% 200%; animation:grad-shift 4s ease infinite;
-      margin:0 0 .6rem; max-width:16em; }
-    /* ⚠️ 狭い画面だけ実測で縮める。2行目「匿名の実データで透明性を。」は13字あり、
-          28px だと 351px 要るのに本文の幅は 320px幅の端末で 280px しかない。
-          足りないと「を。」だけが3行目に落ちる（実測：320 / 360 / 390px で発生。414px 以上は2行）。
-          calc は（画面幅 − 左右の余白 40px）÷ 12.54em の直線。320px でも1行に収まる。
-          ★clamp の下限を vw にすると広い画面で max を追い越すので、@media で分けている。
-          この規則は .hero-h1 より後に置くこと（同じ強さなら後に書いたほうが勝つ）。 */
-    @media (max-width:413px){ .hero-h1{ font-size:calc(7.8vw - 3.5px); } }
-    /* ⚠️ 太さは 700 まで。128行目で読み込む Noto Sans JP は 400/500/700 しか無く、
-          800 や 900 を書くとブラウザが偽の太字を作って輪郭がにじむ。
-          （.hero-h1 の 900 は英数字が Inter なので問題が出ていない。） */
-    .hero-sub{ font-size:clamp(.82rem,1.5vw,1rem); line-height:1.7; font-weight:700;
-      letter-spacing:.01em; color:rgba(255,247,222,.94);
-      max-width:640px; margin:0 auto;
-      /* 日本語は既定でどこでも改行するので「実際の支給／額」のように語が割れる。
-         auto-phrase は文節で折る。非対応ブラウザは既定の折り返しに戻るだけ。 */
+    /* ══ Hero（2026-09-22 作り直し・Marit 風）══════════════════════════════
+       ★オーナー決定：白地・黒の文字・緑（pv-tokens.css の --pv-accent*）の2列。
+         左＝見出し・説明・ボタン2本・人数。右＝REAL PAY の見本の画面。
+       ★右の画面は lp.js の PV_DEMO（サンプル）だけで描く。本物の投稿は1件も出さない
+         （小さい会社で「会社名＋時期」が出ると、書いた本人が推測される）。
+       ★人数の横に航空会社のロゴを並べない（支持・提携に見える）。匿名の丸と人数だけ。
+       ⚠️ セレクタは必ず #hero-section から始める。Tailwind の CDN が後から <style> を
+          入れるので、クラス1つの強さだと負ける。
+       ⚠️ 動かすのは transform と opacity だけ。transition-all は使わない。
+       ⚠️ 金額の入る要素そのものに display:flex / gap を付けない（通貨の差し替えが崩れる）。
+       ⚠️ 見出しを透明から出さない。2026-08-15 の実測で、フェードで出すと
+          LCP が 2.2 秒遅れた（見出しがページで一番大きい文字＝LCP 要素）。 */
+    #hero-section{ --hero-spring:cubic-bezier(.34,1.45,.64,1);
+      position:relative; z-index:1; overflow:hidden;
+      background:var(--pv-bg); color:var(--pv-text);
+      padding:calc(var(--pv-topbar,73px) + 64px) 0 72px; }
+    #hero-section .hero-wrap{ max-width:1240px; margin:0 auto; padding:0 32px;
+      display:grid; grid-template-columns:minmax(0,1fr); row-gap:56px; align-items:center; }
+    @media (min-width:1100px){
+      #hero-section .hero-wrap{ grid-template-columns:minmax(0,.92fr) minmax(0,1fr); column-gap:64px; }
+    }
+
+    /* 見出し。★日英とも英語（HTML 側で lang="en"）。書体は足さない（Inter 700）。 */
+    #hero-section .hero-h1{ margin:0; max-width:12em;
+      font-family:'Inter',sans-serif; font-weight:700;
+      font-size:clamp(34px,10.4vw,64px); line-height:1.04; letter-spacing:-.03em;
+      color:var(--pv-text); text-wrap:balance; }
+    @media (min-width:1100px){ #hero-section .hero-h1{ font-size:clamp(44px,4.2vw,68px); } }
+    #hero-section .hero-lede{ margin:24px 0 0; max-width:31em;
+      font-size:clamp(16px,1.3vw,18.5px); line-height:1.75; font-weight:500;
+      color:var(--pv-text-muted); word-break:auto-phrase; line-break:strict; text-wrap:pretty; }
+
+    /* ボタン2本（2026-09-22 オーナー指示。08-22 の「1本だけ」を置き換えた）。
+       ★並びは grid の名前付きの場所で決める。広い幅は「主｜副」の下に添え書き、
+         狭い幅は「主→副→添え書き」の縦。HTML の順（主・副・添え書き）は変えない。 */
+    #hero-section .hero-ctas{ margin-top:36px; display:grid;
+      grid-template-columns:auto auto; grid-template-areas:"p s" "u .";
+      justify-content:start; column-gap:12px; row-gap:10px; }
+    #hero-section .hero-btn{ display:inline-flex; align-items:center; justify-content:center; gap:10px;
+      min-height:54px; padding:0 26px; border-radius:999px;
+      font-size:16px; font-weight:600; letter-spacing:-.005em; line-height:1.2;
+      text-decoration:none; white-space:nowrap; cursor:pointer;
+      transition:transform .4s var(--hero-spring); }
+    #hero-section .hero-btn svg{ flex:none; transition:transform .4s var(--hero-spring); }
+    #hero-section .hero-btn:hover{ transform:translateY(-2px); }
+    #hero-section .hero-btn:hover svg{ transform:translateX(3px); }
+    #hero-section .hero-btn:active{ transform:translateY(0) scale(.97); }
+    #hero-section .hero-btn:focus-visible{ outline:3px solid var(--pv-accent); outline-offset:3px; }
+    #hero-section .hero-btn--p{ grid-area:p; background:var(--pv-cta-dark); color:var(--pv-cta-dark-ink);
+      box-shadow:0 1px 2px rgba(17,17,17,.16), 0 12px 26px -14px rgba(6,117,99,.55); }
+    #hero-section .hero-btn--p:hover{ background:var(--pv-cta-dark-hover); }
+    #hero-section .hero-btn--s{ grid-area:s; background:var(--pv-bg); color:var(--pv-text);
+      box-shadow:inset 0 0 0 1px var(--pv-border); }
+    #hero-section .hero-btn--s:hover{ box-shadow:inset 0 0 0 1px var(--pv-text-soft); }
+    /* 「出すと見られる」の添え書き。ボタンを短くしたぶんをここで補う。 */
+    #hero-section .hero-unlock{ grid-area:u; justify-self:center; margin:0;
+      display:inline-flex; align-items:center; gap:6px;
+      font-size:13px; font-weight:500; line-height:1.4; color:var(--pv-text-soft); }
+    #hero-section .hero-unlock svg{ flex:none; }
+    /* 左の列が狭い幅（左の板がある 1100〜1300px あたり）では、2本が横に入らない。
+       ⚠️ そのままだと副のボタンが右の緑の面の下へ潜る（英語の 1100px で踏んだ）。
+       ★幅は画面ではなく左の列で測る。日英でボタンの長さが違うので閾値も2つ
+         （英 約503px・日 約397px が2本並べたときの幅）。縦に積むと2本は同じ幅になる。 */
+    #hero-section .hero-copy{ container:herocopy / inline-size; }
+    @container herocopy (max-width:529px){
+      html[lang="en"] #hero-section .hero-ctas{ grid-template-columns:auto; grid-template-areas:"p" "s" "u"; }
+    }
+    @container herocopy (max-width:419px){
+      #hero-section .hero-ctas{ grid-template-columns:auto; grid-template-areas:"p" "s" "u"; }
+    }
+
+    /* 人数。★本物の数だけ（lp.js が pv_pay_rows() の stats.contributors を入れる）。
+       取れない・3人未満のときは出さない。場所は先に取ってある（画面がガタつかない）。 */
+    #hero-section .hero-proof{ margin-top:40px; min-height:40px;
+      display:flex; align-items:center; gap:14px;
+      transition:opacity .6s var(--pv-ease); }
+    #hero-section .hero-proof.is-wait{ opacity:0; visibility:hidden; }
+    #hero-section .hero-av{ display:flex; flex:none; }
+    #hero-section .hero-av i{ display:grid; place-items:center; width:36px; height:36px;
+      margin-left:-10px; border-radius:999px; box-shadow:0 0 0 2px var(--pv-bg); }
+    #hero-section .hero-av i:first-child{ margin-left:0; }
+    #hero-section .hero-av i:nth-child(1){ background:var(--pv-accent); color:#fff; }
+    #hero-section .hero-av i:nth-child(2){ background:var(--pv-border); color:var(--pv-text-soft); }
+    #hero-section .hero-av i:nth-child(3){ background:var(--pv-accent-dark); color:rgba(255,255,255,.88); }
+    #hero-section .hero-av i:nth-child(4){ background:var(--pv-accent-soft); color:var(--pv-accent-ink); }
+    #hero-section .hero-proof-t{ margin:0; font-size:14.5px; line-height:1.5; color:var(--pv-text-muted);
       word-break:auto-phrase; }
-    /* ── Hero の流れる給与カード（Marit Health 型）──────────────────
+    #hero-section .hero-proof-t b{ font-weight:700; color:var(--pv-text); font-variant-numeric:tabular-nums; }
+
+    /* ── 右：REAL PAY の見本（全部サンプル）────────────────────────────
+       ★全体が1本のリンク（actual-pay.html・GA4 は hero_realpay_ui）。
+       ★actual-pay.css（76KB）は読まない。見た目だけここに写した。 */
+    #hero-section .hero-shot{ position:relative; display:block; max-width:720px;
+      text-decoration:none; color:inherit; border-radius:28px; }
+    #hero-section .hero-shot:focus-visible{ outline:3px solid var(--pv-accent); outline-offset:6px; }
+    #hero-section .hero-panel{ position:relative; isolation:isolate; border-radius:28px;
+      /* 下の余白は右下のカードの分。カードは窓の下端に 7px だけ重ねる（行の文字は隠さない。
+         窓が狭く行が2段になる幅では、11px 重ねると2段目の字に触れた）。
+         ⚠️ カードの中身を増やしたら、ここと .hero-card の bottom を測り直す。 */
+      padding:40px 36px 136px;
+      background:
+        radial-gradient(110% 80% at 100% 0%,rgba(255,255,255,.16),transparent 58%),
+        radial-gradient(90% 70% at 0% 100%,rgba(2,48,40,.30),transparent 62%),
+        linear-gradient(155deg,var(--pv-accent) 0%,var(--pv-accent-dark) 100%);
+      box-shadow:0 2px 4px rgba(6,117,99,.10), 0 34px 70px -34px rgba(6,117,99,.55); }
+    /* 粒子感。⚠️ このファイルの url() は data: の SVG だけ（相対パスは /en/ から読むと壊れる）。 */
+    #hero-section .hero-panel::before{ content:''; position:absolute; inset:0; z-index:-1;
+      border-radius:inherit; pointer-events:none; opacity:.2; mix-blend-mode:overlay;
+      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size:160px; }
+    #hero-section .hero-win{ position:relative; overflow:hidden; border-radius:16px;
+      background:var(--pv-surface); color:var(--pv-text);
+      box-shadow:0 1px 2px rgba(3,52,44,.20), 0 26px 50px -24px rgba(3,52,44,.60);
+      container:heroui / inline-size;
+      transition:transform .5s var(--hero-spring); }
+    #hero-section .hero-shot:hover .hero-win{ transform:translateY(-4px); }
+    #hero-section .hero-shot:active .hero-win{ transform:translateY(-1px) scale(.995); }
+    #hero-section .hero-win-bar{ display:flex; align-items:center; gap:10px; height:48px; padding:0 18px; }
+    #hero-section .hero-win-name{ display:inline-flex; align-items:center; gap:8px;
+      font-size:12.5px; font-weight:800; letter-spacing:.12em; color:var(--pv-text); }
+    #hero-section .hero-win-name::before{ content:''; width:8px; height:8px; border-radius:999px;
+      background:var(--pv-accent); box-shadow:0 0 0 3px var(--pv-accent-soft); }
+    /* 「サンプル」の札はここに1回だけ。★行にも重ねるカードにも付け直さない。 */
+    #hero-section .hero-win-tag{ margin-left:auto; padding:3px 10px; border-radius:999px;
+      font-size:11px; font-weight:600; line-height:1.4; letter-spacing:.02em;
+      background:var(--pv-surface-soft); color:var(--pv-text-muted);
+      box-shadow:inset 0 0 0 1px var(--pv-border); }
+    #hero-section .hero-win-head,
+    #hero-section .hero-win-row{ display:grid; align-items:center; column-gap:14px; padding:0 18px;
+      grid-template-columns:minmax(0,1.3fr) minmax(0,1.25fr) minmax(72px,auto); }
+    #hero-section .hero-win-head{ height:32px; background:var(--pv-surface-soft);
+      border-top:1px solid var(--pv-border); border-bottom:1px solid var(--pv-border);
+      font-size:11px; font-weight:600; letter-spacing:.02em; color:var(--pv-text-soft); white-space:nowrap; }
+    #hero-section .hero-win-head span:last-child{ text-align:right; }
+    /* ★行の高さは固定（58px）。灰色の棒の行と本物の行が同じ高さ＝描き替えてもガタつかない。 */
+    #hero-section .hero-win-row{ height:58px; }
+    #hero-section .hero-win-row + .hero-win-row{ border-top:1px solid var(--pv-border); }
+    /* 開いている行（右下のカードがこの行の内訳）。 */
+    #hero-section .hero-win-row.is-on{ background:var(--pv-accent-soft);
+      box-shadow:inset 3px 0 0 var(--pv-accent); }
+    #hero-section .hero-win-air{ display:flex; align-items:center; gap:10px; min-width:0; }
+    #hero-section .hero-win-logo{ flex:none; width:30px; height:30px; object-fit:contain;
+      border-radius:8px; background:#fff; padding:3px; border:1px solid var(--pv-border); }
+    #hero-section .hero-win-mono{ display:inline-grid; place-items:center; padding:0;
+      font-size:10.5px; font-weight:800; color:var(--pv-text-muted); background:var(--pv-surface-soft); }
+    #hero-section .hero-win-an,
+    #hero-section .hero-win-meta{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    #hero-section .hero-win-an{ font-size:14px; font-weight:600; color:var(--pv-text); }
+    #hero-section .hero-win-meta{ font-size:12.5px; color:var(--pv-text-muted); }
+    #hero-section .hero-win-amt{ text-align:right; white-space:nowrap;
+      font-size:15px; font-weight:700; letter-spacing:-.01em;
+      font-variant-numeric:tabular-nums; color:var(--pv-text); }
+    /* lp.js が描くまでの灰色の棒。 */
+    #hero-section .hero-sk{ display:block; height:10px; border-radius:6px; background:var(--pv-border); }
+    #hero-section .hero-sk--logo{ flex:none; width:30px; height:30px; border-radius:8px; }
+    #hero-section .hero-sk--a{ width:58%; }
+    #hero-section .hero-sk--m{ width:72%; }
+    #hero-section .hero-sk--v{ width:64px; margin-left:auto; }
+    /* 窓の幅で3段階に畳む。★画面幅ではなく窓の幅で決める（左の板がある幅でも、潰れる前に畳まれる）。
+       ・500px 以上：3列
+       ・360〜499px：「職位・機種・経験」を社名の下へ（2段）。ロゴは2段にまたがる。
+         ⚠️ 3列のまま狭めると「5〜10年」が「5〜1…」と切れて、違う数字に読める（1280px で踏んだ）。
+       ・360px 未満：航空会社と年収だけ。 */
+    @container heroui (max-width:499px){
+      #hero-section .hero-win-head{ grid-template-columns:minmax(0,1fr) auto; }
+      #hero-section .hero-win-hm{ display:none; }
+      #hero-section .hero-win-row{ grid-template-columns:30px minmax(0,1fr) auto;
+        grid-template-areas:"logo an amt" "logo meta amt"; align-content:center; row-gap:2px; column-gap:10px; }
+      #hero-section .hero-win-air{ display:contents; }
+      #hero-section .hero-win-air > :first-child{ grid-area:logo; align-self:center; }
+      #hero-section .hero-win-air > :last-child{ grid-area:an; }
+      #hero-section .hero-win-meta{ grid-area:meta; font-size:12px; line-height:1.35; }
+      #hero-section .hero-win-row > :last-child{ grid-area:amt; margin-left:4px; }
+    }
+    @container heroui (max-width:359px){
+      #hero-section .hero-win-row{ grid-template-areas:"logo an amt"; }
+      #hero-section .hero-win-meta{ display:none; }
+    }
+
+    /* 行を押すと開く面の小さい見本。社名は置かない。
+       ★窓と同じ絵の一部なので「サンプル」の札は付け直さない。
+       ★金額は lp.js が mqAmt() で書く（流れるカード・窓と同じ丸め・同じ通貨切替）。 */
+    #hero-section .hero-card{ position:absolute; z-index:2; left:-28px; bottom:-32px; width:272px;
+      padding:16px 18px 15px; border-radius:16px;
+      background:var(--pv-surface); color:var(--pv-text);
+      box-shadow:0 0 0 1px var(--pv-border), 0 2px 6px rgba(3,52,44,.10), 0 28px 48px -20px rgba(3,52,44,.45);
+      transition:transform .55s var(--hero-spring); }
+    #hero-section .hero-shot:hover .hero-card{ transform:translate(-3px,3px); }
+    #hero-section .hero-card-h{ margin:0; font-size:11.5px; font-weight:600; letter-spacing:.02em;
+      color:var(--pv-text-soft); }
+    #hero-section .hero-card-amt{ margin:4px 0 12px; font-size:26px; font-weight:700; line-height:1.15;
+      letter-spacing:-.025em; font-variant-numeric:tabular-nums; white-space:nowrap; color:var(--pv-text); }
+    #hero-section .hero-card-u{ margin-left:4px; font-size:13px; font-weight:500; letter-spacing:0;
+      color:var(--pv-text-soft); }
+    #hero-section .hero-card-bar{ display:flex; height:10px; border-radius:999px; overflow:hidden;
+      background:var(--pv-surface-soft); }
+    #hero-section .hero-card-bar i{ display:block; min-width:6px; }
+    #hero-section .hero-card-bar i + i{ box-shadow:inset 1.5px 0 0 var(--pv-surface); }
+    #hero-section .hero-card-leg{ list-style:none; margin:12px 0 0; padding:0;
+      font-size:12px; line-height:1.35; color:var(--pv-text-muted); }
+    #hero-section .hero-card-leg li{ display:grid; grid-template-columns:auto minmax(0,1fr) auto;
+      align-items:center; column-gap:8px; height:20px; }
+    #hero-section .hero-card-leg li i{ width:8px; height:8px; border-radius:999px; }
+    #hero-section .hero-card-leg li span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    #hero-section .hero-card-leg li b{ font-weight:600; color:var(--pv-text); font-variant-numeric:tabular-nums; }
+    /* 区分の色は REAL PAY（actual-pay.css の .ap-dw-c-*）と同じ。
+       ⚠️ 手で写してある。あちらの色を変えたらここも直す。 */
+    #hero-section .hero-c-base{ background:#34d399; }
+    #hero-section .hero-c-variable{ background:#f5c842; }
+    #hero-section .hero-c-bonus{ background:#22d3ee; }
+
+    @media (max-width:1099px){
+      #hero-section .hero-card{ left:-20px; }
+    }
+    /* 狭い幅：1列。重ねるカードは窓の下へずらす（重ねると行が隠れる）。 */
+    @media (max-width:767px){
+      #hero-section .hero-panel{ padding:20px 16px 16px; border-radius:22px; }
+      #hero-section .hero-shot{ border-radius:22px; }
+      #hero-section .hero-card{ position:relative; left:auto; bottom:auto; width:auto; margin:12px 0 0; }
+      #hero-section .hero-shot:hover .hero-card{ transform:none; }
+    }
+    @media (max-width:639px){
+      #hero-section{ padding:calc(var(--pv-topbar,73px) + 36px) 0 48px; }
+      #hero-section .hero-wrap{ padding:0 20px; row-gap:44px; }
+      #hero-section .hero-ctas{ grid-template-columns:minmax(0,1fr); grid-template-areas:"p" "s" "u"; }
+      #hero-section .hero-btn{ width:100%; }
+      #hero-section .hero-proof{ margin-top:32px; }
+    }
+    /* ⚠️ 動きを減らす設定。ヒーローの定義より後に置く（同じ強さなら後が勝つ）。 */
+    @media (prefers-reduced-motion:reduce){
+      #hero-section .hero-btn, #hero-section .hero-btn svg, #hero-section .hero-win,
+      #hero-section .hero-card, #hero-section .hero-proof{ transition:none; }
+    }
+
+    /* ── ヒーローの直下：流れる給与カード（2026-09-22 にヒーローの外へ出した）──
+       Marit のロゴの帯の位置。中身と「押したら会社ページへ」（d1331ce）は今のまま。 */
+    .hero-strip{ position:relative; z-index:1; background:var(--pv-bg); padding:4px 32px 56px; }
+    @media(max-width:639px){ .hero-strip{ padding:0 0 44px; } }
+
+    /* ── 流れる給与カード（Marit Health 型・ヒーローの直下の .hero-strip の中）──
+       ★2026-09-22 にヒーローの外へ出し、白地に合わせて色だけ変えた（大きさ・間隔は今のまま）。
        ★PV_DEMO：カードの中身は lp.js の PV_DEMO.marquee が入れる。
        中身は実在しないサンプル値。2026-08-11 のオーナー判断で、このまま公開する。
        ⚠️ 中身は <div>。素の `nav {}`（218行目）が position:fixed を当てるので <nav> にしない。
        動かすのは transform だけ。transition-all は使わない。
        ⚠️ 全幅ぶち抜き（width:100vw）にすると横スクロールが出るので内容幅に収める。 */
-    .hero-mq{ position:relative; width:100%; max-width:1160px;
-      /* 下にあった信頼バッジを消したぶん、CTA との間隔を広げて釣り合いを取る。 */
-      margin:2.25rem auto 0; overflow:hidden;
+    .hero-mq{ position:relative; width:100%; max-width:1176px;
+      margin:0 auto; overflow:hidden;
       /* ★カードは JS で後から入る。それまでこの帯は高さ0で、カードが入った瞬間に
-           123px 伸びる。hero は上下中央揃えなので、上の見出し全体が半分の 58px
+           123px 伸びる。旧ヒーローは上下中央揃えだったので、見出し全体が半分の 58px
            ぶん跳ね上がっていた（＝画面がガタつく。CLS 0.0996 の全部がこれ）。
+           いまはヒーローの下にあるが、下の節が押し下げられるのは同じなので場所は取っておく。
            先に場所を空けておく。実測値：641px 以上で123px、640px 以下で117px。
            ⚠️ .hero-mq-c の padding / font-size を変えたらこの数字も測り直す。 */
       min-height:123px;
@@ -1008,25 +1137,27 @@
     .hero-mq-c{ flex:0 0 auto; width:200px; text-align:left; text-decoration:none;
       display:flex; flex-direction:column; gap:1px; padding:12px 14px 11px;
       border-radius:14px;
-      background:linear-gradient(155deg,rgba(255,255,255,.075),rgba(255,255,255,.028));
-      border:1px solid rgba(255,245,200,.13);
-      box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 8px 22px -12px rgba(0,0,0,.75);
-      transition:border-color .24s var(--pv-ease), transform .3s var(--pv-ease); }
-    .hero-mq-c:hover{ border-color:rgba(249,115,22,.45); transform:translateY(-2px); }
-    .hero-mq-c:focus-visible{ outline:2px solid #f97316; outline-offset:3px; }
-    .hero-mq-amt{ font-size:1.16rem; font-weight:900; letter-spacing:-.02em;
-      color:#ffcf7a; line-height:1.25; white-space:nowrap; }
+      background:var(--pv-surface);
+      border:1px solid var(--pv-border);
+      box-shadow:0 1px 2px rgba(17,17,17,.04), 0 10px 22px -16px rgba(6,117,99,.30);
+      transition:transform .3s var(--pv-ease); }
+    .hero-mq-c:hover{ border-color:var(--pv-accent-line); transform:translateY(-2px); }
+    .hero-mq-c:active{ transform:translateY(0) scale(.98); }
+    .hero-mq-c:focus-visible{ outline:2px solid var(--pv-accent); outline-offset:3px; }
+    /* ⚠️ 太さは 700 まで。Noto Sans JP は 400/500/700 しか読み込んでいない（「万」が偽の太字になる）。 */
+    .hero-mq-amt{ font-size:1.16rem; font-weight:700; letter-spacing:-.02em;
+      color:var(--pv-text); line-height:1.25; white-space:nowrap; }
     .hero-mq-brk{ font-size:.6rem; font-weight:700; letter-spacing:.04em;
-      color:rgba(255,245,200,.42); margin-bottom:5px; }
-    .hero-mq-role{ font-size:.73rem; font-weight:800; color:rgba(255,245,200,.9); }
-    .hero-mq-air{ font-size:.68rem; font-weight:600; color:rgba(255,245,200,.6); }
-    .hero-mq-meta{ font-size:.62rem; font-weight:500; color:rgba(255,245,200,.4); margin-top:3px; }
+      color:var(--pv-text-soft); margin-bottom:5px; }
+    .hero-mq-role{ font-size:.73rem; font-weight:700; color:var(--pv-text); }
+    .hero-mq-air{ font-size:.68rem; font-weight:600; color:var(--pv-text-muted); }
+    .hero-mq-meta{ font-size:.62rem; font-weight:500; color:var(--pv-text-soft); margin-top:3px; }
     /* 社名もベース名も長いものがある。折り返すとカードごとに高さが変わって帯が揃わないので
        1行に固定し、あふれたら … で切る。 */
     .hero-mq-role, .hero-mq-air, .hero-mq-meta{
       white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     @media(max-width:640px){
-      .hero-mq{ margin-top:1.75rem; min-height:117px; }   /* カードが小さくなるぶん帯も低い */
+      .hero-mq{ min-height:117px; }   /* カードが小さくなるぶん帯も低い */
       .hero-mq-c{ width:178px; padding:10px 12px 9px; }
       .hero-mq-amt{ font-size:1.02rem; }
     }
@@ -1039,17 +1170,6 @@
       .hero-mq-c{ transition:none; }
     }
     /* .hero-trust（信頼バッジ4つ）の CSS はここにあったが、バッジごと削除した。 */
-    /* 高さが足りない端末で中身が切れないよう、狭い画面では通常フローに落とす */
-    @media(max-width:900px){
-      #hero-section{ height:auto; min-height:100vh; }
-      .hero-content{ position:relative; inset:auto;
-        padding:104px 20px 64px; min-height:100vh; }
-      /* ⚠️ ここは長いあいだ効いていなかった。要素に Tailwind の `flex` が付いていて、
-            CDN の JIT が後から入れる display:flex に、同じ強さのこのルールが負けていた
-            （実測：375px でも SCROLL が出ていて、テープとの間が 11px しか無かった）。
-            id を足して強くする。#ranking .rank-more と同じ直し方。 */
-      #hero-section .hero-scroll-cue{ display:none; }
-    }
 
     /* モバイルの一次データ導線（下に固定するバー）。
        ⚠️ 最初これをヘッダーの右側に入れたら、search.js が後から挿す
