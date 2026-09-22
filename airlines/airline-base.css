@@ -627,16 +627,3 @@
             mask-image: linear-gradient(to bottom, transparent 0, transparent 170px, #000 280px);
   }
 }
-
-/* ── 冒頭の答え（gen-answer-lead.mjs が置く1段落）──────────────────
-   「この会社の機長はいくら」に、表まで読ませずその場で答える段落。
-   リード文（会社紹介）の直後・年収表の上。日英どちらのページも同じ形。
-   ★金額は span.pv-cur。色だけ変えて、太さと等幅数字で数字を拾いやすくする。 */
-.pv-answer{margin:14px 0 0;padding:2px 0 2px 16px;max-width:66ch;
-  border-left:2px solid rgba(245,200,66,.5);
-  font-size:1.05rem;line-height:1.75;color:#b8c4d4}
-.pv-answer b{color:#e8edf2;font-weight:700}
-.pv-answer .pv-cur{color:#fff;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
-[data-theme="light"] .pv-answer{border-left-color:rgba(161,120,0,.38);color:#475569}
-[data-theme="light"] .pv-answer b,[data-theme="light"] .pv-answer .pv-cur{color:#0f172a}
-@media(max-width:480px){.pv-answer{font-size:.98rem;padding-left:13px}}

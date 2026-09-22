@@ -129,10 +129,12 @@ baland_ass/                            ブランド資産（※ brand_assets の
   焼き込んだ span は `scan()` が素通りする（`pv-cur` は `SKIP_CLASS`）ので、
   **英語ページで円を選んでいる人の画面がドル表記のまま固まる。**
 
-### 冒頭の答え（`<p class="pv-answer">`）と JSON-LD の更新日
-- [gen-answer-lead.mjs](gen-answer-lead.mjs) … 航空会社ページ 224枚（日英112社ずつ）の
-  リード文の直後に「機長はいくら」へその場で答える1段落を置く。数値は `SALARY` だけから作る。
-  見た目は [airlines/airline-base.css](airlines/airline-base.css) の `.pv-answer`。
+### JSON-LD の更新日（冒頭の答えの段落は撤去済み）
+- ★**航空会社ページの冒頭に年収の要約を置かない**（2026-09-21 オーナー指示「全部削除」）。
+  2026-09-18 に AI に引かれるための手当てとして、リード文の直後に
+  「◯◯の機長の年収は平均¥…、幅はおおむね…。副操縦士は…。2026年3月時点。」の1段落
+  （`<p class="pv-answer">`・日英224枚）を置いたが、日英とも全部外した。
+  置いていた `gen-answer-lead.mjs` と `.pv-answer` の見た目も消してある（戻すなら git の `3822922` から）。
 - [gen-datemod.mjs](gen-datemod.mjs) … JSON-LD の Article に `datePublished` / `dateModified` を入れる。
   **`seo-normalize.mjs` のあと・コミットの直前に流す。** 流し忘れは `assert-generated.mjs` が捕まえる。
   日付の決め方は [page-dates.mjs](page-dates.mjs) の1か所で、`gen-sitemap.mjs` の `lastmod` も
