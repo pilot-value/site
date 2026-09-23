@@ -361,8 +361,13 @@
          スマホで帯まで1画面（390×844）に入れるため ── 帯を電話の後ろに置いたままでは、
          緑の面を 300px に縮めても 1,175px で 844 に届かなかった。 */
     @media (min-width:1100px){
+      /* ★2026-09-23 オーナー指示「hero の real pay は PC版は Take control of your career in
+           the cockpit. の**上の段に合う**ような大きさにして」── 中央揃えをやめて上揃えにする。
+         見出しの上端は幅 1100/1280/1440/1680 のどこでも 137px 固定（＝ヒーローの上余白）なので、
+         上揃えにすると緑の面の上端がそのまま 137px ＝ 見出しの1行目と同じ高さに来る。
+         ⚠️ 帯2本（strip / rv）は全幅の段なので上揃えでも見た目は変わらない。 */
       #hero-section .hero-wrap{ grid-template-columns:minmax(0,.92fr) minmax(0,1fr); column-gap:64px;
-        grid-template-areas:"copy shot" "strip strip" "rv rv"; }
+        align-items:start; grid-template-areas:"copy shot" "strip strip" "rv rv"; }
       #hero-section .hero-copy{ grid-area:copy; }
       #hero-section .hero-shot{ grid-area:shot; }
       #hero-section .hero-strip{ grid-area:strip; }
@@ -477,8 +482,29 @@
     :is(#hero-section,#lp-airlines) .lp-phone-scr{ position:relative; overflow:hidden; border-radius:38px;
       padding:44px 0 56px; background:var(--pv-surface); color:var(--pv-text);
       box-shadow:0 0 0 1px rgba(0,0,0,.35); }
-    :is(#hero-section,#lp-airlines) .lp-phone-pill{ position:absolute; top:14px; left:50%; width:64px; height:20px;
-      margin-left:-32px; border-radius:999px; background:#0b1110; }
+    :is(#hero-section,#lp-airlines) .lp-phone-pill{ position:absolute; top:13px; left:50%; width:92px; height:26px;
+      margin-left:-46px; border-radius:999px; background:#0b1110;
+      box-shadow:inset 0 1px 2px rgba(0,0,0,.9); }
+
+    /* ★側面のボタン（2026-09-23 オーナー指示「電話は iphone みたいな形にして」）。
+       DOM は増やさず ::before / ::after の2つだけで描く。
+         ::before ＝ 左側の3本（消音／音量＋／音量−）。**1本の細い帯の塗りを途中で
+           透明にして**3本に見せている（box-shadow の複製では3本の高さを変えられないため）。
+         ::after  ＝ 右側の電源。
+       寸法は iPhone の比率（393×852pt）を電話の横幅で割った値。横幅ごとに数が変わるので、
+       下の #hero-section / #lp-airlines のそれぞれに上書きを置いてある。
+       ⚠️ 電話の外へ 2px はみ出す。緑の面は左右に 32px の余白があるので切れない。
+       ⚠️ pointer-events:none。電話全体が1本のリンクなので、ここで当たりを作らない。 */
+    :is(#hero-section,#lp-airlines) .lp-phone::before,
+    :is(#hero-section,#lp-airlines) .lp-phone::after{ content:''; position:absolute; width:3px;
+      border-radius:2px; pointer-events:none; }
+    :is(#hero-section,#lp-airlines) .lp-phone::before{ left:-2px; top:94px; height:99px;
+      background:linear-gradient(180deg,
+        #5b6462 0 20px, transparent 20px 35px,
+        #5b6462 35px 62px, transparent 62px 72px,
+        #5b6462 72px 99px); }
+    :is(#hero-section,#lp-airlines) .lp-phone::after{ right:-2px; top:129px; height:51px;
+      background:linear-gradient(180deg,#5b6462,#39413f); }
 
     /* ── 右：REAL PAY の見本（全部サンプル）────────────────────────────
        ★全体が1本のリンク（actual-pay.html・GA4 は hero_realpay_ui）。
@@ -499,16 +525,32 @@
            画面 = 36(上) + 38(バー) + 52 × 5行 = 334 ／ 電話 = 6 + 334 + 6 = **346**
            346 ÷ 288 = **1.2014 倍**（狙いどおり）
            緑の面 = 50 + 346 − 38 = **358**
-         切り口は前と同じ ── 見えるのは 346 − 38 = 308px で、上から 6+36+38 = 80 を引くと
-         228px ＝ 4行ぶん(208) + 5行目の上 20px。「まだ下に続く」の見え方は変わらない。
-         ⚠️ 行は5本。HTML の灰色の棒も5本（index.html / en/index.html）。片方だけ直すと
-            描き替えの瞬間に高さが跳ねる＝CLS。lp.js の PV_DEMO.hero.rows も5つ。
+       ★2026-09-23 さらに追加指示「PC版は Take control of your career in the cockpit. の
+         上の段に合うような大きさに」「電話の中の画面は年収とちゃんとバーが見えるように」──
+         1行目を**開いた状態**にして報酬の内訳の帯（98px）を差し込み、行を5 → 6本にした。
+         高さは中身で決まる（.lp-phone に height は書かない）ので、足し算が全部。
+           中身 = 52(1行目) + 98(開いた面) + 52 × 5行 = 410
+           画面 = 36 + 38 + 410 = 484 ／ 電話 = 6 + 484 + 6 = **496**
+           緑の面 = 50 + 496 − 38 = **508**（広い幅は上揃えなので 137 → 645px に立つ）
+         切り口の考え方は前と同じ ── 見えるのは 496 − 38 = 458px で、上から 6+36+38 = 80 を
+         引くと 378px ＝ 1行目(52) + 開いた面(98) + 4行ぶん(208) + 6行目の上 20px。
+         ⚠️ 行は6本＋開いた面1つ。HTML の灰色の棒も同じ並び（index.html / en/index.html）。
+            片方だけ直すと描き替えの瞬間に高さが跳ねる＝CLS。
+            lp.js の PV_DEMO.hero.rows も6つ・.open が開く行の番号。
          ⚠️ 上の :is(#hero-section,#lp-airlines) と強さが同じなので、必ずその**後ろ**に置く。
             112 AIRLINES の電話（6行・大きいまま）はここで触らない。 */
     #hero-section .hero-panel{ padding:50px 32px 0; }
     #hero-section .lp-phone{ max-width:268px; margin:0 auto -38px; padding:6px; border-radius:36px; }
     #hero-section .lp-phone-scr{ padding:36px 0 0; border-radius:30px; }   /* 角丸は同心円（36 − 6） */
-    #hero-section .lp-phone-pill{ top:10px; width:52px; height:16px; margin-left:-26px; }
+    /* Dynamic Island と側面ボタンは、iPhone の比率をこの電話の横幅（268px）で割った値。
+       268 ÷ 393pt = 0.682 倍。島は 11 + 23 = 34 で、画面の上余白 42（6 + 36）に収まる。 */
+    #hero-section .lp-phone-pill{ top:11px; width:78px; height:23px; margin-left:-39px; }
+    #hero-section .lp-phone::before{ top:76px; height:80px;
+      background:linear-gradient(180deg,
+        #5b6462 0 16px, transparent 16px 28px,
+        #5b6462 28px 50px, transparent 50px 58px,
+        #5b6462 58px 80px); }
+    #hero-section .lp-phone::after{ top:104px; height:41px; }
     #hero-section .hero-shot:hover .lp-phone{ transform:translateY(-6px); }
     #hero-section .hero-shot:active .lp-phone{ transform:translateY(-2px) scale(.995); }
     #hero-section .hero-win{ container:heroui / inline-size; }
@@ -532,6 +574,32 @@
       grid-template-columns:30px minmax(0,1fr) auto; grid-template-areas:"logo an amt" "logo meta meta";
       align-content:center; column-gap:11px; row-gap:3px; }
     #hero-section .hero-win-row + .hero-win-row{ border-top:1px solid var(--pv-border); }
+    /* ★2026-09-23 オーナー指示「電話の中の画面は年収とちゃんとバーが見えるように。
+         基本給とか変動給、その他が見えるバー作ったじゃん」── 1行目を**押して開いた状態**で置き、
+       その下に報酬の内訳の帯を出す（REAL PAY の節の白いカードと同じ区分・同じ色）。
+       ★高さは固定（98px）。灰色の骨組みにも同じ 98px の箱が1つ置いてある＝描き替えても跳ねない。
+         中身は 15.4(見出し) + 9 + 10(帯) + 9 + 15.4(凡例) = 58.8px なので 98 に収まる。
+       ⚠️ 本数・位置を変えるときは index.html / en/index.html の骨組みと
+          lp.js の PV_DEMO.hero.rows / .open も一緒に直す（片方だけだと CLS）。 */
+    #hero-section .hero-win-row.is-open{ background:var(--pv-accent-soft); }
+    #hero-section .hero-win-open{ display:grid; height:98px; padding:0 14px; align-content:center; row-gap:9px;
+      background:var(--pv-accent-soft); border-bottom:1px solid var(--pv-border); }
+    #hero-section .hero-win-open-h{ font-size:11px; font-weight:700; line-height:1.4; letter-spacing:.06em;
+      color:var(--pv-accent-ink); }
+    /* ⚠️ クラス名は hero-win-seg。hero-win-bar は**電話の上の帯**が既に使っている。
+       ★区切りは隙間（gap 2px）で出す。REAL PAY の帯の inset 影を写すと、ダークの
+         --pv-accent-soft が半透明なので区切りが透けて見えなくなる。 */
+    #hero-section .hero-win-seg{ display:flex; gap:2px; height:10px; border-radius:999px; overflow:hidden;
+      background:var(--pv-surface); }
+    #hero-section .hero-win-seg i{ display:block; min-width:6px; }
+    #hero-section .hero-win-leg{ display:flex; gap:13px; overflow:hidden;
+      font-size:11px; line-height:1.4; color:var(--pv-text-muted); }
+    #hero-section .hero-win-leg span{ display:inline-flex; align-items:center; gap:5px; white-space:nowrap; }
+    #hero-section .hero-win-leg i{ flex:none; width:7px; height:7px; border-radius:999px; }
+    /* 灰色の骨組み側（見出し・帯・凡例の3本）。高さと段の数を上と合わせる。 */
+    #hero-section .hero-sk--h{ width:52px; height:8px; }
+    #hero-section .hero-sk--seg{ width:100%; height:10px; }
+    #hero-section .hero-sk--lg{ width:74%; height:8px; }
     #hero-section .hero-win-logo, #hero-section .hero-sk--logo{ grid-area:logo; align-self:center; }
     #hero-section .hero-win-an, #hero-section .hero-sk--a{ grid-area:an; align-self:center; }
     #hero-section .hero-win-amt, #hero-section .hero-sk--v{ grid-area:amt; align-self:center; }
@@ -558,7 +626,7 @@
           どの幅でも効いている（中の値は上の基準値と同じにしてあるので見た目は変わらない）。 */
     @container heroui (max-width:279px){
       #hero-section .hero-win-row{ padding:0 14px; column-gap:9px; }
-      #hero-section .hero-win-bar{ padding:0 14px; }
+      #hero-section .hero-win-bar, #hero-section .hero-win-open{ padding:0 14px; }
     }
     /* 画面がとても狭いとき（幅 240px 未満）は、社名と年収だけにする。 */
     @container heroui (max-width:239px){
@@ -566,13 +634,18 @@
       #hero-section .hero-win-meta, #hero-section .hero-sk--m{ display:none; }
     }
 
-    /* 狭い幅：1列。★2026-09-23 から広い幅と同じ 268px の電話・同じ切り方（-38px）にする。
-       前は 300px の電話を -160px で深く切っていた（6行を縦に伸ばさないため）。5行なら要らない。
-       → 狭い幅の緑の面 = 32 + 346 − 38 = 340px（電話を縦 1.2 倍にする前は 282px）。
-       ⚠️ スマホでは電話は帯2本の**後ろ**にある＝ここが伸びても帯の位置は動かない。 */
+    /* 狭い幅：1列。★2026-09-23、開いた面（98px）と6行目を足して電話が 346 → 496px になった。
+       広い幅と同じ -38px で切るとスマホの緑の面が 340 → 490px になるので、**ここだけ深く切る**
+       （電話そのものは広い幅と1pxも違わない。見せる行数だけを減らす）。
+       → 狭い幅の緑の面 = 32 + 496 − 142 = **386px**
+         見えるのは 496 − 142 = 354px で、上から 80 を引くと 274px
+         ＝ 1行目(52) + 開いた面(98) + 2行ぶん(104) + 3行目の上 20px。
+         ★オーナー指示の「年収とバー」はスマホでも最初に目に入る位置に残る。
+       ⚠️ スマホでは電話は帯2本の**後ろ**にある＝ここが伸び縮みしても帯の位置は動かない。 */
     @media (max-width:767px){
       #hero-section .hero-panel{ padding:32px 20px 0; border-radius:22px; }
       #hero-section .hero-shot{ border-radius:22px; }
+      #hero-section .lp-phone{ margin-bottom:-142px; }
     }
     @media (max-width:639px){
       #hero-section{ padding:calc(var(--pv-topbar,73px) + 36px) 0 48px; }
@@ -678,10 +751,11 @@
     #lp-realpay .lp-rp-next-a{ white-space:nowrap; font-size:15px; font-weight:700; font-variant-numeric:tabular-nums;
       color:var(--pv-text); }
     /* 区分の色。★actual-pay.css の .ap-dw-c-* と同じ値（REAL PAY の行を開いた面と同じ色）。写しなので、
-       あちらを変えたらここも変える。 */
-    #lp-realpay .lp-c-base{ background:#34d399; }
-    #lp-realpay .lp-c-variable{ background:#f5c842; }
-    #lp-realpay .lp-c-bonus{ background:#22d3ee; }
+       あちらを変えたらここも変える。
+       ★2026-09-23：ヒーローの電話の中の帯（.hero-win-seg）も同じ色を使うので #hero-section を足した。 */
+    :is(#hero-section,#lp-realpay) .lp-c-base{ background:#34d399; }
+    :is(#hero-section,#lp-realpay) .lp-c-variable{ background:#f5c842; }
+    :is(#hero-section,#lp-realpay) .lp-c-bonus{ background:#22d3ee; }
 
     /* ── 112 AIRLINES：電話の中＝本物の公開データ（機長の cap.lo〜cap.hi）──────────
        ★行は各社のページへのリンク。行の高さは固定（62px）＝灰色の行から描き替えてもガタつかない。
@@ -1033,22 +1107,33 @@
          （CSS に秒を書くと、投稿が増えた日から速さが変わる）。
 
        ★2026-09-23 追加指示「カードが全部緑では逆に見づらいから、工夫して。見やすいように。」──
-         **口コミのカードだけ白地に戻す**（年収のカードは緑のまま）。理由は2つ。
-           1) 上が緑＝数字、下が白＝言葉。帯2本が一目で別物と分かる。
-           2) 3行の文章は白地のほうが読める。#fff on #067563 は 5.63:1 だが、
-              白地の --pv-ink は **17.85:1**（ライト）／ダークでも 14.68:1（実測）。
-         ★地・罫・星・区分の札は、下の #pilot-voices のカードと**同じ道具を使い回す**
-           （.pv-card の値・.pv-voice-cat・.pv-voice-stars）。色を新しく発明しない。 */
+         **口コミのカードだけ緑をやめる**（年収のカードは緑のまま）。上が緑＝数字、下＝言葉。
+       ★2026-09-23 さらに追加指示「口コミの hero のカードは、ブラックカードみたいな色合いに」
+         （見本＝JCB THE CLASS の写真）── 黒〜焦げ茶のグラデ＋金の細い罫と金の文字。
+         ⚠️ **ライトでもダークでも同じ見た目**にする。黒いカードは「物」なので、
+            ページの地の色で中身の色を変えない（変えるのは外に落ちる影だけ）。
+         ⚠️ 金は2つある。**--pv-star（#b5920a）はここでは使えない** ── 白地用に一段落とした金で、
+            この黒地では 4.32:1 と基準割れになる。黒地用の金（#e8c886）へ上書きする。
+         ⚠️ コントラストは**地のいちばん明るい所**（左上の金のハイライトが乗る rgb(63,47,33)）で測る。
+            本文 10.54 ／ 見出し 11.10 ／ 区分の札 7.42 ／ 星 7.95 ／ 星の数字 7.68 ／
+            下段の社名 5.52。下へ行くほど地が暗くなるので、どれも 8〜17 まで上がる。 */
     .hero-mq--rv .hero-mq-track{ animation-direction:reverse; }
     .hero-mq--rv{ min-height:135px; }   /* 実測値。下のカードの padding / font-size を変えたら測り直す */
     .hero-rv-c{ width:304px; gap:0;
-      background:var(--pv-surface);
-      border:1px solid var(--pv-line);
-      box-shadow:0 1px 2px rgba(15,23,42,.05), 0 12px 26px -18px rgba(15,23,42,.40); }
-    /* ⚠️ .hero-mq-c の hover は白の罫（緑地の上でしか見えない）。白地では緑に変える。 */
-    .hero-rv-c:hover{ border-color:var(--pv-accent); }
-    [data-theme="dark"] .hero-rv-c{ border-color:var(--pv-line);
-      box-shadow:0 1px 2px rgba(0,0,0,.35), 0 12px 26px -18px rgba(0,0,0,.60); }
+      background:
+        radial-gradient(130% 100% at 0% 0%,rgba(214,178,116,.12),transparent 58%),
+        linear-gradient(160deg,#2a1d16 0%,#14100d 52%,#0b0908 100%);
+      border:1px solid rgba(214,178,116,.30);
+      box-shadow:0 2px 6px rgba(0,0,0,.28), 0 16px 30px -18px rgba(0,0,0,.70); }
+    /* ⚠️ .hero-mq-c の hover は白の罫（緑地の上でしか見えない）。黒地では金に変える。 */
+    .hero-rv-c:hover{ border-color:rgba(224,193,138,.62); }
+    [data-theme="dark"] .hero-rv-c{ border-color:rgba(214,178,116,.34);
+      box-shadow:0 1px 2px rgba(0,0,0,.50), 0 16px 30px -18px rgba(0,0,0,.80); }
+    /* 星と区分の札は #pilot-voices と同じ部品を使い回しているので、黒地ぶんだけ色を上書きする。 */
+    .hero-rv-c .pv-voice-stars i{ color:#e8c886; }
+    .hero-rv-c .pv-voice-stars b{ color:#d8c6ac; }
+    .hero-rv-c .pv-voice-cat{ color:#e0c18a; background:rgba(214,178,116,.12);
+      border-color:rgba(214,178,116,.34); }
     /* 区分の札と星を1行に。★2026-09-23 追加指示「カードの口コミには星出して」。
        ⚠️ 英語の区分名は長い（review-i18n.js の "Suggestions for management" で 26字）。
           札のほうだけ縮ませて … で切る。星は縮ませない（4.5 が 4. になると数字が嘘になる）。 */
@@ -1059,16 +1144,16 @@
     /* 本文は3行ぶんで固定。⚠️ line-clamp は「3行を超えたら切る」だけで、短い投稿は1〜2行のまま
        ＝カードごとに高さが変わって帯が波打つ（英語は訳文が短く、実際に2行になっていた）。
        min-height で3行ぶんの場所を必ず取る（4.5em ＝ 1.5 行送り × 3行）。 */
-    .hero-rv-body{ font-size:.72rem; font-weight:500; line-height:1.5; color:var(--pv-ink); min-height:4.5em;
+    .hero-rv-body{ font-size:.72rem; font-weight:500; line-height:1.5; color:#f0e8dc; min-height:4.5em;
       display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; overflow:hidden; }
     /* 社名・職位・在籍・投稿年月。長いので1行に固定して … で切る（年収の帯と同じ扱い）。 */
-    .hero-rv-meta{ font-size:.62rem; font-weight:500; color:var(--pv-ink-3); margin-top:7px;
-      padding-top:7px; border-top:1px solid var(--pv-line-soft);
+    .hero-rv-meta{ font-size:.62rem; font-weight:500; color:#b8a892; margin-top:7px;
+      padding-top:7px; border-top:1px solid rgba(214,178,116,.20);
       white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     /* 投稿がまだ無いときの1枚。display:none にしない（描いたあとに消えると下が跳ねる＝CLS）。 */
-    .hero-rv-t{ font-size:.72rem; font-weight:700; color:var(--pv-ink); margin-bottom:7px; }
+    .hero-rv-t{ font-size:.72rem; font-weight:700; color:#f4eee4; margin-bottom:7px; }
     .hero-rv-c--empty{ cursor:default; }
-    .hero-rv-c--empty:hover{ transform:none; border-color:var(--pv-line); }
+    .hero-rv-c--empty:hover{ transform:none; border-color:rgba(214,178,116,.30); }
 
     @media(max-width:640px){
       .hero-mq{ min-height:117px; }   /* カードが小さくなるぶん帯も低い */

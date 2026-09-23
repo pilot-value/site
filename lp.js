@@ -52,6 +52,11 @@
       mqMeta: function (years, base) { return '経験 ' + years + ' ・ ' + base; },
       // REAL PAY の節の白いカード（報酬の内訳）の区分名。REAL PAY の行を開いた面と同じ呼び名。
       heroPart: { base: '基本給', variable: '変動給', bonus: '賞与・利益分配' },
+      /* ★ヒーローの電話の中の「開いた行」用。区分は上と同じもので、名前だけ短い。
+         電話の画面は内幅 256px しかなく、3つを横1列に並べると上の長い名前では収まらない
+         （英語の "Bonus & profit share" で溢れる）。区分を増やしたり分けたりはしない。 */
+      openH: '報酬の内訳',
+      openPart: { base: '基本給', variable: '変動給', bonus: '賞与' },
       voice: { culture: '企業文化', salary: '給与', benefits: '福利厚生',
                wlb: 'WLB', ops: '運航環境', training: '訓練環境', mgmt: '経営陣への提案' },
     },
@@ -63,6 +68,8 @@
       emptyD:    'Only working and former pilots post here. We never pad the count, and we never repost reviews from other sites.',
       mqMeta: function (years, base) { return years + ' · ' + base; },
       heroPart: { base: 'Base pay', variable: 'Variable (flying)', bonus: 'Bonus & profit share' },
+      openH: 'Pay breakdown',
+      openPart: { base: 'Base', variable: 'Variable', bonus: 'Bonus' },
       voice: { culture: 'Culture', salary: 'Pay', benefits: 'Benefits',
                wlb: 'WLB', ops: 'Operations', training: 'Training', mgmt: 'To management' },
     },
@@ -159,9 +166,17 @@
     ],
     /* ヒーローの右の見本の画面（2026-09-22）。行は上の marquee の何番目を使うか。
        ★2026-09-23 に6行 → 4行（電話を小さくして緑の面を 300px にした）→ 同じ日の追加指示
-         「ケータイ画面 1.2倍 縦に大きく」で **5行**（電話 288 → 346px・緑の面 300 → 358px）。
-         5行目は電話の切り口（緑の面の下端）で上から 20px だけ見える＝「まだ下に続く」。
+         「ケータイ画面 1.2倍 縦に大きく」で 5行（電話 288 → 346px・緑の面 300 → 358px）
+         → さらに「PC版は Take control … の上の段に合うような大きさにして」で **6行**
+         （電話 496px・緑の面 508px ＝ 上端が見出しの1行目に揃う。狭い幅は深く切って 386px。
+           足し算は lp.css の #hero-section .lp-phone の上のコメントにある）。
+         6行目は電話の切り口（緑の面の下端）で上から 20px だけ見える＝「まだ下に続く」。
          ⚠️ 本数を変えたら index.html / en/index.html の灰色の棒の行も同じ数にする。
+       open ＝ rows の何番目を「開いた行」にするか（その下に報酬の内訳のバーを差し込む）。
+         ★オーナー指示「基本給とか変動給、その他が見えるバー作ったじゃん。ちゃんとリアルに」。
+         割合は下の detail.parts をそのまま使う（数字を2か所に持たない）。
+         ⚠️ 差し込む面の高さは lp.css の .hero-win-open で **98px 固定**。灰色の骨組みも同じ
+            高さの箱を1つ置いてある＝描き替えても跳ねない（CLS）。
        rp.on ＝ REAL PAY の節の白いカード（行を開いた面の見本）がどの行の内訳か。
        rp.next ＝ そのカードの下端（緑の面の切り口）に半分だけ見える「次の行」。
        ⚠️ どちらも **marquee の何番目か**（rows の何番目か、ではない）。
@@ -172,7 +187,8 @@
        ★割合は帯の長さにだけ使い、数字としては出さない（REAL PAY の開いた面も％を出さない）。
        ★割合の合計は必ず 100。区分の色は lp.css の .lp-c-*（REAL PAY と同じ色）。 */
     hero: {
-      rows: [0, 1, 2, 3, 4],
+      rows: [0, 1, 2, 3, 4, 5],
+      open: 0,
       rp: { on: 1, next: 3 },
       detail: { parts: [['base', 56], ['variable', 26], ['bonus', 18]] },
     },
@@ -487,10 +503,29 @@
     return '<span class="hero-win-logo hero-win-mono" aria-hidden="true">' + esc(ini) + '</span>';
   }
 
-  function heroRow(r) {
+  /* ★開いた行の下に差し込む「報酬の内訳」（2026-09-23 オーナー指示）。
+     区分と割合は PV_DEMO.hero.detail.parts ＝ REAL PAY の節の白いカードと**同じ1か所**。
+     ★％の数字は出さない（バーの長さにだけ使う）。REAL PAY の本物の面と同じ約束。
+     ⚠️ 高さは lp.css の .hero-win-open が 98px で固定している。ここで中身を増やしても
+        箱は伸びない＝溢れて隠れる。増やすなら CSS の高さと HTML の骨組みも一緒に直す。 */
+  function heroOpen() {
+    var parts = PV_DEMO.hero.detail.parts;
+    return '<div class="hero-win-open">' +
+      '<span class="hero-win-open-h">' + esc(T.openH) + '</span>' +
+      /* ⚠️ クラス名は hero-win-seg。hero-win-bar は**電話の上の帯**が既に使っている。 */
+      '<span class="hero-win-seg">' + parts.map(function (p) {
+        return '<i class="lp-c-' + p[0] + '" style="flex:' + p[1] + ' 1 0"></i>';
+      }).join('') + '</span>' +
+      '<span class="hero-win-leg">' + parts.map(function (p) {
+        return '<span><i class="lp-c-' + p[0] + '"></i>' + esc(T.openPart[p[0]]) + '</span>';
+      }).join('') + '</span>' +
+    '</div>';
+  }
+
+  function heroRow(r, open) {
     var slug = r[0], jpy = r[1] * 10000, pos = r[3], fleet = r[4], years = r[5];
     var name = L === 'en' ? airlineName(slug, r[7]) : r[7];
-    return '<div class="hero-win-row">' + heroLogo(slug, name) +
+    return '<div class="hero-win-row' + (open ? ' is-open' : '') + '">' + heroLogo(slug, name) +
       '<span class="hero-win-an">' + esc(name) + '</span>' +
       '<span class="hero-win-amt pv-no-cur" data-jpy="' + jpy + '">' + esc(mqAmt(jpy)) + '</span>' +
       '<span class="hero-win-meta">' + esc(tw(pos) + T.sep + fleet + T.sep + tw(years)) + '</span>' +
@@ -501,7 +536,10 @@
     var H = PV_DEMO.hero;
     var box = d.getElementById('hero-win-rows');
     if (box) {
-      box.innerHTML = H.rows.map(function (i) { return heroRow(PV_DEMO.marquee[i]); }).join('');
+      // 開いた行の**直後**に内訳の面を差し込む。open が rows の外なら差し込まない。
+      box.innerHTML = H.rows.map(function (i, n) {
+        return heroRow(PV_DEMO.marquee[i], n === H.open) + (n === H.open ? heroOpen() : '');
+      }).join('');
     }
 
     // 人数（本物）。取れない・3人未満なら出さない（場所は取ったまま）。0 や推測で埋めない。

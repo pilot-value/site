@@ -327,8 +327,9 @@
 
     <!-- ★PV_DEMO — 右は REAL PAY の見本。行も右下のカードも lp.js の PV_DEMO が描く（全部サンプル）。
          ★金額は HTML に書かない（AI の読み手が見本を実データとして拾わないように）。
-         灰色の棒だけの行を5本先に置き、同じ高さ（52px）の行に描き替える（ガタつかない）。
-         ⚠️ 本数を変えるときは lp.css の .hero-win-row の高さと PV_DEMO.hero.rows も一緒に直す。
+         灰色の棒だけの行を6本＋「開いた面」1つ先に置き、同じ高さ（行 52px・面 98px）に描き替える。
+         ⚠️ 本数を変えるときは lp.css の .hero-win-row / .hero-win-open の高さと
+            PV_DEMO.hero.rows・PV_DEMO.hero.open も一緒に直す（片方だけだと描き替えで跳ねる＝CLS）。
          「サンプル」の札は上の帯に1回だけ。見本に Verified・本人申告・投稿時期を付けない。
          全体で1本のリンク（hero_realpay_ui）。 -->
     <a class="hero-shot" href="actual-pay.html" data-pv-ev="hero_realpay_ui" aria-label="Open REAL PAY (this screen is a sample)">
@@ -338,6 +339,8 @@
             <i class="lp-phone-pill" aria-hidden="true"></i>
             <div class="hero-win-bar"><span class="hero-win-name">REAL PAY</span><span class="hero-win-tag">Sample</span></div>
             <div id="hero-win-rows">
+              <div class="hero-win-row"><i class="hero-sk hero-sk--logo"></i><i class="hero-sk hero-sk--a"></i><i class="hero-sk hero-sk--v"></i><i class="hero-sk hero-sk--m"></i></div>
+              <div class="hero-win-open"><i class="hero-sk hero-sk--h"></i><i class="hero-sk hero-sk--seg"></i><i class="hero-sk hero-sk--lg"></i></div>
               <div class="hero-win-row"><i class="hero-sk hero-sk--logo"></i><i class="hero-sk hero-sk--a"></i><i class="hero-sk hero-sk--v"></i><i class="hero-sk hero-sk--m"></i></div>
               <div class="hero-win-row"><i class="hero-sk hero-sk--logo"></i><i class="hero-sk hero-sk--a"></i><i class="hero-sk hero-sk--v"></i><i class="hero-sk hero-sk--m"></i></div>
               <div class="hero-win-row"><i class="hero-sk hero-sk--logo"></i><i class="hero-sk hero-sk--a"></i><i class="hero-sk hero-sk--v"></i><i class="hero-sk hero-sk--m"></i></div>
