@@ -560,11 +560,9 @@
       font-size:12.5px; font-weight:700; letter-spacing:.12em; color:var(--pv-text); }
     #hero-section .hero-win-name::before{ content:''; width:8px; height:8px; border-radius:999px;
       background:var(--pv-accent); box-shadow:0 0 0 3px var(--pv-accent-soft); }
-    /* 「サンプル」の札はここに1回だけ。★行には付け直さない。 */
-    #hero-section .hero-win-tag{ margin-left:auto; padding:3px 10px; border-radius:999px;
-      font-size:11px; font-weight:600; line-height:1.4; letter-spacing:.02em;
-      background:var(--pv-surface-soft); color:var(--pv-text-muted);
-      box-shadow:inset 0 0 0 1px var(--pv-border); }
+    /* ★2026-09-23、オーナー指示で「サンプル」の札（.hero-win-tag）を消した。
+       見本だと分かる仕掛けは**金額を HTML に書かないこと**のほうで、札はその代わりではない。
+       札を戻したくなったら、まず index.html のコメントを読む。 */
     /* 1行＝2段。上の段：ロゴ・社名・年収／下の段：職位・機種・経験。
        ★行の高さは固定（52px）。灰色の棒の行と本物の行が同じ高さ＝描き替えてもガタつかない。
          中身は 19.5 + 3 + 15.6 = 38.1px なので 52 に収まる（2026-09-23 に 64 から詰めた）。
