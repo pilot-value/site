@@ -254,7 +254,7 @@
       <!-- The language toggle is injected right after #theme-toggle by lang-toggle.js
            (hardcoding it makes injectBtn() return early and breaks EN → JP) -->
       <a id="nav-auth-btn" href="login.html" class="btn-ghost hidden md:inline-flex" style="font-size:.82rem;padding:7px 14px">Log in</a>
-      <a href="pay-report.html" class="btn-primary hidden md:inline-flex py-2 px-5 text-sm" style="background:linear-gradient(135deg,#f5c842,#f97316);color:#000" data-pv-ev="nav_primary_cta">See all salary data</a>
+      <a href="pay-report.html" class="btn-primary hidden md:inline-flex py-2 px-5 text-sm" data-pv-ev="nav_primary_cta">See all salary data</a>
       <!-- モバイルの「記録する」導線はここには置かない（#pv-mcta を参照）。
            ここに足すと search.js が挿すハンバーガーが画面外へ出る。 -->
     </div>
@@ -263,200 +263,289 @@
 
 
 <!-- ════════════════════════════════════
-     HERO — WebGL Shader Background
+     HERO（2026-09-22 作り直し・Marit 風。CSS は lp.css の「══ Hero（2026-09-22」の節）
+     左＝見出し・説明・ボタン2本・人数／右＝REAL PAY の見本の画面（全部サンプル）。
+     ★本物の投稿はここに1件も出さない。小さい会社で「会社名＋時期」が出ると、書いた本人が推測される。
+     ★人数の横に航空会社のロゴを並べない（支持・提携に見える）。匿名の丸と本物の人数だけ。
+     旧ヒーロー（黒地に WebGL の地球儀・ブランド行・理念の見出し）は外した。
+     理念の見出しは #final-cta の上へ移した（お知らせメールと db/test-announce.mjs が見ている）。
 ════════════════════════════════════ -->
 <section id="hero-section">
-  <canvas id="hero-canvas"></canvas>
-  <div class="hero-overlay"></div>
+  <div class="hero-wrap">
+    <div class="hero-copy">
+      <!-- LCP 要素はこの h1。⚠️ 透明から出さない。2026-08-15 の実測で、フェードで出すと
+           表示が 2,200ms 遅れた（見出しがページでいちばん大きい文字＝LCP 要素）。
+           ★見出しは日英とも同じ英語（2026-09-22 オーナー指定）。 -->
+      <h1 class="hero-h1">Take control of your career in the cockpit.</h1>
+      <p class="hero-lede">Real pay and conditions, shared anonymously by pilots. See where you stand.</p>
 
-  <div class="hero-content">
-    <p class="hero-en anim-fade-up delay-1">PILOT DEFINES · PILOT'S VALUE</p>
+      <!-- ★ボタンは2本（2026-09-22 オーナー指示。2026-08-22 の「CTA は1本だけ」を置き換えた）。
+           主＝給与を出す（hero_primary_cta）／副＝REAL PAY を見る（hero_salary_data。
+           08-22 まで同じ名前で数えていたので、当時の数字と比べられる）。
+           文言はオーナー指定。「匿名で」／anonymously は外さない（patch-anon-cta.mjs の表が見ている）。
+           添え書きはボタンを短くしたぶん「出すと見られる」を補う（押せる物ではない）。 -->
+      <div class="hero-ctas">
+        <a href="pay-report.html" class="hero-btn hero-btn--p" data-pv-ev="hero_primary_cta">Share your pay anonymously<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <a href="actual-pay.html" class="hero-btn hero-btn--s" data-pv-ev="hero_salary_data">Explore REAL PAY</a>
+        <p class="hero-unlock"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.6" stroke="currentColor" stroke-width="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Unlock REAL PAY</p>
+      </div>
 
-    <!-- ★2026-08-14（オーナー指示）主従を逆転した。日本語版と同じ形＝
-         ブランド行（PILOT DEFINES · PILOT'S VALUE）は小さく1行に、
-         いちばん大きいのは h1。 -->
-    <div class="anim-fade-up delay-2" style="text-align:center;display:flex;flex-direction:column;align-items:center">
-      <h1 class="hero-h1">REAL PAY. REAL PILOTS.<br>PRIVATE BY DESIGN.</h1>
-      <p class="hero-sub">Fully anonymous. Compare real pay, real conditions, real reviews.</p>
-    </div>
-
-    <!-- Hero の検索欄は削除した（ヘッダーの検索アイコン #pv-search-btn が同じ役割を持つ）。
-         代わりに下の .hero-mq（流れる給与カード）を置いている。 -->
-
-    <!-- ★CTA は1本だけ（2026-08-22 オーナー指示）。日本語版と1:1。
-         以前ここに "See what pilots actually earn"（hero_salary_data）が
-         並んでいた。#actual-pay への導線はヘッダーとスクロールキューが持っている。
-         ⚠️ anonymously を落とさない。押す瞬間のいちばんの不安がそこ（2026-08-19 の方針）。 -->
-    <div class="flex justify-center mt-8 anim-fade-up delay-4">
-      <a href="pay-report.html" class="btn-orange btn-orange--wide" data-pv-ev="hero_primary_cta">
-        <span class="pv-cta-label"><span class="pv-kata">Share your pay anonymously,</span> <span class="pv-kata">see all salary data</span></span>
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </a>
+      <!-- 人数は本物だけ。lp.js が pv_pay_rows() の stats.contributors を入れる
+           （左の板の「N / 100人」と同じ数え方＝画面によって数がずれない）。
+           ★あの関数は行も返すが、行は使わない・画面に出さない。
+           ★HTML には数字を書かない（「—」で出荷）。取れない・3人未満のときは出さない
+             （場所は取ったまま＝画面がガタつかない）。 -->
+      <div class="hero-proof is-wait" id="hero-proof">
+        <span class="hero-av" aria-hidden="true"><i><svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="7" r="3.4"/><path d="M3.6 17.4c.7-3.4 3.3-5.3 6.4-5.3s5.7 1.9 6.4 5.3z"/></svg></i><i><svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="7" r="3.4"/><path d="M3.6 17.4c.7-3.4 3.3-5.3 6.4-5.3s5.7 1.9 6.4 5.3z"/></svg></i><i><svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="7" r="3.4"/><path d="M3.6 17.4c.7-3.4 3.3-5.3 6.4-5.3s5.7 1.9 6.4 5.3z"/></svg></i><i><svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="7" r="3.4"/><path d="M3.6 17.4c.7-3.4 3.3-5.3 6.4-5.3s5.7 1.9 6.4 5.3z"/></svg></i></span>
+        <p class="hero-proof-t"><b id="hero-proof-n">—</b> pilots have shared their pay anonymously</p>
+      </div>
     </div>
 
     <!-- ★PV_DEMO — 流れる給与カード。中身は lp.js の PV_DEMO.marquee が入れる。
          中身は実在しないサンプル値。2026-08-11 のオーナー判断でこのまま公開する。
+         ★2026-09-23 にヒーローの中へ入れた（2026-09-22 はヒーローの直下に置いていた）。
+           狭い幅では **電話より前** に出る＝文章のすぐ下で帯が流れ、1画面（390×844）に収まる。
+           広い幅の見た目は前と同じ（2列の下に全幅で敷く。場所は lp.css の grid-template-areas）。
          ⚠️ ここを <nav> にしない。素の `nav {}` が position:fixed を当ててヘッダーの位置へ飛ばし、
             `[data-theme="light"] nav` が背景まで塗る（両方踏んだ）。 -->
-    <div class="hero-mq anim-fade-up delay-4" id="hero-mq" aria-label="Pay recorded by pilots">
-      <div class="hero-mq-track" id="hero-mq-track"></div>
+    <div class="hero-strip">
+      <div class="hero-mq" id="hero-mq" aria-label="Pay recorded by pilots">
+        <div class="hero-mq-track" id="hero-mq-track"></div>
+      </div>
     </div>
 
-    <div class="hero-scroll-cue absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-40">
-      <div class="text-xs tracking-widest text-white/60">SCROLL</div>
-      <div style="width:1px;height:36px;background:linear-gradient(to bottom,rgba(255,255,255,.6),transparent)"></div>
+    <!-- ★2026-09-23 オーナー指示「口コミも同じようなカードで下に逆回りで流れるようにして」。
+         ★中身は本物の投稿。取りに行くのは lp.js が1回だけで、下の #pilot-voices と分け合う
+           （pv_review_voices ＝ 新しい6件・1欄80字まで。db/reviews-gate.sql の「唯一の穴」）。
+           ⚠️ 帯は古い順に流す＝最初に目に入るカードが下の節と別になる。
+         ⚠️ 高さは lp.css の .hero-mq--rv の min-height が先に取ってある（カードは後から入る）。 -->
+    <div class="hero-strip hero-strip--rv" data-pv-view="hero_reviews_view">
+      <div class="hero-mq hero-mq--rv" id="hero-rv" aria-label="Reviews written by pilots">
+        <div class="hero-mq-track" id="hero-rv-track"></div>
+      </div>
+    </div>
+
+    <!-- ★PV_DEMO — 右は REAL PAY の見本。行も右下のカードも lp.js の PV_DEMO が描く（全部サンプル）。
+         ★金額は HTML に書かない（AI の読み手が見本を実データとして拾わないように）。
+         灰色の棒だけの行を6本＋「開いた面」1つ先に置き、同じ高さ（行 52px・面 98px）に描き替える。
+         ⚠️ 本数を変えるときは lp.css の .hero-win-row / .hero-win-open の高さと
+            PV_DEMO.hero.rows・PV_DEMO.hero.open も一緒に直す（片方だけだと描き替えで跳ねる＝CLS）。
+         「サンプル」の札は上の帯に1回だけ。見本に Verified・本人申告・投稿時期を付けない。
+         全体で1本のリンク（hero_realpay_ui）。 -->
+    <a class="hero-shot" href="actual-pay.html" data-pv-ev="hero_realpay_ui" aria-label="Open REAL PAY (this screen is a sample)">
+      <div class="hero-panel lp-panel">
+        <div class="lp-phone">
+          <div class="lp-phone-scr hero-win">
+            <i class="lp-phone-pill" aria-hidden="true"></i>
+            <div class="hero-win-bar"><span class="hero-win-name">REAL PAY</span><span class="hero-win-tag">Sample</span></div>
+            <div id="hero-win-rows">
+              <div class="hero-win-row"><i class="hero-sk hero-sk--logo"></i><i class="hero-sk hero-sk--a"></i><i class="hero-sk hero-sk--v"></i><i class="hero-sk hero-sk--m"></i></div>
+              <div class="hero-win-open"><i class="hero-sk hero-sk--h"></i><i class="hero-sk hero-sk--seg"></i><i class="hero-sk hero-sk--lg"></i></div>
+              <div class="hero-win-row"><i class="hero-sk hero-sk--logo"></i><i class="hero-sk hero-sk--a"></i><i class="hero-sk hero-sk--v"></i><i class="hero-sk hero-sk--m"></i></div>
+              <div class="hero-win-row"><i class="hero-sk hero-sk--logo"></i><i class="hero-sk hero-sk--a"></i><i class="hero-sk hero-sk--v"></i><i class="hero-sk hero-sk--m"></i></div>
+              <div class="hero-win-row"><i class="hero-sk hero-sk--logo"></i><i class="hero-sk hero-sk--a"></i><i class="hero-sk hero-sk--v"></i><i class="hero-sk hero-sk--m"></i></div>
+              <div class="hero-win-row"><i class="hero-sk hero-sk--logo"></i><i class="hero-sk hero-sk--a"></i><i class="hero-sk hero-sk--v"></i><i class="hero-sk hero-sk--m"></i></div>
+              <div class="hero-win-row"><i class="hero-sk hero-sk--logo"></i><i class="hero-sk hero-sk--a"></i><i class="hero-sk hero-sk--v"></i><i class="hero-sk hero-sk--m"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </a>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════
+     ★ #lp-realpay — REAL PAY の節（2026-09-22・Marit のスクショ2の形）
+     Left: green panel with a white card (a sample of an opened REAL PAY row). Right: copy. 1:1 with the Japanese page.
+     ★The card is drawn by lp.js from PV_DEMO (samples). No real submission, no airline name.
+     ⚠️ No amounts in the HTML (samples are not the SSOT; keep them out of check-salary.mjs).
+════════════════════════════════════ -->
+<section id="lp-realpay" class="lp-blk" data-pv-view="realpay_block_view">
+  <div class="lp-blk-wrap">
+    <div class="lp-blk-copy">
+      <p class="lp-eyebrow">REAL PAY</p>
+      <h2 class="lp-h2">What do pilots actually earn?</h2>
+      <p class="lp-body">Share your pay once, anonymously, and you can see the pay other pilots have logged.</p>
+      <a class="lp-link" href="actual-pay.html" data-pv-ev="lp_realpay_block">See REAL PAY<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+    </div>
+    <div class="lp-panel lp-rp-panel">
+      <div class="lp-rp-card">
+        <div class="lp-rp-top"><span class="lp-rp-h">Compensation</span><span class="lp-tag">Sample</span></div>
+        <p class="lp-rp-amt"><span class="pv-no-cur" id="lp-rp-amt"></span><span class="lp-rp-u">/ yr</span></p>
+        <p class="lp-rp-meta" id="lp-rp-meta"></p>
+        <div class="lp-rp-bar" id="lp-rp-bar"></div>
+        <ul class="lp-rp-leg" id="lp-rp-leg"><li></li><li></li><li></li></ul>
+        <div class="lp-rp-next"><span class="lp-rp-next-m" id="lp-rp-next-m"></span><span class="lp-rp-next-a pv-no-cur" id="lp-rp-next-a"></span></div>
+      </div>
     </div>
   </div>
 </section>
 
 
 <!-- ════════════════════════════════════
-     ★ #why — 「自分のキャリア」の問い（2026-08-21 追加・日本語版と1:1）
-     ⚠️ 金額も社名も書かない。check-salary.mjs のパス2はサイト全 HTML から
-        「社名＋役職＋金額」を拾うので、この節は数字ゼロで設計してある。
-     ⚠️ 抽象論（information asymmetry / transparency matters）はここに書かない。
-        業界の話は下の #market が受け持つ。
+     ★ #lp-airlines — 112 AIRLINES の節（2026-09-22・Marit のスクショ3の形）
+     Left: copy. Right: green panel with the phone (same .lp-phone as the hero). 1:1 with the Japanese page.
+     ★The phone shows real public data (cap.lo–cap.hi in salary-data.json), so the tag says "Public data", never "Sample".
+     ★Never "Average" (avg is an estimate; public sources only support lo–hi — DATA-PROVENANCE.md).
+     ★The airline count carries data-pv-n="airlines": lp.js overwrites it from salary-data.json and
+       assert-claims.mjs checks it against SALARY.
+     ⚠️ No amounts in the HTML (lp.js draws them with pv-no-cur + data-jpy-lo/hi).
 ════════════════════════════════════ -->
-<section id="why" class="pv-sec" data-pv-view="why_view">
-  <div class="pv-wrap pv-wrap--narrow">
-    <div class="pv-head">
-      <span class="pv-eyebrow">The problem</span>
-      <h2 class="pv-h2 pv-h2--display pv-h2--gold">Choosing an airline decides the next twenty years.</h2>
+<section id="lp-airlines" class="lp-blk" data-pv-view="airlines_block_view">
+  <div class="lp-blk-wrap">
+    <div class="lp-blk-copy">
+      <p class="lp-eyebrow"><span data-pv-n="airlines">112</span> AIRLINES</p>
+      <h2 class="lp-h2">Compare airlines around the world</h2>
+      <p class="lp-body">Pay ranges for captains and first officers at <span data-pv-n="airlines">112</span> airlines, built from public information. Each airline page also covers operations, training and benefits.</p>
+      <a class="lp-btn" href="world-airlines.html" data-pv-ev="lp_airlines_block">See all airlines<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+    </div>
+    <div class="lp-panel lp-air-panel">
+      <div class="lp-phone">
+        <div class="lp-phone-scr lp-air-scr">
+          <i class="lp-phone-pill" aria-hidden="true"></i>
+          <div class="lp-air-bar"><span class="lp-air-name">Captain pay range</span><span class="lp-air-tag">Public data</span></div>
+          <div id="lp-air-rows">
+        <div class="lp-air-row lp-air-row--sk"><i class="lp-sk lp-sk--logo"></i><i class="lp-sk lp-sk--a"></i><i class="lp-sk lp-sk--r"></i><i class="lp-sk lp-sk--b"></i></div>
+        <div class="lp-air-row lp-air-row--sk"><i class="lp-sk lp-sk--logo"></i><i class="lp-sk lp-sk--a"></i><i class="lp-sk lp-sk--r"></i><i class="lp-sk lp-sk--b"></i></div>
+        <div class="lp-air-row lp-air-row--sk"><i class="lp-sk lp-sk--logo"></i><i class="lp-sk lp-sk--a"></i><i class="lp-sk lp-sk--r"></i><i class="lp-sk lp-sk--b"></i></div>
+        <div class="lp-air-row lp-air-row--sk"><i class="lp-sk lp-sk--logo"></i><i class="lp-sk lp-sk--a"></i><i class="lp-sk lp-sk--r"></i><i class="lp-sk lp-sk--b"></i></div>
+        <div class="lp-air-row lp-air-row--sk"><i class="lp-sk lp-sk--logo"></i><i class="lp-sk lp-sk--a"></i><i class="lp-sk lp-sk--r"></i><i class="lp-sk lp-sk--b"></i></div>
+        <div class="lp-air-row lp-air-row--sk"><i class="lp-sk lp-sk--logo"></i><i class="lp-sk lp-sk--a"></i><i class="lp-sk lp-sk--r"></i><i class="lp-sk lp-sk--b"></i></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════
+     ★ #lp-explore — データを探す／Explore the data（2026-09-22）
+     ★All five are short previews that hand off to the full pages. Do not bring the old top page's volume back here (owner).
+       768px and up: the four cards sit 2x2. Below 768px: one row you swipe sideways (never stacked).
+     ⚠️ Keep the ids (#salary-engine, #compare, #ranking, #jobs, #sec-compare-articles):
+        the nav (search.js) and other pages link straight to index.html#compare / #ranking / #jobs.
+     ⚠️ Never "Average": these figures are estimates from public information (DATA-PROVENANCE.md).
+     ⚠️ The airline count carries data-pv-n="airlines" (lp.js overwrites it, assert-claims.mjs checks it).
+     ⚠️ #lvl-home-tip escapes overflow with position:fixed. Keep it out of .lvl-scroll.
+     .lvl-* styling and drawing live in salary-leveling.js (shared with world-airlines).
+════════════════════════════════════ -->
+<section id="lp-explore" data-pv-view="explore_view">
+  <div class="lp-ex-wrap">
+    <p class="lp-eyebrow">EXPLORE THE DATA</p>
+    <h2 class="lp-h2">Explore the data</h2>
+    <p class="lp-body">Everything below is an estimate built from published terms.</p>
+
+    <div id="salary-engine" class="lp-ex-lvl">
+      <div class="lp-ex-head">
+        <h3 class="lp-ex-h3">Public estimates: pay ranges at <span data-pv-n="airlines">112</span> airlines</h3>
+        <a class="lp-ex-more" href="world-airlines.html" data-pv-ev="lp_explore_leveling">Compare all <span data-pv-n="airlines">112</span> airlines<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      </div>
+      <!-- 会社ピッカー（クイック選択＋企業検索ドロップダウン。中身は mount が生成） -->
+      <div class="lvl-picker" id="lvl-home-picker" aria-label="Choose airlines to compare"></div>
+      <div class="lvl-scroll">
+        <!-- min-height は場所取り。PVLeveling.mount() は後から走るので、
+             空のまま高さ0だと #compare / #ranking へのアンカーが着地後にずれる。 -->
+        <div class="lvl-grid" id="lvl-home-grid" style="min-height:490px"></div>
+      </div>
     </div>
 
-    <ul class="pv-asks">
-      <li>Higher pay, but four fewer days off a month — is that better?</li>
-      <li>What if another airline upgrades you five years sooner?</li>
-      <li>Once you factor in housing, tax and pension, who actually pays best?</li>
-      <li>Change base, and what happens to time with your family?</li>
+    <div class="lp-ex-cards">
+      <article id="compare" class="lp-ex-card">
+        <h3 class="lp-ex-h3">Japan vs overseas<span class="lp-ex-note"> (estimated Captain pay, public data)</span></h3>
+        <ul class="lp-ex-bars">
+          <li><span class="lp-ex-bl"><span aria-hidden="true">🇺🇸</span> US major carriers</span><span class="lp-ex-bv"><span class="pv-cur" data-jpy="61000000" data-orig="¥6,100万">$384K</span>+</span><i style="--w:100%"></i></li>
+          <li><span class="lp-ex-bl"><span aria-hidden="true">🇦🇪</span> Middle East majors (tax-free)</span><span class="lp-ex-bv"><span class="pv-cur" data-jpy="33000000" data-orig="¥3,300万">$208K</span>+</span><i style="--w:54%"></i></li>
+          <li><span class="lp-ex-bl"><span aria-hidden="true">🇪🇺</span> European major carriers</span><span class="lp-ex-bv"><span class="pv-cur" data-jpy="34400000" data-orig="¥3,440万">$216K</span></span><i style="--w:56%"></i></li>
+          <li><span class="lp-ex-bl"><span aria-hidden="true">🌏</span> Major Asian carriers</span><span class="lp-ex-bv"><span class="pv-cur" data-jpy="35000000" data-orig="¥3,500万">$220K</span></span><i style="--w:57%"></i></li>
+          <li><span class="lp-ex-bl"><span aria-hidden="true">🇯🇵</span> Major Japanese carriers</span><span class="lp-ex-bv"><span class="pv-cur" data-jpy="27000000" data-orig="¥2,700万">$170K</span></span><i style="--w:44%"></i></li>
+          <li><span class="lp-ex-bl"><span aria-hidden="true">🇯🇵</span> Japanese LCCs</span><span class="lp-ex-bv"><span class="pv-cur" data-jpy="23000000" data-orig="¥2,300万">$145K</span></span><i style="--w:38%"></i></li>
+        </ul>
+        <a class="lp-ex-more" href="countries.html" data-pv-ev="lp_explore_compare">See by country<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      </article>
+
+      <article id="ranking" class="lp-ex-card">
+        <h3 class="lp-ex-h3">Pay by airline<span class="lp-ex-note"> (estimated, public data)</span></h3>
+        <div class="lp-ex-tabs" role="group" aria-label="Rank">
+          <button type="button" class="lp-ex-tab active" aria-pressed="true" onclick="switchRankTab(this,'captain')">Captain</button>
+          <button type="button" class="lp-ex-tab" aria-pressed="false" onclick="switchRankTab(this,'fo')">First Officer</button>
+        </div>
+        <!-- 上位5社だけ。行はこのページの下の buildRankingList が描く。 -->
+        <div id="rank-captain" class="lp-rk"></div>
+        <div id="rank-fo" class="lp-rk hidden"></div>
+        <p class="lp-ex-fine">Actual pay varies with fleet, seniority and contract.</p>
+        <a class="lp-ex-more" href="world-airlines.html" data-pv-ev="lp_explore_ranking">See all <span data-pv-n="airlines">112</span> airlines<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      </article>
+
+      <article id="jobs" class="lp-ex-card">
+        <h3 class="lp-ex-h3">Browse airlines</h3>
+        <div class="lp-ex-chips">
+          <a class="lp-ex-chip" href="airlines/ana.html"><img src="../assets/airline-logos/ana.svg" alt="" width="26" height="26" loading="lazy" decoding="async"/><span>ANA</span></a>
+          <a class="lp-ex-chip" href="airlines/jal.html"><img src="../assets/airline-logos/jal.svg" alt="" width="26" height="26" loading="lazy" decoding="async"/><span>JAL</span></a>
+          <a class="lp-ex-chip" href="airlines/emirates.html"><img src="../assets/airline-logos/emirates.svg" alt="" width="26" height="26" loading="lazy" decoding="async"/><span>Emirates</span></a>
+          <a class="lp-ex-chip" href="airlines/qatar-airways.html"><img src="../assets/airline-logos/qatar-airways.svg" alt="" width="26" height="26" loading="lazy" decoding="async"/><span>Qatar Airways</span></a>
+          <a class="lp-ex-chip" href="airlines/singapore-airlines.html"><img src="../assets/airline-logos/singapore-airlines.svg" alt="" width="26" height="26" loading="lazy" decoding="async"/><span>Singapore Airlines</span></a>
+          <a class="lp-ex-chip" href="airlines/delta.html"><img src="../assets/airline-logos/delta.svg" alt="" width="26" height="26" loading="lazy" decoding="async"/><span>Delta</span></a>
+          <a class="lp-ex-chip" href="airlines/united.html"><img src="../assets/airline-logos/united.svg" alt="" width="26" height="26" loading="lazy" decoding="async"/><span>United</span></a>
+          <a class="lp-ex-chip" href="airlines/zipair.html"><img src="../assets/airline-logos/zipair.svg" alt="" width="26" height="26" loading="lazy" decoding="async"/><span>ZIPAIR</span></a>
+        </div>
+        <a class="lp-ex-more" href="world-airlines.html" data-pv-ev="lp_explore_airlines">See all airlines<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      </article>
+
+      <article id="sec-compare-articles" class="lp-ex-card">
+        <h3 class="lp-ex-h3">Comparisons</h3>
+        <ul class="lp-ex-list">
+            <li><a href="airlines/ana-vs-jal.html">ANA vs JAL — Which One Pays More?</a></li>
+            <li><a href="airlines/gaishi-vs-nikkei.html">Foreign vs Japanese Carriers — The Real Pay Gap</a></li>
+            <li><a href="airlines/ana-vs-emirates.html">ANA vs Emirates — Can a Move Really Double Your Pay?</a></li>
+            <li><a href="airlines/emirates-vs-qatar.html">Emirates vs Qatar — The Gulf's Big Two Head to Head</a></li>
+        </ul>
+        <details class="lp-ex-all">
+          <summary>See every comparison</summary>
+          <ul class="lp-ex-list">
+              <li><a href="airlines/lcc-hikaku.html">Every LCC Compared — What Low-Cost Carriers Really Pay</a></li>
+              <li><a href="pilot-vs-isha.html">Pilot vs Doctor — Pay, Difficulty and Lifestyle</a></li>
+              <li><a href="pilot-vs-bengoshi.html">Pilot vs Lawyer — Stability vs No Ceiling</a></li>
+              <li><a href="pilot-vs-kochin.html">Top 8 High-Income Careers — Is Pilot the Strongest?</a></li>
+              <li><a href="pilot-tenshoku.html">The Complete Pilot Career-Move Guide — Pay, Requirements, Process</a></li>
+          </ul>
+        </details>
+      </article>
+    </div>
+  </div>
+</section>
+<!-- ツールチップ（overflow外・fixed でクリップ回避） -->
+<div class="lvl-tip" id="lvl-home-tip" aria-hidden="true"></div>
+
+
+<!-- ════════════════════════════════════
+     ★ #lp-why — Why PILOT VALUE（2026-09-22）
+     ★None of the long copy from the old #why / #market / #pv-value / #give-get / #trust. Three items, one sentence each (owner).
+     ★The three headings are the owner's English. Body copy states only what actually runs today.
+     ★The Anonymous & private line is the site-wide payslip sentence. Do not paraphrase it (assert-claims.mjs).
+     ★The PILOT DEFINES · PILOT'S VALUE line appears once on the page, here.
+════════════════════════════════════ -->
+<section id="lp-why" data-pv-view="value_view">
+  <div class="lp-ex-wrap">
+    <h2 class="lp-h2">Why PILOT VALUE</h2>
+    <ul class="lp-why-grid">
+      <li class="lp-why-item">
+        <span class="lp-why-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg></span>
+        <h3 class="lp-why-h">Built for pilots</h3>
+        <p class="lp-why-p">Built exclusively around pilot pay, conditions and careers.</p>
+      </li>
+      <li class="lp-why-item">
+        <span class="lp-why-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10.5" width="16" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/><path d="M12 14.5v2.2"/></svg></span>
+        <h3 class="lp-why-h">Anonymous &amp; private</h3>
+        <p class="lp-why-p">Your name, staff number and bank details are blacked out in your browser before anything is sent. The image itself is never stored.</p>
+      </li>
+      <li class="lp-why-item">
+        <span class="lp-why-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16"/><path d="M7 16.5V11"/><path d="M12 16.5V6"/><path d="M17 16.5v-3.5"/></svg></span>
+        <h3 class="lp-why-h">Real-world pay transparency</h3>
+        <p class="lp-why-p">Public estimates and pay reported by pilots are always shown apart.</p>
+      </li>
     </ul>
-
-    <p class="pv-ask-close">Right now none of that is in the job ad or the pay scale.<br><strong>The only people who know are the ones already flying there.</strong></p>
-  </div>
-</section>
-
-
-<!-- ════════════════════════════════════
-     ★ #market — 業界の Vision 回収（2026-08-21 追加 / 2026-08-22 に位置変更・日本語版と1:1）
-     2026-08-22（オーナー指示）#pv-value と入れ替えて #why の真下に上げた。
-     Hero で流し見たタグラインが、#why の問いの直後にここで戻ってくる。
-     ⚠️ 結果を約束しない。your pay will rise / guarantee は書かない。
-        書けるのは傾向だけ（Over time, that raises… のような言い方）。
-     ⚠️ 番号つきの連鎖図（01→02→03）にしない。
-     ⚠️ 数字ゼロ。check-salary.mjs のパス2の照合対象にしない。
-════════════════════════════════════ -->
-<section id="market" class="pv-sec pv-sec--ink" data-pv-view="market_view">
-  <div class="pv-wrap pv-wrap--narrow">
-    <div class="pv-head">
-      <span class="pv-eyebrow">Why it matters</span>
-      <h2 class="pv-h2 pv-h2--display">And transparency changes the industry itself.</h2>
-    </div>
-
-    <div class="pv-chain">
-      <p>Airlines that offer better conditions become visible.</p>
-      <p>Pilots get to choose the better option.</p>
-      <p>Airlines compete on conditions to attract people.</p>
-      <p>Over time, that raises the value of the profession itself.</p>
-    </div>
-
-    <p class="pv-tagline">PILOT DEFINES · PILOT'S VALUE</p>
-  </div>
-</section>
-
-
-<!-- ════════════════════════════════════
-     ❸ Actual Pay
-     公開情報（推定）＝Fuel と 実際の給与＝Asset を、同じ表で並べて区別する。
-     公開情報の列は SSOT(salary-data.mjs) の実値。check-salary が守る。
-     ⚠️ 社名と役職・役職と金額の隙間は 24 文字まで（check-salary の GAP）。
-        属性を足しすぎると照合から黙って外れる。
-     実際の給与の列は lp.js が pay_benchmarks から埋める（n<5 は Postgres 側で落ちる）。
-════════════════════════════════════ -->
-<section id="actual-pay" class="pv-sec pv-sec--line" data-pv-view="actual_pay_view">
-  <div class="pv-wrap">
-    <div class="pv-head">
-      <span class="pv-eyebrow">Actual pay</span>
-      <h2 class="pv-h2">What's advertised and what lands in your account are two different numbers.</h2>
-      <p class="pv-lede">On the left, our estimate from public sources. On the right, what line pilots reported actually being paid. The right-hand column opens <strong>only for pilots who have logged their own</strong> (Give &amp; Get).</p>
-    </div>
-
-    <!-- §5 2つの列が何なのかを、表の直上に1行ずつ。混ぜて1つの中央値にはしない。 -->
-    <div class="pv-defs">
-      <p><span class="pv-badge pv-badge--pub">Public estimate</span>A reference range built from official filings and job postings</p>
-      <p><span class="pv-badge pv-badge--actual">Actual Pay</span>The median of what pilots recorded actually being paid</p>
-    </div>
-
-    <div class="pv-card" style="padding:var(--pv-s-2) var(--pv-s-2) var(--pv-s-1)">
-      <table class="pv-table">
-        <caption class="pv-sr">Captain pay by airline — the public estimate range, and the median of actual pay</caption>
-        <thead>
-          <tr>
-            <th scope="col">Airline</th>
-            <th scope="col">Seat</th>
-            <th scope="col" style="text-align:right">Public estimate (range)</th>
-            <th scope="col" style="text-align:right">Actual pay (median)</th>
-          </tr>
-        </thead>
-        <tbody id="ap-tbody">
-          <tr>
-            <td data-label="Airline"><a href="airlines/ana.html" style="color:inherit;font-weight:700;text-decoration:none;border-bottom:1px solid var(--pv-line)">ANA</a></td>
-            <td data-label="Seat">Captain</td>
-            <td data-label="Public estimate" class="pv-num"><span class="pv-cur" data-jpy="22000000" data-orig="¥2,200">$138K</span>–<span class="pv-cur" data-jpy="35000000" data-orig="3,500万">$220K</span> <span class="pv-badge pv-badge--pub">Estimate</span></td>
-            <td data-label="Actual pay" class="pv-num" data-ap-slug="ana" data-ap-role="cap"><a class="pv-mask" href="pay-report.html" data-pv-ev="actual_pay_mask_click" aria-label="See actual pay (unlocked once you log yours)"><span class="pv-mask-v"><span class="pv-cur" data-jpy="28400000" data-orig="¥2,840万">$179K</span></span><span class="pv-mask-lock" aria-hidden="true">🔒 Log yours to see</span></a></td>
-          </tr>
-          <tr>
-            <td data-label="Airline"><a href="airlines/emirates.html" style="color:inherit;font-weight:700;text-decoration:none;border-bottom:1px solid var(--pv-line)">Emirates</a></td>
-            <td data-label="Seat">Captain</td>
-            <td data-label="Public estimate" class="pv-num"><span class="pv-cur" data-jpy="33500000" data-orig="¥3,350">$211K</span>–<span class="pv-cur" data-jpy="50500000" data-orig="5,050万">$318K</span> <span class="pv-badge pv-badge--pub">Estimate</span></td>
-            <td data-label="Actual pay" class="pv-num" data-ap-slug="emirates" data-ap-role="cap"><a class="pv-mask" href="pay-report.html" data-pv-ev="actual_pay_mask_click" aria-label="See actual pay (unlocked once you log yours)"><span class="pv-mask-v"><span class="pv-cur" data-jpy="39800000" data-orig="¥3,980万">$250K</span></span><span class="pv-mask-lock" aria-hidden="true">🔒 Log yours to see</span></a></td>
-          </tr>
-          <tr>
-            <td data-label="Airline"><a href="airlines/lufthansa.html" style="color:inherit;font-weight:700;text-decoration:none;border-bottom:1px solid var(--pv-line)">Lufthansa</a></td>
-            <td data-label="Seat">Captain</td>
-            <td data-label="Public estimate" class="pv-num"><span class="pv-cur" data-jpy="24900000" data-orig="¥2,490">$157K</span>–<span class="pv-cur" data-jpy="43200000" data-orig="4,320万">$272K</span> <span class="pv-badge pv-badge--pub">Estimate</span></td>
-            <td data-label="Actual pay" class="pv-num" data-ap-slug="lufthansa" data-ap-role="cap"><a class="pv-mask" href="pay-report.html" data-pv-ev="actual_pay_mask_click" aria-label="See actual pay (unlocked once you log yours)"><span class="pv-mask-v"><span class="pv-cur" data-jpy="31800000" data-orig="¥3,180万">$200K</span></span><span class="pv-mask-lock" aria-hidden="true">🔒 Log yours to see</span></a></td>
-          </tr>
-          <tr>
-            <td data-label="Airline"><a href="airlines/cathay-pacific.html" style="color:inherit;font-weight:700;text-decoration:none;border-bottom:1px solid var(--pv-line)">Cathay Pacific</a></td>
-            <td data-label="Seat">Captain</td>
-            <td data-label="Public estimate" class="pv-num"><span class="pv-cur" data-jpy="30000000" data-orig="¥3,000">$189K</span>–<span class="pv-cur" data-jpy="56500000" data-orig="5,650万">$355K</span> <span class="pv-badge pv-badge--pub">Estimate</span></td>
-            <td data-label="Actual pay" class="pv-num" data-ap-slug="cathay-pacific" data-ap-role="cap"><a class="pv-mask" href="pay-report.html" data-pv-ev="actual_pay_mask_click" aria-label="See actual pay (unlocked once you log yours)"><span class="pv-mask-v"><span class="pv-cur" data-jpy="37400000" data-orig="¥3,740万">$235K</span></span><span class="pv-mask-lock" aria-hidden="true">🔒 Log yours to see</span></a></td>
-          </tr>
-          <tr>
-            <td data-label="Airline"><a href="airlines/delta.html" style="color:inherit;font-weight:700;text-decoration:none;border-bottom:1px solid var(--pv-line)">Delta Air Lines</a></td>
-            <td data-label="Seat">Captain</td>
-            <td data-label="Public estimate" class="pv-num"><span class="pv-cur" data-jpy="49500000" data-orig="¥4,950">$311K</span>–<span class="pv-cur" data-jpy="86900000" data-orig="8,690万">$547K</span> <span class="pv-badge pv-badge--pub">Estimate</span></td>
-            <td data-label="Actual pay" class="pv-num" data-ap-slug="delta" data-ap-role="cap"><a class="pv-mask" href="pay-report.html" data-pv-ev="actual_pay_mask_click" aria-label="See actual pay (unlocked once you log yours)"><span class="pv-mask-v"><span class="pv-cur" data-jpy="64800000" data-orig="¥6,480万">$408K</span></span><span class="pv-mask-lock" aria-hidden="true">🔒 Log yours to see</span></a></td>
-          </tr>
-          <tr>
-            <td data-label="Airline"><a href="airlines/singapore-airlines.html" style="color:inherit;font-weight:700;text-decoration:none;border-bottom:1px solid var(--pv-line)">Singapore Airlines</a></td>
-            <td data-label="Seat">Captain</td>
-            <td data-label="Public estimate" class="pv-num"><span class="pv-cur" data-jpy="27500000" data-orig="¥2,750">$173K</span>–<span class="pv-cur" data-jpy="41500000" data-orig="4,150万">$261K</span> <span class="pv-badge pv-badge--pub">Estimate</span></td>
-            <td data-label="Actual pay" class="pv-num" data-ap-slug="singapore-airlines" data-ap-role="cap"><a class="pv-mask" href="pay-report.html" data-pv-ev="actual_pay_mask_click" aria-label="See actual pay (unlocked once you log yours)"><span class="pv-mask-v"><span class="pv-cur" data-jpy="35600000" data-orig="¥3,560万">$224K</span></span><span class="pv-mask-lock" aria-hidden="true">🔒 Log yours to see</span></a></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- §4 右列は伏せてあるだけで「空」ではない、と見せる。
-         ⚠️ 件数（あと○件）は出さない。pay_benchmarks は having count(*) >= 5 で
-         5件未満の行が存在しないので、匿名クライアントからは n=2 と n=0 の区別がつかない。 -->
-    <div class="pv-fill">
-      <p class="pv-fill-t">To see the right-hand column.</p>
-      <!-- ⚠️ Never write "the image is never sent" here. **It is not true.** (2026-09-20)
-           What happens on the device is the redaction and the crop; the reading is done
-           by sending the cropped area. §7 and §8 of this same page already said
-           "blacked out in your browser … never stored" correctly — only this line
-           contradicted them. Pinned by section A) of assert-claims.mjs. -->
-      <p class="pv-fill-d">Upload a payslip or type your annual pay in by hand and it opens. About 30 seconds. Your name, staff number and bank details are blacked out in your browser before the payslip is sent, and the image itself is never stored.</p>
-      <a href="pay-report.html" class="pv-btn pv-btn--primary" data-pv-ev="actual_pay_contribute_cta">Add my pay anonymously</a>
-    </div>
-
-    <p class="pv-note" style="margin-top:var(--pv-s-2)">
-      <span class="pv-badge pv-badge--pub">Estimate</span> built from public sources /
-      <span class="pv-badge pv-badge--actual">Self-reported</span> typed in by the pilot /
-      <span class="pv-badge pv-badge--slip">From payslip</span> read automatically from a payslip　—　all 112 estimate ranges are <a href="#salary-engine" style="color:var(--pv-orange-ink);font-weight:700">further down the page</a>.
-    </p>
+    <p class="lp-why-tag">PILOT DEFINES · PILOT'S VALUE</p>
   </div>
 </section>
 
@@ -467,7 +556,7 @@
 <section id="pilot-voices" class="pv-sec pv-sec--sub pv-sec--line" data-pv-view="pilot_voices_view">
   <div class="pv-wrap">
     <div class="pv-head">
-      <span class="pv-eyebrow pv-eyebrow--gold">Pilot voices</span>
+      <span class="pv-eyebrow pv-eyebrow--green">Pilot voices</span>
       <h2 class="pv-h2">Some things never show up in a salary figure.</h2>
       <p class="pv-lede">How training actually runs, what the roster looks like, whether the base is a good place to live, how long the wait for command really is. Written by current and former pilots (Japanese and English are translated both ways automatically).</p>
     </div>
@@ -482,1016 +571,6 @@
     <div class="pv-cta-row" style="margin-top:var(--pv-s-3)">
       <a href="submit-review.html" class="pv-btn pv-btn--primary" data-pv-ev="review_submit_start">Write anonymously about your own airline</a>
       <a href="community.html" class="pv-btn pv-btn--ghost" data-pv-ev="review_view">Read every review</a>
-    </div>
-  </div>
-</section>
-
-
-<!-- ════════════════════════════════════
-     ❷ 完成した未来で何が分かるか（日本語版と1:1）
-     ★2026-08-22（オーナー指示）#market と位置を入れ替えた。以前は #why の真下。
-     ⚠️ 4枚は押せない。読むだけのカード（2026-08-22 オーナー指示）。<a> に戻さない。
-════════════════════════════════════ -->
-<section id="pv-value" class="pv-sec pv-sec--sub pv-sec--line">
-  <div class="pv-wrap">
-    <div class="pv-head">
-      <span class="pv-eyebrow">What you'll know</span>
-      <h2 class="pv-h2 pv-h2--display">Four things you'll know once the data is there.</h2>
-    </div>
-
-    <div class="pv-grid pv-grid-4">
-      <div class="pv-card pv-card--know">
-        <div class="pv-tile">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h16M7 16V9M12 16V5M17 16v-4"/></svg>
-        </div>
-        <h3 class="pv-h3 pv-know-t">What pilots actually earn.</h3>
-        <p class="pv-know-d">What was actually paid.</p>
-      </div>
-      <div class="pv-card pv-card--know">
-        <div class="pv-tile pv-tile--gold">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-8 8H4l2.3-2.3A8 8 0 1 1 21 12z"/></svg>
-        </div>
-        <h3 class="pv-h3 pv-know-t">What the job is actually like.</h3>
-        <p class="pv-know-d">Days off, roster, bidding, allowances, benefits.</p>
-      </div>
-      <div class="pv-card pv-card--know">
-        <div class="pv-tile pv-tile--green">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 3 8-8"/><path d="M15 7h5v5"/></svg>
-        </div>
-        <h3 class="pv-h3 pv-know-t">What your next move could mean.</h3>
-        <p class="pv-know-d">How pay, life and upgrade change if you move.</p>
-      </div>
-      <div class="pv-card pv-card--know">
-        <div class="pv-tile pv-tile--teal">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>
-        </div>
-        <h3 class="pv-h3 pv-know-t">Compare airlines before you commit.</h3>
-        <p class="pv-know-d">Know before you join what you'd otherwise learn after.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-
-<!-- ════════════════════════════════════
-     ❹❺❻❼ Give & Get — 依頼（2026-08-21 に位置と役割を変更・日本語版と1:1）
-     ★ #pv-value（Four things you'll know…）の直後に来る「頼む場所」。
-        2026-08-22 まで直前は #market だった。
-        以前は Hero の真下にあり、サンプル画面（.pv-demo）を抱えていた。
-        サンプルは下の #pay-report-block へ降ろした。ここは依頼だけを持つ。
-        番号（❶❷❸…）は他の注記から参照しているので付け替えていない。画面の順とは一致しない。
-     ⚠️ 依頼の直前に結果を約束しない。your pay will rise / guarantee は書かない。
-        書けるのは傾向だけ（Over time, that raises… のような言い方）。
-════════════════════════════════════ -->
-<section id="give-get" class="pv-sec" data-pv-view="give_get_view">
-  <div class="pv-wrap">
-    <div class="pv-head">
-      <h2 class="pv-h2 pv-h2--display">Building this takes one report from you.</h2>
-      <p class="pv-lede">Share your pay once, anonymously, and you can see the pay other pilots have logged.</p>
-    </div>
-
-    <div class="pv-grid pv-grid-3" style="margin-bottom:var(--pv-s-3)">
-      <!-- ⚠️ 実際に開くものだけを書く。給与レポート1件で90日ひらくのは
-           ①この LP の実支給の列 ②112社×2言語の航空会社ページの給与詳細 ③自分の Pay Report の3つ。
-           口コミの全文解放は別通貨（口コミを書くと解放・期限なし）で、
-           airlines/premium-auth-lock.js が両者を絶対に交換させない。
-           「給与を出すと口コミが読める」と書かないこと。
-           待遇の集計（airline_condition_facts）はまだ k≧3 に届いていない。 -->
-      <div class="pv-step pv-step--get">
-        <span class="pv-step-n">GET 01</span>
-        <div class="pv-step-t">What other pilots are actually paid</div>
-        <p class="pv-step-d">For your airline, seat and fleet — what really lands in the account.</p>
-      </div>
-      <div class="pv-step pv-step--get">
-        <span class="pv-step-n">GET 02</span>
-        <div class="pv-step-t">Pay detail for 112 airlines</div>
-        <p class="pv-step-d">The full breakdown on every airline page opens for 90 days.</p>
-      </div>
-      <div class="pv-step pv-step--get">
-        <span class="pv-step-n">GET 03</span>
-        <div class="pv-step-t">And your own record becomes an asset</div>
-        <p class="pv-step-d">The more you log, the more your Pay Report and Pay History grow.</p>
-      </div>
-    </div>
-
-    <!-- §7 記録の入口。明細が Primary、手入力が Secondary。 -->
-    <div class="pv-grid pv-grid-2" style="margin-top:var(--pv-s-3)">
-      <div class="pv-card">
-        <span class="pv-badge pv-badge--slip">From payslip</span>
-        <div class="pv-step-t" style="margin-top:10px">Upload a payslip (recommended · about 30 seconds)</div>
-        <p class="pv-step-d" style="margin-top:6px">Your name, staff number and bank details are <strong>blacked out in your browser</strong> before anything is sent. The image itself is never stored.</p>
-        <div class="pv-cta-row" style="margin-top:12px">
-          <!-- ★ #ps。pay-report.html に実在する id はこれ（#payslip は無い）。
-               綴りを変えるとページ頭に落ちて、明細の枠まで自分で探させることになる。 -->
-          <a href="pay-report.html#ps" class="pv-btn pv-btn--primary" data-pv-ev="payslip_upload_start">Start from a payslip, anonymously</a>
-        </div>
-      </div>
-      <div class="pv-card">
-        <span class="pv-badge pv-badge--actual">Self-reported</span>
-        <div class="pv-step-t" style="margin-top:10px">Type it in by hand (about 50 seconds)</div>
-        <p class="pv-step-d" style="margin-top:6px">No payslip to hand is fine. Typed-in figures and payslip-read figures are kept apart in the data.</p>
-        <div class="pv-cta-row" style="margin-top:12px">
-          <a href="pay-report.html" class="pv-btn pv-btn--ghost" data-pv-ev="salary_contribution_start">Type it in anonymously</a>
-        </div>
-      </div>
-    </div>
-    <!-- ★ここはリンクにしない。給与を出さずに登録だけして帰る道を作らないため。
-         アカウントは pay-report.html の送信時にその場で作られる。文言は安心材料として残す。 -->
-    <p class="pv-note" style="margin-top:14px">An <b>email address is all it takes</b> to create an account. No display name, no real name.</p>
-  </div>
-</section>
-
-
-<!-- ════════════════════════════════════
-     ★ #pay-report-block — 「あなたの側」に返るもの（2026-08-21・日本語版と1:1）
-     この枠は Hero の真下にあり、ページ最大のブロックだった。
-     初見に給与計算サービスに見えていたのでここへ降ろした。
-     中身（.pv-demo）はそのまま移設。内側の id と data-pv-view は GA4 の
-     インプレッション計測が付いているので変えない。
-     ⚠️ 破線枠の中は全部ダミー。実在の航空会社名を出さない。
-        "Sample" は枠の上端で1回だけ宣言し、中では繰り返さない。
-     ★ 欄の名前は実物（my-value.js の T.en）と同じ語を使う。サンプルだけ違う
-       呼び方をすると、記録したあとに別の画面に来たように見える。
-════════════════════════════════════ -->
-<section id="pay-report-block" class="pv-sec pv-sec--sub pv-sec--line" data-pv-view="pay_report_block_view">
-  <div class="pv-wrap">
-    <div class="pv-head">
-      <span class="pv-eyebrow pv-eyebrow--green">And for you</span>
-      <h2 class="pv-h2">Take part, and your own pay record becomes an asset.</h2>
-      <p class="pv-lede">The one report you filed to see everyone else's becomes your own pay history.</p>
-    </div>
-
-    <div class="pv-demo">
-      <div class="pv-demo-flag">
-        <b>Sample</b>
-        <span>Every screen and every figure inside this frame is a placeholder. Yours are built from the payslips you log.</span>
-      </div>
-
-      <!-- ═══ 1段目：Pay History（紺）｜ This month ═══════════════════════
-           ★ 数字は全部この枠の中で辻褄が合わせてある（日本語版と同じ値）。触るときは一緒に直すこと：
-             ・8ヶ月の合計 14,498,000 ＝ 手取り 12,178,320 ＋ 控除 2,319,680
-             ・月平均 1,812,250 ＝ 14,498,000 ÷ 8
-             ・折れ線の最終点 ＝ 累計
-             ・今月の総支給 2,000,000 ＝ ドーナツ中央の額 ＝ 手取り 1,668,000 ＋ 控除 332,000
-             ・単価 ＝ (2,000,000 − パーディアム 100,000) ÷ 乗務 78.1h ／ 総勤務 142.6h -->
-      <div class="pv-demo-cols is-first">
-        <div id="pay-history" data-pv-view="pay_history_view">
-        <p class="pv-demo-t">Pay History — it builds as you log</p>
-        <div class="pv-cum">
-          <span class="pv-cum-k">Total pay recorded</span>
-          <span class="pv-cum-s">Everything you have on record</span>
-          <span class="pv-cum-v"><span class="pv-cur" data-jpy="14498000" data-orig="¥14,498,000">$91K</span></span>
-          <span class="pv-cum-n">Nov 2025 – Jun 2026 · 8 payslips</span>
-
-          <div class="pv-mini">
-            <div class="pv-mini-i"><b><span class="pv-cur" data-jpy="12178320" data-orig="¥12,178,320">$77K</span></b><span>Take-home, all months</span></div>
-            <div class="pv-mini-i"><b><span class="pv-cur" data-jpy="2319680" data-orig="¥2,319,680">$15K</span></b><span>Deductions, all months</span></div>
-            <div class="pv-mini-i"><b>8</b><span>Months recorded</span></div>
-            <div class="pv-mini-i"><b><span class="pv-cur" data-jpy="1812250" data-orig="¥1,812,250">$11K</span></b><span>Average gross / month</span></div>
-          </div>
-
-          <!-- ★金額は SVG の外（この行）に置く。currency.js は文字を <span> で包むので、
-                SVG の <text> に入れると通貨を切り替えた瞬間に消える。 -->
-          <div class="pv-cum-cap"><span>Running total</span><b><span class="pv-cur" data-jpy="14498000" data-orig="¥14,498,000">$91K</span></b></div>
-          <svg viewBox="0 0 720 176" role="img" aria-labelledby="ph-t ph-d"
-               style="width:100%;height:auto;display:block;overflow:visible">
-            <title id="ph-t">Total pay recorded over time (sample)</title>
-            <desc id="ph-d">A sample where the running total grows with every payslip logged from November 2025 to June 2026, reaching 14,498,000 yen on the eighth.</desc>
-            <defs>
-              <linearGradient id="pv-cum-fill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#f5c842" stop-opacity=".28"/>
-                <stop offset="100%" stop-color="#f5c842" stop-opacity="0"/>
-              </linearGradient>
-            </defs>
-            <g stroke="rgba(255,255,255,.16)" stroke-width="1" stroke-dasharray="3 5">
-              <line x1="10" y1="14" x2="710" y2="14"/>
-              <line x1="10" y1="150" x2="710" y2="150"/>
-            </g>
-            <path fill="url(#pv-cum-fill)"
-              d="M10,150 L110,130.9 L210,112.9 L310,94.3 L410,74 L510,55.1 L610,35.3 L710,14 L710,150 Z"/>
-            <polyline fill="none" stroke="#f5c842" stroke-width="2.5"
-              stroke-linecap="round" stroke-linejoin="round"
-              points="10,150 110,130.9 210,112.9 310,94.3 410,74 510,55.1 610,35.3 710,14"/>
-            <g fill="#0f2038" stroke="#f5c842" stroke-width="2">
-              <circle cx="10" cy="150" r="3.5"/><circle cx="110" cy="130.9" r="3.5"/>
-              <circle cx="210" cy="112.9" r="3.5"/><circle cx="310" cy="94.3" r="3.5"/>
-              <circle cx="410" cy="74" r="3.5"/><circle cx="510" cy="55.1" r="3.5"/>
-              <circle cx="610" cy="35.3" r="3.5"/>
-            </g>
-            <circle cx="710" cy="14" r="5" fill="#f5c842"/>
-            <g fill="#8ea3bd" font-size="12" font-family="inherit">
-              <text x="10" y="170">Nov</text>
-              <text x="310" y="170" text-anchor="middle">Feb</text>
-              <text x="710" y="170" text-anchor="end">Jun</text>
-            </g>
-          </svg>
-        </div>
-      </div>
-
-        <!-- ❺-a This month。実物の thisMonth()（my-value.js）と同じ並び。 -->
-        <div id="pay-month" data-pv-view="pay_month_view">
-          <p class="pv-demo-t">Pay Report — this month</p>
-          <div class="pv-card pv-card--flat">
-            <div class="pv-mk">
-              <div class="pv-mk-i is-lead">
-                <span class="pv-mk-k">Gross pay</span>
-                <span class="pv-mk-v"><span class="pv-cur" data-jpy="2000000" data-orig="¥2,000,000">$13K</span></span>
-                <span class="pv-d up">+7.4% vs last month</span>
-              </div>
-              <div class="pv-mk-i">
-                <span class="pv-mk-k">Net pay</span>
-                <span class="pv-mk-v"><span class="pv-cur" data-jpy="1668000" data-orig="¥1,668,000">$10K</span></span>
-                <span class="pv-mk-n"><span class="pv-cur" data-jpy="332000" data-orig="¥332,000">$2.1K</span> withheld</span>
-              </div>
-              <div class="pv-mk-i">
-                <span class="pv-mk-k">Per block hour</span>
-                <span class="pv-mk-v"><span class="pv-cur" data-jpy="24300" data-orig="¥24,300">$153</span></span>
-              </div>
-              <div class="pv-mk-i">
-                <span class="pv-mk-k">Per duty hour</span>
-                <span class="pv-mk-v"><span class="pv-cur" data-jpy="13300" data-orig="¥13,300">$84</span></span>
-              </div>
-            </div>
-            <div class="pv-mini">
-              <div class="pv-mini-i"><b>78.1<i>h</i></b><span>Block hours</span></div>
-              <div class="pv-mini-i"><b>142.6<i>h</i></b><span>Duty hours</span></div>
-              <div class="pv-mini-i"><b>16</b><span>Duty days</span></div>
-              <div class="pv-mini-i"><b>9</b><span>Layover nights</span></div>
-            </div>
-            <!-- ★これは注釈ではなく売り文句。この枠で唯一「なぜ記録するのか」を言っている。
-                 2026-08-17、レポート側の同じ一文（T.en.hourlyHint）は消したが、ここは残す。 -->
-            <p class="pv-note" style="margin-top:12px">Same payslip, two denominators: hours you were flying vs. hours you were on duty. They differ by roughly 2×, and <strong>no job ad shows you that gap.</strong></p>
-          </div>
-        </div>
-      </div>
-
-      <!-- ═══ 2段目：How your pay is made up（ドーナツ）｜ Benchmark ═══════ -->
-      <div class="pv-demo-cols">
-        <!-- ❺-b Pay Report -->
-        <div id="pay-report-sample" data-pv-view="pay_report_view">
-          <p class="pv-demo-t">Pay Report — one month, broken down</p>
-          <div class="pv-card pv-card--flat">
-            <!-- ドーナツは実物 pay-viz.js の donut() と同じ形：r=52・線幅20・
-                 円周 326.7256 を dasharray で切って、-90度回して12時から時計回り。 -->
-            <div class="pv-donut-wrap">
-              <div class="pv-donut">
-                <svg viewBox="0 0 132 132" role="img" aria-labelledby="pr-t pr-d"
-                     style="width:132px;height:132px;display:block">
-                  <title id="pr-t">How one month of pay is made up (sample)</title>
-                  <desc id="pr-d">A sample where 2,000,000 yen of gross pay splits into 44 percent base pay, 16 percent command and position, 13 percent flight variable, 11 percent housing, 9 percent other allowances, 5 percent per diem and 2 percent transport.</desc>
-                  <g transform="rotate(-90 66 66)" fill="none" stroke-width="20">
-                    <circle cx="66" cy="66" r="52" stroke="rgba(128,140,160,.12)"/>
-                    <circle cx="66" cy="66" r="52" stroke="#34d399" stroke-dasharray="143.76 182.97" stroke-dashoffset="0"/>
-                    <circle cx="66" cy="66" r="52" stroke="#5fb0ff" stroke-dasharray="52.28 274.45" stroke-dashoffset="-143.76"/>
-                    <circle cx="66" cy="66" r="52" stroke="#f5c842" stroke-dasharray="42.47 284.26" stroke-dashoffset="-196.04"/>
-                    <circle cx="66" cy="66" r="52" stroke="#a78bfa" stroke-dasharray="29.41 297.32" stroke-dashoffset="-238.51"/>
-                    <circle cx="66" cy="66" r="52" stroke="#fb923c" stroke-dasharray="35.94 290.79" stroke-dashoffset="-267.92"/>
-                    <circle cx="66" cy="66" r="52" stroke="#94a3b8" stroke-dasharray="6.53 320.20" stroke-dashoffset="-303.86"/>
-                    <circle cx="66" cy="66" r="52" stroke="#f472b6" stroke-dasharray="16.34 310.39" stroke-dashoffset="-310.39"/>
-                  </g>
-                </svg>
-                <!-- 中央の金額も HTML 側（SVG の外）。理由は上の折れ線と同じ。 -->
-                <div class="pv-donut-c"><b><span class="pv-cur" data-jpy="2000000" data-orig="¥2,000,000">$13K</span></b></div>
-              </div>
-              <div class="pv-legend">
-                <div class="pv-leg"><i style="background:#34d399"></i><span class="nm">Base pay</span><span class="amt"><span class="pv-cur" data-jpy="880000" data-orig="¥880,000">$5.5K</span></span><span class="pct">44%</span></div>
-                <div class="pv-leg"><i style="background:#5fb0ff"></i><span class="nm">Command / position</span><span class="amt"><span class="pv-cur" data-jpy="320000" data-orig="¥320,000">$2K</span></span><span class="pct">16%</span></div>
-                <div class="pv-leg"><i style="background:#f5c842"></i><span class="nm">Flight variable</span><span class="amt"><span class="pv-cur" data-jpy="260000" data-orig="¥260,000">$1.6K</span></span><span class="pct">13%</span></div>
-                <div class="pv-leg"><i style="background:#fb923c"></i><span class="nm">Housing</span><span class="amt"><span class="pv-cur" data-jpy="220000" data-orig="¥220,000">$1.4K</span></span><span class="pct">11%</span></div>
-                <div class="pv-leg"><i style="background:#a78bfa"></i><span class="nm">Other allowances</span><span class="amt"><span class="pv-cur" data-jpy="180000" data-orig="¥180,000">$1.1K</span></span><span class="pct">9%</span></div>
-                <div class="pv-leg"><i style="background:#f472b6"></i><span class="nm">Per diem</span><span class="amt"><span class="pv-cur" data-jpy="100000" data-orig="¥100,000">$629</span></span><span class="pct">5%</span></div>
-                <div class="pv-leg"><i style="background:#94a3b8"></i><span class="nm">Transport</span><span class="amt"><span class="pv-cur" data-jpy="40000" data-orig="¥40,000">$252</span></span><span class="pct">2%</span></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- ❼ Benchmark -->
-        <div id="benchmark" data-pv-view="benchmark_view">
-          <p class="pv-demo-t">Benchmark — only pilots on your terms</p>
-          <div class="pv-card pv-card--flat" id="bench-panel">
-            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px">
-              <!-- ⚠️ これは絞り込み条件で、公開情報ではない。--pub（青）を使わない。 -->
-              <span class="pv-badge pv-badge--meta">Your airline</span>
-              <span class="pv-badge pv-badge--meta">Captain</span>
-              <span class="pv-badge pv-badge--meta">Your fleet</span>
-              <span class="pv-badge pv-badge--meta">n = 34</span>
-            </div>
-            <!-- ★上の紺カードと同じ人の話にしてある。月平均 ¥1,812,250 → 年 ¥2,175万 なので、
-                 中央値 ¥2,040万 の少し上。片方だけ動かすと枠の中で辻褄が合わなくなる。
-                 ⚠️ 順位（Top ◯%）は LP には出さない。給与レポートが6件しか無い今、
-                    その母集団が存在しないため。製品側（my-value.html）からは消さない。 -->
-            <p class="pv-sr" id="bm-d">A sample distribution of annual pay for pilots on the same terms. The median is 20.4 million yen, the 25th percentile 17.8 million and the 75th percentile 23.3 million. Your own position is the differently coloured bar.</p>
-            <div class="pv-dist" role="img" aria-labelledby="bm-d" style="height:74px">
-              <i style="height:14%"></i><i style="height:26%"></i><i style="height:44%"></i>
-              <i style="height:68%"></i><i style="height:88%"></i><i style="height:100%"></i>
-              <i style="height:84%"></i><i class="is-you" style="height:62%"></i><i style="height:41%"></i>
-              <i style="height:24%"></i><i style="height:13%"></i><i style="height:7%"></i>
-            </div>
-            <div class="pv-kpi-row" style="margin-top:14px">
-              <div><span class="pv-kpi-lab">25th percentile</span><span class="pv-kpi-val" style="font-size:1.05rem"><span class="pv-cur" data-jpy="17800000" data-orig="¥1,780万">$112K</span></span></div>
-              <div><span class="pv-kpi-lab">Median</span><span class="pv-kpi-val" style="font-size:1.05rem"><span class="pv-cur" data-jpy="20400000" data-orig="¥2,040万">$128K</span></span></div>
-              <div><span class="pv-kpi-lab">75th percentile</span><span class="pv-kpi-val" style="font-size:1.05rem"><span class="pv-cur" data-jpy="23300000" data-orig="¥2,330万">$147K</span></span></div>
-            </div>
-            <p class="pv-note" style="margin-top:12px">Median, not mean. <strong>Below five records, this panel does not appear at all.</strong></p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-
-<!-- ════════════════════════════════════
-     ❾ Trust
-     ⚠️ ここには「今あるもの」だけを書く。Verified Pilot は付与コードが未稼働なので
-        Coming soon と明記する。異常値検知は載せない。
-     ⚠️ 「Verified」の直後に「<」を置かない（db/test-form-contract.mjs が禁止している）。
-════════════════════════════════════ -->
-<section id="trust" class="pv-sec pv-sec--line" data-pv-view="trust_view">
-  <div class="pv-wrap">
-    <div class="pv-head">
-      <span class="pv-eyebrow pv-eyebrow--green">Trust</span>
-      <h2 class="pv-h2">It's pay data. Transparency isn't optional.</h2>
-      <p class="pv-lede">Everything below is already running. Anything that isn't says so.</p>
-    </div>
-
-    <!-- ★2026-08-25、オーナー指示で「5人未満は公開しない」の札を外した。
-         REAL PAY は1行＝1人で、5人そろっていなくても出る。約束として書けない。
-         （集計の中央値パネルの k≧5 は今も生きている＝下の pv-note はそのまま） -->
-    <div class="pv-grid pv-grid-3">
-      <div class="pv-card">
-        <div class="pv-tile pv-tile--green">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 20v-1.6a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4V20"/><circle cx="8.5" cy="7" r="3.4"/><path d="M17 8.5l4.5 4.5M21.5 8.5L17 13"/></svg>
-        </div>
-        <h3 class="pv-h3" style="font-size:.92rem">Anonymous by construction</h3>
-        <p class="pv-step-d" style="margin-top:8px">Pay records carry nothing that points back to who filed them.</p>
-      </div>
-      <div class="pv-card">
-        <div class="pv-tile pv-tile--green">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="15" rx="2.5"/><path d="M3.5 16.5l4.5-4.5 3.5 3.5"/><circle cx="15.5" cy="9.5" r="1.4"/><path d="M3 21L21 3"/></svg>
-        </div>
-        <h3 class="pv-h3" style="font-size:.92rem">Payslip images are never stored</h3>
-        <p class="pv-step-d" style="margin-top:8px">Name, staff number and bank details are blacked out in your browser first.</p>
-      </div>
-      <div class="pv-card">
-        <div class="pv-tile pv-tile--green">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v6a3 3 0 0 0 3 3h13"/><path d="M4 20v-4a3 3 0 0 1 3-3"/><path d="M17 10l3 3-3 3"/></svg>
-        </div>
-        <h3 class="pv-h3" style="font-size:.92rem">Self-reported and payslip-read stay separate</h3>
-        <p class="pv-step-d" style="margin-top:8px">A self-reported figure and a figure read off a payslip are never treated as the same thing.</p>
-      </div>
-    </div>
-
-    <!-- Secondary。1行。⚠️「異常値を自動削除」は書かない（実装がゼロ）。 -->
-    <p class="pv-note" style="margin-top:var(--pv-s-2)">
-      Medians and quartiles, never averages / every estimate range has its source on the ledger /
-      <span class="pv-badge pv-badge--soon">Coming soon</span> <strong>Verified Pilot</strong> — the mechanism for marking a payslip as checked is designed but not yet running, so logging your pay does not earn a badge today. Verified Pilot verifies <strong>the person</strong>, not the amount.
-    </p>
-  </div>
-</section>
-
-
-<!-- ════════════════════════════════════
-     ★ SALARY ENGINE ＝ 公開情報（Fuel）
-     日本語版 V3 と同じく leveling / sec-metrics / compare / ranking を1セクションに統合した。
-     ⚠️ #compare と #ranking は他ページ（community.html 等）から index.html#ranking で
-        直接リンクされている。id は div として必ず残すこと。
-     ⚠️ #lvl-home-tip は fixed で overflow を逃げる。.lvl-scroll の中に入れない。
-     .lvl-* のCSSと描画は salary-leveling.js（world-airlines と共有）。
-════════════════════════════════════ -->
-<section id="salary-engine" class="relative" style="padding:2.75rem 0 3.25rem;border-top:1px solid rgba(255,255,255,.05);border-bottom:1px solid rgba(255,255,255,.05)">
-  <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(ellipse 62% 46% at 50% 0%,rgba(245,200,66,.07) 0%,transparent 68%)"></div>
-  <div class="max-w-7xl mx-auto px-6 relative">
-
-    <div class="fade-up" style="margin-bottom:1.4rem;max-width:64ch">
-      <span style="display:inline-flex;align-items:center;gap:6px;font-size:.62rem;font-weight:800;letter-spacing:.14em;color:#f5c842;background:rgba(245,200,66,.1);border:1px solid rgba(245,200,66,.26);border-radius:999px;padding:5px 12px">✦ SALARY ENGINE</span>
-      <h2 style="font-size:clamp(1.5rem,3.2vw,2.15rem);font-weight:800;letter-spacing:-.03em;line-height:1.28;margin:.6em 0 .3em">Public estimates: pay ranges at 112 airlines</h2>
-      <p class="text-muted" style="font-size:.92rem;line-height:1.7">Everything below this line is an <strong>estimate built from published terms</strong>. What was actually paid is in <a href="#actual-pay" style="color:#f97316;font-weight:700">Actual Pay above</a>.</p>
-    </div>
-
-    <!-- 会社ピッカー（クイック選択＋企業検索ドロップダウン。中身は mount が生成） -->
-    <div class="lvl-picker fade-up" id="lvl-home-picker" style="margin-bottom:1.05rem" aria-label="Select airlines to compare"></div>
-
-    <div class="lvl-scroll fade-up">
-      <!-- min-height は場所取り。PVLeveling.mount() は後から走るので、
-           空のまま高さ0だと #compare / #ranking へのアンカーが着地後にずれる。 -->
-      <div class="lvl-grid" id="lvl-home-grid" style="min-height:490px"></div>
-    </div>
-
-    <!-- KEY METRICS — 4つの数字を1行に -->
-    <div id="sec-metrics" class="grid grid-cols-2 md:grid-cols-4 gap-4" style="margin-top:2.25rem">
-      <div class="stat-card fade-up text-center">
-        <div class="text-2xl font-extrabold gradient-text mb-1"><span class="pv-cur" data-jpy="86900000" data-orig="¥8,690万">$547K</span></div>
-        <div class="text-xs text-muted">Top Captain pay, US majors (estimated ceiling)</div>
-      </div>
-      <div class="stat-card fade-up text-center" style="transition-delay:.1s">
-        <div class="text-2xl font-extrabold gradient-text mb-1"><span class="pv-cur" data-jpy="27000000" data-orig="¥2,700万">$170K</span></div>
-        <div class="text-xs text-muted">Average Captain pay, Japanese majors (estimate)</div>
-      </div>
-      <div class="stat-card fade-up text-center" style="transition-delay:.2s">
-        <div class="text-2xl font-extrabold gradient-text mb-1">Up to 2.3x</div>
-        <div class="text-xs text-muted">Captain pay gap, overseas vs Japan</div>
-      </div>
-      <div class="stat-card fade-up text-center" style="transition-delay:.3s">
-        <div class="text-2xl font-extrabold gradient-text mb-1">112 airlines</div>
-        <div class="text-xs text-muted">Airlines covered (Japan + overseas)</div>
-      </div>
-    </div>
-
-    <!-- 日本 vs 海外（他ページから en/index.html#compare で来る） -->
-    <div id="compare" style="margin-top:2.75rem;scroll-margin-top:88px">
-
-    <div class="fade-up mb-6">
-      <h3 class="text-xl font-bold">Japan vs overseas (average Captain pay)</h3>
-      <p class="text-muted mt-1.5" style="font-size:.88rem">The gap runs as high as 2.3x, and Middle Eastern pay is tax-free, so real take-home is better still.</p>
-    </div>
-
-    <div class="grid lg:grid-cols-5 gap-6 items-start">
-
-      <!-- Left: Bar chart -->
-      <div class="lg:col-span-3 glass p-6 fade-up">
-        <div class="text-xs text-muted font-semibold tracking-widest uppercase mb-6">Average Captain pay (as of August 2026)</div>
-
-        <!-- USA -->
-        <div class="region-bar-row">
-          <div class="flex items-center justify-between mb-2">
-            <div class="flex items-center gap-2">
-              <span class="text-lg">🇺🇸</span>
-              <span class="text-sm font-semibold">US major carriers</span>
-              <span class="tag tag-orange text-xs">Highest in the industry</span>
-            </div>
-            <span class="font-black text-lg" style="color:#fb923c"><span class="pv-cur" data-jpy="61000000" data-orig="¥6,100万">$384K</span>+</span>
-          </div>
-          <div class="region-bar-bg">
-            <div class="region-bar-fill" style="background:linear-gradient(90deg,rgba(249,115,22,.6),rgba(251,146,60,.8))" data-width="100">
-            </div>
-          </div>
-          <div class="text-xs text-muted mt-1.5">Delta, United, American (senior Captain $465,000+/yr)</div>
-        </div>
-
-        <!-- Middle East -->
-        <div class="region-bar-row">
-          <div class="flex items-center justify-between mb-2">
-            <div class="flex items-center gap-2">
-              <span class="text-lg">🇦🇪</span>
-              <span class="text-sm font-semibold">Middle East majors (tax-free)</span>
-              <span class="tag tag-green text-xs">Zero tax</span>
-            </div>
-            <span class="font-black text-lg" style="color:#34d399"><span class="pv-cur" data-jpy="33000000" data-orig="¥3,300万">$208K</span>+</span>
-          </div>
-          <div class="region-bar-bg">
-            <div class="region-bar-fill" style="background:linear-gradient(90deg,rgba(52,211,153,.5),rgba(52,211,153,.75))" data-width="64">
-            </div>
-          </div>
-          <div class="text-xs text-muted mt-1.5">Emirates, Qatar, Etihad — worth an effective <span class="pv-cur" data-jpy="42000000" data-orig="¥4,200万">$264K</span>+ with housing allowance</div>
-        </div>
-
-        <!-- Europe -->
-        <div class="region-bar-row">
-          <div class="flex items-center justify-between mb-2">
-            <div class="flex items-center gap-2">
-              <span class="text-lg">🇪🇺</span>
-              <span class="text-sm font-semibold">European major carriers</span>
-            </div>
-            <span class="font-black text-lg" style="color:#a78bfa"><span class="pv-cur" data-jpy="34400000" data-orig="¥3,440万">$216K</span></span>
-          </div>
-          <div class="region-bar-bg">
-            <div class="region-bar-fill" style="background:linear-gradient(90deg,rgba(167,139,250,.4),rgba(167,139,250,.7))" data-width="53">
-            </div>
-          </div>
-          <div class="text-xs text-muted mt-1.5">Lufthansa — 5% pay rise in January 2026. EUR-denominated pay is climbing</div>
-        </div>
-
-        <!-- Asia -->
-        <div class="region-bar-row">
-          <div class="flex items-center justify-between mb-2">
-            <div class="flex items-center gap-2">
-              <span class="text-lg">🌏</span>
-              <span class="text-sm font-semibold">Major Asian carriers</span>
-            </div>
-            <span class="font-black text-lg" style="color:#5ec4ff"><span class="pv-cur" data-jpy="35000000" data-orig="¥3,500万">$220K</span></span>
-          </div>
-          <div class="region-bar-bg">
-            <div class="region-bar-fill" style="background:linear-gradient(90deg,rgba(61,155,255,.4),rgba(94,196,255,.65))" data-width="51">
-            </div>
-          </div>
-          <div class="text-xs text-muted mt-1.5">Singapore Airlines / Cathay Pacific — among the best packages in Asia</div>
-        </div>
-
-        <!-- Japan Major -->
-        <div class="region-bar-row">
-          <div class="flex items-center justify-between mb-2">
-            <div class="flex items-center gap-2">
-              <span class="text-lg">🇯🇵</span>
-              <span class="text-sm font-semibold">Major Japanese carriers</span>
-              <span class="tag tag-blue text-xs">Benchmark</span>
-            </div>
-            <span class="font-black text-lg" style="color:#3d9bff"><span class="pv-cur" data-jpy="27000000" data-orig="¥2,700万">$170K</span></span>
-          </div>
-          <div class="region-bar-bg">
-            <div class="region-bar-fill" style="background:linear-gradient(90deg,rgba(61,155,255,.5),rgba(61,155,255,.75))" data-width="33">
-            </div>
-          </div>
-          <div class="text-xs text-muted mt-1.5">ANA / JAL (average Captain) — best-in-Japan severance, pension and job security</div>
-        </div>
-
-        <!-- Japan LCC -->
-        <div class="region-bar-row">
-          <div class="flex items-center justify-between mb-2">
-            <div class="flex items-center gap-2">
-              <span class="text-lg">🇯🇵</span>
-              <span class="text-sm font-semibold">Japanese LCCs</span>
-            </div>
-            <span class="font-black text-lg" style="color:#6b7d93"><span class="pv-cur" data-jpy="23000000" data-orig="¥2,300万">$145K</span></span>
-          </div>
-          <div class="region-bar-bg">
-            <div class="region-bar-fill" style="background:linear-gradient(90deg,rgba(107,125,147,.4),rgba(107,125,147,.6))" data-width="34">
-            </div>
-          </div>
-          <div class="text-xs text-muted mt-1.5">Peach / ZIPAIR / Jetstar Japan / Spring Japan</div>
-        </div>
-
-        <div class="mt-5 pt-4 border-t border-white/[0.06]">
-          <p class="text-xs text-muted">* Converted at USD/JPY=150. US figures are benchmarked to $465,000 per year. Middle East figures are gross, since the income is tax-free. Actual pay varies by aircraft type, years of experience and contract type.</p>
-        </div>
-      </div>
-
-      <!-- Right: Insight cards（日本語版 V3 と同じ2枚。ランキングが直下に来たので誘導ボタンも外した） -->
-      <div class="lg:col-span-2 space-y-4 fade-up" style="transition-delay:.15s">
-
-        <div class="glass-raised p-5" style="border-color:rgba(249,115,22,.2)">
-          <div class="text-xs text-muted uppercase tracking-widest font-semibold mb-2">US vs Japan</div>
-          <div class="text-4xl font-black mb-1.5" style="color:#fb923c">+2.5x</div>
-          <div class="text-sm text-muted leading-relaxed">The gap in senior Captain pay. Against $465,000+ in the US, the ANA/JAL average is <span class="pv-cur" data-jpy="27000000" data-orig="¥2,700万">$170K</span>. After tax the real gap can approach 3x.</div>
-        </div>
-
-        <div class="glass-raised p-5" style="border-color:rgba(52,211,153,.2)">
-          <div class="text-xs text-muted uppercase tracking-widest font-semibold mb-2">The real upside of the tax-free Middle East</div>
-          <div class="text-2xl font-black mb-1.5" style="color:#34d399">Take-home equivalent</div>
-          <div class="text-sm text-muted leading-relaxed">An Emirates Captain's average of <span class="pv-cur" data-jpy="37000000" data-orig="¥3,700万">$233K</span> (tax-free) buys more than twice what Japanese pay does after tax. Add the housing allowance — worth about <span class="pv-cur" data-jpy="8200000" data-orig="¥820万">$52K</span> a year — and the package is equivalent to <span class="pv-cur" data-jpy="42000000" data-orig="¥4,200万">$264K</span>+.</div>
-        </div>
-      </div>
-
-    </div>
-    </div>
-
-    <!-- 各社ランキング（他ページから en/index.html#ranking で来る） -->
-    <div id="ranking" style="margin-top:2.75rem;scroll-margin-top:88px">
-
-    <div class="fade-up mb-5">
-      <h3 class="text-xl font-bold">Pay compared, airline by airline</h3>
-      <p class="text-muted mt-1.5" style="font-size:.88rem">Each airline profile covers pay, operating environment, training, benefits and hiring requirements.</p>
-    </div>
-
-    <!-- Tab -->
-    <div class="flex flex-wrap gap-2 mb-5 fade-up">
-      <button class="tab-btn active" onclick="switchRankTab(this,'captain')">Captain</button>
-      <button class="tab-btn" onclick="switchRankTab(this,'fo')">First Officer (F/O)</button>
-    </div>
-
-    <!-- Caption ranking -->
-    <div id="rank-captain" class="space-y-3 fade-up"></div>
-
-    <!-- FO ranking -->
-    <div id="rank-fo" class="space-y-3 fade-up hidden"></div>
-
-    <!-- 11位以降は既定で畳む。行は buildRankingList が生成するので、開いても閉じても本文量は同じ。 -->
-    <button type="button" id="rank-more-btn" class="btn-ghost mt-4" style="border-radius:12px" onclick="toggleRankMore(this)" aria-expanded="false">Show ranks 11–21 (all 21 airlines)</button>
-
-    <p class="text-xs text-muted mt-4 fade-up">* Overseas figures converted at USD/JPY=150. Figures for tax-free countries are gross. Actual pay varies by aircraft type, years of experience and contract type. Check each airline's profile page for the latest information.</p>
-    </div>
-
-  </div>
-</section>
-<!-- ツールチップ（overflow外・fixed でクリップ回避） -->
-<div class="lvl-tip" id="lvl-home-tip" aria-hidden="true"></div>
-
-
-<!-- ════════════════════════════════════
-     ❸ 航空会社から探す（id="jobs" は外部リンクのため残す）
-════════════════════════════════════ -->
-<section id="jobs" class="py-14 border-t border-white/[0.05]" style="background:rgba(8,10,14,.5)">
-  <div class="max-w-7xl mx-auto px-6">
-    <div class="fade-up mb-5">
-      <div class="flex items-center gap-3 mb-2">
-        <div class="section-num">❸</div>
-        <h2 class="text-2xl font-bold">Browse Airlines</h2>
-      </div>
-      <p class="text-muted ml-12">Average captain pay by airline. Select a card to open the full profile.</p>
-    </div>
-
-    <!-- Job filter tabs -->
-    <div class="flex flex-wrap gap-2 mb-5 fade-up">
-      <button class="tab-btn active" onclick="filterJobs(this,'all')">All</button>
-      <button class="tab-btn" onclick="filterJobs(this,'japan')">🇯🇵 Japan</button>
-      <button class="tab-btn" onclick="filterJobs(this,'us')">🇺🇸 United States</button>
-      <button class="tab-btn" onclick="filterJobs(this,'mideast')">🇦🇪 Middle East</button>
-    </div>
-
-    <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4" id="jobs-grid">
-
-      <!-- ANA -->
-      <a href="airlines/ana.html" class="job-card fade-up" data-region="japan" style="border-left:3px solid #3d9bff">
-        <div class="flex items-start justify-between mb-3">
-          <div class="flex items-center gap-2.5">
-            <div class="w-9 h-9 rounded-lg flex items-center justify-center font-bold text-xs" style="background:rgba(61,155,255,.18);color:#3d9bff">ANA</div>
-            <div>
-              <div class="font-bold text-sm leading-tight">All Nippon Airways (ANA)</div>
-              <div class="text-xs text-muted">B787 / B777 / A380</div>
-            </div>
-          </div>
-        </div>
-        <div class="flex gap-2 mb-3">
-          <span class="text-xs px-2 py-0.5 rounded" style="background:rgba(255,255,255,.06);color:#9ca3af">🇯🇵 Japan</span>
-          <span class="text-xs px-2 py-0.5 rounded" style="background:rgba(255,255,255,.06);color:#9ca3af">International / Permanent</span>
-        </div>
-        <div class="border-t border-white/[0.06] pt-3 flex items-center justify-between">
-          <div>
-            <div class="text-xs text-muted mb-0.5">Captain salary</div>
-            <div class="font-bold text-base" style="color:#3d9bff"><span class="pv-cur" data-jpy="22000000" data-orig="¥2,200万">$138K</span>–<span class="pv-cur" data-jpy="35000000" data-orig="¥3,500万">$220K</span></div>
-          </div>
-          <span class="text-xs text-muted">Details →</span>
-        </div>
-      </a>
-
-      <!-- JAL -->
-      <a href="airlines/jal.html" class="job-card fade-up" data-region="japan" style="border-left:3px solid #e8192c;transition-delay:.05s">
-        <div class="flex items-start justify-between mb-3">
-          <div class="flex items-center gap-2.5">
-            <div class="w-9 h-9 rounded-lg flex items-center justify-center font-bold text-xs" style="background:rgba(232,25,44,.18);color:#e8192c">JAL</div>
-            <div>
-              <div class="font-bold text-sm leading-tight">Japan Airlines (JAL)</div>
-              <div class="text-xs text-muted">A350 / B777 / B787</div>
-            </div>
-          </div>
-        </div>
-        <div class="flex gap-2 mb-3">
-          <span class="text-xs px-2 py-0.5 rounded" style="background:rgba(255,255,255,.06);color:#9ca3af">🇯🇵 Japan</span>
-          <span class="text-xs px-2 py-0.5 rounded" style="background:rgba(255,255,255,.06);color:#9ca3af">International / Permanent</span>
-        </div>
-        <div class="border-t border-white/[0.06] pt-3 flex items-center justify-between">
-          <div>
-            <div class="text-xs text-muted mb-0.5">Captain salary</div>
-            <div class="font-bold text-base" style="color:#e8192c"><span class="pv-cur" data-jpy="22000000" data-orig="¥2,200万">$138K</span>–<span class="pv-cur" data-jpy="35000000" data-orig="¥3,500万">$220K</span></div>
-          </div>
-          <span class="text-xs text-muted">Details →</span>
-        </div>
-      </a>
-
-      <!-- Emirates -->
-      <a href="airlines/emirates.html" class="job-card fade-up" data-region="mideast" style="border-left:3px solid #c4943b;transition-delay:.10s">
-        <div class="flex items-start justify-between mb-3">
-          <div class="flex items-center gap-2.5">
-            <div class="w-9 h-9 rounded-lg flex items-center justify-center font-bold text-xs" style="background:rgba(196,148,59,.18);color:#c4943b">EK</div>
-            <div>
-              <div class="font-bold text-sm leading-tight">Emirates</div>
-              <div class="text-xs text-muted">B777 / A380 / A350</div>
-            </div>
-          </div>
-        </div>
-        <div class="flex gap-2 mb-3">
-          <span class="text-xs px-2 py-0.5 rounded" style="background:rgba(255,255,255,.06);color:#9ca3af">🇦🇪 UAE</span>
-          <span class="text-xs px-2 py-0.5 rounded" style="background:rgba(196,148,59,.15);color:#c4943b">Tax-free</span>
-        </div>
-        <div class="border-t border-white/[0.06] pt-3 flex items-center justify-between">
-          <div>
-            <div class="text-xs text-muted mb-0.5">Captain salary (tax-free)</div>
-            <div class="font-bold text-base" style="color:#c4943b"><span class="pv-cur" data-jpy="33500000" data-orig="¥3,350万">$211K</span>–<span class="pv-cur" data-jpy="50500000" data-orig="¥5,050万">$318K</span></div>
-          </div>
-          <span class="text-xs text-muted">Details →</span>
-        </div>
-      </a>
-
-      <!-- Delta -->
-      <a href="airlines/delta.html" class="job-card fade-up" data-region="us" style="border-left:3px solid #e01933;transition-delay:.15s">
-        <div class="flex items-start justify-between mb-3">
-          <div class="flex items-center gap-2.5">
-            <div class="w-9 h-9 rounded-lg flex items-center justify-center font-bold text-xs" style="background:rgba(224,25,51,.18);color:#e01933">DAL</div>
-            <div>
-              <div class="font-bold text-sm leading-tight">Delta Air Lines</div>
-              <div class="text-xs text-muted">B757 / B767 / B777 / A330</div>
-            </div>
-          </div>
-        </div>
-        <div class="flex gap-2 mb-3">
-          <span class="text-xs px-2 py-0.5 rounded" style="background:rgba(255,255,255,.06);color:#9ca3af">🇺🇸 USA</span>
-          <span class="text-xs px-2 py-0.5 rounded" style="background:rgba(255,255,255,.06);color:#9ca3af">International</span>
-        </div>
-        <div class="border-t border-white/[0.06] pt-3 flex items-center justify-between">
-          <div>
-            <div class="text-xs text-muted mb-0.5">Captain salary (senior)</div>
-            <div class="font-bold text-base" style="color:#e01933"><span class="pv-cur" data-jpy="49500000" data-orig="¥4,950万">$311K</span>–<span class="pv-cur" data-jpy="86900000" data-orig="¥8,690万">$547K</span></div>
-          </div>
-          <span class="text-xs text-muted">Details →</span>
-        </div>
-      </a>
-
-      <!-- Qatar -->
-      <a href="airlines/qatar-airways.html" class="job-card fade-up" data-region="mideast" style="border-left:3px solid #8d1b3d;transition-delay:.20s">
-        <div class="flex items-start justify-between mb-3">
-          <div class="flex items-center gap-2.5">
-            <div class="w-9 h-9 rounded-lg flex items-center justify-center font-bold text-xs" style="background:rgba(141,27,61,.25);color:#c45a7a">QR</div>
-            <div>
-              <div class="font-bold text-sm leading-tight">Qatar Airways</div>
-              <div class="text-xs text-muted">A380 / B777 / A350</div>
-            </div>
-          </div>
-        </div>
-        <div class="flex gap-2 mb-3">
-          <span class="text-xs px-2 py-0.5 rounded" style="background:rgba(255,255,255,.06);color:#9ca3af">🇶🇦 Qatar</span>
-          <span class="text-xs px-2 py-0.5 rounded" style="background:rgba(141,27,61,.2);color:#c45a7a">Tax-free</span>
-        </div>
-        <div class="border-t border-white/[0.06] pt-3 flex items-center justify-between">
-          <div>
-            <div class="text-xs text-muted mb-0.5">Captain salary (tax-free)</div>
-            <div class="font-bold text-base" style="color:#c45a7a"><span class="pv-cur" data-jpy="26000000" data-orig="¥2,600万">$164K</span>–<span class="pv-cur" data-jpy="48000000" data-orig="¥4,800万">$302K</span></div>
-          </div>
-          <span class="text-xs text-muted">Details →</span>
-        </div>
-      </a>
-
-      <!-- ZIPAIR -->
-      <a href="airlines/zipair.html" class="job-card fade-up" data-region="japan" style="border-left:3px solid #22d3ee;transition-delay:.25s">
-        <div class="flex items-start justify-between mb-3">
-          <div class="flex items-center gap-2.5">
-            <div class="w-9 h-9 rounded-lg flex items-center justify-center font-bold text-xs" style="background:rgba(34,211,238,.15);color:#22d3ee">ZIP</div>
-            <div>
-              <div class="font-bold text-sm leading-tight">ZIPAIR Tokyo</div>
-              <div class="text-xs text-muted">B787</div>
-            </div>
-          </div>
-          <span class="text-xs font-semibold px-2 py-1 rounded-full" style="background:rgba(61,155,255,.12);color:#3d9bff">Now hiring</span>
-        </div>
-        <div class="flex gap-2 mb-3">
-          <span class="text-xs px-2 py-0.5 rounded" style="background:rgba(255,255,255,.06);color:#9ca3af">🇯🇵 Japan</span>
-          <span class="text-xs px-2 py-0.5 rounded" style="background:rgba(255,255,255,.06);color:#9ca3af">LCC / International</span>
-        </div>
-        <div class="border-t border-white/[0.06] pt-3 flex items-center justify-between">
-          <div>
-            <div class="text-xs text-muted mb-0.5">Captain salary</div>
-            <div class="font-bold text-base" style="color:#22d3ee"><span class="pv-cur" data-jpy="22000000" data-orig="¥2,200万">$138K</span>–<span class="pv-cur" data-jpy="31000000" data-orig="¥3,100万">$195K</span></div>
-          </div>
-          <span class="text-xs text-muted">Details →</span>
-        </div>
-      </a>
-
-      <!-- Skymark -->
-      <a href="airlines/skymark.html" class="job-card fade-up" data-region="japan" style="border-left:3px solid #0095db;transition-delay:.30s">
-        <div class="flex items-start justify-between mb-3">
-          <div class="flex items-center gap-2.5">
-            <div class="w-9 h-9 rounded-lg flex items-center justify-center font-bold text-xs" style="background:rgba(0,149,219,.18);color:#0095db">SKY</div>
-            <div>
-              <div class="font-bold text-sm leading-tight">Skymark Airlines</div>
-              <div class="text-xs text-muted">B737NG</div>
-            </div>
-          </div>
-          <span class="text-xs font-semibold px-2 py-1 rounded-full" style="background:rgba(61,155,255,.12);color:#3d9bff">Now hiring</span>
-        </div>
-        <div class="flex gap-2 mb-3">
-          <span class="text-xs px-2 py-0.5 rounded" style="background:rgba(255,255,255,.06);color:#9ca3af">🇯🇵 Japan</span>
-          <span class="text-xs px-2 py-0.5 rounded" style="background:rgba(255,255,255,.06);color:#9ca3af">Domestic / Permanent</span>
-        </div>
-        <div class="border-t border-white/[0.06] pt-3 flex items-center justify-between">
-          <div>
-            <div class="text-xs text-muted mb-0.5">Captain salary</div>
-            <div class="font-bold text-base" style="color:#0095db"><span class="pv-cur" data-jpy="16000000" data-orig="¥1,600万">$101K</span>–<span class="pv-cur" data-jpy="23000000" data-orig="¥2,300万">$145K</span></div>
-          </div>
-          <span class="text-xs text-muted">Details →</span>
-        </div>
-      </a>
-
-      <!-- Jetstar Japan -->
-      <a href="airlines/jetstar-japan.html" class="job-card fade-up" data-region="japan" style="border-left:3px solid #f0851a;transition-delay:.35s">
-        <div class="flex items-start justify-between mb-3">
-          <div class="flex items-center gap-2.5">
-            <div class="w-9 h-9 rounded-lg flex items-center justify-center font-bold text-xs" style="background:rgba(240,133,26,.18);color:#f0851a">JJP</div>
-            <div>
-              <div class="font-bold text-sm leading-tight">Jetstar Japan</div>
-              <div class="text-xs text-muted">A320 / A321</div>
-            </div>
-          </div>
-          <span class="text-xs font-semibold px-2 py-1 rounded-full" style="background:rgba(61,155,255,.12);color:#3d9bff">Now hiring</span>
-        </div>
-        <div class="flex gap-2 mb-3">
-          <span class="text-xs px-2 py-0.5 rounded" style="background:rgba(255,255,255,.06);color:#9ca3af">🇯🇵 Japan</span>
-          <span class="text-xs px-2 py-0.5 rounded" style="background:rgba(255,255,255,.06);color:#9ca3af">LCC / Domestic & International</span>
-        </div>
-        <div class="border-t border-white/[0.06] pt-3 flex items-center justify-between">
-          <div>
-            <div class="text-xs text-muted mb-0.5">Captain salary</div>
-            <div class="font-bold text-base" style="color:#f0851a"><span class="pv-cur" data-jpy="20000000" data-orig="¥2,000万">$126K</span>–<span class="pv-cur" data-jpy="29000000" data-orig="¥2,900万">$182K</span></div>
-          </div>
-          <span class="text-xs text-muted">Details →</span>
-        </div>
-      </a>
-
-      <!-- United -->
-      <a href="airlines/united.html" class="job-card fade-up" data-region="us" style="border-left:3px solid #005daa;transition-delay:.40s">
-        <div class="flex items-start justify-between mb-3">
-          <div class="flex items-center gap-2.5">
-            <div class="w-9 h-9 rounded-lg flex items-center justify-center font-bold text-xs" style="background:rgba(0,93,170,.25);color:#3d9bff">UAL</div>
-            <div>
-              <div class="font-bold text-sm leading-tight">United Airlines</div>
-              <div class="text-xs text-muted">B777 / B787 / B737</div>
-            </div>
-          </div>
-        </div>
-        <div class="flex gap-2 mb-3">
-          <span class="text-xs px-2 py-0.5 rounded" style="background:rgba(255,255,255,.06);color:#9ca3af">🇺🇸 USA</span>
-          <span class="text-xs px-2 py-0.5 rounded" style="background:rgba(255,255,255,.06);color:#9ca3af">International</span>
-        </div>
-        <div class="border-t border-white/[0.06] pt-3 flex items-center justify-between">
-          <div>
-            <div class="text-xs text-muted mb-0.5">Captain salary (widebody)</div>
-            <div class="font-bold text-base" style="color:#3d9bff"><span class="pv-cur" data-jpy="53700000" data-orig="¥5,370万">$338K</span>–<span class="pv-cur" data-jpy="85300000" data-orig="¥8,530万">$537K</span></div>
-          </div>
-          <span class="text-xs text-muted">Details →</span>
-        </div>
-      </a>
-
-    </div>
-
-    <!-- All airlines link grid -->
-    <div class="mt-12 fade-up">
-      <div class="text-xs text-muted uppercase tracking-widest font-semibold mb-5">All listed airlines</div>
-      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-        <a href="airlines/ana.html" class="glass p-4 text-center hover:border-accent/30 transition-colors group">
-          <div class="font-bold text-accent group-hover:text-white transition-colors">ANA</div>
-          <div class="text-xs text-muted mt-0.5">All Nippon Airways</div>
-        </a>
-        <a href="airlines/jal.html" class="glass p-4 text-center hover:border-gold/30 transition-colors group">
-          <div class="font-bold group-hover:text-white transition-colors" style="color:#f5c842">JAL</div>
-          <div class="text-xs text-muted mt-0.5">Japan Airlines</div>
-        </a>
-        <a href="airlines/skymark.html" class="glass p-4 text-center hover:border-green-400/30 transition-colors group">
-          <div class="font-bold group-hover:text-white transition-colors" style="color:#34d399">Skymark</div>
-          <div class="text-xs text-muted mt-0.5">Skymark Airlines</div>
-        </a>
-        <a href="airlines/zipair.html" class="glass p-4 text-center hover:border-purple-400/30 transition-colors group">
-          <div class="font-bold group-hover:text-white transition-colors" style="color:#a78bfa">ZIPAIR</div>
-          <div class="text-xs text-muted mt-0.5">ZIPAIR</div>
-        </a>
-        <a href="airlines/peach.html" class="glass p-4 text-center hover:border-pink-400/30 transition-colors group">
-          <div class="font-bold group-hover:text-white transition-colors" style="color:#f472b6">Peach</div>
-          <div class="text-xs text-muted mt-0.5">Peach Aviation</div>
-        </a>
-        <a href="airlines/jetstar-japan.html" class="glass p-4 text-center hover:border-orange-400/30 transition-colors group">
-          <div class="font-bold group-hover:text-white transition-colors" style="color:#fb923c">Jetstar JP</div>
-          <div class="text-xs text-muted mt-0.5">Jetstar</div>
-        </a>
-        <a href="airlines/spring-japan.html" class="glass p-4 text-center hover:border-red-400/30 transition-colors group">
-          <div class="font-bold group-hover:text-white transition-colors" style="color:#f87171">Spring JP</div>
-          <div class="text-xs text-muted mt-0.5">Spring Japan</div>
-        </a>
-        <a href="airlines/delta.html" class="glass p-4 text-center hover:border-orange-400/30 transition-colors group">
-          <div class="font-bold group-hover:text-white transition-colors" style="color:#fb923c">Delta</div>
-          <div class="text-xs text-muted mt-0.5">Delta Air Lines</div>
-        </a>
-        <a href="airlines/united.html" class="glass p-4 text-center hover:border-accent/30 transition-colors group">
-          <div class="font-bold text-accent group-hover:text-white transition-colors">United</div>
-          <div class="text-xs text-muted mt-0.5">United Airlines</div>
-        </a>
-        <a href="airlines/american.html" class="glass p-4 text-center hover:border-red-400/30 transition-colors group">
-          <div class="font-bold group-hover:text-white transition-colors" style="color:#f87171">American</div>
-          <div class="text-xs text-muted mt-0.5">American Airlines</div>
-        </a>
-        <a href="airlines/southwest.html" class="glass p-4 text-center hover:border-yellow-400/30 transition-colors group">
-          <div class="font-bold group-hover:text-white transition-colors" style="color:#fbbf24">Southwest</div>
-          <div class="text-xs text-muted mt-0.5">Southwest</div>
-        </a>
-        <a href="airlines/emirates.html" class="glass p-4 text-center hover:border-orange-400/30 transition-colors group">
-          <div class="font-bold group-hover:text-white transition-colors" style="color:#fb923c">Emirates</div>
-          <div class="text-xs text-muted mt-0.5">Emirates</div>
-        </a>
-        <a href="airlines/singapore-airlines.html" class="glass p-4 text-center hover:border-purple-400/30 transition-colors group">
-          <div class="font-bold group-hover:text-white transition-colors" style="color:#a78bfa">Singapore</div>
-          <div class="text-xs text-muted mt-0.5">Singapore Airlines</div>
-        </a>
-        <a href="airlines/qatar-airways.html" class="glass p-4 text-center hover:border-pink-400/30 transition-colors group">
-          <div class="font-bold group-hover:text-white transition-colors" style="color:#f472b6">Qatar</div>
-          <div class="text-xs text-muted mt-0.5">Qatar Airways</div>
-        </a>
-        <a href="airlines/etihad.html" class="glass p-4 text-center hover:border-green-400/30 transition-colors group">
-          <div class="font-bold group-hover:text-white transition-colors" style="color:#34d399">Etihad</div>
-          <div class="text-xs text-muted mt-0.5">Etihad Airways</div>
-        </a>
-        <a href="airlines/cathay-pacific.html" class="glass p-4 text-center hover:border-accent/30 transition-colors group">
-          <div class="font-bold text-accent group-hover:text-white transition-colors">Cathay</div>
-          <div class="text-xs text-muted mt-0.5">Cathay Pacific</div>
-        </a>
-        <a href="airlines/lufthansa.html" class="glass p-4 text-center hover:border-green-400/30 transition-colors group">
-          <div class="font-bold group-hover:text-white transition-colors" style="color:#34d399">Lufthansa</div>
-          <div class="text-xs text-muted mt-0.5">Lufthansa</div>
-        </a>
-      </div>
-    </div>
-  </div>
-</section>
-
-
-<!-- ════════════════════════════════════
-     COMPARISON ARTICLES
-════════════════════════════════════ -->
-<section id="sec-compare-articles" class="py-12 border-t border-white/[0.05]">
-  <div class="max-w-6xl mx-auto px-6">
-    <div class="mb-5 fade-up">
-      <div class="text-xs text-muted uppercase tracking-widest font-semibold mb-2">Comparisons</div>
-      <h2 class="text-2xl font-bold">Pilot Salaries — In-Depth Comparisons</h2>
-      <p class="text-sm text-muted mt-1">A data-driven breakdown of the pay gaps between airlines, and between careers.</p>
-    </div>
-    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 fade-up">
-
-      <!-- ANA vs JAL -->
-      <a href="airlines/ana-vs-jal.html" class="glass p-4 hover:border-white/20 transition-colors group" style="border-left:3px solid #3d9bff">
-        <div class="flex items-center gap-2 mb-2">
-          <span class="text-xs px-2 py-0.5 rounded font-semibold" style="background:rgba(61,155,255,.12);color:#3d9bff">Japan Majors</span>
-        </div>
-        <div class="font-bold text-sm mb-1 group-hover:text-white transition-colors">ANA vs JAL — Which One Pays More?</div>
-        <p class="text-xs text-muted leading-relaxed mb-2">Captain pay, First Officer pay, time to upgrade and overall package compared point by point, so you know which one to aim for.</p>
-        <div class="text-xs" style="color:#3d9bff">Read more →</div>
-      </a>
-
-      <!-- 外資 vs 日系 -->
-      <a href="airlines/gaishi-vs-nikkei.html" class="glass p-4 hover:border-white/20 transition-colors group" style="border-left:3px solid #c4943b">
-        <div class="flex items-center gap-2 mb-2">
-          <span class="text-xs px-2 py-0.5 rounded font-semibold" style="background:rgba(196,148,59,.12);color:#c4943b">Foreign Carriers</span>
-        </div>
-        <div class="font-bold text-sm mb-1 group-hover:text-white transition-colors">Foreign vs Japanese Carriers — The Real Pay Gap</div>
-        <p class="text-xs text-muted leading-relaxed mb-2">Middle East carriers such as Emirates and Qatar versus ANA and JAL: the true take-home difference once tax treatment is factored in.</p>
-        <div class="text-xs" style="color:#c4943b">Read more →</div>
-      </a>
-
-      <!-- LCC比較 -->
-      <a href="airlines/lcc-hikaku.html" class="glass p-4 hover:border-white/20 transition-colors group" style="border-left:3px solid #34d399">
-        <div class="flex items-center gap-2 mb-2">
-          <span class="text-xs px-2 py-0.5 rounded font-semibold" style="background:rgba(52,211,153,.12);color:#34d399">LCC</span>
-        </div>
-        <div class="font-bold text-sm mb-1 group-hover:text-white transition-colors">Every LCC Compared — What Low-Cost Carriers Really Pay</div>
-        <p class="text-xs text-muted leading-relaxed mb-2">Captain pay and working conditions at Japan's LCCs — ZIPAIR, Peach, Jetstar, Skymark and the rest — lined up side by side.</p>
-        <div class="text-xs" style="color:#34d399">Read more →</div>
-      </a>
-
-      <!-- ANA vs Emirates -->
-      <a href="airlines/ana-vs-emirates.html" class="glass p-4 hover:border-white/20 transition-colors group" style="border-left:3px solid #f5c842">
-        <div class="flex items-center gap-2 mb-2">
-          <span class="text-xs px-2 py-0.5 rounded font-semibold" style="background:rgba(245,200,66,.12);color:#f5c842">Middle East Move</span>
-        </div>
-        <div class="font-bold text-sm mb-1 group-hover:text-white transition-colors">ANA vs Emirates — Can a Move Really Double Your Pay?</div>
-        <p class="text-xs text-muted leading-relaxed mb-2">ANA Captain <span class="pv-cur" data-jpy="27000000" data-orig="2,700万">$170K</span> vs Emirates Captain <span class="pv-cur" data-jpy="37000000" data-orig="3,700万">$233K</span>+ (tax-free). We work out the real gap once housing allowance is included.</p>
-        <div class="text-xs" style="color:#f5c842">Read more →</div>
-      </a>
-
-      <!-- Emirates vs Qatar -->
-      <a href="airlines/emirates-vs-qatar.html" class="glass p-4 hover:border-white/20 transition-colors group" style="border-left:3px solid #a78bfa">
-        <div class="flex items-center gap-2 mb-2">
-          <span class="text-xs px-2 py-0.5 rounded font-semibold" style="background:rgba(167,139,250,.12);color:#a78bfa">Gulf Big Two</span>
-        </div>
-        <div class="font-bold text-sm mb-1 group-hover:text-white transition-colors">Emirates vs Qatar — The Gulf's Big Two Head to Head</div>
-        <p class="text-xs text-muted leading-relaxed mb-2">Dubai vs Doha: real earnings, how hard it is to get hired, and life on the ground. Which one should a Japanese pilot pick?</p>
-        <div class="text-xs" style="color:#a78bfa">Read more →</div>
-      </a>
-
-      <!-- パイロット vs 医者 -->
-      <a href="pilot-vs-isha.html" class="glass p-4 hover:border-white/20 transition-colors group" style="border-left:3px solid #f472b6">
-        <div class="flex items-center gap-2 mb-2">
-          <span class="text-xs px-2 py-0.5 rounded font-semibold" style="background:rgba(244,114,182,.12);color:#f472b6">Career Comparison</span>
-        </div>
-        <div class="font-bold text-sm mb-1 group-hover:text-white transition-colors">Pilot vs Doctor — Pay, Difficulty and Lifestyle</div>
-        <p class="text-xs text-muted leading-relaxed mb-2">Doctors average <span class="pv-cur" data-jpy="13380000" data-orig="1,338万">$84K</span> vs pilots <span class="pv-cur" data-jpy="16970000" data-orig="1,697万">$107K</span>. Earnings curves from your twenties to retirement, plus lifestyle, compared in full.</p>
-        <div class="text-xs" style="color:#f472b6">Read more →</div>
-      </a>
-
-      <!-- パイロット vs 弁護士 -->
-      <a href="pilot-vs-bengoshi.html" class="glass p-4 hover:border-white/20 transition-colors group" style="border-left:3px solid #fb923c">
-        <div class="flex items-center gap-2 mb-2">
-          <span class="text-xs px-2 py-0.5 rounded font-semibold" style="background:rgba(251,146,60,.12);color:#fb923c">Career Comparison</span>
-        </div>
-        <div class="font-bold text-sm mb-1 group-hover:text-white transition-colors">Pilot vs Lawyer — Stability vs No Ceiling</div>
-        <p class="text-xs text-muted leading-relaxed mb-2">The truth behind the <span class="pv-cur" data-jpy="7380000" data-orig="738万">$46K</span> lawyer average and its two-tier reality: bar exam vs company-sponsored cadet, the pay gap at 30, and the option to go independent.</p>
-        <div class="text-xs" style="color:#fb923c">Read more →</div>
-      </a>
-
-      <!-- パイロット vs 高収入職業 -->
-      <a href="pilot-vs-kochin.html" class="glass p-4 hover:border-white/20 transition-colors group" style="border-left:3px solid #34d399">
-        <div class="flex items-center gap-2 mb-2">
-          <span class="text-xs px-2 py-0.5 rounded font-semibold" style="background:rgba(52,211,153,.12);color:#34d399">Salary Rankings</span>
-        </div>
-        <div class="font-bold text-sm mb-1 group-hover:text-white transition-colors">Top 8 High-Income Careers — Is Pilot the Strongest?</div>
-        <p class="text-xs text-muted leading-relaxed mb-2">Doctor, lawyer, surgeon, investment banker, tech executive, pro athlete and more: eight careers ranked on pay, stability and risk of AI replacement.</p>
-        <div class="text-xs" style="color:#34d399">Read more →</div>
-      </a>
-
-      <a href="pilot-tenshoku.html" class="glass p-4 hover:border-white/20 transition-colors group" style="border-left:3px solid #f97316">
-        <div class="flex items-center gap-2 mb-2">
-          <span class="text-xs px-2 py-0.5 rounded font-semibold" style="background:rgba(249,115,22,.12);color:#f97316">Career Guide</span>
-          <span class="text-xs px-2 py-0.5 rounded font-semibold" style="background:rgba(52,211,153,.1);color:#34d399">NEW</span>
-        </div>
-        <div class="font-bold text-sm mb-1 group-hover:text-white transition-colors">The Complete Pilot Career-Move Guide — Pay, Requirements, Process</div>
-        <p class="text-xs text-muted leading-relaxed mb-2">Salary simulations for moves within Japan, overseas and to LCCs, plus the licenses you need, a realistic timeline, and 7 checkpoints to keep the move from going wrong.</p>
-        <div class="text-xs" style="color:#f97316">Read more →</div>
-      </a>
-
     </div>
   </div>
 </section>
@@ -1578,9 +657,9 @@
 
     </div>
 
-    <div class="fade-up text-center mt-7 flex flex-wrap justify-center gap-4">
-      <a href="world-airlines.html" class="btn-outline-amber">Browse all 112 airlines</a>
-      <a href="pilot-salary-guide.html" style="display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:10px;background:linear-gradient(135deg,#3d9bff,#6b5bff);color:#fff;font-size:.875rem;font-weight:700;text-decoration:none;transition:opacity .2s,transform .2s" onmouseover="this.style.opacity='.88';this.style.transform='translateY(-1px)'" onmouseout="this.style.opacity='1';this.style.transform='none'">Read the complete pilot salary guide →</a>
+    <div class="fade-up lp-faq-cta">
+      <a href="world-airlines.html" class="lp-btn"><span class="lp-btn-l">Browse all <span data-pv-n="airlines">112</span> airlines</span><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      <a href="pilot-salary-guide.html" class="lp-btn lp-btn--ghost"><span class="lp-btn-l">Read the complete pilot salary guide</span><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
     </div>
   </div>
 </section>
@@ -1592,6 +671,10 @@
 <section id="final-cta" class="pv-sec pv-sec--line" style="padding-top:var(--pv-s-5);padding-bottom:var(--pv-s-5)">
   <div class="pv-wrap pv-wrap--narrow" style="text-align:center">
     <img src="../assets/logo.png" alt="PILOT VALUE" width="160" height="42" loading="lazy" style="height:42px;width:auto;margin:0 auto 26px;display:block"/>
+    <!-- 2026-09-22 まではヒーローの見出しだった1行。ヒーローを作り直したときにここへ移した。
+         ⚠️ 消さない。お知らせメールがこの文をタグラインとして使い、db/test-announce.mjs が
+            「トップページにある」ことを確かめている。 -->
+    <p class="pv-motto">REAL PAY. REAL PILOTS. PRIVATE BY DESIGN.</p>
     <h2 class="pv-h2">Know what you're worth.</h2>
     <p class="pv-lede" style="margin-left:auto;margin-right:auto">Career decisions should rest on real pay, not estimates. For your airline, that starts with your record. Two minutes, fully anonymous.</p>
     <div class="pv-cta-row" style="justify-content:center;margin-top:var(--pv-s-3)">
@@ -1683,110 +766,6 @@
      SCRIPTS
 ════════════════════════════════════ -->
 <script>
-// ── WebGL Shader Hero ──────────────────────────────────────────
-(function() {
-  const canvas = document.getElementById('hero-canvas');
-  const gl = canvas.getContext('webgl2');
-  if (!gl) return;
-
-  const vertSrc = `#version 300 es
-precision highp float;
-in vec4 position;
-void main(){ gl_Position = position; }`;
-
-  const fragSrc = `#version 300 es
-precision highp float;
-out vec4 O;
-uniform vec2 resolution;
-uniform float time;
-uniform vec2 move;
-uniform vec2 touch;
-uniform int pointerCount;
-uniform vec2 pointers;
-#define FC gl_FragCoord.xy
-#define T time
-#define R resolution
-#define MN min(R.x,R.y)
-float rnd(vec2 p){p=fract(p*vec2(12.9898,78.233));p+=dot(p,p+34.56);return fract(p.x*p.y);}
-float noise(in vec2 p){vec2 i=floor(p),f=fract(p),u=f*f*(3.-2.*f);float a=rnd(i),b=rnd(i+vec2(1,0)),c=rnd(i+vec2(0,1)),d=rnd(i+1.);return mix(mix(a,b,u.x),mix(c,d,u.x),u.y);}
-float fbm(vec2 p){float t=.0,a=1.;mat2 m=mat2(1.,-.5,.2,1.2);for(int i=0;i<5;i++){t+=a*noise(p);p*=2.*m;a*=.5;}return t;}
-float clouds(vec2 p){float d=1.,t=.0;for(float i=.0;i<3.;i++){float a=d*fbm(i*10.+p.x*.2+.2*(1.+i)*p.y+d+i*i+p);t=mix(t,d,a);d=a;p*=2./(i+1.);}return t;}
-void main(void){
-  vec2 uv=(FC-.5*R)/MN, st=uv*vec2(2,1);
-  vec3 col=vec3(0);
-  float bg=clouds(vec2(st.x+T*.5,-st.y));
-  uv*=1.-.3*(sin(T*.2)*.5+.5);
-  for(float i=1.;i<12.;i++){
-    uv+=.1*cos(i*vec2(.1+.01*i,.8)+i*i+T*.5+.1*uv.x);
-    vec2 p=uv;
-    float d=length(p);
-    col+=.00125/d*(cos(sin(i)*vec3(1,2,3))+1.);
-    float b=noise(i+p+bg*1.731);
-    col+=.002*b/length(max(p,vec2(b*p.x*.02,p.y)));
-    col=mix(col,vec3(bg*.25,bg*.137,bg*.05),d);
-  }
-  O=vec4(col,1);
-}`;
-
-  function createShader(type, src) {
-    const s = gl.createShader(type);
-    gl.shaderSource(s, src);
-    gl.compileShader(s);
-    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) console.error(gl.getShaderInfoLog(s));
-    return s;
-  }
-
-  const vs = createShader(gl.VERTEX_SHADER, vertSrc);
-  const fs = createShader(gl.FRAGMENT_SHADER, fragSrc);
-  const prog = gl.createProgram();
-  gl.attachShader(prog, vs); gl.attachShader(prog, fs);
-  gl.linkProgram(prog);
-
-  const buf = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,1,-1,-1,1,1,1,-1]), gl.STATIC_DRAW);
-  const pos = gl.getAttribLocation(prog, 'position');
-  gl.enableVertexAttribArray(pos);
-  gl.vertexAttribPointer(pos, 2, gl.FLOAT, false, 0, 0);
-
-  const uRes   = gl.getUniformLocation(prog, 'resolution');
-  const uTime  = gl.getUniformLocation(prog, 'time');
-  const uMove  = gl.getUniformLocation(prog, 'move');
-  const uTouch = gl.getUniformLocation(prog, 'touch');
-  const uPC    = gl.getUniformLocation(prog, 'pointerCount');
-  const uPtrs  = gl.getUniformLocation(prog, 'pointers');
-
-  let mouseX = 0, mouseY = 0, mvX = 0, mvY = 0;
-  canvas.addEventListener('mousemove', e => {
-    mvX += e.movementX; mvY += e.movementY;
-    mouseX = e.clientX; mouseY = canvas.height - e.clientY;
-  });
-
-  function resize() {
-    const dpr = Math.max(1, 0.5 * window.devicePixelRatio);
-    canvas.width  = window.innerWidth  * dpr;
-    canvas.height = window.innerHeight * dpr;
-    gl.viewport(0, 0, canvas.width, canvas.height);
-  }
-  resize();
-  window.addEventListener('resize', resize);
-
-  function loop(now) {
-    gl.useProgram(prog);
-    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-    gl.uniform2f(uRes,   canvas.width, canvas.height);
-    gl.uniform1f(uTime,  now * 1e-3);
-    gl.uniform2f(uMove,  mvX, mvY);
-    gl.uniform2f(uTouch, mouseX, mouseY);
-    gl.uniform1i(uPC,    0);
-    gl.uniform2fv(uPtrs, [0, 0]);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    mvX *= 0.9; mvY *= 0.9;
-    requestAnimationFrame(loop);
-  }
-  requestAnimationFrame(loop);
-})();
-
 // ── Nav scroll style ─────────────────────────────────────────
 window.addEventListener('scroll', () => {
   document.getElementById('main-nav').classList.toggle('scrolled', window.scrollY > 40);
@@ -1796,23 +775,13 @@ window.addEventListener('scroll', () => {
 // 自前の toggleMobDrawer / closeMobDrawer は 2026-08-14 に削除した。
 // search.js が日英対応済みの #pv-nav-drawer と .pv-ham-btn を全ページに挿している。
 
-// ── Job filter ────────────────────────────────────────────────
-function filterJobs(btn, region) {
-  document.querySelectorAll('#jobs-grid .tab-btn, .tab-btn[onclick*="filterJobs"]').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  document.querySelectorAll('#jobs-grid [data-region]').forEach(card => {
-    card.style.display = (region === 'all' || card.dataset.region === region) ? '' : 'none';
-  });
-}
-
 // ── Tab switcher ──────────────────────────────────────────────
 function switchRankTab(btn, id) {
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#ranking .lp-ex-tab').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-pressed', 'false'); });
   btn.classList.add('active');
+  btn.setAttribute('aria-pressed', 'true');
   document.getElementById('rank-captain').classList.toggle('hidden', id !== 'captain');
   document.getElementById('rank-fo').classList.toggle('hidden', id !== 'fo');
-  const active = document.getElementById('rank-' + id);
-  if (active) setTimeout(() => animateBars(active), 50);
 }
 
 // ── Animate bars ──────────────────────────────────────────────
@@ -1830,22 +799,6 @@ const captainData = [
   { name:'American Airlines',     nameJa:'American Airlines',   flag:'🇺🇸', region:'Major US carrier', avg:'¥5,930万', sub:'Widebody Captain',           color:'#f87171',  pct:94,  page:'airlines/american.html',           tagClass:'tag-orange', tagText:'USA', status:'Actively hiring', statusClass:'tag-green' },
   { name:'Southwest Airlines',    nameJa:'Southwest',   flag:'🇺🇸', region:'US low-cost carrier',  avg:'¥4,820万', sub:'B737-only fleet; profit sharing included',     color:'#fbbf24',  pct:76,  page:'airlines/southwest.html',          tagClass:'tag-orange', tagText:'USA', status:'Hiring',   statusClass:'tag-blue'  },
   { name:'Qantas Airways',        nameJa:'Qantas',     flag:'🇦🇺', region:'Oceania', avg:'¥3,700万', sub:'AUD 320k–520k. Top of the Australian market', color:'#EE0000', pct:59,  page:'airlines/qantas.html',             tagClass:'tag-red',    tagText:'AUS', status:'Hiring',   statusClass:'tag-blue'  },
-  { name:'Emirates',              nameJa:'Emirates',       flag:'🇦🇪', region:'Middle East major', avg:'¥3,700万', sub:'Tax-free. Housing allowance equivalent to ¥820万/year', color:'#c4943b',  pct:59,  page:'airlines/emirates.html',           tagClass:'tag-gold',   tagText:'UAE', status:'Actively hiring', statusClass:'tag-green' },
-  { name:'Cathay Pacific',        nameJa:'Cathay Pacific', flag:'🇭🇰', region:'Asia major', avg:'¥3,600万', sub:'Hong Kong based. Upgrade strictly by seniority', color:'#006564', pct:57, page:'airlines/cathay-pacific.html', tagClass:'tag-blue', tagText:'HKG', status:'Hiring', statusClass:'tag-blue' },
-  { name:'Lufthansa',             nameJa:'Lufthansa',     flag:'🇩🇪', region:'Europe major', avg:'¥3,440万', sub:'5% pay rise effective January 2026',     color:'#f5c842',  pct:54,  page:'airlines/lufthansa.html',          tagClass:'tag-green',  tagText:'EUR', status:'Hiring',   statusClass:'tag-blue'  },
-  { name:'Etihad Airways',        nameJa:'Etihad Airways',   flag:'🇦🇪', region:'Middle East major', avg:'¥3,400万', sub:'Tax-free. Housing and education allowances', color:'#c4943b',  pct:54,  page:'airlines/etihad.html',             tagClass:'tag-gold',   tagText:'UAE', status:'Hiring',   statusClass:'tag-blue'  },
-  { name:'Singapore Airlines',    nameJa:'Singapore Airlines', flag:'🇸🇬', region:'Asia major', avg:'¥3,400万', sub:'Asia\'s top-rated carrier',  color:'#0072ce',  pct:54,  page:'airlines/singapore-airlines.html', tagClass:'tag-blue',   tagText:'SIN', status:'Hiring',   statusClass:'tag-blue'  },
-  { name:'China Eastern',         nameJa:'China Eastern Airlines',     flag:'🇨🇳', region:'China major', avg:'¥2,900万', sub:'SkyTeam. Shanghai hub',     color:'#CC0000',  pct:46,  page:'airlines/china-eastern.html',      tagClass:'tag-blue',   tagText:'CHN', status:'To be confirmed',   statusClass:'tag-gray'  },
-  { name:'Qatar Airways',         nameJa:'Qatar Airways',     flag:'🇶🇦', region:'Middle East major', avg:'¥2,900万', sub:'Tax-free. Housing and education allowances', color:'#8d1b3d',  pct:46,  page:'airlines/qatar-airways.html',      tagClass:'tag-gold',   tagText:'QAT', status:'Actively hiring', statusClass:'tag-green' },
-  { name:'StarLux Airlines',      nameJa:'STARLUX',   flag:'🇹🇼', region:'Asia newcomer', avg:'¥2,800万', sub:'New Taiwanese premium carrier. Growing fast', color:'#007A9B',  pct:44,  page:'airlines/starlux.html',            tagClass:'tag-green',  tagText:'TWN', status:'Hiring',   statusClass:'tag-blue'  },
-  { name:'ANA (All Nippon Airways)',       nameJa:'All Nippon Airways',       flag:'🇯🇵', region:'Japan major', avg:'¥2,700万', sub:'Highest in Japan. Retirement lump sum and pension', color:'#3d9bff', pct:43, page:'airlines/ana.html',              tagClass:'tag-blue',   tagText:'JPN', status:'Actively hiring', statusClass:'tag-green' },
-  { name:'JAL (Japan Airlines)',         nameJa:'Japan Airlines',         flag:'🇯🇵', region:'Japan major', avg:'¥2,700万', sub:'Japan\'s No.2 major. International-focused',       color:'#e8192c',  pct:43,  page:'airlines/jal.html',                tagClass:'tag-blue',   tagText:'JPN', status:'Actively hiring', statusClass:'tag-green' },
-  { name:'ZIPAIR Tokyo',          nameJa:'ZIPAIR',       flag:'🇯🇵', region:'Japanese LCCs',  avg:'¥2,500万', sub:'B787. International LCC',           color:'#22d3ee',  pct:40,  page:'airlines/zipair.html',             tagClass:'tag-blue',   tagText:'JPN', status:'Now hiring',   statusClass:'tag-green' },
-  { name:'Jetstar Japan',         nameJa:'Jetstar',   flag:'🇯🇵', region:'Japanese LCCs',  avg:'¥2,400万', sub:'A320 family. Qantas Group benefits',  color:'#f0851a',  pct:38,  page:'airlines/jetstar-japan.html',      tagClass:'tag-blue',   tagText:'JPN', status:'Now hiring',   statusClass:'tag-green' },
-  { name:'Peach Aviation',        nameJa:'Peach',           flag:'🇯🇵', region:'Japanese LCCs',  avg:'¥2,350万', sub:'A320/321. Domestic and international',    color:'#f96c9f',  pct:37,  page:'airlines/peach.html',              tagClass:'tag-blue',   tagText:'JPN', status:'To be confirmed',   statusClass:'tag-gray'  },
-  { name:'Spring Japan',          nameJa:'Spring Japan',     flag:'🇯🇵', region:'Japanese LCCs',  avg:'¥2,000万', sub:'A320 family. Focused on China routes',      color:'#e83030',  pct:32,  page:'airlines/spring-japan.html',       tagClass:'tag-blue',   tagText:'JPN', status:'To be confirmed',   statusClass:'tag-gray'  },
-  { name:'Skymark Airlines',      nameJa:'Skymark Airlines',     flag:'🇯🇵', region:'Japan mid-size', avg:'¥1,900万', sub:'B737NG. Domestic-only operation',        color:'#0095db',  pct:30,  page:'airlines/skymark.html',            tagClass:'tag-blue',   tagText:'JPN', status:'Now hiring',   statusClass:'tag-green' },
-  { name:'EVA Air',               nameJa:'EVA Air',       flag:'🇹🇼', region:'Asia major', avg:'¥1,750万', sub:'5-Star certified. USD allowances included', color:'#00A599',   pct:28,  page:'airlines/eva-air.html',            tagClass:'tag-green',  tagText:'TWN', status:'Intermittent hiring', statusClass:'tag-blue'  },
 ];
 
 const foData = [
@@ -1854,58 +807,18 @@ const foData = [
   { name:'American Airlines',     flag:'🇺🇸', region:'Major US carrier', avg:'¥3,440万', sub:'Year12 FO',           color:'#f87171', pct:89, page:'airlines/american.html',           tagClass:'tag-orange', tagText:'USA' },
   { name:'Emirates',              flag:'🇦🇪', region:'Middle East major', avg:'¥2,800万', sub:'Tax-free',               color:'#c4943b', pct:72,  page:'airlines/emirates.html',           tagClass:'tag-gold',   tagText:'UAE' },
   { name:'Southwest Airlines',    flag:'🇺🇸', region:'US low-cost carrier',  avg:'¥2,610万', sub:'Year12 FO',           color:'#fbbf24', pct:67,  page:'airlines/southwest.html',          tagClass:'tag-orange', tagText:'USA' },
-  { name:'Cathay Pacific',        flag:'🇭🇰', region:'Asia major', avg:'¥2,400万', sub:'FO2',               color:'#006564', pct:62,  page:'airlines/cathay-pacific.html',     tagClass:'tag-blue',   tagText:'HKG' },
-  { name:'Etihad Airways',        flag:'🇦🇪', region:'Middle East major', avg:'¥2,300万', sub:'Tax-free',               color:'#c4943b', pct:59,  page:'airlines/etihad.html',             tagClass:'tag-gold',   tagText:'UAE' },
-  { name:'Qantas Airways',        flag:'🇦🇺', region:'Oceania', avg:'¥2,100万', sub:'AUD-denominated; superannuation included', color:'#EE0000', pct:54, page:'airlines/qantas.html',           tagClass:'tag-red',    tagText:'AUS' },
-  { name:'Qatar Airways',         flag:'🇶🇦', region:'Middle East major', avg:'¥2,050万', sub:'Tax-free',               color:'#8d1b3d', pct:53,  page:'airlines/qatar-airways.html',      tagClass:'tag-gold',   tagText:'QAT' },
-  { name:'Lufthansa',             flag:'🇩🇪', region:'Europe major', avg:'¥1,890万', sub:'Year10+',             color:'#f5c842', pct:49,  page:'airlines/lufthansa.html',          tagClass:'tag-green',  tagText:'EUR' },
-  { name:'Singapore Airlines',    flag:'🇸🇬', region:'Asia major', avg:'¥1,850万', sub:'Allowances included',          color:'#0072ce', pct:48,  page:'airlines/singapore-airlines.html', tagClass:'tag-blue',   tagText:'SIN' },
-  { name:'ANA (All Nippon Airways)',       flag:'🇯🇵', region:'Japan major', avg:'¥1,800万', sub:'Senior FO',            color:'#3d9bff', pct:47,  page:'airlines/ana.html',                tagClass:'tag-blue',   tagText:'JPN' },
-  { name:'JAL (Japan Airlines)',         flag:'🇯🇵', region:'Japan major', avg:'¥1,800万', sub:'Senior FO',            color:'#e8192c', pct:47,  page:'airlines/jal.html',                tagClass:'tag-blue',   tagText:'JPN' },
-  { name:'ZIPAIR Tokyo',          flag:'🇯🇵', region:'Japanese LCCs',  avg:'¥1,500万', sub:'Estimate',              color:'#22d3ee', pct:39,  page:'airlines/zipair.html',             tagClass:'tag-blue',   tagText:'JPN' },
-  { name:'StarLux Airlines',      flag:'🇹🇼', region:'Asia newcomer', avg:'¥1,500万', sub:'Growing; expanding hiring',   color:'#007A9B', pct:39,  page:'airlines/starlux.html',            tagClass:'tag-green',  tagText:'TWN' },
-  { name:'China Eastern',         flag:'🇨🇳', region:'China major', avg:'¥1,480万',   sub:'SkyTeam member',    color:'#CC0000', pct:38,  page:'airlines/china-eastern.html',      tagClass:'tag-blue',   tagText:'CHN' },
-  { name:'Jetstar Japan',         flag:'🇯🇵', region:'Japanese LCCs',  avg:'¥1,450万', sub:'First year ¥1,800万',      color:'#f0851a', pct:37,  page:'airlines/jetstar-japan.html',      tagClass:'tag-blue',   tagText:'JPN' },
-  { name:'Peach Aviation',        flag:'🇯🇵', region:'Japanese LCCs',  avg:'¥1,400万', sub:'Allowances included',            color:'#f96c9f', pct:36,  page:'airlines/peach.html',              tagClass:'tag-blue',   tagText:'JPN' },
-  { name:'Spring Japan',          flag:'🇯🇵', region:'Japanese LCCs',  avg:'¥1,150万', sub:'Estimate',              color:'#e83030', pct:30,  page:'airlines/spring-japan.html',       tagClass:'tag-blue',   tagText:'JPN' },
-  { name:'EVA Air',               flag:'🇹🇼', region:'Asia major', avg:'¥980万', sub:'USD allowances included',        color:'#00A599', pct:25,  page:'airlines/eva-air.html',            tagClass:'tag-green',  tagText:'TWN' },
-  { name:'Skymark Airlines',      flag:'🇯🇵', region:'Japan mid-size', avg:'¥950万', sub:'Estimate',              color:'#0095db', pct:25,  page:'airlines/skymark.html',            tagClass:'tag-blue',   tagText:'JPN' },
 ];
 
-const rankBadge = (i) => {
-  if(i===0) return `<div class="w-8 h-8 rounded-full rank-1 flex items-center justify-center text-sm font-black flex-shrink-0">1</div>`;
-  if(i===1) return `<div class="w-8 h-8 rounded-full rank-2 flex items-center justify-center text-sm font-black flex-shrink-0">2</div>`;
-  if(i===2) return `<div class="w-8 h-8 rounded-full rank-3 flex items-center justify-center text-sm font-black flex-shrink-0">3</div>`;
-  return `<div class="w-8 h-8 rounded-full rank-n flex items-center justify-center text-sm font-semibold flex-shrink-0">${i+1}</div>`;
-};
-
+// 行は「順位・社名・推定年収」だけ（2026-09-22・見本なので上位5社）。
+// 金額は ¥…万 の文字のまま入れる。currency.js のこの後の走査が読み手の通貨へ直す。
 function buildRankingList(data, containerId) {
   const container = document.getElementById(containerId);
   if (!container) return;
   data.forEach((d, i) => {
     const row = document.createElement('a');
     row.href = d.page;
-    // 11位以降は .rank-more。既定では lp.css が display:none にしている。
-    row.className = 'airline-row fade-up flex items-center gap-4' + (i >= 10 ? ' rank-more' : '');
-    row.style.transitionDelay = (Math.min(i, 10) * 0.03) + 's';
-    row.innerHTML = `
-      ${rankBadge(i)}
-      <div class="flex-1 min-w-0">
-        <div class="flex items-center gap-2 mb-1.5 flex-wrap">
-          <span class="font-semibold text-sm">${d.flag} ${d.name}</span>
-          <span class="tag ${d.tagClass} text-xs">${d.tagText}</span>
-          <span class="tag tag-gray text-xs">${d.region}</span>
-          ${d.status ? `<span class="tag ${d.statusClass} text-xs">${d.status}</span>` : ''}
-        </div>
-        <div class="salary-bar-track w-full">
-          <div class="salary-bar-fill" style="background:linear-gradient(90deg,${d.color}88,${d.color})" data-width="${d.pct}"></div>
-        </div>
-        <div class="text-xs text-muted mt-1">${d.sub}</div>
-      </div>
-      <div class="text-right flex-shrink-0">
-        <div class="font-black text-base" style="color:${d.color}">${d.avg}</div>
-        <div class="text-xs text-muted mt-0.5">Details →</div>
-      </div>`;
+    row.className = 'lp-rk-row';
+    row.innerHTML = `<span class="lp-rk-n">${i + 1}</span><span class="lp-rk-an">${d.name}</span><span class="lp-rk-amt">${d.avg}</span>`;
     container.appendChild(row);
   });
 }
@@ -1914,16 +827,6 @@ buildRankingList(captainData, 'rank-captain');
 buildRankingList(foData, 'rank-fo');
 
 // 11位以降の開閉。行はもう生成済みなので、開いても本文量は増えない。
-function toggleRankMore(btn) {
-  const open = document.getElementById('ranking').classList.toggle('rank-open');
-  btn.setAttribute('aria-expanded', String(open));
-  btn.textContent = open ? 'Show the top 10 only' : 'Show ranks 11–21 (all 21 airlines)';
-  if (open) {
-    document.querySelectorAll('#ranking .rank-more').forEach(el => {
-      el.classList.add('visible'); animateBars(el);
-    });
-  }
-}
 
 // ── IntersectionObserver for fade-up + bars ───────────────────
 const io = new IntersectionObserver((entries) => {
@@ -1967,7 +870,7 @@ function updateNavAuth(name) {
     if (name) {
       b.textContent = name.replace(/[\s　].*/, '');
       b.href = '../profile.html';
-      b.style.color = '#f5c842';
+      b.style.color = 'var(--pv-accent-ink,#067563)';
       b.style.fontWeight = '700';
     }
   } catch(e) {}
@@ -1987,7 +890,7 @@ function updateNavAuth(name) {
 if (window.PVReferral) window.PVReferral.mountStrip();</script>
 <script>
 /* ── サラリーエンジン（主役グリッド）をヒーロー直下にマウント ── */
-/* Levels.fyi 風の多社ピッカー：全106社(airlines-meta.js)から最大5社を追加/削除して横並び比較。 */
+/* Levels.fyi 風の多社ピッカー：掲載の全社(airlines-meta.js)から最大5社を追加/削除して横並び比較。 */
 (function () {
   /* meta = { slug: airlineObj } を共有配列(PV_AIRLINES)から構築（world-airlines と同一データ） */
   var META = {};
@@ -1999,7 +902,9 @@ if (window.PVReferral) window.PVReferral.mountStrip();</script>
     quick: ['ana', 'jal', 'emirates', 'delta', 'united', 'singapore-airlines'],
     max: 5,
     pool: 'all',
-    slugs: ['ana', 'jal', 'emirates', 'delta'],
+    /* スマホは3社（4本だと1本が細くなり、図が横に長くなる） */
+    slugs: (window.matchMedia && window.matchMedia('(max-width:767px)').matches)
+      ? ['ana', 'jal', 'emirates'] : ['ana', 'jal', 'emirates', 'delta'],
     mode: 'all',
     meta: META
   });

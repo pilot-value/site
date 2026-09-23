@@ -188,6 +188,34 @@ console.log('\n── B) 画面に出る数を直書きしていない ───
     ok(`${pair[0]} と ${pair[1]} で欄の集合が同じ`,
       seen[0][1] === seen[1][1], `${seen[0][1]}  ≠  ${seen[1][1]}`);
   }
+
+  /* ── トップの社数（2026-09-22）──────────────────────────────
+     トップ（日英）は「112」を title・説明文・JSON-LD・FAQ・本文に何か所も書いている。
+     本文の分には data-pv-n="airlines" の印があり、lp.js が salary-data.json の社数で
+     上書きする。ただし HTML の「112」は JS を動かさない読み手（検索・AI のクローラ）に
+     そのまま見えるので、社数が変わったら**ここで必ず落ちる**ようにしておく。
+       ① 印の付いた要素が全部 SALARY の社数
+       ② 3けたの「◯社」「◯ airlines」も全部 SALARY の社数（title・meta・JSON-LD・FAQ）
+     ※「日本国内26社」のような2けたの数は別の事実なので見ない。 */
+  const lpJs = readFileSync(path.join(ROOT, 'lp.js'), 'utf8');
+  ok('lp.js: [data-pv-n="airlines"] を社数で上書きしている',
+    lpJs.includes(`querySelectorAll('[data-pv-n="airlines"]')`));
+  for (const [rel, countRe] of [
+    ['index.html',    /(?<![\d,.])(\d{3})\s*社/g],
+    ['en/index.html', /(?<![\d,.])(\d{3})\s+airlines\b/gi],
+  ]) {
+    const s = strip(readFileSync(path.join(ROOT, rel), 'utf8'));
+    const marks = [...s.matchAll(/data-pv-n="airlines"[^>]*>([^<]*)</g)].map(m => m[1].trim());
+    ok(`${rel}: 社数の印（data-pv-n="airlines"）がある`, marks.length > 0);
+    const badMarks = marks.filter(t => t !== AIRLINE_N);
+    ok(`${rel}: 印の付いた社数 ${marks.length} か所が SSOT の ${AIRLINE_N}`,
+      badMarks.length === 0, `いま「${badMarks.join('」「')}」`);
+    const counts = [...s.matchAll(countRe)].map(m => m[1]);
+    const badCounts = counts.filter(n => n !== AIRLINE_N);
+    ok(`${rel}: 3けたの社数の表記 ${counts.length} か所が SSOT の ${AIRLINE_N}`,
+      counts.length > 0 && badCounts.length === 0,
+      counts.length ? `いま「${badCounts.join('」「')}」` : '1つも見つからない（書き方が変わった？）');
+  }
 }
 
 console.log(`\n══ ${pass} pass / ${fail} fail ══`);

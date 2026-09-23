@@ -71,15 +71,15 @@
    ここが無いと、広い画面のレールに8つ目の行が生えて板が枚数ごとに変わる。 */
 .mr-side-a[hidden]{display:none}
 .mr-side-a:hover{background:var(--pv-line-soft);color:var(--pv-ink)}
-.mr-side-a:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}
+.mr-side-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
 .mr-side-a:active{background:var(--pv-line)}
 .mr-side-a.is-on{background:var(--pv-surface);color:var(--pv-ink);font-weight:700;
                  border-color:var(--pv-line);box-shadow:var(--pv-shadow)}
-.mr-side-a.is-on svg{opacity:1;color:var(--pv-orange)}
+.mr-side-a.is-on svg{opacity:1;color:var(--pv-accent-ink)}
 /* 「給与を追加」＝このサイトで一番押してほしいもの。3つの中で1つだけ色を持たせる。 */
-.mr-side-a.is-add{color:var(--pv-orange-ink);font-weight:700}
+.mr-side-a.is-add{color:var(--pv-accent-ink);font-weight:700}
 .mr-side-a.is-add svg{opacity:1}
-.mr-side-a.is-add:hover{background:var(--pv-orange-soft);color:var(--pv-orange-ink)}
+.mr-side-a.is-add:hover{background:var(--pv-accent-soft);color:var(--pv-accent-ink)}
 /* まだ開いていない段（REAL PAY を出す前 / DEEP PAY / VERIFIED PAY）。
    ★2026-08-25、<span aria-disabled> をやめて <button> にした。押すと
      pv-gates.js が「何を出すと何が見られるか」を説明する（Give-to-Get）。
@@ -194,17 +194,17 @@ body.pv-anav-t73{--pv-topbar:73px}
 
   /* ★「いまここ」── **絵の枠に色が入る**。狭い画面の板と同じ言い方にする。
        今まで  … 薄い面＋枠＋影のカード（絵も文字も他の段と同じ色＝分かりにくい）
-       これから … 面も枠も影も外し、**絵の枠だけ**を橙に塗って字を太くする。
+       これから … 面も枠も影も外し、**絵の枠だけ**を色で塗って字を太くする（2026-09-22 から緑）。
      板が広い画面と狭い画面で同じ見え方になる（オーナー指示 2026-09-06・
      「モバイルのメニュー表のようなイメージ」）。
-     ⚠️ 新しい色は作らない。--pv-orange-soft / --pv-orange-ink は
-        「匿名で給与を追加」が既に使っている pv-tokens.css の色。 */
+     ⚠️ 新しい色は作らない。--pv-accent-soft / --pv-accent-ink は pv-tokens.css の緑
+        （2026-09-22 オーナー決定「緑を信頼の色にする」。それまではオレンジだった）。 */
   body.pv-anav-shell .mr-side-a.is-on{
     background:none;border-color:transparent;box-shadow:none;
     color:var(--pv-ink);font-weight:800}
   body.pv-anav-shell .mr-side-a.is-on>svg:not(.mr-side-lk),
   body.pv-anav-shell .mr-side-a.is-add>svg:not(.mr-side-lk){
-    background:var(--pv-orange-soft);color:var(--pv-orange-ink);opacity:1}
+    background:var(--pv-accent-soft);color:var(--pv-accent-ink);opacity:1}
 
   /* まだ開いていない段（pv-gates.js が <button> に付ける）。
      中央揃えの並びなので、あちらの text-align:left を打ち消す。 */
@@ -278,7 +278,7 @@ body.pv-anav-t73{--pv-topbar:73px}
 .pv-ham-btn:hover{background:rgba(255,255,255,.13)}
 [data-theme=light] .pv-ham-btn{background:rgba(0,0,0,.06);border-color:rgba(0,0,0,.12)}
 [data-theme=light] .pv-ham-btn:hover{background:rgba(0,0,0,.11)}
-.pv-ham-btn:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}
+.pv-ham-btn:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
 .pv-ham-line{display:block;width:18px;height:1.8px;border-radius:1px;
   background:rgba(255,255,255,.75)}
 [data-theme=light] .pv-ham-line{background:rgba(15,23,42,.7)}
@@ -299,7 +299,7 @@ body.pv-anav-t73{--pv-topbar:73px}
   color:var(--pv-ink-3);cursor:pointer;-webkit-appearance:none;appearance:none;
   transition:background-color .18s var(--pv-ease),color .18s var(--pv-ease)}
 .mr-side-x:hover{background:var(--pv-line-soft);color:var(--pv-ink)}
-.mr-side-x:focus-visible{outline:2px solid var(--pv-orange);outline-offset:-2px}
+.mr-side-x:focus-visible{outline:2px solid var(--pv-accent);outline-offset:-2px}
 
 /* ══ 3) 覆い ═══════════════════════════════════════════════════
    ★z は overlay 240 / 板 245。.mr-top(200) と REAL PAY の暗幕(210) より上に置く
@@ -389,8 +389,8 @@ body.pv-anav-open #pv-anav-ov{opacity:1;pointer-events:auto}
   .mr-side-a.is-on{background:none;border-color:transparent;box-shadow:none;
     color:var(--pv-ink);font-weight:800}
   .mr-side-a.is-on>svg:not(.mr-side-lk),
-  .mr-side-a.is-add>svg:not(.mr-side-lk){background:var(--pv-orange-soft);
-    color:var(--pv-orange-ink);opacity:1}
+  .mr-side-a.is-add>svg:not(.mr-side-lk){background:var(--pv-accent-soft);
+    color:var(--pv-accent-ink);opacity:1}
   .mr-side-a.is-locked{background:none;border-color:transparent;
     text-align:center;font-size:.7rem}
   /* 錠前は札の右上へ。中央揃えの並びで「ラベルの右端」は意味を持たない。 */
@@ -407,7 +407,7 @@ body.pv-anav-open #pv-anav-ov{opacity:1;pointer-events:auto}
   border-radius:var(--pv-r-sm);
   transition:background-color .18s var(--pv-ease),color .18s var(--pv-ease)}
 .mr-side-sub:hover{background:var(--pv-line-soft);color:var(--pv-ink-2)}
-.mr-side-sub:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}
+.mr-side-sub:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
 /* ★2本目以降は詰める ── 10px は「7項目の塊から離す」ための間隔で、
    小さい行どうしの間隔ではない。ログイン済みで1本目（ログイン）が
    消えたときは、残ったお問い合わせが1本目になって 10px に戻る。 */
