@@ -1,4 +1,4 @@
-/* airlines-meta.js — 全106社の航空会社メタデータ共有モジュール（非 ESM / <script src> 規約）
+/* airlines-meta.js — 航空会社メタデータ共有モジュール（非 ESM / <script src> 規約）
  * SSOT: この配列が world-airlines.html と index.html（サラリーエンジンのピッカー）で共有される。
  * 二重持ちしないこと。数値(salary文字列)は表示用の概算ラベルで、給与の正は salary-data.json。
  * shape: {code,name,en,region,color,salary,file,flag,type,taxfree,alliance}

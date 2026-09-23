@@ -248,7 +248,7 @@
       <button id="theme-toggle" class="theme-toggle" aria-label="ダーク/ライト切替"></button>
       <!-- 言語トグルは lang-toggle.js が #theme-toggle の直後に注入する（直書きすると injectBtn() が早期returnして壊れる） -->
       <a id="nav-auth-btn" href="login.html" class="btn-ghost hidden md:inline-flex" style="font-size:.82rem;padding:7px 14px">ログイン</a>
-      <a href="pay-report.html" class="btn-primary hidden md:inline-flex py-2 px-5 text-sm" style="background:linear-gradient(135deg,#f5c842,#f97316);color:#000" data-pv-ev="nav_primary_cta">全ての給与データを見る</a>
+      <a href="pay-report.html" class="btn-primary hidden md:inline-flex py-2 px-5 text-sm" data-pv-ev="nav_primary_cta">全ての給与データを見る</a>
       <!-- モバイルの「記録する」導線はここには置かない（#pv-mcta を参照）。
            ここに足すと search.js が挿すハンバーガーが画面外へ出る。 -->
     </div>
@@ -843,7 +843,7 @@ function updateNavAuth(name) {
     if (name) {
       b.textContent = name.replace(/[\s　].*/, '');
       b.href = 'profile.html';
-      b.style.color = '#f5c842';
+      b.style.color = 'var(--pv-accent-ink,#067563)';
       b.style.fontWeight = '700';
     }
   } catch(e) {}

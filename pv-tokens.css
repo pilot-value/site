@@ -50,13 +50,15 @@
      値はオーナーが示したものをそのまま使う。1つだけ名前を変えてある：
      オーナー案の --pv-surface:#f7f7f5 は、既に9ファイルが --pv-surface を「白」として
      使っているので、その名前のまま入れると他のページまで灰色になる → --pv-surface-soft。
-     ⚠️ 左の板の「＋給与を追加」はオレンジのまま。全ページを緑へ移すときに合わせる。 */
+     ★2026-09-22 左の板（app-nav.css）・引き出し（search.js）・トップの主ボタンもオレンジから緑へ移した。
+       データの色としてのオレンジ（--pv-orange*・住宅手当・増えた差など）はそのまま残す。 */
   --pv-surface-soft:#f7f7f5;  --pv-border:#e7e7e3;
   --pv-text:#111111;          --pv-text-muted:#666666;   --pv-text-soft:#8a8a8a;
   --pv-accent:#0a8f79;        --pv-accent-dark:#067563;
   --pv-accent-soft:#e7f5f1;   --pv-accent-line:#bfe6db;
-  /* 暗い地の上に置く緑の字。ライトでは --pv-accent と同じ。 */
-  --pv-accent-ink:#0a8f79;
+  /* 地の上に置く小さな緑の字。白地に #0a8f79 は 4.0:1 で小さい字の基準（4.5:1）に届かないので
+     ライトは --pv-accent-dark と同じ #067563（5.6:1）。ダークは下で明るい緑に替える。 */
+  --pv-accent-ink:#067563;
   --pv-cta-dark:#111111;      --pv-cta-dark-hover:#222222;
   --pv-cta-dark-ink:#ffffff;
 }

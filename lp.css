@@ -88,6 +88,15 @@
     }
     .btn-primary:hover { background:#5eb3ff; transform:translateY(-1px); box-shadow:0 8px 30px rgba(61,155,255,.35); }
     .btn-primary:active { transform:translateY(0); }
+    /* ★上のバーの主ボタン（2026-09-22 オレンジ→緑）。.btn-primary の :hover は青の地を持つので、
+       :hover でも地を書き直す。白い字は #0a8f79 だと 4.0:1 で足りないので地は --pv-accent-dark（5.6:1）。 */
+    #main-nav a[data-pv-ev="nav_primary_cta"],
+    #main-nav a[data-pv-ev="nav_primary_cta"]:hover{ background:var(--pv-accent-dark,#067563); color:#fff; border-radius:999px; }
+    #main-nav a[data-pv-ev="nav_primary_cta"]{ box-shadow:0 1px 2px rgba(6,117,99,.22), 0 8px 20px -12px rgba(6,117,99,.7); }
+    #main-nav a[data-pv-ev="nav_primary_cta"]:hover{ transform:translateY(-1px);
+      box-shadow:0 2px 4px rgba(6,117,99,.24), 0 14px 28px -14px rgba(6,117,99,.8); }
+    #main-nav a[data-pv-ev="nav_primary_cta"]:active{ transform:translateY(0) scale(.97); }
+    #main-nav a[data-pv-ev="nav_primary_cta"]:focus-visible{ outline:2px solid var(--pv-accent,#0a8f79); outline-offset:3px; }
 
     .btn-ghost {
       display:inline-flex; align-items:center; gap:8px;
@@ -99,19 +108,7 @@
     }
     .btn-ghost:hover { background:rgba(255,255,255,0.12); border-color:rgba(255,255,255,.22); }
 
-    .btn-orange {
-      display:inline-flex; align-items:center; gap:8px;
-      padding:14px 32px; border-radius:999px;
-      background:linear-gradient(135deg,#f97316,#f5c842);
-      color:#000; font-size:1rem; font-weight:700;
-      border:none; cursor:pointer; text-decoration:none;
-      transition:transform .2s cubic-bezier(.16,1,.3,1), box-shadow .2s ease;
-    }
-    .btn-orange:hover { transform:scale(1.04); box-shadow:0 12px 40px rgba(249,115,22,.4); }
-    /* .btn-orange は inline-flex。文字を直接置くと1つの塊として折れるので、
-       390px で「全ての給与デー／タを見る」のように語の途中で切れた（実測）。
-       かたまりは必ず .pv-cta-label で1枚に包んでから中に入れる。
-       包まずに並べると2つの flex 項目になり、横並びのまま潰れる。 */
+    /* .btn-orange は 2026-09-22 にトップから無くなったので定義も消した（他のページは自前の定義を持つ）。 */
 
     .fade-up {
       opacity:0; transform:translateY(24px);
@@ -142,11 +139,11 @@
          縦横比を先に教えておけば、読む前から正しい幅を空けられる。
          228x176 は assets/logo.png の実寸。⚠️ ロゴを差し替えたらここも直す。 */
       aspect-ratio: 228 / 176;
-      filter: brightness(1.15) drop-shadow(0 0 8px rgba(249,115,22,.5));
+      filter: brightness(1.15) drop-shadow(0 0 8px rgba(10,143,121,.42));
       transition: filter .3s ease;
     }
     .logo-img:hover {
-      filter: brightness(1.3) drop-shadow(0 0 14px rgba(249,115,22,.7));
+      filter: brightness(1.3) drop-shadow(0 0 14px rgba(10,143,121,.6));
     }
 
     /* ── THEME TOGGLE BUTTON ─────────────────────────────────────────── */
@@ -229,8 +226,8 @@
     /* 見出し */
     .pv-eyebrow{ display:inline-flex; align-items:center; gap:7px;
       font-size:.68rem; font-weight:800; letter-spacing:.14em; text-transform:uppercase;
-      color:var(--pv-orange-ink); background:var(--pv-orange-soft);
-      border:1px solid rgba(249,115,22,.22); border-radius:999px;
+      color:var(--pv-accent-ink); background:var(--pv-accent-soft);
+      border:1px solid var(--pv-accent-line); border-radius:999px;
       padding:5px 12px; margin-bottom:var(--pv-s-2); }
     /* 眉ラベルの色違い。そのセクションが扱うデータの種類に合わせる。 */
     .pv-eyebrow--green{ color:var(--pv-green-ink); background:var(--pv-green-soft);
@@ -256,9 +253,9 @@
                  border-color .2s ease; }
     a.pv-card:hover, .pv-card--hover:hover{
       transform:translateY(-3px); box-shadow:var(--pv-shadow-lift);
-      border-color:rgba(249,115,22,.34); }
+      border-color:var(--pv-accent-line); }
     a.pv-card:focus-visible, .pv-card--hover:focus-visible{
-      outline:2px solid var(--pv-orange); outline-offset:3px; }
+      outline:2px solid var(--pv-accent); outline-offset:3px; }
     a.pv-card:active{ transform:translateY(-1px); }
 
     .pv-grid{ display:grid; gap:var(--pv-s-2); }
@@ -276,16 +273,22 @@
       text-decoration:none; cursor:pointer; border:1px solid transparent;
       transition:transform .3s var(--pv-ease), box-shadow .3s var(--pv-ease),
                  background-color .2s ease, border-color .2s ease; }
-    .pv-btn--primary{ background:var(--pv-orange); color:#fff;
-      box-shadow:0 1px 2px rgba(194,65,12,.22), 0 10px 24px -12px rgba(249,115,22,.62); }
-    .pv-btn--primary:hover{ background:#ea6a0c; transform:translateY(-2px);
-      box-shadow:0 2px 4px rgba(194,65,12,.26), 0 18px 34px -14px rgba(249,115,22,.7); }
+    /* 2026-09-22 オレンジ→緑。白い字を置くので地は --pv-accent-dark（#0a8f79 だと 4.0:1 で足りない）。 */
+    .pv-btn--primary{ background:var(--pv-accent-dark); color:#fff;
+      box-shadow:0 1px 2px rgba(6,117,99,.24), 0 10px 24px -12px rgba(6,117,99,.62); }
+    .pv-btn--primary:hover{ transform:translateY(-2px);
+      box-shadow:0 2px 4px rgba(6,117,99,.26), 0 18px 34px -14px rgba(6,117,99,.72); }
     .pv-btn--primary:active{ transform:translateY(0); }
     .pv-btn--ghost{ background:var(--pv-surface); color:var(--pv-ink);
       border-color:var(--pv-line); }
-    .pv-btn--ghost:hover{ border-color:rgba(249,115,22,.45);
-      background:var(--pv-orange-soft); transform:translateY(-2px); }
-    .pv-btn:focus-visible{ outline:2px solid var(--pv-orange); outline-offset:3px; }
+    .pv-btn--ghost:hover{ border-color:var(--pv-accent-line);
+      background:var(--pv-accent-soft); transform:translateY(-2px); }
+    .pv-btn--ghost:active{ transform:translateY(0); }
+    .pv-btn:focus-visible{ outline:2px solid var(--pv-accent); outline-offset:3px; }
+    /* 最後の案内の2本目は黒（ヒーローの主ボタンと同じ色）。 */
+    #final-cta .pv-btn--ghost{ background:var(--pv-cta-dark); color:var(--pv-cta-dark-ink); border-color:transparent;
+      box-shadow:0 1px 2px rgba(17,17,17,.16), 0 12px 26px -14px rgba(6,117,99,.55); }
+    #final-cta .pv-btn--ghost:hover{ background:var(--pv-cta-dark-hover); border-color:transparent; }
     .pv-cta-row{ display:flex; flex-wrap:wrap; gap:12px; }
 
     /* 口コミカード */
@@ -735,6 +738,11 @@
     #lp-explore .lp-ex-head{ display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap;
       column-gap:16px; row-gap:0; margin-bottom:6px; }
     #lp-explore .lvl-scroll{ margin-top:8px; }
+    /* 「＋ 会社を追加」は図の中で唯一の金（salary-leveling.js）。トップの中だけ緑にする。図そのものは変えない。 */
+    #lp-explore .lvl-add{ background:var(--pv-accent-soft); border-color:var(--pv-accent-line); color:var(--pv-accent-ink); }
+    #lp-explore .lvl-add:hover{ background:var(--pv-accent-soft); border-color:var(--pv-accent); }
+    #lp-explore .lvl-add:active{ transform:scale(.97); }
+    #lp-explore .lvl-add:focus-visible{ outline:2px solid var(--pv-accent); outline-offset:2px; }
 
     /* 見本カード4枚 */
     /* 同じ行の2枚は同じ高さ（grid の既定の stretch）。行どうしは揃えない（1fr だと2段目が1段目の高さまで空く）。 */
@@ -836,6 +844,7 @@
       font-size:12px; font-weight:700; letter-spacing:.24em; color:var(--pv-text-soft); }
 
     /* FAQ の下のボタン2本（緑と白）。FAQ 本文と JSON-LD は触らない。 */
+    #sec-faq .section-badge{ background:var(--pv-accent-soft); border-color:var(--pv-accent-line); color:var(--pv-accent-ink); }
     #sec-faq .lp-faq-cta{ display:flex; flex-wrap:wrap; justify-content:center; gap:12px; margin-top:32px; }
     #sec-faq .lp-btn{ display:inline-flex; align-items:center; justify-content:center; gap:10px; min-height:52px; padding:0 24px;
       border-radius:999px; font-size:15.5px; font-weight:600; line-height:1.25; text-align:center; text-decoration:none;
@@ -988,11 +997,11 @@
       #pv-mcta a{ display:flex; align-items:center; justify-content:center; gap:8px;
         height:48px; border-radius:12px; text-decoration:none;
         font-size:.92rem; font-weight:800; letter-spacing:.01em; color:#fff;
-        background:var(--pv-orange);
-        box-shadow:0 1px 2px rgba(194,65,12,.22), 0 10px 22px -12px rgba(249,115,22,.65);
-        transition:transform .3s var(--pv-ease), background-color .2s ease; }
-      #pv-mcta a:active{ transform:scale(.985); background:#ea6a0c; }
-      #pv-mcta a:focus-visible{ outline:2px solid var(--pv-orange); outline-offset:3px; }
+        background:var(--pv-accent-dark);
+        box-shadow:0 1px 2px rgba(6,117,99,.24), 0 10px 22px -12px rgba(6,117,99,.65);
+        transition:transform .3s var(--pv-ease); }
+      #pv-mcta a:active{ transform:scale(.985); }
+      #pv-mcta a:focus-visible{ outline:2px solid var(--pv-accent); outline-offset:3px; }
     }
     @media(prefers-reduced-motion:reduce){ #pv-mcta{ transition:none } }
 

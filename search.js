@@ -446,13 +446,22 @@ var PV_SEARCH_L10N = {
       '[data-theme=light] .pv-nd-link{color:rgba(15,23,42,.75);border-bottom-color:rgba(0,0,0,.06)}',
       '.pv-nd-link:hover{background:rgba(255,255,255,.05);color:#fff}',
       '[data-theme=light] .pv-nd-link:hover{background:rgba(0,0,0,.04);color:#0f172a}',
-      '.pv-nd-login{display:block;margin:16px 20px;padding:13px;border-radius:10px;text-align:center;font-size:.9rem;font-weight:700;text-decoration:none;background:linear-gradient(135deg,rgba(249,115,22,.1),rgba(245,200,66,.1));border:1px solid rgba(245,200,66,.28);color:#f5c842;transition:background .2s}',
-      '[data-theme=light] .pv-nd-login{color:#a07200;border-color:rgba(160,114,0,.28);background:rgba(160,114,0,.07)}',
-      '.pv-nd-login:hover{background:linear-gradient(135deg,rgba(249,115,22,.2),rgba(245,200,66,.2))}',
+      /* 2026-09-22 金→オレンジから緑へ（トップの Marit 化に合わせて、全ページ共通の引き出しも緑にそろえる）。 */
+      '.pv-nd-login{display:block;margin:16px 20px;padding:13px;border-radius:10px;text-align:center;font-size:.9rem;font-weight:700;text-decoration:none;background:rgba(43,181,154,.12);border:1px solid rgba(43,181,154,.32);color:#2bb59a;transition:background .2s,transform .15s}',
+      '[data-theme=light] .pv-nd-login{color:var(--pv-accent-ink,#067563);border-color:var(--pv-accent-line,#bfe6db);background:var(--pv-accent-soft,#e7f5f1)}',
+      '.pv-nd-login:hover{background:rgba(43,181,154,.2)}',
+      '[data-theme=light] .pv-nd-login:hover{background:#d8efe8}',
+      '.pv-nd-login:active{transform:scale(.98)}',
+      '.pv-nd-login:focus-visible{outline:2px solid #2bb59a;outline-offset:2px}',
+      '[data-theme=light] .pv-nd-login:focus-visible{outline-color:var(--pv-accent,#0a8f79)}',
       '.pv-nd-sep{height:1px;margin:8px 20px;background:rgba(255,255,255,.09)}',
       '[data-theme=light] .pv-nd-sep{background:rgba(0,0,0,.09)}',
-      '.pv-nd-cta{display:block;margin:16px 20px 4px;padding:13px;border-radius:10px;text-align:center;font-size:.9rem;font-weight:700;text-decoration:none;background:linear-gradient(135deg,#f5c842,#f97316);color:#000;transition:opacity .2s}',
-      '.pv-nd-cta:hover{opacity:.88}',
+      /* 白い字を #0a8f79 に置くと 4.0:1 で小さい字の基準に届かないので、地は --pv-accent-dark（5.6:1）。 */
+      '.pv-nd-cta{display:block;margin:16px 20px 4px;padding:13px;border-radius:10px;text-align:center;font-size:.9rem;font-weight:700;text-decoration:none;background:var(--pv-accent-dark,#067563);color:#fff;box-shadow:0 1px 2px rgba(6,117,99,.22),0 8px 20px -12px rgba(6,117,99,.7);transition:transform .2s cubic-bezier(.34,1.56,.64,1)}',
+      '.pv-nd-cta:hover{transform:translateY(-1px);box-shadow:0 2px 4px rgba(6,117,99,.24),0 14px 28px -14px rgba(6,117,99,.8)}',
+      '.pv-nd-cta:active{transform:scale(.98)}',
+      '.pv-nd-cta:focus-visible{outline:2px solid #2bb59a;outline-offset:3px}',
+      '[data-theme=light] .pv-nd-cta:focus-visible{outline-color:var(--pv-accent,#0a8f79)}',
       /* ── ヘッダーが入らないときに畳む（class は下の fit() が付ける）──────
          幅が足りないとき、いままでは文字のほうが2行に折れて逃げ、ロゴに重なり、
          英語版は画面の外へ出ていた。折らせない代わりに、入らないぶんを ≡ へ移す。

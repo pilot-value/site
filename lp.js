@@ -256,7 +256,7 @@
       '</div>' +
       '<p class="pv-voice-body">' + esc(text) + '</p>' +
       '<div class="pv-voice-meta">' + esc(meta) +
-        (translated ? T.sep + '<span style="color:var(--pv-orange-ink)">' + esc(T.autoTr) + '</span>' : '') +
+        (translated ? T.sep + '<span style="color:var(--pv-accent-ink)">' + esc(T.autoTr) + '</span>' : '') +
       '</div>' +
     '</article>';
   }
