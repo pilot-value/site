@@ -161,15 +161,18 @@
        ★2026-09-23 に6行 → **4行**（電話を小さくして緑の面を 300px にした）。
          4行目は電話の切り口（緑の面の下端）で上から 20px だけ見える＝「まだ下に続く」。
          ⚠️ 本数を変えたら index.html / en/index.html の灰色の棒の行も同じ数にする。
-       on ＝ REAL PAY の節の白いカード（行を開いた面の見本）がどの行の内訳か。
-       next ＝ そのカードの下端（緑の面の切り口）に半分だけ見える「次の行」。どちらも rows の何番目か。
-       detail.parts は [区分, 割合%]。額は on の行の年収をそのまま使う（数字を2か所に持たない）。
+       rp.on ＝ REAL PAY の節の白いカード（行を開いた面の見本）がどの行の内訳か。
+       rp.next ＝ そのカードの下端（緑の面の切り口）に半分だけ見える「次の行」。
+       ⚠️ どちらも **marquee の何番目か**（rows の何番目か、ではない）。
+          2026-09-23 まで rows 経由で引いていて、rows を短くした瞬間に rows[next] が
+          undefined になり、REAL PAY の節を描く所で例外 → boot() の残り
+          （112 の電話・通貨の塗り直し・口コミ・下の固定バー）が全部止まる形だった。
+       detail.parts は [区分, 割合%]。額は rp.on の行の年収をそのまま使う（数字を2か所に持たない）。
        ★割合は帯の長さにだけ使い、数字としては出さない（REAL PAY の開いた面も％を出さない）。
        ★割合の合計は必ず 100。区分の色は lp.css の .lp-c-*（REAL PAY と同じ色）。 */
     hero: {
       rows: [0, 1, 2, 3],
-      on: 1,
-      next: 3,
+      rp: { on: 1, next: 3 },
       detail: { parts: [['base', 56], ['variable', 26], ['bonus', 18]] },
     },
   };
@@ -442,7 +445,9 @@
      ★割合は帯の長さにだけ使う（数字の％は出さない）。 */
   function fillRealPay() {
     var H = PV_DEMO.hero;
-    var on = PV_DEMO.marquee[H.rows[H.on]];
+    // ⚠️ marquee を直に引く（rows の長さに巻き込まれない）。無ければ何も描かずに戻る。
+    var on = PV_DEMO.marquee[H.rp.on];
+    if (!on) return;
     var jpy = on[1] * 10000;
     var amt = d.getElementById('lp-rp-amt');
     if (!amt) return;
@@ -463,7 +468,8 @@
         return '<li><i class="lp-c-' + p[0] + '"></i>' + esc(T.heroPart[p[0]]) + '</li>';
       }).join('');
     }
-    var nx = PV_DEMO.marquee[H.rows[H.next]];
+    var nx = PV_DEMO.marquee[H.rp.next];
+    if (!nx) return;
     var nm = d.getElementById('lp-rp-next-m');
     var na = d.getElementById('lp-rp-next-a');
     if (nm) nm.textContent = tw(nx[3]) + T.sep + nx[4] + T.sep + tw(nx[5]);
