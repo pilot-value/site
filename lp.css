@@ -354,8 +354,21 @@
       padding:calc(var(--pv-topbar,73px) + 64px) 0 72px; }
     #hero-section .hero-wrap{ max-width:1240px; margin:0 auto; padding:0 32px;
       display:grid; grid-template-columns:minmax(0,1fr); row-gap:56px; align-items:center; }
+    /* ★2026-09-23：流れる帯2本をヒーローの中に入れた。
+       広い幅＝上の段に「文章｜電話」、その下に帯を全幅で2本。見た目は前と同じ。
+       狭い幅（1100px 未満）＝1列の自動配置なので、**HTML の並びがそのまま縦の順**になる
+         （文章 → 年収の帯 → 口コミの帯 → 電話）。電話を後ろへ回したのは、
+         スマホで帯まで1画面（390×844）に入れるため ── 帯を電話の後ろに置いたままでは、
+         緑の面を 300px に縮めても 1,175px で 844 に届かなかった。 */
     @media (min-width:1100px){
-      #hero-section .hero-wrap{ grid-template-columns:minmax(0,.92fr) minmax(0,1fr); column-gap:64px; }
+      #hero-section .hero-wrap{ grid-template-columns:minmax(0,.92fr) minmax(0,1fr); column-gap:64px;
+        grid-template-areas:"copy shot" "strip strip"; }
+      #hero-section .hero-copy{ grid-area:copy; }
+      #hero-section .hero-shot{ grid-area:shot; }
+      #hero-section .hero-strip{ grid-area:strip; }
+    }
+    @media (max-width:639px){
+      #hero-section .hero-strip{ margin:0 -20px; }   /* 端まで流す（.hero-wrap の padding を打ち消す） */
     }
 
     /* 見出し。★日英とも英語（HTML 側で lang="en"）。書体は足さない（Inter 700）。 */
@@ -926,10 +939,11 @@
       #sec-faq .lp-btn, #sec-faq .lp-btn svg{ transition:none; }
     }
 
-    /* ── ヒーローの直下：流れる給与カード（2026-09-22 にヒーローの外へ出した）──
-       Marit のロゴの帯の位置。中身と「押したら会社ページへ」（d1331ce）は今のまま。 */
-    .hero-strip{ position:relative; z-index:1; background:var(--pv-bg); padding:4px 32px 56px; }
-    @media(max-width:639px){ .hero-strip{ padding:0 0 44px; } }
+    /* ── 流れる帯（年収・口コミ）の外側 ────────────────────────────────
+       Marit のロゴの帯の位置。中身と「押したら会社ページへ」（d1331ce）は今のまま。
+       ★2026-09-22 にヒーローの外へ出し、2026-09-23 にまた中へ入れた（1画面に収めるため）。
+         外側の余白は #hero-section の grid（row-gap）が持つ＝ここは位置決めだけ。 */
+    .hero-strip{ position:relative; z-index:1; }
 
     /* ── 流れる給与カード（Marit Health 型・ヒーローの直下の .hero-strip の中）──
        ★2026-09-22 にヒーローの外へ出し、白地に合わせて色だけ変えた（大きさ・間隔は今のまま）。

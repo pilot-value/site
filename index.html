@@ -295,6 +295,19 @@
       </div>
     </div>
 
+    <!-- ★PV_DEMO — 流れる給与カード。中身は lp.js の PV_DEMO.marquee が入れる。
+         中身は実在しないサンプル値。2026-08-11 のオーナー判断でこのまま公開する。
+         ★2026-09-23 にヒーローの中へ入れた（2026-09-22 はヒーローの直下に置いていた）。
+           狭い幅では **電話より前** に出る＝文章のすぐ下で帯が流れ、1画面（390×844）に収まる。
+           広い幅の見た目は前と同じ（2列の下に全幅で敷く。場所は lp.css の grid-template-areas）。
+         ⚠️ ここを <nav> にしない。素の `nav {}` が position:fixed を当ててヘッダーの位置へ飛ばし、
+            `[data-theme="light"] nav` が背景まで塗る（両方踏んだ）。 -->
+    <div class="hero-strip">
+      <div class="hero-mq" id="hero-mq" aria-label="パイロットが記録した給与">
+        <div class="hero-mq-track" id="hero-mq-track"></div>
+      </div>
+    </div>
+
     <!-- ★PV_DEMO — 右は REAL PAY の見本。行も右下のカードも lp.js の PV_DEMO が描く（全部サンプル）。
          ★金額は HTML に書かない（AI の読み手が見本を実データとして拾わないように）。
          灰色の棒だけの行を4本先に置き、同じ高さ（52px）の行に描き替える（ガタつかない）。
@@ -320,16 +333,6 @@
   </div>
 </section>
 
-<!-- ★PV_DEMO — 流れる給与カード。中身は lp.js の PV_DEMO.marquee が入れる。
-     中身は実在しないサンプル値。2026-08-11 のオーナー判断でこのまま公開する。
-     ★2026-09-22 にヒーローの中から直下へ出した（Marit のロゴの帯の位置）。中身と飛び先は今のまま。
-     ⚠️ ここを <nav> にしない。素の `nav {}` が position:fixed を当ててヘッダーの位置へ飛ばし、
-        `[data-theme="light"] nav` が背景まで塗る（両方踏んだ）。 -->
-<div class="hero-strip">
-  <div class="hero-mq" id="hero-mq" aria-label="パイロットが記録した給与">
-    <div class="hero-mq-track" id="hero-mq-track"></div>
-  </div>
-</div>
 
 <!-- ════════════════════════════════════
      ★ #lp-realpay — REAL PAY の節（2026-09-22・Marit のスクショ2の形）
