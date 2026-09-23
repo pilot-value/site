@@ -939,24 +939,36 @@
     .hero-mq:hover .hero-mq-track,
     .hero-mq:focus-within .hero-mq-track{ animation-play-state:paused; }
     @keyframes hero-mq{ from{ transform:translate3d(0,0,0) } to{ transform:translate3d(-50%,0,0) } }
+    /* ★2026-09-23 オーナー指示「年収のカードは今は無地だからかっこいい緑みたいにして」。
+       ⚠️ 地は --pv-accent-dark（#067563）の単色。上の .lp-panel のグラデをここへ写さない ──
+          あちらの明るい側 --pv-accent（#0a8f79）は白い字で約 4.0:1 しか出ず、
+          この帯の字（最小 .62rem ≒ 10px）の基準 4.5:1 に届かない。
+       ⚠️ 白のハイライトは 8% まで。16% にすると重なった所で白字が 4.1:1 に落ちる。
+       ⚠️ 大きさ・padding・font-size は1文字も変えない（.hero-mq の min-height:123px は
+          この寸法で測った値。変えるなら上のコメントのとおり測り直す）。 */
     .hero-mq-c{ flex:0 0 auto; width:200px; text-align:left; text-decoration:none;
       display:flex; flex-direction:column; gap:1px; padding:12px 14px 11px;
       border-radius:14px;
-      background:var(--pv-surface);
-      border:1px solid var(--pv-border);
-      box-shadow:0 1px 2px rgba(17,17,17,.04), 0 10px 22px -16px rgba(6,117,99,.30);
+      background:
+        radial-gradient(120% 90% at 100% 0%,rgba(255,255,255,.08),transparent 60%),
+        var(--pv-accent-dark);
+      border:1px solid rgba(255,255,255,.14);
+      box-shadow:0 2px 4px rgba(6,117,99,.18), 0 12px 26px -16px rgba(6,117,99,.45);
       transition:transform .3s var(--pv-ease); }
-    .hero-mq-c:hover{ border-color:var(--pv-accent-line); transform:translateY(-2px); }
+    .hero-mq-c:hover{ border-color:rgba(255,255,255,.34); transform:translateY(-2px); }
     .hero-mq-c:active{ transform:translateY(0) scale(.98); }
     .hero-mq-c:focus-visible{ outline:2px solid var(--pv-accent); outline-offset:3px; }
+    [data-theme="dark"] .hero-mq-c{ border-color:rgba(255,255,255,.12);
+      box-shadow:0 1px 2px rgba(0,0,0,.35), 0 12px 26px -16px rgba(0,0,0,.60); }
     /* ⚠️ 太さは 700 まで。Noto Sans JP は 400/500/700 しか読み込んでいない（「万」が偽の太字になる）。 */
+    /* 文字は全部白（#067563 の上）。⚠️ rgba(255,255,255,.80) まで薄めると 4.21:1 で基準割れ。 */
     .hero-mq-amt{ font-size:1.16rem; font-weight:700; letter-spacing:-.02em;
-      color:var(--pv-text); line-height:1.25; white-space:nowrap; }
+      color:#fff; line-height:1.25; white-space:nowrap; }
     .hero-mq-brk{ font-size:.6rem; font-weight:700; letter-spacing:.04em;
-      color:var(--pv-text-soft); margin-bottom:5px; }
-    .hero-mq-role{ font-size:.73rem; font-weight:700; color:var(--pv-text); }
-    .hero-mq-air{ font-size:.68rem; font-weight:600; color:var(--pv-text-muted); }
-    .hero-mq-meta{ font-size:.62rem; font-weight:500; color:var(--pv-text-soft); margin-top:3px; }
+      color:rgba(255,255,255,.88); margin-bottom:5px; }
+    .hero-mq-role{ font-size:.73rem; font-weight:700; color:#fff; }
+    .hero-mq-air{ font-size:.68rem; font-weight:600; color:rgba(255,255,255,.90); }
+    .hero-mq-meta{ font-size:.62rem; font-weight:500; color:rgba(255,255,255,.88); margin-top:3px; }
     /* 社名もベース名も長いものがある。折り返すとカードごとに高さが変わって帯が揃わないので
        1行に固定し、あふれたら … で切る。 */
     .hero-mq-role, .hero-mq-air, .hero-mq-meta{
