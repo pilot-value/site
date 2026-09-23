@@ -492,13 +492,22 @@
          緑の面を 500px → **ちょうど 300px** にする。電話は残して中身ごと小さくした。
            画面 = 30(上) + 38(バー) + 52 × 4行 = 276 ／ 電話 = 6 + 276 + 6 = 288
            緑の面 = 50(panel の上余白) + 288 − 38(電話の負の margin) = 300
-         ⚠️ 行は4本。HTML の灰色の棒も4本（index.html / en/index.html）。片方だけ直すと
-            描き替えの瞬間に高さが跳ねる＝CLS。
+       ★2026-09-23 追加指示「heroのケータイ画面 1.2倍 縦に大きくできる」── **縦だけ 1.2 倍**。
+         横幅（268px）は1文字も変えない＝画面の内幅 256px も、下のコンテナクエリの閾値も動かない。
+         伸ばし方は「行を1本足す＋上の余白を少し広げる」。**行の高さ 52px は変えない**
+         （1行の中身 38.1px で測った値。ここを伸ばすと灰色の棒と本物の行がずれて CLS）。
+           画面 = 36(上) + 38(バー) + 52 × 5行 = 334 ／ 電話 = 6 + 334 + 6 = **346**
+           346 ÷ 288 = **1.2014 倍**（狙いどおり）
+           緑の面 = 50 + 346 − 38 = **358**
+         切り口は前と同じ ── 見えるのは 346 − 38 = 308px で、上から 6+36+38 = 80 を引くと
+         228px ＝ 4行ぶん(208) + 5行目の上 20px。「まだ下に続く」の見え方は変わらない。
+         ⚠️ 行は5本。HTML の灰色の棒も5本（index.html / en/index.html）。片方だけ直すと
+            描き替えの瞬間に高さが跳ねる＝CLS。lp.js の PV_DEMO.hero.rows も5つ。
          ⚠️ 上の :is(#hero-section,#lp-airlines) と強さが同じなので、必ずその**後ろ**に置く。
             112 AIRLINES の電話（6行・大きいまま）はここで触らない。 */
     #hero-section .hero-panel{ padding:50px 32px 0; }
     #hero-section .lp-phone{ max-width:268px; margin:0 auto -38px; padding:6px; border-radius:36px; }
-    #hero-section .lp-phone-scr{ padding:30px 0 0; border-radius:30px; }   /* 角丸は同心円（36 − 6） */
+    #hero-section .lp-phone-scr{ padding:36px 0 0; border-radius:30px; }   /* 角丸は同心円（36 − 6） */
     #hero-section .lp-phone-pill{ top:10px; width:52px; height:16px; margin-left:-26px; }
     #hero-section .hero-shot:hover .lp-phone{ transform:translateY(-6px); }
     #hero-section .hero-shot:active .lp-phone{ transform:translateY(-2px) scale(.995); }
@@ -517,6 +526,7 @@
     /* 1行＝2段。上の段：ロゴ・社名・年収／下の段：職位・機種・経験。
        ★行の高さは固定（52px）。灰色の棒の行と本物の行が同じ高さ＝描き替えてもガタつかない。
          中身は 19.5 + 3 + 15.6 = 38.1px なので 52 に収まる（2026-09-23 に 64 から詰めた）。
+       ⚠️ 電話を縦 1.2 倍にしたときも、ここは 52 のまま**行を1本増やした**（上のコメント参照）。
        ★どの子がどこへ行くかはクラスで決める（HTML の並びに頼らない）。 */
     #hero-section .hero-win-row{ display:grid; height:52px; padding:0 14px;
       grid-template-columns:30px minmax(0,1fr) auto; grid-template-areas:"logo an amt" "logo meta meta";
@@ -557,8 +567,9 @@
     }
 
     /* 狭い幅：1列。★2026-09-23 から広い幅と同じ 268px の電話・同じ切り方（-38px）にする。
-       前は 300px の電話を -160px で深く切っていた（6行を縦に伸ばさないため）。4行なら要らない。
-       → 狭い幅の緑の面 = 32 + 288 − 38 = 282px。 */
+       前は 300px の電話を -160px で深く切っていた（6行を縦に伸ばさないため）。5行なら要らない。
+       → 狭い幅の緑の面 = 32 + 346 − 38 = 340px（電話を縦 1.2 倍にする前は 282px）。
+       ⚠️ スマホでは電話は帯2本の**後ろ**にある＝ここが伸びても帯の位置は動かない。 */
     @media (max-width:767px){
       #hero-section .hero-panel{ padding:32px 20px 0; border-radius:22px; }
       #hero-section .hero-shot{ border-radius:22px; }
@@ -969,9 +980,13 @@
       -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 7%,#000 93%,transparent 100%);
               mask-image:linear-gradient(90deg,transparent 0,#000 7%,#000 93%,transparent 100%); }
     /* トラックにはカード配列を2周ぶん入れる。-50% まで動かすと継ぎ目なしでループする。 */
-    /* 速度は 52s → 74s（速さを 0.7 倍。1周の時間は 52 ÷ 0.7 で逆に伸びる）。 */
+    /* 速度は 52s → 74s（速さを 0.7 倍）→ ★2026-09-23 オーナー指示「流れるの早すぎ。
+       いまの速さの 0.5 倍でいい」で 74s → **148s**（速さが半分なら1周の時間は倍）。
+       ⚠️ 秒数を変えたら lp.js の口コミの帯の速さ（20px/s）も同じ割合で直す。
+          あちらは件数で1周の長さが変わるので、CSS に秒を書けず px/s で持っている。
+          いまの対応：年収の帯 14枚 × 210px ÷ 148s ≒ **20px/s** ＝ 2本とも同じ速さ。 */
     .hero-mq-track{ display:flex; gap:10px; width:max-content;
-      animation:hero-mq 74s linear infinite; will-change:transform; }
+      animation:hero-mq 148s linear infinite; will-change:transform; }
     .hero-mq:hover .hero-mq-track,
     .hero-mq:focus-within .hero-mq-track{ animation-play-state:paused; }
     @keyframes hero-mq{ from{ transform:translate3d(0,0,0) } to{ transform:translate3d(-50%,0,0) } }
@@ -1011,29 +1026,56 @@
       white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
     /* ── 口コミの帯（★2026-09-23 オーナー指示「口コミも同じようなカードで下に逆回りで流れるように」）──
-       カードは年収と同じ .hero-mq-c に .hero-rv-c を重ねる＝地・罫・影・当たり判定は1か所のまま。
+       カードは年収と同じ .hero-mq-c に .hero-rv-c を重ねる＝寸法・当たり判定は1か所のまま。
        ★中身は本物の投稿（lp.js が pv_review_voices を1回だけ叩き、下の #pilot-voices と分け合う）。
        ★逆回りは animation-direction の1行だけ。@keyframes をもう1つ作らない。
-       ★速さは年収の帯と同じ 40px/s。件数で1周の長さが変わるので、秒数は lp.js が実測して入れる
-         （CSS に秒を書くと、投稿が増えた日から速さが変わる）。 */
+       ★速さは年収の帯と同じ 20px/s。件数で1周の長さが変わるので、秒数は lp.js が実測して入れる
+         （CSS に秒を書くと、投稿が増えた日から速さが変わる）。
+
+       ★2026-09-23 追加指示「カードが全部緑では逆に見づらいから、工夫して。見やすいように。」──
+         **口コミのカードだけ白地に戻す**（年収のカードは緑のまま）。理由は2つ。
+           1) 上が緑＝数字、下が白＝言葉。帯2本が一目で別物と分かる。
+           2) 3行の文章は白地のほうが読める。#fff on #067563 は 5.63:1 だが、
+              白地の --pv-ink は **17.85:1**（ライト）／ダークでも 14.68:1（実測）。
+         ★地・罫・星・区分の札は、下の #pilot-voices のカードと**同じ道具を使い回す**
+           （.pv-card の値・.pv-voice-cat・.pv-voice-stars）。色を新しく発明しない。 */
     .hero-mq--rv .hero-mq-track{ animation-direction:reverse; }
-    .hero-mq--rv{ min-height:117px; }   /* 実測値。下のカードの padding / font-size を変えたら測り直す */
-    .hero-rv-c{ width:304px; }
+    .hero-mq--rv{ min-height:135px; }   /* 実測値。下のカードの padding / font-size を変えたら測り直す */
+    .hero-rv-c{ width:304px; gap:0;
+      background:var(--pv-surface);
+      border:1px solid var(--pv-line);
+      box-shadow:0 1px 2px rgba(15,23,42,.05), 0 12px 26px -18px rgba(15,23,42,.40); }
+    /* ⚠️ .hero-mq-c の hover は白の罫（緑地の上でしか見えない）。白地では緑に変える。 */
+    .hero-rv-c:hover{ border-color:var(--pv-accent); }
+    [data-theme="dark"] .hero-rv-c{ border-color:var(--pv-line);
+      box-shadow:0 1px 2px rgba(0,0,0,.35), 0 12px 26px -18px rgba(0,0,0,.60); }
+    /* 区分の札と星を1行に。★2026-09-23 追加指示「カードの口コミには星出して」。
+       ⚠️ 英語の区分名は長い（review-i18n.js の "Suggestions for management" で 26字）。
+          札のほうだけ縮ませて … で切る。星は縮ませない（4.5 が 4. になると数字が嘘になる）。 */
+    .hero-rv-head{ display:flex; align-items:center; justify-content:space-between;
+      gap:8px; margin-bottom:7px; }
+    .hero-rv-head .pv-voice-cat{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .hero-rv-head .pv-voice-stars{ flex:none; }
     /* 本文は3行ぶんで固定。⚠️ line-clamp は「3行を超えたら切る」だけで、短い投稿は1〜2行のまま
        ＝カードごとに高さが変わって帯が波打つ（英語は訳文が短く、実際に2行になっていた）。
        min-height で3行ぶんの場所を必ず取る（4.5em ＝ 1.5 行送り × 3行）。 */
-    .hero-rv-body{ font-size:.72rem; font-weight:500; line-height:1.5; color:#fff; min-height:4.5em;
+    .hero-rv-body{ font-size:.72rem; font-weight:500; line-height:1.5; color:var(--pv-ink); min-height:4.5em;
       display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; overflow:hidden; }
+    /* 社名・職位・在籍・投稿年月。長いので1行に固定して … で切る（年収の帯と同じ扱い）。 */
+    .hero-rv-meta{ font-size:.62rem; font-weight:500; color:var(--pv-ink-3); margin-top:7px;
+      padding-top:7px; border-top:1px solid var(--pv-line-soft);
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     /* 投稿がまだ無いときの1枚。display:none にしない（描いたあとに消えると下が跳ねる＝CLS）。 */
+    .hero-rv-t{ font-size:.72rem; font-weight:700; color:var(--pv-ink); margin-bottom:7px; }
     .hero-rv-c--empty{ cursor:default; }
-    .hero-rv-c--empty:hover{ transform:none; border-color:rgba(255,255,255,.14); }
+    .hero-rv-c--empty:hover{ transform:none; border-color:var(--pv-line); }
 
     @media(max-width:640px){
       .hero-mq{ min-height:117px; }   /* カードが小さくなるぶん帯も低い */
       .hero-mq-c{ width:178px; padding:10px 12px 9px; }
       .hero-mq-amt{ font-size:1.02rem; }
-      .hero-mq--rv{ min-height:113px; }
-      .hero-rv-c{ width:260px; }
+      .hero-mq--rv{ min-height:131px; }
+      .hero-rv-c{ width:268px; }
     }
     /* 動きを減らす設定のとき、帯は止める。代わりに手で横スクロールして読めるようにする。
        ⚠️ 上のほう（838行目）の同じ @media に書くと、帯の定義のほうが後になって負ける。

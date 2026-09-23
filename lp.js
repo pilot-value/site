@@ -158,8 +158,9 @@
       ['turkish-airlines',   1500, '基本給＋乗務手当',         '副操縦士', 'B737', '5〜10年',  'イスタンブール', 'ターキッシュ エアラインズ'],
     ],
     /* ヒーローの右の見本の画面（2026-09-22）。行は上の marquee の何番目を使うか。
-       ★2026-09-23 に6行 → **4行**（電話を小さくして緑の面を 300px にした）。
-         4行目は電話の切り口（緑の面の下端）で上から 20px だけ見える＝「まだ下に続く」。
+       ★2026-09-23 に6行 → 4行（電話を小さくして緑の面を 300px にした）→ 同じ日の追加指示
+         「ケータイ画面 1.2倍 縦に大きく」で **5行**（電話 288 → 346px・緑の面 300 → 358px）。
+         5行目は電話の切り口（緑の面の下端）で上から 20px だけ見える＝「まだ下に続く」。
          ⚠️ 本数を変えたら index.html / en/index.html の灰色の棒の行も同じ数にする。
        rp.on ＝ REAL PAY の節の白いカード（行を開いた面の見本）がどの行の内訳か。
        rp.next ＝ そのカードの下端（緑の面の切り口）に半分だけ見える「次の行」。
@@ -171,7 +172,7 @@
        ★割合は帯の長さにだけ使い、数字としては出さない（REAL PAY の開いた面も％を出さない）。
        ★割合の合計は必ず 100。区分の色は lp.css の .lp-c-*（REAL PAY と同じ色）。 */
     hero: {
-      rows: [0, 1, 2, 3],
+      rows: [0, 1, 2, 3, 4],
       rp: { on: 1, next: 3 },
       detail: { parts: [['base', 56], ['variable', 26], ['bonus', 18]] },
     },
@@ -342,15 +343,22 @@
      ★中身は本物の投稿。年収の帯（PV_DEMO のサンプル）とは出どころが違う。
      ★古い順に流す＝最初に目に入るカードが、下の #pilot-voices の4枚と別になる。
      ★逆回りは CSS（animation-direction:reverse）。ここではタイマーを持たない。 */
+  /* ★2026-09-23 追加指示「カードの口コミには星出して」── 下の #pilot-voices と**同じ star()**
+     を呼ぶ（星の形も「4.5 / 5」の読み上げも1か所。ここで書き写さない）。
+     ⚠️ 6項目とも空の投稿は avg が null。そのときは星を出さない（既定値の3で埋めない）。
+     ⚠️ stars() は <span>/<i>/<b> だけを返す＝<a> の中に入れてよい（<article> や <p> は入れない）。 */
   function rvCard(v, dup) {
     // 2周目は読み上げとタブ移動から外す（同じカードが2回読まれるのを防ぐ）
     var dupAttr = dup ? ' aria-hidden="true" tabindex="-1"' : '';
     /* 飛び先は口コミの一覧（community.html）で固定する。DB の社名の綴りが airlines/ に
        無いことがあり、会社ページへ送ると 404 になる（年収の帯は SSOT の slug なので送れる）。 */
     return '<a class="hero-mq-c hero-rv-c" href="community.html"' + dupAttr + ' data-pv-ev="hero_rv_card">' +
-      '<span class="hero-mq-brk">' + esc(v.cat) + '</span>' +
+      '<span class="hero-rv-head">' +
+        '<span class="pv-voice-cat">' + esc(v.cat) + '</span>' +
+        (v.avg == null ? '' : stars(v.avg)) +
+      '</span>' +
       '<span class="hero-rv-body">' + esc(v.text) + '</span>' +
-      '<span class="hero-mq-meta">' + esc(v.meta) + (v.translated ? T.sep + esc(T.autoTr) : '') + '</span>' +
+      '<span class="hero-rv-meta">' + esc(v.meta) + (v.translated ? T.sep + esc(T.autoTr) : '') + '</span>' +
     '</a>';
   }
 
@@ -366,7 +374,7 @@
       if (!vs.length) {
         track.style.animation = 'none';
         track.innerHTML = '<div class="hero-mq-c hero-rv-c hero-rv-c--empty">' +
-          '<span class="hero-mq-brk">' + esc(T.emptyT) + '</span>' +
+          '<span class="hero-rv-t">' + esc(T.emptyT) + '</span>' +
           '<span class="hero-rv-body">' + esc(T.emptyD) + '</span></div>';
         return;
       }
@@ -381,8 +389,10 @@
       for (i = 0; i < reps; i++) html += one(false);
       for (i = 0; i < reps; i++) html += one(true);   // 2周目（-50% まで動かすと継ぎ目なく戻る）
       track.innerHTML = html;
-      // 流れる速さは年収の帯と同じ 40px/s（あちらは14枚 × 210px ÷ 74s）。
-      if (pass > 0) track.style.animationDuration = Math.round(pass * reps / 40) + 's';
+      /* 流れる速さは年収の帯と同じ。★2026-09-23 オーナー指示「流れるの早すぎ。いまの速さの
+         0.5 倍でいい」で 40px/s → **20px/s**（あちらは14枚 × 210px ÷ 148s ≒ 20px/s）。
+         ⚠️ lp.css の .hero-mq-track の秒数を変えたら、この数字も同じ割合で直す。 */
+      if (pass > 0) track.style.animationDuration = Math.round(pass * reps / 20) + 's';
       evOnce('hero_reviews_filled', { count: vs.length });
     });
   }
