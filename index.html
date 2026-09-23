@@ -308,6 +308,17 @@
       </div>
     </div>
 
+    <!-- ★2026-09-23 オーナー指示「口コミも同じようなカードで下に逆回りで流れるようにして」。
+         ★中身は本物の投稿。取りに行くのは lp.js が1回だけで、下の #pilot-voices と分け合う
+           （pv_review_voices ＝ 新しい6件・1欄80字まで。db/reviews-gate.sql の「唯一の穴」）。
+           ⚠️ 帯は古い順に流す＝最初に目に入るカードが下の節と別になる。
+         ⚠️ 高さは lp.css の .hero-mq--rv の min-height が先に取ってある（カードは後から入る）。 -->
+    <div class="hero-strip hero-strip--rv" data-pv-view="hero_reviews_view">
+      <div class="hero-mq hero-mq--rv" id="hero-rv" aria-label="パイロットが書いた口コミ">
+        <div class="hero-mq-track" id="hero-rv-track"></div>
+      </div>
+    </div>
+
     <!-- ★PV_DEMO — 右は REAL PAY の見本。行も右下のカードも lp.js の PV_DEMO が描く（全部サンプル）。
          ★金額は HTML に書かない（AI の読み手が見本を実データとして拾わないように）。
          灰色の棒だけの行を4本先に置き、同じ高さ（52px）の行に描き替える（ガタつかない）。

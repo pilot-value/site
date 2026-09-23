@@ -273,44 +273,60 @@
       '<p class="pv-step-d" style="margin-top:8px">' + esc(T.emptyD) + '</p>';
   }
 
+  /* ★ reviews_v2 を直に読まない。本文の列は DB 側で anon から外してあり
+     （db/reviews-gate.sql）、トップの抜粋だけは pv_review_voices() が
+     **新しい6件・1欄あたり80字まで**に切って返す。
+     ここはオーナーが「今のまま開けておく」と決めた唯一の穴。
+     ⚠️ 件数も字数も画面側で広げない（決めているのはサーバの数字1つ）。
+        今までは30件ぶんの**全文**が誰にでも返っていたので、穴は今より小さい。
+     ★2026-09-23：ヒーローの流れる帯（fillReviewMq）と下の節（fillVoices）で**同じ1回**を
+       分け合う。ここで Promise を持っておく＝通信は今までと同じ1本のまま。 */
+  var VOICES_P = null;
+  function voices() {
+    if (!VOICES_P) VOICES_P = rest('rpc/pv_review_voices').then(function (rows) { return rows || []; });
+    return VOICES_P;
+  }
+
+  /* 1件を画面に出す形（区分・抜粋・社名/職位/在籍/投稿年月・星）に直す。出せない行は null。
+     ⚠️ 足切り（本文のある欄の最初の1つが、空白を除いて20字以上）は
+        db/reviews-gate.sql の pv_review_voices と同じ条件。片方だけ緩めない。 */
+  function voiceRow(r) {
+    var body = (w.PVReviewI18n && w.PVReviewI18n.pick) ? w.PVReviewI18n.pick(r) : null;
+    var cat, text, translated = false;
+    if (body && body.cats && body.cats.length) {
+      cat = body.cats[0].label;
+      text = body.cats[0].text;
+      translated = !!body.translated;
+    } else {
+      // review-i18n.js が無い場合のフォールバック（原文のいちばん長い欄）
+      var picked = null;
+      Object.keys(VOICE_LABEL).forEach(function (k) {
+        var v = r[k + '_comment'];
+        if (v && (!picked || v.length > picked.text.length)) picked = { label: VOICE_LABEL[k], text: v };
+      });
+      if (!picked) return null;
+      cat = picked.label; text = picked.text;
+    }
+    if (!text || text.replace(/\s/g, '').length < 20) return null;   // 空カードを出さない
+    // DB が持っているのは符号（ana / captain / 10-15）。そのまま出すと符号が画面に見えるので言葉に直す。
+    var meta = [r.airline ? airlineName(r.airline, r.airline) : '',
+                POS_LABEL[r.position] || r.position || '',
+                TENURE_LABEL[r.tenure_bucket] || r.tenure_bucket || '',
+                r.created_at ? r.created_at.slice(0, 7).replace('-', '.') : '']
+               .filter(Boolean).join(T.sep);
+    return { cat: cat, text: clip(text, 80), meta: meta, translated: translated, avg: avgScore(r) };   // §10：3〜4行で切る
+  }
+
   function fillVoices() {
     var grid = d.getElementById('voices-grid');
     if (!grid) return;
 
-    /* ★ reviews_v2 を直に読まない。本文の列は DB 側で anon から外してあり
-       （db/reviews-gate.sql）、トップの抜粋だけは pv_review_voices() が
-       **新しい4件・1欄あたり80字まで**に切って返す。
-       ここはオーナーが「今のまま開けておく」と決めた唯一の穴。
-       ⚠️ 件数も字数も画面側で広げない（決めているのはサーバの数字1つ）。
-          今までは30件ぶんの**全文**が誰にでも返っていたので、穴は今より小さい。 */
-    rest('rpc/pv_review_voices').then(function (rows) {
+    voices().then(function (rows) {
       var cards = [];
-      (rows || []).forEach(function (r) {
+      rows.forEach(function (r) {
         if (cards.length >= 4) return;   // §10：デスクトップ1行に収める（6件・2行だと縦に伸びる）
-        var body = (w.PVReviewI18n && w.PVReviewI18n.pick) ? w.PVReviewI18n.pick(r) : null;
-        var cat, text, translated = false;
-        if (body && body.cats && body.cats.length) {
-          cat = body.cats[0].label;
-          text = body.cats[0].text;
-          translated = !!body.translated;
-        } else {
-          // review-i18n.js が無い場合のフォールバック（原文のいちばん長い欄）
-          var picked = null;
-          Object.keys(VOICE_LABEL).forEach(function (k) {
-            var v = r[k + '_comment'];
-            if (v && (!picked || v.length > picked.text.length)) picked = { label: VOICE_LABEL[k], text: v };
-          });
-          if (!picked) return;
-          cat = picked.label; text = picked.text;
-        }
-        if (!text || text.replace(/\s/g, '').length < 20) return;   // 空カードを出さない
-        // DB が持っているのは符号（ana / captain / 10-15）。そのまま出すと符号が画面に見えるので言葉に直す。
-        var meta = [r.airline ? airlineName(r.airline, r.airline) : '',
-                    POS_LABEL[r.position] || r.position || '',
-                    TENURE_LABEL[r.tenure_bucket] || r.tenure_bucket || '',
-                    r.created_at ? r.created_at.slice(0, 7).replace('-', '.') : '']
-                   .filter(Boolean).join(T.sep);
-        cards.push(voiceCard(cat, clip(text, 80), meta, translated, avgScore(r)));   // §10：3〜4行で切る
+        var v = voiceRow(r);
+        if (v) cards.push(voiceCard(v.cat, v.text, v.meta, v.translated, v.avg));
       });
 
       if (!cards.length) { emptyVoices(grid); return; }
@@ -318,6 +334,56 @@
       grid.className = 'pv-grid ' + (cards.length <= 2 ? 'pv-grid-2' : cards.length === 3 ? 'pv-grid-3' : 'pv-grid-4');
       grid.innerHTML = cards.join('');
       evOnce('pilot_voices_filled', { count: cards.length });
+    });
+  }
+
+  /* ── ❾-2 ヒーローの口コミの帯（★2026-09-23 オーナー指示「口コミも同じようなカードで
+     下に逆回りで流れるようにして」）─────────────────────────────────
+     ★中身は本物の投稿。年収の帯（PV_DEMO のサンプル）とは出どころが違う。
+     ★古い順に流す＝最初に目に入るカードが、下の #pilot-voices の4枚と別になる。
+     ★逆回りは CSS（animation-direction:reverse）。ここではタイマーを持たない。 */
+  function rvCard(v, dup) {
+    // 2周目は読み上げとタブ移動から外す（同じカードが2回読まれるのを防ぐ）
+    var dupAttr = dup ? ' aria-hidden="true" tabindex="-1"' : '';
+    /* 飛び先は口コミの一覧（community.html）で固定する。DB の社名の綴りが airlines/ に
+       無いことがあり、会社ページへ送ると 404 になる（年収の帯は SSOT の slug なので送れる）。 */
+    return '<a class="hero-mq-c hero-rv-c" href="community.html"' + dupAttr + ' data-pv-ev="hero_rv_card">' +
+      '<span class="hero-mq-brk">' + esc(v.cat) + '</span>' +
+      '<span class="hero-rv-body">' + esc(v.text) + '</span>' +
+      '<span class="hero-mq-meta">' + esc(v.meta) + (v.translated ? T.sep + esc(T.autoTr) : '') + '</span>' +
+    '</a>';
+  }
+
+  function fillReviewMq() {
+    var mq = d.getElementById('hero-rv'), track = d.getElementById('hero-rv-track');
+    if (!mq || !track) return;
+    voices().then(function (rows) {
+      var vs = [];
+      rows.forEach(function (r) { var v = voiceRow(r); if (v) vs.push(v); });
+      vs.reverse();   // 古い順
+
+      // 投稿がまだ無いとき。空のまま畳むと下が跳ねるので、1枚だけ置いて止める。
+      if (!vs.length) {
+        track.style.animation = 'none';
+        track.innerHTML = '<div class="hero-mq-c hero-rv-c hero-rv-c--empty">' +
+          '<span class="hero-mq-brk">' + esc(T.emptyT) + '</span>' +
+          '<span class="hero-rv-body">' + esc(T.emptyD) + '</span></div>';
+        return;
+      }
+
+      var one = function (dup) { return vs.map(function (v) { return rvCard(v, dup); }).join(''); };
+      /* 1周ぶんが帯の幅に足りないと、流れている途中に何も無い所ができる。足りるまで並びを繰り返す。
+         （年収の帯はカードが14枚あって必ず足りるので、この処理を持っていない） */
+      track.innerHTML = one(false);
+      var pass = track.scrollWidth, reps = 1;
+      while (pass > 0 && pass * reps < mq.clientWidth && reps < 8) reps++;
+      var html = '', i;
+      for (i = 0; i < reps; i++) html += one(false);
+      for (i = 0; i < reps; i++) html += one(true);   // 2周目（-50% まで動かすと継ぎ目なく戻る）
+      track.innerHTML = html;
+      // 流れる速さは年収の帯と同じ 40px/s（あちらは14枚 × 210px ÷ 74s）。
+      if (pass > 0) track.style.animationDuration = Math.round(pass * reps / 40) + 's';
+      evOnce('hero_reviews_filled', { count: vs.length });
     });
   }
 
@@ -569,6 +635,7 @@
     // 「保存された通貨が非JPY」の初期表示でも同じ報せを出すので、戻ってきた人もこれ1本で拾える。
     w.addEventListener('pv-currency-change', repaintMarquee);
     fillVoices();
+    fillReviewMq();   // ヒーローの口コミの帯。取りに行くのは fillVoices と合わせて1回だけ。
     mobileCta();
     devProbe();
   }

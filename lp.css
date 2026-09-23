@@ -362,13 +362,18 @@
          緑の面を 300px に縮めても 1,175px で 844 に届かなかった。 */
     @media (min-width:1100px){
       #hero-section .hero-wrap{ grid-template-columns:minmax(0,.92fr) minmax(0,1fr); column-gap:64px;
-        grid-template-areas:"copy shot" "strip strip"; }
+        grid-template-areas:"copy shot" "strip strip" "rv rv"; }
       #hero-section .hero-copy{ grid-area:copy; }
       #hero-section .hero-shot{ grid-area:shot; }
       #hero-section .hero-strip{ grid-area:strip; }
+      #hero-section .hero-strip--rv{ grid-area:rv; }
     }
+    /* 帯2本のあいだだけは 10px（カード同士の隙間と同じ）＝上下で1つの塊に見せる。
+       ⚠️ grid の row-gap は消せないので、負の margin で詰める。row-gap を変えたらこの数字も直す。 */
+    #hero-section .hero-strip--rv{ margin-top:-46px; }   /* row-gap 56 − 46 = 10 */
     @media (max-width:639px){
       #hero-section .hero-strip{ margin:0 -20px; }   /* 端まで流す（.hero-wrap の padding を打ち消す） */
+      #hero-section .hero-strip--rv{ margin-top:-34px; }   /* row-gap 44 − 34 = 10 */
     }
 
     /* 見出し。★日英とも英語（HTML 側で lang="en"）。書体は足さない（Inter 700）。 */
@@ -1004,10 +1009,31 @@
        1行に固定し、あふれたら … で切る。 */
     .hero-mq-role, .hero-mq-air, .hero-mq-meta{
       white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+    /* ── 口コミの帯（★2026-09-23 オーナー指示「口コミも同じようなカードで下に逆回りで流れるように」）──
+       カードは年収と同じ .hero-mq-c に .hero-rv-c を重ねる＝地・罫・影・当たり判定は1か所のまま。
+       ★中身は本物の投稿（lp.js が pv_review_voices を1回だけ叩き、下の #pilot-voices と分け合う）。
+       ★逆回りは animation-direction の1行だけ。@keyframes をもう1つ作らない。
+       ★速さは年収の帯と同じ 40px/s。件数で1周の長さが変わるので、秒数は lp.js が実測して入れる
+         （CSS に秒を書くと、投稿が増えた日から速さが変わる）。 */
+    .hero-mq--rv .hero-mq-track{ animation-direction:reverse; }
+    .hero-mq--rv{ min-height:117px; }   /* 実測値。下のカードの padding / font-size を変えたら測り直す */
+    .hero-rv-c{ width:304px; }
+    /* 本文は3行ぶんで固定。⚠️ line-clamp は「3行を超えたら切る」だけで、短い投稿は1〜2行のまま
+       ＝カードごとに高さが変わって帯が波打つ（英語は訳文が短く、実際に2行になっていた）。
+       min-height で3行ぶんの場所を必ず取る（4.5em ＝ 1.5 行送り × 3行）。 */
+    .hero-rv-body{ font-size:.72rem; font-weight:500; line-height:1.5; color:#fff; min-height:4.5em;
+      display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; overflow:hidden; }
+    /* 投稿がまだ無いときの1枚。display:none にしない（描いたあとに消えると下が跳ねる＝CLS）。 */
+    .hero-rv-c--empty{ cursor:default; }
+    .hero-rv-c--empty:hover{ transform:none; border-color:rgba(255,255,255,.14); }
+
     @media(max-width:640px){
       .hero-mq{ min-height:117px; }   /* カードが小さくなるぶん帯も低い */
       .hero-mq-c{ width:178px; padding:10px 12px 9px; }
       .hero-mq-amt{ font-size:1.02rem; }
+      .hero-mq--rv{ min-height:113px; }
+      .hero-rv-c{ width:260px; }
     }
     /* 動きを減らす設定のとき、帯は止める。代わりに手で横スクロールして読めるようにする。
        ⚠️ 上のほう（838行目）の同じ @media に書くと、帯の定義のほうが後になって負ける。
