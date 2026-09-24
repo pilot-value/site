@@ -122,11 +122,12 @@ const DIGEST_CASES = [
     st: wk(['ana', 'ana', 'jal', 'cathay-pacific', 'emirates'], ['ana', 'qatar-airways']) },
   { k: 'dg-noname',   p: { name: null,          country: null },
     st: wk(['ana', 'ana', 'jal', 'cathay-pacific', 'emirates'], ['ana', 'qatar-airways']) },
-  /* ★静かな週。名前を出せる社が1つも無く、口コミは0件（その行ごと出さない）。 */
+  /* ★一番静かな週＝ちょうど送る下限の4件。名前を出せる社が1つも無く、
+     口コミは0件（その行ごと出さない）。3件以下はそもそも送らない。 */
   { k: 'dg-quiet',    p: { name: '高橋 蓮',     country: '日本' },
-    st: wk(['ana', 'jal', 'delta'], []) },
+    st: wk(['ana', 'jal', 'delta', 'united-airlines'], []) },
   { k: 'dg-quiet-en', p: { name: 'Alex Mercer', country: 'UAE' },
-    st: wk(['ana', 'jal', 'delta'], []) },
+    st: wk(['ana', 'jal', 'delta', 'united-airlines'], []) },
 ];
 
 const CASES = DIGEST ? DIGEST_CASES : RENEWAL ? RENEWAL_CASES : UPDATE ? UPDATE_CASES : REALPAY ? REALPAY_CASES : FOUNDING ? FOUNDING_CASES : ANNOUNCE ? ANNOUNCE_CASES : REMIND_CASES;

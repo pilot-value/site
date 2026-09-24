@@ -1389,9 +1389,18 @@ export function buildRenewal(p, o = {}) {
    ── ★送り分けは renewal と同じ（日本の会員は日本語・それ以外は英語＋日本語）
    ════════════════════════════════════════════════════════════════ */
 
-export const DIGEST_MIN = 3;        // 週の合計がこれ未満なら送らない
+/* ★3件以下の週は送らない（2026-09-24 オーナー指示）。合計が4件以上でだけ出す。 */
+export const DIGEST_MIN = 4;        // 週の合計がこれ未満なら送らない
 export const DIGEST_NAME_MIN = 2;   // 会社名を出すのは週にこれ以上入った社だけ
 export const DIGEST_NAME_MAX = 6;   // 並べる社の数の上限（長い一覧にしない）
+
+/* ★見本の週（`send.mjs digest --sample`）。
+   本物の投稿は1件も使わない ―― 見本に実在の週を出すと、絵を渡した相手に
+   「その週にどの会社から何件出たか」が渡る。件数は適当な典型値。 */
+export const DIGEST_SAMPLE = {
+  pay: ['ana', 'ana', 'ana', 'jal', 'emirates', 'emirates', 'qatar-airways', 'delta'],
+  reviews: ['ana', 'cathay-pacific', 'cathay-pacific', 'singapore-airlines'],
+};
 
 /* ★航空会社の表示名は pv-airlines.json（gen-airline-codes.mjs の生成物）が正。
      ここに名前を書き写さない。表に無いコードは名前を出さない

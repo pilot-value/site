@@ -1229,7 +1229,8 @@ const DGALL = Object.entries(DG).map(([k, x]) => [k, buildDigest(x, DGO)]);
   ok(!slugs.includes('jal') && !slugs.includes('emirates'),
      'digest: ★1件しか入らなかった会社は候補に入れない（その1人が絞られる）', slugs.join(','));
   ok(DIGEST_NAME_MIN >= 2, `digest: 名前を出す下限が2件以上（${DIGEST_NAME_MIN}）`);
-  ok(DIGEST_MIN >= 2, `digest: 送らない週の下限がある（${DIGEST_MIN}）`);
+  /* ★3件以下は送らない（2026-09-24 オーナー指示）。下げるとオーナーの指示を破る。 */
+  ok(DIGEST_MIN === 4, `digest: 3件以下の週は送らない（下限 ${DIGEST_MIN}件＝4件以上でだけ出す）`);
   const many = digestStats({ pay: Array.from({ length: 40 }, (_, i) => ({ airline: `a${i % 20}` })).concat(
     Array.from({ length: 40 }, (_, i) => ({ airline: `a${i % 20}` }))) });
   ok(many.airlines.length <= DIGEST_NAME_MAX, `digest: 並べる社の数に上限がある（${many.airlines.length} ≦ ${DIGEST_NAME_MAX}）`);
@@ -1312,13 +1313,14 @@ for (const [k, b] of DGALL) {
 
 /* ★0件の行は出さない（「新しい口コミ 0件」と書かれた1通を送らない）。 */
 {
-  const quiet = digestStats({ pay: [{ airline: 'ana' }, { airline: 'jal' }, { airline: 'delta' }], reviews: [] });
+  const quiet = digestStats({ pay: [{ airline: 'ana' }, { airline: 'jal' }, { airline: 'delta' },
+                                    { airline: 'united-airlines' }], reviews: [] });
   const b = buildDigest(DG.overseas, { ...O, stats: quiet });
   ok(!/0件|\b0 review/.test(b.text), 'digest: 0件の行を書かない', b.text.slice(0, 120));
   ok(!/1 reviews|1 pay reports/.test(b.text + b.subject), 'digest: 英語の単複が正しい（1 review）');
   ok(!/複数の投稿があった|more than one new entry/.test(b.text),
      'digest: 名前を出せる社が無い週は、その見出しごと出さない');
-  ok(b.subject.includes('3'), 'digest: 静かな週でも件数は出る', b.subject);
+  ok(b.subject.includes('4'), 'digest: 一番静かな週（下限ちょうど）でも件数は出る', b.subject);
 }
 
 /* ★送信側の門。ここが外れると「1件の週に1通」や「全員へ毎週」が起きる。 */

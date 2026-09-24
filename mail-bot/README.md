@@ -379,6 +379,7 @@ node mail-bot/send.mjs renewal --send                # ④ 本番
 node mail-bot/send.mjs digest                        # ① 送らない。何件・何人に届くかが出る
 node shot-remind.mjs --digest                        # ② 本文を絵で見る（5通り）
 node mail-bot/send.mjs digest --to=info@pilot-value.com --send   # ③ ★自分の受信箱で現物を見る
+node mail-bot/send.mjs digest --to=info@pilot-value.com --sample --send   #    見本の週で見る（本物の投稿を使わない）
 node mail-bot/send.mjs digest --send                 # ④ 本番
 ```
 
@@ -393,11 +394,14 @@ node mail-bot/send.mjs digest --send                 # ④ 本番
   メールに抜粋を載せると**メールがサイトの錠前を迂回する**
   （作り直す前の `digest` は140字を載せていた。一度も送っていないので実害は無い）。
   金額・職位・機材も載せない。数えるのは件数だけ。
-- **★週の合計が3件未満なら送らない**（`DIGEST_MIN`）。
+- **★週の合計が3件以下なら送らない**（`DIGEST_MIN = 4`。2026-09-24 オーナー指示）。
   このとき**基準の時刻を進めない**ので、その週のぶんは翌週のまとめに合流する。
   1通も出せなかった週も同じ（`.send-state.json` の `lastDigestAt` は成功した回だけ動く）。
 - **送り分けは `renewal` と同じ。** 日本の会員は日本語だけ・それ以外は英語と日本語を1通に。
   行き先は REAL PAY（`actual-pay.html` / `en/actual-pay.html`）。
+- **`--sample` は自分宛のときだけ。** 見本の週（`DIGEST_SAMPLE`）で本文を出す。
+  ★本物の投稿は1件も使わない ―― 見本に実在の週を出すと、絵を渡した相手に
+  「その週にどの会社から何件出たか」が渡る。会員へ見本を送ろうとすると止まる。
 - 見るもの ―― `node db/test-announce.mjs` の⑧（上の★を全部固定してある）。
 
 ---

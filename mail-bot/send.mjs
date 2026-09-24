@@ -64,6 +64,7 @@ const ADMIN_EMAIL  = process.env.ADMIN_EMAIL || 'info@pilot-value.com';
 const args     = process.argv.slice(2);
 const MODE     = args.find(a => !a.startsWith('--'));
 const BACKFILL = args.includes('--backfill');
+const SAMPLE_WEEK = args.includes('--sample');   // digest の見本（自分宛だけ・本物の投稿を使わない）
 const sinceArg = (args.find(a => a.startsWith('--since=')) || '').split('=')[1];
 const onlyArg  = (args.find(a => a.startsWith('--only=')) || '').split('=')[1];
 const langArg  = (args.find(a => a.startsWith('--lang=')) || '').split('=')[1];  // ja|en|both
@@ -204,7 +205,7 @@ async function runWelcome() {
       サイトが鍵の無い人に見せるのは先頭40字なので、**メールが錠前を迂回**していた。
       一度も送っていないので実害は無いが、抜粋を戻さないこと。               */
 async function runDigest() {
-  const { buildDigest, digestStats, DIGEST_MIN, langModeOf } = await import('./announce-mail.mjs');
+  const { buildDigest, digestStats, DIGEST_MIN, DIGEST_SAMPLE, langModeOf } = await import('./announce-mail.mjs');
 
   const since = BACKFILL ? new Date(Date.now() - 7 * 864e5).toISOString()
               : (sinceArg || state.lastDigestAt || new Date(Date.now() - 7 * 864e5).toISOString());
@@ -214,9 +215,13 @@ async function runDigest() {
     sbSelect('pay_reports', 'airline,created_at', [['created_at', 'gt.' + since]]),
     sbSelect('reviews_v2',  'airline,created_at', [['created_at', 'gt.' + since]]),
   ]);
-  const stats = digestStats({ pay, reviews });
+  const stats = SAMPLE_WEEK
+    ? digestStats({ pay: DIGEST_SAMPLE.pay.map(a => ({ airline: a })),
+                    reviews: DIGEST_SAMPLE.reviews.map(a => ({ airline: a })) })
+    : digestStats({ pay, reviews });
 
   const fromDay = String(since).slice(0, 10);
+  if (SAMPLE_WEEK) console.log('[digest] ★見本の週です（本物の投稿は1件も使っていません）');
   console.log(`[digest] ${fromDay} 以降の新着 … 年収 ${stats.pay}件 / 口コミ ${stats.reviews}件`
     + (stats.airlines.length ? `（名前を出す社 ${stats.airlines.length}）` : '（名前を出す社なし）'));
 
@@ -229,6 +234,11 @@ async function runDigest() {
     if (DRY) return console.log('         ※ 送りません。実際に送るには --send を付けてください。');
     await sendEmail(toArg, '[preview] ' + b.subject, b.html, { text: b.text, replyTo: ADMIN_EMAIL });
     return console.log('  ✓ 送りました');
+  }
+
+  if (SAMPLE_WEEK) {
+    console.error('❌ --sample は --to=（自分の受信箱）と一緒にだけ使えます。');
+    process.exit(1);
   }
 
   /* ★少ない週は送らない。基準時刻を進めないので、この分は翌週のまとめに入る。 */
