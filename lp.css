@@ -532,11 +532,19 @@
            中身 = 52(1行目) + 98(開いた面) + 52 × 5行 = 410
            画面 = 36 + 38 + 410 = 484 ／ 電話 = 6 + 484 + 6 = **496**
            緑の面 = 50 + 496 − 38 = **508**（広い幅は上揃えなので 137 → 645px に立つ）
-         切り口の考え方は前と同じ ── 見えるのは 496 − 38 = 458px で、上から 6+36+38 = 80 を
-         引くと 378px ＝ 1行目(52) + 開いた面(98) + 4行ぶん(208) + 6行目の上 20px。
-         ⚠️ 行は6本＋開いた面1つ。HTML の灰色の棒も同じ並び（index.html / en/index.html）。
+       ★2026-09-23 最後の追加指示「緑色のカードの中身（電話の部分）とかもっと細かく
+         記載できるんじゃない？」── 1行の中身を本物の REAL PAY のカードと同じにした
+         （月あたり・内訳のミニ棒・凡例／開いた面に区分ごとの金額と％）。
+         **中身の合計 410 は 1px も変えていない**＝電話も緑の面も動かない。
+           行 52 → **66**（4段：年収24 + 添え字14 + 棒8 + 凡例14 = 60、row-gap 2 × 3 = 6）
+           開いた面 98 → **146**（見出し14 + 棒10 + 一覧18×3 + 注記13 = 91、row-gap 9 × 5 = 45 → 136。
+             残る 10px は align-content:center で上下 5px ずつ。本物の面も中央寄せ）
+           行は6 → **4本**：66 × 4 + 146 = 264 + 146 = **410** ＝ 前と同じ
+         切り口 ── 見えるのは 496 − 38 = 458px で、上から 6+36+38 = 80 を引くと 378px
+           ＝ 1行目(66) + 開いた面(146) + 2行ぶん(132) + 4行目の上 34px。
+         ⚠️ 行は4本＋開いた面1つ。HTML の灰色の棒も同じ並び（index.html / en/index.html）。
             片方だけ直すと描き替えの瞬間に高さが跳ねる＝CLS。
-            lp.js の PV_DEMO.hero.rows も6つ・.open が開く行の番号。
+            lp.js の PV_DEMO.hero.rows も4つ・.open が開く行の番号。
          ⚠️ 上の :is(#hero-section,#lp-airlines) と強さが同じなので、必ずその**後ろ**に置く。
             112 AIRLINES の電話（6行・大きいまま）はここで触らない。 */
     #hero-section .hero-panel{ padding:50px 32px 0; }
@@ -557,32 +565,38 @@
     #hero-section .hero-win-bar{ display:flex; align-items:center; gap:10px; height:38px; padding:0 14px;
       border-bottom:1px solid var(--pv-border); }
     #hero-section .hero-win-name{ display:inline-flex; align-items:center; gap:8px;
-      font-size:12.5px; font-weight:700; letter-spacing:.12em; color:var(--pv-text); }
+      font-size:11.5px; font-weight:700; letter-spacing:.12em; color:var(--pv-text); }
     #hero-section .hero-win-name::before{ content:''; width:8px; height:8px; border-radius:999px;
       background:var(--pv-accent); box-shadow:0 0 0 3px var(--pv-accent-soft); }
     /* ★2026-09-23、オーナー指示で「サンプル」の札（.hero-win-tag）を消した。
        見本だと分かる仕掛けは**金額を HTML に書かないこと**のほうで、札はその代わりではない。
        札を戻したくなったら、まず index.html のコメントを読む。 */
-    /* 1行＝2段。上の段：ロゴ・社名・年収／下の段：職位・機種・経験。
-       ★行の高さは固定（52px）。灰色の棒の行と本物の行が同じ高さ＝描き替えてもガタつかない。
-         中身は 19.5 + 3 + 15.6 = 38.1px なので 52 に収まる（2026-09-23 に 64 から詰めた）。
-       ⚠️ 電話を縦 1.2 倍にしたときも、ここは 52 のまま**行を1本増やした**（上のコメント参照）。
+    /* 1行＝4段。ロゴ／社名・年収／職位・機種・年数／内訳のミニ棒／凡例と月あたり。
+       ★行の高さは固定（66px）。灰色の棒の行と本物の行が同じ高さ＝描き替えてもガタつかない。
+         中身は 24.7(年収) + 2 + 13.7(添え字) + 2 + 8(棒) + 2 + 14(凡例) = 66.4 ≒ 66
+         （上の2段は grid の同じ段に重なる。年収 19px × 1.3 が段の高さを決める）。
+       ⚠️ 電話を縦 1.2 倍にしたときは 52 のまま**行を1本増やした**。2026-09-23 に
+          中身を厚くしたときは逆に **66px × 4本**にして、合計 410px を保った（上のコメント）。
        ★どの子がどこへ行くかはクラスで決める（HTML の並びに頼らない）。 */
-    #hero-section .hero-win-row{ display:grid; height:52px; padding:0 14px;
-      grid-template-columns:30px minmax(0,1fr) auto; grid-template-areas:"logo an amt" "logo meta meta";
-      align-content:center; column-gap:11px; row-gap:3px; }
+    #hero-section .hero-win-row{ display:grid; height:66px; padding:0 14px;
+      grid-template-columns:30px minmax(0,1fr) auto;
+      grid-template-areas:"logo an amt" "logo meta meta" "cb cb cb" "leg leg leg";
+      align-content:center; column-gap:11px; row-gap:2px; }
     #hero-section .hero-win-row + .hero-win-row{ border-top:1px solid var(--pv-border); }
     /* ★2026-09-23 オーナー指示「電話の中の画面は年収とちゃんとバーが見えるように。
          基本給とか変動給、その他が見えるバー作ったじゃん」── 1行目を**押して開いた状態**で置き、
        その下に報酬の内訳の帯を出す（REAL PAY の節の白いカードと同じ区分・同じ色）。
-       ★高さは固定（98px）。灰色の骨組みにも同じ 98px の箱が1つ置いてある＝描き替えても跳ねない。
-         中身は 15.4(見出し) + 9 + 10(帯) + 9 + 15.4(凡例) = 58.8px なので 98 に収まる。
+       ★2026-09-23、区分ごとの金額の帯と％を足した（本物の payHTML と同じ形）。
+       ★高さは固定（146px）。灰色の骨組みにも同じ 146px の箱が1つ置いてある＝描き替えても跳ねない。
+         中身は 14.7(見出し) + 10(帯) + 68.8(一覧 ＝ 17.6 × 3行 + 中の gap 8 × 2) + 12.6(注記)
+         = 106.1px、外の row-gap 10px × 3 = 30 → 136.1px なので 146 に収まる
+         （残る約 10px は align-content:center が上下へ 5px ずつ配る。本物の面も中央寄せ）。
        ⚠️ 本数・位置を変えるときは index.html / en/index.html の骨組みと
           lp.js の PV_DEMO.hero.rows / .open も一緒に直す（片方だけだと CLS）。 */
     #hero-section .hero-win-row.is-open{ background:var(--pv-accent-soft); }
-    #hero-section .hero-win-open{ display:grid; height:98px; padding:0 14px; align-content:center; row-gap:9px;
+    #hero-section .hero-win-open{ display:grid; height:146px; padding:0 14px; align-content:center; row-gap:10px;
       background:var(--pv-accent-soft); border-bottom:1px solid var(--pv-border); }
-    #hero-section .hero-win-open-h{ font-size:11px; font-weight:700; line-height:1.4; letter-spacing:.06em;
+    #hero-section .hero-win-open-h{ font-size:10.5px; font-weight:700; line-height:1.4; letter-spacing:.06em;
       color:var(--pv-accent-ink); }
     /* ⚠️ クラス名は hero-win-seg。hero-win-bar は**電話の上の帯**が既に使っている。
        ★区切りは隙間（gap 2px）で出す。REAL PAY の帯の inset 影を写すと、ダークの
@@ -590,35 +604,73 @@
     #hero-section .hero-win-seg{ display:flex; gap:2px; height:10px; border-radius:999px; overflow:hidden;
       background:var(--pv-surface); }
     #hero-section .hero-win-seg i{ display:block; min-width:6px; }
-    #hero-section .hero-win-leg{ display:flex; gap:13px; overflow:hidden;
-      font-size:11px; line-height:1.4; color:var(--pv-text-muted); }
-    #hero-section .hero-win-leg span{ display:inline-flex; align-items:center; gap:5px; white-space:nowrap; }
-    #hero-section .hero-win-leg i{ flex:none; width:7px; height:7px; border-radius:999px; }
-    /* 灰色の骨組み側（見出し・帯・凡例の3本）。高さと段の数を上と合わせる。 */
+    /* 開いた面の一覧（区分・金額の帯・％）。本物の payHTML の ap-dw-row と同じ並び。
+       金額は tabular-nums で桁を揃える（通貨を切り替えても右端が暴れない）。 */
+    #hero-section .hero-win-list{ display:grid; row-gap:8px; }
+    #hero-section .hero-win-li{ display:grid; align-items:center; column-gap:6px;
+      grid-template-columns:auto minmax(0,1fr) auto; font-size:11px; line-height:1.6; }
+    #hero-section .hero-win-li-k{ display:inline-flex; align-items:center; gap:5px; white-space:nowrap;
+      color:var(--pv-text-muted); }
+    #hero-section .hero-win-li-k i{ flex:none; width:7px; height:7px; border-radius:999px; }
+    #hero-section .hero-win-li-v{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+      text-align:right; font-weight:600; font-variant-numeric:tabular-nums; color:var(--pv-text); }
+    #hero-section .hero-win-li-p{ white-space:nowrap; font-weight:700;
+      font-variant-numeric:tabular-nums; color:var(--pv-accent-ink); }
+    /* 「構成比は概算です」。本物の T.dwShare を 228px 用に短く言い直したもの（lp.js の T.openNote）。 */
+    #hero-section .hero-win-note{ font-size:9px; line-height:1.4; color:var(--pv-text-muted); }
+    /* 行の中の内訳のミニ棒と凡例（本物の cardCompHTML と同じ）。棒は開いた面より薄い 8px。 */
+    #hero-section .hero-win-cb{ grid-area:cb; display:flex; gap:2px; height:8px; border-radius:999px;
+      overflow:hidden; background:var(--pv-surface); }
+    #hero-section .hero-win-cb i{ display:block; min-width:5px; }
+    #hero-section .hero-win-cbl{ grid-area:leg; display:flex; align-items:center; gap:9px; overflow:hidden;
+      font-size:10px; line-height:1.4; color:var(--pv-text-muted); }
+    #hero-section .hero-win-cbi{ display:inline-flex; align-items:center; gap:5px; white-space:nowrap; }
+    #hero-section .hero-win-cbi i{ flex:none; width:7px; height:7px; border-radius:999px; }
+    #hero-section .hero-win-cbi b{ font-weight:700; color:var(--pv-text); }
+    #hero-section .hero-win-cbm{ white-space:nowrap; }
+    /* 月あたり。凡例の段の右端へ寄せる（行の上の段は社名と年収で埋まっていて入らない）。 */
+    #hero-section .hero-win-mon{ display:inline-flex; align-items:center; gap:5px; margin-left:auto;
+      white-space:nowrap; font-variant-numeric:tabular-nums; color:var(--pv-text); }
+    /* 欄の見出し語（本物のカードの ap-cl と同じ役目）。 */
+    #hero-section .hero-win-cl{ font-size:9px; font-weight:600; letter-spacing:.04em;
+      color:var(--pv-text-muted); }
+    /* 灰色の骨組み側。高さと段の数を上と合わせる（ここが本物とずれると描き替えで跳ねる）。 */
     #hero-section .hero-sk--h{ width:52px; height:8px; }
     #hero-section .hero-sk--seg{ width:100%; height:10px; }
-    #hero-section .hero-sk--lg{ width:74%; height:8px; }
+    #hero-section .hero-sk--li{ width:100%; height:12px; }
+    #hero-section .hero-sk--note{ width:46%; height:7px; }
     #hero-section .hero-win-logo, #hero-section .hero-sk--logo{ grid-area:logo; align-self:center; }
     #hero-section .hero-win-an, #hero-section .hero-sk--a{ grid-area:an; align-self:center; }
     #hero-section .hero-win-amt, #hero-section .hero-sk--v{ grid-area:amt; align-self:center; }
     #hero-section .hero-win-meta, #hero-section .hero-sk--m{ grid-area:meta; align-self:center; }
+    #hero-section .hero-sk--cb{ grid-area:cb; align-self:center; }
+    #hero-section .hero-sk--leg{ grid-area:leg; align-self:center; }
     :is(#hero-section,#lp-airlines) .hero-win-logo{ flex:none; width:30px; height:30px; object-fit:contain;
       border-radius:8px; background:#fff; padding:3px; border:1px solid var(--pv-border); }
     :is(#hero-section,#lp-airlines) .hero-win-mono{ display:inline-grid; place-items:center; padding:0;
       font-size:10.5px; font-weight:700; color:var(--pv-text-muted); background:var(--pv-surface-soft); }
     #hero-section .hero-win-an,
     #hero-section .hero-win-meta{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-    #hero-section .hero-win-an{ font-size:14px; font-weight:600; line-height:1.3; color:var(--pv-text); }
-    #hero-section .hero-win-meta{ font-size:12px; line-height:1.3; color:var(--pv-text-muted); }
-    #hero-section .hero-win-amt{ margin-left:8px; text-align:right; white-space:nowrap;
-      font-size:15px; font-weight:700; line-height:1.3; letter-spacing:-.01em;
+    /* ★2026-09-23、文字の大小を Marit の iPhone 版に倣って付け直した（オーナー指示
+         「文字の大きさとか参考にして」）。あちらは1画面に**大きい数字が1つだけ**あり、
+         まわりは全部小さい。電話の幅は 268px のまま（オーナー「文字は小さくなっても良い」）。
+         年収 15 → **19px**（画面で唯一の大きい数字）／社名 14 → 12.5／添え字 12 → 10.5。 */
+    /* 年収が 19px になったぶん、社名に回せる幅が 8px 減った。字間を少し詰めて margin も削り、
+       「All Nippon Airways」が「All Nippon Airw…」にならないようにする（英語がいちばん長い）。 */
+    #hero-section .hero-win-an{ font-size:12.5px; font-weight:600; line-height:1.3;
+      letter-spacing:-.01em; color:var(--pv-text); }
+    #hero-section .hero-win-meta{ font-size:10.5px; line-height:1.3; color:var(--pv-text-muted); }
+    #hero-section .hero-win-amt{ margin-left:4px; text-align:right; white-space:nowrap;
+      font-size:19px; font-weight:700; line-height:1.25; letter-spacing:-.02em;
       font-variant-numeric:tabular-nums; color:var(--pv-text); }
     /* lp.js が描くまでの灰色の棒。 */
     #hero-section .hero-sk{ display:block; height:9px; border-radius:6px; background:var(--pv-border); }
     #hero-section .hero-sk--logo{ width:30px; height:30px; border-radius:8px; }
     #hero-section .hero-sk--a{ width:62%; }
     #hero-section .hero-sk--m{ width:48%; }
-    #hero-section .hero-sk--v{ width:58px; margin-left:8px; }
+    #hero-section .hero-sk--v{ width:58px; margin-left:4px; }
+    #hero-section .hero-sk--cb{ width:100%; height:8px; }
+    #hero-section .hero-sk--leg{ width:70%; height:8px; }
     /* 画面が狭いとき（スマホの 360px 前後）は左右の余白を詰める＝社名を切らない。
        ⚠️ 2026-09-23 に電話を 332 → 268px にしたので、画面の内幅は常に 256px ＝ この段は
           どの幅でも効いている（中の値は上の基準値と同じにしてあるので見た目は変わらない）。 */
@@ -626,10 +678,14 @@
       #hero-section .hero-win-row{ padding:0 14px; column-gap:9px; }
       #hero-section .hero-win-bar, #hero-section .hero-win-open{ padding:0 14px; }
     }
-    /* 画面がとても狭いとき（幅 240px 未満）は、社名と年収だけにする。 */
+    /* 画面がとても狭いとき（幅 240px 未満）は、社名と年収だけにする。
+       ⚠️ いまはどの幅でも発動しない（電話の内幅は常に 256px）。将来ここを狭めたときのため、
+          2026-09-23 に足した内訳の棒・凡例・月あたりも一緒に消す行を入れてある。 */
     @container heroui (max-width:239px){
       #hero-section .hero-win-row{ grid-template-areas:"logo an amt"; }
-      #hero-section .hero-win-meta, #hero-section .hero-sk--m{ display:none; }
+      #hero-section .hero-win-meta, #hero-section .hero-sk--m,
+      #hero-section .hero-win-cb, #hero-section .hero-sk--cb,
+      #hero-section .hero-win-cbl, #hero-section .hero-sk--leg{ display:none; }
     }
 
     /* 狭い幅：1列。★2026-09-23、開いた面（98px）と6行目を足して電話が 346 → 496px になった。
@@ -637,7 +693,8 @@
        （電話そのものは広い幅と1pxも違わない。見せる行数だけを減らす）。
        → 狭い幅の緑の面 = 32 + 496 − 142 = **386px**
          見えるのは 496 − 142 = 354px で、上から 80 を引くと 274px
-         ＝ 1行目(52) + 開いた面(98) + 2行ぶん(104) + 3行目の上 20px。
+         ＝ 1行目(66) + 開いた面(146) + 2行目の上 62px（2026-09-23 に中身を厚くした後の内訳。
+           電話の高さも緑の面も 1px も動いていない）。
          ★オーナー指示の「年収とバー」はスマホでも最初に目に入る位置に残る。
        ⚠️ スマホでは電話は帯2本の**後ろ**にある＝ここが伸び縮みしても帯の位置は動かない。 */
     @media (max-width:767px){

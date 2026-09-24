@@ -57,6 +57,18 @@
          （英語の "Bonus & profit share" で溢れる）。区分を増やしたり分けたりはしない。 */
       openH: '報酬の内訳',
       openPart: { base: '基本給', variable: '変動給', bonus: '賞与' },
+      /* ★2026-09-23、電話の中身を本物の REAL PAY のカードと同じ形にしたときに足した4つ。
+         文言は actual-pay.js から写す（同じものを2つの言い方で呼ばない）──
+         thMon / cbMore は :127 :175、dash は :217。
+         openNote だけは写しではない：本物の T.dwShare は
+         「構成比は匿名化された金額帯から算出した概算です」で内幅 228px に入らないので、
+         **短く言い直したもの**をここに置く。★actual-pay.js 側の文言は書き換えない。 */
+      thMon: '月あたり',
+      cbMore: 'ほか{n}区分',
+      dash: '〜',
+      openNote: '構成比は概算です',
+      // 年数の札。本物は「昇格後10〜15年」（actual-pay.js:204 の ten.r）。見本も同じ読み方にする。
+      ten: function (y) { return '昇格後' + y; },
       voice: { culture: '企業文化', salary: '給与', benefits: '福利厚生',
                wlb: 'WLB', ops: '運航環境', training: '訓練環境', mgmt: '経営陣への提案' },
     },
@@ -70,6 +82,12 @@
       heroPart: { base: 'Base pay', variable: 'Variable (flying)', bonus: 'Bonus & profit share' },
       openH: 'Pay breakdown',
       openPart: { base: 'Base', variable: 'Variable', bonus: 'Bonus' },
+      // 日本語側と対（actual-pay.js の英語から写す。openNote だけ短く言い直したもの）
+      thMon: 'Per month',
+      cbMore: '+{n} more',
+      dash: '–',
+      openNote: 'Shares are approximate',
+      ten: function (y) { return y + ' in rank'; },
       voice: { culture: 'Culture', salary: 'Pay', benefits: 'Benefits',
                wlb: 'WLB', ops: 'Operations', training: 'Training', mgmt: 'To management' },
     },
@@ -146,6 +164,11 @@
         表示側の丸めは mqAmt()。ここの値も同じ粒度で書く（片方だけ細かくしない）。
      並びは固定。Math.random() を使わない（スクショ差分と目視比較のため）。
      ══════════════════════════════════════════════════════════════ */
+  /* 報酬の内訳の見本（[区分, 割合%]・合計は必ず 100）。
+     ヒーローの電話の**開いた行**と、REAL PAY の節の白いカードが**この1つ**を共有する。
+     ★数字を2か所に持たない（片方だけ直して食い違うのを防ぐ）。 */
+  var PV_PARTS = [['base', 56], ['variable', 26], ['bonus', 18]];
+
   var PV_DEMO = {
     // [slug, 年収(万円), 内訳ラベル, 職位, 機種, 経験, ベース, 社名]
     marquee: [
@@ -167,15 +190,17 @@
     /* ヒーローの右の見本の画面（2026-09-22）。行は上の marquee の何番目を使うか。
        ★2026-09-23 に6行 → 4行（電話を小さくして緑の面を 300px にした）→ 同じ日の追加指示
          「ケータイ画面 1.2倍 縦に大きく」で 5行（電話 288 → 346px・緑の面 300 → 358px）
-         → さらに「PC版は Take control … の上の段に合うような大きさにして」で **6行**
+         → さらに「PC版は Take control … の上の段に合うような大きさにして」で 6行
          （電話 496px・緑の面 508px ＝ 上端が見出しの1行目に揃う。狭い幅は深く切って 386px。
-           足し算は lp.css の #hero-section .lp-phone の上のコメントにある）。
-         6行目は電話の切り口（緑の面の下端）で上から 20px だけ見える＝「まだ下に続く」。
+           足し算は lp.css の #hero-section .lp-phone の上のコメントにある）
+         → 同じ日、中身を1行ずつ厚くしたので **4行**（行 66px・開いた面 146px）。
+           電話の高さも緑の面も動かしていない（66×4 + 146 = 410 ＝ 52 + 98 + 52×5）。
+           デスクトップは4行目の途中で切れ、スマホは2行目の頭まで見える＝「まだ下に続く」。
          ⚠️ 本数を変えたら index.html / en/index.html の灰色の棒の行も同じ数にする。
        open ＝ rows の何番目を「開いた行」にするか（その下に報酬の内訳のバーを差し込む）。
          ★オーナー指示「基本給とか変動給、その他が見えるバー作ったじゃん。ちゃんとリアルに」。
-         割合は下の detail.parts をそのまま使う（数字を2か所に持たない）。
-         ⚠️ 差し込む面の高さは lp.css の .hero-win-open で **98px 固定**。灰色の骨組みも同じ
+         割合はその行の parts をそのまま使う（数字を2か所に持たない）。
+         ⚠️ 差し込む面の高さは lp.css の .hero-win-open で **146px 固定**。灰色の骨組みも同じ
             高さの箱を1つ置いてある＝描き替えても跳ねない（CLS）。
        rp.on ＝ REAL PAY の節の白いカード（行を開いた面の見本）がどの行の内訳か。
        rp.next ＝ そのカードの下端（緑の面の切り口）に半分だけ見える「次の行」。
@@ -184,13 +209,33 @@
           undefined になり、REAL PAY の節を描く所で例外 → boot() の残り
           （112 の電話・通貨の塗り直し・口コミ・下の固定バー）が全部止まる形だった。
        detail.parts は [区分, 割合%]。額は rp.on の行の年収をそのまま使う（数字を2か所に持たない）。
-       ★割合は帯の長さにだけ使い、数字としては出さない（REAL PAY の開いた面も％を出さない）。
-       ★割合の合計は必ず 100。区分の色は lp.css の .lp-c-*（REAL PAY と同じ色）。 */
+       ★割合の合計は必ず 100。区分の色は lp.css の .lp-c-*（REAL PAY と同じ色）。
+       ⚠️ ここに「割合は帯の長さにだけ使い、数字としては出さない（REAL PAY の開いた面も
+          ％を出さない）」と書いてあったが**誤り**。本物の開いた面は 2026-09-04 から
+          区分ごとの％を整数で出している（actual-pay.js の shareInts）。2026-09-23 に削除。 */
     hero: {
-      rows: [0, 1, 2, 3, 4, 5],
+      /* 行 ＝ marquee の何番目か（i）＋ その行の報酬の内訳（見本）。
+         ★2026-09-23、オーナー指示「緑色のカードの中身（電話の部分）をもっと細かく」で
+           本物の REAL PAY のカード（actual-pay.js の cardCompHTML / payHTML）と同じ形にした。
+           行は 6本 → **4本**、1行あたり 52px → **66px**、開いた面 98px → **146px**。
+           66×4 + 146 = 410 ＝ 前と同じ（緑の面の高さ 508 / 386 が 1px も動かない）。
+         割合（%）は整数だけ（本物の shareInts と同じ。小数を出さない）。合計は必ず 100。
+         区分が1つだけの行は棒も凡例も出さない（本物と同じ）。
+         ⚠️ 本数を変えたら index.html / en/index.html の灰色の骨組みと
+            lp.css の .hero-win-row / .hero-win-open の高さも同じ回に直す（4点セット）。 */
+      rows: [
+        /* 開く行だけ、区分ごとの**金額の帯**（万円）を持つ。本物は帯でしか出さないので見本も帯。
+           合計が年収（4000万）に一致する必要はない（本物も匿名化された帯なので一致しない）。
+           ⚠️ 値は mqAmt() の有効数字2桁でそのまま出る粒度にしてある（2200→¥2,200万）。 */
+        { i: 0, parts: PV_PARTS,
+          band: { base: [2200, 2400], variable: [1000, 1200], bonus: [700, 800] } },
+        { i: 1, parts: [['base', 62], ['variable', 22], ['bonus', 16]] },
+        { i: 2, parts: [['base', 71], ['variable', 29]] },
+        { i: 3, parts: [['base', 58], ['variable', 30], ['bonus', 12]] },
+      ],
       open: 0,
       rp: { on: 1, next: 3 },
-      detail: { parts: [['base', 56], ['variable', 26], ['bonus', 18]] },
+      detail: { parts: PV_PARTS },
     },
   };
 
@@ -487,9 +532,11 @@
      ★全部 PV_DEMO（サンプル）。本物の投稿は1件も読まない・出さない。
        小さい会社で「会社名＋時期」が出ると、書いた本人が推測されるため（オーナー）。
      ★投稿時期・Verified・本人申告の札・錠前は付けない（見本に「確認済み」は嘘になる）。
-     ★HTML には灰色の棒の行が6本あり、同じ高さ（64px）の行に描き替える＝ガタつかない。
-     ★1行＝2段（上：ロゴ・社名・年収／下：職位・機種・経験）。置き場所は lp.css が
-       クラスで決める（grid-area）。ここで並べ替えても見た目は変わらない。
+       ⚠️ ここは 2026-09-23 に中身を厚くしたときも足していない。本物のカードには出るが、
+          **信用の印を偽造しない**（index.html の同じ約束）。
+     ★HTML には灰色の棒の行が4本あり、同じ高さ（66px）の行に描き替える＝ガタつかない。
+     ★1行＝4段（ロゴ／社名・年収／職位・機種・年数／内訳の棒／凡例と月あたり）。
+       置き場所は lp.css がクラスで決める（grid-area）。ここで並べ替えても見た目は変わらない。
      人数だけは本物。pv_pay_rows() の stats.contributors を使う（左の板の「N / 100人」と同じ数）。
      ⚠️ あの関数は未ログインでも伏せた行を返すが、行は使わない・DOM に入れない。 */
   function heroLogo(slug, name) {   // 112 の電話も同じ見た目のロゴを使う（lp.css が両方の節に当てる）
@@ -503,32 +550,75 @@
     return '<span class="hero-win-logo hero-win-mono" aria-hidden="true">' + esc(ini) + '</span>';
   }
 
+  /* 色の棒。区分ごとの割合を flex の伸び率で置く（style に % を書かない＝本物と同じ作法）。 */
+  function heroBar(cls, parts) {
+    return '<span class="' + cls + '" aria-hidden="true">' + parts.map(function (p) {
+      return '<i class="lp-c-' + p[0] + '" style="flex:' + p[1] + ' 1 0"></i>';
+    }).join('') + '</span>';
+  }
+
+  /* ★行の下2段（内訳のミニ棒＋凡例＋月あたり）。2026-09-23 オーナー指示
+       「緑色のカードの中身（電話の部分）をもっと細かく記載できるんじゃない？」。
+     本物の REAL PAY のカード（actual-pay.js の cardCompHTML）と同じ約束 ──
+       ・いちばん大きい区分を**1つだけ**名指しし、残りは「ほか◯区分」と数える
+       ・区分が2つ未満のときは棒も凡例も出さない
+     「月あたり」は年収 ÷ 12。本物のカードにも同じ欄がある＝新しい情報は1つも増えていない。 */
+  function heroComp(parts, jpy) {
+    if (!parts || parts.length < 2) return '';
+    var top = 0;
+    for (var k = 1; k < parts.length; k++) { if (parts[k][1] > parts[top][1]) top = k; }
+    var rest = parts.length - 1, mon = Math.round(jpy / 12);
+    return heroBar('hero-win-cb', parts) +
+      '<span class="hero-win-cbl">' +
+        '<span class="hero-win-cbi"><i class="lp-c-' + parts[top][0] + '" aria-hidden="true"></i>' +
+          esc(T.openPart[parts[top][0]]) + ' <b>' + parts[top][1] + '%</b></span>' +
+        '<span class="hero-win-cbm">' + esc(T.cbMore.replace('{n}', function () { return String(rest); })) + '</span>' +
+        '<span class="hero-win-mon"><span class="hero-win-cl">' + esc(T.thMon) + '</span>' +
+          '<span class="pv-no-cur" data-jpy="' + mon + '">' + esc(mqAmt(mon)) + '</span></span>' +
+      '</span>';
+  }
+
   /* ★開いた行の下に差し込む「報酬の内訳」（2026-09-23 オーナー指示）。
-     区分と割合は PV_DEMO.hero.detail.parts ＝ REAL PAY の節の白いカードと**同じ1か所**。
-     ★％の数字は出さない（バーの長さにだけ使う）。REAL PAY の本物の面と同じ約束。
-     ⚠️ 高さは lp.css の .hero-win-open が 98px で固定している。ここで中身を増やしても
+     ★2026-09-23、区分ごとの**金額の帯と％**を足した（本物の payHTML と同じ形）。
+       ・金額は必ず帯（◯〜◯）で出す。1つの数字にしない ── 本物は匿名化された帯でしか
+         出さないので、見本が実額に見えると製品を誤解させる。
+       ・％は整数だけ（本物の shareInts と同じ。小数を出さない）。
+       ・帯は span を**2つ**に分ける。repaintMarquee() は1要素＝1金額で塗り替えるので、
+         「¥2,200万〜¥2,400万」を1つの span に入れるとドルに切り替えたとき直らない。
+         ★両端に記号が付くのは本物と同じ（actual-pay.js:547 の rngMoney も fmt を2回呼ぶ）。
+     ⚠️ 高さは lp.css の .hero-win-open が 146px で固定している。ここで中身を増やしても
         箱は伸びない＝溢れて隠れる。増やすなら CSS の高さと HTML の骨組みも一緒に直す。 */
-  function heroOpen() {
-    var parts = PV_DEMO.hero.detail.parts;
+  function heroOpen(row) {
+    var parts = row.parts, band = row.band || {};
     return '<div class="hero-win-open">' +
       '<span class="hero-win-open-h">' + esc(T.openH) + '</span>' +
       /* ⚠️ クラス名は hero-win-seg。hero-win-bar は**電話の上の帯**が既に使っている。 */
-      '<span class="hero-win-seg">' + parts.map(function (p) {
-        return '<i class="lp-c-' + p[0] + '" style="flex:' + p[1] + ' 1 0"></i>';
+      heroBar('hero-win-seg', parts) +
+      '<span class="hero-win-list">' + parts.map(function (p) {
+        var b = band[p[0]], lo = b ? b[0] * 10000 : 0, hi = b ? b[1] * 10000 : 0;
+        return '<span class="hero-win-li">' +
+          '<span class="hero-win-li-k"><i class="lp-c-' + p[0] + '" aria-hidden="true"></i>' +
+            esc(T.openPart[p[0]]) + '</span>' +
+          // 帯を持たない行が開いたときは金額だけ黙って出さない（0 で埋めない）。
+          (b ? '<span class="hero-win-li-v">' +
+            '<span class="pv-no-cur" data-jpy="' + lo + '">' + esc(mqAmt(lo)) + '</span>' + esc(T.dash) +
+            '<span class="pv-no-cur" data-jpy="' + hi + '">' + esc(mqAmt(hi)) + '</span></span>' : '') +
+          '<span class="hero-win-li-p">' + p[1] + '%</span>' +
+        '</span>';
       }).join('') + '</span>' +
-      '<span class="hero-win-leg">' + parts.map(function (p) {
-        return '<span><i class="lp-c-' + p[0] + '"></i>' + esc(T.openPart[p[0]]) + '</span>';
-      }).join('') + '</span>' +
+      '<span class="hero-win-note">' + esc(T.openNote) + '</span>' +
     '</div>';
   }
 
-  function heroRow(r, open) {
+  function heroRow(row, open) {
+    var r = PV_DEMO.marquee[row.i];
     var slug = r[0], jpy = r[1] * 10000, pos = r[3], fleet = r[4], years = r[5];
     var name = L === 'en' ? airlineName(slug, r[7]) : r[7];
     return '<div class="hero-win-row' + (open ? ' is-open' : '') + '">' + heroLogo(slug, name) +
       '<span class="hero-win-an">' + esc(name) + '</span>' +
       '<span class="hero-win-amt pv-no-cur" data-jpy="' + jpy + '">' + esc(mqAmt(jpy)) + '</span>' +
-      '<span class="hero-win-meta">' + esc(tw(pos) + T.sep + fleet + T.sep + tw(years)) + '</span>' +
+      '<span class="hero-win-meta">' + esc(tw(pos) + T.sep + fleet + T.sep + T.ten(tw(years))) + '</span>' +
+      heroComp(row.parts, jpy) +
     '</div>';
   }
 
@@ -537,8 +627,8 @@
     var box = d.getElementById('hero-win-rows');
     if (box) {
       // 開いた行の**直後**に内訳の面を差し込む。open が rows の外なら差し込まない。
-      box.innerHTML = H.rows.map(function (i, n) {
-        return heroRow(PV_DEMO.marquee[i], n === H.open) + (n === H.open ? heroOpen() : '');
+      box.innerHTML = H.rows.map(function (row, n) {
+        return heroRow(row, n === H.open) + (n === H.open ? heroOpen(row) : '');
       }).join('');
     }
 
