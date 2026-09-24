@@ -351,16 +351,46 @@
     #hero-section{ --hero-spring:cubic-bezier(.34,1.45,.64,1);
       position:relative; z-index:1; overflow:hidden;
       background:var(--pv-bg); color:var(--pv-text);
-      padding:calc(var(--pv-topbar,73px) + 64px) 0 72px; }
+      padding:calc(var(--pv-topbar,73px) + 38px) 0 56px; }
     #hero-section .hero-wrap{ max-width:1240px; margin:0 auto; padding:0 32px;
-      display:grid; grid-template-columns:minmax(0,1fr); row-gap:56px; align-items:center; }
-    /* ★2026-09-23：流れる帯2本をヒーローの中に入れた。
+      display:grid; grid-template-columns:minmax(0,1fr); row-gap:20px; align-items:center; }
+    /* ★2026-09-24 オーナー指示「緑のカードと口コミカードが入ってないでしょ？ちゃんと入るように」──
+       **帯2本が1画面に収まるまで、ヒーローの縦を詰めた**（広い幅 1440×780 で実測）。
+       前：上余白 64 ／ 段の間 56 ／ 見出し 4.2vw（3行）／ 緑の面の上余白 50 ／ 電話の切り口 -38
+           → 口コミ帯の下端が 969px ＝ 画面(780) から **189px はみ出し**。
+       後：上余白 18 ／ 段の間 20 ／ 見出し 3.4vw（2行）／ 緑の面の上余白 22 ／ 電話の切り口 -140
+           → 口コミ帯の下端 757px ＝ **余り 23px**。
+       ★同日の追加指示「多くのパイロットが…の文字とかを少し小さくしていいから、
+         Take control… の上の余白を今の2倍くらいに」── **上余白 18 → 38px**。
+         払ったのは2つだけ ── 人数の行（丸 36→30・文字 14.5→13・上余白 24→20 で 8px）と
+         **電話の切り口 -140 → -162**（緑の面 378 → 356px）。
+         帯・カード・見出し・説明文・ボタンは 1px も変えていない。
+         → 口コミ帯の下端 755px ＝ **余り 25px**（前より 2px 広い）。
+       ⚠️ 上余白をこれ以上広げるなら、**同じだけ緑の面を縮める**（切り口を深くする）。
+          片方だけ動かすと帯が画面の外へ落ちる。
+       ⚠️ 効くのは「上余白・段の間・**緑の面の高さ**」の3つだけ。左の文章（358px）は
+          緑の面（378px）より低いので、文章側の余白をいくら詰めても帯は1pxも上がらない。
+       ⚠️ 電話の行数（4本）は変えていない。**見える行数だけ**切り口で減らしている
+          （スマホの -142px と同じ手）。行数を変えると lp.js と日英の HTML も直す4点セットになる。
+       ⚠️ ここの数字を増やすと帯が画面外へ落ちる。見張りは `node assert-hero-fold.mjs`
+          （日英 × 6つの大きさ ── PC・大画面・iPad 横2つ・iPad 縦・スマホ。
+            `check.mjs web` にも入れてある）。
+       ★2026-09-23：流れる帯2本をヒーローの中に入れた。
        広い幅＝上の段に「文章｜電話」、その下に帯を全幅で2本。見た目は前と同じ。
        狭い幅（1100px 未満）＝1列の自動配置なので、**HTML の並びがそのまま縦の順**になる
          （文章 → 年収の帯 → 口コミの帯 → 電話）。電話を後ろへ回したのは、
          スマホで帯まで1画面（390×844）に入れるため ── 帯を電話の後ろに置いたままでは、
          緑の面を 300px に縮めても 1,175px で 844 に届かなかった。 */
-    @media (min-width:1100px){
+    /* ★2026-09-24 オーナー指示（iPad）「Take control… を3段にして、緑のカードの電話をその
+       右横に置いて、上にある程度空白を。ぎゅっとなりすぎてる」──
+       **2列になる条件を「幅 1100px 以上」から「幅 1100px 以上 **または** 幅 768px 以上かつ
+       高さ 1000px 以上」に広げた**（＝ iPad は縦向きでも2列になる）。
+       1列のままだと iPad 縦（820×1180）で電話が帯の**下**に回り、上半分が文章だけになる。
+       ⚠️ **高さの条件を外さない。** iPad を横に倒した 1024×768 / 1080×810 は幅が 1100 未満なので、
+          高さを見ないと同じ2列になり、3段の見出しで縦が伸びて**帯2本が画面外へ落ちる**
+          （実測 -91px）。あちらは今までどおり1列。
+       ⚠️ 767px 以下（スマホ）も1列のまま。2列にすると帯が1画面に入らない。 */
+    @media (min-width:1100px), (min-width:768px) and (min-height:1000px){
       /* ★2026-09-23 オーナー指示「hero の real pay は PC版は Take control of your career in
            the cockpit. の**上の段に合う**ような大きさにして」── 中央揃えをやめて上揃えにする。
          見出しの上端は幅 1100/1280/1440/1680 のどこでも 137px 固定（＝ヒーローの上余白）なので、
@@ -373,12 +403,26 @@
       #hero-section .hero-strip{ grid-area:strip; }
       #hero-section .hero-strip--rv{ grid-area:rv; }
     }
+    /* iPad 縦向き（768〜1099px × 高さ 1000px 以上）だけの調整。
+       ・文章の列を広げる（.92fr → 1fr／間 64 → 40px）＝見出しが3段で折れる幅にする
+       ・上の余白を大きく取る（38 → 72px）。オーナー指示「ぎゅっとなりすぎてる」
+       ★見出しの大きさと緑の面の中の余白は、それぞれの土台の直後に置いてある
+         （同じ強さの指定は後に書いたほうが勝つので、土台より前に置くと効かない）。 */
+    @media (min-width:768px) and (max-width:1099px) and (min-height:1000px){
+      #hero-section{ padding:calc(var(--pv-topbar,73px) + 72px) 0 56px; }
+      #hero-section .hero-wrap{ grid-template-columns:minmax(0,1fr) minmax(0,.86fr); column-gap:40px; }
+    }
+    /* ★逆に、iPad を**横に倒した**とき（1024×768・1080×810）は縦が一番苦しい。
+       1列のまま・上の余白も 38 → 18px に戻す。ここだけ戻さないと帯の下端まで残り 1px になる。 */
+    @media (min-width:768px) and (max-width:1099px) and (max-height:999px){
+      #hero-section{ padding:calc(var(--pv-topbar,73px) + 18px) 0 48px; }
+    }
     /* 帯2本のあいだだけは 10px（カード同士の隙間と同じ）＝上下で1つの塊に見せる。
        ⚠️ grid の row-gap は消せないので、負の margin で詰める。row-gap を変えたらこの数字も直す。 */
-    #hero-section .hero-strip--rv{ margin-top:-46px; }   /* row-gap 56 − 46 = 10 */
+    #hero-section .hero-strip--rv{ margin-top:-10px; }   /* row-gap 20 − 10 = 10 */
     @media (max-width:639px){
       #hero-section .hero-strip{ margin:0 -20px; }   /* 端まで流す（.hero-wrap の padding を打ち消す） */
-      #hero-section .hero-strip--rv{ margin-top:-34px; }   /* row-gap 44 − 34 = 10 */
+      #hero-section .hero-strip--rv{ margin-top:-14px; }   /* row-gap 24 − 14 = 10 */
     }
 
     /* 見出し。★日英とも英語（HTML 側で lang="en"）。書体は足さない（Inter 700）。 */
@@ -386,15 +430,24 @@
       font-family:'Inter',sans-serif; font-weight:700;
       font-size:clamp(34px,10.4vw,64px); line-height:1.04; letter-spacing:-.03em;
       color:var(--pv-text); text-wrap:balance; }
-    @media (min-width:1100px){ #hero-section .hero-h1{ font-size:clamp(44px,4.2vw,68px); } }
-    #hero-section .hero-lede{ margin:24px 0 0; max-width:31em;
+    /* ★2026-09-24：4.2vw（1440 で 60.5px・3行）→ 3.4vw（同 49px・**2行**）。
+       帯2本を1画面に入れるための数字ではなく（左の文章は緑の面より低いので効かない）、
+       2行になった見出しと緑の面の高さを釣り合わせるため。上のヒーローの節を参照。 */
+    @media (min-width:1100px){ #hero-section .hero-h1{ font-size:clamp(38px,3.4vw,54px); } }
+    /* ★2026-09-24（iPad）オーナー指示「3段とかにして」。文章の列が約390px になるので、
+       5.2vw（820px で 42.6px）でちょうど3段に折れる。
+       ⚠️ ここを上げると4段・下げると2段になる。2列にした幅（768px）と対。 */
+    @media (min-width:768px) and (max-width:1099px) and (min-height:1000px){
+      #hero-section .hero-h1{ font-size:clamp(34px,5.2vw,50px); }
+    }
+    #hero-section .hero-lede{ margin:18px 0 0; max-width:31em;
       font-size:clamp(16px,1.3vw,18.5px); line-height:1.75; font-weight:500;
       color:var(--pv-text-muted); word-break:auto-phrase; line-break:strict; text-wrap:pretty; }
 
     /* ボタン2本（2026-09-22 オーナー指示。08-22 の「1本だけ」を置き換えた）。
        ★並びは grid の名前付きの場所で決める。広い幅は「主｜副」の下に添え書き、
          狭い幅は「主→副→添え書き」の縦。HTML の順（主・副・添え書き）は変えない。 */
-    #hero-section .hero-ctas{ margin-top:36px; display:grid;
+    #hero-section .hero-ctas{ margin-top:24px; display:grid;
       grid-template-columns:auto auto; grid-template-areas:"p s" "u .";
       justify-content:start; column-gap:12px; row-gap:10px; }
     #hero-section .hero-btn{ display:inline-flex; align-items:center; justify-content:center; gap:10px;
@@ -432,18 +485,24 @@
 
     /* ★人数は出さない（2026-09-24 オーナー指示）。前は数が届くまで .is-wait で隠していた。
        いまは HTML の文だけなので、最初から見えている。 */
-    #hero-section .hero-proof{ margin-top:40px; min-height:40px;
-      display:flex; align-items:center; gap:14px;
+    /* ★2026-09-24 オーナー指示「多くのパイロットが…の文字とかを少し小さくしていいから、
+       見出しの上の余白を今の2倍くらいに」── 上の余白 18 → 38px を払うために、
+       ここを1段小さくした（丸 36 → 30 ／ 文字 14.5 → 13px ／ 上の余白 24 → 20）。 */
+    #hero-section .hero-proof{ margin-top:20px; min-height:34px;
+      display:flex; align-items:center; gap:12px;
       transition:opacity .6s var(--pv-ease); }
     #hero-section .hero-av{ display:flex; flex:none; }
-    #hero-section .hero-av i{ display:grid; place-items:center; width:36px; height:36px;
-      margin-left:-10px; border-radius:999px; box-shadow:0 0 0 2px var(--pv-bg); }
+    #hero-section .hero-av i{ display:grid; place-items:center; width:30px; height:30px;
+      margin-left:-9px; border-radius:999px; box-shadow:0 0 0 2px var(--pv-bg); }
     #hero-section .hero-av i:first-child{ margin-left:0; }
     #hero-section .hero-av i:nth-child(1){ background:var(--pv-accent); color:#fff; }
     #hero-section .hero-av i:nth-child(2){ background:var(--pv-border); color:var(--pv-text-soft); }
     #hero-section .hero-av i:nth-child(3){ background:var(--pv-accent-dark); color:rgba(255,255,255,.88); }
     #hero-section .hero-av i:nth-child(4){ background:var(--pv-accent-soft); color:var(--pv-accent-ink); }
-    #hero-section .hero-proof-t{ margin:0; font-size:14.5px; line-height:1.5; color:var(--pv-text-muted);
+    /* 丸を小さくしたぶん、中のアイコンも同じ比で下げる（HTML の width/height は 18 固定なので
+       CSS で上書きする。日英の HTML を触らずに済む）。 */
+    #hero-section .hero-av i svg{ width:15px; height:15px; }
+    #hero-section .hero-proof-t{ margin:0; font-size:13px; line-height:1.5; color:var(--pv-text-muted);
       word-break:auto-phrase; }
 
     /* ══ 共通：緑の面と電話の枠（2026-09-22・オーナーが Marit のスクショで示した形）══════
@@ -538,15 +597,32 @@
            開いた面 98 → **146**（見出し14 + 棒10 + 一覧18×3 + 注記13 = 91、row-gap 9 × 5 = 45 → 136。
              残る 10px は align-content:center で上下 5px ずつ。本物の面も中央寄せ）
            行は6 → **4本**：66 × 4 + 146 = 264 + 146 = **410** ＝ 前と同じ
-         切り口 ── 見えるのは 496 − 38 = 458px で、上から 6+36+38 = 80 を引くと 378px
-           ＝ 1行目(66) + 開いた面(146) + 2行ぶん(132) + 4行目の上 34px。
+       ★2026-09-24「帯2本が1画面に入らない」── **上余白と切り口だけで緑の面を縮めた**
+         （50 → 22 ／ -38 → -140）。電話そのものも行の中身も 1px も変えていない。
+       ★同日の追加指示「Take control… の上の余白を今の2倍くらいに」で、
+         広げた 20px を**ここで返した**（切り口 -140 → **-162**）。
+           緑の面 = 22 + 496 − 162 = **356**（左の文章 350px と釣り合う）
+         切り口 ── 見えるのは 496 − 162 = 334px で、上から 6+36+38 = 80 を引くと 254px
+           ＝ 1行目(66) + 開いた面(146) + 2行目の上 42px。
+           ★見せたい「年収とバー」＝1行目と開いた面（212px）は丸ごと残っている。
+           ⚠️ これ以上深くすると 2行目の頭が消え、「まだ下に続く」が読めなくなる。
+         ⚠️ 見えなくなった4行目も HTML と lp.js には**そのまま残す**（行数は4本のまま）。
+            減らすと lp.js・index.html・en/index.html・lp.css の4点セットになるうえ、
+            背の高い画面で切り口を浅くしたくなったとき戻せない。
          ⚠️ 行は4本＋開いた面1つ。HTML の灰色の棒も同じ並び（index.html / en/index.html）。
             片方だけ直すと描き替えの瞬間に高さが跳ねる＝CLS。
             lp.js の PV_DEMO.hero.rows も4つ・.open が開く行の番号。
          ⚠️ 上の :is(#hero-section,#lp-airlines) と強さが同じなので、必ずその**後ろ**に置く。
             112 AIRLINES の電話（6行・大きいまま）はここで触らない。 */
-    #hero-section .hero-panel{ padding:50px 32px 0; }
-    #hero-section .lp-phone{ max-width:268px; margin:0 auto -38px; padding:6px; border-radius:36px; }
+    #hero-section .hero-panel{ padding:22px 32px 0; }
+    #hero-section .lp-phone{ max-width:268px; margin:0 auto -162px; padding:6px; border-radius:36px; }
+    /* ★2026-09-24（iPad 縦向き）オーナー指示「電話の上にもある程度空白を」。
+       縦に 290px 余っている幅なので、ここだけ上の余白を倍にする（22 → 44px）。
+       切り口（-162）は触らないので、緑の面が 356 → 378px に伸びるだけ。
+       ⚠️ 上の土台より**後ろ**に置く（同じ強さなので、前に置くと 22px に戻される）。 */
+    @media (min-width:768px) and (max-width:1099px) and (min-height:1000px){
+      #hero-section .hero-panel{ padding:44px 32px 0; }
+    }
     #hero-section .lp-phone-scr{ padding:36px 0 0; border-radius:30px; }   /* 角丸は同心円（36 − 6） */
     /* Dynamic Island と側面ボタンは、iPhone の比率をこの電話の横幅（268px）で割った値。
        268 ÷ 393pt = 0.682 倍。島は 11 + 23 = 34 で、画面の上余白 42（6 + 36）に収まる。 */
@@ -701,11 +777,15 @@
       #hero-section .lp-phone{ margin-bottom:-142px; }
     }
     @media (max-width:639px){
-      #hero-section{ padding:calc(var(--pv-topbar,73px) + 36px) 0 48px; }
-      #hero-section .hero-wrap{ padding:0 20px; row-gap:44px; }
+      /* ★2026-09-24：ここも帯2本が 390×844 に入るまで詰めた（36 → 14 ／ 44 → 24）。
+         スマホは電話が帯の**後ろ**にあるので、効くのは上余白と段の間と文章側の余白だけ。
+         同日の追加指示で上余白を 14 → 30 に戻した（広い幅の 18 → 38 と同じ話。
+         人数の行を小さくしたぶんで払っている）。 */
+      #hero-section{ padding:calc(var(--pv-topbar,73px) + 30px) 0 48px; }
+      #hero-section .hero-wrap{ padding:0 20px; row-gap:24px; }
       #hero-section .hero-ctas{ grid-template-columns:minmax(0,1fr); grid-template-areas:"p" "s" "u"; }
       #hero-section .hero-btn{ width:100%; }
-      #hero-section .hero-proof{ margin-top:32px; }
+      #hero-section .hero-proof{ margin-top:12px; }
     }
     /* ⚠️ 動きを減らす設定。ヒーローの定義より後に置く（同じ強さなら後が勝つ）。 */
     @media (prefers-reduced-motion:reduce){

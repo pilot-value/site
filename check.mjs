@@ -81,7 +81,7 @@ const WEB = [
   ['assert-currency.mjs', 93], ['assert-conditions.mjs', 60],
   ['assert-unlock.mjs', 59], ['assert-my-posts.mjs', 32],
   ['assert-langtoggle.mjs', 24], ['assert-founding.mjs', 20],
-  ['assert-give-first.mjs', 14], ['assert-admin.mjs', 12],
+  ['assert-give-first.mjs', 14], ['assert-hero-fold.mjs', 13], ['assert-admin.mjs', 12],
   ['db/test-login-redirect.mjs', 7],
   ['assert-deep-pay-compare.mjs', 5.7], ['assert-deep-pay.mjs', 5.0],
   ['assert-review-quality.mjs', 2.0], ['db/test-session-expiry.mjs', 0.9],
