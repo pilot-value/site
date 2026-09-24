@@ -479,7 +479,9 @@
           <button type="button" class="lp-ex-tab active" aria-pressed="true" onclick="switchRankTab(this,'captain')">Captain</button>
           <button type="button" class="lp-ex-tab" aria-pressed="false" onclick="switchRankTab(this,'fo')">First Officer</button>
         </div>
-        <!-- 上位5社だけ。行はこのページの下の buildRankingList が描く。 -->
+        <!-- ★Top 6 as a bar chart. Rows are drawn by fillRanking() in lp.js from salary-data.json (the SSOT).
+             No airline name and no amount in this file, so updating the SSOT updates this too.
+             Bar colours come from airlines-meta.js. Looks live in lp.css (.lp-rk-*). -->
         <div id="rank-captain" class="lp-rk"></div>
         <div id="rank-fo" class="lp-rk hidden"></div>
         <p class="lp-ex-fine">Actual pay varies with fleet, seniority and contract.</p>
@@ -791,58 +793,15 @@ function switchRankTab(btn, id) {
   btn.setAttribute('aria-pressed', 'true');
   document.getElementById('rank-captain').classList.toggle('hidden', id !== 'captain');
   document.getElementById('rank-fo').classList.toggle('hidden', id !== 'fo');
+  // 隠れている面は遷移が走らないので、出てきた側の棒を lp.js に動かし直させる。
+  if (typeof window.PV_rankAnim === 'function') window.PV_rankAnim(id === 'fo' ? 'rank-fo' : 'rank-captain');
 }
 
-// ── Animate bars ──────────────────────────────────────────────
-function animateBars(container) {
-  container.querySelectorAll('[data-width]').forEach(bar => {
-    bar.style.width = '0';
-    setTimeout(() => { bar.style.width = (bar.dataset.width || 0) + '%'; }, 80);
-  });
-}
-
-// ── Ranking Data ──────────────────────────────────────────────
-const captainData = [
-  { name:'United Airlines',      nameJa:'United Airlines', flag:'🇺🇸', region:'Major US carrier', avg:'¥6,320万', sub:'Widebody Captain, top of the market', color:'#3d9bff',  pct:100, page:'airlines/united.html',             tagClass:'tag-orange', tagText:'USA', status:'Actively hiring', statusClass:'tag-green' },
-  { name:'Delta Air Lines',       nameJa:'Delta Air Lines',       flag:'🇺🇸', region:'Major US carrier', avg:'¥6,160万', sub:'Year 12+ senior Captain',         color:'#fb923c',  pct:97,  page:'airlines/delta.html',              tagClass:'tag-orange', tagText:'USA', status:'Actively hiring', statusClass:'tag-green' },
-  { name:'American Airlines',     nameJa:'American Airlines',   flag:'🇺🇸', region:'Major US carrier', avg:'¥5,930万', sub:'Widebody Captain',           color:'#f87171',  pct:94,  page:'airlines/american.html',           tagClass:'tag-orange', tagText:'USA', status:'Actively hiring', statusClass:'tag-green' },
-  { name:'Southwest Airlines',    nameJa:'Southwest',   flag:'🇺🇸', region:'US low-cost carrier',  avg:'¥4,820万', sub:'B737-only fleet; profit sharing included',     color:'#fbbf24',  pct:76,  page:'airlines/southwest.html',          tagClass:'tag-orange', tagText:'USA', status:'Hiring',   statusClass:'tag-blue'  },
-  { name:'Qantas Airways',        nameJa:'Qantas',     flag:'🇦🇺', region:'Oceania', avg:'¥3,700万', sub:'AUD 320k–520k. Top of the Australian market', color:'#EE0000', pct:59,  page:'airlines/qantas.html',             tagClass:'tag-red',    tagText:'AUS', status:'Hiring',   statusClass:'tag-blue'  },
-];
-
-const foData = [
-  { name:'United Airlines',      flag:'🇺🇸', region:'Major US carrier', avg:'¥3,870万', sub:'Year12 FO',           color:'#3d9bff', pct:100, page:'airlines/united.html',             tagClass:'tag-orange', tagText:'USA' },
-  { name:'Delta Air Lines',       flag:'🇺🇸', region:'Major US carrier', avg:'¥3,510万', sub:'Year12 FO',           color:'#fb923c', pct:91, page:'airlines/delta.html',              tagClass:'tag-orange', tagText:'USA' },
-  { name:'American Airlines',     flag:'🇺🇸', region:'Major US carrier', avg:'¥3,440万', sub:'Year12 FO',           color:'#f87171', pct:89, page:'airlines/american.html',           tagClass:'tag-orange', tagText:'USA' },
-  { name:'Emirates',              flag:'🇦🇪', region:'Middle East major', avg:'¥2,800万', sub:'Tax-free',               color:'#c4943b', pct:72,  page:'airlines/emirates.html',           tagClass:'tag-gold',   tagText:'UAE' },
-  { name:'Southwest Airlines',    flag:'🇺🇸', region:'US low-cost carrier',  avg:'¥2,610万', sub:'Year12 FO',           color:'#fbbf24', pct:67,  page:'airlines/southwest.html',          tagClass:'tag-orange', tagText:'USA' },
-];
-
-// 行は「順位・社名・推定年収」だけ（2026-09-22・見本なので上位5社）。
-// 金額は ¥…万 の文字のまま入れる。currency.js のこの後の走査が読み手の通貨へ直す。
-function buildRankingList(data, containerId) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-  data.forEach((d, i) => {
-    const row = document.createElement('a');
-    row.href = d.page;
-    row.className = 'lp-rk-row';
-    row.innerHTML = `<span class="lp-rk-n">${i + 1}</span><span class="lp-rk-an">${d.name}</span><span class="lp-rk-amt">${d.avg}</span>`;
-    container.appendChild(row);
-  });
-}
-
-buildRankingList(captainData, 'rank-captain');
-buildRankingList(foData, 'rank-fo');
-
-// 11位以降の開閉。行はもう生成済みなので、開いても本文量は増えない。
-
-// ── IntersectionObserver for fade-up + bars ───────────────────
+// ── IntersectionObserver for fade-up ──────────────────────────
 const io = new IntersectionObserver((entries) => {
   entries.forEach(e => {
     if (e.isIntersecting) {
       e.target.classList.add('visible');
-      animateBars(e.target);
       io.unobserve(e.target);
     }
   });
@@ -853,7 +812,6 @@ document.querySelectorAll('.fade-up').forEach(el => io.observe(el));
 setTimeout(() => {
   document.querySelectorAll('.fade-up:not(.visible)').forEach(el => {
     el.classList.add('visible');
-    animateBars(el);
   });
 }, 300);
 

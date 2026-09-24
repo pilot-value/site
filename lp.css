@@ -930,7 +930,10 @@
     #lp-explore :is(.lp-ex-lvl,.lp-ex-card){ scroll-margin-top:88px; }
 
     /* 国別：6本の細い棒（静止。見出しの推定額は currency.js が差し替える） */
-    #lp-explore .lp-ex-bars{ list-style:none; margin:12px 0 4px; padding:0; display:grid; row-gap:7px; }
+    /* ★隣のランキングのほうが背が高いので、この一覧を伸ばして余りを行の間へ配る
+       （下端に空きが残ると、カードが描き終わっていないように見える）。行数は増やさない。 */
+    #lp-explore .lp-ex-bars{ list-style:none; margin:12px 0 4px; padding:0; display:grid; row-gap:7px;
+      flex:1 1 auto; align-content:space-between; }
     #lp-explore .lp-ex-bars li{ display:grid; grid-template-columns:minmax(0,1fr) auto; column-gap:12px; row-gap:4px; align-items:baseline; }
     /* 見出しは「…」で切らずに折る（360px の英語で「Middle East majors (…」と「(tax-free)」が消えていた）。 */
     #lp-explore .lp-ex-bl{ min-width:0; font-size:13.5px; font-weight:500; line-height:1.35; color:var(--pv-text); }
@@ -941,7 +944,15 @@
     #lp-explore .lp-ex-bars i::before{ content:''; position:absolute; inset:0 auto 0 0; width:var(--w); min-width:6px;
       border-radius:999px; background:linear-gradient(90deg,var(--pv-accent),var(--pv-accent-dark)); }
 
-    /* ランキング：機長／副操縦士の切替と上位5行（行は buildRankingList が描く） */
+    /* ランキング：機長／副操縦士の切替と上位6行（棒グラフ）
+       ★行は lp.js の fillRanking() が salary-data.json（年収の正）から描く。
+         社名も金額も HTML とここには1つも無い＝数値を二重に持たない。
+       ★棒の色は airlines-meta.js のブランド色（行の style で --rk / --rk-s を渡す）。
+         配色をここで発明しない。色を持たない社は地の緑に落ちる。
+       ★1〜3位のメダルだけは順位そのものを指す印なので、ブランドの色の意味づけとは別立て。
+       ⚠️ 動かすのは transform だけ（幅は動かさない）。隠れている面は遷移が走らないので、
+          タブを切り替えた側から lp.js の PV_rankAnim を呼び直す。
+       ⚠️ 金額は pv-no-cur ＝ currency.js の走査の外。塗り替えは lp.js の repaintMarquee()。 */
     #lp-explore .lp-ex-tabs{ display:inline-flex; align-self:flex-start; gap:4px; margin:12px 0 4px; padding:3px;
       border-radius:999px; background:var(--pv-surface-soft); box-shadow:inset 0 0 0 1px var(--pv-border); }
     #lp-explore .lp-ex-tab{ min-height:32px; padding:0 16px; border:0; border-radius:999px; background:transparent;
@@ -952,18 +963,32 @@
       box-shadow:0 1px 2px rgba(15,23,42,.08), 0 6px 14px -8px rgba(6,117,99,.45); }
     #lp-explore .lp-ex-tab:active{ transform:scale(.95); }
     #lp-explore .lp-ex-tab:focus-visible{ outline:2px solid var(--pv-accent); outline-offset:2px; }
-    #lp-explore .lp-rk{ display:grid; }
+    /* ⚠️ 高さを先に取る。行は lp.js が読み込みの後に入れるので、取らないとカードが
+       空 → 292px に伸びて画面が跳ねる。292 ＝ 6行 ×47px ＋ 行間 5×2px（実測）。
+       lp.js の RANK_N か行の高さを変えたらここも直す（写しなので、片方だけだと黙ってずれる）。 */
+    #lp-explore .lp-rk{ display:grid; gap:2px; min-height:292px; align-content:start; }
     #lp-explore .lp-rk.hidden{ display:none; }
-    #lp-explore .lp-rk-row{ display:grid; grid-template-columns:20px minmax(0,1fr) auto; column-gap:10px; align-items:center;
-      min-height:30px; margin:0 -8px; padding:0 8px; border-radius:10px; color:var(--pv-text); text-decoration:none;
+    #lp-explore .lp-rk-row{ --rk:var(--pv-accent); --rk-s:var(--pv-accent-dark);
+      display:grid; grid-template-columns:24px minmax(0,1fr) auto; grid-template-areas:"n an amt" "n trk trk";
+      column-gap:10px; row-gap:6px; align-items:center;
+      margin:0 -8px; padding:6px 8px; border-radius:10px; color:var(--pv-text); text-decoration:none;
       transition:transform .3s var(--lp-spring); }
     #lp-explore .lp-rk-row:hover{ background:var(--pv-accent-soft); }
     #lp-explore .lp-rk-row:hover .lp-rk-an{ color:var(--pv-accent-ink); }
     #lp-explore .lp-rk-row:active{ transform:scale(.985); }
     #lp-explore .lp-rk-row:focus-visible{ outline:2px solid var(--pv-accent); outline-offset:0; }
-    #lp-explore .lp-rk-n{ font-size:12px; font-weight:700; text-align:center; font-variant-numeric:tabular-nums; color:var(--pv-text-muted); }
-    #lp-explore .lp-rk-an{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:14px; font-weight:600; }
-    #lp-explore .lp-rk-amt{ white-space:nowrap; font-size:14px; font-weight:700; font-variant-numeric:tabular-nums; }
+    #lp-explore .lp-rk-n{ grid-area:n; display:grid; place-items:center; width:24px; height:24px; border-radius:999px;
+      font-size:12px; font-weight:800; line-height:1; font-variant-numeric:tabular-nums;
+      background:var(--pv-surface-soft); color:var(--pv-text-muted); box-shadow:inset 0 0 0 1px var(--pv-border); }
+    #lp-explore .lp-rk-n1{ background:linear-gradient(135deg,#f5c842,#ffd700); color:#3b2f05; box-shadow:none; }
+    #lp-explore .lp-rk-n2{ background:linear-gradient(135deg,#a9b4bf,#d4dae1); color:#2b3138; box-shadow:none; }
+    #lp-explore .lp-rk-n3{ background:linear-gradient(135deg,#cd7f32,#e8a56a); color:#3a2208; box-shadow:none; }
+    #lp-explore .lp-rk-an{ grid-area:an; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:14px; font-weight:600; }
+    #lp-explore .lp-rk-amt{ grid-area:amt; white-space:nowrap; font-size:14px; font-weight:700; font-variant-numeric:tabular-nums; }
+    #lp-explore .lp-rk-trk{ grid-area:trk; position:relative; height:8px; border-radius:999px; overflow:hidden;
+      background:var(--pv-surface-soft); box-shadow:inset 0 0 0 1px var(--pv-border); }
+    #lp-explore .lp-rk-trk i{ position:absolute; inset:0; border-radius:999px; transform:scaleX(0); transform-origin:left center;
+      background:linear-gradient(90deg,var(--rk-s),var(--rk)); transition:transform 1.1s var(--lp-spring); }
     #lp-explore .lp-ex-fine{ margin:4px 0 0; font-size:12px; line-height:1.6; color:var(--pv-text-muted); text-wrap:balance; }
 
     /* 航空会社：主要8社の札（ロゴ＋社名） */
@@ -1077,7 +1102,8 @@
       #sec-faq .lp-btn{ width:100%; }
     }
     @media (prefers-reduced-motion:reduce){
-      #lp-explore .lp-ex-more svg, #lp-explore .lp-ex-tab, #lp-explore .lp-rk-row, #lp-explore .lp-ex-chip,
+      #lp-explore .lp-ex-more svg, #lp-explore .lp-ex-tab, #lp-explore .lp-rk-row, #lp-explore .lp-rk-trk i,
+      #lp-explore .lp-ex-chip,
       #lp-explore .lp-ex-list a::after, #lp-explore .lp-ex-all summary::after,
       #sec-faq .lp-btn, #sec-faq .lp-btn svg{ transition:none; }
     }

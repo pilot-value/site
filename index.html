@@ -474,7 +474,9 @@
           <button type="button" class="lp-ex-tab active" aria-pressed="true" onclick="switchRankTab(this,'captain')">機長</button>
           <button type="button" class="lp-ex-tab" aria-pressed="false" onclick="switchRankTab(this,'fo')">副操縦士</button>
         </div>
-        <!-- 上位5社だけ。行はこのページの下の buildRankingList が描く。 -->
+        <!-- ★上位6社の棒グラフ。行は lp.js の fillRanking() が salary-data.json（年収の正）から描く。
+             社名も金額もここには書かない＝SSOT を直せばここも変わる（前は下に5社ぶん手書きしてあった）。
+             棒の色は airlines-meta.js のブランド色。見た目は lp.css の .lp-rk-*。 -->
         <div id="rank-captain" class="lp-rk"></div>
         <div id="rank-fo" class="lp-rk hidden"></div>
         <p class="lp-ex-fine">実際の額は機材・経験年数・契約で変わります。</p>
@@ -782,57 +784,15 @@ function switchRankTab(btn, id) {
   btn.setAttribute('aria-pressed', 'true');
   document.getElementById('rank-captain').classList.toggle('hidden', id !== 'captain');
   document.getElementById('rank-fo').classList.toggle('hidden', id !== 'fo');
+  // 隠れている面は遷移が走らないので、出てきた側の棒を lp.js に動かし直させる。
+  if (typeof window.PV_rankAnim === 'function') window.PV_rankAnim(id === 'fo' ? 'rank-fo' : 'rank-captain');
 }
 
-// ── Animate bars ──────────────────────────────────────────────
-function animateBars(container) {
-  container.querySelectorAll('[data-width]').forEach(bar => {
-    bar.style.width = '0';
-    setTimeout(() => { bar.style.width = (bar.dataset.width || 0) + '%'; }, 80);
-  });
-}
-
-// ── Ranking Data ──────────────────────────────────────────────
-const captainData = [
-  { name:'United Airlines',      nameJa:'ユナイテッド航空', flag:'🇺🇸', region:'米国大手', avg:'¥6,320万', sub:'ワイドボディ機長・最高水準', color:'#3d9bff',  pct:100, page:'airlines/united.html',             tagClass:'tag-orange', tagText:'USA', status:'積極採用中', statusClass:'tag-green' },
-  { name:'Delta Air Lines',       nameJa:'デルタ航空',       flag:'🇺🇸', region:'米国大手', avg:'¥6,160万', sub:'Year12+シニア機長',         color:'#fb923c',  pct:97,  page:'airlines/delta.html',              tagClass:'tag-orange', tagText:'USA', status:'積極採用中', statusClass:'tag-green' },
-  { name:'American Airlines',     nameJa:'アメリカン航空',   flag:'🇺🇸', region:'米国大手', avg:'¥5,930万', sub:'ワイドボディ機長',           color:'#f87171',  pct:94,  page:'airlines/american.html',           tagClass:'tag-orange', tagText:'USA', status:'積極採用中', statusClass:'tag-green' },
-  { name:'Southwest Airlines',    nameJa:'サウスウエスト',   flag:'🇺🇸', region:'米国LCC',  avg:'¥4,820万', sub:'B737専業・利益配分含む',     color:'#fbbf24',  pct:76,  page:'airlines/southwest.html',          tagClass:'tag-orange', tagText:'USA', status:'採用中',   statusClass:'tag-blue'  },
-  { name:'Qantas Airways',        nameJa:'カンタス航空',     flag:'🇦🇺', region:'オセアニア', avg:'¥3,700万', sub:'AUD 320k〜520k。豪州最高水準', color:'#EE0000', pct:59,  page:'airlines/qantas.html',             tagClass:'tag-red',    tagText:'AUS', status:'採用中',   statusClass:'tag-blue'  },
-];
-
-const foData = [
-  { name:'United Airlines',      flag:'🇺🇸', region:'米国大手', avg:'¥3,870万', sub:'Year12 FO',           color:'#3d9bff', pct:100, page:'airlines/united.html',             tagClass:'tag-orange', tagText:'USA' },
-  { name:'Delta Air Lines',       flag:'🇺🇸', region:'米国大手', avg:'¥3,510万', sub:'Year12 FO',           color:'#fb923c', pct:91, page:'airlines/delta.html',              tagClass:'tag-orange', tagText:'USA' },
-  { name:'American Airlines',     flag:'🇺🇸', region:'米国大手', avg:'¥3,440万', sub:'Year12 FO',           color:'#f87171', pct:89, page:'airlines/american.html',           tagClass:'tag-orange', tagText:'USA' },
-  { name:'Emirates',              flag:'🇦🇪', region:'中東大手', avg:'¥2,800万', sub:'非課税',               color:'#c4943b', pct:72,  page:'airlines/emirates.html',           tagClass:'tag-gold',   tagText:'UAE' },
-  { name:'Southwest Airlines',    flag:'🇺🇸', region:'米国LCC',  avg:'¥2,610万', sub:'Year12 FO',           color:'#fbbf24', pct:67,  page:'airlines/southwest.html',          tagClass:'tag-orange', tagText:'USA' },
-];
-
-// 行は「順位・社名・推定年収」だけ（2026-09-22・見本なので上位5社）。
-// 金額は ¥…万 の文字のまま入れる。currency.js のこの後の走査が読み手の通貨へ直す。
-function buildRankingList(data, containerId) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-  data.forEach((d, i) => {
-    const row = document.createElement('a');
-    row.href = d.page;
-    row.className = 'lp-rk-row';
-    row.innerHTML = `<span class="lp-rk-n">${i + 1}</span><span class="lp-rk-an">${d.name}</span><span class="lp-rk-amt">${d.avg}</span>`;
-    container.appendChild(row);
-  });
-}
-
-buildRankingList(captainData, 'rank-captain');
-buildRankingList(foData, 'rank-fo');
-
-
-// ── IntersectionObserver for fade-up + bars ───────────────────
+// ── IntersectionObserver for fade-up ──────────────────────────
 const io = new IntersectionObserver((entries) => {
   entries.forEach(e => {
     if (e.isIntersecting) {
       e.target.classList.add('visible');
-      animateBars(e.target);
       io.unobserve(e.target);
     }
   });
@@ -843,7 +803,6 @@ document.querySelectorAll('.fade-up').forEach(el => io.observe(el));
 setTimeout(() => {
   document.querySelectorAll('.fade-up:not(.visible)').forEach(el => {
     el.classList.add('visible');
-    animateBars(el);
   });
 }, 300);
 

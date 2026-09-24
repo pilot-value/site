@@ -133,6 +133,12 @@
     return (L === 'en' ? (a.en || a.name) : a.name) || fallback || slug;
   }
 
+  /* 社の札そのもの（ブランド色・国旗）。表は airlineName と同じ1つを使い回す。 */
+  function airlineMeta(slug) {
+    if (NAME_BY_SLUG === null) airlineName(slug);
+    return NAME_BY_SLUG[slug] || null;
+  }
+
   /* 投稿フォームが保存するのは言語に依らない符号（captain / 10-15）。
      そのまま出すと日英どちらの画面でも符号が見えるので、ここで言葉に直す。 */
   var POS_LABEL = {
@@ -484,6 +490,18 @@
     for (var j = 0; j < rs.length; j++) {
       rs[j].textContent = rangeAmt(parseInt(rs[j].getAttribute('data-jpy-lo'), 10), parseInt(rs[j].getAttribute('data-jpy-hi'), 10));
     }
+    // ランキングの金額（公開データ。こちらも丸めない）。
+    var ks = d.querySelectorAll('#ranking .pv-no-cur[data-jpy]');
+    for (var k = 0; k < ks.length; k++) {
+      ks[k].textContent = salAmt(parseInt(ks[k].getAttribute('data-jpy'), 10));
+    }
+  }
+
+  /* 公開年収の1つの値。rangeAmt と同じ規約で、見本ではないので丸めない。 */
+  function salAmt(jpy) {
+    var C = w.PVCurrency;
+    if (C && typeof C.fmt === 'function' && (L === 'en' || (typeof C.get === 'function' && C.get() !== 'JPY'))) return C.fmt(jpy);
+    return '¥' + Math.round(jpy / 10000).toLocaleString('en-US') + '万';
   }
 
   /* 公開年収のレンジ。★見本ではなく SSOT の値なので丸めない（mqAmt の有効数字2桁を使わない）。
@@ -716,6 +734,88 @@
     }).catch(function () {});
   }
 
+  /* ── ⓭ 航空会社別の年収ランキング（#ranking の棒グラフ）─────────────────
+     ★数字の出どころは salary-data.json（SALARY から生成）の cap.avg / fo.avg だけ。
+       HTML にも lp.css にも社名と金額を持たない＝SSOT を直せばここも変わる。
+       前は index.html に5社ぶんを手書きしてあり、SSOT を更新しても取り残された。
+     ⚠️ avg は公開情報からの推計。見出しの「（推定年収・公開情報）」を外さない。
+        「平均」と書かない（DATA-PROVENANCE.md）。
+     ★棒の色は airlines-meta.js のブランド色。ここで配色を発明しない。
+       色を持たない社（SSOT 112 に対し meta は 108）は地の緑のまま出る。
+     ★PVLeveling.load() は fillAirlines と同じ1回を使い回す＝通信は増えない。
+     ⚠️ 金額は pv-no-cur ＋ data-jpy。currency.js の走査より後に描くので、
+        あちらには任せられない（repaintMarquee が塗り直す）。 */
+  /* ⚠️ 行数を変えたら lp.css の .lp-rk の min-height（＝先に取っておく高さ）も直す。
+     直さないと、行が入った瞬間にカードが伸びて画面が跳ねる。 */
+  var RANK_N = 6;
+
+  function rankRows(SAL, key) {
+    var all = (SAL && SAL.airlines) || {};
+    return Object.keys(all).filter(function (sl) {
+      return all[sl] && all[sl][key] && all[sl][key].avg > 0;
+    }).sort(function (a, b) {
+      return all[b][key].avg - all[a][key].avg;
+    }).slice(0, RANK_N).map(function (sl, i) {
+      var m = airlineMeta(sl);
+      return {
+        slug: sl, i: i, man: all[sl][key].avg,
+        name: airlineName(sl, L === 'en' ? all[sl].en : all[sl].ja),
+        flag: (m && m.flag) || '',
+        color: m && /^#[0-9a-fA-F]{6}$/.test(m.color || '') ? m.color : null,
+      };
+    });
+  }
+
+  function rankHTML(rows) {
+    if (!rows.length) return '';
+    var top = rows[0].man;
+    return rows.map(function (r) {
+      var jpy = r.man * 10000;
+      var pct = Math.max(8, Math.round(r.man / top * 100));
+      // 濃い側＝ブランド色そのまま、薄い側＝同じ色の 53%（8桁hex の透明度）。新しい色を作らない。
+      var sty = r.color ? ' style="--rk:' + r.color + ';--rk-s:' + r.color + '88"' : '';
+      return '<a class="lp-rk-row" href="airlines/' + esc(r.slug) + '.html" data-pv-ev="lp_explore_rank_row"' + sty + '>' +
+        '<span class="lp-rk-n' + (r.i < 3 ? ' lp-rk-n' + (r.i + 1) : '') + '">' + (r.i + 1) + '</span>' +
+        '<span class="lp-rk-an">' + (r.flag ? '<span aria-hidden="true">' + esc(r.flag) + '</span> ' : '') + esc(r.name) + '</span>' +
+        '<span class="lp-rk-amt pv-no-cur" data-jpy="' + jpy + '">' + esc(salAmt(jpy)) + '</span>' +
+        '<span class="lp-rk-trk" aria-hidden="true"><i data-pct="' + pct + '"></i></span>' +
+      '</a>';
+    }).join('');
+  }
+
+  function fillRanking() {
+    var cap = d.getElementById('rank-captain'), fo = d.getElementById('rank-fo');
+    if (!cap || !fo) return;
+    if (!w.PVLeveling || typeof w.PVLeveling.load !== 'function') return;   // 空のまま（数字を推測で埋めない）
+    w.PVLeveling.load().then(function (SAL) {
+      var a = rankHTML(rankRows(SAL, 'cap')), b = rankHTML(rankRows(SAL, 'fo'));
+      if (!a || !b) return;
+      cap.innerHTML = a;
+      fo.innerHTML = b;
+      rankAnim('rank-captain');
+    }).catch(function () {});
+  }
+
+  /* 棒を 0 → 実寸へ。動かすのは transform だけ（幅は動かさない）。
+     隠れている面（display:none）は遷移が走らないので、タブを切り替えた側から呼び直す
+     ＝ index.html の switchRankTab() が PV_rankAnim を叩く。
+     ⚠️ 時間で待たない。2回 rAF を挟んで「最初の描画が済んだ」ことを条件にする。 */
+  function rankAnim(id) {
+    var box = d.getElementById(id);
+    if (!box) return;
+    var bars = box.querySelectorAll('.lp-rk-trk i'), i;
+    for (i = 0; i < bars.length; i++) { bars[i].style.transitionDelay = ''; bars[i].style.transform = 'scaleX(0)'; }
+    var go = function () {
+      for (var j = 0; j < bars.length; j++) {
+        bars[j].style.transitionDelay = (j * 0.05) + 's';
+        bars[j].style.transform = 'scaleX(' + (parseInt(bars[j].getAttribute('data-pct'), 10) / 100) + ')';
+      }
+    };
+    if (typeof w.requestAnimationFrame !== 'function') { go(); return; }
+    w.requestAnimationFrame(function () { w.requestAnimationFrame(go); });
+  }
+  w.PV_rankAnim = rankAnim;
+
   /* ── 開発時だけ：?pv_demo=live で実データ経路を目視する用のログ ─────────
      localhost 以外では何もしない（本番でURLを叩かれても動かない）。 */
   function devProbe() {
@@ -763,8 +863,9 @@
     fillHero();
     fillRealPay();
     fillAirlines();
+    fillRanking();
     // 金額は pv-no-cur ＝ currency.js の走査から外してある（mqAmt が自分で書く）ので、
-    // 通貨の切替はここで受ける（流れるカード・ヒーローの見本・REAL PAY のカード・112 の電話）。currency.js は
+    // 通貨の切替はここで受ける（流れるカード・ヒーローの見本・REAL PAY のカード・112 の電話・ランキング）。currency.js は
     // 「保存された通貨が非JPY」の初期表示でも同じ報せを出すので、戻ってきた人もこれ1本で拾える。
     w.addEventListener('pv-currency-change', repaintMarquee);
     fillVoices();
