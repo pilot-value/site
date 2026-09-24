@@ -14,13 +14,14 @@
          node shot-remind.mjs --founding  … FOUNDING PILOT 100 のお知らせを撮る
          node shot-remind.mjs --realpay   … REAL PAY 公開のお知らせを撮る
          node shot-remind.mjs --update    … この1ヶ月のお知らせを撮る
+         node shot-remind.mjs --renewal   … トップページ刷新のお知らせを撮る
 */
 import puppeteer from 'puppeteer';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { build } from './supabase/functions/remind-payslip/index.ts';
-import { build as buildAnnounce, buildFounding, buildRealPay, buildUpdate } from './mail-bot/announce-mail.mjs';
+import { build as buildAnnounce, buildFounding, buildRealPay, buildUpdate, buildRenewal } from './mail-bot/announce-mail.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const outDir = path.join(__dirname, 'temporary screenshots', 'mail');
@@ -30,6 +31,7 @@ const ANNOUNCE = process.argv.includes('--announce');
 const FOUNDING = process.argv.includes('--founding');
 const REALPAY  = process.argv.includes('--realpay');
 const UPDATE   = process.argv.includes('--update');
+const RENEWAL  = process.argv.includes('--renewal');
 const day = (n) => new Date(Date.now() + n * 86400000).toISOString();
 
 /* 受け取る人の状態は3つに分かれる。文面と色が変わるので全部見る。 */
@@ -89,11 +91,26 @@ const UPDATE_CASES = [
   { k: 'up-noname',        p: { name: null,          country: null } },
 ];
 
-const CASES = UPDATE ? UPDATE_CASES : REALPAY ? REALPAY_CASES : FOUNDING ? FOUNDING_CASES : ANNOUNCE ? ANNOUNCE_CASES : REMIND_CASES;
+/* トップページ刷新のお知らせ。★分かれるのは言語だけ（全員に同じ1通）。
+   update と同じく日本語が上・英語が下。
+   ★見るのは「オーナーの原稿と1文字ずつ同じか」── 勝手な見出し・箇条書き・
+     件数・社名が混ざっていないか。英語の人の行き先が /en/ になっているか。 */
+const RENEWAL_CASES = [
+  { k: 'rn-ja',            p: { name: '高橋 蓮',     country: '日本' } },
+  { k: 'rn-en',            p: { name: 'Alex Mercer', country: 'UAE' } },
+  { k: 'rn-both',          p: { name: 'Ren Aoki',    country: null } },
+  { k: 'rn-both-overseas', p: { name: 'Ren Aoki',    country: null, airline_region: 'mideast' } },
+  { k: 'rn-noname',        p: { name: null,          country: null } },
+];
+
+const CASES = RENEWAL ? RENEWAL_CASES : UPDATE ? UPDATE_CASES : REALPAY ? REALPAY_CASES : FOUNDING ? FOUNDING_CASES : ANNOUNCE ? ANNOUNCE_CASES : REMIND_CASES;
 
 const files = [];
 for (const c of CASES) {
-  const m = UPDATE
+  const m = RENEWAL
+    ? buildRenewal({ id: 'x', unsub_token: '0000-token', ...c.p },
+      { supabaseUrl: 'https://example.supabase.co', siteUrl: 'http://localhost:3000' })
+    : UPDATE
     ? buildUpdate({ id: 'x', unsub_token: '0000-token', ...c.p },
       { supabaseUrl: 'https://example.supabase.co', siteUrl: 'http://localhost:3000' })
     : REALPAY

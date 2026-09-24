@@ -35,6 +35,13 @@
       だから①④⑤の「社名ゼロ・数字ゼロ」は当てられない。代わりに逆向きに縛る
       ―― 出てよい社名は UPDATE_AIRLINES の7社だけ・出てよい数字は
       UPDATE_STATS から来る2つだけ。あとから1件しかない社や会員数を足したら落ちる。
+
+   ⑦ トップページ刷新のお知らせ（buildRenewal）
+      ④⑤と同じく登録者全員に送る。原稿には社名も件数も1つも無いので、
+      ①④⑤の「社名ゼロ」に加えて**数字もゼロ**で縛る。
+      ★共有のお願いの2段落は INVITE の案内に置き換えてある（2026-09-24 オーナー決定）。
+      添えた1文は pv-referral.js からそのまま借りている＝ここで照合する。
+      ★英語の人の行き先は /en/（同日オーナー指示）。
    ════════════════════════════════════════════════════════════════ */
 import { readFileSync, statSync, readdirSync } from 'fs';
 import { createHash } from 'crypto';
@@ -47,7 +54,8 @@ const read = (p) => readFileSync(join(ROOT, p), 'utf8');
 let pass = 0, fail = 0;
 const ok = (c, m, x = '') => { c ? (pass++, console.log(`  ✅ ${m}`)) : (fail++, console.log(`  ❌ ${m}${x ? '\n     ' + x : ''}`)); };
 
-const { build, buildFounding, buildRealPay, buildUpdate, realPayLangOf, langModeOf,
+const { build, buildFounding, buildRealPay, buildUpdate, buildRenewal,
+        realPayLangOf, langModeOf, updateLangOf, renewalLangOf,
         SAMPLE, IMG_VER, UPDATE_STATS, UPDATE_AIRLINES, UPDATE_FALLBACK_LANG } = await import(join(ROOT, 'mail-bot/announce-mail.mjs'));
 
 /* 架空の人。実在の氏名は使わない（このリポジトリは PUBLIC）。 */
@@ -965,6 +973,207 @@ for (const [k, b] of UALL) {
 
 /* 件名の長さ。 */
 for (const [k, b] of UALL) ok(b.subject.length <= 78, `update/${k}: 件名が 78 文字以内（${b.subject.length}）`);
+
+
+/* ════════ ⑦ トップページ刷新のお知らせ ════════════════════════════
+   buildRenewal()。④⑤⑥と同じく登録者全員へ送る。⑥と違って原稿には
+   社名も件数も1つも無いので、**社名ゼロ・数字ゼロ**の両方で縛る。
+
+   ・★共有のお願いの2段落（「ぜひPILOT VALUEを共有していただけると
+     うれしいです」／「サイトのリンクを共有していただくだけでも…」）は、
+     INVITE の案内に置き換えてある（2026-09-24 オーナー決定・2026-09-12 と同じ扱い）。
+     戻すと広告宣伝メールになり、本文に運営者の氏名・住所を書く義務が出る。
+   ・★添えた1文は pv-referral.js の privacy をそのまま借りている。
+     実ファイルと突き合わせる＝画面の言い方を変えたらここが落ちる
+     （メールだけが古い約束を語り続けない）。
+   ・★英語の人の行き先は /en/（同日オーナー指示）。日本語はルート。
+   ════════════════════════════════════════════════════════════════ */
+console.log('\n── ⑦ トップページ刷新のお知らせ ──');
+
+const RN = {
+  ja:   { name: '高橋 蓮',     country: '日本', unsub_token: 'rn-ja' },
+  en:   { name: 'Alex Mercer', country: 'UAE',  unsub_token: 'rn-en' },
+  both: { name: 'Ren Aoki',    country: null,   unsub_token: 'rn-both' },
+};
+const RNALL = Object.entries(RN).map(([k, x]) => [k, buildRenewal(x, O)]);
+
+/* 入れてはいけないもの。①④⑤と同じ物差しをそのまま当てる。 */
+for (const [k, b] of RNALL) {
+  const body = b.html + '\n' + b.subject + '\n' + b.text;
+  const money = MONEY.find(([re]) => re.test(body));
+  ok(!money, `renewal/${k}: 金額が1つも入っていない`, money ? `${money[1]} → ${body.match(money[0])[0]}` : '');
+  const low = body.toLowerCase();
+  const ded = DEDUCT.find((w) => low.includes(w.toLowerCase()));
+  ok(!ded, `renewal/${k}: 控除の項目名が入っていない`, ded || '');
+  const slip = SLIP.find((w) => low.includes(w.toLowerCase()));
+  ok(!slip, `renewal/${k}: 明細の項目名が入っていない`, slip || '');
+  ok(!/賞与|ボーナス|\bbonus/.test(low), `renewal/${k}: 賞与のことを書いていない`);
+  const over = OVERCLAIM.find((re) => re.test(body));
+  ok(!over, `renewal/${k}: 特定されないと言い切っていない`, over ? String(over) : '');
+  const stray = NAMES.find((n) => hitsName(body, n));
+  ok(!stray, `renewal/${k}: 航空会社名が1つも入っていない`, stray || '');
+}
+
+/* ★勧誘の言い回しが入っていないこと。ここが入ると広告宣伝メールになる。 */
+for (const [k, b] of RNALL) {
+  const low = (b.html + b.subject + b.text).toLowerCase();
+  const hit = SOLICIT.find((w) => low.includes(w.toLowerCase()));
+  ok(!hit, `renewal/${k}: 勧誘の言い回しが入っていない`, hit || '');
+  ok(!/pay-report\.html/.test(b.html + b.text), `renewal/${k}: 給与フォームへの導線が無い`);
+}
+
+/* ★数字が1つも出ないこと。原稿に件数も人数も無い＝あとから足したらここで落ちる
+   （会員の規模が読める数字を、このメールに紛れ込ませない）。 */
+for (const [k, b] of RNALL) {
+  const visible = b.html
+    .replace(/<(script|style)[\s\S]*?<\/\1>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&[a-z]+;/gi, ' ');
+  for (const [what, src] of [['文字版', b.subject + '\n' + b.text], ['HTML の見える文字', visible]]) {
+    const nums = [...new Set(String(src).match(/\d+/g) || [])];
+    ok(nums.length === 0, `renewal/${k}: ${what}に数字が1つも無い`, nums.join(','));
+  }
+}
+
+/* ★行き先。日本語はトップページ、英語は /en/（2026-09-24 オーナー指示）。 */
+{
+  const bJa = buildRenewal(RN.ja, O), bEn = buildRenewal(RN.en, O);
+  ok(bJa.topUrl === 'https://pilot-value.com/', 'renewal: 日本語の人はトップページへ', bJa.topUrl);
+  ok(bEn.topUrl === 'https://pilot-value.com/en/', 'renewal: 英語の人は /en/ へ', bEn.topUrl);
+  ok(bJa.text.includes('▶ https://pilot-value.com/\n'), 'renewal/ja: 文字版に原稿どおりの ▶ の行がある');
+  ok(bEn.text.includes('▶ https://pilot-value.com/en/'), 'renewal/en: 文字版の ▶ の行も /en/');
+  ok(!/\/en\//.test(bJa.text), 'renewal/ja: 日本語の人の本文に英語版の URL が混ざらない');
+}
+for (const [k, b] of RNALL) {
+  const langs = b.lang === 'both' ? ['ja', 'en'] : [b.lang];
+  const btn = (b.html.match(/background:#f5c842/g) || []).length;
+  ok(btn === langs.length, `renewal/${k}: 押すボタンは言語ごとに1つだけ`, String(btn));
+}
+
+/* ★招待のリンク。入口は invite.html の1枚だけ・追跡用の印を付けない。 */
+for (const [k, b] of RNALL) {
+  const langs = b.lang === 'both' ? ['ja', 'en'] : [b.lang];
+  const n = (b.html.match(/invite\.html/g) || []).length;
+  ok(n === langs.length, `renewal/${k}: 招待のリンクが言語ごとに1つ`, String(n));
+  ok(b.text.includes('/invite.html'), `renewal/${k}: 文字版にも招待の URL がある（アンカーが無いため）`);
+  ok(!/invite\.html[?#]/.test(b.html + b.text), `renewal/${k}: 招待の URL に追跡用の印が付いていない`);
+  ok(b.html.includes('>INVITE</a>'), `renewal/${k}: 本文の「INVITE」の文字がそのままリンク`);
+}
+ok(buildRenewal(RN.ja, O).text.includes('/invite.html')
+   && !buildRenewal(RN.ja, O).text.includes('/en/invite.html'),
+   'renewal: 日本語の人は日本語の招待ページへ');
+ok(buildRenewal(RN.en, O).text.includes('/en/invite.html'), 'renewal: 英語の人は英語の招待ページへ');
+
+/* ★招待に添えた1文は pv-referral.js からそのまま借りたもの。
+   画面の言い方を変えたらここが落ちる＝メールだけが古い約束を語り続けない。 */
+{
+  const REF = read('pv-referral.js');
+  const jaNote = '招待した相手が誰かは、こちらでは分かりません。あなたの給与も相手には見えません。';
+  const enNote = 'We never tell you who accepted an invitation, and they never see your pay.';
+  ok(REF.includes('招待した相手が誰かは、こちらでは分かりません。')
+     && REF.includes('あなたの給与も相手には見えません。'),
+     'renewal: 日本語の但し書きが pv-referral.js と同じ文');
+  ok(REF.includes('We never tell you who accepted an invitation,')
+     && REF.includes('and they never see your pay.'),
+     'renewal: 英語の但し書きが pv-referral.js と同じ文');
+  ok(buildRenewal(RN.ja, O).text.includes(jaNote), 'renewal/ja: その但し書きが本文にある');
+  ok(buildRenewal(RN.en, O).text.includes(enNote), 'renewal/en: その但し書きが本文にある');
+}
+
+/* ★原稿に無いものを足していない。 */
+for (const [k, b] of RNALL) {
+  ok(!/<h[1-6]|<li|<ul|<ol/i.test(b.html), `renewal/${k}: 見出しも箇条書きも足していない`);
+  ok(!/<img/i.test(b.html), `renewal/${k}: 画像を使っていない`);
+}
+/* 原稿の書き出し・結び・署名が1文字違わず入っている。 */
+{
+  const bJa = buildRenewal(RN.ja, O), bEn = buildRenewal(RN.en, O);
+  ok(bJa.subject === 'PILOT VALUEのトップページが新しくなりました ✈️',
+     'renewal/ja: 原稿どおりの件名', bJa.subject);
+  ok(bEn.subject === 'A new look for PILOT VALUE ✈️', 'renewal/en: 原稿どおりの件名', bEn.subject);
+  ok(bJa.text.startsWith('PILOT VALUEをご利用いただき、ありがとうございます。'),
+     'renewal/ja: 原稿どおりの書き出し');
+  ok(bJa.text.includes('このたび、トップページをリニューアルしました！'),
+     'renewal/ja: 原稿どおりの知らせ');
+  ok(bJa.text.includes('これからも改善を続けていきますので、引き続きよろしくお願いいたします。'),
+     'renewal/ja: 原稿どおりの結び');
+  ok(bEn.text.startsWith('Thank you for being part of PILOT VALUE.'),
+     'renewal/en: 原稿どおりの書き出し');
+  ok(bEn.text.includes("Thank you for being part of this journey. We're just getting started."),
+     'renewal/en: 原稿どおりの結び');
+  for (const [k, b] of RNALL) {
+    ok(b.text.includes('PILOT VALUE Team') && b.text.includes("Pilot defines. Pilot's value."),
+       `renewal/${k}: 原稿どおりの署名とタグラインが入っている`);
+  }
+}
+
+/* 解除の導線。全員に送るぶん、欠けたときの傷が深い。 */
+for (const [k, b] of RNALL) {
+  ok(b.unsubUrl.includes(RN[k].unsub_token), `renewal/${k}: 解除リンクがその人のトークンを持っている`);
+  ok(b.html.includes(b.unsubUrl), `renewal/${k}: HTML 版に解除リンクがある`);
+  ok(b.text.includes(b.unsubUrl), `renewal/${k}: 文字版にも解除リンクがある`);
+  ok(/functions\/v1\/remind-payslip\?u=/.test(b.oneClickUrl), `renewal/${k}: ワンクリック解除の宛先がある`);
+  ok(!/希望|opted in|opt-in/i.test(b.text), `renewal/${k}: 「希望した方に」と書いていない（全員に送るため）`);
+  ok(/お知らせとしてお送り|service notice/i.test(b.text), `renewal/${k}: 全員に送る理由を正直に書いている`);
+}
+{
+  const b = buildRenewal(RN.both, O);
+  ok(b.html.includes('/unsubscribe.html') && b.html.includes('/en/unsubscribe.html'),
+     'renewal/both: 解除リンクが日英2本ある');
+}
+
+/* ★日英ともは日本語が上・英語が下（realpay / update と同じ向き）。 */
+{
+  const b = buildRenewal(RN.both, O);
+  /* ★このメールは日本語の1文目も「PILOT VALUE」で始まる。だから
+     「最初の英字」で向きを見ると英語が上だと誤判定する（実際にした）。
+     日英それぞれの書き出しの位置で見る。 */
+  const jaAt = b.text.indexOf('PILOT VALUEをご利用いただき、ありがとうございます。');
+  const enAt = b.text.indexOf('Thank you for being part of PILOT VALUE.');
+  ok(jaAt >= 0 && enAt >= 0 && jaAt < enAt, 'renewal/both: 日本語が上・英語が下', `ja@${jaAt} en@${enAt}`);
+  ok(b.html.includes('English follows.'), 'renewal/both: 仕切りが「English follows.」');
+  ok(!b.html.includes('日本語は下に続きます。'), 'renewal/both: 逆向きの仕切りが残っていない');
+}
+ok(!/[぀-ヿ一-鿿]/.test(buildRenewal(RN.en, O).text), 'renewal: 英語だけの人に日本語を混ぜない');
+
+/* ★送り分けは update と同じ判定を共有している（2本に割らない）。 */
+{
+  ok(renewalLangOf === updateLangOf, 'renewal: 送り分けは update と同じ判定を使っている（2本に割っていない）');
+  ok(buildRenewal({ ...RN.both, airline_region: 'mideast' }, O).lang === 'en',
+     'renewal: 勤務先が海外の航空会社なら英語だけ');
+  ok(buildRenewal({ ...RN.both, airline_region: 'japan' }, O).lang === 'ja',
+     'renewal: 勤務先が日本の航空会社なら日本語だけ');
+  ok(buildRenewal({ ...RN.ja, airline_region: 'mideast' }, O).lang === 'ja',
+     'renewal: 氏名から分かる人は勤務先で上書きしない');
+  ok(buildRenewal(RN.both, O).lang === 'both',
+     'renewal: 居住国も勤務先も分からない人には日英ともに1通');
+}
+
+/* ★1種類しか作れないこと。提出の有無で文面を割ると、割った側が必ず勧誘になる。 */
+{
+  const a = buildRenewal({ name: '高橋 蓮', country: '日本', unsub_token: 'x' }, O);
+  const b = buildRenewal({ name: '高橋 蓮', country: '日本', unsub_token: 'x',
+    pay_report_count: 9, review_count: 4, founding_no: 7 }, O);
+  ok(a.html === b.html && a.subject === b.subject,
+     'renewal: 提出の有無を渡しても本文が変わらない（1種類しか作れない）');
+}
+
+/* 氏名を出さない（①④⑤⑥と同じ理由）。 */
+for (const [k, b] of RNALL) {
+  const nm = String(RN[k].name).split(/\s+/).filter((w) => w.length >= 2);
+  const hit = nm.find((w) => (b.subject + b.html + b.text).includes(w));
+  ok(!hit, `renewal/${k}: 氏名が件名にも本文にも出ない`, hit || '');
+}
+{
+  const evil = buildRenewal({ name: '<script>x</script>', country: '日本', unsub_token: 't' }, O);
+  ok(!evil.html.includes('<script>') && !evil.html.includes('&lt;script&gt;'),
+     'renewal: 氏名に入れられたタグが本文に出ない');
+  const anon = buildRenewal({ name: null, country: null, unsub_token: 't' }, O);
+  ok(anon.html.length > 500 && !/null|undefined/.test(anon.text), 'renewal: 氏名が空でも本文が壊れない');
+}
+
+/* 件名の長さ。 */
+for (const [k, b] of RNALL) ok(b.subject.length <= 78, `renewal/${k}: 件名が 78 文字以内（${b.subject.length}）`);
 
 console.log(`\n${pass} pass / ${fail} fail\n`);
 process.exit(fail ? 1 : 0);

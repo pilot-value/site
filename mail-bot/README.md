@@ -339,6 +339,33 @@ node mail-bot/send.mjs update --send                # ⑤ 本番
 - 招待は「マイページの INVITE から匿名のまま招待できます」という**事実の案内**。
   リンク先は `invite.html` の1枚だけで、追跡用のパラメータは付けない。
 
+### トップページが新しくなりました（send.mjs renewal）
+
+トップページの刷新を登録者全員に知らせる1通（2026-09-24）。文面は
+[announce-mail.mjs](announce-mail.mjs) の `buildRenewal`。**cron には登録しない**（一度きり）。
+
+```
+node mail-bot/send.mjs renewal                       # ① 送らない。誰に何語で届くかが出る
+node shot-remind.mjs --renewal                       # ② 本文を絵で見る（5通り）
+node mail-bot/send.mjs renewal --to=info@pilot-value.com --send            # ③ ★自分の受信箱で現物を見る
+node mail-bot/send.mjs renewal --to=info@pilot-value.com --send --lang=en  #    英語版も
+node mail-bot/send.mjs renewal --send                # ④ 本番
+```
+
+- **★数字が1つも入らない唯一のメール。** 件数も社数も金額も書かない
+  ―― 書けば数え直しが要るし、腐る。`db/test-announce.mjs` の⑦が**本文の数字をゼロで固定**している。
+- **★英語の行き先は `https://pilot-value.com/en/`**（2026-09-24 オーナー指示）。
+  日本語は `https://pilot-value.com/`。⑦が両方を1文字ずつ照合している。
+  日本語の本文に `/en/` が混ざることも落とす。
+- **送り分けは `renewalLangOf`＝`updateLangOf` と同じもの**（＝1本）。
+  日本の会員は日本語・海外は英語・**手がかりが無い人だけ日英ともに1通**。
+  ⑦が「2本に割れていないこと」を見ている。
+- **文面はオーナーの原稿。書き直さない。** 原稿から変えたのは2か所だけ ――
+  (A) 「知り合いに共有してください」の2段落を **INVITE の事実の案内**へ（2026-09-24 オーナー判断。
+  登録者全員に送る＝勧誘を1文も入れられないため。文言は `pv-referral.js` から**そのまま引用**し、
+  ⑦がサイト側と1文字ずつ突き合わせる）、(B) `▶` の行にボタンを1つ足した。
+- **1人1通。** 控えは `.send-state.json` の **`renewalSent`**（他の4つと別の鍵）。
+
 ---
 
 ## 定期実行（cron 例）

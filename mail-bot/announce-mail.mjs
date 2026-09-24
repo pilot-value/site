@@ -1141,3 +1141,195 @@ export function buildUpdate(p, o = {}) {
 
   return { lang, subject, html, text, unsubUrl, oneClickUrl, payUrl: payUrl(langs[0]), inviteUrl: inviteUrl(langs[0]) };
 }
+
+/* ════════════════════════════════════════════════════════════════
+   トップページ刷新のお知らせ（buildRenewal）
+
+   ── 誰に送るか ────────────────────────────────────────────────
+   buildFounding / buildRealPay / buildUpdate と同じ。**登録者全員**
+   （email_opt_in で絞らない）。だから勧誘を1文も含まない「サービスからの
+   お知らせ」に保つ。勧誘が入った時点で特定電子メール法の広告宣伝メールになり、
+   4条の「送信者の氏名・住所」の表示義務が発生する（運営者の身元を守る方針と
+   正面からぶつかる）。
+
+   ── ★文面はオーナーの原稿そのまま ────────────────────────────
+   **書き直さない。** 原稿から変えたのは次の2つだけで、どちらも理由がある。
+     A ★共有のお願いの2段落（「ぜひPILOT VALUEを共有していただけると
+       うれしいです」「サイトのリンクを共有していただくだけでも…」）→
+       「マイページの INVITE から匿名のまま招待できます」という事実の案内。
+       2026-09-24 オーナー決定。理由は上（2026-09-12 の update と同じ扱い）。
+       ★添える1文は pv-referral.js の privacy をそのまま借りている
+       （「相手が誰かは分からない・給与は見えない」）。ここで作文しない。
+     B ▶ の行に文字のボタンを1つ置いた（押す所が要るため）。
+       行き先は原稿と同じトップページで、文字版には原稿どおり ▶ と URL が出る。
+   原稿に無いものを足さない ── 見出し・箇条書き・件数・社名・他のリンク。
+   器（黒帯＋白いカード＋金のボタン）だけ buildUpdate から借りる。
+
+   ── ★英語の人の行き先は /en/（2026-09-24 オーナー指示）─────────
+   日本語は https://pilot-value.com/ 、英語は https://pilot-value.com/en/ 。
+   pre(l) がその1か所。
+
+   ── 本文に入れないもの ────────────────────────────────────────
+   ・金額・職位名・明細の項目名（他の4通と同じ）
+   ・件数・人数・航空会社名（この原稿には元から1つも無い。足さない）
+   → db/test-announce.mjs の⑦が全部を検査して固定している。
+   ════════════════════════════════════════════════════════════════ */
+
+/* ★日英ともに入れるときは日本語が上・英語が下（realpay / update と同じ向き）。
+   UPDATE_BOTH_ORDER を共有せず別に持つのは、あちらが過去に送った1通の
+   記録でもあるため。片方の都合でもう片方の並びを動かさない。 */
+const RENEWAL_BOTH_ORDER = ['ja', 'en'];
+
+/* ★送り分けは update と同じ updateLangOf（日本の会員は日本語・海外は英語、
+   居住国も勤務先も分からない人だけ日英ともに1通）。判定を2本に割らない
+   ── 割ると、同じ人に前回と違う言語で届く道ができる。 */
+export const renewalLangOf = updateLangOf;
+
+function renewalCopy(lang) {
+  if (lang === 'ja') {
+    return {
+      subject: 'PILOT VALUEのトップページが新しくなりました ✈️',
+      /* ★以下、オーナーの原稿そのまま。 */
+      lead: [
+        'PILOT VALUEをご利用いただき、ありがとうございます。',
+        'このたび、トップページをリニューアルしました！',
+        'パイロットの実際の給与・待遇をもっと分かりやすく、そして自分の市場価値を知るためのサービスとして、より使いやすいデザインに生まれ変わりました。',
+      ],
+      cta: 'トップページを見る',
+      mid: [
+        '私たちが目指しているのは、世界中のパイロットが、実際のデータをもとに自分のキャリアや待遇を判断できる未来です。',
+        'そのためには、より多くのパイロットの参加が欠かせません。',
+      ],
+      /* ★A。原稿の共有のお願い2段落の置き換え。
+         link の文字だけが招待ページへのリンクになる。 */
+      invite: {
+        pre: 'もし周りに、このサービスが役に立ちそうなパイロットがいれば、マイページの',
+        link: 'INVITE',
+        post: 'から匿名のままPILOT VALUEに招待できます。',
+        /* pv-referral.js の T.ja.privacy をそのまま（作文しない）。 */
+        note: '招待した相手が誰かは、こちらでは分かりません。あなたの給与も相手には見えません。',
+      },
+      close: [
+        '一人ひとりの参加が、世界中のパイロットにとって価値あるデータベースを育てていきます。',
+        'これからも改善を続けていきますので、引き続きよろしくお願いいたします。',
+      ],
+      sign: ['PILOT VALUE Team', "Pilot defines. Pilot's value."],
+      why: 'このメールは、PILOT VALUE にご登録いただいた方へ、サービスからのお知らせとしてお送りしています。',
+      unsub: '配信を停止する',
+    };
+  }
+  return {
+    subject: 'A new look for PILOT VALUE ✈️',
+    lead: [
+      'Thank you for being part of PILOT VALUE.',
+      "We've just launched our redesigned homepage!",
+      "With a cleaner, more intuitive experience, we're making it easier for pilots to explore real compensation data, compare opportunities, and better understand their market value.",
+    ],
+    cta: 'See the new homepage',
+    mid: [
+      'Our vision is simple: a world where every pilot can make informed career decisions based on real compensation data.',
+      "And we can't build that without the pilot community.",
+    ],
+    invite: {
+      pre: 'If you know a fellow pilot who might find PILOT VALUE useful, you can invite them from ',
+      link: 'INVITE',
+      post: ' on your account page, anonymously.',
+      /* pv-referral.js の T.en.privacy をそのまま。 */
+      note: 'We never tell you who accepted an invitation, and they never see your pay.',
+    },
+    close: [
+      'Every new member helps us build a more valuable and transparent compensation database for the global pilot community.',
+      "Thank you for being part of this journey. We're just getting started.",
+    ],
+    sign: ['PILOT VALUE Team', "Pilot defines. Pilot's value."],
+    why: 'This is a service notice sent to people registered with PILOT VALUE.',
+    unsub: 'Unsubscribe',
+  };
+}
+
+/* p = { name, country, airline_region, unsub_token }
+   o = { siteUrl, supabaseUrl, adminEmail, lang }  ← lang を渡すと判定を上書き
+
+   ★name は言語の判定にしか使わない。宛名には出さない（他の4通と同じ）。 */
+export function buildRenewal(p, o = {}) {
+  const opt = { ...DEFAULTS, ...o };
+  const site = String(opt.siteUrl).replace(/\/+$/, '');
+  const lang = opt.lang || renewalLangOf(p);
+  const langs = lang === 'both' ? RENEWAL_BOTH_ORDER : [lang];
+
+  const pre = (l) => (l === 'en' ? 'en/' : '');
+  /* ★行き先は原稿と同じトップページ。英語の人は /en/（2026-09-24 オーナー指示）。 */
+  const topUrl = (l) => `${site}/${pre(l)}`;
+  /* ★招待の入口は invite.html の1枚だけ。追跡用のパラメータを付けない
+     ── 受信者ごとの識別子を URL に残さない。 */
+  const inviteUrl = (l) => `${site}/${pre(l)}invite.html`;
+  const unsubPage = (l) => `${site}/${pre(l)}unsubscribe.html?token=${encodeURIComponent(p?.unsub_token || '')}`;
+  const unsubUrl = unsubPage(langs[0]);
+  const oneClickUrl = opt.supabaseUrl
+    ? `${String(opt.supabaseUrl).replace(/\/+$/, '')}/functions/v1/remind-payslip?u=${encodeURIComponent(p?.unsub_token || '')}`
+    : '';
+
+  const parts = langs.map((l) => ({ l, t: renewalCopy(l), u: topUrl(l), iv: inviteUrl(l) }));
+
+  const subject = lang === 'both'
+    ? `${parts[0].t.subject} / ${parts[1].t.subject}`
+    : parts[0].t.subject;
+
+  const para = (s) => `<p style="margin:0 0 16px;color:#333">${esc(s)}</p>`;
+
+  const blockHtml5 = (t, u, iv) => `
+    ${t.lead.map(para).join('')}
+    <p style="margin:22px 0 24px">
+      <a href="${esc(u)}" style="display:inline-block;background:#f5c842;color:#111;text-decoration:none;font-weight:800;padding:12px 22px;border-radius:10px">${esc(t.cta)}</a>
+    </p>
+    ${t.mid.map(para).join('')}
+    <p style="margin:0 0 8px;color:#333">${esc(t.invite.pre)}<a href="${esc(iv)}" style="color:#b8860b;font-weight:800;text-decoration:underline">${esc(t.invite.link)}</a>${esc(t.invite.post)}</p>
+    <p style="margin:0 0 16px;color:#6b7280;font-size:13px">${esc(t.invite.note)}</p>
+    ${t.close.map(para).join('')}
+    <p style="margin:22px 0 0;color:#333">${t.sign.map(esc).join('<br>')}</p>`;
+
+  /* 文字版にはアンカーが無いので、URL を裸で出す（▶ の行は原稿どおり）。 */
+  const blockText5 = (t, u, iv) => [
+    ...t.lead.flatMap((s) => [strip(s), '']),
+    `▶ ${u}`, '',
+    ...t.mid.flatMap((s) => [strip(s), '']),
+    strip(t.invite.pre + t.invite.link + t.invite.post),
+    '  ' + iv,
+    strip(t.invite.note), '',
+    ...t.close.flatMap((s) => [strip(s), '']),
+    ...t.sign.map(strip),
+  ].join('\n');
+
+  /* ★足元は日英ともに出す（全員に送るので、解除のしかたが読めない人を作らない）。 */
+  const feet = parts.map((x) => x.t);
+  const unsubLink = parts
+    .map((x) => `<a href="${esc(unsubPage(x.l))}" style="color:#6b7280">${esc(x.t.unsub)}</a>`)
+    .join(' / ');
+
+  const html =
+    `<div style="background:#f3f5f8;padding:24px 12px;font-family:-apple-system,'Segoe UI','Noto Sans JP',sans-serif">
+      <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;border:1px solid #e6e9ef">
+        <div style="background:#0a0c0f;padding:18px 24px">
+          <span style="color:#f5c842;font-weight:800;letter-spacing:.04em;font-size:15px">PILOT VALUE</span>
+        </div>
+        <div style="padding:26px 24px;color:#1f2937;font-size:14px;line-height:1.8">
+          ${parts.map((x) => blockHtml5(x.t, x.u, x.iv))
+            .reduce((acc, b, i) => acc + dividerFor(langs[i]) + b)}
+        </div>
+        <div style="padding:16px 24px;border-top:1px solid #eef0f4;color:#9aa5b1;font-size:11px;line-height:1.7">
+          ${feet.map((t) => esc(t.why)).join('<br>')}<br>
+          ${unsubLink}
+          ・<a href="${esc(site)}" style="color:#6b7280">${esc(site.replace(/^https?:\/\//, ''))}</a>
+        </div>
+      </div>
+    </div>`;
+
+  const text = [
+    parts.map((x) => blockText5(x.t, x.u, x.iv)).join('\n\n— — —\n\n'),
+    '', '--',
+    ...feet.map((t) => strip(t.why)),
+    ...parts.map((x) => `${strip(x.t.unsub)}: ${unsubPage(x.l)}`),
+  ].join('\n');
+
+  return { lang, subject, html, text, unsubUrl, oneClickUrl, topUrl: topUrl(langs[0]), inviteUrl: inviteUrl(langs[0]) };
+}
