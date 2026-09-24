@@ -1391,8 +1391,12 @@ export function buildRenewal(p, o = {}) {
 
 /* ★3件以下の週は送らない（2026-09-24 オーナー指示）。合計が4件以上でだけ出す。 */
 export const DIGEST_MIN = 4;        // 週の合計がこれ未満なら送らない
-export const DIGEST_NAME_MIN = 2;   // 会社名を出すのは週にこれ以上入った社だけ
-export const DIGEST_NAME_MAX = 6;   // 並べる社の数の上限（長い一覧にしない）
+/* ★2026-09-24 オーナー指示「投稿があった航空会社を書こうか」で、1件だけの社も名前を出す。
+   代わりに**件数を書かない** ―― 「◯◯社 1件」と書くと、その週にその会社から出した
+   たった1人が居ることまで伝わる。名前だけなら1人の週と4人の週が同じ見た目になる。
+   サイトは元から会社を公開しているが、粗さは「1ヶ月以内」まで（db/pay-rows.sql の age）。 */
+export const DIGEST_NAME_MIN = 1;   // 会社名を出すのは週にこれ以上入った社だけ
+export const DIGEST_NAME_MAX = 12;  // 並べる社の数の上限（超えたぶんは「ほか◯社」）
 
 /* ★見本の週（`send.mjs digest --sample`）。
    本物の投稿は1件も使わない ―― 見本に実在の週を出すと、絵を渡した相手に
@@ -1428,17 +1432,20 @@ export function digestStats(rows = {}) {
     if (!s) continue;
     by.set(s, (by.get(s) || 0) + 1);
   }
-  /* ★2件以上入った社だけ・多い順・同数ならコード順（同じ週なら何度数えても同じ並び）。 */
+  /* ★多い順・同数ならコード順（同じ週なら何度数えても同じ並び）。
+     ここでは切らない ―― 表に無いコードを落としたあとで切らないと、
+     知らない社が枠を1つ食って、名前の出る社が減る。切るのは digestCopy。 */
   const airlines = [...by.entries()]
     .filter(([, n]) => n >= DIGEST_NAME_MIN)
     .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-    .slice(0, DIGEST_NAME_MAX)
     .map(([slug, n]) => ({ slug, n }));
   return { pay, reviews, total: pay + reviews, airlines };
 }
 
 function digestCopy(lang, st) {
-  const named = st.airlines.map((a) => ({ ...a, name: airlineName(a.slug, lang) })).filter((a) => a.name);
+  const all = st.airlines.map((a) => ({ ...a, name: airlineName(a.slug, lang) })).filter((a) => a.name);
+  const named = all.slice(0, DIGEST_NAME_MAX);
+  const more = all.length - named.length;
   /* ★0件の行は出さない（「新しい口コミ 0件」と書かれた1通を送らない）。
      DIGEST_MIN があるので、両方 0 でここに来ることはない。 */
   const nz = (pairs) => pairs.filter(([n]) => n > 0);
@@ -1454,8 +1461,9 @@ function digestCopy(lang, st) {
       ],
       counts: nz([[st.pay, `新しい年収レポート ${st.pay}件`], [st.reviews, `新しい口コミ ${st.reviews}件`]])
         .map(([, s]) => s),
-      airlinesPre: named.length ? '複数の投稿があった航空会社：' : '',
-      airlines: named.map((a) => `${a.name} ${a.n}件`),
+      airlinesPre: named.length ? '投稿があった航空会社：' : '',
+      /* ★件数を書かない（上の DIGEST_NAME_MIN の注記）。 */
+      airlines: named.map((a) => a.name).concat(more > 0 ? [`ほか${more}社`] : []),
       cta: '新しいデータを見る',
       close: [
         'このメールには金額を書いていません。中身はサイトでご覧いただけます。',
@@ -1479,8 +1487,8 @@ function digestCopy(lang, st) {
       [st.pay, plu(st.pay, 'new pay report', 'new pay reports')],
       [st.reviews, plu(st.reviews, 'new review', 'new reviews')],
     ]).map(([, s]) => s),
-    airlinesPre: named.length ? 'Airlines with more than one new entry:' : '',
-    airlines: named.map((a) => `${a.name} ${a.n}`),
+    airlinesPre: named.length ? 'Airlines with new entries:' : '',
+    airlines: named.map((a) => a.name).concat(more > 0 ? [`and ${more} more`] : []),
     cta: 'See the new data',
     close: [
       'We never put pay figures in email. You can see them on the site.',

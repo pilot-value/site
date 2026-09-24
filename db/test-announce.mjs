@@ -1223,17 +1223,23 @@ const DGALL = Object.entries(DG).map(([k, x]) => [k, buildDigest(x, DGO)]);
 {
   ok(DGST.pay === 4 && DGST.reviews === 3 && DGST.total === 7, 'digest: 年収と口コミを別々に数えて合計も出す',
      JSON.stringify(DGST));
+  /* ★2026-09-24 オーナー指示で、1件だけの社も名前を出す。代わりに件数を書かない。 */
   const slugs = DGST.airlines.map((a) => a.slug);
-  ok(slugs.includes('ana') && slugs.includes('cathay-pacific'),
-     'digest: 2件以上入った会社は名前を出す候補になる', slugs.join(','));
-  ok(!slugs.includes('jal') && !slugs.includes('emirates'),
-     'digest: ★1件しか入らなかった会社は候補に入れない（その1人が絞られる）', slugs.join(','));
-  ok(DIGEST_NAME_MIN >= 2, `digest: 名前を出す下限が2件以上（${DIGEST_NAME_MIN}）`);
+  ok(slugs.includes('ana') && slugs.includes('jal') && slugs.includes('emirates'),
+     'digest: 投稿があった会社は1件でも名前を出す', slugs.join(','));
+  ok(DIGEST_NAME_MIN === 1, `digest: 名前を出す下限は1件（${DIGEST_NAME_MIN}）`);
   /* ★3件以下は送らない（2026-09-24 オーナー指示）。下げるとオーナーの指示を破る。 */
   ok(DIGEST_MIN === 4, `digest: 3件以下の週は送らない（下限 ${DIGEST_MIN}件＝4件以上でだけ出す）`);
-  const many = digestStats({ pay: Array.from({ length: 40 }, (_, i) => ({ airline: `a${i % 20}` })).concat(
-    Array.from({ length: 40 }, (_, i) => ({ airline: `a${i % 20}` }))) });
-  ok(many.airlines.length <= DIGEST_NAME_MAX, `digest: 並べる社の数に上限がある（${many.airlines.length} ≦ ${DIGEST_NAME_MAX}）`);
+  /* ★並べる社の数の上限。切るのは名前が引けた社を数えたあと（知らないコードに枠を食わせない）。 */
+  const many = buildDigest(DG.ja, { ...O, stats: digestStats({
+    pay: ['ana', 'jal', 'zipair', 'jetstar-japan', 'peach', 'solaseed', 'spring-japan',
+          'airdo', 'starflyer', 'skymark', 'fda', 'emirates', 'qantas', 'cathay-pacific',
+          'anaa'].map((a) => ({ airline: a })) }) });
+  const line = many.text.split('投稿があった航空会社：')[1].split('\n')[1];
+  ok((line.match(/\//g) || []).length === DIGEST_NAME_MAX,
+     `digest: 並べる社の数に上限がある（${DIGEST_NAME_MAX}社 ＋「ほか◯社」）`, line);
+  ok(/ほか\d+社/.test(line), 'digest: 上限を超えたぶんは「ほか◯社」でまとめる', line);
+  ok(!/anaa/.test(many.text), 'digest: 表に無いコードは上限の枠を食わない（名前も出ない）');
   /* ★同じ週を二度数えたら同じ並びになる（人によって順番が変わらない）。 */
   ok(JSON.stringify(digestStats(dgRows)) === JSON.stringify(DGST), 'digest: 同じ週なら何度数えても同じ結果');
 }
@@ -1272,8 +1278,21 @@ for (const [k, b] of DGALL) {
     ok(!body.includes(bad), `digest: 「${bad}」が本文に出てこない`);
   }
   ok(dirty.pay === 2 && dirty.reviews === 2, 'digest: 表に無いコードも件数には数える（数だけは正しい）');
-  ok(dirty.airlines.every((a) => a.slug !== 'zzz-not-in-table'),
+  /* ★名前を落とすのは本文を組むとき（digestStats は数えるだけ）。本文で見る。 */
+  ok(!b.text.includes('zzz-not-in-table') && !b.html.includes('zzz-not-in-table'),
      'digest: 表に無いコードの名前は出さない');
+}
+
+/* ★会社名のとなりに件数を書かないこと（2026-09-24 オーナー指示で1件の社も名前を出すため）。
+   「◯◯社 1件」と書くと、その週にその会社から出した**たった1人**が居ることまで伝わる。
+   名前だけなら1人の週と4人の週が同じ見た目になる。 */
+{
+  const one = digestStats({ pay: [{ airline: 'ana' }, { airline: 'jal' }, { airline: 'delta' }, { airline: 'emirates' }] });
+  for (const l of ['ja', 'en']) {
+    const b = buildDigest(l === 'ja' ? DG.ja : DG.overseas, { ...O, stats: one, lang: l });
+    const seg = b.text.split(l === 'ja' ? '投稿があった航空会社：' : 'Airlines with new entries:')[1].split('\n')[1];
+    ok(!/\d/.test(seg), `digest/${l}: 会社名のとなりに件数を書かない`, seg);
+  }
 }
 
 /* ★足元の文言が①〜⑦と逆＝「希望した方に」。繰り返し届くメールだから。 */
@@ -1318,7 +1337,8 @@ for (const [k, b] of DGALL) {
   const b = buildDigest(DG.overseas, { ...O, stats: quiet });
   ok(!/0件|\b0 review/.test(b.text), 'digest: 0件の行を書かない', b.text.slice(0, 120));
   ok(!/1 reviews|1 pay reports/.test(b.text + b.subject), 'digest: 英語の単複が正しい（1 review）');
-  ok(!/複数の投稿があった|more than one new entry/.test(b.text),
+  ok(!/投稿があった航空会社|Airlines with new entries/.test(
+       buildDigest(DG.ja, { ...O, stats: digestStats({ pay: [{ airline: 'zzz-not-in-table' }] }) }).text),
      'digest: 名前を出せる社が無い週は、その見出しごと出さない');
   ok(b.subject.includes('4'), 'digest: 一番静かな週（下限ちょうど）でも件数は出る', b.subject);
 }
