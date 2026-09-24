@@ -15,7 +15,12 @@
   'use strict';
   if (w.PVCurrency) return;                         // 二重読み込みガード
 
-  var STORE_KEY = 'pv-currency';
+  /* ★選んだ通貨は「日本語ページ用」と「英語ページ用」で別々に覚える（2026-09-24）。
+     前は1つのキーだったので、日本語ページで一度 JPY を選んだ人は、英語に切り替えても
+     ¥ のままだった（オーナー指摘「英語にしても jpy のままだから自動で USD に変わるようにして」）。
+     日本語側のキー名は**変えない**＝今まで選んでいた人の設定はそのまま生きる。 */
+  var STORE_KEY    = 'pv-currency';       // 日本語ページで選んだ通貨（昔からのキー）
+  var STORE_KEY_EN = 'pv-currency-en';    // 英語ページで選んだ通貨
 
   // ── 固定・概算 為替レート（JPY / 1通貨単位）。オーナーが1箇所で編集可 ──
   // 概算・2026年時点。表示専用（SSOT の円は不変）。数値は後から1箇所で調整可。
@@ -40,7 +45,8 @@
   var ARIA  = { ja: '表示通貨を切り替え', en: 'Change display currency' };
 
   // ── 状態 ──────────────────────────────────────────────────────
-  // 英語ページ（/en/ 配下 or <html lang="en">）は既定 USD、日本語ページは既定 JPY。
+  // 英語ページ（/en/ 配下 or <html lang="en">）は既定を**見ている地域**から決め（下の TZ_CUR）、
+  // 日本語ページは既定 JPY（地域を見ない）。
   // ユーザーが明示選択した通貨は localStorage に保存され、言語別の既定より優先される。
   function isENPage() {
     try {
@@ -51,10 +57,51 @@
   }
   // 既定通貨と同じ判定を、メニュー文言の言語にもそのまま使う。
   var LANG  = isENPage() ? 'en' : 'ja';
-  var state = LANG === 'en' ? 'USD' : 'JPY';
+  var KEY   = LANG === 'en' ? STORE_KEY_EN : STORE_KEY;
+
+  /* ── 英語ページだけ、見ている地域から既定の通貨を決める（2026-09-24 オーナー指示）──
+     ブラウザが持っているタイムゾーン（Asia/Dubai など）を読むだけ。**通信は1本もしない**し、
+     IP も位置情報も使わない＝外部に何も渡らない。
+     ★JPY は絶対に返さない。日本から英語ページを開いた人にこそドルを出す、というのが
+       そもそもの指示なので、ここで円に戻してしまうと元の不具合に戻る。
+     ★日本語ページには効かせない（オーナー判断）。日本語ページは今までどおり必ず円＝
+       「日本語＋JPY なら1文字も書き換えない」という currency.js の土台を崩さない。
+     ★扱える通貨は6つしか無いので、いちばん近いものへ寄せる（カナダ→USD・スイス→EUR）。
+       ここを細かくしたくなったら、先に RATES へ通貨を足すのが順番
+       （RATES は fx-rates.mjs と対。手で増やさない）。
+     ⚠️ navigator.language は使わない。あれは「読みたい言語」であって居場所ではなく、
+        en-US は世界中の非アメリカ人が既定で持っている＝地域の手がかりにならない。 */
+  var TZ_CUR = [
+    [/^Asia\/Dubai$/,                                          'AED'],
+    [/^Asia\/Singapore$/,                                      'SGD'],
+    [/^Australia\//,                                           'AUD'],
+    [/^Europe\/(London|Belfast|Jersey|Guernsey|Isle_of_Man)$/, 'GBP'],
+    [/^Europe\//,                                              'EUR'],
+    [/^Atlantic\/(Canary|Madeira|Azores)$/,                    'EUR']
+  ];
+  function regionCurrency() {
+    try {
+      var tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+      for (var i = 0; i < TZ_CUR.length; i++) if (TZ_CUR[i][0].test(tz)) return TZ_CUR[i][1];
+    } catch (e) {}
+    return 'USD';                                   // 分からなければドル（英語ページの昔からの既定）
+  }
+
+  var state = LANG === 'en' ? regionCurrency() : 'JPY';
   try {
-    var saved = w.localStorage && localStorage.getItem(STORE_KEY);
-    if (saved && RATES.hasOwnProperty(saved)) state = saved;   // 明示選択を最優先
+    var saved = w.localStorage && localStorage.getItem(KEY);
+    /* ★自分で選んだ通貨は、ページを移っても地域の通貨に戻さない（2026-09-24 オーナー指示）。
+       同じ言語のページを開いている限り、ここが地域の既定より必ず優先される。 */
+    if (saved && RATES.hasOwnProperty(saved)) state = saved;
+    /* 英語ページのキーを分ける前に、英語ページで EUR や AED を選んでいた人の設定を1回だけ引き継ぐ。
+       ★円は引き継がない（それを引き継ぐと、直したはずの「英語なのに ¥」がそのまま戻る）。 */
+    else if (LANG === 'en') {
+      var old = w.localStorage && localStorage.getItem(STORE_KEY);
+      if (old && old !== 'JPY' && RATES.hasOwnProperty(old)) {
+        state = old;
+        try { localStorage.setItem(STORE_KEY_EN, old); } catch (e3) {}
+      }
+    }
   } catch (e) {}
 
   // ── 整形 ──────────────────────────────────────────────────────
@@ -257,7 +304,8 @@
   function setCurrency(cur) {
     if (!RATES.hasOwnProperty(cur) || cur === state) { closeMenu(); return; }
     state = cur;
-    try { localStorage.setItem(STORE_KEY, cur); } catch (e) {}
+    // ★保存先は言語ごと（KEY）。英語で選んだ通貨が日本語ページに移らないようにするため。
+    try { localStorage.setItem(KEY, cur); } catch (e) {}
     applyAll();
     syncUI();
     closeMenu();
