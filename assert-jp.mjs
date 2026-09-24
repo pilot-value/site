@@ -49,3 +49,7 @@ for (const t of targets) {
 }
 await browser.close();
 console.log(`\n==== ${done}/${targets.length} JP pages checked, ${bad} regressions, ${errs} load-fails ====`);
+/* ★終了コードを返す（2026-09-24）。前はここが無く、✗ を何本出しても終了コード 0 ＝
+   check.mjs の一覧では「✓ assert-jp.mjs」と緑で出ていた（落ちた回だけ本文を出す作りなので、
+   ✗ の行そのものが誰の目にも入らない）。読み込みに失敗した回（errs）も落とす。 */
+process.exit(bad || errs ? 1 : 0);
