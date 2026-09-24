@@ -586,14 +586,17 @@
        ・帯は span を**2つ**に分ける。repaintMarquee() は1要素＝1金額で塗り替えるので、
          「¥2,200万〜¥2,400万」を1つの span に入れるとドルに切り替えたとき直らない。
          ★両端に記号が付くのは本物と同じ（actual-pay.js:547 の rngMoney も fmt を2回呼ぶ）。
+     ⚠️ **ここに色の棒を置かない**（2026-09-23 オーナー指摘「なぜ最初の hero で emirates の
+        バーが二本もあるんだ？」）。棒は行の中（heroComp）に既にあり、この面はそのすぐ下
+        ＝同じ絵が2回出ていた。本物の payHTML は棒を描くが、あちらの面は**別の板**で
+        カードの棒と並ばない。ここは行の直下なので、重なるほうだけを落とす。
+        色の対応は一覧の丸が持っている（棒と同じ色・同じ並び）。
      ⚠️ 高さは lp.css の .hero-win-open が 146px で固定している。ここで中身を増やしても
         箱は伸びない＝溢れて隠れる。増やすなら CSS の高さと HTML の骨組みも一緒に直す。 */
   function heroOpen(row) {
     var parts = row.parts, band = row.band || {};
     return '<div class="hero-win-open">' +
       '<span class="hero-win-open-h">' + esc(T.openH) + '</span>' +
-      /* ⚠️ クラス名は hero-win-seg。hero-win-bar は**電話の上の帯**が既に使っている。 */
-      heroBar('hero-win-seg', parts) +
       '<span class="hero-win-list">' + parts.map(function (p) {
         var b = band[p[0]], lo = b ? b[0] * 10000 : 0, hi = b ? b[1] * 10000 : 0;
         return '<span class="hero-win-li">' +

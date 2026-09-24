@@ -332,6 +332,10 @@
            んじゃない？」で、1行の中身を本物の REAL PAY のカードと同じにした（月あたり・内訳の
            ミニ棒・凡例／開いた面に区分ごとの金額と％）。行は6 → 4本・行 52 → 66px・面 98 → 146px
            で、**合計 410px は前と同じ**＝電話も緑の面も 1px も動いていない。
+         ★2026-09-23、オーナー指摘「なぜ最初の hero で emirates のバーが二本もあるんだ？」で、
+           **開いた面の色の棒をやめた**（行の中の棒と同じ絵が 40px 差で2回出ていた）。
+           骨組みの開いた面は h・li×3・note の5本。棒を戻すなら lp.js の heroOpen と
+           lp.css の .hero-sk--seg も一緒に戻す。
          ⚠️ 本数を変えるときは lp.css の .hero-win-row / .hero-win-open の高さと
             PV_DEMO.hero.rows・PV_DEMO.hero.open も一緒に直す（片方だけだと描き替えで跳ねる＝CLS）。
          ★2026-09-23、オーナー指示で「サンプル」の札を消した（読み上げの説明文からも）。
@@ -347,7 +351,7 @@
             <div class="hero-win-bar"><span class="hero-win-name">REAL PAY</span></div>
             <div id="hero-win-rows">
               <div class="hero-win-row"><i class="hero-sk hero-sk--logo"></i><i class="hero-sk hero-sk--a"></i><i class="hero-sk hero-sk--v"></i><i class="hero-sk hero-sk--m"></i><i class="hero-sk hero-sk--cb"></i><i class="hero-sk hero-sk--leg"></i></div>
-              <div class="hero-win-open"><i class="hero-sk hero-sk--h"></i><i class="hero-sk hero-sk--seg"></i><i class="hero-sk hero-sk--li"></i><i class="hero-sk hero-sk--li"></i><i class="hero-sk hero-sk--li"></i><i class="hero-sk hero-sk--note"></i></div>
+              <div class="hero-win-open"><i class="hero-sk hero-sk--h"></i><i class="hero-sk hero-sk--li"></i><i class="hero-sk hero-sk--li"></i><i class="hero-sk hero-sk--li"></i><i class="hero-sk hero-sk--note"></i></div>
               <div class="hero-win-row"><i class="hero-sk hero-sk--logo"></i><i class="hero-sk hero-sk--a"></i><i class="hero-sk hero-sk--v"></i><i class="hero-sk hero-sk--m"></i><i class="hero-sk hero-sk--cb"></i><i class="hero-sk hero-sk--leg"></i></div>
               <div class="hero-win-row"><i class="hero-sk hero-sk--logo"></i><i class="hero-sk hero-sk--a"></i><i class="hero-sk hero-sk--v"></i><i class="hero-sk hero-sk--m"></i><i class="hero-sk hero-sk--cb"></i><i class="hero-sk hero-sk--leg"></i></div>
               <div class="hero-win-row"><i class="hero-sk hero-sk--logo"></i><i class="hero-sk hero-sk--a"></i><i class="hero-sk hero-sk--v"></i><i class="hero-sk hero-sk--m"></i><i class="hero-sk hero-sk--cb"></i><i class="hero-sk hero-sk--leg"></i></div>

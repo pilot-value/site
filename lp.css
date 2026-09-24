@@ -598,15 +598,16 @@
       background:var(--pv-accent-soft); border-bottom:1px solid var(--pv-border); }
     #hero-section .hero-win-open-h{ font-size:10.5px; font-weight:700; line-height:1.4; letter-spacing:.06em;
       color:var(--pv-accent-ink); }
-    /* ⚠️ クラス名は hero-win-seg。hero-win-bar は**電話の上の帯**が既に使っている。
-       ★区切りは隙間（gap 2px）で出す。REAL PAY の帯の inset 影を写すと、ダークの
-         --pv-accent-soft が半透明なので区切りが透けて見えなくなる。 */
-    #hero-section .hero-win-seg{ display:flex; gap:2px; height:10px; border-radius:999px; overflow:hidden;
-      background:var(--pv-surface); }
-    #hero-section .hero-win-seg i{ display:block; min-width:6px; }
-    /* 開いた面の一覧（区分・金額の帯・％）。本物の payHTML の ap-dw-row と同じ並び。
+    /* ⚠️ **開いた面に色の棒を置かない**（2026-09-23 オーナー指摘「なぜ最初の hero で
+         emirates のバーが二本もあるんだ？」）。棒は行の中（.hero-win-cb）に既にあり、
+         開いた面はそのすぐ下＝同じ絵が 40px 差で2回出ていた。
+       本物（actual-pay.js の payHTML）は開いた面にも棒を描くが、あちらの面は**別の板**で
+       カードの棒と並ばない。ここは行の直下に差し込む形なので、重なるほうだけを落とす。
+       一覧の丸（.hero-win-li-k i）が棒と同じ色なので、色の対応は丸だけで読める。
+       ★棒を戻すなら HTML の骨組みの --seg と lp.js の heroOpen も一緒に戻す（片方だけだと CLS）。
+       開いた面の一覧（区分・金額の帯・％）。本物の payHTML の ap-dw-row と同じ並び。
        金額は tabular-nums で桁を揃える（通貨を切り替えても右端が暴れない）。 */
-    #hero-section .hero-win-list{ display:grid; row-gap:8px; }
+    #hero-section .hero-win-list{ display:grid; row-gap:11px; }
     #hero-section .hero-win-li{ display:grid; align-items:center; column-gap:6px;
       grid-template-columns:auto minmax(0,1fr) auto; font-size:11px; line-height:1.6; }
     #hero-section .hero-win-li-k{ display:inline-flex; align-items:center; gap:5px; white-space:nowrap;
@@ -636,7 +637,6 @@
       color:var(--pv-text-muted); }
     /* 灰色の骨組み側。高さと段の数を上と合わせる（ここが本物とずれると描き替えで跳ねる）。 */
     #hero-section .hero-sk--h{ width:52px; height:8px; }
-    #hero-section .hero-sk--seg{ width:100%; height:10px; }
     #hero-section .hero-sk--li{ width:100%; height:12px; }
     #hero-section .hero-sk--note{ width:46%; height:7px; }
     #hero-section .hero-win-logo, #hero-section .hero-sk--logo{ grid-area:logo; align-self:center; }
@@ -807,7 +807,7 @@
       color:var(--pv-text); }
     /* 区分の色。★actual-pay.css の .ap-dw-c-* と同じ値（REAL PAY の行を開いた面と同じ色）。写しなので、
        あちらを変えたらここも変える。
-       ★2026-09-23：ヒーローの電話の中の帯（.hero-win-seg）も同じ色を使うので #hero-section を足した。 */
+       ★2026-09-23：ヒーローの電話の中の棒（.hero-win-cb）と一覧の丸も同じ色を使うので #hero-section を足した。 */
     :is(#hero-section,#lp-realpay) .lp-c-base{ background:#34d399; }
     :is(#hero-section,#lp-realpay) .lp-c-variable{ background:#f5c842; }
     :is(#hero-section,#lp-realpay) .lp-c-bonus{ background:#22d3ee; }
