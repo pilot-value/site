@@ -210,10 +210,16 @@ async function runDigest() {
   const since = BACKFILL ? new Date(Date.now() - 7 * 864e5).toISOString()
               : (sinceArg || state.lastDigestAt || new Date(Date.now() - 7 * 864e5).toISOString());
 
+  /* ★窓は (since, until]。until は「数えた瞬間」で、記録もここまでしか進めない。
+     送り終えたあとの時刻で記録すると、数えてから送り終えるまでの数十秒に届いた
+     投稿が、今週にも来週にも入らないまま消える（画面では何も起きないので気づけない）。
+     自動配信の pv_digest_week も同じ窓の切り方をしている。 */
+  const until = new Date().toISOString();
+
   /* ★航空会社のコードだけ取る。金額・職位・機材・本文には触れない。 */
   const [pay, reviews] = await Promise.all([
-    sbSelect('pay_reports', 'airline,created_at', [['created_at', 'gt.' + since]]),
-    sbSelect('reviews_v2',  'airline,created_at', [['created_at', 'gt.' + since]]),
+    sbSelect('pay_reports', 'airline,created_at', [['created_at', 'gt.' + since], ['created_at', 'lte.' + until]]),
+    sbSelect('reviews_v2',  'airline,created_at', [['created_at', 'gt.' + since], ['created_at', 'lte.' + until]]),
   ]);
   const stats = SAMPLE_WEEK
     ? digestStats({ pay: DIGEST_SAMPLE.pay.map(a => ({ airline: a })),
@@ -298,7 +304,8 @@ async function runDigest() {
     } catch (e) { console.error(`  ❌ 1名ぶん失敗: ${e.message}`); }
   }
   /* ★1通でも出たときだけ基準時刻を進める（全部失敗した週を「送った」にしない）。 */
-  if (!DRY && sent > 0) { state.lastDigestAt = nowIso; saveState(); }
+  /* ★進める先は「数えた瞬間」（until）。nowIso（起動時刻）でも今でもない。 */
+  if (!DRY && sent > 0) { state.lastDigestAt = until; saveState(); }
   console.log(`[digest] ${DRY ? 'プレビュー' : '送信'} ${sent}/${targets.length}`
     + `（日本語 ${tally.ja} / 英語 ${tally.en} / 日英ともに ${tally.both}）`);
   if (DRY) console.log('         本文を絵で見る: node shot-remind.mjs --digest');

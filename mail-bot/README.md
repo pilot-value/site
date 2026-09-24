@@ -372,8 +372,17 @@ node mail-bot/send.mjs renewal --send                # ④ 本番
 ### 週に一度の新着まとめ（send.mjs digest）
 
 **繰り返し送る唯一のメール**（2026-09-24 オーナー指示「週1のまとめを作る」）。
-その週に届いた**年収レポートと口コミの件数**だけを知らせる。文面は
-[announce-mail.mjs](announce-mail.mjs) の `buildDigest`。
+その週に届いた**年収レポートと口コミの件数**だけを知らせる。
+
+★**本番は Supabase の時計から自動で送る**（2026-09-24 オーナー指示「Supabase に任せる」）。
+毎週**月曜 9時（日本時間）**、pg_cron が Edge Function `weekly-digest` を叩く。
+この Mac は関係ない（閉じていても送られる）。仕組みは下の「自動配信」。
+
+⚠️ **文面は [announce-mail.mjs](announce-mail.mjs) に無い。**
+[supabase/functions/weekly-digest/index.ts](../supabase/functions/weekly-digest/index.ts)
+が唯一の正で、こちら（Mac 側）はそれを `import` して同じ文面を出している
+（remind-payslip の `langOf` と同じ向き）。**写しを作らないこと** ――
+手で流したメールと自動のメールで文面が違う、が起きる。
 
 ```
 node mail-bot/send.mjs digest                        # ① 送らない。何件・何人に届くかが出る
@@ -405,7 +414,43 @@ node mail-bot/send.mjs digest --send                 # ④ 本番
 - **`--sample` は自分宛のときだけ。** 見本の週（`DIGEST_SAMPLE`）で本文を出す。
   ★本物の投稿は1件も使わない ―― 見本に実在の週を出すと、絵を渡した相手に
   「その週にどの会社から何件出たか」が渡る。会員へ見本を送ろうとすると止まる。
-- 見るもの ―― `node db/test-announce.mjs` の⑧（上の★を全部固定してある）。
+- 見るもの ―― `node db/test-announce.mjs` の⑧（上の★を全部固定してある）と
+  `node db/test-digest.mjs`（Supabase 側。`npm run test:sql` に入っている）。
+
+#### 自動配信（Supabase の時計）
+
+```
+pg_cron（毎週月曜 00:00 UTC ＝ 日本時間 月曜 09:00）
+  └→ Edge Function weekly-digest
+        ├─ pv_digest_since()      前回どこまで送ったか
+        ├─ pv_digest_week(since)  その週の**件数と社名だけ**を作る
+        ├─ pv_digest_recipients() 通知を希望した人＋言語の手がかり
+        ├─ Resend で1通ずつ送る
+        └─ pv_digest_mark()       ★1通でも送れたときだけ記録する
+```
+
+- **★数えるのは SQL（[db/weekly-digest.sql](../db/weekly-digest.sql)）。**
+  Edge Function は**行そのものを受け取らない** ―― 受け取らなければ、
+  口コミの本文も金額も、メールに出しようが無い。
+- **4つの関数は誰にも grant していない**（service_role だけ）。
+  会員がログインして叩いても、投稿のあった社の一覧は取れない。
+  ⚠️ 4つとも `security definer`。**anon / authenticated から呼べないことが命綱**なので
+  `revoke` を外さない（`db/test-digest.mjs` の②が8通りで固定している）。
+- **送るかどうかを決めるのは Edge Function の1か所**（`DIGEST_MIN`）。SQL は数えるだけ。
+- 手で流す道（上の①〜④）は**そのまま残してある**。見本を送る・臨時に出すときに使う。
+  手元の記録（`.send-state.json` の `lastDigestAt`）と DB の記録は別々に進むが、
+  Resend の Idempotency-Key（`digest:<人>:<週>`）が二重送信の最後の網になっている。
+
+**オーナーがやること（3つ・1回だけ）**
+
+1. Supabase → Edge Functions → **weekly-digest を新規作成**して
+   `supabase/functions/weekly-digest/index.ts` を貼り、**Verify JWT を OFF** にして Deploy。
+2. SQL Editor に `db/weekly-digest.sql` を貼って実行（末尾の検算 6-1〜6-5 まで見る）。
+3. 同じ SQL の「5. pg_cron」のブロックで `<PROJECT_REF>` と `<CRON_SECRET>` を埋めて実行。
+   `CRON_SECRET` は Edge Functions → Secrets の `PV_CRON_SECRET`（remind-payslip と同じ値でよい）。
+
+止めるとき: `select cron.unschedule('pv-weekly-digest');`
+動いたか: `select * from cron.job_run_details order by start_time desc limit 20;`
 
 ---
 

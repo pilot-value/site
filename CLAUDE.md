@@ -303,6 +303,7 @@ baland_ass/                            ブランド資産（※ brand_assets の
 | `assert-translate-review.mjs` | 口コミ自動翻訳の形・鍵が死んだときの通知（`isFatalKeyError`）|
 | `assert-admin-notify.mjs` | 管理者通知メールに**金額・明細の項目名が1文字も出ない**・`builders` と SQL の表が一致 |
 | `db/test-announce.mjs` | お知らせメールに金額・社名・項目名が入らない |
+| `db/test-digest.mjs` | 週まとめの土台（`db/weekly-digest.sql`）── **関数が行そのものを返さない**（返るのは件数と社名だけ）・打ち込まれた社名が出ない・会員から呼べない・**手で流す側と同じ週を同じに数える**（社名まで突き合わせる）|
 | `assert-conditions.mjs` | 待遇モーダルが約束どおり閉じられる・1問ごとに保存される |
 | `assert-referral.mjs` | 招待 ── **2人以下の区分では数字が1文字も出ない**・常設入口が消えない |
 | `assert-admin.mjs` | 管理者ページが**ログインした管理者にしか見えない**（合言葉を持たない）|

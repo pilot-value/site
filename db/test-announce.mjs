@@ -1307,7 +1307,28 @@ for (const [k, b] of DGALL) {
 
 /* ★送り分けと並びは renewal と同じ（日本の会員は日本語・それ以外は英語＋日本語）。 */
 {
-  ok(digestLangOf === renewalLangOf, 'digest: 送り分けは renewal と同じ判定を使っている');
+  /* ★判定は Edge Function 側（supabase/functions/weekly-digest/index.ts）に移した。
+     あちらは1ファイルで完結していないとダッシュボードに貼れないので、
+     renewalLangOf をそのまま使えない（4段の連鎖を1つに畳んである）。
+     畳んだ答えが元と1つも違わないことを、ここで型ごとに固定する。
+     ★ここが落ちたら、Edge Function 側を直す（畳んだほうが写し）。 */
+  const LANG_CASES = [
+    { name: '日本の氏名',                 p: { name: '高橋 蓮', country: 'アメリカ合衆国', airline_region: 'americas' } },
+    { name: '居住国が日本',               p: { name: 'Alex Mercer', country: '日本', airline_region: 'japan' } },
+    { name: '海外在住・英字の氏名',       p: { name: 'Alex Mercer', country: 'アラブ首長国連邦', airline_region: 'mideast' } },
+    { name: '氏名だけ英字・居住国が空',   p: { name: 'Alex Mercer', country: '', airline_region: '' } },
+    { name: '手がかり無し・勤務先が日本', p: { name: '', country: '', airline_region: 'japan' } },
+    { name: '手がかり無し・勤務先が海外', p: { name: '', country: '', airline_region: 'americas' } },
+    { name: '何も無い',                   p: {} },
+    { name: '居住国だけ海外',             p: { name: '', country: 'シンガポール', airline_region: '' } },
+  ];
+  for (const c of LANG_CASES) {
+    ok(digestLangOf(c.p) === renewalLangOf(c.p),
+      `digest: 送り分けが renewal と同じ答え（${c.name}）`,
+      `digest=${digestLangOf(c.p)} renewal=${renewalLangOf(c.p)}`);
+  }
+  ok(LANG_CASES.some((c) => renewalLangOf(c.p) === 'ja') && LANG_CASES.some((c) => renewalLangOf(c.p) === 'both'),
+    'digest: 上の型が「日本語だけ」と「英語＋日本語」の両方を通っている');
   ok(buildDigest(DG.ja, DGO).lang === 'ja', 'digest: 日本の会員は日本語だけ');
   ok(buildDigest(DG.overseas, DGO).lang === 'both', 'digest: 海外の会員は英語と日本語');
   ok(buildDigest(DG.both, DGO).lang === 'both', 'digest: 手がかりが無い人も英語と日本語');
@@ -1356,6 +1377,33 @@ for (const [k, b] of DGALL) {
   ok(!/culture_comment|salary_comment|wlb_comment|gross_monthly|annual_salary|monthly_salary/.test(runDigest),
      'digest/send: 口コミ本文も金額の列も取ってこない');
   ok(!/→ \$\{m\.email\}|console\.log\(`.*m\.email/.test(runDigest), 'digest/send: 宛先を画面に出さない');
+  /* ★数えた窓の外に投稿が落ちない。窓は (since, until] で、記録も until まで。
+     送り終えたあとの時刻で記録すると、数えてから送り終えるまでの数十秒に届いた
+     投稿が今週にも来週にも入らない（画面では何も起きないので気づけない）。
+     自動配信側の同じ約束は db/test-digest.mjs の⑦-b が見ている。 */
+  ok(/'created_at', 'lte\.' \+ until/.test(runDigest), 'digest/send: 数える窓に終わりがある（until）');
+  ok(/state\.lastDigestAt = until/.test(S) && !/state\.lastDigestAt = nowIso/.test(S),
+     '★digest/send: 記録を進める先は「数えた瞬間」（送り終えた今ではない）');
+}
+
+/* ★文面は Edge Function（supabase/functions/weekly-digest/index.ts）が唯一の正。
+   Mac 側に写しを作ると、手で流したメールと自動のメールで文面が違う、が起きる。 */
+{
+  const A = read('mail-bot/announce-mail.mjs');
+  ok(/from '\.\.\/supabase\/functions\/weekly-digest\/index\.ts'/.test(A),
+     '★digest: 文面は Edge Function から読んでいる（写していない）');
+  ok(!/function digestCopy|function buildDigest/.test(A),
+     '★digest: Mac 側に文面の写しが無い');
+  const T = read('supabase/functions/weekly-digest/index.ts');
+  ok(!/^\s*import .* from ['"]\.\.?\//m.test(T),
+     '★digest/関数: 相対 import が無い（1ファイルで完結＝ダッシュボードに貼れる）');
+  ok(/if \(DENO\?\.serve\) DENO\.serve\(handler\);/.test(T),
+     '★digest/関数: Node から import しても listen しない');
+  ok(/x-pv-cron-secret/.test(T) && /403/.test(T) && /503/.test(T),
+     '★digest/関数: 合言葉が要る（未設定なら開けたままにしない）');
+  ok(/p_at: st\.until/.test(T), '★digest/関数: 記録を進める先は「数えた瞬間」');
+  ok(!/culture_comment|salary_comment|gross_monthly|annual_salary/.test(T),
+     '★digest/関数: 金額・口コミ本文の列名がどこにも無い');
 }
 
 console.log(`\n${pass} pass / ${fail} fail\n`);

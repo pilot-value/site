@@ -31,6 +31,12 @@
    ここで書き直すと、月次リマインドは日本語・お知らせは英語、のように
    同じ人に違う言語で届く。判定は1つに保つ。 */
 import { langOf } from '../supabase/functions/remind-payslip/index.ts';
+/* ★週のまとめの文面・しきい値・送り分けは Edge Function が唯一の正。
+   1ファイルで完結していないとダッシュボードに貼れないので、向きはこちらから読む。 */
+import {
+  DIGEST_MIN, DIGEST_NAME_MIN, DIGEST_NAME_MAX,
+  digestLangOf, digestCopy, buildDigest,
+} from '../supabase/functions/weekly-digest/index.ts';
 /* buildDigest が航空会社の表示名を pv-airlines.json（生成物）から引くため。 */
 import { readFileSync } from 'fs';
 
@@ -1378,25 +1384,29 @@ export function buildRenewal(p, o = {}) {
    ・職位・機材・在籍年数（1件ごとの姿に近づくほど投稿者が絞られる）
    ・airline_other の自由入力（本人が何を書いたか分からない文字列を配らない）
 
-   ── ★会社名を出すのは、その週に2件以上入った会社だけ ────────────
-   1件しかない社を名指すと、その1人が誰か絞られる（2026-09-12 の update と同じ規則）。
+   ── ★投稿があった会社は1件でも名前を出す。代わりに件数を書かない ──
+   2026-09-24 オーナー指示。「◯◯社 1件」と書くと、その週にその会社から出した
+   たった1人が居ることまで伝わる。名前だけなら1人の週と4人の週が同じ見た目になる。
    名前は pv-airlines.json（生成物）から引く。表に無いコードは名前を出さない。
 
-   ── ★3件未満の週は送らない ───────────────────────────────────
+   ── ★3件以下の週は送らない ───────────────────────────────────
    読む価値が無い1通を送るより、次の週にまとめる。DIGEST_MIN がその1か所。
    送らなかった週は基準時刻を進めないので、その分は翌週のまとめに入る。
 
    ── ★送り分けは renewal と同じ（日本の会員は日本語・それ以外は英語＋日本語）
+
+   ── ★文面はここに無い ────────────────────────────────────────
+   2026-09-24、Supabase の時計から自動で送るようにしたとき、文面と判定を
+   **supabase/functions/weekly-digest/index.ts へ移した**（remind-payslip の
+   langOf と同じ向き）。あちらは1ファイルで完結していないとダッシュボードに
+   貼れないため、Node 側が読みに行く形にしてある。
+   ★写しを作らないこと ── 手で流したメールと自動のメールで文面が違う、が起きる。
+   ここに残っているのは、手で流すときにだけ要るもの（行を数える digestStats と
+   見本の週）だけ。本番の自動配信は db/weekly-digest.sql の pv_digest_week が数える。
    ════════════════════════════════════════════════════════════════ */
 
-/* ★3件以下の週は送らない（2026-09-24 オーナー指示）。合計が4件以上でだけ出す。 */
-export const DIGEST_MIN = 4;        // 週の合計がこれ未満なら送らない
-/* ★2026-09-24 オーナー指示「投稿があった航空会社を書こうか」で、1件だけの社も名前を出す。
-   代わりに**件数を書かない** ―― 「◯◯社 1件」と書くと、その週にその会社から出した
-   たった1人が居ることまで伝わる。名前だけなら1人の週と4人の週が同じ見た目になる。
-   サイトは元から会社を公開しているが、粗さは「1ヶ月以内」まで（db/pay-rows.sql の age）。 */
-export const DIGEST_NAME_MIN = 1;   // 会社名を出すのは週にこれ以上入った社だけ
-export const DIGEST_NAME_MAX = 12;  // 並べる社の数の上限（超えたぶんは「ほか◯社」）
+/* ★しきい値・文面・送り分けは Edge Function が唯一の正。ここでは読むだけ。 */
+export { DIGEST_MIN, DIGEST_NAME_MIN, DIGEST_NAME_MAX, digestLangOf, digestCopy, buildDigest };
 
 /* ★見本の週（`send.mjs digest --sample`）。
    本物の投稿は1件も使わない ―― 見本に実在の週を出すと、絵を渡した相手に
@@ -1408,20 +1418,24 @@ export const DIGEST_SAMPLE = {
 
 /* ★航空会社の表示名は pv-airlines.json（gen-airline-codes.mjs の生成物）が正。
      ここに名前を書き写さない。表に無いコードは名前を出さない
-     （airline_other の自由入力が混ざる道を閉じる）。 */
+     （airline_other の自由入力が混ざる道を閉じる）。
+   ★本番の自動配信はここを通らない ── db/weekly-digest.sql が
+     pv_airlines（DB 側の表）から name_ja / name_en を引いて渡す。
+     同じ社に同じ名前が出ることは db/test-digest.mjs が突き合わせている。 */
 let AIR_NAMES = null;
-function airlineName(slug, lang) {
+function airlineNames(slug) {
   if (!AIR_NAMES) {
     try {
       AIR_NAMES = JSON.parse(readFileSync(new URL('../pv-airlines.json', import.meta.url), 'utf8')).airlines || {};
     } catch { AIR_NAMES = {}; }
   }
-  const a = AIR_NAMES[String(slug || '').trim().toLowerCase()];
-  if (!a) return null;
-  return lang === 'en' ? (a.en || a.ja) : (a.ja || a.en);
+  return AIR_NAMES[String(slug || '').trim().toLowerCase()] || null;
 }
 
-/* 数え方はここ1か所。send.mjs は行を取ってくるだけで、数えない。
+/* 手で流すときの数え方（`send.mjs digest`）。
+   ★本番の自動配信はこれを通らない。あちらは SQL（pv_digest_week）が数える
+     ―― Edge Function に行そのものを渡さないため。同じ週を両方に数えさせて
+     突き合わせているのが db/test-digest.mjs。
    rows = { pay: [{airline}], reviews: [{airline}] } */
 export function digestStats(rows = {}) {
   const pay = (rows.pay || []).length;
@@ -1438,152 +1452,9 @@ export function digestStats(rows = {}) {
   const airlines = [...by.entries()]
     .filter(([, n]) => n >= DIGEST_NAME_MIN)
     .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-    .map(([slug, n]) => ({ slug, n }));
+    .map(([slug, n]) => {
+      const a = airlineNames(slug);
+      return { slug, n, ja: a?.ja || null, en: a?.en || null };
+    });
   return { pay, reviews, total: pay + reviews, airlines };
-}
-
-function digestCopy(lang, st) {
-  const all = st.airlines.map((a) => ({ ...a, name: airlineName(a.slug, lang) })).filter((a) => a.name);
-  const named = all.slice(0, DIGEST_NAME_MAX);
-  const more = all.length - named.length;
-  /* ★0件の行は出さない（「新しい口コミ 0件」と書かれた1通を送らない）。
-     DIGEST_MIN があるので、両方 0 でここに来ることはない。 */
-  const nz = (pairs) => pairs.filter(([n]) => n > 0);
-  /* 英語の単複。1件のときに「1 reviews」と出ていたのを直した（2026-09-24）。 */
-  const plu = (n, one, many) => `${n} ${n === 1 ? one : many}`;
-  if (lang === 'ja') {
-    return {
-      subject: 'この1週間の新着：' + nz([[st.pay, `年収 ${st.pay}件`], [st.reviews, `口コミ ${st.reviews}件`]])
-        .map(([, s]) => s).join('・'),
-      lead: [
-        'PILOT VALUEをご利用いただき、ありがとうございます。',
-        'この1週間に、パイロット本人から新しいデータが届きました。',
-      ],
-      counts: nz([[st.pay, `新しい年収レポート ${st.pay}件`], [st.reviews, `新しい口コミ ${st.reviews}件`]])
-        .map(([, s]) => s),
-      airlinesPre: named.length ? '投稿があった航空会社：' : '',
-      /* ★件数を書かない（上の DIGEST_NAME_MIN の注記）。 */
-      airlines: named.map((a) => a.name).concat(more > 0 ? [`ほか${more}社`] : []),
-      cta: '新しいデータを見る',
-      close: [
-        'このメールには金額を書いていません。中身はサイトでご覧いただけます。',
-        '来週も、届いたぶんをまとめてお知らせします。',
-      ],
-      sign: ['PILOT VALUE Team', "Pilot defines. Pilot's value."],
-      why: 'このメールは、PILOT VALUE で通知を希望された方にお送りしています。',
-      unsub: '配信を停止する',
-    };
-  }
-  return {
-    subject: 'This week on PILOT VALUE: ' + nz([
-      [st.pay, plu(st.pay, 'pay report', 'pay reports')],
-      [st.reviews, plu(st.reviews, 'review', 'reviews')],
-    ]).map(([, s]) => s).join(', '),
-    lead: [
-      'Thank you for being part of PILOT VALUE.',
-      'Here is what pilots added over the past week.',
-    ],
-    counts: nz([
-      [st.pay, plu(st.pay, 'new pay report', 'new pay reports')],
-      [st.reviews, plu(st.reviews, 'new review', 'new reviews')],
-    ]).map(([, s]) => s),
-    airlinesPre: named.length ? 'Airlines with new entries:' : '',
-    airlines: named.map((a) => a.name).concat(more > 0 ? [`and ${more} more`] : []),
-    cta: 'See the new data',
-    close: [
-      'We never put pay figures in email. You can see them on the site.',
-      "We'll send another summary next week.",
-    ],
-    sign: ['PILOT VALUE Team', "Pilot defines. Pilot's value."],
-    why: 'You are receiving this because you asked for notifications from PILOT VALUE.',
-    unsub: 'Unsubscribe',
-  };
-}
-
-/* ★renewal と同じ向き・同じ送り分け（英語が上・日本語が下／日本の会員は日本語だけ）。 */
-const DIGEST_BOTH_ORDER = ['en', 'ja'];
-export const digestLangOf = renewalLangOf;
-
-/* p = { name, country, airline_region, unsub_token }
-   o = { stats, siteUrl, supabaseUrl, lang } ← stats は digestStats() の戻り値 */
-export function buildDigest(p, o = {}) {
-  const opt = { ...DEFAULTS, ...o };
-  const st = opt.stats || { pay: 0, reviews: 0, total: 0, airlines: [] };
-  const site = String(opt.siteUrl).replace(/\/+$/, '');
-  const lang = opt.lang || digestLangOf(p);
-  const langs = lang === 'both' ? DIGEST_BOTH_ORDER : [lang];
-
-  const pre = (l) => (l === 'en' ? 'en/' : '');
-  /* ★行き先は REAL PAY（新しく入ったデータが並ぶ画面）。 */
-  const dataUrl = (l) => `${site}/${pre(l)}actual-pay.html`;
-  const unsubPage = (l) => `${site}/${pre(l)}unsubscribe.html?token=${encodeURIComponent(p?.unsub_token || '')}`;
-  const unsubUrl = unsubPage(langs[0]);
-  const oneClickUrl = opt.supabaseUrl
-    ? `${String(opt.supabaseUrl).replace(/\/+$/, '')}/functions/v1/remind-payslip?u=${encodeURIComponent(p?.unsub_token || '')}`
-    : '';
-
-  const parts = langs.map((l) => ({ l, t: digestCopy(l, st), u: dataUrl(l) }));
-  const subject = lang === 'both' ? `${parts[0].t.subject} / ${parts[1].t.subject}` : parts[0].t.subject;
-
-  const para = (s) => `<p style="margin:0 0 16px;color:#333">${esc(s)}</p>`;
-  /* ★件数は「行」で出す。箇条書きのタグを使わないのは他の5通と同じ形に保つため。 */
-  const rowsHtml = (t) => t.counts
-    .map((s) => `<p style="margin:0 0 6px;color:#111;font-weight:800;font-size:15px">${esc(s)}</p>`).join('');
-  const airHtml = (t) => (t.airlines.length
-    ? `<p style="margin:12px 0 4px;color:#6b7280;font-size:13px">${esc(t.airlinesPre)}</p>
-       <p style="margin:0 0 16px;color:#333">${esc(t.airlines.join(' ・ '))}</p>`
-    : '');
-
-  const blockHtml6 = (t, u) => `
-    ${t.lead.map(para).join('')}
-    <div style="margin:0 0 6px;padding:16px 18px;background:#fbfbfd;border:1px solid #eef0f4;border-radius:12px">
-      ${rowsHtml(t)}
-    </div>
-    ${airHtml(t)}
-    <p style="margin:22px 0 24px">
-      <a href="${esc(u)}" style="display:inline-block;background:#f5c842;color:#111;text-decoration:none;font-weight:800;padding:12px 22px;border-radius:10px">${esc(t.cta)}</a>
-    </p>
-    ${t.close.map(para).join('')}
-    <p style="margin:22px 0 0;color:#333">${t.sign.map(esc).join('<br>')}</p>`;
-
-  const blockText6 = (t, u) => [
-    ...t.lead.flatMap((s) => [strip(s), '']),
-    ...t.counts.map((s) => '  ' + strip(s)), '',
-    ...(t.airlines.length ? [strip(t.airlinesPre), '  ' + strip(t.airlines.join(' / ')), ''] : []),
-    `▶ ${u}`, '',
-    ...t.close.flatMap((s) => [strip(s), '']),
-    ...t.sign.map(strip),
-  ].join('\n');
-
-  const feet = parts.map((x) => x.t);
-  const unsubLink = parts
-    .map((x) => `<a href="${esc(unsubPage(x.l))}" style="color:#6b7280">${esc(x.t.unsub)}</a>`)
-    .join(' / ');
-
-  const html =
-    `<div style="background:#f3f5f8;padding:24px 12px;font-family:-apple-system,'Segoe UI','Noto Sans JP',sans-serif">
-      <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;border:1px solid #e6e9ef">
-        <div style="background:#0a0c0f;padding:18px 24px">
-          <span style="color:#f5c842;font-weight:800;letter-spacing:.04em;font-size:15px">PILOT VALUE</span>
-        </div>
-        <div style="padding:26px 24px;color:#1f2937;font-size:14px;line-height:1.8">
-          ${parts.map((x) => blockHtml6(x.t, x.u))
-            .reduce((acc, b, i) => acc + dividerFor(langs[i]) + b)}
-        </div>
-        <div style="padding:16px 24px;border-top:1px solid #eef0f4;color:#9aa5b1;font-size:11px;line-height:1.7">
-          ${feet.map((t) => esc(t.why)).join('<br>')}<br>
-          ${unsubLink}
-          ・<a href="${esc(site)}" style="color:#6b7280">${esc(site.replace(/^https?:\/\//, ''))}</a>
-        </div>
-      </div>
-    </div>`;
-
-  const text = [
-    parts.map((x) => blockText6(x.t, x.u)).join('\n\n— — —\n\n'),
-    '', '--',
-    ...feet.map((t) => strip(t.why)),
-    ...parts.map((x) => `${strip(x.t.unsub)}: ${unsubPage(x.l)}`),
-  ].join('\n');
-
-  return { lang, subject, html, text, unsubUrl, oneClickUrl, dataUrl: dataUrl(langs[0]), stats: st };
 }
