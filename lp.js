@@ -537,8 +537,8 @@
      ★HTML には灰色の棒の行が4本あり、同じ高さ（66px）の行に描き替える＝ガタつかない。
      ★1行＝4段（ロゴ／社名・年収／職位・機種・年数／内訳の棒／凡例と月あたり）。
        置き場所は lp.css がクラスで決める（grid-area）。ここで並べ替えても見た目は変わらない。
-     人数だけは本物。pv_pay_rows() の stats.contributors を使う（左の板の「N / 100人」と同じ数）。
-     ⚠️ あの関数は未ログインでも伏せた行を返すが、行は使わない・DOM に入れない。 */
+     ★人数は出さない（2026-09-24 オーナー指示で「多くのパイロットが」に変わった）。
+       pv_pay_rows() は呼ばない＝このトップは本物の投稿を1件も読まない。 */
   function heroLogo(slug, name) {   // 112 の電話も同じ見た目のロゴを使う（lp.css が両方の節に当てる）
     var ext = (w.PV_LOGOS || {})[slug];
     if (ext) {
@@ -635,16 +635,8 @@
       }).join('');
     }
 
-    // 人数（本物）。取れない・3人未満なら出さない（場所は取ったまま）。0 や推測で埋めない。
-    var proof = d.getElementById('hero-proof');
-    var num = d.getElementById('hero-proof-n');
-    if (!proof || !num) return;
-    rest('rpc/pv_pay_rows').then(function (res) {
-      var n = res && res.stats ? res.stats.contributors : null;
-      if (typeof n !== 'number' || !isFinite(n) || n < 3) return;
-      num.textContent = n.toLocaleString('en-US');
-      proof.classList.remove('is-wait');
-    });
+    /* ★人数は出さない（2026-09-24 オーナー指示）。ここで pv_pay_rows() を呼んで
+       stats.contributors を入れ、is-wait を外していた。文は HTML に書いてあるだけになった。 */
   }
 
   /* ── ⓫ REAL PAY の節：白いカード（行を開いた面の見本）──────────────────

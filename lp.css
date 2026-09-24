@@ -430,12 +430,11 @@
       #hero-section .hero-ctas{ grid-template-columns:auto; grid-template-areas:"p" "s" "u"; }
     }
 
-    /* 人数。★本物の数だけ（lp.js が pv_pay_rows() の stats.contributors を入れる）。
-       取れない・3人未満のときは出さない。場所は先に取ってある（画面がガタつかない）。 */
+    /* ★人数は出さない（2026-09-24 オーナー指示）。前は数が届くまで .is-wait で隠していた。
+       いまは HTML の文だけなので、最初から見えている。 */
     #hero-section .hero-proof{ margin-top:40px; min-height:40px;
       display:flex; align-items:center; gap:14px;
       transition:opacity .6s var(--pv-ease); }
-    #hero-section .hero-proof.is-wait{ opacity:0; visibility:hidden; }
     #hero-section .hero-av{ display:flex; flex:none; }
     #hero-section .hero-av i{ display:grid; place-items:center; width:36px; height:36px;
       margin-left:-10px; border-radius:999px; box-shadow:0 0 0 2px var(--pv-bg); }
@@ -446,7 +445,6 @@
     #hero-section .hero-av i:nth-child(4){ background:var(--pv-accent-soft); color:var(--pv-accent-ink); }
     #hero-section .hero-proof-t{ margin:0; font-size:14.5px; line-height:1.5; color:var(--pv-text-muted);
       word-break:auto-phrase; }
-    #hero-section .hero-proof-t b{ font-weight:700; color:var(--pv-text); font-variant-numeric:tabular-nums; }
 
     /* ══ 共通：緑の面と電話の枠（2026-09-22・オーナーが Marit のスクショで示した形）══════
        ヒーロー・REAL PAY の節・112 AIRLINES の節で使い回す。★ここに1つだけ置く（写さない）。
