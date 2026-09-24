@@ -997,6 +997,11 @@ const RN = {
 };
 const RNALL = Object.entries(RN).map(([k, x]) => [k, buildRenewal(x, O)]);
 
+/* ★本番では「英語だけの1通」は作られない（2026-09-24 オーナー指示で、日本の会員
+   以外は全員 英語＋日本語の1通）。原稿の照合のためだけに lang を明示して
+   英語の面だけを作る ── --lang=en のプレビューが見ているのもこれ。 */
+const O_EN = { ...O, lang: 'en' };
+
 /* 入れてはいけないもの。①④⑤と同じ物差しをそのまま当てる。 */
 for (const [k, b] of RNALL) {
   const body = b.html + '\n' + b.subject + '\n' + b.text;
@@ -1037,7 +1042,7 @@ for (const [k, b] of RNALL) {
 
 /* ★行き先。日本語はトップページ、英語は /en/（2026-09-24 オーナー指示）。 */
 {
-  const bJa = buildRenewal(RN.ja, O), bEn = buildRenewal(RN.en, O);
+  const bJa = buildRenewal(RN.ja, O), bEn = buildRenewal(RN.en, O_EN);
   ok(bJa.topUrl === 'https://pilot-value.com/', 'renewal: 日本語の人はトップページへ', bJa.topUrl);
   ok(bEn.topUrl === 'https://pilot-value.com/en/', 'renewal: 英語の人は /en/ へ', bEn.topUrl);
   ok(bJa.text.includes('▶ https://pilot-value.com/\n'), 'renewal/ja: 文字版に原稿どおりの ▶ の行がある');
@@ -1062,7 +1067,7 @@ for (const [k, b] of RNALL) {
 ok(buildRenewal(RN.ja, O).text.includes('/invite.html')
    && !buildRenewal(RN.ja, O).text.includes('/en/invite.html'),
    'renewal: 日本語の人は日本語の招待ページへ');
-ok(buildRenewal(RN.en, O).text.includes('/en/invite.html'), 'renewal: 英語の人は英語の招待ページへ');
+ok(buildRenewal(RN.en, O_EN).text.includes('/en/invite.html'), 'renewal: 英語の人は英語の招待ページへ');
 
 /* ★招待に添えた1文は pv-referral.js からそのまま借りたもの。
    画面の言い方を変えたらここが落ちる＝メールだけが古い約束を語り続けない。 */
@@ -1077,7 +1082,7 @@ ok(buildRenewal(RN.en, O).text.includes('/en/invite.html'), 'renewal: 英語の�
      && REF.includes('and they never see your pay.'),
      'renewal: 英語の但し書きが pv-referral.js と同じ文');
   ok(buildRenewal(RN.ja, O).text.includes(jaNote), 'renewal/ja: その但し書きが本文にある');
-  ok(buildRenewal(RN.en, O).text.includes(enNote), 'renewal/en: その但し書きが本文にある');
+  ok(buildRenewal(RN.en, O_EN).text.includes(enNote), 'renewal/en: その但し書きが本文にある');
 }
 
 /* ★原稿に無いものを足していない。 */
@@ -1087,7 +1092,7 @@ for (const [k, b] of RNALL) {
 }
 /* 原稿の書き出し・結び・署名が1文字違わず入っている。 */
 {
-  const bJa = buildRenewal(RN.ja, O), bEn = buildRenewal(RN.en, O);
+  const bJa = buildRenewal(RN.ja, O), bEn = buildRenewal(RN.en, O_EN);
   ok(bJa.subject === 'PILOT VALUEのトップページが新しくなりました ✈️',
      'renewal/ja: 原稿どおりの件名', bJa.subject);
   ok(bEn.subject === 'A new look for PILOT VALUE ✈️', 'renewal/en: 原稿どおりの件名', bEn.subject);
@@ -1122,32 +1127,42 @@ for (const [k, b] of RNALL) {
      'renewal/both: 解除リンクが日英2本ある');
 }
 
-/* ★日英ともは日本語が上・英語が下（realpay / update と同じ向き）。 */
+/* ★このメールだけ英語が上・日本語が下（2026-09-24 オーナー指示の語順
+   「それ以外には英語と日本語で」）。受け取るのは日本の会員以外だけ。 */
 {
   const b = buildRenewal(RN.both, O);
   /* ★このメールは日本語の1文目も「PILOT VALUE」で始まる。だから
-     「最初の英字」で向きを見ると英語が上だと誤判定する（実際にした）。
+     「最初の英字」で向きを見ると誤判定する（実際にした）。
      日英それぞれの書き出しの位置で見る。 */
   const jaAt = b.text.indexOf('PILOT VALUEをご利用いただき、ありがとうございます。');
   const enAt = b.text.indexOf('Thank you for being part of PILOT VALUE.');
-  ok(jaAt >= 0 && enAt >= 0 && jaAt < enAt, 'renewal/both: 日本語が上・英語が下', `ja@${jaAt} en@${enAt}`);
-  ok(b.html.includes('English follows.'), 'renewal/both: 仕切りが「English follows.」');
-  ok(!b.html.includes('日本語は下に続きます。'), 'renewal/both: 逆向きの仕切りが残っていない');
+  ok(jaAt >= 0 && enAt >= 0 && enAt < jaAt, 'renewal/both: 英語が上・日本語が下', `en@${enAt} ja@${jaAt}`);
+  ok(b.html.includes('日本語は下に続きます。'), 'renewal/both: 仕切りが「日本語は下に続きます。」');
+  ok(!b.html.includes('English follows.'), 'renewal/both: 逆向きの仕切りが残っていない');
+  ok(b.subject.startsWith('A new look for PILOT VALUE'), 'renewal/both: 件名も英語が先', b.subject);
 }
-ok(!/[぀-ヿ一-鿿]/.test(buildRenewal(RN.en, O).text), 'renewal: 英語だけの人に日本語を混ぜない');
 
-/* ★送り分けは update と同じ判定を共有している（2本に割らない）。 */
+/* ★送り分け ── 日本の会員だけ日本語1本、それ以外は全員 日英ともに1通
+   （2026-09-24 オーナー指示）。海外の会員に英語だけを送らない
+   ── 海外在住の日本人パイロットが読めない1通を受け取らないため。 */
 {
-  ok(renewalLangOf === updateLangOf, 'renewal: 送り分けは update と同じ判定を使っている（2本に割っていない）');
-  ok(buildRenewal({ ...RN.both, airline_region: 'mideast' }, O).lang === 'en',
-     'renewal: 勤務先が海外の航空会社なら英語だけ');
+  ok(typeof renewalLangOf === 'function' && renewalLangOf !== updateLangOf,
+     'renewal: update とは別の送り分け（あちらは海外に英語だけを送る）');
+  ok(buildRenewal({ ...RN.both, airline_region: 'mideast' }, O).lang === 'both',
+     'renewal: 勤務先が海外の航空会社なら英語と日本語');
+  ok(buildRenewal({ name: 'James Carter', country: 'United States', unsub_token: 'x' }, O).lang === 'both',
+     'renewal: 居住国が海外の人にも日本語を付ける（英語だけにしない）');
   ok(buildRenewal({ ...RN.both, airline_region: 'japan' }, O).lang === 'ja',
      'renewal: 勤務先が日本の航空会社なら日本語だけ');
   ok(buildRenewal({ ...RN.ja, airline_region: 'mideast' }, O).lang === 'ja',
-     'renewal: 氏名から分かる人は勤務先で上書きしない');
+     'renewal: 氏名から分かる日本の人は勤務先で上書きしない');
   ok(buildRenewal(RN.both, O).lang === 'both',
-     'renewal: 居住国も勤務先も分からない人には日英ともに1通');
+     'renewal: 居住国も勤務先も分からない人にも日英ともに1通');
+  ok(new Set([RN.ja, RN.en, RN.both, { ...RN.both, airline_region: 'japan' }]
+      .map((p) => buildRenewal(p, O).lang)).size === 2,
+     'renewal: 出来上がる版は「日本語だけ」と「英語＋日本語」の2つしかない');
 }
+ok(/[぀-ヿ一-鿿]/.test(buildRenewal(RN.en, O).text), 'renewal: 英語の人の1通にも日本語が入っている');
 
 /* ★1種類しか作れないこと。提出の有無で文面を割ると、割った側が必ず勧誘になる。 */
 {

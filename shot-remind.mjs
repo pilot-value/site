@@ -95,9 +95,12 @@ const UPDATE_CASES = [
    update と同じく日本語が上・英語が下。
    ★見るのは「オーナーの原稿と1文字ずつ同じか」── 勝手な見出し・箇条書き・
      件数・社名が混ざっていないか。英語の人の行き先が /en/ になっているか。 */
+/* ★本番で出来上がる版は2つだけ ── 日本の会員は日本語、それ以外は全員
+   英語＋日本語を1通に（2026-09-24 オーナー指示）。下の5通りのうち
+   rn-ja だけが日本語、残りの4つはすべて英語が上・日本語が下になる。 */
 const RENEWAL_CASES = [
   { k: 'rn-ja',            p: { name: '高橋 蓮',     country: '日本' } },
-  { k: 'rn-en',            p: { name: 'Alex Mercer', country: 'UAE' } },
+  { k: 'rn-overseas',      p: { name: 'Alex Mercer', country: 'UAE' } },
   { k: 'rn-both',          p: { name: 'Ren Aoki',    country: null } },
   { k: 'rn-both-overseas', p: { name: 'Ren Aoki',    country: null, airline_region: 'mideast' } },
   { k: 'rn-noname',        p: { name: null,          country: null } },
