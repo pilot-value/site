@@ -765,9 +765,15 @@
     function openDrop() {
       if (!els) return;
       dropOpen = true; els.drop.hidden = false; els.add.setAttribute('aria-expanded', 'true');
-      // 「会社を追加」ボタンの右端に合わせて右側に出す（画面左に出ない・ボタン直下）
+      // 「会社を追加」ボタンの右端に合わせて右側に出す（ボタン直下）。
+      // ⚠️ 幅が狭くてボタンが左へ回り込むと、右端を合わせただけでは一覧が画面の左へ出る。
+      //    2026-09-24、iPhone 390px で左へ 176px はみ出し、社名の列が丸ごと見えなかった
+      //    （見えていたのは右端の地域と「＋」だけ）。置き場の左端より左へは行かせない。
       els.drop.style.left = 'auto';
-      els.drop.style.right = Math.max(0, pickHost.clientWidth - (els.add.offsetLeft + els.add.offsetWidth)) + 'px';
+      els.drop.style.right = '0px';                      // 先に素直に右へ寄せて、幅を確定させる
+      var want = pickHost.clientWidth - (els.add.offsetLeft + els.add.offsetWidth);
+      var lim  = Math.max(0, pickHost.clientWidth - els.drop.offsetWidth);  // これ以上寄せると左が出る
+      els.drop.style.right = Math.min(Math.max(0, want), lim) + 'px';
       renderList(els.input.value);
       w.setTimeout(function () { els.input.focus(); }, 0);
     }
