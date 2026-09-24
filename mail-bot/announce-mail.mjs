@@ -31,6 +31,8 @@
    ここで書き直すと、月次リマインドは日本語・お知らせは英語、のように
    同じ人に違う言語で届く。判定は1つに保つ。 */
 import { langOf } from '../supabase/functions/remind-payslip/index.ts';
+/* buildDigest が航空会社の表示名を pv-airlines.json（生成物）から引くため。 */
+import { readFileSync } from 'fs';
 
 export { langOf };
 
@@ -1347,4 +1349,224 @@ export function buildRenewal(p, o = {}) {
   ].join('\n');
 
   return { lang, subject, html, text, unsubUrl, oneClickUrl, topUrl: topUrl(langs[0]), inviteUrl: inviteUrl(langs[0]) };
+}
+
+/* ════════════════════════════════════════════════════════════════
+   週に一度の新着まとめ（buildDigest）
+
+   ── ★他の5通と決定的に違う点 ──────────────────────────────────
+   これだけが**繰り返し送る**メールで、送り先は **email_opt_in = true の人だけ**。
+   他の5通（announce / founding / realpay / update / renewal）は一度きりの
+   サービスのお知らせなので登録者全員に送っているが、こちらは毎週届く。
+   ⚠️ **登録者全員に広げない。** 広げた瞬間、受け取りたくない人に繰り返し届く
+   ＝苦情の筋が通ってしまう。足元の文言も「希望した方に」に変えてある。
+
+   ── ★1件ごとに送らない（2026-09-24 オーナーと決めた）────────────
+   直近30日で新着は40件＝1日1.3件。1件ごとに送ると月40通になり、
+   いま最も失いたくないオプトインの人たちが真っ先に解除する。
+   それ以上に、**1件ごとのメールは投稿の時刻を分単位で外に出す**。
+   サイトが見せているのは「どの会社・いつ頃」までで、時刻は見せていない。
+   同僚が「昨日出した」と言えば、その人の行がどれか特定できてしまう。
+   ★まとめて週に一度・時刻は書かない。ここは崩さない。
+
+   ── ★本文に入れないもの ──────────────────────────────────────
+   ・金額（他の5通と同じ。MONEY の物差しで検査する）
+   ・口コミの本文（抜粋も含めて1文字も載せない）
+     ⚠️ 2026-09-16 から、鍵を持たない人にサイトが見せるのは**先頭40字**だけ。
+        メールに抜粋を載せると、サイトの錠前を**メールが迂回する**ことになる。
+        作り直す前の digest は140字を載せていた（一度も送っていないので実害は無い）。
+   ・職位・機材・在籍年数（1件ごとの姿に近づくほど投稿者が絞られる）
+   ・airline_other の自由入力（本人が何を書いたか分からない文字列を配らない）
+
+   ── ★会社名を出すのは、その週に2件以上入った会社だけ ────────────
+   1件しかない社を名指すと、その1人が誰か絞られる（2026-09-12 の update と同じ規則）。
+   名前は pv-airlines.json（生成物）から引く。表に無いコードは名前を出さない。
+
+   ── ★3件未満の週は送らない ───────────────────────────────────
+   読む価値が無い1通を送るより、次の週にまとめる。DIGEST_MIN がその1か所。
+   送らなかった週は基準時刻を進めないので、その分は翌週のまとめに入る。
+
+   ── ★送り分けは renewal と同じ（日本の会員は日本語・それ以外は英語＋日本語）
+   ════════════════════════════════════════════════════════════════ */
+
+export const DIGEST_MIN = 3;        // 週の合計がこれ未満なら送らない
+export const DIGEST_NAME_MIN = 2;   // 会社名を出すのは週にこれ以上入った社だけ
+export const DIGEST_NAME_MAX = 6;   // 並べる社の数の上限（長い一覧にしない）
+
+/* ★航空会社の表示名は pv-airlines.json（gen-airline-codes.mjs の生成物）が正。
+     ここに名前を書き写さない。表に無いコードは名前を出さない
+     （airline_other の自由入力が混ざる道を閉じる）。 */
+let AIR_NAMES = null;
+function airlineName(slug, lang) {
+  if (!AIR_NAMES) {
+    try {
+      AIR_NAMES = JSON.parse(readFileSync(new URL('../pv-airlines.json', import.meta.url), 'utf8')).airlines || {};
+    } catch { AIR_NAMES = {}; }
+  }
+  const a = AIR_NAMES[String(slug || '').trim().toLowerCase()];
+  if (!a) return null;
+  return lang === 'en' ? (a.en || a.ja) : (a.ja || a.en);
+}
+
+/* 数え方はここ1か所。send.mjs は行を取ってくるだけで、数えない。
+   rows = { pay: [{airline}], reviews: [{airline}] } */
+export function digestStats(rows = {}) {
+  const pay = (rows.pay || []).length;
+  const reviews = (rows.reviews || []).length;
+  const by = new Map();
+  for (const r of [...(rows.pay || []), ...(rows.reviews || [])]) {
+    const s = String(r?.airline || '').trim().toLowerCase();
+    if (!s) continue;
+    by.set(s, (by.get(s) || 0) + 1);
+  }
+  /* ★2件以上入った社だけ・多い順・同数ならコード順（同じ週なら何度数えても同じ並び）。 */
+  const airlines = [...by.entries()]
+    .filter(([, n]) => n >= DIGEST_NAME_MIN)
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, DIGEST_NAME_MAX)
+    .map(([slug, n]) => ({ slug, n }));
+  return { pay, reviews, total: pay + reviews, airlines };
+}
+
+function digestCopy(lang, st) {
+  const named = st.airlines.map((a) => ({ ...a, name: airlineName(a.slug, lang) })).filter((a) => a.name);
+  /* ★0件の行は出さない（「新しい口コミ 0件」と書かれた1通を送らない）。
+     DIGEST_MIN があるので、両方 0 でここに来ることはない。 */
+  const nz = (pairs) => pairs.filter(([n]) => n > 0);
+  /* 英語の単複。1件のときに「1 reviews」と出ていたのを直した（2026-09-24）。 */
+  const plu = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+  if (lang === 'ja') {
+    return {
+      subject: 'この1週間の新着：' + nz([[st.pay, `年収 ${st.pay}件`], [st.reviews, `口コミ ${st.reviews}件`]])
+        .map(([, s]) => s).join('・'),
+      lead: [
+        'PILOT VALUEをご利用いただき、ありがとうございます。',
+        'この1週間に、パイロット本人から新しいデータが届きました。',
+      ],
+      counts: nz([[st.pay, `新しい年収レポート ${st.pay}件`], [st.reviews, `新しい口コミ ${st.reviews}件`]])
+        .map(([, s]) => s),
+      airlinesPre: named.length ? '複数の投稿があった航空会社：' : '',
+      airlines: named.map((a) => `${a.name} ${a.n}件`),
+      cta: '新しいデータを見る',
+      close: [
+        'このメールには金額を書いていません。中身はサイトでご覧いただけます。',
+        '来週も、届いたぶんをまとめてお知らせします。',
+      ],
+      sign: ['PILOT VALUE Team', "Pilot defines. Pilot's value."],
+      why: 'このメールは、PILOT VALUE で通知を希望された方にお送りしています。',
+      unsub: '配信を停止する',
+    };
+  }
+  return {
+    subject: 'This week on PILOT VALUE: ' + nz([
+      [st.pay, plu(st.pay, 'pay report', 'pay reports')],
+      [st.reviews, plu(st.reviews, 'review', 'reviews')],
+    ]).map(([, s]) => s).join(', '),
+    lead: [
+      'Thank you for being part of PILOT VALUE.',
+      'Here is what pilots added over the past week.',
+    ],
+    counts: nz([
+      [st.pay, plu(st.pay, 'new pay report', 'new pay reports')],
+      [st.reviews, plu(st.reviews, 'new review', 'new reviews')],
+    ]).map(([, s]) => s),
+    airlinesPre: named.length ? 'Airlines with more than one new entry:' : '',
+    airlines: named.map((a) => `${a.name} ${a.n}`),
+    cta: 'See the new data',
+    close: [
+      'We never put pay figures in email. You can see them on the site.',
+      "We'll send another summary next week.",
+    ],
+    sign: ['PILOT VALUE Team', "Pilot defines. Pilot's value."],
+    why: 'You are receiving this because you asked for notifications from PILOT VALUE.',
+    unsub: 'Unsubscribe',
+  };
+}
+
+/* ★renewal と同じ向き・同じ送り分け（英語が上・日本語が下／日本の会員は日本語だけ）。 */
+const DIGEST_BOTH_ORDER = ['en', 'ja'];
+export const digestLangOf = renewalLangOf;
+
+/* p = { name, country, airline_region, unsub_token }
+   o = { stats, siteUrl, supabaseUrl, lang } ← stats は digestStats() の戻り値 */
+export function buildDigest(p, o = {}) {
+  const opt = { ...DEFAULTS, ...o };
+  const st = opt.stats || { pay: 0, reviews: 0, total: 0, airlines: [] };
+  const site = String(opt.siteUrl).replace(/\/+$/, '');
+  const lang = opt.lang || digestLangOf(p);
+  const langs = lang === 'both' ? DIGEST_BOTH_ORDER : [lang];
+
+  const pre = (l) => (l === 'en' ? 'en/' : '');
+  /* ★行き先は REAL PAY（新しく入ったデータが並ぶ画面）。 */
+  const dataUrl = (l) => `${site}/${pre(l)}actual-pay.html`;
+  const unsubPage = (l) => `${site}/${pre(l)}unsubscribe.html?token=${encodeURIComponent(p?.unsub_token || '')}`;
+  const unsubUrl = unsubPage(langs[0]);
+  const oneClickUrl = opt.supabaseUrl
+    ? `${String(opt.supabaseUrl).replace(/\/+$/, '')}/functions/v1/remind-payslip?u=${encodeURIComponent(p?.unsub_token || '')}`
+    : '';
+
+  const parts = langs.map((l) => ({ l, t: digestCopy(l, st), u: dataUrl(l) }));
+  const subject = lang === 'both' ? `${parts[0].t.subject} / ${parts[1].t.subject}` : parts[0].t.subject;
+
+  const para = (s) => `<p style="margin:0 0 16px;color:#333">${esc(s)}</p>`;
+  /* ★件数は「行」で出す。箇条書きのタグを使わないのは他の5通と同じ形に保つため。 */
+  const rowsHtml = (t) => t.counts
+    .map((s) => `<p style="margin:0 0 6px;color:#111;font-weight:800;font-size:15px">${esc(s)}</p>`).join('');
+  const airHtml = (t) => (t.airlines.length
+    ? `<p style="margin:12px 0 4px;color:#6b7280;font-size:13px">${esc(t.airlinesPre)}</p>
+       <p style="margin:0 0 16px;color:#333">${esc(t.airlines.join(' ・ '))}</p>`
+    : '');
+
+  const blockHtml6 = (t, u) => `
+    ${t.lead.map(para).join('')}
+    <div style="margin:0 0 6px;padding:16px 18px;background:#fbfbfd;border:1px solid #eef0f4;border-radius:12px">
+      ${rowsHtml(t)}
+    </div>
+    ${airHtml(t)}
+    <p style="margin:22px 0 24px">
+      <a href="${esc(u)}" style="display:inline-block;background:#f5c842;color:#111;text-decoration:none;font-weight:800;padding:12px 22px;border-radius:10px">${esc(t.cta)}</a>
+    </p>
+    ${t.close.map(para).join('')}
+    <p style="margin:22px 0 0;color:#333">${t.sign.map(esc).join('<br>')}</p>`;
+
+  const blockText6 = (t, u) => [
+    ...t.lead.flatMap((s) => [strip(s), '']),
+    ...t.counts.map((s) => '  ' + strip(s)), '',
+    ...(t.airlines.length ? [strip(t.airlinesPre), '  ' + strip(t.airlines.join(' / ')), ''] : []),
+    `▶ ${u}`, '',
+    ...t.close.flatMap((s) => [strip(s), '']),
+    ...t.sign.map(strip),
+  ].join('\n');
+
+  const feet = parts.map((x) => x.t);
+  const unsubLink = parts
+    .map((x) => `<a href="${esc(unsubPage(x.l))}" style="color:#6b7280">${esc(x.t.unsub)}</a>`)
+    .join(' / ');
+
+  const html =
+    `<div style="background:#f3f5f8;padding:24px 12px;font-family:-apple-system,'Segoe UI','Noto Sans JP',sans-serif">
+      <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;border:1px solid #e6e9ef">
+        <div style="background:#0a0c0f;padding:18px 24px">
+          <span style="color:#f5c842;font-weight:800;letter-spacing:.04em;font-size:15px">PILOT VALUE</span>
+        </div>
+        <div style="padding:26px 24px;color:#1f2937;font-size:14px;line-height:1.8">
+          ${parts.map((x) => blockHtml6(x.t, x.u))
+            .reduce((acc, b, i) => acc + dividerFor(langs[i]) + b)}
+        </div>
+        <div style="padding:16px 24px;border-top:1px solid #eef0f4;color:#9aa5b1;font-size:11px;line-height:1.7">
+          ${feet.map((t) => esc(t.why)).join('<br>')}<br>
+          ${unsubLink}
+          ・<a href="${esc(site)}" style="color:#6b7280">${esc(site.replace(/^https?:\/\//, ''))}</a>
+        </div>
+      </div>
+    </div>`;
+
+  const text = [
+    parts.map((x) => blockText6(x.t, x.u)).join('\n\n— — —\n\n'),
+    '', '--',
+    ...feet.map((t) => strip(t.why)),
+    ...parts.map((x) => `${strip(x.t.unsub)}: ${unsubPage(x.l)}`),
+  ].join('\n');
+
+  return { lang, subject, html, text, unsubUrl, oneClickUrl, dataUrl: dataUrl(langs[0]), stats: st };
 }

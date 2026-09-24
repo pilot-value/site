@@ -54,8 +54,9 @@ const read = (p) => readFileSync(join(ROOT, p), 'utf8');
 let pass = 0, fail = 0;
 const ok = (c, m, x = '') => { c ? (pass++, console.log(`  ✅ ${m}`)) : (fail++, console.log(`  ❌ ${m}${x ? '\n     ' + x : ''}`)); };
 
-const { build, buildFounding, buildRealPay, buildUpdate, buildRenewal,
-        realPayLangOf, langModeOf, updateLangOf, renewalLangOf,
+const { build, buildFounding, buildRealPay, buildUpdate, buildRenewal, buildDigest,
+        realPayLangOf, langModeOf, updateLangOf, renewalLangOf, digestLangOf, digestStats,
+        DIGEST_MIN, DIGEST_NAME_MIN, DIGEST_NAME_MAX,
         SAMPLE, IMG_VER, UPDATE_STATS, UPDATE_AIRLINES, UPDATE_FALLBACK_LANG } = await import(join(ROOT, 'mail-bot/announce-mail.mjs'));
 
 /* 架空の人。実在の氏名は使わない（このリポジトリは PUBLIC）。 */
@@ -1189,6 +1190,151 @@ for (const [k, b] of RNALL) {
 
 /* 件名の長さ。 */
 for (const [k, b] of RNALL) ok(b.subject.length <= 78, `renewal/${k}: 件名が 78 文字以内（${b.subject.length}）`);
+
+
+/* ════════ ⑧ 週に一度の新着まとめ ════════════════════════════════
+   buildDigest()。**これだけが繰り返し送るメール**で、送り先は
+   email_opt_in = true の人だけ。①〜⑦とは足元の文言も違う。
+
+   ・★1件しか入らなかった会社の名前を出さない（その1人が誰か絞られる）
+   ・★口コミの本文を1文字も載せない。鍵の無い人にサイトが見せるのは先頭40字なので、
+     メールに抜粋を載せると**メールが錠前を迂回する**（作り直す前の digest は140字を
+     載せていた。一度も送っていないので実害は無い）
+   ・★金額・職位・機材を載せない。数えるのは件数だけ
+   ・★3件未満の週は送らない（send.mjs の門も一緒に見る）
+   ════════════════════════════════════════════════════════════════ */
+console.log('\n── ⑧ 週に一度の新着まとめ ──');
+
+const DG = {
+  ja:       { name: '高橋 蓮',     country: '日本', unsub_token: 'dg-ja' },
+  overseas: { name: 'Alex Mercer', country: 'UAE',  unsub_token: 'dg-en' },
+  both:     { name: 'Ren Aoki',    country: null,   unsub_token: 'dg-both' },
+};
+/* ★数えるのは本物の digestStats。ここで数え直さない。 */
+const dgRows = {
+  pay: [{ airline: 'ana' }, { airline: 'ana' }, { airline: 'jal' }, { airline: 'emirates' }],
+  reviews: [{ airline: 'ana' }, { airline: 'cathay-pacific' }, { airline: 'cathay-pacific' }],
+};
+const DGST = digestStats(dgRows);
+const DGO = { ...O, stats: DGST };
+const DGALL = Object.entries(DG).map(([k, x]) => [k, buildDigest(x, DGO)]);
+
+/* 数え方そのもの。 */
+{
+  ok(DGST.pay === 4 && DGST.reviews === 3 && DGST.total === 7, 'digest: 年収と口コミを別々に数えて合計も出す',
+     JSON.stringify(DGST));
+  const slugs = DGST.airlines.map((a) => a.slug);
+  ok(slugs.includes('ana') && slugs.includes('cathay-pacific'),
+     'digest: 2件以上入った会社は名前を出す候補になる', slugs.join(','));
+  ok(!slugs.includes('jal') && !slugs.includes('emirates'),
+     'digest: ★1件しか入らなかった会社は候補に入れない（その1人が絞られる）', slugs.join(','));
+  ok(DIGEST_NAME_MIN >= 2, `digest: 名前を出す下限が2件以上（${DIGEST_NAME_MIN}）`);
+  ok(DIGEST_MIN >= 2, `digest: 送らない週の下限がある（${DIGEST_MIN}）`);
+  const many = digestStats({ pay: Array.from({ length: 40 }, (_, i) => ({ airline: `a${i % 20}` })).concat(
+    Array.from({ length: 40 }, (_, i) => ({ airline: `a${i % 20}` }))) });
+  ok(many.airlines.length <= DIGEST_NAME_MAX, `digest: 並べる社の数に上限がある（${many.airlines.length} ≦ ${DIGEST_NAME_MAX}）`);
+  /* ★同じ週を二度数えたら同じ並びになる（人によって順番が変わらない）。 */
+  ok(JSON.stringify(digestStats(dgRows)) === JSON.stringify(DGST), 'digest: 同じ週なら何度数えても同じ結果');
+}
+
+/* ★本文に入れてはいけないもの。①④⑤⑦と同じ物差しを当てる。 */
+for (const [k, b] of DGALL) {
+  const body = b.html + '\n' + b.subject + '\n' + b.text;
+  const money = MONEY.find(([re]) => re.test(body));
+  ok(!money, `digest/${k}: 金額が1つも入っていない`, money ? `${money[1]} → ${body.match(money[0])[0]}` : '');
+  const low = body.toLowerCase();
+  const ded = DEDUCT.find((w) => low.includes(w.toLowerCase()));
+  ok(!ded, `digest/${k}: 控除の項目名が入っていない`, ded || '');
+  const slip = SLIP.find((w) => low.includes(w.toLowerCase()));
+  ok(!slip, `digest/${k}: 明細の項目名が入っていない`, slip || '');
+  const over = OVERCLAIM.find((re) => re.test(body));
+  ok(!over, `digest/${k}: 特定されないと言い切っていない`, over ? String(over) : '');
+  const hit = SOLICIT.find((w) => low.includes(w.toLowerCase()));
+  ok(!hit, `digest/${k}: 勧誘の言い回しが入っていない`, hit || '');
+  ok(!/pay-report\.html/.test(b.html + b.text), `digest/${k}: 給与フォームへの導線が無い`);
+  ok(!/機長|副操縦士|\bcaptain\b|\bfirst officer\b|\b[AB]\d{3}\b/i.test(body),
+     `digest/${k}: 職位も機材も書いていない（1件ごとの姿に近づけない）`);
+}
+
+/* ★口コミの本文も、本人の自由入力も、1文字も運ばれないこと。
+   digestStats は airline しか見ない ── 余計な列を渡しても本文に出てこない。 */
+{
+  const dirty = digestStats({
+    pay: [{ airline: 'ana', airline_other: 'ヒミツ航空', gross_monthly: 1234567, position: 'captain' },
+          { airline: 'ana', airline_other: 'ヒミツ航空' }],
+    reviews: [{ airline: 'ana', culture_comment: 'これは口コミの本文です', salary_comment: '秘密の待遇' },
+              { airline: 'zzz-not-in-table' }],
+  });
+  const b = buildDigest(DG.both, { ...O, stats: dirty });
+  const body = b.html + b.subject + b.text;
+  for (const bad of ['ヒミツ航空', 'これは口コミの本文です', '秘密の待遇', '1234567', 'captain', 'zzz-not-in-table']) {
+    ok(!body.includes(bad), `digest: 「${bad}」が本文に出てこない`);
+  }
+  ok(dirty.pay === 2 && dirty.reviews === 2, 'digest: 表に無いコードも件数には数える（数だけは正しい）');
+  ok(dirty.airlines.every((a) => a.slug !== 'zzz-not-in-table'),
+     'digest: 表に無いコードの名前は出さない');
+}
+
+/* ★足元の文言が①〜⑦と逆＝「希望した方に」。繰り返し届くメールだから。 */
+for (const [k, b] of DGALL) {
+  ok(/希望|you asked for/i.test(b.text), `digest/${k}: 「通知を希望した方に」と書いている（繰り返し届くため）`);
+  ok(!/お知らせとしてお送りしています/.test(b.text), `digest/${k}: 全員宛の足元の文言が混ざっていない`);
+  ok(b.unsubUrl.includes(DG[k].unsub_token), `digest/${k}: 解除リンクがその人のトークンを持っている`);
+  ok(b.html.includes(b.unsubUrl) && b.text.includes(b.unsubUrl), `digest/${k}: 日英どちらの版にも解除リンクがある`);
+  ok(/functions\/v1\/remind-payslip\?u=/.test(b.oneClickUrl), `digest/${k}: ワンクリック解除の宛先がある`);
+  ok(b.subject.length <= 78, `digest/${k}: 件名が 78 文字以内（${b.subject.length}）`);
+}
+
+/* ★送り分けと並びは renewal と同じ（日本の会員は日本語・それ以外は英語＋日本語）。 */
+{
+  ok(digestLangOf === renewalLangOf, 'digest: 送り分けは renewal と同じ判定を使っている');
+  ok(buildDigest(DG.ja, DGO).lang === 'ja', 'digest: 日本の会員は日本語だけ');
+  ok(buildDigest(DG.overseas, DGO).lang === 'both', 'digest: 海外の会員は英語と日本語');
+  ok(buildDigest(DG.both, DGO).lang === 'both', 'digest: 手がかりが無い人も英語と日本語');
+  const b = buildDigest(DG.both, DGO);
+  const enAt = b.text.indexOf('Thank you for being part of PILOT VALUE.');
+  const jaAt = b.text.indexOf('PILOT VALUEをご利用いただき、ありがとうございます。');
+  ok(enAt >= 0 && jaAt >= 0 && enAt < jaAt, 'digest/both: 英語が上・日本語が下', `en@${enAt} ja@${jaAt}`);
+}
+
+/* ★行き先は REAL PAY。英語の面は /en/。 */
+{
+  const bJa = buildDigest(DG.ja, DGO), bEn = buildDigest(DG.overseas, { ...DGO, lang: 'en' });
+  ok(bJa.dataUrl === 'https://pilot-value.com/actual-pay.html', 'digest: 日本語の人は REAL PAY へ', bJa.dataUrl);
+  ok(bEn.dataUrl === 'https://pilot-value.com/en/actual-pay.html', 'digest: 英語の人は /en/ の REAL PAY へ', bEn.dataUrl);
+  ok(!/\/en\//.test(bJa.text), 'digest/ja: 日本語だけの人の本文に英語版の URL が混ざらない');
+  for (const [k, b] of DGALL) {
+    const langs = b.lang === 'both' ? 2 : 1;
+    ok((b.html.match(/background:#f5c842/g) || []).length === langs, `digest/${k}: 押すボタンは言語ごとに1つだけ`);
+    ok(!/<h[1-6]|<img/i.test(b.html), `digest/${k}: 見出しも画像も足していない`);
+  }
+}
+
+/* ★0件の行は出さない（「新しい口コミ 0件」と書かれた1通を送らない）。 */
+{
+  const quiet = digestStats({ pay: [{ airline: 'ana' }, { airline: 'jal' }, { airline: 'delta' }], reviews: [] });
+  const b = buildDigest(DG.overseas, { ...O, stats: quiet });
+  ok(!/0件|\b0 review/.test(b.text), 'digest: 0件の行を書かない', b.text.slice(0, 120));
+  ok(!/1 reviews|1 pay reports/.test(b.text + b.subject), 'digest: 英語の単複が正しい（1 review）');
+  ok(!/複数の投稿があった|more than one new entry/.test(b.text),
+     'digest: 名前を出せる社が無い週は、その見出しごと出さない');
+  ok(b.subject.includes('3'), 'digest: 静かな週でも件数は出る', b.subject);
+}
+
+/* ★送信側の門。ここが外れると「1件の週に1通」や「全員へ毎週」が起きる。 */
+{
+  const S = read('mail-bot/send.mjs');
+  ok(/stats\.total\s*<\s*DIGEST_MIN/.test(S), 'digest/send: 少ない週は送らない門がある');
+  ok(/\['email_opt_in',\s*'eq\.true'\]/.test(S.slice(S.indexOf('async function runDigest'))),
+     'digest/send: 送るのは通知を希望した人だけ');
+  ok(!/state\.lastDigestAt = nowIso;[\s\S]{0,40}$/m.test('') && /sent > 0.*lastDigestAt/.test(S),
+     'digest/send: 1通も出せなかった週に基準時刻を進めない');
+  ok(/MODE === 'digest'/.test(S), 'digest/send: 既定は「送らない」側にある（--send が要る）');
+  const runDigest = S.slice(S.indexOf('async function runDigest'), S.indexOf('async function runDigest') + 4000);
+  ok(!/culture_comment|salary_comment|wlb_comment|gross_monthly|annual_salary|monthly_salary/.test(runDigest),
+     'digest/send: 口コミ本文も金額の列も取ってこない');
+  ok(!/→ \$\{m\.email\}|console\.log\(`.*m\.email/.test(runDigest), 'digest/send: 宛先を画面に出さない');
+}
 
 console.log(`\n${pass} pass / ${fail} fail\n`);
 process.exit(fail ? 1 : 0);

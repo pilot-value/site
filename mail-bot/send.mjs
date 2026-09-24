@@ -2,7 +2,7 @@
    PILOT VALUE — mail-bot/send.mjs  v1.1
    会員向けメール配信（オプトインした会員のみ）。
      welcome  … 新規オプトイン会員へ歓迎＋使い方
-     digest   … 新着口コミ／年収更新などの定期便
+     digest   … ★週に一度の新着まとめ（年収＋口コミの件数だけ。金額も口コミ本文も載せない）
      announce … 一度だけのお知らせ（給与レポート公開）。文面は announce-mail.mjs
 
    法令順守:
@@ -14,9 +14,12 @@
 
    使い方:
      node mail-bot/send.mjs welcome            # 新規オプトイン会員へ歓迎メール
-     node mail-bot/send.mjs digest             # オプトイン会員へ新着ダイジェスト
      node mail-bot/send.mjs welcome --dry-run  # 送らず対象と本文プレビュー
-     node mail-bot/send.mjs digest  --backfill # 初回：直近分をまとめて（--since=ISO も可）
+
+     node mail-bot/send.mjs digest                          # 送らない。今週の件数と対象人数だけ出る
+     node mail-bot/send.mjs digest --to=info@…     --send   # ★自分の受信箱で現物を見る
+     node mail-bot/send.mjs digest --send                   # 本番（週に一度・オプトインの人だけ）
+     node mail-bot/send.mjs digest --backfill               # 基準を直近7日に戻して数え直す（--since=ISO も可）
 
      node mail-bot/send.mjs announce                        # 送らない。誰に何が届くかだけ出す
      node mail-bot/send.mjs announce --to=info@…    --send  # ★自分の受信箱で現物を見る（会員には出ない）
@@ -67,7 +70,7 @@ const langArg  = (args.find(a => a.startsWith('--lang=')) || '').split('=')[1]; 
 const toArg    = (args.find(a => a.startsWith('--to=')) || '').split('=')[1];    // 自分宛の下見だけに使う
 /* announce は「--send と書いたときだけ送る」。他のモードは従来どおり
    「--dry-run と書いたときだけ送らない」。既定を逆にしてあるのはわざと。 */
-const NEEDS_SEND = MODE === 'announce' || MODE === 'founding' || MODE === 'realpay' || MODE === 'update' || MODE === 'renewal';
+const NEEDS_SEND = MODE === 'digest' || MODE === 'announce' || MODE === 'founding' || MODE === 'realpay' || MODE === 'update' || MODE === 'renewal';
 const DRY = NEEDS_SEND ? !args.includes('--send') : args.includes('--dry-run');
 
 if (!['welcome', 'digest', 'announce', 'founding', 'realpay', 'update', 'renewal'].includes(MODE)) { console.error('使い方: node mail-bot/send.mjs <welcome|digest|announce|founding|realpay|update|renewal> [--dry-run] [--send] [--only=ADDR] [--to=ADDR] [--lang=ja|en|both] [--backfill] [--since=ISO]'); process.exit(1); }
@@ -184,54 +187,111 @@ async function runWelcome() {
   console.log(`[welcome] ${DRY ? 'プレビュー' : '送信'} ${sent}/${members.length}`);
 }
 
-/* ════════════════════ digest ════════════════════ */
+/* ════════════════════ digest ════════════════════
+   ★週に一度の新着まとめ（2026-09-24 に作り直した）。
+
+   ここが守っていること:
+     ① 送るのは email_opt_in = true の人だけ。**他の5通と違い、繰り返し届く**メールなので
+        登録者全員に広げない
+     ② 1件ごとに送らない。1週間ぶんをまとめる（投稿の時刻を外に出さないため）
+     ③ 週の合計が DIGEST_MIN 未満なら送らず、**基準時刻も進めない**
+        ＝その分は翌週のまとめに入る
+     ④ 取ってくる列は created_at と airline だけ。金額の列に触れない
+     ⑤ 数えるのは announce-mail.mjs の digestStats の1か所（ここで数えない）
+     ⑥ 既定は「送らない」。飛ぶのは --send を書いたときだけ
+
+   ⚠️ 作り直す前の digest は口コミ本文を140字メールに載せていた。
+      サイトが鍵の無い人に見せるのは先頭40字なので、**メールが錠前を迂回**していた。
+      一度も送っていないので実害は無いが、抜粋を戻さないこと。               */
 async function runDigest() {
+  const { buildDigest, digestStats, DIGEST_MIN, langModeOf } = await import('./announce-mail.mjs');
+
   const since = BACKFILL ? new Date(Date.now() - 7 * 864e5).toISOString()
               : (sinceArg || state.lastDigestAt || new Date(Date.now() - 7 * 864e5).toISOString());
 
-  const reviews = await sbSelect('reviews_v2',
-    'airline,position,age_bucket,monthly_salary,annual_salary,culture_comment,salary_comment,wlb_comment,created_at',
-    [['created_at', 'gt.' + since], ['order', 'created_at.asc']]);
+  /* ★航空会社のコードだけ取る。金額・職位・機材・本文には触れない。 */
+  const [pay, reviews] = await Promise.all([
+    sbSelect('pay_reports', 'airline,created_at', [['created_at', 'gt.' + since]]),
+    sbSelect('reviews_v2',  'airline,created_at', [['created_at', 'gt.' + since]]),
+  ]);
+  const stats = digestStats({ pay, reviews });
 
-  console.log(`[digest] 基準 ${since} 以降の新着口コミ ${reviews.length} 件`);
-  if (reviews.length === 0) { console.log('新着なし。配信をスキップ。'); return; }
+  const fromDay = String(since).slice(0, 10);
+  console.log(`[digest] ${fromDay} 以降の新着 … 年収 ${stats.pay}件 / 口コミ ${stats.reviews}件`
+    + (stats.airlines.length ? `（名前を出す社 ${stats.airlines.length}）` : '（名前を出す社なし）'));
 
-  // 航空会社別の件数と、代表的な抜粋を数件
-  const byAirline = {};
-  for (const r of reviews) byAirline[r.airline] = (byAirline[r.airline] || 0) + 1;
-  const topAirlines = Object.entries(byAirline).sort((a, b) => b[1] - a[1]).slice(0, 8);
-  const excerpts = reviews
-    .map(r => ({ a: r.airline, t: [r.culture_comment, r.salary_comment, r.wlb_comment].filter(Boolean).join(' ') }))
-    .filter(x => x.t.length >= 30).slice(0, 4);
+  /* ★自分の受信箱で現物を見る逃げ道。会員には1通も出さない。 */
+  if (toArg) {
+    const me = { id: 'self-preview', email: toArg, name: null, country: null, unsub_token: 'preview-token' };
+    const b = buildDigest(me, { stats, siteUrl: SITE_URL, supabaseUrl: SUPABASE_URL, adminEmail: ADMIN_EMAIL, lang: langArg });
+    console.log(`[digest] 自分宛のプレビュー（会員には送りません）… ${b.lang}`);
+    console.log(`         ${b.subject}`);
+    if (DRY) return console.log('         ※ 送りません。実際に送るには --send を付けてください。');
+    await sendEmail(toArg, '[preview] ' + b.subject, b.html, { text: b.text, replyTo: ADMIN_EMAIL });
+    return console.log('  ✓ 送りました');
+  }
 
-  const listHtml = topAirlines.map(([a, n]) =>
-    `<li><strong>${esc(a)}</strong> … 新着 ${n} 件</li>`).join('');
-  const exHtml = excerpts.map(x =>
-    `<div style="border-left:3px solid #f5c842;padding:6px 0 6px 12px;margin:10px 0;color:#374151;font-size:13px">
-       <span style="color:#9aa5b1;font-size:11px">${esc(x.a)}</span><br>${esc(x.t.slice(0, 140))}${x.t.length > 140 ? '…' : ''}</div>`).join('');
+  /* ★少ない週は送らない。基準時刻を進めないので、この分は翌週のまとめに入る。 */
+  if (stats.total < DIGEST_MIN) {
+    return console.log(`         合計 ${stats.total}件＝${DIGEST_MIN}件未満なので送りません（来週のまとめに入ります）。`);
+  }
 
-  const recipients = await sbSelect('profiles', 'name,email,unsub_token,email_opt_in', [['email_opt_in', 'eq.true']]);
-  console.log(`[digest] 配信対象（オプトイン）${recipients.length} 名`);
+  if (TEST_PATTERNS.length === 0) {
+    console.error('❌ PV_TEST_EMAILS が mail-bot/.env にありません。');
+    console.error('   動作確認用のアカウントを外せないので止めます（送信は取り消せません）。');
+    process.exit(1);
+  }
+
+  /* ★ここだけ email_opt_in で絞る（繰り返し届くメールだから）。 */
+  const people = await sbSelect('profiles', 'id,name,email,country,company,unsub_token',
+    [['email_opt_in', 'eq.true'], ['order', 'created_at.asc']]);
+
+  let targets = people.filter(m => m.email && String(m.email).includes('@'));
+  const total = targets.length;
+  const testers = targets.filter(m => isTestEmail(m.email)).length;
+  targets = targets.filter(m => !isTestEmail(m.email));
+  if (onlyArg) targets = targets.filter(m => String(m.email).toLowerCase() === onlyArg.toLowerCase());
+
+  const needRegion = [...new Set(targets
+    .filter(m => langModeOf(m) === 'both' && String(m.company ?? '').trim())
+    .map(m => String(m.company).trim()))];
+  const regions = await airlineRegionMap(needRegion);
+  for (const m of targets) m.airline_region = regions.get(String(m.company ?? '').trim()) || '';
+
+  console.log(`[digest] 受け取る設定の会員 ${total} 名／動作確認 ${testers} 名を除外／今回の対象 ${targets.length} 名`
+    + (onlyArg ? `（--only=${onlyArg}）` : ''));
+  if (DRY) console.log('         ※ 送りません。実際に送るには --send を付けてください。');
+  if (targets.length === 0) return;
+
+  /* ★同じ週を二度流しても Resend 側で2通目にならないための鍵。 */
+  const TAG = `digest-${fromDay}`;
 
   let sent = 0;
-  for (const m of recipients) {
-    if (!m.email) continue;
-    /* ★ここも氏名で呼びかけない（welcome と同じ理由）。 */
-    const inner = `
-      <p style="margin:0 0 14px">この期間の新着です。</p>
-      <p style="margin:0 0 8px;font-weight:700">🆕 新着口コミ ${reviews.length} 件（航空会社別）</p>
-      <ul style="margin:0 0 14px;padding-left:1.2em;color:#374151">${listHtml}</ul>
-      ${exHtml ? `<p style="margin:0 0 4px;font-weight:700">現場の声（抜粋）</p>${exHtml}` : ''}
-      <p style="margin:16px 0 0"><a href="${SITE_URL}/community.html" style="display:inline-block;background:#f5c842;color:#000;font-weight:800;text-decoration:none;padding:11px 22px;border-radius:9px">最新の口コミを見る →</a></p>
-      <p style="margin:14px 0 0;color:#6b7280;font-size:13px">※ 詳細な年収データは、給与明細を1枚出すと90日間解放されます。</p>`;
+  const tally = { ja: 0, en: 0, both: 0 };
+  for (const m of targets) {
+    const b = buildDigest(m, { stats, siteUrl: SITE_URL, supabaseUrl: SUPABASE_URL, adminEmail: ADMIN_EMAIL, lang: langArg });
+    tally[b.lang] = (tally[b.lang] || 0) + 1;
+    const headers = {
+      'List-Unsubscribe': (b.oneClickUrl ? `<${b.oneClickUrl}>, ` : '') + `<${b.unsubUrl}>, <mailto:${ADMIN_EMAIL}?subject=unsubscribe>`,
+      ...(b.oneClickUrl ? { 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' } : {}),
+    };
     try {
-      await sendEmail(m.email, `【PILOT VALUE】新着口コミ ${reviews.length} 件のダイジェスト`, layout(inner, m.unsub_token));
+      await sendEmail(m.email, b.subject, b.html, {
+        text: b.text, headers, replyTo: ADMIN_EMAIL,
+        idempotencyKey: `pv-${TAG}-${m.id}`,
+      });
       sent++;
-      console.log(`${DRY ? '  [dry]' : '  ✓'} digest → ${m.email}`);
-    } catch (e) { console.error(`  ❌ ${m.email}: ${e.message}`); }
+      /* 宛先は出さない。ここの出力を貼って渡すと会員のメールが漏れる。 */
+      const L = { ja: '日本語', en: '英語', both: '日英ともに' }[b.lang] || b.lang;
+      console.log(`${DRY ? '  [dry]' : '  ✓'} ${L.padEnd(5, '　')} … ${b.subject}`);
+      if (!DRY) await new Promise(r => setTimeout(r, 320));
+    } catch (e) { console.error(`  ❌ 1名ぶん失敗: ${e.message}`); }
   }
-  if (!DRY) { state.lastDigestAt = nowIso; saveState(); }
-  console.log(`[digest] ${DRY ? 'プレビュー' : '送信'} ${sent}/${recipients.length}`);
+  /* ★1通でも出たときだけ基準時刻を進める（全部失敗した週を「送った」にしない）。 */
+  if (!DRY && sent > 0) { state.lastDigestAt = nowIso; saveState(); }
+  console.log(`[digest] ${DRY ? 'プレビュー' : '送信'} ${sent}/${targets.length}`
+    + `（日本語 ${tally.ja} / 英語 ${tally.en} / 日英ともに ${tally.both}）`);
+  if (DRY) console.log('         本文を絵で見る: node shot-remind.mjs --digest');
 }
 
 /* ════════════════════ announce ════════════════════

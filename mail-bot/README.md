@@ -369,6 +369,39 @@ node mail-bot/send.mjs renewal --send                # ④ 本番
 
 ---
 
+### 週に一度の新着まとめ（send.mjs digest）
+
+**繰り返し送る唯一のメール**（2026-09-24 オーナー指示「週1のまとめを作る」）。
+その週に届いた**年収レポートと口コミの件数**だけを知らせる。文面は
+[announce-mail.mjs](announce-mail.mjs) の `buildDigest`。
+
+```
+node mail-bot/send.mjs digest                        # ① 送らない。何件・何人に届くかが出る
+node shot-remind.mjs --digest                        # ② 本文を絵で見る（5通り）
+node mail-bot/send.mjs digest --to=info@pilot-value.com --send   # ③ ★自分の受信箱で現物を見る
+node mail-bot/send.mjs digest --send                 # ④ 本番
+```
+
+- **★送り先は「通知を希望した人」だけ**（`email_opt_in = true`）。
+  他の5本は登録者全員に送るが、このメールだけは繰り返し届くので、希望した人に限る。
+  足元の文言も1本だけ違う（「通知を希望された方にお送りしています」）。
+- **★1件しか入らなかった会社の名前を出さない**（`DIGEST_NAME_MIN = 2`）。
+  出すと、その週にその会社から出した**たった1人**が誰か絞られる。
+  並べるのは多い順に最大6社（`DIGEST_NAME_MAX`）。
+  **航空会社の表に無いコードは名前を出さない**＝本人が手で書いた社名が本文に出ることはない。
+- **★口コミの本文を1文字も載せない。** 鍵の無い人にサイトが見せるのは先頭40字なので、
+  メールに抜粋を載せると**メールがサイトの錠前を迂回する**
+  （作り直す前の `digest` は140字を載せていた。一度も送っていないので実害は無い）。
+  金額・職位・機材も載せない。数えるのは件数だけ。
+- **★週の合計が3件未満なら送らない**（`DIGEST_MIN`）。
+  このとき**基準の時刻を進めない**ので、その週のぶんは翌週のまとめに合流する。
+  1通も出せなかった週も同じ（`.send-state.json` の `lastDigestAt` は成功した回だけ動く）。
+- **送り分けは `renewal` と同じ。** 日本の会員は日本語だけ・それ以外は英語と日本語を1通に。
+  行き先は REAL PAY（`actual-pay.html` / `en/actual-pay.html`）。
+- 見るもの ―― `node db/test-announce.mjs` の⑧（上の★を全部固定してある）。
+
+---
+
 ## 定期実行（cron 例）
 リポジトリを clone 済みのマシン（またはサーバ）で：
 ```cron
@@ -379,8 +412,9 @@ node mail-bot/send.mjs renewal --send                # ④ 本番
 # 歓迎メール：10分毎に新規オプトイン会員へ
 */10 * * * * cd /path/to/PILOT-VALUE && /usr/bin/node mail-bot/send.mjs welcome >> mail-bot/send.log 2>&1
 
-# ダイジェスト：毎週月曜 9:00
-0 9 * * 1 cd /path/to/PILOT-VALUE && /usr/bin/node mail-bot/send.mjs digest >> mail-bot/send.log 2>&1
+# 新着まとめ：毎週月曜 9:00。--send が要る（付けないと「送らない」側で止まる）
+# ⚠️ 今は cron に登録していない。この Mac が動いていないと飛ばないので、当面は手で流す。
+#0 9 * * 1 cd /path/to/PILOT-VALUE && /usr/bin/node mail-bot/send.mjs digest --send >> mail-bot/send.log 2>&1
 ```
 `node` の絶対パスは `which node` で確認。`/path/to/PILOT-VALUE` は実際の clone 先に置換。
 

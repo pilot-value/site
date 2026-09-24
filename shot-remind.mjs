@@ -15,13 +15,14 @@
          node shot-remind.mjs --realpay   … REAL PAY 公開のお知らせを撮る
          node shot-remind.mjs --update    … この1ヶ月のお知らせを撮る
          node shot-remind.mjs --renewal   … トップページ刷新のお知らせを撮る
+         node shot-remind.mjs --digest    … 週に一度の新着まとめを撮る
 */
 import puppeteer from 'puppeteer';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { build } from './supabase/functions/remind-payslip/index.ts';
-import { build as buildAnnounce, buildFounding, buildRealPay, buildUpdate, buildRenewal } from './mail-bot/announce-mail.mjs';
+import { build as buildAnnounce, buildFounding, buildRealPay, buildUpdate, buildRenewal, buildDigest, digestStats } from './mail-bot/announce-mail.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const outDir = path.join(__dirname, 'temporary screenshots', 'mail');
@@ -32,6 +33,7 @@ const FOUNDING = process.argv.includes('--founding');
 const REALPAY  = process.argv.includes('--realpay');
 const UPDATE   = process.argv.includes('--update');
 const RENEWAL  = process.argv.includes('--renewal');
+const DIGEST   = process.argv.includes('--digest');
 const day = (n) => new Date(Date.now() + n * 86400000).toISOString();
 
 /* 受け取る人の状態は3つに分かれる。文面と色が変わるので全部見る。 */
@@ -106,11 +108,35 @@ const RENEWAL_CASES = [
   { k: 'rn-noname',        p: { name: null,          country: null } },
 ];
 
-const CASES = RENEWAL ? RENEWAL_CASES : UPDATE ? UPDATE_CASES : REALPAY ? REALPAY_CASES : FOUNDING ? FOUNDING_CASES : ANNOUNCE ? ANNOUNCE_CASES : REMIND_CASES;
+/* ★週に一度の新着まとめ。stats は digestStats() に通した本物の形で渡す
+   （ここで数えない＝メールと同じ数え方しか見えないようにする）。
+   rows の中身は架空。実在の投稿を絵に使わない。 */
+const wk = (pay, rev) => digestStats({
+  pay:     Array.from({ length: pay.length }, (_, i) => ({ airline: pay[i] })),
+  reviews: Array.from({ length: rev.length }, (_, i) => ({ airline: rev[i] })),
+});
+const DIGEST_CASES = [
+  { k: 'dg-ja',       p: { name: '高橋 蓮',     country: '日本' },
+    st: wk(['ana', 'ana', 'jal', 'cathay-pacific', 'emirates'], ['ana', 'qatar-airways']) },
+  { k: 'dg-overseas', p: { name: 'Alex Mercer', country: 'UAE' },
+    st: wk(['ana', 'ana', 'jal', 'cathay-pacific', 'emirates'], ['ana', 'qatar-airways']) },
+  { k: 'dg-noname',   p: { name: null,          country: null },
+    st: wk(['ana', 'ana', 'jal', 'cathay-pacific', 'emirates'], ['ana', 'qatar-airways']) },
+  /* ★静かな週。名前を出せる社が1つも無く、口コミは0件（その行ごと出さない）。 */
+  { k: 'dg-quiet',    p: { name: '高橋 蓮',     country: '日本' },
+    st: wk(['ana', 'jal', 'delta'], []) },
+  { k: 'dg-quiet-en', p: { name: 'Alex Mercer', country: 'UAE' },
+    st: wk(['ana', 'jal', 'delta'], []) },
+];
+
+const CASES = DIGEST ? DIGEST_CASES : RENEWAL ? RENEWAL_CASES : UPDATE ? UPDATE_CASES : REALPAY ? REALPAY_CASES : FOUNDING ? FOUNDING_CASES : ANNOUNCE ? ANNOUNCE_CASES : REMIND_CASES;
 
 const files = [];
 for (const c of CASES) {
-  const m = RENEWAL
+  const m = DIGEST
+    ? buildDigest({ id: 'x', unsub_token: '0000-token', ...c.p },
+      { stats: c.st, supabaseUrl: 'https://example.supabase.co', siteUrl: 'http://localhost:3000' })
+    : RENEWAL
     ? buildRenewal({ id: 'x', unsub_token: '0000-token', ...c.p },
       { supabaseUrl: 'https://example.supabase.co', siteUrl: 'http://localhost:3000' })
     : UPDATE
