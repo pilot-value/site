@@ -422,7 +422,7 @@
     #hero-section .hero-strip--rv{ margin-top:-10px; }   /* row-gap 20 − 10 = 10 */
     @media (max-width:639px){
       #hero-section .hero-strip{ margin:0 -20px; }   /* 端まで流す（.hero-wrap の padding を打ち消す） */
-      #hero-section .hero-strip--rv{ margin-top:-14px; }   /* row-gap 24 − 14 = 10 */
+      #hero-section .hero-strip--rv{ margin-top:-6px; }   /* row-gap 16 − 6 = 10 */
     }
 
     /* 見出し。★日英とも英語（HTML 側で lang="en"）。書体は足さない（Inter 700）。 */
@@ -476,11 +476,18 @@
        ★幅は画面ではなく左の列で測る。日英でボタンの長さが違うので閾値も2つ
          （英 約503px・日 約397px が2本並べたときの幅）。縦に積むと2本は同じ幅になる。 */
     #hero-section .hero-copy{ container:herocopy / inline-size; }
-    @container herocopy (max-width:529px){
-      html[lang="en"] #hero-section .hero-ctas{ grid-template-columns:auto; grid-template-areas:"p" "s" "u"; }
-    }
-    @container herocopy (max-width:419px){
-      #hero-section .hero-ctas{ grid-template-columns:auto; grid-template-areas:"p" "s" "u"; }
+    /* ⚠️ 2026-09-24：この2本を **640px 以上に閉じ込めた**。これは「左の列が狭い PC」のための
+       指定で、スマホには関係ない。閉じていなかったので、英語の側だけ下の
+       `@media (max-width:639px)` に勝っていた（`html[lang="en"]` のぶん指定が強い）＝
+       **英語のスマホだけボタンが 300px で、日本語は 350px**（右に 50px の空き）。
+       日本語が正しく、英語だけが取りこぼしだった。高さは変わらないので帯の計算には影響しない。 */
+    @media (min-width:640px){
+      @container herocopy (max-width:529px){
+        html[lang="en"] #hero-section .hero-ctas{ grid-template-columns:auto; grid-template-areas:"p" "s" "u"; }
+      }
+      @container herocopy (max-width:419px){
+        #hero-section .hero-ctas{ grid-template-columns:auto; grid-template-areas:"p" "s" "u"; }
+      }
     }
 
     /* ★人数は出さない（2026-09-24 オーナー指示）。前は数が届くまで .is-wait で隠していた。
@@ -780,12 +787,35 @@
       /* ★2026-09-24：ここも帯2本が 390×844 に入るまで詰めた（36 → 14 ／ 44 → 24）。
          スマホは電話が帯の**後ろ**にあるので、効くのは上余白と段の間と文章側の余白だけ。
          同日の追加指示で上余白を 14 → 30 に戻した（広い幅の 18 → 38 と同じ話。
-         人数の行を小さくしたぶんで払っている）。 */
+         人数の行を小さくしたぶんで払っている）。
+
+         ★★2026-09-24 夜・オーナーの実機（iPhone）で「全然入っていない」──
+         **検査が実機のブラウザのバーを数えていなかった。**
+         `window.innerHeight` は 852 を返すが、上のアドレスバー（約112px）と下のバー
+         （約60px）に食われて、ページに使えるのは **約 680px** しかない。
+         ヒーローは 826px 使っていた＝146px 足りない。
+         オーナー判断「**緑の帯だけ完全に入れる**」（部品は1つも消さない）。
+         ⚠️ 口コミの帯は頭が覗くだけでよい。両方入れるには「REAL PAYをアンロック」の行と
+            人数の行を帯の下へ動かすしかなく、それは選ばれなかった。
+         詰めた内訳（実測 −93px。緑の帯の下端 685 → 592 ＝ 680 に対して 88px の余裕）──
+           見出し 40.6 → 34.3px  −55  ★**3行から2行に減った**ぶんが大きい（狙いは −20 だった）
+           ボタン2本 54 → 48px   −12
+           段の間 24 → 16px      −8   ※ .hero-strip--rv の負の margin も対で直す
+           ボタンの上 24 → 16px  −8
+           説明文の上 18 → 12px  −6
+           人数の行の上 12 → 8px −4
+         ⚠️ 見出しの行数は幅で変わる（390〜430px は2行・320px は3行）。
+            文字の大きさを上げ直すと3行に戻り、いっきに 55px 使う。
+         ⚠️ 上の余白（30px）は触っていない。オーナーが「2倍に」と言った所なので、
+            ここを削って稼がない。 */
       #hero-section{ padding:calc(var(--pv-topbar,73px) + 30px) 0 48px; }
-      #hero-section .hero-wrap{ padding:0 20px; row-gap:24px; }
-      #hero-section .hero-ctas{ grid-template-columns:minmax(0,1fr); grid-template-areas:"p" "s" "u"; }
-      #hero-section .hero-btn{ width:100%; }
-      #hero-section .hero-proof{ margin-top:12px; }
+      #hero-section .hero-wrap{ padding:0 20px; row-gap:16px; }
+      #hero-section .hero-h1{ font-size:clamp(30px,8.8vw,44px); }
+      #hero-section .hero-lede{ margin-top:12px; }
+      #hero-section .hero-ctas{ margin-top:16px;
+        grid-template-columns:minmax(0,1fr); grid-template-areas:"p" "s" "u"; }
+      #hero-section .hero-btn{ width:100%; min-height:48px; }
+      #hero-section .hero-proof{ margin-top:8px; }
     }
     /* ⚠️ 動きを減らす設定。ヒーローの定義より後に置く（同じ強さなら後が勝つ）。 */
     @media (prefers-reduced-motion:reduce){
