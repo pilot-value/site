@@ -203,7 +203,13 @@ ok(!(await dueIds()).includes(U(4)), '解除リンクを踏んだ人は、その
 // ════════════════════════════════════════════════════════════════
 sec('③ 給料日（世界規模なので固定日にしない）');
 // ════════════════════════════════════════════════════════════════
-const todayDay = new Date().getUTCDate();
+/* ⚠️ 2026-09-25 に踏んだ ── ここは `new Date().getUTCDate()` だった。
+   関数の側は DB の時計（`current_date` ＝ この Mac の時刻）を見るので、
+   **日本時間の 0時〜9時のあいだだけ両者の「今日」が1日ずれる**。
+   その窓で 25日をまたぐと、製品は何も壊れていないのにここだけ赤くなる
+   （実際 2026-09-25 の朝に「今日は 24 日」と言いながら落ちた）。
+   検査と製品は同じ時計を読む。 */
+const todayDay = Number((await q('select extract(day from current_date) d'))[0].d);
 
 await db.query('update profiles set email_opt_in=true, mail_optin=true, pay_day_of_month=1 where id=$1', [U(12)]);
 ok((await dueIds()).includes(U(12)), '1日払いの人は月の頭から対象になる');
