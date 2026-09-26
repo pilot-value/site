@@ -372,6 +372,9 @@
       <h2 class="lp-h2"><span class="lp-ph">他社のパイロットは</span><span class="lp-ph">いくら稼いでいる？</span></h2>
       <p class="lp-body">あなたの給与を匿名で1件共有すると、他のパイロットが記録した実際の給与が見られます。</p>
       <a class="lp-link" href="actual-pay.html" data-pv-ev="lp_realpay_block">REAL PAY を見る<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      <!-- ★2026-09-26・2本目の入口。印は 9/23 の刷新で消えた旧名をそのまま再利用する
+           ＝刷新の前と後を GA4 で1本の線として比べられる。新しい名前を付けない。 -->
+      <a class="lp-link lp-link--alt" href="pay-report.html" data-pv-ev="actual_pay_contribute_cta">匿名で給与を共有<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
     </div>
     <div class="lp-panel lp-rp-panel">
       <div class="lp-rp-card">
@@ -403,6 +406,8 @@
       <h2 class="lp-h2"><span class="lp-ph">世界の航空会社を</span><span class="lp-ph">比較できる</span></h2>
       <p class="lp-body">公開されている情報から、世界<span data-pv-n="airlines">112</span>社の機長・副操縦士の年収レンジを並べました。各社のページでは、運航環境・訓練・福利厚生も見られます。</p>
       <a class="lp-btn" href="world-airlines.html" data-pv-ev="lp_airlines_block">すべての航空会社を見る<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      <!-- ★2026-09-26・2本目の入口。ここだけは旧版に対応する印が無いので新しい名前。 -->
+      <a class="lp-btn lp-btn--alt" href="pay-report.html" data-pv-ev="lp_airlines_contribute">匿名で給与を共有<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
     </div>
     <div class="lp-panel lp-air-panel">
       <div class="lp-phone">
@@ -689,6 +694,9 @@
            印は分けたまま残す＝どちらの言葉で入ってきたかが数えられる。 -->
       <a href="pay-report.html" class="pv-btn pv-btn--primary" data-pv-ev="salary_contribution_start">匿名で給与を追加</a>
       <a href="pay-report.html" class="pv-btn pv-btn--ghost" data-pv-ev="signup_start">アカウントを新規作成</a>
+      <!-- ★2026-09-26・3本目。明細から始める人の入口（#ps で明細の段に直接入る）。
+           文言と印は 9/23 の刷新で消えた旧版そのまま。既存の2本は触っていない。 -->
+      <a href="pay-report.html#ps" class="pv-btn pv-btn--ghost" data-pv-ev="payslip_upload_start">匿名で明細から追加</a>
     </div>
     <p class="pv-note" style="margin-top:18px">メールアドレスだけで登録できます。氏名・所属の入力は不要です。</p>
   </div>
