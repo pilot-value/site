@@ -219,8 +219,117 @@ export const SOURCES = {
   //    check-sources.mjs がこの2社を「出所ゼロ」として警告し続けるのが正しい状態。
 
   // ── 中東 ──────────────────────────────────────────────────────────
-  // ⚠️ emirates も conf:'high' だが、エミレーツは給与等級表を公開していない。
-  //    一次資料が出てこない場合、出所を作るのではなく conf を medium に落とすことを検討する。
+  // ★2026-09-26、エミレーツの一次資料が出た（下）。それまでここには
+  //   「一次資料が出てこない場合、conf を medium に落とすことを検討する」と書いてあった。
+  //   資料は出たが、まだ status:'candidate' のままにしてある ── 理由は下の note。
+  //   candidate のあいだ check-sources.mjs は emirates を「出所ゼロ」として警告し続ける。
+  //   それが今の正しい状態（オーナーが「年収に社宅の現物を含めるか」を決めるまで）。
+  'emirates': [
+    {
+      rank:        'cap',
+      source_type: 'official_package',
+      name:        'Emirates Group Careers — Pilots / Our role details（Direct Entry Captains）',
+      url:         'https://www.emiratesgroupcareers.com/pilots/our-role-details/?name=direct-entry-captains',
+      published_at:null,
+      accessed_at: '2026-09-26',
+      value_orig:  '機長。Annual pay & benefits AED 1,185,000（USD 320,000）／'
+                 + 'Annual take home cash AED 575,000（USD 155,000）／'
+                 + 'Monthly take home cash AED 48,000（USD 13,000）。'
+                 + '社宅は現物で AED 290,000（USD 80,000）相当。最低総飛行時間 7000+、ELP 5 以上。',
+      quote:       'Annual take home cash',
+      status:      'candidate',
+      note:        '⚠️ このページは金額を3つの意味で出しており、取り違えると2倍ずれる。'
+                 + '(1) Annual take home cash＝"annualised basic salary & flying pay"（月85時間の乗務を前提）。'
+                 + '(2) Annual pay & benefits＝(1)に社宅・学費・医療・航空券・年金を足した総額で、'
+                 + '「employee, spouse and 2 eligible children」を前提にした値。'
+                 + '(3) 社宅そのものの金額。'
+                 + '円に直すと（fx-rates.mjs の USD 158.95）'
+                 + '(1)＝約2,464万円・(2)＝約5,086万円・(1)+(3)＝約3,735万円。'
+                 + 'SALARY の cap は 3,350〜5,050万（avg 3,700万）なので、'
+                 + '(1) 単独では下に外れ、(1)+(3) がほぼ avg に一致する。'
+                 + '＝いまの SALARY は「現金＋社宅の現物」を年収と見ている可能性が高い。'
+                 + '★ status を in_use に上げない。上げた瞬間に check-sources.mjs の'
+                 + '「conf:high なのに出所ゼロ」警告が消えるが、'
+                 + '「年収に社宅の現物を含めるか」はサイト全体の定義の問題で、まだ決まっていない'
+                 + '（給与レポートの年収は総支給＝現金）。workflows/update-salary.md で判断する。',
+    },
+    {
+      rank:        'fo',
+      source_type: 'official_package',
+      name:        'Emirates Group Careers — Pilots / Our role details（First Officers）',
+      url:         'https://www.emiratesgroupcareers.com/pilots/our-role-details/?name=first-officers',
+      published_at:null,
+      accessed_at: '2026-09-26',
+      value_orig:  '副操縦士（standard package）。Annual pay & benefits AED 900,000（USD 245,000）／'
+                 + 'Annual take home cash AED 385,000（USD 105,000）／'
+                 + 'Monthly take home cash AED 32,100（USD 8,750）。'
+                 + 'enhanced package は AED 935,000（USD 255,000）／AED 415,000（USD 115,000）／'
+                 + 'AED 34,600（USD 9,600）で、条件は総飛行時間 4,000時間以上（>20T ジェット）かつ'
+                 + 'MTOW>50T の多人数運航ジェットで 2,000時間以上・ELP 5 以上。'
+                 + '社宅は現物で AED 225,000（USD 61,310）相当。最低総飛行時間 2000+、ELP 4 以上。',
+      quote:       'Annual take home cash',
+      status:      'candidate',
+      note:        '機長側と同じ理由で candidate（上の note を参照）。'
+                 + '円に直すと Annual take home cash＝約1,669万円・'
+                 + 'Annual pay & benefits＝約3,894万円・現金＋社宅＝約2,643万円。'
+                 + 'SALARY の fo は 2,500〜3,350万（avg 2,800万）で、ここでも現金＋社宅が近い。',
+    },
+  ],
+
+  // ── アジア ────────────────────────────────────────────────────────
+  // キャセイは今回当たった14社のうち、公式が職位別の年収額を出している唯一の会社。
+  // しかも SALARY のレンジの中に入った＝この台帳で初めて、公開情報が公開情報を裏づけた。
+  'cathay-pacific': [
+    {
+      rank:        'fo',
+      source_type: 'official_package',
+      name:        'Cathay Pacific Careers — Our teams / Pilot（First Officer パネル）',
+      url:         'https://careers.cathaypacific.com/en/careers/our-teams/pilot/pilot-detail-page',
+      published_at:null,
+      accessed_at: '2026-09-26',
+      value_orig:  'First Officer: Target Annual Salary HKD 964,646＊／Monthly allowance From HKD 20,000＊／'
+                 + 'Annual leave 28 days／最低総飛行時間 1,500時間（3,000時間が望ましい）・うち P1 500時間以上'
+                 + '（P1 U/S は最大250時間まで）／ICAO English Level 4 以上。'
+                 + '同じページの Second Officer は Target Annual Salary HKD 629,109＊／'
+                 + 'Monthly Allowance From HKD 14,000＊／Annual Leave 21 days／最低250時間。',
+      quote:       'Target Annual Salary based on achieving Target Annual Block Hours',
+      status:      'in_use',
+      note:        '＊は同ページの脚注 "Latest figures as of Jan 2026, subject to periodic review" を指す。'
+                 + '⚠️ 保証額ではない ── 目標ブロックアワーを飛んだ場合の目標年収。'
+                 + 'fx-rates.mjs の HKD 20.2744 で約1,956万円。SALARY の fo は 1,800〜3,230万なので'
+                 + 'レンジの中（下寄り）に入る＝レンジの下端側を支える根拠として採用する。'
+                 + '⚠️ 機長の金額はこのページに無い（Cadet / Second Officer / First Officer の3職位のみ）。'
+                 + 'SALARY の cap を支える出所はまだ無い。'
+                 + '税の記述は "Typical Hong Kong tax rate at around 17%"。taxFree:false と矛盾しない。',
+    },
+  ],
+
+  'eva-air': [
+    {
+      rank:        'fo',
+      source_type: 'job_posting',
+      name:        'EVA Air — About EVA Air / Careers / Job openings / Pilots（en-global）',
+      url:         'https://www.evaair.com/en-global/about-eva-air/careers/job-openings/pilots/',
+      published_at:null,
+      accessed_at: '2026-09-26',
+      value_orig:  '副操縦士。年収 USD 100,000 超（初回の運航から適用。手当・補助は別計算）。'
+                 + '会社業績に応じた年末賞与、住宅補助または社宅、月8日連続の休み、'
+                 + '年次有給 22日から最大42日、最低総飛行時間 2,000時間・'
+                 + '多人数運航ジェット（MTOW 20t 超）500時間、ICAO ATPL、ICAO English Level 4、契約4年。',
+      quote:       'Annual income exceeding USD 100,000, effective from your first operational flight.',
+      status:      'candidate',
+      note:        '⚠️ SALARY と食い違う。fx-rates.mjs の USD 158.95 で約1,589万円だが、'
+                 + 'SALARY の fo は 600〜1,180万（avg 980万）＝公式の下限がうちの上限を約35%上回る。'
+                 + '公式が4年契約で外から採る副操縦士の待遇で、SALARY が現地採用を含む'
+                 + '広い集団を見ているため、と考えられる（どちらも誤りとは限らない）。'
+                 + 'オーナー判断待ちのため candidate。SALARY は動かさない。'
+                 + '⚠️ 地域別のページで版が違う ── en-global / en-us / en-th はこの USD 表記、'
+                 + 'en-sg / en-gb / en-au / zh-hk は古い "NTD$227,000 / NTD$157,500" のまま、'
+                 + 'zh-tw / ja-jp / ko-kr / vi-vn は金額なし。'
+                 + '★ NTD の数字は月額か年額かをエバー航空がどの言語でも書いていないので使わない'
+                 + '（"per month" "月薪" "年薪" のどれも金額の近くに無いことを全言語で確認した）。',
+    },
+  ],
 };
 
 export default SOURCES;
