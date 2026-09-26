@@ -66,6 +66,34 @@ export const REFERENCES = [
                + '⚠️ 機長／副操縦士の別が無い全操縦士の平均なので、会社別の cap/fo を直接支えることはできない。'
                + '日本の会社別数値が国全体の平均から大きく外れていないかの上位チェックに使う。',
   },
+  {
+    id:          'tw-mol-occupational-wage-113-pilots',
+    scope:       'TW 全国・航空駕駛員（非管理職）',
+    rank:        'all',
+    source_type: 'government',
+    name:        '113年職類別薪資調查統計結果／中華民國勞動部 統計處',
+    url:         'https://www.mol.gov.tw/1607/1632/1640/80495/',
+    published_at:'2025-05-29',
+    accessed_at: '2026-09-26',
+    value_orig:  '月薪・年薪ともに航空駕駛員が全細職類の最上位。ただし本文が示すのは帯だけで、'
+               + '月薪は「均逾10萬元」（航空駕駛員・精算師・醫師・職業運動員・船舶監管人員が該当）、'
+               + '年薪は「均逾150萬元」（航空駕駛員・精算師・醫師・船舶監管人員・電信工程師・律師・'
+               + '職業運動員が該当）。航空駕駛員そのものの実数はこのページに載っていない。',
+    quote:       '就各細職類月薪（不含主管及監督人員）觀察，以航空駕駛員最高，精算師次之，餘依序為醫師、'
+               + '職業運動員、船舶監管人員（含引水人員），均逾10萬元；年薪亦以航空駕駛員、精算師較高，'
+               + '醫師、船舶監管人員（含引水人員）、電信工程師、律師、職業運動員均逾150萬元。',
+    status:      'candidate',
+    note:        '★ この資料の価値は金額ではなく「順位」── 台湾政府が、航空駕駛員を全職種で'
+               + '月額トップと明記している。台湾3社の記事でそのまま引ける（金額は引かない）。'
+               + '⚠️ 基準が2つある ── 月額は113年7月の「經常性薪資」（本薪＋月ごとに払う固定の手当と'
+               + '賞与。税・保険・組合費は引いていない額面）。年額は112年全年の源泉徴収票「50薪資」の'
+               + '給付總額（本薪＋業績賞与＋年末賞与＋各種手当。★残業代と非課税枠内の食事手当は含まない）。'
+               + '＝どちらも現金であって、福利厚生込みの総額パッケージではない。'
+               + '⚠️ 航空駕駛員の実数は動的検索 https://pswst.mol.gov.tw/psdn/ の中だけにあり、'
+               + 'POST が WAF に弾かれて取得できなかった。添付PDFの中国語は埋め込みフォントの都合で'
+               + '機械抽出できず、細職類の行は読めていない（取れたのは大分類の集計だけ）。'
+               + 'ブラウザで開けば取れる見込み。実数が未確認のため candidate。',
+  },
 ];
 
 /* ───────────────────────────────────────────────────────────────────────
@@ -413,6 +441,291 @@ export const SOURCES = {
                  + 'zh-tw / ja-jp / ko-kr / vi-vn は金額なし。'
                  + '★ NTD の数字は月額か年額かをエバー航空がどの言語でも書いていないので使わない'
                  + '（"per month" "月薪" "年薪" のどれも金額の近くに無いことを全言語で確認した）。',
+    },
+  ],
+
+  /* ── 2026-09-26、アジア5社の公式サイト・公式求人・法定開示を全部当たった記録 ──
+     ★ 5社とも、パイロットの給与額は公式のどこにも1文字も無かった。
+       以下は「無い」ことと、「隣にある似た数字を金額として使ってはいけない」ことの記録。
+       次に調べる人がゼロから同じ道を歩かないため、および全社員平均を
+       パイロットの年収として流用しないために置いている（starlux と同じ扱い）。       */
+
+  'china-airlines': [
+    {
+      rank:        'all',
+      source_type: 'job_posting',
+      name:        'China Airlines — Pilot Recruitment（英語版応募ポータル）',
+      url:         'https://calcfec.china-airlines.com/PilotResume/enDefault.aspx',
+      published_at:null,
+      accessed_at: '2026-09-26',
+      value_orig:  '金額の記載なし。要件のみ ── 機長 総飛行 5,000時間以上／商用ジェットPIC 1,000時間以上／'
+                 + '同型機PIC 500時間以上、副操縦士 総飛行 1,500時間以上／同型機 500時間以上。'
+                 + '両職位に共通で ATPL、直近18暦月の実飛行、第一種航空身体検査、ICAO English Level 4 以上、'
+                 + '高卒以上、在職証明、無犯罪証明。',
+      quote:       'A minimum of 5,000 total flight hours; including 1,000 PIC hours on commercial jet',
+      status:      'rejected',
+      note:        '金額・手当・休日の記述が1つも無いため、年収の根拠には使えない（要件だけ引ける）。'
+                 + '⚠️ 応募区分は FIRST OFFICER の1つだけが表示されているが、CAPTAIN の要件ブロックは'
+                 + 'HTML の中に style="display: none" で残っている＝要件は公式に書かれているが'
+                 + '2026-09-26 時点では機長を募集していない形。'
+                 + '⚠️ 中文版と機長の飛行時間が食い違う（中文版「民航機師」は 總飛時 3,500時間／'
+                 + 'PIC 800時間、副駕駛 1,500時間）。記事に書くときは必ず「英語版の要件」と'
+                 + '断る（外国籍が入れる道は英語版の1本だけで、中文版は全区分が'
+                 + '「中華民國國籍及國內戶籍」を要求している）。'
+                 + '⚠️ 英語版年報（2025・162ページ）を全文抽出したが、賃金は率だけで金額が無い'
+                 + '（"The average salary for all employees of the Company increased by about 4.36% in 2025."）。'
+                 + '賞与は団体協約41条の算式（年末に基本給1か月ぶん＋利益があれば税前利益の20%を'
+                 + '別途配分、従業員報酬は税前利益の3%以上）で、やはり金額は無い。'
+                 + '従業員総数 11,642人（2025年末）に職種別の内訳が無く、機師が何人かも書かれていない。'
+                 + '桃園市機師工會との団体協約が2021-12-29に締結されたことは年報が認めているが、'
+                 + '協約の本文は見つからなかった。台湾の法定開示項目「非擔任主管職務之全時員工薪資」は'
+                 + '英語版年報に入っておらず MOPS 側にあるはずだが、今回は開けていない。',
+    },
+    {
+      rank:        'all',
+      source_type: 'job_posting',
+      name:        'China Airlines — 機師招募（中文版応募ポータル）',
+      url:         'https://calcfec.china-airlines.com/pilotresume/chdefault.aspx',
+      published_at:null,
+      accessed_at: '2026-09-26',
+      value_orig:  '金額の記載なし。★公式が明記している拘束年限 ── 培訓機師 7年、CPL民間機師 4年、'
+                 + '民航機師 3年または定年まで、軍方退役機師 4年。'
+                 + '全5区分が「中華民國國籍及國內戶籍」を要求。',
+      quote:       '軍方退役機師：按飛時經驗支薪；完訓合格後敘任為副機師。服務年限至少四年。',
+      status:      'rejected',
+      note:        '金額が無いため年収の根拠には使えない。'
+                 + '★ quote の「按飛時經驗支薪」（飛行時間の経験に応じて支給）が、今回当たった'
+                 + 'アジア5社の全ページの中で給与に触れた唯一の文。それでも金額は書かれていない。'
+                 + '⚠️ 英語版は1区分・中文版は5区分と、同じサイトで版が違う（上のエントリ参照）。'
+                 + '英語要件も公式に細かい ── 培訓機師は TOEIC Speaking / Writing とも140以上に加えて'
+                 + 'IELTS 6.0 / TOEIC 750（Listening 400以上）/ TOEFL ITP 527 / Linguaskill 160 の'
+                 + 'いずれか。同一区分の受験は2回まで（「報名同一類別機師以兩次為限。」）。',
+    },
+  ],
+
+  'hong-kong-express': [
+    {
+      rank:        'all',
+      source_type: 'official_package',
+      name:        'HK Express — About Us / Our People / Pilots（公式の待遇紹介ページ）',
+      url:         'https://www.hkexpress.com/en/About-Us/Our-People/Pilots',
+      published_at:null,
+      accessed_at: '2026-09-26',
+      value_orig:  '金額の記載なし。福利の項目名だけ ── Medical Insurance／Loss of Income Insurance／'
+                 + 'Staff Travel Benefits (UO, CX and interline)／Up to 35-day Leave／Bonus／'
+                 + 'Relocation Assistance。このページで唯一の数字が休暇の「最大35日」。'
+                 + '賞与は有無だけで率も月数も無い。飛行時間の要件も無い。',
+      quote:       'Up to 35-day Leave',
+      status:      'rejected',
+      note:        '⚠️ 上の項目名は「カードの見出し語」であって文章ではない。'
+                 + '記事で引くときは箇条書きの項目名として引き、文のように繋がない。'
+                 + '金額が無いため年収の根拠には使えない。'
+                 + '⚠️ 求人検索（https://careers.hkexpress.com/cw/en/search/?search-keyword=Pilot）は'
+                 + '2026-09-26 時点でコックピットの募集が "Line Training Captain (Internal Application)" の'
+                 + '1件だけ（カテゴリのラベルは "Cockpit (0)" / "Flight Operations (1)"）。'
+                 + '詳細ページは PageUp のボット対策で HTTP 202・0バイトが返り、本文は取得できなかった。'
+                 + '過去の A320 First Officer の求人URLは全て jobnotfound へリダイレクト＝掲載終了。'
+                 + '★ 公式ページが外国籍の副操縦士を実名で紹介しており、'
+                 + '「ターボプロップの機長が副操縦士として入る」道が公式に読める（記事に使える事実）。',
+    },
+  ],
+
+  'vietnam-airlines': [
+    {
+      rank:        'all',
+      source_type: 'regulatory_filing',
+      name:        'Vietnam Airlines — Báo cáo thường niên 2025（2025年 年次報告書・119ページ）',
+      url:         'https://www.vietnamairlines.com/content/dam/vna/vna-footer/investor-relations/bao-cao-thuong-nien/2026/BCTN2025.TIENGVIET.pdf',
+      published_at:null,
+      accessed_at: '2026-09-26',
+      value_orig:  '★ パイロット人数は正確に開示されている ── 2025-12-31 時点の運航パイロット'
+                 + '（VASCO 込み）1,055人、うち機長 532人・副操縦士 523人、'
+                 + 'ベトナム人 966人（91.60%）・外国人 99人（9.40%）。'
+                 + '2025年に副操縦士から機長へ昇格したのは20人（計画20人・達成100%）、機種移行は112人。'
+                 + '⚠️ 賃金は率だけで金額が無い。',
+      quote:       'Tổng số phi công khai thác tại thời điểm 31/12/2025 (gồm cả phi công VASCO): '
+                 + '1.055 phi công, trong đó: Lái chính: 532, Lái phụ: 523; '
+                 + 'Phi công Việt Nam: 966 (91,60%), Phi công nước ngoài: 99 (9,40%).',
+      status:      'rejected',
+      note:        '★ 金額の根拠としては使えない（rejected はそのため）が、'
+                 + '**パイロットの人数と機長／副操縦士の内訳が公式に出ている唯一の会社**。'
+                 + '記事では「1,055人中 機長532・副操縦士523、外国人は9.4%」として引ける。'
+                 + '⚠️ 賃金に触れた文は率だけ ── 「Thu nhập bình quân đã tăng hơn 25% so với năm 2019, '
+                 + 'trong khi tiền lương bình quân tăng gần 40%.」（2019年比で平均収入+25%超・'
+                 + '平均賃金+40%近く）。**全社員の率であってパイロットの数字ではない。**'
+                 + '⚠️ 採用サイトは JavaScript の殻で HTML に求人が1件も入っていない。'
+                 + 'サーバー側で描画される本物の一覧は https://skyhr.vietnamairlines.com/jobs で、'
+                 + '2026-09-26 時点の21件にパイロットの募集は1件も無い。'
+                 + '全ての行に「Mức lương: Thỏa thuận」（給与：応相談）とだけ書かれている。',
+    },
+  ],
+
+  'vietjet': [
+    {
+      rank:        'all',
+      source_type: 'regulatory_filing',
+      name:        'VietJet Air — Báo cáo thường niên 2025（2025年 年次報告書・123ページ）',
+      url:         'https://ir.vietjetair.com/File_Upload/thong-tin-tai-chinh/bao-cao-thuong-nien-parent/bao-cao-thuong-nien/20260417_VJC_AR2025_VN_Final%201.pdf',
+      published_at:null,
+      accessed_at: '2026-09-26',
+      value_orig:  '⚠️ 出ているのは全社員の平均月収であってパイロットの給与ではない。'
+                 + '従業員総数 7,632人、職種別は 客室乗務員 27.92%／パイロット 12.47%／その他 59.60%。'
+                 + '平均収入のグラフは単位「triệu đồng/người/tháng」（百万ドン/人/月）で、'
+                 + '値は 14,2 / 23,0 / 38,1 / 46,1 / 47,6 / 50,5、人数は 5.701 / 6.541 / 5.467 / '
+                 + '5.338 / 5.729 / 7.632（年ラベルは 2020〜2025）。',
+      quote:       'Theo công việc: Tiếp viên 27,92% / Phi công 12,47% / Nhân sự khác 59,60%',
+      status:      'rejected',
+      note:        '★ この平均月収を「パイロットの給与」として使わない。3つ理由がある ── '
+                 + '(1) 全社員の平均で、パイロットは 12.47% しかいない。'
+                 + '(2) 年と値の対応がグラフ抽出のため崩れていて、本文で裏が取れているのは'
+                 + '7.632＝2025年（総数の記述と一致）だけ。そこから 50,5 が2025年だと考えられるが'
+                 + 'こちらの推測なので、使うならオーナーが PDF を目視で確認する必要がある。'
+                 + '(3) 報告書は「thu nhập」（収入）と「tiền lương」（賃金）を使い分けているが、'
+                 + '福利厚生込みかどうかの定義は書かれていない。'
+                 + '○ 単位に「/tháng」（月）が明記されている点だけは良い'
+                 + '（エバー航空の NTD で踏んだ「期間が書いていない」罠には当たらない）。'
+                 + '⚠️ 求人側 ── 2026-09-26 時点でパイロットの募集は0件'
+                 + '（部門ラベルが "Pilots (0)"）。掲載終了の A320/A321F の募集要項は本文が残っており、'
+                 + '**「Salary:」という欄そのものは在るのに値が空**（隠しているのではなく最初から'
+                 + '書いていない）。要件は機長 総4,000時間／多人数機PIC 1,500時間（PICUS除く）／'
+                 + 'A320F 1,500時間／A320F PIC 500時間、副操縦士 総4,000時間／A320F 1,500時間。'
+                 + 'https://jobs.vietjetair.com/Jobs/Vacancy/2517（Open 2025-02-14／Close 2025-02-17）。',
+    },
+  ],
+
+  'philippine-airlines': [
+    {
+      rank:        'all',
+      source_type: 'job_posting',
+      name:        'Philippine Airlines — Careers / Pilot And Cabin',
+      url:         'https://careers.philippineairlines.com/go/Pilot-And-Cabin/734544/',
+      published_at:null,
+      accessed_at: '2026-09-26',
+      value_orig:  '金額も要件も1文字も無い。2026-09-26 時点でパイロットの募集が0件。',
+      quote:       'There are currently no open positions matching this category or location.',
+      status:      'rejected',
+      note:        '公式に出ている情報が何も無い会社。記事では「公式には金額を出していません」で通す。'
+                 + '⚠️ aboutus/careers 系の旧URLは2本とも HTTP 404。生きているのは careers. 側だけ。'
+                 + '⚠️ PAL Holdings の 17-A（法定開示）は PSE EDGE の JavaScript ビューアの奥にあり開けなかった。'
+                 + '★★ フィリピン統計庁（psa.gov.ph / psada / openstat）は全て 403・Cloudflare で'
+                 + '1ページも開けていない。検索結果のスニペットに 2024年 Occupational Wages Survey の'
+                 + '航空機パイロット平均月額として **PhP 137,999** という数字が見えたが、'
+                 + '**公式ページを開けていない＝未検証。記事に使わない。**'
+                 + '（オーナーがブラウザで PSA を開ければ一次資料として取れる見込み）'
+                 + '⚠️ ALPAP（フィリピンのパイロット組合）の団体協約の本文は、'
+                 + 'ALPAP のドメインにも DOLE にも見つからなかった。',
+    },
+  ],
+
+  'singapore-airlines': [
+    {
+      rank:        'all',
+      source_type: 'job_posting',
+      name:        'Singapore Airlines — Direct Entry Captains (Contract)（公式求人・req 57638244）',
+      url:         'https://careers.singaporeair.com/sia/job/Direct-Entry-Captains-%28Contract%29/57638244/',
+      published_at:null,
+      accessed_at: '2026-09-26',
+      value_orig:  '金額の記載なし。★金額以外の条件はかなり具体的に公開されている ── '
+                 + '機長 総飛行 7,000時間以上（うち国際線の商用ジェットPIC 3,000時間以上、'
+                 + 'A350 か A380 のPIC 1,500時間以上）、機長として同型機で2年以上。'
+                 + '副操縦士 副操縦士として3,000時間が望ましく1,500時間以上も可（ただし A350／A380 で'
+                 + '1,500時間以上は必須）、同型機で2年以上。'
+                 + '両職位に共通で ICAO English Level 5 以上、身長 1.58m 以上、'
+                 + '契約は最長12か月の有期。訓練生は副操縦士に任命された日から7年の拘束。',
+      quote:       'Minimum height requirement of 1.58m to ensure full reach and the safe operation of '
+                 + 'all flight deck controls',
+      status:      'rejected',
+      note:        '金額が1つも無いため年収の根拠には使えない（日額・月額・年額のいずれも無し）。'
+                 + '⚠️ **機長と副操縦士の求人ページには「報酬」の節そのものが無い**（節は Selection Process／'
+                 + 'Training／Tenure of Service だけで、competitive も attractive も出てこない）。'
+                 + '金銭に触れているのは案内ページの「more than just a competitive salary」と'
+                 + '訓練生の「an attractive salary」だけで、どちらも金額なし。'
+                 + '案内ページで数えられる待遇はすべて金銭以外（年1回の無償搭乗・割引搭乗・'
+                 + '医療と歯科と保険・訓練と昇進機会）。年休の日数は書かれていない。'
+                 + '⚠️ 2026-09-26 時点で生きている募集は3件（Direct Entry Captains (Contract)／'
+                 + 'Direct Entry First Officers (Contract)／Ab Initio Cadet Pilot (Singapore)）。'
+                 + 'Direct Entry Second Officer は「currently closed」と明示されている。'
+                 + '⚠️ ICAO English は Level 5 以上＝エティハドやスターラックスの Level 4 より厳しい'
+                 + '（記事で比べられる公式の事実）。'
+                 + '⚠️ 地域版の違いは未確認（米国・英語版が返ってきた）。',
+    },
+  ],
+
+  'gulf-air': [
+    {
+      rank:        'all',
+      source_type: 'job_posting',
+      name:        'Gulf Air — Careers（公式採用ページ／採用システムは gulfairgroup.sniperhire.net）',
+      url:         'https://www.gulfair.com/careers',
+      published_at:null,
+      accessed_at: '2026-09-26',
+      value_orig:  '金額の記載なし。★それ以前に、2026-09-26 時点でパイロットの募集が1件も無い。'
+                 + '掲載中の求人10件を全件列挙してパイロット職ゼロを確認し、'
+                 + 'さらに pilot／captain／first officer の3語で検索して3回とも'
+                 + '「No vacancies were found.」。求人テンプレートの待遇欄は1行だけ。',
+      quote:       'Competitive salary package.',
+      status:      'rejected',
+      note:        '金額も要件（飛行時間・免許・英語・年齢）も、募集そのものが無いため公式には1つも無い。'
+                 + '記事では「公式には金額を出していません」で通し、要件の数字を埋めない。'
+                 + '⚠️ 検索エンジンに出てくる jobs.gulfair.com と careers.gulfair.com は'
+                 + '**DNS が引けない**（Could not resolve host）。生きている採用システムは'
+                 + 'https://gulfairgroup.sniperhire.net/ で、次に調べる人はそこを見る。'
+                 + '⚠️ 組合（GAPTU）との労働協約のプレスリリース（2024-07-27・'
+                 + 'https://www.gulfair.com/about-gulf-air/media-center/Gulf-Air-signs-a-Collective-Labour-Agreement-with-Gulf-Air-Pilots-Trade-Union-GAPTU ）は'
+                 + '「手当の条件がまとまった」と伝えるだけで**金額が1つも書かれていない**。'
+                 + '組合サイト gaptu.com は 1,577バイトの仮ページで、組合名と連絡先メールしかない'
+                 + '（協約の本文も待遇表も非公開）。',
+    },
+  ],
+
+  'scoot': [
+    {
+      rank:        'all',
+      source_type: 'job_posting',
+      name:        'Scoot — Careers（公式採用サイト／到達できず）',
+      url:         'https://careers.flyscoot.com/',
+      published_at:null,
+      accessed_at: '2026-09-26',
+      value_orig:  '取得できず。公式ページを1枚も開けていないため、金額も要件も未確認。',
+      quote:       '',
+      status:      'rejected',
+      note:        '★ careers.flyscoot.com は全URLが HTTP 403（Akamai のボット遮断）で、'
+                 + 'ブラウザ相当のヘッダを付けた curl でも同じ。flyscoot.com 側の採用パスは'
+                 + '空または404。web.archive.org も使えず、控えも取れなかった。'
+                 + '確認できたのは検索結果に出ていた**求人のタイトルだけ**'
+                 + '（Direct Entry A320 Captain 2026 (Singapore Assessment Centre)／'
+                 + 'Direct Entry First Officer 2026／Direct Entry B787 Captain 2026）。'
+                 + '⚠️ **飛行時間・ICAO レベル・身体検査・年齢・金額のどれも、'
+                 + 'スクートの名前で書いてはいけない。** まとめサイトには数字が流れているが、'
+                 + '公式で裏が取れていない。記事では「公式には金額を出していません」で通す。'
+                 + '（親会社のシンガポール航空とは別会社なので、あちらの条件を当てない）',
+    },
+  ],
+
+  'riyadh-air': [
+    {
+      rank:        'all',
+      source_type: 'job_posting',
+      name:        'Riyadh Air — Careers / Pilots（公式採用ページ／到達できず）',
+      url:         'https://www.riyadhair.com/en/careers/pilots',
+      published_at:null,
+      accessed_at: '2026-09-26',
+      value_orig:  '取得できず。公式ページを1枚も開けていないため、金額も要件も未確認。',
+      quote:       '',
+      status:      'rejected',
+      note:        '★ riyadhair.com は全URLが HTTP 403（Akamai）。Chrome／Safari／Googlebot／iPhone の'
+                 + '4種のユーザーエージェント、www の有無も試して全部同じ。'
+                 + '⚠️ 採用システム側（pilots-riyadhair.icims.com）の機長・B787副操縦士の求人は'
+                 + '2件とも 302 で汎用の採用トップへ飛ぶ＝**掲載が取り下げられている**。'
+                 + 'talentcommunity.riyadhair.com の職種一覧に運航乗務の区分は無く、'
+                 + '出てくるのは Human Resources だけ。'
+                 + '⚠️ **飛行時間・免許・ICAO レベル・年齢・身体検査・非課税パッケージの'
+                 + 'どれも、リヤド航空の名前で書いてはいけない。** 流通している数字は'
+                 + 'すべてまとめサイト由来で、公式では1つも裏が取れていない。'
+                 + '公式ドメインから唯一取れた文は詐欺注意の一文だけ ── '
+                 + '「Riyadh Air will only engage with potential applicants through our official '
+                 + 'channels and that Riyadh Air would never request any payments or personal bank '
+                 + 'details during the application process.」',
     },
   ],
 };
