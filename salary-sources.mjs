@@ -276,6 +276,62 @@ export const SOURCES = {
     },
   ],
 
+  // ★2026-09-26、エティハドも金額が出た。ただし在りかが2つに割れている ──
+  //   福利厚生ページ（careers.etihad.com/teams/pilots）は
+  //   「…basic salary, flying pay, housing allowance, and layover and meal allowances.」で文が終わる。
+  //   求人広告は同じ文が「…, with the potential to earn up to AED … per year based on
+  //   75 flying hours per month.」と続く。**同じ文の続きに金額がある。**
+  //   福利厚生ページだけを見て「金額なし」と結論しない。
+  'etihad': [
+    {
+      rank:        'fo',
+      source_type: 'job_posting',
+      name:        'Etihad Airways — First Officer A320（SmartRecruiters・ref 80372）',
+      url:         'https://jobs.smartrecruiters.com/EtihadAirways5/744000140889248-first-officer',
+      published_at:'2026-07-31',
+      accessed_at: '2026-09-26',
+      value_orig:  '副操縦士。年額 最大 AED 513,732（USD 138,318）／月75時間の乗務を前提。'
+                 + '内訳は basic salary ＋ flying pay ＋ housing allowance ＋ layover and meal allowances の4つ。'
+                 + '要件は2つのうちどちらか ── A: 総2,000時間かつ多人数運航ガラスコックピット1,500時間かつ'
+                 + '同型500時間／B: 総1,500時間かつ A320 系 1,000時間。'
+                 + '加えて直近12か月に A320 系を飛んでいること・ICAO の ATPL または凍結 ATPL・'
+                 + '第1種身体検査・入社日に50歳未満・ICAO English Level 4 以上。年休42日。非課税と明記。',
+      quote:       'with the potential to earn up to AED 513,732 (USD 138,318) per year based on 75 flying hours per month',
+      status:      'in_use',
+      note:        'fx-rates.mjs の AED 43.2825 で約2,224万円。SALARY の fo は 1,900〜3,100万なので'
+                 + 'レンジの中（真ん中 2,300万のすぐ下）に入る＝レンジを支える根拠として採用する。'
+                 + '⚠️ **「年収」と書き写さない。** 2つの条件が付いている ──'
+                 + '(1)「up to」＝最大。(2) 月75時間飛んだ場合。75時間は上限に近い飛び方なので、'
+                 + '普通の月の実額はこれより下がる。'
+                 + '⚠️ **含まれていないものがある** ── 教育手当（初等 AED 40,000／中等 AED 55,000・3人まで）・'
+                 + '所得補償・保険・社員割引航空券・退職金・引越し支援は、同じページで別立ての箇条書きになっている。'
+                 + '★エミレーツと違い、住宅は「手当（現金）」なので、これは現金に近い性質の数字。'
+                 + 'エミレーツの社宅は現物なので、2社を並べるときに同じものとして足さない。',
+    },
+    {
+      rank:        'cap',
+      source_type: 'job_posting',
+      name:        'Etihad Airways — Captain A320（SmartRecruiters・ref 80371）',
+      url:         'https://jobs.smartrecruiters.com/EtihadAirways5/744000140889348-captain',
+      published_at:'2026-07-31',
+      accessed_at: '2026-09-26',
+      value_orig:  '機長。年額 最大 AED 674,029（USD 181,589）／月75時間の乗務を前提。内訳は副操縦士と同じ4つ。'
+                 + '要件は 総5,500時間・多人数運航ガラスコックピットの PIC 2,500時間・A320 系の PIC 1,500時間・'
+                 + '直近12か月に A320 系・ICAO の ATPL・第1種身体検査・入社日に59歳未満・'
+                 + 'ICAO English Level 4 以上。交代要員つきの便は75%換算。年休42日。',
+      quote:       'with the potential to earn up to AED 674,029 (USD 181,589) per year based on 75 flying hours per month',
+      status:      'candidate',
+      note:        '約2,917万円で、SALARY の cap 3,000〜6,000万 の**下端をわずかに下回る**（差 約83万円・2.8%）。'
+                 + '上の副操縦士と同じく「最大・月75時間」の条件付きで、'
+                 + '教育手当・退職金・保険・航空券が含まれていないぶん低く出ていると考えられる。'
+                 + '外れ方が小さく説明も付くので SALARY は動かさないが、'
+                 + 'レンジの下端を支える根拠としては採用しない（＝candidate のまま）。'
+                 + '⚠️ 参考：同社の訓練生は月額で明記されている'
+                 + '（AED 5,000 →（技能試験合格後）16,667 →（路線訓練後）24,000 → 4年で上限 34,000 →'
+                 + 'ATPL 取得で上級副操縦士 39,853）。SALARY に訓練生の段は無いので数値には使わない。',
+    },
+  ],
+
   // ── アジア ────────────────────────────────────────────────────────
   // キャセイは今回当たった14社のうち、公式が職位別の年収額を出している唯一の会社。
   // しかも SALARY のレンジの中に入った＝この台帳で初めて、公開情報が公開情報を裏づけた。
@@ -301,6 +357,35 @@ export const SOURCES = {
                  + '⚠️ 機長の金額はこのページに無い（Cadet / Second Officer / First Officer の3職位のみ）。'
                  + 'SALARY の cap を支える出所はまだ無い。'
                  + '税の記述は "Typical Hong Kong tax rate at around 17%"。taxFree:false と矛盾しない。',
+    },
+  ],
+
+  // ★スターラックスは公式の4つの募集ページに給与の語が1つも無い（薪・待遇・福利・salary で0件）。
+  //   台湾の上場企業なので法定開示に金額はあるが、**あれはパイロットの給与ではない。**
+  //   ここに rejected で残すのは、次に調べた人が同じ数字を見つけて
+  //   「公式の開示だから使える」と判断するのを止めるため。
+  'starlux': [
+    {
+      rank:        'all',
+      source_type: 'regulatory_filing',
+      name:        '台湾証券取引所 公開API — 上市公司ESG資訊揭露彙總資料・人力發展（公司代號 2646 星宇航空・報告年度 114＝2025年度）',
+      url:         'https://openapi.twse.com.tw/v1/opendata/t187ap46_L_5',
+      published_at:'2026-09-26',
+      accessed_at: '2026-09-26',
+      value_orig:  '員工薪資平均數 1,137 千台湾ドル／人（約568万円）・'
+                 + '非擔任主管職務之全時員工薪資平均數 1,115 千台湾ドル（前年比 +1.83%）・'
+                 + '非擔任主管之全時員工薪資中位數 722 千台湾ドル（約361万円・前年比 +1.26%）・'
+                 + '員工福利平均數 1,312 千台湾ドル（約656万円）。',
+      quote:       '非擔任主管之全時員工薪資中位數(仟元/人) 722',
+      status:      'rejected',
+      note:        '★**パイロットの給与ではないので使わない。** 客室乗務員・地上職・整備を含む'
+                 + '全社員の平均と中央値。中央値 722 が平均 1,137 を大きく下回るのは、'
+                 + '人数の多い低賃金の職種に引っ張られているため（公開說明書の2024年時点で'
+                 + '飛航員 318人に対し空服員 1,094人・全体 4,534人）。'
+                 + 'パイロットが平均を押し上げる側にいるのはほぼ確実だが、それは推測なので数値にできない。'
+                 + '⚠️ 「福利」（1,312）と「薪資」（1,137）を取り違えない。福利のほうが高い。'
+                 + '⚠️ MOPS の画面（t100sb15）は JavaScript 駆動でエラーページに飛ぶ。'
+                 + '同じデータは上の公開API から取れる。',
     },
   ],
 
