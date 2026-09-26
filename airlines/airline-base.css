@@ -627,3 +627,17 @@
             mask-image: linear-gradient(to bottom, transparent 0, transparent 170px, #000 280px);
   }
 }
+
+/* ── 出典リンク ───────────────────────────────────────
+   公式ページを引いた数字のすぐ横に出所を出すための、ただ1つの形。
+   このファイルは航空会社ページ236枚が読んでいるので、比較ページを足すたびに
+   書き起こさない。色は pv-tokens.css の緑（--pv-accent-ink）から導く
+   ＝ライト #067563 / ダーク #2bb59a で、どちらも本文の上で読める。 */
+.src-link{
+  color:var(--pv-accent-ink,#2bb59a);
+  text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:2px;
+  transition:color .18s cubic-bezier(.2,.8,.3,1);
+}
+.src-link:hover{color:var(--pv-accent,#0a8f79)}
+.src-link:focus-visible{outline:2px solid var(--pv-accent-ink,#2bb59a);outline-offset:3px;border-radius:3px}
+.src-link:active{opacity:.75}
