@@ -61,6 +61,11 @@
 /* Class-based gold lacking a light override — pale on white, darken */
 [data-theme="light"] .rw-avg-score,[data-theme="light"] .rw-star,[data-theme="light"] .rv-stars,[data-theme="light"] .cat-bar-score-rw{color:#a07200!important}
 [data-theme="light"] h1{background:linear-gradient(135deg,#0f172a 60%,#1d4ed8)!important;-webkit-background-clip:text!important;-webkit-text-fill-color:transparent!important;background-clip:text!important}
+/* ⚠️ h1 をグラデーション文字にすると、その「塗らない」指定が中の <span> にも伝わる。
+   span は自分の背景を持たないので、副題の1行がどちらのテーマでも丸ごと見えなくなる
+   （2026-09-27 に発見。lcc-hikaku と emirates-vs-qatar の日英4枚が公開後ずっとこの状態だった）。
+   子には必ず自前の塗りを戻す。!important は不要 ── 継承より、要素に当たる宣言のほうが強い。 */
+h1 span{-webkit-text-fill-color:currentColor;background:none}
 [data-theme="light"] ::-webkit-scrollbar-track{background:#f3f5f8}
 [data-theme="light"] ::-webkit-scrollbar-thumb{background:#c4cfdf}
 
