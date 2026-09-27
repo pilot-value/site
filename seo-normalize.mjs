@@ -283,6 +283,12 @@ const COPY = {
   'airlines/emirates-vs-qatar.html': { ja: { t: 'エミレーツ vs カタール航空 パイロット年収比較【2026】' },
                               en: { t: 'Emirates vs Qatar Airways Pilot Salary 2026' } },
   'airlines/starlux-tenshoku.html': { ja: { t: 'スターラックス パイロット採用試験ガイド【2025実体験】' } },
+  'airlines/taiwan-hikaku.html': { ja: { t: '台湾の航空会社 パイロット年収比較【2026】' },
+                              en: { t: 'Taiwan Airline Pilot Salary Compared 2026' } },
+  'airlines/gulf-hikaku.html': { ja: { t: '湾岸の航空会社 パイロット年収比較【2026】' },
+                              en: { t: 'Gulf Airline Pilot Salary Compared 2026' } },
+  'airlines/asia-hikaku.html': { ja: { t: 'アジアの航空会社 パイロット年収比較【2026】' },
+                              en: { t: 'Asian Airline Pilot Salary Compared 2026' } },
 };
 
 function countryCount(code) {

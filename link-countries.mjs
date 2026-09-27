@@ -46,6 +46,25 @@ const capAvgOf = (code) => round10(
 const hasCountryPage = (slug, lang) =>
   fs.existsSync(path.join(ROOT, lang === 'ja' ? 'countries' : 'en/countries', `${slug}.html`));
 
+/* ── 地域の比較ページへ1本渡す（2026-09-27）────────────────────────
+   比較ページを作っても、会社ページから1本もリンクが無ければ
+   sitemap 頼みのぶら下がりになる。会社ページはサイト内で一番リンクを
+   集めている面なので、国ハブと同じ帯からそのまま渡す。
+   ⚠️ 金額は付けない（pill の <em> は使わない）。会社名の隣に数字を置くと
+   check-salary.mjs の照合対象が増え、どの会社の額なのか読み手にも曖昧になる。 */
+const HIKAKU_PAGES = [
+  { file: 'taiwan-hikaku.html', ja: '台湾3社を横に比べる', en: 'Taiwan’s three carriers compared',
+    of: ['starlux', 'eva-air', 'china-airlines'] },
+  { file: 'gulf-hikaku.html', ja: '湾岸5社を横に比べる', en: 'Five Gulf carriers compared',
+    of: ['emirates', 'qatar-airways', 'etihad', 'riyadh-air', 'gulf-air'] },
+  { file: 'asia-hikaku.html', ja: 'アジア7社を横に比べる', en: 'Seven Asian carriers compared',
+    of: ['cathay-pacific', 'hong-kong-express', 'singapore-airlines', 'scoot', 'vietnam-airlines', 'vietjet', 'philippine-airlines'] },
+];
+const HIKAKU = {};
+for (const h of HIKAKU_PAGES) for (const s of h.of) HIKAKU[s] = h;
+const hasHikakuPage = (file, lang) =>
+  fs.existsSync(path.join(ROOT, lang === 'ja' ? 'airlines' : 'en/airlines', file));
+
 function block(slug, lang) {
   const code = AIRLINE_COUNTRY[slug];
   if (!code) return null;
@@ -99,7 +118,7 @@ function block(slug, lang) {
     <span class="pvcl-arrow" aria-hidden="true">→</span>
   </a>
   <div class="pvcl-pills">
-${peers.length ? peers.map((k) => `    ${pill(`${k}.html`, ja ? S[k].ja : S[k].en, man(S[k].cap.avg))}`).join('\n') + '\n' : ''}    ${pill('../countries.html', ja ? '国別のパイロット年収 一覧' : 'All countries')}
+${HIKAKU[slug] && hasHikakuPage(HIKAKU[slug].file, lang) ? `    ${pill(HIKAKU[slug].file, ja ? HIKAKU[slug].ja : HIKAKU[slug].en)}\n` : ''}${peers.length ? peers.map((k) => `    ${pill(`${k}.html`, ja ? S[k].ja : S[k].en, man(S[k].cap.avg))}`).join('\n') + '\n' : ''}    ${pill('../countries.html', ja ? '国別のパイロット年収 一覧' : 'All countries')}
   </div>
 </section>
 <!--/PV-CLINK-->

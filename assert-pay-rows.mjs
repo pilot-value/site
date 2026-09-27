@@ -751,6 +751,9 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
      ★同じ日の Phase 2 で **406枚**になった。マイレポート（my-value.html 日英）を
        MY PAGE の ③ YOUR PAY に統合し、あの2枚は「転送するだけの1枚」になった
        ＝ ヘッダーも板も持たない。**URL は消せない**（送信済みのメールが指している）。
+     ★2026-09-27、比較ページ3組（日英6枚）を足して **418枚**になった。
+       数が増えるのは新しいページを置いたときだけで、減ったら入れ物の置き忘れ。
+       ⚠️ 数を合わせるために公開ページを除外リストへ逃がさない（それが捕まえたい形そのもの）。
      ★2026-09-07、オーナー指示で **412枚**になった。除外していた6枚のうち
        ログイン・新規登録の日英4枚と給与フォームの日英2枚を**入れた**。
        入れていなかった間、その6枚だけ右上の ≡ から**旧 search.js の引き出し**が出て、
@@ -766,9 +769,9 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
   const side = pages.filter((p) => p.html.includes('<nav class="mr-side"'));
   const pub = side.filter((p) => p.html.includes('id="main-nav"'));
   const app = side.filter((p) => !p.html.includes('id="main-nav"'));
-  ok(side.length === 412, '★★同じ板が 412枚に在る（公開394 ＋ アプリ18）',
+  ok(side.length === 418, '★★同じ板が 418枚に在る（公開400 ＋ アプリ18）',
      `公開 ${pub.length} ／ アプリ ${app.length} ／ 合計 ${side.length}`);
-  ok(pub.length === 394 && app.length === 18, '★内訳も 394 ＋ 18 のまま',
+  ok(pub.length === 400 && app.length === 18, '★内訳も 400 ＋ 18 のまま',
      `公開 ${pub.length} ／ アプリ ${app.length}`);
   for (const rel of ['invite.html', 'en/invite.html']) {
     ok(side.some((p) => p.rel === rel), `★${rel} にアプリのナビが在る`);
@@ -819,7 +822,7 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
   ok(!/padding-bottom:calc\(96px/.test(noCmt('my-value.css')),
      '★my-value.css に帯のぶんの足元の余白（96px）が残っていない');
 
-  /* ★412枚とも app-nav.css / app-nav.js / pv-tokens.css を読む。
+  /* ★418枚とも app-nav.css / app-nav.js / pv-tokens.css を読む。
        CSS を読み忘れると、狭い画面でレールが本文の上に居座る（画面は動いたまま）。
      ⚠️ 深さが3段ある（ルート ／ en・airlines・countries ／ en/airlines・en/countries）。
         「en/ なら ../」で決め打ちすると airlines/ の115枚を素通しする。 */
@@ -830,7 +833,7 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
         || !p.html.includes(`href="${up}pv-tokens.css"`)
         || !p.html.includes(`src="${up}app-nav.js"`);
   }).map((p) => p.rel);
-  ok(noAsset.length === 0, '★★412枚は app-nav.css / pv-tokens.css / app-nav.js を読む',
+  ok(noAsset.length === 0, '★★418枚は app-nav.css / pv-tokens.css / app-nav.js を読む',
      noAsset.join(' / '));
 
   /* ★★ここが今回いちばん大事。**app-nav.js は search.js より後**に読む。
@@ -922,14 +925,14 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
        2026-09-05、ページのコメントに入れ物と同じ字面を1行書いたせいで、
        そこから最初の </nav> までが差し替え範囲になり、CSS 240行とヘッダーが消えた。
        ファイルは壊れたのに、そのとき赤くなった検査は1本も無かった。 */
-  /* ★412枚ぶんを1行にまとめる（1枚ずつ出すと、ここだけで 412行になる）。 */
+  /* ★418枚ぶんを1行にまとめる（1枚ずつ出すと、ここだけで 418行になる）。 */
   {
     const ate = side.filter((p) => {
       const i = p.html.indexOf('<nav class="mr-side"');
       const m = p.html.slice(i, p.html.indexOf('</nav>', i) + 6);
       return !(m.length < 6000 && !/<\/style>|<!--|<script/.test(m));
     }).map((p) => p.rel);
-    ok(ate.length === 0, '★★左メニューの入れ物が他の中身を呑み込んでいない（412枚）',
+    ok(ate.length === 0, '★★左メニューの入れ物が他の中身を呑み込んでいない（418枚）',
        ate.join(' / '));
   }
   /* ★呑み込みを止める見張りが生成器に残っているか。 */

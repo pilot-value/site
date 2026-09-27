@@ -136,11 +136,18 @@ KRW は入っていないので、アシアナでは `₩1＝¥0.11` を脚注�
 ```bash
 node gen-airline-codes.mjs && node gen-salary-json.mjs && node patch-site-salaries.mjs && \
 node gen-countries.mjs && node gen-faq.mjs && node link-countries.mjs && \
+node bake-en-currency.mjs && \
 node gen-en-manifest.mjs && node seo-normalize.mjs && node gen-sitemap.mjs && \
 node inject-salary-gate.mjs
 ```
 
 ⚠️ **`seo-normalize.mjs` は必ず `gen-countries.mjs` より後。** 順序を変えると PV-SEO 管理ブロックが消える。
+
+⚠️ **`link-countries.mjs` のあとは必ず `bake-en-currency.mjs`。**（2026-09-27 に踏んだ）
+`link-countries.mjs` は国別リンクの帯（`<!--PV-CLINK-->`）を作り直すとき、金額を**素の円で**書く。
+英語ページはその1か所だけ焼き込みが剥がれて `¥2,700万` に戻る（`<span class="pv-cur" …>$170K</span>` が消える）。
+**画面では `currency.js` が実行時に直すので、目で見ても気づけない。**
+気づけるのは `assert-generated.mjs` と `bake-en-currency.mjs --check` だけ。
 
 ⚠️ **`inject-salary-gate.mjs` を忘れない。** 新しいページの年収の詳細を
 `premium-gate`（給与明細で90日解放）で包む。流し忘れると、その社だけ年収が最初から丸見えになり
