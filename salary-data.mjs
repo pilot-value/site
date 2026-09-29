@@ -9,7 +9,18 @@
 // avg = フリート全体の平均推計（最上位=maxではない）。lo/hi = レンジ。
 // taxFree = 非課税国（手取り≒総額）。conf = 出典の確度。
 // 出典・調査メモは 2026-07 時点（有報 / 組合契約表 / OpenWork等）。
+//
+// ★2026-09-29 ── ここの値は**そのまま公開されるわけではなくなった。**
+//   salary-basis.mjs（根拠の等級）で「確認中（held）」になった職位は、
+//   buildSalaryJson() が公開用ペイロードから外す（→ このファイル末尾）。
+//   ⚠️ だからといって**ここの数字を消したり 0 にしたりしない。**
+//      元の値は変更の記録として残す（オーナー指示）。消すのは「公開」だけ。
 // ─────────────────────────────────────────────────────────────────────────
+
+/* 根拠の等級。公開してよい職位かどうかはこれが決める。
+   ⚠️ 向きは salary-basis.mjs → salary-data.mjs の一方通行。
+      あちらから SALARY を読ませない（循環になる）。 */
+import { BASIS, canSayAverage, isHeld } from './salary-basis.mjs';
 
 export const SALARY = {
   // ── 日本 ────────────────────────────────────────────────
@@ -267,14 +278,94 @@ export function ladderFor(slug, d) {
   return deriveLadder(d);
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// 「確認中」の職位を公開用から外す（2026-09-29）
+//
+// ⚠️ **ここを外すと、出どころを確認できていない年収がまた公開に戻る。**
+//    2026-09-29 まで、シンガポール航空の機長3,400万・副操縦士1,850万は
+//    ページ本文から外したあとも salary-data.json にそのまま載り続けていた
+//    （トップの年収ランキングと比較図が、この JSON だけを見ているため）。
+//
+// 決めごと（オーナー指示）:
+//  ・0 や空欄で埋めない。**鍵そのものを渡さない。**
+//    読む側は昔から「数字が無ければその会社を出さない」分岐を持っているので
+//    （lp.js の filter・salary-leveling.js の `!c`）、それに乗せる。
+//  ・元の値は SALARY に残す＝変更の記録として保持する。
+//  ・職位ごとに判定する。機長だけ確認中なら副操縦士はそのまま出す。
+// ─────────────────────────────────────────────────────────────────────────
+
+/* 公開から外す職位を仕分ける。
+   ★判定は「確認中かどうか」ではなく「**平均と呼べるかどうか**」。
+     ここに入っている数字は avg / lo / hi ＝平均とレンジなので、
+     平均と呼べない職位のぶんは公開できない。
+     例）エミレーツの機長は「公式募集例（年 AED 575,000）」として掲載できるが、
+        それは平均ではない。SALARY 側の 3,700万（出どころの記録なし）を
+        そのまま公開に流してよい理由にはならない。
+   ・held     … 出どころ・対象・計算方法が確認できていない → 「確認中」
+   ・basis    … 金額はあるが平均ではない（公式募集例・求人・過去広告・
+                本人の申告・条件つきの給与例）→ 会社ページに、意味を添えて出す */
+function splitRanks(slug) {
+  const b = BASIS[slug];
+  if (!b) return null;
+  const held = [], basis = [];
+  for (const r of ['cap', 'fo', 'crew']) {
+    if (!b[r] || canSayAverage(slug, r)) continue;
+    (isHeld(slug, r) ? held : basis).push(r);
+  }
+  return held.length || basis.length ? { held, basis } : null;
+}
+
+// ラダーのどの段がどの職位から作られているか。cadet は fo.lo から作っている。
+const LADDER_OF = {
+  cap: ['cap_new', 'cap_mid', 'cap_snr'],
+  fo: ['cadet', 'fo_early', 'fo_mid', 'fo_snr'],
+  crew: [],
+};
+
+// 外した職位の段を、数字を持たない札に差し替える。数字が1段も残らなければ null
+//（＝ladder を渡さない。読む側の「ladder が無い会社は出さない」に落ちる）。
+//
+// ⚠️ **差し替えるのは推計（est）の段だけ。** ANA・JAL の年次別の段は
+//    会社ページの7段の表（現役監修）から来ていて、上の avg / レンジとは
+//    出どころが別なので、avg を外したからといって消してはいけない
+//    （消すと、オーナーが「この図はとても良い」と決めた比較図の軸2社が
+//      そろって空になる）。表そのものの根拠は各社ページ側で判定する。
+function ladderCut(slug, d, cut) {
+  const L = ladderFor(slug, d);
+  for (const [kind, ranks] of [['held', cut.held], ['basis', cut.basis]]) {
+    for (const r of ranks) for (const k of LADDER_OF[r]) {
+      if (L[k] && L[k].kind === 'est') L[k] = { kind };
+    }
+  }
+  return Object.values(L).some((c) => c && c.lo > 0) ? L : null;
+}
+
 // ブラウザ供給用ペイロード（gen-salary-json.mjs が JSON 化し world-airlines が fetch）。
 // SALARY を全て含めた上で各社に ladder を付与。SSOT から機械導出のみ。
 export function buildSalaryJson() {
   const airlines = {};
   for (const [slug, d] of Object.entries(SALARY)) {
-    airlines[slug] = { ...d, ladder: ladderFor(slug, d) };
+    const cut = splitRanks(slug);
+    if (!cut) { airlines[slug] = { ...d, ladder: ladderFor(slug, d) }; continue; }
+    const rec = { ...d };
+    if (cut.held.length) rec.held = cut.held;     // 確認中の職位名
+    if (cut.basis.length) rec.basis = cut.basis;  // 会社ページに別の形で出している職位名
+    for (const r of [...cut.held, ...cut.basis]) delete rec[r];  // 金額は渡さない（0 にしない）
+    const L = ladderCut(slug, d, cut);
+    if (L) rec.ladder = L;
+    airlines[slug] = rec;
   }
   return { spine: SPINE, airlines };
+}
+
+// 公開から外した職位の一覧（生成スクリプトが件数を出すのに使う）。
+export function heldSummary() {
+  const out = [];
+  for (const slug of Object.keys(SALARY)) {
+    const cut = splitRanks(slug);
+    if (cut) out.push({ slug, ...cut });
+  }
+  return out;
 }
 
 export default SALARY;

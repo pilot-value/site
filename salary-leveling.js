@@ -90,6 +90,16 @@
     '各社ページ監修の実額': 'Actual reported, verified on the airline page',
     '現行レンジからの推計': 'Estimated from the current range',
     'データ募集中': 'Collecting data',
+    /* ★「確認中」＝金額の出どころ・対象・計算方法が確認できていない段（2026-09-29）。
+       「データ募集中」とは別のもの。あちらは「まだ誰も出していない」、
+       こちらは「数字は在ったが、どの資料から作ったか確認できていない」。
+       ⚠️ 0 や空の数値で埋めない。数字そのものを持たせない（salary-data.mjs 側で外す）。 */
+    '確認中': 'Under review',
+    '出どころを確認中': 'Source under review',
+    /* ★こちらは「金額は在るが平均ではない」段（公式募集例・求人・本人の申告など）。
+       年次ごとの段に割れる形の数字ではないので、この図には出さず会社ページへ送る。 */
+    '会社ページへ': 'See airline page',
+    '平均ではない形で掲載': 'Published, not as an average',
     '役職手当は現役の明細で': 'Management pay via submitted payslips',
     '実額は明細で解放': 'Actual pay unlocks with a payslip',
     '実額': 'Actual',
@@ -360,10 +370,14 @@
     var rgb = hexToRgb(a.color);
     var szCell = sz ? ';min-height:' + sz.minH + 'px' : '';   // 高さのみ段階変化（文字は一律）
     var c = s.ladder[rg.key];
-    if (!c || c.kind === 'collect') {
+    if (!c || c.kind === 'collect' || c.kind === 'held' || c.kind === 'basis') {
+      var k = c && c.kind, t, sub;
+      if (k === 'held') { t = '確認中'; sub = '出どころを確認中'; }
+      else if (k === 'basis') { t = '会社ページへ'; sub = '平均ではない形で掲載'; }
+      else { t = 'データ募集中'; sub = rg.tone === 'mgmt' ? '役職手当は現役の明細で' : '実額は明細で解放'; }
       return '<div class="lvl-cell collect" style="--ac-rgb:' + rgb + szCell + '">' +
-        '<span class="lvl-collect-t">' + T('データ募集中') + '</span>' +
-        '<span class="lvl-collect-s">' + (rg.tone === 'mgmt' ? T('役職手当は現役の明細で') : T('実額は明細で解放')) + '</span></div>';
+        '<span class="lvl-collect-t">' + T(t) + '</span>' +
+        '<span class="lvl-collect-s">' + T(sub) + '</span></div>';
     }
     var b = modeBand(c, mode);
     var tag = c.kind === 'authored'
@@ -454,10 +468,12 @@
     var rgb = hexToRgb(a.color);
     var c = s.ladder[L.spine];
     var pos = ';top:' + top.toFixed(1) + 'px;height:' + h.toFixed(1) + 'px';
-    if (!c || c.kind === 'collect') {   // CAP CK＝データ募集中（列の最下部）
+    if (!c || c.kind === 'collect' || c.kind === 'held' || c.kind === 'basis') {   // CAP CK＝データ募集中（列の最下部）
+      var kk = c && c.kind;
       return '<div class="lvl-cell lvl-lvbox collect" style="--ac-rgb:' + rgb + pos + '">' +
         '<span class="lvl-code">' + L.code + '</span>' +
-        (h >= 20 ? '<span class="lvl-lvbox-sub">' + T('募集中') + '</span>' : '') + '</div>';
+        (h >= 20 ? '<span class="lvl-lvbox-sub">' +
+          T(kk === 'held' ? '確認中' : kk === 'basis' ? '会社ページへ' : '募集中') + '</span>' : '') + '</div>';
     }
     var b = modeBand(c, mode);
     var hsl = hexToHsl(a.color);
@@ -494,7 +510,7 @@
       INCOME.forEach(function (L) {
         if (!fleetHas(o.a, L.cat)) return;              // 持たない機材帯は段を出さない
         var c = o.s.ladder[L.spine];
-        if (!c || c.kind === 'collect') return;
+        if (!c || c.kind === 'collect' || c.kind === 'held' || c.kind === 'basis') return;
         o.levels.push({ L:L, b:modeBand(c, mode) });
       });
     });

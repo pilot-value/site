@@ -27,6 +27,7 @@
 import fs from 'fs';
 import path from 'path';
 import { SALARY } from './salary-data.mjs';
+import { BASIS, TIERS, KINDS_EN, yearly } from './salary-basis.mjs';
 import { AIRLINE_COUNTRY, BY_CODE, nameIn } from './airline-countries.mjs';
 import { curCore } from './cur-core.mjs';
 const CUR = await curCore('USD', 'en');   // 金額の作り方は currency.js が正
@@ -746,14 +747,63 @@ for (const rel of files) {
        実在する標準コードなので、職種の同定はこれに任せる。 */
     const SOC = '53-2011.00';
 
+    /* ★ 根拠の等級が分かっている会社（salary-basis.mjs）は、機械可読の年収欄にも
+         「根拠のある額」しか書かない。ここは検索エンジンが「この職種の給与」として
+         読む欄なので、出所の記録が無い推計を置くと、画面を直しても機械には
+         古い平均を主張し続けることになる（実際そうなっていた）。
+       ・確認中（tier:'held'）の職位は、欄そのものを作らない。
+         0 や空で埋めると「年収0円」と読まれるため、書かないことで「無い」を表す。
+       ・載せるのは会社自身が公表した平均（observed_mean）と公式募集例
+         （employer_example）だけ。代理会社の求人・過去の広告・条件つきの計算例は、
+         前提なしでは意味が変わるので画面の別枠だけに置く。
+       ・総待遇（pkg_y）と訓練期間中の額は「その職種の給与」ではないので入れない。
+       ⚠️ BASIS に無い会社は今までどおり SALARY から作る（触る範囲を広げない）。 */
+    const SD_TIERS = new Set(['observed_mean', 'employer_example']);
+    const SD_RANK = {
+      cap:  { ja: '機長',   en: 'Captain' },
+      fo:   { ja: '副操縦士', en: 'First officer' },
+      crew: { ja: '運航乗務員（機長と副操縦士）', en: 'Flight crew (captains and first officers)' },
+    };
+    const basisSalary = () => {
+      const out = [];
+      for (const rank of ['cap', 'fo', 'crew']) {
+        const r = BASIS[slug][rank];
+        if (!r || !SD_TIERS.has(r.tier)) continue;
+        for (const f of yearly(slug, rank)) {
+          if (f.key === 'pkg_y' || f.training) continue;
+          const grp = lang === 'ja' ? f.group : (f.group_en || f.group);
+          const kind = lang === 'ja' ? f.kind : (KINDS_EN[f.key] || f.kind);
+          const tier = lang === 'ja' ? TIERS[r.tier].ja : TIERS[r.tier].en;
+          /* 円で公表された額は端数まで残す（万円に丸めると、会社が出した
+             20,051,000 が 20,050,000 になり、公表値と違う数になる）。
+             外貨は man() の換算どおり万円単位。 */
+          const yen = f.cur === 'JPY' ? f.amount : f.man * 10000;
+          /* 「これを超える」と書かれた額は下限。value に置くと
+             「ちょうどこの額」という別の主張になる。 */
+          const q = f.key === 'cash_y_over' ? { minValue: yen }
+            : f.key === 'max_y' ? { maxValue: yen }
+              : { value: yen };
+          out.push({
+            '@type': 'MonetaryAmount', currency: 'JPY',
+            name: lang === 'ja'
+              ? `${SD_RANK[rank].ja}／${grp}／${kind}（${tier}）`
+              : `${SD_RANK[rank].en} — ${grp} — ${kind} (${tier})`,
+            value: { '@type': 'QuantitativeValue', unitText: 'YEAR', ...q },
+          });
+        }
+      }
+      return out;
+    };
+
     if (/airlines\//.test(rel) && S[slug]) {
       const a = S[slug];
       const cc = BY_CODE[AIRLINE_COUNTRY[slug]];
+      const est = BASIS[slug] ? basisSalary() : [money(roleCap, a.cap), money(roleFo, a.fo)];
       graph.push({
         '@type': 'Occupation', mainEntityOfPage: selfUrl, occupationalCategory: SOC,
         name: lang === 'ja' ? `${a.ja}のパイロット` : `Pilot at ${a.en}`,
         ...(cc ? { occupationLocation: { '@type': 'Country', name: lang === 'ja' ? cc.ja : cc.en } } : {}),
-        estimatedSalary: [money(roleCap, a.cap), money(roleFo, a.fo)],
+        ...(est.length ? { estimatedSalary: est } : {}),
       });
     } else if (/countries\//.test(rel)) {
       const cc = Object.values(BY_CODE).find((x) => x.slug === slug);
@@ -766,13 +816,20 @@ for (const rel of files) {
           lo: Math.min(...mem.map((k) => S[k][key].lo)),
           hi: Math.max(...mem.map((k) => S[k][key].hi)),
         });
+        /* ★ 根拠を調べた会社が1社でも混じる国は、年収欄そのものを作らない。
+             会社ごとに「会社が公表した平均」「公式募集例」「確認中」が混ざっていて、
+             現金給与と総待遇も混ざる。それを単純平均しても比べられる数にならないので、
+             国の平均は出さない（オーナー決定・2026-09-29）。
+           ⚠️ 0 で埋めない。欄を作らないことで「無い」を表す。
+           ⚠️ 調べた会社が1社も無い国は今までどおり（触る範囲を広げない）。 */
+        const mixed = mem.some((k) => BASIS[k]);
         graph.push({
           '@type': 'Occupation', mainEntityOfPage: selfUrl, occupationalCategory: SOC,
           /* name は文。冠詞つきの形（the USA）。
              occupationLocation.name は国そのものの識別子なので正式名のまま。 */
           name: lang === 'ja' ? `${cc.ja}の航空会社パイロット` : `Airline pilot in ${nameIn(cc)}`,
           occupationLocation: { '@type': 'Country', name: lang === 'ja' ? cc.ja : cc.en },
-          estimatedSalary: [money(roleCap, agg('cap')), money(roleFo, agg('fo'))],
+          ...(mixed ? {} : { estimatedSalary: [money(roleCap, agg('cap')), money(roleFo, agg('fo'))] }),
         });
       }
     }

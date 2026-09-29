@@ -52,20 +52,31 @@
   /* ★並びは本物と同じ意味を持たせない（本物は「新しい順」）。
        ここは金額が読める2行が先、というだけの並び。 */
   var ROWS = [
-    /* 'jal' cap.avg = 2700万円（salary-data.mjs）→ 27,000,000 / 158.95 ≒ $169,865 → 2桁 */
-    { airline: 'jal', pos: 'cap', fleet: 'b787', ten: 2, tenk: 'r',
-      annual_usd: 170000, _man: 2700, _rank: 'cap', _p: 1, lock: false,
+    /* ★2026-09-29 に会社を入れ替えた。
+       それまでは日本航空（¥2,700万）とエティハド航空（¥3,400万）を出していたが、
+       外部監査で**この2社の平均は出どころを確認できていない**と判定され、
+       公開値そのものを「確認中」にした（salary-basis.mjs）。
+       会社ページが「確認中」と書いているのに、この見本だけが金額を出し続ける形になる。
+       ⚠️ **見本に出す会社は、いま公開している年収を持つ会社から選ぶ。**
+          salary-basis.mjs に載っている23社（＝根拠を確認して表示を変えた社）は使わない。
+       ⚠️ 機種は実際に運航している型だけ書く（両社とも B787-9 を運航）。 */
+
+    /* 'turkish-airlines' cap.avg = 2500万円（salary-data.mjs）
+       → 25,000,000 / 158.95 ≒ $157,282 → 2桁で $160,000
+       ⚠️ 円は画面が sig2(usd × 158.95) で作り直すので、
+          160,000 → 25,432,000 → 2桁 25,000,000 ＝ ¥2,500万 で往復する。 */
+    { airline: 'turkish-airlines', pos: 'cap', fleet: 'b787', ten: 2, tenk: 'r',
+      annual_usd: 160000, _man: 2500, _rank: 'cap', _p: 1, lock: false,
       paylock: ['base', 'variable', 'command', 'perdiem'],
       work: { bh: [60, 70], dd: [12, 14], off: [10, 12] } },
 
-    /* 'etihad' cap.avg = 3400万円 → 34,000,000 / 158.95 ≒ $213,904
-         ⚠️ ここを $210,000 に丸めてはいけない。画面の円は sig2(usd × 158.95) で
-            作られるので、210,000 だと ¥3,300万 になり**サイトの公開値と食い違う**。
-            214,000 なら 34,015,300 → 有効数字2桁で 34,000,000 ＝ ¥3,400万。
-            ドル表示側は画面が2桁に丸めるので $210K のまま。 */
-    { airline: 'etihad', pos: 'cap', fleet: 'b787', ten: 0, tenk: 'r',
-      annual_usd: 214000, _man: 3400, _rank: 'cap', _p: 1, lock: false,
-      paylock: ['base', 'variable', 'command', 'housing', 'perdiem'],
+    /* 'air-new-zealand' cap.avg = 3300万円 → 33,000,000 / 158.95 ≒ $207,612
+         ⚠️ ここを $200,000 に丸めてはいけない。画面の円は sig2(usd × 158.95) で
+            作られるので、200,000 だと ¥3,200万 になり**サイトの公開値と食い違う**。
+            210,000 なら 33,379,500 → 有効数字2桁で 33,000,000 ＝ ¥3,300万。 */
+    { airline: 'air-new-zealand', pos: 'cap', fleet: 'b787', ten: 0, tenk: 'r',
+      annual_usd: 210000, _man: 3300, _rank: 'cap', _p: 1, lock: false,
+      paylock: ['base', 'variable', 'command', 'perdiem'],
       work: { bh: [70, 80], dd: [14, 16], off: [10, 12] } },
 
     /* ここから下は annual_usd を持たない（null）。隠しているのではなく、

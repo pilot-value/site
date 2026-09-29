@@ -62,6 +62,24 @@ export const KINDS = {
   allow_train_m: '訓練期間中の手当（月額・給与ではありません）',
 };
 
+/** KINDS の英語。英語ページと、検索エンジンに渡す機械可読の欄で使う。
+    ★ KINDS に鍵を足したらここにも足す（無い鍵は英語側で鍵名がそのまま出る）。 */
+export const KINDS_EN = {
+  cash_y:       'cash pay, annual',
+  cash_m:       'cash pay, monthly',
+  pkg_y:        'total package, annual (includes the cash pay)',
+  max_y:        'maximum quoted in the vacancy, annual',
+  target_y:     'target annual salary',
+  allow_m_from: 'monthly allowance (only the lower bound is published)',
+  cash_y_over:  'annual pay (the figure the airline says is exceeded)',
+  reward_y:     'annual reward (approx., three cash items combined)',
+  base_m:       'basic pay, monthly',
+  avg_y:        'average annual pay published by the airline',
+  start_m:      'starting pay, monthly',
+  train_m:      'monthly pay during initial training',
+  allow_train_m: 'training allowance, monthly (not a salary)',
+};
+
 /** 原貨 → 万円（比較用）。★ここ以外で円に直さない。 */
 export const man = (cur, amount) => Math.round((amount * JPY_PER[cur]) / 10000);
 /** 「約2,489万円」の形。 */
@@ -121,7 +139,7 @@ export const BASIS = {
     cap: {
       tier: 'employer_example',
       groups: [
-        { name: '直接入社機長', cash_y: 575000, cash_m: 48000, pkg_y: 1185000,
+        { name: '直接入社機長', name_en: 'Direct entry captain', cash_y: 575000, cash_m: 48000, pkg_y: 1185000,
           req: '最低総飛行時間 7,000時間・英語能力証明レベル5以上' },
       ],
       held: { was: { avg: 3700, lo: 3350, hi: 5050 },
@@ -130,9 +148,9 @@ export const BASIS = {
     fo: {
       tier: 'employer_example',
       groups: [
-        { name: '副操縦士・Standard', cash_y: 385000, cash_m: 32100, pkg_y: 900000,
+        { name: '副操縦士・Standard', name_en: 'First officer, Standard', cash_y: 385000, cash_m: 32100, pkg_y: 900000,
           req: '最低総飛行時間 2,000時間・英語能力証明レベル4以上' },
-        { name: '副操縦士・Enhanced', cash_y: 415000, cash_m: 34600, pkg_y: 935000,
+        { name: '副操縦士・Enhanced', name_en: 'First officer, Enhanced', cash_y: 415000, cash_m: 34600, pkg_y: 935000,
           req: '総飛行時間 4,000時間以上（最大離陸重量20トン超のジェット）かつ最大離陸重量50トン超の多人数運航ジェットで2,000時間以上・英語能力証明レベル5以上' },
       ],
       held: { was: { avg: 2800, lo: 2500, hi: 3350 },
@@ -251,7 +269,7 @@ export const BASIS = {
     fo: {
       tier: 'employer_example',
       groups: [
-        { name: '副操縦士（4年契約）', cash_y_over: 100000,
+        { name: '副操縦士（4年契約）', name_en: 'First officer (four-year contract)', cash_y_over: 100000,
           req: '最低総飛行時間 2,000時間・多人数運航ジェット（最大離陸重量20トン超）500時間・ICAO ATPL・英語能力証明レベル4' },
       ],
       held: { was: { avg: 980, lo: 600, hi: 1180 },
@@ -555,6 +573,93 @@ export const BASIS = {
       why: '副操縦士の金額はどの資料にも無い（代理店の求人も機長だけ）。' } },
   },
 
+  /* ══ 中国国際航空 ══ ★会社自身の「薪酬福利（報酬と福利）」のページが在り、そこに金額が1つも無い。
+     書いてあるのは「固定給・飛行出張手当・賞与・各種手当・年度インセンティブで構成され、
+     報酬水準は業界内で先頭にある」という構成の説明だけ（金額なし・発行日なし）。
+     候補生選抜の公告3本（最新 2025-11-04）・自社養成の案内（2023-10-20）・招飞信息にも金額が無い。
+     お金に触れているのは「訓練費は会社が負担し、学費は家庭が負担する」の1行だけで、額は無い。
+     人材会社の現行求人も0件（WAS Inc・APAS・China Aviation HK の一覧に旅客側の中国国際航空は無い）。
+     ⚠️ chinaaviation.hk にある「B777 機長 月 USD 18,200」等は **中国国際航空貨運（Air China Cargo）** の求人。
+        別会社なので、旅客側の機長の金額として使わない（監査が警告している取り違えそのもの）。
+     ⚠️ 第三者のまとめサイトの「機長 月 USD 16,500〜25,000」は出所にならない。
+     ⚠️ 中国国際航空の年次報告の「従業員一人あたり」は全職種の平均で、構造上パイロットの平均にならない。 */
+  'air-china': {
+    cur: 'CNY',
+    tax: '課税（中国）',
+    src: [
+      { pub: '中国国際航空（Air China のパイロット採用サイト zhaopin.airchina.com.cn）',
+        name: '飞行员招聘 ／ 薪酬福利（パイロットの報酬と福利のページ）',
+        as_of: '発行日・適用時点の記載なし', accessed: '2026-09-29',
+        url: 'https://zhaopin.airchina.com.cn/cn/about_us/recruitment/pilot_salary.shtml' },
+    ],
+    notes: [
+      '会社のパイロット採用サイトに報酬のページがありますが、そこに金額は1つも書かれていません。報酬が「固定給・飛行出張手当・賞与・各種手当・年度インセンティブ」で構成されること、水準が業界内で高いことだけが書かれています。発行日も適用時点もありません。',
+      '同じサイトの候補生選抜の公告（最新は2025-11-04）と自社養成の案内（2023-10-20）にも金額はありません。お金に触れているのは「訓練費は会社が負担し、学費は家庭が負担する」の1行だけで、額は書かれていません。',
+      '⚠️ 人材会社が出している「B777 機長 月 USD 18,200」などの求人は、中国国際航空貨運（Air China Cargo）のものです。別会社なので、旅客側の機長の金額としては扱っていません。',
+      '当サイトが確認した資料の範囲では、機長・副操縦士の年収・月収を書いた資料は見つかりませんでした。見つかった時点で、対象と時点を付けてこの節に足します。',
+    ],
+    notes_en: [
+      'The airline has a pay and benefits page for pilots on its own recruitment site, and it states no amount at all. It says only that pay is made up of fixed salary, flight duty allowance, bonuses, other allowances and an annual incentive, and that the level is among the highest in the industry. The page carries no publication date and no effective date.',
+      'The cadet selection notices on the same site (the newest from 2025-11-04) and the cadet programme brief (2023-10-20) state no amount either. The only line that touches money says the company bears the training cost while the family bears the tuition, with no figure.',
+      'Warning: agency postings quoting figures such as USD 18,200 a month for a B777 captain are for Air China Cargo, a separate company. We do not treat them as figures for captains on the passenger side.',
+      'In the material we have checked, we found no document stating annual or monthly pay for captains or first officers. If one appears, we will add it here with its subject and its date.',
+    ],
+    cap: { tier: 'held', held: { was: { avg: 3050, lo: 2200, hi: 4800 },
+      why: '会社の報酬ページに金額がゼロ。採用公告にも金額が無く、旅客側の人材会社の求人も現行では0件。年額の平均・レンジを支える資料が無い（元の値の出所の記録も無い）。' } },
+    fo: { tier: 'held', held: { was: { avg: 1550, lo: 1000, hi: 2200 },
+      why: '機長と同じ理由。副操縦士の金額を書いた資料は、会社側にも人材会社側にも無い。' } },
+  },
+
+  /* ══ 中国東方航空 ══ ★会社の採用サイトにパイロットの募集そのものが無い。
+     招飞（候補生選抜）の枠は募集0件・お知らせ0件、外国人パイロットの枠は「no data」を返す
+     （「Airplane Captain」は絞り込みの選択肢だけで、求人が1件も無い）。
+     トップページのパイロット向けリンクの先は消えた記事（NewsId 5436 が「查询无数据」）。
+     社会人採用42件・新卒採用48件を1件ずつ見て、飛ぶ職種は1件も無い（飛行総隊の枠も管理職）。
+     ★金額があるのは香港の人材会社 APAS が出している現行の A330 機長の求人だけ。
+     ⚠️ ページに日付が1つも無い。Internet Archive の保存（2025-06-17・2026-06-05）が同じ金額。
+     ⚠️ 年間総待遇 USD 300,000 は月額を含む（234,000＋30,000＋12,000＋24,000＝300,000 とこちらで検算）。
+        pkg_y にもう一度月額や手当を足さない。12で割って月給と呼ばない。
+     ⚠️ 月額 19,500 ÷ 75時間 = 260 で、同じ求人の「1時間 USD 345」と合わない。
+        求人はこの3つの数字の関係を説明していないので、こちらで結びつけない。 */
+  'china-eastern': {
+    cur: 'USD',
+    tax: '課税（中国）',
+    src: [
+      { pub: '人材会社 Asia Pacific Aviation Services Limited（APAS・香港）が出した求人',
+        name: 'China Eastern Airlines - A330 Captains（上海基地・3年契約・更新可）',
+        as_of: 'ページに日付の記載が1つも無い（Internet Archive の保存では 2025-06-17 から同じ金額）',
+        accessed: '2026-09-29',
+        url: 'https://www.apasnet.com/Jobs/detail.aspx?u=28&JobType=0' },
+    ],
+    notes: [
+      '⚠️ 会社の公表ではありません。香港の人材会社が出している求人の掲載額です。求人のページには日付が1つも書かれていません（Internet Archive の保存では 2025-06-17 の時点から同じ金額です）。',
+      '前提は暦月あたり75時間・上海基地・3年契約（更新可）・21日勤務10日休み・年次有給15日。条件は A330 の型式限定と、PIC 5,500時間以上（うち当該型式 500時間以上）です。',
+      '年間総待遇 USD 300,000 は月額を含んだ額です。内訳は月額 19,500×12＝234,000、住宅手当 年30,000、追加の航空手当 年12,000、年次賞与 年24,000 で、合計がちょうど 300,000 になります（求人に内訳の計算は書かれていないため、こちらで検算しました）。月額と二重に数える数字ではありません。',
+      '住宅手当（月 USD 2,500）と追加の航空手当（月 USD 1,000）は、最初の3か月の訓練期間の後から付きます。年次賞与は月 USD 2,000 相当を契約年度の末にまとめて支払うと書かれています。',
+      '同じ求人に「1時間 USD 345」とも書かれていますが、月額 19,500 を75時間で割ると 260 で、求人はこの2つの関係を説明していません。そのため、こちらで結びつけていません。',
+      '税引き前か後かの記載はありません。中国と国交のある国の国籍が条件の、外国人パイロット向けの契約です。',
+      '副操縦士の求人はありません。副操縦士の金額は、会社側にも人材会社側にも見つかりませんでした。',
+    ],
+    notes_en: [
+      'These are not the airline’s own figures. They are the amounts stated in a posting by a recruitment company in Hong Kong. The posting page carries no date at all (Internet Archive snapshots show the same figures from 2025-06-17 onwards).',
+      'It assumes 75 hours per calendar month, a Shanghai base, a three-year renewable contract, 21 days on and 10 days off, and 15 days of annual leave. The requirements are an A330 type rating and 5,500 hours of PIC time, of which 500 hours on type.',
+      'The annual figure of USD 300,000 includes the monthly pay. Its parts are 19,500 x 12 = 234,000 of monthly pay, 30,000 of housing allowance, 12,000 of extra air travel allowance and 24,000 of annual bonus, which come to exactly 300,000 (the posting does not show this arithmetic; we checked it ourselves). It is not a figure to be counted twice with the monthly pay.',
+      'The housing allowance (USD 2,500 a month) and the extra air travel allowance (USD 1,000 a month) start after the first three months of training. The annual bonus is stated as USD 2,000 a month, paid in one sum at the end of the contract year.',
+      'The same posting also states USD 345 an hour, but 19,500 divided by 75 hours is 260, and the posting does not explain how the two relate. We have therefore not connected them.',
+      'The posting does not say whether the figures are before or after tax. It is a contract for foreign pilots, and requires the nationality of a state that has diplomatic relations with China.',
+      'There is no posting for first officers. We found no figure for first officers, either from the airline or from a recruitment company.',
+    ],
+    cap: { tier: 'offer_posting',
+      groups: [
+        { name: '機長 A330（上海基地・暦月75時間・3年契約）', cash_m: 19500, pkg_y: 300000,
+          req: 'A330 の型式限定・総 PIC 5,500時間以上・うち当該型式 500時間以上・中国と国交のある国の国籍' },
+      ],
+      held: { was: { avg: 2900, lo: 2100, hi: 4600 },
+        why: '会社の公表は金額ゼロ（採用サイトにパイロットの募集自体が無い）。金額があるのは人材会社の求人1本（A330 機長・日付なし）だけで、年額の平均・レンジを支える資料は無い。' } },
+    fo: { tier: 'held', held: { was: { avg: 1480, lo: 980, hi: 2100 },
+      why: '副操縦士の金額はどの資料にも無い（人材会社の求人も機長だけ）。' } },
+  },
+
   /* ══ マレーシア航空 ══ ★パイロットの求人そのものが無い。
      公式の採用ページの入口は客室乗務員・整備士・その他の3つだけ。会社名義の採用システムの
      募集中27件を1件ずつ取得して pilot / captain / first officer / cadet が0件。
@@ -649,8 +754,10 @@ export const BASIS = {
     ],
     crew: { tier: 'observed_mean',
       groups: [
-        { name: '運航乗務員（グループ連結・2025年3月期）', avg_y: 20051000 },
-        { name: '運航乗務員（グループ連結・2024年3月期）', avg_y: 19593000 },
+        { name: '運航乗務員（グループ連結・2025年3月期）',
+          name_en: 'Flight crew, group consolidated, year ended March 2025', avg_y: 20051000 },
+        { name: '運航乗務員（グループ連結・2024年3月期）',
+          name_en: 'Flight crew, group consolidated, year ended March 2024', avg_y: 19593000 },
       ] },
     trainee: { tier: 'employer_example',
       groups: [{ name: '運航乗務員訓練生（入社時）', start_m: 263000,
@@ -694,7 +801,8 @@ export const BASIS = {
       'For experienced hires (B737 captain and first officer candidates) the airline states that pay is not disclosed and follows internal rules.',
     ],
     crew: { tier: 'observed_mean',
-      groups: [{ name: '運航乗務員 290名（スカイマーク単体・2025年3月31日現在）', avg_y: 16456000 }] },
+      groups: [{ name: '運航乗務員 290名（スカイマーク単体・2025年3月31日現在）',
+        name_en: 'Flight crew, 290 people (Skymark alone, as at 31 March 2025)', avg_y: 16456000 }] },
     trainee: { tier: 'employer_example',
       groups: [{ name: '自社養成パイロット訓練生・院卒／大卒（入社時の基本給）', start_m: 250000,
         req: 'TOEIC 750点以上または IELTS Overall 6.0以上・矯正視力0.7以上（両眼1.0以上）・事業用操縦士免許保有者は応募不可' }] },
@@ -818,16 +926,19 @@ export function figures(slug, rank) {
   for (const g of r.groups) {
     for (const key of Object.keys(KINDS)) {
       if (g[key] == null) continue;
-      out.push({ group: g.name, key, kind: KINDS[key], cur: b.cur, amount: g[key],
+      out.push({ group: g.name, group_en: g.name_en, key, kind: KINDS[key], kind_en: KINDS_EN[key],
+        cur: b.cur, amount: g[key],
         man: man(b.cur, g[key]), text: manText(b.cur, g[key]), training: !!g.training });
     }
     /* 月額 × か月数（スターラックスの13か月給与）。月額と年額の両方を出す。 */
     if (g.month != null) {
-      out.push({ group: g.name, key: 'month', kind: '月額', cur: b.cur, amount: g.month,
+      out.push({ group: g.name, group_en: g.name_en, key: 'month', kind: '月額', kind_en: 'monthly pay',
+        cur: b.cur, amount: g.month,
         man: man(b.cur, g.month), text: manText(b.cur, g.month), training: !!g.training });
       if (g.months != null) {
         const y = g.month * g.months;
-        out.push({ group: g.name, key: 'month_x', kind: `月額 × ${g.months}か月`, cur: b.cur,
+        out.push({ group: g.name, group_en: g.name_en, key: 'month_x',
+          kind: `月額 × ${g.months}か月`, kind_en: `monthly pay × ${g.months} months`, cur: b.cur,
           amount: y, man: man(b.cur, y), text: manText(b.cur, y), cond: g.cond, training: !!g.training });
       }
     }
