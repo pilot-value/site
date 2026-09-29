@@ -47,6 +47,19 @@ const man = (v) => `${v.toLocaleString('en-US')}万円`;
 const usd = (v) => CUR.fmt(v * 10000);                 // 画面と同じ関数で作る
 const capJa = (k) => man(S[k].cap.avg);
 const capEn = (k) => usd(S[k].cap.avg);
+
+/* ★その職位の金額を「平均」として書いてよい会社か（2026-09-29）。
+   ⚠️ **これを通さずに S[slug].cap.avg を文章へ入れない。**
+      salary-basis.mjs で「確認中」等になった23社は、ページ本文から金額を下げてある。
+      ここを通さないと、タイトルと説明文だけが旧値で組み直され、
+      **本文は「確認中」なのに検索結果には ¥3,400万 と出る**状態に戻る
+      （本文を直した担当が2人とも、この経路を名指しで警告していた）。
+   ・等級を決めていない89社は undefined ＝ 今までどおり true（振る舞いは変わらない）。 */
+const mayAvg = (slug, rank) => {
+  const t = BASIS[slug]?.[rank]?.tier;
+  return t === undefined ? true : !!TIERS[t].avg;
+};
+const mayAvgBoth = (slug) => mayAvg(slug, 'cap') && mayAvg(slug, 'fo');
 const topPay = Object.entries(S).sort((a, b) => b[1].cap.avg - a[1].cap.avg)[0];
 
 /* ── 表示幅（全角2/半角1）— assert-seo.mjs と同じ尺度 ────────── */
@@ -354,13 +367,53 @@ const INTENT = { ja: /年収|給与|給料|手取り/, en: /salar|\bpay\b|compen
    Google が「¥45M Tax-Free」を足して表示していた。 */
 const HAS_PAY = /[\d,]+\s*万|[$€£]\s?[\d,.]+\s?[KM]\b/;
 
+/* ★その文章が「引き下げた平均」を今も言っていないか（2026-09-29）。
+   このファイルは、既にある <title>・説明文が良く書けていれば作り直さずに残す。
+   ところが23社は平均そのものを取り下げたので、**残すとそこだけ旧値が生き続ける**
+   ── 本文は「確認中」なのに、検索結果には「機長平均2,000万〜2,900万円」と出る。
+   ⚠️ **金額が入っているかどうかでは判定できない。** エミレーツの「2,489万円」や
+      エティハドの「2,917万」は、出どころを確かめて**載せてよい**と決めた金額だから。
+   ⚠️ **「平均」という語が入っているかどうかでも判定できない。**
+      日本航空の「運航乗務員（機長と副操縦士をあわせた）の平均年間給与2,005万円」と
+      スカイマークの同型は、**会社自身が公表していて対象も書いてある＝そのまま載せてよい平均**。
+      最初これを「平均＋金額」で弾いてしまい、良く書けた説明文を定型文に落としていた
+      （英語側の "Flight Crew Average $126K" も同じ理由で巻き込んでいた）。
+   取り下げたのは**職位ごと**の平均だけ。だから見るのは2つ ──
+     ① 取り下げた数字そのもの（salary-basis.mjs の held.was）が「2,000万」の形で出ている。
+        前が数字・読点のときは数えない（「2,700万」の中の「700万」で当たらないように）
+     ② 英語で「captain / first officer」の**直後**に「avg / average」と金額が続く
+        （"captain avg $231K"）。上の日本航空型は平均の語が先に来るので当たらない。 */
+const EN_RANK_AVG = /\b(?:captains?|first officers?|f\/?os?)\b[^.]{0,12}?\b(?:avg|average)\b[^.]{0,16}?[$€£]\s?[\d,.]+\s?[KM]\b/i;
+const staleAvg = (text, slug) => {
+  if (!text || !BASIS[slug]) return false;
+  if (EN_RANK_AVG.test(text)) return true;
+  for (const r of ['cap', 'fo']) {
+    const was = BASIS[slug][r]?.held?.was;
+    if (!was) continue;
+    for (const k of ['avg', 'lo', 'hi']) {
+      if (was[k] == null) continue;
+      const g = String(was[k]).replace(/\B(?=(\d{3})+$)/g, ',');
+      if (new RegExp(`(?<![\\d,])${g}\\s*万`).test(text)) return true;
+    }
+  }
+  return false;
+};
+
 function airlineTitle(slug, lang, curTitle) {
   /* 温存するのは「幅に収まっていて、かつ金額まで入っている」ときだけ。
      区切りで後ろを落とすと金額が消えることがあり、そうなると社名＋年収の
      検索意図には当たっていても、クリックの決め手になる数字を失う。
      落ちたぶんは下の候補ラダーが SSOT から組み直す。 */
-  const kept = INTENT[lang].test(curTitle) ? shortenTitle(curTitle, false) : null;
+  const kept0 = INTENT[lang].test(curTitle) ? shortenTitle(curTitle, false) : null;
+  /* 取り下げた平均を言っているタイトルは温存しない（下で組み直す）。 */
+  const kept = staleAvg(kept0, slug) ? null : kept0;
   if (kept && HAS_PAY.test(kept)) return kept;
+
+  /* ★金額を出せない会社は、金額が無いことを理由にタイトルを作り直さない。
+     下の候補は全部 SSOT の機長平均を埋め込む形なので、ここで抜けないと
+     「確認中」にした23社のタイトルだけが旧値に巻き戻る。
+     ⚠️ SEO のためにここを外さない（根拠の無い数字を出す理由にはならない）。 */
+  if (kept && !mayAvg(slug, 'cap')) return kept;
 
   const a = S[slug];
   const full = (lang === 'ja' ? a.ja : a.en).trim();
@@ -371,7 +424,10 @@ function airlineTitle(slug, lang, curTitle) {
      まさにそれだった。数字を捨てる前に、金額を残したまま詰める段を挟む。 */
   const payS = lang === 'ja' ? pay.replace(/万円$/, '万') : pay;
 
-  const cands = lang === 'ja'
+  /* 金額を出せない会社は、金額の入った段を丸ごと飛ばして
+     下2段（社名＋「パイロット年収」だけ）に落とす。 */
+  const withPay = mayAvg(slug, 'cap');
+  const cands = (lang === 'ja'
     ? [`${full} パイロット年収 機長${pay}【2026】`,
        `${full} パイロット年収 機長${pay}`,
        `${short} パイロット年収 機長${pay}`,
@@ -383,7 +439,7 @@ function airlineTitle(slug, lang, curTitle) {
        `${short} Pilot Salary — Captain ${pay}`,
        `${short} Captain Salary — ${payS}`,
        `${short} Pilot Salary 2026`,
-       `${short} Pilot Salary`];
+       `${short} Pilot Salary`]).filter((c) => withPay || !HAS_PAY.test(c));
 
   return (cands.find((c) => width(c) <= CORE_MAX) || cands[cands.length - 1]) + BRAND;
 }
@@ -413,10 +469,14 @@ function enrichDesc(d, slug, lang) {
   const a = S[slug]; const c = a.cap; const f = a.fo;
   const ja = lang === 'ja';
   const add = [];
-  if (!(ja ? /副操縦士/ : /first officer/i).test(d)) {
+  /* ★金額を出せない会社には、金額の文を足さない（2026-09-29）。
+     ここは「説明文に副操縦士の額が無いから足す」という補強なので、
+     本文から下げたばかりの平均を、説明文にだけ足し戻してしまう。
+     ⚠️ 年額を12で割った「月あたり」も同じ。元の年額が出せないなら割れない。 */
+  if (mayAvg(slug, 'fo') && !(ja ? /副操縦士/ : /first officer/i).test(d)) {
     add.push(ja ? `副操縦士は平均${man(f.avg)}。` : ` First officers average ${usd(f.avg)}.`);
   }
-  if (!(ja ? /月/ : /\ba month\b|monthly|per month/i).test(d)) {
+  if (mayAvg(slug, 'cap') && !(ja ? /月/ : /\ba month\b|monthly|per month/i).test(d)) {
     /* 「月あたり」「a month」と書く。「月収」と言い切らないのは、賞与のある会社では
        毎月の支給額がこれより低く出るため（年収÷12 の単純計算だと明示できる幅が無い）。 */
     add.push(ja ? `機長は月あたり約${man(Math.round(c.avg / 12))}。`
@@ -439,7 +499,10 @@ function enrichDesc(d, slug, lang) {
 }
 
 function airlineDesc(slug, lang, curDesc) {
-  if (curDesc) {
+  /* ★取り下げた平均を今も言っている説明文は、良く書けていても温存しない（2026-09-29）。
+     下の2本はどちらも「既にある文面を活かす」道で、**ここを抜けると旧値がそのまま残る**
+     ── 本文は「確認中」なのに、検索結果には「機長平均2,000万〜2,900万円」と出続ける。 */
+  if (curDesc && !staleAvg(curDesc, slug)) {
     const w = width(curDesc);
     if (w >= DESC_MIN && w <= DESC_MAX) return enrichDesc(curDesc, slug, lang);
     /* 長すぎるだけなら、まず文の切れ目で落として既存の文面を活かす。
@@ -455,11 +518,29 @@ function airlineDesc(slug, lang, curDesc) {
   const nm = (lang === 'ja' ? a.ja : a.en).trim();
   const c = a.cap; const f = a.fo;
   const M = lang === 'ja' ? man : usd;
+
   const tail = lang === 'ja'
     ? (a.taxFree ? '所得税が非課税のため手取りはさらに大きくなります。' : '')
     : (a.taxFree ? ' Pay is tax-free, so take-home is higher still.' : '');
 
-  const cands = lang === 'ja' ? [
+  /* ★金額を出せない会社は、下の「機長が平均◯◯」の型を1つも使えない（2026-09-29）。
+     ここへ落ちてくるのは、既存の説明文が短すぎる／長すぎるときだけ。
+     そこで金額を使わず、そのページに実際に載っているものだけを書く。
+     ⚠️ 「確認中」を「参考値」「推計」と言い換えない（オーナー指示）。
+     ⚠️ 下の cands と同じ「長い順の候補」にしてあるのは、
+        幅の検査（fit）を通すため。ここだけ早く return すると
+        170 を超えた説明文が検索結果で途中から切れる。 */
+  const cands = !mayAvgBoth(slug) ? (lang === 'ja' ? [
+    `${nm}のパイロット年収を、金額の出どころ・対象・時点まで確かめて掲載しています。確認できていない額は「確認中」として数字を出しません。保有機材・応募条件・口コミも掲載。`,
+    `${nm}のパイロット年収を、金額の出どころ・対象・時点まで確かめて掲載。確認できていない額は「確認中」として数字を出しません。保有機材・応募条件・口コミも掲載。`,
+    `${nm}のパイロット年収は、出どころを確認できた額だけを掲載。確認中の額は数字を出しません。保有機材・応募条件・現役パイロットの口コミを掲載。`,
+    `${nm}のパイロット年収は、出どころを確認できた額だけを掲載しています。保有機材・応募条件・現役パイロットの口コミも掲載。`,
+  ] : [
+    `${nm} pilot pay: we publish only figures whose source, coverage and date we can check. Unverified amounts are marked under review, not estimated. Fleet and pilot reviews.`,
+    `${nm} pilot pay: only figures whose source, coverage and date we can check. Unverified amounts are marked under review. Fleet, requirements and pilot reviews.`,
+    `${nm} pilot pay: only figures we can source are published; the rest are marked under review. Fleet, hiring requirements and reviews from working pilots.`,
+    `${nm} pilot pay: only figures we can source are published; the rest are marked under review. Fleet, requirements and pilot reviews.`,
+  ]) : lang === 'ja' ? [
     `${nm}のパイロット年収は、機長が平均${M(c.avg)}（${M(c.lo)}〜${M(c.hi)}）、副操縦士が平均${M(f.avg)}（${M(f.lo)}〜${M(f.hi)}）。${tail}保有機材・応募条件・現役パイロットの口コミまで掲載しています。`,
     `${nm}のパイロット年収は、機長が平均${M(c.avg)}（${M(c.lo)}〜${M(c.hi)}）、副操縦士が平均${M(f.avg)}。${tail}保有機材・応募条件・現役パイロットの口コミまで掲載しています。`,
     `${nm}のパイロット年収は、機長が平均${M(c.avg)}（${M(c.lo)}〜${M(c.hi)}）、副操縦士が平均${M(f.avg)}。保有機材・応募条件・現役パイロットの口コミを掲載。`,
