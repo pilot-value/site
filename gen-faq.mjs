@@ -58,6 +58,8 @@ import fs from 'fs';
 import path from 'path';
 import { SALARY } from './salary-data.mjs';
 import { AIRLINE_COUNTRY, BY_CODE } from './airline-countries.mjs';
+/* 根拠の等級。等級を決めた会社は SALARY の平均・レンジを1文字も書かない。 */
+import { BASIS, TIERS, figures, FX_AS_OF } from './salary-basis.mjs';
 
 const ROOT = path.dirname(new URL(import.meta.url).pathname).replace(/%20/g, ' ');
 const DRY = process.argv.includes('--dry');
@@ -88,8 +90,122 @@ function usd(manYen) {
 /* 比較の基準は日本の大手。ANA と JAL は SSOT で同値。 */
 const BASE = SALARY.ana.cap.avg;
 
-/* ── 日本語・SSOT から5問 ─────────────────────────────────────── */
+/* ══ 根拠の等級で文章を作る（salary-basis.mjs に等級がある会社だけ）══════
+   ★ 等級のある会社では SALARY の平均・レンジを1文字も書かない。
+     「確認中」の職位は金額を書かず、0 や空欄にもしない。
+   ⚠️ 年額を12で割って「月収」と呼ばない。公表された月額があるときだけ月額を書く。
+   ⚠️ 総待遇に現金給与や住宅・学費をもう一度足さない。
+   ⚠️ 平均でない数字を「平均」と呼ばない（呼び方は TIERS の1か所）。           */
+const RANK_JA = { cap: '機長', fo: '副操縦士' };
+const RANK_EN = { cap: 'captains', fo: 'first officers' };
+const hasBasis = (slug) => !!BASIS[slug];
+const isHeldRank = (slug, rank) => BASIS[slug]?.[rank]?.tier === 'held';
+/** 平均として書いていい会社か（等級を決めていない＝今までどおり SALARY を書く）。 */
+const mayWriteAvg = (slug, rank) => {
+  const t = BASIS[slug]?.[rank]?.tier;
+  return t === undefined ? true : !!TIERS[t].avg;
+};
+
+/** 「直接入社機長は年間の現金給与が約2,489万円、月間の現金給与が約208万円」の並び。 */
+function figJa(slug, rank, keys = null) {
+  const byGroup = new Map();
+  for (const f of figures(slug, rank)) {
+    if (keys && !keys.includes(f.key)) continue;
+    if (!byGroup.has(f.group)) byGroup.set(f.group, []);
+    byGroup.get(f.group).push(`${f.kind}が${f.text}`);
+  }
+  return [...byGroup].map(([g, parts]) => `${g}は${parts.join('、')}`).join('。');
+}
+/** 英語側。円で書く（本文は bake-en-currency.mjs がドルにする）／LD は最初からドル。 */
+function figEn(slug, rank, fmt, keys = null) {
+  const byGroup = new Map();
+  for (const f of figures(slug, rank)) {
+    if (keys && !keys.includes(f.key)) continue;
+    if (!byGroup.has(f.group)) byGroup.set(f.group, []);
+    byGroup.get(f.group).push(`${f.kind} ${fmt(f.man)}`);
+  }
+  return [...byGroup].map(([g, parts]) => `${g}: ${parts.join(', ')}`).join('; ');
+}
+const HELD_JA = (name, nm) =>
+  `${name}は${nm}の給与額を公式に公表していません。当サイトが以前載せていた金額は、どの資料から作ったかの記録が残っていなかったため、いまは「確認中」にしています。`
+  + `0円や空欄にはせず、元の値は履歴に残しています。裏づけのある資料が取れた時点で、対象と時点を付けて載せ直します。`;
+const HELD_EN = (name, nm) =>
+  `${name} does not publish ${nm}' pay. The figure we used to show had no record of where it came from, so it is under review rather than shown as fact. `
+  + `We have not replaced it with a zero or a blank — the old value is kept in our change history, and we will publish a figure again once we have a document that states who and when it applies to.`;
+
+/** 出所の確認日。「いつ確認したか」を文章に入れる（確認日 ≠ 発行日）。 */
+const accessedJa = (slug) => {
+  const ds = (BASIS[slug]?.src || []).map((s) => s.accessed).filter(Boolean).sort();
+  return ds.length ? ds[ds.length - 1] : null;
+};
+
+function buildJaBasis(slug) {
+  const b = BASIS[slug], d = SALARY[slug], name = d.ja;
+  const country = BY_CODE[AIRLINE_COUNTRY[slug]];
+  const acc = accessedJa(slug);
+  const items = [];
+
+  for (const rank of ['cap', 'fo']) {
+    const r = b[rank], nm = RANK_JA[rank];
+    const q = `${name}の${nm}の年収はいくらですか？`;
+    if (r.tier === 'held') { items.push({ q, a: HELD_JA(name, nm) }); continue; }
+    const label = TIERS[r.tier].ja;
+    /* 月額・月手当は次の問で扱う。ここは年額として通るものだけ。 */
+    const y = figJa(slug, rank, ['cash_y', 'pkg_y', 'max_y', 'target_y', 'cash_y_over', 'reward_y', 'month_x']);
+    items.push({
+      q,
+      a: `当サイトが${nm}について載せているのは「${label}」です。${y}。`
+        + `全社員の平均ではありません。${r.groups[0]?.cond ? `${r.groups[0].cond}という条件が付きます。` : ''}`
+        + (b.notes[0] ? b.notes[0] : '')
+        + (acc ? `資料の確認日は${acc}です。` : ''),
+    });
+  }
+
+  /* 月収。★年額を12で割らない。公表された月額があるときだけ書く。 */
+  const mj = ['cap', 'fo'].map((rank) => figJa(slug, rank, ['cash_m', 'base_m', 'allow_m_from', 'month']))
+    .filter(Boolean).join('。');
+  items.push({
+    q: `${name}のパイロットの月収はいくらですか？`,
+    a: mj
+      ? `${mj}。これは会社が公表しているそのままの月額で、年額を12で割った数字ではありません。`
+        + `月額に12を掛けた額と、公表されている年額は一致しません。どちらもそのまま載せています。`
+        + `住宅・学費などを含む総待遇を12で割った額は、月給ではありません。`
+      : `${name}は月額を公表していません。年額を12で割った数字は実際の毎月の支給額ではないため、当サイトでは出していません。`
+        + `実際の支給額は、その月に飛んだ時間で上下します。`,
+  });
+
+  /* 税。★税率は書かない（居住国・扶養・控除で変わる）。旧平均も書かない。 */
+  const cja = country ? country.ja : '所在国';
+  items.push(d.taxFree ? {
+    q: `${name}のパイロットの給与は本当に非課税ですか？`,
+    a: `${cja}には個人所得税が無いため、${name}の現金給与は税を引かれずそのまま受け取れます。${b.tax}。`
+      + `日本の航空会社の年収は税引き前の金額なので、同じ額面でも手元に残る金額は変わります。`
+      + `なお日本の居住者判定など個人の税務は別途確認が必要です。`,
+  } : {
+    q: `${name}のパイロットの給与は税引き前ですか？`,
+    a: `このページに載せている金額はすべて税引き前（額面）です。${b.tax}。`
+      + `手取りは居住国・扶養・各種控除で変わるため、額面から一律の割合で出すことはできません。`
+      + `個人所得税の無い国（UAE・カタールなど）の航空会社とは、同じ額面でも手元に残る額が変わります。`,
+  });
+
+  /* ANA・JAL との比較。★種類の違う数字どうしで差や倍率を出さない。
+     ANA 側にも等級が付いたら、ANA の平均も書かない。 */
+  if (slug !== 'ana' && slug !== 'jal') {
+    const anaOk = mayWriteAvg('ana', 'cap');
+    items.push({
+      q: `${name}のパイロット年収はANA・JALと比べてどうですか？`,
+      a: (anaOk ? `ANA・JALの機長は平均${man(BASE)}、副操縦士は平均${man(SALARY.ana.fo.avg)}で、いずれも税引き前の金額です。` : '')
+        + `${name}の側は${['cap', 'fo'].map((rk) => `${RANK_JA[rk]}が「${TIERS[b[rk].tier].ja}」`).join('、')}で、種類の違う数字です。`
+        + `平均と募集例、現金給与と総待遇のように中身が違うものを引き算したり倍率にしたりすると、実態と違う差が出ます。`
+        + `そのため当サイトでは両社の差額・倍率を出していません。`,
+    });
+  }
+  return items;
+}
+
+/* ── 日本語・SSOT から5問（等級を決めていない会社）──────────────── */
 function buildJa(slug) {
+  if (hasBasis(slug)) return buildJaBasis(slug);
   const d = SALARY[slug];
   const name = d.ja;
   const { cap, fo } = d;
@@ -173,7 +289,51 @@ function buildJa(slug) {
        ・pay scale（段階別の給与表はページにあるのに、問としては無い）
        ・税引き前か後か（非課税の社にしか税の問が無い）                  */
 const manM = (v) => `¥${trimZero((Math.round(v) / 100).toFixed(2))}M`;
+
+/* 英語・等級のある会社。★問文は等級の無い会社と同じ3つに揃える
+   （EN_MANAGED が問文の型で前回ぶんを剥がすので、型を増やすと古い問が残る）。 */
+function buildEnBasis(slug) {
+  const b = BASIS[slug], d = SALARY[slug], name = d.en;
+  const acc = accessedJa(slug);
+  const items = [];
+
+  const M_KEYS = ['cash_m', 'base_m', 'allow_m_from', 'month'];
+  const monthly = (f) => {
+    const s = ['cap', 'fo'].map((rank) => figEn(slug, rank, f, M_KEYS)).filter(Boolean).join('; ');
+    return s
+      ? `${s}. These are the monthly figures the airline publishes, not an annual figure divided by twelve. `
+        + `Twelve times the monthly figure does not equal the published annual figure, and we leave both as published. `
+        + `A total package that includes housing and school fees divided by twelve is not a monthly salary.`
+      : `${name} does not publish a monthly figure. We do not divide an annual figure by twelve and call it monthly pay, because that is not what lands in a given month — what you are paid moves with the hours you fly.`;
+  };
+  items.push({ q: `What is ${name} pilot salary per month?`, aHtml: monthly(manM), aLd: monthly(usd) });
+
+  const Y_KEYS = ['cash_y', 'pkg_y', 'max_y', 'target_y', 'cash_y_over', 'reward_y', 'month_x'];
+  const scale = (f) => {
+    const parts = [];
+    for (const rank of ['cap', 'fo']) {
+      const r = b[rank];
+      if (r.tier === 'held') { parts.push(HELD_EN(name, RANK_EN[rank])); continue; }
+      const y = figEn(slug, rank, f, Y_KEYS);
+      if (y) parts.push(`For ${RANK_EN[rank]} we publish a ${TIERS[r.tier].en.toLowerCase()} rather than an average — ${y}. This is not an all-staff average.`);
+    }
+    if (b.notes_en?.[0]) parts.push(b.notes_en[0]);
+    if (acc) parts.push(`Source checked ${acc}; yen figures are converted for comparison at the rate held as of ${FX_AS_OF}, not a live rate.`);
+    return parts.join(' ');
+  };
+  items.push({ q: `What is the ${name} pilot pay scale?`, aHtml: scale(manM), aLd: scale(usd) });
+
+  if (!d.taxFree) {
+    const tax = `Every figure on this page is gross, before income tax. `
+      + `Take-home depends on where you are resident and on your own deductions, so no single percentage applies, and we do not publish one. `
+      + `Airlines based in countries with no personal income tax — the UAE, Qatar, Saudi Arabia — leave more of the same gross figure in your hand.`;
+    items.push({ q: `Is ${name} pilot salary before or after tax?`, aHtml: tax, aLd: tax });
+  }
+  return items;
+}
+
 function buildEnExtra(slug) {
+  if (hasBasis(slug)) return buildEnBasis(slug);
   const d = SALARY[slug];
   const name = d.en;
   const { cap, fo } = d;

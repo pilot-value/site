@@ -11,9 +11,18 @@
 //     pilot-vs-isha.html ANA「機長 ¥4,200万」（SSOT は2,700万）
 //     index.html         LCC の FAQ が3社とも平均より高い数字
 //   いずれも JSON-LD の FAQ や比較表＝検索結果に出る場所だった。
+//
+// ★ パス1・パス2 の両方に「根拠の等級」が入っている（2026-09-29）。
+//   salary-basis.mjs で等級を決めた会社・職位は、**SALARY の平均・レンジを画面に出さない**。
+//   出すのは公式募集例・求人の掲載額・条件つきの給与例で、これは SALARY とは別の種類の
+//   金額（原貨が正本）なので、SSOT と突き合わせても意味が無い。等級のある職位は
+//   salary-basis.mjs の掲載額と突き合わせ、「確認中」の職位は
+//   **元の平均がページから消えていること**を確かめる。
+//   ⚠️ 等級を決めていない会社は今までどおり SALARY と突き合わせる（振る舞いは変わらない）。
 import { readdirSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { SALARY, buildSalaryJson } from './salary-data.mjs';
+import { BASIS, TIERS, figures as basisFigures } from './salary-basis.mjs';
 /* 英語ページの金額は HTML の時点でドルに焼き込んである（bake-en-currency.mjs）。
    元の円表記は span の data-orig に残っているが、**タグの中なので下の正規表現からは
    見えない**。戻さずに読むと、英語ページ 183枚が照合から黙って外れる。 */
@@ -50,6 +59,19 @@ const STALE = {
   'jal': ['900万〜2,700万', '900万〜¥2,700万'],
 };
 
+/* ── 根拠の等級（salary-basis.mjs）─────────────────────────────────
+   その会社・その職位について「画面に出していい万円の数値」の集合を作る。
+   原貨の金額から man() で毎回計算するので、レートを取り直せばここも一緒に動く。 */
+const RANKS = { cap: '機長', fo: '副', crew: '運航乗務員', trainee: '訓練生' };
+function basis(slug, rank) {
+  const r = BASIS[slug]?.[rank];
+  if (!r) return null;
+  /* 金額の作り方は salary-basis.mjs の figures() 1か所。ここに写さない
+     （欄を足したときに、片方だけ古くなって黙って検査から外れるのを防ぐ）。 */
+  const allowed = new Set(basisFigures(slug, rank).map((f) => f.man));
+  return { tier: r.tier, ja: TIERS[r.tier].ja, allowed, was: r.held?.was ?? null };
+}
+
 let pass = 0, warn = 0, fail = 0;
 const lines = [];
 for (const [slug, d] of Object.entries(SALARY)) {
@@ -61,15 +83,32 @@ for (const [slug, d] of Object.entries(SALARY)) {
         （実際に stale:2,400万 の誤報が出た）。このページ自身の主張だけを見る。 */
   const html = unbake(readFileSync(p, 'utf8'))
     .replace(/<!--PV-CLINK-->[\s\S]*?<!--\/PV-CLINK-->/g, '');
-  const capStr = man(d.cap.avg), foStr = man(d.fo.avg);
-  const hasCap = html.includes(capStr);
-  const hasFo = html.includes(foStr);
+  /* 職位ごとに「出ていないと困るもの」と「残っていたら困るもの」を組む。
+     等級を決めていない会社 = 今までどおり SALARY の平均が出ていること。
+     等級のある会社         = その等級の掲載額のどれかが出ていて、確認中にした旧平均が消えていること。 */
+  const needAny = [], gone = [], shown = [];
+  for (const [rank, nm] of Object.entries(RANKS)) {
+    const B = basis(slug, rank);
+    /* crew（運航乗務員＝機長と副操縦士をあわせた会社公表の平均）と trainee（訓練生）は、
+       その資料がある会社にだけ置いてある。無い会社では何も求めない。 */
+    if (!B) { if (!d[rank]) continue; const s = man(d[rank].avg); needAny.push([nm, [s]]); shown.push(nm + s); continue; }
+    if (B.was?.avg != null) gone.push([`${nm}の旧平均`, man(B.was.avg)]);
+    if (B.tier === 'held') { needAny.push([nm, ['確認中']]); shown.push(`${nm}確認中`); continue; }
+    const list = [...B.allowed].sort((x, y) => y - x).map(man);
+    needAny.push([`${nm}(${B.ja})`, list]);
+    shown.push(`${nm}${B.ja}${list[0]}`);
+  }
+  const miss = needAny.filter(([, list]) => !list.some((s) => html.includes(s)));
+  const left = gone.filter(([, s]) => html.includes(s));
   const stale = (STALE[slug] || []).filter((s) => html.includes(s));
   let status = '✅', tag = '';
-  if (!hasCap || !hasFo) { status = '❌'; fail++; tag = `missing:${!hasCap?' CAP('+capStr+')':''}${!hasFo?' FO('+foStr+')':''}`; }
-  else if (stale.length) { status = '⚠️ '; warn++; tag = `stale:${stale.join(',')}`; }
+  if (miss.length || left.length) {
+    status = '❌'; fail++;
+    tag = [...miss.map(([n, l]) => `missing:${n}[${l.join('/')}]`),
+           ...left.map(([n, s]) => `残っている:${n}(${s})`)].join(' ');
+  } else if (stale.length) { status = '⚠️ '; warn++; tag = `stale:${stale.join(',')}`; }
   else { pass++; }
-  lines.push(`${status} ${slug.padEnd(20)} 機長${capStr} 副${foStr}   ${tag}`);
+  lines.push(`${status} ${slug.padEnd(20)} ${shown.join(' ')}   ${tag}`);
 }
 console.log(lines.join('\n'));
 console.log(`\n${pass} pass · ${warn} warn · ${fail} fail  (of ${Object.keys(SALARY).length})`);
@@ -156,14 +195,44 @@ for (const f of files) {
       // ③ 手取り・月額・実質パッケージは年額ではない
       if (DERIVED.test(html.slice(Math.max(0, m.index - 40), m.index + span.length + 20))) continue;
 
-      const role = /機長|Captain/.test(m[1]) ? 'cap' : 'fo';
-      const S = d[role];
+      /* ★ 運航乗務員（機長と副操縦士をあわせた会社公表の平均）と訓練生の額を、
+           機長・副操縦士の額として判定しない。会社が職位で分けていない数字なので、
+           機長の掲載額と突き合わせると必ず食い違い、直せない ❌ が出続ける。
+           「機長と副操縦士をあわせた運航乗務員の平均」のように書くと m[1] に機長が入るため、
+           まわりの言葉を見て先に振り分ける。 */
+      const ctx = html.slice(Math.max(0, m.index - 60), m.index + span.length + 20);
+      const role = /運航乗務員/.test(ctx) && BASIS[slug]?.crew ? 'crew'
+        : /訓練生|初任給|チャレンジ手当/.test(ctx) && BASIS[slug]?.trainee ? 'trainee'
+        : /機長|Captain/.test(m[1]) ? 'cap' : 'fo';
       const lo = +m[2].replace(/,/g, '');
       const hi = m[3] ? +m[3].replace(/,/g, '') : null;
       nHit++;
+      const text = span.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ');
+      const lineNo = () => html.slice(0, m.index).split('\n').length;
+
+      /* ★ 等級のある職位は SALARY ではなく salary-basis.mjs の掲載額と突き合わせる。
+           SALARY の平均・レンジは公開表示から外した種類の数字なので、ここで一致を
+           求めると「外したはずの数字」をページに戻す方向に働いてしまう。
+           ALLOW（人が見て正しいと判断した例外）はこちらには効かせない ──
+           あれは SSOT のレンジに対する例外で、等級の話ではないため。 */
+      const B = basis(slug, role);
+      if (B) {
+        if (B.tier === 'held') {
+          nBad++;
+          cross.push(`❌ ${f}:${lineNo()}  «${text.slice(0, 56)}»  ${slug} ${role} は確認中（金額を出さない）`);
+          continue;
+        }
+        if (hi === null ? B.allowed.has(lo) : B.allowed.has(lo) && B.allowed.has(hi)) continue;
+        nBad++;
+        const list = [...B.allowed].sort((x, y) => y - x).map(man).join('／');
+        cross.push(`❌ ${f}:${lineNo()}  «${text.slice(0, 56)}»  ${slug} ${role} は「${B.ja}」で ${list}`);
+        continue;
+      }
+
+      if (!d[role]) continue;   // crew / trainee は SALARY に無い（等級の側で見ている）
+      const S = d[role];
       // 単独の数値は avg / lo / hi のどれかであれば正。レンジ表記は lo〜hi と一致すべき。
       if (hi === null ? [S.avg, S.lo, S.hi].includes(lo) : lo === S.lo && hi === S.hi) continue;
-      const text = span.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ');
       if (ALLOW.some(([af, frag]) => f.replace(/^\.\//, '') === af && text.includes(frag))) continue;
       const outside = hi === null ? (lo < S.lo || lo > S.hi) : (hi < S.lo || lo > S.hi);
       if (outside) nBad++; else nWarn++;
