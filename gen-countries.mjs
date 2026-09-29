@@ -408,15 +408,38 @@ const footer = (lang, up) => `<footer class="py-10 relative">
   </div>
 </footer>`;
 
+/* ⚠️ search.js を外さない（2026-09-29）。
+   これがハンバーガー ≡ と引き出しを組み立てる。無いと**スマホから他のページへ行く手段が
+   丸ごと無くなる**（広い画面は普通に出るので、PC で見ているかぎり気づけない）。
+   実際、このスクリプトを流し直した 2026-09-29 に 118枚から消えて
+   `assert-links.mjs` の「スマホでメニューが出ない」が 0 → 118 になった。
+   並びも変えない ── app-nav.js は search.js の**後**に読む決まりで、
+   それを足すのは patch-side-nav.mjs（下の ⚠️ を読むこと）。 */
 const scripts = (up, lang) => `<script src="${up}${lang === 'ja' ? '' : '../'}pv-toggles.js"></script>
 <script src="${up}${lang === 'ja' ? '' : '../'}lang-toggle.js"></script>
+<script src="${up}${lang === 'ja' ? '' : '../'}search.js"></script>
 <script src="${up}${lang === 'ja' ? '' : '../'}currency.js"></script>`;
 
+/* ⚠️⚠️ このスクリプトはページを**丸ごと書き直す**。流したあと、必ず続けて3本流す
+        （2026-09-29。流し忘れて 118枚のナビが黙って古い形に戻った）──
+
+          node inject-session.mjs      … pv-session.js（ログイン状態の判定）
+          node patch-side-nav.mjs      … 左レール／引き出しと app-nav.js・app-nav.css
+          node seo-normalize.mjs       … PV-SEO の管理ブロック
+
+        ここで出している `<head>` と `<nav>` は**土台だけ**で、サイト共通のナビは
+        別のスクリプトが後から配る形になっている。だから生成し直した直後のページは
+        必ず「ナビの無い状態」になる。**画面は広い幅では普通に見えるので気づけない。**
+        見るものは `node assert-links.mjs`（ファビコン・スマホのメニュー）。 */
 function shell({ lang, title, desc, keywords, body, jsonld, up }) {
+  /* ルートから見た相対の頭（countries/ は '../'、en/countries/ は '../../'）。 */
+  const root = `${up}${lang === 'ja' ? '' : '../'}`;
   return `<!DOCTYPE html>
 <html lang="${lang}">
 <head>
   <meta charset="UTF-8" />
+<link rel="icon" type="image/png" sizes="32x32" href="${root}assets/favicon-32.png"/>
+<link rel="apple-touch-icon" href="${root}assets/favicon-180.png"/>
   <script>(function(){var t=localStorage.getItem('pv-theme')||'light';document.documentElement.setAttribute('data-theme',t);}());</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>${esc(title)}</title>
