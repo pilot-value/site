@@ -88,10 +88,12 @@ function usd(manYen) {
 }
 
 /* 比較の基準は日本の大手。ANA と JAL は SSOT で同値。
-   ⚠️ **この値をそのまま文章に書かない。** 2026-09-29 から ANA・JAL の機長平均は
-      「確認中」＝出どころ・対象・計算方法を確認できていない（salary-basis.mjs）。
-      書いてよいかは必ず mayWriteAvg('ana','cap') で聞く。
-      確認中の数字を引き算・倍率の相手にすると、根拠の無い差が外へ出る。 */
+   ⚠️ **この値に「平均」と付けない。** ANA・JAL の機長の数字は出どころ・対象・計算方法を
+      確認できていない＝公開情報からの推定（salary-basis.mjs の等級 estimate）。
+      書いてよいか・何と呼ぶかは必ず avgWord('ana','cap') で聞く。
+      ★2026-09-30 まで、ここは「確認中なので1文字も書かない」だった。オーナー指示
+        「確認中じゃなくて推定とかにすりゃいいじゃん」で、数字は書く・平均とは呼ばない、に変えた。
+   ⚠️ 等級の違う数字（公式募集例・総待遇）を引き算・倍率の相手にしない。 */
 const BASE = SALARY.ana.cap.avg;
 
 /* ══ 根拠の等級で文章を作る（salary-basis.mjs に等級がある会社だけ）══════
@@ -108,6 +110,23 @@ const isHeldRank = (slug, rank) => BASIS[slug]?.[rank]?.tier === 'held';
 const mayWriteAvg = (slug, rank) => {
   const t = BASIS[slug]?.[rank]?.tier;
   return t === undefined ? true : !!TIERS[t].avg;
+};
+/** ★SALARY の数字を文章に書いてよいか、書くなら何と呼ぶか（2026-09-30）。
+    オーナー指示「確認中じゃなくて推定とかにすりゃいいじゃん」で、等級 estimate は
+    **金額を書く**ようになった。ただし「平均」とは呼ばない。
+
+    返り値 … '平均' / '推定' / null（＝ SALARY の数字は書かない職位。
+              会社が出した額のほうを書く ── 公式募集例・求人・過去広告・給与例）
+    ⚠️ mayWriteAvg と混ぜない。あちらは「平均」の語を許すかだけを聞いている。 */
+const avgWord = (slug, rank) => {
+  const t = BASIS[slug]?.[rank]?.tier;
+  if (t === undefined) return '平均';
+  if (t === 'estimate') return '推定';
+  return TIERS[t].avg ? '平均' : null;
+};
+const avgWordEn = (slug, rank) => {
+  const w = avgWord(slug, rank);
+  return w === '平均' ? 'average' : w === '推定' ? 'estimated' : null;
 };
 
 /** 「直接入社機長は年間の現金給与が約2,489万円、月間の現金給与が約208万円」の並び。 */
@@ -174,6 +193,31 @@ const HELD_EN = (slug, name, nm) => {
     + `Once we have a document that says who a figure applies to and on what terms, we will publish it with those terms attached.`;
 };
 
+/* ★「推定」の言い方（2026-09-30 オーナー指示）。
+   「なんで各航空会社の機長、FOの平均年収を確認中にしちゃうんだよ。
+     確認中じゃなくて推定とかにすりゃいいじゃん。」
+
+   ⚠️ 「平均」と書かない。この数字は公開情報からの推計で、全社員の実測平均ではない
+      （サイトの他の場所でも「推定年収（公開情報）」と書いている ── lp.js の注意書き）。
+   ⚠️ 弁解を書かない（2026-09-30 指摘④「いいわけの部分いらないから削除」）。
+      「なぜ平均と呼べないか」「資料が取れたら載せ直す」は書かない。
+      推定であることと、数字が上下する理由だけ書く。
+   ⚠️ 「会社は給与を公表していません」と書かない（オーナー経由のレビュー・指摘1）。 */
+const EST_JA = (slug, name, nm, rank) => {
+  const d = SALARY[slug], r = d[rank];
+  return `${name}の${nm}の年収は、当サイトの推定で約${man(r.avg)}です（幅はおおむね${man(r.lo)}〜${man(r.hi)}）。`
+    + `公開情報から当サイトが推計した金額で、${name}が公表した金額ではありません。`
+    + (d.taxFree ? `所在国に個人所得税が無いため、この金額が手取りに近くなります。` : `いずれも税引き前の金額です。`)
+    + `機種・在籍年数・乗務する路線によって上下します。`;
+};
+const EST_EN = (slug, name, nm, fmt, rank) => {
+  const d = SALARY[slug], r = d[rank];
+  return `We estimate annual pay for ${name} ${nm} at about ${fmt(r.avg)}, with a range of roughly ${fmt(r.lo)}–${fmt(r.hi)}. `
+    + `That is our own estimate from public information, not a figure ${name} publishes. `
+    + (d.taxFree ? `There is no personal income tax where the airline is based, so this is close to take-home. ` : `These are gross figures, before income tax. `)
+    + `Where you sit inside the range is set by the aircraft type, years of service and the routes you fly.`;
+};
+
 function buildJaBasis(slug) {
   const b = BASIS[slug], d = SALARY[slug], name = d.ja;
   const country = BY_CODE[AIRLINE_COUNTRY[slug]];
@@ -183,6 +227,7 @@ function buildJaBasis(slug) {
   for (const rank of ['cap', 'fo']) {
     const r = b[rank], nm = RANK_JA[rank];
     const q = `${name}の${nm}の年収はいくらですか？`;
+    if (r.tier === 'estimate') { items.push({ q, a: EST_JA(slug, name, nm, rank) }); continue; }
     if (r.tier === 'held') { items.push({ q, a: HELD_JA(slug, name, nm) }); continue; }
     const label = TIERS[r.tier].ja;
     /* 月額・月手当は次の問で扱う。ここは年額として通るものだけ。 */
@@ -215,8 +260,8 @@ function buildJaBasis(slug) {
       ? `${mj}。これは会社が公表しているそのままの月額で、年額を12で割った数字ではありません。`
         + `月額に12を掛けた額と、公表されている年額は一致しません。どちらもそのまま載せています。`
         + `住宅・学費などを含む総待遇を12で割った額は、月給ではありません。`
-      : `当サイトが確認した資料の中に、${name}の月額はありませんでした。年額を12で割った数字は実際の毎月の支給額ではないため、当サイトでは出していません。`
-        + `実際の支給額は、その月に飛んだ時間で上下します。`,
+      : `当サイトは${name}の月額を出していません。年額を12で割った数字は実際の毎月の支給額ではなく、`
+        + `その月に飛んだ時間で上下するためです。`,
   });
 
   /* 税。★税率は書かない（居住国・扶養・控除で変わる）。旧平均も書かない。 */
@@ -234,15 +279,32 @@ function buildJaBasis(slug) {
   });
 
   /* ANA・JAL との比較。★種類の違う数字どうしで差や倍率を出さない。
-     ANA 側にも等級が付いたら、ANA の平均も書かない。 */
+     ★2026-09-30、職位ごとに見るようにした。ANA・JAL は「推定」なので、
+       相手も「推定」の職位は**差を出す**（推定どうしの比較は成立する）。
+       等級が違う職位（公式募集例・総待遇・条件つきの給与例）だけ差を出さない。
+       前はここが「ANA 側が確認中だから何も出さない」で、両社とも推定に戻った今は
+       「機長が『推定』、副操縦士が『推定』で、種類の違う数字です」という嘘になる。 */
   if (slug !== 'ana' && slug !== 'jal') {
-    const anaOk = mayWriteAvg('ana', 'cap');
+    const cmpParts = [], noCmp = [];
+    for (const rk of ['cap', 'fo']) {
+      const w = avgWord(slug, rk), aw = avgWord('ana', rk);
+      if (w && aw && w === aw) {
+        const diff = d[rk].avg - SALARY.ana[rk].avg;
+        const cmp = diff === 0 ? 'ほぼ同じ' : diff > 0 ? `${man(diff)}高い` : `${man(-diff)}低い`;
+        cmpParts.push(`${RANK_JA[rk]}は${name}が${w}約${man(d[rk].avg)}、ANA・JALが${w}約${man(SALARY.ana[rk].avg)}で、${cmp}水準です`);
+      } else {
+        noCmp.push(`${RANK_JA[rk]}（${name}側は「${TIERS[b[rk].tier].ja}」）`);
+      }
+    }
+    const anaW = avgWord('ana', 'cap');
     items.push({
       q: `${name}のパイロット年収はANA・JALと比べてどうですか？`,
-      a: (anaOk ? `ANA・JALの機長は平均${man(BASE)}、副操縦士は平均${man(SALARY.ana.fo.avg)}で、いずれも税引き前の金額です。` : '')
-        + `${name}の側は${['cap', 'fo'].map((rk) => `${RANK_JA[rk]}が「${TIERS[b[rk].tier].ja}」`).join('、')}で、種類の違う数字です。`
-        + `平均と募集例、現金給与と総待遇のように中身が違うものを引き算したり倍率にしたりすると、実態と違う差が出ます。`
-        + `そのため当サイトでは両社の差額・倍率を出していません。`,
+      a: (cmpParts.length ? `${cmpParts.join('。')}。`
+        : anaW ? `ANA・JALの機長は${anaW}約${man(BASE)}、副操縦士は${anaW}約${man(SALARY.ana.fo.avg)}です。` : '')
+        + (noCmp.length ? `${noCmp.join('と')}は、対象や含むものが違う金額どうしになるため、差額・倍率は出していません。` : '')
+        + (d.taxFree
+          ? `${name}の所在国には個人所得税が無く、ANA・JALの金額は税引き前なので、手取りで比べると差はさらに広がります。`
+          : `いずれも税引き前の金額どうしの比較です。`),
     });
   }
   return items;
@@ -312,7 +374,12 @@ function buildJa(slug) {
         ★ただし問そのものは消さない。この会社自身の平均は今までどおり出せるので、
           「相手の金額が出せないので差は出していない」と答える。 */
   if (slug !== 'ana' && slug !== 'jal') {
-    const anaOk = mayWriteAvg('ana', 'cap') && mayWriteAvg('ana', 'fo');
+    /* ★2026-09-30、ANA・JAL が「推定」に戻ったので差を出せるようになった。
+       ⚠️ ただし呼び方が片方だけ「平均」になると、同じ作り方の数字に別の名前が付く
+          （この会社は台帳の外＝平均、ANA・JAL は台帳で推定）。
+          なので**この1文では両方とも呼び名を付けず**、末尾で「どちらも公開情報をもとに
+          当サイトが出した数字」と書く。名前の食い違いを文章で埋めない。 */
+    const anaOk = avgWord('ana', 'cap') && avgWord('ana', 'fo');
     const diff = cap.avg - BASE;
     const cmp = diff === 0 ? 'ほぼ同水準です'
       : diff > 0 ? `${man(diff)}高い水準です`
@@ -320,14 +387,14 @@ function buildJa(slug) {
     items.push({
       q: `${name}のパイロット年収はANA・JALと比べてどうですか？`,
       a: anaOk
-        ? `${name}の機長は平均${man(cap.avg)}、ANA・JALはともに機長平均${man(BASE)}で、${cmp}。`
-          + `副操縦士は${name}が平均${man(fo.avg)}、ANA・JALが平均${man(SALARY.ana.fo.avg)}です。`
+        ? `${name}の機長は${man(cap.avg)}、ANA・JALはともに機長${man(BASE)}で、${cmp}。`
+          + `副操縦士は${name}が${man(fo.avg)}、ANA・JALが${man(SALARY.ana.fo.avg)}です。`
+          + `どちらも公開情報をもとに当サイトが出した数字です。`
           + (d.taxFree
             ? `ただし${name}は非課税、ANA・JALは税引き前の金額なので、手取りで比べると差はさらに広がります。`
             : `いずれも税引き前の金額どうしの比較です。`)
         : `${name}の機長は平均${man(cap.avg)}、副操縦士は平均${man(fo.avg)}です（いずれも税引き前）。`
-          + `ANA・JALの年収は、いま金額の出どころを確認しているところで、当サイトでは数字を出していません。`
-          + `相手の金額が出せない以上、差額や倍率を出すと根拠の無い比較になるため、ここでは出していません。`
+          + `ANA・JALの金額は当サイトでは出していないため、差額や倍率はここでは出していません。`
           + (d.taxFree
             ? `なお${name}の所在国には個人所得税が無いため、税引き前で並ぶ日本の会社の金額とは、同じ額面でも手元に残る額が変わります。`
             : ''),
@@ -364,7 +431,7 @@ function buildEnBasis(slug) {
       ? `${s}. These are the monthly figures the airline publishes, not an annual figure divided by twelve. `
         + `Twelve times the monthly figure does not equal the published annual figure, and we leave both as published. `
         + `A total package that includes housing and school fees divided by twelve is not a monthly salary.`
-      : `Nothing we checked stated a monthly figure for ${name}. We do not divide an annual figure by twelve and call it monthly pay, because that is not what lands in a given month — what you are paid moves with the hours you fly.`;
+      : `We do not publish a monthly figure for ${name}. An annual figure divided by twelve is not what lands in a given month — what you are paid moves with the hours you fly.`;
   };
   items.push({ q: `What is ${name} pilot salary per month?`, aHtml: monthly(manM), aLd: monthly(usd) });
 
@@ -373,6 +440,7 @@ function buildEnBasis(slug) {
     const parts = [];
     for (const rank of ['cap', 'fo']) {
       const r = b[rank];
+      if (r.tier === 'estimate') { parts.push(EST_EN(slug, name, RANK_EN[rank], f, rank)); continue; }
       if (r.tier === 'held') { parts.push(HELD_EN(slug, name, RANK_EN[rank])); continue; }
       const y = figEn(slug, rank, f, Y_KEYS);
       if (y) parts.push(`For ${RANK_EN[rank]} we publish a ${TIERS[r.tier].en.toLowerCase()} rather than an average — ${y}. This is not an all-staff average.`);

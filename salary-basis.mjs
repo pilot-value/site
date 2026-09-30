@@ -19,12 +19,30 @@
      公式募集の給与額                         → 「公式募集例」
      採用会社の求人・過去広告・本人の体験     → 出典の種類・対象・時期を明記して別枠
      資料と計算式が確認できるモデル額         → 「月○時間・○年目の給与例」等、条件付き
-     出所・対象・計算方法が確認できない       → 公開数値を「確認中」・元の値は held に残す
+     出所・対象・計算方法が確認できない       → 公開数値を「推定」・元の値は held.was に残す
+
+   ── ★2026-09-30 オーナー指示で上書き ────────────────────────────
+   「なんで各航空会社の機長、FOの平均年収を確認中にしちゃうんだよ。
+     確認中じゃなくて推定とかにすりゃいいじゃん。」
+
+   ここは2026-09-29 に「出所を確認できない数字は画面から金額ごと下げる（確認中）」と
+   実装した。25社×2職位のうち36件が金額ごと消え、ランキング・レベリング図・国別平均も
+   一緒に落ちた。オーナーの指示はその取り消しではなく、**線の引き直し**:
+
+     やめるのは「平均」と名乗ること。やめるのは「数字を出すこと」ではない。
+
+   だから等級 estimate（推定）を足し、held の36件をそこへ移した。
+   ⚠️ 上の「⚠️『参考値』『推計平均』への言い換えで残さない」は、この指示より前のもの。
+      **今も生きているのは「平均」の語のほう**（canSayAverage は observed_mean だけ）。
+      数字そのものは「推定」として出す。
+   ⚠️ この2つを1つの関数で決め直さない。canSayAverage（平均と名乗ってよいか）と
+      canPublishNumber（金額を公開用JSONに流してよいか）は別のことを聞いている。
+   ────────────────────────────────────────────────────────────
 
    ⚠️ 「矛盾する資料が見つからない」は掲載根拠にならない。
    ⚠️ SSOT と一致するだけで「事実確認済み」と数えない。
-   ⚠️ 「参考値」「推計平均」への言い換えで残さない（オーナーが明示的に却下）。
-   ⚠️ 保留した数値を 0 や空欄にしない。held.was に元の値を残す。
+   ⚠️ 推定に落とした数値を 0 や空欄にしない。held.was に元の値を残す（履歴を消さない）。
+   ⚠️ 等級 held は残してある。本当に数字が1つも無い会社のために要る。
    ════════════════════════════════════════════════════════════════ */
 
 import { JPY_PER, AS_OF as FX_AS_OF } from './fx-rates.mjs';
@@ -39,6 +57,7 @@ export const TIERS = {
   past_ad:          { ja: '過去の募集広告', en: 'Past ad',         avg: false },
   self_report:      { ja: '本人の申告',    en: 'Self-reported',    avg: false },
   model_calc:       { ja: '条件つきの給与例', en: 'Modelled example', avg: false },
+  estimate:         { ja: '推定',         en: 'Estimated',        avg: false },
   held:             { ja: '確認中',        en: 'Under review',     avg: false },
 };
 
@@ -195,7 +214,7 @@ export const BASIS = {
         why: '公式の目標年収 HKD 964,646 は約1,956万円で、このレンジの下寄りに入るだけ。レンジと平均そのものを支える資料は無い。' },
     },
     cap: {
-      tier: 'held',
+      tier: 'estimate',
       held: { was: { avg: 3600, lo: 3000, hi: 5650 },
         why: '機長の金額が公式のどのページにも無い（掲載は Cadet / Second Officer / First Officer の3職位のみ）。' },
     },
@@ -276,7 +295,7 @@ export const BASIS = {
         why: '公式の下限（約1,589万円）がこのレンジの上限を約35%上回っている。レンジの出所の記録は無い。⚠️ 差の原因は特定できていない（金額が近いことだけを理由に「訓練中の給与の取り違え」と断定しない）。' },
     },
     cap: {
-      tier: 'held',
+      tier: 'estimate',
       held: { was: { avg: 1750, lo: 1370, hi: 2200 },
         why: '機長の金額が公式にも第三者資料にも無い。' },
     },
@@ -290,9 +309,9 @@ export const BASIS = {
     src: [],
     notes: [],
     notes_en: [],
-    cap: { tier: 'held', held: { was: { avg: 2000, lo: 1500, hi: 2450 },
+    cap: { tier: 'estimate', held: { was: { avg: 2000, lo: 1500, hi: 2450 },
       why: '公式の採用ページ（英語版・中文版）に金額が1件も無い。レンジの出所の記録も無い。' } },
-    fo: { tier: 'held', held: { was: { avg: 1100, lo: 700, hi: 1280 },
+    fo: { tier: 'estimate', held: { was: { avg: 1100, lo: 700, hi: 1280 },
       why: '機長と同じ理由。' } },
   },
 
@@ -348,9 +367,9 @@ export const BASIS = {
     src: [],
     notes: [],
     notes_en: [],
-    cap: { tier: 'held', held: { was: { avg: 3400, lo: 2750, hi: 4150 },
+    cap: { tier: 'estimate', held: { was: { avg: 3400, lo: 2750, hi: 4150 },
       why: '公式の採用ページに報酬の節そのものが無く、金額の記載が1件も無い。レンジの出所の記録も無い。' } },
-    fo: { tier: 'held', held: { was: { avg: 1850, lo: 1100, hi: 2280 },
+    fo: { tier: 'estimate', held: { was: { avg: 1850, lo: 1100, hi: 2280 },
       why: '機長と同じ理由。' } },
   },
 
@@ -362,9 +381,9 @@ export const BASIS = {
     src: [],
     notes: [],
     notes_en: [],
-    cap: { tier: 'held', held: { was: { avg: 2700, lo: 2300, hi: 3300 },
+    cap: { tier: 'estimate', held: { was: { avg: 2700, lo: 2300, hi: 3300 },
       why: 'パイロットの募集が1件も無く、公式に金額が存在しない。レンジの出所の記録も無い。' } },
-    fo: { tier: 'held', held: { was: { avg: 1500, lo: 1250, hi: 1850 },
+    fo: { tier: 'estimate', held: { was: { avg: 1500, lo: 1250, hi: 1850 },
       why: '機長と同じ理由。' } },
   },
 
@@ -383,9 +402,9 @@ export const BASIS = {
     src: [],
     notes: [],
     notes_en: [],
-    cap: { tier: 'held', held: { was: { avg: 2900, lo: 2600, hi: 4800 },
+    cap: { tier: 'estimate', held: { was: { avg: 2900, lo: 2600, hi: 4800 },
       why: '公式・過去の公式求人・第三者掲示のすべてで金額が0件。レンジの出所の記録も無い。加えてページ内で「住宅・教育手当を含めた実質パッケージ2,900万」なのに含まないはずのレンジ上限が4,800万で、同じページの中で矛盾している。' } },
-    fo: { tier: 'held', held: { was: { avg: 2050, lo: 1850, hi: 2700 },
+    fo: { tier: 'estimate', held: { was: { avg: 2050, lo: 1850, hi: 2700 },
       why: '機長と同じ理由。' } },
   },
 
@@ -494,9 +513,9 @@ export const BASIS = {
     cur: 'KRW',
     tax: '課税（韓国・6〜45%）',
     src: [], notes: [], notes_en: [],
-    cap: { tier: 'held', held: { was: { avg: 2450, lo: 1850, hi: 2750 },
+    cap: { tier: 'estimate', held: { was: { avg: 2450, lo: 1850, hi: 2750 },
       why: '公式の求人・採用サイト全26ページ・有価証券報告書のすべてで、パイロットの金額が0件。レンジの出所の記録も無い。' } },
-    fo: { tier: 'held', held: { was: { avg: 1250, lo: 950, hi: 1430 }, why: '機長と同じ理由。' } },
+    fo: { tier: 'estimate', held: { was: { avg: 1250, lo: 950, hi: 1430 }, why: '機長と同じ理由。' } },
   },
 
   /* ══ タイ国際航空 ══ 公式の2026年募集に金額ゼロ。
@@ -507,9 +526,9 @@ export const BASIS = {
     cur: 'THB',
     tax: '課税（タイ）',
     src: [], notes: [], notes_en: [],
-    cap: { tier: 'held', held: { was: { avg: 1850, lo: 1500, hi: 2420 },
+    cap: { tier: 'estimate', held: { was: { avg: 1850, lo: 1500, hi: 2420 },
       why: '公式の募集要項・応募ポータル・自社養成の案内のすべてで金額が0件。会社は「給与体系に従う」と書くだけで体系も公開していない。レンジの出所の記録も無い。' } },
-    fo: { tier: 'held', held: { was: { avg: 880, lo: 660, hi: 1140 }, why: '機長と同じ理由。' } },
+    fo: { tier: 'estimate', held: { was: { avg: 880, lo: 660, hi: 1140 }, why: '機長と同じ理由。' } },
   },
 
   /* ══ エア・インディア ══ 会社名義の採用サイトの現役パイロット求人4本とも金額ゼロ
@@ -522,9 +541,9 @@ export const BASIS = {
     cur: 'INR',
     tax: '課税（インド）',
     src: [], notes: [], notes_en: [],
-    cap: { tier: 'held', held: { was: { avg: 1550, lo: 1100, hi: 2000 },
+    cap: { tier: 'estimate', held: { was: { avg: 1550, lo: 1100, hi: 2000 },
       why: '会社名義の求人4本すべてで金額が0件。レンジの出所の記録も無い。' } },
-    fo: { tier: 'held', held: { was: { avg: 720, lo: 540, hi: 900 }, why: '機長と同じ理由。' } },
+    fo: { tier: 'estimate', held: { was: { avg: 720, lo: 540, hi: 900 }, why: '機長と同じ理由。' } },
   },
 
   /* ══ 中国南方航空 ══ 公式サイトは金額ゼロ（募集中14件・パンフレット10件・
@@ -569,7 +588,7 @@ export const BASIS = {
       ],
       held: { was: { avg: 2950, lo: 2100, hi: 4700 },
         why: '会社の公表は金額ゼロ。金額があるのは代理店の2019年の求人（しかも草案）と2013年の求人だけで、年額の平均・レンジを支える資料は無い。' } },
-    fo: { tier: 'held', held: { was: { avg: 1500, lo: 980, hi: 2100 },
+    fo: { tier: 'estimate', held: { was: { avg: 1500, lo: 980, hi: 2100 },
       why: '副操縦士の金額はどの資料にも無い（代理店の求人も機長だけ）。' } },
   },
 
@@ -604,9 +623,9 @@ export const BASIS = {
       'Warning: agency postings quoting figures such as USD 18,200 a month for a B777 captain are for Air China Cargo, a separate company. We do not treat them as figures for captains on the passenger side.',
       'In the material we have checked, we found no document stating annual or monthly pay for captains or first officers. If one appears, we will add it here with its subject and its date.',
     ],
-    cap: { tier: 'held', held: { was: { avg: 3050, lo: 2200, hi: 4800 },
+    cap: { tier: 'estimate', held: { was: { avg: 3050, lo: 2200, hi: 4800 },
       why: '会社の報酬ページに金額がゼロ。採用公告にも金額が無く、旅客側の人材会社の求人も現行では0件。年額の平均・レンジを支える資料が無い（元の値の出所の記録も無い）。' } },
-    fo: { tier: 'held', held: { was: { avg: 1550, lo: 1000, hi: 2200 },
+    fo: { tier: 'estimate', held: { was: { avg: 1550, lo: 1000, hi: 2200 },
       why: '機長と同じ理由。副操縦士の金額を書いた資料は、会社側にも人材会社側にも無い。' } },
   },
 
@@ -656,7 +675,7 @@ export const BASIS = {
       ],
       held: { was: { avg: 2900, lo: 2100, hi: 4600 },
         why: '会社の公表は金額ゼロ（採用サイトにパイロットの募集自体が無い）。金額があるのは人材会社の求人1本（A330 機長・日付なし）だけで、年額の平均・レンジを支える資料は無い。' } },
-    fo: { tier: 'held', held: { was: { avg: 1480, lo: 980, hi: 2100 },
+    fo: { tier: 'estimate', held: { was: { avg: 1480, lo: 980, hi: 2100 },
       why: '副操縦士の金額はどの資料にも無い（人材会社の求人も機長だけ）。' } },
   },
 
@@ -670,9 +689,9 @@ export const BASIS = {
     cur: 'MYR',
     tax: '課税（マレーシア）',
     src: [], notes: [], notes_en: [],
-    cap: { tier: 'held', held: { was: { avg: 1900, lo: 1300, hi: 2600 },
+    cap: { tier: 'estimate', held: { was: { avg: 1900, lo: 1300, hi: 2600 },
       why: 'パイロットの募集そのものが無く（公式の採用システムの27件に1件も無い）、金額を書いた公式資料も無い。レンジの出所の記録も無い。' } },
-    fo: { tier: 'held', held: { was: { avg: 1000, lo: 650, hi: 1350 }, why: '機長と同じ理由。' } },
+    fo: { tier: 'estimate', held: { was: { avg: 1000, lo: 650, hi: 1350 }, why: '機長と同じ理由。' } },
   },
 
   /* ══ ANA ══ ★有資格パイロットの募集そのものが無い（キャリア採用に運航乗務職の枠が無い）。
@@ -710,9 +729,9 @@ export const BASIS = {
           req: '2027年4月1日入社予定・FCAT 受験が必須・プレエントリー締切 2026年3月10日' },
         { name: '自社養成パイロット訓練生・大卒／高等専門学校（専攻科）卒（入社時）', start_m: 267770 },
       ] },
-    cap: { tier: 'held', held: { was: { avg: 2700, lo: 2200, hi: 3500 },
+    cap: { tier: 'estimate', held: { was: { avg: 2700, lo: 2200, hi: 3500 },
       why: '有資格パイロットの募集そのものが無く（キャリア採用に運航乗務職の枠が無い）、機長の金額を書いた公式資料が1件も無い。有報にもパイロットの数字は無い。レンジの出所の記録も無い。' } },
-    fo: { tier: 'held', held: { was: { avg: 1800, lo: 1400, hi: 2100 }, why: '機長と同じ理由。' } },
+    fo: { tier: 'estimate', held: { was: { avg: 1800, lo: 1400, hi: 2100 }, why: '機長と同じ理由。' } },
   },
 
   /* ══ JAL ══ ★★ サイトで初めて「平均」と書ける根拠。
@@ -762,9 +781,9 @@ export const BASIS = {
     trainee: { tier: 'employer_example',
       groups: [{ name: '運航乗務員訓練生（入社時）', start_m: 263000,
         req: '矯正視力1.0以上・屈折度 -6.0〜+2.0ジオプトリー・事業用操縦士免許の保有者および過去に取得した者は応募不可' }] },
-    cap: { tier: 'held', held: { was: { avg: 2700, lo: 2200, hi: 3500 },
+    cap: { tier: 'estimate', held: { was: { avg: 2700, lo: 2200, hi: 3500 },
       why: '会社が公表しているのは機長と副操縦士をあわせた運航乗務員全体の平均で、職位別の平均は公表されていない。機長の募集要項そのものが無く（ライセンス保有者枠は「在籍中の各養成機関に問い合わせ」とだけ）、金額も無い。レンジの出所の記録も無い。' } },
-    fo: { tier: 'held', held: { was: { avg: 1800, lo: 1400, hi: 2100 }, why: '機長と同じ理由。' } },
+    fo: { tier: 'estimate', held: { was: { avg: 1800, lo: 1400, hi: 2100 }, why: '機長と同じ理由。' } },
   },
 
   /* ══ スカイマーク ══ ★★ ここも有報に運航乗務員だけの平均年間給与がある。
@@ -806,9 +825,9 @@ export const BASIS = {
     trainee: { tier: 'employer_example',
       groups: [{ name: '自社養成パイロット訓練生・院卒／大卒（入社時の基本給）', start_m: 250000,
         req: 'TOEIC 750点以上または IELTS Overall 6.0以上・矯正視力0.7以上（両眼1.0以上）・事業用操縦士免許保有者は応募不可' }] },
-    cap: { tier: 'held', held: { was: { avg: 1900, lo: 1600, hi: 2300 },
+    cap: { tier: 'estimate', held: { was: { avg: 1900, lo: 1600, hi: 2300 },
       why: '会社が公表しているのは機長と副操縦士をあわせた運航乗務員全体の平均で、職位別の平均は公表されていない。経験者採用の求人は「給与 非公開」「当社規程による」で金額が無い。レンジの出所の記録も無い。' } },
-    fo: { tier: 'held', held: { was: { avg: 950, lo: 700, hi: 1200 }, why: '機長と同じ理由。' } },
+    fo: { tier: 'estimate', held: { was: { avg: 950, lo: 700, hi: 1200 }, why: '機長と同じ理由。' } },
   },
 
   /* ══ J-AIR ══ 金額があるのは訓練生の募集要項1本だけで、会社自身が
@@ -842,9 +861,9 @@ export const BASIS = {
     trainee: { tier: 'past_ad',
       groups: [{ name: '運航乗務員訓練生（入社後の初期訓練期間中・募集終了の要項）', train_m: 221100,
         req: '採用予定数15名程度・矯正視力0.7以上（両眼1.0以上）・事業用操縦士免許保有者は応募不可・入社要件に IELTS と航空無線通信士' }] },
-    cap: { tier: 'held', held: { was: { avg: 2000, lo: 1800, hi: 2300 },
+    cap: { tier: 'estimate', held: { was: { avg: 2000, lo: 1800, hi: 2300 },
       why: '機長の募集要項は「当社規程による」「面接時に説明」で金額が無い。非上場で有価証券報告書が無く、親会社の有報にも職種別の給与が無い。レンジの出所の記録も無い。' } },
-    fo: { tier: 'held', held: { was: { avg: 1250, lo: 1100, hi: 1500 }, why: '機長と同じ理由。' } },
+    fo: { tier: 'estimate', held: { was: { avg: 1250, lo: 1100, hi: 1500 }, why: '機長と同じ理由。' } },
   },
 
   /* ══ ジェットスター・ジャパン ══ 会社名義の募集要項は2016年のもの1本だけで、
@@ -856,9 +875,9 @@ export const BASIS = {
     cur: 'JPY',
     tax: '課税（日本）',
     src: [], notes: [], notes_en: [],
-    cap: { tier: 'held', held: { was: { avg: 2400, lo: 2000, hi: 2900 },
+    cap: { tier: 'estimate', held: { was: { avg: 2400, lo: 2000, hi: 2900 },
       why: '会社名義の募集要項（2016年）に給与の節そのものが無い。現行の採用サイトは読めず、採用管理システムの求人は0件。非上場で有価証券報告書も無い。レンジの出所の記録も無い。' } },
-    fo: { tier: 'held', held: { was: { avg: 1450, lo: 1250, hi: 1600 },
+    fo: { tier: 'estimate', held: { was: { avg: 1450, lo: 1250, hi: 1600 },
       why: '機長と同じ理由。加えて、ページに書いてあった「副操縦士の月額基本給 ¥150万」は出所が無く、同じページの上限1,600万と矛盾していた（×12＝1,800万）。' } },
   },
 
@@ -894,9 +913,9 @@ export const BASIS = {
     trainee: { tier: 'employer_example',
       groups: [{ name: 'パイロットチャレンジ制度の訓練生（有期契約・ライセンス取得前）', allow_train_m: 250000,
         req: '2027年4月1日時点で矯正視力0.7以上（両眼1.0以上）・ジオプトリ -5.5〜+4.5・GTEC 660点相当程度・事業用および自家用操縦士免許の非保有・FCAT 合格・募集人数は若干名' }] },
-    cap: { tier: 'held', held: { was: { avg: 2350, lo: 2000, hi: 2800 },
+    cap: { tier: 'estimate', held: { was: { avg: 2350, lo: 2000, hi: 2800 },
       why: '機長の求人の給与が「当社規定による（選考時に説明）」で金額が無い。非上場で有価証券報告書も無く、親会社の有報にも職種別の給与が無い。レンジの出所の記録も無い。' } },
-    fo: { tier: 'held', held: { was: { avg: 1400, lo: 1000, hi: 1600 },
+    fo: { tier: 'estimate', held: { was: { avg: 1400, lo: 1000, hi: 1600 },
       why: '副操縦士の募集そのものが無いので、会社の資料に金額が存在しない。レンジの出所の記録も無い。' } },
   },
 
@@ -907,9 +926,9 @@ export const BASIS = {
     cur: 'JPY',
     tax: '課税（日本）',
     src: [], notes: [], notes_en: [],
-    cap: { tier: 'held', held: { was: { avg: 2500, lo: 2200, hi: 3100 },
+    cap: { tier: 'estimate', held: { was: { avg: 2500, lo: 2200, hi: 3100 },
       why: '公式の募集要項の給与の節が「当社規程により支給。詳細については、選考における面接時に説明します。」で金額が無い。非上場で有価証券報告書も無い。レンジの出所の記録も無い。' } },
-    fo: { tier: 'held', held: { was: { avg: 1500, lo: 1200, hi: 1900 }, why: '機長と同じ理由。' } },
+    fo: { tier: 'estimate', held: { was: { avg: 1500, lo: 1200, hi: 1900 }, why: '機長と同じ理由。' } },
   },
 };
 
@@ -959,6 +978,19 @@ export const canSayAverage = (slug, rank) => {
   return t ? !!TIERS[t]?.avg : false;
 };
 
+/** ★金額そのものを公開用の数値（salary-data.json・順位・国別平均・レベリング図）へ
+    流してよいか。2026-09-30 オーナー指示「確認中じゃなくて推定とかにすりゃいいじゃん」。
+
+    ⚠️ canSayAverage と混ぜない。あちらは**呼び方**の判定（「平均」と名乗れるのは
+       observed_mean だけ）で、こちらは**数字を出すかどうか**の判定。
+       2026-09-29 は canSayAverage 1つで両方を決めていたため、平均と名乗れない57件のうち
+       50件（確認中36件＋公式募集例・求人・過去広告・給与例19件のうち該当分）が
+       公開JSONから金額ごと消え、ランキング・国別平均・レベリング図が一緒に落ちた。
+    ⚠️ 台帳に無い会社は true（今までどおり SALARY の値をそのまま使う）。
+       台帳は25社ぶんしか無く、残り87社は監査の対象外＝落とす理由が無い。 */
+export const canPublishNumber = (slug, rank) =>
+  (BASIS[slug]?.[rank]?.tier ?? null) !== 'held';
+
 /** 確認中に落ちた（会社, 職位, 元の値）の一覧。報告と検査に使う。 */
 export function heldList() {
   const out = [];
@@ -989,6 +1021,19 @@ const CARD_UPPER = new Set(['max_y']);
 export function cardFigure(slug, rank = 'cap') {
   if (!BASIS[slug]) return null;
   const tier = BASIS[slug][rank]?.tier || 'held';
+  /* ★推定（2026-09-30 オーナー指示）── **金額はここでは作らない。**
+     このファイルは salary-data.mjs から import されているので、こちらから SALARY を
+     読むと循環参照になる。台帳の held.was にも同じ数字が控えてあるが、そちらを返すと
+     **年収の値がリポジトリに2か所できる**（SSOT は salary-data.mjs だけ）。
+     workflows/update-salary.md で SALARY を直した人は台帳を触らないので、
+     題名と説明文だけが黙って旧値のまま残る。だから「推定である」ことだけ返し、
+     金額は呼ぶ側が SALARY から取る。 */
+  if (tier === 'estimate') {
+    return {
+      held: false, estimate: true, man: null, up: false, yen: null,
+      kindJa: TIERS.estimate.ja, kindEn: TIERS.estimate.en,
+    };
+  }
   const f = figures(slug, rank).find((x) => CARD_YEARLY_CASH.has(x.key) && !x.training);
   if (!f) return { held: true, yen: null, kindJa: '確認中', kindEn: 'Under review' };
   const up = CARD_UPPER.has(f.key);

@@ -20,7 +20,7 @@
 /* 根拠の等級。公開してよい職位かどうかはこれが決める。
    ⚠️ 向きは salary-basis.mjs → salary-data.mjs の一方通行。
       あちらから SALARY を読ませない（循環になる）。 */
-import { BASIS, canSayAverage, isHeld } from './salary-basis.mjs';
+import { BASIS, canPublishNumber, isHeld } from './salary-basis.mjs';
 
 export const SALARY = {
   // ── 日本 ────────────────────────────────────────────────
@@ -295,21 +295,28 @@ export function ladderFor(slug, d) {
 // ─────────────────────────────────────────────────────────────────────────
 
 /* 公開から外す職位を仕分ける。
-   ★判定は「確認中かどうか」ではなく「**平均と呼べるかどうか**」。
-     ここに入っている数字は avg / lo / hi ＝平均とレンジなので、
-     平均と呼べない職位のぶんは公開できない。
-     例）エミレーツの機長は「公式募集例（年 AED 575,000）」として掲載できるが、
-        それは平均ではない。SALARY 側の 3,700万（出どころの記録なし）を
-        そのまま公開に流してよい理由にはならない。
-   ・held     … 出どころ・対象・計算方法が確認できていない → 「確認中」
-   ・basis    … 金額はあるが平均ではない（公式募集例・求人・過去広告・
-                本人の申告・条件つきの給与例）→ 会社ページに、意味を添えて出す */
+   ★2026-09-30 オーナー指示で判定を入れ替えた。
+     「なんで各航空会社の機長、FOの平均年収を確認中にしちゃうんだよ。
+       確認中じゃなくて推定とかにすりゃいいじゃん。」
+
+   前は `canSayAverage`（＝「平均」と名乗れるか）で決めていた。名乗れるのは
+   observed_mean の2件だけなので、**残り50件が金額ごと公開から消えた**
+   ── ANA・JAL・エミレーツがレベリング図から落ち、国別平均は112社→87社、
+   順位の付く国は51→37 に減った。オーナーが見たのはこの画面。
+
+   いま見るのは `canPublishNumber`（＝金額を出してよいか）で、外すのは
+   **本当に数字が1つも無い「確認中」だけ**。呼び方の判定はそのまま別に生きていて、
+   「平均」と名乗れるのは今までどおり observed_mean の2件だけ・残りは「推定」。
+
+   ・held     … 台帳で tier:'held'。数字そのものが無い → 鍵を渡さない
+   ・basis    … いまは空。等級ごとの呼び分けは canSayAverage / TIERS 側でやる
+                （読む側の `kind:'basis'` の分岐は残してある＝また要るときのため） */
 function splitRanks(slug) {
   const b = BASIS[slug];
   if (!b) return null;
   const held = [], basis = [];
   for (const r of ['cap', 'fo', 'crew']) {
-    if (!b[r] || canSayAverage(slug, r)) continue;
+    if (!b[r] || canPublishNumber(slug, r)) continue;
     (isHeld(slug, r) ? held : basis).push(r);
   }
   return held.length || basis.length ? { held, basis } : null;

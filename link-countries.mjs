@@ -43,7 +43,17 @@ for (const [slug, code] of Object.entries(AIRLINE_COUNTRY)) {
    公式募集の現金給与・求人の掲載額・確認中が混ざっていて、同じ物差しになっていない。
    gen-countries.mjs と同じ判定。⚠️ 0 で埋めない＝足し算から外すのでもなく、
    「国の平均」という数字そのものを出さない。 */
-const heldCountry = (code) => byCountry.get(code).some((k) => BASIS[k]);
+/* ★2026-09-30、判定を「台帳に在るか」から「推定より強い等級が混ざるか」に変えた。
+   推定（estimate）は台帳の外の87社と同じ作り ── 公開情報から出した機長の年収 ── なので、
+   同じ物差しで足して割れる。物差しが違うのは公式募集例・求人の掲載額・過去の募集広告・
+   総待遇・条件つきの給与例で、それが1社でも混ざる国は今までどおり平均を出さない。
+   ⚠️ ここで出すのは**掲載した会社の平均**で、その国のパイロット全体の平均ではない
+      （文言が「掲載N社・機長平均」なのはそのため。オーナーの禁止事項）。 */
+const STRONGER = (k) => ['cap', 'fo'].some((r) => {
+  const t = BASIS[k]?.[r]?.tier;
+  return t !== undefined && t !== 'estimate';
+});
+const heldCountry = (code) => byCountry.get(code).some(STRONGER);
 /* 並び順も同じ理由で変える。金額の意味が社ごとに違う国では高い順に並べられないので
    社名の順にする（並び自体が順位に見えるため）。 */
 for (const [code, list] of byCountry) {
@@ -59,6 +69,10 @@ const capAvgOf = (code) => round10(
 const pillSub = (slug, ja) => {
   const c = cardFigure(slug, 'cap');
   if (!c) return man(S[slug].cap.avg);
+  /* ★推定は金額を出す（2026-09-30 オーナー指示「確認中じゃなくて推定とかにすりゃいいじゃん」）。
+     金額は SALARY から取る ── 台帳は「推定である」ことだけを返してくる
+     （年収の唯一の正は salary-data.mjs。台帳に数字を持たせると2か所になる）。 */
+  if (c.estimate) return ja ? `推定 ${man(S[slug].cap.avg)}` : `Estimated ${man(S[slug].cap.avg)}`;
   if (c.held) return ja ? '確認中' : 'Under review';
   return ja ? `${c.kindJa} ${c.yen}` : `${c.kindEn} ${c.yen}`;
 };

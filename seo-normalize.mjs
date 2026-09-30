@@ -61,6 +61,22 @@ const mayAvg = (slug, rank) => {
 };
 const mayAvgBoth = (slug) => mayAvg(slug, 'cap') && mayAvg(slug, 'fo');
 
+/* ★その職位の金額を**題名・説明文に数字として**書いてよいか（2026-09-30）。
+   オーナー指示「なんで各航空会社の機長、FOの平均年収を確認中にしちゃうんだよ。
+   確認中じゃなくて推定とかにすりゃいいじゃん。」
+
+   ⚠️ mayAvg と混ぜない。あちらは「平均」の**語**を許すかで、こちらは**数字**を出すか。
+      2026-09-29 は mayAvg 1つで両方を決めていたため、推定に戻した25社の題名と説明文が
+      「金額の入らない段」に落ちたまま＝検索結果から数字が消える。
+   ⚠️ 強い等級（公式募集例・求人の掲載額・過去の募集広告・総待遇・条件つきの給与例）は
+      false のまま。あちらは SALARY の平均ではなく**会社が出した額**を載せる会社なので、
+      題名に S[slug].cap.avg を埋めると本文と食い違う（basisMan がそちら用）。 */
+const mayNum = (slug, rank) => {
+  const t = BASIS[slug]?.[rank]?.tier;
+  return t === undefined || t === 'estimate' || !!TIERS[t].avg;
+};
+const mayNumBoth = (slug) => mayNum(slug, 'cap') && mayNum(slug, 'fo');
+
 /* ★根拠の等級から金額を取る（2026-09-30）。下の COPY 表で使う。
    ⚠️ **トップと読み物系の説明文に S[slug].cap.avg を書かない。**
       capJa/capEn は SALARY を素通しで読むので mayAvg を通らない。
@@ -420,10 +436,19 @@ const HAS_PAY = /[\d,]+\s*万|[$€£]\s?[\d,.]+\s?[KM]\b/;
      ② 英語で「captain / first officer」の**直後**に「avg / average」と金額が続く
         （"captain avg $231K"）。上の日本航空型は平均の語が先に来るので当たらない。 */
 const EN_RANK_AVG = /\b(?:captains?|first officers?|f\/?os?)\b[^.]{0,12}?\b(?:avg|average)\b[^.]{0,16}?[$€£]\s?[\d,.]+\s?[KM]\b/i;
+/* ★推定に戻した職位（2026-09-30）は、数字ではなく**「平均」の語**を見る。
+   数字そのものは今また出してよいので、①の「取り下げた数字が出ている」では判定できない。
+   ⚠️ 「平均」は職位の**直後**だけを見る。日本航空の
+      「運航乗務員（機長と副操縦士をあわせた）の平均年間給与2,005万円」は
+      会社自身が公表した平均＝そのまま残す正しい文で、職位の直後に「平均」が来ない。
+      ここを緩めると、良く書けた説明文が定型文に落ちる（前に一度やった）。 */
+const JA_RANK_AVG = { cap: /機長(?:の)?平均[^。]{0,16}?[\d,]+\s*万/, fo: /副操縦士(?:の)?平均[^。]{0,16}?[\d,]+\s*万/ };
 const staleAvg = (text, slug) => {
   if (!text || !BASIS[slug]) return false;
   if (EN_RANK_AVG.test(text)) return true;
   for (const r of ['cap', 'fo']) {
+    const t = BASIS[slug][r]?.tier;
+    if (t === 'estimate') { if (JA_RANK_AVG[r].test(text)) return true; continue; }
     const was = BASIS[slug][r]?.held?.was;
     if (!was) continue;
     for (const k of ['avg', 'lo', 'hi']) {
@@ -446,10 +471,12 @@ function airlineTitle(slug, lang, curTitle) {
   if (kept && HAS_PAY.test(kept)) return kept;
 
   /* ★金額を出せない会社は、金額が無いことを理由にタイトルを作り直さない。
-     下の候補は全部 SSOT の機長平均を埋め込む形なので、ここで抜けないと
-     「確認中」にした23社のタイトルだけが旧値に巻き戻る。
+     下の候補は全部 SSOT の機長の額を埋め込む形なので、ここで抜けないと
+     会社が出した額を載せている社（公式募集例・求人の掲載額など）のタイトルだけが
+     SALARY の値に巻き戻り、本文と食い違う。
+     ★2026-09-30、判定を mayAvg → mayNum に変えた（推定は数字を出す）。
      ⚠️ SEO のためにここを外さない（根拠の無い数字を出す理由にはならない）。 */
-  if (kept && !mayAvg(slug, 'cap')) return kept;
+  if (kept && !mayNum(slug, 'cap')) return kept;
 
   const a = S[slug];
   const full = (lang === 'ja' ? a.ja : a.en).trim();
@@ -462,7 +489,7 @@ function airlineTitle(slug, lang, curTitle) {
 
   /* 金額を出せない会社は、金額の入った段を丸ごと飛ばして
      下2段（社名＋「パイロット年収」だけ）に落とす。 */
-  const withPay = mayAvg(slug, 'cap');
+  const withPay = mayNum(slug, 'cap');   // ★2026-09-30 推定は数字を出す
   const cands = (lang === 'ja'
     ? [`${full} パイロット年収 機長${pay}【2026】`,
        `${full} パイロット年収 機長${pay}`,
@@ -509,10 +536,13 @@ function enrichDesc(d, slug, lang) {
      ここは「説明文に副操縦士の額が無いから足す」という補強なので、
      本文から下げたばかりの平均を、説明文にだけ足し戻してしまう。
      ⚠️ 年額を12で割った「月あたり」も同じ。元の年額が出せないなら割れない。 */
-  if (mayAvg(slug, 'fo') && !(ja ? /副操縦士/ : /first officer/i).test(d)) {
-    add.push(ja ? `副操縦士は平均${man(f.avg)}。` : ` First officers average ${usd(f.avg)}.`);
+  if (mayNum(slug, 'fo') && !(ja ? /副操縦士/ : /first officer/i).test(d)) {
+    /* ★「平均」と呼べるのは mayAvg が true のときだけ。推定は「推定」と書く（2026-09-30）。 */
+    const w = mayAvg(slug, 'fo');
+    add.push(ja ? `副操縦士は${w ? '平均' : '推定'}${man(f.avg)}。`
+      : ` First officers ${w ? 'average' : 'are estimated at'} ${usd(f.avg)}.`);
   }
-  if (mayAvg(slug, 'cap') && !(ja ? /月/ : /\ba month\b|monthly|per month/i).test(d)) {
+  if (mayNum(slug, 'cap') && !(ja ? /月/ : /\ba month\b|monthly|per month/i).test(d)) {
     /* 「月あたり」「a month」と書く。「月収」と言い切らないのは、賞与のある会社では
        毎月の支給額がこれより低く出るため（年収÷12 の単純計算だと明示できる幅が無い）。 */
     add.push(ja ? `機長は月あたり約${man(Math.round(c.avg / 12))}。`
@@ -559,23 +589,42 @@ function airlineDesc(slug, lang, curDesc) {
     ? (a.taxFree ? '所得税が非課税のため手取りはさらに大きくなります。' : '')
     : (a.taxFree ? ' Pay is tax-free, so take-home is higher still.' : '');
 
-  /* ★金額を出せない会社は、下の「機長が平均◯◯」の型を1つも使えない（2026-09-29）。
-     ここへ落ちてくるのは、既存の説明文が短すぎる／長すぎるときだけ。
-     そこで金額を使わず、そのページに実際に載っているものだけを書く。
-     ⚠️ 「確認中」を「参考値」「推計」と言い換えない（オーナー指示）。
+  /* ★金額の呼び方で3通りに分かれる。
+     ① mayNumBoth が false … 会社が出した額を載せている社（公式募集例・求人の掲載額・
+        過去の募集広告・総待遇・条件つきの給与例）。SALARY の平均を説明文に埋めると
+        本文と食い違うので、金額を使わず**そのページに実際に載っているもの**を書く。
+     ② 推定（estimate）… 数字は書く。「平均」とは呼ばない。
+     ③ 台帳の外の87社 … 今までどおり「平均」。
+
+     ⚠️ 2026-09-29 に置いた「『確認中』を『参考値』『推計』と言い換えない（オーナー指示）」は
+        **2026-09-30 のオーナー指示で上書きされた** ──
+        「確認中じゃなくて推定とかにすりゃいいじゃん」。
+        いま生きているのは「**平均**と名乗らない」のほうで、数字は「推定」として出す。
+        ①の文から「確認中」の語を外したのは、推定に戻した結果、①に残る社には
+        確認中の職位が1つも無くなったため（エミレーツ・エティハドなど）。
      ⚠️ 下の cands と同じ「長い順の候補」にしてあるのは、
         幅の検査（fit）を通すため。ここだけ早く return すると
         170 を超えた説明文が検索結果で途中から切れる。 */
-  const cands = !mayAvgBoth(slug) ? (lang === 'ja' ? [
-    `${nm}のパイロット年収を、金額の出どころ・対象・時点まで確かめて掲載しています。確認できていない額は「確認中」として数字を出しません。保有機材・応募条件・口コミも掲載。`,
-    `${nm}のパイロット年収を、金額の出どころ・対象・時点まで確かめて掲載。確認できていない額は「確認中」として数字を出しません。保有機材・応募条件・口コミも掲載。`,
-    `${nm}のパイロット年収は、出どころを確認できた額だけを掲載。確認中の額は数字を出しません。保有機材・応募条件・現役パイロットの口コミを掲載。`,
-    `${nm}のパイロット年収は、出どころを確認できた額だけを掲載しています。保有機材・応募条件・現役パイロットの口コミも掲載。`,
+  const cands = !mayNumBoth(slug) ? (lang === 'ja' ? [
+    `${nm}のパイロット年収は、会社が公表している金額を、発行元・対象・適用時点まで確かめて掲載しています。保有機材・応募条件・現役パイロットの口コミも掲載。`,
+    `${nm}のパイロット年収は、会社が公表している金額を、発行元・対象・時点つきで掲載。保有機材・応募条件・現役パイロットの口コミも掲載。`,
+    `${nm}のパイロット年収は、会社が公表している金額を出どころつきで掲載。保有機材・応募条件・現役パイロットの口コミを掲載。`,
+    `${nm}のパイロット年収は、会社が公表している金額を出どころつきで掲載しています。保有機材・応募条件・口コミも掲載。`,
   ] : [
-    `${nm} pilot pay: we publish only figures whose source, coverage and date we can check. Unverified amounts are marked under review, not estimated. Fleet and pilot reviews.`,
-    `${nm} pilot pay: only figures whose source, coverage and date we can check. Unverified amounts are marked under review. Fleet, requirements and pilot reviews.`,
-    `${nm} pilot pay: only figures we can source are published; the rest are marked under review. Fleet, hiring requirements and reviews from working pilots.`,
-    `${nm} pilot pay: only figures we can source are published; the rest are marked under review. Fleet, requirements and pilot reviews.`,
+    `${nm} pilot pay: the figures the airline itself publishes, with the issuer, who they apply to and the date they are effective. Fleet, hiring requirements and pilot reviews.`,
+    `${nm} pilot pay: the figures the airline itself publishes, with the issuer, coverage and date. Fleet, hiring requirements and reviews from working pilots.`,
+    `${nm} pilot pay: the figures the airline itself publishes, with their source and date. Fleet, hiring requirements and pilot reviews.`,
+    `${nm} pilot pay: the figures the airline itself publishes, with their source. Fleet, requirements and pilot reviews.`,
+  ]) : !mayAvgBoth(slug) ? (lang === 'ja' ? [
+    `${nm}のパイロット年収は、機長が推定${M(c.avg)}（${M(c.lo)}〜${M(c.hi)}）、副操縦士が推定${M(f.avg)}（${M(f.lo)}〜${M(f.hi)}）。${tail}保有機材・応募条件・現役パイロットの口コミまで掲載しています。`,
+    `${nm}のパイロット年収は、機長が推定${M(c.avg)}（${M(c.lo)}〜${M(c.hi)}）、副操縦士が推定${M(f.avg)}。${tail}保有機材・応募条件・現役パイロットの口コミまで掲載しています。`,
+    `${nm}のパイロット年収は、機長が推定${M(c.avg)}（${M(c.lo)}〜${M(c.hi)}）、副操縦士が推定${M(f.avg)}。保有機材・応募条件・現役パイロットの口コミを掲載。`,
+    `${nm}のパイロット年収は機長が推定${M(c.avg)}、副操縦士が推定${M(f.avg)}。給与レンジ・保有機材・応募条件・口コミを掲載しています。`,
+  ] : [
+    `${nm} pilot salary 2026: we estimate ${M(c.avg)} for captains (${M(c.lo)}–${M(c.hi)}) and ${M(f.avg)} for first officers (${M(f.lo)}–${M(f.hi)}).${tail} Fleet, hiring requirements and pilot reviews.`,
+    `${nm} pilot salary 2026: we estimate ${M(c.avg)} for captains (${M(c.lo)}–${M(c.hi)}) and ${M(f.avg)} for first officers.${tail} Fleet, hiring requirements and pilot reviews.`,
+    `${nm} pilot salary 2026: an estimated ${M(c.avg)} for captains (${M(c.lo)}–${M(c.hi)}), ${M(f.avg)} for first officers. Fleet, requirements and pilot reviews.`,
+    `${nm} pilot salary 2026: an estimated ${M(c.avg)} for captains, ${M(f.avg)} for first officers. Fleet, requirements and pilot reviews.`,
   ]) : lang === 'ja' ? [
     `${nm}のパイロット年収は、機長が平均${M(c.avg)}（${M(c.lo)}〜${M(c.hi)}）、副操縦士が平均${M(f.avg)}（${M(f.lo)}〜${M(f.hi)}）。${tail}保有機材・応募条件・現役パイロットの口コミまで掲載しています。`,
     `${nm}のパイロット年収は、機長が平均${M(c.avg)}（${M(c.lo)}〜${M(c.hi)}）、副操縦士が平均${M(f.avg)}。${tail}保有機材・応募条件・現役パイロットの口コミまで掲載しています。`,
@@ -874,8 +923,14 @@ for (const rel of files) {
          古い平均を主張し続けることになる（実際そうなっていた）。
        ・確認中（tier:'held'）の職位は、欄そのものを作らない。
          0 や空で埋めると「年収0円」と読まれるため、書かないことで「無い」を表す。
-       ・載せるのは会社自身が公表した平均（observed_mean）と公式募集例
-         （employer_example）だけ。代理会社の求人・過去の広告・条件つきの計算例は、
+       ・★推定（tier:'estimate'）は SALARY から作って入れる（2026-09-30）。
+         欄の名前がそのまま estimatedSalary ＝「推定の給与」なので、推定を置くのは
+         この型の本来の使い方で、画面に出している数字と機械可読の数字がそろう。
+         名前に「（推定）」と入れ、平均とは名乗らない。
+         ⚠️ 2026-09-30 まで、推定の職位は欄ごと落としていた。その結果 20社のページが
+            **機械可読の年収を1つも持たない**状態になっていた（画面は直っても検索には出ない）。
+       ・会社自身が公表した平均（observed_mean）と公式募集例（employer_example）は
+         そのまま。代理会社の求人・過去の広告・条件つきの計算例は、
          前提なしでは意味が変わるので画面の別枠だけに置く。
        ・総待遇（pkg_y）と訓練期間中の額は「その職種の給与」ではないので入れない。
        ⚠️ BASIS に無い会社は今までどおり SALARY から作る（触る範囲を広げない）。 */
@@ -889,7 +944,20 @@ for (const rel of files) {
       const out = [];
       for (const rank of ['cap', 'fo', 'crew']) {
         const r = BASIS[slug][rank];
-        if (!r || !SD_TIERS.has(r.tier)) continue;
+        if (!r) continue;
+        if (r.tier === 'estimate' && S[slug][rank]) {
+          const rr = S[slug][rank];
+          out.push({
+            '@type': 'MonetaryAmount', currency: 'JPY',
+            name: lang === 'ja' ? `${SD_RANK[rank].ja}（推定）` : `${SD_RANK[rank].en} (estimated)`,
+            value: {
+              '@type': 'QuantitativeValue', unitText: 'YEAR',
+              value: rr.avg * 10000, minValue: rr.lo * 10000, maxValue: rr.hi * 10000,
+            },
+          });
+          continue;
+        }
+        if (!SD_TIERS.has(r.tier)) continue;
         for (const f of yearly(slug, rank)) {
           if (f.key === 'pkg_y' || f.training) continue;
           const grp = lang === 'ja' ? f.group : (f.group_en || f.group);

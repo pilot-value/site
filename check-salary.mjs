@@ -85,13 +85,26 @@ for (const [slug, d] of Object.entries(SALARY)) {
     .replace(/<!--PV-CLINK-->[\s\S]*?<!--\/PV-CLINK-->/g, '');
   /* 職位ごとに「出ていないと困るもの」と「残っていたら困るもの」を組む。
      等級を決めていない会社 = 今までどおり SALARY の平均が出ていること。
-     等級のある会社         = その等級の掲載額のどれかが出ていて、確認中にした旧平均が消えていること。 */
+     等級のある会社         = その等級の掲載額のどれかが出ていること。
+
+     ★2026-09-30、推定（estimate）の向きを裏返した。
+       オーナー指示「確認中じゃなくて推定とかにすりゃいいじゃん」で、元の平均は
+       「推定」として画面に**戻す**ことになった。前はここが逆で、旧平均が
+       ページに残っていたら落としていた（gone）。いまは estimate の職位では
+       **出ていないと落とす**。
+       ⚠️ 公式募集例・求人の掲載額・過去の募集広告・条件つきの給与例の職位は
+          今までどおり ── 会社が出している額を載せ、出どころの無い旧平均は消えたまま。
+          あちらは推定より強い根拠があるので、弱いほうを並べる理由が無い。 */
   const needAny = [], gone = [], shown = [];
   for (const [rank, nm] of Object.entries(RANKS)) {
     const B = basis(slug, rank);
     /* crew（運航乗務員＝機長と副操縦士をあわせた会社公表の平均）と trainee（訓練生）は、
        その資料がある会社にだけ置いてある。無い会社では何も求めない。 */
     if (!B) { if (!d[rank]) continue; const s = man(d[rank].avg); needAny.push([nm, [s]]); shown.push(nm + s); continue; }
+    if (B.tier === 'estimate') {
+      const s = man(B.was?.avg ?? d[rank]?.avg);
+      needAny.push([`${nm}(推定)`, [s]]); shown.push(`${nm}推定${s}`); continue;
+    }
     if (B.was?.avg != null) gone.push([`${nm}の旧平均`, man(B.was.avg)]);
     if (B.tier === 'held') { needAny.push([nm, ['確認中']]); shown.push(`${nm}確認中`); continue; }
     const list = [...B.allowed].sort((x, y) => y - x).map(man);
