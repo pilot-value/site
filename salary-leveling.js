@@ -824,7 +824,11 @@
         if (picker) {
           var pool = (opts.pool && opts.pool !== 'all') ? opts.pool : Object.keys(meta);
           avail = pool.filter(function (sl) { var s = SAL.airlines[sl]; return s && s.ladder; });
-          state.slugs = state.slugs.filter(function (sl) { return avail.indexOf(sl) >= 0; });
+          // 出どころを確認中の会社は avail に居ない。呼ぶ側は落ちたぶんの控えを
+          // 後ろに並べておけるので、ここで前から詰めて「開くときの本数」で切る
+          // （open が無ければ今までどおり max まで）。2026-09-30 追加。
+          var open = Math.min(opts.open || max, max);
+          state.slugs = state.slugs.filter(function (sl) { return avail.indexOf(sl) >= 0; }).slice(0, open);
           if (!state.slugs.length) state.slugs = avail.slice(0, Math.min(max, avail.length));
           renderPicker();
         }

@@ -162,16 +162,20 @@ const NAME_CHAR = /[0-9A-Za-zぁ-ゖァ-ヺー一-鿿]/;
 
 // レンジ内だが節目でない ⚠️ のうち、人が見て正しいと判断したもの。
 // 消すのではなく理由を残す（数字を動かしたとき、この理由ごと見直せるように）。
-const ALLOW = [
-  // 複数社の「平均」をまたぐ言い方。Qatar の平均2,900 → Emirates の平均3,700。正しい。
-  ['index.html', '2,900〜3,700万'],
-  ['en/index.html', '2,900–3,700万'],
-  // キャリア段階の話（「ANA副操縦士時代」）。SSOT の fo レンジ1,400〜2,100 の内側。
-  ['airlines/ana-vs-emirates.html', '1,400〜1,800万'],
-  ['en/airlines/ana-vs-emirates.html', '1,400–1,800万'],
-  // 転職体験記の一人称。SSOT の cap レンジ2,000〜3,900 の内側。
-  ['airlines/starlux-tenshoku.html', '2,500〜3,500万'],
-];
+/* 2026-09-30、5件あった例外を**全部外した**。
+   どれも「カタールの平均2,900」「エミレーツの平均3,700」「ANA副操縦士の
+   1,400〜2,100」のように、**根拠を確認できず公開表示をやめた平均**を
+   正しいものとして指していた。指していた文はページから消えている。
+   残しておくと、同じ金額が別の形で戻ってきたときに黙って通す。
+   新しく足すときは、指す文が今もページに在ることを確かめてから足す
+   （在るかどうかは下の「使われていない許容」が毎回知らせる）。 */
+const ALLOW = [];
+/* 使われなくなった例外を知らせる。
+   例外は「人が一度見て正しいと判断した」印なので、指している文がページから
+   消えたあとも残ると、次に同じ金額が現れたときに黙って見逃す穴になる。
+   2026-09-30、スターラックスの体験記の行がまさにそれだった
+   （根拠の無いレンジを公開表示から外したので、指していた文ごと消えていた）。 */
+const allowUsed = new Set();
 
 const files = walkHtml('.');
 let nHit = 0, nBad = 0, nWarn = 0;
@@ -233,7 +237,8 @@ for (const f of files) {
       const S = d[role];
       // 単独の数値は avg / lo / hi のどれかであれば正。レンジ表記は lo〜hi と一致すべき。
       if (hi === null ? [S.avg, S.lo, S.hi].includes(lo) : lo === S.lo && hi === S.hi) continue;
-      if (ALLOW.some(([af, frag]) => f.replace(/^\.\//, '') === af && text.includes(frag))) continue;
+      const skip = ALLOW.findIndex(([af, frag]) => f.replace(/^\.\//, '') === af && text.includes(frag));
+      if (skip >= 0) { allowUsed.add(skip); continue; }
       const outside = hi === null ? (lo < S.lo || lo > S.hi) : (hi < S.lo || lo > S.hi);
       if (outside) nBad++; else nWarn++;
       const ln = html.slice(0, m.index).split('\n').length;
@@ -244,6 +249,11 @@ for (const f of files) {
 console.log(`\n── 全ページ × SSOT クロスチェック ──`);
 if (cross.length) console.log(cross.sort().join('\n'));
 console.log(`${files.length}ファイル・${nHit}件照合  ❌${nBad} ⚠️${nWarn}（許容${ALLOW.length}件は除外）`);
+const dead = ALLOW.map((a, i) => [a, i]).filter(([, i]) => !allowUsed.has(i));
+if (dead.length) {
+  console.log(`\n⚠️ 使われていない許容が ${dead.length} 件（指していた文がページから消えている＝穴になる前に外す）`);
+  for (const [[af, frag]] of dead) console.log(`   ${af}  «${frag}»`);
+}
 
 const js = checkSalaryJson();
 console.log(`\n${js.ok ? '✅' : '❌'} salary-data.json: ${js.msg}`);

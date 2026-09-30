@@ -35,6 +35,7 @@ await page.setViewport({ width: 1440, height: 900 });
 await page.emulateTimezone('Asia/Tokyo');
 
 let bad = 0, checked = 0;
+const noMoney = [];
 for (const t of targets) {
   await page.goto('http://localhost:3000/' + t, { waitUntil: 'domcontentloaded', timeout: 30000 });
   await new Promise(r => setTimeout(r, 350));
@@ -47,7 +48,16 @@ for (const t of targets) {
   // 元が「¥0」なら $0 は誤変換ではなく正しい答え。ana-vs-emirates の
   // 「所得税 ¥0（非課税）」がそれで、ずっと誤検知していた。ページ内に
   // 素の ¥0 が書かれている場合だけ $0 のシグネチャを外す。
-  const literalZero = /¥0(?![\d.,])/.test(fs.readFileSync(path.join(__dirname, t), "utf8"));
+  const src = fs.readFileSync(path.join(__dirname, t), "utf8");
+  const literalZero = /¥0(?![\d.,])/.test(src);
+  /* ★2026-09-30：金額が1円も書かれていないページがある。
+     根拠の確認が取れず公開値を「確認中」にした英語ページ（カタール航空・タイ国際航空など）で、
+     ページ側は正しいのに下の spans 検査だけが赤くなっていた。
+     ⚠️ 検査を弱めないこと。currency.js が読まれていない場合は window.PVCurrency が無く、
+     すぐ下の `cur !== 'USD'`（= 'NO-API'）が必ず捕まえる。spans の検査が見ているのは
+     「金額は出ているのに切り替えの対象になっていない」という別の壊れ方なので、
+     金額がそもそも無いページでは成立しない。 */
+  const hasMoney = /data-jpy|¥\s?[\d０-９]|[\d０-９]\s?万円|class="pv-cur"/.test(src);
   const hits = [];
   for (const s of SIGS) {
     if (literalZero && s.name.startsWith('$0 / €0')) continue;
@@ -55,8 +65,13 @@ for (const t of targets) {
     if (m) hits.push(`${s.name}: ${[...new Set(m)].slice(0, 6).join(' , ')}`);
   }
   if (info.cur !== 'USD') hits.push(`DEFAULT-CURRENCY NOT USD (got ${info.cur})`);
-  if (info.spans === 0)   hits.push('NO pv-cur spans (currency.js not wired?)');
+  if (info.spans === 0 && hasMoney) hits.push('NO pv-cur spans (currency.js not wired?)');
+  if (info.spans === 0 && !hasMoney) { noMoney.push(t); }
   if (hits.length) { bad++; console.log(`\n✗ ${t}  [cur=${info.cur}, spans=${info.spans}]`); hits.forEach(h => console.log('   - ' + h)); }
+}
+/* 素通りさせたページは必ず名前を出す（黙って抜けると、焼き込みが剥がれたときに気づけない）。 */
+if (noMoney.length) {
+  console.log(`\n… 金額が1つも無いので通貨の検査を素通り（${noMoney.length}枚）: ${noMoney.join(', ')}`);
 }
 /* ── 既定の通貨の決め方（2026-09-24 オーナー指示）──────────────────────────
    1) 英語ページは**見ている地域**で既定を決める（通信はしない。ブラウザのタイムゾーンだけ）

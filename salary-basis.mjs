@@ -186,9 +186,9 @@ export const BASIS = {
     fo: {
       tier: 'model_calc',
       groups: [
-        { name: '副操縦士（First Officer）', target_y: 964646, allow_m_from: 20000,
+        { name: '副操縦士（First Officer）', name_en: 'First Officer', target_y: 964646, allow_m_from: 20000,
           req: '最低総飛行時間 1,500時間（3,000時間が望ましい）・うち機長時間 500時間以上・英語能力証明レベル4以上', leave: '年次有給 28日' },
-        { name: '二等航空士（Second Officer）', target_y: 629109, allow_m_from: 14000,
+        { name: '二等航空士（Second Officer）', name_en: 'Second Officer', target_y: 629109, allow_m_from: 14000,
           req: '最低総飛行時間 250時間', leave: '年次有給 21日' },
       ],
       held: { was: { avg: 2400, lo: 1800, hi: 3230 },
@@ -228,7 +228,7 @@ export const BASIS = {
     cap: {
       tier: 'offer_posting',
       groups: [
-        { name: '機長 A320（求人の上限）', max_y: 674029,
+        { name: '機長 A320（求人の上限）', name_en: 'Captain, A320 (top of the advertised range)', max_y: 674029,
           req: '総5,500時間・多人数運航ガラスコックピットの機長時間 2,500時間・A320系の機長時間 1,500時間・直近12か月に A320系・入社日に59歳未満・英語能力証明レベル4以上' },
       ],
       held: { was: { avg: 3400, lo: 3000, hi: 6000 },
@@ -237,7 +237,7 @@ export const BASIS = {
     fo: {
       tier: 'offer_posting',
       groups: [
-        { name: '副操縦士 A320（求人の上限）', max_y: 513732,
+        { name: '副操縦士 A320（求人の上限）', name_en: 'First officer, A320 (top of the advertised range)', max_y: 513732,
           req: 'A：総2,000時間かつ多人数運航ガラスコックピット1,500時間かつ同型500時間／B：総1,500時間かつ A320系1,000時間。加えて直近12か月に A320系・入社日に50歳未満・英語能力証明レベル4以上' },
       ],
       held: { was: { avg: 2300, lo: 1900, hi: 3100 },
@@ -323,7 +323,7 @@ export const BASIS = {
     cap: {
       tier: 'model_calc',
       groups: [
-        { name: '昇格後（機長歴10年目安）', month: 422500, months: 13,
+        { name: '昇格後（機長歴10年目安）', name_en: 'After upgrade (about ten years as a captain)', month: 422500, months: 13,
           cond: '月75時間の乗務保証を含む月額 × 13か月' },
       ],
       held: { was: { avg: 3100, hi: 3900 },
@@ -332,7 +332,7 @@ export const BASIS = {
     fo: {
       tier: 'model_calc',
       groups: [
-        { name: '訓練中', month: 285000, months: 13, training: true,
+        { name: '訓練中', name_en: 'During training', month: 285000, months: 13, training: true,
           cond: '50時間の乗務分を含む訓練中の月額 × 13か月' },
       ],
       held: { was: { avg: 1950, hi: 2050 },
@@ -419,7 +419,7 @@ export const BASIS = {
     cap: {
       tier: 'past_ad',
       groups: [
-        { name: '機長 B737 NG（2017年・募集終了）', reward_y: 90000,
+        { name: '機長 B737 NG（2017年・募集終了）', name_en: 'Captain, B737 NG (2017 advert, no longer open)', reward_y: 90000,
           req: '多人数運航機の機長時間 5,000時間・同型 500時間・25歳以上55歳未満・英語能力証明レベル4以上' },
       ],
       held: { was: { avg: 2500, lo: 2100, hi: 3000 },
@@ -428,7 +428,7 @@ export const BASIS = {
     fo: {
       tier: 'past_ad',
       groups: [
-        { name: '副操縦士 B737 NG（2017年・募集終了）', reward_y: 65000,
+        { name: '副操縦士 B737 NG（2017年・募集終了）', name_en: 'First officer, B737 NG (2017 advert, no longer open)', reward_y: 65000,
           req: '多人数運航機 1,500時間・同型 300時間・46歳未満・英語能力証明レベル4以上' },
       ],
       held: { was: { avg: 1400, lo: 1150, hi: 1750 },
@@ -466,9 +466,9 @@ export const BASIS = {
     cap: {
       tier: 'past_ad',
       groups: [
-        { name: '機長 B747 Classic / MD-11（2005年・月額の基本給）', base_m: 19587,
+        { name: '機長 B747 Classic / MD-11（2005年・月額の基本給）', name_en: 'Captain, B747 Classic / MD-11 (2005, monthly basic pay)', base_m: 19587,
           req: '2005年当時の広告。現行の機長要件は総6,000時間ほか（金額の記載は無い）' },
-        { name: '機長 EMB170（2005年・月額の基本給）', base_m: 16107 },
+        { name: '機長 EMB170（2005年・月額の基本給）', name_en: 'Captain, EMB170 (2005, monthly basic pay)', base_m: 16107 },
       ],
       held: { was: { avg: 3300, lo: 2700, hi: 4200 },
         why: '2005年の基本給しか資料が無く、年額を支える資料は無い（基本給に21項目が乗るので、基本給から年収は出せない）。レンジの出所の記録も無い。' },
@@ -476,7 +476,7 @@ export const BASIS = {
     fo: {
       tier: 'past_ad',
       groups: [
-        { name: '副操縦士 B747 Classic / MD-11（2005年・月額の基本給）', base_m: 13475 },
+        { name: '副操縦士 B747 Classic / MD-11（2005年・月額の基本給）', name_en: 'First officer, B747 Classic / MD-11 (2005, monthly basic pay)', base_m: 13475 },
       ],
       held: { was: { avg: 1800, lo: 1450, hi: 2300 },
         why: '機長と同じ理由。' },
@@ -562,10 +562,10 @@ export const BASIS = {
     ],
     cap: { tier: 'past_ad',
       groups: [
-        { name: '機長 A330 / B787 / B777・1年目（2019年の代理店求人・月額）', base_m: 19000,
+        { name: '機長 A330 / B787 / B777・1年目（2019年の代理店求人・月額）', name_en: 'Captain, A330 / B787 / B777, first year (2019 agency posting, monthly)', base_m: 19000,
           req: '型式ごとに年齢上限と当該型式の機長時間が決まっている（A330 保有なら57歳・500時間、B737NG からの転換なら50歳・1,500時間など）' },
-        { name: '同・1年目（型式未保有での入社）', base_m: 18000 },
-        { name: '同・4年目', base_m: 21000 },
+        { name: '同・1年目（型式未保有での入社）', name_en: 'Same, first year (joining without the type rating)', base_m: 18000 },
+        { name: '同・4年目', name_en: 'Same, fourth year', base_m: 21000 },
       ],
       held: { was: { avg: 2950, lo: 2100, hi: 4700 },
         why: '会社の公表は金額ゼロ。金額があるのは代理店の2019年の求人（しかも草案）と2013年の求人だけで、年額の平均・レンジを支える資料は無い。' } },
@@ -651,7 +651,7 @@ export const BASIS = {
     ],
     cap: { tier: 'offer_posting',
       groups: [
-        { name: '機長 A330（上海基地・暦月75時間・3年契約）', cash_m: 19500, pkg_y: 300000,
+        { name: '機長 A330（上海基地・暦月75時間・3年契約）', name_en: 'Captain, A330 (Shanghai base, 75 hours a calendar month, three-year contract)', cash_m: 19500, pkg_y: 300000,
           req: 'A330 の型式限定・総 PIC 5,500時間以上・うち当該型式 500時間以上・中国と国交のある国の国籍' },
       ],
       held: { was: { avg: 2900, lo: 2100, hi: 4600 },
@@ -970,6 +970,40 @@ export function heldList() {
     }
   }
   return out;
+}
+
+/* ── 1行しか出せない場所のための「1つだけの金額」───────────────────
+   一覧カード・国別リンクの丸い札のように、会社名の隣に数字を1つしか
+   置けない場所がある。そこに出してよいのは「年額の現金」だけ。
+
+   ⚠️ 総待遇（pkg_y）は返さない。他社の現金と並ぶと、住宅・学費まで
+      含んだ額と給与だけの額を同じ列で比べさせることになる。
+   ⚠️ 月額を12倍して年額にしない（オーナーが名指しで禁止）。
+   ⚠️ 訓練中の額は返さない。
+   台帳に無い会社は null を返す＝呼ぶ側は今までどおりで構わない。 */
+const CARD_YEARLY_CASH = new Set(
+  ['cash_y', 'cash_y_over', 'max_y', 'target_y', 'avg_y', 'reward_y', 'month_x'],
+);
+const CARD_UPPER = new Set(['max_y']);
+
+export function cardFigure(slug, rank = 'cap') {
+  if (!BASIS[slug]) return null;
+  const tier = BASIS[slug][rank]?.tier || 'held';
+  const f = figures(slug, rank).find((x) => CARD_YEARLY_CASH.has(x.key) && !x.training);
+  if (!f) return { held: true, yen: null, kindJa: '確認中', kindEn: 'Under review' };
+  const up = CARD_UPPER.has(f.key);
+  return {
+    held: false,
+    /* man は生の万円。呼ぶ側が別の通貨・別の書き方にしたいときに使う
+       （seo-normalize.mjs が題名と説明文をドルで作るのに要る）。
+       ⚠️ 選んだのが「上限」の額なら up が立つ。man だけ取って
+          「〜」を落とすと、上限が平の額として出る。 */
+    man: f.man,
+    up,
+    yen: `${up ? '〜' : ''}¥${f.man.toLocaleString('en-US')}万`,
+    kindJa: `${TIERS[tier].ja}${up ? '（上限）' : ''}`,
+    kindEn: `${TIERS[tier].en}${up ? ' (max)' : ''}`,
+  };
 }
 
 export default BASIS;

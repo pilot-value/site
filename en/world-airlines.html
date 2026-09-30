@@ -962,8 +962,8 @@ function createCard(a){
         <div class="ac-en">${regionEN(a.region)}</div>
       </div>
     </div>
-    <div style="font-size:.67rem;color:#6b7d93;letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px">Captain average salary</div>
-    <div class="ac-sal" style="color:${a.color}">${a.salary}</div>
+    <div style="font-size:.67rem;color:#6b7d93;letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px">${a.salNoteEn || 'Captain average salary'}</div>
+    <div class="ac-sal" style="color:${a.color}">${a.salaryEn || a.salary}</div>
     <div style="display:flex;flex-wrap:wrap;gap:4px">${typeTag}${taxTag}${alTag}</div>
   `;
   return wrap;

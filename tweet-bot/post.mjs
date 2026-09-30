@@ -138,7 +138,7 @@ Delta・United：平均7〜10年（状況による）
 
 日本最高のANAは何位？
 
-117社の比較 → https://pilot-value.com
+112社の比較 → https://pilot-value.com
 
 #パイロット年収ランキング`,
 

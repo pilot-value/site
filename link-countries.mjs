@@ -22,6 +22,7 @@ import fs from 'fs';
 import path from 'path';
 import { SALARY } from './salary-data.mjs';
 import { AIRLINE_COUNTRY, BY_CODE, nameIn } from './airline-countries.mjs';
+import { BASIS, cardFigure } from './salary-basis.mjs';
 
 const ROOT = path.dirname(new URL(import.meta.url).pathname).replace(/%20/g, ' ');
 const DRY = process.argv.includes('--dry');
@@ -38,10 +39,29 @@ for (const [slug, code] of Object.entries(AIRLINE_COUNTRY)) {
   if (!byCountry.has(code)) byCountry.set(code, []);
   byCountry.get(code).push(slug);
 }
-for (const [code, list] of byCountry) list.sort((a, b) => S[b].cap.avg - S[a].cap.avg);
+/* ★ 根拠を調べた会社が1社でも混ざる国は、国の平均を出さない（2026-09-29 オーナー決定）。
+   公式募集の現金給与・求人の掲載額・確認中が混ざっていて、同じ物差しになっていない。
+   gen-countries.mjs と同じ判定。⚠️ 0 で埋めない＝足し算から外すのでもなく、
+   「国の平均」という数字そのものを出さない。 */
+const heldCountry = (code) => byCountry.get(code).some((k) => BASIS[k]);
+/* 並び順も同じ理由で変える。金額の意味が社ごとに違う国では高い順に並べられないので
+   社名の順にする（並び自体が順位に見えるため）。 */
+for (const [code, list] of byCountry) {
+  if (heldCountry(code)) list.sort((a, b) => String(S[a].ja).localeCompare(String(S[b].ja), 'ja'));
+  else list.sort((a, b) => S[b].cap.avg - S[a].cap.avg);
+}
 const capAvgOf = (code) => round10(
   byCountry.get(code).reduce((s, k) => s + S[k].cap.avg, 0) / byCountry.get(code).length
 );
+
+/* 丸い札に出す1行。台帳に載せた社は金額の種類を名乗らせ、確認中の社には数字を出さない。
+   台帳に無い社は今までどおり平均をそのまま出す（G-SCOPE＝表に無いものを触らない）。 */
+const pillSub = (slug, ja) => {
+  const c = cardFigure(slug, 'cap');
+  if (!c) return man(S[slug].cap.avg);
+  if (c.held) return ja ? '確認中' : 'Under review';
+  return ja ? `${c.kindJa} ${c.yen}` : `${c.kindEn} ${c.yen}`;
+};
 
 const hasCountryPage = (slug, lang) =>
   fs.existsSync(path.join(ROOT, lang === 'ja' ? 'countries' : 'en/countries', `${slug}.html`));
@@ -111,14 +131,16 @@ function block(slug, lang) {
     <span class="pvcl-flag" aria-hidden="true">${c.flag}</span>
     <span>
       <span class="pvcl-t">${esc(ja ? `${name}のパイロット年収` : `Pilot salary in ${name}`)}</span>
-      <span class="pvcl-s">${ja
-    ? `掲載${n}社・機長平均 ${man(capAvgOf(code))}`
-    : `${n} airline${n > 1 ? 's' : ''} · captain avg ${man(capAvgOf(code))}`}</span>
+      <span class="pvcl-s">${heldCountry(code)
+    ? (ja ? `掲載${n}社・国全体の平均は出していません`
+          : `${n} airline${n > 1 ? 's' : ''} · no country average`)
+    : (ja ? `掲載${n}社・機長平均 ${man(capAvgOf(code))}`
+          : `${n} airline${n > 1 ? 's' : ''} · captain avg ${man(capAvgOf(code))}`)}</span>
     </span>
     <span class="pvcl-arrow" aria-hidden="true">→</span>
   </a>
   <div class="pvcl-pills">
-${HIKAKU[slug] && hasHikakuPage(HIKAKU[slug].file, lang) ? `    ${pill(HIKAKU[slug].file, ja ? HIKAKU[slug].ja : HIKAKU[slug].en)}\n` : ''}${peers.length ? peers.map((k) => `    ${pill(`${k}.html`, ja ? S[k].ja : S[k].en, man(S[k].cap.avg))}`).join('\n') + '\n' : ''}    ${pill('../countries.html', ja ? '国別のパイロット年収 一覧' : 'All countries')}
+${HIKAKU[slug] && hasHikakuPage(HIKAKU[slug].file, lang) ? `    ${pill(HIKAKU[slug].file, ja ? HIKAKU[slug].ja : HIKAKU[slug].en)}\n` : ''}${peers.length ? peers.map((k) => `    ${pill(`${k}.html`, ja ? S[k].ja : S[k].en, pillSub(k, ja))}`).join('\n') + '\n' : ''}    ${pill('../countries.html', ja ? '国別のパイロット年収 一覧' : 'All countries')}
   </div>
 </section>
 <!--/PV-CLINK-->

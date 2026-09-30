@@ -27,7 +27,7 @@
 import fs from 'fs';
 import path from 'path';
 import { SALARY } from './salary-data.mjs';
-import { BASIS, TIERS, KINDS_EN, yearly } from './salary-basis.mjs';
+import { BASIS, TIERS, KINDS_EN, yearly, cardFigure } from './salary-basis.mjs';
 import { AIRLINE_COUNTRY, BY_CODE, nameIn } from './airline-countries.mjs';
 import { curCore } from './cur-core.mjs';
 const CUR = await curCore('USD', 'en');   // 金額の作り方は currency.js が正
@@ -60,7 +60,22 @@ const mayAvg = (slug, rank) => {
   return t === undefined ? true : !!TIERS[t].avg;
 };
 const mayAvgBoth = (slug) => mayAvg(slug, 'cap') && mayAvg(slug, 'fo');
-const topPay = Object.entries(S).sort((a, b) => b[1].cap.avg - a[1].cap.avg)[0];
+
+/* ★根拠の等級から金額を取る（2026-09-30）。下の COPY 表で使う。
+   ⚠️ **トップと読み物系の説明文に S[slug].cap.avg を書かない。**
+      capJa/capEn は SALARY を素通しで読むので mayAvg を通らない。
+      2026-09-30 まで COPY の index.html / pilot-salary-guide.html /
+      pilot-vs-kochin.html が「ANA機長2,700万円・エミレーツ3,700万円」を
+      直に埋めており、**本文を「確認中」に直した担当3人ぶんの仕事が、
+      次に seo-normalize を流した瞬間に検索結果だけ旧値へ戻る**状態だった
+      （3人が別々にこの経路を名指しで警告していた）。
+   ・basisMan は「その会社について公開してよい金額（万円）」。
+     確認中なら null が返るので、文ごと落とすか別の会社に替える。
+   ・確認が取れて台帳の等級が上がれば、ここは式なので自動で追随する。 */
+const basisMan = (slug, rank = 'cap') => {
+  const c = cardFigure(slug, rank);
+  return c && !c.held && !c.up ? c.man : null;   // 上限額は「◯◯は¥…」と書けない
+};
 
 /* ── 表示幅（全角2/半角1）— assert-seo.mjs と同じ尺度 ────────── */
 const width = (s) => [...s].reduce((n, c) => n + (/[ᄀ-ᅟ⺀-꓏가-힣豈-﫿︰-﹏＀-｠￠-￦]/.test(c) ? 2 : 1), 0);
@@ -99,12 +114,27 @@ const NOINDEX = new Set([
    ルートページのタイトル・説明文（日英）
    数値は式で埋めるので SSOT を更新して再実行すれば自動で追随する。
    ════════════════════════════════════════════════════════════════ */
+/* ★トップと読み物系の説明文に出す金額（2026-09-30）。
+   日本航空＝会社が公表した運航乗務員の平均年間給与／エミレーツ＝公式募集例の
+   直接入社機長の現金給与。どちらも台帳が「出してよい」と判定した額だけが返る。
+   確認中になれば null になり、下の文は**金額を1つも出さない側**へ落ちる。 */
+const jalCrew = basisMan('jal', 'crew');
+const emCash = basisMan('emirates', 'cap');
+const TOP_FIG = jalCrew && emCash;
+
 const COPY = {
   'index.html': {
     ja: { t: `パイロット年収ランキング｜世界${N}社を比較【2026年最新】`,
-          d: `パイロットの年収を世界${N}社で比較。ANA機長${capJa('ana')}・エミレーツ${capJa('emirates')}（非課税）・デルタ${capJa('delta')}。機長と副操縦士のレンジ、現役の口コミ、海外求人を無料公開。` },
+          d: `パイロット年収を世界${N}社で比較。`
+             + (TOP_FIG
+                ? `日本航空の運航乗務員の平均年間給与${man(jalCrew)}、エミレーツ公式募集例の機長現金給与${man(emCash)}。`
+                : `機長と副操縦士の給与、機種別・年次別の伸び方、日系と外資の手取りの差まで。`)
+             + `現役パイロットの口コミと海外求人も無料。` },
     en: { t: `Pilot Salary Comparison — ${N} Airlines Worldwide [2026]`,
-          d: `Compare pilot pay at ${N} airlines worldwide — ANA captain ${capEn('ana')}, Emirates ${capEn('emirates')} tax-free, Delta ${capEn('delta')}. Captain and first officer ranges, pilot reviews, and overseas jobs.` },
+          d: `Compare pilot pay at ${N} airlines worldwide. `
+             + (TOP_FIG
+                ? `Japan Airlines publishes a flight-crew average of ${usd(jalCrew)}; Emirates quotes a direct-entry Captain at ${usd(emCash)} in cash, tax-free.`
+                : `Captain and first officer pay, how it grows by fleet and seniority, reviews from working pilots, and overseas jobs.`) },
   },
   'world-airlines.html': {
     ja: { t: `世界の航空会社パイロット年収一覧｜${N}社の給与を比較`,
@@ -130,7 +160,10 @@ const COPY = {
   },
   'pilot-salary-guide.html': {
     ja: { t: 'パイロット年収完全ガイド2026｜機長・副操縦士の給与',
-          d: `パイロットの年収を国内外${N}社のデータから解説。機長と副操縦士の差、機種別・年次別の伸び方、日系と外資の手取り比較。ANA機長${capJa('ana')}、エミレーツ${capJa('emirates')}（非課税）。` },
+          d: `パイロット年収を国内外${N}社から解説。`
+             + (TOP_FIG
+                ? `日本航空の運航乗務員の平均年間給与は約${man(jalCrew)}（2025年3月期）、エミレーツの公式募集例は機長の現金給与が年約${man(emCash)}（非課税）。`
+                : `機長と副操縦士の差、機種別・年次別の伸び方、日系と外資の手取り比較まで、現役パイロットの投稿と公開資料で。`) },
     en: { t: 'Pilot Salary Guide 2026 — Captain & First Officer Pay',
           d: `What pilots actually earn, from ${N} airlines' data: the captain–first officer gap, how pay grows by fleet and seniority, and take-home at home vs overseas carriers.` },
   },
@@ -154,9 +187,12 @@ const COPY = {
   },
   'pilot-vs-kochin.html': {
     ja: { t: 'パイロット年収は高収入職業の中でどの位置か【2026年】',
-          d: `パイロットの年収を、医師・弁護士・外資系金融・IT など日本の高収入職業と比較。ANA機長${capJa('ana')}がどの位置か、海外航空会社に移るとどう変わるかを数字で示します。` },
+          /* ★1,697万円は厚生労働省の調査（航空機操縦士）で、SALARY の値ではない。
+             本文（189・197・242行）と FAQ にも同じ出どころ付きで出ている。
+             ここに会社別の平均を入れない ── ANA は確認中。 */
+          d: `パイロットの年収を、医師・弁護士・外資系金融・IT など日本の高収入職業と比較。厚労省の調査では航空機操縦士の平均は1,697万円。海外の会社に移るとどう変わるかも示します。` },
     en: { t: "Where Pilot Pay Ranks Among Top-Paying Careers [2026]",
-          d: `Pilot pay lined up against doctors, lawyers, global finance and tech in Japan. Where an ANA captain's ${capEn('ana')} sits, and how that changes on an overseas contract.` },
+          d: `Pilot pay lined up against doctors, lawyers, global finance and tech in Japan: where the official average sits, and how that changes on an overseas contract.` },
   },
   'community.html': {
     ja: { t: 'パイロットの口コミ最新一覧｜全航空会社',
@@ -702,7 +738,11 @@ for (const rel of files) {
   }
 
   /* 3) 「117社」等の実態と違う社数表記を SSOT の件数に直す（数字を盛らない） */
-  const fixCount = (s) => s.replace(/11[0-9]\s*社/g, `${N}社`).replace(/\b11[0-9]\s+([Aa]irlines)/g, `${N} $1`);
+  /* ⚠️ 英語は「117 airlines」だけでなく「117-airline comparison」の形でも出る。
+     2026-09-30、en/index.html の構造化データに後者が残っていた（ここは題名・説明文しか
+     通らないので、本文の JSON-LD は元から見ていない）。 */
+  const fixCount = (s) => s.replace(/11[0-9]\s*社/g, () => `${N}社`)
+    .replace(/\b11[0-9]([\s-])([Aa]irlines?)/g, (_, sep, w) => `${N}${sep}${w}`);
   title = fixCount(title); desc = fixCount(desc);
 
   /* 4) og / twitter はタイトル・説明文から一意に決める。
@@ -958,7 +998,9 @@ ${ld}<!--/PV-SEO-->
      head だけ直しても JSON-LD の description に「117 airlines」が残り、
      Google には矛盾した2つの数字が届く。 */
   html = fixCount(head.replace(/\n{3,}/g, '\n\n')) + renameH2(fixCount(rest));
-  if (html !== orig) { changed++; if (!DRY) fs.writeFileSync(abs, html); }
+  /* --dry は件数だけ出していたので、「どの1枚が変わるのか」を確かめられなかった。
+     428枚を一度に書き換える道具なので、流す前に名前が読めないと危ない。 */
+  if (html !== orig) { changed++; if (DRY) console.log(`  ${rel}`); else fs.writeFileSync(abs, html); }
 }
 
 console.log(`\n${DRY ? '[dry-run] ' : ''}${changed} / ${files.length} ページの head を更新`);

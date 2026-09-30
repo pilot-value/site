@@ -173,13 +173,30 @@ console.log('\n④ 画面が読む salary-data.json が SSOT と同じ数字で�
   const keys = Object.keys(SALARY);
   ok(Object.keys(salJson.airlines).length === keys.length,
      '社数が一致（SSOT ' + keys.length + ' / json ' + Object.keys(salJson.airlines).length + '）');
-  const drift = keys.filter((k) => {
+  /* ★ 2026-09-29 から、根拠を確認できなかった職位は公開 json に載せない。
+     その職位は held に名前だけ入り、avg・lo・hi は書き出されない。
+     ここは2つのことを同時に見る ──
+       ・保留した職位が公開 json に**1つも残っていない**（残ると画面に戻る）
+       ・保留していない職位は今までどおり SSOT と1円も違わない
+     ⚠️ 0 で埋めない＝「欄が無い」が正しい。0 が入っていたら落とす。 */
+  const drift = [];
+  const leaked = [];
+  for (const k of keys) {
     const a = SALARY[k], b = salJson.airlines[k];
-    if (!b) return true;
-    return ['cap', 'fo'].some((p) => ['avg', 'lo', 'hi'].some((f) => a[p][f] !== b[p][f])) ||
-           a.taxFree !== b.taxFree;
-  });
-  ok(drift.length === 0, 'cap/fo の avg・lo・hi と taxFree が全社一致' +
+    if (!b) { drift.push(k); continue; }
+    /* held＝確認中／basis＝金額の種類を名乗らせて各社ページに出した職位。
+       どちらも「平均・レンジ」としては公開しないので、json から欄ごと外す。 */
+    const held = new Set([...(b.held || []), ...(b.basis || [])]);
+    for (const p of ['cap', 'fo']) {
+      if (held.has(p)) { if (b[p] !== undefined) leaked.push(`${k}.${p}`); continue; }
+      if (!a[p] || !b[p]) { drift.push(`${k}.${p}`); continue; }
+      if (['avg', 'lo', 'hi'].some((f) => a[p][f] !== b[p][f])) drift.push(`${k}.${p}`);
+    }
+    if (a.taxFree !== b.taxFree) drift.push(`${k}.taxFree`);
+  }
+  ok(leaked.length === 0, '★確認中にした職位が公開 json に残っていない' +
+     (leaked.length ? '  ← 残っている: ' + leaked.slice(0, 5).join(',') : ''));
+  ok(drift.length === 0, '確認中でない職位は avg・lo・hi と taxFree が全社一致' +
      (drift.length ? '  ← ズレ: ' + drift.slice(0, 5).join(',') : ''));
 }
 

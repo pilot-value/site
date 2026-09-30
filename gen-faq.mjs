@@ -120,13 +120,18 @@ function figJa(slug, rank, keys = null) {
   }
   return [...byGroup].map(([g, parts]) => `${g}は${parts.join('、')}`).join('。');
 }
-/** 英語側。円で書く（本文は bake-en-currency.mjs がドルにする）／LD は最初からドル。 */
+/** 英語側。円で書く（本文は bake-en-currency.mjs がドルにする）／LD は最初からドル。
+    ⚠️ 採用区分も金額の種類も**英語の呼び名**を使う。
+       2026-09-30 まで日本語のほうを使っていて、英語ページの FAQ に
+       「昇格後（機長歴10年目安）: 月額 ¥2.11M」がそのまま出ていた（10社）。
+       台帳に英語が無ければ落とす ── 日本語で埋めて見逃すより、空で気づくほうがいい。 */
 function figEn(slug, rank, fmt, keys = null) {
   const byGroup = new Map();
   for (const f of figures(slug, rank)) {
     if (keys && !keys.includes(f.key)) continue;
-    if (!byGroup.has(f.group)) byGroup.set(f.group, []);
-    byGroup.get(f.group).push(`${f.kind} ${fmt(f.man)}`);
+    if (!f.group_en || !f.kind_en) continue;
+    if (!byGroup.has(f.group_en)) byGroup.set(f.group_en, []);
+    byGroup.get(f.group_en).push(`${f.kind_en} ${fmt(f.man)}`);
   }
   return [...byGroup].map(([g, parts]) => `${g}: ${parts.join(', ')}`).join('; ');
 }
@@ -182,12 +187,22 @@ function buildJaBasis(slug) {
     const label = TIERS[r.tier].ja;
     /* 月額・月手当は次の問で扱う。ここは年額として通るものだけ。 */
     const y = figJa(slug, rank, ['cash_y', 'pkg_y', 'max_y', 'target_y', 'cash_y_over', 'reward_y', 'month_x']);
+    /* ⚠️ 年額が1つも無い会社がある（サウディア・中国南方は月額しか資料が無い）。
+       そのまま流すと「…です。。全社員の平均ではありません。」と、
+       **答えに金額が1つも入らないまま**文だけが出る。2026-09-30 まで出ていた。
+       ★月額に12を掛けて年収にしない（オーナーが名指しで禁止）。無いと書く。 */
+    const m = figJa(slug, rank, ['cash_m', 'base_m', 'allow_m_from', 'month']);
+    const tail = `${r.groups[0]?.cond ? `${r.groups[0].cond}という条件が付きます。` : ''}`
+      + (b.notes[0] ? b.notes[0] : '')
+      + (acc ? `資料の確認日は${acc}です。` : '');
     items.push({
       q,
-      a: `当サイトが${nm}について載せているのは「${label}」です。${y}。`
-        + `全社員の平均ではありません。${r.groups[0]?.cond ? `${r.groups[0].cond}という条件が付きます。` : ''}`
-        + (b.notes[0] ? b.notes[0] : '')
-        + (acc ? `資料の確認日は${acc}です。` : ''),
+      a: y
+        ? `当サイトが${nm}について載せているのは「${label}」です。${y}。全社員の平均ではありません。${tail}`
+        : `当サイトが確認した資料の中に、${name}の${nm}の年額はありませんでした。`
+          + (m ? `あるのは「${label}」の月額だけです（${m}）。月額に12を掛けた数字は実際の年間の受給額ではないため、年収としては出していません。`
+               : `そのため年収は出していません。`)
+          + tail,
     });
   }
 

@@ -98,9 +98,20 @@ if (!bad) console.log(`  締切の記載 ${dlSeen} 件、過ぎているもの�
 /* ── 2) 一覧の「更新」が古い ── */
 console.log('\n── 求人一覧の更新日 ──');
 let updSeen = 0;
+/* ⚠️ 会社が自分のページに書いた更新日を**引用している**ことがある。
+   例: ANA の募集要項の給与欄「2026年度予定（2026年3月16日更新）」。
+   あれは相手の言葉であって、こちらが求人を見直した日ではない。
+   引用のかぎかっこ「…」の中にある日付は数えない（2026-09-30）。 */
+const quoted = (html, i) => {
+  const ctx = html.slice(Math.max(0, i - 40), i);
+  return ctx.lastIndexOf('「') > ctx.lastIndexOf('」');
+};
 for (const f of files) {
-  const m = f.html.match(/(\d{4})年(\d{1,2})月(\d{1,2})日\s*更新/)
-    || f.html.match(/Updated\s+([A-Za-z]+)\s+(\d{1,2}),\s*(\d{4})/);
+  const hits = [
+    ...f.html.matchAll(/(\d{4})年(\d{1,2})月(\d{1,2})日\s*更新/g),
+    ...f.html.matchAll(/Updated\s+([A-Za-z]+)\s+(\d{1,2}),\s*(\d{4})/g),
+  ].filter((m) => !quoted(f.html, m.index));
+  const m = hits[0];
   if (!m) continue;
   updSeen++;
   const d = /^\d{4}$/.test(m[1])
