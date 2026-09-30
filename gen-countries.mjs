@@ -106,7 +106,10 @@ function paidLines(slug, rank, ja, M) {
   return fs.map((f) => {
     const grp = ja ? f.group : (f.group_en || f.group);
     const kind = ja ? f.kind : (f.kind_en || f.kind);
-    return ja ? `${grp}：${M(f.man)}（${kind}・${t}）` : `${grp}: ${M(f.man)} (${kind}, ${t})`;
+    /* 何の額かの説明に等級の語が既に入っているときは重ねない
+       （「平均年間給与・平均」になっていた）。 */
+    const lbl = kind.includes(t) ? kind : (ja ? `${kind}・${t}` : `${kind}, ${t}`);
+    return ja ? `${grp}：${M(f.man)}（${lbl}）` : `${grp}: ${M(f.man)} (${lbl})`;
   });
 }
 /** その社で1つでも金額を出せるか（機長・副操縦士・運航乗務員のどれか）。 */

@@ -561,6 +561,25 @@ function extractVisible(html, marker) {
   }
   return out;
 }
+/* ★本文のFAQを JavaScript で描いているページから拾う（2026-09-30）。
+   スターラックスだけ `const faqs=[{q:"…",a:"…"}, …]` を script の中に持っていて、
+   <details> が1つも無い。そのため2026-09-30 まで「対象外」に落ち、
+   **本文だけ直して <head> の構造化データが古い数字を持ったまま**になっていた
+   （画面は正しく、検索結果とAIの引用だけが古い ── 気づけない形）。
+   ⚠️ 中身は素の JavaScript なので JSON.parse できない（鍵に引用符が無い）。
+      {q:"…",a:"…"} の組だけを取り出す。答えの中の引用符は 「」 を使っているので
+      ASCII の " は現れないが、\" が来ても切れないようにしてある。 */
+function extractJsFaqs(html, marker) {
+  const at = html.indexOf(marker);
+  if (at === -1) return [];
+  const out = [];
+  for (const m of html.matchAll(/\{\s*q:\s*"((?:[^"\\]|\\.)*)"\s*,\s*a:\s*"((?:[^"\\]|\\.)*)"\s*\}/g)) {
+    const q = strip(m[1]), a = strip(m[2]);
+    if (q.length >= 6 && a.length >= 20) out.push({ q, a });
+  }
+  return out;
+}
+
 const strip = (s) => s
   .replace(/<[^>]*>/g, '')
   .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&nbsp;/g, ' ')
@@ -617,11 +636,21 @@ for (const slug of Object.keys(SALARY)) {
   if (existing.length >= 2) {
     items = existing;
     mode = '本文→LD';
-  } else if (/よくある質問/.test(html)) {
-    /* 見出しはあるが <details> が無い（starlux はJSで描画）。本文の作りが読めない。 */
-    report.push(`  - ja ${slug}: 可視FAQがJS描画。対象外`);
-    skipped++;
-    continue;
+  } else if (/<h2[^>]*>[^<]*よくある質問[^<]*<\/h2>/.test(html)) {
+    /* ⚠️ 見出しで判定する。本文のどこかに「よくある質問」の語が在るかで見ると、
+         出所の節に「自社養成のよくある質問では…」と書いてあるタイ国際航空が
+         ここに落ちて**FAQが二度と作り直されなくなる**（2026-09-30 までそうなっていた。
+         画面には前に作ったFAQが残るので、古い文言のままでも気づけない）。 */
+    /* 見出しはあるが <details> が無い（starlux はJSで描画）。
+       ★script の中の faqs 配列から拾う。拾えないときだけ対象外にする。 */
+    const js = extractJsFaqs(html, 'よくある質問');
+    if (js.length < 2) {
+      report.push(`  - ja ${slug}: 可視FAQがJS描画で読めない。対象外`);
+      skipped++;
+      continue;
+    }
+    items = js;
+    mode = '本文（JS）→LD';
   } else {
     items = buildJa(slug);
     mode = 'SSOT→本文+LD';
@@ -637,9 +666,9 @@ for (const slug of Object.keys(SALARY)) {
 
   if (html !== orig) {
     if (!DRY) fs.writeFileSync(abs, html);
-    if (mode === '本文→LD') jaRelinked++; else jaMade++;
+    if (mode.startsWith('本文')) jaRelinked++; else jaMade++;
   }
-  report.push(`  ${mode === '本文→LD' ? '↺' : '＋'} ja ${slug.padEnd(20)} ${String(items.length).padStart(2)}問  ${mode}`);
+  report.push(`  ${mode.startsWith('本文') ? '↺' : '＋'} ja ${slug.padEnd(20)} ${String(items.length).padStart(2)}問  ${mode}`);
 }
 
 /* ══ 英語 — 月収の1問だけ足す ══════════════════════════════════ */

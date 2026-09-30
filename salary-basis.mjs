@@ -315,33 +315,29 @@ export const BASIS = {
       why: '機長と同じ理由。' } },
   },
 
-  /* ══ スターラックス ══ 決定④（オーナー・2026-09-29）
-     「変更済みの計算値の根拠を確認する。根拠が不足すれば公開表示を保留する」
-     → 計算式が残っている2つだけ条件つきで掲載し、残りは確認中。 */
+  /* ══ スターラックス ══ ★2026-09-30 オーナー指摘③
+     「各航空会社ページに本人1名の申告から計算した給与例を出してるのおかしいでしょ。」
+     → 月額 NTD 422,500 × 13か月（¥2,744万）と、訓練中の月額 NTD 285,000 × 13か月（¥1,851万）を
+       画面から外し、他社と同じ「推定」に戻した。この形の出所はサイト全体でこの1社だけだった。
+
+     ⚠️ 計算そのものは消さずに retired_groups / retired_src として残してある。
+        名前を groups に戻すと figures() が拾い、月収の答え・国別ページ・構造化データに
+        1名の申告から作った金額が**そのまま復活する**（画面は普通に動いたまま）。
+     ⚠️ src を空にしたのは、1名の体験記を「この金額の出所」として画面に出さないため。
+        推定の数字に出所の資料は無い（公開情報からの推計）ので、出所の節も置かない。 */
   'starlux': {
     cur: 'TWD',
     tax: '課税（台湾）',
-    src: [
+    src: [], notes: [], notes_en: [],
+    retired_src: [
       { pub: '内定者の実体験（機長歴10年で応募したパイロット本人の申告・1名）',
         name: '本サイトの採用試験ガイドに掲載している月額の表',
         as_of: '2025年前半', accessed: '2026-09-28',
         url: 'https://pilot-value.com/airlines/starlux-tenshoku.html' },
     ],
-    notes: [
-      '本人1名の申告で、「機長歴10年」という1点の条件が付いています。会社の公表額ではありません。',
-      'スターラックス航空は給与額を公式に公表していません。',
-      '月額に13を掛けています（13か月給与）。住宅手当 NTD 30,000/月・交通費 NTD 1,000/月は別です。',
-      '月75時間を超えた分の割増（約 NTD 5,500/時間）は足していません（飛んだ時間が分からないため）。',
-    ],
-    notes_en: [
-      'This is one pilot’s own account, with the single condition "ten years as a captain". It is not a figure the airline publishes.',
-      'STARLUX Airlines does not publish pay figures officially.',
-      'The monthly figure is multiplied by 13 (a 13-month salary). A housing allowance of NTD 30,000 a month and NTD 1,000 transport are separate.',
-      'Premium for hours beyond 75 a month (about NTD 5,500 an hour) is not added, because the hours actually flown are not known.',
-    ],
     cap: {
-      tier: 'model_calc',
-      groups: [
+      tier: 'estimate',
+      retired_groups: [
         { name: '昇格後（機長歴10年目安）', name_en: 'After upgrade (about ten years as a captain)', month: 422500, months: 13,
           cond: '月75時間の乗務保証を含む月額 × 13か月' },
       ],
@@ -349,13 +345,13 @@ export const BASIS = {
         why: 'avg 3,100万と hi 3,900万には計算式が無い（3,900万は出所の記録が無かった旧値の据え置き）。' },
     },
     fo: {
-      tier: 'model_calc',
-      groups: [
+      tier: 'estimate',
+      retired_groups: [
         { name: '訓練中', name_en: 'During training', month: 285000, months: 13, training: true,
           cond: '50時間の乗務分を含む訓練中の月額 × 13か月' },
       ],
       held: { was: { avg: 1950, hi: 2050 },
-        why: 'avg 1,950万と hi 2,050万には計算式が無い。⚠️ 掲載している月額は機長候補者の訓練中の額で、副操縦士の給与そのものではない（副操縦士の実額は1件も無い）。' },
+        why: 'avg 1,950万と hi 2,050万には計算式が無い。⚠️ 掲載していた月額は機長候補者の訓練中の額で、副操縦士の給与そのものではない（副操縦士の実額は1件も無い）。' },
     },
   },
 
