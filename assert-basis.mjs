@@ -15,15 +15,24 @@
       挟まると諦める。だから紹介文・OG・構造化データを一度も見ていない。
       ここが見ていなかった場所そのものなので、head を必ず見る。
 
+   ★2026-09-30、オーナー指示「確認中じゃなくて推定とかにすりゃいいじゃん」で
+     **「確認中」の等級を使っている会社は0社になった**（全部「推定」に戻した）。
+     A) D) G) は「確認中」の職位だけを見る検査なので、いまは1件も鳴らない。
+     ⚠️ **消さない。** 等級 held は「本当に数字が1つも無い会社」のために残してあり、
+        次に1社でも held に置いた瞬間、この3本がその社を見張る側に戻る。
+     いま実際に効いているのは B) C) D) I) J) ── とくに D) は「推定の数字に
+     『平均年収』の札を付け直す」ことを禁じている（①は「平均をやめる」を
+     取り消していない）。
+
    見るもの（すべて salary-basis.mjs の23社・日英)
-     A) 確認中にした元の金額が head（題名・紹介文・OG・構造化データ）に残っていないか
+     A) 確認中にした元の金額が head（題名・紹介文・OG・構造化データ）に残っていないか〔いま休眠〕
         ── 万円の形（3,700万）でも、生の円（37000000）でも探す
      B) 「推計平均」「参考値」で言い換えて残していないか（オーナーが明示的に却下）
      C) 出所の節（PV-BASIS）が在るか。確認日とリンクが在るか
-     D) 確認中の職位に「平均年収」の札が残っていないか
+     D) 「平均」と名乗れない職位に「平均年収」の札が残っていないか
      E) 総待遇に現金給与や住宅・学費をもう一度足す書き方になっていないか
      F) 英語版で「税引前」と「非課税」が同じページに同居していないか
-     G) 全部が確認中の会社の構造化データに、年収欄が残っていないか
+     G) 全部が確認中の会社の構造化データに、年収欄が残っていないか〔いま休眠〕
      H) 画面に出した出所（リンク・確認日）が台帳と一致しているか
      I) 一覧ページ（world-airlines）の会社カードが台帳どおりか
         ── カードは1行しか出せないので、出してよいのは「年額の現金」だけ。
@@ -39,10 +48,17 @@
 import fs from 'fs';
 import path from 'path';
 import { BASIS, TIERS, figures, cardFigure } from './salary-basis.mjs';
+import { SALARY } from './salary-data.mjs';
 import { AIRLINE_COUNTRY } from './airline-countries.mjs';
 
 const ROOT = path.dirname(new URL(import.meta.url).pathname).replace(/%20/g, ' ');
 const V = process.argv.includes('--v');
+/* 推定の社の「画面にこう出ていてほしい額」。年収の唯一の正は salary-data.mjs なので、
+   台帳ではなくこちらから取る（台帳に数字を持たせると更新の場所が2つになる）。 */
+const yenMan = (slug, rank = 'cap') => {
+  const v = SALARY[slug]?.[rank]?.avg;
+  return v == null ? '' : `\u00a5${v.toLocaleString('en-US')}\u4e07`;
+};
 
 const RANKS = { cap: '機長', fo: '副操縦士', crew: '運航乗務員', trainee: '訓練生' };
 
@@ -144,10 +160,16 @@ for (const slug of Object.keys(BASIS)) {
     }
 
     /* ── B) 言い換えて残していないか ─────────────────────────────── */
-    /* ⚠️ 金額のそばだけを見る。ページ末尾の「掲載データは参考値です。」は
-         サイト共通のフッターで、どの金額のことも指していない（全ページに在る）。
-         ここが捕まえたいのは「機長 参考値 ¥2,500万」のように、
-         根拠不明の平均を名前だけ変えて金額と並べて残す形。 */
+    /* ⚠️ 金額のそばだけを見る。フッターの断り書きは、どの金額のことも
+         指していない（全ページに在る）。ここが捕まえたいのは
+         「機長 参考値 ¥2,500万」のように、根拠不明の平均を名前だけ変えて
+         金額と並べて残す形。
+       ★2026-09-30、フッターの「掲載データは参考値です。」は掃除で
+         「掲載データは当サイトの推計です。」に変わった（349枚・1503件）。
+       ⚠️ **「推定」をこの表に足さない。** 却下されたのは「推計平均」＝
+          平均を名乗り直す言い方で、「推定」はオーナー自身が選んだ語
+          （「確認中じゃなくて推定とかにすりゃいいじゃん」）。
+          足すと、指示どおりに直した画面が全部赤くなる。 */
     for (const w of lang === 'ja' ? ['推計平均', '参考値'] : ['estimated average', 'reference value']) {
       let from = 0;
       for (;;) {
@@ -161,9 +183,27 @@ for (const slug of Object.keys(BASIS)) {
       }
     }
 
-    /* ── C) 出所の節が在るか ──────────────────────────────────── */
+    /* ── C) 出所の節が在るか ────────────────────────────────────
+       ★2026-09-30、**全職位が推定の会社には出所の節を求めない。**
+         あの節は「会社が出している金額を載せているので、その出所を示す」ためにある。
+         推定だけの会社に載っているのは当サイトが公開情報から出した数字で、
+         出所として示すべき会社の資料がそもそも無い（オーナー指示で節そのものを消した）。
+       ⚠️ 代わりに**別のことを必ず見る** ── 「これは当サイトの推計で、会社が公表した額ではない」
+          と画面に書いてあるか。ここを外すと、推定の数字が会社の公表額として読まれる。
+          節を消したぶんの歯止めはこの1行だけなので、消さない。 */
+    const allEst = ['cap', 'fo', 'crew', 'trainee']
+      .filter((r) => b[r]).every((r) => b[r].tier === 'estimate');
     const hasBasis = /id="kyuyo-konkyo"/.test(html);
-    if (!hasBasis) {
+    if (allEst) {
+      const saysEst = lang === 'ja'
+        ? /当サイトが推計|当サイトの推計|推定年収/.test(html)
+        : /our own estimate|our estimate|estimated salary/i.test(html);
+      if (!saysEst) {
+        hit(lang === 'ja'
+          ? '全職位が推定なのに「当サイトが推計した金額（会社の公表額ではない）」と画面に書いていない'
+          : 'every rank is our estimate, but the page never says the figures are our own estimate');
+      }
+    } else if (!hasBasis) {
       hit('出所の節（id="kyuyo-konkyo"）が無い。この金額が誰の・何を含んだ・いつの金額かを画面に出していない');
     } else {
       const sec = html.slice(html.indexOf('id="kyuyo-konkyo"'));
@@ -263,10 +303,35 @@ for (const slug of Object.keys(BASIS)) {
     const sal = row.match(/salary:'([^']*)'/)?.[1] ?? '';
     const note = row.match(/salNote:'([^']*)'/)?.[1] ?? '';
     const f = (figures(slug, 'cap') || []).find((x) => YEARLY_CASH.has(x.key) && !x.training);
+    /* ★2026-09-30、推定の社は台帳に掲載額が1件も無い（推定の金額は SALARY にある）。
+         ここで f が無いことを「確認中」の証拠にすると、推定に戻した20社が全部落ちる。 */
+    const isEst = BASIS[slug].cap?.tier === 'estimate';
 
-    if (!f) {
-      if (sal !== '確認中') {
-        bad(rel, `${slug}：台帳に機長の年額の現金が無いのに、一覧カードが「${sal}」を出している\n   （月額を12倍して年額にしない・総待遇を他社の現金と並べない）`);
+    if (isEst) {
+      const want = yenMan(slug);
+      if (sal !== want) bad(rel, `${slug}：一覧カードの金額が推定（SSOT）とずれている → 画面「${sal}」／SSOT「${want}」`);
+      /* 札は持たなくてよい ── 持たない社は world-airlines.html の既定の札に落ちて、
+         そこが「機長 推定年収」になっている（下でその既定そのものを見ている）。
+         札を持つならそれも「推定」と名乗っていること。 */
+      if (note && !note.includes('推定')) {
+        bad(rel, `${slug}：機長は推定なのに一覧カードの札が「${note}」（「推定」と名乗っていない）`);
+      }
+    } else if (!f) {
+      /* ★2026-09-30。台帳に年額が無い（＝会社が出しているのは月額だけ）社は、
+           カードには**推定の年収**を出す（オーナー指示「確認中じゃなくて推定とかにすりゃいいじゃん」）。
+           推定は台帳の外の87社と同じ作りなので、他社の現金と同じ列に並べられる。
+         ⚠️ ここで必ず見るのは「月額を12倍した数字になっていないか」。
+            サウディア・中国南方・中国東方は月額の広告しか無いので、12倍が一番やりがちな間違い
+            （オーナーが名指しで禁止）。SSOT の推定と一致していることを条件にすれば、
+            12倍の数字はそもそも通らない。 */
+      const want = yenMan(slug);
+      if (sal !== want) {
+        bad(rel, `${slug}：一覧カードの金額が推定（SSOT）とずれている → 画面「${sal}」／SSOT「${want}」\n   （この社は台帳に年額が無い。月額を12倍して年額にしない・総待遇を他社の現金と並べない）`);
+      }
+      const x12 = (figures(slug, 'cap') || []).filter((y) => /_m$/.test(y.key) || y.monthly)
+        .map((y) => `¥${(y.man * 12).toLocaleString('en-US')}万`);
+      if (x12.includes(sal)) {
+        bad(rel, `${slug}：一覧カードの「${sal}」は月額を12倍した数字（オーナーが名指しで禁止）`);
       }
     } else {
       const want = `${f.key === 'max_y' ? '〜' : ''}¥${f.man.toLocaleString('en-US')}万`;
@@ -279,13 +344,27 @@ for (const slug of Object.keys(BASIS)) {
     if (!avgOk(slug, 'cap') && /平均/.test(note)) {
       bad(rel, `${slug}：機長は「${TIERS[BASIS[slug].cap?.tier || 'held'].ja}」なのに、一覧カードの札が「${note}」（平均と名乗っている）`);
     }
-    if (!note) bad(rel, `${slug}：一覧カードの札（salNote）が無い ＝ 共通の「機長 平均年収」が出てしまう`);
+    /* 札を持たなくてよいのは「カードに推定を出す社」＝推定の等級か、台帳に年額が無い社。
+       どちらも既定の札「機長 推定年収」に落ちて、それが正しい（既定は上で見ている）。 */
+    if (!note && !isEst && f) bad(rel, `${slug}：一覧カードの札（salNote）が無い ＝ 共通の札に落ちる（等級を名乗れない）`);
   }
 
-  /* 札を行ごとに出す形になっているか（ここが戻ると25社ぶんが黙って「平均年収」に戻る）。 */
-  for (const [p, key] of [['world-airlines.html', 'salNote'], ['en/world-airlines.html', 'salNoteEn']]) {
+  /* 札を行ごとに出す形になっているか（ここが戻ると25社ぶんが黙って「平均年収」に戻る）。
+     ★2026-09-30、**既定の札そのもの**も見る。札を持たない社（推定の20社と台帳の外の87社）は
+       全部ここに落ちるので、ここが「平均年収」に戻った瞬間に107社が「平均」を名乗る。
+       画面は普通に出るので、見ても気づけない。 */
+  for (const [p, key, dflt, ng] of [
+    ['world-airlines.html', 'salNote', '機長 推定年収', '平均'],
+    ['en/world-airlines.html', 'salNoteEn', 'Captain estimated salary', 'average'],
+  ]) {
     const html = fs.readFileSync(path.join(ROOT, p), 'utf8');
-    if (!html.includes(`a.${key}`)) bad(p, `会社カードの札が行ごとに出ていない（a.${key} を読んでいない）＝25社が共通の「平均年収」に戻る`);
+    if (!html.includes(`a.${key}`)) bad(p, `会社カードの札が行ごとに出ていない（a.${key} を読んでいない）＝25社が共通の札に戻る`);
+    const d = html.match(new RegExp(`a\\.${key} \\|\\| '([^']*)'`))?.[1];
+    if (d == null) bad(p, `会社カードの既定の札が読めない（a.${key} || '…' の形が変わった）`);
+    else if (d !== dflt) {
+      bad(p, `会社カードの既定の札が「${d}」になっている（「${dflt}」であること）`
+        + (new RegExp(ng, 'i').test(d) ? `\n   ★これは「平均」を名乗っている。札を持たない107社が全部こうなる` : ''));
+    }
   }
   if (!fail) ok++;
 }
@@ -296,9 +375,19 @@ for (const slug of Object.keys(BASIS)) {
    下げたはずの平均を出し続ける（帯は生成物なので画面を見ても気づけない）。
    ⚠️ 帯を作り直す側が台帳を読まなくなったら、ここで落ちる。 */
 {
-  /* 根拠を調べた社が1社でも混ざる国＝国の平均を出さない国。 */
+  /* 根拠を調べた社が1社でも混ざる国＝国の平均を出さない国。
+     ★2026-09-30、判定を link-countries.mjs の STRONGER と同じにそろえた。
+       推定（estimate）は台帳の外の87社と同じ作り ── 公開情報から出した機長の年収 ── なので
+       同じ物差しで足して割れる。物差しが違うのは公式募集例・求人の掲載額・過去の募集広告・
+       条件つきの給与例で、それが1社でも混ざる国だけ「国の平均を出さない」。
+       ⚠️ 判定を2か所に分けて書いてあるのは、こちらが**写しである**こと自体を見せるため。
+          link-countries.mjs の STRONGER を変えたらここも直す（片方だけだと黙って別物になる）。 */
+  const strongerThanEstimate = (s2) => ['cap', 'fo'].some((r) => {
+    const t = BASIS[s2]?.[r]?.tier;
+    return t !== undefined && t !== 'estimate';
+  });
   const heldCountry = (code) =>
-    Object.entries(AIRLINE_COUNTRY).some(([s2, c2]) => c2 === code && BASIS[s2]);
+    Object.entries(AIRLINE_COUNTRY).some(([s2, c2]) => c2 === code && strongerThanEstimate(s2));
 
   /* ⚠️ 英語ページの <em> の中は <span class="pv-cur" …>$170K</span> に焼いてある。
         [^<]* で取ると空に見えるので、中身を丸ごと取ってからタグを落とす。 */
@@ -332,8 +421,13 @@ for (const slug of Object.keys(BASIS)) {
         const em = text(m[2]);
         const c = cardFigure(peer, 'cap');
         if (!c) continue;                                  /* 台帳に無い社は今までどおり */
-        const want = c.held ? (ja ? '確認中' : 'Under review')
-                            : (ja ? `${c.kindJa} ${c.yen}` : `${c.kindEn} ${c.yen}`);
+        /* ★2026-09-30、推定（estimate）は金額を出す側に裏返した。
+             台帳は「推定である」ことだけを返し、金額は持っていない（SSOT を2か所にしないため）。
+             だから期待する札はここで SALARY から組む ── link-countries.mjs と同じ作り方。 */
+        const want = c.estimate
+          ? (ja ? `推定 ${yenMan(peer)}` : `Estimated ${yenMan(peer)}`)
+          : c.held ? (ja ? '確認中' : 'Under review')
+                   : (ja ? `${c.kindJa} ${c.yen}` : `${c.kindEn} ${c.yen}`);
         if (c.held && /[0-9]/.test(em)) {
           bad(rel, `帯の中の「${peer}」に数字が出ている（「${em}」）。この社は確認中なので金額を1つも出さない`);
         } else if (ja && em !== want) {

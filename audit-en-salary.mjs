@@ -13,7 +13,7 @@ const files = fs.readdirSync(dir).filter(f => f.endsWith('.html'));
 // ¥37M -> 3700 (万) ; ¥6.16M? no, pages use whole/one-decimal M meaning millions-of-yen*... actually ¥37M = 3,700万.
 function mToMan(numStr) { return Math.round(parseFloat(numStr) * 100); }
 
-// grab the value immediately before a label like "Capt. Avg" / "FO Avg"
+// grab the value immediately before a label like "Capt. est." / "FO est."
 function statVal(html, labelRe) {
   const re = new RegExp('>\\s*~?¥([\\d.]+)M\\s*<[^>]*>\\s*<div class="text-xs text-muted">\\s*' + labelRe, 'i');
   const m = html.match(re);
@@ -28,7 +28,7 @@ for (const f of files) {
   const html = fs.readFileSync(path.join(dir, f), 'utf8');
   if (!d) { unknown++; rows.push(`?  ${slug.padEnd(22)} (not in SSOT)`); continue; }
   const capEn = statVal(html, 'Capt');
-  const foEn  = statVal(html, 'FO Avg');
+  const foEn  = statVal(html, 'FO est.');
   const capOk = capEn != null && Math.abs(capEn - d.cap.avg) <= 50;   // ≤¥0.5M tolerance
   const foOk  = foEn  != null && Math.abs(foEn  - d.fo.avg)  <= 50;
   if (capEn == null && foEn == null) { unknown++; rows.push(`?  ${slug.padEnd(22)} (no stat cards matched)`); continue; }

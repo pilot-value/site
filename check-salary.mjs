@@ -82,7 +82,14 @@ for (const [slug, d] of Object.entries(SALARY)) {
         あるジェットスター・ジャパンの¥2,400万を skymark の古い数値と誤検知する
         （実際に stale:2,400万 の誤報が出た）。このページ自身の主張だけを見る。 */
   const html = unbake(readFileSync(p, 'utf8'))
-    .replace(/<!--PV-CLINK-->[\s\S]*?<!--\/PV-CLINK-->/g, '');
+    .replace(/<!--PV-CLINK-->[\s\S]*?<!--\/PV-CLINK-->/g, '')
+    /* ★2026-09-30、比較の一文も落とす。gen-faq.mjs が全社の FAQ に
+         「ANA・JALの機長は推定約¥2,700万、副操縦士は推定約¥1,800万です。」を入れるので、
+         そこに出ている ANA・JAL の額を**そのページの会社の額**と読んでしまう。
+         実際にサウディアで起きた ── 旧平均が偶然 ANA・JAL の副操縦士と同じ 1,800万 で、
+         「旧平均が残っている」と誤報した。PV-CLINK と同じ理屈で、このページ自身の主張だけを見る。 */
+    .replace(/ANA・JALの機長は[^。]*?です。/g, '')
+    .replace(/ANA and JAL captains[^.]*?\./g, '');
   /* 職位ごとに「出ていないと困るもの」と「残っていたら困るもの」を組む。
      等級を決めていない会社 = 今までどおり SALARY の平均が出ていること。
      等級のある会社         = その等級の掲載額のどれかが出ていること。
@@ -232,8 +239,13 @@ for (const f of files) {
            求めると「外したはずの数字」をページに戻す方向に働いてしまう。
            ALLOW（人が見て正しいと判断した例外）はこちらには効かせない ──
            あれは SSOT のレンジに対する例外で、等級の話ではないため。 */
+      /* ★2026-09-30、推定（estimate）だけはこの枝を通さず下の SSOT 突き合わせへ落とす。
+           推定の職位に載せる数字は salary-data.mjs の avg / lo / hi そのものなので、
+           台帳には掲載額が1件も無い（＝ここで判定すると必ず食い違う）。
+           判定の中身は等級を作る前と1文字も同じ ── avg / lo / hi のどれかなら正、
+           レンジ表記なら lo〜hi と一致、外れていれば ❌。 */
       const B = basis(slug, role);
-      if (B) {
+      if (B && B.tier !== 'estimate') {
         if (B.tier === 'held') {
           nBad++;
           cross.push(`❌ ${f}:${lineNo()}  «${text.slice(0, 56)}»  ${slug} ${role} は確認中（金額を出さない）`);

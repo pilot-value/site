@@ -440,8 +440,8 @@ const footer = (lang, up) => `<footer class="py-10 relative">
   <div class="max-w-6xl mx-auto px-5 flex flex-col sm:flex-row items-center justify-between gap-4">
     <a href="${up}index.html"><img src="${up}${lang === 'ja' ? '' : '../'}assets/logo.png" alt="PILOT VALUE" style="height:28px;opacity:.7"/></a>
     <p style="font-size:.75rem;color:#6b7d93">${lang === 'ja'
-    ? '掲載年収は参考値。実際の条件は各社公式サイトでご確認ください。'
-    : "Salary figures are reference values. Please confirm actual terms on each airline's official website."}</p>
+    ? '掲載年収は当サイトの推計。実際の条件は各社公式サイトでご確認ください。'
+    : "Salary figures are our own estimates. Please confirm actual terms on each airline's official website."}</p>
     <a href="${up}index.html" class="btn-ghost">${lang === 'ja' ? '← トップへ' : '← Home'}</a>
   </div>
   <div style="border-top:1px solid rgba(255,255,255,.06);margin-top:20px;padding-top:16px;text-align:center">
@@ -862,12 +862,12 @@ ${rows}
       <div class="stat-sub">${esc(c.auth)}</div>
     </div>` : `
     <div class="stat-card">
-      <div class="stat-label">${ja ? '機長 平均年収' : 'Captain average'}</div>
+      <div class="stat-label">${ja ? '機長 推定年収' : 'Captain estimate'}</div>
       <div class="stat-value num" style="color:#f5c842">${man(c.capAvg)}</div>
       <div class="stat-sub num">${range(c.capLo, c.capHi)}</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">${ja ? '副操縦士 平均年収' : 'First officer average'}</div>
+      <div class="stat-label">${ja ? '副操縦士 推定年収' : 'First officer estimate'}</div>
       <div class="stat-value num">${man(c.foAvg)}</div>
       <div class="stat-sub num">${range(c.foLo, c.foHi)}</div>
     </div>
@@ -897,7 +897,7 @@ ${basisTable}${openTable}
     <p>${ja
     ? `比べるときは、同じ種類の金額どうしで比べてください。各社のページに、その金額の発行元・資料名・適用時点・確認日を載せています。`
     : `To compare, compare like with like. Every airline page carries the publisher, the document, the period it applies to and the date we checked it.`}</p>` : `    <p>${ja
-    ? `${c.ledger.length ? `出どころを調べた会社を先に、その金額が<strong>誰の・何を含んだ・いつの金額か</strong>を添えて出しています。そのほかの社は機長の平均年収が高い順です。` : `機長の平均年収が高い順に並べています。`}社名をクリックすると、その会社の年収の内訳・保有機材・応募条件・現役パイロットの口コミが見られます。${taxFree ? `なお${name}では個人所得税が課されないため、下の金額はほぼそのまま手取りになります。` : ''}`
+    ? `${c.ledger.length ? `出どころを調べた会社を先に、その金額が<strong>誰の・何を含んだ・いつの金額か</strong>を添えて出しています。そのほかの社は機長の推定年収が高い順です。` : `機長の推定年収が高い順に並べています。`}社名をクリックすると、その会社の年収の内訳・保有機材・応募条件・現役パイロットの口コミが見られます。${taxFree ? `なお${name}では個人所得税が課されないため、下の金額はほぼそのまま手取りになります。` : ''}`
     : `${c.ledger.length ? `Airlines whose sources we have checked come first, each figure shown with <strong>who it applies to, what it includes and when it was published</strong>. The rest are sorted by captain average, highest first.` : `Sorted by captain average, highest first.`} Click an airline for its pay breakdown, fleet, hiring requirements and reviews from working pilots.${taxFree ? ` Note that ${name} levies no personal income tax, so these figures are close to take-home.` : ''}`}</p>
 ${basisTable}${openTable}
     <h2 id="compare">${ja ? `${name}は世界のどのあたりか` : `Where ${name} sits worldwide`}</h2>
@@ -906,7 +906,7 @@ ${basisTable}${openTable}
     : `Captain averages side by side. ${nameCap} sits at ${man(c.capAvg)} against a ${man(WORLD_CAP)} average across the ${NPUB} airlines whose average pay we publish — <strong>${diff >= 0 ? `about ${diff}% above` : `about ${Math.abs(diff)}% below`}</strong>. That places it ${rank}${rank === 1 ? 'st' : rank === 2 ? 'nd' : rank === 3 ? 'rd' : 'th'} of the ${RANKED.length} countries we give an average for.`}</p>
     <div class="glass" style="padding:18px 20px">${bars(cmpRows, lang)}</div>
     <p style="font-size:.78rem;color:#6b7d93;margin-top:10px">${ja
-    ? `※ 各国の値は、その国に本拠を置く掲載社の機長平均年収の単純平均。副操縦士の平均は${man(WORLD_FO)}（世界${NPUB}社）。出どころを確認して表示を変えた会社は、この平均の材料に入れていません。`
+    ? `※ 各国の値は、その国に本拠を置く掲載社の機長の推定年収の単純平均。副操縦士の推定年収の平均は${man(WORLD_FO)}（世界${NPUB}社）。出どころを確認して表示を変えた会社は、この平均の材料に入れていません。`
     : `Country figures are the unweighted mean of captain averages for the airlines we list there. World first officer average: ${man(WORLD_FO)} across ${NPUB} airlines. Airlines whose figures we have relabelled after checking their sources are left out of this mean.`}</p>`}
 
     <h2 id="others">${ja ? '他の国と比べる' : 'Compare other countries'}</h2>
@@ -1241,12 +1241,12 @@ ${airlineRows}
       <div class="stat-sub">${ja ? `${r.n}社のうち` : `of ${r.n}`}</div>
     </div>` : `
     <div class="stat-card">
-      <div class="stat-label">${ja ? '機長 平均年収' : 'Captain average'}</div>
+      <div class="stat-label">${ja ? '機長 推定年収' : 'Captain estimate'}</div>
       <div class="stat-value num" style="color:#f5c842">${man(r.capAvg)}</div>
       <div class="stat-sub num">${range(r.capLo, r.capHi)}</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">${ja ? '副操縦士 平均年収' : 'First officer average'}</div>
+      <div class="stat-label">${ja ? '副操縦士 推定年収' : 'First officer estimate'}</div>
       <div class="stat-value num">${man(r.foAvg)}</div>
       <div class="stat-sub num">${range(r.foLo, r.foHi)}</div>
     </div>
@@ -1267,7 +1267,7 @@ ${airlineRows}
     <p>${held ? (ja
     ? `国名をクリックすると、その国の航空会社ごとの内訳と所得税の有無が見られます。出どころを確認した会社を含む国は、国全体の平均を出していないため空欄です（順位も付けていません）。`
     : `Open a country for its airline-by-airline breakdown and its income-tax status. Countries that include an airline whose sources we have checked show no country average, and no rank.`) : (ja
-    ? `機長の平均年収が高い順です。国名をクリックすると、その国の航空会社ごとの内訳・世界平均との差・所得税の有無が見られます。`
+    ? `機長の推定年収が高い順です。国名をクリックすると、その国の航空会社ごとの内訳・世界平均との差・所得税の有無が見られます。`
     : `Sorted by captain average, highest first. Open a country for its airline-by-airline breakdown, how it compares with the world average, and its income-tax status.`)}</p>
     <div class="glass tbl-scroll" style="padding:4px">
       <table class="salary-table">
@@ -1290,7 +1290,7 @@ ${held ? `    <p>${ja
     : `Click an airline for its pay breakdown, fleet, hiring requirements and reviews from working pilots. The figures are in two tables. The first covers airlines whose sources we have checked, with each figure labelled by what kind of figure it is. The second covers airlines we have not checked yet.`}</p>
 
 ${basisTable}${openTable}` : `    <p>${ja
-    ? `${r.ledger.length ? `出どころを調べた会社を先に、その金額が<strong>誰の・何を含んだ・いつの金額か</strong>を添えて出しています。そのほかの社は機長の平均年収が高い順です。` : `機長の平均年収が高い順に${r.n}社すべてを並べています。`}社名をクリックすると、その会社の年収の内訳・保有機材・応募条件・現役パイロットの口コミが見られます。`
+    ? `${r.ledger.length ? `出どころを調べた会社を先に、その金額が<strong>誰の・何を含んだ・いつの金額か</strong>を添えて出しています。そのほかの社は機長の推定年収が高い順です。` : `機長の推定年収が高い順に${r.n}社すべてを並べています。`}社名をクリックすると、その会社の年収の内訳・保有機材・応募条件・現役パイロットの口コミが見られます。`
     : `${r.ledger.length ? `Airlines whose sources we have checked come first, each figure shown with <strong>who it applies to, what it includes and when it was published</strong>. The rest are sorted by captain average, highest first.` : `All ${r.n} airlines, sorted by captain average.`} Click an airline for its pay breakdown, fleet, hiring requirements and reviews from working pilots.`}</p>
 ${basisTable}${openTable}`}
 
@@ -1307,7 +1307,7 @@ ${held ? `    <h2 id="compare">${ja ? `${name}の順位を出していない理�
     : `Captain averages by region. ${nameCap} sits at ${man(r.capAvg)} against a ${man(WORLD_CAP)} average across the ${NPUB} airlines whose average pay we publish — <strong>${diff >= 0 ? `about ${diff}% above` : `about ${Math.abs(diff)}% below`}</strong>. That is ${nth(rank)} of the ${REG_RANKED.length} regions we publish an average for.`}</p>
     <div class="glass" style="padding:18px 20px">${bars(cmpRows, lang)}</div>
     <p style="font-size:.78rem;color:#6b7d93;margin-top:10px">${ja
-    ? `※ 各地域の値は、その地域の掲載社の機長平均年収の単純平均。日本は地域ハブを別に置かず <a href="countries/japan.html">日本のページ</a>にまとめています。${name}の副操縦士平均は${man(r.foAvg)}（世界${NPUB}社では${man(WORLD_FO)}）。出どころを確認して表示を変えた会社は、この平均の材料に入れていません。`
+    ? `※ 各地域の値は、その地域の掲載社の機長の推定年収の単純平均。日本は地域ハブを別に置かず <a href="countries/japan.html">日本のページ</a>にまとめています。${name}の副操縦士の推定年収の平均は${man(r.foAvg)}（世界${NPUB}社では${man(WORLD_FO)}）。出どころを確認して表示を変えた会社は、この平均の材料に入れていません。`
     : `Regional figures are the unweighted mean of captain averages for the airlines we list there. Japan has no separate regional hub — see the <a href="countries/japan.html">Japan page</a>. First officers in ${name} average ${man(r.foAvg)}, against ${man(WORLD_FO)} across the ${NPUB} airlines we publish an average for. Airlines whose sources we have checked and relabelled are left out of that mean.`}</p>
 `}
 

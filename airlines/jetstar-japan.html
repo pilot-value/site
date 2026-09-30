@@ -166,7 +166,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </div>
 </div>
 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-<div class="stat-card text-center"><div class="text-xl font-extrabold mb-1" style="color:#fb923c">確認中</div><div class="text-xs text-muted">機長 年収<br>会社は金額を公表していません</div></div><div class="stat-card text-center"><div class="text-xl font-extrabold mb-1" style="color:#fb923c">確認中</div><div class="text-xs text-muted">副操縦士 年収<br>会社は金額を公表していません</div></div><div class="stat-card text-center"><div class="text-2xl font-extrabold mb-1" style="color:#fb923c">A320</div><div class="text-xs text-muted">主要機材</div></div><div class="stat-card text-center"><div class="text-2xl font-extrabold mb-1" style="color:#fb923c">2012年設立</div><div class="text-xs text-muted">設立年</div></div>
+<div class="stat-card text-center"><div class="text-xl font-extrabold mb-1" style="color:#fb923c">¥2,400万</div><div class="text-xs text-muted">機長 推定年収（税引前）</div></div><div class="stat-card text-center"><div class="text-xl font-extrabold mb-1" style="color:#fb923c">¥1,450万</div><div class="text-xs text-muted">副操縦士 推定年収（税引前）</div></div><div class="stat-card text-center"><div class="text-2xl font-extrabold mb-1" style="color:#fb923c">A320</div><div class="text-xs text-muted">主要機材</div></div><div class="stat-card text-center"><div class="text-2xl font-extrabold mb-1" style="color:#fb923c">2012年設立</div><div class="text-xs text-muted">設立年</div></div>
 </div>
 </div>
 </div>
@@ -338,21 +338,21 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
     <span class="pvcl-flag" aria-hidden="true">🇯🇵</span>
     <span>
       <span class="pvcl-t">日本のパイロット年収</span>
-      <span class="pvcl-s">掲載26社・国全体の平均は出していません</span>
+      <span class="pvcl-s">掲載26社・機長平均 ¥1,850万</span>
     </span>
     <span class="pvcl-arrow" aria-hidden="true">→</span>
   </a>
   <div class="pvcl-pills">
-    <a href="airdo.html" class="pvcl-pill"><span>AIRDO</span><em>¥1,950万</em></a>
+    <a href="ana.html" class="pvcl-pill"><span>全日本空輸（ANA）</span><em>推定 ¥2,700万</em></a>
+    <a href="jal.html" class="pvcl-pill"><span>日本航空（JAL）</span><em>推定 ¥2,700万</em></a>
+    <a href="zipair.html" class="pvcl-pill"><span>ZIPAIR Tokyo</span><em>推定 ¥2,500万</em></a>
+    <a href="peach.html" class="pvcl-pill"><span>Peach Aviation</span><em>推定 ¥2,350万</em></a>
     <a href="airjapan.html" class="pvcl-pill"><span>AirJapan</span><em>¥2,100万</em></a>
-    <a href="ana-wings.html" class="pvcl-pill"><span>ANAウイングス</span><em>¥2,000万</em></a>
-    <a href="ibex.html" class="pvcl-pill"><span>IBEXエアラインズ</span><em>¥1,700万</em></a>
-    <a href="peach.html" class="pvcl-pill"><span>Peach Aviation</span><em>確認中</em></a>
     <a href="../countries.html" class="pvcl-pill"><span>国別のパイロット年収 一覧</span></a>
   </div>
 </section>
 <!--/PV-CLINK-->
-<footer class="py-10"><div class="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4"><a href="../index.html"><img src="../assets/logo.png" alt="PILOT VALUE" class="h-7 w-auto opacity-70"/></a><div class="text-xs text-muted">© 2026 PILOT VALUE. 掲載データは参考値です。</div><a href="../index.html" class="btn-ghost text-sm py-2 px-4">← 航空会社一覧</a></div></footer>
+<footer class="py-10"><div class="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4"><a href="../index.html"><img src="../assets/logo.png" alt="PILOT VALUE" class="h-7 w-auto opacity-70"/></a><div class="text-xs text-muted">© 2026 PILOT VALUE. 掲載データは当サイトの推計です。</div><a href="../index.html" class="btn-ghost text-sm py-2 px-4">← 航空会社一覧</a></div></footer>
 <script>window.addEventListener('scroll',()=>{document.getElementById('main-nav').classList.toggle('scrolled',window.scrollY>40)},{passive:true});
 const io=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');e.target.querySelectorAll('[data-width]').forEach(b=>{b.style.width='0';setTimeout(()=>{b.style.width=b.dataset.width+'%'},80)});io.unobserve(e.target)}})},{threshold:.01,rootMargin:'0px 0px -30px 0px'});
 document.querySelectorAll('.fade-up').forEach(el=>io.observe(el));

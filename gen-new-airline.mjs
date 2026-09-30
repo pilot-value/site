@@ -108,7 +108,7 @@ const CONTENT = {
     payTag: { ja: 'EUR建て・税引前', en: 'Paid in EUR, pre-tax' },
     stepTag: { ja: '等級制（協約）', en: 'Collective-agreement steps' },
     tableNote: {
-      ja: '※ 掲載年収は公開データ・労働協約を基にした参考値です。実際の給与条件は各社採用情報でご確認ください。',
+      ja: '※ 掲載年収は公開情報・労働協約から当サイトが推計した金額です。会社が公表した金額ではありません。実際の給与条件は各社採用情報でご確認ください。',
       en: 'Reference values based on public data and the published collective agreement. Confirm exact terms with the airline.',
     },
     /* 構造化データの description の締め。社ごとに売りが違う。 */
@@ -242,7 +242,7 @@ const CONTENT = {
       [`How does ${h.A.en} pay compare with ANA and JAL?`,
        `${h.A.en} captains average ${h.mm(h.A.cap.avg)} against ${h.mm(h.ana.cap.avg)} at ANA and JAL, and first officers ${h.mm(h.A.fo.avg)} against ${h.mm(h.ana.fo.avg)}. All four figures are gross, before income tax; both Germany and Japan tax pilot income.`],
     ],
-    compareNoteEn: '* Salary figures are SSOT reference values, pre-tax. ANA / JAL are shown as the Japan baseline. '
+    compareNoteEn: '* Salary figures are our own estimates, pre-tax. ANA / JAL are shown as the Japan baseline. '
       + 'Germany taxes pilot income, so take-home is lower than the headline figure in both columns.',
   },
 
@@ -281,7 +281,7 @@ const CONTENT = {
     payTag: { ja: 'ウォン建て・税引前', en: 'Paid in KRW, pre-tax' },
     stepTag: { ja: '按分による推計', en: 'Apportioned estimate' },
     tableNote: {
-      ja: '※ 掲載年収は公開データを基にした参考値です。機長／副操縦士の内訳は公表されていないため、'
+      ja: '※ 掲載年収は公開情報から当サイトが推計した金額です。機長／副操縦士の内訳は公表されていないため、'
         + '操縦士全体の平均から下記の仮定で按分した推計値です。実際の給与条件は各社採用情報でご確認ください。',
       en: 'Reference values based on public disclosure. The captain / first officer split is not published, '
         + 'so these are apportioned from a pilot-wide average under the assumptions stated below. Confirm exact terms with the airline.',
@@ -409,7 +409,7 @@ const CONTENT = {
       [`How does ${h.A.en} pay compare with ANA and JAL?`,
        `${h.A.en} captains are estimated at ${h.mm(h.A.cap.avg)} against ${h.mm(h.ana.cap.avg)} at ANA and JAL, and first officers ${h.mm(h.A.fo.avg)} against ${h.mm(h.ana.fo.avg)}. All figures are gross, before income tax, and both South Korea and Japan tax pilot income. The Japanese figures come from published data; the Asiana ones are apportioned estimates, so the gap is indicative rather than exact.`],
     ],
-    compareNoteEn: '* Salary figures are SSOT reference values, pre-tax. ANA / JAL are shown as the Japan baseline. '
+    compareNoteEn: '* Salary figures are our own estimates, pre-tax. ANA / JAL are shown as the Japan baseline. '
       + 'The Asiana figures are apportioned estimates, not a published pay scale. Both South Korea and Japan tax pilot income.',
   },
 };
@@ -456,9 +456,9 @@ function bodyJa() {
 <div class="grid lg:grid-cols-2 gap-8"><p class="text-muted leading-relaxed">${esc(C.overviewJa)}</p>
 <div class="grid grid-cols-2 gap-4">${facts}</div></div></div>
 <div class="glass p-8 fade-up"><div class="section-badge mb-4">年収データ</div>
-<h2 class="text-2xl font-bold mb-2">パイロット年収（2026年・参考値）</h2>
+<h2 class="text-2xl font-bold mb-2">パイロット年収（2026年・推定）</h2>
 <p class="text-xs text-muted mb-6">${esc(C.tableNote.ja)}</p>
-<div class="overflow-x-auto mb-4"><table><thead><tr><th>ポジション</th><th>年収レンジ</th><th>参考中央値</th><th>備考</th></tr></thead><tbody>
+<div class="overflow-x-auto mb-4"><table><thead><tr><th>ポジション</th><th>年収レンジ</th><th>推定年収</th><th>備考</th></tr></thead><tbody>
 <tr><td><span class="font-semibold">機長（Captain）</span><br><span class="text-xs text-muted">${esc(C.rowSubJa.cap)}</span></td>
 <td><div class="text-sm">${manR(A.cap)}</div><div class="mt-1 salary-bar-track w-32"><div class="salary-bar-fill" style="background:linear-gradient(90deg,${C.color}88,${C.color})" data-width="100"></div></div></td>
 <td><span class="font-bold text-lg" style="color:${C.color}">${man(A.cap.avg)}</span></td>
@@ -540,7 +540,7 @@ ${P.rows(H).map(([k, v]) => `<tr><td><span class="font-semibold">${esc(k)}</span
 <div class="section-badge mb-4">Salary Data</div>
 <h2 class="text-2xl font-bold mb-2">Pilot Salary (2026 reference)</h2>
 <p class="text-xs text-muted mb-6">${esc(C.tableNote.en)}</p>
-<div class="overflow-x-auto mb-4"><table><thead><tr><th>Position</th><th>Annual range</th><th>Reference average</th><th>Notes</th></tr></thead><tbody>
+<div class="overflow-x-auto mb-4"><table><thead><tr><th>Position</th><th>Annual range</th><th>Estimated salary</th><th>Notes</th></tr></thead><tbody>
 <tr><td><span class="font-semibold">Captain</span><br><span class="text-xs text-muted">${esc(C.rowSubEn.cap)}</span></td>
 <td><div class="text-sm">${mmR(A.cap)}</div><div class="mt-1 salary-bar-track w-32"><div class="salary-bar-fill" style="background:linear-gradient(90deg,${C.color}88,${C.color})" data-width="100"></div></div></td>
 <td><span class="font-bold text-lg" style="color:${C.color}">${mm(A.cap.avg)}</span></td>
@@ -635,8 +635,8 @@ function heroEn() {
   const tags = [`<span class="tag tag-orange">${C.flag} ${esc(C.countryEn)}</span>`,
     ...C.tags.en.map((t, i) => `<span class="tag ${i === 0 ? 'tag-orange' : i === 1 ? 'tag-gray' : 'tag-blue'}">${esc(t)}</span>`)].join('');
   const stats = [
-    [mm(A.cap.avg), 'Capt. Avg (pre-tax)', C.color],
-    [mm(A.fo.avg), 'FO Avg (pre-tax)', C.color],
+    [mm(A.cap.avg), 'Capt. est. (pre-tax)', C.color],
+    [mm(A.fo.avg), 'FO est. (pre-tax)', C.color],
     ...C.statsEn.map(([label, v]) => [v, label, C.color]),
   ].map(([v, k, col]) => `<div class="stat-card text-center"><div class="text-xl font-extrabold mb-1" style="color:${col}">${v}</div><div class="text-xs text-muted">${esc(k)}</div></div>`).join('');
 
