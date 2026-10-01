@@ -54,10 +54,20 @@ const capEn = (k) => usd(S[k].cap.avg);
       ここを通さないと、タイトルと説明文だけが旧値で組み直され、
       **本文は「確認中」なのに検索結果には ¥3,400万 と出る**状態に戻る
       （本文を直した担当が2人とも、この経路を名指しで警告していた）。
-   ・等級を決めていない89社は undefined ＝ 今までどおり true（振る舞いは変わらない）。 */
+   ★2026-10-01、台帳に等級を書いていない航空会社を false に変えた。
+      それまでは undefined ＝ true（＝「平均」と名乗ってよい）という手加減で、
+      **題名60枚が推定額を札なしで出し、米大手4枚は機長の推定額を
+      「パイロットの年収 平均6,160万」として出していた**（説明文の側は
+      「機長の年収は推定で」と既に直っていたので、題名だけ取り残されていた）。
+      SALARY の avg は112社すべて推計（salary-data.mjs:9）で、
+      lp.js:741 と index.html:397 は前から「★「平均」と書かない（avg は推計）」。
+      台帳は**より強い根拠を記録する台帳**であって、載っていない＝平均である
+      証拠が無い、なので名乗らせない。
+   ⚠️ SALARY に無い slug（読み物・トップなど）は true のまま＝COPY 表は変わらない。 */
 const mayAvg = (slug, rank) => {
   const t = BASIS[slug]?.[rank]?.tier;
-  return t === undefined ? true : !!TIERS[t].avg;
+  if (t !== undefined) return !!TIERS[t].avg;
+  return !S[slug];
 };
 const mayAvgBoth = (slug) => mayAvg(slug, 'cap') && mayAvg(slug, 'fo');
 
@@ -195,20 +205,20 @@ const COPY = {
   'pilot-tenshoku.html': {
     ja: { t: 'パイロット転職ガイド｜転職先・年収の変化・必要条件',
           d: 'パイロットの転職を、転職先の選び方・年収の変化・必要な飛行時間と資格・実際の流れの順に解説。海外と国内の違い、失敗しないためのチェックポイントまで現役の匿名データで整理。' },
-    en: { t: 'Pilot Career Moves — Where to Go and How Pay Changes',
-          d: 'A working guide to changing airlines: picking the next carrier, what happens to your pay, the flight hours and ratings you need, and how the process actually runs.' },
+    en: { t: 'Pilot Career Moves from Japan — How Pay Changes',
+          d: 'A working guide to leaving a Japanese airline: picking the next carrier, what happens to your pay, the flight hours and ratings you need, and how the process runs.' },
   },
   'pilot-vs-bengoshi.html': {
     ja: { t: 'パイロットと弁護士、年収はどちらが高いか【2026年】',
           d: 'パイロットと弁護士の年収を、平均・生涯年収・到達までの費用と年数で比較。資格取得の難易度、収入が伸びるタイミング、リスクの種類まで、数字を並べて違いを整理しました。' },
-    en: { t: 'Pilot vs Lawyer Salary — Which Pays More? [2026]',
-          d: 'Pilot and lawyer pay compared on averages, lifetime earnings, and what it costs in money and years to qualify. Where each income curve rises, and the risks each carries.' },
+    en: { t: 'Pilot vs Lawyer Salary in Japan: Which Pays More? [2026]',
+          d: 'Pilot and lawyer pay in Japan: averages, lifetime earnings, and what it costs in money and years to qualify. Where each income curve rises, and the risks each carries.' },
   },
   'pilot-vs-isha.html': {
     ja: { t: 'パイロットと医者、年収はどちらが高いか【2026年】',
           d: 'パイロットと医師の年収を、平均・年代別の伸び方・資格取得までの費用と年数で比較。稼げる額だけでなく、勤務時間・定年・身体検査のリスクまで含めて整理しました。' },
-    en: { t: 'Pilot vs Doctor Salary — Which Pays More? [2026]',
-          d: 'Pilot and doctor pay compared: averages, how each curve rises with age, and the years and money it takes to qualify — plus hours, retirement age and medical risk.' },
+    en: { t: 'Pilot vs Doctor Salary in Japan: Which Pays More? [2026]',
+          d: 'Pilot and doctor pay in Japan: averages, how each curve rises with age, and the years and money it takes to qualify — plus hours, retirement age and medical risk.' },
   },
   'pilot-vs-kochin.html': {
     ja: { t: 'パイロット年収は高収入職業の中でどの位置か【2026年】',
@@ -453,7 +463,9 @@ const EN_RANK_AVG = /\b(?:captains?|first officers?|f\/?os?)\b[^.]{0,12}?\b(?:av
       ここを緩めると、良く書けた説明文が定型文に落ちる（前に一度やった）。 */
 const JA_RANK_AVG = { cap: /機長(?:の)?平均[^。]{0,16}?[\d,]+\s*万/, fo: /副操縦士(?:の)?平均[^。]{0,16}?[\d,]+\s*万/ };
 const staleAvg = (text, slug) => {
-  if (!text || !BASIS[slug]) return false;
+  /* ★2026-10-01、台帳の無い社で素通りさせるのをやめた（mayAvg の節を読む）。
+     SALARY に無い slug（読み物・トップ）はここへ来ないが、念のため外す。 */
+  if (!text || !S[slug]) return false;
   if (EN_RANK_AVG.test(text)) return true;
   /* ★2026-10-01、「取り下げた金額が残っている」の判定をやめた。
        held.was の avg / lo / hi は**50件すべて salary-data.mjs の現在の推定と同じ値**
@@ -464,7 +476,7 @@ const staleAvg = (text, slug) => {
        2026-09-30 のオーナー指示でも取り消されていない（「平均をやめる」は生きている）。
        数字が本当に古くなったときは check-salary.mjs が捕まえる（全ページ × SSOT）。 */
   for (const r of ['cap', 'fo']) {
-    if (!BASIS[slug][r] || mayAvg(slug, r)) continue;
+    if (mayAvg(slug, r)) continue;   // ★mayAvg が undefined も見るので台帳の有無は問わない
     if (JA_RANK_AVG[r].test(text)) return true;
   }
   return false;
@@ -487,12 +499,17 @@ const staleAvg = (text, slug) => {
       どれも額が機長の推定と一致しないので、下の `includes` で自然に外れる。    */
 const LABELED = /推定|est\.|平均|Average|総待遇|Package|募集例|求人|Vacancy|Advert|広告|目標|Target|\/Month/i;
 const bareEstimate = (slug, lang, t) => {
-  if (!t || !S[slug] || !BASIS[slug]?.cap) return false;
+  if (!t || !S[slug]) return false;
   if (mayAvg(slug, 'cap')) return false;      // 「平均」と名乗れる社は札なしでよい
-  const pay = lang === 'ja' ? capJa(slug) : capEn(slug);
-  const payS = lang === 'ja' ? pay.replace(/万円$/, '万') : pay;
-  if (!t.includes(pay) && !t.includes(payS)) return false;
-  return !LABELED.test(t);
+  if (LABELED.test(t)) return false;
+  /* 点の額（capJa/capEn）だけでなく**幅**も見る。カンタスの
+     「機長3,120万〜5,400万円」は機長の推定レンジで、点の額 3,700万 は題名に無い。
+     幅だけ見ていたので60枚のうち23枚が札なしのまま残っていた。 */
+  const c = S[slug].cap;
+  const forms = lang === 'ja'
+    ? [capJa(slug), capJa(slug).replace(/万円$/, '万'), `${c.lo.toLocaleString('en-US')}万〜${c.hi.toLocaleString('en-US')}万`]
+    : [capEn(slug)];
+  return forms.some((f) => t.includes(f));
 };
 
 function airlineTitle(slug, lang, curTitle) {
