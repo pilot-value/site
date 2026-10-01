@@ -111,7 +111,18 @@ function paidLines(slug, rank, ja, M) {
        「確認中じゃなくて推定とかにすりゃいいじゃん」）。
      ⚠️ 金額は salary-data.mjs から取る。台帳の held.was にも同じ数字が控えてあるが、
         そちらを読むと年収の正がリポジトリに2か所できる（SSOT は salary-data.mjs だけ）。
-     ⚠️ 「平均」と書かない。公開情報から当サイトが推計した金額で、実測の平均ではない。 */
+     ⚠️ 「平均」と書かない。公開情報から当サイトが推計した金額で、実測の平均ではない。
+
+     ★2026-10-01、この決まりをこのファイル全体に通した（23か所）。
+       それまでは、国や地域をまたいで足して割った数を「国全体の平均」「世界112社平均」
+       「機長の平均」と、**何の平均かを言わずに**書いていた。材料は全部推計なので、
+       実測の平均に読めてしまう。いまはどれも「推定年収の平均」と名前を言う。
+       ⚠️ 1社しか載せていない国では「平均」の語そのものを落とす（one で分けている）。
+       ⚠️ 「掲載社の推定年収の単純平均」を「その国のパイロット全体の平均」と呼ばない
+          （オーナーの禁止事項）。この決まりとは別で、前から効いている。
+       ⚠️ 「平均」と書いてよいのは実測の平均（salary-basis.mjs の observed_mean）だけ。
+          いまそれを使っている社は**1社も無い**（50職位ぜんぶが推定・公式募集例・求人・
+          過去広告・給与例）。戻すときはまず台帳を見る。 */
   if (b.tier === 'estimate') {
     const r = S[slug]?.[rank];
     if (!r) return null;
@@ -119,7 +130,16 @@ function paidLines(slug, rank, ja, M) {
   }
   const t = ja ? TIERS[b.tier].ja : TIERS[b.tier].en;
   const fs = yearly(slug, rank).filter((f) => !f.training);
-  if (!fs.length) return null;
+  if (!fs.length) {
+    /* ★2026-10-01 ── 台帳に等級はあるが「年額」が1つも無い職位。
+       いまこれに当たるのは**サウジアの機長**で、台帳にあるのは2005年の月額だけ。
+       ここで null を返すと、このファイルを流し直した瞬間に中東ページの2マスだけが
+       「確認中」に巻き戻る（他は推定で出ているので、1社だけ空くのは誤りに見える）。
+       オーナー指示「基本全て推定でいいじゃん」に合わせて推定の金額に落とす。 */
+    const r = S[slug]?.[rank];
+    if (!r) return null;
+    return [ja ? `${M(r.avg)}（${TIERS.estimate.ja}）` : `${M(r.avg)} (${TIERS.estimate.en})`];
+  }
   return fs.map((f) => {
     const grp = ja ? f.group : (f.group_en || f.group);
     const kind = ja ? f.kind : (f.kind_en || f.kind);
@@ -610,7 +630,7 @@ function countryPage(c, lang) {
         ? `${one ? `${name}のパイロット年収。掲載は${topName}。` : `${name}に本拠を置く航空会社${c.n}社のパイロット年収。`}会社が公表した募集例・求人の掲載額・当サイトの推定を区分ごとに掲載。金額の種類が社ごとに違うため、国全体の平均は出していません。${taxFree ? '個人所得税はありません。' : ''}`
         : `${one ? `Pilot pay in ${name}, based on ${topName}.` : `Pilot pay at the ${c.n} airlines based in ${name}.`} Each figure is labelled — official posting, job advert, or our own estimate. No country average: the figures are not the same kind of number.${taxFree ? ' No personal income tax.' : ''}`)
     : (ja
-        ? `${one ? `${name}のパイロット年収。掲載は${topName}。` : `${name}のパイロット年収を航空会社${c.n}社で比較。`}機長の推定年収は平均${man(c.capAvg)}（${range(c.capLo, c.capHi)}）、副操縦士は平均${man(c.foAvg)}。${taxFree ? '個人所得税が課されないため額面がそのまま手取りになります。' : `世界${NPUB}社の平均との比較と社別の一覧を掲載。`}`
+        ? `${one ? `${name}のパイロット年収。掲載は${topName}。` : `${name}のパイロット年収を航空会社${c.n}社で比較。`}機長の推定年収は${one ? '' : '平均'}${man(c.capAvg)}（${range(c.capLo, c.capHi)}）、副操縦士は${one ? '' : '平均'}${man(c.foAvg)}。${taxFree ? '個人所得税が課されないため額面がそのまま手取りになります。' : `世界${NPUB}社の平均との比較と社別の一覧を掲載。`}`
         : `${one ? `Pilot pay in ${name}, based on ${topName}.` : `Pilot pay in ${name} across ${c.n} airlines.`} Captain estimate ${usd(c.capAvg)} (${usdRange(c.capLo, c.capHi)}), first officers ${usd(c.foAvg)}. ${taxFree ? 'No personal income tax, so the headline figure is take-home.' : `Compared against the ${NPUB}-airline world average, airline by airline.`}`);
 
   const keywords = ja
@@ -657,7 +677,7 @@ function countryPage(c, lang) {
       [`${name}で最もパイロットの年収が高い航空会社はどこですか？`,
         `高い順に並べることはしていません。${why}各社のページで、その金額が誰の・何を含んだ・いつの金額かと一緒に見てください。`],
       [`${name}のパイロット年収は世界的に見て高いですか？`,
-        `国ごとの順位は出していません。順位は各国の掲載社の平均を並べたものですが、${name}の掲載社は金額の種類が混ざっているため、その平均を出していません。`],
+        `国ごとの順位は出していません。順位は各国の掲載社の推定年収の平均を並べたものですが、${name}の掲載社は金額の種類が混ざっているため、その平均を出していません。`],
     ] : [
       [`How much do pilots earn in ${name}?`,
         `We do not publish a country average for the ${c.n} airlines we list in ${name}. ${why}${paid.length
@@ -678,7 +698,7 @@ function countryPage(c, lang) {
         ? `${name}で PILOT VALUE が掲載しているのは${topName}のみで、機長の推定年収の平均が${M(topA.cap.avg)}（${R(topA.cap.lo, topA.cap.hi)}）、副操縦士が${M(topA.fo.avg)}です。`
         : `掲載${c.n}社の中では${topName}が最も高く、機長の推定年収の平均が${M(topA.cap.avg)}（${R(topA.cap.lo, topA.cap.hi)}）、副操縦士が${M(topA.fo.avg)}です。`],
     [`${name}のパイロット年収は世界的に見て高いですか？`,
-      `推定年収の平均を掲載している${RANKED.length}カ国で比べると${name}は第${rank}位です。世界${NPUB}社の平均は${M(WORLD_CAP)}で、${name}は${M(c.capAvg)}でした。`],
+      `推定年収の平均を掲載している${RANKED.length}カ国で比べると${name}は第${rank}位です。世界${NPUB}社の推定年収の平均は${M(WORLD_CAP)}で、${name}は${M(c.capAvg)}でした。`],
     ...(taxFree ? [[`${name}のパイロットの給与に所得税はかかりますか？`,
       `${name}では個人所得税が課されないため、掲載している金額がそのまま手取りに近くなります。所得税のある国の同額の給与と比べると、実際に手元に残る額は大きくなります。`]] : []),
     /* ⚠️ 日本との比較は、日本側の平均を保留したら出せない（倍率・差額は
@@ -797,8 +817,8 @@ ${basisRows}
   const openTable = openSlugs.length ? `${c.ledger.length ? `
     <h3>${ja ? `そのほかの掲載社（${openSlugs.length}社）` : `Other airlines we list (${openSlugs.length})`}</h3>
     <p>${ja
-    ? `この${openSlugs.length}社は平均とレンジを掲載しています。出どころの確認は上の${c.ledger.length}社から順に進めています。`
-    : `For these ${openSlugs.length} we publish an average and a range. We are working through the sources airline by airline, starting with the ${c.ledger.length} above.`}</p>` : ''}
+    ? `この${openSlugs.length}社は、公開情報から当サイトが出した推定年収とレンジです。`
+    : `For these ${openSlugs.length} the figures are our own estimates with a range, worked out from publicly available information.`}</p>` : ''}
     <div class="glass tbl-scroll" style="padding:4px">
       <table class="salary-table">
         <thead><tr>
@@ -867,7 +887,7 @@ ${rows}
       <div class="stat-sub">${ja ? '会社の募集・求人・本人の申告から' : 'from vacancies, adverts and pilot reports'}</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">${ja ? '国全体の平均' : 'Country average'}</div>
+      <div class="stat-label">${ja ? '掲載社の推定年収の平均' : 'Mean of our estimates'}</div>
       <div class="stat-value" style="font-size:1.05rem;line-height:1.35">${ja ? '出していません' : 'Not published'}</div>
       <div class="stat-sub">${ja ? '社ごとに金額の意味が違うため' : 'the figures are not on one scale'}</div>
     </div>
@@ -887,9 +907,9 @@ ${rows}
       <div class="stat-sub num">${range(c.foLo, c.foHi)}</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">${ja ? '世界平均との差' : 'vs world average'}</div>
+      <div class="stat-label">${ja ? '世界の推定平均との差' : 'vs world estimate'}</div>
       <div class="stat-value num" style="color:${diff >= 0 ? '#34d399' : '#fb923c'}">${diff >= 0 ? '+' : ''}${diff}%</div>
-      <div class="stat-sub">${ja ? `世界${NPUB}社平均 ` : `world avg `}<span class="num">${man(WORLD_CAP)}</span></div>
+      <div class="stat-sub">${ja ? `世界${NPUB}社の推定の平均 ` : `world estimate avg `}<span class="num">${man(WORLD_CAP)}</span></div>
     </div>
     <div class="stat-card">
       <div class="stat-label">${ja ? '最高水準の会社' : 'Top payer'}</div>
@@ -998,7 +1018,7 @@ function regionPage(r, lang) {
         ? `${name}のパイロット年収を航空会社${r.n}社・${r.nc}カ国で掲載。会社が公表した募集例・求人の掲載額・当サイトの推定を区分ごとに出しています。金額の種類が社ごとに違うため、地域全体の平均は出していません。`
         : `Pilot pay at ${r.n} airlines across ${r.nc} countries in ${name}. Every figure is labelled — official posting, job advert, or our own estimate. No regional average: the figures are not the same kind of number.`)
     : (ja
-        ? `${name}のパイロット年収を航空会社${r.n}社・${r.nc}カ国で比較。機長は平均${man(r.capAvg)}（${range(r.capLo, r.capHi)}）、副操縦士は平均${man(r.foAvg)}。最高水準は${topName}の${man(topA.cap.avg)}。世界${NPUB}社の平均との差と、国別・社別の一覧を掲載。`
+        ? `${name}のパイロット年収を航空会社${r.n}社・${r.nc}カ国で比較。機長の推定年収は平均${man(r.capAvg)}（${range(r.capLo, r.capHi)}）、副操縦士は平均${man(r.foAvg)}。最高水準は${topName}の${man(topA.cap.avg)}。世界${NPUB}社の推定年収の平均との差と、国別・社別の一覧を掲載。`
         : `Pilot pay across ${name}: ${r.n} airlines in ${r.nc} countries. Captains average ${usd(r.capAvg)} (${usdRange(r.capLo, r.capHi)}), first officers ${usd(r.foAvg)}. ${topName} pays the most at ${usd(topA.cap.avg)}. Country-by-country and airline-by-airline, against the ${NPUB}-airline world average.`);
 
   const keywords = ja
@@ -1048,13 +1068,13 @@ function regionPage(r, lang) {
 
   const mkFaqOpen = (M, R) => (ja ? [
     [`${name}のパイロットの年収はいくらですか？`,
-      `PILOT VALUE が掲載している${name}の航空会社${r.n}社では、機長の平均が${M(r.capAvg)}（${R(r.capLo, r.capHi)}）、副操縦士の平均が${M(r.foAvg)}（${R(r.foLo, r.foHi)}）です。世界${NPUB}社の機長の推定年収の平均${M(WORLD_CAP)}と比べると${diff >= 0 ? `約${diff}%高い` : `約${Math.abs(diff)}%低い`}水準で、平均を出している${REG_RANKED.length}地域の中では第${rank}位です。`],
+      `PILOT VALUE が掲載している${name}の航空会社${r.n}社では、機長の推定年収の平均が${M(r.capAvg)}（${R(r.capLo, r.capHi)}）、副操縦士の推定年収の平均が${M(r.foAvg)}（${R(r.foLo, r.foHi)}）です。世界${NPUB}社の機長の推定年収の平均${M(WORLD_CAP)}と比べると${diff >= 0 ? `約${diff}%高い` : `約${Math.abs(diff)}%低い`}水準で、平均を出している${REG_RANKED.length}地域の中では第${rank}位です。`],
     [`${name}で最もパイロットの年収が高い航空会社はどこですか？`,
       `掲載${r.n}社の中では${topName}が最も高く、機長の推定年収の平均が${M(topA.cap.avg)}（${R(topA.cap.lo, topA.cap.hi)}）、副操縦士が${M(topA.fo.avg)}（${R(topA.fo.lo, topA.fo.hi)}）です。`],
     ...(r.nc > 1 ? [[`${name}で最もパイロットの年収が高い国はどこですか？`,
-      `${name}の掲載${r.nc}カ国では${topC.ja}が最も高く、同国の掲載${topC.n}社の機長平均は${M(topC.capAvg)}です。`]] : []),
+      `${name}の掲載${r.nc}カ国では${topC.ja}が最も高く、同国の掲載${topC.n}社の機長の推定年収の平均は${M(topC.capAvg)}です。`]] : []),
     [`${name}のパイロットの月収はいくらですか？`,
-      `${name}の平均年収を12で割ると、機長で月あたり約${M(capM)}、副操縦士で約${M(foM)}になります。実際に毎月入る額は乗務時間で動きますし、年1〜2回の賞与がある会社では毎月の額はこれより低く、賞与月に跳ねます。`],
+      `${name}の推定年収の平均を12で割ると、機長で月あたり約${M(capM)}、副操縦士で約${M(foM)}になります。実際に毎月入る額は乗務時間で動きますし、年1〜2回の賞与がある会社では毎月の額はこれより低く、賞与月に跳ねます。`],
     ...(r.taxFree > 0 ? [[`${name}のパイロットの給与に所得税はかかりますか？`,
       `掲載${r.n}社のうち${r.taxFree}社は個人所得税が課されない国に本拠を置いています。その場合、上の金額がそのまま手取りに近くなります。所得税のある国の同額の給与と比べると、手元に残る額は大きくなります。`]] : []),
     ...(jp?.capAvg != null ? [[`日本の航空会社と比べてどうですか？`,
@@ -1229,7 +1249,7 @@ ${airlineRows}
       <span class="tag tag-blue">${ja ? `${r.n}社・${r.nc}カ国` : `${r.n} airlines · ${r.nc} countries`}</span>
       ${held
     ? `<span class="tag tag-blue">${ja ? '地域全体の平均は出していません' : 'No regional average'}</span>`
-    : `<span class="tag tag-gold">${ja ? `平均を出している${REG_RANKED.length}地域中 第${rank}位` : `#${rank} of ${REG_RANKED.length} regions`}</span>`}
+    : `<span class="tag tag-gold">${ja ? `推定年収の平均を出す${REG_RANKED.length}地域中 第${rank}位` : `#${rank} of ${REG_RANKED.length} regions`}</span>`}
       ${r.taxFree > 0 ? `<span class="tag tag-green">${ja ? `非課税 ${r.taxFree}社` : `${r.taxFree} tax-free`}</span>` : ''}
     </div>
   </header>
@@ -1246,7 +1266,7 @@ ${airlineRows}
       <div class="stat-sub">${ja ? '会社の募集・求人・本人の申告から' : 'from vacancies, adverts and pilot reports'}</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">${ja ? '地域全体の平均' : 'Regional average'}</div>
+      <div class="stat-label">${ja ? '掲載社の推定年収の平均' : 'Mean of our estimates'}</div>
       <div class="stat-value" style="font-size:1.05rem;line-height:1.35">${ja ? '出していません' : 'Not published'}</div>
       <div class="stat-sub">${ja ? '社ごとに金額の意味が違うため' : 'the figures are not on one scale'}</div>
     </div>
@@ -1266,9 +1286,9 @@ ${airlineRows}
       <div class="stat-sub num">${range(r.foLo, r.foHi)}</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">${ja ? '世界平均との差' : 'vs world average'}</div>
+      <div class="stat-label">${ja ? '世界の推定平均との差' : 'vs world estimate'}</div>
       <div class="stat-value num" style="color:${diff >= 0 ? '#34d399' : '#fb923c'}">${diff >= 0 ? '+' : ''}${diff}%</div>
-      <div class="stat-sub">${ja ? `世界${NPUB}社平均 ` : `world avg `}<span class="num">${man(WORLD_CAP)}</span></div>
+      <div class="stat-sub">${ja ? `世界${NPUB}社の推定の平均 ` : `world estimate avg `}<span class="num">${man(WORLD_CAP)}</span></div>
     </div>
     <div class="stat-card">
       <div class="stat-label">${ja ? '最高水準の会社' : 'Top payer'}</div>
@@ -1282,7 +1302,7 @@ ${airlineRows}
     <p>${held ? (ja
     ? `国名をクリックすると、その国の航空会社ごとの内訳と所得税の有無が見られます。出どころを確認した会社を含む国は、国全体の平均を出していないため空欄です（順位も付けていません）。`
     : `Open a country for its airline-by-airline breakdown and its income-tax status. Countries that include an airline whose sources we have checked show no country average, and no rank.`) : (ja
-    ? `機長の推定年収が高い順です。国名をクリックすると、その国の航空会社ごとの内訳・世界平均との差・所得税の有無が見られます。`
+    ? `機長の推定年収が高い順です。国名をクリックすると、その国の航空会社ごとの内訳・世界の推定平均との差・所得税の有無が見られます。`
     : `Sorted by captain average, highest first. Open a country for its airline-by-airline breakdown, how it compares with the world average, and its income-tax status.`)}</p>
     <div class="glass tbl-scroll" style="padding:4px">
       <table class="salary-table">
@@ -1314,11 +1334,11 @@ ${held ? `    <h2 id="compare">${ja ? `${name}の順位を出していない理�
     ? `${name}の会社については、金額の出どころを1社ずつ確認する作業を始めています。その結果、同じ「年収」という言葉で並んでいた数字が、実際には別のものだと分かりました。会社が募集要項に載せた現金の額、住宅や学費まで含めた待遇の評価額、採用会社の求人に出ていた上限、本人が書いた額 ── 意味の違うものを1本の平均にすると、どの会社が高いのかという問いにも答えられません。`
     : `We are working through the ${name} airlines one at a time to trace where each figure came from. Doing that showed that numbers sitting side by side under the word “salary” are not the same kind of number: cash an airline published in a vacancy, a package value that folds in housing and school fees, a ceiling quoted in an agency advert, a figure written by a pilot who works there. Averaging those together cannot answer which airline pays more.`}</p>
     <p>${ja
-    ? `そのため、この地域の平均年収・地域どうしの順位・世界平均との倍率は出していません。代わりに、上の表で会社ごとの金額と、それが誰に・どの条件で当てはまる額かを並べています。会社の数字の単純平均は、その地域のパイロット全体の平均ではありません。`
+    ? `そのため、この地域の推定年収の平均・地域どうしの順位・世界の推定年収の平均との倍率は出していません。代わりに、上の表で会社ごとの金額と、それが誰に・どの条件で当てはまる額かを並べています。会社の数字の単純平均は、その地域のパイロット全体の平均ではありません。`
     : `So this page publishes no regional average, no ranking between regions and no multiple against the world average. Instead the tables above give each airline's figure together with who it applies to and on what terms. An unweighted mean of company figures is not the average pay of pilots in a region.`}</p>
 ` : `    <h2 id="compare">${ja ? `${name}は世界のどのあたりか` : `Where ${name} sits worldwide`}</h2>
     <p>${ja
-    ? `機長の平均年収を地域ごとに比べたものです。${name}は${man(r.capAvg)}で、世界${NPUB}社の平均${man(WORLD_CAP)}に対して<strong>${diff >= 0 ? `約${diff}%高い` : `約${Math.abs(diff)}%低い`}</strong>水準。平均を出している${REG_RANKED.length}地域の中では第${rank}位です。`
+    ? `機長の推定年収を地域ごとに比べたものです。${name}は${man(r.capAvg)}で、世界${NPUB}社の推定年収の平均${man(WORLD_CAP)}に対して<strong>${diff >= 0 ? `約${diff}%高い` : `約${Math.abs(diff)}%低い`}</strong>水準。推定年収の平均を出している${REG_RANKED.length}地域の中では第${rank}位です。`
     : `Captain averages by region. ${nameCap} sits at ${man(r.capAvg)} against a ${man(WORLD_CAP)} average across all ${NPUB} airlines we list — <strong>${diff >= 0 ? `about ${diff}% above` : `about ${Math.abs(diff)}% below`}</strong>. That is ${nth(rank)} of the ${REG_RANKED.length} regions we publish an average for.`}</p>
     <div class="glass" style="padding:18px 20px">${bars(cmpRows, lang)}</div>
     <p style="font-size:.78rem;color:#6b7d93;margin-top:10px">${ja
@@ -1371,7 +1391,7 @@ function indexPage(lang) {
     : `Pilot Salary by Country 2026 — ${ALL.length} Countries Compared`;
   const top3 = RANKED.slice(0, 3);
   const desc = ja
-    ? `パイロットの年収を国別に比較。掲載${ALL.length}カ国のうち平均を出している${RANKED.length}カ国では${top3.map((c) => `${c.ja}${man(c.capAvg)}`).join('・')}が上位。金額の種類が混ざる${HOLD_C.length}カ国は、会社ごとの金額を区分ごとに載せています。`
+    ? `パイロットの年収を国別に比較。掲載${ALL.length}カ国のうち推定年収の平均を出している${RANKED.length}カ国では${top3.map((c) => `${c.ja}${man(c.capAvg)}`).join('・')}が上位。金額の種類が混ざる${HOLD_C.length}カ国は、会社ごとの金額を区分ごとに載せています。`
     /* ★ description は head の中＝currency.js の走査対象外。ここで man() を
        使うと英語版の検索結果に「¥4,380万」がそのまま出る（実際に出ていた）。
        国別ページ側と同じく USD で書く。 */
@@ -1410,7 +1430,7 @@ function indexPage(lang) {
       <div class="stat-sub">${ja ? `航空会社 ${ALL.reduce((s, c) => s + c.n, 0)}社` : `${ALL.reduce((s, c) => s + c.n, 0)} airlines`}</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">${ja ? '世界の機長平均' : 'World captain avg'}</div>
+      <div class="stat-label">${ja ? '世界の機長の推定年収' : 'World captain estimate'}</div>
       <div class="stat-value num" style="color:#f5c842">${man(WORLD_CAP)}</div>
       <div class="stat-sub">${ja ? `掲載${NPUB}社の推定年収の平均` : `mean of our estimates across ${NPUB} airlines`}</div>
     </div>
@@ -1440,7 +1460,7 @@ ${[...REG_RANKED, ...REG.filter((r) => r.mixed)].map((r) => `      <a class="c-c
       </a>`).join('\n')}
     </div>
 
-    <h2 id="ranking">${ja ? `機長平均の高い順（${RANKED.length}カ国）` : `Ranked by captain average (${RANKED.length} countries)`}</h2>
+    <h2 id="ranking">${ja ? `機長の推定年収が高い順（${RANKED.length}カ国）` : `Ranked by our captain estimate (${RANKED.length} countries)`}</h2>
     <p>${ja
     ? `掲載${ALL.length}カ国のうち、国全体の平均を出している${RANKED.length}カ国です。`
     : `The ${RANKED.length} of our ${ALL.length} countries that carry a country average.`}</p>

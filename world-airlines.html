@@ -959,11 +959,7 @@ function mountWALeveling(){
   PVLeveling.mount('#lvl-wa-grid', {
     tip:'#lvl-wa-tip', layout:'levels', picker:'#lvl-wa-picker',
     quick:['ana','jal','emirates','delta','united','singapore-airlines'],
-    /* 最初に開く4社。⚠️ 出どころを確認中の会社は図の側が自動で落とすので、
-       落ちたぶんの控えを後ろに並べておく（前から詰めて4社になる）。
-       2026-09-30、ANA・JAL・エミレーツが確認中になり、控えが無いと
-       デルタ1社だけの図が開いた。確認が取れれば前の3社が自動で戻る。 */
-    max:5, open:4, pool:'all', slugs:['ana','jal','emirates','delta','united','american','southwest'],
+    max:5, pool:'all', slugs:['ana','jal','emirates','delta'],
     mode:'all', meta:META
   });
   waLvlMounted = true;

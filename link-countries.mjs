@@ -48,7 +48,10 @@ for (const [slug, code] of Object.entries(AIRLINE_COUNTRY)) {
    同じ物差しで足して割れる。物差しが違うのは公式募集例・求人の掲載額・過去の募集広告・
    総待遇・条件つきの給与例で、それが1社でも混ざる国は今までどおり平均を出さない。
    ⚠️ ここで出すのは**掲載した会社の平均**で、その国のパイロット全体の平均ではない
-      （文言が「掲載N社・機長平均」なのはそのため。オーナーの禁止事項）。 */
+      （文言が「掲載N社・…」と社数を先に言うのはそのため。オーナーの禁止事項）。
+   ★2026-10-01、札を「機長平均 ¥N万」から「機長の推定年収 平均¥N万」に変えた。
+     元の形は、公開情報からの推計の平均なのに「機長平均」＝実測の平均に読めた。
+     1社しか載せていない国では平均でもないので「平均」の語を落とす（96件がそうだった）。 */
 const STRONGER = (k) => ['cap', 'fo'].some((r) => {
   const t = BASIS[k]?.[r]?.tier;
   return t !== undefined && t !== 'estimate';
@@ -148,8 +151,8 @@ function block(slug, lang) {
       <span class="pvcl-s">${heldCountry(code)
     ? (ja ? `掲載${n}社・国全体の平均は出していません`
           : `${n} airline${n > 1 ? 's' : ''} · no country average`)
-    : (ja ? `掲載${n}社・機長平均 ${man(capAvgOf(code))}`
-          : `${n} airline${n > 1 ? 's' : ''} · captain avg ${man(capAvgOf(code))}`)}</span>
+    : (ja ? `掲載${n}社・機長の推定年収${n > 1 ? ' 平均' : ' '}${man(capAvgOf(code))}`
+          : `${n} airline${n > 1 ? 's' : ''} · captain${n > 1 ? 's, our estimates average' : ', our estimate'} ${man(capAvgOf(code))}`)}</span>
     </span>
     <span class="pvcl-arrow" aria-hidden="true">→</span>
   </a>

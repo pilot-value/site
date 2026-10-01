@@ -761,7 +761,7 @@ export const BASIS = {
       '採用予定数は2027年度入社で新卒・キャリア合計50名程度、乗務開始後の休日は原則月10日です。',
     ],
     notes_en: [
-      'This is the average for flight crew as a whole, captains and first officers together. The airline does not publish a separate average for either rank.',
+      'This is the average for flight crew as a whole, captains and first officers together; the filing does not break it out by rank.',
       'It covers the JAL group on a consolidated basis, not Japan Airlines alone — the filing says so in its note.',
       'The airline states the method: cash-equivalent pay within consolidated personnel costs, divided by the average headcount on the books during the year. That is a pre-tax basis. The note does not say whether bonuses and allowances are included.',
       'The trainee figure is the starting monthly pay for a flight-crew trainee, not a figure for captains or first officers. Anyone who holds or has held a commercial pilot licence cannot apply.',
@@ -808,7 +808,7 @@ export const BASIS = {
       '経験者採用（B737の機長候補・副操縦士候補）の給与は、会社が「非公開」「当社規程による」としています。',
     ],
     notes_en: [
-      'This is the average for 290 flight crew, captains and first officers together. The airline does not publish a separate average for either rank.',
+      'This is the average for 290 flight crew, captains and first officers together; the filing does not break it out by rank.',
       'It covers Skymark alone, and the filing’s note excludes trainees from the headcount.',
       'Flight crew seconded from staffing agencies are counted in the headcount but excluded from the pay calculation, as the filing states.',
       'Bonuses and non-standard wages are included, per the filing’s note. The figure is as at 31 March 2025.',

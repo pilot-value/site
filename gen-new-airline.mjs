@@ -66,6 +66,57 @@ const pct = (v, max) => Math.round((v / max) * 100);
    ここを経由させることで、CONTENT 側に生の数字を書く手段が無くなる。 */
 const H = { A, man, manR, mm, mmR, ana: SALARY.ana, jal: SALARY.jal, SALARY };
 
+/* ── 比較表の相手は「同じ地域の航空会社」────────────────────────────
+   2026-09-30 オーナー指摘「なぜサイト全体的に日本から外にでていく目線で描かれてるの？
+   海外のパイロットにも普及させるのに。」
+   以前はここが ANA・JAL 固定で、見出しも「X vs Japan Majors」・脚注も
+   「ANA / JAL shown as the Japan baseline（日本が基準）」だった。
+   オーストラリアのパイロットがカンタスのページを開いて比べたいのは ANA ではない。
+   ⚠️ ここを ANA・JAL 固定に戻さない。1社足すたびに同じ形が復活する。
+   日本の会社は相手が ANA・JAL のままで正しい（同じ地域だから）。 */
+const PEERS = {
+  japan: ['ana', 'jal', 'zipair'],
+  asia: ['singapore-airlines', 'cathay-pacific', 'korean-air', 'thai-airways'],
+  mideast: ['emirates', 'qatar-airways', 'etihad', 'gulf-air'],
+  oceania: ['qantas', 'air-new-zealand', 'jetstar', 'fiji-airways'],
+  us: ['delta', 'united', 'american', 'southwest'],
+  europe: ['lufthansa', 'british-airways', 'air-france', 'klm'],
+  africa: ['ethiopian-airlines', 'egyptair', 'kenya-airways', 'south-african-airways'],
+  latam: ['latam', 'avianca', 'copa-airlines', 'aeromexico'],
+};
+const REGION_EN = {
+  japan: 'Japanese', asia: 'Asian', mideast: 'Middle East', oceania: 'Oceania',
+  us: 'North American', europe: 'European', africa: 'African', latam: 'Latin American',
+};
+const REGION_JA = {
+  japan: '日本', asia: 'アジア', mideast: '中東', oceania: 'オセアニア',
+  us: '北米', europe: '欧州', africa: 'アフリカ', latam: '中南米',
+};
+/* そのページの会社を除いて先頭2社。地域が引けない社は日本の2社に落とす（従来の形）。 */
+const peerSlugs = (PEERS[A.region] || PEERS.japan).filter((p) => p !== slug && SALARY[p]).slice(0, 2);
+const regionEn = REGION_EN[A.region] || REGION_EN.japan;
+const regionJa = REGION_JA[A.region] || REGION_JA.japan;
+const peerNameEn = (p) => `<a href="${p}.html" class="text-accent">${esc(SALARY[p].en)}</a>`;
+const peerNameJa = (p) => `<a href="${p}.html" class="text-accent">${esc(SALARY[p].ja)}</a>`;
+const taxCellEn = (p) => (SALARY[p].taxFree
+  ? '<span class="tag tag-green">0% (tax-free)</span>'
+  : '<span class="tag tag-gray">Income tax applies</span>');
+const taxCellJa = (p) => (SALARY[p].taxFree
+  ? '<span class="tag tag-green">0%（非課税）</span>'
+  : '<span class="tag tag-gray">所得税あり</span>');
+/* 比較表の脚注の既定。会社ごとの事情は1文だけ足す（extra）。
+   ⚠️ この文言は全110枚と同じもの。ここで言い方を発明すると、このページだけ違うことを言う。
+   ⚠️ 「会社は給与を公表していません」と書かない（オーナー指示 2026-09-30）── 当サイトの
+      数字が推定であることと、会社が公表していないことは別の主張。無いことの証明にならない。 */
+const compareFootEn = (extra = '') => '* The salary figures are our own estimates, worked out from '
+  + 'publicly available information — not figures the airlines publish.'
+  + (extra ? ` ${extra}` : '')
+  + (([slug, ...peerSlugs]).some((p) => SALARY[p].taxFree)
+    ? ' Carriers marked tax-free pay out the headline figure in full; where income tax applies, '
+      + 'take-home is lower than the headline.'
+    : ' Income tax applies in every case here, so the headline figure is not what reaches the bank account.')
+  + ' Verify exact figures with each airline.';
+
 /* ════════════════════════════════════════════════════════════════
    本文。1社につきここだけ書く。
    ★ 事実は調べて書く。テンプレの穴埋めで水増ししない。
@@ -239,11 +290,10 @@ const CONTENT = {
        `${h.A.en} first officers average about ${h.mm(h.A.fo.avg)} a year (range ${h.mmR(h.A.fo)}), before tax. The first officer scale has 14 steps, and pay moves up with time in seat until upgrade to captain.`],
       [`Does ${h.A.en} pay for the type rating?`,
        `Yes. ${h.A.en} recruits first officers who do not hold a type rating and covers the full Airbus A320-family type rating. That is the main difference from low-cost operators that ask pilots to fund their own type rating.`],
-      [`How does ${h.A.en} pay compare with ANA and JAL?`,
-       `${h.A.en} captains average ${h.mm(h.A.cap.avg)} against ${h.mm(h.ana.cap.avg)} at ANA and JAL, and first officers ${h.mm(h.A.fo.avg)} against ${h.mm(h.ana.fo.avg)}. All four figures are gross, before income tax; both Germany and Japan tax pilot income.`],
+      [`How does ${h.A.en} pay compare with other European carriers?`,
+       `${h.A.en} captains are estimated at ${h.mm(h.A.cap.avg)} a year against ${h.mm(h.SALARY.lufthansa.cap.avg)} at Lufthansa, and first officers ${h.mm(h.A.fo.avg)} against ${h.mm(h.SALARY.lufthansa.fo.avg)}. Both sides are our own estimates and both are gross figures: Germany taxes pilot pay, so take-home is lower than the headline in either case.`],
     ],
-    compareNoteEn: '* Salary figures are our own estimates, pre-tax. ANA / JAL are shown as the Japan baseline. '
-      + 'Germany taxes pilot income, so take-home is lower than the headline figure in both columns.',
+    compareNoteEn: compareFootEn(),
   },
 
   asiana: {
@@ -406,11 +456,10 @@ const CONTENT = {
        `${h.A.en} first officers are estimated at about ${h.mm(h.A.fo.avg)} a year (range ${h.mmR(h.A.fo)}), before tax, apportioned from the same pilot-wide average. Asiana publishes no rank-by-rank pay scale, and the pilots' union does not publish one either, so treat this as an estimate rather than a rate.`],
       [`What happens to ${h.A.en} pilots after the Korean Air merger?`,
        `${h.A.en} merges into Korean Air on 17 December 2026. It leaves Star Alliance on 16 December, joins SkyTeam on the 17th, and the Asiana Club programme closes the same day. Korean Air completed the acquisition in December 2024; the cargo division was already sold to Air Incheon as an antitrust remedy. How the two seniority lists and the two sets of terms will be combined has not been published, which is the single biggest unknown for anyone joining now.`],
-      [`How does ${h.A.en} pay compare with ANA and JAL?`,
-       `${h.A.en} captains are estimated at ${h.mm(h.A.cap.avg)} against ${h.mm(h.ana.cap.avg)} at ANA and JAL, and first officers ${h.mm(h.A.fo.avg)} against ${h.mm(h.ana.fo.avg)}. All figures are gross, before income tax, and both South Korea and Japan tax pilot income. The Japanese figures come from published data; the Asiana ones are apportioned estimates, so the gap is indicative rather than exact.`],
+      [`How does ${h.A.en} pay compare with other Asian carriers?`,
+       `${h.A.en} captains are estimated at ${h.mm(h.A.cap.avg)} a year against ${h.mm(h.SALARY['singapore-airlines'].cap.avg)} at Singapore Airlines, and first officers ${h.mm(h.A.fo.avg)} against ${h.mm(h.SALARY['singapore-airlines'].fo.avg)}. Both sides are our own estimates and both are gross of income tax. The Asiana figures are apportioned from an airline-wide average rather than a published pay scale, so treat the gap as indicative rather than exact.`],
     ],
-    compareNoteEn: '* Salary figures are our own estimates, pre-tax. ANA / JAL are shown as the Japan baseline. '
-      + 'The Asiana figures are apportioned estimates, not a published pay scale. Both South Korea and Japan tax pilot income.',
+    compareNoteEn: compareFootEn('The Asiana figures are apportioned estimates, not a published pay scale.'),
   },
 };
 
@@ -588,13 +637,12 @@ ${ladder}
 
 <div class="glass p-8 fade-up">
 <div class="section-badge mb-4">Comparison</div>
-<h2 class="text-2xl font-bold mb-6">${esc(A.en)} vs Japan Majors</h2>
+<h2 class="text-2xl font-bold mb-6">${esc(A.en)} vs other ${regionEn} carriers</h2>
 <div class="overflow-x-auto"><table>
 <thead><tr><th>Airline</th><th>Captain (range)</th><th>First Officer</th><th>Income Tax</th></tr></thead>
 <tbody>
-<tr><td><span class="font-bold" style="color:${C.color}">${esc(A.en)} ${C.flag}</span></td><td><span class="font-bold" style="color:${C.color}">${mmR(A.cap)}</span></td><td>${mmR(A.fo)}</td><td>${A.taxFree ? '<span class="tag tag-green">Tax-free</span>' : '<span class="text-muted text-sm">Income tax applies</span>'}</td></tr>
-<tr><td><span class="font-semibold">ANA 🇯🇵</span></td><td>${mmR(ana.cap)}</td><td>${mmR(ana.fo)}</td><td><span class="tag tag-gray">~33% (Japan)</span></td></tr>
-<tr><td><span class="font-semibold">JAL 🇯🇵</span></td><td>${mmR(SALARY.jal.cap)}</td><td>${mmR(SALARY.jal.fo)}</td><td><span class="tag tag-gray">~33% (Japan)</span></td></tr>
+<tr><td><span class="font-bold" style="color:${C.color}">${esc(A.en)} ${C.flag}</span></td><td><span class="font-bold" style="color:${C.color}">${mmR(A.cap)}</span></td><td>${mmR(A.fo)}</td><td>${A.taxFree ? '<span class="tag tag-green">0% (tax-free)</span>' : '<span class="tag tag-gray">Income tax applies</span>'}</td></tr>
+${peerSlugs.map((p) => `<tr><td>${peerNameEn(p)}</td><td>${mmR(SALARY[p].cap)}</td><td>${mmR(SALARY[p].fo)}</td><td>${taxCellEn(p)}</td></tr>`).join('\n')}
 </tbody></table></div>
 <p class="text-xs text-muted mt-4">${esc(C.compareNoteEn)}</p>
 </div>

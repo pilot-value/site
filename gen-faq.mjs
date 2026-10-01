@@ -117,10 +117,19 @@ const mayWriteAvg = (slug, rank) => {
 
     返り値 … '平均' / '推定' / null（＝ SALARY の数字は書かない職位。
               会社が出した額のほうを書く ── 公式募集例・求人・過去広告・給与例）
-    ⚠️ mayWriteAvg と混ぜない。あちらは「平均」の語を許すかだけを聞いている。 */
+    ⚠️ mayWriteAvg と混ぜない。あちらは「平均」の語を許すかだけを聞いている。
+
+    ★2026-10-01、台帳に無い会社も「推定」にした。
+      それまでは台帳の外（87社）だけ '平均' を返していて、同じ作り方の数字 ──
+      どれも公開情報からの推計（salary-data.mjs の `avg ＝ フリート全体の平均推計`）──
+      に、台帳に入れた25社だけ「推定」、残り87社は「平均」と、別の名前が付いていた。
+      実際に169枚の日本語ページと179枚の英語ページで「平均」と出ていた。
+      ⚠️ 「平均」と名乗れる等級 observed_mean は**1社も使っていない**（全50職位が
+         estimate / 公式募集例 / 求人 / 過去広告 / 給与例）。この行を '平均' に戻すと、
+         実測の平均ではない数字が全ページで「平均」と名乗る。 */
 const avgWord = (slug, rank) => {
   const t = BASIS[slug]?.[rank]?.tier;
-  if (t === undefined) return '平均';
+  if (t === undefined) return '推定';
   if (t === 'estimate') return '推定';
   return TIERS[t].avg ? '平均' : null;
 };
@@ -323,7 +332,7 @@ function buildJa(slug) {
   const items = [
     {
       q: `${name}の機長の年収はいくらですか？`,
-      a: `${name}の機長（Captain）の年収は平均${man(cap.avg)}です（レンジ${man(cap.lo)}〜${man(cap.hi)}）。`
+      a: `${name}の機長（Captain）の年収は、当サイトの推定で${man(cap.avg)}です（レンジ${man(cap.lo)}〜${man(cap.hi)}）。`
         + (d.taxFree
           ? `${country ? country.ja : '所在国'}は個人所得税が無いため、この金額がそのまま手取りに近くなります。`
           : `いずれも税引き前の金額です。`)
@@ -331,8 +340,8 @@ function buildJa(slug) {
     },
     {
       q: `${name}の副操縦士の年収はいくらですか？`,
-      a: `${name}の副操縦士（First Officer）の年収は平均${man(fo.avg)}です（レンジ${man(fo.lo)}〜${man(fo.hi)}）。`
-        + `機長との差は平均で${man(gap)}、倍率にすると約${ratio}倍です。`
+      a: `${name}の副操縦士（First Officer）の年収は、当サイトの推定で${man(fo.avg)}です（レンジ${man(fo.lo)}〜${man(fo.hi)}）。`
+        + `機長との差は${man(gap)}、倍率にすると約${ratio}倍です（どちらも当サイトの推定どうしの比較）。`
         + `副操縦士の年収は在籍年数とともに上がり、機長昇格で大きく段が変わります。`,
     },
     {
@@ -350,7 +359,7 @@ function buildJa(slug) {
   if (!d.taxFree) {
     items.push({
       q: `${name}のパイロットの手取りはいくらですか？`,
-      a: `このページに載せている金額はすべて税引き前（額面）です。機長平均${man(cap.avg)}、副操縦士平均${man(fo.avg)}も額面で、ここから所得税・住民税・社会保険料が引かれます。`
+      a: `このページに載せている金額はすべて税引き前（額面）です。機長${man(cap.avg)}、副操縦士${man(fo.avg)}（いずれも当サイトの推定）も額面で、ここから所得税・住民税・社会保険料が引かれます。`
         + `手取りは居住国・扶養・各種控除で変わるため、額面から一律の割合で出すことはできません。`
         + `同じ額面でも、個人所得税の無い国（UAE・カタールなど）の航空会社とは手元に残る額が変わります。`,
     });
@@ -360,7 +369,7 @@ function buildJa(slug) {
     items.push({
       q: `${name}のパイロットの給与は本当に非課税ですか？`,
       a: `${country ? country.ja : '所在国'}には個人所得税が無いため、${name}の給与は額面がほぼそのまま手取りになります。`
-        + `機長平均${man(cap.avg)}は、額面と手取りがほぼ同じ額と考えられます。`
+        + `機長の推定年収${man(cap.avg)}は、額面と手取りがほぼ同じ額と考えられます。`
         + `日本の航空会社の年収は税引き前の金額なので、同じ額面でも手元に残る金額は大きく変わります。`
         + `なお日本の居住者判定など個人の税務は別途確認が必要です。`,
     });
@@ -393,7 +402,7 @@ function buildJa(slug) {
           + (d.taxFree
             ? `ただし${name}は非課税、ANA・JALは税引き前の金額なので、手取りで比べると差はさらに広がります。`
             : `いずれも税引き前の金額どうしの比較です。`)
-        : `${name}の機長は平均${man(cap.avg)}、副操縦士は平均${man(fo.avg)}です（いずれも税引き前）。`
+        : `${name}の機長は${man(cap.avg)}、副操縦士は${man(fo.avg)}です（どちらも当サイトの推定・いずれも税引き前）。`
           + `ANA・JALの金額は当サイトでは出していないため、差額や倍率はここでは出していません。`
           + (d.taxFree
             ? `なお${name}の所在国には個人所得税が無いため、税引き前で並ぶ日本の会社の金額とは、同じ額面でも手元に残る額が変わります。`
@@ -470,7 +479,7 @@ function buildEnExtra(slug) {
   const ratio = (cap.avg / fo.avg).toFixed(1);
   const items = [];
 
-  const monthly = `Dividing the annual average by 12, ${name} captains earn about {CAP} a month and first officers about {FO}. `
+  const monthly = `Dividing our estimated annual figures by 12, ${name} captains earn about {CAP} a month and first officers about {FO}. `
     + `What actually lands each month moves with block hours flown, and where an annual bonus is paid the regular monthly figure sits lower with a spike in the bonus month.`;
   items.push({
     q: `What is ${name} pilot salary per month?`,
@@ -479,7 +488,7 @@ function buildEnExtra(slug) {
   });
 
   /* 給与表はページ内にある（"Pay Scale by Seniority"）。その段差を数字で言う。 */
-  const scale = `${name} first officers average {FO} and captains {CAP} — a step of about {GAP}, or roughly ${ratio}×. `
+  const scale = `We estimate ${name} first officers at {FO} and captains at {CAP} — a step of about {GAP}, or roughly ${ratio}×. `
     + `The full range runs {FOLO} to {CAPHI}, and where you sit inside it is set by seniority, type rating and the routes you fly. `
     + `The seniority table on this page breaks the same range into career stages.`;
   const fill = (f) => scale.replace('{FO}', f(fo.avg)).replace('{CAP}', f(cap.avg))
@@ -492,7 +501,7 @@ function buildEnExtra(slug) {
   /* 税引き前か後か。非課税の社には既に tax-free の問があるので置かない。
      ★ 税率は書かない。居住国と控除で変わるものを推測で数字にしない。 */
   if (!d.taxFree) {
-    const tax = `Every figure on this page is gross, before income tax. Captains average {CAP} and first officers {FO} pre-tax, `
+    const tax = `Every figure on this page is gross, before income tax. We estimate captains at {CAP} and first officers at {FO} pre-tax, `
       + `and income tax, social insurance and any local levies come out of that. `
       + `Take-home depends on where you are resident and on your own deductions, so no single percentage applies. `
       + `Airlines based in countries with no personal income tax — the UAE, Qatar, Saudi Arabia — leave more of the same gross figure in your hand.`;
