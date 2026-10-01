@@ -68,12 +68,21 @@ const mayAvgBoth = (slug) => mayAvg(slug, 'cap') && mayAvg(slug, 'fo');
    ⚠️ mayAvg と混ぜない。あちらは「平均」の**語**を許すかで、こちらは**数字**を出すか。
       2026-09-29 は mayAvg 1つで両方を決めていたため、推定に戻した25社の題名と説明文が
       「金額の入らない段」に落ちたまま＝検索結果から数字が消える。
-   ⚠️ 強い等級（公式募集例・求人の掲載額・過去の募集広告・総待遇・条件つきの給与例）は
-      false のまま。あちらは SALARY の平均ではなく**会社が出した額**を載せる会社なので、
-      題名に S[slug].cap.avg を埋めると本文と食い違う（basisMan がそちら用）。 */
+   ★2026-10-01、強い等級（公式募集例・求人の掲載額・過去の募集広告・総待遇・
+      条件つきの給与例）も true にした。オーナー指示
+      「**なぜ半分以上確認中なの？基本全て推定でいいじゃん**」で、会社が出した額が
+      取れている社でも**推定年収を併記する**ことになり、ページ本文はもうそうなっている。
+      false のままだと題名と説明文だけが金額の無い段に落ち、
+      **オマーン航空・サウディア・中国東方・中国南方の4枚で実際に起きた**
+      （「オマーン航空 パイロット年収 | PILOT VALUE」まで落ちて、手で入れた
+      「機長の推定 2,500万円」が消えた）。
+   ⚠️ 埋めるのは **SALARY の推定**（capJa / capEn）であって、会社が出した額ではない。
+      会社の額は種類の札（「2017年の募集広告」など）と一緒でないと意味が変わるので、
+      題名の限られた幅には入れない。だから下の題名は「機長 推定◯万円」と書く。
+   ⚠️ held（本当に数字が1つも無い会社）だけは false のまま。 */
 const mayNum = (slug, rank) => {
   const t = BASIS[slug]?.[rank]?.tier;
-  return t === undefined || t === 'estimate' || !!TIERS[t].avg;
+  return t !== 'held';
 };
 const mayNumBoth = (slug) => mayNum(slug, 'cap') && mayNum(slug, 'fo');
 
@@ -446,18 +455,44 @@ const JA_RANK_AVG = { cap: /機長(?:の)?平均[^。]{0,16}?[\d,]+\s*万/, fo: 
 const staleAvg = (text, slug) => {
   if (!text || !BASIS[slug]) return false;
   if (EN_RANK_AVG.test(text)) return true;
+  /* ★2026-10-01、「取り下げた金額が残っている」の判定をやめた。
+       held.was の avg / lo / hi は**50件すべて salary-data.mjs の現在の推定と同じ値**
+       （実測）なので、ここで弾くと「推定として正しく載せた数字」まで古い値として
+       捨ててしまう。実際にオマーン航空の題名と説明文5本が、手で入れた
+       「機長の推定 2,500万円」ごと金額の無い定型文に差し替えられた。
+       いま見るのは**「平均」の語が職位に付いているか**だけ ── これは
+       2026-09-30 のオーナー指示でも取り消されていない（「平均をやめる」は生きている）。
+       数字が本当に古くなったときは check-salary.mjs が捕まえる（全ページ × SSOT）。 */
   for (const r of ['cap', 'fo']) {
-    const t = BASIS[slug][r]?.tier;
-    if (t === 'estimate') { if (JA_RANK_AVG[r].test(text)) return true; continue; }
-    const was = BASIS[slug][r]?.held?.was;
-    if (!was) continue;
-    for (const k of ['avg', 'lo', 'hi']) {
-      if (was[k] == null) continue;
-      const g = String(was[k]).replace(/\B(?=(\d{3})+$)/g, ',');
-      if (new RegExp(`(?<![\\d,])${g}\\s*万`).test(text)) return true;
-    }
+    if (!BASIS[slug][r] || mayAvg(slug, r)) continue;
+    if (JA_RANK_AVG[r].test(text)) return true;
   }
   return false;
+};
+
+/* ── 札の無い推定を見つける ───────────────────────────────────
+   ★2026-10-01 ── 下の `airlineTitle` は「幅に収まって金額まで入っている題名」を
+   そのまま温存する。ところが `<!--PV-SRC t="…">` には前の回に組んだ題名が
+   残っているので、**候補ラダーは二度と走らない**。
+   「機長 推定」の札を足したのに 50枚のうち6枚しか直らなかったのはこれが理由で、
+   残り44枚は「中国東方航空 パイロット年収 機長2,900万円【2026】」のように
+   **推定の額を札なしで**出していた（読む側には平均に見える）。
+
+   作り直すのは **SALARY の機長の推定と同じ額が入っていて、種類の札が無い**ときだけ。
+   ⚠️ **別の種類の額を名前つきで出している題名は触らない。** これらは正しい:
+        エミレーツ「機長の総待遇5,129万円相当」（オーナー指示でこれを先頭にした）
+        エティハド「求人の上限2,917万」／オマーン航空「2017 Advert $123K」
+        キャセイ「副操縦士の目標年収1,956万」／エバー「副操縦士 公式募集例1,589万円超」
+        JAL・スカイマーク「運航乗務員の平均2,005万円」（有報の本物の平均）
+      どれも額が機長の推定と一致しないので、下の `includes` で自然に外れる。    */
+const LABELED = /推定|est\.|平均|Average|総待遇|Package|募集例|求人|Vacancy|Advert|広告|目標|Target|\/Month/i;
+const bareEstimate = (slug, lang, t) => {
+  if (!t || !S[slug] || !BASIS[slug]?.cap) return false;
+  if (mayAvg(slug, 'cap')) return false;      // 「平均」と名乗れる社は札なしでよい
+  const pay = lang === 'ja' ? capJa(slug) : capEn(slug);
+  const payS = lang === 'ja' ? pay.replace(/万円$/, '万') : pay;
+  if (!t.includes(pay) && !t.includes(payS)) return false;
+  return !LABELED.test(t);
 };
 
 function airlineTitle(slug, lang, curTitle) {
@@ -468,7 +503,8 @@ function airlineTitle(slug, lang, curTitle) {
   const kept0 = INTENT[lang].test(curTitle) ? shortenTitle(curTitle, false) : null;
   /* 取り下げた平均を言っているタイトルは温存しない（下で組み直す）。 */
   const kept = staleAvg(kept0, slug) ? null : kept0;
-  if (kept && HAS_PAY.test(kept)) return kept;
+  /* ★2026-10-01 ── 札の無い推定は温存しない（上の bareEstimate の節を読む）。 */
+  if (kept && HAS_PAY.test(kept) && !bareEstimate(slug, lang, kept)) return kept;
 
   /* ★金額を出せない会社は、金額が無いことを理由にタイトルを作り直さない。
      下の候補は全部 SSOT の機長の額を埋め込む形なので、ここで抜けないと
@@ -486,21 +522,33 @@ function airlineTitle(slug, lang, curTitle) {
      「ブリティッシュ・エアウェイズ」「Swiss International Air Lines」が
      まさにそれだった。数字を捨てる前に、金額を残したまま詰める段を挟む。 */
   const payS = lang === 'ja' ? pay.replace(/万円$/, '万') : pay;
+  /* ★2026-10-01 ── 題名の金額は SALARY の推定。「平均」と名乗れない社では
+       職位の札に「推定」を付ける。付けないと、ページ本文に会社が出した別の額
+       （オマーン航空なら2017年の募集広告 1,951万）が載っているので、
+       題名の 2,500万 が何の数字か読む側に分からない。
+       台帳の外の87社は今までどおり「機長」だけ（振る舞いを変えない）。 */
+  const CAP = mayAvg(slug, 'cap') ? (lang === 'ja' ? '機長' : 'Captain')
+    : (lang === 'ja' ? '機長 推定' : 'Captain est.');
+  /* 社名が長くて下から2段目（職位を先に出す詰めた形）まで落ちる社では、
+     札を金額の後ろに回す。前に置くと英語が
+     「China Southern Airlines **Captain est. Salary**」と語順が崩れる。 */
+  const CAPW = lang === 'ja' ? '機長' : 'Captain';
+  const ESTP = mayAvg(slug, 'cap') ? '' : (lang === 'ja' ? '（推定）' : ' (est.)');
 
   /* 金額を出せない会社は、金額の入った段を丸ごと飛ばして
      下2段（社名＋「パイロット年収」だけ）に落とす。 */
   const withPay = mayNum(slug, 'cap');   // ★2026-09-30 推定は数字を出す
   const cands = (lang === 'ja'
-    ? [`${full} パイロット年収 機長${pay}【2026】`,
-       `${full} パイロット年収 機長${pay}`,
-       `${short} パイロット年収 機長${pay}`,
-       `${short}パイロット年収 機長${payS}`,
+    ? [`${full} パイロット年収 ${CAP}${pay}【2026】`,
+       `${full} パイロット年収 ${CAP}${pay}`,
+       `${short} パイロット年収 ${CAP}${pay}`,
+       `${short}パイロット年収 ${CAP}${payS}`,
        `${short} パイロット年収【2026年最新】`,
        `${short} パイロット年収`]
-    : [`${full} Pilot Salary 2026 — Captain ${pay}`,
-       `${short} Pilot Salary 2026 — Captain ${pay}`,
-       `${short} Pilot Salary — Captain ${pay}`,
-       `${short} Captain Salary — ${payS}`,
+    : [`${full} Pilot Salary 2026 — ${CAP} ${pay}`,
+       `${short} Pilot Salary 2026 — ${CAP} ${pay}`,
+       `${short} Pilot Salary — ${CAP} ${pay}`,
+       `${short} ${CAPW} Salary — ${payS}${ESTP}`,
        `${short} Pilot Salary 2026`,
        `${short} Pilot Salary`]).filter((c) => withPay || !HAS_PAY.test(c));
 

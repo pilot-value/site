@@ -12,13 +12,15 @@
 //     index.html         LCC の FAQ が3社とも平均より高い数字
 //   いずれも JSON-LD の FAQ や比較表＝検索結果に出る場所だった。
 //
-// ★ パス1・パス2 の両方に「根拠の等級」が入っている（2026-09-29）。
-//   salary-basis.mjs で等級を決めた会社・職位は、**SALARY の平均・レンジを画面に出さない**。
-//   出すのは公式募集例・求人の掲載額・条件つきの給与例で、これは SALARY とは別の種類の
-//   金額（原貨が正本）なので、SSOT と突き合わせても意味が無い。等級のある職位は
-//   salary-basis.mjs の掲載額と突き合わせ、「確認中」の職位は
-//   **元の平均がページから消えていること**を確かめる。
+// ★ パス1・パス2 の両方に「根拠の等級」が入っている（2026-09-29／向きは 2026-10-01 に裏返した）。
+//   salary-basis.mjs で等級を決めた会社・職位には、**公開情報から出した推定年収を出す**。
+//   公式募集例・求人の掲載額・条件つきの給与例が取れている職位は、その額を**推定の隣に併記する**
+//   （オーナー指示「基本全て推定でいいじゃん」）。前は逆で、根拠の強い額が1つ取れていれば
+//   推定を画面から外していた（25社×2職位のうち36件が金額ごと消えた）。
+//   判定は2本立て ── 掲載額は salary-basis.mjs（原貨が正本）と、推定は SALARY と突き合わせる。
+//   どちらにも当たらない数字だけを ❌ にする。
 //   ⚠️ 等級を決めていない会社は今までどおり SALARY と突き合わせる（振る舞いは変わらない）。
+//   ⚠️ 運航乗務員（会社が職位で分けていない1数字）と訓練生は SALARY に無いので、台帳だけで見る。
 import { readdirSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { SALARY, buildSalaryJson } from './salary-data.mjs';
@@ -99,10 +101,18 @@ for (const [slug, d] of Object.entries(SALARY)) {
        「推定」として画面に**戻す**ことになった。前はここが逆で、旧平均が
        ページに残っていたら落としていた（gone）。いまは estimate の職位では
        **出ていないと落とす**。
-       ⚠️ 公式募集例・求人の掲載額・過去の募集広告・条件つきの給与例の職位は
-          今までどおり ── 会社が出している額を載せ、出どころの無い旧平均は消えたまま。
-          あちらは推定より強い根拠があるので、弱いほうを並べる理由が無い。 */
-  const needAny = [], gone = [], shown = [];
+
+     ★2026-10-01、公式募集例・求人の掲載額・過去の募集広告・条件つきの給与例の職位も
+       同じ向きに裏返した。オーナー指示「**なぜ半分以上確認中なの？基本全て推定でいいじゃん**」で、
+       根拠の強い額が1つ取れている職位でも、**推定年収を併記する**ことになった
+       （画面はもうそうなっている。実際にオマーン航空は「2017年の募集広告 1,951万」の隣に
+       「推定 2,500万」を出している）。
+       前はここで旧平均が残っていたら落としていた（`gone`）ので、画面が先に進んだぶん
+       **18件が赤く出て、製品のほうが正しい**状態だった。
+       ⚠️ 旧平均の見張りを外しただけにしない。`held.was.avg` は50件すべて
+          `salary-data.mjs` の現在の avg と一致している（実測）ので、**その avg が
+          出ていること**を代わりに求める。数字が古くなったページは今までどおり捕まる。 */
+  const needAny = [], shown = [];
   for (const [rank, nm] of Object.entries(RANKS)) {
     const B = basis(slug, rank);
     /* crew（運航乗務員＝機長と副操縦士をあわせた会社公表の平均）と trainee（訓練生）は、
@@ -112,20 +122,26 @@ for (const [slug, d] of Object.entries(SALARY)) {
       const s = man(B.was?.avg ?? d[rank]?.avg);
       needAny.push([`${nm}(推定)`, [s]]); shown.push(`${nm}推定${s}`); continue;
     }
-    if (B.was?.avg != null) gone.push([`${nm}の旧平均`, man(B.was.avg)]);
     if (B.tier === 'held') { needAny.push([nm, ['確認中']]); shown.push(`${nm}確認中`); continue; }
     const list = [...B.allowed].sort((x, y) => y - x).map(man);
+    /* ★ 推定年収も「出ていてよい額」に入れる（要求はしない）。
+         会社自身が出している額が取れている職位では、推定を**併記してもしなくてもよい**。
+         併記しているページ（オマーン航空・ピーチ・スターラックスなど）はこれで通り、
+         会社の額だけで組んでいるページ（エミレーツ ── 公式の現金給与と総待遇の2つを
+         並べていて、推定を足すと機長の金額が3つになる／エティハド）も通る。
+         ⚠️ 「出ていなくてよい」は「何でも出せる」ではない。ページに出ている金額が
+            SSOT と食い違っていれば、下のパス2（全ページ × SSOT）が ❌ にする。
+            ここは「その職位に何か出ているか」・あちらは「出ている額が正しいか」。 */
+    if (d[rank]) list.push(man(d[rank].avg));
     needAny.push([`${nm}(${B.ja})`, list]);
-    shown.push(`${nm}${B.ja}${list[0]}`);
+    shown.push(`${nm}${B.ja}${man([...B.allowed].sort((x, y) => y - x)[0])}`);
   }
   const miss = needAny.filter(([, list]) => !list.some((s) => html.includes(s)));
-  const left = gone.filter(([, s]) => html.includes(s));
   const stale = (STALE[slug] || []).filter((s) => html.includes(s));
   let status = '✅', tag = '';
-  if (miss.length || left.length) {
+  if (miss.length) {
     status = '❌'; fail++;
-    tag = [...miss.map(([n, l]) => `missing:${n}[${l.join('/')}]`),
-           ...left.map(([n, s]) => `残っている:${n}(${s})`)].join(' ');
+    tag = miss.map(([n, l]) => `missing:${n}[${l.join('/')}]`).join(' ');
   } else if (stale.length) { status = '⚠️ '; warn++; tag = `stale:${stale.join(',')}`; }
   else { pass++; }
   lines.push(`${status} ${slug.padEnd(20)} ${shown.join(' ')}   ${tag}`);
@@ -224,9 +240,17 @@ for (const f of files) {
            機長の掲載額と突き合わせると必ず食い違い、直せない ❌ が出続ける。
            「機長と副操縦士をあわせた運航乗務員の平均」のように書くと m[1] に機長が入るため、
            まわりの言葉を見て先に振り分ける。 */
-      const ctx = html.slice(Math.max(0, m.index - 60), m.index + span.length + 20);
-      const role = /運航乗務員/.test(ctx) && BASIS[slug]?.crew ? 'crew'
-        : /訓練生|初任給|チャレンジ手当/.test(ctx) && BASIS[slug]?.trainee ? 'trainee'
+      /* ★2026-10-01、見る範囲を「役職の語から金額まで」に狭めた。
+           前は金額の前後80字を見ていたので、
+           「当サイトの推定で機長 約¥2,700万…**会社公表は運航乗務員**全体の平均2,005万円」
+           のように**金額より後ろ**に出てくる運航乗務員を拾い、推定の 2,700万 を
+           「運航乗務員の平均」として判定していた（JAL・スカイマークで8件の ❌）。
+           見るのは span（社名から金額まで）だけにする ── その金額に付いている語は
+           必ずこの中に在る。「運航乗務員（機長＋副操縦士）平均 ¥2,005万」のように
+           役職の語より**前**に出る書き方も、社名から見るのでちゃんと拾える
+           （役職から後ろだけに狭めると、こちらが18件まとめて ⚠️ に落ちた）。 */
+      const role = /運航乗務員/.test(span) && BASIS[slug]?.crew ? 'crew'
+        : /訓練生|初任給|チャレンジ手当/.test(span) && BASIS[slug]?.trainee ? 'trainee'
         : /機長|Captain/.test(m[1]) ? 'cap' : 'fo';
       const lo = +m[2].replace(/,/g, '');
       const hi = m[3] ? +m[3].replace(/,/g, '') : null;
@@ -252,10 +276,19 @@ for (const f of files) {
           continue;
         }
         if (hi === null ? B.allowed.has(lo) : B.allowed.has(lo) && B.allowed.has(hi)) continue;
-        nBad++;
-        const list = [...B.allowed].sort((x, y) => y - x).map(man).join('／');
-        cross.push(`❌ ${f}:${lineNo()}  «${text.slice(0, 56)}»  ${slug} ${role} は「${B.ja}」で ${list}`);
-        continue;
+        /* ★2026-10-01 ── 台帳の掲載額ではなかった。ここで落とさず、下の SSOT 突き合わせへ送る。
+             オーナー指示「**基本全て推定でいいじゃん**」で、根拠の強い額が取れている職位にも
+             **推定年収を併記する**ことになった（オマーン航空のページは「2017年の募集広告 1,951万」の
+             隣に「推定 2,500万」を出している）。推定の数字は salary-data.mjs が正なので、
+             台帳ではなく SSOT と突き合わせるのが正しい判定。
+             ⚠️ 運航乗務員（crew）と訓練生（trainee）は SALARY に無い＝下に比べる相手がいないので、
+                ここで落とす。あちらは会社が職位で分けていない数字・訓練期間中の額で、推定とは別物。 */
+        if (!d[role]) {
+          nBad++;
+          const list = [...B.allowed].sort((x, y) => y - x).map(man).join('／');
+          cross.push(`❌ ${f}:${lineNo()}  «${text.slice(0, 56)}»  ${slug} ${role} は「${B.ja}」で ${list}`);
+          continue;
+        }
       }
 
       if (!d[role]) continue;   // crew / trainee は SALARY に無い（等級の側で見ている）
