@@ -34,7 +34,7 @@
 {code:'SNJ', name:'新日本航空',               en:'Shin Nihon Airlines',  region:'japan',  color:'#CC0033',salary:'¥1,200万',file:'airlines/shin-nihon.html',fleet:'r',flag:'🇯🇵',type:'fsc',taxfree:false,alliance:''},
 {code:'KAL', name:'大韓航空',               en:'Korean Air',            region:'asia',  color:'#0032A0',salary:'¥2,450万',file:'airlines/korean-air.html',fleet:'nw',      flag:'🇰🇷',type:'fsc',taxfree:false,alliance:'スカイチーム'},
 {code:'OZ',  name:'アシアナ航空',           en:'Asiana Airlines',       region:'asia',  color:'#E51820',salary:'¥2,180万',file:'airlines/asiana.html',fleet:'nw',          flag:'🇰🇷',type:'fsc',taxfree:false,alliance:'スターアライアンス'},
-{code:'EVA', name:'エバー航空',             en:'EVA Air',               region:'asia',  color:'#00A599',salary:'¥1,750万',file:'airlines/eva-air.html',fleet:'nw',          flag:'🇹🇼',type:'fsc',taxfree:false,alliance:'スターアライアンス'},
+{code:'EVA', name:'エバー航空',             en:'EVA Air',               region:'asia',  color:'#00A599',salary:'¥2,950万',file:'airlines/eva-air.html',fleet:'nw',          flag:'🇹🇼',type:'fsc',taxfree:false,alliance:'スターアライアンス'},
 {code:'CAL', name:'チャイナエアライン',     en:'China Airlines',        region:'asia',  color:'#D00027',salary:'¥2,000万',file:'airlines/china-airlines.html',fleet:'nw',   flag:'🇹🇼',type:'fsc',taxfree:false,alliance:'スカイチーム'},
 {code:'JX',  name:'スターラックス',         en:'StarLux Airlines',      region:'asia',  color:'#007A9B',salary:'¥3,100万',file:'airlines/starlux.html',fleet:'nw',          flag:'🇹🇼',type:'fsc',taxfree:false,alliance:''},
 {code:'TG',  name:'タイ国際航空',           en:'Thai Airways',          region:'asia',  color:'#4A0A77',salary:'¥1,850万',file:'airlines/thai-airways.html',fleet:'w',     flag:'🇹🇭',type:'fsc',taxfree:false,alliance:'スターアライアンス'},

@@ -119,7 +119,12 @@ for (const [slug, d] of Object.entries(SALARY)) {
        その資料がある会社にだけ置いてある。無い会社では何も求めない。 */
     if (!B) { if (!d[rank]) continue; const s = man(d[rank].avg); needAny.push([nm, [s]]); shown.push(nm + s); continue; }
     if (B.tier === 'estimate') {
-      const s = man(B.was?.avg ?? d[rank]?.avg);
+      /* ★2026-10-02、優先を入れ替えた。前は held.was.avg（確認中にする前の値）を先に見ていて、
+           「50件すべて salary-data.mjs の現在の avg と一致している」ことが前提だった。
+           エバー航空の年収を資料にもとづいて直した時点でその前提は崩れた
+           （held.was は確認中の時代の値を残す履歴で、いま画面に出す額ではない）。
+           画面に求めるのは **いまの SSOT の avg**。was は資料が無いときの保険に下げる。 */
+      const s = man(d[rank]?.avg ?? B.was?.avg);
       needAny.push([`${nm}(推定)`, [s]]); shown.push(`${nm}推定${s}`); continue;
     }
     if (B.tier === 'held') { needAny.push([nm, ['確認中']]); shown.push(`${nm}確認中`); continue; }

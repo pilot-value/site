@@ -68,14 +68,20 @@ const capAvgOf = (code) => round10(
 );
 
 /* 丸い札に出す1行。台帳に載せた社は金額の種類を名乗らせ、確認中の社には数字を出さない。
-   台帳に無い社は今までどおり平均をそのまま出す（G-SCOPE＝表に無いものを触らない）。 */
+   ★2026-10-02、台帳に無い社も「推定」と名乗らせた（103件・45枚）。
+     それまでは金額だけを素で出していたので、中国の帯で
+     「海南航空 ¥3,050万」と「中国国際航空 推定 ¥3,050万」が隣に並び、
+     **同じ数字が違う名前で出ていた**（読む側は前者を実測と読む）。
+     台帳に載っていない＝推定より強い根拠が無いということなので、
+     salary-data.mjs:9 のとおり全部「推定」でよい。 */
 const pillSub = (slug, ja) => {
+  const est = (s) => (ja ? `推定 ${man(S[s].cap.avg)}` : `Estimated ${man(S[s].cap.avg)}`);
   const c = cardFigure(slug, 'cap');
-  if (!c) return man(S[slug].cap.avg);
+  if (!c) return est(slug);
   /* ★推定は金額を出す（2026-09-30 オーナー指示「確認中じゃなくて推定とかにすりゃいいじゃん」）。
      金額は SALARY から取る ── 台帳は「推定である」ことだけを返してくる
      （年収の唯一の正は salary-data.mjs。台帳に数字を持たせると2か所になる）。 */
-  if (c.estimate) return ja ? `推定 ${man(S[slug].cap.avg)}` : `Estimated ${man(S[slug].cap.avg)}`;
+  if (c.estimate) return est(slug);
   if (c.held) return ja ? '確認中' : 'Under review';
   return ja ? `${c.kindJa} ${c.yen}` : `${c.kindEn} ${c.yen}`;
 };

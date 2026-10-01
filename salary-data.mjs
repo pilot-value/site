@@ -48,7 +48,7 @@ export const SALARY = {
   'starlux':           { ja:'スターラックス', en:'STARLUX Airlines', region:'asia',                                              cap:{avg:3100, lo:2750, hi:3900}, fo:{avg:1950, lo:1850, hi:2050}, taxFree:false, conf:'medium' },
   'china-airlines':    { ja:'チャイナエアライン', en:'China Airlines', region:'asia',                                            cap:{avg:2000, lo:1500, hi:2450}, fo:{avg:1100, lo:700,  hi:1280}, taxFree:false, conf:'low' },
   'thai-airways':      { ja:'タイ国際航空', en:'Thai Airways International', region:'asia',                                      cap:{avg:1850, lo:1500, hi:2420}, fo:{avg:880,  lo:660,  hi:1140}, taxFree:false, conf:'medium' },
-  'eva-air':           { ja:'エバー航空', en:'EVA Air', region:'asia',                                                           cap:{avg:1750, lo:1370, hi:2200}, fo:{avg:980,  lo:600,  hi:1180}, taxFree:false, conf:'medium' },
+  'eva-air':           { ja:'エバー航空', en:'EVA Air', region:'asia',                                                           cap:{avg:2950, lo:2500, hi:4000}, fo:{avg:1590, lo:1300, hi:1850}, taxFree:false, conf:'medium' },
 
   // ── 米州・欧州 ──────────────────────────────────────────
   'united':            { ja:'ユナイテッド航空', en:'United Airlines', region:'us',                                               cap:{avg:6320, lo:5370, hi:8530}, fo:{avg:3870, lo:1790, hi:5220}, taxFree:false, conf:'high' },

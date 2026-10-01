@@ -270,8 +270,17 @@ export const BASIS = {
     tax: '課税（台湾）',
     src: [
       { pub: 'エバー航空（EVA Air）', name: 'Careers / Job openings / Pilots（en-global 版）',
-        as_of: '発行日の記載なし', accessed: '2026-09-26',
+        as_of: '発行日の記載なし', accessed: '2026-10-02',
         url: 'https://www.evaair.com/en-global/about-eva-air/careers/job-openings/pilots/' },
+      { pub: '桃園市機師職業工會 長榮分會・長榮航空', name: '労使合意（正駕駛 月13,500元ほかの引き上げ・今周刊の報道で確認）',
+        as_of: '2024年1月28日', accessed: '2026-10-02',
+        url: 'https://www.businesstoday.com.tw/article/category/183027/post/202401280021/' },
+      { pub: '鏡週刊', name: '【長榮不罷工內幕2】正機師年薪480萬起跳 長榮華航星宇搶第一',
+        as_of: '2024年2月6日', accessed: '2026-10-02',
+        url: 'https://www.mirrormedia.mg/story/20240205inv013' },
+      { pub: 'CTWANT', name: '18萬旅客解套1／長榮機師底薪落後變老三「不罷工換加薪」',
+        as_of: '2024年1月30日', accessed: '2026-10-02',
+        url: 'https://www.ctwant.com/article/314950/' },
     ],
     notes: [
       '「年収 USD 100,000 超」と書かれた下限です。上限は公表されていません。',
@@ -292,12 +301,12 @@ export const BASIS = {
           req: '最低総飛行時間 2,000時間・多人数運航ジェット（最大離陸重量20トン超）500時間・ICAO ATPL・英語能力証明レベル4' },
       ],
       held: { was: { avg: 980, lo: 600, hi: 1180 },
-        why: '公式の下限（約1,589万円）がこのレンジの上限を約35%上回っている。レンジの出所の記録は無い。⚠️ 差の原因は特定できていない（金額が近いことだけを理由に「訓練中の給与の取り違え」と断定しない）。' },
+        why: '★2026-10-02 に 1,300〜1,850万（avg 1,590万）へ直した。旧値（600〜1,180万・avg 980万）は、会社が自分で公表している下限（年収 USD 100,000 超 ＝ 約1,589万円）を avg も hi も下回っていた。会社は「初回の運航から適用」と明記しているので、経験の浅さでは説明できない。新しい avg は会社の公表下限そのもの、lo は台湾籍の副操縦士（月 約20万元・CTWANT）を13か月で見た額、hi は資深副駕駛までの幅。⚠️ 旧値の出所の記録は最初から無い。' },
     },
     cap: {
       tier: 'estimate',
       held: { was: { avg: 1750, lo: 1370, hi: 2200 },
-        why: '機長の金額が公式にも第三者資料にも無い。' },
+        why: '★2026-10-02 に 2,500〜4,000万（avg 2,950万）へ直した。旧値（1,370〜2,200万・avg 1,750万）は hi でさえ、台湾の報道2本が一致して書く機長の**下限**（年 NTD 500万 ＝ 約2,498万円）に届いていなかった。⚠️ 機長の金額は公式のどこにも無い（zh-tw に1文字も無く、外国籍向けの募集は副操縦士だけ。2024-01-28 の労使合意に「外国籍を機長として直接採用しない」条項がある）。だから新しい値も推定で、根拠は 鏡週刊 2024-02-06（長榮 正機師 年薪 500万元起跳／資深 700万元以上／少数 800万元超）と CTWANT 2024-01-30（350万〜650万元・飛行時間が多ければ700万元超）の重なる範囲。avg 2,950万 は両紙が機長の大勢と書く NTD 500〜700万 の中央（NTD 約590万）で、ここだけは当サイトの内挿。' },
     },
   },
 
@@ -1031,7 +1040,23 @@ export function cardFigure(slug, rank = 'cap') {
     };
   }
   const f = figures(slug, rank).find((x) => CARD_YEARLY_CASH.has(x.key) && !x.training);
-  if (!f) return { held: true, yen: null, kindJa: '確認中', kindEn: 'Under review' };
+  if (!f) {
+    /* ★2026-10-02、ここに落ちた社を確認中にするのをやめた。
+       丸い札は「年額の現金」しか置けないので、**月額しか取れていない社**
+       （中国東方・中国南方・サウジア）が、より強い根拠を持っているのに
+       札だけ「確認中」になっていた。同じページの題名は「機長 推定◯万円」で、
+       同じ画面の中で食い違っていた。
+       ⚠️ 月額を12倍して年額を作るのは禁じられている（オーナー明記）。
+          なので他社と同じ**推定**に落とす ── 推定の出どころは salary-data.mjs で、
+          その社の金額として画面の他の場所が既に出しているものと同じ。
+       月額そのものは会社ページの表に、種類を名乗らせたまま残っている。
+       tier:'held'（意図して出さないと決めた職位）だけは今までどおり確認中。 */
+    if (tier === 'held') return { held: true, yen: null, kindJa: '確認中', kindEn: 'Under review' };
+    return {
+      held: false, estimate: true, man: null, up: false, yen: null,
+      kindJa: TIERS.estimate.ja, kindEn: TIERS.estimate.en,
+    };
+  }
   const up = CARD_UPPER.has(f.key);
   return {
     held: false,
