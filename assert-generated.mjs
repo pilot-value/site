@@ -59,6 +59,9 @@ const GENERATORS = [
   ['gen-en-manifest.mjs', 'lang-toggle.js の EN_PAGES（英語版がある頁の一覧）'],
   ['gen-vocab.mjs',       'pv-vocab.json / db/vocab.generated.sql（選択肢と為替）'],
   ['gen-airline-codes.mjs', 'airline-codes.json / pv-airlines.json / 投稿フォーム4枚 / db/airlines.generated.sql'],
+  /* 2026-10-03。年収・根拠の台帳・写真の台帳を直したのに流し忘れると、この1枚だけ古い数字が残る。
+     career.css / career.js の指紋（?v=）もここが書く。画像ファイルは読まない（このコピーに画像は無い）。 */
+  ['gen-career.mjs',      'career.html（概要と2社比較の1枚）'],
 ];
 
 // どれも読まない重いもの。展開しないぶん速くなる。

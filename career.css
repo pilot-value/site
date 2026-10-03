@@ -1,0 +1,338 @@
+/* career.css — 入口・会社の概要・2社の比較（career.html だけが読む）。
+ *
+ * ・色は pv-tokens.css のトークンだけ。ここに色の値を直書きしない
+ *   （ダークは [data-theme="dark"] がトークンごと差し替える。ここでは何もしない）。
+ *   紺の面と写真の上の字は、ライトでもダークでも白 ── white と color-mix で作る。
+ * ・会社の色は HTML が --cr-co で渡す（出どころは airlines-meta.js）。
+ * ・動かすのは transform と opacity だけ。
+ * ・字は 12px 以上・押す場所は 44px 以上（assert-career.mjs が見ている）。
+ * ・数字はここに1つも無い。棒の長さも HTML が --w で渡す（gen-career.mjs）。
+ */
+
+.cr{
+  max-width:1040px;margin:0 auto;
+  --cr-on:white;
+  --cr-on-2:color-mix(in srgb, white 74%, transparent);
+  --cr-on-3:color-mix(in srgb, white 58%, transparent);
+  --cr-hair:color-mix(in srgb, white 11%, transparent);
+  /* 粒子（紺の面と入口の写真に薄く重ねる）。 */
+  --cr-grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.22'/%3E%3C/svg%3E");
+}
+/* 5社ぶんを全部置いて、選ばれた分だけ見せている。display を持つ部品にも必ず効かせる。 */
+.cr [hidden]{display:none !important}
+/* 画面には出さず、読み上げにだけ残す（社名・職位）。 */
+.cr-vh{position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;
+       overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+
+.cr-view{animation:cr-in .36s var(--pv-ease) both}
+@keyframes cr-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+.cr-h1{font-weight:800;letter-spacing:-.03em;line-height:1.2;color:var(--pv-ink)}
+.cr-h1:focus{outline:none}
+
+.cr a:focus-visible,.cr button:focus-visible,.cr summary:focus-visible{
+  outline:2px solid var(--pv-accent);outline-offset:2px;border-radius:8px}
+
+.cr-ic{flex:none;transition:transform .22s var(--pv-ease)}
+
+/* 略号の札（写真の上）。 */
+.cr-code{position:absolute;z-index:1;left:10px;bottom:10px;padding:3px 8px;border-radius:8px;
+         background:color-mix(in srgb, white 94%, transparent);color:var(--pv-navy);
+         font:800 12px/1.45 Inter,sans-serif;letter-spacing:.07em}
+
+/* 札（推定／求人の掲載額／公式募集例／条件つきの給与例）。 */
+.cr-tag{display:inline-block;padding:1px 8px;border-radius:999px;white-space:nowrap;
+        background:var(--pv-surface);border:1px solid var(--pv-accent-line);color:var(--pv-accent-ink);
+        font-size:12px;font-weight:700;line-height:1.5}
+
+/* ── 入口 ─────────────────────────────────────────────────────── */
+.cr-lead{position:relative;isolation:isolate;overflow:hidden;display:flex;align-items:flex-end;
+         min-height:208px;padding:22px 20px;border-radius:var(--pv-r-lg);
+         background:var(--pv-navy);box-shadow:var(--pv-shadow-lift)}
+.cr-lead img{position:absolute;inset:0;z-index:-3;width:100%;height:100%;object-fit:cover;object-position:72% 50%}
+/* 左から紺を掛けて、見出しの下地にする。 */
+.cr-lead::before{content:"";position:absolute;inset:0;z-index:-2;background:
+  radial-gradient(110% 90% at 0% 100%, color-mix(in srgb, var(--pv-navy) 90%, transparent) 0%, transparent 62%),
+  radial-gradient(70% 80% at 100% 0%, color-mix(in srgb, var(--pv-blue) 22%, transparent) 0%, transparent 60%),
+  linear-gradient(90deg, color-mix(in srgb, var(--pv-navy) 90%, transparent) 0%,
+                         color-mix(in srgb, var(--pv-navy) 56%, transparent) 44%,
+                         color-mix(in srgb, var(--pv-navy) 6%, transparent) 100%)}
+.cr-lead::after{content:"";position:absolute;inset:0;z-index:-1;mix-blend-mode:multiply;
+                background:var(--cr-grain), color-mix(in srgb, var(--pv-navy) 26%, transparent)}
+.cr-home .cr-h1{color:var(--cr-on);font-size:clamp(28px, 7.6vw, 52px)}
+
+.cr-tiles{display:grid;grid-template-columns:repeat(2, minmax(0,1fr));gap:12px;margin-top:16px}
+.cr-tile{position:relative;display:flex;flex-direction:column;border-radius:var(--pv-r-lg);
+         background:var(--pv-surface);border:1px solid var(--pv-line);box-shadow:var(--pv-shadow);
+         color:var(--pv-ink);text-decoration:none;transition:transform .28s var(--pv-ease)}
+/* 浮いたときの影は別の面に持たせて、不透明度だけを動かす。 */
+.cr-tile::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+                box-shadow:var(--pv-shadow-lift);opacity:0;transition:opacity .28s var(--pv-ease)}
+.cr-tile-p{position:relative;isolation:isolate;display:block;overflow:hidden;aspect-ratio:3/2;
+           border-radius:calc(var(--pv-r-lg) - 1px) calc(var(--pv-r-lg) - 1px) 0 0;background:var(--pv-surface-2)}
+.cr-tile-p img,.cr-opt-p img,.cr-hero img{display:block;width:100%;height:100%;object-fit:cover}
+.cr-tile-p::before,.cr-opt-p::before,.cr-hero::before{content:"";position:absolute;inset:0;pointer-events:none}
+.cr-tile-p::before{background:linear-gradient(0deg, color-mix(in srgb, var(--pv-navy) 46%, transparent) 0%, transparent 46%)}
+.cr-tile-p::after,.cr-opt-p::after,.cr-hero::after{content:"";position:absolute;inset:0;pointer-events:none;
+  mix-blend-mode:multiply;background:color-mix(in srgb, var(--pv-navy) 14%, transparent)}
+.cr-tile-n{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:48px;
+           padding:8px 12px;font-size:14px;font-weight:700;line-height:1.3;letter-spacing:-.01em}
+.cr-tile:active{transform:scale(.985)}
+.cr-tile:focus-visible{border-radius:var(--pv-r-lg)}
+
+/* 6枚目＝比較の入口。写真の代わりに、2本の棒の形。 */
+.cr-tile-cmp{background:var(--pv-navy);border-color:var(--cr-hair);color:var(--cr-on);isolation:isolate;overflow:hidden}
+.cr-tile-cmp::before{content:"";position:absolute;inset:0;z-index:-1;background:
+  radial-gradient(90% 70% at 100% 0%, color-mix(in srgb, var(--pv-blue) 26%, transparent), transparent 70%),
+  radial-gradient(90% 80% at 0% 100%, color-mix(in srgb, var(--pv-accent) 22%, transparent), transparent 70%),
+  var(--cr-grain)}
+.cr-tile-g{display:flex;flex-direction:column;justify-content:center;gap:10px;aspect-ratio:3/2;padding:0 16px}
+.cr-tile-g i{display:block;height:14px;border-radius:5px}
+.cr-tile-g i:first-child{width:82%;background:linear-gradient(90deg, var(--pv-accent), color-mix(in srgb, var(--pv-accent) 52%, white))}
+.cr-tile-g i:last-child{width:58%;background:linear-gradient(90deg, var(--pv-blue-ink), var(--pv-blue))}
+.cr-tile-cmp .cr-tile-n{color:var(--cr-on)}
+
+.cr-else{margin-top:14px}
+.cr-link{display:inline-flex;align-items:center;gap:6px;min-height:44px;
+         color:var(--pv-accent-ink);font-size:14px;font-weight:700;text-decoration:none}
+.cr-link:active,.cr-back:active,.cr-card-n:active{opacity:.6}
+
+.cr-credits{margin-top:20px;font-size:12px;line-height:1.8;color:var(--pv-ink-3)}
+.cr-credit{margin-right:10px}
+.cr-credits a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+.cr-credits a:hover{color:var(--pv-ink)}
+.cr-credits a:active{opacity:.6}
+
+/* ── 会社の概要 ─────────────────────────────────────────────────── */
+.cr-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
+.cr-back{display:inline-flex;align-items:center;gap:4px;min-height:44px;margin-left:-4px;padding-right:10px;
+         color:var(--pv-ink-2);font-size:14px;font-weight:600;text-decoration:none}
+.cr-btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 22px;
+        border-radius:999px;background:var(--pv-accent-dark);color:var(--cr-on);
+        font-size:14px;font-weight:700;text-decoration:none;white-space:nowrap;
+        box-shadow:0 1px 2px color-mix(in srgb, var(--pv-navy) 14%, transparent),
+                   0 10px 20px -12px color-mix(in srgb, var(--pv-accent-dark) 80%, transparent);
+        transition:transform .22s var(--pv-ease)}
+.cr-btn:active{transform:scale(.97)}
+.cr .cr-btn:focus-visible{border-radius:999px}
+
+.cr-cols{display:grid;gap:14px}
+.cr-hero{position:relative;isolation:isolate;overflow:hidden;height:168px;margin:0;
+         border-radius:var(--pv-r-lg);background:var(--pv-navy);box-shadow:var(--pv-shadow)}
+.cr-hero img{position:absolute;inset:0;z-index:-2}
+.cr-hero::before{z-index:-1;background:
+  radial-gradient(90% 70% at 0% 100%, color-mix(in srgb, var(--pv-navy) 84%, transparent) 0%, transparent 64%),
+  linear-gradient(0deg, color-mix(in srgb, var(--pv-navy) 70%, transparent) 0%, transparent 58%)}
+.cr-hero::after{z-index:-1}
+.cr-hero .cr-code{top:14px;left:14px;bottom:auto}
+.cr-hero-n{position:absolute;left:16px;right:16px;bottom:14px;color:var(--cr-on);font-size:24px}
+
+.cr-pay{padding:16px 16px 14px;border-radius:var(--pv-r-lg);
+        background:var(--pv-accent-soft);border:1px solid var(--pv-accent-line)}
+.cr-pay-h{color:var(--pv-accent-ink);font-size:13px;font-weight:700;letter-spacing:.02em}
+.cr-nums{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);margin-top:8px}
+.cr-num{display:flex;flex-direction:column;min-width:0;padding-right:12px}
+.cr-num + .cr-num{padding:0 0 0 14px;border-left:1px solid var(--pv-accent-line)}
+.cr-num-r{font-size:13px;font-weight:700;color:var(--pv-ink)}
+.cr-num-v{margin-top:2px;color:var(--pv-ink);white-space:nowrap;
+          font:800 clamp(20px, 6.4vw, 34px)/1.2 Inter,'Noto Sans JP',sans-serif;
+          letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.cr-num-k{display:flex;flex-wrap:wrap;align-items:center;gap:3px 6px;margin-top:6px;font-size:12px;line-height:1.6;color:var(--pv-ink-2)}
+
+/* 小さい棒。目盛は 0 から。上限は斜線と端の印・「超」は先が薄く伸びる。 */
+.cr-mini{margin-top:14px;padding-top:12px;border-top:1px solid var(--pv-accent-line)}
+.cr-mini-row{display:grid;grid-template-columns:64px minmax(0,1fr);align-items:center;gap:8px;min-height:24px}
+.cr-mini-l{font-size:12px;font-weight:700;color:var(--pv-ink-2)}
+.cr-track{position:relative;display:block;height:12px;border-radius:4px;
+          background-color:color-mix(in srgb, var(--pv-ink) 7%, transparent);
+          background-image:linear-gradient(90deg, color-mix(in srgb, var(--pv-ink) 16%, transparent) 1px, transparent 1px);
+          background-size:calc(100% / var(--cr-div)) 100%}
+.cr-fill{position:absolute;left:0;top:0;bottom:0;width:var(--w);border-radius:inherit;
+         --c1:var(--pv-blue-ink);--c2:var(--pv-blue);
+         background:linear-gradient(90deg, var(--c1), var(--c2));
+         transform-origin:left center;animation:cr-grow .8s var(--pv-ease) .1s backwards}
+@keyframes cr-grow{from{transform:scaleX(0)}}
+.cr-fill.is-fo{--c1:var(--pv-accent-dark);--c2:var(--pv-accent)}
+.cr-fill.is-max{background:repeating-linear-gradient(135deg, var(--c2) 0 4px, color-mix(in srgb, var(--c2) 34%, transparent) 4px 8px)}
+.cr-fill.is-max::after{content:"";position:absolute;right:-1px;top:-3px;bottom:-3px;width:3px;border-radius:2px;background:var(--c1)}
+.cr-fill.is-over::after{content:"";position:absolute;left:100%;top:0;bottom:0;width:26px;
+                        border-radius:0 4px 4px 0;background:linear-gradient(90deg, color-mix(in srgb, var(--c2) 62%, transparent), transparent)}
+.cr-axis{display:grid;grid-template-columns:1fr auto 1fr;margin-top:6px;
+         font-size:12px;line-height:1.4;color:var(--pv-ink-3);font-variant-numeric:tabular-nums}
+.cr-axis span:last-child{text-align:right}
+.cr-mini .cr-axis{margin-left:72px}
+.cr-tax{margin-top:10px;font-size:12px;line-height:1.5;color:var(--pv-ink-2)}
+
+/* 会社が公表している金額。 */
+.cr-pub{margin-top:14px;padding:18px 16px 6px;border-radius:var(--pv-r-lg);
+        background:var(--pv-surface);border:1px solid var(--pv-line);box-shadow:var(--pv-shadow)}
+.cr-h2{font-size:15px;font-weight:700;letter-spacing:-.01em;color:var(--pv-ink)}
+.cr-none{padding:8px 0 12px;font-size:14px;color:var(--pv-ink-3)}
+.cr-grp{margin-top:14px;padding-top:14px;border-top:1px solid var(--pv-line)}
+.cr-h2 + .cr-grp{margin-top:10px;padding-top:0;border-top:0}
+.cr-grp-k{font-size:13px;font-weight:600;line-height:1.7;color:var(--pv-ink-2)}
+.cr-figs{margin-top:4px}
+.cr-fig{display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding:9px 0;
+        border-top:1px solid var(--pv-line-soft)}
+.cr-fig:first-child{border-top:0}
+.cr-fig dt{min-width:0;font-size:13px;line-height:1.5;color:var(--pv-ink-2)}
+.cr-fig dd{flex:none;text-align:right}
+.cr-fig b{color:var(--pv-ink);font:700 16px/1.4 Inter,'Noto Sans JP',sans-serif;
+          letter-spacing:-.01em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.cr-orig{display:block;font-size:12px;line-height:1.5;color:var(--pv-ink-3);font-variant-numeric:tabular-nums}
+.cr-leave{padding-bottom:8px;font-size:13px;line-height:1.7;color:var(--pv-ink-2)}
+.cr-more{border-top:1px solid var(--pv-line-soft)}
+.cr-basis{margin-top:14px;border-top-color:var(--pv-line)}
+/* 応募条件の行で終わる組のあとは、行そのものが上下に余白を持っているので、間を足さない。 */
+.cr-grp:has(> .cr-more:last-child) + .cr-grp,
+.cr-grp:has(> .cr-more:last-child) + .cr-basis{margin-top:0}
+.cr-more summary{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;
+                 cursor:pointer;list-style:none;color:var(--pv-accent-ink);font-size:13px;font-weight:700}
+.cr-more summary::-webkit-details-marker{display:none}
+.cr-more summary::after{content:"";flex:none;width:8px;height:8px;margin-right:4px;
+                        border-right:2px solid currentColor;border-bottom:2px solid currentColor;
+                        transform:translateY(-2px) rotate(45deg);transition:transform .22s var(--pv-ease)}
+.cr-more[open] > summary::after{transform:translateY(2px) rotate(225deg)}
+.cr-more summary:active{opacity:.6}
+.cr-more > p,.cr-notes,.cr-srcs{font-size:13px;line-height:1.7;color:var(--pv-ink-2)}
+.cr-more > p{padding-bottom:12px}
+.cr-notes,.cr-srcs{display:grid;gap:8px;padding-bottom:12px;list-style:none}
+.cr-notes li{position:relative;padding-left:14px}
+.cr-notes li::before{content:"";position:absolute;left:2px;top:.72em;width:4px;height:4px;border-radius:50%;background:var(--pv-ink-3)}
+.cr-fx{padding-bottom:12px;font-size:12px;line-height:1.7;color:var(--pv-ink-3)}
+.cr-srcs a{color:var(--pv-accent-ink);font-weight:600;text-underline-offset:2px}
+.cr-srcs a:hover{color:var(--pv-ink)}
+.cr-srcs a:active{opacity:.6}
+.cr-srcs span{display:block;font-size:12px;color:var(--pv-ink-3)}
+
+/* ── 2社の比較 ─────────────────────────────────────────────────── */
+.cr-cmp-h{margin:0 0 12px;font-size:24px}
+.cr-pick{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.cr-side{position:relative;overflow:hidden;border-radius:var(--pv-r-lg);background:var(--pv-surface);
+         border:1px solid var(--pv-line);box-shadow:var(--pv-shadow);transition:transform .24s var(--pv-ease)}
+.cr-side:active{transform:scale(.985)}
+.cr-opt{position:relative;display:block;border-bottom:4px solid var(--cr-co)}
+.cr-opt-p{position:relative;isolation:isolate;display:block;overflow:hidden;aspect-ratio:16/9;background:var(--pv-navy)}
+.cr-opt-p::before{background:linear-gradient(0deg, color-mix(in srgb, var(--pv-navy) 82%, transparent) 0%, transparent 62%)}
+.cr-opt .cr-code{top:10px;bottom:auto}
+.cr-opt-n{position:absolute;z-index:1;left:10px;right:8px;bottom:9px;display:flex;align-items:center;gap:4px;
+          color:var(--cr-on);font-size:clamp(12px, 3.2vw, 16px);font-weight:800;line-height:1.3;letter-spacing:-.02em;
+          overflow-wrap:anywhere}
+.cr-opt-n .cr-ic{width:13px;height:13px}
+/* 押す所は透明な select（カード全体）。見えているのは写真のカード。 */
+.cr-sel{position:absolute;inset:0;z-index:2;width:100%;height:100%;margin:0;border:0;opacity:0;
+        cursor:pointer;font-size:16px;appearance:none;-webkit-appearance:none}
+.cr-ring{position:absolute;inset:0;z-index:3;border-radius:inherit;pointer-events:none;opacity:0;
+         box-shadow:inset 0 0 0 2px var(--pv-accent), inset 0 0 0 4px color-mix(in srgb, white 82%, transparent);
+         transition:opacity .15s var(--pv-ease)}
+.cr-sel:focus-visible + .cr-ring{opacity:1}
+.cr-swap{position:absolute;z-index:4;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;
+         display:grid;place-items:center;border-radius:50%;cursor:pointer;
+         background:var(--pv-surface);border:1px solid var(--pv-line);color:var(--pv-ink);
+         box-shadow:var(--pv-shadow-lift);transition:transform .32s var(--pv-ease)}
+.cr-swap:active{transform:rotate(180deg) scale(.92)}
+.cr .cr-swap:focus-visible{border-radius:50%}
+
+.cr-panel{position:relative;isolation:isolate;overflow:hidden;margin-top:14px;padding:18px 16px 16px;
+          border-radius:var(--pv-r-lg);background:var(--pv-navy);border:1px solid var(--cr-hair);
+          color:var(--cr-on);box-shadow:var(--pv-shadow-lift)}
+.cr-panel::before{content:"";position:absolute;inset:0;z-index:-1;background:
+  radial-gradient(90% 60% at 100% 0%, color-mix(in srgb, var(--pv-blue) 24%, transparent), transparent 70%),
+  radial-gradient(90% 70% at 0% 100%, color-mix(in srgb, var(--pv-accent) 16%, transparent), transparent 70%),
+  var(--cr-grain)}
+.cr-panel-h{font-size:18px;font-weight:800;letter-spacing:-.02em;line-height:1.3}
+.cr-role{margin-top:14px;font-size:13px;font-weight:700;color:var(--cr-on-2)}
+.cr-pair{display:flex;flex-direction:column;gap:12px;margin-top:8px}
+.cr-row-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.cr-row-co{display:inline-flex;align-items:center;gap:7px;min-width:0;font-size:13px;font-weight:600;color:var(--cr-on-2)}
+.cr-dot{flex:none;width:8px;height:8px;border-radius:50%;background:color-mix(in srgb, var(--cr-co) 66%, white)}
+.cr-row-v{flex:none;color:var(--cr-on);white-space:nowrap;
+          font:800 24px/1.15 Inter,'Noto Sans JP',sans-serif;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.cr-row-k{display:flex;flex-wrap:wrap;align-items:center;gap:3px 6px;margin-top:3px;font-size:12px;line-height:1.6;color:var(--cr-on-3)}
+.cr-panel .cr-tag{background:color-mix(in srgb, white 9%, transparent);
+                  border-color:color-mix(in srgb, white 16%, transparent);color:var(--cr-on-2)}
+.cr-panel .cr-track{height:16px;margin-top:6px;border-radius:5px;
+                    background-color:color-mix(in srgb, white 8%, transparent);
+                    background-image:linear-gradient(90deg, color-mix(in srgb, white 16%, transparent) 1px, transparent 1px)}
+/* 紺の上でも読めるように、会社の色を白へ寄せる（キャセイの深い緑がそのままだと沈む）。 */
+.cr-row .cr-fill{--c1:color-mix(in srgb, var(--cr-co) 78%, white);--c2:color-mix(in srgb, var(--cr-co) 48%, white)}
+.cr-row .cr-fill.is-max::after{background:var(--cr-on)}
+.cr-panel .cr-axis{margin-top:10px;color:var(--cr-on-3)}
+.cr-taxes{display:flex;flex-direction:column;gap:6px;margin-top:14px;padding-top:12px;border-top:1px solid var(--cr-hair)}
+.cr-taxes .cr-tax{display:flex;align-items:center;gap:7px;margin:0;color:var(--cr-on-2)}
+.cr-taxes .cr-tax span{margin-left:auto;padding-left:12px;text-align:right;color:var(--cr-on-3)}
+
+.cr-cards{display:grid;gap:14px;margin-top:14px}
+.cr-card{padding:4px 16px 6px;border-radius:var(--pv-r-lg);background:var(--pv-surface);
+         border:1px solid var(--pv-line);border-top:4px solid var(--cr-co);box-shadow:var(--pv-shadow)}
+.cr-card-n{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:48px;
+           color:var(--pv-ink);font-size:16px;font-weight:800;letter-spacing:-.01em;text-decoration:none}
+.cr-card .cr-pub{margin:0;padding:0;border:0;border-radius:0;background:none;box-shadow:none}
+.cr-card .cr-h2{font-size:13px;color:var(--pv-ink-2)}
+
+/* ── 指で触れない端末だけ、乗せたときの動き ─────────────────────── */
+@media (hover:hover){
+  .cr-tile:hover{transform:translateY(-3px)}
+  .cr-tile:hover::after{opacity:1}
+  .cr-tile:hover .cr-ic,.cr-link:hover .cr-ic,.cr-card-n:hover .cr-ic{transform:translateX(3px)}
+  .cr-back:hover .cr-ic{transform:translateX(-3px)}
+  .cr-btn:hover{transform:translateY(-1px)}
+  .cr-side:hover{transform:translateY(-2px)}
+  .cr-swap:hover{transform:rotate(180deg)}
+  .cr-more summary:hover::after{transform:translateY(0) rotate(45deg)}
+  .cr-more[open] > summary:hover::after{transform:translateY(0) rotate(225deg)}
+}
+
+/* ── 広い画面 ─────────────────────────────────────────────────── */
+@media (min-width:760px){
+  .cr-lead{min-height:300px;padding:40px}
+  /* 広い画面では写真を右へ寄せ、左は紺のまま見出しの場所にする。 */
+  .cr-lead img{left:auto;right:0;width:64%;object-position:50% 46%}
+  .cr-lead::before{background:
+    radial-gradient(70% 80% at 100% 0%, color-mix(in srgb, var(--pv-blue) 20%, transparent) 0%, transparent 60%),
+    linear-gradient(90deg, var(--pv-navy) 0%, var(--pv-navy) 36%,
+                           color-mix(in srgb, var(--pv-navy) 64%, transparent) 52%,
+                           color-mix(in srgb, var(--pv-navy) 6%, transparent) 86%)}
+  .cr-hero{height:248px}
+  .cr-hero-n{font-size:28px}
+  .cr-taxes{flex-direction:row;flex-wrap:wrap;gap:6px 28px}
+  .cr-taxes .cr-tax span{margin-left:2px;padding-left:0}
+  .cr-tiles{grid-template-columns:repeat(3, minmax(0,1fr));gap:16px;margin-top:20px}
+  .cr-tile-n{min-height:52px;padding:10px 16px;font-size:15px}
+  .cr-opt-p{aspect-ratio:5/2}
+  .cr-opt-n{left:16px;bottom:14px;font-size:18px}
+  .cr-opt-n .cr-ic{width:16px;height:16px}
+  .cr-opt .cr-code,.cr-hero .cr-code{top:16px;left:16px}
+  .cr-cmp-h{font-size:28px}
+  .cr-panel{padding:24px 24px 22px}
+  .cr-row-v{font-size:28px}
+  .cr-cards{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start;gap:16px}
+  .cr-pub{padding:22px 22px 8px}
+  .cr-pay{padding:22px 22px 18px}
+}
+@media (min-width:900px){
+  .cr-cols{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+  .cr-hero{height:auto;min-height:320px}
+  .cr-hero-n{left:22px;bottom:20px;font-size:30px}
+  .cr-pay{display:flex;flex-direction:column;padding:26px 26px 20px}
+  .cr-pay-h{font-size:14px}
+  .cr-nums{margin:12px 0 20px}
+  .cr-num-v{font-size:40px}
+  .cr-mini{margin-top:auto;padding-top:16px}
+  .cr-mini-row{min-height:30px}
+  .cr-pay .cr-track{height:14px}
+  /* 比較の棒は1社1行：左に社名と札・真ん中に棒・右に金額。 */
+  .cr-pair{gap:18px}
+  .cr-row{display:grid;grid-template-columns:230px minmax(0,1fr) 184px;column-gap:20px;align-items:center}
+  .cr-row-h{display:contents}
+  .cr-row-co{grid-column:1;grid-row:1;align-self:end;font-size:14px}
+  .cr-row-k{grid-column:1;grid-row:2;align-self:start}
+  .cr-row .cr-track{grid-column:2;grid-row:1 / span 2;height:22px;margin-top:0;border-radius:6px}
+  .cr-row-v{grid-column:3;grid-row:1 / span 2;text-align:right;font-size:30px}
+  .cr-panel .cr-axis{margin:10px 204px 0 250px}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .cr-view,.cr-fill{animation:none}
+  .cr *,.cr *::before,.cr *::after{transition:none}
+}

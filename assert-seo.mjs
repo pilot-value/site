@@ -54,7 +54,17 @@ const NOINDEX = new Set([
      gen-sitemap.mjs / seo-normalize.mjs の同名の集合と3つで対にしてある。 */
   'world-jobs.html',
   'invite.html',
+  /* 2026-10-03、概要と2社比較の新しい1枚。オーナーが形を決めるまでの下見用で、
+     メニューにも載せていない。検索には出さない。 */
+  'career.html',
 ]);
+
+/* ── 日本語だけのページ（2026-10-03）────────────────────────────
+   英語版をまだ置いていないページ。ここに在るページは hreflang が ja と
+   x-default（＝ja）の2つだけであることを見る。en を書くと、存在しない
+   ファイルを指すことになる。**英語版を置いたら、ここから外す**（置いたのに
+   残っていると下で落ちる）。seo-normalize.mjs の同名の集合と2つで対。 */
+const JA_ONLY = new Set(['career.html']);
 
 const isNoindexPage = (rel) => NOINDEX.has(path.basename(rel))
   && !rel.includes('/airlines/') && !rel.includes('/countries/');
@@ -209,8 +219,15 @@ for (const [rel, d] of docs) {
   /* 5) hreflang */
   const alts = d.link('alternate').filter((x) => x.hreflang);
   const byLang = Object.fromEntries(alts.map((x) => [x.hreflang.toLowerCase(), x.href]));
-  for (const need of ['ja', 'en', 'x-default']) {
+  const jaOnly = JA_ONLY.has(rel);
+  for (const need of jaOnly ? ['ja', 'x-default'] : ['ja', 'en', 'x-default']) {
     if (!byLang[need]) add(rel, 'hreflang-missing', `hreflang="${need}" が無い`);
+  }
+  if (jaOnly) {
+    if (byLang['en']) add(rel, 'hreflang-en-on-ja-only', `日本語だけのページに hreflang="en" がある（${byLang['en']}）`);
+    if (byLang['x-default'] && byLang['x-default'] !== byLang['ja'])
+      add(rel, 'hreflang-xdefault-mismatch', `x-default=${byLang['x-default']} / ja=${byLang['ja']}（日本語だけのページは ja を指す）`);
+    if (docs.has('en/' + rel)) add(rel, 'ja-only-has-en', `en/${rel} が置かれた — JA_ONLY から外す（seo-normalize.mjs と2つとも）`);
   }
   for (const [hl, href] of Object.entries(byLang)) {
     if (!href || !href.startsWith(ORIGIN)) { add(rel, 'hreflang-bad-url', `${hl} → ${href}`); continue; }

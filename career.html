@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="light">
+<head>
+  <meta charset="UTF-8"/>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png"/>
+<link rel="apple-touch-icon" href="assets/favicon-180.png"/>
+  <script>(function(){var t=localStorage.getItem('pv-theme')||'light';document.documentElement.setAttribute('data-theme',t);}());</script>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <!-- 入口・会社の概要・2社の比較を1枚に入れた下見用の画面（2026-10-03）。
+       メニューにはまだ載せていない。検索にも出さない（NOINDEX の3点セット）。
+       ★本文（main の中の PV-CAREER の印のあいだ）は gen-career.mjs が書く。手で直さない。 -->
+  <title>次のキャリアを、選択する。 | PILOT VALUE</title>
+<!--PV-SEO-->
+<!--PV-SRC t="次のキャリアを、選択する。" d=""-->
+<meta name="description" content="航空会社の概要と2社の比較。機長と副操縦士の年収、会社が公表している金額と応募条件を、写真と同じ目盛の棒で見比べられます。"/>
+<meta name="robots" content="noindex,follow"/>
+<link rel="canonical" href="https://pilot-value.com/career.html"/>
+<link rel="alternate" hreflang="ja" href="https://pilot-value.com/career.html"/>
+<link rel="alternate" hreflang="x-default" href="https://pilot-value.com/career.html"/>
+<meta property="og:title" content="次のキャリアを、選択する。 | PILOT VALUE"/>
+<meta property="og:description" content="航空会社の概要と2社の比較。機長と副操縦士の年収、会社が公表している金額と応募条件を、写真と同じ目盛の棒で見比べられます。"/>
+<meta property="og:url" content="https://pilot-value.com/career.html"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="PILOT VALUE"/>
+<meta property="og:locale" content="ja_JP"/>
+<meta property="og:image" content="https://pilot-value.com/assets/og/default-ja.jpg"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta property="og:image:alt" content="次のキャリアを、選択する。 | PILOT VALUE"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="次のキャリアを、選択する。 | PILOT VALUE"/>
+<meta name="twitter:description" content="航空会社の概要と2社の比較。機長と副操縦士の年収、会社が公表している金額と応募条件を、写真と同じ目盛の棒で見比べられます。"/>
+<meta name="twitter:image" content="https://pilot-value.com/assets/og/default-ja.jpg"/>
+<!--/PV-SEO-->
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'"/><noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet"/></noscript>
+
+  <!-- 配色・角丸・余白・影のトークン。読まないと --pv-* が全部 undefined になる。 -->
+  <link rel="stylesheet" href="pv-tokens.css">
+  <!-- ページの骨格（.mr-*）。マイページと同じ殻を使う。 -->
+  <link rel="stylesheet" href="pv-give.css">
+  <link rel="stylesheet" href="my-value.css">
+  <link rel="stylesheet" href="app-nav.css">
+  <!-- この画面だけの見た目（.cr-*）。?v= は中身の指紋で、gen-career.mjs が書く。 -->
+  <link rel="stylesheet" href="career.css?v=330c2b99">
+
+  <style>
+    /* ここに置くのは「CSS が届く前に見えてしまう部分」だけ。 */
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--pv-bg-sub);color:var(--pv-ink);
+         font-family:Inter,'Noto Sans JP',sans-serif;min-height:100vh;
+         -webkit-font-smoothing:antialiased}
+    /* 会社や比較を直接開いたとき、career.js が画面を選ぶまで入口を見せない。 */
+    .cr-boot .cr{visibility:hidden}
+  </style>
+  <script>if(/[?&](airline|view)=/.test(location.search))document.documentElement.classList.add('cr-boot');</script>
+<!-- Google tag (gtag.js) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-3XYF69VQ3X');
+</script>
+<!--PV-3P-->
+<script>
+/* 広告と解析は、表示が終わるまで読まない。async でも帯域は奪うため。
+   利用者が最初に触った時か load の、どちらか早いほうで読み込む。
+   戻すときは node defer-third-party.mjs --undo */
+(function(){
+  var done=false;
+  function boot(){
+    if(done)return; done=true;
+    [{"src":"https://www.googletagmanager.com/gtag/js?id=G-3XYF69VQ3X","cross":false}].forEach(function(it){
+      var s=document.createElement('script');
+      s.src=it.src; s.async=true;
+      if(it.cross)s.crossOrigin='anonymous';
+      document.head.appendChild(s);
+    });
+  }
+  ['pointerdown','keydown','touchstart','scroll','wheel'].forEach(function(ev){
+    addEventListener(ev,boot,{once:true,passive:true});
+  });
+  if(document.readyState==='complete')boot();
+  else addEventListener('load',boot,{once:true});
+})();
+</script>
+<!--/PV-3P-->
+<script src="pv-session.js"></script>
+</head>
+<body class="pv-anav-shell pv-anav-app">
+  <header class="mr-top">
+    <div class="mr-top-in">
+      <a class="mr-brand" href="index.html" aria-label="PILOT VALUE トップへ">
+        <img src="assets/logo.png" alt="PILOT VALUE" height="28"/>
+      </a>
+      <!-- ★ #theme-toggle は消さない。lang-toggle.js と currency.js が
+           このボタンの隣に自分のボタンを差し込む（無いとナビ末尾に落ちる）。 -->
+      <div class="mr-top-r">
+        <button id="theme-toggle" class="theme-toggle" aria-label="テーマ切替"></button>
+      </div>
+    </div>
+  </header>
+
+  <div class="mr-shell">
+    <nav class="mr-side" aria-label="メニュー">
+      <a class="mr-side-a is-add" href="pay-report.html#ps">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+        <span>匿名で給与を追加</span>
+      </a>
+      <a class="mr-side-a" href="index.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9.5 12 2l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg>
+        <span>HOME</span>
+      </a>
+      <a class="mr-side-a" href="actual-pay.html" data-mr-gate="real">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>REAL PAY</span>
+      </a>
+      <a class="mr-side-a" href="community.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z"/></svg>
+        <span>VOTE</span>
+      </a>
+      <a class="mr-side-a" href="roadmap.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V4s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+        <span>ROADMAP & REQUESTS</span>
+      </a>
+      <a class="mr-side-a" href="world-airlines.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>
+        <span>AIRLINES</span>
+      </a>
+      <a class="mr-side-a" href="invite.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+        <span>INVITE</span>
+      </a>
+      <a class="mr-side-a" href="profile.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>MY PAGE</span>
+      </a>
+      <a class="mr-side-sub" id="pv-anav-login" data-pv-auth="out" href="login.html">ログイン</a>
+      <a class="mr-side-sub" href="contact.html">お問い合わせ</a>
+    </nav>
+
+    <main class="mr-main">
+<!--PV-CAREER-->
+<div class="cr" id="cr" data-a="jal" data-b="cathay-pacific" style="--cr-div:4">
+<section class="cr-view cr-home" data-view="home">
+<div class="cr-lead">
+<img src="assets/airlines/etihad-b787.jpg" srcset="assets/airlines/etihad-b787-480.jpg 480w, assets/airlines/etihad-b787.jpg 960w" sizes="(min-width: 1100px) 1040px, 100vw" width="960" height="640" alt="エティハド航空の Boeing 787-9" decoding="async"/>
+<h1 class="cr-h1" tabindex="-1">次のキャリアを、<br/>選択する。</h1>
+</div>
+<div class="cr-tiles">
+<a class="cr-tile" href="career.html?airline=jal" data-go style="--cr-co:#CC0000">
+<span class="cr-tile-p"><img src="assets/airlines/jal-b787.jpg" srcset="assets/airlines/jal-b787-480.jpg 480w, assets/airlines/jal-b787.jpg 960w" sizes="(min-width: 760px) 330px, 46vw" width="960" height="540" alt="日本航空（JAL）の Boeing 787-9" decoding="async"/><span class="cr-code">JAL</span></span>
+<span class="cr-tile-n">日本航空（JAL）</span>
+</a>
+<a class="cr-tile" href="career.html?airline=ana" data-go style="--cr-co:#1A6EB5">
+<span class="cr-tile-p"><img src="assets/airlines/ana-b777.jpg" srcset="assets/airlines/ana-b777-480.jpg 480w, assets/airlines/ana-b777.jpg 1280w" sizes="(min-width: 760px) 330px, 46vw" width="1280" height="853" alt="全日本空輸（ANA）の Boeing 777-300ER" decoding="async"/><span class="cr-code">ANA</span></span>
+<span class="cr-tile-n">全日本空輸（ANA）</span>
+</a>
+<a class="cr-tile" href="career.html?airline=cathay-pacific" data-go style="--cr-co:#006564">
+<span class="cr-tile-p"><img src="assets/airlines/cathay-a350.jpg" srcset="assets/airlines/cathay-a350-480.jpg 480w, assets/airlines/cathay-a350.jpg 960w" sizes="(min-width: 760px) 330px, 46vw" width="960" height="640" alt="キャセイパシフィックの Airbus A350-1000" decoding="async"/><span class="cr-code">CX</span></span>
+<span class="cr-tile-n">キャセイパシフィック</span>
+</a>
+<a class="cr-tile" href="career.html?airline=etihad" data-go style="--cr-co:#B08D57">
+<span class="cr-tile-p"><img src="assets/airlines/etihad-a350.jpg" srcset="assets/airlines/etihad-a350-480.jpg 480w, assets/airlines/etihad-a350.jpg 1200w" sizes="(min-width: 760px) 330px, 46vw" width="1200" height="800" alt="エティハド航空の Airbus A350-1000" decoding="async"/><span class="cr-code">EY</span></span>
+<span class="cr-tile-n">エティハド航空</span>
+</a>
+<a class="cr-tile" href="career.html?airline=eva-air" data-go style="--cr-co:#00A599">
+<span class="cr-tile-p"><img src="assets/airlines/eva-b777.jpg" srcset="assets/airlines/eva-b777-480.jpg 480w, assets/airlines/eva-b777.jpg 1280w" sizes="(min-width: 760px) 330px, 46vw" width="1280" height="853" alt="エバー航空の Boeing 777-300ER" decoding="async"/><span class="cr-code">EVA</span></span>
+<span class="cr-tile-n">エバー航空</span>
+</a>
+<a class="cr-tile cr-tile-cmp" href="career.html?view=compare" data-go>
+<span class="cr-tile-g" aria-hidden="true"><i></i><i></i></span>
+<span class="cr-tile-n">航空会社を比較<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+</a>
+</div>
+<p class="cr-else"><a class="cr-link" href="world-airlines.html">ほかの航空会社を見る<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+<p class="cr-credits">写真（縮小・トリミング） <span class="cr-credit" data-airline="etihad">エティハド航空 Boeing 787-9 <a href="https://commons.wikimedia.org/wiki/File:Etihad_Airways,_A6-BLY,_Boeing_787-9_Dreamliner_(51855158314).jpg" target="_blank" rel="noopener">Anna Zvereva</a>／<a href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a></span> <span class="cr-credit" data-airline="jal">日本航空（JAL） <a href="https://commons.wikimedia.org/wiki/File:Japan_Airlines_Boeing_787-9_JA881J_on_final_approach_to_Boston_April_2022.jpg" target="_blank" rel="noopener">4300streetcar</a>／<a href="https://creativecommons.org/licenses/by/4.0" target="_blank" rel="noopener">CC BY 4.0</a></span> <span class="cr-credit" data-airline="ana">全日本空輸（ANA） <a href="https://commons.wikimedia.org/wiki/File:All_Nippon_Airways,_Boeing_777-300ER_JA792A_NRT_(26845813980).jpg" target="_blank" rel="noopener">Masakatsu Ukon</a>／<a href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a></span> <span class="cr-credit" data-airline="cathay-pacific">キャセイパシフィック <a href="https://commons.wikimedia.org/wiki/File:Cathay_Pacific_Airbus_A350-1000_B-LXB.jpg" target="_blank" rel="noopener">Melv_L - MACASR</a>／<a href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a></span> <span class="cr-credit" data-airline="etihad">エティハド航空 Airbus A350-1000 <a href="https://commons.wikimedia.org/wiki/File:Etihad_Airways,_A6-XWA,_Airbus_A350-1041.jpg" target="_blank" rel="noopener">Anna Zvereva</a>／<a href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a></span> <span class="cr-credit" data-airline="eva-air">エバー航空 <a href="https://commons.wikimedia.org/wiki/File:Eva_Air_Boeing_777-300ER_B-16716.jpg" target="_blank" rel="noopener">Melv_L - MACASR</a>／<a href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a></span></p>
+</section>
+<section class="cr-view cr-co" data-view="airline" data-airline="jal" style="--cr-co:#CC0000" hidden>
+<div class="cr-top">
+<a class="cr-back" href="career.html" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>航空会社を選ぶ</a>
+<a class="cr-btn" href="career.html?view=compare&amp;a=jal&amp;b=cathay-pacific" data-go>他社と比較</a>
+</div>
+<div class="cr-cols">
+<figure class="cr-hero">
+<img src="assets/airlines/jal-b787.jpg" srcset="assets/airlines/jal-b787-480.jpg 480w, assets/airlines/jal-b787.jpg 960w" sizes="(min-width: 900px) 500px, 100vw" width="960" height="540" alt="日本航空（JAL）の Boeing 787-9" loading="lazy" decoding="async"/>
+<span class="cr-code">JAL</span>
+<h1 class="cr-h1 cr-hero-n" tabindex="-1">日本航空（JAL）</h1>
+</figure>
+<div class="cr-pay">
+<h2 class="cr-pay-h">年収</h2>
+<div class="cr-nums">
+<div class="cr-num" data-role="cap"><span class="cr-vh">日本航空（JAL）</span><span class="cr-num-r">機長</span><b class="cr-num-v">¥2,700万</b><span class="cr-num-k"><span class="cr-tag">推定</span></span></div>
+<div class="cr-num" data-role="fo"><span class="cr-vh">日本航空（JAL）</span><span class="cr-num-r">副操縦士</span><b class="cr-num-v">¥1,800万</b><span class="cr-num-k"><span class="cr-tag">推定</span></span></div>
+</div>
+<div class="cr-mini" aria-hidden="true">
+<div class="cr-mini-row"><span class="cr-mini-l">機長</span><span class="cr-track"><i class="cr-fill is-cap" style="--w:67.5%"></i></span></div>
+<div class="cr-mini-row"><span class="cr-mini-l">副操縦士</span><span class="cr-track"><i class="cr-fill is-fo" style="--w:45%"></i></span></div>
+<div class="cr-axis" aria-hidden="true"><span>0</span><span>¥2,000万</span><span>¥4,000万</span></div>
+</div>
+<p class="cr-tax">課税（日本）</p>
+</div>
+</div>
+<div class="cr-pub">
+<h2 class="cr-h2">会社が公表している金額</h2>
+<div class="cr-grp">
+<p class="cr-grp-k"><span class="cr-tag">平均</span> 運航乗務員（グループ連結・2025年3月期）</p>
+<dl class="cr-figs">
+<div class="cr-fig"><dt>会社が公表した平均年間給与</dt><dd><b>約2,005万円</b></dd></div>
+</dl>
+</div>
+<div class="cr-grp">
+<p class="cr-grp-k"><span class="cr-tag">平均</span> 運航乗務員（グループ連結・2024年3月期）</p>
+<dl class="cr-figs">
+<div class="cr-fig"><dt>会社が公表した平均年間給与</dt><dd><b>約1,959万円</b></dd></div>
+</dl>
+</div>
+<details class="cr-more cr-basis"><summary>前提と出どころ</summary>
+<ul class="cr-notes">
+<li>これは機長と副操縦士をあわせた運航乗務員全体の平均です。機長だけ・副操縦士だけの平均は公表されていません。</li>
+<li>日本航空単体ではなくグループ連結の数字です（会社が注でそう書いています）。</li>
+<li>算定方法は会社の注のとおり「連結人件費に含まれる現金給与相当額を当事業年度中の平均在籍人数で除して算出」＝税引き前の考え方です。賞与・手当を含むかは注に明記がありません。</li>
+</ul>
+<ul class="cr-srcs pv-no-cur">
+<li>日本航空株式会社（EDINET・有価証券報告書） <a href="https://disclosure2dl.edinet-fsa.go.jp/searchdocument/pdf/S100W1KL.pdf" target="_blank" rel="noopener">第76期 有価証券報告書 ５【従業員の状況】（参考情報）平均年間給与</a><span>適用時点：2025年3月期（2025年6月23日提出・書類ID S100W1KL） ／ 確認日：2026-09-29</span></li>
+<li>日本航空株式会社（EDINET・有価証券報告書） <a href="https://disclosure2dl.edinet-fsa.go.jp/searchdocument/pdf/S100TNGJ.pdf" target="_blank" rel="noopener">第75期 有価証券報告書 ５【従業員の状況】（参考情報）平均年間給与</a><span>適用時点：2024年3月期（2024年6月19日提出・書類ID S100TNGJ） ／ 確認日：2026-09-29</span></li>
+</ul>
+</details>
+</div>
+<p class="cr-else"><a class="cr-link" href="airlines/jal.html">口コミ・募集を見る<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+<p class="cr-credits">写真（縮小・トリミング） <span class="cr-credit" data-airline="jal"><a href="https://commons.wikimedia.org/wiki/File:Japan_Airlines_Boeing_787-9_JA881J_on_final_approach_to_Boston_April_2022.jpg" target="_blank" rel="noopener">4300streetcar</a>／<a href="https://creativecommons.org/licenses/by/4.0" target="_blank" rel="noopener">CC BY 4.0</a></span></p>
+</section>
+<section class="cr-view cr-co" data-view="airline" data-airline="ana" style="--cr-co:#1A6EB5" hidden>
+<div class="cr-top">
+<a class="cr-back" href="career.html" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>航空会社を選ぶ</a>
+<a class="cr-btn" href="career.html?view=compare&amp;a=ana&amp;b=jal" data-go>他社と比較</a>
+</div>
+<div class="cr-cols">
+<figure class="cr-hero">
+<img src="assets/airlines/ana-b777.jpg" srcset="assets/airlines/ana-b777-480.jpg 480w, assets/airlines/ana-b777.jpg 1280w" sizes="(min-width: 900px) 500px, 100vw" width="1280" height="853" alt="全日本空輸（ANA）の Boeing 777-300ER" loading="lazy" decoding="async"/>
+<span class="cr-code">ANA</span>
+<h1 class="cr-h1 cr-hero-n" tabindex="-1">全日本空輸（ANA）</h1>
+</figure>
+<div class="cr-pay">
+<h2 class="cr-pay-h">年収</h2>
+<div class="cr-nums">
+<div class="cr-num" data-role="cap"><span class="cr-vh">全日本空輸（ANA）</span><span class="cr-num-r">機長</span><b class="cr-num-v">¥2,700万</b><span class="cr-num-k"><span class="cr-tag">推定</span></span></div>
+<div class="cr-num" data-role="fo"><span class="cr-vh">全日本空輸（ANA）</span><span class="cr-num-r">副操縦士</span><b class="cr-num-v">¥1,800万</b><span class="cr-num-k"><span class="cr-tag">推定</span></span></div>
+</div>
+<div class="cr-mini" aria-hidden="true">
+<div class="cr-mini-row"><span class="cr-mini-l">機長</span><span class="cr-track"><i class="cr-fill is-cap" style="--w:67.5%"></i></span></div>
+<div class="cr-mini-row"><span class="cr-mini-l">副操縦士</span><span class="cr-track"><i class="cr-fill is-fo" style="--w:45%"></i></span></div>
+<div class="cr-axis" aria-hidden="true"><span>0</span><span>¥2,000万</span><span>¥4,000万</span></div>
+</div>
+<p class="cr-tax">課税（日本）</p>
+</div>
+</div>
+<div class="cr-pub">
+<h2 class="cr-h2">会社が公表している金額</h2>
+<p class="cr-none">公表なし</p>
+</div>
+<p class="cr-else"><a class="cr-link" href="airlines/ana.html">口コミ・募集を見る<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+<p class="cr-credits">写真（縮小・トリミング） <span class="cr-credit" data-airline="ana"><a href="https://commons.wikimedia.org/wiki/File:All_Nippon_Airways,_Boeing_777-300ER_JA792A_NRT_(26845813980).jpg" target="_blank" rel="noopener">Masakatsu Ukon</a>／<a href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a></span></p>
+</section>
+<section class="cr-view cr-co" data-view="airline" data-airline="cathay-pacific" style="--cr-co:#006564" hidden>
+<div class="cr-top">
+<a class="cr-back" href="career.html" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>航空会社を選ぶ</a>
+<a class="cr-btn" href="career.html?view=compare&amp;a=cathay-pacific&amp;b=jal" data-go>他社と比較</a>
+</div>
+<div class="cr-cols">
+<figure class="cr-hero">
+<img src="assets/airlines/cathay-a350.jpg" srcset="assets/airlines/cathay-a350-480.jpg 480w, assets/airlines/cathay-a350.jpg 960w" sizes="(min-width: 900px) 500px, 100vw" width="960" height="640" alt="キャセイパシフィックの Airbus A350-1000" loading="lazy" decoding="async"/>
+<span class="cr-code">CX</span>
+<h1 class="cr-h1 cr-hero-n" tabindex="-1">キャセイパシフィック</h1>
+</figure>
+<div class="cr-pay">
+<h2 class="cr-pay-h">年収</h2>
+<div class="cr-nums">
+<div class="cr-num" data-role="cap"><span class="cr-vh">キャセイパシフィック</span><span class="cr-num-r">機長</span><b class="cr-num-v">¥3,600万</b><span class="cr-num-k"><span class="cr-tag">推定</span></span></div>
+<div class="cr-num" data-role="fo"><span class="cr-vh">キャセイパシフィック</span><span class="cr-num-r">副操縦士</span><b class="cr-num-v">¥1,956万</b><span class="cr-num-k"><span class="cr-tag">条件つきの給与例</span> <span class="cr-sub">First Officer</span></span></div>
+</div>
+<div class="cr-mini" aria-hidden="true">
+<div class="cr-mini-row"><span class="cr-mini-l">機長</span><span class="cr-track"><i class="cr-fill is-cap" style="--w:90%"></i></span></div>
+<div class="cr-mini-row"><span class="cr-mini-l">副操縦士</span><span class="cr-track"><i class="cr-fill is-fo" style="--w:48.9%"></i></span></div>
+<div class="cr-axis" aria-hidden="true"><span>0</span><span>¥2,000万</span><span>¥4,000万</span></div>
+</div>
+<p class="cr-tax">課税（香港）</p>
+</div>
+</div>
+<div class="cr-pub">
+<h2 class="cr-h2">会社が公表している金額</h2>
+<div class="cr-grp">
+<p class="cr-grp-k"><span class="cr-tag">条件つきの給与例</span> 副操縦士（First Officer）</p>
+<dl class="cr-figs">
+<div class="cr-fig"><dt>目標年収</dt><dd><b>約1,956万円</b> <span class="cr-orig pv-no-cur">HKD 964,646</span></dd></div>
+<div class="cr-fig"><dt>月額手当（公表されているのは下限だけ）</dt><dd><b>約41万円から</b> <span class="cr-orig pv-no-cur">HKD 20,000 から</span></dd></div>
+</dl>
+<p class="cr-leave">年次有給 28日</p>
+<details class="cr-more"><summary>応募条件</summary><p>最低総飛行時間 1,500時間（3,000時間が望ましい）・うち機長時間 500時間以上・英語能力証明レベル4以上</p></details>
+</div>
+<div class="cr-grp">
+<p class="cr-grp-k"><span class="cr-tag">条件つきの給与例</span> 二等航空士（Second Officer）</p>
+<dl class="cr-figs">
+<div class="cr-fig"><dt>目標年収</dt><dd><b>約1,275万円</b> <span class="cr-orig pv-no-cur">HKD 629,109</span></dd></div>
+<div class="cr-fig"><dt>月額手当（公表されているのは下限だけ）</dt><dd><b>約28万円から</b> <span class="cr-orig pv-no-cur">HKD 14,000 から</span></dd></div>
+</dl>
+<p class="cr-leave">年次有給 21日</p>
+<details class="cr-more"><summary>応募条件</summary><p>最低総飛行時間 250時間</p></details>
+</div>
+<details class="cr-more cr-basis"><summary>前提と出どころ</summary>
+<ul class="cr-notes">
+<li>目標年収（Target Annual Salary）は、会社が定める目標ブロックアワーを飛んだ場合の金額です。保証額ではありません。</li>
+<li>月額手当（Monthly allowance）は「HKD 20,000 から」と書かれた下限で、上限は公表されていません。</li>
+<li>会社が「2026年1月時点の数字。定期的に見直す」と付記しています。</li>
+</ul>
+<p class="cr-fx pv-no-cur">円額は比較用の換算です（1 HKD＝20.2744円・2026-08-22 時点）。現在の為替レートではありません。</p>
+<ul class="cr-srcs pv-no-cur">
+<li>キャセイパシフィック航空（Cathay Pacific Careers） <a href="https://careers.cathaypacific.com/en/careers/our-teams/pilot/pilot-detail-page" target="_blank" rel="noopener">Our teams / Pilot（First Officer パネル）</a><span>適用時点：2026年1月時点（脚注 &quot;Latest figures as of Jan 2026, subject to periodic review&quot;） ／ 確認日：2026-09-26</span></li>
+</ul>
+</details>
+</div>
+<p class="cr-else"><a class="cr-link" href="airlines/cathay-pacific.html">口コミ・募集を見る<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+<p class="cr-credits">写真（縮小・トリミング） <span class="cr-credit" data-airline="cathay-pacific"><a href="https://commons.wikimedia.org/wiki/File:Cathay_Pacific_Airbus_A350-1000_B-LXB.jpg" target="_blank" rel="noopener">Melv_L - MACASR</a>／<a href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a></span></p>
+</section>
+<section class="cr-view cr-co" data-view="airline" data-airline="etihad" style="--cr-co:#B08D57" hidden>
+<div class="cr-top">
+<a class="cr-back" href="career.html" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>航空会社を選ぶ</a>
+<a class="cr-btn" href="career.html?view=compare&amp;a=etihad&amp;b=jal" data-go>他社と比較</a>
+</div>
+<div class="cr-cols">
+<figure class="cr-hero">
+<img src="assets/airlines/etihad-a350.jpg" srcset="assets/airlines/etihad-a350-480.jpg 480w, assets/airlines/etihad-a350.jpg 1200w" sizes="(min-width: 900px) 500px, 100vw" width="1200" height="800" alt="エティハド航空の Airbus A350-1000" loading="lazy" decoding="async"/>
+<span class="cr-code">EY</span>
+<h1 class="cr-h1 cr-hero-n" tabindex="-1">エティハド航空</h1>
+</figure>
+<div class="cr-pay">
+<h2 class="cr-pay-h">年収</h2>
+<div class="cr-nums">
+<div class="cr-num" data-role="cap"><span class="cr-vh">エティハド航空</span><span class="cr-num-r">機長</span><b class="cr-num-v">〜¥2,917万</b><span class="cr-num-k"><span class="cr-tag">求人の掲載額</span> <span class="cr-sub">A320（求人の上限）</span></span></div>
+<div class="cr-num" data-role="fo"><span class="cr-vh">エティハド航空</span><span class="cr-num-r">副操縦士</span><b class="cr-num-v">〜¥2,224万</b><span class="cr-num-k"><span class="cr-tag">求人の掲載額</span> <span class="cr-sub">A320（求人の上限）</span></span></div>
+</div>
+<div class="cr-mini" aria-hidden="true">
+<div class="cr-mini-row"><span class="cr-mini-l">機長</span><span class="cr-track"><i class="cr-fill is-cap is-max" style="--w:72.9%"></i></span></div>
+<div class="cr-mini-row"><span class="cr-mini-l">副操縦士</span><span class="cr-track"><i class="cr-fill is-fo is-max" style="--w:55.6%"></i></span></div>
+<div class="cr-axis" aria-hidden="true"><span>0</span><span>¥2,000万</span><span>¥4,000万</span></div>
+</div>
+<p class="cr-tax">非課税（UAE に個人所得税なし）</p>
+</div>
+</div>
+<div class="cr-pub">
+<h2 class="cr-h2">会社が公表している金額</h2>
+<div class="cr-grp">
+<p class="cr-grp-k"><span class="cr-tag">求人の掲載額</span> 機長 A320（求人の上限）</p>
+<dl class="cr-figs">
+<div class="cr-fig"><dt>求人に書かれた年額の上限</dt><dd><b>約2,917万円</b> <span class="cr-orig pv-no-cur">AED 674,029</span></dd></div>
+</dl>
+<details class="cr-more"><summary>応募条件</summary><p>総5,500時間・多人数運航ガラスコックピットの機長時間 2,500時間・A320系の機長時間 1,500時間・直近12か月に A320系・入社日に59歳未満・英語能力証明レベル4以上</p></details>
+</div>
+<div class="cr-grp">
+<p class="cr-grp-k"><span class="cr-tag">求人の掲載額</span> 副操縦士 A320（求人の上限）</p>
+<dl class="cr-figs">
+<div class="cr-fig"><dt>求人に書かれた年額の上限</dt><dd><b>約2,224万円</b> <span class="cr-orig pv-no-cur">AED 513,732</span></dd></div>
+</dl>
+<details class="cr-more"><summary>応募条件</summary><p>A：総2,000時間かつ多人数運航ガラスコックピット1,500時間かつ同型500時間／B：総1,500時間かつ A320系1,000時間。加えて直近12か月に A320系・入社日に50歳未満・英語能力証明レベル4以上</p></details>
+</div>
+<details class="cr-more cr-basis"><summary>前提と出どころ</summary>
+<ul class="cr-notes">
+<li>「最大（up to）」の額で、月75時間の乗務を前提としています。75時間は上限に近い飛び方なので、普通の月の実額はこれより下がります。</li>
+<li>内訳は基本給・飛行手当・住宅手当・レイオーバー／食事手当の4つです。</li>
+<li>教育手当（初等 AED 40,000／中等 AED 55,000・子3人まで）・所得補償・保険・社員割引航空券・退職金・引越し支援は、この額に含まれていません。</li>
+<li>交代要員つきの便は75%換算です（機長）。</li>
+</ul>
+<p class="cr-fx pv-no-cur">円額は比較用の換算です（1 AED＝43.2825円・2026-08-22 時点）。現在の為替レートではありません。</p>
+<ul class="cr-srcs pv-no-cur">
+<li>エティハド航空（SmartRecruiters・ref 80371） <a href="https://jobs.smartrecruiters.com/EtihadAirways5/744000140889348-captain" target="_blank" rel="noopener">Captain A320</a><span>適用時点：2026-07-31 掲載 ／ 確認日：2026-09-26</span></li>
+<li>エティハド航空（SmartRecruiters・ref 80372） <a href="https://jobs.smartrecruiters.com/EtihadAirways5/744000140889248-first-officer" target="_blank" rel="noopener">First Officer A320</a><span>適用時点：2026-07-31 掲載 ／ 確認日：2026-09-26</span></li>
+</ul>
+</details>
+</div>
+<p class="cr-else"><a class="cr-link" href="airlines/etihad.html">口コミ・募集を見る<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+<p class="cr-credits">写真（縮小・トリミング） <span class="cr-credit" data-airline="etihad"><a href="https://commons.wikimedia.org/wiki/File:Etihad_Airways,_A6-XWA,_Airbus_A350-1041.jpg" target="_blank" rel="noopener">Anna Zvereva</a>／<a href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a></span></p>
+</section>
+<section class="cr-view cr-co" data-view="airline" data-airline="eva-air" style="--cr-co:#00A599" hidden>
+<div class="cr-top">
+<a class="cr-back" href="career.html" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>航空会社を選ぶ</a>
+<a class="cr-btn" href="career.html?view=compare&amp;a=eva-air&amp;b=jal" data-go>他社と比較</a>
+</div>
+<div class="cr-cols">
+<figure class="cr-hero">
+<img src="assets/airlines/eva-b777.jpg" srcset="assets/airlines/eva-b777-480.jpg 480w, assets/airlines/eva-b777.jpg 1280w" sizes="(min-width: 900px) 500px, 100vw" width="1280" height="853" alt="エバー航空の Boeing 777-300ER" loading="lazy" decoding="async"/>
+<span class="cr-code">EVA</span>
+<h1 class="cr-h1 cr-hero-n" tabindex="-1">エバー航空</h1>
+</figure>
+<div class="cr-pay">
+<h2 class="cr-pay-h">年収</h2>
+<div class="cr-nums">
+<div class="cr-num" data-role="cap"><span class="cr-vh">エバー航空</span><span class="cr-num-r">機長</span><b class="cr-num-v">¥2,950万</b><span class="cr-num-k"><span class="cr-tag">推定</span></span></div>
+<div class="cr-num" data-role="fo"><span class="cr-vh">エバー航空</span><span class="cr-num-r">副操縦士</span><b class="cr-num-v">¥1,589万超</b><span class="cr-num-k"><span class="cr-tag">公式募集例</span> <span class="cr-sub">4年契約</span></span></div>
+</div>
+<div class="cr-mini" aria-hidden="true">
+<div class="cr-mini-row"><span class="cr-mini-l">機長</span><span class="cr-track"><i class="cr-fill is-cap" style="--w:73.8%"></i></span></div>
+<div class="cr-mini-row"><span class="cr-mini-l">副操縦士</span><span class="cr-track"><i class="cr-fill is-fo is-over" style="--w:39.7%"></i></span></div>
+<div class="cr-axis" aria-hidden="true"><span>0</span><span>¥2,000万</span><span>¥4,000万</span></div>
+</div>
+<p class="cr-tax">課税（台湾）</p>
+</div>
+</div>
+<div class="cr-pub">
+<h2 class="cr-h2">会社が公表している金額</h2>
+<div class="cr-grp">
+<p class="cr-grp-k"><span class="cr-tag">公式募集例</span> 副操縦士（4年契約）</p>
+<dl class="cr-figs">
+<div class="cr-fig"><dt>年収（会社が「これを超える」と書いた下限）</dt><dd><b>約1,589万円超</b> <span class="cr-orig pv-no-cur">USD 100,000 超</span></dd></div>
+</dl>
+<details class="cr-more"><summary>応募条件</summary><p>最低総飛行時間 2,000時間・多人数運航ジェット（最大離陸重量20トン超）500時間・ICAO ATPL・英語能力証明レベル4</p></details>
+</div>
+<details class="cr-more cr-basis"><summary>前提と出どころ</summary>
+<ul class="cr-notes">
+<li>「年収 USD 100,000 超」と書かれた下限です。上限は公表されていません。</li>
+<li>初回の運航から適用され、手当・補助は別計算です。</li>
+<li>会社業績に応じた年末賞与、住宅補助または社宅、月8日連続の休み、年次有給22〜42日が付きます。</li>
+<li>4年契約で外から採用する副操縦士の条件です。</li>
+</ul>
+<p class="cr-fx pv-no-cur">円額は比較用の換算です（1 USD＝158.95円・2026-08-22 時点）。現在の為替レートではありません。</p>
+<ul class="cr-srcs pv-no-cur">
+<li>エバー航空（EVA Air） <a href="https://www.evaair.com/en-global/about-eva-air/careers/job-openings/pilots/" target="_blank" rel="noopener">Careers / Job openings / Pilots（en-global 版）</a><span>適用時点：発行日の記載なし ／ 確認日：2026-10-02</span></li>
+<li>桃園市機師職業工會 長榮分會・長榮航空 <a href="https://www.businesstoday.com.tw/article/category/183027/post/202401280021/" target="_blank" rel="noopener">労使合意（正駕駛 月13,500元ほかの引き上げ・今周刊の報道で確認）</a><span>適用時点：2024年1月28日 ／ 確認日：2026-10-02</span></li>
+<li>鏡週刊 <a href="https://www.mirrormedia.mg/story/20240205inv013" target="_blank" rel="noopener">【長榮不罷工內幕2】正機師年薪480萬起跳 長榮華航星宇搶第一</a><span>適用時点：2024年2月6日 ／ 確認日：2026-10-02</span></li>
+<li>CTWANT <a href="https://www.ctwant.com/article/314950/" target="_blank" rel="noopener">18萬旅客解套1／長榮機師底薪落後變老三「不罷工換加薪」</a><span>適用時点：2024年1月30日 ／ 確認日：2026-10-02</span></li>
+</ul>
+</details>
+</div>
+<p class="cr-else"><a class="cr-link" href="airlines/eva-air.html">口コミ・募集を見る<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+<p class="cr-credits">写真（縮小・トリミング） <span class="cr-credit" data-airline="eva-air"><a href="https://commons.wikimedia.org/wiki/File:Eva_Air_Boeing_777-300ER_B-16716.jpg" target="_blank" rel="noopener">Melv_L - MACASR</a>／<a href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a></span></p>
+</section>
+<section class="cr-view cr-cmp" data-view="compare" hidden>
+<a class="cr-back" href="career.html" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>航空会社を選ぶ</a>
+<h1 class="cr-h1 cr-cmp-h" tabindex="-1">航空会社を比較</h1>
+<div class="cr-pick">
+<div class="cr-side" data-side="a">
+<div class="cr-opt" data-airline="jal" style="--cr-co:#CC0000">
+<span class="cr-opt-p"><img src="assets/airlines/jal-b787.jpg" srcset="assets/airlines/jal-b787-480.jpg 480w, assets/airlines/jal-b787.jpg 960w" sizes="(min-width: 900px) 500px, 46vw" width="960" height="540" alt="日本航空（JAL）の Boeing 787-9" loading="lazy" decoding="async"/><span class="cr-code">JAL</span></span>
+<span class="cr-opt-n">日本航空（JAL）<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></span>
+</div>
+<div class="cr-opt" data-airline="ana" style="--cr-co:#1A6EB5" hidden>
+<span class="cr-opt-p"><img src="assets/airlines/ana-b777.jpg" srcset="assets/airlines/ana-b777-480.jpg 480w, assets/airlines/ana-b777.jpg 1280w" sizes="(min-width: 900px) 500px, 46vw" width="1280" height="853" alt="全日本空輸（ANA）の Boeing 777-300ER" loading="lazy" decoding="async"/><span class="cr-code">ANA</span></span>
+<span class="cr-opt-n">全日本空輸（ANA）<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></span>
+</div>
+<div class="cr-opt" data-airline="cathay-pacific" style="--cr-co:#006564" hidden>
+<span class="cr-opt-p"><img src="assets/airlines/cathay-a350.jpg" srcset="assets/airlines/cathay-a350-480.jpg 480w, assets/airlines/cathay-a350.jpg 960w" sizes="(min-width: 900px) 500px, 46vw" width="960" height="640" alt="キャセイパシフィックの Airbus A350-1000" loading="lazy" decoding="async"/><span class="cr-code">CX</span></span>
+<span class="cr-opt-n">キャセイパシフィック<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></span>
+</div>
+<div class="cr-opt" data-airline="etihad" style="--cr-co:#B08D57" hidden>
+<span class="cr-opt-p"><img src="assets/airlines/etihad-a350.jpg" srcset="assets/airlines/etihad-a350-480.jpg 480w, assets/airlines/etihad-a350.jpg 1200w" sizes="(min-width: 900px) 500px, 46vw" width="1200" height="800" alt="エティハド航空の Airbus A350-1000" loading="lazy" decoding="async"/><span class="cr-code">EY</span></span>
+<span class="cr-opt-n">エティハド航空<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></span>
+</div>
+<div class="cr-opt" data-airline="eva-air" style="--cr-co:#00A599" hidden>
+<span class="cr-opt-p"><img src="assets/airlines/eva-b777.jpg" srcset="assets/airlines/eva-b777-480.jpg 480w, assets/airlines/eva-b777.jpg 1280w" sizes="(min-width: 900px) 500px, 46vw" width="1280" height="853" alt="エバー航空の Boeing 777-300ER" loading="lazy" decoding="async"/><span class="cr-code">EVA</span></span>
+<span class="cr-opt-n">エバー航空<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></span>
+</div>
+<select id="cr-a" class="cr-sel" aria-label="1社目">
+<option value="jal" selected>日本航空（JAL）</option>
+<option value="ana">全日本空輸（ANA）</option>
+<option value="cathay-pacific" disabled>キャセイパシフィック</option>
+<option value="etihad">エティハド航空</option>
+<option value="eva-air">エバー航空</option>
+</select>
+<span class="cr-ring" aria-hidden="true"></span>
+</div>
+<button type="button" class="cr-swap" id="cr-swap" aria-label="2社を入れ替える"><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8h11l-3-3M17 16H6l3 3"/></svg></button>
+<div class="cr-side" data-side="b">
+<div class="cr-opt" data-airline="jal" style="--cr-co:#CC0000" hidden>
+<span class="cr-opt-p"><img src="assets/airlines/jal-b787.jpg" srcset="assets/airlines/jal-b787-480.jpg 480w, assets/airlines/jal-b787.jpg 960w" sizes="(min-width: 900px) 500px, 46vw" width="960" height="540" alt="日本航空（JAL）の Boeing 787-9" loading="lazy" decoding="async"/><span class="cr-code">JAL</span></span>
+<span class="cr-opt-n">日本航空（JAL）<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></span>
+</div>
+<div class="cr-opt" data-airline="ana" style="--cr-co:#1A6EB5" hidden>
+<span class="cr-opt-p"><img src="assets/airlines/ana-b777.jpg" srcset="assets/airlines/ana-b777-480.jpg 480w, assets/airlines/ana-b777.jpg 1280w" sizes="(min-width: 900px) 500px, 46vw" width="1280" height="853" alt="全日本空輸（ANA）の Boeing 777-300ER" loading="lazy" decoding="async"/><span class="cr-code">ANA</span></span>
+<span class="cr-opt-n">全日本空輸（ANA）<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></span>
+</div>
+<div class="cr-opt" data-airline="cathay-pacific" style="--cr-co:#006564">
+<span class="cr-opt-p"><img src="assets/airlines/cathay-a350.jpg" srcset="assets/airlines/cathay-a350-480.jpg 480w, assets/airlines/cathay-a350.jpg 960w" sizes="(min-width: 900px) 500px, 46vw" width="960" height="640" alt="キャセイパシフィックの Airbus A350-1000" loading="lazy" decoding="async"/><span class="cr-code">CX</span></span>
+<span class="cr-opt-n">キャセイパシフィック<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></span>
+</div>
+<div class="cr-opt" data-airline="etihad" style="--cr-co:#B08D57" hidden>
+<span class="cr-opt-p"><img src="assets/airlines/etihad-a350.jpg" srcset="assets/airlines/etihad-a350-480.jpg 480w, assets/airlines/etihad-a350.jpg 1200w" sizes="(min-width: 900px) 500px, 46vw" width="1200" height="800" alt="エティハド航空の Airbus A350-1000" loading="lazy" decoding="async"/><span class="cr-code">EY</span></span>
+<span class="cr-opt-n">エティハド航空<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></span>
+</div>
+<div class="cr-opt" data-airline="eva-air" style="--cr-co:#00A599" hidden>
+<span class="cr-opt-p"><img src="assets/airlines/eva-b777.jpg" srcset="assets/airlines/eva-b777-480.jpg 480w, assets/airlines/eva-b777.jpg 1280w" sizes="(min-width: 900px) 500px, 46vw" width="1280" height="853" alt="エバー航空の Boeing 777-300ER" loading="lazy" decoding="async"/><span class="cr-code">EVA</span></span>
+<span class="cr-opt-n">エバー航空<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></span>
+</div>
+<select id="cr-b" class="cr-sel" aria-label="2社目">
+<option value="jal" disabled>日本航空（JAL）</option>
+<option value="ana">全日本空輸（ANA）</option>
+<option value="cathay-pacific" selected>キャセイパシフィック</option>
+<option value="etihad">エティハド航空</option>
+<option value="eva-air">エバー航空</option>
+</select>
+<span class="cr-ring" aria-hidden="true"></span>
+</div>
+</div>
+<div class="cr-panel">
+<h2 class="cr-panel-h">年収</h2>
+<h3 class="cr-role">機長</h3>
+<div class="cr-pair" data-role="cap">
+<div class="cr-row" data-airline="jal" style="--cr-co:#CC0000">
+<div class="cr-row-h"><span class="cr-row-co"><i class="cr-dot" aria-hidden="true"></i>日本航空（JAL）</span><span class="cr-vh">機長</span><b class="cr-row-v">¥2,700万</b></div>
+<div class="cr-row-k"><span class="cr-tag">推定</span></div>
+<div class="cr-track" aria-hidden="true"><i class="cr-fill" style="--w:67.5%"></i></div>
+</div>
+<div class="cr-row" data-airline="ana" style="--cr-co:#1A6EB5" hidden>
+<div class="cr-row-h"><span class="cr-row-co"><i class="cr-dot" aria-hidden="true"></i>全日本空輸（ANA）</span><span class="cr-vh">機長</span><b class="cr-row-v">¥2,700万</b></div>
+<div class="cr-row-k"><span class="cr-tag">推定</span></div>
+<div class="cr-track" aria-hidden="true"><i class="cr-fill" style="--w:67.5%"></i></div>
+</div>
+<div class="cr-row" data-airline="cathay-pacific" style="--cr-co:#006564">
+<div class="cr-row-h"><span class="cr-row-co"><i class="cr-dot" aria-hidden="true"></i>キャセイパシフィック</span><span class="cr-vh">機長</span><b class="cr-row-v">¥3,600万</b></div>
+<div class="cr-row-k"><span class="cr-tag">推定</span></div>
+<div class="cr-track" aria-hidden="true"><i class="cr-fill" style="--w:90%"></i></div>
+</div>
+<div class="cr-row" data-airline="etihad" style="--cr-co:#B08D57" hidden>
+<div class="cr-row-h"><span class="cr-row-co"><i class="cr-dot" aria-hidden="true"></i>エティハド航空</span><span class="cr-vh">機長</span><b class="cr-row-v">〜¥2,917万</b></div>
+<div class="cr-row-k"><span class="cr-tag">求人の掲載額</span> <span class="cr-sub">A320（求人の上限）</span></div>
+<div class="cr-track" aria-hidden="true"><i class="cr-fill is-max" style="--w:72.9%"></i></div>
+</div>
+<div class="cr-row" data-airline="eva-air" style="--cr-co:#00A599" hidden>
+<div class="cr-row-h"><span class="cr-row-co"><i class="cr-dot" aria-hidden="true"></i>エバー航空</span><span class="cr-vh">機長</span><b class="cr-row-v">¥2,950万</b></div>
+<div class="cr-row-k"><span class="cr-tag">推定</span></div>
+<div class="cr-track" aria-hidden="true"><i class="cr-fill" style="--w:73.8%"></i></div>
+</div>
+</div>
+<h3 class="cr-role">副操縦士</h3>
+<div class="cr-pair" data-role="fo">
+<div class="cr-row" data-airline="jal" style="--cr-co:#CC0000">
+<div class="cr-row-h"><span class="cr-row-co"><i class="cr-dot" aria-hidden="true"></i>日本航空（JAL）</span><span class="cr-vh">副操縦士</span><b class="cr-row-v">¥1,800万</b></div>
+<div class="cr-row-k"><span class="cr-tag">推定</span></div>
+<div class="cr-track" aria-hidden="true"><i class="cr-fill" style="--w:45%"></i></div>
+</div>
+<div class="cr-row" data-airline="ana" style="--cr-co:#1A6EB5" hidden>
+<div class="cr-row-h"><span class="cr-row-co"><i class="cr-dot" aria-hidden="true"></i>全日本空輸（ANA）</span><span class="cr-vh">副操縦士</span><b class="cr-row-v">¥1,800万</b></div>
+<div class="cr-row-k"><span class="cr-tag">推定</span></div>
+<div class="cr-track" aria-hidden="true"><i class="cr-fill" style="--w:45%"></i></div>
+</div>
+<div class="cr-row" data-airline="cathay-pacific" style="--cr-co:#006564">
+<div class="cr-row-h"><span class="cr-row-co"><i class="cr-dot" aria-hidden="true"></i>キャセイパシフィック</span><span class="cr-vh">副操縦士</span><b class="cr-row-v">¥1,956万</b></div>
+<div class="cr-row-k"><span class="cr-tag">条件つきの給与例</span> <span class="cr-sub">First Officer</span></div>
+<div class="cr-track" aria-hidden="true"><i class="cr-fill" style="--w:48.9%"></i></div>
+</div>
+<div class="cr-row" data-airline="etihad" style="--cr-co:#B08D57" hidden>
+<div class="cr-row-h"><span class="cr-row-co"><i class="cr-dot" aria-hidden="true"></i>エティハド航空</span><span class="cr-vh">副操縦士</span><b class="cr-row-v">〜¥2,224万</b></div>
+<div class="cr-row-k"><span class="cr-tag">求人の掲載額</span> <span class="cr-sub">A320（求人の上限）</span></div>
+<div class="cr-track" aria-hidden="true"><i class="cr-fill is-max" style="--w:55.6%"></i></div>
+</div>
+<div class="cr-row" data-airline="eva-air" style="--cr-co:#00A599" hidden>
+<div class="cr-row-h"><span class="cr-row-co"><i class="cr-dot" aria-hidden="true"></i>エバー航空</span><span class="cr-vh">副操縦士</span><b class="cr-row-v">¥1,589万超</b></div>
+<div class="cr-row-k"><span class="cr-tag">公式募集例</span> <span class="cr-sub">4年契約</span></div>
+<div class="cr-track" aria-hidden="true"><i class="cr-fill is-over" style="--w:39.7%"></i></div>
+</div>
+</div>
+<div class="cr-axis" aria-hidden="true"><span>0</span><span>¥2,000万</span><span>¥4,000万</span></div>
+<div class="cr-taxes">
+<p class="cr-tax" data-airline="jal" style="--cr-co:#CC0000"><i class="cr-dot" aria-hidden="true"></i>日本航空（JAL）<span>課税（日本）</span></p>
+<p class="cr-tax" data-airline="ana" style="--cr-co:#1A6EB5" hidden><i class="cr-dot" aria-hidden="true"></i>全日本空輸（ANA）<span>課税（日本）</span></p>
+<p class="cr-tax" data-airline="cathay-pacific" style="--cr-co:#006564"><i class="cr-dot" aria-hidden="true"></i>キャセイパシフィック<span>課税（香港）</span></p>
+<p class="cr-tax" data-airline="etihad" style="--cr-co:#B08D57" hidden><i class="cr-dot" aria-hidden="true"></i>エティハド航空<span>非課税（UAE に個人所得税なし）</span></p>
+<p class="cr-tax" data-airline="eva-air" style="--cr-co:#00A599" hidden><i class="cr-dot" aria-hidden="true"></i>エバー航空<span>課税（台湾）</span></p>
+</div>
+</div>
+<div class="cr-cards">
+<div class="cr-card" data-airline="jal" style="--cr-co:#CC0000">
+<h2 class="cr-card-h"><a class="cr-card-n" href="career.html?airline=jal" data-go>日本航空（JAL）<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></h2>
+<div class="cr-pub">
+<h3 class="cr-h2">会社が公表している金額</h3>
+<div class="cr-grp">
+<p class="cr-grp-k"><span class="cr-tag">平均</span> 運航乗務員（グループ連結・2025年3月期）</p>
+<dl class="cr-figs">
+<div class="cr-fig"><dt>会社が公表した平均年間給与</dt><dd><b>約2,005万円</b></dd></div>
+</dl>
+</div>
+<div class="cr-grp">
+<p class="cr-grp-k"><span class="cr-tag">平均</span> 運航乗務員（グループ連結・2024年3月期）</p>
+<dl class="cr-figs">
+<div class="cr-fig"><dt>会社が公表した平均年間給与</dt><dd><b>約1,959万円</b></dd></div>
+</dl>
+</div>
+<details class="cr-more cr-basis"><summary>前提と出どころ</summary>
+<ul class="cr-notes">
+<li>これは機長と副操縦士をあわせた運航乗務員全体の平均です。機長だけ・副操縦士だけの平均は公表されていません。</li>
+<li>日本航空単体ではなくグループ連結の数字です（会社が注でそう書いています）。</li>
+<li>算定方法は会社の注のとおり「連結人件費に含まれる現金給与相当額を当事業年度中の平均在籍人数で除して算出」＝税引き前の考え方です。賞与・手当を含むかは注に明記がありません。</li>
+</ul>
+<ul class="cr-srcs pv-no-cur">
+<li>日本航空株式会社（EDINET・有価証券報告書） <a href="https://disclosure2dl.edinet-fsa.go.jp/searchdocument/pdf/S100W1KL.pdf" target="_blank" rel="noopener">第76期 有価証券報告書 ５【従業員の状況】（参考情報）平均年間給与</a><span>適用時点：2025年3月期（2025年6月23日提出・書類ID S100W1KL） ／ 確認日：2026-09-29</span></li>
+<li>日本航空株式会社（EDINET・有価証券報告書） <a href="https://disclosure2dl.edinet-fsa.go.jp/searchdocument/pdf/S100TNGJ.pdf" target="_blank" rel="noopener">第75期 有価証券報告書 ５【従業員の状況】（参考情報）平均年間給与</a><span>適用時点：2024年3月期（2024年6月19日提出・書類ID S100TNGJ） ／ 確認日：2026-09-29</span></li>
+</ul>
+</details>
+</div>
+</div>
+<div class="cr-card" data-airline="ana" style="--cr-co:#1A6EB5" hidden>
+<h2 class="cr-card-h"><a class="cr-card-n" href="career.html?airline=ana" data-go>全日本空輸（ANA）<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></h2>
+<div class="cr-pub">
+<h3 class="cr-h2">会社が公表している金額</h3>
+<p class="cr-none">公表なし</p>
+</div>
+</div>
+<div class="cr-card" data-airline="cathay-pacific" style="--cr-co:#006564">
+<h2 class="cr-card-h"><a class="cr-card-n" href="career.html?airline=cathay-pacific" data-go>キャセイパシフィック<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></h2>
+<div class="cr-pub">
+<h3 class="cr-h2">会社が公表している金額</h3>
+<div class="cr-grp">
+<p class="cr-grp-k"><span class="cr-tag">条件つきの給与例</span> 副操縦士（First Officer）</p>
+<dl class="cr-figs">
+<div class="cr-fig"><dt>目標年収</dt><dd><b>約1,956万円</b> <span class="cr-orig pv-no-cur">HKD 964,646</span></dd></div>
+<div class="cr-fig"><dt>月額手当（公表されているのは下限だけ）</dt><dd><b>約41万円から</b> <span class="cr-orig pv-no-cur">HKD 20,000 から</span></dd></div>
+</dl>
+<p class="cr-leave">年次有給 28日</p>
+<details class="cr-more"><summary>応募条件</summary><p>最低総飛行時間 1,500時間（3,000時間が望ましい）・うち機長時間 500時間以上・英語能力証明レベル4以上</p></details>
+</div>
+<div class="cr-grp">
+<p class="cr-grp-k"><span class="cr-tag">条件つきの給与例</span> 二等航空士（Second Officer）</p>
+<dl class="cr-figs">
+<div class="cr-fig"><dt>目標年収</dt><dd><b>約1,275万円</b> <span class="cr-orig pv-no-cur">HKD 629,109</span></dd></div>
+<div class="cr-fig"><dt>月額手当（公表されているのは下限だけ）</dt><dd><b>約28万円から</b> <span class="cr-orig pv-no-cur">HKD 14,000 から</span></dd></div>
+</dl>
+<p class="cr-leave">年次有給 21日</p>
+<details class="cr-more"><summary>応募条件</summary><p>最低総飛行時間 250時間</p></details>
+</div>
+<details class="cr-more cr-basis"><summary>前提と出どころ</summary>
+<ul class="cr-notes">
+<li>目標年収（Target Annual Salary）は、会社が定める目標ブロックアワーを飛んだ場合の金額です。保証額ではありません。</li>
+<li>月額手当（Monthly allowance）は「HKD 20,000 から」と書かれた下限で、上限は公表されていません。</li>
+<li>会社が「2026年1月時点の数字。定期的に見直す」と付記しています。</li>
+</ul>
+<p class="cr-fx pv-no-cur">円額は比較用の換算です（1 HKD＝20.2744円・2026-08-22 時点）。現在の為替レートではありません。</p>
+<ul class="cr-srcs pv-no-cur">
+<li>キャセイパシフィック航空（Cathay Pacific Careers） <a href="https://careers.cathaypacific.com/en/careers/our-teams/pilot/pilot-detail-page" target="_blank" rel="noopener">Our teams / Pilot（First Officer パネル）</a><span>適用時点：2026年1月時点（脚注 &quot;Latest figures as of Jan 2026, subject to periodic review&quot;） ／ 確認日：2026-09-26</span></li>
+</ul>
+</details>
+</div>
+</div>
+<div class="cr-card" data-airline="etihad" style="--cr-co:#B08D57" hidden>
+<h2 class="cr-card-h"><a class="cr-card-n" href="career.html?airline=etihad" data-go>エティハド航空<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></h2>
+<div class="cr-pub">
+<h3 class="cr-h2">会社が公表している金額</h3>
+<div class="cr-grp">
+<p class="cr-grp-k"><span class="cr-tag">求人の掲載額</span> 機長 A320（求人の上限）</p>
+<dl class="cr-figs">
+<div class="cr-fig"><dt>求人に書かれた年額の上限</dt><dd><b>約2,917万円</b> <span class="cr-orig pv-no-cur">AED 674,029</span></dd></div>
+</dl>
+<details class="cr-more"><summary>応募条件</summary><p>総5,500時間・多人数運航ガラスコックピットの機長時間 2,500時間・A320系の機長時間 1,500時間・直近12か月に A320系・入社日に59歳未満・英語能力証明レベル4以上</p></details>
+</div>
+<div class="cr-grp">
+<p class="cr-grp-k"><span class="cr-tag">求人の掲載額</span> 副操縦士 A320（求人の上限）</p>
+<dl class="cr-figs">
+<div class="cr-fig"><dt>求人に書かれた年額の上限</dt><dd><b>約2,224万円</b> <span class="cr-orig pv-no-cur">AED 513,732</span></dd></div>
+</dl>
+<details class="cr-more"><summary>応募条件</summary><p>A：総2,000時間かつ多人数運航ガラスコックピット1,500時間かつ同型500時間／B：総1,500時間かつ A320系1,000時間。加えて直近12か月に A320系・入社日に50歳未満・英語能力証明レベル4以上</p></details>
+</div>
+<details class="cr-more cr-basis"><summary>前提と出どころ</summary>
+<ul class="cr-notes">
+<li>「最大（up to）」の額で、月75時間の乗務を前提としています。75時間は上限に近い飛び方なので、普通の月の実額はこれより下がります。</li>
+<li>内訳は基本給・飛行手当・住宅手当・レイオーバー／食事手当の4つです。</li>
+<li>教育手当（初等 AED 40,000／中等 AED 55,000・子3人まで）・所得補償・保険・社員割引航空券・退職金・引越し支援は、この額に含まれていません。</li>
+<li>交代要員つきの便は75%換算です（機長）。</li>
+</ul>
+<p class="cr-fx pv-no-cur">円額は比較用の換算です（1 AED＝43.2825円・2026-08-22 時点）。現在の為替レートではありません。</p>
+<ul class="cr-srcs pv-no-cur">
+<li>エティハド航空（SmartRecruiters・ref 80371） <a href="https://jobs.smartrecruiters.com/EtihadAirways5/744000140889348-captain" target="_blank" rel="noopener">Captain A320</a><span>適用時点：2026-07-31 掲載 ／ 確認日：2026-09-26</span></li>
+<li>エティハド航空（SmartRecruiters・ref 80372） <a href="https://jobs.smartrecruiters.com/EtihadAirways5/744000140889248-first-officer" target="_blank" rel="noopener">First Officer A320</a><span>適用時点：2026-07-31 掲載 ／ 確認日：2026-09-26</span></li>
+</ul>
+</details>
+</div>
+</div>
+<div class="cr-card" data-airline="eva-air" style="--cr-co:#00A599" hidden>
+<h2 class="cr-card-h"><a class="cr-card-n" href="career.html?airline=eva-air" data-go>エバー航空<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></h2>
+<div class="cr-pub">
+<h3 class="cr-h2">会社が公表している金額</h3>
+<div class="cr-grp">
+<p class="cr-grp-k"><span class="cr-tag">公式募集例</span> 副操縦士（4年契約）</p>
+<dl class="cr-figs">
+<div class="cr-fig"><dt>年収（会社が「これを超える」と書いた下限）</dt><dd><b>約1,589万円超</b> <span class="cr-orig pv-no-cur">USD 100,000 超</span></dd></div>
+</dl>
+<details class="cr-more"><summary>応募条件</summary><p>最低総飛行時間 2,000時間・多人数運航ジェット（最大離陸重量20トン超）500時間・ICAO ATPL・英語能力証明レベル4</p></details>
+</div>
+<details class="cr-more cr-basis"><summary>前提と出どころ</summary>
+<ul class="cr-notes">
+<li>「年収 USD 100,000 超」と書かれた下限です。上限は公表されていません。</li>
+<li>初回の運航から適用され、手当・補助は別計算です。</li>
+<li>会社業績に応じた年末賞与、住宅補助または社宅、月8日連続の休み、年次有給22〜42日が付きます。</li>
+<li>4年契約で外から採用する副操縦士の条件です。</li>
+</ul>
+<p class="cr-fx pv-no-cur">円額は比較用の換算です（1 USD＝158.95円・2026-08-22 時点）。現在の為替レートではありません。</p>
+<ul class="cr-srcs pv-no-cur">
+<li>エバー航空（EVA Air） <a href="https://www.evaair.com/en-global/about-eva-air/careers/job-openings/pilots/" target="_blank" rel="noopener">Careers / Job openings / Pilots（en-global 版）</a><span>適用時点：発行日の記載なし ／ 確認日：2026-10-02</span></li>
+<li>桃園市機師職業工會 長榮分會・長榮航空 <a href="https://www.businesstoday.com.tw/article/category/183027/post/202401280021/" target="_blank" rel="noopener">労使合意（正駕駛 月13,500元ほかの引き上げ・今周刊の報道で確認）</a><span>適用時点：2024年1月28日 ／ 確認日：2026-10-02</span></li>
+<li>鏡週刊 <a href="https://www.mirrormedia.mg/story/20240205inv013" target="_blank" rel="noopener">【長榮不罷工內幕2】正機師年薪480萬起跳 長榮華航星宇搶第一</a><span>適用時点：2024年2月6日 ／ 確認日：2026-10-02</span></li>
+<li>CTWANT <a href="https://www.ctwant.com/article/314950/" target="_blank" rel="noopener">18萬旅客解套1／長榮機師底薪落後變老三「不罷工換加薪」</a><span>適用時点：2024年1月30日 ／ 確認日：2026-10-02</span></li>
+</ul>
+</details>
+</div>
+</div>
+</div>
+<p class="cr-credits">写真（縮小・トリミング） <span class="cr-credit" data-airline="jal">日本航空（JAL） <a href="https://commons.wikimedia.org/wiki/File:Japan_Airlines_Boeing_787-9_JA881J_on_final_approach_to_Boston_April_2022.jpg" target="_blank" rel="noopener">4300streetcar</a>／<a href="https://creativecommons.org/licenses/by/4.0" target="_blank" rel="noopener">CC BY 4.0</a></span> <span class="cr-credit" data-airline="ana" hidden>全日本空輸（ANA） <a href="https://commons.wikimedia.org/wiki/File:All_Nippon_Airways,_Boeing_777-300ER_JA792A_NRT_(26845813980).jpg" target="_blank" rel="noopener">Masakatsu Ukon</a>／<a href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a></span> <span class="cr-credit" data-airline="cathay-pacific">キャセイパシフィック <a href="https://commons.wikimedia.org/wiki/File:Cathay_Pacific_Airbus_A350-1000_B-LXB.jpg" target="_blank" rel="noopener">Melv_L - MACASR</a>／<a href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a></span> <span class="cr-credit" data-airline="etihad" hidden>エティハド航空 <a href="https://commons.wikimedia.org/wiki/File:Etihad_Airways,_A6-XWA,_Airbus_A350-1041.jpg" target="_blank" rel="noopener">Anna Zvereva</a>／<a href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a></span> <span class="cr-credit" data-airline="eva-air" hidden>エバー航空 <a href="https://commons.wikimedia.org/wiki/File:Eva_Air_Boeing_777-300ER_B-16716.jpg" target="_blank" rel="noopener">Melv_L - MACASR</a>／<a href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a></span></p>
+</section>
+</div>
+<!--/PV-CAREER-->
+    </main>
+  </div>
+
+  <script>
+    const SUN = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
+    const MOON = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+    function applyTheme(t){document.documentElement.setAttribute('data-theme',t);localStorage.setItem('pv-theme',t);const b=document.getElementById('theme-toggle');if(b)b.innerHTML=t==='dark'?SUN:MOON;}
+    applyTheme(localStorage.getItem('pv-theme')||'light');
+    document.getElementById('theme-toggle').addEventListener('click',function(){applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');});
+  </script>
+
+<script src="search.js"></script>
+<script src="lang-toggle.js"></script>
+<script src="currency.js"></script>
+<!-- 左メニューの錠前（REAL PAY の入口）。この画面のデータは1つも隠していない。 -->
+<script src="pv-gates.js"></script>
+<!-- 画面の切り替えだけ。金額は1つも持たない。
+     ★読めなかったときは入口をそのまま見せる（onerror）。 -->
+<script src="career.js?v=fd1a8185" onerror="document.documentElement.classList.remove('cr-boot')"></script>
+<!-- PV-NAV: ナビの開け閉め。★search.js より**後**に読む ──
+     あちらが作った ≡ を繋ぎ直すため（先に読むと search.js:416 の二重注入ガードで
+     ヘッダーの自動折り畳みごと止まる）。search.js が無いページでは自分で ≡ を作る。 -->
+<script src="app-nav.js"></script>
+</body>
+</html>

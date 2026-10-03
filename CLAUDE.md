@@ -226,6 +226,10 @@ baland_ass/                            ブランド資産（※ brand_assets の
 | [seo-normalize.mjs](seo-normalize.mjs) の `COPY` | 日英の `t`/`d`。**noindex でも `<title>` は出る。無いと次に流した人がタイトルを空にする** |
 | [assert-founding.mjs](assert-founding.mjs) の除外リスト | FOUNDING の板は `profile.html` の最上部だけ |
 | [pv-session.js](pv-session.js) の `GF_SKIP` | **入力の途中の画面なら足す。** 足さないと、登録だけの会員がそのページを開いた瞬間に Give → Get の板が入力を覆う |
+| [assert-pay-rows.mjs](assert-pay-rows.mjs) の左メニューの枚数 | `<nav class="mr-side">` を持つページなら**合計と内訳を1つ足す**（`id="main-nav"` が在れば公開側・無ければアプリ側）。足さないと `check.mjs web` まで流した回にだけ赤くなる |
+| [seo-normalize.mjs](seo-normalize.mjs) と [assert-seo.mjs](assert-seo.mjs) の `JA_ONLY` | **英語版を置かないページなら両方に足す**（2つで対）。足さないと在りもしない `en/` への hreflang が出る。英語版を置いたら両方から外す |
+| [assert-generated.mjs](assert-generated.mjs) の `GENERATORS` | 本文を生成スクリプトが書くページなら、そのスクリプトを足す（流し忘れを捕まえる） |
+| [assert-header.mjs](assert-header.mjs) の `PAGES` | ヘッダーを持つ新しい形の画面なら足す（10の幅で畳み方と横溢れを測る） |
 
 ⚠️ **`defer-third-party.mjs` は流さない。** あれは PV-3P の塊を必ず `</head>` の直前へ置き直すので、
 先に入っている `pv-session.js` との前後が入れ替わり、**298枚が本題と無関係な差分になる**
@@ -243,6 +247,23 @@ baland_ass/                            ブランド資産（※ brand_assets の
 - マイページ系（`.mr-side` を持つ画面）なら [patch-side-nav.mjs](patch-side-nav.mjs) の `CURRENT` に足し、
   空の `<nav class="mr-side" aria-label="…"></nav>` を置いてから `node patch-side-nav.mjs` を流す
 - `_config.yml` は変更不要（`.html` は元から配信される）
+
+## 概要と2社比較の1枚（[career.html](career.html)・2026-10-03）
+
+先行5社（JAL・ANA・キャセイ・エティハド・エバー）の入口／会社の概要／2社の比較を1枚に入れた下見用のページ。
+**検索に出さない・メニューに載せていない・日本語だけ。** 載せる時期と名前はオーナーが決める。
+
+- **本文は [gen-career.mjs](gen-career.mjs) が書く**（`<!--PV-CAREER-->…<!--/PV-CAREER-->`）。手で直さない。
+  数字の出どころは `SALARY`・[salary-basis.mjs](salary-basis.mjs) の `BASIS`・写真の台帳の3つだけ。
+- ⚠️ **`career.css` か `career.js` を直したら `node gen-career.mjs` を流す。**
+  HTML が読む `?v=` はファイルの指紋なので、流さないと古い部品が最大4時間残る（`--check` で差分だけ）。
+- **棒に出す額は、会社ページのカードと同じ決め方**（`cardFigure`）── 会社が公表した年額があればそれ・無ければ推定。
+  ここだけ「全部推定」にすると、同じ会社の同じ職位が会社ページと違う額になる。
+- ⚠️ **求人の上限を平の額として出さない。** 「〜」・斜線の棒・「上限」の字の3つが必ず一緒に出る。
+- ⚠️ **[career.js](career.js) に金額を書かない。** あれは見せる・隠す・並べ替えるだけで、額は全部 HTML に在る
+  （＝ `check-salary.mjs` と通貨切替がそのまま読める）。
+- 総合順位・勝ち負けの語・星・掲載社数・「公式ではない」の断りを置かない（オーナー判断）。
+- 見るもの: `node assert-career.mjs`（数字 ⇄ 正本・目盛・住所と「戻る」・通貨・大きさ・写真のクレジット）。
 ## 登録だけで止まっている会員に、Give → Get を1回だけ出す（全ページ）
 
 ★2026-09-15 オーナー指示「会員登録だけの人がログインしたりページに来たら毎回1回はこの画面出して」。
@@ -275,10 +296,10 @@ baland_ass/                            ブランド資産（※ brand_assets の
 
 | コマンド | 中身 | 目安 |
 |---|---|---|
-| `node check.mjs fast` | 静的検査＋ネット不要の単体（17本）| 2秒 |
-| `node check.mjs sql` | PGlite の SQL テスト（13本）| 80秒 |
-| `node check.mjs web` | Puppeteer の画面検査（20本）| 7分半 |
-| `node check.mjs all` | 全部（50本）| 10分 |
+| `node check.mjs fast` | 静的検査＋ネット不要の単体（19本）| 2秒 |
+| `node check.mjs sql` | PGlite の SQL テスト（14本）| 80秒 |
+| `node check.mjs web` | Puppeteer の画面検査（23本）| 7分半 |
+| `node check.mjs all` | 全部（56本）| 10分 |
 | `node check.mjs` | 既定 ＝ `fast` ＋ `sql`（画面を触っていない回はこれで足りる）| 80秒 |
 
 - 画面・CSS・共有 JS を触ったら `web` か `all` まで流す。
@@ -320,6 +341,7 @@ baland_ass/                            ブランド資産（※ brand_assets の
 | `assert-deep-pay.mjs` | DEEP PAY ── **錠前が掛かったまま**（対の外から入口ゼロ）・「時給」と呼ばない・順位を書かない・0 で埋めない・**選んだ区分が3人未満なら広い区分の数字で埋めない**・**選ぶまで何も出さない** |
 | `assert-deep-pay-compare.mjs` | 会社比較 ── **片側が3人未満でももう片側は普通に出る**・勝ち負けの語を書かない・賞与を月々の棒に入れない・人数を JS で数えない（壁は SQL の1か所）|
 | `assert-roadmap.mjs` | ROADMAP & REQUESTS ── **匿名が解けない**（一覧の SQL が `author_hash` に触れない）・要望の本文が `textContent` で入る・**日英の文言の鍵が完全に同じ**・区分と状態の白リストが SQL と画面で一致・取れないときに 0 で埋めない・hex と `prefers-color-scheme` の直書きが無い |
+| `assert-career.mjs` | 概要と2社比較の1枚 ── **画面の額が正本と一致**（生成側の関数を呼ばずに作り直して照合）・概要と比較で同じ額・**上限の印（〜・斜線・「上限」の字）が3つそろう**・棒が 0 から始まり描かれた長さが額に比例・住所ごとに直接開ける／戻る・進むで同じ画面と同じ位置・選び直しは履歴を積まない・通貨を切り替えて円に戻すと1文字も違わない・年収が最初の1画面に入る・**示すことが条件の写真にクレジットが付いている**・写真に撮影情報が残っていない |
 | `db/test-requests.mjs` | 要望と ♡ の SQL ── ハッシュが外へ出ない・**1人1票**・管理者しか状態を変えられない・隠した行が一般ユーザーの `total` にも出ない・文字数と連投の制限がサーバ側で効く |
 | `assert-claims.mjs` | サイトが**本当のことだけ**を言っているか ── A)「画像は送らない」と書かない（**本当は送っている。**端末を出ないのは*枠の外*と*塗った部分*だけ）・正しい説明が送る直前の確認画面と `personal-data.html` に在る／B) 画面に出る数を HTML に直書きしない（JS が書き換える欄は「—」で出荷・日英で欄の集合が同じ・掲載社数は `SALARY` と一致）|
 | `assert-generated.mjs` | 生成物（sitemap・英語版一覧・語彙・JSON-LD の更新日）が**流し忘れで古くなっていない**か。使い捨てのコピーの中で生成スクリプトを流すので**リポジトリには書き込まない**（`.git` だけ読むために貸す）|
@@ -513,6 +535,15 @@ secret を削除して共通キーへ落として復旧。現在この secret �
 - **git の作者は `PILOT VALUE <info@pilot-value.com>`。** 個人アカウントでコミットしない。
 - **写真を入れない。スクリーンショットにする。** カメラの画像は EXIF に撮影地の緯度経度を持つ。
   どうしても要るなら `node assert-no-pii.mjs` の B) が GPS を検出して落とすので、それに従って作り直す。
+- **航空機の写真だけは置き場が決まっている（2026-10-03）。** `assets/airlines/`・台帳は [airline-photos.mjs](airline-photos.mjs)。
+  - **台帳に無い写真を置かない**（出所・作者・ライセンスが分からない写真は使えない）。
+  - **元のファイルをそのまま置かない。** [import-airline-photos.mjs](import-airline-photos.mjs) がキャンバスに描き直して
+    書き出す＝画素だけが残り、撮影情報は1つも付いてこない
+    （`node import-airline-photos.mjs --from <元の写真のフォルダ>`。元の場所はファイルに書かない＝ログイン名が入る）。
+  - **CC BY / CC BY-SA の写真は、作者名とライセンス名を示すことが使う条件。** 画面のクレジットは台帳から機械で出る。
+    「文言を減らす」ために外さない（外すと条件違反）。何も足したくない場所には CC0 の写真を使う。
+  - 台帳の `aircraft` は**写真に写っている機種**。年収の対象機種とは別物なので、写真の説明にしか使わない。
+  - `SALARY` に写真の欄を足さない（丸ごと公開 JSON に展開される）。
 - 何を配信するかは [_config.yml](_config.yml) の `exclude` が決める。
   `.mjs` `.md` `db/` `supabase/` などは配信対象外。**ここを触ったら必ず `--live` で
   「消したい物が 404」かつ「サイトが読む物が 200」の両方を確認する**（消しすぎると本番が壊れる）。

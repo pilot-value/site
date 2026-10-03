@@ -48,6 +48,9 @@ const NOINDEX = new Set([
   /* 2026-08-15、求人の掲載を停止した。ページは残すが検索には出さない。 */
   'world-jobs.html',
   'invite.html',
+  /* 2026-10-03、概要と2社比較の新しい1枚。オーナーが形を決めるまでの下見用で、
+     メニューにも載せていない。検索には出さない。 */
+  'career.html',
 ]);
 
 const listHtml = (dir) => (fs.existsSync(path.join(ROOT, dir))

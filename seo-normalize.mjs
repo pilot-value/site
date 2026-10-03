@@ -143,7 +143,16 @@ const NOINDEX = new Set([
      gen-sitemap.mjs の同名の集合と対にしてある。 */
   'world-jobs.html',
   'invite.html',
+  /* 2026-10-03、概要と2社比較の新しい1枚。オーナーが形を決めるまでの下見用で、
+     メニューにも載せていない。検索には出さない。 */
+  'career.html',
 ]);
+
+/* ── 日本語だけのページ（2026-10-03）────────────────────────────
+   英語版をまだ置いていないページ。hreflang="en" を書くと存在しないファイルを
+   指すので、ここに在るページは ja と x-default（＝ja）だけを書く。
+   **英語版を置いたら、ここから外す。** assert-seo.mjs の同名の集合と2つで対。 */
+const JA_ONLY = new Set(['career.html']);
 
 /* ════════════════════════════════════════════════════════════════
    ルートページのタイトル・説明文（日英）
@@ -186,6 +195,12 @@ const COPY = {
           d: 'PILOT VALUE がいま何を作っていて、次に何を目指しているのか。パイロットからの要望を匿名で受け取り、進み具合を公開しています。' },
     en: { t: 'Roadmap and requests',
           d: 'What PILOT VALUE is building now and aiming at next. Pilots send requests anonymously, and progress is published here.' },
+  },
+  /* 概要と2社比較の1枚（2026-10-03）。日本語だけ（JA_ONLY）。
+     タブの名前は career.js が画面ごとに差し替える（後ろの「 | PILOT VALUE」はそのまま使う）。 */
+  'career.html': {
+    ja: { t: '次のキャリアを、選択する。',
+          d: '航空会社の概要と2社の比較。機長と副操縦士の年収、会社が公表している金額と応募条件を、写真と同じ目盛の棒で見比べられます。' },
   },
   'world-jobs.html': {
     ja: { t: 'パイロット求人（掲載停止中）',
@@ -814,6 +829,7 @@ for (const rel of files) {
   const enUrl = relToUrl(bare === 'index.html' ? 'en/index.html' : `en/${bare}`);
   const selfUrl = lang === 'ja' ? jaUrl : enUrl;
   const noindex = NOINDEX.has(path.basename(rel)) && !rel.includes('/airlines/') && !rel.includes('/countries/');
+  const jaOnly = JA_ONLY.has(rel);
 
   const headEnd = html.search(/<\/head>/i);
   if (headEnd === -1) { notes.push(`${rel}: </head> が無い — 飛ばした`); continue; }
@@ -1101,16 +1117,14 @@ for (const rel of files) {
 ${curKw ? `<meta name="keywords" content="${esc(fixCount(curKw))}"/>\n` : ''}<meta name="robots" content="${noindex ? 'noindex,follow' : 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1'}"/>
 <link rel="canonical" href="${selfUrl}"/>
 <link rel="alternate" hreflang="ja" href="${jaUrl}"/>
-<link rel="alternate" hreflang="en" href="${enUrl}"/>
-<link rel="alternate" hreflang="x-default" href="${enUrl}"/>
+${jaOnly ? '' : `<link rel="alternate" hreflang="en" href="${enUrl}"/>\n`}<link rel="alternate" hreflang="x-default" href="${jaOnly ? jaUrl : enUrl}"/>
 <meta property="og:title" content="${esc(ogTitle)}"/>
 <meta property="og:description" content="${esc(ogDesc)}"/>
 <meta property="og:url" content="${selfUrl}"/>
 <meta property="og:type" content="${ogType}"/>
 <meta property="og:site_name" content="PILOT VALUE"/>
 <meta property="og:locale" content="${lang === 'ja' ? 'ja_JP' : 'en_US'}"/>
-<meta property="og:locale:alternate" content="${lang === 'ja' ? 'en_US' : 'ja_JP'}"/>
-<meta property="og:image" content="${img}"/>
+${jaOnly ? '' : `<meta property="og:locale:alternate" content="${lang === 'ja' ? 'en_US' : 'ja_JP'}"/>\n`}<meta property="og:image" content="${img}"/>
 <meta property="og:image:width" content="1200"/>
 <meta property="og:image:height" content="630"/>
 <meta property="og:image:alt" content="${esc(ogTitle)}"/>
