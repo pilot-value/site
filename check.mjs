@@ -80,7 +80,7 @@ const WEB = [
   ['db/test-form-contract.mjs', 179], ['assert-jp.mjs', 153],
   ['assert-referral.mjs', 126], ['assert-perf.mjs', 110],
   ['assert-currency.mjs', 93], ['assert-conditions.mjs', 60],
-  ['assert-unlock.mjs', 59], ['assert-career.mjs', 40], ['assert-my-posts.mjs', 32],
+  ['assert-unlock.mjs', 59], ['assert-career.mjs', 55], ['assert-my-posts.mjs', 32],
   ['assert-langtoggle.mjs', 24], ['assert-founding.mjs', 20],
   ['assert-give-first.mjs', 14], ['assert-hero-fold.mjs', 13], ['assert-admin.mjs', 12],
   ['db/test-login-redirect.mjs', 7],

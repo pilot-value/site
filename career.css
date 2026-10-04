@@ -77,8 +77,7 @@
   mix-blend-mode:multiply;background:color-mix(in srgb, var(--pv-navy) 14%, transparent)}
 .cr-tile-n{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:48px;
            padding:8px 12px;font-size:14px;font-weight:700;line-height:1.3;letter-spacing:-.01em}
-.cr-tile:active{transform:scale(.985)}
-.cr-tile:focus-visible{border-radius:var(--pv-r-lg)}
+.cr .cr-tile:focus-visible{border-radius:var(--pv-r-lg)}
 
 /* 6枚目＝比較の入口。写真の代わりに、2本の棒の形。 */
 .cr-tile-cmp{background:var(--pv-navy);border-color:var(--cr-hair);color:var(--cr-on);isolation:isolate;overflow:hidden}
@@ -113,7 +112,6 @@
         box-shadow:0 1px 2px color-mix(in srgb, var(--pv-navy) 14%, transparent),
                    0 10px 20px -12px color-mix(in srgb, var(--pv-accent-dark) 80%, transparent);
         transition:transform .22s var(--pv-ease)}
-.cr-btn:active{transform:scale(.97)}
 .cr .cr-btn:focus-visible{border-radius:999px}
 
 .cr-cols{display:grid;gap:14px}
@@ -131,12 +129,24 @@
         background:var(--pv-accent-soft);border:1px solid var(--pv-accent-line)}
 .cr-pay-h{color:var(--pv-accent-ink);font-size:13px;font-weight:700;letter-spacing:.02em}
 .cr-nums{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);margin-top:8px}
-.cr-num{display:flex;flex-direction:column;min-width:0;padding-right:12px}
-.cr-num + .cr-num{padding:0 0 0 14px;border-left:1px solid var(--pv-accent-line)}
+.cr-num{display:flex;flex-direction:column;min-width:0;padding-right:8px}
+.cr-num + .cr-num{padding:0 0 0 10px;border-left:1px solid var(--pv-accent-line)}
 .cr-num-r{font-size:13px;font-weight:700;color:var(--pv-ink)}
 .cr-num-v{margin-top:2px;color:var(--pv-ink);white-space:nowrap;
-          font:800 clamp(20px, 6.4vw, 34px)/1.2 Inter,'Noto Sans JP',sans-serif;
+          font:800 clamp(18px, 6.1vw, 26px)/1.2 Inter,'Noto Sans JP',sans-serif;
           letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+/* この額は折り返さない。字数の多い通貨（「〜AED 674K」）でも列に収まる大きさにしてある。
+   ★字の大きさは画面の幅ではなく、額が入る箱（.cr-nums）の幅から決める。
+     画面が広くても箱が広いとは限らない ── 写真と2列に並ぶ幅（900px〜）では箱が半分になり、
+     左メニューが出る 1001px がいちばん狭い。広い画面で 40px に固定していた頃、AED に切り替えると
+     額が列からはみ出し、900〜1024px ではページごと横に溢れていた（2026-10-04）。
+   上の clamp と下の1行は、箱の幅で測れない古いブラウザ向けの控え（どの幅でも収まる小さめの値）。
+   ⚠️ 大きくするときは、全部の通貨で見る（assert-career.mjs が狭い幅と広い幅の両方で測っている）。 */
+@media (max-width:359px){.cr-num-v{font-size:18px}}
+@supports (font-size:1cqi){
+  .cr-nums{container-type:inline-size}
+  .cr-num-v{font-size:clamp(18px, 7.2cqi, 36px)}
+}
 .cr-num-k{display:flex;flex-wrap:wrap;align-items:center;gap:3px 6px;margin-top:6px;font-size:12px;line-height:1.6;color:var(--pv-ink-2)}
 
 /* 小さい棒。目盛は 0 から。上限は斜線と端の印・「超」は先が薄く伸びる。 */
@@ -161,6 +171,11 @@
          font-size:12px;line-height:1.4;color:var(--pv-ink-3);font-variant-numeric:tabular-nums}
 .cr-axis span:last-child{text-align:right}
 .cr-mini .cr-axis{margin-left:72px}
+/* いちばん狭い画面（〜339px）では、まんなかの目盛の字を出さない。
+   字数の多い通貨（「AED 462K」）だと右端の字とのあいだが 3px しか無く、1つの数に見えた（2026-10-04）。
+   棒の中の目盛線は残るので、半分の位置は今までどおり読める。場所は取ったまま＝両端の字は動かない。
+   ⚠️ 箱の幅（@container）で書かない。この幅の端末は古く、箱の幅で測れないブラウザが多い。 */
+@media (max-width:339px){.cr-mini .cr-axis span:nth-child(2){visibility:hidden}}
 .cr-tax{margin-top:10px;font-size:12px;line-height:1.5;color:var(--pv-ink-2)}
 
 /* 会社が公表している金額。 */
@@ -200,7 +215,7 @@
 .cr-notes li{position:relative;padding-left:14px}
 .cr-notes li::before{content:"";position:absolute;left:2px;top:.72em;width:4px;height:4px;border-radius:50%;background:var(--pv-ink-3)}
 .cr-fx{padding-bottom:12px;font-size:12px;line-height:1.7;color:var(--pv-ink-3)}
-.cr-srcs a{color:var(--pv-accent-ink);font-weight:600;text-underline-offset:2px}
+.cr-srcs a{display:block;color:var(--pv-accent-ink);font-weight:600;text-underline-offset:2px}
 .cr-srcs a:hover{color:var(--pv-ink)}
 .cr-srcs a:active{opacity:.6}
 .cr-srcs span{display:block;font-size:12px;color:var(--pv-ink-3)}
@@ -210,15 +225,26 @@
 .cr-pick{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
 .cr-side{position:relative;overflow:hidden;border-radius:var(--pv-r-lg);background:var(--pv-surface);
          border:1px solid var(--pv-line);box-shadow:var(--pv-shadow);transition:transform .24s var(--pv-ease)}
-.cr-side:active{transform:scale(.985)}
 .cr-opt{position:relative;display:block;border-bottom:4px solid var(--cr-co)}
-.cr-opt-p{position:relative;isolation:isolate;display:block;overflow:hidden;aspect-ratio:16/9;background:var(--pv-navy)}
+/* 高さの下限 96px ── まんなかの入れ替えボタン（44px）が、略号の札と社名に掛からない高さ。
+   390px 幅ではもともとこの高さ。それより狭いと 16:9 では足りず、札の角と社名の頭がボタンの下に入っていた（2026-10-04）。 */
+.cr-opt-p{position:relative;isolation:isolate;display:block;overflow:hidden;aspect-ratio:16/9;min-height:96px;background:var(--pv-navy)}
 .cr-opt-p::before{background:linear-gradient(0deg, color-mix(in srgb, var(--pv-navy) 82%, transparent) 0%, transparent 62%)}
 .cr-opt .cr-code{top:10px;bottom:auto}
 .cr-opt-n{position:absolute;z-index:1;left:10px;right:8px;bottom:9px;display:flex;align-items:center;gap:4px;
           color:var(--cr-on);font-size:clamp(12px, 3.2vw, 16px);font-weight:800;line-height:1.3;letter-spacing:-.02em;
           overflow-wrap:anywhere}
 .cr-opt-n .cr-ic{width:13px;height:13px}
+/* 狭い画面（〜351px）では、いちばん長い社名（キャセイパシフィック）と矢印が1行に並ばない。
+   語の途中で折れて2行になり、頭の字が入れ替えボタンの下に入っていた（2026-10-04）。
+   社名に1行ぜんぶを渡し、矢印は略号の札へ移す（「押せば選び直せる」の目印は残す）。
+   ⚠️ 箱の幅（@container）で書かない。この幅の端末は古く、箱の幅で測れないブラウザが多い。 */
+@media (max-width:351px){
+  .cr-opt-n{right:6px}
+  .cr-opt-n .cr-ic{display:none}
+  .cr-opt .cr-code::after{content:"";display:inline-block;width:5px;height:5px;margin:0 1px 2px 6px;
+                          border:solid currentColor;border-width:0 1.5px 1.5px 0;transform:rotate(45deg)}
+}
 /* 押す所は透明な select（カード全体）。見えているのは写真のカード。 */
 .cr-sel{position:absolute;inset:0;z-index:2;width:100%;height:100%;margin:0;border:0;opacity:0;
         cursor:pointer;font-size:16px;appearance:none;-webkit-appearance:none}
@@ -230,7 +256,6 @@
          display:grid;place-items:center;border-radius:50%;cursor:pointer;
          background:var(--pv-surface);border:1px solid var(--pv-line);color:var(--pv-ink);
          box-shadow:var(--pv-shadow-lift);transition:transform .32s var(--pv-ease)}
-.cr-swap:active{transform:rotate(180deg) scale(.92)}
 .cr .cr-swap:focus-visible{border-radius:50%}
 
 .cr-panel{position:relative;isolation:isolate;overflow:hidden;margin-top:14px;padding:18px 16px 16px;
@@ -248,6 +273,8 @@
 .cr-dot{flex:none;width:8px;height:8px;border-radius:50%;background:color-mix(in srgb, var(--cr-co) 66%, white)}
 .cr-row-v{flex:none;color:var(--cr-on);white-space:nowrap;
           font:800 24px/1.15 Inter,'Noto Sans JP',sans-serif;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+/* いちばん狭い画面（〜339px）では、長い社名と額が1行に並ばず、社名が語の途中で折れていた（2026-10-04）。 */
+@media (max-width:339px){.cr-row-co{font-size:12px}.cr-row-v{font-size:20px}}
 .cr-row-k{display:flex;flex-wrap:wrap;align-items:center;gap:3px 6px;margin-top:3px;font-size:12px;line-height:1.6;color:var(--cr-on-3)}
 .cr-panel .cr-tag{background:color-mix(in srgb, white 9%, transparent);
                   border-color:color-mix(in srgb, white 16%, transparent);color:var(--cr-on-2)}
@@ -283,6 +310,14 @@
   .cr-more[open] > summary:hover::after{transform:translateY(0) rotate(225deg)}
 }
 
+/* ── 押したときの沈み ──────────────────────────────────────────────
+   ⚠️ 上の「乗せたとき」より後ろに置く。同じ強さなので、前に置くと
+   マウスで押しているあいだも乗せたときの形が勝ち、押した手応えが消える。 */
+.cr-tile:active{transform:scale(.985)}
+.cr-btn:active{transform:scale(.97)}
+.cr-side:active{transform:scale(.985)}
+.cr-swap:active{transform:rotate(180deg) scale(.92)}
+
 /* ── 広い画面 ─────────────────────────────────────────────────── */
 @media (min-width:760px){
   .cr-lead{min-height:300px;padding:40px}
@@ -317,7 +352,6 @@
   .cr-pay{display:flex;flex-direction:column;padding:26px 26px 20px}
   .cr-pay-h{font-size:14px}
   .cr-nums{margin:12px 0 20px}
-  .cr-num-v{font-size:40px}
   .cr-mini{margin-top:auto;padding-top:16px}
   .cr-mini-row{min-height:30px}
   .cr-pay .cr-track{height:14px}

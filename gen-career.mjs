@@ -47,6 +47,9 @@ export const ROLES = [['cap', '機長'], ['fo', '副操縦士']];
 const PUB_RANKS = ['cap', 'fo', 'crew'];
 /* 鍵の名前の末尾で決まる言い添え（年収の下限・手当の下限）。 */
 const openEnd = key => (/_over$/.test(key) ? '超' : /_from$/.test(key) ? 'から' : '');
+/* 求人の上限（max_…）は、公表額の一覧でも額の頭に「〜」を付ける（平の額に見せない）。
+   ⚠️ openEnd に混ぜない。あちらは棒の額にも使っていて、棒は cardFigure がもう「〜」を付けている。 */
+const upTo = key => (/^max_/.test(key) ? '〜' : '');
 
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const yen = m => `¥${m.toLocaleString('en-US')}万`;
@@ -76,12 +79,14 @@ const name = slug => SALARY[slug].ja;
 
 /* ── 棒に出す1マス ─────────────────────────────────────────────── */
 /* 数字のすぐ上に職位が出ているので、札の横では頭の職位を落とす（同じ語を2回言わない）。
-   「機長 A320（求人の上限）」→「A320（求人の上限）」／「副操縦士（4年契約）」→「4年契約」。 */
+   「機長 A320（求人の上限）」→「A320（求人の上限）」／「副操縦士（4年契約）」→「4年契約」。
+   残りが英字だけなら、職位を英語で言い直しただけなので出さない（「副操縦士（First Officer）」→ 空）。 */
 const brief = (group, label) => {
   if (!group.startsWith(label)) return group;
   const rest = group.slice(label.length).trim();
   const m = rest.match(/^（([^（）]*)）$/);
-  return m ? m[1] : rest;
+  const out = m ? m[1] : rest;
+  return /^[A-Za-z ]+$/.test(out) ? '' : out;
 };
 
 export function cell(slug, rank) {
@@ -93,7 +98,11 @@ export function cell(slug, rank) {
     if (!avg) throw new Error(`${slug}/${rank}: SALARY に推定が無い`);
     return { man: avg, text: yen(avg), tag: TIERS[tier].ja, sub: '', look: '' };
   }
-  const f = figures(slug, rank).find(x => !x.training && x.man === c.man);
+  /* カードの額がどの行のものかは、万円の値で探している。同じ値の行が2つあると
+     一言と「超」の印を別の行から取ってしまうので、そのときは止まる。 */
+  const hits = figures(slug, rank).filter(x => !x.training && x.man === c.man);
+  if (hits.length > 1) throw new Error(`${slug}/${rank}: カードの額 ${c.man} と同じ値の行が台帳に${hits.length}つある（どれの一言を出すか決められない）`);
+  const f = hits[0];
   if (!f) throw new Error(`${slug}/${rank}: カードの額 ${c.man} が台帳の figures() に見つからない`);
   const tag = c.up && !f.group.includes('上限') ? c.kindJa : TIERS[tier].ja;
   if (c.up && !(tag + f.group).includes('上限')) throw new Error(`${slug}/${rank}: 上限なのに「上限」の字が出ない`);
@@ -200,8 +209,8 @@ function pub(slug, tag) {
 
   const blocks = groups.map(({ tier, g, figs }) => {
     const rows = figs.map(f => {
-      const orig = f.cur === 'JPY' ? '' : ` <span class="cr-orig pv-no-cur">${f.cur} ${f.amount.toLocaleString('en-US')}${openEnd(f.key) ? ' ' + openEnd(f.key) : ''}</span>`;
-      return `<div class="cr-fig"><dt>${esc(f.kind)}</dt><dd><b>${esc(f.text + openEnd(f.key))}</b>${orig}</dd></div>`;
+      const orig = f.cur === 'JPY' ? '' : ` <span class="cr-orig pv-no-cur">${upTo(f.key)}${f.cur} ${f.amount.toLocaleString('en-US')}${openEnd(f.key) ? ' ' + openEnd(f.key) : ''}</span>`;
+      return `<div class="cr-fig"><dt>${esc(f.kind)}</dt><dd><b>${esc(upTo(f.key) + f.text + openEnd(f.key))}</b>${orig}</dd></div>`;
     }).join('\n');
     const leave = g.leave ? `\n<p class="cr-leave">${esc(g.leave)}</p>` : '';
     const req = g.req ? `\n<details class="cr-more"><summary>応募条件</summary><p>${esc(g.req)}</p></details>` : '';
@@ -214,7 +223,8 @@ ${rows}
   }).join('\n');
 
   const notes = (B.notes || []).filter(n => !/訓練生|採用予定/.test(n));
-  const srcs = (B.src || []).filter(s => !/訓練生|自社養成/.test(s.name));
+  /* secondary＝会社の公表ではない資料（報道など・推定の根拠）。「会社が公表している金額」の出どころではない。 */
+  const srcs = (B.src || []).filter(s => !s.secondary && !/訓練生|自社養成/.test(s.name));
   const fx = B.cur && B.cur !== 'JPY' ? `\n<p class="cr-fx pv-no-cur">${esc(fxNote(B.cur))}</p>` : '';
   const noteHtml = notes.length ? `\n<ul class="cr-notes">\n${notes.map(n => `<li>${esc(n)}</li>`).join('\n')}\n</ul>` : '';
   const srcHtml = srcs.length ? `\n<ul class="cr-srcs pv-no-cur">\n${srcs.map(s =>
@@ -351,7 +361,7 @@ export function render(html) {
   /* HTML は10分・CSS と JS は4時間キャッシュされる。中身の指紋を付けておけば、
      直した日に「新しい HTML ＋ 端末に残った古い JS」の組み合わせが成立しない。 */
   for (const f of ['career.css', 'career.js']) {
-    const re = new RegExp(`(["'])${f.replace('.', '\\.')}(?:\\?v=[0-9a-f]{8})?\\1`, 'g');
+    const re = new RegExp(`(["'])${f.replace('.', () => '\\.')}(?:\\?v=[0-9a-f]{8})?\\1`, 'g');
     let n = 0;
     out = out.replace(re, (m, q) => { n++; return `${q}${f}?v=${fingerprint(f)}${q}`; });
     if (!n) throw new Error(`${PAGE}: ${f} を読んでいない`);

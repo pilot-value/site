@@ -28,6 +28,11 @@ if (!FROM || !fs.existsSync(FROM)) {
   console.error('使い方: node import-airline-photos.mjs --from <元の写真が入っているフォルダ>');
   process.exit(1);
 }
+/* --only の名前が台帳に無いときは止まる（黙って0枚で「終わった」と出さない）。 */
+if (ONLY && !Object.values(PHOTOS).flat().some(p => p.file === ONLY)) {
+  console.error(`❌ 台帳（airline-photos.mjs）に ${ONLY} が無い`);
+  process.exit(1);
+}
 
 const OUT = path.join(ROOT, PHOTO_DIR);
 fs.mkdirSync(OUT, { recursive: true });

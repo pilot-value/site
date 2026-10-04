@@ -9,16 +9,22 @@
         （呼んでしまうと、あちらが間違えた日に検査も一緒に間違える）。
      ② 上限が平の額に見える ── 「〜」・斜線の棒・「上限」の字の3つが必ず一緒に出る。
         1つでも落ちると、求人の上限が推定年収と同じ顔で並ぶ。
+        斜線は札（class）ではなく**描かれた模様**で見る。公表額の一覧でも「〜」と「上限」が対。
      ③ 目盛が歪む ── 棒は 0 から・全部の棒が同じ目盛・描かれた長さが額に比例する。
+        棒の土台が全部同じ位置・同じ幅で、目盛の両端がそこに合っていることまで測る。
      ④ 概要と比較で同じ会社の額が違う（候補で実際に起きていた形）。
      ⑤ 住所と「戻る」── 画面ごとに住所があり、戻る・進む・直接開くで同じ画面に戻る。
-        会社の選び直しと入れ替えは履歴を積まない。
+        戻っても進んでも、見ていた位置に出る。会社の選び直しと入れ替えは履歴を積まない。
+        入れ替えは置き場所ごと（読み上げと Tab の順が画面と同じ）。
      ⑥ 通貨 ── 切り替えると全部の額が変わり、円に戻すと1文字も違わない。
         原貨の額と出どころは変わらない。
      ⑦ 大きさ ── 年収が最初の1画面に入る・横に溢れない・字 12px 以上・押す場所 44px 以上。
+        どの通貨に切り替えても、額が箱からはみ出さない（狭い幅と広い幅の両方で測る）。
+        目盛の字どうしがくっつかない（字数の多い通貨で、2つの額が1つの数に見える）。
      ⑧ 写真 ── 台帳に在る写真だけ・撮影情報が残っていない・
-        作者とライセンスを示すことが条件の写真には必ずクレジットが付いている・
-        写真のまわりに台帳に無い文言が無い。
+        作者とライセンスを示すことが条件の写真には必ずクレジットが付いている（読める形で）・
+        クレジットの中に台帳に無い文言が無い。
+     ⑩ 出どころ ── 「会社が公表している金額」の下に、会社の公表ではない資料（報道など）を並べない。
      ⑨ 登録の対 ── NOINDEX の3つ・JA_ONLY の2つ。1つ忘れても何も赤くならない。
 
    使い方（node serve.mjs を起動した状態で）
@@ -61,6 +67,8 @@ const name = s => SALARY[s].ja;
 const yen = m => `¥${m.toLocaleString('en-US')}万`;
 /* 鍵の名前の末尾で決まる言い添え（年収の下限・手当の下限）。 */
 const tail = key => (/_over$/.test(key) ? '超' : /_from$/.test(key) ? 'から' : '');
+/* 鍵の名前の頭で決まる印（求人の上限）。公表額の一覧では額の頭に「〜」が付く。 */
+const upTo = key => (/^max_/.test(key) ? '〜' : '');
 
 /* ══════════════════════════════════════════════════════════════════
    A) 生成物と、数字を持たない2つのファイル
@@ -72,7 +80,7 @@ ok(render(HTML) === HTML, `${PAGE} は gen-career.mjs の出力と1文字も違�
 const BLOCK = (HTML.match(/<!--PV-CAREER-->([\s\S]*)<!--\/PV-CAREER-->/) || [])[1] || '';
 ok(BLOCK.length > 0, '管理ブロックが在る');
 /* 管理ブロックの外に金額が1つも無い（手で足した額は、正本を直しても動かない）。 */
-const OUTSIDE = noTagCmt(HTML.replace(BLOCK, '')).replace(/<(script|style)\b[\s\S]*?<\/\1>/g, ' ').replace(/<[^>]+>/g, ' ');
+const OUTSIDE = noTagCmt(HTML.replace(BLOCK, () => '')).replace(/<(script|style)\b[\s\S]*?<\/\1>/g, ' ').replace(/<[^>]+>/g, ' ');
 ok(!/[¥$]\s?\d|\d\s*万/.test(OUTSIDE), '管理ブロックの外に金額が無い', (OUTSIDE.match(/.{0,12}(?:[¥$]\s?\d|\d\s*万).{0,12}/) || [''])[0]);
 
 ok(!/[¥万円]/.test(JSC), 'career.js に金額の字（¥・万・円）が無い');
@@ -115,20 +123,27 @@ head('文言');
 const TEXT = noTagCmt(BLOCK).replace(/<[^>]+>/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ');
 ok(/次のキャリアを、\s*選択する。/.test(TEXT), '入口の見出しは「次のキャリアを、選択する。」');
 ok(!/平均年収/.test(TEXT), '「平均年収」と書かない（推定を平均と呼ばない）');
-ok(!/公式ではありません|非公式|公式サイトではありません/.test(TEXT), '「公式ではない」の断りを置かない（オーナー判断 2026-10-03）');
+ok(!/公式(?:サイト)?では(?:ない|ありません|ございません)|非公式|公式のものでは/.test(TEXT), '「公式ではない」の断りを置かない（オーナー判断 2026-10-03）');
 ok(!/(?<![\d,.])0\s*万円|¥\s?0万/.test(TEXT), '「0万円」を出さない');
-ok(!/\d{2,}\s*社/.test(noTagCmt(HTML).replace(/<script\b[\s\S]*?<\/script>/g, ' ')), '掲載社数を書かない');
-ok(!/総合順位|ランキング|\d\s*位|勝ち|負け|圧勝|優位/.test(TEXT), '順位・勝ち負けの語を書かない');
-ok(!/[★☆]/.test(TEXT), '星を出さない');
+/* 「2社の比較」は社数ではない。3社以上の数（1けたも・全角も）を社数として見る。 */
+ok(!/(?<![\d０-９])(?:[3-9３-９]|[\d０-９]{2,})\s*社/.test(noTagCmt(HTML).replace(/<script\b[\s\S]*?<\/script>/g, ' ')), '掲載社数を書かない');
+ok(!/総合順位|ランキング|[\d０-９]\s*位|首位|トップ|勝ち|負け|勝る|劣る|圧勝|優位/.test(TEXT), '順位・勝ち負けの語を書かない');
+ok(!/[★☆⭐✩✪✭✮✯]/u.test(TEXT), '星を出さない');
 
 /* ══════════════════════════════════════════════════════════════════
    C) 登録の対（CLAUDE.md「ページを1枚足すとき」）
    ══════════════════════════════════════════════════════════════════ */
 head('登録');
-const inSet = (file, set) => new RegExp(`const ${set} = new Set\\(\\[[\\s\\S]*?'${PAGE.replace('.', '\\.')}'[\\s\\S]*?\\]\\)`).test(read(file));
+/* その集合の「[ から最初の ])」までだけを見る（後ろに続く別の集合に在っても通さない）。 */
+const inSet = (file, set) => {
+  const t = read(file);
+  const from = t.indexOf(`const ${set} = new Set([`);
+  const to = from < 0 ? -1 : t.indexOf('])', from);
+  return to > from && t.slice(from, to).includes(`'${PAGE}'`);
+};
 for (const f of ['gen-sitemap.mjs', 'seo-normalize.mjs', 'assert-seo.mjs']) ok(inSet(f, 'NOINDEX'), `${f} の NOINDEX に在る`);
 for (const f of ['seo-normalize.mjs', 'assert-seo.mjs']) ok(inSet(f, 'JA_ONLY'), `${f} の JA_ONLY に在る（日本語だけ）`);
-ok(new RegExp(`'${PAGE.replace('.', '\\.')}'\\s*:\\s*\\{\\s*ja\\s*:`).test(read('seo-normalize.mjs')), 'seo-normalize.mjs の COPY に題名が在る');
+ok(new RegExp(`'${PAGE.replace('.', () => '\\.')}'\\s*:\\s*\\{\\s*ja\\s*:`).test(read('seo-normalize.mjs')), 'seo-normalize.mjs の COPY に題名が在る');
 ok(/<meta name="robots" content="noindex,follow"\s*\/?>/.test(HTML), '検索に出さない（noindex）');
 ok(!read('sitemap.xml').includes(PAGE), 'sitemap.xml に載っていない');
 ok(!fs.existsSync(path.join(ROOT, 'en', PAGE)), `en/${PAGE} は無い（置いたら JA_ONLY の2つから外す）`);
@@ -184,6 +199,16 @@ for (const p of LEDGER) {
   const bad = LEDGER.filter(p => !p.source || !p.author || !p.licence || !p.aircraft
     || (needsCredit(p) && (!/^https:\/\//.test(p.licence_url || '') || !p.changes)));
   ok(!bad.length, '台帳の全部の写真に 出所・作者・ライセンス・機種 が在る', bad.map(p => p.file).join(', '));
+  /* ライセンスは、使う条件を確かめてある3種だけ（名前とリンクが対）。
+     知らないライセンスや書き間違いは「示す条件あり」に倒れるが、商用不可・改変不可はそもそも使えない。 */
+  const LICENCES = {
+    'CC0': 'https://creativecommons.org/publicdomain/zero/1.0/deed.en',
+    'CC BY 4.0': 'https://creativecommons.org/licenses/by/4.0',
+    'CC BY-SA 2.0': 'https://creativecommons.org/licenses/by-sa/2.0',
+  };
+  const odd = LEDGER.filter(p => LICENCES[p.licence] !== p.licence_url);
+  ok(!odd.length, '台帳のライセンスは条件を確かめてある3種だけ（名前とリンクが対）', odd.map(p => `${p.file}: ${p.licence}`).join(', '));
+  ok(LEDGER.every(p => needsCredit(p) === (p.licence !== 'CC0')), 'クレジットを出さなくてよいのは CC0 だけ');
   ok(FIVE.every(s => primary(s)), '先行5社すべてに写真が在る');
 
   const imgs = [...BLOCK.matchAll(/<img\b[^>]*>/g)].map(m => m[0]);
@@ -298,8 +323,9 @@ try {
     const c = cardFigure(slug, rank);
     if (!c || c.held || !TIERS[tier]) return null;
     if (c.estimate) { const avg = SALARY[slug][rank].avg; return { man: avg, text: yen(avg), tag: TIERS[tier].ja, up: false, over: false }; }
-    const f = figures(slug, rank).find(x => !x.training && x.man === c.man);
-    if (!f) return null;
+    const hits = figures(slug, rank).filter(x => !x.training && x.man === c.man);
+    if (hits.length !== 1) return null;
+    const f = hits[0];
     return { man: c.man, text: c.yen + tail(f.key), tag: TIERS[tier].ja, up: !!c.up, over: /_over$/.test(f.key) };
   };
 
@@ -337,17 +363,25 @@ try {
   head('会社が公表している金額');
   for (const s of FIVE) {
     const exp = ['cap', 'fo', 'crew'].flatMap(r => figures(s, r).filter(f => !f.training).map(f => ({
-      tag: TIERS[BASIS[s][r].tier].ja, group: f.group, kind: f.kind, amount: f.text + tail(f.key),
-      orig: f.cur === 'JPY' ? '' : `${f.cur} ${f.amount.toLocaleString('en-US')}${tail(f.key) ? ' ' + tail(f.key) : ''}`,
+      tag: TIERS[BASIS[s][r].tier].ja, group: f.group, kind: f.kind, amount: upTo(f.key) + f.text + tail(f.key),
+      orig: f.cur === 'JPY' ? '' : `${upTo(f.key)}${f.cur} ${f.amount.toLocaleString('en-US')}${tail(f.key) ? ' ' + tail(f.key) : ''}`,
     })));
     const got = dom.co[s].pub;
     ok(same(got.rows, exp), `${name(s)}: 台帳の ${exp.length}件がそのまま出ている（札・区分・名前・額・原貨）`,
        `画面 ${JSON.stringify(got.rows)}\n      台帳 ${JSON.stringify(exp)}`);
     ok(exp.length ? got.none === null : got.none === '公表なし', `${name(s)}: ${exp.length ? '「公表なし」と書いていない' : '「公表なし」'}`);
     ok(same(dom.co[s].card, got), `${name(s)}: 比較のカードと概要で同じ中身`);
-    const urls = (BASIS[s].src || []).map(x => x.url);
-    ok(got.srcs.every(u => urls.includes(u)) && (!exp.length || got.srcs.length > 0),
-       `${name(s)}: 出どころが台帳のもの${exp.length ? '（1つ以上）' : ''}`, got.srcs.join(', '));
+    /* 上限の額は、一覧でも「〜」と「上限」の字が対（原貨の額にも「〜」）。 */
+    ok(got.rows.every(x => x.amount.startsWith('〜') === /上限/.test(x.kind) && (!x.orig || x.orig.startsWith('〜') === /上限/.test(x.kind))),
+       `${name(s)}: 一覧の上限の額には「〜」と「上限」の字がそろっている`, got.rows.map(x => `${x.kind} ${x.amount} ${x.orig}`).join(' ／ '));
+    /* 出どころは「会社が公表した資料」だけ・台帳のものが全部。報道など（secondary）と訓練生の資料は並べない。 */
+    const urls = exp.length ? (BASIS[s].src || []).filter(x => !x.secondary && !/訓練生|自社養成/.test(x.name)).map(x => x.url) : [];
+    ok(same(got.srcs, urls) && (!exp.length || urls.length > 0),
+       `${name(s)}: 出どころは台帳の「会社が公表した資料」そのまま${exp.length ? `（${urls.length}つ）` : '（公表なしなので出さない）'}`,
+       `画面 ${got.srcs.join(', ')}\n      台帳 ${urls.join(', ')}`);
+    const second = (BASIS[s].src || []).filter(x => x.secondary).map(x => x.url);
+    ok(second.every(u => !BLOCK.includes(u) && !BLOCK.includes(u.replace(/&/g, () => '&amp;'))),
+       `${name(s)}: 会社の公表ではない資料（報道など）をどこにも並べていない`, second.filter(u => BLOCK.includes(u)).join(', '));
     /* 平均と名乗れるのは、会社が公表した平均だけ。 */
     ok(got.rows.every(x => x.tag !== '平均' || /会社が公表した平均/.test(x.kind)), `${name(s)}: 「平均」の札は会社が公表した平均にだけ`);
   }
@@ -355,18 +389,42 @@ try {
   /* ── ③ 描かれた棒 ───────────────────────────────────────────── */
   head('棒（描かれた長さ）');
   for (const [w, h] of [[390, 680], [1280, 800]]) {
-    /* 比較は 2社×2職位＝4本、概要は 機長・副操縦士＝2本。 */
-    for (const [q, n] of [['?view=compare&a=etihad&b=eva-air', 4], ['?airline=etihad', 2]]) {
+    /* 比較は 2社×2職位＝4本、概要は 機長・副操縦士＝2本。
+       概要は5社とも測る。1社しか見ていなかった頃は、ほかの会社の棒が1本ずれても通っていた（2026-10-04）。
+       上限の棒が必ず在るのはエティハドの入る画面だけ。 */
+    for (const [q, n, capped] of [['?view=compare&a=etihad&b=eva-air', 4, true], ...FIVE.map(x => [`?airline=${x}`, 2, x === 'etihad'])]) {
       await page.setViewport({ width: w, height: h });
       await go(page, q);
       await settle(page);
-      const bars = await page.evaluate(() => [...document.querySelectorAll('#cr .cr-view:not([hidden]) .cr-fill')]
-        .filter(f => f.getClientRects().length).map(f => {
-          const a = f.getBoundingClientRect(), b = f.parentElement.getBoundingClientRect();
-          return { w: parseFloat(f.style.getPropertyValue('--w')), fill: a.width, track: b.width, left: a.left - b.left };
-        }));
+      const { bars, axis } = await page.evaluate(() => {
+        const v = document.querySelector('#cr .cr-view:not([hidden])');
+        const ax = [...v.querySelectorAll('.cr-axis')].filter(a => a.getClientRects().length).map(a => {
+          const r = a.getBoundingClientRect();
+          return { left: r.left, right: r.right };
+        });
+        return {
+          axis: ax,
+          bars: [...v.querySelectorAll('.cr-fill')].filter(f => f.getClientRects().length).map(f => {
+            const a = f.getBoundingClientRect(), b = f.parentElement.getBoundingClientRect();
+            return {
+              w: parseFloat(f.style.getPropertyValue('--w')), fill: a.width, track: b.width, left: a.left - b.left,
+              tl: b.left, tr: b.right, max: f.classList.contains('is-max'), bg: getComputedStyle(f).backgroundImage,
+            };
+          }),
+        };
+      });
       const off = bars.filter(b => Math.abs(b.fill - b.track * b.w / 100) > 1 || Math.abs(b.left) > 0.5);
       ok(bars.length === n && !off.length, `${w}px ${q}: ${n}本とも 0 から始まり、描かれた長さが目盛どおり`, `${bars.length}本 ${JSON.stringify(off)}`);
+      /* 同じ目盛＝土台が全部同じ位置・同じ幅で、目盛の両端がそこに合っている。 */
+      const t0 = bars[0] || { tl: 0, tr: 0 };
+      ok(bars.every(b => Math.abs(b.tl - t0.tl) <= 0.5 && Math.abs(b.tr - t0.tr) <= 0.5),
+         `${w}px ${q}: 棒の土台が全部同じ位置・同じ幅`, bars.map(b => `${b.tl}〜${b.tr}`).join(' ／ '));
+      ok(axis.length === 1 && Math.abs(axis[0].left - t0.tl) <= 1 && Math.abs(axis[0].right - t0.tr) <= 1,
+         `${w}px ${q}: 目盛の両端が棒の土台に合っている`, `目盛 ${JSON.stringify(axis)} ／ 土台 ${t0.tl}〜${t0.tr}`);
+      /* 斜線は描かれた模様で見る（札だけ付いていて模様が無い、を通さない）。 */
+      const stripe = b => /repeating-linear-gradient/.test(b.bg);
+      ok((!capped || bars.some(b => b.max)) && bars.every(b => stripe(b) === b.max),
+         `${w}px ${q}: 上限の棒だけが斜線で描かれている`, bars.map(b => `${b.max ? '上限' : '平'}:${stripe(b) ? '斜線' : '無地'}`).join(' '));
     }
   }
 
@@ -403,14 +461,18 @@ try {
       opts: ['a', 'b'].map(s => vis(`.cr-side[data-side="${s}"] .cr-opt`).map(e => e.dataset.airline)),
       sel: [document.getElementById('cr-a').value, document.getElementById('cr-b').value],
       off: ['cr-a', 'cr-b'].map(id => [...document.getElementById(id).options].filter(o => o.disabled).map(o => o.value)),
-      credits: vis('.cr-credit').map(e => e.dataset.airline).sort(),
+      credits: vis('.cr-credit').map(e => e.dataset.airline),
+      /* 置き場所の順（読み上げと Tab が進む順）。見た目の順と同じでなければならない。 */
+      dom: [...document.querySelectorAll('#cr .cr-pair')].map(p => vis(`.cr-pair[data-role="${p.dataset.role}"] .cr-row`).map(e => e.dataset.airline))
+        .concat([vis('.cr-card').map(e => e.dataset.airline), vis('.cr-taxes .cr-tax').map(e => e.dataset.airline)]),
     };
   });
   const pairOk = async (a, b, label) => {
     const g = await shown();
     const exp = {
       rows: ROLES.map(() => [a, b]), cards: [a, b], taxes: [a, b], opts: [[a], [b]], sel: [a, b], off: [[b], [a]],
-      credits: [a, b].filter(s => needsCredit(primary(s))).sort(),
+      credits: [a, b].filter(s => needsCredit(primary(s))),
+      dom: [...ROLES.map(() => [a, b]), [a, b], [a, b]],
     };
     ok(same(g, exp), label, JSON.stringify(g));
   };
@@ -447,6 +509,19 @@ try {
   await until(page, '');
   ok(await page.waitForFunction(y => Math.abs(scrollY - y) <= 1, { timeout: 5000 }, y0).then(() => true, () => false),
      '戻ると、見ていた位置に戻る', `${await page.evaluate(() => scrollY)} / ${y0}`);
+  /* ブラウザの「戻る」で出た画面にも、進むと同じ位置で戻る
+     （出るときに位置を残す間が無いので、送り終えるたびに残してある）。 */
+  await page.goForward();
+  await until(page, '?airline=ana');
+  const y1 = await page.evaluate(() => { const y = Math.min(300, document.documentElement.scrollHeight - innerHeight); scrollTo(0, y); return scrollY; });
+  const kept = await page.waitForFunction(() => scrollY > 0 && history.state && Math.abs(history.state.y - scrollY) < 1, { timeout: 5000 }).then(() => true, () => false);
+  ok(y1 >= 100 && kept, '概要を下へ送ると、その位置がいまの段に残る', `${y1} / ${JSON.stringify(await page.evaluate(() => history.state))}`);
+  await page.goBack();
+  await until(page, '');
+  await page.goForward();
+  await until(page, '?airline=ana');
+  ok(await page.waitForFunction(y => Math.abs(scrollY - y) <= 1, { timeout: 5000 }, y1).then(() => true, () => false),
+     '戻るで出た画面へ進むと、見ていた位置に戻る', `${await page.evaluate(() => scrollY)} / ${y1}`);
 
   /* 直接開く。知らない会社・知らない画面は入口へ。同じ会社を2つは選べない。 */
   const DIRECT = [
@@ -514,6 +589,135 @@ try {
     await p.evaluate(() => window.PVCurrency.set('JPY'));
     const back = await p.waitForFunction(t => document.getElementById('cr').textContent === t, { timeout: 5000 }, jpy.all).then(() => true, () => false);
     ok(back, '円に戻すと1文字も違わない');
+
+    /* どの幅でも、どの通貨でも、額が箱に収まる。
+       大きい額の字は折り返さないので、通貨で字数が増えた分だけ黙って切れる（「〜AED 674K」）。
+       狭い側：320px ＝ いちばん狭い画面／360px ＝ よくあるスマホの幅。
+       広い側：900px ＝ 写真と2列に並び始める所／1001px ＝ 左メニューが出て箱がいちばん狭くなる所／1280px。
+       ★広い側を測っていなかった頃、広い画面で字を 40px に固定していて、AED にすると額が列からはみ出し、
+         900〜1024px ではページごと横に溢れていた。検査は全部緑のままだった（2026-10-04）。
+         画面が広くても、額の入る箱が広いとは限らない。 */
+    const WIDTHS = [320, 360, 900, 1001, 1280];
+    const cutAt = Object.fromEntries(WIDTHS.map(w => [w, []]));
+    /* 目盛の字も同じ。字数の多い通貨だと、まんなかの字と右端の字がくっついて1つの数に見える
+       （320px・AED で、あいだが 3px だった。2026-10-04）。出ている字どうしの間を測る。 */
+    const AXIS_GAP = 8;
+    const tightAt = Object.fromEntries(WIDTHS.map(w => [w, []]));
+    for (const q of [...FIVE.map(s => `?airline=${s}`), '?view=compare&a=etihad&b=eva-air', '?view=compare&a=cathay-pacific&b=ana']) {
+      await go(p, q);
+      for (const w of WIDTHS) {
+        await p.setViewport({ width: w, height: 568 });
+        for (const cur of ['JPY', ...curs]) {
+          await p.evaluate(x => window.PVCurrency.set(x), cur);
+          await p.waitForFunction((sel, yen) => [...document.querySelectorAll(sel)].every(e => /[¥万円]/.test(e.textContent) === yen), { timeout: 5000 }, MONEY, cur === 'JPY').catch(() => {});
+          const cut = await p.evaluate(() => {
+            const wide = e => { const r = document.createRange(); r.selectNodeContents(e); return r.getBoundingClientRect(); };
+            return [...document.querySelectorAll('#cr .cr-view:not([hidden]) :is(.cr-num-v, .cr-row-v, .cr-fig b)')]
+              .filter(e => e.getClientRects().length)
+              .filter(e => {
+                const t = wide(e), box = (e.closest('.cr-num, .cr-row, .cr-fig') || document.documentElement).getBoundingClientRect();
+                return t.right > box.right + 0.5 || t.right > innerWidth + 0.5 || (e.matches('.cr-num-v') && t.width > e.clientWidth + 0.5);
+              })
+              .map(e => `${e.className}「${e.textContent.trim()}」`)
+              .concat(document.documentElement.scrollWidth > document.documentElement.clientWidth ? ['横に溢れる'] : []);
+          });
+          if (cut.length) cutAt[w].push(`${cur} ${q}: ${cut.join(', ')}`);
+          const tight = await p.evaluate(GAP => [...document.querySelectorAll('#cr .cr-view:not([hidden]) .cr-axis')]
+            .filter(a => a.getClientRects().length).flatMap(a => {
+              const ar = a.getBoundingClientRect();
+              const t = [...a.children].filter(s => s.getClientRects().length && getComputedStyle(s).visibility !== 'hidden').map(s => {
+                const r = document.createRange(); r.selectNodeContents(s);
+                const x = r.getBoundingClientRect();
+                return { l: x.left, r: x.right, t: s.textContent.trim() };
+              });
+              const bad = [];
+              /* 両端（0 といちばん大きい額）は必ず出ている。まんなかは狭い画面でだけ引っ込めてよい。 */
+              if (t.length < 2 || t[0].t !== '0') bad.push(`目盛の両端の字が出ていない（${t.map(x => x.t).join(' / ')}）`);
+              for (let i = 1; i < t.length; i++) if (t[i].l - t[i - 1].r < GAP) bad.push(`「${t[i - 1].t}」と「${t[i].t}」のあいだが ${Math.round((t[i].l - t[i - 1].r) * 10) / 10}px`);
+              if (t.some(x => x.l < ar.left - 0.5 || x.r > ar.right + 0.5)) bad.push('目盛の字が目盛からはみ出す');
+              return bad;
+            }), AXIS_GAP);
+          if (tight.length) tightAt[w].push(`${cur} ${q}: ${tight.join(', ')}`);
+        }
+      }
+    }
+    for (const w of WIDTHS) ok(!cutAt[w].length, `${w}px: どの通貨でも額が切れない・横に溢れない（${curs.length + 1}通貨 × 7画面）`, cutAt[w].join('\n      '));
+    for (const w of WIDTHS) ok(!tightAt[w].length, `${w}px: どの通貨でも目盛の字どうしがくっつかない（あいだ ${AXIS_GAP}px 以上）・両端の字が出ている`, tightAt[w].join('\n      '));
+
+    /* 比較の画面の、写真のカードと棒の行。
+       ★いちばん狭い画面（〜344px）で、長い社名（キャセイパシフィック）が語の途中で折れて2行になり、
+         その頭の字と略号の札の角が、まんなかの入れ替えボタンの下に入っていた（2026-10-04）。
+         上の検査は全部緑のままだった ── 字は箱の中に在り、横にも溢れていなかったから。
+       幅は、規則が切り替わる境目の両側（339/340・351/352）を必ず踏む。5社とも左と右に1回ずつ置く。
+       字の行数は、字そのものの四角で数える（先頭の丸や矢印を「2行目」と数えない）。 */
+    const RING = FIVE.map((s, i) => `?view=compare&a=${s}&b=${FIVE[(i + 1) % FIVE.length]}`);
+    const PICK_W = [320, 339, 340, 351, 352, 360, 390, 768, 1280];
+    const ROW_W = [320, 339, 340, 360];
+    const pickBad = Object.fromEntries(PICK_W.map(w => [w, { wrap: [], hit: [], mark: [] }]));
+    const rowBad = Object.fromEntries(ROW_W.map(w => [w, []]));
+    const fit = () => p.evaluate(() => {
+      const V = document.querySelector('#cr .cr-view:not([hidden])');
+      const text = el => [...el.childNodes].filter(n => n.nodeType === 3 && n.textContent.trim()).flatMap(n => {
+        const g = document.createRange(); g.selectNodeContents(n);
+        return [...g.getClientRects()].filter(x => x.width > 1);
+      });
+      const lines = rs => { const t = rs.map(x => x.top).sort((a, b) => a - b); return t.filter((y, i) => !i || y - t[i - 1] > 6).length; };
+      const shown = el => !!el && el.getClientRects().length > 0 && getComputedStyle(el).visibility !== 'hidden';
+      const btn = V.querySelector('.cr-swap');
+      const sw = btn ? btn.getBoundingClientRect() : null;
+      /* 丸いボタンと四角の重なり（px）。正なら掛かっている。 */
+      const hit = x => {
+        const cx = sw.left + sw.width / 2, cy = sw.top + sw.height / 2;
+        return sw.width / 2 - Math.hypot(Math.max(x.left - cx, 0, cx - x.right), Math.max(x.top - cy, 0, cy - x.bottom));
+      };
+      const tiles = [...V.querySelectorAll('.cr-opt')].filter(o => o.getClientRects().length).map(o => {
+        const n = o.querySelector('.cr-opt-n'), ic = n.querySelector('.cr-ic'), code = o.querySelector('.cr-code');
+        const tr = text(n), af = getComputedStyle(code, '::after');
+        /* 「押せば選び直せる」の目印 ── 社名の横の矢印か、略号の札の中の矢印。 */
+        const inChip = af.content !== 'none' && af.display !== 'none' && parseFloat(af.width) > 0 && parseFloat(af.borderRightWidth) > 0;
+        const over = !sw ? [['入れ替えボタンが無い', 1]] : [['社名', Math.max(...tr.map(hit))], ['略号の札', hit(code.getBoundingClientRect())]]
+          .concat(shown(ic) ? [['矢印', hit(ic.getBoundingClientRect())]] : []);
+        return {
+          name: n.textContent.trim(), lines: lines(tr),
+          over: over.filter(x => x[1] > 0).map(x => `${x[0]}に ${Math.round(x[1] * 10) / 10}px`),
+          marks: (shown(ic) ? 1 : 0) + (inChip ? 1 : 0),
+        };
+      });
+      const rows = [...V.querySelectorAll('.cr-row-co')].filter(e => e.getClientRects().length)
+        .map(e => ({ name: e.textContent.trim(), lines: lines(text(e)), v: e.closest('.cr-row').querySelector('.cr-row-v').textContent.trim() }));
+      return { tiles, rows };
+    });
+    for (const q of RING) {
+      await go(p, q);
+      await settle(p);
+      for (const w of PICK_W) {
+        await p.setViewport({ width: w, height: 568 });
+        const { tiles } = await fit();
+        const b = pickBad[w];
+        if (tiles.length !== 2) b.wrap.push(`${q}: 写真のカードが2枚見つからない（${tiles.length}枚）`);
+        tiles.forEach((t, i) => {
+          const at = `${i ? '右' : '左'}「${t.name}」`;
+          if (t.lines !== 1) b.wrap.push(`${at} ${t.lines}行`);
+          if (t.over.length) b.hit.push(`${at} ${t.over.join('・')}`);
+          if (t.marks !== 1) b.mark.push(`${at} 目印 ${t.marks}つ`);
+        });
+        if (!ROW_W.includes(w)) continue;
+        for (const cur of ['JPY', ...curs]) {
+          await p.evaluate(x => window.PVCurrency.set(x), cur);
+          await p.waitForFunction((sel, yen) => [...document.querySelectorAll(sel)].every(e => /[¥万円]/.test(e.textContent) === yen), { timeout: 5000 }, MONEY, cur === 'JPY').catch(() => {});
+          const { rows } = await fit();
+          if (!rows.length) rowBad[w].push(`${cur} ${q}: 棒の行が見つからない`);
+          for (const r of rows) if (r.lines !== 1) rowBad[w].push(`${cur}「${r.name}」${r.lines}行（額「${r.v}」）`);
+        }
+      }
+    }
+    for (const w of PICK_W) {
+      ok(!pickBad[w].wrap.length, `${w}px: 比較の写真のカードで、社名が1行に収まる（5社を左と右に1回ずつ）`, pickBad[w].wrap.join('\n      '));
+      ok(!pickBad[w].hit.length, `${w}px: 入れ替えボタンが、社名・略号の札・矢印に掛からない`, pickBad[w].hit.join('\n      '));
+      ok(!pickBad[w].mark.length, `${w}px: どのカードにも「選び直せる」目印がちょうど1つ出ている`, pickBad[w].mark.join('\n      '));
+    }
+    for (const w of ROW_W) ok(!rowBad[w].length, `${w}px: どの通貨でも、棒の行の社名が1行に収まる`, rowBad[w].slice(0, 8).join('\n      '));
+    await p.evaluate(() => window.PVCurrency.set('JPY'));
     await c();
   }
 
@@ -602,12 +806,20 @@ try {
       const g = await p.evaluate(() => {
         const v = document.querySelector('#cr .cr-view:not([hidden])');
         const on = el => el.getClientRects().length > 0;
+        /* クレジットは「在る」だけでは足りない。読める形で出ていること
+           （読み上げ専用の箱に入れる・透明にする・見えなくする、は示したことにならない）。
+           ⚠️ 親の透明度までは遡らない（画面を切り替えた直後は .cr-view が透明から現れる途中）。 */
+        const seen = el => {
+          if (!on(el) || el.closest('.cr-vh')) return false;
+          const cs = getComputedStyle(el);
+          return cs.visibility === 'visible' && cs.opacity !== '0' && parseFloat(cs.fontSize) >= 12;
+        };
         const cr = v.querySelector('.cr-credits');
         return {
           imgs: [...v.querySelectorAll('img')].filter(on).map(i => i.getAttribute('src')),
           links: cr ? [...cr.querySelectorAll('a')].filter(on).map(a => [a.getAttribute('href'), a.textContent.trim(), a.target, a.rel]) : [],
           /* 1枚ぶんの塊ごとに、中のリンクを順に。 */
-          spans: cr ? [...cr.querySelectorAll('.cr-credit')].filter(on).map(s => [...s.querySelectorAll('a')].map(a => [a.getAttribute('href'), a.textContent.trim()])) : [],
+          spans: cr && seen(cr) ? [...cr.querySelectorAll('.cr-credit')].filter(seen).map(s => [...s.querySelectorAll('a')].filter(seen).map(a => [a.getAttribute('href'), a.textContent.trim()])) : [],
           text: cr ? [...cr.childNodes].map(n => (n.nodeType === 3 ? n.nodeValue : n.hidden ? '' : n.textContent)).join(' ') : '',
         };
       });
@@ -630,12 +842,12 @@ try {
       ok(!extra.length, `${at}: 条件の無い写真（CC0）には何も足していない`, extra.join(', '));
       ok(g.links.every(l => used.some(ph => ph.source === l[0] || ph.licence_url === l[0])), `${at}: 出ていない写真のクレジットが無い`);
       ok(g.links.every(l => l[2] === '_blank' && /noopener/.test(l[3])), `${at}: クレジットのリンクは別の窓で開く`);
-      /* 写真のまわりに、台帳に無い文言が無い。 */
+      /* クレジットの中に、台帳に無い文言が無い。 */
       let rest = g.text;
       for (const w of [...LEDGER.flatMap(x => [x.author, x.licence, x.aircraft]), ...CHANGES, ...FIVE.map(name), '写真']
         .filter(Boolean).sort((a, b) => b.length - a.length)) rest = rest.split(w).join('');
       rest = rest.replace(/[\s（）／]/g, '');
-      ok(rest === '', `${at}: クレジットに台帳に無い文言が無い`, `残り「${rest}」`);
+      ok(rest === '', `${at}: クレジットの中に台帳に無い文言が無い`, `残り「${rest}」`);
     }
     await c();
   }

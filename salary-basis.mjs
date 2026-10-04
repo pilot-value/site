@@ -112,6 +112,8 @@ export const fxNote = (cur) =>
    BASIS
      src[]   画面に出す出所：発行元 pub / 資料名 name / 適用時点 as_of /
              確認日 accessed / リンク url。★確認日 ≠ 発行日。
+             secondary: true は「会社の公表ではない資料」（報道など・推定の根拠）の印。
+             ⚠️ 「会社が公表している金額」の出どころとして並べない（career.html は外している）。
      notes[] 画面に出す前提。そのまま出す（要約しない）。
      cap/fo  tier と、掲載する額（groups）と、保留した元の値（held）。
      ★ 職位の鍵は4つある。cap（機長）/ fo（副操縦士）は全社にあり、
@@ -273,13 +275,13 @@ export const BASIS = {
         as_of: '発行日の記載なし', accessed: '2026-10-02',
         url: 'https://www.evaair.com/en-global/about-eva-air/careers/job-openings/pilots/' },
       { pub: '桃園市機師職業工會 長榮分會・長榮航空', name: '労使合意（正駕駛 月13,500元ほかの引き上げ・今周刊の報道で確認）',
-        as_of: '2024年1月28日', accessed: '2026-10-02',
+        as_of: '2024年1月28日', accessed: '2026-10-02', secondary: true,
         url: 'https://www.businesstoday.com.tw/article/category/183027/post/202401280021/' },
       { pub: '鏡週刊', name: '【長榮不罷工內幕2】正機師年薪480萬起跳 長榮華航星宇搶第一',
-        as_of: '2024年2月6日', accessed: '2026-10-02',
+        as_of: '2024年2月6日', accessed: '2026-10-02', secondary: true,
         url: 'https://www.mirrormedia.mg/story/20240205inv013' },
       { pub: 'CTWANT', name: '18萬旅客解套1／長榮機師底薪落後變老三「不罷工換加薪」',
-        as_of: '2024年1月30日', accessed: '2026-10-02',
+        as_of: '2024年1月30日', accessed: '2026-10-02', secondary: true,
         url: 'https://www.ctwant.com/article/314950/' },
     ],
     notes: [

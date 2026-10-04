@@ -12,6 +12,7 @@
  *
  * 戻る・進む：画面を移るたびに履歴へ1段積む。会社の選び直しと入れ替えは積まない
  * （戻るを何度も押さないと出られない画面にしない）。
+ * 見ていた位置は、送り終えるたびにその段へ残す（戻っても進んでも同じ場所に出る）。
  */
 (function () {
   'use strict';
@@ -72,7 +73,16 @@
       each(cmp.querySelectorAll('.cr-row, .cr-taxes .cr-tax, .cr-card, .cr-credit'), function (el) {
         var s = el.dataset.airline;
         el.hidden = s !== a && s !== b;
-        el.style.order = s === a ? '0' : s === b ? '1' : '';
+      });
+      /* 並びは置き場所そのものを入れ替える。見た目の順だけ変えると、
+         読み上げと Tab の順が画面と食い違う。 */
+      each(cmp.querySelectorAll('.cr-pair, .cr-taxes, .cr-cards, .cr-credits'), function (box) {
+        var ea = null, eb = null;
+        each(box.children, function (el) {
+          if (el.dataset.airline === a) ea = el;
+          if (el.dataset.airline === b) eb = el;
+        });
+        if (ea && eb) box.insertBefore(ea, eb);
       });
     }
 
@@ -96,6 +106,13 @@
     var keep = function () {
       try { history.replaceState({ y: window.scrollY }, '', location.href); } catch (e) {}
     };
+    /* 位置は、送り終えるたびにいまの段へ残す。ブラウザの「戻る」で出るときは
+       残す間が無い（知らせが来たときには、もう次の段に居る）ので、押した時だけでは足りない。 */
+    var tick = 0;
+    window.addEventListener('scroll', function () {
+      clearTimeout(tick);
+      tick = setTimeout(keep, 90);
+    }, { passive: true });
 
     cr.addEventListener('click', function (e) {
       var a = e.target.closest ? e.target.closest('a[data-go]') : null;
@@ -111,6 +128,7 @@
     });
 
     window.addEventListener('popstate', function (e) {
+      clearTimeout(tick);                       // 前の画面の位置を、移った先の段へ書かない
       show(parse(location.search), true);
       window.scrollTo(0, (e.state && e.state.y) || 0);
     });
