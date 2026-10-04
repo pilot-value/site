@@ -29,3 +29,6 @@ sources-raw/
 
 # Claude Code のローカル上書き（公開リポジトリなので個人設定は入れない）
 .claude/settings.local.json
+
+# 手元の保存先（serve-local.mjs）。本番とは別物・このMacにだけ在る
+.local-db/
