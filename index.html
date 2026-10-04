@@ -154,8 +154,12 @@
   <link rel="stylesheet" href="pv-tokens.css">
 
   <!-- トップページ本体の見た目。en/index.html と共有するので中身は lp.css にある。
-       ⚠️ 日英どちらを直すときも lp.css を直す。片方だけ直すという事故を構造で止めている。 -->
-  <link rel="stylesheet" href="lp.css">
+       ⚠️ 日英どちらを直すときも lp.css を直す。片方だけ直すという事故を構造で止めている。
+       ⚠️ ?v= は lp.css の中身の指紋（2026-10-04）。lp.css を直すと assert-links.mjs が
+          新しい値を言うので、日英2枚に写す。指紋が無いと、出した直後の最長4時間、
+          前に来たことのある人の画面が「新しい HTML ＋ 端末に残った古い lp.css」になる
+          （実測：主のボタンが1行で出て、375px では字がボタンの端に付き、PC では副が列の外へ出る）。 -->
+  <link rel="stylesheet" href="lp.css?v=cd4c23c8">
 <!-- Google tag (gtag.js) -->
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -276,10 +280,13 @@
       <!-- ★ボタンは2本（2026-09-22 オーナー指示。2026-08-22 の「CTA は1本だけ」を置き換えた）。
            主＝給与を出す（hero_primary_cta）／副＝REAL PAY を見る（hero_salary_data。
            08-22 まで同じ名前で数えていたので、当時の数字と比べられる）。
-           文言はオーナー指定。「匿名で」／anonymously は外さない（patch-anon-cta.mjs の表が見ている）。
-           添え書きはボタンを短くしたぶん「出すと見られる」を補う（押せる物ではない）。 -->
+           ★2026-10-04 オーナー指示で、主の文言を「Give & Get 全ての待遇データを解放する」に替えた
+             （「Give and Get」ではなく「&」。同じ日にオーナーが指定し直した）
+             （下の #lp-realpay・#lp-airlines の「出す」入口も同じ文言）。長いので2行に組む（lp.css の .lp-gg）。
+             この3本だけは「匿名で」を持たない ── patch-anon-cta.mjs の表からも外してある。戻さない。
+           添え書きは、今日ひらくもの（REAL PAY）をそのまま言うために残す（押せる物ではない）。 -->
       <div class="hero-ctas">
-        <a href="pay-report.html" class="hero-btn hero-btn--p" data-pv-ev="hero_primary_cta">匿名で給与を共有<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <a href="pay-report.html" class="hero-btn hero-btn--p" data-pv-ev="hero_primary_cta"><span class="lp-gg"><span lang="en">Give &amp; Get</span> 全ての待遇データを解放する</span><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
         <a href="actual-pay.html" class="hero-btn hero-btn--s" data-pv-ev="hero_salary_data">実際の給与を見る</a>
         <p class="hero-unlock"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.6" stroke="currentColor" stroke-width="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>REAL PAYをアンロック</p>
       </div>
@@ -291,7 +298,7 @@
               必ず戻す（誰も更新しない飾りの数を画面に置かないため）。 -->
       <div class="hero-proof" id="hero-proof">
         <span class="hero-av" aria-hidden="true"><i><svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="7" r="3.4"/><path d="M3.6 17.4c.7-3.4 3.3-5.3 6.4-5.3s5.7 1.9 6.4 5.3z"/></svg></i><i><svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="7" r="3.4"/><path d="M3.6 17.4c.7-3.4 3.3-5.3 6.4-5.3s5.7 1.9 6.4 5.3z"/></svg></i><i><svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="7" r="3.4"/><path d="M3.6 17.4c.7-3.4 3.3-5.3 6.4-5.3s5.7 1.9 6.4 5.3z"/></svg></i><i><svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="7" r="3.4"/><path d="M3.6 17.4c.7-3.4 3.3-5.3 6.4-5.3s5.7 1.9 6.4 5.3z"/></svg></i></span>
-        <p class="hero-proof-t">多くのパイロットが、給与を匿名で共有しています。コミュニティが急速に成長中です！</p>
+        <p class="hero-proof-t">多くのパイロットが、匿名で待遇を共有しています。コミュニティが急速に成長中です！</p>
       </div>
     </div>
 
@@ -374,7 +381,7 @@
       <a class="lp-link" href="actual-pay.html" data-pv-ev="lp_realpay_block">REAL PAY を見る<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
       <!-- ★2026-09-26・2本目の入口。印は 9/23 の刷新で消えた旧名をそのまま再利用する
            ＝刷新の前と後を GA4 で1本の線として比べられる。新しい名前を付けない。 -->
-      <a class="lp-link lp-link--alt" href="pay-report.html" data-pv-ev="actual_pay_contribute_cta">匿名で給与を共有<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      <a class="lp-link lp-link--alt" href="pay-report.html" data-pv-ev="actual_pay_contribute_cta"><span class="lp-gg"><span lang="en">Give &amp; Get</span> 全ての待遇データを解放する</span><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
     </div>
     <div class="lp-panel lp-rp-panel">
       <div class="lp-rp-card">
@@ -407,7 +414,7 @@
       <p class="lp-body">公開されている情報から、世界<span data-pv-n="airlines">112</span>社の機長・副操縦士の年収レンジを並べました。各社のページでは、運航環境・訓練・福利厚生も見られます。</p>
       <a class="lp-btn" href="world-airlines.html" data-pv-ev="lp_airlines_block">すべての航空会社を見る<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
       <!-- ★2026-09-26・2本目の入口。ここだけは旧版に対応する印が無いので新しい名前。 -->
-      <a class="lp-btn lp-btn--alt" href="pay-report.html" data-pv-ev="lp_airlines_contribute">匿名で給与を共有<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      <a class="lp-btn lp-btn--alt" href="pay-report.html" data-pv-ev="lp_airlines_contribute"><span class="lp-gg"><span lang="en">Give &amp; Get</span> 全ての待遇データを解放する</span><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
     </div>
     <div class="lp-panel lp-air-panel">
       <div class="lp-phone">
