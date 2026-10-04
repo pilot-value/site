@@ -1,0 +1,140 @@
+/* career-live.css — 生きた欄（.crl-*）の見た目。
+   色は pv-tokens.css のトークンだけ（ここに色の値を書かない）。動かすのは transform と opacity だけ。
+   状態ごとに見た目と言葉を分けてある:
+     loading ＝ 骨組み ／ empty（0件）＝ 淡い1行 ／ locked（鍵が無い）＝ 錠の帯 ／
+     error（通信が落ちた）＝ 橙の帯とやり直すボタン ／ off（サーバーに口が無い）＝ 点線の札「準備中」 ／
+     未取得（その項目を運ぶ道が無い）＝ 点線の小さな札。 */
+
+.crl{position:relative;min-width:0;font-size:14px;line-height:1.7;color:var(--pv-ink)}
+.crl-ph{color:var(--pv-ink-3)}
+.crl-sr{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.crl-ic{flex:none}
+
+/* 口コミが0件のとき、言葉は星の欄が出す（同じ文を2回出さない） */
+.crl[data-live="reviews"][data-state="empty"]{display:none}
+/* 落ちたときも同じ（「やり直す」は落ちた欄を全部やり直すので、帯は1本で足りる） */
+.crl[data-live="stars"][data-state="error"] + .crl[data-live="reviews"][data-state="error"]{display:none}
+
+/* ── loading ── */
+.crl-sk{display:grid;gap:8px;padding:6px 0}
+.crl-sk i{display:block;height:14px;border-radius:7px;background:var(--pv-line);animation:crl-pulse 1.1s var(--pv-ease) infinite alternate}
+.crl-sk i:nth-child(1){width:58%}
+.crl-sk i:nth-child(2){width:86%}
+.crl-sk i:nth-child(3){width:42%}
+@keyframes crl-pulse{from{opacity:.35}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.crl-sk i{animation:none}}
+
+/* ── 言葉の1行 ── */
+.crl-msg{margin:0;font-size:13px;color:var(--pv-ink-2)}
+
+/* empty ＝ 0件 */
+.crl[data-state="empty"] .crl-msg{display:flex;align-items:center;gap:8px;min-height:32px;color:var(--pv-ink-3)}
+.crl[data-state="empty"] .crl-msg::before{content:'';flex:none;width:6px;height:6px;border-radius:50%;border:1px solid var(--pv-ink-3)}
+
+/* error ＝ 通信が落ちた */
+.crl[data-state="error"]{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 12px;padding:8px 8px 8px 14px;border-radius:var(--pv-r-sm);background:var(--pv-orange-soft)}
+.crl[data-state="error"] .crl-msg{font-weight:700;color:var(--pv-orange-ink)}
+.crl-retry{appearance:none;-webkit-appearance:none;min-height:44px;padding:0 18px;border-radius:999px;border:1px solid var(--pv-line);background:var(--pv-surface);color:var(--pv-ink);font:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:transform .18s var(--pv-ease),opacity .18s var(--pv-ease)}
+@media (hover:hover){.crl-retry:hover{opacity:.78}}
+.crl-retry:active{transform:scale(.97)}
+.crl-retry:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+
+/* off ＝ サーバーに口がまだ無い */
+.crl[data-state="off"] .crl-msg{display:inline-flex;align-items:center;min-height:28px;padding:0 12px;border:1px dashed var(--pv-ink-3);border-radius:999px;font-size:12px;font-weight:700;color:var(--pv-ink-3)}
+
+/* locked ＝ 鍵が無い（値は来ていない。隠している箱は無い） */
+.crl-lock{display:flex;align-items:center;gap:8px;margin:0;padding:10px 12px;border-radius:var(--pv-r-sm);background:var(--pv-surface-soft);border:1px solid var(--pv-line);font-size:13px;font-weight:700;color:var(--pv-ink-2)}
+.crl-lock .crl-ic{color:var(--pv-ink-3)}
+.crl-rows + .crl-lock,.crl-revs + .crl-lock{margin-top:10px}
+
+/* 未取得 ＝ その項目を運ぶ道が無い／その側に無い */
+.crl-none{display:inline-flex;align-items:center;align-self:flex-start;min-height:24px;padding:0 8px;border:1px dashed var(--pv-line);border-radius:6px;font-size:12px;color:var(--pv-ink-3);white-space:nowrap}
+
+/* ── 入口 ── */
+.crl-foot{display:flex;flex-wrap:wrap;align-items:center;gap:4px 18px;margin-top:6px}
+.crl-link{display:inline-flex;align-items:center;gap:6px;min-height:44px;color:var(--pv-accent-ink);font-size:14px;font-weight:700;text-decoration:none}
+.crl-link .crl-ic{transition:transform .18s var(--pv-ease)}
+@media (hover:hover){
+  .crl-link:hover{text-decoration:underline;text-underline-offset:3px}
+  .crl-link:hover .crl-ic{transform:translateX(3px)}
+}
+.crl-link:active{opacity:.7}
+.crl-cta{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 18px;border-radius:999px;background:var(--pv-cta-dark);color:var(--pv-cta-dark-ink);font-size:14px;font-weight:700;text-decoration:none;transition:transform .18s var(--pv-ease),opacity .18s var(--pv-ease)}
+.crl-cta .crl-ic{transition:transform .18s var(--pv-ease)}
+@media (hover:hover){
+  .crl-cta:hover{opacity:.88}
+  .crl-cta:hover .crl-ic{transform:translateX(3px)}
+}
+.crl-cta:active{transform:scale(.98)}
+.crl-link:focus-visible,.crl-cta:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px;border-radius:8px}
+.crl-cta:focus-visible{border-radius:999px}
+
+/* ── 札 ── */
+.crl-chip{display:inline-flex;align-items:center;min-height:22px;padding:0 9px;border-radius:999px;background:var(--pv-surface-soft);border:1px solid var(--pv-line);font-size:12px;font-weight:700;line-height:1.3;color:var(--pv-ink-2);white-space:nowrap}
+.crl-chips{display:flex;flex-wrap:wrap;gap:6px;margin:0}
+
+/* ── REAL PAY の行（1行＝1人） ── */
+.crl-rows{list-style:none;margin:0;padding:0;border-top:1px solid var(--pv-line)}
+.crl-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--pv-line)}
+.crl-row[data-mask]{grid-template-columns:minmax(0,1fr)}
+.crl-row-a{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;min-width:0}
+.crl-row-b{display:flex;align-items:baseline;justify-content:flex-end;gap:6px;white-space:nowrap}
+.crl-row-c{grid-column:1 / -1;display:flex;flex-wrap:wrap;align-items:center;gap:2px 12px;font-size:12px;color:var(--pv-ink-3)}
+.crl-pos{font-size:14px;font-weight:700;color:var(--pv-ink)}
+.crl-sub{font-size:12px;color:var(--pv-ink-2)}
+.crl-k{font-size:12px;color:var(--pv-ink-3)}
+.crl-amt{font-size:18px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:var(--pv-ink)}
+.crl-amt[data-none]{font-weight:400;color:var(--pv-ink-3)}
+.crl-far{font-size:14px;line-height:1;color:var(--pv-orange-ink);cursor:help}
+.crl-vf{display:inline-flex;align-items:center;gap:4px}
+.crl-vf[data-v]{font-weight:700;color:var(--pv-accent-ink)}
+
+/* ── 勤務（1人＝1点） ── */
+.crl-work{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:10px}
+.crl-wk{display:flex;flex-direction:column;gap:6px;min-width:0;padding:12px;border:1px solid var(--pv-line);border-radius:var(--pv-r-sm);background:var(--pv-surface)}
+.crl-wk[data-none]{border-style:dashed;background:transparent}
+.crl-wk-k{font-size:13px;font-weight:700;color:var(--pv-ink)}
+.crl-wk[data-none] .crl-wk-k{color:var(--pv-ink-2)}
+.crl-wk[data-none] .crl-none{padding:0;border:0}
+.crl-unit{margin-left:6px;font-size:12px;font-weight:400;color:var(--pv-ink-3)}
+.crl-bands{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.crl-band{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
+.crl-band-v{min-width:52px;font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
+.crl-dots{display:inline-flex;flex-wrap:wrap;gap:3px}
+.crl-dot{display:block;width:8px;height:8px;border-radius:50%;background:var(--pv-accent)}
+
+/* ── 2社を並べる（同じ形・同じ色。勝ち負けを付けない） ── */
+.crl-cmp{display:grid}
+.crl-cmp-head,.crl-cmp-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px 14px}
+.crl-cmp-head{padding-bottom:8px;border-bottom:1px solid var(--pv-line)}
+.crl-co{display:flex;align-items:center;gap:6px;min-width:0;font-size:12px;font-weight:700;line-height:1.4;color:var(--pv-ink-2)}
+.crl-co::before{content:'';flex:none;width:8px;height:8px;border-radius:50%;background:var(--crl-co,var(--pv-ink-3))}
+.crl-cmp-row{padding:10px 0;border-bottom:1px solid var(--pv-line-soft)}
+.crl-cmp-k{grid-column:1 / -1;font-size:13px;font-weight:700;line-height:1.5;color:var(--pv-ink)}
+.crl-cmp-c{display:flex;flex-direction:column;min-width:0}
+.crl-cmp-rest{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;margin:10px 0 0;font-size:12px;color:var(--pv-ink-3)}
+
+/* ── 口コミ ── */
+.crl-score{display:flex;flex-wrap:wrap;align-items:center;gap:2px 10px;margin:0}
+.crl-stars{position:relative;display:inline-block;font-size:16px;line-height:1;color:var(--pv-line);white-space:nowrap}
+.crl-stars::before{content:'★★★★★'}
+.crl-stars::after{content:'★★★★★';position:absolute;left:0;top:0;width:var(--crl-fill,0%);overflow:hidden;color:var(--pv-star)}
+.crl-avg{font-size:18px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.crl-cnt{font-size:12px;color:var(--pv-ink-2)}
+
+.crl-revs{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:10px}
+.crl-rev{display:grid;gap:8px;padding:12px 14px;border:1px solid var(--pv-line);border-radius:var(--pv-r);background:var(--pv-surface)}
+.crl-rev-when{margin:0;font-size:12px;color:var(--pv-ink-3)}
+.crl-rev-cat{min-width:0}
+.crl-rev-text{margin:4px 0 0;font-size:14px;line-height:1.7;color:var(--pv-ink);overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:4;overflow:hidden}
+.crl-rev-clip{display:block;color:var(--pv-ink-2)}
+.crl-rev-clip::after{content:'…'}
+
+/* ── 待遇の集計 ── */
+.crl-facts{display:grid;border-top:1px solid var(--pv-line)}
+.crl-fact{display:grid;gap:2px;padding:10px 0;border-bottom:1px solid var(--pv-line-soft)}
+.crl-fact-k{font-size:12px;line-height:1.5;color:var(--pv-ink-2)}
+.crl-ans{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 10px;min-width:0}
+.crl-ans-v{font-size:15px;font-weight:700;color:var(--pv-ink);overflow-wrap:anywhere}
+.crl-ans-m{display:inline-flex;flex-wrap:wrap;gap:0 8px;font-size:12px;color:var(--pv-ink-3)}
+.crl-how{font-weight:700;color:var(--pv-ink-2)}

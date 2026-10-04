@@ -27,6 +27,7 @@
      → ④ 最終確認が古い順 → ⑤ 質問の並び順
    で返す。★ 親を持つ質問は、その人自身が親に答えているときだけ返る
    （「Reserve はありますか？」に答えていない人に「自宅待機ですか？」は出ない）。
+   親にも親がある質問は、いちばん上の親まで条件が続いているときだけ返る。
 
    ── 守ること ────────────────────────────────────────────────
    ・出せない理由（未ログイン・テーブルがまだ無い・聞くことが無い・通信失敗）は
@@ -299,6 +300,13 @@
     '.pvcf-q[hidden]{display:none}',
     /* 親の答えから開いた子は、ぶら下がりが見えるように少し下げる */
     '.pvcf-q.is-child{padding-left:16px;border-left:2px solid rgba(52,211,153,.28);margin-left:2px}',
+    /* ?q=<鍵> で運ばれてきた行。行の高さも字の位置も動かさず、後ろに板を1枚敷くだけ
+       （余白を足して目立たせると、前後の行と字の頭がずれる）。
+       色は pv-tokens.css のものをそのまま使う＝ライトとダークを書き分けない。 */
+    '.pvcf-q.is-target{position:relative;z-index:0}',
+    '.pvcf-q.is-target:focus{outline:none}',
+    '.pvcf-q.is-target::before{content:"";position:absolute;z-index:-1;top:6px;bottom:6px;left:-12px;right:-12px;',
+      'border-radius:12px;background:var(--pv-green-soft);border:1px solid var(--pv-green-line);pointer-events:none}',
     '.pvcf-lab{font-size:.92rem;font-weight:700;line-height:1.7;color:#e8edf2}',
     '.pvcf-help{font-size:.78rem;line-height:1.7;color:#6b7d93;margin-top:6px}',
     '.pvcf-row{display:flex;flex-wrap:wrap;align-items:center;gap:9px;margin-top:12px}',
@@ -763,12 +771,25 @@
   }
 
   /* ════════════════════════════════════════════════════════════
-     詳細ページ（airline-conditions.html）。26問すべてを節ごとに並べる。
+     詳細ページ（airline-conditions.html）。全部の質問を節ごとに並べる。
      ★「◯% 完成」の進捗は出さない。埋めさせる圧力＝推測で埋める動機になる。
-       出すのは「あなたが答えた項目：7／26」という事実だけ。
+       出すのは「あなたが答えた項目：7／全問数」という事実だけ。
      ★親に答えていない子の質問は、そもそも画面に出さない
        （サーバも parent_missing で弾くので、出しても保存できない）。
+       親にも親があるときは、いちばん上まで条件が続いているときだけ出す（renderFull の visible）。
+     ★ ?airline=<コード>&q=<質問の鍵> で、その質問まで直接来られる（2026-10-04）。
+       会社の概要などで「まだ分からない」と出した項目から、答える場所へ1回で運ぶため。
+       q が無い・知らない鍵のときは何もしない＝今までどおり先頭の節が開くだけ。
      ════════════════════════════════════════════════════════════ */
+
+  /* ?q= の鍵。質問の一覧に在るものだけを通す。
+     ★通した値はそのまま属性セレクタに入れるので、ここで必ず一覧と突き合わせる
+       （一覧の鍵は英小文字・数字・_ だけと gen-conditions.mjs が検品している）。 */
+  function wantedQuestion(byId) {
+    var id = '';
+    try { id = new URL(w.location.href).searchParams.get('q') || ''; } catch (e) {}
+    return Object.prototype.hasOwnProperty.call(byId, id) ? id : '';
+  }
 
   var _vocab = null;
   function loadVocab() {
@@ -924,12 +945,62 @@
       if (!v) return false;
       return !!(v.code || (v.codes && v.codes.length) || v.num != null || v.text);
     }
+    /* ★親にも親がある（staff_travel → staff_travel_booking → 券の種類ごとの4問）。
+         出すのは、**いちばん上の親まで**条件が続いているときだけ。
+         すぐ上の親だけを見ると、いちばん上を「ない」に答え直したとき、あいだの親は
+         隠れるのに、その下だけが古い答えを持ったまま画面に残る
+         （サーバも同じ決め方で受け取る・数える ＝ db/airline-conditions.sql の 4b）。
+         state の古い答えは消さない。親を答え直せば、前の答えのまま戻ってくる。 */
     function visible(q) {
       if (!q.parent) return true;
+      var p = byId[q.parent];
+      if (!p || !visible(p)) return false;
       var v = state[q.parent];
       if (!v) return false;
       var have = v.codes && v.codes.length ? v.codes : (v.code ? [v.code] : []);
       return q.parentWhen.some(function (c) { return have.indexOf(c) >= 0; });
+    }
+    /* 「答えた項目」に数えるのは、いま画面に出ている質問の答えだけ。
+       親を答え直して隠れた質問の古い答えを数え続けると、見えている数と合わなくなる。 */
+    function counted(q) { return answered(q.id) && visible(q); }
+
+    /* ── ?q=<鍵> で来た人を、その質問まで運ぶ ──────────────────────
+       ★子の質問は、親に答えるまで画面に無い。そのときは**親の行**へ運ぶ
+         （隠れた行を無理に出しても、サーバが parent_missing で弾く）。
+         親に答えて子が出たら、印を子へ移して運び直す。
+       ★親が2段のときは、**いちばん上の答えていない親**へ運び、答えるたびに1段ずつ下りる。
+         あいだの親の答えが条件から外れたら、その親に印を残して止まる
+         （例: 空席待ちの券の回数を目当てに来た人が「座席を確保できる」と答えた）。
+       ★目当ての質問に答えたら印を外す（want を空にする）。
+         答えたあとも色が残ると「まだ何か足りない」と読める。 */
+    var want = wantedQuestion(byId);
+    function targetRow() {
+      var q = byId[want];
+      while (q && !visible(q)) q = byId[q.parent];
+      return q ? el.querySelector('[data-qid="' + q.id + '"]') : null;
+    }
+    function mark(arrive) {
+      var old = el.querySelector('.pvcf-q.is-target');
+      var row = want ? targetRow() : null;
+      if (old && old !== row) { old.classList.remove('is-target'); old.removeAttribute('tabindex'); }
+      if (!row || row === old) return;
+      row.classList.add('is-target');
+      /* 2つ目より後の節は閉じて出る。閉じたままだと、運んだ先に何も見えない */
+      var sec = row.parentNode;
+      while (sec && sec !== el && sec.tagName !== 'DETAILS') sec = sec.parentNode;
+      if (sec && sec.tagName === 'DETAILS') sec.open = true;
+      /* キーボードで来た人の次の Tab が、この行の選択肢から始まるようにする */
+      row.setAttribute('tabindex', '-1');
+      try { row.focus({ preventScroll: true }); } catch (e) {}
+      /* 着いたとき（arrive）は必ず画面のまんなかへ。答えたあとで印が移ったときは、
+         もう見えているなら動かさない（押した直後に画面が勝手に動くと行き先を見失う）。 */
+      var box = row.getBoundingClientRect();
+      var vh = w.innerHeight || d.documentElement.clientHeight || 0;
+      if (!arrive && box.top >= 0 && box.bottom <= vh) return;
+      var calm = false;
+      try { calm = w.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+      try { row.scrollIntoView({ block: 'center', behavior: (arrive || calm) ? 'auto' : 'smooth' }); }
+      catch (e) { try { row.scrollIntoView(); } catch (e2) {} }
     }
 
     function curOptions(sel) {
@@ -994,7 +1065,7 @@
     }
 
     function countHtml() {
-      var n = qs.filter(function (q) { return answered(q.id); }).length;
+      var n = qs.filter(counted).length;
       return T.fullCount(n, qs.length);
     }
 
@@ -1003,7 +1074,7 @@
       var body = secs.map(function (sec) {
         var mine = qs.filter(function (q) { return q.section === sec.code; });
         if (!mine.length) return '';
-        var done = mine.filter(function (q) { return answered(q.id); }).length;
+        var done = mine.filter(counted).length;
         var open = first ? ' open' : '';
         first = false;
         return '<details class="pvcf-sec"' + open + '>' +
@@ -1023,6 +1094,7 @@
         body + voicesCard();
 
       bind();
+      mark(true);
     }
 
     /* 保存できたら、その行の中だけを描き直す。
@@ -1043,7 +1115,7 @@
         var b = el.querySelector('[data-sec="' + sec.code + '"]');
         if (!b) return;
         var mine = qs.filter(function (q) { return q.section === sec.code; });
-        b.textContent = mine.filter(function (q) { return answered(q.id); }).length + ' / ' + mine.length;
+        b.textContent = mine.filter(counted).length + ' / ' + mine.length;
       });
       /* 親の答えが変わると、ぶら下がる質問の出る/出ないが変わる */
       qs.forEach(function (q) {
@@ -1051,6 +1123,8 @@
         var row = el.querySelector('[data-qid="' + q.id + '"]');
         if (row) row.hidden = !visible(q);
       });
+      /* 出る/出ないが決まってから、?q= の印を付け直す（親 → 子へ移ることがある） */
+      mark(false);
     }
 
     function say(q, ok) {
@@ -1077,6 +1151,7 @@
           track('condition_answered', {
             trigger: 'detail_page', question_id: q.id, airline_code: ctx.airline
           });
+          if (q.id === want) want = '';
           if (!keep) redrawRow(q);
           say(q, true);
           refreshCounts();

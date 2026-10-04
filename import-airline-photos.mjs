@@ -3,6 +3,15 @@
  *   node import-airline-photos.mjs --from <元の写真が入っているフォルダ>
  *   node import-airline-photos.mjs --from <…> --only jal-a350
  *
+ * ★台帳は --ledger で選べる（2026-10-04）。**付けなければ今までどおり航空機**
+ *   ＝ 上の2行の呼び方は1文字も変わらない。
+ *
+ *   node import-airline-photos.mjs --ledger places --from <…>            街と就航地（place-photos.mjs → assets/places/）
+ *   node import-airline-photos.mjs --ledger places --from <…> --only dest-nrt
+ *
+ *   選べる名前は下の LEDGERS に書いてあるものだけ（好きなファイルを読ませる口にしない）。
+ *   台帳の形は同じ ── PHOTOS / PHOTO_DIR / SMALL_W / smallH の4つを出していること。
+ *
  * ★元のファイルをそのまま写さない。ブラウザのキャンバスに描いて JPEG で書き出す
  *   ＝ 画素だけが残り、撮影情報（位置・機材・作者名のタグ）は1つも付いてこない。
  *   元の写真のうち1枚には位置情報の枠が残っていた（assert-no-pii.mjs の B が落とす形）。
@@ -11,26 +20,39 @@
  * ★引き伸ばさない。元が台帳の w より小さければ止まる。
  * ★何度流しても同じファイルになる（同じ画素を同じ品質で書き出すだけ）。
  *
- * 写真を足すとき：airline-photos.mjs に1行足す → これを流す → node assert-no-pii.mjs
+ * 写真を足すとき：台帳（airline-photos.mjs か place-photos.mjs）に1行足す → これを流す → node assert-no-pii.mjs
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import puppeteer from 'puppeteer';
-import { PHOTOS, PHOTO_DIR, SMALL_W, smallH } from './airline-photos.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 const arg = k => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : null; };
 const FROM = arg('--from');
 const ONLY = arg('--only');
 
-if (!FROM || !fs.existsSync(FROM)) {
-  console.error('使い方: node import-airline-photos.mjs --from <元の写真が入っているフォルダ>');
+/* 選べる台帳。--ledger を付けなければ航空機（＝これが足される前と同じ動き）。 */
+const LEDGERS = { airlines: './airline-photos.mjs', places: './place-photos.mjs' };
+const LEDGER = process.argv.includes('--ledger') ? arg('--ledger') : 'airlines';
+/* 知らない名前・名前の書き忘れは止まる（黙って航空機の側を書き出さない）。 */
+if (!LEDGER || !Object.hasOwn(LEDGERS, LEDGER)) {
+  console.error(`❌ --ledger に書けるのは ${Object.keys(LEDGERS).join(' / ')} のどちらか`);
   process.exit(1);
 }
+const LEDGER_FILE = LEDGERS[LEDGER].slice(2);
+
+if (!FROM || !fs.existsSync(FROM)) {
+  console.error('使い方: node import-airline-photos.mjs --from <元の写真が入っているフォルダ>');
+  console.error('        node import-airline-photos.mjs --ledger places --from <…>   （街と就航地）');
+  process.exit(1);
+}
+
+const { PHOTOS, PHOTO_DIR, SMALL_W, smallH } = await import(LEDGERS[LEDGER]);
+
 /* --only の名前が台帳に無いときは止まる（黙って0枚で「終わった」と出さない）。 */
 if (ONLY && !Object.values(PHOTOS).flat().some(p => p.file === ONLY)) {
-  console.error(`❌ 台帳（airline-photos.mjs）に ${ONLY} が無い`);
+  console.error(`❌ 台帳（${LEDGER_FILE}）に ${ONLY} が無い`);
   process.exit(1);
 }
 
@@ -60,10 +82,12 @@ for (const [slug, list] of Object.entries(PHOTOS)) {
     const from = path.join(FROM, p.orig);
     if (!fs.existsSync(from)) { console.error(`❌ ${p.file}: 元の写真が無い（${p.orig}）`); fail++; continue; }
     const b64 = fs.readFileSync(from).toString('base64');
+    /* 元が PNG の写真もある（書き出すのはどちらも JPEG）。 */
+    const mime = /\.png$/i.test(p.orig) ? 'image/png' : 'image/jpeg';
 
-    const res = await page.evaluate(async (b64, sizes) => {
+    const res = await page.evaluate(async (b64, sizes, mime) => {
       const img = new Image();
-      img.src = 'data:image/jpeg;base64,' + b64;
+      img.src = 'data:' + mime + ';base64,' + b64;
       await img.decode();
       const out = [];
       for (const s of sizes) {
@@ -83,7 +107,7 @@ for (const [slug, list] of Object.entries(PHOTOS)) {
     }, b64, [
       { w: p.w, h: p.h, q: 0.84 },
       { w: SMALL_W, h: smallH(p), q: 0.8 },
-    ]);
+    ], mime);
 
     if (res.err) { console.error(`❌ ${p.file}: ${res.err}`); fail++; continue; }
 

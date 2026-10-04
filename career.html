@@ -44,7 +44,12 @@
   <link rel="stylesheet" href="my-value.css">
   <link rel="stylesheet" href="app-nav.css">
   <!-- この画面だけの見た目（.cr-*）。?v= は中身の指紋で、gen-career.mjs が書く。 -->
-  <link rel="stylesheet" href="career.css?v=e7ec925b">
+  <link rel="stylesheet" href="career.css?v=77fa734d">
+  <link rel="stylesheet" href="career-sec.css?v=5887759b">
+  <!-- 生きた欄（.crl-*）・就航地（.crs-*）・カード保存（.crc-*）の見た目。 -->
+  <link rel="stylesheet" href="career-live.css?v=94c296b7">
+  <link rel="stylesheet" href="career-stay.css?v=7b8ab6e2">
+  <link rel="stylesheet" href="career-card.css?v=67e91a9b">
 
   <style>
     /* ここに置くのは「CSS が届く前に見えてしまう部分」だけ。 */
@@ -192,12 +197,12 @@
 <div class="cr-pay">
 <h2 class="cr-pay-h">年収</h2>
 <div class="cr-nums">
-<div class="cr-num" data-role="cap"><span class="cr-vh">日本航空（JAL）</span><span class="cr-num-r">機長</span><b class="cr-num-v">¥2,700万</b><span class="cr-num-k"><span class="cr-tag">推定</span></span></div>
-<div class="cr-num" data-role="fo"><span class="cr-vh">日本航空（JAL）</span><span class="cr-num-r">副操縦士</span><b class="cr-num-v">¥1,800万</b><span class="cr-num-k"><span class="cr-tag">推定</span></span></div>
+<div class="cr-num" data-role="cap"><span class="cr-vh">日本航空（JAL）</span><span class="cr-num-r">機長</span><b class="cr-num-v" data-main="cap">¥2,700万</b><span class="cr-num-k"><span class="cr-tag" data-main-tag="cap">推定</span></span></div>
+<div class="cr-num" data-role="fo"><span class="cr-vh">日本航空（JAL）</span><span class="cr-num-r">副操縦士</span><b class="cr-num-v" data-main="fo">¥1,800万</b><span class="cr-num-k"><span class="cr-tag" data-main-tag="fo">推定</span></span></div>
 </div>
 <div class="cr-mini" aria-hidden="true">
-<div class="cr-mini-row"><span class="cr-mini-l">機長</span><span class="cr-track"><i class="cr-fill is-cap" style="--w:67.5%"></i></span></div>
-<div class="cr-mini-row"><span class="cr-mini-l">副操縦士</span><span class="cr-track"><i class="cr-fill is-fo" style="--w:45%"></i></span></div>
+<div class="cr-mini-row"><span class="cr-mini-l">機長</span><span class="cr-track"><i class="cr-fill is-cap" data-main-bar="cap" style="--w:67.5%"></i></span></div>
+<div class="cr-mini-row"><span class="cr-mini-l">副操縦士</span><span class="cr-track"><i class="cr-fill is-fo" data-main-bar="fo" style="--w:45%"></i></span></div>
 <div class="cr-axis" aria-hidden="true"><span>0</span><span>¥2,000万</span><span>¥4,000万</span></div>
 </div>
 <p class="cr-tax">課税（日本）</p>
@@ -246,12 +251,12 @@
 <div class="cr-pay">
 <h2 class="cr-pay-h">年収</h2>
 <div class="cr-nums">
-<div class="cr-num" data-role="cap"><span class="cr-vh">全日本空輸（ANA）</span><span class="cr-num-r">機長</span><b class="cr-num-v">¥2,700万</b><span class="cr-num-k"><span class="cr-tag">推定</span></span></div>
-<div class="cr-num" data-role="fo"><span class="cr-vh">全日本空輸（ANA）</span><span class="cr-num-r">副操縦士</span><b class="cr-num-v">¥1,800万</b><span class="cr-num-k"><span class="cr-tag">推定</span></span></div>
+<div class="cr-num" data-role="cap"><span class="cr-vh">全日本空輸（ANA）</span><span class="cr-num-r">機長</span><b class="cr-num-v" data-main="cap">¥2,700万</b><span class="cr-num-k"><span class="cr-tag" data-main-tag="cap">推定</span></span></div>
+<div class="cr-num" data-role="fo"><span class="cr-vh">全日本空輸（ANA）</span><span class="cr-num-r">副操縦士</span><b class="cr-num-v" data-main="fo">¥1,800万</b><span class="cr-num-k"><span class="cr-tag" data-main-tag="fo">推定</span></span></div>
 </div>
 <div class="cr-mini" aria-hidden="true">
-<div class="cr-mini-row"><span class="cr-mini-l">機長</span><span class="cr-track"><i class="cr-fill is-cap" style="--w:67.5%"></i></span></div>
-<div class="cr-mini-row"><span class="cr-mini-l">副操縦士</span><span class="cr-track"><i class="cr-fill is-fo" style="--w:45%"></i></span></div>
+<div class="cr-mini-row"><span class="cr-mini-l">機長</span><span class="cr-track"><i class="cr-fill is-cap" data-main-bar="cap" style="--w:67.5%"></i></span></div>
+<div class="cr-mini-row"><span class="cr-mini-l">副操縦士</span><span class="cr-track"><i class="cr-fill is-fo" data-main-bar="fo" style="--w:45%"></i></span></div>
 <div class="cr-axis" aria-hidden="true"><span>0</span><span>¥2,000万</span><span>¥4,000万</span></div>
 </div>
 <p class="cr-tax">課税（日本）</p>
@@ -278,12 +283,12 @@
 <div class="cr-pay">
 <h2 class="cr-pay-h">年収</h2>
 <div class="cr-nums">
-<div class="cr-num" data-role="cap"><span class="cr-vh">キャセイパシフィック</span><span class="cr-num-r">機長</span><b class="cr-num-v">¥3,600万</b><span class="cr-num-k"><span class="cr-tag">推定</span></span></div>
-<div class="cr-num" data-role="fo"><span class="cr-vh">キャセイパシフィック</span><span class="cr-num-r">副操縦士</span><b class="cr-num-v">¥1,956万</b><span class="cr-num-k"><span class="cr-tag">条件つきの給与例</span></span></div>
+<div class="cr-num" data-role="cap"><span class="cr-vh">キャセイパシフィック</span><span class="cr-num-r">機長</span><b class="cr-num-v" data-main="cap">¥3,600万</b><span class="cr-num-k"><span class="cr-tag" data-main-tag="cap">推定</span></span></div>
+<div class="cr-num" data-role="fo"><span class="cr-vh">キャセイパシフィック</span><span class="cr-num-r">副操縦士</span><b class="cr-num-v" data-main="fo">¥1,956万</b><span class="cr-num-k"><span class="cr-tag" data-main-tag="fo">条件つきの給与例</span></span></div>
 </div>
 <div class="cr-mini" aria-hidden="true">
-<div class="cr-mini-row"><span class="cr-mini-l">機長</span><span class="cr-track"><i class="cr-fill is-cap" style="--w:90%"></i></span></div>
-<div class="cr-mini-row"><span class="cr-mini-l">副操縦士</span><span class="cr-track"><i class="cr-fill is-fo" style="--w:48.9%"></i></span></div>
+<div class="cr-mini-row"><span class="cr-mini-l">機長</span><span class="cr-track"><i class="cr-fill is-cap" data-main-bar="cap" style="--w:90%"></i></span></div>
+<div class="cr-mini-row"><span class="cr-mini-l">副操縦士</span><span class="cr-track"><i class="cr-fill is-fo" data-main-bar="fo" style="--w:48.9%"></i></span></div>
 <div class="cr-axis" aria-hidden="true"><span>0</span><span>¥2,000万</span><span>¥4,000万</span></div>
 </div>
 <p class="cr-tax">課税（香港）</p>
@@ -324,62 +329,281 @@
 <p class="cr-else"><a class="cr-link" href="airlines/cathay-pacific.html">口コミ・募集を見る<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
 <p class="cr-credits">写真（縮小・トリミング） <span class="cr-credit" data-airline="cathay-pacific"><a href="https://commons.wikimedia.org/wiki/File:Cathay_Pacific_Airbus_A350-1000_B-LXB.jpg" target="_blank" rel="noopener">Melv_L - MACASR</a>／<a href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a></span></p>
 </section>
-<section class="cr-view cr-co" data-view="airline" data-airline="etihad" style="--cr-co:#B08D57" hidden>
+<section class="cr-view cr-co cr-deep" data-view="airline" data-airline="etihad" style="--cr-co:#B08D57" hidden>
 <div class="cr-top">
 <a class="cr-back" href="career.html" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>航空会社を選ぶ</a>
 <a class="cr-btn" href="career.html?view=compare&amp;a=etihad&amp;b=jal" data-go>他社と比較</a>
 </div>
-<div class="cr-cols">
 <figure class="cr-hero">
-<img src="assets/airlines/etihad-a350.jpg" srcset="assets/airlines/etihad-a350-480.jpg 480w, assets/airlines/etihad-a350.jpg 1200w" sizes="(min-width: 900px) 500px, 100vw" width="1200" height="800" alt="エティハド航空の Airbus A350-1000" loading="lazy" decoding="async"/>
+<img src="assets/airlines/etihad-a350.jpg" srcset="assets/airlines/etihad-a350-480.jpg 480w, assets/airlines/etihad-a350.jpg 1200w" sizes="(min-width: 1100px) 1040px, 100vw" width="1200" height="800" alt="エティハド航空の Airbus A350-1000" loading="lazy" decoding="async"/>
 <span class="cr-code">EY</span>
 <h1 class="cr-h1 cr-hero-n" tabindex="-1">エティハド航空</h1>
 </figure>
-<div class="cr-pay">
+<nav class="cr-tabs" aria-label="エティハド航空">
+<a class="cr-tab" href="career.html?airline=etihad" data-go data-tab="top" aria-current="page">概要</a>
+<a class="cr-tab" href="career.html?airline=etihad&amp;tab=work" data-go data-tab="work">勤務・待遇</a>
+<a class="cr-tab" href="career.html?airline=etihad&amp;tab=life" data-go data-tab="life">暮らし・ステイ</a>
+</nav>
+<div class="cr-tabp" data-tab="top">
+<div class="cr-pay cr-pay-deep">
 <h2 class="cr-pay-h">年収</h2>
-<div class="cr-nums">
-<div class="cr-num" data-role="cap"><span class="cr-vh">エティハド航空</span><span class="cr-num-r">機長</span><b class="cr-num-v">〜¥2,917万</b><span class="cr-num-k"><span class="cr-tag">求人の掲載額</span> <span class="cr-sub">A320（求人の上限）</span></span></div>
-<div class="cr-num" data-role="fo"><span class="cr-vh">エティハド航空</span><span class="cr-num-r">副操縦士</span><b class="cr-num-v">〜¥2,224万</b><span class="cr-num-k"><span class="cr-tag">求人の掲載額</span> <span class="cr-sub">A320（求人の上限）</span></span></div>
-</div>
-<div class="cr-mini" aria-hidden="true">
-<div class="cr-mini-row"><span class="cr-mini-l">機長</span><span class="cr-track"><i class="cr-fill is-cap is-max" style="--w:72.9%"></i></span></div>
-<div class="cr-mini-row"><span class="cr-mini-l">副操縦士</span><span class="cr-track"><i class="cr-fill is-fo is-max" style="--w:55.6%"></i></span></div>
+<div class="cr-bars">
+<a class="cr-bar cr-bar-est is-held" data-role="cap" href="career.html?airline=etihad&amp;d=cap-est" data-go>
+<span class="cr-bar-h"><span class="cr-vh">エティハド航空</span><span class="cr-bar-r">機長</span><b class="cr-bar-v" data-main="cap" data-look="held">確認中</b><span class="cr-bar-k"><span class="cr-tag" data-main-tag="cap">推定</span></span><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+</a>
+<a class="cr-bar cr-bar-est is-held" data-role="fo" href="career.html?airline=etihad&amp;d=fo-est" data-go>
+<span class="cr-bar-h"><span class="cr-vh">エティハド航空</span><span class="cr-bar-r">副操縦士</span><b class="cr-bar-v" data-main="fo" data-look="held">確認中</b><span class="cr-bar-k"><span class="cr-tag" data-main-tag="fo">推定</span></span><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+</a>
+<a class="cr-bar cr-bar-max" data-role="cap" href="career.html?airline=etihad&amp;d=cap-max" data-go>
+<span class="cr-bar-h"><span class="cr-vh">エティハド航空</span><span class="cr-bar-r">機長</span><b class="cr-bar-v" data-lim="cap" data-look="max">〜¥2,917万</b><span class="cr-bar-k"><span class="cr-tag" data-lim-tag="cap">求人の掲載額</span> <span class="cr-sub">A320（求人の上限）</span></span><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+<span class="cr-track" aria-hidden="true"><i class="cr-fill is-max" data-lim-bar="cap" style="--w:72.9%"></i></span>
+</a>
+<a class="cr-bar cr-bar-max" data-role="fo" href="career.html?airline=etihad&amp;d=fo-max" data-go>
+<span class="cr-bar-h"><span class="cr-vh">エティハド航空</span><span class="cr-bar-r">副操縦士</span><b class="cr-bar-v" data-lim="fo" data-look="max">〜¥2,224万</b><span class="cr-bar-k"><span class="cr-tag" data-lim-tag="fo">求人の掲載額</span> <span class="cr-sub">A320（求人の上限）</span></span><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+<span class="cr-track" aria-hidden="true"><i class="cr-fill is-max" data-lim-bar="fo" style="--w:55.6%"></i></span>
+</a>
 <div class="cr-axis" aria-hidden="true"><span>0</span><span>¥2,000万</span><span>¥4,000万</span></div>
 </div>
+<p class="cr-avg">乗員全体の公表平均<span>公表なし</span></p>
 <p class="cr-tax">非課税（UAE に個人所得税なし）</p>
 </div>
-</div>
-<div class="cr-pub">
-<h2 class="cr-h2">会社が公表している金額</h2>
-<div class="cr-grp">
-<p class="cr-grp-k"><span class="cr-tag">求人の掲載額</span> 機長 A320（求人の上限）</p>
-<dl class="cr-figs">
-<div class="cr-fig"><dt>求人に書かれた年額の上限</dt><dd><b>〜約2,917万円</b> <span class="cr-orig pv-no-cur">〜AED 674,029</span></dd></div>
-</dl>
-<details class="cr-more"><summary>応募条件</summary><p>総5,500時間・多人数運航ガラスコックピットの機長時間 2,500時間・A320系の機長時間 1,500時間・直近12か月に A320系・入社日に59歳未満・英語能力証明レベル4以上</p></details>
-</div>
-<div class="cr-grp">
-<p class="cr-grp-k"><span class="cr-tag">求人の掲載額</span> 副操縦士 A320（求人の上限）</p>
-<dl class="cr-figs">
-<div class="cr-fig"><dt>求人に書かれた年額の上限</dt><dd><b>〜約2,224万円</b> <span class="cr-orig pv-no-cur">〜AED 513,732</span></dd></div>
-</dl>
-<details class="cr-more"><summary>応募条件</summary><p>A：総2,000時間かつ多人数運航ガラスコックピット1,500時間かつ同型500時間／B：総1,500時間かつ A320系1,000時間。加えて直近12か月に A320系・入社日に50歳未満・英語能力証明レベル4以上</p></details>
-</div>
-<details class="cr-more cr-basis"><summary>前提と出どころ</summary>
-<ul class="cr-notes">
-<li>「最大（up to）」の額で、月75時間の乗務を前提としています。75時間は上限に近い飛び方なので、普通の月の実額はこれより下がります。</li>
-<li>内訳は基本給・飛行手当・住宅手当・レイオーバー／食事手当の4つです。</li>
-<li>教育手当（初等 AED 40,000／中等 AED 55,000・子3人まで）・所得補償・保険・社員割引航空券・退職金・引越し支援は、この額に含まれていません。</li>
-<li>交代要員つきの便は75%換算です（機長）。</li>
+<div class="cr-sec cr-org">
+<h2 class="cr-h2">会社</h2>
+<p class="cr-org-p pv-no-cur">最初の商業便は2003年11月12日（ベイルート行き）。UAE のナショナル・エアラインで、拠点はアブダビのザーイド国際空港。2026年2月28日時点の運航機材は、短期の借り受け（ACMI）と貨物機を含む128機。2025年の旅客は2,240万人。</p>
+<ul class="cr-org-nums pv-no-cur">
+<li class="cr-org-num"><b>8.3年</b><span>機材の平均の機齢</span><small>ACMI の借り受けを除く・2026年2月28日 時点</small></li>
+<li class="cr-org-num"><b>110か所</b><span>就航地（ネットワーク）</span><small>季節便・貨物の路線と、12か月以内に始まる予定の先を含む・2026年2月28日 時点</small></li>
+<li class="cr-org-num"><b>400人近く</b><span>その年に入社したパイロット</span><small>2025年</small></li>
+<li class="cr-org-num"><b>150件近く</b><span>その年のパイロットの昇格</span><small>2025年</small></li>
 </ul>
-<p class="cr-fx pv-no-cur">円額は比較用の換算です（1 AED＝43.2825円・2026-08-22 時点）。現在の為替レートではありません。</p>
+<details class="cr-more">
+<summary>機材の内訳</summary>
+<ul class="cr-org-fleet pv-no-cur">
+<li><span>ボーイング787</span><b>48機</b></li>
+<li><span>エアバスA320</span><b>20機</b></li>
+<li><span>エアバスA321</span><b>15機</b></li>
+<li><span>エアバスA321LR</span><b>11機</b></li>
+<li><span>エアバスA350</span><b>10機</b></li>
+<li><span>ボーイング777</span><b>9機</b></li>
+<li><span>エアバスA380</span><b>7機</b></li>
+<li><span>エアバスA330</span><b>2機</b></li>
+<li><span>ボーイング777F（貨物機）</span><b>6機</b></li>
+</ul>
+<p>2026年2月28日 時点</p>
+</details>
+<details class="cr-more">
+<summary>出どころ</summary>
+<ul class="cr-notes pv-no-cur">
+<li>所有（2022年10月の発表）：エティハド・アビエーション・グループの所有のすべてが、アブダビの投資・持株会社 ADQ へ移された</li>
+<li>所有（2026年1月の発表）：持株会社 L’IMAD と ADQ の資産と投資を、L’IMAD の傘下へまとめる決議。L’IMAD の投資先の1つにエティハド航空の名が挙がっている</li>
+</ul>
 <ul class="cr-srcs pv-no-cur">
-<li>エティハド航空（SmartRecruiters・ref 80371） <a href="https://jobs.smartrecruiters.com/EtihadAirways5/744000140889348-captain" target="_blank" rel="noopener">Captain A320</a><span>適用時点：2026-07-31 掲載 ／ 確認日：2026-09-26</span></li>
-<li>エティハド航空（SmartRecruiters・ref 80372） <a href="https://jobs.smartrecruiters.com/EtihadAirways5/744000140889248-first-officer" target="_blank" rel="noopener">First Officer A320</a><span>適用時点：2026-07-31 掲載 ／ 確認日：2026-09-26</span></li>
+<li><a href="https://www.etihad.com/en/news/burj-khalifa-lights-up-for-etihads-20th-anniversary" target="_blank" rel="noopener">エティハド航空の発表「Burj Khalifa lights up for Etihad’s 20th Anniversary」</a><span>2003年11月12日 時点</span></li>
+<li><a href="https://www.etihad.com/en/news/etihad-airways-celebrates-zayed-international-airport" target="_blank" rel="noopener">エティハド航空の発表「Etihad Airways celebrates Zayed International Airport」</a><span>2024年2月9日 時点</span></li>
+<li><a href="https://www.etihad.com/en/news/etihad-reports-february-2026-traffic-statistics" target="_blank" rel="noopener">エティハド航空の発表「Etihad reports February 2026 Traffic Statistics」</a><span>2026年2月28日 時点</span></li>
+<li><a href="https://www.etihad.com/en/news/etihad-airways-delivers-record-passenger-numbers-and-growth-in-2025" target="_blank" rel="noopener">エティハド航空の発表「Etihad Airways delivers record passenger numbers and growth in 2025」</a><span>2025年</span></li>
+<li><a href="https://www.etihad.com/en/news/etihad-airways-delivers-record-aed-26-billion-us--698-million-profit-in-2025-marking-strongest-performance-in-the-airlines-history" target="_blank" rel="noopener">エティハド航空の発表「Etihad Airways Delivers Record AED 2.6 Billion (U.S $ 698 Million) Profit in 2025」</a><span>2025年</span></li>
+<li><a href="https://www.mediaoffice.abudhabi/en/economy/abu-dhabi-supreme-council-for-financial-and-economic-affairs-issues-a-decision-to-transfer-etihad-aviation-group-to-adq/" target="_blank" rel="noopener">アブダビ政府メディアオフィス「Etihad Aviation Group Transferred to ADQ’s Portfolio」</a><span>2022年10月18日 時点</span></li>
+<li><a href="https://www.mediaoffice.abudhabi/en/economy/supreme-council-for-financial-and-economic-affairs-issues-resolution-to-consolidate-the-assets-and-investments-of-limad-holding-and-abu-dhabi-developmental-holding-group/" target="_blank" rel="noopener">アブダビ政府メディアオフィス「Supreme Council for Financial and Economic Affairs Issues Resolution to Consolidate the Assets and Investments of L’IMAD Holding and Abu Dhabi Developmental Holding Group」</a><span>2026年1月30日 時点</span></li>
 </ul>
 </details>
 </div>
+<div class="cr-sec">
+<h2 class="cr-h2">口コミ</h2>
+<div class="crl" data-live="stars" data-airline="etihad" data-state="idle"><span class="crl-ph">—</span></div>
+<div class="crl" data-live="reviews" data-airline="etihad" data-state="idle"><span class="crl-ph">—</span></div>
+</div>
+<div class="cr-sec">
+<h2 class="cr-h2">REAL PAY</h2>
+<div class="crl" data-live="realpay" data-airline="etihad" data-state="idle"><span class="crl-ph">—</span></div>
+</div>
+<div class="cr-sec cr-jobs">
+<h2 class="cr-h2">募集</h2>
+<ul class="cr-job-l">
+<li><a class="cr-job" href="https://jobs.smartrecruiters.com/EtihadAirways5/744000140889348-captain" target="_blank" rel="noopener"><span class="cr-job-n">機長（A320）</span><span class="cr-job-m pv-no-cur">アブダビ・2026年7月31日 掲載</span><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li>
+<li><a class="cr-job" href="https://jobs.smartrecruiters.com/EtihadAirways5/744000140889248-first-officer" target="_blank" rel="noopener"><span class="cr-job-n">副操縦士（A320）</span><span class="cr-job-m pv-no-cur">アブダビ・2026年7月31日 掲載</span><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li>
+<li><a class="cr-job" href="https://jobs.smartrecruiters.com/EtihadAirways5/744000140889738-captain-a320-instructor" target="_blank" rel="noopener"><span class="cr-job-n">機長・教官（A320）</span><span class="cr-job-m pv-no-cur">アブダビ・2026年7月31日 掲載</span><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li>
+</ul>
+<p class="cr-job-at pv-no-cur">2026年10月4日に公開中を確認</p>
+</div>
 <p class="cr-else"><a class="cr-link" href="airlines/etihad.html">口コミ・募集を見る<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+<div class="cr-ents">
+<a class="cr-ent" href="career.html?airline=etihad&amp;tab=work" data-go>勤務・待遇<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+<a class="cr-ent" href="career.html?airline=etihad&amp;tab=life" data-go>暮らし・ステイ<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+<a class="cr-ent" href="career.html?view=card&amp;a=etihad" data-go>カードを保存<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+</div>
+</div>
+<div class="cr-tabp" data-tab="work" hidden>
+<div class="cr-sec">
+<h2 class="cr-h2">月の働き方</h2>
+<div class="crl" data-live="work" data-airline="etihad" data-state="idle"><span class="crl-ph">—</span></div>
+<p class="cr-else"><a class="cr-link" href="pay-report.html?airline=etihad">匿名で給与を提出する<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+</div>
+<div class="cr-sec cr-bens">
+<h2 class="cr-h2">公表されている待遇</h2>
+<dl class="cr-ben">
+<div class="cr-ben-i"><dt>年次休暇</dt><dd><b class="pv-no-cur">42日</b></dd></div>
+<div class="cr-ben-i"><dt>教育手当（初等）</dt><dd><b class="pv-no-cur">AED 40,000</b><small>上限。子1人あたり・子3人まで</small></dd></div>
+<div class="cr-ben-i"><dt>教育手当（中等）</dt><dd><b class="pv-no-cur">AED 55,000</b><small>上限。子1人あたり・子3人まで</small></dd></div>
+<div class="cr-ben-i"><dt>住宅</dt><dd><b class="pv-no-cur">住宅手当（年間パッケージの内訳の1つ）</b></dd></div>
+<div class="cr-ben-i"><dt>社員航空券（Staff Travel）</dt><dd><b class="pv-no-cur">有り（条件の記載なし）</b></dd></div>
+<div class="cr-ben-i"><dt>昇給</dt><dd><b class="pv-no-cur">実績に応じた年次の昇給</b></dd></div>
+<div class="cr-ben-i"><dt>所得補償</dt><dd><b class="pv-no-cur">所得補償の制度</b></dd></div>
+<div class="cr-ben-i"><dt>保険</dt><dd><b class="pv-no-cur">傷害保険・生命保険</b></dd></div>
+<div class="cr-ben-i"><dt>退職時</dt><dd><b class="pv-no-cur">退職時の給付</b></dd></div>
+<div class="cr-ben-i"><dt>引越し</dt><dd><b class="pv-no-cur">コンテナ輸送の手当・着任時の支援・家族の渡航</b></dd></div>
+<div class="cr-ben-i"><dt>税</dt><dd><b class="pv-no-cur">非課税のパッケージ</b></dd></div>
+<div class="cr-ben-i"><dt>機長昇格</dt><dd><b class="pv-no-cur">年数の目安の記載なし</b></dd></div>
+</dl>
+<details class="cr-more">
+<summary>教官の求人（A320）に書かれている手当</summary>
+<dl class="cr-ben">
+<div class="cr-ben-i"><dt>旅行手当（Travel allowance・教官）</dt><dd><b class="pv-no-cur">USD 10,000</b><small>本人と対象の家族。1年あたりか1回かは書いていない</small></dd></div>
+<div class="cr-ben-i"><dt>模擬機の訓練1回（4時間）・TRI</dt><dd><b class="pv-no-cur">AED 1,300</b></dd></div>
+<div class="cr-ben-i"><dt>模擬機の訓練1回（4時間）・TRE</dt><dd><b class="pv-no-cur">AED 1,600</b></dd></div>
+<div class="cr-ben-i"><dt>路線での訓練・審査（1ローテーションあたり）</dt><dd><b class="pv-no-cur">AED 800</b><small>1区間あたりの額と、乗務時間の手当が加わる</small></dd></div>
+<div class="cr-ben-i"><dt>路線での訓練・審査（1区間あたり）</dt><dd><b class="pv-no-cur">AED 300</b><small>1ローテーションあたりの額に加わる</small></dd></div>
+</dl>
+</details>
+<details class="cr-more">
+<summary>出どころ</summary>
+<ul class="cr-srcs pv-no-cur">
+<li><a href="https://jobs.smartrecruiters.com/EtihadAirways5/744000140889348-captain" target="_blank" rel="noopener">エティハド航空の求人「Captain」（SmartRecruiters）</a><span>2026年7月31日 時点</span></li>
+<li><a href="https://careers.etihad.com/teams/pilots" target="_blank" rel="noopener">エティハド航空の採用サイト「Etihad Pilot Careers」</a><span>2026年10月4日 時点</span></li>
+<li><a href="https://jobs.smartrecruiters.com/EtihadAirways5/744000140889738-captain-a320-instructor" target="_blank" rel="noopener">エティハド航空の求人「Captain A320 - Instructor」（SmartRecruiters）</a><span>2026年7月31日 時点</span></li>
+</ul>
+</details>
+</div>
+<div class="cr-topics">
+<article class="cr-topic" data-topic="taxi">
+<h2 class="cr-h2">通勤タクシー・クルーバス</h2>
+<div class="crl" data-live="fact" data-airline="etihad" data-keys="commuting_transport,commuting_transport_method,commuting_taxi_when,commuting_taxi_where,commuting_taxi_cost,commuting_bus_when,commuting_bus_cost" data-state="idle"><span class="crl-ph">—</span></div>
+<p class="cr-asks-h">匿名で答える</p>
+<ul class="cr-asks">
+<li><a class="cr-ask" href="airline-conditions.html?airline=etihad&amp;q=commuting_transport">会社が用意・負担するか<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li>
+<li><a class="cr-ask" href="airline-conditions.html?airline=etihad&amp;q=commuting_transport_method">提供の形<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li>
+<li><a class="cr-ask" href="airline-conditions.html?airline=etihad&amp;q=commuting_taxi_when">タクシーを使えるとき<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li>
+<li><a class="cr-ask" href="airline-conditions.html?airline=etihad&amp;q=commuting_taxi_where">タクシーを使える範囲<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li>
+<li><a class="cr-ask" href="airline-conditions.html?airline=etihad&amp;q=commuting_taxi_cost">タクシーの費用負担<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li>
+<li><a class="cr-ask" href="airline-conditions.html?airline=etihad&amp;q=commuting_bus_when">クルーバスを使えるとき<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li>
+<li><a class="cr-ask" href="airline-conditions.html?airline=etihad&amp;q=commuting_bus_cost">クルーバスの費用負担<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li>
+</ul>
+</article>
+<article class="cr-topic" data-topic="staff-travel">
+<h2 class="cr-h2">社員向け航空券</h2>
+<div class="crl" data-live="fact" data-airline="etihad" data-keys="staff_travel,staff_travel_booking,staff_travel_cabin,staff_travel_family,staff_travel_standby_trips,staff_travel_standby_cost,staff_travel_standby_family,staff_travel_confirmed_trips,staff_travel_confirmed_cost,staff_travel_confirmed_family" data-state="idle"><span class="crl-ph">—</span></div>
+<p class="cr-asks-h">匿名で答える</p>
+<ul class="cr-asks">
+<li><a class="cr-ask" href="airline-conditions.html?airline=etihad&amp;q=staff_travel">制度の有無<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li>
+<li><a class="cr-ask" href="airline-conditions.html?airline=etihad&amp;q=staff_travel_booking">空席待ちか、確保できるか<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li>
+<li><a class="cr-ask" href="airline-conditions.html?airline=etihad&amp;q=staff_travel_cabin">上位クラス<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li>
+<li><a class="cr-ask" href="airline-conditions.html?airline=etihad&amp;q=staff_travel_family">家族が使えるか<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li>
+<li><a class="cr-ask" href="airline-conditions.html?airline=etihad&amp;q=staff_travel_standby_trips">空席待ちの券の年間回数<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li>
+<li><a class="cr-ask" href="airline-conditions.html?airline=etihad&amp;q=staff_travel_standby_cost">空席待ちの券の本人負担<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li>
+<li><a class="cr-ask" href="airline-conditions.html?airline=etihad&amp;q=staff_travel_standby_family">空席待ちの券を使える人<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li>
+<li><a class="cr-ask" href="airline-conditions.html?airline=etihad&amp;q=staff_travel_confirmed_trips">確保できる券の年間回数<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li>
+<li><a class="cr-ask" href="airline-conditions.html?airline=etihad&amp;q=staff_travel_confirmed_cost">確保できる券の本人負担<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li>
+<li><a class="cr-ask" href="airline-conditions.html?airline=etihad&amp;q=staff_travel_confirmed_family">確保できる券を使える人<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li>
+</ul>
+</article>
+<article class="cr-topic" data-topic="upgrade">
+<h2 class="cr-h2">機長昇格</h2>
+<div class="crl" data-live="fact" data-airline="etihad" data-keys="upgrade_years" data-state="idle"><span class="crl-ph">—</span></div>
+<p class="cr-asks-h">匿名で答える</p>
+<ul class="cr-asks">
+<li><a class="cr-ask" href="airline-conditions.html?airline=etihad&amp;q=upgrade_years">機長昇格までの年数<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li>
+</ul>
+</article>
+</div>
+</div>
+<div class="cr-tabp" data-tab="life" hidden>
+<div class="cr-sec cr-towns">
+<h2 class="cr-h2">拠点の街</h2>
+<p class="cr-town-base pv-no-cur">アブダビ<span class="cr-stay-c">AUH</span><span class="cr-town-ap">ザーイド国際空港</span></p>
+<h3 class="cr-town-h">家賃（1ベッドルーム・2ベッドルーム・1年あたり）</h3>
+<ul class="cr-town-l">
+<li class="cr-town">
+<span class="cr-town-p"><img src="assets/places/town-khalifa.jpg" srcset="assets/places/town-khalifa-480.jpg 480w, assets/places/town-khalifa.jpg 960w" sizes="(min-width: 700px) 240px, 46vw" width="960" height="548" alt="ハリファシティの近くを通る幹線道路（シャハマ・ロード）" loading="lazy" decoding="async"/></span>
+<span class="cr-town-n">ハリファ・シティ</span>
+<dl class="cr-rent">
+<div><dt>1ベッドルーム</dt><dd><b class="pv-no-cur">AED 59,000</b><span>約255万円</span></dd></div>
+<div><dt>2ベッドルーム</dt><dd><b class="pv-no-cur">AED 104,000</b><span>約450万円</span></dd></div>
+</dl>
+</li>
+<li class="cr-town">
+<span class="cr-town-p"><img src="assets/places/town-reem.jpg" srcset="assets/places/town-reem-480.jpg 480w, assets/places/town-reem.jpg 960w" sizes="(min-width: 700px) 240px, 46vw" width="960" height="640" alt="アルリーム島の高層ビル群" loading="lazy" decoding="async"/></span>
+<span class="cr-town-n">アル・リーム島</span>
+<dl class="cr-rent">
+<div><dt>1ベッドルーム</dt><dd><b class="pv-no-cur">AED 94,000</b><span>約407万円</span></dd></div>
+<div><dt>2ベッドルーム</dt><dd><b class="pv-no-cur">AED 128,000</b><span>約554万円</span></dd></div>
+</dl>
+</li>
+<li class="cr-town">
+<span class="cr-town-p"><img src="assets/places/town-alraha.jpg" srcset="assets/places/town-alraha-480.jpg 480w, assets/places/town-alraha.jpg 960w" sizes="(min-width: 700px) 240px, 46vw" width="960" height="665" alt="アルバンダルのマリーナ（アルラハ・ビーチ）" loading="lazy" decoding="async"/></span>
+<span class="cr-town-n">アル・ラハ・ビーチ</span>
+<dl class="cr-rent">
+<div><dt>1ベッドルーム</dt><dd><b class="pv-no-cur">AED 111,000</b><span>約480万円</span></dd></div>
+<div><dt>2ベッドルーム</dt><dd><b class="pv-no-cur">AED 146,000</b><span>約632万円</span></dd></div>
+</dl>
+</li>
+<li class="cr-town">
+<span class="cr-town-p"><img src="assets/places/town-yas.jpg" srcset="assets/places/town-yas-480.jpg 480w, assets/places/town-yas.jpg 960w" sizes="(min-width: 700px) 240px, 46vw" width="960" height="539" alt="ヤス島のゴルフコース" loading="lazy" decoding="async"/></span>
+<span class="cr-town-n">ヤス島</span>
+<dl class="cr-rent">
+<div><dt>1ベッドルーム</dt><dd><b class="pv-no-cur">AED 113,000</b><span>約489万円</span></dd></div>
+<div><dt>2ベッドルーム</dt><dd><b class="pv-no-cur">AED 176,000</b><span>約762万円</span></dd></div>
+</dl>
+</li>
+</ul>
+<details class="cr-more">
+<summary>家賃の前提と出どころ</summary>
+<p>Bayut に不動産会社が載せた、入居できる集合住宅の募集家賃の平均（ルームシェアを除く）。成約した額ではない（2026年1〜6月）</p>
+<p class="cr-fx pv-no-cur">円額は比較用の換算です（1 AED＝43.2825円・2026-08-22 時点）。現在の為替レートではありません。</p>
+<ul class="cr-srcs pv-no-cur">
+<li><a href="https://www.bayut.com/mybayut/abu-dhabi-rental-market-report-h1-2026/" target="_blank" rel="noopener">Bayut「Abu Dhabi Rental Market Report H1 2026」</a><span>2026年上半期 時点</span></li>
+</ul>
+</details>
+<p class="cr-credits">写真（縮小・トリミング） <span class="cr-credit">ハリファ・シティ <a href="https://commons.wikimedia.org/wiki/File:Abu_Dhabi_-_Shahama_Road_to_Dubai_-_United_Arab_Emirates_-_panoramio_(10).jpg" target="_blank" rel="noopener">Rizwan Ullah Wazir</a>／<a href="https://creativecommons.org/licenses/by/3.0" target="_blank" rel="noopener">CC BY 3.0</a></span> <span class="cr-credit">アル・リーム島 <a href="https://commons.wikimedia.org/wiki/File:Al_reem_island.jpg" target="_blank" rel="noopener">Sa7er90</a>／<a href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a></span> <span class="cr-credit">アル・ラハ・ビーチ <a href="https://commons.wikimedia.org/wiki/File:Al_Bandar_Marina_Al_Raha_Abu_Dhabi.jpg" target="_blank" rel="noopener">Xcuneo</a>／<a href="https://creativecommons.org/licenses/by-sa/3.0" target="_blank" rel="noopener">CC BY-SA 3.0</a></span> <span class="cr-credit">ヤス島 <a href="https://commons.wikimedia.org/wiki/File:Golf_club,_Yas_island,_Abu_Dhabi_city,_UAE.jpg" target="_blank" rel="noopener">Tashmetova808</a>／<a href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a></span></p>
+</div>
+<div class="cr-sec">
+<h2 class="cr-h2">就航地</h2>
+<ul class="cr-dests">
+<li><a class="cr-dest" href="career.html?airline=etihad&amp;stay=NRT" data-go><span class="cr-dest-n">東京</span><span class="cr-dest-c">NRT</span></a></li>
+<li><a class="cr-dest" href="career.html?airline=etihad&amp;stay=KIX" data-go><span class="cr-dest-n">大阪</span><span class="cr-dest-c">KIX</span></a></li>
+<li><a class="cr-dest" href="career.html?airline=etihad&amp;stay=TPE" data-go><span class="cr-dest-n">台北</span><span class="cr-dest-c">TPE</span></a></li>
+<li><a class="cr-dest" href="career.html?airline=etihad&amp;stay=HKG" data-go><span class="cr-dest-n">香港</span><span class="cr-dest-c">HKG</span></a></li>
+<li><a class="cr-dest" href="career.html?airline=etihad&amp;stay=ICN" data-go><span class="cr-dest-n">ソウル</span><span class="cr-dest-c">ICN</span></a></li>
+<li><a class="cr-dest" href="career.html?airline=etihad&amp;stay=BKK" data-go><span class="cr-dest-n">バンコク</span><span class="cr-dest-c">BKK</span></a></li>
+<li><a class="cr-dest" href="career.html?airline=etihad&amp;stay=SIN" data-go><span class="cr-dest-n">シンガポール</span><span class="cr-dest-c">SIN</span></a></li>
+<li><a class="cr-dest" href="career.html?airline=etihad&amp;stay=KUL" data-go><span class="cr-dest-n">クアラルンプール</span><span class="cr-dest-c">KUL</span></a></li>
+<li><a class="cr-dest" href="career.html?airline=etihad&amp;stay=CGK" data-go><span class="cr-dest-n">ジャカルタ</span><span class="cr-dest-c">CGK</span></a></li>
+<li><a class="cr-dest" href="career.html?airline=etihad&amp;stay=MNL" data-go><span class="cr-dest-n">マニラ</span><span class="cr-dest-c">MNL</span></a></li>
+<li><a class="cr-dest" href="career.html?airline=etihad&amp;stay=SYD" data-go><span class="cr-dest-n">シドニー</span><span class="cr-dest-c">SYD</span></a></li>
+<li><a class="cr-dest" href="career.html?airline=etihad&amp;stay=MEL" data-go><span class="cr-dest-n">メルボルン</span><span class="cr-dest-c">MEL</span></a></li>
+<li><a class="cr-dest" href="career.html?airline=etihad&amp;stay=DEL" data-go><span class="cr-dest-n">ニューデリー</span><span class="cr-dest-c">DEL</span></a></li>
+<li><a class="cr-dest" href="career.html?airline=etihad&amp;stay=BOM" data-go><span class="cr-dest-n">ムンバイ</span><span class="cr-dest-c">BOM</span></a></li>
+<li><a class="cr-dest" href="career.html?airline=etihad&amp;stay=BLR" data-go><span class="cr-dest-n">ベンガルール</span><span class="cr-dest-c">BLR</span></a></li>
+<li><a class="cr-dest" href="career.html?airline=etihad&amp;stay=LHR" data-go><span class="cr-dest-n">ロンドン</span><span class="cr-dest-c">LHR</span></a></li>
+<li><a class="cr-dest" href="career.html?airline=etihad&amp;stay=CDG" data-go><span class="cr-dest-n">パリ</span><span class="cr-dest-c">CDG</span></a></li>
+<li><a class="cr-dest" href="career.html?airline=etihad&amp;stay=FRA" data-go><span class="cr-dest-n">フランクフルト</span><span class="cr-dest-c">FRA</span></a></li>
+<li><a class="cr-dest" href="career.html?airline=etihad&amp;stay=MUC" data-go><span class="cr-dest-n">ミュンヘン</span><span class="cr-dest-c">MUC</span></a></li>
+<li><a class="cr-dest" href="career.html?airline=etihad&amp;stay=AMS" data-go><span class="cr-dest-n">アムステルダム</span><span class="cr-dest-c">AMS</span></a></li>
+<li><a class="cr-dest" href="career.html?airline=etihad&amp;stay=MXP" data-go><span class="cr-dest-n">ミラノ</span><span class="cr-dest-c">MXP</span></a></li>
+<li><a class="cr-dest" href="career.html?airline=etihad&amp;stay=FCO" data-go><span class="cr-dest-n">ローマ</span><span class="cr-dest-c">FCO</span></a></li>
+<li><a class="cr-dest" href="career.html?airline=etihad&amp;stay=ZRH" data-go><span class="cr-dest-n">チューリッヒ</span><span class="cr-dest-c">ZRH</span></a></li>
+<li><a class="cr-dest" href="career.html?airline=etihad&amp;stay=MAD" data-go><span class="cr-dest-n">マドリード</span><span class="cr-dest-c">MAD</span></a></li>
+<li><a class="cr-dest" href="career.html?airline=etihad&amp;stay=BCN" data-go><span class="cr-dest-n">バルセロナ</span><span class="cr-dest-c">BCN</span></a></li>
+<li><a class="cr-dest" href="career.html?airline=etihad&amp;stay=JFK" data-go><span class="cr-dest-n">ニューヨーク</span><span class="cr-dest-c">JFK</span></a></li>
+<li><a class="cr-dest" href="career.html?airline=etihad&amp;stay=IAD" data-go><span class="cr-dest-n">ワシントン</span><span class="cr-dest-c">IAD</span></a></li>
+<li><a class="cr-dest" href="career.html?airline=etihad&amp;stay=ORD" data-go><span class="cr-dest-n">シカゴ</span><span class="cr-dest-c">ORD</span></a></li>
+<li><a class="cr-dest" href="career.html?airline=etihad&amp;stay=BOS" data-go><span class="cr-dest-n">ボストン</span><span class="cr-dest-c">BOS</span></a></li>
+<li><a class="cr-dest" href="career.html?airline=etihad&amp;stay=YYZ" data-go><span class="cr-dest-n">トロント</span><span class="cr-dest-c">YYZ</span></a></li>
+</ul>
+<ul class="cr-srcs pv-no-cur">
+<li><a href="https://www.etihad.com/en/destinations" target="_blank" rel="noopener">エティハド航空「Our Destinations」</a><span>2026年10月4日 時点</span></li>
+</ul>
+</div>
+</div>
 <p class="cr-credits">写真（縮小・トリミング） <span class="cr-credit" data-airline="etihad"><a href="https://commons.wikimedia.org/wiki/File:Etihad_Airways,_A6-XWA,_Airbus_A350-1041.jpg" target="_blank" rel="noopener">Anna Zvereva</a>／<a href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a></span></p>
 </section>
 <section class="cr-view cr-co" data-view="airline" data-airline="eva-air" style="--cr-co:#00A599" hidden>
@@ -396,12 +620,12 @@
 <div class="cr-pay">
 <h2 class="cr-pay-h">年収</h2>
 <div class="cr-nums">
-<div class="cr-num" data-role="cap"><span class="cr-vh">エバー航空</span><span class="cr-num-r">機長</span><b class="cr-num-v">¥2,950万</b><span class="cr-num-k"><span class="cr-tag">推定</span></span></div>
-<div class="cr-num" data-role="fo"><span class="cr-vh">エバー航空</span><span class="cr-num-r">副操縦士</span><b class="cr-num-v">¥1,589万超</b><span class="cr-num-k"><span class="cr-tag">公式募集例</span> <span class="cr-sub">4年契約</span></span></div>
+<div class="cr-num" data-role="cap"><span class="cr-vh">エバー航空</span><span class="cr-num-r">機長</span><b class="cr-num-v" data-main="cap">¥2,950万</b><span class="cr-num-k"><span class="cr-tag" data-main-tag="cap">推定</span></span></div>
+<div class="cr-num" data-role="fo"><span class="cr-vh">エバー航空</span><span class="cr-num-r">副操縦士</span><b class="cr-num-v" data-main="fo" data-look="over">¥1,589万超</b><span class="cr-num-k"><span class="cr-tag" data-main-tag="fo">公式募集例</span> <span class="cr-sub">4年契約</span></span></div>
 </div>
 <div class="cr-mini" aria-hidden="true">
-<div class="cr-mini-row"><span class="cr-mini-l">機長</span><span class="cr-track"><i class="cr-fill is-cap" style="--w:73.8%"></i></span></div>
-<div class="cr-mini-row"><span class="cr-mini-l">副操縦士</span><span class="cr-track"><i class="cr-fill is-fo is-over" style="--w:39.7%"></i></span></div>
+<div class="cr-mini-row"><span class="cr-mini-l">機長</span><span class="cr-track"><i class="cr-fill is-cap" data-main-bar="cap" style="--w:73.8%"></i></span></div>
+<div class="cr-mini-row"><span class="cr-mini-l">副操縦士</span><span class="cr-track"><i class="cr-fill is-fo is-over" data-main-bar="fo" style="--w:39.7%"></i></span></div>
 <div class="cr-axis" aria-hidden="true"><span>0</span><span>¥2,000万</span><span>¥4,000万</span></div>
 </div>
 <p class="cr-tax">課税（台湾）</p>
@@ -431,6 +655,439 @@
 </div>
 <p class="cr-else"><a class="cr-link" href="airlines/eva-air.html">口コミ・募集を見る<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
 <p class="cr-credits">写真（縮小・トリミング） <span class="cr-credit" data-airline="eva-air"><a href="https://commons.wikimedia.org/wiki/File:Eva_Air_Boeing_777-300ER_B-16716.jpg" target="_blank" rel="noopener">Melv_L - MACASR</a>／<a href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a></span></p>
+</section>
+<section class="cr-view cr-det" data-view="detail" data-airline="etihad" data-d="cap-est" style="--cr-co:#B08D57" hidden>
+<a class="cr-back" href="career.html?airline=etihad" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>エティハド航空</a>
+<h1 class="cr-h1 cr-det-h" tabindex="-1"><span class="cr-vh">エティハド航空 </span>機長の推定年収</h1>
+<div class="cr-det-top cr-det-est">
+<p class="cr-det-n"><span class="cr-vh">エティハド航空</span><span class="cr-vh">機長</span><b class="cr-det-v" data-look="held">確認中</b> <span class="cr-det-k"><span class="cr-tag">推定</span></span></p>
+</div>
+<dl class="cr-facts">
+<div class="cr-fact"><dt>対象</dt><dd>機長（全機種）<small>機種別・年次別の値はありません</small></dd></div>
+<div class="cr-fact"><dt>推定</dt><dd>根拠になる資料がそろっていないため、額を出していません</dd></div>
+</dl>
+<p class="cr-else"><a class="cr-link" href="career.html?airline=etihad&amp;d=cap-max" data-go>機長の求人の上限<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+</section>
+<section class="cr-view cr-det" data-view="detail" data-airline="etihad" data-d="cap-max" style="--cr-co:#B08D57" hidden>
+<a class="cr-back" href="career.html?airline=etihad" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>エティハド航空</a>
+<h1 class="cr-h1 cr-det-h" tabindex="-1"><span class="cr-vh">エティハド航空 </span>機長の求人の上限</h1>
+<div class="cr-det-top cr-det-max">
+<p class="cr-det-n"><span class="cr-vh">エティハド航空</span><span class="cr-vh">機長</span><b class="cr-det-v" data-look="max">〜¥2,917万</b> <span class="cr-orig pv-no-cur">〜AED 674,029</span> <span class="cr-det-k"><span class="cr-tag">求人の掲載額</span> <span class="cr-sub">A320（求人の上限）</span></span></p>
+<div class="cr-track" aria-hidden="true"><i class="cr-fill is-max" style="--w:72.9%"></i></div>
+<div class="cr-axis" aria-hidden="true"><span>0</span><span>¥2,000万</span><span>¥4,000万</span></div>
+</div>
+<dl class="cr-facts">
+<div class="cr-fact"><dt>対象</dt><dd>機長 A320（求人の上限）<details class="cr-more"><summary>応募条件</summary><p>総5,500時間・多人数運航ガラスコックピットの機長時間 2,500時間・A320系の機長時間 1,500時間・直近12か月に A320系・入社日に59歳未満・英語能力証明レベル4以上</p><p>交代要員つきの便は75%換算です（機長）。</p></details></dd></div>
+<div class="cr-fact"><dt>内訳</dt><dd><ul class="cr-notes">
+<li>内訳は基本給・飛行手当・住宅手当・レイオーバー／食事手当の4つです。</li>
+<li>教育手当（初等 AED 40,000／中等 AED 55,000・子3人まで）・所得補償・保険・社員割引航空券・退職金・引越し支援は、この額に含まれていません。</li>
+<li>項目ごとの額：公表なし</li>
+</ul></dd></div>
+<div class="cr-fact"><dt>算出方法</dt><dd><ul class="cr-notes">
+<li>「最大（up to）」の額で、月75時間の乗務を前提としています。75時間は上限に近い飛び方なので、普通の月の実額はこれより下がります。</li>
+</ul>
+<p class="cr-fx pv-no-cur">円額は比較用の換算です（1 AED＝43.2825円・2026-08-22 時点）。現在の為替レートではありません。</p></dd></div>
+<div class="cr-fact"><dt>出典</dt><dd><ul class="cr-srcs pv-no-cur">
+<li>エティハド航空（SmartRecruiters・ref 80371） <a href="https://jobs.smartrecruiters.com/EtihadAirways5/744000140889348-captain" target="_blank" rel="noopener">Captain A320</a><span>適用時点：2026-07-31 掲載 ／ 確認日：2026-09-26</span></li>
+</ul></dd></div>
+<div class="cr-fact"><dt>時点</dt><dd>2026-07-31 掲載<small>確認日：2026-09-26</small></dd></div>
+</dl>
+<p class="cr-else"><a class="cr-link" href="career.html?airline=etihad&amp;d=cap-est" data-go>機長の推定年収<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+</section>
+<section class="cr-view cr-det" data-view="detail" data-airline="etihad" data-d="fo-est" style="--cr-co:#B08D57" hidden>
+<a class="cr-back" href="career.html?airline=etihad" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>エティハド航空</a>
+<h1 class="cr-h1 cr-det-h" tabindex="-1"><span class="cr-vh">エティハド航空 </span>副操縦士の推定年収</h1>
+<div class="cr-det-top cr-det-est">
+<p class="cr-det-n"><span class="cr-vh">エティハド航空</span><span class="cr-vh">副操縦士</span><b class="cr-det-v" data-look="held">確認中</b> <span class="cr-det-k"><span class="cr-tag">推定</span></span></p>
+</div>
+<dl class="cr-facts">
+<div class="cr-fact"><dt>対象</dt><dd>副操縦士（全機種）<small>機種別・年次別の値はありません</small></dd></div>
+<div class="cr-fact"><dt>推定</dt><dd>根拠になる資料がそろっていないため、額を出していません</dd></div>
+</dl>
+<p class="cr-else"><a class="cr-link" href="career.html?airline=etihad&amp;d=fo-max" data-go>副操縦士の求人の上限<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+</section>
+<section class="cr-view cr-det" data-view="detail" data-airline="etihad" data-d="fo-max" style="--cr-co:#B08D57" hidden>
+<a class="cr-back" href="career.html?airline=etihad" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>エティハド航空</a>
+<h1 class="cr-h1 cr-det-h" tabindex="-1"><span class="cr-vh">エティハド航空 </span>副操縦士の求人の上限</h1>
+<div class="cr-det-top cr-det-max">
+<p class="cr-det-n"><span class="cr-vh">エティハド航空</span><span class="cr-vh">副操縦士</span><b class="cr-det-v" data-look="max">〜¥2,224万</b> <span class="cr-orig pv-no-cur">〜AED 513,732</span> <span class="cr-det-k"><span class="cr-tag">求人の掲載額</span> <span class="cr-sub">A320（求人の上限）</span></span></p>
+<div class="cr-track" aria-hidden="true"><i class="cr-fill is-max" style="--w:55.6%"></i></div>
+<div class="cr-axis" aria-hidden="true"><span>0</span><span>¥2,000万</span><span>¥4,000万</span></div>
+</div>
+<dl class="cr-facts">
+<div class="cr-fact"><dt>対象</dt><dd>副操縦士 A320（求人の上限）<details class="cr-more"><summary>応募条件</summary><p>A：総2,000時間かつ多人数運航ガラスコックピット1,500時間かつ同型500時間／B：総1,500時間かつ A320系1,000時間。加えて直近12か月に A320系・入社日に50歳未満・英語能力証明レベル4以上</p></details></dd></div>
+<div class="cr-fact"><dt>内訳</dt><dd><ul class="cr-notes">
+<li>内訳は基本給・飛行手当・住宅手当・レイオーバー／食事手当の4つです。</li>
+<li>教育手当（初等 AED 40,000／中等 AED 55,000・子3人まで）・所得補償・保険・社員割引航空券・退職金・引越し支援は、この額に含まれていません。</li>
+<li>項目ごとの額：公表なし</li>
+</ul></dd></div>
+<div class="cr-fact"><dt>算出方法</dt><dd><ul class="cr-notes">
+<li>「最大（up to）」の額で、月75時間の乗務を前提としています。75時間は上限に近い飛び方なので、普通の月の実額はこれより下がります。</li>
+</ul>
+<p class="cr-fx pv-no-cur">円額は比較用の換算です（1 AED＝43.2825円・2026-08-22 時点）。現在の為替レートではありません。</p></dd></div>
+<div class="cr-fact"><dt>出典</dt><dd><ul class="cr-srcs pv-no-cur">
+<li>エティハド航空（SmartRecruiters・ref 80372） <a href="https://jobs.smartrecruiters.com/EtihadAirways5/744000140889248-first-officer" target="_blank" rel="noopener">First Officer A320</a><span>適用時点：2026-07-31 掲載 ／ 確認日：2026-09-26</span></li>
+</ul></dd></div>
+<div class="cr-fact"><dt>時点</dt><dd>2026-07-31 掲載<small>確認日：2026-09-26</small></dd></div>
+</dl>
+<p class="cr-else"><a class="cr-link" href="career.html?airline=etihad&amp;d=fo-est" data-go>副操縦士の推定年収<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+</section>
+<section class="cr-view cr-stay" data-view="stay" data-airline="etihad" data-stay="NRT" style="--cr-co:#B08D57" hidden>
+<a class="cr-back" href="career.html?airline=etihad&amp;tab=life" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>エティハド航空の就航地</a>
+<figure class="cr-sv-p"><img src="assets/places/dest-nrt.jpg" srcset="assets/places/dest-nrt-480.jpg 480w, assets/places/dest-nrt.jpg 960w" sizes="(min-width: 1100px) 1040px, 100vw" width="960" height="511" alt="新宿の高層ビル群と富士山（東京）" loading="lazy" decoding="async"/></figure>
+<h1 class="cr-h1 cr-stay-h" tabindex="-1"><span class="cr-vh">エティハド航空 </span>東京<span class="cr-stay-c">NRT</span></h1>
+<p class="cr-stay-n">日本</p>
+<p class="cr-sv-map"><a class="cr-link" href="https://www.google.com/maps/search/?api=1&amp;query=Tokyo%20NRT" target="_blank" rel="noopener">Google マップで開く<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+<div class="cr-sec">
+<h2 class="cr-h2">ホテル</h2>
+<div class="crl" data-live="hotels" data-airline="etihad" data-stay="NRT" data-state="idle"><span class="crl-ph">—</span></div>
+</div>
+<p class="cr-credits">写真（縮小・トリミング） <span class="cr-credit"><a href="https://commons.wikimedia.org/wiki/File:Skyscrapers_of_Shinjuku_2009_January.jpg" target="_blank" rel="noopener">Morio</a>／<a href="https://creativecommons.org/licenses/by-sa/3.0" target="_blank" rel="noopener">CC BY-SA 3.0</a></span></p>
+</section>
+<section class="cr-view cr-stay" data-view="stay" data-airline="etihad" data-stay="KIX" style="--cr-co:#B08D57" hidden>
+<a class="cr-back" href="career.html?airline=etihad&amp;tab=life" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>エティハド航空の就航地</a>
+<figure class="cr-sv-p"><img src="assets/places/dest-kix.jpg" srcset="assets/places/dest-kix-480.jpg 480w, assets/places/dest-kix.jpg 960w" sizes="(min-width: 1100px) 1040px, 100vw" width="960" height="640" alt="大阪城と周りのビル（大阪）" loading="lazy" decoding="async"/></figure>
+<h1 class="cr-h1 cr-stay-h" tabindex="-1"><span class="cr-vh">エティハド航空 </span>大阪<span class="cr-stay-c">KIX</span></h1>
+<p class="cr-stay-n">日本<span class="cr-sv-tag">季節便</span></p>
+<p class="cr-sv-map"><a class="cr-link" href="https://www.google.com/maps/search/?api=1&amp;query=Osaka%20KIX" target="_blank" rel="noopener">Google マップで開く<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+<div class="cr-sec">
+<h2 class="cr-h2">ホテル</h2>
+<div class="crl" data-live="hotels" data-airline="etihad" data-stay="KIX" data-state="idle"><span class="crl-ph">—</span></div>
+</div>
+<p class="cr-credits">写真（縮小・トリミング） <span class="cr-credit"><a href="https://commons.wikimedia.org/wiki/File:Osaka_Castle_03bs3200.jpg" target="_blank" rel="noopener">663highland</a>／<a href="https://creativecommons.org/licenses/by/2.5" target="_blank" rel="noopener">CC BY 2.5</a></span></p>
+</section>
+<section class="cr-view cr-stay" data-view="stay" data-airline="etihad" data-stay="TPE" style="--cr-co:#B08D57" hidden>
+<a class="cr-back" href="career.html?airline=etihad&amp;tab=life" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>エティハド航空の就航地</a>
+<figure class="cr-sv-p"><img src="assets/places/dest-tpe.jpg" srcset="assets/places/dest-tpe-480.jpg 480w, assets/places/dest-tpe.jpg 960w" sizes="(min-width: 1100px) 1040px, 100vw" width="960" height="640" alt="台北101と台北の街" loading="lazy" decoding="async"/></figure>
+<h1 class="cr-h1 cr-stay-h" tabindex="-1"><span class="cr-vh">エティハド航空 </span>台北<span class="cr-stay-c">TPE</span></h1>
+<p class="cr-stay-n">台湾</p>
+<p class="cr-sv-map"><a class="cr-link" href="https://www.google.com/maps/search/?api=1&amp;query=Taipei%20TPE" target="_blank" rel="noopener">Google マップで開く<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+<div class="cr-sec">
+<h2 class="cr-h2">ホテル</h2>
+<div class="crl" data-live="hotels" data-airline="etihad" data-stay="TPE" data-state="idle"><span class="crl-ph">—</span></div>
+</div>
+<p class="cr-credits">写真（縮小・トリミング） <span class="cr-credit"><a href="https://commons.wikimedia.org/wiki/File:Taipei_Skyline_2022.06.29.jpg" target="_blank" rel="noopener">毛貓大少爺</a>／<a href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a></span></p>
+</section>
+<section class="cr-view cr-stay" data-view="stay" data-airline="etihad" data-stay="HKG" style="--cr-co:#B08D57" hidden>
+<a class="cr-back" href="career.html?airline=etihad&amp;tab=life" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>エティハド航空の就航地</a>
+<figure class="cr-sv-p"><img src="assets/places/dest-hkg.jpg" srcset="assets/places/dest-hkg-480.jpg 480w, assets/places/dest-hkg.jpg 960w" sizes="(min-width: 1100px) 1040px, 100vw" width="960" height="468" alt="ビクトリア・ピークから見た香港の夜景" loading="lazy" decoding="async"/></figure>
+<h1 class="cr-h1 cr-stay-h" tabindex="-1"><span class="cr-vh">エティハド航空 </span>香港<span class="cr-stay-c">HKG</span></h1>
+<p class="cr-stay-n">香港</p>
+<p class="cr-sv-map"><a class="cr-link" href="https://www.google.com/maps/search/?api=1&amp;query=Hong%20Kong%20HKG" target="_blank" rel="noopener">Google マップで開く<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+<div class="cr-sec">
+<h2 class="cr-h2">ホテル</h2>
+<div class="crl" data-live="hotels" data-airline="etihad" data-stay="HKG" data-state="idle"><span class="crl-ph">—</span></div>
+</div>
+<p class="cr-credits">写真（縮小・トリミング） <span class="cr-credit"><a href="https://commons.wikimedia.org/wiki/File:Hong_Kong_Skyline_viewed_from_Victoria_Peak.jpg" target="_blank" rel="noopener">Haydn Hsin</a>／<a href="https://creativecommons.org/licenses/by-sa/3.0" target="_blank" rel="noopener">CC BY-SA 3.0</a></span></p>
+</section>
+<section class="cr-view cr-stay" data-view="stay" data-airline="etihad" data-stay="ICN" style="--cr-co:#B08D57" hidden>
+<a class="cr-back" href="career.html?airline=etihad&amp;tab=life" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>エティハド航空の就航地</a>
+<figure class="cr-sv-p"><img src="assets/places/dest-icn.jpg" srcset="assets/places/dest-icn-480.jpg 480w, assets/places/dest-icn.jpg 960w" sizes="(min-width: 1100px) 1040px, 100vw" width="960" height="723" alt="徳寿宮の中和殿（ソウル）" loading="lazy" decoding="async"/></figure>
+<h1 class="cr-h1 cr-stay-h" tabindex="-1"><span class="cr-vh">エティハド航空 </span>ソウル<span class="cr-stay-c">ICN</span></h1>
+<p class="cr-stay-n">韓国</p>
+<p class="cr-sv-map"><a class="cr-link" href="https://www.google.com/maps/search/?api=1&amp;query=Seoul%20ICN" target="_blank" rel="noopener">Google マップで開く<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+<div class="cr-sec">
+<h2 class="cr-h2">ホテル</h2>
+<div class="crl" data-live="hotels" data-airline="etihad" data-stay="ICN" data-state="idle"><span class="crl-ph">—</span></div>
+</div>
+<p class="cr-credits">写真（縮小・トリミング） <span class="cr-credit"><a href="https://commons.wikimedia.org/wiki/File:%EC%A4%91%ED%99%94%EC%A0%84%EC%9D%98_%EB%82%AE.jpg" target="_blank" rel="noopener">Eunmi Park</a>／<a href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a></span></p>
+</section>
+<section class="cr-view cr-stay" data-view="stay" data-airline="etihad" data-stay="BKK" style="--cr-co:#B08D57" hidden>
+<a class="cr-back" href="career.html?airline=etihad&amp;tab=life" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>エティハド航空の就航地</a>
+<figure class="cr-sv-p"><img src="assets/places/dest-bkk.jpg" srcset="assets/places/dest-bkk-480.jpg 480w, assets/places/dest-bkk.jpg 960w" sizes="(min-width: 1100px) 1040px, 100vw" width="960" height="622" alt="バンコクの高層ビル群" loading="lazy" decoding="async"/></figure>
+<h1 class="cr-h1 cr-stay-h" tabindex="-1"><span class="cr-vh">エティハド航空 </span>バンコク<span class="cr-stay-c">BKK</span></h1>
+<p class="cr-stay-n">タイ</p>
+<p class="cr-sv-map"><a class="cr-link" href="https://www.google.com/maps/search/?api=1&amp;query=Bangkok%20BKK" target="_blank" rel="noopener">Google マップで開く<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+<div class="cr-sec">
+<h2 class="cr-h2">ホテル</h2>
+<div class="crl" data-live="hotels" data-airline="etihad" data-stay="BKK" data-state="idle"><span class="crl-ph">—</span></div>
+</div>
+<p class="cr-credits">写真（縮小・トリミング） <span class="cr-credit"><a href="https://commons.wikimedia.org/wiki/File:4Y1A1150_Bangkok_(33536339665).jpg" target="_blank" rel="noopener">Ninara from Helsinki, Finland</a>／<a href="https://creativecommons.org/licenses/by/2.0" target="_blank" rel="noopener">CC BY 2.0</a></span></p>
+</section>
+<section class="cr-view cr-stay" data-view="stay" data-airline="etihad" data-stay="SIN" style="--cr-co:#B08D57" hidden>
+<a class="cr-back" href="career.html?airline=etihad&amp;tab=life" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>エティハド航空の就航地</a>
+<figure class="cr-sv-p"><img src="assets/places/dest-sin.jpg" srcset="assets/places/dest-sin-480.jpg 480w, assets/places/dest-sin.jpg 960w" sizes="(min-width: 1100px) 1040px, 100vw" width="960" height="631" alt="シンガポール中心部の高層ビル群（マリーナベイ）" loading="lazy" decoding="async"/></figure>
+<h1 class="cr-h1 cr-stay-h" tabindex="-1"><span class="cr-vh">エティハド航空 </span>シンガポール<span class="cr-stay-c">SIN</span></h1>
+<p class="cr-stay-n">シンガポール</p>
+<p class="cr-sv-map"><a class="cr-link" href="https://www.google.com/maps/search/?api=1&amp;query=Singapore%20SIN" target="_blank" rel="noopener">Google マップで開く<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+<div class="cr-sec">
+<h2 class="cr-h2">ホテル</h2>
+<div class="crl" data-live="hotels" data-airline="etihad" data-stay="SIN" data-state="idle"><span class="crl-ph">—</span></div>
+</div>
+<p class="cr-credits">写真（縮小・トリミング） <span class="cr-credit"><a href="https://commons.wikimedia.org/wiki/File:CBD_skyline,_Singapore,_2014_(03).JPG" target="_blank" rel="noopener">Bahnfrend</a>／<a href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a></span></p>
+</section>
+<section class="cr-view cr-stay" data-view="stay" data-airline="etihad" data-stay="KUL" style="--cr-co:#B08D57" hidden>
+<a class="cr-back" href="career.html?airline=etihad&amp;tab=life" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>エティハド航空の就航地</a>
+<figure class="cr-sv-p"><img src="assets/places/dest-kul.jpg" srcset="assets/places/dest-kul-480.jpg 480w, assets/places/dest-kul.jpg 960w" sizes="(min-width: 1100px) 1040px, 100vw" width="960" height="540" alt="ブキッ・ビンタンの交差点（クアラルンプール）" loading="lazy" decoding="async"/></figure>
+<h1 class="cr-h1 cr-stay-h" tabindex="-1"><span class="cr-vh">エティハド航空 </span>クアラルンプール<span class="cr-stay-c">KUL</span></h1>
+<p class="cr-stay-n">マレーシア</p>
+<p class="cr-sv-map"><a class="cr-link" href="https://www.google.com/maps/search/?api=1&amp;query=Kuala%20Lumpur%20KUL" target="_blank" rel="noopener">Google マップで開く<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+<div class="cr-sec">
+<h2 class="cr-h2">ホテル</h2>
+<div class="crl" data-live="hotels" data-airline="etihad" data-stay="KUL" data-state="idle"><span class="crl-ph">—</span></div>
+</div>
+
+</section>
+<section class="cr-view cr-stay" data-view="stay" data-airline="etihad" data-stay="CGK" style="--cr-co:#B08D57" hidden>
+<a class="cr-back" href="career.html?airline=etihad&amp;tab=life" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>エティハド航空の就航地</a>
+<h1 class="cr-h1 cr-stay-h" tabindex="-1"><span class="cr-vh">エティハド航空 </span>ジャカルタ<span class="cr-stay-c">CGK</span></h1>
+<p class="cr-stay-n">インドネシア</p>
+<p class="cr-sv-map"><a class="cr-link" href="https://www.google.com/maps/search/?api=1&amp;query=Jakarta%20CGK" target="_blank" rel="noopener">Google マップで開く<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+<div class="cr-sec">
+<h2 class="cr-h2">ホテル</h2>
+<div class="crl" data-live="hotels" data-airline="etihad" data-stay="CGK" data-state="idle"><span class="crl-ph">—</span></div>
+</div>
+
+</section>
+<section class="cr-view cr-stay" data-view="stay" data-airline="etihad" data-stay="MNL" style="--cr-co:#B08D57" hidden>
+<a class="cr-back" href="career.html?airline=etihad&amp;tab=life" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>エティハド航空の就航地</a>
+<figure class="cr-sv-p"><img src="assets/places/dest-mnl.jpg" srcset="assets/places/dest-mnl-480.jpg 480w, assets/places/dest-mnl.jpg 960w" sizes="(min-width: 1100px) 1040px, 100vw" width="960" height="540" alt="マニラの街並み（夕方）" loading="lazy" decoding="async"/></figure>
+<h1 class="cr-h1 cr-stay-h" tabindex="-1"><span class="cr-vh">エティハド航空 </span>マニラ<span class="cr-stay-c">MNL</span></h1>
+<p class="cr-stay-n">フィリピン</p>
+<p class="cr-sv-map"><a class="cr-link" href="https://www.google.com/maps/search/?api=1&amp;query=Manila%20MNL" target="_blank" rel="noopener">Google マップで開く<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+<div class="cr-sec">
+<h2 class="cr-h2">ホテル</h2>
+<div class="crl" data-live="hotels" data-airline="etihad" data-stay="MNL" data-state="idle"><span class="crl-ph">—</span></div>
+</div>
+<p class="cr-credits">写真（縮小・トリミング） <span class="cr-credit"><a href="https://commons.wikimedia.org/wiki/File:Cityscape_of_Manila,_2025_(01).jpg" target="_blank" rel="noopener">Bahnfrend</a>／<a href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a></span></p>
+</section>
+<section class="cr-view cr-stay" data-view="stay" data-airline="etihad" data-stay="SYD" style="--cr-co:#B08D57" hidden>
+<a class="cr-back" href="career.html?airline=etihad&amp;tab=life" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>エティハド航空の就航地</a>
+<figure class="cr-sv-p"><img src="assets/places/dest-syd.jpg" srcset="assets/places/dest-syd-480.jpg 480w, assets/places/dest-syd.jpg 960w" sizes="(min-width: 1100px) 1040px, 100vw" width="960" height="480" alt="シドニー・オペラハウスとハーバーブリッジ（夕暮れ）" loading="lazy" decoding="async"/></figure>
+<h1 class="cr-h1 cr-stay-h" tabindex="-1"><span class="cr-vh">エティハド航空 </span>シドニー<span class="cr-stay-c">SYD</span></h1>
+<p class="cr-stay-n">オーストラリア</p>
+<p class="cr-sv-map"><a class="cr-link" href="https://www.google.com/maps/search/?api=1&amp;query=Sydney%20SYD" target="_blank" rel="noopener">Google マップで開く<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+<div class="cr-sec">
+<h2 class="cr-h2">ホテル</h2>
+<div class="crl" data-live="hotels" data-airline="etihad" data-stay="SYD" data-state="idle"><span class="crl-ph">—</span></div>
+</div>
+<p class="cr-credits">写真（縮小・トリミング） <span class="cr-credit"><a href="https://commons.wikimedia.org/wiki/File:Sydney_Opera_House_and_Harbour_Bridge_Dusk_(2)_2019-06-21.jpg" target="_blank" rel="noopener">Benh LIEU SONG (Flickr)</a>／<a href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a></span></p>
+</section>
+<section class="cr-view cr-stay" data-view="stay" data-airline="etihad" data-stay="MEL" style="--cr-co:#B08D57" hidden>
+<a class="cr-back" href="career.html?airline=etihad&amp;tab=life" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>エティハド航空の就航地</a>
+<figure class="cr-sv-p"><img src="assets/places/dest-mel.jpg" srcset="assets/places/dest-mel-480.jpg 480w, assets/places/dest-mel.jpg 960w" sizes="(min-width: 1100px) 1040px, 100vw" width="960" height="682" alt="メルボルンの街並み（手前は戦争慰霊館）" loading="lazy" decoding="async"/></figure>
+<h1 class="cr-h1 cr-stay-h" tabindex="-1"><span class="cr-vh">エティハド航空 </span>メルボルン<span class="cr-stay-c">MEL</span></h1>
+<p class="cr-stay-n">オーストラリア</p>
+<p class="cr-sv-map"><a class="cr-link" href="https://www.google.com/maps/search/?api=1&amp;query=Melbourne%20MEL" target="_blank" rel="noopener">Google マップで開く<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+<div class="cr-sec">
+<h2 class="cr-h2">ホテル</h2>
+<div class="crl" data-live="hotels" data-airline="etihad" data-stay="MEL" data-state="idle"><span class="crl-ph">—</span></div>
+</div>
+<p class="cr-credits">写真（縮小・トリミング） <span class="cr-credit"><a href="https://commons.wikimedia.org/wiki/File:Melbourne_skyline_sor.jpg" target="_blank" rel="noopener">Melbpal</a>／<a href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a></span></p>
+</section>
+<section class="cr-view cr-stay" data-view="stay" data-airline="etihad" data-stay="DEL" style="--cr-co:#B08D57" hidden>
+<a class="cr-back" href="career.html?airline=etihad&amp;tab=life" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>エティハド航空の就航地</a>
+<figure class="cr-sv-p"><img src="assets/places/dest-del.jpg" srcset="assets/places/dest-del-480.jpg 480w, assets/places/dest-del.jpg 960w" sizes="(min-width: 1100px) 1040px, 100vw" width="960" height="1138" alt="ジャーマー・マスジド（デリー）" loading="lazy" decoding="async"/></figure>
+<h1 class="cr-h1 cr-stay-h" tabindex="-1"><span class="cr-vh">エティハド航空 </span>ニューデリー<span class="cr-stay-c">DEL</span></h1>
+<p class="cr-stay-n">インド</p>
+<p class="cr-sv-map"><a class="cr-link" href="https://www.google.com/maps/search/?api=1&amp;query=New%20Delhi%20DEL" target="_blank" rel="noopener">Google マップで開く<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+<div class="cr-sec">
+<h2 class="cr-h2">ホテル</h2>
+<div class="crl" data-live="hotels" data-airline="etihad" data-stay="DEL" data-state="idle"><span class="crl-ph">—</span></div>
+</div>
+<p class="cr-credits">写真（縮小・トリミング） <span class="cr-credit"><a href="https://commons.wikimedia.org/wiki/File:Jama_Masjid_2011.jpg" target="_blank" rel="noopener">Marcin Białek</a>／<a href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a></span></p>
+</section>
+<section class="cr-view cr-stay" data-view="stay" data-airline="etihad" data-stay="BOM" style="--cr-co:#B08D57" hidden>
+<a class="cr-back" href="career.html?airline=etihad&amp;tab=life" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>エティハド航空の就航地</a>
+<figure class="cr-sv-p"><img src="assets/places/dest-bom.jpg" srcset="assets/places/dest-bom-480.jpg 480w, assets/places/dest-bom.jpg 960w" sizes="(min-width: 1100px) 1040px, 100vw" width="960" height="720" alt="バンドラ・ウォーリ・シーリンク（ムンバイ）" loading="lazy" decoding="async"/></figure>
+<h1 class="cr-h1 cr-stay-h" tabindex="-1"><span class="cr-vh">エティハド航空 </span>ムンバイ<span class="cr-stay-c">BOM</span></h1>
+<p class="cr-stay-n">インド</p>
+<p class="cr-sv-map"><a class="cr-link" href="https://www.google.com/maps/search/?api=1&amp;query=Mumbai%20BOM" target="_blank" rel="noopener">Google マップで開く<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+<div class="cr-sec">
+<h2 class="cr-h2">ホテル</h2>
+<div class="crl" data-live="hotels" data-airline="etihad" data-stay="BOM" data-state="idle"><span class="crl-ph">—</span></div>
+</div>
+<p class="cr-credits">写真（縮小・トリミング） <span class="cr-credit"><a href="https://commons.wikimedia.org/wiki/File:Mumbai_Bandra-Worli_Sea_Link.jpg" target="_blank" rel="noopener">Rutiknatekar</a>／<a href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a></span></p>
+</section>
+<section class="cr-view cr-stay" data-view="stay" data-airline="etihad" data-stay="BLR" style="--cr-co:#B08D57" hidden>
+<a class="cr-back" href="career.html?airline=etihad&amp;tab=life" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>エティハド航空の就航地</a>
+<figure class="cr-sv-p"><img src="assets/places/dest-blr.jpg" srcset="assets/places/dest-blr-480.jpg 480w, assets/places/dest-blr.jpg 960w" sizes="(min-width: 1100px) 1040px, 100vw" width="960" height="723" alt="ベンガルール中心部のビル" loading="lazy" decoding="async"/></figure>
+<h1 class="cr-h1 cr-stay-h" tabindex="-1"><span class="cr-vh">エティハド航空 </span>ベンガルール<span class="cr-stay-c">BLR</span></h1>
+<p class="cr-stay-n">インド</p>
+<p class="cr-sv-map"><a class="cr-link" href="https://www.google.com/maps/search/?api=1&amp;query=Bengaluru%20BLR" target="_blank" rel="noopener">Google マップで開く<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+<div class="cr-sec">
+<h2 class="cr-h2">ホテル</h2>
+<div class="crl" data-live="hotels" data-airline="etihad" data-stay="BLR" data-state="idle"><span class="crl-ph">—</span></div>
+</div>
+<p class="cr-credits">写真（縮小・トリミング） <span class="cr-credit"><a href="https://commons.wikimedia.org/wiki/File:View_from_Visvesvaraya_Industrial_and_Technological_Museum_(2025)_02.jpg" target="_blank" rel="noopener">Gpkp</a>／<a href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a></span></p>
+</section>
+<section class="cr-view cr-stay" data-view="stay" data-airline="etihad" data-stay="LHR" style="--cr-co:#B08D57" hidden>
+<a class="cr-back" href="career.html?airline=etihad&amp;tab=life" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>エティハド航空の就航地</a>
+<figure class="cr-sv-p"><img src="assets/places/dest-lhr.jpg" srcset="assets/places/dest-lhr-480.jpg 480w, assets/places/dest-lhr.jpg 960w" sizes="(min-width: 1100px) 1040px, 100vw" width="960" height="540" alt="タワーブリッジとテムズ川（ロンドン・夕景）" loading="lazy" decoding="async"/></figure>
+<h1 class="cr-h1 cr-stay-h" tabindex="-1"><span class="cr-vh">エティハド航空 </span>ロンドン<span class="cr-stay-c">LHR</span></h1>
+<p class="cr-stay-n">イギリス</p>
+<p class="cr-sv-map"><a class="cr-link" href="https://www.google.com/maps/search/?api=1&amp;query=London%20LHR" target="_blank" rel="noopener">Google マップで開く<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+<div class="cr-sec">
+<h2 class="cr-h2">ホテル</h2>
+<div class="crl" data-live="hotels" data-airline="etihad" data-stay="LHR" data-state="idle"><span class="crl-ph">—</span></div>
+</div>
+<p class="cr-credits">写真（縮小・トリミング） <span class="cr-credit"><a href="https://commons.wikimedia.org/wiki/File:London_Skyline_(125508655).jpeg" target="_blank" rel="noopener">Ilya Grigorik</a>／<a href="https://creativecommons.org/licenses/by-sa/3.0" target="_blank" rel="noopener">CC BY-SA 3.0</a></span></p>
+</section>
+<section class="cr-view cr-stay" data-view="stay" data-airline="etihad" data-stay="CDG" style="--cr-co:#B08D57" hidden>
+<a class="cr-back" href="career.html?airline=etihad&amp;tab=life" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>エティハド航空の就航地</a>
+<figure class="cr-sv-p"><img src="assets/places/dest-cdg.jpg" srcset="assets/places/dest-cdg-480.jpg 480w, assets/places/dest-cdg.jpg 960w" sizes="(min-width: 1100px) 1040px, 100vw" width="960" height="600" alt="エッフェル塔とセーヌ川（パリ）" loading="lazy" decoding="async"/></figure>
+<h1 class="cr-h1 cr-stay-h" tabindex="-1"><span class="cr-vh">エティハド航空 </span>パリ<span class="cr-stay-c">CDG</span></h1>
+<p class="cr-stay-n">フランス</p>
+<p class="cr-sv-map"><a class="cr-link" href="https://www.google.com/maps/search/?api=1&amp;query=Paris%20CDG" target="_blank" rel="noopener">Google マップで開く<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+<div class="cr-sec">
+<h2 class="cr-h2">ホテル</h2>
+<div class="crl" data-live="hotels" data-airline="etihad" data-stay="CDG" data-state="idle"><span class="crl-ph">—</span></div>
+</div>
+<p class="cr-credits">写真（縮小・トリミング） <span class="cr-credit"><a href="https://commons.wikimedia.org/wiki/File:La_Tour_Eiffel_vue_de_la_Tour_Saint-Jacques,_Paris_ao%C3%BBt_2014_(2).jpg" target="_blank" rel="noopener">Yann Caradec from Paris, France</a>／<a href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a></span></p>
+</section>
+<section class="cr-view cr-stay" data-view="stay" data-airline="etihad" data-stay="FRA" style="--cr-co:#B08D57" hidden>
+<a class="cr-back" href="career.html?airline=etihad&amp;tab=life" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>エティハド航空の就航地</a>
+<figure class="cr-sv-p"><img src="assets/places/dest-fra.jpg" srcset="assets/places/dest-fra-480.jpg 480w, assets/places/dest-fra.jpg 960w" sizes="(min-width: 1100px) 1040px, 100vw" width="960" height="540" alt="フランクフルトの金融街（空から）" loading="lazy" decoding="async"/></figure>
+<h1 class="cr-h1 cr-stay-h" tabindex="-1"><span class="cr-vh">エティハド航空 </span>フランクフルト<span class="cr-stay-c">FRA</span></h1>
+<p class="cr-stay-n">ドイツ</p>
+<p class="cr-sv-map"><a class="cr-link" href="https://www.google.com/maps/search/?api=1&amp;query=Frankfurt%20FRA" target="_blank" rel="noopener">Google マップで開く<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+<div class="cr-sec">
+<h2 class="cr-h2">ホテル</h2>
+<div class="crl" data-live="hotels" data-airline="etihad" data-stay="FRA" data-state="idle"><span class="crl-ph">—</span></div>
+</div>
+<p class="cr-credits">写真（縮小・トリミング） <span class="cr-credit"><a href="https://commons.wikimedia.org/wiki/File:Frankfurt_am_Main,_Central_business_district_(2024).jpg" target="_blank" rel="noopener">Dr. Thomas Liptak</a>／<a href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a></span></p>
+</section>
+<section class="cr-view cr-stay" data-view="stay" data-airline="etihad" data-stay="MUC" style="--cr-co:#B08D57" hidden>
+<a class="cr-back" href="career.html?airline=etihad&amp;tab=life" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>エティハド航空の就航地</a>
+<figure class="cr-sv-p"><img src="assets/places/dest-muc.jpg" srcset="assets/places/dest-muc-480.jpg 480w, assets/places/dest-muc.jpg 960w" sizes="(min-width: 1100px) 1040px, 100vw" width="960" height="649" alt="新市庁舎とフラウエン教会（ミュンヘン）" loading="lazy" decoding="async"/></figure>
+<h1 class="cr-h1 cr-stay-h" tabindex="-1"><span class="cr-vh">エティハド航空 </span>ミュンヘン<span class="cr-stay-c">MUC</span></h1>
+<p class="cr-stay-n">ドイツ</p>
+<p class="cr-sv-map"><a class="cr-link" href="https://www.google.com/maps/search/?api=1&amp;query=Munich%20MUC" target="_blank" rel="noopener">Google マップで開く<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+<div class="cr-sec">
+<h2 class="cr-h2">ホテル</h2>
+<div class="crl" data-live="hotels" data-airline="etihad" data-stay="MUC" data-state="idle"><span class="crl-ph">—</span></div>
+</div>
+<p class="cr-credits">写真（縮小・トリミング） <span class="cr-credit"><a href="https://commons.wikimedia.org/wiki/File:Stadtbild_M%C3%BCnchen.jpg" target="_blank" rel="noopener">Thomas Wolf, www.foto-tw.de</a>／<a href="https://creativecommons.org/licenses/by-sa/3.0/de/deed.en" target="_blank" rel="noopener">CC BY-SA 3.0 DE</a></span></p>
+</section>
+<section class="cr-view cr-stay" data-view="stay" data-airline="etihad" data-stay="AMS" style="--cr-co:#B08D57" hidden>
+<a class="cr-back" href="career.html?airline=etihad&amp;tab=life" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>エティハド航空の就航地</a>
+<h1 class="cr-h1 cr-stay-h" tabindex="-1"><span class="cr-vh">エティハド航空 </span>アムステルダム<span class="cr-stay-c">AMS</span></h1>
+<p class="cr-stay-n">オランダ</p>
+<p class="cr-sv-map"><a class="cr-link" href="https://www.google.com/maps/search/?api=1&amp;query=Amsterdam%20AMS" target="_blank" rel="noopener">Google マップで開く<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+<div class="cr-sec">
+<h2 class="cr-h2">ホテル</h2>
+<div class="crl" data-live="hotels" data-airline="etihad" data-stay="AMS" data-state="idle"><span class="crl-ph">—</span></div>
+</div>
+
+</section>
+<section class="cr-view cr-stay" data-view="stay" data-airline="etihad" data-stay="MXP" style="--cr-co:#B08D57" hidden>
+<a class="cr-back" href="career.html?airline=etihad&amp;tab=life" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>エティハド航空の就航地</a>
+<h1 class="cr-h1 cr-stay-h" tabindex="-1"><span class="cr-vh">エティハド航空 </span>ミラノ<span class="cr-stay-c">MXP</span></h1>
+<p class="cr-stay-n">イタリア</p>
+<p class="cr-sv-map"><a class="cr-link" href="https://www.google.com/maps/search/?api=1&amp;query=Milan%20MXP" target="_blank" rel="noopener">Google マップで開く<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+<div class="cr-sec">
+<h2 class="cr-h2">ホテル</h2>
+<div class="crl" data-live="hotels" data-airline="etihad" data-stay="MXP" data-state="idle"><span class="crl-ph">—</span></div>
+</div>
+
+</section>
+<section class="cr-view cr-stay" data-view="stay" data-airline="etihad" data-stay="FCO" style="--cr-co:#B08D57" hidden>
+<a class="cr-back" href="career.html?airline=etihad&amp;tab=life" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>エティハド航空の就航地</a>
+<figure class="cr-sv-p"><img src="assets/places/dest-fco.jpg" srcset="assets/places/dest-fco-480.jpg 480w, assets/places/dest-fco.jpg 960w" sizes="(min-width: 1100px) 1040px, 100vw" width="960" height="638" alt="トレヴィの泉（ローマ）" loading="lazy" decoding="async"/></figure>
+<h1 class="cr-h1 cr-stay-h" tabindex="-1"><span class="cr-vh">エティハド航空 </span>ローマ<span class="cr-stay-c">FCO</span></h1>
+<p class="cr-stay-n">イタリア</p>
+<p class="cr-sv-map"><a class="cr-link" href="https://www.google.com/maps/search/?api=1&amp;query=Rome%20FCO" target="_blank" rel="noopener">Google マップで開く<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+<div class="cr-sec">
+<h2 class="cr-h2">ホテル</h2>
+<div class="crl" data-live="hotels" data-airline="etihad" data-stay="FCO" data-state="idle"><span class="crl-ph">—</span></div>
+</div>
+<p class="cr-credits">写真（縮小・トリミング） <span class="cr-credit"><a href="https://commons.wikimedia.org/wiki/File:Trevi_Fountain,_Rome,_Italy_2_-_May_2007.jpg" target="_blank" rel="noopener">Diliff</a>／<a href="https://creativecommons.org/licenses/by/3.0" target="_blank" rel="noopener">CC BY 3.0</a></span></p>
+</section>
+<section class="cr-view cr-stay" data-view="stay" data-airline="etihad" data-stay="ZRH" style="--cr-co:#B08D57" hidden>
+<a class="cr-back" href="career.html?airline=etihad&amp;tab=life" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>エティハド航空の就航地</a>
+<figure class="cr-sv-p"><img src="assets/places/dest-zrh.jpg" srcset="assets/places/dest-zrh-480.jpg 480w, assets/places/dest-zrh.jpg 960w" sizes="(min-width: 1100px) 1040px, 100vw" width="960" height="524" alt="チューリッヒの旧市街とリマト川" loading="lazy" decoding="async"/></figure>
+<h1 class="cr-h1 cr-stay-h" tabindex="-1"><span class="cr-vh">エティハド航空 </span>チューリッヒ<span class="cr-stay-c">ZRH</span></h1>
+<p class="cr-stay-n">スイス</p>
+<p class="cr-sv-map"><a class="cr-link" href="https://www.google.com/maps/search/?api=1&amp;query=Zurich%20ZRH" target="_blank" rel="noopener">Google マップで開く<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+<div class="cr-sec">
+<h2 class="cr-h2">ホテル</h2>
+<div class="crl" data-live="hotels" data-airline="etihad" data-stay="ZRH" data-state="idle"><span class="crl-ph">—</span></div>
+</div>
+<p class="cr-credits">写真（縮小・トリミング） <span class="cr-credit"><a href="https://commons.wikimedia.org/wiki/File:Altstadt_Z%C3%BCrich_2015.jpg" target="_blank" rel="noopener">Thomas Wolf, www.foto-tw.de</a>／<a href="https://creativecommons.org/licenses/by-sa/3.0/de/deed.en" target="_blank" rel="noopener">CC BY-SA 3.0 DE</a></span></p>
+</section>
+<section class="cr-view cr-stay" data-view="stay" data-airline="etihad" data-stay="MAD" style="--cr-co:#B08D57" hidden>
+<a class="cr-back" href="career.html?airline=etihad&amp;tab=life" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>エティハド航空の就航地</a>
+<figure class="cr-sv-p"><img src="assets/places/dest-mad.jpg" srcset="assets/places/dest-mad-480.jpg 480w, assets/places/dest-mad.jpg 960w" sizes="(min-width: 1100px) 1040px, 100vw" width="960" height="505" alt="マドリードの街並み" loading="lazy" decoding="async"/></figure>
+<h1 class="cr-h1 cr-stay-h" tabindex="-1"><span class="cr-vh">エティハド航空 </span>マドリード<span class="cr-stay-c">MAD</span></h1>
+<p class="cr-stay-n">スペイン</p>
+<p class="cr-sv-map"><a class="cr-link" href="https://www.google.com/maps/search/?api=1&amp;query=Madrid%20MAD" target="_blank" rel="noopener">Google マップで開く<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+<div class="cr-sec">
+<h2 class="cr-h2">ホテル</h2>
+<div class="crl" data-live="hotels" data-airline="etihad" data-stay="MAD" data-state="idle"><span class="crl-ph">—</span></div>
+</div>
+
+</section>
+<section class="cr-view cr-stay" data-view="stay" data-airline="etihad" data-stay="BCN" style="--cr-co:#B08D57" hidden>
+<a class="cr-back" href="career.html?airline=etihad&amp;tab=life" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>エティハド航空の就航地</a>
+<figure class="cr-sv-p"><img src="assets/places/dest-bcn.jpg" srcset="assets/places/dest-bcn-480.jpg 480w, assets/places/dest-bcn.jpg 960w" sizes="(min-width: 1100px) 1040px, 100vw" width="960" height="448" alt="バルセロナの街と港（夕方）" loading="lazy" decoding="async"/></figure>
+<h1 class="cr-h1 cr-stay-h" tabindex="-1"><span class="cr-vh">エティハド航空 </span>バルセロナ<span class="cr-stay-c">BCN</span></h1>
+<p class="cr-stay-n">スペイン</p>
+<p class="cr-sv-map"><a class="cr-link" href="https://www.google.com/maps/search/?api=1&amp;query=Barcelona%20BCN" target="_blank" rel="noopener">Google マップで開く<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+<div class="cr-sec">
+<h2 class="cr-h2">ホテル</h2>
+<div class="crl" data-live="hotels" data-airline="etihad" data-stay="BCN" data-state="idle"><span class="crl-ph">—</span></div>
+</div>
+<p class="cr-credits">写真（縮小・トリミング） <span class="cr-credit"><a href="https://commons.wikimedia.org/wiki/File:Evening_light_over_Barcelona.jpg" target="_blank" rel="noopener">M McBey</a>／<a href="https://creativecommons.org/licenses/by/2.0" target="_blank" rel="noopener">CC BY 2.0</a></span></p>
+</section>
+<section class="cr-view cr-stay" data-view="stay" data-airline="etihad" data-stay="JFK" style="--cr-co:#B08D57" hidden>
+<a class="cr-back" href="career.html?airline=etihad&amp;tab=life" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>エティハド航空の就航地</a>
+<figure class="cr-sv-p"><img src="assets/places/dest-jfk.jpg" srcset="assets/places/dest-jfk-480.jpg 480w, assets/places/dest-jfk.jpg 960w" sizes="(min-width: 1100px) 1040px, 100vw" width="960" height="540" alt="エンパイア・ステート・ビルとマンハッタン（ニューヨーク）" loading="lazy" decoding="async"/></figure>
+<h1 class="cr-h1 cr-stay-h" tabindex="-1"><span class="cr-vh">エティハド航空 </span>ニューヨーク<span class="cr-stay-c">JFK</span></h1>
+<p class="cr-stay-n">アメリカ</p>
+<p class="cr-sv-map"><a class="cr-link" href="https://www.google.com/maps/search/?api=1&amp;query=New%20York%20JFK" target="_blank" rel="noopener">Google マップで開く<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+<div class="cr-sec">
+<h2 class="cr-h2">ホテル</h2>
+<div class="crl" data-live="hotels" data-airline="etihad" data-stay="JFK" data-state="idle"><span class="crl-ph">—</span></div>
+</div>
+<p class="cr-credits">写真（縮小・トリミング） <span class="cr-credit"><a href="https://commons.wikimedia.org/wiki/File:View_of_Empire_State_Building_from_Rockefeller_Center_New_York_City_dllu_(cropped).jpg" target="_blank" rel="noopener">Dllu</a>／<a href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a></span></p>
+</section>
+<section class="cr-view cr-stay" data-view="stay" data-airline="etihad" data-stay="IAD" style="--cr-co:#B08D57" hidden>
+<a class="cr-back" href="career.html?airline=etihad&amp;tab=life" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>エティハド航空の就航地</a>
+<figure class="cr-sv-p"><img src="assets/places/dest-iad.jpg" srcset="assets/places/dest-iad-480.jpg 480w, assets/places/dest-iad.jpg 960w" sizes="(min-width: 1100px) 1040px, 100vw" width="960" height="1445" alt="アメリカ合衆国議会議事堂（ワシントンD.C.）" loading="lazy" decoding="async"/></figure>
+<h1 class="cr-h1 cr-stay-h" tabindex="-1"><span class="cr-vh">エティハド航空 </span>ワシントン<span class="cr-stay-c">IAD</span></h1>
+<p class="cr-stay-n">アメリカ</p>
+<p class="cr-sv-map"><a class="cr-link" href="https://www.google.com/maps/search/?api=1&amp;query=Washington%20IAD" target="_blank" rel="noopener">Google マップで開く<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+<div class="cr-sec">
+<h2 class="cr-h2">ホテル</h2>
+<div class="crl" data-live="hotels" data-airline="etihad" data-stay="IAD" data-state="idle"><span class="crl-ph">—</span></div>
+</div>
+<p class="cr-credits">写真（縮小・トリミング） <span class="cr-credit"><a href="https://commons.wikimedia.org/wiki/File:12-07-13-washington-by-RalfR-08.jpg" target="_blank" rel="noopener">Ralf Roletschek</a>／<a href="https://creativecommons.org/licenses/by-sa/3.0" target="_blank" rel="noopener">CC BY-SA 3.0</a></span></p>
+</section>
+<section class="cr-view cr-stay" data-view="stay" data-airline="etihad" data-stay="ORD" style="--cr-co:#B08D57" hidden>
+<a class="cr-back" href="career.html?airline=etihad&amp;tab=life" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>エティハド航空の就航地</a>
+<figure class="cr-sv-p"><img src="assets/places/dest-ord.jpg" srcset="assets/places/dest-ord-480.jpg 480w, assets/places/dest-ord.jpg 960w" sizes="(min-width: 1100px) 1040px, 100vw" width="960" height="679" alt="シカゴ川と遊覧船" loading="lazy" decoding="async"/></figure>
+<h1 class="cr-h1 cr-stay-h" tabindex="-1"><span class="cr-vh">エティハド航空 </span>シカゴ<span class="cr-stay-c">ORD</span></h1>
+<p class="cr-stay-n">アメリカ</p>
+<p class="cr-sv-map"><a class="cr-link" href="https://www.google.com/maps/search/?api=1&amp;query=Chicago%20ORD" target="_blank" rel="noopener">Google マップで開く<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+<div class="cr-sec">
+<h2 class="cr-h2">ホテル</h2>
+<div class="crl" data-live="hotels" data-airline="etihad" data-stay="ORD" data-state="idle"><span class="crl-ph">—</span></div>
+</div>
+<p class="cr-credits">写真（縮小・トリミング） <span class="cr-credit"><a href="https://commons.wikimedia.org/wiki/File:Chicago_River_ferry_b.jpg" target="_blank" rel="noopener">John Picken (derivative work: Georgfotoart)</a>／<a href="https://creativecommons.org/licenses/by/2.0" target="_blank" rel="noopener">CC BY 2.0</a></span></p>
+</section>
+<section class="cr-view cr-stay" data-view="stay" data-airline="etihad" data-stay="BOS" style="--cr-co:#B08D57" hidden>
+<a class="cr-back" href="career.html?airline=etihad&amp;tab=life" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>エティハド航空の就航地</a>
+<figure class="cr-sv-p"><img src="assets/places/dest-bos.jpg" srcset="assets/places/dest-bos-480.jpg 480w, assets/places/dest-bos.jpg 960w" sizes="(min-width: 1100px) 1040px, 100vw" width="960" height="626" alt="ビーコンヒルの石畳の路地（ボストン）" loading="lazy" decoding="async"/></figure>
+<h1 class="cr-h1 cr-stay-h" tabindex="-1"><span class="cr-vh">エティハド航空 </span>ボストン<span class="cr-stay-c">BOS</span></h1>
+<p class="cr-stay-n">アメリカ</p>
+<p class="cr-sv-map"><a class="cr-link" href="https://www.google.com/maps/search/?api=1&amp;query=Boston%20BOS" target="_blank" rel="noopener">Google マップで開く<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+<div class="cr-sec">
+<h2 class="cr-h2">ホテル</h2>
+<div class="crl" data-live="hotels" data-airline="etihad" data-stay="BOS" data-state="idle"><span class="crl-ph">—</span></div>
+</div>
+<p class="cr-credits">写真（縮小・トリミング） <span class="cr-credit"><a href="https://commons.wikimedia.org/wiki/File:ISH_WC_Boston4.jpg" target="_blank" rel="noopener">Ian Howard</a>／<a href="https://creativecommons.org/licenses/by/2.5" target="_blank" rel="noopener">CC BY 2.5</a></span></p>
+</section>
+<section class="cr-view cr-stay" data-view="stay" data-airline="etihad" data-stay="YYZ" style="--cr-co:#B08D57" hidden>
+<a class="cr-back" href="career.html?airline=etihad&amp;tab=life" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>エティハド航空の就航地</a>
+<figure class="cr-sv-p"><img src="assets/places/dest-yyz.jpg" srcset="assets/places/dest-yyz-480.jpg 480w, assets/places/dest-yyz.jpg 960w" sizes="(min-width: 1100px) 1040px, 100vw" width="960" height="576" alt="トロントの街並みと CN タワー" loading="lazy" decoding="async"/></figure>
+<h1 class="cr-h1 cr-stay-h" tabindex="-1"><span class="cr-vh">エティハド航空 </span>トロント<span class="cr-stay-c">YYZ</span></h1>
+<p class="cr-stay-n">カナダ</p>
+<p class="cr-sv-map"><a class="cr-link" href="https://www.google.com/maps/search/?api=1&amp;query=Toronto%20YYZ" target="_blank" rel="noopener">Google マップで開く<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+<div class="cr-sec">
+<h2 class="cr-h2">ホテル</h2>
+<div class="crl" data-live="hotels" data-airline="etihad" data-stay="YYZ" data-state="idle"><span class="crl-ph">—</span></div>
+</div>
+<p class="cr-credits">写真（縮小・トリミング） <span class="cr-credit"><a href="https://commons.wikimedia.org/wiki/File:Toronto_Skyline_from_Snake_Island,_September_11_2026_(01).jpg" target="_blank" rel="noopener">Dillan Payne</a>／<a href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a></span></p>
 </section>
 <section class="cr-view cr-cmp" data-view="compare" hidden>
 <a class="cr-back" href="career.html" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>航空会社を選ぶ</a>
@@ -517,11 +1174,15 @@
 <div class="cr-row-k"><span class="cr-tag">推定</span></div>
 <div class="cr-track" aria-hidden="true"><i class="cr-fill" style="--w:90%"></i></div>
 </div>
-<div class="cr-row" data-airline="etihad" style="--cr-co:#B08D57" hidden>
-<div class="cr-row-h"><span class="cr-row-co"><i class="cr-dot" aria-hidden="true"></i>エティハド航空</span><span class="cr-vh">機長</span><b class="cr-row-v">〜¥2,917万</b></div>
+<a class="cr-row is-held" href="career.html?airline=etihad&amp;d=cap-est" data-go data-airline="etihad" style="--cr-co:#B08D57" hidden>
+<div class="cr-row-h"><span class="cr-row-co"><i class="cr-dot" aria-hidden="true"></i>エティハド航空</span><span class="cr-vh">機長</span><b class="cr-row-v" data-look="held">確認中</b></div>
+<div class="cr-row-k"><span class="cr-tag">推定</span></div>
+</a>
+<a class="cr-row cr-row-lim" href="career.html?airline=etihad&amp;d=cap-max" data-go data-airline="etihad" style="--cr-co:#B08D57" hidden>
+<div class="cr-row-h"><span class="cr-vh">エティハド航空</span><span class="cr-vh">機長</span><b class="cr-row-v" data-look="max">〜¥2,917万</b></div>
 <div class="cr-row-k"><span class="cr-tag">求人の掲載額</span> <span class="cr-sub">A320（求人の上限）</span></div>
 <div class="cr-track" aria-hidden="true"><i class="cr-fill is-max" style="--w:72.9%"></i></div>
-</div>
+</a>
 <div class="cr-row" data-airline="eva-air" style="--cr-co:#00A599" hidden>
 <div class="cr-row-h"><span class="cr-row-co"><i class="cr-dot" aria-hidden="true"></i>エバー航空</span><span class="cr-vh">機長</span><b class="cr-row-v">¥2,950万</b></div>
 <div class="cr-row-k"><span class="cr-tag">推定</span></div>
@@ -545,11 +1206,15 @@
 <div class="cr-row-k"><span class="cr-tag">条件つきの給与例</span></div>
 <div class="cr-track" aria-hidden="true"><i class="cr-fill" style="--w:48.9%"></i></div>
 </div>
-<div class="cr-row" data-airline="etihad" style="--cr-co:#B08D57" hidden>
-<div class="cr-row-h"><span class="cr-row-co"><i class="cr-dot" aria-hidden="true"></i>エティハド航空</span><span class="cr-vh">副操縦士</span><b class="cr-row-v">〜¥2,224万</b></div>
+<a class="cr-row is-held" href="career.html?airline=etihad&amp;d=fo-est" data-go data-airline="etihad" style="--cr-co:#B08D57" hidden>
+<div class="cr-row-h"><span class="cr-row-co"><i class="cr-dot" aria-hidden="true"></i>エティハド航空</span><span class="cr-vh">副操縦士</span><b class="cr-row-v" data-look="held">確認中</b></div>
+<div class="cr-row-k"><span class="cr-tag">推定</span></div>
+</a>
+<a class="cr-row cr-row-lim" href="career.html?airline=etihad&amp;d=fo-max" data-go data-airline="etihad" style="--cr-co:#B08D57" hidden>
+<div class="cr-row-h"><span class="cr-vh">エティハド航空</span><span class="cr-vh">副操縦士</span><b class="cr-row-v" data-look="max">〜¥2,224万</b></div>
 <div class="cr-row-k"><span class="cr-tag">求人の掲載額</span> <span class="cr-sub">A320（求人の上限）</span></div>
 <div class="cr-track" aria-hidden="true"><i class="cr-fill is-max" style="--w:55.6%"></i></div>
-</div>
+</a>
 <div class="cr-row" data-airline="eva-air" style="--cr-co:#00A599" hidden>
 <div class="cr-row-h"><span class="cr-row-co"><i class="cr-dot" aria-hidden="true"></i>エバー航空</span><span class="cr-vh">副操縦士</span><b class="cr-row-v">¥1,589万超</b></div>
 <div class="cr-row-k"><span class="cr-tag">公式募集例</span> <span class="cr-sub">4年契約</span></div>
@@ -563,6 +1228,20 @@
 <p class="cr-tax" data-airline="cathay-pacific" style="--cr-co:#006564"><i class="cr-dot" aria-hidden="true"></i>キャセイパシフィック<span>課税（香港）</span></p>
 <p class="cr-tax" data-airline="etihad" style="--cr-co:#B08D57" hidden><i class="cr-dot" aria-hidden="true"></i>エティハド航空<span>非課税（UAE に個人所得税なし）</span></p>
 <p class="cr-tax" data-airline="eva-air" style="--cr-co:#00A599" hidden><i class="cr-dot" aria-hidden="true"></i>エバー航空<span>課税（台湾）</span></p>
+</div>
+</div>
+<div class="cr-lives">
+<div class="cr-sec">
+<h2 class="cr-h2">月の働き方</h2>
+<div class="crl" data-live="cmp-work" data-state="idle"><span class="crl-ph">—</span></div>
+</div>
+<div class="cr-sec">
+<h2 class="cr-h2">待遇</h2>
+<div class="crl" data-live="cmp-facts" data-state="idle"><span class="crl-ph">—</span></div>
+</div>
+<div class="cr-sec">
+<h2 class="cr-h2">口コミ</h2>
+<div class="crl" data-live="cmp-stars" data-state="idle"><span class="crl-ph">—</span></div>
 </div>
 </div>
 <div class="cr-cards">
@@ -641,33 +1320,10 @@
 <h2 class="cr-card-h"><a class="cr-card-n" href="career.html?airline=etihad" data-go>エティハド航空<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></h2>
 <div class="cr-pub">
 <h3 class="cr-h2">会社が公表している金額</h3>
-<div class="cr-grp">
-<p class="cr-grp-k"><span class="cr-tag">求人の掲載額</span> 機長 A320（求人の上限）</p>
-<dl class="cr-figs">
-<div class="cr-fig"><dt>求人に書かれた年額の上限</dt><dd><b>〜約2,917万円</b> <span class="cr-orig pv-no-cur">〜AED 674,029</span></dd></div>
-</dl>
-<details class="cr-more"><summary>応募条件</summary><p>総5,500時間・多人数運航ガラスコックピットの機長時間 2,500時間・A320系の機長時間 1,500時間・直近12か月に A320系・入社日に59歳未満・英語能力証明レベル4以上</p></details>
-</div>
-<div class="cr-grp">
-<p class="cr-grp-k"><span class="cr-tag">求人の掲載額</span> 副操縦士 A320（求人の上限）</p>
-<dl class="cr-figs">
-<div class="cr-fig"><dt>求人に書かれた年額の上限</dt><dd><b>〜約2,224万円</b> <span class="cr-orig pv-no-cur">〜AED 513,732</span></dd></div>
-</dl>
-<details class="cr-more"><summary>応募条件</summary><p>A：総2,000時間かつ多人数運航ガラスコックピット1,500時間かつ同型500時間／B：総1,500時間かつ A320系1,000時間。加えて直近12か月に A320系・入社日に50歳未満・英語能力証明レベル4以上</p></details>
-</div>
-<details class="cr-more cr-basis"><summary>前提と出どころ</summary>
-<ul class="cr-notes">
-<li>「最大（up to）」の額で、月75時間の乗務を前提としています。75時間は上限に近い飛び方なので、普通の月の実額はこれより下がります。</li>
-<li>内訳は基本給・飛行手当・住宅手当・レイオーバー／食事手当の4つです。</li>
-<li>教育手当（初等 AED 40,000／中等 AED 55,000・子3人まで）・所得補償・保険・社員割引航空券・退職金・引越し支援は、この額に含まれていません。</li>
-<li>交代要員つきの便は75%換算です（機長）。</li>
+<ul class="cr-lims">
+<li><a class="cr-link" href="career.html?airline=etihad&amp;d=cap-max" data-go><span class="cr-tag">求人の掲載額</span>機長 A320（求人の上限）<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li>
+<li><a class="cr-link" href="career.html?airline=etihad&amp;d=fo-max" data-go><span class="cr-tag">求人の掲載額</span>副操縦士 A320（求人の上限）<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li>
 </ul>
-<p class="cr-fx pv-no-cur">円額は比較用の換算です（1 AED＝43.2825円・2026-08-22 時点）。現在の為替レートではありません。</p>
-<ul class="cr-srcs pv-no-cur">
-<li>エティハド航空（SmartRecruiters・ref 80371） <a href="https://jobs.smartrecruiters.com/EtihadAirways5/744000140889348-captain" target="_blank" rel="noopener">Captain A320</a><span>適用時点：2026-07-31 掲載 ／ 確認日：2026-09-26</span></li>
-<li>エティハド航空（SmartRecruiters・ref 80372） <a href="https://jobs.smartrecruiters.com/EtihadAirways5/744000140889248-first-officer" target="_blank" rel="noopener">First Officer A320</a><span>適用時点：2026-07-31 掲載 ／ 確認日：2026-09-26</span></li>
-</ul>
-</details>
 </div>
 </div>
 <div class="cr-card" data-airline="eva-air" style="--cr-co:#00A599" hidden>
@@ -696,7 +1352,14 @@
 </div>
 </div>
 </div>
+<p class="cr-else cr-cmp-card"><a class="cr-link" id="cr-to-card" href="career.html?view=card&amp;a=jal&amp;b=cathay-pacific" data-go>カードを保存<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
 <p class="cr-credits">写真（縮小・トリミング） <span class="cr-credit" data-airline="jal">日本航空（JAL） <a href="https://commons.wikimedia.org/wiki/File:Japan_Airlines_Boeing_787-9_JA881J_on_final_approach_to_Boston_April_2022.jpg" target="_blank" rel="noopener">4300streetcar</a>／<a href="https://creativecommons.org/licenses/by/4.0" target="_blank" rel="noopener">CC BY 4.0</a></span> <span class="cr-credit" data-airline="ana" hidden>全日本空輸（ANA） <a href="https://commons.wikimedia.org/wiki/File:All_Nippon_Airways,_Boeing_777-300ER_JA792A_NRT_(26845813980).jpg" target="_blank" rel="noopener">Masakatsu Ukon</a>／<a href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a></span> <span class="cr-credit" data-airline="cathay-pacific">キャセイパシフィック <a href="https://commons.wikimedia.org/wiki/File:Cathay_Pacific_Airbus_A350-1000_B-LXB.jpg" target="_blank" rel="noopener">Melv_L - MACASR</a>／<a href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a></span> <span class="cr-credit" data-airline="etihad" hidden>エティハド航空 <a href="https://commons.wikimedia.org/wiki/File:Etihad_Airways,_A6-XWA,_Airbus_A350-1041.jpg" target="_blank" rel="noopener">Anna Zvereva</a>／<a href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a></span> <span class="cr-credit" data-airline="eva-air" hidden>エバー航空 <a href="https://commons.wikimedia.org/wiki/File:Eva_Air_Boeing_777-300ER_B-16716.jpg" target="_blank" rel="noopener">Melv_L - MACASR</a>／<a href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a></span></p>
+</section>
+<section class="cr-view cr-cardv" data-view="card" hidden>
+<a class="cr-back" id="crc-back" href="career.html" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>戻る</a>
+<h1 class="cr-h1 cr-cardv-h" tabindex="-1">カードを保存</h1>
+<div id="crc-root"></div>
+<script type="application/json" id="crc-data">{"host":"pilot-value.com","airlines":{"jal":{"ja":"日本航空（JAL）","en":"Japan Airlines (JAL)","code":"JAL","color":"#CC0000","url":"https://pilot-value.com/airlines/jal.html","qr":["11111110001011000111101111111","10000010001011110000101000001","10111010110100011001101011101","10111010111001100111001011101","10111010110011001111101011101","10000010110110011100101000001","11111110101010101010101111111","00000000101110010001000000000","10111110001001110100001111100","01110001101010101011101110001","01001110111010110010000100000","10110000011110000001110101010","00100010100011100101010001100","01111101110101001111011110001","10000011001010111010101011100","00111101000010101000100100010","11001111011011100100000001100","11000101001101000001101110101","10100111010000111110100110100","10011000110110000010111000010","10010010101010011100111110111","00000000100101001111100011111","11111110010011111001101011100","10000010110011011011100010000","10111010111010110100111110111","10111010101101001110000001111","10111010111011010011111111110","10000010011110101000110011010","11111110100101000101000011100"],"photos":[{"src":"assets/airlines/jal-b787.jpg","w":960,"h":540,"credit":"4300streetcar / CC BY 4.0"},{"src":"assets/airlines/jal-a350.jpg","w":1280,"h":853,"credit":"Melvin Loi / CC BY-SA 2.0"}]},"ana":{"ja":"全日本空輸（ANA）","en":"All Nippon Airways (ANA)","code":"ANA","color":"#1A6EB5","url":"https://pilot-value.com/airlines/ana.html","qr":["11111110010111000111101111111","10000010010011111000101000001","10111010101010010001101011101","10111010101101110111001011101","10111010110001001111101011101","10000010110100010100101000001","11111110101010101010101111111","00000000110010001001000000000","10111110011001100100001111100","10001000100100101011101110001","01011110010010111010000100000","00010101101110010001110101010","00111011000111110101010001100","11101101100001001111011110001","11001010000010111010101011100","01101000101110101000100100010","10010011111001100100000001100","11110001000011000001101110101","10000111010100111110100110100","10111100100010000010111000010","10010010110010011100111110111","00000000100101001111100011111","11111110010011111001101011100","10000010110001011011100010000","10111010101110110100111110111","10111010101111001110000001111","10111010111011110011111111110","10000010010110101000110011010","11111110101100100101000011100"],"photos":[{"src":"assets/airlines/ana-b777.jpg","w":1280,"h":853,"credit":"Masakatsu Ukon / CC BY-SA 2.0"},{"src":"assets/airlines/ana-b787.jpg","w":960,"h":640,"credit":""}]},"cathay-pacific":{"ja":"キャセイパシフィック","en":"Cathay Pacific","code":"CX","color":"#006564","url":"https://pilot-value.com/airlines/cathay-pacific.html","qr":["111111100010110011111101101111111","100000100011111111001010101000001","101110101101010101110100001011101","101110101000001010000010101011101","101110101111010101100001001011101","100000101010111111000110001000001","111111101010101010101010101111111","000000001010100100001110100000000","101111100101011101010011001111100","000110011110000010111011001101101","100100100011000100100100001010110","010111010111101110011111010011111","110010101101000000110011100011011","101001011110011111011101001000111","011010111111011000001010011001010","100010010011010010001101111101100","111101101101101001110010110110001","100001001110010011110101011101101","111110101011001101001000111110100","010000000100100001101110010111111","010100111010000110000001110111000","111101001011010101111101011000101","100110100111110111000100000101110","100000000111110100001110100111100","101101101111110111000010111111010","000000001110010010111000100010111","111111100111001110101011101010110","100000101000110100001101100011110","101110101101010000101010111111010","101110101111110110011001110011111","101110101100111000100110001100100","100000100111100010000100000011100","111111101111001001011011100100010"],"photos":[{"src":"assets/airlines/cathay-a350.jpg","w":960,"h":640,"credit":"Melv_L - MACASR / CC BY-SA 2.0"},{"src":"assets/airlines/cathay-a330.jpg","w":1280,"h":853,"credit":"Melv_L - MACASR / CC BY-SA 2.0"}]},"etihad":{"ja":"エティハド航空","en":"Etihad Airways","code":"EY","color":"#B08D57","url":"https://pilot-value.com/airlines/etihad.html","qr":["111111101001001000100010101111111","100000101001100011010110101000001","101110101010100111100010001011101","101110100001100100000000101011101","101110101101111100101001101011101","100000100000111000001001101000001","111111101010101010101010101111111","000000000000111000011010000000000","100111111000101111010001010010111","111110001011101100110001000011100","110101111101101101101101011011111","100111000010101001011000000100111","001010101011011011101110111100000","110110001101000011010011010101100","011000110110101010000000001011100","000100001111000100010010010011101","101011110111011000111010111110000","000101011010010100110110011010101","100100110001110110010001100101111","101111011010111101110100010011100","001011110001000100011101100101010","111100001011010011101011000111100","101010100100011110000101101101111","101100011010110011000001000000100","110001111111110100011001111111000","000000001110100110100000100010100","111111101100011100111111101010100","100000101111100010000001100011111","101110101111011001101101111110011","101110101000010001001100110101001","101110100000111011101101010110111","100000100011000110000001010111111","111111101100100011001001110110000"],"photos":[{"src":"assets/airlines/etihad-a350.jpg","w":1200,"h":800,"credit":"Anna Zvereva / CC BY-SA 2.0"},{"src":"assets/airlines/etihad-b787.jpg","w":960,"h":640,"credit":"Anna Zvereva / CC BY-SA 2.0"},{"src":"assets/airlines/etihad-a350-jfk.jpg","w":1280,"h":960,"credit":""}]},"eva-air":{"ja":"エバー航空","en":"EVA Air","code":"EVA","color":"#00A599","url":"https://pilot-value.com/airlines/eva-air.html","qr":["111111100101000010111001101111111","100000100001100110101110101000001","101110101100101100010100001011101","101110101111000000100100101011101","101110101000011111001001001011101","100000101001011001010110001000001","111111101010101010101010101111111","000000001101000010011110000000000","101111100100111001010011001111100","111001001000110011111011001101101","010100101101111101000010001010110","000100001101010111111001010011111","000011100010001010011111110111011","101100010111100101100101011001111","101000100110000110001010111001110","111001001001001100000100011101100","011101111010011101100010110111001","100111001100011010110101011101101","010000110111000100101100100110100","111101011101110000001110001111111","000101101011010100100101000111000","111101011101111111001111001001101","100110111111110001010100100000010","101001001100100010011110100011110","100100101001001011010011111110011","000000001000000011111000100010111","111111100001100111001011101010110","100000101101111101101001100011110","101110101011010010001110111111010","101110101000100100100001110010101","101110101100101110101110001101100","100000100000010100000100011010100","111111101111101101001011101100010"],"photos":[{"src":"assets/airlines/eva-b777.jpg","w":1280,"h":853,"credit":"Melv_L - MACASR / CC BY-SA 2.0"},{"src":"assets/airlines/eva-b787.jpg","w":960,"h":640,"credit":"Melvin Loi / CC BY-SA 2.0"}]}}}</script>
 </section>
 </div>
 <!--/PV-CAREER-->
@@ -718,7 +1381,12 @@
 <script src="pv-gates.js"></script>
 <!-- 画面の切り替えだけ。金額は1つも持たない。
      ★読めなかったときは入口をそのまま見せる（onerror）。 -->
-<script src="career.js?v=5b568c05" onload="document.documentElement.classList.remove('cr-boot')" onerror="document.documentElement.classList.remove('cr-boot')"></script>
+<script src="career.js?v=d5509f49" onload="document.documentElement.classList.remove('cr-boot')" onerror="document.documentElement.classList.remove('cr-boot')"></script>
+<!-- 生きた欄・就航地のホテル・カード保存。career.js が画面を出し終えるたびに出す知らせ（cr:show）で動く。
+     ★どれが落ちても、上の画面と金額はそのまま読める。 -->
+<script src="career-live.js?v=7bf9e857"></script>
+<script src="career-stay.js?v=7a8302f4"></script>
+<script src="career-card.js?v=487bd326"></script>
 <!-- PV-NAV: ナビの開け閉め。★search.js より**後**に読む ──
      あちらが作った ≡ を繋ぎ直すため（先に読むと search.js:416 の二重注入ガードで
      ヘッダーの自動折り畳みごと止まる）。search.js が無いページでは自分で ≡ を作る。 -->

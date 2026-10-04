@@ -25,7 +25,7 @@
 //    知らない項目を埋める動機を作った時点で、このデータは価値を失う。
 //
 // ── これ以上、質問を増やさない ──────────────────────────────────────
-// 32問。50問に増やすと、どの質問も公開に必要な k≧3 に届かないまま薄く散る。
+// 43問。50問に増やすと、どの質問も公開に必要な k≧3 に届かないまま薄く散る。
 // 高価値な質問バンクを小さく持ち、1人には毎月少しずつ聞く。
 //
 // ★2026-08-19、社用航空券と出退社の移動を6問だけ足して 26→32 にした（オーナー指示）。
@@ -33,6 +33,39 @@
 //   タクシーが使える条件」。転職の判断が変わるのは、制度の有無・座席が確保できるか・
 //   上位クラスに乗れるか・家族が使えるかの4つで、残りは細部。
 //   足すたびに1問あたりの回答が薄まる。次に増やしたくなったら、まず1問減らせないか考える。
+//
+// ★2026-10-04、そのとき落とした「誰が使えるか／年間上限／自己負担額／タクシーが使える条件」を、
+//   **制度の条件がそのまま伝わる形**で11問足して 32→43 にした（オーナー指示）。
+//   会社の概要の画面で「まだ分からない」と出す項目から、その質問へ直接来られるように
+//   したため（?airline=…&q=<鍵>）。
+//   ・社員向けの航空券の回数・本人の負担・使える人は、**券の種類ごとに別の質問**にした
+//     （空席待ち／座席を確保できる、で3問ずつ＝6問）。同じ日の最初の版は
+//     「券の種類で違うときは、合わせた回数で」と1問で聞いていて、回数に上限の無い
+//     空席待ちの券と、回数が決まっている券が1つの答えに混ざった（本番へ出す前に作り直した）。
+//     親は staff_travel_booking ＝ 券の種類そのもの。「両方ある」の人には両方が出る。
+//     使える人も同じ。券の種類で対象が違う制度（片方は親まで・もう片方は本人だけ、のような形）は、
+//     共通の1問（本番の staff_travel_family）では書き分けられない。あちらは本番に在るので
+//     そのまま残し、内訳（子／親／きょうだい／指名した人）は券の種類ごとの複数選択で聞く。
+//   ・出社・帰宅の移動は、**手段ごとに別の質問**にした（タクシー3問・クルーバス2問＝5問）。
+//     同じ日の2つ目の版は「どんなときに／どこまで／誰が負担するか」を手段をまとめて1問ずつ
+//     聞いていて、手段ごとに条件が違う制度（片方はいつでも・会社が全額、もう片方は時間が
+//     限られて一部は本人、のような形）が1つの答えに混ざった（これも本番へ出す前に作り直した）。
+//     親は commuting_transport_method（複数選択）＝ 手段そのもの。両方を選んだ人には5問とも出る。
+//   ⚠️ 回数も負担も**段で聞く**（数値の欄にしない）。上限が無い会社は数値で答えられない。
+//      額・距離・時刻は聞かない（路線と地域で変わり、1つの数字に丸めると何の数か分からなくなる）。
+//   ⚠️ 「券の種類によって違う」「手段によって違う」「合わせた回数」という選択肢・説明を置かない
+//      （それが直した対象）。違うものは別の質問で聞く。
+//   ⚠️ 11問とも子の質問で Tier B ＝ 親の答えが条件に合う人にしか出ない。
+//      11問とも**親が2段**（staff_travel → staff_travel_booking → 6問／
+//      commuting_transport → commuting_transport_method → 5問）。
+//      画面（pv-conditions.js の visible）もサーバ（db/airline-conditions.sql の
+//      pv_condition_links）も、**いちばん上の親まで**条件が続いているかを見る。
+//      すぐ上の親だけを見ると、制度を「ない」に答え直した人の古い回数が出続け、数えられ続ける。
+//   ⚠️ すぐ上の親が**複数選択**のとき（移動の5問）は、選んだものの中に parentWhen が
+//      1つでも入っていれば条件に合う。バスだけを選んだ人にタクシーの質問は出ない・送っても
+//      受け取らない・数えない（db/test-conditions.mjs の ⑱ が見ている。使える人は ⑲）。
+//   ⚠️ 本番に在った32問の priority は、出社・帰宅の2問だけ 65・66 → 67・68 へ動かした
+//      （航空券の質問を6つ並べる場所が 61〜64 の4つしか無かった）。並ぶ順は変わらない。
 //
 // ── コードを消さない ────────────────────────────────────────────────
 // 質問も選択肢も、いらなくなったら消さずに active:false にする（pv-vocab.mjs と同じ）。
@@ -113,6 +146,8 @@ export const SETTINGS = {
                micro（提出直後の1問）にも出さない。★節では分けない。
                節にすると「何の話か」が読んで分からなくなるので、話が続く場所に置く。
    parent / parentWhen … 親の答えが parentWhen に入っているときだけ表示する。
+               ★親の親がある（2段）ときは、**いちばん上まで**条件が続いているときだけ。
+                 画面もサーバも同じ決め方をする（冒頭の 2026-10-04 の注記）。
    note      … 選択肢に加えて自由記述欄を出す。★自由記述は公開集計に一切出さない。
    currency  … 金額。通貨コードも一緒に保存する。
 */
@@ -176,7 +211,7 @@ export const QUESTIONS = [
     ],
   },
   {
-    /* ★26問で唯一「会社の事実」でない質問。制度の有無ではなく、運用の体感を聞く。
+    /* ★全問の中で唯一「会社の事実」でない質問。制度の有無ではなく、運用の体感を聞く。
        同じ会社でも先任順位の上下で答えが割れ、しかもどちらも正しい。
        isOpinion を立てて公開集計で会社の事実と分けて出す（micro には出さない）。
        ここに置くのは、直前2問（希望休・スケジュール希望）が「出せるか」までしか
@@ -550,13 +585,149 @@ export const QUESTIONS = [
     ],
   },
   {
+    /* ── 券の種類ごとの回数と本人の負担（2026-10-04 追加・オーナー指示） ─────
+       ★券の種類を混ぜない。親は staff_travel_booking（空席待ちのみ／両方ある／座席を
+         確保できる）＝ 券の種類そのもの。空席待ちの3問は standby・both、確保できる券の
+         3問は both・confirmed のときだけ出る。「両方ある」の人には6問とも出る
+         （回数・本人の負担・使える人。使える人は下の staff_travel_standby_family）。
+         1問で「合わせた回数」を聞くと、回数に上限の無い空席待ちの券と、年に数回と
+         決まっている券が1つの答えに混ざって、どちらの制度も読めなくなる。
+       ★親が2段（staff_travel → staff_travel_booking → ここ）。出す・受け取る・数えるは、
+         いちばん上の親まで条件が続いているときだけ（冒頭の 2026-10-04 の注記）。
+       ★数値の欄にしない。「上限が無い」会社は数で答えられず、空欄と区別が付かなくなる。
+         段はどの会社の制度とも無関係な切り方にしておく（特定の会社の枚数を境目にすると、
+         その会社の人しか迷わず答えられない）。空席待ちは月1回（年12回）と四半期に1回（年4回）。
+       ★往復で数える。会社によって「枚」「区間」「回」と数え方が違うので、
+         そのまま聞くと同じ制度が2倍の差で入る。聞くのは本人が使える回数。
+       ★label だけで何の話か分かるように書く（「その」「それ」で親を指さない）。
+         提出直後の1問枠（micro）と ?q= の入口では、親の質問が隣に無い。 */
+    id: 'staff_travel_standby_trips', version: 1, section: 'benefits', kind: 'choice',
+    tier: 'B', micro: true, priority: 61,
+    parent: 'staff_travel_booking', parentWhen: ['standby', 'both'],
+    ja: { label: '空席待ちの社員向け航空券は、1年に何回まで使えますか？',
+          help: '出発まで席が決まらない券（Standby）を、あなた本人が使える回数です。往復を1回と数えます。勤続年数や契約で変わる場合は、今のあなたの回数で構いません。' },
+    en: { label: 'How many times a year can you use standby staff tickets?',
+          help: 'Tickets where you wait for a free seat. Your own allowance, counting a return trip as one. If it varies by seniority or contract, your own current entitlement is fine.' },
+    choices: [
+      { code: 'unlimited',     ja: '上限はない',   en: 'No limit' },
+      { code: 'limit_13_plus', ja: '年13回以上',   en: '13 or more a year' },
+      { code: 'limit_5_12',    ja: '年5〜12回',    en: '5 to 12 a year' },
+      { code: 'limit_1_4',     ja: '年1〜4回',     en: '1 to 4 a year' },
+      { code: UNKNOWN,         ja: 'わからない',   en: "Don't know" },
+    ],
+  },
+  {
+    /* ★額は聞かない。路線で変わり、1つの数字に丸めると何の額か分からなくなる。
+         転職の判断に効くのは「運賃を払うのか、諸費用だけなのか」の形のほう。
+       ★「券の種類によって違う」を置かない。種類ごとに別の質問にしたので、要らない
+         （置くと、いちばん知りたい所がその1つに集まって読めなくなる）。 */
+    id: 'staff_travel_standby_cost', version: 1, section: 'benefits', kind: 'choice',
+    tier: 'B', micro: true, priority: 62,
+    parent: 'staff_travel_booking', parentWhen: ['standby', 'both'],
+    ja: { label: '空席待ちの社員向け航空券で乗るとき、本人が払うのはどれに近いですか？',
+          help: '出発まで席が決まらない券（Standby）についてです。運賃そのものを払うのか、税金や空港使用料などの諸費用だけなのかです。' },
+    en: { label: 'What do you pay yourself when you fly on a standby staff ticket?',
+          help: 'For tickets where you wait for a free seat: whether you pay a fare, or only taxes and airport charges.' },
+    choices: [
+      { code: 'free',         ja: '何も払わない',         en: 'Nothing' },
+      { code: 'taxes_only',   ja: '税金・諸費用だけ',     en: 'Taxes and charges only' },
+      { code: 'reduced_fare', ja: '割引された運賃を払う', en: 'A reduced fare' },
+      { code: UNKNOWN,        ja: 'わからない',           en: "Don't know" },
+    ],
+  },
+  {
+    /* ── 券の種類ごとの「使える人」（2026-10-04 追加・同じ日の見直しの指摘） ───
+       ★本番の staff_travel_family（本人のみ／配偶者・パートナーまで／子や親も）は、券の種類を
+         分けずに1問で聞いている。券の種類で対象が違う制度を、あの1問では書き分けられない
+         （片方は親まで・もう片方は本人だけ、のような形）。あちらは本番に在るので触らず、
+         券の種類ごとに誰が使えるかをここで聞く。
+       ★複数選択。「子は使えるが親は使えない」「家族でなくても本人が指名した人が使える」は、
+         広さの段（本人 → 配偶者 → 家族）に並ばない。1つ選ばせると、どれかが消える。
+         複数選択は1問枠（micro）には出ないので、詳細ページと ?q= の入口で集まる。
+       ★「本人」も選択肢に置く。選ばれた家族の並びだけでは、本人が使えるのかが読めない
+         （本人が使えず、家族だけが使える券は置いていない、とは言い切れない）。
+       ★人数や年齢の上限は聞かない（子の年齢など。数字を境目にすると会社ごとに違う）。 */
+    id: 'staff_travel_standby_family', version: 1, section: 'benefits', kind: 'multi',
+    tier: 'B', micro: false, priority: 63,
+    parent: 'staff_travel_booking', parentWhen: ['standby', 'both'],
+    ja: { label: '空席待ちの社員向け航空券は、誰が使えますか？',
+          help: '出発まで席が決まらない券（Standby）を使える人を、すべて選んでください。' },
+    en: { label: 'Who can travel on standby staff tickets?',
+          help: 'Tickets where you wait for a free seat. Select everyone who can use them.' },
+    choices: [
+      { code: 'self',     ja: '本人',                           en: 'The employee' },
+      { code: 'partner',  ja: '配偶者・パートナー',             en: 'Spouse or partner' },
+      { code: 'children', ja: '子',                             en: 'Children' },
+      { code: 'parents',  ja: '親',                             en: 'Parents' },
+      { code: 'siblings', ja: 'きょうだい',                     en: 'Brothers and sisters' },
+      { code: 'nominee',  ja: '本人が指名した人（家族以外）',   en: 'Someone you nominate (not family)' },
+      { code: 'other',    ja: 'その他',                         en: 'Other' },
+    ],
+  },
+  {
+    /* ★段を空席待ちと同じにしない。席を確保できる券は年に1〜数回という決め方が普通で、
+         「年1〜4回」の1段にまとめると、年1回と年4回の差が消える。
+         年1回・半年に1回（年2回）・四半期に1回（年4回）で切ってある。 */
+    id: 'staff_travel_confirmed_trips', version: 1, section: 'benefits', kind: 'choice',
+    tier: 'B', micro: true, priority: 64,
+    parent: 'staff_travel_booking', parentWhen: ['both', 'confirmed'],
+    ja: { label: '座席を確保できる社員向け航空券は、1年に何回まで使えますか？',
+          help: 'あらかじめ席を押さえられる券を、あなた本人が使える回数です。往復を1回と数えます。勤続年数や契約で変わる場合は、今のあなたの回数で構いません。' },
+    en: { label: 'How many times a year can you use confirmed-seat staff tickets?',
+          help: 'Tickets where the seat is held in advance. Your own allowance, counting a return trip as one. If it varies by seniority or contract, your own current entitlement is fine.' },
+    choices: [
+      { code: 'unlimited',    ja: '上限はない', en: 'No limit' },
+      { code: 'limit_5_plus', ja: '年5回以上',  en: '5 or more a year' },
+      { code: 'limit_3_4',    ja: '年3〜4回',   en: '3 or 4 a year' },
+      { code: 'limit_2',      ja: '年2回',      en: 'Twice a year' },
+      { code: 'limit_1',      ja: '年1回',      en: 'Once a year' },
+      { code: UNKNOWN,        ja: 'わからない', en: "Don't know" },
+    ],
+  },
+  {
+    id: 'staff_travel_confirmed_cost', version: 1, section: 'benefits', kind: 'choice',
+    tier: 'B', micro: true, priority: 65,
+    parent: 'staff_travel_booking', parentWhen: ['both', 'confirmed'],
+    ja: { label: '座席を確保できる社員向け航空券で乗るとき、本人が払うのはどれに近いですか？',
+          help: 'あらかじめ席を押さえられる券についてです。運賃そのものを払うのか、税金や空港使用料などの諸費用だけなのかです。' },
+    en: { label: 'What do you pay yourself when you fly on a confirmed-seat staff ticket?',
+          help: 'For tickets where the seat is held in advance: whether you pay a fare, or only taxes and airport charges.' },
+    choices: [
+      { code: 'free',         ja: '何も払わない',         en: 'Nothing' },
+      { code: 'taxes_only',   ja: '税金・諸費用だけ',     en: 'Taxes and charges only' },
+      { code: 'reduced_fare', ja: '割引された運賃を払う', en: 'A reduced fare' },
+      { code: UNKNOWN,        ja: 'わからない',           en: "Don't know" },
+    ],
+  },
+  {
+    /* ★選択肢は空席待ちの側（staff_travel_standby_family）と1文字も違えない。
+         同じ会社の2つの券を並べて読むための質問なので、片方だけ選択肢が違うと比べられない
+         （db/test-conditions.mjs が2問の選択肢を突き合わせている）。 */
+    id: 'staff_travel_confirmed_family', version: 1, section: 'benefits', kind: 'multi',
+    tier: 'B', micro: false, priority: 66,
+    parent: 'staff_travel_booking', parentWhen: ['both', 'confirmed'],
+    ja: { label: '座席を確保できる社員向け航空券は、誰が使えますか？',
+          help: 'あらかじめ席を押さえられる券を使える人を、すべて選んでください。' },
+    en: { label: 'Who can travel on confirmed-seat staff tickets?',
+          help: 'Tickets where the seat is held in advance. Select everyone who can use them.' },
+    choices: [
+      { code: 'self',     ja: '本人',                           en: 'The employee' },
+      { code: 'partner',  ja: '配偶者・パートナー',             en: 'Spouse or partner' },
+      { code: 'children', ja: '子',                             en: 'Children' },
+      { code: 'parents',  ja: '親',                             en: 'Parents' },
+      { code: 'siblings', ja: 'きょうだい',                     en: 'Brothers and sisters' },
+      { code: 'nominee',  ja: '本人が指名した人（家族以外）',   en: 'Someone you nominate (not family)' },
+      { code: 'other',    ja: 'その他',                         en: 'Other' },
+    ],
+  },
+  {
     /* ── 出退社の移動（2026-08-19 追加・オーナー指示） ─────────────────
        ★毎月定額で出る通勤手当と混ぜない。あれは給与明細の「交通費」で
          既に集めている（payslip.js の f-transport）。同じものを2箇所で
          集めると、どちらの数字も何を指すのか分からなくなる。
        ★Tier B。日本と一部の会社に強く偏り、横断比較の軸としては社用航空券より弱い。 */
     id: 'commuting_transport', version: 1, section: 'benefits', kind: 'choice',
-    tier: 'B', micro: true, priority: 65,
+    tier: 'B', micro: true, priority: 67,
     ja: { label: '出社・帰宅の移動を、会社が用意または負担しますか？',
           help: '会社が手配するタクシー、クルーバス、あとから精算する運賃などです。毎月定額で出る通勤手当のことではありません。' },
     en: { label: 'Does the company provide or pay for your travel to and from work?',
@@ -573,7 +744,7 @@ export const QUESTIONS = [
        1つ選ばせると片方が消える。複数選択は1問枠（micro）には出ないので、
        詳細ページで集まる。 */
     id: 'commuting_transport_method', version: 1, section: 'benefits', kind: 'multi',
-    tier: 'B', micro: false, priority: 66,
+    tier: 'B', micro: false, priority: 68,
     parent: 'commuting_transport', parentWhen: ['always', 'conditional'],
     ja: { label: 'どの形で提供されますか？', help: '当てはまるものをすべて選んでください。' },
     en: { label: 'How is it provided?', help: 'Select all that apply.' },
@@ -583,6 +754,117 @@ export const QUESTIONS = [
       { code: 'crew_bus',     ja: '送迎バス・クルーバス',       en: 'Company or crew bus' },
       { code: 'hotel',        ja: '前泊や仮眠室で対応',         en: 'Pre-duty hotel or rest room instead' },
       { code: 'other',        ja: 'その他',                     en: 'Other' },
+    ],
+  },
+  {
+    /* ── 手段ごとの条件（2026-10-04 追加・同じ日の見直しの指摘） ───────────
+       ★手段を混ぜない。親は commuting_transport_method（複数選択）＝ 手段そのもの。
+         タクシーの3問は company_taxi・reimburse、クルーバスの2問は crew_bus を選んだ人にだけ出る。
+         両方を選んだ人には5問とも出る。手段をまとめて1問ずつ聞くと、手段ごとに条件が違う制度
+         （片方はいつでも・会社が全額、もう片方は時間が限られて一部は本人、のような形）が
+         1つの答えに混ざって、どちらの条件も読めなくなる。
+       ★親が2段（commuting_transport → commuting_transport_method → ここ）で、すぐ上の親は
+         複数選択。選んだものの中に parentWhen が1つでも入っていれば出す・受け取る・数える
+         （冒頭の 2026-10-04 の注記）。
+       ★「どんなときに」は複数選択で、先頭に「制限はない（いつでも）」を置く。
+         いちばん上の親（いつでも使える／条件付きで使える）は手段を分けずに聞いているので、
+         「バスはいつでも・タクシーは条件付き」の人は、ここでしか書き分けられない。
+         なので親が「いつでも使える」の人にも出す（「条件付き」の人だけに絞らない）。
+       ★選択肢は**何が起きたときか**で書く。時刻そのものや距離の数字を選択肢にしない
+         （会社ごとに違う数字を境目にすると、その会社の人しか迷わず答えられない）。
+       ★label だけで何の手段の話か分かるように書く（「その」「それ」で親を指さない）。
+         提出直後の1問枠（micro）と ?q= の入口では、親の質問が隣に無い。
+       ★前泊・仮眠室（hotel）と「その他」には、条件の質問を置かない。移動の手段ではなく、
+         足すと5問がさらに増える。 */
+    id: 'commuting_taxi_when', version: 1, section: 'benefits', kind: 'multi',
+    tier: 'B', micro: false, priority: 69,
+    parent: 'commuting_transport_method', parentWhen: ['company_taxi', 'reimburse'],
+    ja: { label: 'タクシーでの出社・帰宅は、どんなときに会社の手配や精算で使えますか？',
+          help: '会社が手配するタクシーと、自分で乗ってあとから精算する場合についてです。当てはまるものをすべて選んでください。制限が無ければ「制限はない」だけを選んでください。' },
+    en: { label: 'When can you take a taxi to or from work, arranged or reimbursed by the company?',
+          help: 'For taxis the company arranges, and rides you pay for and claim back. Select all that apply. If there is no restriction, choose only "No restriction".' },
+    choices: [
+      { code: 'any_time',            ja: '制限はない（いつでも）',               en: 'No restriction (any time)' },
+      { code: 'no_public_transport', ja: '公共交通が動いていない時間の出退勤',   en: 'Reporting or finishing when public transport is not running' },
+      { code: 'outside_set_hours',   ja: '決まった時刻より早い出社・遅い退社',   en: 'Reporting before, or finishing after, a set time' },
+      { code: 'standby_callout',     ja: 'Reserve・Standby からの呼び出し',     en: 'A call-out from reserve or standby' },
+      { code: 'disruption',          ja: '遅延などで予定が変わったとき',         en: 'When a delay or disruption changes your duty' },
+      { code: 'other',               ja: 'その他',                               en: 'Other' },
+    ],
+  },
+  {
+    /* ★いつでも乗れる会社でも、届く範囲は別に決まっている（自宅までか、決められた
+         場所までか）。なので、タクシーを選んだ人の全員に聞く。
+       ★距離の数字は聞かない。形（制限なし／範囲の中だけ／決められた場所まで）だけ。
+       ★クルーバスには「どこまで」を置かない。バスは決まった経路を走るもので、
+         自宅まで届くかどうかを聞く質問がそのままは当てはまらない。 */
+    id: 'commuting_taxi_where', version: 1, section: 'benefits', kind: 'choice',
+    tier: 'B', micro: true, priority: 70,
+    parent: 'commuting_transport_method', parentWhen: ['company_taxi', 'reimburse'],
+    ja: { label: 'タクシーでの出社・帰宅は、どこまで会社の手配や精算で使えますか？',
+          help: '会社が手配するタクシーと、自分で乗ってあとから精算する場合についてです。自宅まで使えるのか、距離や地域、決められた場所までに限られるのかです。' },
+    en: { label: 'How far does a company-arranged or reimbursed taxi to or from work reach?',
+          help: 'For taxis the company arranges, and rides you pay for and claim back: whether it covers the whole way between home and the airport, only a set distance or area, or only as far as a set point.' },
+    choices: [
+      { code: 'door_to_door', ja: '自宅と空港のあいだ・距離の制限なし',       en: 'Between home and the airport, with no distance limit' },
+      { code: 'within_area',  ja: '決められた範囲（距離・地域）の中だけ',     en: 'Only within a set distance or area' },
+      { code: 'to_set_point', ja: '決められた場所（駅・集合場所など）まで',   en: 'Only as far as a set point (a station or pick-up point)' },
+      { code: UNKNOWN,        ja: 'わからない',                               en: "Don't know" },
+    ],
+  },
+  {
+    /* ── 費用の負担（2026-10-04 追加・オーナー指示） ───────────────────
+       ★「会社が手配する」と「会社が払う」は別のこと。手配は会社でも、費用は給与から
+         引かれる会社がある。いちばん上の親は「用意または負担」をまとめて聞いているので、
+         ここで分ける。
+       ★額や上限の金額は聞かない（地域と距離で変わる。聞くなら給与明細の「交通費」の側）。 */
+    id: 'commuting_taxi_cost', version: 1, section: 'benefits', kind: 'choice',
+    tier: 'B', micro: true, priority: 71,
+    parent: 'commuting_transport_method', parentWhen: ['company_taxi', 'reimburse'],
+    ja: { label: 'タクシーでの出社・帰宅の費用は、誰が負担しますか？',
+          help: '会社が手配するタクシーと、自分で乗ってあとから精算する場合についてです。会社が全額を持つのか、本人の負担があるのかです。' },
+    en: { label: 'Who pays for a taxi to or from work?',
+          help: 'For taxis the company arranges, and rides you pay for and claim back: whether the company covers the whole cost, or you pay some of it.' },
+    choices: [
+      { code: 'company_full', ja: '会社が全額',                           en: 'The company pays all of it' },
+      { code: 'partial',      ja: '一部は本人（上限額・定額の負担など）', en: 'You pay part (a cap or a fixed share)' },
+      { code: 'self_full',    ja: '本人が全額（手配だけ会社）',           en: 'You pay all of it (the company only arranges it)' },
+      { code: UNKNOWN,        ja: 'わからない',                           en: "Don't know" },
+    ],
+  },
+  {
+    /* ★選択肢はタクシーの側（commuting_taxi_when）と1文字も違えない。同じ会社の2つの手段を
+         並べて読むための質問なので、片方だけ選択肢が違うと比べられない
+         （db/test-conditions.mjs が突き合わせている）。 */
+    id: 'commuting_bus_when', version: 1, section: 'benefits', kind: 'multi',
+    tier: 'B', micro: false, priority: 72,
+    parent: 'commuting_transport_method', parentWhen: ['crew_bus'],
+    ja: { label: 'クルーバス（送迎バス）は、どんなときに出社・帰宅で使えますか？',
+          help: '会社が走らせる送迎バス・クルーバスについてです。当てはまるものをすべて選んでください。制限が無ければ「制限はない」だけを選んでください。' },
+    en: { label: 'When can you use the crew bus (company bus) to get to or from work?',
+          help: 'For a bus the company runs for crew or staff. Select all that apply. If there is no restriction, choose only "No restriction".' },
+    choices: [
+      { code: 'any_time',            ja: '制限はない（いつでも）',               en: 'No restriction (any time)' },
+      { code: 'no_public_transport', ja: '公共交通が動いていない時間の出退勤',   en: 'Reporting or finishing when public transport is not running' },
+      { code: 'outside_set_hours',   ja: '決まった時刻より早い出社・遅い退社',   en: 'Reporting before, or finishing after, a set time' },
+      { code: 'standby_callout',     ja: 'Reserve・Standby からの呼び出し',     en: 'A call-out from reserve or standby' },
+      { code: 'disruption',          ja: '遅延などで予定が変わったとき',         en: 'When a delay or disruption changes your duty' },
+      { code: 'other',               ja: 'その他',                               en: 'Other' },
+    ],
+  },
+  {
+    id: 'commuting_bus_cost', version: 1, section: 'benefits', kind: 'choice',
+    tier: 'B', micro: true, priority: 73,
+    parent: 'commuting_transport_method', parentWhen: ['crew_bus'],
+    ja: { label: 'クルーバス（送迎バス）の費用は、誰が負担しますか？',
+          help: '会社が走らせる送迎バス・クルーバスについてです。会社が全額を持つのか、本人の負担があるのかです。' },
+    en: { label: 'Who pays for the crew bus (company bus) to or from work?',
+          help: 'For a bus the company runs for crew or staff: whether the company covers the whole cost, or you pay some of it.' },
+    choices: [
+      { code: 'company_full', ja: '会社が全額',                           en: 'The company pays all of it' },
+      { code: 'partial',      ja: '一部は本人（上限額・定額の負担など）', en: 'You pay part (a cap or a fixed share)' },
+      { code: 'self_full',    ja: '本人が全額（運行だけ会社）',           en: 'You pay all of it (the company only runs it)' },
+      { code: UNKNOWN,        ja: 'わからない',                           en: "Don't know" },
     ],
   },
 ];

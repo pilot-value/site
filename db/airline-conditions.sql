@@ -193,6 +193,43 @@ revoke all on function public.pv_condition_hash(uuid, text, text) from public, a
 
 
 -- ════════════════════════════════════════════════════════════════
+-- 4b. 親の条件を、いちばん上までたどる（2026-10-04）
+-- ════════════════════════════════════════════════════════════════
+-- 質問には親があり、その親にも親がある（例: staff_travel → staff_travel_booking
+-- → staff_travel_standby_trips）。子を「出す・受け取る・数える」のは、
+-- **その子からいちばん上までの全部の段**で、親の答えが parent_when に入っているときだけ。
+--
+-- このビューは、1つの質問について「満たしていなければならない段」を全部並べる。
+--   question_id … 見ている質問
+--   parent      … その質問の親・親の親・…（1段につき1行）
+--   parent_when … その親が持っていなければならない答え
+-- 親が無い質問は1行も出ない ＝ 条件なし。
+--
+-- ★すぐ上の親だけを見ていた頃（親が1段しか無かった）は、いちばん上を「ない」に
+--   答え直しても、あいだの親の古い答えが残っているので、その下の質問が通った。
+--   回答は消さない（答え直したら元どおり出す・数える）。なので**読むたびにたどる**。
+--   使う所は3つ ── 5. 保存／6. 次に聞く質問／9. 公開集計。3つとも同じ形で読む。
+-- ★中身は質問マスタだけで、個票は1行も含まない。それでも API には出さない。
+-- ★union（all なし）＝ 万一マスタに輪ができても止まる。生成側（gen-conditions.mjs）が
+--   「親は自分より前に定義」を検査しているので、輪は入らないはず。
+-- ⚠️ 列を変えるときは、先に airline_condition_facts を落とす（あちらがこれを読んでいる）。
+create or replace view public.pv_condition_links as
+with recursive up as (
+  select q.id as question_id, q.parent, q.parent_when
+    from public.pv_condition_questions q
+   where q.parent is not null
+  union
+  select u.question_id, p.parent, p.parent_when
+    from up u
+    join public.pv_condition_questions p on p.id = u.parent
+   where p.parent is not null
+)
+select question_id, parent, parent_when from up;
+
+revoke all on public.pv_condition_links from public, anon, authenticated;
+
+
+-- ════════════════════════════════════════════════════════════════
 -- 5. 回答を保存する
 -- ════════════════════════════════════════════════════════════════
 -- 質問マスタと突き合わせて1件ずつ検証する。1件が悪くても他は保存し、
@@ -294,12 +331,17 @@ begin
       continue;
     end if;
 
-    -- 親に答えていない人の子の回答は受けない（答えの筋が通らない行を作らない）
-    if v_a.parent is not null
-       and not exists (
-         select 1 from public.airline_conditions c
-          where c.proof_hash = v_hash and c.question_id = v_a.parent
-            and (c.answer_code = any(v_a.parent_when) or c.answer_codes && v_a.parent_when)) then
+    -- 親に答えていない人の子の回答は受けない（答えの筋が通らない行を作らない）。
+    -- ★すぐ上の親だけでなく、いちばん上の親まで見る（4b の pv_condition_links が
+    --   全部の段を並べる）。1段でも条件から外れていたら受けない。
+    --   親が無い質問は段が1つも無いので、そのまま通る。
+    if exists (
+         select 1 from public.pv_condition_links k
+          where k.question_id = v_a.id
+            and not exists (
+              select 1 from public.airline_conditions c
+               where c.proof_hash = v_hash and c.question_id = k.parent
+                 and (c.answer_code = any(k.parent_when) or c.answer_codes && k.parent_when))) then
       v_rej := v_rej || jsonb_build_array(jsonb_build_object(
         'question_id', v_a.id, 'reason', 'parent_missing'));
       continue;
@@ -463,6 +505,7 @@ grant execute on function public.submit_airline_conditions(jsonb) to authenticat
 --            → ② Tier（A→B→C） → ③ その会社での回答者が少ない順
 --            → ④ 最終確認が古い順 → ⑤ priority
 -- ★ 親を持つ質問は、その人自身の親への答えが parent_when に入るときだけ候補にする。
+--   親の親があるときは、いちばん上まで条件が続いているときだけ（4b）。
 --   初回の人には親のない Tier A が出て、答えるほど出せる質問が増える。
 --
 -- ★もう一度聞いてよくなる時期は、その人のその質問の状態で変える。
@@ -543,11 +586,16 @@ begin
       from public.pv_condition_questions q
      where q.active
        and (not v_micro or q.micro)
-       and (q.parent is null
-            or exists (select 1 from mine m
-                        where m.question_id = q.parent
-                          and (m.answer_code = any(q.parent_when)
-                               or m.answer_codes && q.parent_when)))
+       /* 親の条件が、いちばん上まで続いている質問だけ（4b の pv_condition_links）。
+          親が無い質問は段が1つも無いので、そのまま通る。
+          ★すぐ上の親だけを見ると、制度を「ない」に答え直した人へ、その下の下の質問を出してしまう */
+       and not exists (
+             select 1 from public.pv_condition_links k
+              where k.question_id = q.id
+                and not exists (select 1 from mine m
+                                 where m.question_id = k.parent
+                                   and (m.answer_code = any(k.parent_when)
+                                        or m.answer_codes && k.parent_when)))
   ),
   pick as (
     select id, section, tier, kind, micro, priority, n, mine_code,
@@ -696,6 +744,7 @@ revoke all on function public.pv_contributor_stats() from public, anon, authenti
 --    列にも group by にも入れない（準識別子。年収ビューが base_iata を外したのと同じ判断）
 --  ・「わからない」は n に数えない（n_unknown で別に見せる）
 --  ・スキップだけの行（skipped_at だけの行）は1人として数えない
+--  ・親の条件から外れた回答は数えない（親を答え直して、その下が画面から消えた人のぶん）
 --  ・answer_text / answer_json は1列も出さない
 --  ・airline_other がある行は除外（自由入力の社名そのものが識別子）
 --  ・answer_dist を出すのは、回答が割れたときに多数決で事実にしないため。
@@ -714,6 +763,17 @@ with ans as (
      --   下の n の filter（<> 'unknown'）をすり抜けてしまう）
      and num_nonnulls(c.answer_code, c.answer_codes, c.answer_num,
                       c.answer_text, c.answer_json) > 0
+     -- ★親の条件が、いちばん上まで続いている回答だけを数える（2026-10-04・4b）。
+     --   制度を「ない」に答え直した人の、その下の質問への古い答えを数え続けない。
+     --   行は消していないので、答え直せばまた数える。
+     and not exists (
+           select 1 from public.pv_condition_links k
+            where k.question_id = c.question_id
+              and not exists (
+                select 1 from public.airline_conditions p
+                 where p.proof_hash = c.proof_hash and p.question_id = k.parent
+                   and (p.answer_code = any(k.parent_when)
+                        or p.answer_codes && k.parent_when)))
 ),
 picked as (
   select airline, question_id, proof_hash, answer_code as code

@@ -1,0 +1,90 @@
+/* career-sec.css — 会社・募集・公表されている待遇・拠点の街・就航地の画面の頭（career.html）
+   中身は gen-career.mjs が career-facts.mjs（出どころつきの台帳）から書く。ここは見た目だけ。
+   ★色は pv-tokens.css のトークンだけ（hex と prefers-color-scheme を直書きしない）。
+   ★直したら node gen-career.mjs（HTML が読む ?v= はファイルの指紋）。
+   骨組み（.cr-sec・.cr-h2・.cr-more・.cr-srcs・.cr-credits・.cr-link・.cr-stay-*）は career.css の側。 */
+
+/* ── 会社 ── */
+.cr-org-p{font-size:14px;line-height:1.8;color:var(--pv-ink-2)}
+.cr-org-nums{display:grid;grid-template-columns:repeat(2, minmax(0,1fr));gap:8px;margin-top:12px;list-style:none}
+.cr-org-num{display:flex;flex-direction:column;gap:2px;min-width:0;padding:10px 12px;border-radius:var(--pv-r);
+  background:var(--pv-surface-2);border:1px solid var(--pv-line-soft)}
+.cr-org-num b{font-family:Inter,sans-serif;font-size:20px;font-weight:800;line-height:1.25;letter-spacing:-.02em;color:var(--pv-ink)}
+.cr-org-num span{font-size:13px;font-weight:700;line-height:1.45;color:var(--pv-ink)}
+.cr-org-num small{font-size:12px;line-height:1.55;color:var(--pv-ink-3)}
+.cr-org .cr-org-nums + .cr-more{margin-top:14px}
+.cr-org-fleet{display:grid;grid-template-columns:repeat(2, minmax(0,1fr));gap:0 20px;padding-bottom:4px;list-style:none}
+.cr-org-fleet li{display:flex;align-items:baseline;justify-content:space-between;gap:10px;min-height:32px;
+  font-size:13px;line-height:1.5;color:var(--pv-ink-2);border-bottom:1px solid var(--pv-line-soft)}
+.cr-org-fleet b{flex:none;font-family:Inter,sans-serif;font-weight:700;color:var(--pv-ink)}
+.cr-org .cr-more > p{padding-top:8px;font-size:12px;color:var(--pv-ink-3)}
+
+/* ── 募集 ── */
+.cr-job-l{list-style:none}
+.cr-job-l li + li{border-top:1px solid var(--pv-line-soft)}
+.cr-job{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:0 12px;min-height:56px;padding:8px 0;
+  color:var(--pv-ink);text-decoration:none;transition:opacity .18s var(--pv-ease)}
+.cr-job-n{grid-column:1;font-size:14px;font-weight:700;line-height:1.45}
+.cr-job-m{grid-column:1;font-size:12px;line-height:1.5;color:var(--pv-ink-3)}
+.cr-job .cr-ic{grid-column:2;grid-row:1 / span 2;color:var(--pv-accent-ink)}
+.cr-job:hover .cr-job-n{color:var(--pv-accent-ink)}
+.cr-job:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px;border-radius:var(--pv-r-sm)}
+.cr-job:active{opacity:.6}
+.cr-job-at{margin-top:4px;font-size:12px;line-height:1.6;color:var(--pv-ink-3)}
+
+/* ── 公表されている待遇 ── */
+.cr-ben{display:grid;gap:0}
+.cr-ben-i{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:4px 14px;padding:10px 0;
+  border-top:1px solid var(--pv-line-soft)}
+.cr-ben-i:first-child{border-top:0;padding-top:0}
+.cr-ben dt{font-size:13px;line-height:1.55;color:var(--pv-ink-2)}
+.cr-ben dd{min-width:0;margin:0;font-size:14px;line-height:1.55;color:var(--pv-ink)}
+.cr-ben dd b{font-weight:700;overflow-wrap:anywhere}
+.cr-ben dd small{display:block;margin-top:2px;font-size:12px;line-height:1.55;color:var(--pv-ink-3)}
+.cr-bens .cr-ben + .cr-more{margin-top:6px}
+.cr-more > .cr-ben{padding-bottom:12px}
+
+/* ── 話題ごとのカードの「匿名で答える」 ── */
+.cr-asks-h{margin-top:12px;font-size:12px;font-weight:700;letter-spacing:.04em;color:var(--pv-ink-3)}
+.cr-asks-h + .cr-asks{margin-top:4px}
+
+/* ── 拠点の街 ── */
+.cr-town-base{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:18px;font-weight:800;
+  letter-spacing:-.01em;color:var(--pv-ink)}
+.cr-town-base .cr-stay-c{font-size:12px}
+.cr-town-ap{font-size:13px;font-weight:500;letter-spacing:0;color:var(--pv-ink-2)}
+.cr-town-h{margin-top:16px;font-size:13px;font-weight:700;line-height:1.5;color:var(--pv-ink-2)}
+.cr-town-l{display:grid;grid-template-columns:repeat(2, minmax(0,1fr));gap:10px;margin-top:8px;list-style:none}
+.cr-town{display:flex;flex-direction:column;min-width:0;overflow:hidden;border-radius:var(--pv-r);
+  background:var(--pv-surface-2);border:1px solid var(--pv-line-soft)}
+.cr-town-p{display:block;aspect-ratio:16 / 9;overflow:hidden;background:var(--pv-line-soft)}
+.cr-town-p img{display:block;width:100%;height:100%;object-fit:cover}
+.cr-town-n{padding:10px 12px 0;font-size:14px;font-weight:700;line-height:1.4;color:var(--pv-ink)}
+.cr-rent{display:grid;gap:6px;margin:0;padding:8px 12px 12px}
+.cr-rent div{display:grid;gap:1px}
+.cr-rent dt{font-size:12px;line-height:1.5;color:var(--pv-ink-3)}
+.cr-rent dd{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 8px;margin:0;line-height:1.45}
+.cr-rent dd b{font-family:Inter,sans-serif;font-size:15px;font-weight:800;letter-spacing:-.01em;color:var(--pv-ink);white-space:nowrap}
+.cr-rent dd span{font-size:12px;color:var(--pv-ink-2);white-space:nowrap}
+.cr-towns .cr-town-l + .cr-more{margin-top:14px}
+.cr-towns > .cr-credits{margin-top:10px}
+
+/* ── 就航地の画面の頭（写真・季節便の札・地図）── */
+.cr-sv-p{position:relative;overflow:hidden;height:168px;margin:12px 0 14px;border-radius:var(--pv-r-lg);
+  background:var(--pv-line-soft)}
+.cr-sv-p img{display:block;width:100%;height:100%;object-fit:cover}
+.cr-sv-tag{display:inline-block;margin-left:8px;padding:1px 8px;border-radius:999px;font-size:12px;font-weight:700;
+  color:var(--pv-ink-2);background:var(--pv-surface);border:1px solid var(--pv-line)}
+.cr-sv-map{margin-top:4px}
+.cr-cmp-card{margin-top:16px}
+
+@media (min-width:700px){
+  .cr-org-nums{grid-template-columns:repeat(4, minmax(0,1fr))}
+  .cr-org-fleet{grid-template-columns:repeat(3, minmax(0,1fr))}
+  .cr-town-l{grid-template-columns:repeat(4, minmax(0,1fr))}
+  .cr-sv-p{height:240px}
+}
+@media (max-width:351px){
+  .cr-org-nums,.cr-town-l{grid-template-columns:minmax(0,1fr)}
+  .cr-ben-i{grid-template-columns:minmax(0,1fr)}
+}

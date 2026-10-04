@@ -433,6 +433,240 @@ await db.exec(`update pv_condition_settings set value = ${SETTINGS.answer_reask_
                where key = 'answer_reask_days'`);
 ok(!(await offered(84, 'peach', 'days_off_request')), '   元に戻すとまた黙る');
 
+/* ⑱ 通勤の移動 ── 手段ごとに分けて聞く（2026-10-04）。
+   あいだの親（commuting_transport_method）は「複数選ぶ」質問で、タクシーの3問と
+   クルーバスの2問が、選んだ手段ごとに別々に開く。
+   ★ここが壊れても画面は普通に動く（タクシーの条件がバスの人にも出る・バスの答えが
+     タクシーの欄に混ざる）ので、ここでしか気づけない。
+   見ること:
+     ・両方を選んだ人には5問とも出る／片方だけの人には、選んでいない手段の質問が出ない・
+       送っても受け取られない
+     ・同じ人が「バスは制限なし・会社が全額」「タクシーは公共交通が動いていない時間だけ・
+       一部は本人」を別々の行として残せる
+     ・いちばん上（通勤の移動があるか）を条件の外へ答え直すと、その下は出ない・受けない・数えない
+   ⚠️ next の上限は30問。一覧が上限で切れていたら「出ない」は証拠にならないので、
+      切れていないことを一緒に見る（uncut）。 */
+console.log('\n▼ ⑱ 通勤の移動 ── タクシーとクルーバスを別々に聞く（親が「複数選ぶ」質問）');
+const QBY = Object.fromEntries(QUESTIONS.map((q) => [q.id, q]));
+const kids = (pid) => QUESTIONS.filter((q) => q.parent === pid).map((q) => q.id);
+const same = (a, b) => JSON.stringify([...a].sort()) === JSON.stringify([...b].sort());
+const TAXI = ['commuting_taxi_when', 'commuting_taxi_where', 'commuting_taxi_cost'];
+const BUS = ['commuting_bus_when', 'commuting_bus_cost'];
+const GONE = ['commuting_transport_when', 'commuting_transport_where', 'commuting_transport_cost'];
+const CT = QBY.commuting_transport, METHOD = QBY.commuting_transport_method;
+const CT_IN = METHOD.parentWhen[0];
+const CT_OUT = CT.choices.find((c) => c.code !== UNKNOWN && !METHOD.parentWhen.includes(c.code)).code;
+
+ok(METHOD.kind === 'multi' && METHOD.parent === CT.id, '   あいだの親は「複数選ぶ」質問（手段をいくつでも選べる）');
+ok(same(kids(METHOD.id), [...TAXI, ...BUS]), '   手段の下に在るのはタクシー3問とクルーバス2問だけ',
+  JSON.stringify(kids(METHOD.id)));
+ok(TAXI.every((id) => same(QBY[id].parentWhen, ['company_taxi', 'reimburse'])),
+  '   タクシーの3問は「会社手配のタクシー」「立て替えて精算」のときだけ開く');
+ok(BUS.every((id) => same(QBY[id].parentWhen, ['crew_bus'])), '   クルーバスの2問は「クルーバス」のときだけ開く');
+ok(GONE.every((id) => !QBY[id]), '   手段を混ぜて聞いていた3問はバンクに無い');
+ok(Number((await one(`select count(*) n from pv_condition_questions where active and id = any($1)`, [GONE])).n) === 0,
+  '   DB の質問マスタでも有効になっていない');
+const choiceSig = (id) => JSON.stringify(QBY[id].choices.map((c) => [c.code, c.ja, c.en]));
+ok(choiceSig('commuting_taxi_when') === choiceSig('commuting_bus_when'),
+  '   「どんなときに使えるか」の選択肢は、タクシーとクルーバスで同じ（手段どうしを比べられる）');
+ok(QBY.commuting_taxi_when.choices[0].code === 'any_time' && QBY.commuting_bus_when.choices[0].code === 'any_time',
+  '   どちらも先頭の選択肢が「制限はない（いつでも）」');
+/* 親が隣に無い所（1問だけ出す画面・通知・集計）でも、どの手段の話か分かる見出し */
+ok(TAXI.every((id) => QBY[id].ja.label.includes('タクシー') && /taxi/i.test(QBY[id].en.label)),
+  '   タクシーの3問は、見出しだけで「タクシーの話」と分かる（日英）');
+ok(BUS.every((id) => QBY[id].ja.label.includes('クルーバス') && /crew bus/i.test(QBY[id].en.label)),
+  '   クルーバスの2問は、見出しだけで「クルーバスの話」と分かる（日英）');
+const words = (q) => [q.ja.label, q.en.label, q.ja.help || '', q.en.help || '',
+  ...(q.choices || []).flatMap((c) => [c.ja, c.en])];
+ok([...TAXI, ...BUS].every((id) => words(QBY[id]).every((w) => !/[0-9０-９]/.test(w))),
+  '   金額・距離・時刻の数字を1つも書いていない（見出し・補足・選択肢）');
+ok(QUESTIONS.every((q) => !q.ja.label.includes('早朝・深夜の通勤条件')),
+  '   「早朝・深夜の通勤条件」を見出しに使っていない');
+
+const CM = { airline: 'starflyer', year: 2026, month: 8 };
+/* いま候補に出る質問（上限で切れていないことも一緒に返す） */
+const offer = async (n, airline) => {
+  await asUser(n);
+  const q = (await next({ airline, limit: 30 })).questions.map((x) => x.id);
+  return { ids: q, uncut: q.length < 30 };
+};
+const mineOf = async (n, airline) => {
+  await asUser(n);
+  return Object.fromEntries((await mine({ airline })).answers.map((a) => [a.question_id, a]));
+};
+const allMissing = (res, ids) => res.saved === 0 && same(res.rejected.map((x) => x.question_id), ids)
+  && res.rejected.every((x) => x.reason === 'parent_missing');
+const send5 = (pick) => [
+  { question_id: 'commuting_taxi_when', codes: ['disruption'] },
+  { question_id: 'commuting_taxi_where', code: 'door_to_door' },
+  { question_id: 'commuting_taxi_cost', code: 'self_full' },
+  { question_id: 'commuting_bus_when', codes: ['disruption'] },
+  { question_id: 'commuting_bus_cost', code: 'self_full' }].filter((a) => pick.includes(a.question_id));
+
+// 手段をまだ答えていない人
+let o = await offer(201, CM.airline);
+ok(o.uncut && [...TAXI, ...BUS].every((id) => !o.ids.includes(id)), '⑱ 何も答えていない人には5問とも出ない');
+await submit({ ...CM, answers: [{ question_id: CT.id, code: CT_IN }] });
+o = await offer(201, CM.airline);
+ok(o.uncut && o.ids.includes(METHOD.id) && [...TAXI, ...BUS].every((id) => !o.ids.includes(id)),
+  '   通勤の移動が「ある」だけでは、手段を聞く質問だけが出る（5問はまだ出ない）');
+r = await submit({ ...CM, answers: send5([...TAXI, ...BUS]) });
+ok(allMissing(r, [...TAXI, ...BUS]), '   手段を答える前に5問を送っても受け取らない',
+  JSON.stringify(r.rejected));
+
+// タクシーとクルーバスの両方を選んだ人
+r = await submit({ ...CM, answers: [{ question_id: METHOD.id, codes: ['company_taxi', 'crew_bus'] }] });
+ok(r.saved === 1, '   手段を2つ選んで保存できる（会社手配のタクシー・クルーバス）');
+o = await offer(201, CM.airline);
+ok([...TAXI, ...BUS].every((id) => o.ids.includes(id)), '⑱ ★両方を選んだ人には5問とも出る',
+  JSON.stringify(o.ids.filter((id) => id.startsWith('commuting_'))));
+r = await submit({ ...CM, answers: [
+  { question_id: 'commuting_bus_when', codes: ['any_time'] },
+  { question_id: 'commuting_bus_cost', code: 'company_full' },
+  { question_id: 'commuting_taxi_when', codes: ['no_public_transport'] },
+  { question_id: 'commuting_taxi_cost', code: 'partial' }] });
+ok(r.saved === 4 && r.rejected.length === 0, '   バスの2問とタクシーの2問を、1回の送信で別々に保存できる',
+  JSON.stringify(r.rejected));
+let m = await mineOf(201, CM.airline);
+ok(same(m.commuting_bus_when?.codes || [], ['any_time']) && m.commuting_bus_cost?.code === 'company_full',
+  '⑱ ★「バスは制限なし・会社が全額」が、バスの行に残る',
+  JSON.stringify([m.commuting_bus_when?.codes, m.commuting_bus_cost?.code]));
+ok(same(m.commuting_taxi_when?.codes || [], ['no_public_transport']) && m.commuting_taxi_cost?.code === 'partial',
+  '⑱ ★「タクシーは公共交通が動いていない時間だけ・一部は本人」が、同じ人のタクシーの行に残る',
+  JSON.stringify([m.commuting_taxi_when?.codes, m.commuting_taxi_cost?.code]));
+ok(!m.commuting_taxi_where, '   答えていない質問（タクシーでどこまで）は空のまま（ほかの答えで埋めない）');
+
+// クルーバスだけを選んだ人
+await asUser(202);
+await submit({ ...CM, answers: [{ question_id: CT.id, code: CT_IN },
+  { question_id: METHOD.id, codes: ['crew_bus'] }] });
+o = await offer(202, CM.airline);
+ok(o.uncut && BUS.every((id) => o.ids.includes(id)) && TAXI.every((id) => !o.ids.includes(id)),
+  '⑱ ★クルーバスだけの人には、バスの2問だけが出る（タクシーの3問は出ない）',
+  JSON.stringify(o.ids.filter((id) => id.startsWith('commuting_'))));
+r = await submit({ ...CM, answers: send5(TAXI) });
+ok(allMissing(r, TAXI), '⑱ ★クルーバスだけの人がタクシーの3問を送っても受け取らない', JSON.stringify(r.rejected));
+r = await submit({ ...CM, answers: [{ question_id: 'commuting_bus_when', codes: ['any_time'] },
+  { question_id: 'commuting_bus_cost', code: 'company_full' }] });
+ok(r.saved === 2, '   バスの2問は受け取る');
+
+// タクシーだけ（立て替えて精算）を選んだ人
+await asUser(203);
+await submit({ ...CM, answers: [{ question_id: CT.id, code: CT_IN },
+  { question_id: METHOD.id, codes: ['reimburse'] }] });
+o = await offer(203, CM.airline);
+ok(o.uncut && TAXI.every((id) => o.ids.includes(id)) && BUS.every((id) => !o.ids.includes(id)),
+  '   立て替えて精算だけの人には、タクシーの3問だけが出る（バスの2問は出ない）',
+  JSON.stringify(o.ids.filter((id) => id.startsWith('commuting_'))));
+r = await submit({ ...CM, answers: send5(BUS) });
+ok(allMissing(r, BUS), '   その人がバスの2問を送っても受け取らない', JSON.stringify(r.rejected));
+
+// どちらでもない手段（ホテル）／手段が「わからない」人
+await asUser(204);
+await submit({ ...CM, answers: [{ question_id: CT.id, code: CT_IN },
+  { question_id: METHOD.id, codes: ['hotel'] }] });
+o = await offer(204, CM.airline);
+ok(o.uncut && [...TAXI, ...BUS].every((id) => !o.ids.includes(id)), '   ホテルだけの人には5問とも出ない');
+r = await submit({ ...CM, answers: [{ question_id: METHOD.id, code: UNKNOWN }] });
+ok(r.saved === 1, '   手段が「わからない」も保存できる');
+r = await submit({ ...CM, answers: send5([...TAXI, ...BUS]) });
+ok(allMissing(r, [...TAXI, ...BUS]), '   手段が「わからない」の人から5問を受け取らない', JSON.stringify(r.rejected));
+
+// 公開集計 ── 手段を選んだ人のぶんだけを数える
+await asUser(205);
+await submit({ ...CM, answers: [{ question_id: CT.id, code: CT_IN },
+  { question_id: METHOD.id, codes: ['crew_bus', 'other'] },
+  { question_id: 'commuting_bus_cost', code: 'company_full' }] });
+const factN = async (airline, qid) => {
+  const f = await rows(`select n, answer_dist from airline_condition_facts where airline = $1 and question_id = $2`,
+    [airline, qid]);
+  return f.length ? f[0] : null;
+};
+let f = await factN(CM.airline, 'commuting_bus_cost');
+ok(f && f.n === 3 && f.answer_dist.company_full === 3, '⑱ バスの費用に3人が答えたら公開集計に出る（3人とも会社が全額）',
+  JSON.stringify(f));
+ok((await factN(CM.airline, 'commuting_taxi_cost')) === null,
+  '   タクシーの費用は1人だけ ＝ 出ない（バスの答えがタクシーの欄に混ざらない）');
+
+// あいだの親（手段）からクルーバスを外した人のぶんは数えない
+await asUser(202);
+await submit({ ...CM, answers: [{ question_id: METHOD.id, codes: ['hotel'] }] });
+ok((await factN(CM.airline, 'commuting_bus_cost')) === null,
+  '⑱ ★手段からクルーバスを外した人の、バスの古い答えを数え続けない（3人 → 2人で出なくなる）');
+m = await mineOf(202, CM.airline);
+ok(m.commuting_bus_cost?.code === 'company_full', '   行は消していない（答え直せば、また数える）');
+await asUser(202);
+await submit({ ...CM, answers: [{ question_id: METHOD.id, codes: ['crew_bus', 'hotel'] }] });
+ok((await factN(CM.airline, 'commuting_bus_cost'))?.n === 3, '   クルーバスを選び直すと、また3人に戻る');
+
+// いちばん上（通勤の移動があるか）を条件の外へ答え直した人
+await asUser(201);
+await submit({ ...CM, answers: [{ question_id: CT.id, code: CT_OUT }] });
+o = await offer(201, CM.airline);
+ok(o.uncut && [METHOD.id, ...TAXI, ...BUS].every((id) => !o.ids.includes(id)),
+  '⑱ ★いちばん上を「ない」に答え直すと、手段もその下の5問も出ない');
+r = await submit({ ...CM, answers: send5(['commuting_taxi_where']) });
+ok(allMissing(r, ['commuting_taxi_where']),
+  '   手段の古い答えが条件に合っていても、その下の質問を受け取らない（いちばん上まで見る）',
+  JSON.stringify(r.rejected));
+ok((await factN(CM.airline, 'commuting_bus_cost')) === null, '   その人のバスの答えも数えない（3人 → 2人）');
+await asUser(201);
+await submit({ ...CM, answers: [{ question_id: CT.id, code: CT_IN }] });
+ok((await factN(CM.airline, 'commuting_bus_cost'))?.n === 3, '   元に戻すと、前の答えのまま数に戻る');
+
+/* ⑲ 社員向け航空券を使える人 ── 券の種類ごとに分けて聞く（2026-10-04）。
+   「空席待ちは親まで・座席を確保できる券は本人だけ」のように、券によって使える人が違う会社を
+   1つの質問で聞くと、どちらの話か分からない答えが残る。
+   共通の1問（staff_travel_family）は本番に在るので触っていない。 */
+console.log('\n▼ ⑲ 社員向け航空券を使える人 ── 空席待ちと座席確保を別々に聞く');
+const FAM_S = 'staff_travel_standby_family', FAM_C = 'staff_travel_confirmed_family';
+const ST = QBY.staff_travel, BOOK = QBY.staff_travel_booking;
+ok(QBY[FAM_S].kind === 'multi' && QBY[FAM_C].kind === 'multi'
+   && QBY[FAM_S].parent === BOOK.id && QBY[FAM_C].parent === BOOK.id,
+  '   2問とも「複数選ぶ」質問で、親は「空席待ちか・座席確保か」');
+ok(same(QBY[FAM_S].parentWhen, ['standby', 'both']) && same(QBY[FAM_C].parentWhen, ['both', 'confirmed']),
+  '   空席待ちの券を持つ人・座席確保の券を持つ人に、それぞれだけ開く');
+ok(choiceSig(FAM_S) === choiceSig(FAM_C), '   使える人の選択肢は、2つの券で同じ（券どうしを比べられる）');
+ok(same(QBY[FAM_S].choices.map((c) => c.code),
+        ['self', 'partner', 'children', 'parents', 'siblings', 'nominee', 'other']),
+  '   選択肢は 本人・配偶者／パートナー・子・親・きょうだい・指名した人・その他');
+ok(QBY.staff_travel_family && !QBY.staff_travel_family.parentWhen.includes(UNKNOWN)
+   && QBY.staff_travel_family.parent === ST.id, '   共通の1問（staff_travel_family）は今までどおり在る');
+
+const FT = { airline: 'airdo', year: 2026, month: 8 };
+const ST_IN = BOOK.parentWhen[0];
+const book = async (n, code) => {
+  await asUser(n);
+  return submit({ ...FT, answers: [{ question_id: ST.id, code: ST_IN }, { question_id: BOOK.id, code }] });
+};
+await book(211, 'both');
+o = await offer(211, FT.airline);
+ok(o.uncut && o.ids.includes(FAM_S) && o.ids.includes(FAM_C), '⑲ 両方の券がある人には、2問とも出る');
+r = await submit({ ...FT, answers: [
+  { question_id: FAM_S, codes: ['self', 'partner', 'children', 'parents'] },
+  { question_id: FAM_C, codes: ['self'] }] });
+ok(r.saved === 2 && r.rejected.length === 0, '   2問を1回の送信で別々に保存できる', JSON.stringify(r.rejected));
+m = await mineOf(211, FT.airline);
+ok(same(m[FAM_S]?.codes || [], ['self', 'partner', 'children', 'parents']) && same(m[FAM_C]?.codes || [], ['self']),
+  '⑲ ★「空席待ちは親まで・座席確保は本人だけ」を、同じ人が別々の行に残せる',
+  JSON.stringify([m[FAM_S]?.codes, m[FAM_C]?.codes]));
+
+await book(212, 'standby');
+o = await offer(212, FT.airline);
+ok(o.uncut && o.ids.includes(FAM_S) && !o.ids.includes(FAM_C),
+  '⑲ 空席待ちだけの人には、座席確保の券の質問が出ない');
+r = await submit({ ...FT, answers: [{ question_id: FAM_C, codes: ['self'] }] });
+ok(allMissing(r, [FAM_C]), '   送っても受け取らない', JSON.stringify(r.rejected));
+
+await book(213, 'confirmed');
+o = await offer(213, FT.airline);
+ok(o.uncut && o.ids.includes(FAM_C) && !o.ids.includes(FAM_S),
+  '⑲ 座席確保だけの人には、空席待ちの券の質問が出ない');
+r = await submit({ ...FT, answers: [{ question_id: FAM_S, codes: ['self'] }] });
+ok(allMissing(r, [FAM_S]), '   送っても受け取らない', JSON.stringify(r.rejected));
+r = await submit({ ...FT, answers: [{ question_id: FAM_C, codes: ['self', 'grandparents'] }] });
+ok(r.saved === 0 && r.rejected[0]?.reason === 'bad_code', '   選択肢に無い人（祖父母など）は受け取らない');
+
 
 /* オーナーが SQL Editor で見る検算表そのものを、ここで先に回しておく。
    本番で ❌ が出たときに「SQL が悪いのか検算が悪いのか」を迷わないため。 */

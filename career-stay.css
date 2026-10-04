@@ -1,0 +1,154 @@
+/* career-stay.css — 就航地の画面の「ホテル」の欄の見た目（.crs-*）。career-stay.js が組む。
+ *
+ * ・色は pv-tokens.css のトークンだけ（ここに色の値を直書きしない。ダークはトークンごと差し替わる）。
+ * ・動かすのは transform と opacity だけ。
+ * ・字は 12px 以上・押す場所は 44px 以上・入力欄の字は 16px（スマホで勝手に拡大されない）。
+ * ・面の重なり: 欄（下地）→ カード（1段上）→ 大きく見る面（いちばん上）。
+ */
+
+.crs{display:grid;gap:14px;min-width:0}
+.crs[data-busy]{pointer-events:none;opacity:.6}
+.crs-icw{display:inline-flex;flex:none}
+
+/* ── 1行だけの状態（準備中・鍵・0件・読めない）──────────────────── */
+.crs-line{display:flex;align-items:center;gap:8px;min-height:44px;padding:8px 14px;
+          border:1px solid var(--pv-line);border-radius:var(--pv-r-sm);background:var(--pv-bg-sub);
+          color:var(--pv-ink-2);font-size:14px;line-height:1.6}
+.crs-lock .crs-icw{color:var(--pv-ink-3)}
+.crs-err{justify-content:space-between;flex-wrap:wrap}
+
+/* 読み込み中の骨組み。 */
+.crs-skel{display:grid;gap:10px;padding:16px;border:1px solid var(--pv-line);border-radius:var(--pv-r);
+          background:var(--pv-surface)}
+.crs-skel span{display:block;height:14px;border-radius:999px;background:var(--pv-line);
+               animation:crs-pulse 1s ease-in-out infinite alternate}
+.crs-skel-a{width:46%}
+.crs-skel-b{width:72%}
+@keyframes crs-pulse{from{opacity:.45}to{opacity:1}}
+
+/* ── 種類ごとの並び ─────────────────────────────────────────────── */
+.crs-h{margin-bottom:8px;font-size:13px;font-weight:700;color:var(--pv-ink-2)}
+.crs-list{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));
+          list-style:none;margin:0;padding:0}
+
+.crs-card{display:grid;align-content:start;gap:6px;min-width:0;padding:14px 16px 10px;
+          border:1px solid var(--pv-line);border-radius:var(--pv-r);
+          background:var(--pv-surface);box-shadow:var(--pv-shadow)}
+.crs-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.crs-name{min-width:0;font-size:15px;font-weight:700;line-height:1.45;letter-spacing:-.01em;
+          color:var(--pv-ink);overflow-wrap:anywhere}
+.crs-addr{font-size:13px;line-height:1.6;color:var(--pv-ink-2);overflow-wrap:anywhere}
+.crs-note{font-size:14px;line-height:1.7;color:var(--pv-ink);overflow-wrap:anywhere;white-space:pre-line}
+
+.crs-badge{flex:none;padding:1px 8px;border-radius:999px;white-space:nowrap;
+           background:var(--pv-gold-soft);border:1px solid var(--pv-gold-line);color:var(--pv-gold-ink);
+           font-size:12px;font-weight:700;line-height:1.5}
+.crs-badge-no{background:var(--pv-bg-sub);border-color:var(--pv-line);color:var(--pv-ink-3)}
+
+/* ── 写真 ───────────────────────────────────────────────────────── */
+.crs-photos{display:flex;gap:8px;margin-top:4px;padding-bottom:2px;overflow-x:auto;
+            -webkit-overflow-scrolling:touch}
+.crs-ph{position:relative;flex:none;display:block;height:112px;aspect-ratio:4 / 3;
+        min-width:76px;max-width:220px;padding:0;border:0;border-radius:var(--pv-r-sm);overflow:hidden;
+        background:var(--pv-bg-sub);cursor:pointer}
+.crs-ph img{display:block;width:100%;height:100%;object-fit:cover;opacity:0;
+            transition:opacity .3s var(--pv-ease),transform .3s var(--pv-ease)}
+.crs-ph[data-ph="ok"] img{opacity:1}
+.crs-ph[data-ph="wait"]{cursor:default;animation:crs-pulse 1s ease-in-out infinite alternate}
+.crs-ph[data-ph="err"]{cursor:default;border:1px dashed var(--pv-line)}
+.crs-ph-e{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:6px;
+          font-size:12px;line-height:1.5;color:var(--pv-ink-3);text-align:center}
+.crs-ph-b{position:absolute;left:6px;bottom:6px;background:var(--pv-surface)}
+.crs-ph:active img{opacity:.8}
+
+/* ── 押すもの ───────────────────────────────────────────────────── */
+.crs-acts{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:2px}
+.crs-map{display:inline-flex;align-items:center;gap:6px;min-height:44px;margin-right:auto;padding-right:6px;
+         color:var(--pv-accent-ink);font-size:14px;font-weight:700;text-decoration:none}
+.crs-map .crs-ic{transition:transform .22s var(--pv-ease)}
+.crs-map:active{opacity:.6}
+
+.crs-act{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:6px;
+         min-height:44px;padding:0 16px;border:1px solid var(--pv-line);border-radius:999px;
+         background:var(--pv-surface);color:var(--pv-ink-2);
+         font:inherit;font-size:13px;font-weight:700;line-height:1.2;white-space:nowrap;cursor:pointer;
+         transition:transform .22s var(--pv-ease)}
+.crs-act-go{background:var(--pv-accent-soft);border-color:var(--pv-accent-line);color:var(--pv-accent-ink)}
+.crs-act-no{color:var(--pv-orange-ink)}
+.crs-act[data-sure]{background:var(--pv-orange-soft);border-color:var(--pv-orange-ink)}
+.crs-act:active{transform:scale(.97)}
+.cr .crs-act:focus-visible,.cr .crs-btn:focus-visible{border-radius:999px}
+
+.crs-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:0 20px;
+         border:0;border-radius:999px;background:var(--pv-accent-dark);color:var(--cr-on,white);
+         font:inherit;font-size:14px;font-weight:700;line-height:1.2;white-space:nowrap;cursor:pointer;
+         box-shadow:0 1px 2px color-mix(in srgb, var(--pv-navy) 14%, transparent),
+                    0 10px 20px -12px color-mix(in srgb, var(--pv-accent-dark) 80%, transparent);
+         transition:transform .22s var(--pv-ease)}
+.crs-btn:active{transform:scale(.97)}
+
+/* 写真を選ぶ口。input は見えない大きさで置く（キーボードで届く）。 */
+.crs-file-in{position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;opacity:0;
+             overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%)}
+.crs-file:focus-within{outline:2px solid var(--pv-accent);outline-offset:2px}
+
+.crs-say{font-size:13px;line-height:1.7;color:var(--pv-ink-2)}
+.crs-say:empty{display:none}
+
+/* ── 追加の面 ───────────────────────────────────────────────────── */
+.crs-add{display:grid;justify-items:start;gap:0}
+.crs-form{display:grid;gap:14px;width:100%;max-width:560px;padding:16px;
+          border:1px solid var(--pv-line);border-radius:var(--pv-r);background:var(--pv-bg-sub);
+          animation:crs-in .3s var(--pv-ease) both}
+@keyframes crs-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.crs-f{display:grid;gap:6px;min-width:0;margin:0;padding:0;border:0}
+.crs-lb{padding:0;font-size:13px;font-weight:700;color:var(--pv-ink-2)}
+.crs-in{display:block;width:100%;min-height:44px;padding:10px 12px;
+        border:1px solid var(--pv-line);border-radius:var(--pv-r-sm);
+        background:var(--pv-surface);color:var(--pv-ink);
+        font:inherit;font-size:16px;line-height:1.5}
+textarea.crs-in{resize:vertical;line-height:1.6}
+.crs-in::placeholder{color:var(--pv-ink-3)}
+.crs-in:focus-visible{outline:2px solid var(--pv-accent);outline-offset:1px}
+
+.crs-seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.crs-seg-i{position:relative;display:block;cursor:pointer}
+.crs-seg-i input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
+.crs-seg-i span{display:flex;align-items:center;justify-content:center;min-height:44px;padding:0 8px;
+                border:1px solid var(--pv-line);border-radius:var(--pv-r-sm);
+                background:var(--pv-surface);color:var(--pv-ink-2);font-size:14px;font-weight:700;
+                transition:transform .22s var(--pv-ease)}
+.crs-seg-i input:checked + span{background:var(--pv-accent-soft);border-color:var(--pv-accent-line);
+                                color:var(--pv-accent-ink)}
+.crs-seg-i input:focus-visible + span{outline:2px solid var(--pv-accent);outline-offset:2px}
+.crs-seg-i:active span{transform:scale(.97)}
+
+.crs-prow,.crs-pv,.crs-end{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.crs-pv img{display:block;width:auto;height:72px;max-width:140px;object-fit:cover;border-radius:var(--pv-r-sm)}
+
+/* ── 同じ空港で他社が使うホテル ─────────────────────────────────── */
+.crs-others{margin-top:6px;padding-top:18px;border-top:1px solid var(--pv-line)}
+.crs-h-o{margin-bottom:12px;font-size:15px;letter-spacing:-.01em;color:var(--pv-ink)}
+.crs-co + .crs-co{margin-top:14px}
+.crs-co-n{margin-bottom:8px;font-size:13px;font-weight:700;color:var(--pv-ink-2)}
+
+/* ── 大きく見る面 ───────────────────────────────────────────────── */
+.crs-zoom{margin:auto;padding:12px;border:0;border-radius:var(--pv-r-lg);
+          max-width:min(94vw,960px);max-height:94vh;
+          background:var(--pv-surface);color:var(--pv-ink);box-shadow:var(--pv-shadow-lift)}
+.crs-zoom[open]{display:grid;gap:8px;animation:crs-in .3s var(--pv-ease) both}
+.crs-zoom::backdrop{background:color-mix(in srgb, var(--pv-navy) 72%, transparent)}
+.crs-zoom-img{display:block;width:auto;height:auto;max-width:100%;max-height:calc(94vh - 92px);
+              margin:0 auto;border-radius:var(--pv-r-sm);object-fit:contain}
+.crs-zoom-acts{justify-content:flex-end;margin-top:0}
+
+@media (hover:hover){
+  .crs-map:hover{text-decoration:underline;text-underline-offset:3px}
+  .crs-map:hover .crs-ic{transform:translate(2px,-2px)}
+  .crs-act:hover,.crs-btn:hover{transform:translateY(-1px)}
+  .crs-seg-i:hover span{transform:translateY(-1px)}
+  .crs-ph[data-ph="ok"]:hover img{transform:scale(1.04)}
+}
+@media (prefers-reduced-motion:reduce){
+  .crs-skel span,.crs-ph[data-ph="wait"],.crs-form,.crs-zoom[open]{animation:none}
+}
