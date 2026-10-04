@@ -228,25 +228,36 @@ show('Inter を指定しているのに読み込んでいない（端末の既�
 
    ★直し方は、HTML 側が**中身の指紋**を付けて読むこと。
      ?v=4 のような数字は上げ忘れるが、指紋なら中身が変われば URL も変わる。
-   ⚠️ この3つを直すと指紋が変わる＝ここが落ちる。出た値を日英2枚に写す。
+   ⚠️ ここに挙げた物を直すと指紋が変わる＝ここが落ちる。出た値を日英2枚に写す。
      この検査は check.mjs fast（push 前の関所）に入っているので、
-     写し忘れたまま本番へ出ることはない。 */
-const STAMP_PAGES = [['actual-pay.html', ''], ['en/actual-pay.html', '../']];
-const STAMP_FILES = ['actual-pay.css', 'ap-preview.js', 'actual-pay.js'];
+     写し忘れたまま本番へ出ることはない。
+
+   ★2026-10-04：トップ（日英）の lp.css を足した。主のボタンを2行組みにした回で、
+     「新しい HTML ＋ 古い lp.css」だと1行のまま出る（実測：375px で字がボタンの端に付き、
+     320px では 27px 外へ出て、PC では副のボタンが左の列の外へ 45〜134px 出る）。
+     lp.js は付けていない（この回は直していない。直して組み合わせが要るようになったら足す）。 */
+const STAMPS = [
+  { pages: [['actual-pay.html', ''], ['en/actual-pay.html', '../']],
+    files: ['actual-pay.css', 'ap-preview.js', 'actual-pay.js'] },
+  { pages: [['index.html', ''], ['en/index.html', '../']],
+    files: ['lp.css'] },
+];
 const stampIssues = [];
-for (const [page, pre] of STAMP_PAGES) {
-  const d = doc.get(page);
-  if (!d) { stampIssues.push(`${page} が見つからない`); continue; }
-  for (const file of STAMP_FILES) {
-    const want = createHash('sha256')
-      .update(fs.readFileSync(path.join(__dirname, file))).digest('hex').slice(0, 8);
-    const esc = (pre + file).replace(/[.*+?^${}()|[\]\\\/]/g, '\\$&');
-    const m = d.html.match(new RegExp('"' + esc + '\\?v=([0-9a-f]+)"'));
-    if (!m) stampIssues.push(`${page}: ${file} を ?v=指紋 付きで読んでいない`);
-    else if (m[1] !== want) stampIssues.push(`${page}: ${file} の指紋が古い（?v=${m[1]} → ?v=${want} に直す）`);
+for (const { pages, files } of STAMPS) {
+  for (const [page, pre] of pages) {
+    const d = doc.get(page);
+    if (!d) { stampIssues.push(`${page} が見つからない`); continue; }
+    for (const file of files) {
+      const want = createHash('sha256')
+        .update(fs.readFileSync(path.join(__dirname, file))).digest('hex').slice(0, 8);
+      const esc = (pre + file).replace(/[.*+?^${}()|[\]\\\/]/g, '\\$&');
+      const m = d.html.match(new RegExp('"' + esc + '\\?v=([0-9a-f]+)"'));
+      if (!m) stampIssues.push(`${page}: ${file} を ?v=指紋 付きで読んでいない`);
+      else if (m[1] !== want) stampIssues.push(`${page}: ${file} の指紋が古い（?v=${m[1]} → ?v=${want} に直す）`);
+    }
   }
 }
-show('版スタンプが中身と合っていない（古い JS が最長4時間そのまま残る）', stampIssues, (x) => x);
+show('版スタンプが中身と合っていない（古い JS・CSS が最長4時間そのまま残る）', stampIssues, (x) => x);
 
 /* ── 外部リンクの生存（--online のときだけ）─────────────────────
    相手のサイトが作り替えられて 404 になっていないかを実際に叩く。

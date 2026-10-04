@@ -460,7 +460,7 @@
     #hero-section .hero-btn:hover svg{ transform:translateX(3px); }
     #hero-section .hero-btn:active{ transform:translateY(0) scale(.97); }
     #hero-section .hero-btn:focus-visible{ outline:3px solid var(--pv-accent); outline-offset:3px; }
-    #hero-section .hero-btn--p{ grid-area:p; background:var(--pv-cta-dark); color:var(--pv-cta-dark-ink);
+    #hero-section .hero-btn--p{ grid-area:p; padding-block:8px; background:var(--pv-cta-dark); color:var(--pv-cta-dark-ink);
       box-shadow:0 1px 2px rgba(17,17,17,.16), 0 12px 26px -14px rgba(6,117,99,.55); }
     #hero-section .hero-btn--p:hover{ background:var(--pv-cta-dark-hover); }
     #hero-section .hero-btn--s{ grid-area:s; background:var(--pv-bg); color:var(--pv-text);
@@ -471,21 +471,34 @@
       display:inline-flex; align-items:center; gap:6px;
       font-size:13px; font-weight:500; line-height:1.4; color:var(--pv-text-soft); }
     #hero-section .hero-unlock svg{ flex:none; }
-    /* 左の列が狭い幅（左の板がある 1100〜1300px あたり）では、2本が横に入らない。
+    /* ★2026-10-04 オーナー指示 —「出す」入口3本（ヒーローの主・#lp-realpay と #lp-airlines の2本目）の文言を
+       「Give & Get 全ての待遇データを解放する」／"Give & Get Unlock all pay data" に替えた。
+       日本語は1行だと 387px になり、隣の副のボタンを左の列の外へ 45〜95px 押し出す
+       （幅375 の iPhone では字が丸いボタンの両端に付く）。なので2行に組む。
+       ★字の大きさは変えない。上の行を span 1枚で block にしてあるだけ ＝ CSS が無くても
+         「Give & Get 全ての…」と1行で読める。行の中では折らない。
+       ⚠️ 2行ぶんの高さは上下 8px の余白で作る（字 38px ＋ 16px ＝ 54px）。min-height だけに任せると
+          スマホ（48px）で字が丸いボタンの上下に付く。余白は各ボタンの規則の側に書いてある
+          （ここに書くと、後ろに在る #lp-airlines .lp-btn の padding に負ける）。 */
+    .lp-gg{ display:block; text-align:center; white-space:nowrap; }
+    .lp-gg > span{ display:block; }
+    /* 左の列が狭い幅（左の板がある 1100〜1270px あたり）では、2本が横に入らない。
        ⚠️ そのままだと副のボタンが右の緑の面の下へ潜る（英語の 1100px で踏んだ）。
-       ★幅は画面ではなく左の列で測る。日英でボタンの長さが違うので閾値も2つ
-         （英 約503px・日 約397px が2本並べたときの幅）。縦に積むと2本は同じ幅になる。 */
+       ★幅は画面ではなく左の列で測る。縦に積むと2本は同じ幅になる。
+       ★2026-10-04：主の文言を替えたので閾値を測り直した。2本並べた幅は 日 約477px・英 約423px
+         （前は 日397・英503 で、閾値は日英で2つ ── 419 と 529 ── あった）。
+         日本語は主が長くなり、419 のままだと 1180〜1260px で副が左の列の外へ 3〜41px 出た。
+         いまは日本語のほうが長いので、閾値は日英で1つ（英語だけの指定は外した）。
+         余裕が小さい（479 − 477）のは、かなと漢字の幅がどの書体でも1字＝1em で動かないから。
+         広げると、いちばん多い 1280px（左の列 483px）まで縦積みになり、ヒーローが 64px 高くなる。
+         ⚠️ 英語の主をまた長くしたら、英語だけの閾値を戻す（2本の幅 ＋ 20px ほど）。 */
     #hero-section .hero-copy{ container:herocopy / inline-size; }
-    /* ⚠️ 2026-09-24：この2本を **640px 以上に閉じ込めた**。これは「左の列が狭い PC」のための
-       指定で、スマホには関係ない。閉じていなかったので、英語の側だけ下の
-       `@media (max-width:639px)` に勝っていた（`html[lang="en"]` のぶん指定が強い）＝
-       **英語のスマホだけボタンが 300px で、日本語は 350px**（右に 50px の空き）。
-       日本語が正しく、英語だけが取りこぼしだった。高さは変わらないので帯の計算には影響しない。 */
+    /* ⚠️ 2026-09-24：これを **640px 以上に閉じ込めた**。「左の列が狭い PC」のための
+       指定で、スマホには関係ない。閉じていなかった頃、英語だけの指定（`html[lang="en"]` のぶん強い）が
+       下の `@media (max-width:639px)` に勝ち、**英語のスマホだけボタンが 300px で、日本語は 350px** だった
+       （右に 50px の空き）。高さは変わらないので帯の計算には影響しない。 */
     @media (min-width:640px){
-      @container herocopy (max-width:529px){
-        html[lang="en"] #hero-section .hero-ctas{ grid-template-columns:auto; grid-template-areas:"p" "s" "u"; }
-      }
-      @container herocopy (max-width:419px){
+      @container herocopy (max-width:479px){
         #hero-section .hero-ctas{ grid-template-columns:auto; grid-template-areas:"p" "s" "u"; }
       }
     }
@@ -889,7 +902,9 @@
       color:var(--pv-text-muted); background-size:100% 1px;
       transition:color .28s cubic-bezier(.2,.8,.3,1); }
     #lp-realpay .lp-link--alt:hover{ color:var(--pv-accent-ink); }
-    #lp-airlines .lp-btn--alt{ display:flex; width:fit-content; margin-top:14px;
+    /* ここは丸いボタンではなく下線の付いた文字。2行は左でそろえる（上の「REAL PAY を見る」と頭が並ぶ）。 */
+    #lp-realpay .lp-link--alt .lp-gg{ text-align:left; }
+    #lp-airlines .lp-btn--alt{ display:flex; width:fit-content; margin-top:14px; padding-block:8px;
       background:transparent; color:var(--pv-accent-ink);
       box-shadow:inset 0 0 0 1.5px var(--pv-accent-line);
       transition:transform .4s var(--lp-spring), color .28s cubic-bezier(.2,.8,.3,1),

@@ -30,27 +30,26 @@ const EDITS = [
   // ── トップページ（日）
   /* ★ヘッダーの CTA（nav_primary_cta）はこの表から外した。2026-08-22 に
        「全ての給与データを見る」／"See all salary data" になり、出すボタンでは
-       なくなったため。匿名の約束は真下の Hero のボタン本文が持っている。 */
-  /* ★ヒーローの主ボタン。2026-09-22 の作り直しで「匿名で給与を共有」になった（オーナー指定・
-       最初から「匿名で」が入っている）。行は残す＝誰かが「匿名で」を落としたら、これが戻す。 */
-  ['index.html', 'data-pv-ev="hero_primary_cta">給与を共有<svg', 'data-pv-ev="hero_primary_cta">匿名で給与を共有<svg'],
+       なくなったため。匿名の約束は真下の Hero が持っている
+       （2026-10-04 まではボタン本文・いまはリード文と添えの1行。下の注）。 */
+  /* ★ヒーローの主ボタン（hero_primary_cta）と、下の2本（actual_pay_contribute_cta・
+       lp_airlines_contribute）はこの表から外した。2026-10-04 オーナー指示で、文言が
+       「Give & Get 全ての待遇データを解放する」／"Give & Get Unlock all pay data" になったため
+       （「匿名で」を入れない・1文字も変えない、がオーナーの指定）。
+       ⚠️ ここに行を戻さない ── 戻すと、この道具がオーナーの文言を「匿名で…」に書き戻す。
+       匿名の約束は、すぐ上のリード文と、すぐ下の「多くのパイロットが、匿名で待遇を共有…」の1行が持っている。 */
   ['index.html', 'data-pv-ev="payslip_upload_start">明細から追加</a>', 'data-pv-ev="payslip_upload_start">匿名で明細から追加</a>'],
-  /* ★「匿名で手入力で追加」は「で」が2回で読めない。ここだけ言い方を変える。 */
-  ['index.html', 'data-pv-ev="salary_contribution_start">手入力で追加</a>', 'data-pv-ev="salary_contribution_start">匿名で手入力して追加</a>'],
-  ['index.html', 'data-pv-ev="actual_pay_contribute_cta">給与を追加してモザイクを外す</a>', 'data-pv-ev="actual_pay_contribute_cta">匿名で給与を追加してモザイクを外す</a>'],
+  /* ★「手入力で追加」「給与を追加してモザイクを外す」の2行（英語は Type it in instead /
+       Add my pay and unlock）は、2026-09-22〜23 のトップの作り直しで札ごと無くなっていた。
+       行だけが残り、**1件でも合わないと何も書かない**この道具が、ずっと1文字も書けない状態だった
+       （2026-10-04 に気づいて外した）。 */
   ['index.html', 'data-pv-ev="review_submit_start">自分の職場について書く</a>', 'data-pv-ev="review_submit_start">匿名で自分の職場について書く</a>'],
   ['index.html', 'data-pv-ev="salary_contribution_start">給与を追加</a>', 'data-pv-ev="salary_contribution_start">匿名で給与を追加</a>'],
   ['index.html', 'data-pv-ev="mobile_cta">給与を追加</a>', 'data-pv-ev="mobile_cta">匿名で給与を追加</a>'],
   // ── トップページ（英）
-  /* ★ヘッダーの CTA は上と同じ理由でこの表から外してある。 */
-  ['en/index.html', 'data-pv-ev="hero_primary_cta">Share your pay<svg', 'data-pv-ev="hero_primary_cta">Share your pay anonymously<svg'],
+  /* ★ヘッダーの CTA は上と同じ理由でこの表から外してある。
+       ヒーローの主と下の2本・作り直しで無くなった2行も、日本語の側と同じ理由で外した。 */
   ['en/index.html', 'data-pv-ev="payslip_upload_start">Start from a payslip</a>', 'data-pv-ev="payslip_upload_start">Start from a payslip, anonymously</a>'],
-  ['en/index.html', 'data-pv-ev="salary_contribution_start">Type it in instead</a>', 'data-pv-ev="salary_contribution_start">Type it in anonymously</a>'],
-  /* ★尻尾の "and unlock" を落とした。付けたまま（33字）だと 390px で2行に折れ、
-     48px の丸ボタンに2行が押し込まれる（実測: 文字が246pxの枠に入らない）。
-     計画どおり "anonymously" ではなく尻尾を削る。1行に収まるのは 181px。
-     解放される話は、すぐ上の錠前ピルと見出しが言っている。 */
-  ['en/index.html', 'data-pv-ev="actual_pay_contribute_cta">Add my pay and unlock</a>', 'data-pv-ev="actual_pay_contribute_cta">Add my pay anonymously</a>'],
   ['en/index.html', 'data-pv-ev="review_submit_start">Write about your own airline</a>', 'data-pv-ev="review_submit_start">Write anonymously about your own airline</a>'],
   ['en/index.html', 'data-pv-ev="salary_contribution_start">Add your pay and compare</a>', 'data-pv-ev="salary_contribution_start">Add your pay anonymously</a>'],
   ['en/index.html', 'data-pv-ev="mobile_cta">Add your pay and compare</a>', 'data-pv-ev="mobile_cta">Add your pay anonymously</a>'],
