@@ -255,6 +255,14 @@
 <!-- ★絵の実体はここ1か所だけ。色（PVViz.SEG）もここから借りる。 -->
 <script src="../pay-viz.js"></script>
 <script src="../deep-pay-compare.js"></script>
+<!-- "Please resubmit" notice. Shown **only to the member themselves** when one of
+     their own pay reports has net pay above gross pay.
+     ★Nothing is shown to signed-out visitors or to members with nothing to fix
+       (the rule, and how it avoids extra requests, is at the top of pv-pay-fix.js).
+     ★Reads this page's PV_SESSION and sb, so it must load **after** them.
+     ★?v= is a fingerprint of the file. Change the file → copy it to all 8 pages
+       (4 screens × ja/en; assert-links.mjs checks). -->
+<script src="../pv-pay-fix.js?v=c3f06489"></script>
 <!-- PV-NAV: opens and closes the navigation. Loads AFTER search.js so it can adopt
      the hamburger that file creates; on pages without search.js it makes its own. -->
 <script src="../app-nav.js"></script>

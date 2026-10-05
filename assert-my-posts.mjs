@@ -264,6 +264,8 @@ const SCENES = {
   payError:  { ...base, payError: true },
   // 鍵の SQL を貼ったあと。本文はサーバが返し、表への総当たりは1回も要らない
   gated:     { ...base, mineRows: [REV_JAL, REV_WJ] },
+  // 手取りが総支給より多い月が1つある人（数字は作りもの）。板は pv-pay-fix.js が出す
+  fix:       { ...base, reports: [REPORTS[0], { ...REPORTS[1], gross_monthly: 900000, net_pay_actual: 1900000 }] },
 };
 
 const browser = await puppeteer.launch(OPEN
@@ -308,6 +310,7 @@ const look = (page) => page.evaluate(() => {
     q: (window.__q || []).filter((x) => x.in.length).map((x) => ({ t: x.t, cols: x.cols, in: x.in })),
     airlineQ: (window.__q || []).filter((x) => x.t === 'pv_airlines' && x.in.length).length,
     rpc: window.__rpc || [],
+    fix: !!document.getElementById('pv-pay-fix'),
   };
 });
 
@@ -393,6 +396,7 @@ for (const lang of ['ja', 'en']) {
   ok(v.rpc.filter((n) => n === 'my_pay_reports').length === 1,
      '★★1回の表示で本人の給与を1回しか引かない（キャッシュを迂回した直呼びが無い）',
      v.rpc.join(','));
+  ok(!v.fix, '手取りと総支給に食い違いが無い人には、出し直しのお願いが出ない');
 
   /* ★解放の復活と一覧が同じ結果を使っていること＝もう一度呼んでも通信が増えないこと。
      ここが効かないと、マイページを開くたびに 119社ぶんの総当たりを二重に投げる。 */
@@ -475,6 +479,44 @@ for (const lang of ['ja', 'en']) {
   ok(!/ヨソノヒトノクチコミ|SomebodyElsesReview|全日本空輸|All Nippon/.test(v.cardText),
      '★他人の行が1件も混ざらない', JSON.stringify(v.cardText).slice(0, 160));
   ok(!JSON.stringify(v.q).includes(UID), '★本人の uid そのものは1度も乗らない');
+  ok(errs.length === 0, 'ページのエラーが1件も出ない', errs.join(' | '));
+}
+
+// ════════════════════════════════════════════════════════════════
+// 6. 出し直しのお願い（pv-pay-fix.js・2026-10-05）
+//    手取りが総支給より多い月がある人にだけ、MY PAGE の一番上に板を出す。
+//    ★この画面では **通信を1本も足さない** ── 上の「1回だけ」（window.pvMyPayReports）を
+//      借りる約束。板の中身そのものは assert-pay-rows.mjs の S 節が見ている。
+// ════════════════════════════════════════════════════════════════
+for (const lang of ['ja', 'en']) {
+  console.log(`\n════ ${lang} / 出し直しのお願い ════`);
+  const { page, errs } = await open('fix', lang);
+  /* 時間で待たない。板の側が「読み終わった」と言うまで待つ */
+  await page.waitForFunction(() => !!(window.PVPayFix && window.PVPayFix.ready), { timeout: 10000 });
+  const n = await page.evaluate(() => window.PVPayFix.ready);
+  const v = await look(page);
+  const b = await page.evaluate(() => {
+    const el = document.getElementById('pv-pay-fix');
+    const main = document.querySelector('.mr-main');
+    const a = el && el.querySelector('a');
+    return {
+      shown: !!el, first: !!(el && main && main.firstElementChild === el),
+      text: el ? el.innerText : '', href: a ? a.getAttribute('href') : '',
+      cur: el ? el.querySelectorAll('.pv-cur').length : -1,
+      cache: localStorage.getItem('pv_pay_fix'),
+    };
+  });
+  ok(n === 1 && b.shown, '★手取りが総支給より多い月が1つあると、板が1か月ぶん出る', JSON.stringify({ n, shown: b.shown }));
+  ok(b.first, '板は本文のいちばん上に出る');
+  ok(b.text.includes(lang === 'en' ? 'August 2026' : '2026年8月分'), '対象の月が出る', JSON.stringify(b.text).slice(0, 160));
+  ok(b.text.includes(lang === 'en' ? 'Japan Airlines' : '日本航空'), '社名が出る（コードのままではない）', JSON.stringify(b.text).slice(0, 160));
+  ok(!/[¥$€£＄]|万|JPY|900[,.]?000|1[,.]?900[,.]?000/.test(b.text) && b.cur === 0,
+     '★板に金額が1文字も出ない', JSON.stringify(b.text).slice(0, 200));
+  ok(b.href === 'pay-report.html?airline=jal&ym=2026-08#ps', '押した先は同じ会社・同じ月のフォーム', b.href);
+  ok(v.rpc.filter((x) => x === 'my_pay_reports').length === 1,
+     '★★板が出ても、本人の給与を引くのは1回のまま（板が自分で引いていない）', v.rpc.join(','));
+  ok(b.cache === null, '問題があった人の答えは端末に控えない（出し直した次の画面で消えるため）', String(b.cache));
+  ok(v.payRows === 2, '給与の一覧は今までどおり2件出る（行は消さない）', String(v.payRows));
   ok(errs.length === 0, 'ページのエラーが1件も出ない', errs.join(' | '));
 }
 
