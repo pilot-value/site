@@ -15,8 +15,13 @@
 (function (w, d) {
   'use strict';
 
-  var root = d.getElementById('cr');
+  /* 会社ページ（主要5社）でも同じ欄を動かす。印は <body data-pv-glance="1">（gen-airline-glance.mjs が書く）。
+     あちらは airlines/ の下に在るので、行き先だけ1つ上へ向ける（UP）。
+     ⚠️ career.html では UP は空 ＝ 行き先の字は1文字も変わらない。 */
+  var GL = !!d.body && d.body.getAttribute('data-pv-glance') === '1';
+  var root = d.getElementById('cr') || (GL ? d.body : null);
   if (!root) return;
+  var UP = GL ? '../' : '';
 
   var me = d.currentScript;
   var BASE = '';
@@ -212,13 +217,22 @@
   var sbOnce = null;
   function client() {
     if (sbOnce) return sbOnce;
-    var p = (w.supabase && w.supabase.createClient ? Promise.resolve() : loadScript(SB_CDN))
-      .then(function () {
-        if (!w.supabase || !w.supabase.createClient) throw fail('error');
-        var sb = w.supabase.createClient(SB_URL, SB_KEY);
+    /* 会社ページには、口コミの部品（airline-reviews-ui.js）が作ったクライアントが既に在る。
+       2つ目を作らない（同じ保存領域を2つが見張ると、ログインの切り替わりを取り合う）。 */
+    var shared = GL && w.PVReviewUI && typeof w.PVReviewUI.sb === 'function';
+    var p = shared
+      ? Promise.resolve(w.PVReviewUI.sb()).then(function (sb) {
+        if (!sb) throw fail('error');
         watchAuth(sb);
         return sb;
-      });
+      })
+      : (w.supabase && w.supabase.createClient ? Promise.resolve() : loadScript(SB_CDN))
+        .then(function () {
+          if (!w.supabase || !w.supabase.createClient) throw fail('error');
+          var sb = w.supabase.createClient(SB_URL, SB_KEY);
+          watchAuth(sb);
+          return sb;
+        });
     sbOnce = p;
     p.then(null, function () { if (sbOnce === p) sbOnce = null; });
     return p;
@@ -411,6 +425,7 @@
     return li;
   }
   function loginHref() {
+    if (GL) return UP + 'login.html?redirect=' + enc(location.pathname.replace(/^.*\/airlines\//, 'airlines/'));
     return 'login.html?redirect=' + enc('career.html' + location.search);
   }
   function ofCo(rows, slug) {
@@ -424,7 +439,7 @@
     return Promise.all([payRows(), dict()]).then(function (a) {
       var pay = a[0], D = a[1];
       var mine = ofCo(pay.rows, slug);
-      var all = link(T.payAll, 'actual-pay.html?air=' + enc(slug));
+      var all = link(T.payAll, UP + 'actual-pay.html?air=' + enc(slug));
       var ul = el('ul', 'crl-rows');
       if (pay.open) {
         if (!mine.length) return view('empty', [msg(T.payEmpty), foot([all])]);
@@ -438,7 +453,7 @@
       }
       nodes.push(lockLine(T.payLock));
       nodes.push(foot([
-        link(T.payGive, 'pay-report.html?airline=' + enc(slug), 'cta'),
+        link(T.payGive, UP + 'pay-report.html?airline=' + enc(slug), 'cta'),
         pay.anon ? link(T.login, loginHref()) : null,
         all
       ]));
@@ -540,7 +555,7 @@
     return payRows().then(function (pay) {
       if (!pay.open) {
         return view('locked', [lockLine(T.payLock), foot([
-          link(T.payGive, 'pay-report.html', 'cta'),
+          link(T.payGive, UP + 'pay-report.html', 'cta'),
           pay.anon ? link(T.login, loginHref()) : null
         ])]);
       }
@@ -589,7 +604,7 @@
       var s = score(res.rows);
       if (!s.n) {
         return view('empty', [msg(T.revEmpty),
-          foot([link(T.revGive, 'submit-review.html?airline=' + enc(slug))])]);
+          foot([link(T.revGive, UP + 'submit-review.html?airline=' + enc(slug))])]);
       }
       return view('open', [scoreLine(s)]);
     });
@@ -642,10 +657,11 @@
         if (p.locked) anyLocked = true;
         ul.appendChild(reviewItem(p, r));
       });
-      var all = link(T.revAll, 'airlines/' + enc(slug) + '.html');
+      /* 会社ページでは、同じページの「口コミ」のタブを開く（pv-glance.js が受ける）。 */
+      var all = link(T.revAll, GL ? '#reviews' : 'airlines/' + enc(slug) + '.html');
       if (anyLocked) {
         return view('locked', [ul, lockLine(T.revLock), foot([
-          link(T.revGive, 'submit-review.html?airline=' + enc(slug), 'cta'), all
+          link(T.revGive, UP + 'submit-review.html?airline=' + enc(slug), 'cta'), all
         ])]);
       }
       return view('open', [ul, foot([all])]);
@@ -845,6 +861,14 @@
     new MutationObserver(later).observe(root, {
       attributes: true, subtree: true, attributeFilter: ['hidden', 'data-a', 'data-b']
     });
+  }
+  if (GL) {
+    /* 会社ページの欄は、タブの切替と <details> の開閉で出たり隠れたりする（hidden 属性を通らない）。 */
+    d.addEventListener('click', function (e) {
+      var t = e.target;
+      if (t && t.closest && t.closest('.airline-tab-btn,[data-pvg-tab]')) later();
+    });
+    d.addEventListener('toggle', later, true);
   }
   /* 通貨を切り替えたら、額の字だけ描き直す（通信しない）。 */
   w.addEventListener('pv-currency-change', function () {
