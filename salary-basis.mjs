@@ -731,7 +731,9 @@ export const BASIS = {
   },
 
   /* ══ ANA ══ ★有資格パイロットの募集そのものが無い（キャリア採用に運航乗務職の枠が無い）。
-     金額があるのは自社養成の新卒募集要項＝訓練生の入社時の月額だけ。
+     金額があるのは2つ ── 自社養成の新卒募集要項（訓練生の入社時の月額）と、
+     有報 第76期が初めて載せた運航乗務職の平均（★3社をあわせた額。機長と副操縦士を分けていない）。
+     ⚠️ crew の額を全日本空輸だけの額・機長の額・副操縦士の額として使わない（表の注 ※2）。
      ⚠️ ANAホールディングスの有報の「一般従業員 276名 7,302千円」を使わない。
         持株会社（管理部門）の全従業員の平均で、しかも全日本空輸からの出向者が主体。
         同じ有報の全日本空輸の職種別の表には、男女の賃金差異・平均年齢・人員構成比しか無く金額が無い。
@@ -740,25 +742,40 @@ export const BASIS = {
     cur: 'JPY',
     tax: '課税（日本）',
     src: [
+      { pub: 'ANAホールディングス株式会社（EDINET・有価証券報告書）',
+        name: '第76期 有価証券報告書 ５【従業員の状況等】＜参考＞職種別 グループ連結 平均年間給与',
+        as_of: '2026年3月期（2026年6月25日提出・書類ID S100YKL4）', accessed: '2026-10-04',
+        url: 'https://disclosure2dl.edinet-fsa.go.jp/searchdocument/pdf/S100YKL4.pdf' },
       { pub: '全日本空輸株式会社（ANA 採用サイト）',
         name: '2027年度入社 新卒採用 募集要項（運航乗務職／自社養成パイロット）',
         as_of: '給与欄に「2026年度予定（2026年3月16日更新）」', accessed: '2026-09-29',
         url: 'https://www.ana.co.jp/group/recruit/ana-recruit/occupation/entry/' },
     ],
     notes: [
-      'これは自社養成パイロット（運航乗務職）の入社時の額です。機長・副操縦士の金額ではありません。',
-      '月額の基本部分だけです。家族手当・住宅手当・深夜労働手当などの諸手当と年3回の賞与は、「支給する」と書かれているだけで金額がありません。',
-      '会社は「2026年度予定（2026年3月16日更新）」と書いています。2027年度入社者に確定した額ではありません。',
-      '税引き前か後かは書かれていません。',
+      '平均は機長と副操縦士をあわせた運航乗務職全体の額です。機長だけ・副操縦士だけの平均は公表されていません。',
+      '全日本空輸だけの額ではなく、全日本空輸・ANAウイングス・エアージャパンの3社をあわせた額です（会社が表の注でそう書いています）。',
+      '訓練生が人数に入るか、賞与と基準外賃金を含むかは、この表には書かれていません。',
+      '訓練生の額は自社養成パイロット（運航乗務職）の入社時の額です。機長・副操縦士の金額ではありません。',
+      '訓練生の額は月額の基本部分だけです。家族手当・住宅手当・深夜労働手当などの諸手当と年3回の賞与は、「支給する」と書かれているだけで金額がありません。',
+      '訓練生の額について、会社は「2026年度予定（2026年3月16日更新）」と書いています。2027年度入社者に確定した額ではありません。',
+      '訓練生の額が税引き前か後かは書かれていません。',
       '採用人数は65名程度。乗務開始後は東京勤務で、休日は月10日程度です。',
     ],
     notes_en: [
-      'This is the starting pay for the airline’s own ab-initio cadet programme. It is not a figure for captains or first officers.',
-      'It is the basic monthly figure only. Family, housing and night-work allowances and three bonus payments a year are listed as payable, with no amounts given.',
-      'The airline labels it "planned for FY2026, updated 16 March 2026". It is not a confirmed figure for those joining in FY2027.',
-      'The posting does not say whether the figure is before or after tax.',
+      'The average is for flight crew as a whole, captains and first officers together; the filing does not break it out by rank.',
+      'It is not a figure for All Nippon Airways alone: it combines three group airlines, All Nippon Airways, ANA Wings and Air Japan, as the note to the table states.',
+      'The table does not say whether trainees are counted, or whether bonuses and non-standard pay are included.',
+      'The trainee figure is the starting pay for the airline’s own ab-initio cadet programme. It is not a figure for captains or first officers.',
+      'The trainee figure is the basic monthly amount only. Family, housing and night-work allowances and three bonus payments a year are listed as payable, with no amounts given.',
+      'The airline labels the trainee figure "planned for FY2026, updated 16 March 2026". It is not a confirmed figure for those joining in FY2027.',
+      'The posting does not say whether the trainee figure is before or after tax.',
       'About 65 places are offered. Once flying, the base is Tokyo with around ten days off a month.',
     ],
+    crew: { tier: 'observed_mean',
+      groups: [
+        { name: '運航乗務職（ANA／ANAウイングス／エアージャパンの3社・2026年3月期）',
+          name_en: 'Flight crew, three group airlines combined, year ended March 2026', avg_y: 23355000 },
+      ] },
     trainee: { tier: 'employer_example',
       groups: [
         { name: '自社養成パイロット訓練生・院卒（入社時）', start_m: 276528,
@@ -768,7 +785,7 @@ export const BASIS = {
     cap: { tier: 'estimate', est_status: 'unconfirmed',
       est_why: 'ANA の機長の年収を示す資料が1件も無い。会社が公表しているのは3社（ANA・ANAウイングス・エアージャパン）をあわせた運航乗務職全体の平均だけで、職位では分かれていない。旧額の出所の記録も無い。',
       held: { was: { avg: 2700, lo: 2200, hi: 3500 },
-      why: '有資格パイロットの募集そのものが無く（キャリア採用に運航乗務職の枠が無い）、機長の金額を書いた公式資料が1件も無い。有報にもパイロットの数字は無い。レンジの出所の記録も無い。' } },
+      why: '有資格パイロットの募集そのものが無く（キャリア採用に運航乗務職の枠が無い）、機長の金額を書いた公式資料が1件も無い。有報にあるのは3社をあわせた運航乗務職全体の平均だけで、機長の数字は無い。レンジの出所の記録も無い。' } },
     fo: { tier: 'estimate', est_status: 'unconfirmed',
       est_why: '機長と同じ理由。',
       held: { was: { avg: 1800, lo: 1400, hi: 2100 }, why: '機長と同じ理由。' } },

@@ -256,7 +256,8 @@ for (const f of files) {
            必ずこの中に在る。「運航乗務員（機長＋副操縦士）平均 ¥2,005万」のように
            役職の語より**前**に出る書き方も、社名から見るのでちゃんと拾える
            （役職から後ろだけに狭めると、こちらが18件まとめて ⚠️ に落ちた）。 */
-      const role = /運航乗務員/.test(span) && BASIS[slug]?.crew ? 'crew'
+      /* ★2026-10-06、「運航乗務職」も同じ扱いにする（ANA の有報はこの呼び名。3社をあわせた乗員全体の平均）。 */
+      const role = /運航乗務[員職]/.test(span) && BASIS[slug]?.crew ? 'crew'
         : /訓練生|初任給|チャレンジ手当/.test(span) && BASIS[slug]?.trainee ? 'trainee'
         : /機長|Captain/.test(m[1]) ? 'cap' : 'fo';
       const lo = +m[2].replace(/,/g, '');
