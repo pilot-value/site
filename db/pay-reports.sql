@@ -806,6 +806,8 @@ declare
   v_trans   numeric := nullif(p->>'transport', '')::numeric;
   v_cmd     numeric := nullif(p->>'command_pay', '')::numeric;
   v_othal   numeric := nullif(p->>'other_allowance', '')::numeric;
+  -- ★ 2026-10-05 追加。手取り。総支給と比べるためだけに読む（保存は5章が同じ読み方でする）。
+  v_net     numeric := nullif(p->>'net_pay_actual', '')::numeric;
   v_ann     numeric;
 begin
   if v_airline is null or v_pos is null or v_fleet is null or v_cur is null
@@ -901,6 +903,25 @@ begin
      and coalesce(v_gpay, 0) <= 0
      and coalesce(v_hourly, 0) <= 0 then
     raise exception '報酬額が入力されていません（その月の額面、または基本給・保証給か時給が必要です）'
+      using errcode = '22023';
+  end if;
+
+  /* ★ 2026-10-05、手取りが総支給より多い行は受け取らない（オーナー指摘「なんで通ってんだ？」）。
+     手取りが総支給の何倍もある行がそのまま入っていた。ここは手取りを読んでさえ
+     おらず、表の CHECK は「マイナスでないこと」しか見ていなかった。
+     ★ 線は「手取り ＞ 総支給 × 1.05」の1本。**同じ線が4か所にある** ──
+        画面（pay-report.html の netOver）／ここ／出し直しのお願い（pv-pay-fix.js）／
+        オーナー用の点検（db/usage.mjs）。1つだけ変えない
+        （「画面は通るのにサーバで落ちる」「直したのにお願いが消えない」になる）。
+     ★ 5% の遊びは、還付で手取りがわずかに上回る月を止めないため。**同額は通す。**
+     ★ どちらかが無い行は見ない。総支給を書かずに基本給だけで出した行や、
+        手取りを聞く前に預かった仮受けを、あとから作ったルールで捨てない。
+     ⚠️ 表の CHECK にはしない。既に入っている行が違反になる（制約そのものが張れない）。
+        直すのは本人で、同じ会社・同じ月で出し直すとここを通って上書きされる。
+     ⚠️ 文は日英の両方を1行に入れてある。画面の門（netBlocking）が先に止めるので
+        ここへ届くのは古い画面を開いたままの人だけだが、その人は英語の画面かもしれない。 */
+  if v_gross is not null and v_net is not null and v_net > v_gross * 1.05 then
+    raise exception '手取り額が総支給額より多くなっています。2つの欄が入れ替わっていないか確かめてください。 / Net pay is higher than gross pay — please check the two figures are not swapped.'
       using errcode = '22023';
   end if;
 
