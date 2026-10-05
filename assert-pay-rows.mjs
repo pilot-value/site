@@ -168,6 +168,12 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
      既定で hidden ＝ 鍵が無い人・0件の人に空の枠を見せない。 */
   ok(/id="ap-stats"[^>]*\shidden/.test(html) || /\shidden[^>]*id="ap-stats"/.test(html),
      `${name}: 数え上げのカードの入れ物は既定で隠れている`);
+  /* ★2026-10-05 オーナー指示「これいらないから一番下に下げて」。
+       入れ物は絞り込みと一覧の**後ろ**に置く（開いたらすぐ一覧）。
+       画面での上下は下の gone() が全ケースで見ている。 */
+  ok(html.indexOf('id="ap-stats"') > html.indexOf('id="ap-rows"')
+     && html.indexOf('id="ap-rows"') > html.indexOf('id="ap-filter"'),
+     `${name}: ★★数え上げのカードの入れ物は一覧の後ろ（絞り込み → 一覧 → カード）`);
 
   /* ★並び替えの口を作らない。並びに投稿の新しさが乗ると、誰が最近出したかが読める
      （契約⑥「並びに時間が無い」に真っ向から反する）。
@@ -1700,6 +1706,24 @@ const SNAP = () => {
          棒の並びに文字が1つも無いことで確かめる。 */
     lockArt: q('.ap-lock-art', rows).length,
     lockCols: q('.ap-lock-cols', rows).length,
+    /* ── 並び（2026-10-05）───────────────────────────────
+       ★上端の位置で取る。居ないもの・隠れているものは null（＝比べない）。 */
+    order: (function () {
+      const top = (e) => (!e || !e.getClientRects().length) ? null
+        : Math.round(e.getBoundingClientRect().top + window.scrollY);
+      const st = document.getElementById('ap-stats');
+      return {
+        first: (rows && rows.firstElementChild) ? rows.firstElementChild.className : '',
+        list: top(rows && rows.querySelector('.ap-lock-skel, .ap-tw')),
+        hero: top(rows && rows.querySelector('.ap-lockhero')),
+        see: top(rows && rows.querySelector('.ap-lock-see')),
+        stats: top(st),
+        rowsEnd: rows ? Math.round(rows.getBoundingClientRect().bottom + window.scrollY) : null,
+        statsInRows: !!(st && rows && rows.contains(st)),
+        statsAfterRows: !!(st && rows
+          && (rows.compareDocumentPosition(st) & Node.DOCUMENT_POSITION_FOLLOWING))
+      };
+    })(),
     skelThs: q('.ap-skel-hd span', rows).map((e) => (e.textContent || '').trim()),
     skelBars: q('.ap-skel-bar', rows).length,
     skelRowsText: q('.ap-skel-r', rows).map((e) => (e.textContent || '').trim()).join(''),
@@ -1920,6 +1944,28 @@ function gone(v, tag, opt) {
   ok(v.lockArt === lk && v.lockCols === lk,
      `${tag}: ★飾りの絵と2段組は鍵が無いときだけ`,
      `art=${v.lockArt} cols=${v.lockCols} / 期待 ${lk}`);
+  /* ★並び（2026-10-05 オーナー指示「上にいきなり real pay の最初から始める」
+       「これいらないから一番下に下げて」）。
+     それまでの検査は**数**しか見ておらず、橙の案内パネルと数字カードが
+     一覧の上へ戻っても1本も赤くならなかった。
+     居ないもの（null）は比べない ── 数が読めない回はカードが出ない。 */
+  {
+    const o = v.order || {};
+    if (lk) {
+      ok(/(^|\s)ap-lock-cols(\s|$)/.test(o.first || ''),
+         `${tag}: ★★鍵が無い画面も一覧から始まる（橙の案内パネルが先頭に居ない）`,
+         String(o.first));
+      ok(o.list !== null && o.hero !== null && o.list < o.hero,
+         `${tag}: ★★一覧が橙の案内パネルより上`, `list=${o.list} hero=${o.hero}`);
+      /* 灰色の骨組みのときだけは横並び（上端が同じ）なので、等しいのは可。 */
+      ok(o.see !== null && o.list <= o.see,
+         `${tag}: ★「REAL PAY で見えること」は一覧より上に出ない`,
+         `list=${o.list} see=${o.see}`);
+    }
+    ok(o.stats === null
+       || (o.statsInRows === false && o.statsAfterRows === true && o.stats >= o.rowsEnd),
+       `${tag}: ★★数字カードは一覧の下（#ap-rows の外・後ろ）`, JSON.stringify(o));
+  }
   ok(v.pub === 0 && v.bluePresent === 0 && v.ranges === 0 && v.plist === 0,
      `${tag}: ★推定レンジの節が実行時にも無い`,
      `${v.pub}/${v.bluePresent}/${v.ranges}/${v.plist}`);
