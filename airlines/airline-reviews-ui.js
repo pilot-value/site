@@ -975,9 +975,13 @@
   ];
   var CHEVRON = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>';
 
+  function isGlance() { return !!d.body && d.body.getAttribute('data-pv-glance') === '1'; }
+
   function injectReviewCategoryGrid() {
     var banner = d.getElementById('airline-rating-banner');
-    if (!banner) return;
+    /* 主要5社は帯が無いので、概要の中に用意してある置き場（#pvg-revcats）へ入れる */
+    var slot = banner ? null : d.getElementById('pvg-revcats');
+    if (!banner && !slot) return;
 
     var h1 = d.querySelector('.hero-airline h1');
     var name = h1 ? h1.textContent.trim() : '';
@@ -1003,7 +1007,8 @@
       '      <div class="rcg-grid">' + cardsHTML + '</div>\n' +
       '    </div>';
 
-    banner.insertAdjacentElement('afterend', section);
+    if (banner) banner.insertAdjacentElement('afterend', section);
+    else slot.appendChild(section);
   }
 
   // ── 現地パイロットの生の声 ───────────────────────
@@ -1127,7 +1132,9 @@
       btn.addEventListener('click', function () { switchTab(btn.dataset.tab); });
     });
 
-    injectHeroRatingBanner();
+    /* 主要5社（<body data-pv-glance="1">）は、見本の点数を混ぜた評価の帯を出さない。
+       星と件数は、実際の投稿だけで社名の行が出す（career-live.js）。ほかの会社は今までどおり。 */
+    if (!isGlance()) injectHeroRatingBanner();
     injectReviewCategoryGrid();
     injectVoices();
 

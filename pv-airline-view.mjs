@@ -56,10 +56,13 @@ export const yen = m => `¥${m.toLocaleString('en-US')}万`;
 /** 外貨の家賃などを円に直した字。100万円より小さい額は小数1けたまで（「約11.0万円」）。 */
 export function yenOf(cur, amount) {
   if (!(cur in JPY_PER)) throw new Error(`換算レートの無い通貨: ${cur}`);
-  const m = (amount * JPY_PER[cur]) / 10000;
+  const y = amount * JPY_PER[cur], m = y / 10000;
+  /* 1万円に届かない額（電車の運賃など）は、万に直さず円のまま書く（「約0.2万円」としない）。 */
+  if (m < 1) return `約¥${(Math.round(y / 10) * 10).toLocaleString('en-US')}`;
   return m >= 100 ? `約${Math.round(m).toLocaleString('en-US')}万円` : `約${m.toFixed(1)}万円`;
 }
-const money = (cur, n) => (cur === 'JPY' ? yenOf('JPY', n).replace(/^約/, '') : `${cur} ${n.toLocaleString('en-US')}`);
+const money = (cur, n) => (cur !== 'JPY' ? `${cur} ${n.toLocaleString('en-US')}`
+  : n < 10000 ? `¥${n.toLocaleString('en-US')}` : yenOf('JPY', n).replace(/^約/, ''));
 
 /* ── 年収 ───────────────────────────────────────────────────────── */
 /* 金額に付ける短い前提。台帳の注（BASIS[slug].notes）の言い換えなので、
@@ -97,6 +100,9 @@ function payOf(slug, rank) {
     why: est ? '' : (r.est_why || ''),
   };
 }
+/* 訓練生の入社時の額。機長・副操縦士の欄にも棒にも入れない
+   （台帳の注がこの額の話をしているので、説明の中に別の行として出すためだけに返す）。 */
+const traineeOf = slug => figures(slug, 'trainee').map(f => ({ group: f.group, kind: f.kind, text: f.text }));
 const YEARLY = new Set(['cash_y', 'pkg_y', 'target_y', 'cash_y_over', 'reward_y', 'month_x']);
 const SHORT = { target_y: '会社公表の目標年収', cash_y_over: '会社公表の下限', cash_y: '会社公表の年額', pkg_y: '会社公表の総待遇', reward_y: '会社公表の待遇額', month_x: '会社公表の月額から' };
 
@@ -170,7 +176,7 @@ function etihad() {
       city: E.living.city_ja, cur: 'AED', per: 'year', measure: '募集家賃の平均',
       cols: [['studio', 'スタジオ'], ['bed1', '1寝室'], ['bed2', '2寝室']], leadCol: 'bed1',
       rents: E.living.rents.map((r, i) => ({ key: r.key, name: r.ja, pick: '', value: r.value, when: whenText(r), src: r.src, cond: '', lead: i === 0 })),
-      basis: E.living.rent_basis.map(b => b.value),
+      basis: E.living.rent_basis.map(b => ({ key: b.key, value: b.value })),
       commute: [],
     },
   };
@@ -190,15 +196,23 @@ function others(slug) {
       city: L.city_ja, cur, per: L.rents[0].per || '', measure: L.measure_ja,
       cols: L.cols, leadCol: L.lead_col,
       rents: L.rents.map(r => ({ key: r.key, name: r.ja, pick: r.pick_ja || '', value: r.value, when: whenText(r), src: r.src, cond: r.cond_ja || '', lead: !!r.lead })),
-      basis: (L.rent_basis || []).map(b => (typeof b === 'string' ? b : b.value)),
+      basis: (L.rent_basis || []).map(b => ({ key: b.key, value: b.value })),
       commute: (L.commute || []).map(x => ({ ...fact(x), lead: !!x.lead, value: commuteText(x) })),
     },
   };
 }
-/* 所要時間が {t1:35, t2:39} の形で入っている行（ターミナルごと）。 */
+/* 値が {t1:35, t2:39}（ターミナルごとの時間）や {fare:1280, liner:1300}（運賃と料金）の形で入っている行。
+   台帳の鍵をそのまま画面に出さない ── 呼び名の無い鍵が来たら止める。 */
+const PART = { t1: '第1ターミナル駅', t2: '第2ターミナル駅', t3: '第3ターミナル駅', t12: '第1・第2ターミナル駅', fare: '運賃', liner: 'ライナー料金' };
 function commuteText(x) {
   const v = x.value;
-  if (v && typeof v === 'object' && !Array.isArray(v)) return Object.entries(v).map(([k, n]) => `${k.replace(/^t(\d)$/, '第$1ターミナル')} ${n}${x.unit || ''}`).join('・');
+  if (v && typeof v === 'object' && !Array.isArray(v)) {
+    if (x.cur && x.cur !== 'JPY') throw new Error(`${x.key}: 外貨の内訳の書き方をまだ決めていない`);
+    return Object.entries(v).map(([k, n]) => {
+      if (!PART[k]) throw new Error(`${x.key}: 値の鍵「${k}」の呼び名が無い（pv-airline-view.mjs の PART）`);
+      return `${PART[k]} ${x.cur ? money(x.cur, n) : `${n}${x.unit || ''}`}`;
+    }).join(' ／ ');
+  }
   if (x.cur && typeof v === 'number') return money(x.cur, v);
   return valueText(x);
 }
@@ -225,7 +239,7 @@ export function viewOf(slug) {
     base: { city: d.base.city_ja, country: d.base.country_ja, iata, text: valueText(d.base), ...fact(d.base) },
     pay: {
       cap: payOf(slug, 'cap'), fo: payOf(slug, 'fo'),
-      crew: crewOf(slug),
+      crew: crewOf(slug), trainee: traineeOf(slug),
       tax: B.tax, notes: B.notes || [], src: srcOf(slug), cur: B.cur,
     },
     work: d.work, benefits: d.benefits, living: d.living,
