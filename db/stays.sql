@@ -48,7 +48,14 @@
 --       それでも、画素に写り込んだ顔・社員証・部屋番号・乗務の書類は落ちない。
 --       符号データや表の数字の中に**わざと作り込んだもの**も、復号しない限り分からない。人が1回見る。
 --     ★ 運営でも、**自分が出したものを自分で公開できない**（別の運営が見る）。
---     ★ 'pending' へ戻す道は無い。見送った写真は画素ごと消す。
+--     ★ 運営の口（pv_stay_moderate）から 'pending' へ戻す道は無い。見送った写真は画素ごと消す。
+--     ★ 'pending' へ戻るのは、**書いた本人が場所の中身を直したときだけ**（5-b の pv_stay_update）。
+--       公開済みでも、直した瞬間にほかの人から見えなくなり、運営がもう一度見る
+--       （2026-10-05 オーナー決定「修正した投稿は運営の確認待ちへ戻す」）。
+--       ＝ 一度通ったものを、あとから誰の目も通らない中身へ書き換える道を作らない。
+--     ★ 運営が通すのは**運営が見た中身**だけ。直された場所は、見たときの中身の印（rev。3-m）を
+--       添えないと公開できない（8 の changed）。運営が見てから押すまでの間に本人が直していたら、
+--       通さずに「変わった」と返す。id だけで通すと、その間に直された中身が誰の目も通らずに出る。
 --  6. 「見えるかどうか」の判定は pv_stay_visible() ただ1つ。場所にも写真にも同じ式を使う。
 --  7. 時刻を返さない。返すのは0〜4の段（age）だけ。並びも時刻で決めない。
 --     ★ ステイ先は乗務の記録と突き合わせやすい。「何日の何時に書いたか」が出ると、
@@ -115,11 +122,22 @@ create table if not exists public.pv_stay_places (
   -- https で Google マップのホストだけ。それ以外は null（pv_stay_maps_url が捨てる）
   maps_url     text,
   note         text,
-  -- 'pending'（運営がまだ見ていない）→ 'public' ／ 'rejected'。pending へは戻らない
+  -- 'pending'（運営がまだ見ていない）→ 'public' ／ 'rejected'。
+  -- pending へ戻るのは、本人が中身を直したときだけ（5-b）。運営の口からは戻せない
   state        text not null default 'pending',
   created_at   timestamptz not null default now(),
   moderated_at timestamptz
 );
+
+-- あとから足した列（2026-10-05）。表が前から在る所へ貼り直しても入るように、ここで足す。
+--   city        都市の名前（人が読むための名前。空港の3レターとは別に持つ）。無ければ null
+--   updated_at  本人が中身を直した時刻。一度も直していなければ null（★画面へは返さない）
+--   edit_from・edit_n  「24時間に何回直したか」を数える箱（箱の始まりと、その中で直した回数）。
+--               1日の上限を数えるためだけに持つ（★画面へは返さない）
+alter table public.pv_stay_places add column if not exists city       text;
+alter table public.pv_stay_places add column if not exists updated_at timestamptz;
+alter table public.pv_stay_places add column if not exists edit_from  timestamptz;
+alter table public.pv_stay_places add column if not exists edit_n     integer not null default 0;
 
 -- 写真。1つの場所に何枚でも付く（主キーは写真そのものの id）。
 -- ★ 誰が運営として見たかは持たない（moderated_at だけ）。生の user_id を残さないため。
@@ -152,6 +170,8 @@ alter table public.pv_stay_places drop constraint if exists pv_stay_places_addre
 alter table public.pv_stay_places drop constraint if exists pv_stay_places_note_ck;
 alter table public.pv_stay_places drop constraint if exists pv_stay_places_maps_ck;
 alter table public.pv_stay_places drop constraint if exists pv_stay_places_state_ck;
+alter table public.pv_stay_places drop constraint if exists pv_stay_places_city_ck;
+alter table public.pv_stay_places drop constraint if exists pv_stay_places_edit_ck;
 
 alter table public.pv_stay_places add constraint pv_stay_places_hash_ck check (
   author_hash ~ '^[0-9a-f]{64}$');
@@ -179,6 +199,12 @@ alter table public.pv_stay_places add constraint pv_stay_places_maps_ck check (
     and maps_url ~ '^https://(www\.google\.com|google\.com|www\.google\.co\.jp|maps\.google\.com|maps\.google\.co\.jp|maps\.app\.goo\.gl|goo\.gl)($|[/?#])'));
 alter table public.pv_stay_places add constraint pv_stay_places_state_ck check (
   state in ('pending', 'public', 'rejected'));
+-- 都市の名前は1行・60字まで。空は null で持つ（'' を入れない）
+alter table public.pv_stay_places add constraint pv_stay_places_city_ck check (
+  city is null or (city = btrim(city) and char_length(city) between 1 and 60
+                   and city !~ '[[:cntrl:]]'));
+alter table public.pv_stay_places add constraint pv_stay_places_edit_ck check (
+  edit_n >= 0);
 
 alter table public.pv_stay_photos drop constraint if exists pv_stay_photos_hash_ck;
 alter table public.pv_stay_photos drop constraint if exists pv_stay_photos_mime_ck;
@@ -225,9 +251,15 @@ comment on table public.pv_stay_places is
 comment on column public.pv_stay_places.author_hash is
   '★ どの関数の返り値にも入れないこと。外へ出た瞬間に安定した仮名 ID になり、同じ人の投稿を束ねられる。';
 comment on column public.pv_stay_places.state is
-  '''pending'' は本人と運営にしか出ない。''public'' にできるのは運営だけで、自分の投稿は自分で公開できない。pending へ戻す関数は無い。';
+  '''pending'' は本人と運営にしか出ない。''public'' にできるのは運営だけで、自分の投稿は自分で公開できない。運営の口から pending へは戻せない。pending へ戻るのは、書いた本人が中身を直したとき（pv_stay_update）だけ。';
 comment on column public.pv_stay_places.created_at is
   '★ そのまま返さない。返すのは0〜4の段（age）だけ。ステイ先は乗務の記録と突き合わせやすい。';
+comment on column public.pv_stay_places.city is
+  '都市の名前（人が読むための名前。空港の3レターとは別に持つ）。1行・60字まで。無ければ null。';
+comment on column public.pv_stay_places.updated_at is
+  '★ どの関数の返り値にも入れないこと。書いた本人が中身を直した時刻（一度も直していなければ null）。';
+comment on column public.pv_stay_places.edit_n is
+  '直した回数（edit_from から24時間の箱の中だけ）。1日の上限を数えるためだけに持つ。画面へは返さない。';
 comment on table public.pv_stay_photos is
   'ステイ情報の写真（1つの場所に何枚でも）。JPEG・50万バイトまで。運営が見るまで他人に出ない。見送った写真は画素を消す。';
 comment on column public.pv_stay_photos.author_hash is
@@ -497,7 +529,10 @@ update public.pv_stay_places
 
 
 -- 3-h. 1件を画面へ返す形（★列を名指しで並べるのはここ1か所だけ）
--- ⚠️ to_jsonb(s) や s.* で返さない。author_hash と created_at がそのまま外へ出る。
+-- ⚠️ to_jsonb(s) や s.* で返さない。author_hash と created_at がそのまま外へ出る
+--    （直した時刻の updated_at と、直した回数の箱 edit_from・edit_n も同じ。ここに並べない）。
+-- mine は「呼んだ本人が書いたか」だけ（印そのものは返さない）。state は見える人にそのまま返す
+-- ＝ 本人は自分のものが 確認待ち／公開／見送り のどれかを、いつでも読める。
 -- 写真は、その人に見えるものだけを並べる（他人の確認前の写真は「在る」ことも出さない）。
 -- ⚠️ 写真を足した順（created_at）に並べない。並びは id の順（＝乱数。何度読んでも同じ）。
 --    足した順だと、自分の写真を先と後に置くだけで、あいだに入った他人の写真が
@@ -516,6 +551,7 @@ as $fn$
     'address',  s.address,
     'maps_url', s.maps_url,
     'note',     s.note,
+    'city',     s.city,
     'age',      public.pv_stay_age(s.created_at),
     'mine',     coalesce(s.author_hash = p_me, false),
     'state',    s.state,
@@ -1106,6 +1142,144 @@ alter table public.pv_stay_photos add constraint pv_stay_photos_dims_ck check (
   or (w is not null and h is not null and array[w, h] = public.pv_jpeg_dims(bytes)));
 
 
+-- 3-k. 場所の中身の検品（★足す口と直す口の両方がこれを呼ぶ。式を写さない）
+-- 引数: p = {kind, name, address, maps_url, note, city}（ほかの欄は読まない）
+-- 返り値: status が null なら通った ＝ 残りの6つが「保存してよい形にそろえた値」。
+--         null でなければ弾いた理由で、残りの値は使わない。
+--   bad_kind   種別が白リストの外
+--   bad_name   名前が2〜80字でない
+--   too_long   住所が200字・メモが500字を超える
+--   bad_city   都市の名前が60字を超える
+-- ★ 見る順番（種別 → 名前 → 住所 → メモ → 都市）を変えない。画面に出る一言がこの順で決まる。
+-- ★ 地図のリンクは通らなくても弾かない（リンクだけ捨てる。3-g）。
+-- ★ 空の欄は null にそろえる（'' を保存しない＝「書いていない」が1つの形になる）。
+-- ⚠️ 片方の口だけに検品を書き足さない。足すときは通らない中身が、直す口からは入る、を作る。
+-- ★ 先に落としてから作る。返す欄（out）を1つ足した回に create or replace だけだと、
+--   「返り値の型は変えられない」でこのファイルごと止まる（前に貼った形が残っているため）。
+--   落としても、これを呼ぶ2つの口（5・5-b）は名前で呼んでいるので壊れない。
+drop function if exists public.pv_stay_clean(jsonb);
+
+create or replace function public.pv_stay_clean(
+  p jsonb,
+  out status   text,
+  out kind     text,
+  out name     text,
+  out address  text,
+  out maps_url text,
+  out note     text,
+  out city     text
+)
+language plpgsql
+immutable
+set search_path = public, extensions
+as $fn$
+begin
+  kind := coalesce(p->>'kind', '');
+  if kind not in ('hotel', 'food', 'spot') then
+    status := 'bad_kind';
+    return;
+  end if;
+
+  -- ★ 名前と住所は1行にそろえる（改行・タブ・全角空白・連続した空白を1つの空白に）。
+  --   trim が先。空白だけの名前と、前後の空白ぶんだけ長い名前を同時に潰す。
+  name := btrim(regexp_replace(coalesce(p->>'name', ''), '[[:space:][:cntrl:]　]+', ' ', 'g'));
+  if char_length(name) < 2 or char_length(name) > 80 then
+    status := 'bad_name';
+    return;
+  end if;
+
+  address := nullif(btrim(regexp_replace(coalesce(p->>'address', ''), '[[:space:][:cntrl:]　]+', ' ', 'g')), '');
+  if char_length(address) > 200 then
+    status := 'too_long';
+    return;
+  end if;
+
+  -- メモは改行を残す（前後だけ落とす）
+  note := nullif(btrim(coalesce(p->>'note', ''), E' \t\r\n　'), '');
+  if char_length(note) > 500 then
+    status := 'too_long';
+    return;
+  end if;
+
+  -- 都市の名前も1行にそろえる（名前と同じ。改行は入らない）。書いていなければ null
+  city := nullif(btrim(regexp_replace(coalesce(p->>'city', ''), '[[:space:][:cntrl:]　]+', ' ', 'g')), '');
+  if char_length(city) > 60 then
+    status := 'bad_city';
+    return;
+  end if;
+
+  maps_url := public.pv_stay_maps_url(p->>'maps_url');
+end;
+$fn$;
+
+revoke all on function public.pv_stay_clean(jsonb) from public, anon, authenticated;
+
+comment on function public.pv_stay_clean(jsonb) is
+  '場所の中身（種別・名前・住所・地図のリンク・メモ・都市）を検品して、保存してよい形にそろえる。status が null なら通った。足す口と直す口が同じものを呼ぶ。';
+
+
+-- 3-l. 同じ名前が既に在るか（★足す口と直す口の両方がこれを呼ぶ）
+-- 返り値: 'duplicate'（自分が同じ名前を既に出している）／'exists'（同じ名前が既に公開済み）／null
+-- p_skip は「いま直している場所そのもの」。足すときは null。
+-- ★ 自分の重ね出しは、見送られたものを数えない（＝出し直せる）。
+-- ★ exists は公開済みの行だけを見る。他人の確認前の行と比べない
+--   （比べると「誰かがそのホテルを出したところだ」が分かってしまう）。
+create or replace function public.pv_stay_clash(
+  p_me text, p_air text, p_iata text, p_kind text, p_name text, p_skip uuid)
+returns text
+language sql
+stable
+set search_path = public, extensions
+as $fn$
+  select case
+    when exists (select 1 from public.pv_stay_places
+                  where author_hash = p_me and airline = p_air and iata = p_iata
+                    and kind = p_kind and lower(name) = lower(p_name)
+                    and state <> 'rejected'
+                    and id is distinct from p_skip) then 'duplicate'
+    when exists (select 1 from public.pv_stay_places
+                  where airline = p_air and iata = p_iata
+                    and kind = p_kind and lower(name) = lower(p_name)
+                    and state = 'public'
+                    and id is distinct from p_skip) then 'exists'
+    else null end;
+$fn$;
+
+revoke all on function public.pv_stay_clash(text, text, text, text, text, uuid)
+  from public, anon, authenticated;
+
+comment on function public.pv_stay_clash(text, text, text, text, text, uuid) is
+  '同じ会社・空港・種別に同じ名前が在るか。''duplicate''（自分のもの）／''exists''（公開済み）／null。他人の確認前の行とは比べない。';
+
+
+-- 3-m. 中身の印（★運営が「見たもの」と「通すもの」を同じにするための16字）
+-- 種別・名前・住所・地図のリンク・メモ・都市の6つ**だけ**から作る。
+-- ★ 時刻も、書いた人の印も、id も混ぜない（混ぜると、この16字が「いつ・誰が」を運ぶ）。
+--   中身が同じなら、誰がいつ書いても同じ印になる。
+-- ★ 返すのは運営が読む所だけ ── 4 の一覧を運営として読んだ行と、10 の待ち行列の行。
+--   会員へ返る11個の欄には入れない（3-h に足さない）。足す口・直す口の返事にも入れない。
+-- ★ 使うのは 8 の「公開する」だけ。運営が見たときの印と、いまの中身の印を比べる。
+-- ⚠️ 欄を1つ足したら、ここにも足す（5-b の「何も変わっていない」が比べる6つと同じ並び）。
+--    足し忘れると、その欄だけを直された場所が、古い印のまま通る。
+-- ⚠️ 並びと作り方を変えると、開いたままの運営の画面が持っている印が全部合わなくなる
+--    （合わないときは通さないだけ。読み直せば通る）。
+create or replace function public.pv_stay_rev(s public.pv_stay_places)
+returns text
+language sql
+immutable
+set search_path = public, extensions
+as $fn$
+  select substr(encode(extensions.digest(
+           jsonb_build_array(s.kind, s.name, s.address, s.maps_url, s.note, s.city)::text,
+           'sha256'), 'hex'), 1, 16);
+$fn$;
+
+revoke all on function public.pv_stay_rev(public.pv_stay_places) from public, anon, authenticated;
+
+comment on function public.pv_stay_rev(public.pv_stay_places) is
+  '場所の中身（種別・名前・住所・地図のリンク・メモ・都市）だけから作る16字の印。運営が見た中身と、公開するときの中身が同じかを確かめるために使う。時刻・書いた人・id は混ぜない。運営にしか返さない。';
+
+
 -- ════════════════════════════════════════════════════════════════
 -- 4. 読む（会社 × 空港の一覧）
 -- ════════════════════════════════════════════════════════════════
@@ -1113,12 +1287,14 @@ alter table public.pv_stay_photos add constraint pv_stay_photos_dims_ck check (
 -- 返り値:
 --   資格なし → {ok:true, state:'locked'}            ★これだけ。表を読む前に返す
 --   資格あり → {ok:true, state:'open', can_add, is_operator,
---               places:[{id, kind, name, address, maps_url, note, age, mine, state,
+--               places:[{id, kind, name, address, maps_url, note, city, age, mine, state,
 --                        photos:[{id, mine, state}]}],
 --               others:[{airline, places:[…]}]}
 --   引数が変 → {ok:false, status:'bad_airline'|'bad_iata'}（資格のある人にだけ返る）
 -- others は「同じ空港で他社が使うホテル」。kind='hotel' だけ。食べる所・行く所は出さない。
 -- can_add は、その会社がいまも名簿で有効なとき true。
+-- ★ 運営として読んだときだけ、places と others の1件ずつに rev（中身の印。3-m）が付く。
+--   公開するときに、見た行の rev をそのまま 8 へ送り返す。会員が読む行は11個の欄のまま。
 -- ★ 並びは 種類 → 名前。時刻で並べない（約束 7）。
 -- ★ 未ログイン（anon）にも配ってある。返るのは locked の1行だけで、
 --   配らないと画面は「権限エラー」と「鍵が掛かっている」を見分けられない。
@@ -1162,7 +1338,9 @@ begin
   select coalesce(jsonb_agg(z.j order by z.k, z.n, z.id), '[]'::jsonb)
     into v_places
     from (
-      select public.pv_stay_place_json(s, v_me, v_op) as j,
+      select public.pv_stay_place_json(s, v_me, v_op)
+               || case when v_op then jsonb_build_object('rev', public.pv_stay_rev(s))
+                       else '{}'::jsonb end as j,
              case s.kind when 'hotel' then 0 when 'food' then 1 else 2 end as k,
              lower(s.name) as n, s.id
         from public.pv_stay_places s
@@ -1179,7 +1357,9 @@ begin
       select z.airline, jsonb_agg(z.j order by z.n, z.id) as places
         from (
           select s.airline,
-                 public.pv_stay_place_json(s, v_me, v_op) as j,
+                 public.pv_stay_place_json(s, v_me, v_op)
+                   || case when v_op then jsonb_build_object('rev', public.pv_stay_rev(s))
+                           else '{}'::jsonb end as j,
                  lower(s.name) as n, s.id
             from public.pv_stay_places s
            where s.iata = v_iata and s.airline <> v_air and s.kind = 'hotel'
@@ -1209,7 +1389,8 @@ comment on function public.pv_stays(jsonb) is
 -- ════════════════════════════════════════════════════════════════
 -- 5. 足す（場所）
 -- ════════════════════════════════════════════════════════════════
--- 引数: p = {airline, iata, kind:'hotel'|'food'|'spot', name, address, maps_url, note}
+-- 引数: p = {airline, iata, kind:'hotel'|'food'|'spot', name, address, maps_url, note, city}
+--   city は都市の名前（任意。空港の3レターとは別に、人が読む名前として持つ）。
 -- 返り値: {ok:true, item:{…一覧と同じ形…}}。入った時点では state:'pending'。
 -- 弾いたときは例外ではなく {ok:false, status:…} を返す（画面は理由ごとに違う一言を出す）。
 --   locked        資格が無い（★何も調べずに返す）
@@ -1218,6 +1399,7 @@ comment on function public.pv_stays(jsonb) is
 --   bad_kind      白リストの外
 --   bad_name      名前が2〜80字でない
 --   too_long      住所が200字・メモが500字を超える
+--   bad_city      都市の名前が60字を超える
 --   too_fast      30秒以内の連投
 --   rate_limited  24時間に20件
 --   duplicate     自分が同じ名前を既に出している
@@ -1225,6 +1407,8 @@ comment on function public.pv_stays(jsonb) is
 -- ★ exists は公開済みの行だけを見る。他人の確認前の行と比べない
 --   （比べると「誰かがそのホテルを出したところだ」が分かってしまう）。
 -- ★ 地図のリンクが通らなくても投稿は通す（リンクだけ捨てる）。
+-- ★ 中身の検品は 3-k（pv_stay_clean）、同じ名前の判定は 3-l（pv_stay_clash）。
+--   どちらも直す口（5-b）と同じものを呼ぶ。ここに式を書き戻さない。
 create or replace function public.pv_stay_add(p jsonb)
 returns jsonb
 language plpgsql
@@ -1237,11 +1421,13 @@ declare
   v_me   text;
   v_air  text;
   v_iata text;
+  v_bad  text;
   v_kind text;
   v_name text;
   v_addr text;
   v_note text;
   v_url  text;
+  v_city text;
   v_n    int;
   v_row  public.pv_stay_places%rowtype;
 begin
@@ -1263,30 +1449,13 @@ begin
   end if;
   v_iata := upper(v_iata);
 
-  v_kind := coalesce(p->>'kind', '');
-  if v_kind not in ('hotel', 'food', 'spot') then
-    return jsonb_build_object('ok', false, 'status', 'bad_kind');
+  -- 中身の検品（種別・名前・住所・メモ・都市・地図のリンク）は 3-k の1か所
+  select c.status, c.kind, c.name, c.address, c.maps_url, c.note, c.city
+    into v_bad, v_kind, v_name, v_addr, v_url, v_note, v_city
+    from public.pv_stay_clean(p) c;
+  if v_bad is not null then
+    return jsonb_build_object('ok', false, 'status', v_bad);
   end if;
-
-  -- ★ 名前と住所は1行にそろえる（改行・タブ・全角空白・連続した空白を1つの空白に）。
-  --   trim が先。空白だけの名前と、前後の空白ぶんだけ長い名前を同時に潰す。
-  v_name := btrim(regexp_replace(coalesce(p->>'name', ''), '[[:space:][:cntrl:]　]+', ' ', 'g'));
-  if char_length(v_name) < 2 or char_length(v_name) > 80 then
-    return jsonb_build_object('ok', false, 'status', 'bad_name');
-  end if;
-
-  v_addr := nullif(btrim(regexp_replace(coalesce(p->>'address', ''), '[[:space:][:cntrl:]　]+', ' ', 'g')), '');
-  if char_length(v_addr) > 200 then
-    return jsonb_build_object('ok', false, 'status', 'too_long');
-  end if;
-
-  -- メモは改行を残す（前後だけ落とす）
-  v_note := nullif(btrim(coalesce(p->>'note', ''), E' \t\r\n　'), '');
-  if char_length(v_note) > 500 then
-    return jsonb_build_object('ok', false, 'status', 'too_long');
-  end if;
-
-  v_url := public.pv_stay_maps_url(p->>'maps_url');
 
   -- 同じ人の同時の2本を1列に並べる（連投の数え方をすり抜けさせない）
   perform pg_advisory_xact_lock(hashtextextended('pv_stay:' || v_me, 0));
@@ -1304,25 +1473,15 @@ begin
     return jsonb_build_object('ok', false, 'status', 'rate_limited');
   end if;
 
-  -- 自分の重ね出し（見送られたものは数えない＝出し直せる）
-  if exists (select 1 from public.pv_stay_places
-              where author_hash = v_me and airline = v_air and iata = v_iata
-                and kind = v_kind and lower(name) = lower(v_name)
-                and state <> 'rejected') then
-    return jsonb_build_object('ok', false, 'status', 'duplicate');
-  end if;
-
-  -- 既に公開されている同じ名前（★公開済みだけ。他人の確認前の行とは比べない）
-  if exists (select 1 from public.pv_stay_places
-              where airline = v_air and iata = v_iata
-                and kind = v_kind and lower(name) = lower(v_name)
-                and state = 'public') then
-    return jsonb_build_object('ok', false, 'status', 'exists');
+  -- 自分の重ね出し（duplicate）／既に公開されている同じ名前（exists）。判定は 3-l の1か所
+  v_bad := public.pv_stay_clash(v_me, v_air, v_iata, v_kind, v_name, null);
+  if v_bad is not null then
+    return jsonb_build_object('ok', false, 'status', v_bad);
   end if;
 
   insert into public.pv_stay_places
-    (author_hash, airline, iata, kind, name, address, maps_url, note)
-  values (v_me, v_air, v_iata, v_kind, v_name, v_addr, v_url, v_note)
+    (author_hash, airline, iata, kind, name, address, maps_url, note, city)
+  values (v_me, v_air, v_iata, v_kind, v_name, v_addr, v_url, v_note, v_city)
   returning * into v_row;
 
   return jsonb_build_object('ok', true, 'item',
@@ -1334,7 +1493,153 @@ revoke all on function public.pv_stay_add(jsonb) from public, anon;
 grant execute on function public.pv_stay_add(jsonb) to authenticated;
 
 comment on function public.pv_stay_add(jsonb) is
-  'ステイ情報を1件足す。確認の印を持つ人と運営だけ。pending で入る（運営が見るまで他人に出ない）。名前2〜80字・住所200字・メモ500字・30秒/20件24時間。地図のリンクは Google マップ以外なら捨てる。';
+  'ステイ情報を1件足す。確認の印を持つ人と運営だけ。pending で入る（運営が見るまで他人に出ない）。名前2〜80字・住所200字・メモ500字・都市60字・30秒/20件24時間。地図のリンクは Google マップ以外なら捨てる。';
+
+
+-- ════════════════════════════════════════════════════════════════
+-- 5-b. 直す（場所。★書いた本人だけ）
+-- ════════════════════════════════════════════════════════════════
+-- 引数: p = {id:<場所の id>, kind, name, address, maps_url, note, city}
+--   ★ 直すのは**送ってきた欄だけ**。送らなかった欄は今のまま残る。
+--     欄を消したいときは null か空を送る（名前と種別は消せない＝検品で弾く）。
+--   ★ 会社（airline）と空港（iata）は読まない＝変わらない。送られてきても無視する。
+--     そこが変わるなら別の場所なので、消して足し直してもらう。
+-- 返り値:
+--   直した        → {ok:true, changed:true,  item:{…一覧と同じ形…}}   item.state は 'pending'
+--   何も変わらない → {ok:true, changed:false, item:{…}}                状態も回数もそのまま
+--   locked        資格が無い（★何も調べずに返す）
+--   not_found     その場所が無い・自分のものではない・id の形が違う（★同じ答え。消す口と同じ）
+--   final         見送られたものは直せない（出し直してもらう。公開へ戻す道が無いので、直しても出ない）
+--   bad_kind／bad_name／too_long／bad_city   足す口と同じ検品（3-k）
+--   rate_limited  24時間に20回
+--   duplicate／exists   名前か種別を変えた先に、同じ名前がもう在る（3-l。足す口と同じ決まり）
+-- ★ 直したら必ず 'pending' へ戻す（2026-10-05 オーナー決定「修正した投稿は運営の確認待ちへ戻す」）。
+--   公開済みでも、その瞬間からほかの人には出なくなる（3-d の決まりのまま）。本人には出続ける。
+--   運営が見た時刻（moderated_at）も消す ＝ 待ち行列の「まだ見ていないもの」と同じ姿に戻す。
+--   直された場所を運営が通すには、見たときの中身の印（rev）が要る（8 の changed）。
+-- ★ 付いている写真の状態は触らない。場所が確認待ちの間は、公開済みの写真もほかの人には
+--   出ない（7 の読む口が場所の見える・見えないも通している）。運営が場所を通せばまた出る。
+-- ★ 直せるのは書いた本人だけ。運営でも他人のものは not_found（運営の道は 8 の公開する／見送る
+--   と 9 の消す。中身を書き換える力を運営に持たせると、誰の言葉か分からなくなる）。
+--   運営が自分で書いたものは、書いた本人として直せる。確認待ちへ戻り、自分では公開できない
+--   （8 の own_post が今までどおり効く）。
+-- ★ 何も変わらない送り直しは、状態を戻さない（保存ボタンを押し直しただけで公開が外れない）。
+-- ★ 30秒の決まりは入れていない（続けて直すのは普通の使い方。変わらなければ何も起きない）。
+-- ★ 錠の順番は「場所の行 → 人ごとの錠」。6 の写真を足す口と同じ向き（逆にすると噛み合って止まる）。
+create or replace function public.pv_stay_update(p jsonb)
+returns jsonb
+language plpgsql
+volatile
+security definer
+set search_path = public, extensions
+as $fn$
+declare
+  v_role text;
+  v_me   text;
+  v_id   uuid;
+  v_row  public.pv_stay_places%rowtype;
+  v_in   jsonb;
+  v_bad  text;
+  v_kind text;
+  v_name text;
+  v_addr text;
+  v_note text;
+  v_url  text;
+  v_city text;
+  v_n    int;
+begin
+  v_role := public.pv_stay_role();
+  if v_role is null then
+    return jsonb_build_object('ok', false, 'status', 'locked');
+  end if;
+  v_me := public.pv_stay_hash(auth.uid());
+
+  v_id := public.pv_stay_uuid(p->>'id');
+  if v_id is null then
+    return jsonb_build_object('ok', false, 'status', 'not_found');
+  end if;
+
+  -- ★ 自分のものだけを探す。他人のもの・無い id は、どちらも「見つからない」
+  select * into v_row from public.pv_stay_places
+   where id = v_id and author_hash = v_me
+     for update;
+  if not found then
+    return jsonb_build_object('ok', false, 'status', 'not_found');
+  end if;
+
+  if v_row.state = 'rejected' then
+    return jsonb_build_object('ok', false, 'status', 'final');
+  end if;
+
+  -- いまの中身の上に、送ってきた欄だけを重ねてから検品する（会社と空港は重ねない）
+  v_in := jsonb_build_object(
+            'kind', v_row.kind, 'name', v_row.name, 'address', v_row.address,
+            'maps_url', v_row.maps_url, 'note', v_row.note, 'city', v_row.city)
+          || case when jsonb_typeof(p) = 'object' then p else '{}'::jsonb end;
+
+  select c.status, c.kind, c.name, c.address, c.maps_url, c.note, c.city
+    into v_bad, v_kind, v_name, v_addr, v_url, v_note, v_city
+    from public.pv_stay_clean(v_in) c;
+  if v_bad is not null then
+    return jsonb_build_object('ok', false, 'status', v_bad);
+  end if;
+
+  -- 何も変わっていなければ、ここで終わり（状態も回数も動かさない）
+  if v_kind is not distinct from v_row.kind
+     and v_name is not distinct from v_row.name
+     and v_addr is not distinct from v_row.address
+     and v_url  is not distinct from v_row.maps_url
+     and v_note is not distinct from v_row.note
+     and v_city is not distinct from v_row.city then
+    return jsonb_build_object('ok', true, 'changed', false, 'item',
+      public.pv_stay_place_json(v_row, v_me, v_role = 'operator'));
+  end if;
+
+  -- 同じ人の同時の2本を1列に並べる（回数の数え方をすり抜けさせない）
+  perform pg_advisory_xact_lock(hashtextextended('pv_stay:' || v_me, 0));
+
+  -- 1日の上限（足す口と同じ 20。直すたびに運営の待ち行列へ戻るので、際限なく戻させない）
+  select coalesce(sum(edit_n), 0) into v_n from public.pv_stay_places
+   where author_hash = v_me and edit_from > now() - interval '24 hours';
+  if v_n >= 20 then
+    return jsonb_build_object('ok', false, 'status', 'rate_limited');
+  end if;
+
+  -- 名前か種別を変えたときだけ、変えた先に同じ名前が在るかを見る（自分自身は数えない）
+  if v_kind <> v_row.kind or lower(v_name) <> lower(v_row.name) then
+    v_bad := public.pv_stay_clash(v_me, v_row.airline, v_row.iata, v_kind, v_name, v_id);
+    if v_bad is not null then
+      return jsonb_build_object('ok', false, 'status', v_bad);
+    end if;
+  end if;
+
+  update public.pv_stay_places
+     set kind         = v_kind,
+         name         = v_name,
+         address      = v_addr,
+         maps_url     = v_url,
+         note         = v_note,
+         city         = v_city,
+         state        = 'pending',
+         moderated_at = null,
+         updated_at   = now(),
+         edit_n       = case when edit_from > now() - interval '24 hours'
+                             then edit_n + 1 else 1 end,
+         edit_from    = case when edit_from > now() - interval '24 hours'
+                             then edit_from else now() end
+   where id = v_id
+  returning * into v_row;
+
+  return jsonb_build_object('ok', true, 'changed', true, 'item',
+    public.pv_stay_place_json(v_row, v_me, v_role = 'operator'));
+end;
+$fn$;
+
+revoke all on function public.pv_stay_update(jsonb) from public, anon;
+grant execute on function public.pv_stay_update(jsonb) to authenticated;
+
+comment on function public.pv_stay_update(jsonb) is
+  '自分が足した場所の中身（名前・種別・住所・地図のリンク・メモ・都市）を直す。書いた本人だけ。直したら pending へ戻る（運営が見るまで他人に出ない）。会社と空港は変えられない。何も変わらなければ状態を戻さない。24時間に20回まで。';
 
 
 -- ════════════════════════════════════════════════════════════════
@@ -1536,16 +1841,30 @@ comment on function public.pv_stay_photo(jsonb) is
 -- ════════════════════════════════════════════════════════════════
 -- 8. 運営が見る（公開する／見送る）
 -- ════════════════════════════════════════════════════════════════
--- 引数: p = {target:'place'|'photo', id, state:'public'|'rejected'}
+-- 引数: p = {target:'place'|'photo', id, state:'public'|'rejected', rev}
+--   rev は、運営が見た行に付いていた中身の印（4 の一覧・10 の待ち行列が返す。3-m）。
+--   読むのは**場所を公開するとき**だけ。見送るとき・写真のときは読まない。
 -- 返り値: {ok:true, target, id, state}
 --   forbidden   運営ではない（★何も調べずに返す）
---   bad_state   'public' と 'rejected' 以外（★'pending' へ戻す道は無い）
+--   bad_state   'public' と 'rejected' 以外（★この口から 'pending' へ戻す道は無い。
+--               'pending' へ戻るのは、書いた本人が中身を直したときだけ＝5-b）
 --   bad_target  'place' と 'photo' 以外
 --   not_found   その id が無い
 --   own_post    自分が出したものを自分で公開しようとした
 --   final       見送ったものは公開へ戻せない（出し直してもらう）
+--   changed     運営が見たあとで中身が直されている（★何も変えずに返す。読み直してから通す）
 -- ★ own_post が要。運営が自分で書いて自分で通せると、「人が1回見る」が
 --   「書いた本人が見た」になる。見送る側は自分のものでもできる（害が無い）。
+-- ★ changed も同じ約束の続き。場所を公開するとき、
+--     rev が届いていれば … いまの中身の印と同じでなければ通さない。
+--     届いていなければ   … **一度も直されていない場所だけ**通す
+--                          （足したときの中身のまま ＝ 運営が見たものと同じ）。
+--   ＝ 直された場所は、id だけでは公開できない。id だけで通すと、運営が一覧を見てから
+--   押すまでの間に本人が直した中身が、誰の目も通らずに出る（約束 5）。
+--   見送る側は印が要らない（見ていない中身を外へ出す向きではない）。
+-- ★ 直された場所を通すときは、付いている写真も見直す。場所が確認待ちの間、公開済みだった
+--   写真はほかの人から隠れているだけで、場所を通した瞬間にそのまま出る（写真は見直しに戻らない）。
+--   待ち行列の行にも、一覧の行にも、その場所の写真の並び（photos）が付いている。
 -- ★ 場所を見送ると、その場所の写真も全部見送りになり、画素を消す。
 --   場所が見えなくなったあとに写真だけ DB に残る、を作らない。
 -- ★ 場所を公開しても写真は公開にならない。写真は1枚ずつ見る。
@@ -1563,6 +1882,7 @@ declare
   v_target text;
   v_state  text;
   v_id     uuid;
+  v_rev    text;
   v_place  public.pv_stay_places%rowtype;
   v_f      public.pv_stay_photos%rowtype;
 begin
@@ -1597,6 +1917,15 @@ begin
     end if;
     if v_state = 'public' and v_place.author_hash = v_me then
       return jsonb_build_object('ok', false, 'status', 'own_post');
+    end if;
+    -- ★ 通すのは運営が見た中身だけ。行は上で錠を掛けて読んであるので、
+    --   ここで比べた中身と、下で公開する中身は同じもの（間に本人の直しは入れない）。
+    --   空の rev は「届いていない」と同じに扱う。
+    v_rev := nullif(btrim(coalesce(p->>'rev', '')), '');
+    if v_state = 'public'
+       and (v_rev is not null or v_place.updated_at is not null)
+       and v_rev is distinct from public.pv_stay_rev(v_place) then
+      return jsonb_build_object('ok', false, 'status', 'changed');
     end if;
 
     update public.pv_stay_places
@@ -1722,7 +2051,7 @@ comment on function public.pv_stay_delete(jsonb) is
 -- 「どの空港に確認待ちがあるか」を知る手段が無い。
 -- 引数: p（いまは使わない。形をそろえるためだけ）
 -- 返り値: {ok:true,
---          places:[{airline, iata, …一覧と同じ形…}],          確認待ちの場所
+--          places:[{airline, iata, rev, …一覧と同じ形…}],     確認待ちの場所（rev ＝ いま見ている版の印。公開するときに添えて返す）
 --          photos:[{id, mine, place, airline, iata, kind, name, place_state}]}  確認待ちの写真
 --   forbidden  運営ではない（★何も調べずに返す）
 -- ★ ここも時刻は返さない。古い順に並べるだけ。
@@ -1747,7 +2076,7 @@ begin
     into v_places
     from (
       select public.pv_stay_place_json(s, v_me, true)
-               || jsonb_build_object('airline', s.airline, 'iata', s.iata) as j,
+               || jsonb_build_object('airline', s.airline, 'iata', s.iata, 'rev', public.pv_stay_rev(s)) as j,
              s.created_at as t, s.id
         from public.pv_stay_places s
        where s.state = 'pending'

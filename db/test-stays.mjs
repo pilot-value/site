@@ -149,9 +149,12 @@ const one = async (sql, params = []) => (await db.query(sql, params)).rows[0];
 
 const stays    = (who, airline = 'etihad', iata = 'NRT') => rpc(who, 'pv_stays', { airline, iata });
 const add      = (who, o) => rpc(who, 'pv_stay_add', o);
-const photoAdd = (who, place, b64, w, h) => rpc(who, 'pv_stay_photo_add', { place, b64, w, h });
+const upd      = (who, o) => rpc(who, 'pv_stay_update', o);
+const photoAdd =(who, place, b64, w, h) => rpc(who, 'pv_stay_photo_add', { place, b64, w, h });
 const photo    = (who, id) => rpc(who, 'pv_stay_photo', { id });
-const moderate = (who, target, id, state) => rpc(who, 'pv_stay_moderate', { target, id, state });
+/* rev ＝ 運営が見た版の印。直された場所を公開へ戻すときだけ要る（添えない呼び出しは今までと同じ形） */
+const moderate = (who, target, id, state, rev) =>
+  rpc(who, 'pv_stay_moderate', rev === undefined ? { target, id, state } : { target, id, state, rev });
 const del      = (who, target, id) => rpc(who, 'pv_stay_delete', { target, id });
 const queue    = (who) => rpc(who, 'pv_stay_queue', {});
 const find     = (v, id) => ((v && v.places) || []).find((x) => x.id === id);
@@ -427,13 +430,17 @@ for (const t of ['pv_stay_places', 'pv_stay_photos']) {
 
 // ════════════════════════════════════════════════════════════════
 console.log('\n▼ 関数の配り方');
-/* 期待: 画面から呼べるのは7本だけ。未ログインに配るのは pv_stays の1本だけ。 */
+/* 期待: 画面から呼べるのは8本だけ。未ログインに配るのは pv_stays の1本だけ。 */
 const GRANTS = {
   pv_stays: 'anon,auth',
-  pv_stay_add: 'auth', pv_stay_photo_add: 'auth', pv_stay_photo: 'auth',
+  pv_stay_add: 'auth', pv_stay_update: 'auth', pv_stay_photo_add: 'auth', pv_stay_photo: 'auth',
   pv_stay_moderate: 'auth', pv_stay_delete: 'auth', pv_stay_queue: 'auth',
   pv_stay_hash: '', pv_is_verified_pilot: '', pv_stay_role: '', pv_stay_visible: '',
   pv_stay_age: '', pv_stay_uuid: '', pv_stay_maps_url: '', pv_stay_place_json: '',
+  /* 場所の中身の検品と、同じ名前の判定（足す口と直す口が同じものを呼ぶ。誰にも配らない） */
+  pv_stay_clean: '', pv_stay_clash: '',
+  /* 運営が見た版の印（一覧と待ち行列が運営にだけ添える。誰にも配らない） */
+  pv_stay_rev: '',
   /* 写真を作り直す部品（4本とも誰にも配らない） */
   pv_jpeg_read: '', pv_jpeg_strip: '', pv_jpeg_is_clean: '', pv_jpeg_dims: '',
 };
@@ -449,17 +456,17 @@ const grantsNow = async () => (await db.query(
     order by p.proname, p.oid`)).rows;
 const checkGrants = async (label) => {
   const rows = await grantsNow();
-  ok(rows.length === 19 && rows.map((r) => r.name).join(',') === Object.keys(GRANTS).sort().join(','),
-     `${label}関数は19本ちょうど（同じ名前の別署名が残っていない・前の部品 pv_stay_jpeg_clean は消えている）`, rows.map((r) => r.name).join(','));
+  ok(rows.length === 23 && rows.map((r) => r.name).join(',') === Object.keys(GRANTS).sort().join(','),
+     `${label}関数は23本ちょうど（同じ名前の別署名が残っていない・前の部品 pv_stay_jpeg_clean は消えている）`, rows.map((r) => r.name).join(','));
   const wrong = rows.filter((r) => [r.anon && 'anon', r.auth && 'auth'].filter(Boolean).join(',') !== GRANTS[r.name]);
   ok(wrong.length === 0, `${label}呼べる人が期待どおり（未ログインは pv_stays だけ・部品は誰も呼べない）`, J(wrong));
   ok(rows.every((r) => r.pub === false), `${label}PUBLIC に実行権が残っていない`, J(rows.filter((r) => r.pub)));
   ok(rows.every((r) => /search_path=/.test(r.cfg)), `${label}どの関数にも search_path が付いている`,
      J(rows.filter((r) => !/search_path=/.test(r.cfg)).map((r) => r.name)));
-  const needDef = ['pv_stays', 'pv_stay_add', 'pv_stay_photo_add', 'pv_stay_photo', 'pv_stay_moderate',
+  const needDef = ['pv_stays', 'pv_stay_add', 'pv_stay_update', 'pv_stay_photo_add', 'pv_stay_photo', 'pv_stay_moderate',
                    'pv_stay_delete', 'pv_stay_queue', 'pv_is_verified_pilot', 'pv_stay_role'];
   ok(rows.filter((r) => r.def).map((r) => r.name).sort().join(',') === needDef.sort().join(','),
-     `${label}security definer は表を読む9本だけ`, rows.filter((r) => r.def).map((r) => r.name).join(','));
+     `${label}security definer は表を読む10本だけ`, rows.filter((r) => r.def).map((r) => r.name).join(','));
 };
 await checkGrants('');
 {
@@ -477,12 +484,15 @@ await checkGrants('');
     [`select public.pv_jpeg_is_clean(decode($1, 'base64')) as v`, [JPEG]],
     [`select public.pv_jpeg_dims(decode($1, 'base64')) as v`, [JPEG]],
     [`select public.pv_is_operator() as v`, []],
+    [`select (public.pv_stay_clean('{"kind":"hotel","name":"テスト用ホテルQ"}'::jsonb)).status as v`, []],
+    [`select public.pv_stay_clash('a', 'etihad', 'NRT', 'hotel', 'テスト用ホテルQ', null) as v`, []],
+    [`select public.pv_stay_rev(null::public.pv_stay_places) as v`, []],
   ];
   for (const who of [V1, U, ANON]) {
     const res = [];
     for (const [sql, params] of tries) res.push(await call(who, sql, params));
-    ok(res.length === 12 && res.every((r) => /permission denied/i.test(r.err || '')),
-       `${NAMES.get(who)}: 中の部品（ハッシュ・印の判定・門・見える判定…）を直接は呼べない`,
+    ok(res.length === 15 && res.every((r) => /permission denied/i.test(r.err || '')),
+       `${NAMES.get(who)}: 中の部品（ハッシュ・印の判定・門・見える判定・中身の検品…）を直接は呼べない`,
        J(res.map((r) => r.err || r.v)));
   }
 }
@@ -511,8 +521,8 @@ let A;   // 場所A（V1 が書いたホテル・あとで公開）
     note: 'テスト用のメモ。\n2行目。' }));
   A = r.item && r.item.id;
   ok(r.ok === true && keys(r) === 'item,ok'
-     && keys(r.item) === 'address,age,id,kind,maps_url,mine,name,note,photos,state',
-     '印を持つ人は足せる（返る欄は10個ちょうど）', J(r));
+     && keys(r.item) === 'address,age,city,id,kind,maps_url,mine,name,note,photos,state',
+     '印を持つ人は足せる（返る欄は11個ちょうど）', J(r));
   ok(r.item.state === 'pending' && r.item.mine === true && r.item.name === 'テスト用ホテルA'
      && r.item.kind === 'hotel' && r.item.age === 0 && J(r.item.photos) === '[]'
      && r.item.maps_url === 'https://www.google.com/maps/place/Test+Hotel+A'
@@ -553,8 +563,8 @@ let A;   // 場所A（V1 が書いたホテル・あとで公開）
   ok((await moderate(OP, 'place', A, 'public')).ok === true, '同じ状態をもう一度指定しても壊れない');
   const seenBy2 = find(await stays(V2), A);
   ok(seenBy2 && seenBy2.mine === false && seenBy2.state === 'public'
-     && keys(seenBy2) === 'address,age,id,kind,maps_url,mine,name,note,photos,state',
-     '公開されると、別の印を持つ人に見える（mine:false・欄は10個）', J(seenBy2));
+     && keys(seenBy2) === 'address,age,city,id,kind,maps_url,mine,name,note,photos,state',
+     '公開されると、別の印を持つ人に見える（mine:false・欄は11個）', J(seenBy2));
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -570,8 +580,9 @@ for (const who of OUTSIDERS) {
   if (who === ANON) {
     const rs = [await add(who, P('etihad', 'NRT', 'hotel', 'テスト用ホテルZ')),
                 await photoAdd(who, A, JPEG), await photo(who, A),
-                await moderate(who, 'place', A, 'rejected'), await del(who, 'place', A), await queue(who)];
-    ok(rs.every(denied), 'ANON: 足す・写真・公開・削除・待ち行列は口そのものを呼べない', J(rs));
+                await moderate(who, 'place', A, 'rejected'), await del(who, 'place', A), await queue(who),
+                await upd(who, { id: A, name: 'テスト用ホテルZ' })];
+    ok(rs.length === 7 && rs.every(denied), 'ANON: 足す・写真・公開・削除・待ち行列・直す は口そのものを呼べない', J(rs));
     continue;
   }
   const a = await add(who, P('etihad', 'NRT', 'hotel', 'テスト用ホテルZ'));
@@ -582,13 +593,20 @@ for (const who of OUTSIDERS) {
   const f = await del(who, 'place', A);
   const g = await del(who, 'photo', A);
   const h = await del(who, 'x', A);
+  /* 直す口 ── 在る id・無い id・id なし のどれでも同じ1行（在るかどうかを答えない） */
+  const u = [await upd(who, { id: A, name: 'テスト用ホテルZ', city: 'テスト市' }),
+             await upd(who, { id: '11111111-1111-4111-8111-111111111111', name: 'テスト用ホテルZ' }),
+             await upd(who, {}), await rpc(who, 'pv_stay_update', undefined)];
+  ok(u.every((r) => J(r) === LOCKED), `${n}: 直す も locked だけ（在る id・無い id・引数なし のどれでも同じ）`, J(u));
   ok(J(a) === LOCKED && J(b) === LOCKED && J(c) === LOCKED, `${n}: 足す・写真を足す・写真を読む は locked だけ`, J([a, b, c]));
   ok(J(d) === FORBIDDEN && J(e) === FORBIDDEN, `${n}: 待ち行列・公開／見送り は forbidden だけ`, J([d, e]));
   ok(J(f) === NOT_FOUND && J(g) === NOT_FOUND && J(h) === BAD_TARGET, `${n}: 他人のものは消せない（在っても not_found）`, J([f, g, h]));
 }
 {
-  const n = await one(`select count(*)::int as n, min(state) as s from public.pv_stay_places`);
+  const n = await one(`select count(*)::int as n, min(state) as s, min(name) as nm,
+                              count(updated_at)::int as u, sum(edit_n)::int as e from public.pv_stay_places`);
   ok(n.n === 1 && n.s === 'public', '↑ のあいだ、表は1行も増えず・減らず・状態も変わっていない', J(n));
+  ok(n.nm === 'テスト用ホテルA' && n.u === 0 && n.e === 0, '↑ 名前も書き換わっていない（直した跡が1つも無い）', J(n));
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -1191,6 +1209,10 @@ console.log('\n▼ 入力の検品 ── 会社・空港・種類・文字数')
   await t('名前の指定なし', { airline: 'etihad', iata: 'FRA', kind: 'hotel' }, 'bad_name');
   await t('住所が201字', P('etihad', 'FRA', 'hotel', 'テスト用ホテルF', { address: 'あ'.repeat(201) }), 'too_long');
   await t('メモが501字', P('etihad', 'FRA', 'hotel', 'テスト用ホテルF', { note: 'あ'.repeat(501) }), 'too_long');
+  await t('都市が61字', P('etihad', 'FRA', 'hotel', 'テスト用ホテルF', { city: 'あ'.repeat(61) }), 'bad_city');
+  /* 弾く順番は 種別 → 名前 → 住所 → メモ → 都市（画面に出る一言がこの順で決まる） */
+  await t('名前も都市もだめ（名前が先）', P('etihad', 'FRA', 'hotel', 'A', { city: 'あ'.repeat(61) }), 'bad_name');
+  await t('住所も都市もだめ（住所が先）', P('etihad', 'FRA', 'hotel', 'テスト用ホテルF', { address: 'あ'.repeat(201), city: 'あ'.repeat(61) }), 'too_long');
   /* 無効にした会社には足せない（一覧は読める・can_add が false） */
   await db.exec(`update public.pv_airlines set active = false where code = 'jta'`);
   await t('無効にした会社', P('jta', 'FRA', 'hotel', 'テスト用ホテルF'), 'bad_airline');
@@ -1211,6 +1233,26 @@ console.log('\n▼ 入力の検品 ── 会社・空港・種類・文字数')
   const lim = await t('名前80字・住所200字・メモ500字', P('etihad', 'FRA', 'hotel', 'テ'.repeat(80), { address: '住'.repeat(200), note: 'メ'.repeat(500) }), 'ok');
   ok(lim.item.name.length === 80 && lim.item.address.length === 200 && lim.item.note.length === 500, '↑ 1文字も削られずに入っている');
   await t('名前2字', P('etihad', 'FRA', 'food', 'テA'), 'ok');
+  const c60 = await t('都市60字', P('etihad', 'FRA', 'food', 'テスト用レストランC60', { city: '都'.repeat(60) }), 'ok');
+  ok(c60.item.city === '都'.repeat(60), '↑ 1文字も削られずに入っている', J(c60.item));
+  const cn = await t('都市に改行・タブ・全角空白', P('etihad', 'FRA', 'food', 'テスト用レストランCN', { city: '  テスト\n\t市　中央  ' }), 'ok');
+  const c0 = await t('都市が空白だけ', P('etihad', 'FRA', 'food', 'テスト用レストランC0', { city: ' 　 ' }), 'ok');
+  const cx = await t('都市の指定なし', P('etihad', 'FRA', 'food', 'テスト用レストランCX'), 'ok');
+  const cRow = async (id) => (await one(`select city from public.pv_stay_places where id = $1`, [id])).city;
+  ok(cn.item.city === 'テスト 市 中央' && (await cRow(cn.item.id)) === 'テスト 市 中央', '都市の名前は1行にそろう（改行が入らない）', J(cn.item));
+  ok(c0.item.city === null && cx.item.city === null && (await cRow(c0.item.id)) === null && (await cRow(cx.item.id)) === null,
+     '都市を書かなければ null（空の文字列を保存しない）', J([c0.item, cx.item]));
+  /* ★関数を通さずに表へ入れる道でも、都市の決まりは表の CHECK が止める */
+  const direct = async (city) => {
+    try {
+      await db.query(`insert into public.pv_stay_places (author_hash, airline, iata, kind, name, city)
+                      values ($1, 'etihad', 'FRA', 'spot', 'テスト用の直接書き込み', $2)`, [hashOf(V1), city]);
+      return 'in';
+    } catch (e) { return /pv_stay_places_city_ck/.test(String(e.message)) ? 'ck' : String(e.message); }
+  };
+  const dr = [await direct(''), await direct(' テスト市'), await direct('あ'.repeat(61)), await direct('テスト\n市'), await direct('テスト\t市')];
+  ok(dr.every((x) => x === 'ck'), '★表に直接書いても、空・前後の空白・61字・改行やタブ入りの都市は入らない（CHECK）', J(dr));
+  ok((await one(`select count(*)::int as n from public.pv_stay_places where name = 'テスト用の直接書き込み'`)).n === 0, '↑ 1行も入っていない');
   const norm = await t('名前に改行・タブ・全角空白', P('etihad', 'FRA', 'spot', 'テスト用\n\tスポット　N', { address: ' テスト用の\n住所 ', note: '  ' }), 'ok');
   ok(norm.item.name === 'テスト用 スポット N' && norm.item.address === 'テスト用の 住所' && norm.item.note === null,
      '名前と住所は1行にそろう・空白だけのメモは空になる', J(norm.item));
@@ -1223,9 +1265,11 @@ console.log('\n▼ 入力の検品 ── 会社・空港・種類・文字数')
     const r4 = await rpc(V1, 'pv_stay_photo', p);
     const r5 = await rpc(V1, 'pv_stay_delete', p);
     const r6 = await rpc(OP, 'pv_stay_moderate', p);
+    const r7 = await rpc(V1, 'pv_stay_update', p);
     ok(status(r1) === 'bad_airline' && status(r2) === 'bad_airline' && status(r3) === 'not_found'
-       && status(r4) === 'not_found' && status(r5) === 'not_found' && status(r6) === 'bad_state',
-       `引数が ${p === undefined ? 'NULL' : J(p)} でも、例外ではなく定型の返事`, [r1, r2, r3, r4, r5, r6].map(status).join(' / '));
+       && status(r4) === 'not_found' && status(r5) === 'not_found' && status(r6) === 'bad_state'
+       && J(r7) === NOT_FOUND,
+       `引数が ${p === undefined ? 'NULL' : J(p)} でも、例外ではなく定型の返事`, [r1, r2, r3, r4, r5, r6, r7].map(status).join(' / '));
   }
 }
 
@@ -1356,7 +1400,7 @@ let N1;
   const v1 = await stays(V1);
   ok(v1.others.length === 1 && keys(v1.others[0]) === 'airline,places' && v1.others[0].airline === 'jal'
      && v1.others[0].places.length === 1 && v1.others[0].places[0].name === 'テスト用ホテルJ1'
-     && keys(v1.others[0].places[0]) === 'address,age,id,kind,maps_url,mine,name,note,photos,state',
+     && keys(v1.others[0].places[0]) === 'address,age,city,id,kind,maps_url,mine,name,note,photos,state',
      '他社のホテルが会社ごとに出る（食べる所・別の空港・他人の確認前は出ない）', J(v1.others));
   const v2 = await stays(V2);
   ok(v2.others.map((o) => o.airline).join(',') === 'ana,jal' && v2.others[0].places[0].mine === true
@@ -1377,8 +1421,8 @@ console.log('\n▼ 運営の待ち行列');
   ok(q.ok === true && keys(q) === 'ok,photos,places', '運営: 待ち行列が返る（欄は ok・places・photos）', keys(q));
   const n1 = q.places.find((p) => p.id === N1);
   ok(n1 && n1.airline === 'ana' && n1.iata === 'NRT' && q.places.every((p) => p.state === 'pending')
-     && keys(n1) === 'address,age,airline,iata,id,kind,maps_url,mine,name,note,photos,state',
-     '確認待ちの場所だけが、会社と空港つきで並ぶ', J(n1));
+     && keys(n1) === 'address,age,airline,city,iata,id,kind,maps_url,mine,name,note,photos,rev,state',
+     '確認待ちの場所だけが、会社と空港つきで並ぶ（版の印 rev つき）', J(n1));
   ok(q.photos.length > 0 && q.photos.every((f) => keys(f) === 'airline,iata,id,kind,mine,name,place,place_state'),
      '確認待ちの写真が、どの場所のものかと一緒に並ぶ', J(q.photos[0]));
   const q0 = await call(OP, `select public.pv_stay_queue() as v`);
@@ -1403,12 +1447,13 @@ console.log('\n▼ 確認の印の列がもし会員に書ける状態へ戻っ�
   for (const [role, priv] of [['authenticated', 'update'], ['authenticated', 'insert'], ['anon', 'update'], ['anon', 'insert']]) {
     await db.exec(`grant ${priv} (verify_level) on public.profiles to ${role};`);
     const r = [J(await stays(V1)), J(await stays(V2)), J(await photo(V1, F1)),
-               J(await add(V1, P('etihad', 'NRT', 'hotel', 'テスト用ホテルG'))), J(await photoAdd(V2, A, jpegN(90)))];
+               J(await add(V1, P('etihad', 'NRT', 'hotel', 'テスト用ホテルG'))), J(await photoAdd(V2, A, jpegN(90))),
+               J(await upd(V1, { id: A, name: 'テスト用ホテルG' }))];
     const op = await stays(OP);
     const out = [J(await stays(U)), J(await stays(ANON))];
     await db.exec(`revoke ${priv} (verify_level) on public.profiles from ${role};`);
-    ok(r[0] === LOCKED_READ && r[1] === LOCKED_READ && r[2] === LOCKED && r[3] === LOCKED && r[4] === LOCKED,
-       `★${role} が verify_level を ${priv} できる間は、印を持つ人にも locked（読む・足す・写真）`, J(r));
+    ok(r[0] === LOCKED_READ && r[1] === LOCKED_READ && r[2] === LOCKED && r[3] === LOCKED && r[4] === LOCKED && r[5] === LOCKED,
+       `★${role} が verify_level を ${priv} できる間は、印を持つ人にも locked（読む・足す・写真・直す）`, J(r));
     ok(op.state === 'open' && op.is_operator === true && !!find(op, A) && out.every((x) => x === LOCKED_READ),
        '↑ その間も運営は見える（直すための画面は生きている）・資格の無い人は locked のまま', J([op.state, out]));
   }
@@ -1423,9 +1468,10 @@ console.log('\n▼ 確認の印の列がもし会員に書ける状態へ戻っ�
   const lv = await one(`select verify_level from public.profiles where id = $1`, [U]);
   ok(!w.err && Number(lv.verify_level) === 2, '（権限が配られると、会員は自分の印を書けてしまう ── これが塞ぐ相手）', J({ w, lv }));
   const got = [J(await stays(U)), J(await stays(U, 'jal', 'NRT')), J(await add(U, P('etihad', 'NRT', 'hotel', 'テスト用ホテルG2'))),
-               J(await photo(U, F1)), J(await photoAdd(U, A, JPEG)), J(await queue(U)), J(await moderate(U, 'place', A, 'rejected'))];
+               J(await photo(U, F1)), J(await photoAdd(U, A, JPEG)), J(await queue(U)), J(await moderate(U, 'place', A, 'rejected')),
+               J(await upd(U, { id: A, name: 'テスト用ホテルG2' }))];
   ok(got[0] === LOCKED_READ && got[1] === LOCKED_READ && got[2] === LOCKED && got[3] === LOCKED && got[4] === LOCKED
-     && got[5] === FORBIDDEN && got[6] === FORBIDDEN,
+     && got[5] === FORBIDDEN && got[6] === FORBIDDEN && got[7] === LOCKED,
      '★自分で印を書いた会員には、ホテル名も写真も1つも返らない（locked だけ）', J(got));
   /* 片付け。⚠️ 権限を取り上げても、その間に書かれた印は列に残る。印も戻す
      （本番でこうなったら、db/admin.sql を貼り直したあとに印の付いている人を見直す） */
@@ -1520,6 +1566,198 @@ console.log('\n▼ 消す ── 本人か運営だけ');
 }
 
 // ════════════════════════════════════════════════════════════════
+console.log('\n▼ 直す ── 書いた本人だけ・直したら確認待ちへ戻る・運営が通すとまた出る');
+{
+  /* 表の行をそのまま読む（オーナーとして）。直す前後を1文字ずつ比べるため */
+  const rowOf = async (id) => one(
+    `select airline, iata, kind, name, address, maps_url, note, city, state, author_hash,
+            created_at::text as c, moderated_at is not null as checked, updated_at is not null as touched,
+            edit_from is not null as boxed, edit_n
+       from public.pv_stay_places where id = $1`, [id]);
+  const hel = (who) => stays(who, 'etihad', 'HEL');
+  const FULL = { kind: 'hotel', name: 'テスト用ホテルH1', address: 'テスト用の住所 9-9-9',
+                 maps_url: 'https://maps.app.goo.gl/TestH1', note: 'テスト用のメモH。\n2行目。', city: 'テスト市' };
+  const ITEM11 = 'address,age,city,id,kind,maps_url,mine,name,note,photos,state';
+
+  /* 都市つきで足す → 運営が公開 → 写真を1枚付けて、それも公開 */
+  const h = await addFresh(V1, P('etihad', 'HEL', FULL.kind, FULL.name, FULL));
+  const H = h.item && h.item.id;
+  ok(h.ok === true && h.item.city === 'テスト市' && h.item.state === 'pending' && h.item.mine === true,
+     '都市つきで足せる（確認待ちで入る・自分の印つき）', J(h));
+  await moderate(OP, 'place', H, 'public');
+  const hp = await photoAdd(V1, H, jpegN(2001));
+  const FH = hp.photo && hp.photo.id;
+  await moderate(OP, 'photo', FH, 'public');
+  const pub0 = find(await hel(V2), H);
+  ok(pub0 && pub0.state === 'public' && pub0.mine === false && pub0.city === 'テスト市' && pub0.photos.length === 1
+     && (await photo(V2, FH)).b64 === jpegN(2001), '（公開済み: 別の印を持つ人に、都市と写真つきで見えている）', J(pub0));
+  const r0 = await rowOf(H);
+
+  /* 何も変えない送り直し ── 状態を戻さない */
+  const same = [await upd(V1, { id: H, ...FULL }),
+                await upd(V1, { id: H, name: '  テスト用ホテルH1 ', city: 'テスト市\n' }),   // そろえたら同じになる
+                await upd(V1, { id: H }),                                                    // 欄を1つも送らない
+                await upd(V1, { id: H, airline: 'jal', iata: 'KIX' })];                      // 会社と空港は読まない
+  ok(same.every((r) => r.ok === true && r.changed === false && keys(r) === 'changed,item,ok'
+                       && keys(r.item) === ITEM11 && r.item.id === H && r.item.state === 'public' && r.item.mine === true),
+     '★何も変えない送り直しは changed:false（公開のまま。確認待ちへ戻さない）', J(same.map((r) => [r.ok, r.changed, r.item && r.item.state])));
+  ok(J(await rowOf(H)) === J(r0) && r0.state === 'public' && r0.touched === false && r0.edit_n === 0
+     && r0.airline === 'etihad' && r0.iata === 'HEL',
+     '↑ 表の行は1文字も変わっていない（状態・回数・会社・空港。会社と空港を送っても変わらない）', J(r0));
+  ok(!!find(await hel(V2), H), '↑ ほかの人にも出たまま');
+
+  /* 直せない人たち */
+  const no = { id: H, name: 'テスト用ホテルH1 書き換え', city: 'テスト別市' };
+  const deny = [await upd(V2, no), await upd(OP, no), await upd(OP2, no),
+                await upd(V1, { ...no, id: '11111111-1111-4111-8111-111111111111' }),
+                await upd(V1, { ...no, id: 'abc' }), await upd(V1, { name: no.name })];
+  ok(deny.length === 6 && deny.every((r) => J(r) === NOT_FOUND),
+     '★他人は直せない（別の印を持つ人も・運営も not_found）／無い id・変な id・id なし も同じ答え', J(deny));
+  ok(J(await upd(U, no)) === LOCKED && J(await upd(PAY, no)) === LOCKED && J(await upd(BADGE, no)) === LOCKED
+     && denied(await upd(ANON, no)), '資格の無い会員は locked・未ログインは口そのものを呼べない');
+  await db.query(`update public.profiles set verify_level = 0 where id = $1`, [V1]);
+  const off = await upd(V1, no);
+  await db.query(`update public.profiles set verify_level = 1 where id = $1`, [V1]);
+  ok(J(off) === LOCKED, '★印を外された人は、自分が書いたものでも直せない（locked。資格の判定は門のまま）', J(off));
+  ok(J(await rowOf(H)) === J(r0), '↑ どれのあとも、表の行は1文字も変わっていない');
+
+  /* 本人が直す → 確認待ちへ戻る */
+  const e1 = await upd(V1, { id: H, name: '  テスト用ホテルH1 新館 ', city: 'テスト新市' });
+  ok(e1.ok === true && e1.changed === true && keys(e1) === 'changed,item,ok' && keys(e1.item) === ITEM11,
+     '本人は直せる（返る欄は changed・item・ok／item は一覧と同じ11個）', J(e1));
+  ok(e1.item.id === H && e1.item.state === 'pending' && e1.item.mine === true
+     && e1.item.name === 'テスト用ホテルH1 新館' && e1.item.city === 'テスト新市'
+     && e1.item.address === FULL.address && e1.item.maps_url === FULL.maps_url && e1.item.note === FULL.note
+     && e1.item.kind === 'hotel' && e1.item.photos.length === 1,
+     '★直したら確認待ち（pending）へ戻る・送った欄だけが変わり、送らなかった欄はそのまま', J(e1.item));
+  const r1 = await rowOf(H);
+  ok(r1.state === 'pending' && r1.checked === false && r1.touched === true && r1.boxed === true && r1.edit_n === 1
+     && r1.airline === 'etihad' && r1.iata === 'HEL' && r1.c === r0.c && r1.author_hash === hashOf(V1),
+     '表: pending・運営が見た時刻は空・直した時刻が入る・回数は1／会社・空港・足した時刻・持ち主は変わらない', J(r1));
+  ok(!J(e1).includes(hashOf(V1)) && !/author|hash|_at"|edit_/.test(J(e1)), '★返り値に持ち主の印が無い（時刻も回数も無い）', J(e1));
+
+  /* 確認待ちの間 ── ほかのパイロットには出ない・本人と運営には出る */
+  const v2a = await hel(V2);
+  ok(v2a.state === 'open' && !find(v2a, H), '★直したあとは、ほかのパイロットに出なくなる（運営が見るまで）', J(v2a.places));
+  ok(!(await stays(V2, 'jal', 'HEL')).others.some((o) => o.places.some((p) => p.id === H)),
+     '↑ 「同じ空港で他社が使うホテル」の側にも出ない');
+  ok(J(await photo(V2, FH)) === NOT_FOUND && J(await photoAdd(V2, H, jpegN(2002))) === NOT_FOUND,
+     '↑ 付いている公開済みの写真も取り出せない・写真も足せない（在るかどうかを答えない）');
+  ok((await one(`select state from public.pv_stay_photos where id = $1`, [FH])).state === 'public',
+     '（写真の状態そのものは書き換えていない）');
+  const v1a = find(await hel(V1), H);
+  ok(v1a && v1a.mine === true && v1a.state === 'pending' && v1a.name === 'テスト用ホテルH1 新館'
+     && v1a.photos.length === 1 && (await photo(V1, FH)).b64 === jpegN(2001),
+     '本人には出続ける（確認待ちと分かる・自分の印つき・写真も見える）', J(v1a));
+  const opa = find(await hel(OP), H);
+  const qa = (await queue(OP)).places.find((x) => x.id === H);
+  ok(opa && opa.mine === false && opa.state === 'pending' && qa && qa.name === 'テスト用ホテルH1 新館'
+     && qa.city === 'テスト新市' && qa.airline === 'etihad' && qa.iata === 'HEL' && qa.mine === false,
+     '運営には見える・待ち行列に直した中身で並ぶ（mine は本人にしか付かない）', J([opa, qa]));
+
+  /* 運営が通すと、また出る */
+  ok(J(await moderate(V1, 'place', H, 'public')) === FORBIDDEN, '本人は自分で公開へ戻せない（forbidden）');
+  /* ★公開へ戻すには、運営が見た版の印（rev）が要る ── 見ていない版を、id だけで通せない */
+  ok(typeof opa.rev === 'string' && /^[0-9a-f]{16}$/.test(opa.rev) && qa.rev === opa.rev && v1a.rev === undefined,
+     '★版の印は運営にだけ添えられる（一覧と待ち行列で同じ値・本人の返事には無い）', J([opa.rev, qa.rev, v1a.rev]));
+  ok(status(await moderate(OP, 'place', H, 'public')) === 'changed'
+     && status(await moderate(OP, 'place', H, 'public', '0000000000000000')) === 'changed'
+     && (await one(`select state from public.pv_stay_places where id = $1`, [H])).state === 'pending',
+     '★直された場所は、印なし・古い印では公開へ戻せない（changed・確認待ちのまま）');
+  ok((await moderate(OP, 'place', H, 'public', opa.rev)).ok === true, '運営が通す（見た版の印を添える）');
+  const v2b = find(await hel(V2), H);
+  ok(v2b && v2b.state === 'public' && v2b.mine === false && v2b.name === 'テスト用ホテルH1 新館' && v2b.city === 'テスト新市'
+     && v2b.photos.length === 1 && (await photo(V2, FH)).b64 === jpegN(2001),
+     '★運営が通すと、直した中身でまた出る（写真も）', J(v2b));
+
+  /* 欄を消す・地図のリンク・種別 */
+  const e2 = await upd(V1, { id: H, address: null, note: '   ', city: '', maps_url: 'https://example.com/not-maps' });
+  ok(e2.changed === true && e2.item.address === null && e2.item.note === null && e2.item.city === null
+     && e2.item.maps_url === null && e2.item.name === 'テスト用ホテルH1 新館' && e2.item.state === 'pending',
+     'null か空を送った欄は消える・通らない地図のリンクは捨てる（足すときと同じ）・公開済みからまた確認待ちへ', J(e2.item));
+  const e3 = await upd(V1, { id: H, kind: 'food', maps_url: 'https://www.google.com/maps/place/Test+H1' });
+  ok(e3.changed === true && e3.item.kind === 'food' && e3.item.maps_url === 'https://www.google.com/maps/place/Test+H1'
+     && (await rowOf(H)).edit_n === 3, '種別と地図のリンクも直せる（確認待ちのまま直しても回数は進む）', J(e3.item));
+  await upd(V1, { id: H, kind: 'hotel' });
+
+  /* 検品は足す口と同じ */
+  const rb = await rowOf(H);
+  const bad = async (label, o, want) => {
+    const r = await upd(V1, { id: H, ...o });
+    ok(status(r) === want && keys(r) === 'ok,status', `直す: ${label} → ${want}`, J(r));
+  };
+  await bad('種別が白リストの外', { kind: 'bar' }, 'bad_kind');
+  await bad('種別を null に', { kind: null }, 'bad_kind');
+  await bad('名前が1字', { name: 'A' }, 'bad_name');
+  await bad('名前を空に', { name: '' }, 'bad_name');
+  await bad('名前を null に', { name: null }, 'bad_name');
+  await bad('名前が81字', { name: 'あ'.repeat(81) }, 'bad_name');
+  await bad('住所が201字', { address: 'あ'.repeat(201) }, 'too_long');
+  await bad('メモが501字', { note: 'あ'.repeat(501) }, 'too_long');
+  await bad('都市が61字', { city: 'あ'.repeat(61) }, 'bad_city');
+  ok(J(await rowOf(H)) === J(rb), '↑ 弾かれたものは1文字も入っていない（状態も回数もそのまま）');
+  const lim = await upd(V1, { id: H, name: 'テ'.repeat(80), address: '住'.repeat(200), note: 'メ'.repeat(500), city: '都'.repeat(60) });
+  ok(lim.changed === true && lim.item.name.length === 80 && lim.item.address.length === 200
+     && lim.item.note.length === 500 && lim.item.city.length === 60, '直す: 通る側の端（名前80字・住所200字・メモ500字・都市60字）', J(lim));
+  const nm = await upd(V1, { id: H, name: 'テスト用\n\tホテル　H1', address: ' テスト用の\n住所 ', note: ' 1行目\n2行目 ', city: 'テスト\n市' });
+  ok(nm.item.name === 'テスト用 ホテル H1' && nm.item.address === 'テスト用の 住所' && nm.item.note === '1行目\n2行目' && nm.item.city === 'テスト 市',
+     '直す: 名前・住所・都市は1行にそろう・メモの改行は残る（足すときと同じ）', J(nm.item));
+
+  /* 同じ名前 ── 足す口と同じ決まり */
+  const m2 = await addFresh(V1, P('etihad', 'HEL', 'hotel', 'Test Hotel H2'));     // 自分の別の場所（確認前）
+  const p3 = await addFresh(V2, P('etihad', 'HEL', 'hotel', 'Test Hotel H3'));     // 他人の場所（公開する）
+  await moderate(OP, 'place', p3.item.id, 'public');
+  const q4 = await addFresh(V2, P('etihad', 'HEL', 'hotel', 'Test Hotel H4'));     // 他人の場所（確認前のまま）
+  ok(status(await upd(V1, { id: H, name: 'test  hotel h2' })) === 'duplicate', '直した先の名前を、自分がもう出している → duplicate');
+  ok(status(await upd(V1, { id: H, name: 'TEST HOTEL H3' })) === 'exists', '直した先の名前が、もう公開されている → exists');
+  const leak = await upd(V1, { id: H, name: 'Test Hotel H4' });
+  ok(leak.ok === true && leak.changed === true, '★他人が確認前で同じ名前を出していても、exists とも duplicate とも返さない', J(leak));
+  const cs = await upd(V1, { id: H, name: 'TEST HOTEL H4' });
+  ok(cs.ok === true && cs.changed === true && cs.item.name === 'TEST HOTEL H4', '自分自身とは比べない（大文字小文字だけを直すのは通る）', J(cs));
+  ok(J(await upd(V1, { id: q4.item.id, note: 'テスト用のメモ' })) === NOT_FOUND && J(await upd(V1, { id: p3.item.id, note: 'テスト用のメモ' })) === NOT_FOUND
+     && (await rowOf(p3.item.id)).note === null, '他人の確認前も・公開済みも、どちらも同じ not_found（書き換わっていない）');
+
+  /* 見送られたもの・消したもの */
+  await moderate(OP, 'place', m2.item.id, 'rejected');
+  const rj0 = await rowOf(m2.item.id);
+  ok(status(await upd(V1, { id: m2.item.id, name: 'Test Hotel H2 改' })) === 'final' && J(await rowOf(m2.item.id)) === J(rj0)
+     && rj0.state === 'rejected', '見送られたものは直せない（final。直しても公開へ戻る道が無いので、出し直してもらう）');
+  await del(V1, 'place', m2.item.id);
+  ok(J(await upd(V1, { id: m2.item.id, name: 'Test Hotel H2 改' })) === NOT_FOUND, '消したものは直せない（not_found）');
+
+  /* 運営が自分で書いたもの */
+  const o1 = await addFresh(OP, P('etihad', 'HEL', 'food', 'テスト用レストランO1'));
+  await moderate(OP2, 'place', o1.item.id, 'public');
+  const oe = await upd(OP, { id: o1.item.id, note: 'テスト用のメモO' });
+  ok(oe.changed === true && oe.item.state === 'pending' && oe.item.mine === true,
+     '運営が自分で書いたものは、書いた本人として直せる（同じく確認待ちへ戻る）', J(oe));
+  ok(status(await moderate(OP, 'place', o1.item.id, 'public')) === 'own_post'
+     && (await moderate(OP2, 'place', o1.item.id, 'public', find(await hel(OP2), o1.item.id).rev)).ok === true,
+     '★直したあとも、運営は自分のものを自分で公開へ戻せない（own_post）。別の運営なら通せる');
+
+  /* 24時間に20回 ── 回数の箱（edit_from・edit_n）を直接置いてから呼ぶ */
+  const setBox = (id, n, ago) => db.query(
+    `update public.pv_stay_places set edit_n = $2::int, edit_from = now() - $3::interval where id = $1`, [id, n, ago]);
+  await db.query(`update public.pv_stay_places set edit_n = 0, edit_from = null where author_hash = $1`, [hashOf(V1)]);
+  const other = (await addFresh(V1, P('etihad', 'HEL', 'spot', 'テスト用スポットH5'))).item.id;
+  await setBox(other, 20, '1 hour');
+  const lim0 = await rowOf(H);
+  ok(status(await upd(V1, { id: H, note: 'テスト用のメモ 21回目' })) === 'rate_limited' && J(await rowOf(H)) === J(lim0),
+     '24時間に20回を超える → rate_limited（別の場所で直した回数も合わせて数える・行は変わらない）');
+  ok((await upd(V1, { id: H })).changed === false, '上限に達していても、何も変えない送り直しは今までどおり（changed:false）');
+  ok((await upd(V2, { id: q4.item.id, note: 'テスト用のメモ' })).changed === true, '回数は人ごと（ほかの人の上限には響かない）');
+  await setBox(other, 19, '1 hour');
+  ok((await upd(V1, { id: H, note: 'テスト用のメモ 20回目' })).changed === true, '19回なら20回目は通る');
+  ok(status(await upd(V1, { id: H, note: 'テスト用のメモ 21回目' })) === 'rate_limited', '↑ で20回に達したので、次は rate_limited');
+  await setBox(other, 20, '25 hours');
+  ok((await upd(V1, { id: H, note: 'テスト用のメモ 次の日' })).changed === true && (await rowOf(H)).edit_n === 2,
+     '24時間より前に直した回数は数えない');
+  await setBox(H, 20, '25 hours');
+  const nx = await upd(V1, { id: H, note: 'テスト用のメモ 箱の切り替わり' });
+  ok(nx.changed === true && (await rowOf(H)).edit_n === 1, '箱が24時間を過ぎていたら、回数は1から数え直す', J(await rowOf(H)));
+}
+
+// ════════════════════════════════════════════════════════════════
 console.log('\n▼ 全部の返事をまとめて見る（漏れが無いか）');
 {
   /* 1) 資格の無い人へ返ったものは、決まった定型文のどれかと完全に同じ */
@@ -1540,19 +1778,22 @@ console.log('\n▼ 全部の返事をまとめて見る（漏れが無いか）'
   ok(hashes.every((h) => !all.includes(h)) && inDb.every((h) => !all.includes(h)),
      `★実際のハッシュ値が、${seen.length} 本の返事のどこにも無い`);
   ok([V1, V2, V3, U, PAY, PROF, BADGE, GHOST, REV, OP, OP2].every((u) => !all.includes(u)), '生の uid がどこにも無い');
-  ok(!/author_hash|created_at|moderated_at|byte_len/.test(all), '表の列の名前（author_hash・created_at…）がどこにも無い');
+  ok(!/author_hash|created_at|moderated_at|byte_len|updated_at|edit_from|edit_n/.test(all), '表の列の名前（author_hash・created_at・updated_at…）がどこにも無い');
   ok(!/\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}/.test(all), '日付と時刻の形をした文字列がどこにも無い');
 
   /* 3) 欄の名前は決めたものだけ（件数の欄を足していない） */
   const ALLOWED = new Set(['ok', 'state', 'status', 'can_add', 'is_operator', 'places', 'others', 'airline', 'iata',
-    'id', 'kind', 'name', 'address', 'maps_url', 'note', 'age', 'mine', 'photos', 'item', 'photo',
-    'mime', 'w', 'h', 'b64', 'target', 'place', 'place_state']);
+    'id', 'kind', 'name', 'address', 'maps_url', 'note', 'city', 'age', 'mine', 'photos', 'item', 'photo',
+    'mime', 'w', 'h', 'b64', 'target', 'place', 'place_state', 'changed', 'rev']);
   const used = new Set();
   const walk = (v) => { if (Array.isArray(v)) v.forEach(walk); else if (v && typeof v === 'object') for (const k of Object.keys(v)) { used.add(k); walk(v[k]); } };
   for (const s of seen) walk(JSON.parse(s.json));
   const extra = [...used].filter((k) => !ALLOWED.has(k));
   ok(extra.length === 0 && ![...used].some((k) => /count|total|hash|uid|user|_at$/.test(k)),
-     '返事に出る欄は決めた27個の中だけ（件数・ハッシュ・時刻の欄が無い）', J(extra));
+     '返事に出る欄は決めた30個の中だけ（件数・ハッシュ・時刻の欄が無い）', J(extra));
+  ok(ALLOWED.size === 30 && used.has('city') && used.has('changed'), '（都市と「変わったか」の欄は、実際に返っている）', String(ALLOWED.size));
+  ok(used.has('rev') && seen.filter((s) => /"rev"/.test(s.json)).every((s) => s.who === OP || s.who === OP2),
+     '★版の印（rev）は、運営への返事にしか出ない');
 
   /* 4) 返した id は全部 乱数の uuid（v4）。時刻から作る形（v1・v7）だと、id そのものが時刻を運ぶ
         ＝ 写真を id の順に並べても足した順が分かってしまう */
@@ -1577,7 +1818,7 @@ console.log('\n▼ SQL の書き方（読んで確かめる）');
 {
   const code = STAYS_SQL.split('\n').map((l) => l.replace(/--.*$/, '')).join('\n');
   ok(!/\bto_jsonb\s*\(|row_to_json/i.test(code), '行を丸ごと JSON にする書き方（to_jsonb・row_to_json）が無い');
-  ok(!/'(author_hash|created_at|moderated_at|byte_len|bytes)'/.test(code), 'ハッシュ・時刻・画素を JSON の欄として名指ししていない');
+  ok(!/'(author_hash|created_at|moderated_at|byte_len|bytes|updated_at|edit_from|edit_n)'/.test(code), 'ハッシュ・時刻・画素・直した回数を JSON の欄として名指ししていない');
   ok(!/create\s+policy/i.test(code) && !/force\s+row\s+level/i.test(code), 'ポリシーを作っていない');
   ok(!/grant\s[^;]*\bto\s+public\b/i.test(code), 'PUBLIC に何も配っていない');
   /* 門の根拠にしてはいけないものを、コードが1度も読んでいない */
@@ -1591,8 +1832,8 @@ console.log('\n▼ SQL の書き方（読んで確かめる）');
   ok(!/reviews_v2|pv_has_review_key|pv_review_hash|proof_hash/i.test(code), '★口コミの鍵（reviews_v2・pv_has_review_key）も、コードが1度も読んでいない');
   ok((code.match(/verify_level/g) || []).length >= 1 && /coalesce\(p\.verify_level, 0\) >= 1/.test(code), '印の判定は verify_level >= 1 の1か所');
   const fns = code.split(/create or replace function/).slice(1);
-  ok(fns.length === 19 && fns.every((f) => /set search_path = public, extensions\s+as \$fn\$/.test(f)),
-     '19本の関数すべてに set search_path = public, extensions', String(fns.length));
+  ok(fns.length === 23 && fns.every((f) => /set search_path = public, extensions\s+as \$fn\$/.test(f)),
+     '23本の関数すべてに set search_path = public, extensions', String(fns.length));
   const fn = (name) => fns.find((f) => f.trimStart().startsWith('public.' + name + '(')) || '';
   /* 印の判定は、毎回「会員がその列を書けない」ことも見ている（4通り全部） */
   const gate = fn('pv_is_verified_pilot');
@@ -1605,6 +1846,29 @@ console.log('\n▼ SQL の書き方（読んで確かめる）');
   const pj = fn('pv_stay_place_json');
   ok(pj !== '' && !/created_at/.test(pj.replace(/public\.pv_stay_age\(s\.created_at\)/, '')) && /order by f\.id\)/.test(pj),
      '★1件を返す形の中で、時刻を使うのは段（age）の1か所だけ・写真の並びは id の順');
+  ok(!/updated_at|edit_from|edit_n|moderated_at/.test(pj) && /'city',\s+s\.city,/.test(pj)
+     && /'mine',\s+coalesce\(s\.author_hash = p_me, false\)/.test(pj),
+     '★1件を返す形に、直した時刻・直した回数が入っていない／都市は入っている／mine は「自分のか」の真偽だけ');
+  /* 直す口 ── 資格は門をそのまま呼ぶ・検品の式を写していない・会社と空港に触れない・直したら確認待ち */
+  const ad = fn('pv_stay_add'), up = fn('pv_stay_update'), cl = fn('pv_stay_clean'), cs = fn('pv_stay_clash');
+  ok(up !== '' && /v_role := public\.pv_stay_role\(\);\s+if v_role is null then\s+return jsonb_build_object\('ok', false, 'status', 'locked'\);/.test(up)
+     && up.indexOf('public.pv_stay_role()') < up.indexOf('from public.pv_stay_places'),
+     '★直す口は、表を読む前に門（pv_stay_role）を通る');
+  ok(/where id = v_id and author_hash = v_me\s+for update;/.test(up) && /v_me := public\.pv_stay_hash\(auth\.uid\(\)\);/.test(up),
+     '★直す口が探すのは「自分のもの」だけ（持ち主の印は今ある式を呼んで作る）');
+  ok(cl !== '' && cs !== '' && [ad, up].every((f) => /from public\.pv_stay_clean\(/.test(f) && /public\.pv_stay_clash\(/.test(f)
+       && !/regexp_replace|char_length|pv_stay_maps_url|not in \('hotel'/.test(f)),
+     '★足す口と直す口は、同じ検品（pv_stay_clean）と同じ「同じ名前」の判定（pv_stay_clash）を呼ぶ（式を写していない）');
+  ok(!/p\s*->>?\s*'(airline|iata)'/.test(up) && !/\b(airline|iata)\s*=\s*v_/.test(up) && !/'(airline|iata)',/.test(up),
+     '★直す口は、会社と空港を読まない・書き換えない');
+  ok(/state\s+= 'pending',\s+moderated_at = null,\s+updated_at\s+= now\(\),/.test(up),
+     '★直したら必ず pending へ戻し、運営が見た時刻を消し、直した時刻を進める');
+  ok(up.indexOf('for update;') > 0 && up.indexOf('for update;') < up.indexOf('pg_advisory_xact_lock'),
+     '直す口の錠の順番は「場所の行 → 人ごとの錠」（写真を足す口と同じ向き）');
+  ok((code.match(/set state = v_state, moderated_at = now\(\)/g) || []).length === 1
+     && (code.match(/^\s*(set\s+)?state\s*= 'pending',?\s*$/gm) || []).length === 1
+     && /^\s*state\s+= 'pending',$/m.test(up) && !/'pending'/.test(fn('pv_stay_moderate')),
+     '★場所を pending へ書き戻す所は、直す口の1か所だけ（運営の口には無い）', String((code.match(/^\s*(set\s+)?state\s*= 'pending',?\s*$/gm) || []).length));
   /* 会員が読む関数（一覧・1件・写真）の並びに時刻を使っていない。使うのは運営の待ち行列だけ */
   const byTime = fns.filter((f) => /order by[^;]*created_at/.test(f)).map((f) => f.trimStart().split('(')[0]);
   ok(byTime.join(',') === 'public.pv_stay_queue', '時刻で並べるのは運営の待ち行列だけ', byTime.join(','));
@@ -1637,7 +1901,8 @@ console.log('\n▼ SQL の書き方（読んで確かめる）');
 console.log('\n▼ 冪等性（データが入った状態でもう一度流す）');
 {
   const snap = async () => J({
-    places: (await db.query(`select id, author_hash, airline, iata, kind, name, address, maps_url, note, state, created_at
+    places: (await db.query(`select id, author_hash, airline, iata, kind, name, address, maps_url, note, city, state, created_at,
+                                      moderated_at, updated_at, edit_from, edit_n
                                from public.pv_stay_places order by id`)).rows,
     photos: (await db.query(`select id, place_id, author_hash, md5(bytes) as m, byte_len, w, h, state, created_at
                                from public.pv_stay_photos order by id`)).rows,

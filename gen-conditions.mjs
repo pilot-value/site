@@ -13,6 +13,9 @@ import { SECTIONS, QUESTIONS, SETTINGS, UNKNOWN, TEXT_MAX, LINES_MAX, LINE_NAME_
 
 const KINDS = ['choice', 'multi', 'num', 'lines'];
 const TIERS = ['A', 'B', 'C'];   // A から先に埋める（横断比較に効く順）
+/* 話題の入口（会社の概要の画面から来る口）。★ここに無い話題は質問に付けられない。
+   足すときは、入口を作る側（画面）も一緒に直す。印だけ足しても、どこからも来られない。 */
+const TOPICS = ['taxi', 'staff_travel', 'upgrade'];
 const ID_RE = /^[a-z][a-z0-9_]{2,39}$/;   // 質問ID・節コード
 const CODE_RE = /^[a-z][a-z0-9_]{0,39}$/;  // 選択肢コード（'no' 'fo' のような2文字もある）
 
@@ -89,6 +92,18 @@ for (const q of QUESTIONS) {
     usedBoost.set(q.boost, q.id);
   }
 
+  // ── 話題の入口 ──
+  if (q.topic != null && !TOPICS.includes(q.topic)) throw new Error(`${at}: topic が ${TOPICS.join(' / ')} のどれでもない → ${q.topic}`);
+  if (q.topicOnly != null && typeof q.topicOnly !== 'boolean') throw new Error(`${at}: topicOnly は true か、書かないか`);
+  /* ★topicOnly ＝ 話題の入口から来た人にだけ出す質問。提出直後の1問枠にも一覧にも出さない。
+     入口の無い質問に付けると、どこからも出ない質問になる。
+     micro と boost は「1問枠に出す」ための印なので、同時に立つと出す側の約束が2つに割れる。 */
+  if (q.topicOnly) {
+    if (!q.topic) throw new Error(`${at}: topicOnly を付けるなら topic が要る（入口が無いと、どこからも出ない）`);
+    if (q.micro) throw new Error(`${at}: topicOnly の質問を micro にしない（提出直後の1問枠には出さない）`);
+    if (q.boost) throw new Error(`${at}: topicOnly の質問に boost を付けない（最初の3問には出さない）`);
+  }
+
   // ── 選択肢 ──
   if (q.kind === 'choice' || q.kind === 'multi') {
     if (!Array.isArray(q.choices) || q.choices.length < 2) throw new Error(`${at}: 選択肢が2つ未満`);
@@ -151,6 +166,13 @@ for (const q of QUESTIONS) {
       if (!p.choices.some((c) => c.code === w)) throw new Error(`${at}: parentWhen '${w}' が親の選択肢に無い`);
     }
     if (q.parentWhen.includes(UNKNOWN)) throw new Error(`${at}: parentWhen に '${UNKNOWN}' を入れない`);
+    /* ★枝ごと同じ話題にする。親と子で話題が違うと、入口から来た人に親だけ・子だけが出て、
+       子は親の答えが無いので開かない（出す側は親の答えで絞る）。 */
+    if ((p.topic || null) !== (q.topic || null)) {
+      throw new Error(`${at}: topic が親（${q.parent}）と違う → 親 ${p.topic || 'なし'}／子 ${q.topic || 'なし'}`);
+    }
+    /* ★一覧に出る質問の親を topicOnly にしない。親が一覧に出ないので、子が永久に開かない。 */
+    if (p.topicOnly && !q.topicOnly) throw new Error(`${at}: 親（${q.parent}）が topicOnly なのに、子が一覧に出る質問になっている`);
   } else if (q.parentWhen) {
     throw new Error(`${at}: parent が無いのに parentWhen がある`);
   }
@@ -171,6 +193,10 @@ for (const q of QUESTIONS) {
 }
 
 const micros = QUESTIONS.filter((q) => q.micro);
+/* 一覧と1問枠に出る質問／話題の入口からだけ出る質問。
+   ★「あなたが答えた項目：N／43」の 43 は listed の数（DB の questions_total と同じ決め方）。 */
+const listed = QUESTIONS.filter((q) => !q.topicOnly);
+const topicOnly = QUESTIONS.filter((q) => q.topicOnly);
 if (!micros.length) throw new Error('micro の質問が1つも無い（提出直後に出すものが無くなる）');
 
 /* ── 最初の3問を、約束どおり出せる形か ────────────────────────────
@@ -213,11 +239,15 @@ if (!micros.length) throw new Error('micro の質問が1つも無い（提出直
       if (q.line) o.line = q.line;
       if (q.currency) o.currency = true;
       if (q.note) o.note = true;
+      /* 話題の入口。★topicOnly が立っている質問は、画面が一覧と1問枠に出さない
+         （出さない・数えないを決めているのは DB。ここは運ぶだけ）。 */
+      if (q.topic) o.topic = q.topic;
+      if (q.topicOnly) o.topicOnly = true;
       return o;
     }),
   };
   writeFileSync(new URL('./pv-conditions.json', import.meta.url), JSON.stringify(json));
-  console.log(`✅ pv-conditions.json 書き出し: 質問${QUESTIONS.length}（うち提出直後に出せるもの ${micros.length}）`);
+  console.log(`✅ pv-conditions.json 書き出し: 質問${QUESTIONS.length}（一覧に出るもの ${listed.length}・話題の入口からだけ出るもの ${topicOnly.length}・提出直後に出せるもの ${micros.length}）`);
 }
 
 // ── DB の質問マスタ ───────────────────────────────────────────
@@ -272,6 +302,10 @@ create table if not exists public.pv_condition_sections (
 --               最初の3問を指定するためのもの。priority を動かすと詳細ページの節の並びが崩れる
 --   is_opinion  制度の有無でなく本人の体感。公開時に会社の事実として並べない
 --   parent/parent_when  親の答えが parent_when に入るときだけ出す
+--   topic       話題の入口の印（会社の概要の画面から来る口）。枝ごと同じ話題にしてある
+--   topic_only  話題の入口から来た人にだけ出す。提出直後の1問枠にも一覧にも出さず、
+--               「あなたが答えた項目：N／${listed.length}」の分母にも分子にも数えない
+--               （出さない・数えないは db/airline-conditions.sql。保存と公開集計は他の質問と同じ）
 --   spec        kind ごとの付帯情報（数値の刻み、明細行の語彙）
 create table if not exists public.pv_condition_questions (
   id text primary key,
@@ -285,6 +319,8 @@ create table if not exists public.pv_condition_questions (
   is_opinion boolean not null default false,
   parent text references public.pv_condition_questions(id),
   parent_when text[],
+  topic text,
+  topic_only boolean not null default false,
   choice_codes text[],
   num_min numeric(12,2),
   num_max numeric(12,2),
@@ -303,6 +339,8 @@ alter table public.pv_condition_questions add column if not exists has_currency 
 alter table public.pv_condition_questions add column if not exists has_note boolean not null default false;
 alter table public.pv_condition_questions add column if not exists spec jsonb not null default '{}'::jsonb;
 alter table public.pv_condition_questions add column if not exists boost smallint not null default 0;
+alter table public.pv_condition_questions add column if not exists topic text;
+alter table public.pv_condition_questions add column if not exists topic_only boolean not null default false;
 
 -- 検品の一部は DB 側にも置く。SSOT を通さず手で1行入れられたときに効く。
 -- ★毎回 drop してから付け直す。「無ければ作る」だと、条件を変えて流し直したときに
@@ -311,6 +349,8 @@ alter table public.pv_condition_questions drop constraint if exists pv_cq_tier_c
 alter table public.pv_condition_questions drop constraint if exists pv_cq_micro_ck;
 alter table public.pv_condition_questions drop constraint if exists pv_cq_parent_ck;
 alter table public.pv_condition_questions drop constraint if exists pv_cq_choice_ck;
+alter table public.pv_condition_questions drop constraint if exists pv_cq_topic_ck;
+alter table public.pv_condition_questions drop constraint if exists pv_cq_topic_only_ck;
 alter table public.pv_condition_questions
   add constraint pv_cq_tier_ck check (tier in (${TIERS.map(q).join(', ')}));
 -- micro＝1タップで終わる形か。親の有無は見ない（親の答えを持つ人にだけ出す＝出す側の仕事）
@@ -321,6 +361,11 @@ alter table public.pv_condition_questions
 alter table public.pv_condition_questions
   add constraint pv_cq_choice_ck check (
     (kind in ('choice','multi')) = (coalesce(array_length(choice_codes, 1), 0) > 0));
+alter table public.pv_condition_questions
+  add constraint pv_cq_topic_ck check (topic is null or topic in (${TOPICS.map(q).join(', ')}));
+-- topic_only＝話題の入口からだけ出す。入口（topic）が要り、1問枠の印（micro・boost）とは同時に立たない
+alter table public.pv_condition_questions
+  add constraint pv_cq_topic_only_ck check (not topic_only or (topic is not null and not micro and boost = 0));
 
 insert into public.pv_condition_sections (code, name_ja, name_en, sort) values
 ${rows(SECTIONS, [(x) => q(x.code), (x) => q(x.ja), (x) => q(x.en), (x) => String(SECTIONS.indexOf(x))])}
@@ -330,6 +375,7 @@ on conflict (code) do update set name_ja = excluded.name_ja, name_en = excluded.
 -- ★親は子より先に入れる（自己参照の外部キー）。並び順は pv-conditions.mjs の並びそのまま。
 insert into public.pv_condition_questions
   (id, version, section, kind, tier, micro, priority, boost, is_opinion, parent, parent_when,
+   topic, topic_only,
    choice_codes, num_min, num_max, has_currency, has_note, spec, label_ja, label_en) values
 ${rows(QUESTIONS, [
   (x) => q(x.id),
@@ -343,6 +389,8 @@ ${rows(QUESTIONS, [
   (x) => bool(x.isOpinion),
   (x) => q(x.parent),
   (x) => arr(x.parentWhen),
+  (x) => q(x.topic),
+  (x) => bool(x.topicOnly),
   (x) => arr(x.choices && x.choices.map((c) => c.code)),
   (x) => num(x.num && x.num.min),
   (x) => num(x.num && x.num.max),
@@ -357,6 +405,7 @@ on conflict (id) do update set
   tier = excluded.tier, micro = excluded.micro, priority = excluded.priority,
   boost = excluded.boost, is_opinion = excluded.is_opinion,
   parent = excluded.parent, parent_when = excluded.parent_when,
+  topic = excluded.topic, topic_only = excluded.topic_only,
   choice_codes = excluded.choice_codes, num_min = excluded.num_min, num_max = excluded.num_max,
   has_currency = excluded.has_currency, has_note = excluded.has_note, spec = excluded.spec,
   label_ja = excluded.label_ja, label_en = excluded.label_en, active = true;
@@ -406,16 +455,18 @@ begin
   end loop;
 end $$;
 
--- 検算：節${SECTIONS.length} / 質問${QUESTIONS.length} / 提出直後に出せる質問${micros.length}
+-- 検算：節${SECTIONS.length} / 質問${QUESTIONS.length}（一覧に出る質問${listed.length} ＋ 話題の入口からだけ出る質問${topicOnly.length}）/ 提出直後に出せる質問${micros.length}
 --        Tier A${tierCount('A')} / B${tierCount('B')} / C${tierCount('C')}
 select
   (select count(*) from public.pv_condition_sections  where active)                as 節,
   (select count(*) from public.pv_condition_questions where active)                as 質問,
+  (select count(*) from public.pv_condition_questions where active and not topic_only) as 一覧に出る質問,
+  (select count(*) from public.pv_condition_questions where active and topic_only)     as 話題の入口からだけ出る質問,
   (select count(*) from public.pv_condition_questions where active and micro)      as 直後に出せる質問,
   (select count(*) from public.pv_condition_questions where active and tier = 'A') as tier_a,
   (select count(*) from public.pv_condition_questions where active and boost > 0) as 最初の3問,
   (select count(*) from public.pv_condition_settings)                             as 設定;
 `;
   writeFileSync(new URL('./db/conditions.generated.sql', import.meta.url), sql);
-  console.log(`✅ db/conditions.generated.sql 書き出し: 節${SECTIONS.length} / 質問${QUESTIONS.length} / micro${micros.length}`);
+  console.log(`✅ db/conditions.generated.sql 書き出し: 節${SECTIONS.length} / 質問${QUESTIONS.length}（一覧${listed.length}・話題の入口だけ${topicOnly.length}）/ micro${micros.length}`);
 }

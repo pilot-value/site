@@ -16,6 +16,12 @@ import { readFileSync } from 'fs';
    「SQL は正しいのにテストだけ落ちる」になり、落ちたテストを疑わなくなる。 */
 import { QUESTIONS, SETTINGS, UNKNOWN } from '../pv-conditions.mjs';
 
+/* 一覧と1問枠に出る質問／話題の入口からだけ出る質問（2026-10-04）。
+   ★「答えた項目：N／M」の M は**一覧に出る質問の数**。質問マスタの行数（QUESTIONS.length）ではない。
+     マスタには話題の入口からだけ出す質問も入っているので、あちらで数えると M が増える。 */
+const LISTED = QUESTIONS.filter((q) => !q.topicOnly);
+const TOPIC_ONLY = QUESTIONS.filter((q) => q.topicOnly);
+
 const read = (f) => readFileSync(new URL('../' + f, import.meta.url), 'utf8');
 
 const db = new PGlite({ extensions: { pgcrypto } });
@@ -71,10 +77,21 @@ for (const f of FILES) {
 console.log('\n▼ 質問マスタ（SSOT との突き合わせ）');
 const qm = await one(`select
   (select count(*) from pv_condition_questions where active) q,
+  (select count(*) from pv_condition_questions where active and not topic_only) l,
   (select count(*) from pv_condition_sections where active) s,
   (select count(*) from pv_condition_questions where active and micro) m,
   (select count(*) from pv_condition_questions where active and tier = 'A') a`);
 ok(Number(qm.q) === QUESTIONS.length, `質問 ${QUESTIONS.length} → ${qm.q}`);
+ok(Number(qm.l) === LISTED.length && LISTED.length + TOPIC_ONLY.length === QUESTIONS.length,
+  `   うち一覧に出る質問 ${LISTED.length} → ${qm.l}（話題の入口からだけ出る質問 ${TOPIC_ONLY.length} は別）`);
+/* ★この1行だけは数字で書く（2026-10-05）。冒頭の「固定値を書かない」の例外。
+     上の2行は両側とも生成元から数えているので、今までの質問にうっかり topicOnly を付けても
+     （4問のどれかから外しても）一緒に動いて緑のまま ＝ 「N／43 を動かさない」をどこも見ていなかった。
+     一覧に出る質問を本当に足した回は、この1行と、43 を字で持っている所を一緒に直す
+     （assert-admin-notify.mjs・roadmap-config.js・workflows/deploy-checklist.md）。 */
+ok(LISTED.length === 43 && TOPIC_ONLY.length === 4,
+  '   ★一覧に出る質問は 43・話題の入口からだけ出る質問は 4（ここだけ数字で固定）',
+  `一覧 ${LISTED.length}・入口だけ ${TOPIC_ONLY.length}`);
 ok(Number(qm.m) === QUESTIONS.filter((q) => q.micro).length,
   `★（1問だけ出せる）${QUESTIONS.filter((q) => q.micro).length} → ${qm.m}`);
 ok(Number(qm.a) === QUESTIONS.filter((q) => q.tier === 'A').length,
@@ -83,7 +100,7 @@ ok(Number(qm.a) === QUESTIONS.filter((q) => q.tier === 'A').length,
 /* ⑦ 選択肢コードが1つ残らず DB に入っているか。
    JSON だけ直して SQL を流し忘れると、画面では選べるのに保存だけ弾かれる。 */
 const dbq = Object.fromEntries((await rows(
-  `select id, choice_codes, kind, tier, parent, parent_when from pv_condition_questions`))
+  `select id, choice_codes, kind, tier, parent, parent_when, topic, topic_only from pv_condition_questions`))
   .map((r) => [r.id, r]));
 const codeGap = QUESTIONS.filter((q) => q.choices)
   .flatMap((q) => q.choices.map((c) => [q.id, c.code]))
@@ -143,8 +160,8 @@ console.log('\n▼ 保存と検証');
 await asUser(1);
 let r = await submit({ ...CTX, answers: [{ question_id: 'reserve_duty', code: 'yes' }] });
 ok(r.ok === true && r.saved === 1, `1問保存できる → saved=${r.saved}`);
-ok(r.answered_total === 1 && r.questions_total === QUESTIONS.length,
-  `答えた項目 1／${QUESTIONS.length} を返す`);
+ok(r.answered_total === 1 && r.questions_total === LISTED.length,
+  `答えた項目 1／${LISTED.length} を返す（分母は一覧に出る質問の数）`);
 
 // ⑤ 語彙にない答えは弾く
 r = await submit({ ...CTX, answers: [{ question_id: 'reserve_duty', code: 'maybe' }] });
@@ -452,13 +469,15 @@ const kids = (pid) => QUESTIONS.filter((q) => q.parent === pid).map((q) => q.id)
 const same = (a, b) => JSON.stringify([...a].sort()) === JSON.stringify([...b].sort());
 const TAXI = ['commuting_taxi_when', 'commuting_taxi_where', 'commuting_taxi_cost'];
 const BUS = ['commuting_bus_when', 'commuting_bus_cost'];
+const CAP = 'commuting_taxi_cap';   // 話題の入口からだけ出す上限の1問（見るのは ⑳）
 const GONE = ['commuting_transport_when', 'commuting_transport_where', 'commuting_transport_cost'];
 const CT = QBY.commuting_transport, METHOD = QBY.commuting_transport_method;
 const CT_IN = METHOD.parentWhen[0];
 const CT_OUT = CT.choices.find((c) => c.code !== UNKNOWN && !METHOD.parentWhen.includes(c.code)).code;
 
 ok(METHOD.kind === 'multi' && METHOD.parent === CT.id, '   あいだの親は「複数選ぶ」質問（手段をいくつでも選べる）');
-ok(same(kids(METHOD.id), [...TAXI, ...BUS]), '   手段の下に在るのはタクシー3問とクルーバス2問だけ',
+ok(same(kids(METHOD.id), [...TAXI, ...BUS, CAP]),
+  '   手段の下に在るのはタクシー3問とクルーバス2問、それと話題の入口からだけ出す上限の1問だけ',
   JSON.stringify(kids(METHOD.id)));
 ok(TAXI.every((id) => same(QBY[id].parentWhen, ['company_taxi', 'reimburse'])),
   '   タクシーの3問は「会社手配のタクシー」「立て替えて精算」のときだけ開く');
@@ -666,6 +685,251 @@ r = await submit({ ...FT, answers: [{ question_id: FAM_S, codes: ['self'] }] });
 ok(allMissing(r, [FAM_S]), '   送っても受け取らない', JSON.stringify(r.rejected));
 r = await submit({ ...FT, answers: [{ question_id: FAM_C, codes: ['self', 'grandparents'] }] });
 ok(r.saved === 0 && r.rejected[0]?.reason === 'bad_code', '   選択肢に無い人（祖父母など）は受け取らない');
+
+/* ⑳ 話題の入口からだけ出す4問（2026-10-04・オーナー判断「4問を足し、その話題の入口から来た人にだけ出す」）。
+   通勤のタクシー代の上限と、機長昇格の3問。提出直後の1問枠にも一覧にも出さず、
+   「答えた項目：N／M」の分母にも分子にも数えない。保存・自分の回答・公開集計は他の質問と同じ。
+   ★ここが壊れても画面は普通に動く（1問枠に昇格の条件が混ざる・N が M を超える・
+     話題の入口で先に1問答えた人に最初の3問が出なくなる）ので、ここでしか気づけない。 */
+console.log('\n▼ ⑳ 話題の入口からだけ出す4問 ── 1問枠にも「答えた項目」の数にも混ぜない');
+const UPG = ['upgrade_order', 'upgrade_min_hours', 'upgrade_min_tenure'];
+const ONLY4 = [CAP, ...UPG];
+const TOPIC_IDS = ['taxi', 'staff_travel', 'upgrade'];
+/* その質問から上へたどった先（自分を含む）に root が居るか */
+const under = (root) => QUESTIONS.filter((q) => {
+  for (let x = q; x; x = x.parent ? QBY[x.parent] : null) if (x.id === root) return true;
+  return false;
+}).map((q) => q.id);
+const withTopic = (t) => QUESTIONS.filter((q) => q.topic === t).map((q) => q.id);
+
+ok(same(TOPIC_ONLY.map((q) => q.id), ONLY4), '   話題の入口からだけ出すのは、この4問だけ（今までの質問には付いていない）',
+  JSON.stringify(TOPIC_ONLY.map((q) => q.id)));
+ok(ONLY4.every((id) => QBY[id] && QBY[id].kind === 'choice' && !QBY[id].micro && !QBY[id].boost
+     && QBY[id].choices[QBY[id].choices.length - 1].code === UNKNOWN),
+  '   4問とも1つ選ぶ質問で、最後の選択肢が「わからない」。1問枠の印（micro・boost）は付いていない');
+ok(ONLY4.every((id) => !/その|それ/.test(QBY[id].ja.label) && !/\b(it|its|that|this|those)\b/i.test(QBY[id].en.label)),
+  '   見出しが前の質問を指していない（「その」「それ」を使わない・日英）');
+ok(QBY[CAP].ja.label.includes('タクシー') && /taxi/i.test(QBY[CAP].en.label)
+   && UPG.every((id) => QBY[id].ja.label.includes('機長') && /captain/i.test(QBY[id].en.label)),
+  '   見出しだけで何の話か分かる（タクシー／機長昇格・日英）');
+ok(QBY[CAP].parent === METHOD.id && same(QBY[CAP].parentWhen, QBY.commuting_taxi_cost.parentWhen),
+  '   上限の質問が開く条件は、タクシーの費用の質問と同じ（タクシーを選んだ人だけ）');
+ok(ONLY4.every((id) => !QBY[id].num && !QBY[id].currency),
+  '   4問とも数値の欄を持たない（額・時間・年数は段で聞く）');
+ok(UPG.every((id) => !QBY[id].parent), '   機長昇格の3問は親を持たない');
+ok(QBY[CAP].note === true && QBY.upgrade_order.note === true
+   && !QBY.upgrade_min_hours.note && !QBY.upgrade_min_tenure.note,
+  '   詳しい説明（任意の補足）を書けるのは、上限と昇格の順番の2問');
+
+// 話題の印が付いている質問の集合
+ok(same(withTopic('taxi'), under(CT.id)) && withTopic('taxi').includes(CAP),
+  `   話題「通勤タクシー」＝ 通勤の移動の枝ぜんぶ（${withTopic('taxi').length}問・上限の1問を含む）`,
+  JSON.stringify(withTopic('taxi')));
+ok(same(withTopic('staff_travel'), under('staff_travel')),
+  `   話題「社員向け航空券」＝ 社員向け航空券の枝ぜんぶ（${withTopic('staff_travel').length}問）`,
+  JSON.stringify(withTopic('staff_travel')));
+ok(same(withTopic('upgrade'), ['upgrade_years', ...UPG]),
+  '   話題「機長昇格」＝ 昇格までの年数 ＋ 新しい3問', JSON.stringify(withTopic('upgrade')));
+ok(QUESTIONS.every((q) => q.topic == null || TOPIC_IDS.includes(q.topic))
+   && QUESTIONS.filter((q) => q.topic).length
+      === TOPIC_IDS.reduce((n, t) => n + withTopic(t).length, 0),
+  '   それ以外の質問に話題の印は付いていない');
+const topicGap = QUESTIONS.filter((q) => (dbq[q.id]?.topic ?? null) !== (q.topic ?? null)
+  || dbq[q.id]?.topic_only !== !!q.topicOnly).map((q) => q.id);
+ok(topicGap.length === 0, '   DB の質問マスタの topic / topic_only が、生成元と1問残らず同じ', JSON.stringify(topicGap));
+
+/* 上書きの側を通す（2026-10-05・検品の指摘）。
+   上の1行が見たのは**空の DB に流した結果**＝47問とも insert の側で入っている。
+   オーナーが貼る先は逆で、印の列が無いまま質問がもう入っている。そこで起きるのは
+   「列を足す → 今までの質問は on conflict … do update で印が付く → 4問だけ新しく入る」で、
+   印が付くかどうかは update set の並びだけが決める。
+   ★update set から topic / topic_only を落としても、ここ以外は1つも赤くならない。貼った先では
+     今までの質問に話題の印が1つも付かず、あとから入口だけに回した質問は一覧と1問枠に出続ける。 */
+const regen = async () => {
+  try { await db.exec(read('db/conditions.generated.sql')); return null; }
+  catch (e) { return String(e.message || e); }
+};
+const marks = async () => {
+  const got = Object.fromEntries((await rows(
+    `select id, topic, topic_only, active from pv_condition_questions`)).map((x) => [x.id, x]));
+  return {
+    gap: QUESTIONS.filter((q) => (got[q.id]?.topic ?? null) !== (q.topic ?? null)
+      || got[q.id]?.topic_only !== !!q.topicOnly).map((q) => q.id),
+    listed: Object.values(got).filter((x) => x.active && !x.topic_only).length,
+    only: Object.values(got).filter((x) => x.active && x.topic_only).length,
+  };
+};
+
+// ① 印の列が無かった頃の形（4問なし・列なし）へ戻してから流す ＝ 貼る先で起きること
+await db.query(`delete from pv_condition_questions where id = any($1)`, [ONLY4]);
+await db.exec(`alter table pv_condition_questions drop column topic_only, drop column topic`);
+v = await rows(`select column_name from information_schema.columns
+  where table_schema='public' and table_name='pv_condition_questions' and column_name in ('topic','topic_only')`);
+const oldN = Number((await one(`select count(*) n from pv_condition_questions where active`)).n);
+ok(v.length === 0 && oldN === LISTED.length,
+  `   （下ごしらえ）印の列が無く、質問は ${LISTED.length} ＝ 4問を足す前の形`, `列 ${v.length}・質問 ${oldN}`);
+/* 期待する数は LISTED / TOPIC_ONLY から取る（43 と 4 は、質問マスタの節の1行が数字で固定している） */
+const marksOk = (x) => x.gap.length === 0 && x.listed === LISTED.length && x.only === TOPIC_ONLY.length;
+let upErr = await regen();
+let mk = upErr ? null : await marks();
+ok(upErr === null && marksOk(mk),
+  `⑳ ★印の列が無い質問マスタに流すと、今までの質問に話題の印が付き、4問が入る（一覧 ${LISTED.length}・入口だけ ${TOPIC_ONLY.length}）`,
+  upErr || `${JSON.stringify(mk.gap)}・一覧 ${mk.listed}・入口だけ ${mk.only}`);
+// 列が戻らないまま先へ進むと、下が全部別の理由で赤くなる。ここで止める
+if (upErr) { console.log(`\n══ ${pass} pass / ${fail} fail ══`); process.exit(1); }
+
+// ② 印だけ消してもう一度流す ＝ 4問も上書きの側を通る（①では新しく入った側だった）
+const MARKED = QUESTIONS.filter((q) => q.topic).map((q) => q.id);
+await db.query(`update pv_condition_questions set topic = null, topic_only = false where id = any($1)`, [MARKED]);
+mk = await marks();
+ok(mk.only === 0 && same(mk.gap, MARKED), `   （下ごしらえ）話題の印を全部消した（${MARKED.length}問）`,
+  `入口だけ ${mk.only}・${JSON.stringify(mk.gap)}`);
+upErr = await regen();
+mk = upErr ? null : await marks();
+ok(upErr === null && marksOk(mk),
+  `⑳ ★印を消してから流し直すと、topic も topic_only も1問残らず戻る（一覧 ${LISTED.length}・入口だけ ${TOPIC_ONLY.length}）`,
+  upErr || `${JSON.stringify(mk.gap)}・一覧 ${mk.listed}・入口だけ ${mk.only}`);
+
+// DB 側の検品（生成元を通さず手で1行直されたときに効く）
+ok((await boom(`update pv_condition_questions set micro = true where id = 'upgrade_min_hours'`)) !== null,
+  '   DB でも、話題の入口からだけ出す質問を1問枠（micro）に回せない');
+ok((await boom(`update pv_condition_questions set boost = 9 where id = 'upgrade_min_hours'`)) !== null,
+  '   最初の3問（boost）にも回せない');
+ok((await boom(`update pv_condition_questions set topic_only = true where id = 'reserve_duty'`)) !== null,
+  '   入口（topic）の無い質問を、話題の入口からだけ出す質問にできない');
+ok((await boom(`update pv_condition_questions set topic = 'salary' where id = 'reserve_duty'`)) !== null,
+  '   知らない話題の印を付けられない');
+
+const TP = { airline: 'ana', year: 2026, month: 8 };
+const cntOnly4 = async (n, airline) => Number((await one(
+  `select count(*) n from airline_conditions
+    where proof_hash = pv_condition_hash($1::uuid, $2, null) and question_id = any($3)`,
+  [uid(n), airline, ONLY4])).n);
+
+// まだ1問も答えていない人
+o = await offer(221, TP.airline);
+ok(o.uncut && ONLY4.every((id) => !o.ids.includes(id)), '⑳ ★何も答えていない人に、4問とも出ない（一覧の「次の質問」）');
+nq = await next({ airline: TP.airline, micro: true, limit: 30 });
+ok(nq.questions.length < 30 && ONLY4.every((id) => !nq.questions.some((q) => q.id === id)),
+  '⑳ ★提出直後の1問枠にも出ない');
+
+// 話題の入口（機長昇格）で、先に1問だけ答えた人
+r = await submit({ ...TP, answers: [{ question_id: 'upgrade_order', code: 'seniority_selection', text: '筆記と面接がある' }] });
+ok(r.saved === 1 && r.rejected.length === 0, '   親に何も答えていなくても、昇格の質問は保存できる', JSON.stringify(r.rejected));
+ok(r.answered_total === 0 && r.questions_total === LISTED.length,
+  `⑳ ★話題の質問に答えても「答えた項目」は 0／${LISTED.length} のまま（分子にも分母にも数えない）`,
+  `${r.answered_total}／${r.questions_total}`);
+nq = await next({ airline: TP.airline, micro: true, limit: 3 });
+ok(JSON.stringify(nq.questions.map((q) => q.id)) === JSON.stringify(BOOST3) && nq.mine_count === 0,
+  '⑳ ★その人にも、最初の3問がこの順で出る（mine_count は 0 のまま）',
+  `${nq.questions.map((q) => q.id).join(' / ')}・mine_count=${nq.mine_count}`);
+
+// 上限の質問は、タクシーを選んだ人からだけ受け取る
+r = await submit({ ...TP, answers: [{ question_id: CAP, code: 'per_ride' }] });
+ok(allMissing(r, [CAP]), '   通勤の移動に何も答えていない人から、上限の答えを受け取らない', JSON.stringify(r.rejected));
+r = await submit({ ...TP, answers: [{ question_id: CT.id, code: CT_IN },
+  { question_id: METHOD.id, codes: ['company_taxi'] }] });
+ok(r.saved === 2 && r.answered_total === 2, `   一覧に出る質問に2問答えると 2／${LISTED.length}`);
+o = await offer(221, TP.airline);
+ok(o.uncut && TAXI.every((id) => o.ids.includes(id)) && !o.ids.includes(CAP),
+  '⑳ ★タクシーを選んだ人には今までの3問が出て、上限の質問は出ない',
+  JSON.stringify(o.ids.filter((id) => id.startsWith('commuting_'))));
+
+// 4問そろえて保存する
+r = await submit({ ...TP, answers: [
+  { question_id: CAP, code: 'per_ride', text: '深夜だけ上限が上がる' },
+  { question_id: 'upgrade_min_hours', code: 'h3000_4999', text: 'ここは補足の欄が無い質問' },
+  { question_id: 'upgrade_min_tenure', code: 'y3_5' }] });
+ok(r.saved === 3 && r.rejected.length === 0, '   残りの3問も保存できる（上限・必要な飛行時間・必要な在籍年数）',
+  JSON.stringify(r.rejected));
+ok(r.answered_total === 2 && r.questions_total === LISTED.length,
+  `⑳ ★4問とも答えても 2／${LISTED.length} のまま（増えない・分母も動かない）`,
+  `${r.answered_total}／${r.questions_total}`);
+let my4 = await mine({ airline: TP.airline });
+m = Object.fromEntries(my4.answers.map((a) => [a.question_id, a]));
+ok(m[CAP]?.code === 'per_ride' && m.upgrade_order?.code === 'seniority_selection'
+   && m.upgrade_min_hours?.code === 'h3000_4999' && m.upgrade_min_tenure?.code === 'y3_5',
+  '⑳ ★自分の回答に4問とも返る（話題の入口の画面が、前に選んだ答えを出せる）',
+  JSON.stringify(ONLY4.map((id) => [id, m[id]?.code])));
+ok(m[CAP]?.text === '深夜だけ上限が上がる' && m.upgrade_order?.text === '筆記と面接がある'
+   && m.upgrade_min_hours?.text === null,
+  '   任意の補足は、欄を持つ2問だけ残る（欄の無い質問に送った文は捨てる）');
+ok(my4.answers.length === 6 && my4.answered_total === 2 && my4.questions_total === LISTED.length,
+  `⑳ ★自分の回答は6件返るが、「答えた項目」は 2／${LISTED.length}（話題の4問を数えない）`,
+  `answers=${my4.answers.length}・${my4.answered_total}／${my4.questions_total}`);
+ok((await next({ airline: TP.airline, limit: 1 })).mine_count === 2, '   mine_count も 2 のまま');
+
+// 答え直し
+const n4 = await cntOnly4(221, TP.airline);
+r = await submit({ ...TP, answers: [
+  { question_id: CAP, code: 'by_zone' },
+  { question_id: 'upgrade_order', code: 'vacancy_bid' },
+  { question_id: 'upgrade_min_hours', code: 'none' },
+  { question_id: 'upgrade_min_tenure', code: UNKNOWN }] });
+m = await mineOf(221, TP.airline);
+ok(r.saved === 4 && n4 === 4 && (await cntOnly4(221, TP.airline)) === 4,
+  '⑳ 4問を出し直しても行が増えない（1人1社1問につき1行）');
+ok(m[CAP]?.code === 'by_zone' && m.upgrade_order?.code === 'vacancy_bid'
+   && m.upgrade_min_hours?.code === 'none' && m.upgrade_min_tenure?.code === UNKNOWN,
+  '⑳ ★出し直した答えで上書きされる', JSON.stringify(ONLY4.map((id) => [id, m[id]?.code])));
+ok(m[CAP]?.text === null && m.upgrade_order?.text === null, '   補足を書かずに出し直すと、前の補足は残らない');
+ok(r.answered_total === 2, '   出し直しても「答えた項目」は 2 のまま');
+r = await submit({ ...TP, answers: [{ question_id: 'upgrade_order', code: 'lottery' }] });
+ok(r.saved === 0 && r.rejected[0]?.reason === 'bad_code', '   選択肢に無い答えは受け取らない');
+
+// 窓が切れても、1問枠と一覧には戻ってこない（聞き直すのも話題の入口から）
+for (const id of ONLY4) await ageRow(221, TP.airline, id, SETTINGS.answer_reask_days + 1);
+o = await offer(221, TP.airline);
+nq = await next({ airline: TP.airline, micro: true, limit: 30 });
+ok(o.uncut && ONLY4.every((id) => !o.ids.includes(id))
+   && ONLY4.every((id) => !nq.questions.some((q) => q.id === id)),
+  `⑳ ★答えてから ${SETTINGS.answer_reask_days + 1} 日たっても、再確認として戻ってこない`);
+
+// クルーバスだけの人
+await asUser(222);
+await submit({ ...TP, answers: [{ question_id: CT.id, code: CT_IN },
+  { question_id: METHOD.id, codes: ['crew_bus'] }] });
+r = await submit({ ...TP, answers: [{ question_id: CAP, code: 'no_cap' }] });
+ok(allMissing(r, [CAP]), '⑳ クルーバスだけの人から、タクシー代の上限を受け取らない', JSON.stringify(r.rejected));
+
+// 公開集計（k≧3）は、ほかの質問と同じに働く
+const TF = { airline: 'solaseed', year: 2026, month: 8 };
+const ask4 = async (n, order, methods, cap) => {
+  await asUser(n);
+  return submit({ ...TF, answers: [
+    { question_id: 'upgrade_order', code: order },
+    { question_id: CT.id, code: CT_IN },
+    { question_id: METHOD.id, codes: methods },
+    { question_id: CAP, code: cap }] });
+};
+await ask4(223, 'seniority', ['company_taxi'], 'per_ride');
+r = await ask4(224, 'seniority', ['reimburse'], 'per_ride');
+ok(r.saved === 4, '   立て替えて精算を選んだ人も、上限の質問に答えられる', JSON.stringify(r.rejected));
+ok((await factN(TF.airline, 'upgrade_order')) === null && (await factN(TF.airline, CAP)) === null,
+  '⑳ 2人では公開集計に出ない（昇格の順番・タクシー代の上限）');
+await ask4(225, 'selection', ['company_taxi', 'crew_bus'], 'no_cap');
+f = await factN(TF.airline, 'upgrade_order');
+ok(f && f.n === 3 && JSON.stringify(f.answer_dist) === JSON.stringify({ selection: 1, seniority: 2 }),
+  '⑳ ★3人で出る（昇格の順番・答えが割れているのが見える形）', JSON.stringify(f));
+f = await factN(TF.airline, CAP);
+ok(f && f.n === 3 && f.answer_dist.per_ride === 2 && f.answer_dist.no_cap === 1,
+  '⑳ ★3人で出る（タクシー代の上限）', JSON.stringify(f));
+await asUser(226);
+await submit({ ...TF, answers: [{ question_id: 'upgrade_order', code: UNKNOWN }] });
+v = await rows(`select n, n_unknown from airline_condition_facts where airline = $1 and question_id = 'upgrade_order'`,
+  [TF.airline]);
+ok(v.length === 1 && v[0].n === 3 && v[0].n_unknown === 1,
+  `   「わからない」は n に数えない → n=${v[0]?.n} / n_unknown=${v[0]?.n_unknown}`);
+v = await rows(`select column_name from information_schema.columns
+  where table_schema='public' and table_name='airline_condition_facts' and column_name in ('answer_text','topic','topic_only')`);
+ok(v.length === 0, '   任意の補足は公開集計に出ない（列そのものが無い）');
+await asUser(225);
+await submit({ ...TF, answers: [{ question_id: METHOD.id, codes: ['crew_bus'] }] });
+ok((await factN(TF.airline, CAP)) === null,
+  '⑳ ★手段からタクシーを外した人の、上限の古い答えを数え続けない（3人 → 2人で出なくなる）');
+await asUser(225);
+await submit({ ...TF, answers: [{ question_id: METHOD.id, codes: ['company_taxi', 'crew_bus'] }] });
+ok((await factN(TF.airline, CAP))?.n === 3, '   タクシーを選び直すと、また3人に戻る');
 
 
 /* オーナーが SQL Editor で見る検算表そのものを、ここで先に回しておく。

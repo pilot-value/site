@@ -41,6 +41,12 @@ begin
      or to_regproc('public.pv_condition_setting') is null then
     raise exception '先に db/conditions.generated.sql を実行し直してください（設定表が古い）';
   end if;
+  -- 話題の入口からだけ出す質問を、1問枠と「答えた項目：N／M」から外すのに使う（5・6・7）
+  if not exists (select 1 from information_schema.columns
+                  where table_schema = 'public' and table_name = 'pv_condition_questions'
+                    and column_name = 'topic_only') then
+    raise exception '先に db/conditions.generated.sql を実行し直してください（質問マスタに topic_only の列が無い）';
+  end if;
   if to_regclass('public.profiles') is null then
     raise exception 'profiles がありません。先に既存のスキーマを流してください';
   end if;
@@ -478,10 +484,16 @@ begin
   where id = v_uid;
 
   /* スキップだけの行は「答えた項目」に数えない
-     （num_nonnulls = 答えの列のうち null でない数。0 なら中身はスキップの印だけ） */
-  select count(*) into v_total from public.airline_conditions
-   where proof_hash = v_hash
-     and num_nonnulls(answer_code, answer_codes, answer_num, answer_text, answer_json) > 0;
+     （num_nonnulls = 答えの列のうち null でない数。0 なら中身はスキップの印だけ）
+     ★話題の入口からだけ出す質問（topic_only）への答えも数えない（2026-10-04）。
+       一覧に出ない質問を分子に入れると、分母（一覧に出る質問の数）を超える。
+       保存はしている（saved には入る）。数えないだけ */
+  select count(*) into v_total
+    from public.airline_conditions c
+    join public.pv_condition_questions q on q.id = c.question_id
+   where c.proof_hash = v_hash
+     and not q.topic_only
+     and num_nonnulls(c.answer_code, c.answer_codes, c.answer_num, c.answer_text, c.answer_json) > 0;
 
   return jsonb_build_object(
     'ok', true,
@@ -489,9 +501,11 @@ begin
     'saved', v_saved - v_skipped,
     'skipped', v_skipped,
     'rejected', v_rej,
-    -- 詳細ページの「あなたが答えた項目：7／26」に使う。進捗率（%）は出さない
+    -- 詳細ページの「あなたが答えた項目：7／43」に使う。進捗率（%）は出さない。
+    -- ★分母は一覧に出る質問だけ。topic_only を入れると、一覧に無い質問の数だけ「未回答」が残り続ける
     'answered_total', v_total,
-    'questions_total', (select count(*) from public.pv_condition_questions where active));
+    'questions_total', (select count(*) from public.pv_condition_questions
+                         where active and not topic_only));
 end $$;
 
 revoke all on function public.submit_airline_conditions(jsonb) from public, anon;
@@ -507,6 +521,14 @@ grant execute on function public.submit_airline_conditions(jsonb) to authenticat
 -- ★ 親を持つ質問は、その人自身の親への答えが parent_when に入るときだけ候補にする。
 --   親の親があるときは、いちばん上まで条件が続いているときだけ（4b）。
 --   初回の人には親のない Tier A が出て、答えるほど出せる質問が増える。
+--
+-- ★ 話題の入口からだけ出す質問（topic_only）は、ここでは**候補に入れない**（2026-10-04）。
+--   あの質問は会社の概要の画面の入口（通勤タクシー／機長昇格）から来た人にだけ出す。
+--   提出直後の1問枠にも一覧にも混ぜないので、今までの質問に集まる回答は薄まらない
+--   （オーナー判断「4問を足し、その話題の入口から来た人にだけ出す」。経緯は pv-conditions.mjs の冒頭）。
+--   ⚠️ 窓が切れても戻ってこない（再確認にも出さない）。聞き直すのも話題の入口から。
+--   ⚠️ mine_count にも数えない。数えると、話題の入口で先に1問答えただけの人が
+--      「もう答え始めた人」になり、最初の3問（boost）が出なくなる。
 --
 -- ★もう一度聞いてよくなる時期は、その人のその質問の状態で変える。
 --   全部を1年にすると聞けたはずの回答を1年取り逃し、全部を短くすると「またこれか」になる。
@@ -551,11 +573,13 @@ begin
 
   v_hash := public.pv_condition_hash(v_uid, v_airline, v_other);
 
-  -- その会社でこの人が実際に答えた数（スキップだけの行は数えない）
+  -- その会社でこの人が実際に答えた数（スキップだけの行と、話題の入口からだけ出す質問は数えない）
   select count(*) into v_count
-    from public.airline_conditions
-   where proof_hash = v_hash
-     and num_nonnulls(answer_code, answer_codes, answer_num, answer_text, answer_json) > 0;
+    from public.airline_conditions c
+    join public.pv_condition_questions q on q.id = c.question_id
+   where c.proof_hash = v_hash
+     and not q.topic_only
+     and num_nonnulls(c.answer_code, c.answer_codes, c.answer_num, c.answer_text, c.answer_json) > 0;
 
   with mine as (
     select question_id, answer_code, answer_codes, updated_at, skipped_at,
@@ -585,6 +609,8 @@ begin
               from mine m where m.question_id = q.id) as mine_due
       from public.pv_condition_questions q
      where q.active
+       -- 話題の入口からだけ出す質問は、1問枠にも一覧の「次の質問」にも出さない
+       and not q.topic_only
        and (not v_micro or q.micro)
        /* 親の条件が、いちばん上まで続いている質問だけ（4b の pv_condition_links）。
           親が無い質問は段が1つも無いので、そのまま通る。
@@ -631,6 +657,12 @@ grant execute on function public.next_condition_questions(jsonb) to authenticate
 -- ════════════════════════════════════════════════════════════════
 -- user_id を持たないので、pv_airlines を総当たりして自分の proof_hash を作る
 -- （db/pay-reports.sql の my_pay_reports と同じ手）。
+--
+-- ★ answers には、話題の入口からだけ出す質問（topic_only）への答えも**入れて返す**（2026-10-04）。
+--   話題の入口の画面が、前に選んだ答えを最初から出すのに要る。
+--   answered_total と questions_total は**一覧に出る質問だけ**を数える（5 の返り値と同じ決め方）。
+--   ⚠️ answered_total を answers の長さに戻さない。話題の質問に答えた人だけ「N／43」の N が
+--      増え、全部答えた人は分母を超える。
 create or replace function public.my_airline_conditions(p jsonb default '{}'::jsonb)
 returns jsonb
 language plpgsql
@@ -642,6 +674,7 @@ declare
   v_airline text := nullif(btrim(p->>'airline'), '');
   v_other   text := nullif(btrim(p->>'airline_other'), '');
   v_rows    jsonb;
+  v_listed  int;   -- 一覧に出る質問への答えの数（topic_only を除く）
 begin
   if v_uid is null then
     raise exception 'ログインが必要です' using errcode = '42501';
@@ -666,8 +699,9 @@ begin
            'json',       c.answer_json,
            'year',       c.effective_year,
            'month',      c.effective_month,
-           'updated_at', c.updated_at) order by c.airline, q.priority), '[]'::jsonb)
-    into v_rows
+           'updated_at', c.updated_at) order by c.airline, q.priority), '[]'::jsonb),
+         count(*) filter (where not q.topic_only)
+    into v_rows, v_listed
     from mine
     join public.airline_conditions c on c.proof_hash = mine.hash
      -- スキップだけの行は「自分の回答」ではない（詳細ページに空欄として出さない）
@@ -678,8 +712,9 @@ begin
   return jsonb_build_object(
     'ok', true,
     'answers', v_rows,
-    'answered_total', jsonb_array_length(v_rows),
-    'questions_total', (select count(*) from public.pv_condition_questions where active));
+    'answered_total', v_listed,
+    'questions_total', (select count(*) from public.pv_condition_questions
+                         where active and not topic_only));
 end $$;
 
 revoke all on function public.my_airline_conditions(jsonb) from public, anon;

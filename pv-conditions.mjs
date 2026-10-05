@@ -27,6 +27,8 @@
 // ── これ以上、質問を増やさない ──────────────────────────────────────
 // 43問。50問に増やすと、どの質問も公開に必要な k≧3 に届かないまま薄く散る。
 // 高価値な質問バンクを小さく持ち、1人には毎月少しずつ聞く。
+// （43 ＝ 一覧と、提出直後の1問枠に出す数。話題の入口からだけ出す4問は別に在る
+//   ＝ 下の 2026-10-04 の2つ目の注記。）
 //
 // ★2026-08-19、社用航空券と出退社の移動を6問だけ足して 26→32 にした（オーナー指示）。
 //   提案は15問あったが、落としたのは「誰が使えるか／路線の範囲／年間上限／自己負担額／
@@ -66,6 +68,30 @@
 //      受け取らない・数えない（db/test-conditions.mjs の ⑱ が見ている。使える人は ⑲）。
 //   ⚠️ 本番に在った32問の priority は、出社・帰宅の2問だけ 65・66 → 67・68 へ動かした
 //      （航空券の質問を6つ並べる場所が 61〜64 の4つしか無かった）。並ぶ順は変わらない。
+//
+// ★2026-10-04、同じ日のオーナー判断「4問を足し、その話題の入口から来た人にだけ出す」で、
+//   上の「これ以上増やさない」を**この4問についてだけ**上書きした（質問マスタは 43→47）。
+//   会社の概要の画面には話題ごとの入口がある（通勤タクシー／社員向け航空券／機長昇格）。
+//   そこから来た人には、その話題を具体的に聞く（オーナー指示「タクシーは利用できる勤務・
+//   時間帯・地域、配車か立替か、自己負担と上限。機長昇格も、経験や条件を具体的に聞く。
+//   選択式を中心にし、詳しい説明は任意にする」）。
+//   足したのは、通勤のタクシー代の上限（commuting_taxi_cap）と、機長昇格の3問
+//   （upgrade_order／upgrade_min_hours／upgrade_min_tenure）。
+//   ・4問とも topicOnly ＝ **提出直後の1問枠にも、一覧にも混ぜない。** 出すのは話題の入口だけ。
+//     だから、今までの43問に集まる回答は薄まらない（上書きしてよい理由はこれ1つ）。
+//     一覧の「あなたが答えた項目：N／43」の分母にも分子にも数えない
+//     （db/airline-conditions.sql の questions_total／answered_total／mine_count）。
+//   ・topic は「どの入口から来た人に、どの質問をまとめて出すか」の印。枝ごと同じ話題にする
+//     （親に在るのに子に無い、を gen-conditions.mjs が落とす）。今までの質問にも付けたが、
+//     **付いただけでは出方は1つも変わらない**（変えるのは topicOnly のほう）。
+//   ⚠️ topicOnly を今までの質問に付けない。付けた瞬間に一覧と1問枠から消え、分母も減る。
+//   ⚠️ 「一覧に出ないから何問でも足せる」ではない。話題の入口に並ぶ問数が増えるほど、
+//      入口で離れる人が増える。足すのは今までどおり判断が要る。
+//   ⚠️ タクシー代の上限は**額を聞かない**（上の「額・距離・時刻は聞かない」のまま）。
+//      聞くのは上限の形だけ。額を書ける人は任意の補足へ（自由記述は公開集計に出ない）。
+//      機長昇格の時間と年数も段で聞く（条件が無い会社は数値で答えられない）。
+//   ⚠️ 上限の質問を費用の質問（commuting_taxi_cost）のすぐ後ろへ置くために、クルーバスの
+//      2問の priority を 72・73 → 73・74 へ動かした。並ぶ順は変わらない。
 //
 // ── コードを消さない ────────────────────────────────────────────────
 // 質問も選択肢も、いらなくなったら消さずに active:false にする（pv-vocab.mjs と同じ）。
@@ -150,6 +176,16 @@ export const SETTINGS = {
                  画面もサーバも同じ決め方をする（冒頭の 2026-10-04 の注記）。
    note      … 選択肢に加えて自由記述欄を出す。★自由記述は公開集計に一切出さない。
    currency  … 金額。通貨コードも一緒に保存する。
+   topic     … 話題の入口の印（'taxi' / 'staff_travel' / 'upgrade'）。会社の概要の画面には
+               話題ごとの入口があり、そこから来た人には同じ topic の質問をまとめて出す。
+               ★付いているだけでは、一覧と1問枠での出方は1つも変わらない。
+               ★枝ごと同じ話題にする（親が持つなら子も同じ topic。gen-conditions.mjs が検査する）。
+   topicOnly … 話題の入口から来た人に**だけ**出す。提出直後の1問枠にも一覧にも出さず、
+               「あなたが答えた項目：N／43」の分母にも分子にも数えない
+               （1問枠に出さない・数えないを決めているのは db/airline-conditions.sql。
+                 画面の側は pv-conditions.json に運ばれた topicOnly を見て一覧から外す）。
+               ★topic が要る。micro と boost は付けられない（gen-conditions.mjs が検査する）。
+               ★今までの質問に付けない（冒頭の 2026-10-04 の2つ目の注記）。
 */
 export const QUESTIONS = [
   // ══ ROSTER 勤務スケジュール ═══════════════════════════════════════
@@ -381,12 +417,74 @@ export const QUESTIONS = [
   },
   {
     id: 'upgrade_years', version: 1, section: 'career', kind: 'num',
-    tier: 'A', micro: false, priority: 26,
+    tier: 'A', micro: false, priority: 26, topic: 'upgrade',
     num: { min: 0.5, max: 30, step: 0.5, ja: '年', en: 'years' },
     ja: { label: '副操縦士から機長まで、今どれくらいかかりますか？',
           help: '今の目安で構いません。会社の規定年数ではなく、実際にかかっている年数です。' },
     en: { label: 'How long does it currently take to upgrade from First Officer to Captain?',
           help: 'A current estimate is fine — the time it actually takes, not the published minimum.' },
+  },
+  {
+    /* ── 機長昇格の条件（2026-10-04 追加・オーナー判断） ─────────────────
+       ★話題の入口（機長昇格）から来た人にだけ出す3問（topicOnly）。提出直後の1問枠にも
+         一覧にも出さず、「答えた項目：N／43」にも数えない（冒頭の 2026-10-04 の2つ目の注記）。
+       ★上の upgrade_years は「実際にかかっている年数」。こちらの3問は**会社が決めている条件**
+         （順番の決め方・要る時間・要る年数）。同じことを2回聞いていない。
+       ★親を持たない。昇格はどの会社にも在るので、「制度があるか」を先に聞く必要が無い。
+       ★label だけで何の話か分かるように書く（「その」「それ」で前の質問を指さない）。
+         話題の入口でどの質問が隣に来るかは、このファイルが決めていない。
+       ★選考の中身（試験・面接・査定）は選択肢にしない。会社ごとに呼び名も段取りも違い、
+         並べると選べない人が出る。書ける人は任意の補足へ（自由記述は公開集計に出ない）。 */
+    id: 'upgrade_order', version: 1, section: 'career', kind: 'choice',
+    tier: 'B', micro: false, priority: 27, topic: 'upgrade', topicOnly: true, note: true,
+    ja: { label: '機長への昇格の順番は、どう決まりますか？',
+          help: '先任順（Seniority）で順番が来るのか、会社が選ぶのか、空いた席に自分で応募するのかです。選考の中身は、書ける場合だけ補足に書いてください。' },
+    en: { label: 'How is the order of upgrade to Captain decided?',
+          help: 'Whether your turn comes by seniority, the company selects, or you apply when a command vacancy opens. If you can, describe the selection in the note.' },
+    choices: [
+      { code: 'seniority',           ja: '先任順（入社の順）',       en: 'By seniority (order of joining)' },
+      { code: 'seniority_selection', ja: '先任順に加えて選考がある', en: 'By seniority, plus a selection' },
+      { code: 'selection',           ja: '会社の選考で決まる',       en: 'By company selection' },
+      { code: 'vacancy_bid',         ja: '空きが出たときに応募する', en: 'You apply when a vacancy opens' },
+      { code: UNKNOWN,               ja: 'わからない',               en: "Don't know" },
+    ],
+  },
+  {
+    /* ★数値の欄にしない。条件が無い会社は数で答えられず、空欄と区別が付かなくなる。
+         段はどの会社の規定とも無関係な切り方にしておく（特定の会社の数字を境目にすると、
+         その会社の人しか迷わず答えられない）。
+       ★聞くのは会社が決めている最低限。実際に昇格した人の時間は聞かない
+         （人によって違い、1つの段に丸めると何の数か分からなくなる）。 */
+    id: 'upgrade_min_hours', version: 1, section: 'career', kind: 'choice',
+    tier: 'B', micro: false, priority: 28, topic: 'upgrade', topicOnly: true,
+    ja: { label: '機長昇格に必要な総飛行時間の条件は、どれですか？',
+          help: '昇格の対象になるために会社が決めている、最低限の総飛行時間です。実際に昇格した人の時間ではありません。' },
+    en: { label: 'What is the minimum total flight time required for upgrade to Captain?',
+          help: 'The minimum the company sets to be eligible — not the hours people actually have when they upgrade.' },
+    choices: [
+      { code: 'none',       ja: '時間の条件はない',  en: 'No flight-time requirement' },
+      { code: 'under_3000', ja: '3,000時間未満',     en: 'Under 3,000 hours' },
+      { code: 'h3000_4999', ja: '3,000〜4,999時間',  en: '3,000 to 4,999 hours' },
+      { code: 'h5000_6999', ja: '5,000〜6,999時間',  en: '5,000 to 6,999 hours' },
+      { code: 'h7000_plus', ja: '7,000時間以上',     en: '7,000 hours or more' },
+      { code: UNKNOWN,      ja: 'わからない',        en: "Don't know" },
+    ],
+  },
+  {
+    id: 'upgrade_min_tenure', version: 1, section: 'career', kind: 'choice',
+    tier: 'B', micro: false, priority: 29, topic: 'upgrade', topicOnly: true,
+    ja: { label: '機長昇格に必要な在籍年数の条件は、どれですか？',
+          help: '昇格の対象になるために会社が決めている、入社してからの最低限の年数です。' },
+    en: { label: 'What is the minimum time with the company required for upgrade to Captain?',
+          help: 'The minimum number of years since joining that the company sets to be eligible.' },
+    choices: [
+      { code: 'none',     ja: '年数の条件はない', en: 'No time-with-company requirement' },
+      { code: 'under_3',  ja: '3年未満',          en: 'Under 3 years' },
+      { code: 'y3_5',     ja: '3〜5年',           en: '3 to 5 years' },
+      { code: 'y6_9',     ja: '6〜9年',           en: '6 to 9 years' },
+      { code: 'y10_plus', ja: '10年以上',         en: '10 years or more' },
+      { code: UNKNOWN,    ja: 'わからない',       en: "Don't know" },
+    ],
   },
   {
     id: 'external_hiring_types', version: 1, section: 'career', kind: 'multi',
@@ -527,7 +625,7 @@ export const QUESTIONS = [
        ★「一部のパイロットのみ」は実在する。契約形態（現地採用と Expat 契約）で
          使える範囲が変わる会社があり、二択にすると回答が割れて読めなくなる。 */
     id: 'staff_travel', version: 1, section: 'benefits', kind: 'choice',
-    tier: 'A', micro: true, priority: 57,
+    tier: 'A', micro: true, priority: 57, topic: 'staff_travel',
     ja: { label: '自社便に割引や無料で乗れる社員向けの航空券制度がありますか？',
           help: '社員やその家族が割引・無料で乗れる制度です。ID チケット、スタッフトラベルなどと呼ばれます。' },
     en: { label: 'Is there a staff travel scheme — free or reduced-fare tickets on your own airline?',
@@ -543,7 +641,7 @@ export const QUESTIONS = [
     /* ★制度の価値がいちばん割れるのはここ。「ある」だけでは、12時間の路線で
        本当に家に帰れるのかが分からない。空席待ちのみと座席確保では別物。 */
     id: 'staff_travel_booking', version: 1, section: 'benefits', kind: 'choice',
-    tier: 'B', micro: true, priority: 58,
+    tier: 'B', micro: true, priority: 58, topic: 'staff_travel',
     parent: 'staff_travel', parentWhen: ['yes', 'some_pilots'],
     ja: { label: 'その席は空席待ちですか、確保できますか？',
           help: '出発まで席が決まらない空席待ち（Standby）か、あらかじめ席を押さえられるかです。' },
@@ -558,7 +656,7 @@ export const QUESTIONS = [
   },
   {
     id: 'staff_travel_cabin', version: 1, section: 'benefits', kind: 'choice',
-    tier: 'B', micro: true, priority: 59,
+    tier: 'B', micro: true, priority: 59, topic: 'staff_travel',
     parent: 'staff_travel', parentWhen: ['yes', 'some_pilots'],
     ja: { label: 'ビジネスクラスなど上位クラスに乗れますか？',
           help: '上位クラスに乗れるか、乗れる場合に誰から優先されるかです。' },
@@ -573,7 +671,7 @@ export const QUESTIONS = [
   },
   {
     id: 'staff_travel_family', version: 1, section: 'benefits', kind: 'choice',
-    tier: 'B', micro: true, priority: 60,
+    tier: 'B', micro: true, priority: 60, topic: 'staff_travel',
     parent: 'staff_travel', parentWhen: ['yes', 'some_pilots'],
     ja: { label: '家族も使えますか？', help: '本人以外がどこまで使えるかです。' },
     en: { label: 'Can family members use it?', help: 'How far beyond the employee the scheme reaches.' },
@@ -602,7 +700,7 @@ export const QUESTIONS = [
        ★label だけで何の話か分かるように書く（「その」「それ」で親を指さない）。
          提出直後の1問枠（micro）と ?q= の入口では、親の質問が隣に無い。 */
     id: 'staff_travel_standby_trips', version: 1, section: 'benefits', kind: 'choice',
-    tier: 'B', micro: true, priority: 61,
+    tier: 'B', micro: true, priority: 61, topic: 'staff_travel',
     parent: 'staff_travel_booking', parentWhen: ['standby', 'both'],
     ja: { label: '空席待ちの社員向け航空券は、1年に何回まで使えますか？',
           help: '出発まで席が決まらない券（Standby）を、あなた本人が使える回数です。往復を1回と数えます。勤続年数や契約で変わる場合は、今のあなたの回数で構いません。' },
@@ -622,7 +720,7 @@ export const QUESTIONS = [
        ★「券の種類によって違う」を置かない。種類ごとに別の質問にしたので、要らない
          （置くと、いちばん知りたい所がその1つに集まって読めなくなる）。 */
     id: 'staff_travel_standby_cost', version: 1, section: 'benefits', kind: 'choice',
-    tier: 'B', micro: true, priority: 62,
+    tier: 'B', micro: true, priority: 62, topic: 'staff_travel',
     parent: 'staff_travel_booking', parentWhen: ['standby', 'both'],
     ja: { label: '空席待ちの社員向け航空券で乗るとき、本人が払うのはどれに近いですか？',
           help: '出発まで席が決まらない券（Standby）についてです。運賃そのものを払うのか、税金や空港使用料などの諸費用だけなのかです。' },
@@ -648,7 +746,7 @@ export const QUESTIONS = [
          （本人が使えず、家族だけが使える券は置いていない、とは言い切れない）。
        ★人数や年齢の上限は聞かない（子の年齢など。数字を境目にすると会社ごとに違う）。 */
     id: 'staff_travel_standby_family', version: 1, section: 'benefits', kind: 'multi',
-    tier: 'B', micro: false, priority: 63,
+    tier: 'B', micro: false, priority: 63, topic: 'staff_travel',
     parent: 'staff_travel_booking', parentWhen: ['standby', 'both'],
     ja: { label: '空席待ちの社員向け航空券は、誰が使えますか？',
           help: '出発まで席が決まらない券（Standby）を使える人を、すべて選んでください。' },
@@ -669,7 +767,7 @@ export const QUESTIONS = [
          「年1〜4回」の1段にまとめると、年1回と年4回の差が消える。
          年1回・半年に1回（年2回）・四半期に1回（年4回）で切ってある。 */
     id: 'staff_travel_confirmed_trips', version: 1, section: 'benefits', kind: 'choice',
-    tier: 'B', micro: true, priority: 64,
+    tier: 'B', micro: true, priority: 64, topic: 'staff_travel',
     parent: 'staff_travel_booking', parentWhen: ['both', 'confirmed'],
     ja: { label: '座席を確保できる社員向け航空券は、1年に何回まで使えますか？',
           help: 'あらかじめ席を押さえられる券を、あなた本人が使える回数です。往復を1回と数えます。勤続年数や契約で変わる場合は、今のあなたの回数で構いません。' },
@@ -686,7 +784,7 @@ export const QUESTIONS = [
   },
   {
     id: 'staff_travel_confirmed_cost', version: 1, section: 'benefits', kind: 'choice',
-    tier: 'B', micro: true, priority: 65,
+    tier: 'B', micro: true, priority: 65, topic: 'staff_travel',
     parent: 'staff_travel_booking', parentWhen: ['both', 'confirmed'],
     ja: { label: '座席を確保できる社員向け航空券で乗るとき、本人が払うのはどれに近いですか？',
           help: 'あらかじめ席を押さえられる券についてです。運賃そのものを払うのか、税金や空港使用料などの諸費用だけなのかです。' },
@@ -704,7 +802,7 @@ export const QUESTIONS = [
          同じ会社の2つの券を並べて読むための質問なので、片方だけ選択肢が違うと比べられない
          （db/test-conditions.mjs が2問の選択肢を突き合わせている）。 */
     id: 'staff_travel_confirmed_family', version: 1, section: 'benefits', kind: 'multi',
-    tier: 'B', micro: false, priority: 66,
+    tier: 'B', micro: false, priority: 66, topic: 'staff_travel',
     parent: 'staff_travel_booking', parentWhen: ['both', 'confirmed'],
     ja: { label: '座席を確保できる社員向け航空券は、誰が使えますか？',
           help: 'あらかじめ席を押さえられる券を使える人を、すべて選んでください。' },
@@ -727,7 +825,7 @@ export const QUESTIONS = [
          集めると、どちらの数字も何を指すのか分からなくなる。
        ★Tier B。日本と一部の会社に強く偏り、横断比較の軸としては社用航空券より弱い。 */
     id: 'commuting_transport', version: 1, section: 'benefits', kind: 'choice',
-    tier: 'B', micro: true, priority: 67,
+    tier: 'B', micro: true, priority: 67, topic: 'taxi',
     ja: { label: '出社・帰宅の移動を、会社が用意または負担しますか？',
           help: '会社が手配するタクシー、クルーバス、あとから精算する運賃などです。毎月定額で出る通勤手当のことではありません。' },
     en: { label: 'Does the company provide or pay for your travel to and from work?',
@@ -744,7 +842,7 @@ export const QUESTIONS = [
        1つ選ばせると片方が消える。複数選択は1問枠（micro）には出ないので、
        詳細ページで集まる。 */
     id: 'commuting_transport_method', version: 1, section: 'benefits', kind: 'multi',
-    tier: 'B', micro: false, priority: 68,
+    tier: 'B', micro: false, priority: 68, topic: 'taxi',
     parent: 'commuting_transport', parentWhen: ['always', 'conditional'],
     ja: { label: 'どの形で提供されますか？', help: '当てはまるものをすべて選んでください。' },
     en: { label: 'How is it provided?', help: 'Select all that apply.' },
@@ -777,7 +875,7 @@ export const QUESTIONS = [
        ★前泊・仮眠室（hotel）と「その他」には、条件の質問を置かない。移動の手段ではなく、
          足すと5問がさらに増える。 */
     id: 'commuting_taxi_when', version: 1, section: 'benefits', kind: 'multi',
-    tier: 'B', micro: false, priority: 69,
+    tier: 'B', micro: false, priority: 69, topic: 'taxi',
     parent: 'commuting_transport_method', parentWhen: ['company_taxi', 'reimburse'],
     ja: { label: 'タクシーでの出社・帰宅は、どんなときに会社の手配や精算で使えますか？',
           help: '会社が手配するタクシーと、自分で乗ってあとから精算する場合についてです。当てはまるものをすべて選んでください。制限が無ければ「制限はない」だけを選んでください。' },
@@ -799,7 +897,7 @@ export const QUESTIONS = [
        ★クルーバスには「どこまで」を置かない。バスは決まった経路を走るもので、
          自宅まで届くかどうかを聞く質問がそのままは当てはまらない。 */
     id: 'commuting_taxi_where', version: 1, section: 'benefits', kind: 'choice',
-    tier: 'B', micro: true, priority: 70,
+    tier: 'B', micro: true, priority: 70, topic: 'taxi',
     parent: 'commuting_transport_method', parentWhen: ['company_taxi', 'reimburse'],
     ja: { label: 'タクシーでの出社・帰宅は、どこまで会社の手配や精算で使えますか？',
           help: '会社が手配するタクシーと、自分で乗ってあとから精算する場合についてです。自宅まで使えるのか、距離や地域、決められた場所までに限られるのかです。' },
@@ -819,7 +917,7 @@ export const QUESTIONS = [
          ここで分ける。
        ★額や上限の金額は聞かない（地域と距離で変わる。聞くなら給与明細の「交通費」の側）。 */
     id: 'commuting_taxi_cost', version: 1, section: 'benefits', kind: 'choice',
-    tier: 'B', micro: true, priority: 71,
+    tier: 'B', micro: true, priority: 71, topic: 'taxi',
     parent: 'commuting_transport_method', parentWhen: ['company_taxi', 'reimburse'],
     ja: { label: 'タクシーでの出社・帰宅の費用は、誰が負担しますか？',
           help: '会社が手配するタクシーと、自分で乗ってあとから精算する場合についてです。会社が全額を持つのか、本人の負担があるのかです。' },
@@ -833,11 +931,36 @@ export const QUESTIONS = [
     ],
   },
   {
+    /* ── 上限の形（2026-10-04 追加・オーナー判断） ─────────────────────
+       ★話題の入口（通勤タクシー）から来た人にだけ出す（topicOnly）。提出直後の1問枠にも
+         一覧にも出さず、「答えた項目：N／43」にも数えない（冒頭の 2026-10-04 の2つ目の注記）。
+       ★上の commuting_taxi_cost は「誰が負担するか」。こちらは**会社が払う額に上限があるか**。
+         「一部は本人」が、上限を超えた分なのか毎回の定額なのかは、あちらでは分からない。
+       ★額は聞かない（地域と距離で変わる）。聞くのは上限の形だけ。額を書ける人は任意の補足へ
+         （自由記述は公開集計に一切出さない）。
+       ★親と条件は commuting_taxi_cost と同じ ＝ タクシーを選んだ人にだけ開く。
+       ★label だけで何の話か分かるように書く（「その」「それ」で前の質問を指さない）。 */
+    id: 'commuting_taxi_cap', version: 1, section: 'benefits', kind: 'choice',
+    tier: 'B', micro: false, priority: 72, topic: 'taxi', topicOnly: true, note: true,
+    parent: 'commuting_transport_method', parentWhen: ['company_taxi', 'reimburse'],
+    ja: { label: '通勤のタクシー代に、上限はありますか？',
+          help: '会社が手配するタクシーと、自分で乗ってあとから精算する場合についてです。会社が払う額に上限があるかどうかです。上限の額は、書ける場合だけ補足に書いてください。' },
+    en: { label: 'Is there a cap on what the company pays for a taxi to or from work?',
+          help: 'For taxis the company arranges, and rides you pay for and claim back: whether there is a limit on what the company covers. If you can, give the amount in the note.' },
+    choices: [
+      { code: 'no_cap',    ja: '上限はない',           en: 'No cap' },
+      { code: 'per_ride',  ja: '1回ごとの上限がある',  en: 'A cap per ride' },
+      { code: 'per_month', ja: '月ごとの上限がある',   en: 'A cap per month' },
+      { code: 'by_zone',   ja: '距離・区域で決まる',   en: 'Set by distance or zone' },
+      { code: UNKNOWN,     ja: 'わからない',           en: "Don't know" },
+    ],
+  },
+  {
     /* ★選択肢はタクシーの側（commuting_taxi_when）と1文字も違えない。同じ会社の2つの手段を
          並べて読むための質問なので、片方だけ選択肢が違うと比べられない
          （db/test-conditions.mjs が突き合わせている）。 */
     id: 'commuting_bus_when', version: 1, section: 'benefits', kind: 'multi',
-    tier: 'B', micro: false, priority: 72,
+    tier: 'B', micro: false, priority: 73, topic: 'taxi',
     parent: 'commuting_transport_method', parentWhen: ['crew_bus'],
     ja: { label: 'クルーバス（送迎バス）は、どんなときに出社・帰宅で使えますか？',
           help: '会社が走らせる送迎バス・クルーバスについてです。当てはまるものをすべて選んでください。制限が無ければ「制限はない」だけを選んでください。' },
@@ -854,7 +977,7 @@ export const QUESTIONS = [
   },
   {
     id: 'commuting_bus_cost', version: 1, section: 'benefits', kind: 'choice',
-    tier: 'B', micro: true, priority: 73,
+    tier: 'B', micro: true, priority: 74, topic: 'taxi',
     parent: 'commuting_transport_method', parentWhen: ['crew_bus'],
     ja: { label: 'クルーバス（送迎バス）の費用は、誰が負担しますか？',
           help: '会社が走らせる送迎バス・クルーバスについてです。会社が全額を持つのか、本人の負担があるのかです。' },
