@@ -61,9 +61,43 @@
     return true;
   }
 
+  /* ── 4) 「ひとつ教えて」の話題 ─────────────────────────────
+     広い箱では全部開いて横に並べる（質問の名前が最初から読める）。狭い箱では畳んだまま。
+     開閉は <details> そのもの ＝ ここが動かなくても、押せば開く。境目は pv-glance.css の 640px と同じ。 */
+  var askc = root.querySelector('.pvg-askc');
+  var topics = [].slice.call(root.querySelectorAll('details.pvg-topic'));
+  function flat() {
+    if (!askc) return;
+    var on = root.getBoundingClientRect().width >= 640;
+    if (on === askc.hasAttribute('data-flat')) return;
+    if (on) askc.setAttribute('data-flat', ''); else askc.removeAttribute('data-flat');
+    topics.forEach(function (t) {
+      t.open = on;
+      var s = t.querySelector('summary');
+      if (!s) return;
+      if (on) s.setAttribute('tabindex', '-1'); else s.removeAttribute('tabindex');
+    });
+  }
+  flat();
+  if (w.ResizeObserver) new w.ResizeObserver(flat).observe(root);
+  else w.addEventListener('resize', flat);
+
   d.addEventListener('click', function (e) {
     var t = e.target;
     if (!t || !t.closest) return;
+    if (askc && askc.hasAttribute('data-flat') && t.closest('.pvg-topic > summary')) { e.preventDefault(); return; }
+    /* 「ほか◯問」… その話題の残りの質問を出し、出てきた最初の質問へ焦点を移す */
+    var am = t.closest('[data-pvg-askmore]');
+    if (am && root.contains(am)) {
+      var tp = am.closest('.pvg-topic');
+      if (tp) {
+        var lis = tp.querySelectorAll('.pvg-ask li');
+        tp.setAttribute('data-all', '');
+        var nx = lis[4] && lis[4].querySelector('a');
+        if (nx) nx.focus();
+      }
+      return;
+    }
     var more = t.closest('.pvg-more[aria-controls]');
     if (more && root.contains(more)) {
       if (more.getAttribute('aria-expanded') === 'true') set(more, false); else openOnly(more);

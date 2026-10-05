@@ -140,7 +140,8 @@ function fact(x) {
   const cur = x.cur && typeof x.value === 'number' ? x.cur : '';
   return {
     key: x.key, label: x.ja,
-    value: cur ? `${cur} ${x.value.toLocaleString('en-US')}` : valueText(x),
+    /* 円の額は標準の円表記（通貨切替が読める形）。外貨は元の通貨の字のまま。 */
+    value: cur === 'JPY' ? `¥${x.value.toLocaleString('en-US')}` : cur ? `${cur} ${x.value.toLocaleString('en-US')}` : valueText(x),
     /* 外貨の額は、元の通貨の字（通貨切替に読ませない）と円の換算を分けて持つ。 */
     orig: cur && cur !== 'JPY', yen: cur && cur !== 'JPY' ? yenOf(cur, x.value) : '',
     cond: x.cond_ja || '', when: whenText(x),

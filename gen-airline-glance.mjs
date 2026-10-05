@@ -71,7 +71,11 @@ const IC = {
 const join = (...xs) => xs.filter(Boolean).join('・');
 /* 事実に添える前提。時点が日付でなく資料の呼び名（「経験者の副操縦士の募集」）のときは、
    前提と同じことを2度言うことになるので、前提だけにする（資料の名前は出どころの一覧に出る）。 */
-const premise = f => join(f.cond, f.cond && !/\d/.test(f.when || '') ? '' : f.when);
+/* 値がもう時点を言っているとき（設立 1951年8月1日）は、同じ日付をもう一度書かない。 */
+const premise = f => {
+  const when = f.when && String(f.value).includes(f.when) ? '' : f.when;
+  return join(f.cond, f.cond && !/\d/.test(when || '') ? '' : when);
+};
 const ext = (url, text, cls = 'pvg-src') => `<a class="${cls}" href="${esc(url)}" target="_blank" rel="noopener">${esc(text)}</a>`;
 /* 実データの欄（描くのは career-live.js。ここは器だけ） */
 const live = (kind, attrs = {}) =>
@@ -87,19 +91,23 @@ const val = f => f.orig === true
 const prose = s => `<span class="pv-no-cur">${esc(s)}</span>`;
 const whole = f => (f.pilot === false ? '<span class="pvg-tag pvg-tag-q">会社全体の制度</span>' : '');
 
-/* 出どころの一覧（同じ資料は1回だけ） */
-function sources(items) {
+/* 出どころの一覧（同じ資料は1回だけ）。
+   fold ＝ 下のカードでは畳んで置く（押せば資料の名前とリンクが全部出る。数字のそばから1回で届く）。 */
+function sources(items, fold = false) {
   const seen = new Map();
   for (const f of items) if (f && f.src && f.src.url && !seen.has(f.src.url)) seen.set(f.src.url, f.src);
   if (!seen.size) return '';
-  return `<p class="pvg-srcs"><span>出どころ</span>${[...seen.values()].map(s => ext(s.url, s.name)).join('')}</p>`;
+  const links = [...seen.values()].map(s => ext(s.url, s.name)).join('');
+  return fold
+    ? `<details class="pvg-dt pvg-srcd"><summary>出どころ<small>${seen.size}件</small>${IC.down}</summary><p class="pvg-srcs">${links}</p></details>`
+    : `<p class="pvg-srcs"><span>出どころ</span>${links}</p>`;
 }
 /* 会社が公表している条件の一覧 */
 const factList = items => `<dl class="pvg-dl">${items.map(f =>
   `<div><dt>${esc(f.label)}${whole(f)}</dt><dd><b>${val(f)}</b>${premise(f) ? `<small>${esc(premise(f))}</small>` : ''}</dd></div>`).join('')}</dl>`;
 /* 匿名で答える入口（質問の名前を出す） */
 const asks = (slug, list, head = '匿名で答える') =>
-  `<div class="pvg-ask"><p class="pvg-askh">${esc(head)}</p><ul>${list.map(([q, label]) =>
+  `<div class="pvg-ask">${head ? `<p class="pvg-askh">${esc(head)}</p>` : ''}<ul>${list.map(([q, label]) =>
     `<li><a href="${href.ask(slug, q)}">${esc(label)}${IC.next}</a></li>`).join('')}</ul></div>`;
 
 /* ── 社名の行（写真を置かない）────────────────────────── */
@@ -360,21 +368,35 @@ function livingCell(v) {
 /* ── その下：会社・REAL PAY・口コミ・募集・ステイ・ひとつ教えて ── */
 const head = (icon, title, sub = '') =>
   `<header class="pvg-hd"><span class="pvg-ico" aria-hidden="true">${icon}</span><h2 class="pvg-eyebrow">${title}</h2>${sub ? `<span class="pvg-hsub">${sub}</span>` : ''}</header>`;
+/* 会社の数字。何の数か → 値（大きく）→ 数え方と時点、の順。
+     値の末尾の（…）は補足なので、値からは外して下の行へ回す（「1952年」＋「日本ヘリコプター輸送として設立」）。 */
+const stats = items => `<dl class="pvg-stats">${items.map(f => {
+  const m = f.orig === true ? null : /^(.+?)（([^（）]+)）$/.exec(String(f.value));
+  const value = m ? esc(m[1]) : val(f);
+  const note = join(m ? m[2] : '', premise(f));
+  /* 字の幅（全角 1・半角 0.6）で字の大きさを決める。長い値は小さく、狭い画面でだけ収まらない値は data-mid */
+  const wide = [...(m ? m[1] : String(f.value))].reduce((n, ch) => n + (ch.charCodeAt(0) < 0x2000 ? 0.6 : 1), 0);
+  const size = wide > 8.5 ? ' data-long' : wide > 7 ? ' data-mid' : '';
+  return `<div${size}><dt>${esc(f.label)}${whole(f)}</dt><dd><b>${value}</b>${note ? `<small>${esc(note)}</small>` : ''}</dd></div>`;
+}).join('')}</dl>`;
+/* 機材の札は、乗員が呼ぶ短い形で出す（台帳の書き方は title に残す）。 */
+const shortType = s => String(s).replace(/^ボーイング\s*/, () => 'B').replace(/^エアバス\s*/, () => '').replace(/^エンブラエル\s*/, () => 'E');
 function companyCard(v) {
   const c = v.company, p = c.photo;
   /* 作者名とライセンス名を示すことが、この写真を使う条件（CC BY／BY-SA）。外さない。 */
   const credit = p && needsCredit(p)
     ? `<figcaption>写真（${esc(p.changes)}）：${ext(p.source, p.author, '')}／${ext(p.licence_url, p.licence, '')}</figcaption>` : '';
-  const photo = p ? `<figure class="pvg-photo"><img src="${UP}${photoSrc(p, true)}" srcset="${UP}${photoSrc(p, true)} ${SMALL_W}w, ${UP}${photoSrc(p, false)} ${p.w}w" sizes="(min-width:1100px) 380px, (min-width:700px) 46vw, 92vw" width="${SMALL_W}" height="${smallH(p)}" loading="lazy" decoding="async" alt="${esc(v.name)}の${esc(p.aircraft)}">${credit}</figure>` : '';
+  const photo = p ? `<figure class="pvg-photo"><img src="${UP}${photoSrc(p, true)}" srcset="${UP}${photoSrc(p, true)} ${SMALL_W}w, ${UP}${photoSrc(p, false)} ${p.w}w" sizes="(min-width:1100px) 400px, (min-width:700px) 34vw, 92vw" width="${SMALL_W}" height="${smallH(p)}" loading="lazy" decoding="async" alt="${esc(v.name)}の${esc(p.aircraft)}">${credit}</figure>` : '';
   const facts = [...c.profile, ...c.scale];
-  const fleet = c.fleet.length ? `<p class="pvg-askh">機材${c.fleet[0].when ? `<small>${esc(c.fleet[0].when)}</small>` : ''}</p>
-<ul class="pvg-chips">${c.fleet.map(f => `<li>${esc(f.label)}<b>${esc(f.value)}</b></li>`).join('')}</ul>` : '';
+  const fleet = c.fleet.length ? `<div class="pvg-fleet"><p class="pvg-askh">機材<small>${join(`${c.fleet.length}機種`, c.fleet[0].when)}</small></p>
+<ul class="pvg-chips">${c.fleet.map(f => `<li title="${esc(f.label)}">${esc(shortType(f.label))}<b>${esc(f.value)}</b></li>`).join('')}</ul></div>` : '';
+  /* 写真 → 見出し → 数字 → 機材 → 出どころ。広い箱では、写真と数字が横に並び、機材と出どころは横いっぱい（pv-glance.css）。 */
   return `<article class="pvg-card pvg-co">
 ${photo}
 ${head(IC.company, '会社')}
-${factList(facts)}
+${stats(facts)}
 ${fleet}
-${sources([...facts, ...c.fleet])}
+${sources([...facts, ...c.fleet], true)}
 </article>`;
 }
 const realpayCard = v => `<article class="pvg-card pvg-rp">
@@ -388,9 +410,8 @@ ${live('reviews', { airline: v.slug })}
 </article>`;
 function jobsCard(v) {
   return `<article class="pvg-card pvg-jobs">
-${head(IC.jobs, '募集')}
-${v.jobs.length ? factList(v.jobs) + sources(v.jobs) : '<p class="pvg-quiet">会社が公表している募集を確認できていません。</p>'}
-<p class="pvg-foot"><button type="button" class="pvg-link" data-pvg-tab="jobs">募集要項のタブを開く${IC.go}</button></p>
+${head(IC.jobs, '募集', `<button type="button" class="pvg-link" data-pvg-tab="jobs">募集要項を開く${IC.go}</button>`)}
+${v.jobs.length ? factList(v.jobs) + sources(v.jobs, true) : '<p class="pvg-quiet">会社が公表している募集を確認できていません。</p>'}
 </article>`;
 }
 const DEST_FIRST = 8;
@@ -411,22 +432,29 @@ ${base}
 ${list}
 </article>`;
 }
-/* 「◯◯のこと、ひとつ教えて。」── 質問の名前まで見せる。件数は、3人そろった項目の集計として欄が出す */
+/* 「◯◯のこと、ひとつ教えて。」── 質問の名前まで見せる。
+   集まった回答は、話題の上に1つの欄でまとめて出す（3人そろった項目だけ。件数はサーバーの答え）。
+   話題ごとに欄を分けると、回答のある話題だけ質問の並びが下がり、列がそろわなくなる。 */
 const ROSTER = ['work', '勤務', WORK_ASK];
+const ASK_FIRST = 4;                               // 広い箱で、話題ごとに最初から見せる質問の数（pv-glance.css の nth-child と同じ）
 function askCard(v) {
   const groups = [ROSTER, ...TOPICS.map(([id, title, list]) => [id, id === 'staff-travel' ? 'Staff Travel（社員向け航空券）' : id === 'taxi' ? '通勤・タクシー' : title, list])];
   const stay = (CAREER[v.slug] || {}).destinations ? `<a class="pvg-topic pvg-topic-a" href="#pvg-stay"><span>ホテル・レストラン</span><small>就航地を選んで足す</small>${IC.next}</a>` : '';
+  const keys = [...new Set(groups.flatMap(([, , list]) => list.map(a => a[0])))];
   return `<article class="pvg-card pvg-askc">
 ${head(IC.ask, `${esc(v.name)}のこと、ひとつ教えて。`)}
 <p class="pvg-quiet">1問だけでも保存できます。匿名で、3人そろった項目から会社ページに出ます。</p>
+<div class="pvg-got"><p class="pvg-askh">集まった回答</p>${live('fact', { airline: v.slug, keys: keys.join(',') })}</div>
+<div class="pvg-topics">
 ${groups.map(([id, title, list]) => `<details class="pvg-topic" data-topic="${id}">
 <summary><span>${esc(title)}</span><small>質問 ${list.length}</small>${IC.down}</summary>
 <div class="pvg-body">
-${live('fact', { airline: v.slug, keys: list.map(a => a[0]).join(',') })}
-${asks(v.slug, list)}
+${asks(v.slug, list, '')}${list.length > ASK_FIRST ? `
+<button type="button" class="pvg-link pvg-askmore" data-pvg-askmore>ほか${list.length - ASK_FIRST}問${IC.down}</button>` : ''}
 </div>
 </details>`).join('\n')}
 ${stay}
+</div>
 </article>`;
 }
 

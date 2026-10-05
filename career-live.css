@@ -77,6 +77,12 @@
 .crl-rows{list-style:none;margin:0;padding:0;border-top:1px solid var(--pv-line)}
 .crl-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--pv-line)}
 .crl-row[data-mask]{grid-template-columns:minmax(0,1fr)}
+/* 会社ページの鍵の無い行：出典・時期｜額の場所（空の板） */
+.crl-row[data-mask="line"]{grid-template-columns:minmax(0,1fr) auto;padding:10px 0}
+.crl-row[data-mask="line"] .crl-row-c{grid-column:auto;font-size:12.5px}
+.crl-plate{display:block;width:76px;height:14px;border-radius:7px;background:var(--pv-bg-sub);border:1px solid var(--pv-line-soft)}
+.crl-count{margin:0 0 8px;font-size:12px;color:var(--pv-ink-3)}
+.crl-count b{margin:0 1px;font:700 20px/1.2 Inter,sans-serif;letter-spacing:-.01em;font-variant-numeric:tabular-nums;color:var(--pv-ink)}
 .crl-row-a{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;min-width:0}
 .crl-row-b{display:flex;align-items:baseline;justify-content:flex-end;gap:6px;white-space:nowrap}
 .crl-row-c{grid-column:1 / -1;display:flex;flex-wrap:wrap;align-items:center;gap:2px 12px;font-size:12px;color:var(--pv-ink-3)}

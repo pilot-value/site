@@ -61,6 +61,7 @@
       s: ['在籍5年未満', '在籍5〜10年', '在籍10〜15年', '在籍15〜20年', '在籍20年以上']
     },
     payEmpty: 'まだ記録がありません',
+    payCount: function (n) { return ['', String(n), '人が提出']; },
     payLock: '給与の提出で開きます',
     payGive: '匿名で給与を提出する',
     payAll: 'REAL PAY で全部見る',
@@ -74,6 +75,7 @@
     workNoPath: ['拘束時間', '勤務日数', 'ステイ泊数'],
 
     revEmpty: '口コミはまだありません',
+    revNone: '会員からの投稿はまだありません',       // 会社ページ用。同じページの「口コミ」のタブは海外の評判なども数えるので、言い分ける
     revCount: function (n) { return '口コミ ' + n + '件'; },
     revLock: '口コミの投稿で開きます',
     revGive: '匿名で口コミを書く',
@@ -424,6 +426,25 @@
     li.appendChild(srcLine(r));
     return li;
   }
+  /* 会社ページの、鍵の無い人の行。会社はページが言っているので、社名を行ごとに繰り返さない。
+     出典と投稿時期を1行に置き、額の場所は空の板にする（板の中に数字は無い。サーバーが送っていない）。 */
+  function maskLine(r) {
+    var li = el('li', 'crl-row');
+    li.setAttribute('data-mask', 'line');
+    li.appendChild(srcLine(r));
+    var plate = el('span', 'crl-plate');
+    plate.setAttribute('aria-hidden', 'true');
+    li.appendChild(plate);
+    return li;
+  }
+  /* この会社の提出の件数（返ってきた行を数えるだけ。1行＝1人） */
+  function payCount(n) {
+    var t = T.payCount(n), p = el('p', 'crl-count');
+    if (t[0]) p.appendChild(d.createTextNode(t[0]));
+    p.appendChild(el('b', '', t[1]));
+    p.appendChild(d.createTextNode(t[2]));
+    return p;
+  }
   function loginHref() {
     if (GL) return UP + 'login.html?redirect=' + enc(location.pathname.replace(/^.*\/airlines\//, 'airlines/'));
     return 'login.html?redirect=' + enc('career.html' + location.search);
@@ -444,11 +465,16 @@
       if (pay.open) {
         if (!mine.length) return view('empty', [msg(T.payEmpty), foot([all])]);
         mine.slice(0, 3).forEach(function (r) { ul.appendChild(payRow(r, D)); });
-        return view('open', [ul, foot([all])]);
+        return view('open', GL ? [payCount(mine.length), ul, foot([all])] : [ul, foot([all])]);
       }
       var nodes = [];
       if (mine.length) {
-        mine.slice(0, 3).forEach(function (r) { ul.appendChild(maskRow(r, slug)); });
+        if (GL) {
+          nodes.push(payCount(mine.length));
+          mine.slice(0, 5).forEach(function (r) { ul.appendChild(maskLine(r)); });
+        } else {
+          mine.slice(0, 3).forEach(function (r) { ul.appendChild(maskRow(r, slug)); });
+        }
         nodes.push(ul);
       }
       nodes.push(lockLine(T.payLock));
@@ -603,8 +629,10 @@
     return reviews(slug).then(function (res) {
       var s = score(res.rows);
       if (!s.n) {
-        return view('empty', [msg(T.revEmpty),
-          foot([link(T.revGive, UP + 'submit-review.html?airline=' + enc(slug))])]);
+        /* 会社ページの「口コミ」の箱では、空いた箱のまんなかに置く入口なのでボタンにする（社名の行の小さな入口はリンクのまま） */
+        var card = GL && box.closest && box.closest('.pvg-rv-card');
+        return view('empty', [msg(GL ? T.revNone : T.revEmpty),
+          foot([link(T.revGive, UP + 'submit-review.html?airline=' + enc(slug), card ? 'cta' : '')])]);
       }
       return view('open', [scoreLine(s)]);
     });
