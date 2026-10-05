@@ -400,10 +400,13 @@ function bar(slug, rank, label, kind) {
      ── 質問が分かれたり名前が変わったりしても、入口の先が無くなることがない
      （2026-10-04、タクシーとクルーバスを別々の質問に分けた回に、書き写した鍵が3つ消えて生成が止まった）。
    入口の字は「何を答えるか」を名指しする短い名前（ASK）。無い鍵は、質問の文そのものを出す。 */
+/* ★拾うのは質問が持つ話題の印（pv-conditions.mjs の topic）。鍵の頭では拾わない
+     ── 2026-10-04 に足した4問（タクシー代の上限・機長昇格の条件3問）は鍵の頭が話題とそろっていないものがあり、
+        頭で拾うと「機長昇格」に年数の1問しか出ない。印で拾えば、質問を足した側の1か所で決まる。 */
 const TOPIC_DEFS = [
-  ['taxi', '通勤タクシー・クルーバス', id => id.startsWith('commuting_')],
-  ['staff-travel', '社員向け航空券', id => id === 'staff_travel' || id.startsWith('staff_travel_')],
-  ['upgrade', '機長昇格', id => id === 'upgrade_years'],
+  ['taxi', '通勤タクシー・クルーバス', 'taxi'],
+  ['staff-travel', '社員向け航空券', 'staff_travel'],
+  ['upgrade', '機長昇格', 'upgrade'],
 ];
 const ASK = {
   commuting_transport: '会社が用意・負担するか',
@@ -423,10 +426,14 @@ const ASK = {
   staff_travel_confirmed_trips: '確保できる券の年間回数',
   staff_travel_confirmed_cost: '確保できる券の本人負担',
   staff_travel_confirmed_family: '確保できる券を使える人',
+  commuting_taxi_cap: 'タクシー代の上限',
   upgrade_years: '機長昇格までの年数',
+  upgrade_order: '昇格の順番の決まり方',
+  upgrade_min_hours: '昇格に必要な総飛行時間',
+  upgrade_min_tenure: '昇格に必要な在籍年数',
 };
-export const TOPICS = TOPIC_DEFS.map(([id, title, pick]) => {
-  const asks = QUESTIONS.filter(q => pick(q.id) && !q.retired).map(q => [q.id, ASK[q.id] || q.ja.label]);
+export const TOPICS = TOPIC_DEFS.map(([id, title, tp]) => {
+  const asks = QUESTIONS.filter(q => q.topic === tp && !q.retired).map(q => [q.id, ASK[q.id] || q.ja.label]);
   if (!asks.length) throw new Error(`話題 ${id}: 待遇アンケートに質問が1つも無い（pv-conditions.mjs。入口の先が無くなる）`);
   return [id, title, asks];
 });

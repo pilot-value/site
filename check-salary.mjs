@@ -164,7 +164,9 @@ console.log(`\n${pass} pass · ${warn} warn · ${fail} fail  (of ${Object.keys(S
 //      機長の平均年収が2,900〜3,700万」のように、複数社の平均をまたぐ言い方。
 //      1社の lo/hi と比べる作りなので区別できない。ALLOW に理由つきで置く。
 
-const SKIP_DIR = new Set(['node_modules', '.git', 'temporary screenshots', 'baland_ass', 'supabase', 'db', '.github']);
+/* sources-raw/ ＝ 出所資料の控え（gitignore 済み・配信されない）。よその記事の HTML が入るので、
+   読みに行くと「他社サイトの推定年収」をこのサイトの誤りとして数える（2026-10-05 に20件の嘘の赤）。 */
+const SKIP_DIR = new Set(['node_modules', '.git', 'temporary screenshots', 'sources-raw', 'baland_ass', 'supabase', 'db', '.github']);
 function walkHtml(dir, out = []) {
   for (const e of readdirSync(dir)) {
     if (SKIP_DIR.has(e) || e.startsWith('.')) continue;

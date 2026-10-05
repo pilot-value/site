@@ -44,8 +44,12 @@ const CASES = only
 /* 期待値は生成物から取る。固定値を書くと、質問を1つ足すたびにここが嘘になる */
 const BANK = JSON.parse(readFileSync(new URL('./pv-conditions.json', import.meta.url), 'utf8'));
 const N_SEC = BANK.sections.length;
-const N_Q = BANK.questions.length;
-const N_ROOT = BANK.questions.filter((q) => !q.parent).length;
+/* ★一覧に出るのは topicOnly でない質問だけ（話題の入口から来た人にだけ出す質問は数えない）。
+   下の「鍵をバンクから選ぶ」所も、一覧に出る質問（LISTED）から選ぶ。 */
+const LISTED = BANK.questions.filter((q) => !q.topicOnly);
+const TOPIC_ONLY = BANK.questions.filter((q) => q.topicOnly);
+const N_Q = LISTED.length;
+const N_ROOT = LISTED.filter((q) => !q.parent).length;
 
 let pass = 0, fail = 0;
 const ok = (c, l, e = '') => { c ? (pass++, console.log('  ✅ ' + l)) : (fail++, console.log('  ❌ ' + l + ' ' + e)); };
@@ -382,18 +386,18 @@ const outCode = (parent, child) => ((parent.choices || [])
   .find((c) => c.code !== 'unknown' && !child.parentWhen.includes(c.code)) || {}).code;
 const firstCode = (q) => ((q.choices || []).find((c) => c.code !== 'unknown') || {}).code;
 /* その質問の下にぶら下がる全部（子・孫） */
-const under = (top) => BANK.questions.filter((q) => {
+const under = (top) => LISTED.filter((q) => {
   for (let p = q.parent; p; p = BY[p] && BY[p].parent) if (p === top.id) return true;
   return false;
 }).map((q) => q.id);
 
-const Q_ROOT = BANK.questions.find((q) => !q.parent && q.section !== BANK.sections[0].code);
-const Q_ONE  = BANK.questions.filter((q) => q.parent && !BY[q.parent].parent && BY[q.parent].kind === 'choice').pop();
-const Q_DEEP = BANK.questions.find((q) => q.parent && BY[q.parent].parent
+const Q_ROOT = LISTED.find((q) => !q.parent && q.section !== BANK.sections[0].code);
+const Q_ONE  = LISTED.filter((q) => q.parent && !BY[q.parent].parent && BY[q.parent].kind === 'choice').pop();
+const Q_DEEP = LISTED.find((q) => q.parent && BY[q.parent].parent
   && q.kind === 'choice' && BY[q.parent].kind === 'choice' && BY[BY[q.parent].parent].kind === 'choice');
 /* あいだの親が「複数選ぶ」質問で、親が2段の質問（H で使う）。
    Q_MULTI ＝ 目当て。Q_OTHER ＝ 同じ親の下で、別の選択肢のときにだけ開く質問。 */
-const MULTI_KIDS = BANK.questions.filter((q) => q.parent && q.kind === 'choice'
+const MULTI_KIDS = LISTED.filter((q) => q.parent && q.kind === 'choice'
   && BY[q.parent].kind === 'multi' && BY[q.parent].parent && BY[BY[q.parent].parent].kind === 'choice');
 const Q_MULTI = MULTI_KIDS.filter((q) => q.parentWhen.join() === MULTI_KIDS[0].parentWhen.join()).pop();
 const Q_OTHER = Q_MULTI && MULTI_KIDS.find((q) => q.parent === Q_MULTI.parent
@@ -413,10 +417,10 @@ if (Q_ROOT && Q_ONE && Q_DEEP) {
   const MID_IN = inCode(Q_DEEP), MID_OUT = outCode(MID, Q_DEEP);
   const DEEP_ANS = firstCode(Q_DEEP);
   /* あいだの親を MID_IN と答えたときに、出る孫・出ない孫 */
-  const SIB_IN  = BANK.questions.filter((q) => q.parent === MID.id && q.parentWhen.includes(MID_IN)).map((q) => q.id);
-  const SIB_OUT = BANK.questions.filter((q) => q.parent === MID.id && !q.parentWhen.includes(MID_IN)).map((q) => q.id);
+  const SIB_IN  = LISTED.filter((q) => q.parent === MID.id && q.parentWhen.includes(MID_IN)).map((q) => q.id);
+  const SIB_OUT = LISTED.filter((q) => q.parent === MID.id && !q.parentWhen.includes(MID_IN)).map((q) => q.id);
   const UNDER_TOP = under(TOP);
-  const SEC_LEN = BANK.questions.filter((q) => q.section === TOP.section).length;
+  const SEC_LEN = LISTED.filter((q) => q.section === TOP.section).length;
   ok(!!TOP_OUT && !!MID_OUT && !!DEEP_ANS, '条件の内と外の答えをバンクから選べる',
      JSON.stringify({ TOP_IN, TOP_OUT, MID_IN, MID_OUT, DEEP_ANS }));
   ok([Q_DEEP.id, MID.id].every((id) => BY[id].section === TOP.section), '3段とも同じ節に在る（節の数を1つで見るため）');
@@ -748,7 +752,7 @@ if (Q_ROOT && Q_ONE && Q_DEEP) {
       const M_MID = BY[Q_MULTI.parent], M_TOP = BY[M_MID.parent];
       const M_TOP_IN = inCode(M_MID);
       const M_IN = inCode(Q_MULTI), M_OTHER = inCode(Q_OTHER);
-      const KIDS = BANK.questions.filter((q) => q.parent === M_MID.id);
+      const KIDS = LISTED.filter((q) => q.parent === M_MID.id);
       const KIDS_IN = KIDS.filter((q) => q.parentWhen.includes(M_IN)).map((q) => q.id);
       const KIDS_OTHER = KIDS.filter((q) => q.parentWhen.includes(M_OTHER)).map((q) => q.id);
       const M_UNDER = under(M_TOP);
@@ -856,6 +860,35 @@ if (Q_ROOT && Q_ONE && Q_DEEP) {
       v = await look(r.page);
       ok(v.n === 1 && v.qid === M_MID.id && !v.shown.includes(Q_MULTI.id),
          'H 別の手段しか選んでいない人は、手段の質問に印（目当ては出さない）', JSON.stringify(v));
+      await r.page.close();
+    }
+
+    /* I. 話題の入口から来た人にだけ出す質問（topicOnly・2026-10-04 オーナー決定）
+          ふだんの一覧には1問も混ぜない（分母を増やさない）。
+          ?q= がその1問を名指ししたときだけ、同じ話題の分が一緒に出る ── ほかの話題の分は出ない。 */
+    if (TOPIC_ONLY.length) {
+      const rowsOf = (page) => page.evaluate(() =>
+        Array.prototype.map.call(document.querySelectorAll('[data-qid]'), (x) => x.getAttribute('data-qid')));
+      const T1 = TOPIC_ONLY[0];
+      const SAME = TOPIC_ONLY.filter((q) => q.topic === T1.topic).map((q) => q.id);
+      const ELSE = TOPIC_ONLY.filter((q) => q.topic !== T1.topic).map((q) => q.id);
+
+      let r = await openFull({ lang, query: '?airline=ana' });
+      await ready(r.page);
+      let ids = await rowsOf(r.page);
+      ok(TOPIC_ONLY.every((q) => !ids.includes(q.id)) && ids.length === N_Q,
+         `I ★ふだんの一覧に、話題の入口だけの質問が1問も無い（${N_Q} 問のまま）`, String(ids.length));
+      await r.page.close();
+
+      r = await openFull({ lang, query: '?airline=ana&q=' + T1.id });
+      await ready(r.page);
+      ids = await rowsOf(r.page);
+      const v = await look(r.page);
+      ok(SAME.every((id) => ids.includes(id)) && ids.length === N_Q + SAME.length,
+         `I ★入口から来た人には、その話題の ${SAME.length} 問が一緒に出る`, String(ids.length));
+      ok(ELSE.every((id) => !ids.includes(id)), 'I    ほかの話題の分は出ない', ELSE.filter((id) => ids.includes(id)).join(','));
+      ok(v.n === 1, 'I    目当て（か、その親）に印が1つ付く', JSON.stringify({ n: v.n, qid: v.qid }));
+      ok(r.errs.length === 0, 'I    ページのエラーが1件も出ない', r.errs.join(' | '));
       await r.page.close();
     }
   }

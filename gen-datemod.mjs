@@ -105,7 +105,7 @@ function inPlace(json, want) {
 
 const walk = (dir, acc = []) => {
   for (const e of readdirSync(dir)) {
-    if (e === 'node_modules' || e === '.git' || e === 'temporary screenshots') continue;
+    if (e === 'node_modules' || e === '.git' || e === 'temporary screenshots' || e === 'sources-raw') continue;
     const p = join(dir, e);
     statSync(p).isDirectory() ? walk(p, acc) : e.endsWith('.html') && acc.push(p);
   }

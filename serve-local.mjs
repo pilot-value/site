@@ -56,6 +56,7 @@ export const SQL_FILES = [
   'db/referrals.sql',
   'db/founding.sql',
   'db/stays.sql',
+  'db/work-months.sql',
 ];
 
 /* Supabase が最初から持っているもの（auth・役・既定の権限）と、

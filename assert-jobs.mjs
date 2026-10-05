@@ -40,7 +40,9 @@ const TODAY = todayArg ? new Date(todayArg.slice(8)) : new Date();
 
 function walk(d, out = []) {
   for (const e of fs.readdirSync(d, { withFileTypes: true })) {
-    if (e.name.startsWith('.') || e.name === 'node_modules' || e.name === 'temporary screenshots') continue;
+    /* sources-raw/ ＝ 出所資料の控え（gitignore 済み・配信されない）。会社の採用ページの写しが入るので、
+       読みに行くと「締切の過ぎた求人」をこのサイトのものとして数える（2026-10-05 に8件の嘘の赤）。 */
+    if (e.name.startsWith('.') || e.name === 'node_modules' || e.name === 'temporary screenshots' || e.name === 'sources-raw') continue;
     const f = path.join(d, e.name);
     if (e.isDirectory()) walk(f, out);
     else if (e.name.endsWith('.html')) out.push(f);

@@ -910,9 +910,17 @@
   }
 
   function renderFull(el, sb, ctx, bank) {
-    var qs = bank.raw.questions || [];
     var secs = bank.raw.sections || [];
     var byId = bank.byId;
+    /* ★話題の入口から来た人にだけ出す質問（topicOnly）は、この一覧に混ぜない（2026-10-04 オーナー決定）。
+         混ぜると「答えた項目：◯／全問数」の分母が増え、1問あたりの回答も薄まる。
+         ?q= がその1問を名指ししているとき ＝ 話題の入口から来た人にだけ、同じ話題の分を一緒に出す
+         （出さないと、入口を押した先に目当ての質問が無い）。 */
+    var cameFor = byId[wantedQuestion(byId)];
+    var cameTopic = cameFor && cameFor.topicOnly ? cameFor.topic : '';
+    var qs = (bank.raw.questions || []).filter(function (q) {
+      return !q.topicOnly || (!!cameTopic && q.topic === cameTopic);
+    });
     var state = {};     // question_id → { code, codes, num, currency, text }
 
     /* 金額の質問があるときだけ通貨の一覧を読む（今は training_bond_amount の1問） */
