@@ -667,6 +667,13 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           <label class="form-label" for="f-netpay">Net pay that month<span class="req-tag">Required</span></label>
           <input type="text" id="f-netpay" class="form-input money" inputmode="decimal" placeholder="e.g. 41,200"/>
           <p class="fld-hint">What reached your account after tax and deductions (&ldquo;Net Pay&rdquo;).</p>
+          <!-- ★Warning for a net figure larger than the gross (owner, 2026-10-05: "why did
+               this go through?"). A report with net pay several times the gross was accepted —
+               nothing compared the two.
+               ⚠️ Do not start the id with pd-over and do not add it to OVER_IDS. Those six
+                  slots belong to showOver() ("the breakdown exceeds the gross"), which would
+                  hide this one on its own. -->
+          <p class="pd-warn pv-no-cur" id="net-over" hidden>Your net pay is higher than your gross pay. Net is what is left <b>after</b> tax and deductions. Please check the two figures are not swapped.</p>
         </div>
 
         <!-- ★"Bonus paid this month" was **removed** on 2026-09-15 (owner's call):
@@ -2086,6 +2093,9 @@ async function afterSignedIn() {
    never opened" or "no email ever went out". */
 function afterSaved(data, payload, airline) {
   try { localStorage.removeItem(PENDING_KEY); } catch (e) {}
+  /* ★Drop the "nothing to fix" note that pv-pay-fix.js keeps on this device, so the
+     very next screen re-reads the member's reports — gone if fixed, shown if not. */
+  try { localStorage.removeItem('pv_pay_fix'); } catch (e) {}
   /* ★出し切ったら下書きも消す（オーナー指示）。預かり（PENDING_KEY）と
      同じ場所で消す ── 片方だけ消すと、次に開いた人に「まだ途中です」と出る。 */
   if (WZ) WZ.clearDraft();
@@ -2150,6 +2160,30 @@ function afterSaved(data, payload, airline) {
      to other and leave #f-airline-other empty, so anyone arriving from an invite
      or an outside link had to type their own company name again. */
   if (!ok) $('f-airline-other').value = a.slice(0, 80);
+})();
+
+// ── ?ym=YYYY-MM preselects the pay month (arriving from the "resubmit" notice) ──
+/* ★2026-10-05. pv-pay-fix.js's "Resubmit this month anonymously" passes the month
+   that needs fixing. Without this the form opens on the default (last month), so
+   anyone arriving after the month has turned would submit a **different** month:
+   the original stays wrong and the notice never goes away
+   (only "same airline, same month" replaces the earlier report).
+   ★Only a year/month that exists in the lists is accepted. Future months are not.
+   ⚠️ Do not fire change. That would show the "you have a saved copy of that month"
+      offer to someone who has typed nothing. Just set the values.
+   ★If this browser still holds an unfinished draft, pay-wizard.js (which runs later)
+     puts the draft's month back — what is being typed wins, same as ?airline=. */
+(function () {
+  const q = /^(\d{4})-(\d{1,2})$/.exec(new URLSearchParams(location.search).get('ym') || '');
+  if (!q) return;
+  const y = Number(q[1]), mo = Number(q[2]);
+  const now = new Date();
+  if (y * 12 + mo > now.getFullYear() * 12 + now.getMonth() + 1) return;
+  const ys = $('f-year'), ms = $('f-month');
+  const has = (sel, v) => Array.prototype.some.call(sel.options, (o) => o.value === v);
+  if (!has(ys, String(y)) || !has(ms, String(mo))) return;
+  ys.value = String(y);
+  ms.value = String(mo);
 })();
 
 // ── Find the company by name (optional) ────────────────────────────────
@@ -3369,6 +3403,36 @@ function overBlocking() {
   if (!p) return false;
   const d = p.closest('details');
   if (d && !d.open) d.open = true;
+  trackBlocked('over', p);
+  p.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  return true;
+}
+
+/* ── Net pay above the gross cannot go forward (owner, 2026-10-05) ────────────
+   A report with net pay several times the gross went straight through. The form only checked that
+   both fields were filled, and the server only checked that net was not negative.
+   ★One line: net > gross × 1.05. **The same line lives in four places** —
+     here / the server's pv_validate_pay_payload (db/pay-reports.sql) /
+     the "please resubmit" notice (pv-pay-fix.js) / the owner's audit (db/usage.mjs).
+     Change one alone and you get "passes the form, fails on the server" or
+     "fixed it, the notice stays".
+   ★The 5% slack keeps a refund month (net slightly above gross) from being stopped.
+     **Equal figures pass.**
+   ★Separate from the over-check above (breakdown sum vs gross). Do not merge the
+     expressions or the slots.
+   ★Judged on change and at the moment Next is pressed — never while typing
+     (6 → 61 → 610 …).
+   ★No red #err box: the one visible slot is the wording (same promise as overBlocking). */
+function netOver() {
+  const g = num('f-gross'), n = num('f-netpay');
+  return g > 0 && n > 0 && n > g * 1.05;
+}
+function settleNet() { const p = $('net-over'); if (p) p.hidden = !netOver(); }
+document.addEventListener('change', settleNet, true);
+function netBlocking() {
+  settleNet();
+  const p = $('net-over');
+  if (!p || p.hidden) return false;
   trackBlocked('over', p);
   p.scrollIntoView({ block: 'center', behavior: 'smooth' });
   return true;
@@ -4890,7 +4954,9 @@ if (WZ) {
        ★Takes every box id the step carries and looks for 's3'. In the two-screen
          layout "3. Pay" rides in screen 1's `also`, so checking only the first id
          would walk straight past it. */
-    blocked: (ids) => ids.indexOf('s3') >= 0 && overBlocking(),
+    /* ★Same for a net figure above the gross (2026-10-05). The breakdown check
+         goes first — when both are showing, scroll to one place only. */
+    blocked: (ids) => ids.indexOf('s3') >= 0 && (overBlocking() || netBlocking()),
     payload: () => buildPayload(),
     annualOrig: annualTotal,
     nameOf: optLabel,
@@ -5624,6 +5690,17 @@ async function submitPayReport() {
     return stopAt('f-gross', 'Please enter your gross pay for that month. Allowances alone give nothing to compare against.');
   }
   if (!val('f-netpay')) return stopAt('f-netpay', 'Please enter your net pay for that month ("Net Pay" on your payslip).');
+  /* ★Never send a net figure above the gross (2026-10-05). The step gate
+     (netBlocking) stops it first, but the one-page fallback (shared JS failed to
+     load) has no gate. The server rejects on the same line (pv_validate_pay_payload).
+     ★Not stopAt (the red box): the same sentence would sit in two places. Only the
+       warning under the field is shown — move to that step (WZ.goToField), then let
+       netBlocking() scroll to it, exactly as the gate does. */
+  if (netOver()) {
+    if (WZ) WZ.goToField($('f-netpay'));
+    netBlocking();
+    return;
+  }
   if (!val('f-perdiem')) return stopAt('f-perdiem', 'Please enter your per diem for the month. Enter 0 if none was paid.');
   if (!val('f-housing')) return stopAt('f-housing', 'Please choose your housing.');
   if ($('f-housing').value === 'allowance' && !val('f-housing-amt')) {

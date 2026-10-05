@@ -273,6 +273,29 @@ ok((await boom(`select submit_pay_report($1::jsonb)`, [JSON.stringify({ ...BASE,
 /* ★預かり（ログイン前）も同じ判定を通る＝「受け取りましたと出したのに、
    会員登録のあとで落ちる」が起きない。判定は pv_validate_pay_payload の1か所だけ。 */
 ok((await boom(`select submit_pay_report_pending($1::jsonb)`, [JSON.stringify({ ...BASE, position: 'cadet', period_year: 2026, period_month: 5 })]) || '').includes('職位'), '★預かりの入口でも訓練生は弾く（本登録との食い違いを作らない）');
+/* ★手取りが総支給より多い行は受け取らない（2026-10-05 オーナー指摘「なんで通ってんだ？」）。
+   本番で、手取りが総支給の何倍もある行がそのまま入っていた（下の数字は作り物）。
+   線は「手取り ＞ 総支給 × 1.05」。画面（netOver）・出し直しのお願い（pv-pay-fix.js）・
+   オーナー用の点検（db/usage.mjs）と**同じ線**。
+   ★通る側は検品の関数だけを呼ぶ（行を作らない＝下の件数・連続の検査を動かさない）。 */
+const NETCASE = { ...BASE, currency: 'USD', period_year: 2026, period_month: 5 };
+const netBoom = (fn, gross, net) => boom(`select ${fn}($1::jsonb)`,
+  [JSON.stringify({ ...NETCASE, gross_monthly: gross, net_pay_actual: net })]);
+ok((await netBoom('submit_pay_report', 8000, 48000) || '').includes('手取り'),
+   '★手取りが総支給の6倍の行は弾く');
+ok((await netBoom('submit_pay_report_pending', 8000, 48000) || '').includes('手取り'),
+   '★預かりの入口でも同じく弾く（引き取りのときに初めて落ちる人を作らない）');
+ok((await netBoom('pv_validate_pay_payload', 8000, 8401) || '').includes('手取り'),
+   '★5% を1でも超えたら弾く（線は × 1.05 の1本）');
+ok((await netBoom('pv_validate_pay_payload', 8000, 8000)) === null, '同額は通す');
+ok((await netBoom('pv_validate_pay_payload', 8000, 8400)) === null,
+   '5% までの上振れは通す（還付で手取りがわずかに上回る月）');
+ok((await netBoom('pv_validate_pay_payload', 8000, null)) === null,
+   '手取りが空の行は見ない（聞く前に預かった仮受けを捨てない）');
+ok((await netBoom('pv_validate_pay_payload', null, 48000)) === null,
+   '総支給が空の行は見ない（基本給だけで出した行。比べる相手が無い）');
+ok(Number((await one(`select count(*) n from pay_reports where period_year=2026 and period_month=5`)).n) === 0,
+   '★弾いた行は1件も残っていない');
 
 // profiles 行が無い人（トリガーの取りこぼし）でも書けること
 await db.query(`select set_config('pv.uid', $1, false)`, [uid(77)]);

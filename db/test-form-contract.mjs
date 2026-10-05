@@ -4547,6 +4547,40 @@ for (const [tag, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   ok(h0.fieldShown && h0.focused === 'f-block',
      `[${tag}] ★フライトタイムの欄を出して焦点も当てる`, JSON.stringify(h0));
 
+  /* ── ③ 手取りが総支給より多いまま確認の段から送る → 3. 報酬 へ（2026-10-05）──
+     段の門（★22）を通らずに確認まで来る道がある（下書きの復元・1枚もの形態）。
+     ★値は**代入だけ**で入れる（change を出さない）＝注意がまだ hidden のままの状態から押す。
+     ★出るのは欄の下の注意1枚だけ。赤箱は出さない（同じ文が2か所に並ぶ）。 */
+  const n0 = await page.evaluate(async () => {
+    const set = (id, v) => {
+      const el = document.getElementById(id);
+      el.value = v;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+    set('f-hourly', '');
+    set('f-gross', '1080000');
+    document.getElementById('f-netpay').value = '9720000';      // 9倍・change なし
+    window.PVPayWizard.goLast();
+    await new Promise((r) => setTimeout(r, 200));
+    const before = window.PVPayWizard.current();
+    await submitPayReport();
+    await new Promise((r) => setTimeout(r, 300));
+    const w = document.getElementById('net-over');
+    const err = document.getElementById('err');
+    const seen = { before, after: window.PVPayWizard.current(),
+                   warn: !!(w && !w.hidden && w.offsetHeight > 0),
+                   err: !!(err && err.textContent.trim()) };
+    set('f-netpay', '842000');
+    return Object.assign(seen, { cleared: w.hidden });
+  });
+  ok(n0.before === 's5', `[${tag}] 前提：確認の段から押している`, n0.before);
+  ok(n0.after === 's3',
+     `[${tag}] ★手取りが総支給より多いまま送ると「3. 報酬」へ運ぶ（送らない）`, JSON.stringify(n0));
+  ok(n0.warn, `[${tag}] ★欄の下の注意が画面に見えている`, JSON.stringify(n0));
+  ok(!n0.err, `[${tag}] ★赤箱は出さない（同じ文が2か所に並ばない）`, JSON.stringify(n0));
+  ok(n0.cleared, `[${tag}] 手取りを直すと注意は消える`, JSON.stringify(n0));
+
   await page.evaluate(() => localStorage.clear());
   await page.close();
 }
@@ -6028,6 +6062,136 @@ for (const [T, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   await goNext();
   ok((await cur()) === 's4',
      `${T} ★21 ★直せば今までどおり次の段へ進める`, await cur());
+  await page.close();
+}
+
+/* ── ★22 手取りが総支給より多いあいだは次へ進めない（2026-10-05・オーナー指摘）──
+   手取りが総支給の何倍もある提出がそのまま通った。フォームは2つの欄が
+   「入っているか」しか見ていなかった。
+   ★線は「手取り ＞ 総支給 × 1.05」。**同額は通す・5% までの上振れも通す**
+     （還付で手取りがわずかに上回る月を止めない）。
+   ★見るのは5つ。
+     ① 6倍で注意が出て、「次へ」を押しても段が変わらない
+     ② 赤箱は出さない（出ている1枚だけが文言）
+     ③ 内訳の「超えています」の受け皿は1枚も出ない（別の門。混ぜない）
+     ④ 代入で入った値（change なし＝明細の読み取り・下書きの復元）でも、押した瞬間に止まる
+     ⑤ 同額・5% 以内は今までどおり進める
+   ★押すのは画面のボタン（★21 と同じ理由。go() は門を素通りする）。 */
+console.log('\n★22 手取りが総支給より多いあいだは次へ進めない');
+for (const [T, url] of [['ja', 'http://localhost:3000/pay-report.html'],
+                        ['en', 'http://localhost:3000/en/pay-report.html']]) {
+  const page = await newPage();
+  await page.setViewport({ width: 1440, height: 1200 });
+  page.on('pageerror', (e) => { fail++; console.log(`  ❌ [${T}] ページ例外: ${e.message}`); });
+  await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+  await page.evaluate(() => localStorage.clear());
+  await page.reload({ waitUntil: 'networkidle2', timeout: 30000 });
+  await page.click('#entry-manual');
+  await new Promise((r) => setTimeout(r, 300));
+
+  const put = (o) => page.evaluate((vals) => {
+    const $ = (id) => document.getElementById(id);
+    for (const [id, v] of Object.entries(vals)) {
+      const el = $(id);
+      if (!el) continue;
+      el.value = v;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  }, o);
+  const cur = () => page.evaluate(() => window.PVPayWizard.current());
+  const goNext = async () => {
+    await page.evaluate(() => {
+      const box = ['s1', 's2', 's3', 's4', 's5'].map((i) => document.getElementById(i))
+        .find((e) => e && !e.hidden);
+      const b = box && box.querySelector('.wz-next');
+      if (b) b.click();
+    });
+    await new Promise((r) => setTimeout(r, 350));
+  };
+  const netWarn = () => page.evaluate(() => {
+    const e = document.getElementById('net-over');
+    return !!e && !e.hidden && e.offsetHeight > 0;
+  });
+  const overWarns = () => page.evaluate(() =>
+    [...document.querySelectorAll('[id^="pd-over"]')].filter((e) => !e.hidden).length);
+  const errText = () => page.evaluate(() => {
+    const e = document.getElementById('err');
+    return e ? e.textContent.trim() : '';
+  });
+
+  await page.evaluate(() => {
+    const $ = (id) => document.getElementById(id);
+    const fire = (el) => {
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+    for (const id of ['f-airline', 'f-position', 'f-fleet', 'f-jobrole', 'f-age']) {
+      const el = $(id);
+      if (!el) continue;
+      if (el.tagName === 'SELECT') {
+        const pick = [...el.options].find((o) => o.value && o.value !== 'other');
+        if (pick) el.value = pick.value;
+      } else el.value = '1';
+      fire(el);
+    }
+  });
+  await new Promise((r) => setTimeout(r, 300));
+  await goNext();                                   // 1/5 → 2/5
+  await put({ 'f-block': '70', 'f-stay': '8' });
+  await goNext();                                   // 2/5 → 3/5
+  ok((await cur()) === 's3', `${T} ★22 3/5「報酬」まで来た`, await cur());
+
+  ok(!!(await page.$('#net-over.pd-warn.pv-no-cur[hidden]')),
+     `${T} ★22 注意の段落は在って、最初は隠れている`);
+
+  /* ① 手取りが総支給の6倍（数字は作り物。会員が実際に入れた額は写さない）。 */
+  await put({ 'f-currency': 'USD', 'f-gross': '8000', 'f-netpay': '48000',
+              'f-perdiem': '0', 'f-housing': 'none' });
+  await new Promise((r) => setTimeout(r, 200));
+  ok(await netWarn(), `${T} ★22 ★手取りが総支給の6倍で注意が出る`);
+  await goNext();
+  ok((await cur()) === 's3',
+     `${T} ★22 ★手取りが多いあいだは「次へ」を押しても段が変わらない`, await cur());
+  ok(await netWarn(), `${T} ★22 ★止めた理由が画面に見えている`);
+  ok((await errText()) === '', `${T} ★22 赤箱は足さない（出ている1枚だけが文言）`, await errText());
+  ok((await overWarns()) === 0,
+     `${T} ★22 内訳の「超えています」は1枚も出ない（別の門）`, String(await overWarns()));
+  /* ★「2つの欄」の 2 は数えない（額ではない）。見るのは、入れた額が
+       文に写っていないこと・通貨の記号や「万」が無いこと・通貨切替の span が無いこと。 */
+  const netTxt = await page.$eval('#net-over', (e) => ({
+    t: e.textContent, cur: e.querySelectorAll('.pv-cur').length }));
+  ok(!/\d{2,}|[¥$€£]|万/.test(netTxt.t) && netTxt.cur === 0,
+     `${T} ★22 注意の文に金額を書いていない（通貨切替の対象を増やさない）`, netTxt.t);
+
+  /* ⑤ 同額は通す。直した瞬間に注意が消える。 */
+  await put({ 'f-netpay': '8000' });
+  await new Promise((r) => setTimeout(r, 200));
+  ok(!(await netWarn()), `${T} ★22 同額なら注意は出ない`);
+  /* 5% までの上振れも通す（8,000 に対して 8,400）。 */
+  await put({ 'f-netpay': '8400' });
+  await new Promise((r) => setTimeout(r, 200));
+  ok(!(await netWarn()), `${T} ★22 5% までの上振れは止めない（還付の月）`);
+  await put({ 'f-netpay': '8401' });
+  await new Promise((r) => setTimeout(r, 200));
+  ok(await netWarn(), `${T} ★22 5% を1でも超えたら出る（線は × 1.05 の1本）`);
+
+  /* ④ 代入だけで入った値（change が出ない道）でも、押した瞬間に判定し直す。 */
+  await put({ 'f-netpay': '4000' });
+  await new Promise((r) => setTimeout(r, 200));
+  ok(!(await netWarn()), `${T} ★22 前提：いまは注意が出ていない`);
+  await page.evaluate(() => { document.getElementById('f-netpay').value = '48000'; });
+  ok(!(await netWarn()), `${T} ★22 前提：代入しただけでは注意は出ない（change が無い）`);
+  await goNext();
+  ok((await cur()) === 's3' && (await netWarn()),
+     `${T} ★22 ★代入で入った値でも「次へ」を押した瞬間に止まる`, await cur());
+
+  /* 直せば今までどおり進む。 */
+  await put({ 'f-netpay': '4000' });
+  await new Promise((r) => setTimeout(r, 200));
+  await goNext();
+  ok((await cur()) === 's4',
+     `${T} ★22 ★直せば今までどおり次の段へ進める`, await cur());
   await page.close();
 }
 

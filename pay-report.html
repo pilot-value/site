@@ -660,6 +660,11 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           <label class="form-label" for="f-netpay">その月の手取り額<span class="req-tag">必須</span></label>
           <input type="text" id="f-netpay" class="form-input money" inputmode="decimal" placeholder="例：842,000"/>
           <p class="fld-hint">税・保険が引かれた<b>後</b>に振り込まれた額（「差引支給額」「Net Pay」）。</p>
+          <!-- ★手取りが総支給より多いときの注意（2026-10-05 オーナー指摘「なんで通ってんだ？」）。
+               手取りが総支給の何倍もある提出がそのまま通っていた ── どこも2つの額を比べていなかった。
+               ⚠️ id を pd-over で始めない・OVER_IDS に入れない。あちらは showOver() が6枚まとめて
+                  出し入れする「内訳の合計が総支給を超えた」の受け皿で、ここを混ぜると勝手に隠れる。 -->
+          <p class="pd-warn pv-no-cur" id="net-over" hidden>手取り額が総支給額より多くなっています。手取りは、税・保険が引かれた<b>後</b>の額です。2つの欄が入れ替わっていないか確かめてください。</p>
         </div>
 
         <!-- ★「今月の賞与・ボーナス」の欄は 2026-09-15 にオーナー決定で**廃止した**。
@@ -2043,6 +2048,9 @@ async function afterSignedIn() {
    両方がここを通る。★片方だけ直すと「90日が開かない」「メールが出ない」が起きる。 */
 function afterSaved(data, payload, airline) {
   try { localStorage.removeItem(PENDING_KEY); } catch (e) {}
+  /* ★「出し直しのお願い」（pv-pay-fix.js）が端末に置いた「問題なし」の控えを消す。
+     出した直後の画面では必ず読み直させる ── 直ったなら消え、まだなら出る。 */
+  try { localStorage.removeItem('pv_pay_fix'); } catch (e) {}
   /* ★出し切ったら下書きも消す（オーナー指示）。預かり（PENDING_KEY）と
      同じ場所で消す ── 片方だけ消すと、次に開いた人に「まだ途中です」と出る。 */
   if (WZ) WZ.clearDraft();
@@ -2108,6 +2116,29 @@ function afterSaved(data, payload, airline) {
      もとは other に落とすだけで #f-airline-other が空のままだったので、
      招待リンクや外部リンクから来た人は会社名を自分で打ち直すことになっていた。 */
   if (!ok) $('f-airline-other').value = a.slice(0, 80);
+})();
+
+// ── URL ?ym=YYYY-MM で対象月を選ぶ（出し直しのお願いから来た人）──────
+/* ★2026-10-05。pv-pay-fix.js の「この月を匿名で出し直す」が、直してほしい月を
+   ここへ渡す。受け取らないと上の既定（前月）で開くので、月が替わったあとに来た人は
+   **別の月**へ出すことになり、元の月は直らず、お願いも消えない
+   （上書きされるのは「同じ会社・同じ月」だけ）。
+   ★選択肢に在る年月だけ受ける。この先の月は受けない（まだ出ていない明細）。
+   ⚠️ change は出さない。出すと「その月の控えがあります」の案内が、
+      何も打っていない人に出る。値を置くだけ。
+   ★このブラウザに書きかけの下書きが残っている人は、あとから走る pay-wizard.js が
+     下書きの月へ戻す（打っている途中のものを優先。?airline= と同じ扱い）。 */
+(function () {
+  const q = /^(\d{4})-(\d{1,2})$/.exec(new URLSearchParams(location.search).get('ym') || '');
+  if (!q) return;
+  const y = Number(q[1]), mo = Number(q[2]);
+  const now = new Date();
+  if (y * 12 + mo > now.getFullYear() * 12 + now.getMonth() + 1) return;
+  const ys = $('f-year'), ms = $('f-month');
+  const has = (sel, v) => Array.prototype.some.call(sel.options, (o) => o.value === v);
+  if (!has(ys, String(y)) || !has(ms, String(mo))) return;
+  ys.value = String(y);
+  ms.value = String(mo);
 })();
 
 // ── 会社を名前で探す（検索は任意） ────────────────────────────────
@@ -3269,6 +3300,32 @@ function overBlocking() {
   if (!p) return false;
   const d = p.closest('details');
   if (d && !d.open) d.open = true;
+  trackBlocked('over', p);
+  p.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  return true;
+}
+
+/* ── 手取りが総支給より多いまま、次へ進めない（2026-10-05 オーナー指摘）────────
+   手取りが総支給の何倍もある提出がそのまま通った。フォームは2つの欄が
+   「入っているか」しか見ておらず、サーバも手取りが「マイナスでないか」しか見ていなかった。
+   ★線は「手取り ＞ 総支給 × 1.05」の1本。**同じ線が4か所**にある ──
+     ここ／サーバの pv_validate_pay_payload（db/pay-reports.sql）／
+     出し直しのお願い（pv-pay-fix.js）／オーナー用の点検（db/usage.mjs）。
+     1つだけ変えると、「フォームは通るのにサーバで落ちる」「直したのにお願いが消えない」になる。
+   ★5% の遊びは、還付で手取りがわずかに上回る月を止めないため。**同額は通す。**
+   ★上の超過の門とは別の物（あちらは内訳の合計 ⇄ 総支給）。式も受け皿も混ぜない。
+   ★判定は change と「次へ」を押した瞬間。打っている途中（6 → 61 → 610 …）では赤くしない。
+   ★赤箱（#err）は足さない。出ている1枚だけが文言（overBlocking と同じ約束）。 */
+function netOver() {
+  const g = num('f-gross'), n = num('f-netpay');
+  return g > 0 && n > 0 && n > g * 1.05;
+}
+function settleNet() { const p = $('net-over'); if (p) p.hidden = !netOver(); }
+document.addEventListener('change', settleNet, true);
+function netBlocking() {
+  settleNet();
+  const p = $('net-over');
+  if (!p || p.hidden) return false;
   trackBlocked('over', p);
   p.scrollIntoView({ block: 'center', behavior: 'smooth' });
   return true;
@@ -4730,7 +4787,9 @@ if (WZ) {
        見るものはこちらが決める（pay-wizard.js は generic のまま）。
        ★段の id ぜんぶを受けて 's3' を探す。2画面のときは「3. 報酬」が
          1画面目の also に居るので、先頭の id だけを見ると素通りする。 */
-    blocked: (ids) => ids.indexOf('s3') >= 0 && overBlocking(),
+    /* ★手取りが総支給より多いときも同じ（2026-10-05）。先に内訳の超過を見る ──
+         両方出ているとき、寄せる先は1つにする。 */
+    blocked: (ids) => ids.indexOf('s3') >= 0 && (overBlocking() || netBlocking()),
     payload: () => buildPayload(),
     annualOrig: annualTotal,
     nameOf: optLabel,
@@ -5433,6 +5492,15 @@ async function submitPayReport() {
     return stopAt('f-gross', 'その月の総支給額を入れてください。手当だけでは、他社と比べる軸がありません。');
   }
   if (!val('f-netpay')) return stopAt('f-netpay', 'その月の手取り額を入れてください（明細の「差引支給額」「Net Pay」）。');
+  /* ★手取りが総支給より多いまま送らない（2026-10-05）。段の門（netBlocking）が先に止めるが、
+     共有 JS が落ちた1枚もの形態には門が無い。サーバも同じ線で弾く（pv_validate_pay_payload）。
+     ★stopAt（赤箱）を使わない。欄の下の注意と同じ文が2か所に並ぶ ── 出すのは注意の1枚だけ。
+       その段へ運んでから（WZ.goToField）、門と同じ netBlocking() に寄せさせる。 */
+  if (netOver()) {
+    if (WZ) WZ.goToField($('f-netpay'));
+    netBlocking();
+    return;
+  }
   if (!val('f-perdiem')) return stopAt('f-perdiem', 'パーディアムを入れてください。付かない会社・出なかった月は 0 と入れてください。');
   if (!val('f-housing')) return stopAt('f-housing', '住居を選んでください。');
   if ($('f-housing').value === 'allowance' && !val('f-housing-amt')) {
