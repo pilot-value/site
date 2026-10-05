@@ -55,7 +55,9 @@
      .ap-vcard / .ap-bar / .ap-you / .ap-ax も、表を右の細い列と並べていた
      2段組（.ap-cols / .ap-main / .ap-side）も無い。表は幅いっぱい。
      ⚠️ 「消した」であって「差し替えた」ではない。**別の図を置き直さない**。
-     ⚠️ my_pay_reports() も引かない（引いていたのは分布の破線のためだけ）。
+     ⚠️ actual-pay.js は my_pay_reports() も引かない（引いていたのは分布の破線のためだけ）。
+        ★2026-10-05 から、この画面で引くのは**出し直しのお願い（pv-pay-fix.js）の1回だけ**。
+          あちらが読むのは「手取り ＞ 総支給」の月が在るかどうかで、額は1文字も画面に出さない（節 S）。
 
    ★もう1つ、消えたものが戻っていないことを見る：
      青のバッジ・推定レンジ・「5人」「30日」の約束・招待カードの差込口・
@@ -1250,9 +1252,9 @@ const FAKE = function (payload, anon) {
       ? ((payload && payload.afterOut)
          || { ok: true, state: 'locked', rows: [], stats: null })
       : payload),
-    /* ★自分の給与。本人の行しか返らない関数で、ここから取るのは年収1つだけ
-       （分布の棒の「あなた」の破線をどこに立てるか）。
-       payload.mine を渡さないケースでは空＝破線を出さない。 */
+    /* ★自分の給与。本人の行しか返らない関数。
+       ★2026-10-05 から、読むのは出し直しのお願い（pv-pay-fix.js）だけ。
+         payload.mine を渡さないケースでは空＝お願いは出ない。 */
     my_pay_reports: () => ({ ok: true, reports: (payload && payload.mine) || [] }),
     my_referral_code: () => ({ ok: true, code: 'K7QD3XZM', invited: 0, converted: 0 }),
     pv_referral_settle: () => ({ ok: true }),
@@ -1985,9 +1987,11 @@ function gone(v, tag, opt) {
      && v.donut === 0 && v.cols === 0,
      `${tag}: ★図も2段組も1つも無い（分布は DEEP PAY で作り直す）`,
      `viz=${v.vizCards} bar=${v.bars} you=${v.you} cols=${v.cols}`);
-  /* ★本人の明細を引かない（引いていたのは分布の破線のためだけ）。 */
-  ok(!v.calls.includes('my_pay_reports'),
-     `${tag}: ★本人の明細（my_pay_reports）を1度も引かない`, v.calls.join(','));
+  /* ★本人の明細を引くのは、出し直しのお願い（pv-pay-fix.js）の1回まで（2026-10-05）。
+       それまでは「1度も引かない」だった。図のために引き直す形が戻ると 2 になる。
+       ⚠️ actual-pay.js 自身が引かないことは、上の字の検査がそのまま見ている。 */
+  ok(v.calls.filter((n) => n === 'my_pay_reports').length <= 1,
+     `${tag}: ★本人の明細（my_pay_reports）を引くのはお願い用の1回まで`, v.calls.join(','));
 }
 
 /* ★見出し・列名・ボタンに、断り書きのカッコを足していないこと（2026-08-25）。
@@ -2907,7 +2911,7 @@ for (const lang of ['ja', 'en']) {
    守るのは5つ：
      ・図の部品（カード・棒・破線・軸）が1つも無い
      ・2段組（.ap-cols / .ap-main / .ap-side）が無く、表が幅いっぱいに広がる
-     ・**本人の明細（my_pay_reports）を1度も引かない**（引いていたのは破線のためだけ）
+     ・**本人の明細（my_pay_reports）を図のために引かない**（引くのは出し直しのお願いの1回だけ。節 S）
      ・本人の明細の額が画面に1文字も出ない（毒として渡し続けている）
      ・狭い幅にしても、通貨を切り替えても、絞り込んでも、図は生えてこない */
 for (const lang of ['ja', 'en']) {
@@ -2923,9 +2927,10 @@ for (const lang of ['ja', 'en']) {
   ok(v.tblWide && Math.abs(v.tblWide.tw - v.tblWide.mw) <= 2,
      '★表が本文の幅いっぱいに広がる', JSON.stringify(v.tblWide));
 
-  /* ★本人の明細を引かない。図が無くなった以上、この画面に使い道が無い。 */
-  ok(!v.calls.includes('my_pay_reports'),
-     '★本人の明細（my_pay_reports）を1度も引かない', v.calls.join(','));
+  /* ★本人の明細を図のために引かない。引くのは出し直しのお願いの1回だけ（2026-10-05）。
+       引いた中身が画面に出ないことは、すぐ下の「額が1文字も出ない」が見ている。 */
+  ok(v.calls.filter((n) => n === 'my_pay_reports').length <= 1,
+     '★本人の明細（my_pay_reports）を引くのはお願い用の1回まで', v.calls.join(','));
   {
     const leak = ['620,000', '620000', '2,200,000', '2200000', '42,000', '42000',
                   '132,000', '132000']
@@ -5319,6 +5324,272 @@ for (const lang of ['ja', 'en']) {
          `1文${d.dwFar.length} / ⚠${d.marks.length}`);
       ok(await shut(page), `${lang}/${name}: 戻る操作で詳細だけ閉じる`);
       ok(errs.length === 0, `${lang}/${name}: ページのエラーが1件も出ない`, errs.join(' | '));
+    }
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+// S. 出し直しのお願い（pv-pay-fix.js・2026-10-05）
+// ════════════════════════════════════════════════════════════════
+/* 手取りが総支給より多い月を出した会員に、直るまで出し続ける板。
+   オーナー指示「ちゃんと訂正できるまでこの人の画面にエラーメッセージ出せる？」。
+   こちらで数字は書き換えない・行も閲覧もそのまま ── 出すのは文言だけ。
+   ★守るのは7つ。
+     ① 線は1本（手取り ＞ 総支給 × 1.05）。同じ式が4か所にあり、1つも違わない
+     ② 線を超えた月がある人にだけ出る（同額・5% まで・片方が空・未ログインでは出ない）
+     ③ **金額を1文字も出さない**（出すのは対象月と社名だけ）
+     ④ 打ち込まれた社名が HTML として入らない
+     ⑤ ボタンの先が「同じ会社・同じ月」（上書きの鍵が 会社＋年＋月。月を渡さないと別の月に出る）
+     ⑥ 通信は1回まで。「問題なし」だけを控え、**問題があった人は毎回読み直す**
+        ＝ 出し直した次の画面で必ず消える。控えに会社も月も金額も入れない
+     ⑦ 置き場所は本文の先頭。錠前の案内が開いたらその下。狭い幅でもはみ出さない
+   ⚠️ 見本の数字は作り物。**会員が実際に入れた額・会社・月をここへ写さない**（公開リポジトリ）。 */
+{
+  console.log('\n════ S-0 線は1本（4か所が同じ式）════');
+  const LINE = /\*\s*1\.05\b/;
+  for (const [rel, re] of [
+    ['pay-report.html',     /function netOver\(\)[\s\S]{0,400}?n > g \* 1\.05/],
+    ['en/pay-report.html',  /function netOver\(\)[\s\S]{0,400}?n > g \* 1\.05/],
+    ['pv-pay-fix.js',       /function isBad\(r\)[\s\S]{0,300}?n > g \* 1\.05/],
+    ['db/pay-reports.sql',  /v_net > v_gross \* 1\.05/],
+    ['db/usage.mjs',        /r\.n > r\.g \* 1\.05/]]) {
+    const src = read(rel);
+    ok(re.test(src), '★' + rel + ' の線が「× 1.05」のまま');
+    /* 別の倍率が同じ比べ方で紛れ込んでいないこと（1.1 に緩めた写しが1つだけ残る、の形）。 */
+    const others = (src.match(/(?:n > g|v_net > v_gross|r\.n > r\.g) \* [\d.]+/g) || [])
+      .filter((x) => !LINE.test(x));
+    ok(others.length === 0, '★' + rel + ' に別の倍率の写しが無い', others.join(' / '));
+  }
+  {
+    const fx = read('pv-pay-fix.js');
+    const rpcs = fx.match(/\.rpc\(\s*['"][a-z_]+['"]/g) || [];
+    ok(rpcs.length === 1 && /my_pay_reports/.test(rpcs[0]),
+       '★pv-pay-fix.js が呼ぶのは my_pay_reports の1か所だけ', rpcs.join(' / '));
+    ok(!/createClient/.test(fx), '★クライアントを自分で作らない（ページの sb を借りる）');
+    ok(!/innerHTML\s*=(?!\s*ICON\b)/.test(fx),
+       '★innerHTML に入れるのは定数の絵だけ（外から来た文字は textContent）');
+    for (const rel of ['actual-pay.html', 'en/actual-pay.html', 'deep-pay.html', 'en/deep-pay.html',
+                       'deep-pay-compare.html', 'en/deep-pay-compare.html',
+                       'profile.html', 'en/profile.html']) {
+      ok(/<script src="(?:\.\.\/)?pv-pay-fix\.js\?v=[0-9a-f]{8}"><\/script>/.test(read(rel)),
+         '★' + rel + ' が pv-pay-fix.js を読んでいる');
+    }
+    for (const rel of ['pay-report.html', 'en/pay-report.html']) {
+      const src = read(rel);
+      ok(/localStorage\.removeItem\('pv_pay_fix'\)/.test(src),
+         '★' + rel + ' が提出のあと控えを消す（直したのにお願いが残らない）');
+      ok(/searchParams|URLSearchParams/.test(src) && /\.get\('ym'\)/.test(src),
+         '★' + rel + ' が ?ym= を読む（お願いのボタンが渡す対象月）');
+    }
+  }
+
+  /* 見本（作り物）。gross / net は月額。 */
+  const mine = (o) => Object.assign({ airline: 'emirates', airline_other: null,
+    period_year: 2026, period_month: 6, currency: 'AED', fx_to_jpy: 43,
+    gross_monthly: 30000, net_pay_actual: 61000, annual_total_usd: 98000 }, o || {});
+  const BAD1 = [mine()];
+  const POISON_AMT = /[¥$€£＄]|万|AED|30[,.]?000|61[,.]?000|98[,.]?000/;
+  const withMine = (base, rows) => Object.assign({}, base, { mine: rows });
+
+  /* 板が決着するまで待つ（時間で待たない）。返るのは出した月の数。 */
+  const settle = async (page) => {
+    await till(page, () => !!(window.PVPayFix && window.PVPayFix.ready));
+    return page.evaluate(() => window.PVPayFix.ready);
+  };
+  const FIX = () => {
+    const q = (s, r) => Array.prototype.slice.call((r || document).querySelectorAll(s));
+    const b = document.getElementById('pv-pay-fix');
+    const main = document.querySelector('.mr-main');
+    const gate = document.getElementById('mr-gate');
+    const r = b ? b.getBoundingClientRect() : null;
+    let store = null;
+    try { store = localStorage.getItem('pv_pay_fix'); } catch (e) {}
+    return {
+      n: q('#pv-pay-fix').length,
+      first: !!(b && main && main.firstElementChild === b),
+      afterGate: !!(b && gate && gate.nextElementSibling === b),
+      gate: !!gate,
+      role: b ? b.getAttribute('role') : '',
+      lab: b ? ((document.getElementById(b.getAttribute('aria-labelledby') || '') || {}).textContent || '') : '',
+      noCur: !!(b && b.classList.contains('pv-no-cur')),
+      cur: b ? q('.pv-cur', b).length : 0,
+      text: b ? b.innerText : '',
+      items: q('.pv-fix-i', b || document.createElement('i')).map((li) => ({
+        when: (li.querySelector('.pv-fix-w b') || {}).textContent || '',
+        name: (li.querySelector('.pv-fix-n') || {}).textContent || '',
+        href: (li.querySelector('a.pv-fix-b') || { getAttribute: () => '' }).getAttribute('href'),
+        cta: ((li.querySelector('a.pv-fix-b') || {}).textContent || '').trim(),
+        h: Math.round((li.querySelector('a.pv-fix-b') || li).getBoundingClientRect().height)
+      })),
+      tags: b ? q('img,script,iframe,svg:not(.pv-fix-ic)', b).length : 0,
+      xss: window.__xss === 1,
+      bg: b ? getComputedStyle(b).backgroundColor : '',
+      bl: b ? getComputedStyle(b).borderLeftWidth : '',
+      right: r ? Math.round(r.right) : 0, left: r ? Math.round(r.left) : 0,
+      vw: document.documentElement.clientWidth,
+      sw: document.documentElement.scrollWidth,
+      store: store,
+      calls: (window.__rpc || []).map((x) => x.name).filter((x) => x === 'my_pay_reports').length
+    };
+  };
+
+  for (const lang of ['ja', 'en']) {
+    const W = lang === 'ja'
+      ? { when: '2026年6月分', name: 'エミレーツ', cta: '匿名で', title: '確認が必要な月' }
+      : { when: 'June 2026', name: 'Emirates', cta: 'anonymously', title: 'needs a second look' };
+
+    for (const [name, base] of [['鍵がある人', OPEN], ['鍵が無い人', MASKED]]) {
+      console.log('\n════ ' + lang + ' / S-1 線を超えた月がある（' + name + '）════');
+      const { page, errs } = await open(lang, withMine(base, BAD1));
+      const n = await settle(page);
+      const v = await page.evaluate(FIX);
+      ok(n === 1 && v.n === 1, lang + '/' + name + ': ★★お願いの板が1枚出る', n + '/' + v.n);
+      ok(v.first, lang + '/' + name + ': ★本文のいちばん上に出る');
+      ok(v.role === 'status' && v.lab.indexOf(W.title) >= 0,
+         lang + '/' + name + ': 役割と見出しが読み上げに渡る', v.role + '/' + v.lab);
+      ok(v.items.length === 1 && v.items[0].when === W.when && v.items[0].name.indexOf(W.name) >= 0,
+         lang + '/' + name + ': ★対象月と社名が出る', JSON.stringify(v.items));
+      ok(!POISON_AMT.test(v.text) && v.cur === 0 && v.noCur,
+         lang + '/' + name + ': ★★金額が1文字も出ない（通貨切替の対象にもならない）', v.text);
+      ok(/^pay-report\.html\?airline=emirates&ym=2026-06#ps$/.test(v.items[0].href || ''),
+         lang + '/' + name + ': ★★ボタンの先が同じ会社・同じ月', v.items[0].href);
+      ok(v.items[0].cta.indexOf(W.cta) >= 0 && v.items[0].h >= 44,
+         lang + '/' + name + ': ボタンは「匿名で」・押せる高さ（44px 以上）',
+         v.items[0].cta + ' / ' + v.items[0].h);
+      ok(v.bg !== 'rgba(0, 0, 0, 0)' && v.bl === '3px',
+         lang + '/' + name + ': ★見た目が当たっている（素の文字で出ていない）', v.bg + ' / ' + v.bl);
+      ok(v.calls === 1 && v.store === null,
+         lang + '/' + name + ': ★★通信は1回・問題があった人は控えない', v.calls + ' / ' + v.store);
+      ok(v.sw <= v.vw + 1, lang + '/' + name + ': 横に溢れない', v.sw + ' > ' + v.vw);
+
+      /* もう一度開いても読み直す（控えていない＝直した次の画面で必ず消える）。 */
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      const n2 = await settle(page);
+      const v2 = await page.evaluate(FIX);
+      ok(n2 === 1 && v2.calls === 1, lang + '/' + name + ': ★開き直すたびに読み直す', n2 + '/' + v2.calls);
+
+      /* 狭い幅。 */
+      await page.setViewport({ width: 390, height: 844 });
+      await till(page, () => document.documentElement.clientWidth <= 400);
+      const m = await page.evaluate(FIX);
+      ok(m.n === 1 && m.right <= m.vw + 1 && m.left >= 0 && m.sw <= m.vw + 1,
+         lang + '/' + name + ': ★390px でも板がはみ出さない',
+         JSON.stringify({ l: m.left, r: m.right, vw: m.vw, sw: m.sw }));
+      ok(errs.length === 0, lang + '/' + name + ': ページのエラーが1件も出ない', errs.join(' | '));
+    }
+
+    console.log('\n════ ' + lang + ' / S-2 出さない相手 ════');
+    for (const [name, rows] of [
+      ['同額', [mine({ net_pay_actual: 30000 })]],
+      ['5% ちょうど', [mine({ net_pay_actual: 31500 })]],
+      ['手取りが空', [mine({ net_pay_actual: null })]],
+      ['総支給が空', [mine({ gross_monthly: null })]],
+      ['ふつうの月', [mine({ net_pay_actual: 24000 })]],
+      ['提出が1件も無い', []]]) {
+      const { page, errs } = await open(lang, withMine(OPEN, rows));
+      const n = await settle(page);
+      const v = await page.evaluate(FIX);
+      ok(n === 0 && v.n === 0, lang + '/' + name + ': ★板は出ない', n + '/' + v.n);
+      ok(errs.length === 0, lang + '/' + name + ': ページのエラーが1件も出ない', errs.join(' | '));
+    }
+    {
+      const { page } = await open(lang, withMine(OPEN, [mine({ net_pay_actual: 31501 })]));
+      ok((await settle(page)) === 1, lang + ': ★5% を1でも超えたら出る（線は × 1.05 の1本）');
+    }
+    {
+      /* 未ログイン。毒として本人の行を渡しておく ── 呼べば板が出てしまう形。 */
+      const { page, errs } = await open(lang, withMine(MASKED, BAD1), { anon: true });
+      const n = await settle(page);
+      const v = await page.evaluate(FIX);
+      ok(n === 0 && v.n === 0 && v.calls === 0 && v.store === null,
+         lang + ': ★★未ログインでは出ない・1本も投げない・何も控えない',
+         n + '/' + v.n + '/' + v.calls + '/' + v.store);
+      ok(errs.length === 0, lang + '/未ログイン: ページのエラーが1件も出ない', errs.join(' | '));
+    }
+
+    console.log('\n════ ' + lang + ' / S-3 控え（問題なしだけ・24時間）════');
+    {
+      const { page } = await open(lang, withMine(OPEN, [mine({ net_pay_actual: 24000 })]));
+      await settle(page);
+      const a = await page.evaluate(FIX);
+      let c = null;
+      try { c = JSON.parse(a.store); } catch (e) {}
+      ok(a.calls === 1 && !!c && Object.keys(c).sort().join(',') === 't,u',
+         lang + ': ★★控えに入るのは会員の ID と時刻だけ（会社も月も金額も無い）', a.store);
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      await settle(page);
+      const b = await page.evaluate(FIX);
+      ok(b.calls === 0 && b.n === 0, lang + ': ★控えが新しいあいだは投げない', String(b.calls));
+
+      /* 別の会員の控えは使わない（同じ端末でアカウントを替えた人）。 */
+      await page.evaluate(() => {
+        const o = JSON.parse(localStorage.getItem('pv_pay_fix'));
+        o.u = '00000000-0000-4000-8000-00000000ffff';
+        localStorage.setItem('pv_pay_fix', JSON.stringify(o));
+      });
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      await settle(page);
+      ok((await page.evaluate(FIX)).calls === 1, lang + ': ★別の会員の控えは使わない');
+
+      /* 古い控えは使わない。 */
+      await page.evaluate(() => {
+        const o = JSON.parse(localStorage.getItem('pv_pay_fix'));
+        o.t = Date.now() - 25 * 60 * 60 * 1000;
+        localStorage.setItem('pv_pay_fix', JSON.stringify(o));
+      });
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      await settle(page);
+      ok((await page.evaluate(FIX)).calls === 1, lang + ': ★24時間を過ぎた控えは使わない');
+    }
+
+    console.log('\n════ ' + lang + ' / S-4 並び・重なり・打ち込まれた社名 ════');
+    {
+      const EVIL = '<img src=x onerror="window.__xss=1">';
+      const rows = [];
+      for (let mo = 1; mo <= 8; mo++) rows.push(mine({ airline: 'ana', period_month: mo }));
+      rows.push(mine({ airline: 'ana', period_month: 8 }));                 // 同じ月が2行
+      rows.push(mine({ airline: 'other', airline_other: EVIL, period_year: 2025, period_month: 12 }));
+      const { page, errs } = await open(lang, withMine(OPEN, rows));
+      const n = await settle(page);
+      const v = await page.evaluate(FIX);
+      ok(n === 6 && v.items.length === 6, lang + ': ★並べるのは6つまで', n + '/' + v.items.length);
+      const yms = v.items.map((i) => (i.href.match(/ym=(\d{4}-\d{2})/) || [])[1]);
+      ok(yms.join(',') === '2026-08,2026-07,2026-06,2026-05,2026-04,2026-03',
+         lang + ': ★新しい月から・同じ月は1つに畳む', yms.join(','));
+      ok(errs.length === 0, lang + ': ページのエラーが1件も出ない', errs.join(' | '));
+
+      const o = await open(lang, withMine(OPEN,
+        [mine({ airline: 'other', airline_other: EVIL, period_year: 2025, period_month: 12 })]));
+      await settle(o.page);
+      const x = await o.page.evaluate(FIX);
+      ok(x.items.length === 1 && x.items[0].name === EVIL && x.tags === 0 && !x.xss,
+         lang + ': ★★打ち込まれた社名は文字のまま出る（HTML として入らない）',
+         JSON.stringify([x.items[0] && x.items[0].name, x.tags, x.xss]));
+      ok((x.items[0].href || '') === 'pay-report.html?airline=' + encodeURIComponent(EVIL) + '&ym=2025-12#ps',
+         lang + ': ★一覧に無い会社は社名を渡す（フォームが「その他」＋社名へ入れる）', x.items[0].href);
+    }
+
+    console.log('\n════ ' + lang + ' / S-5 錠前の案内が開いたら、その下 ════');
+    {
+      const { page, errs } = await open(lang, withMine(LOCKED_ST, BAD1));
+      await settle(page);
+      const opened = await page.evaluate(() => {
+        const b = document.querySelector('[data-pv-give="deep"]');
+        if (!b) return false;
+        b.click();
+        return true;
+      });
+      ok(opened, lang + ': 前提：DEEP PAY の札が在る');
+      await till(page, () => !!document.getElementById('mr-gate'));
+      const v = await page.evaluate(FIX);
+      const order = await page.evaluate(() => {
+        const g = document.getElementById('mr-gate'), b = document.getElementById('pv-pay-fix');
+        return (g && b) ? [Math.round(g.getBoundingClientRect().top), Math.round(b.getBoundingClientRect().top)] : null;
+      });
+      ok(v.n === 1 && v.gate && !!order && order[0] < order[1],
+         lang + ': ★錠前の案内が先・お願いはその下（押した錠前の説明を先に読ませる）',
+         JSON.stringify(order));
+      ok(errs.length === 0, lang + ': ページのエラーが1件も出ない', errs.join(' | '));
     }
   }
 }

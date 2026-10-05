@@ -9,7 +9,7 @@
                       ⚠️ ここでは pv_pay_rows を**差し替えない**＝呼ばれたら素の {ok:true} が返る。
                       本物の一覧が出ないことを絵でも確かめられる（判定は assert-pay-rows.mjs）
              preview-in ★ログイン済み・まだ給与を出していない人。行は作り物のまま、
-                      上の数え上げカードだけ**本物**が出る
+                      下の数え上げカードだけ**本物**が出る（2026-10-05 に一覧の下へ移した）
              preview-drawer ★未ログインの人がプレビューの行を押して開いた面
              masked   ★伏せた一覧（2026-09-16）。ログイン済み・口コミだけ出した人。
                       会社・出典・投稿時期は読め、年収・職位・機材は空の板
@@ -35,6 +35,9 @@
              far      ★公開年収から大きく外れた本人申告の行（2026-09-19）。2行目の出典の横に ⚠
              far-drawer ★その行を押して開いた面（金額の下に1文）。row=0 は同じ会社・職位の
                          ほかの記録の中に ⚠ が出るところ
+             fix      ★出し直しのお願い（2026-10-05）。手取りが総支給より多い月を出した会員の画面。
+                      本文のいちばん上に板が出る（出すのは対象月と社名だけ・金額は出さない）
+             fix-masked ★同じ板を、鍵の無い人の画面で
      lang  = ja | en
      第3引数以降  open  撮らずに見える窓で開いたままにする
                   h=844 open ＝ iPhone の1画面ぶんの窓で開く（既定の高さは 1100）
@@ -51,7 +54,13 @@
                         左メニューと同じ DEEP PAY の説明パネルが出るところ）
 
    ★2026-08-24、この画面から図を全部外した。右の棒も「あなた」の破線も無い。
-     だから本人の明細（my_pay_reports）はもう引いていない＝ここでも作らない。
+     だから actual-pay.js は本人の明細（my_pay_reports）を引いていない。
+   ★2026-10-05、出し直しのお願い（pv-pay-fix.js）だけが1回引く。
+     **fix の2場面でだけ**本人の行を作って渡す。それ以外の場面では今までどおり作らない
+     （呼ばれたら素の {ok:true} が返る＝板は出ない）。
+   ★2026-10-05、並びを変えた（オーナー指示「上にいきなり real pay の最初から始める」）。
+     鍵が無い人 … 見出し → 絞り込み → 伏せた一覧 → 橙の案内 → 見えること → 数字カード
+     鍵がある人 … 見出し → 絞り込み → 一覧 → ページ送り → 数字カード
 
    ★行の中身はこのファイルが作った作り物。本番の数字ではない。
    ⚠️ localhost が要る（node serve.mjs）。本番の DB には触らない（Supabase ごと差し替える）。
@@ -376,6 +385,14 @@ const DRAWER_LOCK = DRAWER.map(function (r) {
  [FAR_ROWS, 'FAR_ROWS']]
   .forEach(([l, t]) => checkRows(l, t));
 
+/* 出し直しのお願いに渡す本人の行（作り物）。見るのは総支給と手取りの2つだけ。 */
+const FIX_MINE = [
+  { airline: 'emirates', airline_other: null, period_year: 2026, period_month: 8,
+    currency: 'AED', gross_monthly: 30000, net_pay_actual: 61000 },
+  { airline: 'other', airline_other: 'Example Air Charter', period_year: 2026, period_month: 5,
+    currency: 'USD', gross_monthly: 8000, net_pay_actual: 48000 },
+];
+
 const SCENES = {
   /* ★未ログインの人（2026-09-13）。ページは開く（login.html へ飛ばさない）。
      行は ap-preview.js の作り物5件。**pv_pay_rows は差し替えない**ので、
@@ -448,21 +465,29 @@ const SCENES = {
                           give: { basic: true, detailed: false, full: false,
                                   payslip: false } },
                    open: 0 },
+  /* ★出し直しのお願い（2026-10-05）。手取りが総支給より多い月が2つある会員。
+       板に出るのは対象月と社名だけ。⚠️ 数字は作り物（会員が入れた額をここへ写さない）。 */
+  fix: { pay: { ok: true, state: 'open', rows: ROWS, stats: ST(17, 13) }, mine: FIX_MINE },
+  'fix-masked': { pay: { ok: true, state: 'locked', rows: MASK_ROWS, stats: ST_LOCK,
+                         give: { basic: false, detailed: false, payslip: false } },
+                  mine: FIX_MINE.slice(0, 1) },
 };
 const S = SCENES[scene];
 if (!S) { console.error('scene は ' + Object.keys(SCENES).join(' / ')); process.exit(1); }
 
 /* assert-pay-rows.mjs と同じ差し替え。
    ⚠️ rpc は本物と同じ「then だけを持つ箱」＝ async にしない。 */
-function stub(page, pay, anon) {
-  return page.evaluateOnNewDocument((uid, pay, theme, anon) => {
+function stub(page, pay, anon, mine) {
+  return page.evaluateOnNewDocument((uid, pay, theme, anon, mine) => {
     localStorage.clear(); sessionStorage.clear();
     localStorage.setItem('pv-theme', theme);
-    /* ★my_pay_reports は置かない。この画面はもう本人の明細を引かないので、
-       置くと「引いても気づかない」状態を自分で作ることになる。 */
+    /* ★my_pay_reports は、出し直しのお願いを見る場面（fix）でだけ置く。
+       actual-pay.js はもう本人の明細を引かないので、ほかの場面で置くと
+       「引いても気づかない」状態を自分で作ることになる。 */
     const RPC = {
       my_referral_code: { ok: true, code: 'K7QD3XZM', invited: 0, converted: 0 },
     };
+    if (mine) RPC.my_pay_reports = { ok: true, reports: mine };
     /* ★pay を渡さない回（preview）は **pv_pay_rows を置かない**。
        呼ばれたら素の {ok:true} が返るだけで、本物の行は1件も出ない。 */
     if (pay) RPC.pv_pay_rows = pay;
@@ -491,7 +516,7 @@ function stub(page, pay, anon) {
     };
     Object.defineProperty(window, 'supabase',
       { value: { createClient: () => FAKE }, writable: false, configurable: false });
-  }, UID, pay || null, theme, !!anon);
+  }, UID, pay || null, theme, !!anon, mine || null);
 }
 
 const browser = await puppeteer.launch(show
@@ -499,7 +524,7 @@ const browser = await puppeteer.launch(show
   : { headless: 'shell', args: ['--no-sandbox'] });
 const page = await browser.newPage();
 if (!show) await page.setViewport({ width: W, height: H });
-await stub(page, S.pay, S.anon);
+await stub(page, S.pay, S.anon, S.mine);
 await page.goto(BASE + (lang === 'en' ? '/en/' : '/') + 'actual-pay.html',
                 { waitUntil: 'networkidle2', timeout: 40000 });
 await new Promise((r) => setTimeout(r, 2200));

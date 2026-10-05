@@ -241,6 +241,13 @@ const STAMPS = [
     files: ['actual-pay.css', 'ap-preview.js', 'actual-pay.js'] },
   { pages: [['index.html', ''], ['en/index.html', '../']],
     files: ['lp.css'] },
+  /* ★2026-10-05 出し直しのお願い。4画面 × 日英の8枚が同じ1本を読む。
+     1枚だけ古い指紋が残ると、その画面でだけ古い文言・古い線のまま最長4時間出る。 */
+  { pages: [['actual-pay.html', ''], ['en/actual-pay.html', '../'],
+            ['deep-pay.html', ''], ['en/deep-pay.html', '../'],
+            ['deep-pay-compare.html', ''], ['en/deep-pay-compare.html', '../'],
+            ['profile.html', ''], ['en/profile.html', '../']],
+    files: ['pv-pay-fix.js'] },
 ];
 const stampIssues = [];
 for (const { pages, files } of STAMPS) {
