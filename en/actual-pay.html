@@ -55,7 +55,7 @@
   <!-- This page only (.ap-*).
        ★ pay-viz.css is not loaded here — this page has no donut
          (how the pay is made up belongs to DEEP PAY). -->
-  <link rel="stylesheet" href="../actual-pay.css?v=9815ac3f">
+  <link rel="stylesheet" href="../actual-pay.css?v=91124ccf">
 
   <style>
     /* Only what would flash before the stylesheet lands belongs here.
@@ -157,11 +157,6 @@
         <div class="mr-skel" style="height:30px;width:52%"></div>
       </div>
 
-      <!-- The counts. actual-pay.js fills them in.
-           ★ A card whose number cannot be read is not rendered at all (never a zero).
-           ★ Filters do not move these. The filtered count lives under the table. -->
-      <div class="ap-stats" id="ap-stats" hidden></div>
-
       <!-- Both list only the groups that actually have rows (actual-pay.js builds
            them from the rows). The whole bar hides when there are no rows, or no key.
            ★ No fleet filter. Filtering by something the table does not show would let
@@ -215,6 +210,15 @@
       <div class="pv-no-cur" id="ap-rows">
         <div class="mr-skel" style="height:180px"></div>
       </div>
+
+      <!-- The counts. actual-pay.js fills them in.
+           ★ Moved BELOW the list on 2026-10-05 (owner: "we don't need these up here, put
+             them at the very bottom" / "start straight from the REAL PAY list"). Right
+             under the heading come the filters and the list.
+             ⚠️ Still OUTSIDE #ap-rows (inside, every re-render of the list would wipe it).
+           ★ A card whose number cannot be read is not rendered at all (never a zero).
+           ★ Filters do not move these. The filtered count lives under the table. -->
+      <div class="ap-stats" id="ap-stats" hidden></div>
     </main>
   </div>
 
@@ -274,7 +278,7 @@
      指紋を付けておけば、中身が変われば URL も変わる＝古いほうを読みに行けない。
      ⚠️ この3つを直したら指紋も変わる。検査が落ちたら出た値を日英2枚に写す。 -->
 <script src="../ap-preview.js?v=27f09a64"></script>
-<script src="../actual-pay.js?v=b1a001f7"></script>
+<script src="../actual-pay.js?v=fb060991"></script>
 <!-- PV-NAV: opens and closes the navigation. Loads AFTER search.js so it can adopt
      the hamburger that file creates; on pages without search.js it makes its own. -->
 <script src="../app-nav.js"></script>

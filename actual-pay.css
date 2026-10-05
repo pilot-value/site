@@ -63,10 +63,12 @@
    ★絞り込みでは動かない。絞った結果の数はページ送りの「全N件中」が持つ。
    ★2026-08-24、横に線画のアイコンを1枚ずつ足した（オーナー指示）。
      丸い薄橙の下地＋ --pv-orange-ink の線。SVG は JS がインラインで書く
-     （外部ファイルもアイコンフォントも読み込まない）。 */
+     （外部ファイルもアイコンフォントも読み込まない）。
+   ★2026-10-05、**一覧の下**へ移した（オーナー指示「これいらないから一番下に下げて」）。
+     開いたらすぐ一覧。カードは #ap-rows のすぐ後ろに居るので、余白は上に付ける。 */
 .ap-stats[hidden]{display:none}
 .ap-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:12px;margin-bottom:var(--pv-s-3)}
+  gap:12px;margin-top:var(--pv-s-3)}
 .ap-st{min-width:0;display:flex;align-items:center;gap:13px;padding:16px 18px;
   background:var(--pv-surface);border:1px solid var(--pv-line);
   border-radius:var(--pv-r);box-shadow:var(--pv-shadow)}
@@ -359,15 +361,22 @@
       このファイルに、ぼかしのたぐいは1文字も書かない。
    ══════════════════════════════════════════════════════════════ */
 .ap-lockhero{display:grid;grid-template-columns:minmax(0,1fr) auto;
-  gap:var(--pv-s-4);align-items:center}
+  gap:var(--pv-s-4);align-items:center;min-width:0}
 .ap-lockhero-b{min-width:0}
 .ap-lock-n{margin-top:10px;font-size:.72rem;font-weight:600;color:var(--pv-ink-3)}
 .ap-lockhero-a{flex:0 0 auto;color:var(--pv-orange);opacity:.6}
 .ap-lock-art{display:block;width:196px;height:auto}
 
-/* 下段2枚。⚠️ .ap-cols / .ap-main / .ap-side は使わない（開いている画面から外したもの）。 */
+/* 一覧と「見えること」の入れ物。
+   ⚠️ .ap-cols / .ap-main / .ap-side は使わない（開いている画面から外したもの）。
+   ★2026-10-05 から、これが #ap-rows の**いちばん上**（オーナー指示「上にいきなり
+     real pay の最初から始める」）。橙の案内パネルはこの下へ回った。
+     - 一覧が出ているとき（--1）… 縦に3つ：一覧 → 橙の案内パネル → 見えること
+     - 灰色の骨組みのとき … 骨組みと「見えること」の2段組、そのあとに橙の案内パネル */
 .ap-lock-cols{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);
-  gap:var(--pv-s-3);margin-top:var(--pv-s-3);align-items:start}
+  gap:var(--pv-s-3);align-items:start}
+.ap-lock-cols--1{grid-template-columns:minmax(0,1fr)}
+.ap-lock-cols+.ap-lockhero{margin-top:var(--pv-s-3)}
 .ap-lock-aside{min-width:0}
 .ap-lock-skel,.ap-lock-see{min-width:0;background:var(--pv-surface);
   border:1px solid var(--pv-line);border-radius:var(--pv-r);
@@ -430,6 +439,7 @@
 
 @media (max-width:760px){
   /* ★ここではまだ3枚を横に並べたまま詰める。1列に積むのは 600px から（下）。
+       （600px の決まりは、下の「狭い画面」の節が 720px で上書きして横3つに戻している。）
      700px で積むと、幅いっぱいの帯が3本ならぶだけの間の抜けた絵になる。 */
   .ap-stats{gap:10px}
   .ap-st{padding:14px}
@@ -767,7 +777,9 @@
   /* ★数のカード3枚は**横に3つ並べたまま**、縦に組み替えて詰める。
        600px で1列に積む決まりだったが、iPhone だと帯が3本ぶら下がって
        **本題（1人1人の給与）が1画面目から押し出される**。
-       この画面は「開いたら実給与が見えている」ことが第一。 */
+       この画面は「開いたら実給与が見えている」ことが第一。
+     ★2026-10-05 にカードは一覧の下へ移った（もう本題を押し出さない）。
+       横3つのままにしてあるのは、下でも帯3本は間の抜けた絵になるから。 */
   .ap-stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
   .ap-st{flex-direction:column;align-items:flex-start;gap:7px;padding:12px 11px}
   .ap-st-i{width:28px;height:28px}
@@ -1097,8 +1109,9 @@
 .ap-lock-cols:has(.ap-tbl--mk){grid-template-columns:minmax(0,1fr)}
 
 @media (max-width:720px){
-  /* 430×932 を最優先（オーナー指示）。ヒーローの見出し・CTA・1件目のカードの
-     主要部分が1画面目に入るよう、上の余白だけを詰める。 */
+  /* 430×932 を最優先（オーナー指示）。1件目のカードの主要部分が1画面目に
+     入るよう、上の余白だけを詰める。
+     （2026-10-05 から橙の案内パネルは一覧の下。1画面目は一覧だけで始まる。） */
   .ap-lock-skel{padding:16px 14px}
   /* ★指示書の §3 ── プレビューの主な金額は 24〜28px。
        本物の一覧（.ap-amt は 1.05rem）は触らない。ここだけ大きくする。 */

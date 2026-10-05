@@ -54,7 +54,7 @@
   <link rel="stylesheet" href="app-nav.css">
   <!-- この画面だけの見た目（.ap-*）。
        ★pay-viz.css は読まない。この画面にドーナツは無い（内訳は DEEP PAY の担当）。 -->
-  <link rel="stylesheet" href="actual-pay.css?v=9815ac3f">
+  <link rel="stylesheet" href="actual-pay.css?v=91124ccf">
 
   <style>
     /* ここに置くのは「CSS が届く前に見えてしまう部分」だけ。
@@ -156,11 +156,6 @@
         <div class="mr-skel" style="height:30px;width:52%"></div>
       </div>
 
-      <!-- 数え上げ。中身は actual-pay.js が入れる。
-           ★数が読めないカードは出さない（0 を並べない）。
-           ★絞り込みでは動かない。絞った結果の数は表の下の「全N件中」が持つ。 -->
-      <div class="ap-stats" id="ap-stats" hidden></div>
-
       <!-- どちらも、実際に行がある区分だけが並ぶ（actual-pay.js が rows から作る）。
            1行も無いとき・鍵が無いときは、この帯ごと隠れる。
            ★機材で絞る口は置かない。列に出していないものを絞れると、
@@ -214,6 +209,14 @@
       <div class="pv-no-cur" id="ap-rows">
         <div class="mr-skel" style="height:180px"></div>
       </div>
+
+      <!-- 数え上げ。中身は actual-pay.js が入れる。
+           ★2026-10-05 オーナー指示で**一覧の下**へ移した（「これいらないから一番下に下げて」
+             「上にいきなり real pay の最初から始める」）。見出しのすぐ下は絞り込みと一覧。
+             ⚠️ #ap-rows の**外**に置いたまま（中に入れると、一覧を描き直すたびに消える）。
+           ★数が読めないカードは出さない（0 を並べない）。
+           ★絞り込みでは動かない。絞った結果の数は表の下の「全N件中」が持つ。 -->
+      <div class="ap-stats" id="ap-stats" hidden></div>
     </main>
   </div>
 
@@ -273,7 +276,7 @@
      指紋を付けておけば、中身が変われば URL も変わる＝古いほうを読みに行けない。
      ⚠️ この3つを直したら指紋も変わる。検査が落ちたら出た値を日英2枚に写す。 -->
 <script src="ap-preview.js?v=27f09a64"></script>
-<script src="actual-pay.js?v=b1a001f7"></script>
+<script src="actual-pay.js?v=fb060991"></script>
 <!-- PV-NAV: ナビの開け閉め。★search.js より**後**に読む ──
      あちらが作った ≡ を繋ぎ直すため（先に読むと search.js:416 の二重注入ガードで
      ヘッダーの自動折り畳みごと止まる）。search.js が無いページでは自分で ≡ を作る。 -->

@@ -603,7 +603,7 @@
     });
   }
 
-  /* ══ 数え上げ（画面の上に並ぶ数字）═══════════════════════════════
+  /* ══ 数え上げ（一覧の下に並ぶ数字。2026-10-05 に上から下へ移した）═══
      2026-08-24 オーナー判断で「本当の数字だけ出す」ことにした。
      ★カードは**3枚**（実給与の投稿 / 航空会社 / 1ヶ月以内の新規投稿）。
        ★2026-08-24、オーナー判断で「一覧のパイロット」の枚を外した。
@@ -1726,7 +1726,7 @@
          + '</tr>';
       /* ★2件目の直後に、一覧に馴染む解放案内を1枚だけ（プレビューと同じ形）。
          ★文言は ap-preview.js が持っている。読めていなければ**行ごと出さない**
-           ── 空の枠を置かない。上の錠前パネルの CTA は必ず残るので、
+           ── 空の枠を置かない。下の錠前パネルの CTA は必ず残るので、
            出す側へ戻る道はこれが無くても塞がらない。 */
       if (i === 1 && PT('unT')) h += unlockRow();
     }
@@ -1876,7 +1876,7 @@
          ① 伏せた本物の一覧（サーバが行を返している）
          ② プレビューの5行（ap-preview.js。古いサーバ・まだ0件）
          ③ 今までどおりの灰色の骨組み（ap-preview.js も読めていない）
-       上の錠前パネル・3段の Give → Get・CTA・ログイン行は、①②③どれでも同じ。 */
+       下の錠前パネル・3段の Give → Get・CTA・ログイン行は、①②③どれでも同じ。 */
     var skel = isMasked() ? maskedList()
              : (S.rows && S.rows.length) ? previewList() : skelSection();
 
@@ -1889,12 +1889,28 @@
       + '<p class="ap-see-n">' + LOCK_I + '<span>' + esc(T.seeN) + '</span></p>'
       + '</section>';
 
-    /* ⚠️ 2段組の目印は .ap-lock-cols / .ap-lock-aside。
+    /* ⚠️ 目印は .ap-lock-cols / .ap-lock-aside。
          .ap-cols / .ap-main / .ap-side は開いている画面から外したもので、
-         assert-pay-rows.mjs が字として禁じている。 */
-    return hero
-         + '<div class="ap-lock-cols">' + skel
-         + '<div class="ap-lock-aside">' + see + '</div></div>';
+         assert-pay-rows.mjs が字として禁じている。
+
+       ★2026-10-05 オーナー指示「上にいきなり real pay の最初から始める」。
+         それまでは橙の案内パネルがいちばん上で、一覧はその下だった。
+         並びは **一覧 → 橙の案内パネル → 「REAL PAY で見えること」**。
+         ⚠️ パネルを #ap-rows の外へ出さない ── 押した数を数える仕掛けは
+            #ap-rows に付いていて、pv-gates.js は錠前を押した人を
+            .ap-msg--lock へ送っている。
+         ★出す側へ戻る道は、長い一覧でも上に残る（2件目の下の unlockRow）。 */
+    var listed = isMasked() || (S.rows && S.rows.length);
+    if (listed) {
+      /* 一覧が本物と同じ6列の表なので、横に並べず縦に3つ積む。 */
+      return '<div class="ap-lock-cols ap-lock-cols--1">' + skel + hero
+           + '<div class="ap-lock-aside">' + see + '</div></div>';
+    }
+    /* 部品（ap-preview.js）が読めなかったときだけ通る道。
+       灰色の骨組みと「見えること」の2段組はそのまま、パネルをその下へ。 */
+    return '<div class="ap-lock-cols">' + skel
+         + '<div class="ap-lock-aside">' + see + '</div></div>'
+         + hero;
   }
 
   // ── 絞り込み ───────────────────────────────────────────────────
