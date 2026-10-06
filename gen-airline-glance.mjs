@@ -237,6 +237,9 @@ ${notes}${src}${fx}
 </div>
 </details>`;
 }
+/* 広い箱では、右の3つの欄（匿名で答える）と同じ形で、給与を出す入口を欄の中に置く。
+   狭い箱では出さない（最初の1画面を額と条件に使う。入口は下の REAL PAY の箱に在る）。 */
+const payGive = v => `<div class="pvg-qs"><p class="pvg-qh">匿名で出す</p><ul><li><a href="${UP}pay-report.html?airline=${v.slug}">給与を提出する${IC.next}</a></li></ul></div>`;
 function payCard(v) {
   const shared = sharedNote(v), solo = soloRank(v);
   return `<article class="pvg-card pvg-pay">
@@ -247,6 +250,7 @@ ${RANKS.map(r => rankBlock(v, r, shared, solo)).join('\n')}
 ${solo ? mainFigs(v.pay[solo[0]]).map(f => figBlock(v, solo, f, shared, true)).join('\n') : ''}
 ${shared ? `<p class="pvg-note pvg-shared">${prose(shared)}</p>` : ''}
 ${crewBlock(v)}
+${payGive(v)}
 ${payDetails(v)}
 </article>`;
 }

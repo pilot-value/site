@@ -539,7 +539,9 @@ a.pvg-topic-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2p
   .pvg-stay > .pvg-quiet{justify-self:end;text-align:right}
   .pvg-stay > .pvg-askh,.pvg-stay > .pvg-chips,.pvg-stay > .pvg-dt{grid-column:1 / -1}
 }
-/* PC：給与（半分より狭く）＋勤務・待遇・暮らしを同じ高さで横に3つ */
+/* PC：給与＋勤務・待遇・暮らしを同じ高さで横に4つ。給与は右の1枚の 1.32倍（額が2つ並ぶぶんだけ広い）。
+   ⚠️ 給与をこれより広げない ── 右の3枚が狭くなって縦に伸び、その丈に合わせて給与の箱の中が空く
+   （5 : 2.45 だった頃、5社とも 96〜177px 空いていた） */
 @container pvg (min-width:1040px){
   .pvg{--pvg-gap:14px;--pvg-pad:18px}
   /* 会社：左に写真・右に見出しと数字。機材と出どころは、その下に横いっぱい。
@@ -560,7 +562,7 @@ a.pvg-topic-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2p
   .pvg-got .crl-facts{grid-template-columns:repeat(4,minmax(0,1fr))}
   .pvg-topics{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
   .pvg-top{
-    grid-template-columns:minmax(0,5fr) repeat(3,minmax(0,2.45fr));
+    grid-template-columns:minmax(0,1.32fr) repeat(3,minmax(0,1fr));
     grid-template-areas:"pay work ben live" "panel panel panel panel" "ruler ruler ruler ruler";
   }
   .pvg-cell{display:flex;flex-direction:column;align-items:stretch;padding:var(--pvg-pad)}
