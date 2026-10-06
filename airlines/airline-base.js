@@ -153,6 +153,9 @@ function injectSEOMeta() {
 
 // ── Schema.org Structured Data (AggregateRating) ────
 function injectSchemaOrg() {
+  /* 主要5社（<body data-pv-glance="1">）では足さない。ここで足す評価は見本の点数を混ぜたもので、
+     FAQ の年収の目安はどの会社にも同じ文が入る。会社・パンくず・FAQ は HTML に書いてある。 */
+  if (document.body && document.body.getAttribute('data-pv-glance') === '1') return;
   const h1 = document.querySelector('.hero-airline h1');
   const airlineName = h1 ? h1.textContent.trim() : (AIRLINE_CODE || '').toUpperCase();
   const { ratings, count } = getAirlineRatings();
