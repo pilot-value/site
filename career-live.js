@@ -676,10 +676,11 @@
     for (var k in attrs) n.setAttribute(k, attrs[k]);
     return n;
   }
-  /* 6角形の図。名前と点数は図の外に HTML で置く（図の中の字にすると、狭い画面で 12px を割る） */
+  /* 6角形の図。名前と点数は図のまわりに HTML で置く（図の中の字にすると、狭い画面で 12px を割る）。
+     6分類の点数を字で出すのはここだけ ＝ 読み上げから外すのは絵だけで、名前と点数は読ませる */
   function radar(vals, names) {
     var box = el('div', 'crl-radar'), n = vals.length, C = 100, R = 92;
-    box.setAttribute('aria-hidden', 'true');             // 同じ数字を、隣の6行が字で出している
+    box.setAttribute('role', 'list');
     function xy(i, k) {
       var a = -Math.PI / 2 + i * 2 * Math.PI / n;
       return [(C + R * k * Math.cos(a)).toFixed(1), (C + R * k * Math.sin(a)).toFixed(1)];
@@ -689,7 +690,7 @@
       for (var i = 0; i < n; i++) s.push(xy(i, fn(i)).join(','));
       return s.join(' ');
     }
-    var svg = svgEl('svg', 'crl-radar-svg', { viewBox: '0 0 200 200', focusable: 'false' });
+    var svg = svgEl('svg', 'crl-radar-svg', { viewBox: '0 0 200 200', focusable: 'false', 'aria-hidden': 'true' });
     [0.2, 0.4, 0.6, 0.8, 1].forEach(function (k) {
       svg.appendChild(svgEl('polygon', 'crl-radar-ring', { points: pts(function () { return k; }) }));
     });
@@ -705,6 +706,7 @@
     box.appendChild(svg);
     vals.forEach(function (v, j) {
       var l = el('span', 'crl-radar-l');
+      l.setAttribute('role', 'listitem');
       l.setAttribute('data-i', String(j));
       l.appendChild(el('span', '', names[j]));
       l.appendChild(el('b', '', v.toFixed(1)));
@@ -733,13 +735,16 @@
     });
   };
 
+  /* ★2026-10-06 オーナーのご指示「現行みたいにデカデカと評価スコアの部分を入れる必要ないけど、
+       パッと見てわかるようにして」「レーダー図はいれて」
+     ── 置くのは2つだけ：総合（点数・星・人数）と、6角形の図（まわりに6分類の名前と点数）。
+        同じ6つの数字をもう一度並べる棒は置かない（欄が倍の高さになる）。 */
   KIND.score = function (box, ids) {
     return reviews(ids[0]).then(function (res) {
       var u = ratingUI(), R = u && rated(u, res.rows);
       if (!R) return view('empty', []);
       var wrap = el('div', 'crl-sc');
       var sum = el('div', 'crl-sc-sum');
-      sum.appendChild(el('p', 'crl-sc-k', u.L.hrbLabel));
       var big = el('p', 'crl-sc-avg');
       big.appendChild(el('b', '', R.avg.toFixed(1)));
       big.appendChild(el('span', '', '/ 5.0'));
@@ -748,20 +753,6 @@
       sum.appendChild(el('p', 'crl-sc-cnt', R.label));
       wrap.appendChild(sum);
       wrap.appendChild(radar(R.ratings, u.cats.short));
-      var dl = el('dl', 'crl-sc-bars');
-      R.ratings.forEach(function (v, i) {
-        var row = el('div', 'crl-sc-row');
-        row.appendChild(el('dt', '', u.cats.full[i]));
-        var track = el('dd', 'crl-sc-track');
-        track.setAttribute('aria-hidden', 'true');
-        var fill = el('i');
-        fill.style.setProperty('--v', (v / 5).toFixed(3));
-        track.appendChild(fill);
-        row.appendChild(track);
-        row.appendChild(el('dd', 'crl-sc-v', v.toFixed(1)));
-        dl.appendChild(row);
-      });
-      wrap.appendChild(dl);
       return view('open', [wrap]);
     });
   };

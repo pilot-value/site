@@ -35,10 +35,12 @@
         ⚠️ 鍵を開けるかどうかを決めるのはサーバー（db/pay-rows.sql）。ここに条件を足さない。
 
      ⑪ 評価スコア（2026-10-06 オーナーのご指示「企業トップのどこかのカードに残して」）──
-        社名の行の星と、カードの総合点・6角形の図・6分類の棒は、**同じ1つの出し方**から出る
+        社名の行の星と、カードの総合点・6角形の図は、**同じ1つの出し方**から出る
         （airline-reviews-ui.js。ほかの会社のページの帯と同じ答え）。
         投稿が0件の時は見本の点数なので、必ず「サンプルデータ」と添える。「◯名が回答」とは書かない。
         読めない時は点数を出さない。出荷する HTML には数字を書かない（「—」）。
+        ★同日のご指示「現行みたいにデカデカと…入れる必要ないけど、パッと見てわかるようにして」「レーダー図はいれて」
+          ── 欄の高さに上限を置く。図の形は、描かれた頂点の位置を測って点数と突き合わせる。
 
    実データの欄（⭐・口コミ・REAL PAY・回答の集計）は、**決まった返事を返す偽のサーバー**で描かせる
    （0件／鍵の無い人に返る伏せた行／読めない）。本番の DB は読まない ＝ 毎回同じ答えになる。
@@ -661,9 +663,14 @@ function LIB() {
       hero: { avg: t('.pvg-hero .crl-avg'), cnt: t('.pvg-hero .crl-cnt'), fill: fill('.pvg-hero .crl-stars') },
       card: !c || !on(c) ? null : {
         title: t('.pvg-head', c) || t('h2', c) || t('h3', c), avg: t('.crl-sc-avg b', c), cnt: t('.crl-sc-cnt', c), fill: fill('#pvg-score .crl-sc-sum .crl-stars'),
-        rows: $$('.crl-sc-row', c).filter(on).map(e => ({ k: e.querySelector('dt').textContent.trim(), v: e.querySelector('.crl-sc-v').textContent.trim(), w: e.querySelector('.crl-sc-track i').getBoundingClientRect().width / (e.querySelector('.crl-sc-track').getBoundingClientRect().width || 1) })),
         radar: $$('.crl-radar-l', c).filter(on).map(e => ({ k: e.querySelector('span').textContent.trim(), v: e.querySelector('b').textContent.trim() })),
-        dots: $$('.crl-radar-dot', c).length,
+        /* 図の頂点が、まんなかからどれだけ離れているか（いちばん外の輪 ＝ 5点 を 1 とする）。描かれた形そのものを測る */
+        reach: (() => {
+          const ring = $$('.crl-radar-ring', c).pop(); if (!ring) return [];
+          const b = ring.getBoundingClientRect(), cx = b.left + b.width / 2, cy = b.top + b.height / 2, R = b.height / 2 || 1;
+          return $$('.crl-radar-dot', c).map(e => { const q = e.getBoundingClientRect(); return Math.hypot(q.left + q.width / 2 - cx, q.top + q.height / 2 - cy) / R; });
+        })(),
+        h: (() => { const e = c.querySelector('.crl[data-live="score"]'); return e ? e.getBoundingClientRect().height : 0; })(),
         cta: $$('.pvg-rv-cta a', c).filter(on).map(a => ({ text: a.textContent.trim(), href: a.getAttribute('href') })),
         give: $$('.crl[data-live="reviews"] a', c).filter(on).length,
         y: c.getBoundingClientRect().top + scrollY, next: (() => { const n = c.nextElementSibling; return n ? n.getBoundingClientRect().top + scrollY : null; })(),
@@ -970,9 +977,9 @@ function scoreBad(s, sc, slots) {
   if (sc.hero.fill !== fill || c.fill !== fill) bad.push(`星の数が違う（社名の行 ${sc.hero.fill}・カード ${c.fill}・あるべき ${fill}）`);
   if (sc.hero.cnt !== w.sample || c.cnt !== w.sample) bad.push(`0件なのに「${w.sample}」と添えていない（社名の行「${sc.hero.cnt}」・カード「${c.cnt}」）`);
   if (slots.some(x => /名が回答/.test(x.text))) bad.push('0件なのに「◯名が回答」と書いている');
-  if (!same(c.rows.map(r => [r.k, r.v]), w.full.map((k, i) => [k, one(w.ratings[i])]))) bad.push(`6分類の棒が違う：${c.rows.map(r => `${r.k} ${r.v}`).join('・')}`);
-  if (!c.rows.every((r, i) => Math.abs(r.w - w.ratings[i] / 5) < 0.02)) bad.push(`棒の長さが点数に比例していない：${c.rows.map(r => r.w.toFixed(2)).join('・')}`);
-  if (!same(c.radar.map(r => [r.k, r.v]), w.short.map((k, i) => [k, one(w.ratings[i])])) || c.dots !== 6) bad.push(`6角形の図の字が違う：${c.radar.map(r => `${r.k} ${r.v}`).join('・')}`);
+  if (!same(c.radar.map(r => [r.k, r.v]), w.short.map((k, i) => [k, one(w.ratings[i])]))) bad.push(`6角形の図のまわりの字が違う：${c.radar.map(r => `${r.k} ${r.v}`).join('・')}`);
+  if (c.reach.length !== 6 || !c.reach.every((r, i) => Math.abs(r - w.ratings[i] / 5) < 0.03)) bad.push(`6角形の図の形が点数に比例していない：${c.reach.map(r => r.toFixed(2)).join('・')}`);
+  if (!(c.h > 0 && c.h <= 320)) bad.push(`評価スコアの欄が大きい（高さ ${Math.round(c.h)}px・上限 320px）`);
   if (!same(c.cta, [{ text: '匿名で口コミを投稿する', href: `../submit-review.html?airline=${s}` }])) bad.push(`書く入口が違う：${c.cta.map(a => `${a.text} → ${a.href}`).join(' ／ ')}`);
   if (c.give) bad.push(`口コミの欄の中に、入口がもう ${c.give}つ在る`);
   if (!c.first) bad.push('会社・募集の箱より上に無い');
