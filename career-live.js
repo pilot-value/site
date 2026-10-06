@@ -63,7 +63,7 @@
       s: ['在籍5年未満', '在籍5〜10年', '在籍10〜15年', '在籍15〜20年', '在籍20年以上']
     },
     payEmpty: 'まだ記録がありません',
-    payCount: function (n) { return ['', String(n), '人が提出']; },
+    payCount: function (n) { return ['', String(n), '件の提出']; },
     payLock: '給与の提出で開きます',
     payGive: '匿名で給与を提出する',
     payUnlock: '全ての待遇データを解放する',
@@ -451,7 +451,7 @@
     li.appendChild(srcLine(r));
     return li;
   }
-  /* この会社の提出の件数（返ってきた行を数えるだけ。1行＝1人） */
+  /* この会社の提出の件数（返ってきた行を数えるだけ。同じ人が2行になることがあるので「人」と呼ばない） */
   function payCount(n) {
     var t = T.payCount(n), p = el('p', 'crl-count');
     if (t[0]) p.appendChild(d.createTextNode(t[0]));
@@ -644,17 +644,125 @@
     return p;
   }
 
+  /* ── 評価スコア（会社ページ）──────────────────────────────
+     2026-10-06 オーナーのご指示「パイロットによる評価スコアの部分、企業トップのどこかのカードに残して」。
+     ★ 点数と人数の出し方は airline-reviews-ui.js の ratingsFor() の1か所（ほかの会社のページの帯と同じ答え）。
+       ここは描くだけ。式も、6分類の名前も、言葉も持たない ── 写すと、同じ会社の点数がページで食い違う。
+     ★ 読めなかった時は点数を出さない（「いま読み出せません」＋やり直す）。0件と通信失敗を同じに見せない。 */
+  function ratingUI() {
+    var u = GL && w.PVReviewUI;
+    return (u && typeof u.ratingsFor === 'function' && u.cats && u.L) ? u : null;
+  }
+  function rated(u, rows) {
+    var r = u.ratingsFor(rows) || {};
+    var a = isArr(r.ratings) ? r.ratings.map(Number) : [];
+    if (a.length !== 6 || a.some(function (v) { return !isFinite(v); })) return null;     // 形が違えば出さない
+    a = a.map(function (v) { return Math.max(0, Math.min(5, v)); });
+    return {
+      ratings: a,
+      avg: a.reduce(function (x, y) { return x + y; }, 0) / a.length,
+      label: r.count > 0 ? u.L.respondents(r.count) : u.L.sampleData
+    };
+  }
+  function starsEl(avg) {
+    var st = el('span', 'crl-stars');
+    st.setAttribute('aria-hidden', 'true');
+    st.style.setProperty('--crl-fill', (Math.round(avg) * 20) + '%');      // 星は1つ単位（ほかの会社のページと同じ）
+    return st;
+  }
+  function svgEl(tag, cls, attrs) {
+    var n = d.createElementNS(NS, tag);
+    if (cls) n.setAttribute('class', cls);
+    for (var k in attrs) n.setAttribute(k, attrs[k]);
+    return n;
+  }
+  /* 6角形の図。名前と点数は図の外に HTML で置く（図の中の字にすると、狭い画面で 12px を割る） */
+  function radar(vals, names) {
+    var box = el('div', 'crl-radar'), n = vals.length, C = 100, R = 92;
+    box.setAttribute('aria-hidden', 'true');             // 同じ数字を、隣の6行が字で出している
+    function xy(i, k) {
+      var a = -Math.PI / 2 + i * 2 * Math.PI / n;
+      return [(C + R * k * Math.cos(a)).toFixed(1), (C + R * k * Math.sin(a)).toFixed(1)];
+    }
+    function pts(fn) {
+      var s = [];
+      for (var i = 0; i < n; i++) s.push(xy(i, fn(i)).join(','));
+      return s.join(' ');
+    }
+    var svg = svgEl('svg', 'crl-radar-svg', { viewBox: '0 0 200 200', focusable: 'false' });
+    [0.2, 0.4, 0.6, 0.8, 1].forEach(function (k) {
+      svg.appendChild(svgEl('polygon', 'crl-radar-ring', { points: pts(function () { return k; }) }));
+    });
+    for (var i = 0; i < n; i++) {
+      var e = xy(i, 1);
+      svg.appendChild(svgEl('line', 'crl-radar-axis', { x1: C, y1: C, x2: e[0], y2: e[1] }));
+    }
+    svg.appendChild(svgEl('polygon', 'crl-radar-shape', { points: pts(function (j) { return vals[j] / 5; }) }));
+    vals.forEach(function (v, j) {
+      var p = xy(j, v / 5);
+      svg.appendChild(svgEl('circle', 'crl-radar-dot', { cx: p[0], cy: p[1], r: 3.5 }));
+    });
+    box.appendChild(svg);
+    vals.forEach(function (v, j) {
+      var l = el('span', 'crl-radar-l');
+      l.setAttribute('data-i', String(j));
+      l.appendChild(el('span', '', names[j]));
+      l.appendChild(el('b', '', v.toFixed(1)));
+      box.appendChild(l);
+    });
+    return box;
+  }
+
   KIND.stars = function (box, ids) {
     var slug = ids[0];
     return reviews(slug).then(function (res) {
+      var u = ratingUI(), R = u && rated(u, res.rows);
+      if (R) {                                           // 会社ページ：下の「評価スコア」の箱と同じ数字
+        var p = el('p', 'crl-score');
+        p.appendChild(starsEl(R.avg));
+        p.appendChild(el('b', 'crl-avg', R.avg.toFixed(1)));
+        p.appendChild(el('span', 'crl-cnt', R.label));
+        return view('open', [p]);
+      }
       var s = score(res.rows);
       if (!s.n) {
-        /* 会社ページの「口コミ」の箱では、空いた箱のまんなかに置く入口なのでボタンにする（社名の行の小さな入口はリンクのまま） */
-        var card = GL && box.closest && box.closest('.pvg-rv-card');
         return view('empty', [msg(GL ? T.revNone : T.revEmpty),
-          foot([link(T.revGive, UP + 'submit-review.html?airline=' + enc(slug), card ? 'cta' : '')])]);
+          foot([link(T.revGive, UP + 'submit-review.html?airline=' + enc(slug))])]);
       }
       return view('open', [scoreLine(s)]);
+    });
+  };
+
+  KIND.score = function (box, ids) {
+    return reviews(ids[0]).then(function (res) {
+      var u = ratingUI(), R = u && rated(u, res.rows);
+      if (!R) return view('empty', []);
+      var wrap = el('div', 'crl-sc');
+      var sum = el('div', 'crl-sc-sum');
+      sum.appendChild(el('p', 'crl-sc-k', u.L.hrbLabel));
+      var big = el('p', 'crl-sc-avg');
+      big.appendChild(el('b', '', R.avg.toFixed(1)));
+      big.appendChild(el('span', '', '/ 5.0'));
+      sum.appendChild(big);
+      sum.appendChild(starsEl(R.avg));
+      sum.appendChild(el('p', 'crl-sc-cnt', R.label));
+      wrap.appendChild(sum);
+      wrap.appendChild(radar(R.ratings, u.cats.short));
+      var dl = el('dl', 'crl-sc-bars');
+      R.ratings.forEach(function (v, i) {
+        var row = el('div', 'crl-sc-row');
+        row.appendChild(el('dt', '', u.cats.full[i]));
+        var track = el('dd', 'crl-sc-track');
+        track.setAttribute('aria-hidden', 'true');
+        var fill = el('i');
+        fill.style.setProperty('--v', (v / 5).toFixed(3));
+        track.appendChild(fill);
+        row.appendChild(track);
+        row.appendChild(el('dd', 'crl-sc-v', v.toFixed(1)));
+        dl.appendChild(row);
+      });
+      wrap.appendChild(dl);
+      return view('open', [wrap]);
     });
   };
 
@@ -708,9 +816,10 @@
       /* 会社ページでは、同じページの「口コミ」のタブを開く（pv-glance.js が受ける）。 */
       var all = link(T.revAll, GL ? '#reviews' : 'airlines/' + enc(slug) + '.html');
       if (anyLocked) {
-        return view('locked', [ul, lockLine(T.revLock), foot([
-          link(T.revGive, UP + 'submit-review.html?airline=' + enc(slug), 'cta'), all
-        ])]);
+        /* 会社ページの箱は、書く入口を箱の底に1つ持っている（data-give="0"）。同じボタンを2つ並べない */
+        var give = box.getAttribute('data-give') === '0' ? null
+          : link(T.revGive, UP + 'submit-review.html?airline=' + enc(slug), 'cta');
+        return view('locked', [ul, lockLine(T.revLock), foot([give, all])]);
       }
       return view('open', [ul, foot([all])]);
     });

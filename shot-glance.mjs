@@ -479,7 +479,7 @@ async function sheet() {
   fs.writeFileSync(path.join(dir, 'index.html'),
     `<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">` +
     `<meta name="robots" content="noindex"><title>台紙の一覧</title><style>${CSS}</style></head><body>` +
-    `<header><h1>台紙の一覧</h1><div class="sub">見本｜現行｜初稿</div></header><ul>${rows}</ul></body></html>`);
+    `<header><h1>台紙の一覧</h1><div class="sub">見本｜現行｜初稿　── 会社ページの初稿（方向の確認用）。情報を足す画面と、5つのタブ分けは未着手</div></header><ul>${rows}</ul></body></html>`);
 
   console.log(`  ✓ 台紙 ${made.length} 枚 → temporary screenshots/glance/sheets/`);
   console.log(`  入口 ${urlOf('index.html')}`);

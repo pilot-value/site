@@ -13,7 +13,8 @@
 /* 口コミが0件のとき、言葉は星の欄が出す（同じ文を2回出さない） */
 .crl[data-live="reviews"][data-state="empty"]{display:none}
 /* 落ちたときも同じ（「やり直す」は落ちた欄を全部やり直すので、帯は1本で足りる） */
-.crl[data-live="stars"][data-state="error"] + .crl[data-live="reviews"][data-state="error"]{display:none}
+.crl[data-live="stars"][data-state="error"] + .crl[data-live="reviews"][data-state="error"],
+.crl[data-live="score"][data-state="error"] + .crl[data-live="reviews"][data-state="error"]{display:none}
 
 /* ── loading ── */
 .crl-sk{display:grid;gap:8px;padding:6px 0}

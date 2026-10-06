@@ -811,23 +811,40 @@
     return _v2Promise;
   }
 
-  function applyV2Ratings(rows) {
-    if (!rows.length) return;
+  /* 6分類の点数の出し方はここ1か所。評点の付いた投稿が1つも無ければ null。
+     ⚠️ 主要5社のページ（career-live.js の評価スコアの欄）も ratingsFor() 経由でこれを呼ぶ。
+        式を写さない ── 写すと、同じ会社の点数がページによって違う値になる。 */
+  function v2Blend(rows) {
     var newRatings = V2_CAT_KEYS.map(function (k) {
       var vals = rows.map(function (r) { return r[k]; }).filter(function (v) { return v > 0; });
       return vals.length ? +(vals.reduce(function (a, b) { return a + b; }, 0) / vals.length).toFixed(1) : null;
     });
-    if (newRatings.some(function (v) { return v !== null; })) {
-      var seed = RATINGS[AIRLINE_CODE] || DEFAULT_R;
-      var n = rows.length;
-      updateRatingBanner(seed.map(function (s, i) {
-        return newRatings[i] !== null ? +((s * 2 + newRatings[i] * n) / (2 + n)).toFixed(1) : s;
-      }), n);
+    if (!newRatings.some(function (v) { return v !== null; })) return null;
+    var seed = RATINGS[AIRLINE_CODE] || DEFAULT_R;
+    var n = rows.length;
+    return seed.map(function (s, i) {
+      return newRatings[i] !== null ? +((s * 2 + newRatings[i] * n) / (2 + n)).toFixed(1) : s;
+    });
+  }
+
+  function applyV2Ratings(rows) {
+    if (!rows.length) return;
+    var blended = v2Blend(rows);
+    if (blended) {
+      updateRatingBanner(blended, rows.length);
     } else {
       // 評点が無い投稿しかなくても「何名が回答したか」は事実なので出す
       var el = d.querySelector('#airline-rating-banner .hrb-count');
       if (el) el.textContent = L.respondents(rows.length);
     }
+  }
+
+  /* 取ってきた投稿の束から、画面に出す点数と人数を作る（バナーと同じ答え）。
+     count が 0 のときは「サンプルデータ」と出す側。 */
+  function ratingsFor(rows) {
+    var base = getAirlineRatings();
+    if (!rows || !rows.length) return base;
+    return { ratings: v2Blend(rows) || base.ratings, count: rows.length };
   }
 
   function paint() {
@@ -1162,6 +1179,8 @@
     mount: mount,
     sb: _initSB,
     getRatings: getAirlineRatings,
+    ratingsFor: ratingsFor,
+    cats: { short: CAT_SHORT, full: CAT_FULL },
     reviewCount: reviewCount,
     getSeedReviews: getSeedReviews,
     switchTab: switchTab,

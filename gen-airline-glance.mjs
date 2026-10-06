@@ -69,7 +69,10 @@ const IC = {
 };
 
 /* ── 部品 ───────────────────────────────────────────── */
-const join = (...xs) => xs.filter(Boolean).join('・');
+const join = (...xs) => {
+  const a = [...new Set(xs.filter(Boolean))];
+  return a.filter(x => !a.some(y => y !== x && y.includes(x))).join('・');
+};
 /* 事実に添える前提。時点が日付でなく資料の呼び名（「経験者の副操縦士の募集」）のときは、
    前提と同じことを2度言うことになるので、前提だけにする（資料の名前は出どころの一覧に出る）。 */
 /* 値がもう時点を言っているとき（設立 1951年8月1日）は、同じ日付をもう一度書かない。 */
@@ -87,9 +90,11 @@ const approx = (cur, yenText) => `<small class="pvg-yen"${cur ? ` data-cur="${es
 const curOf = s => (/\b([A-Z]{3})\b/.exec(String(s)) || [])[1] || '';
 const val = f => f.orig === true
   ? `<span class="pv-no-cur">${esc(f.value)}</span>${f.yen ? approx(curOf(f.value), f.yen) : ''}`
-  : esc(f.value);
+  : safe(f.value);
 /* 台帳の散文（外貨の「500万元」などを通貨切替が円と読み違えないよう、丸ごと素通しにする） */
 const prose = s => `<span class="pv-no-cur">${esc(s)}</span>`;
+/* 円の額ではない「10万米ドル」「2,240万人」の「◯万」を、通貨切替が円の額と読み違えないようにする */
+const safe = s => (!/[¥円]/.test(String(s)) && /\d\s*[万億]/.test(String(s)) ? prose(s) : esc(s));
 const whole = f => (f.pilot === false ? '<span class="pvg-tag pvg-tag-q">会社全体の制度</span>' : '');
 
 /* 出どころの一覧（同じ資料は1回だけ）。
@@ -372,10 +377,15 @@ const realpayCard = v => `<article class="pvg-card pvg-rp" id="pvg-realpay">
 ${head(IC.realpay, '提出された年収', 'REAL PAY')}
 ${live('realpay', { airline: v.slug })}
 </article>`;
-const reviewsCard = v => `<article class="pvg-card pvg-rv-card">
-${head(IC.reviews, '口コミ', '実際の投稿だけで集計')}
-${live('stars', { airline: v.slug })}
-${live('reviews', { airline: v.slug })}
+/* 評価スコア＋口コミ（2026-10-06 オーナーのご指示「パイロットによる評価スコアの部分、企業トップのどこかのカードに残して」）。
+   点数・6角形の図・6分類の棒は career-live.js が描く。数字の出し方は airline-reviews-ui.js の1か所
+   （ほかの会社のページの帯と同じ答え）。HTML には数字を1つも書かない（出荷時は「—」）。
+   書く入口は箱の底に1つだけ（文言は今のページの帯と同じ）。 */
+const reviewsCard = v => `<article class="pvg-card pvg-rv-card" id="pvg-score">
+${head(IC.reviews, 'パイロットによる評価スコア')}
+${live('score', { airline: v.slug })}
+${live('reviews', { airline: v.slug, give: '0' })}
+<p class="pvg-rv-cta"><a class="pvg-btn" href="${UP}submit-review.html?airline=${esc(v.slug)}">匿名で口コミを投稿する</a><span>匿名・無料</span></p>
 </article>`;
 function jobsCard(v) {
   return `<article class="pvg-card pvg-jobs">
@@ -390,7 +400,7 @@ function stayCard(v) {
   const base = `<p class="pvg-stay-base">${IC.pin}<span>拠点</span><b>${esc(v.base.city)}${v.base.iata.length ? ` ${v.base.iata.map(esc).join('・')}` : ''}</b>
 ${ext(href.maps(`${v.base.text} ${v.base.iata[0] || ''}`.trim()).replace(/&amp;/g, '&'), 'Google マップで見る', 'pvg-link')}</p>`;
   const list = dests.length
-    ? `<p class="pvg-askh">就航地（押すと、その街のホテル・レストランへ）<small>${dests.length}都市</small></p>
+    ? `<p class="pvg-askh">就航地（押すと、その街のホテル・レストランへ）</p>
 <ul class="pvg-chips pvg-dest">${dests.slice(0, DEST_FIRST).map(dest).join('')}</ul>${dests.length > DEST_FIRST ? `
 <details class="pvg-dt"><summary>ほか${dests.length - DEST_FIRST}都市${IC.down}</summary>
 <ul class="pvg-chips pvg-dest">${dests.slice(DEST_FIRST).map(dest).join('')}</ul></details>` : ''}`
@@ -442,8 +452,8 @@ ${livingCell(v)}
 </div>
 ${realpayCard(v)}
 <div class="pvg-more-grid">
-${companyCard(v)}
 ${reviewsCard(v)}
+${companyCard(v)}
 ${jobsCard(v)}
 ${stayCard(v)}
 ${askCard(v)}

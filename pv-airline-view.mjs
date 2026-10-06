@@ -88,7 +88,7 @@ function figNote(slug, f) {
   return n.cond;
 }
 /* 出どころの時点。台帳の as_of の頭（「2026年1月時点（脚注…）」→「2026年1月時点」）。 */
-const srcWhen = s => String(s.as_of || '').replace(/（.*$/, '').replace(/^(\d{4})-(\d{2})-(\d{2})\s*掲載$/, (m, y, mo, d) => `${y}年${+mo}月${+d}日 掲載`);
+const srcWhen = s => String(s.as_of || '').replace(/（[^（）]*）$/, '').replace(/^(\d{4})-(\d{2})-(\d{2})\s*掲載$/, (m, y, mo, d) => `${y}年${+mo}月${+d}日 掲載`);
 const srcOf = slug => (BASIS[slug].src || []).map(s => ({ pub: s.pub, name: s.name, when: srcWhen(s), url: s.url, secondary: !!s.secondary }));
 
 function payOf(slug, rank) {
@@ -162,14 +162,25 @@ function etihad() {
       key: j.key, label: j.ja, value: `${j.place_ja}`, cond: '', when: `${whenText({ at: j.posted })} 掲載`,
       src: { name: j.src.name, url: j.url, kind: j.src.kind }, pilot: true,
     })),
+    /* ★ 家賃は1か月あたりで出す（2026-10-06 オーナーのご指示「年間じゃなくて月間の家賃」）。
+       出どころ（Bayut）の表は1年あたりなので、12で割って1の位で丸める。台帳（career-facts.mjs）は年額のまま持つ。
+       割ったことは、説明の中で1回だけ言う（basis の per_month）。 */
     living: {
-      city: E.living.city_ja, cur: 'AED', per: 'year', measure: '募集家賃の平均',
+      city: E.living.city_ja, cur: 'AED', per: 'month', measure: '募集家賃の平均',
       cols: [['studio', 'スタジオ'], ['bed1', '1寝室'], ['bed2', '2寝室']], leadCol: 'bed1',
-      rents: E.living.rents.map((r, i) => ({ key: r.key, name: r.ja, pick: '', value: r.value, when: whenText(r), src: r.src, cond: '', lead: i === 0 })),
-      basis: E.living.rent_basis.map(b => ({ key: b.key, value: b.value })),
+      rents: E.living.rents.map((r, i) => ({ key: r.key, name: r.ja, pick: '', value: perMonth(r), when: whenText(r), src: r.src, cond: '', lead: i === 0 })),
+      basis: [...E.living.rent_basis.filter(b => b.key !== 'per').map(b => ({ key: b.key, value: b.value })),
+              { key: 'per_month', value: '出どころの表は1年あたりの額。ここでは12で割って、1か月あたりにしている' }],
       commute: [],
     },
   };
+}
+
+/* 1年あたりで載っている家賃を、1か月あたりにする（12で割って1の位で丸める）。年額と書いていない行が来たら止める。 */
+function perMonth(r) {
+  if (r.per !== 'year') throw new Error(`${r.key}: 家賃が1年あたりではない（per=${r.per}）`);
+  const m = n => (typeof n === 'number' ? Math.round(n / 12) : n);
+  return Object.fromEntries(Object.entries(r.value).map(([k, n]) => [k, Array.isArray(n) ? n.map(m) : m(n)]));
 }
 
 function others(slug) {
@@ -183,7 +194,8 @@ function others(slug) {
     profile: facts(F.profile), scale: facts(F.scale), fleet: facts(F.fleet),
     jobs: facts(F.jobs),
     living: {
-      city: L.city_ja, cur, per: L.rents[0].per || '', measure: L.measure_ja,
+      /* 東京（SUUMO）は台帳に単位の字が無い（per が空）。日本の賃料の相場は月額なので、画面では「月」と出す。 */
+      city: L.city_ja, cur, per: L.rents[0].per || (cur === 'JPY' ? 'month' : ''), measure: L.measure_ja,
       cols: L.cols, leadCol: L.lead_col,
       rents: L.rents.map(r => ({ key: r.key, name: r.ja, pick: r.pick_ja || '', value: r.value, when: whenText(r), src: r.src, cond: r.cond_ja || '', lead: !!r.lead })),
       basis: (L.rent_basis || []).map(b => ({ key: b.key, value: b.value })),

@@ -82,6 +82,11 @@
   /* スマホでは1行に入りきらず途中で切れるので出さない（同じ中身は下の「会社」の欄に在る）。
      ⚠️ 要素は消さない ── airline-base.js が検索向けの説明をここから読む */
   .pvg-hero .pvg-sub{display:none}
+  /* 拠点と星を1行に収める（2行に割れると、最初の1画面から「暮らし」が押し出される） */
+  .pvg-hero .pvg-meta{gap:2px 10px}
+  .pvg-hero .crl .crl-score{gap:2px 6px}
+  .pvg-hero .crl .crl-stars{font-size:14px}
+  .pvg-hero .crl .crl-avg{font-size:16px}
 }
 
 /* ── 土台 ───────────────────────────────────────────── */
@@ -338,22 +343,69 @@
 .pvg-more-grid > .pvg-card{display:flex;flex-direction:column}
 .pvg-more-grid > .pvg-card > .pvg-hd{margin-bottom:8px}
 .pvg-more-grid .crl{font-size:13.5px}
-/* 実データの欄は箱の底まで伸び、入口（口コミを書く・全部見る）は箱の底に置く */
-.pvg-rv-card > .crl:last-child{flex:1 1 auto;display:flex;flex-direction:column}
-.pvg-rv-card > .crl:last-child > .crl-foot{margin-top:auto;padding-top:6px}
-.pvg-rv-card > .crl:last-child > .crl-lock{margin-top:auto}
-.pvg-rv-card > .crl:last-child > .crl-lock + .crl-foot{margin-top:6px;padding-top:0}
-.pvg-rv-card > .crl:last-child > .crl-revs{margin-bottom:10px}
-/* 口コミがまだ無い会社：箱を空けたまま伸ばさず、まんなかに「まだ無い」と入口を置く。
-   ⚠️ 下の欄（本文）は高さを 0 にするだけ。display:none にすると career-live.js が二度と取りに行かない。 */
-.pvg-rv-card > .crl[data-live="stars"][data-state="empty"]{
-  flex:1 1 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
-  padding:18px 0 12px;text-align:center;
+/* ── 評価スコア＋口コミ（2026-10-06 オーナーのご指示で、評価スコアを企業トップのカードに残した）──
+   上から：総合の点数 → 6角形の図 → 6分類の棒 → 口コミの抜粋 → 書く入口。
+   数字を描くのは career-live.js（出し方は airline-reviews-ui.js の1か所）。ここは置き方だけ */
+.pvg-rv-card > .crl[data-live="score"]{min-height:120px}
+.pvg-rv-card > .crl[data-live="score"][data-state="empty"]{min-height:0}
+.pvg-rv-card > .crl[data-live="reviews"]{display:flex;flex-direction:column;margin-top:14px}
+.pvg-rv-card > .crl[data-live="reviews"] > .crl-revs{margin-top:0}
+/* ⚠️ 口コミが無い時、下の欄は高さを 0 にするだけ。display:none にすると career-live.js が二度と取りに行かない。 */
+.pvg-rv-card > .crl[data-live="reviews"][data-state="empty"]{flex:none;height:0;min-height:0;margin:0;overflow:hidden}
+.pvg-rv-cta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin:20px 0 0}
+.pvg-rv-cta > span{font-size:12px;color:var(--pv-ink-3)}
+
+.pvg .crl-sc{display:grid;grid-template-columns:minmax(0,1fr);gap:18px}
+/* 総合：何の数か → 点数（大きく）｜星と人数 */
+.pvg .crl-sc-sum{display:grid;grid-template-columns:max-content minmax(0,1fr);align-items:center;gap:0 14px}
+.pvg .crl-sc-k{grid-column:1 / -1;margin:0 0 2px;font-size:12px;font-weight:600;line-height:1.5;color:var(--pv-ink-3)}
+.pvg .crl-sc-avg{grid-column:1;grid-row:2 / span 2;display:flex;align-items:baseline;gap:6px;margin:0;line-height:1}
+.pvg .crl-sc-avg b{font:800 44px/1 Inter,'Noto Sans JP',sans-serif;letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:var(--pv-ink)}
+.pvg .crl-sc-avg span{font-size:13px;font-weight:600;color:var(--pv-ink-3)}
+.pvg .crl-sc-sum .crl-stars{grid-column:2;grid-row:2;align-self:end;justify-self:start;font-size:18px}
+.pvg .crl-sc-cnt{grid-column:2;grid-row:3;align-self:start;margin:0;font-size:12px;line-height:1.5;color:var(--pv-ink-2)}
+/* 6角形の図：まんなかに図、名前と点数は図のまわりに置く（上・右上・右下・下・左下・左上） */
+.pvg .crl-radar{
+  display:grid;grid-template-columns:60px minmax(0,1fr) 60px;grid-template-rows:auto 1fr 1fr auto;
+  align-items:center;gap:6px 8px;width:100%;max-width:320px;margin-inline:auto;
 }
-.pvg-rv-card > .crl[data-live="stars"][data-state="empty"] .crl-msg{min-height:0;font-size:13.5px}
-.pvg-rv-card > .crl[data-live="stars"][data-state="empty"] .crl-msg::before{display:none}
-.pvg-rv-card > .crl[data-live="stars"][data-state="empty"] .crl-foot{margin:0;justify-content:center}
-.pvg-rv-card > .crl[data-live="reviews"][data-state="empty"]{flex:none;height:0;min-height:0;overflow:hidden}
+.pvg .crl-radar-svg{grid-column:2;grid-row:2 / span 2;display:block;width:100%;height:auto;aspect-ratio:1;overflow:visible}
+.pvg .crl-radar-ring{fill:none;stroke:var(--pv-line);stroke-width:1;vector-effect:non-scaling-stroke}
+.pvg .crl-radar-axis{stroke:var(--pv-line);stroke-width:1;vector-effect:non-scaling-stroke}
+.pvg .crl-radar-shape{fill:var(--pv-gold-soft);stroke:var(--pv-star);stroke-width:2;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.pvg .crl-radar-dot{fill:var(--pv-star)}
+.pvg .crl-radar-l{display:flex;flex-direction:column;min-width:0;font-size:12px;line-height:1.35;color:var(--pv-ink-2)}
+.pvg .crl-radar-l b{font-weight:800;font-variant-numeric:tabular-nums;color:var(--pv-ink)}
+.pvg .crl-radar-l[data-i="0"],.pvg .crl-radar-l[data-i="3"]{grid-column:1 / -1;flex-direction:row;justify-content:center;gap:6px}
+.pvg .crl-radar-l[data-i="0"]{grid-row:1}
+.pvg .crl-radar-l[data-i="3"]{grid-row:4}
+.pvg .crl-radar-l[data-i="1"]{grid-column:3;grid-row:2}
+.pvg .crl-radar-l[data-i="2"]{grid-column:3;grid-row:3}
+.pvg .crl-radar-l[data-i="5"]{grid-column:1;grid-row:2;align-items:flex-end;text-align:right}
+.pvg .crl-radar-l[data-i="4"]{grid-column:1;grid-row:3;align-items:flex-end;text-align:right}
+/* 6分類：名前｜棒（0〜5 の目盛。左端が 0）｜点数 */
+.pvg .crl-sc-bars{display:grid;gap:10px;margin:0}
+.pvg .crl-sc-row{display:grid;grid-template-columns:minmax(0,10.5em) minmax(0,1fr) 2.2em;align-items:center;gap:10px;font-size:13px;line-height:1.5}
+.pvg .crl-sc-row dt{min-width:0;color:var(--pv-ink-2)}
+.pvg .crl-sc-row dd{margin:0}
+.pvg .crl-sc-track{height:8px;border-radius:999px;background:var(--pv-line-soft);overflow:hidden}
+.pvg .crl-sc-track i{display:block;width:calc(var(--v,0) * 100%);height:100%;border-radius:inherit;background:var(--pv-star)}
+.pvg .crl-sc-v{font-weight:800;font-variant-numeric:tabular-nums;text-align:right;color:var(--pv-ink)}
+/* iPad 縦：総合は上に横いっぱい、その下に 図｜棒 */
+@container pvg (min-width:640px){
+  .pvg .crl-sc{grid-template-columns:minmax(0,280px) minmax(0,1fr);align-items:center;gap:16px 28px}
+  .pvg .crl-sc-sum{grid-column:1 / -1}
+  .pvg-rv-card > .crl[data-live="reviews"] > .crl-revs{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+/* iPad 横・PC：総合｜図｜棒 を1段に */
+@container pvg (min-width:900px){
+  .pvg .crl-sc{grid-template-columns:max-content minmax(0,300px) minmax(0,1fr);gap:16px 40px}
+  .pvg .crl-sc-sum{grid-column:auto;grid-template-columns:minmax(0,1fr);gap:4px;padding-right:8px}
+  .pvg .crl-sc-avg,.pvg .crl-sc-sum .crl-stars,.pvg .crl-sc-cnt{grid-column:1;grid-row:auto}
+  .pvg .crl-sc-avg b{font-size:52px}
+  .pvg .crl-sc-sum .crl-stars{margin-top:6px}
+  .pvg .crl-sc-row{font-size:13.5px}
+}
 /* 会社：写真（箱の上の縁いっぱいの帯）→ 見出し → 数字 → 機材 → 出どころ の1列 */
 .pvg-photo{margin:calc(var(--pvg-pad) * -1) calc(var(--pvg-pad) * -1) 12px!important}
 .pvg-photo img{display:block;width:100%;height:auto;aspect-ratio:16/7;object-fit:cover;border-radius:calc(var(--pv-r-lg) - 1px) calc(var(--pv-r-lg) - 1px) 0 0;background:var(--pv-bg-sub)}

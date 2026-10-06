@@ -34,10 +34,16 @@
         「全ての待遇データを解放する」のボタンが、自分の会社を選んだ給与の提出へ行く。
         ⚠️ 鍵を開けるかどうかを決めるのはサーバー（db/pay-rows.sql）。ここに条件を足さない。
 
+     ⑪ 評価スコア（2026-10-06 オーナーのご指示「企業トップのどこかのカードに残して」）──
+        社名の行の星と、カードの総合点・6角形の図・6分類の棒は、**同じ1つの出し方**から出る
+        （airline-reviews-ui.js。ほかの会社のページの帯と同じ答え）。
+        投稿が0件の時は見本の点数なので、必ず「サンプルデータ」と添える。「◯名が回答」とは書かない。
+        読めない時は点数を出さない。出荷する HTML には数字を書かない（「—」）。
+
    実データの欄（⭐・口コミ・REAL PAY・回答の集計）は、**決まった返事を返す偽のサーバー**で描かせる
    （0件／鍵の無い人に返る伏せた行／読めない）。本番の DB は読まない ＝ 毎回同じ答えになる。
    ⚠️ なので、ここが保証するのは「0件の時」「鍵の無い時」「読めない時」だけ。
-      実際の投稿が入った時の形（⭐が出る・口コミが並ぶ・鍵が開いて額が並ぶ）は、この検査は見ていない。
+      実際の投稿が入った時の形（点数に投稿が混ざる・口コミが並ぶ・鍵が開いて額が並ぶ）は、この検査は見ていない。
 
    使い方（node serve.mjs を起動した状態で）
      node assert-airline-glance.mjs            全部
@@ -438,7 +444,8 @@ for (const s of FIVE) {
   ok(hrefs.filter(h => h === `../career.html?view=card&a=${s}`).length === 1, `${s}: 「カードにする」は自分のカードへ`);
   ok(hrefs.filter(h => h.startsWith('../pay-report.html')).every(h => h === `../pay-report.html?airline=${s}`), `${s}: 給与の提出は自分の会社を選んだ状態で開く`);
   ok(hrefs.filter(h => /[?&]stay=/.test(h)).every(h => new RegExp(`^\\.\\./career\\.html\\?airline=${s}&stay=[A-Z]{3}$`).test(h)), `${s}: 就航地の入口は自分の会社＋空港の3レター`);
-  const known = h => /^https:\/\//.test(h) || h === '#pvg-stay' || /^\.\.\/(airline-conditions|career|pay-report)\.html\?/.test(h) || /^\.\.\/(career-live|pv-glance)\.css\?v=/.test(h);
+  ok(hrefs.filter(h => h.startsWith('../submit-review.html')).length === 1 && hrefs.includes(`../submit-review.html?airline=${s}`), `${s}: 口コミを書く入口は1つで、自分の会社を選んだ状態で開く`);
+  const known = h => /^https:\/\//.test(h) || h === '#pvg-stay' || /^\.\.\/(airline-conditions|career|pay-report|submit-review)\.html\?/.test(h) || /^\.\.\/(career-live|pv-glance)\.css\?v=/.test(h);
   ok(hrefs.every(known), `${s}: 知らない形の行き先が無い`, hrefs.filter(h => !known(h)).slice(0, 3).join(' '));
   ok(!hrefs.includes('#pvg-stay') || /id="pvg-stay"/.test(P.glance), `${s}: ページの中の行き先（#pvg-stay）が在る`);
   /* 「募集要項を開く」の行き先は、この節の外に在る昔からの節。見出しで探す（pv-glance.js の SEC と同じ言葉）。 */
@@ -644,6 +651,26 @@ function LIB() {
     pay: snap('.pvg-pay', '.crl'),
   });
   G.all = () => snap('.pvg, .pvg-hero', '.crl, script, style');
+  /* 評価スコア：社名の行と、カードに出ている字。右は、ほかの会社のページの帯が使うのと同じ出し方の答え。 */
+  G.score = () => {
+    const u = window.PVReviewUI || {}, r = (u.getRatings && u.getRatings()) || {}, c = document.querySelector('#pvg-score');
+    const t = (s, root) => { const e = (root || document).querySelector(s); return e && on(e) ? e.textContent.replace(/\s+/g, ' ').trim() : null; };
+    const fill = s => { const e = document.querySelector(s); return e && on(e) ? e.style.getPropertyValue('--crl-fill') : null; };
+    return {
+      want: { ratings: r.ratings || [], count: r.count, full: (u.cats || {}).full || [], short: (u.cats || {}).short || [], sample: (u.L || {}).sampleData || '' },
+      hero: { avg: t('.pvg-hero .crl-avg'), cnt: t('.pvg-hero .crl-cnt'), fill: fill('.pvg-hero .crl-stars') },
+      card: !c || !on(c) ? null : {
+        title: t('.pvg-head', c) || t('h2', c) || t('h3', c), avg: t('.crl-sc-avg b', c), cnt: t('.crl-sc-cnt', c), fill: fill('#pvg-score .crl-sc-sum .crl-stars'),
+        rows: $$('.crl-sc-row', c).filter(on).map(e => ({ k: e.querySelector('dt').textContent.trim(), v: e.querySelector('.crl-sc-v').textContent.trim(), w: e.querySelector('.crl-sc-track i').getBoundingClientRect().width / (e.querySelector('.crl-sc-track').getBoundingClientRect().width || 1) })),
+        radar: $$('.crl-radar-l', c).filter(on).map(e => ({ k: e.querySelector('span').textContent.trim(), v: e.querySelector('b').textContent.trim() })),
+        dots: $$('.crl-radar-dot', c).length,
+        cta: $$('.pvg-rv-cta a', c).filter(on).map(a => ({ text: a.textContent.trim(), href: a.getAttribute('href') })),
+        give: $$('.crl[data-live="reviews"] a', c).filter(on).length,
+        y: c.getBoundingClientRect().top + scrollY, next: (() => { const n = c.nextElementSibling; return n ? n.getBoundingClientRect().top + scrollY : null; })(),
+        first: c.parentElement.firstElementChild === c,
+      },
+    };
+  };
   G.live = () => $$('.pvg .crl, .pvg-hero .crl').map(e => ({
     kind: e.dataset.live, state: e.dataset.state, air: e.dataset.airline, on: on(e), hero: !!e.closest('.pvg-hero'),
     panel: (e.closest('.pvg-panel') || {}).id || '', text: e.textContent.replace(/\s+/g, ' ').trim(), retry: !!e.querySelector('.crl-retry'),
@@ -701,7 +728,7 @@ function LIB() {
     }
     /* 5) 伸びて下が空いたカード（畳んだ形だけ。開いた束は高さがそろわなくて当たり前） */
     if (folded) for (const card of $$('.pvg-more-grid > .pvg-card', root)) {
-      if (!on(card) || card.querySelector(':scope > .crl[data-live="stars"][data-state="empty"]')) continue;   // まんなかに置く空の状態
+      if (!on(card)) continue;
       const c = card.getBoundingClientRect(); let bottom = c.top;
       for (const e of $$('*', card)) { if (on(e) && (hasText(e) || e.tagName === 'IMG')) bottom = Math.max(bottom, e.getBoundingClientRect().bottom); }
       const gap = c.bottom - parseFloat(getComputedStyle(card).paddingBottom) - bottom;
@@ -929,6 +956,28 @@ function bandBad(s, sh, rp) {
 }
 const squash = t => t.replace(/\s+/g, '');
 const NO_NUM = /[0-9０-９★☆⭐¥]/u;
+const IS_SCORE = x => x.kind === 'stars' || x.kind === 'score';
+/* 評価スコア（投稿が0件の時）。点数は、ほかの会社のページの帯と同じ出し方の答え（want）と突き合わせる。 */
+function scoreBad(s, sc, slots) {
+  const bad = [], w = sc.want, c = sc.card;
+  if (!(slots.length === 2 && slots.every(x => x.on && x.state === 'open'))) bad.push(`欄が ${slots.map(x => `${x.kind}:${x.state}`).join(' ')}`);
+  if (w.ratings.length !== 6 || w.full.length !== 6 || w.short.length !== 6 || !w.sample) return [...bad, '点数の出し方（PVReviewUI）を読めない'];
+  if (w.count !== 0) bad.push(`偽のサーバーは0件なのに、人数が ${w.count}`);
+  const avg = w.ratings.reduce((a, b) => a + b, 0) / 6, fill = `${Math.round(avg) * 20}%`;
+  const one = v => Number(v).toFixed(1);
+  if (!c) return [...bad, '評価スコアのカードが見えていない'];
+  if (sc.hero.avg !== one(avg) || c.avg !== one(avg)) bad.push(`総合点が違う（社名の行 ${sc.hero.avg}・カード ${c.avg}・あるべき ${one(avg)}）`);
+  if (sc.hero.fill !== fill || c.fill !== fill) bad.push(`星の数が違う（社名の行 ${sc.hero.fill}・カード ${c.fill}・あるべき ${fill}）`);
+  if (sc.hero.cnt !== w.sample || c.cnt !== w.sample) bad.push(`0件なのに「${w.sample}」と添えていない（社名の行「${sc.hero.cnt}」・カード「${c.cnt}」）`);
+  if (slots.some(x => /名が回答/.test(x.text))) bad.push('0件なのに「◯名が回答」と書いている');
+  if (!same(c.rows.map(r => [r.k, r.v]), w.full.map((k, i) => [k, one(w.ratings[i])]))) bad.push(`6分類の棒が違う：${c.rows.map(r => `${r.k} ${r.v}`).join('・')}`);
+  if (!c.rows.every((r, i) => Math.abs(r.w - w.ratings[i] / 5) < 0.02)) bad.push(`棒の長さが点数に比例していない：${c.rows.map(r => r.w.toFixed(2)).join('・')}`);
+  if (!same(c.radar.map(r => [r.k, r.v]), w.short.map((k, i) => [k, one(w.ratings[i])])) || c.dots !== 6) bad.push(`6角形の図の字が違う：${c.radar.map(r => `${r.k} ${r.v}`).join('・')}`);
+  if (!same(c.cta, [{ text: '匿名で口コミを投稿する', href: `../submit-review.html?airline=${s}` }])) bad.push(`書く入口が違う：${c.cta.map(a => `${a.text} → ${a.href}`).join(' ／ ')}`);
+  if (c.give) bad.push(`口コミの欄の中に、入口がもう ${c.give}つ在る`);
+  if (!c.first) bad.push('会社・募集の箱より上に無い');
+  return bad;
+}
 const press = async h => { await h.evaluate(el => el.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' })); await h.click(); };
 const hard = (pr, ms, what) => Promise.race([pr, new Promise((_, rej) => setTimeout(() => rej(new Error(`${what}: ${ms / 1000}秒で終わらなかった`)), ms))]);
 
@@ -954,8 +1003,15 @@ async function runView(browser, s, [w, h, kind]) {
     const live = await ev(() => window.__pvg.live());
     const shown = live.filter(x => x.on);
     ok(live.length === 8 && live.every(x => x.air === s), `${tag}: 実データの欄は8つで、自分の会社を指している`, `${live.length}`);
-    ok(shown.length >= 5 && shown.every(x => x.state === 'empty'), `${tag}: 0件の時は、どの欄も「まだありません」`, shown.map(x => `${x.kind}:${x.state}`).join(' '));
-    ok(live.every(x => !NO_NUM.test(x.text)), `${tag}: 0件の時に、数字・0・星を1つも出さない`, live.filter(x => NO_NUM.test(x.text)).map(x => x.text.slice(0, 30)).join(' ／ '));
+    /* 評価スコアの2つ（社名の行・カード）だけは、0件でも見本の点数を出す（オーナーのご指示）。ほかの欄は今までどおり。 */
+    const rest = live.filter(x => !IS_SCORE(x));
+    ok(shown.length >= 5 && shown.filter(x => !IS_SCORE(x)).every(x => x.state === 'empty'), `${tag}: 0件の時は、評価スコア以外のどの欄も「まだありません」`, shown.map(x => `${x.kind}:${x.state}`).join(' '));
+    ok(rest.length === 6 && rest.every(x => !NO_NUM.test(x.text)), `${tag}: 0件の時に、評価スコア以外の欄は数字・0・星を1つも出さない`, rest.filter(x => NO_NUM.test(x.text)).map(x => x.text.slice(0, 30)).join(' ／ '));
+    {
+      const sc = await ev(() => window.__pvg.score());
+      const bad = scoreBad(s, sc, live.filter(IS_SCORE));
+      ok(!bad.length, `${tag}: 評価スコア（社名の行の星＝カードの総合点・6分類・「サンプルデータ」の札・書く入口は1つ）`, bad.join(' ／ '));
+    }
     ok(live.filter(x => !x.on).every(x => x.state === 'idle'), `${tag}: 閉じている板の中の欄は、開くまで読みに行かない`);
     const rules = await ev(() => window.__pvg.rules());
     ok(Object.values(rules).every(n => n > 10), `${tag}: hover／focus-visible／active の決まりを読めた`, JSON.stringify(rules));
@@ -1160,9 +1216,10 @@ async function runOff(browser, s, [w, h, kind]) {
   try {
     ok(ready, `${tag}: 「読み込み中」のまま固まらない`);
     const live = (await ev(() => window.__pvg.live())).filter(x => x.on);
-    /* 口コミの欄は、すぐ上の星の欄が同じ知らせを出しているあいだは出さない（同じ文を2回出さない）。 */
+    /* 口コミの欄は、すぐ上の評価スコアの欄が同じ知らせを出しているあいだは出さない（同じ文を2回出さない）。 */
     ok(live.length >= 4 && live.every(x => x.state === 'error' && x.retry), `${tag}: 見えている欄は全部「いま読み出せません」＋やり直すボタン`, live.map(x => `${x.kind}:${x.state}`).join(' '));
     ok(live.every(x => !NO_NUM.test(x.text)), `${tag}: 読めない時に、数字・0・星を1つも出さない`, live.filter(x => NO_NUM.test(x.text)).map(x => x.text.slice(0, 30)).join(' ／ '));
+    ok(live.filter(IS_SCORE).length === 2 && !(await ev(() => document.querySelector('.pvg-hero .crl-stars, #pvg-score .crl-sc'))), `${tag}: 読めない時は、評価スコアも見本の点数で埋めない`);
     await ev(() => window.__pvg.top());
     const sh = await ev(() => window.__pvg.shape());
     ok(!shapeBad(sh, kind).length, `${tag}: 最上段の組み方が崩れない`, shapeBad(sh, kind).join(' ／ '));
@@ -1175,7 +1232,7 @@ async function runOff(browser, s, [w, h, kind]) {
     seen.mode = 'empty';
     const before = seen.asked;
     await press(await p.$('.pvg-hero .crl .crl-retry'));
-    const back = await p.waitForFunction(() => document.querySelector('.pvg-hero .crl').dataset.state === 'empty', { timeout: 15000 }).then(() => true, () => false);
+    const back = await p.waitForFunction(() => document.querySelector('.pvg-hero .crl').dataset.state === 'open' && document.querySelector('#pvg-score .crl[data-live="score"]').dataset.state === 'open', { timeout: 15000 }).then(() => true, () => false);
     ok(back && seen.asked > before, `${tag}: 「やり直す」でもう一度読みに行き、読めたら直る`, `問い合わせ ${before} → ${seen.asked}`);
   } catch (e) {
     ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
@@ -1197,7 +1254,7 @@ async function runRows(browser, s, [w, h, kind]) {
     const rp = await ev(() => window.__pvg.realpay());
     if (!rp) { ok(false, `${tag}: 提出された年収の箱が見えている`); return; }
     const N = MASK_AGE.length, top = Math.min(6, N), nShow = rp.width >= 640 ? top : 3;
-    ok(rp.state === 'locked' && rp.count === `${N}人が提出`, `${tag}: 鍵は掛かったまま・件数はこの会社の分だけ（ほかの会社の行を数えない）`, `${rp.state}・${rp.count}`);
+    ok(rp.state === 'locked' && rp.count === `${N}件の提出`, `${tag}: 鍵は掛かったまま・件数はこの会社の分だけ（ほかの会社の行を数えない）`, `${rp.state}・${rp.count}`);
     ok(rp.total === top && rp.rows.length === nShow, `${tag}: 見える行は ${nShow}行（狭い画面は3行・広い画面は6行まで）`, `${rp.rows.length}／${rp.total}行・箱の幅 ${Math.round(rp.width)}`);
     {
       const bad = [];
