@@ -1,7 +1,6 @@
 /* pv-airline-view.mjs — 主要5社の会社ページが読む、ただ1つのデータの読み口。
  *
  *   viewOf(slug) … 1社ぶんを、ページがそのまま並べられる形で返す
- *   mark(slug, rank) … その職位に「いま出せるいちばん確かな1つ」（棒の目盛の右端を決めるのに使う）
  *   AXIS … 棒の目盛の右端（万円）。5社で同じ・0 から始まる
  *
  * ここは**つなぐだけ**で、数字を持たない。出どころは次の6つ。
@@ -12,12 +11,20 @@
  *   写真                airline-photos.mjs
  *   色と略号            airlines-meta.js
  *
- * ★ 年収は4種類を**混ぜない**（2026-10-04 オーナーのご決定）。
- *   est      推定年収          … 根拠・算出方法・時点の3つが台帳にそろっているときだけ。無ければ null ＝「確認中」
- *   cap      求人の上限        … 「〜」と斜線と「上限」の字を必ず一緒に出す
- *   company  会社の公表額      … 対象と時点つき
- *   crew     乗員全体の公表平均 … 職位の棒にしない（機長と副操縦士を分けていない数字）
- *   ⚠️ est が無いからといって、ほかの3つを est へ流し込む枝を作らない。
+ * ★ 年収の欄を「確認中」にしない。どの職位にも**推定年収を額で出す**。
+ *   オーナーのご指示 ── 2026-09-30「確認中じゃなくて推定とかにすりゃいいじゃん」／
+ *   2026-10-01「基本全て推定でいいじゃん」／2026-10-06「年収のところ確認中にするなよ」。
+ *   2026-10-05 の初稿は、根拠・算出方法・時点の3つがそろわない職位を「確認中」と出していた（＝ 5社10職位のうち9つ）。
+ *   それは上のご指示に反していた。⚠️ est を null にする枝を戻さない。
+ *
+ * ★ 棒にするのは推定年収だけ（2026-10-06「並べるならなぜ同じ基準で並べない？」）。
+ *   est      推定年収          … 額は SALARY の avg。どの職位にも必ず在る。棒はこれ1種類
+ *                                 backed ＝ 根拠・算出方法・時点の3つが台帳にそろっているか（説明に添えるかどうかだけを決める）
+ *   cap      求人の上限        … 棒にしない。「〜」と「上限」の字を必ず一緒に出す
+ *   company  会社の公表額      … 棒にしない。対象と時点つき
+ *   crew     乗員全体の公表平均 … 棒にしない（機長と副操縦士を分けていない数字）
+ *   ⚠️ 下の3つを est へ流し込まない／est を下の3つの名前で出さない（種類が違う）。
+ *   ⚠️ 幅（lo〜hi）は出さない（2026-09-30 に公開の画面から外した）。
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -85,43 +92,25 @@ const srcWhen = s => String(s.as_of || '').replace(/（.*$/, '').replace(/^(\d{4
 const srcOf = slug => (BASIS[slug].src || []).map(s => ({ pub: s.pub, name: s.name, when: srcWhen(s), url: s.url, secondary: !!s.secondary }));
 
 function payOf(slug, rank) {
-  const r = BASIS[slug]?.[rank] || {}, s = SALARY[slug][rank];
+  const r = BASIS[slug]?.[rank] || {}, s = SALARY[slug]?.[rank];
+  if (!s || !(s.avg > 0)) throw new Error(`${slug}.${rank}: 年収の正本（SALARY）に推定の額が無い`);
   const e = r.est;
-  /* 推定は、根拠・算出方法・時点の3つがそろったときだけ。 */
-  const est = e && e.basis && e.method && e.as_of && s
-    ? { man: s.avg, yen: yen(s.avg), basis: e.basis, method: e.method, asOf: e.as_of }
-    : null;
+  const backed = !!(e && e.basis && e.method && e.as_of);
+  const est = { man: s.avg, yen: yen(s.avg), backed, basis: backed ? e.basis : '', method: backed ? e.method : '', asOf: backed ? e.as_of : '' };
   const figs = figures(slug, rank).filter(f => !f.training)
     .map(f => ({ ...f, cond: figNote(slug, f) || f.cond || '', yen: yen(f.man), orig: `${f.cur} ${f.amount.toLocaleString('en-US')}` }));
   return {
     est,
     cap: figs.filter(f => f.key === 'max_y'),
     company: figs.filter(f => f.key !== 'max_y'),
-    why: est ? '' : (r.est_why || ''),
   };
 }
 /* 訓練生の入社時の額。機長・副操縦士の欄にも棒にも入れない
    （台帳の注がこの額の話をしているので、説明の中に別の行として出すためだけに返す）。 */
 const traineeOf = slug => figures(slug, 'trainee').map(f => ({ group: f.group, kind: f.kind, text: f.text }));
-const YEARLY = new Set(['cash_y', 'pkg_y', 'target_y', 'cash_y_over', 'reward_y', 'month_x']);
-const SHORT = { target_y: '会社公表の目標年収', cash_y_over: '会社公表の下限', cash_y: '会社公表の年額', pkg_y: '会社公表の総待遇', reward_y: '会社公表の待遇額', month_x: '会社公表の月額から' };
 
-/** その職位に、いま出せるいちばん確かな1つ。目盛の右端（AXIS）はこれで決める。
-    kind: est ＝ 推定／cap ＝ 求人の上限（斜線）／company ＝ 会社の公表額／over ＝ 会社が書いた下限／none ＝ 確認中 */
-export function mark(slug, rank) {
-  const p = payOf(slug, rank);
-  if (p.est) return { kind: 'est', man: p.est.man, text: p.est.yen, label: '推定年収' };
-  if (p.cap[0]) return { kind: 'cap', man: p.cap[0].man, text: `〜${p.cap[0].yen}`, label: '求人の上限' };
-  const y = p.company.find(f => YEARLY.has(f.key));
-  if (y) return { kind: y.key === 'cash_y_over' ? 'over' : 'company', man: y.man, text: y.yen + (y.key === 'cash_y_over' ? '超' : ''), label: SHORT[y.key] };
-  return { kind: 'none', man: null, text: '確認中', label: '' };
-}
-
-/** 棒の目盛の右端（万円）。画面に出るいちばん大きい額を 1,000万の刻みへ切り上げる。 */
-export const AXIS = (() => {
-  const all = GLANCE.flatMap(s => [...RANKS.map(([r]) => mark(s, r).man), ...crewOf(s).map(c => c.man)]).filter(n => n != null);
-  return Math.ceil(Math.max(...all) / 1000) * 1000;
-})();
+/** 棒の目盛の右端（万円）。棒にするのは推定年収だけなので、5社の推定のいちばん大きい額を 1,000万の刻みへ切り上げる。 */
+export const AXIS = Math.ceil(Math.max(...GLANCE.flatMap(s => RANKS.map(([r]) => SALARY[s][r].avg))) / 1000) * 1000;
 /** 棒の長さ（％）。 */
 export const width = m => `${Math.min(100, (m / AXIS) * 100).toFixed(2)}%`;
 
@@ -257,7 +246,11 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     const lead = l => { const x = l.find(z => z.lead) || l[0]; return x ? `${x.label}＝${x.value}` : '（公表なし）'; };
     const r = v.living.rents.find(x => x.lead), c = rentCell(v.living.cur, r.value[v.living.leadCol]);
     console.log(`\n${v.name}（${v.code}・${v.base.city} ${v.base.iata.join('・')}）`);
-    for (const [k, l] of RANKS) { const m = mark(s, k); console.log(`  ${l}  ${m.text}${m.label ? '（' + m.label + '）' : ''}`); }
+    for (const [k, l] of RANKS) {
+      const p = v.pay[k];
+      console.log(`  ${l}  推定年収 ${p.est.yen}${p.est.backed ? '（根拠あり）' : ''}`);
+      for (const f of [...p.cap, ...p.company]) console.log(`      ${f.kind}  ${f.text}（${f.orig}）`);
+    }
     for (const c2 of v.pay.crew) console.log(`  乗員全体  ${c2.yen}（${c2.scope}・${c2.when}）`);
     console.log(`  勤務  ${lead(v.work)}\n  待遇  ${lead(v.benefits)}\n  暮らし ${r.name} ${c.orig} ${c.yen}`);
   }

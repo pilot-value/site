@@ -3,17 +3,17 @@
 
    この5枚は「普通に見えたまま静かに嘘になる」形をいくつも持っている。1つずつ見張る。
 
-     ① 4種類の額が混ざる ── 推定年収／求人の上限／会社の公表額／乗員全体の公表平均。
-        推定は、根拠・算出方法・時点の3つが台帳にそろった職位にだけ出る。
-        そろわなければ「確認中」で、棒も描かない。
-        求人の上限は「〜」・斜線の棒・「上限」の字の3つが必ず一緒
-        （斜線は札（class）ではなく**描かれた模様**で見る）。
-        乗員全体の平均は機長・副操縦士の欄の外に在る。
+     ① 年収の欄を「確認中」にしない ── 機長も副操縦士も、必ず推定年収（SALARY の avg）を額で出す
+        （2026-09-30・10-01・10-06 オーナー指示。「平均」をやめたのであって「数字」をやめたのではない）。
+        ⚠️ 根拠がそろわないからと額を下げない。そろっていない事は、説明の中の「当サイトの推定」で言う。
+     ①' 種類の違う額を混ぜない ── 棒は推定年収の2本だけ。会社が公表している額
+        （求人の上限・目標年収・下限・乗員全体の平均）は、棒の無い別の一覧に置く
+        （物差しの違う額を同じ目盛の棒で並べない）。上限には「〜」・下限には「超」が必ず付く。
+        乗員全体の平均は、機長・副操縦士の額と取り違えられない言葉で出る。
      ② 画面の額が正本とずれる ── 額は gen-airline-glance.mjs が pv-airline-view.mjs 経由で書く。
-        ここでは**あちらの viewOf()・mark()・figures() を呼ばずに**、SALARY・BASIS・JPY_PER から
+        ここでは**あちらの viewOf()・payOf() を呼ばずに**、SALARY・BASIS・JPY_PER から
         同じ答えを作り直して突き合わせる（呼んでしまうと、あちらが間違えた日に検査も一緒に間違える）。
-        止めてある額（SALARY の avg / lo / hi）が、推定を出していない職位について
-        1つも出ていないことも見る。
+        幅（lo / hi）のように、この箱に出すと決めていない額が出ていないことも見る。
      ③ 棒が歪む・違う物差しの額を並べる ── 棒は 0 から・描かれた長さが額に比例・目盛は5枚で同じ。
         ⚠️ ほかの会社の額と棒を、この1枚に並べない（2026-10-06 オーナー指示で「5社を同じ目盛で」の箱を外した。
            推定・求人の上限・会社公表の目標・会社公表の下限は物差しが違い、棒の長さを比べても何も分からない）。
@@ -29,10 +29,15 @@
      ⑨ 生成物が古い ── 5枚は生成スクリプトの出力と1文字も違わない・
         読む部品の指紋（?v=）が今の中身と合っている。
 
+     ⑩ 提出された年収の一覧 ── 最初の1画面のすぐ下に在る。鍵の無い人（未ログイン・未提出）には
+        **数字の入っていない板**で出す（サーバーが額・職位・機種を送っていない。ぼかしは飾り）。
+        「全ての待遇データを解放する」のボタンが、自分の会社を選んだ給与の提出へ行く。
+        ⚠️ 鍵を開けるかどうかを決めるのはサーバー（db/pay-rows.sql）。ここに条件を足さない。
+
    実データの欄（⭐・口コミ・REAL PAY・回答の集計）は、**決まった返事を返す偽のサーバー**で描かせる
-   （0件／鍵が掛かったまま）。本番の DB は読まない ＝ 毎回同じ答えになる。
-   ⚠️ なので、ここが保証するのは「0件の時」と「読めない時」だけ。
-      実際の投稿が入った時の形（⭐が出る・口コミが並ぶ）は、この検査は見ていない。
+   （0件／鍵の無い人に返る伏せた行／読めない）。本番の DB は読まない ＝ 毎回同じ答えになる。
+   ⚠️ なので、ここが保証するのは「0件の時」「鍵の無い時」「読めない時」だけ。
+      実際の投稿が入った時の形（⭐が出る・口コミが並ぶ・鍵が開いて額が並ぶ）は、この検査は見ていない。
 
    使い方（node serve.mjs を起動した状態で）
      node assert-airline-glance.mjs            全部
@@ -84,16 +89,20 @@ const origOf = (cur, amount) => `${cur} ${amount.toLocaleString('en-US')}`;
 /* この検査が出し方を知っている額の鍵。台帳に知らない鍵が増えたら、黙って通さずに落とす
    （新しい種類の額が、どの欄にどの印で出るべきかは人が決める）。 */
 const RANK_KEYS = ['max_y', 'target_y', 'cash_y_over', 'allow_m_from'];
-const LABEL = { max_y: '求人の上限', target_y: '会社公表の目標年収', cash_y_over: '会社公表の下限' };
+const LABEL = { max_y: '求人の上限', target_y: '目標年収', cash_y_over: '下限' };
+const KIND = { max_y: 'cap', target_y: 'co', cash_y_over: 'over' };
+const EST_BY = '当サイトの推定（公開情報からの推計）';
+const UNLOCK = '全ての待遇データを解放する';
 const figText = (key, y) => (key === 'max_y' ? `〜${y}` : key === 'cash_y_over' ? `${y}超` : key === 'allow_m_from' ? `${y}〜` : y);
 const numKeys = g => Object.keys(g).filter(k => typeof g[k] === 'number');
 
 function rankModel(slug, rk) {
   const b = BASIS[slug], r = b[rk] || {}, s = SALARY[slug][rk];
   const e = r.est;
-  /* 推定は、根拠・算出方法・時点の3つがそろったときだけ。 */
-  const est = e && e.basis && e.method && e.as_of
-    ? { man: s.avg, text: yen(s.avg), basis: e.basis, method: e.method, asOf: e.as_of } : null;
+  /* 推定年収は必ず出す（額は SALARY の avg）。根拠・算出方法・時点の3つが台帳にそろっているかは、
+     説明に何を書くかだけを変える（額を出す・出さないは変えない）。 */
+  const backed = !!(e && e.basis && e.method && e.as_of);
+  const est = { man: s.avg, text: yen(s.avg), backed, basis: backed ? e.basis : '', method: backed ? e.method : '', asOf: backed ? e.as_of : '' };
   const figs = [];
   for (const g of r.groups || []) for (const key of RANK_KEYS) {
     if (typeof g[key] !== 'number') continue;
@@ -102,14 +111,6 @@ function rankModel(slug, rk) {
   }
   return { est, figs, cap: figs.find(f => f.key === 'max_y') || null,
            co: figs.find(f => f.key === 'target_y' || f.key === 'cash_y_over') || null };
-}
-/* その職位に、いま出せるいちばん確かな1つ：推定 → 求人の上限 → 会社の公表額 → 確認中（目盛の右端を決めるのに使う）。 */
-function markOf(slug, rk) {
-  const m = rankModel(slug, rk);
-  if (m.est) return { kind: 'est', man: m.est.man, text: m.est.text, label: '推定年収' };
-  if (m.cap) return { kind: 'cap', man: m.cap.man, text: m.cap.text, label: LABEL.max_y };
-  if (m.co) return { kind: m.co.key === 'cash_y_over' ? 'over' : 'co', man: m.co.man, text: m.co.text, label: LABEL[m.co.key] };
-  return { kind: 'none', man: null, text: '確認中', label: '' };
 }
 function crewModel(slug) {
   const b = BASIS[slug];
@@ -124,11 +125,8 @@ const traineeModel = slug => {
   return ((b.trainee && b.trainee.groups) || []).filter(g => typeof g.start_m === 'number')
     .map(g => ({ group: g.name, text: `約${toMan(b.cur, g.start_m)}万円` }));
 };
-/* 目盛の右端：画面に出るいちばん大きい額を 1,000万の刻みへ切り上げる。 */
-const AXIS = (() => {
-  const all = FIVE.flatMap(s => [...RANKS.map(([rk]) => markOf(s, rk).man), ...crewModel(s).map(c => c.man)]).filter(n => n != null);
-  return Math.ceil(Math.max(...all) / 1000) * 1000;
-})();
+/* 目盛の右端：棒で出すいちばん大きい額（＝5社の推定年収）を 1,000万の刻みへ切り上げる。 */
+const AXIS = Math.ceil(Math.max(...FIVE.flatMap(s => RANKS.map(([rk]) => SALARY[s][rk].avg))) / 1000) * 1000;
 const widthOf = m => `${Math.min(100, (m / AXIS) * 100).toFixed(2)}%`;
 
 /* ══════════════════════════════════════════════════════════════════
@@ -212,99 +210,83 @@ for (const s of FIVE) {
 }
 
 head('給与の箱（画面の額 ⇄ 正本）');
-/* 画面の額の欄を1つずつ読む。 */
-function figsOf(s) {
-  const top = PART[s].payTop, out = [];
-  const iCap = top.indexOf('<div class="pvg-rank" data-rank="cap">'), iFo = top.indexOf('<div class="pvg-rank" data-rank="fo">');
-  if (!(iCap >= 0 && iFo > iCap)) return { out, shape: false };
-  for (const m of top.matchAll(/<div class="pvg-fig ([^"]*)">\n([\s\S]*?)\n<\/div>/g)) {
-    const cls = m[1].split(/\s+/), body = m[2], d = depthAt(top, m.index);
-    const kind = (cls.find(c => /^pvg-fig-(est|cap|co|crew)$/.test(c)) || '').replace('pvg-fig-', '');
-    const who = one(body, /<b class="pvg-who">([^<]*)<\/b>/);
-    const wide = cls.includes('pvg-fig-wide');
-    const rank = kind === 'crew' ? null
-      : wide ? (RANKS.find(([, ja]) => ja === who) || [null])[0]
-      : m.index > iFo ? 'fo' : 'cap';
-    const k = one(body, /<p class="pvg-k">([\s\S]*?)<\/p>/) || '';
-    const amt = one(body, /<p class="pvg-amt">([\s\S]*?)<\/p>/);
-    const big = /<p class="pvg-big( pvg-none)?">([^<]*)<\/p>/.exec(body);
-    const barM = /<div class="pvg-track"><i class="pvg-bar pvg-bar-([a-z]+)" style="width:([\d.]+%)"><\/i><\/div>/.exec(body);
-    out.push({
-      key: kind === 'crew' ? 'crew' : `${kind}:${rank}`, kind, rank, wide, depth: d, none: cls.includes('is-none'),
-      label: text(without(k, 'pvg-vh', 'pvg-who')), spoken: one(k, /<span class="pvg-vh">([^<]*)<\/span>/) || '',
-      amount: amt != null ? text(without(amt, 'pvg-tag')) : big ? big[2] : null,
-      bigNone: !!(big && big[1]), tag: amt != null ? one(amt, /<b class="pvg-tag">([^<]*)<\/b>/) : null,
-      bar: barM ? [barM[1], barM[2]] : null, tracks: (body.match(/class="pvg-track/g) || []).length,
-      orig: one(body, /<span class="pv-no-cur pvg-orig">([^<]*)<\/span>/),
-      note: text(without(one(body, /<p class="pvg-note">([\s\S]*?)<\/p>/) || '', 'pvg-prev', 'pv-no-cur pvg-orig')),
-      prev: one(body, /<span class="pvg-prev">([^<]*)<\/span>/),
-    });
-  }
-  return { out, shape: true };
+/* 説明を開く前の給与の箱を読む：職位ごとの推定年収（額と棒）／「当サイトの推定」の1行／会社が公表している金額の一覧。 */
+const RANK_RE = /<div class="pvg-rank" data-rank="(cap|fo)">\n<h3 class="pvg-rk"><span class="pvg-vh">([^<]*)<\/span>([^<]*)<span class="pvg-rk-s">([^<]*)<\/span><\/h3>\n<p class="pvg-big">([^<]*)<\/p>\n<div class="pvg-track"><i class="pvg-bar pvg-bar-([a-z]+)" style="width:([\d.]+%)"><\/i><\/div>\n<\/div>/g;
+const PUB_RE = /<div class="pvg-pub">\n<h3 class="pvg-k">([^<]*)<\/h3>\n<ul>\n([\s\S]*?)\n<\/ul>\n(?:<p class="pvg-note">([\s\S]*?)<\/p>\n)?<\/div>/;
+const PUB_ROW_RE = /<li data-kind="([a-z]+)"(?: data-rank="(cap|fo)")?><p class="pvg-pk"><span class="pvg-vh">([^<]*)<\/span>(?:<b>([^<]*)<\/b>)?([^<]*)<\/p><p class="pvg-pv">([^<]*)(?:<small class="pv-no-cur pvg-orig">([^<]*)<\/small>)?<\/p>(?:<p class="pvg-pn">([\s\S]*?)<\/p>)?<\/li>/g;
+function payTopOf(s) {
+  const top = PART[s].payTop;
+  const ranks = [...top.matchAll(RANK_RE)].map(m => ({ rank: m[1], spoken: unesc(m[2]), role: m[3], tail: m[4], big: m[5], bar: [m[6], m[7]], end: m.index + m[0].length }));
+  const pub = PUB_RE.exec(top);
+  const rows = pub ? [...pub[2].matchAll(PUB_ROW_RE)].map(m => ({
+    kind: m[1], rank: m[2] || '', spoken: unesc(m[3]), role: m[4] || '', label: unesc(m[5]), value: m[6], orig: m[7] || '', own: m[8] != null ? text(m[8]) : '',
+  })) : [];
+  return {
+    ranks, rows,
+    pub: pub ? { at: pub.index, title: pub[1], lis: (pub[2].match(/<li\b/g) || []).length, shared: pub[3] != null ? text(pub[3]) : '', html: pub[0] } : null,
+    estk: [...top.matchAll(/<p class="pvg-estk">([^<]*)<\/p>/g)].map(m => ({ text: m[1], at: m.index })),
+    wrapAt: top.indexOf('<div class="pvg-ranks">'),
+  };
 }
 for (const s of FIVE) {
-  const { out, shape } = figsOf(s);
-  ok(shape, `${s}: 機長 → 副操縦士 の順に欄が在る`);
-  const by = Object.fromEntries(out.map(f => [f.key, f]));
-  ok(Object.keys(by).length === out.length, `${s}: 同じ種類の額の欄が2つ無い`, out.map(f => f.key).join(', '));
+  const top = PART[s].payTop, T = payTopOf(s), crew = crewModel(s);
+
+  /* ── 推定年収：機長も副操縦士も、必ず額と棒で出る ── */
+  ok(T.wrapAt >= 0 && same(T.ranks.map(r => r.rank), RANKS.map(([rk]) => rk)), `${s}: 機長 → 副操縦士 の順に、推定年収の欄が1つずつ在る`, T.ranks.map(r => r.rank).join(', '));
+  for (const [rk, rkJa] of RANKS) {
+    const r = T.ranks.find(x => x.rank === rk), avg = SALARY[s][rk].avg;
+    if (!r) { ok(false, `${s} ${rkJa}: 推定年収の欄が在る（「確認中」にしない）`); continue; }
+    ok(r.role === rkJa && r.tail === 'の推定年収', `${s} ${rkJa}: 見出しは「${rkJa}の推定年収」`, `${r.role}${r.tail}`);
+    ok(r.big === yen(avg), `${s} ${rkJa}: 推定年収は正本（SALARY）の額そのまま`, `${r.big}（正本 ${yen(avg)}）`);
+    ok(same(r.bar, ['est', widthOf(avg)]), `${s} ${rkJa}: 棒は推定の棒で、長さは額どおり`, `${r.bar}（あるべき est,${widthOf(avg)}）`);
+    ok(r.spoken.includes(nameOf(s)), `${s} ${rkJa}: 読み上げに社名が入っている`, r.spoken);
+  }
+  ok(!/確認中/.test(text(PART[s].pay)), `${s}: 給与の箱に「確認中」と書かない（説明の中も）`, (text(PART[s].pay).match(/.{0,20}確認中.{0,10}/) || [''])[0]);
+  ok(!/確認中/.test(text((PART[s].hero + PART[s].glance).replace(/<script\b[\s\S]*?<\/script>/g, ''))), `${s}: 社名の行と新しい節のどこにも「確認中」と書かない`);
+  /* 推定だと分かる1行（広い画面で棒のすぐ下に出る。狭い画面では説明の中に同じ言葉が在る）。 */
+  ok(T.estk.length === 1 && T.estk[0].text === EST_BY && T.ranks.length === 2 && T.estk[0].at >= T.ranks[1].end && (!T.pub || T.estk[0].at < T.pub.at),
+     `${s}: 「${EST_BY}」が、2本の棒のすぐ下に1回だけ在る`, T.estk.map(e => e.text).join(' ／ '));
+
+  /* ── 棒は推定年収の2本だけ（種類の違う額を、同じ目盛の棒で並べない） ── */
+  const bars = [...PART[s].pay.matchAll(/class="pvg-bar pvg-bar-([a-z]+)"/g)].map(m => m[1]);
+  ok(same(bars, ['est', 'est']) && (PART[s].pay.match(/class="pvg-track/g) || []).length === 2, `${s}: 給与の箱の棒は、推定年収の2本だけ`, bars.join(', '));
+
+  /* ── 会社が公表している金額：棒の無い別の一覧 ── */
   const want = [];
-  const crew = crewModel(s);
   for (const [rk, rkJa] of RANKS) {
     const m = rankModel(s, rk);
-    want.push(`est:${rk}`);
-    const e = by[`est:${rk}`];
-    if (!e) { ok(false, `${s} ${rkJa}: 推定年収の欄が在る`); continue; }
-    ok(e.label === '推定年収' && e.depth === 2, `${s} ${rkJa}: 推定年収の欄は職位の列の中に在る`, `${e.label}・深さ ${e.depth}`);
-    if (m.est) {
-      ok(!e.none && !e.bigNone && e.amount === m.est.text, `${s} ${rkJa}: 推定年収は正本の額`, `${e.amount}（正本 ${m.est.text}）`);
-      ok(same(e.bar, ['est', widthOf(m.est.man)]), `${s} ${rkJa}: 推定の棒は平らな棒で、長さは額どおり`, `${e.bar}（あるべき est,${widthOf(m.est.man)}）`);
-      ok(e.note.includes(m.est.basis), `${s} ${rkJa}: 推定の額のすぐ下に根拠が書いてある`, e.note);
-    } else {
-      ok(e.none && e.bigNone && e.amount === '確認中', `${s} ${rkJa}: 根拠がそろわない推定は「確認中」`, String(e.amount));
-      ok(e.tracks === 0 && !e.orig, `${s} ${rkJa}: 「確認中」に棒も額も添えない`);
-    }
-    for (const [kind, f] of [['cap', m.cap], ['co', m.co]]) {
-      const key = `${kind}:${rk}`;
-      if (!f) { ok(!by[key], `${s} ${rkJa}: 台帳に無い${kind === 'cap' ? '求人の上限' : '会社の公表額'}の欄が無い`); continue; }
-      want.push(key);
-      const a = by[key];
-      if (!a) { ok(false, `${s} ${rkJa}: ${LABEL[f.key]}の欄が在る`); continue; }
-      ok(a.label === LABEL[f.key], `${s} ${rkJa}: 欄の名前は「${LABEL[f.key]}」`, a.label);
-      ok(a.amount === f.text, `${s} ${rkJa}: ${LABEL[f.key]}は正本の額`, `${a.amount}（正本 ${f.text}）`);
-      ok(a.orig === f.orig, `${s} ${rkJa}: 原貨の額は台帳のまま`, `${a.orig}（台帳 ${f.orig}）`);
-      const bk = kind === 'cap' ? 'cap' : f.key === 'cash_y_over' ? 'over' : 'co';
-      ok(same(a.bar, [bk, widthOf(f.man)]), `${s} ${rkJa}: 棒の種類と長さが額どおり`, `${a.bar}（あるべき ${bk},${widthOf(f.man)}）`);
-      ok(a.spoken.includes(nameOf(s)) && (a.wide ? a.rank === rk : a.spoken.includes(rkJa)), `${s} ${rkJa}: 読み上げに社名と職位が入っている`, a.spoken);
-      ok(a.wide ? a.depth === 0 : a.depth === 2, `${s} ${rkJa}: 欄の置き場所が職位と合っている`, `深さ ${a.depth}`);
-      if (kind === 'cap') {
-        /* 上限の3つの印：「〜」・「上限」の札・斜線の棒（斜線が本当に描かれているかはブラウザで見る）。 */
-        ok(a.amount.startsWith('〜') && a.tag === '上限' && a.bar && a.bar[0] === 'cap', `${s} ${rkJa}: 上限の額に「〜」と「上限」の札と上限の棒がそろう`, `${a.amount}・札 ${a.tag}・棒 ${a.bar}`);
-      } else {
-        ok(!a.amount.startsWith('〜') && a.tag == null, `${s} ${rkJa}: 会社の公表額に上限の印を付けない`);
-        ok(f.key !== 'cash_y_over' || a.amount.endsWith('超'), `${s} ${rkJa}: 下限の額には「超」が付く`, a.amount);
-      }
-    }
+    for (const f of [m.cap, m.co].filter(Boolean)) want.push({ kind: KIND[f.key], rank: rk, role: rkJa, label: LABEL[f.key], value: f.text, orig: f.orig });
   }
-  /* 乗員全体の公表平均：機長・副操縦士の列の外。 */
-  if (crew.length) {
-    want.push('crew');
-    const c = by.crew;
-    if (!c) ok(false, `${s}: 乗員全体の公表平均の欄が在る`);
-    else {
-      ok(c.depth === 0 && c.wide, `${s}: 乗員全体の平均は、機長・副操縦士の列の外に在る`, `深さ ${c.depth}`);
-      ok(c.label === `${crew[0].who}全体（機長と副操縦士をあわせた平均）`, `${s}: 欄の名前が「全体（機長と副操縦士をあわせた平均）」`, c.label);
-      ok(c.amount === yen(crew[0].man) && c.tag == null, `${s}: 乗員全体の平均は正本の額`, `${c.amount}（正本 ${yen(crew[0].man)}）`);
-      ok(same(c.bar, ['crew', widthOf(crew[0].man)]), `${s}: 乗員全体の棒は別の色で、長さは額どおり`, String(c.bar));
-      ok(c.note.includes('会社の公表') && c.note.includes(crew[0].when), `${s}: 乗員全体の平均に「会社の公表」と時点が添えてある`, c.note);
-      ok(crew[1] ? c.prev === `${crew[1].when} ${yen(crew[1].man)}` : c.prev == null, `${s}: 前の期の額は台帳のとおり`, String(c.prev));
+  if (crew.length) want.push({ kind: 'crew', rank: '', role: '', label: `${crew[0].who}全体の平均`, value: yen(crew[0].man), orig: '' });
+  if (!want.length) { ok(!T.pub && !/pvg-pub/.test(top), `${s}: 台帳に公表額が無ければ、一覧を置かない`); }
+  else if (!T.pub) ok(false, `${s}: 「会社が公表している金額」の一覧が在る`);
+  else {
+    const got = T.rows.map(r => ({ kind: r.kind, rank: r.rank, role: r.role, label: r.label, value: r.value, orig: r.orig }));
+    ok(T.pub.title === '会社が公表している金額' && T.pub.lis === T.rows.length, `${s}: 一覧の見出しは「会社が公表している金額」・行は全部読み取れる形`, `${T.pub.title}・${T.rows.length}／${T.pub.lis}行`);
+    ok(same(got, want), `${s}: 一覧の行は台帳に在る額だけ（名前・額・原貨の額が正本どおり）`,
+       `画面 ${got.map(r => `${r.role}${r.label} ${r.value} ${r.orig}`).join(' ／ ')}\n      正本 ${want.map(r => `${r.role}${r.label} ${r.value} ${r.orig}`).join(' ／ ')}`);
+    ok(!/pvg-track|pvg-bar/.test(T.pub.html), `${s}: 公表額の一覧に棒を描かない`);
+    ok(T.pub.at > T.ranks[T.ranks.length - 1].end, `${s}: 公表額の一覧は、推定年収の欄の外に在る`);
+    /* 印：上限は「〜」・下限は「超」。ほかの額には付けない。 */
+    ok(T.rows.every(r => r.value.startsWith('〜') === (r.kind === 'cap') && r.value.endsWith('超') === (r.kind === 'over')),
+       `${s}: 上限の額には「〜」・下限の額には「超」（ほかの額には付けない）`, T.rows.map(r => `${r.kind}:${r.value}`).join(' '));
+    ok(T.rows.every(r => r.spoken.includes(nameOf(s)) && (r.kind === 'crew' ? !r.role && r.spoken.includes('機長と副操縦士をあわせた') : RANKS.some(([rk, ja]) => rk === r.rank && ja === r.role))),
+       `${s}: 行ごとに社名と職位が読める（乗員全体の平均は「機長と副操縦士をあわせた」と読む）`, T.rows.map(r => `${r.spoken}${r.role}`).join(' ／ '));
+    /* 前提：全部の行で同じなら一覧の下に1回・違えば行ごと。どの行にも付く。 */
+    const noteOf = r => r.own || T.pub.shared;
+    ok(T.rows.every(r => noteOf(r)) && !(T.pub.shared && T.rows.some(r => r.own)), `${s}: どの行にも前提が付く（同じ前提は一覧の下に1回だけ）`, T.rows.map(noteOf).join(' ／ '));
+    for (const r of T.rows.filter(x => x.kind === 'crew')) {
+      ok(noteOf(r).includes('機長と副操縦士をあわせた額') && noteOf(r).includes(crew[0].when), `${s}: 乗員全体の平均に「機長と副操縦士をあわせた額」と時点が添えてある`, noteOf(r));
     }
-  } else ok(!by.crew, `${s}: 台帳に無い乗員全体の平均の欄が無い`);
-  ok(same(Object.keys(by).sort(), want.sort()), `${s}: 額の欄は台帳に在るものだけ`, `${Object.keys(by).sort()} ／ あるべき ${want.sort()}`);
+    /* 前提の中の数字は、台帳に在る数字だけ（短く言い直した時に、数字を作らない）。 */
+    const led = JSON.stringify(BASIS[s]);
+    const made = [...new Set(T.rows.flatMap(r => noteOf(r).match(/\d+(?:\.\d+)?/g) || []))].filter(n => !led.includes(n));
+    ok(!made.length, `${s}: 前提に書いた数字は、台帳に在る数字だけ`, made.join(', '));
+  }
 
-  /* 「平均」と書いてよいのは、乗員全体の公表平均の欄だけ（推定も公表額も平均と呼ばない）。 */
-  const top = PART[s].payTop;
-  const noCrew = top.replace(/<div class="pvg-fig pvg-fig-crew[^"]*">\n[\s\S]*?\n<\/div>/g, '');
-  ok(!/平均/.test(text(noCrew)), `${s}: 給与の箱で「平均」と書くのは、乗員全体の公表平均の欄だけ`, (text(noCrew).match(/.{0,16}平均.{0,16}/) || [''])[0]);
+  /* 「平均」と書いてよいのは、乗員全体の公表平均の行だけ（推定も公表額も平均と呼ばない）。 */
+  const noCrew = top.replace(/<li data-kind="crew"[\s\S]*?<\/li>/g, '');
+  ok(!/平均/.test(text(noCrew)), `${s}: 給与の箱で「平均」と書くのは、乗員全体の公表平均の行だけ`, (text(noCrew).match(/.{0,16}平均.{0,16}/) || [''])[0]);
   ok(!/平均年収/.test(text(PART[s].glance.replace(/<script\b[\s\S]*?<\/script>/g, ''))), `${s}: 「平均年収」と書かない`);
   ok(one(top, /<span class="pvg-chip">([^<]*)<\/span>/) === BASIS[s].tax, `${s}: 税の扱いの札は台帳のまま`, String(one(top, /<span class="pvg-chip">([^<]*)<\/span>/)));
 }
@@ -320,12 +302,16 @@ for (const s of FIVE) {
   const want = [];
   for (const [rk, rkJa] of RANKS) {
     const m = rankModel(s, rk);
-    want.push([`${rkJa}の推定年収`, m.est ? m.est.text : '確認中', '']);
+    want.push([`${rkJa}の推定年収`, m.est.text, '']);
     for (const f of m.figs) want.push([f.group, f.text, f.orig]);
     const r = rows.find(x => x.dt === `${rkJa}の推定年収`);
-    if (m.est) {
+    /* 根拠・算出方法・時点が台帳にそろっていればその3つ。そろっていなければ「当サイトの推定」とだけ書く
+       （在りもしない根拠を書かない・だからといって額を引っ込めない）。 */
+    if (m.est.backed) {
       ok(!!r && same(r.small, [`根拠：${m.est.basis}`, `算出方法：${m.est.method}`, `時点：${m.est.asOf}`]),
          `${s} ${rkJa}: 推定の説明に 根拠・算出方法・時点 が台帳のまま出ている`, r ? r.small.join(' ／ ') : '行が無い');
+    } else {
+      ok(!!r && same(r.small, [EST_BY]), `${s} ${rkJa}: 根拠の台帳がそろっていない推定には「${EST_BY}」とだけ書く`, r ? r.small.join(' ／ ') : '行が無い');
     }
     for (const f of m.figs.filter(x => x.key === 'max_y')) {
       const row = rows.find(x => x.dt === f.group && x.b === f.text);
@@ -364,7 +350,9 @@ for (const s of FIVE) {
   const g = PART[s].glance.replace(/<script\b[\s\S]*?<\/script>/g, '');
   ok(!/pvg-ruler|pvg-rows|pvg-rowa|data-pvg-rank/.test(g), `${s}: 「5社を同じ目盛で」の箱が無い`);
   const bars = (g.match(/class="pvg-bar /g) || []).length, mine = (PART[s].pay.match(/class="pvg-bar /g) || []).length;
-  ok(bars === mine, `${s}: 棒が在るのは給与の箱の中だけ`, `ページ ${bars}本・給与の箱 ${mine}本`);
+  ok(bars === mine && mine === 2, `${s}: 棒が在るのは給与の箱の中だけ（自分の会社の推定年収の2本）`, `ページ ${bars}本・給与の箱 ${mine}本`);
+  /* 棒の長さの物差し（目盛の刻みの数）は、目盛の右端と同じ数から出ている。 */
+  ok(new RegExp(`<section class="pvg"[^>]*style="[^"]*--pvg-n:${AXIS / 1000}"`).test(PART[s].glance), `${s}: 目盛の刻みは ${AXIS / 1000} 本（右端 ${yen(AXIS)}）`);
   const others = FIVE.filter(o => o !== s);
   const t = text(g);
   const named = others.filter(o => t.includes(nameOf(o)));
@@ -374,13 +362,13 @@ for (const s of FIVE) {
   ok(axes.length === 1 && axes[0].includes(`0 〜 ${yen(AXIS)}`) && !/5社/.test(axes[0]), `${s}: 目盛は 0 〜 ${yen(AXIS)}（5社を比べる言い方をしない）`, axes.join(' ／ '));
 }
 
-head('画面に出る額（正本に無い額・止めてある額）');
+head('画面に出る額（正本に無い額・出すと決めていない額）');
 for (const s of FIVE) {
   /* 給与の箱に出る「¥◯万」は、自分の会社の、正本から作れる額だけ。注（台帳の言葉のまま）は上で照合済みなので外す。 */
   const allowed = new Set([yen(AXIS)]);
   for (const [rk] of RANKS) {
     const m = rankModel(s, rk);
-    if (m.est) allowed.add(m.est.text);
+    allowed.add(m.est.text);
     for (const f of m.figs) allowed.add(yen(f.man));
   }
   for (const c of crewModel(s)) allowed.add(yen(c.man));
@@ -390,17 +378,15 @@ for (const s of FIVE) {
   const mons = [...new Set(scope.match(/約[\d,.]+万円/g) || [])];
   ok(mons.every(t => traineeModel(s).some(x => x.text === t)), `${s}: 給与の箱の「約◯万円」は訓練生の入社時の額だけ`, mons.join(' '));
 
-  /* 止めてある額（推定を出していない職位の avg / lo / hi）が、社名の行と新しい節のどこにも無い。
-     目盛の文（「0 〜 ¥3,000万」）は額ではないので外す。 */
+  /* 幅（lo / hi）は、社名の行と新しい節には出さないと決めてある（出すのは推定年収の1つの額だけ）。
+     たまたま出してよい額と同じ数になる時は見分けられないので外す。目盛の文（「0 〜 ¥4,000万」）は額ではない。 */
   const all = text((PART[s].hero + PART[s].glance).replace(/<script\b[\s\S]*?<\/script>/g, '').replace(/<p class="pvg-axis">[^<]*<\/p>/g, ''));
-  const held = [];
-  for (const o of FIVE) for (const [rk] of RANKS) {
-    if (rankModel(o, rk).est) continue;
-    for (const n of new Set([SALARY[o][rk].avg, SALARY[o][rk].lo, SALARY[o][rk].hi])) {
-      if (new RegExp(`(?<![\\d,.])${n.toLocaleString('en-US')}万`).test(all)) held.push(`${o} ${rk} ${n.toLocaleString('en-US')}万`);
-    }
+  const stray = [];
+  for (const [rk] of RANKS) for (const n of new Set([SALARY[s][rk].lo, SALARY[s][rk].hi])) {
+    if (allowed.has(yen(n))) continue;
+    if (new RegExp(`(?<![\\d,.])${n.toLocaleString('en-US')}万`).test(all)) stray.push(`${rk} ${n.toLocaleString('en-US')}万`);
   }
-  ok(!held.length, `${s}: 推定を出していない職位の、止めてある額がどこにも出ていない`, held.join(' ／ '));
+  ok(!stray.length, `${s}: 年収の幅（下の額・上の額）を、社名の行と新しい節に出していない`, stray.join(' ／ '));
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -418,6 +404,22 @@ for (const s of FIVE) {
   ok(boxes.length === 8, `${s}: 実データの欄は8つ`, `${boxes.length}`);
   ok(boxes.every(m => m[2] === '<span class="crl-ph">—</span>' && / data-state="idle"/.test(m[1]) && m[1].includes(` data-airline="${s}"`)),
      `${s}: 実データの欄は「—」で出荷し、自分の会社を指している`);
+  /* 提出された年収の一覧：最初の1画面の4つのすぐ下に、幅いっぱいの帯で1つ。HTML には数字を1つも書かない。 */
+  {
+    const g0 = P.glance, OPEN = '<article class="pvg-card pvg-rp" id="pvg-realpay">', CLOSE = '</article>';
+    const iTop = g0.indexOf('<div class="pvg-top">'), iRp = g0.indexOf(OPEN), iMore = g0.indexOf('<div class="pvg-more-grid">');
+    const rpEnd = iRp < 0 ? -1 : g0.indexOf(CLOSE, iRp);
+    const rp = iRp < 0 ? '' : g0.slice(iRp, rpEnd);
+    ok(g0.split(OPEN).length === 2 && both.split('data-live="realpay"').length === 2
+       && rp.includes(`<div class="crl" data-live="realpay" data-airline="${s}" data-state="idle"><span class="crl-ph">—</span></div>`),
+       `${s}: 提出された年収の一覧の箱が1つだけ在り、自分の会社を指している`);
+    ok(/<h2 class="pvg-eyebrow">提出された年収<\/h2>/.test(rp), `${s}: 箱の見出しは「提出された年収」`, text(one(rp, /<header class="pvg-hd">([\s\S]*?)<\/header>/) || ''));
+    ok(iTop >= 0 && iRp > iTop && iMore > iRp && depthAt(g0, iRp) === depthAt(g0, iTop) && !g0.slice(rpEnd + CLOSE.length, iMore).trim()
+       && (g0.slice(iTop, iRp).match(/<article\b/g) || []).length === 4,
+       `${s}: 一覧は、最初の1画面の4つ（給与・勤務・待遇・暮らし）のすぐ下・ほかの箱より前に在る`);
+    ok(!/[\d¥]/.test(text(rp)), `${s}: 一覧の箱の HTML に、数字を1つも書いていない（件数も額も、読めた時に入る）`, text(rp));
+    ok(!both.includes(UNLOCK), `${s}: 「${UNLOCK}」は HTML に書かず、鍵が無いと分かった時に入れる（もう開いている人に出さない）`);
+  }
   ok(!/[★☆⭐✩✪✭✮✯]/u.test(both), `${s}: 星の字を HTML に書いていない`);
   ok(!/aggregateRating|ratingValue|reviewCount/.test(PAGES[s]), `${s}: 評価の点数・件数を検索向けの情報に書いていない`);
   ok(!/準備中/.test(text(both.replace(/<script\b[\s\S]*?<\/script>/g, ''))), `${s}: 「準備中」の入口を置いていない`);
@@ -458,11 +460,29 @@ for (const s of FIVE) {
     }
   }
 }
-for (const f of ['airline-conditions.html', 'career.html', 'pay-report.html']) ok(fs.existsSync(path.join(ROOT, f)), `行き先のファイルが在る: ${f}`);
+for (const f of ['airline-conditions.html', 'career.html', 'pay-report.html', 'actual-pay.html', 'login.html']) ok(fs.existsSync(path.join(ROOT, f)), `行き先のファイルが在る: ${f}`);
+
 ok(same([...linkedTopicOnly].sort(), TOPIC_ONLY), '「その話題の入口からだけ出す」質問（4問）は、全部このページに入口が在る', `${[...linkedTopicOnly].sort()} ／ 台帳 ${TOPIC_ONLY}`);
 if (linkedTopicOnly.size) {
   notice(`この ${linkedTopicOnly.size}問（${[...linkedTopicOnly].sort().join('・')}）は、行き先の待遇アンケートのページではまだ開かない。`);
   notice('  会社ページの上で開く回答の板が出来るまで、この入口は押しても答えられない（未完了）。');
+}
+
+head('career-live.js（提出された年収の一覧の、鍵の無い人の行）');
+{
+  const LJ = noJsCmt(read('career-live.js'));
+  const fn = name => one(LJ, new RegExp(`\\n  function ${name}\\([^)]*\\) \\{\\n([\\s\\S]*?)\\n  \\}\\n`)) || '';
+  ok(LJ.includes(`payUnlock: '${UNLOCK}'`), `会社ページの入口の言葉は「${UNLOCK}」（オーナーの言葉のまま）`);
+  /* 鍵の無い答えからは、会社・出典・投稿時期の3つしか受け取らない（サーバーが余分に送ってきても、行に持たせない）。 */
+  ok(/if \(!open\) \{\s*rows = rows\.map\(function \(r\) \{\s*return \{ airline: r && r\.airline, verified: !!\(r && r\.verified\), age: r && r\.age \};\s*\}\);\s*\}/.test(fn('payRows')),
+     '鍵の無い答えからは、会社・出典・投稿時期の3つだけを受け取る');
+  /* 伏せた行は、行の中身を読まずに組む（読むのは出典と投稿時期を書く1か所だけ）。板には字を入れない。 */
+  const ml = fn('maskLine');
+  ok(ml.includes('srcLine(r)') && !/\br\b/.test(ml.split('srcLine(r)').join('')), '伏せた行は、行の中身を読まずに組む（出典と投稿時期の1か所だけ）', (ml.split('srcLine(r)').join('').match(/.{0,30}\br\b.{0,30}/) || [''])[0]);
+  ok(/^\s*return el\('span', 'crl-plate' \+ \(kind \? ' crl-plate-' \+ kind : ''\)\);\s*$/.test(fn('plate')), '伏せた板には字を入れない（中身の無い箱だけ）', fn('plate').trim());
+  ok(!/money\(|annual_usd|crl-amt/.test(ml), '伏せた行に、額の箱を作らない');
+  const sl = fn('srcLine');
+  ok(same([...new Set([...sl.matchAll(/\br\.(\w+)/g)].map(m => m[1]))].sort(), ['age', 'verified']), '出典と投稿時期の行が読むのは、その2つだけ', [...new Set([...sl.matchAll(/\br\.(\w+)/g)].map(m => m[1]))].join(', '));
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -535,14 +555,30 @@ if (!(await fetch(`${BASE}/airlines/${FIVE[0]}.html`).then(r => r.ok, () => fals
 }
 const { default: puppeteer } = await import('puppeteer');
 
-/* 外へは1本も出さない。実データの欄が呼ぶ3つにだけ、決まった返事を返す
-   （0件／鍵が掛かったまま）。mode を 'off' にすると全部 500 ＝「読めない時」。 */
+/* 外へは1本も出さない。実データの欄が呼ぶ3つにだけ、決まった返事を返す。
+     mode 'empty' … 0件（鍵は掛かったまま）
+     mode 'rows'  … 鍵の無い人に返る、伏せた行（この会社に7件・ほかの会社に2件）
+     mode 'off'   … 全部 500 ＝「読めない時」 */
 const LIBS = /^(cdn\.jsdelivr\.net|fonts\.googleapis\.com|fonts\.gstatic\.com|cdn\.tailwindcss\.com)$/;
+const PAY_RE = /\/rest\/v1\/rpc\/pv_pay_rows$/;
 const STUB = [
   [/\/rest\/v1\/rpc\/pv_reviews$/, '{"unlocked":false,"rows":[]}'],
-  [/\/rest\/v1\/rpc\/pv_pay_rows$/, '{"ok":true,"state":"locked","rows":[]}'],
+  [PAY_RE, '{"ok":true,"state":"locked","rows":[]}'],
   [/\/rest\/v1\/airline_condition_facts$/, '[]'],
 ];
+/* 鍵の無い人に本物のサーバーが返すのは、会社・出典・投稿時期の3つだけ（db/pay-rows.sql の mask）。
+   ここではわざと、開いた行が持つ欄（職位・機材・年数・額・印）を混ぜて返す。
+   画面がそれを1文字も出さないことを見るため ── サーバーが間違えても、画面からは漏れない。 */
+const MASK_AGE = [0, 1, 2, 3, 4, 0, 1];
+const MASK_VF = MASK_AGE.map((_, i) => i % 2 === 0);
+const LEAK = { pos: 'captain', fleet: 'b787', ten: 3, tenk: 'r', annual_usd: 271828, far: true };
+const maskedBody = slug => {
+  const mine = MASK_AGE.map((age, i) => ({ airline: slug, verified: MASK_VF[i], age, ...LEAK }));
+  const other = FIVE.filter(o => o !== slug).slice(0, 2).map(o => ({ airline: o, verified: true, age: 0, ...LEAK }));
+  return JSON.stringify({ ok: true, state: 'locked', rows: [...mine.slice(0, 3), ...other, ...mine.slice(3)] });
+};
+const VF_TEXT = v => (v ? '明細で確認済み' : '本人申告');
+const AGE_TEXT = ['1ヶ月以内', '3ヶ月以内', '6ヶ月以内', '1年以内', 'それより前'];
 const trouble = [];
 /* 実データの欄が落ち着く（見えている欄が「まだ」「読み込み中」でなくなる）まで待つ。時間では待たない。 */
 const SETTLED = () => !!window.PVCurrency && !!document.querySelector('.pvg') &&
@@ -569,9 +605,9 @@ async function open(browser, slug, w, h, mode) {
         return r.respond({ status: 204, headers: { ...cors, 'access-control-allow-methods': 'GET,POST,OPTIONS', 'access-control-allow-headers': r.headers()['access-control-request-headers'] || '*' } });
       }
       seen.asked++;
-      const hit = seen.mode === 'empty' && STUB.find(([re]) => re.test(u.pathname));
-      if (hit) return r.respond({ status: 200, contentType: 'application/json', headers: cors, body: hit[1] });
-      if (seen.mode === 'empty') seen.unknown.add(`${r.method()} ${u.pathname}`);
+      const hit = seen.mode !== 'off' && STUB.find(([re]) => re.test(u.pathname));
+      if (hit) return r.respond({ status: 200, contentType: 'application/json', headers: cors, body: seen.mode === 'rows' && hit[0] === PAY_RE ? maskedBody(slug) : hit[1] });
+      if (seen.mode !== 'off') seen.unknown.add(`${r.method()} ${u.pathname}`);
       return r.respond({ status: 500, contentType: 'application/json', headers: cors, body: '{"message":"stub"}' });
     }
     return r.abort();
@@ -636,12 +672,12 @@ function LIB() {
         if (r.width && (r.right > c.right + 1 || r.left < c.left - 1)) R.push(`はみ出し ${name(card).slice(0, 40)} › ${name(e)}「${txt(e)}」`);
       }
     }
-    /* 3b) 職位の列から出ている額・見出し（カードの内側の余白に隠れて、3) では見つからない）。
-           読み上げ専用の字（.pvg-vh）は数えない。字の節と札の箱だけを測る。 */
-    for (const rk of $$('.pvg-rank, .pvg-fig-wide', root)) {
+    /* 3b) 職位の列・公表額の行から出ている額と見出し（カードの内側の余白に隠れて、3) では見つからない）。
+           読み上げ専用の字（.pvg-vh）は数えない。字の節だけを測る。 */
+    for (const rk of $$('.pvg-rank, .pvg-pub li', root)) {
       if (!on(rk)) continue;
       const c = rk.getBoundingClientRect();
-      for (const e of $$('.pvg-amt, .pvg-big, .pvg-k, .pvg-rk, .pvg-orig', rk)) {
+      for (const e of $$('.pvg-big, .pvg-rk, .pvg-pk, .pvg-pv, .pvg-pn', rk)) {
         if (!on(e)) continue;
         let right = -1e9;
         const tw = document.createTreeWalker(e, NodeFilter.SHOW_TEXT);
@@ -650,7 +686,6 @@ function LIB() {
           const rg = document.createRange(); rg.selectNodeContents(n);
           for (const q of rg.getClientRects()) right = Math.max(right, q.right);
         }
-        for (const t of $$('.pvg-tag', e)) right = Math.max(right, t.getBoundingClientRect().right);
         if (right > c.right + 0.5) R.push(`列の外 ${name(e)}「${txt(e)}」+${(right - c.right).toFixed(1)}px（列 ${Math.round(c.width)}）`);
       }
     }
@@ -687,12 +722,49 @@ function LIB() {
     return { kind: ([...bar.classList].find(c => /^pvg-bar-./.test(c)) || '').slice(8), img: cs.backgroundImage, bg: cs.backgroundColor, sh: cs.boxShadow, op: +cs.opacity,
              afi: af.backgroundImage, x: r.left - tr.left, w: r.width, tw: tr.width, sw: bar.style.width };
   };
-  /* 額のまわりの印だけを抜く（額そのものは ¤ に置き換える）：「〜¤」「¤超」「確認中」。 */
-  const frame = a => { if (!a) return ''; const sp = a.querySelector('.pv-cur'); const t = a.textContent.trim(); return sp ? t.replace(sp.textContent, '¤') : t; };
-  G.pay = () => $$('.pvg-pay .pvg-fig').filter(on).map(f => {
-    const b = f.querySelector('.pvg-bar'), a = f.querySelector('.pvg-amv') || f.querySelector('.pvg-big') || f.querySelector('.pvg-amt'), t = f.querySelector('.pvg-tag');
-    return { fig: ([...f.classList].find(c => /^pvg-fig-(est|cap|co|crew)$/.test(c)) || '').slice(8), frame: frame(a), tag: t && on(t) ? t.textContent.trim() : null, bar: b && on(b) ? sig(b) : null };
+  /* 額のまわりの印だけを抜く（額そのものは ¤ に置き換える・原貨の額は外す）：「¤」「〜¤」「¤超」。 */
+  const frame = a => {
+    if (!a) return '';
+    const c = a.cloneNode(true);
+    for (const x of $$('.pv-no-cur', c)) x.remove();
+    const sp = c.querySelector('.pv-cur'), t = c.textContent.trim();
+    return sp ? t.replace(sp.textContent, '¤') : t;
+  };
+  /* 給与の箱（説明を開く前）：推定年収の2つの欄と棒／公表額の行／「当サイトの推定」の1行。 */
+  G.pay = () => ({
+    width: document.querySelector('.pvg').getBoundingClientRect().width,
+    bars: $$('.pvg-pay .pvg-bar').filter(on).length,
+    ranks: $$('.pvg-pay .pvg-rank').filter(on).map(r => { const b = r.querySelector('.pvg-bar'); return { rank: r.dataset.rank, frame: frame(r.querySelector('.pvg-big')), bar: b && on(b) ? sig(b) : null }; }),
+    rows: $$('.pvg-pay .pvg-pub li').filter(on).map(li => ({ kind: li.dataset.kind, frame: frame(li.querySelector('.pvg-pv')), value: on(li.querySelector('.pvg-pv')) })),
+    estk: $$('.pvg-pay > .pvg-estk').some(on),
   });
+
+  /* ── 提出された年収の一覧 ── */
+  G.realpay = () => {
+    const card = document.querySelector('#pvg-realpay'), box = card && card.querySelector('.crl[data-live="realpay"]');
+    if (!box || !on(card)) return null;
+    const rect = e => { const r = e.getBoundingClientRect(); return { y: r.top + scrollY, b: r.bottom + scrollY, w: r.width, h: r.height }; };
+    const t = e => (e ? e.textContent.replace(/\s+/g, ' ').trim() : null);
+    const more = document.querySelector('.pvg-more-grid');
+    const rows = $$('.crl-row', box);
+    /* 件数の行と、出典・投稿時期の行（どちらも数字を含んでよい）を外した残り。ここに数字が在ってはいけない。 */
+    const rest = box.cloneNode(true);
+    for (const x of $$('.crl-count, .crl-row-c', rest)) x.remove();
+    return {
+      state: box.dataset.state, width: document.querySelector('.pvg').getBoundingClientRect().width,
+      card: rect(card), more: more && on(more) ? rect(more) : null,
+      count: t(box.querySelector('.crl-count')), msg: t(box.querySelector('.crl-msg')), lock: t(box.querySelector('.crl-lock')),
+      total: rows.length, rest: t(rest), html: box.innerHTML, cur: $$('.pv-cur', card).length,
+      rows: rows.filter(on).map(li => ({
+        mask: li.getAttribute('data-mask'),
+        a: t(li.querySelector('.crl-row-a')), b: t(li.querySelector('.crl-row-b')), c: t(li.querySelector('.crl-row-c')),
+        hid: [li.querySelector('.crl-row-a'), li.querySelector('.crl-row-b')].every(x => !!x && x.getAttribute('aria-hidden') === 'true'),
+        plates: $$('.crl-plate', li).map(pl => { const r = pl.getBoundingClientRect(); return { w: Math.round(r.width), h: Math.round(r.height), kids: pl.childNodes.length, attrs: pl.attributes.length, blur: getComputedStyle(pl).filter }; }),
+        extra: $$('.crl-amt, .crl-pos, .crl-sub, .crl-chip, .crl-far', li).length,
+      })),
+      links: $$('a', box).filter(on).map(a => ({ cta: a.classList.contains('crl-cta'), text: t(a), href: a.getAttribute('href') })),
+    };
+  };
 
   /* ── 通貨 ── */
   G.money = () => {
@@ -704,8 +776,8 @@ function LIB() {
       off: spans.filter(sp => sp.textContent !== P.fmt(+sp.dataset.jpy)).map(sp => `${sp.dataset.orig} → ${sp.textContent}`),
       left: [...new Set(body.match(/¥\s?\d[\d,.]*万?|\d[\d,.]*\s?億円?|\d[\d,.]*\s?万円|\d[\d,.]*\s?万(?![人件社機回時ド㌦マ])/g) || [])],
       raw: $$('.pvg .pv-no-cur, .pvg-hero .pv-no-cur').map(e => e.textContent),
-      pay: $$('.pvg-pay .pvg-fig .pvg-amt .pv-cur, .pvg-pay .pvg-fig .pvg-big .pv-cur').map(e => +e.dataset.jpy).sort((a, b) => a - b),
-      payFrames: $$('.pvg-pay .pvg-fig').map(f => frame(f.querySelector('.pvg-amv') || f.querySelector('.pvg-big') || f.querySelector('.pvg-amt'))),
+      pay: $$('.pvg-pay .pvg-rank .pvg-big .pv-cur, .pvg-pay .pvg-pub .pvg-pv .pv-cur').map(e => +e.dataset.jpy).sort((a, b) => a - b),
+      payFrames: $$('.pvg-pay .pvg-rank .pvg-big, .pvg-pay .pvg-pub .pvg-pv').map(frame),
       axis: $$('.pvg .pvg-axis .pv-cur').map(e => +e.dataset.jpy),
     };
   };
@@ -839,6 +911,22 @@ function shapeBad(sh, kind) {
   return bad;
 }
 const foldOf = sh => Math.round(Math.max(sh.pay.b, sh.work.b, sh.benefits.b, sh.living.b));
+/* 提出された年収の帯：置き場所と、下に並ぶ入口（0件の時も、伏せた行の時も同じ）。 */
+function bandBad(s, sh, rp) {
+  const bad = [];
+  if (!(sh.pay && sh.work && sh.benefits && sh.living)) return ['最上段の4つの箱が見えていない'];
+  if (rp.card.y < foldOf(sh) - 1) bad.push(`最上段の4つより上に掛かっている（帯の頭 ${Math.round(rp.card.y)}・最上段の下端 ${foldOf(sh)}）`);
+  if (!rp.more || rp.more.y < rp.card.b - 1) bad.push('会社・口コミ・募集の束より下に在る');
+  if (!near(rp.card.w, rp.width, 1)) bad.push(`横いっぱいの帯になっていない（${Math.round(rp.card.w)}／${Math.round(rp.width)}）`);
+  const want = [
+    { cta: true, text: UNLOCK, href: `../pay-report.html?airline=${s}` },
+    { cta: false, text: 'ログイン', href: `../login.html?redirect=${encodeURIComponent(`airlines/${s}.html`)}` },
+    { cta: false, text: 'REAL PAY で全部見る', href: `../actual-pay.html?air=${s}` },
+  ];
+  if (!same(rp.links, want)) bad.push(`入口が違う：${rp.links.map(l => `${l.cta ? '［ボタン］' : ''}${l.text} → ${l.href}`).join(' ／ ')}`);
+  if (rp.cur) bad.push(`帯の中に、通貨で換わる額が ${rp.cur}つ在る`);
+  return bad;
+}
 const squash = t => t.replace(/\s+/g, '');
 const NO_NUM = /[0-9０-９★☆⭐¥]/u;
 const press = async h => { await h.evaluate(el => el.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' })); await h.click(); };
@@ -864,10 +952,9 @@ async function runView(browser, s, [w, h, kind]) {
     ok(squash(b0.pay) === squash(text(strip(PART[s].pay))), `${tag}: 給与の箱の字は、出荷した HTML のまま（画面の上で書き換わらない）`);
     ok(b0.h1 === 1 && !b0.rating, `${tag}: h1 は1つ・評価の点数や件数を検索向けの情報に足していない`, `h1 ${b0.h1}・評価 ${b0.rating}`);
     const live = await ev(() => window.__pvg.live());
-    const WANT_STATE = { stars: 'empty', reviews: 'empty', fact: 'empty', realpay: 'locked' };
     const shown = live.filter(x => x.on);
     ok(live.length === 8 && live.every(x => x.air === s), `${tag}: 実データの欄は8つで、自分の会社を指している`, `${live.length}`);
-    ok(shown.length >= 5 && shown.every(x => x.state === WANT_STATE[x.kind]), `${tag}: 0件の時は「まだありません」・鍵の無い人の REAL PAY は閉じたまま`, shown.map(x => `${x.kind}:${x.state}`).join(' '));
+    ok(shown.length >= 5 && shown.every(x => x.state === 'empty'), `${tag}: 0件の時は、どの欄も「まだありません」`, shown.map(x => `${x.kind}:${x.state}`).join(' '));
     ok(live.every(x => !NO_NUM.test(x.text)), `${tag}: 0件の時に、数字・0・星を1つも出さない`, live.filter(x => NO_NUM.test(x.text)).map(x => x.text.slice(0, 30)).join(' ／ '));
     ok(live.filter(x => !x.on).every(x => x.state === 'idle'), `${tag}: 閉じている板の中の欄は、開くまで読みに行かない`);
     const rules = await ev(() => window.__pvg.rules());
@@ -883,16 +970,35 @@ async function runView(browser, s, [w, h, kind]) {
     const pay0 = await ev(() => window.__pvg.pay());
     {
       const bad = [];
-      for (const f of pay0) {
-        if (f.fig === 'cap' && !(f.frame === '〜¤' && f.tag === '上限' && f.bar && /repeating-linear-gradient/.test(f.bar.img))) bad.push(`上限の3つの印がそろっていない（${f.frame}・札 ${f.tag}）`);
-        if (f.fig !== 'cap' && (f.frame.startsWith('〜') || f.tag)) bad.push(`${f.fig} に上限の印が付いている`);
-        if (!f.bar) continue;
-        const kindOf = f.fig === 'co' ? f.bar.kind : f.fig;      // 公表額は 目標（co）か 下限（over）。どちらかは上で正本と照合済み
-        for (const x of barBad(f.bar, kindOf, COLOR[s])) bad.push(`${f.fig}: ${x}`);
+      if (!same(pay0.ranks.map(r => r.rank), RANKS.map(([rk]) => rk))) bad.push(`見えている推定年収の欄が ${pay0.ranks.map(r => r.rank).join(', ') || '無い'}`);
+      for (const r of pay0.ranks) {
+        if (r.frame !== '¤') bad.push(`${r.rank}: 推定年収が額だけで出ていない（${r.frame}）`);
+        if (!r.bar) { bad.push(`${r.rank}: 棒が見えていない`); continue; }
+        for (const x of barBad(r.bar, 'est', COLOR[s])) bad.push(`${r.rank}: ${x}`);
       }
-      const nBar = RANKS.reduce((n, [rk]) => { const m = rankModel(s, rk); return n + (m.est ? 1 : 0) + (m.cap ? 1 : 0) + (m.co ? 1 : 0); }, 0) + (crewModel(s).length ? 1 : 0);
-      if (pay0.filter(f => f.bar).length !== nBar) bad.push(`棒が ${pay0.filter(f => f.bar).length}本（台帳の額は ${nBar}）`);
-      ok(!bad.length, `${tag}: 給与の箱の棒 ── 模様が種類どおり・0 から・描かれた長さが指定どおり・上限は3つの印`, bad.slice(0, 6).join(' ／ '));
+      if (pay0.bars !== 2) bad.push(`見えている棒が ${pay0.bars}本（推定年収の2本だけのはず）`);
+      ok(!bad.length, `${tag}: 推定年収は機長も副操縦士も額と棒で見えている ── 棒は2本だけ・平らな濃い塗り・0 から・描かれた長さが指定どおり`, bad.slice(0, 6).join(' ／ '));
+    }
+    {
+      /* 会社が公表している金額の行（棒は無い）。上限は「〜」・下限は「超」が額に付いて見えている。 */
+      const FRAME = { cap: '〜¤', over: '¤超', co: '¤', crew: '¤' };
+      const want = [];
+      for (const [rk] of RANKS) { const m = rankModel(s, rk); for (const f of [m.cap, m.co].filter(Boolean)) want.push(KIND[f.key]); }
+      if (crewModel(s).length) want.push('crew');
+      ok(same(pay0.rows.map(r => r.kind), want) && pay0.rows.every(r => r.value && r.frame === FRAME[r.kind]),
+         `${tag}: 公表額の行は台帳の数だけ見えていて、上限には「〜」・下限には「超」が付く`, pay0.rows.map(r => `${r.kind}:${r.frame}`).join(' '));
+      if (kind !== 'col') ok(pay0.estk, `${tag}: 広い画面では、棒のすぐ下に「${EST_BY}」が見えている`);
+    }
+
+    /* 提出された年収の一覧（この会社の提出が0件の時）：「まだ記録がありません」と、提出へ進むボタン。 */
+    {
+      const rp = await ev(() => window.__pvg.realpay());
+      const bad = !rp ? ['一覧の箱が見えていない'] : [...bandBad(s, sh0, rp)];
+      if (rp) {
+        if (!(rp.state === 'empty' && rp.msg === 'まだ記録がありません')) bad.push(`「まだ記録がありません」になっていない（${rp.state}・${rp.msg}）`);
+        if (rp.count !== null || rp.lock !== null || rp.total) bad.push(`0件なのに、件数・行・「提出で開きます」のどれかが出ている（${rp.count}・${rp.total}行・${rp.lock}）`);
+      }
+      ok(!bad.length, `${tag}: 提出された年収（0件の時）── 最上段のすぐ下に在る・「まだ記録がありません」・「${UNLOCK}」で給与の提出へ`, bad.join(' ／ '));
     }
 
     /* 額の元の円（通貨を換える時の出発点）が正本の額か。 */
@@ -935,7 +1041,7 @@ async function runView(browser, s, [w, h, kind]) {
     }
     await ev(() => window.PVCurrency.set('JPY'));
     ok(!curBad.length, `${tag}: どの通貨でも額が全部換わる（円の字が残らない・切替メニューと同じ作り方）`, curBad.slice(0, 5).join(' ／ '));
-    ok(!markBad.length, `${tag}: どの通貨でも「〜」「超」「確認中」の印が残る`, markBad.slice(0, 3).join(' ／ '));
+    ok(!markBad.length, `${tag}: どの通貨でも「〜」「超」の印が残る`, markBad.slice(0, 3).join(' ／ '));
     ok(!rawBad.length, `${tag}: 原貨の額と台帳の注は、通貨を換えても1文字も動かない`, rawBad.join(' '));
     ok(!shapeCur.length, `${tag}: どの通貨でも最上段の組み方が崩れない`, shapeCur.slice(0, 4).join(' ／ '));
     if (w >= FOLD_FROM) ok(!foldBad.length, `${tag}: 最初の1画面（高さ ${h}）に 給与 → 勤務 → 待遇 → 暮らし が入る（どの通貨でも）`, foldBad.join(' ／ '));
@@ -1078,12 +1184,68 @@ async function runOff(browser, s, [w, h, kind]) {
   }
 }
 
+/* 「鍵の無い人」：サーバーが伏せた行を返す（この会社に7件・ほかの会社に2件）。
+   出てよいのは 件数・出典・投稿時期 だけ。額・職位・機材・年数は、サーバーが間違えて送ってきても1文字も出ない。 */
+async function runRows(browser, s, [w, h, kind]) {
+  const tag = `${s} ${w}（鍵の無い人）`;
+  const { ctx, p, seen, ready } = await open(browser, s, w, h, 'rows');
+  const ev = (fn, ...a) => p.evaluate(fn, ...a);
+  try {
+    ok(ready, `${tag}: 「読み込み中」のまま固まらない`);
+    await ev(() => window.__pvg.top());
+    const sh = await ev(() => window.__pvg.shape());
+    const rp = await ev(() => window.__pvg.realpay());
+    if (!rp) { ok(false, `${tag}: 提出された年収の箱が見えている`); return; }
+    const N = MASK_AGE.length, top = Math.min(6, N), nShow = rp.width >= 640 ? top : 3;
+    ok(rp.state === 'locked' && rp.count === `${N}人が提出`, `${tag}: 鍵は掛かったまま・件数はこの会社の分だけ（ほかの会社の行を数えない）`, `${rp.state}・${rp.count}`);
+    ok(rp.total === top && rp.rows.length === nShow, `${tag}: 見える行は ${nShow}行（狭い画面は3行・広い画面は6行まで）`, `${rp.rows.length}／${rp.total}行・箱の幅 ${Math.round(rp.width)}`);
+    {
+      const bad = [];
+      for (const [i, r] of rp.rows.entries()) {
+        const at = `${i + 1}行め`;
+        if (r.mask !== 'line' || !r.hid) bad.push(`${at}: 伏せた行の形でない`);
+        if (r.a !== '' || r.b !== '年収') bad.push(`${at}: 伏せた欄に字が在る（「${r.a}」「${r.b}」）`);
+        if (r.extra) bad.push(`${at}: 開いた行の部品（職位・機材・額・印）が ${r.extra}つ在る`);
+        if (squash(r.c || '') !== VF_TEXT(MASK_VF[i]) + AGE_TEXT[MASK_AGE[i]]) bad.push(`${at}: 出典と投稿時期が、サーバーの返事と違う（${r.c}）`);
+        if (!(same(r.plates.map(x => [x.w, x.h]), [[52, 12], [44, 12], [86, 14]]) && r.plates.every(x => !x.kids && x.attrs === 1 && /blur\(/.test(x.blur)))) {
+          bad.push(`${at}: 板が「中身の無い、ぼかした板」でない（${r.plates.map(x => `${x.w}×${x.h}`).join(' ')}）`);
+        }
+      }
+      ok(!bad.length, `${tag}: 行ごとに出るのは 出典と投稿時期 だけ ── 職位・機材・額の所は、中身の無いぼかした板（幅は全行で同じ）`, bad.slice(0, 5).join(' ／ '));
+    }
+    {
+      /* わざと混ぜた 職位・機材・年数・額・印 が、字にも属性にも出ていない。件数と投稿時期のほかに数字が無い。 */
+      const leak = [/271/, /captain/i, /b787/i, /機長|副操縦士/, /⚠/, /data-(pos|fleet|ten|far|usd)/].filter(re => re.test(rp.html)).map(String);
+      ok(!leak.length && !NO_NUM.test(rp.rest), `${tag}: サーバーが額や職位を送ってきても、画面には1文字も出ない（数字は 件数と投稿時期 だけ）`, `${leak.join(' ')} ${NO_NUM.test(rp.rest) ? rp.rest.slice(0, 60) : ''}`);
+    }
+    {
+      const bad = bandBad(s, sh, rp);
+      if (rp.lock !== '給与の提出で開きます') bad.push(`錠前の1行が「${rp.lock}」`);
+      if (rp.msg !== null) bad.push(`行が在るのに「${rp.msg}」と出ている`);
+      ok(!bad.length, `${tag}: 最上段のすぐ下に在る・「給与の提出で開きます」・「${UNLOCK}」で給与の提出へ・ログインと REAL PAY への入口`, bad.join(' ／ '));
+    }
+    ok(!shapeBad(sh, kind).length, `${tag}: 最上段の組み方が崩れない`, shapeBad(sh, kind).join(' ／ '));
+    if (w >= FOLD_FROM) ok(foldOf(sh) <= h, `${tag}: 最初の1画面（高さ ${h}）に 暮らし まで入る（一覧が押し出さない）`, `下端 ${foldOf(sh)}`);
+    const geo = await ev(() => window.__pvg.geom(true));
+    ok(!geo.length, `${tag}: 切れ・はみ出し・重なりが無い`, geo.slice(0, 8).join('\n      '));
+    const pr = await ev(() => window.__pvg.probe('#pvg-realpay'));
+    ok(!pr.small.length && !pr.tap.length && !pr.bare.length, `${tag}: 一覧の字 12px 以上・押す場所 44px 以上・押せるものに状態が在る`, [...pr.small, ...pr.tap, ...pr.bare].slice(0, 8).join('\n      '));
+    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている3つだけ`, [...seen.unknown].join(' '));
+  } catch (e) {
+    ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
+  } finally {
+    await ctx.close().catch(() => {});
+  }
+}
+const ROWS_W = [320, 390, 768, 1440];
+
 head(`ブラウザ（${ONLY.length}社 × ${VIEWS.length}つの幅 × 全通貨）`);
 const browser = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox'] });
 try {
   const work = [];
   for (const s of ONLY) for (const v of VIEWS) work.push(() => runView(browser, s, v));
   for (const s of ONLY) for (const v of VIEWS.filter(x => x[0] === 390 || x[0] === 1440)) work.push(() => runOff(browser, s, v));
+  for (const s of ONLY) for (const v of VIEWS.filter(x => ROWS_W.includes(x[0]))) work.push(() => runRows(browser, s, v));
   let next = 0;
   await Promise.all(Array.from({ length: Math.min(JOBS, work.length) }, async () => {
     while (next < work.length) {

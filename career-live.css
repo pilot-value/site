@@ -42,7 +42,7 @@
 /* off ＝ サーバーに口がまだ無い */
 .crl[data-state="off"] .crl-msg{display:inline-flex;align-items:center;min-height:28px;padding:0 12px;border:1px dashed var(--pv-ink-3);border-radius:999px;font-size:12px;font-weight:700;color:var(--pv-ink-3)}
 
-/* locked ＝ 鍵が無い（値は来ていない。隠している箱は無い） */
+/* locked ＝ 鍵が無い（値は来ていない） */
 .crl-lock{display:flex;align-items:center;gap:8px;margin:0;padding:10px 12px;border-radius:var(--pv-r-sm);background:var(--pv-surface-soft);border:1px solid var(--pv-line);font-size:13px;font-weight:700;color:var(--pv-ink-2)}
 .crl-lock .crl-ic{color:var(--pv-ink-3)}
 .crl-rows + .crl-lock,.crl-revs + .crl-lock{margin-top:10px}
@@ -77,10 +77,14 @@
 .crl-rows{list-style:none;margin:0;padding:0;border-top:1px solid var(--pv-line)}
 .crl-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--pv-line)}
 .crl-row[data-mask]{grid-template-columns:minmax(0,1fr)}
-/* 会社ページの鍵の無い行：出典・時期｜額の場所（空の板） */
-.crl-row[data-mask="line"]{grid-template-columns:minmax(0,1fr) auto;padding:10px 0}
-.crl-row[data-mask="line"] .crl-row-c{grid-column:auto;font-size:12.5px}
-.crl-plate{display:block;width:76px;height:14px;border-radius:7px;background:var(--pv-bg-sub);border:1px solid var(--pv-line-soft)}
+/* 会社ページの鍵の無い行：開いた行と同じ骨組み。職位・機材・年収の場所は、ぼかした板。
+   ⚠️ 板の中は最初から空（置いた数字を霞ませているのではない。サーバーが値を送っていない）。
+   ⚠️ 板の幅は固定。値や桁数から作らない（幅が動くと、それ自体が数の手がかりになる）。 */
+.crl-row[data-mask="line"]{grid-template-columns:minmax(0,1fr) auto}
+.crl-row[data-mask="line"] .crl-row-b{align-items:center}
+.crl-plate{display:block;flex:none;width:86px;height:14px;border-radius:999px;background:color-mix(in srgb,var(--pv-ink) 30%,transparent);filter:blur(4px)}
+.crl-plate-a{width:52px;height:12px}
+.crl-plate-b{width:44px;height:12px}
 .crl-count{margin:0 0 8px;font-size:12px;color:var(--pv-ink-3)}
 .crl-count b{margin:0 1px;font:700 20px/1.2 Inter,sans-serif;letter-spacing:-.01em;font-variant-numeric:tabular-nums;color:var(--pv-ink)}
 .crl-row-a{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;min-width:0}

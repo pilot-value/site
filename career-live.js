@@ -4,7 +4,9 @@
    ・金額・待遇の鍵の名前・見本の口コミを、このファイルに書かない
      （鍵は欄の data-keys、答えの名前は #crl-vocab か pv-conditions.json、額はサーバーの答え）。
    ・取ってきた字は textContent で入れる（HTML として流し込む口を持たない）。
-   ・REAL PAY はサーバーの資格のまま。鍵の無い人には値が来ない＝出せない（ぼかす箱も作らない）。
+   ・REAL PAY はサーバーの資格のまま。鍵の無い人には値が来ない＝出せない。
+     ★ 会社ページでは、鍵の無い行をぼかした板で見せる（オーナーのご指示 2026-10-06「ログインしてない人はぼかせ」）。
+       板の中は最初から空 ── 置いた数字を霞ませているのではない。板の幅も固定（値や桁数から作らない）。
      機材で絞る口・並び替えを置かない。1行＝1人。
    ・口コミは実投稿だけ（見本を読み込まない）。読めない数に 0 を置かない。
    ・取りに行くのは、その欄が画面に出たとき。同じ答えはページの中で使い回す（pv_pay_rows() は1回）。
@@ -64,6 +66,7 @@
     payCount: function (n) { return ['', String(n), '人が提出']; },
     payLock: '給与の提出で開きます',
     payGive: '匿名で給与を提出する',
+    payUnlock: '全ての待遇データを解放する',
     payAll: 'REAL PAY で全部見る',
     login: 'ログイン',
 
@@ -426,15 +429,26 @@
     li.appendChild(srcLine(r));
     return li;
   }
-  /* 会社ページの、鍵の無い人の行。会社はページが言っているので、社名を行ごとに繰り返さない。
-     出典と投稿時期を1行に置き、額の場所は空の板にする（板の中に数字は無い。サーバーが送っていない）。 */
+  /* 会社ページの、鍵の無い人の行。開いた行と同じ骨組みで、職位・機材・年収の場所にぼかした板を置く。
+     会社はページが言っているので、社名を行ごとに繰り返さない。
+     ⚠️ 板の中に字を入れない（数字も、それらしい記号も）。サーバーが送ってきたのは出典と投稿時期だけ。 */
+  function plate(kind) {
+    return el('span', 'crl-plate' + (kind ? ' crl-plate-' + kind : ''));
+  }
   function maskLine(r) {
     var li = el('li', 'crl-row');
     li.setAttribute('data-mask', 'line');
+    var a = el('div', 'crl-row-a');
+    a.setAttribute('aria-hidden', 'true');
+    a.appendChild(plate('a'));
+    a.appendChild(plate('b'));
+    li.appendChild(a);
+    var b = el('div', 'crl-row-b');
+    b.setAttribute('aria-hidden', 'true');
+    b.appendChild(el('span', 'crl-k', T.annual));
+    b.appendChild(plate(''));
+    li.appendChild(b);
     li.appendChild(srcLine(r));
-    var plate = el('span', 'crl-plate');
-    plate.setAttribute('aria-hidden', 'true');
-    li.appendChild(plate);
     return li;
   }
   /* この会社の提出の件数（返ってきた行を数えるだけ。1行＝1人） */
@@ -462,27 +476,33 @@
       var mine = ofCo(pay.rows, slug);
       var all = link(T.payAll, UP + 'actual-pay.html?air=' + enc(slug));
       var ul = el('ul', 'crl-rows');
+      var top = GL ? 6 : 3;                 // 会社ページは横いっぱいの帯なので 6 行まで
       if (pay.open) {
         if (!mine.length) return view('empty', [msg(T.payEmpty), foot([all])]);
-        mine.slice(0, 3).forEach(function (r) { ul.appendChild(payRow(r, D)); });
+        mine.slice(0, top).forEach(function (r) { ul.appendChild(payRow(r, D)); });
         return view('open', GL ? [payCount(mine.length), ul, foot([all])] : [ul, foot([all])]);
       }
+      /* 会社ページの入口は「全ての待遇データを解放する」（オーナーのご指示 2026-10-06）。押すと給与の提出へ進む */
+      var feet = foot([
+        link(GL ? T.payUnlock : T.payGive, UP + 'pay-report.html?airline=' + enc(slug), 'cta'),
+        pay.anon ? link(T.login, loginHref()) : null,
+        all
+      ]);
+      /* 会社ページで行が1つも無い ＝ この会社の提出がまだ無い（サーバーは鍵の無い人にも同じ行数を返す）。
+         開けるものが無いので「提出で開きます」とは書かない */
+      if (GL && !mine.length) return view('empty', [msg(T.payEmpty), feet]);
       var nodes = [];
       if (mine.length) {
         if (GL) {
           nodes.push(payCount(mine.length));
-          mine.slice(0, 5).forEach(function (r) { ul.appendChild(maskLine(r)); });
+          mine.slice(0, top).forEach(function (r) { ul.appendChild(maskLine(r)); });
         } else {
-          mine.slice(0, 3).forEach(function (r) { ul.appendChild(maskRow(r, slug)); });
+          mine.slice(0, top).forEach(function (r) { ul.appendChild(maskRow(r, slug)); });
         }
         nodes.push(ul);
       }
       nodes.push(lockLine(T.payLock));
-      nodes.push(foot([
-        link(T.payGive, UP + 'pay-report.html?airline=' + enc(slug), 'cta'),
-        pay.anon ? link(T.login, loginHref()) : null,
-        all
-      ]));
+      nodes.push(feet);
       return view('locked', nodes);
     });
   };

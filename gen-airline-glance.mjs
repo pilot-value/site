@@ -1,5 +1,5 @@
 // 主要5社の会社ページの最上部を書く ──
-//   社名の行／給与・勤務・待遇・暮らし／会社・REAL PAY・口コミ・募集・ステイ・「ひとつ教えて」。
+//   社名の行／給与・勤務・待遇・暮らし／提出された年収（REAL PAY）／会社・口コミ・募集・ステイ・「ひとつ教えて」。
 //
 //   node gen-airline-glance.mjs            5社とも書く
 //   node gen-airline-glance.mjs etihad     1社だけ
@@ -8,7 +8,8 @@
 // ・冪等。管理ブロック（<!--PV-GLANCE-…-->／<!--PV-HERO-->）の中だけを書き直す。
 // ・数字は pv-airline-view.mjs の viewOf() からしか取らない。ここに額を書かない。
 // ・年収は4種類を混ぜない（推定年収／求人の上限／会社の公表額／乗員全体の公表平均）。
-//   根拠・算出方法・時点がそろわない推定は、額ではなく「確認中」と出す。
+//   ★ どの職位にも推定年収を額で出す。「確認中」と出さない（オーナーのご指示 2026-09-30／10-01／10-06）。
+//   ★ 棒にするのは推定年収だけ。会社が公表している金額は、棒を付けずに別の一覧へ置く。
 // ・ほかの107社のページには1文字も触らない。印は <body data-pv-glance="1">。
 // ・英語版は、日本語の形が固まってから同じ部品で書く（いまは日本語だけ）。
 //
@@ -133,9 +134,15 @@ ${live('stars', { airline: v.slug })}
 </div>`;
 }
 
-/* ── 給与 ───────────────────────────────────────────── */
-const bar = (kind, man) => `<div class="pvg-track"><i class="pvg-bar pvg-bar-${kind}" style="width:${width(man)}"></i></div>`;
-const FIG_LABEL = { max_y: '求人の上限', target_y: '会社公表の目標年収', cash_y_over: '会社公表の下限' };
+/* ── 給与 ─────────────────────────────────────────────
+   ★ どの職位にも推定年収を額で出す。「確認中」と出さない
+     （オーナーのご指示 2026-09-30／10-01／10-06。⚠️ 額を出さない枝を戻さない）。
+   ★ 棒は推定年収だけ ＝ 1枚に2本・同じ物差し。
+     会社が公表している金額（求人の上限・目標年収・下限・乗員全体の平均）は、棒を付けずに別の一覧へ置く
+     （物差しの違う額を同じ目盛に並べない ── 2026-10-06）。 */
+const bar = man => `<div class="pvg-track"><i class="pvg-bar pvg-bar-est" style="width:${width(man)}"></i></div>`;
+const EST_BY = '当サイトの推定（公開情報からの推計）';
+const FIG_LABEL = { max_y: '求人の上限', target_y: '目標年収', cash_y_over: '下限' };
 const figText = f => (f.key === 'max_y' ? `〜${f.yen}` : f.key === 'cash_y_over' ? `${f.yen}超` : f.key.endsWith('_from') ? `${f.yen}〜` : f.yen);
 /* 掲載日・時点。会社の資料が1つの時点にそろっているときだけ、欄に添える */
 function whenOf(pay) {
@@ -143,76 +150,60 @@ function whenOf(pay) {
   /* 「発行日の記載なし」のような断りは、欄の前提の横には並べない（出どころの一覧に出る） */
   return w.length === 1 && /\d/.test(w[0]) ? w[0] : '';
 }
-/* 推定とは別の欄に出す額（求人の上限／会社の公表額）と、その前提 */
-const mainFigs = p => [p.cap[0], p.company.find(f => FIG_LABEL[f.key])].filter(Boolean);
-const figNote = (v, f) => join(f.cond, whenOf(v.pay));
-/* 機長と副操縦士で前提が1つにそろうときだけ、欄の下に1回だけ書く（同じ文を左右に2回並べない） */
-function sharedNote(v) {
-  const per = RANKS.map(([rk]) => mainFigs(v.pay[rk]).map(f => figNote(v, f)));
-  if (per.some(list => !list.length)) return '';
-  const all = [...new Set(per.flat())];
-  return all.length === 1 ? all[0] : '';
-}
-/* 片方の職位にだけ額があり、推定はどちらにも無いとき（キャセイ）── その職位。
-   額は職位の2列の下へ横いっぱいに出す（もう片方の列が「確認中」だけの空き地にならず、前提の文が細い列で3行に折れない）。 */
-function soloRank(v) {
-  const has = RANKS.filter(([rk]) => mainFigs(v.pay[rk]).length);
-  return has.length === 1 && RANKS.every(([rk]) => !v.pay[rk].est) ? has[0] : null;
-}
-function figBlock(v, [, rkJa], f, shared, wide) {
-  const cap = f.key === 'max_y';
-  const who = wide
-    ? `<span class="pvg-vh">${esc(v.name)}・</span><b class="pvg-who">${rkJa}</b>`
-    : `<span class="pvg-vh">${esc(v.name)}・${rkJa}：</span>`;
-  return `<div class="pvg-fig pvg-fig-${cap ? 'cap' : 'co'}${wide ? ' pvg-fig-wide pvg-solo' : ''}">
-<p class="pvg-k">${who}${FIG_LABEL[f.key]}</p>
-<p class="pvg-amt"><span class="pvg-amv">${figText(f)}</span>${cap ? '<b class="pvg-tag">上限</b>' : ''}</p>
-${bar(cap ? 'cap' : f.key === 'cash_y_over' ? 'over' : 'co', f.man)}
-<p class="pvg-note">${shared ? '' : prose(figNote(v, f))}<span class="pv-no-cur pvg-orig">${esc(f.orig)}</span></p>
+/* 職位ごとの推定年収。「推定年収」の字は欄の頭に1回だけ出す（左右で2回言わない）。読み上げには職位ごとに添える。 */
+const rankBlock = (v, [rk, rkJa]) => `<div class="pvg-rank" data-rank="${rk}">
+<h3 class="pvg-rk"><span class="pvg-vh">${esc(v.name)}</span>${rkJa}<span class="pvg-rk-s">の推定年収</span></h3>
+<p class="pvg-big">${v.pay[rk].est.yen}</p>
+${bar(v.pay[rk].est.man)}
 </div>`;
+/* 会社が公表している金額（棒にしない）。職位ごとに、求人の上限を1つ・会社の公表額を1つまで。残りは下の説明に全部出る。
+   ⚠️ 社名 → 職位 → 額 のあいだに数字を挟まない（外貨の原文は額の後ろ）。
+   ⚠️ 乗員全体の平均の行は、隠した字で「機長と副操縦士をあわせた」と言ってから名前を出す
+      ＝ 読み上げが職位の額と取り違えない／check-salary.mjs が「運航乗務員」の額として正本と突き合わせられる。 */
+function pubRows(v) {
+  const rows = [];
+  for (const [rk, rkJa] of RANKS) {
+    const p = v.pay[rk];
+    for (const f of [p.cap[0], p.company.find(x => FIG_LABEL[x.key])].filter(Boolean)) {
+      rows.push({
+        kind: f.key === 'max_y' ? 'cap' : f.key === 'cash_y_over' ? 'over' : 'co', rank: rk,
+        who: `<span class="pvg-vh">${esc(v.name)}・</span><b>${rkJa}</b>`, label: FIG_LABEL[f.key],
+        value: figText(f), orig: f.orig, note: join(f.cond, whenOf(v.pay)),
+      });
+    }
+  }
+  const c = v.pay.crew[0];
+  if (c) {
+    rows.push({
+      kind: 'crew', rank: '',
+      who: `<span class="pvg-vh">${esc(v.name)}・機長と副操縦士をあわせた</span>`, label: `${c.who}全体の平均`,
+      value: c.yen, orig: '', note: join('機長と副操縦士をあわせた額', c.scope, c.when),
+    });
+  }
+  return rows;
 }
-function rankBlock(v, [rk, rkJa], shared, solo) {
-  const p = v.pay[rk], out = [];
-  /* 1) 推定年収。根拠がそろわなければ「確認中」（棒を描かない） */
-  out.push(p.est
-    ? `<div class="pvg-fig pvg-fig-est">
-<p class="pvg-k">推定年収</p>
-<p class="pvg-big">${p.est.yen}</p>
-${bar('est', p.est.man)}
-<p class="pvg-note">${prose(join(p.est.basis, p.est.basis.includes(p.est.asOf) ? '' : p.est.asOf))}</p>
-</div>`
-    : `<div class="pvg-fig pvg-fig-est is-none">
-<p class="pvg-k">推定年収</p>
-<p class="pvg-big pvg-none">確認中</p>
-</div>`);
-  /* 2) 求人の上限／会社の公表額。推定とは別の欄 */
-  if (!solo) for (const f of mainFigs(p)) out.push(figBlock(v, [rk, rkJa], f, shared, false));
-  return `<div class="pvg-rank" data-rank="${rk}">
-<h3 class="pvg-rk"><span class="pvg-vh">${esc(v.name)}</span>${rkJa}</h3>
-${out.join('\n')}
-</div>`;
-}
-/* 乗員全体の公表平均。機長・副操縦士の欄とは別に置く（職位の額と並べて読ませない） */
-function crewBlock(v) {
-  const [c, prev] = v.pay.crew;
-  if (!c) return '';
-  return `<div class="pvg-fig pvg-fig-crew pvg-fig-wide">
-<p class="pvg-k"><span class="pvg-vh">${esc(v.name)}</span>${esc(c.who)}全体（機長と副操縦士をあわせた平均）</p>
-<p class="pvg-amt">${c.yen}</p>
-${bar('crew', c.man)}
-<p class="pvg-note">${esc(join('会社の公表', c.scope, c.when))}${prev ? `<span class="pvg-prev">${esc(prev.when)} ${prev.yen}</span>` : ''}</p>
+function pubBlock(v) {
+  const rows = pubRows(v);
+  if (!rows.length) return '';
+  /* 前提が全部の行で同じなら、一覧の下に1回だけ書く */
+  const notes = [...new Set(rows.map(r => r.note))];
+  const shared = notes.length === 1 ? notes[0] : '';
+  return `<div class="pvg-pub">
+<h3 class="pvg-k">会社が公表している金額</h3>
+<ul>
+${rows.map(r => `<li data-kind="${r.kind}"${r.rank ? ` data-rank="${r.rank}"` : ''}><p class="pvg-pk">${r.who}${esc(r.label)}</p><p class="pvg-pv">${r.value}${r.orig ? `<small class="pv-no-cur pvg-orig">${esc(r.orig)}</small>` : ''}</p>${!shared && r.note ? `<p class="pvg-pn">${prose(r.note)}</p>` : ''}</li>`).join('\n')}
+</ul>
+${shared ? `<p class="pvg-note">${prose(shared)}</p>` : ''}
 </div>`;
 }
 function payDetails(v) {
   const p = v.pay, rows = [];
   for (const [rk, rkJa] of RANKS) {
-    const r = p[rk];
-    if (r.est) {
-      rows.push(`<div><dt>${rkJa}の推定年収</dt><dd><b>${r.est.yen}</b>
-<small>根拠：${prose(r.est.basis)}</small><small>算出方法：${prose(r.est.method)}</small><small>時点：${prose(r.est.asOf)}</small></dd></div>`);
-    } else {
-      rows.push(`<div><dt>${rkJa}の推定年収</dt><dd><b>確認中</b><small>根拠・算出方法・時点の3つがそろう資料を、まだ確認できていません。そろうまで額を出しません。</small></dd></div>`);
-    }
+    const r = p[rk], e = r.est;
+    /* 根拠・算出方法・時点の3つが台帳にそろっている職位だけ、3つとも書く。そろっていない職位は、誰の推定かだけを書く */
+    rows.push(`<div><dt>${rkJa}の推定年収</dt><dd><b>${e.yen}</b>${e.backed
+      ? `<small>根拠：${prose(e.basis)}</small><small>算出方法：${prose(e.method)}</small><small>時点：${prose(e.asOf)}</small>`
+      : `<small>${EST_BY}</small>`}</dd></div>`);
     for (const f of [...r.cap, ...r.company]) {
       rows.push(`<div><dt>${prose(f.group)}</dt><dd><b>${figText(f)}</b><span class="pv-no-cur pvg-orig">${esc(f.orig)}</span>
 <small>${prose(join(f.kind, f.cond))}</small></dd></div>`);
@@ -237,20 +228,14 @@ ${notes}${src}${fx}
 </div>
 </details>`;
 }
-/* 広い箱では、右の3つの欄（匿名で答える）と同じ形で、給与を出す入口を欄の中に置く。
-   狭い箱では出さない（最初の1画面を額と条件に使う。入口は下の REAL PAY の箱に在る）。 */
-const payGive = v => `<div class="pvg-qs"><p class="pvg-qh">匿名で出す</p><ul><li><a href="${UP}pay-report.html?airline=${v.slug}">給与を提出する${IC.next}</a></li></ul></div>`;
 function payCard(v) {
-  const shared = sharedNote(v), solo = soloRank(v);
   return `<article class="pvg-card pvg-pay">
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true">${IC.pay}</span><h2 class="pvg-eyebrow">給与</h2><span class="pvg-chip">${esc(v.pay.tax)}</span></header>
 <div class="pvg-ranks">
-${RANKS.map(r => rankBlock(v, r, shared, solo)).join('\n')}
+${RANKS.map(r => rankBlock(v, r)).join('\n')}
 </div>
-${solo ? mainFigs(v.pay[solo[0]]).map(f => figBlock(v, solo, f, shared, true)).join('\n') : ''}
-${shared ? `<p class="pvg-note pvg-shared">${prose(shared)}</p>` : ''}
-${crewBlock(v)}
-${payGive(v)}
+<p class="pvg-estk">${EST_BY}</p>
+${pubBlock(v)}
 ${payDetails(v)}
 </article>`;
 }
@@ -380,8 +365,11 @@ ${fleet}
 ${sources([...facts, ...c.fleet], true)}
 </article>`;
 }
-const realpayCard = v => `<article class="pvg-card pvg-rp">
-${head(IC.realpay, 'REAL PAY', '本人が提出した給与')}
+/* 提出された年収の一覧（2026-10-06 オーナーのご指示）── 最上段のすぐ下に、横いっぱいで置く。
+   描くのは career-live.js。鍵の無い人には、額・職位・機材の場所にぼかした板を置く
+   （板の中は空。サーバーが送っていないので、ぼかしを外しても何も出ない）。資格を決めるのは今までどおりサーバー。 */
+const realpayCard = v => `<article class="pvg-card pvg-rp" id="pvg-realpay">
+${head(IC.realpay, '提出された年収', 'REAL PAY')}
 ${live('realpay', { airline: v.slug })}
 </article>`;
 const reviewsCard = v => `<article class="pvg-card pvg-rv-card">
@@ -443,7 +431,7 @@ ${stay}
 function glance(v) {
   const island = JSON.stringify({ airlines: Object.fromEntries(GLANCE.map(s => { const o = viewOf(s); return [s, { ja: o.name, color: o.color }]; })) })
     .replace(/</g, () => '\\u003c');
-  return `<section class="pvg" data-tab-section="overview" data-slug="${v.slug}" style="--pvg-c:${esc(v.color)}" aria-label="${esc(v.name)}の給与・勤務・待遇・暮らし">
+  return `<section class="pvg" data-tab-section="overview" data-slug="${v.slug}" style="--pvg-c:${esc(v.color)};--pvg-n:${AXIS / 1000}" aria-label="${esc(v.name)}の給与・勤務・待遇・暮らし">
 <div class="pvg-top">
 ${payCard(v)}
 <div class="pvg-trio">
@@ -452,9 +440,9 @@ ${factCell(v, 'benefits', '待遇', IC.benefits, v.benefits, BEN_ASK, '会社が
 ${livingCell(v)}
 </div>
 </div>
+${realpayCard(v)}
 <div class="pvg-more-grid">
 ${companyCard(v)}
-${realpayCard(v)}
 ${reviewsCard(v)}
 ${jobsCard(v)}
 ${stayCard(v)}
