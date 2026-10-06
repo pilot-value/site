@@ -43,6 +43,8 @@
 
   /* ── 2) 5社の物差し（機長／副操縦士）──────────────────── */
   function rank(rk) {
+    var seg = root.querySelector('.pvg-seg');
+    if (seg) seg.setAttribute('data-on', rk);          // 白い板の位置（pv-glance.css）
     [].forEach.call(root.querySelectorAll('[data-pvg-rank]'), function (b) {
       b.setAttribute('aria-pressed', b.getAttribute('data-pvg-rank') === rk ? 'true' : 'false');
     });
