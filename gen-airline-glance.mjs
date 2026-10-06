@@ -20,7 +20,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { GLANCE, RANKS, AXIS, viewOf, mark, width, yen, rentCell } from './pv-airline-view.mjs';
+import { GLANCE, RANKS, AXIS, viewOf, width, yen, rentCell } from './pv-airline-view.mjs';
 import { fxNote } from './salary-basis.mjs';
 import { TOPICS } from './gen-career.mjs';
 import { FACTS as CAREER } from './career-facts.mjs';
@@ -166,7 +166,7 @@ function figBlock(v, [, rkJa], f, shared, wide) {
     : `<span class="pvg-vh">${esc(v.name)}・${rkJa}：</span>`;
   return `<div class="pvg-fig pvg-fig-${cap ? 'cap' : 'co'}${wide ? ' pvg-fig-wide pvg-solo' : ''}">
 <p class="pvg-k">${who}${FIG_LABEL[f.key]}</p>
-<p class="pvg-amt">${figText(f)}${cap ? '<b class="pvg-tag">上限</b>' : ''}</p>
+<p class="pvg-amt"><span class="pvg-amv">${figText(f)}</span>${cap ? '<b class="pvg-tag">上限</b>' : ''}</p>
 ${bar(cap ? 'cap' : f.key === 'cash_y_over' ? 'over' : 'co', f.man)}
 <p class="pvg-note">${shared ? '' : prose(figNote(v, f))}<span class="pv-no-cur pvg-orig">${esc(f.orig)}</span></p>
 </div>`;
@@ -192,7 +192,7 @@ ${bar('est', p.est.man)}
 ${out.join('\n')}
 </div>`;
 }
-/* 乗員全体の公表平均。機長・副操縦士の欄とは別に置き、物差し（5社の並び）には入れない */
+/* 乗員全体の公表平均。機長・副操縦士の欄とは別に置く（職位の額と並べて読ませない） */
 function crewBlock(v) {
   const [c, prev] = v.pay.crew;
   if (!c) return '';
@@ -232,7 +232,7 @@ function payDetails(v) {
 <summary>この金額は誰の・何を含んだ・いつの金額か${IC.down}</summary>
 <div class="pvg-body">
 <dl class="pvg-dl">${rows.join('\n')}</dl>
-<p class="pvg-axis">棒の目盛は 0 〜 ${yen(AXIS)}。5社で同じです。</p>
+<p class="pvg-axis">棒の目盛は 0 〜 ${yen(AXIS)}。機長と副操縦士で同じです。</p>
 ${notes}${src}${fx}
 </div>
 </details>`;
@@ -252,29 +252,6 @@ ${shared ? `<p class="pvg-note pvg-shared">${prose(shared)}</p>` : ''}
 ${crewBlock(v)}
 ${payGive(v)}
 ${payDetails(v)}
-</article>`;
-}
-
-/* ── 5社の物差し（押すと、その会社との比較へ）──────────── */
-function rulerRow(self, other, [rk, rkJa]) {
-  const o = viewOf(other), m = mark(other, rk), me = other === self;
-  const body = `<span class="pvg-rn"><span class="pvg-rc">${esc(o.code)}</span><span class="pvg-vh">${esc(o.name)}・${rkJa}：</span></span>
-<span class="pvg-track${m.kind === 'none' ? ' pvg-track-none' : ''}">${m.kind === 'none' ? '' : `<i class="pvg-bar pvg-bar-${m.kind === 'company' ? 'co' : m.kind}" style="width:${width(m.man)}"></i>`}</span>
-<span class="pvg-rv${m.kind === 'none' ? ' pvg-none' : ''}">${m.text}</span>
-<span class="pvg-rl">${esc(m.label)}</span>`;
-  return me
-    ? `<li class="pvg-row is-me" style="--pvg-c:${esc(o.color)}"><span class="pvg-rowa">${body}</span></li>`
-    : `<li class="pvg-row" style="--pvg-c:${esc(o.color)}"><a class="pvg-rowa" href="${href.compare(self, other)}" aria-label="${esc(o.name)}と比較する">${body}</a></li>`;
-}
-function ruler(v) {
-  return `<article class="pvg-card pvg-ruler">
-<header class="pvg-hd"><h2 class="pvg-eyebrow">5社を同じ目盛で</h2>
-<div class="pvg-seg" role="group" aria-label="職位">${RANKS.map(([rk, ja], i) =>
-    `<button type="button" data-pvg-rank="${rk}" aria-pressed="${i === 0}">${ja}</button>`).join('')}</div></header>
-${RANKS.map((r, i) => `<ol class="pvg-rows" data-for="${r[0]}"${i ? ' hidden' : ''}>
-${GLANCE.map(o => rulerRow(v.slug, o, r)).join('\n')}
-</ol>`).join('\n')}
-<p class="pvg-axis">棒の目盛は 0 〜 ${yen(AXIS)}（上の給与の棒も同じ）。行を押すと、その会社との比較へ進みます。</p>
 </article>`;
 }
 
@@ -474,7 +451,6 @@ ${factCell(v, 'work', '勤務', IC.work, v.work, WORK_ASK, '会社が公表し�
 ${factCell(v, 'benefits', '待遇', IC.benefits, v.benefits, BEN_ASK, '会社が公表している待遇を確認できていません')}
 ${livingCell(v)}
 </div>
-${ruler(v)}
 </div>
 <div class="pvg-more-grid">
 ${companyCard(v)}

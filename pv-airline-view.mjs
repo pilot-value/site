@@ -1,7 +1,7 @@
 /* pv-airline-view.mjs — 主要5社の会社ページが読む、ただ1つのデータの読み口。
  *
  *   viewOf(slug) … 1社ぶんを、ページがそのまま並べられる形で返す
- *   mark(slug, rank) … その職位に「いま出せるいちばん確かな1つ」（棒と5社の物差しが使う）
+ *   mark(slug, rank) … その職位に「いま出せるいちばん確かな1つ」（棒の目盛の右端を決めるのに使う）
  *   AXIS … 棒の目盛の右端（万円）。5社で同じ・0 から始まる
  *
  * ここは**つなぐだけ**で、数字を持たない。出どころは次の6つ。
@@ -106,7 +106,7 @@ const traineeOf = slug => figures(slug, 'trainee').map(f => ({ group: f.group, k
 const YEARLY = new Set(['cash_y', 'pkg_y', 'target_y', 'cash_y_over', 'reward_y', 'month_x']);
 const SHORT = { target_y: '会社公表の目標年収', cash_y_over: '会社公表の下限', cash_y: '会社公表の年額', pkg_y: '会社公表の総待遇', reward_y: '会社公表の待遇額', month_x: '会社公表の月額から' };
 
-/** その職位に、いま出せるいちばん確かな1つ。棒と5社の物差しはこれだけを使う。
+/** その職位に、いま出せるいちばん確かな1つ。目盛の右端（AXIS）はこれで決める。
     kind: est ＝ 推定／cap ＝ 求人の上限（斜線）／company ＝ 会社の公表額／over ＝ 会社が書いた下限／none ＝ 確認中 */
 export function mark(slug, rank) {
   const p = payOf(slug, rank);

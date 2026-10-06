@@ -41,29 +41,35 @@
     return null;
   }
 
-  /* ── 2) 5社の物差し（機長／副操縦士）──────────────────── */
-  function rank(rk) {
-    var seg = root.querySelector('.pvg-seg');
-    if (seg) seg.setAttribute('data-on', rk);          // 白い板の位置（pv-glance.css）
-    [].forEach.call(root.querySelectorAll('[data-pvg-rank]'), function (b) {
-      b.setAttribute('aria-pressed', b.getAttribute('data-pvg-rank') === rk ? 'true' : 'false');
-    });
-    [].forEach.call(root.querySelectorAll('.pvg-rows[data-for]'), function (ol) {
-      ol.hidden = ol.getAttribute('data-for') !== rk;
-    });
-  }
-
-  /* ── 3) タブへ（口コミ・募集要項）──────────────────────── */
+  /* ── 2) タブへ（口コミ・募集要項）────────────────────────
+     ⚠️ その名前のタブが無い会社がある（JAL・ANA の募集要項は「企業トップ」の面の下に在る。
+        タブは airline-reviews-ui.js が節の札の言葉から作るので、会社ごとに本数が違う）。
+        無いタブへ切り替えると、どの面も選ばれない ＝ ページの中身がぜんぶ消える。
+        無い時は切り替えず、同じ面の中のその節へ寄る。 */
+  var SEC = { jobs: /募集要項|採用情報/ };
   function toTab(tab) {
     var ui = w.PVReviewUI;
     if (!ui || typeof ui.switchTab !== 'function') return false;
-    ui.switchTab(tab);
     var nav = d.getElementById('airline-tab-nav');
-    if (nav) glide(nav.getBoundingClientRect().top - HEAD);
-    return true;
+    if (nav && nav.querySelector('.airline-tab-btn[data-tab="' + tab + '"]')) {
+      ui.switchTab(tab);
+      /* タブの帯は画面の上に貼り付く（sticky）。ページの下のほうで押すと帯はもう貼り付いていて、
+         帯の位置を見ても動く量は 0 ＝ 切り替えた面の途中か、その下の何も無い所が出る。
+         帯のすぐ下に在る本文の箱の頭を、帯の下へ寄せる。 */
+      var body = nav.nextElementSibling;
+      glide(body ? body.getBoundingClientRect().top - HEAD - nav.offsetHeight : nav.getBoundingClientRect().top - HEAD);
+      return true;
+    }
+    var hs = SEC[tab] ? d.querySelectorAll('.glass h2') : [];
+    for (var i = 0; i < hs.length; i++) {
+      if (!SEC[tab].test(hs[i].textContent) || hs[i].closest('.pvg')) continue;
+      glide(hs[i].closest('.glass').getBoundingClientRect().top - HEAD - 12);
+      return true;
+    }
+    return false;
   }
 
-  /* ── 4) 「ひとつ教えて」の話題 ─────────────────────────────
+  /* ── 3) 「ひとつ教えて」の話題 ─────────────────────────────
      広い箱では全部開いて横に並べる（質問の名前が最初から読める）。狭い箱では畳んだまま。
      開閉は <details> そのもの ＝ ここが動かなくても、押せば開く。境目は pv-glance.css の 640px と同じ。 */
   var askc = root.querySelector('.pvg-askc');
@@ -113,8 +119,6 @@
       });
       return;
     }
-    var seg = t.closest('[data-pvg-rank]');
-    if (seg && root.contains(seg)) { rank(seg.getAttribute('data-pvg-rank')); return; }
     var tab = t.closest('[data-pvg-tab]');
     if (tab) { if (toTab(tab.getAttribute('data-pvg-tab'))) e.preventDefault(); return; }
     var rev = t.closest('a[href="#reviews"]');
