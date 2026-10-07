@@ -454,7 +454,7 @@
       '        <div class="rv-locked-cta">\n' +
       '          <button type="button" class="rv-locked-btn" onclick="openReviewModal()">\n' +
       '            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>\n' +
-      '            ' + L.lockedCta + '\n' +
+      '            ' + unlockLabel(L.lockedCta) + '\n' +
       '          </button>\n' +
       '        </div>\n' +
       '      </div>';
@@ -484,7 +484,7 @@
       '        <div>\n' +
       '          <button type="button" class="rv-locked-btn" onclick="openReviewModal()">\n' +
       '            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>\n' +
-      '            ' + L.lockedCta + '\n' +
+      '            ' + unlockLabel(L.lockedCta) + '\n' +
       '          </button>\n' +
       '        </div>\n' +
       '      </div>';
@@ -614,7 +614,7 @@
       '      <div style="display:flex;flex-direction:column;gap:10px">\n' +
       '        <button class="btn-review-post" style="width:100%;justify-content:center" onclick="openReviewModal()">\n' +
       '          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>\n' +
-      '          ' + L.rmBtn + '\n' +
+      '          ' + unlockLabel(L.rmBtn) + '\n' +
       '        </button>\n' +
       '        ' + (!isLoggedIn() ? '<a href="../login.html" style="color:#6b7d93;font-size:.78rem;text-decoration:underline;text-underline-offset:2px">' + L.rmLogin + '</a>' : '') + '\n' +
       '      </div>\n' +
@@ -886,7 +886,7 @@
       '        <div class="rv-gate-title">' + L.gateTitle + '</div>\n' +
       '        <div class="rv-gate-remain">' + L.gateAll(shown) + '</div>\n' +
       '        <p class="rv-gate-desc">' + L.gateDesc + '</p>\n' +
-      '        <button class="btn-review-post" onclick="openReviewModal()">' + L.gateBtn + '</button>\n' +
+      '        <button class="btn-review-post" onclick="openReviewModal()">' + unlockLabel(L.gateBtn) + '</button>\n' +
       '        <a href="' + loginHref + '" class="rv-gate-login">' + L.gateLogin + '</a>\n' +
       '        <div style="font-size:.72rem;color:#6b7d93;margin-top:10px">' + L.gateFine + '</div>\n' +
       '      </div>' : '';
@@ -1039,6 +1039,15 @@
   /* タブのある会社ページ（タブの帯 #pvg-tabs は gen-airline-glance.mjs が書く）。
      口コミの新しい載せ方は、タブのあるページだけ。タブの無い主要4社は今までどおりに動かす。 */
   function isTabbed() { return isGlance() && !!d.getElementById('pvg-tabs'); }
+  /* ★2026-10-07 オーナーのご指示：タブのある会社ページの口コミでは、解放の入口の字を2行にする
+       「Give & Get」／「全ての口コミデータを解放する」
+     変えるのは字だけ ── 行き先（投稿フォーム）も、開く条件も、今までと同じ。
+     ほかの会社のページと英語版は今までの1行のまま（2行の形は pv-glance.css の .pvg-gg）。 */
+  function unlockLabel(plain) {
+    if (LANG !== 'ja' || !isTabbed()) return plain;
+    return '<span class="pvg-gg"><span class="pvg-gg-k" lang="en">Give &amp; Get</span>' +
+           '<span class="pvg-gg-m">全ての口コミデータを解放する</span></span>';
+  }
 
   function injectReviewCategoryGrid() {
     var banner = d.getElementById('airline-rating-banner');
@@ -1118,7 +1127,7 @@
       '<div class="rv-post-gate" style="margin-top:24px">' +
         '<div style="font-size:.9rem;font-weight:700;margin-bottom:6px">' + L.vcGateTitle + '</div>' +
         '<p style="font-size:.8rem;color:#6b7d93;margin-bottom:14px">' + L.vcGateDesc + '</p>' +
-        '<button class="btn-review-post" onclick="if(window.openReviewModal)openReviewModal()">' + L.vcGateBtn + '</button>' +
+        '<button class="btn-review-post" onclick="if(window.openReviewModal)openReviewModal()">' + unlockLabel(L.vcGateBtn) + '</button>' +
         '<div style="font-size:.72rem;color:#6b7d93;margin-top:8px">' + L.vcGateFine + '</div>' +
       '</div>' +
       '<div class="mt-8 pt-4" style="border-top:1px solid rgba(255,255,255,.07)">' +

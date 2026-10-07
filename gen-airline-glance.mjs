@@ -277,6 +277,11 @@ ${notes}${src}${fx}
 </div>
 </details>`;
 }
+/* 給与の1枚（2026-10-07 オーナーのご指示「給与」と「提出された年収」を1枚に）。
+   上から 推定年収（機長／副操縦士）→ 提出された年収の一部 → 資格に応じた入口。
+   会社が公表している金額は意味が違う数字なので、その下に別の見出しで置く（推定の棒とは混ぜない）。
+   提出された年収を描くのは career-live.js。資格を決めるのは今までどおりサーバーで、鍵の無い人へは
+   額・職位・機材を送らない（板の中は空 ＝ HTML にも JSON にも入っていない）。 */
 function payCard(v) {
   return `<article class="pvg-card pvg-pay"${pane(v.slug, 'overview pay')}>
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true">${IC.pay}</span><h2 class="pvg-eyebrow">給与</h2><span class="pvg-chip">${esc(v.pay.tax)}</span></header>
@@ -284,6 +289,10 @@ function payCard(v) {
 ${RANKS.map(r => rankBlock(v, r)).join('\n')}
 </div>
 <p class="pvg-estk">${EST_BY}</p>
+<section class="pvg-rp" id="pvg-realpay" aria-label="提出された年収">
+<h3 class="pvg-rp-h">提出された年収<small lang="en">REAL PAY</small></h3>
+${live('realpay', { airline: v.slug, top: '3' })}
+</section>
 ${pubBlock(v)}
 ${payDetails(v)}
 </article>`;
@@ -397,7 +406,7 @@ const stats = items => `<dl class="pvg-stats">${items.map(f => {
 }).join('')}</dl>`;
 /* 機材の札は、乗員が呼ぶ短い形で出す（台帳の書き方は title に残す）。 */
 const shortType = s => String(s).replace(/^ボーイング\s*/, () => 'B').replace(/^エアバス\s*/, () => '').replace(/^エンブラエル\s*/, () => 'E');
-function companyCard(v) {
+function companyCard(v, about) {
   const c = v.company, p = c.photo;
   /* 作者名とライセンス名を示すことが、この写真を使う条件（CC BY／BY-SA）。外さない。 */
   const credit = p && needsCredit(p)
@@ -411,33 +420,47 @@ function companyCard(v) {
      （同じ4つも、そこでは数え方つきで出る ＝ 注記を落としたままにしない）。 */
   const keys = `<dl class="pvg-keys">${facts.slice(0, 4).map(f => { const m = tail(f);
     return `<div><dt>${esc(f.label)}</dt><dd>${m ? esc(m[1]) : val(f)}</dd></div>`; }).join('')}</dl>`;
+  /* 紹介の本文（2026-10-07 オーナーのご指示）── 下に在った「◯◯について」の節から移した字。
+     歴史・規模・拠点が分かる最初の段落は、開かなくても読める場所に置く（4つの数字だけで会社紹介を済ませない）。
+     残りの段落と、台帳の数字と重ならない項目（本社・退職年齢）は「会社情報」を開いた中。字は1文字も変えていない。 */
+  const lead = about.lead ? `<p class="pvg-about" data-pvg-about="lead">${about.lead}</p>` : '';
+  const more = about.more.map(t => `<p data-pvg-about="more">${t}</p>`).join('\n');
+  const extra = about.keys.length ? `<dl class="pvg-about-k">${about.keys.map(([k, x]) => `<div data-pvg-about="k"><dt>${k}</dt><dd>${x}</dd></div>`).join('')}</dl>` : '';
+  const prose = more || extra ? `<div class="pvg-about-more">${[more, extra].filter(Boolean).join('\n')}</div>\n` : '';
   return `<article class="pvg-card pvg-co"${pane(v.slug, 'overview')}>
 ${photo}
 ${head(IC.company, '会社')}
+${lead}
 ${keys}
-<details class="pvg-dt pvg-co-more"><summary>会社情報<small>${join(`数字${facts.length}つ`, c.fleet.length ? '機材' : '', '出どころ')}</small>${IC.down}</summary>
-${stats(facts)}
+<details class="pvg-dt pvg-co-more"><summary>会社情報<small>${join(more ? '紹介の続き' : '', `数字${facts.length}つ`, c.fleet.length ? '機材' : '', '出どころ')}</small>${IC.down}</summary>
+${prose}${stats(facts)}
 ${fleet}
 ${sources([...facts, ...c.fleet])}
 </details>
 </article>`;
 }
-/* 提出された年収の一覧（2026-10-06 オーナーのご指示）── 推定年収のすぐ隣（狭い画面ではすぐ下）に置く。
-   描くのは career-live.js。鍵の無い人には、額・職位・機材の場所にぼかした板を置く
-   （板の中は空。サーバーが送っていないので、ぼかしを外しても何も出ない）。資格を決めるのは今までどおりサーバー。 */
-const realpayCard = v => `<article class="pvg-card pvg-rp" id="pvg-realpay"${pane(v.slug, 'overview pay')}>
-${head(IC.realpay, '提出された年収', 'REAL PAY')}
-${live('realpay', { airline: v.slug })}
-</article>`;
 /* 評価スコア＋口コミ（2026-10-06 オーナーのご指示「パイロットによる評価スコアの部分、企業トップのどこかのカードに残して」）。
    点数・6角形の図・6分類の棒は career-live.js が描く。数字の出し方は airline-reviews-ui.js の1か所
    （ほかの会社のページの帯と同じ答え）。HTML には数字を1つも書かない（出荷時は「—」）。
-   書く入口は箱の底に1つだけ（文言は今のページの帯と同じ）。 */
+   書く入口は箱の底に1つだけ。
+   ★2026-10-07 オーナーのご指示：給与の1枚の横（狭い画面ではすぐ下）に置く。入口の字は2行で、
+     概要では「Give & Get／口コミを解放する」・口コミのタブでは「Give & Get／全ての口コミデータを解放する」。
+     行き先（投稿フォーム）も、開く条件も、今までと同じ。どちらを出すかは pv-glance.css（JS が無ければ概要の字）。
+   口コミの要約（良い点／気になる点）の置き場も、ここ。描くのは career-live.js で、資格は口コミの本文と同じ。
+   サーバーに要約の口が無いあいだは何も出ない（作り物の要約で埋めない）。 */
+export const GG = 'Give &amp; Get';
+const gg = main => `<span class="pvg-gg"><span class="pvg-gg-k" lang="en">${GG}</span><span class="pvg-gg-m">${main}</span></span>`;
+export const RV_CTA = { overview: '口コミを解放する', reviews: '全ての口コミデータを解放する' };
+const rvCta = (v, at) => `<p class="pvg-rv-cta pvg-rv-cta-${at}"><a class="pvg-btn pvg-btn-gg" href="${UP}submit-review.html?airline=${esc(v.slug)}">${gg(RV_CTA[at])}</a><span>匿名・無料</span></p>`;
 const reviewsCard = v => `<article class="pvg-card pvg-rv-card" id="pvg-score"${pane(v.slug, 'overview reviews')}>
 ${head(IC.reviews, 'パイロットによる評価スコア')}
+<div class="pvg-rv-in">
 ${live('score', { airline: v.slug })}
+${live('summary', { airline: v.slug })}
 ${live('reviews', { airline: v.slug, give: '0' })}
-<p class="pvg-rv-cta"><a class="pvg-btn" href="${UP}submit-review.html?airline=${esc(v.slug)}">匿名で口コミを投稿する</a><span>匿名・無料</span></p>
+${rvCta(v, 'overview')}
+${rvCta(v, 'reviews')}
+</div>
 </article>`;
 function jobsCard(v) {
   return `<article class="pvg-card pvg-jobs"${pane(v.slug, 'overview')}>
@@ -499,19 +522,18 @@ ${head(IC.reviews, '口コミ', '会員の投稿 <b data-pvg-n="posts">—</b> �
 </article>`;
 
 /* ── 1社ぶん ────────────────────────────────────────── */
-function glance(v) {
+function glance(v, about) {
   const island = JSON.stringify({ airlines: Object.fromEntries(GLANCE.map(s => { const o = viewOf(s); return [s, { ja: o.name, color: o.color }]; })) })
     .replace(/</g, () => '\\u003c');
   return `<section class="pvg" data-tab-section="overview" data-slug="${v.slug}" style="--pvg-c:${esc(v.color)};--pvg-n:${AXIS / 1000}" aria-label="${esc(v.name)}の給与・勤務・待遇・暮らし">
 <div class="pvg-more-grid"${pane(v.slug, 'overview')}>
-${companyCard(v)}
+${companyCard(v, about)}
 </div>
-<div class="pvg-payrow"${pane(v.slug, 'overview pay')}>
+<div class="pvg-payrow"${pane(v.slug, 'overview pay reviews')}>
 ${payCard(v)}
-${realpayCard(v)}
-</div>
-<div class="pvg-more-grid pvg-g-rv"${pane(v.slug, 'overview reviews')}>
 ${reviewsCard(v)}
+</div>
+<div class="pvg-more-grid pvg-g-jobs"${pane(v.slug, 'overview')}>
 ${jobsCard(v)}
 </div>
 <div class="pvg-top"${pane(v.slug, 'overview pay work life')}>
@@ -549,6 +571,62 @@ function block(html, name, inner, at) {
   return html.slice(0, i) + text + '\n' + html.slice(i);
 }
 const BOX = '<div class="max-w-7xl mx-auto px-6 pb-24 space-y-10">';
+/* 開きタグの位置から、対になる </div> の直後まで */
+function divEnd(html, i) {
+  const re = /<div\b|<\/div>/g;
+  re.lastIndex = i;
+  let depth = 0, m;
+  while ((m = re.exec(html))) { depth += m[0] === '</div>' ? -1 : 1; if (!depth) return m.index + 6; }
+  throw new Error('閉じていない <div>');
+}
+/* 会社の紹介文を運ぶ（2026-10-07 オーナーのご指示）── 下に在った「◯◯について」の節を、いちばん上の会社カードへ移す。
+   字は1文字も変えない（h1 と同じやり方）：初回は古い節から読んで節を消し、2回目からは管理ブロックの中から読み戻す。
+   節の右に在った6つの項目のうち、台帳の数字・税の札・拠点と同じ話のものは運ばない（同じ話を2か所に出さない。
+   台帳のほうは出どころと時点が付いている）。残るのは本社と退職年齢。 */
+const ABOUT_RE = /<div class="glass p-8 fade-up"[^>]*>\s*<div class="section-badge mb-4">(?:航空会社の概要|概要)<\/div>\s*<h2\b[^>]*>[^<]*について<\/h2>/;
+const ABOUT_DUP = /^(設立|アライアンス|就航都市|保有機材数?|所得税|ハブ空港|ハブ)$/;
+function takeAbout(slug, html) {
+  const end = html.indexOf('<!--/PV-GLANCE-->');
+  const from = end < 0 ? html.indexOf(BOX) : end;
+  const m = ABOUT_RE.exec(html.slice(from));
+  if (m) {
+    const a = from + m.index, b = divEnd(html, a), sec = html.slice(a, b);
+    const ps = [...sec.matchAll(/<p class="text-muted leading-relaxed[^"]*">([\s\S]*?)<\/p>/g)].map(x => x[1].trim());
+    const keys = [...sec.matchAll(/<div><div class="text-xs text-muted uppercase tracking-widest mb-1">([^<]*)<\/div><div class="font-semibold[^"]*">([^<]*)<\/div><\/div>/g)]
+      .map(x => [x[1].trim(), x[2].trim()]);
+    if (!ps.length || ps.some(t => /[<>]/.test(t)) || keys.length !== 6) throw new Error(`${slug}: 「◯◯について」の節が読めない`);
+    const cut = html.slice(0, a).replace(/\s*(?:<!-- 概要 -->\s*)?$/, () => '') + '\n\n' + html.slice(b).replace(/^\s*\n/, () => '');
+    return { html: cut, about: { lead: ps[0], more: ps.slice(1), keys: keys.filter(([k]) => !ABOUT_DUP.test(k)) } };
+  }
+  const a = html.indexOf('<!--PV-GLANCE-->'), old = a < 0 || end < 0 ? '' : html.slice(a, end);
+  const lead = /<p class="pvg-about" data-pvg-about="lead">([^<]*)<\/p>/.exec(old);
+  return { html, about: {
+    lead: lead ? lead[1] : '',
+    more: [...old.matchAll(/<p data-pvg-about="more">([^<]*)<\/p>/g)].map(x => x[1]),
+    keys: [...old.matchAll(/<div data-pvg-about="k"><dt>([^<]*)<\/dt><dd>([^<]*)<\/dd><\/div>/g)].map(x => [x[1], x[2]]),
+  } };
+}
+/* 会社どうしの比較は「他社と比較」に集める（2026-10-07 オーナーのご指示）── 会社ページの中の2社の比較表を外す。
+   錠前の箱がその節だけを包んでいるときは箱ごと外す（中を抜くと、空の箱と錠前の札だけが残る）。
+   比較の画面（career.html）と、社名の横の「他社と比較」はそのまま。何度流しても同じ。 */
+export const DROP_H2 = /比べられるところだけ|ANA vs JAL パイロット年収 詳細比較表/;
+function dropCompare(html) {
+  for (;;) {
+    const end = html.indexOf('<!--/PV-GLANCE-->');
+    let hit = null;
+    for (const m of html.slice(end).matchAll(/<div class="glass p-8 fade-up"[^>]*>/g)) {
+      const a = end + m.index, h2 = /<h2\b[^>]*>([\s\S]*?)<\/h2>/.exec(html.slice(a, a + 4000));
+      if (h2 && DROP_H2.test(h2Text(h2[1]))) { hit = a; break; }
+    }
+    if (hit === null) return html;
+    let a = hit, b = divEnd(html, a);
+    const gate = /<div class="premium-gate[^>]*>\s*$/.exec(html.slice(0, a)), shut = /^\s*<\/div>(?:<!--[^>]*\/premium-gate[^>]*-->)?/.exec(html.slice(b));
+    if (gate && shut) { a = gate.index; b += shut[0].length; }
+    const note = /\n[ \t]*<!--(?:(?!-->)[\s\S])*?(?:premium-gate|比較)(?:(?!-->)[\s\S])*?-->[ \t]*\n?[ \t]*$/.exec(html.slice(0, a));
+    if (note) a = note.index;
+    html = html.slice(0, a).replace(/\s*$/, () => '') + '\n\n' + html.slice(b).replace(/^\s*\n/, () => '');
+  }
+}
 const NAV_CSS = /<link rel="stylesheet" href="\.\.\/app-nav\.css(?:\?v=[0-9a-f]+)?"\s*\/?>\n?/;
 
 export function build(slug, html) {
@@ -570,8 +648,10 @@ export function build(slug, html) {
     if (!m) throw new Error(`${slug}: app-nav.css の <link> が無い`);
     return m.index + m[0].length;
   });
-  /* 3) 本文の箱の先頭 */
-  html = block(html, 'PV-GLANCE', glance(v), h => once(h, BOX, '本文の箱') + BOX.length + 1);
+  /* 3) 本文の箱の先頭。会社の紹介文は、下の古い節（初回）か今の管理ブロック（2回目から）から運ぶ */
+  const kept = takeAbout(slug, html);
+  html = block(kept.html, 'PV-GLANCE', glance(v, kept.about), h => once(h, BOX, '本文の箱') + BOX.length + 1);
+  if (tabbed(slug)) html = dropCompare(html);
   /* 4) 部品の JS（口コミの部品より後 ＝ </body> の直前） */
   html = block(html, 'PV-GLANCE-JS', [...JS, ...(tabbed(slug) ? [CONTRIB.js] : [])].map(f => `<script src="${asset(f)}"></script>`).join('\n'), h => {
     const i = h.lastIndexOf('</body>');

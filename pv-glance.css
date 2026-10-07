@@ -69,6 +69,12 @@
 .pvg-btn:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
 .pvg-btn-ghost{color:var(--pv-ink);background:var(--pv-surface);border-color:var(--pv-line)}
 .pvg-btn-ghost:hover{background:var(--pv-surface-2);border-color:var(--pv-ink-3)}
+/* 2行の入口（2026-10-07 オーナーのご指示）── 上に小さく「Give & Get」、下に何が開くか。
+   字を書くのは gen-airline-glance.mjs（評価の1枚）と airline-reviews-ui.js（口コミの一覧の錠前）。ここは形だけ */
+.pvg-btn-gg{min-height:52px;padding:7px 22px;border-radius:16px;white-space:normal;text-align:left}
+.pvg-gg{display:grid;gap:1px}
+.pvg-gg-k{font:700 12px/1.3 Inter,'Noto Sans JP',sans-serif;letter-spacing:.06em;opacity:.8}
+.pvg-gg-m{font-size:14px;font-weight:700;line-height:1.35}
 @media (min-width:700px){
   .hero-airline.pvg-hero{padding:92px 0 12px!important}
   .hero-airline.pvg-hero h1{font-size:26px!important}
@@ -142,28 +148,28 @@
 /* ── 棒（0 から始まる・どのページも同じ目盛）────────────── */
 /* 目盛の線は 1,000万ごと（--pvg-n ＝ 目盛の上端を 1,000万で割った数。ページが持つ） */
 .pvg-track{
-  position:relative;display:block;height:10px;border-radius:999px;overflow:hidden;
+  position:relative;display:block;height:6px;border-radius:999px;overflow:hidden;
   background:
     linear-gradient(90deg,var(--pv-line) 1px,transparent 1px) 0 0/calc(100% / var(--pvg-n,4)) 100%,
     var(--pv-bg-sub);
 }
 .pvg-bar{position:relative;display:block;height:100%;min-width:4px;border-radius:999px}
 /* 棒にするのは推定年収だけ（会社が公表している金額には棒を付けない ＝ 物差しの違う額を同じ目盛に並べない） */
-.pvg-bar-est{background:var(--pvg-c,var(--pv-accent))}
+/* 色は深い金（2026-10-07 オーナーのご指示「黒の給与額＋深みのある金色のバー」）。会社の色にしない・濃淡を付けない。
+   ダークでは同じトークンが明るい金に変わる（pv-tokens.css） */
+.pvg-bar-est{background:var(--pv-star)}
 .pvg-axis{margin-top:10px!important;font-size:12px;line-height:1.5;color:var(--pv-ink-3)}
 
 /* ── いちばん上：給与／勤務・待遇・暮らし ── */
 .pvg-top{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--pvg-gap);margin-top:var(--pvg-gap)}
-/* 年収の段：推定年収｜提出された年収（狭い箱では縦に積む） */
+/* 年収の段：給与の1枚（推定年収＋提出された年収）｜パイロットによる評価スコア。
+   横に並ぶのは PC の概要だけ。スマホ・iPad と、給与・口コミのタブでは縦に1列（狭い列に押し込まない） */
 .pvg-payrow{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--pvg-gap);margin-top:var(--pvg-gap)}
 .pvg > .pvg-more-grid:first-child{margin-top:0}
 .pvg-trio{display:grid;grid-template-columns:minmax(0,1fr);gap:6px}
 
 /* 給与 */
-.pvg-pay{
-  display:flex;flex-direction:column;
-  background-image:radial-gradient(120% 90% at 0% 0%,color-mix(in srgb,var(--pvg-c,var(--pv-accent)) 7%,transparent),transparent 62%);
-}
+.pvg-pay{display:flex;flex-direction:column}
 .pvg-pay{padding:10px 14px 2px}
 .pvg-pay > .pvg-hd .pvg-ico{width:24px;height:24px;border-radius:8px}
 /* いちばん狭い画面（320px）では、給与の見出しの絵を外して税の札に幅を渡す（札の字を「…」で切らない） */
@@ -175,22 +181,26 @@
 .pvg-pay > .pvg-estk{display:none;font-size:12px;line-height:1.5;color:var(--pv-ink-3)}
 .pvg-rank{min-width:0;container-type:inline-size}
 /* 字の大きさは職位の欄の幅で決める（いちばん狭い画面でも「副操縦士の推定年収」が1行に収まる。下限は 12px） */
-.pvg-rk{font-size:13.5px;font-size:clamp(12px,9.2cqi,13.5px);font-weight:700;line-height:1.5;white-space:nowrap;color:var(--pv-ink)}
-.pvg-rk-s{font-weight:600;color:var(--pv-ink-2)}
+.pvg-rk{font-size:13.5px;font-size:clamp(12px,9.2cqi,13.5px);font-weight:600;line-height:1.5;white-space:nowrap;color:var(--pv-ink-2)}
+.pvg-rk-s{font-weight:500;color:var(--pv-ink-3)}
+/* 額：読みやすい黒・太すぎない（2026-10-07 オーナーのご指示「大きすぎ・太すぎ」。800 → 600・上限 34px → 28px）。
+   色は字の色のトークン ＝ ダークでは明るくなる。名前と説明は中立の色 */
 .pvg-big{
-  font:800 30px/1.15 Inter,'Noto Sans JP',sans-serif;font-size:clamp(22px,19cqi,34px);
-  letter-spacing:-.03em;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--pv-ink);
+  font:600 26px/1.2 Inter,'Noto Sans JP',sans-serif;font-size:clamp(20px,14cqi,28px);
+  letter-spacing:-.02em;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--pv-ink);
 }
-.pvg-rank > .pvg-track{margin-top:5px}
+.pvg-rank > .pvg-track{margin-top:6px}
 /* 会社が公表している金額 ── 棒を付けない。左に「誰の・何の額か」、右に額 */
 /* 狭い欄では、見出し＋1件1行だけ（箱の地・前提の1行・外貨の原文は、広い欄と下の説明に在る）。
    ⚠️ ここを高くすると、スマホの最初の1画面から「暮らし」が押し出される（assert-airline-glance.mjs が測っている）。 */
 .pvg-pub{margin-top:6px}
+/* 提出された年収のすぐ下に来る時は、線で分ける（推定・提出・会社の公表は、物差しが別） */
+.pvg-rp + .pvg-pub{margin-top:12px;padding-top:10px;border-top:1px solid var(--pv-line-soft)}
 .pvg-pub li{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:0 12px}
 .pvg-pk{font-size:12.5px;line-height:1.6;color:var(--pv-ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pvg-pk b{margin-right:6px;font-weight:700;color:var(--pv-ink)}
+.pvg-pk b{margin-right:6px;font-weight:600;color:var(--pv-ink)}
 .pvg-pv{
-  font:700 14px/1.4 Inter,'Noto Sans JP',sans-serif;letter-spacing:-.01em;
+  font:600 14px/1.4 Inter,'Noto Sans JP',sans-serif;letter-spacing:-.01em;
   font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right;color:var(--pv-ink);
 }
 .pvg-pn{grid-column:1 / -1;font-size:12px;line-height:1.5;color:var(--pv-ink-3);text-wrap:pretty}
@@ -330,45 +340,67 @@
 .pvg-ask a:active{transform:scale(.985)}
 .pvg-ask a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
 
-/* ── 提出された年収（REAL PAY）── 最上段のすぐ下に、横いっぱいで置く ──
-   オーナーのご指示（2026-10-06）: 提出された年収の一覧を出す／鍵の無い人にはぼかす／
-   「全ての待遇データを解放する」から年収の提出へ。行と板の形は career-live.js・career-live.css が持つ */
-.pvg-payrow > .pvg-rp{display:flex;flex-direction:column}
-.pvg-payrow > .pvg-rp > .pvg-hd{margin-bottom:8px}
-.pvg-payrow > .pvg-rp .crl{font-size:13.5px}
+/* ── 提出された年収（REAL PAY）── 給与の1枚の中、推定年収のすぐ下（2026-10-07 オーナーのご指示で1枚に統合）──
+   推定と提出は物差しが別なので、線と見出しで分ける。出すのは3行まで（行数は欄の data-top。残りは REAL PAY の画面）。
+   行と板の形は career-live.js・career-live.css が持つ。
+   ★鍵の無い人の行に額は無い（サーバーが送っていない。ぼかしではない）。ここは置き方だけで、何も隠さない */
+.pvg-rp{margin-top:12px;padding-top:12px;border-top:1px solid var(--pv-line-soft)}
+.pvg .pvg-rp-h{display:flex;align-items:baseline;gap:8px;margin-bottom:4px;font-size:13px;font-weight:700;line-height:1.5;color:var(--pv-ink)}
+.pvg-rp-h small{font:600 12px/1.5 Inter,sans-serif;letter-spacing:.1em;color:var(--pv-ink-3)}
+.pvg-rp .crl{font-size:13.5px}
 .pvg-rp > .crl > .crl-rows{margin-bottom:10px}
 .pvg-rp .crl-lock{width:fit-content;max-width:100%}
-/* 狭い欄では、伏せた行は3つまで（人数は上に出ている。空の板を画面2枚ぶん並べない）。鍵が開いた人の行は減らさない */
-@container pvg (max-width:639.98px){ .pvg-rp .crl[data-state="locked"] .crl-row:nth-child(n+4){display:none} }
+/* 件数は添え書き。額より目立たせない */
+.pvg-rp .crl-count{margin-bottom:2px;line-height:1.6}
+.pvg-rp .crl-count b{font-size:14px;font-weight:600;line-height:1.6;letter-spacing:0}
 
-/* ── その下：会社・口コミ・募集・ステイ・ひとつ教えて ── */
+/* ── 会社・募集・ステイ・ひとつ教えて（どれも横いっぱいの帯）── */
 .pvg-more-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--pvg-gap);margin-top:var(--pvg-gap)}
 .pvg-more-grid > .pvg-card{display:flex;flex-direction:column}
 .pvg-more-grid > .pvg-card > .pvg-hd{margin-bottom:8px}
 .pvg-more-grid .crl{font-size:13.5px}
-/* ── 評価スコア＋口コミ（2026-10-06 オーナーのご指示で、評価スコアを企業トップのカードに残した）──
-   ★同日のご指示「現行みたいにデカデカと…入れる必要ないけど、パッと見てわかるようにして」「レーダー図はいれて」
-     ── 置くのは 総合点 と 6角形の図 の2つだけ。棒を足し戻さない（同じ6つの数字が2回並び、欄が倍の高さになる）。
-   狭い画面：総合点（1行）→ 図 → 口コミの抜粋 → 書く入口
-   広い画面：左に 総合点と図、右に 口コミの抜粋 → 書く入口
+/* ── 評価スコア＋口コミ ── 給与の1枚の横（狭い画面ではすぐ下）。2026-10-07 オーナーのご指示 ──
+   ★置くのは 総合点 と 6角形の図 の2つだけ（2026-10-06「デカデカと…入れる必要ないけど、パッと見てわかるようにして」「レーダー図はいれて」）。
+     棒を足し戻さない（同じ6つの数字が2回並び、欄が倍の高さになる）。
+   形は2つ。どちらになるかは「この箱の幅」で決まる（画面の幅ではない ── PC の概要では、箱は半分の幅しか無い）。
+     狭い箱（スマホ・PC の概要）：総合点 → 図 → 要約 → 口コミの抜粋 → 書く入口 を縦に
+     広い箱（iPad・口コミのタブ）：左に 総合点と図、右に 要約 → 抜粋 → 書く入口
    数字を描くのは career-live.js（出し方は airline-reviews-ui.js の1か所）。ここは置き方だけ */
-.pvg-rv-card > .crl[data-live="score"]{min-height:120px}
-.pvg-rv-card > .crl[data-live="score"][data-state="empty"]{min-height:0}
-/* 投稿が0件の時、書く入口は下の緑のボタン1つだけ（欄が自分で出す「匿名で口コミを書く」と二重にしない）。
+.pvg-rv-card{display:flex;flex-direction:column;container:pvgrv/inline-size}
+.pvg-rv-card > .pvg-hd{margin-bottom:8px}
+.pvg-rv-card .crl{font-size:13.5px}
+.pvg-rv-in{flex:1 1 auto;display:flex;flex-direction:column;min-width:0}
+.pvg-rv-in > .crl[data-live="score"]{min-height:120px}
+.pvg-rv-in > .crl[data-live="score"][data-state="empty"]{min-height:0}
+/* 投稿が0件の時、書く入口は下のボタン1つだけ（欄が自分で出す「匿名で口コミを書く」と二重にしない）。
    欄そのものは消さない ── 消すと career-live.js が二度と取りに行かない */
-.pvg-rv-card > .crl[data-live="score"][data-state="empty"] .crl-foot{display:none}
-.pvg-rv-card > .crl[data-live="reviews"]{display:flex;flex-direction:column;margin-top:14px}
-.pvg-rv-card > .crl[data-live="reviews"] > .crl-revs{margin-top:0}
+.pvg-rv-in > .crl[data-live="score"][data-state="empty"] .crl-foot{display:none}
+/* 口コミの要約（良い点／気になる点）：読めた時（開いた／鍵が掛かっている）だけ場所を取る。
+   要約がまだ無い会社・サーバーに口がまだ無い環境では、高さ 0 のまま（空の見出しも、作った文も置かない）。
+   ⚠️ display:none にしない（career-live.js は見えている箱だけを取りに行く）
+   読めない時も場所を取らない（余白と罫線ごと畳む）── すぐ上の評価スコアの欄が、同じ知らせとやり直すボタンを出している */
+.pvg-rv-in > .crl[data-live="summary"]:not([data-state="open"]):not([data-state="locked"]){height:0;min-height:0;margin:0;padding:0;border:0;overflow:hidden}
+.pvg-rv-in > .crl[data-live="summary"][data-state="open"],
+.pvg-rv-in > .crl[data-live="summary"][data-state="locked"]{height:auto;margin-top:14px;overflow:visible}
+.pvg-rv-in > .crl[data-live="reviews"]{display:flex;flex-direction:column;margin-top:14px}
+.pvg-rv-in > .crl[data-live="reviews"] > .crl-revs{margin-top:0}
+/* 抜粋は「いつ・どの区分・先頭の文」まで。ほかに触れている区分の札は、口コミのタブの一覧に在る */
+.pvg-rv-in .crl-rev > .crl-chips{display:none}
+.pvg-rv-in .crl-lock{width:fit-content;max-width:100%}
 /* ⚠️ 口コミが無い時、下の欄は高さを 0 にするだけ。display:none にすると career-live.js が二度と取りに行かない。 */
-.pvg-rv-card > .crl[data-live="reviews"][data-state="empty"]{flex:none;height:0;min-height:0;margin:0;overflow:hidden}
-.pvg-rv-cta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin:20px 0 0}
+.pvg-rv-in > .crl[data-live="reviews"][data-state="empty"]{flex:none;height:0;min-height:0;margin:0;overflow:hidden}
+/* 書く入口は箱の底（横に並ぶ給与の1枚のほうが高い時も、底でそろう） */
+.pvg-rv-in > .pvg-rv-cta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin-top:auto;padding-top:16px}
 .pvg-rv-cta > span{font-size:12px;color:var(--pv-ink-3)}
+/* 入口の字は置き場で変わる：概要「口コミを解放する」／口コミのタブ「全ての口コミデータを解放する」。
+   どちらを出すかは下の「出す・隠す」の節。JS が動かなければ概要の字 */
+.pvg-rv-in > .pvg-rv-cta-reviews{display:none}
 
 .pvg .crl-sc{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
 /* 総合：点数｜星｜人数 を1行に */
 .pvg .crl-sc-sum{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px}
 .pvg .crl-sc-avg{display:flex;align-items:baseline;gap:5px;margin:0;line-height:1}
-.pvg .crl-sc-avg b{font:800 32px/1 Inter,'Noto Sans JP',sans-serif;letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:var(--pv-ink)}
+.pvg .crl-sc-avg b{font:700 28px/1 Inter,'Noto Sans JP',sans-serif;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:var(--pv-ink)}
 .pvg .crl-sc-avg span{font-size:13px;font-weight:600;color:var(--pv-ink-3)}
 .pvg .crl-sc-cnt{margin:0;font-size:12px;line-height:1.5;color:var(--pv-ink-2)}
 /* 6角形の図：まんなかに図、名前と点数は図のまわりに置く（上・右上・右下・下・左下・左上） */
@@ -382,7 +414,7 @@
 .pvg .crl-radar-shape{fill:var(--pv-gold-soft);stroke:var(--pv-star);stroke-width:2;stroke-linejoin:round;vector-effect:non-scaling-stroke}
 .pvg .crl-radar-dot{fill:var(--pv-star)}
 .pvg .crl-radar-l{display:flex;flex-direction:column;min-width:0;font-size:12px;line-height:1.35;color:var(--pv-ink-2)}
-.pvg .crl-radar-l b{font-size:14px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--pv-ink)}
+.pvg .crl-radar-l b{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--pv-ink)}
 .pvg .crl-radar-l[data-i="0"],.pvg .crl-radar-l[data-i="3"]{grid-column:1 / -1;flex-direction:row;align-items:baseline;justify-content:center;gap:6px}
 .pvg .crl-radar-l[data-i="0"]{grid-row:1}
 .pvg .crl-radar-l[data-i="3"]{grid-row:4}
@@ -390,38 +422,49 @@
 .pvg .crl-radar-l[data-i="2"]{grid-column:3;grid-row:3}
 .pvg .crl-radar-l[data-i="5"]{grid-column:1;grid-row:2;align-items:flex-end;text-align:right}
 .pvg .crl-radar-l[data-i="4"]{grid-column:1;grid-row:3;align-items:flex-end;text-align:right}
-/* iPad・PC：左に 総合点と図（幅は決め打ち ＝ 読み込みの前後で右の欄が動かない）、右に 口コミの抜粋 → 書く入口 */
-@container pvg (min-width:640px){
-  .pvg-more-grid > .pvg-rv-card{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto 1fr;align-items:start}
-  .pvg-rv-card > .pvg-hd{grid-column:1 / -1}
-  .pvg-rv-card > .crl[data-live="score"]{grid-column:1;grid-row:2 / span 2;width:272px;margin-right:28px}
+/* 広い箱：左に 総合点と図（幅は決め打ち ＝ 読み込みの前後で右の欄が動かない）、右に 要約 → 口コミの抜粋 → 書く入口。
+   右の列は上から順に詰め、余った丈はいちばん下の段（空）が受ける ＝ 入口が抜粋のすぐ下に来る */
+@container pvgrv (min-width:600px){
+  .pvg-rv-in{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto auto 1fr;align-items:start;column-gap:32px}
+  .pvg-rv-in > .crl[data-live="score"]{grid-column:1;grid-row:1 / span 4;width:272px}
+  .pvg-rv-in > .crl[data-live="score"] ~ *{grid-column:2}
   /* 投稿が無いとき：左の列を畳まず、案内を横いっぱいに1行で出す（幅 0 にすると字が1文字ずつ縦に並ぶ） */
-  .pvg-rv-card > .crl[data-live="score"][data-state="empty"]{grid-column:1 / -1;grid-row:2;width:auto;margin-right:0}
-  .pvg-rv-card > .crl[data-live="score"][data-state="empty"] ~ .crl[data-live="reviews"]{grid-column:1 / -1;grid-row:3}
-  .pvg-rv-card > .crl[data-live="score"][data-state="empty"] ~ .pvg-rv-cta{grid-column:1 / -1;grid-row:4;margin-top:12px}
-  .pvg-rv-card > .crl[data-live="reviews"]{grid-column:2;grid-row:2;margin-top:0}
-  .pvg-rv-card > .crl[data-live="reviews"] > .crl-revs{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
-  .pvg-rv-card > .crl[data-live="reviews"]:not([data-state="empty"]) + .pvg-rv-cta{margin-top:14px}
-  .pvg-rv-card > .pvg-rv-cta{grid-column:2;grid-row:3;margin-top:0}
-}
-@container pvg (min-width:900px){
-  .pvg-rv-card > .crl[data-live="score"]{margin-right:40px}
+  .pvg-rv-in > .crl[data-live="score"][data-state="empty"]{grid-column:1 / -1;grid-row:auto;width:auto}
+  .pvg-rv-in > .crl[data-live="score"][data-state="empty"] ~ *{grid-column:1 / -1}
+  .pvg-rv-in > .crl[data-live="summary"][data-state="open"],
+  .pvg-rv-in > .crl[data-live="summary"][data-state="locked"]{margin:0 0 14px}
+  .pvg-rv-in > .crl[data-live="reviews"]{margin-top:0}
+  .pvg-rv-in > .crl[data-live="reviews"]:not([data-state="empty"]){margin-bottom:14px}
+  .pvg-rv-in > .crl[data-live="reviews"] > .crl-revs{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+  .pvg-rv-in > .pvg-rv-cta{margin-top:0;padding-top:0}
+  .pvg-rv-in > .crl[data-live="score"][data-state="empty"] ~ .pvg-rv-cta{padding-top:12px}
 }
 /* 会社：写真（箱の上の縁いっぱいの帯）→ 見出し → 数字 → 機材 → 出どころ の1列 */
-/* 会社概要：小さな写真｜最初の4つの値 → 「会社情報」（開くと数字ぜんぶ・機材・出どころ）→ 写真のクレジット。
-   写真は小さいまま（主役にしない）。図の箱そのものは置かず、絵とクレジットを別々の段に置く */
+/* 会社概要：見出し → 紹介の本文 → 小さな写真｜最初の4つの値 → 「会社情報」（開くと紹介の続き・数字ぜんぶ・機材・出どころ）
+   → 写真のクレジット。写真は小さいまま（主役にしない）。図の箱そのものは置かず、絵とクレジットを別々の段に置く。
+   ★紹介の本文（2026-10-07 オーナーのご指示）── 下に在った「◯◯について」の節から移した字。開かなくても読める場所に置く
+     （4つの数字だけで会社紹介を済ませない）。行数で切らない */
 .pvg-more-grid > .pvg-co{display:grid;grid-template-columns:96px minmax(0,1fr);column-gap:12px;align-items:start}
 .pvg-co > .pvg-hd{grid-column:1 / -1;grid-row:1}
+.pvg-co > .pvg-about{grid-column:1 / -1;grid-row:2;margin-bottom:10px;font-size:13px;line-height:1.75;color:var(--pv-ink-2);text-wrap:pretty}
 .pvg-co > .pvg-photo{display:contents}
-.pvg-co > .pvg-photo > img{grid-column:1;grid-row:2;display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:cover;border-radius:var(--pv-r-sm);background:var(--pv-bg-sub)}
-.pvg-co > .pvg-photo > figcaption{grid-column:1 / -1;grid-row:4;padding-top:4px;font-size:12px;line-height:1.5;color:var(--pv-ink-3)}
-.pvg-keys{grid-column:2;grid-row:2;display:grid;grid-template-columns:minmax(0,1fr);min-width:0}
+.pvg-co > .pvg-photo > img{grid-column:1;grid-row:3;display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:cover;border-radius:var(--pv-r-sm);background:var(--pv-bg-sub)}
+.pvg-co > .pvg-photo > figcaption{grid-column:1 / -1;grid-row:5;padding-top:4px;font-size:12px;line-height:1.5;color:var(--pv-ink-3)}
+.pvg-keys{grid-column:2;grid-row:3;display:grid;grid-template-columns:minmax(0,1fr);min-width:0}
 .pvg-co:not(:has(> .pvg-photo)) > .pvg-keys{grid-column:1 / -1}
 .pvg-keys > div{display:flex;align-items:baseline;justify-content:space-between;gap:10px;min-width:0;padding:2px 0}
 .pvg-keys dt{flex:1 1 0;min-width:4em;font-size:12px;line-height:1.6;color:var(--pv-ink-3)}
-.pvg-keys dd{flex:0 1 auto;max-width:66%;font:700 13px/1.5 Inter,'Noto Sans JP',sans-serif;font-variant-numeric:tabular-nums;text-align:right;color:var(--pv-ink)}
-.pvg-co > .pvg-co-more{grid-column:1 / -1;grid-row:3;margin-top:4px;padding-top:0}
+.pvg-keys dd{flex:0 1 auto;max-width:66%;font:600 13px/1.5 Inter,'Noto Sans JP',sans-serif;font-variant-numeric:tabular-nums;text-align:right;color:var(--pv-ink)}
+.pvg-co > .pvg-co-more{grid-column:1 / -1;grid-row:4;margin-top:4px;padding-top:0}
 .pvg-co-more > summary small{font-size:12px;font-weight:500;color:var(--pv-ink-3)}
+/* 開いた中：紹介の続きの段落と、台帳の数字と重ならない項目（本社・退職年齢） */
+.pvg-about-more{padding:2px 0 12px}
+.pvg-about-more > p{font-size:13px;line-height:1.8;color:var(--pv-ink-2);text-wrap:pretty}
+.pvg-about-more > p + p{margin-top:8px}
+.pvg .pvg-about-k{display:flex;flex-wrap:wrap;gap:4px 28px;margin-top:10px}
+.pvg-about-k > div{display:flex;align-items:baseline;gap:8px;min-width:0}
+.pvg-about-k dt{font-size:12px;font-weight:600;line-height:1.6;color:var(--pv-ink-3)}
+.pvg-about-k dd{font-size:13.5px;font-weight:600;line-height:1.6;color:var(--pv-ink)}
 .pvg-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 18px}
 .pvg-stats > div{min-width:0;padding:10px 0 11px;border-top:1px solid var(--pv-line-soft)}
 .pvg-stats dt{font-size:12px;font-weight:600;line-height:1.5;color:var(--pv-ink-3)}
@@ -511,6 +554,7 @@ a.pvg-topic-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2p
   /* 給与の欄は右の3つと同じ高さまで伸びる。説明の入口は欄の底に置く（勤務・待遇・暮らしの入口と同じ高さにそろう） */
   .pvg-paydt{margin-top:auto}
   .pvg-pay > .pvg-estk{display:block;margin-top:8px}
+  .pvg-ranks{margin-top:10px}
   .pvg-rank > .pvg-track{margin-top:8px}
   .pvg-pub{
     margin-top:14px;margin-bottom:10px;padding:9px 14px 7px;border-radius:var(--pv-r-sm);
@@ -522,16 +566,19 @@ a.pvg-topic-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2p
   .pvg-pv{font-size:16px}
   .pvg-pub > .pvg-note{display:block;padding-bottom:3px}
   .pvg-pub .pvg-pn,.pvg-pub .pvg-orig{display:block}
-  /* 提出された年収：行を横に2つ並べる（上の線は列ごとに引く） */
-  .pvg-rp .crl-rows{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:28px;border-top:0}
-  .pvg-rp .crl-row:nth-child(-n+2){border-top:1px solid var(--pv-line)}
+  .pvg-rp{margin-top:16px;padding-top:14px}
+  .pvg-rp + .pvg-pub{margin-top:14px;padding-top:9px;border-top:1px solid var(--pv-line-soft)}
   .pvg-panel{padding:18px 20px}
   .pvg-ranks{gap:0 22px}
   /* その下は、どれも横いっぱいの帯（丈の違う箱を横に並べると、短い箱が長い箱の丈まで伸びて大きく空く） */
   /* 会社：写真は細い帯のまま。数字は3つずつ */
   .pvg-more-grid > .pvg-co{grid-template-columns:168px minmax(0,1fr);column-gap:20px}
   .pvg-co > .pvg-hd{grid-column:2}
-  .pvg-co > .pvg-photo > img{grid-row:1 / span 3}
+  .pvg-co > .pvg-about{grid-column:2;font-size:13.5px}
+  .pvg-co > .pvg-photo > img{grid-row:1 / span 4}
+  /* 写真のクレジットは写真のすぐ下（左の列の中）。幅いっぱいの1行にしない ── そのぶん年収が上がる。
+     写真は 3:2 と決まっているので、高さは 幅 × 2/3 */
+  .pvg-co > .pvg-photo > figcaption{grid-column:1;grid-row:1 / span 4;align-self:start;margin-top:calc(168px * 2 / 3 + 2px);overflow-wrap:anywhere}
   .pvg-co > .pvg-co-more{grid-column:2}
   .pvg-keys{grid-template-columns:repeat(2,minmax(0,1fr));gap:0 24px}
   .pvg-keys > div{display:block;padding:5px 0}
@@ -554,6 +601,8 @@ a.pvg-topic-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2p
   .pvg-askc[data-flat] .pvg-topic:not([data-all]) .pvg-askmore{display:inline-flex;margin-top:2px}
 }
 @container pvg (min-width:800px){
+  /* 会社の4つの数字は横に1列（iPad 横・左メニューが出る幅。2段に折ると年収が最初の1画面から出る） */
+  .pvg-keys{grid-template-columns:repeat(4,minmax(0,auto));justify-content:start;gap:0 32px}
   /* ステイ：1行の細い帯（見出し｜拠点｜地図）。就航地の札がある会社は、その下に横いっぱい */
   .pvg-more-grid > .pvg-stay{display:grid;grid-template-columns:max-content max-content minmax(0,1fr);align-items:center;gap:4px 28px}
   .pvg-stay > .pvg-hd{margin-bottom:0}
@@ -568,14 +617,17 @@ a.pvg-topic-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2p
   /* 会社：左に写真・右に見出しと数字。機材と出どころは、その下に横いっぱい。
      ⚠️ 写真を右の丈まで伸ばさない（横が切れて機首と尾翼が欠ける）。丈は数字の列の数で合わせる */
   .pvg-more-grid > .pvg-co{grid-template-columns:220px minmax(0,1fr);column-gap:28px;padding:20px 22px}
+  .pvg-co > .pvg-photo > figcaption{margin-top:calc(220px * 2 / 3 + 2px)}
   .pvg-keys{grid-template-columns:repeat(4,minmax(0,auto));justify-content:start;gap:0 52px}
-  .pvg-keys dd{font-size:19px;line-height:1.35}
+  .pvg-keys dd{font-size:17px;line-height:1.4}
+  .pvg-co > .pvg-about{max-width:60em;font-size:14px}
   .pvg-co .pvg-fleet{margin-top:14px;border-top:1px solid var(--pv-line-soft)}
   .pvg-stats dd b,.pvg-stats > div[data-mid] dd b{font-size:23px}
   .pvg-stats > div[data-long] dd b{font-size:16px}
   .pvg-got .crl-facts{grid-template-columns:repeat(4,minmax(0,1fr))}
   .pvg-topics{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
   .pvg-payrow{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .pvg-payrow:has(.pvg-rv-in > .crl[data-live="score"][data-state="empty"]) > .pvg-rv-card{align-self:start}
   .pvg-top{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-areas:"work ben live" "panel panel panel"}
   .pvg-trio{display:contents}
   .pvg-cell[data-cell="work"]{grid-area:work}
@@ -609,9 +661,6 @@ a.pvg-topic-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2p
   .pvg-qs a:hover .pvg-ic{color:currentColor;transform:translateX(2px)}
   .pvg-qs a:active{transform:scale(.99)}
   .pvg-qs a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px;border-radius:6px}
-  /* 提出された年収：推定年収の隣（箱の半分の幅）なので、行は1列に戻す */
-  .pvg-rp .crl-rows{grid-template-columns:minmax(0,1fr)}
-  .pvg-rp .crl-row:nth-child(2){border-top:0}
   .pvg-more{
     display:flex;align-items:center;justify-content:space-between;width:auto;height:auto;min-height:44px;
     margin-top:auto;padding:8px 0 0;border-top:1px solid var(--pv-line-soft);border-radius:0;background:none;
@@ -632,7 +681,7 @@ a.pvg-topic-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2p
   .pvg-co .pvg-stats > div[data-mid] dd b{font-size:18px;line-height:1.5}
 }
 
-/* ══ タブのある会社ページ（いまは JAL だけ）════════════════════
+/* ══ タブのある会社ページ（先行5社）════════════════════
    帯は社名の行のすぐ下（書くのは gen-airline-glance.mjs の TABBED）。
    どのタブに居るかは <body class="pvg-at-…"> の1つだけで、出す・隠すはここが決める。
    pv-glance.js が動かなければ、その印が付かない ＝ 全部見える。 */
@@ -730,10 +779,14 @@ a.pvg-topic-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2p
 .pvg-at-pay .pvg-top .pvg-panel,.pvg-at-work .pvg-top .pvg-panel,.pvg-at-life .pvg-top .pvg-panel{grid-area:auto}
 .pvg-at-pay .pvg-panel,.pvg-at-work .pvg-panel,.pvg-at-life .pvg-panel{box-shadow:var(--pv-shadow);border-color:var(--pv-line)}
 .pvg-at-pay .pvg-panel .pvg-x,.pvg-at-work .pvg-panel .pvg-x,.pvg-at-life .pvg-panel .pvg-x{display:none}
-/* 口コミのタブ：抜粋は出さない（すぐ下に一覧が在る） */
-.pvg-at-reviews .pvg-rv-card > .crl[data-live="reviews"]{display:none}
+/* 口コミのタブ：抜粋は出さない（すぐ下に一覧が在る）。入口の字は「全ての口コミデータを解放する」のほう */
+.pvg-at-reviews .pvg-rv-in > .crl[data-live="reviews"]{display:none}
+.pvg-at-reviews .pvg-rv-in > .pvg-rv-cta-overview{display:none}
+.pvg-at-reviews .pvg-rv-in > .pvg-rv-cta-reviews{display:flex}
+/* 給与・口コミのタブ：年収の段に出ているのは1枚だけ ＝ 横いっぱいに使う */
+.pvg-at-pay .pvg-payrow,.pvg-at-reviews .pvg-payrow{grid-template-columns:minmax(0,1fr)}
 /* そのタブでいちばん上に来る段は、上の余白を取らない */
-.pvg-at-pay .pvg-payrow,.pvg-at-work .pvg-top,.pvg-at-life .pvg-top,.pvg-at-reviews .pvg-g-rv,.pvg-at-stay .pvg-g-st{margin-top:0}
+.pvg-at-pay .pvg-payrow,.pvg-at-work .pvg-top,.pvg-at-life .pvg-top,.pvg-at-reviews .pvg-payrow,.pvg-at-stay .pvg-g-st{margin-top:0}
 .pvg-rvl{margin-top:var(--pvg-gap)}
 .pvg-rvl > .pvg-hd{margin-bottom:12px}
 .pvg .pvg-addrow{margin-top:10px;padding-top:4px;border-top:1px solid var(--pv-line-soft)}

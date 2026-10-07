@@ -21,8 +21,10 @@
         読めない時に、数字や 0 を出さない。
      ⑤ 入口が違う所へ行く ── 質問は自分の会社＋在る質問・比較は自分＋相手・カードは自分。
      ⑥ 切れる・はみ出す・重なる ── 9つの幅 × 全通貨で測る（円だけ・スマホの幅だけで確かめない）。
-        最初の1画面に 会社概要 と 年収の額 が入る
-        （2026-10-07 並びを 会社概要 → 年収 → 評価・口コミ → 勤務・待遇・暮らし に替えた）。
+        最初の1画面に入るもの ── 広い画面（幅 768 から）は 会社概要 と 年収の額。
+        スマホは 会社概要（紹介の文まで）で、年収の額はそのすぐ下
+        （2026-10-07 オーナーのご指示で、会社の紹介の文を最上段の会社のカードへ入れた。
+          そのぶんスマホでは額が1画面めのすぐ下へ下がる。間に別の箱を挟まないことを見張る）。
      ⑦ 通貨 ── 切り替えると額が変わり、「〜」「超」の印と原貨の額は残り、円に戻すと1文字も違わない。
      ⑧ さわり心地 ── 押せるものに hover／focus-visible／active・動かすのは位置と濃さだけ・
         色はトークンだけ・字 12px 以上・押す場所 44px 以上
@@ -30,16 +32,21 @@
      ⑨ 生成物が古い ── 5枚は生成スクリプトの出力と1文字も違わない・
         読む部品の指紋（?v=）が今の中身と合っている。
 
-     ⑩ 提出された年収の一覧 ── 推定年収の箱のすぐ右（広い画面）か、すぐ下（狭い画面）に在る。
+     ⑩ 提出された年収の一覧 ── 給与の1枚の中、推定年収のすぐ下に在る（どの幅でも。2026-10-07 オーナーのご指示で1枚にした）。
+        その右（広い画面）か下（狭い画面）が、評価スコアのカード。
         鍵の無い人（未ログイン・未提出）には
         **数字の入っていない板**で出す（サーバーが額・職位・機種を送っていない。ぼかしは飾り）。
-        「匿名で給与を提出する」のボタンが、自分の会社を選んだ給与の提出へ行く（「閲覧条件」は REAL PAY へ）。
+        2行のボタン「Give & Get／全ての給与情報を解放する」が、自分の会社を選んだ給与の提出へ行く（「閲覧条件」は REAL PAY へ）。
         ⚠️ 鍵を開けるかどうかを決めるのはサーバー（db/pay-rows.sql）。ここに条件を足さない。
+
+     ⑫ 重ねて言わない（2026-10-07）── 会社の紹介の文は最上段の会社のカードに1回だけ（下の「◯◯について」の節は置かない）。
+        会社どうしの比較表をこのページに置かない（比較は「他社と比較」の先に在る）。
 
      ⑪ 評価スコア（2026-10-06 オーナーのご指示「企業トップのどこかのカードに残して」）──
         社名の行の星と、カードの総合点・6角形の図は、**点数の付いた本物の投稿だけ**から出る（career-live.js）。
         ★投稿が0件の時に、見本の点数を出さない（0件に仮スコアを出さない）。
-          社名の行は「評価未取得」・カードは「会員からの投稿はまだありません」と、書く入口が1つだけ。
+          社名の行は「評価未取得」・カードは「会員からの投稿はまだありません」と、書く入口が1つだけ
+          （2行のボタン。概要では「Give & Get／口コミを解放する」・口コミのタブでは「Give & Get／全ての口コミデータを解放する」）。
           投稿が在る時の答え（総合点・件数・星・図）は、偽のサーバーが返した行からここで計算し直して突き合わせる。
         読めない時は点数を出さない。出荷する HTML には数字を書かない（「—」）。
         ★同日のご指示「現行みたいにデカデカと…入れる必要ないけど、パッと見てわかるようにして」「レーダー図はいれて」
@@ -104,9 +111,17 @@ const LABEL = { max_y: '求人の上限', target_y: '目標年収', cash_y_over:
 const KIND = { max_y: 'cap', target_y: 'co', cash_y_over: 'over' };
 const EST_BY = '当サイトの推定（公開情報からの推計）';
 const UNLOCK = '全ての待遇データを解放する';
-/* ★2026-10-06（夜）会社ページの入口は「匿名で給与を提出する」＋「閲覧条件」。
-   給与を出して開くのは REAL PAY だけなので、上の言葉は会社ページに書かない（出せば全部見られると読める）。 */
-const GIVE = '匿名で給与を提出する', TERMS = '閲覧条件';
+/* ★2026-10-07 会社ページの入口は2行のボタン（オーナーのご指示。前日の「匿名で給与を提出する」より新しい）。
+     給与          Give & Get ／ 全ての給与情報を解放する
+     口コミ（概要）  Give & Get ／ 口コミを解放する
+     口コミ（タブ）  Give & Get ／ 全ての口コミデータを解放する
+   給与を出して開くのは REAL PAY だけなので、「全ての待遇データ」とは会社ページに書かない（出せば全部見られると読める）。
+   言葉を替えただけで、行き先も、開く条件も変えていない（条件を決めるのはサーバー）。 */
+const GG = 'Give & Get';
+const GIVE = '全ての給与情報を解放する', TERMS = '閲覧条件';
+const RV_GIVE = { overview: '口コミを解放する', reviews: '全ての口コミデータを解放する' };
+/* このページに置かない見出し（会社どうしの比較表。比較は「他社と比較」の先に在る）。 */
+const NO_H2 = /比べられるところだけ|ANA vs JAL パイロット年収 詳細比較表/;
 /* タブ：左からこの順・この名前（オーナーの指定）。 */
 const TABS = [['overview', '概要'], ['pay', '給与・待遇'], ['reviews', '口コミ'], ['work', '勤務・訓練'], ['life', '暮らし・家族'], ['stay', 'ステイ先']];
 const TAB_ID = new Set(TABS.map(t => t[0]));
@@ -419,30 +434,37 @@ const linkedTopicOnly = new Set();
 for (const s of FIVE) {
   const P = PART[s], both = P.hero + P.glance;
   const boxes = [...both.matchAll(/<div class="crl"([^>]*)>([\s\S]*?)<\/div>/g)];
-  ok(boxes.length === 8, `${s}: 実データの欄は8つ`, `${boxes.length}`);
+  ok(boxes.length === 9, `${s}: 実データの欄は9つ`, `${boxes.length}`);
   ok(boxes.every(m => m[2] === '<span class="crl-ph">—</span>' && / data-state="idle"/.test(m[1]) && m[1].includes(` data-airline="${s}"`)),
      `${s}: 実データの欄は「—」で出荷し、自分の会社を指している`);
-  /* 提出された年収の一覧：最初の1画面の4つのすぐ下に、幅いっぱいの帯で1つ。HTML には数字を1つも書かない。 */
+  /* 提出された年収の一覧：給与の1枚の中、推定年収のすぐ下に1つ。HTML には数字を1つも書かない。 */
   {
-    const g0 = P.glance, OPEN = '<article class="pvg-card pvg-rp" id="pvg-realpay"', CLOSE = '</article>';
+    const g0 = P.glance, OPEN = '<section class="pvg-rp" id="pvg-realpay"', CLOSE = '</section>';
     const at = m => g0.indexOf(m);
     const iCo = at('<article class="pvg-card pvg-co"'), iRow = at('<div class="pvg-payrow"'), iPay = at('<article class="pvg-card pvg-pay"'), iRp = at(OPEN);
-    const iRv = at('<div class="pvg-more-grid pvg-g-rv"'), iTop = at('<div class="pvg-top"'), iSt = at('<div class="pvg-more-grid pvg-g-st"');
+    const iRv = at('<article class="pvg-card pvg-rv-card" id="pvg-score"'), iTop = at('<div class="pvg-top"'), iSt = at('<div class="pvg-more-grid pvg-g-st"');
     const rpEnd = iRp < 0 ? -1 : g0.indexOf(CLOSE, iRp);
     const rp = iRp < 0 ? '' : g0.slice(iRp, rpEnd);
     ok(g0.split(OPEN).length === 2 && both.split('data-live="realpay"').length === 2
-       && rp.includes(`<div class="crl" data-live="realpay" data-airline="${s}" data-state="idle"><span class="crl-ph">—</span></div>`),
+       && rp.includes(`<div class="crl" data-live="realpay" data-airline="${s}" data-top="3" data-state="idle"><span class="crl-ph">—</span></div>`),
        `${s}: 提出された年収の一覧の箱が1つだけ在り、自分の会社を指している`);
-    ok(/<h2 class="pvg-eyebrow">提出された年収<\/h2>/.test(rp), `${s}: 箱の見出しは「提出された年収」`, text(one(rp, /<header class="pvg-hd">([\s\S]*?)<\/header>/) || ''));
-    /* 上から 会社概要 → 年収（推定｜提出された） → 評価・口コミ → 勤務・待遇・暮らしの入口 → ステイ（オーナーの指定した並び）。 */
+    ok(/<h3 class="pvg-rp-h">提出された年収<small lang="en">REAL PAY<\/small><\/h3>/.test(rp), `${s}: 一覧の見出しは「提出された年収」`, text(one(rp, /<h3\b[^>]*>([\s\S]*?)<\/h3>/) || ''));
+    /* 上から 会社概要 → 給与の1枚（推定年収 → 提出された年収）｜評価スコア → 勤務・待遇・暮らしの入口 → ステイ（オーナーの指定した並び）。 */
     const order = [iCo, iRow, iPay, iRp, iRv, iTop, iSt];
-    ok(order.every((v, i) => v >= 0 && (!i || v > order[i - 1])), `${s}: 上から 会社概要 → 推定年収｜提出された年収 → 評価・口コミ → 勤務・待遇・暮らし → ステイ の順`, order.join(' '));
-    ok(iRow >= 0 && iRv > iRow && (g0.slice(iRow, iRv).match(/<article\b/g) || []).length === 2 && depthAt(g0, iPay) === depthAt(g0, iRow) + 1 && depthAt(g0, iRp) === depthAt(g0, iPay),
-       `${s}: 年収の段に在るのは、推定年収と提出された年収の2つだけ`);
+    ok(order.every((v, i) => v >= 0 && (!i || v > order[i - 1])), `${s}: 上から 会社概要 → 給与（推定年収 → 提出された年収）｜評価スコア → 勤務・待遇・暮らし → ステイ の順`, order.join(' '));
+    {
+      /* 段の中身：給与の1枚と、評価スコアのカードの2枚だけ。提出された年収は給与の1枚の中（別のカードにしない）。 */
+      const payEnd = iPay < 0 ? -1 : g0.indexOf('\n</article>', iPay), rvEnd = iRv < 0 ? -1 : g0.indexOf('\n</article>', iRv);
+      ok(iRow >= 0 && iRv > iRow && (g0.slice(iRow, iRv).match(/<article\b/g) || []).length === 1 && depthAt(g0, iPay) === depthAt(g0, iRow) + 1 && depthAt(g0, iRv) === depthAt(g0, iPay)
+         && rvEnd > 0 && g0.slice(rvEnd).startsWith('\n</article>\n</div>') && iRp > iPay && rpEnd < payEnd && !/<article class="pvg-card pvg-rp"/.test(g0),
+         `${s}: 年収の段に在るのは、給与の1枚と評価スコアの2枚だけ ── 提出された年収は給与の1枚の中に在る`);
+      const pubAt = g0.indexOf('<div class="pvg-pub">', iPay), estAt = g0.indexOf('<p class="pvg-estk">', iPay);
+      ok(estAt > iPay && iRp > estAt && (pubAt < 0 || pubAt > payEnd || rpEnd < pubAt), `${s}: 給与の1枚の中は 推定年収 → 提出された年収 → 会社が公表している金額 の順`);
+    }
     ok(iTop >= 0 && iSt > iTop && same([...g0.slice(iTop, iSt).matchAll(/<article class="pvg-card pvg-cell" data-cell="([a-z]+)"/g)].map(m => m[1]), ['work', 'benefits', 'living']) && (g0.slice(iTop, iSt).match(/<article\b/g) || []).length === 3,
        `${s}: 入口は 勤務 → 待遇 → 暮らし の3つ`);
     ok(!/[\d¥]/.test(text(rp)), `${s}: 一覧の箱の HTML に、数字を1つも書いていない（件数も額も、読めた時に入る）`, text(rp));
-    ok(!rp.includes(GIVE) && !PAGES[s].includes(UNLOCK), `${s}: 一覧の箱の入口（「${GIVE}」）は HTML に書かず、鍵が無いと分かった時に入れる／「${UNLOCK}」はページのどこにも書かない`);
+    ok(!both.includes(GIVE) && !PAGES[s].includes(UNLOCK), `${s}: 一覧の入口（「${GG}／${GIVE}」）は HTML に書かず、鍵が無いと分かった時に入れる／「${UNLOCK}」はページのどこにも書かない`);
   }
   ok(!/[★☆⭐✩✪✭✮✯]/u.test(both), `${s}: 星の字を HTML に書いていない`);
   ok(!/aggregateRating|ratingValue|reviewCount/.test(PAGES[s]), `${s}: 評価の点数・件数を検索向けの情報に書いていない`);
@@ -462,7 +484,34 @@ for (const s of FIVE) {
   ok(hrefs.filter(h => h === `../career.html?view=card&a=${s}`).length === 1, `${s}: 「カードを保存」は自分のカードへ`);
   ok(hrefs.filter(h => h.startsWith('../pay-report.html')).every(h => h === `../pay-report.html?airline=${s}`), `${s}: 給与の提出は自分の会社を選んだ状態で開く`);
   ok(hrefs.filter(h => /[?&]stay=/.test(h)).every(h => new RegExp(`^\\.\\./career\\.html\\?airline=${s}&stay=[A-Z]{3}$`).test(h)), `${s}: 就航地の入口は自分の会社＋空港の3レター`);
-  ok(hrefs.filter(h => h.startsWith('../submit-review.html')).length === 1 && hrefs.includes(`../submit-review.html?airline=${s}`), `${s}: 口コミを書く入口は1つで、自分の会社を選んだ状態で開く`);
+  {
+    /* 口コミを書く入口：評価スコアのカードに、概要用と口コミのタブ用の2つ（見えるのは、いま居るタブの1つだけ）。どちらも2行。 */
+    const card = one(P.glance, /<article class="pvg-card pvg-rv-card" id="pvg-score"[^>]*>([\s\S]*?)\n<\/article>/) || '';
+    const cta = [...card.matchAll(/<p class="pvg-rv-cta pvg-rv-cta-([a-z]+)"><a class="pvg-btn pvg-btn-gg" href="([^"]*)"><span class="pvg-gg"><span class="pvg-gg-k" lang="en">([^<]*)<\/span><span class="pvg-gg-m">([^<]*)<\/span><\/span><\/a>/g)].map(m => [m[1], unesc(m[2]), unesc(m[3]), m[4]]);
+    const to = `../submit-review.html?airline=${s}`;
+    ok(same(cta, [['overview', to, GG, RV_GIVE.overview], ['reviews', to, GG, RV_GIVE.reviews]]) && hrefs.filter(h => h.startsWith('../submit-review.html')).length === 2,
+       `${s}: 口コミを書く入口は2行のボタン ── 概要は「${GG}／${RV_GIVE.overview}」・口コミのタブは「${GG}／${RV_GIVE.reviews}」・どちらも自分の会社を選んだ投稿の画面へ`, cta.map(c => c.join(' ')).join(' ／ '));
+    ok(!/匿名で口コミを(投稿する|書く)/.test(both), `${s}: 前の言葉（「匿名で口コミを投稿する」）が、社名の行と新しい節に残っていない`);
+  }
+  {
+    /* 会社の紹介は、会社概要のカードの中に1回だけ。下に同じ節（「◯◯について」）を残さない。会社どうしの比較表も置かない
+       （比較は「他社と比較」の先に在る）。紹介の文は、字として入っている（4つの数字だけで済ませない）。 */
+    const txt = h => h.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+    const h2 = [...PAGES[s].matchAll(/<h2[^>]*>([\s\S]*?)<\/h2>/g)].map(m => txt(m[1]));
+    const dup = h2.filter(x => NO_H2.test(x) || /について$/.test(x));
+    ok(!dup.length, `${s}: 「◯◯について」の節と、会社どうしの比較表が残っていない`, dup.join(' ／ '));
+    const co = one(P.glance, /<article class="pvg-card pvg-co"[^>]*>([\s\S]*?)\n<\/article>/) || '';
+    const lead = [...PAGES[s].matchAll(/<p class="pvg-about" data-pvg-about="lead">([\s\S]*?)<\/p>/g)].map(m => txt(m[1]));
+    const more = [...PAGES[s].matchAll(/<p data-pvg-about="more">([\s\S]*?)<\/p>/g)].map(m => txt(m[1]));
+    ok(lead.length === 1 && lead[0].length >= 60 && co.includes('data-pvg-about="lead"') && co.indexOf('data-pvg-about="lead"') < co.indexOf('<dl class="pvg-keys">'),
+       `${s}: 会社の紹介（歴史・規模・拠点の文）が、会社概要のカードの中・4つの数字より上に1つだけ在る`, `${lead.length}つ・${(lead[0] || '').length}字`);
+    const fold = one(co, /<details class="pvg-dt pvg-co-more">([\s\S]*?)<\/details>/) || '';
+    ok(more.every(x => x.length >= 20) && more.length === (fold.match(/data-pvg-about="more"/g) || []).length,
+       `${s}: 紹介の続きは「会社情報」の中に畳んである（ほかの所に置いていない）`, `${more.length}つ`);
+    /* 同じ文が、ページのほかの所にもう1回出ていないか（頭の40字で探す）。 */
+    const again = [...lead, ...more].filter(x => x.length >= 40 && PAGES[s].split(x.slice(0, 40)).length - 1 !== 1);
+    ok(!again.length, `${s}: 紹介の文が、ページの中で重なっていない`, again.map(x => x.slice(0, 24)).join(' ／ '));
+  }
   const known = h => /^https:\/\//.test(h) || h === '#pvg-stay' || /^#(overview|pay|reviews|work|life|stay)$/.test(h) || /^\?add=(list|work|taxi)$/.test(h) || /^\.\.\/(airline-conditions|career|pay-report|submit-review)\.html\?/.test(h) || /^\.\.\/(career-live|pv-glance)\.css\?v=/.test(h);
   ok(hrefs.every(known), `${s}: 知らない形の行き先が無い`, hrefs.filter(h => !known(h)).slice(0, 3).join(' '));
   ok(!hrefs.includes('#pvg-stay') || /id="pvg-stay"/.test(P.glance), `${s}: ページの中の行き先（#pvg-stay）が在る`);
@@ -519,7 +568,11 @@ head('career-live.js（提出された年収の一覧の、鍵の無い人の行
 {
   const LJ = noJsCmt(read('career-live.js'));
   const fn = name => one(LJ, new RegExp(`\\n  function ${name}\\([^)]*\\) \\{\\n([\\s\\S]*?)\\n  \\}\\n`)) || '';
-  ok(LJ.includes(`payGive: '${GIVE}'`) && LJ.includes(`payTerms: '${TERMS}'`) && !LJ.includes(UNLOCK), `会社ページの入口の言葉は「${GIVE}」と「${TERMS}」（「${UNLOCK}」とは書かない）`);
+  ok(LJ.includes(`gg: '${GG}'`) && LJ.includes(`payUnlock: '${GIVE}'`) && LJ.includes(`payTerms: '${TERMS}'`) && !LJ.includes(UNLOCK), `会社ページの入口の言葉は「${GG}／${GIVE}」と「${TERMS}」（「${UNLOCK}」とは書かない）`);
+  /* 会社ページ（GL）の入口だけが2行。行き先は前と同じ（自分の会社を選んだ給与の提出）。 */
+  ok(/foot\(GL \? \[\s*give2\(T\.payUnlock, UP \+ 'pay-report\.html\?airline=' \+ enc\(slug\)\),\s*pay\.anon \? link\(T\.login, loginHref\(\)\) : null,\s*link\(T\.payTerms, UP \+ 'actual-pay\.html\?air=' \+ enc\(slug\)\)\s*\] : \[/.test(LJ),
+     '会社ページの入口は 2行のボタン（給与の提出へ）→ ログイン（未ログインの時だけ）→ 閲覧条件（REAL PAY へ）の順');
+  ok(/k\.lang = 'en';/.test(fn('give2')) && fn('give2').includes("el('span', 'crl-cta-k', T.gg)") && fn('give2').includes("el('span', 'crl-cta-m', main)"), '2行のボタンは、上が「Give & Get」・下が開くもの（字は textContent で入れる）');
   /* 鍵の無い答えからは、会社・出典・投稿時期の3つしか受け取らない（サーバーが余分に送ってきても、行に持たせない）。 */
   ok(/if \(!open\) \{\s*rows = rows\.map\(function \(r\) \{\s*return \{ airline: r && r\.airline, verified: !!\(r && r\.verified\), age: r && r\.age \};\s*\}\);\s*\}/.test(fn('payRows')),
      '鍵の無い答えからは、会社・出典・投稿時期の3つだけを受け取る');
@@ -568,6 +621,14 @@ ok(!/\d{4,}/.test(JSC), 'pv-glance.js に4けた以上の数が無い', (JSC.mat
 ok(!/innerHTML|insertAdjacentHTML|document\.write/.test(JSC), 'pv-glance.js は HTML を組み立てない（見せる・隠す・動かすだけ）');
 ok(/getAttribute\('data-pv-glance'\)\s*===\s*'1'\)\s*return/.test(noJsCmt(read('airlines/airline-base.js'))),
    'airline-base.js は5枚に、見本の点数を混ぜた評価を足さない');
+{
+  /* 口コミのタブの錠前のボタン。字を2行にしただけで、行き先も開く条件も今までと同じ（言葉はここに書く・写さない）。 */
+  const ui = noJsCmt(read('airlines/airline-reviews-ui.js'));
+  const fn = one(ui, /function unlockLabel\(plain\) \{([\s\S]*?)\n  \}/) || '';
+  ok(fn.includes('<span class="pvg-gg-k" lang="en">Give &amp; Get</span>') && fn.includes(`<span class="pvg-gg-m">${RV_GIVE.reviews}</span>`),
+     `口コミのタブの錠前のボタンは2行 ──「${GG}／${RV_GIVE.reviews}」`);
+  ok(/if \(LANG !== 'ja' \|\| !isTabbed\(\)\) return plain;/.test(fn), '2行にするのは、タブのある日本語の会社ページだけ（ほかの会社と英語版は今までの1行）');
+}
 
 if (STATIC_ONLY) {
   console.log(`\n══ ${pass} pass / ${fail} fail ══（ブラウザを使う検査は流していない）`);
@@ -583,8 +644,8 @@ const WANT_W = argOf('--sizes') ? argOf('--sizes').split(',').map(Number) : null
 /* 幅・高さ・最上段の組み方。
    高さは「ブラウザのバーを引いたあとの、本当に見える高さ」（assert-hero-fold.mjs と同じ決め方。
    端末の仕様表の数字に戻すと、全部 ✅ のまま実機では入っていない、になる）。
-   col・side ＝ 縦に1列（会社概要 → 推定年収 → 提出された年収 → 評価・口コミ → 勤務 → 待遇 → 暮らし）。
-   row ＝ 推定年収｜提出された年収 が横に2つ・勤務｜待遇｜暮らし が横に3つ（中身の箱が 1040px 以上）。
+   col・side ＝ 縦に1列（会社概要 → 給与の1枚〔推定年収 → 提出された年収〕→ 評価スコア → 勤務 → 待遇 → 暮らし）。
+   row ＝ 給与の1枚｜評価スコア が横に2つ・勤務｜待遇｜暮らし が横に3つ（中身の箱が 1040px 以上）。
    col と side で違うのは、質問の束（col は畳んだ形・side から開いた形）と「当サイトの推定」の1行だけ。
    1001 は左メニューが出る境目＝中身の箱がいちばん狭い。1250 は横並びがいちばん狭い。 */
 const VIEWS = [
@@ -592,8 +653,11 @@ const VIEWS = [
   [768, 950, 'side'], [1001, 700, 'side'], [1024, 700, 'side'],
   [1250, 800, 'row'], [1440, 820, 'row'],
 ].filter(v => !WANT_W || WANT_W.includes(v[0]));
-/* 会社概要と年収の額が最初の1画面に入ると約束している、いちばん狭い幅（これより狭い画面で入らなければ、下で知らせる）。 */
-const FOLD_FROM = 390;
+/* 最初の1画面の約束をしている、いちばん狭い幅（これより狭い画面で入らなければ、下で知らせる）。
+   幅 FOLD_PAY_FROM から ＝ 会社概要のカードと、推定年収の額（機長・副操縦士）が入る。
+   それより狭い画面（スマホ）＝ 会社概要のカード（紹介の文まで）が入り、年収の額はそのすぐ下
+   （AMT_GAP px 以内 ＝ 間に別の箱を挟んでいない）。 */
+const FOLD_FROM = 390, FOLD_PAY_FROM = 768, AMT_GAP = 120;
 const PARTIAL = ONLY.length !== FIVE.length || !!WANT_W;
 const JOBS = Math.max(1, Number(process.env.PV_GLANCE_JOBS) || 3);
 
@@ -604,11 +668,14 @@ if (!(await fetch(`${BASE}/airlines/${FIVE[0]}.html`).then(r => r.ok, () => fals
 }
 const { default: puppeteer } = await import('puppeteer');
 
-/* 外へは1本も出さない。実データの欄が呼ぶ3つにだけ、決まった返事を返す。
+/* 外へは1本も出さない。実データの欄が呼ぶ4つにだけ、決まった返事を返す。
      mode 'empty' … 0件（鍵は掛かったまま）
      mode 'rows'  … 鍵の無い人に返る、伏せた行（この会社に7件・ほかの会社に2件）
      mode 'rated' … 鍵の無い人に返る、点数の付いた口コミ3件（本文は無い。在るのは書かれた欄の名前と先頭の抜粋だけ）
-     mode 'off'   … 全部 500 ＝「読めない時」 */
+     mode 'off'   … 全部 500 ＝「読めない時」
+   口コミの要約の口（pv_review_summary）は、本番にまだ無い（2026-10-07）。無い時に本物のサーバーが返すのは 404 なので、
+   'empty' と 'rows' では 404 を返す ＝ 画面は要約の欄に何も出さない（作った文で埋めない）。
+   'rated' の時だけ「鍵の無い人への返事」を返す。わざと要約の文を混ぜる（画面が1文字も出さないことを見る）。 */
 const LIBS = /^(cdn\.jsdelivr\.net|fonts\.googleapis\.com|fonts\.gstatic\.com|cdn\.tailwindcss\.com)$/;
 const PAY_RE = /\/rest\/v1\/rpc\/pv_pay_rows$/;
 const STUB = [
@@ -641,6 +708,11 @@ const ratedRows = slug => RATED.map((sc, i) => ({
 const ratedBody = slug => JSON.stringify({ unlocked: false, rows: ratedRows(slug) });
 const VF_TEXT = v => (v ? '明細で確認済み' : '本人申告');
 const AGE_TEXT = ['1ヶ月以内', '3ヶ月以内', '6ヶ月以内', '1年以内', 'それより前'];
+const SUM_RE = /\/rest\/v1\/rpc\/pv_review_summary$/;
+const SUM_LEAK = '検査用の要約です。鍵の無い人の画面に出てはいけません';
+const SUM_LOCKED = JSON.stringify({ ok: true, state: 'locked', n: 3, as_of: '2026-09-30', good: [{ text: SUM_LEAK, cat: 'culture' }], concern: [{ text: SUM_LEAK, cat: 'wlb' }] });
+const SUM_404 = '{"code":"PGRST202","details":null,"hint":null,"message":"Could not find the function public.pv_review_summary(p) in the schema cache"}';
+const SUM_LOCK_TEXT = '要約は口コミの投稿で開きます';
 const trouble = [];
 /* 実データの欄が落ち着く（見えている欄が「まだ」「読み込み中」でなくなる）まで待つ。時間では待たない。 */
 const SETTLED = () => !!window.PVCurrency && !!document.querySelector('.pvg') &&
@@ -667,6 +739,10 @@ async function open(browser, slug, w, h, mode) {
         return r.respond({ status: 204, headers: { ...cors, 'access-control-allow-methods': 'GET,POST,OPTIONS', 'access-control-allow-headers': r.headers()['access-control-request-headers'] || '*' } });
       }
       seen.asked++;
+      if (seen.mode !== 'off' && SUM_RE.test(u.pathname)) {
+        return seen.mode === 'rated' ? r.respond({ status: 200, contentType: 'application/json', headers: cors, body: SUM_LOCKED })
+                                     : r.respond({ status: 404, contentType: 'application/json', headers: cors, body: SUM_404 });
+      }
       const hit = seen.mode !== 'off' && STUB.find(([re]) => re.test(u.pathname));
       if (hit) {
         const body = seen.mode === 'rows' && hit[0] === PAY_RE ? maskedBody(slug) : seen.mode === 'rated' && REV_RE.test(u.pathname) ? ratedBody(slug) : hit[1];
@@ -720,8 +796,14 @@ function LIB() {
       card: !c || !on(c) ? null : {
         title: t('.pvg-head', c) || t('h2', c) || t('h3', c), avg: t('.crl-sc-avg b', c), cnt: t('.crl-sc-cnt', c), fill: fill('#pvg-score .crl-sc-sum .crl-stars'),
         stars: $$('.crl-stars', c).filter(on).length, msg: t('.crl[data-live="score"] .crl-msg', c),
-        /* 口コミを書く入口（見えているもの全部）。カードの中に1つだけのはず */
-        write: $$('a[href*="submit-review"]', c).filter(on).map(a => ({ text: a.textContent.trim(), href: a.getAttribute('href') })),
+        /* 口コミを書く入口（見えているもの全部）。カードの中に1つだけのはず。k ＝ 上の行・m ＝ 下の行・stacked ＝ 2行に積んである */
+        write: $$('a[href*="submit-review"]', c).filter(on).map(a => {
+          const k = a.querySelector('.pvg-gg-k'), m = a.querySelector('.pvg-gg-m');
+          return { k: k ? k.textContent.trim() : null, m: m ? m.textContent.trim() : a.textContent.trim(), stacked: !!k && !!m && k.getBoundingClientRect().bottom <= m.getBoundingClientRect().top + 1, href: a.getAttribute('href') };
+        }),
+        /* 口コミの要約の欄：どの形か・場所を取っている高さ・出ている字・要約の項目の数 */
+        sum: (() => { const e = c.querySelector('.crl[data-live="summary"]'); return !e ? null : {
+          state: e.dataset.state, h: e.getBoundingClientRect().height, text: e.textContent.replace(/\s+/g, ' ').trim(), items: $$('.crl-sum-li, .crl-sum-h, .crl-sum-title', e).length }; })(),
         /* 口コミの欄：見えている件数・本文の字・錠前の1行 */
         revs: (() => { const e = c.querySelector('.crl[data-live="reviews"]'); return !e ? null : {
           state: e.dataset.state, h: e.getBoundingClientRect().height, items: $$('.crl-rev', e).filter(on).length,
@@ -737,7 +819,8 @@ function LIB() {
         h: (() => { const e = c.querySelector('.crl[data-live="score"]'); return e ? e.getBoundingClientRect().height : 0; })(),
         give: $$('.crl[data-live="reviews"] a', c).filter(on).length,
         y: c.getBoundingClientRect().top + scrollY, next: (() => { const n = c.nextElementSibling; return n ? n.getBoundingClientRect().top + scrollY : null; })(),
-        first: c.parentElement.firstElementChild === c,
+        /* 給与の1枚と同じ段の、すぐ次に在る */
+        row: c.parentElement.classList.contains('pvg-payrow') && !!c.previousElementSibling && c.previousElementSibling.classList.contains('pvg-pay'),
       },
     };
   };
@@ -807,7 +890,7 @@ function LIB() {
     return [...new Set(R)];
   };
 
-  /* ── 概要の箱の並び：会社概要／推定年収／提出された年収／評価・口コミ／勤務・待遇・暮らし ── */
+  /* ── 概要の箱の並び：会社概要／給与の1枚（pay）とその中の提出された年収（rp）／評価スコア（rv）／勤務・待遇・暮らし ── */
   G.shape = () => {
     const q = s => { const e = document.querySelector(s); if (!e || !on(e)) return null; const r = e.getBoundingClientRect(); return { x: r.left, y: r.top + scrollY, w: r.width, h: r.height, b: r.bottom + scrollY }; };
     /* amt ＝ 推定年収の額（機長・副操縦士）の下端。最初の1画面に入っていると約束しているもの */
@@ -860,7 +943,11 @@ function LIB() {
         plates: $$('.crl-plate', li).map(pl => { const r = pl.getBoundingClientRect(); return { w: Math.round(r.width), h: Math.round(r.height), kids: pl.childNodes.length, attrs: pl.attributes.length, blur: getComputedStyle(pl).filter }; }),
         extra: $$('.crl-amt, .crl-pos, .crl-sub, .crl-chip, .crl-far', li).length,
       })),
-      links: $$('a', box).filter(on).map(a => ({ cta: a.classList.contains('crl-cta'), text: t(a), href: a.getAttribute('href') })),
+      /* 2行のボタンは「上の行／下の行」で読む。stacked ＝ 2行に積んである（1行のリンクは null） */
+      links: $$('a', box).filter(on).map(a => {
+        const k = a.querySelector('.crl-cta-k'), m = a.querySelector('.crl-cta-m');
+        return { cta: a.classList.contains('crl-cta'), text: k && m ? t(k) + '／' + t(m) : t(a), stacked: k && m ? k.getBoundingClientRect().bottom <= m.getBoundingClientRect().top + 1 : null, href: a.getAttribute('href') };
+      }),
     };
   };
 
@@ -972,6 +1059,9 @@ function LIB() {
 /* ── 測ったものを、正本と突き合わせる ── */
 const alpha = c => { let m = /\/\s*([\d.]+)\s*\)$/.exec(c); if (m) return +m[1]; m = /^rgba\(.*,\s*([\d.]+)\)$/.exec(c); if (m) return +m[1]; return c === 'transparent' ? 0 : 1; };
 const rgbOf = hex => `rgb(${[1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16)).join(', ')})`;
+/* 推定年収の棒の色は深い金（2026-10-07 オーナーのご指示「黒の給与額＋深みのある金色のバー」）。会社の色では描かない
+   ＝ 5社とも同じ色。色の値は pv-tokens.css の星の色（明るい画面の側）。 */
+const BAR_GOLD = one(read('pv-tokens.css'), /--pv-star:\s*(#[0-9a-fA-F]{6})/);
 /* 棒は札（class）ではなく、描かれた模様で見る。 */
 function barBad(b, kind, hex) {
   const bad = [], plain = b.img === 'none', a = alpha(b.bg), ring = b.sh !== 'none';
@@ -982,47 +1072,61 @@ function barBad(b, kind, hex) {
   if (kind === 'co' && /gradient/.test(b.afi)) bad.push('目標年収の棒に「その先」の印が付いている');
   if (kind === 'over' && !/linear-gradient/.test(b.afi)) bad.push('下限の棒に「その先へ続く」印が無い');
   if (kind === 'crew' && !(plain && !ring && b.op < 1)) bad.push('乗員全体の棒が、別の薄い色でない');
-  if (hex && kind !== 'crew' && !`${b.img} ${b.bg} ${b.sh}`.includes(rgbOf(hex))) bad.push(`会社の色（${hex}）で描かれていない`);
+  if (hex && kind !== 'crew' && !`${b.img} ${b.bg} ${b.sh}`.includes(rgbOf(hex))) bad.push(`決めた色（${hex}）で描かれていない`);
   if (Math.abs(b.x) > 0.5) bad.push(`0 から始まっていない（${b.x.toFixed(1)}px）`);
   const want = b.tw * parseFloat(b.sw) / 100;
   if (Math.abs(b.w - want) > 1) bad.push(`描かれた長さ ${b.w.toFixed(1)}px（台 ${b.tw.toFixed(1)}px × ${b.sw} ＝ ${want.toFixed(1)}px）`);
   return bad;
 }
 const near = (a, b, t = 1) => Math.abs(a - b) <= t;
-/* 概要の並び。上から 会社概要 → 年収の段（推定年収・提出された年収）→ 評価・口コミ → 勤務・待遇・暮らし。 */
+/* 概要の並び。上から 会社概要 → 給与の1枚（推定年収 → 提出された年収）と評価スコア → 勤務・待遇・暮らし。
+   row（中身の箱が 1040px 以上）は 給与の1枚｜評価スコア が横に2つ。それより狭い画面は縦に1列。 */
 function shapeBad(sh, kind) {
-  const { co, pay, rp, rv, work, benefits, living } = sh;
+  const { co, pay, rp, rv, work, benefits, living, amt } = sh;
   if (!(co && pay && rp && rv && work && benefits && living)) {
-    return [`見えていない箱が在る（${Object.entries({ 会社概要: co, 推定年収: pay, 提出された年収: rp, '評価・口コミ': rv, 勤務: work, 待遇: benefits, 暮らし: living }).filter(([, v]) => !v).map(([k]) => k).join('・')}）`];
+    return [`見えていない箱が在る（${Object.entries({ 会社概要: co, 給与: pay, 提出された年収: rp, 評価スコア: rv, 勤務: work, 待遇: benefits, 暮らし: living }).filter(([, v]) => !v).map(([k]) => k).join('・')}）`];
   }
-  const bad = [], cells = [work, benefits, living], payB = Math.max(pay.b, rp.b);
-  if (!(co.b <= pay.y + 1 && payB <= rv.y + 1 && cells.every(c => rv.b <= c.y + 1))) bad.push('上から 会社概要 → 年収 → 評価・口コミ → 勤務・待遇・暮らし の順でない');
+  const bad = [], cells = [work, benefits, living], rowB = Math.max(pay.b, rv.b);
+  if (!(co.b <= pay.y + 1 && co.b <= rv.y + 1 && cells.every(c => rowB <= c.y + 1))) bad.push('上から 会社概要 → 給与・評価スコア → 勤務・待遇・暮らし の順でない');
+  if (!(rp.y >= pay.y && rp.b <= pay.b + 1 && rp.x >= pay.x - 1 && rp.x + rp.w <= pay.x + pay.w + 1 && amt !== null && rp.y >= amt - 1)) {
+    bad.push(`提出された年収が、給与の1枚の中・推定年収の額の下に無い（額の下端 ${Math.round(amt || 0)}・一覧の頭 ${Math.round(rp.y)}）`);
+  }
   if (kind === 'row') {
-    if (!(near(pay.y, rp.y, 2) && near(pay.h, rp.h, 2) && pay.x + pay.w <= rp.x + 1)) bad.push(`推定年収｜提出された年収 が、同じ高さで横に並んでいない（高さ ${Math.round(pay.h)}・${Math.round(rp.h)}）`);
+    /* 評価スコアのカードは、0件の時だけ中身の高さ（給与の1枚より低い）。点数が在る時は給与の1枚と同じ高さ。 */
+    if (!(near(pay.y, rv.y, 2) && pay.x + pay.w <= rv.x + 1 && rv.h <= pay.h + 2)) bad.push(`給与｜評価スコア が、頭をそろえて横に並んでいない（高さ ${Math.round(pay.h)}・${Math.round(rv.h)}）`);
     if (!cells.every(c => near(c.y, work.y) && near(c.h, work.h))) bad.push(`横に並ぶ 勤務・待遇・暮らし の高さがそろっていない（${cells.map(c => Math.round(c.h)).join('・')}）`);
     if (!cells.every((c, i) => !i || cells[i - 1].x + cells[i - 1].w <= c.x + 1)) bad.push('左から 勤務 → 待遇 → 暮らし の順でない');
   } else {
-    if (![rp, rv, ...cells].every(c => near(c.x, pay.x) && near(c.w, pay.w))) bad.push('箱が同じ幅で縦に1列になっていない');
-    if (!(pay.b <= rp.y + 1)) bad.push('提出された年収が、推定年収の下に無い');
+    if (![rv, ...cells].every(c => near(c.x, pay.x) && near(c.w, pay.w))) bad.push('箱が同じ幅で縦に1列になっていない');
+    if (!(pay.b <= rv.y + 1)) bad.push('評価スコアが、給与の1枚の下に無い');
     if (!(work.b <= benefits.y + 1 && benefits.b <= living.y + 1)) bad.push('勤務 → 待遇 → 暮らし の順でない');
   }
   return bad;
 }
-/* 最初の1画面に入っていると約束しているもの ＝ 会社概要のカードと、推定年収の額（機長・副操縦士）。 */
-const foldOf = sh => Math.round(Math.max(sh.co ? sh.co.b : 0, sh.amt || 0));
-/* 提出された年収の箱：置き場所と、下に並ぶ入口（0件の時も、伏せた行の時も同じ）。 */
-function bandBad(s, sh, rp, kind) {
-  const bad = [], { pay, rp: box, rv } = sh;
-  if (!(pay && box && rv)) return ['推定年収・提出された年収・評価のカードのどれかが見えていない'];
-  if (kind === 'row') { if (!(pay.x + pay.w <= box.x + 1 && near(pay.y, box.y, 2))) bad.push('推定年収のすぐ右に無い'); }
-  else if (!(box.y >= pay.b - 1 && box.y - pay.b <= 24 && near(box.x, pay.x))) bad.push(`推定年収のすぐ下に無い（年収の下端 ${Math.round(pay.b)}・箱の頭 ${Math.round(box.y)}）`);
-  if (rv.y < box.b - 1) bad.push('評価・口コミのカードより下に在る');
+/* 最初の1画面に入っていると約束しているもの。
+   広い画面（幅 FOLD_PAY_FROM から）＝ 会社概要のカードと、推定年収の額（機長・副操縦士）。
+   スマホ ＝ 会社概要のカード。年収の額はそのすぐ下に在ればよい（foldBadOf が AMT_GAP で見る）。 */
+const foldOf = (sh, w) => Math.round(w >= FOLD_PAY_FROM ? Math.max(sh.co ? sh.co.b : 0, sh.amt || 0) : (sh.co ? sh.co.b : 0));
+const FOLD_WHAT = w => (w >= FOLD_PAY_FROM ? '会社概要 と 年収の額 が入る' : `会社概要 が入り、年収の額はそのすぐ下（${AMT_GAP}px 以内）`);
+function foldBadOf(sh, w, h) {
+  const bad = [], f = foldOf(sh, w);
+  if (f > h) bad.push(`下端 ${f} > ${h}`);
+  if (w < FOLD_PAY_FROM && !(sh.co && sh.amt !== null && sh.amt - sh.co.b <= AMT_GAP)) bad.push(`年収の額が会社概要のすぐ下に無い（会社概要の下端 ${sh.co ? Math.round(sh.co.b) : '—'}・額の下端 ${sh.amt === null ? '—' : Math.round(sh.amt)}）`);
+  return bad;
+}
+/* 提出された年収の一覧：置き場所と、下に並ぶ入口（0件の時も、伏せた行の時も同じ）。 */
+function bandBad(s, sh, rp) {
+  const bad = [], { pay, rp: box, rv, amt } = sh;
+  if (!(pay && box && rv)) return ['給与の1枚・提出された年収・評価スコアのどれかが見えていない'];
+  if (!(box.y >= pay.y && box.b <= pay.b + 1 && box.x >= pay.x - 1 && box.x + box.w <= pay.x + pay.w + 1 && amt !== null && box.y >= amt - 1)) {
+    bad.push(`給与の1枚の中・推定年収の額の下に無い（額の下端 ${Math.round(amt || 0)}・一覧の頭 ${Math.round(box.y)}）`);
+  }
   const want = [
-    { cta: true, text: GIVE, href: `../pay-report.html?airline=${s}` },
-    { cta: false, text: 'ログイン', href: `../login.html?redirect=${encodeURIComponent(`airlines/${s}.html`)}` },
-    { cta: false, text: TERMS, href: `../actual-pay.html?air=${s}` },
+    { cta: true, text: `${GG}／${GIVE}`, stacked: true, href: `../pay-report.html?airline=${s}` },
+    { cta: false, text: 'ログイン', stacked: null, href: `../login.html?redirect=${encodeURIComponent(`airlines/${s}.html`)}` },
+    { cta: false, text: TERMS, stacked: null, href: `../actual-pay.html?air=${s}` },
   ];
-  if (!same(rp.links, want)) bad.push(`入口が違う：${rp.links.map(l => `${l.cta ? '［ボタン］' : ''}${l.text} → ${l.href}`).join(' ／ ')}`);
+  if (!same(rp.links, want)) bad.push(`入口が違う：${rp.links.map(l => `${l.cta ? '［ボタン］' : ''}${l.text}${l.stacked === false ? '（1行に並んでいる）' : ''} → ${l.href}`).join(' ／ ')}`);
   if (rp.cur) bad.push(`箱の中に、通貨で換わる額が ${rp.cur}つ在る`);
   return bad;
 }
@@ -1044,8 +1148,9 @@ function ratedWant(rows) {
   }
   return per.length ? { n: per.length, avg: mean(per), ratings: cat.every(c => c.length) ? cat.map(mean) : null } : null;
 }
-/* 評価スコア：社名の行とカードが同じ答えを出しているか。rows ＝ 偽のサーバーが返した口コミ（0件なら []）。 */
-function scoreBad(s, sc, slots, rows) {
+/* 評価スコア：社名の行とカードが同じ答えを出しているか。rows ＝ 偽のサーバーが返した口コミ（0件なら []）。
+   sum ＝ 口コミの要約の欄のあるべき形（'empty' ＝ 口が無い・要約が無い → 何も出さない／'locked' ＝ 鍵の無い人 → 錠前の1行だけ）。 */
+function scoreBad(s, sc, slots, rows, sum) {
   const bad = [], c = sc.card, W = ratedWant(rows), one = v => Number(v).toFixed(1), state = W ? 'open' : 'empty';
   if (!(slots.length === 2 && slots.every(x => x.on && x.state === state))) bad.push(`欄が ${slots.map(x => `${x.kind}:${x.state}`).join(' ')}（あるべき ${state}）`);
   if (!c) return [...bad, '評価・口コミのカードが見えていない'];
@@ -1067,8 +1172,16 @@ function scoreBad(s, sc, slots, rows) {
     }
   }
   if (!(c.h <= 320)) bad.push(`評価スコアの欄が大きい（高さ ${Math.round(c.h)}px・上限 320px）`);
-  if (!same(c.write, [{ text: '匿名で口コミを投稿する', href: `../submit-review.html?airline=${s}` }])) bad.push(`口コミを書く入口が1つでない：${c.write.map(a => `${a.text} → ${a.href}`).join(' ／ ') || '無い'}`);
-  if (!c.first) bad.push('会社・募集の箱より上に無い');
+  if (!same(c.write, [{ k: GG, m: RV_GIVE.overview, stacked: true, href: `../submit-review.html?airline=${s}` }])) {
+    bad.push(`口コミを書く入口が、2行のボタン「${GG}／${RV_GIVE.overview}」1つでない：${c.write.map(a => `${a.k || ''}／${a.m}${a.stacked ? '' : '（2行でない）'} → ${a.href}`).join(' ‖ ') || '無い'}`);
+  }
+  if (!c.row) bad.push('給与の1枚と同じ段に無い');
+  if (!c.sum) bad.push('口コミの要約の欄が無い');
+  else if (sum === 'locked') {
+    if (!(c.sum.state === 'locked' && c.sum.text === SUM_LOCK_TEXT && !c.sum.items)) bad.push(`鍵の無い人なのに、要約の欄が錠前の1行だけでない（${c.sum.state}・「${c.sum.text.slice(0, 40)}」・項目 ${c.sum.items}）`);
+  } else if (!(c.sum.state === 'empty' && c.sum.h === 0 && c.sum.text === '' && !c.sum.items)) {
+    bad.push(`要約が無いのに、要約の欄が場所を取っている・字を出している（${c.sum.state}・高さ ${c.sum.h}・「${c.sum.text.slice(0, 40)}」）`);
+  }
   return bad;
 }
 const press = async h => { await h.evaluate(el => el.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' })); await h.click(); };
@@ -1095,14 +1208,14 @@ async function runView(browser, s, [w, h, kind]) {
     ok(b0.h1 === 1 && !b0.rating, `${tag}: h1 は1つ・評価の点数や件数を検索向けの情報に足していない`, `h1 ${b0.h1}・評価 ${b0.rating}`);
     const live = await ev(() => window.__pvg.live());
     const shown = live.filter(x => x.on);
-    ok(live.length === 8 && live.every(x => x.air === s), `${tag}: 実データの欄は8つで、自分の会社を指している`, `${live.length}`);
+    ok(live.length === 9 && live.every(x => x.air === s), `${tag}: 実データの欄は9つで、自分の会社を指している`, `${live.length}`);
     /* 0件の時は、評価スコアの2つ（社名の行・カード）も含めて、どの欄も数字を出さない（0件に仮の点数を出さない）。 */
     ok(shown.length >= 5 && shown.every(x => x.state === 'empty'), `${tag}: 0件の時は、どの欄も「まだありません」`, shown.map(x => `${x.kind}:${x.state}`).join(' '));
     ok(live.every(x => !NO_NUM.test(x.text)), `${tag}: 0件の時に、どの欄も数字・0・星を1つも出さない`, live.filter(x => NO_NUM.test(x.text)).map(x => x.text.slice(0, 30)).join(' ／ '));
     {
       const sc = await ev(() => window.__pvg.score());
-      const bad = scoreBad(s, sc, live.filter(IS_SCORE), []);
-      ok(!bad.length, `${tag}: 評価スコア（0件の時）── 社名の行は「評価未取得」・カードは「会員からの投稿はまだありません」・見本の点数を出さない・書く入口は1つ`, bad.join(' ／ '));
+      const bad = scoreBad(s, sc, live.filter(IS_SCORE), [], 'empty');
+      ok(!bad.length, `${tag}: 評価スコア（0件の時）── 社名の行は「評価未取得」・カードは「会員からの投稿はまだありません」・見本の点数も作った要約も出さない・書く入口は2行のボタン「${GG}／${RV_GIVE.overview}」1つ`, bad.join(' ／ '));
     }
     ok(live.filter(x => !x.on).every(x => x.state === 'idle'), `${tag}: 閉じている板の中の欄は、開くまで読みに行かない`);
     const rules = await ev(() => window.__pvg.rules());
@@ -1113,7 +1226,7 @@ async function runView(browser, s, [w, h, kind]) {
     await probe(null);
 
     const sh0 = await ev(() => window.__pvg.shape());
-    ok(!shapeBad(sh0, kind).length, `${tag}: 概要の並び（会社概要 → 年収 → 評価・口コミ → 勤務・待遇・暮らし／${kind === 'row' ? '年収は横に2つ・入口は横に3つ' : '縦に1列'}）`, shapeBad(sh0, kind).join(' ／ '));
+    ok(!shapeBad(sh0, kind).length, `${tag}: 概要の並び（会社概要 → 給与の1枚〔推定年収 → 提出された年収〕と評価スコア → 勤務・待遇・暮らし／${kind === 'row' ? '給与｜評価スコア は横に2つ・入口は横に3つ' : '縦に1列'}）`, shapeBad(sh0, kind).join(' ／ '));
 
     const pay0 = await ev(() => window.__pvg.pay());
     {
@@ -1122,10 +1235,11 @@ async function runView(browser, s, [w, h, kind]) {
       for (const r of pay0.ranks) {
         if (r.frame !== '¤') bad.push(`${r.rank}: 推定年収が額だけで出ていない（${r.frame}）`);
         if (!r.bar) { bad.push(`${r.rank}: 棒が見えていない`); continue; }
-        for (const x of barBad(r.bar, 'est', COLOR[s])) bad.push(`${r.rank}: ${x}`);
+        for (const x of barBad(r.bar, 'est', BAR_GOLD)) bad.push(`${r.rank}: ${x}`);
+        if (COLOR[s] && COLOR[s].toLowerCase() !== BAR_GOLD.toLowerCase() && `${r.bar.img} ${r.bar.bg}`.includes(rgbOf(COLOR[s]))) bad.push(`${r.rank}: 棒が会社の色（${COLOR[s]}）で描かれている`);
       }
       if (pay0.bars !== 2) bad.push(`見えている棒が ${pay0.bars}本（推定年収の2本だけのはず）`);
-      ok(!bad.length, `${tag}: 推定年収は機長も副操縦士も額と棒で見えている ── 棒は2本だけ・平らな濃い塗り・0 から・描かれた長さが指定どおり`, bad.slice(0, 6).join(' ／ '));
+      ok(!bad.length, `${tag}: 推定年収は機長も副操縦士も額と棒で見えている ── 棒は2本だけ・深い金の平らな塗り（会社の色にしない）・0 から・描かれた長さが指定どおり`, bad.slice(0, 6).join(' ／ '));
     }
     {
       /* 会社が公表している金額の行（棒は無い）。上限は「〜」・下限は「超」が額に付いて見えている。 */
@@ -1141,12 +1255,12 @@ async function runView(browser, s, [w, h, kind]) {
     /* 提出された年収の一覧（この会社の提出が0件の時）：「まだ記録がありません」と、提出へ進むボタン。 */
     {
       const rp = await ev(() => window.__pvg.realpay());
-      const bad = !rp ? ['一覧の箱が見えていない'] : [...bandBad(s, sh0, rp, kind)];
+      const bad = !rp ? ['一覧の箱が見えていない'] : [...bandBad(s, sh0, rp)];
       if (rp) {
         if (!(rp.state === 'empty' && rp.msg === 'まだ記録がありません')) bad.push(`「まだ記録がありません」になっていない（${rp.state}・${rp.msg}）`);
         if (rp.count !== null || rp.lock !== null || rp.total) bad.push(`0件なのに、件数・行・「提出で開きます」のどれかが出ている（${rp.count}・${rp.total}行・${rp.lock}）`);
       }
-      ok(!bad.length, `${tag}: 提出された年収（0件の時）── 推定年収のすぐ${kind === 'row' ? '右' : '下'}に在る・「まだ記録がありません」・「${GIVE}」で給与の提出へ・「${TERMS}」は REAL PAY へ`, bad.join(' ／ '));
+      ok(!bad.length, `${tag}: 提出された年収（0件の時）── 給与の1枚の中・推定年収のすぐ下に在る・「まだ記録がありません」・2行のボタン「${GG}／${GIVE}」で給与の提出へ・「${TERMS}」は REAL PAY へ`, bad.join(' ／ '));
     }
 
     /* 額の元の円（通貨を換える時の出発点）が正本の額か。 */
@@ -1165,10 +1279,10 @@ async function runView(browser, s, [w, h, kind]) {
     const all0 = await ev(() => window.__pvg.all());
     const curBad = [], markBad = [], rawBad = [], foldBad = [], shapeCur = [];
     const checkFold = (sh, cur) => {
-      const f = foldOf(sh);
-      if (f <= h) return;
-      if (w >= FOLD_FROM) foldBad.push(`${cur}: 下端 ${f} > ${h}`);
-      else belowFold.push([w, h, s, cur, f]);
+      const bad = foldBadOf(sh, w, h);
+      if (!bad.length) return;
+      if (w >= FOLD_FROM) foldBad.push(`${cur}: ${bad.join('・')}`);
+      else belowFold.push([w, h, s, cur, foldOf(sh, w)]);
     };
     checkFold(sh0, 'JPY');
     for (const cur of curs) {
@@ -1192,7 +1306,7 @@ async function runView(browser, s, [w, h, kind]) {
     ok(!markBad.length, `${tag}: どの通貨でも「〜」「超」の印が残る`, markBad.slice(0, 3).join(' ／ '));
     ok(!rawBad.length, `${tag}: 原貨の額と台帳の注は、通貨を換えても1文字も動かない`, rawBad.join(' '));
     ok(!shapeCur.length, `${tag}: どの通貨でも概要の並びが崩れない`, shapeCur.slice(0, 4).join(' ／ '));
-    if (w >= FOLD_FROM) ok(!foldBad.length, `${tag}: 最初の1画面（高さ ${h}）に 会社概要 と 年収の額 が入る（どの通貨でも）`, foldBad.join(' ／ '));
+    if (w >= FOLD_FROM) ok(!foldBad.length, `${tag}: 最初の1画面（高さ ${h}）に ${FOLD_WHAT(w)}（どの通貨でも）`, foldBad.join(' ／ '));
     ok((await ev(() => window.__pvg.all())) === all0, `${tag}: 円に戻すと1文字も違わない`);
 
     /* ── B) 動き ── */
@@ -1289,7 +1403,7 @@ async function runView(browser, s, [w, h, kind]) {
     ok(at.faces > 0, `${tag}: 「募集要項を開く」を押しても、ページの中身が消えない`, JSON.stringify(at));
     ok(at.top !== null && at.top >= 60 && at.top <= at.vh - 120, `${tag}: 「募集要項を開く」で、募集要項が画面に出る`, JSON.stringify(at));
     ok(at.tab === 'overview' && at.pvg, `${tag}: 「募集要項を開く」は、概要のタブのまま、その節へ寄る`, JSON.stringify(at));
-    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている3つだけ`, [...seen.unknown].join(' '));
+    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている4つだけ`, [...seen.unknown].join(' '));
   } catch (e) {
     ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
   } finally {
@@ -1312,7 +1426,7 @@ async function runOff(browser, s, [w, h, kind]) {
     await ev(() => window.__pvg.top());
     const sh = await ev(() => window.__pvg.shape());
     ok(!shapeBad(sh, kind).length, `${tag}: 概要の並びが崩れない`, shapeBad(sh, kind).join(' ／ '));
-    ok(foldOf(sh) <= h, `${tag}: それでも最初の1画面（高さ ${h}）に 会社概要 と 年収の額 が入る`, `下端 ${foldOf(sh)}`);
+    ok(!foldBadOf(sh, w, h).length, `${tag}: それでも最初の1画面（高さ ${h}）に ${FOLD_WHAT(w)}`, foldBadOf(sh, w, h).join('・'));
     const geo = await ev(() => window.__pvg.geom(true));
     ok(!geo.length, `${tag}: 切れ・はみ出し・重なりが無い`, geo.slice(0, 8).join('\n      '));
     const pr = await ev(() => window.__pvg.probe(null));
@@ -1343,9 +1457,10 @@ async function runRows(browser, s, [w, h, kind]) {
     const sh = await ev(() => window.__pvg.shape());
     const rp = await ev(() => window.__pvg.realpay());
     if (!rp) { ok(false, `${tag}: 提出された年収の箱が見えている`); return; }
-    const N = MASK_AGE.length, top = Math.min(6, N), nShow = rp.width >= 640 ? top : 3;
+    /* 概要に出すのは「一部」＝ 新しい3行（data-top="3"）。全部は REAL PAY に在る。 */
+    const N = MASK_AGE.length, top = Math.min(3, N), nShow = top;
     ok(rp.state === 'locked' && rp.count === `${N}件の提出`, `${tag}: 鍵は掛かったまま・件数はこの会社の分だけ（ほかの会社の行を数えない）`, `${rp.state}・${rp.count}`);
-    ok(rp.total === top && rp.rows.length === nShow, `${tag}: 見える行は ${nShow}行（狭い画面は3行・広い画面は6行まで）`, `${rp.rows.length}／${rp.total}行・箱の幅 ${Math.round(rp.width)}`);
+    ok(rp.total === top && rp.rows.length === nShow, `${tag}: 見える行は ${nShow}行（どの幅でも3行まで）`, `${rp.rows.length}／${rp.total}行・箱の幅 ${Math.round(rp.width)}`);
     {
       const bad = [];
       for (const [i, r] of rp.rows.entries()) {
@@ -1366,18 +1481,18 @@ async function runRows(browser, s, [w, h, kind]) {
       ok(!leak.length && !NO_NUM.test(rp.rest), `${tag}: サーバーが額や職位を送ってきても、画面には1文字も出ない（数字は 件数と投稿時期 だけ）`, `${leak.join(' ')} ${NO_NUM.test(rp.rest) ? rp.rest.slice(0, 60) : ''}`);
     }
     {
-      const bad = bandBad(s, sh, rp, kind);
+      const bad = bandBad(s, sh, rp);
       if (rp.lock !== '給与の提出で開きます') bad.push(`錠前の1行が「${rp.lock}」`);
       if (rp.msg !== null) bad.push(`行が在るのに「${rp.msg}」と出ている`);
-      ok(!bad.length, `${tag}: 推定年収のすぐ${kind === 'row' ? '右' : '下'}に在る・「給与の提出で開きます」・「${GIVE}」で給与の提出へ・ログインと「${TERMS}」（REAL PAY）への入口`, bad.join(' ／ '));
+      ok(!bad.length, `${tag}: 給与の1枚の中・推定年収のすぐ下に在る・「給与の提出で開きます」・2行のボタン「${GG}／${GIVE}」で給与の提出へ・ログインと「${TERMS}」（REAL PAY）への入口`, bad.join(' ／ '));
     }
     ok(!shapeBad(sh, kind).length, `${tag}: 概要の並びが崩れない`, shapeBad(sh, kind).join(' ／ '));
-    if (w >= FOLD_FROM) ok(foldOf(sh) <= h, `${tag}: 最初の1画面（高さ ${h}）に 会社概要 と 年収の額 が入る（一覧が押し出さない）`, `下端 ${foldOf(sh)}`);
+    if (w >= FOLD_FROM) ok(!foldBadOf(sh, w, h).length, `${tag}: 最初の1画面（高さ ${h}）に ${FOLD_WHAT(w)}（一覧が押し出さない）`, foldBadOf(sh, w, h).join('・'));
     const geo = await ev(() => window.__pvg.geom(true));
     ok(!geo.length, `${tag}: 切れ・はみ出し・重なりが無い`, geo.slice(0, 8).join('\n      '));
     const pr = await ev(() => window.__pvg.probe('#pvg-realpay'));
     ok(!pr.small.length && !pr.tap.length && !pr.bare.length, `${tag}: 一覧の字 12px 以上・押す場所 44px 以上・押せるものに状態が在る`, [...pr.small, ...pr.tap, ...pr.bare].slice(0, 8).join('\n      '));
-    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている3つだけ`, [...seen.unknown].join(' '));
+    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている4つだけ`, [...seen.unknown].join(' '));
   } catch (e) {
     ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
   } finally {
@@ -1401,8 +1516,9 @@ async function runRated(browser, s, [w, h, kind]) {
     const live = (await ev(() => window.__pvg.live())).filter(x => x.on);
     const sc = await ev(() => window.__pvg.score());
     {
-      const bad = scoreBad(s, sc, live.filter(IS_SCORE), rows);
-      ok(!bad.length, `${tag}: 社名の行の星 ＝ カードの総合点（${W.avg.toFixed(1)}・${W.n}件）・6角形の図は点数どおり・書く入口は1つ`, bad.join(' ／ '));
+      const bad = scoreBad(s, sc, live.filter(IS_SCORE), rows, 'locked');
+      if (sc.card && sc.card.sum && sc.card.sum.text.includes(SUM_LEAK.slice(0, 8))) bad.push('サーバーが混ぜた要約の文が、鍵の無い人の画面に出ている');
+      ok(!bad.length, `${tag}: 社名の行の星 ＝ カードの総合点（${W.avg.toFixed(1)}・${W.n}件）・6角形の図は点数どおり・書く入口は2行のボタン1つ・要約は「${SUM_LOCK_TEXT}」の1行だけ（サーバーが文を送ってきても出さない）`, bad.join(' ／ '));
     }
     {
       const r = sc.card && sc.card.revs, bad = [];
@@ -1418,12 +1534,12 @@ async function runRated(browser, s, [w, h, kind]) {
     }
     const sh = await ev(() => window.__pvg.shape());
     ok(!shapeBad(sh, kind).length, `${tag}: 概要の並びが崩れない`, shapeBad(sh, kind).join(' ／ '));
-    if (w >= FOLD_FROM) ok(foldOf(sh) <= h, `${tag}: 最初の1画面（高さ ${h}）に 会社概要 と 年収の額 が入る（星の行が押し出さない）`, `下端 ${foldOf(sh)}`);
+    if (w >= FOLD_FROM) ok(!foldBadOf(sh, w, h).length, `${tag}: 最初の1画面（高さ ${h}）に ${FOLD_WHAT(w)}（星の行が押し出さない）`, foldBadOf(sh, w, h).join('・'));
     const geo = await ev(() => window.__pvg.geom(true));
     ok(!geo.length, `${tag}: 切れ・はみ出し・重なりが無い`, geo.slice(0, 8).join('\n      '));
     const pr = await ev(() => window.__pvg.probe('#pvg-score'));
     ok(!pr.small.length && !pr.tap.length && !pr.bare.length, `${tag}: 評価の字 12px 以上・押す場所 44px 以上・押せるものに状態が在る`, [...pr.small, ...pr.tap, ...pr.bare].slice(0, 8).join('\n      '));
-    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている3つだけ`, [...seen.unknown].join(' '));
+    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている4つだけ`, [...seen.unknown].join(' '));
     if (process.env.PV_GLANCE_SHOT) await p.screenshot({ path: `${process.env.PV_GLANCE_SHOT.replace(/\/$/, '')}/rated-${s}-${w}.png`, clip: { x: 0, y: 0, width: w, height: w < 700 ? 2000 : 1500 } });
   } catch (e) {
     ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
@@ -1437,9 +1553,9 @@ const RATED_W = [390, 768, 1440];
    タブごとに 出ているべき箱（on）と 隠れているべき箱（off）。そのページに無い箱（会社によって無いものが在る）は数えない。 */
 const TAB_IDS = TABS.map(t => t[0]), TAB_NAME = Object.fromEntries(TABS);
 const FACE = {
-  overview: { on: ['.pvg-co', '.pvg-pay', '#pvg-realpay', '#pvg-score', '.pvg-cell[data-cell="work"]', '.pvg-cell[data-cell="benefits"]', '.pvg-cell[data-cell="living"]', '.pvg-jobs', '#pvg-stay', '.pvg-askc'], off: ['.pvg-rvl', '#pvg-p-work', '#pvg-p-benefits', '#pvg-p-living'] },
+  overview: { on: ['.pvg-co', '.pvg-pay', '#pvg-realpay', '#pvg-score', '.pvg-rv-cta-overview', '.pvg-cell[data-cell="work"]', '.pvg-cell[data-cell="benefits"]', '.pvg-cell[data-cell="living"]', '.pvg-jobs', '#pvg-stay', '.pvg-askc'], off: ['.pvg-rv-cta-reviews', '.pvg-rvl', '#pvg-p-work', '#pvg-p-benefits', '#pvg-p-living'] },
   pay: { on: ['.pvg-pay', '#pvg-p-benefits', '#pvg-realpay'], off: ['.pvg-cell[data-cell="work"]', '#pvg-score', '.pvg-co', '#pvg-stay', '.pvg-rvl', '#pvg-p-work', '#pvg-p-living', '.pvg-askc'] },
-  reviews: { on: ['#pvg-score', '.pvg-rvl', '#airline-review-section'], off: ['.pvg-pay', '#pvg-realpay', '.pvg-co', '#pvg-stay', '#pvg-p-work'] },
+  reviews: { on: ['#pvg-score', '.pvg-rv-cta-reviews', '.pvg-rvl', '#airline-review-section'], off: ['.pvg-rv-cta-overview', '.pvg-pay', '#pvg-realpay', '.pvg-co', '#pvg-stay', '#pvg-p-work'] },
   work: { on: ['#pvg-p-work'], off: ['.pvg-pay', '#pvg-realpay', '#pvg-score', '#pvg-stay', '#pvg-p-benefits', '.pvg-rvl'] },
   life: { on: ['#pvg-p-living'], off: ['.pvg-pay', '#pvg-realpay', '#pvg-score', '#pvg-stay', '#pvg-p-work', '.pvg-rvl'] },
   stay: { on: ['#pvg-stay'], off: ['.pvg-pay', '#pvg-realpay', '#pvg-score', '.pvg-co', '#pvg-p-living', '.pvg-rvl'] },
@@ -1456,6 +1572,9 @@ function tabSee(exp) {
     cur: all('[data-pvg-tab][aria-current="page"]').map(a => a.getAttribute('data-pvg-tab')),
     tabs: all('.pvg-tabs > a[data-pvg-tab]').map(a => [a.getAttribute('data-pvg-tab'), a.textContent.replace(/\s+/g, ' ').trim()]),
     hash: location.hash, search: location.search,
+    /* 評価スコアのカードで、いま見えている「口コミを書く」入口（上の行／下の行 → 行き先）。比較表・古い節の見出しが残っていないか */
+    write: all('#pvg-score a[href*="submit-review"]').filter(vis).map(a => { const k = a.querySelector('.pvg-gg-k'), m = a.querySelector('.pvg-gg-m'); return [k ? k.textContent.trim() : '', m ? m.textContent.trim() : a.textContent.trim(), a.getAttribute('href')]; }),
+    h2: all('h2').filter(vis).map(e => e.textContent.replace(/\s+/g, ' ').trim()),
     hid: exp ? exp.on.filter(s => q(s) && !vis(q(s))) : [],
     out: exp ? exp.off.filter(s => vis(q(s))) : [],
     over: document.documentElement.scrollWidth - innerWidth,
@@ -1531,6 +1650,11 @@ async function runTabs(browser, s, [w, h]) {
       ok(moved && r.at === t && r.cls === `pvg-at-${t}` && r.cur.join() === t && r.hash === (t === 'overview' ? '' : `#${t}`) && !r.hid.length && !r.out.length && r.over <= 0 && !r.faded,
         `${tag}:「${TAB_NAME[t]}」を押す → その中身だけが出る・選んだ印は1つ・住所に残る・横にあふれない`,
         JSON.stringify({ at: r.at, 印: r.cur, 住所: r.hash, 出ていない: r.hid, 出ている: r.out, 横あふれ: r.over, 薄いまま: r.faded }));
+      /* 口コミを書く入口は、概要と口コミのタブで下の行が違う（どちらも2行・同じ行き先）。ほかのタブには出ない。 */
+      if (RV_GIVE[t]) ok(same(r.write, [[GG, RV_GIVE[t], `../submit-review.html?airline=${s}`]]), `${tag}:「${TAB_NAME[t]}」の口コミを書く入口は「${GG}／${RV_GIVE[t]}」1つ ── 自分の会社を選んだ投稿の画面へ`, r.write.map(x => x.join(' ')).join(' ‖ '));
+      else ok(!r.write.length, `${tag}:「${TAB_NAME[t]}」には、評価スコアのカードの入口が出ていない`, r.write.map(x => x.join(' ')).join(' ‖ '));
+      /* 会社どうしの比較表・「◯◯について」の節は、どのタブにも出ない（比較は「他社と比較」の先・紹介は会社のカードの中）。 */
+      { const dup = r.h2.filter(x => NO_H2.test(x) || /について$/.test(x)); ok(!dup.length, `${tag}:「${TAB_NAME[t]}」に、比較表と「◯◯について」の節が出ていない`, dup.join(' ／ ')); }
     }
     /* ── 2) 戻る・進む・読み直し ── */
     {
@@ -1624,7 +1748,7 @@ try {
   if (belowFold.length) {
     const by = {};
     for (const [w, h, s, , f] of belowFold) { const k = `幅 ${w}（高さ ${h}）`; by[k] = by[k] || {}; by[k][s] = Math.max(by[k][s] || 0, f); }
-    for (const k of Object.keys(by)) notice(`${k} では、年収の額が最初の1画面に入らない（下端 ${Object.entries(by[k]).map(([s, f]) => `${s} ${f}`).join('・')}）。約束しているのは幅 ${FOLD_FROM} から。`);
+    for (const k of Object.keys(by)) notice(`${k} では、会社概要が最初の1画面に入りきらないか、年収の額がそのすぐ下に無い（会社概要の下端 ${Object.entries(by[k]).map(([s, f]) => `${s} ${f}`).join('・')}）。約束しているのは幅 ${FOLD_FROM} から。`);
   }
   head('ページの中のエラー');
   ok(!trouble.length, '例外が出ていない・自サイトのファイルが全部読める', [...new Set(trouble)].join('\n      '));

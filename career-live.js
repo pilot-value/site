@@ -66,6 +66,8 @@
     payCount: function (n) { return ['', String(n), '件の提出']; },
     payLock: '給与の提出で開きます',
     payGive: '匿名で給与を提出する',
+    gg: 'Give & Get',
+    payUnlock: '全ての給与情報を解放する',
     payTerms: '閲覧条件',
     payAll: 'REAL PAY で全部見る',
     login: 'ログイン',
@@ -141,6 +143,19 @@
     var a = el('a', kind === 'cta' ? 'crl-cta' : 'crl-link');
     a.href = href;
     a.appendChild(el('span', '', text));
+    a.appendChild(icon('arrow', 14));
+    return a;
+  }
+  /* 2行の入口（会社ページ）── 上に「Give & Get」、下に何が開くか。行き先は1行の入口と同じ */
+  function give2(main, href) {
+    var a = el('a', 'crl-cta crl-cta-2');
+    a.href = href;
+    var t = el('span', 'crl-cta-t');
+    var k = el('span', 'crl-cta-k', T.gg);
+    k.lang = 'en';
+    t.appendChild(k);
+    t.appendChild(el('span', 'crl-cta-m', main));
+    a.appendChild(t);
     a.appendChild(icon('arrow', 14));
     return a;
   }
@@ -484,17 +499,18 @@
       var mine = ofCo(pay.rows, slug);
       var all = link(T.payAll, UP + 'actual-pay.html?air=' + enc(slug));
       var ul = el('ul', 'crl-rows');
-      var top = GL ? 6 : 3;                 // 会社ページは横いっぱいの帯なので 6 行まで
+      /* 何行まで見せるかは置き場が決める（会社ページの給与の1枚は 3 行。指定が無ければ今までどおり） */
+      var top = Number(box.getAttribute('data-top')) || (GL ? 6 : 3);
       if (pay.open) {
         if (!mine.length) return view('empty', [msg(T.payEmpty), foot([all])]);
         mine.slice(0, top).forEach(function (r) { ul.appendChild(payRow(r, D)); });
         return view('open', GL ? [payCount(mine.length), ul, foot([all])] : [ul, foot([all])]);
       }
-      /* ★2026-10-06（夜）会社ページの入口は「匿名で給与を提出する」。
-           給与を出して開くのは REAL PAY だけで、ホテルなどは別の資格。「全ての待遇データを解放する」と書くと
-           出せば全部見られると読める（オーナーから届いた修正指示の6）。開く条件は隣の「閲覧条件」から読める。 */
+      /* ★2026-10-07 会社ページの入口は2行「Give & Get／全ての給与情報を解放する」（オーナーのご指示。前日の
+           「匿名で給与を提出する」より新しい）。給与を出して開くのは REAL PAY だけで、ホテルなどは別の資格
+           ── だから「待遇データ」ではなく「給与情報」。行き先も開く条件も変えていない。条件は隣の「閲覧条件」から読める。 */
       var feet = foot(GL ? [
-        link(T.payGive, UP + 'pay-report.html?airline=' + enc(slug), 'cta'),
+        give2(T.payUnlock, UP + 'pay-report.html?airline=' + enc(slug)),
         pay.anon ? link(T.login, loginHref()) : null,
         link(T.payTerms, UP + 'actual-pay.html?air=' + enc(slug))
       ] : [
