@@ -108,8 +108,9 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
   <link rel="stylesheet" href="../pv-tokens.css">
   <link rel="stylesheet" href="../app-nav.css">
 <!--PV-GLANCE-HEAD-->
-<link rel="stylesheet" href="../career-live.css?v=7dd07c72">
-<link rel="stylesheet" href="../pv-glance.css?v=10f22601">
+<link rel="stylesheet" href="../career-live.css?v=17880c61">
+<link rel="stylesheet" href="../pv-glance.css?v=6a129fa5">
+<link rel="stylesheet" href="../pv-contrib.css?v=a7195110">
 <!--/PV-GLANCE-HEAD-->
 </head>
 <body class="relative pv-anav-shell pv-anav-pub pv-anav-t73" data-airline="cathay-pacific" data-pv-glance="1">
@@ -160,7 +161,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </nav>
 
 <!--PV-HERO-->
-<div class="hero-airline pvg-hero" style="--pvg-c:#006564">
+<div class="hero-airline pvg-hero pvg-hero-t" style="--pvg-c:#006564">
 <div class="max-w-7xl mx-auto px-6">
 <div class="pvg-id">
 <div class="pvg-name">
@@ -172,9 +173,24 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <div class="crl" data-live="stars" data-airline="cathay-pacific" data-state="idle"><span class="crl-ph">—</span></div>
 </div>
 <div class="pvg-acts">
-<a class="pvg-btn" href="../career.html?view=compare&amp;a=cathay-pacific">比較する</a>
-<a class="pvg-btn pvg-btn-ghost" href="../career.html?view=card&amp;a=cathay-pacific">カードにする</a>
+<a class="pvg-btn pvg-btn-save" href="../career.html?view=card&amp;a=cathay-pacific"><svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg><span>カードを保存</span></a>
+<a class="pvg-btn pvg-btn-cmp" href="../career.html?view=compare&amp;a=cathay-pacific"><span>他社と比較</span><svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h14M14 4l4 4-4 4M20 16H6M10 12l-4 4 4 4"/></svg></a>
 </div>
+</div>
+</div>
+</div>
+<div class="pvg-tabbar" style="--pvg-c:#006564">
+<div class="max-w-7xl mx-auto px-6">
+<div class="pvg-tabrow">
+<div class="pvg-tabs" id="pvg-tabs" role="navigation" aria-label="キャセイパシフィックのページの中">
+<a href="#overview" data-pvg-tab="overview" aria-current="page"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21V5a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v16M15 10h4a1 1 0 0 1 1 1v10M3 21h18M8 8h3M8 12h3M8 16h3"/></svg><span>概要</span></a>
+<a href="#pay" data-pvg-tab="pay"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4l5 7 5-7M12 11v9M7 12h10M7 16h10"/></svg><span>給与・待遇</span></a>
+<a href="#reviews" data-pvg-tab="reviews"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.8 7L4 20l1.2-4.5A8 8 0 1 1 21 12z"/></svg><span>口コミ</span></a>
+<a href="#work" data-pvg-tab="work"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3v4M17 3v4M4 10h16M6 5h12a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/></svg><span>勤務・訓練</span></a>
+<a href="#life" data-pvg-tab="life"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7M5 10v10h14V10M10 20v-6h4v6"/></svg><span>暮らし・家族</span></a>
+<a href="#stay" data-pvg-tab="stay"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18V7M3 16h18M21 18v-3a3 3 0 0 0-3-3H3M7 12V9h5a2 2 0 0 1 2 2v1"/></svg><span>ステイ先</span></a>
+</div>
+<button type="button" class="pvg-add" data-pvc-open="list"><b aria-hidden="true">＋</b><span><span class="pvg-add-w">情報を</span>追加</span></button>
 </div>
 </div>
 </div>
@@ -183,8 +199,21 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <div class="max-w-7xl mx-auto px-6 pb-24 space-y-10">
 <!--PV-GLANCE-->
 <section class="pvg" data-tab-section="overview" data-slug="cathay-pacific" style="--pvg-c:#006564;--pvg-n:4" aria-label="キャセイパシフィックの給与・勤務・待遇・暮らし">
-<div class="pvg-top">
-<article class="pvg-card pvg-pay">
+<div class="pvg-more-grid" data-pvg-pane="overview">
+<article class="pvg-card pvg-co" data-pvg-pane="overview">
+<figure class="pvg-photo"><img src="../assets/airlines/cathay-a350-480.jpg" srcset="../assets/airlines/cathay-a350-480.jpg 480w, ../assets/airlines/cathay-a350.jpg 960w" sizes="(min-width:1100px) 400px, (min-width:700px) 34vw, 92vw" width="480" height="320" loading="lazy" decoding="async" alt="キャセイパシフィックのAirbus A350-1000"><figcaption>写真（縮小・トリミング）：<a class="" href="https://commons.wikimedia.org/wiki/File:Cathay_Pacific_Airbus_A350-1000_B-LXB.jpg" target="_blank" rel="noopener">Melv_L - MACASR</a>／<a class="" href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a></figcaption></figure>
+<header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21V5a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v16M15 10h4a1 1 0 0 1 1 1v10M3 21h18M8 8h3M8 12h3M8 16h3"/></svg></span><h2 class="pvg-eyebrow">会社</h2></header>
+<dl class="pvg-keys"><div><dt>設立</dt><dd>1946年</dd></div><div><dt>航空連合</dt><dd>ワンワールド</dd></div><div><dt>運航している機材</dt><dd>179機</dd></div><div><dt>旅客便の就航地</dt><dd>100以上</dd></div></dl>
+<details class="pvg-dt pvg-co-more"><summary>会社情報<small>数字6つ・機材・出どころ</small><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+<dl class="pvg-stats"><div><dt>設立</dt><dd><b>1946年</b><small>香港</small></dd></div><div><dt>航空連合</dt><dd><b>ワンワールド</b><small>創設メンバー・2026年6月30日</small></dd></div><div><dt>運航している機材</dt><dd><b>179機</b><small>キャセイパシフィック航空（会社単体）の旅客機と貨物機・2026年6月30日</small></dd></div><div><dt>旅客便の就航地</dt><dd><b>100以上</b><small>キャセイパシフィックと香港エクスプレスの合計・2026年6月30日</small></dd></div><div><dt>1年の旅客</dt><dd><b>28,871千人</b><small>キャセイパシフィック航空の有償旅客。香港エクスプレスは含まない・2025年</small></dd></div><div><dt>訓練中の訓練生</dt><dd><b>500人以上</b><small>2025年5月</small></dd></div></dl>
+<div class="pvg-fleet"><p class="pvg-askh">機材<small>8機種・2026年6月30日</small></p>
+<ul class="pvg-chips"><li title="エアバス A321neo">A321neo<b>16機</b></li><li title="エアバス A330-300">A330-300<b>43機</b></li><li title="エアバス A350-900">A350-900<b>30機</b></li><li title="エアバス A350-1000">A350-1000<b>18機</b></li><li title="ボーイング 777-300">B777-300<b>17機</b></li><li title="ボーイング 777-300ER">B777-300ER<b>35機</b></li><li title="ボーイング 747-400ERF（貨物機）">B747-400ERF（貨物機）<b>6機</b></li><li title="ボーイング 747-8F（貨物機）">B747-8F（貨物機）<b>14機</b></li></ul></div>
+<p class="pvg-srcs"><span>出どころ</span><a class="pvg-src" href="https://www.cathaypacific.com/content/dam/cx/about-us/investor-relations/interim-annual-reports/en/2026_cx_interim_report_en.pdf" target="_blank" rel="noopener">キャセイパシフィック航空「Interim Report 2026」</a><a class="pvg-src" href="https://www.cathaypacific.com/content/dam/cx/about-us/investor-relations/interim-annual-reports/en/2025_cx_annual_report_en.pdf" target="_blank" rel="noopener">キャセイパシフィック航空「Annual Report 2025」</a><a class="pvg-src" href="https://news.cathaypacific.com/cathay-pacific-celebrates-the-graduation-of-its-first-batch-of-cadet-pilots-whose-ground-theory-training-was-provided-by-cathay-academy" target="_blank" rel="noopener">キャセイパシフィック航空の発表「Cathay Pacific celebrates the graduation of its first batch of cadet pilots whose ground theory training was provided by Cathay Academy」</a></p>
+</details>
+</article>
+</div>
+<div class="pvg-payrow" data-pvg-pane="overview pay">
+<article class="pvg-card pvg-pay" data-pvg-pane="overview pay">
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4l5 7 5-7M12 11v9M7 12h10M7 16h10"/></svg></span><h2 class="pvg-eyebrow">給与</h2><span class="pvg-chip">課税（香港）</span></header>
 <div class="pvg-ranks">
 <div class="pvg-rank" data-rank="cap">
@@ -224,8 +253,26 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </div>
 </details>
 </article>
+<article class="pvg-card pvg-rp" id="pvg-realpay" data-pvg-pane="overview pay">
+<header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16M7 16v-6M12 16V5M17 16v-4"/></svg></span><h2 class="pvg-eyebrow">提出された年収</h2><span class="pvg-hsub">REAL PAY</span></header>
+<div class="crl" data-live="realpay" data-airline="cathay-pacific" data-state="idle"><span class="crl-ph">—</span></div>
+</article>
+</div>
+<div class="pvg-more-grid pvg-g-rv" data-pvg-pane="overview reviews">
+<article class="pvg-card pvg-rv-card" id="pvg-score" data-pvg-pane="overview reviews">
+<header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.8 7L4 20l1.2-4.5A8 8 0 1 1 21 12z"/></svg></span><h2 class="pvg-eyebrow">パイロットによる評価スコア</h2></header>
+<div class="crl" data-live="score" data-airline="cathay-pacific" data-state="idle"><span class="crl-ph">—</span></div>
+<div class="crl" data-live="reviews" data-airline="cathay-pacific" data-give="0" data-state="idle"><span class="crl-ph">—</span></div>
+<p class="pvg-rv-cta"><a class="pvg-btn" href="../submit-review.html?airline=cathay-pacific">匿名で口コミを投稿する</a><span>匿名・無料</span></p>
+</article>
+<article class="pvg-card pvg-jobs" data-pvg-pane="overview">
+<header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1zM9 8V6a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M3 13h18"/></svg></span><h2 class="pvg-eyebrow">募集</h2><span class="pvg-hsub"><button type="button" class="pvg-link" data-pvg-tab="jobs">募集要項を開く<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></span></header>
+<dl class="pvg-dl"><div><dt>First Officer の募集</dt><dd><b>募集していない</b><small>2026年10月4日</small></dd></div><div><dt>Second Officer の募集</dt><dd><b>募集していない</b><small>2026年10月4日</small></dd></div><div><dt>First Officer の応募に要る飛行時間</dt><dd><b>合計1,500時間以上（3,000時間が望ましい）</b><small>2026年1月</small></dd></div><div><dt>訓練生の募集</dt><dd><b>約80週の訓練生課程を、通年で募集</b><small>2026年10月4日</small></dd></div></dl><details class="pvg-dt pvg-srcd"><summary>出どころ<small>2件</small><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary><p class="pvg-srcs"><a class="pvg-src" href="https://careers.cathaypacific.com/en/careers/our-teams/pilot/pilot-detail-page" target="_blank" rel="noopener">キャセイパシフィック航空の採用サイト「Flight Crew」</a><a class="pvg-src" href="https://careers.cathaypacific.com/en/careers/jobs/hong-kong/cadet-pilot-programme-31538" target="_blank" rel="noopener">キャセイパシフィック航空の募集「Cadet Pilot Programme」</a></p></details>
+</article>
+</div>
+<div class="pvg-top" data-pvg-pane="overview pay work life">
 <div class="pvg-trio">
-<article class="pvg-card pvg-cell" data-cell="work">
+<article class="pvg-card pvg-cell" data-cell="work" data-pvg-pane="overview">
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3v4M17 3v4M4 10h16M6 5h12a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/></svg></span><h2 class="pvg-eyebrow">勤務</h2></header>
 <div class="pvg-lead">
 <p class="pvg-k">年次休暇（First Officer）</p>
@@ -236,11 +283,11 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <div class="pvg-qs"><p class="pvg-qh">匿名で答える</p><ul><li><a href="../airline-conditions.html?airline=cathay-pacific&amp;q=days_off_request">希望休を指定できるか<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li></ul></div>
 <button type="button" class="pvg-more" aria-expanded="false" aria-controls="pvg-p-work"><span>ほか2件と出どころ</span><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
 </article>
-<div class="pvg-card pvg-panel" id="pvg-p-work" data-panel="work" hidden>
+<div class="pvg-card pvg-panel" id="pvg-p-work" data-panel="work" data-pvg-pane="overview work" hidden>
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3v4M17 3v4M4 10h16M6 5h12a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/></svg></span><h3 class="pvg-ptitle">勤務</h3><button type="button" class="pvg-x" aria-label="閉じる"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
-<p class="pvg-askh">会社が公表している条件</p><dl class="pvg-dl"><div><dt>年次休暇（First Officer）</dt><dd><b>28日</b><small>2026年1月</small></dd></div><div><dt>年次休暇（Second Officer）</dt><dd><b>21日</b><small>2026年1月</small></dd></div><div><dt>昇格の決まり方</dt><dd><b>飛行経験・評価・空席・先任順で決まる</b><small>訓練生の課程を終えたあと・2026年10月4日</small></dd></div></dl><p class="pvg-srcs"><span>出どころ</span><a class="pvg-src" href="https://careers.cathaypacific.com/en/careers/our-teams/pilot/pilot-detail-page" target="_blank" rel="noopener">キャセイパシフィック航空の採用サイト「Flight Crew」</a><a class="pvg-src" href="https://careers.cathaypacific.com/en/faqs/hong-kong/pilot/cadet/what-career-progression-opportunities-exist-after-completing-the-cadet-pilot-programme" target="_blank" rel="noopener">キャセイパシフィック航空の採用サイトの FAQ「What career progression opportunities exist after completing the Cadet Pilot Programme?」</a></p><div class="pvg-ans"><p class="pvg-askh">パイロットの回答（3人そろった項目だけ）</p><div class="crl" data-live="fact" data-airline="cathay-pacific" data-keys="days_off_request,roster_lead_days,reserve_duty,roster_changes" data-state="idle"><span class="crl-ph">—</span></div></div><div class="pvg-ask"><p class="pvg-askh">匿名で答える</p><ul><li><a href="../airline-conditions.html?airline=cathay-pacific&amp;q=days_off_request">希望休を指定できるか<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=cathay-pacific&amp;q=roster_lead_days">勤務予定は何日前に決まるか<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=cathay-pacific&amp;q=reserve_duty">スタンバイ勤務があるか<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=cathay-pacific&amp;q=roster_changes">確定後の変更は多いか<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li></ul></div>
+<p class="pvg-askh">会社が公表している条件</p><dl class="pvg-dl"><div><dt>年次休暇（First Officer）</dt><dd><b>28日</b><small>2026年1月</small></dd></div><div><dt>年次休暇（Second Officer）</dt><dd><b>21日</b><small>2026年1月</small></dd></div><div><dt>昇格の決まり方</dt><dd><b>飛行経験・評価・空席・先任順で決まる</b><small>訓練生の課程を終えたあと・2026年10月4日</small></dd></div></dl><p class="pvg-srcs"><span>出どころ</span><a class="pvg-src" href="https://careers.cathaypacific.com/en/careers/our-teams/pilot/pilot-detail-page" target="_blank" rel="noopener">キャセイパシフィック航空の採用サイト「Flight Crew」</a><a class="pvg-src" href="https://careers.cathaypacific.com/en/faqs/hong-kong/pilot/cadet/what-career-progression-opportunities-exist-after-completing-the-cadet-pilot-programme" target="_blank" rel="noopener">キャセイパシフィック航空の採用サイトの FAQ「What career progression opportunities exist after completing the Cadet Pilot Programme?」</a></p><div class="pvg-ans"><p class="pvg-askh">パイロットの回答（3人そろった項目だけ）</p><div class="crl" data-live="fact" data-airline="cathay-pacific" data-keys="days_off_request,roster_lead_days,reserve_duty,roster_changes" data-state="idle"><span class="crl-ph">—</span></div></div><div class="pvg-ask"><p class="pvg-askh">匿名で答える</p><ul><li><a href="../airline-conditions.html?airline=cathay-pacific&amp;q=days_off_request">希望休を指定できるか<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=cathay-pacific&amp;q=roster_lead_days">勤務予定は何日前に決まるか<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=cathay-pacific&amp;q=reserve_duty">スタンバイ勤務があるか<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=cathay-pacific&amp;q=roster_changes">確定後の変更は多いか<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li></ul></div><p class="pvg-addrow"><a class="pvg-link" href="?add=work" data-pvc-open="work">月の勤務を追加<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
 </div>
-<article class="pvg-card pvg-cell" data-cell="benefits">
+<article class="pvg-card pvg-cell" data-cell="benefits" data-pvg-pane="overview">
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12v8H4v-8M2 7h20v5H2zM12 21V7M12 7H8.5a2.5 2.5 0 1 1 0-5C11 2 12 7 12 7zM12 7h3.5a2.5 2.5 0 1 0 0-5C13 2 12 7 12 7z"/></svg></span><h2 class="pvg-eyebrow">待遇</h2></header>
 <div class="pvg-lead">
 <p class="pvg-k">社員の航空券</p>
@@ -251,11 +298,11 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <div class="pvg-qs"><p class="pvg-qh">匿名で答える</p><ul><li><a href="../airline-conditions.html?airline=cathay-pacific&amp;q=annual_leave_days">年間の有給休暇の日数<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li></ul></div>
 <button type="button" class="pvg-more" aria-expanded="false" aria-controls="pvg-p-benefits"><span>ほか7件と出どころ</span><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
 </article>
-<div class="pvg-card pvg-panel" id="pvg-p-benefits" data-panel="benefits" hidden>
+<div class="pvg-card pvg-panel" id="pvg-p-benefits" data-panel="benefits" data-pvg-pane="overview pay" hidden>
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12v8H4v-8M2 7h20v5H2zM12 21V7M12 7H8.5a2.5 2.5 0 1 1 0-5C11 2 12 7 12 7zM12 7h3.5a2.5 2.5 0 1 0 0-5C13 2 12 7 12 7z"/></svg></span><h3 class="pvg-ptitle">待遇</h3><button type="button" class="pvg-x" aria-label="閉じる"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
 <p class="pvg-askh">会社が公表している条件</p><dl class="pvg-dl"><div><dt>社員の航空券</dt><dd><b>本人と対象の家族に割引の航空券</b><small>2026年1月</small></dd></div><div><dt>住宅手当</dt><dd><b>住宅手当は無い。暮らしの費用を支える月々の手当がある</b><small>2026年10月4日</small></dd></div><div><dt>月々の手当（First Officer）</dt><dd><b><span class="pv-no-cur">HKD 20,000</span><small class="pvg-yen" data-cur="HKD">（約40.5万円）</small></b><small>この額から・2026年1月</small></dd></div><div><dt>月々の手当（Second Officer）</dt><dd><b><span class="pv-no-cur">HKD 14,000</span><small class="pvg-yen" data-cur="HKD">（約28.4万円）</small></b><small>この額から・2026年1月</small></dd></div><div><dt>子の教育手当</dt><dd><b>対象の乗員に、子の教育手当がある</b><small>2026年1月</small></dd></div><div><dt>医療</dt><dd><b>本人と対象の家族に、選べる福利厚生の制度がある</b><small>2026年10月4日</small></dd></div><div><dt>引っ越しの支援</dt><dd><b>海外に住む採用者に、引っ越しの支援がある</b><small>2026年10月4日</small></dd></div><div><dt>通勤<span class="pvg-tag pvg-tag-q">会社全体の制度</span></dt><dd><b>香港島・九龍・新界の主な住宅地との間にバスがある</b><small>香港を拠点とする職種の全体・2026年10月4日</small></dd></div></dl><p class="pvg-srcs"><span>出どころ</span><a class="pvg-src" href="https://careers.cathaypacific.com/en/careers/our-teams/pilot/pilot-detail-page" target="_blank" rel="noopener">キャセイパシフィック航空の採用サイト「Flight Crew」</a><a class="pvg-src" href="https://careers.cathaypacific.com/en/faqs/hong-kong/pilot/firstsecond-officer/is-it-possible-to-be-based-in-my-home-country-or-somewhere-other-than-hong-kong" target="_blank" rel="noopener">キャセイパシフィック航空の採用サイトの FAQ「Is it possible to be based in my home country or somewhere other than Hong Kong?」</a><a class="pvg-src" href="https://careers.cathaypacific.com/en/faqs/hong-kong/pilot/firstsecond-officer/will-i-receive-medical-coverage-for-myself-and-my-family" target="_blank" rel="noopener">キャセイパシフィック航空の採用サイトの FAQ「Will I receive medical coverage for myself and my family?」</a><a class="pvg-src" href="https://careers.cathaypacific.com/en/faqs/hong-kong/pilot/firstsecond-officer/will-cathay-pacific-help-with-my-relocation-to-hong-kong" target="_blank" rel="noopener">キャセイパシフィック航空の採用サイトの FAQ「Will Cathay Pacific help with my relocation to Hong Kong?」</a><a class="pvg-src" href="https://careers.cathaypacific.com/en/faqs/hong-kong/onboarding/what-if-commuting-to-work-feels-far" target="_blank" rel="noopener">キャセイパシフィック航空の採用サイトの FAQ「What if commuting to work feels far? Will I receive any transport allowance?」</a></p><div class="pvg-ans"><p class="pvg-askh">パイロットの回答（3人そろった項目だけ）</p><div class="crl" data-live="fact" data-airline="cathay-pacific" data-keys="annual_leave_days,sick_leave,staff_travel" data-state="idle"><span class="crl-ph">—</span></div></div><div class="pvg-ask"><p class="pvg-askh">匿名で答える</p><ul><li><a href="../airline-conditions.html?airline=cathay-pacific&amp;q=annual_leave_days">年間の有給休暇の日数<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=cathay-pacific&amp;q=sick_leave">病気休暇を使えるか<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=cathay-pacific&amp;q=staff_travel">社員向け航空券があるか<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li></ul></div>
 </div>
-<article class="pvg-card pvg-cell" data-cell="living">
+<article class="pvg-card pvg-cell" data-cell="living" data-pvg-pane="overview">
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7M5 10v10h14V10M10 20v-6h4v6"/></svg></span><h2 class="pvg-eyebrow">暮らし</h2></header>
 <div class="pvg-lead">
 <p class="pvg-k">東涌<span class="pvg-opt">（Caribbean Coast）</span>・2寝室の募集の家賃の幅</p>
@@ -263,50 +310,28 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <p class="pvg-note">2026年10月5日に開いた時点の掲載分</p>
 </div>
 <ul class="pvg-also"><li><span>エアポート・エクスプレス：空港駅 ⇄ 香港駅</span><b>24分</b></li></ul>
-<div class="pvg-qs"><p class="pvg-qh">匿名で答える</p><ul><li><a href="../airline-conditions.html?airline=cathay-pacific&amp;q=commuting_transport">通勤の足を会社が用意するか<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=cathay-pacific&amp;q=commuting_taxi_when">タクシーを使えるとき<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li></ul></div>
+<div class="pvg-qs"><p class="pvg-qh">匿名で答える</p><ul><li><a href="../airline-conditions.html?airline=cathay-pacific&amp;q=commuting_transport" data-pvc-open="taxi">通勤の足を会社が用意するか<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=cathay-pacific&amp;q=commuting_taxi_when" data-pvc-open="taxi">タクシーを使えるとき<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li></ul></div>
 <button type="button" class="pvg-more" aria-expanded="false" aria-controls="pvg-p-living"><span>ほか3件と出どころ</span><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
 </article>
-<div class="pvg-card pvg-panel" id="pvg-p-living" data-panel="living" hidden>
+<div class="pvg-card pvg-panel" id="pvg-p-living" data-panel="living" data-pvg-pane="overview life" hidden>
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7M5 10v10h14V10M10 20v-6h4v6"/></svg></span><h3 class="pvg-ptitle">暮らし</h3><button type="button" class="pvg-x" aria-label="閉じる"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
 <div class="pvg-scroll"><table class="pvg-rent">
 <thead><tr><th scope="col">香港の募集の家賃の幅</th><th scope="col">1寝室</th><th scope="col">2寝室</th><th scope="col">3寝室</th></tr></thead>
 <tbody><tr><th scope="row">東涌（Caribbean Coast）<small>空港のとなりの新市街（東涌）。28Hse の東涌の団地一覧でいちばん上に出る団地</small></th><td class="is-none" data-label="1寝室"><span class="pvg-none">—</span></td><td data-label="2寝室"><span class="pv-no-cur">月 HKD 15,800〜18,500</span><small class="pvg-yen" data-cur="HKD">（約32.0万〜37.5万円）</small></td><td data-label="3寝室"><span class="pv-no-cur">月 HKD 18,000〜28,000</span><small class="pvg-yen" data-cur="HKD">（約36.5万〜56.8万円）</small></td></tr>
 <tr><th scope="row">上環（Queen's Terrace）<small>都心の例。28Hse の「Central, Sheung Wan」の団地一覧でいちばん上に出る団地</small></th><td data-label="1寝室"><span class="pv-no-cur">月 HKD 22,000〜23,500</span><small class="pvg-yen" data-cur="HKD">（約44.6万〜47.6万円）</small></td><td data-label="2寝室"><span class="pv-no-cur">月 HKD 22,300〜30,000</span><small class="pvg-yen" data-cur="HKD">（約45.2万〜60.8万円）</small></td><td data-label="3寝室"><span class="pv-no-cur">月 HKD 32,800〜33,000</span><small class="pvg-yen" data-cur="HKD">（約66.5万〜66.9万円）</small></td></tr></tbody>
-</table></div><ul class="pvg-notes"><li><span class="pv-no-cur">募集の額で、成約した額ではない。1つの団地だけ・平均ではなく幅・月額。管理費や差餉（レーツ）を含むかはページに書いていない。掲載は日々変わる</span></li><li><span class="pv-no-cur">2026年10月5日に開いた時点の掲載分</span></li></ul><p class="pvg-srcs"><span>出どころ</span><a class="pvg-src" href="https://www.28hse.com/en/estate/detail/caribbean-coast-4710" target="_blank" rel="noopener">28Hse の団地のページ「Caribbean Coast」</a><a class="pvg-src" href="https://www.28hse.com/en/estate/detail/queen-s-terrace-552" target="_blank" rel="noopener">28Hse の団地のページ「Queen's Terrace」</a><a class="pvg-src" href="https://www.tlb.gov.hk/eng/publications/transport/publications/railwaynetworkSep2025.html" target="_blank" rel="noopener">香港政府 運輸及物流局「Hong Kong: The Facts — Railway Network」</a><a class="pvg-src" href="https://www.mtr.com.hk/en/customer/tickets/tf_index.html" target="_blank" rel="noopener">MTR「Tickets and Fares」</a></p><p class="pvg-fx">円額は比較用の換算です（1 HKD＝20.2744円・2026-08-22 時点）。現在の為替レートではありません。</p><p class="pvg-askh">空港と街のあいだ</p><dl class="pvg-dl"><div><dt>エアポート・エクスプレス：空港駅 ⇄ 香港駅</dt><dd><b>24分</b><small>平均でおよその時間。駅から駅まで・2025年9月</small></dd></div><div><dt>エアポート・エクスプレス：香港駅 ⇄ 空港</dt><dd><b><span class="pv-no-cur">HKD 120</span><small class="pvg-yen" data-cur="HKD">（約¥2,430）</small></b><small>おとな・片道（同じ日の往復も同じ額）。オクトパスなどで払う額で、スマートチケットは HK$130・2026年10月に開いた時点の表示</small></dd></div></dl><div class="pvg-ans"><p class="pvg-askh">パイロットの回答（3人そろった項目だけ）</p><div class="crl" data-live="fact" data-airline="cathay-pacific" data-keys="commuting_transport,commuting_taxi_when,commuting_bus_when" data-state="idle"><span class="crl-ph">—</span></div></div><div class="pvg-ask"><p class="pvg-askh">匿名で答える</p><ul><li><a href="../airline-conditions.html?airline=cathay-pacific&amp;q=commuting_transport">通勤の足を会社が用意するか<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=cathay-pacific&amp;q=commuting_taxi_when">タクシーを使えるとき<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=cathay-pacific&amp;q=commuting_bus_when">クルーバスを使えるとき<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li></ul></div>
+</table></div><ul class="pvg-notes"><li><span class="pv-no-cur">募集の額で、成約した額ではない。1つの団地だけ・平均ではなく幅・月額。管理費や差餉（レーツ）を含むかはページに書いていない。掲載は日々変わる</span></li><li><span class="pv-no-cur">2026年10月5日に開いた時点の掲載分</span></li></ul><p class="pvg-srcs"><span>出どころ</span><a class="pvg-src" href="https://www.28hse.com/en/estate/detail/caribbean-coast-4710" target="_blank" rel="noopener">28Hse の団地のページ「Caribbean Coast」</a><a class="pvg-src" href="https://www.28hse.com/en/estate/detail/queen-s-terrace-552" target="_blank" rel="noopener">28Hse の団地のページ「Queen's Terrace」</a><a class="pvg-src" href="https://www.tlb.gov.hk/eng/publications/transport/publications/railwaynetworkSep2025.html" target="_blank" rel="noopener">香港政府 運輸及物流局「Hong Kong: The Facts — Railway Network」</a><a class="pvg-src" href="https://www.mtr.com.hk/en/customer/tickets/tf_index.html" target="_blank" rel="noopener">MTR「Tickets and Fares」</a></p><p class="pvg-fx">円額は比較用の換算です（1 HKD＝20.2744円・2026-08-22 時点）。現在の為替レートではありません。</p><p class="pvg-askh">空港と街のあいだ</p><dl class="pvg-dl"><div><dt>エアポート・エクスプレス：空港駅 ⇄ 香港駅</dt><dd><b>24分</b><small>平均でおよその時間。駅から駅まで・2025年9月</small></dd></div><div><dt>エアポート・エクスプレス：香港駅 ⇄ 空港</dt><dd><b><span class="pv-no-cur">HKD 120</span><small class="pvg-yen" data-cur="HKD">（約¥2,430）</small></b><small>おとな・片道（同じ日の往復も同じ額）。オクトパスなどで払う額で、スマートチケットは HK$130・2026年10月に開いた時点の表示</small></dd></div></dl><div class="pvg-ans"><p class="pvg-askh">パイロットの回答（3人そろった項目だけ）</p><div class="crl" data-live="fact" data-airline="cathay-pacific" data-keys="commuting_transport,commuting_taxi_when,commuting_bus_when" data-state="idle"><span class="crl-ph">—</span></div></div><div class="pvg-ask"><p class="pvg-askh">匿名で答える</p><ul><li><a href="../airline-conditions.html?airline=cathay-pacific&amp;q=commuting_transport" data-pvc-open="taxi">通勤の足を会社が用意するか<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=cathay-pacific&amp;q=commuting_taxi_when" data-pvc-open="taxi">タクシーを使えるとき<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=cathay-pacific&amp;q=commuting_bus_when" data-pvc-open="taxi">クルーバスを使えるとき<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li></ul></div>
 </div>
 </div>
 </div>
-<article class="pvg-card pvg-rp" id="pvg-realpay">
-<header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16M7 16v-6M12 16V5M17 16v-4"/></svg></span><h2 class="pvg-eyebrow">提出された年収</h2><span class="pvg-hsub">REAL PAY</span></header>
-<div class="crl" data-live="realpay" data-airline="cathay-pacific" data-state="idle"><span class="crl-ph">—</span></div>
-</article>
-<div class="pvg-more-grid">
-<article class="pvg-card pvg-rv-card" id="pvg-score">
-<header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.8 7L4 20l1.2-4.5A8 8 0 1 1 21 12z"/></svg></span><h2 class="pvg-eyebrow">パイロットによる評価スコア</h2></header>
-<div class="crl" data-live="score" data-airline="cathay-pacific" data-state="idle"><span class="crl-ph">—</span></div>
-<div class="crl" data-live="reviews" data-airline="cathay-pacific" data-give="0" data-state="idle"><span class="crl-ph">—</span></div>
-<p class="pvg-rv-cta"><a class="pvg-btn" href="../submit-review.html?airline=cathay-pacific">匿名で口コミを投稿する</a><span>匿名・無料</span></p>
-</article>
-<article class="pvg-card pvg-co">
-<figure class="pvg-photo"><img src="../assets/airlines/cathay-a350-480.jpg" srcset="../assets/airlines/cathay-a350-480.jpg 480w, ../assets/airlines/cathay-a350.jpg 960w" sizes="(min-width:1100px) 400px, (min-width:700px) 34vw, 92vw" width="480" height="320" loading="lazy" decoding="async" alt="キャセイパシフィックのAirbus A350-1000"><figcaption>写真（縮小・トリミング）：<a class="" href="https://commons.wikimedia.org/wiki/File:Cathay_Pacific_Airbus_A350-1000_B-LXB.jpg" target="_blank" rel="noopener">Melv_L - MACASR</a>／<a class="" href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a></figcaption></figure>
-<header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21V5a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v16M15 10h4a1 1 0 0 1 1 1v10M3 21h18M8 8h3M8 12h3M8 16h3"/></svg></span><h2 class="pvg-eyebrow">会社</h2></header>
-<dl class="pvg-stats"><div><dt>設立</dt><dd><b>1946年</b><small>香港</small></dd></div><div><dt>航空連合</dt><dd><b>ワンワールド</b><small>創設メンバー・2026年6月30日</small></dd></div><div><dt>運航している機材</dt><dd><b>179機</b><small>キャセイパシフィック航空（会社単体）の旅客機と貨物機・2026年6月30日</small></dd></div><div><dt>旅客便の就航地</dt><dd><b>100以上</b><small>キャセイパシフィックと香港エクスプレスの合計・2026年6月30日</small></dd></div><div><dt>1年の旅客</dt><dd><b>28,871千人</b><small>キャセイパシフィック航空の有償旅客。香港エクスプレスは含まない・2025年</small></dd></div><div><dt>訓練中の訓練生</dt><dd><b>500人以上</b><small>2025年5月</small></dd></div></dl>
-<div class="pvg-fleet"><p class="pvg-askh">機材<small>8機種・2026年6月30日</small></p>
-<ul class="pvg-chips"><li title="エアバス A321neo">A321neo<b>16機</b></li><li title="エアバス A330-300">A330-300<b>43機</b></li><li title="エアバス A350-900">A350-900<b>30機</b></li><li title="エアバス A350-1000">A350-1000<b>18機</b></li><li title="ボーイング 777-300">B777-300<b>17機</b></li><li title="ボーイング 777-300ER">B777-300ER<b>35機</b></li><li title="ボーイング 747-400ERF（貨物機）">B747-400ERF（貨物機）<b>6機</b></li><li title="ボーイング 747-8F（貨物機）">B747-8F（貨物機）<b>14機</b></li></ul></div>
-<details class="pvg-dt pvg-srcd"><summary>出どころ<small>3件</small><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary><p class="pvg-srcs"><a class="pvg-src" href="https://www.cathaypacific.com/content/dam/cx/about-us/investor-relations/interim-annual-reports/en/2026_cx_interim_report_en.pdf" target="_blank" rel="noopener">キャセイパシフィック航空「Interim Report 2026」</a><a class="pvg-src" href="https://www.cathaypacific.com/content/dam/cx/about-us/investor-relations/interim-annual-reports/en/2025_cx_annual_report_en.pdf" target="_blank" rel="noopener">キャセイパシフィック航空「Annual Report 2025」</a><a class="pvg-src" href="https://news.cathaypacific.com/cathay-pacific-celebrates-the-graduation-of-its-first-batch-of-cadet-pilots-whose-ground-theory-training-was-provided-by-cathay-academy" target="_blank" rel="noopener">キャセイパシフィック航空の発表「Cathay Pacific celebrates the graduation of its first batch of cadet pilots whose ground theory training was provided by Cathay Academy」</a></p></details>
-</article>
-<article class="pvg-card pvg-jobs">
-<header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1zM9 8V6a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M3 13h18"/></svg></span><h2 class="pvg-eyebrow">募集</h2><span class="pvg-hsub"><button type="button" class="pvg-link" data-pvg-tab="jobs">募集要項を開く<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></span></header>
-<dl class="pvg-dl"><div><dt>First Officer の募集</dt><dd><b>募集していない</b><small>2026年10月4日</small></dd></div><div><dt>Second Officer の募集</dt><dd><b>募集していない</b><small>2026年10月4日</small></dd></div><div><dt>First Officer の応募に要る飛行時間</dt><dd><b>合計1,500時間以上（3,000時間が望ましい）</b><small>2026年1月</small></dd></div><div><dt>訓練生の募集</dt><dd><b>約80週の訓練生課程を、通年で募集</b><small>2026年10月4日</small></dd></div></dl><details class="pvg-dt pvg-srcd"><summary>出どころ<small>2件</small><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary><p class="pvg-srcs"><a class="pvg-src" href="https://careers.cathaypacific.com/en/careers/our-teams/pilot/pilot-detail-page" target="_blank" rel="noopener">キャセイパシフィック航空の採用サイト「Flight Crew」</a><a class="pvg-src" href="https://careers.cathaypacific.com/en/careers/jobs/hong-kong/cadet-pilot-programme-31538" target="_blank" rel="noopener">キャセイパシフィック航空の募集「Cadet Pilot Programme」</a></p></details>
-</article>
-<article class="pvg-card pvg-stay" id="pvg-stay">
+<div class="pvg-more-grid pvg-g-st" data-pvg-pane="overview stay">
+<article class="pvg-card pvg-stay" id="pvg-stay" data-pvg-pane="overview stay">
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18V7M3 16h18M21 18v-3a3 3 0 0 0-3-3H3M7 12V9h5a2 2 0 0 1 2 2v1"/></svg></span><h2 class="pvg-eyebrow">ステイ</h2></header>
 <p class="pvg-stay-base"><svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6-5.2-6-10a6 6 0 1 1 12 0c0 4.8-6 10-6 10zM12 9.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/></svg><span>拠点</span><b>香港 HKG</b>
 <a class="pvg-link" href="https://www.google.com/maps/search/?api=1&amp;query=%E9%A6%99%E6%B8%AF%20HKG" target="_blank" rel="noopener">Google マップで見る</a></p>
 <p class="pvg-quiet">就航地ごとのホテル・レストランは、会社が公表する就航地の一覧を確認してから開きます。</p>
 </article>
-<article class="pvg-card pvg-askc">
-<header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8v8M8 12h8M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z"/></svg></span><h2 class="pvg-eyebrow">キャセイパシフィックのこと、ひとつ教えて。</h2></header>
+<article class="pvg-card pvg-askc" data-pvg-pane="overview">
+<header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8v8M8 12h8M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z"/></svg></span><h2 class="pvg-eyebrow">キャセイパシフィックのこと、ひとつ教えて。</h2><span class="pvg-hsub"><button type="button" class="pvg-link" data-pvc-open="list">項目の一覧から足す<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></span></header>
 <p class="pvg-quiet">1問だけでも保存できます。匿名で、3人そろった項目から会社ページに出ます。</p>
 <div class="pvg-got"><p class="pvg-askh">集まった回答</p><div class="crl" data-live="fact" data-airline="cathay-pacific" data-keys="days_off_request,roster_lead_days,reserve_duty,roster_changes,commuting_transport,commuting_transport_method,commuting_taxi_when,commuting_taxi_where,commuting_taxi_cost,commuting_taxi_cap,commuting_bus_when,commuting_bus_cost,staff_travel,staff_travel_booking,staff_travel_cabin,staff_travel_family,staff_travel_standby_trips,staff_travel_standby_cost,staff_travel_standby_family,staff_travel_confirmed_trips,staff_travel_confirmed_cost,staff_travel_confirmed_family,upgrade_years,upgrade_order,upgrade_min_hours,upgrade_min_tenure" data-state="idle"><span class="crl-ph">—</span></div></div>
 <div class="pvg-topics">
@@ -319,7 +344,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <details class="pvg-topic" data-topic="taxi">
 <summary><span>通勤・タクシー</span><small>質問 8</small><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
 <div class="pvg-body">
-<div class="pvg-ask"><ul><li><a href="../airline-conditions.html?airline=cathay-pacific&amp;q=commuting_transport">会社が用意・負担するか<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=cathay-pacific&amp;q=commuting_transport_method">提供の形<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=cathay-pacific&amp;q=commuting_taxi_when">タクシーを使えるとき<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=cathay-pacific&amp;q=commuting_taxi_where">タクシーを使える範囲<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=cathay-pacific&amp;q=commuting_taxi_cost">タクシーの費用負担<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=cathay-pacific&amp;q=commuting_taxi_cap">タクシー代の上限<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=cathay-pacific&amp;q=commuting_bus_when">クルーバスを使えるとき<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=cathay-pacific&amp;q=commuting_bus_cost">クルーバスの費用負担<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li></ul></div>
+<div class="pvg-ask"><ul><li><a href="../airline-conditions.html?airline=cathay-pacific&amp;q=commuting_transport" data-pvc-open="taxi">会社が用意・負担するか<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=cathay-pacific&amp;q=commuting_transport_method" data-pvc-open="taxi">提供の形<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=cathay-pacific&amp;q=commuting_taxi_when" data-pvc-open="taxi">タクシーを使えるとき<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=cathay-pacific&amp;q=commuting_taxi_where" data-pvc-open="taxi">タクシーを使える範囲<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=cathay-pacific&amp;q=commuting_taxi_cost" data-pvc-open="taxi">タクシーの費用負担<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=cathay-pacific&amp;q=commuting_taxi_cap" data-pvc-open="taxi">タクシー代の上限<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=cathay-pacific&amp;q=commuting_bus_when" data-pvc-open="taxi">クルーバスを使えるとき<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=cathay-pacific&amp;q=commuting_bus_cost" data-pvc-open="taxi">クルーバスの費用負担<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li></ul></div>
 <button type="button" class="pvg-link pvg-askmore" data-pvg-askmore>ほか4問<svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
 </div>
 </details>
@@ -340,13 +365,17 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </div>
 </article>
 </div>
-<div id="pvg-revcats"></div>
+<div id="pvg-revcats" data-pvg-pane="reviews"></div>
+<article class="pvg-card pvg-rvl" data-pvg-pane="reviews">
+<header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.8 7L4 20l1.2-4.5A8 8 0 1 1 21 12z"/></svg></span><h2 class="pvg-eyebrow">口コミ</h2><span class="pvg-hsub">会員の投稿 <b data-pvg-n="posts">—</b> 件<span data-pvg-quotes hidden>・公開情報からの引用 <b data-pvg-n="quotes">—</b> 件</span></span></header>
+<div id="pvg-reviews-host"></div>
+</article>
 <script type="application/json" id="crc-data">{"airlines":{"jal":{"ja":"日本航空（JAL）","color":"#CC0000"},"ana":{"ja":"全日本空輸（ANA）","color":"#1A6EB5"},"cathay-pacific":{"ja":"キャセイパシフィック","color":"#006564"},"etihad":{"ja":"エティハド航空","color":"#B08D57"},"eva-air":{"ja":"エバー航空","color":"#00A599"}}}</script>
 </section>
 <!--/PV-GLANCE-->
 
 <!-- 概要 -->
-<div class="glass p-8 fade-up">
+<div class="glass p-8 fade-up" data-pvg-pane="overview">
 <div class="section-badge mb-4">航空会社の概要</div>
 <h2 class="text-2xl font-bold mb-4">Cathay Pacificについて</h2>
 <div class="grid lg:grid-cols-2 gap-8">
@@ -357,7 +386,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 
 <!-- 年収 -->
 <!-- ▼ PV-BASIS：この数字の出どころ（形は各社ページで共通。正は salary-basis.mjs）-->
-<div class="glass p-8 fade-up" id="kyuyo-konkyo">
+<div class="glass p-8 fade-up" id="kyuyo-konkyo" data-pvg-pane="pay">
 <div class="section-badge mb-4">この金額は誰の・何を含んだ・いつの金額か</div>
 <h2 class="text-2xl font-bold mb-2">公式募集にある副操縦士の目標年収</h2>
 <p class="text-muted mb-6 text-sm">キャセイパシフィック航空の採用ページが金額を載せているのは<strong>副操縦士と二等航空士だけ</strong>です。載っているのは「目標年収（Target Annual Salary）」で、<strong>会社が定める目標ブロックアワーを飛んだ場合の金額＝保証額ではありません。</strong>平均でもありません。</p>
@@ -407,7 +436,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <!-- ▲ /PV-BASIS -->
 
 <!-- 運航環境 -->
-<div class="glass p-8 fade-up">
+<div class="glass p-8 fade-up" data-pvg-pane="work">
 <div class="section-badge mb-4">運航環境</div>
 <h2 class="text-2xl font-bold mb-6">フライト環境・路線・機材</h2>
 <div class="grid md:grid-cols-2 gap-6">
@@ -417,7 +446,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </div>
 
 <!-- 訓練 -->
-<div class="glass p-8 fade-up">
+<div class="glass p-8 fade-up" data-pvg-pane="work">
 <div class="section-badge mb-4">訓練環境</div>
 <h2 class="text-2xl font-bold mb-6">訓練・昇格システム</h2>
 <div class="grid md:grid-cols-2 gap-6">
@@ -426,7 +455,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </div>
 
 <!-- 福利厚生 -->
-<div class="glass p-8 fade-up">
+<div class="glass p-8 fade-up" data-pvg-pane="pay">
 <div class="section-badge mb-4">福利厚生</div>
 <h2 class="text-2xl font-bold mb-6">福利厚生・待遇</h2>
 <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -435,7 +464,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </div>
 
 <!-- 募集要項 -->
-<div class="glass p-8 fade-up" style="border-color:rgba(52,211,153,.2)">
+<div class="glass p-8 fade-up" style="border-color:rgba(52,211,153,.2)" data-pvg-pane="overview">
 <div class="flex items-center gap-3 mb-6">
 <div class="section-badge" style="background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.3);color:#34d399">公式採用ページ 2026年1月時点（2026年9月に確認）</div>
 <span class="tag tag-blue">採用中</span>
@@ -468,7 +497,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </div>
 
   <!-- FAQ -->
-  <div class="glass p-8 fade-up">
+  <div class="glass p-8 fade-up" data-pvg-pane="overview">
     <div class="section-badge mb-4">よくある質問</div>
     <h2 class="text-2xl font-bold mb-6">キャセイパシフィック航空パイロット よくある質問</h2>
     <div class="space-y-4">
@@ -489,7 +518,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
   </div>
 
   <!-- 他社比較 -->
-  <div class="glass p-8 fade-up">
+  <div class="glass p-8 fade-up" data-pvg-pane="pay">
     <div class="section-badge mb-4">年収比較</div>
     <h2 class="text-2xl font-bold mb-6">キャセイパシフィックと他社の比較</h2>
     <div class="grid md:grid-cols-3 gap-4">
@@ -575,7 +604,8 @@ setTimeout(()=>{document.querySelectorAll('.fade-up:not(.visible)').forEach(el=>
      ヘッダーの自動折り畳みごと止まる）。search.js が無いページでは自分で ≡ を作る。 -->
 <script src="../app-nav.js"></script>
 <!--PV-GLANCE-JS-->
-<script src="../career-live.js?v=7c662b46"></script>
-<script src="../pv-glance.js?v=08e5c624"></script>
+<script src="../career-live.js?v=fb775668"></script>
+<script src="../pv-glance.js?v=4e08cb8a"></script>
+<script src="../pv-contrib.js?v=0cf53f63"></script>
 <!--/PV-GLANCE-JS-->
 </body></html>

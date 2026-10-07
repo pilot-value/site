@@ -32,6 +32,8 @@ const UP = '../';                                   // 会社ページ（airline
 const CSS = ['career-live.css', 'pv-glance.css'];
 const JS = ['career-live.js', 'pv-glance.js'];
 export const ASSETS = [...CSS, ...JS];
+/* 「情報を追加」の面（pv-contrib.*）。タブを持つページだけが読む。 */
+export const CONTRIB = { css: 'pv-contrib.css', js: 'pv-contrib.js' };
 export const pageOf = slug => path.join('airlines', `${slug}.html`);
 
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -66,7 +68,40 @@ const IC = {
   go: svg('M5 12h14M13 6l6 6-6 6', 'pvg-ic pvg-ic-s'),
   out: svg('M14 5h5v5M19 5l-8 8M11 7H6a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-5', 'pvg-ic pvg-ic-s'),
   x: svg('M6 6l12 12M18 6L6 18'),
+  save: svg('M12 4v11M7 11l5 5 5-5M5 20h14', 'pvg-ic pvg-ic-s'),
+  swap: svg('M4 8h14M14 4l4 4-4 4M20 16H6M10 12l-4 4 4 4', 'pvg-ic pvg-ic-s'),
 };
+
+/* ── タブ（見本の6つ・左から）───────────────────────────────
+   ★ 先行5社。ほかの会社へ広げるときは TABBED に社を足して流し直す（足していない社は1文字も変わらない）。
+   ・帯そのものは社名の行のすぐ下（PV-HERO の中）。切り替えるのは pv-glance.js、隠すのは pv-glance.css。
+   ・どの塊がどのタブに出るかは data-pvg-pane（空白区切り）に書く。書いていない塊は、どのタブでも出る
+     ＝ pv-glance.js が動かなくても、中身は1つも消えない（全部が縦に並ぶ）。
+   ・タブに件数を書かない（数えていない数を出さない）。 */
+export const TABBED = new Set(['jal', 'ana', 'cathay-pacific', 'etihad', 'eva-air']);
+export const TABS = [['overview', '概要', IC.company], ['pay', '給与・待遇', IC.pay], ['reviews', '口コミ', IC.reviews],
+  ['work', '勤務・訓練', IC.work], ['life', '暮らし・家族', IC.living], ['stay', 'ステイ先', IC.stay]];
+const tabbed = slug => TABBED.has(slug);
+const pane = (slug, names) => (tabbed(slug) ? ` data-pvg-pane="${names}"` : '');
+/* 勤務・待遇・暮らしの板が、自分のタブでは開いたまま本文になる（pv-glance.js の OPEN と同じ対） */
+const CELL_TAB = { work: 'work', benefits: 'pay', living: 'life' };
+/* 今のページの下に残っている古い節の行き先（見出しの言葉で決める。当たらない節は概要） */
+const OLD_PANE = [[/他社の比較|福利厚生|年収差|詳細比較|比べられるところ/, 'pay'], [/フライト環境|路線・機材|訓練/, 'work']];
+/* 「会社が公表している金額」の節は、見出しが会社ごとに違うので id で決める */
+const oldPane = (h2, attrs = '') => (/\bid="kyuyo-konkyo"/.test(attrs) ? 'pay' : (OLD_PANE.find(([re]) => re.test(h2)) || [, 'overview'])[1]);
+const h2Text = s => s.replace(/<[^>]*>/g, () => '');
+/* 「情報を追加」の面を開く印。href は残す ＝ 面が読めなかったときは、今までどおり質問の画面へ行く */
+const opens = (slug, topic) => (tabbed(slug) && topic ? ` data-pvc-open="${topic}"` : '');
+const tabBar = v => `<div class="pvg-tabbar" style="--pvg-c:${esc(v.color)}">
+<div class="max-w-7xl mx-auto px-6">
+<div class="pvg-tabrow">
+<div class="pvg-tabs" id="pvg-tabs" role="navigation" aria-label="${esc(v.name)}のページの中">
+${TABS.map(([id, label, icon], i) => `<a href="#${id}" data-pvg-tab="${id}"${i ? '' : ' aria-current="page"'}>${icon}<span>${label}</span></a>`).join('\n')}
+</div>
+<button type="button" class="pvg-add" data-pvc-open="list"><b aria-hidden="true">＋</b><span><span class="pvg-add-w">情報を</span>追加</span></button>
+</div>
+</div>
+</div>`;
 
 /* ── 部品 ───────────────────────────────────────────── */
 const join = (...xs) => {
@@ -112,14 +147,24 @@ function sources(items, fold = false) {
 const factList = items => `<dl class="pvg-dl">${items.map(f =>
   `<div><dt>${esc(f.label)}${whole(f)}</dt><dd><b>${val(f)}</b>${premise(f) ? `<small>${esc(premise(f))}</small>` : ''}</dd></div>`).join('')}</dl>`;
 /* 匿名で答える入口（質問の名前を出す） */
-const asks = (slug, list, head = '匿名で答える') =>
+const asks = (slug, list, head = '匿名で答える', open = '') =>
   `<div class="pvg-ask">${head ? `<p class="pvg-askh">${esc(head)}</p>` : ''}<ul>${list.map(([q, label]) =>
-    `<li><a href="${href.ask(slug, q)}">${esc(label)}${IC.next}</a></li>`).join('')}</ul></div>`;
+    `<li><a href="${href.ask(slug, q)}"${opens(slug, open)}>${esc(label)}${IC.next}</a></li>`).join('')}</ul></div>`;
+/* 質問の形をしていない入口（月の勤務）。面を開く。面が読めないときは、同じページを ?add= 付きで開き直す */
+const addRow = (slug, topic, label) => (tabbed(slug)
+  ? `<p class="pvg-addrow"><a class="pvg-link" href="?add=${topic}" data-pvc-open="${topic}">${esc(label)}${IC.go}</a></p>` : '');
 
 /* ── 社名の行（写真を置かない）────────────────────────── */
 function hero(v, keep) {
   const iata = v.base.iata.length ? ` <b>${v.base.iata.map(esc).join('・')}</b>` : '';
-  return `<div class="hero-airline pvg-hero" style="--pvg-c:${esc(v.color)}">
+  const t = tabbed(v.slug);
+  /* タブを持つページは見本の並び：左に「カードを保存」・右に「他社と比較」（狭い画面では上下）。その下にタブの帯。 */
+  const acts = t
+    ? `<a class="pvg-btn pvg-btn-save" href="${href.card(v.slug)}">${IC.save}<span>カードを保存</span></a>
+<a class="pvg-btn pvg-btn-cmp" href="${href.compare(v.slug)}"><span>他社と比較</span>${IC.swap}</a>`
+    : `<a class="pvg-btn" href="${href.compare(v.slug)}">比較する</a>
+<a class="pvg-btn pvg-btn-ghost" href="${href.card(v.slug)}">カードにする</a>`;
+  return `<div class="hero-airline pvg-hero${t ? ' pvg-hero-t' : ''}" style="--pvg-c:${esc(v.color)}">
 <div class="max-w-7xl mx-auto px-6">
 <div class="pvg-id">
 <div class="pvg-name">
@@ -131,12 +176,11 @@ function hero(v, keep) {
 ${live('stars', { airline: v.slug })}
 </div>
 <div class="pvg-acts">
-<a class="pvg-btn" href="${href.compare(v.slug)}">比較する</a>
-<a class="pvg-btn pvg-btn-ghost" href="${href.card(v.slug)}">カードにする</a>
+${acts}
 </div>
 </div>
 </div>
-</div>`;
+</div>${t ? '\n' + tabBar(v) : ''}`;
 }
 
 /* ── 給与 ─────────────────────────────────────────────
@@ -234,7 +278,7 @@ ${notes}${src}${fx}
 </details>`;
 }
 function payCard(v) {
-  return `<article class="pvg-card pvg-pay">
+  return `<article class="pvg-card pvg-pay"${pane(v.slug, 'overview pay')}>
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true">${IC.pay}</span><h2 class="pvg-eyebrow">給与</h2><span class="pvg-chip">${esc(v.pay.tax)}</span></header>
 <div class="pvg-ranks">
 ${RANKS.map(r => rankBlock(v, r)).join('\n')}
@@ -254,14 +298,14 @@ const LIVE_ASK = [['commuting_transport', '通勤の足を会社が用意する�
 /* 欄（閉じているときに見えるのが「公表されている条件を1つ」）と、その中身の板。
    板は欄のすぐ後ろに置く ＝ 狭い画面ではその場で開き、広い画面では3つの欄の下へ横いっぱいに出る（pv-glance.css）。 */
 /* 広い箱では、欄の中に質問を名前で並べる（どの欄も、公表の条件と質問をあわせて3行まで） */
-const quick = (slug, list) => (list.length ? `<div class="pvg-qs"><p class="pvg-qh">匿名で答える</p><ul>${list.map(([q, label]) =>
-  `<li><a href="${href.ask(slug, q)}">${esc(label)}${IC.next}</a></li>`).join('')}</ul></div>` : '');
+const quick = (slug, list, open = '') => (list.length ? `<div class="pvg-qs"><p class="pvg-qh">匿名で答える</p><ul>${list.map(([q, label]) =>
+  `<li><a href="${href.ask(slug, q)}"${opens(slug, open)}>${esc(label)}${IC.next}</a></li>`).join('')}</ul></div>` : '');
 const SLOTS = 3;
 /* 値が長いとき（「本人と対象の家族に割引の航空券」）は字を1段小さくして、狭い画面でも1行に収める。円の目安（small）は数えない */
 const isLong = html => html.replace(/<small[\s\S]*?<\/small>/g, '').replace(/<[^>]*>/g, '').length > 13;
-function cell(id, title, icon, { slug, k, v: value, note, also = [], ask = [], count, body, empty }) {
+function cell(id, title, icon, { slug, k, v: value, note, also = [], ask = [], count, body, empty, open = '' }) {
   const more = empty ? '答える' : count > 1 ? `ほか${count - 1}件と出どころ` : '出どころを見る';
-  return `<article class="pvg-card pvg-cell" data-cell="${id}">
+  return `<article class="pvg-card pvg-cell" data-cell="${id}"${pane(slug, 'overview')}>
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true">${icon}</span><h2 class="pvg-eyebrow">${title}</h2></header>
 <div class="pvg-lead">
 <p class="pvg-k">${k}</p>
@@ -269,10 +313,10 @@ function cell(id, title, icon, { slug, k, v: value, note, also = [], ask = [], c
 ${note ? `<p class="pvg-note">${note}</p>` : ''}
 </div>
 ${also.length ? `<ul class="pvg-also">${also.map(f => `<li><span>${esc(f.label)}</span><b>${val(f)}</b></li>`).join('')}</ul>` : ''}
-${quick(slug, ask.slice(0, SLOTS - also.length))}
+${quick(slug, ask.slice(0, SLOTS - also.length), open)}
 <button type="button" class="pvg-more" aria-expanded="false" aria-controls="pvg-p-${id}"><span>${more}</span>${IC.down}</button>
 </article>
-<div class="pvg-card pvg-panel" id="pvg-p-${id}" data-panel="${id}" hidden>
+<div class="pvg-card pvg-panel" id="pvg-p-${id}" data-panel="${id}"${pane(slug, `overview ${CELL_TAB[id]}`)} hidden>
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true">${icon}</span><h3 class="pvg-ptitle">${title}</h3><button type="button" class="pvg-x" aria-label="閉じる">${IC.x}</button></header>
 ${body}
 </div>`;
@@ -284,14 +328,14 @@ function factCell(v, id, title, icon, items, askList, emptyText) {
     /* 載せる事実が無い欄は、数字を作らず、中身の分かる入口にする */
     return cell(id, title, icon, {
       slug: v.slug, k: '会社の公表', v: '確認できていません', empty: true, ask: askList,
-      note: esc(emptyText), body: answers + asks(v.slug, askList),
+      note: esc(emptyText), body: answers + asks(v.slug, askList) + (id === 'work' ? addRow(v.slug, 'work', '月の勤務を追加') : ''),
     });
   }
   const rest = items.filter(f => f !== lead);
   return cell(id, title, icon, {
     slug: v.slug, k: esc(lead.label) + whole(lead), v: val(lead), note: esc(premise(lead)),
     also: rest.slice(0, 2), ask: askList, count: items.length,
-    body: `<p class="pvg-askh">会社が公表している条件</p>${factList(items)}${sources(items)}${answers}${asks(v.slug, askList)}`,
+    body: `<p class="pvg-askh">会社が公表している条件</p>${factList(items)}${sources(items)}${answers}${asks(v.slug, askList)}${id === 'work' ? addRow(v.slug, 'work', '月の勤務を追加') : ''}`,
   });
 }
 function rentText(L, r, col) {
@@ -305,8 +349,8 @@ function livingCell(v) {
   const lead = L && (L.rents.find(r => r.lead && r.value[L.leadCol] != null) || L.rents.find(r => r.value[L.leadCol] != null));
   if (!lead) {
     return cell('living', '暮らし', IC.living, {
-      slug: v.slug, k: '拠点の街', v: esc(v.base.city), empty: true, ask: LIVE_ASK,
-      note: '家賃の資料を確認できていません', body: answers + asks(v.slug, LIVE_ASK),
+      slug: v.slug, k: '拠点の街', v: esc(v.base.city), empty: true, ask: LIVE_ASK, open: 'taxi',
+      note: '家賃の資料を確認できていません', body: answers + asks(v.slug, LIVE_ASK, undefined, 'taxi'),
     });
   }
   const colName = Object.fromEntries(L.cols)[L.leadCol].replace(/（[^）]*）/g, '');   // 「2部屋（2房）」→ 欄の見出しでは「2部屋」。表には元のまま出る
@@ -328,11 +372,11 @@ function livingCell(v) {
   const commute = L.commute.length ? `<p class="pvg-askh">空港と街のあいだ</p>${factList(L.commute)}` : '';
   const fx = L.cur !== 'JPY' ? `<p class="pvg-fx">${esc(fxNote(L.cur))}</p>` : '';
   return cell('living', '暮らし', IC.living, {
-    slug: v.slug, ask: LIVE_ASK,
+    slug: v.slug, ask: LIVE_ASK, open: 'taxi',
     k: `${esc(lead.name).replace(/（[^）]*）/g, m => `<span class="pvg-opt">${m}</span>`)}・${esc(colName)}の${esc(L.measure)}`, v: rentText(L, lead, L.leadCol),
     note: esc(join(lead.pick && lead.pick.length <= 16 ? lead.pick : '', lead.when)),
     also: L.commute.filter(f => f.lead).slice(0, 1), count: L.rents.length + L.commute.length,
-    body: `${table}${basis}${sources([...L.rents, ...L.commute])}${fx}${commute}${answers}${asks(v.slug, LIVE_ASK)}`,
+    body: `${table}${basis}${sources([...L.rents, ...L.commute])}${fx}${commute}${answers}${asks(v.slug, LIVE_ASK, undefined, 'taxi')}`,
   });
 }
 
@@ -341,8 +385,9 @@ const head = (icon, title, sub = '') =>
   `<header class="pvg-hd"><span class="pvg-ico" aria-hidden="true">${icon}</span><h2 class="pvg-eyebrow">${title}</h2>${sub ? `<span class="pvg-hsub">${sub}</span>` : ''}</header>`;
 /* 会社の数字。何の数か → 値（大きく）→ 数え方と時点、の順。
      値の末尾の（…）は補足なので、値からは外して下の行へ回す（「1952年」＋「日本ヘリコプター輸送として設立」）。 */
+const tail = f => (f.orig === true ? null : /^(.+?)（([^（）]+)）$/.exec(String(f.value)));
 const stats = items => `<dl class="pvg-stats">${items.map(f => {
-  const m = f.orig === true ? null : /^(.+?)（([^（）]+)）$/.exec(String(f.value));
+  const m = tail(f);
   const value = m ? esc(m[1]) : val(f);
   const note = join(m ? m[2] : '', premise(f));
   /* 字の幅（全角 1・半角 0.6）で字の大きさを決める。長い値は小さく、狭い画面でだけ収まらない値は data-mid */
@@ -361,19 +406,26 @@ function companyCard(v) {
   const facts = [...c.profile, ...c.scale];
   const fleet = c.fleet.length ? `<div class="pvg-fleet"><p class="pvg-askh">機材<small>${join(`${c.fleet.length}機種`, c.fleet[0].when)}</small></p>
 <ul class="pvg-chips">${c.fleet.map(f => `<li title="${esc(f.label)}">${esc(shortType(f.label))}<b>${esc(f.value)}</b></li>`).join('')}</ul></div>` : '';
-  /* 写真 → 見出し → 数字 → 機材 → 出どころ。広い箱では、写真と数字が横に並び、機材と出どころは横いっぱい（pv-glance.css）。 */
-  return `<article class="pvg-card pvg-co">
+  /* 見本の「会社概要」── ページのいちばん上に置く小さな1枚。写真は小さく（主役にしない）、
+     見えているのは最初の4つの値だけ。数え方と時点・残りの数字・機材・出どころは「会社情報」を開いた中に全部在る
+     （同じ4つも、そこでは数え方つきで出る ＝ 注記を落としたままにしない）。 */
+  const keys = `<dl class="pvg-keys">${facts.slice(0, 4).map(f => { const m = tail(f);
+    return `<div><dt>${esc(f.label)}</dt><dd>${m ? esc(m[1]) : val(f)}</dd></div>`; }).join('')}</dl>`;
+  return `<article class="pvg-card pvg-co"${pane(v.slug, 'overview')}>
 ${photo}
 ${head(IC.company, '会社')}
+${keys}
+<details class="pvg-dt pvg-co-more"><summary>会社情報<small>${join(`数字${facts.length}つ`, c.fleet.length ? '機材' : '', '出どころ')}</small>${IC.down}</summary>
 ${stats(facts)}
 ${fleet}
-${sources([...facts, ...c.fleet], true)}
+${sources([...facts, ...c.fleet])}
+</details>
 </article>`;
 }
-/* 提出された年収の一覧（2026-10-06 オーナーのご指示）── 最上段のすぐ下に、横いっぱいで置く。
+/* 提出された年収の一覧（2026-10-06 オーナーのご指示）── 推定年収のすぐ隣（狭い画面ではすぐ下）に置く。
    描くのは career-live.js。鍵の無い人には、額・職位・機材の場所にぼかした板を置く
    （板の中は空。サーバーが送っていないので、ぼかしを外しても何も出ない）。資格を決めるのは今までどおりサーバー。 */
-const realpayCard = v => `<article class="pvg-card pvg-rp" id="pvg-realpay">
+const realpayCard = v => `<article class="pvg-card pvg-rp" id="pvg-realpay"${pane(v.slug, 'overview pay')}>
 ${head(IC.realpay, '提出された年収', 'REAL PAY')}
 ${live('realpay', { airline: v.slug })}
 </article>`;
@@ -381,14 +433,14 @@ ${live('realpay', { airline: v.slug })}
    点数・6角形の図・6分類の棒は career-live.js が描く。数字の出し方は airline-reviews-ui.js の1か所
    （ほかの会社のページの帯と同じ答え）。HTML には数字を1つも書かない（出荷時は「—」）。
    書く入口は箱の底に1つだけ（文言は今のページの帯と同じ）。 */
-const reviewsCard = v => `<article class="pvg-card pvg-rv-card" id="pvg-score">
+const reviewsCard = v => `<article class="pvg-card pvg-rv-card" id="pvg-score"${pane(v.slug, 'overview reviews')}>
 ${head(IC.reviews, 'パイロットによる評価スコア')}
 ${live('score', { airline: v.slug })}
 ${live('reviews', { airline: v.slug, give: '0' })}
 <p class="pvg-rv-cta"><a class="pvg-btn" href="${UP}submit-review.html?airline=${esc(v.slug)}">匿名で口コミを投稿する</a><span>匿名・無料</span></p>
 </article>`;
 function jobsCard(v) {
-  return `<article class="pvg-card pvg-jobs">
+  return `<article class="pvg-card pvg-jobs"${pane(v.slug, 'overview')}>
 ${head(IC.jobs, '募集', `<button type="button" class="pvg-link" data-pvg-tab="jobs">募集要項を開く${IC.go}</button>`)}
 ${v.jobs.length ? factList(v.jobs) + sources(v.jobs, true) : '<p class="pvg-quiet">会社が公表している募集を確認できていません。</p>'}
 </article>`;
@@ -405,7 +457,7 @@ ${ext(href.maps(`${v.base.text} ${v.base.iata[0] || ''}`.trim()).replace(/&amp;/
 <details class="pvg-dt"><summary>ほか${dests.length - DEST_FIRST}都市${IC.down}</summary>
 <ul class="pvg-chips pvg-dest">${dests.slice(DEST_FIRST).map(dest).join('')}</ul></details>` : ''}`
     : '<p class="pvg-quiet">就航地ごとのホテル・レストランは、会社が公表する就航地の一覧を確認してから開きます。</p>';
-  return `<article class="pvg-card pvg-stay" id="pvg-stay">
+  return `<article class="pvg-card pvg-stay" id="pvg-stay"${pane(v.slug, 'overview stay')}>
 ${head(IC.stay, 'ステイ')}
 ${base}
 ${list}
@@ -420,15 +472,17 @@ function askCard(v) {
   const groups = [ROSTER, ...TOPICS.map(([id, title, list]) => [id, id === 'staff-travel' ? 'Staff Travel（社員向け航空券）' : id === 'taxi' ? '通勤・タクシー' : title, list])];
   const stay = (CAREER[v.slug] || {}).destinations ? `<a class="pvg-topic pvg-topic-a" href="#pvg-stay"><span>ホテル・レストラン</span><small>就航地を選んで足す</small>${IC.next}</a>` : '';
   const keys = [...new Set(groups.flatMap(([, , list]) => list.map(a => a[0])))];
-  return `<article class="pvg-card pvg-askc">
-${head(IC.ask, `${esc(v.name)}のこと、ひとつ教えて。`)}
+  /* タブを持つページ：見出しの横から項目の一覧（「情報を追加」の面）を開ける。通勤・タクシーの質問はその面の中で答える。 */
+  const add = tabbed(v.slug) ? `<button type="button" class="pvg-link" data-pvc-open="list">項目の一覧から足す${IC.go}</button>` : '';
+  return `<article class="pvg-card pvg-askc"${pane(v.slug, 'overview')}>
+${head(IC.ask, `${esc(v.name)}のこと、ひとつ教えて。`, add)}
 <p class="pvg-quiet">1問だけでも保存できます。匿名で、3人そろった項目から会社ページに出ます。</p>
 <div class="pvg-got"><p class="pvg-askh">集まった回答</p>${live('fact', { airline: v.slug, keys: keys.join(',') })}</div>
 <div class="pvg-topics">
 ${groups.map(([id, title, list]) => `<details class="pvg-topic" data-topic="${id}">
 <summary><span>${esc(title)}</span><small>質問 ${list.length}</small>${IC.down}</summary>
 <div class="pvg-body">
-${asks(v.slug, list, '')}${list.length > ASK_FIRST ? `
+${asks(v.slug, list, '', id === 'taxi' ? 'taxi' : '')}${list.length > ASK_FIRST ? `
 <button type="button" class="pvg-link pvg-askmore" data-pvg-askmore>ほか${list.length - ASK_FIRST}問${IC.down}</button>` : ''}
 </div>
 </details>`).join('\n')}
@@ -437,28 +491,41 @@ ${stay}
 </article>`;
 }
 
+/* 口コミのタブの本文。見出しと件数の置き場はここ、分類6枚と一覧を描くのは airline-reviews-ui.js（mountGlance）。
+   会員の投稿と、公開情報からの引用を、別々に数える。数字は出荷時「—」（引用が0件なら、その言葉ごと出さない）。 */
+const reviewsList = v => `<article class="pvg-card pvg-rvl" data-pvg-pane="reviews">
+${head(IC.reviews, '口コミ', '会員の投稿 <b data-pvg-n="posts">—</b> 件<span data-pvg-quotes hidden>・公開情報からの引用 <b data-pvg-n="quotes">—</b> 件</span>')}
+<div id="pvg-reviews-host"></div>
+</article>`;
+
 /* ── 1社ぶん ────────────────────────────────────────── */
 function glance(v) {
   const island = JSON.stringify({ airlines: Object.fromEntries(GLANCE.map(s => { const o = viewOf(s); return [s, { ja: o.name, color: o.color }]; })) })
     .replace(/</g, () => '\\u003c');
   return `<section class="pvg" data-tab-section="overview" data-slug="${v.slug}" style="--pvg-c:${esc(v.color)};--pvg-n:${AXIS / 1000}" aria-label="${esc(v.name)}の給与・勤務・待遇・暮らし">
-<div class="pvg-top">
+<div class="pvg-more-grid"${pane(v.slug, 'overview')}>
+${companyCard(v)}
+</div>
+<div class="pvg-payrow"${pane(v.slug, 'overview pay')}>
 ${payCard(v)}
+${realpayCard(v)}
+</div>
+<div class="pvg-more-grid pvg-g-rv"${pane(v.slug, 'overview reviews')}>
+${reviewsCard(v)}
+${jobsCard(v)}
+</div>
+<div class="pvg-top"${pane(v.slug, 'overview pay work life')}>
 <div class="pvg-trio">
 ${factCell(v, 'work', '勤務', IC.work, v.work, WORK_ASK, '会社が公表している勤務の条件を確認できていません')}
 ${factCell(v, 'benefits', '待遇', IC.benefits, v.benefits, BEN_ASK, '会社が公表している待遇を確認できていません')}
 ${livingCell(v)}
 </div>
 </div>
-${realpayCard(v)}
-<div class="pvg-more-grid">
-${reviewsCard(v)}
-${companyCard(v)}
-${jobsCard(v)}
+<div class="pvg-more-grid pvg-g-st"${pane(v.slug, 'overview stay')}>
 ${stayCard(v)}
 ${askCard(v)}
 </div>
-<div id="pvg-revcats"></div>
+<div id="pvg-revcats"${pane(v.slug, 'reviews')}></div>${tabbed(v.slug) ? '\n' + reviewsList(v) : ''}
 <script type="application/json" id="crc-data">${island}</script>
 </section>`;
 }
@@ -498,7 +565,7 @@ export function build(slug, html) {
   html = html.slice(0, a) + heroText + (old.startsWith(H0) ? '' : '\n\n') + html.slice(b);
 
   /* 2) 見た目（app-nav.css の直後） */
-  html = block(html, 'PV-GLANCE-HEAD', CSS.map(f => `<link rel="stylesheet" href="${asset(f)}">`).join('\n'), h => {
+  html = block(html, 'PV-GLANCE-HEAD', [...CSS, ...(tabbed(slug) ? [CONTRIB.css] : [])].map(f => `<link rel="stylesheet" href="${asset(f)}">`).join('\n'), h => {
     const m = NAV_CSS.exec(h);
     if (!m) throw new Error(`${slug}: app-nav.css の <link> が無い`);
     return m.index + m[0].length;
@@ -506,13 +573,33 @@ export function build(slug, html) {
   /* 3) 本文の箱の先頭 */
   html = block(html, 'PV-GLANCE', glance(v), h => once(h, BOX, '本文の箱') + BOX.length + 1);
   /* 4) 部品の JS（口コミの部品より後 ＝ </body> の直前） */
-  html = block(html, 'PV-GLANCE-JS', JS.map(f => `<script src="${asset(f)}"></script>`).join('\n'), h => {
+  html = block(html, 'PV-GLANCE-JS', [...JS, ...(tabbed(slug) ? [CONTRIB.js] : [])].map(f => `<script src="${asset(f)}"></script>`).join('\n'), h => {
     const i = h.lastIndexOf('</body>');
     if (i < 0) throw new Error(`${slug}: </body> が無い`);
     return i;
   });
   /* 5) 印。これが在るページだけ、星を実投稿だけで出す */
   html = html.replace(/<body\b[^>]*>/, m => (m.includes('data-pv-glance=') ? m : m.replace(/>$/, () => ' data-pv-glance="1">')));
+  /* 6) 下に残っている古い節を、タブへ振り分ける（タブを持つページだけ。持たないページからは印を外す）。
+        見るのは管理ブロックより後ろの、いちばん外側の節だけ。印は開きタグに1つ ＝ 何度流しても同じ。 */
+  const end = html.indexOf('<!--/PV-GLANCE-->');
+  html = html.slice(0, end) + html.slice(end).replace(/<div class="glass p-8 fade-up"([^>]*)>/g, (m, attrs, at, rest) => {
+    const bare = attrs.replace(/ data-pvg-pane="[^"]*"/, () => '');
+    if (!tabbed(slug)) return `<div class="glass p-8 fade-up"${bare}>`;
+    const h2 = /<h2\b[^>]*>([\s\S]*?)<\/h2>/.exec(rest.slice(at, at + 4000));
+    return `<div class="glass p-8 fade-up"${bare} data-pvg-pane="${oldPane(h2 ? h2Text(h2[1]) : '', bare)}">`;
+  });
+  /* 錠前の箱（中の節を包んでいる）にも同じ印を付ける。付けないと、中の節を隠したタブに
+     空の箱と錠前の札だけが残る（箱には高さの下限がある）。行き先は中の節と同じ。 */
+  const end2 = html.indexOf('<!--/PV-GLANCE-->');
+  html = html.slice(0, end2) + html.slice(end2).replace(/<div class="premium-gate([^"]*)"([^>]*)>/g, (m, cls, attrs, at, rest) => {
+    const bare = attrs.replace(/ data-pvg-pane="[^"]*"/, () => '');
+    if (!tabbed(slug)) return `<div class="premium-gate${cls}"${bare}>`;
+    const stop = rest.indexOf('/premium-gate', at);
+    const inside = rest.slice(at, stop < 0 ? at + 4000 : stop);
+    const names = [...new Set([...inside.matchAll(/<h2\b[^>]*>([\s\S]*?)<\/h2>/g)].map(x => oldPane(h2Text(x[1]))))];
+    return `<div class="premium-gate${cls}"${bare} data-pvg-pane="${names.join(' ') || 'overview'}">`;
+  });
   return html;
 }
 

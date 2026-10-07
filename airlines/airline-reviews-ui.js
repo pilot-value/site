@@ -174,7 +174,14 @@
 
   /* 表示言語で出せる口コミだけ。en が無いエントリは英語ページに出さない。 */
   function getSeedReviews() {
-    return _RD.forLang ? _RD.forLang(AIRLINE_CODE, LANG) : (_RD.SEED[AIRLINE_CODE] || _RD.GENERIC);
+    var list = _RD.forLang ? _RD.forLang(AIRLINE_CODE, LANG) : (_RD.SEED[AIRLINE_CODE] || _RD.GENERIC);
+    /* 主要5社（<body data-pv-glance="1">）に出すのは、出どころの付いた公開の引用だけ。
+       出どころの無い見本の口コミと、会社を問わない穴埋め（GENERIC）は出さない
+       ── その会社の誰も書いていない文を、その会社の口コミとして並べない。 */
+    if (isTabbed()) {
+      return _RD.SEED[AIRLINE_CODE] ? list.filter(function (r) { return !!r.src; }) : [];
+    }
+    return list;
   }
 
   // ── Supabase（airline-base.js とクライアントを共有する）────────
@@ -511,6 +518,8 @@
     // 評点が取れていない口コミに 3.0 の星を出すと、投稿者が付けていない評価を
     // でっち上げることになる。値が無いときは星の行ごと出さない。
     var hasScore = typeof r.avgRating === 'number' && r.avgRating > 0;
+    /* 主要5社：星は会員の投稿が付けた点だけ。公開情報からの引用は点を付けていない。 */
+    if (isTabbed() && r.src) hasScore = false;
     var score  = hasScore ? r.avgRating.toFixed(1) : '';
     var filled = hasScore ? Math.round(r.avgRating) : 0;
     var stars  = hasScore ? Array.from({ length: 5 }, function (_, i) {
@@ -567,7 +576,8 @@
   w.pvSetReviewCat = function (cat) {
     pvReviewCatFilter = cat;
     switchTab('reviews');
-    renderReviews();
+    if (!isTabbed()) renderReviews();
+    else paint();
     setTimeout(function () {
       var el = d.getElementById('airline-review-section');
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -693,7 +703,9 @@
 
   function mapV2(r) {
     var scores = V2_CAT_KEYS.map(function (k) { return r[k]; }).filter(function (s) { return s > 0; });
-    var avgRating = scores.length ? +(scores.reduce(function (a, b) { return a + b; }, 0) / scores.length).toFixed(1) : 3;
+    /* 点数の無い投稿を 3.0 にしない（主要5社）。ほかのページは今までどおり。 */
+    var avgRating = scores.length ? +(scores.reduce(function (a, b) { return a + b; }, 0) / scores.length).toFixed(1)
+      : (isTabbed() ? 0 : 3);
     // 投稿口コミは Webhook→Edge Function で各言語へ翻訳済み。訳が無い欄は原文に落ちる。
     var body = w.PVReviewI18n ? PVReviewI18n.pick(r) : { text: '', cats: [], translated: false, origText: '', from: 'ja' };
     var mainCat = (body.cats[0] || {}).k || '';
@@ -738,7 +750,7 @@
           var t = r.payText || r.comment || '';
           return {
             pos: r.position, years: r.years || r.experience || '—', join: r.join || '',
-            avgRating: r.avgRating || r.rating || 3,
+            avgRating: r.avgRating || r.rating || (isTabbed() ? 0 : 3),
             comment: t, en: t,
             salaryTotal: r.salary || 0, monthly: r.monthly || 0, overtime: r.overtime || 0, bonus: r.bonus || 0,
             cat: r.cat || '',
@@ -878,6 +890,14 @@
       '        <a href="' + loginHref + '" class="rv-gate-login">' + L.gateLogin + '</a>\n' +
       '        <div style="font-size:.72rem;color:#6b7d93;margin-top:10px">' + L.gateFine + '</div>\n' +
       '      </div>' : '';
+    if (isTabbed()) {
+      /* 主要5社：見出しと投稿ボタンはページ側に在る。ここは絞り込みと一覧だけ。
+         会員の投稿を先に、公開情報からの引用を後ろに置く。 */
+      section.innerHTML =
+        '<div class="rcf-chips">' + chipsHTML + '</div>' +
+        cardsHTML + overseasHTML + emptyMsg + postGate;
+      paintGlanceCount();
+    } else {
     section.innerHTML =
       '\n      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">\n' +
       '        <h2 style="font-size:1.2rem;font-weight:700">' + L.reviewsHeading + '</h2>\n' +
@@ -886,6 +906,7 @@
       '      <div class="rcf-chips">' + chipsHTML + '</div>\n' +
       '      ' + overseasHTML + cardsHTML + emptyMsg + '\n' +
       '      ' + postGate;
+    }
 
     // currency.js は init の scan と observer 起動の間に入った描画を取りこぼすことがある。
     // 描画のたびに包み直して通貨切替に確実に追随させる。
@@ -919,7 +940,28 @@
     });
   }
 
+  /* 主要5社：投稿の件数と引用の件数を、ページ側の置き場（[data-pvg-n]）へ別々に書く。
+     取れるまでは「—」のまま（0 と書かない）。 */
+  function paintGlanceCount() {
+    var posts = _v2Rows ? _v2Rows.length : null;
+    var quotes = getSeedReviews().length + overseasCatKeys().length;
+    d.querySelectorAll('[data-pvg-n="posts"]').forEach(function (el) {
+      el.textContent = posts === null ? '—' : String(posts);
+    });
+    d.querySelectorAll('[data-pvg-n="quotes"]').forEach(function (el) {
+      el.textContent = String(quotes);
+      var box = el.closest('[data-pvg-quotes]');
+      if (box) box.hidden = quotes === 0;
+    });
+  }
+
   function switchTab(tab) {
+    if (isTabbed()) {
+      /* タブはページ側（pv-glance.js）が持つ。古い名前で呼ばれても行き先を合わせる。 */
+      var to = { overview: '', reviews: 'reviews', salary: 'pay', jobs: '' }[tab];
+      if (w.PVGlance && typeof w.PVGlance.go === 'function') w.PVGlance.go(to == null ? tab : to);
+      return;
+    }
     activeTab = tab;
     d.querySelectorAll('.airline-tab-btn').forEach(function (btn) {
       btn.classList.toggle('active', btn.dataset.tab === tab);
@@ -960,6 +1002,7 @@
   /* Supabase / 海外評判は非同期で後から届く。届いた時点で
      タブ badge・見出し・カテゴリ6枚を塗り直す（初回1回きりだと古い数が残る）。 */
   function refreshCounts() {
+    if (isTabbed()) paintGlanceCount();
     var cnt = reviewCount();
     var badge = d.querySelector('#airline-tab-nav .atab-count');
     if (badge) badge.textContent = cnt;
@@ -993,6 +1036,9 @@
   var CHEVRON = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>';
 
   function isGlance() { return !!d.body && d.body.getAttribute('data-pv-glance') === '1'; }
+  /* タブのある会社ページ（タブの帯 #pvg-tabs は gen-airline-glance.mjs が書く）。
+     口コミの新しい載せ方は、タブのあるページだけ。タブの無い主要4社は今までどおりに動かす。 */
+  function isTabbed() { return isGlance() && !!d.getElementById('pvg-tabs'); }
 
   function injectReviewCategoryGrid() {
     var banner = d.getElementById('airline-rating-banner');
@@ -1033,7 +1079,7 @@
      引くので、日本語ページと英語ページで必ず同じ2本が出る。 */
   function vcAttribution(r) {
     var out = (L.POS[r.pos] || L.pilot);
-    if (r.avgRating) out += L.vcRating(r.avgRating);
+    if (r.avgRating && !isTabbed()) out += L.vcRating(r.avgRating);
     if (r.date) out += /^\d{4}$/.test(r.date) ? L.vcYear(r.date) : (LANG === 'en' ? ' · ' + r.date : '・' + r.date);
     if (r.src) out += ' — ' + r.src;
     return out;
@@ -1106,6 +1152,25 @@
     }
   }
 
+  /* 主要5社（<body data-pv-glance="1">）の載せ方。
+     タブ・見出し・⭐・評価の図はページ側（gen-airline-glance.mjs／pv-glance.js／career-live.js）が持つ。
+     ここがやるのは、口コミのタブの中の置き場へ「分類6枚」と「一覧」を描くことだけ。
+     ・本文を節ごとに振り分けない（assignTabSections を呼ばない）── 呼ぶと全部の節に
+       display が直書きされ、ページ側のタブと取り合いになる。
+     ・「現地パイロットの生の声」の2本は一覧の中に同じ引用が在るので、ここでは重ねて出さない。 */
+  function mountGlance() {
+    activeTab = 'reviews';                      // 一覧は常に描いておく（隠すのはページ側のタブ）
+    var host = d.getElementById('pvg-reviews-host');
+    if (host && !d.getElementById('airline-review-section')) {
+      var box = d.createElement('div');
+      box.id = 'airline-review-section';
+      box.style.display = 'block';              // airline-base.css が既定で隠している
+      host.appendChild(box);
+    }
+    injectReviewCategoryGrid();
+    renderReviews();
+  }
+
   // ── Mount ────────────────────────────────────────
   var mounted = false;
   function mount() {
@@ -1118,6 +1183,7 @@
     if (!AIRLINE_CODE) return;
     mounted = true;
     ensureCSS();
+    if (isTabbed()) { mountGlance(); return; }
     assignTabSections();
 
     // Inject tab nav

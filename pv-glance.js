@@ -1,7 +1,13 @@
 /* 主要5社の会社ページの最上部（.pvg）の動き ── 見せる・隠す・切り替えるだけ。
    ⚠️ ここに金額を書かない。額は全部 HTML に在る（通貨切替と check-salary.mjs がそのまま読める）。
    ⚠️ 直したら node gen-airline-glance.mjs（HTML が読む ?v= を付け直す）。
-   板の開閉は hidden 属性で行う ＝ career-live.js がそれを見て、見えるようになった実データの欄を取りに行く。 */
+   板の開閉は hidden 属性で行う ＝ career-live.js がそれを見て、見えるようになった実データの欄を取りに行く。
+
+   タブ（#pvg-tabs を持つページだけ）── 見本の6つ。
+     ・どの塊がどのタブに出るかは HTML の data-pvg-pane。ここは <body> に pvg-at-<タブ> を1つ付けるだけ
+       （隠すのは pv-glance.css）。このファイルが動かなければ印が付かない ＝ 中身は全部出たまま。
+     ・選んだタブは住所の # に残す（概要は # なし）。押すたびに履歴を1段積む ＝ 戻る・進む・読み直しで同じタブ。
+     ・window.PVGlance = { go(tab), at() }。airline-reviews-ui.js が古い名前（reviews／salary…）で呼んでくる。 */
 (function (w, d) {
   'use strict';
   var root = d.querySelector('.pvg');
@@ -41,6 +47,104 @@
     return null;
   }
 
+  /* ── 1.5) タブ ────────────────────────────────────────── */
+  var bar = d.getElementById('pvg-tabs');
+  var links = bar ? [].slice.call(bar.querySelectorAll('[data-pvg-tab]')) : [];
+  var TABS = links.map(function (a) { return a.getAttribute('data-pvg-tab'); });
+  var OPEN = { pay: 'benefits', work: 'work', life: 'living' };   // そのタブでは、この板が開いたまま本文になる（gen-airline-glance.mjs の CELL_TAB と同じ対）
+  var at = '';
+  function fire() {
+    /* 見えるようになった実データの欄を、career-live.js に取りに行かせる */
+    try { d.body.dispatchEvent(new CustomEvent('cr:show', { bubbles: true })); } catch (e) { /* 古いブラウザ */ }
+  }
+  function show(tab) {
+    if (TABS.indexOf(tab) < 0) tab = TABS[0];
+    at = tab;
+    TABS.forEach(function (t) { d.body.classList.toggle('pvg-at-' + t, t === tab); });
+    links.forEach(function (a) {
+      if (a.getAttribute('data-pvg-tab') === tab) a.setAttribute('aria-current', 'page');
+      else a.removeAttribute('aria-current');
+    });
+    mores.forEach(function (b) { set(b, b.getAttribute('aria-controls') === 'pvg-p-' + OPEN[tab]); });
+    /* 狭い画面では帯が横に流れる。選んだタブが帯の外に居たら、見える所まで寄せる（ページは動かさない） */
+    links.forEach(function (a) {
+      if (a.getAttribute('data-pvg-tab') !== tab) return;
+      var r = a.getBoundingClientRect(), br = bar.getBoundingClientRect();
+      if (r.left < br.left) bar.scrollLeft -= br.left - r.left + 16;
+      else if (r.right > br.right) bar.scrollLeft += r.right - br.right + 16;
+    });
+    fire();
+  }
+  /* 帯が画面の上に貼り付いているとき（＝ページの途中で押したとき）は、切り替えた面の頭を帯のすぐ下へ持ってくる。
+     ページの頭に居るときは動かさない。面の中身が入れ替わるので、滑らせずに置く。 */
+  function toTop() {
+    var box = bar.closest('.pvg-tabbar') || bar, hero = d.querySelector('.pvg-hero');
+    if (!hero) return;
+    var y = hero.getBoundingClientRect().bottom + w.pageYOffset - parseFloat(w.getComputedStyle(box).top || 0);
+    if (w.pageYOffset > y) w.scrollTo(0, Math.max(0, y));
+  }
+  /* 住所の # から、開くタブと寄る先を決める。
+     # がタブの名前ならそのタブ。ページの中の id なら、その要素が出ているタブ（今のタブに出ていれば今のまま）。 */
+  function fromHash() {
+    var id = '';
+    try { id = decodeURIComponent(String(location.hash || '').replace(/^#/, '')); } catch (e) { id = ''; }
+    if (!id) return { tab: TABS[0], el: null };
+    if (TABS.indexOf(id) >= 0) return { tab: id, el: null };
+    var el = d.getElementById(id);
+    if (!el) return { tab: at || TABS[0], el: null };
+    var ok = TABS.slice();
+    for (var n = el; n && n.getAttribute; n = n.parentNode) {
+      var p = n.getAttribute('data-pvg-pane');
+      if (p) ok = ok.filter(function (t) { return (' ' + p + ' ').indexOf(' ' + t + ' ') >= 0; });
+    }
+    return { tab: ok.indexOf(at) >= 0 ? at : ok[0] || TABS[0], el: el };
+  }
+  function near(el) {
+    var box = bar.closest('.pvg-tabbar') || bar;
+    w.scrollTo(0, Math.max(0, el.getBoundingClientRect().top + w.pageYOffset - HEAD - box.offsetHeight - 12));
+  }
+  function state(extra) {
+    var o = {}, s = w.history.state, k;
+    if (s && typeof s === 'object') for (k in s) o[k] = s[k];
+    for (k in extra) o[k] = extra[k];
+    return o;
+  }
+  /* 人が選んだとき。履歴を1段積む（同じタブを押し直したときは積まない）。 */
+  function go(tab) {
+    if (!bar) return false;
+    if (!tab) tab = TABS[0];
+    if (TABS.indexOf(tab) < 0) return false;
+    if (tab !== at) {
+      try {
+        w.history.replaceState(state({ pvgY: w.pageYOffset }), '');
+        w.history.pushState({ pvg: tab }, '', tab === TABS[0] ? location.pathname + location.search : '#' + tab);
+      } catch (e) { /* 履歴に書けなくても、切り替えはする */ }
+      show(tab);
+    }
+    toTop();
+    return true;
+  }
+  if (bar) {
+    w.PVGlance = { go: go, at: function () { return at; } };
+    var first = fromHash();
+    show(first.tab);
+    /* 開いた時点では全部の節が出ていたので、ブラウザが寄った先はずれている。隠したあとで寄り直す */
+    if (first.el) near(first.el);
+    w.addEventListener('popstate', function (e) {
+      var r = fromHash();
+      if (r.tab === at) return;
+      show(r.tab);
+      var y = e.state && typeof e.state.pvgY === 'number' ? e.state.pvgY : null;
+      if (y !== null) w.scrollTo(0, y); else toTop();
+    });
+    /* ページの中の id への移動（別のタブに在る節へのリンク） */
+    w.addEventListener('hashchange', function () {
+      var r = fromHash();
+      if (r.tab !== at) show(r.tab);
+      if (r.el) near(r.el);
+    });
+  }
+
   /* ── 2) タブへ（口コミ・募集要項）────────────────────────
      ⚠️ その名前のタブが無い会社がある（JAL・ANA の募集要項は「企業トップ」の面の下に在る。
         タブは airline-reviews-ui.js が節の札の言葉から作るので、会社ごとに本数が違う）。
@@ -48,6 +152,19 @@
         無い時は切り替えず、同じ面の中のその節へ寄る。 */
   var SEC = { jobs: /募集要項|採用情報/ };
   function toTab(tab) {
+    /* タブを持つページ：その名前のタブが在ればそこへ。無い名前（募集要項）は、概要の中のその節へ寄る。 */
+    if (bar) {
+      if (TABS.indexOf(tab) >= 0) return go(tab);
+      if (!SEC[tab]) return false;
+      go(TABS[0]);
+      var hh = d.querySelectorAll('.glass h2');
+      for (var j = 0; j < hh.length; j++) {
+        if (!SEC[tab].test(hh[j].textContent) || hh[j].closest('.pvg')) continue;
+        glide(hh[j].closest('.glass').getBoundingClientRect().top - HEAD - (bar.closest('.pvg-tabbar') || bar).offsetHeight - 12);
+        return true;
+      }
+      return false;
+    }
     var ui = w.PVReviewUI;
     if (!ui || typeof ui.switchTab !== 'function') return false;
     var nav = d.getElementById('airline-tab-nav');
@@ -112,7 +229,7 @@
       return;
     }
     var x = t.closest('.pvg-x');
-    if (x && root.contains(x)) {
+    if (x && root.contains(x) && !OPEN[at]) {
       var p = x.closest('.pvg-panel');
       mores.forEach(function (b) {
         if (panelOf(b) === p) { set(b, false); b.focus(); }
@@ -125,7 +242,7 @@
     if (rev && rev.closest('.pvg,.pvg-hero')) { if (toTab('reviews')) e.preventDefault(); }
   });
   d.addEventListener('keydown', function (e) {
-    if (e.key !== 'Escape') return;
+    if (e.key !== 'Escape' || OPEN[at]) return;
     var b = current();
     if (!b) return;
     set(b, false);
