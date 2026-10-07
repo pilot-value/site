@@ -78,11 +78,49 @@
 .cr-sv-map{margin-top:4px}
 .cr-cmp-card{margin-top:16px}
 
+/* ── 推定年収について（年収の箱の中。根拠が記録してある職位だけ 根拠・算出方法・時点 が出る）── */
+.cr-pay > .cr-est{margin-top:10px;border-top-color:var(--pv-accent-line)}
+.cr-est > .cr-est-r{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 8px;padding:6px 0 0;
+  font-size:13px;font-weight:700;line-height:1.6;color:var(--pv-ink)}
+.cr-est-r span{font-size:12px;font-weight:500;color:var(--pv-ink-3)}
+.cr-est .cr-facts{margin:4px 0 10px;padding:2px 12px;border-radius:var(--pv-r);border-color:var(--pv-accent-line);box-shadow:none}
+.cr-est .cr-fact{padding:9px 0}
+.cr-est .cr-fact dt,.cr-est .cr-fact dd{font-size:13px}
+
+/* ── 会社が公表している金額：求人の上限の印（斜線）。「〜」と「上限」の字と3つで1組 ── */
+.cr-hatch{display:inline-block;width:18px;height:10px;margin-right:6px;border-radius:2px;vertical-align:-1px;
+  border-right:2px solid var(--pv-blue-ink);
+  background:repeating-linear-gradient(135deg, var(--pv-blue) 0 3px, color-mix(in srgb, var(--pv-blue) 30%, transparent) 3px 6px)}
+
+/* ── 家賃の見出しに付く小さい字と札 ── */
+.cr-h2-s{margin-left:8px;font-size:12px;font-weight:500;letter-spacing:0;color:var(--pv-ink-3)}
+.cr-town-h .cr-tag{margin-left:8px}
+
+/* ── 2社の比較：拠点の街の家賃 ──
+   街ごとに箱が1つ。箱ごとに「何の家賃か」の札と出どころを持つ。
+   ⚠️ 棒にしない・1つの表にまとめない（条件のそろわない街を同じ目盛で競わせない）。 */
+.cr-rentbs{display:grid;gap:10px}
+.cr-rentb{min-width:0;padding:12px 14px 0;border-radius:var(--pv-r);background:var(--pv-surface-2);border:1px solid var(--pv-line-soft)}
+.cr-rentb[hidden]{display:none}
+.cr-rentb-h{display:flex;flex-wrap:wrap;align-items:center;gap:2px 8px;font-size:14px;font-weight:700;line-height:1.45;color:var(--pv-ink)}
+.cr-rentb-h span{font-size:12px;font-weight:500;color:var(--pv-ink-3)}
+.cr-rentb-k{display:flex;flex-wrap:wrap;align-items:center;gap:3px 8px;margin-top:8px;font-size:13px;font-weight:700;line-height:1.5;color:var(--pv-ink)}
+.cr-rentb-k small{font-size:12px;font-weight:500;color:var(--pv-ink-3)}
+.cr-rentb-l{gap:0;padding:6px 0 4px}
+.cr-rentb-l div{grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:0 12px;padding:7px 0;border-top:1px solid var(--pv-line-soft)}
+.cr-rentb-l div:first-child{border-top:0}
+.cr-rentb-l dt{font-size:13px;color:var(--pv-ink-2)}
+.cr-rentb-l dd{flex-direction:column;align-items:flex-end;text-align:right}
+.cr-rentb-s{padding-bottom:10px;font-size:12px;line-height:1.6;color:var(--pv-ink-3)}
+.cr-rentb-s span{display:block}
+
 @media (min-width:700px){
   .cr-org-nums{grid-template-columns:repeat(4, minmax(0,1fr))}
   .cr-org-fleet{grid-template-columns:repeat(3, minmax(0,1fr))}
   .cr-town-l{grid-template-columns:repeat(4, minmax(0,1fr))}
   .cr-sv-p{height:240px}
+  .cr-rentbs{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start;gap:14px}
+  .cr-rentb{padding:14px 16px 0}
 }
 @media (max-width:351px){
   .cr-org-nums,.cr-town-l{grid-template-columns:minmax(0,1fr)}

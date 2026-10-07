@@ -132,6 +132,48 @@
 .crl-stars::after{content:'★★★★★';position:absolute;left:0;top:0;width:var(--crl-fill,0%);overflow:hidden;color:var(--pv-star)}
 .crl-avg{font-size:18px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .crl-cnt{font-size:12px;color:var(--pv-ink-2)}
+/* 会社ページ：点数の付いた投稿がまだ無いときは、輪郭だけの星（0点の星ではない） */
+.crl-stars[data-none]{color:var(--pv-ink-3)}
+.crl-stars[data-none]::before{content:'☆☆☆☆☆'}
+.crl-stars[data-none]::after{content:none}
+/* 会社ページ：星の行は「口コミ」のタブへの入口 */
+a.crl-score-a{display:inline-flex;flex-wrap:nowrap;gap:8px;min-height:44px;color:var(--pv-ink);text-decoration:none;border-radius:8px}
+a.crl-score-a .crl-ic{flex:none;color:var(--pv-ink-3);transition:transform .18s var(--pv-ease)}
+@media (hover:hover){
+  a.crl-score-a:hover .crl-cnt{color:var(--pv-accent-ink);text-decoration:underline;text-underline-offset:3px}
+  a.crl-score-a:hover .crl-ic{transform:translateX(3px)}
+}
+a.crl-score-a:active{opacity:.7}
+a.crl-score-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+
+/* ── 口コミの要約（会社ページ）──
+   要約が無い会社がほとんどなので、読み込み中の骨組みは出さない（出して消えると、欄が跳ねる）。
+   箱そのものは消さない ── 画面に居ないと取りに行けない。 */
+.crl[data-live="summary"] > .crl-ph,
+.crl[data-live="summary"] > .crl-sk{display:none}
+.crl[data-live="summary"][data-state="open"],
+.crl[data-live="summary"][data-state="locked"],
+.crl[data-live="summary"][data-state="error"]{margin-top:14px;padding-top:14px;border-top:1px solid var(--pv-line-soft)}
+.crl-sum-title{margin:0 0 10px;font-size:13px;font-weight:700;letter-spacing:.02em;color:var(--pv-ink-2)}
+.crl-sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:14px 24px}
+.crl-sum-col{min-width:0}
+.crl-sum-h{display:flex;align-items:center;gap:8px;margin:0 0 2px;font-size:13px;font-weight:700;color:var(--pv-ink)}
+.crl-sum-h::before{content:'';flex:none;width:8px;height:8px;border-radius:50%;background:var(--pv-accent)}
+.crl-sum-col[data-kind="concern"] .crl-sum-h::before{background:var(--pv-orange-ink)}
+.crl-sum-ul{list-style:none;margin:0;padding:0}
+.crl-sum-li{display:flex;align-items:center;gap:8px;min-height:44px;padding:4px 0;border-top:1px solid var(--pv-line-soft);font-size:14px;line-height:1.6;color:var(--pv-ink)}
+.crl-sum-li:first-child{border-top:0}
+.crl-sum-t{flex:1;min-width:0;overflow-wrap:anywhere}
+a.crl-sum-a{flex:none;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;margin-right:-12px;color:var(--pv-ink-3);border-radius:50%}
+a.crl-sum-a .crl-ic{transition:transform .18s var(--pv-ease)}
+@media (hover:hover){
+  a.crl-sum-a:hover{color:var(--pv-accent-ink)}
+  a.crl-sum-a:hover .crl-ic{transform:translateX(3px)}
+}
+a.crl-sum-a:active{opacity:.7}
+a.crl-sum-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:-4px}
+.crl-sum-by{margin:8px 0 0;font-size:12px;color:var(--pv-ink-2)}
+@media (prefers-reduced-motion:reduce){a.crl-score-a .crl-ic,a.crl-sum-a .crl-ic{transition:none}}
 
 .crl-revs{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:10px}
 .crl-rev{display:grid;gap:8px;padding:12px 14px;border:1px solid var(--pv-line);border-radius:var(--pv-r);background:var(--pv-surface)}

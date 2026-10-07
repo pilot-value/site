@@ -10,7 +10,7 @@
  *   career.html?airline={slug}                   会社の概要
  *   career.html?airline={slug}&tab={work|life}   概要の中のタブ（タブを持つ会社だけ）
  *   career.html?airline={slug}&stay={IATA}       就航地
- *   career.html?airline={slug}&d={cap-est|…}     数字の詳細
+ *   career.html?airline={slug}&d={cap-est|fo-est} 数字の詳細（推定年収）
  *   career.html?view=compare&a={slug}&b={slug}   2社の比較
  *   career.html?view=card&a={slug}[&b={slug}]    カード保存
  * どの会社がタブ・就航地・詳細を持つかは、ここに書かない。HTML に在る画面だけを開く
@@ -148,14 +148,15 @@
         var want = side.dataset.side === 'a' ? a : b;
         each(side.querySelectorAll('.cr-opt'), function (o) { o.hidden = o.dataset.airline !== want; });
       });
-      each(cmp.querySelectorAll('.cr-row, .cr-taxes .cr-tax, .cr-card, .cr-credit'), function (el) {
+      each(cmp.querySelectorAll('.cr-row, .cr-taxes .cr-tax, .cr-card, .cr-rentb, .cr-credit'), function (el) {
         var s = el.dataset.airline;
         el.hidden = s !== a && s !== b;
       });
       /* 並びは置き場所そのものを入れ替える。見た目の順だけ変えると、
          読み上げと Tab の順が画面と食い違う。
-         1社が2行（推定の行と上限の行）を持つことがあるので、その会社の行をまとめて、順のまま運ぶ。 */
-      each(cmp.querySelectorAll('.cr-pair, .cr-taxes, .cr-cards, .cr-credits'), function (box) {
+         同じ会社の要素が続けて在っても、まとめて順のまま運ぶ。
+         家賃の箱（.cr-rentbs）も同じ ── 街ごとの箱を、選んだ順に置き直すだけ。 */
+      each(cmp.querySelectorAll('.cr-pair, .cr-taxes, .cr-cards, .cr-rentbs, .cr-credits'), function (box) {
         var ea = [], eb = null;
         each(box.children, function (el) {
           if (el.dataset.airline === a) ea.push(el);

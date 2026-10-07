@@ -66,7 +66,7 @@
     payCount: function (n) { return ['', String(n), '件の提出']; },
     payLock: '給与の提出で開きます',
     payGive: '匿名で給与を提出する',
-    payUnlock: '全ての待遇データを解放する',
+    payTerms: '閲覧条件',
     payAll: 'REAL PAY で全部見る',
     login: 'ログイン',
 
@@ -79,7 +79,15 @@
 
     revEmpty: '口コミはまだありません',
     revNone: '会員からの投稿はまだありません',       // 会社ページ用。同じページの「口コミ」のタブは海外の評判なども数えるので、言い分ける
+    revNo: '評価未取得',                              // 会社ページ用。点数の付いた投稿がまだ無い（0点ではない）
     revCount: function (n) { return '口コミ ' + n + '件'; },
+    revRated: function (n) { return n + '件の評価'; },
+    sumHead: '口コミの要約',
+    sumGood: '良い点',
+    sumConcern: '気になる点',
+    sumBy: function (n, when) { return '会員の口コミ ' + n + '件をもとに AI が要約' + (when ? '（' + when + '）' : ''); },
+    sumLock: '要約は口コミの投稿で開きます',
+    sumSee: 'この分類の口コミを見る',
     revLock: '口コミの投稿で開きます',
     revGive: '匿名で口コミを書く',
     revAll: 'この会社の口コミを全部見る',
@@ -250,8 +258,8 @@
     if (uid === undefined) { uid = v; return; }
     if (uid === v) return;
     uid = v;
-    drop('pay'); drop('rev:');
-    reset(['realpay', 'work', 'cmp-work', 'reviews', 'stars', 'cmp-stars']);
+    drop('pay'); drop('rev:'); drop('sum:');
+    reset(['realpay', 'work', 'cmp-work', 'reviews', 'stars', 'score', 'summary', 'cmp-stars']);
     later();
   }
   function watchAuth(sb) {
@@ -482,9 +490,15 @@
         mine.slice(0, top).forEach(function (r) { ul.appendChild(payRow(r, D)); });
         return view('open', GL ? [payCount(mine.length), ul, foot([all])] : [ul, foot([all])]);
       }
-      /* 会社ページの入口は「全ての待遇データを解放する」（オーナーのご指示 2026-10-06）。押すと給与の提出へ進む */
-      var feet = foot([
-        link(GL ? T.payUnlock : T.payGive, UP + 'pay-report.html?airline=' + enc(slug), 'cta'),
+      /* ★2026-10-06（夜）会社ページの入口は「匿名で給与を提出する」。
+           給与を出して開くのは REAL PAY だけで、ホテルなどは別の資格。「全ての待遇データを解放する」と書くと
+           出せば全部見られると読める（オーナーから届いた修正指示の6）。開く条件は隣の「閲覧条件」から読める。 */
+      var feet = foot(GL ? [
+        link(T.payGive, UP + 'pay-report.html?airline=' + enc(slug), 'cta'),
+        pay.anon ? link(T.login, loginHref()) : null,
+        link(T.payTerms, UP + 'actual-pay.html?air=' + enc(slug))
+      ] : [
+        link(T.payGive, UP + 'pay-report.html?airline=' + enc(slug), 'cta'),
         pay.anon ? link(T.login, loginHref()) : null,
         all
       ]);
@@ -646,28 +660,50 @@
 
   /* ── 評価スコア（会社ページ）──────────────────────────────
      2026-10-06 オーナーのご指示「パイロットによる評価スコアの部分、企業トップのどこかのカードに残して」。
-     ★ 点数と人数の出し方は airline-reviews-ui.js の ratingsFor() の1か所（ほかの会社のページの帯と同じ答え）。
-       ここは描くだけ。式も、6分類の名前も、言葉も持たない ── 写すと、同じ会社の点数がページで食い違う。
+     ★ 使うのは会員が実際に付けた点数だけ（2026-10-06 夜の修正指示の3）。
+       見本の点数を混ぜない・投稿が無い会社に点数を出さない・0件を 0点にしない（出すのは「評価未取得」）。
+       ほかの会社のページの帯（airline-reviews-ui.js）は見本の点数を混ぜているので、ここでは呼ばない。
+     ★ 点数は誰にでも返る列（本文と訳だけが鍵つき）── 鍵の無い人にも同じ点数が出る。権限は変えていない。
+     ★ 6分類の名前だけは会社ページの口コミ欄から借りる（同じ分類を別の言葉で呼ばない）。
      ★ 読めなかった時は点数を出さない（「いま読み出せません」＋やり直す）。0件と通信失敗を同じに見せない。 */
-  function ratingUI() {
+  function catNames() {
     var u = GL && w.PVReviewUI;
-    return (u && typeof u.ratingsFor === 'function' && u.cats && u.L) ? u : null;
+    var a = u && u.cats && u.cats.short;
+    return (isArr(a) && a.length === SCORES.length) ? a : null;
   }
-  function rated(u, rows) {
-    var r = u.ratingsFor(rows) || {};
-    var a = isArr(r.ratings) ? r.ratings.map(Number) : [];
-    if (a.length !== 6 || a.some(function (v) { return !isFinite(v); })) return null;     // 形が違えば出さない
-    a = a.map(function (v) { return Math.max(0, Math.min(5, v)); });
+  function realRated(rows) {
+    var sum = [], cnt = [], total = 0, n = 0;
+    SCORES.forEach(function () { sum.push(0); cnt.push(0); });
+    (rows || []).forEach(function (r) {
+      var s = 0, c = 0;
+      SCORES.forEach(function (key, i) {
+        var v = Number(r && r[key]);
+        if (!isFinite(v) || v <= 0) return;           // 付けていない分類は数えない（0 を平均に入れない）
+        v = Math.min(5, v);
+        sum[i] += v; cnt[i]++;
+        s += v; c++;
+      });
+      if (c) { total += s / c; n++; }
+    });
+    if (!n) return null;                              // 点数の付いた投稿が無い ＝ 評価未取得
+    var full = cnt.every(function (c) { return c > 0; });
     return {
-      ratings: a,
-      avg: a.reduce(function (x, y) { return x + y; }, 0) / a.length,
-      label: r.count > 0 ? u.L.respondents(r.count) : u.L.sampleData
+      n: n,
+      avg: total / n,
+      /* 6角形は、6分類ぜんぶに点数があるときだけ（欠けた角を 0 で描くと「0点」に見える） */
+      ratings: full ? sum.map(function (v, i) { return v / cnt[i]; }) : null
     };
   }
   function starsEl(avg) {
     var st = el('span', 'crl-stars');
     st.setAttribute('aria-hidden', 'true');
-    st.style.setProperty('--crl-fill', (Math.round(avg) * 20) + '%');      // 星は1つ単位（ほかの会社のページと同じ）
+    st.style.setProperty('--crl-fill', (Math.round(avg / 5 * 1000) / 10) + '%');
+    return st;
+  }
+  function noStars() {                                // 輪郭だけの星（形は CSS。字はここに置かない）
+    var st = el('span', 'crl-stars');
+    st.setAttribute('aria-hidden', 'true');
+    st.setAttribute('data-none', '');
     return st;
   }
   function svgEl(tag, cls, attrs) {
@@ -718,13 +754,22 @@
   KIND.stars = function (box, ids) {
     var slug = ids[0];
     return reviews(slug).then(function (res) {
-      var u = ratingUI(), R = u && rated(u, res.rows);
-      if (R) {                                           // 会社ページ：下の「評価スコア」の箱と同じ数字
-        var p = el('p', 'crl-score');
-        p.appendChild(starsEl(R.avg));
-        p.appendChild(el('b', 'crl-avg', R.avg.toFixed(1)));
-        p.appendChild(el('span', 'crl-cnt', R.label));
-        return view('open', [p]);
+      if (GL) {
+        /* 会社ページ：社名の横と口コミのカードの右上。押すと同じページの「口コミ」のタブが開く。
+           点数は下の「評価スコア」の箱と同じ realRated() の答え。 */
+        var R = realRated(res.rows);
+        var a = el('a', 'crl-score crl-score-a');
+        a.setAttribute('href', '#reviews');
+        if (R) {
+          a.appendChild(starsEl(R.avg));
+          a.appendChild(el('b', 'crl-avg', R.avg.toFixed(1)));
+          a.appendChild(el('span', 'crl-cnt', T.revRated(R.n)));
+        } else {
+          a.appendChild(noStars());
+          a.appendChild(el('span', 'crl-cnt', T.revNo));
+        }
+        a.appendChild(icon('arrow', 14));
+        return view(R ? 'open' : 'empty', [a]);
       }
       var s = score(res.rows);
       if (!s.n) {
@@ -740,9 +785,14 @@
      ── 置くのは2つだけ：総合（点数・星・人数）と、6角形の図（まわりに6分類の名前と点数）。
         同じ6つの数字をもう一度並べる棒は置かない（欄が倍の高さになる）。 */
   KIND.score = function (box, ids) {
-    return reviews(ids[0]).then(function (res) {
-      var u = ratingUI(), R = u && rated(u, res.rows);
-      if (!R) return view('empty', []);
+    var slug = ids[0];
+    return reviews(slug).then(function (res) {
+      var R = realRated(res.rows);
+      if (!R) {
+        /* 点数の付いた投稿がまだ無い。0 も見本も置かず、書く入口だけを出す */
+        return view('empty', [msg(T.revNone),
+          foot([link(T.revGive, UP + 'submit-review.html?airline=' + enc(slug))])]);
+      }
       var wrap = el('div', 'crl-sc');
       var sum = el('div', 'crl-sc-sum');
       var big = el('p', 'crl-sc-avg');
@@ -750,10 +800,72 @@
       big.appendChild(el('span', '', '/ 5.0'));
       sum.appendChild(big);
       sum.appendChild(starsEl(R.avg));
-      sum.appendChild(el('p', 'crl-sc-cnt', R.label));
+      sum.appendChild(el('p', 'crl-sc-cnt', T.revRated(R.n)));
       wrap.appendChild(sum);
-      wrap.appendChild(radar(R.ratings, u.cats.short));
+      var names = catNames();
+      if (R.ratings && names) wrap.appendChild(radar(R.ratings, names));
       return view('open', [wrap]);
+    });
+  };
+
+  /* ── 口コミの要約（会社ページ）────────────────────────────
+     良い点・気になる点を、会員の口コミから AI がまとめたもの。中身はサーバーが持っていて、
+     ★ 本文を読める人にだけ返る（鍵の判定は本文と同じ関数）。鍵の無い人には「在る」の1語しか来ない。
+     ★ 要約がまだ無い会社・口がまだ無い環境では、欄ごと何も出さない（空の見出しも、作った文も置かない）。
+     ★ 文は textContent で入れる。分類を押すと、同じページの口コミがその分類で開く（元の口コミへ辿る道）。 */
+  function summary(slug) {
+    return once('sum:' + slug, function () {
+      return client().then(function (sb) {
+        return sb.rpc('pv_review_summary', { p: { airline: slug, lang: 'ja' } });
+      }).then(function (res) {
+        if (!res || res.error) throw sbErr(res);
+        var x = res.data;
+        if (!x || x.ok === false) throw fail('error');
+        return x;
+      });
+    });
+  }
+  function sumList(title, kind, items) {
+    var wrap = el('div', 'crl-sum-col');
+    wrap.setAttribute('data-kind', kind);
+    wrap.appendChild(el('h4', 'crl-sum-h', title));
+    var ul = el('ul', 'crl-sum-ul');
+    items.slice(0, 3).forEach(function (it) {
+      var text = it && typeof it.text === 'string' ? it.text : '';
+      if (!text) return;
+      var li = el('li', 'crl-sum-li');
+      li.appendChild(el('span', 'crl-sum-t', text));
+      var cat = it && typeof it.cat === 'string' && /^[a-z]{2,12}$/.test(it.cat) ? it.cat : '';
+      if (cat) {
+        var a = el('a', 'crl-sum-a');
+        a.setAttribute('href', '#reviews');
+        a.setAttribute('data-pvg-cat', cat);
+        a.setAttribute('aria-label', T.sumSee);
+        a.appendChild(icon('arrow', 14));
+        li.appendChild(a);
+      }
+      ul.appendChild(li);
+    });
+    wrap.appendChild(ul);
+    return ul.childNodes.length ? wrap : null;
+  }
+  KIND.summary = function (box, ids) {
+    return summary(ids[0]).then(function (x) {
+      if (x.state === 'locked') return view('locked', [lockLine(T.sumLock)]);
+      if (x.state !== 'open') return view('empty', []);
+      var good = sumList(T.sumGood, 'good', isArr(x.good) ? x.good : []);
+      var bad = sumList(T.sumConcern, 'concern', isArr(x.concern) ? x.concern : []);
+      if (!good && !bad) return view('empty', []);
+      var grid = el('div', 'crl-sum');
+      if (good) grid.appendChild(good);
+      if (bad) grid.appendChild(bad);
+      var n = Number(x.n);
+      var when = (typeof x.as_of === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(x.as_of)) ? x.as_of : '';
+      var by = (isFinite(n) && n > 0) ? el('p', 'crl-sum-by', T.sumBy(n, when)) : null;   // 件数が読めなければ書かない
+      return view('open', [el('h3', 'crl-sum-title', T.sumHead), grid, by]);
+    }, function (e) {
+      if (e && e.crl === 'off') return view('empty', []);     // 口がまだ無い ＝ 要約なしと同じ（「準備中」と書かない）
+      throw e;
     });
   };
 

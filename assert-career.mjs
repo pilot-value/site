@@ -4,12 +4,16 @@
    この1枚は「普通に見えたまま静かに嘘になる」形をいくつも持っている。
    1つずつ見張る。
 
-     ① 数字が正本とずれる ── 画面の額は gen-career.mjs が SALARY と BASIS から書く。
+     ① 数字が正本とずれる ── 本命の額と棒は、5社とも・どちらの職位も推定年収（SALARY の avg）。
         ここでは**あちらの cell() を呼ばずに**同じ答えを作り直して突き合わせる
         （呼んでしまうと、あちらが間違えた日に検査も一緒に間違える）。
-     ② 上限が平の額に見える ── 「〜」・斜線の棒・「上限」の字の3つが必ず一緒に出る。
-        1つでも落ちると、求人の上限が推定年収と同じ顔で並ぶ。
-        斜線は札（class）ではなく**描かれた模様**で見る。公表額の一覧でも「〜」と「上限」が対。
+        年収を「確認中」と出さない（★2026-10-06 オーナー決定。概要・比較・詳細・カードのどこにも）。
+     ② 会社が公表した額が、推定と同じ顔で並ぶ ── 公表額は「会社が公表している金額」の一覧にだけ在り、
+        1行ごとに種類の名前（求人の上限・目標年収・下限・平均）が付く。棒にも目盛にも載せない。
+        求人の上限には「〜」・斜線の印・「上限」の字の3つが必ず一緒に出る。
+        斜線は札（class）ではなく**描かれた模様**で見る。
+     ⑪ 家賃 ── 額は1か月あたり。街ごとに箱が1つで、箱ごとに物差しの名前・出どころ・時点が付く。
+        2つの街を1本の目盛・1つの表に並べない（条件のそろわない街を競わせない）。
      ③ 目盛が歪む ── 棒は 0 から・全部の棒が同じ目盛・描かれた長さが額に比例する。
         棒の土台が全部同じ位置・同じ幅で、目盛の両端がそこに合っていることまで測る。
      ④ 概要と比較で同じ会社の額が違う（候補で実際に起きていた形）。
@@ -35,7 +39,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { SALARY } from './salary-data.mjs';
-import { BASIS, TIERS, figures, cardFigure } from './salary-basis.mjs';
+import { BASIS, TIERS, figures } from './salary-basis.mjs';
+import { viewOf, rentCell } from './pv-airline-view.mjs';
 import { PHOTOS, PHOTO_DIR, SMALL_W, needsCredit, primary, smallH, src as photoSrc } from './airline-photos.mjs';
 import * as PLACE from './place-photos.mjs';
 import { render, FIVE, PAIR, ROLES, PAGE, DEEP, cell } from './gen-career.mjs';
@@ -327,6 +332,11 @@ try {
           kind: t(f.querySelector('dt')), amount: t(f.querySelector('dd b')), orig: t(f.querySelector('.cr-orig')) || '',
         }));
       }),
+      /* 上限の印（斜線の印と、行の札）。rows とは別に持つ ── rows は台帳とそのまま突き合わせる。 */
+      marks: [...root.querySelectorAll('.cr-fig')].map(f => ({
+        kind: t(f.querySelector('dt')), hatch: f.querySelectorAll('.cr-hatch').length, max: f.classList.contains('is-max'),
+      })),
+      loose: root.querySelectorAll('.cr-hatch').length - root.querySelectorAll('.cr-fig .cr-hatch').length,
       srcs: [...root.querySelectorAll('.cr-srcs a')].map(a => a.getAttribute('href')),
       basis: !!root.querySelector('.cr-basis'),
     });
@@ -334,25 +344,25 @@ try {
     for (const sec of document.querySelectorAll('#cr .cr-view[data-view="airline"]')) {
       const s = sec.dataset.airline;
       const o = out[s] = {
-        h1: t(sec.querySelector('.cr-h1')), ov: {}, cmp: {}, est: {}, lim: {}, cmpEst: {}, cmpLim: {}, cardLims: [],
+        h1: t(sec.querySelector('.cr-h1')), ov: {}, cmp: {}, cmpN: {}, pubs: sec.querySelectorAll('.cr-pub').length,
         tax: t(sec.querySelector('.cr-pay .cr-tax')), pub: pub(sec.querySelector('.cr-pub')),
       };
-      /* 推定を確認中にしている会社（DEEP）は、概要が「推定の行」と「求人の上限の行」の2本立て。 */
+      /* 本命の行は、会社の形で2通り ── 押せる棒（詳細を持つ会社）か、大きい額＋小さい棒。
+         どちらも中身は同じ：社名・職位・推定の額・「推定」の札・棒。 */
       for (const a of sec.querySelectorAll('a.cr-bar[data-role]')) {
         const v = a.querySelector('.cr-bar-v');
-        const row = {
+        o.ov[a.dataset.role] = {
           name: t(a.querySelector('.cr-vh')), role: t(a.querySelector('.cr-bar-r')), v: t(v), look: v ? v.dataset.look || '' : '',
           tag: t(a.querySelector('.cr-tag')), sub: t(a.querySelector('.cr-sub')) || '',
           bar: bar(a.querySelector('.cr-fill')), href: a.getAttribute('href'),
         };
-        if (a.querySelector('[data-lim]')) o.lim[a.dataset.role] = row;
-        else if (a.querySelector('[data-main]')) o.est[a.dataset.role] = row;
       }
       for (const n of sec.querySelectorAll('.cr-num')) {
+        const v = n.querySelector('.cr-num-v');
         o.ov[n.dataset.role] = {
-          name: t(n.querySelector('.cr-vh')), role: t(n.querySelector('.cr-num-r')), v: t(n.querySelector('.cr-num-v')),
+          name: t(n.querySelector('.cr-vh')), role: t(n.querySelector('.cr-num-r')), v: t(v), look: v ? v.dataset.look || '' : '',
           tag: t(n.querySelector('.cr-tag')), sub: t(n.querySelector('.cr-sub')) || '',
-          bar: bar(sec.querySelector('.cr-mini .cr-fill.is-' + n.dataset.role)),
+          bar: bar(sec.querySelector('.cr-mini .cr-fill.is-' + n.dataset.role)), href: null,
         };
       }
     }
@@ -360,20 +370,18 @@ try {
       for (const row of pair.querySelectorAll('.cr-row')) {
         const vh = [...row.querySelectorAll('.cr-vh')].map(t);
         const v = row.querySelector('.cr-row-v');
-        const got = {
+        const o = out[row.dataset.airline];
+        o.cmpN[pair.dataset.role] = (o.cmpN[pair.dataset.role] || 0) + 1;
+        o.cmp[pair.dataset.role] = {
           name: t(row.querySelector('.cr-row-co')) || vh[0] || null, role: vh[vh.length - 1] || null, v: t(v), look: v ? v.dataset.look || '' : '',
           tag: t(row.querySelector('.cr-tag')), sub: t(row.querySelector('.cr-sub')) || '',
           bar: bar(row.querySelector('.cr-fill')), href: row.getAttribute('href'),
         };
-        const o = out[row.dataset.airline];
-        if (row.classList.contains('cr-row-lim')) o.cmpLim[pair.dataset.role] = got;
-        else if (row.classList.contains('is-held')) o.cmpEst[pair.dataset.role] = got;
-        else o.cmp[pair.dataset.role] = got;
       }
     }
     for (const card of document.querySelectorAll('#cr .cr-cmp .cr-card')) {
       out[card.dataset.airline].card = pub(card.querySelector('.cr-pub'));
-      out[card.dataset.airline].cardLims = [...card.querySelectorAll('.cr-lims a')].map(a => a.getAttribute('href'));
+      out[card.dataset.airline].cardPubs = card.querySelectorAll('.cr-pub').length;
     }
     for (const p of document.querySelectorAll('#cr .cr-cmp .cr-taxes .cr-tax')) out[p.dataset.airline].cmpTax = t(p.querySelector('span'));
     return {
@@ -388,16 +396,11 @@ try {
   ok(same(dom.order, FIVE), '概要は先行5社ぶん', dom.order.join(', '));
   ok(same(dom.def, PAIR), '比較を社名なしで開いたときの2社', dom.def.join(' × '));
 
-  /* 額の作り直し。会社が公表した年額があればそれ・無ければ推定（会社ページのカードと同じ決め方）。 */
+  /* 額の作り直し。本命の額は、5社とも・どちらの職位も推定年収（SALARY の avg）。
+     会社が公表した額はここには入れない（下の「会社が公表している金額」の一覧だけ）。 */
   const want = (slug, rank) => {
-    const tier = BASIS[slug]?.[rank]?.tier;
-    const c = cardFigure(slug, rank);
-    if (!c || c.held || !TIERS[tier]) return null;
-    if (c.estimate) { const avg = SALARY[slug][rank].avg; return { man: avg, text: yen(avg), tag: TIERS[tier].ja, up: false, over: false }; }
-    const hits = figures(slug, rank).filter(x => !x.training && x.man === c.man);
-    if (hits.length !== 1) return null;
-    const f = hits[0];
-    return { man: c.man, text: c.yen + tail(f.key), tag: TIERS[tier].ja, up: !!c.up, over: /_over$/.test(f.key) };
+    const avg = SALARY[slug]?.[rank]?.avg;
+    return Number.isFinite(avg) && avg > 0 ? { man: avg, text: yen(avg), tag: TIERS.estimate.ja } : null;
   };
 
   const axisMax = Math.round(Number(dom.div) * 1000);
@@ -405,55 +408,30 @@ try {
   for (const s of FIVE) {
     for (const [r, label] of ROLES) {
       const who = `${name(s)} ${label}`;
-      if (DEEP.includes(s)) {
-        /* 推定の根拠がそろっていない会社 ── 推定は「確認中」（数字も棒も無い）。
-           求人の上限は別の行（〜・斜線・「上限」の字）。上限を推定の代わりに置かない。 */
-        const o = dom.co[s];
-        const c = cardFigure(s, r);
-        const tier = TIERS[BASIS[s]?.[r]?.tier];
-        ok(cell(s, r).man == null && cell(s, r).look === 'held', `${who}: 生成側が推定の額を持たない（確認中）`, JSON.stringify(cell(s, r)));
-        for (const [where, x] of [['概要', o.est[r]], ['比較', o.cmpEst[r]]]) {
-          if (!x) { ok(false, `${who}（${where}）: 推定の行が在る`); continue; }
-          ok(x.v === '確認中' && x.look === 'held' && !/\d/.test(x.v), `${who}（${where}）: 推定は「確認中」`, `「${x.v}」 look=${x.look}`);
-          ok(x.tag === TIERS.estimate.ja, `${who}（${where}）: 推定の札は「${TIERS.estimate.ja}」`, `「${x.tag}」`);
-          ok(!x.bar, `${who}（${where}）: 確認中の行に棒を描いていない`);
-          ok(x.name === name(s) && x.role === label, `${who}（${where}）: 社名と職位が「確認中」のそばに在る`, `${x.name} / ${x.role}`);
-          ok(x.href === `${PAGE}?airline=${s}&d=${r}-est`, `${who}（${where}）: 推定の行から、その推定の詳細へ行ける`, x.href);
-        }
-        if (!c || c.held || !c.up || !tier) { ok(false, `${who}: 台帳に求人の上限が在る`, JSON.stringify(c)); continue; }
-        mans.push(c.man);
-        for (const [where, x] of [['概要', o.lim[r]], ['比較', o.cmpLim[r]]]) {
-          if (!x) { ok(false, `${who}（${where}）: 求人の上限の行が在る`); continue; }
-          ok(x.v === c.yen && x.look === 'max', `${who}（${where}）: 求人の上限 ＝ ${c.yen}`, `「${x.v}」 look=${x.look}`);
-          ok(x.tag === tier.ja || x.tag === `${tier.ja}（上限）`, `${who}（${where}）: 上限の札は「${tier.ja}」`, `「${x.tag}」`);
-          const up = [x.v.startsWith('〜'), !!x.bar && x.bar.cls.includes('is-max'), (x.tag + x.sub).includes('上限')];
-          ok(up.every(Boolean), `${who}（${where}）: 上限の印が3つそろっている（〜・斜線・「上限」の字）`, up.join(' / '));
-          ok(!!x.bar && x.bar.w === `${Math.round(c.man / axisMax * 1000) / 10}%`, `${who}（${where}）: 上限の棒の長さが額に比例`, x.bar && x.bar.w);
-          ok(x.name === name(s) && x.role === label, `${who}（${where}）: 社名と職位が上限の額のそばに在る`, `${x.name} / ${x.role}`);
-          ok(x.href === `${PAGE}?airline=${s}&d=${r}-max`, `${who}（${where}）: 上限の行から、その額の詳細へ行ける`, x.href);
-        }
-        ok(o.lim[r] && o.cmpLim[r] && o.lim[r].tag === o.cmpLim[r].tag && o.lim[r].sub === o.cmpLim[r].sub && o.lim[r].v === o.cmpLim[r].v,
-           `${who}: 上限の額・札・一言が概要と比較で同じ`);
-        ok(!o.ov[r] && !o.cmp[r], `${who}: 推定の顔をした額の行がほかに無い`);
-        continue;
-      }
       const w = want(s, r), a = dom.co[s].ov[r], b = dom.co[s].cmp[r];
-      if (!w || !a || !b) { ok(false, `${who}: 額が出ている`); continue; }
+      if (!w || !a || !b) { ok(false, `${who}: 推定年収が出ている（概要と比較）`, `正本 ${JSON.stringify(w)} ／ 概要 ${JSON.stringify(a)} ／ 比較 ${JSON.stringify(b)}`); continue; }
       mans.push(w.man);
-      ok(a.v === w.text && b.v === w.text, `${who} ＝ ${w.text}（概要と比較で同じ）`, `概要「${a.v}」／比較「${b.v}」`);
+      ok(a.v === w.text && b.v === w.text, `${who} ＝ ${w.text}（SALARY の avg・概要と比較で同じ）`, `概要「${a.v}」／比較「${b.v}」`);
+      ok(cell(s, r).man === w.man && cell(s, r).text === w.text, `${who}: 生成側も同じ額を持っている`, JSON.stringify(cell(s, r)));
       ok(a.name === name(s) && a.role === label && b.name === name(s) && b.role === label, `${who}: 社名と職位が額のそばに在る`);
+      ok(dom.co[s].cmpN[r] === 1, `${who}: 比較の年収の行は1本だけ（公表額の行を並べていない）`, `${dom.co[s].cmpN[r]}本`);
       for (const [where, x] of [['概要', a], ['比較', b]]) {
-        ok(x.tag === w.tag || (w.up && x.tag === `${w.tag}（上限）`), `${who}（${where}）: 札は「${w.tag}」`, `「${x.tag}」`);
-        const up = [x.v.startsWith('〜'), x.bar.cls.includes('is-max'), (x.tag + x.sub).includes('上限')];
-        ok(up.every(v => v === w.up), `${who}（${where}）: 上限の印が3つそろっている（〜・斜線・「上限」の字）`, up.join(' / '));
-        const over = [x.v.endsWith('超'), x.bar.cls.includes('is-over')];
-        ok(over.every(v => v === w.over), `${who}（${where}）: 「超」の印が2つそろっている`, over.join(' / '));
-        ok(x.bar.w === `${Math.round(w.man / axisMax * 1000) / 10}%`, `${who}（${where}）: 棒の長さが額に比例`, x.bar.w);
+        ok(x.tag === w.tag, `${who}（${where}）: 札は「${w.tag}」`, `「${x.tag}」`);
+        ok(x.look !== 'held' && !/確認中/.test(x.v + x.tag + x.sub), `${who}（${where}）: 年収を「確認中」と出していない`, `「${x.v}」 look=${x.look}`);
+        /* 推定の額に、公表額の印（〜・超・上限・斜線）を付けない ── 付くと、推定が求人の額の顔になる。 */
+        const marks = [/[〜超]/.test(x.v), /上限|下限|目標/.test(x.tag + x.sub), !!x.bar && (x.bar.cls.includes('is-max') || x.bar.cls.includes('is-over'))];
+        ok(marks.every(v => !v), `${who}（${where}）: 推定の額に公表額の印（〜・超・上限）を付けていない`, marks.join(' / '));
+        ok(!!x.bar && /%$/.test(x.bar.w) && Math.abs(parseFloat(x.bar.w) - w.man / axisMax * 100) < 0.01,
+           `${who}（${where}）: 棒の長さが額に比例`, x.bar && x.bar.w);
       }
       ok(a.tag === b.tag && a.sub === b.sub, `${who}: 札と一言が概要と比較で同じ`);
+      if (DEEP.includes(s)) {
+        const href = `${PAGE}?airline=${s}&d=${r}-est`;
+        ok(a.href === href && b.href === href, `${who}: 概要と比較の行から、その推定の詳細へ行ける`, `${a.href} ／ ${b.href}`);
+      }
     }
     ok(dom.co[s].h1 === name(s), `${name(s)}: 見出しが社名`);
-    ok((dom.co[s].tax === BASIS[s].tax || (DEEP.includes(s) && dom.co[s].tax === null)) && dom.co[s].cmpTax === BASIS[s].tax,
+    ok(dom.co[s].tax === BASIS[s].tax && dom.co[s].cmpTax === BASIS[s].tax,
        `${name(s)}: 税の扱いが台帳どおり（概要と比較）`, `${dom.co[s].tax} ／ ${dom.co[s].cmpTax}`);
   }
 
@@ -470,15 +448,16 @@ try {
       tag: TIERS[BASIS[s][r].tier].ja, group: f.group, kind: f.kind, amount: upTo(f.key) + f.text + tail(f.key),
       orig: f.cur === 'JPY' ? '' : `${upTo(f.key)}${f.cur} ${f.amount.toLocaleString('en-US')}${tail(f.key) ? ' ' + tail(f.key) : ''}`,
     })));
-    if (DEEP.includes(s)) {
-      const press = (BASIS[s].src || []).filter(x => x.secondary).map(x => x.url);
-      ok(press.every(u => !BLOCK.includes(u) && !BLOCK.includes(u.replace(/&/g, () => '&amp;'))), `${name(s)}: 会社の公表ではない資料（報道など）をどこにも並べていない`, press.join(', '));
-      /* 概要は上限の行そのものが入口。比較のカードは、上限の額の詳細へ行く2本だけ（額を2回書かない）。 */
-      ok(dom.co[s].pub === null, `${name(s)}: 概要に公表額の一覧を重ねて置いていない（上限の行が入口）`);
-      ok(same(dom.co[s].cardLims, ROLES.map(([r]) => `${PAGE}?airline=${s}&d=${r}-max`)), `${name(s)}: 比較のカードから、求人の上限の詳細へ行ける`, dom.co[s].cardLims.join(', '));
-      continue;
-    }
     const got = dom.co[s].pub;
+    if (!got) { ok(false, `${name(s)}: 概要に「会社が公表している金額」の一覧が在る`); continue; }
+    ok(dom.co[s].pubs === 1 && dom.co[s].cardPubs === 1, `${name(s)}: 一覧は概要に1つ・比較のカードに1つ`, `概要 ${dom.co[s].pubs} ／ 比較 ${dom.co[s].cardPubs}`);
+    /* 1行ごとに、誰の額か（区分）・何の額か（種類の名前）・札が付いている。 */
+    ok(got.rows.every(x => x.tag && x.group && x.kind), `${name(s)}: 公表額の全部の行に、札・区分・種類の名前が付いている`,
+       got.rows.filter(x => !(x.tag && x.group && x.kind)).map(x => JSON.stringify(x)).join(' ／ '));
+    /* 上限の印は3つで1組 ── 「〜」（下の検査）・斜線の印・「上限」の字。上限でない行には斜線を付けない。 */
+    ok(got.marks.every(m => m.hatch === (/上限/.test(m.kind) ? 1 : 0) && m.max === /上限/.test(m.kind)) && got.loose === 0
+       && same(dom.co[s].card.marks, got.marks) && dom.co[s].card.loose === 0,
+       `${name(s)}: 斜線の印は「上限」の行にだけ・1つずつ（概要と比較のカード）`, JSON.stringify(got.marks));
     ok(same(got.rows, exp), `${name(s)}: 台帳の ${exp.length}件がそのまま出ている（札・区分・名前・額・原貨）`,
        `画面 ${JSON.stringify(got.rows)}\n      台帳 ${JSON.stringify(exp)}`);
     ok(exp.length ? got.none === null : got.none === '公表なし', `${name(s)}: ${exp.length ? '「公表なし」と書いていない' : '「公表なし」'}`);
@@ -501,15 +480,16 @@ try {
   /* ── ③ 描かれた棒 ───────────────────────────────────────────── */
   head('棒（描かれた長さ）');
   for (const [w, h] of [[390, 680], [1280, 800]]) {
-    /* 比較は 2社×2職位＝4本、概要は 機長・副操縦士＝2本。
+    /* 比較は 2社×2職位＝4本、概要は 機長・副操縦士＝2本。どれも推定年収の棒。
        概要は5社とも測る。1社しか見ていなかった頃は、ほかの会社の棒が1本ずれても通っていた（2026-10-04）。
-       上限の棒が必ず在るのはエティハドの入る画面だけ。 */
+       求人の上限を持つのはエティハドだけ ── 斜線の印が在るのは、エティハドの入る画面の公表額の一覧だけ。 */
     for (const [q, n, capped] of [['?view=compare&a=etihad&b=eva-air', 4, true], ...FIVE.map(x => [`?airline=${x}`, 2, x === 'etihad'])]) {
       await page.setViewport({ width: w, height: h });
       await go(page, q);
       await settle(page);
-      const { bars, axis } = await page.evaluate(() => {
+      const { bars, axis, hatch } = await page.evaluate(() => {
         const v = document.querySelector('#cr .cr-view:not([hidden])');
+        const tx = el => (el ? el.textContent.replace(/\s+/g, ' ').trim() : '');
         const ax = [...v.querySelectorAll('.cr-axis')].filter(a => a.getClientRects().length).map(a => {
           const r = a.getBoundingClientRect();
           return { left: r.left, right: r.right };
@@ -520,7 +500,15 @@ try {
             const a = f.getBoundingClientRect(), b = f.parentElement.getBoundingClientRect();
             return {
               w: parseFloat(f.style.getPropertyValue('--w')), fill: a.width, track: b.width, left: a.left - b.left,
-              tl: b.left, tr: b.right, max: f.classList.contains('is-max'), bg: getComputedStyle(f).backgroundImage,
+              tl: b.left, tr: b.right, pub: !!f.closest('.cr-pub'), bg: getComputedStyle(f).backgroundImage,
+            };
+          }),
+          /* 斜線の印（会社が公表した上限の額の左に付く小さい模様）。 */
+          hatch: [...v.querySelectorAll('.cr-hatch')].filter(h => h.getClientRects().length).map(h => {
+            const r = h.getBoundingClientRect(), fig = h.closest('.cr-pub .cr-fig');
+            return {
+              w: r.width, h: r.height, bg: getComputedStyle(h).backgroundImage, inFig: !!fig,
+              kind: tx(fig && fig.querySelector('dt')), amount: tx(fig && fig.querySelector('dd b')), orig: tx(fig && fig.querySelector('.cr-orig')),
             };
           }),
         };
@@ -533,10 +521,15 @@ try {
          `${w}px ${q}: 棒の土台が全部同じ位置・同じ幅`, bars.map(b => `${b.tl}〜${b.tr}`).join(' ／ '));
       ok(axis.length === 1 && Math.abs(axis[0].left - t0.tl) <= 1 && Math.abs(axis[0].right - t0.tr) <= 1,
          `${w}px ${q}: 目盛の両端が棒の土台に合っている`, `目盛 ${JSON.stringify(axis)} ／ 土台 ${t0.tl}〜${t0.tr}`);
-      /* 斜線は描かれた模様で見る（札だけ付いていて模様が無い、を通さない）。 */
+      /* 斜線は描かれた模様で見る（札だけ付いていて模様が無い、を通さない）。
+         推定の棒は全部無地。斜線は「会社が公表している金額」の上限の行にだけ在り、「〜」と「上限」の字と一緒。 */
       const stripe = b => /repeating-linear-gradient/.test(b.bg);
-      ok((!capped || bars.some(b => b.max)) && bars.every(b => stripe(b) === b.max),
-         `${w}px ${q}: 上限の棒だけが斜線で描かれている`, bars.map(b => `${b.max ? '上限' : '平'}:${stripe(b) ? '斜線' : '無地'}`).join(' '));
+      ok(bars.every(b => !stripe(b) && !b.pub), `${w}px ${q}: 棒は全部推定年収（無地・公表額の一覧の中に棒が無い）`,
+         bars.map(b => `${b.pub ? '一覧の中' : '年収'}:${stripe(b) ? '斜線' : '無地'}`).join(' '));
+      const three = hatch.filter(x => x.inFig && stripe(x) && x.w >= 8 && x.h >= 6 && /上限/.test(x.kind) && x.amount.startsWith('〜') && (!x.orig || x.orig.startsWith('〜')));
+      ok(hatch.length === (capped ? ROLES.length : 0) && three.length === hatch.length,
+         `${w}px ${q}: ${capped ? `上限の印が${ROLES.length}件とも3つそろって描かれている（〜・斜線・「上限」の字）` : '上限の無い会社に斜線の印が無い'}`,
+         hatch.map(x => `${x.kind} ${x.amount}:${stripe(x) ? '斜線' : '模様なし'} ${Math.round(x.w)}×${Math.round(x.h)}`).join(' ／ ') || '印が1つも無い');
     }
   }
 
@@ -567,30 +560,29 @@ try {
       const x = a.getBoundingClientRect(), y = b.getBoundingClientRect();
       return Math.round(x.top - y.top) || x.left - y.left;
     }).map(e => e.dataset.airline);
-    /* 同じ会社の行が2本続く（確認中の推定＋求人の上限）のは、1社ぶんとして数える。 */
-    const once = list => list.filter((x, i) => i === 0 || x !== list[i - 1]);
+    /* 年収の行は1社に1本（推定年収）。家賃の箱も1社に1つ（その会社の拠点の街）。 */
     return {
-      rows: [...document.querySelectorAll('#cr .cr-cmp .cr-pair[data-role]')].map(p => once(order(vis(`.cr-pair[data-role="${p.dataset.role}"] .cr-row`)))),
-      cards: order(vis('.cr-card')), taxes: order(vis('.cr-taxes .cr-tax')),
+      rows: [...document.querySelectorAll('#cr .cr-cmp .cr-pair[data-role]')].map(p => order(vis(`.cr-pair[data-role="${p.dataset.role}"] .cr-row`))),
+      cards: order(vis('.cr-card')), taxes: order(vis('.cr-taxes .cr-tax')), rents: order(vis('.cr-rentb')),
       opts: ['a', 'b'].map(s => vis(`.cr-side[data-side="${s}"] .cr-opt`).map(e => e.dataset.airline)),
       sel: [document.getElementById('cr-a').value, document.getElementById('cr-b').value],
       off: ['cr-a', 'cr-b'].map(id => [...document.getElementById(id).options].filter(o => o.disabled).map(o => o.value)),
       credits: vis('.cr-credit[data-airline]').map(e => e.dataset.airline),
       /* 置き場所の順（読み上げと Tab が進む順）。見た目の順と同じでなければならない。 */
-      dom: [...document.querySelectorAll('#cr .cr-cmp .cr-pair[data-role]')].map(p => once(vis(`.cr-pair[data-role="${p.dataset.role}"] .cr-row`).map(e => e.dataset.airline)))
-        .concat([vis('.cr-card').map(e => e.dataset.airline), vis('.cr-taxes .cr-tax').map(e => e.dataset.airline)]),
+      dom: [...document.querySelectorAll('#cr .cr-cmp .cr-pair[data-role]')].map(p => vis(`.cr-pair[data-role="${p.dataset.role}"] .cr-row`).map(e => e.dataset.airline))
+        .concat([vis('.cr-card').map(e => e.dataset.airline), vis('.cr-taxes .cr-tax').map(e => e.dataset.airline), vis('.cr-rentb').map(e => e.dataset.airline)]),
     };
   });
   const pairOk = async (a, b, label) => {
     const g = await shown();
     const exp = {
-      rows: ROLES.map(() => [a, b]), cards: [a, b], taxes: [a, b], opts: [[a], [b]], sel: [a, b], off: [[b], [a]],
+      rows: ROLES.map(() => [a, b]), cards: [a, b], taxes: [a, b], rents: [a, b], opts: [[a], [b]], sel: [a, b], off: [[b], [a]],
       credits: [a, b].filter(s => needsCredit(primary(s))),
-      dom: [...ROLES.map(() => [a, b]), [a, b], [a, b]],
+      dom: [...ROLES.map(() => [a, b]), [a, b], [a, b], [a, b]],
     };
     ok(same(g, exp), label, JSON.stringify(g));
   };
-  await pairOk('jal', 'cathay-pacific', '2社だけが並ぶ（棒・カード・税・写真・クレジット）。相手の会社は選べない');
+  await pairOk('jal', 'cathay-pacific', '2社だけが並ぶ（棒・カード・税・家賃の箱・写真・クレジット）。相手の会社は選べない');
 
   await page.select('#cr-b', 'etihad');
   ok(await until(page, '?view=compare&a=jal&b=etihad'), '会社を選び直すと住所が変わる', await search(page));
@@ -673,19 +665,23 @@ try {
   head('通貨の切り替え');
   {
     const { page: p, close: c } = await open('?view=compare&a=etihad&b=eva-air');
-    /* 「確認中」は額ではない（通貨を変えても字は変わらない）ので、切り替わりを待つ相手から外す。 */
-    const MONEY = '#cr .cr-num-v, #cr .cr-bar-v:not([data-look="held"]), #cr .cr-row-v:not([data-look="held"]), #cr .cr-det-v:not([data-look="held"]), #cr .cr-axis span:not(:first-child), #cr .cr-fig dd b';
+    /* 額の字が入る所の全部 ── 推定年収（概要・比較・詳細）・目盛・会社が公表した額・家賃の円額。
+       家賃は、円の街は太字そのものが円額・外貨の街は太字が原貨（pv-no-cur ＝ 変えない）で、その下が円額。 */
+    const MONEY = '#cr .cr-num-v, #cr .cr-bar-v, #cr .cr-row-v, #cr .cr-det-v, #cr .cr-axis span:not(:first-child), #cr .cr-fig dd b, #cr .cr-rent dd b:not(.pv-no-cur), #cr .cr-rent dd span';
     const snap = () => p.evaluate(sel => ({
       /* あとから通信で埋まる欄と、保存するカードの画面は、通貨の往復の照合から外す（字が通信の結果で変わる）。 */
       all: (() => { const c = document.getElementById('cr').cloneNode(true); c.querySelectorAll('.crl, [data-view="card"]').forEach(e => e.remove()); return c.textContent; })(),
       keep: [...document.querySelectorAll('#cr .pv-no-cur')].map(e => e.textContent),
       money: [...document.querySelectorAll(sel)].map(e => e.textContent.trim()),
-      /* 概要の額。推定が「確認中」の会社は、別枠の求人の上限（data-lim）が概要と比較で同じかを見る。 */
-      ov: Object.fromEntries([
-        ...[...document.querySelectorAll('#cr .cr-num')].map(n => [n.closest('.cr-view').dataset.airline + '/' + n.dataset.role, n.querySelector('.cr-num-v').textContent.trim()]),
-        ...[...document.querySelectorAll('#cr .cr-view[data-view="airline"] a.cr-bar[data-role] [data-lim]')].map(n => [n.closest('.cr-view').dataset.airline + '/' + n.closest('a.cr-bar').dataset.role, n.textContent.trim()]),
-      ]),
-      cmp: Object.fromEntries([...document.querySelectorAll('#cr .cr-cmp .cr-row:not(.is-held)')].map(r => [r.dataset.airline + '/' + r.closest('.cr-pair').dataset.role, r.querySelector('.cr-row-v').textContent.trim()])),
+      /* 概要の額（推定年収）。会社の形で置き場所が2通りあるが、どちらも本命の額（data-main）。 */
+      ov: Object.fromEntries([...document.querySelectorAll('#cr .cr-view[data-view="airline"] :is(.cr-num, a.cr-bar)[data-role] [data-main]')]
+        .map(n => [n.closest('.cr-view').dataset.airline + '/' + n.closest('[data-role]').dataset.role, n.textContent.trim()])),
+      cmp: Object.fromEntries([...document.querySelectorAll('#cr .cr-cmp .cr-row')].map(r => [r.dataset.airline + '/' + r.closest('.cr-pair').dataset.role, r.querySelector('.cr-row-v').textContent.trim()])),
+      /* 会社が公表した額（概要の一覧）。上限の「〜」と下限の「超」は、通貨を変えても残らなければならない。 */
+      pub: Object.fromEntries([...document.querySelectorAll('#cr .cr-view[data-view="airline"]')].map(v => [v.dataset.airline,
+        [...v.querySelectorAll('.cr-pub .cr-fig dd b')].map(b => b.textContent.trim())])),
+      /* 推定の額そのもの。公表額の印（〜・超）が付いてはいけない。 */
+      est: [...document.querySelectorAll('#cr [data-main], #cr .cr-row-v, #cr .cr-det-v')].map(e => e.textContent.trim()),
     }), MONEY);
     const jpy = await snap();
     ok(await p.evaluate(() => window.PVCurrency.get()) === 'JPY', '日本語ページの既定は円');
@@ -700,7 +696,11 @@ try {
       ok(same(s.keep, jpy.keep), `${cur}: 原貨の額・為替の注記・出どころは変わらない`);
       const differ = Object.keys(s.ov).filter(k => s.ov[k] !== s.cmp[k]);
       ok(Object.keys(s.ov).length === Object.keys(s.cmp).length && !differ.length, `${cur}: 概要と比較で同じ額`, differ.map(k => `${k} ${s.ov[k]} / ${s.cmp[k]}`).join(' ／ '));
-      ok(s.ov['etihad/cap'].startsWith('〜') && s.ov['eva-air/fo'].endsWith('超'), `${cur}: 上限の「〜」と「超」が残る`, `${s.ov['etihad/cap']} ／ ${s.ov['eva-air/fo']}`);
+      ok(Object.keys(s.ov).length === FIVE.length * ROLES.length, `${cur}: 5社とも・どちらの職位も推定の額が出ている`, Object.keys(s.ov).join(', '));
+      const up = s.pub.etihad || [], over = s.pub['eva-air'] || [];
+      ok(up.length === ROLES.length && up.every(t => t.startsWith('〜')) && over.length === 1 && over[0].endsWith('超'),
+         `${cur}: 公表額の上限の「〜」と下限の「超」が残る`, `${up.join(' / ')} ／ ${over.join(' / ')}`);
+      ok(s.est.length > 0 && s.est.every(t => !/[〜超]|確認中/.test(t)), `${cur}: 推定の額に「〜」「超」「確認中」が付かない`, s.est.filter(t => /[〜超]|確認中/.test(t)).join(' / '));
       /* いちばん狭い画面でも、額が箱からはみ出さない。 */
       const clip = await p.evaluate(() => [...document.querySelectorAll('#cr .cr-view:not([hidden]) .cr-row-v')]
         .filter(e => e.getClientRects().length && e.getBoundingClientRect().right > innerWidth).length);
@@ -723,7 +723,10 @@ try {
        （320px・AED で、あいだが 3px だった。2026-10-04）。出ている字どうしの間を測る。 */
     const AXIS_GAP = 8;
     const tightAt = Object.fromEntries(WIDTHS.map(w => [w, []]));
-    for (const q of [...FIVE.map(s => `?airline=${s}`), '?view=compare&a=etihad&b=eva-air', '?view=compare&a=cathay-pacific&b=ana']) {
+    /* 家賃の額も同じ ── 外貨の街は原貨と円額が上下に並び、幅のある額（HKD 15,800〜18,500）は字数が多い。
+       比較の家賃の箱（.cr-rentb）と、暮らしのタブの街（.cr-town）の両方を測る。 */
+    const FIT_VIEWS = [...FIVE.map(s => `?airline=${s}`), ...DEEP.map(s => `?airline=${s}&tab=life`), '?view=compare&a=etihad&b=eva-air', '?view=compare&a=cathay-pacific&b=ana'];
+    for (const q of FIT_VIEWS) {
       await go(p, q);
       for (const w of WIDTHS) {
         await p.setViewport({ width: w, height: 568 });
@@ -732,13 +735,20 @@ try {
           await p.waitForFunction((sel, yen) => [...document.querySelectorAll(sel)].every(e => /[¥万円]/.test(e.textContent) === yen), { timeout: 5000 }, MONEY, cur === 'JPY').catch(() => {});
           const cut = await p.evaluate(() => {
             const wide = e => { const r = document.createRange(); r.selectNodeContents(e); return r.getBoundingClientRect(); };
-            return [...document.querySelectorAll('#cr .cr-view:not([hidden]) :is(.cr-num-v, .cr-bar-v, .cr-row-v, .cr-fig b)')]
+            const V = document.querySelector('#cr .cr-view:not([hidden])');
+            /* 家賃の行 ── 部屋の名前と額が同じ高さで重ならない（額が長くなると、名前の上に乗る）。 */
+            const over = [...V.querySelectorAll('.cr-rent > div')].filter(d => d.getClientRects().length).filter(d => {
+              const k = wide(d.querySelector('dt'));
+              return [...d.querySelectorAll('dd > *')].some(x => { const v = wide(x); return v.top < k.bottom - 1 && v.bottom > k.top + 1 && v.left < k.right - 0.5; });
+            }).map(d => `家賃の名前と額が重なる「${d.textContent.replace(/\s+/g, ' ').trim()}」`);
+            return [...V.querySelectorAll(':is(.cr-num-v, .cr-bar-v, .cr-row-v, .cr-fig b, .cr-rent dd b, .cr-rent dd span)')]
               .filter(e => e.getClientRects().length)
               .filter(e => {
-                const t = wide(e), box = (e.closest('.cr-num, .cr-bar, .cr-row, .cr-fig') || document.documentElement).getBoundingClientRect();
-                return t.right > box.right + 0.5 || t.right > innerWidth + 0.5 || (e.matches('.cr-num-v') && t.width > e.clientWidth + 0.5);
+                const t = wide(e), box = (e.closest('.cr-num, .cr-bar, .cr-row, .cr-fig, .cr-rentb, .cr-town') || document.documentElement).getBoundingClientRect();
+                return t.left < box.left - 0.5 || t.right > box.right + 0.5 || t.right > innerWidth + 0.5 || (e.matches('.cr-num-v') && t.width > e.clientWidth + 0.5);
               })
-              .map(e => `${e.className}「${e.textContent.trim()}」`)
+              .map(e => `${e.className || e.tagName.toLowerCase()}「${e.textContent.trim()}」`)
+              .concat(over)
               .concat(document.documentElement.scrollWidth > document.documentElement.clientWidth ? ['横に溢れる'] : []);
           });
           if (cut.length) cutAt[w].push(`${cur} ${q}: ${cut.join(', ')}`);
@@ -761,7 +771,7 @@ try {
         }
       }
     }
-    for (const w of WIDTHS) ok(!cutAt[w].length, `${w}px: どの通貨でも額が切れない・横に溢れない（${curs.length + 1}通貨 × 7画面）`, cutAt[w].join('\n      '));
+    for (const w of WIDTHS) ok(!cutAt[w].length, `${w}px: どの通貨でも額（年収・公表額・家賃）が切れない・重ならない・横に溢れない（${curs.length + 1}通貨 × ${FIT_VIEWS.length}画面）`, cutAt[w].join('\n      '));
     for (const w of WIDTHS) ok(!tightAt[w].length, `${w}px: どの通貨でも目盛の字どうしがくっつかない（あいだ ${AXIS_GAP}px 以上）・両端の字が出ている`, tightAt[w].join('\n      '));
 
     /* 比較の画面の、写真のカードと棒の行。
@@ -859,7 +869,7 @@ try {
   const OLD_VIEWS = ['', ...FIVE.map(s => `?airline=${s}`), '?view=compare', '?view=compare&a=etihad&b=eva-air'];
   /* 深い会社（DEEP）の、タブ・就航地・詳細・カードの画面。 */
   const DEEP_VIEWS = DEEP.flatMap(s => [`?airline=${s}&tab=work`, `?airline=${s}&tab=life`, `?airline=${s}&stay=NRT`,
-    `?airline=${s}&d=cap-max`, `?airline=${s}&d=cap-est`, `?view=compare&a=${s}&b=jal`, `?view=card&a=${s}&b=jal`, `?view=card&a=${s}`]);
+    `?airline=${s}&d=cap-est`, `?airline=${s}&d=fo-est`, `?view=compare&a=${s}&b=jal`, `?view=card&a=${s}&b=jal`, `?view=card&a=${s}`]);
   const VIEWS = [...OLD_VIEWS, ...DEEP_VIEWS];
   /* 写真の出る画面（詳細とカードは、ここでは見ない ── 詳細に写真は無く、カードの写真は画像の中へ描く）。 */
   const PHOTO_VIEWS = [...OLD_VIEWS, ...DEEP.flatMap(s => [`?airline=${s}&tab=life`, `?airline=${s}&stay=NRT`, `?view=compare&a=${s}&b=jal`])];
@@ -877,8 +887,8 @@ try {
         const v = document.querySelector('#cr .cr-view:not([hidden])');
         const on = el => el.getClientRects().length > 0 && getComputedStyle(el).visibility !== 'hidden';
         /* 最初の1画面に年収が入っているか（開く前に測る）。 */
-        /* 深く作った会社（推定の2行＋求人の上限の2行で、ふつうの会社の倍の高さ）は、推定年収の2行で測る。
-           箱ぜんぶが入らないぶんは落とさずに、下で1行ずつ知らせる（黙って緑にしない）。 */
+        /* 深く作った会社の年収の箱は、推定の2行（押せる棒）＋目盛＋税の1行。「年収が入っている」は推定の2行で測る。
+           箱の下端（税の1行）まで入らない大きさは落とさずに、下で1行ずつ知らせる（黙って緑にしない）。 */
         const deep = v.querySelector('.cr-pay-deep');
         const ests = deep ? [...deep.querySelectorAll('a.cr-bar.cr-bar-est')] : [];
         const first = ests.length ? ests[ests.length - 1] : v.querySelector('.cr-pay') || v.querySelector('.cr-pair');
@@ -918,7 +928,7 @@ try {
       }, MAIN, INLINE);
       const at = `${w}×${h} ${q || '（入口）'}`;
       if (m.noEst) { bad.push(`${at}: 推定年収の行が見つからない`); continue; }
-      if (m.deepEnd !== null && w >= 390 && m.deepEnd > m.vh) past.push(`${at}: 求人の上限の行まで入れると最初の1画面に収まらない（年収の箱の下端 ${m.deepEnd} / 画面 ${m.vh}）`);
+      if (m.deepEnd !== null && w >= 390 && m.deepEnd > m.vh) past.push(`${at}: 年収の箱の下端（税の1行）までは最初の1画面に収まらない（下端 ${m.deepEnd} / 画面 ${m.vh}）`);
       if (m.over > 0) bad.push(`${at}: 横に ${m.over}px 溢れる`);
       if (m.fold !== null && w >= 390 && m.fold > m.vh) bad.push(`${at}: 年収が最初の1画面に入らない（下端 ${m.fold} / 画面 ${m.vh}）`);
       if (m.small.length) bad.push(`${at}: 12px 未満の字 ${m.small.join(', ')}`);
@@ -932,64 +942,261 @@ try {
     await c();
   }
 
-  /* ── ⑧ 写真とクレジット（画面） ─────────────────────────────── */
-  head('保留にした推定を、概要・比較・詳細・カードのどこにも出していない');
+  /* ── ①（続き）推定年収を出している・「確認中」が無い ─────────── */
+  head('推定年収を出している・「確認中」が無い（概要・比較・詳細・カード）');
   {
-    /* salary-basis.mjs が「根拠が揃わない」と保留にした値（held.was）。深い会社（DEEP）では、この値を
-       概要・比較・詳細・保存するカードのどこにも出さない（出すと、保留の判断を画面が迂回する）。
-       探す形 ──「3,400万」「¥3,400」「34,000,000」・data- 属性の値・カードの材料（JSON）の値。 */
-    const wasOf = s => [...new Set(ROLES.flatMap(([r]) => { const w = (BASIS[s][r].held || {}).was; return w ? [w.avg, w.lo, w.hi] : []; }).filter(Number.isFinite))];
-    const heldLeaks = (text, s) => wasOf(s).filter(n => {
-      const m = n.toLocaleString('en-US').replace(/,/g, ',?'), y = (n * 10000).toLocaleString('en-US').replace(/,/g, ',?');
-      return new RegExp(`(?<![\\d,.])${m}\\s*万|[¥￥]\\s*${m}(?![\\d,])|(?<![\\d,.])${y}(?![\\d,])|data-[a-z-]+="${m}"|"[A-Za-z_]+":"?${m}"?[,}\\]]`).test(String(text));
+    /* ★2026-10-06 オーナー決定「推定年収を一律「確認中」に戻さない」。5社とも 機長・副操縦士の推定年収が主情報。
+       2026-10-05 までは、ここに「保留にした推定を、どこにも出していない」という逆向きの検査が在った。
+       わざと書き直してある ── 戻すと、年収が「確認中」に戻っても緑のままになる。 */
+    const WORD = '確認中';
+    /* 文言は決めごとなので、生成側から借りずにここへ書く（片方だけ変えると赤くなる）。 */
+    const PLAIN = '当サイトの推定（公開情報からの推計）。根拠の資料はまだ記録していません。';
+    const TARGET = '機種の指定なし';
+    const norm = x => String(x == null ? '' : x).replace(/\s+/g, ' ').trim();
+    const avg = (s, r) => SALARY[s][r].avg;
+
+    /* a) 配っているファイル。 */
+    ok(!BLOCK.includes(WORD), 'career.html のどこにも「確認中」が無い（本文・属性・カードの材料）');
+    ok(!/data-look="held"|\sdata-lim[=\s>-]/.test(BLOCK), 'career.html に「保留」の印（data-look="held"）と、推定に重ねる上限（data-lim）が無い');
+    ok(!noJsCmt(read('career-card.js')).includes(WORD) && !JSC.includes(WORD), 'カードを描く JS・見せ方の JS は「確認中」の字を持たない（字は全部 HTML から読む）');
+
+    const { page: p, close: c } = await open(`?airline=${FIVE[0]}`);
+    /* b) 年収の額と札の欄を全部拾う（見えていない画面のぶんも）。探す道具は、下でわざと汚して効き目を確かめる。 */
+    const heldAt = () => p.evaluate(WORD => [...document.querySelectorAll('#cr [data-main], #cr [data-main-tag], #cr .cr-row-v, #cr .cr-row-k, #cr .cr-det-v, #cr .cr-det-k')]
+      .filter(e => !e.closest('.crl') && e.textContent.includes(WORD)).map(e => e.className)
+      .concat([...document.querySelectorAll('#cr [data-look="held"]')].map(e => 'data-look ' + e.className)), WORD);
+    const n0 = await p.evaluate(() => ({
+      main: document.querySelectorAll('#cr [data-main]').length,
+      rows: document.querySelectorAll('#cr .cr-row-v').length,
+      det: document.querySelectorAll('#cr .cr-det-v').length,
+    }));
+    const found = await heldAt();
+    ok(n0.main === FIVE.length * ROLES.length && n0.rows === FIVE.length * ROLES.length && n0.det === DEEP.length * ROLES.length && !found.length,
+      `年収の欄 ${n0.main + n0.rows + n0.det}か所（概要・比較・詳細）のどれも「確認中」でない`, `概要${n0.main} 比較${n0.rows} 詳細${n0.det} ／ ${found.join(', ')}`);
+    await p.evaluate(WORD => { const b = document.querySelector('#cr [data-main]'); b.dataset.keep = b.textContent; b.textContent = WORD; }, WORD);
+    const caught = await heldAt();
+    await p.evaluate(() => { const b = document.querySelector('#cr [data-main][data-keep]'); b.textContent = b.dataset.keep; delete b.dataset.keep; });
+    ok(caught.length === 1 && !(await heldAt()).length, 'わざと概要の年収を「確認中」に戻すと、この検査が拾う（このブラウザの中だけ。配っているファイルは触らない）', caught.join(', '));
+
+    /* c) 推定年収の説明 ── 根拠が台帳に在る職位（est.backed）だけ 根拠・算出方法・時点。
+          無い職位は1行だけ（根拠・幅・件数・時点を作らない）。対象は「機種の指定なし」。 */
+    const info = await p.evaluate(() => {
+      const t = el => (el ? el.textContent.replace(/\s+/g, ' ').trim() : null);
+      const rows = dl => (dl ? [...dl.querySelectorAll('.cr-fact')].map(f => [t(f.querySelector('dt')), t(f.querySelector('dd'))]) : null);
+      const notes = {};
+      for (const v of document.querySelectorAll('#cr .cr-view[data-view="airline"]')) {
+        const all = v.querySelectorAll('details.cr-est'), d = all[0];
+        notes[v.dataset.airline] = !d ? null : {
+          n: all.length, sum: t(d.querySelector('summary')), inPub: !!d.closest('.cr-pub'),
+          parts: [...d.querySelectorAll('.cr-est-r')].map(q => ({
+            role: t(q.firstChild), target: t(q.querySelector('span')),
+            rows: rows(q.nextElementSibling && q.nextElementSibling.matches('dl.cr-facts') ? q.nextElementSibling : null),
+          })),
+        };
+      }
+      const det = [...document.querySelectorAll('#cr .cr-view[data-view="detail"]')].map(v => {
+        const f = v.querySelectorAll('.cr-fill');
+        return {
+          slug: v.dataset.airline, d: v.dataset.d, h1: t(v.querySelector('h1')), v: t(v.querySelector('.cr-det-v')),
+          tag: t(v.querySelector('.cr-det-k .cr-tag')), top: t(v.querySelector('.cr-det-top')), fills: f.length,
+          w: f[0] ? f[0].style.getPropertyValue('--w').trim() : '', rows: rows(v.querySelector('dl.cr-facts')),
+          links: [...v.querySelectorAll('.cr-else a')].map(a => [a.getAttribute('href'), t(a)]),
+          pub: v.querySelectorAll('.cr-pub, .cr-fig, .cr-hatch').length,
+        };
+      });
+      return { notes, det };
     });
+    const estRows = (s, r) => {
+      const e = viewOf(s).pay[r].est;
+      return e.backed ? [['根拠', norm(e.basis)], ['算出方法', norm(e.method)], ['時点', norm(e.asOf)]] : [['推定', PLAIN]];
+    };
+    const why = (s, r) => (viewOf(s).pay[r].est.backed ? '根拠・算出方法・時点は台帳どおり' : '根拠の無い推定は1行だけ（根拠・幅・件数・時点を作らない）');
+    for (const s of FIVE) {
+      ok(ROLES.every(([r]) => viewOf(s).pay[r].est.man === avg(s, r)), `${name(s)}: 読み口（pv-airline-view.mjs）の推定は正本の avg と同じ額`,
+        ROLES.map(([r]) => `${viewOf(s).pay[r].est.man}/${avg(s, r)}`).join(' '));
+      if (DEEP.includes(s)) {
+        const mine = info.det.filter(x => x.slug === s);
+        ok(info.notes[s] === null && same(mine.map(x => x.d), ROLES.map(([r]) => `${r}-est`)),
+          `${name(s)}: 推定年収の詳細は職位ごとに1枚（${ROLES.map(([r]) => `d=${r}-est`).join('・')}）。求人の上限だけの画面は持たない`, mine.map(x => x.d).join(','));
+        for (const [i, [r, l]] of ROLES.entries()) {
+          const x = mine[i];
+          if (!x) continue;
+          const other = ROLES.find(([q]) => q !== r);
+          ok(x.h1 === `${name(s)} ${l}の推定年収` && x.v === yen(avg(s, r)) && x.tag === '推定',
+            `${name(s)} ${l}の詳細: 見出しと額（${yen(avg(s, r))}・「推定」の札）`, `「${x.h1}」「${x.v}」「${x.tag}」`);
+          ok(x.fills === 1 && Math.abs(parseFloat(x.w) - avg(s, r) / axisMax * 100) < 0.01 && !/[〜超]|上限|下限|目標/.test(x.top) && x.pub === 0,
+            `${name(s)} ${l}の詳細: 棒は推定の1本だけ（額に比例）・公表額の印も一覧も混ぜない`, `棒${x.fills}本 ${x.w} ／ ${x.top}`);
+          ok(same(x.rows, [['対象', `${l}${TARGET}`], ...estRows(s, r)]), `${name(s)} ${l}の詳細: 対象は「${TARGET}」・${why(s, r)}`, JSON.stringify(x.rows));
+          ok(same(x.links, [[`${PAGE}?airline=${s}&d=${other[0]}-est`, `${other[1]}の推定年収`]]), `${name(s)} ${l}の詳細: もう一方の職位の推定へ行ける`, JSON.stringify(x.links));
+        }
+      } else {
+        const x = info.notes[s];
+        ok(!!x && x.n === 1 && x.sum === '推定年収について' && !x.inPub && same(x.parts.map(q => q.role), ROLES.map(([, l]) => l)) && x.parts.every(q => q.target === TARGET),
+          `${name(s)}: 「推定年収について」は1つ・職位ごと・対象は「${TARGET}」・公表額の一覧の外`, JSON.stringify(x && { n: x.n, sum: x.sum, parts: x.parts.map(q => [q.role, q.target]) }));
+        if (!x) continue;
+        for (const [i, [r, l]] of ROLES.entries()) ok(!!x.parts[i] && same(x.parts[i].rows, estRows(s, r)), `${name(s)} ${l}: ${why(s, r)}`, JSON.stringify(x.parts[i] && x.parts[i].rows));
+      }
+    }
+    const backed = FIVE.flatMap(s => ROLES.filter(([r]) => viewOf(s).pay[r].est.backed).map(([, l]) => `${name(s)} ${l}`));
+    console.log(`    根拠が台帳に在る推定: ${backed.join('・') || 'なし'}`);
+
+    /* d) 無くした住所（求人の上限だけの詳細）は、その会社の概要へ落ち着く。 */
     for (const s of DEEP) {
-      const was = wasOf(s), n0 = was[0], lims = ROLES.map(([r]) => cardFigure(s, r));
-      /* 探す道具そのものが効いているか（効かない道具は、何も見つけないまま緑になる）。 */
-      const must = [`機長 ¥${n0.toLocaleString('en-US')}万`, `推定 ${n0}万円`, `<b data-avg="${n0}">`, String(n0 * 10000), `¥${(n0 * 10000).toLocaleString('en-US')}`, `{"avg":${n0}}`, `{"text":"${n0}"}`];
-      const mustNot = [...lims.map(c => c.yen), 'width="960" height="548"', '確認中', `1${n0.toLocaleString('en-US')}万`, '{"w":0.729,"photoH":406}'];
-      const miss = must.filter(x => !heldLeaks(x, s).length), over = mustNot.filter(x => heldLeaks(x, s).length);
-      ok(was.length >= ROLES.length && !miss.length && !over.length, `${name(s)}: 探す道具が効いている（保留の額 ${was.length}つ・${must.length}とおりの書き方を拾い、上限・寸法は拾わない）`, [...miss.map(x => '拾えない ' + x), ...over.map(x => '拾いすぎ ' + x)].join(' ／ '));
-      ok(lims.every(c => c.up && !was.includes(c.man)), `${name(s)}: 求人の上限は、保留の額のどれとも違う額（取り違えない）`);
+      await go(p, `?airline=${s}&d=cap-max`);
+      ok(await view(p) === `airline:${s}`, `?airline=${s}&d=cap-max（無くした住所）は ${name(s)} の概要を出す`, await view(p));
+      await go(p, `?airline=${s}&d=cap-est`);
+      ok(await view(p) === `detail:${s}`, `?airline=${s}&d=cap-est は推定年収の詳細を出す`, await view(p));
+    }
 
-      const { page: p, close: c } = await open(`?airline=${s}`);
-      const parts = await p.evaluate(s => {
-        const own = [...document.querySelectorAll(`#cr [data-airline="${s}"]`)].filter(e => !e.parentElement.closest(`[data-airline="${s}"]`));
-        const links = [...document.querySelectorAll(`#cr a[href*="airline=${s}"], #cr a[href*="a=${s}"]`)].filter(e => !e.closest(`[data-airline="${s}"]`));
-        const data = document.getElementById('crc-data');
-        return { n: own.length + links.length, views: own.filter(e => e.matches('.cr-view')).map(e => e.dataset.view), html: [...own, ...links].map(e => e.outerHTML), data: data ? data.textContent : '' };
-      }, s);
-      const leaks = [...parts.html, parts.data].flatMap(h => heldLeaks(h, s).map(n => `${n}（${h.slice(0, 70).replace(/\s+/g, ' ')}…）`));
-      ok(parts.views.includes('airline') && parts.views.filter(v => v === 'detail').length === ROLES.length * 2 && parts.views.includes('stay') && parts.data.length > 0,
-        `${name(s)}: 概要・詳細${ROLES.length * 2}枚・就航地・カードの材料を全部読めている（${parts.n}か所）`, parts.views.join(','));
-      ok(!leaks.length, `${name(s)}: 概要・比較・詳細・就航地・カードの材料のどこにも、保留の額が無い`, leaks.slice(0, 4).join(' ／ '));
-      /* わざと戻して、赤くなることを確かめる（このブラウザの中だけ。配っているファイルは触らない）。 */
-      const planted = await p.evaluate((s, n) => {
-        const b = document.querySelector(`#cr .cr-view[data-view="airline"][data-airline="${s}"] [data-main]`);
-        const keep = b.textContent; b.textContent = `¥${n.toLocaleString('en-US')}万`;
-        const h = b.closest('[data-airline]').outerHTML; b.textContent = keep; return h;
-      }, s, n0);
-      ok(heldLeaks(planted, s).length > 0, `${name(s)}: わざと保留の額を概要へ戻すと、この検査が拾う`);
-
-      const other = FIVE.find(x => !DEEP.includes(x));
-      for (const q of [`?view=card&a=${s}&b=${other}`, `?view=card&a=${s}`]) {
+    /* e) 保存するカード ── 本命の数字は推定年収（札も「推定」・棒は額に比例）。
+          公表した上限を載せるなら「〜」と「上限」の字つき（いまは載せていない）。 */
+    for (const s of FIVE) {
+      const other = FIVE[(FIVE.indexOf(s) + 1) % FIVE.length];
+      for (const want of [[s], [s, other]]) {
+        const q = `?view=card&a=${want[0]}${want[1] ? `&b=${want[1]}` : ''}`;
         await go(p, q);
-        const got = await p.waitForFunction(s => { const m = window.PVCareerCard && window.PVCareerCard.model && window.PVCareerCard.model(); return !!(m && m.cards && m.cards.some(c => c.slug === s && c.roles)); }, { timeout: 5000 }, s).then(() => true, () => false);
+        const got = await p.waitForFunction(n => {
+          const m = window.PVCareerCard && window.PVCareerCard.model && window.PVCareerCard.model();
+          return !!(m && m.cards && m.cards.length === n && m.cards.every(k => k.roles));
+        }, { timeout: 5000 }, want.length).then(() => true, () => false);
         ok(got, `${q}: カードの材料が出来る`);
         if (!got) continue;
-        const card = await p.evaluate(s => { const m = window.PVCareerCard.model(); return { n: m.cards.length, mine: m.cards.find(c => c.slug === s), text: document.querySelector('#cr .cr-view:not([hidden])').textContent }; }, s);
-        const hit = [...heldLeaks(JSON.stringify(card.mine), s), ...heldLeaks(card.text, s)];
-        ok(!hit.length, `${q}: カードの材料（保存する画像はここから描く）と画面に、保留の額が無い`, hit.join(', '));
-        for (const [r, l] of ROLES) {
-          const x = card.mine.roles && card.mine.roles[r], lim = cardFigure(s, r);
-          ok(!!x && x.text === '確認中' && x.look === 'held' && x.w == null, `${q}: カードの${l}の推定は「確認中」（数字も棒も無い）`, JSON.stringify(x && { text: x.text, look: x.look, w: x.w }));
-          ok(!!x && !!x.lim && x.lim.text === lim.yen && /上限/.test(`${x.lim.tag}${x.lim.sub}`) && x.lim.w > 0, `${q}: カードの${l}の求人の上限は別枠（${lim.yen}・「上限」の字つき）`, JSON.stringify(x && x.lim));
+        const card = await p.evaluate(() => {
+          const m = window.PVCareerCard.model();
+          return { cards: m.cards.map(k => ({ slug: k.slug, roles: k.roles })), json: JSON.stringify(m), text: document.querySelector('#cr .cr-view:not([hidden])').textContent };
+        });
+        ok(same(card.cards.map(x => x.slug), want) && !card.json.includes(WORD) && !card.text.includes(WORD), `${q}: カードの材料にも画面にも「確認中」が無い`, card.cards.map(x => x.slug).join(','));
+        for (const x of card.cards) for (const [r, l] of ROLES) {
+          const y = x.roles && x.roles[r], a = avg(x.slug, r);
+          ok(!!y && y.text === yen(a) && y.tag === '推定' && y.look !== 'held' && Math.abs(y.w - a / axisMax) < 0.001,
+            `${q}: カードの ${name(x.slug)} ${l} は推定年収 ${yen(a)}（「推定」の札・棒は額に比例）`, JSON.stringify(y && { text: y.text, tag: y.tag, look: y.look, w: y.w }));
+          ok(!!y && (!y.lim || (/^〜/.test(y.lim.text) && /上限/.test(`${y.lim.tag}${y.lim.sub}`))),
+            `${q}: カードの ${name(x.slug)} ${l} に公表した上限を載せるなら「〜」と「上限」の字つき`, JSON.stringify(y && y.lim));
         }
       }
-      await c();
     }
+    await c();
   }
 
+  /* ── ②（続き）会社が公表した額は、一覧の中にだけ ─────────────── */
+  head('会社が公表した額は、一覧の中にだけ在る');
+  {
+    /* 会社が公表した年額（求人の上限・目標年収・下限・乗員全体の平均）は「会社が公表している金額」の一覧にだけ出す。
+       推定の欄・棒・目盛・詳細・家賃・カードの材料へ出さない（出すと、推定と公表額が同じ物差しに乗る）。 */
+    const ests = new Set(FIVE.flatMap(s => ROLES.map(([r]) => SALARY[s][r].avg)));
+    const PUBS = FIVE.flatMap(s => ['cap', 'fo', 'crew'].flatMap(r => figures(s, r).filter(f => !f.training && /(^|_)y(_|$)/.test(f.key))
+      .map(f => ({ s, man: f.man, amount: f.amount, cur: f.cur }))));
+    /* 推定とたまたま同じ額の公表額は探せない（探すと推定そのものを拾う）。在れば下で知らせる。 */
+    const skip = PUBS.filter(f => ests.has(f.man)), seek = PUBS.filter(f => !ests.has(f.man));
+    const num = n => n.toLocaleString('en-US').replace(/,/g, ',?');
+    const leaks = text => seek.filter(f => new RegExp(
+      `(?<![\\d,.])${num(f.man)}\\s*万|[¥￥]\\s*${num(f.man)}(?![\\d,])|(?<![\\d,.])${num(f.man * 10000)}(?![\\d,])`
+      + (f.cur === 'JPY' ? '' : `|${f.cur}\\s*${num(f.amount)}(?![\\d,])`)).test(String(text))).map(f => `${name(f.s)} ${f.man}万`);
+
+    const { page: p, close: c } = await open('?view=compare');
+    const out = await p.evaluate(() => {
+      const cr = document.getElementById('cr'), k = cr.cloneNode(true);
+      k.querySelectorAll('.cr-pub, .crl').forEach(e => e.remove());
+      const data = document.getElementById('crc-data');
+      return {
+        outside: k.outerHTML, inside: [...cr.querySelectorAll('.cr-pub')].map(e => e.outerHTML).join('\n'), data: data ? data.textContent : null,
+        pubs: cr.querySelectorAll('.cr-pub').length, heads: [...new Set([...cr.querySelectorAll('.cr-pub > .cr-h2')].map(e => e.textContent.trim()))],
+        figs: cr.querySelectorAll('.cr-fig').length, figsIn: cr.querySelectorAll('.cr-pub .cr-fig').length,
+        scale: cr.querySelectorAll('.cr-pub :is(.cr-track, .cr-fill, .cr-axis)').length,
+        estIn: cr.querySelectorAll('.cr-pub :is([data-main], .cr-row-v, .cr-det-v, .cr-est)').length,
+      };
+    });
+    const inside = leaks(out.inside), outside = [...leaks(out.outside), ...(out.data ? leaks(out.data) : [])];
+    ok(seek.length >= FIVE.length && inside.length === seek.length, `探す道具が効いている（公表した年額 ${seek.length}件を、一覧の中では全部拾う）`, `拾えたのは ${inside.join(', ')}`);
+    ok(!outside.length, `公表した年額 ${seek.length}件は、一覧の外（推定の欄・棒・詳細・家賃・カードの材料）のどこにも無い`, outside.join(', '));
+    ok(out.pubs === FIVE.length * 2 && same(out.heads, ['会社が公表している金額']) && out.figs > 0 && out.figs === out.figsIn,
+      `一覧は概要と比較に1つずつ（${out.pubs}）・見出しは全部「会社が公表している金額」・額の行（${out.figs}）は一覧の中だけ`, `${out.heads.join(' / ')} ／ 行 ${out.figs}・うち一覧の中 ${out.figsIn}`);
+    ok(out.scale === 0 && out.estIn === 0, '一覧の中に 棒・目盛・推定の欄 を置いていない（公表額を推定と同じ物差しに乗せない）', `棒・目盛 ${out.scale} ／ 推定の欄 ${out.estIn}`);
+    /* わざと公表額を推定の欄へ写して、赤くなることを確かめる（写すのは複製のほう。画面も配っているファイルも触らない）。 */
+    const planted = await p.evaluate(v => {
+      const k = document.getElementById('cr').cloneNode(true);
+      k.querySelectorAll('.cr-pub, .crl').forEach(e => e.remove());
+      k.querySelector('.cr-row-v').textContent = v;
+      return k.outerHTML;
+    }, yen(seek[0].man));
+    ok(leaks(planted).length > 0, 'わざと公表額を推定の欄へ写すと、この検査が拾う');
+    if (skip.length) console.log('    ⚠ 推定と同じ額なので探せない公表額: ' + skip.map(f => `${name(f.s)} ${f.man}万`).join(', '));
+    await c();
+  }
+
+  /* ── ⑪ 家賃 ─────────────────────────────────────────────────── */
+  head('家賃（1か月あたり・街ごとに別の箱）');
+  {
+    /* ★2026-10-06 オーナー決定「家賃は月額で表示・比較し、条件の揃わない街を同じ目盛で競わせない」。
+       比較の画面は、会社ごとに 拠点の街の箱を1つずつ。箱の中に その街の物差し（何の家賃か）・出どころ・時点 を持つ。
+       2つの街を1つの表・1つの目盛に並べない。額は読み口（pv-airline-view.mjs の living）の月額をそのまま。 */
+    const norm = x => String(x == null ? '' : x).replace(/\s+/g, ' ').trim();
+    const cellOf = (L, v) => { const k = rentCell(L.cur, v); return k ? (k.orig ? [norm(k.orig), norm(k.yen)] : [norm(k.yen)]) : null; };
+    const PAIR_Q = ['etihad', 'cathay-pacific'];
+    const { page: p, close: c } = await open(`?view=compare&a=${PAIR_Q[0]}&b=${PAIR_Q[1]}`);
+    const got = await p.evaluate(() => {
+      const t = el => (el ? el.textContent.replace(/\s+/g, ' ').trim() : null);
+      const rows = dl => (dl ? [...dl.querySelectorAll(':scope > div')].map(d => {
+        const parts = [...d.querySelectorAll('dd > *')];
+        return { k: t(d.querySelector('dt')), v: parts.map(t), keep: parts.map(e => e.classList.contains('pv-no-cur')) };
+      }) : []);
+      const sec = document.querySelector('#cr .cr-view[data-view="compare"] .cr-rents');
+      const plain = sec ? sec.cloneNode(true) : null;
+      if (plain) plain.querySelectorAll('details').forEach(e => e.remove());
+      return {
+        secs: document.querySelectorAll('#cr .cr-rents').length, all: document.querySelectorAll('#cr .cr-rentb').length,
+        h2: sec ? t(sec.querySelector('.cr-h2')) : null, text: sec ? t(sec) : '', plain: plain ? t(plain) : '',
+        scale: sec ? sec.querySelectorAll('.cr-track, .cr-fill, .cr-axis, table, .cr-pair, .cr-row').length : -1,
+        boxes: sec ? [...sec.querySelectorAll('.cr-rentb')].map(b => ({
+          slug: b.dataset.airline, shown: b.getClientRects().length > 0, tag: b.tagName,
+          city: t(b.querySelector('.cr-rentb-h span')), measure: t(b.querySelector('.cr-rentb-k .cr-tag')),
+          k: t(b.querySelector('.cr-rentb-k')), pick: t(b.querySelector('.cr-rentb-k small')),
+          dls: b.querySelectorAll('dl.cr-rent').length, rows: rows(b.querySelector('dl.cr-rent')),
+          src: t(b.querySelector('.cr-rentb-s')), when: t(b.querySelector('.cr-rentb-s span')),
+          more: t(b.querySelector('details.cr-more summary')), links: [...b.querySelectorAll('.cr-srcs a')].map(a => a.getAttribute('href')),
+        })) : [],
+        towns: [...document.querySelectorAll('#cr .cr-towns')].map(s => ({
+          slug: s.closest('[data-airline]').dataset.airline, h: t(s.querySelector('.cr-town-h')), tag: t(s.querySelector('.cr-town-h .cr-tag')),
+          scale: s.querySelectorAll('.cr-track, .cr-fill, .cr-axis, table').length, more: t(s.querySelector('details.cr-more summary')),
+          list: [...s.querySelectorAll('.cr-town')].map(li => ({ n: t(li.querySelector('.cr-town-n')), rows: rows(li.querySelector('dl.cr-rent')) })),
+        })),
+      };
+    });
+    ok(got.secs === 1 && got.all === FIVE.length && /1か月あたり/.test(got.h2 || ''), `比較の家賃の節は1つ・箱は会社ごとに1つ（${got.all}）・見出しに「1か月あたり」`, `節${got.secs} 箱${got.all}「${got.h2}」`);
+    ok(same(got.boxes.filter(b => b.shown).map(b => b.slug), PAIR_Q), '見えている箱は、並べている2社のぶんだけ（選んだ順）', got.boxes.filter(b => b.shown).map(b => b.slug).join(','));
+    ok(got.scale === 0, '2つの街を 同じ目盛・同じ表・年収の棒 に並べていない（箱を分ける）', `${got.scale}個`);
+    ok(!/年額|1年あたり|年間|per year/i.test(got.plain), '箱の表に出ている字に 年額・1年あたり が無い（額は月額）', got.plain.match(/.{0,12}(?:年額|1年あたり|年間|per year).{0,12}/i)?.[0]);
+    ok(!/安い|高い|割安|割高|お得|勝ち|負け|勝る|劣る|優位|差額|[\d.]\s*倍|より(?:安|高)/.test(got.text), '家賃の節に 安い・高い・差・倍 の語を書かない（街どうしを競わせない）', got.text.match(/.{0,12}(?:安い|高い|割安|割高|お得|勝ち|負け|勝る|劣る|優位|差額|[\d.]\s*倍|より(?:安|高)).{0,12}/)?.[0]);
+    for (const s of FIVE) {
+      const L = viewOf(s).living, lead = L.rents.filter(r => r.lead), b = got.boxes.filter(x => x.slug === s);
+      ok(L.per === 'month' && lead.length === 1 && b.length === 1 && b[0].tag === 'ARTICLE' && b[0].dls === 1, `${name(s)}: 家賃は月額・箱は1つ・出す地域は台帳の先頭の1つ`, `per=${L.per} 先頭${lead.length} 箱${b.length}`);
+      if (lead.length !== 1 || b.length !== 1) continue;
+      const r = lead[0], x = b[0];
+      const exp = L.cols.map(([k, l]) => { const v = cellOf(L, r.value[k]); return v ? { k: norm(l), v } : null; }).filter(Boolean);
+      ok(exp.length > 0 && same(x.rows.map(o => ({ k: o.k, v: o.v })), exp), `${name(s)}: 家賃の額は台帳の月額どおり（${r.name}・${exp.length}行）`,
+        `${JSON.stringify(x.rows.map(o => [o.k, ...o.v]))} ≠ ${JSON.stringify(exp.map(o => [o.k, ...o.v]))}`);
+      ok(x.rows.every(o => same(o.keep, L.cur === 'JPY' ? [false] : [true, false])), `${name(s)}: ${L.cur === 'JPY' ? '円の額は通貨の切り替えが読める' : '原貨の額は切り替えで動かない・円の額は切り替えが読める'}`, JSON.stringify(x.rows.map(o => o.keep)));
+      ok(x.city === norm(L.city) && x.measure === norm(L.measure) && x.k.includes(norm(r.name)) && (!r.pick || x.pick === norm(r.pick)),
+        `${name(s)}: 箱に その街（${L.city}）・物差し（${L.measure}）・地域（${r.name}） が書いてある`, `「${x.city}」「${x.measure}」「${x.k}」`);
+      ok(x.src.includes(norm(r.src.name)) && x.when === norm(r.when) && x.links.includes(r.src.url) && x.more === '前提と出どころ',
+        `${name(s)}: 箱に 出どころ と 時点（${r.when}） が書いてあり、出どころへ行ける`, `「${x.src}」 ${x.links.join(' ')}`);
+    }
+    /* 暮らしのタブ（深く作った会社）── 1つの街の中の地域を、全部にそろっている間取りだけで並べる。 */
+    ok(same(got.towns.map(x => x.slug), DEEP), `「拠点の街」の節を持つのは深く作った会社だけ（${DEEP.join(', ')}）`, got.towns.map(x => x.slug).join(','));
+    for (const x of got.towns) {
+      const s = x.slug, L = viewOf(s).living;
+      const rooms = L.cols.filter(([k]) => L.rents.every(r => cellOf(L, r.value[k])));
+      const exp = L.rents.map(r => ({ n: norm(r.name), rows: rooms.map(([k, l]) => ({ k: norm(l), v: cellOf(L, r.value[k]) })) }));
+      ok(/1か月あたり/.test(x.h) && x.tag === norm(L.measure) && rooms.length > 0 && rooms.every(([, l]) => x.h.includes(norm(l))) && x.scale === 0,
+        `${name(s)} 暮らし: 家賃の見出しに「1か月あたり」・物差し（${L.measure}）・間取り（${rooms.map(q => q[1]).join('・')}）。目盛も表も無い`, `「${x.h}」`);
+      ok(same(x.list.map(o => ({ n: o.n, rows: o.rows.map(q => ({ k: q.k, v: q.v })) })), exp), `${name(s)} 暮らし: ${exp.length}地域の家賃は台帳の月額どおり`,
+        `${JSON.stringify(x.list.map(o => [o.n, ...o.rows.map(q => q.v.join(' '))]))} ≠ ${JSON.stringify(exp.map(o => [o.n, ...o.rows.map(q => q.v.join(' '))]))}`);
+      ok(x.more === '家賃の前提と出どころ', `${name(s)} 暮らし: 家賃の前提と出どころを開ける`, String(x.more));
+    }
+    await c();
+  }
+
+  /* ── ⑧ 写真とクレジット（画面） ─────────────────────────────── */
   head('写真とクレジット（画面）');
   {
     const { page: p, close: c } = await open('');

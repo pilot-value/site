@@ -6,35 +6,35 @@
  *   node gen-career.mjs --check   書かずに比べるだけ（古ければ 1 で終わる）
  *
  * ★数字を手で書かない。出どころはここに並べたものだけ。
- *     年収の推定        … salary-data.mjs の SALARY
- *     会社が公表した額  … salary-basis.mjs の BASIS（figures() / cardFigure()）
+ *     年収の推定        … pv-airline-view.mjs の viewOf().pay.<職位>.est（正本は salary-data.mjs の SALARY の avg）
+ *     会社が公表した額  … salary-basis.mjs の BASIS（figures()）
+ *     家賃              … pv-airline-view.mjs の viewOf().living（1か月あたり）と rentCell()
  *     写真              … airline-photos.mjs
  *     就航地            … career-facts.mjs の FACTS（出どころつきの台帳）
  *     質問の鍵          … pv-conditions.mjs の QUESTIONS（入口の先。無い鍵なら止まる）
  *     QR                … career-qr.mjs（カード保存の器に、公開ページの住所を行列で置く）
  *   社名は SALARY の ja・色と略号は airlines-meta.js。
  *
- * ★額を出してよいかは、5社とも salary-basis.mjs の判断（cardFigure）に従う。
- *     DEEP の会社（エティハド航空） … 「推定年収」の欄と「求人の上限」の欄を別々に持つ。
- *        推定の欄に額を出すのは、台帳がその職位の推定を出してよいとしているとき（cardFigure が estimate）だけ。
- *        そうでなければ「確認中」── 額も棒も幅も出さない。求人の上限は**別の行・別の見た目**（条件つき）。
- *     ほかの4社                     … 会社ページのカードと同じ決め方。
- *                                     その職位について会社が公表した年額があればそれ・無ければ推定。
- *   ⚠️ DEEP の会社で SALARY の avg / lo / hi を直接読まない（2026-10-04 監査）。台帳が根拠不足で
- *      保留にした額（BASIS の held.was）を、この1枚だけが迂回して出すことになる。
- *      概要・比較・詳細・カードの全部が cell() の答えだけを使う。検査は assert-career.mjs の「保留の額」。
- *   ⚠️ 上限（max_y）を平の額として出さない。「〜」・斜線の棒・「上限」の字の3つが必ず一緒に出る
- *      （札か内訳の名前に「上限」の字が無ければ止まる）。上限を推定の代わりに主表示へ戻さない。
- *   ⚠️ 同じ額を1つの画面に2回出さない（比較のエティハド航空のカードが額を持たないのはそのため。
- *      額はすぐ上の棒に在り、カードはその数字自身の詳細へ行く入口だけを持つ）。
+ * ★大きい額と棒は、5社とも・機長も副操縦士も「推定年収」（2026-10-06 オーナー判断）。
+ *     読み口は会社ページと同じ pv-airline-view.mjs の1か所 ── ここで決め直さない（2つの画面がずれない）。
+ *     年収を「確認中」と出さない。概要・比較・詳細・カードの全部が cell() の答えだけを使う。
+ *   ⚠️ 会社が公表した額（求人の上限・目標年収・下限・乗員全体の平均）を、棒にも大きい額にも入れない。
+ *      置き場は「会社が公表している金額」の一覧だけ（pub()）。誰の額か（内訳の名前）・何の額か（種類）・
+ *      額・出どころを一緒に出す。推定と公表額を同じ目盛に並べない。
+ *   ⚠️ 上限（max_…）を平の額として出さない。「〜」・斜線の印（.cr-hatch）・「上限」の字の3つが必ず一緒に出る
+ *      （種類の名前に「上限」の字が無ければ止まる）。
+ *   ⚠️ 推定と公表額の差を埋めない（エバー航空の副操縦士は 推定 ¥1,590万・会社の公表は 約1,589万円超 のまま）。
+ *   ⚠️ 推定の根拠を作らない。台帳に根拠が記録してある職位（est.backed）だけ 根拠・算出方法・時点 を出し、
+ *      無い職位は1行だけ（EST_PLAIN）。幅・件数・時点を足さない。
+ *
+ * ★家賃は1か月あたり。街どうしを同じ目盛に並べない（比較では、会社ごとの箱に その街の物差し・出どころ・時点 を付ける）。
  *
  * ★主表示には目印を付ける（5社とも）。カード保存はこの DOM の字を読む。
- *     data-main="cap|fo"      額（textContent が画面の額そのまま）。上限なら data-look="max"・「超」なら "over"
- *                             「確認中」なら data-look="held"（額も棒も無い ＝ data-main-bar の要素が無い）
- *     data-main-tag="cap|fo"  札
+ *     data-main="cap|fo"      額（textContent が画面の額そのまま）
+ *     data-main-tag="cap|fo"  札（「推定」）
  *     data-main-bar="cap|fo"  棒（style の --w が共通目盛での長さ）
- *     data-lim="cap|fo"       DEEP の会社の、別の行の求人の上限（data-lim-tag・data-lim-bar も同じ形）
  *   ⚠️ 概要の中にだけ付ける。比較・詳細には付けない（1社の中で1つずつ）。
+ *   ⚠️ 公表額の一覧には付けない（カードの大きい額は推定だけ）。
  *
  * ★生きた欄（.crl）は空で出荷する。数・星・件数をここで書かない（career-live.js がサーバーの答えで埋める）。
  *
@@ -54,7 +54,8 @@ import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { SALARY } from './salary-data.mjs';
-import { BASIS, TIERS, figures, fxNote, manText, cardFigure } from './salary-basis.mjs';
+import { BASIS, TIERS, figures, fxNote } from './salary-basis.mjs';
+import { viewOf, AXIS as VIEW_AXIS, width, rentCell } from './pv-airline-view.mjs';
 import { PHOTOS, primary, needsCredit, src as photoSrc, SMALL_W } from './airline-photos.mjs';
 import { FACTS, atText, introText, valueText } from './career-facts.mjs';
 import { primary as placeShot, needsCredit as placeNeedsCredit, src as placeSrc, SMALL_W as PLACE_SMALL_W } from './place-photos.mjs';
@@ -73,14 +74,13 @@ export const PAIR = ['jal', 'cathay-pacific'];
 export const ROLES = [['cap', '機長'], ['fo', '副操縦士']];
 /* 概要のタブ。住所は top だけ tab= を持たない。 */
 export const TABS = [['top', '概要'], ['work', '勤務・待遇'], ['life', '暮らし・ステイ']];
-/* その数字自身の詳細（d=cap-est など）。est＝推定・max＝求人の上限。 */
-export const KINDS = [['est', '推定年収'], ['max', '求人の上限']];
+/* その数字自身の詳細（d=cap-est・d=fo-est）。在るのは推定だけ ── 公表額は一覧（pub()）が持つ。 */
+export const KINDS = [['est', '推定年収']];
 /* 「会社が公表している金額」に並べる区分。訓練生は入れない（年収の比較ではない）。 */
 const PUB_RANKS = ['cap', 'fo', 'crew'];
 /* 鍵の名前の末尾で決まる言い添え（年収の下限・手当の下限）。 */
 const openEnd = key => (/_over$/.test(key) ? '超' : /_from$/.test(key) ? 'から' : '');
-/* 求人の上限（max_…）は、公表額の一覧でも額の頭に「〜」を付ける（平の額に見せない）。
-   ⚠️ openEnd に混ぜない。あちらは棒の額にも使っていて、棒は cardFigure がもう「〜」を付けている。 */
+/* 求人の上限（max_…）は、額の頭に「〜」を付ける（平の額に見せない）。斜線の印と「上限」の字も一緒に出す。 */
 const upTo = key => (/^max_/.test(key) ? '〜' : '');
 
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -108,95 +108,38 @@ const code = slug => {
   return c;
 };
 const name = slug => SALARY[slug].ja;
-const roleLabel = rank => ROLES.find(r => r[0] === rank)[1];
+
+/* ── 会社ページと同じ読み口（年収の推定・家賃）── 5社ぶんを1回だけ読む ──────────── */
+const VIEW = Object.fromEntries(FIVE.map(s => [s, viewOf(s)]));
 
 /* ── 棒に出す1マス ─────────────────────────────────────────────── */
-/* 数字のすぐ上に職位が出ているので、札の横では頭の職位を落とす（同じ語を2回言わない）。
-   「機長 A320（求人の上限）」→「A320（求人の上限）」／「副操縦士（4年契約）」→「4年契約」。
-   残りが英字だけなら、職位を英語で言い直しただけなので出さない（「副操縦士（First Officer）」→ 空）。 */
-const brief = (group, label) => {
-  if (!group.startsWith(label)) return group;
-  const rest = group.slice(label.length).trim();
-  const m = rest.match(/^（([^（）]*)）$/);
-  const out = m ? m[1] : rest;
-  return /^[A-Za-z ]+$/.test(out) ? '' : out;
-};
-
-/* 会社ページのカードと同じ決め方の1マス（公表した年額があればそれ・無ければ推定）。 */
-function pubCell(slug, rank) {
-  const c = cardFigure(slug, rank);
-  const tier = BASIS[slug]?.[rank]?.tier;
-  if (!c || c.held || !tier || !TIERS[tier]) throw new Error(`${slug}/${rank}: 出せる額が無い（確認中の表示はまだ作っていない）`);
-  if (c.estimate) {
-    const avg = SALARY[slug]?.[rank]?.avg;
-    if (!avg) throw new Error(`${slug}/${rank}: SALARY に推定が無い`);
-    return { man: avg, text: yen(avg), tag: TIERS[tier].ja, sub: '', look: '', fig: null };
-  }
-  /* カードの額がどの行のものかは、万円の値で探している。同じ値の行が2つあると
-     一言と「超」の印を別の行から取ってしまうので、そのときは止まる。 */
-  const hits = figures(slug, rank).filter(x => !x.training && x.man === c.man);
-  if (hits.length > 1) throw new Error(`${slug}/${rank}: カードの額 ${c.man} と同じ値の行が台帳に${hits.length}つある（どれの一言を出すか決められない）`);
-  const f = hits[0];
-  if (!f) throw new Error(`${slug}/${rank}: カードの額 ${c.man} が台帳の figures() に見つからない`);
-  const tag = c.up && !f.group.includes('上限') ? c.kindJa : TIERS[tier].ja;
-  if (c.up && !(tag + f.group).includes('上限')) throw new Error(`${slug}/${rank}: 上限なのに「上限」の字が出ない`);
-  return {
-    man: c.man,
-    text: c.yen + openEnd(f.key),
-    tag, sub: brief(f.group, roleLabel(rank)),
-    look: c.up ? 'max' : openEnd(f.key) === '超' ? 'over' : '',
-    fig: f,
-  };
-}
-
-/* 主表示の1マス。ほかの4社は段1のまま。
-   DEEP の会社は「推定年収」の欄 ── 台帳がその職位の推定を出してよいとしているときだけ額が入る。
-   そうでなければ「確認中」（man が null ＝ 額も棒も幅も無い）。
-   ⚠️ ここで SALARY の avg を無条件に読まない。保留の額（held.was）を出し直すことになる。 */
-export const HELD_TEXT = '確認中';
+/* 主表示の1マス ＝ 推定年収。5社とも・どの職位も同じ決め方（会社ページと同じ読み口）。
+   ⚠️ 会社が公表した額をここへ入れない（置き場は pub() の一覧だけ）。「確認中」を返さない。 */
 export function cell(slug, rank) {
-  if (!DEEP.includes(slug)) return pubCell(slug, rank);
-  const c = cardFigure(slug, rank);
-  if (!c || !c.estimate) return { man: null, text: HELD_TEXT, tag: TIERS.estimate.ja, sub: '', look: 'held', fig: null };
-  const avg = SALARY[slug]?.[rank]?.avg;
-  if (!avg) throw new Error(`${slug}/${rank}: SALARY に推定が無い`);
-  return { man: avg, text: yen(avg), tag: TIERS.estimate.ja, sub: '', look: '', fig: null };
-}
-/* 額を持たないマス（確認中）。 */
-const held = c => c.man == null;
-
-/* 別の行に出す、求人の上限（DEEP の会社だけ）。上限でない額が来たら止まる
-   （平の額を「上限の行」に入れると、3つの印が付かないまま出る）。 */
-export function limit(slug, rank) {
-  const c = pubCell(slug, rank);
-  if (c.look !== 'max' || !c.fig) throw new Error(`${slug}/${rank}: 別の行に出す求人の上限が台帳に無い`);
-  if (c.man === cell(slug, rank).man) throw new Error(`${slug}/${rank}: 推定と上限が同じ額（同じ額を2回出すことになる）`);
-  return c;
+  const e = VIEW[slug]?.pay?.[rank]?.est;
+  if (!e || !(e.man > 0)) throw new Error(`${slug}/${rank}: 推定年収が無い（pv-airline-view.mjs）`);
+  if (e.man !== SALARY[slug]?.[rank]?.avg) throw new Error(`${slug}/${rank}: 推定が SALARY の avg と違う`);
+  if (e.yen !== yen(e.man)) throw new Error(`${slug}/${rank}: 推定の字が標準の円表記ではない ──「${e.yen}」`);
+  return { man: e.man, text: e.yen, tag: TIERS.estimate.ja, sub: '', look: '' };
 }
 
-/* 棒になる額ぜんぶ（主表示と、DEEP の会社の上限）。 */
-const CELLS = FIVE.flatMap(s => ROLES.flatMap(([r]) => [cell(s, r).man, ...(DEEP.includes(s) ? [limit(s, r).man] : [])]))
-  .filter(m => m != null);   /* 確認中のマスは棒を持たない */
-/* 目盛の右端。全部の棒が入る、いちばん近い 1,000万 の倍数。0 から始める。 */
-export const AXIS = Math.ceil(Math.max(...CELLS) / 1000) * 1000;
+/* 目盛の右端。会社ページと同じ目盛（0 から始める）。棒が1本でもはみ出すなら止まる。 */
+export const AXIS = VIEW_AXIS;
+for (const s of FIVE) for (const [r] of ROLES) {
+  if (cell(s, r).man > AXIS) throw new Error(`${s}/${r}: 推定が目盛（${AXIS}）からはみ出す`);
+}
 
-/* 棒の長さ（目盛に対する％・小数1桁）。 */
-const width = man => String(Math.round(man / AXIS * 1000) / 10);
-/* mark は目印（概要の中だけ）。attr は目印の名前 ── 主表示は data-main-…・別の行の上限は data-lim-…。
-   ⚠️ 確認中のマスで呼ばない（棒が無い）。 */
-const fill = (c, extra, mark, attr = 'data-main-bar') => {
-  if (held(c)) throw new Error('確認中のマスに棒を描こうとした');
-  return `<i class="cr-fill${extra ? ' ' + extra : ''}${c.look ? ' is-' + c.look : ''}"${mark ? ` ${attr}="${mark}"` : ''} style="--w:${width(c.man)}%"></i>`;
-};
-/* 札と、その横の一言。別々の箱にしてあるので、狭い幅では一言が丸ごと次の行へ下りる（語の途中で折れない）。 */
-const kline = (c, mark, attr = 'data-main-tag') => `<span class="cr-tag"${mark ? ` ${attr}="${mark}"` : ''}>${esc(c.tag)}</span>${c.sub ? ` <span class="cr-sub">${esc(c.sub)}</span>` : ''}`;
+/* 棒の長さは width()（目盛に対する％。会社ページと同じ関数）。mark は目印（概要の中だけ）。 */
+const fill = (c, extra, mark) => `<i class="cr-fill${extra ? ' ' + extra : ''}"${mark ? ` data-main-bar="${mark}"` : ''} style="--w:${width(c.man)}"></i>`;
+/* 札（「推定」）。 */
+const kline = (c, mark) => `<span class="cr-tag"${mark ? ` data-main-tag="${mark}"` : ''}>${esc(c.tag)}</span>`;
 
 const axis = () => `<div class="cr-axis" aria-hidden="true"><span>0</span><span>${yen(AXIS / 2)}</span><span>${yen(AXIS)}</span></div>`;
 
 /* 概要の1マス（大きい数字）。社名は画面では隠してある（読み上げと check-salary.mjs のため）。 */
 function num(slug, rank, label) {
   const c = cell(slug, rank);
-  return `<div class="cr-num" data-role="${rank}"><span class="cr-vh">${esc(name(slug))}</span><span class="cr-num-r">${label}</span><b class="cr-num-v" data-main="${rank}"${c.look ? ` data-look="${c.look}"` : ''}>${esc(c.text)}</b><span class="cr-num-k">${kline(c, rank)}</span></div>`;
+  return `<div class="cr-num" data-role="${rank}"><span class="cr-vh">${esc(name(slug))}</span><span class="cr-num-r">${label}</span><b class="cr-num-v" data-main="${rank}">${esc(c.text)}</b><span class="cr-num-k">${kline(c, rank)}</span></div>`;
 }
 
 /* 概要の小さい棒。数字は上の2マスが持っているので、ここは形だけ（読み上げない）。 */
@@ -260,7 +203,10 @@ const live = (kind, attrs = {}) => `<div class="crl" data-live="${kind}"${Object
 /* 中身を次に入れる箱（公表されている待遇・拠点の街）。 */
 const box = id => `<div class="cr-box" data-box="${id}"><span class="cr-ph">—</span></div>`;
 
-/* ── 会社が公表している金額（段1の4社） ─────────────────────────── */
+/* ── 会社が公表している金額（5社とも）─────────────────────────────
+   ★推定とは別の情報。1つの額ごとに 誰の額か（内訳の名前）・何の額か（種類）・額・出どころ を出す。
+   ★ここに棒を描かない・目盛に載せない（推定の棒と同じ物差しで比べる額ではない）。
+   ★上限（max_…）は「〜」・斜線の印・「上限」の字の3つが必ず一緒に出る。 */
 function pubGroups(slug) {
   const out = [];
   for (const rank of PUB_RANKS) {
@@ -288,8 +234,12 @@ function pub(slug, tag) {
 
   const blocks = groups.map(({ tier, g, figs }) => {
     const rows = figs.map(f => {
+      const up = upTo(f.key);
+      if (up && !f.kind.includes('上限')) throw new Error(`${slug}: 上限なのに種類の名前に「上限」の字が無い ──「${f.kind}」`);
+      if (!up && /上限/.test(f.kind)) throw new Error(`${slug}: 「上限」と名乗る額に「〜」が付かない ──「${f.kind}」`);
+      const hatch = up ? '<i class="cr-hatch" aria-hidden="true"></i>' : '';
       const orig = f.cur === 'JPY' ? '' : ` <span class="cr-orig pv-no-cur">${upTo(f.key)}${f.cur} ${f.amount.toLocaleString('en-US')}${openEnd(f.key) ? ' ' + openEnd(f.key) : ''}</span>`;
-      return `<div class="cr-fig"><dt>${esc(f.kind)}</dt><dd><b>${esc(upTo(f.key) + f.text + openEnd(f.key))}</b>${orig}</dd></div>`;
+      return `<div class="cr-fig${up ? ' is-max' : ''}"><dt>${hatch}${esc(f.kind)}</dt><dd><b>${esc(up + f.text + openEnd(f.key))}</b>${orig}</dd></div>`;
     }).join('\n');
     const leave = g.leave ? `\n<p class="cr-leave">${esc(g.leave)}</p>` : '';
     const req = g.req ? `\n<details class="cr-more"><summary>応募条件</summary><p>${esc(g.req)}</p></details>` : '';
@@ -316,14 +266,28 @@ ${blocks}${basis}
 </div>`;
 }
 
-/* DEEP の会社は、比較のカードに額を置かない（すぐ上の棒が持っている）。その数字自身の詳細へ行く入口だけ。 */
-function pubLinks(slug, tag) {
-  return `<div class="cr-pub">
-<${tag} class="cr-h2">会社が公表している金額</${tag}>
-<ul class="cr-lims">
-${ROLES.map(([r]) => `<li><a class="cr-link" href="${href.detail(slug, r + '-max')}" data-go><span class="cr-tag">${esc(limit(slug, r).tag)}</span>${esc(limit(slug, r).fig.group)}${IC.go}</a></li>`).join('\n')}
-</ul>
-</div>`;
+/* ── 推定年収の説明 ─────────────────────────────────────────────
+   ★台帳に根拠が記録してある職位（est.backed）だけ 根拠・算出方法・時点 を出す。
+     無い職位は EST_PLAIN の1行だけ ── 根拠・幅・件数・時点をここで作らない。
+   ★推定は機種ごとの額ではない（対象は「機種の指定なし」）。 */
+export const EST_PLAIN = '当サイトの推定（公開情報からの推計）。根拠の資料はまだ記録していません。';
+export const EST_TARGET = '機種の指定なし';
+function estRows(slug, rank) {
+  const e = VIEW[slug].pay[rank].est;
+  if (!e.backed) return [['推定', esc(EST_PLAIN)]];
+  for (const k of ['basis', 'method', 'asOf']) if (!e[k]) throw new Error(`${slug}/${rank}: 根拠つきの推定なのに ${k} が空（pv-airline-view.mjs）`);
+  return [['根拠', esc(e.basis)], ['算出方法', esc(e.method)], ['時点', esc(e.asOf)]];
+}
+const facts = rows => `<dl class="cr-facts">
+${rows.map(([k, v]) => `<div class="cr-fact"><dt>${k}</dt><dd>${v}</dd></div>`).join('\n')}
+</dl>`;
+/* 概要の中の折り畳み（詳細の画面を持たない会社）。職位ごとに1かたまり。 */
+function estNote(slug) {
+  return `<details class="cr-more cr-est">
+<summary>推定年収について</summary>
+${ROLES.map(([r, l]) => `<p class="cr-est-r">${l}<span>${EST_TARGET}</span></p>
+${facts(estRows(slug, r))}`).join('\n')}
+</details>`;
 }
 
 /* ── 入口 ───────────────────────────────────────────────────────── */
@@ -373,6 +337,7 @@ ${ROLES.map(([r, l]) => num(slug, r, l)).join('\n')}
 </div>
 ${mini(slug)}
 <p class="cr-tax">${esc(BASIS[slug].tax)}</p>
+${estNote(slug)}
 </div>
 </div>
 ${pub(slug, 'h2')}
@@ -382,16 +347,12 @@ ${credits([[slug, shot(slug)]], false)}
 }
 
 /* ── 概要（DEEP の会社）── 写真 → タブ → パネル ───────────────── */
-/* 額と棒の1行。行ぜんたいが、その数字自身の詳細への入口（数字も棒も同じ先へ行く）。
-   推定＝会社の色の塗り・大きい字／上限＝斜線・小さい字。上限は推定と同じ大きさにしない。 */
-function bar(slug, rank, label, kind) {
-  const est = kind === 'est';
-  const c = est ? cell(slug, rank) : limit(slug, rank);
-  const pre = est ? 'data-main' : 'data-lim';
-  /* 確認中の行は棒を持たない（額の無い棒を描かない）。 */
-  const track = held(c) ? '' : `\n<span class="cr-track" aria-hidden="true">${fill(c, '', rank, pre + '-bar')}</span>`;
-  return `<a class="cr-bar cr-bar-${kind}${held(c) ? ' is-held' : ''}" data-role="${rank}" href="${href.detail(slug, `${rank}-${kind}`)}" data-go>
-<span class="cr-bar-h"><span class="cr-vh">${esc(name(slug))}</span><span class="cr-bar-r">${label}</span><b class="cr-bar-v" ${pre}="${rank}"${c.look ? ` data-look="${c.look}"` : ''}>${esc(c.text)}</b><span class="cr-bar-k">${kline(c, rank, pre + '-tag')}</span>${IC.next}</span>${track}
+/* 額と棒の1行（推定年収）。行ぜんたいが、その数字自身の詳細への入口（数字も棒も同じ先へ行く）。 */
+function bar(slug, rank, label) {
+  const c = cell(slug, rank);
+  return `<a class="cr-bar cr-bar-est" data-role="${rank}" href="${href.detail(slug, `${rank}-est`)}" data-go>
+<span class="cr-bar-h"><span class="cr-vh">${esc(name(slug))}</span><span class="cr-bar-r">${label}</span><b class="cr-bar-v" data-main="${rank}">${esc(c.text)}</b><span class="cr-bar-k">${kline(c, rank)}</span>${IC.next}</span>
+<span class="cr-track" aria-hidden="true">${fill(c, '', rank)}</span>
 </a>`;
 }
 
@@ -578,39 +539,92 @@ function placeCredits(items) {
   return `<p class="cr-credits">写真${same ? `（${esc(same)}）` : ''} ${need.map(([label, p]) => `<span class="cr-credit">${label ? esc(label) + ' ' : ''}<a href="${esc(p.source)}" target="_blank" rel="noopener">${esc(p.author)}</a>／<a href="${esc(p.licence_url)}" target="_blank" rel="noopener">${esc(p.licence)}</a>${same ? '' : `（${esc(p.changes)}）`}</span>`).join(' ')}</p>`;
 }
 
-/* 拠点の街（住む地域と、募集家賃の平均）。額は元の通貨が正本・円は比較用の換算（為替は fx-rates.mjs の1か所）。
-   ★4地域を横に比べられるのは、全部にそろっている間取りだけ（台帳から機械で選ぶ）。 */
-const ROOMS = [['studio', 'スタジオ'], ['bed1', '1ベッドルーム'], ['bed2', '2ベッドルーム'], ['bed3', '3ベッドルーム']];
+/* ── 家賃（1か月あたり）── 読み口は会社ページと同じ viewOf().living と rentCell() ──────────
+   ★額は元の通貨が正本・円は比較用の換算。台帳が1年あたりの街は、読み口がもう12で割っている
+     （その断りは台帳の per_month の1文。ここで割り算をしない）。
+   ★街どうしを同じ目盛に並べない。棒も表も作らない ── 街ごとに 物差し（何の家賃か）・出どころ・時点 を付ける。 */
+function living(slug) {
+  const L = VIEW[slug].living;
+  if (!L?.rents?.length) throw new Error(`${slug}: 家賃が台帳に無い（pv-airline-view.mjs）`);
+  if (L.per !== 'month') throw new Error(`${slug}: 家賃が1か月あたりではない（${L.per}）`);
+  if (!L.measure || !L.city) throw new Error(`${slug}: 家賃の物差し・街の名前が無い`);
+  for (const r of L.rents) if (!r.name || !r.when || !r.src?.url || !r.src?.name) throw new Error(`${slug}: 家賃 ${r.key} に名前・時点・出どころのどれかが無い`);
+  return L;
+}
+/* 家賃の1マス。元の通貨（円の街は無い）と、円の額。 */
+function rentRow(L, r, [k, l]) {
+  const c = rentCell(L.cur, r.value[k]);
+  if (!c) return '';
+  return `<div><dt>${esc(l)}</dt><dd>${c.orig ? `<b class="pv-no-cur">${esc(c.orig)}</b><span>${esc(c.yen)}</span>` : `<b>${esc(c.yen)}</b>`}</dd></div>`;
+}
+/* 前提と出どころ。台帳の前提の鍵は、出し方の決まっているものだけ（知らない鍵が増えたら止まる）。 */
+const RENT_BASIS = ['what', 'period', 'caveat', 'per_month', 'currency', 'cols'];
+function rentBasis(slug, L, rents) {
+  for (const b of L.basis || []) if (!RENT_BASIS.includes(b.key)) throw new Error(`${slug}: 家賃の前提 ${b.key} の出し方が決まっていない`);
+  const by = k => (L.basis || []).find(b => b.key === k)?.value || '';
+  const lines = [];
+  if (by('what')) lines.push(by('what') + (by('period') ? `（${by('period')}）` : ''));
+  else for (const r of rents) if (r.cond && !lines.includes(r.cond)) lines.push(r.cond);
+  if (by('caveat')) lines.push(by('caveat'));
+  if (by('per_month')) lines.push(by('per_month'));
+  if (!lines.length) throw new Error(`${slug}: 家賃の前提が台帳に1つも無い`);
+  const srcs = [];
+  for (const r of rents) if (!srcs.some(o => o.url === r.src.url)) srcs.push({ url: r.src.url, name: r.src.name, when: r.when });
+  return `${lines.map(t => `<p>${esc(t)}</p>`).join('\n')}${L.cur === 'JPY' ? '' : `
+<p class="cr-fx pv-no-cur">${esc(fxNote(L.cur))}</p>`}
+<ul class="cr-srcs pv-no-cur">
+${srcs.map(o => `<li><a href="${esc(o.url)}" target="_blank" rel="noopener">${esc(o.name)}</a><span>${esc(o.when)}</span></li>`).join('\n')}
+</ul>`;
+}
+
+/* 拠点の街（暮らしのタブ）。地域を横に見られるのは、全部の地域にそろっている間取りだけ（台帳から機械で選ぶ）。 */
 function town(slug) {
-  const F = FACTS[slug], L = F.living;
-  if (!L?.rents?.length) return '';
-  const rooms = ROOMS.filter(([k]) => L.rents.every(r => typeof r.value[k] === 'number'));
-  if (!rooms.length) throw new Error(`${slug}: 全部の地域にそろっている間取りが無い（横に比べられない）`);
-  const cur = L.rents[0].cur;
-  if (L.rents.some(r => r.cur !== cur || r.per !== 'year' || r.at !== L.rents[0].at)) throw new Error(`${slug}: 家賃の通貨・単位・時点がそろっていない`);
+  const F = FACTS[slug], L = living(slug);
+  const rooms = L.cols.filter(([k]) => L.rents.every(r => rentCell(L.cur, r.value[k])));
+  if (!rooms.length) throw new Error(`${slug}: 全部の地域にそろっている間取りが無い`);
   const shots = L.rents.map(r => [r, placeShot(r.key)]);
-  const basis = k => { const b = L.rent_basis.find(x => x.key === k); if (!b) throw new Error(`${slug}: 家賃の前提 ${k} が台帳に無い`); return b; };
   return `<div class="cr-sec cr-towns">
 <h2 class="cr-h2">拠点の街</h2>
 <p class="cr-town-base pv-no-cur">${esc(F.base.city_ja)}<span class="cr-stay-c">${esc(F.base.iata)}</span><span class="cr-town-ap">${esc(valueText(F.base))}</span></p>
-<h3 class="cr-town-h">家賃（${rooms.map(r => r[1]).join('・')}・1年あたり）</h3>
+<h3 class="cr-town-h">家賃（${rooms.map(r => esc(r[1])).join('・')}・1か月あたり）<span class="cr-tag">${esc(L.measure)}</span></h3>
 <ul class="cr-town-l">
 ${shots.map(([r, p]) => `<li class="cr-town">
 ${p ? `<span class="cr-town-p">${placeImg(p, '(min-width: 700px) 240px, 46vw')}</span>` : ''}
-<span class="cr-town-n">${esc(r.ja)}</span>
+<span class="cr-town-n">${esc(r.name)}</span>
 <dl class="cr-rent">
-${rooms.map(([k, l]) => `<div><dt>${l}</dt><dd><b class="pv-no-cur">${cur} ${r.value[k].toLocaleString('en-US')}</b><span>${esc(manText(cur, r.value[k]))}</span></dd></div>`).join('\n')}
+${rooms.map(c => rentRow(L, r, c)).join('\n')}
 </dl>
 </li>`).join('\n')}
 </ul>
 <details class="cr-more">
 <summary>家賃の前提と出どころ</summary>
-<p>${esc(basis('what').value)}（${esc(basis('period').value)}）</p>
-<p class="cr-fx pv-no-cur">${esc(fxNote(cur))}</p>
-${srcList(L.rents)}
+${rentBasis(slug, L, L.rents)}
 </details>
-${placeCredits(shots.filter(([, p]) => p).map(([r, p]) => [r.ja, p]))}
+${placeCredits(shots.filter(([, p]) => p).map(([r, p]) => [r.name, p]))}
 </div>`;
+}
+
+/* 比較の中の、1社ぶんの家賃の箱。その会社の拠点の街の、台帳がいちばん先に挙げる地域（lead）だけ。
+   ⚠️ 2つの街を1つの表・1つの目盛に並べない（物差しが街ごとに違う）。箱の中に その街の物差し・出どころ・時点 を持つ。 */
+function rentBox(slug, shown) {
+  const L = living(slug);
+  const lead = L.rents.filter(r => r.lead);
+  if (lead.length !== 1) throw new Error(`${slug}: 家賃の先頭の地域が${lead.length}つ（1つに決まらない）`);
+  const r = lead[0];
+  const rows = L.cols.map(c => rentRow(L, r, c)).filter(Boolean);
+  if (!rows.length) throw new Error(`${slug}: 先頭の地域に家賃が1つも無い`);
+  return `<article class="cr-rentb" data-airline="${slug}" style="--cr-co:${color(slug)}"${shown ? '' : ' hidden'}>
+<h3 class="cr-rentb-h"><i class="cr-dot" aria-hidden="true"></i>${esc(name(slug))}<span>${esc(L.city)}</span></h3>
+<p class="cr-rentb-k"><span class="cr-tag">${esc(L.measure)}</span> ${esc(r.name)}${r.pick ? `<small>${esc(r.pick)}</small>` : ''}</p>
+<dl class="cr-rent cr-rentb-l">
+${rows.join('\n')}
+</dl>
+<p class="cr-rentb-s pv-no-cur">${esc(r.src.name)}<span>${esc(r.when)}</span></p>
+<details class="cr-more">
+<summary>前提と出どころ</summary>
+${rentBasis(slug, L, [r])}
+</details>
+</article>`;
 }
 
 function deep(slug) {
@@ -618,12 +632,12 @@ function deep(slug) {
 <div class="cr-pay cr-pay-deep">
 <h2 class="cr-pay-h">年収</h2>
 <div class="cr-bars">
-${KINDS.flatMap(([k]) => ROLES.map(([r, l]) => bar(slug, r, l, k))).join('\n')}
+${ROLES.map(([r, l]) => bar(slug, r, l)).join('\n')}
 ${axis()}
 </div>
-<p class="cr-avg">乗員全体の公表平均<span>公表なし</span></p>
 <p class="cr-tax">${esc(BASIS[slug].tax)}</p>
 </div>
+${pub(slug, 'h2')}
 ${org(slug)}
 <div class="cr-sec">
 <h2 class="cr-h2">口コミ</h2>
@@ -685,90 +699,21 @@ ${credits([[slug, shot(slug)]], false)}
 </section>`;
 }
 
-/* ── その数字自身の詳細（d=cap-est など）── 対象・内訳・算出方法・出典・時点 ── */
-/* 推定の時点。年収の台帳は1社ごとの時点を持っていない ── 在るのは台帳ぜんたいの頭の1行だけ。 */
-const SALARY_AT = (() => {
-  const m = fs.readFileSync(path.join(ROOT, 'salary-data.mjs'), 'utf8').match(/出典・調査メモは (\d{4})-(\d{2}) 時点/);
-  if (!m) throw new Error('salary-data.mjs の頭に「出典・調査メモは YYYY-MM 時点」が無い（推定の時点を出せない）');
-  return `${m[1]}年${Number(m[2])}月`;
-})();
-
-/* 台帳の注記を、詳細のどの欄に出すか。どれにも当たらない注記が増えたら止まる（黙って落とさない）。
-   ⚠️ req は応募資格の話（飛行時間の数え方）。年収の前提として出さない ── 応募条件の中にだけ置く。 */
-const NOTE_KIND = [['calc', /最大（up to）/], ['parts', /^内訳は/], ['parts', /含まれていません/], ['req', /換算です/]];
-function notesOf(slug) {
-  const out = { calc: [], parts: [], req: [] };
-  for (const n of BASIS[slug].notes || []) {
-    const hit = NOTE_KIND.find(([, re]) => re.test(n));
-    if (!hit) throw new Error(`${slug}: 台帳の注記をどの欄に出すか決まっていない ──「${n}」`);
-    out[hit[0]].push(n);
-  }
-  return out;
-}
-/* その職位の求人（出どころ）。台帳は職位を持たないので、求人の題名で探す。1つに決まらなければ止まる。 */
-const SRC_ROLE = { cap: /Captain/i, fo: /First Officer/i };
-function postingOf(slug, rank) {
-  const hits = (BASIS[slug].src || []).filter(s => !s.secondary && SRC_ROLE[rank].test(s.name));
-  if (hits.length !== 1) throw new Error(`${slug}/${rank}: 求人の出どころが${hits.length}つ（1つに決まらない）`);
-  return hits[0];
-}
-
-function detail(slug, rank, label, kind) {
-  const est = kind === 'est';
-  const c = est ? cell(slug, rank) : limit(slug, rank);
-  const S = SALARY[slug][rank];
+/* ── その数字自身の詳細（d=cap-est・d=fo-est）── 推定年収の 対象・根拠（在れば）── */
+function detail(slug, rank, label) {
+  const c = cell(slug, rank);
   const hid = `<span class="cr-vh">${esc(name(slug))}</span><span class="cr-vh">${label}</span>`;
-  let rows, orig = '';
-  if (est && held(c)) {
-    /* 確認中。額も幅も時点も出さない（台帳が保留にした額をここで言い直さない）。 */
-    rows = [
-      ['対象', `${label}（全機種）<small>機種別・年次別の値はありません</small>`],
-      ['推定', '根拠になる資料がそろっていないため、額を出していません'],
-    ];
-  } else if (est) {
-    if (!(S.lo < S.avg && S.avg < S.hi)) throw new Error(`${slug}/${rank}: 推定の幅が額を挟んでいない`);
-    rows = [
-      ['対象', `${label}（全機種）<small>機種別・年次別の値はありません</small>`],
-      ['幅', `${hid}${yen(S.lo)}〜${yen(S.hi)}`],
-      ['内訳', '記録なし'],
-      ['算出方法', `公開情報からの推計です。${esc(name(slug))}が公表した金額ではありません。<small>計算式の記録はありません</small>`],
-      ['出典', '個別の記録なし'],
-      ['時点', `${SALARY_AT}<small>年収の台帳全体の時点</small>`],
-    ];
-  } else {
-    const f = c.fig;
-    const g = BASIS[slug][rank].groups.find(x => x.name === f.group);
-    if (!g) throw new Error(`${slug}/${rank}: 上限の内訳が台帳に無い`);
-    if (f.cur === 'JPY') throw new Error(`${slug}/${rank}: 元の通貨が円（換算の説明が要らない形はまだ作っていない）`);
-    const N = notesOf(slug);
-    if (!N.calc.length || !N.parts.length) throw new Error(`${slug}: 上限の前提（算出方法・内訳）が台帳に無い`);
-    const s = postingOf(slug, rank);
-    /* 職位の名前で終わる注記（…（機長）。）は、その職位の応募条件にだけ出す。 */
-    const reqNotes = N.req.filter(n => !ROLES.some(([, l]) => n.includes(`（${l}）`)) || n.includes(`（${label}）`));
-    const req = g.req || reqNotes.length
-      ? `<details class="cr-more"><summary>応募条件</summary>${g.req ? `<p>${esc(g.req)}</p>` : ''}${reqNotes.map(n => `<p>${esc(n)}</p>`).join('')}</details>` : '';
-    orig = ` <span class="cr-orig pv-no-cur">${upTo(f.key)}${f.cur} ${f.amount.toLocaleString('en-US')}</span>`;
-    rows = [
-      ['対象', `${esc(g.name)}${req}`],
-      ['内訳', `<ul class="cr-notes">\n${N.parts.map(n => `<li>${esc(n)}</li>`).join('\n')}\n<li>項目ごとの額：公表なし</li>\n</ul>`],
-      ['算出方法', `<ul class="cr-notes">\n${N.calc.map(n => `<li>${esc(n)}</li>`).join('\n')}\n</ul>\n<p class="cr-fx pv-no-cur">${esc(fxNote(f.cur))}</p>`],
-      ['出典', `<ul class="cr-srcs pv-no-cur">\n${srcRow(s)}\n</ul>`],
-      ['時点', `${esc(s.as_of)}<small>確認日：${esc(s.accessed)}</small>`],
-    ];
-  }
-  const other = KINDS.find(([k]) => k !== kind);
-  return `<section class="cr-view cr-det" data-view="detail" data-airline="${slug}" data-d="${rank}-${kind}" style="--cr-co:${color(slug)}" hidden>
+  const other = ROLES.find(([r]) => r !== rank);
+  return `<section class="cr-view cr-det" data-view="detail" data-airline="${slug}" data-d="${rank}-est" style="--cr-co:${color(slug)}" hidden>
 <a class="cr-back" href="${href.airline(slug)}" data-go>${IC.back}${esc(name(slug))}</a>
-<h1 class="cr-h1 cr-det-h" tabindex="-1"><span class="cr-vh">${esc(name(slug))} </span>${label}の${KINDS.find(([k]) => k === kind)[1]}</h1>
-<div class="cr-det-top cr-det-${kind}">
-<p class="cr-det-n">${hid}<b class="cr-det-v"${c.look ? ` data-look="${c.look}"` : ''}>${esc(c.text)}</b>${orig} <span class="cr-det-k">${kline(c)}</span></p>
-${held(c) ? '' : `<div class="cr-track" aria-hidden="true">${fill(c)}</div>
+<h1 class="cr-h1 cr-det-h" tabindex="-1"><span class="cr-vh">${esc(name(slug))} </span>${label}の${KINDS[0][1]}</h1>
+<div class="cr-det-top cr-det-est">
+<p class="cr-det-n">${hid}<b class="cr-det-v">${esc(c.text)}</b> <span class="cr-det-k">${kline(c)}</span></p>
+<div class="cr-track" aria-hidden="true">${fill(c)}</div>
 ${axis()}
-`}</div>
-<dl class="cr-facts">
-${rows.map(([k, v]) => `<div class="cr-fact"><dt>${k}</dt><dd>${v}</dd></div>`).join('\n')}
-</dl>
-<p class="cr-else"><a class="cr-link" href="${href.detail(slug, `${rank}-${other[0]}`)}" data-go>${label}の${other[1]}${IC.go}</a></p>
+</div>
+${facts([['対象', `${label}<small>${EST_TARGET}</small>`], ...estRows(slug, rank)])}
+<p class="cr-else"><a class="cr-link" href="${href.detail(slug, `${other[0]}-est`)}" data-go>${other[1]}の${KINDS[0][1]}${IC.go}</a></p>
 </section>`;
 }
 
@@ -793,26 +738,18 @@ ${p ? placeCredits([['', p]]) : ''}
 }
 
 /* ── 比較 ───────────────────────────────────────────────────────── */
-/* 比較の1行。職位は見出しが持っているので、行の中では隠してある。
-   DEEP の会社は行ぜんたいがその数字自身の詳細への入口で、すぐ下に上限の行がもう1本付く。 */
+/* 比較の1行（推定年収どうし・同じ職位・同じ目盛）。職位は見出しが持っているので、行の中では隠してある。
+   DEEP の会社は行ぜんたいがその数字自身の詳細への入口。
+   ⚠️ 会社が公表した額の行をここへ足さない（下の「会社が公表している金額」の箱が持つ）。 */
 function row(slug, rank, label, shown) {
   const c = cell(slug, rank);
   const isDeep = DEEP.includes(slug);
   const attrs = `data-airline="${slug}" style="--cr-co:${color(slug)}"${shown ? '' : ' hidden'}`;
-  /* 確認中の行は棒を持たない。 */
-  const main = `<${isDeep ? `a class="cr-row${held(c) ? ' is-held' : ''}" href="${href.detail(slug, rank + '-est')}" data-go` : 'div class="cr-row"'} ${attrs}>
-<div class="cr-row-h"><span class="cr-row-co"><i class="cr-dot" aria-hidden="true"></i>${esc(name(slug))}</span><span class="cr-vh">${label}</span><b class="cr-row-v"${held(c) ? ' data-look="held"' : ''}>${esc(c.text)}</b></div>
-<div class="cr-row-k">${kline(c)}</div>${held(c) ? '' : `
-<div class="cr-track" aria-hidden="true">${fill(c)}</div>`}
+  return `<${isDeep ? `a class="cr-row" href="${href.detail(slug, rank + '-est')}" data-go` : 'div class="cr-row"'} ${attrs}>
+<div class="cr-row-h"><span class="cr-row-co"><i class="cr-dot" aria-hidden="true"></i>${esc(name(slug))}</span><span class="cr-vh">${label}</span><b class="cr-row-v">${esc(c.text)}</b></div>
+<div class="cr-row-k">${kline(c)}</div>
+<div class="cr-track" aria-hidden="true">${fill(c)}</div>
 </${isDeep ? 'a' : 'div'}>`;
-  if (!isDeep) return main;
-  const m = limit(slug, rank);
-  return `${main}
-<a class="cr-row cr-row-lim" href="${href.detail(slug, rank + '-max')}" data-go ${attrs}>
-<div class="cr-row-h"><span class="cr-vh">${esc(name(slug))}</span><span class="cr-vh">${label}</span><b class="cr-row-v" data-look="${m.look}">${esc(m.text)}</b></div>
-<div class="cr-row-k">${kline(m)}</div>
-<div class="cr-track" aria-hidden="true">${fill(m)}</div>
-</a>`;
 }
 
 function compare() {
@@ -847,6 +784,18 @@ ${axis()}
 ${FIVE.map(s => `<p class="cr-tax" data-airline="${s}" style="--cr-co:${color(s)}"${on(s) ? '' : ' hidden'}><i class="cr-dot" aria-hidden="true"></i>${esc(name(s))}<span>${esc(BASIS[s].tax)}</span></p>`).join('\n')}
 </div>
 </div>
+<div class="cr-cards">
+${FIVE.map(s => `<div class="cr-card" data-airline="${s}" style="--cr-co:${color(s)}"${on(s) ? '' : ' hidden'}>
+<h2 class="cr-card-h"><a class="cr-card-n" href="${href.airline(s)}" data-go>${esc(name(s))}${IC.go}</a></h2>
+${pub(s, 'h3')}
+</div>`).join('\n')}
+</div>
+<div class="cr-sec cr-rents">
+<h2 class="cr-h2">拠点の街の家賃<span class="cr-h2-s">1か月あたり</span></h2>
+<div class="cr-rentbs">
+${FIVE.map(s => rentBox(s, on(s))).join('\n')}
+</div>
+</div>
 <div class="cr-lives">
 <div class="cr-sec">
 <h2 class="cr-h2">月の働き方</h2>
@@ -860,12 +809,6 @@ ${live('cmp-facts')}
 <h2 class="cr-h2">口コミ</h2>
 ${live('cmp-stars')}
 </div>
-</div>
-<div class="cr-cards">
-${FIVE.map(s => `<div class="cr-card" data-airline="${s}" style="--cr-co:${color(s)}"${on(s) ? '' : ' hidden'}>
-<h2 class="cr-card-h"><a class="cr-card-n" href="${href.airline(s)}" data-go>${esc(name(s))}${IC.go}</a></h2>
-${DEEP.includes(s) ? pubLinks(s, 'h3') : pub(s, 'h3')}
-</div>`).join('\n')}
 </div>
 <p class="cr-else cr-cmp-card"><a class="cr-link" id="cr-to-card" href="${href.card(PAIR[0], PAIR[1])}" data-go>カードを保存${IC.go}</a></p>
 ${credits(FIVE.map(s => [s, shot(s)]), true, PAIR)}
@@ -909,7 +852,7 @@ export function build() {
   return `<div class="cr" id="cr" data-a="${PAIR[0]}" data-b="${PAIR[1]}" style="--cr-div:${AXIS / 1000}">
 ${home()}
 ${FIVE.map(overview).join('\n')}
-${DEEP.flatMap(s => ROLES.flatMap(([r, l]) => KINDS.map(([k]) => detail(s, r, l, k)))).join('\n')}
+${DEEP.flatMap(s => ROLES.map(([r, l]) => detail(s, r, l))).join('\n')}
 ${DEEP.flatMap(s => destinations(s).map(d => stay(s, d))).join('\n')}
 ${compare()}
 ${card()}
