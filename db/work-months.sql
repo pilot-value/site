@@ -37,7 +37,11 @@
 --        防いでいる。ここは逆で、給与の行と突き合わせるためにそろえてある。
 --  6. 表は完全に閉じる。ポリシーを1つも作らない＝ anon も authenticated も
 --     直接は1行も読めない・書けない。出入口は security definer の関数だけ。
---  7. 外へ出す数字は pv_work_month_stats の幅（25%点〜75%点）だけ。
+--  7. 外へ出す数字は幅（25%点〜75%点）だけ。口は2つ ── 月を指して読む pv_work_month_stats と、
+--     会社ページが読む pv_work_view（直近12か月をまとめた幅）。
+--       ・★読めるのは**給与の鍵が生きている人だけ**（2026-10-07 オーナー指定
+--         「他人の勤務回答はログイン＋給与提出資格」）。ほかの人へは数字を1つも返さない
+--         （ぼかして隠すのではなく、送らない）。立場を決めるのは pv_work_level の1か所。
 --       ・項目ごとに、答えた人が3人以上のときだけ。届かない項目は null。
 --       ・平均も中央値も人数も返さない。時間は5刻み・日数と泊数は1刻みに丸める。
 --       ・3人に届かない月は、誰も出していない月と**同じ返事**になる（在る／無いも出さない）。
@@ -65,6 +69,9 @@ begin
   if to_regclass('public.pay_hidden') is null
      or to_regprocedure('public.pv_airline_resolve(text)') is null then
     raise exception '先に db/pay-rows.sql を実行してください（pay_hidden / pv_airline_resolve が無い）';
+  end if;
+  if to_regprocedure('public.pv_is_operator()') is null then
+    raise exception '先に db/pay-rows.sql を実行してください（pv_is_operator が無い）';
   end if;
   if to_regclass('public.profiles') is null then
     raise exception 'profiles の表がありません（Supabase の初期設定を確認してください）';
@@ -124,7 +131,11 @@ create table if not exists public.pv_work_months (
   duty_hours_basis text,
   -- 通勤・移動を含めたか  'yes' ／ 'no' ／ 'unknown'
   commute_included text,
-  -- ひとこと（任意・500字まで）。**本人にしか返さない**（集計にも一覧にも出さない）
+  -- ひとこと（任意・500字まで）。集計には使わない。
+  -- ★2026-10-07 から、本人のほかに**給与の鍵が生きている会員**にも返す
+  --   （オーナー指定「他人の勤務回答・補足はログイン＋給与提出資格」）。
+  --   返すのは db/contrib.sql の pv_contrib_notes だけで、文そのものしか返さない
+  --   （対象月・職位・機種・数字は付けない）。入力する画面に「誰に見えるか」を書いてある。
   note          text,
 
   lang          text not null default 'ja'
@@ -217,7 +228,7 @@ comment on column public.pv_work_months.duty_hours_basis is
 comment on column public.pv_work_months.commute_included is
   '通勤・移動を含めたか（本人の申告）。yes / no / unknown。';
 comment on column public.pv_work_months.note is
-  'ひとこと。本人にしか返さない（my_work_months）。集計には使わない。';
+  'ひとこと。本人（my_work_months）と、給与の鍵が生きている会員（pv_contrib_notes・文だけ）に返す。集計には使わない。';
 
 
 -- ════════════════════════════════════════════════════════════════
@@ -313,31 +324,26 @@ revoke all on function public.pv_work_num(text, text, numeric, numeric, boolean)
   from public, anon, authenticated;
 
 
+
 -- ════════════════════════════════════════════════════════════════
--- 6. 勤務を出す
+-- 5-b. 検品（会員の入口と、未ログインの預かりが**同じもの**を呼ぶ）
 -- ════════════════════════════════════════════════════════════════
--- 受け取る形（p）:
---   airline           … pv_airlines の code。必須。'other' なら airline_other も必須
---   position          … 必須（選択肢に出ている職位だけ）
---   year / month      … 対象月。必須（period_year / period_month でも受ける）
---   fleet / base_iata … 任意
---   block_hours / duty_hours / work_days / duty_days / days_off / stay_nights
---                     … どれも任意。**1つ以上**。無い・null・'' は未回答、0 は 0
---   duty_hours_basis / commute_included / note / lang … 任意
--- 返す形: { ok:true, saved:true, year, month, replaced }
---   replaced … 同じ月を出し直した（＝訂正）なら true
---
--- ★金額は1つも受け取らない。給与の検品（pv_validate_pay_payload）は呼ばない
---   ── あちらは通貨と金額を必須にしているので、呼ぶと「勤務だけ」が出せなくなる。
---   会社・職位・対象月の決まりは、あちらと同じにしてある（同じ文言で止まる）。
-create or replace function public.submit_work_month(p jsonb)
+-- 受け取った形を確かめて、決まった形へそろえて返す。**何も書き込まない。**
+--   返す形: { airline, airline_other, year, month, position, fleet, base_iata,
+--             block_hours, duty_hours, work_days, duty_days, days_off, stay_nights,
+--             duty_hours_basis, commute_included, note, lang }
+--   未回答は null のまま（0 は 0）。おかしければ、日本語の理由を付けて止める。
+-- ★ここを通ったものは、もう一度ここへ渡しても同じ形で通る（返した形 ＝ 受け取る形）。
+--   未ログインの預かり（db/contrib.sql）は、ここを通した形で置いておき、
+--   ログイン後に submit_work_month へそのまま渡す ＝ 預かった時に通ったものが、
+--   引き継ぐ時に別の決まりで落ちることが無い。**検品をもう1つ書かない。**
+create or replace function public.pv_work_month_clean(p jsonb)
 returns jsonb
 language plpgsql
-security definer
+stable
 set search_path = public, extensions
 as $$
 declare
-  v_uid     uuid := auth.uid();
   v_airline text := nullif(btrim(p->>'airline'), '');
   v_other   text := nullif(btrim(p->>'airline_other'), '');
   v_pos     text := nullif(btrim(p->>'position'), '');
@@ -357,14 +363,7 @@ declare
   v_dd      numeric;
   v_od      numeric;
   v_sn      numeric;
-  v_hash    text;
-  v_prof    record;
-  v_new     boolean;
 begin
-  if v_uid is null then
-    raise exception 'ログインが必要です' using errcode = '42501';
-  end if;
-
   -- ── 会社・職位・対象月（決まりは給与と同じ）────────────
   if v_airline is null or v_pos is null or v_ytxt is null or v_mtxt is null then
     raise exception '必須項目が足りません（会社・職位・対象月）' using errcode = '22023';
@@ -445,6 +444,89 @@ begin
   if v_dd is not null and v_wd is not null and v_dd > v_wd then
     raise exception '乗務日数が勤務日数を超えています' using errcode = '22023';
   end if;
+
+  return jsonb_build_object(
+    'airline', v_airline, 'airline_other', v_other,
+    'year', v_year, 'month', v_month,
+    'position', v_pos, 'fleet', v_fleet, 'base_iata', v_base,
+    'block_hours', v_bh, 'duty_hours', v_dh, 'work_days', v_wd,
+    'duty_days', v_dd, 'days_off', v_od, 'stay_nights', v_sn,
+    'duty_hours_basis', v_basis, 'commute_included', v_commute,
+    'note', v_note, 'lang', v_lang);
+end;
+$$;
+revoke all on function public.pv_work_month_clean(jsonb) from public, anon, authenticated;
+
+-- ════════════════════════════════════════════════════════════════
+-- 6. 勤務を出す
+-- ════════════════════════════════════════════════════════════════
+-- 受け取る形（p）:
+--   airline           … pv_airlines の code。必須。'other' なら airline_other も必須
+--   position          … 必須（選択肢に出ている職位だけ）
+--   year / month      … 対象月。必須（period_year / period_month でも受ける）
+--   fleet / base_iata … 任意
+--   block_hours / duty_hours / work_days / duty_days / days_off / stay_nights
+--                     … どれも任意。**1つ以上**。無い・null・'' は未回答、0 は 0
+--   duty_hours_basis / commute_included / note / lang … 任意
+-- 返す形: { ok:true, saved:true, year, month, replaced }
+--   replaced … 同じ月を出し直した（＝訂正）なら true
+--
+-- ★金額は1つも受け取らない。給与の検品（pv_validate_pay_payload）は呼ばない
+--   ── あちらは通貨と金額を必須にしているので、呼ぶと「勤務だけ」が出せなくなる。
+--   会社・職位・対象月の決まりは、あちらと同じにしてある（同じ文言で止まる）。
+create or replace function public.submit_work_month(p jsonb)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  v_uid     uuid := auth.uid();
+  v_c       jsonb;
+  v_airline text;
+  v_other   text;
+  v_pos     text;
+  v_fleet   text;
+  v_base    text;
+  v_lang    text;
+  v_basis   text;
+  v_commute text;
+  v_note    text;
+  v_year    int;
+  v_month   int;
+  v_bh      numeric;
+  v_dh      numeric;
+  v_wd      numeric;
+  v_dd      numeric;
+  v_od      numeric;
+  v_sn      numeric;
+  v_hash    text;
+  v_prof    record;
+  v_new     boolean;
+begin
+  if v_uid is null then
+    raise exception 'ログインが必要です' using errcode = '42501';
+  end if;
+
+  -- ── 検品（5-b の1か所。未ログインの預かりも同じものを通る）──
+  v_c       := public.pv_work_month_clean(p);
+  v_airline := v_c->>'airline';
+  v_other   := v_c->>'airline_other';
+  v_year    := (v_c->>'year')::int;
+  v_month   := (v_c->>'month')::int;
+  v_pos     := v_c->>'position';
+  v_fleet   := v_c->>'fleet';
+  v_base    := v_c->>'base_iata';
+  v_bh      := (v_c->>'block_hours')::numeric;
+  v_dh      := (v_c->>'duty_hours')::numeric;
+  v_wd      := (v_c->>'work_days')::numeric;
+  v_dd      := (v_c->>'duty_days')::numeric;
+  v_od      := (v_c->>'days_off')::numeric;
+  v_sn      := (v_c->>'stay_nights')::numeric;
+  v_basis   := v_c->>'duty_hours_basis';
+  v_commute := v_c->>'commute_included';
+  v_note    := v_c->>'note';
+  v_lang    := v_c->>'lang';
 
   -- ── 連投の制限（1日40件。24か月ぶんをさかのぼって入れ、少し直せる数）──
   select * into v_prof from public.profiles where id = v_uid for update;
@@ -640,8 +722,13 @@ revoke all on function public.pv_work_range(bigint, double precision, double pre
 --
 -- ★内側で yy / mm / items という名前を使わない（RETURNS TABLE の名前と衝突する）。
 -- ★'other' そのものは会社として集計しない（別々の会社が1つの箱に混ざる）。
-create or replace function public.pv_work_month_cells(v_airline text, v_pos text)
-returns table (yy int, mm int, items jsonb)
+-- 8-b-1. 人で畳んだ行（1人 × 1か月 ＝ 1行）。**個票なので、誰にも渡さない。**
+--   下の2つ（月ごとの幅 pv_work_month_cells・直近の幅 pv_work_view）が同じものを読む
+--   ＝ 畳み方は1つだけ。返す列の名前に o_ を付けてあるのは、内側の名前と衝突させないため。
+create or replace function public.pv_work_month_people(v_airline text, v_pos text)
+returns table (o_person text, o_py int, o_pm int,
+               o_bh numeric, o_dh numeric, o_wd numeric,
+               o_dd numeric, o_od numeric, o_sn numeric)
 language sql
 security definer
 stable
@@ -733,44 +820,87 @@ as $fn$
      where s.person is not null
      group by s.person, s.py, s.pm
   )
+  select f.person, f.py, f.pm, f.bh, f.dh, f.wd, f.dd, f.od, f.sn
+    from folded f
+$fn$;
+revoke all on function public.pv_work_month_people(text, text) from public, anon, authenticated;
+
+-- 8-b-2. 月ごとの幅。
+create or replace function public.pv_work_month_cells(v_airline text, v_pos text)
+returns table (yy int, mm int, items jsonb)
+language sql
+security definer
+stable
+set search_path = public, extensions
+as $fn$
   -- count(列) は null を数えない ＝ その項目に答えた人数（0 と答えた人は入る）
-  select o.py, o.pm,
+  select o.o_py, o.o_pm,
          jsonb_build_object(
-           'block_hours', public.pv_work_range(count(o.bh),
-             percentile_cont(0.25) within group (order by o.bh),
-             percentile_cont(0.75) within group (order by o.bh), 5),
-           'duty_hours',  public.pv_work_range(count(o.dh),
-             percentile_cont(0.25) within group (order by o.dh),
-             percentile_cont(0.75) within group (order by o.dh), 5),
-           'work_days',   public.pv_work_range(count(o.wd),
-             percentile_cont(0.25) within group (order by o.wd),
-             percentile_cont(0.75) within group (order by o.wd), 1),
-           'duty_days',   public.pv_work_range(count(o.dd),
-             percentile_cont(0.25) within group (order by o.dd),
-             percentile_cont(0.75) within group (order by o.dd), 1),
-           'days_off',    public.pv_work_range(count(o.od),
-             percentile_cont(0.25) within group (order by o.od),
-             percentile_cont(0.75) within group (order by o.od), 1),
-           'stay_nights', public.pv_work_range(count(o.sn),
-             percentile_cont(0.25) within group (order by o.sn),
-             percentile_cont(0.75) within group (order by o.sn), 1))
-    from folded o
-   group by o.py, o.pm
+           'block_hours', public.pv_work_range(count(o.o_bh),
+             percentile_cont(0.25) within group (order by o.o_bh),
+             percentile_cont(0.75) within group (order by o.o_bh), 5),
+           'duty_hours',  public.pv_work_range(count(o.o_dh),
+             percentile_cont(0.25) within group (order by o.o_dh),
+             percentile_cont(0.75) within group (order by o.o_dh), 5),
+           'work_days',   public.pv_work_range(count(o.o_wd),
+             percentile_cont(0.25) within group (order by o.o_wd),
+             percentile_cont(0.75) within group (order by o.o_wd), 1),
+           'duty_days',   public.pv_work_range(count(o.o_dd),
+             percentile_cont(0.25) within group (order by o.o_dd),
+             percentile_cont(0.75) within group (order by o.o_dd), 1),
+           'days_off',    public.pv_work_range(count(o.o_od),
+             percentile_cont(0.25) within group (order by o.o_od),
+             percentile_cont(0.75) within group (order by o.o_od), 1),
+           'stay_nights', public.pv_work_range(count(o.o_sn),
+             percentile_cont(0.25) within group (order by o.o_sn),
+             percentile_cont(0.75) within group (order by o.o_sn), 1))
+    from public.pv_work_month_people(v_airline, v_pos) o
+   group by o.o_py, o.o_pm
 $fn$;
 
 -- ★誰にも渡さない。pv_work_month_stats の中からだけ呼ぶ。
 revoke all on function public.pv_work_month_cells(text, text) from public, anon, authenticated;
 
--- 8-c. 外から呼ぶ口（未ログインでも呼べる）。
+-- 8-c-0. 見ている人の立場（勤務の幅と、他人の補足を返してよいかを決める1か所）。
+--   'anon'   … ログインしていない
+--   'member' … ログインしている（給与の鍵は無い）
+--   'pay'    … ログインしていて、給与の鍵が生きている（運営を含む）
+-- ★「給与の鍵」は REAL PAY の一覧が開く条件と**同じ**（期限つきの鍵か、運営）。
+--   条件をここで作り直さない ── 勤務・口コミ・補足を出しただけの人は 'member' のまま。
+-- ★誰にも渡さない。security definer の中からだけ呼ぶ（db/contrib.sql も同じものを呼ぶ）。
+create or replace function public.pv_work_level()
+returns text
+language sql
+security definer
+stable
+set search_path = public, extensions
+as $$
+  select case
+           when auth.uid() is null then 'anon'
+           when public.pv_is_operator() then 'pay'
+           when exists (select 1 from public.profiles f
+                         where f.id = auth.uid()
+                           and f.access_until is not null
+                           and f.access_until > now()) then 'pay'
+           else 'member'
+         end
+$$;
+revoke all on function public.pv_work_level() from public, anon, authenticated;
+
+-- 8-c. 外から呼ぶ口（月を指して読む）。
 -- 受け取る形: { airline, position, year?, month? }
 -- 返す形:
---   年月あり … { ok:true, airline, position, year, month,
+--   資格が無い … { ok:true, state:'login' }（未ログイン）／{ ok:true, state:'locked' }（給与の鍵が無い）
+--                **数字は1つも入らない**（月の一覧も返さない）。
+--   年月あり … { ok:true, state:'open', airline, position, year, month,
 --                items:{ block_hours, duty_hours, work_days, duty_days, days_off, stay_nights } }
 --              各項目は { lo, hi } か null（3人に届かない）
---   年月なし … { ok:true, airline, position, months:[{ year, month }] }
+--   年月なし … { ok:true, state:'open', airline, position, months:[{ year, month }] }
 --              どれか1項目でも幅が出る月だけ・新しい月が先・24件まで
 -- ★個票は返さない。人数も返さない（幅が出ていること＝3人以上、としか分からない）。
 -- ★3人に届かない月と、誰も出していない月は、**同じ返事**になる。
+-- ★呼ぶこと自体は誰でもできる（資格は中で pv_work_level が決める）。
+--   実行権で閉じると、資格の無い人には「エラー」と「まだ無い」の区別が付かなくなる。
 create or replace function public.pv_work_month_stats(p jsonb default '{}'::jsonb)
 returns jsonb
 language plpgsql
@@ -786,7 +916,14 @@ declare
   v_year    int;
   v_month   int;
   v_items   jsonb;
+  v_level   text := public.pv_work_level();
 begin
+  -- 資格が先。無い人には、会社や月が正しいかどうかも答えない
+  if v_level <> 'pay' then
+    return jsonb_build_object(
+      'ok', true, 'state', case when v_level = 'anon' then 'login' else 'locked' end);
+  end if;
+
   if v_airline is null
      or not exists (select 1 from public.pv_airlines where code = v_airline) then
     raise exception '航空会社が正しくありません' using errcode = '22023';
@@ -799,7 +936,7 @@ begin
   -- ── 年月なし：幅が出る月の一覧 ─────────────────────────
   if v_ytxt is null and v_mtxt is null then
     return jsonb_build_object(
-      'ok', true, 'airline', v_airline, 'position', v_pos,
+      'ok', true, 'state', 'open', 'airline', v_airline, 'position', v_pos,
       'months', coalesce((
         select jsonb_agg(jsonb_build_object('year', z.yy, 'month', z.mm)
                          order by z.yy desc, z.mm desc)
@@ -828,7 +965,7 @@ begin
    where c.yy = v_year and c.mm = v_month;
 
   return jsonb_build_object(
-    'ok', true, 'airline', v_airline, 'position', v_pos,
+    'ok', true, 'state', 'open', 'airline', v_airline, 'position', v_pos,
     'year', v_year, 'month', v_month,
     -- 行が1つも無い月は、3人に届かない月と同じ形（全部 null）で返す
     'items', coalesce(v_items, jsonb_build_object(
@@ -842,7 +979,90 @@ grant execute on function public.pv_work_month_stats(jsonb) to anon, authenticat
 
 comment on function public.pv_work_month_stats(jsonb) is
   '月の勤務の幅（会社×職位×月）。項目ごとに3人以上が答えたときだけ { lo, hi }（25%点〜75%点）。'
-  '平均・中央値・人数・個票は返さない。年月を省くと、幅が出る月の一覧（新しい順・24件まで）。';
+  '平均・中央値・人数・個票は返さない。年月を省くと、幅が出る月の一覧（新しい順・24件まで）。'
+  '★給与の鍵が生きている人にだけ返す（ほかの人には state だけ）。';
+
+-- 8-d. 会社ページと比較が読む口（直近12か月をまとめた幅）。
+-- 受け取る形: { airline }
+-- 返す形:
+--   資格が無い … { ok:true, state:'login' | 'locked' }（数字は1つも入らない）
+--   資格あり   … { ok:true, state:'open', airline, months:12,
+--                  by:{ cap:{ block_hours, duty_hours, work_days, duty_days, days_off, stay_nights },
+--                       fo:{ … } } }
+--                各項目は { lo, hi } か null（3人に届かない）
+-- 作り方:
+--   ・直近12か月（今月を含む）の行を、**1人につき1つの値**にまとめる（その人の月の平均）。
+--     月を多く出した人が、幅を1人で引っぱらないため。
+--   ・そのうえで、人のあいだの 25%点〜75%点。壁と丸めは 8-a の pv_work_range（月ごとの幅と同じ）。
+-- ★1か月ごとの幅は 3人が**同じ月**にそろわないと出ない。会社ページでは月をまたいで
+--   3人そろえば出す（そうしないと、集まっているのに何も出ない期間が長く続く）。
+-- ★個票・人数・平均・中央値は返さない。誰も出していない会社と、3人に届かない会社は同じ返事。
+create or replace function public.pv_work_view(p jsonb default '{}'::jsonb)
+returns jsonb
+language plpgsql
+security definer
+stable
+set search_path = public, extensions
+as $$
+declare
+  v_airline text := nullif(btrim(p->>'airline'), '');
+  v_level   text := public.pv_work_level();
+  v_from    int  := extract(year from current_date)::int * 12
+                    + extract(month from current_date)::int - 12;
+  v_by      jsonb := '{}'::jsonb;
+  v_pos     text;
+  v_one     jsonb;
+begin
+  if v_level <> 'pay' then
+    return jsonb_build_object(
+      'ok', true, 'state', case when v_level = 'anon' then 'login' else 'locked' end);
+  end if;
+  if v_airline is null or v_airline = 'other'
+     or not exists (select 1 from public.pv_airlines where code = v_airline) then
+    raise exception '航空会社が正しくありません' using errcode = '22023';
+  end if;
+
+  for v_pos in select s.code from public.pv_positions s where s.active order by s.code loop
+    select jsonb_build_object(
+             'block_hours', public.pv_work_range(count(q.bh),
+               percentile_cont(0.25) within group (order by q.bh),
+               percentile_cont(0.75) within group (order by q.bh), 5),
+             'duty_hours',  public.pv_work_range(count(q.dh),
+               percentile_cont(0.25) within group (order by q.dh),
+               percentile_cont(0.75) within group (order by q.dh), 5),
+             'work_days',   public.pv_work_range(count(q.wd),
+               percentile_cont(0.25) within group (order by q.wd),
+               percentile_cont(0.75) within group (order by q.wd), 1),
+             'duty_days',   public.pv_work_range(count(q.dd),
+               percentile_cont(0.25) within group (order by q.dd),
+               percentile_cont(0.75) within group (order by q.dd), 1),
+             'days_off',    public.pv_work_range(count(q.od),
+               percentile_cont(0.25) within group (order by q.od),
+               percentile_cont(0.75) within group (order by q.od), 1),
+             'stay_nights', public.pv_work_range(count(q.sn),
+               percentile_cont(0.25) within group (order by q.sn),
+               percentile_cont(0.75) within group (order by q.sn), 1))
+      into v_one
+      from (select o.o_person,
+                   avg(o.o_bh) as bh, avg(o.o_dh) as dh, avg(o.o_wd) as wd,
+                   avg(o.o_dd) as dd, avg(o.o_od) as od, avg(o.o_sn) as sn
+              from public.pv_work_month_people(v_airline, v_pos) o
+             where o.o_py * 12 + o.o_pm > v_from
+             group by o.o_person) q;
+    v_by := v_by || jsonb_build_object(v_pos, v_one);
+  end loop;
+
+  return jsonb_build_object(
+    'ok', true, 'state', 'open', 'airline', v_airline, 'months', 12, 'by', v_by);
+end;
+$$;
+
+revoke all on function public.pv_work_view(jsonb) from public;
+grant execute on function public.pv_work_view(jsonb) to anon, authenticated;
+
+comment on function public.pv_work_view(jsonb) is
+  '会社ページ用：直近12か月の月の勤務の幅（職位ごと）。1人につき1つの値にまとめてから、'
+  '項目ごとに3人以上のときだけ { lo, hi }。★給与の鍵が生きている人にだけ返す。';
 
 
 -- ════════════════════════════════════════════════════════════════
@@ -858,8 +1078,11 @@ select (select count(*) from pg_policies
          where oid = 'public.pv_work_months'::regclass)                           as 表は閉じている,
        not has_function_privilege('anon', 'public.submit_work_month(jsonb)', 'execute')
                                                                                   as 未ログインは出せない,
-       has_function_privilege('anon', 'public.pv_work_month_stats(jsonb)', 'execute')
-                                                                                  as 幅は誰でも読める,
+       pg_get_functiondef('public.pv_work_month_stats(jsonb)'::regprocedure) like '%pv_work_level()%'
+         and pg_get_functiondef('public.pv_work_view(jsonb)'::regprocedure) like '%pv_work_level()%'
+         and not has_function_privilege('authenticated', 'public.pv_work_month_cells(text, text)', 'execute')
+         and not has_function_privilege('authenticated', 'public.pv_work_month_people(text, text)', 'execute')
+                                                                                  as 幅は資格を見てから返す,
        pg_get_functiondef('public.submit_work_month(jsonb)'::regprocedure)
          !~ '(access_until|pay_report|pay_streak|last_pay|badge|verify_level|founding)'
                                                                                   as 給与の資格に触らない,

@@ -11,15 +11,22 @@
         サーバが断った理由はそのまま出し、打った字は1文字も消さない。
      ④ 送れなかったとき ── 「送れていません」と言い、打った内容を残し、
         読み直してももう一度送れる。送れたら控えを消す。
-     ⑤ 未ログイン ── 打てる。送るときにログインへ行き、戻ったら続きから送れる。
+     ⑤ 未ログイン ── ★ログインなしで保存できる（2026-10-07 オーナー指定）。
+        保存先はサーバの預かりで、本人のしるしは「サーバが作った推測できない鍵」。
+        同じ端末からは読み直して直せる。鍵を持たない端末・ほかの会員には何も返らない。
+        ログインすると本人の投稿として引き継がれ、預かりにも鍵にも何も残らない。
+        ⚠️ ブラウザの中にだけ置いたものを「保存しました」と言わない。
      ⑥ 通勤・タクシー ── 親と子の答えを1回で送る。読み直すと答えが戻る。上書きできる。
-        自由記述の「補足」で何でも受けない（残せるのは上限の補足だけ）。
+        どの質問にも任意の補足を添えられる。ただし補足は「追加の説明」で、
+        選ぶ質問の代わりにしない（8問とも選ぶ形のまま残す）。
      ⑦ 「あなたの投稿 N件」は、サーバが本人について返した行数だけ。
-        未ログインには1つも出さない。質問の数を答えの数として出さない。
-     ⑧ 勤務を保存しても、給与の鍵は1つも動かない。
+        まだ何も出していない人には1つも出さない。質問の数を答えの数として出さない。
+     ⑧ 勤務を保存しても、給与の鍵は1つも動かない（預けても・引き継いでも）。
      ⑨ 3つの大きさ（390×680・768×950・1440×820）で、押せる所が 44px 未満にならない・
         入力欄が 16px 未満にならない・面が横に溢れない。
      ⑩ 本番へ1本も投げない。
+     ⑪ 一覧の7つの話題は全部この面の中で開く（質問の分け方は会社ページの入口と同じ）。
+        会社ページの質問の名前を押すと、その質問を開いた状態で出る（ほかの画面へ行かない）。
 
    実行: node assert-contrib.mjs
    ⚠️ 自分で手元の保存先（serve-local.mjs）を空いているポートで起こし、終わったら丸ごと捨てる。
@@ -112,9 +119,30 @@ console.log('\n════ ソース ════');
   ok(!/[¥￥€£＄]|[$]\s?\d|\d\s?(万円|万|円)|\b(JPY|USD|AED|HKD|TWD)\b/.test(code), 'JS に金額が1つも書かれていない',
     J((code.match(/.{0,20}(?:[¥￥€£＄]|[$]\s?\d|\d\s?(?:万円|万|円)|\b(?:JPY|USD|AED|HKD|TWD)\b).{0,20}/g) || []).slice(0, 3)));
   ok(!/supabase\.co/.test(js) && !/\/Users\//.test(js + css), 'JS・CSS に本番の住所も、この Mac の中の場所も書かれていない');
-  const rpcs = [...new Set([...code.matchAll(/rpc\('([a-z_]+)'/g)].map((m) => m[1]))].sort();
-  ok(J(rpcs) === J(['my_airline_conditions', 'my_work_months', 'submit_airline_conditions', 'submit_work_month']),
-    '呼ぶ関数は4つだけ（勤務と待遇の「出す」「自分の分を読む」）', J(rpcs));
+  /* 呼ぶ関数は7つ ── 会員の「出す」「自分の分を読む」が2つずつ、ログインしていない人の
+     「預ける」「預けた分を読む」、ログインしたあとの「引き継ぐ」。
+     会員の「出す」2つは名前の表（MEMBER_FN）を通して呼ぶので、表の中身も一緒に数える。
+     それ以外の形で名前を渡している呼び出しが在れば、ここで見落とすことになるので落とす。 */
+  const rpcLit = [...code.matchAll(/rpc\('([a-z_]+)'/g)].map((m) => m[1]);
+  const rpcTbl = [...((code.match(/var MEMBER_FN = \{([^}]*)\}/) || [])[1] || '').matchAll(/'([a-z_]+)'/g)].map((m) => m[1]);
+  const rpcDyn = [...new Set([...code.matchAll(/rpc\(([^'\s][^,)]*)/g)].map((m) => m[1].trim()))].sort();
+  const rpcs = [...new Set([...rpcLit, ...rpcTbl])].sort();
+  ok(J(rpcs) === J(['claim_contrib', 'my_airline_conditions', 'my_contrib_anon', 'my_work_months',
+    'submit_airline_conditions', 'submit_contrib_anon', 'submit_work_month']),
+    '呼ぶ関数は7つだけ（会員の「出す」「読む」×2・未ログインの「預ける」「読む」・ログイン後の「引き継ぐ」）', J(rpcs));
+  ok(J(rpcDyn) === J(['MEMBER_FN[kind]', 'name']), '名前を表から引いて呼ぶのは、会員の「出す」の1か所だけ（ほかに見えない呼び出しが無い）', J(rpcDyn));
+  ok(!/pv_work_view|pv_contrib_notes|pv_pay_rows|pv_reviews/.test(code), '「情報を追加」の面は、ほかの人の回答・給与・口コミを読む口を1つも呼ばない');
+
+  /* サーバの決まりを写している2つの値が、正本と同じか。
+     どちらも「見える範囲」や「消える日」を決めているのはサーバで、ここが違っていても
+     動きは変わらない ── 変わるのは、書く前に画面が言う断りの文だけ（＝嘘の約束になる）。 */
+  const sqlC = read('db/contrib.sql');
+  const held = +((code.match(/var HELD_DAYS = (\d+);/) || [])[1] || 0);
+  const ttl = +((sqlC.match(/function public\.pv_contrib_ttl\(\)[\s\S]{0,160}?interval '(\d+) days'/) || [])[1] || 0);
+  ok(held > 0 && held === ttl, `預かりの日数が、画面の文とサーバで同じ（${held}日 ⇄ ${ttl}日）`);
+  const paySecJs = [...((code.match(/var PAY_SECTIONS = \{([^}]*)\}/) || [])[1] || '').matchAll(/([a-z_]+)\s*:/g)].map((m) => m[1]).sort();
+  const paySecSql = [...((sqlC.match(/q\.section not in \(([^)]*)\)/) || [])[1] || '').matchAll(/'([a-z_]+)'/g)].map((m) => m[1]).sort();
+  ok(paySecJs.length > 0 && J(paySecJs) === J(paySecSql), '補足が「給与を提出した会員」にだけ見える区分が、画面の文とサーバで同じ', J({ js: paySecJs, sql: paySecSql }));
   ok(!/REAL PAY|解放|アンロック|unlock/i.test(code.replace(DUTY_TERM, '')), 'JS は「REAL PAY が開く」と1文字も言わない',
     J((code.replace(DUTY_TERM, '').match(/.{0,16}(?:REAL PAY|解放|アンロック|unlock).{0,16}/gi) || []).slice(0, 3)));
   ok(!/機内弁当|住まい・家族/.test(code), '保存先の無い項目（機内弁当・食事／住まい・家族）のタイルを置いていない');
@@ -732,7 +760,16 @@ async function main() {
       return {
         title: document.querySelector('.pvc-root .pvc-title').textContent, line: f.querySelector('.pvc-ctx-line').textContent,
         text: f.querySelectorAll('input[type="text"], input:not([type])').length,
-        ta: ta.map((n) => n.name), inFold: ta.every((n) => !!n.closest('.pvc-fold')),
+        ta: ta.map((n) => n.name), req: ta.filter((n) => n.required).length,
+        /* 補足は必ず、選ぶ質問に付いている（その質問の枠の中か、同じ畳みの中。補足だけが独りで立っていない） */
+        owned: ta.every((n) => {
+          const q = f.querySelector('[data-q="' + n.name.replace(/_note$/, '') + '"]');
+          if (!q || !q.querySelector('select, input[type="checkbox"], input[type="radio"]')) return false;
+          const fold = n.closest('.pvc-fold');
+          return q.contains(n) || (!!fold && fold === q.closest('.pvc-fold'));
+        }),
+        choice: [...f.querySelectorAll('[data-q]')].filter((n) => n.querySelector('select, input[type="checkbox"], input[type="radio"]')).map((n) => n.getAttribute('data-q')),
+        capInFold: !!f.querySelector('[name="commuting_taxi_cap_note"]').closest('.pvc-fold'),
         fold: f.querySelector('.pvc-fold-b').textContent, exp: f.querySelector('.pvc-fold-b').getAttribute('aria-expanded'),
         send: f.querySelector('.pvc-send').textContent, dis: f.querySelector('.pvc-send').disabled,
         company: !!f.querySelector('[name="airline"], [name="company"]'),
@@ -740,8 +777,12 @@ async function main() {
     });
     ok(shape.title === '通勤・タクシー' && shape.line.includes(jalName) && !shape.company, '見出しは「通勤・タクシー」。会社は上に出ていて、選ぶ欄は無い', J(shape));
     ok(sh.commuting_transport && TAXI.slice(1).every((k) => !sh[k]) && !sh.fold, '最初に出るのは親の質問だけ（子は親の答えが決まってから）', J(sh));
-    ok(shape.text === 0 && J(shape.ta) === J(['commuting_taxi_cap_note']) && shape.inFold,
-      '★自由記述は上限の補足の1つだけで、畳んだ中に在る（何でも受ける「補足」欄は無い）', J(shape));
+    /* 2026-10-07 オーナー指定：選んだ答えに、任意の補足を添えられる。
+       ただし自由記述は「追加の説明」で、選ぶ質問の代わりにはしない ── 8問とも選ぶ形のまま残っていること。 */
+    ok(J([...shape.choice].sort()) === J([...TAXI].sort()), '★タクシーの具体的な質問は8つとも「選ぶ質問」のまま残っている（自由記述に置き換えていない）', J(shape.choice));
+    ok(shape.text === 0 && J([...shape.ta].sort()) === J(TAXI.map((k) => k + '_note').sort()) && shape.owned && shape.req === 0,
+      '★自由記述は「質問ごとの補足」だけ。どれも任意で、選ぶ質問の枠の中に在る（何でも受ける独立の欄は無い）', J(shape));
+    ok(shape.capInFold, '上限の補足は、今までどおり畳んだ中に在る', J(shape));
     ok(shape.fold.includes('回数・金額の上限を追加') && shape.exp === 'false' && shape.dis && shape.send === '匿名で追加する', '上限は「回数・金額の上限を追加」で畳んである。確認を入れるまで送れない', J(shape));
 
     await pick(a, 'commuting_transport', 'no');
@@ -882,7 +923,7 @@ async function main() {
       '★勤務の件数 ＝ サーバが本人について返した行数', J({ scr: scr.counts.work, srv: srv.work }));
     ok(scr.counts.taxi === `あなたの投稿 ${taxiN}件` && taxiN === 7 && TAXI.length === 8,
       '★通勤・タクシーの件数 ＝ 本人の答えの数（7）。質問の数（8）ではない', J({ scr: scr.counts.taxi, taxiN }));
-    ok(scr.counts.staff_travel === null && scr.counts.upgrade === null && scr.counts.stay === null,
+    ok(['staff_travel', 'upgrade', 'roster', 'career', 'benefits', 'stay'].every((k) => scr.counts[k] === null),
       '★答えていない項目には件数を出さない（質問が何問あっても）', J(scr.counts));
   });
 
@@ -941,7 +982,8 @@ async function main() {
   // ═════════════════════════════════════════════════════════════
   const b = await open('phone');
   let eyName = '';
-  await scene('未ログイン ── 件数を出さない・ログインをまたいで続きから', async () => {
+  await scene('未ログイン ── ログインなしで保存・同じ端末から読み直して直す・ログインで引き継ぐ', async () => {
+    const keyB0 = await payKey(B.id);
     await go(b, EY + '?add=list');
     await waitView(b, 'counted');
     eyName = await nameOf(b);
@@ -957,6 +999,7 @@ async function main() {
         talk: talk.textContent.trim(), talkTo: new URL(talk.href).pathname + new URL(talk.href).search, tiles,
         counts: [...r.querySelectorAll('[data-pvc-count]')].filter((n) => !n.hidden || n.textContent).length,
         state: r.querySelector('[data-pvc-state]').getAttribute('data-pvc-state'), stateShown: !r.querySelector('[data-pvc-state]').hidden,
+        held: !r.querySelector('[data-pvc-heldslot]').hidden,
         text: r.querySelector('.pvc-main').innerText, under: r.querySelector('.pvc-under').textContent, href: location.pathname + location.search,
       };
     });
@@ -964,23 +1007,24 @@ async function main() {
     ok(L.cap === 'BUILD IT TOGETHER' && L.lead === `${eyName}のこと、ひとつ教えて。` && L.talk === '匿名で話す' && L.talkTo === '/submit-review.html?airline=etihad',
       '見本どおりの入口の箱（BUILD IT TOGETHER／ひとつ教えて。／匿名で話す → 口コミの画面）', J({ cap: L.cap, lead: L.lead, talk: L.talkTo }));
     const by = Object.fromEntries(L.tiles.map((t) => [t.k, t]));
-    ok(J(L.tiles.map((t) => t.k)) === J(['work', 'taxi', 'staff_travel', 'upgrade', 'stay']), 'タイルは 勤務・通勤/タクシー・Staff Travel・機長昇格・ホテル/ステイ の5つ', J(L.tiles.map((t) => t.t)));
-    ok(by.work.tag === 'BUTTON' && by.taxi.tag === 'BUTTON'
-      && by.staff_travel.to === '/airline-conditions.html?airline=etihad&q=staff_travel'
-      && by.upgrade.to === '/airline-conditions.html?airline=etihad&q=upgrade_years'
+    const INSIDE = ['work', 'taxi', 'staff_travel', 'upgrade', 'roster', 'career', 'benefits'];
+    ok(J(L.tiles.map((t) => t.k)) === J([...INSIDE, 'stay']),
+      'タイルは 勤務・通勤/タクシー・Staff Travel・機長昇格・勤務スケジュール・訓練/キャリア・休暇/手当・ホテル/ステイ の8つ', J(L.tiles.map((t) => t.t)));
+    ok(INSIDE.every((k) => by[k].tag === 'BUTTON') && by.stay.tag === 'A'
       && by.stay.to === '/career.html?airline=etihad&tab=life' && by.stay.d === 'パイロット限定',
-      '勤務・通勤は面の中で開く。ほかの3つは、いま在る画面へ会社を渡して行く', J(L.tiles));
-    ok(L.counts === 0 && L.state === 'anon anon' && !L.stateShown && !/\d+\s*件/.test(L.text) && !/あなたの投稿/.test(L.text),
-      '★未ログインには件数を1つも出さない（「あなたの投稿」の字も出ない）', J({ counts: L.counts, state: L.state }));
-    ok(hits(b, 'my_work_months') === 0 && hits(b, 'my_airline_conditions') === 0, '未ログインでは、本人の投稿を読みに行かない（通信ゼロ）', J(b.st.calls));
-    ok(/ひとつ/.test(L.under), '「ひとつの項目から追加できます」の一言が在る', L.under);
+      '★答えられる7つは全部、面の中で開く（ほかの画面へ送り出さない＝会社を選び直させない）。ホテル・ステイだけは会社を渡して行く', J(L.tiles));
+    ok(L.counts === 0 && L.state === 'anon anon' && !L.stateShown && !L.held && !/\d+\s*件/.test(L.text) && !/あなたの投稿/.test(L.text),
+      '★まだ何も出していない人には件数を1つも出さない（「あなたの投稿」の字も、預かりの案内も出ない）', J({ counts: L.counts, state: L.state }));
+    ok(hits(b, 'my_work_months') === 0 && hits(b, 'my_airline_conditions') === 0 && hits(b, 'my_contrib_anon') === 0,
+      '鍵を持たない端末は、何も読みに行かない（通信ゼロ）', J(b.st.calls));
+    ok(/ひとつ/.test(L.under) && /ログインは要りません/.test(L.under), '「ひとつの項目から追加できます。ログインは要りません。」の一言が在る', L.under);
     checkSize(await measure(b), '390×680 一覧（未ログイン・エティハド）');
 
-    /* ── 打つ → 送る → ログイン → 戻る ── */
+    /* ── 打つ → 送る → その場で保存（ログインへ行かない） ── */
     await b.page.click('.pvc-root [data-pvc-tile="work"]');
     await waitView(b, 'work');
     const hint = await b.page.$eval('.pvc-root [data-pvc-wait]', (n) => (n.hidden ? '' : n.textContent));
-    ok(/ログイン/.test(hint), '未ログインでも入力できる。送るときにログインが要ることを先に言う', hint);
+    ok(/ログインなしで保存できます/.test(hint) && /この端末から確認・修正できます/.test(hint), '送る前に「ログインなしで保存できます。この端末から確認・修正できます」と言う', hint);
     const ym2 = (await vals(b)).ym;
     await pick(b, 'position', 'fo');
     await fill(b, 'block_hours', '0');
@@ -992,63 +1036,195 @@ async function main() {
       return { sameRow: Math.abs(f[0].top - f[1].top) < 2, sameLeft: Math.abs(f[0].left - f[1].left) < 2 };
     });
     ok(!cols.sameRow && cols.sameLeft, '390px では入力欄が1列に並ぶ（見本の2列を1列に）', J(cols));
+    ok(await b.page.$eval('.pvc-root .pvc-send', (n) => n.disabled), '「本人が直接経験した内容です」を入れるまで送れない（未ログインでも同じ）');
     await tick(b);
     await send(b);
+    await waitView(b, 'saved');
+    const pend = async () => (await q(`select kind, airline, item_key, payload from public.pv_contrib_pending where airline = 'etihad' order by id`)).rows;
+    const keys = async () => (await q(`select key_hash from public.pv_contrib_keys`)).rows.map((r) => r.key_hash);
+    const devKey = () => b.page.evaluate(() => localStorage.getItem('pv_contrib_key') || '');
+    const held = async (key) => (await (await fetch(`${base}/rest/v1/rpc/my_contrib_anon`, {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ p: { key, airline: 'etihad' } }),
+    })).json());
+    let pd = await pend();
+    const k1 = await devKey();
+    const kh = await keys();
+    ok((await snap(b)).href === EY && hits(b, 'submit_contrib_anon') === 1 && hits(b, 'submit_work_month') === 0,
+      '★送ってもログインへ行かない。同じ会社ページのまま、預かりの口へ1回だけ送る', J({ href: (await snap(b)).href, calls: b.st.calls }));
+    ok(pd.length === 1 && pd[0].kind === 'work' && (await workRows('etihad')).length === 0,
+      '★保存先はサーバの預かり（1件）。会員の表にはまだ入らない ＝ 引き継ぐまで会社ごとの集計に入らない', J(pd.map((r) => [r.kind, r.item_key])));
+    ok(k1.length >= 32 && kh.length === 1 && kh[0] !== k1 && !J(pd).includes(k1) && !kh.join().includes(k1),
+      '★本人のしるしは、サーバが作った推測できない鍵。端末にだけ在り、サーバは鍵そのものを持たない', J({ len: k1.length, keys: kh.length }));
+    let mine = await held(k1);
+    const r0 = (mine.rows || [])[0] || {};
+    ok(mine.ok && mine.known && (mine.rows || []).length === 1 && r0.block_hours === 0 && r0.stay_nights === 3 && r0.duty_hours === null && r0.days_off === null,
+      '★乗務時間 0 は 0 のまま・入れていない欄は未回答のまま預かっている', J(r0));
+    const sm = await summary(b);
+    ok(sm.head.includes('保存しました') && sm.rows.block_hours.v === '0時間' && !sm.rows.block_hours.none && sm.rows.duty_hours.none && sm.rows.stay_nights.v === '3泊',
+      '保存後の画面でも「0時間」と「未回答」が別のものとして出る', J(sm.rows));
+    ok(/ログインなしで保存しました/.test(sm.text) && /この端末から確認・修正できます/.test(sm.text) && /ログインして引き継いだあと/.test(sm.text) && /90日で消えます/.test(sm.text),
+      '★保存後に、どこに残り・いつ集計に入り・いつ消えるかを言う（「サーバに保存した」ことをブラウザ内の保存と混ぜない）', sm.text.replace(/\s+/g, ' ').slice(0, 200));
+    ok(await b.page.$('.pvc-root [data-pvc-act="claim"]') && await b.page.$('.pvc-root [data-pvc-act="edit"]') && await b.page.$('.pvc-root [data-pvc-act="more"]'),
+      '保存後に「ログインして引き継ぐ」「修正する」「別の項目を追加」が在る');
+    checkSize(await measure(b), '390×680 月の勤務（保存後）');
+    const geo = await measure(b);
+    ok(Math.abs(geo.sheet.w - geo.vw) < 1 && Math.abs(geo.sheet.y + geo.sheet.h - geo.vh) < 1 && geo.sheet.h >= geo.vh * 0.9 && geo.sheet.h < geo.vh,
+      '390px では下から上がってくる面（幅いっぱい・高さはほぼ全面）', J(geo.sheet));
+
+    /* ── 読み直す（同じ端末） → 直す ── */
+    await go(b, EY + '?add=work');
+    await waitView(b, 'work');
+    await b.page.waitForFunction(() => { const n = document.querySelector('.pvc-root [name="stay_nights"]'); return !!n && n.value === '3'; });
+    let v = await vals(b);
+    ok(v.block_hours === '0' && v.stay_nights === '3' && v.position === 'fo' && v.ym === ym2 && v.note === '夏ダイヤの月' && v.duty_hours === '',
+      '★読み直すと、預けた内容がサーバから戻っている（0 は 0・空欄は空欄・ひとことも）', J(v));
+    ok(hits(b, 'my_contrib_anon') >= 1 && hits(b, 'my_work_months') === 0 && hits(b, 'my_airline_conditions') === 0,
+      '読み直しは預かりの口から（会員の口は呼ばない）', J(b.st.calls));
+    await fill(b, 'stay_nights', '4');
+    await tick(b);
+    await send(b);
+    await waitView(b, 'saved');
+    pd = await pend();
+    mine = await held(k1);
+    ok(pd.length === 1 && (mine.rows || []).length === 1 && mine.rows[0].stay_nights === 4 && mine.rows[0].block_hours === 0 && (await devKey()) === k1 && (await keys()).length === 1,
+      '★本人が直せる（同じ1件が置き換わる。行も鍵も増えない）', J(mine.rows));
+
+    /* ── 通信が切れた回 → もう一度送る ── */
+    await b.page.click('.pvc-root [data-pvc-act="edit"]');
+    await waitView(b, 'work');
+    await fill(b, 'work_days', '18');
+    await tick(b);
+    await failNext('submit_contrib_anon', 'drop', 9);
+    await send(b);
+    await waitMsg(b, 'fail');
+    await failOff();
+    v = await vals(b);
+    mine = await held(k1);
+    ok(/送れていません/.test(await msg(b, 'fail')) && v.work_days === '18' && mine.rows[0].work_days === null && !!(await outboxOf(b)),
+      '★送れなかった回は「送れていません」。入れた字は残り、預かりは変わらず、端末に控えが在る', J({ v: v.work_days, held: mine.rows[0].work_days }));
+    await b.page.click('.pvc-root [data-pvc-act="retry"]');
+    await waitView(b, 'saved');
+    mine = await held(k1);
+    ok(mine.rows[0].work_days === 18 && mine.rows[0].stay_nights === 4 && (await outboxOf(b)) === null, '「もう一度送る」で保存され、控えが消える', J(mine.rows[0]));
+
+    /* ── ほかの端末・ほかの人には見えない ── */
+    const o = await open('phone');
+    await go(o, EY + '?add=list');
+    await waitView(o, 'counted');
+    const oc = await o.page.evaluate(() => ({
+      counts: [...document.querySelectorAll('.pvc-root [data-pvc-count]')].filter((n) => !n.hidden).length,
+      held: !document.querySelector('.pvc-root [data-pvc-heldslot]').hidden, key: localStorage.getItem('pv_contrib_key'),
+    }));
+    await o.page.click('.pvc-root [data-pvc-tile="work"]');
+    await waitView(o, 'work');
+    const ov = await vals(o);
+    ok(oc.counts === 0 && !oc.held && oc.key === null && ov.block_hours === '' && ov.stay_nights === '' && ov.note === '' && hits(o, 'my_contrib_anon') === 0,
+      '★鍵を持たないほかの端末には、件数も中身も出ない（読みにも行かない）', J({ oc, ov: [ov.block_hours, ov.stay_nights, ov.note] }));
+    await o.st.ctx.close();
+    const guess = await held('x'.repeat(k1.length));
+    const noKey = await held('');
+    const asMember = await (await fetch(`${base}/rest/v1/rpc/my_work_months`, {
+      method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${(await (await fetch(`${base}/__local/login?member=c`)).json()).session.access_token}` },
+      body: JSON.stringify({ p: { airline: 'etihad' } }),
+    })).json();
+    ok(!(guess.rows || []).length && !(guess.answers || []).length && !(noKey.rows || []).length && !((asMember && asMember.rows) || []).length,
+      '★当て推量の鍵・鍵なし・ログインしただけの別の会員 ── どれにも預かりの中身は返らない', J({ guess, noKey }).slice(0, 200));
+
+    /* ── ログインして引き継ぐ ── */
+    await go(b, EY + '?add=list');
+    await waitView(b, 'counted');
+    await b.page.waitForFunction(() => { const n = document.querySelector('.pvc-root [data-pvc-count="work"]'); return !!n && !n.hidden; });
+    const before = await b.page.evaluate(() => ({
+      work: document.querySelector('.pvc-root [data-pvc-count="work"]').textContent,
+      held: !document.querySelector('.pvc-root [data-pvc-heldslot]').hidden,
+      text: document.querySelector('.pvc-root [data-pvc-heldslot]').innerText.replace(/\s+/g, ' '),
+    }));
+    ok(before.work === 'あなたの投稿 1件' && before.held && /ログインなしで保存した回答があります/.test(before.text) && /引き継がれ/.test(before.text),
+      '読み直した一覧に「あなたの投稿 1件」と、ログインなしで保存した旨・引き継ぎの案内が出る', J(before));
+    await b.page.click('.pvc-root [data-pvc-act="claim"]');
     await b.page.waitForFunction(() => location.pathname === '/login.html');
     const ret = await b.page.evaluate(() => new URLSearchParams(location.search).get('return'));
-    ok(ret === EY + '?add=work' && (await workRows('etihad')).length === 0, '★送るとログインへ行く（戻り先は 同じ会社ページ＋?add=work）。まだ何も保存していない', J(ret));
+    ok(ret === EY + '?add=list' && (await workRows('etihad')).length === 0 && (await pend()).length === 1 && (await devKey()) === k1,
+      '「ログインして引き継ぐ」でログインへ（戻り先は同じ会社ページ）。この時点では何も動かしていない', J(ret));
     await b.page.waitForSelector('#email');
     await b.page.type('#email', B.email);
     await b.page.type('#password', 'local-pass-1');
     await b.page.click('#login-btn');
     await b.page.waitForFunction((p) => location.pathname === p && !!window.PVContrib, { timeout: 30000 }, EY);
-    await waitView(b, 'work');
-    await waitMsg(b, 'back');
-    /* 知らせと送るボタンは長いフォームのいちばん下に在る。戻った回は、そこが見える所まで面の中を送ってある
-       （送っていないと、スマホでは「ログインしました」も送るボタンも画面の外で、何が起きたか分からない） */
-    const backSeen = () => b.page.evaluate(() => {
-      const mn = document.querySelector('.pvc-root .pvc-main').getBoundingClientRect();
-      const top = Math.max(mn.top, 0), bottom = Math.min(mn.bottom, window.innerHeight);
-      const whole = (n) => { if (!n) return false; const r = n.getBoundingClientRect(); return r.height > 0 && r.top >= top - 1 && r.bottom <= bottom + 1; };
-      return {
-        note: whole(document.querySelector('.pvc-root .pvc-msg[data-pvc-msg="back"]')),
-        send: whole(document.querySelector('.pvc-root form .pvc-send[type="submit"]')),
-        pageY: window.scrollY,
-      };
-    });
-    await b.page.waitForFunction(() => {
-      const mn = document.querySelector('.pvc-root .pvc-main'), n = document.querySelector('.pvc-root .pvc-msg[data-pvc-msg="back"]');
-      if (!mn || !n) return false;
-      const m = mn.getBoundingClientRect(), r = n.getBoundingClientRect();
-      return r.top >= m.top - 1 && r.bottom <= m.bottom + 1;
-    }, { timeout: 5000 }).catch(() => {});
-    const seenBack = await backSeen();
-    ok(seenBack.note && seenBack.send && seenBack.pageY === 0,
-      '390px：戻った回は「ログインしました」の知らせと送るボタンが画面の中に見えている（下のページは動かさない）', J(seenBack));
-    const v = await vals(b);
-    const s = await snap(b);
-    ok(s.href === EY && s.form === 'work', 'ログインすると同じ会社ページへ戻り、月の勤務が開いている', J(s));
-    ok(v.block_hours === '0' && v.stay_nights === '3' && v.position === 'fo' && v.ym === ym2 && v.note === '夏ダイヤの月' && v.duty_hours === '' && v.own === true,
-      '★ログインの前に打った内容が、そのまま戻っている（0 は 0・空欄は空欄）', J(v));
-    ok(/ログインしました/.test(await msg(b, 'back')) && (await workRows('etihad')).length === 0 && !(await b.page.$eval('.pvc-root .pvc-send', (n) => n.disabled)),
-      '戻った時点ではまだ送っていない。確かめて、そのまま送れる', J(await msg(b, 'back')));
-    await send(b);
-    await waitView(b, 'saved');
-    const rows = await workRows('etihad');
-    const sm = await summary(b);
-    ok(rows.length === 1 && rows[0].block_hours === 0 && rows[0].stay_nights === 3 && rows[0].duty_hours === null && rows[0].pos === 'fo' && rows[0].note === '夏ダイヤの月',
-      '★送ると保存される（乗務時間 0 は 0 のまま・入れていない欄は空のまま）', J(rows));
-    ok(sm.rows.block_hours.v === '0時間' && !sm.rows.block_hours.none && sm.rows.duty_hours.none && sm.rows.stay_nights.v === '3泊',
-      '保存後の画面でも「0時間」と「未回答」が別のものとして出る', J(sm.rows));
-    checkSize(await measure(b), '390×680 月の勤務（保存後）');
-    const geo = await measure(b);
-    ok(Math.abs(geo.sheet.w - geo.vw) < 1 && Math.abs(geo.sheet.y + geo.sheet.h - geo.vh) < 1 && geo.sheet.h >= geo.vh * 0.9 && geo.sheet.h < geo.vh,
-      '390px では下から上がってくる面（幅いっぱい・高さはほぼ全面）', J(geo.sheet));
-    await b.page.click('.pvc-root [data-pvc-act="more"]');
+    await b.page.waitForFunction(() => (window.__pvcSaved || []).some((x) => x && x.topic === 'claim'), { timeout: 20000 });
     await waitView(b, 'counted');
-    const cnt = await b.page.$eval('.pvc-root [data-pvc-count="work"]', (n) => (n.hidden ? null : n.textContent));
-    ok(cnt === 'あなたの投稿 1件', '「別の項目を追加」で一覧へ戻ると、いま保存した1件が数えられている', String(cnt));
+    await b.page.waitForFunction(() => { const n = document.querySelector('.pvc-root [data-pvc-count="work"]'); return !!n && !n.hidden; });
+    const rows = await workRows('etihad');
+    const after = await b.page.evaluate(() => ({
+      work: document.querySelector('.pvc-root [data-pvc-count="work"]').textContent,
+      held: !document.querySelector('.pvc-root [data-pvc-heldslot]').hidden,
+      note: (document.querySelector('.pvc-root .pvc-msg[data-pvc-msg="claim"]') || {}).innerText || '',
+      key: localStorage.getItem('pv_contrib_key'), board: !!document.querySelector('.pvgf-back'),
+    }));
+    ok(hits(b, 'claim_contrib') >= 1 && rows.length === 1 && rows[0].block_hours === 0 && rows[0].stay_nights === 4 && rows[0].work_days === 18
+      && rows[0].duty_hours === null && rows[0].pos === 'fo' && rows[0].note === '夏ダイヤの月',
+      '★ログインすると、預けた回答が本人の投稿として引き継がれる（0 は 0・未回答は未回答・ひとこともそのまま）', J(rows));
+    ok((await pend()).length === 0 && (await keys()).length === 0 && after.key === null,
+      '★引き継いだあと、預かりにも鍵にも何も残らない（端末の鍵も捨てる）', J({ pend: (await pend()).length, key: after.key }));
+    ok(after.work === 'あなたの投稿 1件' && !after.held && /引き継ぎました/.test(after.note),
+      '引き継いだ一覧は会員としての投稿から数え、「ログイン前の回答を引き継ぎました」と知らせる（預かりの案内は消える）', J(after));
+    ok(!after.board, '登録だけの会員でも、入力の面を開いている間は Give → Get の板が覆わない');
+    const keyB1 = await payKey(B.id);
+    ok(keyB1 === keyB0 && /"access_until":null/.test(keyB1),
+      '★預けても・引き継いでも、給与の鍵は1つも動かない（期限・件数・バッジ・確認済みの印・給与の行数）', J({ keyB0, keyB1 }));
     ok((await workRows('jal')).length === 1, 'ほかの会社・ほかの会員の行は1つも増えていない');
+  });
+
+  // ═════════════════════════════════════════════════════════════
+  // 6-b. 話題ごとの質問と、会社ページの質問の名前からの入口（日本航空・会員A）
+  // ═════════════════════════════════════════════════════════════
+  await scene('話題の分け方 ── 会社ページの入口と同じ・質問の名前から直接開く', async () => {
+    const { askGroup } = await import('./gen-career.mjs');
+    const conds = JSON.parse(read('pv-conditions.json'));
+    const GROUPS6 = ['taxi', 'staff_travel', 'upgrade', 'roster', 'career', 'benefits'];
+    const want = Object.fromEntries(GROUPS6.map((g) => [g, conds.questions.filter((x) => askGroup(x.id) === g).map((x) => x.id).sort()]));
+    const all = conds.questions.filter((x) => !x.retired).map((x) => x.id);
+    ok(all.length >= 40 && all.every((id) => GROUPS6.includes(askGroup(id))), `質問表の ${all.length} 問は、どれも6つの話題のどれかに入る（面で答えられない質問が無い）`,
+      J(all.filter((id) => !GROUPS6.includes(askGroup(id)))));
+    await go(a, JAL);
+    const got = {};
+    for (const g of GROUPS6) {
+      await api(a, g);
+      await waitView(a, g);
+      got[g] = await a.page.evaluate(() => [...new Set([...document.querySelectorAll('.pvc-root form [data-q]')].map((n) => n.getAttribute('data-q')))].sort());
+      await a.page.evaluate(() => window.PVContrib.close());
+      await waitClosed(a);
+    }
+    const diff = GROUPS6.filter((g) => J(got[g]) !== J(want[g]));
+    ok(diff.length === 0, '★6つの話題に出る質問が、会社ページの入口の決め方（askGroup）と1問も違わない', J(diff.map((g) => ({ g, got: got[g], want: want[g] }))));
+    ok(['commuting_taxi_cap', 'upgrade_order', 'upgrade_min_hours', 'upgrade_min_tenure'].every((id) => Object.values(got).some((l) => l.includes(id))),
+      '★これまで答える場所が無かった4問（タクシー代の上限・昇格の3問）も、面の中に在る', J(got.upgrade));
+
+    /* 会社ページの質問の名前 ── 押すとこの面が、その質問を開いた状態で出る（質問の画面へ行かない） */
+    const QID = 'upgrade_order';
+    const link = await a.page.evaluate((qid) => {
+      const n = document.querySelector('.pvg a[data-pvc-q="' + qid + '"]');
+      if (!n) return null;
+      const o = { href: n.getAttribute('href'), open: n.getAttribute('data-pvc-open') };
+      n.click();
+      return o;
+    }, QID);
+    ok(!!link && link.open === askGroup(QID) && link.href === `../airline-conditions.html?airline=jal&q=${QID}`,
+      '会社ページの質問の名前は、面を開く入口になっている（部品が読めない時の行き先も同じ会社・同じ質問）', J(link));
+    await waitView(a, askGroup(QID));
+    const at = await a.page.evaluate((qid) => {
+      const ta = document.querySelector('#pvc-n-' + qid), bt = document.querySelector('.pvc-root [data-q-more="' + qid + '"]');
+      const box = document.querySelector('.pvc-root form [data-q="' + qid + '"]'), mn = document.querySelector('.pvc-root .pvc-main').getBoundingClientRect();
+      const r = box ? box.getBoundingClientRect() : null;
+      return {
+        href: location.pathname, noteOpen: !!ta && ta.getClientRects().length > 0, moreHidden: !!bt && bt.hidden,
+        seen: !!r && r.top < mn.bottom && r.bottom > mn.top, prev: !document.querySelector('.pvc-root .pvc-prev').hidden,
+      };
+    }, QID);
+    ok(at.href === JAL && at.seen && at.noteOpen && at.moreHidden,
+      '★押してもページを離れない。その質問が見えていて、補足の欄はもう開いている', J(at));
+    await a.page.evaluate(() => window.PVContrib.close());
+    await waitClosed(a);
   });
 
   // ═════════════════════════════════════════════════════════════

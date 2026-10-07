@@ -158,6 +158,15 @@ const member = async () => {
 };
 const crew = async (n) => { const a = []; for (let i = 0; i < n; i++) a.push(await member()); return a; };
 
+/* 幅を読める人 ＝ 給与の鍵が生きている会員（2026-10-07 オーナー指定：他人の勤務はログイン＋給与提出資格）。
+   幅の中身を見る検査は、この人として読む。未ログインと、鍵の無い会員に何が返るかは 1. の節が見る。
+   ★鍵は検査の準備として持ち主が直接立てる（会員が自分で立てる道は無い）。 */
+const unlock = (id) => db.query(`update public.profiles set access_until = now() + interval '30 days' where id = $1`, [id]);
+const READER = await member();
+await unlock(READER);
+const view = (who, p) => rpc(who, 'pv_work_view', p);
+const ago = (k) => { const t = NOW.y * 12 + (NOW.m - 1) - k; return { year: Math.floor(t / 12), month: (t % 12) + 1 }; };
+
 // 「今月」は DB の時計から取る（この Mac の時計と月の境目でずれると、未来の月の検査が嘘の赤を出す）
 const NOW  = await one(`select extract(year from current_date)::int as y, extract(month from current_date)::int as m`);
 const YEAR = NOW.y - 1;   // 去年＝12か月ぜんぶが過去
@@ -170,8 +179,8 @@ const rg = (v, lo, hi) => !!v && typeof v === 'object' && keys(v) === 'hi,lo' &&
 
 // 会社は語彙から機械的に取る（節ごとに別の会社を使い、互いの人数に混ざらないようにする）
 const AIR = (await many(
-  `select code from public.pv_airlines where code <> 'other' and active order by code limit 11`)).map((r) => r.code);
-const [A_ONE, A_ZERO, A_FIX, A_PRIV, A_CHK, A_GATE, A_WALL, A_BOTH, A_HID, A_LIST, A_CAP] = AIR;
+  `select code from public.pv_airlines where code <> 'other' and active order by code limit 12`)).map((r) => r.code);
+const [A_ONE, A_ZERO, A_FIX, A_PRIV, A_CHK, A_GATE, A_WALL, A_BOTH, A_HID, A_LIST, A_CAP, A_VIEW] = AIR;
 const FLEET = (await one(`select code from public.pv_fleets where active order by code limit 1`)).code;
 
 /* 給与を1件出す（対照と、給与の行を材料にする節で使う）。
@@ -231,8 +240,30 @@ console.log('\n▼ 1. 権限（誰が何をできるか）');
     ok(no(await call(P1, sig)) && no(await call(ANON, sig)), `会員も未ログインも ${name} を直接呼べない`);
   }
 
-  const s = await stats(ANON, { airline: A_ONE, position: 'cap' });
-  ok(s.ok === true && Array.isArray(s.months), '幅は未ログインでも呼べる', J(s));
+  // ★幅は、立場をサーバが見てから返す。資格の無い人への返事には、数字も月の一覧も入っていない
+  const q1 = { airline: A_ONE, position: 'cap' }, q2 = { ...q1, year: YEAR, month: 1 };
+  for (const [fn, name] of [['pv_work_month_stats', '月ごとの幅'], ['pv_work_view', '直近の幅']]) {
+    for (const q of fn === 'pv_work_view' ? [{ airline: A_ONE }] : [q1, q2]) {
+      ok(J(await rpc(ANON, fn, q)) === '{"ok":true,"state":"login"}', `未ログインへの${name}の返事は { ok, state:'login' } だけ`);
+      ok(J(await rpc(P1, fn, q)) === '{"ok":true,"state":"locked"}', `給与の鍵が無い会員への${name}の返事は { ok, state:'locked' } だけ`);
+    }
+  }
+  ok(J(await rpc(ANON, 'pv_work_month_stats', { airline: 'no-such-airline' })) === '{"ok":true,"state":"login"}',
+     '未ログインには、会社が在る・無いの手がかりも返さない（中身を見る前に断る）');
+  const s = await stats(READER, q1);
+  ok(s.ok === true && s.state === 'open' && Array.isArray(s.months), '給与の鍵が生きている会員は幅を読める', J(s));
+  const v0 = await view(READER, { airline: A_ONE });
+  ok(v0.ok === true && v0.state === 'open' && v0.months === 12 && keys(v0.by) === 'cap,fo'
+     && allNull(v0.by.cap) && allNull(v0.by.fo), '同じ人は直近の幅も読める（誰も出していない会社は全部 null）', J(v0));
+  // 期限が切れたら閉じる（鍵は「持ったことがある」ではなく「いま生きている」）
+  await db.query(`update public.profiles set access_until = now() - interval '1 minute' where id = $1`, [READER]);
+  ok(J(await stats(READER, q1)) === '{"ok":true,"state":"locked"}', '鍵の期限が切れた会員は、鍵の無い会員と同じ返事');
+  await unlock(READER);
+  for (const sig of [
+    `select * from public.pv_work_month_people('${A_ONE}', 'cap')`,
+    `select public.pv_work_level()`,
+    `select public.pv_work_month_clean('{}'::jsonb)`,
+  ]) ok(no(await call(P1, sig)) && no(await call(ANON, sig)) && no(await call(READER, sig)), `誰も直接呼べない: ${sig.slice(7, 45)}`);
 
   const pol = await one(
     `select (select count(*)::int from pg_policies where schemaname = 'public' and tablename = 'pv_work_months') as n,
@@ -549,7 +580,7 @@ console.log('\n▼ 7. 給与の資格に数えない');
   const res = await db.exec(WORK_SQL);
   const chk = res[res.length - 1].rows[0] || {};
   ok(Number(chk['ポリシー数']) === 0 && chk['表は閉じている'] === true && chk['未ログインは出せない'] === true
-     && chk['幅は誰でも読める'] === true && chk['給与の資格に触らない'] === true && chk['給与の門はこの表を読まない'] === true,
+     && chk['幅は資格を見てから返す'] === true && chk['給与の資格に触らない'] === true && chk['給与の門はこの表を読まない'] === true,
      '末尾の検算が6つともそろう（ポリシー0・それ以外は true）', J(chk));
 }
 
@@ -563,17 +594,17 @@ const WALL_Q = { airline: A_WALL, position: 'cap', year: YEAR, month: 3 };
   const first = { ...WALL_Q, block_hours: 60, duty_hours: 151, work_days: 16, days_off: 10, stay_nights: 0 };
   await work(S1, first);
   await work(S2, { ...WALL_Q, block_hours: 80, duty_hours: 163, work_days: 18, stay_nights: 10 });
-  const two = await stats(ANON, WALL_Q);
+  const two = await stats(READER, WALL_Q);
   ok(two.ok === true && allNull(two.items), '2人では、どの項目も数字が出ない', J(two));
-  const none = await stats(ANON, { ...WALL_Q, month: 4 });
+  const none = await stats(READER, { ...WALL_Q, month: 4 });
   ok(allNull(none.items) && J({ ...two, month: 0 }) === J({ ...none, month: 0 }),
      '★2人の月の返事は、誰も出していない月と1文字も違わない（在る／無いも出さない）', `${J(two)}\n     ${J(none)}`);
-  ok(((await stats(ANON, { airline: A_WALL, position: 'cap' })).months || [0]).length === 0, '2人の月は、月の一覧にも出ない');
+  ok(((await stats(READER, { airline: A_WALL, position: 'cap' })).months || [0]).length === 0, '2人の月は、月の一覧にも出ない');
   await work(S1, first); await work(S1, first);
-  ok(allNull((await stats(ANON, WALL_Q)).items), '同じ人が出し直しても人数は増えない');
+  ok(allNull((await stats(READER, WALL_Q)).items), '同じ人が出し直しても人数は増えない');
 
   await work(S3, { ...WALL_Q, block_hours: 100, duty_hours: 178, work_days: 22 });
-  const three = await stats(ANON, WALL_Q);
+  const three = await stats(READER, WALL_Q);
   ok(rg(three.items.block_hours, 70, 90), '3人そろうと幅が出る（乗務時間 60・80・100 → 70〜90）', J(three.items));
   ok(rg(three.items.duty_hours, 155, 170), '時間は5刻みに丸める（拘束時間 151・163・178 → 155〜170）', J(three.items.duty_hours));
   ok(rg(three.items.work_days, 17, 20), '日数は1刻み（勤務日数 16・18・22 → 17〜20）', J(three.items.work_days));
@@ -582,15 +613,18 @@ const WALL_Q = { airline: A_WALL, position: 'cap', year: YEAR, month: 3 };
      '壁は項目ごと（1人しか答えていない公休日数も、誰も答えていない乗務日数も出ない）', J(three.items));
 
   await work(S4, { ...WALL_Q, stay_nights: 12 });
-  const four = await stats(ANON, WALL_Q);
+  const four = await stats(READER, WALL_Q);
   ok(rg(four.items.stay_nights, 5, 11), '★0 と入れた人は人数に入る（ステイ泊数 0・10・12 → 5〜11）', J(four.items.stay_nights));
   ok(rg(four.items.block_hours, 70, 90), '★未回答を 0 として混ぜない（4人目は乗務時間を入れていない → 70〜90 のまま）', J(four.items.block_hours));
 
-  ok(allNull((await stats(ANON, { ...WALL_Q, position: 'fo' })).items), '職位が違えば混ぜない（機長4人の月を副操縦士で引いても出ない）');
-  ok(allNull((await stats(ANON, { ...WALL_Q, airline: A_ONE })).items), '会社が違えば混ぜない');
+  ok(allNull((await stats(READER, { ...WALL_Q, position: 'fo' })).items), '職位が違えば混ぜない（機長4人の月を副操縦士で引いても出ない）');
+  ok(allNull((await stats(READER, { ...WALL_Q, airline: A_ONE })).items), '会社が違えば混ぜない');
+  ok(J(await stats(S1, WALL_Q)) === '{"ok":true,"state":"locked"}',
+     '★勤務を出しただけの会員は、自分の出した月の幅も読めない（出したことは資格にならない）');
+  await unlock(S1); await unlock(S4);
   ok(J(await stats(S1, WALL_Q)) === J(four) && J(await stats(S4, WALL_Q)) === J(four),
-     '会員が呼んでも未ログインと同じ答え（呼んだ本人の値を足しも外しもしない）');
-  const list = await stats(ANON, { airline: A_WALL, position: 'cap' });
+     '読める人なら誰が呼んでも同じ答え（呼んだ本人の値を足しも外しもしない）');
+  const list = await stats(READER, { airline: A_WALL, position: 'cap' });
   ok(J(list.months) === J([{ year: YEAR, month: 3 }]) || (list.months.length === 1 && list.months[0].year === YEAR && list.months[0].month === 3),
      '幅が出る月は、月の一覧に出る', J(list));
 }
@@ -614,18 +648,18 @@ console.log('\n▼ 9. 給与と勤務の両方を出した人は1人');
 
   const p2 = await pay(Q2, { ...pm, block_hours: 90, stay_nights: 11 });
   ok(!p2.__err, '2人目は給与だけ出す（乗務時間 90・ステイ 11）', p2.__err);
-  const b2 = await stats(ANON, q);
+  const b2 = await stats(READER, q);
   ok(allNull(b2.items), '★両方を出した人を2回数えない（2回数えると乗務時間が3人ぶんになって幅が出る）', J(b2.items));
 
   await work(Q3, { ...q, block_hours: 110 });
-  const b3 = await stats(ANON, q);
+  const b3 = await stats(READER, q);
   ok(rg(b3.items.block_hours, 70, 100),
      '同じ項目が両方に在れば、勤務の置き場の値が先（50・90・110 → 70〜100。給与側の 70 を使うと 80〜100）', J(b3.items.block_hours));
   ok(b3.items.stay_nights === null, '給与の行のステイ泊数は2人ぶん（9・11）→ まだ出ない', J(b3.items.stay_nights));
 
   const p3 = await pay(Q3, { ...pm, block_hours: 120, stay_nights: 13 });
   ok(!p3.__err, '3人目があとから給与も出す（乗務時間 120・ステイ 13）', p3.__err);
-  const b4 = await stats(ANON, q);
+  const b4 = await stats(READER, q);
   ok(rg(b4.items.stay_nights, 10, 12), '給与の行に書かれた勤務の数字も材料になる（ステイ 9・11・13 → 10〜12）', J(b4.items.stay_nights));
   ok(rg(b4.items.block_hours, 70, 100), '…あとから給与を出しても、勤務の置き場の値が先のまま（110 が 120 に替わらない）', J(b4.items.block_hours));
 
@@ -665,21 +699,21 @@ let SPELL = [];
     `select count(*)::int as n, count(distinct proof_hash)::int as h from public.pv_work_months
       where airline = 'other' and public.pv_airline_resolve(airline_other) = $1`, [T.code]);
   ok(h.n === 3 && h.h === 3, '（前提）1人が綴りを3つ変えると、別々のハッシュの3行になる', J(h));
-  ok(allNull((await stats(ANON, tq)).items), '★1人が綴りを3つ変えても3人にはならない（1つのアカウントで壁を破れない）');
-  ok(((await stats(ANON, { airline: T.code, position: 'cap' })).months || [0]).length === 0, '…月の一覧にも出ない');
+  ok(allNull((await stats(READER, tq)).items), '★1人が綴りを3つ変えても3人にはならない（1つのアカウントで壁を破れない）');
+  ok(((await stats(READER, { airline: T.code, position: 'cap' })).months || [0]).length === 0, '…月の一覧にも出ない');
 
   await work(T1, { ...tq, block_hours: 60 });
-  ok(allNull((await stats(ANON, tq)).items), '一覧から選んだ1人を足しても2人');
+  ok(allNull((await stats(READER, tq)).items), '一覧から選んだ1人を足しても2人');
   await work(T2, { ...tq, block_hours: 80 });
-  ok(rg((await stats(ANON, tq)).items.block_hours, 70, 90),
+  ok(rg((await stats(READER, tq)).items.block_hours, 70, 90),
      '打ち込まれた社名が会社に当たれば、その会社の1人として数える（60・80・100 → 70〜90）');
 
   // 'other' そのものは集計しない（別々の会社が1つの箱に混ざる）
   for (const [i, u] of [X1, X2, X3].entries()) {
     await work(u, { airline: 'other', airline_other: 'Test Charter Delta', position: 'cap', year: YEAR, month: 9, block_hours: 50 + i * 10 });
   }
-  const ox = await stats(ANON, { airline: 'other', position: 'cap', year: YEAR, month: 9 });
-  const ol = await stats(ANON, { airline: 'other', position: 'cap' });
+  const ox = await stats(READER, { airline: 'other', position: 'cap', year: YEAR, month: 9 });
+  const ol = await stats(READER, { airline: 'other', position: 'cap' });
   ok(allNull(ox.items) && ol.months.length === 0, '「一覧にない会社」は3人そろっても集計しない（幅も月の一覧も空）', J({ ox, ol }));
 }
 
@@ -699,19 +733,19 @@ console.log('\n▼ 11. 給与の行は「一覧に出してよい行」だけを
        from public.pay_reports where airline = $1`, [A_HID]);
   ok(pre.n === 3 && pre.sane === true, '（前提）3人ぶんの給与が、常識の幅の年換算で入っている', J(pre));
 
-  const h0 = await stats(ANON, q);
+  const h0 = await stats(READER, q);
   ok(rg(h0.items.block_hours, 70, 90), '給与の行に書かれた勤務の数字だけでも、3人そろえば幅が出る（60・80・100 → 70〜90）', J(h0.items));
   ok(h0.items.work_days === null, '勤務日数は給与の行に欄が無い → 出ない（0 で埋めない）', J(h0.items.work_days));
 
   const keep = (await one(`select annual_total_usd::text as v from public.pay_reports where proof_hash = public.pv_work_hash($1, $2, null)`, [H1, A_HID])).v;
   await db.query(`update public.pay_reports set annual_total_usd = 900000 where proof_hash = public.pv_work_hash($1, $2, null)`, [H1, A_HID]);
-  ok(allNull((await stats(ANON, q)).items), '年換算が常識の幅を外れた給与の行は材料にしない（2人に減って出なくなる）');
+  ok(allNull((await stats(READER, q)).items), '年換算が常識の幅を外れた給与の行は材料にしない（2人に減って出なくなる）');
   await db.query(`update public.pay_reports set annual_total_usd = $3::numeric where proof_hash = public.pv_work_hash($1, $2, null)`, [H1, A_HID, keep]);
 
   await db.query(`insert into public.pay_hidden (proof_hash, reason) values (public.pv_work_hash($1, $2, null), '本人の依頼（検査用）')`, [H2, A_HID]);
-  ok(allNull((await stats(ANON, q)).items), '★本人の依頼で一覧から下ろした人の給与の行は、ここでも材料にしない');
+  ok(allNull((await stats(READER, q)).items), '★本人の依頼で一覧から下ろした人の給与の行は、ここでも材料にしない');
   await db.query(`delete from public.pay_hidden where proof_hash = public.pv_work_hash($1, $2, null)`, [H2, A_HID]);
-  ok(rg((await stats(ANON, q)).items.block_hours, 70, 90), '戻せば元どおり');
+  ok(rg((await stats(READER, q)).items.block_hours, 70, 90), '戻せば元どおり');
 }
 
 
@@ -731,26 +765,68 @@ console.log('\n▼ 12. 月の一覧と、受け取る形');
   await work(M1, { ...lm, year: YEAR, month: 6, days_off: 8 });
   await work(M2, { ...lm, year: YEAR, month: 6, days_off: 9 });
 
-  const list = await stats(ANON, lm);
+  const list = await stats(READER, lm);
   const ym = (list.months || []).map((m) => m.year * 12 + m.month);
-  ok(keys(list) === 'airline,months,ok,position' && list.airline === A_LIST && list.position === 'fo', '年月を省くと { ok, airline, position, months } が返る', keys(list));
+  ok(keys(list) === 'airline,months,ok,position,state' && list.state === 'open' && list.airline === A_LIST && list.position === 'fo', '年月を省くと { ok, state, airline, position, months } が返る', keys(list));
   ok(ym.length === 24, '月の一覧は24件まで（25か月ぶん在っても）', String(ym.length));
   ok(list.months[0].year === YEAR && list.months[0].month === 1 && ym.every((v, i) => i === 0 || v < ym[i - 1]), '新しい月が先');
   ok(!list.months.some((m) => m.year === YEAR && m.month === 6), '3人に届かない月は一覧に出ない');
   ok(list.months.every((m) => keys(m) === 'month,year'), '一覧の中身は { year, month } だけ');
-  const cell = await stats(ANON, { ...lm, year: YEAR, month: 1 });
-  ok(keys(cell) === 'airline,items,month,ok,position,year' && keys(cell.items) === [...SIX].sort().join(',') && rg(cell.items.days_off, 9, 10),
+  const cell = await stats(READER, { ...lm, year: YEAR, month: 1 });
+  ok(keys(cell) === 'airline,items,month,ok,position,state,year' && cell.state === 'open' && keys(cell.items) === [...SIX].sort().join(',') && rg(cell.items.days_off, 9, 10),
      '年月を付けると { ok, airline, position, year, month, items } が返る（公休 8・9・10 → 9〜10）', J(cell));
-  ok(rg((await stats(ANON, { ...lm, period_year: YEAR, period_month: 1 })).items.days_off, 9, 10), '年月は period_year / period_month でも受ける');
+  ok(rg((await stats(READER, { ...lm, period_year: YEAR, period_month: 1 })).items.days_off, 9, 10), '年月は period_year / period_month でも受ける');
 
-  ok(bad(await stats(ANON, { airline: 'no-such-airline', position: 'fo' }), /航空会社が正しくありません/), '知らない会社 → 受けない');
-  ok(bad(await stats(ANON, { airline: A_LIST, position: 'chief' }), /職位が正しくありません/), '知らない職位 → 受けない');
-  ok(bad(await stats(ANON, { airline: A_LIST }), /職位が正しくありません/), '職位を省く → 受けない');
-  ok(bad(await stats(ANON, { ...lm, year: YEAR }), /年月が正しくありません/), '年だけ → 受けない');
-  ok(bad(await stats(ANON, { ...lm, month: 1 }), /年月が正しくありません/), '月だけ → 受けない');
-  ok(bad(await stats(ANON, { ...lm, year: 'abcd', month: 1 }), /年月が正しくありません/), '年が数字でない → 受けない');
-  ok(bad(await stats(ANON, { ...lm, year: YEAR, month: 13 }), /年月が正しくありません/), '13月 → 受けない');
-  ok(bad(await stats(ANON, undefined), /航空会社が正しくありません/), '引数が空 → 受けない');
+  ok(bad(await stats(READER, { airline: 'no-such-airline', position: 'fo' }), /航空会社が正しくありません/), '知らない会社 → 受けない');
+  ok(bad(await stats(READER, { airline: A_LIST, position: 'chief' }), /職位が正しくありません/), '知らない職位 → 受けない');
+  ok(bad(await stats(READER, { airline: A_LIST }), /職位が正しくありません/), '職位を省く → 受けない');
+  ok(bad(await stats(READER, { ...lm, year: YEAR }), /年月が正しくありません/), '年だけ → 受けない');
+  ok(bad(await stats(READER, { ...lm, month: 1 }), /年月が正しくありません/), '月だけ → 受けない');
+  ok(bad(await stats(READER, { ...lm, year: 'abcd', month: 1 }), /年月が正しくありません/), '年が数字でない → 受けない');
+  ok(bad(await stats(READER, { ...lm, year: YEAR, month: 13 }), /年月が正しくありません/), '13月 → 受けない');
+  ok(bad(await stats(READER, undefined), /航空会社が正しくありません/), '引数が空 → 受けない');
+}
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 12-b. 直近12か月の幅（会社ページと比較が読む口）');
+// ════════════════════════════════════════════════════════════
+{
+  const [V1, V2, V3, V4, V5] = await crew(5);
+  const m1 = ago(1), m2 = ago(2), old = ago(13);
+  const base = { airline: A_VIEW, position: 'cap' };
+  await work(V1, { ...base, ...m1, block_hours: 60, days_off: 8 });
+  await work(V2, { ...base, ...m1, block_hours: 80, days_off: 10 });
+  const two = await view(READER, { airline: A_VIEW });
+  ok(two.state === 'open' && allNull(two.by.cap) && allNull(two.by.fo), '2人では、どの項目も出ない', J(two));
+  // 同じ人がもう1か月出しても、人数は増えない（1人＝1つの値）
+  await work(V1, { ...base, ...m2, block_hours: 100, days_off: 8 });
+  ok(allNull((await view(READER, { airline: A_VIEW })).by.cap), '★同じ人が別の月を出しても人数は増えない（1人は1回だけ数える）');
+  await work(V3, { ...base, ...m1, block_hours: 100, days_off: 0 });
+  const three = await view(READER, { airline: A_VIEW });
+  // V1 は 60 と 100 の平均 80・V2 は 80・V3 は 100 → 25〜75% は 80〜90
+  ok(rg(three.by.cap.block_hours, 80, 90), '3人そろうと幅が出る（1人の複数月は平均してから数える：80・80・100 → 80〜90）', J(three.by.cap));
+  ok(rg(three.by.cap.days_off, 4, 9), '★0 と入れた人は人数に入る（公休 8・10・0 → 4〜9）', J(three.by.cap.days_off));
+  ok(three.by.cap.duty_hours === null && three.by.cap.stay_nights === null, '壁は項目ごと（誰も答えていない項目は出ない）');
+  ok(allNull(three.by.fo), '職位は混ぜない（機長3人の会社を副操縦士で見ても出ない）');
+  ok(keys(three) === 'airline,by,months,ok,state' && keys(three.by.cap) === [...SIX].sort().join(','), '返事の鍵は決まったものだけ（人数を持たない）', J(three));
+  // 12か月より前の月は入れない
+  await work(V4, { airline: A_VIEW, position: 'fo', ...old, stay_nights: 5 });
+  await work(V5, { airline: A_VIEW, position: 'fo', ...old, stay_nights: 7 });
+  await work(V1, { airline: A_VIEW, position: 'fo', ...old, stay_nights: 9 });
+  ok(allNull((await view(READER, { airline: A_VIEW })).by.fo), '12か月より前の月は数えない（3人いても出ない）');
+  ok(J(await view(V1, { airline: A_VIEW })) === '{"ok":true,"state":"locked"}', '★出した本人でも、給与の鍵が無ければ読めない');
+  ok(bad(await view(READER, { airline: 'no-such-airline' }), /航空会社が正しくありません/), '知らない会社 → 受けない');
+  ok(bad(await view(READER, { airline: 'other' }), /航空会社が正しくありません/), '自由入力の会社 → 受けない（名前の表記で分かれる）');
+  const raw = J(three);
+  ok(!/"(n|count|people|avg|mean|median|rows|note)"/i.test(raw) && !/[0-9a-f]{64}/.test(raw), '人数・平均・個票・ハッシュの鍵が無い');
+
+  // 検品を通した形は、もう一度通しても1文字も変わらない（預かり → 引き継ぎで別の決まりに落ちない）
+  const p0 = { airline: A_VIEW, position: 'cap', ...m1, block_hours: '72.5', days_off: 0, note: '  ひとこと  ', lang: 'EN' };
+  const c1 = (await one(`select public.pv_work_month_clean($1::jsonb) as v`, [J(p0)])).v;
+  const c2 = (await one(`select public.pv_work_month_clean($1::jsonb) as v`, [J(c1)])).v;
+  ok(J(c1) === J(c2) && c1.days_off === 0 && c1.duty_hours === null && c1.note === 'ひとこと',
+     '★検品を通した形は、もう一度通しても同じ（0 は 0・未回答は null のまま）', J({ c1, c2 }));
 }
 
 
@@ -768,18 +844,19 @@ console.log('\n▼ 13. 返った JSON に、出てはいけないものが無い
   const int = (v) => Number.isInteger(v);
   const shape = (v) => {
     if (v.ok !== true) return false;
+    if (v.state !== 'open') return keys(v) === 'ok,state' && (v.state === 'login' || v.state === 'locked');
     if ('months' in v) {
-      return keys(v) === 'airline,months,ok,position'
+      return keys(v) === 'airline,months,ok,position,state'
         && Array.isArray(v.months) && v.months.every((m) => keys(m) === 'month,year' && int(m.year) && int(m.month));
     }
-    return keys(v) === 'airline,items,month,ok,position,year' && int(v.year) && int(v.month)
+    return keys(v) === 'airline,items,month,ok,position,state,year' && int(v.year) && int(v.month)
       && keys(v.items) === [...SIX].sort().join(',')
       && SIX.every((k) => v.items[k] === null
         || (keys(v.items[k]) === 'hi,lo' && typeof v.items[k].lo === 'number' && typeof v.items[k].hi === 'number'
             && v.items[k].lo <= v.items[k].hi));
   };
   const off = st.filter((s) => !shape(JSON.parse(s.json)));
-  ok(off.length === 0, '★幅の返事は決まった2つの形だけ ＝ 数字は 年・月・lo・hi しか無い（人数を持たない）', off.slice(0, 2).map((s) => s.json).join(' / '));
+  ok(off.length === 0, '★幅の返事は決まった形だけ（開いた2つ＋断りの1つ）＝ 数字は 年・月・lo・hi しか無い（人数を持たない）', off.slice(0, 2).map((s) => s.json).join(' / '));
   const fives = st.every((s) => {
     const v = JSON.parse(s.json);
     return !v.items || ['block_hours', 'duty_hours'].every((k) => v.items[k] === null || (v.items[k].lo % 5 === 0 && v.items[k].hi % 5 === 0));
@@ -823,7 +900,7 @@ console.log('\n▼ 14. データが入ったまま流し直す');
             has_function_privilege('authenticated', 'public.pv_work_month_cells(text, text)', 'execute') as c,
             has_table_privilege('authenticated', 'public.pv_work_months', 'select') as t`);
   ok(pol.n === 0 && pol.a === false && pol.c === false && pol.t === false, '流し直しても権限が開いていない', J(pol));
-  ok(rg((await stats(ANON, WALL_Q)).items.block_hours, 70, 90), '流し直したあとも同じ幅が返る');
+  ok(rg((await stats(READER, WALL_Q)).items.block_hours, 70, 90), '流し直したあとも同じ幅が返る');
 }
 
 

@@ -58,6 +58,7 @@ export const SQL_FILES = [
   'db/founding.sql',
   'db/stays.sql',
   'db/work-months.sql',
+  'db/contrib.sql',
 ];
 
 /* Supabase が最初から持っているもの（auth・役・既定の権限）と、
@@ -212,7 +213,7 @@ function client(cfg) {
   if (!window.gtag) window.gtag = function () {};
 
   /* 会員の切替 */
-  var KEEP = /^(pv_local_|pv-currency|pv_contrib_outbox|pv-theme)/;
+  var KEEP = /^(pv_local_|pv-currency|pv_contrib_outbox|pv_contrib_key|pv-theme)/;
   function get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function wipe() {
     try {

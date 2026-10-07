@@ -157,9 +157,22 @@
     lastFocus = null;
   }
 
+  /* 「情報を追加」の面が開いている・これから開く（?add= で来た）あいだは出さない。
+     あの面は入力の途中で、ログインから戻った直後にも開く ＝ ここで覆うと、書いた内容の上に板が載る。
+     面を閉じたあとで出す（この板を見せる回数は減らさない）。
+     ⚠️ 出す・出さないを決めるのは今も pv-session.js。ここは「いまは待つ」を足しただけ。 */
+  function contribBusy() {
+    try {
+      if (d.documentElement.classList.contains('pvc-lock')) return true;
+      if (w.PVContrib && typeof w.PVContrib.isOpen === 'function') return !!w.PVContrib.isOpen();
+      return /[?&]add=/.test(w.location.search) && !!d.querySelector('script[src*="pv-contrib.js"]');
+    } catch (e) { return false; }
+  }
+
   function open() {
     if (back) return;
     if (!w.PVGates || typeof w.PVGates.giveGetHTML !== 'function') return;
+    if (contribBusy()) { w.setTimeout(open, 800); return; }
 
     var style = d.getElementById('pvgf-css');
     if (!style) {

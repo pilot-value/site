@@ -789,7 +789,7 @@ a.pvg-topic-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2p
 .pvg-at-pay .pvg-payrow,.pvg-at-work .pvg-top,.pvg-at-life .pvg-top,.pvg-at-reviews .pvg-payrow,.pvg-at-stay .pvg-g-st{margin-top:0}
 .pvg-rvl{margin-top:var(--pvg-gap)}
 .pvg-rvl > .pvg-hd{margin-bottom:12px}
-.pvg .pvg-addrow{margin-top:10px;padding-top:4px;border-top:1px solid var(--pv-line-soft)}
+.pvg .pvg-addrow{display:flex;flex-wrap:wrap;gap:0 24px;margin-top:10px;padding-top:4px;border-top:1px solid var(--pv-line-soft)}
 
 @media (prefers-reduced-motion:reduce){
   .pvg-tabbar *,.pvg-tabbar *::before,.pvg-tabbar *::after{transition:none!important}

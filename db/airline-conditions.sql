@@ -101,6 +101,9 @@ create table if not exists public.airline_conditions (
 --   ⚠️ 公開ビューにも my_airline_conditions にも出さない。
 --      next_condition_questions が「いつまで黙るか」を決めるためだけに使う。
 alter table public.airline_conditions add column if not exists skipped_at timestamptz;
+-- 補足（answer_text）を、資格のある会員に見せてよいか。既定は false ＝ 今までの補足は本人だけ。
+-- 「見せます」と書いた画面（会社ページの「情報を追加」）から送られたときだけ true になる。
+alter table public.airline_conditions add column if not exists text_shared boolean not null default false;
 
 -- 1人1社1質問で1行。答え直すと on conflict で上書き＋updated_at 更新。
 -- unique 制約は張り直すと索引を作り直すので「無ければ作る」にする。
@@ -236,6 +239,131 @@ revoke all on public.pv_condition_links from public, anon, authenticated;
 
 
 -- ════════════════════════════════════════════════════════════════
+-- 4c. 1件ぶんの検品（会員の入口と、未ログインの預かりが**同じもの**を呼ぶ）
+-- ════════════════════════════════════════════════════════════════
+-- 質問マスタと突き合わせて、答えを決まった形へそろえる。**何も書き込まない。**
+--   通った … { ok:true, code, codes, num, currency, text, share, json }
+--   落ちた … { ok:false, reason }（reason は画面が日本語にする短い語）
+-- ★返した形は、そのままもう一度ここへ渡しても同じ形で通る。
+--   未ログインの預かり（db/contrib.sql）は、ここを通した形で置いておき、
+--   ログイン後に submit_airline_conditions へそのまま渡す。**検品をもう1つ書かない。**
+-- ★親の条件・連投・スキップは見ない（どれも「誰の回答か」が要るので、呼ぶ側が見る）。
+-- ★補足（text）は、**どの質問でも**受ける（2026-10-07 オーナー指定
+--   「選択回答に任意の補足説明を添えられる」）。300字まで。答えの代わりにはならない
+--   （選択肢の答えが無いと missing_code で落ちる＝補足だけの行は作らない）。
+-- ★share … この補足を、資格のある会員に見せてよいか。「見せます」と書いた画面から
+--   送られたときだけ true（db/contrib.sql の pv_contrib_notes が、この印の行だけを返す）。
+--   印を付けずに送る古い画面の補足は、今までどおり本人しか読めない。
+create or replace function public.pv_condition_clean(v_qid text, v_ans jsonb)
+returns jsonb
+language plpgsql
+stable
+set search_path = public, extensions
+as $$
+declare
+  v_q     record;
+  v_code  text;
+  v_codes text[];
+  v_num   numeric;
+  v_cur   text;
+  v_text  text;
+  v_json  jsonb;
+  v_bad   text;
+begin
+  select q.id, q.kind, q.choice_codes, q.num_min, q.num_max, q.has_currency
+    into v_q
+    from public.pv_condition_questions q
+   where q.id = v_qid and q.active;
+  if not found then
+    return jsonb_build_object('ok', false, 'reason', 'unknown_question');
+  end if;
+
+  v_bad   := null;
+  v_code  := nullif(btrim(v_ans->>'code'), '');
+  v_codes := null;
+  v_num   := null;
+  v_cur   := upper(nullif(btrim(v_ans->>'currency'), ''));
+  v_text  := nullif(btrim(v_ans->>'text'), '');
+  v_json  := case when jsonb_typeof(v_ans->'json') in ('array', 'object')
+                  then v_ans->'json' end;
+
+  if jsonb_typeof(v_ans->'codes') = 'array' then
+    select array_agg(distinct btrim(x)) into v_codes
+      from jsonb_array_elements_text(v_ans->'codes') as t(x)
+     where btrim(x) <> '';
+  end if;
+
+  -- 数値は先に形を見る（そのまま cast すると取引ごと落ちる）
+  if nullif(btrim(coalesce(v_ans->>'num', '')), '') is not null then
+    if btrim(v_ans->>'num') ~ '^-?[0-9]+(\.[0-9]+)?$' then
+      v_num := btrim(v_ans->>'num')::numeric;
+    else
+      v_bad := 'bad_number';
+    end if;
+  end if;
+
+  if v_bad is null then
+    if v_code = 'unknown' then
+      -- 「わからない」はどの kind でも受ける（翌月また同じことを聞かないため）
+      v_codes := null; v_num := null; v_cur := null; v_json := null;
+
+    elsif v_q.kind = 'choice' then
+      if v_code is null then v_bad := 'missing_code';
+      elsif not (v_code = any(v_q.choice_codes)) then v_bad := 'bad_code';
+      end if;
+      v_codes := null; v_num := null; v_cur := null; v_json := null;
+
+    elsif v_q.kind = 'multi' then
+      if coalesce(array_length(v_codes, 1), 0) = 0 then v_bad := 'missing_code';
+      elsif exists (select 1 from unnest(v_codes) x where not (x = any(v_q.choice_codes)))
+        then v_bad := 'bad_code';
+      end if;
+      v_code := null; v_num := null; v_cur := null; v_json := null;
+
+    elsif v_q.kind = 'num' then
+      if v_num is null then v_bad := 'missing_num';
+      elsif v_q.num_min is not null and v_num < v_q.num_min then v_bad := 'out_of_range';
+      elsif v_q.num_max is not null and v_num > v_q.num_max then v_bad := 'out_of_range';
+      end if;
+      if v_bad is null and v_q.has_currency then
+        if v_cur is null or not exists (select 1 from public.pv_currencies where code = v_cur) then
+          v_bad := 'bad_currency';
+        end if;
+      elsif not v_q.has_currency then
+        v_cur := null;
+      end if;
+      v_code := null; v_codes := null; v_json := null;
+
+    elsif v_q.kind = 'lines' then
+      if v_json is null then v_bad := 'missing_json';
+      elsif char_length(v_json::text) > 4000 then v_bad := 'too_long';
+      end if;
+      v_code := null; v_codes := null; v_num := null; v_cur := null;
+    end if;
+  end if;
+
+  -- 補足は、どの質問でも受ける（300字まで）
+  if v_bad is null and v_text is not null and char_length(v_text) > 300 then
+    v_bad := 'text_too_long';
+  end if;
+
+  if v_bad is not null then
+    return jsonb_build_object('ok', false, 'reason', v_bad);
+  end if;
+
+  return jsonb_build_object(
+    'ok', true,
+    'code', v_code, 'codes', to_jsonb(v_codes), 'num', v_num, 'currency', v_cur,
+    'text', v_text,
+    'share', (v_text is not null and coalesce(v_ans->>'share', '') = 'true'),
+    'json', v_json);
+end;
+$$;
+revoke all on function public.pv_condition_clean(text, jsonb) from public, anon, authenticated;
+
+
+
+-- ════════════════════════════════════════════════════════════════
 -- 5. 回答を保存する
 -- ════════════════════════════════════════════════════════════════
 -- 質問マスタと突き合わせて1件ずつ検証する。1件が悪くても他は保存し、
@@ -273,6 +401,8 @@ declare
   v_bad   text;
   v_skip  boolean;
   v_skipped int := 0;
+  v_one   jsonb;
+  v_share boolean;
 begin
   if v_uid is null then
     raise exception 'ログインが必要です' using errcode = '42501';
@@ -371,90 +501,29 @@ begin
       continue;
     end if;
 
-    v_bad   := null;
-    v_code  := nullif(btrim(v_a.ans->>'code'), '');
-    v_codes := null;
-    v_num   := null;
-    v_cur   := upper(nullif(btrim(v_a.ans->>'currency'), ''));
-    v_text  := nullif(btrim(v_a.ans->>'text'), '');
-    v_json  := case when jsonb_typeof(v_a.ans->'json') in ('array', 'object')
-                    then v_a.ans->'json' end;
-
-    if jsonb_typeof(v_a.ans->'codes') = 'array' then
-      select array_agg(distinct btrim(x)) into v_codes
-        from jsonb_array_elements_text(v_a.ans->'codes') as t(x)
-       where btrim(x) <> '';
-    end if;
-
-    -- 数値は先に形を見る（そのまま cast すると取引ごと落ちる）
-    if nullif(btrim(coalesce(v_a.ans->>'num', '')), '') is not null then
-      if btrim(v_a.ans->>'num') ~ '^-?[0-9]+(\.[0-9]+)?$' then
-        v_num := btrim(v_a.ans->>'num')::numeric;
-      else
-        v_bad := 'bad_number';
-      end if;
-    end if;
-
-    if v_bad is null then
-      if v_code = 'unknown' then
-        -- 「わからない」はどの kind でも受ける（翌月また同じことを聞かないため）
-        v_codes := null; v_num := null; v_cur := null; v_json := null;
-
-      elsif v_a.kind = 'choice' then
-        if v_code is null then v_bad := 'missing_code';
-        elsif not (v_code = any(v_a.choice_codes)) then v_bad := 'bad_code';
-        end if;
-        v_codes := null; v_num := null; v_cur := null; v_json := null;
-
-      elsif v_a.kind = 'multi' then
-        if coalesce(array_length(v_codes, 1), 0) = 0 then v_bad := 'missing_code';
-        elsif exists (select 1 from unnest(v_codes) x where not (x = any(v_a.choice_codes)))
-          then v_bad := 'bad_code';
-        end if;
-        v_code := null; v_num := null; v_cur := null; v_json := null;
-
-      elsif v_a.kind = 'num' then
-        if v_num is null then v_bad := 'missing_num';
-        elsif v_a.num_min is not null and v_num < v_a.num_min then v_bad := 'out_of_range';
-        elsif v_a.num_max is not null and v_num > v_a.num_max then v_bad := 'out_of_range';
-        end if;
-        if v_bad is null and v_a.has_currency then
-          if v_cur is null or not exists (select 1 from public.pv_currencies where code = v_cur) then
-            v_bad := 'bad_currency';
-          end if;
-        elsif not v_a.has_currency then
-          v_cur := null;
-        end if;
-        v_code := null; v_codes := null; v_json := null;
-
-      elsif v_a.kind = 'lines' then
-        if v_json is null then v_bad := 'missing_json';
-        elsif char_length(v_json::text) > 4000 then v_bad := 'too_long';
-        end if;
-        v_code := null; v_codes := null; v_num := null; v_cur := null;
-      end if;
-    end if;
-
-    -- 自由記述は、その質問が持っているときだけ受ける
-    if v_bad is null and v_text is not null then
-      if not v_a.has_note then v_text := null;
-      elsif char_length(v_text) > 300 then v_bad := 'text_too_long';
-      end if;
-    end if;
-
-    if v_bad is not null then
+    -- 1件ぶんの検品（4c の1か所。未ログインの預かりも同じものを通る）
+    v_one := public.pv_condition_clean(v_a.id, v_a.ans);
+    if not coalesce((v_one->>'ok')::boolean, false) then
       v_rej := v_rej || jsonb_build_array(jsonb_build_object(
-        'question_id', v_a.id, 'reason', v_bad));
+        'question_id', v_a.id, 'reason', v_one->>'reason'));
       continue;
     end if;
+    v_code  := v_one->>'code';
+    v_codes := case when jsonb_typeof(v_one->'codes') = 'array'
+                    then array(select jsonb_array_elements_text(v_one->'codes')) end;
+    v_num   := (v_one->>'num')::numeric;
+    v_cur   := v_one->>'currency';
+    v_text  := v_one->>'text';
+    v_json  := case when jsonb_typeof(v_one->'json') in ('array', 'object') then v_one->'json' end;
+    v_share := coalesce((v_one->>'share')::boolean, false);
 
     insert into public.airline_conditions (
       proof_hash, airline, airline_other, question_id, question_version,
-      answer_code, answer_codes, answer_num, answer_currency, answer_text, answer_json,
+      answer_code, answer_codes, answer_num, answer_currency, answer_text, text_shared, answer_json,
       effective_year, effective_month, "position", fleet, base_iata, contract_type, lang)
     values (
       v_hash, v_airline, v_other, v_a.id, v_a.version,
-      v_code, v_codes, v_num, v_cur, v_text, v_json,
+      v_code, v_codes, v_num, v_cur, v_text, v_share, v_json,
       v_year, v_month, v_pos, v_fleet, v_base, v_ctype, v_lang)
     on conflict (proof_hash, question_id) do update set
       question_version = excluded.question_version,
@@ -463,6 +532,7 @@ begin
       answer_num       = excluded.answer_num,
       answer_currency  = excluded.answer_currency,
       answer_text      = excluded.answer_text,
+      text_shared      = excluded.text_shared,
       answer_json      = excluded.answer_json,
       effective_year   = excluded.effective_year,
       effective_month  = excluded.effective_month,
@@ -696,6 +766,9 @@ begin
            'num',        c.answer_num,
            'currency',   c.answer_currency,
            'text',       c.answer_text,
+           -- 補足を資格のある会員に見せてよいか。本人の画面が、直していない補足の印を
+           -- 勝手に付けたり外したりしないために返す（返すのは本人の行だけ）。
+           'shared',     c.text_shared,
            'json',       c.answer_json,
            'year',       c.effective_year,
            'month',      c.effective_month,

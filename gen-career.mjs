@@ -393,19 +393,35 @@ const ASK = {
   upgrade_min_hours: '昇格に必要な総飛行時間',
   upgrade_min_tenure: '昇格に必要な在籍年数',
 };
+/* 質問が「情報を追加」の面のどの話題に入るか。pv-contrib.js の groupOfQ / usable と同じ決め方
+   （2つで対。食い違うと、入口を押しても別の話題が開く ＝ assert-contrib.mjs が突き合わせる）。
+   面で答えられない質問は '' ＝ 今までどおり質問の画面へ。 */
+const ASK_TOPICS = ['taxi', 'staff_travel', 'upgrade'];
+export function askGroup(id) {
+  const q = QUESTIONS.find(x => x.id === id);
+  if (!q || q.retired || !q.ja || !q.ja.label) return '';
+  const ok = (q.kind === 'choice' || q.kind === 'multi') ? Array.isArray(q.choices) && q.choices.length > 0 : (q.kind === 'num' && !!q.num);
+  if (!ok) return '';
+  return ASK_TOPICS.includes(q.topic) ? q.topic : q.section === 'roster' ? 'roster' : q.section === 'career' ? 'career' : 'benefits';
+}
 export const TOPICS = TOPIC_DEFS.map(([id, title, tp]) => {
   const asks = QUESTIONS.filter(q => q.topic === tp && !q.retired).map(q => [q.id, ASK[q.id] || q.ja.label]);
   if (!asks.length) throw new Error(`話題 ${id}: 待遇アンケートに質問が1つも無い（pv-conditions.mjs。入口の先が無くなる）`);
   return [id, title, asks];
 });
 
+/* 質問の入口。会社ページの「情報を追加」の面を、その質問の前で開く（ログインなしで答えられる）。
+   会社ページを持たない会社・面で答えられない質問は、今までどおり質問の画面へ。 */
+const askHref = (slug, key) => (FIVE.includes(slug) && askGroup(key)
+  ? `airlines/${slug}.html?add=${askGroup(key)}&amp;aq=${key}`
+  : `airline-conditions.html?airline=${slug}&amp;q=${key}`);
 function topic(slug, [id, title, asks]) {
   return `<article class="cr-topic" data-topic="${id}">
 <h2 class="cr-h2">${title}</h2>
 ${live('fact', { airline: slug, keys: asks.map(a => a[0]).join(',') })}
 <p class="cr-asks-h">匿名で答える</p>
 <ul class="cr-asks">
-${asks.map(([key, label]) => `<li><a class="cr-ask" href="airline-conditions.html?airline=${slug}&amp;q=${key}">${esc(label)}${IC.go}</a></li>`).join('\n')}
+${asks.map(([key, label]) => `<li><a class="cr-ask" href="${askHref(slug, key)}">${esc(label)}${IC.go}</a></li>`).join('\n')}
 </ul>
 </article>`;
 }

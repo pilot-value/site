@@ -220,6 +220,34 @@
 .pvc-root .pvc-fold-p{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;padding:6px 16px 16px}
 .pvc-root .pvc-fold-p[hidden]{display:none}
 
+/* 数字で答える質問 ── 数字・単位・「わからない」を1行に（狭い画面では折れる） */
+.pvc-root .pvc-numrow{display:flex;align-items:center;flex-wrap:wrap;gap:8px 10px;margin:0;padding:0}
+.pvc-root .pvc-numrow .pvc-input{flex:1 1 120px;width:auto;min-width:0;max-width:220px}
+.pvc-root .pvc-numrow .pvc-selw{flex:1 1 170px;min-width:150px;max-width:240px}
+.pvc-root .pvc-unit{flex:none;font-size:14px;line-height:1.4;color:var(--pv-ink-2);white-space:nowrap}
+
+/* 「補足を足す（任意）」── どの質問にも付く。押すと欄が出る */
+.pvc-root .pvc-more{margin:8px 0 0;padding:0}
+.pvc-root .pvc-more-b{display:inline-flex;align-items:center;gap:6px;min-height:44px;margin:0;padding:0 10px 0 6px;
+  border:0;border-radius:8px;background:transparent;background-image:none;color:var(--pv-accent-ink);
+  font:inherit;font-size:13.5px;line-height:1.4;font-weight:700;cursor:pointer;transition:transform .16s var(--pv-ease)}
+.pvc-root .pvc-more-b:hover{background:var(--pv-accent-soft)}
+.pvc-root .pvc-more-b:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+.pvc-root .pvc-more-b:active{transform:scale(.97)}
+.pvc-root .pvc-more-p{display:block;margin:4px 0 0;padding:0}
+.pvc-root .pvc-more-k{display:block;margin:0 0 6px;padding:0;font-size:12.5px;line-height:1.5;font-weight:700;color:var(--pv-ink-2)}
+.pvc-root .pvc-area.pvc-area-s{min-height:76px}
+
+/* 補足が誰に見えるか（書く前に言う） */
+.pvc-root .pvc-share{margin:18px 0 0;padding:0;font-size:12.5px;line-height:1.7;color:var(--pv-ink-3)}
+
+/* ログインせずに保存した回答の案内（一覧と、保存したあとの面に出る） */
+.pvc-root .pvc-held{margin:14px 0 0;padding:14px 16px;border:1px solid var(--pv-accent-line);border-radius:12px;
+  background:var(--pv-accent-soft)}
+.pvc-root .pvc-held-t{margin:0;padding:0;font-size:14.5px;line-height:1.5;font-weight:800;color:var(--pv-accent-ink)}
+.pvc-root .pvc-held-d{margin:4px 0 0;padding:0;font-size:13.5px;line-height:1.7;color:var(--pv-ink);overflow-wrap:anywhere}
+.pvc-root .pvc-held .pvc-ghost{margin:12px 0 0}
+
 /* ── 送る ───────────────────────────────────────────────── */
 .pvc-root .pvc-msg{margin:20px 0 0;padding:14px 16px;border:1px solid var(--pvc-warn-line);border-radius:12px;
   background:var(--pv-orange-soft);color:var(--pv-ink)}
@@ -308,6 +336,7 @@
   .pvc-root .pvc-close,
   .pvc-root .pvc-prev,
   .pvc-root .pvc-chip-f,
+  .pvc-root .pvc-more-b,
   .pvc-root .pvc-fold-b::before{transition:none}
 }
 

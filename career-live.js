@@ -72,12 +72,20 @@
     payAll: 'REAL PAY で全部見る',
     login: 'ログイン',
 
+    /* 月の勤務の6項目。鍵と並びは db/work-months.sql の pv_work_view が返す形のまま */
     work: [
-      { k: 'bh', name: '乗務時間', unit: '時間 / 月' },
-      { k: 'dd', name: '乗務日数', unit: '日 / 月' },
-      { k: 'off', name: '公休日数', unit: '日 / 月' }
+      { k: 'block_hours', name: '乗務時間', unit: '時間 / 月' },
+      { k: 'duty_hours', name: '拘束時間', unit: '時間 / 月' },
+      { k: 'work_days', name: '勤務日数', unit: '日 / 月' },
+      { k: 'duty_days', name: '乗務日数', unit: '日 / 月' },
+      { k: 'days_off', name: '公休日数', unit: '日 / 月' },
+      { k: 'stay_nights', name: 'ステイ泊数', unit: '泊 / 月' }
     ],
-    workNoPath: ['拘束時間', '勤務日数', 'ステイ泊数'],
+    workPos: [['cap', '機長'], ['fo', '副操縦士']],
+    workEmpty: 'まだ集計がありません',
+    noteHead: '会員の補足',
+    noteWork: '月の勤務',
+    noteMine: 'あなたの投稿',
 
     revEmpty: '口コミはまだありません',
     revNone: '会員からの投稿はまだありません',       // 会社ページ用。同じページの「口コミ」のタブは海外の評判なども数えるので、言い分ける
@@ -273,8 +281,8 @@
     if (uid === undefined) { uid = v; return; }
     if (uid === v) return;
     uid = v;
-    drop('pay'); drop('rev:'); drop('sum:');
-    reset(['realpay', 'work', 'cmp-work', 'reviews', 'stars', 'score', 'summary', 'cmp-stars']);
+    drop('pay'); drop('rev:'); drop('sum:'); drop('wkv:'); drop('note:');
+    reset(['realpay', 'work', 'cmp-work', 'notes', 'reviews', 'stars', 'score', 'summary', 'cmp-stars']);
     later();
   }
   function watchAuth(sb) {
@@ -306,6 +314,32 @@
           });
         }
         return { open: open, rows: rows, anon: x.give == null };
+      });
+    });
+  }
+
+  /* 月の勤務の集計（給与とは別の入口で集めた6項目）。見せてよい相手かどうかはサーバーが決める。
+     開いていない答えに入っているのは、状態の1語だけ（数字は1つも来ない）。 */
+  function workView(slug) {
+    return once('wkv:' + slug, function () {
+      return client().then(function (sb) { return sb.rpc('pv_work_view', { p: { airline: slug } }); }).then(function (res) {
+        if (!res || res.error) throw sbErr(res);
+        var x = res.data;
+        if (!x || x.ok === false) throw fail('error');
+        if (x.state !== 'open') return { state: x.state === 'login' ? 'login' : 'locked', by: {} };
+        return { state: 'open', by: (x.by && typeof x.by === 'object') ? x.by : {} };
+      });
+    });
+  }
+  /* 会員が書いた補足。誰にどこまで返すかはサーバーが決める（未ログインには1文字も返らない）。 */
+  function notesOf(slug) {
+    return once('note:' + slug, function () {
+      return client().then(function (sb) { return sb.rpc('pv_contrib_notes', { p: { airline: slug } }); }).then(function (res) {
+        if (!res || res.error) throw sbErr(res);
+        var x = res.data;
+        if (!x || x.ok === false) throw fail('error');
+        return { state: x.state === 'open' ? 'open' : x.state === 'member' ? 'member' : 'login',
+                 notes: (x.state !== 'login' && isArr(x.notes)) ? x.notes : [] };
       });
     });
   }
@@ -537,73 +571,101 @@
     });
   };
 
-  /* ── 勤務（来た粗さのまま・1人＝1点。中央値や平均を作らない）─────────── */
-  function bands(rows, k) {
-    var map = {}, out = [];
-    rows.forEach(function (r) {
-      var v = r && r.work && r.work[k], label = '', lo = 0;
-      if (isArr(v) && v.length === 2 && isNum(v[0]) && isNum(v[1])) {
-        label = String(v[0]) + T.dash + String(v[1]); lo = v[0];
-      } else if (isNum(v) && v > 0) {
-        label = String(v); lo = v;
-      }
-      if (!label) return;
-      if (!map[label]) { map[label] = { label: label, lo: lo, n: 0 }; out.push(map[label]); }
-      map[label].n++;
-    });
-    out.sort(function (x, y) { return x.lo - y.lo; });
-    return out;
-  }
-  function bandList(list) {
-    if (!list.length) return el('span', 'crl-none', T.none);
-    var ul = el('ul', 'crl-bands');
-    list.forEach(function (b) {
-      var li = el('li', 'crl-band');
-      li.appendChild(el('span', 'crl-band-v', b.label));
-      var dots = el('span', 'crl-dots');
-      dots.setAttribute('role', 'img');
-      dots.setAttribute('aria-label', T.people(b.n));
-      for (var i = 0; i < b.n; i++) dots.appendChild(el('i', 'crl-dot'));
-      li.appendChild(dots);
-      ul.appendChild(li);
-    });
-    return ul;
-  }
-  function workOf(rows, slug) {
-    var mine = ofCo(rows, slug), out = { any: false, by: {} };
-    T.work.forEach(function (it) {
-      out.by[it.k] = bands(mine, it.k);
-      if (out.by[it.k].length) out.any = true;
-    });
-    return out;
-  }
+  /* ── 勤務（月の勤務の集計）────────────────────────────────
+     幅だけを出す。丸めも「3人そろった項目だけ」の壁もサーバー側で、ここは来た形のまま並べる。
+     人数も、1人ずつの値も来ない（＝ここで数え直すものが無い）。 */
   function workName(it) {
     var s = el('span', 'crl-wk-k', it.name);
     if (it.unit) s.appendChild(el('small', 'crl-unit', it.unit));
     return s;
   }
+  function rangeOf(v) {
+    if (!v || !isNum(v.lo) || !isNum(v.hi)) return '';
+    return v.lo === v.hi ? String(v.lo) : (String(v.lo) + T.dash + String(v.hi));
+  }
+  function workAny(by) {
+    return T.workPos.some(function (p) {
+      var o = by && by[p[0]];
+      return !!o && T.work.some(function (it) { return !!rangeOf(o[it.k]); });
+    });
+  }
+  /* 1項目ぶん（機長・副操縦士の2行）。そろっていない側は「未取得」── 0 で埋めない */
+  function workCell(by, k) {
+    var dl = el('dl', 'crl-wk-v');
+    T.workPos.forEach(function (p) {
+      var t = rangeOf(by && by[p[0]] && by[p[0]][k]);
+      var r = el('div', 'crl-wk-r');
+      r.appendChild(el('dt', '', p[1]));
+      r.appendChild(el('dd', t ? '' : 'crl-none', t || T.none));
+      dl.appendChild(r);
+    });
+    return dl;
+  }
+  /* 開いていないとき。会社ページと比較には出す入口を添える（1社の概要は、欄のすぐ下に入口が在る） */
+  function workLocked(W, slug, bare) {
+    if (bare) return view('locked', [lockLine(T.payLock)]);
+    return view('locked', [lockLine(T.payLock), foot([
+      link(T.payGive, UP + 'pay-report.html' + (slug ? '?airline=' + enc(slug) : ''), 'cta'),
+      W.state === 'login' ? link(T.login, loginHref()) : null
+    ])]);
+  }
+
+  /* 会員の補足（文はそのまま字として入れる。HTML として読ませない） */
+  function noteHead() { return el('p', 'crl-note-h', T.noteHead); }
+  function noteList(notes, keys, withWork, V) {
+    var want = {}, ul = el('ul', 'crl-notes'), n = 0;
+    keys.forEach(function (k) { want[k] = 1; });
+    notes.forEach(function (x) {
+      if (!x || typeof x.text !== 'string' || !x.text) return;
+      var isWork = x.topic === 'work' && !x.q;
+      if (isWork ? !withWork : !(typeof x.q === 'string' && want[x.q] === 1)) return;
+      var li = el('li', 'crl-note');
+      var h = el('p', 'crl-note-k');
+      h.appendChild(el('span', '', isWork ? T.noteWork : ((V && V[x.q] && V[x.q].ja) || '')));
+      if (x.mine === true) h.appendChild(el('span', 'crl-note-me', T.noteMine));
+      li.appendChild(h);
+      li.appendChild(el('p', 'crl-note-t', x.text));
+      ul.appendChild(li);
+      n++;
+    });
+    return n ? ul : null;
+  }
+  /* 補足が読めなくても、欄の本題（集計）は出す */
+  function notesFor(box, slug) {
+    return Promise.all([notesOf(slug), vocab()]).then(function (a) {
+      return noteList(a[0].notes, keysOf(box), box.hasAttribute('data-work'), a[1]);
+    }).then(null, function () { return null; });
+  }
 
   KIND.work = function (box, ids) {
     var slug = ids[0];
-    return payRows().then(function (pay) {
-      if (!pay.open) return view('locked', [lockLine(T.payLock)]);
-      var wk = workOf(pay.rows, slug);
-      if (!wk.any) return view('empty', [msg(T.payEmpty)]);
-      var g = el('div', 'crl-work');
-      T.work.forEach(function (it) {
-        var c = el('div', 'crl-wk');
-        c.appendChild(workName(it));
-        c.appendChild(bandList(wk.by[it.k]));
-        g.appendChild(c);
+    return workView(slug).then(function (W) {
+      if (W.state !== 'open') return workLocked(W, slug, !GL);
+      return (box.hasAttribute('data-notes') ? notesFor(box, slug) : Promise.resolve(null)).then(function (ul) {
+        var any = workAny(W.by), nodes = [];
+        if (any) {
+          var g = el('div', 'crl-work');
+          T.work.forEach(function (it) {
+            var c = el('div', 'crl-wk');
+            c.appendChild(workName(it));
+            c.appendChild(workCell(W.by, it.k));
+            g.appendChild(c);
+          });
+          nodes.push(g);
+        } else {
+          nodes.push(msg(T.workEmpty));
+        }
+        if (ul) { nodes.push(noteHead()); nodes.push(ul); }
+        return view((any || ul) ? 'open' : 'empty', nodes);
       });
-      T.workNoPath.forEach(function (name) {
-        var c = el('div', 'crl-wk');
-        c.setAttribute('data-none', '');
-        c.appendChild(el('span', 'crl-wk-k', name));
-        c.appendChild(el('span', 'crl-none', T.none));
-        g.appendChild(c);
-      });
-      return view('open', [g]);
+    });
+  };
+
+  /* 勤務・訓練のほかの話題に付いた補足（待遇・通勤）。読めるものが無ければ、欄ごと出さない。
+     未ログインには何も出さない ── サーバーは「在る・無い」も返さないので、在りもしないものに鍵の絵を描かない。 */
+  KIND.notes = function (box, ids) {
+    return notesFor(box, ids[0]).then(function (ul) {
+      return ul ? view('open', [noteHead(), ul]) : view('empty', []);
     });
   };
 
@@ -628,23 +690,16 @@
   }
 
   KIND['cmp-work'] = function (box, ids) {
-    return payRows().then(function (pay) {
-      if (!pay.open) {
-        return view('locked', [lockLine(T.payLock), foot([
-          link(T.payGive, UP + 'pay-report.html', 'cta'),
-          pay.anon ? link(T.login, loginHref()) : null
-        ])]);
-      }
-      var A = workOf(pay.rows, ids[0]), B = workOf(pay.rows, ids[1]);
-      if (!A.any && !B.any) return view('empty', [msg(T.payEmpty)]);
+    return Promise.all([workView(ids[0]), workView(ids[1])]).then(function (a) {
+      var A = a[0], B = a[1];
+      if (A.state !== 'open' || B.state !== 'open') return workLocked(A.state !== 'open' ? A : B, '', false);
+      /* 片方がそろっていなくても、もう片方は普通に出す */
+      if (!workAny(A.by) && !workAny(B.by)) return view('empty', [msg(T.workEmpty)]);
       var g = cmpGrid(ids);
       T.work.forEach(function (it) {
-        cmpRow(g, workName(it), bandList(A.by[it.k]), bandList(B.by[it.k]));
+        cmpRow(g, workName(it), workCell(A.by, it.k), workCell(B.by, it.k));
       });
-      var rest = el('p', 'crl-cmp-rest');
-      rest.appendChild(el('span', '', T.workNoPath.join('・')));
-      rest.appendChild(el('span', 'crl-none', T.none));
-      return view('open', [g, rest]);
+      return view('open', [g]);
     });
   };
 
@@ -1146,6 +1201,12 @@
     });
     d.addEventListener('toggle', later, true);
   }
+  /* 「情報を追加」で保存できたら、その会社の集計と補足を取り直す（古い答えを持ち越さない）。 */
+  d.addEventListener('pvc:saved', function () {
+    drop('wkv:'); drop('note:'); drop('fact:');
+    reset(['work', 'cmp-work', 'notes', 'fact', 'cmp-facts']);
+    later();
+  });
   /* 通貨を切り替えたら、額の字だけ描き直す（通信しない）。 */
   w.addEventListener('pv-currency-change', function () {
     var all = slots();

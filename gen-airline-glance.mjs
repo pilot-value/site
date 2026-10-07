@@ -23,7 +23,8 @@ import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { GLANCE, RANKS, AXIS, viewOf, width, yen, rentCell } from './pv-airline-view.mjs';
 import { fxNote } from './salary-basis.mjs';
-import { TOPICS } from './gen-career.mjs';
+import { TOPICS, askGroup } from './gen-career.mjs';
+import { QUESTIONS } from './pv-conditions.mjs';
 import { FACTS as CAREER } from './career-facts.mjs';
 import { needsCredit, src as photoSrc, smallH, SMALL_W } from './airline-photos.mjs';
 
@@ -92,6 +93,16 @@ const oldPane = (h2, attrs = '') => (/\bid="kyuyo-konkyo"/.test(attrs) ? 'pay' :
 const h2Text = s => s.replace(/<[^>]*>/g, () => '');
 /* 「情報を追加」の面を開く印。href は残す ＝ 面が読めなかったときは、今までどおり質問の画面へ行く */
 const opens = (slug, topic) => (tabbed(slug) && topic ? ` data-pvc-open="${topic}"` : '');
+/* 質問の入口。面の中のどの話題か（askGroup ＝ pv-contrib.js の groupOfQ と同じ決め方）と、どの質問かを渡す
+   ＝ 会社を選び直さず、その質問の前で開く。面で答えられない質問は、今までどおり質問の画面へ行く。 */
+const opensQ = (slug, q) => (tabbed(slug) && askGroup(q) ? ` data-pvc-open="${askGroup(q)}" data-pvc-q="${q}"` : '');
+/* 補足を出す欄が受け持つ質問（話題ごと）。月の勤務のひとことは work の欄だけが出す */
+const NOTE_KEYS = {
+  work: QUESTIONS.filter(q => ['roster', 'career', 'upgrade'].includes(askGroup(q.id))).map(q => q.id),
+  benefits: QUESTIONS.filter(q => ['benefits', 'staff_travel'].includes(askGroup(q.id))).map(q => q.id),
+  living: QUESTIONS.filter(q => askGroup(q.id) === 'taxi').map(q => q.id),
+};
+if (new Set(Object.values(NOTE_KEYS).flat()).size !== QUESTIONS.filter(q => askGroup(q.id)).length) throw new Error('補足の欄：どの欄にも入らない質問か、2つの欄に入る質問が在る');
 const tabBar = v => `<div class="pvg-tabbar" style="--pvg-c:${esc(v.color)}">
 <div class="max-w-7xl mx-auto px-6">
 <div class="pvg-tabrow">
@@ -147,12 +158,14 @@ function sources(items, fold = false) {
 const factList = items => `<dl class="pvg-dl">${items.map(f =>
   `<div><dt>${esc(f.label)}${whole(f)}</dt><dd><b>${val(f)}</b>${premise(f) ? `<small>${esc(premise(f))}</small>` : ''}</dd></div>`).join('')}</dl>`;
 /* 匿名で答える入口（質問の名前を出す） */
-const asks = (slug, list, head = '匿名で答える', open = '') =>
+const asks = (slug, list, head = '匿名で答える') =>
   `<div class="pvg-ask">${head ? `<p class="pvg-askh">${esc(head)}</p>` : ''}<ul>${list.map(([q, label]) =>
-    `<li><a href="${href.ask(slug, q)}"${opens(slug, open)}>${esc(label)}${IC.next}</a></li>`).join('')}</ul></div>`;
+    `<li><a href="${href.ask(slug, q)}"${opensQ(slug, q)}>${esc(label)}${IC.next}</a></li>`).join('')}</ul></div>`;
 /* 質問の形をしていない入口（月の勤務）。面を開く。面が読めないときは、同じページを ?add= 付きで開き直す */
-const addRow = (slug, topic, label) => (tabbed(slug)
-  ? `<p class="pvg-addrow"><a class="pvg-link" href="?add=${topic}" data-pvc-open="${topic}">${esc(label)}${IC.go}</a></p>` : '');
+const addRow = (slug, ...list) => (tabbed(slug)
+  ? `<p class="pvg-addrow">${list.map(([topic, label]) => `<a class="pvg-link" href="?add=${topic}" data-pvc-open="${topic}">${esc(label)}${IC.go}</a>`).join('')}</p>` : '');
+/* 「勤務・訓練」のタブから足せるもの：月の勤務の数字と、訓練・昇格の質問（どれもログイン無しで保存できる） */
+const WORK_ADDS = [['work', '月の勤務を追加'], ['career', '訓練・キャリアを追加'], ['upgrade', '機長昇格を追加']];
 
 /* ── 社名の行（写真を置かない）────────────────────────── */
 function hero(v, keep) {
@@ -307,12 +320,12 @@ const LIVE_ASK = [['commuting_transport', '通勤の足を会社が用意する�
 /* 欄（閉じているときに見えるのが「公表されている条件を1つ」）と、その中身の板。
    板は欄のすぐ後ろに置く ＝ 狭い画面ではその場で開き、広い画面では3つの欄の下へ横いっぱいに出る（pv-glance.css）。 */
 /* 広い箱では、欄の中に質問を名前で並べる（どの欄も、公表の条件と質問をあわせて3行まで） */
-const quick = (slug, list, open = '') => (list.length ? `<div class="pvg-qs"><p class="pvg-qh">匿名で答える</p><ul>${list.map(([q, label]) =>
-  `<li><a href="${href.ask(slug, q)}"${opens(slug, open)}>${esc(label)}${IC.next}</a></li>`).join('')}</ul></div>` : '');
+const quick = (slug, list) => (list.length ? `<div class="pvg-qs"><p class="pvg-qh">匿名で答える</p><ul>${list.map(([q, label]) =>
+  `<li><a href="${href.ask(slug, q)}"${opensQ(slug, q)}>${esc(label)}${IC.next}</a></li>`).join('')}</ul></div>` : '');
 const SLOTS = 3;
 /* 値が長いとき（「本人と対象の家族に割引の航空券」）は字を1段小さくして、狭い画面でも1行に収める。円の目安（small）は数えない */
 const isLong = html => html.replace(/<small[\s\S]*?<\/small>/g, '').replace(/<[^>]*>/g, '').length > 13;
-function cell(id, title, icon, { slug, k, v: value, note, also = [], ask = [], count, body, empty, open = '' }) {
+function cell(id, title, icon, { slug, k, v: value, note, also = [], ask = [], count, body, empty }) {
   const more = empty ? '答える' : count > 1 ? `ほか${count - 1}件と出どころ` : '出どころを見る';
   return `<article class="pvg-card pvg-cell" data-cell="${id}"${pane(slug, 'overview')}>
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true">${icon}</span><h2 class="pvg-eyebrow">${title}</h2></header>
@@ -322,7 +335,7 @@ function cell(id, title, icon, { slug, k, v: value, note, also = [], ask = [], c
 ${note ? `<p class="pvg-note">${note}</p>` : ''}
 </div>
 ${also.length ? `<ul class="pvg-also">${also.map(f => `<li><span>${esc(f.label)}</span><b>${val(f)}</b></li>`).join('')}</ul>` : ''}
-${quick(slug, ask.slice(0, SLOTS - also.length), open)}
+${quick(slug, ask.slice(0, SLOTS - also.length))}
 <button type="button" class="pvg-more" aria-expanded="false" aria-controls="pvg-p-${id}"><span>${more}</span>${IC.down}</button>
 </article>
 <div class="pvg-card pvg-panel" id="pvg-p-${id}" data-panel="${id}"${pane(slug, `overview ${CELL_TAB[id]}`)} hidden>
@@ -330,21 +343,25 @@ ${quick(slug, ask.slice(0, SLOTS - also.length), open)}
 ${body}
 </div>`;
 }
+/* 月の勤務の集計（6項目の幅）と、勤務・訓練の補足。見せてよい相手かどうかはサーバーが決める */
+const workLive = v => `<div class="pvg-ans"><p class="pvg-askh">月の勤務<small>直近12か月・3人そろった項目だけ</small></p>${live('work', { airline: v.slug, keys: NOTE_KEYS.work.join(','), notes: '1', work: '1' })}</div>`;
+/* 会員の補足（待遇／通勤）。読めるものが在るときだけ、欄が見出しごと出る */
+const notesLive = (v, id) => live('notes', { airline: v.slug, keys: NOTE_KEYS[id].join(',') });
 function factCell(v, id, title, icon, items, askList, emptyText) {
-  const answers = `<div class="pvg-ans"><p class="pvg-askh">パイロットの回答（3人そろった項目だけ）</p>${live('fact', { airline: v.slug, keys: askList.map(a => a[0]).join(',') })}</div>`;
+  const answers = `<div class="pvg-ans"><p class="pvg-askh">パイロットの回答（3人そろった項目だけ）</p>${live('fact', { airline: v.slug, keys: askList.map(a => a[0]).join(',') })}</div>${id === 'work' ? workLive(v) : notesLive(v, id)}`;
   const lead = items.find(f => f.lead) || items[0];
   if (!lead) {
     /* 載せる事実が無い欄は、数字を作らず、中身の分かる入口にする */
     return cell(id, title, icon, {
       slug: v.slug, k: '会社の公表', v: '確認できていません', empty: true, ask: askList,
-      note: esc(emptyText), body: answers + asks(v.slug, askList) + (id === 'work' ? addRow(v.slug, 'work', '月の勤務を追加') : ''),
+      note: esc(emptyText), body: answers + asks(v.slug, askList) + (id === 'work' ? addRow(v.slug, ...WORK_ADDS) : ''),
     });
   }
   const rest = items.filter(f => f !== lead);
   return cell(id, title, icon, {
     slug: v.slug, k: esc(lead.label) + whole(lead), v: val(lead), note: esc(premise(lead)),
     also: rest.slice(0, 2), ask: askList, count: items.length,
-    body: `<p class="pvg-askh">会社が公表している条件</p>${factList(items)}${sources(items)}${answers}${asks(v.slug, askList)}${id === 'work' ? addRow(v.slug, 'work', '月の勤務を追加') : ''}`,
+    body: `<p class="pvg-askh">会社が公表している条件</p>${factList(items)}${sources(items)}${answers}${asks(v.slug, askList)}${id === 'work' ? addRow(v.slug, ...WORK_ADDS) : ''}`,
   });
 }
 function rentText(L, r, col) {
@@ -354,12 +371,12 @@ function rentText(L, r, col) {
 }
 function livingCell(v) {
   const L = v.living;
-  const answers = `<div class="pvg-ans"><p class="pvg-askh">パイロットの回答（3人そろった項目だけ）</p>${live('fact', { airline: v.slug, keys: LIVE_ASK.map(a => a[0]).join(',') })}</div>`;
+  const answers = `<div class="pvg-ans"><p class="pvg-askh">パイロットの回答（3人そろった項目だけ）</p>${live('fact', { airline: v.slug, keys: LIVE_ASK.map(a => a[0]).join(',') })}</div>${notesLive(v, 'living')}`;
   const lead = L && (L.rents.find(r => r.lead && r.value[L.leadCol] != null) || L.rents.find(r => r.value[L.leadCol] != null));
   if (!lead) {
     return cell('living', '暮らし', IC.living, {
-      slug: v.slug, k: '拠点の街', v: esc(v.base.city), empty: true, ask: LIVE_ASK, open: 'taxi',
-      note: '家賃の資料を確認できていません', body: answers + asks(v.slug, LIVE_ASK, undefined, 'taxi'),
+      slug: v.slug, k: '拠点の街', v: esc(v.base.city), empty: true, ask: LIVE_ASK,
+      note: '家賃の資料を確認できていません', body: answers + asks(v.slug, LIVE_ASK),
     });
   }
   const colName = Object.fromEntries(L.cols)[L.leadCol].replace(/（[^）]*）/g, '');   // 「2部屋（2房）」→ 欄の見出しでは「2部屋」。表には元のまま出る
@@ -381,11 +398,11 @@ function livingCell(v) {
   const commute = L.commute.length ? `<p class="pvg-askh">空港と街のあいだ</p>${factList(L.commute)}` : '';
   const fx = L.cur !== 'JPY' ? `<p class="pvg-fx">${esc(fxNote(L.cur))}</p>` : '';
   return cell('living', '暮らし', IC.living, {
-    slug: v.slug, ask: LIVE_ASK, open: 'taxi',
+    slug: v.slug, ask: LIVE_ASK,
     k: `${esc(lead.name).replace(/（[^）]*）/g, m => `<span class="pvg-opt">${m}</span>`)}・${esc(colName)}の${esc(L.measure)}`, v: rentText(L, lead, L.leadCol),
     note: esc(join(lead.pick && lead.pick.length <= 16 ? lead.pick : '', lead.when)),
     also: L.commute.filter(f => f.lead).slice(0, 1), count: L.rents.length + L.commute.length,
-    body: `${table}${basis}${sources([...L.rents, ...L.commute])}${fx}${commute}${answers}${asks(v.slug, LIVE_ASK, undefined, 'taxi')}`,
+    body: `${table}${basis}${sources([...L.rents, ...L.commute])}${fx}${commute}${answers}${asks(v.slug, LIVE_ASK)}`,
   });
 }
 
@@ -505,7 +522,7 @@ ${head(IC.ask, `${esc(v.name)}のこと、ひとつ教えて。`, add)}
 ${groups.map(([id, title, list]) => `<details class="pvg-topic" data-topic="${id}">
 <summary><span>${esc(title)}</span><small>質問 ${list.length}</small>${IC.down}</summary>
 <div class="pvg-body">
-${asks(v.slug, list, '', id === 'taxi' ? 'taxi' : '')}${list.length > ASK_FIRST ? `
+${asks(v.slug, list, '')}${list.length > ASK_FIRST ? `
 <button type="button" class="pvg-link pvg-askmore" data-pvg-askmore>ほか${list.length - ASK_FIRST}問${IC.down}</button>` : ''}
 </div>
 </details>`).join('\n')}

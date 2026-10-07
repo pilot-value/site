@@ -851,9 +851,39 @@ ok(m[CAP]?.code === 'per_ride' && m.upgrade_order?.code === 'seniority_selection
    && m.upgrade_min_hours?.code === 'h3000_4999' && m.upgrade_min_tenure?.code === 'y3_5',
   '⑳ ★自分の回答に4問とも返る（話題の入口の画面が、前に選んだ答えを出せる）',
   JSON.stringify(ONLY4.map((id) => [id, m[id]?.code])));
+/* ★2026-10-07 オーナー指定「選択回答に任意の補足説明を添えられる」。
+     前は欄を持つ2問だけ残し、ほかの質問に送った文は黙って捨てていた。いまはどの質問でも残る。 */
 ok(m[CAP]?.text === '深夜だけ上限が上がる' && m.upgrade_order?.text === '筆記と面接がある'
-   && m.upgrade_min_hours?.text === null,
-  '   任意の補足は、欄を持つ2問だけ残る（欄の無い質問に送った文は捨てる）');
+   && m.upgrade_min_hours?.text === 'ここは補足の欄が無い質問' && m.upgrade_min_tenure?.text === null,
+  '   任意の補足は、どの質問でも残る（送っていない質問は空のまま）');
+/* 補足を会員に見せてよい印は、「見せます」と書いた画面から送られたときだけ立つ。
+     印を付けずに送る今までの画面の補足は、本人しか読めないまま（db/contrib.sql が印の行だけ返す）。 */
+{
+  const shared = async () => Object.fromEntries((await rows(
+    `select question_id, text_shared from airline_conditions
+      where airline = $1 and proof_hash = pv_condition_hash($2::uuid, $1, null)`,
+    [TP.airline, uid(221)])).map((x) => [x.question_id, x.text_shared]));
+  let sh = await shared();
+  ok(ONLY4.every((id) => sh[id] === false), '   ★補足を見せてよい印は、何も言わなければ付かない（今までの補足は本人だけ）',
+    JSON.stringify(sh));
+  r = await submit({ ...TP, answers: [
+    { question_id: 'upgrade_min_hours', code: 'h3000_4999', text: 'ここは補足の欄が無い質問', share: true },
+    { question_id: 'upgrade_min_tenure', code: 'y3_5', share: true }] });
+  sh = await shared();
+  ok(r.saved === 2 && sh.upgrade_min_hours === true && sh.upgrade_min_tenure === false && sh[CAP] === false,
+    '   ★「見せます」と送った補足にだけ印が付く（文の無い答えには付かない・ほかの行は動かない）',
+    JSON.stringify(sh));
+  {
+    const back = Object.fromEntries((await mine({ airline: TP.airline })).answers.map((x) => [x.question_id, x.shared]));
+    ok(back.upgrade_min_hours === true && back.upgrade_min_tenure === false && back[CAP] === false,
+      '   ★本人の読み口が、その印をそのまま返す（画面が、直していない補足の印を勝手に変えないため）',
+      JSON.stringify(back));
+  }
+  r = await submit({ ...TP, answers: [
+    { question_id: 'upgrade_min_hours', code: 'h3000_4999', text: 'ここは補足の欄が無い質問' }] });
+  sh = await shared();
+  ok(sh.upgrade_min_hours === false, '   印を付けずに出し直すと、印は外れる（黙って見せ続けない）', JSON.stringify(sh));
+}
 ok(my4.answers.length === 6 && my4.answered_total === 2 && my4.questions_total === LISTED.length,
   `⑳ ★自分の回答は6件返るが、「答えた項目」は 2／${LISTED.length}（話題の4問を数えない）`,
   `answers=${my4.answers.length}・${my4.answered_total}／${my4.questions_total}`);
