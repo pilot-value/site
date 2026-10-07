@@ -12,13 +12,25 @@
        ・3件に満たない会社／1件にしか支えられていない点／4つ以上／長すぎる文は入らない
        ・元の口コミが消えたら出さない（削除依頼で消した中身が要約に残らない）
        ・どの口コミが材料か（id）も、何件が支えたか（k）も、外へ出ない
-       ・書けるのは運営だけ・表は直に読めない
+       ・書けるのは運営と、サーバの鍵を持つ自動の道だけ・表は直に読めない
+       ・自動の道（14〜）は、変わっていなければ材料を渡さない／同じ集合に二度払わせない／
+         古い集合から作った要約で、新しい集合の要約を上書きさせない
+       ・Webhook を作る1枚（17・db/review-summary-webhook.sql）は、翻訳と通知の Webhook に
+         1文字も触らない／何度流しても1本／キーを画面に出さない
+       ・関数の本体（supabase/functions/summarize-reviews/index.ts）が呼ぶ名前・渡す形と、
+         SQL が受ける名前・返す形が合っている（18・両方を実際につないで通す。身代わりはモデルの返事だけ）
+
+   ★SQL の置き場は PV_REVIEW_SUMMARY_SQL で差し替えられる（既定はリポジトリの db/review-summary.sql）。
+     書きかけの1枚を、ほかの道具が読んでいるリポジトリの1枚を汚さずに確かめるため。
+       PV_REVIEW_SUMMARY_SQL=/どこか/review-summary.sql node db/test-review-summary.mjs
 
    ⚠️ 字面では捕まらないものを見ている。revoke と書いてあっても、表ぜんぶの権限が
       残っていれば読める（db/test-reviews-gate.mjs と同じ罠）。だから実際に select する。
 
    ★写しの突き合わせもここ。分類の鍵・古い会社コード・字数は、SQL と画面と
-     gen-review-summary.mjs に同じものが在る。片方だけ直すと黙って食い違う。
+     要約を作る側（supabase/functions/summarize-reviews/index.ts。
+     gen-review-summary.mjs はそれを読んで同じ名前で出し直している）に同じものが在る。
+     片方だけ直すと黙って食い違う。
 */
 import { PGlite } from '@electric-sql/pglite';
 import { pgcrypto } from '@electric-sql/pglite/contrib/pgcrypto';
@@ -26,7 +38,12 @@ import { readFileSync } from 'fs';
 import { CATS, LIMITS, LEGACY_OF, MAX_POINTS, MIN_REVIEWS, MIN_SUPPORT,
          buildInput, settle, payloadOf, selftest } from '../gen-review-summary.mjs';
 
-const read = (f) => readFileSync(new URL('../' + f, import.meta.url), 'utf8');
+const SUMMARY_SQL = 'db/review-summary.sql';
+const SUMMARY_SQL_AT = process.env.PV_REVIEW_SUMMARY_SQL || '';
+const read = (f) => (f === SUMMARY_SQL && SUMMARY_SQL_AT)
+  ? readFileSync(SUMMARY_SQL_AT, 'utf8')
+  : readFileSync(new URL('../' + f, import.meta.url), 'utf8');
+if (SUMMARY_SQL_AT) console.log('（db/review-summary.sql の代わりに、PV_REVIEW_SUMMARY_SQL の1枚を読みます）');
 const db = new PGlite({ extensions: { pgcrypto } });
 await db.waitReady;
 
@@ -62,6 +79,11 @@ await db.exec(`
   alter default privileges in schema public grant execute on functions to anon, authenticated;
 
   grant usage on schema auth to anon, authenticated;
+
+  /* ★サーバの鍵の役。**既定権限は配らない** ── 自動の道（14〜）を呼べるのは、
+     SQL が名指しで grant したからだ、と言える形にしておく。 */
+  create role service_role;
+  grant usage on schema public, extensions to service_role;
   create table auth.users (id uuid primary key, email text);
   create function auth.uid() returns uuid language sql stable as $$
     select nullif(current_setting('pv.uid', true), '')::uuid $$;
@@ -515,7 +537,8 @@ console.log('\n▼ 8. 表は直に読めない・書けない／中の部品は�
                      `pv_review_summary_ids(array['ana'], null)`,
                      `pv_review_summary_count(array['ana'], null)`,
                      `pv_review_summary_sig(array['ana'], null)`,
-                     `pv_review_summary_bad('[]'::jsonb, 'ja', 3)`, `pv_review_summary_out('[]'::jsonb)`]) {
+                     `pv_review_summary_bad('[]'::jsonb, 'ja', 3)`, `pv_review_summary_out('[]'::jsonb)`,
+                     `pv_review_summary_put('{}'::jsonb)`, `pv_review_summary_need('ana', 'ja')`]) {
       const e = await boom(`select public.${f}`);
       ok(e !== null && /permission denied/i.test(e), `${role} は ${f.replace(/\(.*/, () => '')} を呼べない`, e || '← 呼べてしまった');
     }
@@ -547,7 +570,7 @@ console.log('\n▼ 8. 表は直に読めない・書けない／中の部品は�
   ok(/foreign key|pv_review_summaries_airline_fkey/.test(await boom(`insert into public.pv_review_summaries(airline, lang, n, newest_at, sig, good) values('no-such-air','ja',3,now(),'x',$1::jsonb)`, [J([G()])]) || ''), '手で入れても名簿に無い会社は入らない');
 
   const chk = await rows(read('db/review-summary.sql').slice(read('db/review-summary.sql').lastIndexOf("select '表は anon")));
-  ok(chk.length === 4 && chk.every((r) => r['結果'] === '✅'), 'ファイル末尾の検算が4行とも ✅', J(chk));
+  ok(chk.length === 6 && chk.every((r) => r['結果'] === '✅'), 'ファイル末尾の検算が6行とも ✅', J(chk));
 }
 
 
@@ -674,6 +697,660 @@ console.log('\n▼ 13. 冪等性（行が入った状態で、もう一度その
   await asOwner();
   ok(e !== null, '流し直したあとも、表は直に読めない');
   ok((await getAs(KEYED, 'jal')).state === 'open' && J(await getAs('anon', 'jal')) === J({ ok: true, state: 'locked' }), '流し直したあとも、読める人・読めない人は同じ');
+}
+
+// ════════════════════════════════════════════════════════════
+// ここから下は「自動の道」（db/review-summary.sql の 6 の節）。
+// Edge Function の summarize-reviews が、サーバの鍵で呼ぶ4本を実際に呼ぶ。
+//   ★ここの返り値は RETURNS に入れない。指紋（basis）と材料の本文が返る道で、
+//     12 が見ているのは会員に返る2本。会員から呼べないことは 14 で先に確かめる。
+//   ★モデルは呼ばない。返事の代わりを手で作り、本物の検品（settle）に通す。
+// ════════════════════════════════════════════════════════════
+const asService = async () => {
+  await db.exec(`reset role`);
+  await db.query(`select set_config('pv.uid', '', false)`);
+  await db.exec(`set role service_role`);
+};
+const svc = async (fn, p) => {
+  await asService();
+  try { return (await one(`select public.${fn}($1::jsonb) r`, [J(p)])).r; }
+  finally { await asOwner(); }
+};
+const refused = async (who, sql, params) => {
+  if (who === 'service') await asService(); else await as(who);
+  const e = await boom(sql, params);
+  await asOwner();
+  return e;
+};
+const take = (airline, lang = 'ja') => svc('pv_review_summary_take', { airline, lang });
+const done = (airline, basis, state, lang = 'ja') => svc('pv_review_summary_done', { airline, lang, basis, state });
+const dueOf = (airline, langs = ['ja']) => svc('pv_review_summary_due', airline ? { airline, langs } : { langs });
+/* 控えの1行（無ければ null）。 */
+const run = async (airline, lang = 'ja') => {
+  await asOwner();
+  return (await one(`select sig, n, state, tries from public.pv_review_summary_runs where airline=$1 and lang=$2`, [airline, lang])) || null;
+};
+/* 時計を進める代わりに、控えの時刻を戻す。 */
+const rewind = async (airline, minutes, lang = 'ja') => {
+  await asOwner();
+  await db.query(`update public.pv_review_summary_runs set ran_at = now() - make_interval(mins => $3::int) where airline=$1 and lang=$2`, [airline, lang, minutes]);
+};
+const A_STAR = 'starflyer';
+const SVC = ['pv_review_summary_due', 'pv_review_summary_take', 'pv_review_summary_set_auto', 'pv_review_summary_done'];
+const UUID = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/;
+for (const n of [41, 42, 43, 44, 45, 46, 47, 51, 52, 53, 61, 62, 63]) await mkUser(n);
+await asOwner();
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 14. 自動の道は、サーバの鍵でしか呼べない');
+// ════════════════════════════════════════════════════════════
+{
+  const arg = { airline: 'no-such-air', lang: 'ja', langs: ['ja'], basis: '0'.repeat(32), state: 'released', good: [], concern: [] };
+  for (const [who, label] of [['anon', '未ログイン'], [KEYED, '会員'], [OP, '運営（ページから ＝ 会員の鍵）']]) {
+    for (const fn of SVC) {
+      const e = await refused(who, `select public.${fn}($1::jsonb)`, [J(arg)]);
+      ok(e !== null && /permission denied/i.test(e), `${label} は ${fn} を呼べない`, e || '← 呼べてしまった');
+    }
+  }
+  for (const fn of SVC) {
+    const e = await refused('service', `select public.${fn}($1::jsonb)`, [J(arg)]);
+    ok(e === null, `サーバの鍵は ${fn} を呼べる`, e || '');
+  }
+  /* ここの service_role には既定の権限を配っていない ＝ 通ったのは SQL が名指しで配った4本だけ。
+     （Supabase の service_role は元から何でもできる鍵。ここで見ているのは「SQL が何を配ったか」） */
+  for (const f of [`pv_review_summary_put('{}'::jsonb)`, `pv_review_summary_need('ana', 'ja')`]) {
+    const e = await refused('service', `select public.${f}`);
+    ok(e !== null && /permission denied/i.test(e), `SQL は ${f.replace(/\(.*/, () => '')} を誰にも（サーバの鍵にも）名指しで配っていない`, e || '← 呼べてしまった');
+  }
+
+  for (const [who, label] of [['anon', '未ログイン'], [KEYED, '会員'], [OP, '運営（ページから）']]) {
+    const e1 = await refused(who, `select * from public.pv_review_summary_runs`);
+    const e2 = await refused(who, `insert into public.pv_review_summary_runs(airline, lang, sig, n, state) values('ana','ja','x',3,'saved')`);
+    const e3 = await refused(who, `delete from public.pv_review_summary_runs`);
+    ok([e1, e2, e3].every((e) => e !== null && /permission denied/i.test(e)), `${label} は控えの表を直に読めない・書けない`, J([e1, e2, e3]));
+  }
+  const rls = await one(`select c.relrowsecurity r,
+      (select count(*)::int from pg_policies q where q.schemaname='public' and q.tablename='pv_review_summary_runs') p
+    from pg_class c where c.oid = 'public.pv_review_summary_runs'::regclass`);
+  ok(rls.r === true && rls.p === 0, '控えの表にも RLS が掛かっていて、ポリシーは1つも無い', J(rls));
+
+  /* 検査して入れる本体は1つ。運営の道と自動の道は、門が違うだけ。 */
+  const sqlText = read('db/review-summary.sql');
+  const bodyOf = (name) => {
+    const a = sqlText.indexOf(`create or replace function public.${name}(p jsonb)`);
+    return a < 0 ? '' : sqlText.slice(a, sqlText.indexOf('$fn$;', a));
+  };
+  const writes = /(insert\s+into|delete\s+from|update)\s+public\.pv_review_summaries\b/;
+  const put = bodyOf('pv_review_summary_put'), set = bodyOf('pv_review_summary_set'), auto = bodyOf('pv_review_summary_set_auto');
+  ok(writes.test(put) && /pv_review_summary_bad\(/.test(put) && !/pv_is_operator/.test(put), '要約の表に書くのは、中の1本（検査もそこ・誰が呼んだかは見ない）');
+  ok(set !== '' && !writes.test(set) && /public\.pv_review_summary_put\(/.test(set) && /pv_is_operator\(\)/.test(set) && !/pv_review_summary_bad\(/.test(set),
+     '運営の道は、門を見てから中の1本を呼ぶだけ（自分では書かない・検査を写していない）');
+  ok(auto !== '' && !writes.test(auto) && /public\.pv_review_summary_put\(/.test(auto) && !/pv_review_summary_bad\(/.test(auto),
+     '自動の道も、同じ中の1本を呼ぶだけ（自分では書かない・検査を写していない）');
+  ok(sqlText.split(/insert\s+into\s+public\.pv_review_summaries\b/).length === 2, '要約の表への insert は、ファイル全体で1か所だけ');
+}
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 15. 作り直しが要るかは DB が決める（変わっていなければ材料を渡さない）');
+// ════════════════════════════════════════════════════════════
+{
+  const A = 'starflyer';
+  const d0 = await dueOf(A);
+  ok(J(d0) === J({ ok: true, checked: 0, due: [] }), '口コミも要約も無い会社は、見もしない', J(d0));
+  await post(41, A, { culture_comment: '少人数で顔が見える職場です。', training_comment: '訓練は細かく見てもらえる。',
+                      mgmt_comment: '経営陣への提案です。', position: 'captain', fleet: 'A320', tenure_bucket: '10-15',
+                      __at: '2026-04-01T00:00:00.000101Z' });
+  await post(42, A, { training_comment: '訓練で細かく見てもらえた。', wlb_comment: '休みの希望が通りにくい。', __at: '2026-04-02T00:00:00.000202Z' });
+  const d2 = await dueOf(A);
+  ok(J(d2) === J({ ok: true, checked: 1, due: [] }), '2件では要らない（見たうえで、要らない）', J(d2));
+  ok(J(await take(A)) === J({ ok: true, state: 'none' }), '2件のときに番を取りに行っても none だけ（材料は渡らない）');
+
+  await post(43, A, { wlb_comment: '休みの希望は通りにくいと感じる。', culture_comment: '顔が見える規模で話しやすい。', __at: '2026-04-03T00:00:00.000303Z' });
+  const d3 = await dueOf(A);
+  ok(J(d3) === J({ ok: true, checked: 1, due: [{ airline: A, lang: 'ja', why: 'missing' }] }), '3件そろって、要約が無い → missing', J(d3));
+  ok(!UUID.test(J(d3)) && !/[0-9a-f]{32}/.test(J(d3)), '一覧に出るのは会社コード・言語・理由の語だけ（id も指紋も出ない）');
+
+  console.log('  ── 番を取る・材料を受け取る ──');
+  const t1 = await take(A);
+  ok(t1.ok === true && t1.state === 'go' && t1.why === 'missing' && t1.n === 3 && /^[0-9a-f]{32}$/.test(t1.basis) && t1.rows.length === 3,
+     '番を取ると、材料3件と集合の指紋が返る', J({ ...t1, rows: (t1.rows || []).length }));
+  const rowKeys = J([...new Set(t1.rows.flatMap((r) => Object.keys(r)))].sort());
+  ok(rowKeys === J(['airline', 'created_at', 'orig_lang', 'translations', ...CATS.map((c) => c + '_comment')].sort()),
+     '材料の1行は、会社コード・時刻・言語を選ぶ2欄・6分類の本文だけ', rowKeys);
+  const ids = (await rows(`select id::text, proof_hash from public.reviews_v2`)).flatMap((r) => [r.id, r.proof_hash]);
+  const t1s = J(t1);
+  ok(!ids.some((v) => t1s.includes(v)) && !UUID.test(t1s), '材料に口コミの id も proof_hash も入っていない');
+  ok(!/captain|A320|10-15|経営陣への提案/.test(t1s) && /細かく見てもらえる/.test(t1s), '材料に職位・機種・在籍年数・提案の欄が入っていない（本文は入っている）');
+  const r1 = await run(A);
+  ok(r1 && r1.state === 'running' && r1.sig === t1.basis && r1.n === 3 && r1.tries === 1, '控えに「いま作っている」と書かれた', J(r1));
+
+  /* 同じ知らせがもう1本来る ── 口コミが入った数秒後に、翻訳が同じ行を書き換える。 */
+  const t1b = await take(A);
+  ok(J(t1b) === J({ ok: true, state: 'busy' }), '作っている最中に来た2人目には busy だけ（材料も指紋も渡らない ＝ モデルを呼べない）', J(t1b));
+  ok(J((await dueOf(A)).due) === '[]', '作っている最中は、一覧にも出ない');
+
+  console.log('  ── 預ける ──');
+  const inp = buildInput(t1.rows, { airline: A, lang: 'ja' });
+  ok(inp.n === t1.n, '道具が数えた件数と、サーバが数えた件数が同じ', `${inp.n} / ${t1.n}`);
+  const idxOf = (input, re) => input.reviews.filter((r) => re.test(Object.values(r.cats).join(' '))).map((r) => r.i);
+  const replyOf = (input) => ({
+    good: [{ text: '訓練で細かく見てもらえるという声が複数ある', cat: 'training', reviews: idxOf(input, /細かく見て/) },
+           { text: '提案を聞いてもらえるという声がある', cat: 'culture', reviews: [1] }],
+    concern: [{ text: '休みの希望が通りにくいという声が複数ある', cat: 'wlb', reviews: idxOf(input, /通りにくい/) }],
+  });
+  const autoPayload = (t, input) => {
+    const s = settle(replyOf(input), { lang: 'ja', n: input.n });
+    return { airline: A, lang: 'ja', basis: t.basis, n: input.n, good: s.good, concern: s.concern };
+  };
+  const p1 = autoPayload(t1, inp);
+  ok(p1.good.length === 1 && p1.concern.length === 1, '（検品を通るのは、2件以上がそろった点だけ）', J(p1));
+  const w1 = await svc('pv_review_summary_set_auto', p1);
+  ok(w1.ok === true && w1.state === 'saved' && w1.n === 3 && w1.airline === A, '検品を通った点を、指紋と一緒に預けられる（時刻は渡していない）', J(w1));
+  const o1 = await getAs(KEYED, A);
+  ok(o1.state === 'open' && o1.n === 3 && o1.good.length === 1 && o1.concern.length === 1 && !/"k"/.test(J(o1)), '自動で預けたものが、会社ページの読む関数から読める', J(o1));
+  ok(J(await getAs('anon', A)) === J({ ok: true, state: 'locked' }), '自動で預けたものも、鍵の無い人には locked だけ');
+  ok((await run(A)).state === 'saved', '控えは「預けた」に変わった');
+
+  console.log('  ── 変わっていなければ、何もしない ──');
+  ok(J(await dueOf(A)) === J({ ok: true, checked: 1, due: [] }), '預けた直後は要らない');
+  ok(J(await take(A)) === J({ ok: true, state: 'fresh' }), '変わっていないのに番を取りに行っても fresh だけ（材料は渡らない）');
+
+  console.log('  ── 1件増えた／作っている間にもう1件 ──');
+  await post(44, A, { training_comment: '訓練の進め方が丁寧。', __at: '2026-04-04T00:00:00.000404Z' });
+  ok(J((await dueOf(A)).due) === J([{ airline: A, lang: 'ja', why: 'stale' }]), '1件増えた → stale');
+  ok((await getAs(KEYED, A)).n === 3, '（作り直すまでは、前の要約がそのまま読める）');
+  const t2 = await take(A);
+  ok(t2.state === 'go' && t2.why === 'stale' && t2.n === 4 && t2.basis !== t1.basis, '番を取る（4件・指紋は前と違う）', J({ ...t2, rows: (t2.rows || []).length }));
+  const in2 = buildInput(t2.rows, { airline: A, lang: 'ja' });
+  const p2 = autoPayload(t2, in2);
+  /* ── モデルを呼んでいる間に、もう1件入った ── */
+  await post(45, A, { culture_comment: '少人数なので相談しやすい。', __at: '2026-04-05T00:00:00.000505Z' });
+  ok(J(await take(A)) === J({ ok: true, state: 'busy' }), 'あとから来た知らせは busy（先の人がまだ作っている）');
+  const w2 = await svc('pv_review_summary_set_auto', p2);
+  ok(J(w2) === J({ ok: false, error: 'stale_input' }), '材料を受け取ったあとで口コミが増えた → stale_input で断る（古い集合の要約は預からない）', J(w2));
+  ok((await getAs(KEYED, A)).n === 3 && await run(A) === null, '断られても預かっている要約はそのまま／自分の番は返した');
+  const t3 = await take(A);
+  ok(t3.state === 'go' && t3.n === 5 && t3.basis !== t2.basis, '番を返したので、すぐ取り直せる（5件の集合）', J({ ...t3, rows: (t3.rows || []).length }));
+  const in3 = buildInput(t3.rows, { airline: A, lang: 'ja' });
+  const w3 = await svc('pv_review_summary_set_auto', { ...autoPayload(t3, in3), newest: '2001-01-01T00:00:00Z' });
+  ok(w3.ok === true && w3.state === 'saved' && w3.n === 5, '新しい集合の要約を預ける（でたらめな newest を付けても、時刻はサーバが引く）', J(w3));
+  /* ── 遅れて着いた、古い集合の要約 ── */
+  const late = await svc('pv_review_summary_set_auto', p2);
+  ok(J(late) === J({ ok: false, error: 'stale_input' }) && (await getAs(KEYED, A)).n === 5, '遅れて着いた古い集合の要約で、新しい要約を上書きできない', J(late));
+  const r3 = await run(A);
+  ok(r3.state === 'saved' && r3.sig === t3.basis, '断られた側は、新しい側の控えに触らない', J(r3));
+
+  console.log('  ── 1件消えた／失敗の扱い ──');
+  await db.query(`delete from public.reviews_v2 where airline = $1 and created_at = '2026-04-05T00:00:00.000505Z'`, [A]);
+  ok(J((await dueOf(A)).due) === J([{ airline: A, lang: 'ja', why: 'stale' }]), '1件消えた → stale');
+  ok(J(await getAs(KEYED, A)) === J({ ok: true, state: 'none' }), '（消えた口コミを材料にした要約は、作り直すまで誰にも出ない）');
+  const t4 = await take(A);
+  ok(t4.state === 'go' && t4.n === 4 && t4.basis === t2.basis, '同じ顔ぶれに戻れば、指紋も同じに戻る', J({ ...t4, rows: (t4.rows || []).length }));
+  const f1 = await done(A, t4.basis, 'failed');
+  ok(J(f1) === J({ ok: true, state: 'failed', hit: true }) && (await run(A)).state === 'failed', 'モデルが落ちたら、控えに「失敗」と書く', J(f1));
+  ok(J(await take(A)) === J({ ok: true, state: 'cooling' }) && J((await dueOf(A)).due) === '[]', '失敗の直後は cooling（30分は呼ばせない・一覧にも出ない）');
+  await rewind(A, 29);
+  ok(J(await take(A)) === J({ ok: true, state: 'cooling' }), '29分ではまだ');
+  await rewind(A, 31);
+  const t5 = await take(A);
+  ok(t5.state === 'go' && (await run(A)).tries === 2, '30分たてばもう一度（2回目）');
+  await done(A, t5.basis, 'failed'); await rewind(A, 31);
+  const t6 = await take(A);
+  ok(t6.state === 'go' && (await run(A)).tries === 3, '3回目');
+  await done(A, t6.basis, 'failed'); await rewind(A, 600);
+  ok(J(await take(A)) === J({ ok: true, state: 'parked' }) && J((await dueOf(A)).due) === '[]', '同じ集合で3回失敗したら止める（何時間たっても呼ばせない）');
+  await post(46, A, { ops_comment: '運航の支援は必要十分。', __at: '2026-04-06T00:00:00.000606Z' });
+  const t7 = await take(A);
+  ok(t7.state === 'go' && t7.n === 5 && (await run(A)).tries === 1, '集合が変われば、回数は1から数え直す');
+
+  console.log('  ── 番を返す／切れた番 ──');
+  const rl = await done(A, t7.basis, 'released');
+  ok(J(rl) === J({ ok: true, state: 'released', hit: true }) && await run(A) === null, '鍵の問題でやめたときは、番を消す（回数に数えない）', J(rl));
+  const t8 = await take(A);
+  ok(t8.state === 'go' && (await run(A)).tries === 1 && (await take(A)).state === 'busy', '消したあとはすぐ取れる（取った直後の2人目は busy）');
+  await rewind(A, 9);
+  ok((await take(A)).state === 'busy', '9分ではまだ busy');
+  await rewind(A, 11);
+  ok(J(await take(A)) === J({ ok: true, state: 'cooling' }), '番は10分で切れる。切れた番（途中で落ちた呼び出し）は失敗と同じ扱い ＝ 同じ集合は30分待つ');
+  await rewind(A, 31);
+  const t9 = await take(A);
+  ok(t9.state === 'go' && (await run(A)).tries === 2, '30分たてば次の人が引き継ぐ（落ちた1回も回数に数える）', J({ ...t9, rows: (t9.rows || []).length }));
+  const miss = await done(A, 'f'.repeat(32), 'failed');
+  ok(J(miss) === J({ ok: true, state: 'failed', hit: false }) && (await run(A)).state === 'running', '指紋の違う番は返せない（ほかの人の番に触らない）', J(miss));
+
+  console.log('  ── 点が1つも残らなかった／サーバの検査 ──');
+  const e1 = await svc('pv_review_summary_set_auto', { airline: A, lang: 'ja', basis: t9.basis, n: 5, good: [], concern: [] });
+  ok(J(e1) === J({ ok: true, state: 'deleted' }) && (await run(A)).state === 'empty' && await stored(A) === 0, '点が1つも残らなかったら、預かっている要約を消し、控えに「空」と書く', J(e1));
+  ok(J(await take(A)) === J({ ok: true, state: 'settled' }) && J((await dueOf(A)).due) === '[]', '同じ集合では、もう呼ばせない（settled ── 同じ答えにもう一度払わない）');
+  const again = await svc('pv_review_summary_set_auto', { airline: A, lang: 'ja', basis: t9.basis, n: 5, good: [{ text: '訓練で細かく見てもらえるという声がある', cat: 'training', k: 1 }], concern: [] });
+  ok(again.ok === false && (await run(A)).state === 'empty' && J(await take(A)) === J({ ok: true, state: 'settled' }),
+     '済んだ集合に、断られる中身をもう一度投げても、控えは「済み」のまま（失敗に戻して払い直させない）', J(again));
+  await post(47, A, { benefits_comment: '福利厚生は必要十分。', __at: '2026-04-07T00:00:00.000707Z' });
+  const t10 = await take(A);
+  ok(t10.state === 'go' && t10.why === 'missing' && t10.n === 6, '集合が変われば、また作る');
+  const weak = await svc('pv_review_summary_set_auto', { airline: A, lang: 'ja', basis: t10.basis, n: 6, good: [{ text: '訓練で細かく見てもらえるという声がある', cat: 'training', k: 1 }], concern: [] });
+  ok(J(weak) === J({ ok: false, error: 'weak_point' }) && (await run(A)).state === 'failed' && await stored(A) === 0,
+     '自動の道でも、1件にしか支えられていない点は入らない（検査は運営の道と同じ1本）', J(weak));
+  const many = await svc('pv_review_summary_set_auto', { airline: A, lang: 'ja', basis: t10.basis, n: 6, good: [G(), G(3), G(4), G(5)], concern: [] });
+  ok(many.ok === false && await stored(A) === 0, '自動の道でも、4つは入らない', J(many));
+  await rewind(A, 31);
+  const t11 = await take(A);
+  const badn = await svc('pv_review_summary_set_auto', { airline: A, lang: 'ja', basis: t11.basis, n: 5, good: [G()], concern: [] });
+  ok(t11.state === 'go' && J(badn) === J({ ok: false, error: 'bad_n' }) && await stored(A) === 0, '件数がサーバの数と違えば bad_n（画面に出る「n件の口コミから」を盛れない）', J(badn));
+
+  console.log('  ── 形の違う頼み方 ──');
+  const BL = J({ ok: false, error: 'bad_lang' });
+  ok([J(await svc('pv_review_summary_due', {})), J(await svc('pv_review_summary_due', { langs: [] })), J(await svc('pv_review_summary_due', { langs: ['fr'] })),
+      J(await svc('pv_review_summary_due', { langs: 'ja' })), J(await svc('pv_review_summary_due', { langs: [1] }))].every((x) => x === BL),
+     '一覧: langs が無い・空・知らない言語・配列でない → bad_lang');
+  ok(J(await dueOf('no-such-air')) === J({ ok: true, checked: 0, due: [] }) && J(await dueOf('other')) === J({ ok: true, checked: 0, due: [] }),
+     '一覧: 名簿に無い会社・「その他」で知らせても、何も見ない');
+  ok(J(await take('no-such-air')) === J({ ok: false, error: 'bad_airline' }) && J(await take('other')) === J({ ok: false, error: 'bad_airline' })
+     && J(await take('cathay')) === J({ ok: false, error: 'bad_airline' }) && J(await take(A, 'fr')) === BL,
+     '番: 名簿に無い会社・「その他」・古い短いコード・知らない言語は断る');
+  const BB = J({ ok: false, error: 'bad_basis' });
+  ok(J(await svc('pv_review_summary_set_auto', { airline: A, lang: 'ja', n: 6, good: [G()], concern: [] })) === BB
+     && J(await svc('pv_review_summary_set_auto', { airline: A, lang: 'ja', basis: 'F'.repeat(32), n: 6, good: [G()], concern: [] })) === BB
+     && J(await done(A, 'x', 'failed')) === BB, '預ける・返す: 指紋の形でない basis は断る');
+  ok(J(await done(A, t11.basis, 'saved')) === J({ ok: false, error: 'bad_state' }), '返す: failed でも released でもない語は断る');
+
+  console.log('  ── 3回とも途中で落ちた／落ちた番が残っているあいだに集合が変わった ──');
+  await rewind(A, 31);
+  const t12 = await take(A);
+  ok(t12.state === 'go' && (await run(A)).tries === 3 && (await run(A)).state === 'running', '（3回目の番を取ったまま、呼び出しが落ちたことにする）');
+  await rewind(A, 600);
+  ok(J(await take(A)) === J({ ok: true, state: 'parked' }), '落ちた番も回数に入る ＝ 3回目が落ちたら止まる');
+  await rewind(A, 11);
+  await post(51, A, { ops_comment: '運航の支援が手厚い。', __at: '2026-04-08T00:00:00.000808Z' });
+  const t13 = await take(A);
+  ok(t13.state === 'go' && t13.n === 7 && t13.basis !== t12.basis && (await run(A)).tries === 1,
+     '集合が変わっていれば、落ちた番が切れた時点（10分）ですぐ作る（回数は1から）', J({ ...t13, rows: (t13.rows || []).length }));
+  const in13 = buildInput(t13.rows, { airline: A, lang: 'ja' });
+  const w13 = await svc('pv_review_summary_set_auto', autoPayload(t13, in13));
+  ok(w13.ok === true && w13.state === 'saved' && w13.n === 7 && (await getAs(KEYED, A)).n === 7, '最後は預かって終わる（7件）', J(w13));
+}
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 16. 3件を切った会社は消す／古い短いコードの知らせ／全部を見て回る');
+// ════════════════════════════════════════════════════════════
+{
+  const CX = 'cathay-pacific';
+  ok(await stored(CX) === 1 && (await one(`select public.pv_review_summary_count(public.pv_review_summary_codes($1), null) c`, [CX])).c === 2,
+     '（キャセイは、要約を預かったまま口コミが2件に減っている）');
+  const d = await dueOf('cathay');     // 口コミの行に入っている、古い短いコードのまま知らせる
+  ok(J(d) === J({ ok: true, checked: 1, due: [{ airline: CX, lang: 'ja', why: 'too_few' }] }), '古い短いコードで知らせても、いまの会社コードに引き直す／3件を切った → too_few', J(d));
+  const t = await take(CX);
+  ok(t.ok === true && t.state === 'too_few' && t.n === 2 && /^[0-9a-f]{32}$/.test(t.basis) && !('rows' in t), '3件を切った会社には、材料を渡さない（モデルは呼ばない）', J(t));
+  ok(await run(CX) === null, '番も取らない');
+  const keep = await svc('pv_review_summary_set_auto', { airline: CX, lang: 'ja', basis: t.basis, n: 2, good: [G()], concern: [] });
+  ok(keep.ok === false && await stored(CX) === 1, '2件の会社に、自動の道から要約を預けることはできない', J(keep));
+  const w = await svc('pv_review_summary_set_auto', { airline: CX, lang: 'ja', basis: t.basis, good: [], concern: [] });
+  ok(J(w) === J({ ok: true, state: 'deleted' }) && await stored(CX) === 0 && await run(CX) === null, '空で預けると消える（控えも残さない）', J(w));
+  ok(J(await dueOf(CX)) === J({ ok: true, checked: 1, due: [] }) && J(await take(CX)) === J({ ok: true, state: 'none' }), '消したあとは要らない');
+
+  console.log('  ── いちばん新しい口コミの時刻が先の日付 ──');
+  const Z = 'zipair';
+  await post(52, Z, { culture_comment: '新しい会社で風通しがよい。', __at: '2026-05-01T00:00:00.000111Z' });
+  await post(53, Z, { culture_comment: '風通しのよさを感じる。', __at: '2026-05-02T00:00:00.000222Z' });
+  await post(61, Z, { culture_comment: '若い会社らしく話が早い。', __at: '2099-01-01T00:00:00.000333Z' });
+  ok(J(await dueOf(Z)) === J({ ok: true, checked: 1, due: [] }) && J(await take(Z)) === J({ ok: true, state: 'bad_newest' }) && await run(Z) === null,
+     '時刻が先の日付の口コミが混ざった会社は、作らせない（預けても断られる集合に払わない）');
+
+  console.log('  ── 訳があれば訳を渡す（ページの言語のぶんだけ） ──');
+  const E = 'emirates';
+  await post(62, E, { culture_comment: 'Crew are friendly across nationalities.', orig_lang: 'en',
+                      translations: J({ ja: { culture: '国籍を問わず乗員どうしの仲がよい。', mgmt: '経営陣への提案の訳。', junk: 'x' },
+                                        fr: { culture: 'Les équipages sont sympathiques.' } }),
+                      __at: '2026-05-03T00:00:00.000111Z' });
+  await post(63, E, { culture_comment: '多国籍でも乗員どうしの仲がよい。', __at: '2026-05-04T00:00:00.000222Z' });
+  await post(41, E, { culture_comment: '乗員どうしの仲がよいと感じる。', __at: '2026-05-05T00:00:00.000333Z' });
+  const te = await take(E);
+  const first = (te.rows || [])[0] || {};
+  ok(te.state === 'go' && te.n === 3 && first.orig_lang === 'en' && J(Object.keys(first.translations || {})) === J(['ja'])
+     && J(Object.keys(first.translations.ja)) === J(['culture']),
+     '訳は、頼んだ言語のぶんだけ・6分類のぶんだけ渡る（ほかの言語・提案の欄・知らない鍵は渡らない）', J(first.translations));
+  const ie = buildInput(te.rows, { airline: E, lang: 'ja' });
+  ok(ie.n === 3 && ie.reviews[0].cats.culture === '国籍を問わず乗員どうしの仲がよい。', '道具は、訳があれば訳を材料にする', J(ie.reviews[0]));
+  ok(J(await done(E, te.basis, 'released')) === J({ ok: true, state: 'released', hit: true }), '（番を返しておく）');
+
+  console.log('  ── 全部を見て回る（知らせ無し） ──');
+  /* 運営が手で預けた要約（ana・jal）は、口コミが変わっていない ＝ 作り直さない。
+     スターフライヤーは 15 で預け終えた。キャセイ・ZIPAIR は上のとおり。残るのはエミレーツだけ。 */
+  const all = await dueOf(null);
+  ok(all.ok === true && J(all.due) === J([{ airline: E, lang: 'ja', why: 'missing' }]),
+     '運営が手で預けた要約は、口コミが変わらないかぎり作り直さない／要るのは、まだ無い1社だけ', J(all));
+  ok(all.checked === (await one(`select count(*)::int c from public.pv_airlines a where a.code <> 'other' and (
+         exists (select 1 from public.reviews_v2 r where r.airline = any(public.pv_review_summary_codes(a.code)))
+         or exists (select 1 from public.pv_review_summaries s where s.airline = a.code))`)).c,
+     '見るのは、口コミか要約のある会社だけ', String(all.checked));
+  const both = await dueOf(null, ['ja', 'en', 'ja']);
+  ok(both.checked === all.checked * 2, '言語を足すと、そのぶんだけ見る（同じ言語を2度書いても1度）', String(both.checked));
+  const en = both.due.filter((d) => d.lang === 'en').map((d) => d.airline);
+  ok(!en.includes('ana') && en.includes('jal') && en.includes(A_STAR) && en.includes(E) && both.due.filter((d) => d.lang === 'ja').length === 1,
+     '英語を足すと、英語の要約がまだ無い会社が並ぶ（英語を預かっている ANA は出ない）', J(both.due));
+
+  console.log('  ── SQL を貼り直しても、控えと要約は消えない ──');
+  await asOwner();
+  const snap = async () => J(await rows(`select 's' t, airline, lang, sig, n::text x from public.pv_review_summaries
+                                         union all select 'r', airline, lang, sig, state || tries from public.pv_review_summary_runs order by 1, 2, 3`));
+  const before = await snap();
+  await db.exec(read('db/review-summary.sql'));
+  ok(before === await snap() && JSON.parse(before).some((r) => r.t === 'r'), '貼り直しの前後で、要約の表も控えの表も1行も変わらない');
+  ok(J(await take(A_STAR)) === J({ ok: true, state: 'fresh' }) && (await refused(KEYED, `select public.pv_review_summary_take('{}'::jsonb)`)) !== null,
+     '貼り直したあとも、判定はそのまま・会員からは呼べないまま');
+}
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 17. Webhook を作る1枚（db/review-summary-webhook.sql）');
+// ════════════════════════════════════════════════════════════
+{
+  /* 本番の supabase_functions.http_request は外へ投げる。ここに置くのは「呼ばれた」を
+     表に書くだけの身代わり ＝ 通信は1本も出ない。見るのは、作られるトリガの形と、
+     ひな型（translate-review）に1文字も触らないこと。 */
+  await asOwner();
+  const HOOK_SQL = read('db/review-summary-webhook.sql');
+  const NEW = 'summarize_reviews_reviews_v2';
+  const KEY = 'test-bearer-not-a-real-key';
+  const HEADERS = `{"Content-type":"application/json","Authorization":"Bearer ${KEY}"}`;
+  const hookOn = (name, tbl, events, fn, extra = '') => `create trigger ${name} after ${events} on public.${tbl}
+     for each row ${extra} execute function supabase_functions.http_request(
+       'https://example.supabase.co/functions/v1/${fn}', 'POST', '${HEADERS}', '{}', '1000')`;
+  /* 止まったときに画面へ出る字は3つ（本文・detail・hint）。キーが出ないことは3つとも見る。 */
+  const run17 = async () => {
+    try { await db.exec(HOOK_SQL); return null; }
+    catch (e) { return [e.message, e.detail, e.hint].filter(Boolean).join(' ｜ ') || String(e); }
+  };
+  const trigs = async () => rows(`select tg.tgname n, pg_get_triggerdef(tg.oid) d from pg_trigger tg
+     where not tg.tgisinternal and tg.tgrelid = 'public.reviews_v2'::regclass order by 1`);
+  const toSummarize = async () => (await trigs()).filter((t) => t.d.includes('/functions/v1/summarize-reviews'));
+
+  await db.exec(`
+    create schema supabase_functions;
+    create table public.t_hook_log (seq serial primary key, op text, target text, method text, headers text, params text, wait text);
+    create function supabase_functions.http_request() returns trigger language plpgsql as $f$
+    begin
+      insert into public.t_hook_log (op, target, method, headers, params, wait)
+      values (TG_OP, TG_ARGV[0], TG_ARGV[1], TG_ARGV[2], TG_ARGV[3], TG_ARGV[4]);
+      return null;
+    end $f$;
+    create table public.t_other (id int);
+  `);
+
+  console.log('  ── 字面 ──');
+  const code = HOOK_SQL.split('\n').filter((l) => !/^\s*--/.test(l)).join('\n');
+  ok(!/\b(drop|alter|truncate|disable)\b/i.test(code), '動く行に drop / alter が1つも無い（在るのはコメントの「止めるとき」だけ）');
+  ok(/^\s*--\s+drop trigger if exists summarize_reviews_reviews_v2 on public\.reviews_v2;/m.test(HOOK_SQL), '止め方が末尾のコメントに在る');
+  ok(!/Bearer\s+[A-Za-z0-9._-]{12,}|https:\/\/[a-z0-9]+\.supabase\.co/.test(HOOK_SQL), 'URL もキーも書いていない（ひな型から写す）');
+
+  console.log('  ── ひな型が無ければ作らない ──');
+  await db.exec(hookOn('t_translate_elsewhere', 't_other', 'insert', 'translate-review'));
+  const e0 = await run17();
+  ok(e0 !== null && /translate-review の Webhook トリガが見つかりません/.test(e0) && (await toSummarize()).length === 0,
+     'reviews_v2 に translate-review の Webhook が無ければ、止まって何も作らない（ほかの表に在っても使わない）', String(e0));
+  await db.exec(`drop trigger t_translate_elsewhere on public.t_other`);
+
+  /* 本番にある形：翻訳（INSERT・UPDATE）と、運営への通知（INSERT）。 */
+  await db.exec(hookOn('"Translate review"', 'reviews_v2', 'insert or update', 'translate-review'));
+  await db.exec(hookOn('notify_admin_reviews_v2', 'reviews_v2', 'insert', 'notify-admin'));
+  const before = await trigs();
+  ok(before.some((t) => t.n === 'Translate review') && before.some((t) => t.n === 'notify_admin_reviews_v2'), '（ひな型と、通知の Webhook を置いた）');
+
+  console.log('  ── 受け皿（db/review-summary.sql）が無ければ作らない ──');
+  await db.exec(`begin`);
+  await db.exec(`drop function public.pv_review_summary_done(jsonb)`);
+  const e1 = await run17();
+  await db.exec(`rollback`);
+  ok(e1 !== null && /自動の道/.test(e1) && (await toSummarize()).length === 0
+     && (await one(`select to_regprocedure('public.pv_review_summary_done(jsonb)') is not null y`)).y === true,
+     '自動の道の関数が1つでも欠けていたら、止まって何も作らない', String(e1));
+
+  console.log('  ── 作る ──');
+  const e2 = await run17();
+  const after = await trigs();
+  const made = after.find((t) => t.n === NEW);
+  ok(e2 === null && !!made, '流すと1本できる', String(e2));
+  ok(!!made && made.d === `CREATE TRIGGER ${NEW} AFTER INSERT OR DELETE OR UPDATE ON public.reviews_v2 FOR EACH ROW EXECUTE FUNCTION `
+     + `supabase_functions.http_request('https://example.supabase.co/functions/v1/summarize-reviews', 'POST', '${HEADERS}', '{}', '5000')`,
+     '名前・3つのイベント・呼び先・待ち時間だけが変わり、URL の頭と認証ヘッダはひな型のまま', made && made.d.split(KEY).join('***'));
+  ok(J(after.filter((t) => t.n !== NEW)) === J(before), '翻訳と通知の Webhook は、作る前と1文字も違わない');
+
+  console.log('  ── 末尾の確認の SQL が、そのまま流れる ──');
+  const m = HOOK_SQL.match(/▼確認ここから\n([\s\S]*?)\n-- ▲確認ここまで/);
+  const verify = m ? m[1].split('\n').map((l) => l.replace(/^-- ?/, '')).join('\n') : '';
+  const vr = verify ? await rows(verify) : [];
+  const mine = vr.filter((r) => r['呼び先'] === 'summarize-reviews');
+  ok(vr.length === 3 && mine.length === 1 && mine[0].webhook === NEW && mine[0]['イベント'] === 'INSERT OR DELETE OR UPDATE' && mine[0]['待ち時間ms'] === '5000',
+     '確認の表に、summarize-reviews が1本・3つのイベント・5000ms と出る', J(vr).split(KEY).join('***'));
+  ok(vr.length > 0 && !J(vr).includes(KEY) && !J(vr).includes('Bearer'), '確認の表にキーが出ない');
+
+  console.log('  ── 何度流しても1本 ──');
+  const e3 = await run17(); const e4 = await run17();
+  ok(e3 === null && e4 === null && J(await trigs()) === J(after), '貼り直しても、トリガは1本も増えない・変わらない');
+
+  console.log('  ── 3つのイベントで呼ばれる ──');
+  await db.exec(`truncate public.t_hook_log`);
+  const rid = (await one(`insert into public.reviews_v2 (proof_hash, airline, culture_comment) values ('t17', 'zipair', '確認用の行。') returning id`)).id;
+  await db.query(`update public.reviews_v2 set fleet = 'B787' where id = $1`, [rid]);
+  await db.query(`delete from public.reviews_v2 where id = $1`, [rid]);
+  const log = await rows(`select op, target, method, headers, params, wait from public.t_hook_log order by seq`);
+  const fnOf = (r) => String(r.target).replace(/^.*\/functions\/v1\//, '');
+  const sr = log.filter((r) => fnOf(r) === 'summarize-reviews');
+  ok(J(sr.map((r) => r.op)) === J(['INSERT', 'UPDATE', 'DELETE']), '入った・変わった・消えた のそれぞれで、ちょうど1回ずつ呼ばれる', J(sr.map((r) => r.op)));
+  ok(sr.length === 3 && sr.every((r) => r.method === 'POST' && r.headers === HEADERS && r.wait === '5000' && r.target === 'https://example.supabase.co/functions/v1/summarize-reviews'),
+     '呼び先・ヘッダ・待ち時間が3回とも同じ');
+  ok(J(log.filter((r) => fnOf(r) === 'translate-review').map((r) => r.op)) === J(['INSERT', 'UPDATE'])
+     && J(log.filter((r) => fnOf(r) === 'notify-admin').map((r) => r.op)) === J(['INSERT']),
+     '翻訳と通知は、今までどおりの回にだけ呼ばれる（消えたときに翻訳を呼ばない）', J(log.map((r) => r.op + ' ' + fnOf(r))));
+
+  console.log('  ── 画面から作った1本が在れば、2本目を足さない ──');
+  await db.exec(`drop trigger ${NEW} on public.reviews_v2`);
+  await db.exec(hookOn('"Summarize reviews"', 'reviews_v2', 'insert or update or delete', 'summarize-reviews'));
+  const e5 = await run17();
+  const s5 = await toSummarize();
+  ok(e5 === null && s5.length === 1 && s5[0].n === 'Summarize reviews', '名前が違っても、呼び先が同じなら作らない（1件で2回呼ばれない）', J(s5.map((t) => t.n)));
+  await db.exec(`drop trigger "Summarize reviews" on public.reviews_v2`);
+
+  console.log('  ── ひな型に条件が付いていたら、写さずに止まる ──');
+  for (const [label, events, extra] of [
+    ['WHEN の条件つき', 'insert', 'when (new.orig_lang is not null)'],
+    ['列を指定した UPDATE', 'insert or update of translations', ''],
+  ]) {
+    await db.exec(`drop trigger "Translate review" on public.reviews_v2`);
+    await db.exec(hookOn('"Translate review"', 'reviews_v2', events, 'translate-review', extra));
+    const snap = await trigs();
+    const e = await run17();
+    ok(e !== null && /差し替えに失敗/.test(e) && (await toSummarize()).length === 0 && J(await trigs()) === J(snap),
+       `${label}のひな型 → 止まって何も作らない（条件ごと写すと、呼ばれるはずの回に呼ばれない）`, String(e).split(KEY).join('***'));
+    ok(e !== null && /差し替えた定義の頭: CREATE TRIGGER /.test(e) && !e.includes(KEY) && !e.includes('Bearer') && !e.includes('example.supabase.co'),
+       `${label}：止まったときの文（detail・hint まで）に、キーも URL も出ない`, String(e).split(KEY).join('***'));
+  }
+
+  /* 後始末（この下に検査を足す人が、身代わりのトリガに驚かないように）。 */
+  await db.exec(`drop trigger "Translate review" on public.reviews_v2;
+                 drop trigger notify_admin_reviews_v2 on public.reviews_v2;`);
+  ok((await trigs()).every((t) => !t.d.includes('supabase_functions.http_request')), '（身代わりのトリガを片付けた）');
+}
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 18. 関数の本体を、本物の SQL につないで通しで動かす（身代わりはモデルの返事だけ）');
+// ════════════════════════════════════════════════════════════
+/* 14〜16 は SQL を手で呼んでいる。assert-review-summary-auto.mjs は関数を**身代わりの DB**で
+   動かしている（返事の語と形を、SQL から手で写したもの）。どちらも緑のまま、
+   「関数が呼ぶ名前・渡す形」と「SQL が受ける名前・返す形」だけが食い違うことがある。
+   その2つを実際につないで通すのは、ここだけ。
+     ・DB への呼び出しは、関数が組み立てた宛先・鍵・本文をそのまま読み、同じ名前の SQL を
+       サーバの鍵の役（service_role）で呼ぶ
+     ・モデルは呼ばない。返事の代わりを返す（知らない宛先へ投げたら落とす）
+   ★作る言語が増えても（LANGS に 'en' を足しても）このまま通るように、言語の数で数える。 */
+try {
+  const SR = await import('../supabase/functions/summarize-reviews/index.ts');
+  const LANGS = SR.LANGS;
+  const X = 'singapore-airlines', OLD = 'singapore';   // ほかの節が使っていない会社（古い短いコードも持つ）
+  const DB = 'https://db.example.test', SKEY = 'service-key-for-test', AKEY = 'model-key-for-test';
+  const TEXT = {
+    ja: { good: '訓練の教え方が丁寧だという声が複数ある', concern: '勤務の変更が直前に来るという声が複数ある', weak: '提案を聞いてもらえるという声がある' },
+    en: { good: 'Several pilots say the training is careful and thorough.', concern: 'Several pilots say roster changes arrive at short notice.', weak: 'One pilot says suggestions are listened to.' },
+  };
+  const net = { model: [], rpc: [], other: [], logs: [], results: [] };
+  let modelStatus = 200;      // モデルの返事（200 以外なら落とす）
+  let duringModel = null;     // モデルが考えているあいだに起きること（1回だけ）
+  const reply = (status, body) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
+  const fetch18 = async (url, init) => {
+    const u = String(url);
+    if (u.startsWith(DB + '/rest/v1/rpc/')) {
+      const fn = u.slice((DB + '/rest/v1/rpc/').length);
+      const body = JSON.parse(init.body);
+      net.rpc.push({ fn, keys: J(Object.keys(body)),
+                     auth: init.method === 'POST' && init.headers.apikey === SKEY && init.headers.Authorization === 'Bearer ' + SKEY });
+      if (!SVC.includes(fn)) return reply(404, {});
+      return reply(200, await svc(fn, body.p));           // ← 本物の SQL
+    }
+    if (u === 'https://api.anthropic.com/v1/messages') {
+      const b = JSON.parse(init.body);
+      const lang = LANGS.find((l) => SR.systemPrompt(l) === b.system) || '';
+      net.model.push({ lang, user: b.messages[0].content, key: init.headers['x-api-key'] === AKEY });
+      if (duringModel) { const f = duringModel; duringModel = null; await f(); }
+      if (modelStatus !== 200) {
+        return reply(modelStatus, { type: 'error', error: { type: modelStatus === 401 ? 'authentication_error' : 'api_error', message: 'x' } });
+      }
+      const T = TEXT[lang];
+      const input = { good: [{ text: T.good, cat: 'training', reviews: [1, 2] }, { text: T.weak, cat: 'culture', reviews: [1] }],
+                      concern: [{ text: T.concern, cat: 'wlb', reviews: [2, 3] }] };
+      return reply(200, { content: [{ type: 'tool_use', name: 'submit_summary', input }], stop_reason: 'tool_use',
+                          usage: { input_tokens: 100, output_tokens: 50 } });
+    }
+    net.other.push(u);
+    throw new Error('知らない宛先');
+  };
+  const ENV = { ANTHROPIC_API_KEY: AKEY, SUPABASE_URL: DB, SUPABASE_SERVICE_ROLE_KEY: SKEY };
+  const deps = { fetch: fetch18, env: (k) => ENV[k] || '', log: (l) => net.logs.push(String(l)), now: () => Date.now() };
+  const call = async (body) => {
+    const before = net.model.length;
+    const res = await SR.handle(new Request('https://fn.example.test/summarize-reviews', { method: 'POST', body: JSON.stringify(body) }), deps);
+    const j = await res.json();
+    for (const r of (Array.isArray(j.results) ? j.results : [])) net.results.push(r);
+    return { status: res.status, j, calls: net.model.length - before };
+  };
+  /* Database Webhook が送る形。行の中身は丸ごと来るが、関数が読むのは会社コードだけ。 */
+  const ev = (type, airline) => ({
+    type, table: 'reviews_v2', schema: 'public',
+    record: type === 'DELETE' ? null : { id: 'row-id', airline, culture_comment: 'この欄は関数に読まれない', position: 'captain' },
+    old_record: type === 'INSERT' ? null : { id: 'row-id', airline },
+  });
+  const byLang = (a, b) => (a.lang < b.lang ? -1 : a.lang > b.lang ? 1 : 0);
+  const perLang = (f) => J(LANGS.map(f).sort(byLang));
+  const got = (list) => J([...(list || [])].sort(byLang));
+  const statesOf = (j, lang) => (j.results || []).filter((r) => r.airline === X && r.lang === lang).map((r) => r.state);
+  const everyLang = async (f) => { for (const l of LANGS) { if (!(await f(l))) return false; } return true; };
+  /* どの言語から手を付けるかは、DB の一覧の並びが決める（LANGS の並びではない）。 */
+  const firstOf = (j) => ((j.results || [])[0] || {}).lang || '';
+  const restOf = (j) => LANGS.filter((l) => l !== firstOf(j));
+
+  /* 材料: いまのコードで2件・古い短いコードで1件・半角の空白だけの1件（サーバも関数も数えない）。 */
+  await post(41, X, { training_comment: '訓練の教え方が丁寧で助かった。', wlb_comment: '勤務の変更が直前に来る。',
+                      position: 'captain', fleet: 'A350', __at: '2026-05-01T00:00:00.000101Z' });
+  await post(42, X, { training_comment: '教え方が丁寧。', wlb_comment: '直前の勤務変更が多い。', __at: '2026-05-02T00:00:00.000202Z' });
+  await post(43, OLD, { wlb_comment: '勤務の変更は直前に来ることが多い。', __at: '2026-05-03T00:00:00.000303Z' });
+  await post(44, X, { culture_comment: '   ', __at: '2026-05-04T00:00:00.000404Z' });
+
+  console.log('  ── 見るだけ（費用ゼロの確認）──');
+  const d0 = await call({ airline: X, dry: true });
+  ok(d0.status === 200 && d0.j.ok === true && d0.j.mode === 'dry' && d0.j.key_set === true && d0.calls === 0
+     && got(d0.j.due) === perLang((lang) => ({ airline: X, lang, why: 'missing' })),
+     '{"dry":true}: 作り直しが要る会社と理由の語が返る／モデルは呼ばない', J(d0.j));
+  ok(await everyLang(async (l) => (await run(X, l)) === null && (await stored(X, l)) === 0), '見るだけでは番を取らない・何も預けない');
+
+  console.log('  ── 口コミが入った（古い短いコードの行）→ 作って預ける ──');
+  const e1 = await call(ev('INSERT', OLD));
+  ok(e1.status === 200 && e1.j.ok === true && e1.j.mode === 'event' && e1.calls === LANGS.length && e1.j.calls === LANGS.length && e1.j.deferred === 0,
+     'モデルを呼ぶのは言語の数だけ', J({ ...e1.j, real: e1.calls }));
+  ok(got(e1.j.results) === perLang((lang) => ({ airline: X, lang, state: 'saved', n: 3, good: 1, concern: 1, dropped: 1 })),
+     '古いコードの知らせでも、いまの会社コードで預かる／件数はサーバと関数で同じ（空白だけの1件は数えない）／1件にしか支えられていない点は落ちる', J(e1.j.results));
+  for (const lang of LANGS) {
+    const o = await getAs(KEYED, X, lang);
+    ok(o.state === 'open' && o.n === 3 && J(o.good) === J([{ text: TEXT[lang].good, cat: 'training' }]) && J(o.concern) === J([{ text: TEXT[lang].concern, cat: 'wlb' }]),
+       `[${lang}] 会社ページが読む関数から、検品を通った点だけが読める`, J(o));
+    ok((await run(X, lang)).state === 'saved', `[${lang}] 控えは「預けた」`);
+  }
+  ok(J(await getAs('anon', X)) === J({ ok: true, state: 'locked' }), '鍵の無い人には locked だけ');
+  const m1 = net.model.slice(-LANGS.length);
+  ok(m1.length === LANGS.length && m1.every((m) => m.key && LANGS.includes(m.lang) && m.user.startsWith('Reviews: 3\n')
+       && m.user.includes('勤務の変更は直前に来ることが多い。') && !/captain|A350|singapore|2026-05|row-id|読まれない/.test(m.user)),
+     'モデルに渡ったのは、番号を振った本文3件だけ（会社コードも職位も機種も時刻も、知らせに付いてきた行の中身も無い）');
+
+  console.log('  ── 同じ行がすぐ書き換わる（翻訳が入る）→ 何もしない ──');
+  const e2 = await call(ev('UPDATE', X));
+  ok(e2.j.ok === true && e2.calls === 0 && e2.j.calls === 0 && J(e2.j.results) === '[]', '集合が同じなら、モデルは呼ばれない（課金なし）', J(e2.j));
+
+  console.log('  ── モデルが落ちた → 控えに残し、すぐには呼び直さない ──');
+  await post(45, X, { training_comment: '訓練の進め方が丁寧だった。', __at: '2026-05-05T00:00:00.000505Z' });
+  modelStatus = 500;
+  const e3 = await call(ev('INSERT', X));
+  ok(got(e3.j.results) === perLang((lang) => ({ airline: X, lang, state: 'model_failed', why: 'http_500' })), '落ちたことは語だけで返る', J(e3.j.results));
+  ok(await everyLang(async (l) => { const r = await run(X, l); return r && r.state === 'failed' && r.tries === 1 && r.n === 4; }), '控えに「失敗・1回目」と書かれた');
+  ok(await everyLang(async (l) => (await getAs(KEYED, X, l)).n === 3), '（作り直せるまでは、前の要約がそのまま読める）');
+  modelStatus = 200;
+  const e4 = await call(ev('UPDATE', X));
+  ok(e4.calls === 0 && J(e4.j.results) === '[]', '直後にもう一度知らせが来ても、モデルは呼ばれない（30分あける）', J(e4.j));
+  for (const l of LANGS) await rewind(X, 31, l);
+  const e5 = await call({ airline: X });
+  ok(e5.j.mode === 'one' && e5.calls === LANGS.length && got(e5.j.results) === perLang((lang) => ({ airline: X, lang, state: 'saved', n: 4, good: 1, concern: 1, dropped: 1 })),
+     '30分たってから手で1社を頼むと、作り直して預かる', J(e5.j));
+
+  console.log('  ── 鍵が死んでいる → 回数に数えない・その回はそこでやめる ──');
+  await post(46, X, { wlb_comment: '勤務の変更が直前に来て困る。', __at: '2026-05-06T00:00:00.000606Z' });
+  modelStatus = 401;
+  const e6 = await call(ev('INSERT', X));
+  ok(e6.calls === 1 && J(statesOf(e6.j, firstOf(e6.j))) === J(['key_error']) && e6.j.deferred === LANGS.length - 1
+     && restOf(e6.j).length === LANGS.length - 1 && restOf(e6.j).every((l) => J(statesOf(e6.j, l)) === J(['deferred'])),
+     '最初の1回で鍵の問題と分かったら、残りは呼ばずに見送る', J(e6.j));
+  modelStatus = 200;
+  const e7 = await call(ev('UPDATE', X));
+  ok(e7.calls === LANGS.length && got(e7.j.results) === perLang((lang) => ({ airline: X, lang, state: 'saved', n: 5, good: 1, concern: 1, dropped: 1 })),
+     '鍵が直れば、待たずに次の知らせで作り直せる（番を返してある＝失敗に数えていない）', J(e7.j));
+
+  console.log('  ── モデルが考えているあいだに、もう1件入った ──');
+  await post(47, X, { ops_comment: '運航の支援は十分。', __at: '2026-05-07T00:00:00.000707Z' });
+  duringModel = () => post(51, X, { culture_comment: '相談しやすい雰囲気。', __at: '2026-05-08T00:00:00.000808Z' });
+  const e8 = await call(ev('INSERT', X));
+  ok(J(statesOf(e8.j, firstOf(e8.j))) === J(['superseded', 'saved']) && restOf(e8.j).length === LANGS.length - 1
+     && restOf(e8.j).every((l) => J(statesOf(e8.j, l)) === J(['saved'])) && e8.calls === LANGS.length + 1,
+     '古い集合から作った要約は預からず（superseded）、その場で新しい集合から作り直す', J(e8.j));
+  ok(await everyLang(async (l) => (await getAs(KEYED, X, l)).n === 7 && (await run(X, l)).state === 'saved'), '預かっているのは、7件ぜんぶから作った要約');
+
+  console.log('  ── 改行だけの欄（サーバは数える）──');
+  await post(52, X, { ops_comment: '\n', __at: '2026-05-09T00:00:00.000909Z' });
+  const e9 = await call(ev('INSERT', X));
+  ok(got(e9.j.results) === perLang((lang) => ({ airline: X, lang, state: 'saved', n: 8, good: 1, concern: 1, dropped: 1 })),
+     '関数の数え方とサーバの数え方が同じ（食い違うと count_mismatch で止まる）', J(e9.j.results));
+  ok(net.model.slice(-1)[0].user.startsWith('Reviews: 8\n') && net.model.slice(-1)[0].user.includes('(no text)'), '（本文の無い1件は、番号だけで渡る）');
+
+  console.log('  ── 口コミが消えて3件を切った → 預かっている要約も消す ──');
+  await asOwner();
+  await db.query(`delete from public.reviews_v2 where airline in ($1, $2) and created_at > '2026-05-02T12:00:00Z'`, [X, OLD]);
+  const e10 = await call(ev('DELETE', X));
+  ok(e10.calls === 0 && got(e10.j.results) === perLang((lang) => ({ airline: X, lang, state: 'cleared', n: 2 })), 'モデルを呼ばずに消す', J(e10.j));
+  ok(await everyLang(async (l) => (await stored(X, l)) === 0 && (await run(X, l)) === null && J(await getAs(KEYED, X, l)) === J({ ok: true, state: 'none' })),
+     '要約の行も控えも残っていない／読む関数は「無い」');
+  const e11 = await call(ev('DELETE', X));
+  ok(e11.calls === 0 && J(e11.j.results) === '[]', 'もう一度知らせが来ても、することは無い', J(e11.j));
+
+  console.log('  ── つなぎ目 ──');
+  ok(net.rpc.length > 0 && net.rpc.every((r) => r.auth && r.keys === '["p"]' && SVC.includes(r.fn)),
+     'DB へは、サーバの鍵で・{p} の形で・自動の道の4本だけを呼んでいる', J([...new Set(net.rpc.map((r) => r.fn))]));
+  ok(SVC.every((fn) => net.rpc.some((r) => r.fn === fn)), '4本とも、実際に本物の SQL を通った');
+  ok(net.other.length === 0, 'DB とモデル以外の宛先へは1本も投げていない', J(net.other));
+  ok(!net.results.some((r) => r.state === 'error' || r.state === 'rejected'), '関数と SQL の食い違い（error / rejected）は1回も出ていない', J(net.results.filter((r) => r.state === 'error' || r.state === 'rejected')));
+  const said = net.logs.join('\n');
+  const TEXTS = [...Object.values(TEXT).flatMap((t) => Object.values(t)), '助かった', '直前', '相談しやすい', '読まれない', 'captain', 'A350', SKEY, AKEY];
+  ok(net.logs.length > 0 && !TEXTS.some((s) => said.includes(s)), 'ログに、口コミの文も要約の文も鍵も出ていない');
+} catch (e) {
+  await asOwner();
+  ok(false, '18 が途中で落ちた', String((e && e.message) || e).slice(0, 300));
 }
 
 console.log(`\n══ ${pass} pass / ${fail} fail ══`);
