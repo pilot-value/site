@@ -1,0 +1,315 @@
+/* ═══════════════════════════════════════════════════════════════════
+   pv-contrib.css ── 会社ページの上で開く「情報を追加」の面（pv-contrib.js が組み立てる）
+
+   ・どの規則も .pvc で始まる。会社ページの中身には1つも当たらない。
+   ・色は pv-tokens.css の変数だけ。緑の面の上の白と、暗幕は white／color-mix で作る
+     （career.css と同じ作り方）。hex・rgb・prefers-color-scheme は書かない。
+   ・面の中の規則は .pvc-root を頭に付けて重さを 0,2,0 にしてある。
+     会社ページは Tailwind の CDN を読んでいて、あとから入る [type='button'] の
+     リセット（0,1,0）に、クラス1つだけの規則は負ける。
+   ・動かすのは transform と opacity だけ。
+   ・⚠️ pv-conditions.js も .pvc- で始まる名前を使っている（.pvc-back .pvc-q .pvc-btn …）。
+     同じ名前を足さない。
+   ═══════════════════════════════════════════════════════════════════ */
+
+.pvc-lock,
+.pvc-lock body{overflow:hidden}
+
+.pvc-root{
+  --pvc-on:white;
+  --pvc-scrim:color-mix(in srgb, var(--pv-navy) 54%, transparent);
+  --pvc-warn:var(--pv-orange-ink);
+  --pvc-warn-line:color-mix(in srgb, var(--pv-orange-ink) 38%, transparent);
+  --pvc-hover:color-mix(in srgb, var(--pv-ink) 6%, transparent);
+  position:fixed;inset:0;z-index:9999;display:flex;justify-content:flex-end;align-items:flex-end;
+  margin:0;padding:0;
+  font-family:'Inter','Noto Sans JP',-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;
+  font-size:14px;line-height:1.6;font-weight:400;letter-spacing:0;text-align:left;color:var(--pv-ink);
+  -webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%;
+  pointer-events:none}
+/* 閉じたあと暗幕が消えきるまでの間、下のページを押せなくしない */
+.pvc-root.is-in{pointer-events:auto}
+.pvc-root[hidden]{display:none}
+.pvc-root.is-dark{color-scheme:dark}
+.pvc-root *,
+.pvc-root *::before,
+.pvc-root *::after{box-sizing:border-box}
+
+/* ── 暗幕と面 ───────────────────────────────────────────── */
+.pvc-root .pvc-scrim{position:absolute;inset:0;background:var(--pvc-scrim);opacity:0;cursor:pointer;
+  transition:opacity .24s ease;-webkit-tap-highlight-color:transparent}
+.pvc-root.is-in .pvc-scrim{opacity:1}
+.pvc-root.is-in .pvc-scrim:hover{opacity:.95}
+.pvc-root.is-in .pvc-scrim:active{opacity:.88}
+
+.pvc-root .pvc-sheet{position:relative;display:flex;flex-direction:column;
+  width:100%;max-width:100%;height:calc(100% - 20px);
+  background:var(--pv-surface-soft);color:var(--pv-ink);
+  border-radius:20px 20px 0 0;overflow:hidden;outline:0;
+  box-shadow:var(--pv-shadow-lift);
+  transform:translateY(100%);transition:transform .34s var(--pv-ease)}
+.pvc-root.is-in .pvc-sheet{transform:translateY(0)}
+
+.pvc-root .pvc-head{flex:none;display:flex;align-items:center;gap:4px;min-height:64px;
+  padding:8px 8px 8px 16px;background:var(--pv-surface);border-bottom:1px solid var(--pv-border)}
+.pvc-root .pvc-title{flex:1 1 auto;min-width:0;margin:0;padding:0;border:0;background:none;
+  font-size:18px;line-height:1.3;font-weight:800;letter-spacing:-.02em;color:var(--pv-ink);
+  overflow-wrap:anywhere;outline:0}
+.pvc-root .pvc-close,
+.pvc-root .pvc-prev{flex:none;display:inline-flex;align-items:center;justify-content:center;
+  width:44px;height:44px;margin:0;padding:0;border:0;border-radius:12px;
+  background:transparent;color:var(--pv-ink);cursor:pointer;
+  transition:transform .16s var(--pv-ease)}
+.pvc-root .pvc-prev{margin-left:-10px}
+.pvc-root .pvc-prev[hidden]{display:none}
+.pvc-root .pvc-close:hover,
+.pvc-root .pvc-prev:hover{background:var(--pvc-hover)}
+.pvc-root .pvc-close:focus-visible,
+.pvc-root .pvc-prev:focus-visible{outline:2px solid var(--pv-accent);outline-offset:-2px}
+.pvc-root .pvc-close:active,
+.pvc-root .pvc-prev:active{transform:scale(.92)}
+.pvc-root svg{display:block;flex:none}
+
+.pvc-root .pvc-main{flex:1 1 auto;min-height:0;overflow-x:hidden;overflow-y:auto;
+  overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+  padding:16px 16px calc(32px + env(safe-area-inset-bottom, 0px))}
+
+/* ── 項目の一覧 ─────────────────────────────────────────── */
+.pvc-root .pvc-intro{margin:0;padding:18px 16px;background:var(--pv-surface);
+  border:1px solid var(--pv-border);border-radius:18px}
+.pvc-root .pvc-intro-top{display:flex;align-items:flex-end;justify-content:space-between;
+  flex-wrap:wrap;gap:4px 16px}
+.pvc-root .pvc-cap{margin:0 0 8px;padding:0;font-size:12px;line-height:1.4;font-weight:700;
+  letter-spacing:.16em;color:var(--pv-accent-ink)}
+.pvc-root .pvc-intro-tx{flex:1 1 auto;min-width:0}
+.pvc-root .pvc-lead{margin:0;padding:0;font-size:19px;line-height:1.35;font-weight:800;
+  letter-spacing:-.02em;color:var(--pv-ink);overflow-wrap:anywhere}
+/* 見出しは2つの塊。折れるのは塊のあいだだけ（「…ひとつ教え／て。」と語の途中で切らない） */
+.pvc-root .pvc-lead-p{display:inline-block;max-width:100%}
+.pvc-root .pvc-talk{display:inline-flex;align-items:center;gap:6px;min-height:44px;margin:0;padding:0 2px;
+  border-radius:8px;font-size:14px;line-height:1.4;font-weight:700;color:var(--pv-accent-ink);
+  text-decoration:none;white-space:nowrap}
+.pvc-root .pvc-talk:hover{text-decoration:underline;text-underline-offset:4px}
+.pvc-root .pvc-talk:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+.pvc-root .pvc-talk:active{opacity:.7}
+
+.pvc-root .pvc-tiles{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;
+  margin:16px 0 0;padding:0;list-style:none}
+.pvc-root .pvc-tiles > li{display:flex;margin:0;padding:0;min-width:0}
+.pvc-root .pvc-tile{display:grid;grid-template-columns:20px minmax(0,1fr) 16px;align-items:center;gap:0 14px;
+  width:100%;min-height:88px;margin:0;padding:14px 16px;
+  border:1px solid var(--pv-border);border-radius:12px;background:var(--pv-surface);
+  color:var(--pv-ink);font:inherit;text-align:left;text-decoration:none;cursor:pointer;
+  transition:transform .18s var(--pv-ease)}
+.pvc-root .pvc-tile:hover{border-color:var(--pv-accent);background:var(--pv-accent-soft)}
+.pvc-root .pvc-tile:focus-visible{border-color:var(--pv-accent);background:var(--pv-accent-soft);
+  outline:2px solid var(--pv-accent);outline-offset:2px}
+.pvc-root .pvc-tile:active{transform:scale(.985)}
+.pvc-root .pvc-tile-ic{color:var(--pv-accent-ink)}
+.pvc-root .pvc-tile-tx{display:block;min-width:0}
+.pvc-root .pvc-tile-t{display:block;font-size:14.5px;line-height:1.4;font-weight:700;color:var(--pv-ink)}
+.pvc-root .pvc-tile-d{display:block;margin-top:3px;font-size:12px;line-height:1.55;font-weight:400;color:var(--pv-ink-3)}
+.pvc-root .pvc-tile-go{color:var(--pv-ink-2)}
+.pvc-root .pvc-tile:hover .pvc-tile-go,
+.pvc-root .pvc-tile:focus-visible .pvc-tile-go{color:var(--pv-accent-ink)}
+
+/* 「あなたの投稿」── サーバが返した本人の分にだけ付く札 */
+.pvc-root .pvc-mine{display:inline-flex;align-items:center;margin:0;padding:2px 9px;border-radius:999px;
+  border:1px solid var(--pv-accent-line);background:var(--pv-accent-soft);color:var(--pv-accent-ink);
+  font-size:12px;line-height:1.5;font-weight:700;white-space:nowrap}
+.pvc-root .pvc-mine[hidden]{display:none}
+.pvc-root .pvc-tile .pvc-mine{margin-top:7px;background:var(--pv-surface)}
+
+.pvc-root .pvc-state{margin:14px 0 0;padding:0;font-size:12px;line-height:1.6;color:var(--pv-ink-3)}
+.pvc-root .pvc-state[hidden]{display:none}
+.pvc-root .pvc-under{margin:16px 2px 0;padding:0;font-size:13.5px;line-height:1.7;color:var(--pv-ink-2)}
+
+/* ── フォーム ───────────────────────────────────────────── */
+.pvc-root .pvc-form{display:block;margin:0;padding:0}
+.pvc-root .pvc-ctx{margin:0 0 20px;padding:14px 16px;border:1px solid var(--pv-accent-line);
+  border-radius:12px;background:var(--pv-accent-soft)}
+.pvc-root .pvc-ctx-line{margin:0;padding:0;font-size:13px;line-height:1.6;color:var(--pv-ink);overflow-wrap:anywhere}
+.pvc-root .pvc-ctx-row{display:flex;align-items:center;flex-wrap:wrap;gap:8px 10px;margin:8px 0 0}
+.pvc-root .pvc-ctx-k{margin:0;padding:0;font-size:14px;line-height:1.4;font-weight:700;color:var(--pv-ink)}
+.pvc-root .pvc-ctx .pvc-selw{flex:0 1 190px;min-width:150px}
+.pvc-root .pvc-ctx .pvc-mine{background:var(--pv-surface)}
+
+/* これまでの投稿を確かめている間だけ、欄をまとめて止める */
+.pvc-root .pvc-set{display:block;min-width:0;margin:0;padding:0;border:0}
+.pvc-root .pvc-set:disabled{opacity:.6}
+.pvc-root .pvc-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:18px 14px;margin:0;padding:0}
+.pvc-root .pvc-field{min-width:0;margin:0;padding:0;border:0}
+.pvc-root .pvc-field[hidden]{display:none}
+.pvc-root .pvc-wide{grid-column:1 / -1}
+.pvc-root .pvc-label{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;margin:0 0 8px;padding:0;
+  font-size:15px;line-height:1.45;font-weight:700;color:var(--pv-ink)}
+.pvc-root .pvc-tip{margin:-2px 0 10px;padding:0;font-size:12.5px;line-height:1.65;color:var(--pv-ink-3)}
+
+.pvc-root .pvc-input,
+.pvc-root .pvc-select,
+.pvc-root .pvc-area{display:block;width:100%;min-height:48px;margin:0;padding:10px 14px;
+  border:1px solid var(--pv-border);border-radius:10px;background:var(--pv-surface);background-image:none;
+  color:var(--pv-ink);font:inherit;font-size:16px;line-height:1.5;font-weight:400;
+  -webkit-appearance:none;appearance:none;outline:0;box-shadow:none}
+.pvc-root .pvc-input::placeholder,
+.pvc-root .pvc-area::placeholder{color:var(--pv-ink-3);opacity:1}
+.pvc-root .pvc-input:hover,
+.pvc-root .pvc-select:hover,
+.pvc-root .pvc-area:hover{border-color:var(--pv-ink-3)}
+.pvc-root .pvc-input:focus-visible,
+.pvc-root .pvc-select:focus-visible,
+.pvc-root .pvc-area:focus-visible{border-color:var(--pv-accent);outline:2px solid var(--pv-accent);outline-offset:1px}
+.pvc-root .pvc-input:active,
+.pvc-root .pvc-select:active,
+.pvc-root .pvc-area:active{border-color:var(--pv-accent)}
+.pvc-root .pvc-input[aria-invalid="true"],
+.pvc-root .pvc-select[aria-invalid="true"],
+.pvc-root .pvc-area[aria-invalid="true"]{border-color:var(--pvc-warn)}
+.pvc-root .pvc-input:disabled,
+.pvc-root .pvc-select:disabled,
+.pvc-root .pvc-area:disabled{opacity:.55;cursor:not-allowed}
+.pvc-root .pvc-area{min-height:106px;resize:vertical}
+.pvc-root .pvc-selw{position:relative;display:block;min-width:0}
+.pvc-root .pvc-selw::after{content:"";position:absolute;right:17px;top:50%;width:8px;height:8px;margin-top:-6px;
+  border-right:1.6px solid var(--pv-ink-2);border-bottom:1.6px solid var(--pv-ink-2);
+  transform:rotate(45deg);pointer-events:none}
+.pvc-root .pvc-select{padding-right:42px;cursor:pointer;text-overflow:ellipsis}
+
+.pvc-root .pvc-err{margin:6px 0 0;padding:0;font-size:13px;line-height:1.6;font-weight:700;color:var(--pvc-warn)}
+.pvc-root .pvc-err[hidden]{display:none}
+
+/* 当てはまるものを全部選ぶ（複数選択） */
+.pvc-root .pvc-chips{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0}
+.pvc-root .pvc-chip{position:relative;display:inline-flex;max-width:100%;min-height:44px;margin:0;padding:0;cursor:pointer}
+.pvc-root .pvc-chip input,
+.pvc-root .pvc-own input{position:absolute;inset:0;z-index:1;width:100%;height:100%;margin:0;padding:0;
+  border:0;opacity:0;cursor:pointer;-webkit-appearance:none;appearance:none}
+.pvc-root .pvc-chip-f{position:relative;display:inline-flex;align-items:center;gap:9px;min-height:44px;
+  padding:8px 14px 8px 12px;border:1px solid var(--pv-border);border-radius:10px;background:var(--pv-surface);
+  color:var(--pv-ink);font-size:14.5px;line-height:1.4;font-weight:400;
+  transition:transform .16s var(--pv-ease)}
+.pvc-root .pvc-chip-f::before,
+.pvc-root .pvc-own-f::before{content:"";flex:none;width:18px;height:18px;border:1.6px solid var(--pv-ink-3);
+  border-radius:5px;background:var(--pv-surface)}
+.pvc-root .pvc-chip-f::after,
+.pvc-root .pvc-own-f::after{content:"";position:absolute;top:50%;width:5px;height:10px;margin-top:-7px;
+  border-right:2px solid var(--pvc-on);border-bottom:2px solid var(--pvc-on);transform:rotate(45deg);opacity:0}
+.pvc-root .pvc-chip-f::after{left:18.5px}
+.pvc-root .pvc-own-f::after{left:10.5px}
+.pvc-root .pvc-chip:hover .pvc-chip-f{border-color:var(--pv-accent)}
+.pvc-root .pvc-chip input:checked + .pvc-chip-f{border-color:var(--pv-accent);background:var(--pv-accent-soft);font-weight:700}
+.pvc-root .pvc-chip input:checked + .pvc-chip-f::before,
+.pvc-root .pvc-own input:checked + .pvc-own-f::before{border-color:var(--pv-accent-dark);background:var(--pv-accent-dark)}
+.pvc-root .pvc-chip input:checked + .pvc-chip-f::after,
+.pvc-root .pvc-own input:checked + .pvc-own-f::after{opacity:1}
+.pvc-root .pvc-chip input:focus-visible + .pvc-chip-f,
+.pvc-root .pvc-own input:focus-visible + .pvc-own-f{outline:2px solid var(--pv-accent);outline-offset:2px}
+.pvc-root .pvc-chip:active .pvc-chip-f{transform:scale(.97)}
+
+/* 「回数・金額の上限を追加」── 押すと開く */
+.pvc-root .pvc-fold{margin:0;padding:0;border:1px solid var(--pv-border);border-radius:12px;background:var(--pv-surface)}
+.pvc-root .pvc-fold-b{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;width:100%;min-height:52px;
+  margin:0;padding:8px 16px;border:0;border-radius:11px;background:transparent;color:var(--pv-accent-ink);
+  font:inherit;font-size:14px;line-height:1.4;font-weight:700;text-align:left;cursor:pointer}
+.pvc-root .pvc-fold-b::before{content:"";flex:none;width:0;height:0;border-left:7px solid currentColor;
+  border-top:5px solid transparent;border-bottom:5px solid transparent;transition:transform .18s var(--pv-ease)}
+.pvc-root .pvc-fold-b[aria-expanded="true"]::before{transform:rotate(90deg)}
+.pvc-root .pvc-fold-b:hover{background:var(--pv-accent-soft)}
+.pvc-root .pvc-fold-b:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+.pvc-root .pvc-fold-b:active{opacity:.7}
+.pvc-root .pvc-fold-p{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;padding:6px 16px 16px}
+.pvc-root .pvc-fold-p[hidden]{display:none}
+
+/* ── 送る ───────────────────────────────────────────────── */
+.pvc-root .pvc-msg{margin:20px 0 0;padding:14px 16px;border:1px solid var(--pvc-warn-line);border-radius:12px;
+  background:var(--pv-orange-soft);color:var(--pv-ink)}
+.pvc-root .pvc-msg[hidden]{display:none}
+.pvc-root .pvc-msg.is-calm{border-color:var(--pv-accent-line);background:var(--pv-accent-soft)}
+.pvc-root .pvc-msg-t{margin:0;padding:0;font-size:15px;line-height:1.5;font-weight:800;color:var(--pvc-warn)}
+.pvc-root .pvc-msg.is-calm .pvc-msg-t{color:var(--pv-accent-ink)}
+.pvc-root .pvc-msg-d{margin:4px 0 0;padding:0;font-size:14px;line-height:1.7;color:var(--pv-ink);overflow-wrap:anywhere}
+.pvc-root .pvc-msg-l{margin:6px 0 0;padding:0 0 0 1.2em;font-size:14px;line-height:1.7;color:var(--pv-ink)}
+.pvc-root .pvc-msg-a{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 0}
+.pvc-root .pvc-msg-a:empty{display:none}
+.pvc-root .pvc-main > .pvc-msg{margin:0 0 14px}
+
+.pvc-root .pvc-act{display:flex;flex-direction:column;align-items:stretch;gap:12px;margin:22px 0 0}
+.pvc-root .pvc-own{position:relative;display:inline-flex;min-height:44px;margin:0;padding:0;cursor:pointer}
+.pvc-root .pvc-own-f{position:relative;display:inline-flex;align-items:center;gap:10px;min-height:44px;
+  padding:0 6px 0 4px;border-radius:8px;font-size:15px;line-height:1.5;color:var(--pv-ink)}
+.pvc-root .pvc-own:hover .pvc-own-f::before{border-color:var(--pv-accent)}
+.pvc-root .pvc-own:active .pvc-own-f{opacity:.75}
+
+.pvc-root .pvc-send{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;
+  margin:0;padding:0 22px;border:0;border-radius:10px;background:var(--pv-accent-dark);background-image:none;
+  color:var(--pvc-on);font:inherit;font-size:15px;line-height:1.3;font-weight:700;white-space:nowrap;cursor:pointer;
+  transition:transform .16s var(--pv-ease),opacity .16s ease}
+.pvc-root .pvc-send:hover{transform:translateY(-1px);box-shadow:var(--pv-shadow-lift)}
+.pvc-root .pvc-send:focus-visible{outline:2px solid var(--pv-accent);outline-offset:3px}
+.pvc-root .pvc-send:active{transform:scale(.97)}
+.pvc-root .pvc-send:disabled{opacity:.42;cursor:not-allowed;transform:none;box-shadow:none}
+
+.pvc-root .pvc-ghost{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;
+  margin:0;padding:0 16px;border:1px solid var(--pv-border);border-radius:10px;background:var(--pv-surface);
+  background-image:none;color:var(--pv-ink);font:inherit;font-size:14px;line-height:1.3;font-weight:700;
+  text-decoration:none;white-space:nowrap;cursor:pointer;transition:transform .16s var(--pv-ease)}
+.pvc-root .pvc-ghost:hover{border-color:var(--pv-accent);color:var(--pv-accent-ink)}
+.pvc-root .pvc-ghost:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+.pvc-root .pvc-ghost:active{transform:scale(.97)}
+
+.pvc-root .pvc-wait{margin:14px 0 0;padding:0;font-size:13px;line-height:1.7;color:var(--pv-ink-2)}
+.pvc-root .pvc-wait[hidden]{display:none}
+
+/* ── 保存したあと ───────────────────────────────────────── */
+.pvc-root .pvc-saved{margin:0;padding:20px 16px;background:var(--pv-surface);border:1px solid var(--pv-border);border-radius:18px}
+.pvc-root .pvc-saved-h{display:flex;align-items:center;gap:10px;margin:0;padding:0;font-size:19px;line-height:1.35;
+  font-weight:800;letter-spacing:-.02em;color:var(--pv-ink);outline:0}
+.pvc-root .pvc-saved-h svg{color:var(--pv-accent-ink)}
+.pvc-root .pvc-saved-s{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;margin:8px 0 0;padding:0;
+  font-size:13.5px;line-height:1.6;color:var(--pv-ink-2)}
+.pvc-root .pvc-sum{margin:16px 0 0;padding:0;border-top:1px solid var(--pv-line)}
+.pvc-root .pvc-sum-r{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:2px 16px;
+  margin:0;padding:11px 0;border-bottom:1px solid var(--pv-line)}
+.pvc-root .pvc-sum-r.is-long{grid-template-columns:minmax(0,1fr)}
+.pvc-root .pvc-sum-k{margin:0;padding:0;font-size:13.5px;line-height:1.6;font-weight:400;color:var(--pv-ink-2)}
+.pvc-root .pvc-sum-v{margin:0;padding:0;font-size:15px;line-height:1.6;font-weight:700;color:var(--pv-ink);
+  text-align:right;overflow-wrap:anywhere;white-space:pre-wrap}
+.pvc-root .pvc-sum-r.is-long .pvc-sum-v{text-align:left}
+.pvc-root .pvc-sum-v.is-none{font-weight:400;color:var(--pv-ink-3)}
+.pvc-root .pvc-saved-a{display:flex;flex-wrap:wrap;gap:10px;margin:20px 0 0}
+
+/* ── 広い画面：右から出る 560px の面・2列 ───────────────── */
+@media (min-width:768px){
+  .pvc-root{align-items:stretch}
+  .pvc-root .pvc-sheet{width:560px;height:100%;border-radius:0;transform:translateX(100%)}
+  .pvc-root.is-in .pvc-sheet{transform:translateX(0)}
+  .pvc-root .pvc-head{min-height:82px;padding:0 18px 0 24px}
+  .pvc-root .pvc-title{font-size:20px}
+  .pvc-root .pvc-main{padding:26px 26px 48px}
+  .pvc-root .pvc-intro{margin-top:22px;padding:26px;border-radius:20px}
+  /* 見本どおり、「匿名で話す」は見出しの右。社名が長いときは見出しのほうが2行になる */
+  .pvc-root .pvc-intro-top{flex-wrap:nowrap;align-items:center}
+  .pvc-root .pvc-talk{flex:none}
+  .pvc-root .pvc-lead{font-size:21px}
+  .pvc-root .pvc-tiles{grid-template-columns:minmax(0,1fr) minmax(0,1fr);margin-top:24px}
+  .pvc-root .pvc-tile{padding:14px 14px 14px 16px;gap:0 12px}
+  .pvc-root .pvc-ctx{padding:16px 18px}
+  .pvc-root .pvc-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .pvc-root .pvc-act{flex-direction:row;align-items:center;gap:16px}
+  .pvc-root .pvc-saved{padding:26px;border-radius:20px}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .pvc-root .pvc-scrim,
+  .pvc-root .pvc-sheet,
+  .pvc-root .pvc-tile,
+  .pvc-root .pvc-send,
+  .pvc-root .pvc-ghost,
+  .pvc-root .pvc-close,
+  .pvc-root .pvc-prev,
+  .pvc-root .pvc-chip-f,
+  .pvc-root .pvc-fold-b::before{transition:none}
+}
+
+/* hidden は必ず消える（上の display:flex／grid の規則に負けさせない）。最後に置く。 */
+.pvc-root [hidden]{display:none !important}
