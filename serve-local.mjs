@@ -51,6 +51,7 @@ export const SQL_FILES = [
   'db/conditions.generated.sql',
   'db/airline-conditions.sql',
   'db/reviews-gate.sql',
+  'db/review-summary.sql',
   'db/deep-pay.sql',
   'db/requests.sql',
   'db/referrals.sql',
