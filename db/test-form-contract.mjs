@@ -1888,17 +1888,16 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   ok((await fv('f-gross')) === GROSS_M && (await fv('f-netpay')) === NET_M,
      '★往復しても額面と手取りが消えていない', `${await fv('f-gross')} / ${await fv('f-netpay')}`);
   ok(await vis('f-gross'), 'かんたん入力の額面が見えている');
-  /* ★2026-09-21、オーナー指示で「＋給与の内訳を追加」を**閉じた**状態に戻した
-     （「いまの給与提出は煩雑だから、開かずに閉じておこうか」）。
-     2026-09-08〜09-21 は最初から開けていて、ここで「基本給の欄が見えている」ことを見ていた。
-     ⚠️ 引き換えに、REAL PAY の「報酬の内訳」の門（基本給・保証手当・変動給の3つ）を
-        答える人は減る。手順書 workflows/pay-form.md の「必須3項目は『＋』の奥に戻さない」。
-     ★見出し（summary）は出ている＝押せば開く。前回の下書きに内訳があった人は
-       開いた状態で戻る（下の「内訳で入れた人は内訳側が開いた状態で戻る」が見張っている）。 */
-  ok(!(await page.$eval('#pay-detail', (el) => el.open)), '★内訳は閉じた状態で始まる（2026-09-21）');
-  ok(!(await visFold('f-base')), '★閉じているので基本給の欄は見えていない');
-  ok(await page.$eval('#pay-detail > summary', (el) => el.checkVisibility()),
-     '「＋給与の内訳を追加」の見出しは見えている（押せば開く）');
+  /* ★2026-10-07、オーナー指示で「＋給与の内訳を追加」を**最初から開いた**状態に戻した
+     （「やっぱり隠さずに行こう」）。開けていたのは 2026-09-08〜09-21 と、この日から。
+     09-21〜10-07 のあいだだけ「煩雑だから」と閉じて始めていて、ここで「閉じている」ことを見ていた。
+     手順書 workflows/pay-form.md の「畳んだ瞬間、門は誰にも開かなくなる」と同じ理由
+     ── 欄が無いのではなく**あることに誰も気づいていなかった**。
+     ⚠️ ここが「開いている」でも、奥に置いたままにする2つ
+     （職位手当 f-command・その他の現金手当 pd-oth）は今までどおり隠れている。
+     それは下の「＋」チップの検査が別に見張っている。 */
+  ok(await page.$eval('#pay-detail', (el) => el.open), '★内訳は開いた状態で始まる（2026-10-07）');
+  ok(await visFold('f-base'), '★内訳は最初から開いていて、基本給の欄が見えている');
   ok(!(await page.$('#f-paytype')), '「払われ方」の欄はもう無い');
   ok((await page.$eval('#f-hourly', (el) => el.type)) === 'hidden',
      '時給は人に聞かない（hidden として残す）');
@@ -2774,11 +2773,13 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   ok(nOff.detail === nBefore.detail,
      '★消したぶんは「内訳の合計」からも引かれる', `${nOff.detail} / ${nBefore.detail}`);
 
-  /* ── ★役割を選んでも、その「追加手当」は閉じたまま出す（2026-09-21 オーナー指示）──
-     「給与の内訳を追加」を閉じたのと同じく、役割ごとの「＋…の手当を追加」も閉じておく。
-     2026-09-09〜09-21 は「line 業務以外を選んだ人は最初から開いておいて」の指示で開けていた。
-     ★出るのは外側の箱（#s3-instr など）と「＋…の手当を追加」の1行。押せば開く。
-     ★本人が開いたら、こちらから畳み直さない。
+  /* ── ★役割を選んだら、その「追加手当」を最初から開く（2026-10-07 オーナー指示）──
+     「やっぱり隠さずに行こう。ライン以外の業務を追加した人も」。
+     開けていたのは 2026-09-09〜09-21（「line 業務以外を選んだ人は該当する『追加手当』を
+     最初から開いておいて」）と、この日から。09-21〜10-07 のあいだだけ閉じたまま出していた。
+     畳んだままだと「＋教官・訓練の手当を追加」の1行しか見えず、中に何を聞かれるか分からない。
+     ★開くのは見え方だけ。必須（req-tag）は1つも増えない（手順書「絶対に破らない7つ」の6番）。
+     ★本人が畳んだら、こちらから開き直さない。
      ★外したら畳み直し、中の値も消える（元からの約束）。ここも同時に見る。
      ⚠️ 畳んだ <details> の中身は offsetParent が null にならない
         （Chrome の ::details-content は content-visibility:hidden ＝ レイアウトを残す）。
@@ -2802,21 +2803,18 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
     await tick(true);
     await new Promise((r) => setTimeout(r, 180));
     const on = await st();
-    const sumSeen = await page.$eval(`#${det} > summary`, (el) => el.checkVisibility());
-    ok(!on.open && !on.probeSeen && sumSeen,
-       `★${role} を選んでも「追加手当」は閉じたまま（見出しの1行だけ見える）`,
-       JSON.stringify({ ...on, sumSeen }));
+    ok(on.open && on.probeSeen,
+       `★${role} を選んだら「追加手当」が最初から開いている`, JSON.stringify(on));
 
-    /* 本人が開いたら、そのまま開いたままにする（勝手に畳み直さない）。 */
-    await page.evaluate((d) => { document.getElementById(d).open = true; }, det);
+    /* 本人が畳んだら、そのまま畳んだままにする（勝手に開き直さない）。 */
+    await page.evaluate((d) => { document.getElementById(d).open = false; }, det);
     await page.evaluate(() => {
       const b = document.getElementById('f-block');
       b.dispatchEvent(new Event('input', { bubbles: true }));   // updateSteps() を1回まわす
     });
     await new Promise((r) => setTimeout(r, 180));
-    const opened = await st();
-    ok(opened.open && opened.probeSeen,
-       `★${role}：本人が開いたら開いたまま（こちらから畳み直さない）`, JSON.stringify(opened));
+    ok(!(await st()).open,
+       `★${role}：本人が畳んだら畳んだまま（こちらから開き直さない）`);
 
     await tick(false);
     await new Promise((r) => setTimeout(r, 180));
