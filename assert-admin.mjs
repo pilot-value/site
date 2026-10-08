@@ -117,6 +117,12 @@ ok(!/[A-Za-z0-9._%+-]+@(?!pilot-value\.com|example\.)[A-Za-z0-9.-]+\.[A-Za-z]{2,
 /* ── C) 実際に開く ─────────────────────────────────────────── */
 const UID = '00000000-0000-4000-8000-00000000a001';
 const FAKE_NAME = 'Sample Pilot';
+/* 職位は会員が自分で書ける列。口コミの本文も会員が書く。どちらも管理者の画面に出るので、
+   タグや引用符を書かれても「字として出るだけ」でなければならない（働くと、管理者の画面で動く）。 */
+const HOSTILE = '<img src=x onerror=__pvHit=1>';
+const QUOTED  = 'ok" onmouseover="__pvHit=1';
+/* CSV に書き出したとき、表計算ソフトが式として読む頭の字（= と @）。字のまま出ることを見る */
+const FORMULA = ['=1+1', '@SUM(1)'];
 
 const CASES = [
   { key: 'logout',   label: '1. ログアウトのまま開く',              session: false, admin: false, err: false },
@@ -134,7 +140,7 @@ for (const lang of ['ja', 'en']) {
     const page = await browser.newPage();
     await page.setViewport({ width: 1280, height: 900 });
 
-    await page.evaluateOnNewDocument((cfg, uid, name) => {
+    await page.evaluateOnNewDocument((cfg, uid, name, hostile, quoted, formula) => {
       localStorage.setItem('pv-theme', 'dark');
       window.__rpc = [];   // 呼んだ入口の名前
       window.__from = [];  // 直接触ったテーブルの名前（1つでも入ったら負け）
@@ -142,11 +148,17 @@ for (const lang of ['ja', 'en']) {
         ? { user: { id: uid, email: 'pilot@example.com' } } : null;
       const ROWS = [{ id: uid, name: name, email: 'pilot@example.com', gender: 'male',
         birthdate: '1988-04-12', country: '日本', company: 'ZIPAIR', position: 'captain',
-        created_at: '2026-01-11T00:00:00Z' }];
+        created_at: '2026-01-11T00:00:00Z' },
+        { id: uid.slice(0, -1) + '2', name: 'Second Pilot', email: 'second@example.com', gender: 'female',
+        birthdate: '1990-01-01', country: '日本', company: formula[0], position: hostile,
+        created_at: '2026-01-12T00:00:00Z' }];
+      const REVIEWS = [{ id: 1, airline: 'ana', position: hostile, tenure_bucket: '3-5',
+        monthly_salary: 100, bonus: 200, salary_note: formula[1], culture_score: 4, culture_comment: quoted,
+        created_at: '2026-02-01T00:00:00Z' }];
       const RPC = {
         pv_is_admin: () => cfg.admin,
         admin_list_profiles: () => ROWS,
-        admin_list_reviews: () => []
+        admin_list_reviews: () => REVIEWS
       };
       function q(t) {
         const o = { data: [], error: null,
@@ -175,12 +187,12 @@ for (const lang of ['ja', 'en']) {
       };
       Object.defineProperty(window, 'supabase',
         { value: { createClient: () => FAKE }, writable: false, configurable: false });
-    }, c, UID, FAKE_NAME);
+    }, c, UID, FAKE_NAME, HOSTILE, QUOTED, FORMULA);
 
     await page.goto(url, { waitUntil: 'networkidle0' });
     await new Promise(r => setTimeout(r, 400));
 
-    const seen = await page.evaluate(() => {
+    const seen = await page.evaluate((hostile, quoted) => {
       const vis = (id) => {
         const el = document.getElementById(id);
         if (!el) return false;
@@ -193,9 +205,18 @@ for (const lang of ['ja', 'en']) {
         loginShown: vis('gate-login'),
         rows: tb ? tb.querySelectorAll('tr td[colspan]').length ? 0 : tb.querySelectorAll('tr').length : -1,
         rpc: window.__rpc.slice(), from: window.__from.slice(),
-        text: document.body.innerText
+        text: document.body.innerText,
+        /* 書かれたタグと引用符 ── 表の中に絵が生えていない・字として2か所に出ている・title の外へ出ていない */
+        imgs: document.querySelectorAll('#users-tbody img, #reviews-tbody img').length,
+        asText: [...document.querySelectorAll('#users-tbody .pos-tag, #reviews-tbody .pos-tag')]
+          .filter(e => e.textContent === hostile && !e.children.length).length,
+        title: (() => {
+          const td = document.querySelector('#reviews-tbody td[title]');
+          return td ? { same: td.getAttribute('title') === quoted, extra: td.hasAttribute('onmouseover') } : null;
+        })(),
+        hit: !!window.__pvHit
       };
-    });
+    }, HOSTILE, QUOTED);
 
     const dashHidden = () => {
       ok(seen.gate && !seen.dash, '入口だけが出て、中身は出ない');
@@ -220,7 +241,29 @@ for (const lang of ['ja', 'en']) {
     }
     if (c.key === 'admin') {
       ok(!seen.gate && seen.dash, '中身が出る');
-      ok(seen.rows === 1, '一覧が出ている', '行数 ' + seen.rows);
+      ok(seen.rows === 2, '一覧が出ている', '行数 ' + seen.rows);
+      ok(seen.imgs === 0 && seen.asText === 2 && !seen.hit,
+         '職位に書かれたタグは、字として出るだけ（会員の表と口コミの表の両方）',
+         `表の中の絵 ${seen.imgs}・字として出た数 ${seen.asText}・動いた ${seen.hit}`);
+      ok(!!seen.title && seen.title.same && !seen.title.extra,
+         '口コミの本文に書かれた引用符で、title の外へ出られない', JSON.stringify(seen.title));
+      /* CSV の書き出し ── 保存の窓は出さず、作られた中身だけを読む */
+      const csv = await page.evaluate(async () => {
+        const got = [];
+        URL.createObjectURL = (b) => { got.push(b); return 'blob:pv-test'; };
+        URL.revokeObjectURL = () => {};
+        HTMLAnchorElement.prototype.click = function () {};
+        downloadCSV('users'); downloadCSV('reviews');
+        return Promise.all(got.map((b) => b.text()));
+      });
+      const cells = (t, v) => String(t || '').split('"' + v + '"').length - 1;   // その字だけが入ったセルの数
+      ok(csv.length === 2
+         && cells(csv[0], "'" + FORMULA[0]) === 1 && cells(csv[0], FORMULA[0]) === 0
+         && cells(csv[1], "'" + FORMULA[1]) === 1 && cells(csv[1], FORMULA[1]) === 0,
+         "CSV に書き出しても、= や @ で始まる字が式にならない（頭に ' が付く）",
+         JSON.stringify(csv.map((t) => String(t).split('\n').slice(1).join(' / ').slice(0, 200))));
+      ok(/,"100","200",/.test(csv[1] || ''), "CSV の数はそのまま（' を付けない）",
+         String(csv[1] || '').split('\n').slice(1).join(' / ').slice(0, 200));
       ok(seen.rpc.join(',') === 'pv_is_admin,admin_list_profiles,admin_list_reviews',
          'サーバーの入口だけを使っている', seen.rpc.join(','));
       ok(seen.from.length === 0, '管理者でもテーブルは直接触らない', seen.from.join(','));

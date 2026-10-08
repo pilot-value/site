@@ -66,8 +66,10 @@ const POS: Record<string, string> = { captain: '機長', fo: '副操縦士', cad
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 
+/* 引用符も直す ── href="mailto:…" の中にも入れているので、素通しにすると属性の外へ出られる */
 const esc = (s: unknown) =>
-  String(s ?? '').replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c] as string));
+  String(s ?? '').replace(/[&<>"']/g, (c) =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
 
 /* ────────────────────────────────────────────────────────────
    口コミ品質チェック。submit-review.html / mail-bot/admin-notify.mjs と

@@ -338,7 +338,7 @@
       <td style="white-space:nowrap">${esc(u.birthdate||'—')}</td>
       <td>${esc(u.country||'—')}</td>
       <td>${esc(u.company||'—')}</td>
-      <td>${u.position?`<span class="pos-tag ${POS_CLASS[u.position]||''}">${POS_LABEL[u.position]||u.position}</span>`:'—'}</td>
+      <td>${u.position?`<span class="pos-tag ${POS_CLASS[u.position]||''}">${esc(POS_LABEL[u.position]||u.position)}</span>`:'—'}</td>
       <td style="white-space:nowrap;font-size:.76rem;color:#6b7d93">${u.created_at?new Date(u.created_at).toLocaleDateString('ja-JP'):'—'}</td>
       <td style="text-align:center">${reviewCount(u.id)>0?`<span style="color:#f5c842;font-weight:700">${reviewCount(u.id)}</span>`:'<span style="color:#6b7d93">0</span>'}</td>
     </tr>`).join('');
@@ -361,9 +361,9 @@
         <td>${badge}</td>
         <td style="font-size:.8rem">${esc(r.name||'Anonymous')}</td>
         <td style="font-weight:600;color:#f5c842">${esc(r.airline||'—')}</td>
-        <td>${r.position?`<span class="pos-tag ${POS_CLASS[r.position]||''}">${POS_LABEL[r.position]||r.position}</span>`:'—'}</td>
-        <td>${r.monthly!=null?r.monthly:'—'}</td>
-        <td>${r.bonus!=null?r.bonus:'—'}</td>
+        <td>${r.position?`<span class="pos-tag ${POS_CLASS[r.position]||''}">${esc(POS_LABEL[r.position]||r.position)}</span>`:'—'}</td>
+        <td>${r.monthly!=null?esc(r.monthly):'—'}</td>
+        <td>${r.bonus!=null?esc(r.bonus):'—'}</td>
         <td style="font-size:.78rem">${r.salaryTotal!=null&&r.salaryTotal!==''?esc(String(r.salaryTotal)):'—'}</td>
         <td style="color:#f5c842;font-weight:700">${r.rating!=null?r.rating:'—'}</td>
         <td style="font-size:.76rem;color:#6b7d93">${esc(r.tenure||'—')}</td>
@@ -401,7 +401,10 @@
         (r.comment||'').replace(/\n/g,' ')
       ]);
     }
-    const csv  = [headers,...rows].map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+    /* A spreadsheet reads a cell that starts with = + - @ (full-width too) as a formula. Text cells get a
+       leading ' so they stay text (also when whitespace comes first; importers may trim it). Numbers made here are left alone. */
+    const cell = c => { let s = String(c); if (typeof c === 'string' && /^[\t\r\n ]*[=+\-@＝＋－＠]/.test(s)) s = "'" + s; return '"' + s.replace(/"/g,'""') + '"'; };
+    const csv  = [headers,...rows].map(r=>r.map(cell).join(',')).join('\n');
     const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement('a');
@@ -421,7 +424,8 @@
     location.href = 'index.html';
   }
 
-  function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  /* Quotes too: the value also goes inside title="…", where a bare quote would end the attribute */
+  function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 </script>
 <script src="../currency.js"></script>
 </body>

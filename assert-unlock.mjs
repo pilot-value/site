@@ -334,8 +334,12 @@ function stub(page, { hasReview, accessUntil, preset, gated }) {
            gated でないときは今までどおり ok だけ＝rows が無いので、
            画面は従来の proof_hash 総当たりに落ちる（貼る前と同じ動き）。 */
         if (name === 'pv_reviews' && gated) {
+          /* 職位と在籍年数は、投稿した人が書いた文字列がそのまま届く。タグを書いた形で返して、
+             画面が字として出すだけか（働かないか）を下の口コミ一覧で見る。 */
           data = { ok: true, unlocked: hasReview,
-                   rows: hasReview ? [{ id: 'r1', airline: 'ana', cats: [] }] : [] };
+                   rows: hasReview ? [{ id: 'r1', airline: 'ana', cats: [],
+                     position: '<img src=x onerror=__pvHit=1>',
+                     tenure_bucket: '<img src=x onerror=__pvHit=1>' }] : [] };
         }
         const res = { data: data, error: null };
         return { then: (y, n) => Promise.resolve(res).then(y, n) };
@@ -411,6 +415,22 @@ for (const [lang, url] of [['ja', '/airlines/ana.html'], ['en', '/en/airlines/an
     ok(s.salaryUnlocked === 0 && s.salaryLocked > 0,
        'A3 それでも年収枠は開かない', JSON.stringify(s));
     ok(s.salaryKey === 0, 'A3 年収の鍵に書き写されない', String(s.salaryKey));
+    /* サーバが返した行の職位・在籍年数は、投稿した人が書いた文字列そのまま。
+       会社ページの口コミのカードでも、字として出るだけ（絵が生えない・働かない）。
+       カードは口コミのタブを開いたときに描かれるので、開いてから読む。 */
+    const H = '<img src=x onerror=__pvHit=1>';
+    await page.evaluate(() => window.PVReviewUI && window.PVReviewUI.switchTab('reviews'));
+    await page.waitForFunction((H) => {
+      const el = document.getElementById('airline-review-section');
+      return !!el && (el.textContent.includes(H) || !!el.querySelector('img[src="x"]'));
+    }, { timeout: 5000 }, H).catch(() => {});
+    const h = await page.evaluate((H) => {
+      const el = document.getElementById('airline-review-section') || document.body;
+      return { imgs: document.querySelectorAll('img[src="x"]').length,
+               asText: el.textContent.split(H).length - 1, hit: !!window.__pvHit };
+    }, H);
+    ok(h.imgs === 0 && h.asText >= 1 && !h.hit,
+       'A3 ★職位・在籍年数に書かれたタグは、会社ページでも字として出るだけ（働かない）', JSON.stringify(h));
     await page.close();
   }
 
@@ -495,6 +515,13 @@ for (const [lang, url] of [['ja', '/community.html'], ['en', '/en/community.html
     const v = await page.evaluate(look);
     ok(!v.gate, '★端末に鍵の写しが無くても、サーバが「持っている」と言えば開く', JSON.stringify(v));
     ok(v.badge, '★そのとき解放中のバッジも点く', JSON.stringify(v));
+    const h = await page.evaluate(() => {
+      const f = document.getElementById('review-feed'), H = '<img src=x onerror=__pvHit=1>';
+      return { imgs: f ? f.querySelectorAll('img').length : -1,
+               asText: f ? f.textContent.split(H).length - 1 : -1, hit: !!window.__pvHit };
+    });
+    ok(h.imgs === 0 && h.asText === 2 && !h.hit,
+       '職位・在籍年数に書かれたタグは、字として出るだけ（働かない）', JSON.stringify(h));
     await page.close();
   }
 

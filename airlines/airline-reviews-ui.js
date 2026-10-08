@@ -526,9 +526,12 @@
       return '<span class="' + (i < filled ? 'rv-stars' : 'rv-star-empty') + '">★</span>';
     }).join('') : '';
     // pos:'pilot' は職位不明の意味なので、頭の「パイロット」と重ねて出さない
-    var pos   = r.pos === 'pilot' ? '' : (L.POS[r.pos] || r.pos || '—');
-    var join  = L.JOIN[r.join] || r.join || '';
-    var years = r.years || '';
+    /* 職位・入社の区分・在籍年数は、投稿した人が書いた文字列がそのまま届く。決まった鍵（L.POS / L.JOIN）に
+       無い値は、本文と同じく rvEsc を通してから置く（通さないと、書かれたタグがそのまま働く）。 */
+    var own   = function (o, k) { return Object.prototype.hasOwnProperty.call(o, k) ? o[k] : ''; };
+    var pos   = r.pos === 'pilot' ? '' : (own(L.POS, r.pos) || rvEsc(r.pos) || '—');
+    var join  = own(L.JOIN, r.join) || rvEsc(r.join) || '';
+    var years = rvEsc(r.years || '');
     var uid   = 'rv_' + Math.random().toString(36).slice(2);
     var catLabel = (REVIEW_CATS.filter(function (c) { return c.key === r.cat; })[0] || { label: L.catFallback }).label;
     return '<div class="detail-review-card">\n' +

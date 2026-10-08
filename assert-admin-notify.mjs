@@ -293,6 +293,16 @@ const rqX = await nx.buildRequest('rq-1');
 ck('★本文の HTML がそのまま通らない', !rqX.html.includes('<script>'), rqX.html);
 ck('改行は <br> になる', rqX.html.includes('<br>2行目'), rqX.html);
 
+/* お問い合わせのアドレスは、字のほかに href="mailto:…" の中にも入る（誰でも送れる欄）。
+   引用符を素通しにすると、リンクに好きな属性を足せる。 */
+ROWS.contacts = { id: 'ct-1', created_at: '2026-09-04T09:00:00+00:00', name: 'テスト',
+  email: 'a" style="x@example.com', tel: '', message: '本文', lang: 'ja' };
+const ctQ = await nx.buildContact('ct-1');
+ck('★お問い合わせのアドレスに書いた引用符で、リンクの属性の外へ出られない',
+   !!ctQ && !ctQ.html.includes('mailto:a" style=') && ctQ.html.includes('mailto:a&quot; style=&quot;x@example.com"'),
+   ctQ && ctQ.html);
+delete ROWS.contacts;
+
 /* 添付の絵 ── メールに載せてよいのは「あるか無いか」の1つだけ。
    ★画素も URL も載せない。メールは転送も保存もされる。確認は必ず画面で1回する。 */
 ROWS.pv_requests = {

@@ -753,7 +753,7 @@ function renderReviews(filter) {
 
   const cardsHTML = reviews.map((r, i) => {
     const color = AIRLINE_COLORS[r.airline] || '#6b7d93';
-    const label = AIRLINE_LABELS[r.airline] || r.airline.toUpperCase();
+    const label = AIRLINE_LABELS[r.airline] || PVReviewI18n.esc(r.airline.toUpperCase());
     const stars = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
 
     // 未解放なら本文の先頭 1/8 だけ素で見せ、残りはぼかし帯に入れる。
@@ -795,9 +795,9 @@ function renderReviews(filter) {
     return `<div class="review-card fade-up" style="transition-delay:${Math.min(i,8) * 0.04}s">
       <div class="flex items-center gap-2 flex-wrap mb-3">
         <span style="display:inline-block;padding:3px 10px;border-radius:6px;font-size:.75rem;font-weight:700;background:${color}20;color:${color};border:1px solid ${color}40">${label}</span>
-        <span class="rv-pos" style="font-size:.75rem;padding:3px 8px;border-radius:5px">${posLabel[r.position] || r.position}</span>
+        <span class="rv-pos" style="font-size:.75rem;padding:3px 8px;border-radius:5px">${posLabel[r.position] || PVReviewI18n.esc(r.position)}</span>
         <span style="color:#f5c842;font-size:.82rem;letter-spacing:.03em">${stars}</span>
-        <span class="rv-meta" style="font-size:.72rem;margin-left:auto">経験 ${r.exp} · ${r.date}</span>
+        <span class="rv-meta" style="font-size:.72rem;margin-left:auto">経験 ${PVReviewI18n.esc(r.exp)} · ${PVReviewI18n.esc(r.date)}</span>
       </div>
       <div style="font-size:.85rem;font-weight:700;color:${color};margin-bottom:8px">${salHTML} <span class="rv-meta" style="font-size:.72rem;font-weight:400">年収（概算）</span></div>
       ${(bodyText || snip) ? `<p class="rv-body" style="font-size:.87rem;line-height:1.75;margin:0">${PVReviewI18n.esc(bodyText || snip)}${r.translated ? PVReviewI18n.noteHTML(r.from) : ''}</p>` : ''}
