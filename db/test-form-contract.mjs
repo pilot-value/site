@@ -2156,6 +2156,269 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   await toPay();
   ok((await submitOn()) && (await nothingMissing()),
      '止めた後も送信は止まっていない（契約を戻せば元どおり）');
+
+  /* ── ★変動給の「該当なし」で灰色にした行は、数えない・送らない・必須で止めない（2026-10-08）──
+     金額だけ打って種類を選ばないまま「該当なし」を付けた人が、3段目の「次へ」は通るのに
+     最後の送信でだけ「何に連動する支給か」を選べと突き返されていた（その欄は灰色で触れない）。
+     本番でも「該当なし」と答えた5件のうち4件に、灰色の行が一緒に入っていた。
+     ⚠️ 送信は、種類の判定を**通り抜けた先**で止める ── 「時給だけあって時間が0」は
+        種類の判定のすぐ後ろに在る別の門。f-contract を空にする手（上の withUnknown）は
+        ここでは使えない。必須欄の一覧が先に契約を掴むので種類の判定まで届かず、
+        **直す前でも通ってしまう**（灰色の欄は一覧が元から数えない）。
+        どちらにしても送信の口までは進まない＝ネットにも DB にも触らない。 */
+  await page.evaluate(() => {
+    window.__piNow = () => {
+      try { return JSON.parse(document.getElementById('f-payitems').value || 'null'); }
+      catch (e) { return { _broken: document.getElementById('f-payitems').value }; }
+    };
+    /* 「該当なし」は本人と同じく**押して**付け外しする（input → change が出る）。 */
+    window.__none = (on) => {
+      const b = document.getElementById('f-variable-none');
+      if (b.checked !== on) b.click();
+      return b;
+    };
+    /* payslip.js の seedRows() が行の欄を書くのと同じ形：代入 → change → input。 */
+    window.__seed = (row, sel, v) => {
+      const e = row.querySelector(sel);
+      e.value = String(v);
+      e.dispatchEvent(new Event('change', { bubbles: true }));
+      e.dispatchEvent(new Event('input', { bubbles: true }));
+    };
+    window.__overShown = () =>
+      [...document.querySelectorAll('[id^="pd-over"]')].some((e) => !e.hidden);
+  });
+  await pdFill('var', [{ amount: '4000', label: 'Flight Pay' }]);   // 金額だけ・種類が空
+  const greyed = await page.evaluate(async () => {
+    window.__none(true);
+    const amt = document.querySelector('#pd-var-rows .pd-amt');
+    const pay = buildPayload();
+    const seen = {
+      o: window.__piNow(), sum: document.getElementById('f-var-sum').value,
+      rows: document.getElementById('pd-var-rows').children.length,
+      amt: amt.value.replace(/,/g, ''), dis: amt.disabled,
+      missing: missingAll().length,
+      /* 送る中身そのもの（画面の控えではなく、サーバへ渡す形）。 */
+      pay: { fv: pay.flight_variable_pay,
+             none: pay.pay_items ? pay.pay_items.variable_none : null,
+             n: pay.pay_items && Array.isArray(pay.pay_items.variable) ? pay.pay_items.variable.length : -1 },
+    };
+    const keep = {};
+    const put = (id, v) => {
+      const el = document.getElementById(id);
+      el.value = v;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+    for (const [id, v] of [['f-hourly', '50'], ['f-block', '0'], ['f-guar', '0']]) {
+      keep[id] = document.getElementById(id).value;
+      put(id, v);
+    }
+    await submitPayReport();
+    seen.err = document.getElementById('err').textContent;
+    seen.basisMarked = !!document.querySelector('#pd-var-rows .fld.is-miss');
+    for (const id of Object.keys(keep)) put(id, keep[id]);
+    clearErr();
+    return seen;
+  });
+  ok(greyed.o && greyed.o.variable_none === true
+     && Array.isArray(greyed.o.variable) && greyed.o.variable.length === 0,
+     '★「該当なし」を付けると、灰色の行は送らない（該当なしと行が一緒に出ていかない）',
+     JSON.stringify(greyed.o));
+  ok(greyed.sum === '', '★灰色の行の金額は変動給の合計に入らない', `合計 ${greyed.sum}`);
+  ok(greyed.pay.none === true && greyed.pay.n === 0 && !(Number(greyed.pay.fv) > 0),
+     '★サーバへ渡す形でも同じ（該当なし・行は0本・変動給の列に額が乗らない）',
+     JSON.stringify(greyed.pay));
+  ok(greyed.rows === 1 && greyed.dis && greyed.amt === '4000',
+     '★行は消さない（打った金額を持ったまま灰色で残る）',
+     `行 ${greyed.rows} / 触れない ${greyed.dis} / ${greyed.amt}`);
+  ok(greyed.missing === 0, '「該当なし」を付けた 3/5 は「次へ」で止まらない（前からそう）',
+     `抜け ${greyed.missing}`);
+  ok(!/何に連動する支給か|What it is paid on/.test(greyed.err) && !greyed.basisMarked
+     && /時給を入れた場合|With an hourly rate/.test(greyed.err),
+     '★★触れない「何に連動する支給か」で最後の送信を止めない（種類の判定を抜けて、その次の門まで進む）',
+     `${greyed.err.slice(0, 60)} / 印 ${greyed.basisMarked}`);
+  await toPay();
+  /* 外せば、同じ行がそのまま戻る。種類が空のままなら、今までどおりそこで止まる。 */
+  const ungreyed = await page.evaluate(async () => {
+    window.__none(false);
+    const seen = {
+      o: window.__piNow(), sum: document.getElementById('f-var-sum').value,
+      dis: document.querySelector('#pd-var-rows .pd-amt').disabled,
+    };
+    await submitPayReport();
+    seen.err = document.getElementById('err').textContent;
+    seen.marked = !!document.querySelector('#pd-var-rows .fld.is-miss .pd-basis');
+    clearErr();
+    return seen;
+  });
+  ok(ungreyed.o && ungreyed.o.variable_none === false && ungreyed.o.variable.length === 1
+     && ungreyed.o.variable[0].amount === 4000 && Number(ungreyed.sum) === 4000 && !ungreyed.dis,
+     '★「該当なし」を外すと、同じ行がそのまま数え直される',
+     `${JSON.stringify(ungreyed.o)} / 合計 ${ungreyed.sum}`);
+  ok(/何に連動する支給か|What it is paid on/.test(ungreyed.err) || ungreyed.marked,
+     '★外したあとは、種類が空の行で今までどおり止まる（必須を緩めていない）',
+     `${ungreyed.err.slice(0, 40)} / 印 ${ungreyed.marked}`);
+  await toPay();
+  /* ★★付いたまま明細を読ませたら「該当なし」のほうを外す（明細の変動給を黙って落とさない）。
+     payslip.js の seedRows() と**同じ順**で書く ── 行を足す → 種類 → 金額 → 項目名、
+     1欄ごとに change → input。
+     ⚠️ まとめて代入してから pdSync() を1回呼ぶ形に戻さない。この検査の初版がそうで、
+        直しの初版の穴（種類の change で行が灰色になり、あとから入る金額が触れない欄に
+        入って読まれない）を素通りさせていた。**種類を書いた直後**に行がまだ触れることを見る。
+        本物の読み取りを通す検査は下の「「該当なし」を付けたあとで明細を読む」（日本語版だけ）。 */
+  const won = await page.evaluate(() => {
+    const box = window.__none(true);   // 上の 4,000 の行はここで灰色になる
+    const mid = [];
+    for (const t of [{ basis: 'block', amount: 2500, label: 'Sector Pay' },
+                     { basis: 'unknown', amount: 1500, label: 'Reserve' }]) {
+      const row = pdAdd('var', true);
+      window.__seed(row, '.pd-basis', t.basis);
+      mid.push({ none: box.checked, dis: row.querySelector('.pd-amt').disabled });
+      window.__seed(row, '.pd-amt', t.amount);
+      window.__seed(row, '.pd-label', t.label);
+    }
+    pdSync();
+    return {
+      mid, none: box.checked, o: window.__piNow(), sum: document.getElementById('f-var-sum').value,
+      anyDis: [...document.querySelectorAll('#pd-var-rows input, #pd-var-rows select')].some((e) => e.disabled),
+      chipDis: document.getElementById('pd-var').disabled,
+    };
+  });
+  ok(won.mid.length === 2 && won.mid[0].none && !won.mid[0].dis && !won.mid[1].dis,
+     '★★種類だけ入った書きかけの行は、触れなくしない（あとから入る金額を受け取れる）',
+     JSON.stringify(won.mid));
+  ok(!won.none && won.o && won.o.variable_none === false && won.o.variable.length === 3
+     && Number(won.sum) === 8000 && !won.anyDis && !won.chipDis,
+     '★★「該当なし」のあとで明細と同じ順に行が入ったら、「該当なし」のほうを外す（行を黙って落とさない）',
+     `${JSON.stringify(won.o)} / 合計 ${won.sum} / 触れない欄 ${won.anyDis}`);
+  /* 金額の無い行（先月からの引き継ぎ＝項目名と種類だけ）が戻ってきても外さない。
+     本人が今月「該当なし」と答えているので、その行もほかと同じく触れなくして、送らない。
+     ★引き継ぎと同じ入口（pdRestore の carry）を通す。行を触れなくするのは
+       「行が出来上がった所」＝ pdRestore() の最後。 */
+  await pdFill('var', []);
+  const carried = await page.evaluate(() => {
+    const box = window.__none(true);
+    pdRestore(JSON.stringify({ v: 2, variable: [{ label: 'Flight Pay', basis: 'block' }], other: [] }),
+              { carry: true });
+    const row = document.querySelector('#pd-var-rows .pd-row');
+    return { none: box.checked, o: window.__piNow(),
+             rows: document.getElementById('pd-var-rows').children.length,
+             basis: row ? row.querySelector('.pd-basis').value : '',
+             dis: !!row && row.querySelector('.pd-basis').disabled && row.querySelector('.pd-amt').disabled,
+             sum: document.getElementById('f-var-sum').value };
+  });
+  ok(carried.none && carried.rows === 1 && carried.basis === 'block' && carried.dis && carried.o
+     && carried.o.variable_none === true && carried.o.variable.length === 0 && carried.sum === '',
+     '★金額の無い行が戻っても「該当なし」は外れない（その行も触れなくして、送らない）',
+     `${JSON.stringify(carried.o)} / 行 ${carried.rows} / 触れない ${carried.dis}`);
+  /* 逆に、**金額のある行**が戻ってきたら「該当なし」のほうを外す（戻した金額を黙って落とさない）。
+     ⚠️ pdRestore() の最後を「付いていたら必ず触れなくする」に縮めると、ここが落ちる。 */
+  const restored = await page.evaluate(() => {
+    const box = window.__none(true);   // 上から付いたまま
+    pdRestore(JSON.stringify({ v: 2, fixed_none: false, guarantee_none: false, variable_none: false,
+                               variable: [{ amount: 3080, label: 'Flight Pay', basis: 'block' }], other: [] }));
+    return { none: box.checked, o: window.__piNow(), sum: document.getElementById('f-var-sum').value,
+             anyDis: [...document.querySelectorAll('#pd-var-rows input, #pd-var-rows select')].some((e) => e.disabled),
+             chipDis: document.getElementById('pd-var').disabled };
+  });
+  ok(!restored.none && restored.o && restored.o.variable_none === false
+     && restored.o.variable.length === 1 && restored.o.variable[0].amount === 3080
+     && Number(restored.sum) === 3080 && !restored.anyDis && !restored.chipDis,
+     '★「該当なし」の上に金額のある行が戻ったら、「該当なし」のほうを外して数える',
+     `${JSON.stringify(restored.o)} / 合計 ${restored.sum} / 触れない欄 ${restored.anyDis}`);
+  /* 直す前に保存された下書きには「該当なし」と金額のある行が両方入っている。
+     戻したときに勝つのは本人が最後に見ていた画面 ＝「該当なし」が付いて、行は灰色。
+     ⚠️ pdRestore() が行を組み立てた直後は触れる行に金額がある。チェックを戻す所で
+        先に灰色にしているので、そのあとの pdSync() は外さない。順が崩れるとここで黙って外れる。 */
+  const oldDraft = await page.evaluate(() => {
+    const box = window.__none(false);
+    pdRestore(JSON.stringify({ v: 2, fixed_none: false, guarantee_none: false, variable_none: true,
+                               variable: [{ amount: 3080, label: null, basis: null }], other: [] }));
+    const amt = document.querySelector('#pd-var-rows .pd-amt');
+    return { none: box.checked, o: window.__piNow(), dis: amt.disabled,
+             amt: amt.value.replace(/,/g, ''), sum: document.getElementById('f-var-sum').value };
+  });
+  ok(oldDraft.none && oldDraft.dis && oldDraft.amt === '3080' && oldDraft.o
+     && oldDraft.o.variable_none === true && oldDraft.o.variable.length === 0 && oldDraft.sum === '',
+     '★直す前の下書き（該当なし＋金額のある行）を戻しても「該当なし」が残り、行は灰色のまま数えない',
+     `${JSON.stringify(oldDraft.o)} / 触れない ${oldDraft.dis} / 合計 ${oldDraft.sum}`);
+  /* 灰色の行に**読めない金額**が残っていても、最後の送信をそこで止めない。
+     金額の読み方の門（moneyBlocker）は種類の判定より手前に在り、触れない欄まで見ていた
+     ＝ 同じ行き止まりがもう1つあった（「入れ直してください」と言われる欄が灰色で打てない）。
+     外せば欄は触れるように戻るので、そのときは今までどおりそこで止まる。 */
+  const junk = await page.evaluate(async () => {
+    const box = window.__none(false);
+    const rows = document.getElementById('pd-var-rows');
+    while (rows.children.length) rows.firstElementChild.remove();
+    const row = pdAdd('var', true);
+    row.querySelector('.pd-basis').value = 'block';
+    const amt = row.querySelector('.pd-amt');
+    amt.value = 'abc';
+    pdSync();
+    window.__none(true);
+    const seen = { none: box.checked, dis: amt.disabled, state: moneyRead(amt).state,
+                   blocked: !!moneyBlocker() };
+    const keep = {};
+    const put = (id, v) => {
+      const el = document.getElementById(id);
+      el.value = v;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+    for (const [id, v] of [['f-hourly', '50'], ['f-block', '0'], ['f-guar', '0']]) {
+      keep[id] = document.getElementById(id).value;
+      put(id, v);
+    }
+    await submitPayReport();
+    seen.err = document.getElementById('err').textContent;
+    for (const id of Object.keys(keep)) put(id, keep[id]);
+    clearErr();
+    window.__none(false);
+    seen.back = moneyBlocker() === amt;
+    row.remove();
+    pdSync();
+    return seen;
+  });
+  ok(junk.none && junk.dis && junk.state === 'bad' && !junk.blocked,
+     '★灰色の行に残った読めない金額は、金額の門に掛からない（触れない欄を「入れ直して」と言わない）',
+     JSON.stringify({ none: junk.none, dis: junk.dis, state: junk.state, blocked: junk.blocked }));
+  ok(/時給を入れた場合|With an hourly rate/.test(junk.err),
+     '★★その行で最後の送信が止まらない（金額の門も種類の判定も抜けて、その次の門まで進む）',
+     junk.err.slice(0, 60));
+  ok(junk.back, '★外したあとは、読めない金額で今までどおり止まる（門を緩めていない）');
+  await toPay();
+  /* 付け外しのその場で「内訳の合計が総支給を超えています」を判定し直す。
+     document の change（capture）は「該当なし」自身のリスナーより**先**に走る ＝
+     灰色にする前の合計で判定したまま残っていた（付けても消えない・外しても出ない）。 */
+  const overNote = await page.evaluate(() => {
+    const box = window.__none(false);
+    const rows = document.getElementById('pd-var-rows');
+    while (rows.children.length) rows.firstElementChild.remove();
+    const row = pdAdd('var', true);
+    row.querySelector('.pd-basis').value = 'block';
+    const amt = row.querySelector('.pd-amt');
+    amt.value = String(Math.round(num('f-gross') * 2));
+    amt.dispatchEvent(new Event('input', { bubbles: true }));
+    amt.dispatchEvent(new Event('change', { bubbles: true }));
+    const seen = { typed: window.__overShown() };
+    box.click(); seen.none = box.checked; seen.ticked = window.__overShown();
+    box.click(); seen.unticked = window.__overShown();
+    row.remove();
+    pdSync();
+    settleOver();
+    seen.cleared = window.__overShown();
+    return seen;
+  });
+  ok(overNote.typed, '前提：変動給だけで総支給を超えると注意が出る');
+  ok(overNote.none && !overNote.ticked,
+     '★「該当なし」を付けたその場で、数えなくなった行の「超えています」が消える');
+  ok(overNote.unticked, '★外したその場で、数え直した行の「超えています」が戻る');
+  ok(!overNote.cleared, '検査の後始末（行を消すと注意も消える）');
+  await page.evaluate(() => {
+    window.__none(false);
+    delete window.__piNow; delete window.__none; delete window.__seed; delete window.__overShown;
+  });
+
   items = await pdFill('var', [
     { amount: '4000', label: 'Flight Pay', basis: 'block' },
     {},
@@ -4439,6 +4702,150 @@ console.log('\n前回の内容の上に明細を落とす（先月の額が積�
      `内訳 ${over.detail} / 総支給 ${over.gross}`);
   ok(over.warn === false, '★「内訳の合計が総支給を超えています」の注意が出ていない',
      `内訳 ${over.detail} / 総支給 ${over.gross}`);
+
+  await page.evaluate(() => localStorage.clear());
+  await page.close();
+}
+
+
+/* ══ 変動給の「該当なし」を付けたあとで明細を読んでも、明細の変動給が落ちない（2026-10-08）══
+   「手動で入力」を選んだあとも、明細の帯は細い形でフォームの上に残っている ＝
+   「該当なし」を付けてから明細を読ませる道は、誰でも通れる。
+
+   この日の直しの初版は、ここで**読んだ変動給を黙って落としていた**。
+   payslip.js の seedRows() は 行を足す → 種類 → 金額 → 項目名 の順に書き、1欄ごとに
+   change を出す。初版は pdSync() の頭で「付いていたら行を触れなくする」形だったので、
+   **種類を書いた時点で行が灰色になり、あとから入る金額は触れない欄に入って読まれない**。
+   画面には金額の入った灰色の行が並び、送る中身は「該当なし・行は0本」。
+   手元の検査は全部緑だった（まとめて代入してから pdSync() を1回呼ぶ形でしか
+   見ていなかった）。見つけたのは、別の目で通した本物の読み取りだけ。
+
+   ★だからここは**本物の読み取り**を通す（黒塗り → 送信 → 結果を欄へ）。
+     行の書き方を検査の側で真似ない。真似た版は上の「該当なし」の節に在る（日英）。
+   ★日本語版だけで回す。直したのは pay-report.html と en/pay-report.html の同じ関数で、
+     payslip.js は日英で共有。黒塗りをもう1周させると10秒以上伸びる。 */
+console.log('\n「該当なし」を付けたあとで明細を読む（明細の変動給が落ちない）');
+{
+  const FN = '/functions/v1/parse-payslip';
+  const CORS = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  };
+  const PDF = path.join(ROOT, 'db/fixtures/payslip-pdf-gulf.pdf');
+  const num = (v) => Number(String(v == null ? '' : v).replace(/[^0-9.-]/g, ''));
+  /* 明細には変動給が2本ある（時間に連動・回数に連動）。総支給は読めた手当の合計と
+     一致させてある ＝ 変動給が1円でも落ちれば、内訳の合計が総支給に届かない。 */
+  const RAW = {
+    currency: 'JPY', period: { year: 2026, month: 7 },
+    earnings: [
+      { label: '基本給', amount: 399083, kind: 'base' },
+      { label: '職務手当', amount: 507000, kind: 'command' },
+      { label: '住宅手当', amount: 16700, kind: 'housing' },
+      { label: '変動付加乗務時間', amount: 193013, kind: 'flight_variable', basis: 'block' },
+      { label: '変動付加乗務回数', amount: 13650, kind: 'flight_variable', basis: 'sector' },
+    ],
+    hours: [{ label: '乗務時間', value: 78.2, kind: 'block' }],
+    gross_total: 1129446, deductions_total: 300000, net_pay: 829446,
+    unmapped: [], confidence: 'high',
+  };
+  const FAKE = (() => { const q = sanitize(RAW); return { ok: true, result: applyChecks(q, reconcile(q)) }; })();
+
+  const page = await newPage();
+  await page.setViewport({ width: 1440, height: 1200 });
+  page.on('pageerror', (e) => { fail++; console.log(`  ❌ ページ例外: ${e.message}`); });
+  await page.setRequestInterception(true);
+  page.on('request', (req) => {
+    const u = req.url();
+    if (!u.includes(FN)) return req.continue();
+    if (req.method() === 'OPTIONS') return req.respond({ status: 204, headers: CORS, body: '' });
+    req.respond({ status: 200, headers: { ...CORS, 'Content-Type': 'application/json' },
+                  body: JSON.stringify(FAKE) });
+  });
+  /* まっさらな端末から始める（前の節の下書きも「前回の内容」も持ち込まない）。
+     消すのは文書が動き出す前。goto の後では loadPreset() がもう戻し終えている。 */
+  const wipe = await page.evaluateOnNewDocument(() => {
+    try { localStorage.clear(); sessionStorage.clear(); } catch (e) {}
+  });
+  await page.goto('http://localhost:3000/pay-report.html',
+    { waitUntil: 'networkidle2', timeout: 30000 });
+  await page.removeScriptToEvaluateOnNewDocument(wipe.identifier);
+
+  // ── 入口で「手動で入力」を選び、変動給の「該当なし」を付ける ──────────
+  await page.click('#entry-manual');
+  await page.waitForFunction(() => {
+    const f = document.getElementById('form-body');
+    return !!f && !f.hidden;
+  }, { timeout: 10000 });
+  const snap = () => page.evaluate(() => {
+    let o = null;
+    try { o = JSON.parse(document.getElementById('f-payitems').value || 'null'); } catch (e) {}
+    const ps = document.getElementById('ps');
+    return {
+      none: document.getElementById('f-variable-none').checked,
+      rows: [...document.querySelectorAll('#pd-var-rows .pd-row')].map((r) => ({
+        amt: r.querySelector('.pd-amt').value, basis: r.querySelector('.pd-basis').value,
+        dis: r.querySelector('.pd-amt').disabled || r.querySelector('.pd-basis').disabled })),
+      sum: document.getElementById('f-var-sum').value,
+      piNone: o ? o.variable_none : null,
+      piVar: o && Array.isArray(o.variable) ? o.variable.map((x) => ({ amount: x.amount, basis: x.basis })) : null,
+      chipDis: document.getElementById('pd-var').disabled,
+      band: !!ps && !ps.hidden && ps.offsetHeight > 0,
+    };
+  });
+  await page.evaluate(() => document.getElementById('f-variable-none').click());
+  const before = await snap();
+  ok(before.none && before.rows.length >= 1 && before.rows.every((r) => r.dis) && before.sum === ''
+     && before.piNone === true,
+     '前提：「該当なし」が付いて、変動給の行は灰色', JSON.stringify(before));
+  ok(before.band, '前提：手動で入力を選んだあとも、明細の帯が画面に残っている');
+
+  // ── そのまま明細を1枚読ませる ───────────────────────────────
+  const input = await page.$('#ps-file');
+  await input.uploadFile(PDF);
+  await page.waitForSelector('#ps-confirm', { timeout: 60000 });
+  await page.waitForFunction(() => {
+    const b = document.getElementById('ps-confirm');
+    return !!b && !b.disabled;
+  }, { timeout: 60000 });
+  await page.evaluate(() => document.getElementById('ps-confirm').click());
+  await page.evaluate(() => document.getElementById('ps-send').click());
+  await page.waitForFunction(() => {
+    const e = document.getElementById('f-gross');
+    return !!e && Math.abs(Number(String(e.value).replace(/[^0-9.]/g, '')) - 1129446) < 0.5;
+  }, { timeout: 60000 });
+  /* 読み取りの結果が画面に出るまで待つ（時間で待たない）。 */
+  await page.waitForFunction(() => !!document.querySelector('.ps-res, .ps-msg-warn'),
+    { timeout: 20000 }).catch(() => {});
+
+  const after = await snap();
+  const amts = after.rows.map((r) => num(r.amt)).filter((n) => n > 0).sort((a, b) => a - b);
+  ok(JSON.stringify(amts) === '[13650,193013]',
+     '前提：明細の変動給2本が、行として画面に入っている', JSON.stringify(after.rows));
+  ok(!after.none && after.piNone === false,
+     '★★明細が変動給を入れたら「該当なし」のほうが外れる', `該当なし ${after.none} / 送る中身 ${after.piNone}`);
+  ok(after.rows.every((r) => !r.dis) && !after.chipDis,
+     '★★明細が入れた行は触れる（金額の入った灰色の行が並ばない）', JSON.stringify(after.rows));
+  ok(after.piVar && after.piVar.length === 2
+     && after.piVar.some((x) => x.amount === 193013 && x.basis === 'block')
+     && after.piVar.some((x) => x.amount === 13650 && x.basis === 'sector'),
+     '★★送る中身に、明細の変動給が2本とも入っている', JSON.stringify(after.piVar));
+  ok(num(after.sum) === 206663, '★★変動給の合計に、明細の2本が入っている', `合計 ${after.sum}`);
+  /* 送る形そのもの（サーバへ渡す列）と、内訳の合計。総支給と同じ額になるように
+     明細を作ってあるので、変動給が落ちていれば合計が届かない。 */
+  const sent = await page.evaluate(() => {
+    const p = buildPayload();
+    return { fv: Number(p.flight_variable_pay), none: p.pay_items ? p.pay_items.variable_none : null,
+             n: p.pay_items && Array.isArray(p.pay_items.variable) ? p.pay_items.variable.length : -1,
+             detail: monthlyDetail(),
+             gross: Number(String(document.getElementById('f-gross').value).replace(/[^0-9.]/g, '')),
+             warn: [...document.querySelectorAll('[id^="pd-over"]')].some((e) => !e.hidden) };
+  });
+  ok(sent.fv === 206663 && sent.none === false && sent.n === 2,
+     '★★サーバへ渡す形でも同じ（変動給の列に額が乗り、「該当なし」は付いていない）', JSON.stringify(sent));
+  ok(Math.abs(sent.detail - sent.gross) < 1 && !sent.warn,
+     '★内訳の合計が総支給と合う（読んだ変動給が丸ごと数えられている）',
+     `内訳 ${sent.detail} / 総支給 ${sent.gross}`);
 
   await page.evaluate(() => localStorage.clear());
   await page.close();

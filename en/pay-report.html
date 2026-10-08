@@ -3183,6 +3183,13 @@ document.addEventListener('change', dropCarried, true);
 /* Return one box whose reading is not settled (null if none). Checked on submit. */
 function moneyBlocker() {
   for (const el of moneyEls()) {
+    /* ★Skip boxes that cannot be edited (2026-10-08). An amount in a locked box is
+       never sent (pdRead() does not read a variable pay row greyed out by "None of
+       this applies"; the housing amount is blank unless housing is paid in cash).
+       While they were checked, an unreadable amount left in a greyed row stopped
+       only the final submit and sent the person to a box they **could not fix**.
+       Untick and the box is editable again — and then it stops here as before. */
+    if (el.disabled) continue;
     const r = moneyRead(el);
     if (r.state === 'ok' || r.state === 'empty') continue;
     /* ★Show the two choices right here, not just block (2026-09-11). A restored
@@ -3908,6 +3915,17 @@ const PD = {
 function pdRead(kind) {
   const out = [];
   for (const row of PD[kind].rows.children) {
+    /* ★A variable pay row locked by "None of this applies" is not read (owner, 2026-10-08).
+       While it was read, the greyed-out amount still went into the variable pay total,
+       was sent alongside "not applicable", and the final submit bounced people back
+       saying "What it is paid on" was required — on a dropdown they **could not touch**
+       (step 3's Next skips locked fields, so it only ever stopped at the very end).
+       In production, 4 of the 5 reports that answered "not applicable" carried a greyed row.
+       ★The rows are not deleted (varNoneSync). Untick, and they count again as they were.
+       ★Decide on "is it greyed", not on the tick: going by the tick would silently drop
+         rows the payslip reader added while it was ticked (those stay editable, get
+         their amounts, and the top of pdSync() clears the tick instead). */
+    if (kind === 'var' && row.querySelector('.pd-amt').disabled) continue;
     const g = (sel) => { const e = row.querySelector(sel); return e ? e.value.trim() : ''; };
     /* ★.pd-amt reads through moneyRead() too (2026-09-11) — a bare parseFloat
        here would leave the 1.000,00 misread alive in this one row. */
@@ -3961,6 +3979,24 @@ function pdTally(list) {
 }
 
 function pdSync() {
+  /* ★Variable pay's "None of this applies" is ticked, and **a row that can be edited
+     holds an amount** → clear the tick (2026-10-08). Same reasoning as base pay and
+     the guarantee below: an old "not applicable" must not win over an amount that has
+     just arrived. Reading a payslip after ticking is this case (payslip.js's seedRows()
+     adds editable rows and fills in their amounts). Once cleared, varNoneSync() makes
+     every row editable again.
+     ⚠️ While it stays ticked, do **not** lock rows here. seedRows() writes a row as
+        "basis → amount → name" and **fires change after each field** = this runs on a
+        row whose amount has not been written yet. Lock it at that point and the amount
+        lands in a locked box, pdRead() never reads it, and the payslip's variable pay
+        is silently dropped (the first cut of this fix did exactly that, with every
+        local check green).
+        Rows are locked only where they are complete — when the box is ticked, at the
+        end of pdRestore(), and at the end of page load. */
+  if ($('f-variable-none').checked && pdRead('var').some((r) => r.amount != null)) {
+    $('f-variable-none').checked = false;
+    varNoneSync();
+  }
   const v = pdRead('var'), o = pdRead('oth');
   const tv = pdTally(v), to = pdTally(o);
   /* ★Blank when no row was answered. Writing 0 would claim "nothing was paid". */
@@ -4112,13 +4148,31 @@ $('f-guarantee-none').addEventListener('change', () => {
 });
 
 /* Variable pay is a set of rows, so lock them rather than delete them —
-   someone who ticks this by mistake will not type it all in again. */
+   someone who ticks this by mistake will not type it all in again.
+   ★A locked row is not read by pdRead() (2026-10-08) = it is in neither the total,
+     nor what we send, nor the required check. It stays on screen, greyed, only so
+     that unticking brings it back.
+   ⚠️ Keep this the one place that locks a row's fields. pdRead() reads "locked row =
+      not-applicable row", so locking one for any other reason silently stops it being sent.
+   ⚠️ Do not call it from inside pdSync() or pdAdd() (the one exception is the moment
+      the tick is cleared). It would lock rows that are still being written — see the
+      top of pdSync() for why. */
 function varNoneSync() {
   const on = $('f-variable-none').checked;
   $('pd-var').disabled = on;
   for (const el of $('pd-var-rows').querySelectorAll('input, select')) el.disabled = on;
 }
-$('f-variable-none').addEventListener('change', () => { varNoneSync(); pdSync(); });
+$('f-variable-none').addEventListener('change', () => {
+  /* ⚠️ Keep this order. Call pdSync() first and it sees the amounts in rows that are
+     still editable, and clears the tick that was only just put there. */
+  varNoneSync();
+  pdSync();
+  /* ★The breakdown total has changed, so settle the "exceeds gross" notice again
+     (2026-10-08). The document-level change listener (capture) runs **before** this
+     one = it judged the total from before the rows were locked (tick it and the
+     notice stays; untick it and the notice does not come up). */
+  settleOver();
+});
 
 /* Rebuild the rows from what was saved, reopening the sections and refreshing the totals. */
 /* ★opts.carry = "carried into next month" (restoreInto's mode:'carry').
@@ -4250,6 +4304,13 @@ function pdRestore(raw, opts) {
     $('nonline-detail').open = true;
     nonlineSync();   // pdSync runs inside
   }
+  /* ★Line up the rebuilt rows with variable pay's "None of this applies" (2026-10-08).
+     The rows are complete here. Ticked, and **rows with amounts** came back (restoring
+     another month's draft, say) → leave them alone; the pdSync() below clears the tick
+     (restored amounts are never dropped silently). Only rows with no amount (carried
+     over from last month = name and basis) → keep the pilot's "not applicable" and
+     lock those rows like the others. */
+  if ($('f-variable-none').checked && !pdRead('var').some((r) => r.amount != null)) varNoneSync();
   pdSync();
   return wrote;
 }
@@ -5715,7 +5776,9 @@ async function submitPayReport() {
      2026-08-26, 2nd). "Not sure" is there for anyone who cannot tell. Add no rows
      and nothing changes.
      ★pdRead('var') decides what counts as a row, so the rule that drops an empty
-     one is not written down twice. */
+     one is not written down twice.
+     ★It drops rows locked by "None of this applies" as well (2026-10-08) — never stop
+       someone with "please choose" on a field they cannot touch. */
   if (pdRead('var').some((r) => !r.basis)) {
     return stopAt('pd-var-rows', 'Please choose “What it is paid on” for each variable pay row. Pick “Not sure” if you cannot tell.');
   }

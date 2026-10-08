@@ -3088,6 +3088,12 @@ document.addEventListener('change', dropCarried, true);
 /* 読み方が決まっていない欄を1つ返す（無ければ null）。送信の直前に見る。 */
 function moneyBlocker() {
   for (const el of moneyEls()) {
+    /* ★触れない欄は見ない（2026-10-08）。触れない欄の額はどこにも送られない
+       （変動給の「該当なし」で灰色にした行は pdRead() が読まない／住宅手当の額は
+       現金でないあいだ空）。見ていた頃は、灰色の行に残った読めない額で最後の送信
+       だけが止まり、**直せない欄**へ運ばれていた。外せば欄は触れるように戻り、
+       そのときは今までどおりここで止まる。 */
+    if (el.disabled) continue;
     const r = moneyRead(el);
     if (r.state === 'ok' || r.state === 'empty') continue;
     /* ★止めるだけでなく、その場に二択を出す（2026-09-11）。復元した値・先月の値・
@@ -3783,6 +3789,15 @@ const PD = {
 function pdRead(kind) {
   const out = [];
   for (const row of PD[kind].rows.children) {
+    /* ★変動給の「該当なし」で触れなくした行は読まない（2026-10-08 オーナー指示）。
+       読んでいた頃は、灰色の行の金額が変動給の合計に入り、「該当なし」と一緒に送られ、
+       さらに**触れない**「何に連動する支給か」を最後の送信で必須だと言って突き返していた
+       （3段目の「次へ」は触れない欄を数えないので通る ＝ 最後の最後でだけ止まる）。
+       本番でも「該当なし」と答えた5件のうち4件に、灰色の行が一緒に入っていた。
+       ★行は消さない（varNoneSync）。チェックを外せば、同じ中身でそのまま数え直す。
+       ★「灰色かどうか」で見る。チェックで見ると、付いたまま明細が足した行まで黙って落とす
+         （そちらは触れる行のまま金額が入り、pdSync() の頭が「該当なし」のほうを外す）。 */
+    if (kind === 'var' && row.querySelector('.pd-amt').disabled) continue;
     const g = (sel) => { const e = row.querySelector(sel); return e ? e.value.trim() : ''; };
     /* ★.pd-amt も moneyRead() を通す（2026-09-11）。ここだけ素の parseFloat だと、
        1.000,00 の誤読がこの行にだけ残る。 */
@@ -3834,6 +3849,21 @@ function pdTally(list) {
 }
 
 function pdSync() {
+  /* ★変動給の「該当なし」が付いたまま**触れる行に金額が入った**ら、「該当なし」のほうを外す
+     （2026-10-08）── 下の基本給・保証手当と同じ理屈で、古い「該当なし」がいま入った金額に
+     勝たないようにする。付けたあとで明細を読ませた人がこの形（payslip.js の seedRows() が
+     触れる行を足して金額を入れる）。外したら varNoneSync() が全部の行を触れるように戻す。
+     ⚠️ 付いたままの側では、ここで行を**触れなくしない**。seedRows() は1行を
+        「種類 → 金額 → 項目名」の順に書き、**1欄ごとに change を出す** ＝ ここは
+        金額がまだ入っていない行でも呼ばれる。そこで灰色にすると、あとから入る金額が
+        触れない欄に入り、pdRead() が読まないまま明細の変動給が丸ごと黙って落ちる
+        （この直しの初版がそうだった。手元の検査は全部通ったまま）。
+        触れなくするのは「行が出来上がっている所」だけ ── チェックを押したとき・
+        pdRestore() の最後・読み込みの最後。 */
+  if ($('f-variable-none').checked && pdRead('var').some((r) => r.amount != null)) {
+    $('f-variable-none').checked = false;
+    varNoneSync();
+  }
   const v = pdRead('var'), o = pdRead('oth');
   const tv = pdTally(v), to = pdTally(o);
   /* ★答えた行が1つも無ければ**空**。0 と書くと「支給なし」と答えたことになる。 */
@@ -3983,13 +4013,28 @@ $('f-guarantee-none').addEventListener('change', () => {
 });
 
 /* 変動給は行の集まりなので、消さずに触れなくするだけにする
-   （押し間違いで書いたものが消えると、もう一度は書いてもらえない）。 */
+   （押し間違いで書いたものが消えると、もう一度は書いてもらえない）。
+   ★触れなくした行は pdRead() が読まない（2026-10-08）＝ 合計にも、送る中身にも、
+     必須の判定にも入らない。画面に灰色で残っているのは「外せば戻る」ためだけ。
+   ⚠️ 行の欄を触れなくするのはここ1か所だけにする。pdRead() は「触れない行＝
+      該当なしの行」と読んでいるので、別の理由で触れなくすると、その行が黙って送られなくなる。
+   ⚠️ pdSync() や pdAdd() の中から呼ばない（呼んでよいのは「該当なし」を外した瞬間だけ）。
+      書いている途中の行まで触れなくなる ── 理由は pdSync() の頭。 */
 function varNoneSync() {
   const on = $('f-variable-none').checked;
   $('pd-var').disabled = on;
   for (const el of $('pd-var-rows').querySelectorAll('input, select')) el.disabled = on;
 }
-$('f-variable-none').addEventListener('change', () => { varNoneSync(); pdSync(); });
+$('f-variable-none').addEventListener('change', () => {
+  /* ⚠️ 順番を入れ替えない。先に pdSync() を呼ぶと、まだ触れる行の金額を見て
+     いま付けたばかりの「該当なし」を外してしまう。 */
+  varNoneSync();
+  pdSync();
+  /* ★内訳の合計が変わったので「超えています」を判定し直す（2026-10-08）。
+     document の change（capture）は**このリスナーより先**に走る ＝ 灰色にする前の
+     合計で判定したまま残る（付けても注意が消えない・外しても注意が出ない）。 */
+  settleOver();
+});
 
 /* 保存した内容から行を組み立て直す。開き直しと合計の書き戻しまでここで済ませる。 */
 /* ★opts.carry ＝「翌月への引き継ぎ」（restoreInto の mode:'carry' から来る）。
@@ -4118,6 +4163,12 @@ function pdRestore(raw, opts) {
     $('nonline-detail').open = true;
     nonlineSync();   // 中で pdSync も走る
   }
+  /* ★組み立て直した行と変動給の「該当なし」をそろえる（2026-10-08）。行はここで出来上がっている。
+     付いたまま**金額のある行**が戻ったとき（別の月の控えを戻したときなど）は触らない
+     ── 下の pdSync() が「該当なし」のほうを外す（戻した金額を黙って落とさない）。
+     金額の無い行だけなら（先月からの引き継ぎ＝項目名と種類だけ）、本人の「該当なし」を
+     残して、その行もほかと同じく触れなくする。 */
+  if ($('f-variable-none').checked && !pdRead('var').some((r) => r.amount != null)) varNoneSync();
   pdSync();
   return wrote;
 }
@@ -5513,7 +5564,9 @@ async function submitPayReport() {
   }
   /* ★変動給の行を足したときだけ「何に連動する支給か」は必須（2026-08-26 その2 オーナー指示）。
      分からない人には「わからない」がある。行を1つも足していない人は素通り。
-     ★判定は pdRead('var') に任せる（＋を押しただけの空の行を落とす条件を2か所に書かない）。 */
+     ★判定は pdRead('var') に任せる（＋を押しただけの空の行を落とす条件を2か所に書かない）。
+     ★「該当なし」で触れなくした行も pdRead('var') が落とす（2026-10-08）。
+       触れない欄を「選んでください」と言って止めない。 */
   if (pdRead('var').some((r) => !r.basis)) {
     return stopAt('pd-var-rows', '変動給の「何に連動する支給か」を選んでください。当てはまるものが分からないときは「わからない」を選んでください。');
   }
