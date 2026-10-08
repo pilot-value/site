@@ -52,6 +52,13 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
     const d = document.getElementById('pay-detail');
     if (d) { d.open = true; d.dispatchEvent(new Event('toggle')); }
     if (typeof pdAdd === 'function') pdAdd('var', true);
+    /* ★変動給は 2026-10-08 から必須（GATE_PAY）。足した行に額を入れて答えておく。 */
+    const va = document.querySelector('#pd-var-rows .pd-amt:not(:disabled)');
+    if (va) {
+      va.value = '1000';
+      va.dispatchEvent(new Event('change', { bubbles: true }));
+      va.dispatchEvent(new Event('input', { bubbles: true }));
+    }
     /* ★教官・審査・管理職の「支給単位」と組合の「支給元」は、追加の支給が「ある」を
        選ぶまで出ない（2026-08-26 その3〜その6）。選ぶ値が組合だけ違う。
        ★兼務・配属（2026-08-27 その7）は select が「追加報酬」の1つだけ（支給単位を聞かない）。 */

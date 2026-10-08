@@ -324,6 +324,14 @@ const putRows = (page, kind, list) => page.evaluate((k, items) => {
   pdSync();
 }, kind, list);
 
+/* ★基本給と変動給は 2026-10-08 から必須（オーナー指示）。fillSimple() は「開いた直後の絵」
+   （3a）を撮るために内訳を空のまま残すので、提出まで歩く回はここで2つに答える。
+   額は DETAIL / VAR と同じ ── 合計は総支給（SIMPLE の f-gross）に収まる。 */
+const answerPay = async (page) => {
+  await put(page, pick(DETAIL, 'f-base'));
+  await putRows(page, 'var', VAR);
+};
+
 /* 教官の節を開いて埋める。担当している訓練はチェックボックス群なので、
    本物のページと同じ change を投げて instrSync() を走らせる。 */
 const fillInstr = (page, o) => page.evaluate((v) => {
@@ -590,6 +598,7 @@ if (process.argv.includes('open')) {
   if (wantReview) {
     await startManual(pg);
     await fillSimple(pg);
+    await answerPay(pg);
     await pg.evaluate(() => { if (window.PVPayWizard) window.PVPayWizard.goLast(); });
     await new Promise((r) => setTimeout(r, 600));
     /* ★ボタンが見える所まで運んでから渡す。確認画面は2画面ぶんの高さがあり、
@@ -620,6 +629,7 @@ if (process.argv.includes('open')) {
   if (wantGate) {
     await startManual(pg);
     await fillSimple(pg);
+    await answerPay(pg);
     await pg.evaluate(() => { if (window.PVPayWizard) window.PVPayWizard.goLast(); });
     await new Promise((r) => setTimeout(r, 600));
     await pg.evaluate(() => document.getElementById('submit-btn').click());

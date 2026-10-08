@@ -735,8 +735,8 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
 
             <p class="fld-hint pd-gate" id="pd-gate" hidden>Answer these three and the <b>pay breakdown in REAL PAY</b> opens up. Tick &ldquo;None of this applies&rdquo; for anything not on your payslip.</p>
 
-            <div class="fld is-rail is-rail-key">
-              <label class="form-label" for="f-base">Base pay</label>
+            <div class="fld is-rail is-rail-key" data-none="f-base-none">
+              <label class="form-label" for="f-base">Base pay<span class="req-tag">Required</span></label>
               <input type="text" id="f-base" class="form-input money" inputmode="decimal" placeholder="e.g. 31,000"/>
               <label class="rolebox pd-none"><input type="checkbox" id="f-base-none"><span>None of this applies</span></label>
             </div>
@@ -752,7 +752,14 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
 
             <div class="opt-fld" id="opt-pd-var">
               <div class="pd-block is-rail is-rail-key">
-                <div class="form-label">Variable pay</div>
+                <!-- ★Variable pay is required (owner, 2026-10-08). The answer lives in the rows, so
+                     only the heading is a field of its own, pointing at the hidden total (#f-var-sum).
+                     "None of this applies" is an answer too (data-none).
+                     ⚠️ Do not make the whole box a .fld. The review screen reads one line per .fld,
+                        so every row would show up twice. -->
+                <div class="fld" data-none="f-variable-none" style="margin-bottom:0">
+                  <label class="form-label" for="f-var-sum">Variable pay<span class="req-tag">Required</span></label>
+                </div>
                 <p class="fld-hint" style="margin-top:0">Pay that <b>changes month to month</b> with block hours, sectors and standby. Copy the amount and the name across exactly as printed.</p>
                 <div class="pd-rows" id="pd-var-rows"></div>
                 <button type="button" class="chip" id="pd-var"><span class="p">+</span>Add variable pay</button>
@@ -3551,15 +3558,26 @@ const GATE_ROLE   = () => filled('f-airline') && ($('f-airline').value !== 'othe
                           && filled('f-age');
 const GATE_HOURS  = () => filled('f-block') && filled('f-stay');
 /* ★Since 2026-08-26 exactly one pay figure is required: the gross. Everything in
-   the breakdown is optional. The step gate and the submit validation share this
+   the breakdown is optional (on 2026-10-08 two lines of it, base pay and variable
+   pay, became required again — just below). The step gate and the submit validation share this
    one line (two different conditions in two places always drift apart).
    filled() lets '0' through. The actual amount is checked on submit. */
 const payEntered  = () => filled('f-gross');
+/* ★Since 2026-10-08 two lines of the breakdown are required as well: **base pay and
+     variable pay** (owner: "make base pay and variable pay required"). The guarantee /
+     duty allowance and the rest of the breakdown stay optional.
+   ★"Answered" = an amount is there (0 is an answer) **or** "None of this applies" is
+     ticked. Variable pay's amounts live in the rows, so the hidden total (#f-var-sum)
+     is what is read — pdSync() writes it only when at least one row holds an amount.
+   ⚠️ Never stop counting "None of this applies" as an answer. Some pay schemes have no
+      base pay and some months have no variable pay — those people could no longer submit. */
+const baseEntered = () => filled('f-base') || $('f-base-none').checked;
+const varEntered  = () => filled('f-var-sum') || $('f-variable-none').checked;
 /* Housing is not done when it is merely picked — cash means the amount too. */
 const housingOk   = () => filled('f-housing')
                           && ($('f-housing').value !== 'allowance' || filled('f-housing-amt'));
-const GATE_PAY    = () => filled('f-currency') && payEntered() && filled('f-netpay')
-                          && filled('f-perdiem') && housingOk();
+const GATE_PAY    = () => filled('f-currency') && payEntered() && baseEntered() && varEntered()
+                          && filled('f-netpay') && filled('f-perdiem') && housingOk();
 /* ★4. Contract & tax became required on 2026-08-13 (owner). The tax rate itself
      stays optional — we have no table for most countries, and requiring it would
      dead-end everyone living in one of them. */
@@ -3628,7 +3646,11 @@ function markRequired() {
        unique once a second row is added. Fall back to the control inside the same
        .fld, so req-tag in the HTML stays the single source of truth. */
     const el = $(lab.htmlFor) || fld.querySelector('input, select');
-    const done = !!el && el.value.trim() !== '';
+    /* ★"None of this applies" is an answer too (2026-10-08 — base pay and variable pay).
+       Which box pairs with which field is decided by data-none in the HTML — no field
+       names are kept here. */
+    const none = fld.dataset.none ? $(fld.dataset.none) : null;
+    const done = (!!el && el.value.trim() !== '') || (!!none && none.checked);
     fld.classList.toggle('is-done', done);
     /* ★埋まった瞬間に「未入力」の赤を落とす（押し直させない）。付けるのは
        markMissing() ただ1か所で、落とすのはここと clearErr() の2か所だけ。 */
@@ -3649,9 +3671,12 @@ function markRequired() {
 }
 /* 内訳の欄の左のレール（2026-09-03 その3・オーナー指示
    「入力するべきところが文字だけじゃわかりづらい」）。
-   ⚠️ 上の .fld.is-req（必須の印）とは**別物**。内訳の欄に req-tag を足さない
-      ── 足した瞬間、「該当なし」を選んだ人が送信できなくなる
-      （CLAUDE.md 給与フォームの鉄則6・ブリーフ §2「空欄は未回答扱い」）。
+   ⚠️ 上の .fld.is-req（必須の印）とは**別物**。
+      ★2026-10-08 から、内訳のうち**基本給と変動給だけ**は必須（オーナー指示）。
+        req-tag を持つのはこの2つで、どちらも「該当なし」を答えに数える（data-none）。
+      ⚠️ それ以外の内訳と、役割ごとの節（教官・審査・組合・管理・兼務）には req-tag を足さない
+        ── 足した瞬間、「なし」「含まれている」を選んだ人が送信できなくなる
+        （CLAUDE.md 給与フォームの鉄則6）。
       .is-done も借りない（あれは markRequired() が必須の数を数えるのに使っている）。
    ★どこに引くかは HTML の class="is-rail" ただ1か所で決める。
      ここで別の一覧を持つと、印と判定が別々にズレる。
@@ -3741,8 +3766,12 @@ function markProgress() {
 $('form-wrap').addEventListener('click', (e) => {
   const b = e.target.closest && e.target.closest('.sec-prog');
   if (!b || b.disabled) return;
-  const fld = openReq(b.closest('.sec'))[0];
-  const inp = fld && fld.querySelector('.form-input');
+  let fld = openReq(b.closest('.sec'))[0];
+  /* ★With the breakdown folded, the required fields inside it (base pay, variable pay)
+     are not on screen. Open it, then look again. */
+  const pd = $('pay-detail');
+  if (!fld && pd && !pd.open && b.closest('.sec').contains(pd)) { pd.open = true; fld = openReq(b.closest('.sec'))[0]; }
+  const inp = fld && jumpTarget(fld);
   if (!inp) return;
   inp.scrollIntoView({ block: 'center', behavior: 'smooth' });
   inp.focus({ preventScroll: true });
@@ -4049,6 +4078,10 @@ function pdSync() {
   $('f-payitems').value = (v.length || o.length || none || gnone || vnone
                            || ins || exm || uni || mgt || nol || abs) ? JSON.stringify(pi) : '';
   recalc();
+  /* ★Variable pay's required mark reads the hidden total (#f-var-sum). Typing re-marks
+     it through the #form-wrap listener, but this is also reached without a keystroke
+     (a row removed, the payslip adding rows, a draft restored). */
+  markRequired();
   markRail();
   pdZeroSync(tv);
 }
@@ -5353,14 +5386,26 @@ function clearErr() { const e = $('err'); e.innerHTML = ''; delete e.dataset.fro
    ★Labels are read off the <label> on screen, so they are right in both languages. */
 function missingRequired() {
   markRequired();
-  return [...document.querySelectorAll('.fld.is-req:not(.is-done)')].filter((f) => {
-    const el = f.querySelector('input, select');
+  /* ★The required fields inside the breakdown (base pay, variable pay) count even when
+     it is folded (2026-10-08). offsetParent below drops "inside a closed <details>" the
+     same way it drops "hidden by a condition" — folding alone would walk past them.
+     Open it only while counting, and fold it back when nothing inside is missing (the
+     look is not ours to change). If something is, leave it open — that is where we jump. */
+  const pd = $('pay-detail');
+  const shut = !!pd && !pd.open;
+  if (shut) pd.open = true;
+  const m = [...document.querySelectorAll('.fld.is-req:not(.is-done)')].filter((f) => {
+    /* ★A heading-only field (variable pay) holds no control. Its label says where the answer is. */
+    const lab = f.querySelector('label.form-label');
+    const el = f.querySelector('input, select') || (lab && $(lab.htmlFor));
     /* Hidden fields (airline not listed) and disabled ones (housing amount) don't count. */
     if (!el || el.disabled || !f.offsetParent) return false;
     /* A row that is only there because ＋ was pressed is dropped by pdRead() — not sent, not counted. */
     const row = f.closest('.pd-row');
     return !(row && ![...row.querySelectorAll('input, select')].some((e) => e.value.trim()));
   });
+  if (shut && !m.some((f) => pd.contains(f))) pd.open = false;
+  return m;
 }
 /* ★送信の直前だけは、**全部の段を一時的に出して**数える。
    missingRequired() は offsetParent で「条件が揃っていない欄」を落としているが、
@@ -5414,7 +5459,11 @@ const MISS_TAG = 'Missing';
 /* 役職・区分は値を hidden の #f-jobrole が持つので .form-input が無い。
    その場合はチェックボックスの1つ目を掴む（掴めないと飛べない）。 */
 const jumpTarget = (f) => f.querySelector('.form-input:not([type="hidden"])')
-  || f.querySelector('.rolebox input') || f.querySelector('input, select');
+  || f.querySelector('.rolebox input') || f.querySelector('input, select')
+  /* ★A heading-only field (variable pay) goes to the first amount in the same box; with
+     no row at all, to "None of this applies". */
+  || (f.parentElement && f.parentElement.querySelector('.pd-amt:not(:disabled)'))
+  || (f.dataset.none ? $(f.dataset.none) : null);
 function clearMissMarks() {
   for (const f of document.querySelectorAll('.fld.is-miss')) f.classList.remove('is-miss');
   for (const t of document.querySelectorAll('.miss-tag')) t.remove();
@@ -5749,11 +5798,21 @@ async function submitPayReport() {
   /* ★Same split as payEntered() used by the step gate (one place decides where to
      look). Only the amount being 0 is caught here. */
   /* ★2026-08-26 (2nd): stopped branching on whether the breakdown is open. Gross is
-     always required, base pay is optional and has a "not applicable" box. With the
-     branch in place, anyone who ticked that box saw the submit button appear and
-     then got stopped — f-hourly is a payslip-only hidden field they cannot fill. */
+     always required. With the branch in place, anyone who ticked "not applicable" saw
+     the submit button appear and then got stopped — f-hourly is a payslip-only hidden
+     field they cannot fill. */
   if (num('f-gross') <= 0) {
     return stopAt('f-gross', 'Please enter your gross pay for that month. Allowances alone give nothing to compare against.');
+  }
+  /* ★Base pay and variable pay are required too (owner, 2026-10-08). They go through the
+     same baseEntered() / varEntered() as the step gate — "None of this applies" is an
+     answer. missingAll() above catches them first; this is the net for when the mark
+     did not land (stopAt opens a folded breakdown before it scrolls). */
+  if (!baseEntered()) {
+    return stopAt('f-base', 'Please enter your base pay. If your pay scheme has no base pay, tick "None of this applies".');
+  }
+  if (!varEntered()) {
+    return stopAt('pd-var-rows', 'Please enter your variable pay. If there was none that month, tick "None of this applies" or enter 0.');
   }
   if (!val('f-netpay')) return stopAt('f-netpay', 'Please enter your net pay for that month ("Net Pay" on your payslip).');
   /* ★Never send a net figure above the gross (2026-10-05). The step gate

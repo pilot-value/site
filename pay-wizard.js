@@ -407,6 +407,14 @@ function stepEls(i) {
   (s.also || []).forEach(function (id) { var e = $(id); if (e) out.push(e); });
   return out.filter(Boolean);
 }
+/* その段が抱えている箱（連れて出している also も含む）のどれかに、その欄が居るか。
+   ★2026-10-08。前は $(C.steps[i].id) だけを見ていたので、2回目以降の2画面
+     （1画面目が s2 で、s1・s3・s4 を also で連れて出す）では「3. 報酬」の必須が空でも
+     Next が確認まで通していた。確認で送信を押すと赤い箱だけが出て、赤く囲った欄は
+     1つ手前の画面に居る ── 本人が自分で「戻る」を押すまで、どこが空なのか見えない。 */
+function stepHolds(i, node) {
+  return stepEls(i).some(function (e) { return e.contains(node); });
+}
 
 /* ── 器を組む ────────────────────────────────────────────────── */
 function buildChrome() {
@@ -508,7 +516,7 @@ function go(i, opt) {
 }
 /* Next。押した段の未入力だけを見て、あれば**その場**で赤く示す（次へ進めない）。 */
 function forward(i) {
-  var miss = C.missing().filter(function (f) { return $(C.steps[i].id).contains(f); });
+  var miss = C.missing().filter(function (f) { return stepHolds(i, f); });
   if (miss.length) { C.markMissing(miss); return; }
   /* ★空ではないが「直さないと進めない」注意が出ている段からは進めない（2026-09-15）。
      何を見るかは**呼ぶ側が決める** ── 注意の受け皿は pay-report.html にしかなく、
@@ -525,8 +533,7 @@ function forward(i) {
 function goToField(node) {
   if (!C) return -1;
   for (var i = 0; i < C.steps.length; i++) {
-    var box = $(C.steps[i].id);
-    if (box && box.contains(node)) { if (i !== cur) go(i, { quiet: true }); return i; }
+    if (stepHolds(i, node)) { if (i !== cur) go(i, { quiet: true }); return i; }
   }
   return -1;
 }

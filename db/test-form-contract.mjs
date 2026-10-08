@@ -355,8 +355,10 @@ for (const f of ['pay-report.html', 'en/pay-report.html']) {
     /* ①-a 内訳の欄の左に色の縦棒（2026-09-03 オーナー指摘
          「入力するべきところが文字だけじゃわかりづらい」）。
        ⚠️ 必須の縦棒（.fld.is-req::before）とは**別の印**。
-          内訳に req-tag を足すのは禁止（CLAUDE.md 給与フォーム鉄則6・
-          「空欄は未回答扱い」）。足した瞬間、内訳を書かない人が送信できなくなる。 */
+          ★2026-10-08 から、基本給と変動給の2つだけは必須（オーナー指示）。
+            「額」か「該当なし」のどちらかで答える（⑧-a が見ている）。
+            それ以外の内訳に req-tag を足さない ── 役割ごとの手当は鉄則6のまま任意で、
+            保証手当・職務手当も任意のまま。 */
     const rails = (s.match(/<div class="[^"]*\bis-rail\b[^"]*"/g) || []);
     ok(rails.length === 7,
        `${f}: ★内訳の7つの欄すべてに縦棒が引いてある`, String(rails.length));
@@ -912,9 +914,14 @@ for (const f of ['pay-report.html', 'en/pay-report.html']) {
           それでよい、というのがオーナー判断。
      ⚠️ 乗務日数（f-duty）は元から任意。2つを取り違えない。
      ★f-bonus-mo（今月の賞与・ボーナス）は 2026-09-15 に**欄ごと廃止**した
-       （「そもそも賞与は別で支給されんだろ」＝下の「年間ボーナス」で受ける。オーナー決定）。 */
+       （「そもそも賞与は別で支給されんだろ」＝下の「年間ボーナス」で受ける。オーナー決定）。
+     ★基本給（f-base）と変動給は 2026-10-08 に**必須にした**（オーナー指示
+       「基本給と変動給は必須にして」）。2026-08-26 から内訳はぜんぶ任意だった。
+       変動給の答えは行の中にあるので、札は見出しに付け、ラベルは合計の隠し欄
+       f-var-sum を指している。どちらも「該当なし」を答えに数える（すぐ下で見る）。
+       ⚠️ 保証手当・職務手当（f-guarantee）は任意のまま。ここへ足さない。 */
   const REQ = ['f-airline', 'f-airline-other', 'f-position', 'f-fleet', 'f-jobrole', 'f-age', 'f-year',
-               'f-block', 'f-stay', 'f-currency', 'f-gross', 'f-netpay',
+               'f-block', 'f-stay', 'f-currency', 'f-gross', 'f-base', 'f-var-sum', 'f-netpay',
                'f-perdiem', 'f-housing', 'f-housing-amt',
                'f-contract', 'f-taxcountry', 'f-seniority', 'f-rankyears'];
   for (const f of ['pay-report.html', 'en/pay-report.html']) {
@@ -943,11 +950,42 @@ for (const f of ['pay-report.html', 'en/pay-report.html']) {
   /* ゲートの側にも同じ欄が書かれているか。日本語版のソースを正とする（EN は同じ JS）。 */
   {
     const s = read('pay-report.html');
-    const gates = [...s.matchAll(/const (?:GATE_[A-Z]+|payEntered|housingOk)\s*=[\s\S]*?;\n/g)]
+    const gates = [...s.matchAll(/const (?:GATE_[A-Z]+|payEntered|baseEntered|varEntered|housingOk)\s*=[\s\S]*?;\n/g)]
       .map((m) => m[0]).join('\n');
     ok(gates.length > 200, 'ゲートの定義を取り出せている', String(gates.length));
     const missing = REQ.filter((id) => !GATE_FREE.includes(id) && !gates.includes(`'${id}'`));
     ok(missing.length === 0, '必須と書いた欄は全部ゲートが見ている', missing.join(','));
+  }
+  /* ⑧-a 基本給と変動給の必須（2026-10-08）。印・段のゲート・送信の網の3つが同じ2本を通ること。
+     ★「該当なし」は答え。基本給の無い賃金体系も、変動給の無い月もある ── 数えるのを
+       やめた瞬間、その人たちは出せなくなる（画面は普通に動いたまま）。
+     ★どの札が対かは HTML の data-none が決める。JS に欄の名前の表を作らない。 */
+  for (const f of ['pay-report.html', 'en/pay-report.html']) {
+    const s = read(f);
+    ok(/const baseEntered\s*=\s*\(\)\s*=>\s*filled\('f-base'\)\s*\|\|\s*\$\('f-base-none'\)\.checked;/.test(s),
+       `${f}: ★基本給は「金額」か「該当なし」で答えたことになる`);
+    ok(/const varEntered\s*=\s*\(\)\s*=>\s*filled\('f-var-sum'\)\s*\|\|\s*\$\('f-variable-none'\)\.checked;/.test(s),
+       `${f}: ★変動給は「金額の入った行」か「該当なし」で答えたことになる`);
+    const gp = (s.match(/const GATE_PAY\s*=[\s\S]*?;\n/) || [''])[0];
+    ok(/baseEntered\(\)/.test(gp) && /varEntered\(\)/.test(gp),
+       `${f}: ★段のゲート（GATE_PAY）が基本給と変動給を見ている`, gp.replace(/\s+/g, ' '));
+    const sub = (s.match(/async function submitPayReport\(\)[\s\S]*?\n\}/) || [''])[0];
+    ok(/if \(!baseEntered\(\)\)\s*\{\s*return stopAt\('f-base',/.test(sub)
+       && /if \(!varEntered\(\)\)\s*\{\s*return stopAt\('pd-var-rows',/.test(sub),
+       `${f}: ★送信の網も同じ2本を通す（1枚もの形態には段のゲートが無い）`, String(sub.length));
+    ok(/<div class="fld is-rail is-rail-key" data-none="f-base-none">\s*<label class="form-label" for="f-base">/.test(s),
+       `${f}: ★基本給の欄が「該当なし」の札を指している（data-none）`);
+    ok(/<div class="fld" data-none="f-variable-none"[^>]*>\s*<label class="form-label" for="f-var-sum">/.test(s),
+       `${f}: ★変動給の見出しが「該当なし」の札を指している（data-none）`);
+    const mq = (s.match(/function markRequired\(\)[\s\S]*?\n\}/) || [''])[0];
+    ok(/fld\.dataset\.none/.test(mq) && !/'f-base-none'|'f-variable-none'/.test(mq),
+       `${f}: ★必須の印は data-none を読む（欄の名前を JS に持たない）`);
+    /* ⚠️ 箱ごと .fld にしない。確認画面は .fld を1行ずつ読むので、変動給の行が二重に出る。 */
+    ok(!/<div class="[^"]*\bpd-block\b[^"]*\bfld\b[^"]*"|<div class="[^"]*\bfld\b[^"]*\bpd-block\b[^"]*"/.test(s),
+       `${f}: ★変動給の箱そのものは .fld ではない（確認画面で行が二重に出ない）`);
+    /* ⚠️ 保証手当・職務手当と、役割ごとの節は任意のまま（CLAUDE.md 鉄則6）。 */
+    ok(!/for="f-(?:guarantee|command|instructor|examiner|union|management|nonline)[a-z-]*">(?:(?!<\/label>).)*req-tag/.test(s),
+       `${f}: ★保証手当・職位手当・役割ごとの手当に「必須」を付けていない`);
   }
 
   /* ⑧-b 常設の「匿名で提出」と、足りない必須項目の見せ方（2026-08-27 オーナー指示
@@ -1252,6 +1290,10 @@ const FALLBACK_FILL = {
   'f-contract': 'direct', 'f-taxcountry': 'AE', 'f-seniority': '12',
   'f-rankyears': '4',
 };
+/* 2026-10-08 から基本給と変動給も必須。★答え方は「額」か「該当なし」の2つあり、
+   最小の一式は「該当なし」のほう（額を入れると、下の「内訳の横棒」の区分の数が変わる）。
+   チェックボックスなので、上の「id → 値」の表には入れられない。 */
+const FALLBACK_NONE = ['f-base-none', 'f-variable-none'];
 
 /* かんたん入力（内訳を開かない人）が入れる1本。★SAMPLE の内訳とは排他。 */
 const GROSS_M = '54250';
@@ -1856,7 +1898,30 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   ok(!(await vis('s4')), '★住居で現金を選んで額が空なら先へ進めない');
   bad.push(...await setF({ 'f-housing-amt': SAMPLE['f-housing-amt'] }));
   await goNext();
-  ok(await vis('s4'), '住宅手当の額まで入れると 4/5 へ進む');
+  /* ★2026-10-08 オーナー指示「基本給と変動給は必須にして」。
+     ここまでで埋まったのは前からの必須（通貨・額面・手取り・パーディアム・住居）だけ。
+     基本給と変動給に**答える**まで先へ進めない ── 答えは金額（0 も可）か「該当なし」。
+     ⚠️ 保証手当・職務手当は任意のまま（オーナーが名指ししたのはこの2つだけ）。
+        そちらに印が付いたら、ここが落ちる。
+     ⚠️ 印は欄の label の for で読む。変動給の見出しは入力を持たない .fld なので、
+        中の input を探す読み方（下の withUnknown）では空文字になる。 */
+  const missFor = () => page.evaluate(() => [...document.querySelectorAll('.fld.is-miss')]
+    .map((f) => (f.querySelector('.form-label') || {}).htmlFor || '').sort().join(','));
+  /* 「該当なし」は本人と同じく**押して**付け外しする（input → change が出る）。 */
+  const tick = (id, on) => page.evaluate((i, o) => {
+    const b = document.getElementById(i);
+    if (b.checked !== o) b.click();
+  }, id, on);
+  ok(!(await vis('s4')), '★基本給と変動給に答えるまでは 4/5 へ進めない（2026-10-08）');
+  ok((await missFor()) === 'f-base,f-var-sum',
+     '★印が付くのは基本給と変動給の2つだけ（保証手当・職務手当は任意のまま）', await missFor());
+  await tick('f-base-none', true);
+  await goNext();
+  ok(!(await vis('s4')) && (await missFor()) === 'f-var-sum',
+     '★基本給に「該当なし」と答えても、変動給が残っていれば進めない', await missFor());
+  await tick('f-variable-none', true);
+  await goNext();
+  ok(await vis('s4'), '★基本給・変動給とも「該当なし」と答えれば 4/5 へ進む（「無い」も答え）');
   ok(!(await stickyOn()), '★4/5 では帯を引っ込める（契約と税に金額は出てこない）');
 
   /* ③ 送信ボタンは 5/5（確認）の中だけ。§4 が埋まるまでそこへ着けない。 */
@@ -1879,12 +1944,29 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
      （空の欄を出し始めると、確認画面が「（未入力）」の羅列になる）。 */
   ok(await page.$eval('#wz-review', (el) => !/明細から読み取った値/.test(el.textContent)),
      '★手で入力した人の 5/5 に「明細から読み取った値」の節は出ない');
+  /* ★「該当なし」と答えた基本給は、確認でも「該当なし」と読める（空の行として落ちない）。
+     ★変動給の見出し（入力を持たない .fld）は、確認に**行を増やさない**
+       ── 箱ごと .fld にすると、中の行がぜんぶ2回ずつ出る（静的検査 ⑧-a が箱の側を見ている）。 */
+  const revRows = await page.$$eval('#wz-review .wz-rev-row', (rs) => rs.map((r) => [
+    (r.querySelector('.wz-rev-k') || {}).textContent || '',
+    (r.querySelector('.wz-rev-v') || {}).textContent || '']));
+  ok(revRows.some(([k, v]) => /^(基本給|Base pay)$/.test(k) && /該当なし|None of this applies/.test(v)),
+     '★「該当なし」と答えた基本給が、確認に「該当なし」で出る', JSON.stringify(revRows.slice(0, 12)));
+  ok(!revRows.some(([k]) => /^(変動給|Variable pay)$/.test(k)),
+     '★変動給の見出しは確認に行を足さない', JSON.stringify(revRows.map((r) => r[0])));
 
   /* ★確認から戻っても、報酬の段は入れたままで出てくる。
      ここから下は「3. 報酬」の中身を見るので、そこまで帰ってから続ける。 */
   await goBack();
   await goBack();
   ok((await cur()) === 's3', '確認から「戻る」2回で 3/5 へ帰れる');
+  /* ★上で付けた「該当なし」2つを外して、内訳を**何も答えていない**形へ戻す。
+     ここから下は「内訳が空のとき」を前提に見る（縦棒がまだ緑でない・年換算が額面×12 ちょうど）。 */
+  ok(await page.evaluate(() => document.getElementById('f-base-none').checked
+                              && document.getElementById('f-variable-none').checked),
+     '★往復しても「該当なし」の答えが消えていない');
+  await tick('f-base-none', false);
+  await tick('f-variable-none', false);
   ok((await fv('f-gross')) === GROSS_M && (await fv('f-netpay')) === NET_M,
      '★往復しても額面と手取りが消えていない', `${await fv('f-gross')} / ${await fv('f-netpay')}`);
   ok(await vis('f-gross'), 'かんたん入力の額面が見えている');
@@ -1983,9 +2065,11 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   ok(vRows.n === 1, '★変動給の入力欄が最初から1本出ている（＋を押さなくていい）',
      JSON.stringify(vRows));
   ok(vRows.filled === 0, '★その1本は空（勝手に何かを入れておかない）', JSON.stringify(vRows));
-  /* ⚠️ ここが一番静かに壊れる。最初から出した空の1本が必須に数えられると、
-       変動給の無い人（大多数）が理由の分からないまま送信できなくなる。
-       missingRequired() は「1文字も入っていない .pd-row」を数えない約束。 */
+  /* ⚠️ ここが一番静かに壊れる。最初から出した空の1本の**行の欄**（何に連動する支給か）が
+       必須に数えられると、「該当なし」と答えた人まで触れない欄で止められる。
+       missingRequired() は「1文字も入っていない .pd-row」を数えない約束。
+     ★2026-10-08 から、変動給**そのもの**は必須（金額か「該当なし」）。そちらは行ではなく
+       見出しの .fld（for="f-var-sum"）に印が付く ── 下で読んでいるのは行の欄だけ。 */
   const vMiss = await page.evaluate(() =>
     missingRequired().map((f) => (f.querySelector('input, select') || {}).className || '')
       .filter((c) => /pd-/.test(c)));
@@ -2138,7 +2222,9 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
      '★「わからない」を選ぶと種類では止まらない（次の必須へ進む）',
      `${withUnknown.err.slice(0, 40)} / ${withUnknown.miss.join(',')}`);
   await toPay();
-  /* 行を1本も足していない人は、これまでどおり素通りする。 */
+  /* 行を1本も足していない人は、種類では止まらない。
+     ★2026-10-08 から、その人は**変動給そのもの**で止まる（金額か「該当なし」のどちらかが要る）。
+       止まる場所は行の欄ではなく、変動給の見出し。 */
   const noRows = await page.evaluate(async () => {
     const box = document.getElementById('pd-var-rows');
     while (box.children.length) box.firstElementChild.remove();
@@ -2146,16 +2232,72 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
     const c = document.getElementById('f-contract'), keep = c.value;
     c.value = ''; c.dispatchEvent(new Event('change', { bubbles: true }));
     await submitPayReport();
-    const seen = document.getElementById('err').textContent;
+    const seen = {
+      err: document.getElementById('err').textContent,
+      miss: [...document.querySelectorAll('.fld.is-miss')]
+        .map((f) => (f.querySelector('.form-label') || {}).htmlFor || ''),
+      rowMiss: !!document.querySelector('#pd-var-rows .fld.is-miss'),
+    };
     c.value = keep; c.dispatchEvent(new Event('change', { bubbles: true }));
-    document.getElementById('err').innerHTML = '';
+    clearErr();
     return seen;
   });
-  ok(!/何に連動する支給か|What it is paid on/.test(noRows),
-     '★変動給を1行も足していない人は種類で止まらない', noRows.slice(0, 60));
+  ok(!/何に連動する支給か|What it is paid on/.test(noRows.err) && !noRows.rowMiss,
+     '★変動給を1行も足していない人は種類で止まらない', noRows.err.slice(0, 60));
+  ok(noRows.miss.includes('f-var-sum') && noRows.miss.includes('f-contract')
+     && !noRows.miss.includes('f-base'),
+     '★行を全部消して「該当なし」も付けていない人は、変動給で止まる（2026-10-08）',
+     noRows.miss.join(','));
   await toPay();
+  ok(!(await nothingMissing()), '★変動給に答えていないあいだは、契約を戻しても抜けが残る');
+  await tick('f-variable-none', true);
   ok((await submitOn()) && (await nothingMissing()),
-     '止めた後も送信は止まっていない（契約を戻せば元どおり）');
+     '「該当なし」と答えれば、止めた後も送信は止まっていない（契約を戻せば元どおり）');
+  await tick('f-variable-none', false);
+
+  /* ── ★0 も答え／畳んでも抜けられない（2026-10-08）──────────────────
+     0 ＝「支給なし」という回答（2026-09-12 オーナー決定）。必須にしても同じ扱いで、
+     基本給 0・変動給 0 の人は「該当なし」を押さなくても通る。
+     ⚠️ 空欄と 0 を混ぜない。空のままなら止まる（すぐ上の noRows）。 */
+  bad.push(...await setF({ 'f-base': '0' }));
+  await pdFill('var', [{ amount: '0', label: 'Flight Pay', basis: 'block' }]);
+  const zeroOk = await page.evaluate(() => ({
+    base: baseEntered(), v: varEntered(), sum: document.getElementById('f-var-sum').value,
+    miss: missingAll().length,
+  }));
+  ok(zeroOk.base && zeroOk.v && zeroOk.sum === '0' && zeroOk.miss === 0,
+     '★基本給 0・変動給 0 は答え済み（「該当なし」を押さなくても止まらない）', JSON.stringify(zeroOk));
+  /* 内訳を畳んでも必須は外れない。畳んだ中は offsetParent では測れないので、
+     数えるあいだだけ開けて数え、抜けが在れば**開けたまま**その欄へ寄せる。
+     ⚠️ ここが「畳めば通る」に戻ると、必須にした意味が無くなる（画面は普通に動いたまま）。 */
+  bad.push(...await setF({ 'f-base': '' }));
+  await pdFill('var', []);
+  await toggleDetail(false);
+  await goNext();
+  const folded = await page.evaluate(() => ({
+    at: ['s1', 's2', 's3', 's4', 's5'].find((i) => !document.getElementById(i).hidden) || '',
+    open: document.getElementById('pay-detail').open,
+    miss: [...document.querySelectorAll('.fld.is-miss')]
+      .map((f) => (f.querySelector('.form-label') || {}).htmlFor || '').sort().join(','),
+    seen: document.getElementById('f-base').checkVisibility(),
+  }));
+  ok(folded.at === 's3' && folded.miss === 'f-base,f-var-sum',
+     '★内訳を畳んでも、基本給と変動給が空なら「次へ」で止まる（畳んで抜けられない）',
+     JSON.stringify(folded));
+  ok(folded.open && folded.seen,
+     '★止めたときは内訳を開けて、空いている欄を見せる（閉じた箱の前に立たせない）',
+     JSON.stringify(folded));
+  /* 答えが済んでいる人の内訳は、数えたあと**閉じたまま**（勝手に開けない）。 */
+  bad.push(...await setF({ 'f-base': '20000' }));
+  await tick('f-variable-none', true);
+  await toggleDetail(false);
+  const keptShut = await page.evaluate(() => ({
+    miss: missingAll().length, open: document.getElementById('pay-detail').open }));
+  ok(keptShut.miss === 0 && !keptShut.open,
+     '★答えが済んでいれば、畳んだ内訳を数えるために開けっぱなしにしない', JSON.stringify(keptShut));
+  await toggleDetail(true);
+  await tick('f-variable-none', false);
+  await page.evaluate(() => clearErr());
 
   /* ── ★変動給の「該当なし」で灰色にした行は、数えない・送らない・必須で止めない（2026-10-08）──
      金額だけ打って種類を選ばないまま「該当なし」を付けた人が、3段目の「次へ」は通るのに
@@ -3818,6 +3960,27 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
                            'f-perdiem': '6200', 'f-stay': SAMPLE['f-stay'] }));
   await new Promise((r) => setTimeout(r, 150));
   await goNext();
+  /* ★2026-10-08：変動給は毎月変わる額なので引き継がない（戻るのは行の名前と種類だけ）。
+     今月ぶんに答えるまで確認へ進めない。基本給は引き継がれている＝答え済みなので、
+     印が付くのは変動給だけ。
+     ⚠️ ここは2画面の道 ── 報酬（#s3）は1段目（#s2）が**連れて出している箱**。
+        「次へ」が自分の箱の中しか数えていなかったあいだ、この道だけは必須が空のまま
+        確認へ抜けていた（pay-wizard.js の stepHolds）。初回の5段では起きないので、
+        ここを外すと誰も気づけない。 */
+  ok((await page.evaluate(() => window.PVPayWizard.current())) === 's2'
+     && (await missFor()) === 'f-var-sum',
+     '★2画面の道でも、今月の変動給に答えるまで確認へ進めない（2026-10-08）', await missFor());
+  const typedVar = await page.evaluate(() => {
+    const amts = [...document.querySelectorAll('#pd-var-rows .pd-amt:not(:disabled)')];
+    for (const a of amts) {
+      a.value = '4000';
+      a.dispatchEvent(new Event('input', { bubbles: true }));
+      a.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    return amts.length;
+  });
+  ok(typedVar >= 1, '（前提）前回の変動給の行が、金額だけ空で戻っている', String(typedVar));
+  await goNext();
   ok((await page.evaluate(() => window.PVPayWizard.current())) === 's5' && (await submitOn()),
      '★今月の分だけ入れれば確認まで行ける（会社・契約は前回のまま）');
   ok((await fv('f-stay')) === SAMPLE['f-stay'],
@@ -3923,7 +4086,25 @@ console.log('\n明細の内訳（hidden → RPC → payslip_detail 列）');
     'f-netpay': '512000', 'f-perdiem': '38000',
     'f-housing': 'none', 'f-contract': 'direct', 'f-taxcountry': 'JP',
     'f-seniority': '14', 'f-rankyears': '6',
+    /* ★基本給は必須（2026-10-08）。明細の「基本給」行と同じ額を入れる。 */
+    'f-base': '480000',
   });
+  /* ★変動給も必須。payslip.js の seedRows() と同じ順（種類 → 金額 → 項目名、1欄ごとに
+     change → input）で、明細の変動給2行を入れる。合計 651,600 ＜ 総支給 663,600。 */
+  await page.evaluate((rows) => {
+    const box = document.getElementById('pd-var-rows');
+    while (box.children.length) box.firstElementChild.remove();
+    for (const t of rows) {
+      const row = pdAdd('var', true);
+      for (const [sel, v] of [['.pd-basis', 'block'], ['.pd-amt', t.amount], ['.pd-label', t.label]]) {
+        const e = row.querySelector(sel);
+        e.value = String(v);
+        e.dispatchEvent(new Event('change', { bubbles: true }));
+        e.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    }
+    pdSync();
+  }, DETAIL.earnings.filter((x) => x.kind === 'flight_variable'));
   await new Promise((r) => setTimeout(r, 250));
 
   /* payslip.js が入れる形をそのまま入れる（この2つは明細を読んだときだけ埋まる） */
@@ -4894,6 +5075,11 @@ for (const [tag, url] of [['ja', 'http://localhost:3000/pay-report.html'],
       .forEach((id) => set(id, '0'));
     set('f-gross', '1080000');
     set('f-netpay', '842000');
+    /* 基本給・変動給は「該当なし」で答える（2026-10-08 から必須。「無い」も答え）。 */
+    ['f-base-none', 'f-variable-none'].forEach((id) => {
+      const b = document.getElementById(id);
+      if (b && !b.checked) b.click();
+    });
   });
   await new Promise((r) => setTimeout(r, 300));
   ok((await page.evaluate(() => missingAll().length)) === 0,
@@ -5454,6 +5640,22 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
     }
     return out;
   }, FALLBACK_FILL);
+  await new Promise((r) => setTimeout(r, 600));
+  /* ★1枚もの形態には「次へ」の門が無い。基本給・変動給を止めるのは GATE_PAY だけ
+     ＝ ここが緩むと、この形態からは答えないまま送信まで届く（2026-10-08）。 */
+  ok(!(await seen('submit-btn')),
+     `[${lang}] ★基本給と変動給に答えるまでは送信ボタンに手が届かない`);
+  const badNone = await page.evaluate((ids) => {
+    const out = [];
+    for (const id of ids) {
+      const b = document.getElementById(id);
+      if (!b) { out.push(id + ': 要素が無い'); continue; }
+      if (!b.checked) b.click();
+      if (!b.checked) out.push(id + ': チェックが入らない');
+    }
+    return out;
+  }, FALLBACK_NONE);
+  bad.push(...badNone);
   await new Promise((r) => setTimeout(r, 600));
   ok(bad.length === 0, `[${lang}] 必須を全部入れられる`, bad.join(' / '));
 
@@ -6439,6 +6641,12 @@ for (const [T, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   await put({ 'f-currency': 'JPY', 'f-gross': '500000', 'f-netpay': '400000',
               'f-perdiem': '0', 'f-housing': 'none' });
   await page.evaluate(() => { const d = document.getElementById('pay-detail'); if (d) d.open = true; });
+  /* 変動給は「該当なし」で答えておく（2026-10-08 から必須）。答えていないと、先に
+     「必須が空いています」の赤箱で止まり、ここで見たい門まで届かない。 */
+  await page.evaluate(() => {
+    const b = document.getElementById('f-variable-none');
+    if (b && !b.checked) b.click();
+  });
   await put({ 'f-base': '900000' });
   await new Promise((r) => setTimeout(r, 200));
   ok((await warnShown()).length === 1,
@@ -6549,6 +6757,13 @@ for (const [T, url] of [['ja', 'http://localhost:3000/pay-report.html'],
 
   ok(!!(await page.$('#net-over.pd-warn.pv-no-cur[hidden]')),
      `${T} ★22 注意の段落は在って、最初は隠れている`);
+
+  /* 基本給・変動給は「該当なし」で答えておく（2026-10-08 から必須）。答えていないと、先に
+     「必須が空いています」の赤箱で止まり、ここで見たい門（手取り ＞ 総支給）まで届かない。 */
+  await page.evaluate(() => ['f-base-none', 'f-variable-none'].forEach((id) => {
+    const b = document.getElementById(id);
+    if (b && !b.checked) b.click();
+  }));
 
   /* ① 手取りが総支給の6倍（数字は作り物。会員が実際に入れた額は写さない）。 */
   await put({ 'f-currency': 'USD', 'f-gross': '8000', 'f-netpay': '48000',

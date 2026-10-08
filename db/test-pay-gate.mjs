@@ -114,6 +114,12 @@ async function fillForm() {
       .forEach((id) => set(id, '0'));
     set('f-gross', '1080000');
     set('f-netpay', '842000');
+    /* ★基本給と変動給は 2026-10-08 から必須。答え方は「額」か「該当なし」で、
+       ここは「該当なし」で答える（額を入れると内訳の合計が動く。見たいのは預かりの経路）。 */
+    ['f-base-none', 'f-variable-none'].forEach((id) => {
+      const box = document.getElementById(id);
+      if (box && !box.checked) box.click();
+    });
     /* ★ウィザードでは送信ボタンは 5/5 の中にしか無い。歩かずに押さない。
        1枚もの形態（共有 JS が落ちた形）には PVPayWizard が居ないので何もしない
        ── 同じ台本が両方で走る。 */

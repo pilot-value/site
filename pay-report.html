@@ -724,8 +724,8 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
 
             <p class="fld-hint pd-gate" id="pd-gate" hidden>この3つを答えると <b>REAL PAY の給与内訳</b>が開きます。明細に無い項目は「該当なし」を選んでください。</p>
 
-            <div class="fld is-rail is-rail-key">
-              <label class="form-label" for="f-base">基本給</label>
+            <div class="fld is-rail is-rail-key" data-none="f-base-none">
+              <label class="form-label" for="f-base">基本給<span class="req-tag">必須</span></label>
               <input type="text" id="f-base" class="form-input money" inputmode="decimal" placeholder="例：480,000"/>
               <label class="rolebox pd-none"><input type="checkbox" id="f-base-none"><span>該当なし</span></label>
             </div>
@@ -741,7 +741,12 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
 
             <div class="opt-fld" id="opt-pd-var">
               <div class="pd-block is-rail is-rail-key">
-                <div class="form-label">変動給</div>
+                <!-- ★変動給は必須（2026-10-08 オーナー指示）。答えは行の中にあるので、見出しだけを
+                     1つの欄にして、合計の隠し欄（#f-var-sum）を指させる。「該当なし」も答え（data-none）。
+                     ⚠️ 箱ごと .fld にしない。確認画面は .fld を1行ずつ読むので、行と二重に出る。 -->
+                <div class="fld" data-none="f-variable-none" style="margin-bottom:0">
+                  <label class="form-label" for="f-var-sum">変動給<span class="req-tag">必須</span></label>
+                </div>
                 <p class="fld-hint" style="margin-top:0">乗務時間・セクター数・待機などで<b>月ごとに変わる支給</b>。明細のとおりの金額と名称を書き写してください。</p>
                 <div class="pd-rows" id="pd-var-rows"></div>
                 <button type="button" class="chip" id="pd-var"><span class="p">+</span>変動給を追加</button>
@@ -3434,15 +3439,25 @@ const GATE_ROLE   = () => filled('f-airline') && ($('f-airline').value !== 'othe
                           && filled('f-position') && filled('f-fleet') && filled('f-jobrole')
                           && filled('f-age');
 const GATE_HOURS  = () => filled('f-block') && filled('f-stay');
-/* ★2026-08-26 から、報酬は**総支給の1つだけ**が必須。内訳はぜんぶ任意になった。
+/* ★2026-08-26 から、報酬は**総支給の1つだけ**が必須。内訳はぜんぶ任意になった
+   （2026-10-08 に基本給と変動給の2つだけ必須へ戻した ── すぐ下）。
    ゲートと送信バリデーションはこの1つを共有する（2箇所に違う条件を書くと必ずズレる）。
    filled は '0' も通す。実際の金額は送信時に見る。 */
 const payEntered  = () => filled('f-gross');
+/* ★2026-10-08 から、内訳のうち**基本給と変動給の2つ**も必須（オーナー指示
+     「基本給と変動給は必須にして」）。保証手当・職務手当と、ほかの内訳は任意のまま。
+   ★「答えた」＝ 金額が入っている（0 も答え）**か**「該当なし」が付いている。
+     変動給の金額は行の中にあるので、合計の隠し欄（#f-var-sum）で見る
+     ── pdSync() が「金額の入った行が1本でもあるとき」だけ値を書く。
+   ⚠️ 「該当なし」を答えに数えるのをやめない。基本給の無い賃金体系も、変動給の無い月もある
+      ＝ やめた瞬間、その人たちが出せなくなる。 */
+const baseEntered = () => filled('f-base') || $('f-base-none').checked;
+const varEntered  = () => filled('f-var-sum') || $('f-variable-none').checked;
 /* 住居は「選んだら終わり」ではない。現金を選んだ人は額まで入って初めて揃う。 */
 const housingOk   = () => filled('f-housing')
                           && ($('f-housing').value !== 'allowance' || filled('f-housing-amt'));
-const GATE_PAY    = () => filled('f-currency') && payEntered() && filled('f-netpay')
-                          && filled('f-perdiem') && housingOk();
+const GATE_PAY    = () => filled('f-currency') && payEntered() && baseEntered() && varEntered()
+                          && filled('f-netpay') && filled('f-perdiem') && housingOk();
 /* ★4. 契約と税は 2026-08-13 に必須化（オーナー指摘）。所得税率だけは任意のまま
      （税率表を持っていない国の人が、そこで詰まって送れなくなる）。 */
 const GATE_CONTRACT = () => filled('f-contract') && filled('f-taxcountry') && filled('f-seniority') && filled('f-rankyears');
@@ -3508,7 +3523,10 @@ function markRequired() {
        一意にならないため。引けなかったときだけ、同じ .fld の中の欄を見る。
        これで「必須の出どころは HTML の req-tag ただ1か所」を崩さずに済む。 */
     const el = $(lab.htmlFor) || fld.querySelector('input, select');
-    const done = !!el && el.value.trim() !== '';
+    /* ★「該当なし」も答え（2026-10-08・基本給と変動給）。どの札が対かは HTML の
+       data-none が決める ── ここに欄の名前を持たない。 */
+    const none = fld.dataset.none ? $(fld.dataset.none) : null;
+    const done = (!!el && el.value.trim() !== '') || (!!none && none.checked);
     fld.classList.toggle('is-done', done);
     /* ★埋まった瞬間に「未入力」の赤を落とす（押し直させない）。付けるのは
        markMissing() ただ1か所で、落とすのはここと clearErr() の2か所だけ。 */
@@ -3529,9 +3547,12 @@ function markRequired() {
 }
 /* 内訳の欄の左のレール（2026-09-03 その3・オーナー指示
    「入力するべきところが文字だけじゃわかりづらい」）。
-   ⚠️ 上の .fld.is-req（必須の印）とは**別物**。内訳の欄に req-tag を足さない
-      ── 足した瞬間、「該当なし」を選んだ人が送信できなくなる
-      （CLAUDE.md 給与フォームの鉄則6・ブリーフ §2「空欄は未回答扱い」）。
+   ⚠️ 上の .fld.is-req（必須の印）とは**別物**。
+      ★2026-10-08 から、内訳のうち**基本給と変動給だけ**は必須（オーナー指示）。
+        req-tag を持つのはこの2つで、どちらも「該当なし」を答えに数える（data-none）。
+      ⚠️ それ以外の内訳と、役割ごとの節（教官・審査・組合・管理・兼務）には req-tag を足さない
+        ── 足した瞬間、「なし」「含まれている」を選んだ人が送信できなくなる
+        （CLAUDE.md 給与フォームの鉄則6）。
       .is-done も借りない（あれは markRequired() が必須の数を数えるのに使っている）。
    ★どこに引くかは HTML の class="is-rail" ただ1か所で決める。
      ここで別の一覧を持つと、印と判定が別々にズレる。
@@ -3621,8 +3642,11 @@ function markProgress() {
 $('form-wrap').addEventListener('click', (e) => {
   const b = e.target.closest && e.target.closest('.sec-prog');
   if (!b || b.disabled) return;
-  const fld = openReq(b.closest('.sec'))[0];
-  const inp = fld && fld.querySelector('.form-input');
+  let fld = openReq(b.closest('.sec'))[0];
+  /* ★内訳を畳んでいると、中の必須（基本給・変動給）は画面に居ない。開けてから探し直す。 */
+  const pd = $('pay-detail');
+  if (!fld && pd && !pd.open && b.closest('.sec').contains(pd)) { pd.open = true; fld = openReq(b.closest('.sec'))[0]; }
+  const inp = fld && jumpTarget(fld);
   if (!inp) return;
   inp.scrollIntoView({ block: 'center', behavior: 'smooth' });
   inp.focus({ preventScroll: true });
@@ -3914,6 +3938,9 @@ function pdSync() {
   $('f-payitems').value = (v.length || o.length || none || gnone || vnone
                            || ins || exm || uni || mgt || nol || abs) ? JSON.stringify(pi) : '';
   recalc();
+  /* ★変動給の必須の印は合計の隠し欄（#f-var-sum）を見ている。打鍵なら #form-wrap の
+     リスナーが付け直すが、ここは打鍵以外（行を消した・明細が足した・復元）からも来る。 */
+  markRequired();
   markRail();
   pdZeroSync(tv);
 }
@@ -5153,14 +5180,25 @@ function clearErr() { const e = $('err'); e.innerHTML = ''; delete e.dataset.fro
    ★ラベルは画面の <label> から取る＝日英で自動的に正しい。 */
 function missingRequired() {
   markRequired();
-  return [...document.querySelectorAll('.fld.is-req:not(.is-done)')].filter((f) => {
-    const el = f.querySelector('input, select');
+  /* ★内訳を畳んでいても、中の必須（基本給・変動給）は数える（2026-10-08）。
+     下の offsetParent は「畳んだ <details> の中」も「条件で隠れている欄」も同じに落とす
+     ＝ 畳むだけで必須を素通りできてしまう。数えるあいだだけ開け、中に足りない欄が
+     無ければ畳み直す（見た目を勝手に変えない）。在れば開けたままにする ── 飛び先だから。 */
+  const pd = $('pay-detail');
+  const shut = !!pd && !pd.open;
+  if (shut) pd.open = true;
+  const m = [...document.querySelectorAll('.fld.is-req:not(.is-done)')].filter((f) => {
+    /* ★見出しだけの欄（変動給）は中に入力を持たない。答えの在りかはラベルが指している。 */
+    const lab = f.querySelector('label.form-label');
+    const el = f.querySelector('input, select') || (lab && $(lab.htmlFor));
     /* 隠れている欄（一覧にない会社名）・触れない欄（住宅手当の額）は数えない。 */
     if (!el || el.disabled || !f.offsetParent) return false;
     /* ＋を押しただけの空の行は pdRead() が落とす＝送られない。数えない。 */
     const row = f.closest('.pd-row');
     return !(row && ![...row.querySelectorAll('input, select')].some((e) => e.value.trim()));
   });
+  if (shut && !m.some((f) => pd.contains(f))) pd.open = false;
+  return m;
 }
 /* ★送信の直前だけは、**全部の段を一時的に出して**数える。
    missingRequired() は offsetParent で「条件が揃っていない欄」を落としているが、
@@ -5215,7 +5253,10 @@ const MISS_TAG = '未入力';
 /* 役職・区分は値を hidden の #f-jobrole が持つので .form-input が無い。
    その場合はチェックボックスの1つ目を掴む（掴めないと飛べない）。 */
 const jumpTarget = (f) => f.querySelector('.form-input:not([type="hidden"])')
-  || f.querySelector('.rolebox input') || f.querySelector('input, select');
+  || f.querySelector('.rolebox input') || f.querySelector('input, select')
+  /* ★見出しだけの欄（変動給）は、同じ箱の最初の金額欄へ。行が1本も無ければ「該当なし」へ。 */
+  || (f.parentElement && f.parentElement.querySelector('.pd-amt:not(:disabled)'))
+  || (f.dataset.none ? $(f.dataset.none) : null);
 function clearMissMarks() {
   for (const f of document.querySelectorAll('.fld.is-miss')) f.classList.remove('is-miss');
   for (const t of document.querySelectorAll('.miss-tag')) t.remove();
@@ -5540,12 +5581,20 @@ async function submitPayReport() {
   }
   /* ★段のゲートと同じ payEntered() を通す（見る場所を1本にしてある）。
      金額が 0 のときだけここで弾く。 */
-  /* ★2026-08-26 その2、内訳を開いているかで分けるのをやめた。総支給はいつでも必須で、
-     基本給は任意（「該当なし」もある）。分けたままだと、内訳を開いて「該当なし」を付けた人が、
-     送信ボタンは出ているのに押すと止まる。f-hourly は明細読み取り専用の hidden なので、
-     その人には埋めようが無い。 */
+  /* ★2026-08-26 その2、内訳を開いているかで分けるのをやめた。総支給はいつでも必須。
+     分けたままだと、内訳を開いて「該当なし」を付けた人が、送信ボタンは出ているのに
+     押すと止まる。f-hourly は明細読み取り専用の hidden なので、その人には埋めようが無い。 */
   if (num('f-gross') <= 0) {
     return stopAt('f-gross', 'その月の総支給額を入れてください。手当だけでは、他社と比べる軸がありません。');
+  }
+  /* ★基本給と変動給も必須（2026-10-08 オーナー指示）。段のゲートと同じ baseEntered() /
+     varEntered() を通す ──「該当なし」も答え。上の missingAll() が先に拾うので、
+     ここは印が付かなかったときの網（stopAt は畳んだ内訳を開けてから寄せる）。 */
+  if (!baseEntered()) {
+    return stopAt('f-base', '基本給を入れてください。基本給の無い賃金体系のときは「該当なし」を選んでください。');
+  }
+  if (!varEntered()) {
+    return stopAt('pd-var-rows', '変動給を入れてください。その月に変動給が無かったときは「該当なし」を選ぶか、0 と入れてください。');
   }
   if (!val('f-netpay')) return stopAt('f-netpay', 'その月の手取り額を入れてください（明細の「差引支給額」「Net Pay」）。');
   /* ★手取りが総支給より多いまま送らない（2026-10-05）。段の門（netBlocking）が先に止めるが、
