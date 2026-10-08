@@ -521,8 +521,8 @@ let A;   // 場所A（V1 が書いたホテル・あとで公開）
     note: 'テスト用のメモ。\n2行目。' }));
   A = r.item && r.item.id;
   ok(r.ok === true && keys(r) === 'item,ok'
-     && keys(r.item) === 'address,age,city,id,kind,maps_url,mine,name,note,photos,state',
-     '印を持つ人は足せる（返る欄は11個ちょうど）', J(r));
+     && keys(r.item) === 'address,age,city,id,kind,maps_url,mine,name,note,photos,state,stay_hours',
+     '印を持つ人は足せる（返る欄は12個ちょうど）', J(r));
   ok(r.item.state === 'pending' && r.item.mine === true && r.item.name === 'テスト用ホテルA'
      && r.item.kind === 'hotel' && r.item.age === 0 && J(r.item.photos) === '[]'
      && r.item.maps_url === 'https://www.google.com/maps/place/Test+Hotel+A'
@@ -557,14 +557,18 @@ let A;   // 場所A（V1 が書いたホテル・あとで公開）
   ok(status(await moderate(OP, 'place', '11111111-1111-4111-8111-111111111111', 'public')) === 'not_found',
      '運営: 無い id は not_found');
 
+  /* ★1度も直されていない場所でも、合わない印を添えた公開は通らない（印を添えたなら、必ず突き合わせる） */
+  ok(status(await moderate(OP, 'place', A, 'public', '0000000000000000')) === 'changed'
+     && (await one(`select state from public.pv_stay_places where id = $1`, [A])).state === 'pending',
+     '★直されていない場所でも、合わない印では公開できない（changed・確認待ちのまま）');
   const pub = await moderate(OP, 'place', A, 'public');
   ok(J(pub) === J({ id: A, ok: true, state: 'public', target: 'place' }) || (pub.ok === true && keys(pub) === 'id,ok,state,target' && pub.state === 'public'),
      '運営が公開する', J(pub));
   ok((await moderate(OP, 'place', A, 'public')).ok === true, '同じ状態をもう一度指定しても壊れない');
   const seenBy2 = find(await stays(V2), A);
   ok(seenBy2 && seenBy2.mine === false && seenBy2.state === 'public'
-     && keys(seenBy2) === 'address,age,city,id,kind,maps_url,mine,name,note,photos,state',
-     '公開されると、別の印を持つ人に見える（mine:false・欄は11個）', J(seenBy2));
+     && keys(seenBy2) === 'address,age,city,id,kind,maps_url,mine,name,note,photos,state,stay_hours',
+     '公開されると、別の印を持つ人に見える（mine:false・欄は12個）', J(seenBy2));
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -796,6 +800,9 @@ console.log('\n▼ 写真の連投 ── 同じ写真・1つの場所に4枚・
   ok(status(await photoAdd(V1, A, JPEG)) === 'duplicate', '同じ場所に同じ写真をもう一度 → duplicate');
   ok((await photoAdd(V1, A, jpegN(10))).ok === true && (await photoAdd(V1, A, jpegN(11))).ok === true, '3枚目・4枚目は入る');
   ok(status(await photoAdd(V1, A, jpegN(12))) === 'full', '5枚目 → full（1つの場所に自分の写真は4枚まで）');
+  /* ★数えるのが先・写真を読むのは後。上限に達した人が送った「読めない中身」は、読まれずに full で返る
+     （順番が逆だと image_bad になる ＝ 上限の人に、重い作り直しを何度でも走らせられる）。 */
+  ok(status(await photoAdd(V1, A, '!!!')) === 'full', '★4枚ある人が読めない中身を送る → full（image_bad ではない ＝ 読む前に数えている）');
   const v2 = await photoAdd(V2, A, jpegN(13));
   ok(v2.ok === true, '★上限は人ごと。他人が4枚付けていても自分は足せる（他人の確認前の枚数が返事から読めない）', J(v2));
 
@@ -810,6 +817,7 @@ console.log('\n▼ 写真の連投 ── 同じ写真・1つの場所に4枚・
      returning id`, [E, hashOf(V2), J(Array.from({ length: 30 }, (_, g) => jpegN(1000 + g)))])).rows.map((x) => x.id);
   ok(filler.length === 30, '（数合わせの30枚を置いた）', String(filler.length));
   ok(status(await photoAdd(V2, B, jpegN(14))) === 'rate_limited', '24時間に30枚を超える → rate_limited');
+  ok(status(await photoAdd(V2, B, '!!!')) === 'rate_limited', '★30枚を超えた人が読めない中身を送る → rate_limited（image_bad ではない ＝ 読む前に数えている）');
   await db.query(`delete from public.pv_stay_photos where id::text in (select jsonb_array_elements_text($1::jsonb))`, [J(filler)]);
   ok((await photoAdd(V2, B, jpegN(14))).ok === true, '（数合わせを消せば入る）');
 }
@@ -1400,7 +1408,7 @@ let N1;
   const v1 = await stays(V1);
   ok(v1.others.length === 1 && keys(v1.others[0]) === 'airline,places' && v1.others[0].airline === 'jal'
      && v1.others[0].places.length === 1 && v1.others[0].places[0].name === 'テスト用ホテルJ1'
-     && keys(v1.others[0].places[0]) === 'address,age,city,id,kind,maps_url,mine,name,note,photos,state',
+     && keys(v1.others[0].places[0]) === 'address,age,city,id,kind,maps_url,mine,name,note,photos,state,stay_hours',
      '他社のホテルが会社ごとに出る（食べる所・別の空港・他人の確認前は出ない）', J(v1.others));
   const v2 = await stays(V2);
   ok(v2.others.map((o) => o.airline).join(',') === 'ana,jal' && v2.others[0].places[0].mine === true
@@ -1421,7 +1429,7 @@ console.log('\n▼ 運営の待ち行列');
   ok(q.ok === true && keys(q) === 'ok,photos,places', '運営: 待ち行列が返る（欄は ok・places・photos）', keys(q));
   const n1 = q.places.find((p) => p.id === N1);
   ok(n1 && n1.airline === 'ana' && n1.iata === 'NRT' && q.places.every((p) => p.state === 'pending')
-     && keys(n1) === 'address,age,airline,city,iata,id,kind,maps_url,mine,name,note,photos,rev,state',
+     && keys(n1) === 'address,age,airline,city,iata,id,kind,maps_url,mine,name,note,photos,rev,state,stay_hours',
      '確認待ちの場所だけが、会社と空港つきで並ぶ（版の印 rev つき）', J(n1));
   ok(q.photos.length > 0 && q.photos.every((f) => keys(f) === 'airline,iata,id,kind,mine,name,place,place_state'),
      '確認待ちの写真が、どの場所のものかと一緒に並ぶ', J(q.photos[0]));
@@ -1570,14 +1578,14 @@ console.log('\n▼ 直す ── 書いた本人だけ・直したら確認待�
 {
   /* 表の行をそのまま読む（オーナーとして）。直す前後を1文字ずつ比べるため */
   const rowOf = async (id) => one(
-    `select airline, iata, kind, name, address, maps_url, note, city, state, author_hash,
+    `select airline, iata, kind, name, address, maps_url, note, city, stay_hours, state, author_hash,
             created_at::text as c, moderated_at is not null as checked, updated_at is not null as touched,
             edit_from is not null as boxed, edit_n
        from public.pv_stay_places where id = $1`, [id]);
   const hel = (who) => stays(who, 'etihad', 'HEL');
   const FULL = { kind: 'hotel', name: 'テスト用ホテルH1', address: 'テスト用の住所 9-9-9',
                  maps_url: 'https://maps.app.goo.gl/TestH1', note: 'テスト用のメモH。\n2行目。', city: 'テスト市' };
-  const ITEM11 = 'address,age,city,id,kind,maps_url,mine,name,note,photos,state';
+  const ITEM12 = 'address,age,city,id,kind,maps_url,mine,name,note,photos,state,stay_hours';
 
   /* 都市つきで足す → 運営が公開 → 写真を1枚付けて、それも公開 */
   const h = await addFresh(V1, P('etihad', 'HEL', FULL.kind, FULL.name, FULL));
@@ -1599,7 +1607,7 @@ console.log('\n▼ 直す ── 書いた本人だけ・直したら確認待�
                 await upd(V1, { id: H }),                                                    // 欄を1つも送らない
                 await upd(V1, { id: H, airline: 'jal', iata: 'KIX' })];                      // 会社と空港は読まない
   ok(same.every((r) => r.ok === true && r.changed === false && keys(r) === 'changed,item,ok'
-                       && keys(r.item) === ITEM11 && r.item.id === H && r.item.state === 'public' && r.item.mine === true),
+                       && keys(r.item) === ITEM12 && r.item.id === H && r.item.state === 'public' && r.item.mine === true),
      '★何も変えない送り直しは changed:false（公開のまま。確認待ちへ戻さない）', J(same.map((r) => [r.ok, r.changed, r.item && r.item.state])));
   ok(J(await rowOf(H)) === J(r0) && r0.state === 'public' && r0.touched === false && r0.edit_n === 0
      && r0.airline === 'etihad' && r0.iata === 'HEL',
@@ -1623,8 +1631,8 @@ console.log('\n▼ 直す ── 書いた本人だけ・直したら確認待�
 
   /* 本人が直す → 確認待ちへ戻る */
   const e1 = await upd(V1, { id: H, name: '  テスト用ホテルH1 新館 ', city: 'テスト新市' });
-  ok(e1.ok === true && e1.changed === true && keys(e1) === 'changed,item,ok' && keys(e1.item) === ITEM11,
-     '本人は直せる（返る欄は changed・item・ok／item は一覧と同じ11個）', J(e1));
+  ok(e1.ok === true && e1.changed === true && keys(e1) === 'changed,item,ok' && keys(e1.item) === ITEM12,
+     '本人は直せる（返る欄は changed・item・ok／item は一覧と同じ12個）', J(e1));
   ok(e1.item.id === H && e1.item.state === 'pending' && e1.item.mine === true
      && e1.item.name === 'テスト用ホテルH1 新館' && e1.item.city === 'テスト新市'
      && e1.item.address === FULL.address && e1.item.maps_url === FULL.maps_url && e1.item.note === FULL.note
@@ -1758,6 +1766,145 @@ console.log('\n▼ 直す ── 書いた本人だけ・直したら確認待�
 }
 
 // ════════════════════════════════════════════════════════════════
+console.log('\n▼ ステイ時間（stay_hours）── ホテルだけ・1〜240 の整数・書かなくてもよい');
+{
+  /* 上の節が V1 の「直した回数」を上限の近くまで使っている。箱を空にしてから始める */
+  await db.query(`update public.pv_stay_places set edit_n = 0, edit_from = null where author_hash = $1`, [hashOf(V1)]);
+  const osl = (who) => stays(who, 'etihad', 'OSL');
+  const rowS = async (id) => one(
+    `select kind, stay_hours, state, moderated_at is not null as checked, edit_n
+       from public.pv_stay_places where id = $1`, [id]);
+  const total = async () => (await one(`select count(*)::int as n from public.pv_stay_places`)).n;
+  const hrs = (r) => (r && r.item) ? r.item.stay_hours : 'ERR ' + status(r);
+  const H12 = 'address,age,city,id,kind,maps_url,mine,name,note,photos,state,stay_hours';
+
+  /* 付けて足す → そのまま返る → 公開されると、ほかのパイロットにも同じ数で見える */
+  const s1 = await addFresh(V1, P('etihad', 'OSL', 'hotel', 'テスト用ホテルS1', { stay_hours: 24 }));
+  const S1 = s1.item && s1.item.id;
+  ok(s1.ok === true && keys(s1.item) === H12 && s1.item.stay_hours === 24 && s1.item.state === 'pending'
+     && (await rowS(S1)).stay_hours === 24,
+     'ホテルにステイ時間を付けて足せる（24 がそのまま返る・表にも 24・確認待ちで入る）', J(s1));
+  const op24 = find(await osl(OP), S1);          // 運営が見た版（24時間）
+  ok((await moderate(OP, 'place', S1, 'public')).ok === true, '（運営が公開する）');
+  const v2a = find(await osl(V2), S1);
+  const v2o = (await stays(V2, 'jal', 'OSL')).others.flatMap((o) => o.places).find((x) => x.id === S1);
+  ok(v2a && v2a.stay_hours === 24 && v2a.mine === false && v2a.state === 'public' && keys(v2a) === H12
+     && v2o && v2o.stay_hours === 24,
+     '★公開されると、別の印を持つ人にも 24 で見える（一覧でも・「同じ空港で他社が使うホテル」の側でも）', J([v2a, v2o]));
+
+  /* 1〜240 の整数でないもの ── 弾く。丸めて通さない */
+  const n0 = await total();
+  const BAD = [['0', 0], ['241', 241], ['1.5（小数）', 1.5], ["'abc'", 'abc'], ['負の数', -3], ["小数の文字 '1.5'", '1.5'],
+               ["単位つき '24h'", '24h'], ['全角の数字', '２４'], ['とても大きい数', 1e30], ['真偽', true],
+               ['入れ物 [24]', [24]], ['入れ物 {h:24}', { h: 24 }]];
+  for (const [label, v] of BAD) {
+    const r = await addFresh(V1, P('etihad', 'OSL', 'hotel', 'テスト用ホテルS2', { stay_hours: v }));
+    ok(status(r) === 'bad_hours' && keys(r) === 'ok,status', `ステイ時間が ${label} → bad_hours`, J(r));
+  }
+  /* 弾く順番は 種別 → 名前 → 住所 → メモ → 都市 → ステイ時間 */
+  ok(status(await addFresh(V1, P('etihad', 'OSL', 'hotel', 'テスト用ホテルS2', { city: 'あ'.repeat(61), stay_hours: 0 }))) === 'bad_city'
+     && status(await addFresh(V1, P('etihad', 'OSL', 'hotel', 'A', { stay_hours: 0 }))) === 'bad_name',
+     '都市もステイ時間もだめなら bad_city が先・名前もだめなら bad_name が先');
+  ok(J(await add(U, P('etihad', 'OSL', 'hotel', 'テスト用ホテルS2', { stay_hours: 0 }))) === LOCKED,
+     '資格の無い会員には、変な時間を送っても bad_hours とは答えない（locked だけ）');
+  ok((await total()) === n0, '↑ 弾かれたものは1行も入っていない', `${n0} → ${await total()}`);
+
+  /* 通る側の端 */
+  const lo = await addFresh(V1, P('etihad', 'OSL', 'hotel', 'テスト用ホテルS3', { stay_hours: 1 }));
+  const hi = await addFresh(V1, P('etihad', 'OSL', 'hotel', 'テスト用ホテルS4', { stay_hours: 240 }));
+  const tx = await addFresh(V1, P('etihad', 'OSL', 'hotel', 'テスト用ホテルS5', { stay_hours: ' 36 ' }));
+  ok(hrs(lo) === 1 && hrs(hi) === 240 && hrs(tx) === 36,
+     '通る側の端: 1・240・数字だけの文字（前後の空白つき）は、その整数で入る', J([hrs(lo), hrs(hi), hrs(tx)]));
+
+  /* ホテルでなければ、付けて送っても保存しない（弾きもしない） */
+  const fo = await addFresh(V1, P('etihad', 'OSL', 'food', 'テスト用レストランS6', { stay_hours: 24 }));
+  const sp = await addFresh(V1, P('etihad', 'OSL', 'spot', 'テスト用スポットS7', { stay_hours: 'abc' }));
+  ok(fo.ok === true && fo.item.kind === 'food' && fo.item.stay_hours === null && keys(fo.item) === H12
+     && (await rowS(fo.item.id)).stay_hours === null,
+     '★食べる所にステイ時間を付けて送っても通る・保存はしない（null で返る・欄は在る）', J(fo));
+  ok(sp.ok === true && sp.item.stay_hours === null, '行く所も同じ（読まないので、数でない値が付いていても弾かない）', J(sp));
+
+  /* 書かないホテル */
+  const d1 = await addFresh(V1, P('etihad', 'OSL', 'hotel', 'テスト用ホテルS8'));
+  const d2 = await addFresh(V1, P('etihad', 'OSL', 'hotel', 'テスト用ホテルS9', { stay_hours: null }));
+  const d3 = await addFresh(V1, P('etihad', 'OSL', 'hotel', 'テスト用ホテルS10', { stay_hours: ' 　 ' }));
+  ok(d1.ok === true && d1.item.stay_hours === null && keys(d1.item) === H12 && (await rowS(d1.item.id)).stay_hours === null,
+     'ステイ時間を書かないホテルは null（0 で埋めない・欄は在る）', J(d1));
+  ok(hrs(d2) === null && hrs(d3) === null, 'null・空白だけ を送っても「書いていない」と同じ（null）', J([hrs(d2), hrs(d3)]));
+
+  /* ★関数を通さずに表へ入れる道でも、決まりは表の CHECK が止める */
+  const direct = async (kind, h) => {
+    try {
+      await db.query(`insert into public.pv_stay_places (author_hash, airline, iata, kind, name, stay_hours)
+                      values ($1, 'etihad', 'OSL', $2, 'テスト用の直接書き込みS', $3)`, [hashOf(V1), kind, h]);
+      return 'in';
+    } catch (e) { return /pv_stay_places_hours_ck/.test(String(e.message)) ? 'ck' : String(e.message); }
+  };
+  const dr = [await direct('food', 24), await direct('spot', 1), await direct('hotel', 0), await direct('hotel', 241), await direct('hotel', -1)];
+  ok(dr.every((x) => x === 'ck'), '★表に直接書いても、ホテル以外のステイ時間・0・241・負の数は入らない（CHECK）', J(dr));
+  ok((await one(`select count(*)::int as n from public.pv_stay_places where name = 'テスト用の直接書き込みS'`)).n === 0, '↑ 1行も入っていない');
+
+  /* 本人がステイ時間だけを直す（24 → 30）── 中身を直したのと同じ扱い */
+  const u1 = await upd(V1, { id: S1, stay_hours: 30 });
+  const r1 = await rowS(S1);
+  ok(u1.ok === true && u1.changed === true && keys(u1) === 'changed,item,ok' && keys(u1.item) === H12
+     && u1.item.stay_hours === 30 && u1.item.state === 'pending' && u1.item.name === 'テスト用ホテルS1' && u1.item.kind === 'hotel',
+     '★ステイ時間だけを直せる（24 → 30）: changed:true・確認待ち（pending）へ戻る・ほかの欄はそのまま', J(u1));
+  ok(r1.stay_hours === 30 && r1.state === 'pending' && r1.checked === false && r1.edit_n === 1,
+     '表: 30・pending・運営が見た時刻は空・直した回数は1', J(r1));
+  ok(!find(await osl(V2), S1), '↑ 直したあとは、運営が見るまでほかのパイロットに出ない');
+
+  /* 版の印 ── ステイ時間だけが違っても、別の版 */
+  const op30 = find(await osl(OP), S1);
+  const q30 = (await queue(OP)).places.find((x) => x.id === S1);
+  ok(/^[0-9a-f]{16}$/.test(String(op24 && op24.rev)) && /^[0-9a-f]{16}$/.test(String(op30 && op30.rev))
+     && op30.rev !== op24.rev && q30 && q30.rev === op30.rev && q30.stay_hours === 30,
+     '★ステイ時間だけが違えば、版の印（rev）も違う（運営の一覧と待ち行列では同じ値）', J([op24 && op24.rev, op30 && op30.rev, q30 && q30.rev]));
+  const rv = await one(
+    `select public.pv_stay_rev(s) as cur,
+            public.pv_stay_rev(jsonb_populate_record(s, '{"stay_hours":24}'::jsonb))   as h24,
+            public.pv_stay_rev(jsonb_populate_record(s, '{"stay_hours":31}'::jsonb))   as h31,
+            public.pv_stay_rev(jsonb_populate_record(s, '{"stay_hours":null}'::jsonb)) as h0
+       from public.pv_stay_places s where s.id = $1`, [S1]);
+  ok(rv.cur === op30.rev && rv.h24 === op24.rev && new Set([rv.cur, rv.h24, rv.h31, rv.h0]).size === 4,
+     '↑ 印を作る式そのものでも同じ（ほかの欄が同じまま 24・30・31・空 で4通りに分かれる。24 に戻せば前の印と同じ）', J(rv));
+  ok(status(await moderate(OP, 'place', S1, 'public', op24.rev)) === 'changed' && (await rowS(S1)).state === 'pending',
+     '★24時間の版を見た運営は、30時間へ直された版をその印では通せない（changed・確認待ちのまま）');
+  ok((await moderate(OP, 'place', S1, 'public', op30.rev)).ok === true
+     && (find(await osl(V2), S1) || {}).stay_hours === 30, '運営が今の版の印で通すと、直した時間（30）でまた出る');
+
+  /* 同じ数の送り直し ── 何も変わらない */
+  const r2 = await rowS(S1);
+  const same = [await upd(V1, { id: S1, stay_hours: 30 }), await upd(V1, { id: S1, stay_hours: '30' }), await upd(V1, { id: S1 })];
+  ok(same.every((r) => r.ok === true && r.changed === false && r.item.stay_hours === 30 && r.item.state === 'public'),
+     '★同じ時間を送り直しても changed:false（数字の文字で送っても・欄を送らなくても同じ）', J(same.map((r) => [r.ok, r.changed, hrs(r)])));
+  ok(J(await rowS(S1)) === J(r2) && r2.state === 'public' && r2.checked === true && r2.edit_n === 1 && !!find(await osl(V2), S1),
+     '↑ 状態は公開のまま（確認待ちへ戻さない）・回数も進まない・ほかの人にも出たまま', J(r2));
+
+  /* 直す口も同じ検品 */
+  const ub = [await upd(V1, { id: S1, stay_hours: 0 }), await upd(V1, { id: S1, stay_hours: 241 }),
+              await upd(V1, { id: S1, stay_hours: 1.5 }), await upd(V1, { id: S1, stay_hours: 'abc' })];
+  ok(ub.every((r) => status(r) === 'bad_hours' && keys(r) === 'ok,status') && J(await rowS(S1)) === J(r2),
+     "直す口も同じ: 0・241・1.5・'abc' → bad_hours（行は1文字も変わらない・公開のまま）", J(ub.map(status)));
+
+  /* 種別をホテルからほかへ直す ── 送らなくても消える */
+  const uf = await upd(V1, { id: S1, kind: 'food' });
+  ok(uf.ok === true && uf.changed === true && uf.item.kind === 'food' && uf.item.stay_hours === null && uf.item.state === 'pending'
+     && (await rowS(S1)).stay_hours === null,
+     '★種別をホテルから食べる所へ直すと、ステイ時間は消える（送らなくても null・表にも残らない）', J(uf));
+  const uk = await upd(V1, { id: S1, stay_hours: 30 });
+  ok(uk.ok === true && uk.changed === false && uk.item.stay_hours === null,
+     '食べる所になった場所にステイ時間だけを送っても、何も変わらない（弾かない・保存しない）', J(uk));
+  const uh = await upd(V1, { id: S1, kind: 'hotel' });
+  ok(uh.ok === true && uh.changed === true && uh.item.kind === 'hotel' && uh.item.stay_hours === null,
+     'ホテルへ戻しても、前の時間は戻らない（書き直してもらう）', J(uh));
+  const u48 = await upd(V1, { id: S1, stay_hours: 48 });
+  const un = await upd(V1, { id: S1, stay_hours: null });
+  ok(hrs(u48) === 48 && u48.changed === true && un.changed === true && hrs(un) === null && (await rowS(S1)).stay_hours === null,
+     'ホテルに戻したあとは、また付けられる（48）・null を送れば消える', J([hrs(u48), hrs(un)]));
+}
+
+// ════════════════════════════════════════════════════════════════
 console.log('\n▼ 全部の返事をまとめて見る（漏れが無いか）');
 {
   /* 1) 資格の無い人へ返ったものは、決まった定型文のどれかと完全に同じ */
@@ -1783,15 +1930,16 @@ console.log('\n▼ 全部の返事をまとめて見る（漏れが無いか）'
 
   /* 3) 欄の名前は決めたものだけ（件数の欄を足していない） */
   const ALLOWED = new Set(['ok', 'state', 'status', 'can_add', 'is_operator', 'places', 'others', 'airline', 'iata',
-    'id', 'kind', 'name', 'address', 'maps_url', 'note', 'city', 'age', 'mine', 'photos', 'item', 'photo',
+    'id', 'kind', 'name', 'address', 'maps_url', 'note', 'city', 'stay_hours', 'age', 'mine', 'photos', 'item', 'photo',
     'mime', 'w', 'h', 'b64', 'target', 'place', 'place_state', 'changed', 'rev']);
   const used = new Set();
   const walk = (v) => { if (Array.isArray(v)) v.forEach(walk); else if (v && typeof v === 'object') for (const k of Object.keys(v)) { used.add(k); walk(v[k]); } };
   for (const s of seen) walk(JSON.parse(s.json));
   const extra = [...used].filter((k) => !ALLOWED.has(k));
   ok(extra.length === 0 && ![...used].some((k) => /count|total|hash|uid|user|_at$/.test(k)),
-     '返事に出る欄は決めた30個の中だけ（件数・ハッシュ・時刻の欄が無い）', J(extra));
-  ok(ALLOWED.size === 30 && used.has('city') && used.has('changed'), '（都市と「変わったか」の欄は、実際に返っている）', String(ALLOWED.size));
+     '返事に出る欄は決めた31個の中だけ（件数・ハッシュ・時刻の欄が無い）', J(extra));
+  ok(ALLOWED.size === 31 && used.has('city') && used.has('stay_hours') && used.has('changed'),
+     '（都市・ステイ時間・「変わったか」の欄は、実際に返っている）', String(ALLOWED.size));
   ok(used.has('rev') && seen.filter((s) => /"rev"/.test(s.json)).every((s) => s.who === OP || s.who === OP2),
      '★版の印（rev）は、運営への返事にしか出ない');
 
@@ -1846,9 +1994,9 @@ console.log('\n▼ SQL の書き方（読んで確かめる）');
   const pj = fn('pv_stay_place_json');
   ok(pj !== '' && !/created_at/.test(pj.replace(/public\.pv_stay_age\(s\.created_at\)/, '')) && /order by f\.id\)/.test(pj),
      '★1件を返す形の中で、時刻を使うのは段（age）の1か所だけ・写真の並びは id の順');
-  ok(!/updated_at|edit_from|edit_n|moderated_at/.test(pj) && /'city',\s+s\.city,/.test(pj)
+  ok(!/updated_at|edit_from|edit_n|moderated_at/.test(pj) && /'city',\s+s\.city,\s+'stay_hours',\s+s\.stay_hours,/.test(pj)
      && /'mine',\s+coalesce\(s\.author_hash = p_me, false\)/.test(pj),
-     '★1件を返す形に、直した時刻・直した回数が入っていない／都市は入っている／mine は「自分のか」の真偽だけ');
+     '★1件を返す形に、直した時刻・直した回数が入っていない／都市とステイ時間は入っている／mine は「自分のか」の真偽だけ');
   /* 直す口 ── 資格は門をそのまま呼ぶ・検品の式を写していない・会社と空港に触れない・直したら確認待ち */
   const ad = fn('pv_stay_add'), up = fn('pv_stay_update'), cl = fn('pv_stay_clean'), cs = fn('pv_stay_clash');
   ok(up !== '' && /v_role := public\.pv_stay_role\(\);\s+if v_role is null then\s+return jsonb_build_object\('ok', false, 'status', 'locked'\);/.test(up)
@@ -1878,6 +2026,11 @@ console.log('\n▼ SQL の書き方（読んで確かめる）');
   /* 保存する前に、サーバーで作り直している（届いたバイト列をそのまま入れていない） */
   const pa = fn('pv_stay_photo_add');
   const REBUILD = 'select r.body, r.w, r.h into v_bytes, v_w, v_h from public.pv_jpeg_read(v_raw) r;';
+  /* 人ごとの錠と2つの上限は、写真を読む（decode・作り直し）より前に在る */
+  ok(pa.indexOf('pg_advisory_xact_lock') > 0 && pa.indexOf('pg_advisory_xact_lock') < pa.indexOf("'rate_limited'")
+     && pa.indexOf("'rate_limited'") < pa.indexOf("'full'") && pa.indexOf("'full'") < pa.indexOf('decode(v_b64')
+     && pa.indexOf('decode(v_b64') < pa.indexOf(REBUILD),
+     '★写真を足す口の順番は「人ごとの錠 → 1日の上限 → 1か所の上限 → 写真を読む」');
   ok(pa.indexOf(REBUILD) > 0 && pa.indexOf(REBUILD) < pa.indexOf('insert into public.pv_stay_photos')
      && (code.match(/insert into public\.pv_stay_photos/g) || []).length === 1
      && /values \(v_pid, v_me, v_bytes, octet_length\(v_bytes\), v_w, v_h\)/.test(pa),
@@ -1901,7 +2054,7 @@ console.log('\n▼ SQL の書き方（読んで確かめる）');
 console.log('\n▼ 冪等性（データが入った状態でもう一度流す）');
 {
   const snap = async () => J({
-    places: (await db.query(`select id, author_hash, airline, iata, kind, name, address, maps_url, note, city, state, created_at,
+    places: (await db.query(`select id, author_hash, airline, iata, kind, name, address, maps_url, note, city, stay_hours, state, created_at,
                                       moderated_at, updated_at, edit_from, edit_n
                                from public.pv_stay_places order by id`)).rows,
     photos: (await db.query(`select id, place_id, author_hash, md5(bytes) as m, byte_len, w, h, state, created_at

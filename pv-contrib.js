@@ -214,7 +214,8 @@
     root: null, sheet: null, title: null, prev: null, main: null,
     open: false, view: '', from: null, viaList: false, pushed: false,
     skipPop: false, onSkip: null, queue: null, tok: 0, hideT: 0, taken: {},
-    focusQ: '', focusT: ''
+    focusQ: '', focusT: '',
+    ctx: ''                                 // どの街の詳細から開かれたか（暮らしのタブ）。面を開き直すたびに決め直す
   };
   /* 本人の投稿。k ＝ idle／loading／ok／anon／off／fail
      held ＝ いま見えているのは、ログインせずに預けた回答（控えの鍵で読んだもの） */
@@ -635,8 +636,12 @@
     { k: 'roster', t: '勤務スケジュール', q: '休みの希望、スタンバイ、スケジュールの出る時期は？', view: 'roster' },
     { k: 'career', t: '訓練・キャリア', q: '訓練費の返還、経験者採用、自社養成の条件は？', view: 'career' },
     { k: 'benefits', t: '休暇・手当', q: '年休、病欠、着陸・地上勤務の手当は？', view: 'benefits' },
-    { k: 'stay', t: 'ホテル・ステイ', q: 'パイロット限定', href: 'career.html?airline={s}&tab=life' }
+    { k: 'stay', t: 'ホテル・ステイ', q: 'パイロット限定', tab: 'stay', href: 'career.html?airline={s}&tab=life' }
   ];
+  /* このページが「ステイ先」のタブを持っているか（持っていれば、ほかの画面へ送り出さない） */
+  function ownTab(tab) {
+    return !!(tab && w.PVGlance && typeof w.PVGlance.go === 'function' && d.getElementById('pvg-' + tab));
+  }
   /* ログインせずに預けた回答があるときに出す1枚。ここからログインすると、開いたときに引き継がれる。 */
   function heldBox(title, lines) {
     var b = el('div', 'pvc-held', null, { 'data-pvc-held': '' });
@@ -686,6 +691,15 @@
       if (t.view) {
         n = el('button', 'pvc-tile', null, { type: 'button', 'data-pvc-tile': t.k });
         n.addEventListener('click', function () { show(t.view); });
+      } else if (ownTab(t.tab)) {
+        /* 同じページのタブへ。面を閉じて切り替える ＝「戻る」は開く前のタブへ戻る。
+           別のタブで開く押し方は、ブラウザに任せる（#stay がそのまま開く）。 */
+        n = el('a', 'pvc-tile', null, { href: '#' + t.tab, 'data-pvc-tile': t.k });
+        n.addEventListener('click', function (e) {
+          if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button) return;
+          e.preventDefault();
+          leaveTo(t.tab);
+        });
       } else {
         n = el('a', 'pvc-tile', null, { href: ROOT + t.href.replace('{s}', function () { return enc(s); }), 'data-pvc-tile': t.k });
       }
@@ -1283,6 +1297,8 @@
     var n = new Date(), parts = [coName()];
     var lastRow = M.work.k === 'ok' && M.work.rows.length ? M.work.rows[0] : null;
     if (lastRow && posLabel(lastRow.position)) parts.push(posLabel(lastRow.position));
+    var town = topic === 'taxi' ? S.ctx : '';
+    if (town) parts.push(town + 'からの通勤');
     parts.push(n.getFullYear() + '年' + (n.getMonth() + 1) + '月');
     ctx.appendChild(el('p', 'pvc-ctx-line', parts.join(' · ')));
     f.appendChild(ctx);
@@ -1395,7 +1411,7 @@
       var ta = el('textarea', 'pvc-area pvc-area-s', null, {
         name: q.id + '_note', id: 'pvc-n-' + q.id, rows: '2', maxlength: String(max),
         'aria-label': q.ja.label + 'の補足（任意）',
-        placeholder: '条件や例外など、選択肢で言い切れないことがあれば'
+        placeholder: town ? town + 'から通う場合のことなど、選択肢で言い切れないことがあれば' : '条件や例外など、選択肢で言い切れないことがあれば'
       });
       ta.value = tx0;
       ta.addEventListener('input', function () { t.notes[q.id] = ta.value; t.noteDirty[q.id] = true; });
@@ -1669,6 +1685,8 @@
     if (!slug() || !d.body) return false;
     if (S.skipPop) { S.queue = function () { openSheet(o); }; return true; }
     build();
+    /* 街の詳細から開かれた回は、その街の名前を持って入る（字として見せるだけ。答えには勝手に書き足さない） */
+    S.ctx = trim(o && o.ctx).slice(0, 40);
     /* 「この質問から答える」で開かれた回は、その質問の所まで送る（show が別の話題へ移るときに忘れる） */
     if (isGroup(t) && QID.test(fq)) { S.focusQ = fq; S.focusT = t; }
     if (S.open) { show(t); return true; }
@@ -1681,6 +1699,8 @@
     d.documentElement.classList.add('pvc-lock');
     if (o && o.adopt) S.pushed = true;
     else {
+      /* 開く前の位置を、いまの段に書き留めてから積む（面からほかのタブへ行ったあと「戻る」で同じ所へ帰る） */
+      if (w.PVGlance && typeof w.PVGlance.mark === 'function') w.PVGlance.mark();
       try { history.pushState({ pvc: 1, t: t }, '', location.href); S.pushed = true; } catch (e) { S.pushed = false; }
     }
     loadMine(true);
@@ -1689,6 +1709,21 @@
     S.root.classList.add('is-in');
     track('contrib_open', t);
     return true;
+  }
+  /* 面を閉じて、同じページの別のタブへ。
+     ⚠️ 積んだ1段を降りてからタブの段を積み直さない。降りるのは時間差で届くので、
+        （1）降りた先の位置をブラウザがあとから置き直して、切り替えたタブが途中から始まる
+        （2）混んだ回に降りるのが遅れると、積んだタブの段のほうが降ろされる
+        の2つが起きる。面のために積んだ1段を、そのまま行き先のタブの段に書き換える（待つものが無い）。
+        「戻る」は開く前の段へ ＝ 開く前のタブと位置（openSheet が位置を書き留めている）。 */
+  function leaveTo(tab) {
+    var G = w.PVGlance, pushed = S.pushed;
+    if (!ownTab(tab)) return;
+    /* もうそのタブの一覧に居る：行き先が無いので、積んだ1段を降りて閉じるだけ（焦点は開いたボタンへ返す） */
+    if (G.at() === tab && !(typeof G.city === 'function' && G.city())) { close(false); return; }
+    S.from = null;                          // 行き先は別のタブ。開いたボタンへ焦点を返さない
+    close(true);                            // 履歴には触れずに閉じる
+    G.go(tab, { replace: pushed });
   }
   function close(viaPop) {
     if (!S.open) return;
@@ -1746,7 +1781,7 @@
     var t = e.target && e.target.closest ? e.target.closest('[data-pvc-open]') : null;
     if (!t || !slug()) return;
     e.preventDefault();
-    openSheet({ topic: t.getAttribute('data-pvc-open'), q: t.getAttribute('data-pvc-q'), from: t });
+    openSheet({ topic: t.getAttribute('data-pvc-open'), q: t.getAttribute('data-pvc-q'), ctx: t.getAttribute('data-pvc-ctx'), from: t });
   }
   /* ?add=<話題>&aq=<質問> で来た回。読んだら住所から外す（読み直しのたびに開かない）。 */
   function takeAdd() {

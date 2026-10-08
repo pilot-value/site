@@ -3,7 +3,8 @@
  * 写真は assets/places/ に置く。**ここに書いていない写真を置かない**
  * （出所とライセンスが分からない写真は使えない）。
  *
- * ・鍵は2種類。就航地 = IATA の英大文字3字（NRT）／アブダビの街 = 小文字の名前（alraha）。
+ * ・鍵は2種類。就航地 = IATA の英大文字3字（NRT）／街 = 小文字の名前
+ *   （アブダビは career-facts.mjs の街の鍵・alraha／東京・香港・台北は living-facts.mjs の地区の鍵・ota）。
  *   **言えるのは「就航地」まで。** 乗員が泊まる街かどうかは確かめていないので、
  *   ファイル名も dest-（destination）で、stay とは書かない。
  * ・各鍵の1枚目が画面に出る写真（primary）。
@@ -21,13 +22,30 @@
  * クレジット：CC BY / CC BY-SA は「作者名とライセンス名を示すこと」が使う条件。
  * 画面のクレジットはここから機械で書く（needsCredit）。CC0 には出さない。
  * 作者名は出所のページ（Wikimedia Commons）に書いてあるとおり。作者が書き方を
- * 指定している写真（MUC・ZRH）は、その指定のまま。
+ * 指定している写真（MUC・ZRH・FCO・KTI）は、その指定のまま。
+ *   FCO … 作者の指定は「DAVID ILIFF」（アカウント名の Diliff ではなく）。ライセンスは写真のページの札
+ *         （CC BY 3.0）のとおり。作者の説明ページは CC BY-SA 3.0 の URL を挙げている ── どちらでも
+ *         作者名とライセンスを示せば載せられる。こちらで作り変えたものを別の条件で配ることはしない。
+ *   KTI … 作者の指定は「Photo: Marcin Konsek / Wikimedia Commons」。
  *
  * ★確かめ方（2026-10-04）。1枚ずつ Commons の API で作者・ライセンスを取り、
  *   手元の元ファイルが、そのページの 960px 版と1バイトも違わないことを突き合わせた。
  *   削除の申し立て・出所なし・ライセンス未確認の札が付いているものは無かった。
  *   ⚠️ 確かめたのは**写真そのもののライセンス**まで。写っている建物・像の権利は、
  *   出所のページが自分で断っているかどうかしか見ていない（断っている写真は下の HELD）。
+ *
+ * ★2巡目（2026-10-08・就航地 57枚）。確かめ方は上と同じ。断りの札が付いた写真は選んでいない
+ *   （付いていたのは「日本では建物を自由に撮って使える」という許す側の札＝UKB と、
+ *   ライセンスの確認票＝IAH だけ。IAH は撮った人の持ち込みではなく、写真サイトからの転載を
+ *   Commons の係が確かめた1枚）。
+ *   ・建物を自由に撮って使える決まりが無い国は、**権利の切れた古い建物**（HAN・SGN・KTI）か、
+ *     **1棟が主役にならない広い眺め**（GMP・CMB・JNB）を選んだ。ここはこちらの読みで、
+ *     出所のページが保証しているわけではない。止めるなら HELD へ移す（オーナー判断）。
+ *   ・作者名のうち3つは、出所の欄に付いていた飾りだけを外した（署名の「(talk)」「by」「User:」
+ *     ── LAX・KCZ・HGH）。名前そのものは変えていない。
+ *   ・subject の街は「写っている場所」。SHA は静安寺のあたり（虹橋そのものではない）・
+ *     KMQ は駅前の広場（街の広い眺めではない）・HND は東京湾側（NRT の新宿とは別の眺め）。
+ *   ・縦長は増えていない。
  */
 
 export const PHOTO_DIR = 'assets/places';
@@ -138,7 +156,7 @@ export const PHOTOS = {
   ],
   FCO: [
     { file: 'dest-fco', orig: 'destination-fco.jpg', subject: 'トレヴィの泉（ローマ）', w: 960, h: 638,
-      author: 'Diliff', ...BY_3, changes: CHANGES,
+      author: 'DAVID ILIFF', ...BY_3, changes: CHANGES,
       source: 'https://commons.wikimedia.org/wiki/File:Trevi_Fountain,_Rome,_Italy_2_-_May_2007.jpg' },
   ],
   ZRH: [
@@ -183,6 +201,293 @@ export const PHOTOS = {
       source: 'https://commons.wikimedia.org/wiki/File:Toronto_Skyline_from_Snake_Island,_September_11_2026_(01).jpg' },
   ],
 
+  /* ── 就航地・2巡目（2026-10-08・57枚。先行5社の就航地のうち、乗り入れる会社が多い空港から） ── */
+  PVG: [
+    { file: 'dest-pvg', orig: 'destination-pvg.jpg', subject: '黄浦江越しに見る東方明珠塔と陸家嘴の高層ビル群（上海・浦東）', w: 960, h: 720,
+      author: 'YouTable', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Lujiazui_from_the_Bund_riverside.jpg' },
+  ],
+  FUK: [
+    { file: 'dest-fuk', orig: 'destination-fuk.jpg', subject: '上空から見た福岡タワーとシーサイドももちの砂浜・ビル群（福岡）', w: 960, h: 720,
+      author: 'Nryate', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Fukuoka_Skyline_of_Seaside_Momochi.jpg' },
+  ],
+  PEK: [
+    { file: 'dest-pek', orig: 'destination-pek.jpg', subject: '線路と瓦屋根の建物の向こうに並ぶCBDの高層ビル群（北京）', w: 960, h: 640,
+      author: 'N509FZ', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Skyline_of_Beijing_CBD_from_the_southeast_(20210907094201).jpg' },
+  ],
+  CAN: [
+    { file: 'dest-can', orig: 'destination-can.jpg', subject: '珠江の対岸に立つ2本の超高層ビルと珠江新城のビル群（広州）', w: 960, h: 641,
+      author: 'xiquinhosilva', ...BY_2, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:02540-Guangzhou.jpg' },
+  ],
+  LAX: [
+    { file: 'dest-lax', orig: 'destination-lax.jpg', subject: '雪を頂いた山並みを背にしたダウンタウンの高層ビル群と手前の住宅（ロサンゼルス）', w: 960, h: 574,
+      author: 'BDS2006', ...BY_3, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Los_Angeles_Skyline_telephoto.jpg' },
+  ],
+  YVR: [
+    { file: 'dest-yvr', orig: 'destination-yvr.jpg', subject: 'ヨットの浮かぶ入り江とスタジアム、ダウンタウンのビル群、手前にカナダ国旗（バンクーバー）', w: 960, h: 640,
+      author: 'Quintin Soloviev', ...BY_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Skyline_of_Vancouver,_BC.jpg' },
+  ],
+  KMQ: [
+    { file: 'dest-kmq', orig: 'destination-kmq.jpg', subject: '上から見た小松駅前のロータリーと広場（小松）', w: 960, h: 720,
+      author: 'クハ４１９－５', ...BY_SA_3, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:%E5%B0%8F%E6%9D%BE%E9%A7%85_%E9%A7%85%E5%89%8D_%E3%83%90%E3%82%B9%E3%83%AD%E3%83%BC%E3%82%BF%E3%83%AA%E3%83%BC_-_panoramio.jpg' },
+  ],
+  MYJ: [
+    { file: 'dest-myj', orig: 'destination-myj.jpg', subject: '松山城の天守から見下ろす櫓と市街地、奥に山並み（松山）', w: 960, h: 647,
+      author: 'Zairon', ...BY_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Matsuyama_Matsuyama-jo_Keep_View_to_Matsuyama_27.jpg' },
+  ],
+  TSA: [
+    { file: 'dest-tsa', orig: 'destination-tsa.jpg', subject: '屋上が連なる民生社区の集合住宅と奥の山並み（台北・松山区）', w: 960, h: 540,
+      author: '玄史生', ...CC0,
+      source: 'https://commons.wikimedia.org/wiki/File:Northeast_Area_of_Minsheng_Community_and_Neihu_District_View_from_Taipei_City_Minsheng_Community_Center_20140920.jpg' },
+  ],
+  DFW: [
+    { file: 'dest-dfw', orig: 'destination-dfw.jpg', subject: '上空から見たダウンタウンの高層ビル群（ダラス）', w: 960, h: 721,
+      author: 'Eric Statzer', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Dallas_Skyline_-_Eric_Statzer.jpg' },
+  ],
+  BRU: [
+    { file: 'dest-bru', orig: 'destination-bru.jpg', subject: '市庁舎の塔とギルドハウスに囲まれたグラン＝プラスの石畳（ブリュッセル）', w: 960, h: 640,
+      author: 'Celuici', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Grand-Place,_Brussels_-_panorama,_June_2018_(cropped).jpg' },
+  ],
+  DPS: [
+    { file: 'dest-dps', orig: 'destination-dps.jpg', subject: '上空から見たサヌールの砂浜と青い海、赤い屋根と木立（バリ島・デンパサール）', w: 960, h: 720,
+      author: 'Magul', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Sanur_Beach,_Bali_2017-08-21_(20).jpg' },
+  ],
+  HKD: [
+    { file: 'dest-hkd', orig: 'destination-hkd.jpg', subject: '函館山から見下ろす雪の市街地と弧を描く海岸線（函館）', w: 960, h: 640,
+      author: '掬茶', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:East_view_from_Mount_Hakodate_in_snow.jpg' },
+  ],
+  ITM: [
+    { file: 'dest-itm', orig: 'destination-itm.jpg', subject: '梅田スカイビルから見た梅田の高層ビル群（大阪）', w: 960, h: 586,
+      author: 'Zairon', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Osaka_Umeda_Sky_Building_Panoramablick_05.jpg' },
+  ],
+  HIJ: [
+    { file: 'dest-hij', orig: 'destination-hij.jpg', subject: '元安川と原爆ドーム、川沿いの街並み（広島）', w: 960, h: 617,
+      author: 'DXR', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Atomic_Bomb_Dome_and_Motoyaso_River,_Hiroshima,_Northwest_view_20190417_1.jpg' },
+  ],
+  TAK: [
+    { file: 'dest-tak', orig: 'destination-tak.jpg', subject: '高台から見下ろす高松の市街地と瀬戸内海の島々（高松）', w: 960, h: 640,
+      author: 'Arabrity', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:%E9%AB%98%E6%9D%BE%E5%B8%82%E8%A1%97%E3%81%A8%E7%80%AC%E6%88%B8%E5%86%85%E6%B5%B7%E3%81%AE%E5%B3%B6%E3%80%85.jpg' },
+  ],
+  OIT: [
+    { file: 'dest-oit', orig: 'destination-oit.jpg', subject: '上から見た大分駅前の広場とロータリー、中心街のビル（大分）', w: 960, h: 720,
+      author: '大分帰省中', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Oita_oita_sta_funai_chuo_hiroba.jpg' },
+  ],
+  KMJ: [
+    { file: 'dest-kmj', orig: 'destination-kmj.jpg', subject: 'マンション群の向こうの熊本城天守と、手前の高架を走る九州新幹線（熊本）', w: 960, h: 720,
+      author: 'Hisagi', ...BY_SA_3, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Kumamoto_Castle_and_Ky%C5%ABsh%C5%AB_Shinkansen_01.jpg' },
+  ],
+  KOJ: [
+    { file: 'dest-koj', orig: 'destination-koj.jpg', subject: '鹿児島の市街地と錦江湾越しの桜島（鹿児島）', w: 960, h: 720,
+      author: 'Ludovic Lubeigt from Taiwan', ...BY_SA_2, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Sakurajima_standing_behind_Kagoshima_(15476719475).jpg' },
+  ],
+  HNL: [
+    { file: 'dest-hnl', orig: 'destination-hnl.jpg', subject: 'ワイキキの砂浜と海、ホテル群の奥にダイヤモンドヘッド（ホノルル）', w: 960, h: 720,
+      author: 'Alfred Adler', ...BY_SA_3, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Diamond_Head_from_Waikiki.jpg' },
+  ],
+  SDJ: [
+    { file: 'dest-sdj', orig: 'destination-sdj.jpg', subject: '仙台城跡から見た丘陵と市街地のビル群（仙台）', w: 960, h: 540,
+      author: '掬茶', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Cityscape_from_Sendai_Castle_20251221d.jpg' },
+  ],
+  PER: [
+    { file: 'dest-per', orig: 'destination-per.jpg', subject: 'キングスパークから見た中心部の高層ビル群と高速道路、スワン川（パース）', w: 960, h: 540,
+      author: 'Benjamin "Jeffrey" Powell', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Perth_from_Kings_Park_2017.jpg' },
+  ],
+  IST: [
+    { file: 'dest-ist', orig: 'destination-ist.jpg', subject: 'ガラタ塔と水辺に並ぶ建物、岸壁のフェリー、空を飛ぶカモメ（イスタンブール）', w: 960, h: 673,
+      author: 'SegLig', ...BY_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Istanbul_skyline_03.jpg' },
+  ],
+  KHH: [
+    { file: 'dest-khh', orig: 'destination-khh.jpg', subject: '高雄85ビルを中心にした高層ビル群（高雄）', w: 960, h: 640,
+      author: 'ABOVE THE SKY', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Kaohsiung_skyline_2020_May.jpg' },
+  ],
+  CNX: [
+    { file: 'dest-cnx', orig: 'destination-cnx.jpg', subject: '色とりどりの屋根が広がる市街地と背後のドイ・ステープ山（チェンマイ）', w: 960, h: 719,
+      author: 'Blowing Puffer Fish', ...BY_2, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Chiang_Mai_and_Doi_Suthep_Mountain_2017.jpg' },
+  ],
+  BNE: [
+    { file: 'dest-bne', orig: 'destination-bne.jpg', subject: 'カンガルー・ポイントの崖から見たブリスベン川と中心部の高層ビル群（ブリスベン）', w: 960, h: 720,
+      author: 'Kgbo', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Skylines_of_Brisbane_from_Kangaroo_Point_Cliffs_Park,_2020,_02.jpg' },
+  ],
+  HYD: [
+    { file: 'dest-hyd', orig: 'destination-hyd.jpg', subject: 'チャールミナールと門前の通りを行き交うオートリキシャ（ハイデラバード）', w: 960, h: 720,
+      author: 'Hari Om Prakash', ...BY_SA_3, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Charminar,_Hyderabad,_Telangana.jpg' },
+  ],
+  MAN: [
+    { file: 'dest-man', orig: 'destination-man.jpg', subject: '木立の向こうに並ぶ中心部の高層ビル群（マンチェスター）', w: 960, h: 641,
+      author: 'Anthony O\'Neil', ...BY_SA_2, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Manchester_city_centre_-_geograph.org.uk_-_8059388.jpg' },
+  ],
+  HAN: [
+    { file: 'dest-han', orig: 'destination-han.jpg', subject: 'ホアンキエム湖に浮かぶ亀の塔と湖畔の木立（ハノイ）', w: 960, h: 640,
+      author: 'NKSTTSSHNVN', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Th%C3%A1p_R%C3%B9a_-_NKS.jpg' },
+  ],
+  CTS: [
+    { file: 'dest-cts', orig: 'destination-cts.jpg', subject: 'テレビ塔から見下ろす秋の大通公園と市街地（札幌）', w: 960, h: 720,
+      author: 'redlegsfan21', ...BY_SA_2, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Odori_Park_(15982613668).jpg' },
+  ],
+  SGN: [
+    { file: 'dest-sgn', orig: 'destination-sgn.jpg', subject: 'サイゴン中央郵便局の正面（ホーチミン）', w: 960, h: 640,
+      author: 'Suicasmo', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Saigon_Central_Post_Office_20190922.jpg' },
+  ],
+  SHA: [
+    { file: 'dest-sha', orig: 'destination-sha.jpg', subject: '静安寺と周囲の高層ビル（上海）', w: 960, h: 720,
+      author: 'Nikolamikovic82', ...CC0,
+      source: 'https://commons.wikimedia.org/wiki/File:Jing\'an_Temple,_Shanghai,_China_2.jpg' },
+  ],
+  SFO: [
+    { file: 'dest-sfo', orig: 'destination-sfo.jpg', subject: 'パレス・オブ・ファイン・アーツの丸屋根越しに見る市街地と高層ビル群（サンフランシスコ）', w: 960, h: 640,
+      author: 'Mariordo (Mario Roberto Durán Ortiz)', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:San_Francisco_skyline_from_Golden_Gate_Bridge,_09_2017.jpg' },
+  ],
+  SEA: [
+    { file: 'dest-sea', orig: 'destination-sea.jpg', subject: 'スペースニードルと高層ビル群、遠くにレーニア山（シアトル）', w: 960, h: 640,
+      author: 'Sajad Mohamad', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Seattle_Skyline_Kerry_Park.jpg' },
+  ],
+  NGO: [
+    { file: 'dest-ngo', orig: 'destination-ngo.jpg', subject: 'テレビ塔から西を望む市街地と名古屋駅周辺の高層ビル（名古屋）', w: 960, h: 533,
+      author: 'Alpsdake', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:View_from_Nagoya_TV_Tower_(west_2015-11-19).jpg' },
+  ],
+  OKA: [
+    { file: 'dest-oka', orig: 'destination-oka.jpg', subject: '首里城の守礼門（那覇）', w: 960, h: 639,
+      author: '663highland', ...BY_25, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Naha_Shuri_Castle32bs5s4592.jpg' },
+  ],
+  GMP: [
+    { file: 'dest-gmp', orig: 'destination-gmp.jpg', subject: '漢江越しに見る汝矣島の高層ビル群（ソウル）', w: 960, h: 721,
+      author: 'S h y numis', ...BY_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Skyline_of_Yeouido,_a_prominent_finance_district_in_Seoul.jpg' },
+  ],
+  HGH: [
+    { file: 'dest-hgh', orig: 'destination-hgh.jpg', subject: '西湖の遊覧船と湖畔の木立、その奥の市街地（杭州）', w: 960, h: 640,
+      author: 'CatOnMars', ...BY_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Huanglong_&_Broken_Bridge_-_Hangzhou_Skylines.jpg' },
+  ],
+  VIE: [
+    { file: 'dest-vie', orig: 'destination-vie.jpg', subject: 'カールス教会と手前の池（ウィーン）', w: 960, h: 706,
+      author: 'Felix König', ...BY_3, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Karlskirche_Wien_September_2016.jpg' },
+  ],
+  KTI: [
+    { file: 'dest-kti', orig: 'destination-kti.jpg', subject: '王宮のポチャニ殿（プノンペン）', w: 960, h: 717,
+      author: 'Marcin Konsek / Wikimedia Commons', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:2016_Phnom_Penh,_Pa%C5%82ac_Kr%C3%B3lewski,_Preah_Tineang_Phhochani_(14).jpg' },
+  ],
+  KUH: [
+    { file: 'dest-kuh', orig: 'destination-kuh.jpg', subject: '釧路川に架かる幣舞橋と雪の残る岸壁（釧路）', w: 960, h: 640,
+      author: 'MaedaAkihiko', ...CC0,
+      source: 'https://commons.wikimedia.org/wiki/File:Nusamai-Bridge_West.jpg' },
+  ],
+  AOJ: [
+    { file: 'dest-aoj', orig: 'destination-aoj.jpg', subject: '青森ベイブリッジと港、奥に広がる市街地（青森）', w: 960, h: 640,
+      author: 'Suicasmo', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Aomori_Bay_Bridge_20170329.jpg' },
+  ],
+  OKJ: [
+    { file: 'dest-okj', orig: 'destination-okj.jpg', subject: '後楽園の池と築山、奥に岡山城の天守（岡山）', w: 960, h: 626,
+      author: 'Fjkelfeimvvn', ...BY_3, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Okayama_Korakuen_Garden01.jpg' },
+  ],
+  TKS: [
+    { file: 'dest-tks', orig: 'destination-tks.jpg', subject: '眉山の山頂から見下ろす市街地と川、その先の海（徳島）', w: 960, h: 640,
+      author: '新幹線', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Tokushima_City_View_from_the_Top_of_Bizan_20200405.jpg' },
+  ],
+  KCZ: [
+    { file: 'dest-kcz', orig: 'destination-kcz.jpg', subject: '松の木越しに見上げる高知城の天守（高知）', w: 960, h: 720,
+      author: 'Reggaeman', ...BY_SA_3, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Kochi_Castle_03.JPG' },
+  ],
+  NGS: [
+    { file: 'dest-ngs', orig: 'destination-ngs.jpg', subject: 'グラバー園から見下ろす長崎港と水辺の公園、対岸の市街地（長崎）', w: 960, h: 638,
+      author: 'yoppy', ...BY_2, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Cityscape_of_Nagasaki_from_Glover_Park_2013-08-27.jpg' },
+  ],
+  KMI: [
+    { file: 'dest-kmi', orig: 'destination-kmi.jpg', subject: '宮崎県庁本館と前庭のヤシの木（宮崎）', w: 960, h: 720,
+      author: 'そらみみ', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Miyazaki_Prefectural_Government_Headquarters_20170319.jpg' },
+  ],
+  DLC: [
+    { file: 'dest-dlc', orig: 'destination-dlc.jpg', subject: '公園の緑と観覧車越しに見る中心部の高層ビル群（大連）', w: 960, h: 640,
+      author: 'JesseW900', ...BY_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:DalianSkyline.JPG' },
+  ],
+  UKB: [
+    { file: 'dest-ukb', orig: 'destination-ukb.jpg', subject: '海から見た神戸ポートタワーとメリケンパーク周辺（神戸）', w: 960, h: 640,
+      author: 'Balon Greyjoy', ...CC0,
+      source: 'https://commons.wikimedia.org/wiki/File:20190901_Kobe_harbor-1.jpg' },
+  ],
+  TAO: [
+    { file: 'dest-tao', orig: 'destination-tao.jpg', subject: '砂浜と波打ち際、その奥に並ぶ高層ビル（青島）', w: 960, h: 640,
+      author: 'Windmemories', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:20240729_Cityscape_of_Taixi,_Qingdao.jpg' },
+  ],
+  IAH: [
+    { file: 'dest-iah', orig: 'destination-iah.jpg', subject: '住宅街の木立越しに見るダウンタウンの高層ビル群（ヒューストン）', w: 960, h: 640,
+      author: 'Jason Villanueva', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Houston,_Texas_Skyline_2017.jpg' },
+  ],
+  HND: [
+    { file: 'dest-hnd', orig: 'destination-hnd.jpg', subject: 'お台場側から見たレインボーブリッジと対岸のビル群（東京）', w: 960, h: 703,
+      author: 'Tokumeigakarinoaoshima', ...CC0,
+      source: 'https://commons.wikimedia.org/wiki/File:Rainbow_Bridge_at_Odaiba.JPG' },
+  ],
+  CTU: [
+    { file: 'dest-ctu', orig: 'destination-ctu.jpg', subject: 'テレビ塔と一面に広がる市街地のビル群（成都）', w: 960, h: 653,
+      author: 'George N', ...BY_2, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Chengdu_skyline_June_2017.jpg' },
+  ],
+  MAA: [
+    { file: 'dest-maa', orig: 'destination-maa.jpg', subject: 'カパーレーシュワラ寺院の塔門と手前の沐浴池（チェンナイ）', w: 960, h: 654,
+      author: 'N. Vivekananthamoorthy', ...BY_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Kapaleeshwarar_Temple,_Mylapore,_Chennai,_India.jpg' },
+  ],
+  CMB: [
+    { file: 'dest-cmb', orig: 'destination-cmb.jpg', subject: '海越しに見る高層ビル群とロータスタワー（コロンボ）', w: 960, h: 540,
+      author: 'XKillSwitchXxx', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Colombo_Skyline_Jan_2022.jpg' },
+  ],
+  DAC: [
+    { file: 'dest-dac', orig: 'destination-dac.jpg', subject: 'ハティルジール湖と白い橋、対岸に密集する建物（ダッカ）', w: 960, h: 585,
+      author: 'ASaber91', ...BY_2, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Dhaka_21st_March_(25870222381).jpg' },
+  ],
+  JNB: [
+    { file: 'dest-jnb', orig: 'destination-jnb.jpg', subject: 'ネルソン・マンデラ橋と中心業務地区の高層ビル群（ヨハネスブルグ）', w: 960, h: 720,
+      author: 'Evan Bench', ...BY_2, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Johannesburg_CBD.jpg' },
+  ],
+
   /* ── アブダビの街（鍵 = 小文字の名前） ── */
   alraha: [
     { file: 'town-alraha', orig: 'town-alraha.jpg', subject: 'アルバンダルのマリーナ（アルラハ・ビーチ）', w: 960, h: 665,
@@ -209,14 +514,73 @@ export const PHOTOS = {
       author: 'Tashmetova808', ...BY_SA_4, changes: CHANGES,
       source: 'https://commons.wikimedia.org/wiki/File:Golf_club,_Yas_island,_Abu_Dhabi_city,_UAE.jpg' },
   ],
+
+  /* ★東京・香港・台北の地区（2026-10-08）。鍵は living-facts.mjs の rents の key と同じ。
+   *  確かめ方は上と同じ（Commons の API で作者・ライセンス・札を1枚ずつ。元は 960px 版）。
+   *  ⚠️ subject は写っているものをそのまま書く。**地区の名前が付いた建物の写真ではないものが在る**
+   *  （queens_terrace は団地ではなく、同じ上環の通り／taoyuan は桃園市のうち中壢区の中心部／
+   *    taipei は台北市のうち文山区の景美）。「この地区の代表の景色」とは言っていない。 */
+  ota: [
+    { file: 'town-ota', orig: 'town-ota.jpg', subject: '大田区大森の国道15号と沿道のマンション', w: 960, h: 720,
+      author: 'Aimaimyi', ...BY_SA_3, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Japan_National_Route_15_-07.jpg' },
+  ],
+  minato: [
+    { file: 'town-minato', orig: 'town-minato.jpg', subject: '夕方の港区の高層ビル群と東京タワー', w: 960, h: 540,
+      author: 'David Kernan', ...BY_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Minato_City,_Tokyo,_Japan.jpg' },
+  ],
+  narita: [
+    { file: 'town-narita', orig: 'town-narita.jpg', subject: '成田の旧市街の坂道と古い商家の並び', w: 960, h: 720,
+      author: 'Zairon', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Narita_Altstadt_3.jpg' },
+  ],
+  caribbean_coast: [
+    { file: 'town-caribbean-coast', orig: 'town-caribbean_coast.jpg', subject: '海越しに見た東涌の映灣園（Caribbean Coast）の高層住宅', w: 960, h: 720,
+      author: 'WiNG', ...BY_3, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:HK_Caribbean_Coast.jpg' },
+  ],
+  queens_terrace: [
+    { file: 'town-sheung-wan', orig: 'town-queens_terrace.jpg', subject: '上環の荷李活道（Hollywood Road）の坂道と沿道の商店・住宅', w: 960, h: 720,
+      author: '姒姓賢寧', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Hollywood_Road,_Sheung_Wan_near_Queen%27s_Road_West,_Sheung_Wan_in_February_2022.jpg' },
+  ],
+  taoyuan: [
+    { file: 'town-taoyuan', orig: 'town-taoyuan.jpg', subject: '桃園市中壢区の中心部の街並み（高い所から）', w: 960, h: 720,
+      author: 'Foxy1219', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Zhongli_district_scene_2019.jpg' },
+  ],
+  dayuan: [
+    { file: 'town-dayuan', orig: 'town-dayuan.jpg', subject: '大園区の幹線道路と両側の街並み（空から）', w: 960, h: 688,
+      author: 'Wing1990hk', ...BY_3, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Dayuan_District_201506.jpg' },
+  ],
+  luzhu: [
+    { file: 'town-luzhu', orig: 'town-luzhu.jpg', subject: '蘆竹区南崁の大通りと高層マンション', w: 960, h: 720,
+      author: 'Foxy1219', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Nankan_Luzhu_2018.jpg' },
+  ],
+  taipei: [
+    { file: 'town-taipei', orig: 'town-taipei.jpg', subject: '台北市文山区景美の街並み（高い所から）', w: 960, h: 640,
+      author: 'Jirka Matousek', ...BY_2, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Jingmei,_Taipei_Cityscape_20220225.jpg' },
+  ],
+  daan: [
+    { file: 'town-daan', orig: 'town-daan.jpg', subject: '大安森林公園の園路と周りのビル', w: 960, h: 640,
+      author: '玄史生', ...CC0,
+      source: 'https://commons.wikimedia.org/wiki/File:Daan_Park_20240224.jpg' },
+  ],
 };
 
-/* ★入れなかった4枚（2026-10-04）。**画面にも assets/places/ にも出ない。**
+/* ★入れなかった写真（2026-10-04 の4枚＋2026-10-08 の2枚）。**画面にも assets/places/ にも出ない。**
  *
  * 写真そのもののライセンスと作者は、上と同じやり方で確かめてある（AMS を除く）。
  * 止めた理由は別のところに在る ── 出所のページが自分で「使う前に権利を確かめよ」と
  * 断っている（写っている建物・像の権利は、撮った人のライセンスでは片づかない）か、
  * 「自分で撮った」という申告そのものが確かめられないか。
+ * ★2026-10-08 の2枚（HKT・CEB）だけは理由が違う。出所のページに断りは無く、**こちらの用心で止めた**。
+ * ★CGK・AMS・MXP は、断りの付かない別の写真を1枚ずつ見つけてある（旧バタビア市庁舎／運河沿いの家並み／
+ *   ナヴィリオ運河）。差し替えるかはオーナー判断なので、ここは動かしていない。
  *
  * 使うと決めたら、その1件を PHOTOS へ移して取り込みを流す（オーナー判断）。
  * 取り込みの道具は PHOTOS しか読まないので、ここに置いてある間は書き出されない。
@@ -239,6 +603,18 @@ export const HELD = {
     photo: { file: 'dest-mxp', orig: 'destination-mxp.jpg', subject: 'ミラノ大聖堂', w: 960, h: 721,
       author: 'Jiuguang Wang', ...BY_SA_3, changes: CHANGES,
       source: 'https://commons.wikimedia.org/wiki/File:Milan_Cathedral_from_Piazza_del_Duomo.jpg' },
+  },
+  HKT: {
+    why: '手前に停まっている車のナンバーが読める（出所のページに断りは無い。こちらの用心で止めた）。',
+    photo: { file: 'dest-hkt', orig: 'destination-hkt.jpg', subject: 'カラフルなショップハウスが並ぶタラン通りと路上に停まった車（プーケット旧市街）', w: 960, h: 720,
+      author: 'Christophe95', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Thalang_Road,_Old_Phuket_Town.jpg' },
+  },
+  CEB: {
+    why: 'フィリピンには建物を自由に撮って使える決まりが無く、手前のホテル1棟が大きめに写っている（出所のページに断りは無い。こちらの用心で止めた）。',
+    photo: { file: 'dest-ceb', orig: 'destination-ceb.jpg', subject: '高所から見渡す市街地と高層ビル、遠くに海と山（セブ）', w: 960, h: 720,
+      author: 'DisRaptor18', ...CC0,
+      source: 'https://commons.wikimedia.org/wiki/File:Cebu_city_skyline_2025.jpg' },
   },
   abudhabi: {
     why: '出所のページに「アラブ首長国連邦には建物を自由に撮って使える決まりが無い」という注意書きが付いている。',

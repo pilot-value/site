@@ -13,8 +13,17 @@
 (function (w, d) {
   'use strict';
 
-  var root = d.getElementById('cr');
+  /* career.html は #cr。会社ページ（airlines/…）は career-live.js と同じく body を根にする。 */
+  var root = d.getElementById('cr') ||
+             (d.body && d.body.getAttribute('data-pv-glance') === '1' ? d.body : null);
   if (!root || !w.Promise || !w.WeakMap) return;
+
+  /* このファイルの置き場（＝サイトの根）。会社ページは1つ下の階層に在るので、
+     相対の住所をページから解くと airlines/pv-airlines.json を読みに行ってしまう。 */
+  var BASE = (function () {
+    var cs = d.currentScript, src = cs && cs.src ? String(cs.src) : '';
+    return src ? src.split('#')[0].split('?')[0].replace(/[^\/]*$/, '') : '';
+  })();
 
   var T = {
     off:        '準備中です',
@@ -22,6 +31,9 @@
     err:        '読み込めませんでした',
     retry:      'もう一度',
     none:       'まだ登録がありません',
+    emptyT:     '泊まったホテルを、次のパイロットへ。',
+    emptyS:     'ホテルの名前だけでも追加できます。確認のあと公開されます。',
+    hours:      function (n) { return 'ステイ 約' + n + '時間'; },
     pending:    '確認待ち',
     rejected:   '見送り',
     map:        'Google マップ',
@@ -32,10 +44,16 @@
     fAddr:      '住所',
     fMap:       'Google マップの URL',
     fNote:      'ひとこと',
+    fHours:     'ステイ時間（任意）',
+    fHoursU:    '時間',
     fPhoto:     '写真',
     pick:       '写真を選ぶ',
     unpick:     '写真を外す',
     send:       '追加する',
+    edit:       '修正',
+    editSend:   '修正を送る',
+    edited:     '修正しました。確認のあと公開されます。',
+    same:       '変更はありませんでした。',
     cancel:     'やめる',
     photoAdd:   '写真を追加',
     pub:        '公開',
@@ -54,6 +72,7 @@
     delDone:    '削除しました。',
     needName:   '名前は2〜80字で入力してください。',
     needKind:   '種類を選んでください。',
+    badHours:   'ステイ時間は 1〜240 の整数（時間）で入力してください。空のままでも送れます。',
     badMap:     'Google マップのリンク（https）を入れてください。空のままでも追加できます。'
   };
 
@@ -64,10 +83,18 @@
     bad_kind:     T.needKind,
     bad_name:     T.needName,
     too_long:     '住所は200字、ひとことは500字までです。',
+    bad_city:     '都市の名前が長すぎます。',
+    bad_hours:    T.badHours,
     too_fast:     '続けて追加するときは、少し時間をあけてください。',
     rate_limited: '追加できる数の上限に達しました。24時間たってからお試しください。',
     duplicate:    '同じ名前を、もう追加しています。',
     exists:       '同じ名前が、もう登録されています。'
+  };
+  /* 直す口（pv_stay_update）だけが返すもの。ほかは足す口と同じ言葉。 */
+  var SAY_EDIT = {
+    not_found:    'この投稿は、いま修正できません。',
+    final:        '見送られた投稿は修正できません。新しく追加してください。',
+    rate_limited: '修正できる回数の上限に達しました。24時間たってからお試しください。'
   };
   var SAY_PHOTO = {
     image_bad:     'この写真は読み込めませんでした。別の写真を選んでください。',
@@ -81,7 +108,8 @@
     forbidden: '運営だけが操作できます。',
     own_post:  '自分が出したものは、別の運営が確認します。',
     final:     '見送ったものは公開に戻せません。',
-    not_found: 'もう表示できないものです。'
+    not_found: 'もう表示できないものです。',
+    changed:   '出した人が内容を直していました。いまの内容を読み直したので、確認してからもう一度押してください。'
   };
   var SAY_FAIL = 'うまくいきませんでした。もう一度お試しください。';
 
@@ -152,6 +180,7 @@
   /* ログインが変わったら、持っている答えと写真を全部捨てて取り直す
      （ログアウトした人の画面に、開いていたときの行を残さない）。 */
   var WATCHED = false, UID;
+  var PHOTO_LOCK = false;          // 写真の「見られない」で取り直したか（fetchPhoto。同じ理由で回り続けない）
   function watchAuth(c) {
     if (WATCHED || !c.auth || typeof c.auth.onAuthStateChange !== 'function') return;
     WATCHED = true;
@@ -162,6 +191,7 @@
         if (UID !== undefined && uid === UID) return;
         UID = uid;
         CACHE = {};
+        PHOTO_LOCK = false;
         LIVE.slice().forEach(drop);
         scan();
       });
@@ -209,11 +239,38 @@
     put(slot, 'idle', el('span', 'crl-ph', '—'));
   }
 
+  /* 開いた答えを持ったまま、この端末のログインの鍵が消えていたら、持っている答えを捨てる。
+     ふつうは onAuthStateChange が先に来る（watchAuth）。届かない消え方 ── ほかの画面が鍵だけを
+     消した・期限が切れた ── でも、開いていたときのホテル名と写真を画面に残さないための2つ目の網。
+     ⚠️ 鍵が「在る」ことは何の資格にもしない。見てよいかどうかを決めるのは、いつもサーバーの答えだけ。 */
+  function keyGone() {
+    try { return !!(w.PVSession && typeof w.PVSession.hasToken === 'function' && !w.PVSession.hasToken()); }
+    catch (e) { return false; }
+  }
+  function holdsOpen() {
+    for (var k in CACHE) if (CACHE[k] && CACHE[k].state === 'open') return true;
+    return false;
+  }
+  function forgetIfGone() {
+    if (!holdsOpen() || !keyGone()) return false;
+    CACHE = {};
+    LIVE.slice().forEach(drop);
+    /* 鍵が消えたことは onAuthStateChange には届いていない。覚えている相手も一緒に忘れる
+       （忘れないと、同じ人がほかのタブでログインし直したとき「相手は変わっていない」と読んで取り直さない）。 */
+    if (UID !== undefined) UID = null;
+    return true;
+  }
+
   function scan() {
+    forgetIfGone();
     LIVE.slice().forEach(function (s) { if (!shown(s)) drop(s); });
     if (!hasClient()) return;                 /* まだ無い。次の cr:show で見直す */
     slots().forEach(function (s) {
-      if (shown(s) && !ST.get(s)) load(s, {});
+      if (!shown(s)) return;
+      var st = ST.get(s), key = keyOf(s);
+      /* 会社ページは1つの欄を都市ごとに使い回す（data-stay を書き換えてから cr:show が来る）。 */
+      if (!/\|[A-Z]{3}$/.test(key)) { if (st) drop(s); return; }   /* 空港がまだ決まっていない */
+      if (!st || st.key !== key) load(s, {});
     });
   }
 
@@ -224,7 +281,9 @@
     ST.set(slot, st);
     if (LIVE.indexOf(slot) < 0) LIVE.push(slot);
 
-    if (!opt.fresh && CACHE[st.key]) { paint(slot, st, CACHE[st.key], opt); return; }
+    /* 取り直すと決めた回は、前の答えを先に捨てる（取り直しに失敗したあと、出入りで古い答えを描き直さない） */
+    if (opt.fresh) delete CACHE[st.key];
+    else if (CACHE[st.key]) { paint(slot, st, CACHE[st.key], opt); return; }
 
     var sk = el('div', 'crs-skel');
     sk.appendChild(el('span', 'crs-skel-a'));
@@ -233,7 +292,22 @@
 
     var k = st.key.split('|');
     rpc('pv_stays', { airline: k[0], iata: k[1] }).then(function (v) {
-      if (ST.get(slot) !== st) return;        /* 追い越された答えは捨てる */
+      /* 「見られない」と返ってきたら、ほかの都市で持っていた開いた答えを全部捨てる
+         （見てよいかはサーバーの最新の答えだけが決める。前に開いていた都市を描き直さない）。
+         ⚠️ 捨てるのは開いた答えだけ。「見られない」の答えまで捨てると、鍵の無い人（＝ほとんどの人）が
+            都市を行き来するたびに、同じ都市を何度も取りに行く（1行のために、待ちの絵が毎回出る）。
+         ⚠️ 追い越された答えでも、これだけは聞き捨てない。答えが着く前に一覧へ戻った人の画面では、
+            この先の「描く」は要らないが、「もう見られない」は残る ── 聞き捨てると、前に開いた都市が持っていた答えから出る。
+         逆向き（「見られる」と返ってきた）も同じ：前の「見られない」を捨てて、聞き直す。 */
+      var word = (missing(v) || bad(v)) ? '' : v.state;
+      if (word === 'locked' || word === 'open') {
+        Object.keys(CACHE).forEach(function (key) {
+          var c = CACHE[key] && CACHE[key].state;
+          if ((c === 'open' || c === 'locked') && c !== word) delete CACHE[key];
+        });
+        if (word === 'locked') PHOTO_LOCK = false;
+      }
+      if (ST.get(slot) !== st) return;        /* 追い越された答えは描かない */
       if (missing(v)) { v = { ok: true, state: 'off' }; }
       else if (bad(v) || (v.state !== 'locked' && v.state !== 'open')) { paintError(slot); return; }
       CACHE[st.key] = v;
@@ -284,7 +358,19 @@
       box.appendChild(g);
     });
 
-    if (!places.length) box.appendChild(el('p', 'crs-line crs-none', T.none));
+    /* 0件。追加できる人には「ここから足せる」ことを先に言う（押すと、この会社・この空港のまま面が開く）。
+       追加できない人には今までどおりの1行。 */
+    var empty = null;
+    if (!places.length) {
+      if (canAdd) {
+        empty = el('div', 'crs-empty');
+        empty.appendChild(el('p', 'crs-empty-t', T.emptyT));
+        empty.appendChild(el('p', 'crs-empty-s', T.emptyS));
+        box.appendChild(empty);
+      } else {
+        box.appendChild(el('p', 'crs-line crs-none', T.none));
+      }
+    }
 
     var say = el('p', 'crs-say');
     say.setAttribute('role', 'status');
@@ -299,7 +385,7 @@
       ab.appendChild(el('span', '', T.addOpen));
       ab.setAttribute('aria-expanded', 'false');
       add.appendChild(ab);
-      box.appendChild(add);
+      (empty || box).appendChild(add);
     }
 
     if (others.some(function (o) { return o && arr(o.places).length; })) {
@@ -336,6 +422,9 @@
     else if (it.state === 'rejected') top.appendChild(el('span', 'crs-badge crs-badge-no', T.rejected));
     li.appendChild(top);
     if (str(it.address)) li.appendChild(el('p', 'crs-addr', str(it.address)));
+    /* ステイ時間はホテルだけ。書いていないホテルには何も出さない（0 で埋めない）。 */
+    var hrs = it.kind === 'hotel' ? int(it.stay_hours) : 0;
+    if (hrs >= 1 && hrs <= 240) li.appendChild(el('p', 'crs-hours', T.hours(hrs)));
     if (str(it.note)) li.appendChild(el('p', 'crs-note', str(it.note)));
 
     var phs = arr(it.photos).filter(function (p) { return p && str(p.id); });
@@ -378,6 +467,13 @@
       lb.appendChild(fi);
       acts.appendChild(lb);
     }
+    /* 直せるのは書いた本人だけ（★サーバーが返した mine）。見送られたものは直せない。 */
+    if (o.canAdd && it.mine === true && it.state !== 'rejected') {
+      var eb = btn('crs-act', T.edit, 'edit');
+      eb.setAttribute('aria-expanded', 'false');
+      eb.__crsItem = it;
+      acts.appendChild(eb);
+    }
     modButtons(acts, 'place', id, it, o.isOp);
     li.appendChild(acts);
     return li;
@@ -390,9 +486,17 @@
       b.setAttribute('data-target', target);
       b.setAttribute('data-id', id);
       box.appendChild(b);
+      return b;
     }
     if (isOp && it.state === 'pending') {
-      if (it.mine !== true) add(T.pub, 'pub', 'crs-act-go');   /* 自分のものは別の運営が見る */
+      /* 自分のものは別の運営が見る。
+         ★公開のボタンは「いま見えている中身」の印（rev）を持つ。サーバーは、本人が直したことのある場所を
+           印なしでは通さない（＝ 運営が見ていない中身が公開されない）。持たせないと、直された場所は
+           何度押しても公開に戻せない。 */
+      if (it.mine !== true) {
+        var pub = add(T.pub, 'pub', 'crs-act-go');
+        if (target === 'place' && typeof it.rev === 'string' && /^[0-9a-f]{8,64}$/.test(it.rev)) pub.setAttribute('data-rev', it.rev);
+      }
       add(T.rej, 'rej', 'crs-act-no');
     }
     if (it.mine === true || isOp) add(T.del, 'del', 'crs-act-no');
@@ -437,6 +541,8 @@
   }
   /* 都市の名前は、その画面の見出しに在る字（「東京」）。無ければ3レター。 */
   function cityOf(slot) {
+    var own = str(slot.getAttribute('data-city'));
+    if (own) return own;                         /* 会社ページは欄が都市の名前を持つ */
     var sec = slot.closest('[data-view="stay"]'), h = sec ? sec.querySelector('h1') : null, s = '';
     if (h) for (var n = h.firstChild; n; n = n.nextSibling) if (n.nodeType === 3) s += n.nodeValue;
     s = s.replace(/\s+/g, ' ').replace(/^ | $/g, '');
@@ -456,7 +562,7 @@
     var a = NAMES_HERE[code];
     if (a && str(a.ja)) return Promise.resolve(str(a.ja));
     if (!NAMES_ALL) {
-      NAMES_ALL = (w.fetch ? w.fetch('pv-airlines.json') : Promise.reject())
+      NAMES_ALL = (w.fetch ? w.fetch(BASE + 'pv-airlines.json') : Promise.reject())
         .then(function (r) { return r && r.ok ? r.json() : {}; })
         .then(function (j) { return (j && j.airlines) || {}; }, function () { return {}; });
     }
@@ -489,6 +595,16 @@
   function fetchPhoto(j) {
     return rpc('pv_stay_photo', { id: j.id }).then(function (v) {
       if (ST.get(j.slot) !== j.st) return;
+      /* 写真だけ「見られない」と返ってきた ＝ 一覧を取ったあとで、見てよい人ではなくなった。
+         持っている答えを全部捨てて取り直す（ホテル名と住所を、覚えていた答えから描き直さない）。
+         取り直してもまだ同じなら、写真が出せない行として扱う（回り続けない）。 */
+      if (v && v.status === 'locked' && !PHOTO_LOCK) {
+        PHOTO_LOCK = true;
+        CACHE = {};
+        LIVE.slice().forEach(drop);
+        scan();
+        return;
+      }
       var blob = (!bad(v) && typeof v.b64 === 'string') ? b64Blob(v.b64) : null;
       if (!blob) {
         j.btn.setAttribute('data-ph', 'err');
@@ -623,12 +739,22 @@
     return i;
   }
 
-  function openForm(slot, st, opener) {
-    var host = opener.parentNode;
-    if (host.querySelector('.crs-form')) return;
+  /* ステイ時間の欄はホテルのときだけ出す（ほかの種別ではサーバーも読まない）。 */
+  function syncKind(form) {
+    var kr = form.querySelector('input[type="radio"]:checked');
+    var hf = form.querySelector('.crs-hf');
+    if (hf) hf.hidden = !(kr && kr.value === 'hotel');
+  }
+
+  /* it を渡すと「修正」の面（★本人のものだけ。今の中身を入れて開く。写真はここでは足さない）。 */
+  function openForm(slot, st, opener, it) {
+    var host = it ? opener.closest('.crs-card') : opener.parentNode;
+    if (!host || host.querySelector('.crs-form')) return;
     var n = ++SEQ, pre = 'crs-f' + n + '-';
     var form = el('form', 'crs-form');
     form.noValidate = true;
+    form.__opener = opener;
+    if (it) form.__edit = str(it.id);
 
     var fs = el('fieldset', 'crs-f crs-kinds');
     fs.appendChild(el('legend', 'crs-lb', T.fKind));
@@ -637,7 +763,7 @@
       var lb = el('label', 'crs-seg-i');
       var r = d.createElement('input');
       r.type = 'radio'; r.name = pre + 'kind'; r.value = k[0];
-      if (i === 0) r.checked = true;
+      if (it ? k[0] === it.kind : i === 0) r.checked = true;
       lb.appendChild(r);
       lb.appendChild(el('span', '', k[1]));
       seg.appendChild(lb);
@@ -649,20 +775,41 @@
     form.appendChild(field(T.fAddr, input('text', 200, { 'data-k': 'address' }), pre + 'addr'));
     form.appendChild(field(T.fMap, input('url', 500,
       { 'data-k': 'maps_url', inputmode: 'url', placeholder: 'https://maps.app.goo.gl/…' }), pre + 'map'));
+    var hf = field(T.fHours, input('text', 3,
+      { 'data-k': 'stay_hours', inputmode: 'numeric', pattern: '[0-9]*', 'aria-describedby': pre + 'hours-u' }), pre + 'hours');
+    hf.className += ' crs-hf';
+    var hu = el('span', 'crs-unit', T.fHoursU);
+    hu.id = pre + 'hours-u';
+    var hrow = el('div', 'crs-hrow');
+    hrow.appendChild(hf.lastChild);
+    hrow.appendChild(hu);
+    hf.appendChild(hrow);
+    form.appendChild(hf);
     form.appendChild(field(T.fNote, input('area', 500, { 'data-k': 'note', rows: '3' }), pre + 'note'));
 
-    var pf = el('div', 'crs-f crs-pf');
-    pf.appendChild(el('span', 'crs-lb', T.fPhoto));
-    var prow = el('div', 'crs-prow');
-    var lb = el('label', 'crs-act crs-file');
-    lb.appendChild(el('span', '', T.pick));
-    var fi = d.createElement('input');
-    fi.type = 'file'; fi.accept = 'image/*'; fi.className = 'crs-file-in';
-    fi.setAttribute('data-pick', '1');
-    lb.appendChild(fi);
-    prow.appendChild(lb);
-    pf.appendChild(prow);
-    form.appendChild(pf);
+    if (it) {
+      var put1 = function (k, v) { var i = form.querySelector('[data-k="' + k + '"]'); if (i) i.value = str(v); };
+      put1('name', it.name);
+      put1('address', it.address);
+      put1('maps_url', mapsOk(it.maps_url));
+      put1('note', it.note);
+      var h0 = it.kind === 'hotel' ? int(it.stay_hours) : 0;
+      put1('stay_hours', h0 >= 1 && h0 <= 240 ? String(h0) : '');
+    } else {
+      var pf = el('div', 'crs-f crs-pf');
+      pf.appendChild(el('span', 'crs-lb', T.fPhoto));
+      var prow = el('div', 'crs-prow');
+      var lb = el('label', 'crs-act crs-file');
+      lb.appendChild(el('span', '', T.pick));
+      var fi = d.createElement('input');
+      fi.type = 'file'; fi.accept = 'image/*'; fi.className = 'crs-file-in';
+      fi.setAttribute('data-pick', '1');
+      lb.appendChild(fi);
+      prow.appendChild(lb);
+      pf.appendChild(prow);
+      form.appendChild(pf);
+    }
+    syncKind(form);
 
     var fsay = el('p', 'crs-say crs-form-say');
     fsay.setAttribute('role', 'status');
@@ -670,7 +817,7 @@
     form.appendChild(fsay);
 
     var end = el('div', 'crs-end');
-    var go = el('button', 'crs-btn', T.send);
+    var go = el('button', 'crs-btn', it ? T.editSend : T.send);
     go.type = 'submit';
     end.appendChild(go);
     end.appendChild(btn('crs-act', T.cancel, 'unform'));
@@ -694,8 +841,9 @@
     if (fi) fi.value = '';
   }
   function closeForm(slot, st, form) {
-    unpick(st, form);
-    var host = form.parentNode, opener = host.querySelector('[data-act="form"]');
+    /* 選んだ写真を持っているのは追加の面だけ。修正の面を閉じても、開いたままの追加の面の写真は手放さない。 */
+    if (form.querySelector('[data-pick]')) unpick(st, form);
+    var host = form.parentNode, opener = form.__opener || host.querySelector('[data-act="form"]');
     host.removeChild(form);
     if (opener) { opener.hidden = false; opener.setAttribute('aria-expanded', 'false'); opener.focus(); }
   }
@@ -739,13 +887,43 @@
     if (!kind) { fsay(form, T.needKind); return; }
     if (name.length < 2 || name.length > 80) { fsay(form, T.needName); return; }
     if (url && !mapsOk(url)) { fsay(form, T.badMap); return; }
+    /* ステイ時間（任意・ホテルだけ）。★検品の正はサーバー。ここは打ち間違いを送る前に返すだけ。 */
+    var hraw = kind === 'hotel' ? val('stay_hours').replace(/[０-９]/g, function (c) {
+      return String.fromCharCode(c.charCodeAt(0) - 0xFEE0);
+    }) : '';
+    var hours = null;
+    if (hraw) {
+      if (!/^[0-9]{1,3}$/.test(hraw) || +hraw < 1 || +hraw > 240) { fsay(form, T.badHours); return; }
+      hours = +hraw;
+    }
 
-    var k = st.key.split('|'), pic = st.pick;
+    var k = st.key.split('|'), pic = form.__edit ? null : st.pick;
     busy(slot, st, true);
     fsay(form, T.sending);
+
+    if (form.__edit) {
+      /* 直す。会社と空港は送らない（＝変わらない）。直したら確認待ちへ戻る。 */
+      rpc('pv_stay_update', {
+        id: form.__edit, kind: kind, name: name,
+        address: val('address') || null, maps_url: url || null, note: val('note') || null,
+        stay_hours: hours
+      }).then(function (v) {
+        if (ST.get(slot) !== st) return;
+        if (bad(v)) {
+          if (v && v.status === 'locked') { load(slot, { fresh: true }); return; }
+          busy(slot, st, false);
+          fsay(form, (v && (SAY_EDIT[v.status] || SAY_ADD[v.status])) || SAY_FAIL);
+          return;
+        }
+        load(slot, { fresh: true, say: v.changed === true ? T.edited : T.same });
+      });
+      return;
+    }
+
     rpc('pv_stay_add', {
       airline: k[0], iata: k[1], kind: kind, name: name,
-      address: val('address') || null, maps_url: url || null, note: val('note') || null
+      address: val('address') || null, maps_url: url || null, note: val('note') || null,
+      stay_hours: hours
     }).then(function (v) {
       if (ST.get(slot) !== st) return;
       if (bad(v)) {
@@ -791,6 +969,13 @@
     });
   }
 
+  /* 公開のときだけ、ボタンが持っている印（rev）を添える。却下は中身に関係なく通る。 */
+  function modArgs(target, id, act, rev) {
+    var a = { target: target, id: id, state: act === 'pub' ? 'public' : 'rejected' };
+    if (act === 'pub' && target === 'place' && rev) a.rev = rev;
+    return a;
+  }
+
   /* 公開／却下／削除。終わったら必ず取り直す（画面で行を書き換えない）。 */
   function moderate(slot, st, b, act) {
     if (st.busy) return;
@@ -799,11 +984,13 @@
     busy(slot, st, true);
     var q = act === 'del'
       ? rpc('pv_stay_delete', { target: target, id: id })
-      : rpc('pv_stay_moderate', { target: target, id: id, state: act === 'pub' ? 'public' : 'rejected' });
+      : rpc('pv_stay_moderate', modArgs(target, id, act, b.getAttribute('data-rev')));
     q.then(function (v) {
       if (ST.get(slot) !== st) return;
       if (bad(v)) {
         if (v && v.status === 'locked') { load(slot, { fresh: true }); return; }
+        /* 見ているあいだに本人が直した ＝ 古い中身のまま公開しない。いまの中身を取り直して見せる。 */
+        if (v && v.status === 'changed') { shut(st.zoom); load(slot, { fresh: true, say: SAY_MOD.changed }); return; }
         busy(slot, st, false);
         shut(st.zoom);
         say(slot, (v && SAY_MOD[v.status]) || SAY_FAIL);
@@ -838,6 +1025,7 @@
       var act = b.getAttribute('data-act');
       if (act === 'retry')       { delete CACHE[st.key]; load(slot, { fresh: true }); }
       else if (act === 'form')   openForm(slot, st, b);
+      else if (act === 'edit')   { if (b.__crsItem) openForm(slot, st, b, b.__crsItem); }
       else if (act === 'unform') closeForm(slot, st, b.closest('.crs-form'));
       else if (act === 'unpick') unpick(st, b.closest('.crs-form'));
       else if (act === 'zoom')   zoom(slot, st, b);
@@ -848,6 +1036,7 @@
     });
     slot.addEventListener('change', function (e) {
       var fi = e.target, st = ST.get(slot);
+      if (fi && fi.type === 'radio' && fi.closest('.crs-form')) { syncKind(fi.closest('.crs-form')); return; }
       if (!st || !fi || fi.type !== 'file') return;
       if (fi.getAttribute('data-pick')) picked(slot, st, fi);
       else if (fi.getAttribute('data-place')) addPhoto(slot, st, fi);
@@ -866,10 +1055,21 @@
   w.addEventListener('pagehide', function () {
     LIVE.forEach(function (s) { revoke(ST.get(s)); });
   });
-  /* 戻る・進むで、手放したあとの画面がそのまま戻ってきたとき（写真の URL はもう無い）。 */
+  /* 戻る・進むで、手放したあとの画面がそのまま戻ってきたとき（写真の URL はもう無い）。
+     離れているあいだにログインが変わっているかもしれないので、持っている答えも使い回さない。 */
   w.addEventListener('pageshow', function (e) {
-    if (e.persisted) { LIVE.slice().forEach(drop); scan(); }
+    if (e.persisted) { CACHE = {}; LIVE.slice().forEach(drop); scan(); }
   });
+  /* ほかの画面から戻ってきたとき、鍵が消えていたら取り直す（消えていなければ何もしない＝通信もしない）。 */
+  d.addEventListener('visibilitychange', function () {
+    if (d.visibilityState === 'visible' && forgetIfGone()) scan();
+  });
+  /* 画面を出したままのあいだに鍵が消えることもある ── ほかの窓が消した（storage が知らせる）・
+     この画面の中で期限が切れた（pv-session.js の見回りが鍵だけを消す。知らせは来ないので、こちらも見回る）。
+     開いた答えを持っていなければ何もしない。持っていても、鍵が在るかを読むだけ＝通信はしない。 */
+  function recheck() { if (forgetIfGone()) scan(); }
+  w.addEventListener('storage', recheck);
+  w.setInterval(recheck, 60000);
   if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', scan);
   else scan();
 })(window, document);

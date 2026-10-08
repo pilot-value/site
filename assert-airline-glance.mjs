@@ -61,6 +61,7 @@
      node assert-airline-glance.mjs            全部
      node assert-airline-glance.mjs --static   ブラウザを使わない所だけ
      node assert-airline-glance.mjs --only etihad --sizes 390,1440   調べる時だけ（会社と幅を絞る。緑でも全部を見たことにはならない）
+     node assert-airline-glance.mjs --scenes off,cards               調べる時だけ（場面を絞る：view・off・rows・rated・tabs・cards）
    同時に開く枚数は PV_GLANCE_JOBS（既定 3。check.mjs からは 2）。
    ══════════════════════════════════════════════════════════════════ */
 import fs from 'node:fs';
@@ -71,7 +72,9 @@ import { SALARY } from './salary-data.mjs';
 import { BASIS } from './salary-basis.mjs';
 import { JPY_PER } from './fx-rates.mjs';
 import { GLANCE } from './pv-airline-view.mjs';
-import { build, pageOf, ASSETS, CONTRIB, TABBED } from './gen-airline-glance.mjs';
+import { build, pageOf, ASSETS, CONTRIB, STAY, TABBED } from './gen-airline-glance.mjs';
+import { networkOf } from './airline-destinations.mjs';
+import { primary as placePhoto, needsCredit as placeCredit, src as placeSrc, HELD as PLACE_HELD } from './place-photos.mjs';
 import { primary, needsCredit } from './airline-photos.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
@@ -129,7 +132,7 @@ const TAB_ID = new Set(TABS.map(t => t[0]));
 const ASK_GROUPS = ['taxi', 'staff_travel', 'upgrade', 'roster', 'career', 'benefits'];
 const TOPICS = new Set(['list', 'work', ...ASK_GROUPS]);
 /* 実データの欄：種類ごとの数（会社の事実4・補足2・月の勤務1・提出された年収1・口コミ1・点数1・星1・要約1）。 */
-const LIVE_BOXES = { fact: 4, notes: 2, work: 1, realpay: 1, reviews: 1, score: 1, stars: 1, summary: 1 };
+const LIVE_BOXES = { fact: 4, notes: 2, work: 1, realpay: 1, reviews: 1, score: 1, stars: 1, summary: 1, hotels: 1 };
 const LIVE_N = Object.values(LIVE_BOXES).reduce((a, b) => a + b, 0);
 const figText = (key, y) => (key === 'max_y' ? `〜${y}` : key === 'cash_y_over' ? `${y}超` : key === 'allow_m_from' ? `${y}〜` : y);
 const numKeys = g => Object.keys(g).filter(k => typeof g[k] === 'number');
@@ -208,9 +211,18 @@ for (const s of FIVE) {
   for (const n of ['PV-HERO', 'PV-GLANCE-HEAD', 'PV-GLANCE', 'PV-GLANCE-JS']) {
     ok(blocksOf(html, n).length === 1, `${s}: 管理ブロック ${n} がちょうど1つ`, `${blocksOf(html, n).length}個`);
   }
+  /* 左メニューの道具（patch-side-nav.mjs）は、自分の <link> を </head> の直前・app-nav.js を </body> の直前へ必ず置き直す。
+     部品がその後ろに居ると、互いに相手の置き場所を「食い違い」と数え続ける（2026-10-08 に5社が赤くなっていた。画面は何も変わらない） */
+  {
+    const hEnd = html.indexOf('<!--/PV-GLANCE-HEAD-->'), navCss = html.indexOf('app-nav.css"'), head = html.indexOf('</head>');
+    const jEnd = html.indexOf('<!--/PV-GLANCE-JS-->'), navJs = html.indexOf('app-nav.js"'), body = html.lastIndexOf('</body>');
+    ok(hEnd >= 0 && hEnd < navCss && navCss < head && jEnd >= 0 && jEnd < navJs && navJs < body,
+       `${s}: 部品の <link> と <script> が、左メニューの塊より前に在る（patch-side-nav.mjs と置き場所を取り合わない）`,
+       `head: 部品 ${hEnd} / app-nav.css ${navCss} / </head> ${head} ── body: 部品 ${jEnd} / app-nav.js ${navJs} / </body> ${body}`);
+  }
   ok((html.match(/<h1\b/g) || []).length === 1, `${s}: h1 は1つだけ`);
   ok(/<body\b[^>]*\bdata-pv-glance="1"/.test(html), `${s}: <body data-pv-glance="1"> が在る`);
-  for (const f of [...ASSETS, ...(TABBED.has(s) ? [CONTRIB.css, CONTRIB.js] : [])]) {
+  for (const f of [...ASSETS, ...(TABBED.has(s) ? [CONTRIB.css, CONTRIB.js, STAY.css, STAY.js] : [])]) {
     const v = createHash('sha256').update(fs.readFileSync(path.join(ROOT, f))).digest('hex').slice(0, 8);
     const hit = html.split(`"../${f}?v=${v}"`).length - 1;
     ok(hit === 1, `${s}: ${f} を今の中身の指紋で1回だけ読んでいる`, `?v=${v} が ${hit}回`);
@@ -456,7 +468,7 @@ for (const s of FIVE) {
   const boxes = [...both.matchAll(/<div class="crl"([^>]*)>([\s\S]*?)<\/div>/g)];
   const kinds = {};
   for (const m of boxes) { const k = one(m[1], / data-live="([^"]*)"/) || '?'; kinds[k] = (kinds[k] || 0) + 1; }
-  ok(boxes.length === LIVE_N && same(Object.entries(kinds).sort(), Object.entries(LIVE_BOXES).sort()), `${s}: 実データの欄は${LIVE_N}（事実4・補足2・月の勤務1・年収1・口コミ1・点数1・星1・要約1）`, JSON.stringify(kinds));
+  ok(boxes.length === LIVE_N && same(Object.entries(kinds).sort(), Object.entries(LIVE_BOXES).sort()), `${s}: 実データの欄は${LIVE_N}（事実4・補足2・月の勤務1・年収1・口コミ1・点数1・星1・要約1・ホテル1）`, JSON.stringify(kinds));
   ok(boxes.every(m => m[2] === '<span class="crl-ph">—</span>' && / data-state="idle"/.test(m[1]) && m[1].includes(` data-airline="${s}"`)),
      `${s}: 実データの欄は「—」で出荷し、自分の会社を指している`);
   /* 提出された年収の一覧：給与の1枚の中、推定年収のすぐ下に1つ。HTML には数字を1つも書かない。 */
@@ -505,7 +517,7 @@ for (const s of FIVE) {
   ok(hrefs.filter(h => h === `../career.html?view=compare&a=${s}`).length === 1, `${s}: 「他社と比較」は自分を選んだ比較へ`);
   ok(hrefs.filter(h => h === `../career.html?view=card&a=${s}`).length === 1, `${s}: 「カードを保存」は自分のカードへ`);
   ok(hrefs.filter(h => h.startsWith('../pay-report.html')).every(h => h === `../pay-report.html?airline=${s}`), `${s}: 給与の提出は自分の会社を選んだ状態で開く`);
-  ok(hrefs.filter(h => /[?&]stay=/.test(h)).every(h => new RegExp(`^\\.\\./career\\.html\\?airline=${s}&stay=[A-Z]{3}$`).test(h)), `${s}: 就航地の入口は自分の会社＋空港の3レター`);
+  ok(!hrefs.some(h => /[?&]stay=/.test(h)), `${s}: 就航地の入口は、このページの中（#stay-XXX）── 別のページへ出さない`, hrefs.filter(h => /[?&]stay=/.test(h)).slice(0, 3).join(' '));
   {
     /* 口コミを書く入口：評価スコアのカードに、概要用と口コミのタブ用の2つ（見えるのは、いま居るタブの1つだけ）。どちらも2行。 */
     const card = one(P.glance, /<article class="pvg-card pvg-rv-card" id="pvg-score"[^>]*>([\s\S]*?)\n<\/article>/) || '';
@@ -534,7 +546,7 @@ for (const s of FIVE) {
     const again = [...lead, ...more].filter(x => x.length >= 40 && PAGES[s].split(x.slice(0, 40)).length - 1 !== 1);
     ok(!again.length, `${s}: 紹介の文が、ページの中で重なっていない`, again.map(x => x.slice(0, 24)).join(' ／ '));
   }
-  const known = h => /^https:\/\//.test(h) || h === '#pvg-stay' || /^#(overview|pay|reviews|work|life|stay)$/.test(h) || (/^\?add=([a-z_]+)$/.test(h) && TOPICS.has(h.slice(5))) || /^\.\.\/(airline-conditions|career|pay-report|submit-review)\.html\?/.test(h) || /^\.\.\/(career-live|pv-glance)\.css\?v=/.test(h);
+  const known = h => /^https:\/\//.test(h) || h === '#pvg-stay' || /^#(overview|pay|reviews|work|life|stay)$/.test(h) || /^#stay-[A-Z]{3}$/.test(h) || (/^\?add=([a-z_]+)$/.test(h) && TOPICS.has(h.slice(5))) || /^\.\.\/(airline-conditions|career|pay-report|submit-review)\.html\?/.test(h) || /^\.\.\/(career-live|pv-glance|career-stay)\.css\?v=/.test(h);
   ok(hrefs.every(known), `${s}: 知らない形の行き先が無い`, hrefs.filter(h => !known(h)).slice(0, 3).join(' '));
   ok(!hrefs.includes('#pvg-stay') || /id="pvg-stay"/.test(P.glance), `${s}: ページの中の行き先（#pvg-stay）が在る`);
   /* 「募集要項を開く」の行き先は、この節の外に在る昔からの節。見出しで探す（pv-glance.js の SEC と同じ言葉）。 */
@@ -550,8 +562,8 @@ for (const s of FIVE) {
   ok(same(tabs, TABS.map(([id, label], i) => [id, id, i === 0, label])) && (bar.match(/<a\b/g) || []).length === TABS.length,
      `${s}: タブは6つ・左から ${TABS.map(t => t[1]).join('／')}`, tabs.map(t => t[3]).join('／'));
   const tabRefs = [...PAGES[s].matchAll(/data-pvg-tab="([^"]*)"/g)].map(m => m[1]);
-  ok(tabRefs.every(t => TAB_ID.has(t) || t === 'jobs') && tabRefs.filter(t => t === 'jobs').length <= 1 && TABS.every(([id]) => tabRefs.filter(t => t === id).length === 1),
-     `${s}: タブへの入口が指すのは在るタブだけ（タブの帯の6つ＋「募集要項」）`, tabRefs.join(' '));
+  ok(tabRefs.every(t => TAB_ID.has(t) || t === 'jobs') && tabRefs.filter(t => t === 'jobs').length <= 1 && TABS.every(([id]) => { const n = tabRefs.filter(t => t === id).length; return n === 1 || (id === 'stay' && n === 2); }),
+     `${s}: タブへの入口が指すのは在るタブだけ（タブの帯の6つ＋「募集要項」＋概要の「就航地をすべて見る」）`, tabRefs.join(' '));
   const panes = [...PAGES[s].matchAll(/data-pvg-pane="([^"]*)"/g)].map(m => m[1].split(' '));
   ok(panes.length > 0 && panes.every(p => p.length > 0 && p.every(t => TAB_ID.has(t))) && TABS.every(([id]) => panes.some(p => p.includes(id))),
      `${s}: どの塊も在るタブにだけ属し、6つのタブのどれにも中身が在る`, [...new Set(panes.flat())].join(' '));
@@ -616,6 +628,100 @@ if (linkedTopicOnly.size) {
   notice('  会社ページの上で開く回答の板が出来るまで、この入口は押しても答えられない（未完了）。');
 }
 
+head('ステイ先（就航地の一覧 ⇄ 公式の就航地の台帳・写真のクレジット・ホテルを HTML に書かない）');
+for (const s of FIVE) {
+  const G = PART[s].glance, net = networkOf(s);
+  ok(!!net && net.list.length > 0, `${s}: 就航地の台帳（airline-destinations.mjs）に在る`);
+  if (!net) continue;
+  /* 生成側の関数を呼ばずに、出荷する HTML のカードを読み直して台帳と突き合わせる。 */
+  const cardsIn = h => [...h.matchAll(/<li data-rg="([a-z-]+)" data-q="([^"]*)"><a class="pvg-town pvg-city" href="#stay-([A-Z]{3})" data-city="([A-Z]{3})"( data-seasonal="1")?>([\s\S]*?)<\/a><\/li>/g)].map(m => ({
+    rg: m[1], q: unesc(m[2]), href: m[3], iata: m[4], seasonal: !!m[5],
+    code: one(m[6], /<i class="pvg-code3">([A-Z]{3})<\/i>/),
+    country: unesc(one(m[6], /<span class="pvg-city-k"><small>([^<]*)<\/small>/) || ''),
+    /* 街の名前には、折れてよい所の <wbr> が入る（字は足さない）。外してから台帳の名前と比べる */
+    city: unesc((one(m[6], /<b class="pvg-town-n">((?:[^<]|<wbr>)*)<\/b>/) || '').split('<wbr>').join('')),
+    wbr: (one(m[6], /<b class="pvg-town-n">((?:[^<]|<wbr>)*)<\/b>/) || '').split('<wbr>').map(unesc),
+    en: unesc(one(m[6], /<span class="pvg-town-s" lang="en">([^<]*)<\/span>/) || ''),
+    img: one(m[6], /<img src="([^"]*)"/), alt: unesc(one(m[6], /<img [^>]*\balt="([^"]*)"/) || ''),
+    wh: [one(m[6], /<img [^>]*\bwidth="(\d+)"/), one(m[6], /<img [^>]*\bheight="(\d+)"/)].map(Number),
+    none: /<span class="pvg-town-ph is-none">/.test(m[6]),
+  }));
+  const list = cardsIn(one(G, /<ul class="pvg-cgrid" id="pvg-st-list">([\s\S]*?)\n<\/ul>/) || '');
+  const tease = cardsIn(one(G, /<ul class="pvg-cgrid pvg-cteaser">([\s\S]*?)\n<\/ul>/) || '');
+  const want = new Map(net.list.map(d => [d.iata, d]));
+  const got = list.map(c => c.iata);
+  ok(got.length === want.size && new Set(got).size === got.length && got.every(k => want.has(k)),
+     `${s}: 一覧の空港は、台帳の ${want.size} 空港とちょうど同じ（足しても引いてもいない・同じ空港が2回出ない）`,
+     `画面 ${got.length}／台帳に無い ${got.filter(k => !want.has(k)).join(' ') || 'なし'}／画面に無い ${[...want.keys()].filter(k => !got.includes(k)).join(' ') || 'なし'}`);
+  {
+    const bad = list.filter(c => { const d = want.get(c.iata); return !d || c.href !== c.iata || c.code !== c.iata || c.city !== d.city || c.en !== d.en || c.country !== d.country || c.rg !== d.region || c.seasonal !== d.seasonal; });
+    ok(!bad.length, `${s}: どのカードも、都市名・英語名・国・地域・空港の3字・季節運航の印が台帳のまま`, bad.slice(0, 5).map(c => c.iata).join(' '));
+  }
+  {
+    /* 探す欄：カードの鍵（data-q）は、画面が打った字に掛けるのと同じ式（pv-glance.js の norm）を通した形。
+       式は写さず、出荷する pv-glance.js から関数の本体を切り出して使う。
+       鍵が小文字にしただけだった頃は、「東京（羽田）」と打っても "dusseldorf" と打っても1枚も当たらなかった
+       （打った字だけ半角のかっこになる・鍵に ü が残る）。 */
+    const src = one(read('pv-glance.js'), /\n  (function norm\(s\) \{[\s\S]*?\n  \})\n/);
+    let norm = null;
+    try { norm = src ? new Function(`${src}; return norm;`)() : null; } catch { norm = null; }
+    ok(typeof norm === 'function' && norm('Ａ（ｂ）Ü') === 'abu' && norm('Washington, D.C.') === 'washington dc' && norm('Xi’an') === 'xian' && norm('パルマ・デ・マヨルカ') === 'パルマデマヨルカ',
+       'pv-glance.js の norm を切り出せる（全角・大文字・欧文の飾り・名前の中の区切りの記号を区別しない）', norm ? [norm('Ａ（ｂ）Ü'), norm('Washington, D.C.'), norm('Xi’an')].join(' / ') : '切り出せない');
+    const bad = norm ? list.filter(c => { const d = want.get(c.iata); return !d || c.q !== norm([d.city, d.en, d.iata, d.country].join(' ')); }) : list;
+    ok(!bad.length, `${s}: 探す欄の鍵は、打った字と同じ形にそろえてある（都市名・英語名・3字・国）`, bad.slice(0, 5).map(c => `${c.iata}「${c.q}」`).join(' '));
+  }
+  {
+    /* 概要に出すのは一部だけ。一覧に在る空港を、同じ呼び名で。 */
+    const bad = tease.filter(c => { const l = list.find(x => x.iata === c.iata); return !l || !same(c, l); });
+    ok(tease.length >= 3 && tease.length <= 6 && new Set(tease.map(c => c.iata)).size === tease.length && !bad.length,
+       `${s}: 概要の「就航地の一部」は3〜6枚・一覧に在る空港を同じ中身で`, `${tease.length}枚 ${bad.map(c => c.iata).join(' ')}`);
+    ok(/<p class="pvg-askh">就航地の一部<small>[^<]*人気の順ではありません<\/small><\/p>/.test(G), `${s}: 概要の一部は「人気の順ではない」と断っている`);
+    const more = one(G, /<p class="pvg-st-more"><button type="button" class="pvg-btn pvg-btn-ghost" data-pvg-tab="stay">([^<]*)</) || '';
+    ok(more === `就航地をすべて見る（${want.size}空港）`, `${s}: 「就航地をすべて見る」の数は台帳の数`, more);
+    ok(one(G, /<b data-pvg-stn>(\d+)<\/b>/) === String(want.size), `${s}: 一覧の頭の数は台帳の数`);
+    const pills = [...G.matchAll(/<button type="button" class="pvg-pill" data-pvg-rg="([a-z-]*)" aria-pressed="(true|false)">([^<]*)<small>(\d+)<\/small><\/button>/g)].map(m => [m[1], m[3], +m[4], m[2] === 'true']);
+    ok(same(pills, [['', 'すべて', want.size, true], ...net.regions.map(r => [r.key, r.label, r.n, false])]), `${s}: 地域の絞り込みは、その会社に在る地域だけ・数は台帳から`, pills.map(x => `${x[1]}${x[2]}`).join(' '));
+  }
+  {
+    /* 写真：台帳に在る空港だけ。置き場・大きさ・説明は台帳のまま。無い空港は3字の札。 */
+    const bad = list.filter(c => {
+      const ph = placePhoto(c.iata);
+      if (!ph) return !(c.none && !c.img);
+      return !(c.img === `../${placeSrc(ph, true)}` && c.alt === ph.subject && c.wh[0] === 480 && c.wh[1] === Math.round(ph.h * 480 / ph.w) && !c.none
+        && fs.existsSync(path.join(ROOT, placeSrc(ph, true))) && fs.existsSync(path.join(ROOT, placeSrc(ph, false))));
+    });
+    ok(!bad.length, `${s}: 写真は台帳（place-photos.mjs）に在る空港だけ・ファイルが在る・説明と大きさが台帳のまま`, bad.slice(0, 5).map(c => c.iata).join(' '));
+    /* 作者名とライセンス名を示すことが使う条件の写真は、出典の一覧に必ず1行。条件の無い写真（CC0）は並べない。 */
+    const rows = new Map([...G.matchAll(/<li data-cr="([A-Z]{3})"><b>([^<]*)<\/b><span>([\s\S]*?)<\/span><\/li>/g)].map(m => [m[1], [unesc(m[2]), m[3]]]));
+    const need = list.filter(c => { const ph = placePhoto(c.iata); return ph && placeCredit(ph); });
+    const lost = need.filter(c => {
+      const ph = placePhoto(c.iata), r = rows.get(c.iata);
+      return !r || r[0] !== c.city || !r[1].includes(`<a class="pvg-src" href="${ph.source.replace(/&/g, '&amp;')}" target="_blank" rel="noopener">`) || !text(r[1]).includes(ph.author)
+        || !r[1].includes(`href="${ph.licence_url}"`) || !text(r[1]).includes(ph.licence);
+    });
+    ok(rows.size === need.length && !lost.length, `${s}: 示すことが条件の写真 ${need.length}枚に、作者名・出所・ライセンス名が付いている（それ以外は並べない）`, `行 ${rows.size}／欠け ${lost.slice(0, 5).map(c => c.iata).join(' ')}`);
+    ok(one(G.slice(G.indexOf('id="pvg-stay"')), /<summary>写真の出典<small>(\d+)枚<\/small>/) === String(need.length), `${s}: 就航地の「写真の出典」の枚数が合っている（暮らしの街の写真とは別に数える）`);
+    const held = Object.values(PLACE_HELD).map(x => x.photo.file).filter(f => PAGES[s].includes(`/${f}.jpg`) || PAGES[s].includes(`/${f}-480.jpg`));
+    ok(!held.length, `${s}: 入れないと決めた写真を出していない`, held.join(' '));
+  }
+  {
+    /* 都市を選んだ先：枠だけを出荷する。名前も写真もホテルも、HTML には1つも書かない。 */
+    const city = one(PAGES[s], /<section class="pvg-card pvg-cd" id="pvg-city" data-pvg-pane="stay" aria-labelledby="pvg-cd-n" hidden>([\s\S]*?)\n<\/section>/) || '';
+    ok(!!city && /<h3 class="pvg-cd-n" id="pvg-cd-n" tabindex="-1" data-cd="name"><\/h3>/.test(city) && /<div class="pvg-town-ph pvg-cd-ph" data-cd="ph" data-sizes="[^"]+"><\/div>/.test(city),
+       `${s}: 都市の詳細は、隠した枠だけで出荷する（名前と写真は選んだ時に入る）`);
+    ok(/公式の就航地です。あなたの機種・ベースからの運航や宿泊があるとは限りません。/.test(text(city)), `${s}: 就航地と「泊まる」を混ぜない断りが、都市の詳細に在る`);
+    const slot = [...city.matchAll(/<div class="crl" data-live="hotels"([^>]*)>/g)].map(m => m[1]);
+    ok(slot.length === 1 && slot[0].includes(` data-airline="${s}"`) && slot[0].includes(' data-stay=""') && slot[0].includes(' data-city=""'),
+       `${s}: ホテルの欄は1つ・空港は空のまま出荷する（どの空港のホテルも HTML に書いていない）`, slot.join(' ‖ '));
+    ok(!/class="crs-/.test(PAGES[s]), `${s}: ホテルの画面の部品（crs-）を HTML に書いていない（サーバーの返事から組む）`);
+    ok(/<h4 class="pvg-askh">ホテル・レストラン・場所<small>確認済みのパイロットが足したもの<\/small><\/h4>/.test(city), `${s}: ホテルの見出しは「確認済みのパイロットが足したもの」`);
+    /* 根拠・条件・時点：公式の資料と確かめた日。 */
+    const off = one(G, /<a class="pvg-link pvg-st-off" href="([^"]*)" target="_blank" rel="noopener">公式の就航地<\/a>/);
+    ok(off === net.src[0].url.replace(/&/g, '&amp;') && net.src.every(x => G.includes(`href="${x.url.replace(/&/g, '&amp;')}"`)), `${s}: 「公式の就航地」と根拠は、台帳の資料へ`, off || '');
+    const [y, mo, da] = net.at.split('-').map(Number);
+    ok(G.includes(`<span>${y}年${mo}月${da}日に公式の資料で確認</span>`), `${s}: 確かめた日（${net.at}）が出ている`);
+  }
+}
 head('career-live.js（提出された年収の一覧の、鍵の無い人の行）');
 {
   const LJ = noJsCmt(read('career-live.js'));
@@ -656,15 +762,23 @@ ok(!/prefers-color-scheme/.test(CSSC), 'prefers-color-scheme を書いていな�
     .flatMap(m => [...m[1].matchAll(/([\w-]+)\s*:/g)].map(x => x[1]));
   ok(frames.every(p => ['transform', 'opacity'].includes(p)), 'アニメーションは transform と opacity だけ', [...new Set(frames)].join(', '));
   ok(/prefers-reduced-motion\s*:\s*reduce/.test(CSSC), '動きを減らす設定の人には動かさない');
+  /* 昔からの節（.glass[data-pvg-pane]）ぜんぶに「入らない語は途中で折る」を掛けない。
+     掛けていたあいだ、狭い画面の2列の機材カードで、機種名（A321neo・B737/767）が字の途中で折れた。
+     掛けてよいのは小さい字の注記だけ（採用窓口のメールアドレスの行が、320px でページを横へ広げないため）。 */
+  const wide = [...CSSC.matchAll(/([^{}]+)\{([^{}]*)\}/g)].filter(m => /overflow-wrap\s*:\s*(?:break-word|anywhere)|word-break\s*:\s*break-(?:all|word)/.test(m[2]))
+    .flatMap(m => m[1].split(',').map(x => x.trim())).filter(x => /\[data-pvg-pane[^\]]*\]$/.test(x));
+  ok(!wide.length, '昔からの節ぜんぶに「語の途中で折る」を掛けていない（機種名が折れる）', wide.join(' ／ '));
+  ok(/\.glass\[data-pvg-pane\] \.text-xs\{overflow-wrap:break-word\}/.test(CSSC), '小さい字の注記だけは、入らない語を折る（長いメールアドレスでページが横に広がらない）');
   /* 字の大きさ：12px より小さい指定を書かない（clamp の下限も）。 */
   const sizes = [...CSSC.matchAll(/font(?:-size)?\s*:\s*([^;}]+)/g)].flatMap(m => [...m[1].matchAll(/(?<![\w.-])(\d+(?:\.\d+)?)px/g)].map(x => [+x[1], m[0].trim().slice(0, 60)]));
   const tiny = sizes.filter(([n]) => n < 12);
   ok(sizes.length > 0 && !tiny.length, '12px より小さい字を指定していない', tiny.map(x => x[1]).join(' ／ '));
-  /* この1枚の決まりは .pvg と .pvg-hero の中だけ（ほかの会社のページへ漏らさない）。 */
+  /* この1枚の決まりは .pvg と .pvg-hero の中だけ（ほかの会社のページへ漏らさない）。
+     data-pvg-… の印が付いた箱も中に数える（この印を書くのは gen-airline-glance.mjs だけ ＝ 対象のページにしか無い）。 */
   const sels = [...CSSC.matchAll(/(?:^|[{}])\s*([^{}@]+?)\s*\{/g)].map(m => m[1].trim())
     .filter(x => x && !/^(?:from|to|\d+(?:\.\d+)?%)(?:\s*,\s*(?:from|to|\d+(?:\.\d+)?%))*$/.test(x))
     .flatMap(x => x.split(/,(?![^()]*\))/).map(y => y.trim()));
-  const loose = sels.filter(x => !/\.pvg(?:-[\w-]+)?\b/.test(x));
+  const loose = sels.filter(x => !/\.pvg(?:-[\w-]+)?\b|\[data-pvg-[\w-]+/.test(x));
   ok(sels.length > 50 && !loose.length, '.pvg / .pvg-hero の外に決まりを書いていない', loose.slice(0, 5).join(' ／ '));
 }
 head('pv-glance.js・airline-base.js');
@@ -693,6 +807,7 @@ if (STATIC_ONLY) {
 const argOf = n => { const i = process.argv.indexOf(n); return i >= 0 ? String(process.argv[i + 1] || '') : ''; };
 const ONLY = argOf('--only') ? FIVE.filter(s => argOf('--only').split(',').includes(s)) : FIVE;
 const WANT_W = argOf('--sizes') ? argOf('--sizes').split(',').map(Number) : null;
+const WANT_S = argOf('--scenes') ? argOf('--scenes').split(',') : null, wantS = k => !WANT_S || WANT_S.includes(k);
 /* 幅・高さ・最上段の組み方。
    高さは「ブラウザのバーを引いたあとの、本当に見える高さ」（assert-hero-fold.mjs と同じ決め方。
    端末の仕様表の数字に戻すと、全部 ✅ のまま実機では入っていない、になる）。
@@ -710,7 +825,7 @@ const VIEWS = [
    それより狭い画面（スマホ）＝ 会社概要のカード（紹介の文まで）が入り、年収の額はそのすぐ下
    （AMT_GAP px 以内 ＝ 間に別の箱を挟んでいない）。 */
 const FOLD_FROM = 390, FOLD_PAY_FROM = 768, AMT_GAP = 120;
-const PARTIAL = ONLY.length !== FIVE.length || !!WANT_W;
+const PARTIAL = ONLY.length !== FIVE.length || !!WANT_W || !!WANT_S;
 const JOBS = Math.max(1, Number(process.env.PV_GLANCE_JOBS) || 3);
 
 if (!(await fetch(`${BASE}/airlines/${FIVE[0]}.html`).then(r => r.ok, () => false))) {
@@ -730,6 +845,9 @@ const { default: puppeteer } = await import('puppeteer');
    'rated' の時だけ「鍵の無い人への返事」を返す。わざと要約の文を混ぜる（画面が1文字も出さないことを見る）。 */
 const LIBS = /^(cdn\.jsdelivr\.net|fonts\.googleapis\.com|fonts\.gstatic\.com|cdn\.tailwindcss\.com)$/;
 const PAY_RE = /\/rest\/v1\/rpc\/pv_pay_rows$/;
+/* ホテルの欄だけ、場面ごとに返事を差し替えられる（seen.stay）。運営の公開・却下は、送られた中身を控える（seen.mod）。
+   ふだんは下の STUB のまま ＝ 鍵の1行。差し替えるのは「開いた時の画面」を見る1場面だけ。 */
+const STAY_RE = /\/rest\/v1\/rpc\/pv_stays$/, STAY_MOD_RE = /\/rest\/v1\/rpc\/pv_stay_moderate$/;
 const STUB = [
   [/\/rest\/v1\/rpc\/pv_reviews$/, '{"unlocked":false,"rows":[]}'],
   [PAY_RE, '{"ok":true,"state":"locked","rows":[]}'],
@@ -737,6 +855,8 @@ const STUB = [
   /* 月の勤務の集計と会員の補足：未ログインに本物のサーバーが返すのは、状態の1語だけ（db/work-months.sql・db/contrib.sql）。 */
   [/\/rest\/v1\/rpc\/pv_work_view$/, '{"ok":true,"state":"login"}'],
   [/\/rest\/v1\/rpc\/pv_contrib_notes$/, '{"ok":true,"state":"login"}'],
+  /* ホテル：確認済みのパイロットでない人に本物のサーバーが返すのは、状態の1語だけ（db/stays.sql）。都市を選んだ時にだけ呼ぶ。 */
+  [/\/rest\/v1\/rpc\/pv_stays$/, '{"ok":true,"state":"locked"}'],
 ];
 /* 未ログインの画面で、欄が落ち着く先。月の勤務は鍵（給与の提出で開く）・補足は欄ごと出さない・ほかは「まだありません」。 */
 const CALM = x => (x.kind === 'work' ? x.on && x.state === 'locked' : x.kind === 'notes' ? !x.on && x.state === 'empty' : x.on && x.state === 'empty');
@@ -778,7 +898,7 @@ const SETTLED = () => !!window.PVCurrency && !!document.querySelector('.pvg') &&
 async function open(browser, slug, w, h, mode) {
   const ctx = await browser.createBrowserContext();
   const p = await ctx.newPage();
-  const seen = { mode, asked: 0, unknown: new Set() };
+  const seen = { mode, asked: 0, unknown: new Set(), stay: null, stays: 0, stayAsked: 0, mod: [], modReply: '{"ok":true}' };
   p.setDefaultTimeout(30000);
   p.on('pageerror', e => trouble.push(`${slug} ${w}: ${String(e.message).slice(0, 140)}`));
   p.on('response', r => { if (r.url().startsWith(BASE) && r.status() >= 400) trouble.push(`${r.status()} ${r.url()}`); });
@@ -799,6 +919,13 @@ async function open(browser, slug, w, h, mode) {
       if (seen.mode !== 'off' && SUM_RE.test(u.pathname)) {
         return seen.mode === 'rated' ? r.respond({ status: 200, contentType: 'application/json', headers: cors, body: SUM_LOCKED })
                                      : r.respond({ status: 404, contentType: 'application/json', headers: cors, body: SUM_404 });
+      }
+      if (STAY_RE.test(u.pathname)) seen.stays++;
+      if (seen.stay && STAY_RE.test(u.pathname)) { seen.stayAsked++; return r.respond({ status: 200, contentType: 'application/json', headers: cors, body: seen.stay }); }
+      if (seen.stay && STAY_MOD_RE.test(u.pathname)) {
+        let sent = null; try { sent = JSON.parse(r.postData() || 'null'); } catch { /* 読めない中身は null のまま控える */ }
+        seen.mod.push(sent);
+        return r.respond({ status: 200, contentType: 'application/json', headers: cors, body: seen.modReply });
       }
       const hit = seen.mode !== 'off' && STUB.find(([re]) => re.test(u.pathname));
       if (hit) {
@@ -890,7 +1017,10 @@ function LIB() {
   G.geom = folded => {
     const R = [], root = document.querySelector('.pvg');
     if (!root || !on(root)) return ['新しい節（.pvg）が見えていない'];
-    if (document.documentElement.scrollWidth > innerWidth + 1) R.push(`横あふれ ページ ${document.documentElement.scrollWidth} > ${innerWidth}`);
+    /* ⚠️ innerWidth と比べない。スマホの見え方（isMobile）では、中身が画面より広いと innerWidth のほうが中身の幅まで伸びる
+       ＝ 何px はみ出していても「同じ幅」と出る（2026-10-08・320px のキャセイが 5px はみ出していたのに緑だった）。
+       画面の幅は clientWidth（こちらは伸びない）。 */
+    if (document.documentElement.scrollWidth > document.documentElement.clientWidth + 1) R.push(`横あふれ ページ ${document.documentElement.scrollWidth} > ${document.documentElement.clientWidth}`);
     for (const e of $$('.pvg *, .pvg-hero *, .pvg-tabbar *')) {
       if (!on(e)) continue;
       const cs = getComputedStyle(e);
@@ -1460,7 +1590,7 @@ async function runView(browser, s, [w, h, kind]) {
     ok(at.faces > 0, `${tag}: 「募集要項を開く」を押しても、ページの中身が消えない`, JSON.stringify(at));
     ok(at.top !== null && at.top >= 60 && at.top <= at.vh - 120, `${tag}: 「募集要項を開く」で、募集要項が画面に出る`, JSON.stringify(at));
     ok(at.tab === 'overview' && at.pvg, `${tag}: 「募集要項を開く」は、概要のタブのまま、その節へ寄る`, JSON.stringify(at));
-    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている6つだけ`, [...seen.unknown].join(' '));
+    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている7つだけ`, [...seen.unknown].join(' '));
   } catch (e) {
     ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
   } finally {
@@ -1483,11 +1613,30 @@ async function runOff(browser, s, [w, h, kind]) {
     await ev(() => window.__pvg.top());
     const sh = await ev(() => window.__pvg.shape());
     ok(!shapeBad(sh, kind).length, `${tag}: 概要の並びが崩れない`, shapeBad(sh, kind).join(' ／ '));
-    ok(!foldBadOf(sh, w, h).length, `${tag}: それでも最初の1画面（高さ ${h}）に ${FOLD_WHAT(w)}`, foldBadOf(sh, w, h).join('・'));
+    if (w >= FOLD_FROM) ok(!foldBadOf(sh, w, h).length, `${tag}: それでも最初の1画面（高さ ${h}）に ${FOLD_WHAT(w)}`, foldBadOf(sh, w, h).join('・'));
     const geo = await ev(() => window.__pvg.geom(true));
     ok(!geo.length, `${tag}: 切れ・はみ出し・重なりが無い`, geo.slice(0, 8).join('\n      '));
     const pr = await ev(() => window.__pvg.probe(null));
     ok(!pr.small.length && !pr.tap.length && !pr.bare.length, `${tag}: 字 12px 以上・押す場所 44px 以上・押せるものに状態が在る`, [...pr.small, ...pr.tap, ...pr.bare].slice(0, 8).join('\n      '));
+    /* 社名の下の「いま読み出せません｜やり直す」は、右の2つのボタンに隠れない。
+       いちばん狭い画面で1行のまま右へ伸び、「やり直す」が「他社と比較」の下へもぐって押せなかった
+       （4) の重なりは、同じ箱の子どうししか見ないので見つけられない）。 */
+    const hid = await ev(() => {
+      const b = document.querySelector('.pvg-hero .crl .crl-retry');
+      if (!b || !b.getClientRects().length) return ['「やり直す」が見えていない'];
+      b.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' });
+      const r = b.getBoundingClientRect(), R = [];
+      for (const a of document.querySelectorAll('.pvg-hero .pvg-acts .pvg-btn')) {
+        if (!a.getClientRects().length) continue;
+        const q = a.getBoundingClientRect();
+        const ox = Math.min(r.right, q.right) - Math.max(r.left, q.left), oy = Math.min(r.bottom, q.bottom) - Math.max(r.top, q.top);
+        if (ox > 1 && oy > 1) R.push(`「${a.textContent.replace(/\s+/g, ' ').trim()}」と ${Math.round(ox)}×${Math.round(oy)}px 重なる`);
+      }
+      const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+      if (!(hit && (hit === b || b.contains(hit)))) R.push(`まんなかを押すと別のものに当たる（${hit ? String(hit.className || hit.tagName).slice(0, 40) : '何も無い'}）`);
+      return R;
+    });
+    ok(!hid.length, `${tag}: 「やり直す」が、社名の横のボタンに隠れていない（押せる）`, hid.join('・'));
     /* サーバーが戻ったあと、やり直すボタンで読み直せる。 */
     seen.mode = 'empty';
     const before = seen.asked;
@@ -1549,7 +1698,7 @@ async function runRows(browser, s, [w, h, kind]) {
     ok(!geo.length, `${tag}: 切れ・はみ出し・重なりが無い`, geo.slice(0, 8).join('\n      '));
     const pr = await ev(() => window.__pvg.probe('#pvg-realpay'));
     ok(!pr.small.length && !pr.tap.length && !pr.bare.length, `${tag}: 一覧の字 12px 以上・押す場所 44px 以上・押せるものに状態が在る`, [...pr.small, ...pr.tap, ...pr.bare].slice(0, 8).join('\n      '));
-    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている6つだけ`, [...seen.unknown].join(' '));
+    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている7つだけ`, [...seen.unknown].join(' '));
   } catch (e) {
     ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
   } finally {
@@ -1596,7 +1745,7 @@ async function runRated(browser, s, [w, h, kind]) {
     ok(!geo.length, `${tag}: 切れ・はみ出し・重なりが無い`, geo.slice(0, 8).join('\n      '));
     const pr = await ev(() => window.__pvg.probe('#pvg-score'));
     ok(!pr.small.length && !pr.tap.length && !pr.bare.length, `${tag}: 評価の字 12px 以上・押す場所 44px 以上・押せるものに状態が在る`, [...pr.small, ...pr.tap, ...pr.bare].slice(0, 8).join('\n      '));
-    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている6つだけ`, [...seen.unknown].join(' '));
+    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている7つだけ`, [...seen.unknown].join(' '));
     if (process.env.PV_GLANCE_SHOT) await p.screenshot({ path: `${process.env.PV_GLANCE_SHOT.replace(/\/$/, '')}/rated-${s}-${w}.png`, clip: { x: 0, y: 0, width: w, height: w < 700 ? 2000 : 1500 } });
   } catch (e) {
     ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
@@ -1610,12 +1759,12 @@ const RATED_W = [390, 768, 1440];
    タブごとに 出ているべき箱（on）と 隠れているべき箱（off）。そのページに無い箱（会社によって無いものが在る）は数えない。 */
 const TAB_IDS = TABS.map(t => t[0]), TAB_NAME = Object.fromEntries(TABS);
 const FACE = {
-  overview: { on: ['.pvg-co', '.pvg-pay', '#pvg-realpay', '#pvg-score', '.pvg-rv-cta-overview', '.pvg-cell[data-cell="work"]', '.pvg-cell[data-cell="benefits"]', '.pvg-cell[data-cell="living"]', '.pvg-jobs', '#pvg-stay', '.pvg-askc'], off: ['.pvg-rv-cta-reviews', '.pvg-rvl', '#pvg-p-work', '#pvg-p-benefits', '#pvg-p-living'] },
-  pay: { on: ['.pvg-pay', '#pvg-p-benefits', '#pvg-realpay'], off: ['.pvg-cell[data-cell="work"]', '#pvg-score', '.pvg-co', '#pvg-stay', '.pvg-rvl', '#pvg-p-work', '#pvg-p-living', '.pvg-askc'] },
-  reviews: { on: ['#pvg-score', '.pvg-rv-cta-reviews', '.pvg-rvl', '#airline-review-section'], off: ['.pvg-rv-cta-overview', '.pvg-pay', '#pvg-realpay', '.pvg-co', '#pvg-stay', '#pvg-p-work'] },
-  work: { on: ['#pvg-p-work'], off: ['.pvg-pay', '#pvg-realpay', '#pvg-score', '#pvg-stay', '#pvg-p-benefits', '.pvg-rvl'] },
-  life: { on: ['#pvg-p-living'], off: ['.pvg-pay', '#pvg-realpay', '#pvg-score', '#pvg-stay', '#pvg-p-work', '.pvg-rvl'] },
-  stay: { on: ['#pvg-stay'], off: ['.pvg-pay', '#pvg-realpay', '#pvg-score', '.pvg-co', '#pvg-p-living', '.pvg-rvl'] },
+  overview: { on: ['.pvg-co', '.pvg-pay', '#pvg-realpay', '#pvg-score', '.pvg-rv-cta-overview', '.pvg-cell[data-cell="work"]', '.pvg-cell[data-cell="benefits"]', '.pvg-cell[data-cell="living"]', '.pvg-jobs', '#pvg-stay', '#pvg-stay > .pvg-phc', '.pvg-askc'], off: ['.pvg-rv-cta-reviews', '.pvg-rvl', '#pvg-p-work', '#pvg-p-benefits', '#pvg-p-living', '#pvg-city'] },
+  pay: { on: ['.pvg-pay', '#pvg-p-benefits', '#pvg-realpay'], off: ['.pvg-cell[data-cell="work"]', '#pvg-score', '.pvg-co', '#pvg-stay', '.pvg-rvl', '#pvg-p-work', '#pvg-p-living', '.pvg-askc', '#pvg-city'] },
+  reviews: { on: ['#pvg-score', '.pvg-rv-cta-reviews', '.pvg-rvl', '#airline-review-section'], off: ['.pvg-rv-cta-overview', '.pvg-pay', '#pvg-realpay', '.pvg-co', '#pvg-stay', '#pvg-p-work', '#pvg-city'] },
+  work: { on: ['#pvg-p-work'], off: ['.pvg-pay', '#pvg-realpay', '#pvg-score', '#pvg-stay', '#pvg-p-benefits', '.pvg-rvl', '#pvg-city'] },
+  life: { on: ['#pvg-p-living'], off: ['.pvg-pay', '#pvg-realpay', '#pvg-score', '#pvg-stay', '#pvg-p-work', '.pvg-rvl', '#pvg-city'] },
+  stay: { on: ['#pvg-stay', '#pvg-stay > .pvg-phc'], off: ['.pvg-pay', '#pvg-realpay', '#pvg-score', '.pvg-co', '#pvg-p-living', '.pvg-rvl', '#pvg-city'] },
 };
 /* ページの中で動く（外の変数を1つも使わない）。 */
 function tabSee(exp) {
@@ -1634,7 +1783,7 @@ function tabSee(exp) {
     h2: all('h2').filter(vis).map(e => e.textContent.replace(/\s+/g, ' ').trim()),
     hid: exp ? exp.on.filter(s => q(s) && !vis(q(s))) : [],
     out: exp ? exp.off.filter(s => vis(q(s))) : [],
-    over: document.documentElement.scrollWidth - innerWidth,
+    over: document.documentElement.scrollWidth - document.documentElement.clientWidth,
     /* いま画面に入っている古い節が、薄いまま（現れる動きの手前で）残っていないか。画面より下の節は、寄った時に現れる */
     faded: all('.glass.fade-up').filter(e => { if (!vis(e)) return false; const r = e.getBoundingClientRect(); return r.top < innerHeight - 40 && r.bottom > 40 && +getComputedStyle(e).opacity < 0.9; }).length,
     bar: box(bar), acts: all('.pvg-hero .pvg-acts .pvg-btn').map(e => ({ t: e.textContent.replace(/\s+/g, ' ').trim(), r: box(e) })),
@@ -1650,7 +1799,7 @@ function tabSee(exp) {
 }
 async function runTabs(browser, s, [w, h]) {
   const tag = `${s} ${w}（タブと情報追加）`;
-  const { ctx, p, ready } = await open(browser, s, w, h, 'empty');
+  const { ctx, p, ready, seen } = await open(browser, s, w, h, 'empty');
   const url = `${BASE}/airlines/${s}.html`;
   const see = exp => p.evaluate(tabSee, exp || null);
   const until = (fn, ...a) => p.waitForFunction(fn, { timeout: 8000 }, ...a).then(() => true, () => false);
@@ -1736,6 +1885,261 @@ async function runTabs(browser, s, [w, h]) {
       const hit2 = await atTab('overview'), r2 = await see({ on: ['#pvg-stay', '.pvg-co'], off: [] });
       ok(hit2 && !r2.hid.length, `${tag}: 古い住所（#pvg-stay）は、概要のまま開く（中身が消えない）`, JSON.stringify({ at: r2.at, 出ていない: r2.hid }));
     }
+    /* ── 3a) 板を開いたまま、ページの中のリンクで離れて「戻る」── 同じ板が開いたまま、押したリンクが同じ高さに在る。
+       ページの中のリンク（出所・ホテル・レストラン）はタブの切り替えを通らずに履歴を1段積む。離れる前の段に
+       位置と板を書き留めていなかった頃は、戻ると板が閉じて、板の高さの分（PC 約560px・スマホ 約950px）だけ別の所が出た。
+       ⚠️ 「押した瞬間」の高さはページの中で控える（押す前に読むと、押す道具が寄せ直した分だけずれる）。
+       ⚠️ 戻ったあとは「板が開いていて、リンクが元の高さに在る」まで待って読む（ブラウザが自分で位置を置き直すのは、戻った少しあと）。 */
+    {
+      const bad = [], PANEL = 'pvg-p-work', BTN = `.pvg-more[aria-controls="${PANEL}"]`;
+      const vis = sel => p.evaluate(sel => { const a = document.querySelector(sel); return !!a && a.getClientRects().length > 0; }, sel);
+      const read = sel => p.evaluate(sel => {
+        const a = document.querySelector(sel), b = [...document.querySelectorAll('.pvg-more[aria-controls]')].find(x => x.getAttribute('aria-expanded') === 'true');
+        return { open: b ? b.getAttribute('aria-controls') : '', top: a && a.getClientRects().length ? Math.round(a.getBoundingClientRect().top) : null, at: window.PVGlance.at() };
+      }, sel);
+      /* 押した瞬間の板と高さを控える（1回だけ） */
+      const arm = sel => p.evaluate(sel => {
+        const a = document.querySelector(sel);
+        window.__pvWas = null;
+        a.addEventListener('click', () => {
+          const b = [...document.querySelectorAll('.pvg-more[aria-controls]')].find(x => x.getAttribute('aria-expanded') === 'true');
+          window.__pvWas = { open: b ? b.getAttribute('aria-controls') : '', top: Math.round(a.getBoundingClientRect().top) };
+        }, { capture: true, once: true });
+      }, sel);
+      const was = () => p.evaluate(() => window.__pvWas);
+      const asBefore = (sel, want) => until((sel, want) => {
+        const a = document.querySelector(sel), b = [...document.querySelectorAll('.pvg-more[aria-controls]')].find(x => x.getAttribute('aria-expanded') === 'true');
+        return !!a && (b ? b.getAttribute('aria-controls') : '') === want.open && Math.abs(Math.round(a.getBoundingClientRect().top) - want.top) <= 2;
+      }, sel, want);
+      const openPanel = async () => {
+        await fresh(url);
+        return (await atTab('overview')) && (await tap(BTN)) && (await until(id => !document.getElementById(id).hidden, PANEL));
+      };
+      /* a) 別のタブに在る節へのリンク（出所 → 給与・待遇）。このリンクが概要に在る会社だけ */
+      const SRC = '[data-pvg-pane~="overview"] a[href="#kyuyo-konkyo"]';
+      if (!(await openPanel())) bad.push('勤務の板が開かない');
+      else if (await vis(SRC)) {
+        await arm(SRC);
+        if (!((await tap(SRC)) && (await atTab('pay')))) bad.push('出所のリンクで「給与・待遇」にならない');
+        const a = await was();
+        if (!(a && a.open === PANEL)) bad.push(`出所を押した時に、勤務の板が開いていない（${JSON.stringify(a)}）`);
+        else {
+          await p.goBack();
+          if (!((await atTab('overview')) && (await asBefore(SRC, a)))) { const b = await read(SRC); bad.push(`出所から戻ると、板か位置が変わる（板 ${a.open} → ${b.open || '閉じている'}・リンクの高さ ${a.top} → ${b.top}）`); }
+          await p.goForward();
+          if (!(await atTab('pay'))) bad.push('出所から戻って「進む」が「給与・待遇」にならない');
+          await p.goBack();
+          if (!((await atTab('overview')) && (await asBefore(SRC, a)))) { const b = await read(SRC); bad.push(`もう一度戻ると、板か位置が変わる（板 ${b.open || '閉じている'}・リンクの高さ ${a.top} → ${b.top}）`); }
+        }
+      }
+      /* b) 同じタブの中の節へのリンク（ホテル・レストラン → 就航地の節）。離れた先で板を閉じてから戻る */
+      const HOT = '.pvg a.pvg-topic-a[href="#pvg-stay"]';
+      if (!(await openPanel())) bad.push('勤務の板が開かない（2回目）');
+      else if (!(await vis(HOT))) bad.push('「ホテル・レストラン」のリンクが概要に見えない');
+      else {
+        await arm(HOT);
+        if (!((await tap(HOT)) && (await until(() => location.hash === '#pvg-stay')))) bad.push('「ホテル・レストラン」で就航地の節へ行かない');
+        const a = await was();
+        if ((await read(HOT)).at !== 'overview') bad.push('「ホテル・レストラン」でタブが替わる');
+        if (!(a && a.open === PANEL)) bad.push(`「ホテル・レストラン」を押した時に、勤務の板が開いていない（${JSON.stringify(a)}）`);
+        /* × で閉じる（＝ ページが板の分だけ短くなる。押す道具が × を画面のまんなかへ寄せる） */
+        else if (!((await tap(`#${PANEL} .pvg-x`)) && (await until(id => document.getElementById(id).hidden, PANEL)))) bad.push('板が × で閉じない');
+        else {
+          await p.goBack();
+          if (!((await until(() => location.hash !== '#pvg-stay')) && (await asBefore(HOT, a)))) { const b = await read(HOT); bad.push(`「ホテル・レストラン」から戻ると、板か位置が変わる（板 ${a.open} → ${b.open || '閉じている'}・リンクの高さ ${a.top} → ${b.top}）`); }
+        }
+      }
+      ok(!bad.length, `${tag}: 板を開いたままページの中のリンクで離れて「戻る」→ 同じ板・同じ位置`, bad.join(' ／ '));
+    }
+    /* ── 3b) ステイ先：都市を選ぶ → 詳細（ホテルの欄は鍵）→ 戻る。住所で直接開く。一覧に無い3字は一覧のまま ── */
+    {
+      const net = networkOf(s), bad = [];
+      const pick = net.list.find(d => placePhoto(d.iata)) || net.list[0], bare = net.list.find(d => !placePhoto(d.iata));
+      /* いまの面（一覧か詳細か）と、詳細に出ている字。ホテルの欄が落ち着くまで待つ（時間では待たない）。 */
+      const cityIs = code => until(code => {
+        const vis = e => !!e && e.getClientRects().length > 0;
+        const list = document.getElementById('pvg-stay'), box = document.getElementById('pvg-city');
+        if (!code) return vis(list) && !vis(box);
+        const slot = box.querySelector('.crl[data-live="hotels"]');
+        return !vis(list) && vis(box) && slot.getAttribute('data-stay') === code && !/^(idle|loading)$/.test(slot.dataset.state);
+      }, code);
+      const cityRead = () => p.evaluate(() => {
+        const box = document.getElementById('pvg-city'), t = k => { const e = box.querySelector(`[data-cd="${k}"]`); return e ? e.textContent.replace(/\s+/g, ' ').trim() : ''; };
+        const slot = box.querySelector('.crl[data-live="hotels"]'), img = box.querySelector('[data-cd="ph"] > img'), maps = box.querySelector('[data-cd="maps"]');
+        const r = box.getBoundingClientRect();
+        return {
+          name: t('name'), en: t('en'), country: t('country'), iata: t('iata'), tag: !box.querySelector('[data-cd="seasonal"]').hidden,
+          img: img ? img.getAttribute('src') : null, alt: img ? img.alt : '', none: box.querySelector('[data-cd="ph"]').classList.contains('is-none'),
+          credit: box.querySelector('[data-cd="credit"]').hidden ? '' : t('credit'), maps: maps ? maps.getAttribute('href') : '',
+          state: slot.dataset.state, slot: slot.textContent.replace(/\s+/g, ' ').trim(), parts: slot.querySelectorAll('img, a[href], form, input, button').length,
+          hash: location.hash, at: window.PVGlance.at(), top: Math.round(r.top), over: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        };
+      });
+      const LOCK = '確認済みのパイロットだけが見られます';
+      await fresh(`${url}#stay`);
+      if (!(await atTab('stay')) || !(await cityIs(''))) bad.push('ステイ先のタブが一覧で開かない');
+      const asked0 = (await see()).hash;
+      if (!((await tap(`#pvg-st-list .pvg-city[data-city="${pick.iata}"]`)) && (await cityIs(pick.iata)))) bad.push(`${pick.iata} を押しても詳細にならない`);
+      let c = await cityRead();
+      {
+        const ph = placePhoto(pick.iata);
+        if (!(c.hash === `#stay-${pick.iata}` && c.at === 'stay' && asked0 === '#stay')) bad.push(`住所が #stay-${pick.iata} にならない（${c.hash}）`);
+        if (!(c.name === pick.city && c.en === pick.en && c.country === pick.country && c.iata === pick.iata && c.tag === pick.seasonal)) bad.push(`詳細の字が台帳と違う（${c.name}・${c.en}・${c.country}・${c.iata}）`);
+        if (ph ? !(c.img === `../${placeSrc(ph, true)}` && c.alt === ph.subject && !c.none) : !(c.none && !c.img)) bad.push(`詳細の写真が台帳と違う（${c.img}）`);
+        if (ph && placeCredit(ph) ? !(c.credit.startsWith('写真：') && c.credit.includes(ph.author) && c.credit.includes(ph.licence)) : c.credit !== '') bad.push(`詳細の写真のクレジットが違う（${c.credit}）`);
+        if (c.maps !== `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${pick.en} ${pick.iata} airport`)}`) bad.push(`Google Maps の行き先が違う（${c.maps}）`);
+        /* 鍵の無い人：ホテルの欄は1行だけ。名前も写真も入力欄も出ない。 */
+        if (!(c.state === 'locked' && c.slot.includes(LOCK) && c.parts === 0)) bad.push(`ホテルの欄が鍵の1行になっていない（${c.state}・${c.slot.slice(0, 40)}・部品 ${c.parts}）`);
+        if (c.over > 0) bad.push(`詳細が横にあふれる（${c.over}px）`);
+        if (!(c.top >= 0 && c.top < h)) bad.push(`詳細の頭が画面に入っていない（上から ${c.top}px）`);
+      }
+      /* 「‹ 就航地」→ 一覧へ。進む → 同じ都市。戻る → 一覧。 */
+      if (!((await tap('#pvg-city [data-pvg-cityback]')) && (await cityIs('')))) bad.push('「就航地」へ戻るボタンで一覧に戻らない');
+      { const r = await see(FACE.stay); if (!(r.hash === '#stay' && r.at === 'stay' && !r.hid.length && !r.out.length)) bad.push(`戻った先が一覧でない（${r.hash}・出ている ${r.out.join(' ')}）`); }
+      await p.goForward();
+      if (!(await cityIs(pick.iata))) bad.push('「進む」で同じ都市の詳細にならない');
+      await p.goBack();
+      if (!(await cityIs(''))) bad.push('「戻る」で一覧にならない');
+      /* 探す欄：かっこ付きの名前をそのまま（全角）でも半角でも・3字は大文字でも小文字でも・欧文は飾り無しの綴りでも当たる。
+         字を消せば全部に戻る（カードを隠すだけ ＝ 並びは変えない）。 */
+      {
+        const seek = q => p.evaluate(q => {
+          const i = document.getElementById('pvg-st-q');
+          i.value = q; i.dispatchEvent(new Event('input', { bubbles: true }));
+          const on = [...document.querySelectorAll('#pvg-st-list > li')].filter(li => !li.hidden).map(li => li.querySelector('.pvg-city').getAttribute('data-city'));
+          return { on, n: document.querySelector('#pvg-stay [data-pvg-stn]').textContent, none: !document.querySelector('#pvg-stay .pvg-st-none').hidden };
+        }, q);
+        /* ⚠️ 「全部」は画面の並びで持つ。台帳の並び（地域ごと）と画面の並び（地域ごと・写真の在る都市が先）は別物で、
+              台帳の並びと比べていた版は、正しい画面で必ず赤くなった（別の目の読み直しで見つかった。流す前だった）。
+              中身（どの空港が出ているか）だけを台帳と突き合わせる。 */
+        const first = await seek('');
+        const all = first.on;
+        if (!same([...all].sort(), net.list.map(d => d.iata).sort())) bad.push('何も打っていないのに、台帳の空港が全部は出ていない');
+        const br = net.list.find(d => /（.+）/.test(d.city)), ac = net.list.find(d => /[^\x00-\x7f]/.test(d.en));
+        const pn = net.list.find(d => /[.,'\-]/.test(d.en));
+        if (pn) {
+          const bare = pn.en.replace(/[.,'\-]/g, '').toLowerCase();
+          const a = await seek(bare), b = await seek(pn.en);
+          if (!(a.on.includes(pn.iata) && same(a.on, b.on) && a.on.length < all.length)) bad.push(`記号を打たない "${bare}" で当たらない・"${pn.en}" と違う（${a.on.join(' ')}／${b.on.join(' ')}）`);
+        }
+        if (br) {
+          const a = await seek(br.city), b = await seek(br.city.replace('（', '(').replace('）', ')'));
+          if (!(a.on.includes(br.iata) && a.on.length < all.length && a.n === String(a.on.length) && !a.none)) bad.push(`「${br.city}」と打っても当たらない（${a.on.length}枚）`);
+          if (!same(a.on, b.on)) bad.push(`半角のかっこで打つと、当たるカードが変わる（${a.on.join(' ')} → ${b.on.join(' ')}）`);
+        }
+        if (ac) {
+          const plain = ac.en.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+          const a = await seek(plain), b = await seek(ac.en);
+          if (!(a.on.includes(ac.iata) && same(a.on, b.on))) bad.push(`"${plain}" と "${ac.en}" で当たるカードが違う・当たらない（${a.on.join(' ')}／${b.on.join(' ')}）`);
+        }
+        const up = await seek(pick.iata), lo = await seek(pick.iata.toLowerCase());
+        if (!(up.on.includes(pick.iata) && same(up.on, lo.on))) bad.push(`3字（${pick.iata}）で当たらない・大文字と小文字で違う`);
+        const zz = await seek('zzzz');
+        if (!(zz.on.length === 0 && zz.none && zz.n === '0')) bad.push('どれにも当たらない字で、「見つかりません」が出ない');
+        const back = await seek('');
+        if (!(same(back.on, all) && back.n === String(all.length) && !back.none)) bad.push('字を消しても、全部のカードに戻らない（並びが変わる）');
+      }
+      /* 鍵の無い人が都市を行き来しても、同じ都市を取りに行くのは1回だけ（「見られない」の答えは持っておく）。
+         ほかの都市の答えで捨ててよいのは、開いていた答えだけ ── 全部捨てていた頃は、戻るたびに待ちの絵が出て問い合わせが増えた。 */
+      {
+        const other = net.list.find(d => d.iata !== pick.iata);
+        const hop = async code => (await tap(`#pvg-st-list .pvg-city[data-city="${code}"]`)) && (await cityIs(code)) && (await tap('#pvg-city [data-pvg-cityback]')) && (await cityIs(''));
+        const a0 = seen.stays;
+        const walked = (await hop(other.iata)) && (await hop(pick.iata)) && (await hop(other.iata));
+        if (!walked) bad.push(`都市の行き来（${pick.iata} ⇄ ${other.iata}）ができない`);
+        else if (seen.stays - a0 !== 1) bad.push(`鍵の無い人が見た都市へ戻ると、同じ都市をまた取りに行く（${other.iata} の1回のはずが ${seen.stays - a0}回）`);
+      }
+      /* 写真の無い空港：3字の札で出る（写真を作らない）。 */
+      if (bare) {
+        await fresh(`${url}#stay-${bare.iata}`);
+        const hit = (await atTab('stay')) && (await cityIs(bare.iata));
+        c = hit ? await cityRead() : c;
+        if (!(hit && c.name === bare.city && c.iata === bare.iata && c.none && !c.img && c.credit === '' && c.state === 'locked')) bad.push(`住所（#stay-${bare.iata}）で直接開けない・写真の無い空港の出し方が違う`);
+        if (hit && !((await tap('#pvg-city [data-pvg-cityback]')) && (await cityIs('')) && (await see()).hash === '#stay')) bad.push('直接開いた詳細から、一覧へ戻れない');
+      } else {
+        await fresh(`${url}#stay-${pick.iata}`);
+        if (!((await atTab('stay')) && (await cityIs(pick.iata)))) bad.push(`住所（#stay-${pick.iata}）で直接開けない`);
+      }
+      /* 一覧に無い3字（その会社が飛んでいない空港）は、詳細を作らない。 */
+      const ghost = ['ZZZ', 'QQQ'].find(k => !net.list.some(d => d.iata === k));
+      await fresh(`${url}#stay-${ghost}`);
+      if (!((await atTab('stay')) && (await cityIs('')))) bad.push(`一覧に無い3字（#stay-${ghost}）で、空の詳細が開く`);
+      ok(!bad.length, `${tag}: ステイ先 ── 都市を押す → 詳細（字・写真・クレジット・Google Maps が台帳のまま／ホテルの欄は鍵の1行）→ 戻る・進む／住所で直接開く／一覧に無い3字は一覧のまま`, bad.join(' ／ '));
+    }
+    /* ── 3c) ホテルの欄が開いた時（運営）。本物の運営では入れないので、サーバーの返事だけを差し替えて画面を見る。
+          ・公開のボタンは「いま見えている中身」の印（rev）を持ち、押すとそれを送る。却下は印を送らない。
+            （送らないと、本人が直したことのある場所は、何度押しても公開に戻せない ── db/stays.sql が印なしを通さない）
+          ・見ているあいだに本人が直していたら、その旨を言って読み直す（古い中身のまま公開しない）。
+          ・ログインの鍵がこの端末から消えたら、開いていた時のホテル名を画面に残さない
+            （都市を選び直した時と、ほかの画面から戻ってきた時の両方）。
+          ⚠️ 出すホテルは架空（検査の中だけ・どこにも保存しない）。 ── */
+    {
+      const net = networkOf(s), bad = [];
+      const [c1, c2] = net.list;
+      const KEY = 'sb-check-auth-token', REV = 'a1b2c3d4e5f60718', NAME = '検査用の架空のホテル', PID = '00000000-0000-4000-8000-0000000000a1';
+      const OPEN = JSON.stringify({ ok: true, state: 'open', can_add: true, is_operator: true, others: [],
+        places: [{ id: PID, kind: 'hotel', name: NAME, address: '架空の住所 1-2-3', state: 'pending', mine: false, rev: REV, photos: [] }] });
+      const LOCKED = '{"ok":true,"state":"locked"}';
+      const SLOT = '#pvg-city .crl[data-live="hotels"]';
+      const slotIs = (code, state) => until((sel, code, state) => {
+        const e = document.querySelector(sel);
+        return !!e && e.getClientRects().length > 0 && e.getAttribute('data-stay') === code && e.dataset.state === state;
+      }, SLOT, code, state);
+      const slotRead = () => p.evaluate(sel => {
+        const e = document.querySelector(sel), pub = e.querySelector('[data-act="pub"]'), say = e.querySelector('.crs-say');
+        return { state: e.dataset.state, text: e.textContent.replace(/\s+/g, ' ').trim(), pub: !!pub, rev: pub ? pub.getAttribute('data-rev') : null,
+          rej: !!e.querySelector('[data-act="rej"]'), say: say ? say.textContent.trim() : '', parts: e.querySelectorAll('img, a[href], form, input, button').length };
+      }, SLOT);
+      const listIs = () => until(() => { const v = e => !!e && e.getClientRects().length > 0; return v(document.getElementById('pvg-stay')) && !v(document.getElementById('pvg-city')); });
+      /* 鍵は、ページが開いたあとに置く（登録だけの会員に出す板を呼ばない）。中身は読まれない ── 在るかどうかだけが見られる。 */
+      const key = on => p.evaluate((k, on) => { if (on) localStorage.setItem(k, '{}'); else localStorage.removeItem(k); }, KEY, on);
+      await fresh(`${url}#stay`);
+      if (!((await atTab('stay')) && (await listIs()))) bad.push('ステイ先のタブが一覧で開かない');
+      seen.stay = OPEN; seen.mod = []; seen.modReply = '{"ok":false,"status":"changed"}';
+      await key(true);
+      try {
+        /* 開いた欄：名前と、公開・却下のボタン。公開のボタンは印を持っている。 */
+        if (!((await tap(`#pvg-st-list .pvg-city[data-city="${c1.iata}"]`)) && (await slotIs(c1.iata, 'open')))) bad.push(`${c1.iata} のホテルの欄が開かない`);
+        let r = await slotRead();
+        if (!(r.text.includes(NAME) && r.pub && r.rej && r.rev === REV)) bad.push(`開いた欄に、名前・公開・却下・印がそろわない（公開 ${r.pub}・却下 ${r.rej}・印 ${r.rev}）`);
+        /* 公開を押す → 印を添えて送る。返事が「直されていた」なら、そう言って読み直す。 */
+        const asked0 = seen.stayAsked;
+        if (r.pub) await tap(`${SLOT} [data-act="pub"]`);
+        const told = await until(sel => /出した人が内容を直していました/.test((document.querySelector(sel + ' .crs-say') || {}).textContent || ''), SLOT);
+        const m0 = (seen.mod[0] || {}).p || {};
+        if (!(seen.mod.length === 1 && m0.target === 'place' && m0.id === PID && m0.state === 'public' && m0.rev === REV)) bad.push(`公開が、見えている中身の印を送らない（${JSON.stringify(seen.mod[0])}）`);
+        if (!(told && seen.stayAsked > asked0)) bad.push(`直されていた時に、そう言って読み直さない（読み直し ${seen.stayAsked - asked0}回）`);
+        /* 却下は、中身に関係なく通る ＝ 印を送らない。 */
+        seen.modReply = '{"ok":true}';
+        if (await slotIs(c1.iata, 'open')) await tap(`${SLOT} [data-act="rej"]`);
+        await until(sel => /\S/.test((document.querySelector(sel + ' .crs-say') || {}).textContent || '') && !/出した人が内容を直していました/.test(document.querySelector(sel + ' .crs-say').textContent), SLOT);
+        const m1 = (seen.mod[1] || {}).p || {};
+        if (!(seen.mod.length === 2 && m1.target === 'place' && m1.id === PID && m1.state === 'rejected' && !('rev' in m1))) bad.push(`却下の送り方が違う（${JSON.stringify(seen.mod[1])}）`);
+        /* 鍵が消えた → 一覧へ戻って同じ都市を選び直す。持っていた答えを使い回さず、鍵の1行になる。 */
+        await key(false); seen.stay = LOCKED;
+        if (!((await tap('#pvg-city [data-pvg-cityback]')) && (await listIs()))) bad.push('一覧へ戻れない');
+        if (!((await tap(`#pvg-st-list .pvg-city[data-city="${c1.iata}"]`)) && (await slotIs(c1.iata, 'locked')))) bad.push('鍵が消えたあと、同じ都市を選び直すと、開いていた時の中身がそのまま出る');
+        r = await slotRead();
+        if (r.text.includes(NAME) || r.parts) bad.push(`鍵が消えたあとの欄に、ホテル名か部品が残る（部品 ${r.parts}）`);
+        /* 開いたまま、ほかの画面から戻ってきた時にも残さない（別の都市で開き直してから確かめる）。 */
+        if (c2) {
+          await key(true); seen.stay = OPEN;
+          if (!((await tap('#pvg-city [data-pvg-cityback]')) && (await listIs()) && (await tap(`#pvg-st-list .pvg-city[data-city="${c2.iata}"]`)) && (await slotIs(c2.iata, 'open')))) bad.push(`${c2.iata} のホテルの欄が開かない`);
+          await key(false); seen.stay = LOCKED;
+          await p.evaluate(() => {
+            /* 検査のブラウザは、並んで走るほかのページに前面を取られていることがある。「見えている」に固定してから知らせる。 */
+            Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'visible' });
+            document.dispatchEvent(new Event('visibilitychange'));
+          });
+          if (!(await slotIs(c2.iata, 'locked'))) bad.push('開いたまま鍵が消えて画面へ戻ってきた時に、開いていた時の中身が残る');
+          r = await slotRead();
+          if (r.text.includes(NAME) || r.parts) bad.push(`戻ってきた時の欄に、ホテル名か部品が残る（部品 ${r.parts}）`);
+        }
+      } finally {
+        await key(false); seen.stay = null;
+      }
+      ok(!bad.length, `${tag}: ホテルの欄が開いた時（運営）── 公開は見えている中身の印を送る・却下は送らない／直されていたら読み直す／鍵が消えたら、開いていた時の中身を残さない`, bad.join(' ／ '));
+    }
     /* ── 4) 「情報を追加」→ 話題の一覧 → 月の勤務。会社を選び直させない。戻るで閉じる ── */
     {
       await fresh(url);
@@ -1784,16 +2188,147 @@ async function runTabs(browser, s, [w, h]) {
   }
 }
 const TABS_W = [390, 768, 1440];
+/* 読めない時を測る幅。320 ＝ 社名の下の知らせが、右の2つのボタンといちばん近づく幅。 */
+const OFF_W = [320, 390, 1440];
+
+/* 「都市のカード」：狭いカードで、国名・行き先の字・街の名前が語の途中で折れない。3レターはカードの中に在る。
+   カードの字の箱がいちばん狭いのは 320（2列・88px）と、3列に替わった直後（画面 608〜647・141〜155px）。
+   「オーストラリア」「サウジアラビア」は5社のどこかに必ず在り、3レターと同じ行に置くと 〜414 の画面で折れていた。
+   ページの中で動く（外の変数を1つも使わない）。 */
+function cardSee() {
+  const vis = e => !!e && e.getClientRects().length > 0;
+  /* 1字ずつの場所（幅・行）。sp ＝ その字の前に空白が在った */
+  const chars = el => {
+    const tw = document.createTreeWalker(el, NodeFilter.SHOW_TEXT), rg = document.createRange(), out = [];
+    let top = null, line = 0, sp = false;
+    for (let t = tw.nextNode(); t; t = tw.nextNode()) {
+      const s = t.nodeValue;
+      for (let i = 0; i < s.length; i++) {
+        if (!s[i].trim()) { sp = true; continue; }
+        rg.setStart(t, i); rg.setEnd(t, i + 1);
+        const r = rg.getClientRects()[0];
+        if (!r || !r.width) continue;
+        if (top !== null && Math.abs(r.top - top) > r.height / 2) line++;
+        top = r.top;
+        /* wb ＝ この字の前に <wbr> が在る（生成側が「ここで折ってよい」と渡した所） */
+        const pv = i === 0 ? t.previousSibling : null;
+        out.push({ c: s[i], w: r.width, right: r.right, line, sp, wb: !!pv && pv.nodeName === 'WBR' }); sp = false;
+      }
+    }
+    return out;
+  };
+  /* 折れてよい所：「・」「／」などのあと、開き括弧の前、空白、<wbr> */
+  const may = (a, b) => b.sp || b.wb || /[・／/\-–)）、，,]/.test(a.c) || /[（(]/.test(b.c);
+  /* 語の途中で折れている所（語 ＝ 折れてよい所で区切ったひとかたまり）。
+     room が在れば、そのかたまりが1行に入るのに折れているものだけを数える（入らない長い名前は、入る所で折れてよい） */
+  const midBreaks = (cs, room) => {
+    const R = [];
+    for (let i = 1; i < cs.length; i++) {
+      if (cs[i].line === cs[i - 1].line || may(cs[i - 1], cs[i])) continue;
+      let a = i - 1, b = i;
+      while (a > 0 && !may(cs[a - 1], cs[a])) a--;
+      while (b < cs.length - 1 && !may(cs[b], cs[b + 1])) b++;
+      const word = cs.slice(a, b + 1), wide = word.reduce((n, x) => n + x.w, 0);
+      /* 入るかどうかは、箱の幅より 0.5px 内側で決める（ちょうど同じ幅の語は、ブラウザの端数しだいで折れる ＝ それは「入らない」） */
+      if (room === null || wide <= room - 0.5) R.push(`${cs[i - 1].c}｜${cs[i].c}`);
+    }
+    return R;
+  };
+  /* 最後の行に1字だけ（「クライストチャー｜チ」「…レッドシー｜）」）。2行に分かれた名前で、落ちた1字がいちばん読みにくい */
+  const orphan = cs => {
+    if (!cs.length) return '';
+    const last = cs[cs.length - 1].line, tail = cs.filter(x => x.line === last);
+    return last > 0 && tail.length === 1 ? `${cs[cs.length - 2].c}｜${tail[0].c}` : '';
+  };
+  const R = [], cards = [...document.querySelectorAll('.pvg-cgrid .pvg-city')].filter(vis);
+  for (const a of cards) {
+    const code = a.getAttribute('data-city'), card = a.getBoundingClientRect(), say = e => `${code}「${e.textContent.replace(/\s+/g, ' ').trim()}」`;
+    const k = a.querySelector('.pvg-city-k'), small = k.querySelector('small'), chip = k.querySelector('.pvg-code3');
+    const ph = a.querySelector('.pvg-town-ph'), none = ph.classList.contains('is-none'), pr = ph.getBoundingClientRect();
+    const body = a.querySelector('.pvg-town-b'), bs = getComputedStyle(body);
+    /* 字の入る幅（小数のまま。clientWidth は整数に丸めるので、ちょうど入る・入らないの境目で嘘を言う） */
+    const room = body.getBoundingClientRect().width - parseFloat(bs.paddingLeft) - parseFloat(bs.paddingRight) - parseFloat(bs.borderLeftWidth) - parseFloat(bs.borderRightWidth);
+    /* 国名：1行・カードの中 */
+    const L = chars(small), right = L.reduce((n, x) => Math.max(n, x.right), -Infinity);
+    if (!L.length) R.push(`国名が見えない ${code}`);
+    else if (L[L.length - 1].line !== 0) R.push(`国名が ${L[L.length - 1].line + 1}行 ${say(small)}`);
+    if (right > card.right + 0.5) R.push(`国名がカードの外 ${say(small)}`);
+    /* 3レター：カードの中。写真の上か、国名の行。見せなくてよいのは、写真の所に同じ3字が大きく出ているカードだけ */
+    const c = chip.getBoundingClientRect(), shown = c.width > 2 && c.height > 2;
+    if (chip.textContent.trim() !== code) R.push(`3レターの字が違う ${code}（${chip.textContent.trim()}）`);
+    if (!shown) {
+      const big = ph.querySelector('b');
+      if (!(none && vis(big) && big.textContent.trim() === code)) R.push(`3レターがどこにも見えない ${code}`);
+    } else {
+      const inside = (x, o) => x.left >= o.left - 0.5 && x.right <= o.right + 0.5 && x.top >= o.top - 0.5 && x.bottom <= o.bottom + 0.5;
+      const kr = k.getBoundingClientRect(), onPhoto = inside(c, pr), inRow = c.top >= kr.top - 1 && c.bottom <= kr.bottom + 1;
+      if (!inside(c, card)) R.push(`3レターがカードの外 ${code}`);
+      else if (!onPhoto && !inRow) R.push(`3レターが、写真の上にも国名の行にも無い ${code}`);
+      if (inRow && !onPhoto && right > c.left + 0.5) R.push(`国名と3レターが重なる ${say(small)}`);
+      if (onPhoto && none) R.push(`写真の無いカードで、同じ3字が2つ見えている ${code}`);
+    }
+    /* 行き先の字（「ホテル・おすすめ」は半分ずつなら必ず入る）と街の名前：語の途中で折れない・カードの外へ出ない */
+    for (const [sel, what, fit] of [['.pvg-town-go', '行き先の字', null], ['.pvg-town-n', '街の名前', room]]) {
+      const e = a.querySelector(sel);
+      if (!vis(e)) continue;
+      const cs = chars(e), mid = midBreaks(cs, fit);
+      if (mid.length) R.push(`${what}が語の途中で折れる ${say(e)}（${mid.join(' ')}）`);
+      const one = orphan(cs);
+      if (one) R.push(`${what}の最後の行が1字だけ ${say(e)}（${one}）`);
+      if (cs.reduce((n, x) => Math.max(n, x.right), -Infinity) > card.right + 0.5) R.push(`${what}がカードの外 ${say(e)}`);
+    }
+  }
+  return { n: cards.length, onPhoto: cards.filter(a => { const c = a.querySelector('.pvg-code3').getBoundingClientRect(), p = a.querySelector('.pvg-town-ph').getBoundingClientRect(); return c.width > 2 && c.bottom <= p.bottom + 0.5; }).length,
+           bad: [...new Set(R)], over: document.documentElement.scrollWidth - document.documentElement.clientWidth };
+}
+/* 1枚のページの幅だけを変えて測る（container query は、幅を変えた瞬間に効く）。
+   414 ＝ 大きいスマホ／600・647 ＝ 3レターが写真の上に在る、いちばん広い画面／608 ＝ 3列に替わった直後／649 ＝ 国名の行へ戻った直後。 */
+const CARD_W = [320, 351, 375, 390, 414, 600, 608, 647, 649, 768, 1001, 1440];
+async function runCards(browser, s) {
+  const tag = `${s}（都市のカード）`, widths = CARD_W.filter(w => !WANT_W || WANT_W.includes(w));
+  if (!widths.length) return;
+  const { ctx, p, ready } = await open(browser, s, 390, 680, 'empty');
+  const until = (fn, ...a) => p.waitForFunction(fn, { timeout: 8000 }, ...a).then(() => true, () => false);
+  try {
+    ok(ready, `${tag}: 開ける`);
+    for (const [tab, what] of [['stay', '就航地の一覧'], ['overview', '概要に出す一部']]) {
+      await p.evaluate(t => window.PVGlance.go(t), tab);
+      await until(t => window.PVGlance.at() === t, tab);
+      const bad = []; let most = 0, photo = 0;
+      for (const w of widths) {
+        /* 端末の種類は開いた時のまま（変えるとページが読み直される）。変えるのは幅だけ */
+        await p.setViewport({ width: w, height: 800, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
+        if (!(await until(w => document.documentElement.clientWidth === w, w))) { bad.push(`幅 ${w}: 画面の幅が変わらない`); continue; }
+        await p.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));
+        const r = await p.evaluate(cardSee);
+        most = Math.max(most, r.n);
+        if (w <= 414) photo = Math.max(photo, r.onPhoto);
+        if (!r.n) bad.push(`幅 ${w}: カードが1枚も見えていない`);
+        if (r.over > 0) bad.push(`幅 ${w}: ページが横にあふれる（${r.over}px）`);
+        for (const x of r.bad.slice(0, 5)) bad.push(`幅 ${w}: ${x}`);
+        if (r.bad.length > 5) bad.push(`幅 ${w}: ほか ${r.bad.length - 5}件`);
+      }
+      ok(!bad.length, `${tag}: ${what}（${most}枚 × 幅 ${widths.join('・')}）── 国名は1行・3レターはカードの中・字が語の途中で折れない・最後の行が1字だけにならない`, bad.slice(0, 14).join('\n      '));
+      /* スマホの幅を1つでも測った回は、3レターが写真の上へ移っていること自体も確かめる（移っていなければ、上は「国名の行に在る」で通ってしまう） */
+      if (widths.some(w => w <= 414)) ok(photo > 0, `${tag}: ${what} ── スマホの幅では、3レターが写真の上に在る`, `写真の上 ${photo}枚`);
+    }
+  } catch (e) {
+    ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
+  } finally {
+    await ctx.close().catch(() => {});
+  }
+}
 
 head(`ブラウザ（${ONLY.length}社 × ${VIEWS.length}つの幅 × 全通貨）`);
 const browser = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox'] });
 try {
   const work = [];
-  for (const s of ONLY) for (const v of VIEWS) work.push(() => runView(browser, s, v));
-  for (const s of ONLY) for (const v of VIEWS.filter(x => x[0] === 390 || x[0] === 1440)) work.push(() => runOff(browser, s, v));
-  for (const s of ONLY) for (const v of VIEWS.filter(x => ROWS_W.includes(x[0]))) work.push(() => runRows(browser, s, v));
-  for (const s of ONLY) for (const v of VIEWS.filter(x => RATED_W.includes(x[0]))) work.push(() => runRated(browser, s, v));
-  for (const s of ONLY) for (const v of VIEWS.filter(x => TABS_W.includes(x[0]))) work.push(() => runTabs(browser, s, v));
+  if (wantS('view')) for (const s of ONLY) for (const v of VIEWS) work.push(() => runView(browser, s, v));
+  if (wantS('off')) for (const s of ONLY) for (const v of VIEWS.filter(x => OFF_W.includes(x[0]))) work.push(() => runOff(browser, s, v));
+  if (wantS('rows')) for (const s of ONLY) for (const v of VIEWS.filter(x => ROWS_W.includes(x[0]))) work.push(() => runRows(browser, s, v));
+  if (wantS('rated')) for (const s of ONLY) for (const v of VIEWS.filter(x => RATED_W.includes(x[0]))) work.push(() => runRated(browser, s, v));
+  if (wantS('tabs')) for (const s of ONLY) for (const v of VIEWS.filter(x => TABS_W.includes(x[0]))) work.push(() => runTabs(browser, s, v));
+  if (wantS('cards')) for (const s of ONLY) work.push(() => runCards(browser, s));
   let next = 0;
   await Promise.all(Array.from({ length: Math.min(JOBS, work.length) }, async () => {
     while (next < work.length) {

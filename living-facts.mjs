@@ -81,6 +81,8 @@ const HOSTS = {
 
 /** どの会社がどの街か（エティハドは career-facts.mjs）。 */
 export const CITY_OF = { jal: 'tokyo', ana: 'tokyo', 'cathay-pacific': 'hongkong', 'eva-air': 'taipei' };
+/** 通勤の行の手段。画面では「電車」「タクシー」の札になる（札の字は画面を作る側が持つ）。 */
+export const MODES = ['train', 'taxi', 'bus', 'car'];
 
 const D4 = '2026-10-04';
 const D5 = '2026-10-05';
@@ -163,11 +165,11 @@ export const LIVING = {
     lead_col: 'ldk1',
     rents: [
       suumo('ota', '大田区', '羽田空港がある区', S.suumoTokyo, [72000, 85000, 125000, 172000, 209000],
-        '大田区 7.2万円 8.5万円 12.5万円 17.2万円 20.9万円', { lead: true }),
+        '大田区 7.2万円 8.5万円 12.5万円 17.2万円 20.9万円', { lead: true, iata: 'HND' }),
       suumo('minato', '港区', '都心の区の例', S.suumoTokyo, [118000, 119000, 234000, 371000, 593000],
         '港区 11.8万円 11.9万円 23.4万円 37.1万円 59.3万円'),
       suumo('narita', '成田市（千葉県）', '成田空港がある市', S.suumoChiba, [57000, 64000, 73000, 80000, 89000],
-        '成田市 5.7万円 6.4万円 7.3万円 8.0万円 8.9万円'),
+        '成田市 5.7万円 6.4万円 7.3万円 8.0万円 8.9万円', { iata: 'NRT' }),
     ],
     rent_basis: [
       { key: 'what', ja: '何の額か',
@@ -183,27 +185,27 @@ export const LIVING = {
         quote: 'ワンルーム 1K/1DK 1LDK/2K/2DK 2LDK/3K/3DK 3LDK/4K～' },
     ],
     commute: [
-      { key: 'hnd_to_stations', iata: 'HND', ja: '羽田空港から主な駅まで（電車・モノレール）',
+      { key: 'hnd_to_stations', iata: 'HND', mode: 'train', ja: '羽田空港から主な駅まで（電車・モノレール）',
         value: '品川駅 約15分・浜松町駅 約20分・東京駅 約30分',
         at: '2026-10', at_ja: OPENED, as_of: D4, src: S.hndTerminal, lead: true,
         cond_ja: '目安の時間。どのターミナルから・どの路線か・乗り換えの時間を含むかは表に書いていない',
         quote: '東京駅 約30分 浜松町駅 約20分 品川駅 約15分' },
-      { key: 'hnd_keikyu_shinagawa', iata: 'HND', ja: '京急：品川駅 ⇄ 羽田空港',
+      { key: 'hnd_keikyu_shinagawa', iata: 'HND', mode: 'train', ja: '京急：品川駅 ⇄ 羽田空港',
         value: { t3: 11, t12: 14 }, unit: '分',
         at: '2026-10', at_ja: OPENED, as_of: D4, src: S.keikyu,
         cond_ja: '京急が示す目安。1つ目が第3ターミナル駅・2つ目が第1・第2ターミナル駅。列車の種別と時間帯は書いていない',
         quote: 'Shinagawa Station 11 minutes 14 minutes' },
-      { key: 'hnd_monorail_fare', iata: 'HND', ja: '東京モノレール：浜松町駅 → 羽田空港の各ターミナル駅',
+      { key: 'hnd_monorail_fare', iata: 'HND', mode: 'train', ja: '東京モノレール：浜松町駅 → 羽田空港の各ターミナル駅',
         value: 520, cur: 'JPY',
         at: '2026-10', at_ja: OPENED, as_of: D4, src: S.monorail,
         cond_ja: 'おとな・片道・きっぷの運賃（IC カードは¥519）。浜松町駅から。所要時間はこの表に無い',
         quote: '天空橋 羽田空港第3ターミナル 新整備場 羽田空港第1ターミナル 羽田空港第2ターミナル おとな 460 520 520 520 520' },
-      { key: 'nrt_skyliner_time', iata: 'NRT', ja: '京成スカイライナー：日暮里駅 → 空港第2ビル駅',
+      { key: 'nrt_skyliner_time', iata: 'NRT', mode: 'train', ja: '京成スカイライナー：日暮里駅 → 空港第2ビル駅',
         value: 36, unit: '分',
         at: '2026-10', at_ja: OPENED, as_of: D4, src: S.skyliner,
         cond_ja: '最短の時間（いつもこの時間という意味ではない）。日暮里駅から空港第2ビル駅まで',
         quote: '成田スカイアクセス線を経由し、在来線最速の時速160㎞で走行することで、日暮里駅から空港第2ビル駅までを最短36分(※1)で結びます。' },
-      { key: 'nrt_skyliner_fare', iata: 'NRT', ja: '京成スカイライナー：京成上野・日暮里 〜 空港第2ビル・成田空港',
+      { key: 'nrt_skyliner_fare', iata: 'NRT', mode: 'train', ja: '京成スカイライナー：京成上野・日暮里 〜 空港第2ビル・成田空港',
         value: { fare: 1280, liner: 1300 }, cur: 'JPY',
         at: '2026-10', at_ja: OPENED, as_of: D4, src: S.skylinerFare,
         cond_ja: 'おとな・片道。運賃（きっぷ。IC は¥1,267）とライナー料金は別建てで、合計はページに書いていない',
@@ -220,7 +222,7 @@ export const LIVING = {
     rents: [
       hse('caribbean_coast', '東涌（Caribbean Coast）', '空港のとなりの新市街（東涌）。28Hse の東涌の団地一覧でいちばん上に出る団地',
         S.hseCaribbean, { bed2: [15800, 18500], bed3: [18000, 28000] },
-        '2 Bedrooms ( 51 ) $15,800 - $18,500/month 3 Bedrooms ( 61 ) $18,000 - $28,000/month', { lead: true }),
+        '2 Bedrooms ( 51 ) $15,800 - $18,500/month 3 Bedrooms ( 61 ) $18,000 - $28,000/month', { lead: true, iata: 'HKG' }),
       hse('queens_terrace', "上環（Queen's Terrace）", '都心の例。28Hse の「Central, Sheung Wan」の団地一覧でいちばん上に出る団地',
         S.hseQueens, { bed1: [22000, 23500], bed2: [22300, 30000], bed3: [32800, 33000] },
         '1 Bedroom ( 7 ) $22,000 - $23,500/month 2 Bedrooms ( 9 ) $22,300 - $30,000/month 3 Bedrooms ( 5 ) $32,800 - $33,000/month'),
@@ -232,12 +234,12 @@ export const LIVING = {
         quote: 'Rental Price HKD$15,800 - HKD$60,000 128units' },
     ],
     commute: [
-      { key: 'hkg_ael_time', iata: 'HKG', ja: 'エアポート・エクスプレス：空港駅 ⇄ 香港駅',
+      { key: 'hkg_ael_time', iata: 'HKG', mode: 'train', ja: 'エアポート・エクスプレス：空港駅 ⇄ 香港駅',
         value: 24, unit: '分',
         at: '2025-09', as_of: D5, src: S.tlbRail, lead: true,
         cond_ja: '平均でおよその時間。駅から駅まで',
         quote: 'An average journey between the Airport Station and the Hong Kong Station takes about 24 minutes.' },
-      { key: 'hkg_ael_fare', iata: 'HKG', ja: 'エアポート・エクスプレス：香港駅 ⇄ 空港',
+      { key: 'hkg_ael_fare', iata: 'HKG', mode: 'train', ja: 'エアポート・エクスプレス：香港駅 ⇄ 空港',
         value: 120, cur: 'HKD',
         at: '2026-10', at_ja: OPENED, as_of: D5, src: S.mtrFare,
         cond_ja: 'おとな・片道（同じ日の往復も同じ額）。オクトパスなどで払う額で、スマートチケットは HK$130',
@@ -253,9 +255,9 @@ export const LIVING = {
     lead_col: 'bed2',
     rents: [
       r591('taoyuan', '桃園市', '桃園国際空港がある市', S.r591Taoyuan, [9500, 16000, 22000, 25000],
-        '獨立套房 9,500 元/月 比去年 +5.6% 1房 16,000 元/月 比去年 +4.2% 2房 22,000 元/月 比去年 持平 3房 25,000 元/月 比去年 持平', { lead: true }),
+        '獨立套房 9,500 元/月 比去年 +5.6% 1房 16,000 元/月 比去年 +4.2% 2房 22,000 元/月 比去年 持平 3房 25,000 元/月 比去年 持平', { lead: true, iata: 'TPE' }),
       r591('dayuan', '桃園市 大園區', '空港の駅（A12 機場第一航廈）の住所がある区', S.r591Dayuan, [9000, 18250, 22500, 24800],
-        '獨立套房 9,000 元/月 比去年 -5.3% 1房 18,250 元/月 比去年 +7.4% 2房 22,500 元/月 比去年 +12.5% 3房 24,800 元/月 比去年 -0.8%'),
+        '獨立套房 9,000 元/月 比去年 -5.3% 1房 18,250 元/月 比去年 +7.4% 2房 22,500 元/月 比去年 +12.5% 3房 24,800 元/月 比去年 -0.8%', { iata: 'TPE' }),
       r591('luzhu', '桃園市 蘆竹區', 'エバー航空の本社の住所がある区', S.r591Luzhu, [10000, 15750, 23000, 26950],
         '獨立套房 10,000 元/月 比去年 -9.1% 1房 15,750 元/月 比去年 -1.6% 2房 23,000 元/月 比去年 +4.5% 3房 26,950 元/月 比去年 +6.9%'),
       r591('taipei', '台北市', '台北の市全体', S.r591Taipei, [15900, 30000, 35000, 44999],
@@ -273,17 +275,17 @@ export const LIVING = {
         quote: '近3個月 中位數，更新至9/28，僅供參考' },
     ],
     commute: [
-      { key: 'tpe_mrt_express_time', iata: 'TPE', ja: '桃園機場捷運（直達車）：台北車站 → 空港',
+      { key: 'tpe_mrt_express_time', iata: 'TPE', mode: 'train', ja: '桃園機場捷運（直達車）：台北車站 → 空港',
         value: { t1: 35, t2: 39 }, unit: '分',
         at: '2026-10', at_ja: OPENED, as_of: D4, src: S.tycgMrt, lead: true,
         cond_ja: '直達車の、駅から駅までの時間。1つ目が第1ターミナル駅・2つ目が第2ターミナル駅。待ち時間は含まない',
         quote: 'From Taipei Main Station to Taiwan Taoyuan International Airport Terminal 1 Station, it only takes 35 minutes by Express Train, and takes 39 minutes to Terminal 2 Station.' },
-      { key: 'tpe_mrt_commuter_time', iata: 'TPE', ja: '桃園機場捷運（普通車）：台北車站 → 空港 第1ターミナル駅',
+      { key: 'tpe_mrt_commuter_time', iata: 'TPE', mode: 'train', ja: '桃園機場捷運（普通車）：台北車站 → 空港 第1ターミナル駅',
         value: 49, unit: '分',
         at: '2026-10', at_ja: OPENED, as_of: D4, src: S.tycgMrt,
         cond_ja: '各駅停車の、駅から駅までの時間。待ち時間は含まない',
         quote: 'Frequency Every 15 minutes Duration from A1~A12 takes 49 minutes and from A1~A21 takes 82 minutes' },
-      { key: 'tpe_mrt_fare', iata: 'TPE', ja: '桃園機場捷運：台北車站 〜 空港の駅',
+      { key: 'tpe_mrt_fare', iata: 'TPE', mode: 'train', ja: '桃園機場捷運：台北車站 〜 空港の駅',
         value: 160, cur: 'TWD',
         at: '2026-10', at_ja: OPENED, as_of: D4, src: S.tymFare,
         cond_ja: '片道・1人。運賃表は駅の組ごとに数字が1つあるだけで、通貨の字も、直達車と普通車の区別も無い。第2ターミナル駅も同じ額',
@@ -375,6 +377,8 @@ export function check() {
         if (!x.cur) fail(where, '家賃に通貨（cur）が無い');
         if (x.per !== null && x.per !== 'month') fail(where, `per は 'month' か null（${x.per}）`);
         if (!String(x.pick_ja || '').trim()) fail(where, 'その地区を選んだ理由（pick_ja）が無い');
+        /* 空港の街だと言えるのは、選んだ理由にそう書いてある行だけ（iata を足すなら pick_ja に「空港」の字が要る）。 */
+        if (x.iata !== undefined && !(/^[A-Z]{3}$/.test(String(x.iata)) && /空港/.test(String(x.pick_ja)))) fail(where, '空港（iata）を付けるなら、英大文字3字で、選んだ理由に「空港」と書く');
         const ks = Object.keys(x.value || {});
         if (!ks.length) fail(where, '列が1つも無い');
         for (const k of ks) {
@@ -386,6 +390,7 @@ export function check() {
       }
       if (type === 'commute') {
         if (!/^[A-Z]{3}$/.test(String(x.iata || ''))) fail(where, '空港（iata）が英大文字3字でない');
+        if (!MODES.includes(x.mode)) fail(where, `手段（mode）が ${MODES.join('・')} のどれでもない`);
         if (!String(x.cond_ja || '').trim()) fail(where, '条件（cond_ja）が無い（駅から駅まで・目安、など）');
       }
     }

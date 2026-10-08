@@ -991,7 +991,7 @@ async function main() {
       const r = document.querySelector('.pvc-root');
       const tiles = [...r.querySelectorAll('[data-pvc-tile]')].map((n) => ({
         k: n.getAttribute('data-pvc-tile'), tag: n.tagName, t: n.querySelector('.pvc-tile-t').textContent, d: n.querySelector('.pvc-tile-d').textContent,
-        to: n.tagName === 'A' ? new URL(n.href).pathname + new URL(n.href).search : '',
+        to: n.tagName === 'A' ? new URL(n.href).pathname + new URL(n.href).search + new URL(n.href).hash : '',
       }));
       const talk = r.querySelector('.pvc-talk');
       return {
@@ -1011,8 +1011,8 @@ async function main() {
     ok(J(L.tiles.map((t) => t.k)) === J([...INSIDE, 'stay']),
       'タイルは 勤務・通勤/タクシー・Staff Travel・機長昇格・勤務スケジュール・訓練/キャリア・休暇/手当・ホテル/ステイ の8つ', J(L.tiles.map((t) => t.t)));
     ok(INSIDE.every((k) => by[k].tag === 'BUTTON') && by.stay.tag === 'A'
-      && by.stay.to === '/career.html?airline=etihad&tab=life' && by.stay.d === 'パイロット限定',
-      '★答えられる7つは全部、面の中で開く（ほかの画面へ送り出さない＝会社を選び直させない）。ホテル・ステイだけは会社を渡して行く', J(L.tiles));
+      && by.stay.to === EY + '#stay' && by.stay.d === 'パイロット限定',
+      '★答えられる7つは全部、面の中で開く（ほかの画面へ送り出さない＝会社を選び直させない）。ホテル・ステイは、このページの「ステイ先」のタブへ行く', J(L.tiles));
     ok(L.counts === 0 && L.state === 'anon anon' && !L.stateShown && !L.held && !/\d+\s*件/.test(L.text) && !/あなたの投稿/.test(L.text),
       '★まだ何も出していない人には件数を1つも出さない（「あなたの投稿」の字も、預かりの案内も出ない）', J({ counts: L.counts, state: L.state }));
     ok(hits(b, 'my_work_months') === 0 && hits(b, 'my_airline_conditions') === 0 && hits(b, 'my_contrib_anon') === 0,
@@ -1316,6 +1316,235 @@ async function main() {
       if (p !== a) await p.st.ctx.close();
     });
   }
+
+  await scene('ホテル・ステイの入口 ── このページの「ステイ先」のタブへ（ほかの画面へ送り出さない）', async () => {
+    const s = await open('phone');
+    await go(s, EY);
+    await s.page.waitForFunction(() => !!window.PVGlance);
+    const before = await s.page.evaluate(() => ({ at: window.PVGlance.at(), len: history.length }));
+    await s.page.evaluate(() => window.PVContrib.open({ topic: 'list' }));
+    await waitView(s, 'list');
+    await s.page.click('.pvc-root [data-pvc-tile="stay"]');
+    await s.page.waitForFunction(() => window.PVGlance.at() === 'stay' && !window.PVContrib.isOpen()
+      && document.querySelector('.pvc-root').hidden, { timeout: 8000 }).catch(() => {});
+    const after = await s.page.evaluate(() => {
+      const box = document.getElementById('pvg-stay'), r = box.getBoundingClientRect();
+      return {
+        at: window.PVGlance.at(), open: window.PVContrib.isOpen(), hidden: document.querySelector('.pvc-root').hidden,
+        href: location.pathname + location.search + location.hash, shown: r.width > 0 && r.height > 0,
+        list: !!box.querySelector('#pvg-st-list li'), lock: document.documentElement.classList.contains('pvc-lock'), len: history.length,
+      };
+    });
+    ok(before.at !== 'stay' && after.at === 'stay' && after.href === EY + '#stay' && after.shown && after.list,
+      '★「ホテル・ステイ」を押すと、同じページの「ステイ先」のタブが開く（会社を選び直させない・別の画面へ行かない）', J({ before, after }));
+    ok(!after.open && after.hidden && !after.lock, '面は閉じている（ページが動かせる）', J(after));
+    ok(after.len === before.len + 1, '履歴に残るのはタブの1段だけ（面のために積んだ段は降りている）', J({ before: before.len, after: after.len }));
+    await s.page.goBack().catch(() => {});
+    await s.page.waitForFunction((t) => window.PVGlance.at() === t, { timeout: 8000 }, before.at).catch(() => {});
+    const back = await s.page.evaluate(() => ({ at: window.PVGlance.at(), open: window.PVContrib.isOpen(), href: location.pathname + location.search + location.hash }));
+    ok(back.at === before.at && !back.open && back.href === EY, '「戻る」1回で、開く前のタブへ戻る（面は開き直さない）', J(back));
+    await s.st.ctx.close();
+  });
+
+  /* ページの深い所で押したとき。面のために積んだ段を降りてからタブを替えると、降りた先の位置をブラウザが
+     あとから置き直して、替えたタブが途中から始まった（100枚ある就航地の一覧のまんなかに出る）。
+     いまは、面の段をそのまま行き先のタブの段に書き換える ＝ 降りない。 */
+  const tabProbe = (s) => ({
+    where: () => s.page.evaluate(() => {
+      const bar = document.querySelector('.pvg-tabbar').getBoundingClientRect(), box = document.getElementById('pvg-stay').getBoundingClientRect();
+      const more = document.querySelector('.pvg-more[aria-expanded="true"]'), f = document.activeElement;
+      return {
+        at: window.PVGlance.at(), y: Math.round(scrollY), len: history.length, open: window.PVContrib.isOpen(),
+        lock: document.documentElement.classList.contains('pvc-lock'), href: location.pathname + location.search + location.hash,
+        bar: Math.round(bar.bottom), head: Math.round(box.top), shown: box.height > 0, vh: innerHeight,
+        /* 開いている板（概要で「もっと見る」を押した先）と、いま焦点の在る所 */
+        panel: more ? more.getAttribute('aria-controls') : '', focus: f && f !== document.body ? String(f.getAttribute('class') || f.tagName).slice(0, 40) : '',
+      };
+    }),
+    /* 置き直しが落ち着く（3コマ続けて同じ位置）まで待つ。時間では待たない */
+    still: () => s.page.evaluate(() => new Promise((res) => {
+      const t0 = performance.now(); let last = -1, n = 0;
+      const tick = () => { n = scrollY === last ? n + 1 : 0; last = scrollY; if (n >= 3 || performance.now() - t0 > 3000) return res(); requestAnimationFrame(tick); };
+      tick();
+    })),
+  });
+  await scene('ホテル・ステイの入口を、ページの深い所から押す ── 行き先は頭から・戻ると元の深さ・進んでも面は開き直さない', async () => {
+    const s = await open('phone');
+    await go(s, EY);
+    await s.page.waitForFunction(() => !!window.PVGlance);
+    const { where, still } = tabProbe(s);
+    const headOk = (x) => x.head >= x.bar - 2 && x.head <= x.bar + 120;
+    await s.page.evaluate(() => window.scrollTo({ top: Math.round((document.documentElement.scrollHeight - innerHeight) * 0.6), behavior: 'instant' }));
+    await s.page.waitForFunction(() => scrollY > 600, { timeout: 8000 }).catch(() => {});
+    await still();
+    const before = await where();
+    await s.page.click('.pvg-tabbar .pvg-add');
+    await waitView(s, 'list');
+    const opened = await where();
+    ok(before.at !== 'stay' && before.y > 600 && opened.y === before.y && opened.open,
+      '（前提）概要の深い所で、上に貼り付いた「情報を追加」から一覧を開いた・開いてもページは動かない', J({ before, opened }));
+    await s.page.click('.pvc-root [data-pvc-tile="stay"]');
+    await s.page.waitForFunction(() => window.PVGlance.at() === 'stay' && !window.PVContrib.isOpen()
+      && document.querySelector('.pvc-root').hidden, { timeout: 8000 }).catch(() => {});
+    await still();
+    const after = await where();
+    ok(after.at === 'stay' && after.shown && !after.open && !after.lock && after.href === EY + '#stay',
+      '深い所から押しても「ステイ先」のタブが開き、面は閉じている（ページが動かせる）', J(after));
+    ok(headOk(after), '★替えたタブは頭から始まる（一覧の頭が、タブの帯のすぐ下に在る。途中から始まらない）', J({ bar: after.bar, head: after.head, y: after.y }));
+    ok(after.len === before.len + 1, '履歴に増えるのは、タブの1段だけ', J({ before: before.len, after: after.len }));
+    await s.page.goBack().catch(() => {});
+    await s.page.waitForFunction((t, y) => window.PVGlance.at() === t && Math.abs(scrollY - y) <= 2, { timeout: 8000 }, before.at, before.y).catch(() => {});
+    await still();
+    const back = await where();
+    ok(back.at === before.at && !back.open && !back.lock && back.href === EY, '「戻る」1回で、開く前のタブへ戻る（面は開き直さない）', J(back));
+    ok(Math.abs(back.y - before.y) <= 2, '★戻った先は、押す前と同じ深さ（頭へ飛ばされない）', J({ before: before.y, back: back.y }));
+    await s.page.goForward().catch(() => {});
+    await s.page.waitForFunction(() => window.PVGlance.at() === 'stay', { timeout: 8000 }).catch(() => {});
+    await still();
+    const fwd = await where();
+    ok(fwd.at === 'stay' && !fwd.open && !fwd.lock && fwd.href === EY + '#stay', '「進む」で「ステイ先」へ・面は開き直さない', J(fwd));
+    ok(fwd.shown && fwd.head < fwd.vh && fwd.head >= fwd.bar - 2, '進んだ先でも、一覧の頭が画面の中に在る', J({ bar: fwd.bar, head: fwd.head, y: fwd.y }));
+    await s.st.ctx.close();
+  });
+
+  /* 概要の「ホテル・レストラン」は、同じページの就航地の欄（#pvg-stay）へ寄るだけの素のリンク。
+     この欄は概要にもステイ先にも出るので、住所の # だけでは「どちらのタブで見ていたか」が決まらない。
+     そこからホテル・ステイへ行って「戻る」と、ステイ先のタブのまま（概要へ戻れない）だった。
+     ⚠️ 寄った所から先まで読んでから離れる。寄った所のままだと、「戻る」でブラウザが自分で節の頭へ
+        寄せ直しても数pxしか違わず、読んでいた所を失くしていることが見えない（2026-10-08 に実際にそうだった）。 */
+  await scene('概要の「ホテル・レストラン」から寄ったあとでホテル・ステイへ ── 「戻る」は概要の同じ所へ', async () => {
+    const s = await open('phone');
+    await go(s, EY);
+    await s.page.waitForFunction(() => !!window.PVGlance);
+    const { where, still } = tabProbe(s);
+    /* リンクを押した瞬間の位置を、ページの中で控える（押す道具が先にリンクを画面の中へ寄せるので、外から先に読むとずれる） */
+    await s.page.evaluate(() => {
+      document.querySelector('.pvg a.pvg-topic-a[href="#pvg-stay"]').addEventListener('click', () => { window.__pvPressedAt = scrollY; }, { capture: true, once: true });
+    });
+    await s.page.click('.pvg a.pvg-topic-a[href="#pvg-stay"]');
+    await s.page.waitForFunction(() => location.hash === '#pvg-stay', { timeout: 8000 }).catch(() => {});
+    await still();
+    const pressedAt = await s.page.evaluate(() => window.__pvPressedAt);
+    const before = await where();
+    ok(before.at === 'overview' && before.href === EY + '#pvg-stay' && before.shown && before.head >= before.bar - 2 && before.head < before.vh,
+      '（前提）概要のまま、就航地の欄が画面の中へ寄っている', J(before));
+    /* 寄った所から、その先まで読む（滑らせずに置く） */
+    await s.page.evaluate(() => { const el = document.documentElement, was = el.style.scrollBehavior; el.style.scrollBehavior = 'auto'; window.scrollBy(0, 320); el.style.scrollBehavior = was; });
+    await s.page.waitForFunction((y) => scrollY >= y + 300, { timeout: 8000 }, before.y).catch(() => {});
+    await still();
+    const deep = await where();
+    ok(deep.at === 'overview' && deep.y >= before.y + 300, '（前提）寄った所から、その先まで読んでいる', J({ landed: before.y, read: deep.y }));
+    await s.page.click('.pvg-tabbar .pvg-add');
+    await waitView(s, 'list');
+    await s.page.click('.pvc-root [data-pvc-tile="stay"]');
+    await s.page.waitForFunction(() => window.PVGlance.at() === 'stay' && !window.PVContrib.isOpen(), { timeout: 8000 }).catch(() => {});
+    await still();
+    const after = await where();
+    ok(after.at === 'stay' && after.href === EY + '#stay' && !after.open, '「ステイ先」のタブへ移る', J(after));
+    await s.page.goBack().catch(() => {});
+    await s.page.waitForFunction((y) => window.PVGlance.at() === 'overview' && Math.abs(scrollY - y) <= 2, { timeout: 8000 }, deep.y).catch(() => {});
+    await still();
+    /* ブラウザがあとから寄せ直すなら、ここから滑って動く。動き終わるまで見る（止まって見えるコマが続いても、書き留めが追いつくまで待つ） */
+    await s.page.waitForFunction(() => { const h = history.state; return !!h && typeof h.pvgY === 'number' && Math.abs(h.pvgY - scrollY) <= 1; }, { timeout: 8000 }).catch(() => {});
+    await still();
+    const back = await where();
+    ok(back.at === 'overview' && !back.open && !back.lock,
+      '★「戻る」で概要へ戻る（同じ欄が2つのタブに出ていても、見ていたタブへ）', J(back));
+    ok(Math.abs(back.y - deep.y) <= 2, '★戻った先は、読んでいた深さ（節の頭へ引き戻されない）', J({ landed: before.y, read: deep.y, back: back.y }));
+    ok(back.href === EY, '戻った段の住所に、節の id が残っていない（残っていると、ブラウザが節の頭へ寄せ直す）', J({ href: back.href }));
+    await s.page.goForward().catch(() => {});
+    await s.page.waitForFunction(() => window.PVGlance.at() === 'stay', { timeout: 8000 }).catch(() => {});
+    await still();
+    const fwd = await where();
+    ok(fwd.at === 'stay' && fwd.href === EY + '#stay' && !fwd.open, '「進む」で「ステイ先」へ', J(fwd));
+    await s.page.goBack().catch(() => {});
+    await s.page.waitForFunction(() => window.PVGlance.at() === 'overview', { timeout: 8000 }).catch(() => {});
+    await s.page.goBack().catch(() => {});
+    /* リンクを押す前の段には、押した瞬間の位置が書き留めてある（住所はどちらも # なしなので、住所では見分けられない。
+       読み進めた深さとは 300px 以上違うので、書き留めの位置で見分ける） */
+    await s.page.waitForFunction((y) => { const h = history.state; return location.hash === '' && !!h && typeof h.pvgY === 'number' && Math.abs(h.pvgY - y) <= 2 && Math.abs(scrollY - y) <= 2; }, { timeout: 8000 }, pressedAt).catch(() => {});
+    await still();
+    const top = await where();
+    const topMark = await s.page.evaluate(() => { const h = history.state; return h && typeof h.pvgY === 'number' ? h.pvgY : null; });
+    ok(typeof pressedAt === 'number' && Math.abs(pressedAt - deep.y) > 100, '（前提）リンクを押した所と、読み進めた所は別の深さ', J({ pressedAt, read: deep.y }));
+    ok(top.at === 'overview' && top.href === EY && !top.open && topMark !== null && Math.abs(topMark - pressedAt) <= 2 && Math.abs(top.y - pressedAt) <= 2,
+      'もう1回「戻る」と、リンクを押す前の概要（# の無い住所・リンクを押した所）', J({ pressedAt, mark: topMark, y: top.y, at: top.at, href: top.href }));
+    await s.st.ctx.close();
+  });
+
+  /* 概要で板（勤務・待遇・暮らしの「もっと見る」）を開いて読んでいる途中から行って戻る。
+     位置だけ戻して板を閉じたままにすると、ページが板の分だけ短くなって、同じ位置に別の中身が来る。 */
+  await scene('概要で板を開いたままホテル・ステイへ ── 「戻る」と板が開いたまま・同じ深さ', async () => {
+    const s = await open('phone');
+    await go(s, EY);
+    await s.page.waitForFunction(() => !!window.PVGlance);
+    const { where, still } = tabProbe(s);
+    await s.page.click('.pvg .pvg-more[aria-controls="pvg-p-work"]');
+    await s.page.waitForFunction(() => { const p = document.getElementById('pvg-p-work'); return !!p && !p.hidden && p.getBoundingClientRect().height > 200; }, { timeout: 8000 }).catch(() => {});
+    await still();
+    /* 板の中ほどまで読み進める（板が閉じると、この位置はページの別の所になる） */
+    await s.page.evaluate(() => { const r = document.getElementById('pvg-p-work').getBoundingClientRect(); window.scrollTo({ top: Math.round(scrollY + r.top + Math.min(r.height * 0.5, 600) - 160), behavior: 'instant' }); });
+    await still();
+    const before = await where();
+    ok(before.at === 'overview' && before.panel === 'pvg-p-work' && before.y > 300, '（前提）概要で「勤務」の板を開いて、中ほどまで読んでいる', J(before));
+    await s.page.click('.pvg-tabbar .pvg-add');
+    await waitView(s, 'list');
+    await s.page.click('.pvc-root [data-pvc-tile="stay"]');
+    await s.page.waitForFunction(() => window.PVGlance.at() === 'stay' && !window.PVContrib.isOpen(), { timeout: 8000 }).catch(() => {});
+    await still();
+    const after = await where();
+    ok(after.at === 'stay' && after.panel === '', '「ステイ先」へ移る（概要の板は閉じる）', J(after));
+    await s.page.goBack().catch(() => {});
+    await s.page.waitForFunction((y) => window.PVGlance.at() === 'overview' && Math.abs(scrollY - y) <= 2, { timeout: 8000 }, before.y).catch(() => {});
+    await still();
+    const back = await where();
+    ok(back.at === 'overview' && back.panel === 'pvg-p-work', '★「戻る」と、開いていた板が開いたまま', J(back));
+    ok(Math.abs(back.y - before.y) <= 2, '★同じ深さ（読んでいた所）へ戻る', J({ before: before.y, back: back.y }));
+    /* 戻ってきたあとで板を閉じ、別の所まで読んでから「進む」で離れて、もう一度戻る。
+       「進む」はタブの切り替えを通らないので、書き留めが古いままだと、閉じたはずの板が開いて前の位置へ飛ぶ。 */
+    await s.page.keyboard.press('Escape');
+    await s.page.waitForFunction(() => !document.querySelector('.pvg-more[aria-expanded="true"]'), { timeout: 8000 }).catch(() => {});
+    await s.page.evaluate(() => window.scrollTo({ top: 420, behavior: 'instant' }));
+    await still();
+    /* 書き留めが今の位置に追いつくまで待つ（時間では待たない） */
+    await s.page.waitForFunction(() => { const h = history.state; return !!h && h.pvgOpen === '' && typeof h.pvgY === 'number' && Math.abs(h.pvgY - scrollY) < 1; }, { timeout: 8000 }).catch(() => {});
+    const mid = await where();
+    ok(mid.at === 'overview' && mid.panel === '' && mid.y > 100 && Math.abs(mid.y - before.y) > 50, '（前提）戻ったあと板を閉じて、別の所まで読む', J({ mid, before: before.y }));
+    await s.page.goForward().catch(() => {});
+    await s.page.waitForFunction(() => window.PVGlance.at() === 'stay', { timeout: 8000 }).catch(() => {});
+    await still();
+    const fwd = await where();
+    ok(fwd.at === 'stay' && !fwd.open, '「進む」で「ステイ先」へ（面は開き直さない）', J(fwd));
+    await s.page.goBack().catch(() => {});
+    await s.page.waitForFunction((y) => window.PVGlance.at() === 'overview' && Math.abs(scrollY - y) <= 2, { timeout: 8000 }, mid.y).catch(() => {});
+    await still();
+    const again = await where();
+    ok(again.at === 'overview' && again.panel === '', '★もう一度「戻る」と、閉じた板は閉じたまま（古い書き留めで開け直さない）', J(again));
+    ok(Math.abs(again.y - mid.y) <= 2, '★最後に読んでいた所へ戻る（前の位置へ飛ばない）', J({ mid: mid.y, again: again.y }));
+    await s.st.ctx.close();
+  });
+
+  /* もう「ステイ先」の一覧に居るときは、行き先が無い ＝ 面を閉じるだけ。
+     焦点は開いたボタンへ返す（返さないと、キーボードの人はページの頭からやり直しになる）。 */
+  await scene('「ステイ先」の一覧に居るときに「ホテル・ステイ」を押す ── 面が閉じ、開いたボタンへ焦点が戻る', async () => {
+    const s = await open('phone');
+    await go(s, EY + '#stay');
+    await s.page.waitForFunction(() => !!window.PVGlance && window.PVGlance.at() === 'stay');
+    const { where, still } = tabProbe(s);
+    await still();
+    const before = await where();
+    await s.page.focus('.pvg-tabbar .pvg-add');
+    await s.page.keyboard.press('Enter');
+    await waitView(s, 'list');
+    await s.page.click('.pvc-root [data-pvc-tile="stay"]');
+    await s.page.waitForFunction(() => !window.PVContrib.isOpen() && document.querySelector('.pvc-root').hidden, { timeout: 8000 }).catch(() => {});
+    await still();
+    const after = await where();
+    ok(after.at === 'stay' && after.href === EY + '#stay' && !after.open && !after.lock, '面が閉じて、「ステイ先」の一覧のまま', J(after));
+    ok(/\bpvg-add\b/.test(after.focus), '★焦点は、開いた「情報を追加」のボタンへ戻る（ページの頭へ落ちない）', J({ focus: after.focus }));
+    ok(Math.abs(after.y - before.y) <= 2, 'ページは動かない', J({ before: before.y, after: after.y }));
+    await s.st.ctx.close();
+  });
 
   await scene('暗い表示', async () => {
     const light = await a.page.evaluate(() => getComputedStyle(document.querySelector('.pvc-root .pvc-sheet')).backgroundColor);

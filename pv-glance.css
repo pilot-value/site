@@ -299,32 +299,99 @@
 .pvg-ans{margin-top:4px}
 .pvg-ans .crl{font-size:13px}
 
-/* 家賃の表（ページ共通の table の決まりを、この箱の中だけ打ち消す） */
-.pvg-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:6px}
-.pvg table.pvg-rent{width:100%;border-collapse:collapse}
-.pvg .pvg-rent th,.pvg .pvg-rent td{
-  padding:8px 14px 8px 0!important;font-size:13px!important;font-weight:600;letter-spacing:0!important;text-transform:none!important;
-  text-align:left;vertical-align:top;white-space:nowrap;
-  color:var(--pv-ink)!important;background:none!important;border-bottom:1px solid var(--pv-line-soft)!important;
+/* ── 暮らし：街の写真カード（写真 → 街の名前 → 家賃 → 空港 → 詳細）──
+   ・段の数は箱の幅で決まる（狭い箱で2段・広い箱で5段）。
+   ・カードは押すところ（button）。選んだ街の詳細だけが下に出る
+     （切り替えるのは pv-glance.js。動かなければ、どの街の詳細も縦に並んだまま）。
+   ・写真は 4:3 に切って置く（台帳の縦横がどうであっても、箱の形は変わらない）。
+   ・写真の上に重ねる色もトークンから作る（色を直に書かない）。 */
+.pvg h4{margin:0;padding:0}
+.pvg-liv{min-width:0}
+.pvg-tgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.pvg-tgrid > li{display:flex;min-width:0}
+.pvg .pvg-town{
+  position:relative;display:flex;flex-direction:column;width:100%;min-width:0;margin:0;padding:0;overflow:hidden;
+  cursor:pointer;text-align:left;font:inherit;color:var(--pv-ink);-webkit-tap-highlight-color:transparent;
+  background:var(--pv-surface);border:1px solid var(--pv-line);border-radius:var(--pv-r);box-shadow:var(--pv-shadow);
+  transition:transform .25s var(--pv-ease);
 }
-.pvg .pvg-rent thead th{font-size:12px!important;font-weight:600;color:var(--pv-ink-3)!important}
-.pvg .pvg-rent tbody th{white-space:normal}
-.pvg .pvg-rent tbody th small{display:block;font-size:12px;font-weight:500;line-height:1.5;color:var(--pv-ink-3)}
-.pvg .pvg-rent td{font-variant-numeric:tabular-nums}
-/* 表の形のときは円の目安を額の下の行へ（横に並べると列が増えた街で右端が切れる） */
-.pvg .pvg-rent td .pvg-yen{display:block;margin:1px 0 0}
-/* 狭い箱では表を横へ送らず、街ごとに積む：街の名前 → 選んだ理由 → 間取りごとの額を1行ずつ。
-   額の無い間取りは行ごと出さない（「—」を並べない）。見出しの行は読み上げにだけ残す */
-@container pvg (max-width:639.98px){
-  .pvg table.pvg-rent,.pvg .pvg-rent tbody,.pvg .pvg-rent tr,.pvg .pvg-rent tbody th{display:block}
-  .pvg .pvg-rent thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
-  .pvg .pvg-rent tr{padding:9px 0;border-bottom:1px solid var(--pv-line-soft)}
-  .pvg .pvg-rent th,.pvg .pvg-rent td{padding:0!important;border-bottom:0!important}
-  .pvg .pvg-rent tbody th small{margin:1px 0 5px}
-  .pvg .pvg-rent td{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:0 12px;padding:3px 0!important;white-space:normal}
-  .pvg .pvg-rent td::before{content:attr(data-label);flex:none;font-size:12px;font-weight:600;color:var(--pv-ink-3)}
-  .pvg .pvg-rent td.is-none{display:none}
-  .pvg .pvg-rent td .pvg-yen{flex:1 0 100%;margin:0;text-align:right}
+.pvg .pvg-town:hover{border-color:var(--pv-accent-line);box-shadow:var(--pv-shadow-lift);transform:translateY(-2px)}
+.pvg .pvg-town:active{transform:scale(.985)}
+.pvg .pvg-town:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+.pvg .pvg-town[aria-pressed="true"]{border-color:var(--pv-accent);box-shadow:0 0 0 1px var(--pv-accent),var(--pv-shadow-lift)}
+.pvg-town-ph{position:relative;flex:none;display:block;width:100%;aspect-ratio:4/3;overflow:hidden;background:var(--pv-bg-sub)}
+.pvg-town-ph > img{display:block;width:100%;height:100%;object-fit:cover}
+.pvg-town-ph::after{
+  content:"";position:absolute;inset:0;pointer-events:none;mix-blend-mode:multiply;
+  background:linear-gradient(to top,color-mix(in srgb,var(--pv-navy) 30%,transparent),transparent 48%);
+}
+.pvg-town-ph.is-none{display:grid;place-items:center;padding:8px;background:radial-gradient(120% 90% at 0 0,var(--pv-accent-soft),transparent 62%),var(--pv-bg-sub)}
+.pvg-town-ph.is-none::after{content:none}
+.pvg-town-ph.is-none > b{font-size:18px;font-weight:800;line-height:1.3;letter-spacing:.04em;text-align:center;color:var(--pv-ink-3);overflow-wrap:anywhere}
+.pvg-town-b{display:flex;flex-direction:column;flex:1;min-width:0;padding:10px 12px 6px}
+.pvg-town-n{font-size:15px;font-weight:800;line-height:1.35;letter-spacing:-.01em;color:var(--pv-ink);overflow-wrap:anywhere}
+.pvg-town-s{font:500 12px/1.45 Inter,'Noto Sans JP',sans-serif;color:var(--pv-ink-3);overflow-wrap:anywhere}
+.pvg-town-r{display:flex;flex-direction:column;margin-top:8px;font-size:14px;font-weight:700;line-height:1.45;font-variant-numeric:tabular-nums;color:var(--pv-ink)}
+.pvg-town-r > small{font-size:12px;font-weight:600;line-height:1.5;color:var(--pv-ink-3)}
+.pvg-town-r .pvg-yen{display:block;margin-left:0;white-space:normal}
+.pvg-town-a{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 6px;margin-top:6px;font-size:12px;line-height:1.5;color:var(--pv-ink-2)}
+.pvg-town-go{display:inline-flex;align-items:center;gap:2px;margin-top:auto;padding-top:8px;min-height:30px;font-size:12.5px;font-weight:600;color:var(--pv-accent-ink)}
+/* 空港の3字と、移動の手段の札 */
+.pvg-code3,.pvg-mode{
+  flex:none;display:inline-block;padding:0 6px;border-radius:6px;font-style:normal;white-space:nowrap;
+  font:700 12px/1.6 Inter,'Noto Sans JP',sans-serif;border:1px solid var(--pv-line-soft);
+}
+.pvg-code3{letter-spacing:.06em;color:var(--pv-ink-2);background:var(--pv-bg-sub)}
+.pvg-mode{color:var(--pv-accent-ink);background:var(--pv-accent-soft);border-color:var(--pv-accent-line)}
+
+/* 街ごとの詳細（家賃を間取りごとに・空港までの移動・出典・追加） */
+.pvg-tds{display:grid;gap:10px;margin-top:12px}
+.pvg-td{min-width:0;padding:14px 14px 4px;background:var(--pv-surface-2);border:1px solid var(--pv-line);border-radius:var(--pv-r);scroll-margin-top:140px}
+.pvg-td-h > h4{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 10px;font-size:17px;font-weight:800;line-height:1.4;letter-spacing:-.02em;color:var(--pv-ink)}
+.pvg-td-h > h4 > small{font:500 12.5px/1.5 Inter,'Noto Sans JP',sans-serif;letter-spacing:0;color:var(--pv-ink-3)}
+.pvg-td-h > p{margin-top:2px!important;font-size:12.5px;line-height:1.6;color:var(--pv-ink-2);text-wrap:pretty}
+.pvg-td-g{display:grid;grid-template-columns:minmax(0,1fr);gap:0 32px}
+.pvg-td-c{min-width:0}
+.pvg-td .pvg-askh{margin-top:12px!important}
+.pvg-kv > div{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:0 12px;padding:8px 0;border-top:1px solid var(--pv-line-soft)}
+.pvg-kv dt{font-size:12.5px;font-weight:600;line-height:1.5;color:var(--pv-ink-2)}
+.pvg-kv dd{margin-left:auto;font-size:14px;font-weight:700;line-height:1.5;text-align:right;font-variant-numeric:tabular-nums;color:var(--pv-ink)}
+.pvg-way > li{display:grid;grid-template-columns:minmax(0,1fr);justify-items:start;gap:3px;padding:8px 0;border-top:1px solid var(--pv-line-soft)}
+.pvg-way-t{display:flex;flex-wrap:wrap;gap:4px}
+.pvg-way-l{font-size:12.5px;line-height:1.55;color:var(--pv-ink-2);text-wrap:pretty}
+.pvg-way > li > b{font-size:14px;font-weight:700;line-height:1.5;color:var(--pv-ink);overflow-wrap:anywhere}
+.pvg-way > li.is-none .pvg-way-l{color:var(--pv-ink-3)}
+.pvg-way > li.is-none .pvg-mode{color:var(--pv-ink-3);background:var(--pv-bg-sub);border-color:var(--pv-line-soft)}
+.pvg-way > li > .pvg-link{margin:-3px 0 -8px}
+/* 「出典」を開くと：根拠・条件・時点 */
+.pvg-ev{margin-top:6px}
+.pvg-evl{display:grid;gap:10px;padding:2px 0 10px}
+.pvg-evl > div{display:grid;grid-template-columns:3em minmax(0,1fr);gap:10px}
+.pvg-evl dt{font-size:12px;font-weight:700;letter-spacing:.08em;line-height:1.6;color:var(--pv-ink-2)}
+.pvg-evl dd{min-width:0;font-size:12px;line-height:1.6;color:var(--pv-ink-3)}
+.pvg-evl dd.pvg-srcs,.pvg-evl dd > .pvg-notes{margin-top:0!important}
+.pvg-evl .pvg-notes b{margin-right:6px;font-weight:600;color:var(--pv-ink-2)}
+.pvg-evl dd > span{display:block}
+.pvg-evl dd > span > b{margin-right:8px;font-weight:600;color:var(--pv-ink-2)}
+.pvg-td > .pvg-addrow{margin-top:0}
+.pvg-liv-more{display:flex;flex-wrap:wrap;align-items:center;gap:0 12px;margin-top:10px!important}
+/* 写真の出典（作者名とライセンス名。CC BY / BY-SA の写真を使う条件） */
+.pvg-phl{display:grid;gap:4px;padding:0 0 10px}
+.pvg-phl li{display:flex;flex-wrap:wrap;gap:0 10px;font-size:12px;line-height:1.7;color:var(--pv-ink-3)}
+.pvg-phl li > b{font-weight:600;color:var(--pv-ink-2)}
+.pvg-phl li > span{min-width:0;overflow-wrap:anywhere}
+@container pvg (min-width:560px){
+  .pvg-tgrid{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+}
+@container pvg (min-width:720px){
+  .pvg-td{padding:18px 20px 6px}
+  .pvg-td-g{grid-template-columns:minmax(0,5fr) minmax(0,7fr)}
+}
+@container pvg (min-width:860px){
+  .pvg-tgrid{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@container pvg (min-width:1040px){
+  .pvg-tgrid{grid-template-columns:repeat(5,minmax(0,1fr))}
 }
 
 /* 匿名で答える入口（質問の名前を見せる） */
@@ -481,24 +548,132 @@
 .pvg-chips{display:flex;flex-wrap:wrap;gap:6px}
 .pvg-chips li{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:12px;line-height:1.6;color:var(--pv-ink-2);background:var(--pv-bg-sub);border:1px solid var(--pv-line-soft)}
 .pvg-chips b{font:700 12px/1 Inter,sans-serif;color:var(--pv-ink)}
-/* 札は 36px のまま、押せる範囲だけ上下に 4px ずつ広げて 44px にする。段のあいだを 8px にして、隣の段と重ねない。
-   inset は罫線の内側から数えるので、罫線の 1px ぶんを足してある（-4px のままだと 42px にしかならない） */
-.pvg-dest{gap:8px 6px}
-.pvg-dest li{padding:0;background:none;border:0}
-.pvg-dest a::after{content:"";position:absolute;inset:-5px -1px}
-.pvg-dest a{
-  position:relative;display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border-radius:999px;
-  font-size:12.5px;font-weight:600;color:var(--pv-ink);text-decoration:none;background:var(--pv-surface);border:1px solid var(--pv-line);
-  transition:transform .2s var(--pv-ease);
-}
-.pvg-dest a b{letter-spacing:.06em;color:var(--pv-ink-3)}
-.pvg-dest a:hover{border-color:var(--pv-accent-line);background:var(--pv-accent-soft);transform:translateY(-1px)}
-.pvg-dest a:active{transform:scale(.97)}
-.pvg-dest a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
-.pvg-stay{scroll-margin-top:132px}
+/* ── 就航地・ステイ ── 都市の写真のカードを並べる（見た目は「暮らし」の街のカードと同じ部品）──
+   ・概要には一部だけ出す。全部の一覧は「ステイ先」のタブ（同じカードを2度出さない）。
+     ⚠️ 既定は「全部の一覧を出す・一部を隠す」。pv-glance.js が動かないときに、一覧が1つも消えないため。
+   ・都市を選ぶと、一覧を隠して詳細（#pvg-city）を出す。hidden で切り替える ──
+     .pvg-more-grid > .pvg-card の display:flex が hidden を上書きするので、[hidden] の決まりを必ず持つ。
+   ・並びは地域ごと。人気・便数の順ではない（順位を作らない）。 */
+.pvg-stay,.pvg-cd{scroll-margin-top:132px}
+.pvg-more-grid > .pvg-card[hidden]{display:none}
 .pvg-stay-base{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;font-size:13px;color:var(--pv-ink-2)}
 .pvg-stay-base b{font-weight:700;color:var(--pv-ink)}
 .pvg-stay-base .pvg-ic{color:var(--pvg-c,var(--pv-accent))}
+.pvg-st-teaser{display:none}
+.pvg-at-overview .pvg-st-teaser{display:block}
+.pvg-at-overview .pvg-st-full{display:none}
+.pvg .pvg-st-teaser > .pvg-askh{flex-wrap:wrap;margin:8px 0!important}
+.pvg .pvg-st-more{margin-top:12px}
+.pvg-st-more > .pvg-btn{width:100%}
+.pvg-cgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.pvg-cgrid > li{display:flex;min-width:0}
+.pvg-cgrid > li[hidden]{display:none}
+.pvg-cteaser > li:nth-child(n+5){display:none}                  /* 2列 × 2段 */
+.pvg .pvg-city{text-decoration:none}
+/* 街の名前は、どの幅でも語の途中で折らない（3列になった直後の 648〜674px でも「デンパサール（バリ｜島）」になっていた）。
+   折れてよい所は生成側が <wbr> で渡す（gen-airline-glance.mjs の cityName）。それでも入らない名前だけ、入る所で折れる */
+.pvg-cgrid .pvg-town-n{word-break:keep-all}
+.pvg-city-k{display:flex;align-items:flex-start;justify-content:space-between;gap:6px;min-width:0;margin-bottom:4px}
+.pvg-city-k > small{min-width:0;font-size:12px;font-weight:600;line-height:1.7;color:var(--pv-ink-3);overflow-wrap:anywhere}
+.pvg-city-t{align-self:flex-start;flex:none;margin-top:6px;padding:0 8px;border-radius:999px;white-space:nowrap;
+            font-size:12px;font-weight:600;line-height:1.7;color:var(--pv-ink-2);background:var(--pv-bg-sub);border:1px solid var(--pv-line-soft)}
+.pvg-city-t[hidden]{display:none}
+/* 探す欄と、地域の札 */
+.pvg-st-full{margin-top:12px}
+.pvg-st-bar{display:grid;gap:10px}
+.pvg-st-find{position:relative;display:flex;align-items:center;min-width:0}
+.pvg-st-find > .pvg-ic{position:absolute;left:12px;color:var(--pv-ink-3);pointer-events:none}
+.pvg-st-find > input{
+  width:100%;min-width:0;min-height:44px;margin:0;padding:0 12px 0 36px;-webkit-appearance:none;appearance:none;
+  font:500 16px/1.4 Inter,'Noto Sans JP',sans-serif;color:var(--pv-ink);
+  background:var(--pv-surface);border:1px solid var(--pv-line);border-radius:var(--pv-r-sm);
+}
+.pvg-st-find > input::placeholder{color:var(--pv-ink-3)}
+.pvg-st-find > input:hover{border-color:var(--pv-ink-3)}
+.pvg-st-find > input:active{background:var(--pv-surface-2)}
+.pvg-st-find > input:focus-visible{outline:2px solid var(--pv-accent);outline-offset:1px;border-color:var(--pv-accent)}
+/* 狭い画面では横へ送る（折ると3段になり、一覧が下がる）。上下の余白は、押せる範囲と外枠が切れないため */
+.pvg-st-rg{display:flex;gap:6px;min-width:0;margin:-6px -2px;padding:6px 2px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.pvg-st-rg::-webkit-scrollbar{display:none}
+.pvg-pill{
+  position:relative;flex:none;display:inline-flex;align-items:center;gap:6px;min-height:36px;margin:0;padding:0 14px;border-radius:999px;cursor:pointer;
+  font:600 13px/1 'Noto Sans JP',Inter,sans-serif;white-space:nowrap;color:var(--pv-ink-2);-webkit-tap-highlight-color:transparent;
+  background:var(--pv-surface);border:1px solid var(--pv-line);transition:transform .2s var(--pv-ease);
+}
+.pvg-pill::after{content:"";position:absolute;inset:-5px -1px}  /* 見える丈は 36px・押せる丈は 44px */
+.pvg-pill > small{font:600 12px/1 Inter,sans-serif;font-variant-numeric:tabular-nums;color:var(--pv-ink-3)}
+.pvg-pill:hover{border-color:var(--pv-accent-line);transform:translateY(-1px)}
+.pvg-pill:active{transform:scale(.97)}
+.pvg-pill:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+.pvg-pill[aria-pressed="true"]{color:var(--pv-accent-ink);background:var(--pv-accent-soft);border-color:var(--pv-accent)}
+.pvg-pill[aria-pressed="true"] > small{color:var(--pv-accent-ink)}
+.pvg .pvg-st-n{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:0 16px;margin:8px 0 4px;font-size:13px;color:var(--pv-ink-2)}
+.pvg-st-n b{margin-right:3px;font:800 18px/1.3 Inter,sans-serif;font-variant-numeric:tabular-nums;color:var(--pv-ink)}
+.pvg .pvg-st-none{margin-top:10px}
+.pvg-st-none[hidden]{display:none}
+.pvg-st-full > .pvg-dt{margin-top:12px}
+/* 写真のクレジットは一覧の箱の外に置く ＝ 概要（就航地の一部）でも見える。
+   作者名とライセンス名を示すことが使う条件の写真を、クレジットの無い画面に出さない。 */
+.pvg-stay > .pvg-phc{margin-top:0}
+.pvg-at-overview .pvg-stay > .pvg-phc{margin-top:8px}
+/* 都市の詳細 */
+.pvg .pvg-cd-back{margin:-8px 0 4px}
+.pvg-cd-top{display:grid;gap:14px}
+.pvg-cd-ph{aspect-ratio:16/9;border-radius:var(--pv-r)}
+.pvg-cd-ph.is-none > b{font-size:28px}
+.pvg-cd-b{display:flex;flex-direction:column;gap:4px;min-width:0}
+.pvg-cd-b > .pvg-city-k{align-items:center;justify-content:flex-start;gap:8px;margin-bottom:0}
+.pvg-cd-b > .pvg-city-k > .pvg-city-t{align-self:center;margin-top:0}
+.pvg .pvg-cd-n{font-size:22px;font-weight:800;line-height:1.3;letter-spacing:-.02em;color:var(--pv-ink);overflow-wrap:anywhere;outline:0}
+.pvg .pvg-cd-n:focus-visible{outline:2px solid var(--pv-accent);outline-offset:4px;border-radius:4px}
+.pvg .pvg-cd-note{margin-top:6px;text-wrap:pretty}
+.pvg-cd-links{display:flex;flex-wrap:wrap;gap:0 24px}
+.pvg-cd-cr{font-size:12px;line-height:1.6;color:var(--pv-ink-3);overflow-wrap:anywhere}
+.pvg-cd-cr[hidden]{display:none}
+.pvg-cd-cr a{color:inherit;text-underline-offset:2px}
+.pvg-cd-cr a:hover{color:var(--pv-ink-2)}
+.pvg-cd-cr a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px;border-radius:4px}
+.pvg-cd-sec{margin-top:16px;padding-top:2px;border-top:1px solid var(--pv-line-soft)}
+.pvg .pvg-cd-sec > .pvg-askh{flex-wrap:wrap;margin:12px 0 10px!important;font-size:13px}
+/* ホテルの欄（career-stay.css）の押すもの。あちらの外枠は career.html の中だけに掛かるので、ここで同じ形を当てる */
+.pvg .crs-act:focus-visible,.pvg .crs-btn:focus-visible,.pvg .crs-map:focus-visible,.pvg .crs-ph:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px;border-radius:999px}
+.pvg .crs-ph:focus-visible{border-radius:var(--pv-r-sm)}
+/* 列の数は箱の幅で決める（2 → 3 → 4。5列にはしない ＝ 写真が小さくなりすぎる）。概要に出す枚数も同じ刻み */
+@container pvg (min-width:560px){
+  .pvg-cgrid{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+  .pvg-cteaser > li:nth-child(n+5){display:flex}
+  .pvg-cteaser > li:nth-child(n+7){display:none}                /* 3列 × 2段 */
+  .pvg-st-rg{flex-wrap:wrap;overflow:visible}
+  .pvg-st-more > .pvg-btn{width:auto}
+}
+@container pvg (min-width:720px){
+  .pvg-cd-top{grid-template-columns:minmax(0,5fr) minmax(0,6fr);align-items:center;gap:24px}
+  .pvg-st-bar{grid-template-columns:minmax(220px,300px) minmax(0,1fr);align-items:center;gap:16px}
+}
+@container pvg (min-width:860px){
+  .pvg-cgrid{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .pvg-cteaser > li:nth-child(n+5){display:none}                /* 4列 × 1段 */
+}
+/* カードが狭いあいだ（2列のあいだと、3列になった直後）は、3レターを写真の右上に出す ── 字の箱が 88〜150px しか無く、
+   国名と同じ行に置くと「オーストラリア」「サウジアラビア」が語の途中で折れる（5社 × 〜414px の画面で実際に折れていた）。
+   箱が 155px を超えたら（＝ いちばん長い国名8字と札が1行に並ぶ）、国名の行の右に在る（上の決まりのまま）。
+   写真の無いカードは、写真の所に3レターが大きく出ている ＝ 札は見せない（読み上げには残す）。 */
+@container pvg (max-width:599.98px){
+  .pvg-cgrid .pvg-city-k{display:block}
+  .pvg-cgrid .pvg-city-k > small{display:block}
+  .pvg-cgrid .pvg-city-k > .pvg-code3{
+    position:absolute;top:8px;right:8px;z-index:1;color:var(--pv-ink);background:var(--pv-surface);border-color:var(--pv-line);
+    box-shadow:0 1px 2px color-mix(in srgb,var(--pv-navy) 16%,transparent),0 6px 14px -6px color-mix(in srgb,var(--pv-navy) 30%,transparent);
+  }
+  .pvg-cgrid .pvg-town-ph.is-none + .pvg-town-b .pvg-code3{width:1px;height:1px;padding:0;border:0;overflow:hidden;clip-path:inset(50%);box-shadow:none}
+  /* 行き先の字は、語の途中で折らない（「ホテル・おす｜すめ」になっていた）。折れるのは「・」のあとだけ */
+  .pvg-cgrid .pvg-town-go{font-size:12px;word-break:keep-all;overflow-wrap:anywhere}
+}
+/* いちばん狭い画面（〜335px）：「ニュージーランド」（8字 ＝ 96px）を1行に入れる */
+@container pvg (max-width:287.98px){
+  .pvg-cgrid .pvg-town-b{padding-left:8px;padding-right:8px}
+  .pvg-cgrid .pvg-city-k > small{letter-spacing:-.02em}
+}
 .pvg-foot{margin-top:10px!important}
 .pvg .pvg-link{
   display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0;border:0;background:none;cursor:pointer;
@@ -603,11 +778,6 @@ a.pvg-topic-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2p
 @container pvg (min-width:800px){
   /* 会社の4つの数字は横に1列（iPad 横・左メニューが出る幅。2段に折ると年収が最初の1画面から出る） */
   .pvg-keys{grid-template-columns:repeat(4,minmax(0,auto));justify-content:start;gap:0 32px}
-  /* ステイ：1行の細い帯（見出し｜拠点｜地図）。就航地の札がある会社は、その下に横いっぱい */
-  .pvg-more-grid > .pvg-stay{display:grid;grid-template-columns:max-content max-content minmax(0,1fr);align-items:center;gap:4px 28px}
-  .pvg-stay > .pvg-hd{margin-bottom:0}
-  .pvg-stay > .pvg-quiet{justify-self:end;text-align:right}
-  .pvg-stay > .pvg-askh,.pvg-stay > .pvg-chips,.pvg-stay > .pvg-dt{grid-column:1 / -1}
 }
 /* PC：給与＋勤務・待遇・暮らしを同じ高さで横に4つ。給与は右の1枚の 1.32倍（額が2つ並ぶぶんだけ広い）。
    ⚠️ 給与をこれより広げない ── 右の3枚が狭くなって縦に伸び、その丈に合わせて給与の箱の中が空く
@@ -714,6 +884,9 @@ a.pvg-topic-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2p
   .hero-airline.pvg-hero-t h1{font-size:20px!important}
   .pvg-hero-t .pvg-name{column-gap:10px}
   .pvg-hero-t .pvg-code{min-width:40px;height:40px;font-size:12px}
+  /* 読めなかった時の「いま読み出せません｜やり直す」は、入らなければ2行にする。
+     1行のままだと、〜351px の画面で「やり直す」が右の2つのボタンの下へもぐって押せなかった */
+  .pvg-hero-t .crl[data-state="error"]{flex-wrap:wrap;gap:4px 8px}
 }
 
 /* タブの帯（ヘッダーのすぐ下に貼り付く） */
@@ -765,6 +938,11 @@ a.pvg-topic-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2p
   .pvg-add .pvg-add-w{display:none}
 }
 
+/* 昔からの節の小さい字の注記：切れ目の無い長い英字（採用窓口のメールアドレス）が箱から出ない。
+   キャセイの概要が、320px の画面でこの1行のためにページごと横へ 5px 広がっていた。
+   入らない語だけを折る（break-word ＝ 箱の幅の決まり方は変えない）。
+   ⚠️ 節ぜんぶに掛けない。掛けていたあいだ、2列の機材カードの機種名（A321neo・B737/767）が字の途中で折れた。 */
+.glass[data-pvg-pane] .text-xs{overflow-wrap:break-word}
 /* 出す・隠す：いまのタブの名前が data-pvg-pane に無いものは出さない */
 .pvg-at-overview [data-pvg-pane]:not([data-pvg-pane~="overview"]),
 .pvg-at-pay [data-pvg-pane]:not([data-pvg-pane~="pay"]),

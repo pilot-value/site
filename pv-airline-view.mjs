@@ -168,7 +168,7 @@ function etihad() {
     living: {
       city: E.living.city_ja, cur: 'AED', per: 'month', measure: '募集家賃の平均',
       cols: [['studio', 'スタジオ'], ['bed1', '1寝室'], ['bed2', '2寝室']], leadCol: 'bed1',
-      rents: E.living.rents.map((r, i) => ({ key: r.key, name: r.ja, pick: '', value: perMonth(r), when: whenText(r), src: r.src, cond: '', lead: i === 0 })),
+      rents: E.living.rents.map((r, i) => ({ key: r.key, name: r.ja, en: r.en || '', iata: '', pick: '', value: perMonth(r), when: whenText(r), src: r.src, cond: '', lead: i === 0 })),
       basis: [...E.living.rent_basis.filter(b => b.key !== 'per').map(b => ({ key: b.key, value: b.value })),
               { key: 'per_month', value: '出どころの表は1年あたりの額。ここでは12で割って、1か月あたりにしている' }],
       commute: [],
@@ -197,9 +197,9 @@ function others(slug) {
       /* 東京（SUUMO）は台帳に単位の字が無い（per が空）。日本の賃料の相場は月額なので、画面では「月」と出す。 */
       city: L.city_ja, cur, per: L.rents[0].per || (cur === 'JPY' ? 'month' : ''), measure: L.measure_ja,
       cols: L.cols, leadCol: L.lead_col,
-      rents: L.rents.map(r => ({ key: r.key, name: r.ja, pick: r.pick_ja || '', value: r.value, when: whenText(r), src: r.src, cond: r.cond_ja || '', lead: !!r.lead })),
+      rents: L.rents.map(r => ({ key: r.key, name: r.ja, en: r.en || '', iata: r.iata || '', pick: r.pick_ja || '', value: r.value, when: whenText(r), src: r.src, cond: r.cond_ja || '', lead: !!r.lead })),
       basis: (L.rent_basis || []).map(b => ({ key: b.key, value: b.value })),
-      commute: (L.commute || []).map(x => ({ ...fact(x), lead: !!x.lead, value: commuteText(x) })),
+      commute: (L.commute || []).map(x => ({ ...fact(x), lead: !!x.lead, value: commuteText(x), iata: x.iata, mode: x.mode })),
     },
   };
 }

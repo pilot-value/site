@@ -16,6 +16,15 @@
           color:var(--pv-ink-2);font-size:14px;line-height:1.6}
 .crs-lock .crs-icw{color:var(--pv-ink-3)}
 .crs-err{justify-content:space-between;flex-wrap:wrap}
+/* この板は career.html の外（会社ページ）でも使う。hidden を display の指定に負けさせない。 */
+.crs [hidden]{display:none !important}
+
+/* 0件で、追加できる人。破線の枠に「ここから足せる」を置く（追加の入口はこの中）。 */
+.crs-empty{display:grid;justify-items:start;gap:6px;padding:18px 16px;
+           border:1.5px dashed var(--pv-line);border-radius:var(--pv-r);background:var(--pv-bg-sub)}
+.crs-empty-t{font-size:15px;font-weight:700;line-height:1.5;letter-spacing:-.01em;color:var(--pv-ink)}
+.crs-empty-s{font-size:13px;line-height:1.7;color:var(--pv-ink-2)}
+.crs-empty .crs-add{width:100%;margin-top:8px}
 
 /* 読み込み中の骨組み。 */
 .crs-skel{display:grid;gap:10px;padding:16px;border:1px solid var(--pv-line);border-radius:var(--pv-r);
@@ -39,6 +48,10 @@
           color:var(--pv-ink);overflow-wrap:anywhere}
 .crs-addr{font-size:13px;line-height:1.6;color:var(--pv-ink-2);overflow-wrap:anywhere}
 .crs-note{font-size:14px;line-height:1.7;color:var(--pv-ink);overflow-wrap:anywhere;white-space:pre-line}
+/* ステイ時間（ホテルだけ・書いてあるときだけ）。 */
+.crs-hours{justify-self:start;padding:2px 10px;border-radius:999px;
+           background:var(--pv-accent-soft);border:1px solid var(--pv-accent-line);color:var(--pv-accent-ink);
+           font-size:12px;font-weight:700;line-height:1.6;font-variant-numeric:tabular-nums}
 
 .crs-badge{flex:none;padding:1px 8px;border-radius:999px;white-space:nowrap;
            background:var(--pv-gold-soft);border:1px solid var(--pv-gold-line);color:var(--pv-gold-ink);
@@ -108,13 +121,20 @@
         background:var(--pv-surface);color:var(--pv-ink);
         font:inherit;font-size:16px;line-height:1.5}
 textarea.crs-in{resize:vertical;line-height:1.6}
+/* ステイ時間：短い数字の欄と単位を横に。 */
+.crs-hrow{display:flex;align-items:center;gap:8px}
+.crs-hrow .crs-in{width:96px;font-variant-numeric:tabular-nums}
+.crs-unit{font-size:14px;color:var(--pv-ink-2)}
+/* 札の中に開く「修正」の面は、札の幅いっぱい。 */
+.crs-card > .crs-form{max-width:none;margin:6px 0 4px;padding:14px}
 .crs-in::placeholder{color:var(--pv-ink-3)}
 .crs-in:focus-visible{outline:2px solid var(--pv-accent);outline-offset:1px}
 
-.crs-seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
-.crs-seg-i{position:relative;display:block;cursor:pointer}
+/* 3つを同じ幅に割ると、狭い箱（自分の投稿の中で開く修正の欄）で「レストラン」が語の途中で折れる。字の長さに合わせて分ける */
+.crs-seg{display:flex;flex-wrap:wrap;gap:6px}
+.crs-seg-i{position:relative;flex:1 1 auto;display:block;cursor:pointer}
 .crs-seg-i input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
-.crs-seg-i span{display:flex;align-items:center;justify-content:center;min-height:44px;padding:0 8px;
+.crs-seg-i span{display:flex;align-items:center;justify-content:center;min-height:44px;padding:0 8px;white-space:nowrap;
                 border:1px solid var(--pv-line);border-radius:var(--pv-r-sm);
                 background:var(--pv-surface);color:var(--pv-ink-2);font-size:14px;font-weight:700;
                 transition:transform .22s var(--pv-ease)}
