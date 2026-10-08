@@ -92,8 +92,8 @@ const pane = (slug, names) => (tabbed(slug) ? ` data-pvg-pane="${names}"` : '');
 /* 勤務・待遇・暮らしの板が、自分のタブでは開いたまま本文になる（pv-glance.js の OPEN と同じ対） */
 const CELL_TAB = { work: 'work', benefits: 'pay', living: 'life' };
 /* 今のページの下に残っている古い節の行き先（見出しの言葉で決める。当たらない節は概要）。
-   残っているのは「よくある質問」（概要）だけ。ほかは下の LEGACY が外す
-   （ANA の錠前つきの節も 2026-10-09 に外したので、給与・待遇へ送る行はもう無い）。 */
+   ★2026-10-09 残す節はもう無い（「よくある質問」もオーナーの判断で節ごと外した）。下の LEGACY が全部外す。
+   この表は、あとで節を残すと決めたときの行き先の置き場として残してある（空なら全部「概要」）。 */
 const OLD_PANE = [];
 const oldPane = h2 => (OLD_PANE.find(([re]) => re.test(h2)) || [, 'overview'])[1];
 const h2Text = s => s.replace(/<[^>]*>/g, () => '');
@@ -869,7 +869,10 @@ export const LEGACY = [
      中身は資料で確かめていない機材の配置の話だった。残すと、給与のタブに昔の形の錠前（橙の四角いボタン）が
      新しい Give & Get と並んで出る ＝ 先行5社で形が1つにならない。錠前の箱ごと外す（dropLegacy）。 */
   { name: '機種別・路線別の年収差（錠前つき）', h2: /年収差/, state: 'drop', to: '会社の1枚の機材（台帳の機数）。機種ごとの金額は会社が公表しておらず、当サイトも出していない' },
-  { name: 'よくある質問', h2: /よくある質問/, state: 'keep', why: '検索の結果に出る質問と答え。台帳と食い違う答えは直してある。残すか外すかはオーナーの判断' },
+  /* ★2026-10-09 オーナーの判断「節ごと外そう」。それまでは残して、台帳と食い違う答えだけ直していた。
+     画面から外すので、検索向けの印（JSON-LD の FAQPage）も一緒に外す（dropFaq）── 画面に無い質問と答えを
+     検索エンジンにだけ渡さない。gen-faq.mjs はタブを持つ会社ページ（TABBED）を飛ばす ＝ 流しても戻らない。 */
+  { name: 'よくある質問', h2: /よくある質問/, state: 'drop', to: '置かない（オーナーの判断）。同じ話は、給与の1枚・募集の1枚・勤務と待遇の板に、資料で確かめた値で出ている' },
 ];
 /* 残す節（keep）を先に当てる ── 「◯◯についてよくある質問」のような見出しを、外す側の行が先に掴まないように */
 const legacyHit = (r, h2, tag) => (r.id ? new RegExp('\\bid="' + r.id + '"').test(tag) : r.h2.test(h2));
@@ -896,7 +899,27 @@ function dropEmptyGate(html) {
     html = html.slice(0, a).replace(/\s*$/, () => '') + '\n\n' + html.slice(b).replace(/^\s*\n/, () => '');
   }
 }
+/* 「よくある質問」を外すときの後始末（タブを持つ会社ページだけ。何度流しても同じ）。
+   1) gen-faq.mjs の管理ブロック（<!--PV-FAQ-->…<!--/PV-FAQ-->）は、目印ごと外す。
+      中の節だけ dropLegacy に外させると、空の目印が2つ残る。
+   2) JSON-LD の FAQPage を外す。ほかの型（BreadcrumbList・Article）と同じ配列に入っているので、
+      FAQPage の1つだけを抜いて書き直す。FAQPage だけのタグなら、タグごと外す。
+      もう無ければ何もしない ＝ ほかの型の書き方を1文字も変えない。 */
+const FAQ_BLOCK = /<!--PV-FAQ-->[\s\S]*?<!--\/PV-FAQ-->[ \t\n]*/g;
+function dropFaq(html) {
+  html = html.replace(FAQ_BLOCK, () => '');
+  return html.replace(/[ \t]*<script type="application\/ld\+json">([\s\S]*?)<\/script>[ \t]*\n?/g, (m, body) => {
+    let json;
+    try { json = JSON.parse(body); } catch { return m; }
+    const arr = Array.isArray(json) ? json : [json];
+    if (!arr.some(x => x && x['@type'] === 'FAQPage')) return m;
+    const rest = arr.filter(x => !(x && x['@type'] === 'FAQPage'));
+    if (!rest.length) return '';
+    return m.replace(body, () => JSON.stringify(Array.isArray(json) ? rest : rest[0]));
+  });
+}
 function dropLegacy(slug, html) {
+  html = dropFaq(html);
   for (;;) {
     const end = html.indexOf('<!--/PV-GLANCE-->');
     let hit = null;

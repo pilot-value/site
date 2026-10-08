@@ -60,6 +60,8 @@ import { SALARY } from './salary-data.mjs';
 import { AIRLINE_COUNTRY, BY_CODE } from './airline-countries.mjs';
 /* 根拠の等級。等級を決めた会社は SALARY の平均・レンジを1文字も書かない。 */
 import { BASIS, TIERS, figures, FX_AS_OF } from './salary-basis.mjs';
+/* タブを持つ会社ページの一覧（正本はあちら）。そのページには「よくある質問」を置かない */
+import { TABBED } from './gen-airline-glance.mjs';
 
 const ROOT = path.dirname(new URL(import.meta.url).pathname).replace(/%20/g, ' ');
 const DRY = process.argv.includes('--dry');
@@ -654,6 +656,11 @@ let jaMade = 0, jaRelinked = 0, enAdded = 0, skipped = 0, failed = 0;
 for (const slug of Object.keys(SALARY)) {
   const abs = path.join(ROOT, 'airlines', `${slug}.html`);
   if (!fs.existsSync(abs)) { report.push(`  ? ja ${slug}: ページが無い`); skipped++; continue; }
+  /* ★2026-10-09 タブを持つ会社ページ（先行5社）には「よくある質問」を置かない（オーナーの判断「節ごと外そう」）。
+     節も JSON-LD の FAQPage も gen-airline-glance.mjs が外している。ここで飛ばさないと、
+     「FAQPage の JSON-LD が見つからない」で落ちるか、節を SSOT から作り直して戻してしまう。
+     英語の5社は昔の形のままなので、下の英語の輪では今までどおり扱う。 */
+  if (TABBED.has(slug)) { report.push(`  - ja ${slug}: 「よくある質問」を置かない会社ページ。対象外`); skipped++; continue; }
   const orig = fs.readFileSync(abs, 'utf8');
 
   /* まず剥がす。問数が変わっても、SSOT が動いても、同じ扱いで直る。 */

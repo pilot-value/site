@@ -70,6 +70,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
 import { SALARY } from './salary-data.mjs';
 import { BASIS } from './salary-basis.mjs';
 import { JPY_PER } from './fx-rates.mjs';
@@ -134,11 +135,12 @@ const RV_GIVE = { overview: '口コミを解放する', reviews: '全ての口�
    何をどこへ移したか・何を残したかの台帳は gen-airline-glance.mjs の LEGACY。
    ここには「残してよい節」を会社ごとに書き写してある ── 台帳の正規表現をそのまま当てると、
    台帳が緩んだ日に検査も一緒に緩む（残す節が1つ増えたら、ここも人が足す）。 */
-const KEPT = { faq: /よくある質問/ };
-const KEPT_BY = { jal: ['faq'], ana: ['faq'], 'cathay-pacific': ['faq'], etihad: ['faq'], 'eva-air': ['faq'] };
+/* ★2026-10-09 「よくある質問」も節ごと外した（オーナーの判断「節ごと外そう」）。残してよい節は、いま1つも無い。 */
+const KEPT = {};
+const KEPT_BY = { jal: [], ana: [], 'cathay-pacific': [], etihad: [], 'eva-air': [] };
 /* 外した節の見出し（この検査の写し）。1つでもページに戻っていたら落とす。
    ★2026-10-09 ANA の「機種別・路線別 年収差」も外す側へ（古い錠前の付いた、出どころの無い表だった）。 */
-const GONE_H2 = /について$|フライト環境|路線・機材|訓練・昇格|訓練・審査|福利厚生|募集要項|採用情報|と他社の比較|他社との比較|比べられるところだけ|詳細比較表|年収差/;
+const GONE_H2 = /について$|フライト環境|路線・機材|訓練・昇格|訓練・審査|福利厚生|募集要項|採用情報|と他社の比較|他社との比較|比べられるところだけ|詳細比較表|年収差|よくある質問/;
 /* 会社の紹介文を、台帳の型（intro）から **この検査が自分で** 組み立てる。
    書く側の組み立て（introText）を呼ぶと、組み立てが壊れた日に「壊れた字 ＝ 壊れた字」で通ってしまう。
    texts … 画面に出るはずの文（組み立てられない文は null）／ats … 文の中の「いつの話か」の字。 */
@@ -595,7 +597,17 @@ for (const s of FIVE) {
     const secs = [...below.matchAll(/<div class="glass\b[^"]*"[^>]*>/g)].map(m => txt(one(below.slice(m.index), /<h2\b[^>]*>([\s\S]*?)<\/h2>/) || ''));
     const want = KEPT_BY[s];
     ok(secs.length === want.length && secs.every((x, i) => KEPT[want[i]].test(x)),
-       `${s}: 新しい部品の下に残っている節は、残すと決めたものだけ（よくある質問）`, secs.join(' ／ '));
+       `${s}: 新しい部品の下に、昔の節が1つも残っていない（残すと決めた節は、いま無い）`, secs.join(' ／ '));
+    /* ★2026-10-09 「よくある質問」は節ごと外した。画面の節だけ外して、検索に渡す質問と答え（FAQPage）を残さない
+       ── 画面に無い質問を、構造化データだけが名乗ることになる。作り直しの目印（PV-FAQ）も残さない
+       （残っていると、gen-faq.mjs が「ここへ書き直す」と読む）。 */
+    {
+      const lds = [...PAGES[s].matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map(m => { try { return JSON.parse(m[1]); } catch { return null; } });
+      const types = lds.flatMap(j => (Array.isArray(j) ? j : [j]).map(x => x && x['@type']));
+      ok(lds.length > 0 && lds.every(Boolean) && !types.includes('FAQPage') && types.includes('Article') && types.includes('BreadcrumbList'),
+         `${s}: 構造化データに「よくある質問」が残っていない（記事とパンくずは残っている）`, types.join('・'));
+      ok(!PAGES[s].includes('PV-FAQ') && !PAGES[s].includes('よくある質問'), `${s}: ページのどこにも「よくある質問」の字と、作り直しの目印が無い`);
+    }
     const h2 = [...PAGES[s].matchAll(/<h2[^>]*>([\s\S]*?)<\/h2>/g)].map(m => txt(m[1]));
     const dup = h2.filter(x => !Object.values(KEPT).some(re => re.test(x)) && (GONE_H2.test(x) || DROP_H2.test(x)));
     ok(!dup.length, `${s}: 外した節（◯◯について・フライト環境・訓練・福利厚生・募集要項・他社の比較・機種別の年収差）が、ページのどこにも残っていない`, dup.join(' ／ '));
@@ -929,13 +941,26 @@ head('古い節の台帳（新しい表示先／不要／残す）');
   ok(LEGACY.length > 0 && !bad.length, `古い節の台帳は ${LEGACY.length}行 ── どの行も、移した先か・外した後の入口か・残す理由が書いてある`, bad.join(' ／ '));
   /* 「残す」の行と、この検査が「残ってよい」と知っている節が同じ（片方だけ足すと、もう片方が黙って通す） */
   const keep = LEGACY.filter(r => r.state === 'keep'), mine = Object.values(KEPT);
-  const SAMPLE = { faq: 'JALのパイロットについてよくある質問' };
-  ok(keep.length === mine.length && Object.entries(SAMPLE).every(([k, t]) => KEPT[k].test(t) && keep.filter(r => r.h2.test(t)).length === 1),
-     `台帳の「残す」は ${keep.length}行 ＝ この検査が残ってよいと知っている節（よくある質問）`, keep.map(r => r.name).join(' ／ '));
+  /* 残すと決めた節の見出しの見本（いまは空。残す節を足すときは、ここと KEPT・KEPT_BY の3つに足す） */
+  const SAMPLE = {};
+  ok(keep.length === mine.length && Object.keys(SAMPLE).length === mine.length && Object.entries(SAMPLE).every(([k, t]) => KEPT[k].test(t) && keep.filter(r => r.h2.test(t)).length === 1),
+     `台帳の「残す」は ${keep.length}行 ＝ この検査が残ってよいと知っている節（${mine.length}つ。いまは無い）`, keep.map(r => r.name).join(' ／ '));
   /* 外す側の見出しの見つけ方が、残す節を掴まない（掴むと、残すと決めた節が外れる） */
   ok(Object.values(SAMPLE).every(t => !DROP_H2.test(t) || keep.some(r => r.h2.test(t))), '外す節の見つけ方が、残すと決めた節の見出しを外さない');
   /* ★2026-10-09 古い錠前の付いていた節は、台帳とこの検査の両方が「外す」と知っている */
   ok(['ANA 機種別・路線別 年収差'].every(t => DROP_H2.test(t) && GONE_H2.test(t) && !keep.some(r => r.h2.test(t))), '錠前の付いていた「機種別・路線別 年収差」の節は、外す側に入っている（台帳とこの検査の両方）');
+  /* ★2026-10-09 「よくある質問」も外す側（オーナーの判断）。台帳とこの検査の両方が知っている。 */
+  ok(['JALのパイロットについてよくある質問', 'エティハド航空 パイロット よくある質問'].every(t => DROP_H2.test(t) && GONE_H2.test(t) && !keep.some(r => r.h2.test(t))), '「よくある質問」の節は、外す側に入っている（台帳とこの検査の両方）');
+  /* 「よくある質問」を書く道具（gen-faq.mjs）が、この5社を飛ばす。飛ばさないと、流した日に節と構造化データが戻る
+     （戻った節は次の作り直しで外れるが、そのあいだに出荷すれば本番に出る）。
+     見るだけの切り替え（--dry）で流す ＝ 1文字も書かない。⚠️ --check は書き込む。使わない。 */
+  {
+    let out = '';
+    try { out = execFileSync(process.execPath, ['gen-faq.mjs', '--dry'], { cwd: ROOT, encoding: 'utf8', maxBuffer: 1 << 26 }); } catch (e) { out = `${e.stdout || ''}\n(流せなかった) ${e.message}`; }
+    const rows = [...out.matchAll(/^\s*(\S+) ja ([a-z0-9-]+)/gm)].map(m => [m[1], m[2]]);
+    const marks = FIVE.map(s => rows.filter(r => r[1] === s).map(r => r[0]).join(''));
+    ok(rows.length > 50 && marks.every(x => x === '-'), '「よくある質問」を書く道具が、この5社を飛ばす（流しても節が戻らない）', FIVE.map((s, i) => `${s}:${marks[i] || '行なし'}`).join(' ') + ` ／ 日本語の行 ${rows.length}`);
+  }
 }
 
 head('pv-gg.css（Give & Get のボタンの形は、ここに1つだけ）');
@@ -2205,7 +2230,7 @@ async function runTabs(browser, s, [w, h]) {
       else ok(!r.write.length, `${tag}:「${TAB_NAME[t]}」には、評価スコアのカードの入口が出ていない`, r.write.map(x => x.join(' ')).join(' ‖ '));
       /* 外した古い節（◯◯について・フライト環境・訓練・福利厚生・募集要項・他社との比較・比較表）は、どのタブにも出ない。
          中身は新しい部品の中に在る（会社のカード・給与の1枚・募集の1枚・3つの板）＝ 新旧の2か所に並べない。
-         残すと決めた節（よくある質問・ANA の機種別の節）は数えない。 */
+         残すと決めた節は数えない（いまは無い。「よくある質問」も 2026-10-09 に外した）。 */
       { const kept = Object.values(KEPT), dup = r.h2.filter(x => !kept.some(re => re.test(x)) && (GONE_H2.test(x) || DROP_H2.test(x))); ok(!dup.length, `${tag}:「${TAB_NAME[t]}」に、外した古い節が出ていない`, dup.join(' ／ ')); }
     }
     /* ── 2) 戻る・進む・読み直し ── */
