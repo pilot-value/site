@@ -446,17 +446,19 @@
   }
 
   /* 未解放時のぼかし帯。本文は DOM に残したまま表示層だけで隠す
-     （消すと各国SEOのロングテールが飛ぶ）。帯の中央に投稿CTAを重ねる。 */
+     （消すと各国SEOのロングテールが飛ぶ）。帯の中央に投稿CTAを重ねる。
+     ★2026-10-08 タブのある会社ページでは、1枚ごとのボタンを置かない（cardCta）。 */
   function lockedTailHTML(tailText) {
     if (!tailText) return '';
     return '\n      <div class="rv-locked-tail">\n' +
       '        <div class="rv-locked-tail-text">' + rvEsc(tailText) + '</div>\n' +
+      cardCta(
       '        <div class="rv-locked-cta">\n' +
       '          <button type="button" class="rv-locked-btn" onclick="openReviewModal()">\n' +
       '            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>\n' +
-      '            ' + unlockLabel(L.lockedCta) + '\n' +
+      '            ' + L.lockedCta + '\n' +
       '          </button>\n' +
-      '        </div>\n' +
+      '        </div>\n') +
       '      </div>';
   }
 
@@ -481,12 +483,13 @@
         return '<span class="rv-cat-chip">' + rvEsc(n) + '</span>';
       }).join('') + '</div>\n' : '') +
       '        <p class="rv-srv-note">' + L.srvLockNote + '</p>\n' +
+      cardCta(
       '        <div>\n' +
       '          <button type="button" class="rv-locked-btn" onclick="openReviewModal()">\n' +
       '            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>\n' +
-      '            ' + unlockLabel(L.lockedCta) + '\n' +
+      '            ' + L.lockedCta + '\n' +
       '          </button>\n' +
-      '        </div>\n' +
+      '        </div>\n') +
       '      </div>';
   }
 
@@ -604,11 +607,28 @@
 
   function showReadMoreGate() {
     var existing = d.getElementById('pv-readmore-gate');
-    if (existing) { existing.style.display = 'flex'; return; }
+    if (existing) { existing.style.display = 'flex'; rmgIn(existing); return; }
     var modal = d.createElement('div');
     modal.id = 'pv-readmore-gate';
     modal.style.cssText = 'position:fixed;inset:0;z-index:9000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.72);backdrop-filter:blur(4px)';
-    modal.innerHTML =
+    if (ggShape()) {
+      modal.className = 'pvg-rmg';
+      d.addEventListener('keydown', function (e) {
+        if (modal.style.display === 'none') return;
+        if (e.key === 'Escape') { modal.style.display = 'none'; rmgOut(); return; }
+        /* 小窓が開いているあいだ、Tab は小窓の中だけを回る（幕のうしろのリンクへ出ていかない） */
+        if (e.key !== 'Tab') return;
+        var f = modal.querySelectorAll('a[href], button:not([disabled])');
+        if (!f.length) return;
+        var first = f[0], last = f[f.length - 1], a = d.activeElement;
+        if (!modal.contains(a)) { e.preventDefault(); first.focus(); }
+        else if (e.shiftKey && a === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && a === last) { e.preventDefault(); first.focus(); }
+      });
+      /* ✕ と、うしろの幕。閉じるのは今までの仕掛けのまま（ここは、閉じたあと開いた所へ戻すだけ） */
+      modal.addEventListener('click', function (e) { if (e.target === modal || (e.target.closest && e.target.closest('.pvg-rmg-x'))) rmgOut(); });
+    }
+    modal.innerHTML = ggShape() ? readMoreGateTabbed() :
       '\n    <div style="background:#111620;border:1px solid rgba(245,200,66,.2);border-radius:18px;padding:36px 32px;max-width:380px;width:90%;text-align:center;position:relative">\n' +
       '      <button onclick="document.getElementById(\'pv-readmore-gate\').style.display=\'none\'" style="position:absolute;top:12px;right:14px;background:none;border:none;color:#6b7d93;cursor:pointer;font-size:1.1rem;line-height:1">✕</button>\n' +
       '      <div style="font-size:2.2rem;margin-bottom:12px">🔒</div>\n' +
@@ -617,7 +637,7 @@
       '      <div style="display:flex;flex-direction:column;gap:10px">\n' +
       '        <button class="btn-review-post" style="width:100%;justify-content:center" onclick="openReviewModal()">\n' +
       '          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>\n' +
-      '          ' + unlockLabel(L.rmBtn) + '\n' +
+      '          ' + L.rmBtn + '\n' +
       '        </button>\n' +
       '        ' + (!isLoggedIn() ? '<a href="../login.html" style="color:#6b7d93;font-size:.78rem;text-decoration:underline;text-underline-offset:2px">' + L.rmLogin + '</a>' : '') + '\n' +
       '      </div>\n' +
@@ -625,6 +645,37 @@
       '    </div>';
     modal.addEventListener('click', function (e) { if (e.target === modal) modal.style.display = 'none'; });
     d.body.appendChild(modal);
+    rmgIn(modal);
+  }
+  /* タブのある会社ページの小窓：開いたら中のボタンへ移り、閉じたら開いた所へ戻る
+     （キーボードや読み上げで使う人が、幕のうしろのページに取り残されない）。ほかの会社と英語版では何もしない。 */
+  var rmgFrom = null;
+  function rmgIn(m) {
+    if (!ggShape()) return;
+    rmgFrom = d.activeElement;
+    var b = m.querySelector('.pv-gg');
+    if (b && b.focus) b.focus();
+  }
+  function rmgOut() {
+    var f = rmgFrom; rmgFrom = null;
+    if (f && f !== d.body && f.focus && d.contains(f)) f.focus();
+  }
+  /* ★2026-10-09 タブのある会社ページの小窓（ページを開いたまま解放の期限が切れたあとに「続きを読む」を押したとき）。
+     入口は、ほかの置き場と同じ黒い丸いボタン（pv-gg.css）。ここだけ古い橙のボタンのままだった。
+     箱の見た目は pv-glance.css の「.pvg-rmg」（色はページの明暗に合わせる）。
+     文言・押した先（投稿の画面）・開く条件は今までと同じ。ほかの会社と英語版は、上の今までの形を1文字も変えない。
+     ⚠️ うしろの幕の色だけは上の style に置いたまま（pv-glance.css には色の直書きを置かない決まり）。 */
+  function readMoreGateTabbed() {
+    var login = '../login.html?return=' + encodeURIComponent(location.pathname + location.search);
+    return '<div class="pvg-rmg-box" role="dialog" aria-modal="true" aria-labelledby="pvg-rmg-t">' +
+      '<button type="button" class="pvg-rmg-x" aria-label="閉じる" onclick="document.getElementById(\'pv-readmore-gate\').style.display=\'none\'">✕</button>' +
+      '<div class="pvg-rmg-ic" aria-hidden="true">🔒</div>' +
+      '<p class="pvg-rmg-t" id="pvg-rmg-t">' + L.rmTitle.replace('には', function () { return 'には<wbr>'; }) + '</p>' +
+      '<p class="pvg-rmg-d">' + L.rmDesc.replace(/ style="[^"]*"/g, function () { return ''; }) + '</p>' +
+      unlockBtn('') +
+      (!isLoggedIn() ? '<a class="pvg-rmg-login" href="' + login + '">' + L.rmLogin + '</a>' : '') +
+      '<p class="pvg-rmg-fine">' + L.rmFine + '</p>' +
+    '</div>';
   }
 
   // ── 口コミ投稿は専用フォーム(submit-review.html / reviews_v2)に一本化 ──
@@ -889,7 +940,7 @@
       '        <div class="rv-gate-title">' + L.gateTitle + '</div>\n' +
       '        <div class="rv-gate-remain">' + L.gateAll(shown) + '</div>\n' +
       '        <p class="rv-gate-desc">' + L.gateDesc + '</p>\n' +
-      '        <button class="btn-review-post" onclick="openReviewModal()">' + unlockLabel(L.gateBtn) + '</button>\n' +
+      '        ' + unlockBtn('<button class="btn-review-post" onclick="openReviewModal()">' + L.gateBtn + '</button>') + '\n' +
       '        <a href="' + loginHref + '" class="rv-gate-login">' + L.gateLogin + '</a>\n' +
       '        <div style="font-size:.72rem;color:#6b7d93;margin-top:10px">' + L.gateFine + '</div>\n' +
       '      </div>' : '';
@@ -1045,12 +1096,34 @@
   /* ★2026-10-07 オーナーのご指示：タブのある会社ページの口コミでは、解放の入口の字を2行にする
        「Give & Get」／「全ての口コミデータを解放する」
      変えるのは字だけ ── 行き先（投稿フォーム）も、開く条件も、今までと同じ。
-     ほかの会社のページと英語版は今までの1行のまま（2行の形は pv-glance.css の .pvg-gg）。 */
+     ほかの会社のページと英語版は今までの1行のまま。
+     ★2026-10-08 形はサイト共通の pv-gg.css（トップのいちばん上の黒いボタンと同じ）。
+       給与の1枚・評価スコアの1枚の入口と、1つも違わない。ここで大きさや色を足さない。 */
+  function ggShape() { return LANG === 'ja' && isTabbed(); }
   function unlockLabel(plain) {
     if (LANG !== 'ja' || !isTabbed()) return plain;
-    return '<span class="pvg-gg"><span class="pvg-gg-k" lang="en">Give &amp; Get</span>' +
-           '<span class="pvg-gg-m">全ての口コミデータを解放する</span></span>';
+    return '<span class="pv-gg-t"><span class="pvg-gg-k" lang="en">Give &amp; Get</span>' +
+           '<span class="pvg-gg-m">全ての<wbr>口コミデータを<wbr>解放する</span></span>';
   }
+  var GG_ARROW = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  /* 錠前のボタン。old ＝ 今までのボタン（ほかの会社と英語版は、これを1文字も変えずに返す）。
+     押した先は今までと同じ（openReviewModal ＝ 自分の会社を選んだ投稿の画面）。
+     <wbr> は語の切れ目。狭い箱ではここでだけ折れる（「デ／ータ」と語の途中で折らない。折り方は pv-gg.css）。 */
+  function unlockBtn(old) {
+    if (!ggShape()) return old;
+    return '<button type="button" class="pv-gg" onclick="if(window.openReviewModal)openReviewModal()">' +
+           unlockLabel('') + GG_ARROW + '</button>';
+  }
+
+  /* ★2026-10-08 口コミ1枚ごとの錠前のボタン。タブのある会社ページでは置かない。
+     同じ黒いボタンが口コミの数だけ縦に並んでいた（キャセイで22個。ぼかしの帯の中では上下が切れていた）。
+     入口は、評価スコアの1枚と、一覧のいちばん下の「メンバー限定データ」の2つ。
+     ほかの会社と英語版は、今までのボタンを1文字も変えずに返す。 */
+  function cardCta(old) { return ggShape() ? '' : old; }
+  /* 区分の名前の「語の切れ目」。タブのある会社ページの3列の札では、名前を語の途中で折らず、ここでだけ折る
+     （折り方は pv-glance.css。ほかの会社と英語版は名前をそのまま返す）。 */
+  var CAT_WBR = { 'ワークライフバランス': 'ワークライフ<wbr>バランス' };
+  function catLabel(s) { return (isTabbed() && CAT_WBR[s]) || s; }
 
   function injectReviewCategoryGrid() {
     var banner = d.getElementById('airline-rating-banner');
@@ -1068,7 +1141,7 @@
     var cardsHTML = REVIEW_CATS.map(function (c, i) {
       return '\n    <button class="rcg-card" onclick="pvSetReviewCat(\'' + c.key + '\')">\n' +
         '      <span class="rcg-icon">' + CAT_ICONS[i] + '</span>\n' +
-        '      <span class="rcg-label">' + c.label + '</span>\n' +
+        '      <span class="rcg-label">' + catLabel(c.label) + '</span>\n' +
         '      <span class="rcg-count">' + L.catCount(catCounts[c.key] || 0) + '</span>\n' +
         '      <span class="rcg-chevron">' + CHEVRON + '</span>\n' +
         '    </button>';
@@ -1130,7 +1203,7 @@
       '<div class="rv-post-gate" style="margin-top:24px">' +
         '<div style="font-size:.9rem;font-weight:700;margin-bottom:6px">' + L.vcGateTitle + '</div>' +
         '<p style="font-size:.8rem;color:#6b7d93;margin-bottom:14px">' + L.vcGateDesc + '</p>' +
-        '<button class="btn-review-post" onclick="if(window.openReviewModal)openReviewModal()">' + unlockLabel(L.vcGateBtn) + '</button>' +
+        unlockBtn('<button class="btn-review-post" onclick="if(window.openReviewModal)openReviewModal()">' + L.vcGateBtn + '</button>') +
         '<div style="font-size:.72rem;color:#6b7d93;margin-top:8px">' + L.vcGateFine + '</div>' +
       '</div>' +
       '<div class="mt-8 pt-4" style="border-top:1px solid rgba(255,255,255,.07)">' +

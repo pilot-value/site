@@ -80,7 +80,8 @@
 `airline-codes.json` / `pv-airlines.json` / `db/airlines.generated.sql` /
 投稿フォーム日英4枚の `#f-airline` / [pv-reunlock.js](../pv-reunlock.js) の FALLBACK_CODES
 （以上すべて `gen-airline-codes.mjs`）、`salary-data.json`、`index.html` のランキング配列、
-国別ページ、FAQ、`<!--PV-CLINK-->`、`sitemap.xml`。
+国別ページ、FAQ、`sitemap.xml`。
+（会社ページの下に在った「国別で比べる」の箱 `<!--PV-CLINK-->` と橙の転職の帯は、2026-10-08 に全社から外した。もう入らない。）
 
 **任意:** [airline-logos.js](../airline-logos.js) ＋ `assets/airline-logos/{slug}.svg`。
 無ければモノグラムに自動フォールバックするので必須ではない（実ロゴを置くのが望ましい）。
@@ -143,11 +144,15 @@ node inject-salary-gate.mjs
 
 ⚠️ **`seo-normalize.mjs` は必ず `gen-countries.mjs` より後。** 順序を変えると PV-SEO 管理ブロックが消える。
 
-⚠️ **`link-countries.mjs` のあとは必ず `bake-en-currency.mjs`。**（2026-09-27 に踏んだ）
-`link-countries.mjs` は国別リンクの帯（`<!--PV-CLINK-->`）を作り直すとき、金額を**素の円で**書く。
-英語ページはその1か所だけ焼き込みが剥がれて `¥2,700万` に戻る（`<span class="pv-cur" …>$170K</span>` が消える）。
+⚠️ **`gen-faq.mjs` のあとは必ず `bake-en-currency.mjs`。**
+`gen-faq.mjs` は英語ページの FAQ を、流すたびに金額を**素の円で**書き直す（毎回「追加」と出るのは正常）。
+`bake-en-currency.mjs` を続けないと、英語ページのその数か所だけ `¥2,700万` に戻る（`<span class="pv-cur" …>$170K</span>` が消える）。
 **画面では `currency.js` が実行時に直すので、目で見ても気づけない。**
 気づけるのは `assert-generated.mjs` と `bake-en-currency.mjs --check` だけ。
+
+`link-countries.mjs` は 2026-10-08 から**外すだけの道具**になった（会社ページの「国別で比べる」の箱と橙の転職の帯を
+全社から外した。もう何も書かない）。ふだんは「0 枚」と出る。古いページを借り元にして帯が持ち込まれたときだけ片づける。
+戻っていないかは `assert-basis.mjs` が見ている。
 
 ⚠️ **`inject-salary-gate.mjs` を忘れない。** 新しいページの年収の詳細を
 `premium-gate`（給与明細で90日解放）で包む。流し忘れると、その社だけ年収が最初から丸見えになり

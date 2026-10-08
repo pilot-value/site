@@ -48,7 +48,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { man } from './salary-basis.mjs';
-import { SRC_KINDS, squash, quoted, atText, valueText } from './career-facts.mjs';
+import { SRC_KINDS, squash, quoted, atText, valueText, fillIntro, checkIntro } from './career-facts.mjs';
 
 export { SRC_KINDS, squash, quoted, atText, valueText };
 
@@ -72,6 +72,8 @@ const HOSTS = {
 
 /** 出どころを開いて確かめた日。 */
 export const CHECKED = '2026-10-04';
+/** そのあとで出どころを開き直して、引用の字が今も在ることを確かめた項目の日（募集の行だけ。日付だけを進めない）。 */
+const REREAD = '2026-10-08';
 
 const JAL = {
   outline: { name: '日本航空「会社概要」', kind: 'company',
@@ -160,6 +162,13 @@ const BR = {
 export const FACTS = {
   /* ════════ jal ════════ */
   jal: {
+    /* 紹介文（会社のカードのいちばん上の字）。字は下の項目から組み立てる ── 数字と日付を手で打たない。
+       {鍵} ＝ 値／{鍵:at} ＝ いつの話か／{鍵:cond} ＝ 数え方。使えるのは profile・scale・base の項目だけ。
+       ⚠️ 「日本第◯位」「最大」のような、台帳に出どころの無い言い方を足さない（検査が落とす）。 */
+    intro: [
+      { ja: '設立は{founded}。航空連合は{alliance}（{alliance:at}）。', uses: ['founded', 'alliance'] },
+      { ja: '{pilots:at}時点の運航乗務員は{pilots}（{pilots:cond}）。乗務を始めてからの勤務地は{pilot_base}。', uses: ['pilots', 'pilot_base'] },
+    ],
     profile: [
       { key: 'founded', ja: '設立', value: '1951年8月1日',
         at: '1951-08-01', as_of: CHECKED, src: JAL.outline,
@@ -235,6 +244,13 @@ export const FACTS = {
         at: '2026-10', at_ja: '採用サイトの職種紹介', as_of: CHECKED, src: JAL.jobtype, pilot: true,
         cond_ja: '自社養成の副操縦士になるまでの訓練',
         quote: '地上業務実習終了後、訓練は国内および米国のアリゾナ州フェニックスで行われ、同期全員で副操縦士を目指します。' },
+      /* 出どころは同じページの図「目安年次」（字ではなく絵。2026-10-08 に絵を開いて読んだ）。
+         並びは 地上業務実習 1年半程度 → 運航乗務員訓練生 2年半程度 → 副操縦士 10年程度 → 機長昇格訓練 → 機長。
+         ⚠️ 入社から機長までの合計の年数を、ここから足し算で作らない（会社は合計を言っていない）。 */
+      { key: 'upgrade_years', ja: '副操縦士として乗務する期間', value: '10年程度',
+        at: '2026-10', at_ja: '採用サイトの職種紹介', as_of: REREAD, src: JAL.jobtype, pilot: true,
+        cond_ja: '自社養成パイロットの目安年次。そのあと機長昇格訓練',
+        quote: '目安年次 1年半程度 2年半程度 10年程度' },
     ],
     benefits: [
       { key: 'bonus', ja: '賞与', value: '年3回（夏季・年末・年度末）',
@@ -270,14 +286,28 @@ export const FACTS = {
         at: '2026-03-01', as_of: CHECKED, src: JAL.press, pilot: false,
         cond_ja: 'JALグループの2027年度入社の採用',
         quote: 'JALグループは、2027年度入社の新卒採用を2026年3月1日（日）10時より順次開始します。' },
-      { key: 'license_holders', ja: 'ライセンスを持つ人の採用', value: '事業用操縦士ライセンス保有者を対象とした採用試験を適宜実施',
-        at: '2026-10', at_ja: '2027年度入社の募集要項', as_of: CHECKED, src: JAL.req, pilot: true,
+      /* ★ 免許を持つ人の話は2行に分ける（2026-10-08）。同じ募集要項に段が2つ在る ──
+           自社養成は「免許を持つ人は応募できない」／ライセンス保有者は「訓練生の採用試験を適宜・養成機関へ」。
+           1行で「ライセンスを持つ人の採用：適宜実施」と書いていたあいだ、現役のパイロットを採っていると読めた
+           （同じページの下の節は「現役パイロット向けの募集は公開されていない」と書いていた ＝ 食い違い）。
+           ⚠️ 機長・副操縦士の経験者に向けた募集要項は、採用サイトのキャリア採用にも載っていない（載っているのは自社養成だけ）。
+              無いものは引用できないので、行にはせず、下の行の条件（cond_ja）に書いてある。 */
+      { key: 'self_training_license', ja: '自社養成パイロットへの応募', value: '事業用操縦士免許を持っている人・過去に取得した人は応募できない',
+        at: '2026-10', at_ja: '2027年度入社の募集要項', as_of: REREAD, src: JAL.req, pilot: true,
+        quote: '日本をはじめ各国で発行した事業用操縦士免許を現在お持ちの方、または過去に取得されたことのある方はご応募いただけません。' },
+      { key: 'license_holders', ja: 'パイロット（ライセンス保有者）の採用', value: '運航乗務員訓練生の採用試験を適宜実施。詳細は在籍中の養成機関へ',
+        at: '2026-10', at_ja: '2027年度入社の募集要項', as_of: REREAD, src: JAL.req, pilot: true,
+        cond_ja: '事業用操縦士ライセンスを持つ人が対象。機長・副操縦士の経験者に向けた募集要項は、採用サイトに掲載が無い',
         quote: '事業用操縦士ライセンス保有者を対象とした運航乗務員訓練生の採用試験を適宜行っています。詳細は在籍中の各養成機関にお問い合わせください。' },
     ],
   },
 
   /* ════════ ana ════════ */
   ana: {
+    intro: [
+      { ja: '始まりは{founded}。航空連合は{alliance}（{alliance:at}）。', uses: ['founded', 'alliance'] },
+      { ja: '{pilots:at}時点の運航乗務員は{pilots}（{pilots:cond}）。国際線は{intl_network:at}時点で{intl_network}。', uses: ['pilots', 'intl_network'] },
+    ],
     profile: [
       { key: 'founded', ja: '設立', value: '1952年（日本ヘリコプター輸送として設立）',
         at: '1952', as_of: CHECKED, src: ANA.history,
@@ -407,14 +437,22 @@ export const FACTS = {
         at: '2026-03-10', as_of: CHECKED, src: ANA.req, pilot: true,
         cond_ja: '2027年度新卒',
         quote: 'プレエントリー締切：2026年3月10日（火）23:59' },
+      /* ⚠️ 会社は「ライセンサーの採用も行っている」と書いているが、その募集要項は採用サイトに載っていない。
+            キャリア採用の一覧にも運航乗務職は無い（2026-10-08 に両方のページを開いて確かめた）。
+            「採っている」とだけ書くと応募できると読めるので、条件（cond_ja）に添える。年収の台帳（salary-basis.mjs）と同じ言い方。 */
       { key: 'license_holders', ja: 'ライセンスを持つ人の採用', value: '操縦士資格を取得している人（ライセンサー）の採用も行っている',
-        at: '2026-10', at_ja: '採用サイトの職種紹介', as_of: CHECKED, src: ANA.pilot, pilot: true,
+        at: '2026-10', at_ja: '採用サイトの職種紹介', as_of: REREAD, src: ANA.pilot, pilot: true,
+        cond_ja: 'ライセンサーの募集要項は採用サイトに掲載が無い。キャリア採用の一覧にも運航乗務職は無い',
         quote: 'ANAでは、入社前に操縦士資格を取得している方（ライセンサー）の採用と併せて、未経験の方の中からパイロットとして適性のある人財を見出し、 入社後に一から育成する「自社養成パイロット」の採用を行っています。' },
     ],
   },
 
   /* ════════ cathay-pacific ════════ */
   'cathay-pacific': {
+    intro: [
+      { ja: '設立は{founded}。航空連合は{alliance}。パイロットの拠点は{pilot_base}。', uses: ['founded', 'alliance', 'pilot_base'] },
+      { ja: '{fleet_total:at}時点の機材は、{fleet_total:cond}で{fleet_total}。', uses: ['fleet_total'] },
+    ],
     profile: [
       { key: 'founded', ja: '設立', value: '1946年（香港）',
         at: '1946', as_of: CHECKED, src: CX.interim,
@@ -523,6 +561,10 @@ export const FACTS = {
 
   /* ════════ eva-air ════════ */
   'eva-air': {
+    intro: [
+      { ja: '設立は{founded}、最初の便は{first_flight}。航空連合は{alliance}（{alliance:at}）。', uses: ['founded', 'first_flight', 'alliance'] },
+      { ja: '{fleet_total:at}時点の機材は{fleet_total}。パイロットの勤務地は{pilot_base}。', uses: ['fleet_total', 'pilot_base'] },
+    ],
     profile: [
       { key: 'founded', ja: '設立', value: '1989年3月8日',
         at: '1989-03-08', as_of: CHECKED, src: BR.chronicle,
@@ -643,6 +685,15 @@ export function factOf(slug, key) {
 /** 画面に出す「いつの話か」。字で言い直したもの（at_ja）が在ればそれ、無ければ at を字に。 */
 export const whenText = x => x.at_ja || atText(x.at);
 
+/** 紹介文に使える項目（歴史・拠点・規模の中から）。無ければ null。 */
+export function introFact(slug, key) {
+  const a = FACTS[slug] || {};
+  if (a.base && a.base.key === key) return a.base;
+  return [...(a.profile || []), ...(a.scale || [])].find(x => x.key === key) || null;
+}
+/** 紹介文を [{ text, uses }] で返す（作り方は career-facts.mjs の fillIntro の1か所）。 */
+export const introText = slug => fillIntro((FACTS[slug] || {}).intro, key => introFact(slug, key), whenText);
+
 export default FACTS;
 
 /* ════════════ 自己検査（node airline-facts.mjs --check）════════════ */
@@ -651,6 +702,9 @@ const ISO = /^\d{4}-\d{2}-\d{2}$/;
 const AT  = /^\d{4}(-(\d{2}(-\d{2})?|H[12]))?$/;
 const PUB = /^\d{4}(-\d{2}(-\d{2})?)?$/;
 const SLUGS = ['jal', 'ana', 'cathay-pacific', 'eva-air'];
+/* 紹介文に書かない言い方（台帳に出どころの無い順位・飾りの形容・年収の話）。 */
+const INTRO_BANNED = /第.位|最大|最古|有数|屈指|フラッグ|国営|政府系|急成長|名門|一流|老舗|年収|給与|定年|退職/;
+const INTRO_MAX = 150;   // 全部の文を合わせた字数
 
 export function check() {
   const bad = [];
@@ -721,6 +775,10 @@ export function check() {
       const k = (a[g] || []).filter(x => x.lead).length;
       if (k !== 1) fail(`${slug}.${g}`, `最初の1画面に出す1つ（lead）が ${k} 個`);
     }
+
+    /* 紹介文: 字が台帳の項目だけでできている（決まりは career-facts.mjs の checkIntro の1か所）。1文は必ず在る。 */
+    if (!(a.intro || []).length) fail(`${slug}.intro`, '紹介文が無い');
+    checkIntro(slug, a.intro, fail, { find: key => introFact(slug, key), scale: a.scale, when: whenText, banned: INTRO_BANNED, max: INTRO_MAX });
 
     /* 機材: 内訳の合計が、同じ発表の総数と合う */
     const total = (a.scale || []).find(x => x.key === 'fleet_total');

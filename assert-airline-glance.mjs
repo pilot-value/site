@@ -36,6 +36,8 @@
         その右（広い画面）か下（狭い画面）が、評価スコアのカード。
         鍵の無い人（未ログイン・未提出）には
         **数字の入っていない板**で出す（サーバーが額・職位・機種を送っていない。ぼかしは飾り）。
+        ★概要は短い入口（2026-10-08）── 件数と「給与の提出で開きます」が1行・見本の行は1行だけ。
+          給与・待遇のタブでは、欄が持つ3行がそのまま出る。評価スコアの側も、概要の抜粋は1件・錠前の行は1つ。
         2行のボタン「Give & Get／全ての給与情報を解放する」が、自分の会社を選んだ給与の提出へ行く（「閲覧条件」は REAL PAY へ）。
         ⚠️ 鍵を開けるかどうかを決めるのはサーバー（db/pay-rows.sql）。ここに条件を足さない。
 
@@ -61,7 +63,7 @@
      node assert-airline-glance.mjs            全部
      node assert-airline-glance.mjs --static   ブラウザを使わない所だけ
      node assert-airline-glance.mjs --only etihad --sizes 390,1440   調べる時だけ（会社と幅を絞る。緑でも全部を見たことにはならない）
-     node assert-airline-glance.mjs --scenes off,cards               調べる時だけ（場面を絞る：view・off・rows・rated・tabs・cards）
+     node assert-airline-glance.mjs --scenes off,cards               調べる時だけ（場面を絞る：view・off・rows・rated・tabs・cards・gg）
    同時に開く枚数は PV_GLANCE_JOBS（既定 3。check.mjs からは 2）。
    ══════════════════════════════════════════════════════════════════ */
 import fs from 'node:fs';
@@ -72,7 +74,9 @@ import { SALARY } from './salary-data.mjs';
 import { BASIS } from './salary-basis.mjs';
 import { JPY_PER } from './fx-rates.mjs';
 import { GLANCE } from './pv-airline-view.mjs';
-import { build, pageOf, ASSETS, CONTRIB, STAY, TABBED } from './gen-airline-glance.mjs';
+import { build, pageOf, ASSETS, CONTRIB, STAY, TABBED, LEGACY, DROP_H2 } from './gen-airline-glance.mjs';
+import { FACTS as CO_FACTS } from './airline-facts.mjs';
+import { FACTS as EY_FACTS } from './career-facts.mjs';
 import { networkOf } from './airline-destinations.mjs';
 import { primary as placePhoto, needsCredit as placeCredit, src as placeSrc, HELD as PLACE_HELD } from './place-photos.mjs';
 import { primary, needsCredit } from './airline-photos.mjs';
@@ -122,9 +126,58 @@ const UNLOCK = '全ての待遇データを解放する';
    言葉を替えただけで、行き先も、開く条件も変えていない（条件を決めるのはサーバー）。 */
 const GG = 'Give & Get';
 const GIVE = '全ての給与情報を解放する', TERMS = '閲覧条件';
+/* ボタンの下の行の、語の切れ目。狭い箱ではここでだけ折れる（「全ての口コミデ／ータを解放する」と語の途中で折れない）。
+   書き手は3つ（career-live.js・gen-airline-glance.mjs・airline-reviews-ui.js）。この表は検査が自分で持つ ── 書き手から読み込まない。 */
+const GG_CUT = { '全ての給与情報を解放する': ['全ての', '給与情報を', '解放する'], '口コミを解放する': ['口コミを', '解放する'], '全ての口コミデータを解放する': ['全ての', '口コミデータを', '解放する'] };
 const RV_GIVE = { overview: '口コミを解放する', reviews: '全ての口コミデータを解放する' };
-/* このページに置かない見出し（会社どうしの比較表。比較は「他社と比較」の先に在る）。 */
-const NO_H2 = /比べられるところだけ|ANA vs JAL パイロット年収 詳細比較表/;
+/* ★2026-10-08 昔からの節（新しい部品の下に手で書いてあった節）は、新しい部品へ移して外した。
+   何をどこへ移したか・何を残したかの台帳は gen-airline-glance.mjs の LEGACY。
+   ここには「残してよい節」を会社ごとに書き写してある ── 台帳の正規表現をそのまま当てると、
+   台帳が緩んだ日に検査も一緒に緩む（残す節が1つ増えたら、ここも人が足す）。 */
+const KEPT = { faq: /よくある質問/ };
+const KEPT_BY = { jal: ['faq'], ana: ['faq'], 'cathay-pacific': ['faq'], etihad: ['faq'], 'eva-air': ['faq'] };
+/* 外した節の見出し（この検査の写し）。1つでもページに戻っていたら落とす。
+   ★2026-10-09 ANA の「機種別・路線別 年収差」も外す側へ（古い錠前の付いた、出どころの無い表だった）。 */
+const GONE_H2 = /について$|フライト環境|路線・機材|訓練・昇格|訓練・審査|福利厚生|募集要項|採用情報|と他社の比較|他社との比較|比べられるところだけ|詳細比較表|年収差/;
+/* 会社の紹介文を、台帳の型（intro）から **この検査が自分で** 組み立てる。
+   書く側の組み立て（introText）を呼ぶと、組み立てが壊れた日に「壊れた字 ＝ 壊れた字」で通ってしまう。
+   texts … 画面に出るはずの文（組み立てられない文は null）／ats … 文の中の「いつの話か」の字。 */
+const introWant = s => {
+  const F = s === 'etihad' ? EY_FACTS.etihad : CO_FACTS[s];
+  const find = k => (F.base && F.base.key === k ? F.base : [...(F.profile || []), ...(F.scale || [])].find(x => x.key === k) || null);
+  const atJa = at => {
+    const m = String(at ?? '').match(/^(\d{4})(?:-(?:(\d{2})(?:-(\d{2}))?|H([12])))?$/);
+    return !m ? '' : m[4] ? `${m[1]}年${m[4] === '1' ? '上半期' : '下半期'}` : `${m[1]}年` + (m[2] ? `${+m[2]}月` : '') + (m[3] ? `${+m[3]}日` : '');
+  };
+  const when = x => (s === 'etihad' ? atJa(x.at) : x.at_ja || atJa(x.at));
+  const val = x => (typeof x.value === 'number' ? x.value.toLocaleString('en-US') + (x.unit || '') : String(x.value ?? ''));
+  const ats = [];
+  const texts = (F.intro || []).map(t => {
+    let good = true;
+    const text = String(t.ja).replace(/\{([a-z0-9_]+)(?::(at|cond|city))?\}/g, (m, k, part) => {
+      const x = find(k);
+      const v = !x ? '' : part === 'at' ? when(x) : part === 'cond' ? (x.cond_ja || '') : part === 'city' ? (x.city_ja || '') : val(x);
+      if (part === 'at') ats.push(v);
+      if (!v) good = false;
+      return v;
+    });
+    return good ? text : null;
+  });
+  return { texts, ats };
+};
+const dateJa = iso => String(iso).replace(/^(\d{4})-(\d\d)-(\d\d)$/, (m, y, mo, d) => `${y}年${+mo}月${+d}日`);
+/* 募集の台帳（会社の募集ページと、確かめた日）。生成側の viewOf() を呼ばずに、台帳から直接読む。 */
+const jobsLedger = s => (s === 'etihad'
+  ? EY_FACTS.etihad.jobs.filter(j => ['cap', 'fo'].includes(j.rank) && !/instructor/.test(j.key)).map(j => ({ url: j.url, checked: j.as_of || '', rank: j.rank }))
+  : CO_FACTS[s].jobs.map(j => ({ url: j.src.url, checked: j.as_of || '' })));
+/* 副題の右側：台帳の「航空連合」か「位置づけ」。 */
+const taglineLedger = s => {
+  const F = s === 'etihad' ? EY_FACTS.etihad : CO_FACTS[s];
+  const all = [...F.profile, ...F.scale];
+  const al = all.find(x => x.key === 'alliance'), nat = all.find(x => x.key === 'national_airline');
+  if (al) { const m = /^(.+?)（([^（）]+)）$/.exec(String(al.value)); return m ? `${m[1]}加盟（${m[2]}）` : `${al.value}加盟`; }
+  return nat ? String(nat.value) : '';
+};
 /* タブ：左からこの順・この名前（オーナーの指定）。 */
 const TABS = [['overview', '概要'], ['pay', '給与・待遇'], ['reviews', '口コミ'], ['work', '勤務・訓練'], ['life', '暮らし・家族'], ['stay', 'ステイ先']];
 const TAB_ID = new Set(TABS.map(t => t[0]));
@@ -189,7 +242,7 @@ for (const s of FIVE) {
   const html = PAGES[s];
   const g = blocksOf(html, 'PV-GLANCE')[0] || '';
   const pay = one(g, /<article class="pvg-card pvg-pay"[^>]*>([\s\S]*?)\n<\/article>/) || '';
-  const cut = pay.indexOf('<details class="pvg-dt pvg-paydt">');
+  const cut = pay.indexOf('<details class="pvg-dt pvg-paydt"');
   PART[s] = {
     hero: blocksOf(html, 'PV-HERO')[0] || '',
     glance: g,
@@ -386,6 +439,12 @@ for (const s of FIVE) {
   const led = BASIS[s].src || [];
   ok(same(srcs.map(x => x.url), led.map(x => x.url)), `${s}: 出どころは台帳の資料と同じ並び`, `${srcs.length}件／台帳 ${led.length}件`);
   ok(led.every((x, i) => !srcs[i] || !!x.secondary === /会社の公表ではない資料/.test(srcs[i].mark)), `${s}: 会社の公表ではない資料に、そう書いてある（会社の資料には書かない）`);
+  /* ★2026-10-08 根拠・条件・時点：資料ごとに、こちらが確かめた日を書く（台帳の accessed のまま。今日の日付で上書きしない）。 */
+  ok(led.length > 0 && led.every((x, i) => /^\d{4}-\d\d-\d\d$/.test(x.accessed || '') && !!srcs[i] && srcs[i].mark.endsWith(`確認日 ${dateJa(x.accessed)}`)),
+     `${s}: 出どころの資料ごとに、確かめた日が台帳のまま出ている`, srcs.map(x => x.mark.slice(-18)).join(' ／ '));
+  /* 昔の「この数字の出どころ」の住所（#kyuyo-konkyo）は、この説明が引き継ぐ（外のページ・検索の結果からのリンクが切れない）。 */
+  ok(PAGES[s].split('id="kyuyo-konkyo"').length === 2 && dt.startsWith('<details class="pvg-dt pvg-paydt" id="kyuyo-konkyo">'),
+     `${s}: 住所 #kyuyo-konkyo は給与の説明の1つだけ（古い「出どころの表」の節を残していない）`, `${PAGES[s].split('id="kyuyo-konkyo"').length - 1}個`);
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -521,37 +580,85 @@ for (const s of FIVE) {
   {
     /* 口コミを書く入口：評価スコアのカードに、概要用と口コミのタブ用の2つ（見えるのは、いま居るタブの1つだけ）。どちらも2行。 */
     const card = one(P.glance, /<article class="pvg-card pvg-rv-card" id="pvg-score"[^>]*>([\s\S]*?)\n<\/article>/) || '';
-    const cta = [...card.matchAll(/<p class="pvg-rv-cta pvg-rv-cta-([a-z]+)"><a class="pvg-btn pvg-btn-gg" href="([^"]*)"><span class="pvg-gg"><span class="pvg-gg-k" lang="en">([^<]*)<\/span><span class="pvg-gg-m">([^<]*)<\/span><\/span><\/a>/g)].map(m => [m[1], unesc(m[2]), unesc(m[3]), m[4]]);
+    const cta = [...card.matchAll(/<p class="pvg-rv-cta pvg-rv-cta-([a-z]+)"><a class="pv-gg" href="([^"]*)"><span class="pv-gg-t"><span class="pvg-gg-k" lang="en">([^<]*)<\/span><span class="pvg-gg-m">((?:[^<]|<wbr>)*)<\/span><\/span><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" [^>]*\/><\/svg><\/a>/g)].map(m => [m[1], unesc(m[2]), unesc(m[3]), m[4].replace(/<wbr>/g, ''), m[4].split('<wbr>')]);
     const to = `../submit-review.html?airline=${s}`;
-    ok(same(cta, [['overview', to, GG, RV_GIVE.overview], ['reviews', to, GG, RV_GIVE.reviews]]) && hrefs.filter(h => h.startsWith('../submit-review.html')).length === 2,
-       `${s}: 口コミを書く入口は2行のボタン ── 概要は「${GG}／${RV_GIVE.overview}」・口コミのタブは「${GG}／${RV_GIVE.reviews}」・どちらも自分の会社を選んだ投稿の画面へ`, cta.map(c => c.join(' ')).join(' ／ '));
+    ok(same(cta.map(c => c.slice(0, 4)), [['overview', to, GG, RV_GIVE.overview], ['reviews', to, GG, RV_GIVE.reviews]]) && hrefs.filter(h => h.startsWith('../submit-review.html')).length === 2,
+       `${s}: 口コミを書く入口は2行のボタン ── 概要は「${GG}／${RV_GIVE.overview}」・口コミのタブは「${GG}／${RV_GIVE.reviews}」・どちらも自分の会社を選んだ投稿の画面へ`, cta.map(c => c.slice(0, 4).join(' ')).join(' ／ '));
+    ok(same(cta.map(c => c[4]), [GG_CUT[RV_GIVE.overview], GG_CUT[RV_GIVE.reviews]]), `${s}: その下の行に、語の切れ目が置いてある（狭い箱で、語の途中では折れない）`, cta.map(c => (c[4] || []).join('｜')).join(' ／ '));
     ok(!/匿名で口コミを(投稿する|書く)/.test(both), `${s}: 前の言葉（「匿名で口コミを投稿する」）が、社名の行と新しい節に残っていない`);
   }
   {
-    /* 会社の紹介は、会社概要のカードの中に1回だけ。下に同じ節（「◯◯について」）を残さない。会社どうしの比較表も置かない
-       （比較は「他社と比較」の先に在る）。紹介の文は、字として入っている（4つの数字だけで済ませない）。 */
+    /* ★2026-10-08 昔からの節は新しい部品へ移して外した（オーナーのご指示「CSSで隠しただけ、旧文と新文の併存で終わらない」）。
+       新しい部品の下に残ってよいのは、会社ごとに決めた節だけ（KEPT_BY）。隠したのではなく、HTML から無くなっている。 */
     const txt = h => h.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+    const below = PAGES[s].slice(PAGES[s].indexOf('<!--/PV-GLANCE-->'));
+    const secs = [...below.matchAll(/<div class="glass\b[^"]*"[^>]*>/g)].map(m => txt(one(below.slice(m.index), /<h2\b[^>]*>([\s\S]*?)<\/h2>/) || ''));
+    const want = KEPT_BY[s];
+    ok(secs.length === want.length && secs.every((x, i) => KEPT[want[i]].test(x)),
+       `${s}: 新しい部品の下に残っている節は、残すと決めたものだけ（よくある質問）`, secs.join(' ／ '));
     const h2 = [...PAGES[s].matchAll(/<h2[^>]*>([\s\S]*?)<\/h2>/g)].map(m => txt(m[1]));
-    const dup = h2.filter(x => NO_H2.test(x) || /について$/.test(x));
-    ok(!dup.length, `${s}: 「◯◯について」の節と、会社どうしの比較表が残っていない`, dup.join(' ／ '));
+    const dup = h2.filter(x => !Object.values(KEPT).some(re => re.test(x)) && (GONE_H2.test(x) || DROP_H2.test(x)));
+    ok(!dup.length, `${s}: 外した節（◯◯について・フライト環境・訓練・福利厚生・募集要項・他社の比較・機種別の年収差）が、ページのどこにも残っていない`, dup.join(' ／ '));
+    /* ★2026-10-09 古い錠前（橙の四角いボタンを重ねる premium-gate）の置き場が、ページに1つも無い。
+       残っていると、同じページに形の違う Give & Get が2つ出る（ANA の年収差の節がそうだった）。 */
+    const oldLock = ['class="premium-gate', 'pv-locked', 'pv-btn-main', 'pv-give-take'].filter(x => PAGES[s].includes(x));
+    ok(!oldLock.length, `${s}: 古い錠前の置き場（premium-gate ほか）が、ページのどこにも無い（Give & Get の形は1つだけ）`, oldLock.join(' ／ '));
+    ok(!/display\s*:\s*none|\bhidden\b[^>]*>\s*<h2/.test(below.replace(/<script\b[\s\S]*?<\/script>/g, '').replace(/<style\b[\s\S]*?<\/style>/g, '').split('<footer')[0].replace(/<svg\b[\s\S]*?<\/svg>/g, '')),
+       `${s}: 新しい部品の下に、隠しただけの節を置いていない`);
+    /* 残した節は、どれかのタブに属している（タブに絞ったとき、全部のタブに出っぱなしにならない）。 */
+    ok([...below.matchAll(/<div class="glass\b[^"]*"([^>]*)>/g)].every(m => /\bdata-pvg-pane="(?:overview|pay|reviews|work|life|stay)(?: (?:overview|pay|reviews|work|life|stay))*"/.test(m[1])),
+       `${s}: 残した節は、どれかのタブに属している`);
+    /* 会社の紹介は、会社概要のカードの中に1回だけ。字は台帳の項目から組み立てたものだけ
+       （手で書いた紹介文には「日本第2位」のような順位・古い機数・確かめていない訓練地が入っていた）。 */
     const co = one(P.glance, /<article class="pvg-card pvg-co"[^>]*>([\s\S]*?)\n<\/article>/) || '';
-    const lead = [...PAGES[s].matchAll(/<p class="pvg-about" data-pvg-about="lead">([\s\S]*?)<\/p>/g)].map(m => txt(m[1]));
-    const more = [...PAGES[s].matchAll(/<p data-pvg-about="more">([\s\S]*?)<\/p>/g)].map(m => txt(m[1]));
+    const lead = [...PAGES[s].matchAll(/<p class="pvg-about" data-pvg-about="lead">([\s\S]*?)<\/p>/g)].map(m => unesc(m[1]));
+    const iw = introWant(s), led = iw.texts.join('');
     ok(lead.length === 1 && lead[0].length >= 60 && co.includes('data-pvg-about="lead"') && co.indexOf('data-pvg-about="lead"') < co.indexOf('<dl class="pvg-keys">'),
-       `${s}: 会社の紹介（歴史・規模・拠点の文）が、会社概要のカードの中・4つの数字より上に1つだけ在る`, `${lead.length}つ・${(lead[0] || '').length}字`);
-    const fold = one(co, /<details class="pvg-dt pvg-co-more">([\s\S]*?)<\/details>/) || '';
-    ok(more.every(x => x.length >= 20) && more.length === (fold.match(/data-pvg-about="more"/g) || []).length,
-       `${s}: 紹介の続きは「会社情報」の中に畳んである（ほかの所に置いていない）`, `${more.length}つ`);
+       `${s}: 会社の紹介（歴史・規模・拠点の文）が、会社概要のカードの中・数字の一覧より上に1つだけ在る`, `${lead.length}つ・${(lead[0] || '').length}字`);
+    ok(lead[0] === led && !/<[a-z]/i.test(lead[0] || ''), `${s}: 会社の紹介の字は、台帳の項目から組み立てた字のまま（手で書いた字を足していない）`, `画面「${(lead[0] || '').slice(0, 60)}」／台帳「${led.slice(0, 60)}」`);
+    ok(iw.texts.length > 0 && iw.texts.every(Boolean) && iw.ats.every(a => /^\d{4}年/.test(a)),
+       `${s}: 紹介文はどの文も台帳の項目で埋まる・文の中の「いつの話か」は年から始まる日付の字`, `文 ${iw.texts.map(t => (t ? '○' : '×')).join('')}／いつ ${iw.ats.join('・') || '無し'}`);
+    ok(!/data-pvg-about="more"|pvg-about-more/.test(PAGES[s]), `${s}: 手で書いた紹介の続き（古いページの字）を運んでいない`);
+    ok(!/日本第[0-9０-９一二三]位|日本最大|世界最大|業界(?:最大|トップ|No)/.test(text(P.hero + P.glance)), `${s}: 順位や「最大」を、社名の行と新しい節に書いていない`);
+    /* 見えている数字は2〜4つ。紹介文がもう言った項目を、下にもう一度並べない。 */
+    const keys = [...(one(co, /<dl class="pvg-keys">([\s\S]*?)<\/dl>/) || '').matchAll(/<div><dt>([^<]*)<\/dt><dd>([\s\S]*?)<\/dd><\/div>/g)].map(m => unesc(m[1]));
+    const F = s === 'etihad' ? EY_FACTS.etihad : CO_FACTS[s];
+    const said = new Set((F.intro || []).flatMap(x => x.uses || []));
+    const saidLabels = [...F.profile, ...F.scale].filter(x => said.has(x.key)).map(x => x.ja);
+    ok(keys.length >= 2 && keys.length <= 4 && !keys.some(k => saidLabels.includes(k)), `${s}: 会社のカードに見えている数字は2〜4つ・紹介文がもう言った項目を並べ直していない`, keys.join(' ／ '));
     /* 同じ文が、ページのほかの所にもう1回出ていないか（頭の40字で探す）。 */
-    const again = [...lead, ...more].filter(x => x.length >= 40 && PAGES[s].split(x.slice(0, 40)).length - 1 !== 1);
+    const again = lead.filter(x => x.length >= 40 && PAGES[s].split(x.slice(0, 40)).length - 1 !== 1);
     ok(!again.length, `${s}: 紹介の文が、ページの中で重なっていない`, again.map(x => x.slice(0, 24)).join(' ／ '));
+    /* 副題（社名の下の1行）の右側も、台帳の項目から。左側（社名の読み）はページが前から持っていた字。 */
+    const sub = unesc(one(P.hero, /<p class="text-muted pvg-sub">([^<]*)<\/p>/) || '');
+    ok(!!taglineLedger(s) && sub.split(' — ').length === 2 && sub.split(' — ')[1] === taglineLedger(s) && sub.split(' — ')[0].length > 1,
+       `${s}: 社名の下の1行は「社名 — 台帳の航空連合（か位置づけ）」`, `${sub} ／ 台帳「${taglineLedger(s)}」`);
   }
   const known = h => /^https:\/\//.test(h) || h === '#pvg-stay' || /^#(overview|pay|reviews|work|life|stay)$/.test(h) || /^#stay-[A-Z]{3}$/.test(h) || (/^\?add=([a-z_]+)$/.test(h) && TOPICS.has(h.slice(5))) || /^\.\.\/(airline-conditions|career|pay-report|submit-review)\.html\?/.test(h) || /^\.\.\/(career-live|pv-glance|career-stay)\.css\?v=/.test(h);
   ok(hrefs.every(known), `${s}: 知らない形の行き先が無い`, hrefs.filter(h => !known(h)).slice(0, 3).join(' '));
   ok(!hrefs.includes('#pvg-stay') || /id="pvg-stay"/.test(P.glance), `${s}: ページの中の行き先（#pvg-stay）が在る`);
-  /* 「募集要項を開く」の行き先は、この節の外に在る昔からの節。見出しで探す（pv-glance.js の SEC と同じ言葉）。 */
-  const rest = PAGES[s].split(P.glance).join('');
-  ok(!/data-pvg-tab="jobs"/.test(both) || /<h2\b[^>]*>\s*(?:募集要項|採用情報)/.test(rest), `${s}: 「募集要項を開く」の行き先（募集要項の節）がページに在る`);
+  {
+    /* ★2026-10-08 募集は、この1枚だけ（下の古い「募集要項」「採用情報」の節は外した）。
+       新旧の2か所に在ったとき、JAL は上が「免許を持つ人は自社養成へ応募できない」・下が「経験者を随時採用」と食い違っていた。
+       右上の入口は、会社の募集ページへ直接。資料ごとに、こちらが確かめた日を書く（台帳のまま。今日の日付にしない）。 */
+    const jobs = one(P.glance, /<article class="pvg-card pvg-jobs"[^>]*>([\s\S]*?)\n<\/article>/) || '';
+    const led = jobsLedger(s);
+    const want = new Map();
+    for (const x of led) { const o = want.get(x.url); if (o === undefined || x.checked < o) want.set(x.url, x.checked); }
+    ok(PAGES[s].split('<article class="pvg-card pvg-jobs"').length === 2 && led.length > 0, `${s}: 募集の1枚がちょうど1つ在り、台帳に募集の行が在る`);
+    const entry = one(jobs, /<span class="pvg-hsub"><a class="pvg-link" href="([^"]*)" target="_blank" rel="noopener">会社の募集ページ</);
+    ok(entry !== null && unesc(entry) === led[0].url && /^https:\/\//.test(led[0].url), `${s}: 「会社の募集ページ」は、台帳のいちばん上の行の資料へ直接行く`, String(entry));
+    const got = [...jobs.matchAll(/<a class="pvg-src" href="([^"]*)" target="_blank" rel="noopener">[^<]*<\/a><small>確認日 ([^<]*)<\/small>/g)].map(m => [unesc(m[1]), m[2]]);
+    ok(same(got, [...want].map(([u, d]) => [u, dateJa(d)])) && [...want.values()].every(d => /^\d{4}-\d\d-\d\d$/.test(d)) && (jobs.match(/<a class="pvg-src"/g) || []).length === want.size,
+       `${s}: 募集の出どころは台帳の資料と同じ並び・資料ごとに確かめた日（いちばん古い日）が付いている`, got.map(x => x[1]).join(' ／ '));
+    ok(!/data-pvg-tab="jobs"|募集要項を開く/.test(PAGES[s]), `${s}: 古い節へ寄る入口（「募集要項を開く」）を残していない`);
+    if (s === 'etihad') {
+      /* エティハドは求人票の応募の条件を、行ごとに出す（年収の根拠の台帳に在る字のまま）。 */
+      const rows = [...jobs.matchAll(/<div><dt>[^<]*<\/dt><dd><b>[^<]*<\/b><small>([^<]*)<\/small><\/dd><\/div>/g)].map(m => unesc(m[1]));
+      const req = led.map(x => (BASIS.etihad[x.rank] && BASIS.etihad[x.rank].groups && BASIS.etihad[x.rank].groups[0] && BASIS.etihad[x.rank].groups[0].req) || '');
+      ok(rows.length === led.length && req.every((r, i) => r.length > 10 && rows[i].startsWith(`応募条件：${r}`)), `${s}: 募集の行に、求人票の応募の条件が台帳の字のまま出ている`, rows.map(x => x.slice(0, 30)).join(' ／ '));
+    }
+  }
   /* タブ：6つ・この順・この名前。出荷する HTML では「概要」だけが今の場所（JS が無くても全部読める）。 */
   const iH1 = P.hero.indexOf('<h1>'), iActs = P.hero.indexOf('<div class="pvg-acts">'), iBar = P.hero.indexOf('<div class="pvg-tabbar"');
   ok(iH1 >= 0 && iActs > iH1 && iBar > iActs, `${s}: 「カードを保存」「他社と比較」は、社名のそば・タブより上に在る`);
@@ -562,8 +669,8 @@ for (const s of FIVE) {
   ok(same(tabs, TABS.map(([id, label], i) => [id, id, i === 0, label])) && (bar.match(/<a\b/g) || []).length === TABS.length,
      `${s}: タブは6つ・左から ${TABS.map(t => t[1]).join('／')}`, tabs.map(t => t[3]).join('／'));
   const tabRefs = [...PAGES[s].matchAll(/data-pvg-tab="([^"]*)"/g)].map(m => m[1]);
-  ok(tabRefs.every(t => TAB_ID.has(t) || t === 'jobs') && tabRefs.filter(t => t === 'jobs').length <= 1 && TABS.every(([id]) => { const n = tabRefs.filter(t => t === id).length; return n === 1 || (id === 'stay' && n === 2); }),
-     `${s}: タブへの入口が指すのは在るタブだけ（タブの帯の6つ＋「募集要項」＋概要の「就航地をすべて見る」）`, tabRefs.join(' '));
+  ok(tabRefs.every(t => TAB_ID.has(t)) && TABS.every(([id]) => { const n = tabRefs.filter(t => t === id).length; return n === 1 || (id === 'stay' && n === 2); }),
+     `${s}: タブへの入口が指すのは在るタブだけ（タブの帯の6つ＋概要の「就航地をすべて見る」）`, tabRefs.join(' '));
   const panes = [...PAGES[s].matchAll(/data-pvg-pane="([^"]*)"/g)].map(m => m[1].split(' '));
   ok(panes.length > 0 && panes.every(p => p.length > 0 && p.every(t => TAB_ID.has(t))) && TABS.every(([id]) => panes.some(p => p.includes(id))),
      `${s}: どの塊も在るタブにだけ属し、6つのタブのどれにも中身が在る`, [...new Set(panes.flat())].join(' '));
@@ -726,11 +833,12 @@ head('career-live.js（提出された年収の一覧の、鍵の無い人の行
 {
   const LJ = noJsCmt(read('career-live.js'));
   const fn = name => one(LJ, new RegExp(`\\n  function ${name}\\([^)]*\\) \\{\\n([\\s\\S]*?)\\n  \\}\\n`)) || '';
-  ok(LJ.includes(`gg: '${GG}'`) && LJ.includes(`payUnlock: '${GIVE}'`) && LJ.includes(`payTerms: '${TERMS}'`) && !LJ.includes(UNLOCK), `会社ページの入口の言葉は「${GG}／${GIVE}」と「${TERMS}」（「${UNLOCK}」とは書かない）`);
+  ok(LJ.includes(`gg: '${GG}'`) && LJ.includes(`payUnlock: [${GG_CUT[GIVE].map(x => `'${x}'`).join(', ')}]`) && LJ.includes(`payTerms: '${TERMS}'`) && !LJ.includes(UNLOCK), `会社ページの入口の言葉は「${GG}／${GIVE}」と「${TERMS}」（「${UNLOCK}」とは書かない）`);
   /* 会社ページ（GL）の入口だけが2行。行き先は前と同じ（自分の会社を選んだ給与の提出）。 */
   ok(/foot\(GL \? \[\s*give2\(T\.payUnlock, UP \+ 'pay-report\.html\?airline=' \+ enc\(slug\)\),\s*pay\.anon \? link\(T\.login, loginHref\(\)\) : null,\s*link\(T\.payTerms, UP \+ 'actual-pay\.html\?air=' \+ enc\(slug\)\)\s*\] : \[/.test(LJ),
      '会社ページの入口は 2行のボタン（給与の提出へ）→ ログイン（未ログインの時だけ）→ 閲覧条件（REAL PAY へ）の順');
-  ok(/k\.lang = 'en';/.test(fn('give2')) && fn('give2').includes("el('span', 'crl-cta-k', T.gg)") && fn('give2').includes("el('span', 'crl-cta-m', main)"), '2行のボタンは、上が「Give & Get」・下が開くもの（字は textContent で入れる）');
+  ok(/k\.lang = 'en';/.test(fn('give2')) && fn('give2').includes("el('span', 'crl-cta-k', T.gg)") && fn('give2').includes("var m = el('span', 'crl-cta-m');") && fn('give2').includes("d.createElement('wbr')") && fn('give2').includes('d.createTextNode(w)') && !/innerHTML/.test(fn('give2')),
+     '2行のボタンは、上が「Give & Get」・下が開くもの（字は文字として入れる・語の切れ目に <wbr>）');
   /* 鍵の無い答えからは、会社・出典・投稿時期の3つしか受け取らない（サーバーが余分に送ってきても、行に持たせない）。 */
   ok(/if \(!open\) \{\s*rows = rows\.map\(function \(r\) \{\s*return \{ airline: r && r\.airline, verified: !!\(r && r\.verified\), age: r && r\.age \};\s*\}\);\s*\}/.test(fn('payRows')),
      '鍵の無い答えからは、会社・出典・投稿時期の3つだけを受け取る');
@@ -791,9 +899,80 @@ ok(/getAttribute\('data-pv-glance'\)\s*===\s*'1'\)\s*return/.test(noJsCmt(read('
   /* 口コミのタブの錠前のボタン。字を2行にしただけで、行き先も開く条件も今までと同じ（言葉はここに書く・写さない）。 */
   const ui = noJsCmt(read('airlines/airline-reviews-ui.js'));
   const fn = one(ui, /function unlockLabel\(plain\) \{([\s\S]*?)\n  \}/) || '';
-  ok(fn.includes('<span class="pvg-gg-k" lang="en">Give &amp; Get</span>') && fn.includes(`<span class="pvg-gg-m">${RV_GIVE.reviews}</span>`),
-     `口コミのタブの錠前のボタンは2行 ──「${GG}／${RV_GIVE.reviews}」`);
+  ok(fn.includes('<span class="pvg-gg-k" lang="en">Give &amp; Get</span>') && fn.includes(`<span class="pvg-gg-m">${GG_CUT[RV_GIVE.reviews].join('<wbr>')}</span>`),
+     `口コミのタブの錠前のボタンは2行 ──「${GG}／${RV_GIVE.reviews}」（語の切れ目つき）`);
+  /* 1枚ごとの錠前のボタンは、タブのある会社ページでは置かない（同じ黒いボタンが口コミの数だけ並ぶ。ぼかしの帯の中では上下が切れる）。
+     置くのは3か所だけ：一覧のいちばん下の「メンバー限定データ」・「続きを読む」の窓・公開情報のまとめの下。 */
+  ok(/\n  function cardCta\(old\) \{ return ggShape\(\) \? '' : old; \}/.test(ui) && (ui.match(/cardCta\(\n/g) || []).length === 2 && (ui.match(/unlockBtn\('/g) || []).length === 3
+     && [/function lockedTailHTML\(tailText\) \{([\s\S]*?)\n  \}/, /function srvLockHTML\(catKeys\) \{([\s\S]*?)\n  \}/].every(re => { const b = one(ui, re) || ''; return b.includes('cardCta(') && !b.includes('unlockBtn('); }),
+     '口コミ1枚ごとの錠前のボタンは、タブのある会社ページでは置かない（入口は評価スコアの1枚と、一覧のいちばん下）');
   ok(/if \(LANG !== 'ja' \|\| !isTabbed\(\)\) return plain;/.test(fn), '2行にするのは、タブのある日本語の会社ページだけ（ほかの会社と英語版は今までの1行）');
+}
+
+head('古い節の台帳（新しい表示先／不要／残す）');
+{
+  /* ★2026-10-08 オーナーのご指示「各旧節を『新しい表示先／不要／要確認』の短い一覧で管理」。
+     一覧は gen-airline-glance.mjs の LEGACY の1つだけ。ここは、その表が「一覧として読める形」のままかを見る
+     （行き先の無い「移した」・理由の無い「残す」を置かせない）。 */
+  const STATES = ['merged', 'drop', 'keep'];
+  const bad = [];
+  for (const r of LEGACY) {
+    const who = r.name || JSON.stringify(r).slice(0, 40);
+    if (!(typeof r.name === 'string' && r.name.trim())) bad.push(`名前が無い行（${who}）`);
+    if (!STATES.includes(r.state)) bad.push(`${who}: 状態が「${r.state}」（在ってよいのは ${STATES.join('・')}）`);
+    if (!!r.id === !!r.h2) bad.push(`${who}: 節の見つけ方は、住所（id）か見出し（h2）のどちらか1つ`);
+    if (r.h2 && !(r.h2 instanceof RegExp)) bad.push(`${who}: 見出しの見つけ方が正規表現でない`);
+    if (r.state === 'keep' ? !(typeof r.why === 'string' && r.why.trim()) : !(typeof r.to === 'string' && r.to.trim())) bad.push(`${who}: ${r.state === 'keep' ? '残す理由（why）' : '新しい表示先（to）'}が書いていない`);
+    if (r.state === 'keep' && r.to) bad.push(`${who}: 残す節に、移し先が書いてある`);
+  }
+  if (new Set(LEGACY.map(r => r.name)).size !== LEGACY.length) bad.push('同じ名前の行が2つ在る');
+  ok(LEGACY.length > 0 && !bad.length, `古い節の台帳は ${LEGACY.length}行 ── どの行も、移した先か・外した後の入口か・残す理由が書いてある`, bad.join(' ／ '));
+  /* 「残す」の行と、この検査が「残ってよい」と知っている節が同じ（片方だけ足すと、もう片方が黙って通す） */
+  const keep = LEGACY.filter(r => r.state === 'keep'), mine = Object.values(KEPT);
+  const SAMPLE = { faq: 'JALのパイロットについてよくある質問' };
+  ok(keep.length === mine.length && Object.entries(SAMPLE).every(([k, t]) => KEPT[k].test(t) && keep.filter(r => r.h2.test(t)).length === 1),
+     `台帳の「残す」は ${keep.length}行 ＝ この検査が残ってよいと知っている節（よくある質問）`, keep.map(r => r.name).join(' ／ '));
+  /* 外す側の見出しの見つけ方が、残す節を掴まない（掴むと、残すと決めた節が外れる） */
+  ok(Object.values(SAMPLE).every(t => !DROP_H2.test(t) || keep.some(r => r.h2.test(t))), '外す節の見つけ方が、残すと決めた節の見出しを外さない');
+  /* ★2026-10-09 古い錠前の付いていた節は、台帳とこの検査の両方が「外す」と知っている */
+  ok(['ANA 機種別・路線別 年収差'].every(t => DROP_H2.test(t) && GONE_H2.test(t) && !keep.some(r => r.h2.test(t))), '錠前の付いていた「機種別・路線別 年収差」の節は、外す側に入っている（台帳とこの検査の両方）');
+}
+
+head('pv-gg.css（Give & Get のボタンの形は、ここに1つだけ）');
+{
+  const GGC = noCssCmt(read('pv-gg.css'));
+  const rule = sel => { const m = GGC.match(new RegExp('(?:^|\\})\\s*' + sel.replace(/[.*+?^${}()|[\]\\>]/g, '\\$&') + '\\s*\\{([^}]*)\\}')); return m ? m[1] : null; };
+  const base = rule('.pv-gg') || '', line = rule('.pv-gg-t > span') || '', box = rule('.pv-gg-t') || '';
+  ok(!!rule('.pv-gg') && !!rule('.pv-gg-t') && !!rule('.pv-gg-t > span'), 'pv-gg.css に、ボタン・字の箱・1行ずつの3つの決まりが在る');
+  ok(/justify-content:center/.test(base) && /align-items:center/.test(base) && /text-align:center/.test(base) && /text-align:center/.test(box) && !/text-align:\s*(left|start)/.test(GGC),
+     'ボタンの字は2行ともまんなか（左へ寄せる決まりがどこにも無い）');
+  ok(/font:inherit/.test(line) && /opacity:1\b/.test(line) && !/font-size|font-weight|color\s*:/.test(line.replace(/font:inherit/, '')),
+     '上の行を小さく・薄くしない（2行とも、ボタンと同じ大きさ・太さ・濃さ）', line);
+  ok(/word-break:keep-all/.test(line) && /overflow-wrap:anywhere/.test(line), '長い言葉は語の切れ目でだけ折る（語の途中で折らない・語1つより狭い箱でも、はみ出さない）', line);
+  ok(/border-radius:999px/.test(base) && /font-size:16px/.test(base) && /font-weight:600/.test(base) && /min-height:54px/.test(base) && /padding:8px 26px/.test(base),
+     'ボタンは丸い形・16px・太さ 600・高さ 54px 以上・上下 8px／左右 26px の余白', base.slice(0, 200));
+  ok(['.pv-gg:hover', '.pv-gg:active', '.pv-gg:focus-visible'].every(x => rule(x) !== null), '押せるものの状態（hover・active・focus-visible）が在る');
+  ok([...GGC.matchAll(/transition\s*:\s*([^;}]+)/g)].every(m => m[1].replace(/\([^)]*\)/g, '').split(',').every(x => /^(none|transform)\b/.test(x.trim()))), '動かすのは transform だけ（transition-all を使わない）');
+  ok(!/@media[^{]*(max|min)-width/.test(GGC), '置き場や画面の幅ごとの大きさを足していない（狭い箱では字が折れて、まんなかに収まる）');
+  /* 形の決まりは pv-gg.css だけ。ほかの2枚が、置き場ごとに大きさ・色・寄せ方を足していない */
+  /* ★2026-10-09 @media／@container の囲みの中に書かれた決まりも見る。
+     前は「{ の手前の字」を1つの名前として読んでいたので、囲みの最初の決まりは「@media … .pv-gg」と読まれて素通りしていた。
+     囲みを内側から順にほどいて（中身だけを残して）から、決まりの名前を1つずつ読む。 */
+  const flatCss = css => { let s = css, prev; do { prev = s; s = s.replace(/@[^{};]+\{((?:[^{}]|\{[^{}]*\})*)\}/g, (m, inner) => inner); } while (s !== prev); return s; };
+  const ggTouch = css => [...flatCss(css).matchAll(/([^{}]+)\{[^}]*\}/g)].map(m => m[1].trim()).filter(sel => /\.pv-gg\b|\.pvg-gg-[km]\b|\.crl-cta-[km]\b/.test(sel));
+  ok(same(ggTouch('.a{b:c}@media (max-width:400px){ .pv-gg{padding:0} .x{y:z} }@container pvg (max-width:300px){ @media (min-width:1px){ .pvg-rv .pvg-gg-m{font-size:12px} } }'), ['.pv-gg', '.pvg-rv .pvg-gg-m']),
+     'この検査は、@media や @container の囲みの中（二重の囲みも）に書かれたボタンの決まりも見つけられる');
+  const others = [['pv-glance.css', CSSC], ['career-live.css', noCssCmt(read('career-live.css'))]].flatMap(([f, css]) => ggTouch(css).map(sel => `${f}: ${sel}`));
+  ok(!others.length, 'ボタンの中身に触る決まりが、pv-gg.css のほかに無い（置き場ごとに形を変えない・画面の幅ごとの囲みの中も見る）', others.join(' ／ '));
+  /* 3つの書き手が、同じ形（class="pv-gg" と字の箱 pv-gg-t）を書く */
+  const live = noJsCmt(read('career-live.js')), ui2 = noJsCmt(read('airlines/airline-reviews-ui.js'));
+  ok(/var a = el\('a', 'pv-gg'\);/.test(live) && /el\('span', 'pv-gg-t'\)/.test(live), '給与の1枚の入口（career-live.js）は pv-gg の形');
+  ok(ui2.includes('\'<button type="button" class="pv-gg" onclick="if(window.openReviewModal)openReviewModal()">\'') && ui2.includes('<span class="pv-gg-t">'), '口コミの一覧の錠前（airline-reviews-ui.js）は pv-gg の形');
+  /* ★2026-10-09 「続きを読む」の小窓（鍵の無い人が押した時）も、同じボタンを1つ置く。色を直書きした古い板と橙のボタンを運ばない。 */
+  const rmg = (ui2.match(/function readMoreGateTabbed\(\) \{[\s\S]*?\n  \}/) || [''])[0];
+  ok(rmg.includes("unlockBtn('')") && !/#[0-9a-f]{3,6}\b|rgba?\(/i.test(rmg) && !/btn-review-post/.test(rmg),
+     '「続きを読む」の小窓（タブのあるページ）も、同じ pv-gg のボタン1つ・色を直書きしない', rmg ? '' : '書いている所が見つからない');
+  for (const s of FIVE) ok((PAGES[s].match(/<link rel="stylesheet" href="\.\.\/pv-gg\.css\?v=[0-9a-f]{8}">/g) || []).length === 1, `${s}: pv-gg.css を1回だけ読んでいる`);
 }
 
 if (STATIC_ONLY) {
@@ -839,9 +1018,10 @@ const { default: puppeteer } = await import('puppeteer');
      mode 'empty' … 0件（鍵は掛かったまま）
      mode 'rows'  … 鍵の無い人に返る、伏せた行（この会社に7件・ほかの会社に2件）
      mode 'rated' … 鍵の無い人に返る、点数の付いた口コミ3件（本文は無い。在るのは書かれた欄の名前と先頭の抜粋だけ）
+     mode 'rated404' … 口コミは 'rated' と同じ・要約の口だけ 404（＝ いまの本番の形。要約の欄は出ず、下の欄の錠前の1行が見える）
      mode 'off'   … 全部 500 ＝「読めない時」
    口コミの要約の口（pv_review_summary）は、本番にまだ無い（2026-10-07）。無い時に本物のサーバーが返すのは 404 なので、
-   'empty' と 'rows' では 404 を返す ＝ 画面は要約の欄に何も出さない（作った文で埋めない）。
+   'empty'・'rows'・'rated404' では 404 を返す ＝ 画面は要約の欄に何も出さない（作った文で埋めない）。
    'rated' の時だけ「鍵の無い人への返事」を返す。わざと要約の文を混ぜる（画面が1文字も出さないことを見る）。 */
 const LIBS = /^(cdn\.jsdelivr\.net|fonts\.googleapis\.com|fonts\.gstatic\.com|cdn\.tailwindcss\.com)$/;
 const PAY_RE = /\/rest\/v1\/rpc\/pv_pay_rows$/;
@@ -876,9 +1056,12 @@ const REV_RE = /\/rest\/v1\/rpc\/pv_reviews$/;
 const SCORE_KEYS = ['culture_score', 'salary_score', 'benefits_score', 'wlb_score', 'ops_score', 'training_score'];
 const RATED = [[4, 3, 4, 5, 3, 4], [5, 4, 4, 4, 4, 5], [3, 4, 3, 4, 4, null]];
 const CLIP = '検査用の抜粋です。本文はサーバーから届いていません';
+/* 職位と在籍年数は、投稿した人が書いた文字列がそのまま届く（2件め＝年数・3件め＝職位にタグを書いた形）。
+   カードには字として出るだけで、働いてはいけない。 */
+const HOSTILE = '<img src=x onerror=__pvgHit=1>';
 const ratedRows = slug => RATED.map((sc, i) => ({
-  id: `00000000-0000-4000-8000-00000000000${i + 1}`, airline: slug, orig_lang: 'ja', position: i ? 'first_officer' : 'captain',
-  tenure_bucket: '', fleet: '', job_role: '', created_at: `2026-0${7 + i}-15T00:00:00Z`,
+  id: `00000000-0000-4000-8000-00000000000${i + 1}`, airline: slug, orig_lang: 'ja', position: i === 2 ? HOSTILE : i ? 'first_officer' : 'captain',
+  tenure_bucket: i === 1 ? HOSTILE : '', fleet: '', job_role: '', created_at: `2026-0${7 + i}-15T00:00:00Z`,
   cats: ['culture', 'wlb'], clip: { k: 'culture', o: CLIP, t: {} },
   ...Object.fromEntries(SCORE_KEYS.map((k, j) => [k, sc[j]])),
 }));
@@ -929,7 +1112,7 @@ async function open(browser, slug, w, h, mode) {
       }
       const hit = seen.mode !== 'off' && STUB.find(([re]) => re.test(u.pathname));
       if (hit) {
-        const body = seen.mode === 'rows' && hit[0] === PAY_RE ? maskedBody(slug) : seen.mode === 'rated' && REV_RE.test(u.pathname) ? ratedBody(slug) : hit[1];
+        const body = seen.mode === 'rows' && hit[0] === PAY_RE ? maskedBody(slug) : /^rated/.test(seen.mode) && REV_RE.test(u.pathname) ? ratedBody(slug) : hit[1];
         return r.respond({ status: 200, contentType: 'application/json', headers: cors, body });
       }
       if (seen.mode !== 'off') seen.unknown.add(`${r.method()} ${u.pathname}`);
@@ -992,7 +1175,11 @@ function LIB() {
         revs: (() => { const e = c.querySelector('.crl[data-live="reviews"]'); return !e ? null : {
           state: e.dataset.state, h: e.getBoundingClientRect().height, items: $$('.crl-rev', e).filter(on).length,
           texts: $$('.crl-rev-text', e).filter(on).map(x => x.textContent.trim()), full: $$('.crl-rev-text:not(.crl-rev-clip)', e).filter(on).length,
-          lock: t('.crl-lock', e) }; })(),
+          /* 下の欄の錠前の1行は「書かれている字」を読む（見えているかは locks が見る）。
+             要約の欄が同じことを言っている時、この1行は隠れる ── 見えている字で読むと、隠した瞬間に null になる */
+          lock: (() => { const x = e.querySelector('.crl-lock'); return x ? x.textContent.replace(/\s+/g, ' ').trim() : null; })(),
+          /* 評価の箱の中で、いま見えている錠前の1行（同じ意味の行を2つ重ねていないかを見る） */
+          locks: $$('.crl-lock', c).filter(on).map(x => x.textContent.replace(/\s+/g, ' ').trim()) }; })(),
         radar: $$('.crl-radar-l', c).filter(on).map(e => ({ k: e.querySelector('span').textContent.trim(), v: e.querySelector('b').textContent.trim() })),
         /* 図の頂点が、まんなかからどれだけ離れているか（いちばん外の輪 ＝ 5点 を 1 とする）。描かれた形そのものを測る */
         reach: (() => {
@@ -1123,6 +1310,19 @@ function LIB() {
       state: box.dataset.state, width: document.querySelector('.pvg').getBoundingClientRect().width,
       count: t(box.querySelector('.crl-count')), msg: t(box.querySelector('.crl-msg')), lock: t(box.querySelector('.crl-lock')),
       total: rows.length, rest: t(rest), html: box.innerHTML, cur: $$('.pv-cur', card).length,
+      /* 件数・錠前の1行・行の束が、どこに置かれているか（見えていなければ null） */
+      geo: Object.fromEntries([['count', '.crl-count'], ['lock', '.crl-lock'], ['ul', '.crl-rows']].map(([k, q]) => {
+        const e = box.querySelector(q); if (!e || !on(e)) return [k, null];
+        const r = e.getBoundingClientRect();
+        /* 字が何行に組まれているか（絵は数えない）。札の最後の1文字だけが次の行へ落ちた形を捕まえる。 */
+        const tops = [], w = document.createTreeWalker(e, NodeFilter.SHOW_TEXT);
+        for (let n; (n = w.nextNode());) {
+          if (!n.nodeValue.trim()) continue;
+          const rg = document.createRange(); rg.selectNodeContents(n);
+          for (const c of rg.getClientRects()) if (c.width > 0.5 && !tops.some(y => Math.abs(y - c.top) < 4)) tops.push(c.top);
+        }
+        return [k, { x: r.left, r: r.right, y: r.top, b: r.bottom, lines: tops.length }];
+      })),
       rows: rows.filter(on).map(li => ({
         mask: li.getAttribute('data-mask'),
         a: t(li.querySelector('.crl-row-a')), b: t(li.querySelector('.crl-row-b')), c: t(li.querySelector('.crl-row-c')),
@@ -1133,7 +1333,7 @@ function LIB() {
       /* 2行のボタンは「上の行／下の行」で読む。stacked ＝ 2行に積んである（1行のリンクは null） */
       links: $$('a', box).filter(on).map(a => {
         const k = a.querySelector('.crl-cta-k'), m = a.querySelector('.crl-cta-m');
-        return { cta: a.classList.contains('crl-cta'), text: k && m ? t(k) + '／' + t(m) : t(a), stacked: k && m ? k.getBoundingClientRect().bottom <= m.getBoundingClientRect().top + 1 : null, href: a.getAttribute('href') };
+        return { cta: a.classList.contains('pv-gg'), text: k && m ? t(k) + '／' + t(m) : t(a), stacked: k && m ? k.getBoundingClientRect().bottom <= m.getBoundingClientRect().top + 1 : null, href: a.getAttribute('href') };
       }),
     };
   };
@@ -1178,7 +1378,7 @@ function LIB() {
         if (r.cssRules && r.cssRules.length) walk(r.cssRules);
       }
     };
-    for (const sh of document.styleSheets) { if (/\/(pv-glance|career-live)\.css/.test(sh.href || '')) walk(sh.cssRules); }
+    for (const sh of document.styleSheets) { if (/\/(pv-glance|career-live|pv-gg)\.css/.test(sh.href || '')) walk(sh.cssRules); }
     return (RULES = out);
   };
   G.rules = () => { const r = stateRules(); return Object.fromEntries(Object.keys(r).map(k => [k, r[k].length])); };
@@ -1570,26 +1770,34 @@ async function runView(browser, s, [w, h, kind]) {
     ok(!tap.size, `${tag}: 押す場所はどれも 44×44px 以上（押して反応する範囲を当てて測る）`, [...tap].slice(0, 8).join('\n      '));
     ok(!bare.size, `${tag}: 押せるものは全部 hover／focus-visible／active を持つ`, [...bare].slice(0, 8).join('\n      '));
 
-    /* ── 最後に、「募集要項を開く」 ──
-       募集要項は「概要」のタブの下のほうに在る。押したら、概要のまま、その節へ寄る（6つのタブに「採用」は無い）。
-       （無いタブへ切り替えると、どの面も選ばれず、ページの中身がぜんぶ消える。実際にそうなっていた。） */
-    await press(await p.$('.pvg [data-pvg-tab="jobs"]'));
-    const jobsAt = () => {
-      const on = e => !!e && e.checkVisibility({ visibilityProperty: true });
-      const h2 = [...document.querySelectorAll('.glass h2')].find(x => /募集要項|採用情報/.test(x.textContent) && !x.closest('.pvg'));
-      const box = h2 && h2.closest('.glass');
-      return {
-        top: box && on(box) ? Math.round(box.getBoundingClientRect().top) : null, vh: innerHeight,
-        tab: window.PVGlance ? window.PVGlance.at() : '', pvg: on(document.querySelector('.pvg')),
-        faces: [...document.querySelectorAll('[data-tab-section]')].filter(on).length,
-      };
-    };
-    /* 見出しが固定ヘッダーの下に隠れず、節の頭から読める高さに在る */
-    await p.waitForFunction(`(() => { const a = (${jobsAt})(); return a.top !== null && a.top >= 60 && a.top <= a.vh - 120; })()`, { timeout: 8000 }).catch(() => {});
-    const at = await ev(jobsAt);
-    ok(at.faces > 0, `${tag}: 「募集要項を開く」を押しても、ページの中身が消えない`, JSON.stringify(at));
-    ok(at.top !== null && at.top >= 60 && at.top <= at.vh - 120, `${tag}: 「募集要項を開く」で、募集要項が画面に出る`, JSON.stringify(at));
-    ok(at.tab === 'overview' && at.pvg, `${tag}: 「募集要項を開く」は、概要のタブのまま、その節へ寄る`, JSON.stringify(at));
+    /* ── 最後に、募集の1枚 ──
+       募集は概要の中の1枚だけ（6つのタブに「採用」は無い）。右上の入口は、会社の募集ページを新しいタブで開く。
+       ★2026-10-08 「募集要項を開く」（下の古い節へ寄るボタン）は、古い節ごと外した。
+         古い節が残っていた頃は、上の1枚と下の節で、確かめた日の違う字が食い違っていた。
+       ⚠️ ここに「タブを切り替えるボタン」を戻さない。無いタブへ切り替えると、どの面も選ばれず、
+          ページの中身がぜんぶ消える（実際にそうなっていた）。 */
+    {
+      const j = await ev(() => {
+        const on = e => !!e && e.getClientRects().length > 0 && e.checkVisibility({ visibilityProperty: true });
+        const card = document.querySelector('.pvg-jobs'), a = card && card.querySelector('.pvg-hd a.pvg-link');
+        const ar = a && on(a) ? a.getBoundingClientRect() : null, cr = card && on(card) ? card.getBoundingClientRect() : null;
+        return {
+          cards: document.querySelectorAll('.pvg-jobs').length, on: on(card),
+          text: a ? a.textContent.replace(/\s+/g, ' ').trim() : '', href: a ? a.getAttribute('href') : '',
+          target: a ? a.getAttribute('target') : '', rel: a ? a.getAttribute('rel') : '',
+          inside: !!ar && !!cr && ar.left >= cr.left - 1 && ar.right <= cr.right + 1 && ar.top >= cr.top - 1 && ar.bottom <= cr.bottom + 1,
+          rows: card ? [...card.querySelectorAll('.pvg-dl > *')].filter(on).length : 0,
+          old: [...document.querySelectorAll('[data-pvg-tab="jobs"]')].length,
+          tab: window.PVGlance ? window.PVGlance.at() : '',
+          faces: [...document.querySelectorAll('[data-pvg-pane]')].filter(on).length,
+        };
+      });
+      const want = jobsLedger(s)[0];
+      ok(j.cards === 1 && j.on && j.rows > 0 && j.tab === 'overview' && j.faces > 0, `${tag}: 募集の1枚は、概要に1つだけ・中身が出ている`, JSON.stringify(j));
+      ok(j.text === '会社の募集ページ' && !!want && j.href === want.url && j.target === '_blank' && /\bnoopener\b/.test(j.rel || '') && j.inside,
+        `${tag}: 募集の1枚の入口は「会社の募集ページ」── 台帳のいちばん上の資料を新しいタブで開く・カードからはみ出さない`, JSON.stringify(j));
+      ok(j.old === 0, `${tag}: 「募集要項を開く」（タブを切り替えるボタン）が残っていない`, String(j.old));
+    }
     ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている7つだけ`, [...seen.unknown].join(' '));
   } catch (e) {
     ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
@@ -1663,13 +1871,12 @@ async function runRows(browser, s, [w, h, kind]) {
     const sh = await ev(() => window.__pvg.shape());
     const rp = await ev(() => window.__pvg.realpay());
     if (!rp) { ok(false, `${tag}: 提出された年収の箱が見えている`); return; }
-    /* 概要に出すのは「一部」＝ 新しい3行（data-top="3"）。全部は REAL PAY に在る。 */
-    const N = MASK_AGE.length, top = Math.min(3, N), nShow = top;
-    ok(rp.state === 'locked' && rp.count === `${N}件の提出`, `${tag}: 鍵は掛かったまま・件数はこの会社の分だけ（ほかの会社の行を数えない）`, `${rp.state}・${rp.count}`);
-    ok(rp.total === top && rp.rows.length === nShow, `${tag}: 見える行は ${nShow}行（どの幅でも3行まで）`, `${rp.rows.length}／${rp.total}行・箱の幅 ${Math.round(rp.width)}`);
-    {
+    /* 概要は短い入口 ＝ 見本の1行だけ（2026-10-08 オーナーのご指示「ぼかし3行で縦長にしすぎない」）。
+       欄が持つのは新しい3行（data-top="3"）で、給与・待遇のタブではその3行が出る。全部は REAL PAY に在る。 */
+    const N = MASK_AGE.length, top = Math.min(3, N), nShow = 1;
+    const rowBad = list => {
       const bad = [];
-      for (const [i, r] of rp.rows.entries()) {
+      for (const [i, r] of list.entries()) {
         const at = `${i + 1}行め`;
         if (r.mask !== 'line' || !r.hid) bad.push(`${at}: 伏せた行の形でない`);
         if (r.a !== '' || r.b !== '年収') bad.push(`${at}: 伏せた欄に字が在る（「${r.a}」「${r.b}」）`);
@@ -1679,8 +1886,29 @@ async function runRows(browser, s, [w, h, kind]) {
           bad.push(`${at}: 板が「中身の無い、ぼかした板」でない（${r.plates.map(x => `${x.w}×${x.h}`).join(' ')}）`);
         }
       }
-      ok(!bad.length, `${tag}: 行ごとに出るのは 出典と投稿時期 だけ ── 職位・機材・額の所は、中身の無いぼかした板（幅は全行で同じ）`, bad.slice(0, 5).join(' ／ '));
+      return bad;
+    };
+    ok(rp.state === 'locked' && rp.count === `${N}件の提出`, `${tag}: 鍵は掛かったまま・件数はこの会社の分だけ（ほかの会社の行を数えない）`, `${rp.state}・${rp.count}`);
+    ok(rp.total === top && rp.rows.length === nShow, `${tag}: 概要に見える行は見本の ${nShow}行だけ（欄が持つのは ${top}行・残りは給与・待遇のタブ）`, `${rp.rows.length}／${rp.total}行・箱の幅 ${Math.round(rp.width)}`);
+    {
+      /* 短い入口の形：件数と「給与の提出で開きます」が同じ行・その下に見本の行。
+         ⚠️ いちばん狭い箱（296px 未満 ＝ 画面 343px まで）だけは、札が件数の真下の段に下りる。
+            札は 174px 要り、320px の画面で件数の横に残るのは 162〜171px ── 横に置くと最後の1文字「す」だけが
+            次の行へ落ちていた（2026-10-09 に直した。この検査は「同じ行に在る」しか見ておらず、緑のままだった）。
+            どの幅でも、札の字は1行。幅の線は pv-glance.css の写しなので、あちらを動かしたらここも直す。 */
+      const g = rp.geo, bad = [], narrow = rp.width < LOCK_UNDER;
+      const span = `件数 ${g.count ? Math.round(g.count.y) + '〜' + Math.round(g.count.b) : '—'}・錠前 ${g.lock ? Math.round(g.lock.y) + '〜' + Math.round(g.lock.b) : '—'}・箱の幅 ${Math.round(rp.width)}`;
+      if (!(g.count && g.lock && g.ul)) bad.push('件数・錠前の1行・行の束のどれかが見えていない');
+      else {
+        if (!narrow && !(g.lock.y < g.count.b && g.lock.b > g.count.y && g.lock.x >= g.count.r - 1)) bad.push(`件数と錠前の1行が同じ行に並んでいない（${span}）`);
+        if (narrow && !(g.lock.y >= g.count.b - 1 && Math.abs(g.lock.x - g.count.x) <= 1)) bad.push(`札が件数の真下の段に下りていない（${span}）`);
+        if (g.lock.lines !== 1) bad.push(`札の字が ${g.lock.lines}行に折れている（${span}）`);
+        if (g.count.lines !== 1) bad.push(`件数の字が ${g.count.lines}行に折れている（${span}）`);
+        if (!(g.ul.y >= Math.max(g.count.b, g.lock.b) - 1)) bad.push('見本の行が、件数の行より上に在る');
+      }
+      ok(!bad.length, `${tag}: 件数と「給与の提出で開きます」が1行に並び（いちばん狭い箱では件数の真下）、札の字は折れない・その下に見本の行`, bad.join(' ／ '));
     }
+    ok(!rowBad(rp.rows).length, `${tag}: 行に出るのは 出典と投稿時期 だけ ── 職位・機材・額の所は、中身の無いぼかした板`, rowBad(rp.rows).slice(0, 5).join(' ／ '));
     {
       /* わざと混ぜた 職位・機材・年数・額・印 が、字にも属性にも出ていない。件数と投稿時期のほかに数字が無い。 */
       const leak = [/271/, /captain/i, /b787/i, /機長|副操縦士/, /⚠/, /data-(pos|fleet|ten|far|usd)/].filter(re => re.test(rp.html)).map(String);
@@ -1699,13 +1927,28 @@ async function runRows(browser, s, [w, h, kind]) {
     const pr = await ev(() => window.__pvg.probe('#pvg-realpay'));
     ok(!pr.small.length && !pr.tap.length && !pr.bare.length, `${tag}: 一覧の字 12px 以上・押す場所 44px 以上・押せるものに状態が在る`, [...pr.small, ...pr.tap, ...pr.bare].slice(0, 8).join('\n      '));
     ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている7つだけ`, [...seen.unknown].join(' '));
+    /* 給与・待遇のタブでは、欄が持つ3行がそのまま出る（概要で減らしたのは「何行めまで見せるか」だけ）。 */
+    {
+      await ev(() => document.querySelector('.pvg-tabs [data-pvg-tab="pay"]').click());
+      const moved = await p.waitForFunction(() => !!window.PVGlance && window.PVGlance.at() === 'pay' && document.body.classList.contains('pvg-at-pay'), { timeout: 15000 }).then(() => true, () => false);
+      const rp3 = await ev(() => window.__pvg.realpay());
+      const bad = !moved ? ['給与・待遇のタブへ移れない'] : !rp3 ? ['提出された年収の箱が見えていない'] : rowBad(rp3.rows);
+      if (moved && rp3 && rp3.rows.length !== top) bad.push(`見える行が ${rp3.rows.length}行（あるべき ${top}行）`);
+      if (moved && rp3 && NO_NUM.test(rp3.rest)) bad.push(`件数と投稿時期のほかに数字が在る：${rp3.rest.slice(0, 60)}`);
+      ok(!bad.length, `${tag}: 給与・待遇のタブでは ${top}行とも出る ── どの行も 出典と投稿時期 だけ（板の幅は全行で同じ）`, bad.slice(0, 5).join(' ／ '));
+      const geo3 = await ev(() => window.__pvg.geom(true));
+      ok(!geo3.length, `${tag}: 給与・待遇のタブでも、切れ・はみ出し・重なりが無い`, geo3.slice(0, 8).join('\n      '));
+    }
   } catch (e) {
     ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
   } finally {
     await ctx.close().catch(() => {});
   }
 }
-const ROWS_W = [320, 390, 768, 1440];
+/* 件数と札が横に並ぶのは箱 296px（画面 344px）から。その下では札が件数の下の段へ下りる。
+   351 ＝ 横に並ぶ側で、VIEWS が持っているいちばん狭い幅（320 は下りる側）。 */
+const ROWS_W = [320, 351, 390, 768, 1440];
+const LOCK_UNDER = 296;
 
 /* 「点数の付いた口コミが在る時」：偽のサーバーが、鍵の無い人向けの3件を返す（点数は在る・本文は無い・抜粋が1つ）。
    社名の行の星とカードの総合点が同じ答えになる・6角形の図が点数どおりの形・本文は抜粋しか出ない。
@@ -1731,12 +1974,14 @@ async function runRated(browser, s, [w, h, kind]) {
       if (!r) bad.push('口コミの欄が無い');
       else {
         if (r.state !== 'locked') bad.push(`鍵の無い人なのに、欄が ${r.state}`);
-        if (r.items !== 2) bad.push(`見えている口コミが ${r.items}件（あるべき 2件）`);
+        if (r.items !== 1) bad.push(`見えている口コミが ${r.items}件（あるべき 1件）`);
         if (!(r.texts.length === r.items && r.texts.every(t => t.startsWith(CLIP.slice(0, 20))))) bad.push(`本文の所に、サーバーが渡した抜粋のほかの字が在る：${r.texts.map(t => t.slice(0, 24)).join(' ／ ')}`);
         if (r.full) bad.push(`伏せていない本文が ${r.full}つ出ている`);
-        if (r.lock !== '口コミの投稿で開きます') bad.push(`錠前の1行が「${r.lock}」`);
+        if (r.lock !== '口コミの投稿で開きます') bad.push(`下の欄に書かれている錠前の1行が「${r.lock}」（要約の欄が無い会社では、この1行が見える）`);
+        /* 要約の欄が「要約は口コミの投稿で開きます」と言っている時、同じ意味の1行をもう1つ見せない。 */
+        if (!same(r.locks, [SUM_LOCK_TEXT])) bad.push(`見えている錠前の行が ${r.locks.length}つ（${r.locks.join('｜')}）`);
       }
-      ok(!bad.length, `${tag}: 口コミは新しい2件・本文は抜粋だけ・「口コミの投稿で開きます」`, bad.join(' ／ '));
+      ok(!bad.length, `${tag}: 概要の口コミは新しい1件・本文は抜粋だけ・錠前の1行は「${SUM_LOCK_TEXT}」の1つだけ（同じ意味の行を重ねない）`, bad.join(' ／ '));
     }
     const sh = await ev(() => window.__pvg.shape());
     ok(!shapeBad(sh, kind).length, `${tag}: 概要の並びが崩れない`, shapeBad(sh, kind).join(' ／ '));
@@ -1747,6 +1992,22 @@ async function runRated(browser, s, [w, h, kind]) {
     ok(!pr.small.length && !pr.tap.length && !pr.bare.length, `${tag}: 評価の字 12px 以上・押す場所 44px 以上・押せるものに状態が在る`, [...pr.small, ...pr.tap, ...pr.bare].slice(0, 8).join('\n      '));
     ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている7つだけ`, [...seen.unknown].join(' '));
     if (process.env.PV_GLANCE_SHOT) await p.screenshot({ path: `${process.env.PV_GLANCE_SHOT.replace(/\/$/, '')}/rated-${s}-${w}.png`, clip: { x: 0, y: 0, width: w, height: w < 700 ? 2000 : 1500 } });
+    {
+      /* 口コミの一覧（口コミのタブ）のカード。届いた2件が描かれるまで待つ ── 字として出たか、タグとして働いたかのどちらか。 */
+      const META = '#airline-review-section .rv-reviewer-meta';
+      const drawn = await p.waitForFunction((sel, mark) => [...document.querySelectorAll(sel)].filter(e => e.textContent.includes(mark)).length >= 2 || !!document.querySelector(`${sel} img`),
+        { timeout: 8000 }, META, HOSTILE).then(() => true, () => false);
+      const x = await ev((sel, mark) => {
+        const m = [...document.querySelectorAll(sel)];
+        return { shown: m.filter(e => e.textContent.includes(mark)).length, tags: m.reduce((n, e) => n + e.querySelectorAll(':not(.rv-meta-sep)').length, 0), hit: !!window.__pvgHit };
+      }, META, HOSTILE);
+      const bad = [];
+      if (!drawn) bad.push('タグを書いた2件が、一覧に描かれていない');
+      if (x.shown !== 2) bad.push(`書かれたタグが字として出ているカードが ${x.shown}枚（あるべき 2枚）`);
+      if (x.tags) bad.push(`職位・年数の所で、書かれたタグが ${x.tags}つ働いている`);
+      if (x.hit) bad.push('書かれたタグの中の命令が動いた');
+      ok(!bad.length, `${tag}: 口コミのカードの職位・在籍年数に書かれたタグは、字として出るだけ（働かない）`, bad.join(' ／ '));
+    }
   } catch (e) {
     ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
   } finally {
@@ -1754,6 +2015,38 @@ async function runRated(browser, s, [w, h, kind]) {
   }
 }
 const RATED_W = [390, 768, 1440];
+/* 「点数の付いた口コミは在るが、要約の口がまだ無い時」＝ いまの本番の形（要約の口は未適用・返事は 404）。
+   上の場面（要約の口が「鍵の無い人」と答える）では、下の欄の錠前の1行「口コミの投稿で開きます」は隠れる。
+   その1行が人の目に見えるのはこちらの形だけなので、**見えていること**はここで測る（字が書かれているだけでは足りない）。 */
+async function runRated404(browser, s, [w, h]) {
+  const tag = `${s} ${w}（評価が在る・要約の口が無い時）`;
+  const { ctx, p, seen, ready } = await open(browser, s, w, h, 'rated404');
+  const ev = (fn, ...a) => p.evaluate(fn, ...a);
+  try {
+    ok(ready, `${tag}: 「読み込み中」のまま固まらない`);
+    await ev(() => window.__pvg.top());
+    const rows = ratedRows(s);
+    const live = (await ev(() => window.__pvg.live())).filter(x => x.on);
+    const sc = await ev(() => window.__pvg.score());
+    const bad = scoreBad(s, sc, live.filter(IS_SCORE), rows, 'empty');
+    const r = sc.card && sc.card.revs;
+    if (!r) bad.push('口コミの欄が無い');
+    else {
+      if (r.state !== 'locked') bad.push(`鍵の無い人なのに、欄が ${r.state}`);
+      if (r.items !== 1) bad.push(`見えている口コミが ${r.items}件（あるべき 1件）`);
+      if (r.full) bad.push(`伏せていない本文が ${r.full}つ出ている`);
+      if (!same(r.locks, ['口コミの投稿で開きます'])) bad.push(`見えている錠前の行が ${r.locks.length}つ（${r.locks.join('｜')}）── あるべきは「口コミの投稿で開きます」の1つ`);
+    }
+    ok(!bad.length, `${tag}: 要約の欄は場所を取らない・星と図は点数どおり・錠前の1行「口コミの投稿で開きます」が見えている`, bad.join(' ／ '));
+    const geo = await ev(() => window.__pvg.geom(true));
+    ok(!geo.length, `${tag}: 切れ・はみ出し・重なりが無い`, geo.slice(0, 8).join('\n      '));
+    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている7つだけ`, [...seen.unknown].join(' '));
+  } catch (e) {
+    ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
+  } finally {
+    await ctx.close().catch(() => {});
+  }
+}
 
 /* 「6つのタブと、情報を追加」：実際に押して歩く。
    タブごとに 出ているべき箱（on）と 隠れているべき箱（off）。そのページに無い箱（会社によって無いものが在る）は数えない。 */
@@ -1784,6 +2077,18 @@ function tabSee(exp) {
     hid: exp ? exp.on.filter(s => q(s) && !vis(q(s))) : [],
     out: exp ? exp.off.filter(s => vis(q(s))) : [],
     over: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    /* タブの帯：見えている範囲・流した量・端の印（枠の data-more と、矢印の濃さ）・6つの名前の位置 */
+    strip: (() => {
+      const s = q('#pvg-tabs'); if (!vis(s)) return null;
+      const wr = s.closest('.pvg-tabwrap'), b = s.getBoundingClientRect();
+      return {
+        wrap: !!wr, l: b.left, r: b.right, sl: s.scrollLeft, max: s.scrollWidth - s.clientWidth,
+        more: wr ? (wr.getAttribute('data-more') || '') : '',
+        fade: parseFloat(getComputedStyle(s).getPropertyValue('--pvg-fade')) || 0,
+        markL: wr ? +getComputedStyle(wr, '::before').opacity : -1, markR: wr ? +getComputedStyle(wr, '::after').opacity : -1,
+        lab: all('.pvg-tabs > a[data-pvg-tab]').map(a => { const r = (a.querySelector('span') || a).getBoundingClientRect(); return [a.getAttribute('data-pvg-tab'), r.left, r.right]; }),
+      };
+    })(),
     /* いま画面に入っている古い節が、薄いまま（現れる動きの手前で）残っていないか。画面より下の節は、寄った時に現れる */
     faded: all('.glass.fade-up').filter(e => { if (!vis(e)) return false; const r = e.getBoundingClientRect(); return r.top < innerHeight - 40 && r.bottom > 40 && +getComputedStyle(e).opacity < 0.9; }).length,
     bar: box(bar), acts: all('.pvg-hero .pvg-acts .pvg-btn').map(e => ({ t: e.textContent.replace(/\s+/g, ' ').trim(), r: box(e) })),
@@ -1797,6 +2102,33 @@ function tabSee(exp) {
     },
   };
 }
+/* タブの帯の決まり（2026-10-08 オーナーのご指示「タブ名が途中で切れて気付けない」）。
+     ・選んだタブの名前は、帯の見える所（端の霞みの内側）に全部入っている
+     ・続きが在る側の端にだけ印が出る（印は pv-glance.js が実際に測って枠へ書く。ここでも測り直して突き合わせる）
+     ・名前が端で切れている／丸ごと外に在るのに、その側に印が無い ＝「気付けない切れ」
+     ・「追加」のボタンは帯の右・画面の中
+     ・幅 700 以上は、6つ全部が1列に入る（iPad で流させない）
+   t ＝ いま選んでいるはずのタブ。 */
+function stripBad(r, w, t) {
+  const st = r.strip, bad = [];
+  if (!st) return ['タブの帯が見えていない'];
+  if (!st.wrap) return ['タブの並びを包む枠（.pvg-tabwrap）が無い ＝ 端の印を置けない'];
+  const want = st.max > 1 ? [st.sl > 1 ? 'l' : '', st.sl < st.max - 1 ? 'r' : ''].filter(Boolean).join(' ') : '';
+  if (st.more !== want) bad.push(`端の印が帯の位置と合わない（在る「${st.more}」・在るべき「${want}」）`);
+  const L = /(^| )l( |$)/.test(st.more), R = /(^| )r( |$)/.test(st.more);
+  if (st.markL !== (L ? 1 : 0) || st.markR !== (R ? 1 : 0)) bad.push(`端の矢印の濃さが印と合わない（左 ${st.markL}・右 ${st.markR}・印「${st.more}」）`);
+  if (st.lab.length !== TABS.length) bad.push(`タブの名前が ${st.lab.length}つ`);
+  const lo = st.l + (L ? st.fade : 0), hi = st.r - (R ? st.fade : 0), cur = st.lab.find(x => x[0] === t);
+  if (!cur) bad.push(`選んだタブ（${t}）の名前が無い`);
+  else if (!(cur[1] >= lo - 0.5 && cur[2] <= hi + 0.5)) bad.push(`選んだタブの名前が、帯の見える所に全部入っていない（名前 ${Math.round(cur[1])}〜${Math.round(cur[2])}・見える所 ${Math.round(lo)}〜${Math.round(hi)}）`);
+  for (const [id, a, b] of st.lab) {
+    if (a < st.l - 0.5 && !L) bad.push(`「${TAB_NAME[id]}」が左端で切れているか外に在るのに、左の印が無い`);
+    if (b > st.r + 0.5 && !R) bad.push(`「${TAB_NAME[id]}」が右端で切れているか外に在るのに、右の印が無い`);
+  }
+  if (!(r.add && r.add.x >= st.r - 0.5 && r.add.x + r.add.w <= w + 0.5)) bad.push(`「追加」のボタンが帯に重なるか、画面の外に出ている（帯の右端 ${Math.round(st.r)}・ボタン ${r.add ? Math.round(r.add.x) + '〜' + Math.round(r.add.x + r.add.w) : '無い'}）`);
+  if (w >= 700 && st.max > 1) bad.push(`幅 ${w} で、6つのタブが1列に入っていない（${Math.round(st.max)}px ぶん流れる）`);
+  return bad;
+}
 async function runTabs(browser, s, [w, h]) {
   const tag = `${s} ${w}（タブと情報追加）`;
   const { ctx, p, ready, seen } = await open(browser, s, w, h, 'empty');
@@ -1806,6 +2138,16 @@ async function runTabs(browser, s, [w, h]) {
   /* タブが替わり、古い節が現れ終わるまで待つ（時間では待たない）。 */
   const atTab = t => until(t => !!window.PVGlance && window.PVGlance.at() === t &&
     ![...document.querySelectorAll('.glass.fade-up')].some(e => { if (!e.getClientRects().length) return false; const r = e.getBoundingClientRect(); return r.top < innerHeight - 40 && r.bottom > 40 && +getComputedStyle(e).opacity < 0.9; }), t);
+  /* 帯の端の印が、帯の位置と合って落ち着くまで待つ（時間では待たない。矢印は .2s かけて現れる）。 */
+  const seated = () => until(() => {
+    const s = document.getElementById('pvg-tabs'), wr = s && s.closest('.pvg-tabwrap');
+    if (!s || !wr) return true;                       // 枠が無いことは、下の検査が知らせる
+    const max = s.scrollWidth - s.clientWidth, x = s.scrollLeft;
+    const want = max > 1 ? [x > 1 ? 'l' : '', x < max - 1 ? 'r' : ''].filter(Boolean).join(' ') : '';
+    return (wr.getAttribute('data-more') || '') === want &&
+      [getComputedStyle(wr, '::before').opacity, getComputedStyle(wr, '::after').opacity].every(v => +v === 0 || +v === 1);
+  });
+  const stripNote = [], strip = async (t, when) => { await seated(); for (const b of stripBad(await see(), w, t)) stripNote.push(`${when}：${b}`); };
   const sheetIs = what => until(what => {
     const r = document.querySelector('.pvc-root'), open = !!r && !r.hidden;
     if (what === 'closed') return !open;
@@ -1835,6 +2177,7 @@ async function runTabs(browser, s, [w, h]) {
   try {
     ok(ready, `${tag}: 開ける`);
     /* ── 0) タブの帯と、その上の2つのボタン ── */
+    await strip('overview', '最初の表示');
     {
       const r = await see(), bad = [];
       if (!same(r.tabs, TABS)) bad.push(`タブの並びが違う：${r.tabs.map(t => t[1]).join('・')}`);
@@ -1852,6 +2195,7 @@ async function runTabs(browser, s, [w, h]) {
     /* ── 1) 6つのタブを順に押す ── */
     for (const t of TAB_IDS) {
       const moved = t === 'overview' ? true : (await tap(`.pvg-tabs [data-pvg-tab="${t}"]`)) && (await atTab(t));
+      if (moved) await strip(t, `「${TAB_NAME[t]}」を押した後`);
       const r = await see(FACE[t]);
       ok(moved && r.at === t && r.cls === `pvg-at-${t}` && r.cur.join() === t && r.hash === (t === 'overview' ? '' : `#${t}`) && !r.hid.length && !r.out.length && r.over <= 0 && !r.faded,
         `${tag}:「${TAB_NAME[t]}」を押す → その中身だけが出る・選んだ印は1つ・住所に残る・横にあふれない`,
@@ -1859,18 +2203,22 @@ async function runTabs(browser, s, [w, h]) {
       /* 口コミを書く入口は、概要と口コミのタブで下の行が違う（どちらも2行・同じ行き先）。ほかのタブには出ない。 */
       if (RV_GIVE[t]) ok(same(r.write, [[GG, RV_GIVE[t], `../submit-review.html?airline=${s}`]]), `${tag}:「${TAB_NAME[t]}」の口コミを書く入口は「${GG}／${RV_GIVE[t]}」1つ ── 自分の会社を選んだ投稿の画面へ`, r.write.map(x => x.join(' ')).join(' ‖ '));
       else ok(!r.write.length, `${tag}:「${TAB_NAME[t]}」には、評価スコアのカードの入口が出ていない`, r.write.map(x => x.join(' ')).join(' ‖ '));
-      /* 会社どうしの比較表・「◯◯について」の節は、どのタブにも出ない（比較は「他社と比較」の先・紹介は会社のカードの中）。 */
-      { const dup = r.h2.filter(x => NO_H2.test(x) || /について$/.test(x)); ok(!dup.length, `${tag}:「${TAB_NAME[t]}」に、比較表と「◯◯について」の節が出ていない`, dup.join(' ／ ')); }
+      /* 外した古い節（◯◯について・フライト環境・訓練・福利厚生・募集要項・他社との比較・比較表）は、どのタブにも出ない。
+         中身は新しい部品の中に在る（会社のカード・給与の1枚・募集の1枚・3つの板）＝ 新旧の2か所に並べない。
+         残すと決めた節（よくある質問・ANA の機種別の節）は数えない。 */
+      { const kept = Object.values(KEPT), dup = r.h2.filter(x => !kept.some(re => re.test(x)) && (GONE_H2.test(x) || DROP_H2.test(x))); ok(!dup.length, `${tag}:「${TAB_NAME[t]}」に、外した古い節が出ていない`, dup.join(' ／ ')); }
     }
     /* ── 2) 戻る・進む・読み直し ── */
     {
       const walk = [];
-      await p.goBack(); walk.push(['戻る', 'life', await atTab('life'), (await see()).hash]);
-      await p.goBack(); walk.push(['戻る', 'work', await atTab('work'), (await see()).hash]);
-      await p.goForward(); walk.push(['進む', 'life', await atTab('life'), (await see()).hash]);
+      await p.goBack(); walk.push(['戻る', 'life', await atTab('life'), (await see()).hash]); await strip('life', '戻る');
+      await p.goBack(); walk.push(['戻る', 'work', await atTab('work'), (await see()).hash]); await strip('work', 'もう一度戻る');
+      await p.goForward(); walk.push(['進む', 'life', await atTab('life'), (await see()).hash]); await strip('life', '進む');
       const bad = walk.filter(([, t, hit, hash]) => !(hit && hash === `#${t}`)).map(([how, t, , hash]) => `${how} →「${TAB_NAME[t]}」にならない（住所 ${hash}）`);
       await p.reload({ waitUntil: 'load', timeout: 60000 });
-      const again = await atTab('life'), r = await see(FACE.life);
+      const again = await atTab('life');
+      if (again) await strip('life', '読み直し');
+      const r = await see(FACE.life);
       if (!(again && !r.hid.length && !r.out.length && r.cur.join() === 'life')) bad.push(`読み直すと「暮らし・家族」でなくなる（${r.at}）`);
       await p.goBack();
       if (!(await atTab('work'))) bad.push(`読み直したあとの「戻る」が「勤務・訓練」にならない（${(await see()).at}）`);
@@ -1878,13 +2226,22 @@ async function runTabs(browser, s, [w, h]) {
     }
     /* ── 3) 住所で直接開く ── */
     {
+      /* いちばん右のタブを住所で直接開く ＝ 帯が最初から右へ流れている形（左に印・右は無し） */
+      await fresh(`${url}#stay`);
+      if (await atTab('stay')) await strip('stay', '住所（#stay）で直接');
+      else stripNote.push('住所（#stay）で直接：「ステイ先」にならない');
       await fresh(`${url}#reviews`);
+      if (await atTab('reviews')) await strip('reviews', '住所（#reviews）で直接');
       const hit = await atTab('reviews'), r = await see(FACE.reviews);
       ok(hit && !r.hid.length && !r.out.length, `${tag}: 住所（#reviews）で直接開く →「口コミ」`, JSON.stringify({ at: r.at, 出ていない: r.hid, 出ている: r.out }));
       await fresh(`${url}#pvg-stay`);
       const hit2 = await atTab('overview'), r2 = await see({ on: ['#pvg-stay', '.pvg-co'], off: [] });
       ok(hit2 && !r2.hid.length, `${tag}: 古い住所（#pvg-stay）は、概要のまま開く（中身が消えない）`, JSON.stringify({ at: r2.at, 出ていない: r2.hid }));
     }
+    /* ── 3z) タブの帯：ここまでに書き留めた分をまとめて1行 ──
+       最初の表示／6つを1つずつ押した後／戻る・進む・読み直し／住所で直接（いちばん右の「ステイ先」と「口コミ」）。 */
+    ok(!stripNote.length, `${tag}: タブの帯 ── 選んだタブの名前が全部見えている・続きの在る側にだけ印が出る・切れた名前に気付ける・「追加」が帯に重ならない${w >= 700 ? '・6つが1列に入る' : ''}`,
+       [...new Set(stripNote)].slice(0, 10).join('\n      '));
     /* ── 3a) 板を開いたまま、ページの中のリンクで離れて「戻る」── 同じ板が開いたまま、押したリンクが同じ高さに在る。
        ページの中のリンク（出所・ホテル・レストラン）はタブの切り替えを通らずに履歴を1段積む。離れる前の段に
        位置と板を書き留めていなかった頃は、戻ると板が閉じて、板の高さの分（PC 約560px・スマホ 約950px）だけ別の所が出た。
@@ -1915,23 +2272,41 @@ async function runTabs(browser, s, [w, h]) {
         await fresh(url);
         return (await atTab('overview')) && (await tap(BTN)) && (await until(id => !document.getElementById(id).hidden, PANEL));
       };
-      /* a) 別のタブに在る節へのリンク（出所 → 給与・待遇）。このリンクが概要に在る会社だけ */
-      const SRC = '[data-pvg-pane~="overview"] a[href="#kyuyo-konkyo"]';
-      if (!(await openPanel())) bad.push('勤務の板が開かない');
-      else if (await vis(SRC)) {
-        await arm(SRC);
-        if (!((await tap(SRC)) && (await atTab('pay')))) bad.push('出所のリンクで「給与・待遇」にならない');
-        const a = await was();
-        if (!(a && a.open === PANEL)) bad.push(`出所を押した時に、勤務の板が開いていない（${JSON.stringify(a)}）`);
-        else {
-          await p.goBack();
-          if (!((await atTab('overview')) && (await asBefore(SRC, a)))) { const b = await read(SRC); bad.push(`出所から戻ると、板か位置が変わる（板 ${a.open} → ${b.open || '閉じている'}・リンクの高さ ${a.top} → ${b.top}）`); }
-          await p.goForward();
-          if (!(await atTab('pay'))) bad.push('出所から戻って「進む」が「給与・待遇」にならない');
-          await p.goBack();
-          if (!((await atTab('overview')) && (await asBefore(SRC, a)))) { const b = await read(SRC); bad.push(`もう一度戻ると、板か位置が変わる（板 ${b.open || '閉じている'}・リンクの高さ ${a.top} → ${b.top}）`); }
-        }
+      /* a) 金額の出どころ（#kyuyo-konkyo）。置き場は、給与の1枚の中の畳んだ説明（概要にも「給与・待遇」にも出る）。
+            ほかのページと、このページの中のリンクが、この住所へ来る。来たら、畳んだ説明が開いて、頭から読める高さに在る
+            （閉じたままだと、寄った先に見出しの1行しか無い ＝「この数字の出どころ」を押したのに、出どころが見えない）。
+            ★2026-10-08 までは下の古い節（出どころの表）が同じ住所を持っていた。古い節を外して、住所はここへ移した。
+            2通りで見る ── 住所で直接開く（最初の読み込み）／「給与・待遇」に居るときに住所だけ替わる（ページの中のリンク）。 */
+      const badSrc = [];
+      const srcAt = () => p.evaluate(() => {
+        const on = e => !!e && e.getClientRects().length > 0 && e.checkVisibility({ visibilityProperty: true });
+        const box = document.getElementById('kyuyo-konkyo'), r = on(box) ? box.getBoundingClientRect() : null;
+        const inner = box ? [...box.children].filter(c => c.nodeName !== 'SUMMARY') : [];
+        return {
+          n: document.querySelectorAll('#kyuyo-konkyo').length, tag: box ? box.nodeName : '', open: !!box && box.open === true,
+          body: inner.length > 0 && inner.some(on), top: r ? Math.round(r.top) : null, vh: innerHeight, at: window.PVGlance.at(),
+        };
+      });
+      const srcOk = a => a.n === 1 && a.tag === 'DETAILS' && a.open && a.body && a.top !== null && a.top >= 60 && a.top <= a.vh - 120;
+      const srcWait = tab => until(tab => {
+        const box = document.getElementById('kyuyo-konkyo');
+        if (!box || !box.open || !window.PVGlance || window.PVGlance.at() !== tab) return false;
+        const t = box.getBoundingClientRect().top;
+        return t >= 60 && t <= innerHeight - 120;
+      }, tab);
+      await fresh(`${url}#kyuyo-konkyo`);
+      await srcWait('overview');
+      { const a = await srcAt(); if (!(srcOk(a) && a.at === 'overview')) badSrc.push(`住所（#kyuyo-konkyo）で開いても、出どころの説明が開いて見えていない（${JSON.stringify(a)}）`); }
+      await fresh(`${url}#pay`);
+      if (!(await atTab('pay'))) badSrc.push('「給与・待遇」が住所で開かない');
+      else {
+        const shut = await p.evaluate(() => { const box = document.getElementById('kyuyo-konkyo'); if (!box) return false; box.open = false; return !box.open; });
+        await p.evaluate(() => { location.hash = '#kyuyo-konkyo'; });
+        await srcWait('pay');
+        const a = await srcAt();
+        if (!(shut && srcOk(a) && a.at === 'pay')) badSrc.push(`「給与・待遇」でページの中のリンク（#kyuyo-konkyo）を踏むと、タブが替わるか、出どころの説明が開かない（${JSON.stringify(a)}）`);
       }
+      ok(!badSrc.length, `${tag}: 金額の出どころの住所（#kyuyo-konkyo）── 畳んだ説明が開いて、頭から読める高さに出る（住所で直接／ページの中のリンク）`, badSrc.join(' ／ '));
       /* b) 同じタブの中の節へのリンク（ホテル・レストラン → 就航地の節）。離れた先で板を閉じてから戻る */
       const HOT = '.pvg a.pvg-topic-a[href="#pvg-stay"]';
       if (!(await openPanel())) bad.push('勤務の板が開かない（2回目）');
@@ -2187,7 +2562,9 @@ async function runTabs(browser, s, [w, h]) {
     await ctx.close().catch(() => {});
   }
 }
-const TABS_W = [390, 768, 1440];
+/* タブの場面を流す幅。320 ＝ 帯に3つしか入らない幅。744 ＝ iPad mini（6つが入りきらなかった幅。VIEWS には無い）。 */
+const TABS_W = [320, 390, 768, 1440];
+const TABS_EXTRA = !WANT_W || WANT_W.includes(744) ? [[744, 950, 'side']] : [];
 /* 読めない時を測る幅。320 ＝ 社名の下の知らせが、右の2つのボタンといちばん近づく幅。 */
 const OFF_W = [320, 390, 1440];
 
@@ -2319,6 +2696,232 @@ async function runCards(browser, s) {
   }
 }
 
+/* 「Give & Get のボタン」：形はサイトに1つ（pv-gg.css）。基準はトップページのいちばん上の黒いボタン。
+   pv-gg.css はそこからの写しなので、**トップを実際に開いて測り**、会社ページに出ている全部と突き合わせる。
+   見るもの ── 概要（給与の1枚・評価スコアの1枚）／給与・待遇（給与の1枚）／口コミ（評価スコアの1枚・一覧の錠前・「続きを読む」の小窓）。
+   2026-10-07 の形（上の行が小さく薄い・左寄せ・四角い角）へ戻ると、ここが落ちる。
+   ⚠️ トップのファイルは読むだけ。トップの見本の額や言葉は写さない（比べるのは形だけ）。
+   ⚠️ わざと違えてある2つ：折り返し（トップは1行に固定・こちらは狭い箱で折れる）と、字の寄せ（こちらは折れてもまんなか）。 */
+const GG_KEYS = ['alignItems', 'justifyContent', 'columnGap', 'minHeight', 'paddingTop', 'paddingBottom', 'paddingLeft', 'paddingRight',
+  'borderTopLeftRadius', 'borderTopRightRadius', 'borderBottomLeftRadius', 'borderBottomRightRadius', 'borderTopWidth',
+  'backgroundColor', 'color', 'fontFamily', 'fontSize', 'fontWeight', 'lineHeight', 'letterSpacing', 'textDecorationLine', 'boxShadow',
+  'transitionProperty', 'transitionDuration', 'transitionTimingFunction', 'cursor'];
+const GG_NAME = { alignItems: '縦の寄せ', justifyContent: '横の寄せ', columnGap: '字と矢印の間', minHeight: '高さの下限', paddingTop: '上の余白', paddingBottom: '下の余白', paddingLeft: '左の余白', paddingRight: '右の余白',
+  borderTopLeftRadius: '角の丸み', borderTopRightRadius: '角の丸み', borderBottomLeftRadius: '角の丸み', borderBottomRightRadius: '角の丸み', borderTopWidth: '枠線',
+  backgroundColor: '地の色', color: '字の色', fontFamily: '書体', fontSize: '字の大きさ', fontWeight: '字の太さ', lineHeight: '行の高さ', letterSpacing: '字間', textDecorationLine: '下線', boxShadow: '影',
+  transitionProperty: '動かすもの', transitionDuration: '動きの長さ', transitionTimingFunction: '動きの緩急', cursor: 'カーソル' };
+/* ページの中で動く（外の変数を1つも使わない）。sel を渡せばその1つ（トップの基準）、渡さなければ見えている .pv-gg の全部。 */
+function ggSee(KEYS, sel) {
+  const on = e => !!e && e.getClientRects().length > 0 && e.checkVisibility({ visibilityProperty: true });
+  const t = e => (e ? e.textContent.replace(/\s+/g, ' ').trim() : '');
+  const box = e => { const r = e.getBoundingClientRect(); return { l: r.left, r: r.right, t: r.top, b: r.bottom, w: r.width, h: r.height }; };
+  const ink = e => { const rg = document.createRange(); rg.selectNodeContents(e); const r = rg.getBoundingClientRect(); return { l: r.left, r: r.right, t: r.top, b: r.bottom }; };
+  return [...document.querySelectorAll(sel || '.pv-gg')].filter(on).map(e => {
+    const c = getComputedStyle(e), tb = e.querySelector('.pv-gg-t'), lines = tb ? [...tb.children] : [], svg = e.querySelector('svg');
+    const card = e.closest('.pvg-rmg-box') || e.closest('.pvg-card') || e.closest('#airline-review-section') || e.closest('.pvg');
+    return {
+      at: window.PVGlance ? window.PVGlance.at() : '',
+      where: e.closest('#pv-readmore-gate') ? 'dialog' : e.closest('.pvg-rv-cta-overview') ? 'score-overview' : e.closest('.pvg-rv-cta-reviews') ? 'score-reviews' : e.closest('#airline-review-section') ? 'list' : e.closest('.crl') ? 'pay' : '?',
+      tag: e.tagName, text: lines.length ? lines.map(t).join('／') : t(e), href: e.getAttribute('href') || '',
+      css: Object.fromEntries(KEYS.map(k => [k, c[k]])), display: c.display, ws: c.whiteSpace, overflow: c.overflowX + ' ' + c.overflowY,
+      box: box(e), vw: document.documentElement.clientWidth, clipX: e.scrollWidth - e.clientWidth, clipY: e.scrollHeight - e.clientHeight,
+      tbox: tb ? { ...box(tb), align: getComputedStyle(tb).textAlign } : null,
+      lines: lines.map(l => { const s = getComputedStyle(l); return { text: t(l), size: s.fontSize, weight: s.fontWeight, op: s.opacity, color: s.color, align: s.textAlign, lang: l.getAttribute('lang') || '', box: box(l), ink: ink(l), over: l.scrollWidth - l.clientWidth,
+        /* 実際に折れた行（1字ずつ位置を読んで、同じ高さの字をまとめる）と、書き手が置いた語の切れ目 */
+        rows: (() => { const out = [], rg = document.createRange(), w = document.createTreeWalker(l, NodeFilter.SHOW_TEXT); let n, top = null;
+          while ((n = w.nextNode())) for (let i = 0; i < n.data.length; i++) { rg.setStart(n, i); rg.setEnd(n, i + 1); const r = rg.getClientRects()[0]; if (!r || !r.width) continue;
+            if (top === null || Math.abs(r.top - top) > r.height / 2) { out.push(''); top = r.top; } out[out.length - 1] += n.data[i]; }
+          return out.map(x => x.trim()).filter(Boolean); })(),
+        cut: (() => { const out = ['']; for (const c of l.childNodes) { if (c.nodeType === 1 && c.tagName === 'WBR') out.push(''); else out[out.length - 1] += c.textContent; } return out.map(x => x.trim()).filter(Boolean); })() }; }),
+      /* ボタンを切り落としている親（overflow が hidden／clip で、ボタンがその箱から出ている） */
+      cutBy: (() => { const b = e.getBoundingClientRect(); for (let a = e.parentElement; a && a !== document.body; a = a.parentElement) { const s = getComputedStyle(a);
+        if (!/hidden|clip/.test(s.overflowX + s.overflowY)) continue; const r = a.getBoundingClientRect();
+        if (b.top < r.top - 0.5 || b.bottom > r.bottom + 0.5 || b.left < r.left - 0.5 || b.right > r.right + 0.5) return '.' + String(a.className || a.tagName).trim().split(/\s+/).join('.'); } return ''; })(),
+      svg: svg && on(svg) ? box(svg) : null,
+      card: card ? box(card) : null,
+    };
+  });
+}
+/* トップの基準は1回だけ測る（幅 1440。スマホの幅ではトップのボタンは画面いっぱいに伸びる ＝ 別の形）。 */
+let ggBaseOnce = null;
+function ggBase(browser) {
+  if (!ggBaseOnce) ggBaseOnce = (async () => {
+    const ctx = await browser.createBrowserContext();
+    try {
+      const p = await ctx.newPage();
+      p.setDefaultTimeout(30000);
+      await p.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 });
+      await p.setRequestInterception(true);
+      p.on('request', r => {
+        let u; try { u = new URL(r.url()); } catch { return r.continue(); }
+        if (['data:', 'blob:', 'about:'].includes(u.protocol) || u.origin === BASE || LIBS.test(u.hostname)) return r.continue();
+        return r.abort();                              // 本番の DB も解析タグも読まない（測るのは形だけ）
+      });
+      await p.goto(`${BASE}/index.html`, { waitUntil: 'load', timeout: 60000 });
+      await p.waitForFunction(() => { const e = document.querySelector('#hero-section .hero-btn--p'); return !!e && e.getClientRects().length > 0; });
+      await p.evaluate(() => document.fonts.ready.then(() => true));
+      const got = await p.evaluate(ggSee, GG_KEYS, '#hero-section .hero-btn--p');
+      return got.length === 1 ? got[0] : null;
+    } catch { return null; } finally { await ctx.close().catch(() => {}); }
+  })();
+  return ggBaseOnce;
+}
+const GG_W = [320, 390, 768, 1440];
+/* タブごとに、出ているはずのボタン（置き場 → 下の行の字）。上の行は全部「Give & Get」。 */
+const GG_FACE = {
+  overview: [['pay', '全ての給与情報を解放する'], ['score-overview', RV_GIVE.overview]],
+  pay: [['pay', '全ての給与情報を解放する']],
+  reviews: [['score-reviews', RV_GIVE.reviews], ['list', RV_GIVE.reviews]],
+};
+/* ★2026-10-09 「続きを読む」の小窓（鍵の無い人が押した時に出る）も、同じボタン。口コミのタブに居るまま開いて測る。
+   ここだけ古い橙の四角いボタンと、色を直書きした黒い板のままだった（測っていなかったので、検査は通っていた）。 */
+const GG_ALL = { ...GG_FACE, dialog: [['dialog', RV_GIVE.reviews]] };
+const GG_AT = { ...TAB_NAME, dialog: '続きを読むの小窓' };
+async function runGG(browser, s, [w, h]) {
+  const tag = `${s} ${w}（Give & Get のボタン）`;
+  const lp = await ggBase(browser);
+  if (!lp) { ok(false, `${tag}: トップページのいちばん上の黒いボタンを測れた（基準）`); return; }
+  /* 鍵の無い人に口コミが在る時 ＝ 一覧の錠前のボタンまで出る形 */
+  const { ctx, p, ready } = await open(browser, s, w, h, 'rated');
+  const until = (fn, ...a) => p.waitForFunction(fn, { timeout: 8000 }, ...a).then(() => true, () => false);
+  try {
+    ok(ready, `${tag}: 開ける`);
+    /* 動きの決まり（transition）まで比べるので、測るあいだだけ「動きを減らす」を外す（トップも外した状態で測ってある）。 */
+    const measure = async () => {
+      await p.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'no-preference' }]);
+      const r = await p.evaluate(ggSee, GG_KEYS, '');
+      await p.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
+      return r;
+    };
+    const shape = [], lay = [], dlg = [], seenAt = {};
+    const gateOpen = () => { const e = document.querySelector('#pv-readmore-gate .pv-gg'); return !!e && e.getClientRects().length > 0 && e.checkVisibility({ visibilityProperty: true }); };
+    for (const t of Object.keys(GG_ALL)) {
+      if (t === 'dialog') {
+        /* 「続きを読む」を押した時と同じ口を呼ぶ（鍵の無い人 ＝ 本文は出ず、小窓が開く） */
+        await p.evaluate(() => window.pvReadMore('pvg-none', ''));
+        if (!(await until(gateOpen))) { dlg.push('小窓が開かない'); continue; }
+      } else if (t !== 'overview') {
+        await p.evaluate(sel => document.querySelector(sel).click(), `.pvg-tabs [data-pvg-tab="${t}"]`);
+        if (!(await until(t => window.PVGlance.at() === t, t))) { lay.push(`「${GG_AT[t]}」へ切り替わらない`); continue; }
+      }
+      /* 出ているはずのボタンが全部そろうまで待つ（一覧の錠前は、口コミを読み終えてから出る） */
+      const want = GG_ALL[t];
+      if (t !== 'dialog') await until(n => [...document.querySelectorAll('.pv-gg')].filter(e => e.getClientRects().length > 0 && e.checkVisibility({ visibilityProperty: true })).length >= n, want.length);
+      /* 小窓の番では小窓の中だけ、ほかの番ではページの中だけを見る（小窓のうしろに、ページのボタンは出たまま） */
+      const got = (await measure()).filter(g => (t === 'dialog') === (g.where === 'dialog'));
+      seenAt[t] = got.map(g => g.where);
+      for (const [where, main] of want) {
+        const hit = got.filter(g => g.where === where);
+        if (hit.length !== 1) lay.push(`「${GG_AT[t]}」の ${where} のボタンが ${hit.length}つ（あるべき 1つ）`);
+        else if (hit[0].text !== `${GG}／${main}`) lay.push(`「${GG_AT[t]}」の ${where} の字が「${hit[0].text}」（あるべき「${GG}／${main}」）`);
+      }
+      const extra = got.filter(g => !want.some(x => x[0] === g.where));
+      if (extra.length) lay.push(`「${GG_AT[t]}」に、決めていない置き場のボタンが在る（${extra.map(g => g.where + '「' + g.text + '」').join('・')}）`);
+      for (const g of got) {
+        const who = `「${GG_AT[t]}」の ${g.where}`;
+        /* a) 形 ＝ トップの黒いボタン */
+        const diff = [...new Set(GG_KEYS.filter(k => g.css[k] !== lp.css[k]).map(k => `${GG_NAME[k]} ${g.css[k]}（トップは ${lp.css[k]}）`))];
+        if (diff.length) shape.push(`${who}: ${diff.join('・')}`);
+        if (!/(^|-)flex$/.test(g.display)) shape.push(`${who}: 並べ方が ${g.display}`);
+        if (g.box.h < lp.box.h - 0.5) shape.push(`${who}: 高さ ${g.box.h.toFixed(1)}（トップは ${lp.box.h.toFixed(1)}）`);
+        if (!(g.svg && lp.svg && Math.abs(g.svg.w - lp.svg.w) <= 0.5 && Math.abs(g.svg.h - lp.svg.h) <= 0.5)) shape.push(`${who}: 矢印の大きさが違う（${g.svg ? g.svg.w + '×' + g.svg.h : '無い'}）`);
+        /* b) 2行：同じ大きさ・同じ太さ・同じ濃さ・まんなか・上が「Give & Get」 */
+        if (g.lines.length !== 2) { lay.push(`${who}: 字が ${g.lines.length}行（あるべき 2行）`); continue; }
+        const [k, m] = g.lines;
+        if (!(k.text === GG && k.lang === 'en')) lay.push(`${who}: 上の行が「${k.text}」`);
+        if (!(k.box.b <= m.box.t + 1)) lay.push(`${who}: 2行が上下に積まれていない`);
+        for (const [l, name] of [[k, '上の行'], [m, '下の行']]) {
+          if (l.size !== lp.css.fontSize || l.weight !== lp.css.fontWeight) shape.push(`${who}: ${name}が ${l.size}・太さ ${l.weight}（トップは ${lp.css.fontSize}・${lp.css.fontWeight}）`);
+          if (l.op !== '1' || l.color !== lp.css.color) shape.push(`${who}: ${name}が薄い（濃さ ${l.op}・色 ${l.color}）`);
+          if (l.align !== 'center') lay.push(`${who}: ${name}がまんなかに寄っていない（${l.align}）`);
+          if (Math.abs((l.ink.l + l.ink.r) / 2 - (g.tbox.l + g.tbox.r) / 2) > 1) lay.push(`${who}: ${name}の字が、字の箱のまんなかに無い`);
+          if (l.over > 1 || l.ink.l < g.box.l - 0.5 || l.ink.r > g.box.r + 0.5 || l.ink.t < g.box.t - 0.5 || l.ink.b > g.box.b + 0.5) lay.push(`${who}: ${name}の字がボタンからはみ出す・欠ける`);
+        }
+        /* b2) 折れるのは語の切れ目でだけ。上の行（Give & Get）は折れない */
+        if (k.rows.length !== 1) lay.push(`${who}: 上の行が ${k.rows.length}行に折れている（${k.rows.join('／')}）`);
+        const cut = GG_CUT[m.text];
+        if (!cut) lay.push(`${who}: 下の行「${m.text}」の語の切れ目を、検査が知らない`);
+        else {
+          if (!same(m.cut, cut)) lay.push(`${who}: 下の行の語の切れ目が「${m.cut.join('｜')}」（あるべき「${cut.join('｜')}」）`);
+          const ends = new Set(cut.map((_, i) => cut.slice(0, i + 1).join('').length)); let at = 0;
+          if (m.rows.join('') !== cut.join('') || !m.rows.every(r => ends.has(at += r.length))) lay.push(`${who}: 下の行が語の途中で折れている（${m.rows.join('／')}）`);
+        }
+        if (g.cutBy) lay.push(`${who}: 親の箱（${g.cutBy}）に切り落とされている`);
+        /* c) 中身（字の箱＋矢印）がボタンのまんなか・切れない・カードと画面の中 */
+        const padL = parseFloat(g.css.paddingLeft), padR = parseFloat(g.css.paddingRight);
+        const left = g.tbox.l - g.box.l - padL, right = g.box.r - padR - (g.svg ? g.svg.r : g.tbox.r);
+        if (Math.abs(left - right) > 1.5 || left < -0.5) lay.push(`${who}: 中身がボタンのまんなかに無い（左の空き ${left.toFixed(1)}・右の空き ${right.toFixed(1)}）`);
+        if (g.clipX > 1 || g.clipY > 1) lay.push(`${who}: 中身がボタンに入りきらない（横 ${g.clipX}・縦 ${g.clipY}）`);
+        if (g.box.l < -0.5 || g.box.r > g.vw + 0.5) lay.push(`${who}: 画面の外へ出ている（${Math.round(g.box.l)}〜${Math.round(g.box.r)}・画面 ${g.vw}）`);
+        if (g.card && (g.box.l < g.card.l - 0.5 || g.box.r > g.card.r + 0.5)) lay.push(`${who}: カードの外へ出ている`);
+      }
+      if (t === 'dialog') {
+        /* 小窓そのもの：画面の中に収まる・ボタンは1つでまんなか・板の色はサイトの色（明暗に付いていく）・
+           押せるものに状態と 44px・開くと中のボタンへ移る・Esc で閉じて開き直せる（開き直しても増えない）。 */
+        const d = await p.evaluate(() => {
+          const gate = document.getElementById('pv-readmore-gate'), bx = gate.querySelector('.pvg-rmg-box'), btn = gate.querySelector('.pv-gg');
+          if (!bx || !btn) return null;
+          const root = document.documentElement, was = root.getAttribute('data-theme');
+          const tone = () => {
+            const pr = document.createElement('i'); pr.style.cssText = 'position:fixed;left:-99px;top:0;background:var(--pv-surface);color:var(--pv-text)'; document.body.appendChild(pr);
+            const a = getComputedStyle(bx), b = getComputedStyle(pr), o = { bg: a.backgroundColor, ink: a.color, wbg: b.backgroundColor, wink: b.color }; pr.remove(); return o;
+          };
+          const now = tone();
+          root.setAttribute('data-theme', was === 'dark' ? 'light' : 'dark');
+          const other = tone();
+          if (was === null) root.removeAttribute('data-theme'); else root.setAttribute('data-theme', was);
+          const r = bx.getBoundingClientRect(), b = btn.getBoundingClientRect(), ttl = document.getElementById(bx.getAttribute('aria-labelledby') || '-');
+          const top = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2);
+          return { l: r.left, r: r.right, t: r.top, b: r.bottom, vw: document.documentElement.clientWidth, vh: window.innerHeight, off: Math.abs((b.left + b.right) / 2 - (r.left + r.right) / 2),
+            role: bx.getAttribute('role'), modal: bx.getAttribute('aria-modal'), named: !!ttl && !!ttl.textContent.trim(),
+            n: gate.querySelectorAll('.pv-gg').length, old: gate.querySelectorAll('.btn-review-post, .pvg-rmg-box [style]').length, hit: !!top && btn.contains(top),
+            now, other, focus: btn.contains(document.activeElement) };
+        });
+        if (!d) dlg.push('小窓の板かボタンが無い');
+        else {
+          if (d.l < -0.5 || d.r > d.vw + 0.5 || d.t < -0.5 || d.b > d.vh + 0.5) dlg.push(`板が画面の外へ出る（左 ${Math.round(d.l)}・右 ${Math.round(d.r)}・上 ${Math.round(d.t)}・下 ${Math.round(d.b)}／画面 ${d.vw}×${d.vh}）`);
+          if (d.off > 1) dlg.push(`ボタンが板のまんなかに無い（${d.off.toFixed(1)}px ずれ）`);
+          if (d.n !== 1 || d.old) dlg.push(`ボタンが ${d.n}つ・古い橙のボタンや直書きの見た目が ${d.old}つ`);
+          if (!d.hit) dlg.push('ボタンの上に別のものが被っている');
+          for (const [x, name] of [[d.now, 'いまの明暗'], [d.other, '反対の明暗']]) if (x.bg !== x.wbg || x.ink !== x.wink) dlg.push(`${name}で、板の色がサイトの色でない（地 ${x.bg}・字 ${x.ink}／あるべき ${x.wbg}・${x.wink}）`);
+          if (d.now.bg === d.other.bg) dlg.push(`明るい・暗いを替えても、板の色が変わらない（${d.now.bg}）`);
+          if (!(d.role === 'dialog' && d.modal === 'true' && d.named)) dlg.push('読み上げ向けの名札（dialog・見出しの名前）が無い');
+          if (!d.focus) dlg.push('開いた時に、中のボタンへ移っていない（キーボードで使う人が、幕のうしろに取り残される）');
+        }
+        const pr = await p.evaluate(() => window.__pvg.probe('#pv-readmore-gate'));
+        dlg.push(...[...pr.small, ...pr.tap, ...pr.bare].slice(0, 6));
+        {
+          /* 小窓が開いているあいだ、Tab は小窓の中だけを回る（幕のうしろのリンクへ出ていかない）。前へ4回・後ろへ5回 ＝ どちらの端も1度は越える。 */
+          let out = 0;
+          for (const back of [0, 0, 0, 0, 1, 1, 1, 1, 1]) {
+            if (back) await p.keyboard.down('Shift');
+            await p.keyboard.press('Tab');
+            if (back) await p.keyboard.up('Shift');
+            if (!(await p.evaluate(() => document.getElementById('pv-readmore-gate').contains(document.activeElement)))) out++;
+          }
+          if (out) dlg.push(`Tab を押すと、幕のうしろへ出ていく（9回のうち ${out}回）`);
+        }
+        await p.keyboard.press('Escape');
+        if (!(await until(() => getComputedStyle(document.getElementById('pv-readmore-gate')).display === 'none'))) dlg.push('Esc で閉じない');
+        await p.evaluate(() => window.pvReadMore('pvg-none', ''));
+        if (!(await until(gateOpen))) dlg.push('閉じたあと、もう一度開けない');
+        else if ((await p.evaluate(() => document.querySelectorAll('#pv-readmore-gate').length)) !== 1) dlg.push('開き直すたびに、小窓が増える');
+      }
+      if (process.env.PV_GLANCE_SHOT) {
+        const y = await p.evaluate(() => { const e = [...document.querySelectorAll('.pv-gg')].find(x => x.getClientRects().length > 0); if (!e) return 0; e.scrollIntoView({ block: 'center' }); return 1; });
+        if (y) await p.screenshot({ path: `${process.env.PV_GLANCE_SHOT.replace(/\/$/, '')}/gg-${s}-${w}-${t}.png` });
+      }
+    }
+    ok(!shape.length, `${tag}: 形がトップのいちばん上の黒いボタンと同じ（丸い形・16px・太さ 600・余白・色・影・動き）── 概要／給与・待遇／口コミ／「続きを読む」の小窓で変わらない`, [...new Set(shape)].slice(0, 8).join('\n      '));
+    ok(!lay.length, `${tag}: 2行ともまんなか・同じ大きさと濃さ・字が欠けない・カードと画面の中 ── 出ているのは決めた置き場だけ`, [...new Set(lay)].slice(0, 8).join('\n      ') + (lay.length ? `\n      見えていた置き場: ${JSON.stringify(seenAt)}` : ''));
+    ok(!dlg.length, `${tag}: 「続きを読む」の小窓 ── 画面の中に収まる・同じボタンが1つでまんなか・板はサイトの色（明るい・暗いの両方）・押せるものに状態と 44px・開くと中のボタンへ移る・Esc で閉じて開き直せる`, [...new Set(dlg)].slice(0, 8).join('\n      '));
+  } catch (e) {
+    ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
+  } finally {
+    await ctx.close().catch(() => {});
+  }
+}
+
 head(`ブラウザ（${ONLY.length}社 × ${VIEWS.length}つの幅 × 全通貨）`);
 const browser = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox'] });
 try {
@@ -2326,9 +2929,10 @@ try {
   if (wantS('view')) for (const s of ONLY) for (const v of VIEWS) work.push(() => runView(browser, s, v));
   if (wantS('off')) for (const s of ONLY) for (const v of VIEWS.filter(x => OFF_W.includes(x[0]))) work.push(() => runOff(browser, s, v));
   if (wantS('rows')) for (const s of ONLY) for (const v of VIEWS.filter(x => ROWS_W.includes(x[0]))) work.push(() => runRows(browser, s, v));
-  if (wantS('rated')) for (const s of ONLY) for (const v of VIEWS.filter(x => RATED_W.includes(x[0]))) work.push(() => runRated(browser, s, v));
-  if (wantS('tabs')) for (const s of ONLY) for (const v of VIEWS.filter(x => TABS_W.includes(x[0]))) work.push(() => runTabs(browser, s, v));
+  if (wantS('rated')) for (const s of ONLY) for (const v of VIEWS.filter(x => RATED_W.includes(x[0]))) work.push(() => runRated(browser, s, v), () => runRated404(browser, s, v));
+  if (wantS('tabs')) for (const s of ONLY) for (const v of [...VIEWS.filter(x => TABS_W.includes(x[0])), ...TABS_EXTRA]) work.push(() => runTabs(browser, s, v));
   if (wantS('cards')) for (const s of ONLY) work.push(() => runCards(browser, s));
+  if (wantS('gg')) for (const s of ONLY) for (const v of VIEWS.filter(x => GG_W.includes(x[0]))) work.push(() => runGG(browser, s, v));
   let next = 0;
   await Promise.all(Array.from({ length: Math.min(JOBS, work.length) }, async () => {
     while (next < work.length) {

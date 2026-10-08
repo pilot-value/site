@@ -1,0 +1,28 @@
+/* pv-gg.css ── 「Give & Get」のボタンの形。サイトに1つだけ（2026-10-08 オーナーのご指示）。
+
+   基準はトップページのいちばん上の黒いボタン（lp.css の #hero-section .hero-btn--p）。
+   高さ・余白・丸み・字の大きさと太さ・影・押したときの動きを、そこから写してある。
+   写しなので、ずれたら assert-airline-glance.mjs が落とす（トップを実際に開いて測り、突き合わせる）。
+
+   使う場所 ── 会社ページ（タブのある形）の3つ：
+     給与の1枚          career-live.js の give2()
+     評価スコアの1枚    gen-airline-glance.mjs の rvCta()
+     口コミの一覧の錠前  airlines/airline-reviews-ui.js の unlockBtn()
+   形はここだけ。言葉・行き先・開く条件は、それぞれの書き手が持つ（ここに字を書かない）。
+
+   ⚠️ 上の行を小さく・薄くしない／左へ寄せない／角を四角へ戻さない（2026-10-07 の形に戻る）。
+   ⚠️ 置き場ごとの大きさをここに足さない。狭い箱では字が2行3行へ折れて、まんなかに収まる。 */
+.pv-gg{display:inline-flex;align-items:center;justify-content:center;gap:10px;box-sizing:border-box;max-width:100%;min-height:54px;margin:0;padding:8px 26px;border:0;border-radius:999px;background:var(--pv-cta-dark);color:var(--pv-cta-dark-ink);font-family:inherit;font-size:16px;font-weight:600;line-height:1.2;letter-spacing:-.005em;text-align:center;text-decoration:none;white-space:normal;cursor:pointer;-webkit-appearance:none;appearance:none;box-shadow:0 1px 2px rgba(17,17,17,.16),0 12px 26px -14px rgba(6,117,99,.55);transition:transform .4s cubic-bezier(.34,1.45,.64,1)}
+/* 2行とも同じ大きさ・同じ濃さで、まんなか。
+   長い言葉は語の切れ目（書き手が置く <wbr>）でだけ折る ── 「全ての口コミデ／ータを解放する」と語の途中で折らない。
+   語1つより狭い箱では、はみ出さずに字で折る（overflow-wrap）。 */
+.pv-gg-t{display:block;min-width:0;text-align:center}
+.pv-gg-t > span{display:block;font:inherit;letter-spacing:inherit;opacity:1;text-wrap:balance;word-break:keep-all;overflow-wrap:anywhere}
+.pv-gg > svg{flex:none;width:16px;height:16px;transition:transform .4s cubic-bezier(.34,1.45,.64,1)}
+.pv-gg:hover{background:var(--pv-cta-dark-hover);transform:translateY(-2px)}
+.pv-gg:hover > svg{transform:translateX(3px)}
+.pv-gg:active{transform:translateY(0) scale(.97)}
+.pv-gg:focus-visible{outline:3px solid var(--pv-accent);outline-offset:3px}
+@media (prefers-reduced-motion:reduce){
+  .pv-gg,.pv-gg > svg{transition:none}
+}

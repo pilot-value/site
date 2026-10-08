@@ -365,8 +365,16 @@ const gateState = () => ({
   salaryKey:      Number(localStorage.getItem('pv_salary_unlock_expiry') || 0),
 });
 
-for (const [lang, url] of [['ja', '/airlines/ana.html'], ['en', '/en/airlines/ana.html']]) {
+/* 見本は「旧い錠前（.premium-gate の年収枠）がまだ在る会社ページ」。
+   ★2026-10-09 まで日本語の見本は ANA だった。先行5社（JAL・ANA・キャセイ・エティハド・エバー）の
+     日本語ページは新しい形になり、この錠前の節そのものが無い。錠前が1つも無いページでは
+     premium-auth-lock.js は何もせずに終わるので、見本にすると「閉じたまま」も「開く」も測れない
+     （5社の給与の行は assert-airline-glance.mjs が「鍵の無い人へ値を送らない」まで見ている）。
+     会社ページが全部新しい形になったら、この節ごと見直す。 */
+for (const [lang, url] of [['ja', '/airlines/emirates.html'], ['en', '/en/airlines/ana.html']]) {
   console.log(`\n════ 航空会社ページ（${lang}）— 年収枠は明細でしか開かない ════`);
+  ok(/class="premium-gate[^"]*"[^>]*data-gate-key="salary_detail"/.test(read(url.slice(1))),
+     '見本のページに旧い錠前（年収枠）が在る ── 無ければ見本を替える', url);
 
   // ── A1: 端末に口コミの鍵だけある ──
   {

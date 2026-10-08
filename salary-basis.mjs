@@ -734,7 +734,9 @@ export const BASIS = {
     fo: { tier: 'estimate', held: { was: { avg: 1000, lo: 650, hi: 1350 }, why: '機長と同じ理由。' } },
   },
 
-  /* ══ ANA ══ ★有資格パイロットの募集そのものが無い（キャリア採用に運航乗務職の枠が無い）。
+  /* ══ ANA ══ ★有資格パイロットの募集要項が、採用サイトに載っていない（キャリア採用の一覧に運航乗務職の枠が無い）。
+     ⚠️ 「募集そのものが無い」とは書かない。会社は職種紹介で「ライセンサーの採用も行っている」と書いている
+        （airline-facts.mjs の ana.jobs の license_holders。2026-10-08 に両方のページを開いて確かめた）。
      金額があるのは2つ ── 自社養成の新卒募集要項（訓練生の入社時の月額）と、
      有報 第76期が初めて載せた運航乗務職の平均（★3社をあわせた額。機長と副操縦士を分けていない）。
      ⚠️ crew の額を全日本空輸だけの額・機長の額・副操縦士の額として使わない（表の注 ※2）。
@@ -790,7 +792,7 @@ export const BASIS = {
     cap: { tier: 'estimate', est_status: 'unconfirmed',
       est_why: 'ANA の機長の年収を示す資料が1件も無い。会社が公表しているのは3社（ANA・ANAウイングス・エアージャパン）をあわせた運航乗務職全体の平均だけで、職位では分かれていない。旧額の出所の記録も無い。',
       held: { was: { avg: 2700, lo: 2200, hi: 3500 },
-      why: '有資格パイロットの募集そのものが無く（キャリア採用に運航乗務職の枠が無い）、機長の金額を書いた公式資料が1件も無い。有報にあるのは3社をあわせた運航乗務職全体の平均だけで、機長の数字は無い。レンジの出所の記録も無い。' } },
+      why: '有資格パイロットの募集要項が採用サイトに載っておらず（キャリア採用の一覧に運航乗務職の枠が無い）、機長の金額を書いた公式資料が1件も無い。有報にあるのは3社をあわせた運航乗務職全体の平均だけで、機長の数字は無い。レンジの出所の記録も無い。' } },
     fo: { tier: 'estimate', est_status: 'unconfirmed',
       est_why: '機長と同じ理由。',
       held: { was: { avg: 1800, lo: 1400, hi: 2100 }, why: '機長と同じ理由。' } },
@@ -823,14 +825,14 @@ export const BASIS = {
       'これは機長と副操縦士をあわせた運航乗務員全体の平均です。機長だけ・副操縦士だけの平均は公表されていません。',
       '日本航空単体ではなくグループ連結の数字です（会社が注でそう書いています）。',
       '算定方法は会社の注のとおり「連結人件費に含まれる現金給与相当額を当事業年度中の平均在籍人数で除して算出」＝税引き前の考え方です。賞与・手当を含むかは注に明記がありません。',
-      '訓練生の額は運航乗務員訓練生の入社時の月額で、機長・副操縦士の金額ではありません。事業用操縦士免許を保有または過去に取得した人は応募できません。',
+      '訓練生の額は運航乗務員訓練生の入社時の月額で、機長・副操縦士の金額ではありません。自社養成パイロットの募集には、事業用操縦士免許を保有または過去に取得した人は応募できません。',
       '採用予定数は2027年度入社で新卒・キャリア合計50名程度、乗務開始後の休日は原則月10日です。',
     ],
     notes_en: [
       'This is the average for flight crew as a whole, captains and first officers together; the filing does not break it out by rank.',
       'It covers the JAL group on a consolidated basis, not Japan Airlines alone — the filing says so in its note.',
       'The airline states the method: cash-equivalent pay within consolidated personnel costs, divided by the average headcount on the books during the year. That is a pre-tax basis. The note does not say whether bonuses and allowances are included.',
-      'The trainee figure is the starting monthly pay for a flight-crew trainee, not a figure for captains or first officers. Anyone who holds or has held a commercial pilot licence cannot apply.',
+      'The trainee figure is the starting monthly pay for a flight-crew trainee, not a figure for captains or first officers. Anyone who holds or has held a commercial pilot licence cannot apply to the airline’s own ab-initio cadet programme.',
       'About 50 places are offered for FY2027 across graduate and career intake, with around ten days off a month once flying.',
     ],
     crew: { tier: 'observed_mean',

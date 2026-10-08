@@ -69,12 +69,11 @@
 .pvg-btn:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
 .pvg-btn-ghost{color:var(--pv-ink);background:var(--pv-surface);border-color:var(--pv-line)}
 .pvg-btn-ghost:hover{background:var(--pv-surface-2);border-color:var(--pv-ink-3)}
-/* 2行の入口（2026-10-07 オーナーのご指示）── 上に小さく「Give & Get」、下に何が開くか。
-   字を書くのは gen-airline-glance.mjs（評価の1枚）と airline-reviews-ui.js（口コミの一覧の錠前）。ここは形だけ */
-.pvg-btn-gg{min-height:52px;padding:7px 22px;border-radius:16px;white-space:normal;text-align:left}
-.pvg-gg{display:grid;gap:1px}
-.pvg-gg-k{font:700 12px/1.3 Inter,'Noto Sans JP',sans-serif;letter-spacing:.06em;opacity:.8}
-.pvg-gg-m{font-size:14px;font-weight:700;line-height:1.35}
+/* 2行の入口「Give & Get／…」の形は、ここには無い ── サイト共通の pv-gg.css（2026-10-08 オーナーのご指示）。
+   字を書くのは gen-airline-glance.mjs（評価の1枚）・career-live.js（給与の1枚）・airline-reviews-ui.js（口コミの錠前）。
+   上の行を小さく・薄くする指定や、左寄せ・四角い角をここへ足し戻さない。
+   下の1行だけは、古い部品が手元に残っている人のため（共有の JS は最大4時間ぶん古い）── 2行が横に並ばないようにする。 */
+.pvg-gg > span{display:block}
 @media (min-width:700px){
   .hero-airline.pvg-hero{padding:92px 0 12px!important}
   .hero-airline.pvg-hero h1{font-size:26px!important}
@@ -221,7 +220,9 @@
 .pvg-dt > summary:hover,.pvg-topic > summary:hover{color:var(--pv-accent-dark)}
 .pvg-dt > summary:focus-visible,.pvg-topic > summary:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
 .pvg-dt > summary:active,.pvg-topic > summary:active{opacity:.75}
-.pvg-paydt{border-top:1px solid var(--pv-line-soft);margin-top:4px;padding-top:0}
+/* scroll-margin-top … 住所（#kyuyo-konkyo）で直接開くと、ブラウザが読み込みの終わりに自分でここへ寄せ直す。
+   これが無いと頭が固定ヘッダーとタブの帯の下に潜る（pv-glance.js の near が置いた位置を上書きする。768px 以上で実測） */
+.pvg-paydt{border-top:1px solid var(--pv-line-soft);margin-top:4px;padding-top:0;scroll-margin-top:140px}
 .pvg-paydt .pvg-axis{margin-top:8px!important}
 .pvg-body{padding:4px 0 6px}
 
@@ -420,6 +421,27 @@
 /* 件数は添え書き。額より目立たせない */
 .pvg-rp .crl-count{margin-bottom:2px;line-height:1.6}
 .pvg-rp .crl-count b{font-size:14px;font-weight:600;line-height:1.6;letter-spacing:0}
+/* ★概要では短い入口にする（2026-10-08 オーナーのご指示「ぼかし3行や同じ入口の繰り返しで縦長にしすぎない」）。
+   鍵の無い人 ── 件数と「給与の提出で開きます」を1行に並べ、伏せた行は見本の1行だけ。
+   鍵の開いた人 ── 新しい2行。給与・待遇のタブでは、どちらも今までどおり3行（行そのものは欄の data-top が決める）。
+   ⚠️ ここは同じ中身の「何行めまで見せるか」だけ。額・職位は、鍵の無い人の行にそもそも入っていない。
+   ⚠️ 欄（.crl）そのものを display:none にしない（career-live.js は見えている箱だけを取りに行く）。 */
+.pvg-at-overview .pvg-rp > .crl[data-state="locked"] > .crl-rows > .crl-row:nth-child(n+2),
+.pvg-at-overview .pvg-rp > .crl[data-state="open"] > .crl-rows > .crl-row:nth-child(n+3){display:none}
+.pvg-rp > .crl[data-state="locked"]{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:12px;align-items:center}
+.pvg-rp > .crl[data-state="locked"] > .crl-count{grid-area:1 / 1;margin-bottom:0}
+.pvg-rp > .crl[data-state="locked"] > .crl-lock{grid-area:1 / 2;justify-self:start;margin:0;padding:6px 10px}
+.pvg-rp > .crl[data-state="locked"] > .crl-rows{grid-area:2 / 1 / 3 / 3;margin-top:8px}
+.pvg-rp > .crl[data-state="locked"] > .crl-foot{grid-area:3 / 1 / 4 / 3}
+/* いちばん狭い画面（箱が 296px 未満 ＝ 画面 343px まで）では、件数の横に札が入らない
+   （札は 174px 要る。320px の画面で横に残るのは 162〜171px ── 最後の1文字「す」だけが次の行へ落ちていた）。
+   札を件数の下の段へ下ろす。字は小さくしない・途中で折らない。 */
+@container pvg (max-width:295.98px){
+  .pvg-rp > .crl[data-state="locked"]{grid-template-columns:minmax(0,1fr)}
+  .pvg-rp > .crl[data-state="locked"] > .crl-lock{grid-area:2 / 1;margin-top:6px}
+  .pvg-rp > .crl[data-state="locked"] > .crl-rows{grid-area:3 / 1}
+  .pvg-rp > .crl[data-state="locked"] > .crl-foot{grid-area:4 / 1}
+}
 
 /* ── 会社・募集・ステイ・ひとつ教えて（どれも横いっぱいの帯）── */
 .pvg-more-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--pvg-gap);margin-top:var(--pvg-gap)}
@@ -454,6 +476,10 @@
 /* 抜粋は「いつ・どの区分・先頭の文」まで。ほかに触れている区分の札は、口コミのタブの一覧に在る */
 .pvg-rv-in .crl-rev > .crl-chips{display:none}
 .pvg-rv-in .crl-lock{width:fit-content;max-width:100%}
+/* ★概要の抜粋は新しい1件だけ（一覧は口コミのタブ）。要約の欄がすでに「口コミの投稿で開きます」と言っている時は、
+   同じ意味の錠前の1行をもう1つ重ねない（2026-10-08）。要約の欄が無い会社では、下の1行が残る */
+.pvg-rv-in .crl-revs > .crl-rev:nth-child(n+2){display:none}
+.pvg-rv-in > .crl[data-live="summary"][data-state="locked"] ~ .crl[data-live="reviews"] .crl-lock{display:none}
 /* ⚠️ 口コミが無い時、下の欄は高さを 0 にするだけ。display:none にすると career-live.js が二度と取りに行かない。 */
 .pvg-rv-in > .crl[data-live="reviews"][data-state="empty"]{flex:none;height:0;min-height:0;margin:0;overflow:hidden}
 /* 書く入口は箱の底（横に並ぶ給与の1枚のほうが高い時も、底でそろう） */
@@ -506,32 +532,28 @@
   .pvg-rv-in > .pvg-rv-cta{margin-top:0;padding-top:0}
   .pvg-rv-in > .crl[data-live="score"][data-state="empty"] ~ .pvg-rv-cta{padding-top:12px}
 }
-/* 会社：写真（箱の上の縁いっぱいの帯）→ 見出し → 数字 → 機材 → 出どころ の1列 */
-/* 会社概要：見出し → 紹介の本文 → 小さな写真｜最初の4つの値 → 「会社情報」（開くと紹介の続き・数字ぜんぶ・機材・出どころ）
-   → 写真のクレジット。写真は小さいまま（主役にしない）。図の箱そのものは置かず、絵とクレジットを別々の段に置く。
+/* 会社概要：見出し → 紹介の本文 → 小さな写真｜最初の4つの値 → 写真のクレジット
+   → 「会社情報」（開くと紹介の続き・数字ぜんぶ・機材・出どころ）。
+   写真は小さいまま（主役にしない）。図の箱そのものは置かず、絵とクレジットを別々の段に置く。
    ★紹介の本文（2026-10-07 オーナーのご指示）── 下に在った「◯◯について」の節から移した字。開かなくても読める場所に置く
      （4つの数字だけで会社紹介を済ませない）。行数で切らない */
 .pvg-more-grid > .pvg-co{display:grid;grid-template-columns:96px minmax(0,1fr);column-gap:12px;align-items:start}
 .pvg-co > .pvg-hd{grid-column:1 / -1;grid-row:1}
 .pvg-co > .pvg-about{grid-column:1 / -1;grid-row:2;margin-bottom:10px;font-size:13px;line-height:1.75;color:var(--pv-ink-2);text-wrap:pretty}
 .pvg-co > .pvg-photo{display:contents}
-.pvg-co > .pvg-photo > img{grid-column:1;grid-row:3;display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:cover;border-radius:var(--pv-r-sm);background:var(--pv-bg-sub)}
-.pvg-co > .pvg-photo > figcaption{grid-column:1 / -1;grid-row:5;padding-top:4px;font-size:12px;line-height:1.5;color:var(--pv-ink-3)}
+/* ★2026-10-08 写真の箱の形を決めない ── 元の写真の形のまま出す（JAL の写真は 16:9。3:2 の箱へ押し込むと
+     左右が 16% ずつ切れて、機首が欠けていた）。高さは width・height の属性から決まるので、読み込む前後で動かない。
+     ⚠️ aspect-ratio を足し戻さない／右の列の丈まで伸ばさない。 */
+.pvg-co > .pvg-photo > img{grid-column:1;grid-row:3;display:block;width:100%;height:auto;object-fit:cover;border-radius:var(--pv-r-sm);background:var(--pv-bg-sub)}
+/* クレジットは写真の段のすぐ下（「会社情報」より上）。「会社情報」の下に置くと、開いたときに写真から何画面も離れる */
+.pvg-co > .pvg-photo > figcaption{grid-column:1 / -1;grid-row:4;padding-top:4px;font-size:12px;line-height:1.5;color:var(--pv-ink-3)}
 .pvg-keys{grid-column:2;grid-row:3;display:grid;grid-template-columns:minmax(0,1fr);min-width:0}
 .pvg-co:not(:has(> .pvg-photo)) > .pvg-keys{grid-column:1 / -1}
 .pvg-keys > div{display:flex;align-items:baseline;justify-content:space-between;gap:10px;min-width:0;padding:2px 0}
 .pvg-keys dt{flex:1 1 0;min-width:4em;font-size:12px;line-height:1.6;color:var(--pv-ink-3)}
 .pvg-keys dd{flex:0 1 auto;max-width:66%;font:600 13px/1.5 Inter,'Noto Sans JP',sans-serif;font-variant-numeric:tabular-nums;text-align:right;color:var(--pv-ink)}
-.pvg-co > .pvg-co-more{grid-column:1 / -1;grid-row:4;margin-top:4px;padding-top:0}
+.pvg-co > .pvg-co-more{grid-column:1 / -1;grid-row:5;margin-top:4px;padding-top:0}
 .pvg-co-more > summary small{font-size:12px;font-weight:500;color:var(--pv-ink-3)}
-/* 開いた中：紹介の続きの段落と、台帳の数字と重ならない項目（本社・退職年齢） */
-.pvg-about-more{padding:2px 0 12px}
-.pvg-about-more > p{font-size:13px;line-height:1.8;color:var(--pv-ink-2);text-wrap:pretty}
-.pvg-about-more > p + p{margin-top:8px}
-.pvg .pvg-about-k{display:flex;flex-wrap:wrap;gap:4px 28px;margin-top:10px}
-.pvg-about-k > div{display:flex;align-items:baseline;gap:8px;min-width:0}
-.pvg-about-k dt{font-size:12px;font-weight:600;line-height:1.6;color:var(--pv-ink-3)}
-.pvg-about-k dd{font-size:13.5px;font-weight:600;line-height:1.6;color:var(--pv-ink)}
 .pvg-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 18px}
 .pvg-stats > div{min-width:0;padding:10px 0 11px;border-top:1px solid var(--pv-line-soft)}
 .pvg-stats dt{font-size:12px;font-weight:600;line-height:1.5;color:var(--pv-ink-3)}
@@ -716,6 +738,62 @@ a.pvg-topic-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2p
 .pvg #airline-review-cats .rcg-card:hover{border-color:var(--pv-accent-line)}
 .pvg #airline-review-cats .rcg-card:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
 .pvg #airline-review-cats .rcg-card:active{transform:scale(.98)}
+/* 6枚なので、iPad から上は3列×2段。古い部品の4列は、iPad の幅で1枚が細くなり「ワークライフバランス」が4行に折れていた。
+   3列なら、名前は語の途中では折らない。折れるのは語の切れ目（airline-reviews-ui.js の CAT_WBR）だけ
+   ── 700〜800px では10文字の名前が1行に入らない（1枚の中の字の箱が 91〜125px・名前は 128px）。
+   ⚠️ overflow-wrap を normal にしない。折れる所が1つも無くなり、名前が隣の件数の上へはみ出す（2026-10-09 に実際にそうなっていた）。
+   699px までは2列に固定する。古い部品の「入るだけ並べる」は 488px から3列・638px から4列になり、
+   640px で「ワークライフバランス」が5行に折れていた（2026-10-09 に測った）。
+   479px までは件数を名前の下へ回し、右の矢印を出さない ── 1枚が 131〜210px しか無く、横に並べると
+   名前の箱が3文字ぶんになる（360px で6枚中5枚が語の途中で折れていた）。 */
+.pvg #airline-review-cats .rcg-label{word-break:keep-all;overflow-wrap:anywhere}
+@media (min-width:700px){
+  .pvg #airline-review-cats .rcg-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media (max-width:699.98px){
+  .pvg #airline-review-cats .rcg-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:479.98px){
+  .pvg #airline-review-cats .rcg-card{flex-wrap:wrap;align-content:center;row-gap:2px;padding:12px 10px}
+  .pvg #airline-review-cats .rcg-count{flex:0 0 100%;padding-left:28px}
+  .pvg #airline-review-cats .rcg-chevron{display:none}
+}
+/* 口コミの一覧（古い部品が描く）の押せるもの：絞り込みの札・投稿のボタン・ログインの入口・出典のリンク。
+   マウスを載せた時の見た目しか無かったので、キーボードで選んだ時と押した時を足す */
+.pvg-rvl .rcf-chip:focus-visible,.pvg-rvl .btn-review-post:focus-visible,.pvg-rvl .rv-gate-login:focus-visible,.pvg-rvl .rv-src a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+.pvg-rvl .rcf-chip:active,.pvg-rvl .btn-review-post:active,.pvg-rvl .rv-gate-login:active,.pvg-rvl .rv-src a:active{opacity:.7}
+.pvg-rvl .rv-src a:hover{text-decoration:underline}
+/* 1枚ごとの錠前のボタンは置かない（airline-reviews-ui.js の cardCta）。説明の1行が箱の最後になるので、下の空きを詰める */
+.pvg-rvl .rv-srv-note:last-child{margin-bottom:0}
+/* 一覧のいちばん下の「メンバー限定データ」。カードの中の箱なので、狭い画面では左右の空きを詰める。
+   320px で、ボタンの字の箱が「口コミデータを」の1語より 2px 狭くなり、語の途中で折れていた（余白が 画面24＋カード16＋箱24＋ボタン26 と4重）。
+   ⚠️ ボタンの側（pv-gg.css）を小さくしない。置き場の箱を広げる。 */
+@media (max-width:400px){
+  .pvg-rvl .rv-post-gate{padding-left:14px;padding-right:14px}
+}
+/* 説明の下の空き。airline-base.css の 18px は、上の「.pvg p{margin:0}」に負けて 0 になっていた（説明とボタンがくっつく） */
+.pvg-rvl .rv-gate-desc{margin-bottom:18px;text-wrap:pretty}
+/* ★2026-10-09 「続きを読む」の錠前の小窓（airline-reviews-ui.js の readMoreGateTabbed。<body> の直下に出る ＝ .pvg の外）。
+   入口のボタンは pv-gg.css のまま。ここは箱・閉じる・ログインの入口だけ。
+   ⚠️ ここに .pv-gg の規則を書かない（形が置き場ごとに変わる）。狭い画面は箱の左右の空きを詰めて、ボタンの字の箱を広げる。
+   ⚠️ うしろの幕の色は JS の側（ここには色の直書きを置かない）。 */
+.pvg-rmg{box-sizing:border-box;padding:16px}
+.pvg-rmg-box{position:relative;box-sizing:border-box;width:100%;max-width:380px;max-height:100%;overflow:auto;padding:44px 24px 24px;border:1px solid var(--pv-border);border-radius:18px;background:var(--pv-surface);color:var(--pv-text);text-align:center;box-shadow:var(--pv-shadow-lift)}
+.pvg-rmg-x{position:absolute;top:4px;right:4px;display:grid;place-items:center;width:44px;height:44px;padding:0;border:0;border-radius:50%;background:none;color:var(--pv-text-muted);font:inherit;font-size:18px;line-height:1;cursor:pointer;transition:transform .2s var(--pv-ease)}
+.pvg-rmg-x:hover{color:var(--pv-text);background:var(--pv-surface-soft)}
+.pvg-rmg-x:active{transform:scale(.92)}
+.pvg-rmg-x:focus-visible,.pvg-rmg-login:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+.pvg-rmg-ic{margin-bottom:10px;font-size:28px;line-height:1}
+.pvg-rmg-t{margin:0 0 8px;font-size:16px;font-weight:700;line-height:1.5;color:var(--pv-text);text-wrap:balance;word-break:keep-all;overflow-wrap:anywhere}
+.pvg-rmg-d{margin:0 0 20px;font-size:13px;line-height:1.7;color:var(--pv-text-muted);text-wrap:pretty}
+.pvg-rmg-d strong{font-weight:700;color:var(--pv-text)}
+.pvg-rmg-login{display:flex;align-items:center;justify-content:center;min-height:44px;margin-top:6px;font-size:13px;color:var(--pv-text-muted);text-decoration:underline;text-underline-offset:2px}
+.pvg-rmg-login:hover{color:var(--pv-text)}
+.pvg-rmg-login:active{opacity:.7}
+.pvg-rmg-fine{margin:6px 0 0;font-size:12px;line-height:1.6;color:var(--pv-text-muted)}
+@media (max-width:400px){
+  .pvg-rmg-box{padding-left:14px;padding-right:14px}
+}
 
 /* ── 箱が広いとき ───────────────────────────────────── */
 /* iPad 縦・横：左に給与（広め）／右に勤務・待遇・暮らしを縦に3つ。板は横いっぱい */
@@ -750,11 +828,11 @@ a.pvg-topic-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2p
   .pvg-more-grid > .pvg-co{grid-template-columns:168px minmax(0,1fr);column-gap:20px}
   .pvg-co > .pvg-hd{grid-column:2}
   .pvg-co > .pvg-about{grid-column:2;font-size:13.5px}
-  .pvg-co > .pvg-photo > img{grid-row:1 / span 4}
   /* 写真のクレジットは写真のすぐ下（左の列の中）。幅いっぱいの1行にしない ── そのぶん年収が上がる。
-     写真は 3:2 と決まっているので、高さは 幅 × 2/3 */
-  .pvg-co > .pvg-photo > figcaption{grid-column:1;grid-row:1 / span 4;align-self:start;margin-top:calc(168px * 2 / 3 + 2px);overflow-wrap:anywhere}
-  .pvg-co > .pvg-co-more{grid-column:2}
+     図の箱ごと左の列に置くので、クレジットは写真がどんな形でもその真下に来る（写真の高さを決め打ちして下げない） */
+  .pvg-co > .pvg-photo{display:block;grid-column:1;grid-row:1 / span 4;align-self:start;margin:0;min-width:0}
+  .pvg-co > .pvg-photo > figcaption{padding-top:2px;overflow-wrap:anywhere}
+  .pvg-co > .pvg-co-more{grid-column:2;grid-row:4}
   .pvg-keys{grid-template-columns:repeat(2,minmax(0,1fr));gap:0 24px}
   .pvg-keys > div{display:block;padding:5px 0}
   .pvg-keys dd{max-width:none;font-size:16px;text-align:left}
@@ -787,7 +865,6 @@ a.pvg-topic-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2p
   /* 会社：左に写真・右に見出しと数字。機材と出どころは、その下に横いっぱい。
      ⚠️ 写真を右の丈まで伸ばさない（横が切れて機首と尾翼が欠ける）。丈は数字の列の数で合わせる */
   .pvg-more-grid > .pvg-co{grid-template-columns:220px minmax(0,1fr);column-gap:28px;padding:20px 22px}
-  .pvg-co > .pvg-photo > figcaption{margin-top:calc(220px * 2 / 3 + 2px)}
   .pvg-keys{grid-template-columns:repeat(4,minmax(0,auto));justify-content:start;gap:0 52px}
   .pvg-keys dd{font-size:17px;line-height:1.4}
   .pvg-co > .pvg-about{max-width:60em;font-size:14px}
@@ -843,7 +920,7 @@ a.pvg-topic-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2p
 }
 
 @media (prefers-reduced-motion:reduce){
-  .pvg *,.pvg *::before,.pvg *::after,.pvg-hero *,.pvg-hero *::before,.pvg-hero *::after{transition:none!important}
+  .pvg *,.pvg *::before,.pvg *::after,.pvg-hero *,.pvg-hero *::before,.pvg-hero *::after,.pvg-rmg *,.pvg-rmg *::before,.pvg-rmg *::after{transition:none!important}
 }
 /* 広い PC：会社の数字を4つずつ（2段に収まり、写真の丈とそろう） */
 @container pvg (min-width:1180px){
@@ -894,7 +971,22 @@ a.pvg-topic-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2p
 .pvg-tabbar{position:sticky;top:var(--pv-topbar,72px);z-index:90;margin-top:4px;background-color:inherit}
 .pvg-tabbar *,.pvg-tabbar *::before,.pvg-tabbar *::after{box-sizing:border-box}
 .pvg-tabrow{display:flex;align-items:center;gap:12px;min-width:0;box-shadow:inset 0 -1px 0 var(--pv-line)}
-.pvg-tabs{flex:1 1 auto;display:flex;align-items:stretch;gap:26px;min-width:0;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none}
+/* ★帯が入りきらない幅では、続きが在る側の端を薄くして小さい矢印を置く（2026-10-08 オーナーのご指示
+   「タブ名が途中で切れて気付けない」）。どちらの端に続きが在るかは pv-glance.js が実際に測って
+   枠の data-more（"l"・"r"・"l r"）へ書く。入りきる幅では何も付かない ＝ 印も出ない。
+   ⚠️ 印は飾り（押せない）。押すのはタブそのもので、選んだタブは JS が帯のまんなかへ寄せる。 */
+.pvg-tabwrap{position:relative;flex:1 1 auto;display:flex;min-width:0}
+.pvg-tabwrap::before,.pvg-tabwrap::after{
+  content:"";position:absolute;top:50%;z-index:1;width:7px;height:7px;margin-top:-4px;pointer-events:none;
+  border-top:2px solid var(--pv-ink-2);border-right:2px solid var(--pv-ink-2);opacity:0;transition:opacity .2s var(--pv-ease);
+}
+.pvg-tabwrap::after{right:3px;transform:rotate(45deg)}
+.pvg-tabwrap::before{left:3px;transform:rotate(-135deg)}
+.pvg-tabwrap[data-more~="r"]::after,.pvg-tabwrap[data-more~="l"]::before{opacity:1}
+.pvg-tabwrap[data-more="r"] > .pvg-tabs{-webkit-mask-image:linear-gradient(to right,black calc(100% - var(--pvg-fade)),transparent calc(100% - 12px));mask-image:linear-gradient(to right,black calc(100% - var(--pvg-fade)),transparent calc(100% - 12px))}
+.pvg-tabwrap[data-more="l"] > .pvg-tabs{-webkit-mask-image:linear-gradient(to left,black calc(100% - var(--pvg-fade)),transparent calc(100% - 12px));mask-image:linear-gradient(to left,black calc(100% - var(--pvg-fade)),transparent calc(100% - 12px))}
+.pvg-tabwrap[data-more="l r"] > .pvg-tabs{-webkit-mask-image:linear-gradient(to right,transparent 12px,black var(--pvg-fade),black calc(100% - var(--pvg-fade)),transparent calc(100% - 12px));mask-image:linear-gradient(to right,transparent 12px,black var(--pvg-fade),black calc(100% - var(--pvg-fade)),transparent calc(100% - 12px))}
+.pvg-tabs{--pvg-fade:40px;flex:1 1 auto;display:flex;align-items:stretch;gap:26px;min-width:0;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;scroll-padding-inline:44px}
 .pvg-tabs::-webkit-scrollbar{display:none}
 .pvg-tabs > a{
   position:relative;flex:none;display:inline-flex;align-items:center;gap:7px;min-height:48px;padding:0 1px;
@@ -926,7 +1018,8 @@ a.pvg-topic-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2p
 @media (max-width:699.98px){
   /* スマホ：絵を外して字だけ・入りきらない分は横に送る */
   /* 先頭の「概要」は2文字 ＝ 幅 28px。左へ広げた押せる範囲が、横に流れる帯の左端で切れないように、帯を 10px 左へ広げる（字の位置は動かない） */
-  .pvg-tabs{gap:20px;margin-left:-10px;padding-left:10px}
+  .pvg-tabwrap{margin-left:-10px}
+  .pvg-tabs{gap:20px;padding-left:10px}
   .pvg-tabs > a{min-height:44px;font-size:13px}
   .pvg-tabs .pvg-ic{display:none}
   .pvg-add{padding:0 12px}
@@ -937,12 +1030,25 @@ a.pvg-topic-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2p
   .pvg-tabs{gap:22px}
   .pvg-add .pvg-add-w{display:none}
 }
+@media (min-width:700px) and (max-width:759.98px){
+  /* iPad mini 縦（744）など：絵を付けたままだと最後の「ステイ先」が 11px だけ切れる。絵を外して6つとも入れる */
+  .pvg-tabs .pvg-ic{display:none}
+}
 
 /* 昔からの節の小さい字の注記：切れ目の無い長い英字（採用窓口のメールアドレス）が箱から出ない。
    キャセイの概要が、320px の画面でこの1行のためにページごと横へ 5px 広がっていた。
    入らない語だけを折る（break-word ＝ 箱の幅の決まり方は変えない）。
    ⚠️ 節ぜんぶに掛けない。掛けていたあいだ、2列の機材カードの機種名（A321neo・B737/767）が字の途中で折れた。 */
 .glass[data-pvg-pane] .text-xs{overflow-wrap:break-word}
+/* 下に残っている昔からの節（よくある質問）の押せるもの ── 質問の行とリンク。
+   載せた・押した・キーボードで選んだ、の3つが分かるようにする。説明の字（押せないもの）には付けない */
+.glass[data-pvg-pane] summary:hover,.glass[data-pvg-pane] a[href]:hover{opacity:.82}
+.glass[data-pvg-pane] summary:active,.glass[data-pvg-pane] a[href]:active{opacity:.64}
+.glass[data-pvg-pane] summary:focus-visible,.glass[data-pvg-pane] a[href]:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px;border-radius:6px}
+/* 同じ節の表：iPad から上では、機種名と路線の札を字の途中で折らない（狭い画面は表ごと横に流すので、そこでは掛けない） */
+@media (min-width:700px){
+  .glass[data-pvg-pane] td > span.font-bold,.glass[data-pvg-pane] .tag{white-space:nowrap}
+}
 /* 出す・隠す：いまのタブの名前が data-pvg-pane に無いものは出さない */
 .pvg-at-overview [data-pvg-pane]:not([data-pvg-pane~="overview"]),
 .pvg-at-pay [data-pvg-pane]:not([data-pvg-pane~="pay"]),

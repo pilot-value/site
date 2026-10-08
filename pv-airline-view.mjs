@@ -32,8 +32,8 @@ import { fileURLToPath } from 'node:url';
 import { SALARY } from './salary-data.mjs';
 import { BASIS, figures, man } from './salary-basis.mjs';
 import { JPY_PER } from './fx-rates.mjs';
-import { FACTS as CO, valueText, whenText } from './airline-facts.mjs';
-import { FACTS as EYF } from './career-facts.mjs';
+import { FACTS as CO, valueText, whenText, introText as coIntro } from './airline-facts.mjs';
+import { FACTS as EYF, introText as eyIntro } from './career-facts.mjs';
 import { LIVING, CITY_OF } from './living-facts.mjs';
 import { primary } from './airline-photos.mjs';
 
@@ -89,7 +89,10 @@ function figNote(slug, f) {
 }
 /* 出どころの時点。台帳の as_of の頭（「2026年1月時点（脚注…）」→「2026年1月時点」）。 */
 const srcWhen = s => String(s.as_of || '').replace(/（[^（）]*）$/, '').replace(/^(\d{4})-(\d{2})-(\d{2})\s*掲載$/, (m, y, mo, d) => `${y}年${+mo}月${+d}日 掲載`);
-const srcOf = slug => (BASIS[slug].src || []).map(s => ({ pub: s.pub, name: s.name, when: srcWhen(s), url: s.url, secondary: !!s.secondary }));
+/* checked ＝ その資料を開いて確かめた日（台帳の accessed）。画面は「確認日」として出す。 */
+/* エティハドの求人票に書かれている応募の条件（職位ごとに1つ）。無ければ何も書かない */
+const reqOf = rank => { const r = BASIS.etihad?.[rank]?.groups?.[0]?.req; return r ? `応募条件：${r}` : ''; };
+const srcOf = slug => (BASIS[slug].src || []).map(s => ({ pub: s.pub, name: s.name, when: srcWhen(s), url: s.url, secondary: !!s.secondary, checked: s.accessed || '' }));
 
 function payOf(slug, rank) {
   const r = BASIS[slug]?.[rank] || {}, s = SALARY[slug]?.[rank];
@@ -135,6 +138,8 @@ function fact(x) {
     orig: cur && cur !== 'JPY', yen: cur && cur !== 'JPY' ? yenOf(cur, x.value) : '',
     cond: x.cond_ja || '', when: whenText(x),
     src: x.src ? { name: x.src.name, url: x.src.url, kind: x.src.kind } : null,
+    /* 出どころを開いて確かめた日（台帳の as_of）。画面は「確認日」として出す。 */
+    checked: x.as_of || '',
     /* 会社ぜんたいの決まり（パイロットに限らない）は false。 */
     pilot: x.pilot !== false,
   };
@@ -159,8 +164,9 @@ function etihad() {
     scale: facts(E.scale.filter(x => ['fleet_total', 'destinations_operated', 'passengers_year', 'pilots_joined_year'].includes(x.key))),
     fleet: facts(E.fleet),
     jobs: E.jobs.filter(j => ['cap', 'fo'].includes(j.rank) && !/instructor/.test(j.key)).map(j => ({
-      key: j.key, label: j.ja, value: `${j.place_ja}`, cond: '', when: `${whenText({ at: j.posted })} 掲載`,
-      src: { name: j.src.name, url: j.url, kind: j.src.kind }, pilot: true,
+      /* 応募の条件は年収の根拠の台帳に在る（求人票そのものの字。career-facts.mjs の req_ref が指している先）。写しを持たない */
+      key: j.key, label: j.ja, value: `${j.place_ja}`, cond: reqOf(j.rank), when: `${whenText({ at: j.posted })} 掲載`,
+      src: { name: j.src.name, url: j.url, kind: j.src.kind }, checked: j.as_of || '', pilot: true,
     })),
     /* ★ 家賃は1か月あたりで出す（2026-10-06 オーナーのご指示「年間じゃなくて月間の家賃」）。
        出どころ（Bayut）の表は1年あたりなので、12で割って1の位で丸める。台帳（career-facts.mjs）は年額のまま持つ。
@@ -245,9 +251,19 @@ export function viewOf(slug) {
       tax: B.tax, notes: B.notes || [], src: srcOf(slug), cur: B.cur,
     },
     work: d.work, benefits: d.benefits, living: d.living,
-    company: { profile: d.profile, scale: d.scale, fleet: d.fleet, photo: primary(slug) },
+    company: { profile: d.profile, scale: d.scale, fleet: d.fleet, photo: primary(slug), intro: introOf(slug) },
     jobs: d.jobs,
   };
+}
+
+/* 会社のカードのいちばん上の字（紹介文）。字は台帳の項目から組み立てたもの ── 手で書いた字ではない
+   （型と決まりは career-facts.mjs の fillIntro / checkIntro。エティハドは career-facts、ほかは airline-facts が持つ）。
+   uses ＝ その文が使った項目の鍵。カードは、同じ項目を下の一覧の先頭にもう一度並べない。 */
+function introOf(slug) {
+  const list = slug === 'etihad' ? eyIntro(slug) : coIntro(slug);
+  if (!list.length) throw new Error(`${slug}: 台帳に紹介文が無い`);
+  for (const s of list) if (!s.text) throw new Error(`${slug}: 紹介文が台帳の項目で埋まらない（${s.uses.join('・')}）`);
+  return list;
 }
 
 /* node pv-airline-view.mjs … 5社ぶんを一覧で出す（目で確かめる用）。 */

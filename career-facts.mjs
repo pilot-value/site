@@ -509,19 +509,64 @@ export function atText(at) {
 export const valueText = x =>
   typeof x.value === 'number' ? `${x.value.toLocaleString('en-US')}${x.unit || ''}` : String(x.value ?? '');
 
-/** 紹介文を [{ text, uses }] で返す。組み立てられない文は text が null（画面に出さない）。 */
-export function introText(slug) {
-  return ((FACTS[slug] || {}).intro || []).map(s => {
+/** 紹介文の型（intro）を、find(鍵) が返す項目の字で埋めて [{ text, uses }] で返す。
+    組み立てられない文は text が null（画面に出さない）。
+    ほかの4社の台帳（airline-facts.mjs）も同じ道を通る ＝ 紹介文の作り方はサイトに1つだけ。
+    when(項目) は「いつの話か」の字（既定は at をそのまま字にする）。 */
+export function fillIntro(intro, find, when = x => atText(x.at)) {
+  return (intro || []).map(s => {
     let ok = true;
     const text = String(s.ja).replace(INTRO_SLOT, (_, key, part) => {
-      const x = factByKey(slug, key);
-      const v = !x ? '' : part === 'at' ? atText(x.at) : part === 'cond' ? (x.cond_ja || '')
+      const x = find(key);
+      const v = !x ? '' : part === 'at' ? when(x) : part === 'cond' ? (x.cond_ja || '')
         : part === 'city' ? (x.city_ja || '') : valueText(x);
       if (!v) ok = false;
       return v;
     });
     return { text: ok ? text : null, uses: [...(s.uses || [])] };
   });
+}
+export function introText(slug) {
+  return fillIntro((FACTS[slug] || {}).intro, key => factByKey(slug, key));
+}
+
+/** 紹介文の検査。字が台帳の項目だけでできているかを見る
+    （手で打った数字が無い／条件つきの数字に条件が付いている／規模の数字に時点が付いている／同じ項目を2回言わない）。
+    o = { find（鍵 → 項目）, scale（規模の項目の並び）, when（時点の字）, not（入れない鍵）, banned（書かない言い方）, max（字数）} */
+export function checkIntro(slug, intro, fail, o) {
+  intro = intro || [];
+  const when = o.when || (x => atText(x.at));
+  if (intro.length > 3) fail(`${slug}.intro`, `文が多い（${intro.length}。3つまで）`);
+  const built = fillIntro(intro, o.find, when);
+  const usedAll = [];
+  for (const [i, s] of intro.entries()) {
+    const where = `${slug}.intro[${i}]`;
+    if (typeof s.ja !== 'string' || !s.ja.trim()) { fail(where, 'ja が無い'); continue; }
+    const slots = [...s.ja.matchAll(INTRO_SLOT)].map(m => ({ key: m[1], part: m[2] || 'value' }));
+    const keys = [...new Set(slots.map(t => t.key))];
+    if (JSON.stringify(keys) !== JSON.stringify(s.uses || [])) fail(where, `uses が、文の中の鍵と合わない（文の中: ${keys.join(', ')}）`);
+    const bare = s.ja.replace(INTRO_SLOT, () => '');
+    if (/[{}]/.test(bare)) fail(where, '読めない {…} が残っている');
+    if (/[0-9０-９〇一二三四五六七八九十百千]/.test(bare)) fail(where, '数字を手で打っている（数字と日付は台帳の項目から入れる）');
+    const word = bare.match(o.banned);
+    if (word) fail(where, `紹介文に書かない言い方（${word[0]}）`);
+    for (const key of keys) {
+      if ((o.not || []).includes(key)) { fail(where, `紹介文に入れない項目（${key}）`); continue; }
+      const x = o.find(key);
+      if (!x) { fail(where, `台帳に無い鍵（${key}）`); continue; }
+      const has = part => slots.some(t => t.key === key && t.part === part);
+      if (has('at') && !when(x)) fail(where, `時点（at）が無い項目に :at を使っている（${key}）`);
+      if (has('cond') && !x.cond_ja) fail(where, `条件（cond_ja）が無い項目に :cond を使っている（${key}）`);
+      if (has('city') && !x.city_ja) fail(where, `街（city_ja）が無い項目に :city を使っている（${key}）`);
+      if (has('value') && x.cond_ja && !has('cond')) fail(where, `条件つきの数字を、条件なしで出している（${key}）`);
+      if (has('value') && (o.scale || []).includes(x) && !has('at')) fail(where, `規模の数字に時点が付いていない（${key}）`);
+      if (usedAll.includes(key)) fail(where, `同じ項目を2つの文で使っている（${key}）`);
+      usedAll.push(key);
+    }
+    if (!built[i].text) fail(where, '文を組み立てられない');
+  }
+  const whole = built.map(b => b.text || '').join('');
+  if (whole.length > o.max) fail(`${slug}.intro`, `長い（${whole.length}字。${o.max}字まで）`);
 }
 
 export default FACTS;
@@ -636,40 +681,8 @@ export function check() {
       if (sum !== total.value) fail(`${slug}.fleet`, `内訳の合計 ${sum} が総数 ${total.value} と合わない`);
     }
 
-    /* 紹介文: 字が台帳の項目だけでできている
-       （手で打った数字が無い／条件つきの数字に条件が付いている／規模の数字に時点が付いている／同じ項目を2回言わない） */
-    const intro = a.intro || [];
-    if (intro.length > 3) fail(`${slug}.intro`, `文が多い（${intro.length}。3つまで）`);
-    const built = introText(slug);
-    const usedAll = [];
-    for (const [i, s] of intro.entries()) {
-      const where = `${slug}.intro[${i}]`;
-      if (typeof s.ja !== 'string' || !s.ja.trim()) { fail(where, 'ja が無い'); continue; }
-      const slots = [...s.ja.matchAll(INTRO_SLOT)].map(m => ({ key: m[1], part: m[2] || 'value' }));
-      const keys = [...new Set(slots.map(t => t.key))];
-      if (JSON.stringify(keys) !== JSON.stringify(s.uses || [])) fail(where, `uses が、文の中の鍵と合わない（文の中: ${keys.join(', ')}）`);
-      const bare = s.ja.replace(INTRO_SLOT, () => '');
-      if (/[{}]/.test(bare)) fail(where, '読めない {…} が残っている');
-      if (/[0-9０-９〇一二三四五六七八九十百千]/.test(bare)) fail(where, '数字を手で打っている（数字と日付は台帳の項目から入れる）');
-      const word = bare.match(INTRO_BANNED);
-      if (word) fail(where, `紹介文に書かない言い方（${word[0]}）`);
-      for (const key of keys) {
-        if (INTRO_NOT.includes(key)) { fail(where, `紹介文に入れない項目（${key}）`); continue; }
-        const x = factByKey(slug, key);
-        if (!x) { fail(where, `台帳に無い鍵（${key}）`); continue; }
-        const has = part => slots.some(t => t.key === key && t.part === part);
-        if (has('at') && !atText(x.at)) fail(where, `時点（at）が無い項目に :at を使っている（${key}）`);
-        if (has('cond') && !x.cond_ja) fail(where, `条件（cond_ja）が無い項目に :cond を使っている（${key}）`);
-        if (has('city') && !x.city_ja) fail(where, `街（city_ja）が無い項目に :city を使っている（${key}）`);
-        if (has('value') && x.cond_ja && !has('cond')) fail(where, `条件つきの数字を、条件なしで出している（${key}）`);
-        if (has('value') && (a.scale || []).includes(x) && !has('at')) fail(where, `規模の数字に時点が付いていない（${key}）`);
-        if (usedAll.includes(key)) fail(where, `同じ項目を2つの文で使っている（${key}）`);
-        usedAll.push(key);
-      }
-      if (!built[i].text) fail(where, '文を組み立てられない');
-    }
-    const whole = built.map(b => b.text || '').join('');
-    if (whole.length > INTRO_MAX) fail(`${slug}.intro`, `長い（${whole.length}字。${INTRO_MAX}字まで）`);
+    /* 紹介文: 字が台帳の項目だけでできている（決まりは checkIntro の1か所）。 */
+    checkIntro(slug, a.intro, fail, { find: key => factByKey(slug, key), scale: a.scale, not: INTRO_NOT, banned: INTRO_BANNED, max: INTRO_MAX });
   }
 
   /* 既にある台帳との食い違い（同じ事実が2か所で別の値になっていないか） */

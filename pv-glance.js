@@ -83,6 +83,28 @@
   var TABS = links.map(function (a) { return a.getAttribute('data-pvg-tab'); });
   var OPEN = { pay: 'benefits', work: 'work', life: 'living' };   // そのタブでは、この板が開いたまま本文になる（gen-airline-glance.mjs の CELL_TAB と同じ対）
   var at = '';
+  /* 帯が入りきらない幅で、どちらの端に続きが在るかを枠に書く（pv-glance.css が端を薄くして矢印を置く）。
+     実際に測る ── 幅や文字数から決め打ちしない（通貨・字の大きさ・言語で変わる）。 */
+  var wrap = bar ? (bar.closest('.pvg-tabwrap') || bar) : null;
+  function tabEdges() {
+    if (!bar) return;
+    var max = bar.scrollWidth - bar.clientWidth, x = bar.scrollLeft, m = [];
+    if (max > 1) { if (x > 1) m.push('l'); if (x < max - 1) m.push('r'); }
+    m = m.join(' ');
+    if (!m) wrap.removeAttribute('data-more');
+    else if (wrap.getAttribute('data-more') !== m) wrap.setAttribute('data-more', m);
+  }
+  /* 選んだタブを帯のまんなかへ寄せる（ページは動かさない）。端に在るタブは、寄せられる所まで。
+     まんなかへ寄せると、前後のタブが両側に見える ＝ 「まだ在る」と「いまここ」が同時に分かる。 */
+  function tabSeat() {
+    if (!bar) return;
+    var a = bar.querySelector('[aria-current="page"]'), max = bar.scrollWidth - bar.clientWidth;
+    if (a && max > 1) {
+      var r = a.getBoundingClientRect(), br = bar.getBoundingClientRect();
+      bar.scrollLeft = Math.max(0, Math.min(max, Math.round(bar.scrollLeft + r.left + r.width / 2 - br.left - br.width / 2)));
+    }
+    tabEdges();
+  }
   function fire() {
     /* 見えるようになった実データの欄を、career-live.js に取りに行かせる */
     try { d.body.dispatchEvent(new CustomEvent('cr:show', { bubbles: true })); } catch (e) { /* 古いブラウザ */ }
@@ -98,13 +120,8 @@
       else a.removeAttribute('aria-current');
     });
     mores.forEach(function (b) { set(b, b.getAttribute('aria-controls') === 'pvg-p-' + OPEN[tab]); });
-    /* 狭い画面では帯が横に流れる。選んだタブが帯の外に居たら、見える所まで寄せる（ページは動かさない） */
-    links.forEach(function (a) {
-      if (a.getAttribute('data-pvg-tab') !== tab) return;
-      var r = a.getBoundingClientRect(), br = bar.getBoundingClientRect();
-      if (r.left < br.left) bar.scrollLeft -= br.left - r.left + 16;
-      else if (r.right > br.right) bar.scrollLeft += r.right - br.right + 16;
-    });
+    /* 狭い画面では帯が横に流れる。選んだタブを帯のまんなかへ寄せ、続きの在る端に印を付ける */
+    tabSeat();
     fire();
   }
   /* 帯が画面の上に貼り付いているとき（＝ページの途中で押したとき）は、切り替えた面の頭を帯のすぐ下へ持ってくる。
@@ -134,8 +151,14 @@
     }
     return { tab: ok.indexOf(at) >= 0 ? at : ok[0] || TABS[0], el: el, city: '' };
   }
+  /* 寄る先が畳んだ箱（<details>）か、その中に在るなら、先に開ける。
+     閉じたままだと、寄った先に見出しの1行しか無い（「この数字の出どころ」を押したのに、出どころが見えない）。 */
+  function unfold(el) {
+    for (var n = el; n && n.nodeName; n = n.parentNode) if (n.nodeName === 'DETAILS') n.open = true;
+  }
   function near(el) {
     var box = bar.closest('.pvg-tabbar') || bar;
+    unfold(el);
     put(el.getBoundingClientRect().top + w.pageYOffset - HEAD - box.offsetHeight - 12);
   }
   function state(extra) {
@@ -335,6 +358,10 @@
     w.PVGlance = { go: go, at: function () { return at; }, city: function () { return cityAt; }, mark: markY };
     var first = fromHash();
     show(first.tab);
+    /* 指で送った時・幅が変わった時・字の形が届いた時に、端の印を測り直す */
+    bar.addEventListener('scroll', tabEdges, { passive: true });
+    if (w.ResizeObserver) new w.ResizeObserver(tabSeat).observe(bar); else w.addEventListener('resize', tabSeat);
+    if (d.fonts && d.fonts.ready) d.fonts.ready.then(tabSeat);
     /* 開いた時点では全部の節が出ていたので、ブラウザが寄った先はずれている。隠したあとで寄り直す */
     if (first.city) { setCity(first.city); fire(); near(cityBox); }
     else if (first.el) near(first.el);
@@ -379,26 +406,12 @@
     });
   }
 
-  /* ── 2) タブへ（口コミ・募集要項）────────────────────────
-     ⚠️ その名前のタブが無い会社がある（JAL・ANA の募集要項は「企業トップ」の面の下に在る。
-        タブは airline-reviews-ui.js が節の札の言葉から作るので、会社ごとに本数が違う）。
-        無いタブへ切り替えると、どの面も選ばれない ＝ ページの中身がぜんぶ消える。
-        無い時は切り替えず、同じ面の中のその節へ寄る。 */
-  var SEC = { jobs: /募集要項|採用情報/ };
+  /* ── 2) タブへ ───────────────────────────────────────────
+     その名前のタブが在ればそこへ。無い名前へは切り替えない
+     （無いタブへ切り替えると、どの面も選ばれない ＝ ページの中身がぜんぶ消える）。
+     ★ 昔は「募集要項」だけ、概要の下に在った古い節へ寄せていた。その節は外して、募集は概要の1枚になった（2026-10-08）。 */
   function toTab(tab) {
-    /* タブを持つページ：その名前のタブが在ればそこへ。無い名前（募集要項）は、概要の中のその節へ寄る。 */
-    if (bar) {
-      if (TABS.indexOf(tab) >= 0) return go(tab);
-      if (!SEC[tab]) return false;
-      go(TABS[0]);
-      var hh = d.querySelectorAll('.glass h2');
-      for (var j = 0; j < hh.length; j++) {
-        if (!SEC[tab].test(hh[j].textContent) || hh[j].closest('.pvg')) continue;
-        glide(hh[j].closest('.glass').getBoundingClientRect().top - HEAD - (bar.closest('.pvg-tabbar') || bar).offsetHeight - 12);
-        return true;
-      }
-      return false;
-    }
+    if (bar) return TABS.indexOf(tab) >= 0 ? go(tab) : false;
     var ui = w.PVReviewUI;
     if (!ui || typeof ui.switchTab !== 'function') return false;
     var nav = d.getElementById('airline-tab-nav');
@@ -409,12 +422,6 @@
          帯のすぐ下に在る本文の箱の頭を、帯の下へ寄せる。 */
       var body = nav.nextElementSibling;
       glide(body ? body.getBoundingClientRect().top - HEAD - nav.offsetHeight : nav.getBoundingClientRect().top - HEAD);
-      return true;
-    }
-    var hs = SEC[tab] ? d.querySelectorAll('.glass h2') : [];
-    for (var i = 0; i < hs.length; i++) {
-      if (!SEC[tab].test(hs[i].textContent) || hs[i].closest('.pvg')) continue;
-      glide(hs[i].closest('.glass').getBoundingClientRect().top - HEAD - 12);
       return true;
     }
     return false;

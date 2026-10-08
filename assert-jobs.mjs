@@ -28,6 +28,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import LIVING, { allItems, whenText } from './living-facts.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 const ONLINE = process.argv.includes('--online');
@@ -108,11 +109,30 @@ const quoted = (html, i) => {
   const ctx = html.slice(Math.max(0, i - 40), i);
   return ctx.lastIndexOf('「') > ctx.lastIndexOf('」');
 };
+/* ⚠️ 家賃の相場の出どころ（SUUMO・591）が自分のページに書いた更新日も、相手の言葉。
+   会社ページの「暮らし」と career.html は、暮らしの台帳（living-facts.mjs）の「2026年7月10日更新」をそのまま写している。
+   求人を見直した日ではないので数えない（2026-10-08、91日目に ana・jal・career の3枚が嘘の赤になった）。
+   ⚠️ 赤を消すために日付を書き換えない。あれは相手のページの日付で、こちらが確かめた日は台帳の as_of が別に持っている。
+   見分けるのは台帳の字そのもの ── 台帳が持つ「…更新」と同じ日付だけを外す（前後の言葉で当てずっぽうに探さない）。
+   ★外すのは「台帳を写した欄の中」に在るときだけ（2026-10-09）。
+   日付の字だけで外していた頃は、手で書いた求人の一覧がたまたま同じ日付だと、**どのページでも**黙って外れた。
+   暮らしの台帳を写すのは gen-airline-glance.mjs（PV-GLANCE）と gen-career.mjs（PV-CAREER）の2つだけなので、
+   その印の内側だけを外す。外したものは「どのページの・どの日付を・何か所」まで下に出す（黙って外さない）。 */
+const SOURCE_DATES = new Set(Object.keys(LIVING).flatMap((c) => [...allItems(c)])
+  .map(([, x]) => (/\d{4}年\d{1,2}月\d{1,2}日\s*更新/.exec(whenText(x)) || [])[0]).filter(Boolean));
+const GEN_BLOCK = [['<!--PV-GLANCE-->', '<!--/PV-GLANCE-->'], ['<!--PV-CAREER-->', '<!--/PV-CAREER-->']];
+const inGenerated = (html, i) => GEN_BLOCK.some(([a, b]) => {
+  const open = html.lastIndexOf(a, i);
+  return open >= 0 && html.lastIndexOf(b, i) < open && html.indexOf(b, i) > i;
+});
+const skipped = new Map();                         /* 「ページ — 日付」→ 何か所 */
+const skip = (rel, d) => skipped.set(`${rel} — ${d}`, (skipped.get(`${rel} — ${d}`) || 0) + 1);
 for (const f of files) {
   const hits = [
     ...f.html.matchAll(/(\d{4})年(\d{1,2})月(\d{1,2})日\s*更新/g),
     ...f.html.matchAll(/Updated\s+([A-Za-z]+)\s+(\d{1,2}),\s*(\d{4})/g),
-  ].filter((m) => !quoted(f.html, m.index));
+  ].filter((m) => !quoted(f.html, m.index))
+    .filter((m) => (SOURCE_DATES.has(m[0]) && inGenerated(f.html, m.index) ? (skip(f.rel, m[0]), false) : true));
   const m = hits[0];
   if (!m) continue;
   updSeen++;
@@ -124,6 +144,10 @@ for (const f of files) {
   else console.log(`  ${f.rel} — ${m[0]}（${days} 日前）`);
 }
 if (!updSeen) console.log('  更新日の記載は無い');
+if (skipped.size) {
+  console.log('  （家賃の出どころが書いた更新日は数えていない ── 台帳を写した欄の中だけ）');
+  for (const [k, n] of [...skipped].sort()) console.log(`    ${k}（${n}か所）`);
+}
 
 /* ── 3〜4) リンク先が生きているか ── */
 const LINK = /https:\/\/www\.latestpilotjobs\.com\/jobs\/view\/id\/(\d+)\.html/g;

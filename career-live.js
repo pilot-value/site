@@ -67,7 +67,7 @@
     payLock: '給与の提出で開きます',
     payGive: '匿名で給与を提出する',
     gg: 'Give & Get',
-    payUnlock: '全ての給与情報を解放する',
+    payUnlock: ['全ての', '給与情報を', '解放する'],
     payTerms: '閲覧条件',
     payAll: 'REAL PAY で全部見る',
     login: 'ログイン',
@@ -154,17 +154,41 @@
     a.appendChild(icon('arrow', 14));
     return a;
   }
-  /* 2行の入口（会社ページ）── 上に「Give & Get」、下に何が開くか。行き先は1行の入口と同じ */
+  /* 2行の入口（会社ページ）── 上に「Give & Get」、下に何が開くか。行き先は1行の入口と同じ。
+     ★2026-10-08 形はサイト共通の pv-gg.css（トップのいちばん上の黒いボタンと同じ：2行ともまんなか・同じ大きさ・丸い形）。
+       評価スコアの1枚・口コミの錠前の入口と1つも違わない。ここで大きさ・色・寄せ方を足さない。 */
+  function ggArrow() {
+    var s = d.createElementNS(NS, 'svg');
+    s.setAttribute('width', '16');
+    s.setAttribute('height', '16');
+    s.setAttribute('viewBox', '0 0 16 16');
+    s.setAttribute('fill', 'none');
+    s.setAttribute('aria-hidden', 'true');
+    var p = d.createElementNS(NS, 'path');
+    p.setAttribute('d', 'M3 8h10M9 4l4 4-4 4');
+    p.setAttribute('stroke', 'currentColor');
+    p.setAttribute('stroke-width', '1.6');
+    p.setAttribute('stroke-linecap', 'round');
+    p.setAttribute('stroke-linejoin', 'round');
+    s.appendChild(p);
+    return s;
+  }
   function give2(main, href) {
-    var a = el('a', 'crl-cta crl-cta-2');
+    var a = el('a', 'pv-gg');
     a.href = href;
-    var t = el('span', 'crl-cta-t');
+    var t = el('span', 'pv-gg-t');
     var k = el('span', 'crl-cta-k', T.gg);
     k.lang = 'en';
     t.appendChild(k);
-    t.appendChild(el('span', 'crl-cta-m', main));
+    /* main は語の切れ目ごとの配列。あいだに <wbr> を置く ＝ 狭い箱ではここでだけ折れる（折り方は pv-gg.css） */
+    var m = el('span', 'crl-cta-m');
+    main.forEach(function (w, i) {
+      if (i) m.appendChild(d.createElement('wbr'));
+      m.appendChild(d.createTextNode(w));
+    });
+    t.appendChild(m);
     a.appendChild(t);
-    a.appendChild(icon('arrow', 14));
+    a.appendChild(ggArrow());
     return a;
   }
   function msg(text) { return el('p', 'crl-msg', text); }

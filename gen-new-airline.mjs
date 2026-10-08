@@ -21,7 +21,9 @@
      ・<!--PV-FAQ-->   … 日本語は gen-faq.mjs が SSOT から起こす（なのでここでは書かない）。
                           英語は gen-faq.mjs が“足す”だけなので、可視FAQはここで書く。
      ・<!--PV-SEO-->   … seo-normalize.mjs（title/description/canonical/hreflang/og/Occupation）
-     ・<!--PV-CLINK--> … link-countries.mjs
+     ・国別の箱（<!--PV-CLINK-->）と「パイロット転職を検討中の方へ」の橙の帯は、
+       2026-10-08 にオーナー指示で全会社ページから外した。ここでも書かない・借りてこない
+       （link-countries.mjs はいまは外すだけ。戻っていないかは assert-basis.mjs の J が見る）。
      ただし FAQPage の JSON-LD は gen-faq.mjs が「既にある FAQPage の中身を差し替える」
      作りなので、空の FAQPage を最初から置いておく必要がある。
 
@@ -748,7 +750,9 @@ function build({ donor, lang }) {
 
   /* 1) 管理ブロックを剥がす。中身はパイプラインが入れ直す。 */
   html = html.replace(/<!--PV-SEO-->[\s\S]*?<!--\/PV-SEO-->[ \t]*\n?/g, '')
-             .replace(/<!--PV-CLINK-->[\s\S]*?<!--\/PV-CLINK-->[ \t]*\n?/g, '')
+             .replace(/<!--PV-CLINK-->[\s\S]*?<!--\/PV-CLINK-->[ \t]*\n?/g, () => '')
+             /* 古い借り元に橙の帯が残っていても持ち込まない（2026-10-08 に全会社ページから外した）。 */
+             .replace(/<div style="background:rgba\(249,115,22,\.06\)[^>]*>\s*<a href="\.\.\/pilot-tenshoku\.html"[^>]*>[^<]*<\/a>\s*<\/div>[ \t]*\n?/g, () => '')
              .replace(/<!--PV-FAQ-->[\s\S]*?<!--\/PV-FAQ-->[ \t]*\n?/g, '')
              .replace(/<!--PV-3P-->[\s\S]*?<!--\/PV-3P-->[ \t]*\n?/g, '');
 
@@ -775,9 +779,9 @@ function build({ donor, lang }) {
   if (heroStart === -1) throw new Error(`${donor}: ヒーローが見つからない`);
   const bodyStart = html.indexOf(CONTAINER, heroStart);
   if (bodyStart === -1) throw new Error(`${donor}: 本文コンテナが見つからない`);
-  const tailAnchor = lang === 'ja'
-    ? html.indexOf('<div style="background:rgba(249,115,22,.06)', bodyStart)   // 転職CTAバンド
-    : html.slice(bodyStart).search(/<footer\b/i) + bodyStart;
+  /* ★2026-10-08 まで日本語は転職CTAの橙の帯を「本文の終わり」の目印にしていた。
+       帯は全会社ページから外したので、日英とも <footer を目印にする。 */
+  const tailAnchor = html.slice(bodyStart).search(/<footer\b/i) + bodyStart;
   if (tailAnchor <= bodyStart) throw new Error(`${donor}: 本文の終わりが見つからない`);
 
   const hero = lang === 'ja' ? heroJa() : heroEn();
@@ -793,7 +797,7 @@ function build({ donor, lang }) {
   const left = C.donorTokens.filter((t) => html.includes(t));
   if (left.length) throw new Error(`${donor}: 借り元の語が残っている → ${left.join(', ')}`);
   const need = lang === 'ja'
-    ? ['<div style="background:rgba(249,115,22,.06)', '"@type":"FAQPage"', '<footer']
+    ? ['"@type":"FAQPage"', '<footer']
     : ['Frequently Asked Questions', '</details>', '"@type":"FAQPage"', '<footer'];
   const miss = need.filter((t) => !html.includes(t));
   if (miss.length) throw new Error(`${donor}: パイプラインが要る目印が無い → ${miss.join(', ')}`);

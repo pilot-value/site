@@ -31,7 +31,7 @@ import { networkOf } from './airline-destinations.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 const UP = '../';                                   // 会社ページ（airlines/）から見たルート
-const CSS = ['career-live.css', 'pv-glance.css'];
+const CSS = ['career-live.css', 'pv-glance.css', 'pv-gg.css'];   // pv-gg.css ＝「Give & Get」のボタンの形（サイトに1つ）
 const JS = ['career-live.js', 'pv-glance.js'];
 export const ASSETS = [...CSS, ...JS];
 /* 「情報を追加」の面（pv-contrib.*）。タブを持つページだけが読む。 */
@@ -91,10 +91,11 @@ const tabbed = slug => TABBED.has(slug);
 const pane = (slug, names) => (tabbed(slug) ? ` data-pvg-pane="${names}"` : '');
 /* 勤務・待遇・暮らしの板が、自分のタブでは開いたまま本文になる（pv-glance.js の OPEN と同じ対） */
 const CELL_TAB = { work: 'work', benefits: 'pay', living: 'life' };
-/* 今のページの下に残っている古い節の行き先（見出しの言葉で決める。当たらない節は概要） */
-const OLD_PANE = [[/他社の比較|福利厚生|年収差|詳細比較|比べられるところ/, 'pay'], [/フライト環境|路線・機材|訓練/, 'work']];
-/* 「会社が公表している金額」の節は、見出しが会社ごとに違うので id で決める */
-const oldPane = (h2, attrs = '') => (/\bid="kyuyo-konkyo"/.test(attrs) ? 'pay' : (OLD_PANE.find(([re]) => re.test(h2)) || [, 'overview'])[1]);
+/* 今のページの下に残っている古い節の行き先（見出しの言葉で決める。当たらない節は概要）。
+   残っているのは「よくある質問」（概要）だけ。ほかは下の LEGACY が外す
+   （ANA の錠前つきの節も 2026-10-09 に外したので、給与・待遇へ送る行はもう無い）。 */
+const OLD_PANE = [];
+const oldPane = h2 => (OLD_PANE.find(([re]) => re.test(h2)) || [, 'overview'])[1];
 const h2Text = s => s.replace(/<[^>]*>/g, () => '');
 /* 「情報を追加」の面を開く印。href は残す ＝ 面が読めなかったときは、今までどおり質問の画面へ行く */
 const opens = (slug, topic) => (tabbed(slug) && topic ? ` data-pvc-open="${topic}"` : '');
@@ -111,8 +112,10 @@ if (new Set(Object.values(NOTE_KEYS).flat()).size !== QUESTIONS.filter(q => askG
 const tabBar = v => `<div class="pvg-tabbar" style="--pvg-c:${esc(v.color)}">
 <div class="max-w-7xl mx-auto px-6">
 <div class="pvg-tabrow">
+<div class="pvg-tabwrap">
 <div class="pvg-tabs" id="pvg-tabs" role="navigation" aria-label="${esc(v.name)}のページの中">
 ${TABS.map(([id, label, icon], i) => `<a href="#${id}" data-pvg-tab="${id}"${i ? '' : ' aria-current="page"'}>${icon}<span>${label}</span></a>`).join('\n')}
+</div>
 </div>
 <button type="button" class="pvg-add" data-pvc-open="list"><b aria-hidden="true">＋</b><span><span class="pvg-add-w">情報を</span>追加</span></button>
 </div>
@@ -132,6 +135,7 @@ const premise = f => {
   return join(f.cond, f.cond && !/\d/.test(when || '') ? '' : when);
 };
 const ext = (url, text, cls = 'pvg-src') => `<a class="${cls}" href="${esc(url)}" target="_blank" rel="noopener">${esc(text)}</a>`;
+const dateJa = iso => iso.replace(/^(\d{4})-(\d\d)-(\d\d)$/, (m, y, mo, d) => `${y}年${+mo}月${+d}日`);
 /* 実データの欄（描くのは career-live.js。ここは器だけ） */
 const live = (kind, attrs = {}) =>
   `<div class="crl" data-live="${kind}"${Object.entries(attrs).map(([k, v]) => ` data-${k}="${esc(v)}"`).join('')} data-state="idle"><span class="crl-ph">—</span></div>`;
@@ -149,12 +153,20 @@ const safe = s => (!/[¥円]/.test(String(s)) && /\d\s*[万億]/.test(String(s))
 const whole = f => (f.pilot === false ? '<span class="pvg-tag pvg-tag-q">会社全体の制度</span>' : '');
 
 /* 出どころの一覧（同じ資料は1回だけ）。
-   fold ＝ 下のカードでは畳んで置く（押せば資料の名前とリンクが全部出る。数字のそばから1回で届く）。 */
-function sources(items, fold = false) {
+   fold ＝ 下のカードでは畳んで置く（押せば資料の名前とリンクが全部出る。数字のそばから1回で届く）。
+   dated ＝ 資料ごとに、当サイトがその資料を読んで確かめた日を添える（募集は腐る。確認日 ≠ 掲載日）。
+           同じ資料から取った行の確認日が違うときは、古いほうを出す（どの行も、その日には確かめてある）。
+           ⚠️ 確認日は台帳の値。読み直していない資料の日付を、ここで新しくしない。 */
+function sources(items, fold = false, dated = false) {
   const seen = new Map();
-  for (const f of items) if (f && f.src && f.src.url && !seen.has(f.src.url)) seen.set(f.src.url, f.src);
+  for (const f of items) {
+    if (!f || !f.src || !f.src.url) continue;
+    const o = seen.get(f.src.url) || { src: f.src, checked: f.checked || '' };
+    if ((f.checked || '') < o.checked) o.checked = f.checked || '';
+    seen.set(f.src.url, o);
+  }
   if (!seen.size) return '';
-  const links = [...seen.values()].map(s => ext(s.url, s.name)).join('');
+  const links = [...seen.values()].map(o => ext(o.src.url, o.src.name) + (dated && o.checked ? `<small>確認日 ${esc(dateJa(o.checked))}</small>` : '')).join('');
   return fold
     ? `<details class="pvg-dt pvg-srcd"><summary>出どころ<small>${seen.size}件</small>${IC.down}</summary><p class="pvg-srcs">${links}</p></details>`
     : `<p class="pvg-srcs"><span>出どころ</span>${links}</p>`;
@@ -283,10 +295,15 @@ function payDetails(v) {
     rows.push(`<div><dt>${prose(t.group)}</dt><dd><b>${t.text}</b><small>${prose(t.kind)}</small></dd></div>`);
   }
   const notes = p.notes.length ? `<ul class="pvg-notes">${p.notes.map(n => `<li>${prose(n)}</li>`).join('')}</ul>` : '';
+  /* 資料ごとに 時点（掲載日・対象の期間）と 確認日（当サイトが資料を読んで確かめた日）を別々に書く。
+     join() に一緒に渡さない ── 同じ日付だと、短いほう（時点）が消える。 */
   const src = p.src.length ? `<p class="pvg-srcs"><span>出どころ</span>${p.src.map(s =>
-    `${ext(s.url, `${s.pub}「${s.name}」`)}<small>${esc(join(s.when, s.secondary ? '会社の公表ではない資料' : ''))}</small>`).join('')}</p>` : '';
+    `${ext(s.url, `${s.pub}「${s.name}」`)}<small>${esc([join(s.when, s.secondary ? '会社の公表ではない資料' : ''), s.checked ? `確認日 ${dateJa(s.checked)}` : ''].filter(Boolean).join('・'))}</small>`).join('')}</p>` : '';
   const fx = p.cur && p.cur !== 'JPY' ? `<p class="pvg-fx">${esc(fxNote(p.cur))}</p>` : '';
-  return `<details class="pvg-dt pvg-paydt">
+  /* ★2026-10-08 この板が「金額の出どころ」の置き場（id="kyuyo-konkyo"。ほかのページからのリンクの先）。
+       下に在った古い節（会社ごとに手で書いた出どころの表）は外した ＝ 同じ話を、確かめた日の違う字で2か所に出さない。
+       # でここへ来たときは pv-glance.js が板を開く。 */
+  return `<details class="pvg-dt pvg-paydt" id="kyuyo-konkyo">
 <summary>この金額は誰の・何を含んだ・いつの金額か${IC.down}</summary>
 <div class="pvg-body">
 <dl class="pvg-dl">${rows.join('\n')}</dl>
@@ -505,7 +522,7 @@ const stats = items => `<dl class="pvg-stats">${items.map(f => {
 }).join('')}</dl>`;
 /* 機材の札は、乗員が呼ぶ短い形で出す（台帳の書き方は title に残す）。 */
 const shortType = s => String(s).replace(/^ボーイング\s*/, () => 'B').replace(/^エアバス\s*/, () => '').replace(/^エンブラエル\s*/, () => 'E');
-function companyCard(v, about) {
+function companyCard(v) {
   const c = v.company, p = c.photo;
   /* 作者名とライセンス名を示すことが、この写真を使う条件（CC BY／BY-SA）。外さない。 */
   const credit = p && needsCredit(p)
@@ -514,25 +531,26 @@ function companyCard(v, about) {
   const facts = [...c.profile, ...c.scale];
   const fleet = c.fleet.length ? `<div class="pvg-fleet"><p class="pvg-askh">機材<small>${join(`${c.fleet.length}機種`, c.fleet[0].when)}</small></p>
 <ul class="pvg-chips">${c.fleet.map(f => `<li title="${esc(f.label)}">${esc(shortType(f.label))}<b>${esc(f.value)}</b></li>`).join('')}</ul></div>` : '';
+  /* 紹介の本文（2026-10-08 オーナーのご指示「会社紹介の規模・空港名・古い機材／訓練地も台帳と公式資料にそろえる」）。
+     字は台帳の項目から組み立てたものだけ（pv-airline-view.mjs の introOf。型と決まりは career-facts.mjs の checkIntro）。
+     ⚠️ 手で書いた紹介文をここへ戻さない。作り直す前のページの字には「日本第2位」「日本最大」のような順位、
+        古い機数・路線数、資料で確かめていない訓練地や退職年齢が入っていた（2026-10-07 までは、その字を1文字も変えずに運んでいた）。
+     歴史・規模・拠点が分かる字は、開かなくても読める場所に置く（4つの数字だけで会社紹介を済ませない）。 */
+  const lead = `<p class="pvg-about" data-pvg-about="lead">${c.intro.map(s => esc(s.text)).join('')}</p>`;
   /* 見本の「会社概要」── ページのいちばん上に置く小さな1枚。写真は小さく（主役にしない）、
-     見えているのは最初の4つの値だけ。数え方と時点・残りの数字・機材・出どころは「会社情報」を開いた中に全部在る
-     （同じ4つも、そこでは数え方つきで出る ＝ 注記を落としたままにしない）。 */
-  const keys = `<dl class="pvg-keys">${facts.slice(0, 4).map(f => { const m = tail(f);
+     見えている値は4つまで。紹介文がもう言った項目は並べない（同じ話を上下に2度出さない）。
+     数え方と時点・全部の数字・機材・出どころは「会社情報」を開いた中に在る
+     （上に出した値も、そこでは数え方つきで出る ＝ 注記を落としたままにしない）。 */
+  const said = new Set(c.intro.flatMap(s => s.uses));
+  const keys = `<dl class="pvg-keys">${facts.filter(f => !said.has(f.key)).slice(0, 4).map(f => { const m = tail(f);
     return `<div><dt>${esc(f.label)}</dt><dd>${m ? esc(m[1]) : val(f)}</dd></div>`; }).join('')}</dl>`;
-  /* 紹介の本文（2026-10-07 オーナーのご指示）── 下に在った「◯◯について」の節から移した字。
-     歴史・規模・拠点が分かる最初の段落は、開かなくても読める場所に置く（4つの数字だけで会社紹介を済ませない）。
-     残りの段落と、台帳の数字と重ならない項目（本社・退職年齢）は「会社情報」を開いた中。字は1文字も変えていない。 */
-  const lead = about.lead ? `<p class="pvg-about" data-pvg-about="lead">${about.lead}</p>` : '';
-  const more = about.more.map(t => `<p data-pvg-about="more">${t}</p>`).join('\n');
-  const extra = about.keys.length ? `<dl class="pvg-about-k">${about.keys.map(([k, x]) => `<div data-pvg-about="k"><dt>${k}</dt><dd>${x}</dd></div>`).join('')}</dl>` : '';
-  const prose = more || extra ? `<div class="pvg-about-more">${[more, extra].filter(Boolean).join('\n')}</div>\n` : '';
   return `<article class="pvg-card pvg-co"${pane(v.slug, 'overview')}>
 ${photo}
 ${head(IC.company, '会社')}
 ${lead}
 ${keys}
-<details class="pvg-dt pvg-co-more"><summary>会社情報<small>${join(more ? '紹介の続き' : '', `数字${facts.length}つ`, c.fleet.length ? '機材' : '', '出どころ')}</small>${IC.down}</summary>
-${prose}${stats(facts)}
+<details class="pvg-dt pvg-co-more"><summary>会社情報<small>${join(`数字${facts.length}つ`, c.fleet.length ? '機材' : '', '出どころ')}</small>${IC.down}</summary>
+${stats(facts)}
 ${fleet}
 ${sources([...facts, ...c.fleet])}
 </details>
@@ -548,9 +566,14 @@ ${sources([...facts, ...c.fleet])}
    口コミの要約（良い点／気になる点）の置き場も、ここ。描くのは career-live.js で、資格は口コミの本文と同じ。
    サーバーに要約の口が無いあいだは何も出ない（作り物の要約で埋めない）。 */
 export const GG = 'Give &amp; Get';
-const gg = main => `<span class="pvg-gg"><span class="pvg-gg-k" lang="en">${GG}</span><span class="pvg-gg-m">${main}</span></span>`;
-export const RV_CTA = { overview: '口コミを解放する', reviews: '全ての口コミデータを解放する' };
-const rvCta = (v, at) => `<p class="pvg-rv-cta pvg-rv-cta-${at}"><a class="pvg-btn pvg-btn-gg" href="${UP}submit-review.html?airline=${esc(v.slug)}">${gg(RV_CTA[at])}</a><span>匿名・無料</span></p>`;
+/* ★2026-10-08 形はサイト共通の pv-gg.css（トップのいちばん上の黒いボタンと同じ：2行ともまんなか・同じ大きさ・丸い形）。
+     給与の1枚（career-live.js の give2）・口コミの錠前（airline-reviews-ui.js の unlockBtn）と1つも違わない。
+     ここで大きさ・色・寄せ方を足さない。言葉と行き先は今までどおり。 */
+export const GG_ARROW = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+/* 言葉は語の切れ目ごとに持つ。狭い箱ではここでだけ折れる（「デ／ータ」と語の途中で折らない。折り方は pv-gg.css）。 */
+const gg = cut => `<span class="pv-gg-t"><span class="pvg-gg-k" lang="en">${GG}</span><span class="pvg-gg-m">${cut.join('<wbr>')}</span></span>`;
+export const RV_CTA = { overview: ['口コミを', '解放する'], reviews: ['全ての', '口コミデータを', '解放する'] };
+const rvCta = (v, at) => `<p class="pvg-rv-cta pvg-rv-cta-${at}"><a class="pv-gg" href="${UP}submit-review.html?airline=${esc(v.slug)}">${gg(RV_CTA[at])}${GG_ARROW}</a><span>匿名・無料</span></p>`;
 const reviewsCard = v => `<article class="pvg-card pvg-rv-card" id="pvg-score"${pane(v.slug, 'overview reviews')}>
 ${head(IC.reviews, 'パイロットによる評価スコア')}
 <div class="pvg-rv-in">
@@ -561,10 +584,16 @@ ${rvCta(v, 'overview')}
 ${rvCta(v, 'reviews')}
 </div>
 </article>`;
+/* 募集（2026-10-08 オーナーのご指示）── 会社が公表している募集は、この1枚だけに置く。
+   下に在った古い「募集要項」「採用情報」の節は外した（LEGACY）。新旧の2か所に在ると、確かめた日の違う字が
+   食い違う（JAL は、上が「免許を持つ人は自社養成へ応募できない」・下が「経験者を随時採用」だった）。
+   右上の入口は会社の募集ページへ直接（台帳のいちばん上の行の資料）。資料ごとの確認日は「出どころ」の中。 */
 function jobsCard(v) {
+  const first = v.jobs.find(f => f.src && f.src.url);
+  const link = first ? `<a class="pvg-link" href="${esc(first.src.url)}" target="_blank" rel="noopener">会社の募集ページ${IC.out}</a>` : '';
   return `<article class="pvg-card pvg-jobs"${pane(v.slug, 'overview')}>
-${head(IC.jobs, '募集', `<button type="button" class="pvg-link" data-pvg-tab="jobs">募集要項を開く${IC.go}</button>`)}
-${v.jobs.length ? factList(v.jobs) + sources(v.jobs, true) : '<p class="pvg-quiet">会社が公表している募集を確認できていません。</p>'}
+${head(IC.jobs, '募集', link)}
+${v.jobs.length ? factList(v.jobs) + sources(v.jobs, true, true) : '<p class="pvg-quiet">会社が公表している募集を確認できていません。</p>'}
 </article>`;
 }
 /* ── 就航地・ステイ ─────────────────────────────────────
@@ -576,7 +605,6 @@ ${v.jobs.length ? factList(v.jobs) + sources(v.jobs, true) : '<p class="pvg-quie
    ・概要には一部だけ（地域ごとに1つずつ）。同じカードを2度出さないよう、全部の一覧は概要では隠す（pv-glance.css）。 */
 const CITY_SIZES = '(min-width: 1100px) 250px, (min-width: 700px) 30vw, 46vw';
 const TEASER = 6;                                  // 概要に出す枚数の上限（幅ごとの枚数は pv-glance.css の .pvg-cteaser）
-const dateJa = iso => iso.replace(/^(\d{4})-(\d\d)-(\d\d)$/, (m, y, mo, d) => `${y}年${+mo}月${+d}日`);
 /* 街の名前に、折れてよい所を <wbr> で渡す。
    pv-glance.css が街の名前を word-break:keep-all にしている ＝ ブラウザが自分で折るのは「・」のあとと括弧の前だけ。
    それだけだと、狭いカード（6〜9字ぶん）に入らない名前は入る所で切れて、最後の1字だけが次の行へ落ちる
@@ -743,12 +771,12 @@ ${head(IC.reviews, '口コミ', '会員の投稿 <b data-pvg-n="posts">—</b> �
 </article>`;
 
 /* ── 1社ぶん ────────────────────────────────────────── */
-function glance(v, about) {
+function glance(v) {
   const island = JSON.stringify({ airlines: Object.fromEntries(GLANCE.map(s => { const o = viewOf(s); return [s, { ja: o.name, color: o.color }]; })) })
     .replace(/</g, () => '\\u003c');
   return `<section class="pvg" data-tab-section="overview" data-slug="${v.slug}" style="--pvg-c:${esc(v.color)};--pvg-n:${AXIS / 1000}" aria-label="${esc(v.name)}の給与・勤務・待遇・暮らし">
 <div class="pvg-more-grid"${pane(v.slug, 'overview')}>
-${companyCard(v, about)}
+${companyCard(v)}
 </div>
 <div class="pvg-payrow"${pane(v.slug, 'overview pay reviews')}>
 ${payCard(v)}
@@ -818,53 +846,88 @@ function divEnd(html, i) {
   while ((m = re.exec(html))) { depth += m[0] === '</div>' ? -1 : 1; if (!depth) return m.index + 6; }
   throw new Error('閉じていない <div>');
 }
-/* 会社の紹介文を運ぶ（2026-10-07 オーナーのご指示）── 下に在った「◯◯について」の節を、いちばん上の会社カードへ移す。
-   字は1文字も変えない（h1 と同じやり方）：初回は古い節から読んで節を消し、2回目からは管理ブロックの中から読み戻す。
-   節の右に在った6つの項目のうち、台帳の数字・税の札・拠点と同じ話のものは運ばない（同じ話を2か所に出さない。
-   台帳のほうは出どころと時点が付いている）。残るのは本社と退職年齢。 */
-const ABOUT_RE = /<div class="glass p-8 fade-up"[^>]*>\s*<div class="section-badge mb-4">(?:航空会社の概要|概要)<\/div>\s*<h2\b[^>]*>[^<]*について<\/h2>/;
-const ABOUT_DUP = /^(設立|アライアンス|就航都市|保有機材数?|所得税|ハブ空港|ハブ)$/;
-function takeAbout(slug, html) {
-  const end = html.indexOf('<!--/PV-GLANCE-->');
-  const from = end < 0 ? html.indexOf(BOX) : end;
-  const m = ABOUT_RE.exec(html.slice(from));
-  if (m) {
-    const a = from + m.index, b = divEnd(html, a), sec = html.slice(a, b);
-    const ps = [...sec.matchAll(/<p class="text-muted leading-relaxed[^"]*">([\s\S]*?)<\/p>/g)].map(x => x[1].trim());
-    const keys = [...sec.matchAll(/<div><div class="text-xs text-muted uppercase tracking-widest mb-1">([^<]*)<\/div><div class="font-semibold[^"]*">([^<]*)<\/div><\/div>/g)]
-      .map(x => [x[1].trim(), x[2].trim()]);
-    if (!ps.length || ps.some(t => /[<>]/.test(t)) || keys.length !== 6) throw new Error(`${slug}: 「◯◯について」の節が読めない`);
-    const cut = html.slice(0, a).replace(/\s*(?:<!-- 概要 -->\s*)?$/, () => '') + '\n\n' + html.slice(b).replace(/^\s*\n/, () => '');
-    return { html: cut, about: { lead: ps[0], more: ps.slice(1), keys: keys.filter(([k]) => !ABOUT_DUP.test(k)) } };
+/* ── 古い節の台帳（2026-10-08 オーナーのご指示）────────────────
+   管理ブロックより下に残っていた、作り直す前のページの節。1行 ＝ 1種類。見出しの言葉（か id）で掴む。
+     state  merged … 同じ話が新しい部品に在る（to ＝ その置き場）。古い節は外す
+            drop   … 要らない（to ＝ 代わりの入口）。古い節は外す
+            keep   … 残す（要確認。理由は why）
+   ★ merged と drop の節は、作り直すたびに HTML から外す。CSS で隠すのではない ＝ 新旧の2か所に同じ話が出ない。
+     運ぶのは「話」であって「字」ではない：古い節の字は資料で確かめていないものが多かった（古い機数・訓練地・
+     退職年齢・「数百倍」の倍率）。新しい部品に出るのは台帳の値だけ。
+   ★ この表に無い節がページの下に在ったら、止める（黙って残さない・黙って消さない）。節を足したら、ここに1行足す。
+   ⚠️ 何度流しても同じ。写しを作らない（assert-airline-glance.mjs はこの表を import して使う）。 */
+export const LEGACY = [
+  { name: '会社が公表している金額（出どころの表）', id: 'kyuyo-konkyo', state: 'merged', to: '給与の1枚の「この金額は誰の・何を含んだ・いつの金額か」（住所の #kyuyo-konkyo もそこ）' },
+  { name: '◯◯について', h2: /について$/, state: 'merged', to: '会社の1枚の紹介文（台帳の項目から組み立てる）' },
+  { name: 'フライト環境・路線・機材', h2: /フライト環境|路線・機材/, state: 'merged', to: '会社の1枚（機材・路線や就航地の数）／ステイ先（公式の就航地の一覧）' },
+  { name: '訓練・昇格・審査', h2: /訓練・昇格|訓練・審査/, state: 'merged', to: '勤務（会社が公表している条件）／募集' },
+  { name: '福利厚生・待遇', h2: /福利厚生/, state: 'merged', to: '待遇（会社が公表している条件）' },
+  { name: '募集要項・採用情報', h2: /募集要項|採用情報/, state: 'merged', to: '募集の1枚（会社の募集ページへの入口つき）' },
+  { name: '他社の年収のカード', h2: /と他社の比較|他社との比較/, state: 'drop', to: '社名の横の「他社と比較」' },
+  { name: '2社の比較表', h2: /比べられるところだけ|ANA vs JAL パイロット年収 詳細比較表/, state: 'drop', to: '社名の横の「他社と比較」' },
+  /* ★2026-10-09 ANA だけに在った錠前つきの節。金額は1つも入っておらず（「機種ごとの金額は出していません」）、
+     中身は資料で確かめていない機材の配置の話だった。残すと、給与のタブに昔の形の錠前（橙の四角いボタン）が
+     新しい Give & Get と並んで出る ＝ 先行5社で形が1つにならない。錠前の箱ごと外す（dropLegacy）。 */
+  { name: '機種別・路線別の年収差（錠前つき）', h2: /年収差/, state: 'drop', to: '会社の1枚の機材（台帳の機数）。機種ごとの金額は会社が公表しておらず、当サイトも出していない' },
+  { name: 'よくある質問', h2: /よくある質問/, state: 'keep', why: '検索の結果に出る質問と答え。台帳と食い違う答えは直してある。残すか外すかはオーナーの判断' },
+];
+/* 残す節（keep）を先に当てる ── 「◯◯についてよくある質問」のような見出しを、外す側の行が先に掴まないように */
+const legacyHit = (r, h2, tag) => (r.id ? new RegExp('\\bid="' + r.id + '"').test(tag) : r.h2.test(h2));
+const legacyOf = (h2, tag) => LEGACY.find(r => r.state === 'keep' && legacyHit(r, h2, tag)) || LEGACY.find(r => legacyHit(r, h2, tag));
+/* 外す節の見出し（検査が「ページに残っていない」ことを見るのに使う） */
+export const DROP_H2 = new RegExp(LEGACY.filter(r => r.state !== 'keep' && r.h2).map(r => r.h2.source).join('|'));
+/* 節のすぐ前に在る、人が書いた目印（<!-- 年収 --> <!-- ▼ PV-BASIS … -->）。管理ブロックの印（<!--NAME--> ＝ 空白なし）は掴まない */
+const NOTE_BEFORE = /(?:\s*<!-- (?:(?!-->)[\s\S])*?-->)+\s*$/;
+const NOTE_AFTER = /^\s*<!-- [^>]*\/PV-BASIS[^>]*-->/;
+/* 中身の無い錠前の箱は、前に付いた覚え書きごと外す（新しい部品より下だけ）。
+   節を外したあとに空の箱が残ると、古い橙の札だけが画面に出る ＝ 同じページに形の違う Give & Get が2つ。
+   何度流しても同じ（空の箱が無ければ何もしない）。切り口の整え方は dropLegacy と同じ。 */
+function dropEmptyGate(html) {
+  const MARK = '<!--/PV-GLANCE-->';
+  for (;;) {
+    const end = html.indexOf(MARK);
+    if (end < 0) return html;
+    const from = end + MARK.length;
+    const m = /<div class="premium-gate[^>]*>(?:\s*<!--(?:(?!-->)[\s\S])*?-->)*\s*<\/div>(?:<!--[^>]*\/premium-gate[^>]*-->)?/.exec(html.slice(from));
+    if (!m) return html;
+    let a = from + m.index;
+    const b = a + m[0].length, before = NOTE_BEFORE.exec(html.slice(from, a));
+    if (before) a = from + before.index;
+    html = html.slice(0, a).replace(/\s*$/, () => '') + '\n\n' + html.slice(b).replace(/^\s*\n/, () => '');
   }
-  const a = html.indexOf('<!--PV-GLANCE-->'), old = a < 0 || end < 0 ? '' : html.slice(a, end);
-  const lead = /<p class="pvg-about" data-pvg-about="lead">([^<]*)<\/p>/.exec(old);
-  return { html, about: {
-    lead: lead ? lead[1] : '',
-    more: [...old.matchAll(/<p data-pvg-about="more">([^<]*)<\/p>/g)].map(x => x[1]),
-    keys: [...old.matchAll(/<div data-pvg-about="k"><dt>([^<]*)<\/dt><dd>([^<]*)<\/dd><\/div>/g)].map(x => [x[1], x[2]]),
-  } };
 }
-/* 会社どうしの比較は「他社と比較」に集める（2026-10-07 オーナーのご指示）── 会社ページの中の2社の比較表を外す。
-   錠前の箱がその節だけを包んでいるときは箱ごと外す（中を抜くと、空の箱と錠前の札だけが残る）。
-   比較の画面（career.html）と、社名の横の「他社と比較」はそのまま。何度流しても同じ。 */
-export const DROP_H2 = /比べられるところだけ|ANA vs JAL パイロット年収 詳細比較表/;
-function dropCompare(html) {
+function dropLegacy(slug, html) {
   for (;;) {
     const end = html.indexOf('<!--/PV-GLANCE-->');
     let hit = null;
     for (const m of html.slice(end).matchAll(/<div class="glass p-8 fade-up"[^>]*>/g)) {
-      const a = end + m.index, h2 = /<h2\b[^>]*>([\s\S]*?)<\/h2>/.exec(html.slice(a, a + 4000));
-      if (h2 && DROP_H2.test(h2Text(h2[1]))) { hit = a; break; }
+      const a = end + m.index, sec = html.slice(a, divEnd(html, a));
+      const h2 = /<h2\b[^>]*>([\s\S]*?)<\/h2>/.exec(sec), title = h2 ? h2Text(h2[1]).trim() : '';
+      const row = legacyOf(title, m[0]);
+      if (!row) throw new Error(slug + ': 古い節の台帳（LEGACY）に無い節が、ページの下に在る（' + (title || '見出しなし') + '）');
+      if (row.state !== 'keep') { hit = a; break; }
     }
-    if (hit === null) return html;
+    if (hit === null) return dropEmptyGate(html);
     let a = hit, b = divEnd(html, a);
-    const gate = /<div class="premium-gate[^>]*>\s*$/.exec(html.slice(0, a)), shut = /^\s*<\/div>(?:<!--[^>]*\/premium-gate[^>]*-->)?/.exec(html.slice(b));
+    /* 錠前の箱がその節だけを包んでいるときは箱ごと外す（中を抜くと、空の箱と錠前の札だけが残る）。
+       ★2026-10-09 箱と節のあいだに覚え書き（<!-- 機種別年収差 -->）が挟まっていても箱ごと。
+         挟まっていた ANA では節だけが抜け、空の箱と古い錠前の札が残った。 */
+    const gate = /<div class="premium-gate[^>]*>(?:\s*<!--(?:(?!-->)[\s\S])*?-->)*\s*$/.exec(html.slice(0, a)), shut = /^\s*<\/div>(?:<!--[^>]*\/premium-gate[^>]*-->)?/.exec(html.slice(b));
     if (gate && shut) { a = gate.index; b += shut[0].length; }
-    const note = /\n[ \t]*<!--(?:(?!-->)[\s\S])*?(?:premium-gate|比較)(?:(?!-->)[\s\S])*?-->[ \t]*\n?[ \t]*$/.exec(html.slice(0, a));
-    if (note) a = note.index;
+    const before = NOTE_BEFORE.exec(html.slice(0, a)), after = NOTE_AFTER.exec(html.slice(b));
+    if (before) a = before.index;
+    if (after) b += after[0].length;
     html = html.slice(0, a).replace(/\s*$/, () => '') + '\n\n' + html.slice(b).replace(/^\s*\n/, () => '');
   }
+}
+/* 副題：「—」の左（社名のもう1つの書き方。airline-base.js が読む）は今のページの字のまま運ぶ。
+   右は台帳の言葉だけ（2026-10-08）── 「日本第2位」「日本最大」「国営」「同水準」のような、資料で確かめていない言い方を書かない。 */
+function tagline(v) {
+  const f = [...v.company.profile, ...v.company.scale];
+  const al = f.find(x => x.key === 'alliance'), nat = f.find(x => x.key === 'national_airline');
+  if (al) { const m = tail(al); return m ? m[1] + '加盟（' + m[2] + '）' : al.value + '加盟'; }
+  if (nat) return nat.value;
+  throw new Error(v.slug + ': 副題に出す台帳の項目（航空連合か位置づけ）が無い');
 }
 /* 左メニューの道具が書く2つの塊（patch-side-nav.mjs の HEAD_RE / JS_RE と同じ掴み方。行頭に錨を打つ）。
    <head> の側は、説明のコメント＋ pv-tokens.css / app-nav.css の <link>。本文の側は、説明のコメント＋ app-nav.js。 */
@@ -873,7 +936,8 @@ const NAV_JS = /^(?:<!-- PV-NAV:(?:(?!-->)[\s\S])*?-->\n)?[ \t]*<script src="(?:
 
 export function build(slug, html) {
   const v = viewOf(slug);
-  /* 1) 社名の行。h1 と副題の字は今のページのものを1文字も変えずに運ぶ（airline-base.js が読む） */
+  /* 1) 社名の行。h1 と、副題の「—」より左の字は、今のページのものを1文字も変えずに運ぶ（airline-base.js が読む）。
+        副題の右は台帳の言葉（tagline）。 */
   const H0 = '<!--PV-HERO-->', H1 = '<!--/PV-HERO-->';
   let a = html.indexOf(H0), b;
   if (a >= 0) b = html.indexOf(H1, a) + H1.length;
@@ -881,7 +945,7 @@ export function build(slug, html) {
   const old = html.slice(a, b);
   const h1 = /<h1\b[^>]*>([\s\S]*?)<\/h1>/.exec(old), sub = /<p class="text-muted[^"]*">([^<]*—[^<]*)<\/p>/.exec(old);
   if (!h1 || !sub) throw new Error(`${slug}: h1 か副題が読めない`);
-  const heroText = `${H0}\n${hero(v, { h1: h1[1].trim(), sub: sub[1].trim() })}\n${H1}`;
+  const heroText = `${H0}\n${hero(v, { h1: h1[1].trim(), sub: `${sub[1].split('—')[0].trim()} — ${esc(tagline(v))}` })}\n${H1}`;
   html = html.slice(0, a) + heroText + (old.startsWith(H0) ? '' : '\n\n') + html.slice(b);
 
   /* 2) 見た目（左メニューの <link> の塊の直前。あちらは </head> の直前に居続ける） */
@@ -890,10 +954,9 @@ export function build(slug, html) {
     if (!m) throw new Error(`${slug}: 左メニューの <link> の塊（PV-NAV）が無い`);
     return m.index;
   });
-  /* 3) 本文の箱の先頭。会社の紹介文は、下の古い節（初回）か今の管理ブロック（2回目から）から運ぶ */
-  const kept = takeAbout(slug, html);
-  html = block(kept.html, 'PV-GLANCE', glance(v, kept.about), h => once(h, BOX, '本文の箱') + BOX.length + 1);
-  if (tabbed(slug)) html = dropCompare(html);
+  /* 3) 本文の箱の先頭。そのあと、下に残っている古い節を台帳（LEGACY）のとおりに外す */
+  html = block(html, 'PV-GLANCE', glance(v), h => once(h, BOX, '本文の箱') + BOX.length + 1);
+  if (tabbed(slug)) html = dropLegacy(slug, html);
   /* 4) 部品の JS（口コミの部品より後 ＝ app-nav.js の塊の直前。あちらは </body> の直前に居続ける） */
   html = blockBefore(html, 'PV-GLANCE-JS', [...JS, ...(tabbed(slug) ? [CONTRIB.js, STAY.js] : [])].map(f => `<script src="${asset(f)}"></script>`).join('\n'), h => {
     const m = NAV_JS.exec(h);
@@ -909,7 +972,7 @@ export function build(slug, html) {
     const bare = attrs.replace(/ data-pvg-pane="[^"]*"/, () => '');
     if (!tabbed(slug)) return `<div class="glass p-8 fade-up"${bare}>`;
     const h2 = /<h2\b[^>]*>([\s\S]*?)<\/h2>/.exec(rest.slice(at, at + 4000));
-    return `<div class="glass p-8 fade-up"${bare} data-pvg-pane="${oldPane(h2 ? h2Text(h2[1]) : '', bare)}">`;
+    return `<div class="glass p-8 fade-up"${bare} data-pvg-pane="${oldPane(h2 ? h2Text(h2[1]) : '')}">`;
   });
   /* 錠前の箱（中の節を包んでいる）にも同じ印を付ける。付けないと、中の節を隠したタブに
      空の箱と錠前の札だけが残る（箱には高さの下限がある）。行き先は中の節と同じ。 */

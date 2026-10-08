@@ -533,10 +533,10 @@ const EN_MANAGED = [/pilot salary per month\?$/i, /pilot pay scale\?$/i, /pilot 
 /* ── 可視ブロック。ページ側で既に定義されているクラスに乗せる ──────
    glass / section-badge / fade-up は日本語110枚すべてに存在することを確認済み。
    独自CSSを足さないので、ライトテーマもページ側の規則がそのまま効く。 */
-function visibleJa(slug, items) {
+function visibleJa(slug, items, pane = '') {
   const name = SALARY[slug].ja;
   return `<!--PV-FAQ-->
-<div class="glass p-8 fade-up">
+<div class="glass p-8 fade-up"${pane}>
   <div class="section-badge mb-4">よくある質問</div>
   <h2 class="text-2xl font-bold mb-6">${escHtml(name)}パイロット年収 よくある質問（FAQ）</h2>
   <div class="space-y-4">
@@ -630,14 +630,22 @@ const asQuestion = ({ q, a }) => ({ '@type': 'Question', name: q, acceptedAnswer
    前後の改行が毎回1本ずつ残り、再実行のたびにファイルが伸びて冪等でなくなる。
    （差し込み位置の直後は必ず閉じタグなので、意味のある空行を巻き込まない） */
 const STRIP = /<!--PV-FAQ-->[\s\S]*?<!--\/PV-FAQ-->[ \t\n]*/g;
+/* ★2026-10-09 剥がす前に、箱の「どのタブの節か」の印（data-pvg-pane）を覚えておく。
+   印を付けるのは gen-airline-glance.mjs（タブを持つ会社ページだけ）。ここが箱を書き起こすたびに印を落とすと、
+   あちらを流し直すまで、その会社の FAQ が全部のタブに出る（タブを持つ5社で、箱をここが書くのはエティハドだけ）。
+   印が無いページ（ほかの全社）では空のまま ＝ 今までと1文字も変わらない。 */
+const PANE_OF = /<!--PV-FAQ-->\s*<div class="glass p-8 fade-up"( data-pvg-pane="[a-z ]+")>/;
 /* 英語は既存の <details> の直後に足すので、こちらが自分で入れた前後の改行も一緒に返す。
    剥がした結果が元のファイルと1バイトも違わないので、何回流しても同じ形に落ち着く。 */
 const STRIP_EN = /\n?<!--PV-FAQ-->[\s\S]*?<!--\/PV-FAQ-->[ \t\n]*/g;
 
 /* ── 日本語の差し込み位置。本文コンテナ（max-w-7xl … pb-24）の中の末尾。
-      直後にある転職CTAの帯を目印にして、コンテナを閉じる </div> の手前へ。
-      110枚すべてに両方あることを確認済み。 */
-const CTA = '<div style="background:rgba(249,115,22,.06)';
+      コンテナを閉じる </div> の手前 ＝ <footer の直前にある最後の </div> の手前。
+      ★2026-10-08 までは直後にあった転職CTAの橙の帯を目印にしていた。
+        帯はオーナー指示で全会社ページから外したので、目印を <footer に移した
+        （帯を目印に戻さない。もう在らない＝差し込み位置が見つからずに落ちる）。
+      ⚠️ </div> と <footer のあいだに空白以外が在るページでは差し込まない
+         （別の箱の中へ FAQ を入れてしまうため）。 */
 
 const report = [];
 let jaMade = 0, jaRelinked = 0, enAdded = 0, skipped = 0, failed = 0;
@@ -649,6 +657,7 @@ for (const slug of Object.keys(SALARY)) {
   const orig = fs.readFileSync(abs, 'utf8');
 
   /* まず剥がす。問数が変わっても、SSOT が動いても、同じ扱いで直る。 */
+  const pane = (PANE_OF.exec(orig) || [])[1] || '';
   let html = orig.replace(STRIP, '');
 
   const existing = extractVisible(html, 'よくある質問');
@@ -674,10 +683,10 @@ for (const slug of Object.keys(SALARY)) {
   } else {
     items = buildJa(slug);
     mode = 'SSOT→本文+LD';
-    const cta = html.indexOf(CTA);
-    const at = cta === -1 ? -1 : html.lastIndexOf('</div>', cta);
-    if (at === -1) { report.push(`  ! ja ${slug}: 差し込み位置が見つからない`); failed++; continue; }
-    html = html.slice(0, at) + visibleJa(slug, items) + html.slice(at);
+    const foot = html.search(/<footer\b/i);
+    const at = foot === -1 ? -1 : html.lastIndexOf('</div>', foot);
+    if (at === -1 || !/^<\/div>\s*$/.test(html.slice(at, foot))) { report.push(`  ! ja ${slug}: 差し込み位置が見つからない`); failed++; continue; }
+    html = html.slice(0, at) + visibleJa(slug, items, pane) + html.slice(at);
   }
 
   const r = patchFaqLd(html, () => items.map(asQuestion));

@@ -38,18 +38,19 @@
         ── カードは1行しか出せないので、出してよいのは「年額の現金」だけ。
            総待遇を他社の現金と並べない・月額を12倍して年額にしない・
            確認中の社に金額を出さない・「平均」の札を残さない
-     J) 各社ページの下にある国別リンクの帯（PV-CLINK）が台帳どおりか
-        ── 根拠を調べた社が混ざる国で「機長平均 ¥…」を出さない・
-           確認中の社の丸い札に数字を出さない・金額を出す社は種類を名乗る
+     J) 会社ページの旧い帯が戻っていないか（2026-10-08 に全会社ページから外した）
+        ── 「パイロット転職を検討中の方へ」の橙の帯と、その直後の
+           「国別で比べる／同じ国の他社」の箱（PV-CLINK）がページに無い・
+           道具（link-countries / gen-new-airline / gen-faq）が書かない・
+           残すべき入口（他社と比較・footer・世界一覧の国の帯）は残っている
 
    使い方: node assert-basis.mjs [--v]
    ════════════════════════════════════════════════════════════════ */
 
 import fs from 'fs';
 import path from 'path';
-import { BASIS, TIERS, figures, cardFigure } from './salary-basis.mjs';
+import { BASIS, TIERS, figures } from './salary-basis.mjs';
 import { SALARY } from './salary-data.mjs';
-import { AIRLINE_COUNTRY } from './airline-countries.mjs';
 
 const ROOT = path.dirname(new URL(import.meta.url).pathname).replace(/%20/g, ' ');
 const V = process.argv.includes('--v');
@@ -206,8 +207,17 @@ for (const slug of Object.keys(BASIS)) {
     } else if (!hasBasis) {
       hit('出所の節（id="kyuyo-konkyo"）が無い。この金額が誰の・何を含んだ・いつの金額かを画面に出していない');
     } else {
-      const sec = html.slice(html.indexOf('id="kyuyo-konkyo"'));
-      const end = sec.indexOf('▲ /PV-BASIS');
+      /* 節の終わり。3つの形がある ──
+           昔からの節    … 「▲ /PV-BASIS」の目印まで
+           畳んだ箱      … id が <details> に付いている（先行5社。給与の1枚の「この金額は誰の・何を含んだ・いつの金額か」）。
+                            その箱を閉じる </details> まで。中に入れ子の <details> は無い（gen-airline-glance.mjs の payDetails）
+           どちらでもない … 先頭の 8000字
+         ★ 畳んだ箱を 8000字で切らない。箱が短いと、うしろに続く別のカード（募集・会社）の確認日とリンクまで
+           拾って、出どころが1つも無いのに通る。 */
+      const at = html.indexOf('id="kyuyo-konkyo"');
+      const sec = html.slice(at);
+      const folded = /<details\b[^>]*$/.test(html.slice(Math.max(0, at - 200), at));
+      const end = folded ? sec.indexOf('</details>') : sec.indexOf('▲ /PV-BASIS');
       const blk = end > 0 ? sec.slice(0, end) : sec.slice(0, 8000);
       if (!/確認日|Checked/i.test(blk)) hit('出所の節に確認日が無い（確認日 ≠ 発行日）');
       /* 外部の資料は https、このサイト自身の資料は相対リンク（H を参照）。 */
@@ -369,80 +379,79 @@ for (const slug of Object.keys(BASIS)) {
   if (!fail) ok++;
 }
 
-/* ── J) 各社ページの下の国別リンクの帯（PV-CLINK）────────────────
-   link-countries.mjs が 232枚に貼り直している帯。各社ページ本体を全部
-   直しても、この帯だけが「掲載3社・機長平均 ¥2,700万」と
-   下げたはずの平均を出し続ける（帯は生成物なので画面を見ても気づけない）。
-   ⚠️ 帯を作り直す側が台帳を読まなくなったら、ここで落ちる。 */
+/* ── J) 会社ページの旧い帯が戻っていないか（2026-10-08）──────────────
+   オーナー指示で、全会社ページ（日英）から次の2つを外した。
+     ・「✈ パイロット転職を検討中の方へ …」の橙の帯
+     ・その直後の「国別で比べる／同じ国の他社」の箱（<!--PV-CLINK-->）
+   どちらも**道具が書いていた**もの ── link-countries.mjs が箱を「剥がして入れ直し」、
+   gen-new-airline.mjs が借り元から帯を持ち込み、gen-faq.mjs が帯を差し込みの目印にしていた。
+   ページを直しても、道具を流した瞬間に戻る。だから「ページに無い」と
+   「道具が書かない」の両方を見る。
+   ★以前の J は、箱の中の金額が台帳どおりかを見ていた。箱そのものが無くなったので、
+     見るものを「戻っていないこと」に替えた（箱を戻すなら、先に git で前の J を戻すこと。
+     あの箱は生成物で、国の平均や他社の金額を黙って古い値に戻す）。
+   ⚠️ 外しすぎも見る ── 新しい「他社と比較」の入口・通常の footer・
+      世界一覧とサイトマップの国の帯（<!--PV-CBAND-->）は外していない。
+   ⚠️ 比較記事（SALARY に無い slug）の橙の帯は会社ページではないので対象外。 */
 {
-  /* 根拠を調べた社が1社でも混ざる国＝国の平均を出さない国。
-     ★2026-09-30、判定を link-countries.mjs の STRONGER と同じにそろえた。
-       推定（estimate）は台帳の外の87社と同じ作り ── 公開情報から出した機長の年収 ── なので
-       同じ物差しで足して割れる。物差しが違うのは公式募集例・求人の掲載額・過去の募集広告・
-       条件つきの給与例で、それが1社でも混ざる国だけ「国の平均を出さない」。
-       ⚠️ 判定を2か所に分けて書いてあるのは、こちらが**写しである**こと自体を見せるため。
-          link-countries.mjs の STRONGER を変えたらここも直す（片方だけだと黙って別物になる）。 */
-  const strongerThanEstimate = (s2) => ['cap', 'fo'].some((r) => {
-    const t = BASIS[s2]?.[r]?.tier;
-    return t !== undefined && t !== 'estimate';
-  });
-  const heldCountry = (code) =>
-    Object.entries(AIRLINE_COUNTRY).some(([s2, c2]) => c2 === code && strongerThanEstimate(s2));
-
-  /* ⚠️ 英語ページの <em> の中は <span class="pv-cur" …>$170K</span> に焼いてある。
-        [^<]* で取ると空に見えるので、中身を丸ごと取ってからタグを落とす。 */
-  const PILL = /<a href="([a-z0-9-]+)\.html" class="pvcl-pill"><span>[^<]*<\/span>(?:<em>([\s\S]*?)<\/em>)?/g;
-  const text = (s) => String(s ?? '').replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
-
+  const BAND = /<div style="background:rgba\(249,115,22,\.06\)[^>]*>\s*<a href="\.\.\/pilot-tenshoku\.html"/;
+  /* 通常の footer に在るはずの、利用案内と法務の7本。 */
+  const FOOT_LINKS = ['guide.html', 'policy.html', 'terms.html', 'privacy.html', 'personal-data.html', 'help.html', 'sitemap.html'];
   for (const dir of ['airlines', 'en/airlines']) {
-    const ja = dir === 'airlines';
     const base = path.join(ROOT, dir);
     if (!fs.existsSync(base)) continue;
     for (const fn of fs.readdirSync(base).filter((f) => f.endsWith('.html'))) {
       const slug = fn.replace(/\.html$/, '');
-      const code = AIRLINE_COUNTRY[slug];
-      if (!code || !heldCountry(code)) continue;          /* 触っていない国は見ない */
       const rel = `${dir}/${fn}`;
       const html = fs.readFileSync(path.join(base, fn), 'utf8');
-      const blk = html.match(/<!--PV-CLINK-->[\s\S]*?<!--\/PV-CLINK-->/)?.[0];
-      if (!blk) continue;                                  /* 帯が無いページは対象外 */
-
-      /* 帯の見出しに国の平均を出していないか。 */
-      if (ja && /機長平均\s*¥/.test(blk)) {
-        bad(rel, '国別リンクの帯が「機長平均 ¥…」を出している（この国は金額の意味が社ごとに違うので国の平均を出さない）');
+      /* 国別の箱は、会社ページでも比較記事でも置かない。 */
+      if (/<!--\/?PV-CLINK-->/.test(html) || /class="pvcl[\s"-]/.test(html) || /\.pvcl[{-]/.test(html)) {
+        bad(rel, '「国別で比べる／同じ国の他社」の箱（PV-CLINK）が戻っている。2026-10-08 に全会社ページから外した\n   ★どの道具が書いたかを先に探す（ページを手で消しても、次に流した回に戻る）');
       }
-      if (!ja && /captain avg/.test(blk)) {
-        bad(rel, '国別リンクの帯が "captain avg" を出している（この国は国全体の平均を出さない）');
+      if (!SALARY[slug]) continue;                        /* ここから下は会社ページだけ */
+      if (BAND.test(html) || /パイロット転職を検討中の方へ/.test(html) || /Thinking about a pilot career move\?/.test(html)) {
+        bad(rel, '「パイロット転職を検討中の方へ」の橙の帯が戻っている。2026-10-08 に全会社ページから外した');
       }
-
-      /* 丸い札（他社への入口）が、台帳の等級どおりか。 */
-      for (const m of blk.matchAll(PILL)) {
-        const peer = m[1];
-        const em = text(m[2]);
-        const c = cardFigure(peer, 'cap');
-        if (!c) continue;                                  /* 台帳に無い社は今までどおり */
-        /* ★2026-09-30、推定（estimate）は金額を出す側に裏返した。
-             台帳は「推定である」ことだけを返し、金額は持っていない（SSOT を2か所にしないため）。
-             だから期待する札はここで SALARY から組む ── link-countries.mjs と同じ作り方。 */
-        const want = c.estimate
-          ? (ja ? `推定 ${yenMan(peer)}` : `Estimated ${yenMan(peer)}`)
-          : c.held ? (ja ? '確認中' : 'Under review')
-                   : (ja ? `${c.kindJa} ${c.yen}` : `${c.kindEn} ${c.yen}`);
-        if (c.held && /[0-9]/.test(em)) {
-          bad(rel, `帯の中の「${peer}」に数字が出ている（「${em}」）。この社は確認中なので金額を1つも出さない`);
-        } else if (ja && em !== want) {
-          bad(rel, `帯の中の「${peer}」の札が台帳と違う → 画面「${em}」／台帳「${want}」`);
-        } else if (!ja && c.held && em !== want) {
-          bad(rel, `帯の中の「${peer}」の札が台帳と違う → 画面「${em}」／台帳「${want}」`);
-        }
+      const foot = (/<footer\b[\s\S]*?<\/footer>/i.exec(html) || [''])[0];
+      if (!foot) bad(rel, '通常の footer が無い（旧い帯と一緒に外してはいけない）');
+      /* ★footer が「在る」だけでは足りない（2026-10-09）。日本語の会社ページ13枚は、ロゴと著作権表示だけの短い footer で、
+         利用案内・規約・個人情報の扱いへの道が1本も無かった。「在る」しか見ていなかったので、ずっと緑のままだった。
+         ⚠️ 英語の会社ページは、いまどの1枚にも法務のリンクが無い（別の作業）。ここで見るのは日本語だけ。 */
+      else if (dir === 'airlines') {
+        const lost = FOOT_LINKS.filter((h) => !foot.includes(`href="../${h}"`));
+        if (lost.length) bad(rel, `footer に利用案内・法務のリンクが無い（${lost.join('・')}）。短い footer のまま＝規約と個人情報の扱いへ行けない`);
       }
     }
   }
 
-  /* 帯を作る側が台帳を読んでいるか（読まなくなると全部が黙って平均に戻る）。 */
-  const gen = fs.readFileSync(path.join(ROOT, 'link-countries.mjs'), 'utf8');
-  if (!/salary-basis\.mjs/.test(gen)) {
-    bad('link-countries.mjs', '国別リンクの帯を作る側が台帳を読んでいない＝流した瞬間に232枚が古い平均に戻る');
+  /* 道具の側。書く処理が残っていたら、ページがいま正しくても次に流した回に戻る。 */
+  const src = (f) => fs.readFileSync(path.join(ROOT, f), 'utf8');
+  const lc = src('link-countries.mjs');
+  if (/class="pvcl|pvcl-pill|pvcl-head|function block\(/.test(lc) || /`<!--PV-CLINK-->/.test(lc)) {
+    bad('link-countries.mjs', '国別の箱（PV-CLINK）を書く処理が戻っている。いまは外すだけの道具（流すたびに全会社ページへ箱が戻る）');
+  }
+  if (!/OLD_CLINK/.test(lc) || !/OLD_BAND/.test(lc)) {
+    bad('link-countries.mjs', '旧い帯を外す処理（OLD_CLINK / OLD_BAND）が無い＝古い借り元から持ち込まれた帯を片づける道が無い');
+  }
+  const gn = src('gen-new-airline.mjs');
+  if (/\['<div style="background:rgba\(249,115,22,\.06\)'/.test(gn) || /html\.indexOf\('<div style="background:rgba\(249,115,22,\.06\)'/.test(gn)) {
+    bad('gen-new-airline.mjs', '橙の帯を「本文の終わり」や「必要な目印」として探している。帯はもう無いので新しい会社ページが起こせない／借り元から帯を持ち込む');
+  }
+  const gf = src('gen-faq.mjs');
+  if (/'<div style="background:rgba\(249,115,22,\.06\)'/.test(gf)) {
+    bad('gen-faq.mjs', '橙の帯を FAQ の差し込みの目印にしている。帯はもう無いので「差し込み位置が見つからない」で落ちる（目印は <footer）');
+  }
+
+  /* 外しすぎていないか。 */
+  for (const slug of ['jal', 'ana', 'cathay-pacific', 'etihad', 'eva-air']) {
+    const p = path.join(ROOT, 'airlines', `${slug}.html`);
+    if (!fs.existsSync(p)) continue;
+    const n = fs.readFileSync(p, 'utf8').split(`../career.html?view=compare&amp;a=${slug}`).length - 1;
+    if (n !== 1) bad(`airlines/${slug}.html`, `新しい「他社と比較」の入口が ${n} 本（1本であること。旧い帯と一緒に外さない）`);
+  }
+  for (const p of ['world-airlines.html', 'sitemap.html', 'en/world-airlines.html', 'en/sitemap.html']) {
+    if (!fs.existsSync(path.join(ROOT, p))) continue;
+    if (!src(p).includes('<!--PV-CBAND-->')) bad(p, '国別ページへの帯（PV-CBAND）が無い。外したのは会社ページの箱だけで、こちらは残す（国別ページへの入口がここだけになった）');
   }
   if (!fail) ok++;
 }
