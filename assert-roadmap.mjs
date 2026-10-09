@@ -104,8 +104,10 @@ for (const t of CFG.tasks || []) {
   }
 }
 ok('完了したものが1つ以上ある', (CFG.tasks || []).some((t) => t.state === 'done'));
-ok('進行中がちょうど1つ',
-   (CFG.tasks || []).filter((t) => t.state === 'building').length === 1);
+/* ★2026-10-09 までは「ちょうど1つ」。オーナーの指定で開発中が2つになった
+   （軸そのもの＋各航空会社ページの新しいフォーマット）ので、「1つ以上」に緩めた。 */
+ok('進行中が1つ以上ある',
+   (CFG.tasks || []).filter((t) => t.state === 'building').length >= 1);
 
 /* ★「上から順に、いま手が付いているもの」と見出しに書いてある以上、
    開発中が先頭に来ることが約束。ORDER[x] || 9 と書くと building の 0 が
@@ -147,12 +149,25 @@ for (const k of kJa) {
     ok(`${k} の引数の数が日英で同じ`, DICT.ja[k].length === DICT.en[k].length);
   }
 }
-/* ★履歴の日付は 5.6em の固定幅の列に入る。長い月名（'September 2026'）に戻すと
+/* ★履歴の日付は 6.2em の固定幅の列に入る。長い月名（'September 2026'）に戻すと
    何も言わずに2行へ折れ、題名の左端が行ごとにずれる。 */
 for (const lg of ['ja', 'en']) {
   const w = [...Array(12)].map((_, i) => DICT[lg].ym(2026, i + 1));
   const longest = w.reduce((a, b) => (a.length >= b.length ? a : b));
   ok(`${lg} の履歴の日付が日付の列に収まる長さ`, longest.length <= 9, longest);
+}
+/* ★字の数では足りない（2026-10-09）。「2026年10月」は8文字で上の検査を通るが、
+   漢字は数字より幅があり、5.6em の列で「月」だけ次の行へ落ちていた。
+   実測（Inter 700・tabular-nums ＋ Noto Sans JP）── 数字1つ 0.65em・漢字1つ 1em。
+   列の幅は roadmap.js から読む（写さない）。 */
+{
+  const col = Number((JS.match(/\.rm-ship \.ymd\{flex:none;width:([\d.]+)em/) || [])[1]);
+  ok('履歴の日付の列の幅を roadmap.js から読めている', col > 0, String(col));
+  const em = (s) => [...s].reduce((a, c) => a + (/[\u3000-\u9fff]/.test(c) ? 1 : 0.65), 0);
+  const worst = [...Array(12)].map((_, i) => DICT.ja.ym(2026, i + 1))
+    .reduce((a, b) => (em(a) >= em(b) ? a : b));
+  ok('★ja の履歴の日付が、月が2けたでも列の幅に収まる', em(worst) <= col,
+     `${worst} ≒ ${em(worst).toFixed(2)}em ／ 列 ${col}em`);
 }
 
 /* 区分と状態の対応表は、鍵まで一致していないと片方の言語だけ空欄になる。 */

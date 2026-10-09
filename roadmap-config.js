@@ -31,6 +31,12 @@
         迷ったら書かない。ここは1つ載せ損ねても誰も困らないが、
         1つ載せすぎると取り消せない。
 
+     ⑦ 載せるのは**読む人の役に立つ改善だけ**（2026-10-09 オーナー指示
+        「みんなのためになること、公開していい情報だけ」）。⑥より狭い。
+        ・入力の決まりを厳しくした話・並びを替えただけの話・内側の手直しは載せない
+        ・「前は◯◯だった」と読める書き方をしない。良くなった後の姿だけを書く
+        本番に出した、は載せる理由にならない。
+
    ⚠️ **短く書く**（2026-09-04 のオーナー指示「文字多すぎ」）。
       この画面は1枚に収まっていることが値打ちで、説明の長さではない。
       ・goals[].t は横一列のレールの札になる。**9文字ちょうどまで**。
@@ -89,13 +95,27 @@ window.PVRoadmap = {
      ★done の日付は実際に本番へ出した日。git log と揃えてある。
      ★community:true は「みんなからの要望がきっかけで作ったもの」。
        本当にそうだったものにだけ付ける（付けると画面に札が出る）。
-     ★d は1行。 */
+     ★d は1行。
+     ★まとめて push した回は、commit の日ではなく**本番へ出た日**を書く
+       （9/27〜10/1 に積んだ比較ページなどは 2026-10-02 に出た）。 */
   tasks: [
-    { id: 'roadmap-page', state: 'building',
-      ja: { t: 'このページ（ロードマップと要望）',
-            d: '作っているものを公開し、要望を匿名で受け取る。' },
-      en: { t: 'This page — roadmap and requests',
-            d: 'Publish what we build; take requests anonymously.' } },
+    /* ★2026-10-09 オーナー指示「10月と11月分」。いまの軸は
+       「より精密で正確な情報のサイトへ」。
+       開発中は2つ ── 軸そのものと、各航空会社ページの新しいフォーマット
+       （どちらもオーナーの指定）。⚠️ 予定に月を書かない（上の⑥）。 */
+    { id: 'precision', state: 'building',
+      ja: { t: 'より精密で正確な情報のサイトへ',
+            d: '公式の資料で、1社ずつ確かめています。' },
+      en: { t: 'A more precise, accurate site',
+            d: 'Official sources, airline by airline.' } },
+
+    { id: 'airline-pages-new', state: 'building',
+      /* ⚠️ 日本語は18字まで。19字めから PC 幅（1280）とスマホ（390）で
+           最後の1〜2字だけ次の行へ落ちる（「…に変」／「更」）。 */
+      ja: { t: '各航空会社ページを新しいフォーマットに',
+            d: '給与・勤務・暮らし・ステイ先を1ページに。' },
+      en: { t: 'A new format for every airline page',
+            d: 'Pay, work, living and layovers on one page.' } },
 
     { id: 'verified-pilot', state: 'planned',
       ja: { t: 'VERIFIED PILOT',
@@ -116,6 +136,24 @@ window.PVRoadmap = {
             d: 'If more pilots outside Japan ask for it.' } },
 
     /* ── ここから下は出し終わったもの（最近のアップデートに出る）── */
+    { id: 'hikaku-asia', state: 'done', date: '2026-10-02',
+      ja: { t: '台湾・湾岸・アジアの航空会社を比べるページ',
+            d: '年収と、各社が公式に出している条件を並べて読める。' },
+      en: { t: 'Comparison pages: Taiwan, the Gulf and Asia',
+            d: "Pay next to each airline's official terms." } },
+
+    { id: 'official-sources-update', state: 'done', date: '2026-10-02',
+      ja: { t: '会社ページの情報を、公式の資料で更新',
+            d: '募集要項や有価証券報告書で確かめた内容に。' },
+      en: { t: 'Airline pages updated from official sources',
+            d: 'Checked against recruitment pages and annual reports.' } },
+
+    { id: 'roadmap-page', state: 'done', date: '2026-09-04',
+      ja: { t: 'このページ（ロードマップと要望）',
+            d: '作っているものを公開し、要望を匿名で受け取る。' },
+      en: { t: 'This page — roadmap and requests',
+            d: 'Publish what we build; take requests anonymously.' } },
+
     { id: 'pay-breakdown-row', state: 'done', date: '2026-09-03',
       ja: { t: '実給与の1行から報酬の内訳を見る',
             d: '固定・変動・職位手当・住宅の構成を帯で読む。' },
@@ -124,9 +162,9 @@ window.PVRoadmap = {
 
     { id: 'union-pay', state: 'done', date: '2026-09-02',
       ja: { t: '組合から直接払われた分を年収に入れる',
-            d: '明細に載らないお金のぶん、年収が低く出ていた。' },
+            d: '明細に載らないお金も、年収に数える。' },
       en: { t: 'Pay routed through a union now counts',
-            d: 'Money off the company payslip was reading low.' } },
+            d: 'Money paid outside the company payslip now counts.' } },
 
     { id: 'deep-pay-compare', state: 'done', date: '2026-09-01',
       ja: { t: 'DEEP PAY に会社比較',
