@@ -64,7 +64,8 @@
      node assert-airline-glance.mjs --static   ブラウザを使わない所だけ
      node assert-airline-glance.mjs --only etihad --sizes 390,1440   調べる時だけ（会社と幅を絞る。緑でも全部を見たことにはならない）
      node assert-airline-glance.mjs --scenes off,cards               調べる時だけ（場面を絞る：view・off・rows・rated・tabs・cards・gg・ggold）
-   同時に開く枚数は PV_GLANCE_JOBS（既定 3。check.mjs からは 2）。
+   同時に開く枚数は PV_GLANCE_JOBS（既定 3）。
+   ⚠️ この検査は check.mjs に入っていない ＝ 手で流す（check.mjs へ入れるかどうかは、オーナーの判断待ち）。
    ══════════════════════════════════════════════════════════════════ */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -134,6 +135,13 @@ const RV_GIVE = { overview: '口コミを解放する', reviews: '全ての口�
 /* ★2026-10-09 タブの無い会社ページと英語版の鍵の面にも、同じ形のボタンを出す（オーナー判断「拡げる」）。
    下の行の言葉（英語）。日本語は上の3つと同じ。書き手は2つ（premium-auth-lock.js・airline-reviews-ui.js）── ここへ読み込まない。 */
 const OLD_GG = { ja: { pay: GIVE, all: RV_GIVE.reviews, top: RV_GIVE.overview }, en: { pay: 'Unlock all pay data', all: 'Unlock all reviews', top: 'Unlock reviews' } };
+/* 今までのボタン（pv-gg.css を読めなかった時・錠前の JS が無い時に、1文字も変えずに出るもの）の字と、押した先。
+   lock ＝ 給与の錠前／lockPost ＝ 口コミの錠前（見本のページには無い ＝ 字だけ留める）／card ＝ 口コミ1枚ごと／list ＝ 一覧の下／voices ＝ 概要の「海外の評判」／dialog ＝ 続きを読むの小窓。 */
+const OLD_WAS = {
+  ja: { lock: '匿名で給与明細を出して解放する', lockPost: '匿名で口コミを投稿して解放する', card: '匿名で口コミを投稿して解放する', list: '匿名で口コミを投稿して解放する', voices: '匿名で口コミを投稿して全カテゴリを開放する →', dialog: '匿名で口コミを投稿して解放する' },
+  en: { lock: 'Submit a Payslip Anonymously & Unlock', lockPost: 'Post a Review Anonymously & Unlock', card: 'Post a review anonymously to unlock', list: 'Post a review anonymously to unlock', voices: 'Post a review anonymously to unlock every category →', dialog: 'Post a review anonymously to unlock' },
+};
+const OLD_CLICK = { card: 'openReviewModal()', list: 'openReviewModal()', voices: 'if(window.openReviewModal)openReviewModal()', dialog: 'openReviewModal()' };
 /* ★2026-10-08 昔からの節（新しい部品の下に手で書いてあった節）は、新しい部品へ移して外した。
    何をどこへ移したか・何を残したかの台帳は gen-airline-glance.mjs の LEGACY。
    ここには「残してよい節」を会社ごとに書き写してある ── 台帳の正規表現をそのまま当てると、
@@ -946,6 +954,19 @@ ok(/getAttribute\('data-pv-glance'\)\s*===\s*'1'\)\s*return/.test(noJsCmt(read('
      && ui.includes(`(rmNew ? '        ' + ggBtn('all') + '\\n' :`) && /if \(!ggShape\(\)\) rmgKeepInk\(modal\);/.test(ui)
      && /els\[i\]\.style\.setProperty\('color', c, 'important'\);/.test(body('rmgKeepInk')),
      '「続きを読む」の小窓（タブの無いページ）：暗い板に明るいボタン・板の上の字の色を読み替えさせない');
+  /* ★2026-10-09 手元の鍵の控え（pv_unlock_expiry）は、下げる向きには直らない（別の会員でログインした・自分の口コミが消えた・ログインが切れた）。
+     控えが生きていても、サーバが本文を伏せて返した口コミが在れば、一覧のいちばん下の入口を出す。
+     1枚ごとのボタンを外したので、ここが無いと、伏せたカードが並ぶのに一覧の中の入口が1つも無い（実際に開いて確かめるのは、下の「手元の鍵の控えだけが残っている時」）。 */
+  ok(/var srvLk = filtered\.some\(function \(r\) \{ return r\.serverLocked; \}\);\s*var postGate = \(\(locked \|\| srvLk\) && shown > 0\) \?/.test(body('paint'))
+     && /serverLocked: !!body\.locked,/.test(ui),
+     '手元の鍵の控えが生きていても、サーバが伏せて返した口コミが在れば、一覧のいちばん下の入口を出す（伏せたかどうかはサーバの返事だけで決める）');
+  /* 3つは同じ字なので、字だけを探すと1つ変わっても残りの2つで通ってしまう ＝ どの欄の字かまで留める。 */
+  ok([['lockedCta', 'card'], ['gateBtn', 'list'], ['rmBtn', 'dialog'], ['vcGateBtn', 'voices']].every(([key, at]) => ['ja', 'en'].every(l => ui.includes(` ${key}: '${OLD_WAS[l][at]}',`)))
+     && (ui.match(/class="rv-locked-btn" onclick="openReviewModal\(\)"/g) || []).length === 2 && (ui.match(/' \+ L\.lockedCta \+ '/g) || []).length === 2 && (ui.match(/' \+ L\.rmBtn \+ '/g) || []).length === 1
+     && ui.includes(`<button class="btn-review-post" style="width:100%;justify-content:center" onclick="${OLD_CLICK.dialog}">`)
+     && ui.includes(`unlockBtn('<button class="btn-review-post" onclick="${OLD_CLICK.list}">' + L.gateBtn + '</button>')`)
+     && ui.includes(`unlockBtn('<button class="btn-review-post" onclick="${OLD_CLICK.voices}">' + L.vcGateBtn + '</button>', 'top')`),
+     '読めなかった時に出す今までのボタンは、字も押した先も今までのまま（口コミ1枚ごと・一覧の下・「海外の評判」・小窓）');
 }
 {
   /* 給与と口コミの鍵の面（premium-auth-lock.js）。変えたのは形と字だけ ── 行き先・計測の印・開く条件は今までと同じ。 */
@@ -969,6 +990,14 @@ ok(/getAttribute\('data-pv-glance'\)\s*===\s*'1'\)\s*return/.test(noJsCmt(read('
      && /l\.addEventListener\('error', function \(\) \{ done\(false\); \}\);/.test(lock) && /setTimeout\(function \(\) \{ done\(usable\(l\)\); \}, 2500\);/.test(lock)
      && /new URL\('\.\.\/pv-gg\.css', SELF/.test(lock) && !/\.pv-gg\s*\{|border-radius:\s*999px/.test(lock),
      'pv-gg.css を読む口は1つ（window.PVGG）── もう読んでいれば足さない・読めなければ今までの形・ここに形を書かない');
+  /* ★2026-10-09 「読めた」の中身は「決まりが1つ以上入っている」。空のファイルが 200 で届いた時（配信の途中・切れた写し）を「読めた」にしない。
+     ここを甘くすると、形の無い素の字のボタンが出る（実際に開いて確かめるのは、下の「形のファイルが空で届いた時」）。 */
+  ok(/function usable\(l\) \{\s*try \{ return !!l\.sheet && l\.sheet\.cssRules\.length > 0; \} catch \(e\) \{ return !!l\.sheet; \}\s*\}/.test(lock)
+     && /l\.addEventListener\('load',\s+function \(\) \{ done\(usable\(l\)\); \}\);/.test(lock),
+     'pv-gg.css が空で届いた時は「読めた」にしない（決まりが1つも無ければ、今までのボタンのまま）');
+  ok(ov.includes('var cta   = isSalary ? T.salCta : T.ctaPost;') && /'<a href="' \+ href \+ '" class="pv-btn-main" [^\n]*\n(?:[^\n]*\n){0,3}?\s*cta,\n/.test(ov)
+     && ['ja', 'en'].every(k => lock.includes(`salCta:        '${OLD_WAS[k].lock}',`) && lock.includes(`ctaPost:       '${OLD_WAS[k].lockPost}',`)),
+     '読めなかった時に出す今までの錠前のボタンは、字が今までのまま（給与 ＝ salCta・口コミ ＝ ctaPost）');
 }
 
 head('古い節の台帳（新しい表示先／不要／残す）');
@@ -1153,7 +1182,7 @@ const trouble = [];
 const SETTLED = () => !!window.PVCurrency && !!document.querySelector('.pvg') &&
   ![...document.querySelectorAll('.pvg .crl, .pvg-hero .crl')].some(n => n.getClientRects().length && /^(idle|loading)$/.test(n.dataset.state));
 
-async function open(browser, slug, w, h, mode) {
+async function open(browser, slug, w, h, mode, pre) {
   const ctx = await browser.createBrowserContext();
   const p = await ctx.newPage();
   const seen = { mode, asked: 0, unknown: new Set(), stay: null, stays: 0, stayAsked: 0, mod: [], modReply: '{"ok":true}' };
@@ -1163,6 +1192,8 @@ async function open(browser, slug, w, h, mode) {
   await p.setViewport({ width: w, height: h, deviceScaleFactor: 1, isMobile: w < 900, hasTouch: w < 1100 });
   /* 動きの途中を測らない（動きを減らす設定の人の画面で測る）。 */
   await p.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
+  /* 開く前に置いておくもの（手元の鍵の控えだけが残っている人の場面）。ふだんは何も置かない。 */
+  if (pre) await p.evaluateOnNewDocument(pre);
   await p.setRequestInterception(true);
   p.on('request', r => {
     let u; try { u = new URL(r.url()); } catch { return r.continue(); }
@@ -3027,7 +3058,7 @@ const OLD_COUNT_RE = /\/rest\/v1\/reviews_v2$/;
 const lumOf = c => { const m = /rgba?\(([^)]+)\)/.exec(c || ''); if (!m) return null; const [r, g, b] = m[1].split(/[,\s/]+/).map(Number).map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
 const contrast = (a, b) => { const x = lumOf(a), y = lumOf(b); return x === null || y === null ? 0 : (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
 
-async function openOld(browser, lang, w, h, { block = '' } = {}) {
+async function openOld(browser, lang, w, h, { block = '', stale = false } = {}) {
   const ctx = await browser.createBrowserContext();
   const p = await ctx.newPage();
   const seen = { unknown: new Set(), asked: 0 };
@@ -3039,12 +3070,16 @@ async function openOld(browser, lang, w, h, { block = '' } = {}) {
   await p.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
   /* 明るい画面から測る（英語ページの既定は暗い画面。トップの基準は明るい画面で測ってある）。 */
   await p.evaluateOnNewDocument(() => { try { localStorage.setItem('pv-theme', 'light'); } catch (e) { /* 保存領域が無い時は既定のまま */ } });
+  /* 手元の鍵の控えだけが残っている人（控えは「口コミが読める」と言うが、サーバは伏せて返す）。ログインの印は置かない。 */
+  if (stale) await p.evaluateOnNewDocument(() => { try { localStorage.setItem('pv_unlock_expiry', String(Date.now() + 365 * 864e5)); } catch (e) { /* 保存領域が無い時は置けない ＝ 下で「控えが生きている」が落ちる */ } });
   await p.setRequestInterception(true);
   p.on('request', r => {
     let u; try { u = new URL(r.url()); } catch { return r.continue(); }
     if (['data:', 'blob:', 'about:'].includes(u.protocol)) return r.continue();
     if (u.origin === BASE) {
       if (block === 'css' && u.pathname === '/pv-gg.css') return r.abort();
+      /* 空のファイルが 200 で届く（配信の途中・切れた写し）。読み込みは「成功」で終わるが、決まりは1つも入っていない。 */
+      if (block === 'empty' && u.pathname === '/pv-gg.css') return r.respond({ status: 200, contentType: 'text/css', body: '' });
       if (block === 'lock' && u.pathname === '/airlines/premium-auth-lock.js') return r.abort();
       return r.continue();
     }
@@ -3064,10 +3099,12 @@ async function openOld(browser, lang, w, h, { block = '' } = {}) {
   });
   await p.goto(BASE + OLD_PATH[lang], { waitUntil: 'load', timeout: 60000 });
   /* 落ち着くまで待つ：タブが出来た・形のファイルの合否が出た（錠前の JS を止めた回は、合図そのものが無い）・
-     「海外の評判」の鍵が描かれた・待ち受けの箱が残っていない。
+     「海外の評判」の鍵が描かれた・待ち受けの箱が残っていない・錠前の掛かった面の全部に板が出た
+     （板はログインの確認のあとに出る ＝ 形の合否より遅いことがある。待たずに数えると、混んだ回に嘘の赤が出る）。
      ⚠️ 口コミの一覧は、口コミのタブを開いた時に初めて描かれる。ここで待つと、必ず時間切れになる。 */
   const ready = await p.waitForFunction(lockOff => !!document.querySelector('.airline-tab-btn') &&
     (lockOff ? !window.PVGG : !!window.PVGG && /^(yes|no)$/.test(window.PVGG.state())) &&
+    (lockOff || [...document.querySelectorAll('.premium-gate.pv-locked')].every(g => !!g.querySelector('.pv-gate-card'))) &&
     !!document.querySelector('#airline-voices .rv-post-gate') && !document.querySelector('[data-pvgg-wait]'), {}, block === 'lock').then(() => true, () => false);
   await p.evaluate(() => document.fonts.ready.then(() => true));
   return { ctx, p, seen, ready };
@@ -3088,7 +3125,10 @@ function oldLeft() {
   const n = s => [...document.querySelectorAll(s)].filter(on).length;
   const a = [...document.querySelectorAll('.pv-gate-card a.pv-btn-main')].filter(on).map(e => ({ href: e.getAttribute('href') || '', cta: e.getAttribute('data-pv-cta') || '', text: e.textContent.replace(/\s+/g, ' ').trim() }));
   return { main: a, pills: n('.pv-gate-card .pv-give-take'), card: n('.rv-locked-btn'), list: n('#airline-review-section .rv-post-gate .btn-review-post'), voices: n('#airline-voices .rv-post-gate .btn-review-post'),
-    dialog: n('#pv-readmore-gate .btn-review-post'), gg: n('.pv-gg'), wait: document.querySelectorAll('[data-pvgg-wait]').length, hit: window.__pvgHit === 1 };
+    dialog: n('#pv-readmore-gate .btn-review-post'), gg: n('.pv-gg'), wait: document.querySelectorAll('[data-pvgg-wait]').length, hit: window.__pvgHit === 1,
+    /* 口コミの側の今までのボタン：見えているものの字と押した先（数だけでは、字や行き先が変わっても気づけない） */
+    old: (o => [...o('.rv-locked-btn', 'card'), ...o('#airline-review-section .rv-post-gate .btn-review-post', 'list'), ...o('#airline-voices .rv-post-gate .btn-review-post', 'voices'), ...o('#pv-readmore-gate .btn-review-post', 'dialog')])(
+      (sel, at) => [...document.querySelectorAll(sel)].filter(on).map(e => ({ at, text: e.textContent.replace(/\s+/g, ' ').trim(), onclick: e.getAttribute('onclick') || '' }))) };
 }
 /* タブを押して、切り替わるまで待つ。口コミのタブは、押した時に一覧を描く ＝ 一覧の鍵が出て、待ち受けの箱が無くなるまで待つ。 */
 const oldTab = async (p, tab) => {
@@ -3237,9 +3277,10 @@ async function runGGOld(browser, lang, [w, h]) {
     await ctx.close().catch(() => {});
   }
 }
-/* 形のファイルが読めない時（block 'css'）と、錠前の JS が無い時（block 'lock'）：古いボタンのまま出る。 */
+/* 形のファイルが読めない時（block 'css'）・空で届いた時（block 'empty'）と、錠前の JS が無い時（block 'lock'）：古いボタンのまま出る。
+   「古いボタンのまま」＝ 数だけでなく、字も押した先も今までと同じ（OLD_WAS・OLD_CLICK）。 */
 async function runGGOldOff(browser, lang, [w, h], block) {
-  const tag = `旧い形の会社ページ ${lang} ${w}（${block === 'css' ? '形のファイルが読めない時' : '錠前の JS が無い時'}）`;
+  const tag = `旧い形の会社ページ ${lang} ${w}（${block === 'css' ? '形のファイルが読めない時' : block === 'empty' ? '形のファイルが空で届いた時' : '錠前の JS が無い時'}）`;
   const html = read((lang === 'en' ? 'en/' : '') + 'airlines/' + OLD_SAMPLE + '.html');
   const nGate = (html.match(/class="premium-gate[" ]/g) || []).length;
   const { ctx, p, ready } = await openOld(browser, lang, w, h, { block });
@@ -3247,7 +3288,8 @@ async function runGGOldOff(browser, lang, [w, h], block) {
     ok(ready, `${tag}: 開ける`);
     const map = await p.evaluate(oldMap);
     const bad = [];
-    if (block === 'css' && map.state !== 'no') bad.push(`合図が「${map.state}」（あるべき no）`);
+    if (block !== 'lock' && map.state !== 'no') bad.push(`合図が「${map.state}」（あるべき no）`);
+    const oldBad = (b, who) => { if (b.text !== OLD_WAS[lang][b.at]) bad.push(`${who}: 字が「${b.text}」（今までは「${OLD_WAS[lang][b.at]}」）`); if (b.onclick !== OLD_CLICK[b.at]) bad.push(`${who}: 押した先が「${b.onclick}」（今までは「${OLD_CLICK[b.at]}」）`); };
     let main = 0, pills = 0;
     for (const tab of map.tabs) {
       if (!(await oldTab(p, tab))) { bad.push(`「${tab}」のタブへ切り替わらない`); continue; }
@@ -3255,17 +3297,89 @@ async function runGGOldOff(browser, lang, [w, h], block) {
       if (x.gg) bad.push(`「${tab}」: 形の無い新しいボタンが ${x.gg}つ出ている`);
       if (x.wait) bad.push(`「${tab}」: 待ち受けの箱が ${x.wait}つ残っている`);
       main += x.main.length; pills += x.pills;
-      for (const a of x.main) { const b = a.cta !== 'salary' ? `数える印が「${a.cta}」` : !a.text ? '字が無い' : oldPayBad(a.href, lang); if (b) bad.push(`「${tab}」の古い錠前のボタン: ${b}`); }
+      for (const a of x.main) { const b = a.cta !== 'salary' ? `数える印が「${a.cta}」` : !a.text ? '字が無い' : oldPayBad(a.href, lang); if (b) bad.push(`「${tab}」の古い錠前のボタン: ${b}`);
+        else if (a.text !== OLD_WAS[lang].lock) bad.push(`「${tab}」の古い錠前のボタン: 字が「${a.text}」（今までは「${OLD_WAS[lang].lock}」）`); }
+      for (const b of x.old) oldBad(b, `「${tab}」の${b.at === 'card' ? '口コミ1枚ごとの古いボタン' : OLD_AT[b.at]}`);
       if (tab === 'overview' && x.voices !== 1) bad.push(`「海外の評判」の鍵の古いボタンが ${x.voices}つ（あるべき 1つ）`);
       if (tab === 'reviews' && (x.list !== 1 || x.card < 1)) bad.push(`口コミの一覧の鍵の古いボタンが ${x.list}つ・カードの解除ボタンが ${x.card}つ（あるべき 1つ・1つ以上）`);
     }
     /* 錠前の JS が無い回は、錠前の板そのものが出ない（板を出すのがその JS）。口コミの側だけを見る。 */
-    if (block === 'css' && (main !== nGate || pills !== nGate)) bad.push(`古い錠前のボタンが ${main}つ・GIVE → GET の札が ${pills}つ（あるべき どちらも ${nGate}つ）`);
+    if (block !== 'lock' && (main !== nGate || pills !== nGate)) bad.push(`古い錠前のボタンが ${main}つ・GIVE → GET の札が ${pills}つ（あるべき どちらも ${nGate}つ）`);
     await p.evaluate(() => window.pvReadMore('pvg-none', ''));
     const opened = await p.waitForFunction(() => { const e = document.querySelector('#pv-readmore-gate .btn-review-post'); return !!e && e.getClientRects().length > 0; }, { timeout: 8000 }).then(() => true, () => false);
     if (!opened) bad.push('小窓に古いボタンが出ない');
-    else if (await p.evaluate(() => { const g = document.getElementById('pv-readmore-gate'); return g.querySelectorAll('.pv-gg').length > 0 || !!g.firstElementChild.getAttribute('data-theme'); })) bad.push('小窓に、形の無い新しいボタンか「暗い側の色で描く」の印が出ている');
-    ok(!bad.length, `${tag}: 古いボタンのまま出る（素の字のボタンを出さない・行き先は同じ・待ち受けの箱が残らない）`, [...new Set(bad)].slice(0, 8).join('\n      '));
+    else {
+      const dl = (await p.evaluate(oldLeft)).old.filter(b => b.at === 'dialog');
+      if (dl.length !== 1) bad.push(`小窓の古いボタンが ${dl.length}つ（あるべき 1つ）`);
+      for (const b of dl) oldBad(b, OLD_AT.dialog);
+    }
+    if (opened && await p.evaluate(() => { const g = document.getElementById('pv-readmore-gate'); return g.querySelectorAll('.pv-gg').length > 0 || !!g.firstElementChild.getAttribute('data-theme'); })) bad.push('小窓に、形の無い新しいボタンか「暗い側の色で描く」の印が出ている');
+    ok(!bad.length, `${tag}: 古いボタンのまま出る（素の字のボタンを出さない・字も行き先も今までと同じ・待ち受けの箱が残らない）`, [...new Set(bad)].slice(0, 8).join('\n      '));
+  } catch (e) {
+    ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
+  } finally {
+    await ctx.close().catch(() => {});
+  }
+}
+/* ★2026-10-09 手元の鍵の控え（pv_unlock_expiry）だけが生きていて、サーバは本文を伏せて返す時。
+   控えは下げる向きには直らない（別の会員でログインした・自分の口コミが消えた・ログインが切れた）。
+   口コミ1枚ごとのボタンは置かない形なので、一覧のいちばん下の入口が出ていないと、伏せたカードが並ぶだけになる。 */
+async function runGGOldStale(browser, lang, [w, h]) {
+  const tag = `旧い形の会社ページ ${lang} ${w}（手元の鍵の控えだけが残っている時）`;
+  const { ctx, p, ready } = await openOld(browser, lang, w, h, { stale: true });
+  try {
+    ok(ready, `${tag}: 開ける`);
+    const bad = [];
+    if (!(await oldTab(p, 'reviews'))) bad.push('口コミのタブを開いても、一覧のいちばん下の入口が出ない');
+    const x = await p.evaluate(() => {
+      const on = e => e.getClientRects().length > 0 && e.checkVisibility({ visibilityProperty: true });
+      return { key: Number(localStorage.getItem('pv_unlock_expiry') || 0) > Date.now(), state: window.PVGG ? window.PVGG.state() : '',
+        hidden: [...document.querySelectorAll('#airline-review-section .rv-srv-lock')].filter(on).length };
+    });
+    /* 場面が本当にその形か：控えは生きている・形は読めた・伏せたカードが並んでいる */
+    if (!x.key) bad.push('手元の鍵の控えが生きていない（この場面を作れていない）');
+    if (x.state !== 'yes') bad.push(`形のファイルの合図が「${x.state}」（あるべき yes）`);
+    if (x.hidden < 1) bad.push('サーバが伏せて返した口コミのカードが、1枚も並んでいない');
+    const got = (await p.evaluate(ggSee, GG_KEYS, '')).filter(g => g.where === 'list');
+    if (got.length !== 1) bad.push(`一覧のいちばん下の入口が ${got.length}つ（あるべき 1つ）`);
+    for (const g of got) {
+      if (g.text !== `${GG}／${OLD_GG[lang].all}`) bad.push(`入口の字が「${g.text}」（あるべき「${GG}／${OLD_GG[lang].all}」）`);
+      if (!(g.tag === 'BUTTON' && g.onclick === OLD_POST)) bad.push(`入口を押した先が口コミの投稿の入口でない（${g.tag}・${g.onclick || g.href}）`);
+      if (g.box.l < -0.5 || g.box.r > g.vw + 0.5) bad.push('入口が画面の外へ出ている');
+    }
+    const lf = await p.evaluate(oldLeft);
+    if (lf.card || lf.list || lf.wait) bad.push(`古い形のものが残っている（口コミ1枚ごとのボタン ${lf.card}・一覧の古いボタン ${lf.list}・待ち受けの箱 ${lf.wait}）`);
+    ok(!bad.length, `${tag}: 伏せたカードが並ぶ一覧のいちばん下に、入口が1つ出る（字と押した先は鍵の無い人と同じ・1枚ごとのボタンは出ない）`, [...new Set(bad)].slice(0, 8).join('\n      '));
+  } catch (e) {
+    ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
+  } finally {
+    await ctx.close().catch(() => {});
+  }
+}
+/* 同じことを、主要5社のページ（タブのある形）で。口コミの一覧は同じ JS が描く。タブは開かない（描かれたかどうかだけを見る）。 */
+async function runRatedStale(browser, s, [w, h]) {
+  const tag = `${s} ${w}（手元の鍵の控えだけが残っている時）`;
+  const { ctx, p, ready } = await open(browser, s, w, h, 'rated', () => { try { localStorage.setItem('pv_unlock_expiry', String(Date.now() + 365 * 864e5)); } catch (e) { /* 置けない時は、下で「控えが生きている」が落ちる */ } });
+  try {
+    ok(ready, `${tag}: 「読み込み中」のまま固まらない`);
+    const GATE = '#airline-review-section .rv-post-gate';
+    const drawn = await p.waitForFunction(() => !!document.querySelector('#airline-review-section .rv-srv-lock'), { timeout: 8000 }).then(() => true, () => false);
+    const x = await p.evaluate(sel => {
+      const t = e => (e ? e.textContent.replace(/\s+/g, ' ').trim() : '');
+      const b = [...document.querySelectorAll(sel + ' .pv-gg')];
+      return { key: Number(localStorage.getItem('pv_unlock_expiry') || 0) > Date.now(), gates: document.querySelectorAll(sel).length, card: document.querySelectorAll('#airline-review-section .rv-locked-btn').length,
+        btn: b.map(e => ({ tag: e.tagName, onclick: e.getAttribute('onclick') || '', text: [...e.querySelectorAll('.pv-gg-t > *')].map(t).join('／') })) };
+    }, GATE);
+    const bad = [];
+    if (!x.key) bad.push('手元の鍵の控えが生きていない（この場面を作れていない）');
+    if (!drawn) bad.push('サーバが伏せて返した口コミのカードが、一覧に描かれていない');
+    if (x.gates !== 1 || x.btn.length !== 1) bad.push(`一覧のいちばん下の入口が ${x.gates}つ・その中のボタンが ${x.btn.length}つ（あるべき どちらも 1つ）`);
+    for (const b of x.btn) {
+      if (b.text !== `${GG}／${RV_GIVE.reviews}`) bad.push(`入口の字が「${b.text}」（あるべき「${GG}／${RV_GIVE.reviews}」）`);
+      if (!(b.tag === 'BUTTON' && b.onclick === OLD_POST)) bad.push(`入口を押した先が口コミの投稿の入口でない（${b.tag}・${b.onclick}）`);
+    }
+    if (x.card) bad.push(`口コミ1枚ごとのボタンが ${x.card}つ出ている`);
+    ok(!bad.length, `${tag}: 伏せたカードが並ぶ一覧のいちばん下に、入口が1つ出る（1枚ごとのボタンは出ない）`, bad.join(' ／ '));
   } catch (e) {
     ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
   } finally {
@@ -3281,13 +3395,15 @@ try {
   if (wantS('off')) for (const s of ONLY) for (const v of VIEWS.filter(x => OFF_W.includes(x[0]))) work.push(() => runOff(browser, s, v));
   if (wantS('rows')) for (const s of ONLY) for (const v of VIEWS.filter(x => ROWS_W.includes(x[0]))) work.push(() => runRows(browser, s, v));
   if (wantS('rated')) for (const s of ONLY) for (const v of VIEWS.filter(x => RATED_W.includes(x[0]))) work.push(() => runRated(browser, s, v), () => runRated404(browser, s, v));
+  if (wantS('rated')) for (const s of ONLY) { const v = VIEWS.find(x => RATED_W.includes(x[0])); if (v) work.push(() => runRatedStale(browser, s, v)); }
   if (wantS('tabs')) for (const s of ONLY) for (const v of [...VIEWS.filter(x => TABS_W.includes(x[0])), ...TABS_EXTRA]) work.push(() => runTabs(browser, s, v));
   if (wantS('cards')) for (const s of ONLY) work.push(() => runCards(browser, s));
   if (wantS('gg')) for (const s of ONLY) for (const v of VIEWS.filter(x => GG_W.includes(x[0]))) work.push(() => runGG(browser, s, v));
   if (wantS('ggold') && (WANT_S || !argOf('--only'))) for (const lang of ['ja', 'en']) {
     const vs = VIEWS.filter(x => GG_W.includes(x[0]));
     for (const v of vs) work.push(() => runGGOld(browser, lang, v));
-    if (vs.length) work.push(() => runGGOldOff(browser, lang, vs[0], 'css'), () => runGGOldOff(browser, lang, vs[vs.length - 1], 'lock'));
+    if (vs.length) work.push(() => runGGOldOff(browser, lang, vs[0], 'css'), () => runGGOldOff(browser, lang, vs[vs.length - 1], 'lock'),
+      () => runGGOldOff(browser, lang, vs[0], 'empty'), () => runGGOldStale(browser, lang, vs[vs.length - 1]));
   }
   let next = 0;
   await Promise.all(Array.from({ length: Math.min(JOBS, work.length) }, async () => {

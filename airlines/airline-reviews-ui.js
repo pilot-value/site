@@ -951,7 +951,11 @@
     var emptyMsg = shown === 0
       ? '<div style="text-align:center;padding:32px 0;color:#6b7d93;font-size:.85rem">' + L.empty + '</div>' : '';
     var loginHref = '../login.html?return=' + encodeURIComponent(location.pathname + location.search);
-    var postGate = (locked && shown > 0) ?
+    /* ★2026-10-09 手元の鍵の控え（pv_unlock_expiry）が生きていても、サーバが本文を伏せて返した口コミが在れば、下の入口を出す。
+       控えは下げる向きには直らない（別の会員でログインした・自分の口コミが消えた・ログインが切れた）。
+       カード1枚ごとのボタンを外したので、ここを出さないと、伏せたカードが並ぶのに一覧の中の入口が見出しの投稿ボタンだけになる。 */
+    var srvLk = filtered.some(function (r) { return r.serverLocked; });
+    var postGate = ((locked || srvLk) && shown > 0) ?
       '\n      <div class="rv-post-gate">\n' +
       '        <div class="rv-gate-lock">🔒</div>\n' +
       '        <div class="rv-gate-title">' + L.gateTitle + '</div>\n' +
@@ -1176,7 +1180,7 @@
      同じ黒いボタンが口コミの数だけ縦に並んでいた（キャセイで22個。ぼかしの帯の中では上下が切れていた）。
      入口は、評価スコアの1枚と、一覧のいちばん下の「メンバー限定データ」の2つ。
      ★2026-10-09 タブの無い会社ページと英語版も同じ（黒い丸いボタンを出す時は、1枚ごとには置かない。
-       入口は一覧の見出しの投稿ボタンと、いちばん下の「メンバー限定データ」）。
+       入口は一覧の見出しの投稿ボタンと、いちばん下の「メンバー限定データ」── 伏せた口コミが1件でも在れば必ず出る）。
        pv-gg.css を読めなかった時だけ、今までのボタンを1文字も変えずに返す。 */
   function cardCta(old) {
     if (ggShape()) return '';
