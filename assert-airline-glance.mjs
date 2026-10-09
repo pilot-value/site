@@ -63,7 +63,7 @@
      node assert-airline-glance.mjs            全部
      node assert-airline-glance.mjs --static   ブラウザを使わない所だけ
      node assert-airline-glance.mjs --only etihad --sizes 390,1440   調べる時だけ（会社と幅を絞る。緑でも全部を見たことにはならない）
-     node assert-airline-glance.mjs --scenes off,cards               調べる時だけ（場面を絞る：view・off・rows・rated・tabs・cards・gg）
+     node assert-airline-glance.mjs --scenes off,cards               調べる時だけ（場面を絞る：view・off・rows・rated・tabs・cards・gg・ggold）
    同時に開く枚数は PV_GLANCE_JOBS（既定 3。check.mjs からは 2）。
    ══════════════════════════════════════════════════════════════════ */
 import fs from 'node:fs';
@@ -131,6 +131,9 @@ const GIVE = '全ての給与情報を解放する', TERMS = '閲覧条件';
    書き手は3つ（career-live.js・gen-airline-glance.mjs・airline-reviews-ui.js）。この表は検査が自分で持つ ── 書き手から読み込まない。 */
 const GG_CUT = { '全ての給与情報を解放する': ['全ての', '給与情報を', '解放する'], '口コミを解放する': ['口コミを', '解放する'], '全ての口コミデータを解放する': ['全ての', '口コミデータを', '解放する'] };
 const RV_GIVE = { overview: '口コミを解放する', reviews: '全ての口コミデータを解放する' };
+/* ★2026-10-09 タブの無い会社ページと英語版の鍵の面にも、同じ形のボタンを出す（オーナー判断「拡げる」）。
+   下の行の言葉（英語）。日本語は上の3つと同じ。書き手は2つ（premium-auth-lock.js・airline-reviews-ui.js）── ここへ読み込まない。 */
+const OLD_GG = { ja: { pay: GIVE, all: RV_GIVE.reviews, top: RV_GIVE.overview }, en: { pay: 'Unlock all pay data', all: 'Unlock all reviews', top: 'Unlock reviews' } };
 /* ★2026-10-08 昔からの節（新しい部品の下に手で書いてあった節）は、新しい部品へ移して外した。
    何をどこへ移したか・何を残したかの台帳は gen-airline-glance.mjs の LEGACY。
    ここには「残してよい節」を会社ごとに書き写してある ── 台帳の正規表現をそのまま当てると、
@@ -908,17 +911,64 @@ ok(!/innerHTML|insertAdjacentHTML|document\.write/.test(JSC), 'pv-glance.js は 
 ok(/getAttribute\('data-pv-glance'\)\s*===\s*'1'\)\s*return/.test(noJsCmt(read('airlines/airline-base.js'))),
    'airline-base.js は5枚に、見本の点数を混ぜた評価を足さない');
 {
-  /* 口コミのタブの錠前のボタン。字を2行にしただけで、行き先も開く条件も今までと同じ（言葉はここに書く・写さない）。 */
+  /* 口コミの錠前のボタン。字を2行にしただけで、行き先も開く条件も今までと同じ（言葉はここに書く・写さない）。
+     ★2026-10-09 オーナー判断「拡げる」：同じ形を、タブの無い会社ページと英語版の鍵の面にも出す。
+       言葉は置き場で決まる（一覧の錠前・「続きを読む」の小窓 ＝ all／概要の「生の声」の下 ＝ top）。
+       出すのは pv-gg.css を読めた時だけ。読めなかった時は、今までのボタンを1文字も変えずに出す。 */
   const ui = noJsCmt(read('airlines/airline-reviews-ui.js'));
-  const fn = one(ui, /function unlockLabel\(plain\) \{([\s\S]*?)\n  \}/) || '';
-  ok(fn.includes('<span class="pvg-gg-k" lang="en">Give &amp; Get</span>') && fn.includes(`<span class="pvg-gg-m">${GG_CUT[RV_GIVE.reviews].join('<wbr>')}</span>`),
-     `口コミのタブの錠前のボタンは2行 ──「${GG}／${RV_GIVE.reviews}」（語の切れ目つき）`);
-  /* 1枚ごとの錠前のボタンは、タブのある会社ページでは置かない（同じ黒いボタンが口コミの数だけ並ぶ。ぼかしの帯の中では上下が切れる）。
+  const body = name => one(ui, new RegExp('\\n  function ' + name + '\\([^)]*\\) \\{([\\s\\S]*?)\\n  \\}')) || '';
+  const fn = body('unlockLabel'), words = one(ui, /\n  var GG_WORDS = \{([\s\S]*?)\n  \};/) || '';
+  const cutOf = k => GG_CUT[RV_GIVE[k]].join('<wbr>');
+  ok(fn.includes('<span class="pvg-gg-k" lang="en">Give &amp; Get</span>') && fn.includes(`'<span class="pvg-gg-m">' + (words[kind] || words.all) + '</span></span>'`)
+     && words.includes(`ja: { all: '${cutOf('reviews')}', top: '${cutOf('overview')}' },`),
+     `口コミの錠前のボタンは2行 ──「${GG}／${RV_GIVE.reviews}」・概要は「${GG}／${RV_GIVE.overview}」（語の切れ目つき）`);
+  ok(words.includes(`en: { all: '${OLD_GG.en.all}', top: '${OLD_GG.en.top}' },`) && /var words = GG_WORDS\[LANG\] \|\| GG_WORDS\.ja;/.test(fn),
+     `英語版の下の行は「${OLD_GG.en.all}」・概要は「${OLD_GG.en.top}」`);
+  /* 1枚ごとの錠前のボタンは、黒い丸いボタンを出す時には置かない（同じ黒いボタンが口コミの数だけ並ぶ。ぼかしの帯の中では上下が切れる）。
      置くのは3か所だけ：一覧のいちばん下の「メンバー限定データ」・「続きを読む」の窓・公開情報のまとめの下。 */
-  ok(/\n  function cardCta\(old\) \{ return ggShape\(\) \? '' : old; \}/.test(ui) && (ui.match(/cardCta\(\n/g) || []).length === 2 && (ui.match(/unlockBtn\('/g) || []).length === 3
+  const card = body('cardCta'), btn = body('unlockBtn'), old = body('ggOld'), settle = body('ggSettle');
+  ok(/^\s*if \(ggShape\(\)\) return '';\s*var st = ggOld\(\);\s*return st === 'yes' \? '' : st === 'wait' \? ggWait\('card', old\) : old;\s*$/.test(card)
+     && (ui.match(/cardCta\(\n/g) || []).length === 2 && (ui.match(/unlockBtn\('/g) || []).length === 3
      && [/function lockedTailHTML\(tailText\) \{([\s\S]*?)\n  \}/, /function srvLockHTML\(catKeys\) \{([\s\S]*?)\n  \}/].every(re => { const b = one(ui, re) || ''; return b.includes('cardCta(') && !b.includes('unlockBtn('); }),
-     '口コミ1枚ごとの錠前のボタンは、タブのある会社ページでは置かない（入口は評価スコアの1枚と、一覧のいちばん下）');
-  ok(/if \(LANG !== 'ja' \|\| !isTabbed\(\)\) return plain;/.test(fn), '2行にするのは、タブのある日本語の会社ページだけ（ほかの会社と英語版は今までの1行）');
+     '口コミ1枚ごとの錠前のボタンは、黒い丸いボタンを出す時には置かない（入口は評価スコアの1枚／一覧の見出しと、一覧のいちばん下）');
+  /* タブのある日本語の会社ページ ＝ いつも黒い丸いボタン。ほかの会社と英語版 ＝ pv-gg.css を読めた時だけ。
+     読めなかった時・読む口（window.PVGG）が無い時は、渡された今までのボタンをそのまま返す（形の無い素の字を出さない）。 */
+  ok(/^\s*if \(ggShape\(\)\) return ggBtn\('all'\);\s*var st = ggOld\(\);\s*return st === 'yes' \? ggBtn\(kind \|\| 'all'\) : st === 'wait' \? ggWait\(kind \|\| 'all', old\) : old;\s*$/.test(btn)
+     && /\n  function ggShape\(\) \{ return LANG === 'ja' && isTabbed\(\); \}/.test(ui),
+     'タブのある日本語の会社ページはいつも黒い丸いボタン。ほかの会社と英語版は、pv-gg.css を読めた時だけ（読めなければ今までのボタンのまま）');
+  ok(/^\s*if \(isTabbed\(\)\) return 'no';\s*var g = w\.PVGG;\s*if \(!g \|\| typeof g\.ready !== 'function' \|\| typeof g\.state !== 'function'\) return 'no';/.test(old) && /return 'wait';\s*$/.test(old)
+     && /if \(!ok\) el\.outerHTML = el\.innerHTML;/.test(settle) && /else if \(kind === 'card'\) el\.parentNode\.removeChild\(el\);/.test(settle) && /else el\.outerHTML = ggBtn\(kind\);/.test(settle)
+     && /\n  function ggWait\(kind, old\) \{ return '<div data-pvgg-wait="' \+ kind \+ '" style="display:none">' \+ old \+ '<\/div>'; \}/.test(ui),
+     '形が決まるまで、今までのボタンは見えない箱で待つ（橙から黒への入れ替わりも、形の無い素の字も、一瞬も見せない）');
+  /* 「続きを読む」の小窓（タブの無い会社ページ・英語版）：板はいつも暗い色 ＝ 板に data-theme="dark" を付けて、ボタンを暗い面の色で出す。
+     明るいページでも、板の上の字の色を読み替えさせない（rmgKeepInk）。 */
+  ok(/var rmNew = !ggShape\(\) && ggOld\(\) === 'yes';/.test(ui) && ui.includes(`'\\n    <div' + (rmNew ? ' data-theme="dark"' : '') + ' style="background:#111620;`)
+     && ui.includes(`(rmNew ? '        ' + ggBtn('all') + '\\n' :`) && /if \(!ggShape\(\)\) rmgKeepInk\(modal\);/.test(ui)
+     && /els\[i\]\.style\.setProperty\('color', c, 'important'\);/.test(body('rmgKeepInk')),
+     '「続きを読む」の小窓（タブの無いページ）：暗い板に明るいボタン・板の上の字の色を読み替えさせない');
+}
+{
+  /* 給与と口コミの鍵の面（premium-auth-lock.js）。変えたのは形と字だけ ── 行き先・計測の印・開く条件は今までと同じ。 */
+  const lock = noJsCmt(read('airlines/premium-auth-lock.js'));
+  const ov = one(lock, /\n  function overlayHTML\(loggedIn, gateKey, gg\) \{([\s\S]*?)\n  \}/) || '';
+  ok(lock.includes(`ggSalary:      '${GG_CUT[GIVE].join('<wbr>')}',`) && lock.includes(`ggReview:      '${GG_CUT[RV_GIVE.reviews].join('<wbr>')}',`)
+     && lock.includes(`ggSalary:      '${OLD_GG.en.pay}',`) && lock.includes(`ggReview:      '${OLD_GG.en.all}',`),
+     `鍵の面のボタンの下の行 ── 給与「${GIVE}」・口コミ「${RV_GIVE.reviews}」／英語「${OLD_GG.en.pay}」「${OLD_GG.en.all}」`);
+  const cta = `data-pv-cta="' + (isSalary ? 'salary' : 'review') + '">'`;
+  ok(ov.includes(`'<a href="' + href + '" class="pv-gg" style="align-self:center" ${cta}`) && ov.includes(`'<a href="' + href + '" class="pv-btn-main" ${cta}`)
+     && ov.includes("var href  = isSalary ? SALARY_URL : reviewURL();") && ov.includes(`'<span class="pv-gg-t"><span class="pvg-gg-k" lang="en">Give &amp; Get</span>'`)
+     && ov.includes("'<span class=\"pvg-gg-m\">' + (isSalary ? T.ggSalary : T.ggReview) + '</span></span>'"),
+     '鍵の面：新しいボタンも今までのボタンも、同じ行き先・同じ計測の印（data-pv-cta）');
+  ok(/\n          gg \? '' : \[\n          '<div class="pv-give-take">',/.test(ov) && /\n            gg \? \[\n/.test(ov) && /\]\.join\(''\) : \[\n            '<a href="' \+ href \+ '" class="pv-btn-main"/.test(ov),
+     '鍵の面：pv-gg.css を読めなかった時は、今までの札とボタンを1文字も変えずに出す');
+  const rd = one(lock, /\n  function renderOverlays\(list, loggedIn\) \{([\s\S]*?)\n  \}/) || '';
+  ok(/GG\.ready\(function \(gg\) \{/.test(rd) && /if \(g\.classList\.contains\('pv-locked'\) && !g\.querySelector\('\.pv-gate-overlay'\)\)/.test(rd) && /overlayHTML\(loggedIn, keyOf\(g\), gg\)/.test(rd),
+     '鍵の面は、ボタンの形が決まってから出す（待っているあいだに開いた枠には出さない・二重に出さない）');
+  /* 読む口は1つ（window.PVGG）。もう読んでいるページ（主要5社）では足さない・足す時は末尾に1回・読めなければ false。 */
+  ok(/const GG = window\.PVGG = window\.PVGG \|\| \(function \(\) \{/.test(lock) && /if \(l && usable\(l\)\) \{ done\(true\); return; \}/.test(lock) && /if \(!l\) \{\s*l = document\.createElement\('link'\);/.test(lock)
+     && /l\.addEventListener\('error', function \(\) \{ done\(false\); \}\);/.test(lock) && /setTimeout\(function \(\) \{ done\(usable\(l\)\); \}, 2500\);/.test(lock)
+     && /new URL\('\.\.\/pv-gg\.css', SELF/.test(lock) && !/\.pv-gg\s*\{|border-radius:\s*999px/.test(lock),
+     'pv-gg.css を読む口は1つ（window.PVGG）── もう読んでいれば足さない・読めなければ今までの形・ここに形を書かない');
 }
 
 head('古い節の台帳（新しい表示先／不要／残す）');
@@ -2746,8 +2796,8 @@ function ggSee(KEYS, sel) {
     const card = e.closest('.pvg-rmg-box') || e.closest('.pvg-card') || e.closest('#airline-review-section') || e.closest('.pvg');
     return {
       at: window.PVGlance ? window.PVGlance.at() : '',
-      where: e.closest('#pv-readmore-gate') ? 'dialog' : e.closest('.pvg-rv-cta-overview') ? 'score-overview' : e.closest('.pvg-rv-cta-reviews') ? 'score-reviews' : e.closest('#airline-review-section') ? 'list' : e.closest('.crl') ? 'pay' : '?',
-      tag: e.tagName, text: lines.length ? lines.map(t).join('／') : t(e), href: e.getAttribute('href') || '',
+      where: e.closest('#pv-readmore-gate') ? 'dialog' : e.closest('.pvg-rv-cta-overview') ? 'score-overview' : e.closest('.pvg-rv-cta-reviews') ? 'score-reviews' : e.closest('#airline-review-section') ? 'list' : e.closest('.crl') ? 'pay' : e.closest('.pv-gate-card') ? 'lock' : e.closest('#airline-voices') ? 'voices' : '?',
+      tag: e.tagName, text: lines.length ? lines.map(t).join('／') : t(e), href: e.getAttribute('href') || '', cta: e.getAttribute('data-pv-cta') || '', onclick: e.getAttribute('onclick') || '',
       css: Object.fromEntries(KEYS.map(k => [k, c[k]])), display: c.display, ws: c.whiteSpace, overflow: c.overflowX + ' ' + c.overflowY,
       box: box(e), vw: document.documentElement.clientWidth, clipX: e.scrollWidth - e.clientWidth, clipY: e.scrollHeight - e.clientHeight,
       tbox: tb ? { ...box(tb), align: getComputedStyle(tb).textAlign } : null,
@@ -2764,6 +2814,8 @@ function ggSee(KEYS, sel) {
         if (b.top < r.top - 0.5 || b.bottom > r.bottom + 0.5 || b.left < r.left - 0.5 || b.right > r.right + 0.5) return '.' + String(a.className || a.tagName).trim().split(/\s+/).join('.'); } return ''; })(),
       svg: svg && on(svg) ? box(svg) : null,
       card: card ? box(card) : null,
+      /* 旧い形の会社ページで、ボタンのすぐ外の箱（錠前の板・口コミの鍵の箱・小窓の板） */
+      host: (h => (h ? box(h) : null))(e.closest('.pv-gate-card, .rv-post-gate, #pv-readmore-gate > div')),
     };
   });
 }
@@ -2790,6 +2842,49 @@ function ggBase(browser) {
     } catch { return null; } finally { await ctx.close().catch(() => {}); }
   })();
   return ggBaseOnce;
+}
+/* ボタン1つの形を、トップの黒いボタン（lp）と突き合わせる。タブのある形も旧い形も、この1つの物差しで測る。
+   opt.tone ＝ 色だけは別の答えと比べる時（暗い画面・暗い板の上では、サイトの色の決まりで白黒が入れ替わる）。
+   opt.words ＝ 下の行が空白で語を分ける言葉（英語）。折れてよいのは語と語のあいだだけ。 */
+function ggJudge(g, lp, who, shape, lay, opt = {}) {
+  const tone = opt.tone || { backgroundColor: lp.css.backgroundColor, color: lp.css.color };
+  const want = k => (k in tone ? tone[k] : lp.css[k]);
+  /* a) 形 ＝ トップの黒いボタン */
+  const diff = [...new Set(GG_KEYS.filter(k => g.css[k] !== want(k)).map(k => `${GG_NAME[k]} ${g.css[k]}（${k in tone && opt.tone ? 'あるべき' : 'トップは'} ${want(k)}）`))];
+  if (diff.length) shape.push(`${who}: ${diff.join('・')}`);
+  if (!/(^|-)flex$/.test(g.display)) shape.push(`${who}: 並べ方が ${g.display}`);
+  if (g.box.h < lp.box.h - 0.5) shape.push(`${who}: 高さ ${g.box.h.toFixed(1)}（トップは ${lp.box.h.toFixed(1)}）`);
+  if (!(g.svg && lp.svg && Math.abs(g.svg.w - lp.svg.w) <= 0.5 && Math.abs(g.svg.h - lp.svg.h) <= 0.5)) shape.push(`${who}: 矢印の大きさが違う（${g.svg ? g.svg.w + '×' + g.svg.h : '無い'}）`);
+  /* b) 2行：同じ大きさ・同じ太さ・同じ濃さ・まんなか・上が「Give & Get」 */
+  if (g.lines.length !== 2) { lay.push(`${who}: 字が ${g.lines.length}行（あるべき 2行）`); return; }
+  const [k, m] = g.lines;
+  if (!(k.text === GG && k.lang === 'en')) lay.push(`${who}: 上の行が「${k.text}」`);
+  if (!(k.box.b <= m.box.t + 1)) lay.push(`${who}: 2行が上下に積まれていない`);
+  for (const [l, name] of [[k, '上の行'], [m, '下の行']]) {
+    if (l.size !== lp.css.fontSize || l.weight !== lp.css.fontWeight) shape.push(`${who}: ${name}が ${l.size}・太さ ${l.weight}（トップは ${lp.css.fontSize}・${lp.css.fontWeight}）`);
+    if (l.op !== '1' || l.color !== want('color')) shape.push(`${who}: ${name}が薄い（濃さ ${l.op}・色 ${l.color}）`);
+    if (l.align !== 'center') lay.push(`${who}: ${name}がまんなかに寄っていない（${l.align}）`);
+    if (Math.abs((l.ink.l + l.ink.r) / 2 - (g.tbox.l + g.tbox.r) / 2) > 1) lay.push(`${who}: ${name}の字が、字の箱のまんなかに無い`);
+    if (l.over > 1 || l.ink.l < g.box.l - 0.5 || l.ink.r > g.box.r + 0.5 || l.ink.t < g.box.t - 0.5 || l.ink.b > g.box.b + 0.5) lay.push(`${who}: ${name}の字がボタンからはみ出す・欠ける`);
+  }
+  /* b2) 折れるのは語の切れ目でだけ。上の行（Give & Get）は折れない */
+  if (k.rows.length !== 1) lay.push(`${who}: 上の行が ${k.rows.length}行に折れている（${k.rows.join('／')}）`);
+  const cut = opt.words ? m.text.split(' ') : GG_CUT[m.text];
+  if (!cut) lay.push(`${who}: 下の行「${m.text}」の語の切れ目を、検査が知らない`);
+  else {
+    const mark = opt.words ? [m.text] : cut;       // 空白で分かれる言葉には、切れ目の印（<wbr>）を置かない
+    if (!same(m.cut, mark)) lay.push(`${who}: 下の行の語の切れ目が「${m.cut.join('｜')}」（あるべき「${mark.join('｜')}」）`);
+    const ends = new Set(cut.map((_, i) => cut.slice(0, i + 1).join('').length)), rows = m.rows.map(r => r.replace(/\s+/g, '')); let at = 0;
+    if (rows.join('') !== cut.join('') || !rows.every(r => ends.has(at += r.length))) lay.push(`${who}: 下の行が語の途中で折れている（${m.rows.join('／')}）`);
+  }
+  if (g.cutBy) lay.push(`${who}: 親の箱（${g.cutBy}）に切り落とされている`);
+  /* c) 中身（字の箱＋矢印）がボタンのまんなか・切れない・カードと画面の中 */
+  const padL = parseFloat(g.css.paddingLeft), padR = parseFloat(g.css.paddingRight);
+  const left = g.tbox.l - g.box.l - padL, right = g.box.r - padR - (g.svg ? g.svg.r : g.tbox.r);
+  if (Math.abs(left - right) > 1.5 || left < -0.5) lay.push(`${who}: 中身がボタンのまんなかに無い（左の空き ${left.toFixed(1)}・右の空き ${right.toFixed(1)}）`);
+  if (g.clipX > 1 || g.clipY > 1) lay.push(`${who}: 中身がボタンに入りきらない（横 ${g.clipX}・縦 ${g.clipY}）`);
+  if (g.box.l < -0.5 || g.box.r > g.vw + 0.5) lay.push(`${who}: 画面の外へ出ている（${Math.round(g.box.l)}〜${Math.round(g.box.r)}・画面 ${g.vw}）`);
+  if (g.card && (g.box.l < g.card.l - 0.5 || g.box.r > g.card.r + 0.5)) lay.push(`${who}: カードの外へ出ている`);
 }
 const GG_W = [320, 390, 768, 1440];
 /* タブごとに、出ているはずのボタン（置き場 → 下の行の字）。上の行は全部「Give & Get」。 */
@@ -2842,44 +2937,7 @@ async function runGG(browser, s, [w, h]) {
       }
       const extra = got.filter(g => !want.some(x => x[0] === g.where));
       if (extra.length) lay.push(`「${GG_AT[t]}」に、決めていない置き場のボタンが在る（${extra.map(g => g.where + '「' + g.text + '」').join('・')}）`);
-      for (const g of got) {
-        const who = `「${GG_AT[t]}」の ${g.where}`;
-        /* a) 形 ＝ トップの黒いボタン */
-        const diff = [...new Set(GG_KEYS.filter(k => g.css[k] !== lp.css[k]).map(k => `${GG_NAME[k]} ${g.css[k]}（トップは ${lp.css[k]}）`))];
-        if (diff.length) shape.push(`${who}: ${diff.join('・')}`);
-        if (!/(^|-)flex$/.test(g.display)) shape.push(`${who}: 並べ方が ${g.display}`);
-        if (g.box.h < lp.box.h - 0.5) shape.push(`${who}: 高さ ${g.box.h.toFixed(1)}（トップは ${lp.box.h.toFixed(1)}）`);
-        if (!(g.svg && lp.svg && Math.abs(g.svg.w - lp.svg.w) <= 0.5 && Math.abs(g.svg.h - lp.svg.h) <= 0.5)) shape.push(`${who}: 矢印の大きさが違う（${g.svg ? g.svg.w + '×' + g.svg.h : '無い'}）`);
-        /* b) 2行：同じ大きさ・同じ太さ・同じ濃さ・まんなか・上が「Give & Get」 */
-        if (g.lines.length !== 2) { lay.push(`${who}: 字が ${g.lines.length}行（あるべき 2行）`); continue; }
-        const [k, m] = g.lines;
-        if (!(k.text === GG && k.lang === 'en')) lay.push(`${who}: 上の行が「${k.text}」`);
-        if (!(k.box.b <= m.box.t + 1)) lay.push(`${who}: 2行が上下に積まれていない`);
-        for (const [l, name] of [[k, '上の行'], [m, '下の行']]) {
-          if (l.size !== lp.css.fontSize || l.weight !== lp.css.fontWeight) shape.push(`${who}: ${name}が ${l.size}・太さ ${l.weight}（トップは ${lp.css.fontSize}・${lp.css.fontWeight}）`);
-          if (l.op !== '1' || l.color !== lp.css.color) shape.push(`${who}: ${name}が薄い（濃さ ${l.op}・色 ${l.color}）`);
-          if (l.align !== 'center') lay.push(`${who}: ${name}がまんなかに寄っていない（${l.align}）`);
-          if (Math.abs((l.ink.l + l.ink.r) / 2 - (g.tbox.l + g.tbox.r) / 2) > 1) lay.push(`${who}: ${name}の字が、字の箱のまんなかに無い`);
-          if (l.over > 1 || l.ink.l < g.box.l - 0.5 || l.ink.r > g.box.r + 0.5 || l.ink.t < g.box.t - 0.5 || l.ink.b > g.box.b + 0.5) lay.push(`${who}: ${name}の字がボタンからはみ出す・欠ける`);
-        }
-        /* b2) 折れるのは語の切れ目でだけ。上の行（Give & Get）は折れない */
-        if (k.rows.length !== 1) lay.push(`${who}: 上の行が ${k.rows.length}行に折れている（${k.rows.join('／')}）`);
-        const cut = GG_CUT[m.text];
-        if (!cut) lay.push(`${who}: 下の行「${m.text}」の語の切れ目を、検査が知らない`);
-        else {
-          if (!same(m.cut, cut)) lay.push(`${who}: 下の行の語の切れ目が「${m.cut.join('｜')}」（あるべき「${cut.join('｜')}」）`);
-          const ends = new Set(cut.map((_, i) => cut.slice(0, i + 1).join('').length)); let at = 0;
-          if (m.rows.join('') !== cut.join('') || !m.rows.every(r => ends.has(at += r.length))) lay.push(`${who}: 下の行が語の途中で折れている（${m.rows.join('／')}）`);
-        }
-        if (g.cutBy) lay.push(`${who}: 親の箱（${g.cutBy}）に切り落とされている`);
-        /* c) 中身（字の箱＋矢印）がボタンのまんなか・切れない・カードと画面の中 */
-        const padL = parseFloat(g.css.paddingLeft), padR = parseFloat(g.css.paddingRight);
-        const left = g.tbox.l - g.box.l - padL, right = g.box.r - padR - (g.svg ? g.svg.r : g.tbox.r);
-        if (Math.abs(left - right) > 1.5 || left < -0.5) lay.push(`${who}: 中身がボタンのまんなかに無い（左の空き ${left.toFixed(1)}・右の空き ${right.toFixed(1)}）`);
-        if (g.clipX > 1 || g.clipY > 1) lay.push(`${who}: 中身がボタンに入りきらない（横 ${g.clipX}・縦 ${g.clipY}）`);
-        if (g.box.l < -0.5 || g.box.r > g.vw + 0.5) lay.push(`${who}: 画面の外へ出ている（${Math.round(g.box.l)}〜${Math.round(g.box.r)}・画面 ${g.vw}）`);
-        if (g.card && (g.box.l < g.card.l - 0.5 || g.box.r > g.card.r + 0.5)) lay.push(`${who}: カードの外へ出ている`);
-      }
+      for (const g of got) ggJudge(g, lp, `「${GG_AT[t]}」の ${g.where}`, shape, lay);
       if (t === 'dialog') {
         /* 小窓そのもの：画面の中に収まる・ボタンは1つでまんなか・板の色はサイトの色（明暗に付いていく）・
            押せるものに状態と 44px・開くと中のボタンへ移る・Esc で閉じて開き直せる（開き直しても増えない）。 */
@@ -2947,6 +3005,274 @@ async function runGG(browser, s, [w, h]) {
   }
 }
 
+/* ★2026-10-09 旧い形の会社ページ（タブを JS が作る形 ＝ 日本語の5社のほか全部と、英語版の全部）の鍵の面。
+   同じボタンを、共有の JS 2本（premium-auth-lock.js・airline-reviews-ui.js）が出す。1枚を日英で実際に開いて測る。
+     明るい画面 … 形がトップの黒いボタンと同じ／2行ともまんなか／語の途中で折れない／箱と画面の中
+     暗い画面   … 色がサイトの色の決まりに付いていく（白黒が入れ替わる）
+     小窓       … 板は明暗によらず暗い色なので、ボタンは暗い側の色。見出しと説明の字が板の上で読める
+     行き先     … 給与の錠前は給与の提出へ（戻り先つき）・口コミは投稿の入口へ。古いボタンと同じ
+     出ていないもの … 古い橙のボタン・GIVE → GET の札・カード1枚ごとの解除ボタン・待ち受けの箱
+   ⚠️ 形のファイル（pv-gg.css）が読めない時は、古いボタンのまま出る（素の字のボタンを出さない）── 読めなくして確かめる。
+   ⚠️ 2本の JS は版の印なしで読まれる ＝ 最大4時間、片方だけ古いことがある。錠前の JS が無い（＝合図が無い）時、
+      口コミの側は古いボタンのままで居る ── 錠前の JS を止めて確かめる。
+   ここの口コミは、決まった返事（鍵の無い人に返る3件）で描かせる。本番の DB は読まない。 */
+const OLD_SAMPLE = 'emirates';
+const OLD_PATH = { ja: '/airlines/' + OLD_SAMPLE + '.html', en: '/en/airlines/' + OLD_SAMPLE + '.html' };
+const OLD_PAY = { ja: '/pay-report.html', en: '/en/pay-report.html' };
+const OLD_POST = 'if(window.openReviewModal)openReviewModal()';
+const OLD_AT = { lock: '給与の錠前', voices: '概要の「海外の評判」の鍵', list: '口コミの一覧の鍵', dialog: '続きを読むの小窓' };
+/* 日本語の旧い形のページは、検索に渡す構造化データの件数を数え直すために、口コミの表へ「件数だけ」を聞く（airline-base.js）。0件で返す。 */
+const OLD_COUNT_RE = /\/rest\/v1\/reviews_v2$/;
+/* 字と地の明るさの比（WCAG の式）。色は rgb()／rgba() の字で届く。 */
+const lumOf = c => { const m = /rgba?\(([^)]+)\)/.exec(c || ''); if (!m) return null; const [r, g, b] = m[1].split(/[,\s/]+/).map(Number).map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+const contrast = (a, b) => { const x = lumOf(a), y = lumOf(b); return x === null || y === null ? 0 : (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+
+async function openOld(browser, lang, w, h, { block = '' } = {}) {
+  const ctx = await browser.createBrowserContext();
+  const p = await ctx.newPage();
+  const seen = { unknown: new Set(), asked: 0 };
+  const who = `旧い形 ${lang} ${w}`;
+  p.setDefaultTimeout(30000);
+  p.on('pageerror', e => trouble.push(`${who}: ${String(e.message).slice(0, 140)}`));
+  p.on('response', r => { if (r.url().startsWith(BASE) && r.status() >= 400) trouble.push(`${r.status()} ${r.url()}`); });
+  await p.setViewport({ width: w, height: h, deviceScaleFactor: 1, isMobile: w < 900, hasTouch: w < 1100 });
+  await p.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
+  /* 明るい画面から測る（英語ページの既定は暗い画面。トップの基準は明るい画面で測ってある）。 */
+  await p.evaluateOnNewDocument(() => { try { localStorage.setItem('pv-theme', 'light'); } catch (e) { /* 保存領域が無い時は既定のまま */ } });
+  await p.setRequestInterception(true);
+  p.on('request', r => {
+    let u; try { u = new URL(r.url()); } catch { return r.continue(); }
+    if (['data:', 'blob:', 'about:'].includes(u.protocol)) return r.continue();
+    if (u.origin === BASE) {
+      if (block === 'css' && u.pathname === '/pv-gg.css') return r.abort();
+      if (block === 'lock' && u.pathname === '/airlines/premium-auth-lock.js') return r.abort();
+      return r.continue();
+    }
+    if (LIBS.test(u.hostname)) return r.continue();
+    if (/\.supabase\.co$/.test(u.hostname)) {
+      const cors = { 'access-control-allow-origin': '*' };
+      if (r.method() === 'OPTIONS') return r.respond({ status: 204, headers: { ...cors, 'access-control-allow-methods': 'GET,POST,HEAD,OPTIONS', 'access-control-allow-headers': r.headers()['access-control-request-headers'] || '*' } });
+      seen.asked++;
+      if (REV_RE.test(u.pathname)) return r.respond({ status: 200, contentType: 'application/json', headers: cors, body: ratedBody(OLD_SAMPLE) });
+      if (r.method() === 'HEAD' && OLD_COUNT_RE.test(u.pathname)) return r.respond({ status: 200, headers: { ...cors, 'access-control-expose-headers': 'content-range', 'content-range': '*/0' } });
+      const hit = STUB.find(([re]) => re.test(u.pathname));
+      if (hit) return r.respond({ status: 200, contentType: 'application/json', headers: cors, body: hit[1] });
+      seen.unknown.add(`${r.method()} ${u.pathname}`);
+      return r.respond({ status: 500, contentType: 'application/json', headers: cors, body: '{"message":"stub"}' });
+    }
+    return r.abort();
+  });
+  await p.goto(BASE + OLD_PATH[lang], { waitUntil: 'load', timeout: 60000 });
+  /* 落ち着くまで待つ：タブが出来た・形のファイルの合否が出た（錠前の JS を止めた回は、合図そのものが無い）・
+     「海外の評判」の鍵が描かれた・待ち受けの箱が残っていない。
+     ⚠️ 口コミの一覧は、口コミのタブを開いた時に初めて描かれる。ここで待つと、必ず時間切れになる。 */
+  const ready = await p.waitForFunction(lockOff => !!document.querySelector('.airline-tab-btn') &&
+    (lockOff ? !window.PVGG : !!window.PVGG && /^(yes|no)$/.test(window.PVGG.state())) &&
+    !!document.querySelector('#airline-voices .rv-post-gate') && !document.querySelector('[data-pvgg-wait]'), {}, block === 'lock').then(() => true, () => false);
+  await p.evaluate(() => document.fonts.ready.then(() => true));
+  return { ctx, p, seen, ready };
+}
+/* ページの中で動く：タブの一覧と、錠前の面がどのタブに居るか。 */
+function oldMap() {
+  return {
+    tabs: [...document.querySelectorAll('.airline-tab-btn')].map(b => b.dataset.tab),
+    gates: [...document.querySelectorAll('.premium-gate')].map(g => ({ tab: g.dataset.tabSection || '', locked: g.classList.contains('pv-locked'), cards: g.querySelectorAll('.pv-gate-card').length })),
+    voices: !!document.getElementById('airline-voices'),
+    state: window.PVGG ? window.PVGG.state() : '',
+    path: location.pathname,
+  };
+}
+/* ページの中で動く：古い形のボタンと札を数える（見えているものだけ）。 */
+function oldLeft() {
+  const on = e => e.getClientRects().length > 0 && e.checkVisibility({ visibilityProperty: true });
+  const n = s => [...document.querySelectorAll(s)].filter(on).length;
+  const a = [...document.querySelectorAll('.pv-gate-card a.pv-btn-main')].filter(on).map(e => ({ href: e.getAttribute('href') || '', cta: e.getAttribute('data-pv-cta') || '', text: e.textContent.replace(/\s+/g, ' ').trim() }));
+  return { main: a, pills: n('.pv-gate-card .pv-give-take'), card: n('.rv-locked-btn'), list: n('#airline-review-section .rv-post-gate .btn-review-post'), voices: n('#airline-voices .rv-post-gate .btn-review-post'),
+    dialog: n('#pv-readmore-gate .btn-review-post'), gg: n('.pv-gg'), wait: document.querySelectorAll('[data-pvgg-wait]').length, hit: window.__pvgHit === 1 };
+}
+/* タブを押して、切り替わるまで待つ。口コミのタブは、押した時に一覧を描く ＝ 一覧の鍵が出て、待ち受けの箱が無くなるまで待つ。 */
+const oldTab = async (p, tab) => {
+  await p.evaluate(t => document.querySelector('.airline-tab-btn[data-tab="' + t + '"]').click(), tab);
+  return p.waitForFunction(t => { const b = document.querySelector('.airline-tab-btn[data-tab="' + t + '"]'); return !!b && b.classList.contains('active') &&
+    (t !== 'reviews' || (!!document.querySelector('#airline-review-section .rv-post-gate') && !document.querySelector('[data-pvgg-wait]'))); }, { timeout: 8000 }, tab).then(() => true, () => false);
+};
+/* 給与の錠前の行き先：給与の提出のページ・戻り先はこのページ。 */
+const oldPayBad = (href, lang) => {
+  let u; try { u = new URL(href, BASE + OLD_PATH[lang]); } catch { return `読めない行き先「${href}」`; }
+  if (u.origin !== BASE || u.pathname !== OLD_PAY[lang]) return `行き先が ${u.pathname}（あるべき ${OLD_PAY[lang]}）`;
+  if (u.searchParams.get('return') !== OLD_PATH[lang]) return `戻り先が「${u.searchParams.get('return')}」（あるべき ${OLD_PATH[lang]}）`;
+  return '';
+};
+
+async function runGGOld(browser, lang, [w, h]) {
+  const tag = `旧い形の会社ページ ${lang} ${w}（Give & Get のボタン）`;
+  const lp = await ggBase(browser);
+  if (!lp) { ok(false, `${tag}: トップページのいちばん上の黒いボタンを測れた（基準）`); return; }
+  const html = read((lang === 'en' ? 'en/' : '') + 'airlines/' + OLD_SAMPLE + '.html');
+  const nGate = (html.match(/class="premium-gate[" ]/g) || []).length;
+  const { ctx, p, seen, ready } = await openOld(browser, lang, w, h);
+  const until = (fn, ...a) => p.waitForFunction(fn, { timeout: 8000 }, ...a).then(() => true, () => false);
+  try {
+    ok(ready, `${tag}: 開ける（タブ・形のファイルの合否・「海外の評判」の鍵がそろう）`);
+    const map = await p.evaluate(oldMap);
+    const shape = [], lay = [], dest = [], dark = [], dlg = [], seenAt = {};
+    ok(map.state === 'yes', `${tag}: 形のファイル（pv-gg.css）を読めた`, `合図 ＝「${map.state}」`);
+    ok(nGate > 0 && map.gates.length === nGate && map.gates.every(g => g.locked && g.cards === 1 && map.tabs.includes(g.tab)) && map.voices,
+      `${tag}: 見本のページに、測る面がそろっている（給与の錠前 ${nGate}つ・「海外の評判」の鍵・口コミの一覧の鍵）`, JSON.stringify(map));
+    const measure = async () => {
+      await p.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'no-preference' }]);
+      const r = await p.evaluate(ggSee, GG_KEYS, '');
+      await p.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
+      return r;
+    };
+    /* 暗い画面での色：サイトの色の決まり（--pv-cta-dark／--pv-cta-dark-ink）に付いていく。その場で明暗を替えて読み、戻す。 */
+    const flip = () => p.evaluate(() => {
+      const on = e => e.getClientRects().length > 0 && e.checkVisibility({ visibilityProperty: true });
+      const root = document.documentElement, was = root.getAttribute('data-theme');
+      const read = () => {
+        const pr = document.createElement('i'); pr.style.cssText = 'position:fixed;left:-99px;top:0;background:var(--pv-cta-dark);color:var(--pv-cta-dark-ink)'; document.body.appendChild(pr);
+        const s = getComputedStyle(pr), want = { bg: s.backgroundColor, ink: s.color }; pr.remove();
+        return { want, got: [...document.querySelectorAll('.pv-gg')].filter(on).filter(e => !e.closest('#pv-readmore-gate')).map(e => { const c = getComputedStyle(e); return { bg: c.backgroundColor, ink: c.color }; }) };
+      };
+      const light = read();
+      root.setAttribute('data-theme', 'dark');
+      const dk = read();
+      if (was === null) root.removeAttribute('data-theme'); else root.setAttribute('data-theme', was);
+      return { was, light, dk };
+    });
+    const face = { lock: OLD_GG[lang].pay, voices: OLD_GG[lang].top, list: OLD_GG[lang].all, dialog: OLD_GG[lang].all };
+    let locks = 0;
+    /* 古い形のものは、タブごとに数えて足す（見えているものだけを数えるので、いま開いているタブの分しか数えられない。
+       口コミのタブでだけ数えていた時は、別のタブの錠前に残った古い橙のボタンを見逃していた）。 */
+    const leftAll = { main: [], pills: 0, card: 0, list: 0, voices: 0, wait: 0 };
+    for (const tab of map.tabs) {
+      if (!(await oldTab(p, tab))) { lay.push(`「${tab}」のタブへ切り替わらない`); continue; }
+      const want = [...map.gates.filter(g => g.tab === tab).map(() => 'lock'), ...(tab === 'overview' ? ['voices'] : []), ...(tab === 'reviews' ? ['list'] : [])];
+      await until(n => [...document.querySelectorAll('.pv-gg')].filter(e => e.getClientRects().length > 0 && e.checkVisibility({ visibilityProperty: true })).length >= n, want.length);
+      const got = (await measure()).filter(g => g.where !== 'dialog');
+      seenAt[tab] = got.map(g => g.where);
+      const lf = await p.evaluate(oldLeft);
+      for (const k of ['pills', 'card', 'list', 'voices', 'wait']) leftAll[k] += lf[k];
+      leftAll.main.push(...lf.main.map(x => `「${tab}」: ${x.text}`));
+      if (!same([...seenAt[tab]].sort(), [...want].sort())) lay.push(`「${tab}」のタブに出ているボタンが ${JSON.stringify(seenAt[tab])}（あるべき ${JSON.stringify(want)}）`);
+      for (const g of got) {
+        const who = `「${tab}」のタブの${OLD_AT[g.where] || g.where}`;
+        if (g.text !== `${GG}／${face[g.where]}`) lay.push(`${who}: 字が「${g.text}」（あるべき「${GG}／${face[g.where]}」）`);
+        ggJudge(g, lp, who, shape, lay, { words: lang === 'en' });
+        if (!g.host) lay.push(`${who}: すぐ外の箱が見つからない`);
+        else {
+          if (g.box.l < g.host.l - 0.5 || g.box.r > g.host.r + 0.5) lay.push(`${who}: 箱の外へ出ている`);
+          if (Math.abs((g.box.l + g.box.r) / 2 - (g.host.l + g.host.r) / 2) > 1.5) lay.push(`${who}: 箱のまんなかに無い（${((g.box.l + g.box.r) / 2 - (g.host.l + g.host.r) / 2).toFixed(1)}px ずれ）`);
+        }
+        if (g.where === 'lock') {
+          locks++;
+          const bad = g.tag !== 'A' ? `リンクでない（${g.tag}）` : g.cta !== 'salary' ? `数える印が「${g.cta}」（あるべき salary）` : oldPayBad(g.href, lang);
+          if (bad) dest.push(`${who}: ${bad}`);
+        } else if (!(g.tag === 'BUTTON' && g.onclick === OLD_POST && !g.href)) dest.push(`${who}: 押した先が口コミの投稿の入口でない（${g.tag}・${g.onclick || g.href}）`);
+      }
+      if (got.length) {
+        const f = await flip();
+        if (f.was !== 'light') dark.push(`「${tab}」: 明るい画面で開いていない（${f.was}）`);
+        for (const [x, name] of [[f.light, '明るい画面'], [f.dk, '暗い画面']]) if (!x.got.length || !x.got.every(c => c.bg === x.want.bg && c.ink === x.want.ink)) dark.push(`「${tab}」の${name}: ボタンの色が ${JSON.stringify(x.got[0] || null)}（あるべき ${JSON.stringify(x.want)}）`);
+        if (f.light.want.bg === f.dk.want.bg) dark.push(`「${tab}」: 明るい・暗いを替えても、ボタンの色が変わらない（${f.light.want.bg}）`);
+        else if (contrast(f.dk.want.bg, f.dk.want.ink) < 4.5 || contrast(f.light.want.bg, f.light.want.ink) < 4.5) dark.push(`「${tab}」: ボタンの字が地の上で読みにくい`);
+      }
+      if (process.env.PV_GLANCE_SHOT) {
+        const y = await p.evaluate(() => { const e = [...document.querySelectorAll('.pv-gg')].find(x => x.getClientRects().length > 0); if (!e) return 0; document.documentElement.style.scrollBehavior = 'auto'; const r = e.getBoundingClientRect(); scrollTo(0, Math.max(0, scrollY + r.top + r.height / 2 - innerHeight / 2)); return 1; });
+        if (y) await p.screenshot({ path: `${process.env.PV_GLANCE_SHOT.replace(/\/$/, '')}/ggold-${lang}-${w}-${tab}.png` });
+      }
+    }
+    if (locks !== nGate) lay.push(`給与の錠前のボタンが、全部のタブを回って ${locks}つ（あるべき ${nGate}つ ＝ 錠前の面の数）`);
+    /* 古い形のものが、どのタブにも残っていない */
+    ok(!leftAll.main.length && !leftAll.pills && !leftAll.card && !leftAll.list && !leftAll.voices && !leftAll.wait,
+      `${tag}: 古い橙のボタン・GIVE → GET の札・カード1枚ごとの解除ボタン・待ち受けの箱が、1つも残っていない`, JSON.stringify(leftAll));
+    if (map.tabs.includes('reviews')) await oldTab(p, 'reviews');
+    const left = await p.evaluate(oldLeft);
+    ok(!left.hit, `${tag}: 口コミの職位・在籍年数に書かれたタグが、働いていない`);
+    /* 「続きを読む」の小窓（鍵の無い人が押した時） */
+    await p.evaluate(() => window.pvReadMore('pvg-none', ''));
+    if (!(await until(() => { const e = document.querySelector('#pv-readmore-gate .pv-gg'); return !!e && e.getClientRects().length > 0; }))) dlg.push('小窓が開かない・同じボタンが出ない');
+    else {
+      const d = await p.evaluate(() => {
+        const gate = document.getElementById('pv-readmore-gate'), bx = gate.firstElementChild, btn = gate.querySelector('.pv-gg');
+        const pr = document.createElement('i'); pr.setAttribute('data-theme', 'dark'); pr.style.cssText = 'position:fixed;left:-99px;top:0;background:var(--pv-cta-dark);color:var(--pv-cta-dark-ink)'; document.body.appendChild(pr);
+        const s = getComputedStyle(pr), tone = { backgroundColor: s.backgroundColor, color: s.color }; pr.remove();
+        const r = bx.getBoundingClientRect(), bg = getComputedStyle(bx).backgroundColor;
+        const words = [...bx.querySelectorAll('*')].filter(e => !e.closest('.pv-gg') && e.getClientRects().length > 0 && [...e.childNodes].some(n => n.nodeType === 3 && /[\p{L}\p{N}]/u.test(n.nodeValue)))
+          .map(e => ({ text: e.textContent.replace(/\s+/g, ' ').trim().slice(0, 24), ink: getComputedStyle(e).color }));
+        const top = (b => document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2))(btn.getBoundingClientRect());
+        return { tone, bg, theme: bx.getAttribute('data-theme') || '', words, n: gate.querySelectorAll('.pv-gg').length, old: gate.querySelectorAll('.btn-review-post').length, hit: !!top && btn.contains(top),
+          l: r.left, r: r.right, t: r.top, b: r.bottom, vw: document.documentElement.clientWidth, vh: window.innerHeight };
+      });
+      const got = (await measure()).filter(g => g.where === 'dialog');
+      if (got.length !== 1 || d.n !== 1 || d.old) dlg.push(`小窓のボタンが ${d.n}つ・古い橙のボタンが ${d.old}つ（あるべき 同じボタンが 1つだけ）`);
+      for (const g of got) {
+        const who = OLD_AT.dialog;
+        if (g.text !== `${GG}／${face.dialog}`) dlg.push(`字が「${g.text}」（あるべき「${GG}／${face.dialog}」）`);
+        /* 板は明暗によらず暗い色 ＝ ボタンは暗い側の色（地と字だけが違い、ほかの形はトップと同じ） */
+        const sh = [], la = [];
+        ggJudge(g, lp, who, sh, la, { words: lang === 'en', tone: d.tone });
+        dlg.push(...sh, ...la);
+        if (g.host && Math.abs((g.box.l + g.box.r) / 2 - (g.host.l + g.host.r) / 2) > 1.5) dlg.push('ボタンが板のまんなかに無い');
+        if (!(g.tag === 'BUTTON' && g.onclick === OLD_POST)) dlg.push(`押した先が口コミの投稿の入口でない（${g.onclick}）`);
+        if (contrast(g.css.backgroundColor, d.bg) < 3) dlg.push(`ボタンが板の色に沈んでいる（ボタン ${g.css.backgroundColor}・板 ${d.bg}）`);
+      }
+      if (d.theme !== 'dark') dlg.push(`板に「暗い側の色で描く」の印が無い（${d.theme || '無し'}）`);
+      if (!d.hit) dlg.push('ボタンの上に別のものが被っている');
+      if (d.l < -0.5 || d.r > d.vw + 0.5 || d.t < -0.5 || d.b > d.vh + 0.5) dlg.push(`板が画面の外へ出る（左 ${Math.round(d.l)}・右 ${Math.round(d.r)}・上 ${Math.round(d.t)}・下 ${Math.round(d.b)}／画面 ${d.vw}×${d.vh}）`);
+      /* 板の上の字が読める（明るい画面では、色を直書きした字を濃い色へ替える決まりが在り、見出しが板に沈んでいた） */
+      const dim = d.words.filter(x => contrast(x.ink, d.bg) < 3);
+      if (!d.words.length || dim.length) dlg.push(`板の上の字が読めない（${dim.map(x => `「${x.text}」${x.ink}`).join('・') || '字が無い'}／板 ${d.bg}）`);
+      if (process.env.PV_GLANCE_SHOT) await p.screenshot({ path: `${process.env.PV_GLANCE_SHOT.replace(/\/$/, '')}/ggold-${lang}-${w}-dialog.png` });
+    }
+    ok(!shape.length, `${tag}: 形がトップのいちばん上の黒いボタンと同じ（丸い形・16px・太さ 600・余白・色・影・動き）── 給与の錠前／「海外の評判」の鍵／口コミの一覧の鍵で変わらない`, [...new Set(shape)].slice(0, 8).join('\n      '));
+    ok(!lay.length, `${tag}: 2行ともまんなか・同じ大きさと濃さ・字が欠けない・語の途中で折れない・箱と画面の中 ── 出ているのは決めた置き場だけ`, [...new Set(lay)].slice(0, 8).join('\n      ') + (lay.length ? `\n      見えていた置き場: ${JSON.stringify(seenAt)}` : ''));
+    ok(!dest.length, `${tag}: 行き先が古いボタンと同じ（給与の錠前 → 給与の提出・戻り先つき／口コミ → 投稿の入口）`, [...new Set(dest)].slice(0, 6).join('\n      '));
+    ok(!dark.length, `${tag}: 暗い画面では、ボタンの色がサイトの色の決まりに付いていく（白黒が入れ替わり、字が読める）`, [...new Set(dark)].slice(0, 6).join('\n      '));
+    ok(!dlg.length, `${tag}: 「続きを読む」の小窓 ── 同じボタンが1つでまんなか・暗い板の上で見える色・見出しと説明が読める・画面の中`, [...new Set(dlg)].slice(0, 8).join('\n      '));
+    ok(!seen.unknown.size, `${tag}: 決まった返事を用意していない口を、ページが呼んでいない`, [...seen.unknown].join('・'));
+  } catch (e) {
+    ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
+  } finally {
+    await ctx.close().catch(() => {});
+  }
+}
+/* 形のファイルが読めない時（block 'css'）と、錠前の JS が無い時（block 'lock'）：古いボタンのまま出る。 */
+async function runGGOldOff(browser, lang, [w, h], block) {
+  const tag = `旧い形の会社ページ ${lang} ${w}（${block === 'css' ? '形のファイルが読めない時' : '錠前の JS が無い時'}）`;
+  const html = read((lang === 'en' ? 'en/' : '') + 'airlines/' + OLD_SAMPLE + '.html');
+  const nGate = (html.match(/class="premium-gate[" ]/g) || []).length;
+  const { ctx, p, ready } = await openOld(browser, lang, w, h, { block });
+  try {
+    ok(ready, `${tag}: 開ける`);
+    const map = await p.evaluate(oldMap);
+    const bad = [];
+    if (block === 'css' && map.state !== 'no') bad.push(`合図が「${map.state}」（あるべき no）`);
+    let main = 0, pills = 0;
+    for (const tab of map.tabs) {
+      if (!(await oldTab(p, tab))) { bad.push(`「${tab}」のタブへ切り替わらない`); continue; }
+      const x = await p.evaluate(oldLeft);
+      if (x.gg) bad.push(`「${tab}」: 形の無い新しいボタンが ${x.gg}つ出ている`);
+      if (x.wait) bad.push(`「${tab}」: 待ち受けの箱が ${x.wait}つ残っている`);
+      main += x.main.length; pills += x.pills;
+      for (const a of x.main) { const b = a.cta !== 'salary' ? `数える印が「${a.cta}」` : !a.text ? '字が無い' : oldPayBad(a.href, lang); if (b) bad.push(`「${tab}」の古い錠前のボタン: ${b}`); }
+      if (tab === 'overview' && x.voices !== 1) bad.push(`「海外の評判」の鍵の古いボタンが ${x.voices}つ（あるべき 1つ）`);
+      if (tab === 'reviews' && (x.list !== 1 || x.card < 1)) bad.push(`口コミの一覧の鍵の古いボタンが ${x.list}つ・カードの解除ボタンが ${x.card}つ（あるべき 1つ・1つ以上）`);
+    }
+    /* 錠前の JS が無い回は、錠前の板そのものが出ない（板を出すのがその JS）。口コミの側だけを見る。 */
+    if (block === 'css' && (main !== nGate || pills !== nGate)) bad.push(`古い錠前のボタンが ${main}つ・GIVE → GET の札が ${pills}つ（あるべき どちらも ${nGate}つ）`);
+    await p.evaluate(() => window.pvReadMore('pvg-none', ''));
+    const opened = await p.waitForFunction(() => { const e = document.querySelector('#pv-readmore-gate .btn-review-post'); return !!e && e.getClientRects().length > 0; }, { timeout: 8000 }).then(() => true, () => false);
+    if (!opened) bad.push('小窓に古いボタンが出ない');
+    else if (await p.evaluate(() => { const g = document.getElementById('pv-readmore-gate'); return g.querySelectorAll('.pv-gg').length > 0 || !!g.firstElementChild.getAttribute('data-theme'); })) bad.push('小窓に、形の無い新しいボタンか「暗い側の色で描く」の印が出ている');
+    ok(!bad.length, `${tag}: 古いボタンのまま出る（素の字のボタンを出さない・行き先は同じ・待ち受けの箱が残らない）`, [...new Set(bad)].slice(0, 8).join('\n      '));
+  } catch (e) {
+    ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
+  } finally {
+    await ctx.close().catch(() => {});
+  }
+}
+
 head(`ブラウザ（${ONLY.length}社 × ${VIEWS.length}つの幅 × 全通貨）`);
 const browser = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox'] });
 try {
@@ -2958,6 +3284,11 @@ try {
   if (wantS('tabs')) for (const s of ONLY) for (const v of [...VIEWS.filter(x => TABS_W.includes(x[0])), ...TABS_EXTRA]) work.push(() => runTabs(browser, s, v));
   if (wantS('cards')) for (const s of ONLY) work.push(() => runCards(browser, s));
   if (wantS('gg')) for (const s of ONLY) for (const v of VIEWS.filter(x => GG_W.includes(x[0]))) work.push(() => runGG(browser, s, v));
+  if (wantS('ggold') && (WANT_S || !argOf('--only'))) for (const lang of ['ja', 'en']) {
+    const vs = VIEWS.filter(x => GG_W.includes(x[0]));
+    for (const v of vs) work.push(() => runGGOld(browser, lang, v));
+    if (vs.length) work.push(() => runGGOldOff(browser, lang, vs[0], 'css'), () => runGGOldOff(browser, lang, vs[vs.length - 1], 'lock'));
+  }
   let next = 0;
   await Promise.all(Array.from({ length: Math.min(JOBS, work.length) }, async () => {
     while (next < work.length) {

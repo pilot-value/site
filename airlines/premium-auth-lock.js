@@ -37,6 +37,8 @@
 
   /* ── Context detection ───────────────────────────────── */
   const IS_EN     = /^\/en\//.test(location.pathname);
+  /* 自分の住所（評価している今しか取れない）。pv-gg.css の場所をここから解く ＝ 日英どちらのページでも同じ1枚。 */
+  const SELF      = (document.currentScript && document.currentScript.src) || '';
   /* ★関数にしてある。このファイルは日英224ページのうち222ページで <head> から
        読まれる＝評価時点で document.body がまだ無い。定数で受けると必ず '' になり、
        ④の reviews_v2 照合（口コミの鍵をサーバから復活させる処理）が丸ごと素通りし、
@@ -65,6 +67,9 @@
     salDescAnon:   'Submit one payslip to unlock the detailed pay data (by aircraft & rank) for 90 days — completely free.',
     salDescLogged: 'Submit a payslip to unlock the detailed pay breakdown for 90 days.',
     salCta:        'Submit a Payslip Anonymously & Unlock',
+    // Give & Get button (pv-gg.css), second line. Top-page hero uses the same words.
+    ggSalary:      'Unlock all pay data',
+    ggReview:      'Unlock all reviews',
     // ⚠️ See the Japanese note below: never claim the image does not leave the device.
     salFootNote:   'Blacked out in your browser, never stored · No name required · 90-day access',
     give:          'GIVE',
@@ -82,6 +87,10 @@
     salDescAnon:   '給与明細を1枚出すだけで\n詳細な給与データ（機種別・等級別）が90日間解放されます。',
     salDescLogged: '給与明細を1枚出すと\n詳細な給与データが90日間解放されます。',
     salCta:        '匿名で給与明細を出して解放する',
+    /* 「Give & Get」のボタン（pv-gg.css）の下の行。<wbr> は語の切れ目（狭い箱ではここでだけ折れる）。
+       ⚠️ 上の salCta・下の ctaPost は消さない ── pv-gg.css を読めなかった時は、今までのボタンをそのまま出す。 */
+    ggSalary:      '全ての<wbr>給与情報を<wbr>解放する',
+    ggReview:      '全ての<wbr>口コミデータを<wbr>解放する',
     /* ⚠️ 「画像は端末から出ません」と書かない。**事実でない。**（2026-09-20）
          端末から出ないのは「枠の外」と「黒塗りした部分」であって、枠の中は送っている。
          この文言は226枚に出るので、ここが一番広く嘘をついていた。 */
@@ -92,6 +101,63 @@
     ctaLogin:      'ログイン（投稿済みの方）',
     footNote:      '完全匿名 · 名前不要',
   };
+
+  /* ── 「Give & Get」のボタンの形（pv-gg.css）を読む口 ─────────────
+     ★2026-10-09 オーナー判断「拡げる」：トップと主要5社で使っている黒い丸いボタンを、
+       ほかの会社ページ（日英）の鍵の面にも出す。形は pv-gg.css の1枚だけ（ここに形を書かない）。
+     ・このページがもう読んでいれば（主要5社）それを使う。読んでいなければ、ここで1回だけ読む。
+     ・読み終わるまでボタンを出さない ── 形の無い素の字が一瞬でも出ないようにする。
+     ・読めなかった時（通信の失敗・2.5秒待っても来ない）は false を返す ＝ 呼んだ側が今までのボタンを出す。
+     口コミの一覧（airline-reviews-ui.js）も同じ口を使う（window.PVGG）。
+     ⚠️ <head> の途中で <link> を足さない。DOM を読み終えてから末尾へ足す（先に足すと、あとから入る
+        よその決まりに順番で負ける恐れがある）。 */
+  const GG = window.PVGG = window.PVGG || (function () {
+    var st = 'idle', q = [];
+    function href() {
+      try { return new URL('../pv-gg.css', SELF || new URL(IS_EN ? '../../airlines/x.js' : 'x.js', location.href).href).href; }
+      catch (e) { return (IS_EN ? '../../' : '../') + 'pv-gg.css'; }
+    }
+    function usable(l) {
+      try { return !!l.sheet && l.sheet.cssRules.length > 0; } catch (e) { return !!l.sheet; }
+    }
+    function done(ok) {
+      if (st === 'yes' || st === 'no') return;
+      st = ok ? 'yes' : 'no';
+      var run = q; q = [];
+      run.forEach(function (cb) { try { cb(ok); } catch (e) {} });
+    }
+    function start() {
+      if (st !== 'idle') return;
+      st = 'wait';
+      var want = href(), bare = want.split('?')[0], l = null;
+      var all = document.querySelectorAll('link[rel="stylesheet"]');
+      for (var i = 0; i < all.length; i++) {
+        if (String(all[i].href || '').split('?')[0] === bare) { l = all[i]; break; }
+      }
+      if (l && usable(l)) { done(true); return; }
+      if (!l) {
+        l = document.createElement('link');
+        l.rel = 'stylesheet';
+        l.href = want;
+        (document.head || document.documentElement).appendChild(l);
+      }
+      l.addEventListener('load',  function () { done(usable(l)); });
+      l.addEventListener('error', function () { done(false); });
+      setTimeout(function () { done(usable(l)); }, 2500);
+    }
+    return {
+      /* cb(ok) を、形が決まった時に1回だけ呼ぶ（もう決まっていればその場で） */
+      ready: function (cb) {
+        if (st === 'yes' || st === 'no') { try { cb(st === 'yes'); } catch (e) {} return; }
+        q.push(cb);
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+        else start();
+      },
+      state: function () { return st; },   // 'idle' → 'wait' → 'yes' | 'no'
+      start: start,
+    };
+  })();
+  const GG_ARROW = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
   /* ── Gate helpers ────────────────────────────────────── */
   function gates() {
@@ -133,7 +199,10 @@
   }
 
   /* ── Overlay HTML（通貨に応じて文言を切替）───────────── */
-  function overlayHTML(loggedIn, gateKey) {
+  /* gg ＝ pv-gg.css を読めたか。true なら入口は「Give & Get」の黒い丸いボタン1つ
+     （上の GIVE → GET の札は、同じ言葉が2回並ぶので出さない）。false なら今までの形を1文字も変えない。
+     変えるのは形と字だけ ── 行き先・計測の印（data-pv-cta）・開く条件は今までと同じ。 */
+  function overlayHTML(loggedIn, gateKey, gg) {
     var isSalary = gateKey === 'salary_detail';
     var title = loggedIn ? T.titleLogged : T.titleAnon;
     var desc  = isSalary ? (loggedIn ? T.salDescLogged : T.salDescAnon)
@@ -151,17 +220,28 @@
         '<div class="pv-gate-card">',
           '<div class="pv-gate-icon">' + T.lock + '</div>',
           '<h3 class="pv-gate-title">' + title + '</h3>',
+          gg ? '' : [
           '<div class="pv-give-take">',
             '<span class="pv-pill-give">' + T.give + '</span>',
             '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>',
             '<span class="pv-pill-take">' + T.take + '</span>',
           '</div>',
+          ].join(''),
           '<p class="pv-gate-desc">' + desc.replace(/\n/g, '<br>') + '</p>',
           '<div class="pv-gate-actions">',
+            gg ? [
+            /* align-self：この箱は中身を横いっぱいに伸ばす。ボタンは字の幅のまま、まんなかに置く（形は足さない） */
+            '<a href="' + href + '" class="pv-gg" style="align-self:center" data-pv-cta="' + (isSalary ? 'salary' : 'review') + '">',
+              '<span class="pv-gg-t"><span class="pvg-gg-k" lang="en">Give &amp; Get</span>',
+              '<span class="pvg-gg-m">' + (isSalary ? T.ggSalary : T.ggReview) + '</span></span>',
+              GG_ARROW,
+            '</a>',
+            ].join('') : [
             '<a href="' + href + '" class="pv-btn-main" data-pv-cta="' + (isSalary ? 'salary' : 'review') + '">',
               '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
               cta,
             '</a>',
+            ].join(''),
             secondary,
           '</div>',
           '<p class="pv-gate-footnote">' + foot + '</p>',
@@ -172,10 +252,13 @@
 
   /* ── Render overlays（対象ゲート配列に、通貨別の文言で）── */
   function renderOverlays(list, loggedIn) {
-    list.forEach(function (g) {
-      if (g.classList.contains('pv-locked') && !g.querySelector('.pv-gate-overlay')) {
-        g.insertAdjacentHTML('beforeend', overlayHTML(loggedIn, keyOf(g)));
-      }
+    /* ボタンの形（pv-gg.css）が決まってから出す。待っているあいだに鍵が開いた枠は、下の pv-locked の確認で外れる。 */
+    GG.ready(function (gg) {
+      list.forEach(function (g) {
+        if (g.classList.contains('pv-locked') && !g.querySelector('.pv-gate-overlay')) {
+          g.insertAdjacentHTML('beforeend', overlayHTML(loggedIn, keyOf(g), gg));
+        }
+      });
     });
   }
 
@@ -281,10 +364,12 @@
   });
 
   /* ── Boot ────────────────────────────────────────────── */
+  /* 形（pv-gg.css）は、鍵の確認と並べて先に読み始める ＝ 鍵の面を出す時にはもう届いている。 */
+  function boot() { GG.start(); checkAccess(); }
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', checkAccess);
+    document.addEventListener('DOMContentLoaded', boot);
   } else {
-    checkAccess();
+    boot();
   }
 
 })();

@@ -4,10 +4,16 @@
    高さ・余白・丸み・字の大きさと太さ・影・押したときの動きを、そこから写してある。
    写しなので、ずれたら assert-airline-glance.mjs が落とす（トップを実際に開いて測り、突き合わせる）。
 
-   使う場所 ── 会社ページ（タブのある形）の3つ：
-     給与の1枚          career-live.js の give2()
-     評価スコアの1枚    gen-airline-glance.mjs の rvCta()
-     口コミの一覧の錠前  airlines/airline-reviews-ui.js の unlockBtn()
+   使う場所 ── 会社ページ：
+     タブのある形（主要5社・日本語）
+       給与の1枚          career-live.js の give2()
+       評価スコアの1枚    gen-airline-glance.mjs の rvCta()
+       口コミの一覧の錠前  airlines/airline-reviews-ui.js の unlockBtn()
+     今までの形（ほかの会社・英語版）── 2026-10-09 から
+       年収の鍵の面        airlines/premium-auth-lock.js の overlayHTML()
+       口コミの鍵の面      airlines/airline-reviews-ui.js の ggBtn()
+       こちらは <link> を持たないので、premium-auth-lock.js の window.PVGG がこの1枚を読みに行く。
+       読めなかった時は今までのボタンのまま出る（素の字のボタンを出さない）。
    形はここだけ。言葉・行き先・開く条件は、それぞれの書き手が持つ（ここに字を書かない）。
 
    ⚠️ 上の行を小さく・薄くしない／左へ寄せない／角を四角へ戻さない（2026-10-07 の形に戻る）。

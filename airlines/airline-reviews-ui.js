@@ -628,24 +628,41 @@
       /* ✕ と、うしろの幕。閉じるのは今までの仕掛けのまま（ここは、閉じたあと開いた所へ戻すだけ） */
       modal.addEventListener('click', function (e) { if (e.target === modal || (e.target.closest && e.target.closest('.pvg-rmg-x'))) rmgOut(); });
     }
+    /* ★2026-10-09 タブの無い会社ページと英語版：板は今までのまま、入口だけ「Give & Get」の黒い丸いボタンに替える。
+       この板はページの明暗に関わらず暗い色なので、板に data-theme="dark" を付けて、ボタンを暗い面の色（白い地）で出す
+       （付けないと、明るいページでは黒い板に黒いボタンになる）。pv-gg.css を読めなかった時は、今までの橙のボタン。 */
+    var rmNew = !ggShape() && ggOld() === 'yes';
     modal.innerHTML = ggShape() ? readMoreGateTabbed() :
-      '\n    <div style="background:#111620;border:1px solid rgba(245,200,66,.2);border-radius:18px;padding:36px 32px;max-width:380px;width:90%;text-align:center;position:relative">\n' +
+      '\n    <div' + (rmNew ? ' data-theme="dark"' : '') + ' style="background:#111620;border:1px solid rgba(245,200,66,.2);border-radius:18px;padding:36px 32px;max-width:380px;width:90%;text-align:center;position:relative">\n' +
       '      <button onclick="document.getElementById(\'pv-readmore-gate\').style.display=\'none\'" style="position:absolute;top:12px;right:14px;background:none;border:none;color:#6b7d93;cursor:pointer;font-size:1.1rem;line-height:1">✕</button>\n' +
       '      <div style="font-size:2.2rem;margin-bottom:12px">🔒</div>\n' +
       '      <div style="font-weight:700;font-size:1rem;margin-bottom:8px;color:#e8edf2">' + L.rmTitle + '</div>\n' +
       '      <p style="font-size:.82rem;color:#6b7d93;line-height:1.65;margin-bottom:22px">' + L.rmDesc + '</p>\n' +
-      '      <div style="display:flex;flex-direction:column;gap:10px">\n' +
+      '      <div style="display:flex;flex-direction:column;' + (rmNew ? 'align-items:center;' : '') + 'gap:10px">\n' +
+      (rmNew ? '        ' + ggBtn('all') + '\n' :
       '        <button class="btn-review-post" style="width:100%;justify-content:center" onclick="openReviewModal()">\n' +
       '          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>\n' +
       '          ' + L.rmBtn + '\n' +
-      '        </button>\n' +
+      '        </button>\n') +
       '        ' + (!isLoggedIn() ? '<a href="../login.html" style="color:#6b7d93;font-size:.78rem;text-decoration:underline;text-underline-offset:2px">' + L.rmLogin + '</a>' : '') + '\n' +
       '      </div>\n' +
       '      <div style="font-size:.71rem;color:#6b7d93;margin-top:10px">' + L.rmFine + '</div>\n' +
       '    </div>';
     modal.addEventListener('click', function (e) { if (e.target === modal) modal.style.display = 'none'; });
+    if (!ggShape()) rmgKeepInk(modal);
     d.body.appendChild(modal);
     rmgIn(modal);
+  }
+  /* ★2026-10-09 タブの無い会社ページの小窓は、ページの明暗に関わらず暗い板。
+     ところが明るいページでは airline-base.css が「style に書いた明るい字の色」を暗い色へ読み替えるので、
+     見出しが暗い板の上の暗い字になって読めなかった（日本語ページは明るいのが既定）。
+     ここで書いた色を、そのままの色で固定する（色も文言も足さない・変えない）。 */
+  function rmgKeepInk(m) {
+    var els = m.querySelectorAll('[style*="color:"]');
+    for (var i = 0; i < els.length; i++) {
+      var c = els[i].style.color;
+      if (c) els[i].style.setProperty('color', c, 'important');
+    }
   }
   /* タブのある会社ページの小窓：開いたら中のボタンへ移り、閉じたら開いた所へ戻る
      （キーボードや読み上げで使う人が、幕のうしろのページに取り残されない）。ほかの会社と英語版では何もしない。 */
@@ -1096,30 +1113,76 @@
   /* ★2026-10-07 オーナーのご指示：タブのある会社ページの口コミでは、解放の入口の字を2行にする
        「Give & Get」／「全ての口コミデータを解放する」
      変えるのは字だけ ── 行き先（投稿フォーム）も、開く条件も、今までと同じ。
-     ほかの会社のページと英語版は今までの1行のまま。
      ★2026-10-08 形はサイト共通の pv-gg.css（トップのいちばん上の黒いボタンと同じ）。
-       給与の1枚・評価スコアの1枚の入口と、1つも違わない。ここで大きさや色を足さない。 */
+       給与の1枚・評価スコアの1枚の入口と、1つも違わない。ここで大きさや色を足さない。
+     ★2026-10-09 オーナー判断「拡げる」：同じ形を、タブの無い会社ページと英語版にも出す（下の ggOld）。
+       言葉は置き場で決まる ── 一覧の錠前と「続きを読む」の小窓は all・概要の「生の声」の下は top。 */
   function ggShape() { return LANG === 'ja' && isTabbed(); }
-  function unlockLabel(plain) {
-    if (LANG !== 'ja' || !isTabbed()) return plain;
+  var GG_WORDS = {
+    ja: { all: '全ての<wbr>口コミデータを<wbr>解放する', top: '口コミを<wbr>解放する' },
+    en: { all: 'Unlock all reviews', top: 'Unlock reviews' },
+  };
+  function unlockLabel(kind) {
+    var words = GG_WORDS[LANG] || GG_WORDS.ja;
     return '<span class="pv-gg-t"><span class="pvg-gg-k" lang="en">Give &amp; Get</span>' +
-           '<span class="pvg-gg-m">全ての<wbr>口コミデータを<wbr>解放する</span></span>';
+           '<span class="pvg-gg-m">' + (words[kind] || words.all) + '</span></span>';
   }
+  /* タブの無い会社ページと英語版で、黒い丸いボタンを出してよいか。
+       'yes'  pv-gg.css を読めた ＝ 出す
+       'no'   読めなかった／読む口（premium-auth-lock.js の window.PVGG）が無い ＝ 今までのボタンを1文字も変えずに出す
+       'wait' まだ読んでいる途中 ＝ 今までのボタンを見えない箱に入れて置き、決まったら入れ替える（下の ggSettle）
+     形の無い素の字や、橙のボタンから黒いボタンへの入れ替わりを、一瞬でも見せないための段取り。
+     タブのある会社ページはページが自分で pv-gg.css を読んでいるので、ここは通らない（'no' ＝ ggShape の側で出す）。 */
+  var ggHooked = false;
+  function ggOld() {
+    if (isTabbed()) return 'no';
+    var g = w.PVGG;
+    if (!g || typeof g.ready !== 'function' || typeof g.state !== 'function') return 'no';
+    var st = g.state();
+    if (st === 'yes' || st === 'no') return st;
+    if (!ggHooked) {
+      ggHooked = true;
+      g.ready(ggSettle);
+      st = g.state();                                   // その場で決まった時（もう読み終えていた）
+      if (st === 'yes' || st === 'no') return st;
+    }
+    return 'wait';
+  }
+  function ggSettle(ok) {
+    var els = d.querySelectorAll('[data-pvgg-wait]');
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i], kind = el.getAttribute('data-pvgg-wait');
+      if (!ok) el.outerHTML = el.innerHTML;                         // 今までのボタンを、そのまま出す
+      else if (kind === 'card') el.parentNode.removeChild(el);      // 1枚ごとのボタンは置かない
+      else el.outerHTML = ggBtn(kind);
+    }
+  }
+  function ggWait(kind, old) { return '<div data-pvgg-wait="' + kind + '" style="display:none">' + old + '</div>'; }
   var GG_ARROW = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-  /* 錠前のボタン。old ＝ 今までのボタン（ほかの会社と英語版は、これを1文字も変えずに返す）。
+  /* 錠前のボタン。old ＝ 今までのボタン（pv-gg.css を読めなかった時は、これを1文字も変えずに返す）。
      押した先は今までと同じ（openReviewModal ＝ 自分の会社を選んだ投稿の画面）。
      <wbr> は語の切れ目。狭い箱ではここでだけ折れる（「デ／ータ」と語の途中で折らない。折り方は pv-gg.css）。 */
-  function unlockBtn(old) {
-    if (!ggShape()) return old;
+  function ggBtn(kind) {
     return '<button type="button" class="pv-gg" onclick="if(window.openReviewModal)openReviewModal()">' +
-           unlockLabel('') + GG_ARROW + '</button>';
+           unlockLabel(kind) + GG_ARROW + '</button>';
+  }
+  function unlockBtn(old, kind) {
+    if (ggShape()) return ggBtn('all');
+    var st = ggOld();
+    return st === 'yes' ? ggBtn(kind || 'all') : st === 'wait' ? ggWait(kind || 'all', old) : old;
   }
 
   /* ★2026-10-08 口コミ1枚ごとの錠前のボタン。タブのある会社ページでは置かない。
      同じ黒いボタンが口コミの数だけ縦に並んでいた（キャセイで22個。ぼかしの帯の中では上下が切れていた）。
      入口は、評価スコアの1枚と、一覧のいちばん下の「メンバー限定データ」の2つ。
-     ほかの会社と英語版は、今までのボタンを1文字も変えずに返す。 */
-  function cardCta(old) { return ggShape() ? '' : old; }
+     ★2026-10-09 タブの無い会社ページと英語版も同じ（黒い丸いボタンを出す時は、1枚ごとには置かない。
+       入口は一覧の見出しの投稿ボタンと、いちばん下の「メンバー限定データ」）。
+       pv-gg.css を読めなかった時だけ、今までのボタンを1文字も変えずに返す。 */
+  function cardCta(old) {
+    if (ggShape()) return '';
+    var st = ggOld();
+    return st === 'yes' ? '' : st === 'wait' ? ggWait('card', old) : old;
+  }
   /* 区分の名前の「語の切れ目」。タブのある会社ページの3列の札では、名前を語の途中で折らず、ここでだけ折る
      （折り方は pv-glance.css。ほかの会社と英語版は名前をそのまま返す）。 */
   var CAT_WBR = { 'ワークライフバランス': 'ワークライフ<wbr>バランス' };
@@ -1203,7 +1266,7 @@
       '<div class="rv-post-gate" style="margin-top:24px">' +
         '<div style="font-size:.9rem;font-weight:700;margin-bottom:6px">' + L.vcGateTitle + '</div>' +
         '<p style="font-size:.8rem;color:#6b7d93;margin-bottom:14px">' + L.vcGateDesc + '</p>' +
-        unlockBtn('<button class="btn-review-post" onclick="if(window.openReviewModal)openReviewModal()">' + L.vcGateBtn + '</button>') +
+        unlockBtn('<button class="btn-review-post" onclick="if(window.openReviewModal)openReviewModal()">' + L.vcGateBtn + '</button>', 'top') +
         '<div style="font-size:.72rem;color:#6b7d93;margin-top:8px">' + L.vcGateFine + '</div>' +
       '</div>' +
       '<div class="mt-8 pt-4" style="border-top:1px solid rgba(255,255,255,.07)">' +

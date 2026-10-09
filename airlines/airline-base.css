@@ -302,6 +302,13 @@ h1 span{-webkit-text-fill-color:currentColor;background:none}
   background:rgba(17,22,32,.6);border:1px solid rgba(245,200,66,.15);
 }
 [data-theme="light"] .rv-post-gate{background:rgba(255,255,255,.85);border-color:rgba(180,140,0,.2);box-shadow:0 2px 12px rgba(0,0,0,.08)}
+/* ★2026-10-09 狭い画面では、鍵の箱の左右の空きを詰める。
+   英語ページの 320px で、「海外の評判」の鍵のボタンの上の行（Give & Get）が2行に割れていた
+   （余白が 画面24＋カード32＋箱24＋ボタン26 と4重で、字の入る幅が 78px しか無かった）。
+   ⚠️ ボタンの側（pv-gg.css）を小さくしない。置き場の箱を広げる（主要5社の側は pv-glance.css が同じ値を持つ）。 */
+@media (max-width:400px){
+  .rv-post-gate{padding-left:14px;padding-right:14px}
+}
 .rv-gate-lock{font-size:1.8rem;line-height:1;margin-bottom:8px}
 .rv-gate-title{font-size:1rem;font-weight:800;color:#e8edf2;margin-bottom:4px}
 [data-theme="light"] .rv-gate-title{color:#0f172a}
