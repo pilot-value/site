@@ -285,7 +285,7 @@
       cat: { feature: 'Feature', data: 'Data', ui: 'Usability', bug: 'Bug', other: 'Other' },
       st:  { 'new': 'Received', considering: 'Considering', planned: 'Planned',
              building: 'Building', done: 'Shipped', declined: 'Not planned' },
-      /* ★3文字で書く。'September 2026' は日付の列（5.6em）に収まらず2行に折れ、
+      /* ★3文字で書く。'September 2026' は日付の列（6.2em）に収まらず2行に折れ、
          履歴の題名の左端が行ごとにずれる。 */
       ym: function (y, m) {
         return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul',
@@ -462,10 +462,15 @@
     '.rm-ship li{display:flex;gap:10px;padding:7px 0;border-top:1px solid var(--pv-line-soft)}',
     '.rm-ship li:first-child{border-top:0;padding-top:0}',
     /* ★日付の列は固定幅。auto にすると行ごとに幅が変わって題名の左端が揃わない。
-       日英とも 5.6em に収まる形（「2026年9月」/「Sep 2026」）で書くこと ── T.ym を
-       長い月名に戻すと、ここは何も言わずに2行へ折れる。 */
-    '.rm-ship .ymd{flex:none;width:5.6em;font-size:.67rem;font-weight:700;line-height:1.7;',
-    '  color:var(--pv-ink-3);font-variant-numeric:tabular-nums}',
+       日英とも 6.2em に収まる形（「2026年10月」/「Sep 2026」）で書くこと ── T.ym を
+       長い月名に戻すと、ここは何も言わずに2行へ折れる。
+       ★2026-10-09、5.6em → 6.2em。「2026年9月」は 56px で入るが、月が2けたの
+         「2026年10月」は 63px あり、60px の列で「月」だけ次の行へ落ちた
+         （9月までの項目しか無かったので、10月の項目を足すまで誰も見ていない）。
+         余りは 3px しか無いので、端末の書体が少し広くても「月」だけ落ちないよう
+         折り返しそのものも止めてある。 */
+    '.rm-ship .ymd{flex:none;width:6.2em;font-size:.67rem;font-weight:700;line-height:1.7;',
+    '  white-space:nowrap;color:var(--pv-ink-3);font-variant-numeric:tabular-nums}',
     '.rm-ship .t{flex:1 1 auto;min-width:0;font-size:.74rem;font-weight:700;line-height:1.7;',
     '  color:var(--pv-ink)}',
     '.rm-ship .ck{flex:none;color:var(--pv-green-ink);font-size:.72rem;font-weight:900;',
