@@ -571,7 +571,7 @@ begin
     'saved', v_saved - v_skipped,
     'skipped', v_skipped,
     'rejected', v_rej,
-    -- 詳細ページの「あなたが答えた項目：7／43」に使う。進捗率（%）は出さない。
+    -- 詳細ページの「あなたが答えた項目：7／48」に使う。進捗率（%）は出さない。
     -- ★分母は一覧に出る質問だけ。topic_only を入れると、一覧に無い質問の数だけ「未回答」が残り続ける
     'answered_total', v_total,
     'questions_total', (select count(*) from public.pv_condition_questions
@@ -731,7 +731,7 @@ grant execute on function public.next_condition_questions(jsonb) to authenticate
 -- ★ answers には、話題の入口からだけ出す質問（topic_only）への答えも**入れて返す**（2026-10-04）。
 --   話題の入口の画面が、前に選んだ答えを最初から出すのに要る。
 --   answered_total と questions_total は**一覧に出る質問だけ**を数える（5 の返り値と同じ決め方）。
---   ⚠️ answered_total を answers の長さに戻さない。話題の質問に答えた人だけ「N／43」の N が
+--   ⚠️ answered_total を answers の長さに戻さない。話題の質問に答えた人だけ「N／48」の N が
 --      増え、全部答えた人は分母を超える。
 create or replace function public.my_airline_conditions(p jsonb default '{}'::jsonb)
 returns jsonb
@@ -854,6 +854,7 @@ revoke all on function public.pv_contributor_stats() from public, anon, authenti
 --  ・スキップだけの行（skipped_at だけの行）は1人として数えない
 --  ・親の条件から外れた回答は数えない（親を答え直して、その下が画面から消えた人のぶん）
 --  ・answer_text / answer_json は1列も出さない
+--  ・通貨つきの質問は median_num を出さない（通貨の違う額を1つの数字にまとめない）
 --  ・airline_other がある行は除外（自由入力の社名そのものが識別子）
 --  ・answer_dist を出すのは、回答が割れたときに多数決で事実にしないため。
 --    画面は「8名中7名が『あり』」のように、割れていることが見える形で出す
@@ -863,7 +864,7 @@ with ans as (
   select c.airline, c.question_id, c.proof_hash, c.updated_at,
          c.answer_code, c.answer_num,
          case when q.kind = 'multi' then c.answer_codes end as answer_codes,
-         q.section, q.tier, q.kind, q.is_opinion
+         q.section, q.tier, q.kind, q.is_opinion, q.has_currency
     from public.airline_conditions c
     join public.pv_condition_questions q on q.id = c.question_id and q.active
    where c.airline_other is null
@@ -910,7 +911,11 @@ agg as (
          bool_or(is_opinion) as is_opinion,
          count(distinct proof_hash) filter (where answer_code is distinct from 'unknown') as n,
          count(distinct proof_hash) filter (where answer_code = 'unknown') as n_unknown,
-         percentile_cont(0.5) within group (order by answer_num) as median_num,
+         -- ★通貨つきの質問（訓練費用の Bond の額・着陸手当の額）では、中央値を出さない（2026-10-09）。
+         --   通貨の違う額を1つの数字にまとめない。円とドルの数字をそのまま並べた真ん中は、
+         --   どの通貨の額でもない。人数（n）は今までどおり出る。
+         percentile_cont(0.5) within group (order by answer_num)
+           filter (where has_currency is not true) as median_num,
          max(updated_at) as last_confirmed_at
     from ans
    group by airline, question_id

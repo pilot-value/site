@@ -48,6 +48,7 @@ const ok = (c, l, e = '') => { c ? (pass++, console.log('  ✅ ' + l)) : (fail++
 const J = (v) => { try { return JSON.stringify(v).slice(0, 300); } catch { return String(v); } };
 
 const SIZES = {
+  small:  { w: 320,  h: 568, touch: true },   // いちばん狭い画面（保存後のカードだけ、ここでも測る）
   phone:  { w: 390,  h: 680, touch: true },
   tablet: { w: 768,  h: 950, touch: true },
   desk:   { w: 1440, h: 820, touch: false },
@@ -105,6 +106,14 @@ console.log('\n════ ソース ════');
   const trans = [...css.matchAll(/transition(?:-property)?\s*:\s*([^;}]+)/g)].map((m) => m[1].trim());
   const badTrans = trans.filter((t) => t.split(',').some((p) => !/^(transform|opacity|none)\b/.test(p.trim())));
   ok(trans.length > 0 && badTrans.length === 0 && !/transition-all/.test(css), '動かすのは transform と opacity だけ（transition: all が無い）', J(badTrans.slice(0, 4)));
+  /* 上の行が見ているのは transition だけ。保存できた合図の紙片は @keyframes で動くので、その中も同じ決まりで見る
+     （left や top を動かすと、面の組み直しが毎コマ走る）。 */
+  const frames = [...css.matchAll(/@keyframes\s+[\w-]+\s*\{((?:[^{}]*\{[^{}]*\})*)[^{}]*\}/g)]
+    .flatMap((m) => [...m[1].matchAll(/([\w-]+)\s*:/g)].map((x) => x[1]));
+  ok(frames.length > 0 && frames.every((p) => ['transform', 'opacity'].includes(p)), '@keyframes の中で動かすのも transform と opacity だけ', J([...new Set(frames)]));
+  /* 動きを減らす設定の人には、紙片の層そのものを出さない（JS が足さないのが1枚目・ここが2枚目の網） */
+  const calmCss = (css.match(/@media\s*\(\s*prefers-reduced-motion\s*:\s*reduce\s*\)\s*\{((?:[^{}]*\{[^{}]*\})*)/) || [])[1] || '';
+  ok(/\.pvc-root \.pvc-pop\s*\{\s*display\s*:\s*none\s*\}/.test(calmCss), '動きを減らす設定のときは、保存できた合図の紙片を出さない（CSS 側の網）', calmCss.replace(/\s+/g, ' ').slice(-120));
   const smallFont = [...css.matchAll(/font-size\s*:\s*(\d+(?:\.\d+)?)px/g)].map((m) => +m[1]).filter((n) => n < 12);
   ok(smallFont.length === 0, 'CSS に 12px 未満の文字が無い', J(smallFont));
   for (const st of [':hover', ':focus-visible', ':active']) {
@@ -146,6 +155,16 @@ console.log('\n════ ソース ════');
   ok(!/REAL PAY|解放|アンロック|unlock/i.test(code.replace(DUTY_TERM, '')), 'JS は「REAL PAY が開く」と1文字も言わない',
     J((code.replace(DUTY_TERM, '').match(/.{0,16}(?:REAL PAY|解放|アンロック|unlock).{0,16}/gi) || []).slice(0, 3)));
   ok(!/機内弁当|住まい・家族/.test(code), '保存先の無い項目（機内弁当・食事／住まい・家族）のタイルを置いていない');
+
+  /* 保存できた合図（cue）を出すのは、保存後の画面を出した直後の2か所だけ。
+     保存後の画面を組む所（savedShell）や 'pvc:saved' の合図に掛けると、描き直し・一部だけ保存できた回・
+     ログイン後の引き継ぎでも鳴る ＝「保存できた時に1度だけ」が崩れる。名前を渡すだけの形（, cue)）も数える。 */
+  const cueUse = (code.match(/(?<![\w-])cue\b/g) || []).length;
+  const savedShows = (code.match(/show\((?:'work-saved'|topic \+ '-saved')\);/g) || []).length;
+  const savedCued = (code.match(/show\((?:'work-saved'|topic \+ '-saved')\);\s*cue\(\);/g) || []).length;
+  ok(cueUse === 3 && savedShows === 2 && savedCued === 2,
+    '保存できた合図を出すのは、保存後の画面を出した直後の2か所だけ（ほかのどこからも呼んでいない）', J({ cue: cueUse, shows: savedShows, cued: savedCued }));
+  ok(!/['"](?:修正する|別の項目を追加)['"]/.test(code), '保存後のボタンに、前の言い方（「修正する」「別の項目を追加」）が残っていない');
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -185,14 +204,20 @@ async function main() {
     return req.abort();
   }
 
-  /* 1枚開く。who を渡すと手元の会員として入った状態で始める。 */
-  async function open(sizeKey, { who = null, theme = null } = {}) {
+  /* 保存できた合図の紙片の層が片づくまでの時間の幅（ミリ秒）。設計は 動き0.9秒・片づけ1.4秒。
+     使い方と、遅いほうを長さで決めない理由は、下の popGone に書いてある。 */
+  const POP_MIN = 900, POP_MAX = 2500;
+
+  /* 1枚開く。who を渡すと手元の会員として入った状態で始める。
+     calm は「動きを減らす」設定の人として開く（保存できた合図が静かな形になるかを見る）。 */
+  async function open(sizeKey, { who = null, theme = null, calm = false } = {}) {
     const size = SIZES[sizeKey];
     const ctx = await browser.createBrowserContext();
     const page = await ctx.newPage();
     const st = { calls: [], fake: null, ctx };
     page.setDefaultTimeout(20000);
     await page.setViewport({ width: size.w, height: size.h, deviceScaleFactor: 1, isMobile: size.touch, hasTouch: size.touch });
+    if (calm) await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
     await page.setRequestInterception(true);
     page.on('request', (req) => gate(req, st));
     page.on('pageerror', (e) => pageErrs.push(String(e.message).slice(0, 160)));
@@ -201,12 +226,47 @@ async function main() {
       seed = await (await fetch(`${base}/__local/login?member=${who}`)).json();
       if (!seed || !seed.session) throw new Error(`手元の会員 ${who} で入れない`);
     }
-    await page.evaluateOnNewDocument((origin, s, th) => {
+    await page.evaluateOnNewDocument((origin, s, th, popMax) => {
       if (location.origin !== origin) return;
       try {
         /* 保存できたときの合図を控える */
         window.__pvcSaved = [];
         document.addEventListener('pvc:saved', (e) => window.__pvcSaved.push(e.detail));
+        /* 保存できた合図（紙片・静かな完了）が「いつ・何回」出たかを控える。
+           紙片は1.4秒で片づくので、あとから画面を見ても数えられない ＝ 出た瞬間に書き留める。
+           'pop'／'quiet' ＝ 保存後のカードに印が付いた・'pop:10' ＝ 紙片10枚の層が足された・
+           'ins:…' ＝ 印の付いたカードが丸ごと描き直された（＝ 保存していないのに合図が戻った）。 */
+        window.__pvcCue = [];
+        /* 紙片の層が「足されてから、層だけが外されるまで」の時間（ミリ秒）。ページの中の時計で測る
+           ＝ 検査の側の待ち時間が混ざらない。カードごと描き直されて消えた回は数えない（自分で片づいた回だけ）。 */
+        window.__pvcPopMs = [];
+        /* 「設計から大きく遅れた」は、測った長さでは決めない ── 機械が混んでページが止まると、正しい製品の1.4秒の時計も
+           遅れて鳴り、長さだけ見ると製品は正しいのに赤くなる。層が足された時に、同じページの中で popMax の時計を1本かけ、
+           それが鳴った時に層がまだ在ったかを控える。同じページの時計は、先に掛けた短いほうが必ず先に鳴る
+           ＝ ページが何秒止まっても、製品が正しければ false。片づけがそれより長く掛けてあった回・片づけない回だけが true。
+           （この setTimeout は検査が待つための時計ではない。検査は下の popGone で「層が消えた」ことを待つ。） */
+        window.__pvcPopLate = [];
+        let popAt = 0;
+        new MutationObserver((list) => {
+          /* カードを置くのと印を付けるのは同じ一息の中 ＝ 知らせが届く頃には、置かれたカードにもう印が付いている。
+             その回に印が付いたカードは「描き直し」に数えない（数えると、正しい保存がぜんぶ二重に見える）。 */
+          const marked = new Set(list.filter((m) => m.type === 'attributes').map((m) => m.target));
+          for (const m of list) {
+            if (m.type === 'attributes') { window.__pvcCue.push(m.target.getAttribute('data-pvc-cue')); continue; }
+            for (const n of m.addedNodes) {
+              if (n.nodeType !== 1) continue;
+              if (n.classList.contains('pvc-pop')) {
+                window.__pvcCue.push('pop:' + n.children.length); popAt = performance.now();
+                const layer = n, at = window.__pvcPopLate.push(null) - 1;
+                setTimeout(() => { window.__pvcPopLate[at] = layer.isConnected; }, popMax);
+              }
+              else if (n.hasAttribute('data-pvc-cue') && !marked.has(n)) window.__pvcCue.push('ins:' + n.getAttribute('data-pvc-cue'));
+            }
+            for (const n of m.removedNodes) {
+              if (n.nodeType === 1 && n.classList.contains('pvc-pop')) window.__pvcPopMs.push(Math.round(performance.now() - popAt));
+            }
+          }
+        }).observe(document, { subtree: true, childList: true, attributes: true, attributeFilter: ['data-pvc-cue'] });
         /* ページがまだ読み込んでいなければ、ここで差し込む（読み込んでいればそのまま使う） */
         const add = () => {
           if (!document.body || !document.body.getAttribute('data-airline')) return;
@@ -236,7 +296,7 @@ async function main() {
         }
         localStorage.setItem('pv_local_seeded', '1');
       } catch (e) { /* 保存領域に触れない画面はそのまま */ }
-    }, base, seed, theme);
+    }, base, seed, theme, POP_MAX);
     return { page, st, size, sizeKey };
   }
   const go = async (p, urlPath) => {
@@ -345,6 +405,94 @@ async function main() {
   const failNext = (match, mode, n = 1) => fetch(`${base}/__local/fail?n=${n}&match=${match}${mode ? '&mode=' + mode : ''}`);
   const failOff = () => fetch(`${base}/__local/fail?n=0`);
   const hits = (p, name) => p.st.calls.filter((c) => c === name).length;
+  /* 保存できた合図の控え（open が仕掛けたもの）と、いま画面に残っている合図 */
+  const cueLog = (p) => p.page.evaluate(() => window.__pvcCue.slice());
+  const cueNow = (p) => p.page.evaluate(() => {
+    const r = document.querySelector('.pvc-root');
+    const c = r && r.querySelector('[data-pvc-cue]');
+    return { mark: c ? c.getAttribute('data-pvc-cue') : null, pop: !!(r && r.querySelector('.pvc-pop')) };
+  });
+  const POP = ['pop', 'pop:10'];                         // 保存1回ぶんの合図（印が付く → 紙片10枚の層が足される）
+  /* 紙片が片づくのを待つ（片づかなくても先へ進み、そこで赤くする ＝ 場面ごと止めない）。
+     返すのは ms ＝ 層が足されてから自分で片づくまでの時間（ミリ秒）と、late ＝ ページの中の POP_MAX の時計が
+     鳴った時に層がまだ在ったか（どちらも open が仕掛けた、ページの中の時計。検査の側の待ち時間は混ざらない）。
+     設計は 動き0.9秒・片づけ1.4秒。「いつか消えればよい」にしない ── 散り終わる前（POP_MIN）に消えても、
+     設計から大きく遅れても（POP_MAX）赤くする。前は8秒まで待っていた ＝ 片づけが数倍遅くなっても通っていた。
+     ⚠️ 遅いほうを ms の長さで決めない（ms <= POP_MAX と書かない）。機械が混んでページが1秒あまり止まると、
+     製品は正しいのに赤くなる。早いほうは長さで決めてよい ── 混んでも、時計が早く鳴ることは無い。
+     待つのは「層が消えた」か「POP_MAX の時計が、層が残っていると言った」のどちらか先まで（下の 20秒 は、
+     ページごと止まった時に場面を終わらせるための上限で、合否には使わない）。 */
+  const popGone = async (p) => {
+    await p.page.waitForFunction(() => !document.querySelector('.pvc-root .pvc-pop') || window.__pvcPopLate[window.__pvcPopLate.length - 1] === true, { timeout: 20000 }).catch(() => null);
+    return p.page.evaluate(() => {
+      const ms = window.__pvcPopMs, late = window.__pvcPopLate;
+      return { ms: ms.length ? ms[ms.length - 1] : null, late: late.length ? late[late.length - 1] === true : null };
+    });
+  };
+  /* 紙片がいちばん遠くまで散ったときの位置を測る支度（送る直前に仕掛ける。結果は farOf で読む）。
+     紙片は出た瞬間はまだ出発点に重なっていて、0.9秒かけて散る ＝ あとから測ると、もう動いているか消えている。
+     なので層が足された瞬間に、1枚ずつ動きを終点まで送って位置を控え、すぐ元の時刻へ戻して続きを走らせる
+     （見る側の支度だけ。製品の動きは変えていない）。
+     card・sheet … カードの外・面の外へ出た紙片。
+     over … 散り終わりの位置で、見出しの字・チェックの印・2つのボタンのどれかに重なった紙片
+            （カードの中に収まっていても、字やボタンの上に止まるなら「収まっている」とは言えない）。 */
+  const farWatch = (p) => p.page.evaluate(() => {
+    window.__pvcFar = null;
+    const mo = new MutationObserver(() => {
+      const pop = document.querySelector('.pvc-root .pvc-saved .pvc-pop');
+      if (!pop) return;
+      mo.disconnect();
+      const cardEl = pop.parentNode, card = cardEl.getBoundingClientRect(), sheet = document.querySelector('.pvc-root .pvc-sheet').getBoundingClientRect();
+      const lay = pop.getBoundingClientRect(), cs = getComputedStyle(pop);
+      const out = { n: pop.children.length, still: 0, card: [], sheet: [], over: [], parts: 0, clip: cs.overflowX + ' ' + cs.overflowY, touch: cs.pointerEvents,
+        fill: Math.abs(lay.left - card.left) < 1.5 && Math.abs(lay.right - card.right) < 1.5 && Math.abs(lay.top - card.top) < 1.5 && Math.abs(lay.bottom - card.bottom) < 1.5,
+        hidden: pop.getAttribute('aria-hidden') };
+      /* 見出しの字は、字そのものの範囲で測る（見出しの箱はカードの幅いっぱいなので、箱で測ると右の余白まで「字」になる） */
+      const head = cardEl.querySelector('.pvc-saved-h'), words = document.createRange();
+      if (head && head.lastChild) words.selectNodeContents(head.lastChild);
+      const parts = [
+        ['見出しの字', head && head.lastChild ? words.getBoundingClientRect() : null],
+        ['チェックの印', head && head.querySelector('svg') ? head.querySelector('svg').getBoundingClientRect() : null],
+        ['「自分の回答を見る」', cardEl.querySelector('[data-pvc-act="edit"]') ? cardEl.querySelector('[data-pvc-act="edit"]').getBoundingClientRect() : null],
+        ['「もう1項目を答える」', cardEl.querySelector('[data-pvc-act="more"]') ? cardEl.querySelector('[data-pvc-act="more"]').getBoundingClientRect() : null],
+      ].filter((x) => x[1] && x[1].width > 0 && x[1].height > 0);
+      out.parts = parts.length;
+      [...pop.children].forEach((n, i) => {
+        const an = n.getAnimations()[0];
+        if (!an) { out.still++; return; }
+        const t0 = an.currentTime;
+        an.pause(); an.currentTime = an.effect.getComputedTiming().endTime;
+        const r = n.getBoundingClientRect();
+        an.currentTime = t0; an.play();
+        const at = `${i + 1}枚目 ${Math.round(r.left - card.left)}〜${Math.round(r.right - card.left)} × ${Math.round(r.top - card.top)}〜${Math.round(r.bottom - card.top)}`;
+        if (r.left < card.left - 0.5 || r.right > card.right + 0.5 || r.top < card.top - 0.5 || r.bottom > card.bottom + 0.5) out.card.push(at);
+        if (r.left < sheet.left - 0.5 || r.right > sheet.right + 0.5) out.sheet.push(at);
+        for (const [name, b] of parts) {
+          if (r.left < b.right - 0.5 && r.right > b.left + 0.5 && r.top < b.bottom - 0.5 && r.bottom > b.top + 0.5) out.over.push(`${at} が ${name} の上`);
+        }
+      });
+      out.w = Math.round(card.width); out.h = Math.round(card.height);
+      window.__pvcFar = out;
+    });
+    mo.observe(document.querySelector('.pvc-root .pvc-main'), { childList: true, subtree: true });
+  });
+  const farOf = (p) => p.page.evaluate(() => window.__pvcFar);
+  /* 保存後のカードの2つのボタンが、スクロールしない最初の1画面のどこに在るか */
+  const reachOf = (p) => p.page.evaluate(() => {
+    const r = document.querySelector('.pvc-root'), main = r.querySelector('.pvc-main');
+    const fold = Math.min(main.getBoundingClientRect().bottom, window.innerHeight);
+    const box = (sel) => { const n = r.querySelector(sel); if (!n) return null; const x = n.getBoundingClientRect(); return { top: Math.round(x.top), bottom: Math.round(x.bottom), h: Math.round(x.height) }; };
+    return { scroll: main.scrollTop, top: Math.round(main.getBoundingClientRect().top), fold: Math.round(fold),
+      edit: box('.pvc-saved [data-pvc-act="edit"]'), more: box('.pvc-saved [data-pvc-act="more"]'), sum: box('.pvc-saved .pvc-sum'),
+      held: box('.pvc-saved [data-pvc-held]'), rows: r.querySelectorAll('.pvc-saved .pvc-sum .pvc-sum-r').length };
+  });
+  const reached = (x) => x.scroll === 0 && !!x.edit && !!x.more && [x.edit, x.more].every((b) => b.top >= x.top && b.bottom <= x.fold && b.h >= 44);
+  /* いま焦点が在る所（保存後は見出し。そこから Tab 1回でボタンへ行けるか、を見るのに使う） */
+  const focusAt = (p) => p.page.evaluate(() => {
+    const n = document.activeElement;
+    return { head: !!(n && n.matches && n.matches('.pvc-root .pvc-saved-h')), inCard: !!(n && n.closest && n.closest('.pvc-root .pvc-saved')),
+      tag: n ? n.tagName.toLowerCase() : '', text: n ? (n.textContent || '').trim().slice(0, 20) : '' };
+  });
 
   const workRows = async (slug) => (await q(
     `select period_year as y, period_month as m, "position" as pos, fleet, block_hours::float8 as block_hours,
@@ -601,7 +749,7 @@ async function main() {
     await waitView(a, 'saved');
     let sm = await summary(a);
     let rows = await workRows('jal');
-    ok(sm.head.includes('保存しました') && sm.rows.block_hours.v === '62.5時間' && !sm.rows.block_hours.none, '★1項目だけで保存できる。保存した値がそのまま出る', J(sm.rows.block_hours));
+    ok(sm.head === '情報を追加しました' && sm.rows.block_hours.v === '62.5時間' && !sm.rows.block_hours.none, '★1項目だけで保存できる。見出しは「情報を追加しました」・保存した値がそのまま出る', J({ head: sm.head, v: sm.rows.block_hours }));
     ok(NUM_KEYS.filter((k) => k !== 'block_hours').every((k) => sm.rows[k].none && sm.rows[k].v === NONE), '★入れていない5項目は「未回答」と出る（0 と出ない）', J(sm.rows));
     ok(rows.length === 1 && rows[0].block_hours === 62.5 && NUM_KEYS.filter((k) => k !== 'block_hours').every((k) => rows[0][k] === null),
       '★保存先でも、入れていない5項目は空（null）のまま ── 0 で埋めていない', J(rows));
@@ -610,12 +758,33 @@ async function main() {
     const ev = await a.page.evaluate(() => window.__pvcSaved);
     ok(ev.length === 1 && ev[0].topic === 'work' && ev[0].slug === 'jal', "保存できたら 'pvc:saved'（topic・slug）がページに流れる", J(ev));
     ok(!/REAL PAY|解放|アンロック/.test(sm.text.replace(DUTY_TERM, '')), '保存後の画面は「REAL PAY が開く」と言わない');
-    ok(await a.page.$('.pvc-root [data-pvc-act="edit"]') && await a.page.$('.pvc-root [data-pvc-act="more"]'), '保存後に「修正する」「別の項目を追加」が在る');
+    const acts = await a.page.evaluate(() => [...document.querySelectorAll('.pvc-root .pvc-saved-a button')].map((n) => n.getAttribute('data-pvc-act') + ':' + n.textContent));
+    ok(J(acts) === J(['edit:自分の回答を見る', 'more:もう1項目を答える']), '保存後に「自分の回答を見る」「もう1項目を答える」が、この順で在る', J(acts));
+
+    /* ── 保存できた合図（短いクラッカー）── 保存1回につき1度だけ ── */
+    let cues = await cueLog(a);
+    ok(J(cues) === J(POP), '★保存できたら、合図（紙片10枚）が1度だけ出る', J(cues));
+    const f1 = await focusAt(a);
+    await a.page.keyboard.press('Tab');
+    const f2 = await focusAt(a);
+    ok(f1.head && f2.inCard && f2.tag === 'button' && f2.text === '自分の回答を見る',
+      '保存後は焦点が「情報を追加しました」の見出しへ移り、Tab 1回で「自分の回答を見る」に届く', J({ f1, f2 }));
+    /* 閉じて、同じ項目をもう一度開く ── 出るのは入力の画面で、合図は戻らない（保存していないので） */
+    await a.page.evaluate(() => window.PVContrib.close());
+    await waitClosed(a);
+    await api(a, 'work');
+    await waitView(a, 'work');
+    cues = await cueLog(a);
+    let now = await cueNow(a);
+    ok(J(cues) === J(POP) && now.mark === null && !now.pop, '★閉じて同じ項目を開き直しただけでは、合図は鳴らない', J({ cues, now }));
 
     /* ── 読み直す ── */
     await go(a, JAL);
     await api(a, 'work');
     await waitView(a, 'work');
+    cues = await cueLog(a);
+    now = await cueNow(a);
+    ok(cues.length === 0 && now.mark === null && !now.pop, '★ページを読み直しただけでは、合図は鳴らない', J({ cues, now }));
     let v = await vals(a);
     const ph = await a.page.evaluate(() => Object.fromEntries([...document.querySelectorAll('.pvc-root form input.pvc-input')].map((n) => [n.name, n.placeholder])));
     const meta = await a.page.evaluate(() => ({ tag: !document.querySelector('.pvc-root [data-pvc-own-row]').hidden, send: document.querySelector('.pvc-root .pvc-send').textContent }));
@@ -630,13 +799,18 @@ async function main() {
     await waitView(a, 'saved');
     sm = await summary(a);
     rows = await workRows('jal');
-    ok(sm.head.includes('更新しました') && sm.rows.days_off.v === '0日' && !sm.rows.days_off.none, '★0 は「0日」と出る（未回答にならない）', J(sm.rows.days_off));
+    ok(sm.rows.days_off.v === '0日' && !sm.rows.days_off.none, '★0 は「0日」と出る（未回答にならない）', J(sm.rows.days_off));
     ok(rows.length === 1 && rows[0].days_off === 0 && rows[0].block_hours === 62.5 && rows[0].stay_nights === null,
       '★保存先でも 0 は 0・未回答は空のまま。同じ月は1行のまま置き換わる', J(rows));
+    /* 同じ月を置き換えた回 ── 行は増えていないので「追加しました」とは言わない。合図は同じ形で1度 */
+    cues = await cueLog(a);
+    ok(sm.head === '情報を更新しました' && J(cues) === J(POP), '★置き換えた回の見出しは「情報を更新しました」（「追加しました」と言わない）。合図はこの回も1度だけ', J({ head: sm.head, cues }));
     await a.page.click('.pvc-root [data-pvc-act="edit"]');
     await waitView(a, 'work');
     v = await vals(a);
-    ok(v.days_off === '0' && parseFloat(v.block_hours) === 62.5 && v.stay_nights === '', '「修正する」で開き直すと、0 は 0・未回答は空欄で入っている', J(v));
+    ok(v.days_off === '0' && parseFloat(v.block_hours) === 62.5 && v.stay_nights === '', '「自分の回答を見る」で開き直すと、0 は 0・未回答は空欄で入っている', J(v));
+    cues = await cueLog(a);
+    ok(J(cues) === J(POP), '「自分の回答を見る」で入力の画面へ戻っても、合図は増えない', J(cues));
 
     /* ── 月を変える ── */
     const other = await a.page.evaluate(() => document.querySelector('.pvc-root select[name="ym"]').options[3].value);
@@ -653,6 +827,7 @@ async function main() {
   });
 
   await scene('月の勤務 ── サーバが断ったとき・送れなかったとき', async () => {
+    const cue0 = J(await cueLog(a));                      // ここから先は1度も保存できない ＝ 合図の控えが1つも増えないこと
     /* ── サーバが断る ── */
     await fill(a, 'block_hours', '250');
     await tick(a);
@@ -702,7 +877,8 @@ async function main() {
     ok(/送れていません/.test(m2) && /もう一度送る/.test(m2), '★サーバが落ちていたら「送れていません」と言い、「もう一度送る」を出す', J(m2));
     ok(v.block_hours === '70' && v.days_off === '0' && v.work_days === '' && v.position === 'cap', '★送れなかった回も、打った内容がそのまま残っている', J(v));
     ok(!!ob && rows[0].block_hours === 62.5, '送れなかった内容はこの端末に控えてある。保存先は変わっていない（保存したふりをしない）', J({ ob: !!ob, rows }));
-    ok(!(await a.page.$('.pvc-root [data-pvc-saved]')), '送れなかった回に「保存しました」の画面を出していない');
+    ok(!(await a.page.$('.pvc-root [data-pvc-saved]')), '送れなかった回に、保存後の画面を出していない');
+    ok(J(await cueLog(a)) === cue0 && !(await cueNow(a)).pop, '★断られた回・送れなかった回には、保存できた合図を1度も出していない', J({ before: cue0, after: await cueLog(a) }));
 
     /* ── 読み直しても、もう一度送れる ── */
     await go(a, JAL);
@@ -721,6 +897,8 @@ async function main() {
     ob = await outboxOf(a);
     ok(rows.length === 1 && rows[0].block_hours === 70 && rows[0].days_off === 0, '★「もう一度送る」で保存される', J(rows));
     ok(ob === null, '送れたら、端末の控えは消える', String(ob));
+    /* 読み直してからここまで、合図は1つも出ていなかった（控えを開いただけ）。送れたこの回に、初めて1度だけ出る */
+    ok(J(await cueLog(a)) === J(POP), '★送れなかった控えを開いただけでは鳴らず、「もう一度送る」で保存できた回に1度だけ鳴る', J(await cueLog(a)));
     await go(a, JAL);
     await api(a, 'list');
     await waitView(a, 'counted');
@@ -828,10 +1006,16 @@ async function main() {
       && db.commuting_taxi_where[0].c === 'within_area' && db.commuting_taxi_cost[0].c === 'company_full'
       && db.commuting_taxi_cap[0].c === 'per_month' && db.commuting_taxi_cap[0].t === '月の回数に上限があります',
       '保存された答えが、画面で選んだとおり（上限の補足も）', J(db));
-    ok(sm.head.includes('保存しました') && Object.keys(sm.rows).filter((k) => TAXI.includes(k)).length === 7 && !!sm.rows.commuting_taxi_cap_note,
-      '保存後の画面に、保存した答えが並ぶ', J(Object.keys(sm.rows)));
+    ok(sm.head === '情報を追加しました' && Object.keys(sm.rows).filter((k) => TAXI.includes(k)).length === 7 && !!sm.rows.commuting_taxi_cap_note,
+      '保存後の画面に、保存した答えが並ぶ（初めて答えた回の見出しは「情報を追加しました」）', J({ head: sm.head, rows: Object.keys(sm.rows) }));
     const ev = await a.page.evaluate(() => window.__pvcSaved);
     ok(ev.length === 1 && ev[0].topic === 'taxi' && ev[0].slug === 'jal', "保存できたら 'pvc:saved'（topic: taxi）が流れる", J(ev));
+    let cues = await cueLog(a);
+    const f1 = await focusAt(a);
+    await a.page.keyboard.press('Tab');
+    const f2 = await focusAt(a);
+    ok(J(cues) === J(POP), '★質問に答えて保存できた回も、合図は1度だけ出る', J(cues));
+    ok(f1.head && f2.inCard && f2.tag === 'button' && f2.text === '自分の回答を見る', '保存後は焦点が見出しへ移り、Tab 1回で「自分の回答を見る」に届く（質問の項目でも）', J({ f1, f2 }));
 
     /* ── 読み直す ── */
     await go(a, JAL + '?add=taxi');
@@ -853,6 +1037,8 @@ async function main() {
     await send(a);
     await waitMsg(a, 'same');
     ok(hits(a, 'submit_airline_conditions') === n1, '何も変えずに送ると「保存済みの内容と同じです」と言う（サーバへは投げない）', J(await msg(a, 'same')));
+    cues = await cueLog(a);
+    ok(cues.length === 0 && !(await cueNow(a)).pop, '★読み直しただけ・「保存済みの内容と同じ」と言われただけでは、合図は鳴らない', J(cues));
 
     /* ── 上書き ── */
     await pick(a, 'commuting_taxi_cost', 'partial');
@@ -861,6 +1047,10 @@ async function main() {
     db = await condRows('jal');
     ok(db.commuting_taxi_cost.length === 1 && db.commuting_taxi_cost[0].c === 'partial' && Object.keys(db).length === 7 && db.commuting_taxi_where[0].c === 'within_area',
       '★答え直すと上書きされる（行は増えない・ほかの答えはそのまま）', J(db.commuting_taxi_cost));
+    /* 答えを1つ直しただけ ── 行は増えていないので「追加しました」とは言わない */
+    const head2 = (await summary(a)).head;
+    cues = await cueLog(a);
+    ok(head2 === '情報を更新しました' && J(cues) === J(POP), '★答え直しただけの回の見出しは「情報を更新しました」（「追加しました」と言わない）。合図は1度だけ', J({ head2, cues }));
 
     /* ── 送れない（通信が切れる） ── */
     await a.page.click('.pvc-root [data-pvc-act="edit"]');
@@ -878,10 +1068,14 @@ async function main() {
     db = await condRows('jal');
     ok(/送れていません/.test(await msg(a, 'fail')) && v.commuting_taxi_where === 'door_to_door' && db.commuting_taxi_where[0].c === 'within_area' && !!(await outboxOf(a)),
       '★通信が切れた回は「送れていません」。選んだ答えは残り、保存先は変わらず、端末に控えが在る', J({ v: v.commuting_taxi_where, db: db.commuting_taxi_where }));
+    cues = await cueLog(a);
+    ok(J(cues) === J(POP), '★通信が切れた回には、合図を出していない（控えは前の1回ぶんのまま）', J(cues));
     await a.page.click('.pvc-root [data-pvc-act="retry"]');
     await waitView(a, 'saved');
     db = await condRows('jal');
     ok(db.commuting_taxi_where[0].c === 'door_to_door' && (await outboxOf(a)) === null, '「もう一度送る」で保存され、控えが消える', J(db.commuting_taxi_where));
+    cues = await cueLog(a);
+    ok(J(cues) === J([...POP, ...POP]), '★同じ画面のまま保存を2回 ＝ 合図も2回（保存1回につき1度・多くも少なくもない）', J(cues));
 
     /* ── サーバが一部だけ断ったとき（返事を試験用に差し替えて、画面の言い方だけを見る） ── */
     await a.page.click('.pvc-root [data-pvc-act="edit"]');
@@ -890,14 +1084,18 @@ async function main() {
     await pick(a, 'commuting_taxi_cost', 'self_full');
     await tick(a);
     a.st.fake = { name: 'submit_airline_conditions', body: { ok: true, airline: 'jal', saved: 1, skipped: 0,
-      rejected: [{ question_id: 'commuting_taxi_cost', reason: 'parent_missing' }], answered_total: 7, questions_total: 43 } };
+      rejected: [{ question_id: 'commuting_taxi_cost', reason: 'parent_missing' }], answered_total: 7, questions_total: 48 } };
     await send(a);
     await waitMsg(a, 'rej');
     const rj = await msg(a, 'rej');
     const label = conds.questions.find((x) => x.id === 'commuting_taxi_cost').ja.label;
     ok(/保存できなかった項目があります/.test(rj) && rj.includes(label) && /上の質問の答えと合わない/.test(rj) && !/parent_missing/.test(rj),
       '★一部だけ断られたら、どの質問がなぜ保存されなかったかを普通の言葉で言う（記号のまま出さない）', J(rj));
-    ok(!(await a.page.$('.pvc-root [data-pvc-saved]')) && (await vals(a)).commuting_taxi_cost === 'self_full', '断られた答えは画面に残っていて、「保存しました」とは言わない');
+    ok(!(await a.page.$('.pvc-root [data-pvc-saved]')) && (await vals(a)).commuting_taxi_cost === 'self_full', '断られた答えは画面に残っていて、保存後の画面は出さない');
+    /* 一部は保存できているので 'pvc:saved' は流れる（下のページの数字を取り直すため）。それでも成功の合図にはしない
+       ── 目の前に「保存できなかった項目があります」と出ているのに、紙片が散るのは嘘になる。 */
+    cues = await cueLog(a);
+    ok(J(cues) === J([...POP, ...POP]) && !(await cueNow(a)).pop, '★一部だけ断られた回には、保存できた合図を出さない', J(cues));
   });
 
   // ═════════════════════════════════════════════════════════════
@@ -946,7 +1144,8 @@ async function main() {
     let v = await vals(a);
     ok(/準備中/.test(m) && !/もう一度送る/.test(m), '★保存の口がまだ無いときは「準備中です」と言う（「もう一度送る」は出さない）', J(m));
     ok(v.stay_nights === '6' && !(await a.page.$('.pvc-root [data-pvc-saved]')) && (await outboxOf(a)) === null && J(await workRows('jal')) === w0,
-      '★準備中の回も、打った字は残る。「保存しました」と言わず、保存先も端末の控えも変わらない', J(v));
+      '★準備中の回も、打った字は残る。保存後の画面を出さず、保存先も端末の控えも変わらない', J(v));
+    ok((await cueLog(a)).length === 0 && !(await cueNow(a)).pop, '★準備中の回（月の勤務）には、保存できた合図を出していない', J(await cueLog(a)));
 
     await go(a, JAL);
     await api(a, 'taxi');
@@ -962,6 +1161,7 @@ async function main() {
     v = await vals(a);
     ok(/準備中/.test(m) && v.commuting_taxi_where === next && !(await a.page.$('.pvc-root [data-pvc-saved]')) && J(await condRows('jal')) === c0,
       '★通勤・タクシーも同じ（呼ぶ権限が無いとき）。選んだ答えは残り、保存先は変わらない', J({ m, v: v.commuting_taxi_where }));
+    ok((await cueLog(a)).length === 0 && !(await cueNow(a)).pop, '★準備中の回（通勤・タクシー）にも、保存できた合図を出していない', J(await cueLog(a)));
 
     /* 読む側の口が無いとき：件数を 0 とも言わず、数も出さない */
     a.st.fake = { name: 'my_work_months', status: 404, body: MISSING };
@@ -974,6 +1174,28 @@ async function main() {
     });
     ok(scr.state === 'off ok' && /準備中/.test(scr.text) && scr.work === null && !/0件|まだありません/.test(scr.text),
       '★読む側の口が無いときは、勤務の件数を出さず「準備中」と言う（0件とも「まだありません」とも言わない）', J(scr));
+    a.st.fake = null;
+  });
+
+  /* 保存はできたが、「足したのか・置き換えたのか」をサーバが言わなかったとき（その答えを返さない古い版）。
+     分からないものを「追加しました」と言い切らない ── 見出しは「保存しました」のまま。保存はできているので合図は同じ形で1度。
+     返事は試験用に差し替える（＝ この回は保存先へ届かない。画面の言い方だけを見る）。 */
+  await scene('足したのか置き換えたのか、サーバが言わなかったとき', async () => {
+    const w0 = J(await workRows('jal'));
+    await go(a, JAL);
+    await api(a, 'work');
+    await waitView(a, 'work');
+    await a.page.waitForFunction(() => { const n = document.querySelector('.pvc-root [data-pvc-own-row]'); return !!n && !n.hidden; });
+    await fill(a, 'stay_nights', '6');
+    await tick(a);
+    a.st.fake = { name: 'submit_work_month', body: { ok: true, saved: true, year: +ym.slice(0, 4), month: +ym.slice(5) } };
+    await send(a);
+    await waitView(a, 'saved');
+    const sm = await summary(a);
+    const cues = await cueLog(a);
+    ok(sm.head === '保存しました' && sm.rows.stay_nights.v === '6泊', '★足したのか置き換えたのか分からない回の見出しは「保存しました」（「追加しました」と言い切らない）', J({ head: sm.head, v: sm.rows.stay_nights }));
+    ok(J(cues) === J(POP), '分からない回も保存はできている ＝ 合図は1度だけ出る', J(cues));
+    ok(J(await workRows('jal')) === w0, '（差し替えた返事なので、保存先は1文字も変わっていない）');
     a.st.fake = null;
   });
 
@@ -1038,6 +1260,7 @@ async function main() {
     ok(!cols.sameRow && cols.sameLeft, '390px では入力欄が1列に並ぶ（見本の2列を1列に）', J(cols));
     ok(await b.page.$eval('.pvc-root .pvc-send', (n) => n.disabled), '「本人が直接経験した内容です」を入れるまで送れない（未ログインでも同じ）');
     await tick(b);
+    await farWatch(b);   // 紙片がいちばん遠くまで散ったときの位置を測る支度
     await send(b);
     await waitView(b, 'saved');
     const pend = async () => (await q(`select kind, airline, item_key, payload from public.pv_contrib_pending where airline = 'etihad' order by id`)).rows;
@@ -1060,12 +1283,35 @@ async function main() {
     ok(mine.ok && mine.known && (mine.rows || []).length === 1 && r0.block_hours === 0 && r0.stay_nights === 3 && r0.duty_hours === null && r0.days_off === null,
       '★乗務時間 0 は 0 のまま・入れていない欄は未回答のまま預かっている', J(r0));
     const sm = await summary(b);
-    ok(sm.head.includes('保存しました') && sm.rows.block_hours.v === '0時間' && !sm.rows.block_hours.none && sm.rows.duty_hours.none && sm.rows.stay_nights.v === '3泊',
-      '保存後の画面でも「0時間」と「未回答」が別のものとして出る', J(sm.rows));
+    ok(sm.head === '情報を追加しました' && sm.rows.block_hours.v === '0時間' && !sm.rows.block_hours.none && sm.rows.duty_hours.none && sm.rows.stay_nights.v === '3泊',
+      '保存後の画面でも「0時間」と「未回答」が別のものとして出る（ログインなしで初めて預けた回も「情報を追加しました」）', J({ head: sm.head, rows: sm.rows }));
     ok(/ログインなしで保存しました/.test(sm.text) && /この端末から確認・修正できます/.test(sm.text) && /ログインして引き継いだあと/.test(sm.text) && /90日で消えます/.test(sm.text),
       '★保存後に、どこに残り・いつ集計に入り・いつ消えるかを言う（「サーバに保存した」ことをブラウザ内の保存と混ぜない）', sm.text.replace(/\s+/g, ' ').slice(0, 200));
     ok(await b.page.$('.pvc-root [data-pvc-act="claim"]') && await b.page.$('.pvc-root [data-pvc-act="edit"]') && await b.page.$('.pvc-root [data-pvc-act="more"]'),
-      '保存後に「ログインして引き継ぐ」「修正する」「別の項目を追加」が在る');
+      '保存後に「ログインして引き継ぐ」「自分の回答を見る」「もう1項目を答える」が在る');
+
+    /* ── 保存できた合図（390×680・ログインなし ＝ いちばん狭く、断りの箱も入る回）── */
+    let cues = await cueLog(b);
+    ok(J(cues) === J(POP), '★ログインなしで保存できた回も、合図は1度だけ出る', J(cues));
+    const far = await farOf(b);
+    ok(!!far && far.n === 10 && far.still === 0 && far.card.length === 0 && far.sheet.length === 0,
+      '★紙片は10枚とも、いちばん遠くまで散ってもカードの中に収まる（見出しの外・面の外へ出ない）', J(far));
+    ok(!!far && far.clip === 'hidden hidden' && far.fill && far.touch === 'none' && far.hidden === 'true',
+      '紙片の層はカードの形で切り、押せず、読み上げにも出ない（下の見出しとボタンにそのまま触れる）', J(far));
+    ok(!!far && far.n === 10 && far.still === 0 && far.parts === 4 && far.over.length === 0,
+      '★紙片は10枚とも、散り終わりの位置で見出しの字・チェックの印・2つのボタンのどれにも重ならない（390×680）', J(far && { parts: far.parts, over: far.over }));
+    /* 2つのボタンは、保存した内容（10行）より先。スクロールしなくても最初の1画面で両方に届く */
+    const reach = await reachOf(b);
+    ok(reached(reach),
+      '★390×680 では、スクロールしなくても「自分の回答を見る」「もう1項目を答える」の両方に届く（断りの箱が在っても）', J(reach));
+    ok(!!reach.sum && reach.rows >= 10 && !!reach.more && !!reach.edit && reach.sum.top >= Math.max(reach.edit.bottom, reach.more.bottom),
+      '保存した内容の一覧は、2つのボタンの下に並ぶ（一覧が長くてもボタンを押し下げない）', J(reach));
+    /* 紙片は 0.9秒で消え、1.4秒で層ごと片づく。片づいたあとも「保存できた」の印はカードに残る（描き直していない証拠） */
+    const gone = await popGone(b);
+    const settled = await cueNow(b);
+    ok(!settled.pop && settled.mark === 'pop', '★紙片の層は、散り終わったら自分で片づく（画面に残り続けない）', J(settled));
+    ok(gone.ms !== null && gone.ms >= POP_MIN && gone.late === false,
+      '★片づくのは散り終わったあと・設計の1.4秒から大きく遅れない（0.9秒〜2.5秒のあいだ。「いつか消えればよい」にしない）', J({ ms: gone.ms, late: gone.late, min: POP_MIN, max: POP_MAX }));
     checkSize(await measure(b), '390×680 月の勤務（保存後）');
     const geo = await measure(b);
     ok(Math.abs(geo.sheet.w - geo.vw) < 1 && Math.abs(geo.sheet.y + geo.sheet.h - geo.vh) < 1 && geo.sheet.h >= geo.vh * 0.9 && geo.sheet.h < geo.vh,
@@ -1080,6 +1326,8 @@ async function main() {
       '★読み直すと、預けた内容がサーバから戻っている（0 は 0・空欄は空欄・ひとことも）', J(v));
     ok(hits(b, 'my_contrib_anon') >= 1 && hits(b, 'my_work_months') === 0 && hits(b, 'my_airline_conditions') === 0,
       '読み直しは預かりの口から（会員の口は呼ばない）', J(b.st.calls));
+    cues = await cueLog(b);
+    ok(cues.length === 0 && !(await cueNow(b)).pop, '★読み直して預けた内容が戻っただけでは、合図は鳴らない（ログインなしでも）', J(cues));
     await fill(b, 'stay_nights', '4');
     await tick(b);
     await send(b);
@@ -1088,6 +1336,9 @@ async function main() {
     mine = await held(k1);
     ok(pd.length === 1 && (mine.rows || []).length === 1 && mine.rows[0].stay_nights === 4 && mine.rows[0].block_hours === 0 && (await devKey()) === k1 && (await keys()).length === 1,
       '★本人が直せる（同じ1件が置き換わる。行も鍵も増えない）', J(mine.rows));
+    const head2 = (await summary(b)).head;
+    cues = await cueLog(b);
+    ok(head2 === '情報を更新しました' && J(cues) === J(POP), '★預けた1件を直した回の見出しは「情報を更新しました」（件数は増えていない）。合図は1度だけ', J({ head2, cues }));
 
     /* ── 通信が切れた回 → もう一度送る ── */
     await b.page.click('.pvc-root [data-pvc-act="edit"]');
@@ -1102,10 +1353,14 @@ async function main() {
     mine = await held(k1);
     ok(/送れていません/.test(await msg(b, 'fail')) && v.work_days === '18' && mine.rows[0].work_days === null && !!(await outboxOf(b)),
       '★送れなかった回は「送れていません」。入れた字は残り、預かりは変わらず、端末に控えが在る', J({ v: v.work_days, held: mine.rows[0].work_days }));
+    cues = await cueLog(b);
+    ok(J(cues) === J(POP), '★送れなかった回には、合図を出していない（控えは前の1回ぶんのまま）', J(cues));
     await b.page.click('.pvc-root [data-pvc-act="retry"]');
     await waitView(b, 'saved');
     mine = await held(k1);
     ok(mine.rows[0].work_days === 18 && mine.rows[0].stay_nights === 4 && (await outboxOf(b)) === null, '「もう一度送る」で保存され、控えが消える', J(mine.rows[0]));
+    cues = await cueLog(b);
+    ok(J(cues) === J([...POP, ...POP]), '★同じ画面のまま保存を2回 ＝ 合図も2回（ログインなしでも、保存1回につき1度）', J(cues));
 
     /* ── ほかの端末・ほかの人には見えない ── */
     const o = await open('phone');
@@ -1169,6 +1424,11 @@ async function main() {
     ok(after.work === 'あなたの投稿 1件' && !after.held && /引き継ぎました/.test(after.note),
       '引き継いだ一覧は会員としての投稿から数え、「ログイン前の回答を引き継ぎました」と知らせる（預かりの案内は消える）', J(after));
     ok(!after.board, '登録だけの会員でも、入力の面を開いている間は Give → Get の板が覆わない');
+    /* 引き継ぎでも 'pvc:saved' は流れる（下のページの数字を取り直すため）。ただし、いま新しく保存したものは無い
+       ── ログインして戻っただけで紙片が散ると、「保存できた時に1度」の意味が薄まる。 */
+    cues = await cueLog(b);
+    const back = await cueNow(b);
+    ok(cues.length === 0 && back.mark === null && !back.pop, '★ログインして引き継いだだけでは、合図は鳴らない（知らせるのは「引き継ぎました」の一言）', J({ cues, back }));
     const keyB1 = await payKey(B.id);
     ok(keyB1 === keyB0 && /"access_until":null/.test(keyB1),
       '★預けても・引き継いでも、給与の鍵は1つも動かない（期限・件数・バッジ・確認済みの印・給与の行数）', J({ keyB0, keyB1 }));
@@ -1317,6 +1577,337 @@ async function main() {
     });
   }
 
+  // ═════════════════════════════════════════════════════════════
+  // 7-b. 着陸手当 ── 上の答えで出てくる額・数え方（全日本空輸・会員C ／ キャセイ・未ログイン）
+  // ═════════════════════════════════════════════════════════════
+  /* 2026-10-09。「着陸回数に応じた手当」に「ある」と答えた人にだけ、その場で額と数え方を聞く。
+     見るのは5つ ── 上の答えで出る・消える／通貨は本人に選ばせる（円と決めつけない）／
+     会社・職位・機種を聞き直さない（月の勤務で出したものを引き継ぐ）／読み直しても戻る／
+     上の質問を「ない」に答え直したら、残っている古い額を「あなたの投稿」に数えない・保存した内容として出さない。
+     ⚠️ ここで入れる額と文は検査のための作りもの。どの会社の着陸手当でもない。
+     会員Aと日本航空を使わないのは、上の場面が「休暇・手当にはまだ1件も無い」ことを見ているため。 */
+  const LAND = ['landing_pay_amount', 'landing_pay_unit', 'landing_pay_from', 'landing_pay_to', 'landing_pay_varies_by'];
+  const ANA = '/airlines/ana.html', CX = '/airlines/cathay-pacific.html';
+  /* サーバへ送った中身を控える（数えるだけの gate では、何を送ったかが分からない） */
+  const tap = (p, name) => {
+    const sent = [];
+    p.page.on('request', (req) => {
+      if (!req.url().endsWith('/rest/v1/rpc/' + name)) return;
+      try { sent.push(JSON.parse(req.postData() || '{}').p || {}); } catch (e) { /* 読めない本文は控えない */ }
+    });
+    return sent;
+  };
+  const landRows = async (slug) => (await q(
+    `select question_id as q, "position" as pos, fleet, answer_num::float8 as num, answer_currency as cur,
+            answer_code as c, answer_text as t, text_shared as sh
+       from public.airline_conditions where airline = $1 and question_id like 'landing_pay%' order by question_id`, [slug])).rows;
+  const benefitsCount = async (p, urlPath) => {
+    await go(p, urlPath + '?add=list');
+    await waitView(p, 'counted');
+    return p.page.evaluate(() => { const n = document.querySelector('.pvc-root [data-pvc-count="benefits"]'); return n.hidden ? null : n.textContent; });
+  };
+  const famRows = (sm) => Object.keys(sm.rows).filter((k) => /^landing_pay/.test(k)).sort();
+  const ids = (pl) => ((pl && pl.answers) || []).map((x) => x.question_id).sort();
+
+  await scene('着陸手当 ── 上の答えで出る・通貨を選ぶ・1回で送る・読み直す・答え直す', async () => {
+    const conds = JSON.parse(read('pv-conditions.json'));
+    const labelOf = (id) => conds.questions.find((x) => x.id === id).ja.label;
+    const c = await open('desk', { who: 'c' });
+    const sent = tap(c, 'submit_airline_conditions');
+
+    /* ── まず月の勤務を1件（職位と機種は、ここで出したものを引き継ぐ） ── */
+    await go(c, ANA);
+    const anaName = await nameOf(c);
+    await api(c, 'work');
+    await waitView(c, 'work');
+    const FLEET = await c.page.$eval('.pvc-root select[name="fleet"]', (n) => n.options[1].value);
+    await pick(c, 'position', 'fo');
+    await pick(c, 'fleet', FLEET);
+    await fill(c, 'block_hours', '60');
+    await tick(c);
+    await send(c);
+    await waitView(c, 'saved');
+
+    /* ── 開く：最初に出るのは上の質問だけ ── */
+    await go(c, ANA + '?add=benefits');
+    await waitView(c, 'benefits');
+    let sh = await shown(c);
+    const shape = await c.page.evaluate((fam) => {
+      const f = document.querySelector('.pvc-root form[data-pvc-form="benefits"]');
+      const order = [...f.querySelectorAll('[data-q]')].map((n) => n.getAttribute('data-q'));
+      const at = order.indexOf('landing_pay');
+      const cur = f.querySelector('select[name="landing_pay_amount_cur"]');
+      return {
+        line: f.querySelector('.pvc-ctx-line').textContent,
+        again: [...f.querySelectorAll('[name="airline"], [name="company"], [name="position"], [name="fleet"], [name="ym"]')].map((n) => n.name),
+        next: order.slice(at + 1, at + 1 + fam.length),
+        labels: fam.map((k) => f.querySelector('[data-q="' + k + '"] .pvc-label').textContent),
+        cur: cur.value, curFirst: cur.options[0].textContent, curN: cur.options.length - 1,
+        curName: cur.getAttribute('aria-label'),
+        unit: f.querySelector('[data-q="landing_pay_amount"] .pvc-unit').textContent,
+      };
+    }, LAND);
+    ok(sh.landing_pay && LAND.every((k) => k in sh && !sh[k]), '最初に出るのは「着陸回数に応じた手当はありますか？」だけ（額・数え方はまだ出ない）', J(LAND.map((k) => [k, sh[k]])));
+    ok(shape.line.includes(anaName) && shape.line.includes('副操縦士') && shape.again.length === 0,
+      '★会社・職位・機種・時期を選び直す欄が無い（会社と職位は上に出ている）', J({ line: shape.line, again: shape.again }));
+    ok(J([...shape.next].sort()) === J([...LAND].sort()), '★額・数え方の質問は、着陸手当の質問のすぐ下に並ぶ（離れた所に出ない）', J(shape.next));
+    ok(shape.labels.every((t) => t.includes('着陸手当')), '★下の質問は、それだけ読んでも「着陸手当の」額・数え方だと分かる', J(shape.labels));
+    ok(shape.cur === '' && shape.curFirst === '通貨を選ぶ' && shape.curN === JSON.parse(read('pv-vocab.json')).currencies.length && shape.curName === labelOf('landing_pay_amount') + 'の通貨',
+      '★通貨は最初から何も選ばれていない（円と決めつけない）。選べるのはサイトの通貨の一覧', J({ cur: shape.cur, first: shape.curFirst, n: shape.curN }));
+    ok(shape.unit === '（1回あたり）', '額の欄に「（1回あたり）」と出ている', shape.unit);
+
+    /* ── 上の答えで出る・消える（通信しない） ── */
+    const calls0 = c.st.calls.length;
+    await pick(c, 'landing_pay', 'no');
+    sh = await shown(c);
+    ok(LAND.every((k) => !sh[k]), '★「ない」を選ぶと、額・数え方は1つも出ない', J(sh));
+    await pick(c, 'landing_pay', 'unknown');
+    sh = await shown(c);
+    ok(LAND.every((k) => !sh[k]), '★「わからない」を選んでも出ない', J(sh));
+    await pick(c, 'landing_pay', 'variable');
+    sh = await shown(c);
+    const noteOpen = await c.page.$eval('.pvc-root textarea[name="landing_pay_varies_by_note"]', (n) => n.getClientRects().length > 0);
+    ok(sh.landing_pay_from && sh.landing_pay_to && sh.landing_pay_varies_by && !sh.landing_pay_amount && !sh.landing_pay_unit && noteOpen,
+      '★「あり・一定額ではない」→ 低いほう・高いほう・何で変わるか と、その補足の欄がその場に出る（一定額の質問は出ない）', J(sh));
+    await pick(c, 'landing_pay', 'fixed');
+    sh = await shown(c);
+    ok(sh.landing_pay_amount && sh.landing_pay_unit && !sh.landing_pay_from && !sh.landing_pay_to && !sh.landing_pay_varies_by,
+      '★「あり・1回あたり一定額」→ 額（通貨つき）と数え方がその場に出る（幅の質問は出ない）', J(sh));
+    ok(c.st.calls.length === calls0, '選び直しているあいだは、サーバへ1本も投げない', J(c.st.calls.slice(calls0)));
+
+    /* ── 通貨を選ばずに送る ── */
+    await fill(c, 'landing_pay_amount', '1500');
+    await tick(c);
+    await send(c);
+    /* 文が出なくても、ここでは止まらない（下の行を赤くする）。止まると、止めずに送る形に壊れたとき
+       「場面が最後まで進まなかった」としか出ず、どの約束が破れたのかが分からない。 */
+    await waitMsg(c, 'said').catch(() => null);
+    const said = (await msg(c, 'said')) || '';
+    const at = await c.page.evaluate(() => document.activeElement && document.activeElement.name);
+    ok(said.includes(labelOf('landing_pay_amount')) && /通貨を選んでください/.test(said) && at === 'landing_pay_amount_cur',
+      '★額だけ入れて通貨を選ばずに送ると、その場で「通貨を選んでください」と言い、通貨の欄へ移る', J({ said, at }));
+    ok(sent.length === 0 && hits(c, 'submit_airline_conditions') === 0 && (await landRows('ana')).length === 0, '   その回は、サーバへ1本も投げていない（通貨の無い額を預けない）', J(sent));
+
+    /* ── 一定額：親・額・数え方を1回で ── */
+    await pick(c, 'landing_pay_amount_cur', 'JPY');
+    await pick(c, 'landing_pay_unit', 'per_landing');
+    await send(c);
+    await waitView(c, 'saved');
+    let db = await landRows('ana');
+    let sm = await summary(c);
+    const p1 = sent[0] || {};
+    const amt = (p1.answers || []).find((x) => x.question_id === 'landing_pay_amount') || {};
+    ok(sent.length === 1 && J(ids(p1)) === J(['landing_pay', 'landing_pay_amount', 'landing_pay_unit']) && amt.num === 1500 && amt.currency === 'JPY',
+      '★着陸手当・額（通貨つき）・数え方の3つを、1回の送信でまとめて送る', J(p1.answers));
+    ok(p1.airline === 'ana' && p1.position === 'fo' && p1.fleet === FLEET,
+      '★その送信に、月の勤務で出した職位と機種が付いている（額と数え方が、親と同じ条件を引き継ぐ）', J({ airline: p1.airline, position: p1.position, fleet: p1.fleet }));
+    ok(db.length === 3 && db.every((r) => r.pos === 'fo' && r.fleet === FLEET) && db.find((r) => r.q === 'landing_pay_amount').num === 1500
+      && db.find((r) => r.q === 'landing_pay_amount').cur === 'JPY' && db.find((r) => r.q === 'landing_pay_unit').c === 'per_landing',
+      '★保存先でも3行とも同じ職位・機種。額と通貨と数え方が、画面で入れたとおり', J(db));
+    ok(sm.head === '情報を追加しました' && J(famRows(sm)) === J(['landing_pay', 'landing_pay_amount', 'landing_pay_unit'])
+      && sm.rows.landing_pay_amount.v === 'JPY 1,500（1回あたり）' && sm.rows.landing_pay_unit.v === '着陸1回ごと',
+      '★保存後の画面に、自分の答えが通貨つきで出る（JPY 1,500（1回あたり）・着陸1回ごと）', J(sm.rows));
+
+    /* ── 読み直す ── */
+    await go(c, ANA + '?add=benefits');
+    await waitView(c, 'benefits');
+    let v = await vals(c);
+    let tags = await c.page.evaluate(() => [...document.querySelectorAll('.pvc-root form [data-q]')]
+      .filter((n) => n.querySelector('.pvc-label .pvc-mine')).map((n) => n.getAttribute('data-q')).sort());
+    sh = await shown(c);
+    ok(v.landing_pay === 'fixed' && v.landing_pay_amount === '1500' && v.landing_pay_amount_cur === 'JPY' && v.landing_pay_unit === 'per_landing'
+      && sh.landing_pay_amount && sh.landing_pay_unit, '★読み直すと、着陸手当・額・通貨・数え方が入った状態で開く', J(v));
+    ok(J(tags) === J(['landing_pay', 'landing_pay_amount', 'landing_pay_unit']), '答えた3つに「あなたの投稿」の札が付いている', J(tags));
+    ok((await benefitsCount(c, ANA)) === 'あなたの投稿 3件', '一覧の「休暇・手当」は「あなたの投稿 3件」', '');
+
+    /* ── 額だけ直す ── */
+    await c.page.click('.pvc-root [data-pvc-tile="benefits"]');
+    await waitView(c, 'benefits');
+    await fill(c, 'landing_pay_amount', '1800');
+    await tick(c);
+    await send(c);
+    await waitView(c, 'saved');
+    db = await landRows('ana');
+    ok(sent.length === 2 && J(ids(sent[1])) === J(['landing_pay_amount']) && db.length === 3
+      && db.find((r) => r.q === 'landing_pay_amount').num === 1800 && db.find((r) => r.q === 'landing_pay_amount').cur === 'JPY',
+      '★額を直すと、その1件だけが置き換わる（行は増えない・通貨はそのまま）', J({ sent: ids(sent[1]), db: db.map((r) => [r.q, r.num]) }));
+
+    /* ── 「一定額ではない」に答え直す：低いほうだけ入れる ── */
+    await c.page.click('.pvc-root [data-pvc-act="edit"]');
+    await waitView(c, 'benefits');
+    await pick(c, 'landing_pay', 'variable');
+    await fill(c, 'landing_pay_from', '10');
+    await pick(c, 'landing_pay_from_cur', 'USD');
+    v = await vals(c);
+    ok(v.landing_pay_from_cur === 'USD' && v.landing_pay_to_cur === 'USD',
+      '★通貨は1回選べば足りる ── 低いほうで選んだ通貨が、高いほうにも入っている', J({ from: v.landing_pay_from_cur, to: v.landing_pay_to_cur }));
+    await pick(c, 'landing_pay_varies_by', 'airport');
+    await fill(c, 'landing_pay_varies_by_note', '空港によって違う');
+    await tick(c);
+    await send(c);
+    await waitView(c, 'saved');
+    db = await landRows('ana');
+    sm = await summary(c);
+    const p3 = sent[2] || {};
+    const vb = (p3.answers || []).find((x) => x.question_id === 'landing_pay_varies_by') || {};
+    ok(sent.length === 3 && J(ids(p3)) === J(['landing_pay', 'landing_pay_from', 'landing_pay_varies_by']) && vb.text === '空港によって違う' && vb.share === true,
+      '★額は片方だけでも送れる（入れていない「高いほう」は送らない ＝ 0 や同じ額で埋めない）。補足も一緒に送る', J(p3.answers));
+    ok(J(famRows(sm)) === J(['landing_pay', 'landing_pay_from', 'landing_pay_varies_by', 'landing_pay_varies_by_note'])
+      && sm.rows.landing_pay_from.v === 'USD 10（1回あたり）' && sm.rows.landing_pay_varies_by.v === '空港・路線' && sm.rows.landing_pay_varies_by_note.v === '空港によって違う',
+      '★答え直したあとの保存後の画面に、前の枝の額（JPY 1,800）と数え方が出ていない', J(sm.rows));
+    ok(db.length === 5 && db.find((r) => r.q === 'landing_pay_amount').num === 1800 && db.find((r) => r.q === 'landing_pay_unit').c === 'per_landing',
+      '   前の額と数え方の行そのものは、保存先に残っている（消していない ＝ 答え直せば戻せる）', J(db.map((r) => r.q)));
+    ok((await benefitsCount(c, ANA)) === 'あなたの投稿 3件', '★「あなたの投稿」は3件のまま（残っている前の2行を数えない。保存先は5行）', '');
+
+    /* ── 高いほうを足す：通貨は借りる ── */
+    await c.page.click('.pvc-root [data-pvc-tile="benefits"]');
+    await waitView(c, 'benefits');
+    v = await vals(c);
+    ok(v.landing_pay_from === '10' && v.landing_pay_to === '' && v.landing_pay_to_cur === 'USD',
+      '読み直すと、まだ入れていない「高いほう」は空欄のまま（通貨は、保存した「低いほう」と同じものが入っている）', J(v));
+    await pick(c, 'landing_pay_from_cur', 'EUR');
+    const follow = (await vals(c)).landing_pay_to_cur;
+    await pick(c, 'landing_pay_from_cur', 'USD');
+    v = await vals(c);
+    ok(follow === 'EUR' && v.landing_pay_to_cur === 'USD',
+      '★保存したあとも、「高いほう」の通貨は自分で選ぶまで「低いほう」に付いて動く（前に見せただけの通貨が居残っていない）', J({ follow, back: v.landing_pay_to_cur }));
+    await fill(c, 'landing_pay_to', '25');
+    await tick(c);
+    await send(c);
+    await waitView(c, 'saved');
+    db = await landRows('ana');
+    const p4 = sent[3] || {};
+    ok(sent.length === 4 && J(p4.answers) === J([{ question_id: 'landing_pay_to', num: 25, currency: 'USD' }]),
+      '★「高いほう」は、借りた通貨を付けて送る（通貨を選び直させない）。変えていない答えは送り直さない', J(p4.answers));
+    ok(db.find((r) => r.q === 'landing_pay_to').cur === 'USD' && db.find((r) => r.q === 'landing_pay_from').num === 10 && db.find((r) => r.q === 'landing_pay_from').cur === 'USD',
+      '   保存先でも「高いほう」は USD。「低いほう」は元のまま', J(db.filter((r) => /_from|_to/.test(r.q))));
+
+    /* ── 「ない」に答え直す ── */
+    await c.page.click('.pvc-root [data-pvc-act="edit"]');
+    await waitView(c, 'benefits');
+    await pick(c, 'landing_pay', 'no');
+    await tick(c);
+    await send(c);
+    await waitView(c, 'saved');
+    db = await landRows('ana');
+    sm = await summary(c);
+    const srv = await c.page.evaluate(async () => {
+      const sb = await window.PVCareer.client();
+      const r = await sb.rpc('my_airline_conditions', { p: { airline: 'ana' } });
+      return r.data.answers.filter((x) => !x.airline || x.airline === 'ana').map((x) => x.question_id).filter((k) => /^landing_pay/.test(k)).sort();
+    });
+    ok(J(ids(sent[4])) === J(['landing_pay']) && db.length === 6 && db.find((r) => r.q === 'landing_pay').c === 'no' && srv.length === 6,
+      '「ない」に直しても、下の5行は保存先に残っていて、サーバは本人に6件とも返す（ここまでが前提）', J({ db: db.map((r) => r.q), srv }));
+    ok(J(famRows(sm)) === J(['landing_pay']) && sm.rows.landing_pay.v === 'ない' && !/1,800|USD|JPY|空港/.test(sm.text),
+      '★「ない」に直したあとの保存後の画面に、古い額・数え方・補足が1つも出ない', J(sm.rows));
+    ok((await benefitsCount(c, ANA)) === 'あなたの投稿 1件', '★「あなたの投稿」は1件（「ない」の答えだけ）── 残っている古い額を数えない', '');
+    await c.page.click('.pvc-root [data-pvc-tile="benefits"]');
+    await waitView(c, 'benefits');
+    sh = await shown(c);
+    tags = await c.page.evaluate(() => [...document.querySelectorAll('.pvc-root form [data-q]')]
+      .filter((n) => !n.closest('[hidden]') && /^landing_pay/.test(n.getAttribute('data-q')) && n.querySelector('.pvc-label .pvc-mine')).map((n) => n.getAttribute('data-q')));
+    ok(LAND.every((k) => !sh[k]) && J(tags) === J(['landing_pay']), '   開き直した画面にも、古い額の欄は出ていない（札は「ない」の1つだけ）', J({ sh: LAND.map((k) => sh[k]), tags }));
+
+    /* ── サーバがまだ下の質問を知らないとき（返事を試験用に差し替えて、画面の言い方だけを見る） ──
+       画面を先に出して SQL を貼り忘れると、本番はこの形で返す。親だけ保存され、下の3つは断られる。 */
+    await pick(c, 'landing_pay', 'fixed');
+    v = await vals(c);
+    ok(v.landing_pay_amount === '1800' && v.landing_pay_amount_cur === 'JPY', '「一定額」に戻すと、前に入れた額が入った状態で出る（消していないので打ち直さずに済む）', J(v));
+    await fill(c, 'landing_pay_amount', '2000');
+    await pick(c, 'landing_pay_unit', 'per_leg');
+    await tick(c);
+    c.st.fake = { name: 'submit_airline_conditions', body: { ok: true, airline: 'ana', saved: 1, skipped: 0,
+      rejected: [{ question_id: 'landing_pay_amount', reason: 'unknown_question' }, { question_id: 'landing_pay_unit', reason: 'unknown_question' }],
+      answered_total: 1, questions_total: 48 } };
+    await send(c);
+    await waitMsg(c, 'rej');
+    const rj = await msg(c, 'rej');
+    v = await vals(c);
+    ok(/保存できなかった項目があります/.test(rj) && rj.includes(labelOf('landing_pay_amount')) && rj.includes(labelOf('landing_pay_unit'))
+      && /この質問はいま受け付けていません/.test(rj) && /ほかの1件は保存しました/.test(rj) && !/unknown_question/.test(rj),
+      '★下の質問だけ断られたら、どの質問が保存されなかったかを普通の言葉で言い、上の1件は保存したと言う', J(rj));
+    ok(!(await c.page.$('.pvc-root [data-pvc-saved]')) && v.landing_pay_amount === '2000' && v.landing_pay_unit === 'per_leg',
+      '★断られた額と数え方は画面に残っていて、保存後の画面は出さない', J(v));
+    await c.st.ctx.close();
+  });
+
+  for (const theme of [null, 'dark']) {
+    const tone = theme ? '暗い表示' : '明るい表示';
+    await scene(`着陸手当 ── 390×680（${tone}）で欄が切れない`, async () => {
+      const p = await open('phone', { who: 'c', theme });
+      await go(p, ANA + '?add=benefits');
+      await waitView(p, 'benefits');
+      if (theme) ok(await p.page.$eval('.pvc-root', (n) => n.classList.contains('is-dark')), '暗い表示で開いている');
+      await pick(p, 'landing_pay', 'fixed');
+      await p.page.$eval('.pvc-root [data-q="landing_pay_amount"]', (n) => n.scrollIntoView({ block: 'center' }));
+      const row = await p.page.evaluate(() => {
+        const f = document.querySelector('.pvc-root [data-q="landing_pay_amount"]'), fr = f.getBoundingClientRect();
+        const parts = [...f.querySelectorAll('.pvc-numrow > *')].map((n) => n.getBoundingClientRect());
+        return { n: parts.length, inside: parts.every((r) => r.width > 0 && r.left >= fr.left - 0.5 && r.right <= fr.right + 0.5) };
+      });
+      ok(row.n === 4 && row.inside, `390×680（${tone}）：通貨・額・「（1回あたり）」・「わからない」が、額の質問の枠の中に収まっている`, J(row));
+      checkSize(await measure(p), `390×680（${tone}） 着陸手当・一定額を選んだ状態`);
+      await pick(p, 'landing_pay', 'variable');
+      await p.page.$eval('.pvc-root [data-q="landing_pay_varies_by"]', (n) => n.scrollIntoView({ block: 'center' }));
+      checkSize(await measure(p), `390×680（${tone}） 着陸手当・一定額ではないを選んだ状態`);
+      await p.st.ctx.close();
+    });
+  }
+
+  await scene('着陸手当 ── ログインなしで預ける・読み直す・「ない」に直す（古い額を数えない）', async () => {
+    const n = await open('phone');
+    const sent = tap(n, 'submit_contrib_anon');
+    const held = async () => (await (await fetch(`${base}/rest/v1/rpc/my_contrib_anon`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ p: { key: await n.page.evaluate(() => localStorage.getItem('pv_contrib_key') || ''), airline: 'cathay-pacific' } }),
+    })).json());
+    const heldFam = async () => ((await held()).answers || []).map((x) => x.question_id).filter((k) => /^landing_pay/.test(k)).sort();
+
+    await go(n, CX + '?add=benefits');
+    await waitView(n, 'benefits');
+    await pick(n, 'landing_pay', 'fixed');
+    await fill(n, 'landing_pay_amount', '1500');
+    await pick(n, 'landing_pay_amount_cur', 'HKD');
+    await pick(n, 'landing_pay_unit', 'per_leg');
+    await tick(n);
+    await send(n);
+    await waitView(n, 'saved');
+    let sm = await summary(n);
+    const d1 = (sent[0] || {}).data || {};
+    ok(sent.length === 1 && (sent[0] || {}).kind === 'cond' && d1.airline === 'cathay-pacific' && J(ids(d1)) === J(['landing_pay', 'landing_pay_amount', 'landing_pay_unit'])
+      && (await snap(n)).href === CX && hits(n, 'submit_airline_conditions') === 0,
+      '★ログインなしでも、着陸手当・額・数え方を1回で預けられる（ログインへ行かない・同じ会社ページのまま）', J({ kind: (sent[0] || {}).kind, ids: ids(d1) }));
+    ok(sm.head === '情報を追加しました' && J(famRows(sm)) === J(['landing_pay', 'landing_pay_amount', 'landing_pay_unit'])
+      && sm.rows.landing_pay_amount.v === 'HKD 1,500（1回あたり）' && sm.rows.landing_pay_unit.v === 'レグ（区間）1つごと' && /ログインなしで保存しました/.test(sm.text),
+      '★保存後の画面に、自分の答えが通貨つきで出る。「ログインなしで保存しました」と言う', J(sm.rows));
+
+    /* ── 読み直す（同じ端末） ── */
+    await go(n, CX + '?add=benefits');
+    await waitView(n, 'benefits');
+    await n.page.waitForFunction(() => { const x = document.querySelector('.pvc-root [name="landing_pay_amount"]'); return !!x && x.value === '1500'; });
+    let v = await vals(n);
+    const sh = await shown(n);
+    ok(v.landing_pay === 'fixed' && v.landing_pay_amount === '1500' && v.landing_pay_amount_cur === 'HKD' && v.landing_pay_unit === 'per_leg' && sh.landing_pay_amount && sh.landing_pay_unit,
+      '★読み直すと、預けた額・通貨・数え方がサーバから戻っている', J(v));
+    ok((await benefitsCount(n, CX)) === 'あなたの投稿 3件', '一覧の「休暇・手当」は「あなたの投稿 3件」', '');
+
+    /* ── 「ない」に直す ── */
+    await n.page.click('.pvc-root [data-pvc-tile="benefits"]');
+    await waitView(n, 'benefits');
+    await pick(n, 'landing_pay', 'no');
+    await tick(n);
+    await send(n);
+    await waitView(n, 'saved');
+    sm = await summary(n);
+    const left = await heldFam();
+    ok(J(ids((sent[1] || {}).data)) === J(['landing_pay']) && left.length === 3,
+      '「ない」に直しても、預かりには額と数え方の行が残っている（ここまでが前提）', J(left));
+    ok(J(famRows(sm)) === J(['landing_pay']) && sm.rows.landing_pay.v === 'ない' && !/1,500|HKD/.test(sm.text),
+      '★「ない」に直したあとの保存後の画面に、古い額と数え方が出ない（ログインなしでも同じ）', J(sm.rows));
+    ok((await benefitsCount(n, CX)) === 'あなたの投稿 1件', '★「あなたの投稿」は1件 ── 預かりに残っている古い額を数えない', '');
+    await n.st.ctx.close();
+  });
+
   await scene('ホテル・ステイの入口 ── このページの「ステイ先」のタブへ（ほかの画面へ送り出さない）', async () => {
     const s = await open('phone');
     await go(s, EY);
@@ -1367,12 +1958,42 @@ async function main() {
       const tick = () => { n = scrollY === last ? n + 1 : 0; last = scrollY; if (n >= 3 || performance.now() - t0 > 3000) return res(); requestAnimationFrame(tick); };
       tick();
     })),
+    /* 実データの欄（口コミ・REAL PAY …）と字の形が届いて、ページの高さが決まるまで待つ（3コマ続けて同じ高さ）。時間では待たない。
+       届く前に測り始めると、あとで欄が縮んだ分だけページが短くなる（スマホのエティハドの概要で約145px）。
+       控えた位置がページの底より下になり、「戻る」でブラウザがそこへ置けない ＝ 製品は正しいのに赤くなる。
+       2026-10-09、ほかの場面と続けて流した回にだけ実際に踏んだ（この場面だけ流すと緑のままで、気づけない）。
+       ⚠️ 字の形は「届いたか」だけでは足りない ── 「頼んだか」まで見る（2026-10-10）。
+       字の形の指定（外の CSS）は、あとから当てる書き方で読んでいる（media="print" → 読めたら all）。
+       当たる前は、頼んだ字の形が1つも無い ＝ document.fonts.status は何もしなくても 'loaded' と答える。
+       そこで「届いた」と数えて測り始めると、面を開いたあとで字の形が届き、うしろのページが 1〜19px 動く
+       ＝ 製品は正しいのに赤くなる（外の回線が遅い回にだけ。実際に踏んだ：開く前 1735 → 開いた後 1736）。
+       なので、ページの読み込みが終わり（＝ その CSS が届いたか、届かないと決まった）、字の形が指定されているなら
+       少なくとも1つは頼み終えている（届いた・届かなかった）ことまで待つ。CSS が届かない回は、字の形の指定が
+       1つも無いまま ＝ 今までどおり先へ進む（回線が無い所で流しても、ここで止めない）。 */
+    ready: async () => {
+      const got = await s.page.evaluate(() => new Promise((res) => {
+        const t0 = performance.now(); let last = -1, n = 0;
+        const tick = () => {
+          const wait = [...document.querySelectorAll('.pvg .crl, .pvg-hero .crl')]
+            .filter((b) => b.getClientRects().length && /^(idle|loading)$/.test(b.dataset.state)).map((b) => b.getAttribute('data-live'));
+          const fonts = document.fonts.status, h = document.documentElement.scrollHeight;
+          const faces = [...document.fonts], asked = faces.filter((f) => f.status === 'loaded' || f.status === 'error').length;
+          const shaped = document.readyState === 'complete' && fonts === 'loaded' && (!faces.length || asked > 0);
+          n = !wait.length && shaped && h === last ? n + 1 : 0; last = h;
+          if (n >= 3 || performance.now() - t0 > 15000) return res({ ok: n >= 3, wait, fonts, h, page: document.readyState, faces: faces.length, asked });
+          requestAnimationFrame(tick);
+        };
+        tick();
+      }));
+      ok(got.ok, '（前提）測り始める前に、実データの欄と字の形が届いて、ページの高さが決まっている', J(got));
+    },
   });
   await scene('ホテル・ステイの入口を、ページの深い所から押す ── 行き先は頭から・戻ると元の深さ・進んでも面は開き直さない', async () => {
     const s = await open('phone');
     await go(s, EY);
     await s.page.waitForFunction(() => !!window.PVGlance);
-    const { where, still } = tabProbe(s);
+    const { where, still, ready } = tabProbe(s);
+    await ready();
     const headOk = (x) => x.head >= x.bar - 2 && x.head <= x.bar + 120;
     await s.page.evaluate(() => window.scrollTo({ top: Math.round((document.documentElement.scrollHeight - innerHeight) * 0.6), behavior: 'instant' }));
     await s.page.waitForFunction(() => scrollY > 600, { timeout: 8000 }).catch(() => {});
@@ -1416,7 +2037,8 @@ async function main() {
     const s = await open('phone');
     await go(s, EY);
     await s.page.waitForFunction(() => !!window.PVGlance);
-    const { where, still } = tabProbe(s);
+    const { where, still, ready } = tabProbe(s);
+    await ready();
     /* リンクを押した瞬間の位置を、ページの中で控える（押す道具が先にリンクを画面の中へ寄せるので、外から先に読むとずれる） */
     await s.page.evaluate(() => {
       document.querySelector('.pvg a.pvg-topic-a[href="#pvg-stay"]').addEventListener('click', () => { window.__pvPressedAt = scrollY; }, { capture: true, once: true });
@@ -1478,7 +2100,8 @@ async function main() {
     const s = await open('phone');
     await go(s, EY);
     await s.page.waitForFunction(() => !!window.PVGlance);
-    const { where, still } = tabProbe(s);
+    const { where, still, ready } = tabProbe(s);
+    await ready();
     await s.page.click('.pvg .pvg-more[aria-controls="pvg-p-work"]');
     await s.page.waitForFunction(() => { const p = document.getElementById('pvg-p-work'); return !!p && !p.hidden && p.getBoundingClientRect().height > 200; }, { timeout: 8000 }).catch(() => {});
     await still();
@@ -1530,7 +2153,8 @@ async function main() {
     const s = await open('phone');
     await go(s, EY + '#stay');
     await s.page.waitForFunction(() => !!window.PVGlance && window.PVGlance.at() === 'stay');
-    const { where, still } = tabProbe(s);
+    const { where, still, ready } = tabProbe(s);
+    await ready();
     await still();
     const before = await where();
     await s.page.focus('.pvg-tabbar .pvg-add');
@@ -1561,6 +2185,377 @@ async function main() {
     ok(dk.theme === 'dark' && dk.cls && dk.bg !== light && dk.ink !== dk.bg && dk.field !== 'rgb(255, 255, 255)',
       'ページが暗い表示のときは、面も暗い表示になる（白い板が残らない）', J({ light, dk }));
     await d.st.ctx.close();
+  });
+
+  /* 「動きを減らす」設定の人には、紙片を1枚も出さない。完了は 見出しの字 と チェックの印 で静かに伝える。
+     合図そのものを無くすのではない ── カードには「静かな完了」の印（quiet）が付く。 */
+  await scene('動きを減らす設定 ── 紙片を出さず、静かな完了表示', async () => {
+    const r = await open('phone', { who: 'a', calm: true });
+    await go(r, JAL);
+    await api(r, 'work');
+    await waitView(r, 'work');
+    await r.page.waitForFunction(() => { const n = document.querySelector('.pvc-root [data-pvc-own-row]'); return !!n && !n.hidden; });
+    const set = await r.page.evaluate(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    await fill(r, 'stay_nights', '2');
+    await tick(r);
+    await send(r);
+    await waitView(r, 'saved');
+    const cues = await cueLog(r);
+    const now = await cueNow(r);
+    const fc = await focusAt(r);
+    const done = await r.page.evaluate(() => {
+      const h = document.querySelector('.pvc-root .pvc-saved-h'), sv = h && h.querySelector('svg');
+      const b = sv ? sv.getBoundingClientRect() : null;
+      return { head: h ? h.textContent : '', mark: !!b && b.width >= 16 && b.height >= 16, moving: document.querySelector('.pvc-root .pvc-saved').getAnimations({ subtree: true }).length };
+    });
+    ok(set && J(cues) === J(['quiet']) && !now.pop && now.mark === 'quiet', '★動きを減らす設定では、紙片の層を1度も足さない（カードに付くのは「静かな完了」の印だけ）', J({ set, cues, now }));
+    ok(done.head === '情報を更新しました' && done.mark && done.moving === 0 && fc.head,
+      '★静かな完了表示 ── 見出しの字とチェックの印が出て、焦点は見出しに在る。動くものは1つも無い', J({ done, fc }));
+    ok(!!(await r.page.$('.pvc-root .pvc-saved [data-pvc-act="edit"]')) && !!(await r.page.$('.pvc-root .pvc-saved [data-pvc-act="more"]')), '静かな完了表示でも、2つのボタンは同じように在る');
+    /* 「在る」だけでは足りない ── 紙片を出さない回も、見出しからキーボードで2つのボタンへ進めること
+       （見えない・押せない形で在っても、上の検査は通ってしまう）。 */
+    await r.page.keyboard.press('Tab');
+    const t1 = await focusAt(r);
+    await r.page.keyboard.press('Tab');
+    const t2 = await focusAt(r);
+    ok(fc.head && t1.inCard && t1.tag === 'button' && t1.text === '自分の回答を見る' && t2.inCard && t2.tag === 'button' && t2.text === 'もう1項目を答える',
+      '★静かな完了表示でも、見出しから Tab を2回押すと「自分の回答を見る」→「もう1項目を答える」の順に届く', J({ fc, t1, t2 }));
+    await r.st.ctx.close();
+  });
+
+  // ═════════════════════════════════════════════════════════════
+  // 12. 自分の一覧が読めない会員（エバー航空・390×680）
+  // ═════════════════════════════════════════════════════════════
+  /* 保存の口は生きているのに、「自分のこれまでの投稿」を読む口だけが落ちている会員（サーバの不調・通信の切れ目）。
+     保存できた直後の「自分の回答を見る」は、いま送った内容を見せる ── 読めないからといって空の入力に戻さない。
+     空で出すと本人には「消えた」に見え、そこから1つ足して送ると、前に入れた欄が空で上書きされる（実際にそうなっていた）。
+     ただし、いま送った内容の写しは 件数 には数えない（件数はサーバが返した数だけ）・読む人が替わったら捨てる。
+     読む口は、手元のサーバの「わざと落とす」仕掛けで落とす（場面の終わりに必ず戻す）。 */
+  const EVA = '/airlines/eva-air.html';
+  /* 自分の一覧の読み直しが終わるまで待つ（「確認しています」の字が消えるまで） */
+  const settle = (p) => p.page.waitForFunction(() => { const n = document.querySelector('.pvc-root [data-pvc-wait]'); return !n || !/確認しています/.test(n.textContent); });
+  const formFace = (p) => p.page.evaluate(() => {
+    const r = document.querySelector('.pvc-root'), tag = r.querySelector('form [data-pvc-own-row]'), w = r.querySelector('[data-pvc-wait]');
+    return { btn: (r.querySelector('form .pvc-send[type="submit"]') || {}).textContent || '', tag: tag ? !tag.hidden : null,
+      mine: r.querySelectorAll('form .pvc-label .pvc-mine').length, wait: w && !w.hidden ? w.textContent : '' };
+  });
+  const listFace = (p) => p.page.evaluate(() => {
+    const r = document.querySelector('.pvc-root'), st = r.querySelector('[data-pvc-state]');
+    return { state: st.getAttribute('data-pvc-state'), text: st.hidden ? '' : st.textContent,
+      counts: [...r.querySelectorAll('[data-pvc-count]')].filter((n) => !n.hidden).map((n) => n.getAttribute('data-pvc-count') + '：' + n.textContent) };
+  });
+  /* 同じページを開いたまま、ログインだけを別の会員のものに入れ替える */
+  const loginAs = async (p, key) => {
+    const s = await (await fetch(`${base}/__local/login?member=${key}`)).json();
+    await p.page.evaluate((x) => { localStorage.setItem('sb-local-auth-token', JSON.stringify(x.session)); localStorage.setItem('pv_user', JSON.stringify(x.pv_user)); }, s);
+  };
+
+  await scene('自分の勤務の一覧が読めない会員 ── 保存 →「自分の回答を見る」→ 1つ足して送る', async () => {
+    await failNext('my_work_months', null, 99);
+    const u = await open('phone', { who: 'op' });
+    try {
+      await go(u, EVA);
+      await api(u, 'list');
+      await waitView(u, 'counted');
+      const l0 = await listFace(u);
+      await u.page.click('.pvc-root [data-pvc-tile="work"]');
+      await waitView(u, 'work');
+      await settle(u);
+      const f0 = await formFace(u);
+      const ymU = (await vals(u)).ym;
+      await pick(u, 'position', 'cap');
+      await fill(u, 'block_hours', '55');
+      await fill(u, 'stay_nights', '4');
+      await tick(u);
+      await send(u);
+      await waitView(u, 'saved');
+      const s1 = await summary(u);
+      const c1 = await cueLog(u);
+      /* 前提：この場面が見ているのは「読む口だけが落ちていて、保存はできた」回。崩れていたら、下は別のものを見ることになる */
+      if (l0.state !== 'fail ok' || !/読み込めませんでした/.test(f0.wait) || s1.head !== '情報を追加しました' || J(c1) !== J(POP)) {
+        throw new Error('前提が崩れた（読む口だけを落として保存できた回になっていない）: ' + J({ l0, wait: f0.wait, head: s1.head, c1 }));
+      }
+
+      await u.page.click('.pvc-root .pvc-saved [data-pvc-act="edit"]');
+      await waitView(u, 'work');
+      await settle(u);
+      const v1 = await vals(u), f1 = await formFace(u);
+      ok(v1.ym === ymU && v1.position === 'cap' && v1.block_hours === '55' && v1.stay_nights === '4' && v1.duty_hours === ''
+        && f1.tag === true && f1.btn === '匿名で更新する' && /読み込めませんでした/.test(f1.wait),
+        '★自分の勤務の一覧が読めない会員が、保存した直後に「自分の回答を見る」を押すと、いま送った内容が入力に入っている（月・職位・乗務時間・ステイ泊数。空の入力に戻さない）',
+        J({ ym: v1.ym, position: v1.position, block_hours: v1.block_hours, stay_nights: v1.stay_nights, duty_hours: v1.duty_hours, f1 }));
+
+      /* そこから1つ足して送る。入力が空で出ていた頃は、ここで前の2つ（乗務時間・ステイ泊数）が空で上書きされていた */
+      if (!v1.position) await pick(u, 'position', 'cap');   // 入力が空で出た回（＝上が赤い回）も、先へ進めて保存先を見る
+      await fill(u, 'duty_hours', '120');
+      await tick(u);
+      await send(u);
+      await waitView(u, 'saved');
+      const s2 = await summary(u);
+      const c2 = await cueLog(u);
+      const rows = await workRows('eva-air');
+      const row = rows.find((x) => `${x.y}-${String(x.m).padStart(2, '0')}` === ymU) || {};
+      ok(rows.length === 1 && row.pos === 'cap' && row.block_hours === 55 && row.duty_hours === 120 && row.stay_nights === 4,
+        '★そこから1つ足して送っても、前に入れた欄は空で上書きされない（保存先の同じ月に 乗務55時間・勤務120時間・ステイ4泊 が揃う）', J(rows));
+      ok(s2.head === '情報を更新しました' && s2.rows.block_hours.v === '55時間' && s2.rows.duty_hours.v === '120時間' && s2.rows.stay_nights.v === '4泊' && J(c2) === J([...POP, ...POP]),
+        '足して送った回の見出しは「情報を更新しました」。保存した内容に3つとも出て、合図はその保存で1度（合わせて2度）', J({ head: s2.head, block: s2.rows.block_hours, duty: s2.rows.duty_hours, stay: s2.rows.stay_nights, c2 }));
+
+      /* もう一度「自分の回答を見る」（いま送った内容から起こした、手を付けていない入力ができる）→ 一覧へ戻る */
+      await u.page.click('.pvc-root .pvc-saved [data-pvc-act="edit"]');
+      await waitView(u, 'work');
+      await settle(u);
+      await u.page.click('.pvc-root .pvc-prev');
+      await waitView(u, 'list');
+      await waitView(u, 'counted');
+      const l1 = await listFace(u);
+      ok(l1.state === 'fail ok' && l1.counts.length === 0 && /取得できませんでした/.test(l1.text) && !/\d\s*件/.test(l1.text),
+        '★読めなかった一覧の代わりに、いま送った内容を件数に数えない（「あなたの投稿 N件」を出さず「取得できませんでした」のまま。件数はサーバが返した数だけ）', J(l1));
+
+      /* 読む人が替わる：同じページのまま、別の会員のログインに替わる */
+      await loginAs(u, 'pilot');
+      await u.page.click('.pvc-root [data-pvc-tile="work"]');
+      await waitView(u, 'work');
+      await settle(u);
+      const v3 = await vals(u), f3 = await formFace(u);
+      ok(v3.position === '' && v3.block_hours === '' && v3.duty_hours === '' && v3.stay_nights === '' && f3.tag === false && f3.btn === '匿名で追加する',
+        '★読む人が替わったら（同じページのまま別の会員のログインに替わる）、前の人が送った内容を入力に出さない（そのまま送れば、その人の投稿になってしまう）',
+        J({ position: v3.position, block_hours: v3.block_hours, duty_hours: v3.duty_hours, stay_nights: v3.stay_nights, f3 }));
+    } finally {
+      await failOff();
+      await u.st.ctx.close();
+    }
+  });
+
+  /* 上の場面の最後は「入力を開き直したら空で出る」まで。ここは、いま送った内容から起こした入力（手を付けていない）が
+     画面に出ているまま、読む人が替わる回 ── もう一方のタブでログアウトした・ログインが切れた・別の会員が入った。
+     前の人の値を出したままにすると、(1) そのあと打った字が、捨てた写しへ入って送られない
+     （職位が見えている画面で「職位を選んでください」と止まり、選び直しても進めなかった）
+     (2) 手を付けずに送ると、前の人の内容が今の人の投稿になる。
+     なので、今の人が最初に触れた時（確認のチェック・欄に入る・送る）に入力を作り直す。打った字は必ず保存へ届く。 */
+  await scene('控えから起こした入力が出ているまま、読む人が替わる ── チェック・欄に入る・送る のどれが先でも', async () => {
+    await failNext('my_work_months', null, 99);
+    const u = await open('phone', { who: 'op' });
+    /* 送ったあと、保存後の画面か、欄の断り（職位を選んでください 等）のどちらかが出るまで待つ */
+    const settled = (p) => p.page.waitForFunction(() => {
+      const r = document.querySelector('.pvc-root');
+      return !!r.querySelector('[data-pvc-saved]') || [...r.querySelectorAll('.pvc-err')].some((n) => !n.hidden && n.textContent.trim());
+    }, { timeout: 20000 }).then(() => true, () => false);
+    const face = (p) => p.page.evaluate(() => {
+      const r = document.querySelector('.pvc-root'), f = r.querySelector('form[data-pvc-form="work"]'), a = document.activeElement;
+      const v = (n) => { const x = f && f.querySelector('[name="' + n + '"]'); return x ? x.value : null; };
+      return { saved: !!r.querySelector('[data-pvc-saved]'), position: v('position'), block_hours: v('block_hours'), duty_hours: v('duty_hours'),
+        own: f ? f.querySelector('[name="own"]').checked : null, at: a && a.getAttribute ? a.getAttribute('name') || a.tagName.toLowerCase() : '',
+        errs: [...r.querySelectorAll('.pvc-err')].filter((n) => !n.hidden && n.textContent.trim()).map((n) => n.id.replace('pvc-e-', '') + '：' + n.textContent.trim()) };
+    });
+    const months = async () => (await workRows('eva-air')).map((x) => ({ ym: `${x.y}-${String(x.m).padStart(2, '0')}`, pos: x.pos, block: x.block_hours, duty: x.duty_hours })).sort((x, y) => (x.pos < y.pos ? -1 : 1));
+    const heldRows = async () => (await q('select payload from public.pv_contrib_pending where airline = $1 and kind = $2 order by id', ['eva-air', 'work'])).rows
+      .map((x) => ({ pos: x.payload.position, block: x.payload.block_hours == null ? null : Number(x.payload.block_hours), duty: x.payload.duty_hours == null ? null : Number(x.payload.duty_hours) }));
+    /* いま送った内容から起こした、手を付けていない入力を出す（保存 →「自分の回答を見る」）。出ていなければ、下は別のものを見ることになる */
+    const fromCopy = async (want) => {
+      await send(u);
+      await waitView(u, 'saved');
+      await u.page.click('.pvc-root .pvc-saved [data-pvc-act="edit"]');
+      await waitView(u, 'work');
+      await settle(u);
+      const f = await face(u), w = (await formFace(u)).wait;
+      if (f.position !== want.position || f.block_hours !== want.block_hours || f.duty_hours !== want.duty_hours || !/読み込めませんでした/.test(w)) {
+        throw new Error('前提が崩れた（読めない一覧の代わりに、いま送った内容から起こした入力が出ていない）: ' + J({ want, f, w }));
+      }
+    };
+    try {
+      await go(u, EVA);
+      await api(u, 'work');
+      await waitView(u, 'work');
+      await settle(u);
+      const ymU = (await vals(u)).ym;
+      const h0 = await heldRows();
+
+      /* ① チェックが先：会員（運営）の入力が出ているまま、別の会員のログインに替わる → 確認のチェックを入れる */
+      await pick(u, 'position', 'cap');
+      await fill(u, 'block_hours', '55');
+      await tick(u);
+      await fromCopy({ position: 'cap', block_hours: '55', duty_hours: '' });
+      await loginAs(u, 'c');   // この会社へ、ほかの場面で1件も送らない会員（次の場面の会員の件数を動かさない）
+      await tick(u);
+      const a1 = await face(u), b1 = await formFace(u);
+      ok(a1.position === '' && a1.block_hours === '' && a1.own === true && b1.tag === false && b1.btn === '匿名で追加する',
+        '★控えから起こした入力が出ているまま読む人が替わったら、確認のチェックを入れた時に入力を作り直す（前の人の職位・乗務時間を残さない。入れたチェックは消さない）', J({ a1, b1 }));
+      await fill(u, 'duty_hours', '80');
+      await pick(u, 'position', 'fo');
+      await send(u);
+      await settled(u);
+      const a2 = await face(u), m2 = await months();
+      ok(a2.saved && J(m2) === J([{ ym: ymU, pos: 'cap', block: 55, duty: null }, { ym: ymU, pos: 'fo', block: null, duty: 80 }]),
+        '★作り直したあとに打った内容は、そのまま保存へ届く（捨てた写しへ入って「職位を選んでください」で止まらない）。前の人の行は変わらず、前の人の値は今の人の行に混ざらない', J({ a2, m2 }));
+
+      /* ② 送るが先：チェックを入れたあとで読む人が替わり、何も触らずに送る */
+      if (a2.saved) {
+        await u.page.click('.pvc-root .pvc-saved [data-pvc-act="edit"]');
+        await waitView(u, 'work');
+        await settle(u);
+      }
+      await tick(u);
+      const p3 = await face(u);
+      if (p3.position !== 'fo' || p3.duty_hours !== '80' || p3.own !== true) throw new Error('前提が崩れた（②：いま送った内容から起こした入力に、チェックだけを入れた形になっていない）: ' + J(p3));
+      await loginAs(u, 'op');
+      await send(u);
+      await settled(u);
+      const a3 = await face(u), m3 = await months(), h3 = await heldRows();
+      ok(!a3.saved && a3.position === '' && a3.duty_hours === '' && a3.errs.length === 1 && /^position：/.test(a3.errs[0]) && J(m3) === J(m2) && h3.length === h0.length,
+        '★読む人が替わったあと、何も触らずに送っても、前の人の内容は今の人の投稿として保存されない（入力を作り直し、空の職位に「職位を選んでください」と出す。保存先は1行も変わらない）', J({ a3, m3, held: h3.length - h0.length }));
+
+      /* ③ 欄に入るのが先：会員（運営）の入力が出ているまま、ログアウトする（ログインが切れる）→ 欄に入って打つ */
+      await pick(u, 'position', 'cap');
+      await fill(u, 'block_hours', '60');
+      await tick(u);
+      await fromCopy({ position: 'cap', block_hours: '60', duty_hours: '' });
+      await u.page.evaluate(() => { localStorage.removeItem('sb-local-auth-token'); localStorage.removeItem('pv_user'); });
+      await fill(u, 'duty_hours', '90');
+      const a4 = await face(u), b4 = await formFace(u);
+      ok(a4.position === '' && a4.block_hours === '' && a4.duty_hours === '90' && a4.at === 'duty_hours' && b4.tag === false && b4.btn === '匿名で追加する',
+        '★読む人が替わったあと、欄に入った時にも入力を作り直す（打ち始める前に前の人の値が消え、打った字は入った欄にそのまま入る）', J({ a4, b4 }));
+      await pick(u, 'position', 'cap');
+      await tick(u);
+      await send(u);
+      await settled(u);
+      const a5 = await face(u), m5 = await months(), h5 = await heldRows();
+      ok(a5.saved && h5.length === h0.length + 1 && J(h5[h5.length - 1]) === J({ pos: 'cap', block: null, duty: 90 })
+        && J(m5) === J([{ ym: ymU, pos: 'cap', block: 60, duty: null }, { ym: ymU, pos: 'fo', block: null, duty: 80 }]),
+        '★ログアウトしたあとに打って送った内容は、ログインなしの預かりに、打った分だけで入る（前の人の乗務時間が混ざらない。会員2人の行は変わらない）', J({ a5, held: h5.slice(h0.length), m5 }));
+      const cues = await cueLog(u);
+      ok(J(cues) === J([...POP, ...POP, ...POP, ...POP]),
+        '入力を作り直しただけでは合図は出ない（合図は、保存できた4回に1度ずつ）', J(cues));
+    } finally {
+      await failOff();
+      await u.st.ctx.close();
+    }
+  });
+
+  /* 質問の項目（通勤・タクシー）でも同じ。こちらはサーバが「足したのか・置き換えたのか」を答えごとに返さないので、
+     自分の答えの一覧が読めない会員には、足したのかどうかが分からない ── 見出しは「保存しました」のまま（「追加しました」と言い切らない）。
+     保存はできているので、合図は同じ形で1度。 */
+  await scene('自分の答えの一覧が読めない会員 ── 質問の項目（通勤・タクシー）', async () => {
+    const FOUR = ['commuting_taxi_cost', 'commuting_taxi_where', 'commuting_transport', 'commuting_transport_method'];
+    await failNext('my_airline_conditions', null, 99);
+    const u = await open('phone', { who: 'pilot' });
+    try {
+      await go(u, EVA);
+      await api(u, 'taxi');
+      await waitView(u, 'taxi');
+      await settle(u);
+      const f0 = await formFace(u);
+      if (!/読み込めませんでした/.test(f0.wait)) throw new Error('前提が崩れた（自分の答えの一覧を読む口が落ちていない）: ' + J(f0));
+      await pick(u, 'commuting_transport', 'conditional');
+      await chip(u, 'commuting_transport_method', 'company_taxi');
+      await pick(u, 'commuting_taxi_where', 'within_area');
+      await pick(u, 'commuting_taxi_cost', 'company_full');
+      await tick(u);
+      await send(u);
+      await waitView(u, 'saved');
+      const s1 = await summary(u);
+      const c1 = await cueLog(u);
+      ok(s1.head === '保存しました' && J(c1) === J(POP),
+        '★質問の項目でも、足したのか置き換えたのか分からない回（自分の答えの一覧が読めない会員）の見出しは「保存しました」。合図は1度だけ出る', J({ head: s1.head, c1 }));
+      ok(J(Object.keys(s1.rows).sort()) === J(FOUR) && FOUR.every((k) => s1.rows[k].v && !s1.rows[k].none),
+        '★自分の答えの一覧が読めなくても、保存後の画面の「保存した内容」に、いま送った4問が出る（空の一覧にしない）', J(s1.rows));
+
+      await u.page.click('.pvc-root .pvc-saved [data-pvc-act="edit"]');
+      await waitView(u, 'taxi');
+      await settle(u);
+      const v1 = await vals(u), f1 = await formFace(u);
+      ok(v1.commuting_transport === 'conditional' && J(v1.commuting_transport_method || []) === J(['company_taxi'])
+        && v1.commuting_taxi_where === 'within_area' && v1.commuting_taxi_cost === 'company_full' && f1.mine === 4 && f1.btn === '匿名で更新する',
+        '★質問の項目でも「自分の回答を見る」を押すと、いま送った4問が答えの入った形で出る（「あなたの投稿」の札が4つ・ボタンは「匿名で更新する」。空の入力に戻さない）',
+        J({ transport: v1.commuting_transport, method: v1.commuting_transport_method, where: v1.commuting_taxi_where, cost: v1.commuting_taxi_cost, f1 }));
+
+      /* そこから1問だけ直して送る */
+      const filled = !!v1.commuting_taxi_cost;
+      if (!filled) {   // 入力が空で出た回（＝上が赤い回）も、答え直して先へ進める
+        await pick(u, 'commuting_transport', 'conditional');
+        await chip(u, 'commuting_transport_method', 'company_taxi');
+        await pick(u, 'commuting_taxi_where', 'within_area');
+      }
+      await pick(u, 'commuting_taxi_cost', 'partial');
+      await tick(u);
+      await send(u);
+      await waitView(u, 'saved');
+      const s2 = await summary(u);
+      const d2 = await condRows('eva-air');
+      const one = (k) => (d2[k] || []).length === 1 ? d2[k][0] : {};
+      ok(filled && J(Object.keys(s2.rows).sort()) === J(FOUR) && !!s2.rows.commuting_taxi_cost && s2.rows.commuting_taxi_cost.v !== s1.rows.commuting_taxi_cost.v
+        && one('commuting_taxi_cost').c === 'partial' && one('commuting_taxi_where').c === 'within_area' && one('commuting_transport').c === 'conditional'
+        && J(one('commuting_transport_method').cs) === J(['company_taxi']) && Object.keys(d2).length === 4,
+        '★そこから1問だけ直して送っても、ほかの3問は消えない（保存した内容に4問・保存先も1問1行で4問。直した1問だけが変わる）', J({ filled, rows: s2.rows, d2 }));
+
+      /* 上の質問を「ない」へ答え直す → 下の質問の前の答えは、保存した内容に出さない */
+      await u.page.click('.pvc-root .pvc-saved [data-pvc-act="edit"]');
+      await waitView(u, 'taxi');
+      await settle(u);
+      await pick(u, 'commuting_transport', 'no');
+      await tick(u);
+      await send(u);
+      await waitView(u, 'saved');
+      const s3 = await summary(u);
+      ok(J(Object.keys(s3.rows)) === J(['commuting_transport']) && s3.rows.commuting_transport.v !== s1.rows.commuting_transport.v,
+        '★一覧が読めない会員でも、上の質問を「ない」に答え直すと、下の質問の前の答えは「保存した内容」に出ない（読めたときと同じ見せ方）', J(s3.rows));
+
+      await u.page.click('.pvc-root .pvc-saved [data-pvc-act="more"]');
+      await waitView(u, 'list');
+      await waitView(u, 'counted');
+      const l1 = await listFace(u);
+      ok(l1.state === 'ok fail' && l1.counts.length === 0 && /取得できませんでした/.test(l1.text) && !/\d\s*件/.test(l1.text),
+        '★質問の項目でも、読めなかった一覧の代わりに いま送った答えを件数に数えない（「あなたの投稿 N件」を出さない）', J(l1));
+
+      /* ログアウトした（ログインが切れた）あと：同じページのまま、前に送った答えを入力に出さない */
+      await u.page.evaluate(() => { localStorage.removeItem('sb-local-auth-token'); localStorage.removeItem('pv_user'); });
+      await u.page.click('.pvc-root [data-pvc-tile="taxi"]');
+      await waitView(u, 'taxi');
+      await settle(u);
+      const v4 = await vals(u), f4 = await formFace(u);
+      ok(v4.commuting_transport === '' && !v4.commuting_transport_method && f4.mine === 0 && f4.btn === '匿名で追加する',
+        '★ログアウトしたあと（ログインが切れたあと）は、同じページのままでも、前に送った答えを入力に出さない', J({ transport: v4.commuting_transport, method: v4.commuting_transport_method, f4 }));
+    } finally {
+      await failOff();
+      await u.st.ctx.close();
+    }
+  });
+
+  // ═════════════════════════════════════════════════════════════
+  // 13. いちばん狭い画面（エバー航空・320×568・ログインなし）
+  // ═════════════════════════════════════════════════════════════
+  /* ログインなしで保存した直後のカードは、「ログインなしで保存しました。」の断りの箱が入るぶん、いちばん高い。
+     幅320×高さ568 では、その箱が2つ目のボタン（もう1項目を答える）を最初の1画面の外へ押し出していた。
+     390×680 だけを測っていると、ここは見えない（390 では余りが 100px 以上ある）。 */
+  await scene('ログインなしで保存した直後 ── 320×568 でも2つのボタンに届く', async () => {
+    const s = await open('small');
+    try {
+      await go(s, EVA);
+      await api(s, 'work');
+      await waitView(s, 'work');
+      await settle(s);
+      /* 月が2けた（10〜12月）だと会社名と月の行が折り返し、カードがいちばん高くなる ＝ 選べるならその月で測る */
+      const wide = await s.page.$eval('.pvc-root select[name="ym"]', (n) => ([...n.options].find((x) => /-1[0-2]$/.test(x.value)) || {}).value || '');
+      if (wide) { await pick(s, 'ym', wide); await waitView(s, 'work'); await settle(s); }
+      await pick(s, 'position', 'fo');
+      await fill(s, 'block_hours', '61');
+      await tick(s);
+      await farWatch(s);
+      await send(s);
+      await waitView(s, 'saved');
+      const sm = await summary(s);
+      const reach = await reachOf(s);
+      const far = await farOf(s);
+      const cues = await cueLog(s);
+      if (sm.head !== '情報を追加しました' || !reach.held || J(cues) !== J(POP)) {
+        throw new Error('前提が崩れた（ログインなしで保存でき、断りの箱が出た回になっていない）: ' + J({ head: sm.head, held: reach.held, cues }));
+      }
+      ok(reached(reach),
+        '★320×568 でも、ログインなしで保存した直後（断りの箱が在る回）に、スクロールしなくても「自分の回答を見る」「もう1項目を答える」の両方に届く', J({ ym: wide || '（既定の月）', reach }));
+      ok(!!far && far.n === 10 && far.still === 0 && far.card.length === 0 && far.sheet.length === 0 && far.parts === 4 && far.over.length === 0,
+        '★320×568 でも、紙片は10枚ともカードの中に収まり、散り終わりの位置で見出しの字・チェックの印・2つのボタンのどれにも重ならない', J(far));
+    } finally {
+      await s.st.ctx.close();
+    }
   });
 
   console.log('\n════ 通信 ════');

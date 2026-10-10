@@ -114,6 +114,8 @@
       fullNum: '入力する',
       fullSkip: 'スキップ',
       fullCur: '通貨',
+      fullCurPick: '通貨を選ぶ',
+      fullCurNeed: '通貨を選んでください。',
       /* 読み込みそのものに失敗したとき。★骨組みのまま黙って止めない
          （2026-08-19、詳細ページが本番で真っ白のまま誰も気づけなかった） */
       fullDeadTitle: '質問を読み込めませんでした',
@@ -156,6 +158,8 @@
       fullNum: 'Enter',
       fullSkip: 'Skip',
       fullCur: 'Currency',
+      fullCurPick: 'Choose currency',
+      fullCurNeed: 'Please choose a currency.',
       fullDeadTitle: 'Could not load the questions',
       fullDead: ['This happens when the connection is unstable,', 'or when loading was interrupted.'],
       fullRetry: 'Reload',
@@ -315,7 +319,9 @@
       'font-family:inherit;font-size:.9rem;font-weight:700;color:#e8edf2;background:rgba(255,255,255,.04);',
       'border:1px solid rgba(255,255,255,.14);transition:border-color .2s,background .2s}',
     '.pvcf-num:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}',
-    '.pvcf-sel{min-height:44px;padding:11px 12px;border-radius:12px;',
+    /* max-width:100% ＝ 行より広がらせない。通貨の欄はいちばん長い選択肢の字の幅まで広がるので、
+       狭い画面（日本語は幅343未満）で右の端と矢印が節の枠に切られていた（2026-10-09）。 */
+    '.pvcf-sel{min-height:44px;max-width:100%;padding:11px 12px;border-radius:12px;',
       'font-family:inherit;font-size:.85rem;font-weight:700;',
       'color:#e8edf2;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14)}',
     '.pvcf-sel:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}',
@@ -923,7 +929,7 @@
     });
     var state = {};     // question_id → { code, codes, num, currency, text }
 
-    /* 金額の質問があるときだけ通貨の一覧を読む（今は training_bond_amount の1問） */
+    /* 金額の質問があるときだけ通貨の一覧を読む（training_bond_amount と、着陸手当の額の3問） */
     var needCur = qs.some(function (q) { return q.currency; });
 
     Promise.all([
@@ -1011,9 +1017,12 @@
       catch (e) { try { row.scrollIntoView(); } catch (e2) {} }
     }
 
+    /* ★先頭は空の選択肢（「通貨を選ぶ」）。これが無いと、何も選んでいない人の額に
+         一覧のいちばん上の通貨が黙って付いて保存される（2026-10-09 まで、そうなっていた）。 */
     function curOptions(sel) {
       var list = (_vocab && _vocab.currencies) || [];
-      return list.map(function (c) {
+      return '<option value=""' + (sel ? '' : ' selected') + '>' + esc(T.fullCurPick) + '</option>' +
+             list.map(function (c) {
         return '<option value="' + esc(c.code) + '"' + (c.code === sel ? ' selected' : '') + '>' +
                esc(c.code + ' — ' + (c[L] || '')) + '</option>';
       }).join('');
@@ -1135,12 +1144,13 @@
       mark(false);
     }
 
-    function say(q, ok) {
+    /* msg … 決まった2つの文（保存しました／保存できませんでした）の代わりに出す文。無ければ今までどおり。 */
+    function say(q, ok, msg) {
       var row = el.querySelector('[data-qid="' + q.id + '"]');
       if (!row) return;
       var s = row.querySelector('.pvcf-state');
       if (!s) return;
-      s.textContent = ok ? T.fullSaved : T.fullFail;
+      s.textContent = msg || (ok ? T.fullSaved : T.fullFail);
       s.className = 'pvcf-state' + (ok ? '' : ' is-bad');
     }
 
@@ -1202,7 +1212,12 @@
           if (!v) return;
           var a = { num: v };
           var cur = row.querySelector('[data-cur]');
-          if (cur) a.currency = cur.value;
+          /* 通貨を選んでいない額は送らない（サーバも bad_currency で受け取らない）。
+             何が足りないかをその行に書いて、通貨の欄へ運ぶ。 */
+          if (cur) {
+            if (!cur.value) { say(q, false, T.fullCurNeed); cur.focus(); return; }
+            a.currency = cur.value;
+          }
           save(q, a);
         };
         go.addEventListener('click', send);

@@ -248,6 +248,11 @@ const blocksOf = (html, name) => [...html.matchAll(new RegExp(`<!--${name}-->([\
 const one = (h, re) => (re.exec(h) || [])[1] ?? null;
 /* i 文字めが、div の何段めに在るか。 */
 const depthAt = (h, i) => (h.slice(0, i).match(/<div\b/g) || []).length - (h.slice(0, i).match(/<\/div>/g) || []).length;
+/* 「ひとつ教えて」のカードと、その中の話題（札＝<summary> の中身・質問の並び＝その下）。 */
+const askCardOf = g => one(g, /<article class="pvg-card pvg-askc"[^>]*>([\s\S]*?)\n<\/article>/) || '';
+const topicsOf = g => [...askCardOf(g).matchAll(/<details class="pvg-topic" data-topic="([a-z-]+)">\s*<summary>([\s\S]*?)<\/summary>([\s\S]*?)<\/details>/g)].map(m => ({ id: m[1], sum: m[2], body: m[3] }));
+/* 話題の並びと名前（オーナーの指定：勤務／通勤・タクシー／Staff Travel／機長昇格）。 */
+const ASK_TOPICS = [['work', '勤務'], ['taxi', '通勤・タクシー'], ['staff-travel', 'Staff Travel'], ['upgrade', '機長昇格']];
 
 const PAGES = Object.fromEntries(FIVE.map(s => [s, read(pageOf(s))]));
 const PART = {};
@@ -578,6 +583,40 @@ for (const s of FIVE) {
   for (const m of both.matchAll(/data-keys="([^"]*)"/g)) {
     const bad = m[1].split(',').filter(k => !QID.has(k));
     ok(!bad.length, `${s}: 回答の集計を出す欄が指すのは、在る質問だけ`, bad.join(', '));
+  }
+  {
+    /* 「ひとつ教えて」のカード：話題の札 ── 絵 → 話題の名前 → 小さい字（補足・「質問 N問」）。
+       札に書く数は「質問の数」だけ（下に並ぶ行を数えて突き合わせる）。回答の数は、上の「集まった回答」の欄にだけ出る。
+       札の単位は「問」・集まった回答の単位は「人」── 2つを同じ所に同じ書き方で置かない（質問の数が、回答の数に読めてしまう）。
+       ここは出荷した HTML を読む（生成する側の関数を呼ばない）。 */
+    const card = askCardOf(P.glance), tps = topicsOf(P.glance);
+    const names = tps.map(t => text(one(t.sum, /<span class="pvg-tp-n">([\s\S]*?)<\/span>/) || ''));
+    ok(same(tps.map(t => t.id), ASK_TOPICS.map(x => x[0])) && same(names, ASK_TOPICS.map(x => x[1])),
+       `${s}: 話題の札は ${ASK_TOPICS.map(x => x[1]).join(' → ')} の4枚で、札の名前がその話題の名前`, tps.map((t, i) => `${t.id}「${names[i]}」`).join(' '));
+    const qs = tps.map(t => [text(one(t.sum, /<span class="pvg-tp-q">([\s\S]*?)<\/span>/) || ''), (t.body.match(/<li\b/g) || []).length]);
+    ok(tps.length === 4 && qs.every(([q, n]) => n > 0 && q === `質問 ${n}問`), `${s}: 札の「質問 N問」は、その話題に並ぶ質問の数そのもの（単位は「問」。回答の数ではない）`, qs.map(([q, n]) => `「${q}」行 ${n}`).join(' '));
+    const icoOf = h => one(h, /^<span class="pvg-ico" aria-hidden="true"><svg\b[^>]*><path d="([^"]+)"\/><\/svg><\/span>/) || '';
+    const pics = [...tps.map(t => icoOf(t.sum)), icoOf(one(card, /<a class="pvg-topic pvg-topic-a" href="#pvg-stay">([\s\S]*?)<\/a>/) || '')];
+    ok(pics.length === 5 && pics.every(Boolean) && new Set(pics).size === 5, `${s}: 話題の札の絵は4つとも違い、ホテル・レストランの絵とも違う（色だけで見分けさせない）`, pics.map(d => d.slice(0, 14)).join(' ／ '));
+    {
+      const bad = [];
+      for (const t of tps) {
+        const rest = text(t.sum.replace(/<span class="pvg-tp-q">[\s\S]*?<\/span>/, ''));
+        if ((t.sum.match(/class="pvg-tp-q"/g) || []).length !== 1) bad.push(`${t.id}: 「質問 N問」が1つでない`);
+        if (/[件人]|回答|公開/.test(text(t.sum))) bad.push(`${t.id}: 回答の数に読める字（件・人・回答・公開）`);
+        if (/[0-9０-９]/.test(rest)) bad.push(`${t.id}: 「質問 N問」の外に数字（${rest}）`);
+        if (/class="[^"]*\bcrl\b|data-live=|data-pvg-n|<a\b|<button\b|<small\b/.test(t.sum)) bad.push(`${t.id}: 実データの欄・数を入れる口・押せるもの・古い小さい字`);
+      }
+      ok(tps.length === 4 && !bad.length, `${s}: 話題の札に、回答の数も実データの欄も書いていない（札の数字は「質問 N問」の1つだけ）`, bad.join(' ／ '));
+    }
+    {
+      const got = one(card, /<div class="pvg-got">([\s\S]*?)<\/div><\/div>/) || '';
+      const slot = /^<p class="pvg-askh">集まった回答<\/p><div class="crl" data-live="fact"([^>]*)><span class="crl-ph">—<\/span>$/.exec(got);
+      const keys = slot ? (one(slot[1], / data-keys="([^"]*)"/) || '').split(',').filter(Boolean) : [];
+      const asked = [...new Set(tps.flatMap(t => [...t.body.matchAll(/ data-pvc-q="([a-z0-9_]+)"/g)].map(m => m[1])))];
+      ok(card.split('data-live="fact"').length === 2 && !!slot && keys.length > 0 && same([...keys].sort(), [...asked].sort()),
+         `${s}: 回答の数が出るのは「集まった回答」の欄1つだけ ── 「—」で出荷し、4つの話題の質問を全部指している`, `欄 ${card.split('data-live="fact"').length - 1}つ・指す質問 ${keys.length}・並ぶ質問 ${asked.length}`);
+    }
   }
 
   /* 入口の行き先 */
@@ -911,6 +950,15 @@ ok(!/prefers-color-scheme/.test(CSSC), 'prefers-color-scheme を書いていな�
     .flatMap(x => x.split(/,(?![^()]*\))/).map(y => y.trim()));
   const loose = sels.filter(x => !/\.pvg(?:-[\w-]+)?\b|\[data-pvg-[\w-]+/.test(x));
   ok(sels.length > 50 && !loose.length, '.pvg / .pvg-hero の外に決まりを書いていない', loose.slice(0, 5).join(' ／ '));
+  /* 質問の行：触れた時の決まりに transform:none を書かない。
+     書くと、触れたまま押した時の「縮む」まで消える（押した時の決まりより強いので。「押せるものに状態が在る」の検査は緑のまま）。
+     「ひとつ教えて」のカードで言い直した側（.pvg-askc …）には、動きを1つも書かない ── none でなくても同じことが起きる
+     （translateY(-1px) と言い直しただけで、押した時の決まりに勝って縮まなくなる）。
+     ここは決まりの字を読むだけ。本当に縮むかは、画面の検査が触れたまま押して測る（rowShrink）。 */
+  const still = [...CSSC.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+    .filter(m => (/\.pvg-ask a:hover/.test(m[1]) && /transform\s*:\s*none/.test(m[2])) || (/\.pvg-askc \.pvg-ask a:hover/.test(m[1]) && /(?<![\w-])transform\s*:/.test(m[2])))
+    .map(m => m[1].trim());
+  ok(/\.pvg-ask a:hover\{/.test(CSSC) && !still.length, '質問の行に触れた時の決まりで、動きを消していない・言い直していない（どちらも、押した時の縮みまで消える）', still.join(' ／ '));
 }
 head('pv-glance.js・airline-base.js');
 ok(!/[¥万円]/.test(JSC), 'pv-glance.js に金額の字（¥・万・円）が無い');
@@ -1120,7 +1168,7 @@ const { default: puppeteer } = await import('puppeteer');
 
 /* 外へは1本も出さない。実データの欄が呼ぶ6つにだけ、決まった返事を返す。
      mode 'empty' … 0件（鍵は掛かったまま）
-     mode 'rows'  … 鍵の無い人に返る、伏せた行（この会社に7件・ほかの会社に2件）
+     mode 'rows'  … 鍵の無い人に返る、伏せた行（この会社に7件・ほかの会社に2件）＋「集まった回答」の欄に、検査用の集計3行
      mode 'rated' … 鍵の無い人に返る、点数の付いた口コミ3件（本文は無い。在るのは書かれた欄の名前と先頭の抜粋だけ）
      mode 'rated404' … 口コミは 'rated' と同じ・要約の口だけ 404（＝ いまの本番の形。要約の欄は出ず、下の欄の錠前の1行が見える）
      mode 'off'   … 全部 500 ＝「読めない時」
@@ -1132,10 +1180,20 @@ const PAY_RE = /\/rest\/v1\/rpc\/pv_pay_rows$/;
 /* ホテルの欄だけ、場面ごとに返事を差し替えられる（seen.stay）。運営の公開・却下は、送られた中身を控える（seen.mod）。
    ふだんは下の STUB のまま ＝ 鍵の1行。差し替えるのは「開いた時の画面」を見る1場面だけ。 */
 const STAY_RE = /\/rest\/v1\/rpc\/pv_stays$/, STAY_MOD_RE = /\/rest\/v1\/rpc\/pv_stay_moderate$/;
+/* 待遇の集計（airline_condition_facts）。ふだんは0件。'rows' の時だけ、下の3行を返す ＝ 回答が在る時の画面を見る。
+   ⚠️ 検査のために作った行で、本物の集計ではない（人数も答えも、この検査のファイルの中にしか無い）。
+   3つとも「ひとつ教えて」のカードだけが持つ質問にしてある ＝ ほかの欄（勤務・待遇・暮らしの板）は今までどおり0件のまま。
+   答えの名前（top_code）は質問の台帳の選択肢から選んだ。台帳から消えると、その行は画面に出ない（下の「回答が在る時」が落ちる）。 */
+const FACT_RE = /\/rest\/v1\/airline_condition_facts$/;
+const FACT_ROWS = [
+  { question_id: 'commuting_taxi_cost', kind: 'choice', n: 3, top_code: 'company_full', median_num: null, last_confirmed_at: '2026-08-15T00:00:00Z' },
+  { question_id: 'staff_travel_cabin', kind: 'choice', n: 6, top_code: 'if_available', median_num: null, last_confirmed_at: '2026-09-20T00:00:00Z' },
+  { question_id: 'upgrade_years', kind: 'num', n: 11, top_code: null, median_num: 9.5, last_confirmed_at: '2026-09-02T00:00:00Z' },
+];
 const STUB = [
   [/\/rest\/v1\/rpc\/pv_reviews$/, '{"unlocked":false,"rows":[]}'],
   [PAY_RE, '{"ok":true,"state":"locked","rows":[]}'],
-  [/\/rest\/v1\/airline_condition_facts$/, '[]'],
+  [FACT_RE, '[]'],
   /* 月の勤務の集計と会員の補足：未ログインに本物のサーバーが返すのは、状態の1語だけ（db/work-months.sql・db/contrib.sql）。 */
   [/\/rest\/v1\/rpc\/pv_work_view$/, '{"ok":true,"state":"login"}'],
   [/\/rest\/v1\/rpc\/pv_contrib_notes$/, '{"ok":true,"state":"login"}'],
@@ -1218,7 +1276,8 @@ async function open(browser, slug, w, h, mode, pre) {
       }
       const hit = seen.mode !== 'off' && STUB.find(([re]) => re.test(u.pathname));
       if (hit) {
-        const body = seen.mode === 'rows' && hit[0] === PAY_RE ? maskedBody(slug) : /^rated/.test(seen.mode) && REV_RE.test(u.pathname) ? ratedBody(slug) : hit[1];
+        const body = seen.mode === 'rows' && hit[0] === PAY_RE ? maskedBody(slug) : seen.mode === 'rows' && hit[0] === FACT_RE ? JSON.stringify(FACT_ROWS)
+                   : /^rated/.test(seen.mode) && REV_RE.test(u.pathname) ? ratedBody(slug) : hit[1];
         return r.respond({ status: 200, contentType: 'application/json', headers: cors, body });
       }
       if (seen.mode !== 'off') seen.unknown.add(`${r.method()} ${u.pathname}`);
@@ -1547,6 +1606,35 @@ function LIB() {
                all: t.hasAttribute('data-all'), focus5: !!li[4] && document.activeElement === li[4].querySelector('a') };
     }) };
   };
+  /* 話題の札の見た目（測るだけ。判定は外でする）。色は、同じ場所に置いた見本（トークンをそのまま塗った箱）と並べて返す。 */
+  G.plates = () => {
+    const c = document.querySelector('.pvg-askc'), grid = c.querySelector('.pvg-topics');
+    const box = el => { if (!el || !el.getClientRects().length) return null; const r = el.getBoundingClientRect(); return { x: r.left, y: r.top, r: r.right, b: r.bottom, w: r.width, h: r.height }; };
+    const pr = document.createElement('i');
+    pr.style.cssText = 'position:fixed;left:-99px;top:0;color:var(--pv-accent-ink);background:var(--pv-ink-2)';
+    c.closest('.pvg').appendChild(pr);
+    const tok = { name: getComputedStyle(pr).color, meta: getComputedStyle(pr).backgroundColor };
+    pr.remove();
+    const tile = c.querySelector('a.pvg-topic-a'), tchip = tile && tile.querySelector('.pvg-ico');
+    return {
+      flat: c.hasAttribute('data-flat'), card: getComputedStyle(c).backgroundColor, grid: box(grid), tok,
+      topics: $$('details.pvg-topic', c).map(t => {
+        const sum = t.querySelector(':scope > summary'), nm = sum.querySelector('.pvg-tp-n'), chip = sum.querySelector('.pvg-ico'), a = t.querySelector('.pvg-ask a');
+        const cs = getComputedStyle(sum), cn = nm ? getComputedStyle(nm) : null, ca = a ? getComputedStyle(a) : null;
+        /* 絵そのもの（線画）：箱の大きさ・透け具合（絵から札までを掛け合わせる）・線の色・その下の地の色。
+           箱が在るだけでは「見えている」と言えない ── 透明でも、地と同じ色でも、箱は在る。 */
+        const svg = chip && chip.querySelector('svg'), cv = svg ? getComputedStyle(svg) : null;
+        let op = 1;
+        for (let e = svg; e && e !== t; e = e.parentElement) op *= parseFloat(getComputedStyle(e).opacity);
+        return { id: t.dataset.topic, open: t.open, sum: box(sum), body: box(t.querySelector(':scope > .pvg-body')), chip: chip && on(chip) ? box(chip) : null,
+                 pic: svg && box(svg) ? { ...box(svg), op, vis: cv.visibility, ink: cv.stroke, under: getComputedStyle(chip).backgroundColor } : null,
+                 bg: cs.backgroundColor, edge: parseFloat(cs.borderTopWidth) || 0, edgeInk: cs.borderTopColor, ink: cs.color, hover: sum.matches(':hover'),
+                 name: cn && { fs: parseFloat(cn.fontSize), fw: +cn.fontWeight, ink: cn.color, sw: nm.scrollWidth, cw: nm.clientWidth },
+                 q: ca && { fs: parseFloat(ca.fontSize), fw: +ca.fontWeight } };
+      }),
+      tile: tile && { box: box(tile), arrow: box(tile.querySelector(':scope > svg')), chip: box(tchip), pic: box(tchip && tchip.querySelector('svg')) },
+    };
+  };
 }
 
 /* ── 測ったものを、正本と突き合わせる ── */
@@ -1677,8 +1765,89 @@ function scoreBad(s, sc, slots, rows, sum) {
   }
   return bad;
 }
+/* 話題の札（「ひとつ教えて」のカード）── 測ったものを、約束ごとに突き合わせる。
+   rank ＝ 話題の名前が質問より先に読める（名前のほうが大きく、太い・濃い緑）。
+   face ＝ 色だけで見分けさせない（地の色・枠・絵が在って、見えている）。
+   row  ＝ 同じ行の札は高さも、その下の質問の頭もそろう・行は端から端まで札で埋まる・「ホテル・レストラン」は1行ぜんぶ。
+   fit  ＝ 札は押せる高さ・名前が札からはみ出さない。
+   tile ＝ 「ホテル・レストラン」の矢印は右端・左の絵は箱のまんなか。
+   1行の札の数：狭い画面は1・広い画面は2・中身の箱が 1040px 以上で4（pv-glance.css の写し）。 */
+const PLATE_COLS = { col: 1, side: 2, row: 4 };
+function plateBad(pl, kind) {
+  const B = { rank: [], face: [], row: [], fit: [], tile: [] }, near = (a, b) => Math.abs(a - b) <= 1;
+  if (pl.topics.length !== 4 || !pl.grid || pl.topics.some(t => !t.sum || !t.name || !t.q)) {
+    for (const k of Object.keys(B)) B[k].push(`話題の札・名前・質問の行のどれかが測れない（札 ${pl.topics.length}枚）`);
+    return B;
+  }
+  for (const t of pl.topics) {
+    const at = `「${t.id}」`;
+    /* 日本語の字は 400／500／700 しか読み込んでいない ＝ 名前は 700・質問は 500 まで（600 は 700 で描かれて、名前と同じ太さになる）。 */
+    if (!(t.name.fs >= t.q.fs + 2 && t.name.fw >= 700 && t.q.fw <= 500)) B.rank.push(`${at}: 名前（${t.name.fs}px・太さ ${t.name.fw}）と質問（${t.q.fs}px・太さ ${t.q.fw}）`);
+    if (t.name.ink !== pl.tok.name) B.rank.push(`${at}: 名前の色 ${t.name.ink}（濃い緑は ${pl.tok.name}）`);
+    if (!(alpha(t.bg) > 0 && t.bg !== pl.card)) B.face.push(`${at}: 地の色が無い（札 ${t.bg}・カード ${pl.card}）`);
+    /* 枠と絵は「在る」だけでなく「見える」まで測る（透明な枠・地と同じ色の枠・透けた絵・地と同じ色の線は、在っても見えない）。
+       絵の下の地 ＝ 絵の小さい箱の色。箱が透明なら、その下の札の地。 */
+    if (t.edge < 1) B.face.push(`${at}: 枠が無い`);
+    else if (!(alpha(t.edgeInk) > 0 && t.edgeInk !== t.bg)) B.face.push(`${at}: 枠が見えない（枠 ${t.edgeInk}・札の地 ${t.bg}）`);
+    const k = t.pic, under = k && alpha(k.under) > 0 ? k.under : t.bg;
+    if (!(t.chip && t.chip.w >= 20 && t.chip.h >= 20)) B.face.push(`${at}: 絵が見えていない`);
+    else if (!(k && k.w >= 14 && k.h >= 14)) B.face.push(`${at}: 絵が小さすぎる（${k ? `${Math.round(k.w)}×${Math.round(k.h)}px` : '線画が無い'}）`);
+    else if (!(k.op > 0 && k.vis === 'visible')) B.face.push(`${at}: 絵が透けていて見えない（透け具合 ${k.op}・${k.vis}）`);
+    else if (!(/^rgba?\(/.test(k.ink) && alpha(k.ink) > 0 && k.ink !== under)) B.face.push(`${at}: 絵の線が見えない（線 ${k.ink}・その下の地 ${under}）`);
+    if (t.sum.h < 44) B.fit.push(`${at}: 高さ ${Math.round(t.sum.h)}px`);
+    if (t.name.sw > t.name.cw + 1) B.fit.push(`${at}: 名前がはみ出す（字 ${t.name.sw}px・入れ物 ${t.name.cw}px）`);
+  }
+  const rows = [];
+  for (const t of pl.topics) { const r = rows.find(x => near(x[0].sum.y, t.sum.y)); if (r) r.push(t); else rows.push([t]); }
+  const cols = PLATE_COLS[kind];
+  if (!same(rows.map(r => r.length), Array.from({ length: 4 / cols }, () => cols))) B.row.push(`1行に ${rows.map(r => r.length).join('・')}枚（${cols}枚ずつのはず）`);
+  for (const r of rows) {
+    const who = r.map(t => t.id).join('・');
+    if (!r.every(t => near(t.sum.h, r[0].sum.h))) B.row.push(`${who}: 札の高さ ${r.map(t => Math.round(t.sum.h)).join('・')}px`);
+    if (pl.flat && !r.every(t => t.body && r[0].body && near(t.body.y, r[0].body.y))) B.row.push(`${who}: 質問の頭 ${r.map(t => t.body ? Math.round(t.body.y) : '—').join('・')}`);
+    if (!(near(r[0].sum.x, pl.grid.x) && near(r[r.length - 1].sum.r, pl.grid.r))) B.row.push(`${who}: 行が ${Math.round(r[0].sum.x)}〜${Math.round(r[r.length - 1].sum.r)}（箱は ${Math.round(pl.grid.x)}〜${Math.round(pl.grid.r)}）`);
+  }
+  const k = pl.tile;
+  if (!(k && k.box && k.arrow && k.chip && k.pic)) { B.row.push('「ホテル・レストラン」が見えていない'); B.tile.push('入口・矢印・絵のどれかが見えていない'); return B; }
+  if (!near(k.box.w, pl.grid.w)) B.row.push(`「ホテル・レストラン」の幅 ${Math.round(k.box.w)}px（箱は ${Math.round(pl.grid.w)}px）`);
+  if (!(k.box.r - k.arrow.r >= 0 && k.box.r - k.arrow.r <= 14)) B.tile.push(`矢印が右端から ${Math.round(k.box.r - k.arrow.r)}px`);
+  if (!(near(k.pic.x + k.pic.w / 2, k.chip.x + k.chip.w / 2) && near(k.pic.y + k.pic.h / 2, k.chip.y + k.chip.h / 2))) B.tile.push(`絵が箱のまんなかから横に ${Math.round(k.pic.x + k.pic.w / 2 - k.chip.x - k.chip.w / 2)}px`);
+  return B;
+}
+/* 話題の札の字は、出荷した HTML のまま ── 回答が読めても・0件でも・読めなくても、札に数字や知らせが入らない
+   （札の数は質問の数。回答の数は「集まった回答」の欄にだけ出る）。欄が落ち着いてから読む。 */
+const PLATE_WORDS = Object.fromEntries(FIVE.map(s => [s, topicsOf(PART[s].glance).map(t => unesc(t.sum.replace(/<[^>]+>/g, '')))]));
+async function plateWords(p, s, tag) {
+  const st = await p.waitForFunction(() => { const c = document.querySelector('.pvg-askc .crl[data-live="fact"]'); return !!c && !/^(idle|loading)$/.test(c.dataset.state) && c.dataset.state; }, { timeout: 8000 }).then(h => h.jsonValue(), () => null);
+  const now = await p.evaluate(() => [...document.querySelectorAll('.pvg-askc details.pvg-topic > summary')].map(x => x.textContent));
+  ok(!!st && now.length === 4 && same(now, PLATE_WORDS[s]), `${tag}: 話題の札の字は、出荷した HTML と1文字も違わない（回答の欄がどう変わっても、札に数字や知らせが入らない）`, `回答の欄 ${st || '落ち着かない'}／${now.join('｜')}`);
+}
 const press = async h => { await h.evaluate(el => el.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' })); await h.click(); };
-const hard = (pr, ms, what) => Promise.race([pr, new Promise((_, rej) => setTimeout(() => rej(new Error(`${what}: ${ms / 1000}秒で終わらなかった`)), ms))]);
+/* 質問の行に触れたまま押して、押しているあいだ縮んでいるかを測る（縮んでいれば ''・縮まなければ理由）。
+   決まりの字を読む検査（上の「動きを消していない・言い直していない」）は、書き方が1つ違うだけで素通りする。ここは画面で起きたことを見る。
+   「縮んだ」＝ 縦横が同じだけ小さくなり、上下左右にはずれていない形（触れただけの形は 1px 上へずれる ＝ 縮んでいない）。
+   ⚠️ 離すのは押したのと同じ場所。押したまま外へ動かすと、ブラウザがリンクをつかんで運び始め、離したことがページへ届かない。
+   同じ場所で離すと「押した」ことになるので、そのあいだだけ押したことをページへ渡さない（提出の面を開かせない）。 */
+async function rowShrink(p, row) {
+  if (!row) return '質問の行が無い（測れていない）';
+  await row.evaluate(el => el.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' }));
+  await row.hover();
+  if (!(await row.evaluate(el => el.matches(':hover')))) { await p.mouse.move(0, 0); return '質問の行にマウスを載せても、触れた形にならない（測れていない）'; }
+  await p.evaluate(() => { window.__pvgEat = e => { e.preventDefault(); e.stopImmediatePropagation(); }; addEventListener('click', window.__pvgEat, true); });
+  let why = '';
+  try {
+    await p.mouse.down();
+    const shrunk = await p.waitForFunction(el => { const m = /^matrix\(([\d.]+), 0, 0, ([\d.]+), 0, 0\)$/.exec(getComputedStyle(el).transform); return !!m && m[1] === m[2] && +m[1] < 1; }, { timeout: 3000 }, row).then(() => true, () => false);
+    if (!shrunk) why = `触れたまま押しても縮まない（押しているあいだの形 ${await row.evaluate(el => getComputedStyle(el).transform)}）`;
+  } finally {
+    await p.mouse.up();
+    await p.evaluate(() => { removeEventListener('click', window.__pvgEat, true); delete window.__pvgEat; });
+    await row.evaluate(el => el.blur());
+    await p.mouse.move(0, 0);
+  }
+  return why;
+}
+const hard =(pr, ms, what) => Promise.race([pr, new Promise((_, rej) => setTimeout(() => rej(new Error(`${what}: ${ms / 1000}秒で終わらなかった`)), ms))]);
 
 const belowFold = [];           // 約束していない幅で、年収の額が最初の1画面に入らなかったもの（知らせるだけ）
 
@@ -1803,9 +1972,71 @@ async function runView(browser, s, [w, h, kind]) {
     ok((await ev(() => window.__pvg.all())) === all0, `${tag}: 円に戻すと1文字も違わない`);
 
     /* ── B) 動き ── */
+    /* 話題の札（質問の束の頭）。明るい画面と暗い画面の両方で測る（暗い画面は、色のトークンが差し替わったあとの形）。 */
+    await plateWords(p, s, tag);
+    {
+      const B = plateBad(await ev(() => window.__pvg.plates()), kind), dark = [];
+      const was = await ev(() => document.documentElement.getAttribute('data-theme'));
+      try {
+        await ev(() => document.documentElement.setAttribute('data-theme', 'dark'));
+        const dk = await ev(() => window.__pvg.plates());
+        for (const [k, list] of Object.entries(plateBad(dk, kind))) for (const x of list) B[k].push(`暗い画面 ${x}`);
+        if (kind === 'col') {
+          /* 触れた時（札を押せる、狭い画面だけ）。触れた時の字の色を言い直し忘れると、小さい字が、暗い画面で作り直していない緑に替わる
+             （明るい画面では同じ緑なので、暗い画面でしか分からない）。 */
+          const sum = await p.$('.pvg-askc details.pvg-topic > summary');
+          /* 札が崩れていると、マウスを載せる所で投げることがある。ここで止めると、下の6行（どう崩れたか）が1つも出ない ＝ 受けて先へ進む。 */
+          let hv = null;
+          try {
+            await sum.evaluate(el => el.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' }));
+            await sum.hover();
+            hv = await ev(() => window.__pvg.plates());
+          } catch (e) { dark.push(`札にマウスを載せられない（測れていない）: ${String((e && e.message) || e).slice(0, 80)}`); }
+          await p.mouse.move(0, 0);
+          const t = hv && hv.topics[0];
+          if (!t) { /* 上で書いた */ }
+          else if (!t.hover) dark.push('札にマウスを載せても、触れた形にならない（測れていない）');
+          else {
+            if (t.name.ink !== hv.tok.name) dark.push(`触れた時の名前の色 ${t.name.ink}（濃い緑は ${hv.tok.name}）`);
+            if (t.ink !== hv.tok.meta) dark.push(`触れた時の小さい字の色 ${t.ink}（灰色は ${hv.tok.meta}）`);
+          }
+        } else {
+          /* 広い画面では札は押せず、触れるのは「ほか◯問」。ここも同じ話 ── 触れた時の色を言い直し忘れると、
+             暗い画面で作り直していない緑（地とのコントラストが約3:1）に替わって読みにくくなる。
+             「ほか◯問」が1つも無い時は測らない（在るべき束に無ければ、下の「質問の束」が落ちる）。 */
+          const more = await p.evaluateHandle(() => [...document.querySelectorAll('.pvg-askc [data-pvg-askmore]')].find(b => b.getClientRects().length) || null);
+          const btn = more.asElement();
+          if (btn) {
+            let hv = null;
+            try {
+              await btn.evaluate(el => el.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' }));
+              await btn.hover();
+              hv = await btn.evaluate(el => ({ hover: el.matches(':hover'), ink: getComputedStyle(el).color }));
+            } catch (e) { dark.push(`「ほか◯問」にマウスを載せられない（測れていない）: ${String((e && e.message) || e).slice(0, 80)}`); }
+            await p.mouse.move(0, 0);
+            if (!hv) { /* 上で書いた */ }
+            else if (!hv.hover) dark.push('「ほか◯問」にマウスを載せても、触れた形にならない（測れていない）');
+            else if (hv.ink !== dk.tok.name) dark.push(`「ほか◯問」に触れた時の色 ${hv.ink}（濃い緑は ${dk.tok.name}）`);
+          }
+        }
+        for (const t of dk.topics) if (t.ink !== dk.tok.meta) dark.push(`「${t.id}」: 小さい字の色 ${t.ink}（灰色は ${dk.tok.meta}）`);
+      } finally {
+        await ev(w0 => { const r = document.documentElement; if (w0 === null) r.removeAttribute('data-theme'); else r.setAttribute('data-theme', w0); }, was);
+      }
+      ok(!B.rank.length, `${tag}: 話題の名前が、質問より先に読める ── 名前は濃い緑で、質問より 2px 以上大きく、太い`, B.rank.slice(0, 4).join(' ／ '));
+      ok(!B.face.length, `${tag}: 話題の札は、色だけで見分けさせない ── 地の色・枠・絵が在って、見えている`, B.face.slice(0, 4).join(' ／ '));
+      ok(!B.row.length, `${tag}: 話題の札の並び ── 同じ行の札は高さも質問の頭もそろう・行は端から端まで札で埋まる・「ホテル・レストラン」は1行ぜんぶの幅`, B.row.slice(0, 4).join(' ／ '));
+      ok(!B.fit.length, `${tag}: 話題の札は 44px 以上の高さで、名前が札からはみ出さない`, B.fit.slice(0, 4).join(' ／ '));
+      ok(!B.tile.length, `${tag}: 「ホテル・レストラン」の入口 ── 矢印は右端・左の絵は箱のまんなか`, B.tile.slice(0, 4).join(' ／ '));
+      ok(!dark.length, `${tag}: 暗い画面でも、札の小さい字は灰色のまま${kind === 'col' ? '・触れても名前は濃い緑、小さい字は灰色のまま（作り直していない緑に替わらない）' : '・「ほか◯問」に触れても濃い緑のまま（作り直していない緑に替わらない）'}`, dark.slice(0, 4).join(' ／ '));
+    }
     /* 質問の束（板を開く前に見る。広い画面は最初から開いた形・狭い画面は畳んだ形） */
     {
       const bad = [], a0 = await ev(() => window.__pvg.ask());
+      /* 質問の行は、触れたまま押すと少し縮む。行が見えている時に測る（狭い画面は束を1つ開いたあと・広い画面は最初から）。
+         測れなかった時（行が出ていない・載せられない）も理由を残す ── 黙って通さない。 */
+      let shrink = null;
+      const tryShrink = async () => { try { shrink = await rowShrink(p, await p.$('.pvg-askc details.pvg-topic .pvg-ask a')); } catch (e) { shrink = `測れていない: ${String((e && e.message) || e).slice(0, 80)}`; } };
       if (kind === 'col') {
         if (a0.flat || a0.topics.some(t => t.open)) bad.push('狭い画面なのに、束が最初から開いている');
         const sum = await p.$('.pvg-askc details.pvg-topic > summary');
@@ -1813,12 +2044,14 @@ async function runView(browser, s, [w, h, kind]) {
         const a1 = await ev(() => window.__pvg.ask());
         if (!a1.topics[0].open) bad.push('束の見出しを押しても開かない');
         else if (a1.topics[0].shown !== a1.topics[0].n) bad.push(`開いた束に ${a1.topics[0].shown}／${a1.topics[0].n}問しか出ない`);
+        if (a1.topics[0].open) await tryShrink(); else shrink = '束が開かないので、質問の行が出ていない（測れていない）';
         await press(sum);
         if ((await ev(() => window.__pvg.ask())).topics[0].open) bad.push('束の見出しをもう一度押しても閉じない');
       } else {
         if (!a0.flat || !a0.topics.every(t => t.open)) bad.push('広い画面なのに、束が開いた形になっていない');
         await ev(() => document.querySelector('.pvg-askc details.pvg-topic > summary').click());
         if (!(await ev(() => window.__pvg.ask())).topics[0].open) bad.push('開いた形の束が、見出しで閉じてしまう');
+        await tryShrink();
         for (const [i, t] of a0.topics.entries()) {
           if (t.more == null) { if (t.shown !== t.n || t.n > 4) bad.push(`束${i + 1}: ${t.n}問のうち ${t.shown}問しか出ない`); continue; }
           if (!(t.shown === 4 && t.moreOn && t.more === `ほか${t.n - 4}問`)) bad.push(`束${i + 1}: 最初の4問と「ほか${t.n - 4}問」になっていない（${t.shown}問・「${t.more}」）`);
@@ -1830,6 +2063,7 @@ async function runView(browser, s, [w, h, kind]) {
         }
       }
       ok(!bad.length, `${tag}: 質問の束 ── ${kind === 'col' ? '押すと開く・全部の質問が出る・もう一度で閉じる' : '最初から開いている・4問＋「ほか◯問」・押すと全部出て5問めへ移る'}`, bad.join(' ／ '));
+      ok(shrink === '', `${tag}: 質問の行は、触れたまま押すと少し縮む（触れた時の決まりが、押した時の縮みを消していない）`, shrink || '');
     }
 
     /* 勤務・待遇・暮らしの板 */
@@ -1919,6 +2153,7 @@ async function runOff(browser, s, [w, h, kind]) {
   const ev = (fn, ...a) => p.evaluate(fn, ...a);
   try {
     ok(ready, `${tag}: 「読み込み中」のまま固まらない`);
+    await plateWords(p, s, tag);
     const live = (await ev(() => window.__pvg.live())).filter(x => x.on);
     /* 口コミの欄は、すぐ上の評価スコアの欄が同じ知らせを出しているあいだは出さない（同じ文を2回出さない）。 */
     ok(live.length >= 4 && live.every(x => x.state === 'error' && x.retry), `${tag}: 見えている欄は全部「いま読み出せません」＋やり直すボタン`, live.map(x => `${x.kind}:${x.state}`).join(' '));
@@ -1958,6 +2193,7 @@ async function runOff(browser, s, [w, h, kind]) {
     /* 戻ったサーバーは0件を返す ＝ 直った形は「評価未取得」（empty）。 */
     const back = await p.waitForFunction(() => document.querySelector('.pvg-hero .crl').dataset.state === 'empty' && document.querySelector('#pvg-score .crl[data-live="score"]').dataset.state === 'empty', { timeout: 15000 }).then(() => true, () => false);
     ok(back && seen.asked > before, `${tag}: 「やり直す」でもう一度読みに行き、読めたら直る`, `問い合わせ ${before} → ${seen.asked}`);
+    await plateWords(p, s, `${tag}・読み直したあと`);
   } catch (e) {
     ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
   } finally {
@@ -1973,6 +2209,43 @@ async function runRows(browser, s, [w, h, kind]) {
   const ev = (fn, ...a) => p.evaluate(fn, ...a);
   try {
     ok(ready, `${tag}: 「読み込み中」のまま固まらない`);
+    await plateWords(p, s, tag);
+    /* 回答が在る時（検査用の集計3行）── 2つの数え方が同じ画面に並んだ時に、混ざらないこと。
+       人数（◯人）は「集まった回答」の欄にだけ出る。話題の札は「質問 N問」のまま ＝ 札に人数・件数・「回答」の字が入らない。
+       逆も見る：「集まった回答」の欄に「◯問」と書かない（質問の数を、回答の数のように見せない）。
+       ほかの場面は回答が0件で欄が空なので、2つが並ぶのを見られるのはここだけ。 */
+    {
+      const got = await ev(() => {
+        const c = document.querySelector('.pvg-askc'), box = c.querySelector('.pvg-got'), slot = box && box.querySelector('.crl[data-live="fact"]');
+        const vis = el => !!el && el.getClientRects().length > 0, tx = el => (el ? el.textContent : '').trim();
+        return {
+          state: slot ? slot.dataset.state : null, keys: slot ? (slot.getAttribute('data-keys') || '').split(',') : [], text: tx(box),
+          rows: [...c.querySelectorAll('.pvg-got .crl-fact')].map(r => ({ on: vis(r), k: tx(r.querySelector('.crl-fact-k')), v: tx(r.querySelector('.crl-ans-v')), m: [...r.querySelectorAll('.crl-ans-m > span')].map(tx) })),
+          stray: [...c.querySelectorAll('.crl-fact')].filter(r => !r.closest('.pvg-got')).length,
+          plates: [...c.querySelectorAll('details.pvg-topic > summary')].map(x => ({ on: vis(x), text: tx(x) })),
+        };
+      });
+      const want = FACT_ROWS.filter(f => got.keys.includes(f.question_id)).sort((a, b) => got.keys.indexOf(a.question_id) - got.keys.indexOf(b.question_id));
+      const bad = [];
+      if (got.state !== 'open') bad.push(`回答の欄が ${got.state}（回答が出た形のはず）`);
+      if (want.length !== FACT_ROWS.length) bad.push(`検査用の ${FACT_ROWS.length}行のうち、欄が持つ質問は ${want.length}行`);
+      if (got.rows.length !== want.length) bad.push(`回答の行 ${got.rows.length}（あるべき ${want.length}）`);
+      else for (const [i, f] of want.entries()) {
+        const r = got.rows[i], at = `${i + 1}行め`;
+        if (!r.on) bad.push(`${at}: 見えていない`);
+        if (!r.k || !r.v) bad.push(`${at}: 質問か答えの字が無い`);
+        if (r.m.filter(x => /人/.test(x)).join('｜') !== `${f.n}人`) bad.push(`${at}: 人数の字「${r.m.join('・')}」（あるべき ${f.n}人）`);
+      }
+      if (/\d\s*問/.test(got.text)) bad.push('「集まった回答」の欄に「◯問」と書いてある');
+      if (got.stray) bad.push(`回答の行が、欄の外に ${got.stray}つ`);
+      if (got.plates.length !== 4) bad.push(`話題の札 ${got.plates.length}枚`);
+      for (const t of got.plates) {
+        if (!t.on) bad.push(`札「${t.text.slice(0, 12)}」が見えていない`);
+        if (/回答|\d\s*[人件]/.test(t.text)) bad.push(`札に回答の数が入っている「${t.text}」`);
+        if (!/質問 \d+問/.test(t.text)) bad.push(`札に「質問 N問」が無い「${t.text}」`);
+      }
+      ok(!bad.length, `${tag}: 回答が在る時 ── 人数（◯人）は「集まった回答」の欄にだけ出る・話題の札は「質問 N問」のまま（2つの数え方を混ぜない）`, bad.slice(0, 4).join(' ／ '));
+    }
     await ev(() => window.__pvg.top());
     const sh = await ev(() => window.__pvg.shape());
     const rp = await ev(() => window.__pvg.realpay());
@@ -2066,6 +2339,7 @@ async function runRated(browser, s, [w, h, kind]) {
   const ev = (fn, ...a) => p.evaluate(fn, ...a);
   try {
     ok(ready, `${tag}: 「読み込み中」のまま固まらない`);
+    await plateWords(p, s, tag);
     await ev(() => window.__pvg.top());
     const rows = ratedRows(s), W = ratedWant(rows);
     const live = (await ev(() => window.__pvg.live())).filter(x => x.on);

@@ -19,6 +19,7 @@
      ・「空欄」は未回答＝ null で送る。「0」は 0 で送る。0 で埋めない・0 を消さない。
      ・「あなたの投稿 N件」は、本人についてサーバが返した行数だけ。
        質問の数を答えの数として出さない。サーバに何も置いていない人には件数を1つも出さない。
+       上の質問を答え直して画面から消えた質問の、前の答えは数えない・出さない（chainSaved）。
      ・サーバやユーザーから来た文字は textContent でしか入れない
        （innerHTML・insertAdjacentHTML・document.write を使わない）。
      ・このファイルに金額を書かない。
@@ -218,8 +219,13 @@
     ctx: ''                                 // どの街の詳細から開かれたか（暮らしのタブ）。面を開き直すたびに決め直す
   };
   /* 本人の投稿。k ＝ idle／loading／ok／anon／off／fail
-     held ＝ いま見えているのは、ログインせずに預けた回答（控えの鍵で読んだもの） */
-  var M = { seq: 0, p: null, held: false, work: { k: 'idle', rows: [] }, cond: { k: 'idle', answers: [] } };
+     held ＝ いま見えているのは、ログインせずに預けた回答（控えの鍵で読んだもの）
+     kept ＝ このページを開いてから、サーバが「保存した」と返した月と答えの写し（メモリの中だけ。読み直すと消える）。
+            本人の一覧を読めていないあいだ（k が ok でないあいだ）だけ、rowFor / savedMap がここから出す。
+            無いと、保存はできたのに「自分の回答を見る」が空の入力を開き、そこから送るといま保存した行を空で置き換える。
+            ★件数には使わない（「あなたの投稿 N件」は、サーバから読めた一覧だけで数える）。
+            ★持ち主の印（who）を付けて持つ。読む人が替わったら使わずに捨てる（下の keptNow / keep）。 */
+  var M = { seq: 0, p: null, held: false, work: { k: 'idle', rows: [] }, cond: { k: 'idle', answers: [] }, kept: { who: null, held: false, rows: {}, ans: {} } };
   var W = { ym: '', bufs: {}, own: false, notice: null, err: null, last: null, busy: false, els: {} };
 
   /* 質問のまとまり。k は ?add= と data-pvc-open にそのまま出る名前
@@ -503,15 +509,38 @@
       renderGroup(S.view);
     }
   }
+  /* 控え（M.kept）の持ち主の印 ＝ 保存したときのログイン（会員の id。ログインなしは空）と、預かりへ入れた回はその控えの鍵。
+     読む人が替わったら、控えは使わずに捨てる ── ログインした／ログアウトした（切れた）／
+     ログインして預かりを引き継いだ（鍵が消える）／控えの鍵が替わった。
+     捨てないと、前の人がこのページで保存した月と答えが、次の人の入力欄に入って出る（そのまま送れば、その人の投稿になる）。 */
+  function keptWho(held) { return (hasToken() ? 'm:' + uid() : 'a:') + '|' + (held ? devKey() : ''); }
+  /* 捨てるときは、控えから起こしてまだ手を付けていない月の入力の写し（W.bufs）も一緒に捨てる。
+     打ちかけの入力は、いま画面の前に居る人のものなので残す。 */
+  function keptDrop() {
+    if (M.kept.who !== null) Object.keys(W.bufs).forEach(function (k) { if (!W.bufs[k].dirty) delete W.bufs[k]; });
+    M.kept = { who: null, held: false, rows: {}, ans: {} };
+    return M.kept;
+  }
+  /* 読む側。持ち主がいま読む人と同じときだけ返す。 */
+  function keptNow() { return M.kept.who === keptWho(M.kept.held) ? M.kept : keptDrop(); }
+  /* 書く側。持ち主が同じなら足し、違えば前の控えを捨ててから置く。 */
+  function keep(held) {
+    var c = keptNow(), who = keptWho(held);
+    if (c.who !== who || c.held !== !!held) { c = keptDrop(); c.who = who; c.held = !!held; }
+    return c;
+  }
+  /* 一覧を読めていないあいだは、このページでいま保存できた分だけを控え（M.kept）から出す。
+     読めた一覧が在るときは、必ずそちらが正（控えは見ない）。 */
   function rowFor(ym) {
-    if (M.work.k !== 'ok') return null;
+    if (M.work.k !== 'ok') { var c = keptNow(); return has(c.rows, ym) ? c.rows[ym] : null; }
     var p = ym.split('-'), y = +p[0], m = +p[1], i, r;
     for (i = 0; i < M.work.rows.length; i++) { r = M.work.rows[i]; if (+r.year === y && +r.month === m) return r; }
     return null;
   }
   function savedMap() {
-    var o = {};
+    var o = {}, c;
     if (M.cond.k === 'ok') M.cond.answers.forEach(function (a) { o[a.question_id] = a; });
+    else { c = keptNow(); Object.keys(c.ans).forEach(function (id) { o[id] = c.ans[id]; }); }
     return o;
   }
 
@@ -559,7 +588,10 @@
     else renderGroup(view);
     mark(topic);
     paintClaim();
-    try { S.title.focus({ preventScroll: true }); } catch (e) { /* 古いブラウザ */ }
+    /* 保存できたあとは、面の題ではなく「情報を追加しました」の見出しへ移す
+       （読み上げが結果を先に読み、Tab ですぐ下の2つのボタンに届く）。 */
+    var hd = saved ? S.main.querySelector('.pvc-saved-h') : null;
+    try { (hd || S.title).focus({ preventScroll: true }); } catch (e) { /* 古いブラウザ */ }
   }
   function note(o) {
     var b = el('div', 'pvc-msg' + (o.tone === 'calm' ? ' is-calm' : ''), null, {
@@ -728,9 +760,10 @@
     if (M.work.k === 'ok') c.work = M.work.rows.length;
     if (M.cond.k === 'ok' && V.conds) {
       GROUPS.forEach(function (g) { c[g.k] = 0; });
+      var sm = savedMap();
       M.cond.answers.forEach(function (a) {
         var q = qById(a.question_id);
-        if (q && hasValue(a)) c[groupOfQ(q)]++;
+        if (q && hasValue(a) && chainSaved(q, sm)) c[groupOfQ(q)]++;
       });
     }
     return c;
@@ -874,11 +907,16 @@
     var logged = hasToken();
     /* 読み込み中かどうかは、ログインでは決めない（ログインしていない人も、控えの鍵で自分の分を読む） */
     var loading = M.work.k === 'loading' || M.work.k === 'idle';
-    var b = workBuf(W.ym), row = rowFor(W.ym), E = W.els = {};
+    /* 先に rowFor（読む人が替わっていたら、ここで控えと手を付けていない写しが捨てられる）→ それから入力の写し */
+    var row = rowFor(W.ym), b = workBuf(W.ym), E = W.els = {};
     clear(S.main);
 
     var f = el('form', 'pvc-form', null, { novalidate: '', autocomplete: 'off', 'data-pvc-form': 'work' });
     f.addEventListener('submit', function (e) { e.preventDefault(); sendWork(); });
+    /* 欄に入った時にも確かめる（下の sync）。読む人が替わっていたら、打ち始める前に入力を作り直す。
+       確認のチェックと送るボタンは除く ── 押している最中に作り直すと、その1回の押下が消える
+       （どちらも、押したあとに自分で確かめる：チェックは sync・送るボタンは sendWork）。 */
+    f.addEventListener('focusin', function (e) { if (e.target !== E.cb && e.target !== E.send) sync(); });
 
     /* いま何について答えているか（会社は選び直させない） */
     var ctx = el('div', 'pvc-ctx');
@@ -984,9 +1022,23 @@
     S.main.appendChild(f);
 
     function sync() {
-      tag.hidden = !rowFor(W.ym);
+      var mine = rowFor(W.ym);
+      /* rowFor は、読む人が替わったと気づくと、控えと、控えから起こして手を付けていない入力の写しを捨てる（keptDrop）。
+         捨てられたのがいま出している月の写しなら、入力ごと作り直す ── 前の人が保存した値を画面に残さない。
+         残すと、このあと打った字は捨てた写しへ入って送られず、職位が出ている画面で「職位を選んでください」と
+         止まる（選び直しても進めない）。面の位置と、いま居る欄はそのまま。打ちかけの入力は今までどおり残る。 */
+      if (W.bufs[W.ym] !== b) {
+        if (!S.open || S.view !== 'work' || W.els !== E) return;   // もう別の面を出している（古い面からの呼び出し）
+        var at = d.activeElement, nm = at && f.contains(at) ? at.getAttribute('name') : '', y = S.main.scrollTop;
+        renderWork();
+        S.main.scrollTop = y;
+        at = nm ? S.main.querySelector('[name="' + nm + '"]') : null;
+        if (at) { try { at.focus({ preventScroll: true }); } catch (e) { /* 古いブラウザ */ } }
+        return;
+      }
+      tag.hidden = !mine;
       E.send.disabled = !W.own || W.busy || loading;
-      E.send.textContent = W.busy ? '送っています…' : (rowFor(W.ym) ? '匿名で更新する' : '匿名で追加する');
+      E.send.textContent = W.busy ? '送っています…' : (mine ? '匿名で更新する' : '匿名で追加する');
       var t = '';
       if (loading) t = 'これまでの投稿を確認しています…';
       else if (M.work.k === 'fail') t = 'これまでの投稿を読み込めませんでした。このまま送れます（同じ月の投稿があれば、今回の内容に置き換わります）。';
@@ -1034,6 +1086,9 @@
   function setBusy(st, on) { st.busy = on; if (st.els && st.els.sync) st.els.sync(); }
   function sendWork() {
     if (W.busy || S.view !== 'work') return;
+    /* 送る前にも確かめる。読む人が替わっていたら、ここで入力が作り直される
+       ＝ 前の人が保存した値を、手を付けないまま今の人の投稿として送らない。 */
+    if (W.els.sync) W.els.sync();
     var pl = workPayload();
     if (!pl.position) return workSay({ kind: 'said', title: '保存できませんでした', text: '職位を選んでください。' }, 'position');
     if (!NUMS.some(function (n) { return pl[n.k] !== null; })) {
@@ -1066,13 +1121,16 @@
       M.work = { k: 'ok', rows: rows };
       if (held) M.held = true;
     }
-    W.last = { ym: ym, row: row, replaced: !!data.replaced, held: !!held };
+    /* 一覧を読めなかった人・このあとの取り直しに失敗した人にも、いま保存した月を見せられるように控える */
+    keep(held).rows[ym] = row;
+    /* 増えたのか・置き換えたのかは、サーバの答え（replaced）だけで決める。返ってこなければ「分からない」のまま。 */
+    W.last = { ym: ym, row: row, added: data.replaced === false ? true : data.replaced === true ? false : null, held: !!held };
     delete W.bufs[ym];
     W.own = false; W.notice = null; W.err = null;
     dropDraft('work'); dropOutbox('work');
     track('contrib_saved', 'work');
     try { d.dispatchEvent(new CustomEvent('pvc:saved', { detail: { topic: 'work', slug: slug() } })); } catch (e) { /* 古いブラウザ */ }
-    show('work-saved');
+    show('work-saved'); cue();
     loadMine(true);
   }
   function sumRow(dl, key, k, v, long) {
@@ -1082,6 +1140,32 @@
     r.appendChild(el('dd', 'pvc-sum-v' + (none ? ' is-none' : ''), none ? NONE : v));
     dl.appendChild(r);
   }
+  /* 見出しは、本当に起きたことだけを言う。
+       増えた → 「情報を追加しました」／前の答えを置き換えた → 「情報を更新しました」／
+       どちらか分からない → 「保存しました」（増えたと言い切らない）。 */
+  function savedTitle(added) {
+    return added === true ? '情報を追加しました' : added === false ? '情報を更新しました' : '保存しました';
+  }
+  /* 保存できた合図（短いクラッカー）。
+     ★呼ぶのは show('work-saved') と show(topic + '-saved') の直後の2か所だけ。
+       どちらもサーバが「保存した」と返し、弾かれた項目が1つも無いときにしか通らない。
+       savedShell の中に置かない（描き直すたびに鳴る）。'pvc:saved' にも掛けない
+       （あれは一部が弾かれた回と、ログイン後の引き継ぎでも流れる）。
+     動きを減らす設定の人には紙片を出さない。印（quiet）だけ付けて、見出しとチェックの印が完了の表示になる。
+     紙片は読み上げから隠し、1.4秒で片づける（動きは 0.9秒）。 */
+  function cue() {
+    var c = S.main.querySelector('[data-pvc-saved]'), p, i;
+    if (!c) return;
+    var calm = !!(w.matchMedia && w.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    c.setAttribute('data-pvc-cue', calm ? 'quiet' : 'pop');
+    if (calm) return;
+    p = el('div', 'pvc-pop', null, { 'aria-hidden': 'true' });
+    for (i = 0; i < 10; i++) p.appendChild(el('i', 'pvc-pop-i'));
+    c.appendChild(p);
+    setTimeout(function () { if (p.parentNode) p.parentNode.removeChild(p); }, 1400);
+  }
+  /* 並びは 見出し → 会社と月 →（ログインなしの断り）→ 2つのボタン → 保存した内容。
+     保存した内容が10行あっても、スマホの最初の1画面でボタンに届くように、ボタンを先に置く。 */
   function savedShell(titleText, subText, fill, onEdit, held) {
     clear(S.main);
     var c = el('section', 'pvc-saved', null, { 'data-pvc-saved': '' });
@@ -1095,7 +1179,6 @@
     c.appendChild(s);
     var dl = el('dl', 'pvc-sum');
     fill(dl);
-    c.appendChild(dl);
     /* ログインせずに預けた回は、どこに残り・いつ集計に入り・いつ消えるかを、その場で言う */
     if (held) {
       c.appendChild(heldBox('ログインなしで保存しました。', [
@@ -1103,13 +1186,16 @@
         '会社ごとの集計に入るのは、ログインして引き継いだあとです。ログインしないままの回答は' + HELD_DAYS + '日で消えます。'
       ]));
     }
+    /* 「自分の回答を見る」は、同じ会社・同じ項目（勤務なら同じ月）の入力を、保存した値が入った形で開く
+       ＝ 直すのもそこ。「もう1項目を答える」は同じ会社の項目の一覧へ。会社を選び直させない。 */
     var a = el('div', 'pvc-saved-a');
-    var e1 = el('button', 'pvc-ghost', '修正する', { type: 'button', 'data-pvc-act': 'edit' });
+    var e1 = el('button', 'pvc-ghost', '自分の回答を見る', { type: 'button', 'data-pvc-act': 'edit' });
     e1.addEventListener('click', onEdit);
-    var e2 = el('button', 'pvc-send', '別の項目を追加', { type: 'button', 'data-pvc-act': 'more' });
+    var e2 = el('button', 'pvc-send', 'もう1項目を答える', { type: 'button', 'data-pvc-act': 'more' });
     e2.addEventListener('click', function () { S.viaList = true; show('list'); });
     a.appendChild(e1); a.appendChild(e2);
     c.appendChild(a);
+    c.appendChild(dl);
     S.main.appendChild(c);
   }
   function renderWorkSaved() {
@@ -1119,7 +1205,7 @@
     var r = L.row, parts = [coName()], pl = posLabel(r.position);
     if (pl) parts.push(pl);
     parts.push(ymText(L.ym));
-    savedShell(L.replaced ? '更新しました' : '保存しました', parts.join(' · '), function (dl) {
+    savedShell(savedTitle(L.added), parts.join(' · '), function (dl) {
       sumRow(dl, 'fleet', '乗務した機種', fleetLabel(r.fleet));
       NUMS.forEach(function (n) { sumRow(dl, n.k, n.short, r[n.k] == null ? null : String(r[n.k]) + n.unit); });
       sumRow(dl, 'duty_hours_basis', '勤務・拘束時間の数え方', pick(BASIS, str(r.duty_hours_basis)) && r.duty_hours_basis ? pick(BASIS, r.duty_hours_basis) : null);
@@ -1208,7 +1294,31 @@
   }
   function curCur(t, q, sm) {
     if (has(t.curs, q.id)) return str(t.curs[q.id]);
-    return sm[q.id] ? str(sm[q.id].currency) : '';
+    var own = sm[q.id] ? str(sm[q.id].currency) : '';
+    return own || sibCur(t, q, sm);
+  }
+  /* 通貨は1回選べば足りる。まだ通貨を持っていない額の質問は、同じ親の下の、ほかの額の質問の通貨を借りる
+     （着陸手当の「低いほう」で選んだ通貨が「高いほう」にも入る）。
+     ★借りるだけで、t.curs には書かない。書くと、額を入れていない質問のせいで
+       「まだ送っていない入力がある」（groupDirty）のままになる。
+     ★いま画面で選んだ通貨が先・保存してある通貨は後（前に保存した別の枝の通貨が、いまの選択に勝たない）。
+     ★保存してある通貨のなかでは、いま出ている質問のものが先（「低いほう」を USD で保存した人の「高いほう」が、
+       前に「一定額」で答えたときの JPY を拾わない）。 */
+  function sibCur(t, q, sm) {
+    if (!q.parent || !V.conds) return '';
+    var sibs = V.conds.questions.filter(function (s) { return s !== q && s.parent === q.parent && !!s.currency; }), i, pass, c;
+    for (i = 0; i < sibs.length; i++) {
+      c = has(t.curs, sibs[i].id) ? str(t.curs[sibs[i].id]) : '';
+      if (c) return c;
+    }
+    for (pass = 0; pass < 2; pass++) {
+      for (i = 0; i < sibs.length; i++) {
+        if (has(t.curs, sibs[i].id) || visible(t, sibs[i], sm) !== (pass === 0)) continue;
+        c = sm[sibs[i].id] ? str(sm[sibs[i].id].currency) : '';
+        if (c) return c;
+      }
+    }
+    return '';
   }
   function curNote(t, q, sm) {
     if (t.noteDirty[q.id]) return str(t.notes[q.id]);
@@ -1223,6 +1333,11 @@
     if (!Array.isArray(q.parentWhen) || !q.parentWhen.length) return true;
     return list.some(function (c) { return q.parentWhen.indexOf(c) >= 0; });
   }
+  /* 保存してある答えだけで見て、いちばん上の親まで条件が続いているか。
+     上の質問を答え直すと、その下の質問の前の答えはサーバに残る（消さない ＝ 答え直せば戻る）。
+     残っているだけの答えを「あなたの投稿」に数えない・保存した内容として出さない。
+     サーバの公開集計も同じ決め方で外している（db/airline-conditions.sql の pv_condition_links）。 */
+  function chainSaved(q, sm) { return visible({ dirty: {}, vals: {} }, q, sm); }
   /* 打たれた字を数字に読む。読めないものは null（こちらで勝手に直さない）。
      けた区切りの「,」は、3けたごとに正しく入っているときだけ外す（1,5 を 15 と読まない）。 */
   function qNum(v) {
@@ -1352,7 +1467,18 @@
           (V.vocab.currencies || []).forEach(function (c) { co.push([c.code, str(c.code) + (c.ja ? '（' + str(c.ja) + '）' : '')]); });
           var cs = select(q.id + '_cur', co, cc);
           cs.sel.setAttribute('aria-label', q.ja.label + 'の通貨');
-          cs.sel.addEventListener('change', function () { t.curs[q.id] = cs.sel.value; sync(); });
+          cs.sel.addEventListener('change', function () {
+            t.curs[q.id] = cs.sel.value;
+            /* 同じ親の下の、まだ通貨を持っていない額の質問にも同じ通貨を見せる（送るときに借りる通貨と
+               画面の表示をそろえる）。書くのは見た目だけ ＝ t.curs は選んだ本人の分しか持たない。 */
+            qs.forEach(function (o) {
+              var os = E.ctl[o.id + '_cur'];
+              if (o === q || o.parent !== q.parent || !o.currency || !os) return;
+              if (has(t.curs, o.id) || (sm[o.id] && str(sm[o.id].currency))) return;
+              os.value = curCur(t, o, sm);
+            });
+            sync();
+          });
           row.appendChild(cs.wrap);
           E.ctl[q.id + '_cur'] = cs.sel;
         }
@@ -1484,7 +1610,7 @@
         else if (E.f[q.id]) E.f[q.id].hidden = !on;
       });
       E.send.disabled = !t.own || t.busy || loading;
-      E.send.textContent = t.busy ? '送っています…' : (M.cond.k === 'ok' && qs.some(function (q) { return hasValue(sm[q.id]); }) ? '匿名で更新する' : '匿名で追加する');
+      E.send.textContent = t.busy ? '送っています…' : (qs.some(function (q) { return hasValue(sm[q.id]); }) ? '匿名で更新する' : '匿名で追加する');
       var tx = '';
       if (loading) tx = 'これまでの投稿を確認しています…';
       else if (M.cond.k === 'fail') tx = 'これまでの投稿を読み込めませんでした。このまま送れます（同じ質問の答えがあれば、今回の内容に置き換わります）。';
@@ -1595,15 +1721,23 @@
     /* サーバが受けた答えを、手元の一覧にも入れる（このあと取り直して確かめる）。
        はじめて預けた人は、まだ一覧を1度も読めていない（読む鍵がいま届いた）ので、ここで作る。 */
     var list = M.cond.k === 'ok' ? M.cond.answers.slice() : [];
+    /* 増えたのか・置き換えたのか：サーバは答えごとの印を返さないので、
+       さっきサーバから読んだ自分の一覧（下で混ぜる前）に無かった質問を数える。
+       一覧を読めていない回は数えない（下の added が「分からない」になる）。 */
+    var wasOk = M.cond.k === 'ok', old = wasOk ? savedMap() : {}, fresh = 0;
     sent.forEach(function (a) {
       if (has(bad, a.question_id)) return;
       kept++;
+      if (wasOk && !hasValue(old[a.question_id])) fresh++;
       list = list.filter(function (x) { return x.question_id !== a.question_id; });
-      list.push({
+      var one = {
         airline: slug(), question_id: a.question_id, code: a.code || null, codes: a.codes || null,
         num: a.num == null ? null : a.num, currency: a.currency || null,
         text: a.text || null, shared: !!(a.text && a.share)
-      });
+      };
+      list.push(one);
+      /* 一覧を読めなかった人・このあとの取り直しに失敗した人にも、いま保存した答えを見せられるように控える */
+      keep(held).ans[a.question_id] = one;
       delete t.dirty[a.question_id]; delete t.vals[a.question_id]; delete t.curs[a.question_id];
       delete t.noteDirty[a.question_id]; delete t.notes[a.question_id];
     });
@@ -1630,8 +1764,10 @@
       loadMine(true);
       return;
     }
-    t.own = false; t.notice = null; t.last = { n: kept, held: !!held };
-    show(topic + '-saved');
+    /* 一覧を読めていないログインなしの回は、サーバがいま鍵を作って返したとき（＝はじめての保存）だけ「増えた」。 */
+    t.own = false; t.notice = null;
+    t.last = { n: kept, held: !!held, added: wasOk ? fresh > 0 : (held && okKey(data.key) ? true : null) };
+    show(topic + '-saved'); cue();
     loadMine(true);
   }
   function renderGroupSaved(topic) {
@@ -1639,10 +1775,10 @@
     if (!t.last || !V.conds) return renderGroup(topic);
     setHead(TOPIC_NAME[topic]);
     var sm = savedMap(), qs = groupQs(topic);
-    savedShell('保存しました', coName(), function (dl) {
+    savedShell(savedTitle(t.last.added), coName(), function (dl) {
       qs.forEach(function (q) {
         var a = sm[q.id];
-        if (!hasValue(a)) return;
+        if (!hasValue(a) || !chainSaved(q, sm)) return;
         sumRow(dl, q.id, q.ja.label, answerText(q, a), true);
         if (trim(a.text)) sumRow(dl, q.id + '_note', topic === 'taxi' && q.note ? '上限についての補足' : '補足', trim(a.text), true);
       });

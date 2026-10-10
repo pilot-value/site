@@ -86,11 +86,12 @@ ok(Number(qm.l) === LISTED.length && LISTED.length + TOPIC_ONLY.length === QUEST
   `   うち一覧に出る質問 ${LISTED.length} → ${qm.l}（話題の入口からだけ出る質問 ${TOPIC_ONLY.length} は別）`);
 /* ★この1行だけは数字で書く（2026-10-05）。冒頭の「固定値を書かない」の例外。
      上の2行は両側とも生成元から数えているので、今までの質問にうっかり topicOnly を付けても
-     （4問のどれかから外しても）一緒に動いて緑のまま ＝ 「N／43 を動かさない」をどこも見ていなかった。
-     一覧に出る質問を本当に足した回は、この1行と、43 を字で持っている所を一緒に直す
-     （assert-admin-notify.mjs・roadmap-config.js・workflows/deploy-checklist.md）。 */
-ok(LISTED.length === 43 && TOPIC_ONLY.length === 4,
-  '   ★一覧に出る質問は 43・話題の入口からだけ出る質問は 4（ここだけ数字で固定）',
+     （4問のどれかから外しても）一緒に動いて緑のまま ＝ 「N／48 を動かさない」をどこも見ていなかった。
+     一覧に出る質問を本当に足した回は、この1行と、48 を字で持っている所を一緒に直す
+     （assert-admin-notify.mjs・roadmap-config.js・workflows/deploy-checklist.md）。
+   ★2026-10-09、着陸手当の額と数え方の5問を足して 43 → 48 にした（見るのは ㉑）。 */
+ok(LISTED.length === 48 && TOPIC_ONLY.length === 4,
+  '   ★一覧に出る質問は 48・話題の入口からだけ出る質問は 4（ここだけ数字で固定）',
   `一覧 ${LISTED.length}・入口だけ ${TOPIC_ONLY.length}`);
 ok(Number(qm.m) === QUESTIONS.filter((q) => q.micro).length,
   `★（1問だけ出せる）${QUESTIONS.filter((q) => q.micro).length} → ${qm.m}`);
@@ -739,7 +740,7 @@ const topicGap = QUESTIONS.filter((q) => (dbq[q.id]?.topic ?? null) !== (q.topic
 ok(topicGap.length === 0, '   DB の質問マスタの topic / topic_only が、生成元と1問残らず同じ', JSON.stringify(topicGap));
 
 /* 上書きの側を通す（2026-10-05・検品の指摘）。
-   上の1行が見たのは**空の DB に流した結果**＝47問とも insert の側で入っている。
+   上の1行が見たのは**空の DB に流した結果**＝どの質問も insert の側で入っている。
    オーナーが貼る先は逆で、印の列が無いまま質問がもう入っている。そこで起きるのは
    「列を足す → 今までの質問は on conflict … do update で印が付く → 4問だけ新しく入る」で、
    印が付くかどうかは update set の並びだけが決める。
@@ -768,7 +769,7 @@ v = await rows(`select column_name from information_schema.columns
 const oldN = Number((await one(`select count(*) n from pv_condition_questions where active`)).n);
 ok(v.length === 0 && oldN === LISTED.length,
   `   （下ごしらえ）印の列が無く、質問は ${LISTED.length} ＝ 4問を足す前の形`, `列 ${v.length}・質問 ${oldN}`);
-/* 期待する数は LISTED / TOPIC_ONLY から取る（43 と 4 は、質問マスタの節の1行が数字で固定している） */
+/* 期待する数は LISTED / TOPIC_ONLY から取る（48 と 4 は、質問マスタの節の1行が数字で固定している） */
 const marksOk = (x) => x.gap.length === 0 && x.listed === LISTED.length && x.only === TOPIC_ONLY.length;
 let upErr = await regen();
 let mk = upErr ? null : await marks();
@@ -960,6 +961,170 @@ ok((await factN(TF.airline, CAP)) === null,
 await asUser(225);
 await submit({ ...TF, answers: [{ question_id: METHOD.id, codes: ['company_taxi', 'crew_bus'] }] });
 ok((await factN(TF.airline, CAP))?.n === 3, '   タクシーを選び直すと、また3人に戻る');
+
+/* ㉑ 着陸手当の額と数え方 ── 「あり」と答えた人にだけ、その場で聞く（2026-10-09・オーナー指定）。
+   「1回あたり一定額」の人には、額（通貨つき）と何を1回と数えるか。
+   「一定額ではない」の人には、低いほう・高いほうの額（どちらも任意）と何で変わるか。
+   「ない」「わからない」の人には何も聞かない。
+   ★ここが壊れても画面は普通に動く（「ない」に直した人の古い額を数え続ける・円とドルの額を
+     1つの数字にまとめて出す・通貨の無い額や 0 が入る）ので、ここでしか気づけない。
+   ⚠️ 下の額（1500・10・9 など）は検査のための作りもの。どの会社の着陸手当でもない。 */
+console.log('\n▼ ㉑ 着陸手当の額と数え方 ── 「あり」と答えた人にだけ聞く');
+const LP = QBY.landing_pay;
+const LP_FIXED = ['landing_pay_amount', 'landing_pay_unit'];
+const LP_VAR = ['landing_pay_from', 'landing_pay_to', 'landing_pay_varies_by'];
+const LP_MONEY = ['landing_pay_amount', 'landing_pay_from', 'landing_pay_to'];
+const LP_ALL = [...LP_FIXED, ...LP_VAR];
+
+ok(same(kids(LP.id), LP_ALL), '   着陸手当の下に在るのは、この5問だけ', JSON.stringify(kids(LP.id)));
+ok(LP_FIXED.every((id) => same(QBY[id]?.parentWhen || [], ['fixed']))
+   && LP_VAR.every((id) => same(QBY[id]?.parentWhen || [], ['variable'])),
+  '   額と数え方の2問は「1回あたり一定額」のときだけ・幅と「何で変わるか」の3問は「一定額ではない」のときだけ開く');
+ok(same(LP.choices.map((c) => c.code), ['fixed', 'variable', 'no', UNKNOWN])
+   && LP_ALL.every((id) => !QBY[id]?.parentWhen.includes('no') && !QBY[id]?.parentWhen.includes(UNKNOWN)),
+  '   「ない」「わからない」で開く質問は1つも無い');
+ok(same(LP_ALL.filter((id) => QBY[id]?.currency), LP_MONEY) && LP_MONEY.every((id) => QBY[id]?.kind === 'num'),
+  '   通貨を聞くのは額の3問だけ（数え方と「何で変わるか」は選ぶ質問）');
+ok(LP_MONEY.every((id) => QBY[id]?.num.min >= 1),
+  '   ★額の下限は 1 以上（0 を入れられると「答えていない」と見分けがつかない）',
+  JSON.stringify(LP_MONEY.map((id) => [id, QBY[id]?.num.min])));
+ok(LP_ALL.every((id) => QBY[id]?.ja.label.includes('着陸手当') && /landing allowance/i.test(QBY[id]?.en.label)),
+  '   見出しだけで「着陸手当の話」と分かる（親が隣に無い通知や一覧でも・日英）');
+ok(QBY.landing_pay_varies_by?.note === true
+   && LP_ALL.every((id) => !QBY[id]?.micro && !QBY[id]?.topic && !QBY[id]?.topicOnly),
+  '   補足の欄を持つのは「何で変わるか」。5問とも1問枠には回さない（一覧と会社ページで聞く）');
+v = await rows(`select id, parent, parent_when, has_currency, num_min
+                  from pv_condition_questions where active and id = any($1)`, [LP_ALL]);
+const lpDb = Object.fromEntries(v.map((x) => [x.id, x]));
+ok(LP_ALL.every((id) => lpDb[id]?.parent === LP.id && same(lpDb[id].parent_when, QBY[id].parentWhen)
+     && lpDb[id].has_currency === !!QBY[id].currency)
+   && LP_MONEY.every((id) => Number(lpDb[id]?.num_min) >= 1),
+  '   DB の質問マスタでも、親・開く条件・通貨の印・額の下限が生成元と同じ', JSON.stringify(v));
+
+const LC = { airline: 'emirates', year: 2026, month: 8, position: 'fo', fleet: 'b737', lang: 'ja' };
+const lpRows = async (n) => rows(
+  `select question_id, answer_code, answer_num, answer_currency,
+          "position", fleet, effective_year, effective_month
+     from airline_conditions
+    where proof_hash = pv_condition_hash($1::uuid, $2, null) and question_id = any($3)`,
+  [uid(n), LC.airline, [LP.id, ...LP_ALL]]);
+const sendLp = (pick) => [
+  { question_id: 'landing_pay_amount', num: 1500, currency: 'JPY' },
+  { question_id: 'landing_pay_unit', code: 'per_landing' },
+  { question_id: 'landing_pay_from', num: 1000, currency: 'JPY' },
+  { question_id: 'landing_pay_to', num: 3000, currency: 'JPY' },
+  { question_id: 'landing_pay_varies_by', code: 'aircraft' }].filter((a) => pick.includes(a.question_id));
+const factLp = async (qid) => {
+  const x = await rows(`select n, median_num, top_code, answer_dist from airline_condition_facts
+                         where airline = $1 and question_id = $2`, [LC.airline, qid]);
+  return x.length ? x[0] : null;
+};
+
+// まだ答えていない人／「ない」「わからない」の人
+o = await offer(231, LC.airline);
+r = await submit({ ...LC, answers: sendLp(LP_ALL) });
+ok(o.uncut && LP_ALL.every((id) => !o.ids.includes(id)) && allMissing(r, LP_ALL),
+  '㉑ 着陸手当にまだ答えていない人には5問とも出ない・送っても受け取らない', JSON.stringify(r.rejected));
+for (const [n, code, word] of [[232, 'no', 'ない'], [233, UNKNOWN, 'わからない']]) {
+  await asUser(n);
+  await submit({ ...LC, answers: [{ question_id: LP.id, code }] });
+  o = await offer(n, LC.airline);
+  r = await submit({ ...LC, answers: sendLp(LP_ALL) });
+  ok(o.uncut && LP_ALL.every((id) => !o.ids.includes(id)) && allMissing(r, LP_ALL),
+    `㉑ ★着陸手当が「${word}」の人には5問とも出ない・送っても受け取らない`, JSON.stringify(r.rejected));
+}
+
+// 「1回あたり一定額」の人 ── 親・額・数え方を1回で送る
+await asUser(231);
+r = await submit({ ...LC, answers: [
+  { question_id: 'landing_pay_unit', code: 'per_landing' },            // 子を先に置いても
+  { question_id: 'landing_pay_amount', num: 1500, currency: 'JPY' },
+  { question_id: LP.id, code: 'fixed' }] });                           // 親が先に保存される
+ok(r.saved === 3 && r.rejected.length === 0,
+  '㉑ ★着陸手当（一定額）・額・数え方を、1回の送信で3件とも保存できる', JSON.stringify(r.rejected));
+let lp = await lpRows(231);
+ok(lp.length === 3 && lp.every((x) => x.position === LC.position && x.fleet === LC.fleet
+     && x.effective_year === LC.year && x.effective_month === LC.month),
+  '㉑ ★3行とも同じ職位・機種・適用時期を持つ（親に付けた条件を、額と数え方が引き継ぐ）', JSON.stringify(lp));
+m = await mineOf(231, LC.airline);
+ok(Number(m.landing_pay_amount?.num) === 1500 && m.landing_pay_amount?.currency === 'JPY'
+   && m.landing_pay_unit?.code === 'per_landing',
+  '   自分の回答に、額・通貨・数え方がそのまま返る（読み込み直した画面が元に戻せる）',
+  JSON.stringify([m.landing_pay_amount, m.landing_pay_unit?.code]));
+o = await offer(231, LC.airline);
+r = await submit({ ...LC, answers: sendLp(LP_VAR) });
+ok(o.uncut && LP_VAR.every((id) => !o.ids.includes(id)) && allMissing(r, LP_VAR),
+  '㉑ ★一定額の人には、もう一方の枝（幅・何で変わるか）は出ない・送っても受け取らない', JSON.stringify(r.rejected));
+
+// 額の検品
+r = await submit({ ...LC, answers: [{ question_id: 'landing_pay_amount', num: 1500 }] });
+ok(r.saved === 0 && r.rejected[0]?.reason === 'bad_currency', '㉑ ★通貨の無い額は受け取らない',
+  JSON.stringify(r.rejected));
+r = await submit({ ...LC, answers: [{ question_id: 'landing_pay_amount', num: 1500, currency: 'XXX' }] });
+ok(r.saved === 0 && r.rejected[0]?.reason === 'bad_currency', '   語彙に無い通貨も受け取らない',
+  JSON.stringify(r.rejected));
+r = await submit({ ...LC, answers: [{ question_id: 'landing_pay_amount', num: 0, currency: 'JPY' }] });
+ok(r.saved === 0 && r.rejected[0]?.reason === 'out_of_range', '㉑ ★0 は受け取らない（額は 1 以上）',
+  JSON.stringify(r.rejected));
+r = await submit({ ...LC, answers: [{ question_id: 'landing_pay_unit', code: 'per_month' }] });
+ok(r.saved === 0 && r.rejected[0]?.reason === 'bad_code', '   数え方の選択肢に無い答えは受け取らない');
+lp = await lpRows(231);
+ok(lp.some((x) => x.question_id === 'landing_pay_amount' && Number(x.answer_num) === 1500 && x.answer_currency === 'JPY'),
+  '   弾かれた送信で、前に入れた額は書き換わらない', JSON.stringify(lp));
+
+// 「一定額ではない」の人 ── 額は任意。片方だけでも、理由と補足だけでも残せる
+await asUser(234);
+r = await submit({ ...LC, answers: [
+  { question_id: LP.id, code: 'variable' },
+  { question_id: 'landing_pay_from', num: 1000, currency: 'USD' },
+  { question_id: 'landing_pay_varies_by', code: 'airport', text: '検査用の補足' }] });
+ok(r.saved === 3 && r.rejected.length === 0,
+  '㉑ 「一定額ではない」の人は、低いほうの額と「何で変わるか」だけで保存できる（高いほうは入れなくてよい）',
+  JSON.stringify(r.rejected));
+m = await mineOf(234, LC.airline);
+ok(!m.landing_pay_to && Number(m.landing_pay_from?.num) === 1000 && m.landing_pay_from?.currency === 'USD'
+   && m.landing_pay_varies_by?.code === 'airport' && m.landing_pay_varies_by?.text === '検査用の補足',
+  '   入れていない高いほうの額は空のまま（0 でも、低いほうの額でも埋めない）・補足は残る',
+  JSON.stringify([m.landing_pay_from, m.landing_pay_to, m.landing_pay_varies_by?.text]));
+o = await offer(234, LC.airline);
+r = await submit({ ...LC, answers: sendLp(LP_FIXED) });
+ok(o.uncut && o.ids.includes('landing_pay_to') && LP_FIXED.every((id) => !o.ids.includes(id)) && allMissing(r, LP_FIXED),
+  '㉑ ★一定額ではない人には、額と数え方（もう一方の枝）は出ない・送っても受け取らない', JSON.stringify(r.rejected));
+
+// 公開集計 ── 通貨の違う額を、1つの数字にまとめない
+const askLp = async (n, num, currency) => {
+  await asUser(n);
+  return submit({ ...LC, answers: [{ question_id: LP.id, code: 'fixed' },
+    { question_id: 'landing_pay_amount', num, currency }] });
+};
+await askLp(235, 10, 'USD');
+ok((await factLp('landing_pay_amount')) === null, '㉑ 額に答えたのが2人では公開集計に出ない');
+await askLp(236, 9, 'EUR');
+f = await factLp('landing_pay_amount');
+ok(f && f.n === 3, '㉑ 3人で出る（出るのは人数）', JSON.stringify(f));
+ok(f && f.median_num === null,
+  '㉑ ★通貨の違う額（円・ドル・ユーロ）の真ん中を、1つの数字として出さない（中央値は空）', JSON.stringify(f));
+ok(f && f.top_code === null && f.answer_dist === null, '   額は、選択肢の分布にも入らない');
+v = await rows(`select median_num from airline_condition_facts
+  where airline='qantas' and question_id='annual_leave_days'`);
+ok(Number(v[0]?.median_num) === 28, `   対照: 通貨の無い数値質問（有給休暇の日数）の中央値は今までどおり出る → ${v[0]?.median_num}`);
+
+// 親を答え直した人の、古い額を数え続けない
+await asUser(231);
+await submit({ ...LC, answers: [{ question_id: LP.id, code: 'no' }] });
+ok((await factLp('landing_pay_amount')) === null,
+  '㉑ ★着陸手当を「ない」に答え直した人の、古い額を数え続けない（3人 → 2人で出なくなる）');
+lp = await lpRows(231);
+ok(lp.some((x) => x.question_id === 'landing_pay_amount' && Number(x.answer_num) === 1500 && x.answer_currency === 'JPY'),
+  '   行は消していない（答え直せば、前の額のまま数に戻る）', JSON.stringify(lp));
+await submit({ ...LC, answers: [{ question_id: LP.id, code: 'fixed' }] });
+ok((await factLp('landing_pay_amount'))?.n === 3, '   「1回あたり一定額」に戻すと、また3人に戻る');
+await asUser(235);
+await submit({ ...LC, answers: [{ question_id: LP.id, code: 'variable' }] });
+ok((await factLp('landing_pay_amount')) === null,
+  '㉑ ★「一定額」から「一定額ではない」に答え直した人の、古い額も数えない（枝をまたいで残さない）');
+await submit({ ...LC, answers: [{ question_id: LP.id, code: 'fixed' }] });
+ok((await factLp('landing_pay_amount'))?.n === 3, '   元に戻すと、また3人に戻る');
 
 
 /* オーナーが SQL Editor で見る検算表そのものを、ここで先に回しておく。

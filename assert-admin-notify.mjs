@@ -167,7 +167,7 @@ globalThis.fetch = async (url) => {
   }
   if (t === 'pv_condition_questions') {
     return { ok: true, json: async () => (u.includes('active=eq.true')
-      ? Array.from({ length: 43 }, (_, i) => ({ id: `q${i}` }))
+      ? Array.from({ length: 48 }, (_, i) => ({ id: `q${i}` }))
       : QUESTIONS.filter((q) => u.includes(encodeURIComponent(q.id)) || u.includes(q.id))) };
   }
   throw new Error(`テストが用意していないテーブルを引いた: ${t}`);
@@ -178,7 +178,7 @@ ck('メールができる', !!c1);
 ck('件名で「待遇アンケート」とわかる', c1.subject.includes('待遇アンケート'), c1.subject);
 ck('質問文が出る', c1.html.includes('希望する休日の日付を指定できますか'));
 ck('選んだコードがそのまま出る', c1.html.includes('yes'));
-ck('累計が n / 43問 で出る', c1.html.includes('7 / 43問'));
+ck('累計が n / 48問 で出る', c1.html.includes('7 / 48問'));
 
 // スキップの行では送らない
 ROWS.airline_conditions = { ...COND, answer_code: null, skipped_at: '2026-08-22T13:05:00+00:00' };

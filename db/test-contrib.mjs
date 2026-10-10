@@ -525,6 +525,91 @@ console.log('\n▼ 8. 他人の補足（立場ごとに何が返るか）');
 
 
 // ════════════════════════════════════════════════════════════
+console.log('\n▼ 8-2. 上の質問を答え直した人の、下の質問（着陸手当の額・数え方・何で変わるか）');
+// ════════════════════════════════════════════════════════════
+/* ★2026-10-09、着陸手当（landing_pay）の下に、額・数え方・何で変わるか の5問を足した。
+   上の質問を「ない」に答え直しても、下の質問の行は消さない（答え直せば、そのまま戻るように）。
+   そのかわり、**出す側が毎回「上の質問まで条件が続いているか」を見る**。ここで見るのは2つ ──
+     ・他人の補足（pv_contrib_notes）…… 続いていない人の補足を見せ続けない
+     ・預かりの引き継ぎ（claim_contrib）…… 続いていない額を、会員の回答にしない
+   公開の集計の側は db/test-conditions.mjs の ㉑ が見ている。
+   ⚠️ 下の額と文は検査のための作りもの。どの会社の着陸手当でもない。 */
+{
+  const [W, MEM, P1, P2] = await crew(4);
+  const texts = (r) => (r.notes || []).map((x) => x.text).sort().join('|');
+  const LP = (code) => ({ airline: A_CLAIM, answers: [{ question_id: 'landing_pay', code }] });
+
+  // ── 補足 ── W が「一定額ではない」を選び、「何で変わるか」に「見せます」の補足を付ける
+  let r = await condM(W, { airline: A_CLAIM, position: 'cap', fleet: 'b787', answers: [
+    { question_id: 'landing_pay', code: 'variable' },
+    { question_id: 'landing_pay_from', num: 10, currency: 'USD' },
+    { question_id: 'landing_pay_varies_by', code: 'airport', text: '空港によって違う', share: true }] });
+  ok(r.saved === 3 && r.rejected.length === 0, '着陸手当（一定額ではない）・低いほうの額・何で変わるか を1回で保存できる', J(r));
+  let n = await notes(MEM, A_CLAIM);
+  ok(n.state === 'member' && texts(n) === '空港によって違う'
+     && n.notes[0].topic === 'benefits' && n.notes[0].q === 'landing_pay_varies_by',
+    '★「何で変わるか」に付けた補足は、ほかの会員に見える', J(n));
+
+  await condM(W, LP('no'));
+  n = await notes(MEM, A_CLAIM);
+  ok(n.notes.length === 0, '★着陸手当を「ない」に答え直した人の、下の質問への古い補足を、他人に見せ続けない', J(n));
+  ok((await notes(W, A_CLAIM)).notes.length === 0, '   書いた本人の一覧からも外れる（公開の集計と同じ決め方）');
+  ok(await cnt(`public.airline_conditions where airline = $1 and question_id = 'landing_pay_varies_by'
+                 and answer_text = '空港によって違う' and text_shared`, [A_CLAIM]) === 1,
+    '   行そのものは消していない（答え直せば戻せる）');
+
+  await condM(W, LP('fixed'));
+  ok((await notes(MEM, A_CLAIM)).notes.length === 0,
+    '★「一定額」に答え直しても出ない（その補足は「一定額ではない」の下の質問のもの）');
+  await condM(W, LP('variable'));
+  n = await notes(MEM, A_CLAIM);
+  ok(texts(n) === '空港によって違う', '★「一定額ではない」に戻すと、また見える', J(n));
+
+  // ── 預かり ── 未ログインのまま、着陸手当（一定額）・額・数え方を預ける
+  const C = { airline: A_CLAIM, position: 'fo', fleet: 'a320', lang: 'ja' };
+  const FIXED = [
+    { question_id: 'landing_pay', code: 'fixed' },
+    { question_id: 'landing_pay_amount', num: 1500, currency: 'JPY' },
+    { question_id: 'landing_pay_unit', code: 'per_landing' }];
+  const a = await putC(null, { ...C, answers: FIXED });
+  ok(a.saved === 3 && a.rejected.length === 0 && KEY.test(a.key || ''),
+    '★未ログインのまま、着陸手当（一定額）・額・数え方を1回で預けられる', J(a));
+  let m = Object.fromEntries((await mineA(a.key, A_CLAIM)).answers.map((x) => [x.question_id, x]));
+  ok(m.landing_pay.code === 'fixed' && m.landing_pay_amount.num === 1500 && m.landing_pay_amount.currency === 'JPY'
+     && m.landing_pay_unit.code === 'per_landing',
+    '★読み直すと、額・通貨・数え方が同じ内容で返る', J(m));
+
+  let c = await claim(P1, a.key);
+  ok(c.moved === 3 && c.dropped === 0 && c.left === 0, '★ログインして引き継ぐと、3件とも会員の回答になる（親→子の順で通る）', J(c));
+  const got = await many(
+    `select question_id, "position" as pos, fleet, answer_num, answer_currency as cur, answer_code
+       from public.airline_conditions
+      where proof_hash = public.pv_condition_hash($1::uuid, $2, null) order by question_id`, [P1, A_CLAIM]);
+  ok(got.length === 3 && got.every((x) => x.pos === 'fo' && x.fleet === 'a320'),
+    '★引き継いだ3行とも、預けた時の職位・機種を持っている（額と数え方が、親に付けた条件を引き継ぐ）', J(got));
+  const amt = got.find((x) => x.question_id === 'landing_pay_amount') || {};
+  ok(Number(amt.answer_num) === 1500 && amt.cur === 'JPY',
+    '   額と通貨も、1文字も変わらずに移っている', J(got));
+
+  // 預けたあとで、親を「ない」に直した人
+  const b = await putC(null, { ...C, answers: FIXED });
+  r = await putC(b.key, { ...C, answers: [{ question_id: 'landing_pay', code: 'no' }] });
+  ok(r.saved === 1, '預けたあとで、着陸手当を「ない」に直せる', J(r));
+  r = await putC(b.key, { ...C, answers: [{ question_id: 'landing_pay_amount', num: 2000, currency: 'JPY' }] });
+  ok(r.saved === 0 && r.rejected[0]?.reason === 'parent_missing', '   「ない」に直したあとは、額だけ送っても預からない', J(r));
+  ok((await mineA(b.key, A_CLAIM)).answers.length === 3,
+    '   預かりの行は消していない（数えない・出さないは画面の役目 ＝ assert-contrib.mjs が見る）');
+  c = await claim(P2, b.key);
+  ok(c.moved === 1 && c.dropped === 2 && c.left === 0,
+    '★引き継ぐとき、「ない」に直した人の古い額と数え方は、会員の回答にしない（捨てる）', J(c));
+  const mine2 = (await mineC(P2, { airline: A_CLAIM })).answers;
+  ok(mine2.length === 1 && mine2[0].question_id === 'landing_pay' && mine2[0].code === 'no',
+    '   会員の回答に入ったのは「ない」の1件だけ', J(mine2.map((x) => x.question_id)));
+  ok(await cnt(`public.pv_contrib_pending where airline = $1`, [A_CLAIM]) === 0, '   預かりは空になった');
+}
+
+
+// ════════════════════════════════════════════════════════════
 console.log('\n▼ 9. 期限と上限');
 // ════════════════════════════════════════════════════════════
 {

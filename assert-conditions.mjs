@@ -891,6 +891,106 @@ if (Q_ROOT && Q_ONE && Q_DEEP) {
       ok(r.errs.length === 0, 'I    ページのエラーが1件も出ない', r.errs.join(' | '));
       await r.page.close();
     }
+
+    /* J. 額の質問（通貨つき）── 通貨は本人に選ばせる（2026-10-09）
+          ★2026-10-09 まで、通貨の欄は一覧のいちばん上の通貨が選ばれた形で出ていた。
+            何も選んでいない人の額に、その通貨が黙って付いて保存されていた（画面は普通に「保存しました」と出る）。
+          見るのは3つ ── 最初は何も選ばれていない／選ばずに送ると送らずにその場で言う／選べばその通貨で送る。
+          ⚠️ 下で入れる額は検査のための作りもの。どの会社の額でもない。 */
+    {
+      const MONEY = LISTED.filter((q) => q.kind === 'num' && q.currency && q.parent && !BY[q.parent].parent
+        && BY[q.parent].kind === 'choice');
+      const PICKS = [MONEY.find((q) => q.id === 'training_bond_amount'), MONEY.find((q) => q.id === 'landing_pay_amount')];
+      const PICK_TEXT = lang === 'en' ? 'Choose currency' : '通貨を選ぶ';
+      const NEED_TEXT = lang === 'en' ? 'Please choose a currency.' : '通貨を選んでください。';
+      const N_CUR = JSON.parse(readFileSync(new URL('./pv-vocab.json', import.meta.url), 'utf8')).currencies.length;
+      ok(PICKS.every(Boolean), 'J 訓練費の返還額と着陸手当の額が、どちらも「通貨つきの額」の質問としてバンクに在る',
+         JSON.stringify(MONEY.map((q) => q.id)));
+      const sentNum = (page) => page.evaluate(() => window.__rpc
+        .filter((r) => r.name === 'submit_airline_conditions').map((r) => r.args.p.answers[0]));
+      const curOf = (page, qid) => page.evaluate((qid) => {
+        const s = document.querySelector('[data-qid="' + qid + '"] select[data-cur]');
+        return s ? { v: s.value, first: s.options[0].textContent, firstV: s.options[0].value, n: s.options.length - 1,
+          focus: document.activeElement === s } : null;
+      }, qid);
+      /* その行に、うまくいった／いかなかったの文が出るまで待つ */
+      const stateOf = (page, qid, bad) => page.waitForFunction((qid, bad) => {
+        const s = document.querySelector('[data-qid="' + qid + '"] .pvcf-state');
+        return s && s.textContent && s.classList.contains('is-bad') === bad ? s.textContent : false;
+      }, { timeout: 8000 }, qid, bad).then((h) => h.jsonValue(), () => '');
+
+      for (const Q of PICKS.filter(Boolean)) {
+        const UP = BY[Q.parent];
+        const row = '[data-qid="' + Q.id + '"]';
+        const { page, errs } = await openFull({ lang, query: '?airline=ana&q=' + Q.id, answers: [A(UP.id, inCode(Q))],
+          vp: { width: 390, height: 680 } });
+        await ready(page);
+        ok(await markOn(page, Q.id), `J ${Q.id}：上の質問に答えてある人は、額の行へ直接`, JSON.stringify(await look(page)));
+        let c = await curOf(page, Q.id);
+        ok(!!c && c.v === '' && c.firstV === '' && c.first === PICK_TEXT && c.n === N_CUR,
+           `J ★${Q.id}：通貨は最初から何も選ばれていない（先頭は「${PICK_TEXT}」。一覧のいちばん上の通貨が入っていない）`, JSON.stringify(c));
+
+        await page.type(row + ' .pvcf-num', '1500');
+        await page.click(row + ' [data-num]');
+        let said = await stateOf(page, Q.id, true);
+        c = await curOf(page, Q.id);
+        ok(said === NEED_TEXT && c.focus, `J ★${Q.id}：通貨を選ばずに送ると、その行に「${NEED_TEXT}」と出て、通貨の欄へ移る`,
+           JSON.stringify({ said, focus: c.focus }));
+        await page.focus(row + ' .pvcf-num');
+        await page.keyboard.press('Enter');
+        ok((await sentNum(page)).length === 0 && (await page.$eval(row + ' .pvcf-num', (n) => n.value)) === '1500',
+           `J ★${Q.id}：ボタンでも Enter でも、通貨の無い額は1本も送っていない（入れた額は消えない）`, JSON.stringify(await sentNum(page)));
+
+        await page.select(row + ' select[data-cur]', 'USD');
+        await page.click(row + ' [data-num]');
+        said = await stateOf(page, Q.id, false);
+        const sent = await sentNum(page);
+        c = await curOf(page, Q.id);
+        ok(!!said && sent.length === 1 && sent[0].question_id === Q.id && Number(sent[0].num) === 1500 && sent[0].currency === 'USD',
+           `J ★${Q.id}：通貨を選べば、その通貨を付けて1回だけ送る`, JSON.stringify(sent));
+        ok(c.v === 'USD' && (await page.$eval(row + ' .pvcf-num', (n) => n.value)) === '1500',
+           `J    ${Q.id}：保存後の行に、額と選んだ通貨がそのまま残る`, JSON.stringify(c));
+        ok(errs.length === 0, `J    ${Q.id}：ページのエラーが1件も出ない`, errs.join(' | '));
+        await page.close();
+
+        /* 前に答えた人が来たとき（サーバから返る通貨で開く。空に戻さない） */
+        const r = await openFull({ lang, query: '?airline=ana&q=' + Q.id,
+          answers: [A(UP.id, inCode(Q)), { question_id: Q.id, code: null, codes: null, num: 1500, currency: 'AED', text: null }] });
+        await ready(r.page);
+        c = await curOf(r.page, Q.id);
+        ok(!!c && c.v === 'AED' && c.firstV === '' && (await r.page.$eval(row + ' .pvcf-num', (n) => n.value)) === '1500',
+           `J ★${Q.id}：前に答えた人には、保存してある額と通貨（AED）が入った状態で出る`, JSON.stringify(c));
+        await r.page.close();
+      }
+
+      /* いちばん狭い画面（幅320）でも、通貨の欄が行（入れ物）の中に収まっている（2026-10-09）
+         通貨の欄は、いちばん長い選択肢の字の幅まで広がる。行より広くなり、右の端と矢印が節の枠で切れていた
+         （日本語は幅343未満で切れ、幅320で23px。英語は幅320で9px。選べはするが、欄が欠けて見える）。
+         通貨つきの額の質問を全部測る（同じ答えで一緒に出るものは1回で開く）。 */
+      {
+        const ALL_CUR = LISTED.filter((q) => q.kind === 'num' && q.currency);
+        const groups = {};
+        for (const q of MONEY) { const k = q.parent + '=' + inCode(q); (groups[k] = groups[k] || []).push(q); }
+        const seen = [], over = [];
+        for (const G of Object.values(groups)) {
+          const r = await openFull({ lang, query: '?airline=ana&q=' + G[0].id, answers: [A(G[0].parent, inCode(G[0]))],
+            vp: { width: 320, height: 640 } });
+          await ready(r.page);
+          await markOn(r.page, G[0].id);
+          const got = await r.page.evaluate((ids) => ids.map((id) => {
+            const s = document.querySelector('[data-qid="' + id + '"] select[data-cur]');
+            if (!s || !s.getClientRects().length) return null;
+            const a = s.getBoundingClientRect(), b = s.closest('.pvcf-row').getBoundingClientRect();
+            return { id: id, sel: Math.round(a.left) + '〜' + Math.round(a.right), row: Math.round(b.left) + '〜' + Math.round(b.right),
+              out: a.left < b.left - 0.5 || a.right > b.right + 0.5 };
+          }).filter(Boolean), G.map((q) => q.id));
+          for (const m of got) { seen.push(m.id); if (m.out) over.push(m); }
+          await r.page.close();
+        }
+        ok(ALL_CUR.length > 0 && seen.length === ALL_CUR.length && over.length === 0,
+           `J ★幅320で、通貨の欄（${ALL_CUR.length}問ぜんぶ）が入れ物からはみ出さない`, JSON.stringify({ seen, over }));
+      }
+    }
   }
 }
 

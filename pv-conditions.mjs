@@ -25,10 +25,11 @@
 //    知らない項目を埋める動機を作った時点で、このデータは価値を失う。
 //
 // ── これ以上、質問を増やさない ──────────────────────────────────────
-// 43問。50問に増やすと、どの質問も公開に必要な k≧3 に届かないまま薄く散る。
+// 48問。これ以上増やすと、どの質問も公開に必要な k≧3 に届かないまま薄く散る。
 // 高価値な質問バンクを小さく持ち、1人には毎月少しずつ聞く。
-// （43 ＝ 一覧と、提出直後の1問枠に出す数。話題の入口からだけ出す4問は別に在る
-//   ＝ 下の 2026-10-04 の2つ目の注記。）
+// （48 ＝ 一覧に出す数。話題の入口からだけ出す4問は別に在る
+//   ＝ 下の 2026-10-04 の2つ目の注記。48 のうち5問は着陸手当に「あり」と答えた人にしか
+//   出ない子の質問 ＝ 下の 2026-10-09 の注記。）
 //
 // ★2026-08-19、社用航空券と出退社の移動を6問だけ足して 26→32 にした（オーナー指示）。
 //   提案は15問あったが、落としたのは「誰が使えるか／路線の範囲／年間上限／自己負担額／
@@ -78,8 +79,9 @@
 //   足したのは、通勤のタクシー代の上限（commuting_taxi_cap）と、機長昇格の3問
 //   （upgrade_order／upgrade_min_hours／upgrade_min_tenure）。
 //   ・4問とも topicOnly ＝ **提出直後の1問枠にも、一覧にも混ぜない。** 出すのは話題の入口だけ。
-//     だから、今までの43問に集まる回答は薄まらない（上書きしてよい理由はこれ1つ）。
-//     一覧の「あなたが答えた項目：N／43」の分母にも分子にも数えない
+//     だから、一覧に出る質問（この日は43問・いまは48問）に集まる回答は薄まらない
+//     （上書きしてよい理由はこれ1つ）。
+//     一覧の「あなたが答えた項目：N／48」の分母にも分子にも数えない
 //     （db/airline-conditions.sql の questions_total／answered_total／mine_count）。
 //   ・topic は「どの入口から来た人に、どの質問をまとめて出すか」の印。枝ごと同じ話題にする
 //     （親に在るのに子に無い、を gen-conditions.mjs が落とす）。今までの質問にも付けたが、
@@ -92,6 +94,28 @@
 //      機長昇格の時間と年数も段で聞く（条件が無い会社は数値で答えられない）。
 //   ⚠️ 上限の質問を費用の質問（commuting_taxi_cost）のすぐ後ろへ置くために、クルーバスの
 //      2問の priority を 72・73 → 73・74 へ動かした。並ぶ順は変わらない。
+//
+// ★2026-10-09、着陸手当（landing_pay）に「あり」と答えた人へ、その場で額と数え方を聞く5問を足して
+//   43→48 にした（質問マスタは 47→52）。オーナー指示「一定額なら通貨＋1回あたりの額＋単位
+//   （着陸／レグ）をその場で質問。変動なら金額／幅は任意＋変動条件の補足。なし／不明では出さない」。
+//   ・「あり・1回あたり一定額」の人に2問 ── 額（landing_pay_amount）と、何を1回と数えるか
+//     （landing_pay_unit）。
+//   ・「あり・一定額ではない」の人に3問 ── 低いほうの額・高いほうの額（どちらも任意・片方だけでよい）と、
+//     何で変わるか（landing_pay_varies_by・補足つき）。
+//   ・5問とも子の質問 ＝ 親の答えが条件に合う人にしか出ない。「ない」「わからない」の人には1問も出ない。
+//     2つの枝は**同時には出ない**ので、1人が48問ぜんぶに答えることは無い（N／48 の N は 48 に届かない）。
+//   ・機種・職位・いつの時点の話かは、親と同じ1回の送信で運ばれる（子のために聞き直さない）。
+//   ⚠️ 上の「額は聞かない」は、路線と地域で変わるもの（タクシー代・航空券の負担）の話。
+//      着陸手当は明細や規程に1回分の額が書いてあるので、**額を通貨と一緒に**聞く。
+//   ⚠️ 額の下限は 1。0 を「答えた」として保存させない（未回答は 0 ではない）。
+//   ⚠️ 通貨の違う額を1つの数字にまとめない。公開集計の中央値は、通貨つきの質問では出さない
+//      （db/airline-conditions.sql の 9）。低いほう・高いほうも別々の行のまま持つ。
+//   ⚠️ 額の質問を、会社ページの箱（gen-airline-glance.mjs の WORK_ASK／BEN_ASK／LIVE_ASK）へ入れない。
+//      あの箱は通貨なしで数字だけを出す。入れると gen-airline-glance.mjs が止める。
+//   ⚠️ 親を「ない」に答え直しても、子の行は消さない（答え直せば戻る）。そのかわり**数えない・出さない**
+//      （サーバは pv_condition_links・シートは pv-contrib.js の chainSaved）。
+//   ・子を親のすぐ後ろへ並べるために、peer_support の priority を 50 → 49、landing_pay を 55 → 50 へ
+//     動かした。並ぶ順は変わらない。
 //
 // ── コードを消さない ────────────────────────────────────────────────
 // 質問も選択肢も、いらなくなったら消さずに active:false にする（pv-vocab.mjs と同じ）。
@@ -181,7 +205,7 @@ export const SETTINGS = {
                ★付いているだけでは、一覧と1問枠での出方は1つも変わらない。
                ★枝ごと同じ話題にする（親が持つなら子も同じ topic。gen-conditions.mjs が検査する）。
    topicOnly … 話題の入口から来た人に**だけ**出す。提出直後の1問枠にも一覧にも出さず、
-               「あなたが答えた項目：N／43」の分母にも分子にも数えない
+               「あなたが答えた項目：N／48」の分母にも分子にも数えない
                （1問枠に出さない・数えないを決めているのは db/airline-conditions.sql。
                  画面の側は pv-conditions.json に運ばれた topicOnly を見て一覧から外す）。
                ★topic が要る。micro と boost は付けられない（gen-conditions.mjs が検査する）。
@@ -427,7 +451,7 @@ export const QUESTIONS = [
   {
     /* ── 機長昇格の条件（2026-10-04 追加・オーナー判断） ─────────────────
        ★話題の入口（機長昇格）から来た人にだけ出す3問（topicOnly）。提出直後の1問枠にも
-         一覧にも出さず、「答えた項目：N／43」にも数えない（冒頭の 2026-10-04 の2つ目の注記）。
+         一覧にも出さず、「答えた項目：N／48」にも数えない（冒頭の 2026-10-04 の2つ目の注記）。
        ★上の upgrade_years は「実際にかかっている年数」。こちらの3問は**会社が決めている条件**
          （順番の決め方・要る時間・要る年数）。同じことを2回聞いていない。
        ★親を持たない。昇格はどの会社にも在るので、「制度があるか」を先に聞く必要が無い。
@@ -570,7 +594,7 @@ export const QUESTIONS = [
   // ══ BENEFITS 手当・サポート ═══════════════════════════════════════
   {
     id: 'peer_support', version: 1, section: 'benefits', kind: 'choice',
-    tier: 'B', micro: true, priority: 50,
+    tier: 'B', micro: true, priority: 49,
     /* ★表記は Peer Support で固定（オーナー指示）。訳さない。 */
     ja: { label: 'パイロット向けの Peer Support 制度がありますか？',
           help: 'パイロット同士、または専門スタッフを通じて、心理的・職業上の相談ができる仕組みです。' },
@@ -587,8 +611,9 @@ export const QUESTIONS = [
   {
     id: 'landing_pay', version: 1, section: 'benefits', kind: 'choice',
     /* ★Tier C。存在しない会社が多く、世界横断で比べる軸としては弱い。
-       ある会社では効くので残すが、A と B が埋まってから聞く。 */
-    tier: 'C', micro: true, priority: 55,
+       ある会社では効くので残すが、A と B が埋まってから聞く。
+       ★「あり」の人には、すぐ下の5問（額と数え方）をその場で聞く（冒頭の 2026-10-09 の注記）。 */
+    tier: 'C', micro: true, priority: 50,
     ja: { label: '着陸回数に応じた手当はありますか？',
           help: '1回の着陸（またはレグ）ごとに払われる手当です。' },
     en: { label: 'Is there a landing allowance?',
@@ -598,6 +623,87 @@ export const QUESTIONS = [
       { code: 'variable', ja: 'あり・一定額ではない',   en: 'Yes — but the amount varies' },
       { code: 'no',       ja: 'ない',                   en: 'No' },
       { code: UNKNOWN,    ja: 'わからない',             en: "Don't know" },
+    ],
+  },
+  {
+    /* ── 着陸手当の額と数え方（2026-10-09 追加・オーナー指示） ────────────
+       ★親（landing_pay）に「あり」と答えた人にだけ、その場で出す5問。
+         「ない」「わからない」の人には1問も出ない（送っても受け取らない・数えない）。
+       ★「あり・1回あたり一定額」の人に2問（額／何を1回と数えるか）、
+         「あり・一定額ではない」の人に3問（低いほう／高いほう／何で変わるか）。
+         2つの枝は同時には出ない。
+       ★額は通貨と一緒に聞く。下限は 1 ＝ 0 を「答えた」として保存させない（未回答は 0 ではない）。
+       ★見本の額を help に書かない（会社ごとに違う。書いた額に答えが引っぱられる）。
+       ★micro にしない。提出直後の1問枠は1タップで終わる質問だけ。額は一覧とシートで聞く。
+       ★label だけで何の話か分かるように書く（保存後の一覧では、親と離れて1行ずつ出る）。 */
+    id: 'landing_pay_amount', version: 1, section: 'benefits', kind: 'num',
+    tier: 'C', micro: false, priority: 51,
+    parent: 'landing_pay', parentWhen: ['fixed'],
+    currency: true,
+    num: { min: 1, max: 10000000, step: 0.01, ja: '（1回あたり）', en: '(each time)' },
+    ja: { label: '着陸手当はいくらですか？',
+          help: '明細や規程に書かれている、1回分の額をそのまま入れてください。' },
+    en: { label: 'How much is the landing allowance?',
+          help: 'Enter the amount paid each time, as written on your payslip or pay rules.' },
+  },
+  {
+    id: 'landing_pay_unit', version: 1, section: 'benefits', kind: 'choice',
+    /* ★「一定額」の人にだけ聞く（オーナーの判断）。一定額ではない人の数え方は、
+         下の landing_pay_varies_by の補足に書ける。 */
+    tier: 'C', micro: false, priority: 52,
+    parent: 'landing_pay', parentWhen: ['fixed'],
+    ja: { label: '着陸手当は何を1回と数えますか？',
+          help: '着陸の回数で数えるか、飛んだ区間（レグ）で数えるかです。' },
+    en: { label: 'Landing allowance: paid per landing or per sector?',
+          help: 'Counted per landing, or per sector (leg) flown.' },
+    choices: [
+      { code: 'per_landing', ja: '着陸1回ごと',           en: 'Each landing' },
+      { code: 'per_leg',     ja: 'レグ（区間）1つごと',   en: 'Each sector (leg)' },
+      { code: UNKNOWN,       ja: 'わからない',             en: "Don't know" },
+    ],
+  },
+  {
+    /* ★低いほう・高いほうは**どちらも任意**で、片方だけでもよい。別々の行として保存する
+         （2つを1つの数字にまとめない。通貨が違っていても、こちらで直さない）。 */
+    id: 'landing_pay_from', version: 1, section: 'benefits', kind: 'num',
+    tier: 'C', micro: false, priority: 53,
+    parent: 'landing_pay', parentWhen: ['variable'],
+    currency: true,
+    num: { min: 1, max: 10000000, step: 0.01, ja: '（1回あたり）', en: '(each time)' },
+    ja: { label: '着陸手当の低いほうの額',
+          help: '任意です。わかる範囲で、低いほうの額を入れてください。片方だけでもかまいません。' },
+    en: { label: 'Landing allowance: lowest amount',
+          help: 'Optional. Enter the lowest amount you know of. Filling in just one end is fine.' },
+  },
+  {
+    id: 'landing_pay_to', version: 1, section: 'benefits', kind: 'num',
+    tier: 'C', micro: false, priority: 54,
+    parent: 'landing_pay', parentWhen: ['variable'],
+    currency: true,
+    num: { min: 1, max: 10000000, step: 0.01, ja: '（1回あたり）', en: '(each time)' },
+    ja: { label: '着陸手当の高いほうの額',
+          help: '任意です。片方だけでもかまいません。' },
+    en: { label: 'Landing allowance: highest amount',
+          help: 'Optional. Filling in just one end is fine.' },
+  },
+  {
+    id: 'landing_pay_varies_by', version: 1, section: 'benefits', kind: 'choice',
+    /* ★複数選択にしない。一覧のページ（pv-conditions.js）は、複数選択の質問に補足を保存できない。
+         1つに決められない人のために「いくつかの条件で変わる・その他」を置き、細かい条件は補足へ
+         （自由記述は公開集計に一切出さない）。 */
+    tier: 'C', micro: false, priority: 55, note: true,
+    parent: 'landing_pay', parentWhen: ['variable'],
+    ja: { label: '着陸手当の額は何で変わりますか？',
+          help: 'いちばん大きく効くものを1つ選んでください。細かい条件は補足に書けます。' },
+    en: { label: 'What does the landing allowance vary by?',
+          help: 'Pick the one that matters most. You can add details in the note.' },
+    choices: [
+      { code: 'aircraft', ja: '機種',                           en: 'Aircraft type' },
+      { code: 'airport',  ja: '空港・路線',                     en: 'Airport or route' },
+      { code: 'rank',     ja: '職位',                           en: 'Rank' },
+      { code: 'count',    ja: '月の着陸回数',                   en: 'Number of landings in the month' },
+      { code: 'mixed',    ja: 'いくつかの条件で変わる・その他', en: 'Several of these / other' },
+      { code: UNKNOWN,    ja: 'わからない',                     en: "Don't know" },
     ],
   },
   {
@@ -933,7 +1039,7 @@ export const QUESTIONS = [
   {
     /* ── 上限の形（2026-10-04 追加・オーナー判断） ─────────────────────
        ★話題の入口（通勤タクシー）から来た人にだけ出す（topicOnly）。提出直後の1問枠にも
-         一覧にも出さず、「答えた項目：N／43」にも数えない（冒頭の 2026-10-04 の2つ目の注記）。
+         一覧にも出さず、「答えた項目：N／48」にも数えない（冒頭の 2026-10-04 の2つ目の注記）。
        ★上の commuting_taxi_cost は「誰が負担するか」。こちらは**会社が払う額に上限があるか**。
          「一部は本人」が、上限を超えた分なのか毎回の定額なのかは、あちらでは分からない。
        ★額は聞かない（地域と距離で変わる）。聞くのは上限の形だけ。額を書ける人は任意の補足へ

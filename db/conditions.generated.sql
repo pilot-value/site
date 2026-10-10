@@ -28,7 +28,7 @@ create table if not exists public.pv_condition_sections (
 --   parent/parent_when  親の答えが parent_when に入るときだけ出す
 --   topic       話題の入口の印（会社の概要の画面から来る口）。枝ごと同じ話題にしてある
 --   topic_only  話題の入口から来た人にだけ出す。提出直後の1問枠にも一覧にも出さず、
---               「あなたが答えた項目：N／43」の分母にも分子にも数えない
+--               「あなたが答えた項目：N／48」の分母にも分子にも数えない
 --               （出さない・数えないは db/airline-conditions.sql。保存と公開集計は他の質問と同じ）
 --   spec        kind ごとの付帯情報（数値の刻み、明細行の語彙）
 create table if not exists public.pv_condition_questions (
@@ -130,8 +130,13 @@ insert into public.pv_condition_questions
   ('annual_leave_days', 1, 'time_off', 'num', 'A', false, 40, 0, false, null, null, null, false, null, 0, 60, false, false, '{"step":1}', '年間の有給休暇は何日ですか？', 'How many days of annual paid leave are there?'),
   ('sick_leave', 1, 'time_off', 'choice', 'A', true, 41, 0, false, null, null, null, false, array['days', 'unlimited', 'varies', 'none', 'unknown'], null, null, false, false, '{}', '病気休暇（Sick Leave）はどれくらい使えますか？', 'How much sick leave is available?'),
   ('sick_leave_days', 1, 'time_off', 'num', 'A', false, 42, 0, false, 'sick_leave', array['days'], null, false, null, 0, 365, false, false, '{"step":1}', '年間で何日ですか？', 'How many days per year?'),
-  ('peer_support', 1, 'benefits', 'choice', 'B', true, 50, 0, false, null, null, null, false, array['internal', 'external', 'both', 'no', 'unknown'], null, null, false, false, '{}', 'パイロット向けの Peer Support 制度がありますか？', 'Is there a Peer Support programme for pilots?'),
-  ('landing_pay', 1, 'benefits', 'choice', 'C', true, 55, 0, false, null, null, null, false, array['fixed', 'variable', 'no', 'unknown'], null, null, false, false, '{}', '着陸回数に応じた手当はありますか？', 'Is there a landing allowance?'),
+  ('peer_support', 1, 'benefits', 'choice', 'B', true, 49, 0, false, null, null, null, false, array['internal', 'external', 'both', 'no', 'unknown'], null, null, false, false, '{}', 'パイロット向けの Peer Support 制度がありますか？', 'Is there a Peer Support programme for pilots?'),
+  ('landing_pay', 1, 'benefits', 'choice', 'C', true, 50, 0, false, null, null, null, false, array['fixed', 'variable', 'no', 'unknown'], null, null, false, false, '{}', '着陸回数に応じた手当はありますか？', 'Is there a landing allowance?'),
+  ('landing_pay_amount', 1, 'benefits', 'num', 'C', false, 51, 0, false, 'landing_pay', array['fixed'], null, false, null, 1, 10000000, true, false, '{"step":0.01}', '着陸手当はいくらですか？', 'How much is the landing allowance?'),
+  ('landing_pay_unit', 1, 'benefits', 'choice', 'C', false, 52, 0, false, 'landing_pay', array['fixed'], null, false, array['per_landing', 'per_leg', 'unknown'], null, null, false, false, '{}', '着陸手当は何を1回と数えますか？', 'Landing allowance: paid per landing or per sector?'),
+  ('landing_pay_from', 1, 'benefits', 'num', 'C', false, 53, 0, false, 'landing_pay', array['variable'], null, false, null, 1, 10000000, true, false, '{"step":0.01}', '着陸手当の低いほうの額', 'Landing allowance: lowest amount'),
+  ('landing_pay_to', 1, 'benefits', 'num', 'C', false, 54, 0, false, 'landing_pay', array['variable'], null, false, null, 1, 10000000, true, false, '{"step":0.01}', '着陸手当の高いほうの額', 'Landing allowance: highest amount'),
+  ('landing_pay_varies_by', 1, 'benefits', 'choice', 'C', false, 55, 0, false, 'landing_pay', array['variable'], null, false, array['aircraft', 'airport', 'rank', 'count', 'mixed', 'unknown'], null, null, false, true, '{}', '着陸手当の額は何で変わりますか？', 'What does the landing allowance vary by?'),
   ('ground_duty_pay', 1, 'benefits', 'choice', 'C', false, 56, 0, false, null, null, null, false, array['yes', 'case_by_case', 'no', 'unknown'], null, null, false, true, '{}', '乗務以外の会社業務に、手当や勤務時間上の補償がありますか？', 'Is non-flying company work compensated, in pay or in duty credit?'),
   ('staff_travel', 1, 'benefits', 'choice', 'A', true, 57, 0, false, null, null, 'staff_travel', false, array['yes', 'some_pilots', 'no', 'unknown'], null, null, false, false, '{}', '自社便に割引や無料で乗れる社員向けの航空券制度がありますか？', 'Is there a staff travel scheme — free or reduced-fare tickets on your own airline?'),
   ('staff_travel_booking', 1, 'benefits', 'choice', 'B', true, 58, 0, false, 'staff_travel', array['yes', 'some_pilots'], 'staff_travel', false, array['standby', 'both', 'confirmed', 'unknown'], null, null, false, false, '{}', 'その席は空席待ちですか、確保できますか？', 'Are those seats standby, or can they be confirmed?'),
@@ -162,7 +167,7 @@ on conflict (id) do update set
   label_ja = excluded.label_ja, label_en = excluded.label_en, active = true;
 
 update public.pv_condition_sections  set active = false where code not in ('roster', 'career', 'time_off', 'benefits');
-update public.pv_condition_questions set active = false where id not in ('days_off_request', 'days_off_request_limit', 'schedule_bidding', 'bidding_scope', 'seniority_effect', 'reserve_duty', 'reserve_location', 'reserve_days', 'roster_lead_days', 'roster_changes', 'external_hiring', 'external_experience_credit', 'external_seniority_start', 'training_bond', 'training_bond_years', 'training_bond_amount', 'upgrade_years', 'upgrade_order', 'upgrade_min_hours', 'upgrade_min_tenure', 'external_hiring_types', 'cadet_program', 'fo_development', 'annual_leave_days', 'sick_leave', 'sick_leave_days', 'peer_support', 'landing_pay', 'ground_duty_pay', 'staff_travel', 'staff_travel_booking', 'staff_travel_cabin', 'staff_travel_family', 'staff_travel_standby_trips', 'staff_travel_standby_cost', 'staff_travel_standby_family', 'staff_travel_confirmed_trips', 'staff_travel_confirmed_cost', 'staff_travel_confirmed_family', 'commuting_transport', 'commuting_transport_method', 'commuting_taxi_when', 'commuting_taxi_where', 'commuting_taxi_cost', 'commuting_taxi_cap', 'commuting_bus_when', 'commuting_bus_cost');
+update public.pv_condition_questions set active = false where id not in ('days_off_request', 'days_off_request_limit', 'schedule_bidding', 'bidding_scope', 'seniority_effect', 'reserve_duty', 'reserve_location', 'reserve_days', 'roster_lead_days', 'roster_changes', 'external_hiring', 'external_experience_credit', 'external_seniority_start', 'training_bond', 'training_bond_years', 'training_bond_amount', 'upgrade_years', 'upgrade_order', 'upgrade_min_hours', 'upgrade_min_tenure', 'external_hiring_types', 'cadet_program', 'fo_development', 'annual_leave_days', 'sick_leave', 'sick_leave_days', 'peer_support', 'landing_pay', 'landing_pay_amount', 'landing_pay_unit', 'landing_pay_from', 'landing_pay_to', 'landing_pay_varies_by', 'ground_duty_pay', 'staff_travel', 'staff_travel_booking', 'staff_travel_cabin', 'staff_travel_family', 'staff_travel_standby_trips', 'staff_travel_standby_cost', 'staff_travel_standby_family', 'staff_travel_confirmed_trips', 'staff_travel_confirmed_cost', 'staff_travel_confirmed_family', 'commuting_transport', 'commuting_transport_method', 'commuting_taxi_when', 'commuting_taxi_where', 'commuting_taxi_cost', 'commuting_taxi_cap', 'commuting_bus_when', 'commuting_bus_cost');
 
 -- 聞く頻度の設定。★数字を持つ場所を1つにする（生成元は pv-conditions.mjs の SETTINGS）。
 --   next_condition_questions がここを読む。同じ数字が pv-conditions.json にも入り、画面が読む。
@@ -212,8 +217,8 @@ begin
   end loop;
 end $$;
 
--- 検算：節4 / 質問47（一覧に出る質問43 ＋ 話題の入口からだけ出る質問4）/ 提出直後に出せる質問26
---        Tier A20 / B24 / C3
+-- 検算：節4 / 質問52（一覧に出る質問48 ＋ 話題の入口からだけ出る質問4）/ 提出直後に出せる質問26
+--        Tier A20 / B24 / C8
 select
   (select count(*) from public.pv_condition_sections  where active)                as 節,
   (select count(*) from public.pv_condition_questions where active)                as 質問,

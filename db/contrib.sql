@@ -709,6 +709,18 @@ begin
        and c.text_shared
        and c.answer_text is not null
        and (v_level = 'pay' or q.section not in ('roster', 'career'))
+       -- ★親の条件が、いちばん上まで続いている回答の補足だけを見せる（2026-10-09）。
+       --   上の質問を「ない」に答え直した人の、その下の質問への古い補足を見せ続けない
+       --   （公開集計と同じ決め方 ＝ db/airline-conditions.sql の 9）。行は消していないので、
+       --   答え直せばまた見える。
+       and not exists (
+             select 1 from public.pv_condition_links k
+              where k.question_id = c.question_id
+                and not exists (
+                  select 1 from public.airline_conditions p
+                   where p.proof_hash = c.proof_hash and p.question_id = k.parent
+                     and (p.answer_code = any(k.parent_when)
+                          or p.answer_codes && k.parent_when)))
     union all
     -- 月の勤務のひとこと（給与の鍵が生きている人にだけ）
     select 'work', null, w.note,

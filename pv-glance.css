@@ -704,30 +704,45 @@
 .pvg .pvg-link:hover{color:var(--pv-accent-dark);text-decoration:underline;text-underline-offset:3px}
 .pvg .pvg-link:active{opacity:.7}
 .pvg .pvg-link:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px;border-radius:6px}
-.pvg-topic{border-top:1px solid var(--pv-line-soft)}
-.pvg-topics{margin-top:10px}
-.pvg-topics > a.pvg-topic-a{border-top:1px solid var(--pv-line-soft)}
+.pvg-topics{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;margin-top:12px}
 /* 集まった回答は、話題の上の1つの欄にまとめる（話題ごとに置くと、回答のある列だけ質問が下がる）。
    ⚠️ この欄を display:none で隠さない。career-live.js は「見えている箱」だけを取りに行くので、消すと永遠に読み込まれない。 */
 .pvg-got{margin-top:12px}
 .pvg-got > .pvg-askh{margin:0 0 6px!important}
 .pvg-got .crl{font-size:13px}
 .pvg-got .crl-fact:last-child{border-bottom:0}
-.pvg-askc .pvg-ask ul{grid-template-columns:minmax(0,1fr)}
+/* 質問の行は、話題の札より一段軽く（枠なし・細い字・行のあいだに細い線）。話題の名前が先に目に入るように。
+   ⚠️ 触れた時の地と枠は、ここで言い直す（上の行が .pvg-ask a:hover と同じ強さで後ろに在るので、言い直さないと黙って消える）。
+   ⚠️ 触れた時の決まりに transform を書かない（none でも、ほかの動きでも同じ ── 押した時の決まりより強いので、押した時の縮みまで消える）。 */
+.pvg-askc .pvg-ask ul{grid-template-columns:minmax(0,1fr);gap:0}
+.pvg-askc .pvg-ask li + li{border-top:1px solid var(--pv-line-soft)}
+.pvg-askc .pvg-ask a{padding:6px 8px 6px 12px;border-color:transparent;background:none;font-weight:500;color:var(--pv-ink-2)}
+.pvg-askc .pvg-ask a:hover{border-color:var(--pv-accent-line);background:var(--pv-accent-soft);color:var(--pv-ink)}
+.pvg-askc .pvg-askmore{padding-left:13px}
+/* ⚠️ 「ほか◯問」に触れた時の字の色は、ここで言い直す。言い直さないと上の .pvg-link:hover の色になり、
+   あの色は暗い画面で作り直していない ＝ 暗い地の上で読みにくい緑に替わる（明るい画面では同じ緑なので、暗い画面でしか分からない）。 */
+.pvg-askc .pvg-askmore:hover{color:var(--pv-accent-ink)}
 /* 「ほか◯問」は、質問を最初の4つに絞っている広い箱でだけ出す */
 .pvg .pvg-askmore{display:none}
-.pvg-topic > summary{min-height:48px;font-size:13.5px;font-weight:700;color:var(--pv-ink)}
-.pvg-topic > summary small{font-size:12px;font-weight:500;color:var(--pv-ink-3)}
-.pvg-topic > summary:hover{color:var(--pv-accent-ink)}
-a.pvg-topic-a{
-  display:flex;align-items:center;gap:8px;min-height:48px;text-decoration:none;
-  font-size:13.5px;font-weight:700;color:var(--pv-ink);
-}
-a.pvg-topic-a small{font-size:12px;font-weight:500;color:var(--pv-ink-3)}
-a.pvg-topic-a .pvg-ic{margin-left:auto;color:var(--pv-ink-3)}
-a.pvg-topic-a:hover{color:var(--pv-accent-ink)}
+/* 話題の札 ── 淡い緑の面＋枠＋絵＋濃い緑の名前。色だけで見分けさせない（絵と枠と字の大きさが在る）。
+   名前は 700（日本語の字は 400／500／700 しか読み込んでいない。800 にすると英字だけ太くなる）。
+   ⚠️ 触れた時の字の色を言い直してある（言い直さないと、暗い画面で作り直していない色に替わる）。 */
+.pvg-topic > summary{gap:10px;min-height:56px;padding:9px 12px;border:1px solid var(--pv-accent-line);border-radius:var(--pv-r);background:var(--pv-accent-soft);font-size:12px;font-weight:500;line-height:1.5;color:var(--pv-ink-2)}
+.pvg-topic > summary .pvg-ico{background:var(--pv-surface)}
+.pvg-topic > summary:hover{color:var(--pv-ink-2);border-color:var(--pv-accent-ink)}
+.pvg-topic > summary:hover .pvg-tp-n,a.pvg-topic-a:hover .pvg-tp-n{text-decoration:underline;text-underline-offset:3px}
+.pvg-tp{display:block;flex:1 1 0;min-width:0}
+.pvg-tp-n{display:block;font-size:15px;font-weight:700;line-height:1.35;color:var(--pv-accent-ink);overflow-wrap:break-word}
+.pvg-tp-m{display:flex;flex-wrap:wrap;gap:0 10px;word-break:keep-all;overflow-wrap:break-word}
+.pvg-tp-q{white-space:nowrap;font-variant-numeric:tabular-nums}
+/* 「ホテル・レストラン」は答える話題ではない ＝ 緑にしない（白い面・灰色の枠・名前は黒）。
+   ⚠️ 矢印の決まりは「直下の絵」だけに掛ける（子孫に掛けると、左の絵の箱の中の絵まで右へ寄る）。 */
+a.pvg-topic-a{display:flex;align-items:center;gap:10px;min-height:56px;padding:9px 12px;border:1px solid var(--pv-line);border-radius:var(--pv-r);background:var(--pv-surface);text-decoration:none;font-size:12px;font-weight:500;line-height:1.5;color:var(--pv-ink-2)}
+a.pvg-topic-a .pvg-tp-n{color:var(--pv-ink)}
+a.pvg-topic-a > .pvg-ic{flex:none;margin-left:auto;color:var(--pv-ink-3)}
+a.pvg-topic-a:hover{border-color:var(--pv-accent-line)}
 a.pvg-topic-a:active{opacity:.7}
-a.pvg-topic-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px;border-radius:8px}
+a.pvg-topic-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
 
 /* 口コミの区分の入口（口コミの部品が #pvg-revcats へ入れる。余白だけ合わせる） */
 .pvg #airline-review-cats > div{max-width:none!important;padding:0!important}
@@ -845,11 +860,11 @@ a.pvg-topic-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2p
   /* ひとつ教えて：話題を横に並べ、質問の名前を最初から見せる（開くのは pv-glance.js。動かなくても畳んだまま使える） */
   .pvg-got .crl-facts{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:24px}
   .pvg-got .crl-fact{border-bottom:0}
-  .pvg-topics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 24px;align-items:start}
-  .pvg-askc[data-flat] .pvg-topic > summary{min-height:40px;cursor:default;pointer-events:none}
+  .pvg-topics{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start}
+  .pvg-topics > a.pvg-topic-a{grid-column:1 / -1}
+  .pvg-askc[data-flat] .pvg-topic > summary{cursor:default;pointer-events:none}
   .pvg-askc[data-flat] .pvg-topic > summary .pvg-chev{display:none}
-  .pvg-askc[data-flat] .pvg-topic > summary small{margin-left:auto}
-  .pvg-askc[data-flat] .pvg-body{padding:0 0 12px}
+  .pvg-askc[data-flat] .pvg-body{padding:4px 0 0}
   .pvg-askc[data-flat] .pvg-topic:not([data-all]) .pvg-ask li:nth-child(n+5){display:none}
   .pvg-askc[data-flat] .pvg-topic:not([data-all]) .pvg-askmore{display:inline-flex;margin-top:2px}
 }
@@ -872,7 +887,7 @@ a.pvg-topic-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2p
   .pvg-stats dd b,.pvg-stats > div[data-mid] dd b{font-size:23px}
   .pvg-stats > div[data-long] dd b{font-size:16px}
   .pvg-got .crl-facts{grid-template-columns:repeat(4,minmax(0,1fr))}
-  .pvg-topics{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+  .pvg-topics{grid-template-columns:repeat(4,minmax(0,1fr))}
   .pvg-payrow{grid-template-columns:repeat(2,minmax(0,1fr))}
   .pvg-payrow:has(.pvg-rv-in > .crl[data-live="score"][data-state="empty"]) > .pvg-rv-card{align-self:start}
   .pvg-top{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-areas:"work ben live" "panel panel panel"}

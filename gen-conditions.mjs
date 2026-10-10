@@ -194,7 +194,7 @@ for (const q of QUESTIONS) {
 
 const micros = QUESTIONS.filter((q) => q.micro);
 /* 一覧と1問枠に出る質問／話題の入口からだけ出る質問。
-   ★「あなたが答えた項目：N／43」の 43 は listed の数（DB の questions_total と同じ決め方）。 */
+   ★「あなたが答えた項目：N／48」の 48 は listed の数（DB の questions_total と同じ決め方）。 */
 const listed = QUESTIONS.filter((q) => !q.topicOnly);
 const topicOnly = QUESTIONS.filter((q) => q.topicOnly);
 if (!micros.length) throw new Error('micro の質問が1つも無い（提出直後に出すものが無くなる）');

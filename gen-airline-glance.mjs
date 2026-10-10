@@ -76,6 +76,9 @@ const IC = {
   swap: svg('M4 8h14M14 4l4 4-4 4M20 16H6M10 12l-4 4 4 4', 'pvg-ic pvg-ic-s'),
   prev: svg('M15 6l-6 6 6 6', 'pvg-ic pvg-ic-s'),
   find: svg('M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4'),
+  taxi: svg('M10 5V3.5h4V5M5 11l1.6-4.6A2 2 0 0 1 8.5 5h7a2 2 0 0 1 1.9 1.4L19 11M4 11h16v6H4zM7 17v2M17 17v2M8 14h.01M16 14h.01'),
+  ticket: svg('M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2zM13 5v2M13 11v2M13 17v2'),
+  steps: svg('M3 20h4.5v-5H12v-5h4.5V5H21'),
 };
 
 /* ── タブ（見本の6つ・左から）───────────────────────────────
@@ -338,6 +341,14 @@ const WORK_ASK = [['days_off_request', '希望休を指定できるか'], ['rost
   ['reserve_duty', 'スタンバイ勤務があるか'], ['roster_changes', '確定後の変更は多いか']];
 const BEN_ASK = [['annual_leave_days', '年間の有給休暇の日数'], ['sick_leave', '病気休暇を使えるか'], ['staff_travel', '社員向け航空券があるか']];
 const LIVE_ASK = [['commuting_transport', '通勤の足を会社が用意するか'], ['commuting_taxi_when', 'タクシーを使えるとき'], ['commuting_bus_when', 'クルーバスを使えるとき']];
+/* ★額の質問（通貨つき）を、上の3つの箱へ入れない。箱は career-live.js が「数字＋単位」で出す
+   ＝ 通貨が付かない。円の人とドルの人の額が、通貨なしの1つの数字として会社ページに出てしまう
+   （公開集計も、通貨つきの質問では中央値を返さない ＝ 入れても空のまま）。 */
+{
+  const money = new Set(QUESTIONS.filter(q => q.currency).map(q => q.id));
+  const hit = [...WORK_ASK, ...BEN_ASK, ...LIVE_ASK].map(a => a[0]).filter(id => money.has(id));
+  if (hit.length) throw new Error('会社ページの箱に、額の質問（通貨つき）は入れられない ── 箱は通貨なしで数字だけを出す（' + hit.join('・') + '）');
+}
 
 /* 欄（閉じているときに見えるのが「公表されている条件を1つ」）と、その中身の板。
    板は欄のすぐ後ろに置く ＝ 狭い画面ではその場で開き、広い画面では3つの欄の下へ横いっぱいに出る（pv-glance.css）。 */
@@ -737,13 +748,24 @@ ${live('hotels', { airline: v.slug, stay: '', city: '' })}
 }
 /* 「◯◯のこと、ひとつ教えて。」── 質問の名前まで見せる。
    集まった回答は、話題の上に1つの欄でまとめて出す（3人そろった項目だけ。件数はサーバーの答え）。
-   話題ごとに欄を分けると、回答のある話題だけ質問の並びが下がり、列がそろわなくなる。 */
+   話題ごとに欄を分けると、回答のある話題だけ質問の並びが下がり、列がそろわなくなる。
+   札の数は質問の数。回答の数ではない。 */
 const ROSTER = ['work', '勤務', WORK_ASK];
 const ASK_FIRST = 4;                               // 広い箱で、話題ごとに最初から見せる質問の数（pv-glance.css の nth-child と同じ）
+/* 話題の札 ── 絵（色に頼らない目印）→ 話題の名前 → 小さい字（補足・質問の数）。
+   「質問 N問」は、この話題で答えられる質問の数（＝ 下に並ぶ行の数）。集まった回答の数ではない。
+   回答の数は札に書かない（話題ごとの数はサーバーに無い。在るのは「集まった回答」の欄の、3人そろった項目だけ）。 */
+const TOPIC_IC = { work: IC.work, taxi: IC.taxi, 'staff-travel': IC.ticket, upgrade: IC.steps };
+const TOPIC_NAME = { taxi: ['通勤・タクシー'], 'staff-travel': ['Staff Travel', '社員向け航空券'] };
+const topicHead = (icon, name, meta) => `<span class="pvg-ico" aria-hidden="true">${icon}</span><span class="pvg-tp"><span class="pvg-tp-n">${esc(name)}</span><span class="pvg-tp-m">${meta}</span></span>`;
 function askCard(v) {
-  const groups = [ROSTER, ...TOPICS.map(([id, title, list]) => [id, id === 'staff-travel' ? 'Staff Travel（社員向け航空券）' : id === 'taxi' ? '通勤・タクシー' : title, list])];
-  const stay = networkOf(v.slug) ? `<a class="pvg-topic pvg-topic-a" href="#pvg-stay"><span>ホテル・レストラン</span><small>就航地ごと・パイロット限定</small>${IC.next}</a>` : '';
-  const keys = [...new Set(groups.flatMap(([, , list]) => list.map(a => a[0])))];
+  const groups = [ROSTER, ...TOPICS].map(([id, title, list]) => {
+    if (!TOPIC_IC[id]) throw new Error(`askCard: 話題「${id}」の絵が無い（TOPIC_IC に足す）`);
+    const [name = title, gloss = ''] = TOPIC_NAME[id] || [];
+    return [id, name, gloss, list];
+  });
+  const stay = networkOf(v.slug) ? `<a class="pvg-topic pvg-topic-a" href="#pvg-stay">${topicHead(IC.stay, 'ホテル・レストラン', '就航地ごと・パイロット限定')}${IC.next}</a>` : '';
+  const keys = [...new Set(groups.flatMap(([, , , list]) => list.map(a => a[0])))];
   /* タブを持つページ：見出しの横から項目の一覧（「情報を追加」の面）を開ける。通勤・タクシーの質問はその面の中で答える。 */
   const add = tabbed(v.slug) ? `<button type="button" class="pvg-link" data-pvc-open="list">項目の一覧から足す${IC.go}</button>` : '';
   return `<article class="pvg-card pvg-askc"${pane(v.slug, 'overview')}>
@@ -751,8 +773,8 @@ ${head(IC.ask, `${esc(v.name)}のこと、ひとつ教えて。`, add)}
 <p class="pvg-quiet">1問だけでも保存できます。匿名で、3人そろった項目から会社ページに出ます。</p>
 <div class="pvg-got"><p class="pvg-askh">集まった回答</p>${live('fact', { airline: v.slug, keys: keys.join(',') })}</div>
 <div class="pvg-topics">
-${groups.map(([id, title, list]) => `<details class="pvg-topic" data-topic="${id}">
-<summary><span>${esc(title)}</span><small>質問 ${list.length}</small>${IC.down}</summary>
+${groups.map(([id, name, gloss, list]) => `<details class="pvg-topic" data-topic="${id}">
+<summary>${topicHead(TOPIC_IC[id], name, `${gloss ? `<span class="pvg-tp-g">${esc(gloss)}</span>` : ''}<span class="pvg-tp-q">質問 ${list.length}問</span>`)}${IC.down}</summary>
 <div class="pvg-body">
 ${asks(v.slug, list, '')}${list.length > ASK_FIRST ? `
 <button type="button" class="pvg-link pvg-askmore" data-pvg-askmore>ほか${list.length - ASK_FIRST}問${IC.down}</button>` : ''}

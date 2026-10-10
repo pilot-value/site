@@ -289,7 +289,7 @@
 .pvc-root .pvc-wait[hidden]{display:none}
 
 /* ── 保存したあと ───────────────────────────────────────── */
-.pvc-root .pvc-saved{margin:0;padding:20px 16px;background:var(--pv-surface);border:1px solid var(--pv-border);border-radius:18px}
+.pvc-root .pvc-saved{position:relative;margin:0;padding:20px 16px;background:var(--pv-surface);border:1px solid var(--pv-border);border-radius:18px}
 .pvc-root .pvc-saved-h{display:flex;align-items:center;gap:10px;margin:0;padding:0;font-size:19px;line-height:1.35;
   font-weight:800;letter-spacing:-.02em;color:var(--pv-ink);outline:0}
 .pvc-root .pvc-saved-h svg{color:var(--pv-accent-ink)}
@@ -305,6 +305,31 @@
 .pvc-root .pvc-sum-r.is-long .pvc-sum-v{text-align:left}
 .pvc-root .pvc-sum-v.is-none{font-weight:400;color:var(--pv-ink-3)}
 .pvc-root .pvc-saved-a{display:flex;flex-wrap:wrap;gap:10px;margin:20px 0 0}
+/* 2つのボタンは、並ぶときも折り返すときも幅いっぱいに分け合う（狭い画面で右が余って見えない） */
+.pvc-root .pvc-saved-a > .pvc-ghost,.pvc-root .pvc-saved-a > .pvc-send{flex:1 1 auto}
+/* 保存できた合図（短いクラッカー）。カードの中だけで散り、外へは出ない（層がカードの形で切る）。
+   押せない層 ＝ 下の見出しにもボタンにも触れる。動かすのは transform と opacity だけ。
+   出す・片づけるのは pv-contrib.js の cue()（保存1回につき1度）。
+   散る場所は、見出しの字のすぐ右 ＝ 紙片が見出しの字の上にもボタンの上にも止まらない
+   （カードのまんなかから散らすと、狭い画面では見出しの字を横切り、広い画面ではボタンの上へ落ちた）。
+   散ってから0.5秒ほど見えていて、そのあと消える（出てすぐ薄くすると、画面がちらついただけに見える）。 */
+.pvc-root .pvc-pop{position:absolute;inset:0;overflow:hidden;border-radius:inherit;pointer-events:none}
+.pvc-root .pvc-pop-i{position:absolute;left:min(237px,calc(100% - 67px));top:30px;width:6px;height:10px;margin:0;border-radius:2px;
+  background:var(--pv-accent);opacity:0;animation:pvc-pop .9s var(--pv-ease) both}
+.pvc-root .pvc-pop-i:nth-child(3n+2){background:var(--pv-green)}
+.pvc-root .pvc-pop-i:nth-child(3n){background:var(--pv-gold)}
+.pvc-root .pvc-pop-i:nth-child(1){--pvc-x:-54px;--pvc-y:-22px;--pvc-r:-160deg}
+.pvc-root .pvc-pop-i:nth-child(2){--pvc-x:-32px;--pvc-y:-25px;--pvc-r:120deg}
+.pvc-root .pvc-pop-i:nth-child(3){--pvc-x:-10px;--pvc-y:-23px;--pvc-r:-90deg}
+.pvc-root .pvc-pop-i:nth-child(4){--pvc-x:10px;--pvc-y:-26px;--pvc-r:200deg}
+.pvc-root .pvc-pop-i:nth-child(5){--pvc-x:30px;--pvc-y:-20px;--pvc-r:-40deg}
+.pvc-root .pvc-pop-i:nth-child(6){--pvc-x:50px;--pvc-y:-12px;--pvc-r:150deg}
+.pvc-root .pvc-pop-i:nth-child(7){--pvc-x:56px;--pvc-y:4px;--pvc-r:80deg}
+.pvc-root .pvc-pop-i:nth-child(8){--pvc-x:40px;--pvc-y:16px;--pvc-r:-210deg}
+.pvc-root .pvc-pop-i:nth-child(9){--pvc-x:20px;--pvc-y:18px;--pvc-r:110deg}
+.pvc-root .pvc-pop-i:nth-child(10){--pvc-x:4px;--pvc-y:14px;--pvc-r:-130deg}
+@keyframes pvc-pop{0%{opacity:0;transform:translate3d(0,0,0) rotate(0deg) scale(.6)}12%{opacity:1}60%{opacity:1}
+  100%{opacity:0;transform:translate3d(var(--pvc-x),var(--pvc-y),0) rotate(var(--pvc-r)) scale(1)}}
 
 /* ── 広い画面：右から出る 560px の面・2列 ───────────────── */
 @media (min-width:768px){
@@ -327,6 +352,19 @@
   .pvc-root .pvc-saved{padding:26px;border-radius:20px}
 }
 
+/* ── いちばん狭い画面（幅340pxまで）：保存できた面だけ、すき間を詰める ─────────
+   ログインなしで保存すると「ログインなしで保存しました。」の箱が入り、幅320×高さ568 では
+   「もう1項目を答える」の下が画面の外へ切れていた（月が2けたの回は行が1つ増えて、さらに下がる）。
+   字の大きさ・ボタンの高さは変えない。詰めるのは箱と箱のあいだ・箱の内側の余白だけ。
+   一覧の同じ箱はそのまま（こちらは保存できた面の中だけ）。 */
+@media (max-width:340px){
+  .pvc-root .pvc-saved-s{gap:4px 10px;margin-top:6px}
+  .pvc-root .pvc-saved .pvc-held{margin-top:10px;padding:10px 14px}
+  .pvc-root .pvc-saved .pvc-held-d{margin-top:2px}
+  .pvc-root .pvc-saved .pvc-held .pvc-ghost{margin-top:8px}
+  .pvc-root .pvc-saved-a{gap:8px;margin-top:14px}
+}
+
 @media (prefers-reduced-motion:reduce){
   .pvc-root .pvc-scrim,
   .pvc-root .pvc-sheet,
@@ -338,6 +376,8 @@
   .pvc-root .pvc-chip-f,
   .pvc-root .pvc-more-b,
   .pvc-root .pvc-fold-b::before{transition:none}
+  /* 動きを減らす設定では、紙片そのものを出さない（pv-contrib.js も足さない。こちらは2枚目の網） */
+  .pvc-root .pvc-pop{display:none}
 }
 
 /* hidden は必ず消える（上の display:flex／grid の規則に負けさせない）。最後に置く。 */

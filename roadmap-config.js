@@ -179,9 +179,9 @@ window.PVRoadmap = {
             d: 'Only what pilots received, never mixed with estimates.' } },
 
     { id: 'conditions', state: 'done', date: '2026-08-19',
-      ja: { t: '待遇アンケート（43問）',
+      ja: { t: '待遇アンケート（48問）',
             d: '休日・ベース・ローテーション・宿泊を集める。' },
-      en: { t: 'Working-conditions survey (43 questions)',
+      en: { t: 'Working-conditions survey (48 questions)',
             d: 'The parts of a job a salary figure never shows.' } },
 
     { id: 'review-i18n', state: 'done', date: '2026-08-10',
