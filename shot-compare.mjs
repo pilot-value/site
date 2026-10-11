@@ -11,7 +11,7 @@
       「開く → 選択肢が生えるのを待つ → 2社選ぶ → 描き終わるのを待つ」まで
       やってから撮る。選ばずに撮ると、どの scene も同じ「2社選んでください」が写る。
 
-   実行: node shot-compare.mjs <scene> <lang> <theme> <幅> [通貨] [open]
+   実行: node shot-compare.mjs <scene> <lang> <theme> <幅> [通貨] [h=高さ] [open]
      scene: full … 両側そろった状態（モック2枚目と同じ配置。既定）
                    ★JAL 側が年収も Block Hours も上回るので**トレードオフが出る**
             thin … 片側が人数の壁に届かなかった状態（右だけ「まだ出せません」・左は普通に出る）
@@ -48,6 +48,11 @@
             ⚠️ 英語ページの既定は**この機械のタイムゾーン**で決まる。英語の絵を
                人に見せるときは通貨を名指しする（省くと置き場所で絵が変わる）。
             位置は問わない（open / measure と同じく、引数のどこに書いてもよい）。
+     h=   : 窓の高さ（px）。h=760 のように書く。省くと今までどおり 1000。位置は問わない。
+            ★閉じた scene（lock / det / det0 / goal / anon）の板は、**窓の高さで置き場所が決まる**
+              （2026-10-11。窓の縦の真ん中あたり ── deep-pay.css の .dp-stage）。幅だけ変えても
+              確かめたことにならないので、ノートの高さ（760 前後）でも撮れるようにしてある。
+            ★撮れる絵は今までどおりページ全体。上から h px が「開いた直後に見えている範囲」。
    保存先は screenshot.mjs と同じ ./temporary screenshots/
 
    末尾に open を付けると、撮らずに**見える窓で開いたまま**にする。
@@ -75,10 +80,14 @@ const measure = process.argv.includes('measure');
       描かれるので、撮ったあとに実際の通貨を突き合わせて知らせる（下の「通貨」の行）。 */
 const cur = process.argv.slice(2).find((a) => /^[A-Z]{3}$/.test(a)) || '';
 
+/* ★窓の高さ（省略可・2026-10-11）。h=760 のように書く。省くと今までどおり 1000
+   ＝ 今までの呼び方で撮れる絵は1つも変わらない。使いどころは冒頭の「h=」。 */
+const winH = Number(((process.argv.slice(2).find((a) => /^h=\d+$/.test(a)) || '').split('=')[1])) || 1000;
+
 const dir = path.join(__dirname, 'temporary screenshots');
 if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 const label = `cmp-${scene}-${lang}-${theme}` + (vw !== 1440 ? `-${vw}` : '')
-  + (cur ? `-${cur}` : '');
+  + (winH !== 1000 ? `-h${winH}` : '') + (cur ? `-${cur}` : '');
 let n = 1;
 while (fs.existsSync(path.join(dir, `screenshot-${n}-${label}.png`))) n++;
 const outPath = path.join(dir, `screenshot-${n}-${label}.png`);
@@ -100,10 +109,10 @@ const PICK = {
 /* ★ headless:'new' はこの環境で page.screenshot() が返ってこない
    （shot-tracker.mjs に実測の経緯あり）。chrome-headless-shell を使う。 */
 const browser = await puppeteer.launch(open
-  ? { headless: false, defaultViewport: null, args: ['--no-sandbox', `--window-size=${vw},1000`] }
+  ? { headless: false, defaultViewport: null, args: ['--no-sandbox', `--window-size=${vw},${winH}`] }
   : { headless: 'shell', args: ['--no-sandbox'] });
 const page = (await browser.pages())[0] || await browser.newPage();
-if (!open) await page.setViewport({ width: vw, height: 1000 });
+if (!open) await page.setViewport({ width: vw, height: winH });
 
 page.on('pageerror', (e) => console.log('❌ page error:', e.message));
 

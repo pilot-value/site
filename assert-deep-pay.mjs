@@ -143,6 +143,13 @@
        通した答え・見分けの表）／実物（§2g ── 住所が変わらない・器と板・会員の板と同じ字・
        通信に /rpc/ が1本も無い・保存領域が1文字も変わらない・紙吹雪が出ない・
        タブが押せる・幅と明暗）。
+     ・**閉じた画面の板は、窓の縦の真ん中あたりに置く**（同じ日のオーナー指示「ポップアップは
+       わかりやすいように画面のもう少し真ん中にして」）。それまでは見出しのすぐ下に
+       寄せてあり、この検査も「器の上から 40px 以内」を見ていた。いまは、板の真ん中が
+       窓の高さの 43〜49% に在ること（狙いは 46%）を、**窓に対して**実測する。
+       収まらない板は上の余白のすぐ下から（見出しに潜らない・切れない）。スマホは
+       真ん中に置かず、見出しの下から。決まりは §2e の「板の縦の置き場所」、
+       窓の高さを変えた実測は placeAt（§2e の会員の板と、§2g のログインしていない人の板）。
 
    ⚠️ 偽物 Supabase の rpc は本物と同じ「then だけを持つ箱」にしてある。
       async にすると本番に無い .catch が生えて、本番だけ真っ白になる穴が開く
@@ -2439,10 +2446,12 @@ for (const lang of ['ja', 'en']) {
      空      … textContent が空（字が1文字も無い＝数字も通貨記号も社名も無い）・
                class と style のほかに属性が無い・タグは div / i / span だけ
      板      … 面が透けていない（背景の α が 1）・画面の幅に収まる・器の左右の真ん中・
-               幅は 640px まで・上に寄せてある（縦の真ん中に置かない。スマホでは見出しの
-               すぐ下）・板の上に何も乗っていない・器からはみ出さない・影が重ねてある
+               幅は 640px まで・**縦は窓の真ん中あたり**（下の「板の縦の置き場所」。
+               スマホでは真ん中に置かず、見出しの下から）・板の上に何も乗っていない・
+               器からはみ出さない・影が重ねてある
      押せる  … ボタンの真ん中を押すと、当たるのはボタン
-     収まる  … 横スクロールが生えない・板の中身が切れない・器が板に対して伸びすぎない
+     収まる  … 横スクロールが生えない・板の中身が切れない・器が、板と窓のどちらに対しても
+               伸びすぎない
      読める  … 板の字と、その下の面（板そのものの面）の差が 4.5 以上
    ★1つの幅ぶんを1行にまとめて出す（12通りを1行ずつ出すと 1,000 行を超える）。
      落ちたときは、どの理由の板で落ちたかを添える。
@@ -2488,6 +2497,17 @@ const GHOST_FIT = () => {
   o.topGap = Math.round(mb.top - sr.top);
   o.underTitle = hd ? Math.round(mb.top - hd.getBoundingClientRect().bottom) : null;
   o.inside = mb.bottom <= sr.bottom + 1;
+  /* 縦の置き場所（2026-10-11）。★窓に対して測る（いちばん上までスクロールした状態）。
+     mid   ＝ 板の真ん中が、窓の高さの何 % のところに在るか
+     below ＝ 板の下に、器（影絵）が何 px 残っているか
+     reach ＝ 板の下の端まで、ページをスクロールして届くか */
+  const bar = document.querySelector('.mr-top');
+  o.vh = vh;
+  o.top = r1(mb.top); o.bottom = r1(mb.bottom);
+  o.mid = r1((mb.top + mb.bottom) / 2 / vh * 100);
+  o.below = Math.round(sr.bottom - mb.bottom);
+  o.underBar = bar ? Math.round(mb.top - bar.getBoundingClientRect().bottom) : null;
+  o.reach = document.documentElement.scrollHeight >= mb.bottom - 1;
   const bg = (getComputedStyle(m).backgroundColor.match(/[\d.]+/g) || []).map(Number);
   o.alpha = bg.length > 3 ? bg[3] : (bg.length === 3 ? 1 : 0);
   o.shadows = (getComputedStyle(m).boxShadow.match(/rgba?\(|color\(/g) || []).length;
@@ -2556,13 +2576,46 @@ async function navStill(page) {
     return getComputedStyle(n).visibility === 'hidden' || r.left >= innerWidth - 1 || r.right <= 1;
   }, { timeout: 10000 });
 }
+/* ── 板の縦の置き場所（2026-10-11・オーナー指示「ポップアップはわかりやすいように
+     画面のもう少し真ん中にして」）──────────────────────────────
+   それまで板は見出しのすぐ下に寄せてあった（この検査も「器の上から 40px 以内」を見ていた）。
+   いまは、広い画面では**窓の縦の真ん中あたり**に置く。決まりは3つ：
+     ① 収まるとき ── 板の真ん中が、窓の高さの MID（43〜49%）に在る。狙いは 46%
+        （deep-pay.css の .dp-stage の「真ん中に置くための段」）。**器ではなく窓に対して測る。**
+        帯に幅があるのは、器の上の端（ヘッダー＋見出しの高さ）が画面と幅で 131〜154px と
+        違うのを、CSS が1つの数（142px）で受けているから（狙いから ±12px ＝ 窓 760px で ±1.6%）。
+     ② 収まらないとき（項目の多い一覧・背の低い窓）── 板は上の余白（PAD_WIDE ＝ 36px）の
+        すぐ下から始まる。真ん中は帯より下に来るが、それ以上は上がれない、ということ。
+        **見出しにもヘッダーにも掛からない・切れない**（器ごと伸びて、ページがスクロールする）。
+     ③ スマホ（640px 以下）── 真ん中に置かない。器の上の端から GAP_PHONE（20〜28px。
+        CSS は 24px）。板の高さに関わらず同じ場所。
+   ★①と②を1つの式で見る ──「真ん中が帯より上に無い」かつ「帯より下に在るなら、板は
+     上の余白にぴったり付いている」。CSS の段の高さ（92vh − 356px）を写していない
+     ＝ 写しが腐って嘘の緑になることが無い。
+   ★どちらの形になったかは、下の「窓の大きさを変えて測る」の節が、形を名指しして見る
+     （この式だけだと、どの板もたまたま②になっている回に気づけない）。 */
+const MID = [43, 49];
+const PAD_WIDE = 36;
+const GAP_PHONE = [20, 28];
+const placeWhy = (f, w) => {
+  if (!(f.underTitle >= 1 && f.underBar >= 1 && f.topGap >= 0))
+    return `見出しかヘッダーに掛かっている（見出しの下から ${f.underTitle}px・ヘッダーの下から ${f.underBar}px）`;
+  if (w <= 640)
+    return (f.topGap >= GAP_PHONE[0] && f.topGap <= GAP_PHONE[1] && f.underTitle <= GAP_PHONE[1] + 16)
+      ? '' : `スマホ：器の上から ${f.topGap}px・見出しの下から ${f.underTitle}px`;
+  if (f.topGap < PAD_WIDE - 1) return `上の余白が足りない（器の上から ${f.topGap}px）`;
+  if (f.mid < MID[0]) return `真ん中より上に在る（窓の ${f.mid}%・器の上から ${f.topGap}px）`;
+  if (f.mid > MID[1] && f.topGap > PAD_WIDE + 1)
+    return `真ん中より下に在る（窓の ${f.mid}%。まだ ${f.topGap - PAD_WIDE}px 上がれる）`;
+  return '';
+};
 /* 12通りを1つの幅で回して、落ちた理由の名前を種類ごとに集める。 */
 const GHOST_KINDS = [
   ['exist', '★★どの理由でも、影絵が1つ・器が1つ・「影絵 → 板」の順（ぼかしが効くのは影絵だけ）'],
   ['touch', '★★影絵は aria-hidden ＋ inert・焦点の当たるものが無い・押せない・選べない'],
   ['blur',  '★影絵に、ぼかしが実際に効いている（計算後の filter が blur(6〜10px)）'],
   ['empty', '★★影絵に字が1文字も無い（数字も通貨記号も無い）・class と style のほかに属性が無い'],
-  ['board', '★板は手前・面が透けていない・幅に収まり真ん中・上に寄せてある・何も乗っていない'],
+  ['board', '★板は手前・面が透けていない・幅に収まり左右の真ん中・縦は窓の真ん中あたり（スマホは見出しの下）・何も乗っていない'],
   ['click', '★板のボタンの真ん中を押すと、当たるのはボタン'],
   ['fit',   '★横スクロールが生えない・板の中身が切れない・器が伸びすぎない'],
   ['con',   '★板の字が、板の面から読める（コントラスト比 4.5 以上）']
@@ -2579,24 +2632,123 @@ const ghostBad = (f, c, w) => {
   if (!(f.blur >= 6 && f.blur <= 10)) bad.blur = `blur ${f.blur}`;
   if (!(f.text === '' && f.attrs === 0 && f.shapes >= 40 && f.tags === 'div i span'))
     bad.empty = `字 ${JSON.stringify(String(f.text).slice(0, 30))} 属性 ${f.attrs} 形 ${f.shapes} タグ ${f.tags}`;
+  const place = placeWhy(f, w);
   if (!(f.alpha >= 0.99 && f.left >= 0 && f.right <= f.vw + 0.5 && Math.abs(f.centre) <= 1
         && f.boardW <= 640 && f.covered === 0 && f.inside && f.z[1] > f.z[0] && f.shadows >= 3
-        && f.topGap >= 0 && f.topGap <= 40 && f.underTitle != null
-        && f.underTitle <= (w <= 640 ? 32 : 60)))
+        && !place))
     bad.board = `α ${f.alpha} 左右 ${f.left}..${f.right}/${f.vw} ずれ ${f.centre} 幅 ${f.boardW} 乗っている点 ${f.covered}`
-      + ` はみ出し ${!f.inside} z ${f.z} 影 ${f.shadows} 器の上から ${f.topGap} 見出しの下から ${f.underTitle}`;
+      + ` はみ出し ${!f.inside} z ${f.z} 影 ${f.shadows} 縦 ${place || `窓の ${f.mid}%`}`;
   if (!(f.btn && f.btnIn)) bad.click = `当たる=${f.btn} 板の中=${f.btnIn}`;
-  /* ★器の高さは「760px まで」か「板＋上下の余白」の大きいほう。余白はいちばん広い
-       スマホで 14＋200px（下の 200px は、板の下に影絵を覗かせる場所）。それを超えて
-       伸びていたら、影絵の中身に器が引っぱられている（影絵は器の高さを決めない）。 */
+  /* ★器の高さは、次の3つのいちばん大きいものまで。それを超えて伸びていたら、影絵の中身に
+       器が引っぱられている（影絵は器の高さを決めない ── スマホの影絵は中身が 1,800px ほど在り、
+       1000px 以下の幅でも列が縦に畳まれて 1,000px を超える）。
+       ・760px（器の素の高さの頭打ち。＋20 は端数）
+       ・板 ＋ 上下の余白（いちばん広いのはスマホの 24＋200px。下の 200px は、板の下に
+         影絵を覗かせる場所）
+       ・広い画面だけ：窓の高さ − 200px。板を窓の真ん中へ置くための段（2026-10-11）が
+         器を押し広げる分で、背の高い窓（1,080px あたりから上）でだけ 760px を超える。
+         段が決める器の高さは 上の余白 36 ＋ 段（92vh − 356px）＋ 下の余白 88 ＝ 窓の 92% − 232px。
+         板の真ん中の狙いが窓の半分より上に在るかぎり、「窓 − 200px」を超えることは無い
+         （狙いを動かしても、この線は動かさなくてよい）。
+         ⚠️ この項が通すのは窓より低い器だけ。窓より長い影絵の中身（＝捕まえたい伸び）は通さない。 */
   if (!(f.over <= 1 && c.out.length === 0 && c.cut.length === 0
-        && f.stageH <= Math.max(780, f.boardH + 230)))
-    bad.fit = `文書 +${f.over}px 外 ${c.out.slice(0, 2).join(' ')} 切れ ${c.cut.slice(0, 2).join(' ')} 器 ${f.stageH} 板 ${f.boardH}`;
+        && f.stageH <= Math.max(780, f.boardH + 230, w > 640 ? f.vh - 200 : 0)))
+    bad.fit = `文書 +${f.over}px 外 ${c.out.slice(0, 2).join(' ')} 切れ ${c.cut.slice(0, 2).join(' ')} 器 ${f.stageH} 板 ${f.boardH} 窓 ${f.vh}`;
   const con = c.con || {};
   if (!(con.title != null && Object.keys(con).every((k) => con[k] == null || con[k] >= 4.5)))
     bad.con = JSON.stringify(con);
   return bad;
 };
+/* ── 窓の大きさを変えて、板の縦の置き場所を測る（2026-10-11）──────────────
+   上の ghostBad は窓の高さ 1000px でしか回らない。板の置き場所は**窓の高さで決まる**ので、
+   高さを変えて、どの形になったかを名指しで見る（決まりは上の「板の縦の置き場所」）：
+     PLACE_FIT   … 収まる窓。板の真ん中が窓の 43〜49%・板がまるごと窓の中・見出しにも
+                   ヘッダーにも掛からない・板の上にも下にも影絵が見えている・左右の真ん中。
+                   ★高さの違う板を続けて描いて、**低い板ほど下から始まる**ことも見る
+                     ── 上に寄せているだけなら、どの板も同じ場所から始まる。
+     PLACE_TALL  … 収まらない窓（1024×620 に 3行＋18項目の板）。板は上の余白のすぐ下から・
+                   真ん中は帯より下（＝本当に「収まらない形」を踏んでいる）・板が切れない・
+                   器が板ごと伸びる・板の下の端までスクロールで届く。
+     PLACE_PHONE … スマホ。器の上の端から 20〜28px・**板の高さが違っても同じ場所から**
+                   （真ん中に置いていない）・板の頭は窓の上から3分の1より上・板の下に
+                   影絵が覗いている・横スクロールが生えない。
+   boards … [[名前, 描く関数]]。描く関数が null なら、いま出ている板のまま測る
+            （ログインしていない人の板は、試験用の入口からは描けない）。
+   tall   … 収まらない板を描く関数。渡さなければ、PLACE_TALL では置き場所の決まりだけを見る。
+   ★窓は増やさない（呼んだ側の窓を、大きさだけ変えて使い回す）。終わりに 1440×1000 へ戻す。
+   ⚠️ 時間で待たない。窓の幅と高さが本当に変わり、左メニューが止まってから測る。 */
+const PLACE_FIT = [[1440, 1000], [1440, 760], [1024, 768], [768, 1024]];
+const PLACE_TALL = [1024, 620];
+const PLACE_PHONE = [[390, 844], [320, 640]];
+async function sizeTo(page, w, h) {
+  await page.setViewport({ width: w, height: h });
+  await page.waitForFunction((x, y) => innerWidth === x && innerHeight === y, { timeout: 10000 }, w, h);
+  await navStill(page);
+}
+async function placeAt(page, tag, boards, tall) {
+  const fitOf = async (draw) => {
+    if (draw) await draw();
+    return (await page.evaluate(GHOST_FIT)) || {};
+  };
+  const all = async () => {
+    const got = [];
+    for (const [name, draw] of boards) got.push([name, await fitOf(draw)]);
+    return got;
+  };
+  const say = (got, k, unit) => got.map(([n, f]) => `${n} ${f[k]}${unit}`).join('・');
+  /* 低い板ほど下から始まる（高さが 16px より違う組だけ比べる）。 */
+  const lowerWhenShorter = (got) => got.every(([, a]) => got.every(([, b]) =>
+    !(a.boardH + 16 < b.boardH) || a.top > b.top + 4));
+
+  for (const [w, h] of PLACE_FIT) {
+    await sizeTo(page, w, h);
+    const got = await all();
+    ok(got.every(([, f]) => f.stage === 1 && f.mid >= MID[0] && f.mid <= MID[1]),
+       `${tag}/${w}×${h}: ★★板の真ん中が、窓の高さの ${MID[0]}〜${MID[1]}% に在る（${say(got, 'mid', '%')}）`,
+       say(got, 'top', 'px') + ' / 板の高さ ' + say(got, 'boardH', 'px'));
+    ok(got.every(([, f]) => f.top >= 0 && f.bottom <= f.vh && f.underTitle >= PAD_WIDE && f.underBar >= PAD_WIDE
+         && f.topGap >= PAD_WIDE - 1 && f.below >= 80 && f.inside
+         && Math.abs(f.centre) <= 1 && f.over <= 0)
+       && lowerWhenShorter(got),
+       `${tag}/${w}×${h}: ★板がまるごと窓の中・見出しにもヘッダーにも掛からない・上にも下にも影絵が見える・左右の真ん中`
+         + (got.length > 1 ? '・低い板ほど下から始まる' : ''),
+       got.map(([n, f]) => `${n} ${f.top}..${f.bottom}/${f.vh} 見出しの下 ${f.underTitle} 下の影絵 ${f.below} ずれ ${f.centre} 横 +${f.over}`).join(' ｜ '));
+  }
+
+  {
+    const [w, h] = PLACE_TALL;
+    await sizeTo(page, w, h);
+    const got = await all();
+    ok(got.every(([, f]) => f.stage === 1 && !placeWhy(f, w) && f.inside && f.reach && f.over <= 0),
+       `${tag}/${w}×${h}: ★背の低い窓でも、板は見出しに掛からず、収まる板は真ん中・収まらない板は上の余白のすぐ下（${say(got, 'mid', '%')}）`,
+       got.map(([n, f]) => `${n} ${placeWhy(f, w) || 'ok'} 器の上から ${f.topGap}`).join(' ｜ '));
+    if (tall) {
+      const f = await fitOf(tall);
+      const c = (await page.evaluate(LOCK_FIT)) || { out: ['板が無い'], cut: [] };
+      ok(f.stage === 1 && Math.abs(f.topGap - PAD_WIDE) <= 1 && f.mid > MID[1]
+         && f.underTitle >= PAD_WIDE && f.underBar >= PAD_WIDE,
+         `${tag}/${w}×${h}: ★★収まらない板（3行＋18項目・高さ ${f.boardH}px）は、上の余白（${PAD_WIDE}px）のすぐ下から始まる ── 見出しに潜らない`,
+         `器の上から ${f.topGap} 見出しの下から ${f.underTitle} 真ん中 ${f.mid}% 下の端 ${f.bottom}/${f.vh}`);
+      ok(f.inside && f.below >= 80 && f.reach && f.stageH >= f.boardH + PAD_WIDE + 80
+         && c.out.length === 0 && c.cut.length === 0 && Math.abs(f.centre) <= 1 && f.over <= 0,
+         `${tag}/${w}×${h}: ★★その板は切れない ── 器が板ごと伸び（${f.stageH}px）、下の端までスクロールで届く・横にも溢れない`,
+         `器の中=${f.inside} 下の影絵 ${f.below} 届く=${f.reach} 外 ${c.out.slice(0, 2).join(' ')} 切れ ${c.cut.slice(0, 2).join(' ')} 横 +${f.over}`);
+    }
+  }
+
+  for (const [w, h] of PLACE_PHONE) {
+    await sizeTo(page, w, h);
+    const got = await all();
+    const tops = got.map(([, f]) => f.top);
+    ok(got.every(([, f]) => f.stage === 1 && !placeWhy(f, w) && f.top <= f.vh / 3 && f.below >= 160
+         && f.inside && f.reach && f.over <= 0)
+       && Math.max.apply(null, tops) - Math.min.apply(null, tops) <= 0.5,
+       `${tag}/${w}×${h}: ★スマホは真ん中に置かない ── 器の上から ${GAP_PHONE[0]}〜${GAP_PHONE[1]}px（${say(got, 'topGap', 'px')}）・`
+         + (got.length > 1 ? 'どの板も同じ場所から・' : '') + '頭は窓の上3分の1より上・下に影絵が覗く・横に溢れない',
+       got.map(([n, f]) => `${n} 頭 ${f.top}/${f.vh} 見出しの下 ${f.underTitle} 下の影絵 ${f.below} 横 +${f.over}`).join(' ｜ '));
+  }
+  await sizeTo(page, 1440, 1000);
+}
 /* 毒入りの錠前（閉じているのに、本物らしい数字が紛れて来た答え）。本物のサーバは
    鍵の無い人へ head / comp / work / var を null で返す。**来ても1文字も描かない**ことを見る。
    ★門は「鍵は在るが答えきっていない・一覧なし・みんなの側は開いている」＝板に数字が
@@ -2724,6 +2876,19 @@ for (const lang of ['ja', 'en']) {
       const shutAgain = await page.evaluate(SNAP);
       ok(shutAgain.ghost === 1 && shutAgain.stage === 1 && shutAgain.lock.on,
          `${tag}: 開いた → 閉じた で、影絵と板が戻る`, ghostWhy(shutAgain));
+    }
+
+    /* ── 縦の置き場所。窓の高さを変えて測る（決まりと見方は、上の「板の縦の置き場所」と
+       placeAt）。板は高さの違う3つ ── 100人だけ（1行）／答えと100人（2行）／一覧つき。
+       収まらない板は、3行＋18項目。 ── */
+    {
+      const draw = (gate) => () => page.evaluate((p) => window.PVDeepPay.render(p),
+        lockWith(Object.assign({ contributors: 37, goal: 100 }, gate)));
+      await placeAt(page, tag, [
+        ['1行', draw({ key: true, ready: true, todo: null, crowd: false })],
+        ['2行', draw({ key: true, ready: false, todo: null, crowd: false })],
+        ['一覧つき', draw({ key: true, ready: false, todo: TODO6, crowd: false })]],
+        draw({ key: false, ready: false, crowd: false, todo: { year: 2026, month: 9, items: ALL18 } }));
     }
     ok(errs.length === 0, `${tag}: 影絵の描き直しで JS のエラーが出ない`, errs.join(' / '));
     await jars.pop().close().catch(() => {});
@@ -3378,6 +3543,9 @@ for (const lang of ['ja', 'en']) {
       ok(t.stage === true && t.aboveStage >= 0,
          `${tag}/${vw}: ★★タブは影絵と板の器（.dp-stage）より上に居る`, `すき間 ${t.aboveStage}px`);
     }
+    /* ── 縦の置き場所（§2e の placeAt と同じ物差し）。この板は会員の「鍵＋答え」の板と
+       同じ形だが、**本物の読み込みを通った板**で、窓の高さを変えて測る。 ── */
+    await placeAt(page, tag, [['ログインしていない人の板', null]], null);
 
     if (theme === 'light') {
       /* 描き直しても（通貨の切替でも）、器を作り直さない・聞きに行かない・書かない。 */

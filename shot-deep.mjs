@@ -10,7 +10,7 @@
       「開く → 選択肢が生えるのを待つ → 選ぶ → 描き終わるのを待つ」まで
       やってから撮る。選ばずに撮ると、どの scene も同じ空の板が写る。
 
-   実行: node shot-deep.mjs <scene> <lang> <theme> <幅> [通貨] [open]
+   実行: node shot-deep.mjs <scene> <lang> <theme> <幅> [通貨] [h=高さ] [open]
      scene: full  … 全部そろった状態（モックと同じ配置。既定）
             day1  … 現実の初日。KPI は3枚中1枚・給与構成は出ない・
                     働き方は1行しか無いので節ごと消える・変動給も出ない
@@ -62,6 +62,11 @@
             ⚠️ 英語ページの既定は**この機械のタイムゾーン**で決まる。英語の絵を
                人に見せるときは通貨を名指しする（省くと置き場所で絵が変わる）。
             位置は問わない（open / measure と同じく、引数のどこに書いてもよい）。
+     h=   : 窓の高さ（px）。h=760 のように書く。省くと今までどおり 1000。位置は問わない。
+            ★閉じた scene（lock / det / det0 / goal / anon）の板は、**窓の高さで置き場所が決まる**
+              （2026-10-11。窓の縦の真ん中あたり ── deep-pay.css の .dp-stage）。幅だけ変えても
+              確かめたことにならないので、ノートの高さ（760 前後）でも撮れるようにしてある。
+            ★撮れる絵は今までどおりページ全体。上から h px が「開いた直後に見えている範囲」。
    保存先は screenshot.mjs と同じ ./temporary screenshots/
 
    末尾に open を付けると、撮らずに**見える窓で開いたまま**にする。
@@ -92,10 +97,14 @@ const cur = process.argv.slice(2).find((a) => /^[A-Z]{3}$/.test(a)) || '';
    at=900 のように書く。省くと 750（扇が開ききって、落ち始めたところ）。 */
 const partyAt = Number(((process.argv.slice(2).find((a) => /^at=\d+$/.test(a)) || '').split('=')[1])) || 750;
 
+/* ★窓の高さ（省略可・2026-10-11）。h=760 のように書く。省くと今までどおり 1000
+   ＝ 今までの呼び方で撮れる絵は1つも変わらない。使いどころは冒頭の「h=」。 */
+const winH = Number(((process.argv.slice(2).find((a) => /^h=\d+$/.test(a)) || '').split('=')[1])) || 1000;
+
 const dir = path.join(__dirname, 'temporary screenshots');
 if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 const label = `deep-${scene}-${lang}-${theme}` + (vw !== 1440 ? `-${vw}` : '')
-  + (cur ? `-${cur}` : '');
+  + (winH !== 1000 ? `-h${winH}` : '') + (cur ? `-${cur}` : '');
 let n = 1;
 while (fs.existsSync(path.join(dir, `screenshot-${n}-${label}.png`))) n++;
 const outPath = path.join(dir, `screenshot-${n}-${label}.png`);
@@ -122,10 +131,10 @@ const PICK = {
 /* ★ headless:'new' はこの環境で page.screenshot() が返ってこない
    （shot-tracker.mjs に実測の経緯あり）。chrome-headless-shell を使う。 */
 const browser = await puppeteer.launch(open
-  ? { headless: false, defaultViewport: null, args: ['--no-sandbox', `--window-size=${vw},1000`] }
+  ? { headless: false, defaultViewport: null, args: ['--no-sandbox', `--window-size=${vw},${winH}`] }
   : { headless: 'shell', args: ['--no-sandbox'] });
 const page = (await browser.pages())[0] || await browser.newPage();
-if (!open) await page.setViewport({ width: vw, height: 1000 });
+if (!open) await page.setViewport({ width: vw, height: winH });
 
 page.on('pageerror', (e) => console.log('❌ page error:', e.message));
 

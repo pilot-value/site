@@ -348,16 +348,47 @@
      本物の規則にそのまま付いていく。ここに書くのは、字の代わりの線と、足りない寸法だけ。
    ★この一式は会社比較（deep-pay-compare.html）も読む。あちらの影絵だけが持つ形は
      deep-pay-compare.css の .dc-gh-*（ぼかしは向こうには1つも書かない）。 */
-/* 器。★板は上に寄せる（縦の真ん中に置かない ── 背の高い画面で板が下へ流れる）。
+/* 器。★板は**窓の縦の真ん中あたり**に置く（2026-10-11・オーナー指示「ポップアップは
+     わかりやすいように画面のもう少し真ん中にして」。それまでは見出しのすぐ下に寄せていた）。
+   ・合わせる相手は**窓**で、器ではない。器（影絵）は窓の下の端より先まで続くことがあるので、
+     器の真ん中に置くと、背の低い窓ほど板が下へ流れる（実測：窓の高さ 760px で 54%）。
+   ・狙いは、板の真ん中が窓の高さの 46%。ちょうど半分より少し上 ── 半分に置くと、
+     目には下がって見える。
+   ・やり方 ── 器を grid にして、「真ん中に置くための段」を1つ持たせる。段の高さは
+       92vh − 356px     92vh ＝ 2 × 46vh ／ 356px ＝ 2 ×（器の上の端 142px ＋ 上の余白 36px）
+     この段の中で板を縦の真ん中に置く（align-items:center）と、板の真ん中が窓の 46% に来る。
+     ★142px ＝ 窓の上の端から器の上の端まで（ヘッダー＋見出しの塊）。実測は、概要が
+       139px・会社比較が 154px（1000px 以下の幅では、どちらも 8px 低い）。142px はその
+       真ん中で、どの画面でも狙いから ±12px に収まる。画面ごとに分けて持たない
+       （数字が4つになり、片方だけ腐る）。⚠️ ヘッダーか見出しの高さを変えたら測り直す
+       ── 検査は、板の真ん中が窓の 43〜49% に在ることを実測で見ている。
+   ・板が段より高いとき（項目の多い一覧・背の低い窓）は、段のほうが板の高さまで伸びる
+     （minmax の auto）＝ 板は上の余白 36px のすぐ下から始まり、器ごと下へ伸びて、あとは
+     ページがスクロールする。**板の頭が見出しの下へ潜ることも、切れることも無い**
+     （transform や負の余白で動かしていない。段の中の置き場所を決めているだけ）。
+   ⚠️ align-content:start を外さない。外すと auto の段が器の高さいっぱいまで伸びて、
+      板が「器の真ん中」へ戻る。
+   ⚠️ 段の高さの2行に var() を混ぜない・順番を入れ替えない。vh のあとに svh を重ねてある
+      （タブレットの vh は、アドレスバーが畳まれたときの高さ ＝ 開いた直後の窓より高い）。
+      var() の入った宣言は、svh を知らないブラウザでも捨てられずに残り、1行目ごと効かなくなる。
+   ★横は今までどおり ── 幅は 600px まで（列の minmax）・器の左右の真ん中。
    ★高さは「本物の画面とだいたい同じ」。ただし画面の高さで頭打ちにする（スマホの本物は
      縦に 1,800px ほど在る。そのぶん全部を影絵で埋めると、板の下が延々と霞んだ形になる）。
-     板のほうが高いとき（項目の多い一覧・狭い画面）は、器が板に合わせて伸びる。 */
-.dp-stage{position:relative;isolation:isolate;display:flex;justify-content:center;
-  align-items:flex-start;padding:36px 24px 88px;
+     板のほうが高いとき（項目の多い一覧・狭い画面）は、器が板に合わせて伸びる。
+     背の高い窓（1,080px あたりから上）でも、真ん中の段に合わせて伸びる ── 段は窓より
+     必ず低い（92vh − 356px）ので、伸びても器の下の端は窓の中に収まっている。
+   ★--dp-glow-y は、下の薄い幕が板の後ろに足す明かりの高さ（器の上の端から。板の真ん中と同じ）。 */
+.dp-stage{--dp-glow-y:calc(46vh - 142px);
+  position:relative;isolation:isolate;display:grid;
+  grid-template-columns:minmax(0,600px);justify-content:center;
+  grid-template-rows:minmax(max(0px,92vh - 356px),auto);
+  grid-template-rows:minmax(max(0px,92svh - 356px),auto);
+  align-content:start;align-items:center;padding:36px 24px 88px;
   min-height:clamp(560px,calc(100vh - 170px),760px)}
 /* 薄い幕。★1行目は color-mix を知らないブラウザ用（順番を入れ替えない）。
    幕が出なくても読めなくなるものは無い ── 板の面は透けていない。
    ・上の重ね ＝ 板のまわりだけ地の色を少し足して、板のすぐ後ろの形を一歩さげる。
+     高さは器が持つ --dp-glow-y（広い画面は板の真ん中・スマホは上から 18%）。
    ・下の重ね ＝ 全体をごく薄く覆い、**下の 160px だけ**地の色へ溶かす（器の高さの割合で
      溶かすと、板の高いスマホでは、板のすぐ下から消え始めて影絵がほとんど見えなくなる）。
    ⚠️ 左右へはみ出すのは 12px まで。スマホの本文の余白は 16px で、それを超えると
@@ -365,7 +396,7 @@
 .dp-stage::before{content:"";position:absolute;inset:0 -12px;z-index:1;pointer-events:none;
   background:linear-gradient(to bottom,transparent calc(100% - 160px),var(--pv-bg-sub));
   background:
-    radial-gradient(ellipse 56% 42% at 50% 18%,
+    radial-gradient(ellipse 56% 42% at 50% var(--dp-glow-y),
       color-mix(in srgb,var(--pv-bg-sub) 36%,transparent),transparent),
     linear-gradient(to bottom,
       color-mix(in srgb,var(--pv-bg-sub) 10%,transparent) 0,
@@ -377,17 +408,23 @@
    ★枠は実線。破線（.dp-msg--lock）は地の上に置く板の形で、浮いた板では縁がざらつく。
      色は --pv-line より一段はっきり ── 暗い面では影がほとんど見えないので、板の縁を
      決めるのはこの線になる（1行目は color-mix を知らないブラウザ用。順番を入れ替えない）。 */
-.dp-stage>.dp-msg{position:relative;z-index:2;flex:0 1 600px;min-width:0;border-style:solid;
+.dp-stage>.dp-msg{position:relative;z-index:2;min-width:0;border-style:solid;
   border-color:var(--pv-line);
   border-color:color-mix(in srgb,var(--pv-ink-3) 26%,var(--pv-line));
   box-shadow:var(--pv-shadow-lift),
     0 44px 88px -40px color-mix(in srgb,var(--pv-navy) 30%,transparent)}
-/* スマホ。板は見出しのすぐ下から。★左右の余白は幅に合わせて 0〜12px ── 320px で
-   余白を取ると、板の中のボタン（英語は「Share your pay anonymously」）が2行に折れる。
+/* スマホ。★板を縦の真ん中に置かない（真ん中の段を持たない＝ grid-template-rows:auto）。
+     板が画面のほとんどを使うので、真ん中へ寄せると下が画面からはみ出すだけになる。
+     板は見出しの下から始める。どの板でも同じ場所（短い板だけ下がる、ということもしない）。
+   ★上の余白は 24px（2026-10-11。前は 14px。広い画面で板を下げた回に、スマホも見出しの
+     下へ少し間を取った ── 見出しの下線から板まで 34px。検査は器の上の端から 20〜28px を見る）。
+   ★左右の余白は幅に合わせて 0〜12px ── 320px で余白を取ると、板の中のボタン
+     （英語は「Share your pay anonymously」）が2行に折れる。
    ★下は広めに空ける。板が画面の幅をほぼ使うので、影絵が見えるのは板の下だけ ──
      ここが狭いと「後ろに画面が在る」ことが伝わらない（下の 160px は地へ溶けていく）。 */
 @media (max-width:640px){
-  .dp-stage{padding:14px clamp(0px,calc((100vw - 340px)/4),12px) 200px}
+  .dp-stage{--dp-glow-y:18%;grid-template-rows:auto;
+    padding:24px clamp(0px,calc((100vw - 340px)/4),12px) 200px}
 }
 /* 影絵。★★「隠す」系の宣言を書いてよいのは、このファイルでこの規則だけ（上の注）。
    ・aria-hidden と inert は lockStage() が付ける（読み上げ・キーボードには板だけ）。
