@@ -254,19 +254,11 @@
 <script src="../airline-logos.js"></script>
 <!-- ★絵の実体はここ1か所だけ。色（PVViz.SEG）もここから借りる。 -->
 <script src="../pay-viz.js"></script>
-<!-- Add-the-breakdown-only input (pv-pay-breakdown.js). It appears inside the lock board,
-     **only for a member who has a key but no breakdown yet** — it adds only the missing
-     breakdown to a month they submitted with gross only (the fields asked are the FIELDS
-     list in that file).
-     ★Whether it shows is decided by deep-pay-compare.js (lockAdd). This file does nothing until called.
-     ★Must load **before** deep-pay-compare.js (that file calls window.PVPayBreakdown).
-     ★?v= is a fingerprint of the file. Change the file → copy it to all 4 pages
-       (2 screens × ja/en; assert-links.mjs checks).
-     ★Since the same day (2026-10-11) this page's own CSS and JS carry a fingerprint too
-       (deep-pay.css / deep-pay-compare.css / deep-pay-compare.js). Change one → copy the value
-       assert-links.mjs prints. -->
-<script src="../pv-pay-breakdown.js?v=cc9055f9"></script>
-<script src="../deep-pay-compare.js?v=89abd9ab"></script>
+<!-- ★?v= is a fingerprint of the file (since 2026-10-11 this page's own CSS and JS carry one —
+       deep-pay.css / deep-pay-compare.css / deep-pay-compare.js).
+     Change one → copy the value assert-links.mjs prints to every page that loads it
+     (deep-pay.css: all 4 pages, 2 screens × ja/en; the others: the ja/en pair). -->
+<script src="../deep-pay-compare.js?v=f3f1f599"></script>
 <!-- "Please resubmit" notice. Shown **only to the member themselves** when one of
      their own pay reports has net pay above gross pay.
      ★Nothing is shown to signed-out visitors or to members with nothing to fix

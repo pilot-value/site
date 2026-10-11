@@ -254,15 +254,11 @@
 <script src="airline-logos.js"></script>
 <!-- ★絵の実体はここ1か所だけ。色（PVViz.SEG）もここから借りる。 -->
 <script src="pay-viz.js"></script>
-<!-- 内訳だけを足す入力（pv-pay-breakdown.js）。錠前の板の中に、**鍵は在るが内訳が無い人にだけ**出る
-     ── 総支給だけ出した月に、足りない内訳だけを足す（聞く欄は、あのファイルの FIELDS の一覧）。
-     ★出すかどうかを決めるのは deep-pay-compare.js（lockAdd）。このファイルは呼ばれるまで何もしない。
-     ★deep-pay-compare.js より**前**に読む（あちらが window.PVPayBreakdown を呼ぶ）。
-     ★?v= は中身の指紋。直したら2画面 × 日英の4枚に写す（assert-links.mjs が見ている）。
-     ★同じ日（2026-10-11）から、この画面の CSS と JS にも指紋を付けてある
-       （deep-pay.css / deep-pay-compare.css / deep-pay-compare.js）。直したら assert-links.mjs が出す値を写す。 -->
-<script src="pv-pay-breakdown.js?v=cc9055f9"></script>
-<script src="deep-pay-compare.js?v=89abd9ab"></script>
+<!-- ★?v= は中身の指紋（2026-10-11 から、この画面の CSS と JS に付けてある ──
+       deep-pay.css / deep-pay-compare.css / deep-pay-compare.js）。
+     直したら assert-links.mjs が出す値を、読んでいるページ全部に写す
+     （deep-pay.css は2画面 × 日英の4枚・ほかは日英の2枚）。 -->
+<script src="deep-pay-compare.js?v=f3f1f599"></script>
 <!-- 出し直しのお願い。提出した給与に「手取り ＞ 総支給」の月がある**本人にだけ**出る。
      ★未ログインの人・問題の無い人には何も出さない（線と、通信を増やさない工夫は pv-pay-fix.js の冒頭）。
      ★この画面の PV_SESSION と sb を借りるので、それより**後**に読む。

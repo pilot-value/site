@@ -24,10 +24,7 @@
             few  … 比べられる会社が1社しか無い（★選択欄ごと出ない）
             lock … 鍵がまだ無い（給与を1件も出していない）＝板は3行
             det  … 鍵はあるが内訳を書いていない＝板は2行（内訳・100人）
-                   ★板の中に「内訳だけを足す入力」（pv-pay-breakdown.js）が出る。
-                     見本の月は ANA / 2026年9月 / JPY 1,150,000（作り物）
-            over … det の板で3つ答えて送ったら、サーバが「内訳の合計が総支給を
-                   超えています」と断った状態（★文の中に両方の額が出る）
+                   ★ボタンは給与フォームの内訳の節（#pay-detail）を指す
             goal … 鍵も内訳もそろっていて、100人だけが未達＝板は1行
                    （★前はここで「内訳を出すと開きます」と出ていた。直した不具合の絵）
             err  … サーバが返らなかった
@@ -77,7 +74,7 @@ const outPath = path.join(dir, `screenshot-${n}-${label}.png`);
 const url = `http://localhost:3000/${lang === 'en' ? 'en/' : ''}deep-pay-compare.html`;
 
 /* scene ごとに「窓の中で何を選ぶか」。★2社そろうまで何も出ないので、
-   これが無いと撮れるのは入口の板だけになる。ask / lock / det / over / goal / err は選ばない。 */
+   これが無いと撮れるのは入口の板だけになる。ask / lock / det / goal / err は選ばない。 */
 /* ★機材は左右**別々**（2026-09-01）。会社が違えば飛ばす機材も違うので、
    full は左右で違う機材を選ぶ ── 「それぞれの会社で選べる」がそのまま絵になる。 */
 const PICK = {
@@ -236,8 +233,7 @@ await page.evaluateOnNewDocument((scene, theme, lang, cur) => {
                  cohort: null, head: null, comp: null, work: null, var: null };
   /* 錠前の板。当てはまる行だけが出る（deep-pay-compare.js の lockLines）。
        lock … 鍵も内訳も無く、100人も未達＝3行
-       det  … 鍵は在るが内訳が無い＝2行。★内訳だけを足す入力はこの板に出る
-               （over も同じ門。違うのは下の pv_pay_breakdown の答えだけ）
+       det  … 鍵は在るが内訳が無い＝2行。ボタンは給与フォームの内訳の節へ
        goal … 鍵も内訳もそろっていて、100人だけが未達＝1行
               （★前はこの人に「内訳を出すと開きます」と出ていた） */
   const LOCK = Object.assign({}, BOOT, { state: 'locked', give: { detailed: false }, picks: null,
@@ -246,8 +242,6 @@ await page.evaluateOnNewDocument((scene, theme, lang, cur) => {
                  gate: { key: true, detailed: true, crowd: false, contributors: 37, goal: 100 } });
   const DET  = Object.assign({}, BOOT, { state: 'locked', give: { detailed: false }, picks: null,
                  gate: { key: true, detailed: false, crowd: false, contributors: 37, goal: 100 } });
-  /* 内訳を足し終えたか（pv_pay_breakdown の「書く」が通ったら立つ）。 */
-  let ADDED = false;
 
   /* 人数の壁に届かなかった側。★広い区分に登らないので、出るものが何も無い。
      「あと1人」とも、壁が何人かとも書かない（書くと人数が1人単位で読める）。
@@ -277,7 +271,7 @@ await page.evaluateOnNewDocument((scene, theme, lang, cur) => {
     pv_deep_pay: (a) => {
       const q = (a && a.p) || {};
       if (!q.airline) return scene === 'lock' ? LOCK : scene === 'goal' ? GOAL
-        : (scene === 'det' || scene === 'over') ? (ADDED ? GOAL : DET) : BOOT;
+        : scene === 'det' ? DET : BOOT;
       const src = AIR[q.airline] || AIR[WIDE[q.airline]];
       if (!src) return thin(q.airline, q);
       const k = (POSK[q.position] || 1) * (FLTK[q.fleet] || 1);
@@ -302,23 +296,6 @@ await page.evaluateOnNewDocument((scene, theme, lang, cur) => {
         head: Object.assign({}, src.head, { annual_usd: st(src.head.annual_usd, 50),
                                             per_block_usd: st(src.head.per_block_usd, 0.5) }),
         comp: comp, work: work, var: [] };
-    },
-    /* ★内訳だけを足す口（db/deep-pay.sql の pv_pay_breakdown）。pv-pay-breakdown.js が呼ぶ。
-         何も渡さない＝読む → 足せる月を返す。鍵と答えを渡す＝書く。
-         形は本物と同じ（target の6つ・断るときは code）。**数字は全部作り物。**
-         ⚠️ 本物の「合計」には保存済みのほかの手当も入る。ここの sum は見本の定数で、
-            窓の中で打った額を足したものではない（over の絵を撮るためだけの答え）。 */
-    pv_pay_breakdown: (a) => {
-      const q = (a && a.p) || {};
-      const TARGET = { airline: 'ana', airline_other: null, year: 2026, month: 9,
-                       currency: 'JPY', gross: 1150000 };
-      if (!(scene === 'det' || scene === 'over') || ADDED) return { ok: true, target: null };
-      if (!Object.keys(q).length) return { ok: true, target: TARGET };
-      if (scene === 'over') return { ok: false, code: 'over', sum: 1262000, gross: 1150000 };
-      /* 書けた ＝ 本人の内訳がそろった。次の pv_deep_pay から門が変わる
-         （この見本は100人が未達のままなので、板は「100人」の1行だけになる）。 */
-      ADDED = true;
-      return { ok: true, done: true };
     },
     pv_pay_rows: () => ({ ok: true, state: 'open', rows: [], stats: STATS,
                           give: { detailed: true } }),
@@ -367,30 +344,6 @@ await page.waitForFunction(
   () => !!document.querySelector('#dc-hd h1'), { timeout: 15000 });
 await page.waitForFunction(
   () => !document.querySelector('#dc-sides .mr-skel'), { timeout: 15000 });
-
-/* ── 内訳だけを足す入力（det / over）────────────────────────────────
-   板は先に出て、入力は pv_pay_breakdown の答えが着いてから入る。器の data-state が
-   'ready' になるまで待つ（時間で待たない）。 */
-if (scene === 'det' || scene === 'over') {
-  await page.waitForFunction(() => {
-    const e = document.getElementById('dc-lock-add');
-    return !!e && e.getAttribute('data-state') === 'ready';
-  }, { timeout: 15000 });
-}
-if (scene === 'over') {
-  /* いま在る3欄を全部答えて送る ── 基本給 620,000／保証手当は「該当なし」／変動給 642,000。
-     ⚠️ 欄の id を名指ししている。pv-pay-breakdown.js の FIELDS が変わったら、ここも直す。
-     ★本物の操作と同じ順（打つ → 欄を離れる → 押す）。値を代入しただけでは
-       change が出ず、けた区切りに整う前の字を撮ることになる。 */
-  await page.type('#pv-pb-base', '620000');
-  await page.click('#pv-pb-guarantee-none');
-  await page.type('#pv-pb-variable', '642000');
-  await page.click('.pv-pb-btn');
-  await page.waitForFunction(() => {
-    const e = document.querySelector('.pv-pb-warn');
-    return !!e && !e.hidden && e.textContent.length > 0;
-  }, { timeout: 15000 });
-}
 
 if (PICK) {
   const IDS = { a: 'dc-pk-a', b: 'dc-pk-b', pos: 'dc-pk-pos',
@@ -560,10 +513,8 @@ const said = await page.evaluate(() => {
       .map((e) => e.textContent.replace(/\s+/g, ' ').trim()),
     lock: [...document.querySelectorAll('#dc-sides .dp-msg--lock .dp-msg-s')]
       .map((e) => e.innerText.replace(/\n/g, ' ／ ')),
-    /* 内訳だけを足す入力（det / over）。どの給与に足すかの1行と、出ている注意。 */
-    add: [...document.querySelectorAll('.pv-pb-w > *')].map((e) => e.textContent.trim()).join(' · '),
-    addWarn: ((document.querySelector('.pv-pb-warn:not([hidden])') || {}).textContent || ''),
-    addCta: [...document.querySelectorAll('.dp-msg--lock a.dp-cta')].map((e) => e.getAttribute('href')).join(','),
+    /* 板のボタンの行き先（足りない物に合わせて変わる。deep-pay-compare.js の lockHref）。 */
+    cta: [...document.querySelectorAll('.dp-msg--lock a.dp-cta')].map((e) => e.getAttribute('href')).join(','),
   };
 });
 console.log(`通貨: ${said.cur}` + (cur && said.cur !== cur ? `  ❌ 頼んだのは ${cur}（currency.js に無い通貨）` : ''));
@@ -572,9 +523,7 @@ if (said.chips.length) console.log('信頼度の札: ' + said.chips.join(' ｜ '
 if (said.rows.length) console.log('見出し: ' + said.rows.join(' ｜ '));
 if (said.card.length) console.log('カード: ' + said.card.join(' ｜ '));
 if (said.lock.length) console.log('板の行: ' + said.lock.join(''));   // 錠前の板と「まだ出せません」の板は同じ器
-if (said.add) console.log('内訳の入力: ' + said.add);
-if (said.addWarn) console.log('入力の注意: ' + said.addWarn);
-if (said.addCta) console.log('板のボタンの先: ' + said.addCta);
+if (said.cta) console.log('板のボタンの先: ' + said.cta);
 
 await browser.close();
 console.log(outPath);

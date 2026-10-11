@@ -23,8 +23,9 @@
        100人だけが理由の人に「内訳を出すと開きます」と出ていた）。
      ・**年収と Pay / Block Hour は刻みで出す**（円 1万円・100円／ほか 1,000・1）。
        差は今までどおり画面の2つの字の引き算（§4・§7・§7b・§9b）。
-     ・**内訳だけを足す入力**（pv-pay-breakdown.js）が、この画面の板でも同じように
-       出る・出ない・送る（§2c）。板のボタンの行き先は足りない物に合わせる（§2b）。
+     ・**錠前の板のボタンの行き先**は、足りない物に合わせる（フォームの頭／#ps／
+       #pay-detail。§2b）。板の中に入力は置かない ── 入口はこのボタン1本で、
+       内訳は給与フォームで足してもらう。
      ・**手当の月額の2桁は、表示通貨の中で寄せる**（ドルで $629 のような端数を
        出さない。§9c）。
      ・**狭い画面でも機材と信頼度の札が出る**（表の見出し行を消していたので、
@@ -252,13 +253,12 @@ console.log('\n════ ④ 写した関数 ════');
   /* ★丸める道具は6つとも1文字も違えない（2026-10-11 に stepIn・moneyRate・sigIn が増えた）。
        違うと、同じ会社の同じ数字が DEEP PAY と会社比較で別の額になる
        ── どちらの画面も普通に動いたまま。
-     ★lockLines / lockAddSlot は錠前の板の行を決める関数。画面ごとに別々に組んで
+     ★lockLines は錠前の板の行を決める関数。画面ごとに別々に組んで
        いた頃、比較の側だけ「100人に届いていない」の行が抜けていた。
-     ★lockHref / lockBoard / lockAdd は、板のボタンの行き先と「内訳だけを足す入力」の
-       出し方（2026-10-11）。片方の画面でだけ入力が出ない・行き先が違う、を作らない。 */
+     ★lockHref / lockBoard は、板のボタンの行き先と板の組み方（2026-10-11）。
+       片方の画面でだけ行き先が違う、を作らない。 */
   for (const name of ['sig2', 'sigIn', 'stepIn', 'money', 'moneyRate', 'moneyExact',
-                      'segPct', 'airName', 'lockLines', 'lockAddSlot',
-                      'lockHref', 'lockBoard', 'lockAdd']) {
+                      'segPct', 'airName', 'lockLines', 'lockHref', 'lockBoard']) {
     ok(DC[name] && DP[name] && norm(DC[name]) === norm(DP[name]),
        `★${name}() が deep-pay.js の写しのまま（ずれていない）`);
   }
@@ -304,9 +304,6 @@ console.log('\n════ ⑤ 器 ════');
        `${name}: ★airline-logos.js は deep-pay-compare.js より前（ロゴが出ない）`);
     ok(at('pay-viz.js') >= 0 && at('pay-viz.js') < at('deep-pay-compare.js'),
        `${name}: pay-viz.js は deep-pay-compare.js より前`);
-    /* ★内訳だけを足す入力の部品は、板を組む側より前（あちらが window.PVPayBreakdown を呼ぶ）。 */
-    ok(at('pv-pay-breakdown.js') >= 0 && at('pv-pay-breakdown.js') < at('deep-pay-compare.js'),
-       `${name}: ★pv-pay-breakdown.js は deep-pay-compare.js より前`);
     ok(at('deep-pay.css') >= 0, `${name}: deep-pay.css を読んでいる（.dp-pick-* を借りる）`);
     ok(at('deep-pay-compare.css') >= 0, `${name}: deep-pay-compare.css を読んでいる`);
     ok(/<link\s+rel="icon"/.test(html), `${name}: favicon を宣言している`);
@@ -435,43 +432,10 @@ const FAKE = function (payload) {
     }
     return o;
   }
-  /* ── 内訳だけを足す口（pv_pay_breakdown）の偽物（2026-10-11）──────────
-     P.__pb = { target, target2, replies, readErr, open }
-       target  … 読んだときに返す月。無ければ null ＝「足せる月が無い」
-       replies … 書いたときの答えを、押した順に1つずつ。尽きたら「書けた」。
-                 'throw' は例外（本物の 22023）の形 ＝ { data:null, error }
-       target2 … 'moved' を返したあとに読み直したときの月（書いてあれば差し替える）
-       readErr … 読むところで失敗させる
-       open    … 書けたあと、入口の答えを「開いている」に替える（門が変わった形）
-     ★形は assert-deep-pay.mjs の偽物と同じ。window.__pb に回数と引数を控える。 */
-  window.__pb = { reads: 0, writes: [], done: false };
-  const PBK = P.__pb || {};
-  let pbTarget = PBK.target || null;
-  const pbQueue = (PBK.replies || []).slice();
-  const pbCall = (args) => {
-    const p = (args && args.p) || {};
-    if (!Object.keys(p).length) {
-      window.__pb.reads++;
-      if (PBK.readErr) return { data: null, error: { message: 'synthetic read failure' } };
-      return { data: { ok: true, target: pbTarget }, error: null };
-    }
-    window.__pb.writes.push(p);
-    const r = pbQueue.length ? pbQueue.shift() : { ok: true, done: true };
-    if (r === 'throw')
-      return { data: null, error: { code: '22023', message: 'RAW-SERVER-TEXT 金額が読めません / The amount could not be read.' } };
-    if (r && r.code === 'moved' && ('target2' in PBK)) pbTarget = PBK.target2;
-    if (r && r.done) { window.__pb.done = true; pbTarget = null; }
-    return { data: r, error: null };
-  };
-  const OPENED = { state: 'open', stats: STATS, give: { detailed: true },
-                   gate: { key: true, detailed: true, crowd: true, contributors: 37, goal: 100 } };
   const RPC = {
     pv_deep_pay: (args) => {
       const q = (args && args.p) || null;
-      /* 入口の1回（引数なし）。★内訳を足し終えたあとは、開いた答えに替える。 */
-      if (!q || !q.airline)
-        return (window.__pb.done && PBK.open)
-          ? Object.assign({ picks: BOOT.picks }, OPENED) : BOOT;
+      if (!q || !q.airline) return BOOT;         // 入口の1回（引数なし）
       const f = (P.air || {})[q.airline];
       return f ? side(f) : THIN;                  // 表に無い会社＝人数の壁に届かない区分
     },
@@ -498,7 +462,6 @@ const FAKE = function (payload) {
       if (name === 'pv_deep_pay') window.__rpcArgs.push(args === undefined ? null : args);
       const res = (P.__err && name === 'pv_deep_pay')
         ? { data: null, error: { message: 'synthetic failure' } }
-        : name === 'pv_pay_breakdown' ? pbCall(args)
         : { data: RPC[name] ? RPC[name](args) : { ok: true }, error: null };
       /* ★本物の PostgREST は Promise ではなく then だけを持つ箱を返す。
          .catch を持たせると deep-pay-compare.js の Promise.resolve() 包みが
@@ -652,22 +615,14 @@ const SNAP = () => {
     lowHidden: ['dc-diff', 'dc-mix', 'dc-trade', 'dc-cta']
       .filter((id) => !!(document.getElementById(id) || {}).hidden).length,
     /* 錠前の板。行は <br> で区切ってあるので innerText の改行で割る。
-       add   ＝ 内訳だけを足す入力の器（.dp-lock-add）が置かれているか
-       state ＝ 器の状態（pending / ready / none。器が無ければ ''）
-       panel ＝ 入力そのもの（.pv-pb）が**見えている**数。器が hidden なら 0 */
+       cta ＝ 板の入口（ボタン）の行き先。どの板でも1本。 */
     lockBox: (function () {
       const m = document.querySelector('#dc-sides .dp-msg--lock');
       const p = m && m.querySelector('.dp-msg-s');
-      const slot = m && m.querySelector('.dp-lock-add');
       return { on: !!m,
                lines: p ? p.innerText.split('\n').map((x) => x.trim()).filter(Boolean) : [],
-               add: m ? m.querySelectorAll('.dp-lock-add').length : 0,
-               state: slot ? (slot.getAttribute('data-state') || '') : '',
-               panel: [...document.querySelectorAll('.pv-pb')]
-                 .filter((e) => e.getBoundingClientRect().height > 0).length,
                cta: m ? [...m.querySelectorAll('a.dp-cta')].map((e) => e.getAttribute('href')) : [] };
     })(),
-    pb: window.__pb,
     /* ★本文だけ（#dc-root）。人数の形の字を探すのはこちら ── body 全体には
        左メニューの札（「37 / 100人」）が入っていて、あれはこの画面の本文ではない。 */
     main: document.getElementById('dc-root').innerText,
@@ -802,15 +757,10 @@ const LK = {
         goal: 'It opens once 100 pilots have shared their pay (currently 37).' }
 };
 /* ★板のボタンの行き先は、足りない物に合わせて変わる（deep-pay-compare.js の lockHref。
-     assert-deep-pay.mjs の lockHrefWant と同じ表）。どの板でも入口は**1本**。 */
+     assert-deep-pay.mjs の lockHrefWant と同じ表）。どの板でも入口は**1本**
+     （板の中に入力は置かない。内訳は給与フォームで足してもらう）。 */
 const lockHrefWant = (g) => g.key ? (g.detailed ? 'pay-report.html' : 'pay-report.html#pay-detail')
                                   : (g.detailed ? 'pay-report.html#ps' : 'pay-report.html');
-/* 器の状態が決着するまで待つ（時間では待たない）。板は先に出て、入力のための
-   問い合わせ（pv_pay_breakdown を読む）の答えはあとから着く。 */
-const addSettled = (page, want) => page.waitForFunction((w2) => {
-  const e = document.querySelector('.dp-msg--lock .dp-lock-add');
-  return !!e && e.getAttribute('data-state') === w2;
-}, { timeout: 15000 }, want);
 const LOCK_CASES = [
   ['鍵だけ無い',       { key: false, detailed: true,  crowd: true  }, ['key']],
   ['内訳だけ無い',     { key: true,  detailed: false, crowd: true  }, ['det']],
@@ -830,10 +780,7 @@ for (const lang of ['ja', 'en']) {
         .includes(c[0]));
   for (const [name, gate, want] of cases) {
     const g = Object.assign({ contributors: 37, goal: 100 }, gate);
-    const slot = !!(g.key && !g.detailed);
     const { page, errs } = await open(lang, { __gate: g, air: AIR });
-    /* この見本は足せる月を持たない（__pb が無い）＝器は在っても入力は出ない。 */
-    if (slot) await addSettled(page, 'none');
     const s = await page.evaluate(SNAP);
     const exp = want.map((k) => LK[lang][k]);
     ok(s.lockBox.on && s.lockBox.lines.join(' | ') === exp.join(' | '),
@@ -841,286 +788,12 @@ for (const lang of ['ja', 'en']) {
        `今 ${JSON.stringify(s.lockBox.lines)}`);
     const rest = s.main.split(LK[lang].goal).join('');
     ok(!NOCOUNT.test(rest), `${lang}: ★「${name}」── 100人の行のほかに人数が出ない`, countIn(rest));
-    ok(s.lockBox.add === (slot ? 1 : 0),
-       `${lang}: ★「${name}」── 器は「鍵は在るが内訳が無い」板にだけ在る`,
-       `今 ${s.lockBox.add} 個`);
-    /* ★足せる月を聞きに行くのも、その板だけ（ほかの板では1本も投げない）。 */
-    ok(s.pb.reads === (slot ? 1 : 0) && s.lockBox.panel === 0 && s.pb.writes.length === 0,
-       `${lang}: ★「${name}」── 足せる月を聞くのは ${slot ? '1回だけ' : '0回'}・無いので入力は出ない`,
-       `読んだ ${s.pb.reads} 回 / 入力 ${s.lockBox.panel} 個`);
+    /* ★どの板にもボタンが必ず1本在る（門の組み合わせで消えない）。 */
     ok(s.lockBox.cta.join(',') === lockHrefWant(g) && s.pickShown === false
        && !/[¥$€£]\s?\d|万/.test(s.main),
        `${lang}: ★「${name}」── 入口は1本・行き先は ${lockHrefWant(g)}・選択欄も金額も出ない`,
        s.lockBox.cta.join(','));
     ok(errs.length === 0, `${lang}: 「${name}」── JS のエラーが出ない`, errs.join(' / '));
-    await jars.pop().close().catch(() => {});
-  }
-}
-
-// ── 2c. 内訳だけを足す入力（pv-pay-breakdown.js・2026-10-11）──────────
-/* DEEP PAY の画面（assert-deep-pay.mjs の §2c）と**同じ部品・同じ約束**。部品の字と
-   金額の読み方が給与フォームの写しであることは、あちらの ⑪ が字として見ている。
-   ここで見るのは、この画面の板でも同じように動くこと：
-
-     出る相手   … 鍵は在る・内訳が無い・足せる月が在る人だけ
-     出ない相手 … 鍵が無い人／内訳も在る人／足せる月が無い人（§2b）／読めなかった人／
-                  開いている人
-     送るもの   … 読んだ月の鍵そのまま ＋ 3つの答え（金額か「該当なし」の片方）
-     送る回数   … 押した1回だけ。断られたら理由を1つ出して、勝手に送り直さない
-     書けたら   … 入口を引き直して、読み込み直さずにその場で開く
-
-   ★幅は 390 と 1440、日英で4通り。ここの数字は全部作り物。
-   ⚠️ この画面の試験用の入口は開いた画面しか描けないので、錠前は本物の読み込みを通す。
-      窓は見終わったらすぐ閉じる（溜めると、この Mac では混んで嘘の赤が出る）。 */
-const FORM = { ja: read('pay-report.html'), en: read('en/pay-report.html') };
-const cutOne = (s, re) => { const m = re.exec(s); return m ? m[1] : null; };
-/* 給与フォームに「いま在る字」。画面に出た字をこれと突き合わせる（言い換えを通さない）。 */
-const WORDS = (h) => ({
-  base:  cutOne(h, /<label class="form-label" for="f-base">([^<]+)</),
-  guar:  cutOne(h, /<label class="form-label" for="f-guarantee">([^<]+)</),
-  hint:  cutOne(h, /for="f-guarantee">[^<]+<\/label>\s*<input[^>]*>\s*<p class="fld-hint">([\s\S]*?)<\/p>/),
-  vari:  cutOne(h, /<label class="form-label" for="f-var-sum">([^<]+)</),
-  none:  cutOne(h, /<input type="checkbox" id="f-base-none"><span>([^<]+)<\/span>/),
-  gross: cutOne(h, /<label class="form-label" for="f-gross">([^<]+)</),
-  over:  (cutOne(h, /<p class="pd-warn pv-no-cur" id="pd-over" hidden>([\s\S]*?)<\/p>/) || '')
-           .split('<span class="pd-sum"></span>').join('{sum}')
-           .split('<span class="pd-gross"></span>').join('{gross}') || null,
-  miss:  cutOne(h, /const MISS_TAG = '([^']+)';/)
-});
-const FORMW = { ja: WORDS(FORM.ja), en: WORDS(FORM.en) };
-for (const lang of ['ja', 'en']) {
-  const lost = Object.keys(FORMW[lang]).filter((k) => !FORMW[lang][k]);
-  ok(lost.length === 0, `${lang}: 給与フォームから、突き合わせる元の字を全部切り出せた`, lost.join(' '));
-}
-const TGT  = { airline: 'ana', airline_other: null, year: 2026, month: 9, currency: 'JPY', gross: 1150000 };
-const TGT2 = { airline: 'ana', airline_other: null, year: 2026, month: 8, currency: 'JPY', gross: 1090000 };
-const DETG = { key: true, detailed: false, crowd: true, contributors: 37, goal: 100 };
-const PBW = {
-  ja: { cta: '匿名で内訳を追加する', air: '全日本空輸（ANA）', m9: '2026年9月分', m8: '2026年8月分',
-        limit: '1日に投稿できる件数の上限に達しました。明日また続きをどうぞ。',
-        fail: '保存できませんでした。時間をおいてもう一度お試しください。',
-        ask: /比べる2社を選んでください|比べられる会社が、まだ2社ありません/ },
-  en: { cta: 'Add your breakdown anonymously', air: 'All Nippon Airways (ANA)',
-        m9: 'September 2026', m8: 'August 2026',
-        limit: 'You have reached today’s limit for pay reports. Please continue tomorrow.',
-        fail: 'Could not save. Please try again later.',
-        ask: /Choose two airlines to compare|Not enough airlines to compare yet/ }
-};
-/* 入力の見た目と中身を一度に読み取る（assert-deep-pay.mjs の PBSNAP と同じ本体）。 */
-const PBSNAP = () => {
-  const box = document.querySelector('.pv-pb');
-  const f = (k) => {
-    const inp = document.getElementById('pv-pb-' + k);
-    const none = document.getElementById('pv-pb-' + k + '-none');
-    const wrap = inp && inp.closest('.pv-pb-f');
-    if (!inp || !wrap) return null;
-    const t = (sel) => ((wrap.querySelector(sel) || {}).textContent || '');
-    return { v: inp.value, dis: inp.disabled, none: !!(none && none.checked),
-             fs: parseFloat(getComputedStyle(inp).fontSize),
-             label: t('.pv-pb-l label'), hint: ((wrap.querySelector('.pv-pb-h') || {}).innerHTML || ''),
-             noneText: t('.pv-pb-none span'), cur: t('.pv-pb-cur'),
-             miss: [...wrap.querySelectorAll('.pv-pb-miss')].map((e) => e.textContent),
-             ask: t('.pv-pb-aq') };
-  };
-  const warn = document.querySelector('.pv-pb-warn');
-  const btn = document.querySelector('.pv-pb-btn');
-  const vw = document.documentElement.clientWidth;
-  return {
-    on: !!box && box.getBoundingClientRect().height > 0,
-    head: box ? [...box.querySelectorAll('.pv-pb-w > *')].map((e) => e.textContent.trim()) : [],
-    base: f('base'), guarantee: f('guarantee'), variable: f('variable'),
-    warn: (warn && !warn.hidden) ? warn.textContent : '',
-    btn: btn ? { t: btn.textContent, dis: btn.disabled } : null,
-    over: document.documentElement.scrollWidth - vw,
-    out: box ? [...box.querySelectorAll('*')].filter((e) => {
-      const r = e.getBoundingClientRect();
-      return r.width > 0 && (r.right > vw + 1 || r.left < -1);
-    }).length : 0,
-    text: box ? box.innerText : '',
-    body: document.body.innerText,
-    mark: window.__mark || 0,
-    pb: window.__pb, rpc: window.__rpc
-  };
-};
-/* 欄に打つ。★本物の操作と同じ順（焦点を当てる → 打つ → 欄を離れる）。 */
-async function typeIn(page, key, text) {
-  await page.evaluate((id) => {
-    const e = document.getElementById(id);
-    e.scrollIntoView({ block: 'center' });
-    e.focus(); e.select();
-  }, 'pv-pb-' + key);
-  if (text === '') await page.keyboard.press('Backspace');
-  else await page.keyboard.type(text);
-  await page.keyboard.press('Tab');
-}
-const pressSave = (page) => page.evaluate(() => document.querySelector('.pv-pb-btn').click());
-/* 書いた回数が n になり、ボタンがまた押せるようになるまで待つ（＝断りを描き終えた）。 */
-const refused = (page, n) => page.waitForFunction((m) => {
-  const b = document.querySelector('.pv-pb-btn');
-  return window.__pb.writes.length === m && !!b && !b.disabled;
-}, { timeout: 15000 }, n);
-/* 入力が出て、社名が引けるまで待つ（社名の辞書は入力より後に着くことがある）。 */
-async function panelReady(page) {
-  await addSettled(page, 'ready');
-  await page.waitForFunction(() => {
-    const e = document.querySelector('.pv-pb-w b');
-    return !!e && e.textContent.length > 0 && e.textContent !== 'ana';
-  }, { timeout: 15000 });
-}
-
-for (const lang of ['ja', 'en']) {
-  const W = FORMW[lang], X = PBW[lang];
-  for (const width of [390, 1440]) {
-    const tag = `${lang}/${width}`;
-
-    // ── (1) 出る・字はフォームのまま・16px・溢れない ──────────────
-    const { page, errs } = await open(lang, { __gate: DETG, air: AIR,
-      __pb: { target: TGT, open: true } }, 'light', null, null, width);
-    await panelReady(page);
-    const a = await page.evaluate(PBSNAP);
-    const s0 = await page.evaluate(SNAP);
-    ok(a.on && s0.lockBox.panel === 1 && s0.lockBox.state === 'ready' && s0.lockBox.cta.length === 0,
-       `${tag}: ★★鍵は在るが内訳が無く、足せる月が在る人に入力が出る（フォームへのボタンは外れる）`,
-       `見えている=${a.on} 状態=${s0.lockBox.state} ボタン=${s0.lockBox.cta.join(',')}`);
-    ok(s0.lockBox.lines.join('|') === LK[lang].det && s0.pickShown === false,
-       `${tag}: ★板の行はそのまま・選択欄は出ない`, JSON.stringify(s0.lockBox.lines));
-    ok(a.pb.reads === 1 && a.pb.writes.length === 0 && s0.args.length === 1,
-       `${tag}: ★開いただけでは読む1回だけ（書かない・区分も引かない）`, JSON.stringify(a.pb));
-    ok(a.head.join(' | ') === [X.air, X.m9, W.gross + ' JPY 1,150,000'].join(' | '),
-       `${tag}: ★どの給与に足すか（社名・月・総支給）を本人の通貨のまま出す`, a.head.join(' | '));
-    ok(a.base.label === W.base && a.guarantee.label === W.guar && a.variable.label === W.vari
-       && a.guarantee.hint === W.hint
-       && [a.base, a.guarantee, a.variable].every((f) => f.noneText === W.none && f.cur === 'JPY'),
-       `${tag}: ★欄の名前・補足・「${W.none}」は給与フォームの字のまま`,
-       [a.base.label, a.guarantee.label, a.variable.label].join(' / '));
-    ok(a.btn && a.btn.t === X.cta && !a.btn.dis, `${tag}: ボタンは「${X.cta}」`, a.btn && a.btn.t);
-    ok([a.base, a.guarantee, a.variable].every((f) => f.fs >= 16),
-       `${tag}: ★★入力欄の実測 font-size が 16px 以上（iOS が勝手に拡大しない）`,
-       [a.base, a.guarantee, a.variable].map((f) => f.fs).join(' '));
-    ok(a.over <= 1 && a.out === 0, `${tag}: ★★横に溢れない`, `文書 +${a.over}px / 外へ出た要素 ${a.out}`);
-    ok(!/[¥$€£]|万/.test(a.text) && !NOCOUNT.test(a.text) && !/undefined|NaN|null/.test(a.text),
-       `${tag}: ★入力の中に換算した金額・人数・undefined が出ない`);
-
-    // ── (2) 3つそろうまで・読めない額が在るあいだは送らない ────────
-    await pressSave(page);
-    const b = await page.evaluate(PBSNAP);
-    ok(b.pb.writes.length === 0
-       && [b.base, b.guarantee, b.variable].every((f) => f.miss.join() === W.miss),
-       `${tag}: ★★何も答えずに押しても送らない（3欄に「${W.miss}」）`, String(b.pb.writes.length));
-    await typeIn(page, 'base', '12x');
-    await page.click('#pv-pb-guarantee-none');
-    await typeIn(page, 'variable', '0');
-    await pressSave(page);
-    const c = await page.evaluate(PBSNAP);
-    ok(c.pb.writes.length === 0 && c.base.ask.length > 0 && c.base.ask.includes('12x'),
-       `${tag}: ★★読めない額（12x）はここで止める（1回も送らない）`, c.base.ask);
-
-    // ── (3) 押した1回だけ送る → その場で開く ──────────────────────
-    await typeIn(page, 'base', '480000');
-    await page.evaluate(() => {
-      window.__mark = 1;                       // 読み込み直すと消える印
-      const btn = document.querySelector('.pv-pb-btn');
-      btn.click(); btn.click();                // 続けて2回押す
-    });
-    await page.waitForFunction(() => !document.querySelector('.dp-msg--lock')
-      && !!document.querySelector('#dc-sides .dp-msg--ask'), { timeout: 15000 });
-    const e = await page.evaluate(PBSNAP);
-    const s1 = await page.evaluate(SNAP);
-    ok(JSON.stringify(e.pb.writes) === JSON.stringify([{ airline: 'ana', airline_other: null,
-         year: 2026, month: 9, base: '480000', guarantee_none: true, variable: '0' }]),
-       `${tag}: ★★送るのは1回だけ ── 読んだ月の鍵そのまま・答えは金額か「該当なし」の片方`,
-       JSON.stringify(e.pb.writes));
-    ok(s1.lockBox.on === false && !e.on && X.ask.test(s1.msg) && s1.args.length === 2
-       && s1.args[1] === null,
-       `${tag}: ★★書けたら入口を引き直して、その場で開く（板も入力も消える）`,
-       `板=${s1.lockBox.on} 入力=${e.on} 引いた=${s1.args.length} ／ ${s1.msg.slice(0, 30)}`);
-    ok(e.mark === 1 && e.pb.reads === 1,
-       `${tag}: ★ページを読み込み直さない・足せる月を聞き直さない`, `印=${e.mark} 読んだ ${e.pb.reads} 回`);
-    ok(errs.length === 0, `${tag}: 入力から開くまで JS のエラーが出ない`, errs.join(' / '));
-    await jars.pop().close().catch(() => {});
-
-    // ── (4) 断られたら、理由を1つ出して送り直さない ────────────────
-    const { page: p2, errs: errs2 } = await open(lang, { __gate: DETG, air: AIR,
-      __pb: { target: TGT, target2: TGT2,
-        replies: [{ ok: false, code: 'over', sum: 1262000, gross: 1150000 },
-                  { ok: false, code: 'unanswered' }, { ok: false, code: 'limit' },
-                  'throw', { ok: false, code: 'moved' }] } }, 'light', null, null, width);
-    await panelReady(p2);
-    await typeIn(p2, 'base', '620000');
-    await p2.click('#pv-pb-guarantee-none');
-    await typeIn(p2, 'variable', '642000');
-
-    await pressSave(p2); await refused(p2, 1);
-    const r1 = await p2.evaluate(PBSNAP);
-    ok(r1.warn === W.over.split('{sum}').join('JPY 1,262,000').split('{gross}').join('JPY 1,150,000'),
-       `${tag}: ★★超過は、フォームと同じ1文に両方の額を入れて出す`, r1.warn);
-    ok(r1.on && r1.base.v === '620,000' && r1.variable.v === '642,000' && r1.guarantee.none
-       && r1.over <= 1 && r1.out === 0,
-       `${tag}: ★断られても打った答えは消さない・注意が出ても横に溢れない`, `+${r1.over}px / ${r1.out}`);
-
-    await pressSave(p2); await refused(p2, 2);
-    const r2 = await p2.evaluate(PBSNAP);
-    ok(r2.warn === '' && [r2.base, r2.guarantee, r2.variable].every((f) => f.miss.join() === W.miss),
-       `${tag}: ★「未回答」と断られたら欄に印を付ける`);
-
-    await pressSave(p2); await refused(p2, 3);
-    const r3 = await p2.evaluate(PBSNAP);
-    ok(r3.warn === X.limit, `${tag}: ★1日の上限は「明日また」の1行`, r3.warn);
-
-    await pressSave(p2); await refused(p2, 4);
-    const r4 = await p2.evaluate(PBSNAP);
-    ok(r4.warn === X.fail && !/RAW-SERVER-TEXT|22023|could not be read/i.test(r4.body),
-       `${tag}: ★★サーバが例外を返しても、生の文は出さない（短い1行だけ）`, r4.warn);
-    ok(r4.pb.reads === 1 && (await p2.evaluate(SNAP)).args.length === 1,
-       `${tag}: ★★断られたあと、勝手に読み直しも引き直しもしない`, `読んだ ${r4.pb.reads}`);
-
-    await pressSave(p2);
-    await p2.waitForFunction(() => window.__pb.reads === 2
-      && /1,090,000/.test(((document.querySelectorAll('.pv-pb-w > *')[2]) || {}).textContent || ''),
-      { timeout: 15000 });
-    const r5 = await p2.evaluate(PBSNAP);
-    ok(r5.pb.writes.length === 5
-       && r5.head.join(' | ') === [X.air, X.m8, W.gross + ' JPY 1,090,000'].join(' | ')
-       && [r5.base, r5.guarantee, r5.variable].every((f) => f.v === '' && !f.none && !f.dis),
-       `${tag}: ★「月が変わった」と断られたら読み直して、その月で空の入力を描き直す`, r5.head.join(' | '));
-    ok(errs2.length === 0, `${tag}: 断りの筋書きで JS のエラーが出ない`, errs2.join(' / '));
-    await jars.pop().close().catch(() => {});
-  }
-
-  // ── (5) 出ない相手（足せる月は「在る」ことにしてある）────────────────
-  /* ★足せる月が在っても、鍵が無い人・内訳も在る人・開いている人には出さない。
-       **聞きにも行かない**（pv_pay_breakdown を1本も投げない）。 */
-  for (const [name, gate] of [
-    ['鍵が無い',                   { key: false, detailed: false, crowd: true }],
-    ['鍵だけ切れた',               { key: false, detailed: true,  crowd: true }],
-    ['内訳も在る（100人だけ未達）', { key: true,  detailed: true,  crowd: false }]]) {
-    const g = Object.assign({ contributors: 37, goal: 100 }, gate);
-    const { page, errs } = await open(lang, { __gate: g, air: AIR, __pb: { target: TGT } });
-    const s = await page.evaluate(SNAP);
-    ok(s.lockBox.on && s.lockBox.add === 0 && s.lockBox.panel === 0 && s.pb.reads === 0
-       && s.lockBox.cta.join(',') === lockHrefWant(g),
-       `${lang}: ★★「${name}」人には入力を出さない・聞きにも行かない（ボタンは ${lockHrefWant(g)}）`,
-       `器=${s.lockBox.add} 入力=${s.lockBox.panel} 読んだ=${s.pb.reads} ${s.lockBox.cta.join(',')}`);
-    ok(errs.length === 0, `${lang}: 「${name}」── JS のエラーが出ない`, errs.join(' / '));
-    await jars.pop().close().catch(() => {});
-  }
-  {
-    const { page } = await open(lang, { air: AIR, __pb: { target: TGT } });
-    const s = await page.evaluate(SNAP);
-    ok(s.ask === 1 && s.lockBox.panel === 0 && s.pb.reads === 0,
-       `${lang}: ★★開いている画面には入力を出さない・聞きにも行かない`,
-       `入力=${s.lockBox.panel} 読んだ=${s.pb.reads}`);
-    await jars.pop().close().catch(() => {});
-  }
-  // ── (6) 読めなかったとき ──「在る」と決めつけず、ボタンのまま ─────────
-  {
-    const { page } = await open(lang, { __gate: DETG, air: AIR, __pb: { target: TGT, readErr: true } });
-    await addSettled(page, 'none');
-    const s = await page.evaluate(SNAP);
-    ok(s.lockBox.panel === 0 && s.lockBox.cta.join(',') === 'pay-report.html#pay-detail'
-       && s.pb.reads === 1,
-       `${lang}: ★足せる月を読めなかったら入力を出さない（ボタンは内訳の節へ）`,
-       `入力=${s.lockBox.panel} ${s.lockBox.cta.join(',')}`);
     await jars.pop().close().catch(() => {});
   }
 }
