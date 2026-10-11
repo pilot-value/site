@@ -147,7 +147,7 @@ window.PVRoadmap = {
        ⚠️ date は**本番へ出た日**（上の①）。push の日がずれたら、この1行の日付を直す
           （画面に出るのは年と月だけ）。
        ⚠️ 開く条件・人数をここに書かない（条件を言うのは DEEP PAY の画面だけ）。 */
-    { id: 'deep-pay', state: 'done', date: '2026-10-11',
+    { id: 'deep-pay', state: 'done', date: '2026-10-12',
       ja: { t: 'DEEP PAY を公開',
             d: '会社・職位・機材ごとに、年収の中央値・給与構成・働き方をまとめて見られます。' },
       en: { t: 'DEEP PAY is live',
