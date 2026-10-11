@@ -54,7 +54,7 @@
   <link rel="stylesheet" href="app-nav.css">
   <!-- この画面だけの見た目（.dp-*）。
        ★.pt-* / .mv-* をトップレベルで書き直さない（db/test-form-contract.mjs が見ている）。 -->
-  <link rel="stylesheet" href="deep-pay.css">
+  <link rel="stylesheet" href="deep-pay.css?v=e450273c">
 
   <style>
     /* ここに置くのは「CSS が届く前に見えてしまう部分」だけ。
@@ -166,8 +166,8 @@
         <!-- 区分を選ぶ（会社 / 役職 / 機材）。中身は deep-pay.js が入れる。
              ★どれも選んでいないうちは何も出さない（呼んだ本人の区分を勝手に出さない）。
                 入口で1回だけ引数なしで呼ぶのは、state と鍵を知るためだけ。
-             ★3人に満たない区分を伏せるのは SQL（db/deep-pay.sql）だけの仕事。
-                ここで人数を数えたり隠したりしない。 -->
+             ★データが足りない区分を伏せるのは SQL（db/deep-pay.sql）だけの仕事。
+                壁が何人かは画面のどこにも書かない。ここで人数を数えたり隠したりしない。 -->
         <div class="dp-pick" id="dp-pick" hidden></div>
 
         <!-- KPI 4枚。★読めない数字はカードごと落とす（0 を並べない） -->
@@ -234,7 +234,15 @@
 <script src="pv-gates.js"></script>
 <!-- ★絵の実体はここ1か所だけ。ドーナツを自前で描かない。 -->
 <script src="pay-viz.js"></script>
-<script src="deep-pay.js"></script>
+<!-- 内訳だけを足す入力（pv-pay-breakdown.js）。錠前の板の中に、**鍵は在るが内訳が無い人にだけ**出る
+     ── 総支給だけ出した月に、足りない内訳だけを足す（聞く欄は、あのファイルの FIELDS の一覧）。
+     ★出すかどうかを決めるのは deep-pay.js（lockAdd）。このファイルは呼ばれるまで何もしない。
+     ★deep-pay.js より**前**に読む（あちらが window.PVPayBreakdown を呼ぶ）。
+     ★?v= は中身の指紋。直したら2画面 × 日英の4枚に写す（assert-links.mjs が見ている）。
+     ★同じ日（2026-10-11）から、この画面の CSS と JS にも指紋を付けてある
+       （deep-pay.css / deep-pay.js）。直したら assert-links.mjs が出す値を写す。 -->
+<script src="pv-pay-breakdown.js?v=cc9055f9"></script>
+<script src="deep-pay.js?v=8ddae9f0"></script>
 <!-- 出し直しのお願い。提出した給与に「手取り ＞ 総支給」の月がある**本人にだけ**出る。
      ★未ログインの人・問題の無い人には何も出さない（線と、通信を増やさない工夫は pv-pay-fix.js の冒頭）。
      ★この画面の PV_SESSION と sb を借りるので、それより**後**に読む。

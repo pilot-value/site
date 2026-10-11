@@ -64,8 +64,11 @@
      （stepIn。actual-pay.js:disp と同じ考え方）── 円なら 1万円・100円、
      それ以外の通貨なら 1,000・1。省くと、通貨を切り替えた瞬間だけ端数の
      残った数字が出て「本当は1円単位まで持っているのでは」と読める。
-   ・それ以外の金額（給与構成の月額）は今までどおり有効数字2桁（moneyExact）。
-     サーバも2桁のまま返している。**こちらは細かくしていない。**
+   ・それ以外の金額（給与構成の月額・月換算）は今までどおり有効数字2桁
+     （moneyExact / moneyMonth）。サーバも2桁のまま返している。**こちらは細かく
+     していない。** ただし2桁に寄せるのは**表示通貨へ換算してから**（sigIn。
+     2026-10-11）── 円で寄せてから換算すると、ドルでは $4,781 のように
+     持っていない桁が並ぶ。円の表示は今までと1文字も変わらない。
    ★#dp-root に pv-no-cur が付いている（currency.js の自動走査を止める）。
      切替は 'pv-currency-change' を購読して**描き直すだけ**。
      ⚠️ 描き直しで pv_deep_pay() を引き直さない。データは S に持つ。
@@ -327,14 +330,30 @@
   }
 
   // ── 数字 ───────────────────────────────────────────────────────
-  /* 有効数字2桁（actual-pay.js:sig2）。円に直した値に掛ける。
-     ★使うのは給与構成の月額（moneyExact）と月換算（moneyMonth）だけ。
+  /* 有効数字2桁（actual-pay.js:sig2）。
+     ★使うのは給与構成の月額（moneyExact）と月換算（moneyMonth）だけで、
+       どちらも下の sigIn を通して**表示通貨の値**に掛ける。
        見出しの2つ（年収・Pay / Block Hour）は 2026-10-11 から下の stepIn。 */
   function sig2(v) {
     v = Number(v);
     if (!isFinite(v) || v <= 0) return 0;
     var p = Math.pow(10, Math.floor(Math.log(v) / Math.LN10) - 1);
     return Math.round(v / p) * p;
+  }
+  /* ── 有効数字2桁を、表示通貨の中で掛ける（2026-10-11）──────────────
+     前は円に直した値を2桁に寄せてから、表示通貨へ換算していた。円では正しいが、
+     ほかの通貨では換算のあとに端数が戻る ── サーバの $4,800 が ¥760,000 を経て
+     $4,781 と出て、1ドル単位まで持っているように読める（持っているのは2桁だけ）。
+     だから下の stepIn と同じ順にした：**換算してから寄せ、円に戻して整形へ渡す。**
+     ★返すのは**円**（整形は exact / fmt の1か所のまま）。
+     ★円のときはレートが 1 ＝ sig2 そのもの。円の表示は1文字も変わらない。
+     ⚠️ 桁を増やさない。2桁はサーバが返している細かさそのもの（項目ごとに人数の
+        壁を掛け直した数なので、見出しの2つより粗いままにしてある）。 */
+  function sigIn(jpy) {
+    var C = w.PVCurrency;
+    var cur = (C && C.get) ? C.get() : 'JPY';
+    var rate = (C && C.rates && C.rates[cur]) || 1;
+    return sig2(jpy / rate) * rate;
   }
   /* ── 見出しの2つだけ、表示通貨の中で「刻み」に寄せる（2026-10-11・オーナー判断）──
      年収の中央値と Pay / Block Hour は、サーバが刻み（$50・$0.5）で返すように
@@ -369,10 +388,10 @@
     if (n == null) return null;
     return exact(stepIn(usdToJpy(n), 100, 1));
   }
-  function moneyExact(usd) {                // 給与構成の月額。USD → 表示通貨（2桁・圧縮なし）
+  function moneyExact(usd) {                // 給与構成の月額。USD → 表示通貨（その通貨の中で2桁・圧縮なし）
     var n = num(usd);
     if (n == null) return null;
-    return exact(sig2(usdToJpy(n)));
+    return exact(sigIn(usdToJpy(n)));
   }
   /* 年額 USD → 月額の表示。bPct ＝ 年収に占める賞与の割合（%）。
      ★2026-09-01、ここを**賞与ぬき**にした。同じ画面の「給与構成」の月額は
@@ -382,6 +401,8 @@
        stepIn）。賞与の割合もすぐ下に出ているので、読み手が
        「1,903万 × 0.95 ÷ 12 ≒ 150万」と検算できる。
      ★こちらは「約」なので有効数字2桁のまま（2026-10-11 に細かくしたのは年収だけ）。
+       2桁に寄せるのは表示通貨の中（sigIn）── ドルなら「$120K × 0.95 ÷ 12 ≒ $9.5K」と、
+       その通貨の字のまま検算できる（円で寄せてから換算すると $9.4K になって合わない）。
      ⚠️ 賞与の割合が null のとき（賞与を書いた人が人数の壁に満たず伏せている）は 0 として
         扱い、**ラベルにも「賞与ぬき」と書かない**（k1n のまま）。本当は賞与がある人が
         壁の手前の人数だけいる場合があり、そこで「賞与ぬき」と名乗ると嘘になる。 */
@@ -390,7 +411,7 @@
     if (n == null) return null;
     var b = num(bPct);
     var keep = b == null ? 1 : Math.max(1 - b / 100, 0);
-    return fmt(sig2(stepIn(usdToJpy(n), 1e4, 1e3) * keep / 12));
+    return fmt(sigIn(stepIn(usdToJpy(n), 1e4, 1e3) * keep / 12));
   }
 
   // ── 図形（アイコンは1か所にまとめる）───────────────────────────
@@ -913,13 +934,90 @@
                          .replace('{n}',    function () { return String(g.contributors); }));
     return out;
   }
-  /* ★段階3の差し込み口。「鍵は在るが内訳が無い」人の板にだけ、空の器を1つ置く。
-       そこへ「総支給だけ出した月に、内訳だけ足す」入力を入れる予定
-       （db/deep-pay.sql の pv_pay_breakdown）。**いまは器だけで、中身は無い。**
-     ⚠️ 器は hidden で出す。中身を入れる側が hidden を外すこと。 */
+  /* ── 内訳だけを足す入力（2026-10-11・オーナー指示）──────────────
+     「鍵は在るが内訳が無い」人の板にだけ、器（.dp-lock-add）を1つ置く。そこへ
+     pv-pay-breakdown.js が「総支給だけ出した月に、足りない内訳だけ足す」入力を入れる
+     （サーバの口は db/deep-pay.sql の pv_pay_breakdown）。総支給も対象月も
+     打ち直させない ── 聞くのは、その人にまだ足りない分だけ。
+     ★下の4つ（lockAddSlot / lockHref / lockBoard / lockAdd）は deep-pay-compare.js と
+       **同じ本体**（ずれは assert-deep-pay-compare.mjs の「写した関数」が見張る）。
+     ⚠️ 器は hidden で出す。足せる月が在ると分かったとき（'ready'）だけ外す。 */
   function lockAddSlot(gate) {
     var g = gate || {};
     return !!g.key && !g.detailed;
+  }
+  /* 板のボタンの行き先。★給与フォームの「どこから始めるか」を、足りない物に合わせる。
+       鍵も内訳も無い          → フォームの頭（1件まるごと出してもらう）
+       鍵だけ切れた（内訳は在る）→ #ps（明細からの入口。新しい月を出せば鍵が戻る）
+       鍵は在るが内訳が無い    → #pay-detail（内訳の節。pv-gates.js の DETAIL_URL と同じ）
+       鍵も内訳も在る          → フォームの頭（止めているのは人数。今までどおり）
+     ★3つめは「足せる月が無かった」ときの受け皿。足せる月が在れば、このボタンは
+       下の lockAdd() が外して、その場の入力に替える。 */
+  function lockHref(gate) {
+    var g = gate || {};
+    if (g.key) return g.detailed ? 'pay-report.html' : 'pay-report.html#pay-detail';
+    return g.detailed ? 'pay-report.html#ps' : 'pay-report.html';
+  }
+  /* 器の持ち主。host は入力の入れ物で、板を組み直しても**同じ1つ**を付け替える。
+     state は 'pending'（読んでいる）/ 'ready'（入力が出ている）/ 'none'（足せる月が無い）。
+     ★null ＝ まだ読んでいない。load() が答えを受け取るたびに null へ戻す
+       （門が変わったら読み直す。同じ門のあいだは読み直さない）。 */
+  var ADD = null;
+  /* 板を組むのは、中身が変わった回だけ。render() は何度も走る（社名の辞書があとから
+     届く・通貨の切替）── 毎回組み直すと、内訳を打っている途中の欄から焦点が外れる。
+     ★印（pvSig）は板そのものに持たせる。ほかの描き手（ask / thin / KPI）が器を
+       書き替えれば板ごと消えるので、古い印で「同じ」と読み違えない。
+     ★ADD が空のときは必ず組み直す ── これから読むので、前の入力の跡（外したボタン・
+       前の入れ物）が残った板を使い回さない。 */
+  function lockBoard(box, html) {
+    var m = box.firstElementChild;
+    if (!ADD || !m || m.pvSig !== html || box.children.length !== 1) {
+      box.innerHTML = html;
+      m = box.firstElementChild;
+      if (m) m.pvSig = html;
+    }
+    box.hidden = false;
+    lockAdd(m);
+  }
+  /* ★読むのは1回だけ（ADD が在るあいだは読み直さない）。読んでいるあいだは何も足さない
+       ── 板は今までどおりのボタンのまま。足せる月が在ったときだけ、器を出して
+       ボタンを外す（同じ板に「出す」が2つ並ばないように）。無かった・読めなかった
+       ときは何も変えない（ボタンは lockHref() の行き先のまま残る）。
+     ★状態が変わったら板を組み直す（印を消して render）。'ready' のあと 'none' に
+       戻ることがある（足している間に、別の端末で同じ月を足した）── そのとき
+       外したボタンを出し直すため。
+     ★書けたら load() をやり直す ＝ 画面が読み込み直さずにその場で開く。
+       ADD はここでは空にしない（答えが返るまで、いまの板と入力をそのまま置く。
+       空にすると、そのあいだに走った render() がもう一度読みに行く）。 */
+  function lockAdd(m) {
+    var slot = m && m.querySelector('.dp-lock-add');
+    var P = w.PVPayBreakdown;
+    if (!slot || !P || !P.mount || !S.client) return;
+    var me = ADD;
+    if (!me) {
+      me = ADD = { host: d.createElement('div'), state: 'pending', h: null };
+      me.h = P.mount(me.host, S.client, {
+        lang: L, airName: airName,
+        onState: function (st) {
+          if (ADD !== me) return;
+          me.state = st;
+          var b = me.host.parentNode && me.host.parentNode.parentNode;
+          if (b) b.pvSig = '';
+          render();
+        },
+        onDone: function () {
+          if (ADD !== me) return;
+          load(S.client);
+        }
+      });
+    }
+    if (me.host.parentNode !== slot) slot.appendChild(me.host);
+    if (me.h && me.h.refresh) me.h.refresh();      // 社名の辞書があとから届いた回
+    var on = me.state === 'ready';
+    slot.hidden = !on;
+    slot.setAttribute('data-state', me.state);
+    var a = m.querySelector('a.dp-cta');
+    if (on && a) a.parentNode.removeChild(a);
   }
   function shut(kind) {
     ['dp-comp', 'dp-work', 'dp-var', 'dp-more'].forEach(function (id) {
@@ -935,16 +1033,16 @@
       return;
     }
     var g = (S.data && S.data.gate) || {};
-    /* ★どの行を出すかは lockLines() が決める（上の注）。ここで足したり埋めたりしない。 */
+    /* ★どの行を出すかは lockLines() が決める（上の注）。ここで足したり埋めたりしない。
+       ★ボタンの行き先は lockHref()、内訳だけ足す入力は lockBoard() → lockAdd()。 */
     var lines = lockLines(g);
-    box.innerHTML = '<div class="dp-msg dp-msg--lock">' +
+    lockBoard(box, '<div class="dp-msg dp-msg--lock">' +
       '<div class="dp-msg-t">' + IC.lock.replace('24" height="24', '18" height="18') +
         esc(T.lockT) + '</div>' +
       (lines.length ? '<p class="dp-msg-s">' + lines.map(esc).join('<br>') + '</p>' : '') +
       (lockAddSlot(g) ? '<div class="dp-lock-add" id="dp-lock-add" hidden></div>' : '') +
-      '<a class="dp-cta" href="pay-report.html">' + esc(T.lockCta) + '</a>' +
-      '<p class="dp-cta-n">' + esc(T.lockN) + '</p></div>';
-    box.hidden = false;
+      '<a class="dp-cta" href="' + lockHref(g) + '">' + esc(T.lockCta) + '</a>' +
+      '<p class="dp-cta-n">' + esc(T.lockN) + '</p></div>');
   }
 
   /* ★選んだ区分が人数の壁に届かなかったとき。**広い区分の数字で埋めない。**
@@ -1070,6 +1168,8 @@
       var v = res && res.data;
       S.data = v || null;
       S.mode = (v && v.state === 'open') ? 'open' : (v ? 'locked' : 'error');
+      /* ★門の答えが新しくなったので、内訳だけ足す入力も読み直させる（lockAdd の注）。 */
+      ADD = null;
       /* ★一度届いた一覧は消さない。区分を選び直すたびに引き直すので、
            1回でも欠けた答えが来ると選択欄がまるごと消えてちらつく。 */
       setPicks(v && v.picks);
@@ -1088,12 +1188,15 @@
 
   /* ★試験用の入口（shot-deep.mjs / assert-deep-pay.mjs が使う）。
      本番の画面はここを呼ばない。**作り物のデータを既定で描かせない**ため、
-     呼ばれたときだけ S を差し替えて描き直す。 */
+     呼ばれたときだけ S を差し替えて描き直す。
+     ★内訳だけ足す入力も読み直させる（ADD を空に戻す）。門を差し替えたのに
+       前の門で読んだ答えを使い回すと、検査が古い板を見ることになる。 */
   w.PVDeepPay = {
     render: function (data) { S.data = data || null;
                               setPicks(data && data.picks);
                               fix();
                               S.mode = (data && data.state === 'open') ? 'open' : 'locked';
+                              ADD = null;
                               render(); }
   };
 

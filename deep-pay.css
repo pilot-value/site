@@ -110,7 +110,8 @@
   区切りの「/」だけなら害は無いが、この画面では「隠す・選べなくする」系の宣言を
   1つも置かないことを assert-deep-pay.mjs が例外なしで見ている（ぼかしの禁止）。
   例外を1つ作ると、次に値そのものへ付いたときに赤くならない。 */
-/* 信頼度。★n が小さいほど淡い。数字（n）は隣の KPI が持つ。 */
+/* 信頼度の札。★段（高・中・低）はサーバが決めて返す（cohort.trust）。低い段ほど淡い。
+   人数は画面のどこにも出さない（2026-10-11）── この札が、人数のかわりに出るたった1つの印。 */
 .dp-trust{display:inline-flex;align-items:center;gap:5px;flex:none;
   font-size:.7rem;font-weight:700;letter-spacing:.01em;
   border-radius:999px;padding:2px 9px;
@@ -213,7 +214,7 @@
 /* ── 淡い囲み（時給ではなく…）────────────────────────────────
    ★「データの見方」の板5枚（.dp-notes / .dp-note）は 2026-08-31 に削除。
      オーナー判断「いらない。じゃま。」。残したのは .dp-foot の1行だけ ──
-     3人の壁は約束なので消せない。 */
+     人数の壁は約束なので消せない（何人かは書かない。2026-10-11）。 */
 .dp-hint{display:flex;gap:9px;margin-top:12px;padding:9px 11px;border-radius:var(--pv-r-sm);
   background:var(--pv-blue-soft);border:1px solid var(--pv-blue-line)}
 .dp-hint svg{flex:none;width:15px;height:15px;color:var(--pv-blue-ink);margin-top:1px}

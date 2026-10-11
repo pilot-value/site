@@ -54,10 +54,10 @@
   <link rel="stylesheet" href="app-nav.css">
   <!-- ★DEEP PAY 本体の見た目をそのまま借りる。ピッカー（.dp-pick-*）・条件バー（.dp-cond）・
        案内カード（.dp-msg）・段組み（.dp-row）は写さずここから使う。写すとドリフトする。 -->
-  <link rel="stylesheet" href="deep-pay.css">
+  <link rel="stylesheet" href="deep-pay.css?v=e450273c">
   <!-- この画面だけの見た目（.dc-*）。
        ★.pt-* / .mv-* / .mr-* をトップレベルで書き直さない（db/test-form-contract.mjs が見ている）。 -->
-  <link rel="stylesheet" href="deep-pay-compare.css">
+  <link rel="stylesheet" href="deep-pay-compare.css?v=af0f6449">
 
   <style>
     /* ここに置くのは「CSS が届く前に見えてしまう部分」だけ。
@@ -173,14 +173,14 @@
             <div class="mr-skel" style="height:30px;width:46%"></div>
           </div>
 
-          <!-- いま見ている条件の1行（◯人 vs ◯人 / 直近24か月） -->
+          <!-- いま見ている条件の1行（役職 / 直近24か月）。人数は出さない -->
           <div id="dc-cond"></div>
         </div>
 
         <!-- 2社を選ぶ（会社A / 会社B / 役職 / 機材）。役職と機材は左右で共通。
              ★2社そろうまで何も出さない。片方だけでは比較にならない。
-             ★3人に満たない区分を伏せるのは SQL（db/deep-pay.sql）だけの仕事。
-                ここで人数を数えたり隠したりしない。 -->
+             ★データが足りない区分を伏せるのは SQL（db/deep-pay.sql）だけの仕事。
+                壁が何人かは画面のどこにも書かない。ここで人数を数えたり隠したりしない。 -->
         <div class="dp-pick" id="dc-pick" hidden></div>
 
         <!-- 案内の置き場（読み込み中の骨・鍵・「区分を選んでください」・「別の会社を」）
@@ -254,7 +254,15 @@
 <script src="airline-logos.js"></script>
 <!-- ★絵の実体はここ1か所だけ。色（PVViz.SEG）もここから借りる。 -->
 <script src="pay-viz.js"></script>
-<script src="deep-pay-compare.js"></script>
+<!-- 内訳だけを足す入力（pv-pay-breakdown.js）。錠前の板の中に、**鍵は在るが内訳が無い人にだけ**出る
+     ── 総支給だけ出した月に、足りない内訳だけを足す（聞く欄は、あのファイルの FIELDS の一覧）。
+     ★出すかどうかを決めるのは deep-pay-compare.js（lockAdd）。このファイルは呼ばれるまで何もしない。
+     ★deep-pay-compare.js より**前**に読む（あちらが window.PVPayBreakdown を呼ぶ）。
+     ★?v= は中身の指紋。直したら2画面 × 日英の4枚に写す（assert-links.mjs が見ている）。
+     ★同じ日（2026-10-11）から、この画面の CSS と JS にも指紋を付けてある
+       （deep-pay.css / deep-pay-compare.css / deep-pay-compare.js）。直したら assert-links.mjs が出す値を写す。 -->
+<script src="pv-pay-breakdown.js?v=cc9055f9"></script>
+<script src="deep-pay-compare.js?v=89abd9ab"></script>
 <!-- 出し直しのお願い。提出した給与に「手取り ＞ 総支給」の月がある**本人にだけ**出る。
      ★未ログインの人・問題の無い人には何も出さない（線と、通信を増やさない工夫は pv-pay-fix.js の冒頭）。
      ★この画面の PV_SESSION と sb を借りるので、それより**後**に読む。

@@ -25,6 +25,12 @@
                     （★選択欄ごと出ない。全社を並べる逃げ道は置かない）
             lock  … 鍵がまだ無い（給与を1件も出していない）＝板は3行
             det   … 鍵はあるが内訳を書いていない＝板は2行（内訳・100人）
+                    ★板の中に「内訳だけを足す入力」（pv-pay-breakdown.js）が出る。
+                      見本の月は ANA / 2026年9月 / JPY 1,150,000（作り物）
+            over  … det の板で3つ答えて送ったら、サーバが「内訳の合計が総支給を
+                    超えています」と断った状態（★文の中に両方の額が出る）
+            nomonth…鍵はあるが内訳が無く、**足せる月も無い**（明細で裏付けた月しか
+                    無い等）＝入力は出ず、ボタンが給与フォームの内訳の節を指す
             goal  … 鍵も内訳もそろっていて、100人だけが未達＝板は1行
             err   … サーバが返らなかった
      lang : ja | en
@@ -82,10 +88,10 @@ const PICK = {
   fold: { airline: 'ana', position: 'cap' },
   pos:  { position: 'cap' },
   pick: { airline: 'jal', position: 'cap', fleet: 'b787' },
-  thin: { airline: 'sas' },
-  det:  { airline: 'ana' }
-  /* lock / det / goal は錠前の板。選択欄が出ないので、det の指定は使われない
-     （鍵が閉じている画面では picker() が欄ごと隠す）。 */
+  thin: { airline: 'sas' }
+  /* lock / det / over / nomonth / goal は錠前の板。**何も選ばない**（鍵が閉じている
+     画面では picker() が欄ごと隠す）。前は det に会社の指定が在ったが、隠れた欄へ
+     値を入れると画面が引き直しに行き、内訳だけを足す入力も読み直しになる。 */
 }[scene] || null;
 
 /* ★ headless:'new' はこの環境で page.screenshot() が返ってこない
@@ -179,7 +185,8 @@ await page.evaluateOnNewDocument((scene, theme, lang, cur) => {
   /* 錠前の板。閉じている理由は3つ（鍵／本人の内訳／みんなの側＝100人）で、
      当てはまる行だけが出る（deep-pay.js の lockLines）。
        lock … 3つとも当てはまる＝3行
-       det  … 鍵は在る＝2行（内訳・100人）。★段階3の差し込み口はこの板に付く
+       det  … 鍵は在る＝2行（内訳・100人）。★内訳だけを足す入力はこの板に出る
+               （over / nomonth も同じ門。違うのは下の pv_pay_breakdown の答えだけ）
        goal … 鍵も内訳もそろっている＝1行（100人だけ） */
   const LOCK = { ok: true, state: 'locked', stats: STATS, give: { detailed: false },
                  gate: { key: false, detailed: false, crowd: false, contributors: 37, goal: 100 },
@@ -213,7 +220,8 @@ await page.evaluateOnNewDocument((scene, theme, lang, cur) => {
     cohort: null, head: null, comp: null, work: null, var: [] };
 
   const SCENES = { full: FULL, day1: DAY1, fold: FOLD, pos: POS,
-                   pick: PICK, thin: THIN, lock: LOCK, det: DET, goal: GOAL, nolist: NOLIST };
+                   pick: PICK, thin: THIN, lock: LOCK, det: DET, over: DET, nomonth: DET,
+                   goal: GOAL, nolist: NOLIST };
   const DEEP = SCENES[scene] || FULL;
 
   /* ★選べる組み合わせ（2026-09-01）。画面はこれで選択肢を絞る。形は
@@ -284,6 +292,8 @@ await page.evaluateOnNewDocument((scene, theme, lang, cur) => {
     return o;
   }
 
+  /* 内訳を足し終えたか（pv_pay_breakdown の「書く」が通ったら立つ）。 */
+  let ADDED = false;
   const RPC = {
     /* ★選んだ区分に答える（2026-08-30）。ここを () => DEEP のままにすると、
        窓の中でセレクタを動かしても**答えが1つも変わらない**＝
@@ -298,7 +308,7 @@ await page.evaluateOnNewDocument((scene, theme, lang, cur) => {
          一覧を持ち続けるので、選んだ後の答えに毎回入れる必要は無い）。
          ⚠️ nolist だけ渡さない＝選択欄ごと出ない。 */
       if (!q.airline && !q.position && !q.fleet)
-        return Object.assign(scene === 'nolist' ? {} : { picks: PICKS }, DEEP);
+        return Object.assign(scene === 'nolist' ? {} : { picks: PICKS }, ADDED ? GOAL : DEEP);
       const echo = { manual: true, airline: q.airline || null,
                      pos: q.fleet && !q.position ? null : (q.position || null),
                      fleet: q.fleet || null };
@@ -315,6 +325,24 @@ await page.evaluateOnNewDocument((scene, theme, lang, cur) => {
       return Object.assign(
         scale(DEEP, (POSK[q.position] || 1) * (FLTK[q.fleet] || 1)),
         { cohort: Object.assign({ level: 'selected', trust: trust }, echo) });
+    },
+    /* ★内訳だけを足す口（db/deep-pay.sql の pv_pay_breakdown）。pv-pay-breakdown.js が呼ぶ。
+         何も渡さない＝読む → 足せる月を返す。鍵と答えを渡す＝書く。
+         形は本物と同じ（target の6つ・断るときは code）。**数字は全部作り物。**
+         ⚠️ 本物の「合計」には保存済みのほかの手当も入る。ここの sum は見本の定数で、
+            窓の中で打った額を足したものではない（over の絵を撮るためだけの答え）。 */
+    pv_pay_breakdown: (a) => {
+      const q = (a && a.p) || {};
+      const TARGET = { airline: 'ana', airline_other: null, year: 2026, month: 9,
+                       currency: 'JPY', gross: 1150000 };
+      if (scene === 'nomonth' || !(DEEP.gate && DEEP.gate.key && !DEEP.gate.detailed))
+        return { ok: true, target: null };
+      if (!Object.keys(q).length) return { ok: true, target: TARGET };
+      if (scene === 'over') return { ok: false, code: 'over', sum: 1262000, gross: 1150000 };
+      /* 書けた ＝ 本人の内訳がそろった。次の pv_deep_pay から門が変わる
+         （この見本は100人が未達のままなので、板は「100人」の1行だけになる）。 */
+      ADDED = true;
+      return { ok: true, done: true };
     },
     pv_pay_rows: () => ({ ok: true, state: 'open', rows: [], stats: STATS,
                           give: { detailed: !!(DEEP.give && DEEP.give.detailed) } }),
@@ -386,6 +414,30 @@ if (PICK) {
   /* 描き終わり＝KPI か「まだ出せません」の板のどちらかが在ること。 */
   await page.waitForFunction(
     () => !!document.querySelector('#dp-kpi .dp-kpi, #dp-kpi .dp-msg'), { timeout: 15000 });
+}
+
+/* ── 内訳だけを足す入力（det / over）────────────────────────────────
+   板は先に出て、入力は pv_pay_breakdown の答えが着いてから入る。器の data-state が
+   'ready' になるまで待つ（時間で待たない）。nomonth は 'none' で決着する。 */
+if (scene === 'det' || scene === 'over' || scene === 'nomonth') {
+  await page.waitForFunction((want) => {
+    const e = document.getElementById('dp-lock-add');
+    return !!e && e.getAttribute('data-state') === want;
+  }, { timeout: 15000 }, scene === 'nomonth' ? 'none' : 'ready');
+}
+if (scene === 'over') {
+  /* いま在る3欄を全部答えて送る ── 基本給 620,000／保証手当は「該当なし」／変動給 642,000。
+     ⚠️ 欄の id を名指ししている。pv-pay-breakdown.js の FIELDS が変わったら、ここも直す。
+     ★本物の操作と同じ順（打つ → 欄を離れる → 押す）。値を代入しただけでは
+       change が出ず、けた区切りに整う前の字を撮ることになる。 */
+  await page.type('#pv-pb-base', '620000');
+  await page.click('#pv-pb-guarantee-none');
+  await page.type('#pv-pb-variable', '642000');
+  await page.click('.pv-pb-btn');
+  await page.waitForFunction(() => {
+    const e = document.querySelector('.pv-pb-warn');
+    return !!e && !e.hidden && e.textContent.length > 0;
+  }, { timeout: 15000 });
 }
 
 /* ★測る前にフォントが載り切るのを待つ。Inter は外から読むので、載る前に測ると
@@ -510,12 +562,19 @@ const said = await page.evaluate(() => ({
     ((e.querySelector('.dp-kpi-v') || {}).textContent || '')),
   cond: ((document.querySelector('#dp-hd .dp-cond') || {}).innerText || '').replace(/\n/g, ' '),
   lock: [...document.querySelectorAll('#dp-kpi .dp-msg--lock .dp-msg-s')]
-    .map((e) => e.innerText.replace(/\n/g, ' ／ '))
+    .map((e) => e.innerText.replace(/\n/g, ' ／ ')),
+  /* 内訳だけを足す入力（det / over）。どの給与に足すかの1行と、出ている注意。 */
+  add: [...document.querySelectorAll('.pv-pb-w > *')].map((e) => e.textContent.trim()).join(' · '),
+  addWarn: ((document.querySelector('.pv-pb-warn:not([hidden])') || {}).textContent || ''),
+  addCta: [...document.querySelectorAll('.dp-msg--lock a.dp-cta')].map((e) => e.getAttribute('href')).join(','),
 }));
 console.log(`通貨: ${said.cur}` + (cur && said.cur !== cur ? `  ❌ 頼んだのは ${cur}（currency.js に無い通貨）` : ''));
 if (said.cond) console.log('条件バー: ' + said.cond);
 if (said.kpi.length) console.log('見出し: ' + said.kpi.join(' ｜ '));
 if (said.lock.length) console.log('板の行: ' + said.lock.join(''));   // 錠前の板と「まだ出せません」の板は同じ器
+if (said.add) console.log('内訳の入力: ' + said.add);
+if (said.addWarn) console.log('入力の注意: ' + said.addWarn);
+if (said.addCta) console.log('板のボタンの先: ' + said.addCta);
 
 await browser.close();
 console.log(outPath);

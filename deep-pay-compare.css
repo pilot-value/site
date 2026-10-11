@@ -167,12 +167,15 @@
   letter-spacing:-.01em;color:var(--pv-ink);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* 機材の札（2026-09-01）。★左右で別の機材を選べるので、条件バーではなく
-   **会社の見出しの側**に付く。社名より弱く、人数のピルとは別の見た目にする
-   （同じ形にすると人数と読み違える）。選んでいないときは出ない。 */
+   **会社の見出しの側**に付く。社名より弱く、信頼度の札とは別の見た目にする
+   （同じ形にすると、機材の名前が札の一種に見える）。選んでいないときは出ない。 */
 .dc-side-f{flex:none;max-width:40%;font-size:.7rem;font-weight:700;
   letter-spacing:.01em;color:var(--pv-ink-3);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-/* 人数のピル。★「件」ではなく「人」（1行＝1人に束ねてある）。 */
+/* 信頼度の札（「信頼度 高」）。★2026-10-11 に人数のピルから替わった ── 人数は画面の
+   どこにも出さない。段はサーバが会社ごとに返す（cohort.trust）。
+   ⚠️ 段で色を変えない。左右で緑と灰色に分かれると、それだけで勝ち負けに見える
+      （この画面は順位を付けない）。左右とも同じ淡い1色のまま。 */
 .dc-side-c{flex:none;font-size:.7rem;font-weight:700;letter-spacing:.01em;
   color:var(--pv-ink-3);background:var(--pv-surface-2);
   border:1px solid var(--pv-line);border-radius:999px;padding:3px 9px}
@@ -229,7 +232,7 @@
   font-size:.68rem;font-weight:700;letter-spacing:.03em;
   color:var(--pv-ink-3);text-transform:uppercase;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-/* ★見出しの2列は会社カードの代わり（2026-08-31）。ロゴ・社名・人数を縦に積む。
+/* ★見出しの2列は会社カードの代わり（2026-08-31）。ロゴ・社名・機材・信頼度の札を縦に積む。
    ★text-transform:uppercase を掛けない ── 「全日本空輸（ANA）」はそのままだが
      英語版が「ALL NIPPON AIRWAYS (ANA)」になって2行に折れ、見出しだけ背が伸びる。
    ★social な省略はしない。社名は2行まで折り返してよい（切ると別会社に読める）。 */
@@ -246,7 +249,7 @@
    ★賞与はこの棒に入っていない（年額。月々の現金の100%を壊す）。
      モックの凡例には賞与があるが、モックのほうが誤り。表には行として出る。
    ★棒は pct をそのまま並べる。100% に伸ばし直さない ──
-     3人に満たない項目が抜けている分だけ短いのが正しい。 */
+     人数の壁に満たない項目が抜けている分だけ短いのが正しい。 */
 .dc-mix{display:flex;flex-direction:column;gap:12px;margin-top:2px}
 .dc-bar-row{display:flex;flex-direction:column;gap:6px;min-width:0}
 .dc-bar-h{display:flex;align-items:center;gap:9px;min-width:0}
@@ -276,13 +279,19 @@
 
 /* ── 狭い画面 ─────────────────────────────────────────────────
    3列の表は 640px を切ると読めなくなる。横スクロールにはせず、
-   「項目 → 2社の値」の2段に畳む。
-   ★このとき見出し行は意味を失うので消し、代わりに値の側の会社名を出す。 */
+   「項目 → 2社の値」の2段に畳む。値の側に会社名（.dc-c-a）を出す。
+   ★見出し行は**消さない**（2026-10-11）。前は display:none にしていたが、
+     機材の札と信頼度の札はこの行にしか無い ── 両側とも読めるときカード2枚は
+     出ない（deep-pay-compare.js の cards() の注）ので、消すとスマホでは
+     **どちらもどこにも出ない画面**になっていた。「項目」の語だけを落とし、
+     2社ぶんの ロゴ・社名・機材・信頼度 を、値の2列と同じ幅で頭に並べる。
+   ⚠️ 札の見た目は左右で同じ（上の .dc-side-c のまま）。狭い画面だけ色や順を変えない。 */
 @media (max-width:640px){
   .dc-tr{grid-template-columns:minmax(0,1fr) minmax(0,1fr);
     row-gap:4px;padding:12px}
   .dc-c1{grid-column:1/-1;font-weight:700;color:var(--pv-ink)}
-  .dc-th{display:none}
+  .dc-th,.dc-th:nth-child(even){padding:0 12px 10px;align-items:flex-start}
+  .dc-th .dc-c1{display:none}
   .dc-c-a{display:block;font-size:.66rem;font-weight:600;
     color:var(--pv-ink-3);letter-spacing:.01em;margin-bottom:2px;
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

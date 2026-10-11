@@ -248,6 +248,16 @@ const STAMPS = [
             ['deep-pay-compare.html', ''], ['en/deep-pay-compare.html', '../'],
             ['profile.html', ''], ['en/profile.html', '../']],
     files: ['pv-pay-fix.js'] },
+  /* ★2026-10-11 DEEP PAY の2画面（日英で4枚）。錠前の板に「内訳だけを足す入力」
+     （pv-pay-breakdown.js）を足した回で、板を組む側（deep-pay.js / deep-pay-compare.js）と
+     入力の部品が**対で**動く。「新しい HTML ＋ 端末に残った古い JS」だと、部品は読まれて
+     いるのに板が呼ばない＝入力が出ないまま最長4時間、内訳の無い会員はフォームへ送られる。
+     CSS も同じ回に触っている（比較の表の見出し行を、狭い画面でも出すようにした）。
+     ⚠️ ここに挙げた5本を直したら、出た値を4枚に写す（deep-pay.css は4枚とも読む）。 */
+  { pages: [['deep-pay.html', ''], ['en/deep-pay.html', '../']],
+    files: ['deep-pay.css', 'pv-pay-breakdown.js', 'deep-pay.js'] },
+  { pages: [['deep-pay-compare.html', ''], ['en/deep-pay-compare.html', '../']],
+    files: ['deep-pay.css', 'deep-pay-compare.css', 'pv-pay-breakdown.js', 'deep-pay-compare.js'] },
 ];
 const stampIssues = [];
 for (const { pages, files } of STAMPS) {

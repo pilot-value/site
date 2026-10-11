@@ -54,7 +54,7 @@
   <link rel="stylesheet" href="../app-nav.css">
   <!-- この画面だけの見た目（.dp-*）。
        ★.pt-* / .mv-* をトップレベルで書き直さない（db/test-form-contract.mjs が見ている）。 -->
-  <link rel="stylesheet" href="../deep-pay.css">
+  <link rel="stylesheet" href="../deep-pay.css?v=e450273c">
 
   <style>
     /* ここに置くのは「CSS が届く前に見えてしまう部分」だけ。
@@ -166,8 +166,8 @@
         <!-- 区分を選ぶ（会社 / 役職 / 機材）。中身は deep-pay.js が入れる。
              ★どれも選んでいないうちは何も出さない（呼んだ本人の区分を勝手に出さない）。
                 入口で1回だけ引数なしで呼ぶのは、state と鍵を知るためだけ。
-             ★3人に満たない区分を伏せるのは SQL（db/deep-pay.sql）だけの仕事。
-                ここで人数を数えたり隠したりしない。 -->
+             ★データが足りない区分を伏せるのは SQL（db/deep-pay.sql）だけの仕事。
+                壁が何人かは画面のどこにも書かない。ここで人数を数えたり隠したりしない。 -->
         <div class="dp-pick" id="dp-pick" hidden></div>
 
         <!-- KPI 4枚。★読めない数字はカードごと落とす（0 を並べない） -->
@@ -234,7 +234,19 @@
 <script src="../pv-gates.js"></script>
 <!-- ★絵の実体はここ1か所だけ。ドーナツを自前で描かない。 -->
 <script src="../pay-viz.js"></script>
-<script src="../deep-pay.js"></script>
+<!-- Add-the-breakdown-only input (pv-pay-breakdown.js). It appears inside the lock board,
+     **only for a member who has a key but no breakdown yet** — it adds only the missing
+     breakdown to a month they submitted with gross only (the fields asked are the FIELDS
+     list in that file).
+     ★Whether it shows is decided by deep-pay.js (lockAdd). This file does nothing until called.
+     ★Must load **before** deep-pay.js (that file calls window.PVPayBreakdown).
+     ★?v= is a fingerprint of the file. Change the file → copy it to all 4 pages
+       (2 screens × ja/en; assert-links.mjs checks).
+     ★Since the same day (2026-10-11) this page's own CSS and JS carry a fingerprint too
+       (deep-pay.css / deep-pay.js). Change one → copy the value
+       assert-links.mjs prints. -->
+<script src="../pv-pay-breakdown.js?v=cc9055f9"></script>
+<script src="../deep-pay.js?v=8ddae9f0"></script>
 <!-- "Please resubmit" notice. Shown **only to the member themselves** when one of
      their own pay reports has net pay above gross pay.
      ★Nothing is shown to signed-out visitors or to members with nothing to fix
