@@ -130,6 +130,31 @@
          その行が無い板には出ない。
      ・**月額と月換算の2桁は、表示通貨の中で寄せる**（ドルで $4,781 のような端数を
        出さない。円の表示は変わらない。§3g）。
+
+   ★★2026-10-12（オーナー判断）── サーバが、誰を数えるかと賞与の扱いを替えた（db/deep-pay.sql）。
+     「賞与を年収に含めて出して」「みんなの年収入ってるの？」「内訳提出してる人の中で内訳の集計、
+     平均を出せばいいじゃん」「pilot value の蓄積されたものだけ使えよ」。画面は**来た形をそのまま
+     出すだけ**になった。ここで足した見張り（字面は ⑮・SQL との突き合わせは ⑨）──
+     ・**月換算（賞与ぬき）は、サーバの head.month_usd をそのまま出す。画面で作らない。**
+       前は「年収 ×(1−賞与の割合)÷12」。年収（全員・賞与の平均込み）と賞与の割合（内訳を
+       書いた人だけ）は母集団が違うので、掛けると、どちらの数字でもない額になる。
+       month_usd だけを替えた**毒入りの見本**で、画面の字がサーバの値についていくこと・
+       来なければ添え字ごと出ないことを見る（§3c）。
+     ・**賞与の見積もりの札と注記**は、サーバの目印（head.bonus_est / bonus_gap ＝ 真偽）が
+       true のときだけ。札は年収と Pay / Block Hour の2枚・注記は KPI の下。どちらも無ければ
+       1文字も出ない。額も人数も書かない（§3i）。幅 320 / 390 / 1440 × 円・ドル・AED で、
+       札を出したまま溢れない・切れない（§3l）。
+     ・**給与構成は平均**（内訳を書いた人の平均。金額の鍵は avg_usd）。見出しの字も「平均」。
+       年収の見出しは「年収（中央値）」のまま。「賞与・利益分配 ◯%」の行は出さない ──
+       あの割合は賞与を答えていない人を 0 と数えた比で、上の見積もりと食い違う（§3・§3c）。
+     ・**年収は出ているが給与構成が無い区分**（総支給だけの人が集まった区分）を、壊れた答えと
+       読まない。年収・Pay / Block Hour・働き方・選ぶ欄は出し、給与構成は今までの
+       「まだ出せません」の板、固定・保証給比率のカードは出さない（§3j）。
+     ・**給与構成を、項目の数で伏せない。** 前は「未分類を除いて3項目に満たなければ隠す」。
+       サーバが正しい平均を2行で返すことがある（基本給＋未分類・基本給＋変動給）。出せるか
+       どうかはサーバがもう決めている ── 画面は来た行を描く（§3m）。
+     ・**SQL を貼る前の古い答え**（金額の鍵が med_usd・month_usd が無い）でも、壊さない・
+       作らない ── 月額は「—」・月換算の行は出ない（§3k）。
      ・**閉じた画面は、ぼかした影絵の手前に板を出す**（同じ日のオーナー判断）。影絵は
        字も数字も持たない固定の絵で、ぼかしてよいのはその要素だけ（上の ②・§2e）。
        板の字・行・一覧・断り・ボタンの行き先は1つも変えていない（§2b〜§2d がそのまま見る）。
@@ -826,9 +851,18 @@ console.log('\n════ ⑨ SQL の権限 ════');
      前は「>= 3 が8か所以上」を数えていた。壁の数字は関数の頭の定数 v_min の
      **1か所だけ**になり、本文の比較は全部その名前で書いてある。見るのは形：
        ① 定数の宣言が字面どおり1つ在る
-       ② pv_deep_pay の本文に「>= v_min」が十分に在る（区分・列・項目ごとの門）
-       ③「< v_min」はちょうど1つ（thin ＝ 返り値そのものを伏せる最後の壁）
+       ② pv_deep_pay の本文に「>= v_min」が**ちょうど44か所**（区分・列・項目ごとの門）
+       ③「< v_min」は**ちょうど4か所**
+            thin  … 年収の母集団（有効な年収を出した人）が壁に届かない → 返り値を丸ごと伏せる
+            cthin … 給与構成の母集団（内訳を書いた人）が届かない → comp・var・fixed_pct だけ伏せる
+            vthin … 変動給の内訳がそろった人が届かない → var を空の配列にする
+            vfold … 変動給で、壁に届かない連動先を rest へ畳む（伏せるのではなく寄せる側）
        ④ 本文に、人数を**裸の 2 や 3 と比べる**行が無い（定数を素通りする門を作らない）
+     ★2026-10-12、②③の数が変わった（オーナー判断で、誰を数えるかと賞与の扱いを替えた回。
+       db/deep-pay.sql の冒頭の ★★2026-10-12）。前は「以上」が50・「未満」が thin の1つ。
+       給与構成を「金額を先に平均」へ直して月額の壁と割合の壁が1つになったぶん減り、
+       賞与の平均・月換算・未分類の金額の壁が増えた（SQL の自己点検 9 と同じ数）。
+       前は区分に入るのが「内訳を書いた人」だけだったので、伏せる壁は1つで足りていた。
      ⚠️ コメントを落としてから見る。SQL のコメントは壁の説明で数字を何度も書いている。
      ⚠️ ここを「>= 2 が在ること」に緩めない。直書きを許した瞬間に、定数だけ直して
         門の半分が古い人数のまま残る形ができる。 */
@@ -845,10 +879,18 @@ console.log('\n════ ⑨ SQL の権限 ════');
      '★人数の壁は定数 v_min の1か所（v_min constant int := 2;）');
   const ge = (dpBody.match(/>=\s*v_min\b/g) || []).length;
   const lt = (dpBody.match(/<\s*v_min\b/g) || []).length;
-  /* 2026-10-11 の実数は 50（db/deep-pay.sql の自己点検 9 と同じ数）。増えるのは構わない。
-     減ったら、どこかの門を1つ外したということ ── 数を下げて通さず、外した門を見る。 */
-  ok(ge >= 50, `★「>= v_min」の門が区分・列・項目ごとに在る（今 ${ge} か所）`);
-  ok(lt === 1, `★「< v_min」は thin の1か所だけ（今 ${lt} か所）`);
+  /* 2026-10-12 の実数は 44 と 4（db/deep-pay.sql の自己点検 9 と同じ数）。**ちょうどで見る。**
+     減ったら、どこかの門を1つ外したということ ── 数を下げて通さず、外した門を見る。
+     増えたら、門を足したということ ── 何の壁かを SQL の自己点検 9 の注と、ここの注に書いてから数を直す。 */
+  ok(ge === 44, `★「>= v_min」の門はちょうど44か所（区分・列・項目・賞与の平均・月換算。今 ${ge} か所）`);
+  ok(lt === 4, `★「< v_min」はちょうど4か所（今 ${lt} か所）`);
+  for (const [nm, re] of [
+    ['thin（年収の母集団 ＝ 有効な年収を出した人）', /thin as \(select coalesce\(\(select n from hagg\), 0\) < v_min as x\)/],
+    ['cthin（給与構成の母集団 ＝ 内訳を書いた人）', /cthin as \(select \(select count\(\*\) from bkd\) < v_min as x\)/],
+    ['vthin（変動給の内訳がそろった人）', /vthin as \(select \(select count\(\*\) from vnum\) < v_min as x\)/],
+    ['vfold（壁に届かない連動先を rest へ畳む）', /vfold as \(select coalesce\(sum\(mu\), 0\) as mu from vagg where n < v_min\)/]]) {
+    ok(re.test(dpBody), `★「< v_min」の1つは ${nm}`);
+  }
   const bare = dpBody.match(/[^\n]{0,40}[<>]=?\s*[23]\b[^\n]{0,20}/g) || [];
   ok(bare.length === 0, '★本文に、人数を裸の 2 や 3 と比べる行が無い（壁は v_min だけ）',
      bare.map((s) => s.trim()).join(' / '));
@@ -866,7 +908,8 @@ console.log('\n════ ⑨ SQL の権限 ════');
      画面（錠前の板）が読むのは gate の ready と todo。**前の鍵 detailed は gate に無い。**
      ★ここは「画面が読む形」の見張り。門の中身（どの欄をどう読むか）は SQL の
        自己点検 25〜30 と db/test-deep-pay.mjs が見ている（30 は 2026-10-11 に足した
-       「公開より前に内訳の3つに答えていた人は開いたまま」。自己点検の表はいま30行）。
+       「公開より前に内訳の3つに答えていた人は開いたまま」。自己点検の表は 2026-10-12 から
+       37行 ── 31〜37 が、誰を数えるか・賞与の平均・口コミ由来の年収。行の数は下で数える）。
      ⚠️ gate の中へ detailed を足し戻さない。画面はもう読まないので、戻しても
         何も赤くならないまま「内訳が1つでもあれば開く」と読める鍵が外へ出る。
         （返り値のいちばん外の give.detailed は別物 ── pv_my_give の答えで、今も返る。） */
@@ -883,6 +926,40 @@ console.log('\n════ ⑨ SQL の権限 ════');
      (gateObj.match(/'(\w+)'\s*,/g) || []).join(' '));
   ok(/v_open := v_key and v_rdy and v_crd;/.test(dpBody),
      '★門の式は 鍵・答えきったか・みんなの側 の3つ（v_key and v_rdy and v_crd）');
+
+  /* ── 画面が読む数字の形（2026-10-12・オーナー判断で SQL が変わった回）────────
+     deep-pay.js が読む鍵を、SQL が返す字と突き合わせる。**片方だけ名前を替えると、画面は
+     普通に動いたまま、その欄だけ空になる**（実際に起きた ── SQL を先に貼った日、古い画面は
+     月額の列が全部「—」になった）。
+       head … annual_usd / per_block_usd / month_usd / fixed_pct / bonus_est / bonus_gap の6つ
+              （month_usd ＝ 月換算・賞与ぬき。サーバが保存してある申告だけから出す。
+                bonus_est / bonus_gap ＝ 賞与の目印の真偽。額も人数も足さない）
+       comp … segs の金額の鍵は avg_usd（内訳を書いた人の平均）。前の med_usd はどこにも無い
+       var  … 連動先のコードか rest（壁に届かない連動先を畳んだ分）
+     ★SQL の自己点検の表は37行（1〜37 が1つずつ）。オーナーが貼ったときに見る表なので、
+       行を足したら CLAUDE.md と workflows/deploy-checklist.md の「◯行が全部 ✅」も直す。 */
+  const headObj = (/'head',\s*case when[\s\S]*?jsonb_build_object\(([\s\S]*?)\)\s*end,\s*'comp',/.exec(dpBody) || ['', ''])[1];
+  ok(headObj.length > 0, 'head の jsonb_build_object が切り出せる');
+  ok((headObj.match(/'(\w+)'\s*,/g) || []).map((s) => s.replace(/[^\w]/g, '')).join(' ')
+       === 'annual_usd per_block_usd month_usd fixed_pct bonus_est bonus_gap',
+     '★head の鍵は annual_usd / per_block_usd / month_usd / fixed_pct / bonus_est / bonus_gap の6つ',
+     (headObj.match(/'(\w+)'\s*,/g) || []).join(' '));
+  ok(/'month_usd',\s+\(select mon from hagg\),/.test(headObj)
+     && /'bonus_est',\s+\(select b_est from hagg\),/.test(headObj)
+     && /'bonus_gap',\s+\(select b_gap from hagg\)/.test(headObj),
+     '★月換算と賞与の目印は、見出しを作ったのと同じ人たち（hagg）から出している');
+  ok(/'avg_usd',\s*t\.a\)/.test(dpBody) && !/med_usd/.test(dpBody),
+     "★給与構成の金額の鍵は 'avg_usd'（前の med_usd は関数のどこにも無い）");
+  ok(/select 'rest', \(w\.a\)\[w\.kn \+ 1\], 1/.test(dpBody),
+     '★変動給の中身は、壁に届かない連動先を rest へ畳んで返す（落とさない）');
+  for (const k of ['annual_usd', 'per_block_usd', 'month_usd', 'fixed_pct', 'bonus_est', 'bonus_gap', 'avg_usd']) {
+    ok(new RegExp('\\b' + k + '\\b').test(jsC), `★deep-pay.js が ${k} を読んでいる（SQL が返す名前のまま）`);
+  }
+  {
+    const nums = [...SQL.matchAll(/^\s*(?:select|union all select)\s+(\d+)(?: as "#")?,\s*'/gm)].map((m) => Number(m[1]));
+    ok(nums.length === 37 && nums.every((v, i) => v === i + 1),
+       '★SQL の自己点検の表は 1〜37 の37行（抜けも重なりも無い）', `今 ${nums.length} 行: ${nums.join(',')}`);
+  }
 
   /* ★旧 pv_pay_comp を触らない（assert-pay-rows.mjs が本文を grep している）。 */
   ok(!/create or replace function public\.pv_pay_comp/.test(SQL),
@@ -1480,6 +1557,116 @@ console.log('\n════ ⑭ ログインしていない人（字面）══
 }
 
 // ════════════════════════════════════════════════════════════════
+// ⑮ 誰を数えるか・賞与の見積もり（字面）
+// ════════════════════════════════════════════════════════════════
+/* 2026-10-12・オーナー判断 ── サーバ（db/deep-pay.sql）が、年収は「有効な年収を出した人ぜんぶ」の
+   中央値、給与構成は「内訳を書いた人」の平均、賞与は「同じ会社・同じ役職で申告された賞与の平均」を
+   全員に割り振った見積もり、に変わった。画面は**来た形をそのまま出すだけ**になる。
+   ここは字面で見る（実際に出る・出ないは、ブラウザの §3c・§3i〜§3m）。見るのは5つ：
+     a) 月換算を画面で作らない ── 年収を 12 で割る式が無い・賞与の割合（pct_of_annual）を
+        読まない・前の道具（moneyMonth）が無い。出すのは head.month_usd を換算して整形した字だけ。
+        ⚠️ 年収（全員・賞与の平均込み）と賞与の割合（内訳を書いた人だけ）は母集団が違う。
+           掛けると、どちらの集団のものでもない額が出る（画面は普通に動いたまま）。
+     b) 金額の鍵は avg_usd だけを読む。前の鍵（med_usd）へ読み替える道が無い ── SQL を貼る前の
+        古い答えの中央値を、「平均」の見出しの下に出さない。
+     c) 賞与の目印は `=== true` で読む（値が無い古い答えを「見積もりあり」へ倒さない）。
+        札と注記の字は日英とも同じ鍵で在る・オーナーと決めた字のまま。
+     d) 給与構成の見出しは「平均」。年収の見出し（年収（中央値））と働き方（中央値 / 月）はそのまま。
+     e) 給与構成を、画面の側の「◯項目以上」の決まりで伏せない。伏せるのは comp が無いか、
+        割合が正の行が1つも無いときだけ（壁はサーバの1か所。2か所に置くと、片方だけ直した日に
+        静かに食い違う ── 隠す側に倒れるので、どこも赤くならない）。 */
+console.log('\n════ ⑮ 誰を数えるか・賞与の見積もり（字面）════');
+{
+  const vals = (key) => [...jsC.matchAll(new RegExp('\\b' + key + ":\\s*'((?:[^'\\\\]|\\\\.)*)'", 'g'))]
+    .map((m) => m[1]);
+
+  // ── a) 月換算を画面で作らない ──
+  ok(!/\/\s*12\b/.test(jsC), '★★deep-pay.js に「÷ 12」の式が無い（年収から月換算を作らない）',
+     (jsC.match(/[^\n]*\/\s*12\b[^\n]*/) || [''])[0].trim().slice(0, 90));
+  ok(!/pct_of_annual/.test(jsC), '★★deep-pay.js が賞与の割合（pct_of_annual）を読まない');
+  ok(!/\.bonus\b(?!_)/.test(jsC), '★deep-pay.js が comp.bonus の入れ物ごと読まない',
+     (jsC.match(/[^\n]*\.bonus\b(?!_)[^\n]*/) || [''])[0].trim().slice(0, 90));
+  ok(!/\bmoneyMonth\b/.test(jsC), '★前の道具（moneyMonth）が残っていない');
+  const aboutFn = decomment(cutFn(JS, 'moneyAbout'));
+  ok(aboutFn.length > 0 && /return fmt\(sigIn\(usdToJpy\(n\)\)\);/.test(aboutFn)
+     && !/[*\/]/.test(aboutFn.replace(/^[^{]*\{/, '')),
+     '★moneyAbout() は換算して2桁に寄せて整形するだけ（掛け算も割り算も持たない）',
+     aboutFn.replace(/\s+/g, ' ').slice(0, 160));
+  ok(/if \(n == null \|\| !\(n > 0\)\) return null;/.test(aboutFn),
+     '★moneyAbout() は、来ない値と 0 以下に null を返す（0 を印字しない・行ごと出さない）');
+  const kpisFn = decomment(cutFn(JS, 'kpis'));
+  ok(/am = moneyAbout\(h\.month_usd\)/.test(kpisFn) && (jsC.match(/\bmoneyAbout\(/g) || []).length === 2,
+     '★月換算は head.month_usd だけから出す（moneyAbout を呼ぶのは kpis() の1か所）',
+     String((jsC.match(/\bmoneyAbout\(/g) || []).length));
+  ok(/n: am \? T\.k1nb \+ am : ''/.test(kpisFn),
+     '★月換算の添え字は「月換算（賞与ぬき）約」の1つだけ・値が無ければ添え字ごと出さない');
+  ok(!/\bk1n\b/.test(jsC), '★前の言い分け（k1n ＝「月換算 約」）が残っていない');
+
+  // ── b) 金額の鍵 ──
+  ok(/return segs\[i\]\.avg_usd;/.test(decomment(cutFn(JS, 'segByKey'))) && !/med_usd/.test(jsC),
+     '★★給与構成の月額は avg_usd だけを読む（med_usd へ読み替える道が無い）');
+
+  // ── c) 賞与の目印と字 ──
+  ok(/var est = h\.bonus_est === true, gap = h\.bonus_gap === true;/.test(kpisFn),
+     '★★賞与の目印は `=== true` で読む（値が無い古い答えを「見積もりあり」へ倒さない）');
+  ok((kpisFn.match(/tag: est \? T\.estTag : ''/g) || []).length === 2
+     && !/k: T\.k2,[^}]*tag:/.test(kpisFn),
+     '★札が付くのは年収と Pay / Block Hour の2枚（固定・保証給比率には付けない）');
+  const WANT = {
+    estTag:  ['平均賞与を使った推計', 'Estimate using average bonus'],
+    footEst: ['※ 賞与は、PILOT VALUE に集まった同じ会社・同じ役職の申告の平均を使った推計です。',
+              '※ The bonus is an estimate: the average of bonuses reported on PILOT VALUE for the same airline and rank.'],
+    footGap: ['※ 賞与未回答で平均も出せない回答は、賞与を含まず集計しています。',
+              '※ Reports without a bonus answer are counted without a bonus when too few peers reported one.']
+  };
+  for (const key of Object.keys(WANT)) {
+    const got = vals(key);
+    ok(got.length === 2 && got[0] === WANT[key][0] && got[1] === WANT[key][1],
+       `★★${key} は日英の2つ・決めた字のまま`, JSON.stringify(got));
+  }
+  /* ★足りない回答を指す注記は、同じ日に字を直した。前の文は「その区分の回答はどれも賞与を
+       含まない」と読めた（賞与を申告した人の回答には入っている）。戻っていないこと。 */
+  ok(!/賞与の申告が足りない区分|Answers from groups with too few/.test(JS),
+     '★★直す前の注記（区分ごと賞与が無いと読める文）が、コメントにも残っていない');
+  ok(!/[0-9０-９]/.test(WANT.estTag.concat(WANT.footEst, WANT.footGap).join('')),
+     '★札と注記に数字が1文字も無い（何人ぶんの平均か・賞与がいくらかを書かない）');
+
+  // ── d) 見出しの語 ──
+  ok(vals('center').join('|') === '構成比\\n（平均）|Share\\n(average)'
+     && vals('thA').join('|') === '月額（平均）|Monthly (average)',
+     '★★給与構成の見出しは「平均」（円の真ん中と、表の月額の列。日英）',
+     vals('center').join('|') + ' / ' + vals('thA').join('|'));
+  ok(vals('k1').join('|') === '年収（中央値）|Annual pay (median)'
+     && vals('workS').join('|') === '中央値 / 月|Median / month',
+     '★年収の見出しと働き方は「中央値」のまま（母集団も出し方も別。語をそろえない）',
+     vals('k1').join('|') + ' / ' + vals('workS').join('|'));
+  ok(!/\bbonusK\b|\bbonusS\b|dp-bonus/.test(jsC) && !/dp-bonus/.test(cssC),
+     '★★「賞与・利益分配／年収に占める割合」の行は、字も器も CSS も残っていない');
+
+  // ── e) 項目の数で伏せない ──
+  const compFn = decomment(cutFn(JS, 'comp'));
+  ok(compFn.length > 0 && /if \(!c \|\| !s\.segs\.length\) \{/.test(compFn),
+     '★★給与構成を「まだ出せません」にするのは、comp が無いか、割合が正の行が1つも無いときだけ');
+  ok(!/\.length\s*[<>]=?\s*[1-9]/.test(compFn) && !/\breal\b/.test(compFn),
+     '★★comp() に「◯項目以上」の決まりが無い（出せるかどうかはサーバがもう決めている）',
+     (compFn.match(/[^\n]*\.length\s*[<>]=?\s*[1-9][^\n]*/) || [''])[0].trim().slice(0, 90));
+  /* 変動給の中身：畳んだ分（rest）は、給与構成と同じ名前・同じ灰色。頭の1文では名指ししない。 */
+  const variFn = decomment(cutFn(JS, 'vari'));
+  ok(/rest \? \[CN\.rest, ''\]/.test(variFn) && /c: rest \? COL\.rest : COL\.variable/.test(variFn)
+     && /x\.k !== 'rest'/.test(variFn),
+     '★変動給の rest は「その他・未分類」の名前と灰色で出し、頭の1文では選ばない');
+  /* CSS：札は淡い札（トークンだけ）。折り返せる。 */
+  const tagRule = (/\.dp-kpi-tag\s*\{([^{}]*)\}/.exec(cssC) || ['', ''])[1];
+  ok(tagRule.length > 0 && !/#[0-9a-f]{3,8}\b|rgba?\(/i.test(tagRule)
+     && /color\s*:\s*var\(--pv-ink-2\)/.test(tagRule) && /background\s*:\s*var\(--pv-line-soft\)/.test(tagRule)
+     && !/gold|orange|red|warn/i.test(tagRule) && !/white-space\s*:\s*nowrap/.test(tagRule),
+     '★札の色はトークンだけ・注意の色（金・橙・赤）を使わない・字を1行に固定しない',
+     tagRule.replace(/\s+/g, ' ').slice(0, 160));
+  ok(/\.dp-kpi-k\s*\{[^{}]*flex-wrap\s*:\s*wrap/.test(cssC),
+     '★KPI の見出しの行は折り返せる（幅が足りないカードでは札だけ次の行へ落ちる）');
+}
+
+// ════════════════════════════════════════════════════════════════
 // ブラウザ
 // ════════════════════════════════════════════════════════════════
 console.log('\n════ ブラウザ ════');
@@ -1588,7 +1775,11 @@ const STATS = { reports: 58, month: 12, airlines: 19, contributors: 37 };
        開いている見本は全部 crowd:true。閉じている見本（LOCK）は false。
      ・見出しの2つは刻みで来る ── annual_usd は $50 刻み・per_block_usd は $0.5 刻み
        （前は有効数字2桁だった。110000 / 93 のような丸い数ではもう来ない）。
-       給与構成の med_usd は今も有効数字2桁。
+       給与構成の月額（avg_usd）と月換算（month_usd）は有効数字2桁。
+     ・★2026-10-12 の形 ── 給与構成は内訳を書いた人の**平均**で、金額の鍵は avg_usd
+       （前は中央値・med_usd）。head に month_usd（月換算・賞与ぬき）と、賞与の目印
+       bonus_est / bonus_gap（真偽）が増えた。年収が出ていて comp が null の区分も在る
+       （総支給だけの人が集まった区分 ── §3j）。var の鍵には rest が来ることがある。
      ・gate は { key, ready, todo, crowd, contributors, goal }（2026-10-11）。
        ready ＝本人が、自分に当てはまる項目をぜんぶ答えた月を持っているか。
        todo  ＝足りない人にだけ { year, month, items:[コード…] }（足りている人・
@@ -1614,11 +1805,20 @@ const FULL = {
      ★だから「画面の3つの数字が割り算で結べる」検査をここに足さない。
        結べることを確かめるのは db/test-deep-pay.mjs の19節 ── あちらは
        **全員まったく同じ値の区分**をわざと作って、中央値を個人の値に潰している。 */
-  head: { annual_usd: 119700, per_block_usd: 102.5, fixed_pct: 62 },
+  /* ★month_usd 9500 も、刷られる字を §3c・§3g が固定している（¥150万 ／ $9.5K ／ €8.1K）。
+       ⚠️ **わざと「年収 × 0.95 ÷ 12」と同じ字になる値**にしてある（119700 × 0.95 ÷ 12 ≒ 9476）。
+          前の画面はその式で月換算を作っていた ── この見本だけでは、作っているのか、サーバの値を
+          出しているのかを見分けられない。見分けるのは §3c の毒入りの見本（MONTH_POISON）。
+     ★bonus_est / bonus_gap は false（目印の無い区分）。立てた形は §3i の EST / GAP / BOTH。 */
+  head: { annual_usd: 119700, per_block_usd: 102.5, month_usd: 9500, fixed_pct: 62,
+          bonus_est: false, bonus_gap: false },
+  /* ★comp.bonus は今もサーバが返す（内訳を書いた人の、年収に対する賞与の割合）。
+       **画面はもう読まない**（2026-10-12）── 見本に残してあるのは、来ても1文字も出ないことを
+       §3 が見るため。 */
   comp: { total_kind: 'monthly_cash',
-    segs: [{ k: 'base', pct: 52, med_usd: 4800 }, { k: 'variable', pct: 24, med_usd: 2200 },
-           { k: 'command', pct: 8, med_usd: 730 }, { k: 'perdiem', pct: 7, med_usd: 640 },
-           { k: 'housing', pct: 5, med_usd: 460 }, { k: 'other', pct: 4, med_usd: 370 }],
+    segs: [{ k: 'base', pct: 52, avg_usd: 4800 }, { k: 'variable', pct: 24, avg_usd: 2200 },
+           { k: 'command', pct: 8, avg_usd: 730 }, { k: 'perdiem', pct: 7, avg_usd: 640 },
+           { k: 'housing', pct: 5, avg_usd: 460 }, { k: 'other', pct: 4, avg_usd: 370 }],
     bonus: { pct_of_annual: 5 } },
   work: { block_h: 74.0, duty_h: 141.0, duty_days: 18, stay_nights: 9 },
   var: [{ k: 'block', pct: 46 }, { k: 'sector', pct: 21 }, { k: 'overtime', pct: 13 },
@@ -1632,7 +1832,8 @@ const HOLES = Object.assign(clone(FULL), {
 });
 /* 数字が1つも読めなかった形（カードは1枚も出ない＝0 を並べない）。 */
 const NOHEAD = Object.assign(clone(FULL), {
-  head: { annual_usd: null, per_block_usd: null, fixed_pct: null },
+  head: { annual_usd: null, per_block_usd: null, month_usd: null, fixed_pct: null,
+          bonus_est: false, bonus_gap: false },
   comp: null, work: null, var: []
 });
 /* 手で選んだ区分（自分は ANA の FO なのに、JAL の機長・787 を見ている形）。
@@ -1641,7 +1842,8 @@ const NOHEAD = Object.assign(clone(FULL), {
 const SEL = Object.assign(clone(FULL), {
   cohort: { level: 'selected', manual: true, airline: 'jal', pos: 'cap', fleet: 'b787',
             trust: 'mid' },
-  head: { annual_usd: 211350, per_block_usd: 180.5, fixed_pct: 71 }
+  head: { annual_usd: 211350, per_block_usd: 180.5, month_usd: 17000, fixed_pct: 71,
+          bonus_est: false, bonus_gap: false }
 });
 /* 選んだ区分が人数の壁に届かなかった形。★SQL は広い区分に登らないので、
    ここに来るのは「何も出せない」だけ。全体の数字は1つも入っていない
@@ -1694,16 +1896,84 @@ const NOLIST = Object.assign(clone(FULL), { __nopicks: true });
    （0% とも「100 − 固定給」とも書かない）を見るための見本。 */
 const NOVAR = Object.assign(clone(FULL), {
   comp: { total_kind: 'monthly_cash',
-    segs: [{ k: 'base', pct: 52, med_usd: 4800 }, { k: 'command', pct: 8, med_usd: 730 },
-           { k: 'perdiem', pct: 7, med_usd: 640 }, { k: 'housing', pct: 5, med_usd: 460 }],
+    segs: [{ k: 'base', pct: 52, avg_usd: 4800 }, { k: 'command', pct: 8, avg_usd: 730 },
+           { k: 'perdiem', pct: 7, avg_usd: 640 }, { k: 'housing', pct: 5, avg_usd: 460 }],
     bonus: { pct_of_annual: 5 } }
 });
-/* 賞与を書いた人が人数の壁に届かず、割合が伏せられている形（comp.bonus が無い）。
-   ★このとき月換算に「（賞与ぬき）」と名乗ってはいけない。賞与のある人が
-     壁の手前の人数だけいるかもしれず、その人たちのぶんは年収に入ったままだから。 */
+/* 賞与の割合が伏せられている形（comp.bonus が null）。
+   ★2026-10-12 まで、このとき月換算のラベルを「月換算 約」に替えていた（画面が年収から
+     月換算を作っていて、賞与を引けない区分で「賞与ぬき」と名乗らないため）。いまは月換算を
+     サーバが出す（いつも賞与ぬき）── comp.bonus が在っても無くても、月換算は1文字も変わらない
+     ことを §3d が見る。 */
 const NOBONUS = Object.assign(clone(FULL), {
   comp: Object.assign(clone(FULL.comp), { bonus: null })
 });
+
+/* ── 2026-10-12 の形（誰を数えるか・賞与の見積もり）の見本 ───────────────────
+   head だけ・comp だけ・var だけを替えた形。使うのは §3c と §3i〜§3m。 */
+const withHead = (o) => { const p = clone(FULL); Object.assign(p.head, o); return p; };
+/* 賞与の目印。サーバは真偽2つだけを返す（額も人数も来ない）。 */
+const EST  = withHead({ bonus_est: true });
+const GAP  = withHead({ bonus_gap: true });
+const BOTH = withHead({ bonus_est: true, bonus_gap: true });
+/* 真偽ではない値（1・'true'）。`=== true` で読むので、札も注記も出ないのが正しい。 */
+const EST_LOOSE = withHead({ bonus_est: 1, bonus_gap: 'true' });
+/* ★毒入り（月換算）。年収 $119,700・賞与の割合 5% はそのまま、month_usd だけ $7,200 にする。
+     前の画面の式（年収 × 0.95 ÷ 12）なら ¥150万、素の「年収 ÷ 12」なら ¥160万。
+     サーバの値をそのまま出していれば ¥110万（7200 × 158.95 ＝ 1,144,440 → 2桁）。
+     3つとも違う字なので、画面がどれを出しているかが分かる。 */
+const MONTH_POISON = withHead({ month_usd: 7200 });
+/* 月換算が来ない形（値を持つ人が壁に届かない区分）。賞与の割合は在る ＝ 前の画面なら
+   年収から作れてしまう形。添え字ごと出ないのが正しい。 */
+const MONTH_NULL = withHead({ month_usd: null });
+/* 年収は出ているが、給与構成が無い（総支給だけの人が集まった区分。サーバの cthin）。
+   ★本物と同じ形 ── comp と var は null・head.fixed_pct も null。賞与の目印は立っている。 */
+const NOCOMP = Object.assign(clone(FULL), {
+  head: { annual_usd: 119700, per_block_usd: 102.5, month_usd: 9500, fixed_pct: null,
+          bonus_est: true, bonus_gap: false },
+  comp: null, var: null
+});
+/* 変動給の中身。空の配列（内訳がそろった人が壁に届かない）と、rest（畳んだ分）が来た形。 */
+const VAR_EMPTY = Object.assign(clone(FULL), { var: [] });
+const VAR_REST = Object.assign(clone(FULL), { var: [{ k: 'block', pct: 80 }, { k: 'rest', pct: 20 }] });
+/* rest がいちばん大きい形。頭の1文は、名前の在る連動先（block 45%）を言う。 */
+const VAR_REST_TOP = Object.assign(clone(FULL),
+  { var: [{ k: 'rest', pct: 55 }, { k: 'block', pct: 45 }] });
+/* ★SQL を貼る前の古いサーバの形。金額の鍵が med_usd（中央値）・month_usd も目印も無い。
+     画面は壊れない・作らない ── 月額の欄は「—」・月換算の行は出ない・札も注記も出ない。 */
+const OLDSRV = (function () {
+  const p = clone(FULL);
+  p.head = { annual_usd: 119700, per_block_usd: 102.5, fixed_pct: 62 };
+  p.comp.segs = p.comp.segs.map((g) => ({ k: g.k, pct: g.pct, med_usd: g.avg_usd }));
+  return p;
+})();
+/* ★給与構成が2行だけの形（2026-10-12）。db/test-deep-pay.mjs の「7. 未分類」と同じ答え ──
+     3人とも 総支給 10,000・基本給 6,000 ＝ 基本給 60%（$6,000）＋ 未分類 40%（$4,000）。
+     前の画面は「未分類を除いて3項目に満たない」を理由に、これをカードごと隠していた。 */
+const TWO_REST = Object.assign(clone(FULL), {
+  head: { annual_usd: 119700, per_block_usd: 102.5, month_usd: 9500, fixed_pct: 60,
+          bonus_est: false, bonus_gap: false },
+  comp: { total_kind: 'monthly_cash',
+    segs: [{ k: 'base', pct: 60, avg_usd: 6000 }, { k: 'rest', pct: 40, avg_usd: 4000 }],
+    bonus: null }
+});
+/* 名前の在る項目が2つだけ（基本給＋変動給）・1つだけ（基本給 100%）・未分類だけ。 */
+/* ★head.fixed_pct は、サーバが返す値に合わせてある（基本給＋保証手当＋職位＋役割の割合。
+     未分類は固定に数えない ── db/deep-pay.sql の cfix）。 */
+const fewSegs = (fixed, segs) => {
+  const p = clone(TWO_REST);
+  p.head.fixed_pct = fixed;
+  p.comp = { total_kind: 'monthly_cash', segs: segs, bonus: null };
+  return p;
+};
+const TWO_REAL = fewSegs(70, [{ k: 'base', pct: 70, avg_usd: 7000 }, { k: 'variable', pct: 30, avg_usd: 3000 }]);
+const ONE_SEG = fewSegs(100, [{ k: 'base', pct: 100, avg_usd: 10000 }]);
+const REST_ONLY = fewSegs(0, [{ k: 'rest', pct: 100, avg_usd: 10000 }]);
+/* 割合が正の行が1つも無い形（空の配列・0 だけ）。ここだけは「まだ出せません」。 */
+const ZERO_SEG = Object.assign(clone(TWO_REST), {
+  comp: { total_kind: 'monthly_cash', segs: [], bonus: null } });
+const ZERO_PCT = Object.assign(clone(TWO_REST), {
+  comp: { total_kind: 'monthly_cash', segs: [{ k: 'base', pct: 0, avg_usd: 0 }], bonus: null } });
 
 /* ★2026-08-30 から、この画面は**選ぶまで何も出さない**。だから見本の配置を見る
    筋書きは、先に区分を選ばせないと空のページを撮ることになる。
@@ -1857,13 +2127,47 @@ const SNAP = () => {
     kpi: q('.dp-kpi').length,
     kpiV: q('.dp-kpi-v').map((e) => e.textContent),
     kpiN: q('.dp-kpi-n').map((e) => e.textContent),
+    /* ★KPI のカードを1枚ずつ（2026-10-12）。上の kpiN は「添え字の在るカード」だけの並びなので、
+         年収のカードに添え字が無い回は、番号が1つずれて隣のカードの添え字を読む。
+         月換算（n）と札（tags）は、必ずこちらで読む。k ＝ 見出しの字（札の字は含めない）。 */
+    cards: q('.dp-kpi').map((e) => {
+      const k = e.querySelector('.dp-kpi-k'), n = e.querySelector('.dp-kpi-n');
+      return { k: k ? [...k.childNodes].filter((x) => x.nodeType === 3).map((x) => x.textContent).join('').trim() : '',
+               tags: [...e.querySelectorAll('.dp-kpi-tag')].map((t) => t.textContent),
+               v: (e.querySelector('.dp-kpi-v') || {}).textContent || '',
+               n: n ? n.textContent : null };
+    }),
+    tagN: q('#dp-root .dp-kpi-tag').length,
     empty: q('#dp-root .pt-empty').length,
     donut: q('#dp-comp svg').length,
     compCta: q('#dp-comp a[href*="pay-report"]').length,
     legend: q('#dp-comp .pt-leg:not(.dp-th) .amt').map((e) => e.textContent),
+    /* 給与構成の表（2026-10-12）。center ＝ 円の真ん中の字・th ＝ 見出しの3列・
+       legK / legP / legC ＝ 行ごとの名前・割合・色・arcs ＝ 円の弧の数と色。
+       bonusRow ＝ 外した「賞与・利益分配」の行の器（0 が正しい）。 */
+    center: ((document.querySelector('#dp-comp .pt-donut-c b') || {}).textContent || ''),
+    th: q('#dp-comp .dp-th span').map((e) => e.textContent),
+    legK: q('#dp-comp .pt-leg:not(.dp-th) .nm').map((e) => e.textContent),
+    legP: q('#dp-comp .pt-leg:not(.dp-th) .pct').map((e) => e.textContent),
+    legC: q('#dp-comp .pt-leg:not(.dp-th) > i').map((e) => getComputedStyle(e).backgroundColor),
+    arcs: q('#dp-comp .pt-donut svg circle').slice(1).map((e) => e.getAttribute('stroke')),
+    bonusRow: q('#dp-root [class*="dp-bonus"]').length,
+    varK: q('#dp-var .dp-li-t').map((e) => e.textContent),
     comp: sec('dp-comp'), work: sec('dp-work'), vari: sec('dp-var'),
     more: sec('dp-more'),
     bars: q('#dp-var .dp-li-f').map((e) => getComputedStyle(e).backgroundColor),
+    /* 色の物差し（2026-10-12）。PVViz.SEG の色を、ブラウザが計算した字（rgb(…)）に直したもの。
+       棒や凡例の色が「どの項目の色か」を、色の値を検査に書き写さずに突き合わせるため。
+       ★試しの要素は <body> に足してすぐ外す（#dp-root の中身には触らない）。 */
+    segC: (function () {
+      const o = {};
+      ((window.PVViz || {}).SEG || []).forEach((g) => {
+        const p = document.createElement('i');
+        p.style.background = g.c; document.body.appendChild(p);
+        o[g.k] = getComputedStyle(p).backgroundColor; p.remove();
+      });
+      return o;
+    })(),
     /* ★働き方の節の棒（2026-08-31 に廃止）。Block 74h・Duty 141h・勤務 18日・
        ステイ 9泊は**単位が違う**ので、同じ基準の棒で並べても長さを比べる意味が無い。
        0 なら「棒が無い」＝正しい。 */
@@ -3765,6 +4069,24 @@ for (const lang of ['ja', 'en']) {
   ok(s.kpi === 3, 'そろっていれば KPI は3枚', `今 ${s.kpi} 枚`);
   ok(s.donut === 1, 'ドーナツは1つ', `今 ${s.donut} 個`);
   ok(s.legend.length === 6, '凡例は渡した6区分ぶん', `今 ${s.legend.length} 行`);
+  /* ★給与構成は平均（2026-10-12）。円の真ん中と、表の月額の列の見出し。年収の見出しは中央値のまま。 */
+  ok(s.center === '構成比\n（平均）' && s.th.join('|') === '構成要素|構成比|月額（平均）',
+     '★★給与構成の見出しは「平均」（円の真ん中・表の月額の列）', JSON.stringify([s.center, s.th]));
+  ok(!/中央値/.test(s.comp.text) && s.cards[0].k === '年収（中央値）',
+     '★給与構成のカードに「中央値」が残っていない／年収の見出しは「年収（中央値）」のまま',
+     s.cards[0].k);
+  /* ★「賞与・利益分配 ◯%」の行は出さない（2026-10-12）。見本は comp.bonus（5%）を持っている ──
+       サーバは今も返すが、画面は読まない。行の器も、字も無いこと。
+       （割合の数字そのものが出ないことは、§3c の「33%」の見本が見る ── 5% は住宅手当の
+         割合と同じ字なので、ここでは見分けられない。）
+       ⚠️ 字は**給与構成のカードの中**で見る。本文ぜんたいで見ると、KPI の下の注記
+          （年収＝…賞与・利益分配を含む…）に当たる ── あちらは年収の定義で、残すのが正しい。 */
+  ok(s.bonusRow === 0 && !/賞与・利益分配/.test(s.comp.text) && !/年収に占める割合/.test(s.text),
+     '★★給与構成のカードに賞与の割合の行が無い（comp.bonus が来ても行を作らない）',
+     s.comp.text.replace(/\n/g, ' ').slice(-120));
+  /* ★目印の無い区分では、札も賞与の注記も出ない。 */
+  ok(s.tagN === 0 && s.cards.every((c) => c.tags.length === 0) && !/推計/.test(s.text),
+     '★賞与の目印が無い区分では、札（平均賞与を使った推計）が1つも出ない', `札 ${s.tagN}`);
   ok(s.work.rows === 4, '働き方は4行', `今 ${s.work.rows} 行`);
   /* ★働き方に棒を戻さない。時間・日・泊は単位が違うので、
      同じ基準で伸ばした棒は長さを比べる意味が無い（戻すと静かに嘘になる）。 */
@@ -3835,33 +4157,51 @@ for (const lang of ['ja', 'en']) {
     const m = /¥\s*([\d,]+)\s*万/.exec(t || '');
     return m ? Number(m[1].replace(/,/g, '')) : null;
   };
-  /* deep-pay.js の sig2 と同じ（有効数字2桁）。★月換算は「約」なので2桁のまま。
-     細かくなったのは年収のほう（2026-10-11 から 1万円刻み）で、ここは
-     **画面に出ている年収**から割り直すので、年収の細かさに勝手についていく。 */
-  const sig2 = (v) => {
-    const p = Math.pow(10, Math.floor(Math.log(v) / Math.LN10) - 1);
-    return Math.round(v / p) * p;
-  };
   const { page } = await open('ja', FULL, 'light', MINE);
   const s = await page.evaluate(SNAP);
-  const a = man(s.kpiV[0]), m = man(s.kpiN[0]);
+  const a = man(s.kpiV[0]);
 
-  // ── 年収カードの月換算 ──────────────────────────────────────
-  ok(/月換算（賞与ぬき）約/.test(s.kpiN[0] || ''),
-     '★賞与の割合が出ている区分では「月換算（賞与ぬき）」と名乗る', s.kpiN[0]);
-  /* ★割り算の元が「2桁に丸めた年収」に戻っていないこと。見本は ¥1,903万。
-     2桁に丸めた ¥1,900万 から割っても同じ 150万 になるので、**年収の字そのもの**を
-     先に見る（100万の倍数でない＝刻みで出ている）。 */
+  // ── 年収カードの月換算（2026-10-12 から、サーバの month_usd をそのまま出す）──────
+  /* 前はここで「月換算 ＝ 画面の年収 ×(1−賞与割合)÷12」を見ていた（読み手が電卓で出せること）。
+     サーバが母集団を分けたので、その式はもう成り立たない ── 年収は全員（賞与の平均込み）、
+     賞与の割合は内訳を書いた人だけ。月換算はサーバが保存してある申告から中央値で出し、
+     画面は**換算して整形するだけ**。見るのは ──
+       出る   … 「月換算（賞与ぬき）約 」＋ month_usd を表示通貨の中で2桁に寄せた字
+       作らない … month_usd だけを替えた毒入りの見本で、画面の字がサーバの値についていく
+                 （年収 × 0.95 ÷ 12 の ¥150万 でも、年収 ÷ 12 の ¥160万 でもない）
+       出さない … month_usd が来なければ、添え字ごと出ない（年収から作って埋めない）
+     ⚠️ 素の見本（FULL）の month_usd は、**わざと前の式と同じ字（¥150万）になる値**。
+        だから素の見本だけでは何も証明しない ── 毒入りの2つが要。 */
+  ok(s.cards[0].n === '月換算（賞与ぬき）約 ¥150万',
+     '★月換算は「月換算（賞与ぬき）約 」＋サーバの month_usd（$9,500 → ¥150万）', String(s.cards[0].n));
+  /* ★年収のほうは 1万円刻み（2026-10-11）。月換算の2桁とは別の細かさ。 */
   ok(a != null && a % 100 !== 0,
      '★年収は 1万円刻みで出ている（有効数字2桁の丸い額に戻っていない）', `画面 ${s.kpiV[0]}`);
-  ok(a != null && m != null && m === sig2(a * (1 - 5 / 100) / 12),
-     '★月換算は「画面の年収 ×(1−賞与割合)÷12」＝読み手が電卓で出せる',
-     `${a}万 × 0.95 ÷ 12 → ${a == null ? '?' : sig2(a * 0.95 / 12)}万 ／ 画面 ${m}万`);
-  /* ★負の対照。賞与を引かない「年収÷12」なら別の数字になる。ここが同じ値だと、
-     上の検査は何も守っていないことになる（見本の年収 1,903万 では 160万 と 150万）。 */
-  ok(a != null && m !== sig2(a / 12),
-     '★賞与を引かない「年収÷12」とは別の数字になる（引く必要があることの証拠）',
-     `年収÷12 → ${a == null ? '?' : sig2(a / 12)}万 ／ 画面 ${m}万`);
+  {
+    await page.evaluate((p) => window.PVDeepPay.render(p), MONTH_POISON);
+    const p1 = await page.evaluate(SNAP);
+    ok(p1.cards[0].v === '¥1,903万' && p1.cards[0].n === '月換算（賞与ぬき）約 ¥110万',
+       '★★毒入り ── 月換算はサーバの month_usd（$7,200 → ¥110万）。画面は年収から作っていない',
+       JSON.stringify(p1.cards[0]));
+    ok(!/150万|160万/.test(p1.text),
+       '★★毒入り ── 「年収 × 0.95 ÷ 12」（¥150万）も「年収 ÷ 12」（¥160万）も、本文のどこにも出ない',
+       (p1.text.match(/[^\n]*1[56]0万[^\n]*/) || [''])[0]);
+    await page.evaluate((p) => window.PVDeepPay.render(p), MONTH_NULL);
+    const p2 = await page.evaluate(SNAP);
+    ok(p2.kpi === 3 && p2.cards[0].v === '¥1,903万' && p2.cards[0].n === null && !/月換算/.test(p2.text),
+       '★★month_usd が来ない区分では、月換算の添え字ごと出ない（年収と賞与の割合から作って埋めない）',
+       JSON.stringify(p2.cards[0]));
+    /* ★賞与の割合の数字そのものも出ない。5% は住宅手当の割合と同じ字なので、ここだけ 33% にして見る
+         （33 は、この見本のほかのどの数字とも重ならない）。 */
+    const B33 = clone(FULL); B33.comp.bonus = { pct_of_annual: 33 };
+    await page.evaluate((p) => window.PVDeepPay.render(p), B33);
+    const p3 = await page.evaluate(SNAP);
+    ok(!/33/.test(p3.text) && p3.bonusRow === 0 && p3.cards[0].n === '月換算（賞与ぬき）約 ¥150万',
+       '★★賞与の割合（comp.bonus）を替えても、画面は1文字も変わらない（読んでいない）',
+       (p3.text.match(/[^\n]*33[^\n]*/) || [''])[0]);
+    ok(p3.text === s.text, '★賞与の割合を 5% → 33% に替えた画面は、素の見本と本文が同じ');
+    await page.evaluate((p) => window.PVDeepPay.render(p), FULL);
+  }
 
   // ── 固定・保証給比率（指示 §3 の言い方）─────────────────────
   ok(/固定・保証給比率/.test(s.text) && !/固定給比率/.test(s.text),
@@ -3902,18 +4242,20 @@ for (const lang of ['ja', 'en']) {
      '★条件バーに対象期間（直近24か月）が出る', s.cond.replace(/\n/g, ' '));
 }
 
-// ── 3d. 賞与の割合が伏せられているときは「賞与ぬき」と名乗らない ──
-/* ★人数の壁に届かず割合が出ていないだけで、賞与が無いとは限らない。
-   そこで「賞与ぬき」と書くと、賞与のある1〜2人ぶんを黙って隠したことになる。 */
+// ── 3d. 月換算は、賞与の割合（comp.bonus）が在っても無くても同じ ──────────
+/* ★2026-10-12 まで、ここは「賞与の割合が伏せられている区分では『賞与ぬき』と名乗らない」を
+   見ていた（ラベルを「月換算 約」に替える言い分け）。画面が年収から月換算を作っていた頃の話で、
+   賞与を引けない区分で「賞与ぬき」と書くと嘘になったため。
+   いまは月換算をサーバが出す ── **いつも賞与ぬき**（保存してある年収から、申告された賞与を
+   引いた額の中央値）。だから comp.bonus が null でも、ラベルも額も1文字も変わらないのが正しい。
+   ⚠️ ここを前の言い分けに戻さない（戻すには、画面がまた賞与の割合を読むことになる）。 */
 {
   const { page } = await open('ja', NOBONUS, 'light', MINE);
   const s = await page.evaluate(SNAP);
-  /* ⚠️ 本文全体で数えない。給与構成のカードの副題が「月々の現金・賞与ぬき」で、
-     あちらは**割合が出ていなくても正しい**（SQL の ucm が賞与を引いた月額だから）。
-     ここで見たいのは年収カードの添え字1本だけ。 */
-  ok(!/賞与ぬき/.test(s.kpiN[0] || ''),
-     '★割合が出ていない区分では月換算に「賞与ぬき」と書かない', s.kpiN[0]);
-  ok(/月換算 約/.test(s.kpiN[0] || ''), '★ラベルは「月換算 約」のまま', s.kpiN[0]);
+  ok(s.cards[0].n === '月換算（賞与ぬき）約 ¥150万',
+     '★comp.bonus が無い区分でも、月換算はサーバの値のまま（ラベルも「月換算（賞与ぬき）約」のまま）',
+     String(s.cards[0].n));
+  ok(!/月換算 約/.test(s.text), '★前のラベル（月換算 約）は、どこにも出ない');
 }
 
 // ── 3e. 英語側も同じ定義になっている ───────────────────────────
@@ -3922,7 +4264,17 @@ for (const lang of ['ja', 'en']) {
   const s = await page.evaluate(SNAP);
   ok(/Fixed & guaranteed share/.test(s.text) && !/Fixed pay share/.test(s.text),
      '★英語も「Fixed & guaranteed share」');
-  ok(/bonus excluded/.test(s.kpiN[0] || ''), '★英語も月換算は賞与ぬき', s.kpiN[0]);
+  /* ⚠️ 額の字は見ない（英語ページの既定の通貨は、この機械のタイムゾーンで決まる。額は §3g が
+        通貨を名指しして見る）。ここで見るのはラベルと、額が1つ続いていること。 */
+  ok(/^About \(bonus excluded\) \S.*\d/.test(s.cards[0].n || ''), '★英語も月換算は賞与ぬき（About (bonus excluded) ＋額）',
+     String(s.cards[0].n));
+  /* ★給与構成の見出しは英語も「average」（2026-10-12）。年収の見出しは median のまま。 */
+  ok(s.center === 'Share\n(average)' && s.th.join('|') === 'Component|Share|Monthly (average)'
+     && !/median/i.test(s.comp.text) && s.cards[0].k === 'Annual pay (median)',
+     '★★英語の給与構成の見出しも「average」（年収の見出しは Annual pay (median) のまま）',
+     JSON.stringify([s.center, s.th, s.cards[0].k]));
+  ok(s.bonusRow === 0 && !/Bonus \/ profit share|of annual pay/.test(s.comp.text) && s.tagN === 0,
+     '★英語にも賞与の割合の行が無い・目印の無い区分では札が出ない');
   ok(/Per-pilot/.test(s.kpiN[2] || '') && !/monthly pay/i.test(s.text),
      '★英語の Pay / Block Hour も「1人ずつ」（monthly pay ÷ … と書かない）', s.kpiN[2]);
   ok(s.foot.length === 1 && s.foot[0].in === 'dp-kpi'
@@ -4013,20 +4365,20 @@ for (const lang of ['ja', 'en']) {
      サーバの $4,800 が ¥760,000 を経て **$4,781** と出る（持っているのは2桁だけなのに、
      1ドル単位まで知っているように読める）。いまは換算してから寄せる（deep-pay.js の sigIn）。
      ★ドルでは、サーバが返した2桁の額がそのまま出る（4800 / 2200 / 730 / 640 / 460 / 370）。
-     ★月換算も同じ。ドルなら「$120K × 0.95 ÷ 12 ＝ $9.5K」と、画面の字のまま検算できる
-       （円で寄せてから換算すると $9.4K になって合わない）。 */
+     ★月換算も同じ（2026-10-12 から、サーバの month_usd ＝ $9,500 をそのまま出す）。ドルなら
+       $9.5K ── サーバが返した2桁のまま（円で寄せてから換算すると $9.4K になって、返した額と合わない）。 */
   ok(u.legend.join(' ') === '$4,800 $2,200 $730 $640 $460 $370',
      '★★ドル ── 給与構成の月額は、その通貨の中で2桁（$4,781 のような端数を出さない）',
      u.legend.join(' '));
-  ok(/\$9\.5K$/.test(u.kpiN[0] || ''),
-     '★ドル ── 月換算は画面の年収から検算できる（$120K × 0.95 ÷ 12 ＝ $9.5K）', u.kpiN[0]);
+  ok(u.cards[0].n === '月換算（賞与ぬき）約 $9.5K',
+     '★ドル ── 月換算はサーバが返した2桁のまま（$9,500 → $9.5K。端数を作らない）', String(u.cards[0].n));
   const e = await setCur(ja, 'EUR', '€');
   ok(e.kpiV[0] === '€102K' && e.kpiV[2] === '€88',
      '★ユーロ ── 換算してから刻みに寄せる（€102K・€88。端数の残った額を出さない）',
      JSON.stringify(e.kpiV));
-  ok(e.legend.join(' ') === '€4,100 €1,900 €620 €550 €390 €320' && /€8\.1K$/.test(e.kpiN[0] || ''),
+  ok(e.legend.join(' ') === '€4,100 €1,900 €620 €550 €390 €320' && e.cards[0].n === '月換算（賞与ぬき）約 €8.1K',
      '★★ユーロ ── 月額も月換算も、換算してから2桁に寄せる（どの額も上から2桁のあとは 0）',
-     e.legend.join(' ') + ' ／ ' + e.kpiN[0]);
+     e.legend.join(' ') + ' ／ ' + e.cards[0].n);
   for (const [nm, snap] of [['ドル', u], ['ユーロ', e]]) {
     const odd = snap.legend.filter((t) => !/^[1-9]\d?0*$/.test(t.replace(/\D/g, '')));
     ok(odd.length === 0, `★${nm} ── 月額に3桁目以降の端数が残っていない`, odd.join(' '));
@@ -4034,14 +4386,14 @@ for (const lang of ['ja', 'en']) {
   /* ★円に戻すと、最初と1文字も違わない（換算の行き帰りで額がずれない）。
        月額も同じ ── 円の表示は、この直しの前と1文字も変わっていない。 */
   const back = await setCur(ja, 'JPY', '¥');
-  ok(back.kpiV.join('|') === j.kpiV.join('|') && back.kpiN[0] === j.kpiN[0],
+  ok(back.kpiV.join('|') === j.kpiV.join('|') && back.cards[0].n === j.cards[0].n,
      '★通貨を切り替えて円に戻すと、見出しの数字は1文字も違わない',
      JSON.stringify(back.kpiV));
   ok(back.legend.join(' ') === j.legend.join(' ')
      && j.legend.join(' ') === '¥760,000 ¥350,000 ¥120,000 ¥100,000 ¥73,000 ¥59,000'
-     && /約 ¥150万$/.test(j.kpiN[0] || ''),
-     '★★円の月額・月換算は今までどおり（¥760,000 … ／ 約 ¥150万）で、戻しても同じ',
-     j.legend.join(' ') + ' ／ ' + j.kpiN[0]);
+     && j.cards[0].n === '月換算（賞与ぬき）約 ¥150万',
+     '★★円の月額・月換算は2桁（¥760,000 … ／ 約 ¥150万）で、通貨を切り替えて戻しても同じ',
+     j.legend.join(' ') + ' ／ ' + j.cards[0].n);
 
   const { page: en } = await open('en', FULL, 'light', MINE);
   /* 既定がどの通貨でも通るように、いったん別の通貨を挟んでから円にする
@@ -4152,6 +4504,447 @@ for (const lang of ['ja', 'en']) {
     ok(errs.length === 0, `${lang}: JS のエラーが出ない（出す日の姿）`, errs.join(' / '));
     await jars.pop().close().catch(() => {});
   }
+}
+
+// ── 3i. 賞与の見積もりの札と注記（2026-10-12・オーナー判断）──────────────────
+/* 「賞与を年収に含めて出して」「賞与出してる人の平均をみんなに割り振って年収だして」。
+   サーバは、同じ会社・同じ役職で申告された賞与の平均を、その区分の全員に割り振って年収と
+   Pay / Block Hour を出す。画面に来るのは目印2つ（head.bonus_est / head.bonus_gap ＝ 真偽）だけ。
+     bonus_est … 数えた人の中に、平均で年収を作った人が居る
+                  → 年収と Pay / Block Hour のカードに札「平均賞与を使った推計」＋ KPI の下に1行
+     bonus_gap … 数えた回答の一部に、賞与を答えていなくて平均も作れなかったものが在る
+                  → KPI の下に1行（札は出さない）
+   見るのは ── 4つの組み合わせ（無し・est・gap・両方）で、札と注記が**そのときだけ**出る／
+   札は固定・保証給比率のカードには付かない（あちらは内訳を書いた人の平均で、見積もりに触れない）／
+   札と注記を出しても、数字は1つも変わらない／真偽でない値（1・'true'）では出ない／
+   年収も Pay / Block Hour も出ていない区分では、注記だけを浮かせない／人数の形の字が増えない。
+   ★1枚の窓で、試験用の入口（PVDeepPay.render）で答えだけ差し替えて描き直す（窓を増やさない）。 */
+const EST_TXT = {
+  ja: { tag: '平均賞与を使った推計',
+        est: '※ 賞与は、PILOT VALUE に集まった同じ会社・同じ役職の申告の平均を使った推計です。',
+        gap: '※ 賞与未回答で平均も出せない回答は、賞与を含まず集計しています。',
+        k: ['年収（中央値）', '固定・保証給比率', 'Pay / Block Hour'] },
+  en: { tag: 'Estimate using average bonus',
+        est: '※ The bonus is an estimate: the average of bonuses reported on PILOT VALUE for the same airline and rank.',
+        gap: '※ Reports without a bonus answer are counted without a bonus when too few peers reported one.',
+        k: ['Annual pay (median)', 'Fixed & guaranteed share', 'Pay / Block Hour'] }
+};
+/* 答えを差し替えて描き直し、読み取る（描き直しは同期。待つものは無い）。 */
+const redraw = async (page, payload) => {
+  await page.evaluate((d) => window.PVDeepPay.render(d), payload);
+  return page.evaluate(SNAP);
+};
+/* 通貨を名指しして、KPI がその通貨で描き直されるまで待つ（時間では待たない）。
+   ★いまの通貨と同じものを渡しても通る（条件が最初から成り立っている）。 */
+async function curTo(page, cur) {
+  await page.evaluate((c) => window.PVCurrency.set(c), cur);
+  await page.waitForFunction((c) => {
+    const C = window.PVCurrency;
+    if (!C || C.get() !== c) return false;
+    const sym = (C.symbols && C.symbols[c]) || '¥';
+    return ((document.querySelector('.dp-kpi-v') || {}).textContent || '').indexOf(sym) === 0;
+  }, { timeout: 10000 }, cur);
+}
+for (const lang of ['ja', 'en']) {
+  const X = EST_TXT[lang];
+  const { page, errs } = await open(lang, FULL, 'light', MINE);
+  const base = await page.evaluate(SNAP);
+  const has = (s, t) => s.text.includes(t);
+
+  // ── どちらも無い ──
+  ok(base.tagN === 0 && base.foot.length === 1 && !has(base, X.tag) && !has(base, X.est) && !has(base, X.gap),
+     `${lang}: ★★目印がどちらも無い区分では、札も賞与の注記も1文字も出ない`,
+     `札 ${base.tagN} / 注記 ${base.foot.length}`);
+
+  // ── bonus_est だけ ──
+  const e = await redraw(page, EST);
+  ok(e.kpi === 3 && e.cards.map((c) => c.k).join('|') === X.k.join('|')
+     && e.tagN === 2 && e.cards[0].tags.join('|') === X.tag && e.cards[2].tags.join('|') === X.tag,
+     `${lang}: ★★bonus_est ── 年収と Pay / Block Hour のカードに札「${X.tag}」が1つずつ`,
+     JSON.stringify(e.cards.map((c) => [c.k, c.tags])));
+  ok(e.cards[1].tags.length === 0,
+     `${lang}: ★bonus_est ── 固定・保証給比率のカードには札を付けない（内訳を書いた人の平均で、見積もりに触れない）`);
+  ok(e.foot.length === 2 && e.foot.every((f) => f.in === 'dp-kpi') && e.foot[0].t === base.foot[0].t
+     && e.foot[1].t === X.est && !has(e, X.gap),
+     `${lang}: ★★bonus_est ── KPI の下に注記が1行だけ増える（前からの1行はそのまま・足りない回答の行は出ない）`,
+     JSON.stringify(e.foot.map((f) => f.t.slice(0, 30))));
+  ok(e.kpiV.join('|') === base.kpiV.join('|') && e.cards.map((c) => c.n).join('|') === base.cards.map((c) => c.n).join('|')
+     && e.legend.join('|') === base.legend.join('|'),
+     `${lang}: ★札と注記を出しても、数字は1つも変わらない（画面は額を作り直さない）`,
+     JSON.stringify(e.kpiV));
+
+  // ── bonus_gap だけ ──
+  const g = await redraw(page, GAP);
+  ok(g.tagN === 0 && !has(g, X.tag) && g.foot.length === 2 && g.foot[1].in === 'dp-kpi'
+     && g.foot[1].t === X.gap && !has(g, X.est),
+     `${lang}: ★★bonus_gap ── 注記「${X.gap.slice(0, 18)}…」の1行だけ（札も、見積もりの行も出ない）`,
+     `札 ${g.tagN} / ` + JSON.stringify(g.foot.map((f) => f.t.slice(0, 30))));
+
+  // ── 両方 ──
+  const b = await redraw(page, BOTH);
+  ok(b.tagN === 2 && b.cards[0].tags.length === 1 && b.cards[2].tags.length === 1 && b.cards[1].tags.length === 0
+     && b.foot.length === 3 && b.foot[1].t === X.est && b.foot[2].t === X.gap
+     && b.foot.every((f) => f.in === 'dp-kpi'),
+     `${lang}: ★★両方 ── 札2つ＋注記2行（見積もりの行が先・足りない回答の行が後）`,
+     `札 ${b.tagN} / ` + JSON.stringify(b.foot.map((f) => f.t.slice(0, 30))));
+  for (const [nm, s] of [['est', e], ['gap', g], ['両方', b]]) {
+    ok(!NOCOUNT.test(s.text) && !/undefined|NaN|\[object|null/.test(s.text),
+       `${lang}: ★${nm} ── 人数の形の字が増えない・undefined / NaN / null が出ない`, countIn(s.text));
+  }
+  /* ★札と注記に数字が1文字も無い（何人ぶんの平均か・賞与がいくらかは、サーバも返していない）。 */
+  ok(!/[0-9０-９]/.test(b.cards[0].tags.join('') + b.foot[1].t + b.foot[2].t),
+     `${lang}: ★札と注記に数字が1文字も無い`);
+
+  // ── 真偽でない値 ──
+  const l = await redraw(page, EST_LOOSE);
+  ok(l.tagN === 0 && l.foot.length === 1 && l.text === base.text,
+     `${lang}: ★★目印が真偽でない値（1・'true'）なら、札も注記も出ない（=== true で読む）`,
+     `札 ${l.tagN} / 注記 ${l.foot.length}`);
+
+  // ── 年収のカードが無い・2枚とも無い ──
+  /* 年収が来ていなくても Pay / Block Hour が出ていれば、そこに札が付く ＝ 注記も出す。
+     2枚とも出ていなければ、札が無いので注記だけを浮かせない。 */
+  const pb = await redraw(page, withHead({ annual_usd: null, month_usd: null, bonus_est: true, bonus_gap: true }));
+  ok(pb.kpi === 2 && pb.tagN === 1 && pb.cards[1].k === X.k[2] && pb.cards[1].tags.join('|') === X.tag
+     && pb.foot.length === 3 && pb.foot[1].t === X.est && pb.foot[2].t === X.gap,
+     `${lang}: ★年収が無くても Pay / Block Hour が出ていれば、札と注記は出る`,
+     JSON.stringify(pb.cards.map((c) => [c.k, c.tags])) + ' 注記 ' + pb.foot.length);
+  const np = await redraw(page, withHead({ annual_usd: null, per_block_usd: null, month_usd: null,
+                                           bonus_est: true, bonus_gap: true }));
+  ok(np.kpi === 1 && np.tagN === 0 && np.foot.length === 1 && !has(np, X.est) && !has(np, X.gap),
+     `${lang}: ★年収も Pay / Block Hour も出ていない区分では、賞与の注記だけを浮かせない`,
+     `カード ${np.kpi} / 札 ${np.tagN} / 注記 ${np.foot.length}`);
+  ok(errs.length === 0, `${lang}: 賞与の札と注記で JS のエラーが出ない`, errs.join(' / '));
+  await jars.pop().close().catch(() => {});
+}
+
+// ── 3j. 年収は出ているが、給与構成が無い区分（2026-10-12）────────────────────
+/* サーバの母集団が2つになった ── 年収は「有効な年収を出した人ぜんぶ」・給与構成は「内訳を
+   書いた人」。総支給だけの人が集まった区分は、年収が出て、comp・var・head.fixed_pct が null で来る。
+   ⚠️ 画面はそれを壊れた答えと読まない。見るのは ──
+     出る   … 年収・Pay / Block Hour のカード（札・月換算つき）・働き方・選ぶ欄・信頼度の札
+     出ない … 固定・保証給比率のカード（0% で埋めない）・変動給の中身（節ごと）
+     板     … 給与構成は、今までの「まだ出せません」の板と「出す」入口（文言は足していない）
+   続けて、変動給の中身の3通り ── 空の配列（節ごと出ない）・rest が混ざった形（名前は
+   「その他・未分類」・棒は灰色・頭の1文では名指ししない）。 */
+const NOCOMP_TXT = {
+  ja: { none: 'この区分では、給与構成をまだ出せません。', noneS: '内訳まで書いた明細が集まると、ここに構成が出ます。',
+        fixed: '固定・保証給比率', rest: 'その他・未分類', block: '飛行・クレジット時間', mon: '月換算（賞与ぬき）約 ' },
+  en: { none: 'Not enough to show the pay mix for this group yet.',
+        noneS: 'It appears once enough pilots have reported a full breakdown.',
+        fixed: 'Fixed & guaranteed share', rest: 'Other / unclassified', block: 'Flight / Block / Credit Hours',
+        mon: 'About (bonus excluded) ' }
+};
+for (const lang of ['ja', 'en']) {
+  const X = EST_TXT[lang], N = NOCOMP_TXT[lang];
+  const { page, errs } = await open(lang, NOCOMP, 'light', MINE);
+  const s = await page.evaluate(SNAP);
+  ok(s.kpi === 2 && s.cards[0].k === X.k[0] && s.cards[1].k === X.k[2]
+     && /\d/.test(s.cards[0].v) && /\d/.test(s.cards[1].v),
+     `${lang}: ★★給与構成が無い区分でも、年収と Pay / Block Hour のカードは出る`,
+     JSON.stringify(s.cards.map((c) => [c.k, c.v])));
+  ok(!s.text.includes(N.fixed) && !/(^|[^\d.,])0\s*%/.test(s.text.replace(/\n/g, ' ')),
+     `${lang}: ★★固定・保証給比率のカードは出さない（無い数字を 0% で埋めない）`,
+     (s.text.replace(/\n/g, ' ').match(/.{0,20}(^|[^\d.,])0\s*%.{0,10}/) || [''])[0]);
+  ok((s.cards[0].n || '').indexOf(N.mon) === 0 && s.cards[0].tags.join('|') === X.tag
+     && s.cards[1].tags.join('|') === X.tag && s.foot.length === 2 && s.foot[1].t === X.est,
+     `${lang}: ★月換算・賞与の札・注記は、給与構成が無くても出る（年収の側の話）`,
+     JSON.stringify([s.cards[0].n, s.cards[0].tags, s.foot.length]));
+  ok(!s.comp.hidden && s.donut === 0 && s.compCta === 1 && s.legend.length === 0
+     && s.comp.text.includes(N.none) && s.comp.text.includes(N.noneS),
+     `${lang}: ★★給与構成は、今までの「まだ出せません」の板と「出す」入口（空の円を描かない）`,
+     s.comp.text.replace(/\n/g, ' ').slice(0, 90));
+  ok(!s.work.hidden && s.work.rows === 4, `${lang}: ★働き方はそのまま出る（4行）`, `今 ${s.work.rows} 行`);
+  ok(s.vari.hidden && s.vari.rows === 0, `${lang}: ★変動給の中身は節ごと出ない（var が null）`);
+  ok(!s.pick.hidden && s.pick.shown && s.pick.air && s.pick.air.v === 'ana' && !s.pick.air.dis
+     && s.pick.reset && s.trust.length === 1 && /\S/.test(s.cond),
+     `${lang}: ★選ぶ欄・条件バー・信頼度の札はそのまま（選び直せる）`,
+     JSON.stringify([s.pick.air, s.trust]));
+  ok(noGhost(s) && !s.lock.on && !NOCOUNT.test(s.text) && !/undefined|NaN|\[object|null/.test(s.text),
+     `${lang}: ★影絵も錠前の板も出ない・人数の形の字も undefined も無い`, ghostWhy(s) + ' ' + countIn(s.text));
+  /* 選び直しても、同じ形のまま描ける（落ちない）。 */
+  await choose(page, { airline: 'jal', position: 'cap', fleet: 'b787' });
+  const s2 = await page.evaluate(SNAP);
+  ok(s2.kpi === 2 && s2.compCta === 1 && s2.args.length === 3,
+     `${lang}: ★給与構成が無い区分から、別の区分を選び直せる`, `カード ${s2.kpi} / 引いた回数 ${s2.args.length}`);
+
+  // ── 変動給の中身：空の配列 ──
+  const ve = await redraw(page, VAR_EMPTY);
+  ok(ve.vari.hidden && ve.vari.rows === 0 && ve.kpi === 3 && ve.donut === 1 && !ve.work.hidden,
+     `${lang}: ★★var が空の配列なら、変動給の中身は節ごと出ない（ほかの節はそのまま）`,
+     `行 ${ve.vari.rows} / カード ${ve.kpi} / 円 ${ve.donut}`);
+
+  // ── 変動給の中身：rest が混ざった形 ──
+  const vr = await redraw(page, VAR_REST);
+  ok(!vr.vari.hidden && vr.varK.join('|') === N.block + '|' + N.rest,
+     `${lang}: ★★var の rest は「${N.rest}」と名乗る（鍵の字をそのまま出さない）`, JSON.stringify(vr.varK));
+  ok(vr.bars.length === 2 && vr.bars[0] === vr.segC.flight && vr.bars[1] === vr.segC.rest
+     && vr.segC.rest !== vr.segC.flight,
+     `${lang}: ★★rest の棒は灰色（給与構成の未分類と同じ色）・名前の在る連動先は変動給の色のまま`,
+     JSON.stringify(vr.bars));
+  ok(vr.varLead.length === 1 && /80\s*%/.test(vr.varLead[0]) && vr.varLead[0].includes(N.block)
+     && !/\brest\b/.test(vr.vari.text),
+     `${lang}: ★頭の1文は、名前の在るいちばん大きい連動先（80%）`, JSON.stringify(vr.varLead));
+  const vt = await redraw(page, VAR_REST_TOP);
+  ok(vt.varK[0] === N.rest && vt.varLead.length === 1 && /45\s*%/.test(vt.varLead[0])
+     && vt.varLead[0].includes(N.block) && !vt.varLead[0].includes(N.rest) && !/55\s*%/.test(vt.varLead[0]),
+     `${lang}: ★★rest がいちばん大きくても、頭の1文で名指ししない（名前の在る連動先の 45% を言う）`,
+     JSON.stringify(vt.varLead));
+  ok(errs.length === 0, `${lang}: 給与構成が無い区分・変動給の3通りで JS のエラーが出ない`, errs.join(' / '));
+  await jars.pop().close().catch(() => {});
+}
+
+// ── 3k. SQL を貼る前の古いサーバの答え（2026-10-12）────────────────────────
+/* db/*.sql は push では本番に入らない。貼る前の答えは、金額の鍵が med_usd（中央値）で、
+   month_usd も賞与の目印も無い。⚠️ **壊さない・作らない** ──
+     ・月額の欄は「—」（中央値を「平均」の見出しの下に出さない。前の鍵へ読み替えない）
+     ・月換算の行は出ない（年収と賞与の割合から作って埋めない）
+     ・札も注記も出ない（目印が無いのを「見積もりあり」へ倒さない）
+   割合・年収・Pay / Block Hour・働き方は、形が変わっていないのでそのまま出る。 */
+for (const lang of ['ja', 'en']) {
+  const { page, errs } = await open(lang, OLDSRV, 'light', MINE);
+  const s = await page.evaluate(SNAP);
+  ok(s.kpi === 3 && s.donut === 1 && s.legP.join(' ') === '52% 24% 8% 7% 5% 4%' && s.work.rows === 4,
+     `${lang}: ★古い答えでも、年収・割合・働き方はそのまま出る（壊れない）`,
+     `カード ${s.kpi} / 割合 ${s.legP.join(' ')}`);
+  ok(s.legend.length === 6 && s.legend.every((t) => t === '—') && !/\d[\d,]{2,}/.test(s.comp.text),
+     `${lang}: ★★金額の鍵が med_usd だけの答えでは、月額の欄は「—」（前の鍵へ読み替えない）`,
+     JSON.stringify(s.legend));
+  ok(s.cards[0].n === null && !/月換算|About \(bonus excluded\)/.test(s.text),
+     `${lang}: ★★month_usd が無い答えでは、月換算の行ごと出ない（年収から作らない）`, String(s.cards[0].n));
+  ok(s.tagN === 0 && s.foot.length === 1, `${lang}: ★目印が無い答えでは、札も賞与の注記も出ない`,
+     `札 ${s.tagN} / 注記 ${s.foot.length}`);
+  ok(!/undefined|NaN|\[object|null/.test(s.text) && errs.length === 0,
+     `${lang}: ★古い答えで undefined / NaN / null も JS のエラーも出ない`, errs.join(' / '));
+  await jars.pop().close().catch(() => {});
+}
+
+// ── 3l. 札を出したまま、どの幅・どの通貨でも溢れない（2026-10-12）──────────────
+/* 札は KPI のカードの見出しの行に入る。カードがいちばん狭いのはスマホの幅（1列）で、英語の札は
+   長い。通貨を変えると額の字数も変わる（¥1,903万 → AED 440K）。見るのは 320 / 390 / 1440 ×
+   円・ドル・AED × 日英で ──
+     ・横スクロールが生えない
+     ・札・見出し・額・添え字が、自分のカードの外へ出ない・切れない・札が額に重ならない
+     ・注記の行（3行）が KPI の器の外へ出ない
+     ・札の字が読める（字 ⇄ その下の面のコントラスト 4.5 以上。明暗とも）・札の色は淡い札の
+       トークン（--pv-ink-2）で、注意の色（金・橙）ではない
+   ★見本は BOTH（札2つ＋注記2行 ＝ いちばん場所を取る姿）。
+   ⚠️ 円だけ・スマホの幅だけで確かめない（CLAUDE.md。どちらも検査が緑のまま崩れた前例がある）。 */
+const KPI_FIT = () => {
+  const de = document.documentElement, vw = de.clientWidth;
+  const rgba = (c) => { const x = (c.match(/[\d.]+/g) || []).map(Number);
+    return { r: x[0] || 0, g: x[1] || 0, b: x[2] || 0, a: x.length > 3 ? x[3] : 1 }; };
+  const under = (e) => {
+    const stack = [];
+    for (let n = e; n; n = n.parentElement) {
+      const c = rgba(getComputedStyle(n).backgroundColor);
+      if (c.a > 0) { stack.push(c); if (c.a >= 1) break; }
+    }
+    let o = { r: 255, g: 255, b: 255 };
+    for (let i = stack.length - 1; i >= 0; i--) {
+      const c = stack[i];
+      o = { r: c.r * c.a + o.r * (1 - c.a), g: c.g * c.a + o.g * (1 - c.a), b: c.b * c.a + o.b * (1 - c.a) };
+    }
+    return o;
+  };
+  const lum = (c) => { const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+    return 0.2126 * f(c.r) + 0.7152 * f(c.g) + 0.0722 * f(c.b); };
+  const ratio = (e) => { const a = lum(rgba(getComputedStyle(e).color)), b = lum(under(e));
+    return Math.round((Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05) * 100) / 100; };
+  const probe = (v) => { const p = document.createElement('i'); p.style.color = v; document.body.appendChild(p);
+    const c = getComputedStyle(p).color; p.remove(); return c; };
+  const name = (e) => String(e.className || e.tagName).split(' ')[0];
+  const out = [], cut = [], lap = [];
+  for (const c of document.querySelectorAll('.dp-kpi')) {
+    const cb = c.getBoundingClientRect();
+    for (const e of c.querySelectorAll('.dp-kpi-k, .dp-kpi-tag, .dp-kpi-v, .dp-kpi-n')) {
+      const r = e.getBoundingClientRect();
+      if (r.width === 0) continue;
+      if (r.right > cb.right + 0.5 || r.left < cb.left - 0.5 || r.bottom > cb.bottom + 0.5
+          || r.top < cb.top - 0.5 || r.right > vw + 0.5)
+        out.push(name(e) + ' ' + Math.round(r.left) + '..' + Math.round(r.right) + ' / カード ' + Math.round(cb.left) + '..' + Math.round(cb.right));
+    }
+    for (const e of c.querySelectorAll('.dp-kpi-b, .dp-kpi-k, .dp-kpi-tag, .dp-kpi-v'))
+      if (e.scrollWidth > e.clientWidth + 1) cut.push(name(e) + ' ' + e.textContent.slice(0, 20));
+    const v = c.querySelector('.dp-kpi-v'), t = c.querySelector('.dp-kpi-tag');
+    if (v && t) {
+      const a = v.getBoundingClientRect(), b = t.getBoundingClientRect();
+      if (a.left < b.right - 0.5 && b.left < a.right - 0.5 && a.top < b.bottom - 0.5 && b.top < a.bottom - 0.5)
+        lap.push(t.textContent.slice(0, 12));
+    }
+  }
+  const box = document.getElementById('dp-kpi'), bb = box ? box.getBoundingClientRect() : null;
+  const foots = [...document.querySelectorAll('#dp-kpi .dp-foot')];
+  const footOut = foots.filter((e) => { const r = e.getBoundingClientRect();
+    return !bb || r.right > bb.right + 0.5 || r.left < bb.left - 0.5 || r.right > vw + 0.5
+      || e.scrollWidth > e.clientWidth + 1; }).length;
+  const tags = [...document.querySelectorAll('.dp-kpi-tag')];
+  return { vw, over: de.scrollWidth - vw, out, cut, lap, foots: foots.length, footOut,
+           tags: tags.length,
+           /* 札が何行に折れているか（字は折り返してよい。1行に収まっているかを知るための数）。 */
+           tagLines: tags.map((e) => Math.round(e.getBoundingClientRect().height
+             / parseFloat(getComputedStyle(e).lineHeight || '1'))),
+           con: tags.map(ratio),
+           col: tags.map((e) => getComputedStyle(e).color),
+           ink2: probe('var(--pv-ink-2)'), gold: probe('var(--pv-gold-ink)'), orange: probe('var(--pv-orange-ink)'),
+           vals: [...document.querySelectorAll('.dp-kpi-v')].map((e) => e.textContent) };
+};
+for (const lang of ['ja', 'en']) {
+  const { page, errs } = await open(lang, BOTH, 'light', MINE);
+  const light = {};
+  for (const cur of ['JPY', 'USD', 'AED']) {
+    await curTo(page, cur);
+    for (const w of [320, 390, 1440]) {
+      await page.setViewport({ width: w, height: 1000 });
+      await page.waitForFunction((x) => innerWidth === x, { timeout: 10000 }, w);
+      await navStill(page);
+      const f = await page.evaluate(KPI_FIT);
+      const tag = `${lang}/${cur}/${w}`;
+      ok(f.over <= 0, `${tag}: ★★札を出したまま横スクロールが生えない`, `+${f.over}px`);
+      ok(f.tags === 2 && f.out.length === 0 && f.cut.length === 0 && f.lap.length === 0,
+         `${tag}: ★★札・見出し・額・添え字がカードから出ない・切れない・札が額に重ならない`,
+         `札 ${f.tags} / 外へ ${f.out.slice(0, 3).join(' ｜ ')} / 切れ ${f.cut.join(' ｜ ')} / 重なり ${f.lap.join(' ')} / 額 ${f.vals.join(' ')}`);
+      ok(f.foots === 3 && f.footOut === 0, `${tag}: ★注記の3行が KPI の器から出ない・切れない`,
+         `行 ${f.foots} / 外へ ${f.footOut}`);
+      if (cur === 'JPY' && w === 1440) Object.assign(light, f);
+    }
+  }
+  /* ★札の色。淡い札のトークン（--pv-ink-2）そのもので、注意の色（金・橙）ではない。 */
+  ok(light.col && light.col.length === 2 && light.col.every((c) => c === light.ink2)
+     && light.ink2 !== light.gold && light.ink2 !== light.orange,
+     `${lang}: ★札の字の色は --pv-ink-2（注意の色ではない）`, JSON.stringify([light.col, light.ink2]));
+  ok(light.con && light.con.every((r) => r >= 4.5), `${lang}/light: ★札の字が読める（コントラスト 4.5 以上）`,
+     JSON.stringify(light.con));
+  ok(errs.length === 0, `${lang}: 幅と通貨を変えても JS のエラーが出ない`, errs.join(' / '));
+  await jars.pop().close().catch(() => {});
+
+  /* 暗い面。色だけ見ればよいので、幅は1つ（窓を増やさない）。 */
+  const { page: dk, errs: de2 } = await open(lang, BOTH, 'dark', MINE);
+  await dk.setViewport({ width: 390, height: 1000 });
+  await dk.waitForFunction((x) => innerWidth === x, { timeout: 10000 }, 390);
+  await navStill(dk);
+  const d = await dk.evaluate(KPI_FIT);
+  ok(d.tags === 2 && d.con.every((r) => r >= 4.5) && d.col.every((c) => c === d.ink2) && d.ink2 !== light.ink2,
+     `${lang}/dark: ★★暗い面でも札の字が読める（コントラスト 4.5 以上・トークンが切り替わっている）`,
+     JSON.stringify([d.con, d.col, light.ink2]));
+  ok(d.over <= 0 && d.out.length === 0 && d.cut.length === 0 && de2.length === 0,
+     `${lang}/dark/390: 暗い面でも溢れない・切れない`, `+${d.over}px / ${d.out.join(' ｜ ')} / ${d.cut.join(' ｜ ')}`);
+  await jars.pop().close().catch(() => {});
+}
+
+// ── 3m. 給与構成を、項目の数で伏せない（2026-10-12）────────────────────────
+/* 前の画面は「未分類を除いて3項目に満たなければ、カードごと『まだ出せません』」にしていた。
+   サーバが正しい平均を2行で返すことがある ── 基本給＋「その他・未分類」（ほかは持つ人が
+   足りず畳まれた。db/test-deep-pay.mjs の「7. 未分類」が実際に作る答え ＝ 60% / 40%・
+   $6,000 / $4,000）・基本給＋変動給。それを画面が自分の決まりで隠していた。
+   ★出せるかどうか（内訳を書いた人の壁・項目ごとの壁・畳み方）は、サーバがもう決めている。
+     画面は来た行をそのまま描く。「まだ出せません」は、comp が無いか、割合が正の行が
+     1つも無いときだけ（§3j と、ここの最後）。
+   見るのは ── 2行（基本給＋未分類）で円・表・固定・保証給比率のカードがそろって出る／
+   金額は avg_usd・見出しは「平均」・未分類は名前と灰色と断りつき／320 / 390 / 1440 で
+   溢れない・切れない（3行以上を前提にした組み方が無い）／名前の在る2行・1行・未分類だけ
+   でも同じ／割合が正の行が無いときだけ板に替わる。
+   ⚠️ 通貨はドルを名指しする（英語ページの既定は、この機械のタイムゾーンで決まる）。 */
+const COMP_FIT = () => {
+  const de = document.documentElement, vw = de.clientWidth;
+  const card = document.querySelector('#dp-comp .mr-card'), leg = document.querySelector('#dp-comp .pt-legend');
+  const don = document.querySelector('#dp-comp .pt-donut');
+  if (!card || !leg || !don) return null;
+  const cb = card.getBoundingClientRect(), lb = leg.getBoundingClientRect(), db = don.getBoundingClientRect();
+  const out = [], cut = [];
+  for (const e of card.querySelectorAll('.pt-leg, .pt-leg .nm, .pt-leg .pct, .pt-leg .amt, .pt-donut, .pt-note')) {
+    const r = e.getBoundingClientRect();
+    if (r.width === 0) continue;
+    if (r.right > cb.right + 0.5 || r.left < cb.left - 0.5 || r.right > vw + 0.5)
+      out.push(String(e.className).split(' ').slice(0, 2).join('.') + ' ' + Math.round(r.left) + '..' + Math.round(r.right));
+  }
+  for (const e of card.querySelectorAll('.pt-leg .nm, .pt-leg .pct, .pt-leg .amt'))
+    if (e.scrollWidth > e.clientWidth + 1) cut.push(e.textContent.slice(0, 20));
+  const rows = [...leg.querySelectorAll('.pt-leg')].map((e) => e.getBoundingClientRect());
+  /* 行が重なっていない・上から順に並んでいる。 */
+  let stacked = true;
+  for (let i = 1; i < rows.length; i++) if (rows[i].top < rows[i - 1].bottom - 0.5) stacked = false;
+  /* 円と表が重なっていない（横に並ぶか、表が下の行へ落ちる）。 */
+  const apart = lb.left >= db.right - 0.5 || lb.top >= db.bottom - 0.5;
+  return { vw, over: de.scrollWidth - vw, out, cut, rows: rows.length, stacked, apart,
+           donut: [Math.round(db.width), Math.round(db.height)],
+           legIn: lb.right <= cb.right + 0.5 && lb.left >= cb.left - 0.5 };
+};
+for (const lang of ['ja', 'en']) {
+  const N = NOCOMP_TXT[lang];
+  const CNM = lang === 'ja' ? { base: '基本給', variable: '変動給', th: '構成要素|構成比|月額（平均）', center: '構成比\n（平均）',
+                                restNote: '※「その他・未分類」には、データが足りず個別に出せなかった項目を含みます。',
+                                vshare: /変動給比率\s*30\s*%/ }
+                            : { base: 'Base pay', variable: 'Variable (flying)', th: 'Component|Share|Monthly (average)',
+                                center: 'Share\n(average)',
+                                restNote: '“Other / unclassified” includes items held back because there was not enough data to show them separately.',
+                                vshare: /Variable share\s*30\s*%/ };
+  const { page, errs } = await open(lang, TWO_REST, 'light', MINE);
+  await curTo(page, 'USD');
+  const s = await page.evaluate(SNAP);
+  ok(!s.comp.hidden && s.donut === 1 && s.compCta === 0 && s.empty === 0
+     && !s.comp.text.includes(N.none) && !s.comp.text.includes(N.noneS),
+     `${lang}: ★★基本給＋未分類の2行だけの給与構成が出る（「まだ出せません」の板に替えない）`,
+     `円 ${s.donut} / 入口 ${s.compCta} / 板 ${s.empty}`);
+  ok(s.legK.join('|') === CNM.base + '|' + N.rest && s.legP.join('|') === '60%|40%'
+     && s.legend.join('|') === '$6,000|$4,000',
+     `${lang}: ★★2行とも出る ── 割合は 60% / 40%・月額は avg_usd（$6,000 / $4,000。未分類にも額が出る）`,
+     JSON.stringify([s.legK, s.legP, s.legend]));
+  ok(s.center === CNM.center && s.th.join('|') === CNM.th,
+     `${lang}: ★2行でも見出しは「平均」（円の真ん中・表の月額の列）`, JSON.stringify([s.center, s.th]));
+  ok(s.arcs.length === 2 && s.legC.length === 2 && s.legC[0] === s.segC.base && s.legC[1] === s.segC.rest
+     && s.comp.text.includes(CNM.restNote),
+     `${lang}: ★未分類は灰色（弧も凡例も）・断りの1行つき`, JSON.stringify([s.arcs, s.legC]));
+  ok(s.kpi === 3 && s.cards[1].k === N.fixed && s.cards[1].v === '60%' && s.cards[1].n === null,
+     `${lang}: ★固定・保証給比率のカードはサーバの値（60%）のまま・変動給比率の添え字は出ない（変動給の行が無い）`,
+     JSON.stringify(s.cards[1]));
+  for (const w of [320, 390, 1440]) {
+    await page.setViewport({ width: w, height: 1000 });
+    await page.waitForFunction((x) => innerWidth === x, { timeout: 10000 }, w);
+    await navStill(page);
+    const f = await page.evaluate(COMP_FIT);
+    ok(!!f && f.rows === 3 && f.over <= 0 && f.out.length === 0 && f.cut.length === 0 && f.legIn,
+       `${lang}/${w}: ★★2行の給与構成が溢れない・切れない（見出し＋2行）`,
+       f ? `行 ${f.rows} / +${f.over}px / 外へ ${f.out.slice(0, 3).join(' ｜ ')} / 切れ ${f.cut.join(' ｜ ')}` : '器が無い');
+    ok(!!f && f.stacked && f.apart && f.donut[0] >= 100 && f.donut[0] === f.donut[1],
+       `${lang}/${w}: ★行が重ならない・円と表が重ならない・円がつぶれない`,
+       f ? `円 ${f.donut.join('×')} / 並び ${f.stacked} / 離れている ${f.apart}` : '');
+  }
+  await page.setViewport({ width: 1360, height: 1200 });
+  await page.waitForFunction((x) => innerWidth === x, { timeout: 10000 }, 1360);
+
+  // ── 名前の在る2行（基本給＋変動給）──
+  const r2 = await redraw(page, TWO_REAL);
+  ok(r2.donut === 1 && r2.compCta === 0 && r2.legK.join('|') === CNM.base + '|' + CNM.variable
+     && r2.legP.join('|') === '70%|30%' && r2.legend.join('|') === '$7,000|$3,000'
+     && !r2.comp.text.includes(CNM.restNote),
+     `${lang}: ★★基本給＋変動給の2行だけでも出る（未分類の断りは出ない）`,
+     JSON.stringify([r2.legK, r2.legP, r2.legend]));
+  ok(r2.cards[1].v === '70%' && CNM.vshare.test(r2.cards[1].n || ''),
+     `${lang}: ★変動給の行が在れば、変動給比率の添え字（30%）も出る`, String(r2.cards[1].n));
+
+  // ── 1行だけ・未分類だけ ──
+  const r1 = await redraw(page, ONE_SEG);
+  ok(r1.donut === 1 && r1.compCta === 0 && r1.arcs.length === 1 && r1.legK.join('|') === CNM.base
+     && r1.legP.join('|') === '100%' && r1.legend.join('|') === '$10,000' && !/NaN|Infinity/.test(r1.text),
+     `${lang}: ★1行だけ（基本給 100%）でも円と表が出る（割り算で壊れない）`,
+     JSON.stringify([r1.legK, r1.legP, r1.legend]));
+  const ro = await redraw(page, REST_ONLY);
+  ok(ro.donut === 1 && ro.compCta === 0 && ro.legK.join('|') === N.rest && ro.legP.join('|') === '100%'
+     && ro.legC[0] === ro.segC.rest && ro.comp.text.includes(CNM.restNote),
+     `${lang}: ★未分類だけの答えも、来たとおりに描く（灰色の1行＋断り。画面の決まりで隠さない）`,
+     JSON.stringify([ro.legK, ro.legP, ro.legend]));
+
+  // ── 割合が正の行が無い ── ここだけは「まだ出せません」──
+  for (const [nm, pl] of [['行が空', ZERO_SEG], ['割合が 0 だけ', ZERO_PCT]]) {
+    const z = await redraw(page, pl);
+    ok(!z.comp.hidden && z.donut === 0 && z.compCta === 1 && z.legend.length === 0
+       && z.comp.text.includes(N.none) && z.comp.text.includes(N.noneS),
+       `${lang}: ★★${nm}の給与構成は、今までの「まだ出せません」の板（空の円も 0% の行も描かない）`,
+       z.comp.text.replace(/\n/g, ' ').slice(0, 80));
+  }
+  ok(errs.length === 0, `${lang}: 行の少ない給与構成で JS のエラーが出ない`, errs.join(' / '));
+  await jars.pop().close().catch(() => {});
 }
 
 // ── 3b. variable が人数の壁に届かないと「変動給比率」の行ごと消える ──
@@ -4421,7 +5214,7 @@ for (const lang of ['ja', 'en']) {
   await page.setViewport({ width: 1512, height: 1000 });
   /* ★時間で待たない。幅が本当に 1512 になってから測る。 */
   await page.waitForFunction(() => innerWidth === 1512, { timeout: 10000 });
-  const m = await page.evaluate(() => {
+  const fitNow = () => page.evaluate(() => {
     let bottom = 0;
     const root = document.getElementById('dp-root');
     (function walk(n) {
@@ -4450,6 +5243,7 @@ for (const lang of ['ja', 'en']) {
     }
     return { bottom: Math.round(bottom * 10) / 10, cut, rows };
   });
+  const m = await fitNow();
   /* ★落ちたときだけ、上から順に「どこが何px使っているか」を出す。
      底の数字だけでは、段が増えたのか1行折れたのかが分からない。 */
   ok(m.bottom <= 940, `★1画面に収まる（${lang} / 1512×1000）`,
@@ -4457,6 +5251,14 @@ for (const lang of ['ja', 'en']) {
   ok(m.cut.every((c) => c.slack >= 0),
      `★<select> の選択肢が切れていない（${lang} / 1512）`,
      m.cut.map((c) => `${c.id} ${c.slack}`).join(' / '));
+  /* ★2026-10-12、賞与の札と注記が増えた。いちばん場所を取る姿（札2つ＋注記が2行増える ＝ BOTH）でも
+       1画面に収まること。増えるぶん（注記1行 約17px × 2・札が折れたカードは見出しの行が1段）は、
+       給与構成のカードから「賞与・利益分配」の行（約38px）を外したぶんで相殺してある。
+     ⚠️ 注記の字を足す・札をカードの別の行へ移すと、ここが落ちる。しきい値を上げて通さない。 */
+  await page.evaluate((d) => window.PVDeepPay.render(d), BOTH);
+  const m2 = await fitNow();
+  ok(m2.bottom <= 940, `★1画面に収まる ── 賞与の札と注記2行を出した姿（${lang} / 1512×1000）`,
+     `底 ${m2.bottom}（素の姿 ${m.bottom}）\n     ` + m2.rows.join('\n     '));
 }
 
 // ── 11. 選べる ＝ 必ず数字が返る（2026-09-01）─────────────────
@@ -4587,8 +5389,8 @@ for (const lang of ['ja', 'en']) {
 {
   const FOLD = Object.assign(clone(FULL), {
     comp: { total_kind: 'monthly_cash',
-      segs: [{ k: 'base', pct: 58, med_usd: 2900 }, { k: 'variable', pct: 26, med_usd: 1300 },
-             { k: 'perdiem', pct: 7, med_usd: 350 }, { k: 'rest', pct: 9, med_usd: null }],
+      segs: [{ k: 'base', pct: 58, avg_usd: 2900 }, { k: 'variable', pct: 26, avg_usd: 1300 },
+             { k: 'perdiem', pct: 7, avg_usd: 350 }, { k: 'rest', pct: 9, avg_usd: 450 }],
       bonus: null } });
   for (const [lang, rest, none] of [
     ['ja', '※「その他・未分類」には、データが足りず個別に出せなかった項目を含みます。',
@@ -4600,6 +5402,11 @@ for (const lang of ['ja', 'en']) {
     ok(f.donut === 1 && f.comp.text.includes(rest) && !NOCOUNT.test(f.text),
        `${lang}: ★「その他・未分類」の断りに人数を書かない`,
        countIn(f.text) || f.comp.text.replace(/\n/g, ' ').slice(-90));
+    /* ★2026-10-12 から、未分類の行にも月額が来る（割合も金額も同じ平均の額から作るので桁が合う）。
+         ほかの項目と同じに出す ──「—」のままにしない。 */
+    ok(f.legend.length === 4 && f.legend.every((t) => /\d/.test(t)),
+       `${lang}: ★「その他・未分類」の行にも月額が出る（avg_usd が来ていれば「—」にしない）`,
+       JSON.stringify(f.legend));
     const { page: p2 } = await open(lang, NOHEAD, 'light', MINE);
     const n = await p2.evaluate(SNAP);
     ok(n.compCta === 1 && n.comp.text.includes(none) && !NOCOUNT.test(n.text),

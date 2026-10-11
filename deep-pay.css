@@ -159,8 +159,21 @@
 .dp-kpi-ic--grn{background:var(--pv-green-soft);color:var(--pv-green-ink)}
 .dp-kpi-ic--tea{background:var(--pv-teal-soft);color:var(--pv-teal)}
 .dp-kpi-b{display:flex;flex-direction:column;min-width:0}
-.dp-kpi-k{display:flex;align-items:center;gap:5px;
+/* ★flex-wrap を置く（2026-10-12）。見出しの横に札（.dp-kpi-tag）が入ることがあり、
+     幅が足りないカード（320px・英語）では札だけ次の行へ落とす。札が無いカードは今までと同じ1行。 */
+.dp-kpi-k{display:flex;align-items:center;flex-wrap:wrap;gap:3px 5px;
   font-size:.7rem;font-weight:600;color:var(--pv-ink-3);letter-spacing:.01em}
+/* 「平均賞与を使った推計」の札（2026-10-12・オーナー判断）。年収と Pay / Block Hour の
+   カードに、サーバが賞与の平均で額を作ったと答えたときだけ出る（deep-pay.js の kpis()）。
+   ★淡い札。**注意の色（金・赤）にしない** ── 見積もりであることを言うだけで、不具合ではない。
+     信頼度の札の「低」（.dp-trust--low）と同じ、読むだけの札の色。色はトークンだけ
+     （暗い面ではトークンごと切り替わる）。
+   ★字は折り返してよい（white-space を固定しない）。いちばん狭いカードの字の欄は約 200px で、
+     英語の札は1行に収まるが、収まらない通貨・字の大きさの設定でも箱の外へは出ない。 */
+.dp-kpi-tag{display:inline-block;max-width:100%;
+  font-size:.62rem;font-weight:600;line-height:1.35;letter-spacing:0;
+  color:var(--pv-ink-2);background:var(--pv-line-soft);
+  border:1px solid var(--pv-line);border-radius:999px;padding:1px 7px}
 .dp-kpi-v{margin-top:3px;font-size:1.5rem;font-weight:800;line-height:1.1;
   letter-spacing:-.03em;font-variant-numeric:tabular-nums;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -240,14 +253,13 @@
 .dp-hint p{font-size:.72rem;line-height:1.5;color:var(--pv-ink-2)}
 .dp-hint b{color:var(--pv-ink);font-weight:700}
 .dp-foot{margin-top:7px;font-size:.68rem;color:var(--pv-ink-3);line-height:1.55}
+/* ★注記が2行・3行になるのは、賞与の目印が立った区分だけ（2026-10-12。deep-pay.js の kpis()）。
+     続きの行は上の行に寄せる ── 1つの注記の続きに見えるように。 */
+.dp-foot+.dp-foot{margin-top:1px}
 
-/* ── 賞与（ドーナツの外）────────────────────────────────────
-   ★ドーナツに混ぜない（オーナー確定）。罫を1本引いた下に1行だけ。 */
-.dp-bonus{display:flex;align-items:baseline;justify-content:space-between;gap:12px;
-  margin-top:11px;padding-top:9px;border-top:1px solid var(--pv-line-soft)}
-.dp-bonus-k{font-size:.78rem;font-weight:600}
-.dp-bonus-v{font-size:.85rem;font-weight:800;font-variant-numeric:tabular-nums}
-.dp-bonus-s{font-size:.68rem;color:var(--pv-ink-3);font-weight:500;margin-left:6px}
+/* ★ここに在った「賞与（ドーナツの外）」の1行（.dp-bonus*）は 2026-10-12 に外した。
+     給与構成のカードは、賞与の行を持たない（理由は deep-pay.js の冒頭の「賞与の見積もり」）。
+     賞与を円に混ぜない約束（オーナー確定）は、そのまま。 */
 
 /* ── もっと深く見る ─────────────────────────────────────────── */
 #dp-more{margin-top:14px}   /* 段の間は器で空ける。中の .dp-more に付けるとカードの上だけ厚くなる */
@@ -549,7 +561,7 @@
 #dp-comp .pt-donut-wrap{gap:18px;align-items:center;margin-top:12px}
 #dp-comp .pt-donut{width:140px;height:140px}
 #dp-comp .pt-donut svg{width:100%;height:100%}
-/* 中心は2行（構成比 /（中央値））。改行はそのまま出す。 */
+/* 中心は2行（構成比 /（平均）。2026-10-12 に中央値から替えた）。改行はそのまま出す。 */
 #dp-comp .pt-donut-c b{display:block;white-space:pre-line;font-size:.78rem;
   font-weight:700;line-height:1.5;color:var(--pv-ink-2);text-align:center}
 #dp-comp .pt-legend{gap:0;min-width:236px}
@@ -582,9 +594,10 @@
   #dp-comp .pt-legend{min-width:100%}
   #dp-comp .pt-leg .nm{min-width:88px}
   #dp-comp .pt-leg .pct{width:44px}
-  /* ★見出しの「月額（中央値）」が 74px ある。70px にすると**見出しだけ**が
-     4px 切れる（数字は切れないので気づきにくい）。凡例はこの幅では丸ごと
-     下の行に落ちていて場所は余っているので、desktop と同じ 80px でよい。 */
+  /* ★この列は 70px に詰めない。見出しが「月額（中央値）」（74px）だった頃、70px にすると
+     **見出しだけ**が 4px 切れた（数字は切れないので気づきにくい）。2026-10-12 から見出しは
+     「月額（平均）」で1字短いが、金額の字（¥760,000・AED 18,000）は変わらない。凡例はこの幅では
+     丸ごと下の行に落ちていて場所は余っているので、desktop と同じ 80px でよい。 */
   #dp-comp .pt-leg .amt{width:80px}
   .dp-li-l{flex:0 0 108px}
   .dp-more-r{width:100%}

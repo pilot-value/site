@@ -1189,9 +1189,10 @@ const FAKE = function (payload) {
        描かない**ことを §2d が見るためだけの細工（板の後ろの影絵にも、板にも）。 */
   if (P.__poison) Object.assign(BOOT, {
     cohort: { level: 'selected', manual: true, airline: 'ana', pos: 'cap', fleet: 'b787', trust: 'high' },
-    head: { annual_usd: 119700, per_block_usd: 102.5, fixed_pct: 62 },
-    comp: { segs: [{ k: 'base', pct: 52, med_usd: 4800 }, { k: 'variable', pct: 24, med_usd: 2200 },
-                   { k: 'perdiem', pct: 7, med_usd: 640 }], bonus: { pct_of_annual: 5 } },
+    head: { annual_usd: 119700, per_block_usd: 102.5, month_usd: 9500, fixed_pct: 62,
+            bonus_est: true, bonus_gap: false },
+    comp: { segs: [{ k: 'base', pct: 52, avg_usd: 4800 }, { k: 'variable', pct: 24, avg_usd: 2200 },
+                   { k: 'perdiem', pct: 7, avg_usd: 640 }], bonus: { pct_of_annual: 5 } },
     work: { block_h: 74.5, duty_h: 141.5, stay_nights: 9 },
     var: [{ k: 'block', pct: 46 }, { k: 'sector', pct: 21 }]
   });
@@ -1210,7 +1211,11 @@ const FAKE = function (payload) {
     const o = {
       state: 'open', gate: GATE, stats: STATS,
       cohort: { level: 'selected', manual: true },
-      head: { annual_usd: f.annual, per_block_usd: f.pbh, fixed_pct: f.fixed },
+      /* ★head の形は 2026-10-12 から6つ（month_usd ＝ 月換算・賞与ぬき／bonus_est・bonus_gap ＝
+           賞与の目印）。この画面は足された3つをまだ読まない（閉じている。deep-pay-compare.js の
+           MET の bonus の注）── 来ても表が1文字も変わらないことを、どの筋書きも見ていることになる。 */
+      head: { annual_usd: f.annual, per_block_usd: f.pbh, month_usd: null, fixed_pct: f.fixed,
+              bonus_est: false, bonus_gap: false },
       comp: {
         segs: f.segs,
         bonus: (f.bonus == null ? null : { pct_of_annual: f.bonus })
@@ -2520,16 +2525,18 @@ const bootWith = (gate) => ({ ok: true, state: 'locked', give: { detailed: false
 const POISON_GATE = { key: true, ready: false, todo: null, crowd: true, contributors: 37, goal: 100 };
 const POISON_PARTS = {
   cohort: { level: 'selected', manual: true, airline: 'ana', pos: 'cap', fleet: 'b787', trust: 'high' },
-  head: { annual_usd: 119700, per_block_usd: 102.5, fixed_pct: 62 },
-  comp: { segs: [{ k: 'base', pct: 52, med_usd: 4800 }, { k: 'variable', pct: 24, med_usd: 2200 },
-                 { k: 'perdiem', pct: 7, med_usd: 640 }], bonus: { pct_of_annual: 5 } },
+  head: { annual_usd: 119700, per_block_usd: 102.5, month_usd: 9500, fixed_pct: 62,
+            bonus_est: true, bonus_gap: false },
+  comp: { segs: [{ k: 'base', pct: 52, avg_usd: 4800 }, { k: 'variable', pct: 24, avg_usd: 2200 },
+                 { k: 'perdiem', pct: 7, avg_usd: 640 }], bonus: { pct_of_annual: 5 } },
   work: { block_h: 74.5, duty_h: 141.5, stay_nights: 9 },
   var: [{ k: 'block', pct: 46 }, { k: 'sector', pct: 21 }]
 };
 /* 開いた画面を描き直すための、1社ぶんの答え（FAKE の side() と同じ形）。 */
 const sideOf = (f) => ({ state: 'open', stats: {}, gate: { key: true, ready: true, crowd: true },
   cohort: { level: 'selected', manual: true, trust: f.trust },
-  head: { annual_usd: f.annual, per_block_usd: f.pbh, fixed_pct: f.fixed },
+  head: { annual_usd: f.annual, per_block_usd: f.pbh, month_usd: null, fixed_pct: f.fixed,
+          bonus_est: false, bonus_gap: false },
   comp: { segs: f.segs, bonus: f.bonus == null ? null : { pct_of_annual: f.bonus } },
   work: { block_h: f.block, stay_nights: f.stay } });
 for (const lang of ['ja', 'en']) {
@@ -3774,11 +3781,14 @@ for (const lang of ['ja', 'en']) {
    1ドル単位まで知っているように読める）。いまは換算してから寄せる（sigIn）。
    ★円の表示は今までどおり。ドルでは、サーバが返した2桁の額がそのまま出る。
    ★差は画面の2つの字の引き算のまま（+$140）── 3つの数字の辻褄は通貨を問わず合う。
-   ⚠️ 見本の月額は作り物（640 / 780・460 / 510）。 */
+   ⚠️ 見本の月額は作り物（640 / 780・460 / 510）。
+   ★2026-10-12 から、月額は**内訳を書いた人の平均**で、鍵は avg_usd（前は項目ごとの中央値・med_usd）。
+     この画面も avg_usd だけを読む。最後に、古い鍵だけの答えで「率へ戻る」ことを見る ──
+     SQL を貼る前の中央値を、読み替えて出さない（deep-pay.js の月額の欄が「—」になるのと同じ決まり）。 */
 {
   const withAmt = (base, pd, ho) => Object.assign(clone(base), {
     segs: [{ k: 'base', pct: 62 }, { k: 'variable', pct: 18 },
-           { k: 'perdiem', pct: 7, med_usd: pd }, { k: 'housing', pct: 8, med_usd: ho },
+           { k: 'perdiem', pct: 7, avg_usd: pd }, { k: 'housing', pct: 8, avg_usd: ho },
            { k: 'other', pct: 5 }] });
   const AMT = { air: { ana: withAmt(ANA, 640, 460), jal: withAmt(AIR.jal, 780, 510) } };
   const { page, errs } = await open('ja', AMT, 'light', { a: 'ana', b: 'jal' });
@@ -3810,6 +3820,22 @@ for (const lang of ['ja', 'en']) {
      && eh.a === '€390' && eh.b === '€440' && eh.d === '+€50',
      '★★ユーロ ── 換算してから2桁に寄せる（どの額も上から2桁のあとは 0）',
      JSON.stringify([ep, eh]));
+  /* ★古いサーバの形（金額の鍵が med_usd だけ）。月額はどちらの側にも「来ていない」ので、
+       パーディアム・住宅手当は今までどおり**率**で並ぶ（月額の行は作らない・0 でも「—」でも埋めない）。 */
+  {
+    const oldAmt = (base, pd, ho) => Object.assign(clone(base), {
+      segs: [{ k: 'base', pct: 62 }, { k: 'variable', pct: 18 },
+             { k: 'perdiem', pct: 7, med_usd: pd }, { k: 'housing', pct: 8, med_usd: ho },
+             { k: 'other', pct: 5 }] });
+    await page.evaluate((a, b) => window.PVDeepPayCompare.render(a, b, { a: 'ana', b: 'jal' }),
+      sideOf(oldAmt(ANA, 640, 460)), sideOf(oldAmt(AIR.jal, 780, 510)));
+    const o = await page.evaluate(SNAP);
+    ok(!o.rows.some((r) => /（月額）/.test(r.k))
+       && o.rows.some((r) => /パーディアム比率/.test(r.k)) && o.rows.some((r) => /住宅手当比率/.test(r.k))
+       && !/640|780|460|510/.test(o.rows.map((r) => r.a + ' ' + r.b).join(' ')),
+       '★★金額の鍵が med_usd だけの答えでは、手当は率で並ぶ（古い中央値を月額として出さない）',
+       JSON.stringify(o.rows.filter((r) => /パーディアム|住宅手当/.test(r.k))));
+  }
   ok(errs.length === 0, '（9c）JS のエラーが出ない', errs.join(' / '));
 }
 

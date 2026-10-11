@@ -26,7 +26,12 @@
       （中央値どうしで「+18%」は嘘の精度）。書くのは画面に出ている2つの数の
       引き算だけ（delta() の注）。▲▼も勝ち色も付けない。
    5. **「時給」と呼ばない。** Pay / Block Hour は Block Hours から出した指標。
-   6. **個人の明細を出さない。** ここに出るのは中央値と割合だけ。
+   6. **個人の明細を出さない。** ここに出るのは中央値・平均と割合だけ。
+      ★2026-10-12、サーバが母集団を2つに分けた（db/deep-pay.sql）── 年収・Pay / Block Hour・
+        働き方は「有効な年収を出した人ぜんぶ」の中央値、給与構成の割合と月額は「内訳を
+        書いた人」の平均（金額の鍵は avg_usd）。この画面が読む鍵は、その日に合わせてある。
+        ⚠️ 賞与の見積もり（head.bonus_est / bonus_gap）と月換算（head.month_usd）は、この画面は
+           まだ読んでいない。開ける前に決めること（下の MET の bonus の注）。
 
    ★金額の細かさ（2026-10-11・オーナー判断）── deep-pay.js と同じ。
      年収の中央値と Pay / Block Hour だけ、表示通貨の中で刻みに寄せる
@@ -467,10 +472,14 @@
     for (var i = 0; i < segs.length; i++) if (segs[i].k === k) return num(segs[i].pct);
     return null;
   }
-  /* 区分ごとの月額中央値（USD）。db/deep-pay.sql の cseg が、人数の壁を越えた区分にだけ
-     載せてくる。無ければ null ── 0 を返さない（segPct と同じ理由）。 */
+  /* 区分ごとの月額（USD）。db/deep-pay.sql の cseg が、人数の壁を越えた区分にだけ
+     載せてくる。無ければ null ── 0 を返さない（segPct と同じ理由）。
+     ★2026-10-12 から、来るのは**内訳を書いた人の平均**で、鍵は avg_usd（前は項目ごとの
+       中央値で、鍵の名前も別だった）。deep-pay.js の segByKey と同じ鍵を読む。
+     ⚠️ 前の鍵へ読み替えない ── SQL を貼る前の古い答えは金額が中央値。鍵が無ければ null ＝
+        その行は今までどおり率で並ぶ（来ていない額を作らない）。 */
   function segAmt(segs, k) {
-    for (var i = 0; i < segs.length; i++) if (segs[i].k === k) return num(segs[i].med_usd);
+    for (var i = 0; i < segs.length; i++) if (segs[i].k === k) return num(segs[i].avg_usd);
     return null;
   }
   function pct(v) { return Math.round(v) + '%'; }
@@ -501,6 +510,12 @@
     housing:  { lab: T.mHou,    labA: T.mHouA, f: pct, fA: moneyExact,
                 get: function (x) { return segPct(segsOf(x), 'housing'); },
                 amt: function (x) { return segAmt(segsOf(x), 'housing'); } },
+    /* ⚠️ **出す日に決め直す行**（2026-10-12）。サーバは年収を「同じ会社・同じ役職の賞与の
+          平均」を割り振った額で返すようになり、この割合のほうは、内訳を書いた人のうち賞与を
+          答えていない人を 0 として数えた比のまま ＝ 低く出る。DEEP PAY の画面（deep-pay.js）は
+          同じ理由でこの行をやめ、年収に「平均賞与を使った推計」の札（head.bonus_est）を
+          付けた。この画面は閉じているので、鍵（今もサーバが返す）は読んだままにしてある。
+          開ける前に、この行をやめるか・札と注記をこちらにも足すかを、オーナーと決めること。 */
     bonus:    { lab: T.mBonus,  f: pct,
                 get: function (x) { return num(x.comp && x.comp.bonus && x.comp.bonus.pct_of_annual); } },
     block:    { lab: T.mBlock,  f: hrs,

@@ -73,6 +73,32 @@
    ⚠️ 誰がログインしているかを決めるのは pv-session.js とページの PV_SESSION。
       ここでは決めない（端末のログインの控えにも触らない）。
 
+   ── 誰を数えるか・賞与の見積もり（2026-10-12・オーナー判断）──────
+   ★サーバ（db/deep-pay.sql）が母集団を2つに分けた。画面は**来た形をそのまま出すだけ**。
+     ・年収・Pay / Block Hour・月換算・働き方 … 有効な年収を出した人ぜんぶの**中央値**
+       （内訳を書いたかは見ない）。
+     ・給与構成（割合と月額）・固定・保証給比率・変動給の中身 … 内訳を書いた人だけの
+       **平均**。金額を先に平均し、割合はその平均から出ている（金額の鍵は avg_usd。
+       前の med_usd は中央値だった頃の名前で、サーバはもう返さない）。
+     ★だから「年収は出ているのに comp が null」は、壊れた答えではない（総支給だけの人が
+       集まった区分）。年収・Pay / Block Hour・働き方・選ぶ欄はそのまま出し、給与構成の
+       カードは今までの「まだ出せません」の板、固定・保証給比率のカードは出さない
+       （0 で埋めない）。
+   ★賞与 … サーバが「同じ会社・同じ役職で申告された賞与の平均」を、その区分の全員に
+     割り振って年収と Pay / Block Hour を出す（使うのは PILOT VALUE に蓄積された申告だけ）。
+     画面に来るのは目印2つ（head.bonus_est / head.bonus_gap ＝ 真偽）で、額も人数も来ない。
+     `=== true` のときだけ、札（年収と Pay / Block Hour のカード）と注記（KPI の下）を出す。
+     ⚠️ 札は淡い札で、注意の色にしない（見積もりは不具合ではない）。
+   ⚠️ **月換算（賞与ぬき）は head.month_usd をそのまま出す。画面で作らない** ──
+      年収を 12 で割らない・賞与の割合を掛けない。年収（全員・賞与の平均込み）と賞与の割合
+      （内訳を書いた人だけ）は母集団が違うので、掛けると、どちらの数字でもない額になる。
+      来なければ行ごと出さない（assert-deep-pay.mjs が、毒入りの答えで見ている）。
+   ⚠️ **給与構成のカードに「賞与・利益分配 ◯%」の行を戻さない**（comp.bonus は読まない）。
+      サーバの割合は、内訳を書いた人のうち賞与を答えていない人を 0 として数えた比 ＝ 低く出る。
+      上の「平均賞与を使った推計」と同じ画面に並ぶと、2つが食い違って見える。
+   ★SQL を貼る前の古い答え（金額の鍵が med_usd・month_usd が無い）でも、壊さない・作らない
+     ── 月額の欄は「—」・月換算の行は出ない・札も注記も出ない。
+
    ── ここで守っている約束 ──────────────────────────────────────
    ★「時給」と書かない。出すのは Pay / Block Hour で、Block Hours から
      割った指標。時給と書いた瞬間に、待機も地上も含んだ拘束時間で割った
@@ -102,7 +128,7 @@
      それ以外の通貨なら 1,000・1。省くと、通貨を切り替えた瞬間だけ端数の
      残った数字が出て「本当は1円単位まで持っているのでは」と読める。
    ・それ以外の金額（給与構成の月額・月換算）は今までどおり有効数字2桁
-     （moneyExact / moneyMonth）。サーバも2桁のまま返している。**こちらは細かく
+     （moneyExact / moneyAbout）。サーバも2桁のまま返している。**こちらは細かく
      していない。** ただし2桁に寄せるのは**表示通貨へ換算してから**（sigIn。
      2026-10-11）── 円で寄せてから換算すると、ドルでは $4,781 のように
      持っていない桁が並ぶ。円の表示は今までと1文字も変わらない。
@@ -185,18 +211,35 @@
       trust: '信頼度',
       hi: '高', mid: '中', lo: '低',
 
-      k1: '年収（中央値）',     k1n: '月換算 約 ', k1nb: '月換算（賞与ぬき）約 ',
+      /* ★月換算の添え字は k1nb の1つだけ（2026-10-12）。前は「月換算 約」（k1n）も在った ──
+           画面が年収から月換算を作っていた頃、賞与の割合が来ない区分で「賞与ぬき」と名乗らない
+           ための言い分け。いまはサーバの month_usd（いつも賞与ぬき）をそのまま出すので要らない。 */
+      k1: '年収（中央値）',     k1nb: '月換算（賞与ぬき）約 ',
       k2: '固定・保証給比率',   k2n: '乗務量に左右されにくい報酬 ／ 変動給比率 ',
       k3: 'Pay / Block Hour',   k3n: '1人ずつ 年収÷12÷Block Hours ／ その中央値',
+      /* ★賞与の見積もり（2026-10-12・オーナー判断）。字はオーナーと決めたもの。
+           estTag  … 年収と Pay / Block Hour のカードの札。head.bonus_est が true のときだけ
+           footEst … そのとき KPI の下に足す1行
+           footGap … head.bonus_gap が true のときだけ足す1行（数えた回答の**一部**に、賞与を
+                      答えていなくて、平均も作れなかったものが在る ＝ その回答の年収にだけ
+                      賞与が入っていない）
+         ⚠️ footGap を「この区分の回答は賞与を含まない」と読める文にしない ── 賞与を申告した人の
+            回答には入っている。指すのは、当てはまる回答だけ（同じ日に字を直した）。
+         ⚠️ 何人ぶんの平均か・賞与がいくらかを書き足さない（サーバも返していない）。 */
+      estTag: '平均賞与を使った推計',
+      footEst: '※ 賞与は、PILOT VALUE に集まった同じ会社・同じ役職の申告の平均を使った推計です。',
+      footGap: '※ 賞与未回答で平均も出せない回答は、賞与を含まず集計しています。',
 
       compT: '給与構成',
       compS: '月々の現金・賞与ぬき',
-      center: '構成比\n（中央値）',
-      thK: '構成要素', thP: '構成比', thA: '月額（中央値）',
+      /* ★給与構成は**平均**（2026-10-12。前は項目ごとの中央値だった）。年収の見出し（k1）と
+           働き方（workS）は中央値のまま ── 母集団も出し方も別なので、語をそろえない。 */
+      center: '構成比\n（平均）',
+      thK: '構成要素', thP: '構成比', thA: '月額（平均）',
       compNote: '※ 金額ではなく構成比を表示しています。',
       restNote: '※「その他・未分類」には、データが足りず個別に出せなかった項目を含みます。',
-      bonusK: '賞与・利益分配',
-      bonusS: '年収に占める割合',
+      /* ★ここに在った「賞与・利益分配／年収に占める割合」の2つは 2026-10-12 に外した
+           （行ごと出さなくなった。理由はファイル冒頭の「賞与の見積もり」）。 */
       compNone: 'この区分では、給与構成をまだ出せません。',
       compNoneS: '内訳まで書いた明細が集まると、ここに構成が出ます。',
 
@@ -281,18 +324,19 @@
       trust: 'Confidence',
       hi: 'High', mid: 'Medium', lo: 'Low',
 
-      k1: 'Annual pay (median)',   k1n: 'About ', k1nb: 'About (bonus excluded) ',
+      k1: 'Annual pay (median)',   k1nb: 'About (bonus excluded) ',
       k2: 'Fixed & guaranteed share', k2n: 'Not tied much to flying / Variable share ',
       k3: 'Pay / Block Hour',      k3n: 'Per-pilot annual÷12÷block hours, median',
+      estTag: 'Estimate using average bonus',
+      footEst: '※ The bonus is an estimate: the average of bonuses reported on PILOT VALUE for the same airline and rank.',
+      footGap: '※ Reports without a bonus answer are counted without a bonus when too few peers reported one.',
 
       compT: 'What the pay is made of',
       compS: 'Monthly cash, bonus excluded',
-      center: 'Share\n(median)',
-      thK: 'Component', thP: 'Share', thA: 'Monthly (median)',
+      center: 'Share\n(average)',
+      thK: 'Component', thP: 'Share', thA: 'Monthly (average)',
       compNote: 'Shares, not amounts, are what this chart shows.',
       restNote: '“Other / unclassified” includes items held back because there was not enough data to show them separately.',
-      bonusK: 'Bonus / profit share',
-      bonusS: 'of annual pay',
       compNone: 'Not enough to show the pay mix for this group yet.',
       compNoneS: 'It appears once enough pilots have reported a full breakdown.',
 
@@ -413,7 +457,7 @@
 
   // ── 数字 ───────────────────────────────────────────────────────
   /* 有効数字2桁（actual-pay.js:sig2）。
-     ★使うのは給与構成の月額（moneyExact）と月換算（moneyMonth）だけで、
+     ★使うのは給与構成の月額（moneyExact）と月換算（moneyAbout）だけで、
        どちらも下の sigIn を通して**表示通貨の値**に掛ける。
        見出しの2つ（年収・Pay / Block Hour）は 2026-10-11 から下の stepIn。 */
   function sig2(v) {
@@ -475,25 +519,20 @@
     if (n == null) return null;
     return exact(sigIn(usdToJpy(n)));
   }
-  /* 年額 USD → 月額の表示。bPct ＝ 年収に占める賞与の割合（%）。
-     ★2026-09-01、ここを**賞与ぬき**にした。同じ画面の「給与構成」の月額は
-       db/deep-pay.sql の ucm ＝ 年収 ×(1−賞与割合)÷12 で出しているのに、
-       ここだけ 年収 ÷ 12 だったので、賞与のぶん**同じ画面に月額が2つ**あった。
-     ★割り算の元は **刻みに寄せた年収**（画面に出ている額そのもの＝ money() と同じ
-       stepIn）。賞与の割合もすぐ下に出ているので、読み手が
-       「1,903万 × 0.95 ÷ 12 ≒ 150万」と検算できる。
-     ★こちらは「約」なので有効数字2桁のまま（2026-10-11 に細かくしたのは年収だけ）。
-       2桁に寄せるのは表示通貨の中（sigIn）── ドルなら「$120K × 0.95 ÷ 12 ≒ $9.5K」と、
-       その通貨の字のまま検算できる（円で寄せてから換算すると $9.4K になって合わない）。
-     ⚠️ 賞与の割合が null のとき（賞与を書いた人が人数の壁に満たず伏せている）は 0 として
-        扱い、**ラベルにも「賞与ぬき」と書かない**（k1n のまま）。本当は賞与がある人が
-        壁の手前の人数だけいる場合があり、そこで「賞与ぬき」と名乗ると嘘になる。 */
-  function moneyMonth(usd, bPct) {
+  /* 月換算（賞与ぬき）。サーバが出した月額 USD（head.month_usd）→ 表示通貨。
+     ★2026-10-12、ここは**換算して整形するだけ**になった。前の道具（moneyMonth）は、
+       年収に「1 − 賞与の割合」を掛けて月数で割っていた。サーバが母集団を分けたので、
+       それはもう成り立たない ── 年収は全員（賞与の平均込み）・賞与の割合は内訳を書いた人
+       だけの数字で、掛けると、どちらの集団のものでもない額が出る。月換算はサーバが、
+       保存してある申告だけから中央値で出す（db/deep-pay.sql の hagg の mon）。
+     ★「約」なので有効数字2桁のまま（サーバも2桁で返す）。寄せるのは表示通貨の中（sigIn）・
+       整形は年収と同じ fmt（万・K/M に畳む）。
+     ⚠️ ここで年収を読まない・割り算も掛け算も足さない。来ない値（null・SQL を貼る前の
+        古い答え）と 0 以下は null ＝ 呼ぶ側が行ごと出さない（0 を印字しない）。 */
+  function moneyAbout(usd) {
     var n = num(usd);
-    if (n == null) return null;
-    var b = num(bPct);
-    var keep = b == null ? 1 : Math.max(1 - b / 100, 0);
-    return fmt(sigIn(stepIn(usdToJpy(n), 1e4, 1e3) * keep / 12));
+    if (n == null || !(n > 0)) return null;
+    return fmt(sigIn(usdToJpy(n)));
   }
 
   // ── 図形（アイコンは1か所にまとめる）───────────────────────────
@@ -774,11 +813,16 @@
   /* ★長い数字は1段小さくする。英語ページの JPY だけ「万」に畳まれず
      「¥17,000,000」（幅11）になり、既定の 1.85rem ではカードに収まらない。
      CSS の overflow:hidden に任せると「¥17,000,0…」と金額が途中で切れて出る。 */
+  /* ★o.tag ＝ 見出しの横の淡い札（2026-10-12。いま使うのは「平均賞与を使った推計」だけ）。
+       入るのは見出しの行（.dp-kpi-k）の中。幅が足りないカードでは札だけ次の行へ落ちる
+       （deep-pay.css の .dp-kpi-k が折り返す ── 英語の字は長く、320px では必ず落ちる）。
+       空なら要素ごと出さない。⚠️ 札に数字を入れない（額も人数も、サーバは返していない）。 */
   function kpi(o) {
     var lng = vwidth(String(o.v)) >= 10 ? ' dp-kpi-v--long' : '';
     return '<div class="dp-kpi' + (o.green ? ' dp-kpi--green' : '') + '">' +
       '<span class="dp-kpi-ic' + (o.ic ? ' dp-kpi-ic--' + o.ic : '') + '">' + o.svg + '</span>' +
-      '<span class="dp-kpi-b"><span class="dp-kpi-k">' + esc(o.k) + '</span>' +
+      '<span class="dp-kpi-b"><span class="dp-kpi-k">' + esc(o.k) +
+      (o.tag ? '<span class="dp-kpi-tag">' + esc(o.tag) + '</span>' : '') + '</span>' +
       '<b class="dp-kpi-v' + lng + '">' + esc(o.v) +
       (o.u ? '<span class="dp-kpi-u">' + esc(o.u) + '</span>' : '') + '</b>' +
       (o.n ? '<span class="dp-kpi-n">' + esc(o.n) + '</span>' : '') + '</span></div>';
@@ -792,10 +836,14 @@
     var box = el('dp-kpi');
     if (!box) return;
     var h = (S.data && S.data.head) || {};
-    /* ★月換算は賞与ぬき（給与構成の月額と同じ土俵）。割合が出ているときだけ
-       ラベルを「月換算（賞与ぬき）約」にする。詳しくは moneyMonth のコメント。 */
-    var bp = num(S.data && S.data.comp && S.data.comp.bonus && S.data.comp.bonus.pct_of_annual);
-    var a = money(h.annual_usd), am = moneyMonth(h.annual_usd, bp);
+    /* ★月換算（賞与ぬき）は、サーバの head.month_usd をそのまま出す（2026-10-12）。
+       ⚠️ 年収から作らない（moneyAbout の注）。来なければ添え字ごと出さない。 */
+    var a = money(h.annual_usd), am = moneyAbout(h.month_usd);
+    /* ★賞与の目印（2026-10-12）。サーバが返す真偽2つを `=== true` で読む ── 値が無い古い答えを
+       「見積もりあり」へ倒さない。est ＝ 年収と Pay / Block Hour のどちらにも同じ札
+       （サーバは2つに同じ差し替えを掛けている）。固定・保証給比率には付けない
+       （あちらは内訳を書いた人の平均で、賞与の見積もりに触れていない）。 */
+    var est = h.bonus_est === true, gap = h.bonus_gap === true;
     /* ★Pay / Block Hour は moneyRate（刻み）。moneyExact（2桁）に戻すと、サーバが
        $0.5 刻みで返している細かさを画面が捨てる（¥16,300 が ¥16,000 になる）。 */
     var fx = num(h.fixed_pct), pb = moneyRate(h.per_block_usd);
@@ -804,22 +852,31 @@
        引き算だとそれを全部「変動給」と呼んでしまう。無い区分は行ごと出さない。 */
     var vp = segPct((S.data && S.data.comp && S.data.comp.segs) || [], 'variable');
     var cards = [
-      a == null ? null : kpi({ k: T.k1, v: a,
-                               n: am ? (bp == null ? T.k1n : T.k1nb) + am : '',
+      a == null ? null : kpi({ k: T.k1, v: a, tag: est ? T.estTag : '',
+                               n: am ? T.k1nb + am : '',
                                ic: 'org', svg: IC.money }),
       fx == null ? null : kpi({ k: T.k2, v: Math.round(fx), u: '%', green: true, ic: 'grn',
                                 svg: IC.pie, n: vp == null ? '' : T.k2n + Math.round(vp) + '%' }),
-      pb == null ? null : kpi({ k: T.k3, v: pb, n: T.k3n, ic: 'tea', svg: IC.clock })
+      pb == null ? null : kpi({ k: T.k3, v: pb, n: T.k3n, tag: est ? T.estTag : '',
+                                ic: 'tea', svg: IC.clock })
     ].filter(Boolean);
-    /* ★注記は**この1行だけ**（2026-09-01 にここへ集めた）。
+    /* ★注記は、いつも出るのは**この1行だけ**（2026-09-01 にここへ集めた）。
        - 人数の壁（T.foot）── 給与構成のカードの中に置いていた。あの壁は円グラフだけの
          話ではなく画面全体の約束なので、数字の真下のここが正しい。
        - 年収の中身（T.footA）── これまで画面のどこにも書いていなかった。
        ★1つの `<p>` にまとめている。ここは全幅（約1160px）なので2文でも1行に収まる。
          2つの `<p>` に分けると、行が増えるぶんだけ画面が下へ伸びて 1512×980 に収まらない。
-       ⚠️ 年収のカードが出ていないとき（a == null）は年収の定義を書かない（定義だけ浮く）。 */
+       ⚠️ 年収のカードが出ていないとき（a == null）は年収の定義を書かない（定義だけ浮く）。
+       ★2026-10-12、賞与の目印が立った区分でだけ、その下に1行ずつ足す（footEst / footGap）。
+         行が増えるぶんは、給与構成のカードから「賞与・利益分配」の行を外したぶんで相殺して
+         ある（あの行は約38px・注記は1行 約17px）。⚠️ 目印が無い区分では1行も足さない。
+         ⚠️ どちらも年収と Pay / Block Hour の話なので、その2枚が1枚も出ていないときは
+            書かない（札の無い注記だけが浮く。上の年収の定義と同じ理由）。 */
+    var hasPay = (a != null || pb != null);
     var fo = cards.length
-      ? '<p class="dp-foot">' + esc(T.foot) + (a == null ? '' : ' ' + esc(T.footA)) + '</p>'
+      ? '<p class="dp-foot">' + esc(T.foot) + (a == null ? '' : ' ' + esc(T.footA)) + '</p>' +
+        (hasPay && est ? '<p class="dp-foot">' + esc(T.footEst) + '</p>' : '') +
+        (hasPay && gap ? '<p class="dp-foot">' + esc(T.footGap) + '</p>' : '')
       : '';
     box.innerHTML = cards.length ? '<div class="dp-kpis">' + cards.join('') + '</div>' + fo : '';
     box.hidden = !cards.length;
@@ -829,14 +886,34 @@
   /* 絵は PVViz.donutFromSegs に任せる。ここでするのは
      「モックの3列の表に見えるように、金額の列を足して見出し行を挿す」だけ。
      ★amounts:false で呼ぶ。あちらの凡例の金額は fmt(v) ＝ **割合を金額として**
-       刷ってしまう（渡している v が pct だから）。金額は自分で足す。 */
+       刷ってしまう（渡している v が pct だから）。金額は自分で足す。
+     ★2026-10-12 から、ここに来る割合と月額は**内訳を書いた人の平均**（サーバが金額を先に
+       平均して、割合をその平均から出している）。見出しの字も「平均」（T.center / T.thA）。
+     ★comp が null ＝ 内訳を書いた人が足りない区分。年収が出ていても、ここは今までの
+       「まだ出せません」の板（下の最初の枝。文言は足していない）。
+     ★★**項目の数で伏せない**（2026-10-12）。前は「未分類を除いて3項目に満たなければ、
+       カードごと『まだ出せません』」だった。サーバが正しい平均を2行で返すことがある ──
+       基本給＋変動給の2つだけの区分・基本給＋「その他・未分類」（ほかは持つ人が足りず
+       畳まれた）。それを画面が自分の決まりで隠していた。
+       出せるかどうか（内訳を書いた人の壁・項目ごとの壁・畳み方）は、**サーバがもう決めて
+       いる**（db/deep-pay.sql の cthin / cnorm）。画面は来た行をそのまま描く ── 1行でも、
+       未分類だけでも。「まだ出せません」にするのは、comp が無いか、割合が正の行が
+       1つも無いときだけ。
+       ⚠️ ここへ「◯項目以上」の決まりを足し戻さない（壁を2か所に置くと、片方だけ直した日に
+          静かに食い違う。隠す側に倒れるので、どこも赤くならない）。 */
   function comp() {
     var box = el('dp-comp');
     if (!box) return;
     var c = S.data && S.data.comp;
-    var segs = (c && c.segs) || [];
-    var real = segs.filter(function (s) { return s.k !== 'rest'; });
-    if (!c || real.length < 3) {
+    var segs = (c && Array.isArray(c.segs)) ? c.segs : [];
+    var s = { total: 0, segs: [] };
+    segs.forEach(function (x) {
+      var p = x ? num(x.pct) : null;
+      if (p == null || !(p > 0)) return;
+      s.segs.push({ k: x.k, c: COL[x.k] || COL.rest, v: p });
+      s.total += p;
+    });
+    if (!c || !s.segs.length) {
       box.innerHTML = sec(T.compT, empty(T.compNone) +
         '<p class="dp-cta-n">' + esc(T.compNoneS) + '</p>' +
         '<a class="dp-cta" href="pay-report.html">' + esc(T.lockCta) + '</a>', T.compS);
@@ -844,28 +921,18 @@
       return;
     }
 
-    var s = { total: 0, segs: [] };
-    segs.forEach(function (x) {
-      var p = num(x.pct);
-      if (p == null || !(p > 0)) return;
-      s.segs.push({ k: x.k, c: COL[x.k] || COL.rest, v: p });
-      s.total += p;
-    });
-    if (!s.total) { box.hidden = true; return; }
-
     var body = V.donutFromSegs(s, {
       title: '', name: CN, amounts: false, center: T.center
     });
 
-    // 賞与は円の外（オーナー確定）。割合が返ってきたとき（＝人数の壁を越えたとき）だけ1行。
-    var b = c.bonus, bp = b ? num(b.pct_of_annual) : null;
-    if (bp != null) {
-      body += '<div class="dp-bonus"><span class="dp-bonus-k">' + esc(T.bonusK) +
-        '<span class="dp-bonus-s">' + esc(T.bonusS) + '</span></span>' +
-        '<span class="dp-bonus-v">' + esc(Math.round(bp) + '%') + '</span></div>';
-    }
+    /* ★ここに在った「賞与・利益分配 ◯%（年収に占める割合）」の1行は 2026-10-12 に外した。
+         サーバの割合（comp.bonus）は、内訳を書いた人のうち賞与を答えていない人を 0 として
+         数えた比なので、低く出る。すぐ上の年収は「平均賞与を使った推計」── 同じ画面に
+         並べると食い違って見える。⚠️ comp.bonus を読む行を足し戻さない（円にも入れない ──
+         賞与は年1回で、月々の現金の100%を壊す。オーナー確定 2026-08-29）。 */
     body += note(esc(T.compNote));
-    if (segs.some(function (x) { return x.k === 'rest'; })) body += note(esc(T.restNote));
+    /* 断りは、未分類の行が**実際に描かれている**ときだけ（s.segs ＝ 割合が正の行）。 */
+    if (s.segs.some(function (x) { return x.k === 'rest'; })) body += note(esc(T.restNote));
     /* ⚠️ ここに `.dp-foot` を戻さない（人数の壁も年収の定義も kpis() の全幅の行に移した）。
        このカードは上の段の高さを決めている側で、幅が狭いぶん1文が2〜3行に折れ、
        折れたぶんだけ画面全体が下へ伸びる（1512×980 の1画面に収まらなくなり、
@@ -891,8 +958,13 @@
       '<span class="pct">' + esc(T.thP) + '</span>' +
       '<span class="amt">' + esc(T.thA) + '</span></div>');
   }
+  /* その項目の月額（USD）。★鍵は avg_usd（2026-10-12。内訳を書いた人の平均）。
+     ⚠️ 前の鍵（中央値だった頃の名前）へ読み替えない ── SQL を貼る前の古い答えは金額が
+        中央値で、見出しは「平均」。読み替えると、中央値を平均と名乗って出すことになる。
+        鍵が無ければ undefined ＝ 欄は「—」（来ていないものを作らない）。
+     ★rest（その他・未分類）にも金額が来ることがある。ほかの項目と同じに出す。 */
   function segByKey(segs, k) {
-    for (var i = 0; i < segs.length; i++) if (segs[i].k === k) return segs[i].med_usd;
+    for (var i = 0; i < segs.length; i++) if (segs[i].k === k) return segs[i].avg_usd;
     return null;
   }
   /* ★無い区分は null を返す。0 を返さない ── 0% と書けば「その手当が無い会社」に見えるが、
@@ -947,7 +1019,13 @@
   // ── ④ 変動給の中身 ────────────────────────────────────────────
   /* ★棒は全部同じ色（PVViz.SEG の flight）。区分ごとに色を変えると
      「夜間のほうが得」と読まれる。my-value.js の pct() も同じ立場。
-     ★night / weekend / holiday はサーバが3つのまま返す。ここで束ねない。 */
+     ★night / weekend / holiday はサーバが3つのまま返す。ここで束ねない。
+     ★2026-10-12 から、鍵に rest が来ることがある ── 人数の壁に届かず、単独では並べられ
+       なかった連動先を、サーバが1つに畳んだ分（前は配列ごと落として、残りを100に直していた）。
+       名前は給与構成と同じ「その他・未分類」（CN.rest）・棒は同じ灰色（COL.rest）。
+       連動先ではないので、橙（変動給の色）で塗らない・頭の1文で名指ししない。
+     ★var は3通り ── null（区分が出ていない／内訳を書いた人が足りない）・空の配列
+       （変動給の内訳がそろった人が足りない）・割合の配列。前の2つは、今までどおり節ごと出さない。 */
   function vari() {
     var box = el('dp-var');
     if (!box) return;
@@ -957,16 +1035,19 @@
     var rows = v.map(function (x) {
       var p = num(x.pct);
       if (p == null || !(p > 0)) return null;
-      var nm = VN[x.k] || [x.k, ''];
+      var rest = x.k === 'rest';
+      var nm = rest ? [CN.rest, ''] : (VN[x.k] || [x.k, '']);
       return li({ t: nm[0], s: nm[1], v: Math.round(p) + '%', w: p / top * 100,
-                  c: COL.variable, svg: IC.layer });
+                  c: rest ? COL.rest : COL.variable, svg: IC.layer });
     }).filter(Boolean);
     if (rows.length < 2) { box.hidden = true; box.innerHTML = ''; return; }
     /* ★一番大きい区分を1文にする。**2区分以上あるときだけ**（1つしか無いと
        必ず「100%」になり、読んでも何も分からない行が1本増えるだけ）。
-       値は既に画面に出ている var[0].pct をそのまま使う ── 表の数字と1桁も違わない。 */
+       値は既に画面に出ている var[0].pct をそのまま使う ── 表の数字と1桁も違わない。
+       ★畳んだ分（rest）は選ばない ──「変動給の ◯% は「その他・未分類」に連動しています」は
+         文にならない。名前の在る連動先のうち、いちばん大きいものを言う。 */
     var lead = '';
-    var t0 = v.filter(function (x) { return num(x.pct) > 0; })
+    var t0 = v.filter(function (x) { return num(x.pct) > 0 && x.k !== 'rest'; })
               .sort(function (a, b) { return num(b.pct) - num(a.pct); })[0];
     if (t0 && rows.length >= 2) {
       var ln0 = (VN[t0.k] || [t0.k])[0];
