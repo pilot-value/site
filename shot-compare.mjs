@@ -22,10 +22,13 @@
             ask  … まだ2社そろっていない（入口の板）
             dup  … 左右に同じ会社を選んだ
             few  … 比べられる会社が1社しか無い（★選択欄ごと出ない）
-            lock … 鍵がまだ無い（給与を1件も出していない）＝板は3行
-            det  … 鍵はあるが内訳を書いていない＝板は2行（内訳・100人）
+            lock … 鍵がまだ無い（給与を1件も出していない）＝板は3行＋断り
+            det  … 鍵はあるが、答えていない項目が残っている＝板は2行（答え・100人）
+                   ★「まだ答えていない項目」の一覧が出る（作り物：2026年9月分・6項目）
                    ★ボタンは給与フォームの内訳の節（#pay-detail）を指す
-            goal … 鍵も内訳もそろっていて、100人だけが未達＝板は1行
+                   ★ボタンの上に断り（虚偽・不正確な情報について）が出る
+            det0 … det と同じだが、残りの一覧が来ていない＝行と断りだけ・一覧の箱は出ない
+            goal … 鍵も答えもそろっていて、100人だけが未達＝板は1行（断りは出ない）
                    （★前はここで「内訳を出すと開きます」と出ていた。直した不具合の絵）
             err  … サーバが返らなかった
      lang : ja | en
@@ -74,7 +77,7 @@ const outPath = path.join(dir, `screenshot-${n}-${label}.png`);
 const url = `http://localhost:3000/${lang === 'en' ? 'en/' : ''}deep-pay-compare.html`;
 
 /* scene ごとに「窓の中で何を選ぶか」。★2社そろうまで何も出ないので、
-   これが無いと撮れるのは入口の板だけになる。ask / lock / det / goal / err は選ばない。 */
+   これが無いと撮れるのは入口の板だけになる。ask / lock / det / det0 / goal / err は選ばない。 */
 /* ★機材は左右**別々**（2026-09-01）。会社が違えば飛ばす機材も違うので、
    full は左右で違う機材を選ぶ ── 「それぞれの会社で選べる」がそのまま絵になる。 */
 const PICK = {
@@ -225,23 +228,34 @@ await page.evaluateOnNewDocument((scene, theme, lang, cur) => {
     return { air, pos, flt };
   })();
   /* ★gate.crowd ＝「みんなの側」の門（100人以上 or 手動の公開フラグ）。
-       37 / 100 人のまま開いている見本は「手動フラグで開けた日」の形＝ crowd:true。 */
-  const OPEN = { key: true, detailed: true, crowd: true, contributors: 37, goal: 100 };
+       37 / 100 人のまま開いている見本は「手動フラグで開けた日」の形＝ crowd:true。
+     ★gate.ready / gate.todo ＝本人の側の門（2026-10-11）。ready ＝自分に当てはまる項目を
+       ぜんぶ答えた月を持っているか。todo ＝足りない人にだけ { year, month, items:[コード…] }。
+       **前の鍵 detailed は gate に無い**（外の give.detailed は別物 ── 左メニューの札が読む）。 */
+  const OPEN = { key: true, ready: true, todo: null, crowd: true, contributors: 37, goal: 100 };
   const BOOT = { ok: true, state: 'open', stats: STATS, give: { detailed: true },
                  gate: OPEN,
                  picks: PICKS,
                  cohort: null, head: null, comp: null, work: null, var: null };
   /* 錠前の板。当てはまる行だけが出る（deep-pay-compare.js の lockLines）。
-       lock … 鍵も内訳も無く、100人も未達＝3行
-       det  … 鍵は在るが内訳が無い＝2行。ボタンは給与フォームの内訳の節へ
-       goal … 鍵も内訳もそろっていて、100人だけが未達＝1行
-              （★前はこの人に「内訳を出すと開きます」と出ていた） */
+       lock … 鍵が無く、答えきってもおらず、100人も未達＝3行。残りの一覧は無い
+       det  … 鍵は在るが答えきっていない＝2行（答え・100人）。**残っている項目の一覧つき**。
+              ボタンは給与フォームの内訳の節へ
+       det0 … det と同じで、一覧だけが来ていない（todo が null）
+       goal … 鍵も答えもそろっていて、100人だけが未達＝1行
+              （★前はこの人に「内訳を出すと開きます」と出ていた）
+     ★「答えきっていない」の行が出る3つ（lock / det / det0）には、ボタンの上に断りが出る。
+     ★一覧の中身は作り物（2026年9月分・6項目）。shot-deep.mjs の TODO と同じ。 */
+  const TODO = { year: 2026, month: 9,
+                 items: ['command', 'bonus', 'profit', 'duty_h', 'duty_days', 'instructor'] };
   const LOCK = Object.assign({}, BOOT, { state: 'locked', give: { detailed: false }, picks: null,
-                 gate: { key: false, detailed: false, crowd: false, contributors: 37, goal: 100 } });
+                 gate: { key: false, ready: false, todo: null, crowd: false, contributors: 37, goal: 100 } });
   const GOAL = Object.assign({}, BOOT, { state: 'locked', give: { detailed: true }, picks: null,
-                 gate: { key: true, detailed: true, crowd: false, contributors: 37, goal: 100 } });
-  const DET  = Object.assign({}, BOOT, { state: 'locked', give: { detailed: false }, picks: null,
-                 gate: { key: true, detailed: false, crowd: false, contributors: 37, goal: 100 } });
+                 gate: { key: true, ready: true, todo: null, crowd: false, contributors: 37, goal: 100 } });
+  const DET  = Object.assign({}, BOOT, { state: 'locked', give: { detailed: true }, picks: null,
+                 gate: { key: true, ready: false, todo: TODO, crowd: false, contributors: 37, goal: 100 } });
+  const DET0 = Object.assign({}, BOOT, { state: 'locked', give: { detailed: false }, picks: null,
+                 gate: { key: true, ready: false, todo: null, crowd: false, contributors: 37, goal: 100 } });
 
   /* 人数の壁に届かなかった側。★広い区分に登らないので、出るものが何も無い。
      「あと1人」とも、壁が何人かとも書かない（書くと人数が1人単位で読める）。
@@ -271,7 +285,7 @@ await page.evaluateOnNewDocument((scene, theme, lang, cur) => {
     pv_deep_pay: (a) => {
       const q = (a && a.p) || {};
       if (!q.airline) return scene === 'lock' ? LOCK : scene === 'goal' ? GOAL
-        : scene === 'det' ? DET : BOOT;
+        : scene === 'det' ? DET : scene === 'det0' ? DET0 : BOOT;
       const src = AIR[q.airline] || AIR[WIDE[q.airline]];
       if (!src) return thin(q.airline, q);
       const k = (POSK[q.position] || 1) * (FLTK[q.fleet] || 1);
@@ -511,8 +525,13 @@ const said = await page.evaluate(() => {
       cell(r.querySelector('.dc-c2')) + ' ／ ' + cell(r.querySelector('.dc-c3'))),
     card: [...document.querySelectorAll('#dc-sides .dc-kv')].slice(0, 2)
       .map((e) => e.textContent.replace(/\s+/g, ' ').trim()),
+    /* 板の行（1行ずつ <p>。2026-10-11 から）。 */
     lock: [...document.querySelectorAll('#dc-sides .dp-msg--lock .dp-msg-s')]
-      .map((e) => e.innerText.replace(/\n/g, ' ／ ')),
+      .map((e) => e.innerText.replace(/\n/g, ' ')),
+    /* まだ答えていない項目の一覧（見出しと札）と、ボタンの上の断り。出ていなければ空。 */
+    todoH: ((document.querySelector('.dp-msg--lock .dp-todo-h') || {}).textContent || ''),
+    todo: [...document.querySelectorAll('.dp-msg--lock .dp-todo-i')].map((e) => e.textContent),
+    warn: ((document.querySelector('.dp-msg--lock .dp-msg-w') || {}).textContent || ''),
     /* 板のボタンの行き先（足りない物に合わせて変わる。deep-pay-compare.js の lockHref）。 */
     cta: [...document.querySelectorAll('.dp-msg--lock a.dp-cta')].map((e) => e.getAttribute('href')).join(','),
   };
@@ -522,7 +541,9 @@ if (said.cond) console.log('条件バー: ' + said.cond);
 if (said.chips.length) console.log('信頼度の札: ' + said.chips.join(' ｜ '));
 if (said.rows.length) console.log('見出し: ' + said.rows.join(' ｜ '));
 if (said.card.length) console.log('カード: ' + said.card.join(' ｜ '));
-if (said.lock.length) console.log('板の行: ' + said.lock.join(''));   // 錠前の板と「まだ出せません」の板は同じ器
+if (said.lock.length) console.log('板の行: ' + said.lock.join(' ／ '));   // 錠前の板と「まだ出せません」の板は同じ器
+if (said.todoH) console.log('板の一覧: ' + said.todoH + ' ── ' + said.todo.join(' ｜ '));
+if (said.warn) console.log('板の断り: ' + said.warn);
 if (said.cta) console.log('板のボタンの先: ' + said.cta);
 
 await browser.close();

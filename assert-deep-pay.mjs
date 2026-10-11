@@ -59,12 +59,20 @@
        それも gate.crowd が false のときだけ（§2b）。
      ・**見出しの2つは刻みで出す**（年収 1万円／1,000・Pay / Block Hour 100円／1）。
        日本語＋円・英語＋円・ドル・ユーロで、刷られる字そのものを固定する（§3g）。
-     ・**錠前の板の行**は理由どおりに出る（鍵／内訳／100人 の組み合わせ。§2b）。
+     ・**錠前の板の行**は理由どおりに出る（鍵／本人が答えきったか／100人 の組み合わせ。§2b）。
      ・**信頼度の段**はサーバの答え（cohort.trust）をそのまま出し、来なければ
        札ごと出さない（§3・§3f）。
      ・**錠前の板のボタンの行き先**は、足りない物に合わせる（フォームの頭／#ps／
        #pay-detail。字は ⑪・画面は §2b）。板の中に入力は置かない ── 入口はこの
-       ボタン1本で、内訳は給与フォームで足してもらう。
+       ボタン1本で、足りない項目は給与フォームで足してもらう。
+     ・**見る資格は「自分に当てはまる項目をぜんぶ答えた人」**（同じ日のオーナー判断。
+       前は「内訳が1つでもある」）。サーバは gate.ready と gate.todo（残っている項目の
+       コード）を返し、板がそれを**給与フォームの言葉で**並べる。見るのは ──
+       SQL が返す形（⑨）／名前がフォームの見出しと同じ字（⑫）／行・行き先・断りの
+       出し分け（§2b）／一覧そのもの（§2c ── 届いた順・知らないコードは出さない・
+       サーバの字が HTML に入らない・月の見出し）／幅と明暗（§2d）。
+       ★断り（虚偽・不正確な情報について）は「答えきっていない」の行と必ず一緒で、
+         その行が無い板には出ない。
      ・**月額と月換算の2桁は、表示通貨の中で寄せる**（ドルで $4,781 のような端数を
        出さない。円の表示は変わらない。§3g）。
 
@@ -371,9 +379,13 @@ console.log('\n════ ⑨ SQL の権限 ════');
   /* 補助関数は誰にも開かない（security definer の中からだけ呼ぶ）。
      ★数を固定する。将来もう1本補助関数を足した人が、grant を忘れる側ではなく
        「revoke を書き忘れる」側で赤くなるように。
-     ★2026-10-11 に pv_deep_step（見出しの数字を刻みに寄せる道具）が増えて3本。 */
+     ★2026-10-11 に pv_deep_step（見出しの数字を刻みに寄せる道具）が増えて3本、
+       同じ日に pv_deep_missing（その1行でまだ答えていない項目を返す。見る資格の線）が
+       増えて4本。⚠️ pv_deep_missing は引数が**表の行そのもの**なので、API からは
+       「その表の計算列」に見える。grant を足した瞬間に外から届く（db/deep-pay.sql の 2-c 章）。 */
   const helpers = ['public.pv_my_keys()', 'public.pv_deep_pct(numeric[])',
-                   'public.pv_deep_step(numeric, numeric)'];
+                   'public.pv_deep_step(numeric, numeric)',
+                   'public.pv_deep_missing(public.pay_reports)'];
   for (const h of helpers) {
     ok(SQL.includes(`revoke all on function ${h} from public, anon, authenticated;`),
        `★${h} は3ロールとも revoke（誰にも開かない）`);
@@ -387,12 +399,17 @@ console.log('\n════ ⑨ SQL の権限 ════');
     .map((s) => s.split('.').pop());
   const wantFns = helpers.map((h) => h.slice('public.'.length).split('(')[0]).concat(opened);
   ok(created.slice().sort().join(' ') === wantFns.slice().sort().join(' '),
-     `★このファイルが作る関数は ${wantFns.length} 本（補助3＋開く1。増えたら権限も書く）`,
+     `★このファイルが作る関数は ${wantFns.length} 本（補助${helpers.length}＋開く1。増えたら権限も書く）`,
      created.join(' '));
 
   ok(!/\bto anon\b/.test(SQL), '★anon には何も渡していない');
   ok(/access_until/.test(SQL), '鍵（access_until）を見ている');
-  ok(/pv_my_give/.test(SQL), '本人が内訳を出したかを見ている');
+  /* ★pv_my_give は、いまは**門ではない**（2026-10-11）。前はここで「本人が内訳を
+       出したか」を読んで門にしていた。門は pv_deep_missing の線（下の「見る資格」）へ
+       移り、pv_my_give の答えは give としてそのまま画面へ返すだけになった
+       （左メニューの札 ── PVGates.setProgress ── が今も give.detailed を読む）。 */
+  ok(/v_give := public\.pv_my_give\(\);/.test(SQL) && /'give',\s+v_give,/.test(SQL),
+     '本人の Give の状態（pv_my_give）を、そのまま give として返している（門はもう読まない）');
 
   /* ── 人数の壁（2026-10-11 に 3人 → 2人・オーナー判断）──────────────
      前は「>= 3 が8か所以上」を数えていた。壁の数字は関数の頭の定数 v_min の
@@ -433,6 +450,27 @@ console.log('\n════ ⑨ SQL の権限 ════');
   }
   ok(/'trust'\s*,/.test(dpBody) && /'crowd'\s*,/.test(dpBody),
      '★代わりに信頼度の段（cohort.trust）と、みんなの側の門（gate.crowd）を返す');
+
+  /* ── 見る資格（2026-10-11・オーナー判断「ぜんぶ答えた人にだけ開く」）──────
+     画面（錠前の板）が読むのは gate の ready と todo。**前の鍵 detailed は gate に無い。**
+     ★ここは「画面が読む形」の見張り。門の中身（どの欄をどう読むか）は SQL の
+       自己点検 25〜29 と db/test-deep-pay.mjs が見ている。
+     ⚠️ gate の中へ detailed を足し戻さない。画面はもう読まないので、戻しても
+        何も赤くならないまま「内訳が1つでもあれば開く」と読める鍵が外へ出る。
+        （返り値のいちばん外の give.detailed は別物 ── pv_my_give の答えで、今も返る。） */
+  const gateObj = (/'gate',\s*jsonb_build_object\(([\s\S]*?)\),\s*'give',/.exec(dpBody) || ['', ''])[1];
+  ok(gateObj.length > 0, 'gate の jsonb_build_object が切り出せる');
+  ok(/'ready',\s+v_rdy,/.test(gateObj) && /'todo',\s+v_todo,/.test(gateObj),
+     "★gate は 'ready'（門と同じ値 v_rdy）と 'todo'（残っている項目）を返す",
+     gateObj.replace(/\s+/g, ' ').slice(0, 160));
+  ok(!/'detailed'/.test(gateObj),
+     "★gate の中に前の鍵 'detailed' が無い（「内訳が1つでもある」は、もう門ではない）");
+  ok((gateObj.match(/'(\w+)'\s*,/g) || []).map((s) => s.replace(/[^\w]/g, '')).join(' ')
+       === 'key ready todo crowd contributors goal',
+     '★gate の鍵は key / ready / todo / crowd / contributors / goal の6つだけ（金額も会社も足さない）',
+     (gateObj.match(/'(\w+)'\s*,/g) || []).join(' '));
+  ok(/v_open := v_key and v_rdy and v_crd;/.test(dpBody),
+     '★門の式は 鍵・答えきったか・みんなの側 の3つ（v_key and v_rdy and v_crd）');
 
   /* ★旧 pv_pay_comp を触らない（assert-pay-rows.mjs が本文を grep している）。 */
   ok(!/create or replace function public\.pv_pay_comp/.test(SQL),
@@ -475,8 +513,9 @@ console.log('\n════ ⑩ ページ登録 ════');
 // ⑪ 錠前の板のボタンの行き先（2026-10-11）
 // ════════════════════════════════════════════════════════════════
 /* 板の入口はボタン1本。足りない物に合わせて、給与フォームの「どこから始めるか」を変える
-   （鍵も内訳も無い → フォームの頭／鍵だけ切れた → #ps／鍵は在るが内訳が無い → #pay-detail）。
-   内訳はこの画面では聞かない ── 足りない分は給与フォームで足してもらう（オーナー判断）。
+   （鍵が無く答えきってもいない → フォームの頭／鍵だけ切れた → #ps／
+     鍵は在るが答えきっていない → #pay-detail）。
+   足りない項目はこの画面では聞かない ── 給与フォームで足してもらう（オーナー判断）。
    ここは字だけ。画面に出た行き先は、下のブラウザの §2b が門の組み合わせごとに見る。 */
 console.log('\n════ ⑪ 錠前の板のボタンの行き先 ════');
 {
@@ -486,6 +525,121 @@ console.log('\n════ ⑪ 錠前の板のボタンの行き先 ═══�
      '★板のボタンの行き先（lockHref）が、フォームの頭／#ps／#pay-detail の3つを持つ');
   ok(/DETAIL_URL = 'pay-report\.html#pay-detail'/.test(read('pv-gates.js')),
      '「内訳の節」の住所が pv-gates.js の DETAIL_URL と同じ');
+  /* ★行き先の2つは、給与フォームに**本当に在る**住所（日英とも）。フォームが id を
+       変えると、ボタンはフォームの頭へ落ちるだけで何も赤くならない。 */
+  for (const f of ['pay-report.html', 'en/pay-report.html']) {
+    const h = nohtmlcomment(read(f));
+    ok(/<details class="pay-detail" id="pay-detail">/.test(h) && /\bid="ps"/.test(h),
+       `${f}: ★行き先の #pay-detail と #ps が給与フォームに在る`);
+  }
+  /* ★前の門（内訳が1つでもあるか）を読む道が、板のどこにも残っていない（2026-10-11）。
+       サーバは gate.detailed を名前ごと外した。読む行が残っていると、値が無い＝
+       「内訳が無い」と読んで、答えきった人にも古い頼みごとを出す。
+     ⚠️ give.detailed は別物（左メニューの札。load() が PVGates.setProgress へ渡す）。
+        だから語を丸ごと禁じず、**門の入れ物から読む形**だけを禁じる。 */
+  ok(!/\bg\.detailed\b|\bgate\.detailed\b/.test(jsC) && !/\blockDet\b/.test(jsC),
+     '★板が前の鍵（gate.detailed）も前の行（lockDet）も持たない');
+  ok(/g\.ready !== true/.test(jsC) && /g\.ready === true/.test(jsC),
+     '★答えきったかは gate.ready を「=== true」で読む（値が無い古いサーバを開いている側へ倒さない）');
+  ok(/detailed:\s*\(v && v\.give\) \? v\.give\.detailed : null/.test(jsC),
+     '左メニューの札へ渡すのは今までどおり give.detailed（門の値ではない）');
+}
+
+// ════════════════════════════════════════════════════════════════
+// ⑫ 「まだ答えていない項目」の名前は、給与フォームの見出しと同じ字（2026-10-11）
+// ════════════════════════════════════════════════════════════════
+/* 板は、足りない項目を**給与フォームの言葉で**並べる。板で読んだ名前を、フォームで
+   そのまま探せることが要 ── 板が「住宅手当」と言い、フォームの欄が「住居」だと、
+   読んだ人はその欄を見つけられない。
+   ★表は deep-pay.js の todoNames()（deep-pay-compare.js にも同じ本体。写しのずれは
+     assert-deep-pay-compare.mjs の ④）。ここは**フォームの HTML から見出しを切り出して**、
+     表の字と1文字ずつ突き合わせる。フォームの見出しを変えた人は、ここで赤くなる。
+   ★コードの集合と並びは db/deep-pay.sql の pv_deep_missing の array[…] が正。
+     表に無いコードは板に出ない（黙って抜ける）ので、**集合が同じこと**もここで見る。
+   ⚠️ 見出しから落とすのは「必須」「任意」の札（.req-tag / .opt-tag）だけ。
+      ここで字をならして通さない（全角半角・前後の空白もそのまま比べる）。 */
+console.log('\n════ ⑫ まだ答えていない項目の名前 ⇄ 給与フォーム ════');
+{
+  /* deep-pay.js から todoNames() の本体を切り出して、そのまま評価する
+     （表を検査の側へ書き写さない。写すと、写しが合っているだけの検査になる）。 */
+  const cut = (src, name) => {
+    const m = new RegExp('^  function ' + name + '\\(([^)]*)\\) \\{', 'm').exec(src);
+    if (!m) return '';
+    let d = 0, j;
+    for (j = m.index + m[0].length - 1; j < src.length; j++) {
+      if (src[j] === '{') d++;
+      else if (src[j] === '}') { d--; if (d === 0) break; }
+    }
+    return src.slice(m.index, j + 1);
+  };
+  const fnSrc = cut(JS, 'todoNames');
+  ok(fnSrc.length > 0, 'deep-pay.js の todoNames() が切り出せる');
+  const namesOf = (lang) => {
+    try { return new Function('L', fnSrc + '\nreturn todoNames();')(lang) || null; }
+    catch (e) { return null; }
+  };
+  const N = { ja: namesOf('ja'), en: namesOf('en') };
+  ok(!!(N.ja && N.en && N.ja.item && N.ja.role && N.en.item && N.en.role),
+     'todoNames() が日英とも表を返す');
+
+  /* コード → フォームのどの欄の見出しか。★変動給だけは欄が行の集まりなので、
+     見出しは合計の隠し欄（#f-var-sum）の <label> に付いている。 */
+  const FIELD = {
+    base: 'f-base', guarantee: 'f-guarantee', variable: 'f-var-sum', command: 'f-command',
+    perdiem: 'f-perdiem', housing: 'f-housing', bonus: 'f-bonus', profit: 'f-profit',
+    block: 'f-block', duty_h: 'f-duty-h', duty_days: 'f-duty', stay: 'f-stay', roles: 'f-jobrole'
+  };
+  const ROLES = ['instructor', 'examiner', 'union', 'management', 'nonline'];
+  /* <label class="form-label" for="…">見出し<span class="req-tag">必須</span></label>
+     から、札を落として字だけにする。 */
+  const labelOf = (html, id) => {
+    const m = new RegExp('<label class="form-label" for="' + id + '">([\\s\\S]*?)</label>').exec(html);
+    if (!m) return null;
+    return m[1].replace(/<span class="(?:req|opt)-tag">[^<]*<\/span>/g, '')
+               .replace(/<[^>]+>/g, '');
+  };
+  /* <label class="rolebox"><input type="checkbox" name="f-jobrole" value="…"><span>字</span> */
+  const roleOf = (html, code) => {
+    const m = new RegExp('<input type="checkbox" name="f-jobrole" value="' + code
+      + '"><span>([^<]*)</span>').exec(html);
+    return m ? m[1] : null;
+  };
+
+  /* サーバが返しうるコードの集合と並び（pv_deep_missing の then '…' end を上から）。 */
+  const missBody = (SQL.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/--[^\n]*/g, ' ')
+    .match(/create or replace function public\.pv_deep_missing\([\s\S]*?\$fn\$;/) || [''])[0];
+  const sqlCodes = [...missBody.matchAll(/then\s+'(\w+)'\s+end/g)].map((m) => m[1]);
+  ok(sqlCodes.join(' ') === Object.keys(FIELD).concat(ROLES).join(' '),
+     '★pv_deep_missing が返すコードは18個・この並び（増えたら表とこの検査に足す）',
+     sqlCodes.join(' '));
+
+  for (const [lang, file] of [['ja', 'pay-report.html'], ['en', 'en/pay-report.html']]) {
+    const form = nohtmlcomment(read(file));
+    const T2 = N[lang] || { item: {}, role: {}, sfx: '' };
+    ok(Object.keys(T2.item).join(' ') === Object.keys(FIELD).join(' ')
+       && Object.keys(T2.role).join(' ') === ROLES.join(' '),
+       `${lang}: ★表のコードはサーバが返す集合と同じ（抜けも余りも無い）`,
+       Object.keys(T2.item).concat(Object.keys(T2.role)).join(' '));
+    for (const code of Object.keys(FIELD)) {
+      const want = labelOf(form, FIELD[code]);
+      ok(want != null && want.length > 0 && T2.item[code] === want,
+         `${lang}: ★${code} ＝ フォームの #${FIELD[code]} の見出し「${want}」と同じ字`,
+         `表「${T2.item[code]}」`);
+    }
+    for (const code of ROLES) {
+      const want = roleOf(form, code);
+      ok(want != null && want.length > 0 && T2.role[code] === want,
+         `${lang}: ★${code} ＝ フォームの役職・区分の箱「${want}」と同じ字`,
+         `表「${T2.role[code]}」`);
+    }
+    ok(typeof T2.sfx === 'string' && T2.sfx === (lang === 'ja' ? 'の手当' : ' allowance'),
+       `${lang}: 役割の名前に足す語は「${lang === 'ja' ? 'の手当' : ' allowance'}」`, JSON.stringify(T2.sfx));
+    /* 板の1行目が言う「該当なし」も、フォームの札と同じ字。 */
+    const none = lang === 'ja' ? '該当なし' : 'None of this applies';
+    ok(new RegExp('id="f-variable-none"><span>' + none + '</span>').test(form)
+       && jsC.includes(lang === 'ja' ? '「' + none + '」' : '“' + none + '”'),
+       `${lang}: ★板が言う「${none}」は、フォームの札と同じ字`);
+  }
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -575,11 +729,16 @@ const STATS = { reports: 58, month: 12, airlines: 19, contributors: 37 };
      ・見出しの2つは刻みで来る ── annual_usd は $50 刻み・per_block_usd は $0.5 刻み
        （前は有効数字2桁だった。110000 / 93 のような丸い数ではもう来ない）。
        給与構成の med_usd は今も有効数字2桁。
+     ・gate は { key, ready, todo, crowd, contributors, goal }（2026-10-11）。
+       ready ＝本人が、自分に当てはまる項目をぜんぶ答えた月を持っているか。
+       todo  ＝足りない人にだけ { year, month, items:[コード…] }（足りている人・
+                窓の中に自分の行が無い人は null）。**前の鍵 detailed は gate に無い**
+       （いちばん外の give.detailed は別物で、今も返る ── 左メニューの札が読む）。
      ⚠️ 人数の鍵をここへ足し戻さない。毒入りの答え（古いサーバの形）は POISON が
         別に持っている ── あちらは「来ても読まない」ことを見るための見本。 */
 const FULL = {
   ok: true, state: 'open',
-  gate: { key: true, detailed: true, crowd: true, contributors: 37, goal: 100 },
+  gate: { key: true, ready: true, todo: null, crowd: true, contributors: 37, goal: 100 },
   give: { detailed: true }, stats: STATS,
   cohort: { level: 'airline_pos_fleet', manual: false, airline: 'ana', pos: 'fo', fleet: 'a320',
             trust: 'high' },
@@ -692,12 +851,12 @@ const NOBONUS = Object.assign(clone(FULL), {
 const MINE = { airline: 'ana', position: 'fo', fleet: 'a320' };
 
 const LOCK = { ok: true, state: 'locked', stats: STATS, give: { detailed: false },
-               gate: { key: false, detailed: false, crowd: false, contributors: 37, goal: 100 },
+               gate: { key: false, ready: false, todo: null, crowd: false, contributors: 37, goal: 100 },
                cohort: null, head: null, comp: null, work: null, var: null };
-/* 錠前の板の筋書き用。閉じている理由（鍵／本人の内訳／みんなの側）を1つずつ変える。
-   ★crowd を**渡さない**（undefined）と、古いサーバの形になる。 */
-const lockWith = (gate) => Object.assign(clone(LOCK), {
-  gate: gate, give: { detailed: !!gate.detailed } });
+/* 錠前の板の筋書き用。閉じている理由（鍵／本人が答えきったか／みんなの側）を1つずつ変える。
+   ★crowd や ready を**渡さない**（undefined）と、古いサーバの形になる。
+   ★give.detailed は門とは別の値（左メニューの札）。板には効かないので false で固定。 */
+const lockWith = (gate) => Object.assign(clone(LOCK), { gate: gate });
 
 /* ── 人数を画面に出さない（2026-10-11・オーナー判断）──────────────────
    「◯人」（日）・「◯ pilots」（英）の形の字が、本文に1つも無いこと。
@@ -828,14 +987,32 @@ const SNAP = () => {
     cond: (document.querySelector('.dp-cond') || {}).innerText || '',
     /* 信頼度の札（サーバの cohort.trust をそのまま出す。来なければ札ごと無い）。 */
     trust: q('#dp-root .dp-trust').map((e) => e.textContent.trim()),
-    /* 錠前の板。行は <br> で区切ってあるので innerText の改行で割る。
-       cta ＝ 板の入口（ボタン）の行き先。どの板でも1本。 */
+    /* 錠前の板。行は1行ずつ <p class="dp-msg-s">（2026-10-11。前は1つの <p> を <br> で
+       割っていた）。cta ＝ 板の入口（ボタン）の行き先。どの板でも1本。
+       todoH / todo ＝「まだ答えていない項目」の見出しと札（箱が無ければ todoH は null）。
+       todoPrev ＝ その箱のすぐ上の行の字（「答えきっていない」の行のすぐ下に在ること）。
+       warn ＝ 断りの字。warnAtCta ＝ 断りのすぐ次がボタンであること。
+       kids ＝ 板の直下の並び（クラスの頭）。raw ＝ 板の HTML（タグが紛れていないかを見る）。 */
     lock: (function () {
       const m = document.querySelector('#dp-kpi .dp-msg--lock');
-      const p = m && m.querySelector('.dp-msg-s');
+      const all = (s) => m ? [...m.querySelectorAll(s)] : [];
+      const td = m && m.querySelector('.dp-todo');
+      const w = m && m.querySelector('.dp-msg-w');
+      const a = m && m.querySelector('a.dp-cta');
       return { on: !!m,
-               lines: p ? p.innerText.split('\n').map((x) => x.trim()).filter(Boolean) : [],
-               cta: m ? [...m.querySelectorAll('a.dp-cta')].map((e) => e.getAttribute('href')) : [] };
+               lines: all('.dp-msg-s').map((e) => e.textContent.trim()),
+               todoH: td ? ((td.querySelector('.dp-todo-h') || {}).textContent || '') : null,
+               todo: all('.dp-todo-i').map((e) => e.textContent),
+               todoPrev: (td && td.previousElementSibling)
+                 ? td.previousElementSibling.textContent.trim() : '',
+               warn: all('.dp-msg-w').map((e) => e.textContent),
+               warnAtCta: !!(w && a && w.nextElementSibling === a),
+               kids: m ? [...m.children].map((e) => String(e.className).split(' ')[0]) : [],
+               tags: m ? [...new Set([...m.querySelectorAll('*')]
+                 .map((e) => e.tagName.toLowerCase()))].sort() : [],
+               raw: m ? m.innerHTML : '',
+               text: m ? m.innerText : '',
+               cta: all('a.dp-cta').map((e) => e.getAttribute('href')) };
     })(),
     pick: (function () {
       const e = document.getElementById('dp-pick');
@@ -899,55 +1076,103 @@ const SNAP = () => {
 }
 
 // ── 2b. 錠前の板の行は、閉じている理由どおりに出る（2026-10-11）──────
-/* 閉じている理由は3つ（鍵が無い／本人の内訳が無い／みんなの側＝100人が未達）。
+/* 閉じている理由は3つ（鍵が無い／本人が答えきっていない／みんなの側＝100人が未達）。
    **当てはまる行だけ**を、当てはまるぶん全部出す。決めるのは deep-pay.js の
    lockLines() 1つで、deep-pay-compare.js にも同じ本体が在る
    （あちらの画面は assert-deep-pay-compare.mjs の §2b が同じ表で見ている）。
 
-   ★ここが止めている後戻りは2つ。
+   ★2つめは 2026-10-11 に入れ替わった（オーナー判断）。前は「内訳が1つでもあるか」
+     （gate.detailed）。いまは「自分に当てはまる項目をぜんぶ答えたか」（gate.ready）で、
+     足りない人には**残っている項目の一覧**（gate.todo）が同じ板に出る。
+     給与フォームは変えていない ── 足りない分は、板のボタンからフォームで足してもらう。
+
+   ★ここが止めている後戻りは4つ。
      ① 100人の行を「contributors < goal」で出す形 ── 前はそうだった。門は
         「100人以上 **または 手動の公開フラグ**」なので、フラグで開けた日（37人の
         まま開いている）に、鍵の無い人へ「100人に達すること」が出てしまう。
         その人を止めているのは人数ではない。下の表は全部 37 / 100 人のままなので、
-        crowd:true の行で3行目が出たら、それがこの後戻り。
+        crowd:true の行で100人の行が出たら、それがこの後戻り。
      ② 当てはまる行が無いときに別の行で埋める形 ── 比較の画面に実際に在った
         （鍵も内訳もそろった人に「内訳を出すと開きます」）。
+     ③ ready を返さない古いサーバの答えを「答えきっている」と読む形。値が無いのを
+        開いている側へ倒さない（`=== true` で読む）。一覧は無いので出さない。
+     ④ 断り（虚偽・不正確な情報について）を、頼まれていない人へ出す形。出すのは
+        「答えきっていない」の行が出ているとき**だけ**。鍵だけ・人数だけの人には出さない。
    ★{goal}人・{n}人はサイト全体の数で、この画面で人数が出てよいたった1つの行。
-     ほかの行に「◯人」が紛れていないことも一緒に見る。
+     ほかの行に「◯人」が紛れていないことも一緒に見る（一覧の見出しの「2026年9月分」は
+     人数の形ではない。物差しがそこで鳴らないことは、下の「物差しの自己点検」が見る）。
    ★板のボタンの行き先は、足りない物に合わせて変わる（deep-pay.js の lockHref）──
-       鍵も内訳も無い → フォームの頭 ／ 鍵だけ無い（内訳は在る）→ #ps ／
-       鍵は在るが内訳が無い → #pay-detail ／ 鍵も内訳も在る → フォームの頭。
-     ⚠️ どの板でも入口は**1本**（板の中に入力は置かない。内訳は給与フォームで足して
-        もらう）。鍵の無い人の板から pay-report.html が消えないこと（Give → Get の入口）は
-        §2 が見ている。 */
-const lockHrefWant = (g) => g.key ? (g.detailed ? 'pay-report.html' : 'pay-report.html#pay-detail')
-                                  : (g.detailed ? 'pay-report.html#ps' : 'pay-report.html');
+       鍵が無く答えきってもいない → フォームの頭 ／ 鍵だけ無い（答えきっている）→ #ps ／
+       鍵は在るが答えきっていない → #pay-detail ／ 鍵も答えも在る → フォームの頭。
+     **期待する行き先は表に字で書く**（式を写すと、式ごと間違えたときに通る）。
+     ⚠️ どの板でも入口は**1本**（板の中に入力は置かない。足りない項目は給与フォームで
+        足してもらう）。鍵の無い人の板から pay-report.html が消えないこと（Give → Get の
+        入口）は §2 が見ている。 */
 const LK = {
-  ja: { key:  '給与を1件出すと、90日ぶん開きます。',
-        det:  '内訳（基本給・手当）まで書いた明細を1件出すと開きます。',
-        goal: '給与を出したパイロットが100人に達すること（いま37人）。' },
-  en: { key:  'Share one pay report and it opens for 90 days.',
-        det:  'Share one report with the breakdown filled in and it opens.',
-        goal: 'It opens once 100 pilots have shared their pay (currently 37).' }
+  ja: { key:   '給与を1件出すと、90日ぶん開きます。',
+        ready: '給与の項目をすべて答えると開きます。支給が無い項目は「該当なし」か 0 で答えます。',
+        goal:  '給与を出したパイロットが100人に達すること（いま37人）。',
+        warn:  '虚偽の情報や不正確な情報を提出した場合、利用規約に基づきアカウントを停止することがあります。',
+        head:  'まだ答えていない項目（2026年9月分）' },
+  en: { key:   'Share one pay report and it opens for 90 days.',
+        ready: 'It opens once every item on your pay report is answered. Where nothing is paid, answer “None of this applies” or 0.',
+        goal:  'It opens once 100 pilots have shared their pay (currently 37).',
+        warn:  'Submitting false or inaccurate information may result in suspension of your account under our Terms of Service.',
+        head:  'Still unanswered (September 2026)' }
 };
+/* 残りの一覧の見本（作り物）。2026年9月分・6項目。
+   ★並びはサーバが返す順（db/deep-pay.sql の pv_deep_missing の固定の並び）。 */
+const TODO6 = { year: 2026, month: 9,
+                items: ['command', 'bonus', 'profit', 'duty_h', 'duty_days', 'instructor'] };
+const TODO6_NAMES = {
+  ja: ['職位手当', '年間ボーナス', 'プロフィットシェア（年額）', '勤務時間（Duty time）',
+       '乗務日数（月）', '教官・訓練担当の手当'],
+  en: ['Rank / position allowance', 'Annual bonus', 'Profit share (annual)', 'Duty time',
+       'Duty days (month)', 'Instructor / Training allowance']
+};
+/* [名前, 門, 出る行, ボタンの行き先, 一覧が出るか]
+   ★頭の6つがオーナー指定の表。残りは組み合わせ（行が重なるとき・古いサーバ）。 */
 const LOCK_CASES = [
-  ['鍵だけ無い',       { key: false, detailed: true,  crowd: true  }, ['key']],
-  ['内訳だけ無い',     { key: true,  detailed: false, crowd: true  }, ['det']],
-  ['100人だけ未達',    { key: true,  detailed: true,  crowd: false }, ['goal']],
-  ['鍵と内訳',         { key: false, detailed: false, crowd: true  }, ['key', 'det']],
-  ['鍵と100人',        { key: false, detailed: true,  crowd: false }, ['key', 'goal']],
-  ['内訳と100人',      { key: true,  detailed: false, crowd: false }, ['det', 'goal']],
-  ['3つとも',          { key: false, detailed: false, crowd: false }, ['key', 'det', 'goal']],
-  /* 古いサーバ（crowd を返さない）で、鍵も内訳もそろっている人。理由が分からない
-     ので行を出さない。**「内訳を出すと開きます」で埋めない。** */
-  ['理由が分からない（crowd が来ない）', { key: true, detailed: true }, []]
+  ['鍵が無い（まだ1件も出していない）',
+   { key: false, ready: false, todo: null,  crowd: true  }, ['key', 'ready'], 'pay-report.html', false],
+  ['鍵は在るが答えきっていない（残りの一覧つき）',
+   { key: true,  ready: false, todo: TODO6, crowd: true  }, ['ready'], 'pay-report.html#pay-detail', true],
+  ['鍵は在るが答えきっていない（一覧なし）',
+   { key: true,  ready: false, todo: null,  crowd: true  }, ['ready'], 'pay-report.html#pay-detail', false],
+  ['答えきっているが鍵が切れた',
+   { key: false, ready: true,  todo: null,  crowd: true  }, ['key'], 'pay-report.html#ps', false],
+  ['100人だけ未達',
+   { key: true,  ready: true,  todo: null,  crowd: false }, ['goal'], 'pay-report.html', false],
+  /* ready を返さない古いサーバ（db/deep-pay.sql を貼る前）。前の鍵 detailed が来ても読まない。
+     「答えきっていない・一覧なし」として扱う。 */
+  ['古いサーバ（ready が来ない）',
+   { key: true,  detailed: true,            crowd: true  }, ['ready'], 'pay-report.html#pay-detail', false],
+  // ── ここから組み合わせ ──
+  ['3つとも（鍵・答え・100人）',
+   { key: false, ready: false, todo: TODO6, crowd: false }, ['key', 'ready', 'goal'], 'pay-report.html', true],
+  ['答えと100人',
+   { key: true,  ready: false, todo: TODO6, crowd: false }, ['ready', 'goal'], 'pay-report.html#pay-detail', true],
+  ['鍵と100人',
+   { key: false, ready: true,  todo: null,  crowd: false }, ['key', 'goal'], 'pay-report.html#ps', false],
+  ['古いサーバ（ready が来ない・鍵も無い・100人も未達）',
+   { key: false, detailed: false,           crowd: false }, ['key', 'ready', 'goal'], 'pay-report.html', false],
+  /* 鍵も答えもそろっていて、crowd が来ない。理由が分からないので行を出さない。
+     **別の行で埋めない。** 断りも出さない。 */
+  ['理由が分からない（crowd が来ない）',
+   { key: true,  ready: true,  todo: null }, [], 'pay-report.html', false],
+  /* ★足りている人に一覧が付いてきても出さない（サーバは null にして返す。念のため）。 */
+  ['答えきっている人に一覧が付いてきた（鍵が切れた）',
+   { key: false, ready: true,  todo: TODO6, crowd: true  }, ['key'], 'pay-report.html#ps', false]
 ];
+/* 板の中に在ってよいタグ（錠前の絵・行・一覧・ボタン）。これ以外が1つでも在れば、
+   サーバから来た字が HTML として入ったということ。 */
+const LOCK_TAGS = ['a', 'div', 'li', 'p', 'path', 'rect', 'svg', 'ul'];
 for (const lang of ['ja', 'en']) {
   /* ★1枚の窓で描き直す（試験用の入口 PVDeepPay.render）。本物の読み込みを通った
        錠前は上の §2 が見ている。ここは行の出し分けだけなので、開き直さない
-       （8通り × 日英を開き直すと、この Mac では混んで嘘の赤が出る）。 */
+       （12通り × 日英を開き直すと、この Mac では混んで嘘の赤が出る）。 */
   const { page, errs } = await open(lang, LOCK);
-  for (const [name, gate, want] of LOCK_CASES) {
+  for (const [name, gate, want, href, list] of LOCK_CASES) {
     const g = Object.assign({ contributors: 37, goal: 100 }, gate);
     await page.evaluate((p) => window.PVDeepPay.render(p), lockWith(g));
     const s = await page.evaluate(SNAP);
@@ -959,18 +1184,249 @@ for (const lang of ['ja', 'en']) {
     const rest = s.text.split(LK[lang].goal).join('');
     ok(!NOCOUNT.test(rest), `${lang}: ★「${name}」── 100人の行のほかに人数が出ない`, countIn(rest));
     /* ★どの板にもボタンが必ず1本在る（門の組み合わせで消えない）。 */
-    ok(s.lock.cta.join(',') === lockHrefWant(g) && s.kpi === 0 && !/[¥$€£]|万/.test(s.text),
-       `${lang}: ★「${name}」── 入口は1本・行き先は ${lockHrefWant(g)}・金額は1文字も出ない`,
+    ok(s.lock.cta.join(',') === href && s.kpi === 0 && !/[¥$€£]|万/.test(s.text),
+       `${lang}: ★「${name}」── 入口は1本・行き先は ${href}・金額は1文字も出ない`,
        s.lock.cta.join(','));
+    /* ★断りは「答えきっていない」の行と**必ず一緒**。その行が無い板には出ない。
+         置き場所はボタンのすぐ上（断りのすぐ次の要素がボタン）。 */
+    const asks = want.includes('ready');
+    ok(asks ? (s.lock.warn.join('|') === LK[lang].warn && s.lock.warnAtCta)
+            : (s.lock.warn.length === 0 && !s.text.includes(LK[lang].warn)),
+       `${lang}: ★「${name}」── 断りは${asks ? 'ボタンのすぐ上に1つ出る' : '出ない'}`,
+       JSON.stringify(s.lock.warn) + ' / ' + s.lock.kids.join(' > '));
+    /* ★残りの一覧。出るときは「答えきっていない」の行のすぐ下・見出しと名前は字のとおり。
+         出ないときは箱ごと無い（見出しだけの空の箱を出さない）。 */
+    ok(list ? (s.lock.todoH === LK[lang].head
+               && s.lock.todo.join(' | ') === TODO6_NAMES[lang].join(' | ')
+               && s.lock.todoPrev === LK[lang].ready)
+            : (s.lock.todoH === null && s.lock.todo.length === 0),
+       `${lang}: ★「${name}」── 残りの一覧は${list ? '行のすぐ下に、届いた順で出る' : '箱ごと出ない'}`,
+       JSON.stringify([s.lock.todoH, s.lock.todo, s.lock.todoPrev]));
+    ok(s.lock.tags.every((t) => LOCK_TAGS.includes(t)) && !/null|undefined|NaN|\[object/.test(s.lock.text),
+       `${lang}: 「${name}」── 板に余計なタグも null / undefined も無い`,
+       s.lock.tags.join(' '));
   }
   /* ★数が欠けていたら 100人の行ごと出さない（0 や空で埋めない）。 */
   await page.evaluate((p) => window.PVDeepPay.render(p),
-    lockWith({ key: true, detailed: true, crowd: false, contributors: null, goal: 100 }));
+    lockWith({ key: true, ready: true, todo: null, crowd: false, contributors: null, goal: 100 }));
   const z = await page.evaluate(SNAP);
   ok(z.lock.lines.length === 0 && !/null|undefined|NaN/.test(z.text),
      `${lang}: ★いまの人数が来ていないときは 100人の行ごと出さない（null とも 0 とも書かない）`,
      JSON.stringify(z.lock.lines));
   ok(errs.length === 0, `${lang}: 錠前の板の描き直しで JS のエラーが出ない`, errs.join(' / '));
+  /* 窓は見終わったらすぐ閉じる（溜めると、この Mac では混んで嘘の赤が出る）。 */
+  await jars.pop().close().catch(() => {});
+}
+
+// ── 2c. 「まだ答えていない項目」の一覧（2026-10-11）────────────────────
+/* サーバが返すのは**コードだけ**（gate.todo.items）。画面が給与フォームの言葉に直す
+   （表は deep-pay.js の todoNames()。フォームの見出しと同じ字であることは ⑫）。
+   見るのは5つ ──
+     ① 18個ぜんぶが、届いた順に、字のとおり出る（画面の側で並べ替えない）
+     ② 表に無いコードは**行ごと出ない**（コードをそのまま画面に出さない）
+     ③ サーバから来た字が HTML として入らない（<script> も <img> も、年・月の欄からも）
+     ④ 月の見出しが日英とも正しい（1月・12月・年の変わり目）
+     ⑤ 見出しだけの空の箱を出さない（一覧が空・全部知らないコード・月が読めない）
+   ★物差しの自己点検つき。「◯人」の物差しが月の見出しで鳴らず、頭数ではまだ鳴ること。 */
+const ALL18 = ['base', 'guarantee', 'variable', 'command', 'perdiem', 'housing', 'bonus', 'profit',
+               'block', 'duty_h', 'duty_days', 'stay', 'roles',
+               'instructor', 'examiner', 'union', 'management', 'nonline'];
+const ALL18_NAMES = {
+  ja: ['基本給', 'Flight time 保証手当 / 職務手当', '変動給', '職位手当',
+       'パーディアム（その月の合計）', '住居', '年間ボーナス', 'プロフィットシェア（年額）',
+       'フライトタイム', '勤務時間（Duty time）', '乗務日数（月）', 'ステイ日数', '役職・区分',
+       '教官・訓練担当の手当', '審査・査察担当の手当', '組合・乗員代表の手当',
+       '管理・マネジメントの手当', 'その他の兼務・配属の手当'],
+  en: ['Base pay', 'Flight time guarantee / Duty allowance', 'Variable pay',
+       'Rank / position allowance', 'Per diem (total for the month)', 'Housing', 'Annual bonus',
+       'Profit share (annual)', 'Flight time', 'Duty time', 'Duty days (month)', 'Layover nights',
+       'Role', 'Instructor / Training allowance', 'Examiner / Check allowance',
+       'Union / Pilot representative allowance', 'Management / Leadership allowance',
+       'Other / Non-Line Assignment allowance']
+};
+{
+  /* ── 物差しの自己点検（ブラウザは要らない）──
+     月の見出しは「数字＋年／月」。NOCOUNT が見ているのは「数字＋人／名／pilots」なので
+     鳴らないはず。鳴らないことと、**頭数ではまだ鳴る**ことの両方を固定する
+     （見出しを通すために物差しを緩めた、を作らない）。 */
+  for (const t of ['まだ答えていない項目（2026年9月分）', 'Still unanswered (September 2026)',
+                   'まだ答えていない項目（2025年12月分）\n基本給', 'Still unanswered (January 2026)\nBase pay'])
+    ok(!NOCOUNT.test(t), `物差し: 月の見出しでは鳴らない ──「${t.replace(/\n/g, ' ⏎ ')}」`, countIn(t));
+  for (const t of ['まだ答えていない項目（2026年9月分）12人', '12人', '全体で 3 名', '12 pilots',
+                   'Still unanswered (September 2026) 12 pilots', '2026 pilots'])
+    ok(NOCOUNT.test(t), `物差し: 頭数ではまだ鳴る ──「${t}」`);
+}
+const todoGate = (todo, more) => lockWith(Object.assign(
+  { key: true, ready: false, todo: todo, crowd: true, contributors: 37, goal: 100 }, more || {}));
+for (const lang of ['ja', 'en']) {
+  const { page, errs } = await open(lang, LOCK);
+  const draw = async (todo, more) => {
+    await page.evaluate((p) => window.PVDeepPay.render(p), todoGate(todo, more));
+    return page.evaluate(SNAP);
+  };
+
+  // ① 18個ぜんぶ・届いた順
+  let s = await draw({ year: 2026, month: 9, items: ALL18 });
+  ok(s.lock.todo.join(' | ') === ALL18_NAMES[lang].join(' | '),
+     `${lang}: ★18項目ぜんぶが、届いた順に、フォームと同じ名前で出る`,
+     JSON.stringify(s.lock.todo));
+  /* ★並べ替えない。逆順で渡せば逆順で出る（表の順に並べ直していない）。 */
+  s = await draw({ year: 2026, month: 9, items: ALL18.slice().reverse() });
+  ok(s.lock.todo.join(' | ') === ALL18_NAMES[lang].slice().reverse().join(' | '),
+     `${lang}: ★並びは届いた順のまま（画面の側で並べ替えない）`, JSON.stringify(s.lock.todo.slice(0, 3)));
+  /* 同じコードが2回来ても1回だけ。 */
+  s = await draw({ year: 2026, month: 9, items: ['bonus', 'bonus', 'command', 'bonus'] });
+  ok(s.lock.todo.join(' | ') === [ALL18_NAMES[lang][6], ALL18_NAMES[lang][3]].join(' | '),
+     `${lang}: 同じコードが重なって来ても1回だけ出る`, JSON.stringify(s.lock.todo));
+
+  // ②③ 知らないコード・HTML の形をした字
+  await page.evaluate(() => { window.__xss = 0; });
+  const BAD = ['command', 'zzz_new_item', '<img src=x onerror="window.__xss=1">',
+               '<script>window.__xss=1</script>', '<b>bonus</b>', 'constructor', '__proto__',
+               'toString', 'hasOwnProperty', 'item', 'role', 'sfx', '', ' bonus', 'BONUS',
+               42, null, true, { k: 'bonus' }, ['bonus'], 'profit'];
+  s = await draw({ year: 2026, month: 9, items: BAD });
+  /* ★字でないもの（数・真偽・入れ物・配列）はコードとして読まない。['bonus'] を
+       'bonus' と読み替えない。前後に空白の付いた字・大文字も別物。
+       残るのは頭の command と尻の profit の2つだけ。 */
+  ok(s.lock.todo.join(' | ') === [ALL18_NAMES[lang][3], ALL18_NAMES[lang][7]].join(' | '),
+     `${lang}: ★★表に無いコードは行ごと出ない（知っている2つだけが残る）`, JSON.stringify(s.lock.todo));
+  ok(!/zzz_new_item|constructor|__proto__|toString|hasOwnProperty|onerror|__xss|BONUS|\[object|function /.test(s.lock.text),
+     `${lang}: ★★知らないコードを、そのままの字でも出さない`,
+     (s.lock.text.match(/[^\n]*(zzz_new_item|constructor|__proto__|toString|onerror|\[object)[^\n]*/) || [''])[0]);
+  ok(s.lock.tags.every((t) => LOCK_TAGS.includes(t)) && !/<img|<script|<b>|onerror/i.test(s.lock.raw)
+     && (await page.evaluate(() => window.__xss)) === 0,
+     `${lang}: ★★HTML の形をしたコードが、タグとして入らない（実行もされない）`, s.lock.tags.join(' '));
+  /* 年・月の欄に字が来ても、HTML にも見出しにも入らない（数に直せなければ一覧ごと出さない）。 */
+  for (const [what, todo] of [
+    ['年がタグつきの字', { year: '<b>2026</b>', month: 9, items: ['bonus'] }],
+    ['月がスクリプトの字', { year: 2026, month: '<script>window.__xss=1</script>', items: ['bonus'] }],
+    ['月が13', { year: 2026, month: 13, items: ['bonus'] }],
+    ['月が0', { year: 2026, month: 0, items: ['bonus'] }],
+    ['月が小数', { year: 2026, month: 9.5, items: ['bonus'] }],
+    ['年が無い', { month: 9, items: ['bonus'] }],
+    ['年が5桁', { year: 20260, month: 9, items: ['bonus'] }]]) {
+    s = await draw(todo);
+    ok(s.lock.todoH === null && s.lock.todo.length === 0
+       && s.lock.lines.join('|') === LK[lang].ready && s.lock.warn.length === 1
+       && s.lock.tags.every((t) => LOCK_TAGS.includes(t))
+       && !/<b>|<script/i.test(s.lock.raw) && !/NaN|undefined|null/.test(s.lock.text)
+       && (await page.evaluate(() => window.__xss)) === 0,
+       `${lang}: ★月が読めない（${what}）ときは一覧ごと出さない ── 行と断りは残る`,
+       JSON.stringify([s.lock.todoH, s.lock.todo]));
+  }
+  /* 数として読める字（"2026"・"9"）は通す ── jsonb は数で来るが、字で来ても同じ月。 */
+  s = await draw({ year: '2026', month: '9', items: ['bonus'] });
+  ok(s.lock.todoH === LK[lang].head, `${lang}: 年・月が数字の字で来ても同じ見出し`, String(s.lock.todoH));
+
+  // ④ 月の見出し
+  for (const [y, m, ja, en] of [[2026, 1, '2026年1月分', 'January 2026'],
+                                [2025, 12, '2025年12月分', 'December 2025'],
+                                [2026, 10, '2026年10月分', 'October 2026']]) {
+    s = await draw({ year: y, month: m, items: ['bonus'] });
+    const want = lang === 'ja' ? `まだ答えていない項目（${ja}）` : `Still unanswered (${en})`;
+    ok(s.lock.todoH === want, `${lang}: ★月の見出し ── ${y}-${m} →「${want}」`, String(s.lock.todoH));
+  }
+
+  // ⑤ 空の箱を出さない
+  for (const [what, todo] of [
+    ['一覧が空', { year: 2026, month: 9, items: [] }],
+    ['全部知らないコード', { year: 2026, month: 9, items: ['zzz_a', 'zzz_b'] }],
+    ['items が配列でない', { year: 2026, month: 9, items: 'bonus' }],
+    ['items が無い', { year: 2026, month: 9 }],
+    ['todo が字', 'bonus'],
+    ['todo が配列', ['bonus']]]) {
+    s = await draw(todo);
+    ok(s.lock.todoH === null && s.lock.todo.length === 0 && s.lock.lines.join('|') === LK[lang].ready,
+       `${lang}: ★${what} ── 見出しだけの空の箱を出さない（行はそのまま）`,
+       JSON.stringify([s.lock.todoH, s.lock.todo, s.lock.lines]));
+  }
+  ok(errs.length === 0, `${lang}: 一覧の描き直しで JS のエラーが出ない`, errs.join(' / '));
+  await jars.pop().close().catch(() => {});
+}
+
+// ── 2d. 一覧つきの板が、どの幅でもはみ出さない・暗い面でも読める（2026-10-11）──
+/* ★いちばん長い形（18項目ぜんぶ ＋ 100人の行）を、320 / 390 / 1440 で測る。
+     英語の札のいちばん長い1つ（Union / Pilot representative allowance）は 320px の
+     器より長い ── 札の中で折り返すので、**外へは出ない**ことを見る。
+   ★読めるかは「字の色と、その下の面の色の差」で見る（コントラスト比 4.5 以上）。
+     明暗とも。トークンを取り違えて面と同じ色の字を置いた回に赤くなる。
+   ⚠️ 時間で待たない。幅が本当に変わってから測る。 */
+const LOCK_FIT = () => {
+  const vw = document.documentElement.clientWidth;
+  const m = document.querySelector('.dp-msg--lock');
+  if (!m) return null;
+  const mb = m.getBoundingClientRect();
+  const out = [], cut = [];
+  for (const e of m.querySelectorAll('*')) {
+    const r = e.getBoundingClientRect();
+    if (r.width === 0) continue;
+    if (r.right > mb.right + 1 || r.left < mb.left - 1 || r.right > vw + 1 || r.left < -1)
+      out.push((e.className || e.tagName) + ' ' + Math.round(r.left) + '..' + Math.round(r.right));
+  }
+  for (const e of m.querySelectorAll('.dp-todo-i, .dp-todo-h, .dp-msg-s, .dp-msg-w, .dp-cta'))
+    if (e.scrollWidth > e.clientWidth + 1) cut.push(e.textContent.slice(0, 24));
+  /* 札どうしが重なっていない（折り返しが壊れると、次の札が上に乗る）。 */
+  const chips = [...m.querySelectorAll('.dp-todo-i')].map((e) => e.getBoundingClientRect());
+  let lap = 0;
+  for (let i = 0; i < chips.length; i++) for (let j = i + 1; j < chips.length; j++) {
+    const a = chips[i], b = chips[j];
+    if (a.left < b.right - 0.5 && b.left < a.right - 0.5 && a.top < b.bottom - 0.5 && b.top < a.bottom - 0.5) lap++;
+  }
+  /* 字の色 ⇄ その下の面の色。面は、透けていない祖先に当たるまで重ねて求める。 */
+  const rgba = (c) => { const x = (c.match(/[\d.]+/g) || []).map(Number);
+    return { r: x[0] || 0, g: x[1] || 0, b: x[2] || 0, a: x.length > 3 ? x[3] : 1 }; };
+  const under = (e) => {
+    const stack = [];
+    for (let n = e; n; n = n.parentElement) {
+      const c = rgba(getComputedStyle(n).backgroundColor);
+      if (c.a > 0) { stack.push(c); if (c.a >= 1) break; }
+    }
+    let o = { r: 255, g: 255, b: 255 };
+    for (let i = stack.length - 1; i >= 0; i--) {
+      const c = stack[i];
+      o = { r: c.r * c.a + o.r * (1 - c.a), g: c.g * c.a + o.g * (1 - c.a), b: c.b * c.a + o.b * (1 - c.a) };
+    }
+    return o;
+  };
+  const lum = (c) => { const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+    return 0.2126 * f(c.r) + 0.7152 * f(c.g) + 0.0722 * f(c.b); };
+  const ratio = (e) => { const a = lum(rgba(getComputedStyle(e).color)), b = lum(under(e));
+    return Math.round((Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05) * 100) / 100; };
+  const one = (s) => { const e = m.querySelector(s); return e ? ratio(e) : null; };
+  return { vw, over: document.documentElement.scrollWidth - vw, out, cut, lap,
+           chips: chips.length, rows: new Set(chips.map((r) => Math.round(r.top))).size,
+           h: Math.round(mb.height),
+           con: { line: one('.dp-msg-s'), head: one('.dp-todo-h'), chip: one('.dp-todo-i'),
+                  warn: one('.dp-msg-w'), note: one('.dp-cta-n') } };
+};
+for (const lang of ['ja', 'en']) {
+  for (const theme of ['light', 'dark']) {
+    const { page, errs } = await open(lang, LOCK, theme);
+    await page.evaluate((p) => window.PVDeepPay.render(p),
+      todoGate({ year: 2026, month: 9, items: ALL18 }, { crowd: false }));
+    /* 幅は明るいほうで3つ・暗いほうは色だけ見ればよいので1つ（窓を増やさない）。 */
+    for (const w of (theme === 'light' ? [320, 390, 1440] : [390])) {
+      await page.setViewport({ width: w, height: 1000 });
+      await page.waitForFunction((x) => innerWidth === x, { timeout: 10000 }, w);
+      const f = await page.evaluate(LOCK_FIT);
+      ok(!!f && f.chips === 18 && f.over <= 1 && f.out.length === 0,
+         `${lang}/${theme}/${w}: ★一覧つきの板が横に溢れない（18項目）`,
+         f ? `文書 +${f.over}px / 外へ出た ${f.out.slice(0, 4).join(' ｜ ')}` : '板が無い');
+      ok(!!f && f.cut.length === 0 && f.lap === 0,
+         `${lang}/${theme}/${w}: ★札も行も切れていない・札どうしが重なっていない`,
+         f ? `切れ ${f.cut.join(' ｜ ')} / 重なり ${f.lap}` : '');
+      /* 広い画面では札が横に並ぶ（1行に1つずつの縦長の板になっていない）。 */
+      if (w === 1440)
+        ok(!!f && f.rows <= 6, `${lang}/${theme}/${w}: 広い画面では札が横に並んで折り返す（18枚が ${f && f.rows} 段）`);
+    }
+    const c = (await page.evaluate(LOCK_FIT) || { con: {} }).con;
+    ok(['line', 'head', 'chip', 'warn', 'note'].every((k) => c[k] != null && c[k] >= 4.5),
+       `${lang}/${theme}: ★行・見出し・札・断りの字が、下の面から読める（コントラスト比 4.5 以上）`,
+       JSON.stringify(c));
+    ok(errs.length === 0, `${lang}/${theme}: 幅を変えても JS のエラーが出ない`, errs.join(' / '));
+    await jars.pop().close().catch(() => {});
+  }
 }
 
 // ── 3. そろった状態（配置の骨格）─────────────────────────────

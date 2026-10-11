@@ -274,6 +274,37 @@
   letter-spacing:-.01em}
 .dp-msg-t svg{width:18px;height:18px;flex:none;color:var(--pv-ink-3)}
 .dp-msg-s{margin-top:8px;font-size:.8rem;line-height:1.75;color:var(--pv-ink-2)}
+/* ★錠前の板の行は1行ずつ <p> にした（2026-10-11。前は1つの <p> を <br> で割っていた）。
+     「答えきっていない」の行のすぐ下へ一覧を挟むため。続く行は間を空けない
+     ＝ <br> で割っていた頃と同じ行送りのまま。 */
+.dp-msg-s+.dp-msg-s{margin-top:0}
+/* ── まだ答えていない項目（錠前の板の中・2026-10-11）──────────────
+   deep-pay.js / deep-pay-compare.js の lockTodo() が書く。**2つの画面で同じ見た目**
+   （会社比較もこのファイルを読む。あちらの CSS には書かない）。
+   ★項目は札にして折り返す。区切りの記号（・や /）で1行に並べない ── 項目の名前
+     そのものが「Flight time 保証手当 / 職務手当」のように記号を含んでいる。
+   ★札は**押せない**。押せるものと同じ見た目にしない ── この画面で押せるのは
+     「白い面＋罫線＋影」（.dp-more-b）か橙（.dp-cta）。札は罫線の無い淡い面にして、
+     信頼度の札（.dp-trust）と同じ「読むだけの札」の側へ寄せてある。
+   ★長い名前は札の中で折り返す（320px では英語の1つが器より長い）。だから角丸は
+     999px ではなく --pv-r-sm ── 2行になった札が豆のような形にならない。
+   ★箱は中身の幅まで（width:fit-content）。板は広い画面で 1200px を超えるので、
+     全幅の箱に札が6枚だけ並ぶと、右の4分の3が空いた帯になる。項目が多ければ
+     max-width:100% で板の幅に止まり、札が折り返す。
+   ★色はトークンだけ（明暗とも）。hex を書かない。 */
+.dp-todo{width:fit-content;max-width:100%;margin-top:10px;padding:11px 12px 12px;
+  border-radius:var(--pv-r-sm);background:var(--pv-surface-2);border:1px solid var(--pv-line)}
+.dp-todo+.dp-msg-s{margin-top:10px}
+.dp-todo-h{font-size:.72rem;font-weight:700;line-height:1.5;color:var(--pv-ink-2)}
+.dp-todo-l{list-style:none;display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.dp-todo-i{min-width:0;max-width:100%;padding:4px 10px;border-radius:var(--pv-r-sm);
+  font-size:.75rem;font-weight:600;line-height:1.45;color:var(--pv-ink);
+  background:var(--pv-line-soft);overflow-wrap:anywhere}
+/* 断り（虚偽・不正確な情報について）。「答えきっていない」の行が出ているときだけ、
+   ボタンのすぐ上に出る。★静かな1行。色付きの箱・アイコン・太字にしない
+   （オーナー指定「警告の箱にしない」）。字の大きさと色は .dp-cta-n と同じ。 */
+.dp-msg-w{margin-top:12px;font-size:.7rem;line-height:1.6;color:var(--pv-ink-3)}
+.dp-msg-w+.dp-cta{margin-top:12px}
 .dp-cta{display:inline-flex;align-items:center;gap:8px;margin-top:16px;
   font-size:.82rem;font-weight:700;text-decoration:none;
   background:var(--pv-orange);color:#fff;border-radius:999px;padding:11px 20px;

@@ -6,7 +6,7 @@
 <link rel="apple-touch-icon" href="assets/favicon-180.png"/>
   <script>(function(){var t=localStorage.getItem('pv-theme')||'light';document.documentElement.setAttribute('data-theme',t);}());</script>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <!-- 明細まで出した人だけが読める画面。ログインが要るので検索に出してはいけない -->
+  <!-- 給与の項目をぜんぶ答えた人だけが読める画面（2026-10-11 から。前は「内訳を1件でも出した人」）。ログインが要るので検索に出してはいけない -->
   <title>DEEP PAY｜給与の中身を見る | PILOT VALUE</title>
 <!--PV-SEO-->
 <!--PV-SRC t="DEEP PAY｜給与の中身を見る" d="同じ会社・同じ役職のパイロットの給与を、固定と変動の内訳、働き方の前提とセットで見ます。個人の明細は1件も表示しません。"-->
@@ -54,7 +54,7 @@
   <link rel="stylesheet" href="app-nav.css">
   <!-- この画面だけの見た目（.dp-*）。
        ★.pt-* / .mv-* をトップレベルで書き直さない（db/test-form-contract.mjs が見ている）。 -->
-  <link rel="stylesheet" href="deep-pay.css?v=e450273c">
+  <link rel="stylesheet" href="deep-pay.css?v=9499d97c">
 
   <style>
     /* ここに置くのは「CSS が届く前に見えてしまう部分」だけ。
@@ -238,7 +238,7 @@
        deep-pay.css / deep-pay.js）。
      直したら assert-links.mjs が出す値を、読んでいるページ全部に写す
      （deep-pay.css は2画面 × 日英の4枚・ほかは日英の2枚）。 -->
-<script src="deep-pay.js?v=c10678d1"></script>
+<script src="deep-pay.js?v=588324cc"></script>
 <!-- 出し直しのお願い。提出した給与に「手取り ＞ 総支給」の月がある**本人にだけ**出る。
      ★未ログインの人・問題の無い人には何も出さない（線と、通信を増やさない工夫は pv-pay-fix.js の冒頭）。
      ★この画面の PV_SESSION と sb を借りるので、それより**後**に読む。

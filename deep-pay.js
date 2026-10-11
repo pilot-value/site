@@ -36,6 +36,15 @@
    ★たった1つの例外は錠前の板の「…100人に達すること（いま N人）」。あれは
      サイト全体の数（gate.contributors / gate.goal）で、区分の人数ではない。
 
+   ── 見る資格（2026-10-11・オーナー判断）────────────────────────
+   ★DEEP PAY は、自分に当てはまる項目を**ぜんぶ**答えた人にだけ開く。門はサーバ
+     （db/deep-pay.sql の pv_deep_missing。gate.ready がその答え）で、この画面は
+     門を持たない。画面がするのは、閉じているときの板に「まだ答えていない項目」
+     （gate.todo）を**給与フォームと同じ名前で**並べ、フォームへ送ることだけ。
+   ★給与フォームは変えていない。入力もこの画面に置かない（板の入口はボタン1本）。
+   ⚠️ 前の門（内訳が1つでもあるか＝gate.detailed）は、サーバが名前ごと外した。
+      読む行を足し戻さない（いちばん外の give.detailed は別物 ── 左メニューの札）。
+
    ── ここで守っている約束 ──────────────────────────────────────
    ★「時給」と書かない。出すのは Pay / Block Hour で、Block Hours から
      割った指標。時給と書いた瞬間に、待機も地上も含んだ拘束時間で割った
@@ -166,7 +175,17 @@
 
       lockT: 'DEEP PAY はまだ開いていません',
       lockKey: '給与を1件出すと、90日ぶん開きます。',
-      lockDet: '内訳（基本給・手当）まで書いた明細を1件出すと開きます。',
+      /* ★本人の側の門（2026-10-11・オーナー判断）。「内訳を1件出すと開く」をやめて、
+           自分に当てはまる項目を**ぜんぶ**答えた人にだけ開く（線は db/deep-pay.sql の
+           pv_deep_missing。gate.ready がその答え）。前の lockDet はこの行に置き換えた。
+         ★給与フォームは変えていない。足りない分は、板のボタンからフォームで足してもらう。
+         ★lockTodoH の {ym} は対象月（todoMonth()）。lockWarn は、この行が出ているとき
+           **だけ**ボタンの上に添える断り（出す・出さないは lockHtml() が決める）。
+         ⚠️ この3つは deep-pay-compare.js にも同じ字で在る。片方だけ直さない
+            （2つの画面の §2b が、同じ表で字そのものを見ている）。 */
+      lockReady: '給与の項目をすべて答えると開きます。支給が無い項目は「該当なし」か 0 で答えます。',
+      lockTodoH: 'まだ答えていない項目（{ym}）',
+      lockWarn: '虚偽の情報や不正確な情報を提出した場合、利用規約に基づきアカウントを停止することがあります。',
       /* ★人数が足りなくて閉じているときの3行目（2026-09-01）。
          数字は返ってきた gate から入れる。ここで数え直さない。
          ★この画面で人数が出てよいのは**この1行だけ**（サイト全体の数で、
@@ -236,7 +255,9 @@
 
       lockT: 'DEEP PAY is not open yet',
       lockKey: 'Share one pay report and it opens for 90 days.',
-      lockDet: 'Share one report with the breakdown filled in and it opens.',
+      lockReady: 'It opens once every item on your pay report is answered. Where nothing is paid, answer “None of this applies” or 0.',
+      lockTodoH: 'Still unanswered ({ym})',
+      lockWarn: 'Submitting false or inaccurate information may result in suspension of your account under our Terms of Service.',
       lockGoal: 'It opens once {goal} pilots have shared their pay (currently {n}).',
       lockCta: 'Share your pay anonymously',
       lockN: 'What you share is only ever used in aggregate. No individual payslip is shown to anyone.',
@@ -913,40 +934,152 @@
        「100人に届いていない」の行を持っていなかった ── 鍵も内訳もそろった人に
        「内訳を出すと開きます」と出ていた（その人を止めているのは人数なのに）。
      閉じている理由は3つで、**当てはまるものを全部**出す：
-       鍵が無い            → lockKey
-       本人の内訳が無い    → lockDet
-       みんなの側が未達    → lockGoal（gate.crowd が false のときだけ）
+       鍵が無い              → lockKey
+       本人が答えきっていない → lockReady（gate.ready が true で**ない**とき）
+       みんなの側が未達      → lockGoal（gate.crowd が false のときだけ）
+     ★2つめは 2026-10-11 に入れ替えた（オーナー判断）。前は「内訳が1つでもあるか」
+       （gate.detailed → lockDet）だった。サーバはその鍵を名前ごと外し、代わりに
+       ready（自分に当てはまる項目をぜんぶ答えた月が1つ在るか）を返す。
+       ⚠️ `=== true` で読む。ready を返さない古いサーバ（db/deep-pay.sql を貼る前）の
+          答えは「答えきっていない・残りの一覧は無い」として扱う ── 値が無いのを
+          開いている側へ倒さない（門そのものはサーバに在る。ここは板の文だけ）。
      ★3つめは gate.crowd を読む。contributors と goal を比べて自分で決めない。
        門は「100人以上 または 手動の公開フラグ」なので、フラグで開けた日
        （99人のまま開いている）に比べると、鍵の無い人へ「100人に届いたら開く」が
        出てしまう ── その人を止めているのは人数ではない。
      ⚠️ 当てはまる行が無いときに、別の行で埋めない（crowd を返さない古いサーバで、
-        鍵も内訳もそろった人がここに来る）。理由を画面で推し量ると、間違った
+        鍵も答えもそろった人がここに来る）。理由を画面で推し量ると、間違った
         頼みごとをすることになる。行は出さず、板の見出しだけにする。
      ★{goal}・{n} はサイト全体の数。**区分の人数ではない**（この画面で人数が
        出てよいのはこの1行だけ）。数が欠けていたら行ごと出さない（0 で埋めない）。 */
   function lockLines(gate) {
     var g = gate || {}, out = [];
     if (!g.key) out.push(T.lockKey);
-    if (!g.detailed) out.push(T.lockDet);
+    if (g.ready !== true) out.push(T.lockReady);
     if (g.crowd === false && g.contributors != null && g.goal != null)
       out.push(T.lockGoal.replace('{goal}', function () { return String(g.goal); })
                          .replace('{n}',    function () { return String(g.contributors); }));
     return out;
   }
   /* 板のボタンの行き先。★給与フォームの「どこから始めるか」を、足りない物に合わせる。
-       鍵も内訳も無い          → フォームの頭（1件まるごと出してもらう）
-       鍵だけ切れた（内訳は在る）→ #ps（明細からの入口。新しい月を出せば鍵が戻る）
-       鍵は在るが内訳が無い    → #pay-detail（内訳の節。pv-gates.js の DETAIL_URL と同じ）
-       鍵も内訳も在る          → フォームの頭（止めているのは人数。今までどおり）
-     ★内訳はこの画面では聞かない。足りない分は給与フォームで足してもらう
+       鍵が無く、答えきってもいない  → フォームの頭（1件まるごと出してもらう）
+       鍵だけ切れた（答えきっている）→ #ps（明細からの入口。新しい月を出せば鍵が戻る）
+       鍵は在るが答えきっていない    → #pay-detail（フォームに前から在る「内訳の節を
+                                        開いて出す」住所。pv-gates.js の DETAIL_URL と同じ）
+       鍵も答えもそろっている        → フォームの頭（止めているのは人数。今までどおり）
+     ★足りない項目はこの画面では聞かない。給与フォームで足してもらう
        （2026-10-11 オーナー判断。板の中に入力は置かない ── 板の入口はこのボタン1本）。
-     ★下の2つ（lockHref / lockBoard）は deep-pay-compare.js と**同じ本体**
-       （ずれは assert-deep-pay-compare.mjs の「写した関数」が見張る）。 */
+     ★相対のまま書く。/en/ の画面からは /en/pay-report.html に解ける。
+     ★ここから下の6つ（lockHref / todoNames / todoMonth / lockTodo / lockHtml / lockBoard）は
+       deep-pay-compare.js と**同じ本体**（ずれは assert-deep-pay-compare.mjs の
+       「写した関数」が見張る）。 */
   function lockHref(gate) {
-    var g = gate || {};
-    if (g.key) return g.detailed ? 'pay-report.html' : 'pay-report.html#pay-detail';
-    return g.detailed ? 'pay-report.html#ps' : 'pay-report.html';
+    var g = gate || {}, rdy = g.ready === true;
+    if (g.key) return rdy ? 'pay-report.html' : 'pay-report.html#pay-detail';
+    return rdy ? 'pay-report.html#ps' : 'pay-report.html';
+  }
+  /* ── まだ答えていない項目の名前（2026-10-11）──────────────────────
+     サーバ（gate.todo.items）が返すのは**コードだけ**。画面がここで言葉に直す。
+     ★名前は**給与フォームの欄の見出しと1文字も違えない**（pay-report.html /
+       en/pay-report.html の <label> の字。「必須」「任意」の札は除く）。板で読んだ
+       言葉を、フォームでそのまま探せるようにするため。CN（給与構成の凡例）の
+       言い方とはわざと違う ──「住宅手当」ではなく、フォームの問いの「住居」。
+       ⚠️ フォームの見出しを変えたら、ここも直す。assert-deep-pay.mjs の ⑫ が
+          フォームの HTML から見出しを切り出して、この表と突き合わせている。
+     ★item … 欄の見出しそのまま。役職・区分（roles）もここ。
+       role … 役職・区分の箱（チェックボックス）の字。板には sfx を足して
+              「教官・訓練担当の手当」と出す（その役割の「別に支給されているか」の
+              問いと金額が残っている、という意味）。
+     ⚠️ コードの集合と並びは db/deep-pay.sql の pv_deep_missing が正。並べるのは
+        サーバで、ここは引くだけ。**表に無いコードは出さない**（lockTodo の注）。
+     ⚠️ 関数にしてあるのは、2つの JS に同じ本体を置いて機械で突き合わせるため
+        （T は画面ごとに中身が違うので、表を T に入れると見張れない）。 */
+  function todoNames() {
+    return {
+      ja: {
+        item: { base: '基本給', guarantee: 'Flight time 保証手当 / 職務手当',
+                variable: '変動給', command: '職位手当',
+                perdiem: 'パーディアム（その月の合計）', housing: '住居',
+                bonus: '年間ボーナス', profit: 'プロフィットシェア（年額）',
+                block: 'フライトタイム', duty_h: '勤務時間（Duty time）',
+                duty_days: '乗務日数（月）', stay: 'ステイ日数', roles: '役職・区分' },
+        role: { instructor: '教官・訓練担当', examiner: '審査・査察担当',
+                union: '組合・乗員代表', management: '管理・マネジメント',
+                nonline: 'その他の兼務・配属' },
+        sfx: 'の手当'
+      },
+      en: {
+        item: { base: 'Base pay', guarantee: 'Flight time guarantee / Duty allowance',
+                variable: 'Variable pay', command: 'Rank / position allowance',
+                perdiem: 'Per diem (total for the month)', housing: 'Housing',
+                bonus: 'Annual bonus', profit: 'Profit share (annual)',
+                block: 'Flight time', duty_h: 'Duty time',
+                duty_days: 'Duty days (month)', stay: 'Layover nights', roles: 'Role' },
+        role: { instructor: 'Instructor / Training', examiner: 'Examiner / Check',
+                union: 'Union / Pilot representative', management: 'Management / Leadership',
+                nonline: 'Other / Non-Line Assignment' },
+        sfx: ' allowance'
+      }
+    }[L];
+  }
+  /* 対象月の言い方。★pv-pay-fix.js（出し直しのお願い）の month と同じ形
+     ──「2026年9月分」／「September 2026」。あちらは IIFE に閉じていて借りられない。 */
+  function todoMonth(y, m) {
+    var MON = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
+               'August', 'September', 'October', 'November', 'December'];
+    return L === 'en' ? MON[m - 1] + ' ' + y : y + '年' + m + '月分';
+  }
+  /* 板の中の「まだ答えていない項目」の一覧。答えきっていない行のすぐ下に入る。
+     ★並びは**届いた順**（サーバが固定の並びで返す）。ここで並べ替えない。
+     ★表に無いコードは**行ごと出さない**。コードをそのまま画面に出さない ──
+       サーバが項目を1つ足して、画面がまだ古い日に「duty_x」のような字が出るより、
+       その1つが黙って抜けるほうがまし（線そのものはサーバに在るので、門は緩まない）。
+     ★サーバから来た字は1文字も HTML に入れない。コードは表を引く鍵にしか使わず
+       （字でないものは読まない・hasOwnProperty で引く ── constructor のような名前を
+       拾わない）、年と月は数に直して範囲を見てから出す。出る字は全部この表の字で、
+       それも esc を通す。
+     ⚠️ 一覧が無い・空・月が読めないときは**空文字を返す**（見出しだけの箱を出さない）。
+        窓の中に自分の行が無い人と、古いサーバの答えがこの形。 */
+  function lockTodo(gate) {
+    var td = (gate || {}).todo, N = todoNames(), own = Object.prototype.hasOwnProperty;
+    var seen = {}, li = [];
+    if (!td || !Array.isArray(td.items)) return '';
+    var y = Number(td.year), m = Number(td.month);
+    if (!(y % 1 === 0 && m % 1 === 0 && y >= 1000 && y <= 9999 && m >= 1 && m <= 12)) return '';
+    td.items.forEach(function (k) {
+      var nm = '';
+      if (typeof k !== 'string' || own.call(seen, k)) return;
+      if (own.call(N.item, k)) nm = N.item[k];
+      else if (own.call(N.role, k)) nm = N.role[k] + N.sfx;
+      if (!nm) return;
+      seen[k] = 1;
+      li.push('<li class="dp-todo-i">' + esc(nm) + '</li>');
+    });
+    if (!li.length) return '';
+    return '<div class="dp-todo"><p class="dp-todo-h">' +
+      esc(T.lockTodoH.replace('{ym}', function () { return todoMonth(y, m); })) + '</p>' +
+      '<ul class="dp-todo-l">' + li.join('') + '</ul></div>';
+  }
+  /* 錠前の板そのもの。2つの画面が**同じ板**を出す（前は shut() の中に別々に書いていた）。
+     ★どの行を出すかは lockLines() が決める。ここで足したり埋めたりしない。
+     ★一覧（lockTodo）は「答えきっていない」の行の**すぐ下**。その行が無ければ出ない。
+     ★断り（lockWarn）は、その行が出ているとき**だけ**出す（文と条件はオーナー指定
+       2026-10-11）。鍵だけ・人数だけが理由の人には出さない ── その人は「答え方」を
+       頼まれていない。置き場所はボタンのすぐ上（指定は「すぐ上か下」。押す前に
+       目に入る側にした）。静かな1行で、警告の箱にはしない。
+     ★入口はボタン1本（行き先は lockHref）。板の中に入力もリンクも足さない。 */
+  function lockHtml(gate) {
+    var lines = lockLines(gate), todo = lockTodo(gate);
+    var warn = lines.indexOf(T.lockReady) >= 0;
+    return '<div class="dp-msg dp-msg--lock">' +
+      '<div class="dp-msg-t">' + IC.lock.replace('24" height="24', '18" height="18') +
+        esc(T.lockT) + '</div>' +
+      lines.map(function (t) {
+        return '<p class="dp-msg-s">' + esc(t) + '</p>' + (t === T.lockReady ? todo : '');
+      }).join('') +
+      (warn ? '<p class="dp-msg-w">' + esc(T.lockWarn) + '</p>' : '') +
+      '<a class="dp-cta" href="' + lockHref(gate) + '">' + esc(T.lockCta) + '</a>' +
+      '<p class="dp-cta-n">' + esc(T.lockN) + '</p></div>';
   }
   /* 板を組むのは、中身が変わった回だけ。render() は何度も走る（社名の辞書があとから
      届く・通貨の切替）── 毎回組み直すと、Tab でボタンまで来た人の焦点が外れる。
@@ -974,16 +1107,9 @@
       box.hidden = false;
       return;
     }
-    var g = (S.data && S.data.gate) || {};
-    /* ★どの行を出すかは lockLines() が決める（上の注）。ここで足したり埋めたりしない。
-       ★ボタンの行き先は lockHref()。板を組むのは lockBoard()（中身が変わった回だけ）。 */
-    var lines = lockLines(g);
-    lockBoard(box, '<div class="dp-msg dp-msg--lock">' +
-      '<div class="dp-msg-t">' + IC.lock.replace('24" height="24', '18" height="18') +
-        esc(T.lockT) + '</div>' +
-      (lines.length ? '<p class="dp-msg-s">' + lines.map(esc).join('<br>') + '</p>' : '') +
-      '<a class="dp-cta" href="' + lockHref(g) + '">' + esc(T.lockCta) + '</a>' +
-      '<p class="dp-cta-n">' + esc(T.lockN) + '</p></div>');
+    /* ★板の中身（行・残りの一覧・断り・ボタンの行き先）は lockHtml() が決める（上の注）。
+         ここで足したり埋めたりしない。置くのは lockBoard()（中身が変わった回だけ）。 */
+    lockBoard(box, lockHtml((S.data && S.data.gate) || {}));
   }
 
   /* ★選んだ区分が人数の壁に届かなかったとき。**広い区分の数字で埋めない。**

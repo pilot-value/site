@@ -23,10 +23,14 @@
                     （★広い区分の数字で埋めない。何も出ないのが正しい）
             nolist… 選べる組み合わせが1つも届いていない
                     （★選択欄ごと出ない。全社を並べる逃げ道は置かない）
-            lock  … 鍵がまだ無い（給与を1件も出していない）＝板は3行
-            det   … 鍵はあるが内訳を書いていない＝板は2行（内訳・100人）
+            lock  … 鍵がまだ無い（給与を1件も出していない）＝板は3行＋断り
+            det   … 鍵はあるが、答えていない項目が残っている＝板は2行（答え・100人）
+                    ★「まだ答えていない項目」の一覧が出る（作り物：2026年9月分・6項目）
                     ★ボタンは給与フォームの内訳の節（#pay-detail）を指す
-            goal  … 鍵も内訳もそろっていて、100人だけが未達＝板は1行
+                    ★ボタンの上に断り（虚偽・不正確な情報について）が出る
+            det0  … det と同じだが、残りの一覧が来ていない（窓の中に自分の行が無い人・
+                    一覧を返さない古いサーバ）＝行と断りだけ・一覧の箱は出ない
+            goal  … 鍵も答えもそろっていて、100人だけが未達＝板は1行（断りは出ない）
             err   … サーバが返らなかった
      lang : ja | en
      theme: light | dark
@@ -84,7 +88,7 @@ const PICK = {
   pos:  { position: 'cap' },
   pick: { airline: 'jal', position: 'cap', fleet: 'b787' },
   thin: { airline: 'sas' }
-  /* lock / det / goal は錠前の板。**何も選ばない**（鍵が閉じている画面では
+  /* lock / det / det0 / goal は錠前の板。**何も選ばない**（鍵が閉じている画面では
      picker() が欄ごと隠す ── 隠れた欄へ値を入れても、写る板は変わらない）。 */
 }[scene] || null;
 
@@ -113,12 +117,16 @@ await page.evaluateOnNewDocument((scene, theme, lang, cur) => {
        ・gate.crowd ＝「みんなの側」の門（100人以上 or 手動の公開フラグ）。
          37 / 100 人のまま開いている見本は「手動フラグで開けた日」の形＝ crowd:true。
        ・見出しの2つは刻み（annual_usd は $50・per_block_usd は $0.5）。
-         給与構成の med_usd は有効数字2桁のまま。 */
+         給与構成の med_usd は有効数字2桁のまま。
+       ・gate は { key, ready, todo, crowd, contributors, goal }。ready ＝本人が、自分に
+         当てはまる項目をぜんぶ答えた月を持っているか。todo ＝足りない人にだけ
+         { year, month, items:[コード…] }。**前の鍵 detailed は gate に無い**
+         （外の give.detailed は別物 ── 左メニューの札が読む）。 */
   /* 段1（会社×役職×機材）まで届いた状態。★合計はちょうど100。
      サーバ（db/deep-pay.sql の pv_deep_pct）が最大剰余法で揃えて返すため。 */
   const FULL = {
     ok: true, state: 'open',
-    gate: { key: true, detailed: true, crowd: true, contributors: 37, goal: 100 },
+    gate: { key: true, ready: true, todo: null, crowd: true, contributors: 37, goal: 100 },
     give: { detailed: true },
     stats: STATS,
     cohort: { level: 'airline_pos_fleet', airline: 'ana', pos: 'fo', fleet: 'a320', trust: 'high' },
@@ -176,18 +184,28 @@ await page.evaluateOnNewDocument((scene, theme, lang, cur) => {
     cohort: { level: 'pos', airline: 'ana', pos: 'fo', fleet: 'a320', trust: 'low' }
   });
 
-  /* 錠前の板。閉じている理由は3つ（鍵／本人の内訳／みんなの側＝100人）で、
+  /* 錠前の板。閉じている理由は3つ（鍵／本人が答えきったか／みんなの側＝100人）で、
      当てはまる行だけが出る（deep-pay.js の lockLines）。
-       lock … 3つとも当てはまる＝3行
-       det  … 鍵は在る＝2行（内訳・100人）。ボタンは給与フォームの内訳の節へ
-       goal … 鍵も内訳もそろっている＝1行（100人だけ） */
+       lock … 3つとも当てはまる＝3行。まだ1件も出していないので、残りの一覧は無い
+       det  … 鍵は在る＝2行（答え・100人）。**残っている項目の一覧つき**。
+              ボタンは給与フォームの内訳の節へ
+       det0 … det と同じで、一覧だけが来ていない（todo が null）
+       goal … 鍵も答えもそろっている＝1行（100人だけ）
+     ★「答えきっていない」の行が出る3つ（lock / det / det0）には、ボタンの上に
+       断り（虚偽・不正確な情報について）が出る。goal には出ない。
+     ★一覧の中身は作り物（2026年9月分・6項目）。サーバが返すのはコードだけで、
+       画面が給与フォームの見出しと同じ名前に直す（deep-pay.js の todoNames）。 */
+  const TODO = { year: 2026, month: 9,
+                 items: ['command', 'bonus', 'profit', 'duty_h', 'duty_days', 'instructor'] };
   const LOCK = { ok: true, state: 'locked', stats: STATS, give: { detailed: false },
-                 gate: { key: false, detailed: false, crowd: false, contributors: 37, goal: 100 },
+                 gate: { key: false, ready: false, todo: null, crowd: false, contributors: 37, goal: 100 },
                  cohort: null, head: null, comp: null, work: null, var: null };
-  const DET  = Object.assign({}, LOCK, { give: { detailed: false },
-                 gate: { key: true, detailed: false, crowd: false, contributors: 37, goal: 100 } });
+  const DET  = Object.assign({}, LOCK, { give: { detailed: true },
+                 gate: { key: true, ready: false, todo: TODO, crowd: false, contributors: 37, goal: 100 } });
+  const DET0 = Object.assign({}, LOCK, { give: { detailed: false },
+                 gate: { key: true, ready: false, todo: null, crowd: false, contributors: 37, goal: 100 } });
   const GOAL = Object.assign({}, LOCK, { give: { detailed: true },
-                 gate: { key: true, detailed: true, crowd: false, contributors: 37, goal: 100 } });
+                 gate: { key: true, ready: true, todo: null, crowd: false, contributors: 37, goal: 100 } });
 
   /* 手で選んだ区分（2026-08-30）。自分は ANA の FO なのに JAL の機長・787 を見ている。
      ★信頼度は「中」で返す。3つとも選んでいても人数で頭打ちになる、という形
@@ -201,7 +219,7 @@ await page.evaluateOnNewDocument((scene, theme, lang, cur) => {
      「あと1人」とも、壁が何人かとも書かない（書くと人数が1人単位で読める）。
      本物も head / comp / work / var を返り値ごと null にする（trust も null）。 */
   const THIN = { ok: true, state: 'open', stats: STATS, give: { detailed: true },
-    gate: { key: true, detailed: true, crowd: true, contributors: 37, goal: 100 },
+    gate: { key: true, ready: true, todo: null, crowd: true, contributors: 37, goal: 100 },
     cohort: { level: 'none', manual: true, airline: 'sas', pos: null, fleet: null, trust: null },
     head: null, comp: null, work: null, var: null };
 
@@ -209,11 +227,11 @@ await page.evaluateOnNewDocument((scene, theme, lang, cur) => {
      書いていない日か、SQL を貼る前がこれ。★**全社を並べる逃げ道は置かない**
      ので、選択欄ごと出ないのが正しい（選べるのに数字が出ない状態を作らない）。 */
   const NOLIST = { ok: true, state: 'open', stats: STATS, give: { detailed: true },
-    gate: { key: true, detailed: true, crowd: true, contributors: 37, goal: 100 },
+    gate: { key: true, ready: true, todo: null, crowd: true, contributors: 37, goal: 100 },
     cohort: null, head: null, comp: null, work: null, var: [] };
 
   const SCENES = { full: FULL, day1: DAY1, fold: FOLD, pos: POS,
-                   pick: PICK, thin: THIN, lock: LOCK, det: DET,
+                   pick: PICK, thin: THIN, lock: LOCK, det: DET, det0: DET0,
                    goal: GOAL, nolist: NOLIST };
   const DEEP = SCENES[scene] || FULL;
 
@@ -510,15 +528,22 @@ const said = await page.evaluate(() => ({
     ((e.querySelector('.dp-kpi-k') || {}).textContent || '') + ' ' +
     ((e.querySelector('.dp-kpi-v') || {}).textContent || '')),
   cond: ((document.querySelector('#dp-hd .dp-cond') || {}).innerText || '').replace(/\n/g, ' '),
+  /* 板の行（1行ずつ <p>。2026-10-11 から）。 */
   lock: [...document.querySelectorAll('#dp-kpi .dp-msg--lock .dp-msg-s')]
-    .map((e) => e.innerText.replace(/\n/g, ' ／ ')),
+    .map((e) => e.innerText.replace(/\n/g, ' ')),
+  /* まだ答えていない項目の一覧（見出しと札）と、ボタンの上の断り。出ていなければ空。 */
+  todoH: ((document.querySelector('.dp-msg--lock .dp-todo-h') || {}).textContent || ''),
+  todo: [...document.querySelectorAll('.dp-msg--lock .dp-todo-i')].map((e) => e.textContent),
+  warn: ((document.querySelector('.dp-msg--lock .dp-msg-w') || {}).textContent || ''),
   /* 板のボタンの行き先（足りない物に合わせて変わる。deep-pay.js の lockHref）。 */
   cta: [...document.querySelectorAll('.dp-msg--lock a.dp-cta')].map((e) => e.getAttribute('href')).join(','),
 }));
 console.log(`通貨: ${said.cur}` + (cur && said.cur !== cur ? `  ❌ 頼んだのは ${cur}（currency.js に無い通貨）` : ''));
 if (said.cond) console.log('条件バー: ' + said.cond);
 if (said.kpi.length) console.log('見出し: ' + said.kpi.join(' ｜ '));
-if (said.lock.length) console.log('板の行: ' + said.lock.join(''));   // 錠前の板と「まだ出せません」の板は同じ器
+if (said.lock.length) console.log('板の行: ' + said.lock.join(' ／ '));   // 錠前の板と「まだ出せません」の板は同じ器
+if (said.todoH) console.log('板の一覧: ' + said.todoH + ' ── ' + said.todo.join(' ｜ '));
+if (said.warn) console.log('板の断り: ' + said.warn);
 if (said.cta) console.log('板のボタンの先: ' + said.cta);
 
 await browser.close();

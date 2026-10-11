@@ -6,7 +6,7 @@
 <link rel="apple-touch-icon" href="../assets/favicon-180.png"/>
   <script>(function(){var t=localStorage.getItem('pv-theme')||'light';document.documentElement.setAttribute('data-theme',t);}());</script>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <!-- 明細まで出した人だけが読める画面。ログインが要るので検索に出してはいけない -->
+  <!-- 給与の項目をぜんぶ答えた人だけが読める画面（2026-10-11 から。前は「内訳を1件でも出した人」）。ログインが要るので検索に出してはいけない -->
   <title>Compare Airlines — DEEP PAY | PILOT VALUE</title>
 <!--PV-SEO-->
 <!--PV-SRC t="Compare Airlines — DEEP PAY" d="Pick two airlines and read median pay, the pay mix and the flying behind it side by side. No ranking, and no individual payslip is ever shown."-->
@@ -54,7 +54,7 @@
   <link rel="stylesheet" href="../app-nav.css">
   <!-- ★DEEP PAY 本体の見た目をそのまま借りる。ピッカー（.dp-pick-*）・条件バー（.dp-cond）・
        案内カード（.dp-msg）・段組み（.dp-row）は写さずここから使う。写すとドリフトする。 -->
-  <link rel="stylesheet" href="../deep-pay.css?v=e450273c">
+  <link rel="stylesheet" href="../deep-pay.css?v=9499d97c">
   <!-- この画面だけの見た目（.dc-*）。
        ★.pt-* / .mv-* / .mr-* をトップレベルで書き直さない（db/test-form-contract.mjs が見ている）。 -->
   <link rel="stylesheet" href="../deep-pay-compare.css?v=af0f6449">
@@ -258,7 +258,7 @@
        deep-pay.css / deep-pay-compare.css / deep-pay-compare.js).
      Change one → copy the value assert-links.mjs prints to every page that loads it
      (deep-pay.css: all 4 pages, 2 screens × ja/en; the others: the ja/en pair). -->
-<script src="../deep-pay-compare.js?v=f3f1f599"></script>
+<script src="../deep-pay-compare.js?v=0f57e6f4"></script>
 <!-- "Please resubmit" notice. Shown **only to the member themselves** when one of
      their own pay reports has net pay above gross pay.
      ★Nothing is shown to signed-out visitors or to members with nothing to fix
