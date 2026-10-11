@@ -33,8 +33,8 @@
        ④ **見る資格が上がった。** DEEP PAY は「自分に当てはまる項目をぜんぶ答えた月」を
           直近24か月に持つ人にだけ開く（db/deep-pay.sql の v_rdy。線は pv_deep_missing）。
           門が返す鍵も detailed → ready / todo に替わった。
-          ・**数えられる側（区分の頭数）は動いていない** ── 今も「内訳を書いた人」。
-            だから見本（DET）は内訳だけのまま残し、**画面を見る役の人**にだけ
+          ・**数えられる側（区分の頭数）は、この日は動いていない**（動いたのは 2026-10-12。下の⑥）。
+            見本（DET）は内訳だけのまま残し、**画面を見る役の人**にだけ
             答えきった1行（FULL）を別に持たせている（下の ready()）。
           ・線そのものの検査は ▼2-b（項目ごと・保存の道を通す）・▼2-c（どの行で決まるか ──
             どの月でも・窓の中・本人の行・運営）・▼23（見る線と数える線は別）。
@@ -50,6 +50,26 @@
             動かないこと）。
           ⚠️ submit() の時刻送りを外さないこと。外しても、v_launch を過ぎた日に流せば緑の
              まま ── **v_launch がまだ先の日にだけ**、▼2-b と ▼2-c が「欠けても閉じない」で落ちる。
+
+   ★2026-10-12（オーナー判断）── **誰を数えるか**と**賞与の扱い**が変わった。門は1文字も変わっていない。
+       ⑥ 母集団が2つになった（db/deep-pay.sql 3章「母集団は2つ」）。
+          ・年収の側（選べる組み合わせ・区分の段・人数の壁・年収の中央値・Pay / Block Hour・
+            月換算・働き方）は、**有効な年収を出した人ぜんぶ**。内訳を書いたかは見ない。
+            昔の口コミに書かれた年収も入る（機材を条件にする区分・時間・内訳には入らない）。
+          ・給与構成の側（月額・割合・固定・保証給比率・賞与の割合・変動給の中身）は、
+            使える内訳を書いた人だけの**平均**。金額を先に平均し、割合はその平均から出す。
+            その人たちが壁に届かない区分は、年収は出たまま comp / var / head.fixed_pct が null。
+          ④に書いた「数えられる側は動いていない」は、この日から**動いた**（内訳を書いた人 →
+          有効な年収を出した人）。見本（DET）は内訳つきなので、どちらの母集団にも入る。
+       ⑦ 賞与 ── 「会社 × 職位」で賞与を申告した人の平均を、その区分の全員の年収と
+          Pay / Block Hour に割り振る（保存してある額 − 自分の申告 ＋ 平均）。申告した人が
+          壁に届かない区分は保存してある額のまま。head に真偽の目印が2つ（bonus_est / bonus_gap）と、
+          月換算（month_usd ＝ 保存してある値だけで作る賞与ぬきの月額）が入った。
+          ⚠️ 見本の DET は年間賞与を**書いていない**（空欄）。だから ▼3〜▼24 の見本の区分には
+             賞与の平均が無く、年収は保存してあるまま ＝ 前からの期待値がそのまま使える。
+             賞与を書いた見本を足すときは、その会社×職位の全員の年収が動くことを忘れない。
+          検査は ▼25（誰を数えるか）・▼26（賞与）・▼27（給与構成の平均）・▼28（変動給の中身）・
+          ▼29（口コミ由来）。どれも区分に入る行を足すので、いちばん最後に置いてある。
 
    ★db/pay-rows.sql 側の検査（db/test-pay-rows.mjs）に deep-pay.sql を足さないこと。
      足すと DEEP PAY のバグで REAL PAY の検査が赤くなり、どちらが壊れたのか
@@ -1294,16 +1314,19 @@ console.log('\n▼ 5. 給与構成（割合・合計ちょうど100）');
      '★固定・保証給比率に住宅手当は入っていない',
      `${d.head.fixed_pct} / 住宅を足すと ${f.pct + (cmd ? cmd.pct : 0) + (rol ? rol.pct : 0) + hou.pct}`);
 
-  // ── 月額（中央値）── 画面の3列目。割合の「おまけ」。
-  ok(segs.every(s => 'med_usd' in s), 'どの区分にも med_usd のキーが在る');
-  ok(Number(f.med_usd) > 0, '★基本給の月額（USD）が出ている', String(f.med_usd));
-  ok(Number(v.med_usd) > 0 && Number(v.med_usd) < Number(f.med_usd),
-     '変動給の月額は基本給より小さい', `${v.med_usd} vs ${f.med_usd}`);
-  ok(segs.every(s => s.med_usd == null
-                  || String(Math.round(Number(s.med_usd))).replace(/0+$/, '').length <= 2),
-     '★月額も有効数字2桁', JSON.stringify(segs.map(s => s.med_usd)));
+  /* ── 月額（平均）── 画面の3列目。
+       ★2026-10-12、鍵が med_usd → **avg_usd** に替わった（中央値をやめて平均にしたため）。
+         前の名前は、どの区分にも残っていないこと。 */
+  ok(segs.every(s => 'avg_usd' in s), 'どの区分にも avg_usd のキーが在る');
+  ok(segs.every(s => !('med_usd' in s)), '★前の鍵（med_usd）は、どの区分にも無い（2026-10-12）');
+  ok(Number(f.avg_usd) > 0, '★基本給の月額（USD）が出ている', String(f.avg_usd));
+  ok(Number(v.avg_usd) > 0 && Number(v.avg_usd) < Number(f.avg_usd),
+     '変動給の月額は基本給より小さい', `${v.avg_usd} vs ${f.avg_usd}`);
+  ok(segs.every(s => s.avg_usd == null
+                  || String(Math.round(Number(s.avg_usd))).replace(/0+$/, '').length <= 2),
+     '★月額も有効数字2桁', JSON.stringify(segs.map(s => s.avg_usd)));
   // 賞与ぬきの現金なので、月額の合計は「年収 ÷ 12」を超えない
-  const amt = segs.reduce((a, s) => a + Number(s.med_usd || 0), 0);
+  const amt = segs.reduce((a, s) => a + Number(s.avg_usd || 0), 0);
   ok(amt > 0 && amt <= Number(d.head.annual_usd) / 12 * 1.3,
      '★月額の合計が年収の月割りとかけ離れていない', `${Math.round(amt)} vs ${Math.round(d.head.annual_usd / 12)}`);
 }
@@ -1388,10 +1411,12 @@ console.log('\n▼ 7. 未分類（総支給に届かない分を吸う）');
   ok(f && f.pct === 60, '★固定は60%（6000 / 10000）', JSON.stringify(f));
   ok(rest && rest.pct === 40,
      '★残り40%は未分類。0 として消さず、他の区分へ配りもしない', JSON.stringify(rest));
-  ok(rest.med_usd == null,
-     '★畳んだ区分があるとき、未分類の月額は出さない（割合と桁が合わないため）',
-     String(rest.med_usd));
-  ok(Number(f.med_usd) > 0, '固定給の月額は出る', String(f.med_usd));
+  /* ★2026-10-12 から、未分類の月額も出る。前は「割合には畳んだぶんが入り、金額には入って
+       いない」ので出さなかった。いまは割合も金額も**同じ平均の額**から作る ＝ 桁が合う。
+       3人とも 総支給 10,000・基本給 6,000 ＝ 未分類 4,000（持つ人が3人 ＝ 壁を越える）。 */
+  ok(Number(f.avg_usd) === 6000 && Number(rest.avg_usd) === 4000,
+     '★月額は 基本給 6,000・未分類 4,000（割合 60 / 40 と同じ数から出ている）',
+     `${f.avg_usd} / ${rest.avg_usd}`);
 }
 
 // ════════════════════════════════════════════════════════════
@@ -1524,6 +1549,12 @@ console.log('\n▼ 7-c. ★内訳が一部未回答の月（partial・2026-09-12
   ok(!seg('rest'),
      '★未分類が生えない（未回答を「どこにも入れていない現金」として数えない）',
      JSON.stringify(d.comp?.segs));
+  /* ★金額の側（2026-10-12）。月額は「使える内訳の月」だけの平均 ＝ 基本給 6,000・変動 4,000。
+       一部未回答の月（変動 1,000 だけ書いた月）を混ぜると、変動が (4,000 + 1,000) ÷ 2 ＝ 2,500 に
+       下がり、未分類 1,500 が生える。 */
+  ok(Number(seg('base')?.avg_usd) === 6000 && Number(seg('variable')?.avg_usd) === 4000,
+     '★月額も一部未回答の月を使っていない（基本給 6,000・変動 4,000）',
+     JSON.stringify(d.comp?.segs));
   ok(Number(d.head?.annual_usd) > 0,
      '★年収は一部未回答の月も使う（総支給は欠けていない）', String(d.head?.annual_usd));
 
@@ -1607,14 +1638,31 @@ console.log('\n▼ 9. 変動給の中身（区分ごとに人数の壁・まと�
   ok(ks.includes('block') && ks.includes('night'),
      '★2人が書いた区分は出る（block と night）', JSON.stringify(ks));
   ok(!ks.includes('weekend'),
-     '★1人しか書いていない weekend は配列ごと不在（pct 0 で置かない）', JSON.stringify(ks));
+     '★1人しか書いていない weekend は、単独の棒としては並ばない（pct 0 でも置かない）',
+     JSON.stringify(ks));
   ok(!ks.some(k => /premium|nwh/i.test(k)),
      '★night / weekend / holiday を1項目にまとめていない', JSON.stringify(ks));
   const sum = d.var.reduce((a, x) => a + x.pct, 0);
   ok(sum === 100, '★変動給の内訳もちょうど100', String(sum));
   ok(d.var.every(x => x.pct > 0), '0% の棒は無い');
+  /* ★2026-10-12 から、金額を先に平均して、割合はその平均から出す。壁に届かない連動先は
+       **落とさずに rest（集計できなかった分）へ畳む** ── 円は全体のまま。
+       手計算（2人の平均。USD）：block (3000 + 3000) ÷ 2 ＝ 3000 ／ night 1000 ／
+       weekend (500 + 0) ÷ 2 ＝ 250（持つのは1人 → 畳む）。合計 4250。
+         block 70.59 → 71 ／ night 23.53 → 23 ／ rest 5.88 → 6（最大剰余法で合計100）
+       前（落として100に直す）は block 75 / night 25 ── 1人しか持たない 250 が消えて、
+       残りが実際より大きく出ていた。 */
   const blk = d.var.find(x => x.k === 'block');
-  ok(blk && blk.pct === 75, '★block は75%（3000 / 4000）', JSON.stringify(blk));
+  const ngt = d.var.find(x => x.k === 'night');
+  const rst = d.var.find(x => x.k === 'rest');
+  ok(blk && blk.pct === 71 && ngt && ngt.pct === 23,
+     '★block 71%・night 23%（平均の額 3000・1000 を、畳んだぶんも含めた全体 4250 で割る）',
+     JSON.stringify(d.var));
+  ok(rst && rst.pct === 6,
+     '★壁に届かない weekend は rest へ畳まれて 6%（落とさない ＝ 円が全体のまま）',
+     JSON.stringify(d.var));
+  ok(d.var.every(x => Object.keys(x).sort().join(',') === 'k,pct'),
+     '★棒に入っている鍵は k と pct だけ（金額も人数も無い）', JSON.stringify(d.var));
 }
 
 // ★許可リストに無い basis は捨てる（other へ寄せない）
@@ -1671,9 +1719,13 @@ console.log('\n▼ 10. 丸め（見出しは刻み・月額は有効数字2桁�
      '★Pay / Block Hour は $0.5 刻み（176.36 → 176.5。有効数字2桁の 180 ではない）',
      String(d.head.per_block_usd));
   const base = d.comp.segs.find(s => s.k === 'base');
-  ok(base && Number(base.med_usd) === 12000,
+  ok(base && Number(base.avg_usd) === 12000,
      '★給与構成の月額は有効数字2桁のまま（12,345 → 12,000。刻みに替えていない）',
      JSON.stringify(base));
+  /* ★月換算（賞与ぬき）も有効数字2桁（2026-10-12）。見出しの2つの刻みにはしていない。
+       3人とも 12,345 × 12 ÷ 12 ＝ 12,345 → 12,000。 */
+  ok(Number(d.head.month_usd) === 12000,
+     '★月換算（head.month_usd）も有効数字2桁（12,345 → 12,000）', String(d.head.month_usd));
   ok(!/148140|12345|176\.36/.test(JSON.stringify(d)),
      '★元の実額が返り値のどこにも出ていない');
 }
@@ -1724,8 +1776,14 @@ await asUser(V);
   ok(Object.keys(d.cohort).sort().join(',') === 'airline,fleet,level,manual,pos,trust',
      '区分に入っているキーは6つだけ（人数は無く、信頼度の段が在る）',
      Object.keys(d.cohort).join(','));
-  ok(Object.keys(d.head).sort().join(',') === 'annual_usd,fixed_pct,per_block_usd',
-     '見出しに入っているキーは3つだけ（人数の2つは無い）', Object.keys(d.head).join(','));
+  /* ★2026-10-12、見出しの鍵は 3 → 6。足したのは 月換算（month_usd）と、賞与の目印の
+       真偽2つ（bonus_est / bonus_gap）。**人数も、賞与の額も、足していない。** */
+  ok(Object.keys(d.head).sort().join(',')
+       === 'annual_usd,bonus_est,bonus_gap,fixed_pct,month_usd,per_block_usd',
+     '見出しに入っているキーは6つだけ（人数も、賞与の額も無い）', Object.keys(d.head).join(','));
+  ok(typeof d.head.bonus_est === 'boolean' && typeof d.head.bonus_gap === 'boolean',
+     '★賞与の目印は真偽だけ（数ではない）',
+     `${typeof d.head.bonus_est} / ${typeof d.head.bonus_gap}`);
   ok(Object.keys(d.comp).sort().join(',') === 'bonus,segs,total_kind',
      '給与構成に入っているキーは3つだけ（人数は無い）', Object.keys(d.comp).join(','));
   ok(Object.keys(d.gate).sort().join(',') === 'contributors,crowd,goal,key,ready,todo',
@@ -1775,11 +1833,16 @@ await asUser(V);
 }
 
 // ════════════════════════════════════════════════════════════
-console.log('\n▼ 12. 預かり・口コミは集計に混ぜない');
+console.log('\n▼ 12. 預かりと、持ち主に当たらない口コミは集計に混ぜない');
 // ════════════════════════════════════════════════════════════
 /* 前は「預かりと口コミを足しても、返ってくる人数が変わらない」で見ていた。
    人数は返らなくなったので、**会員が1人だけの区分**で見る ── 預かりや口コミが
-   頭数に入るなら、壁（2人）に届いてその1人の数字が出てしまう。 */
+   頭数に入るなら、壁（2人）に届いてその1人の数字が出てしまう。
+   ★2026-10-12 から、昔の口コミに書かれた年収は**年収の母集団に入る**（▼29）。ただし入るのは
+     「同じ人に当たる」口コミだけ ── 対応表（pv_review_person）に無い口コミは、誰のものか
+     分からないので数えない（fail closed）。ここの口コミは持ち主の鍵がでたらめ ＝ 当たらない。
+     しかも選んでいるのは機材まで絞った区分で、口コミ由来は機材を持たない ＝ 二重に入らない。
+   ★預かりは今も読まない（端末 × 日であって人ではない。壁を押し上げる）。 */
 {
   await person(A_PEND, 'fo', 'a320', [{ month: 3 }]);      // 会員は1人だけ
   await asUser(V);
@@ -1798,7 +1861,10 @@ console.log('\n▼ 12. 預かり・口コミは集計に混ぜない');
   await asUser(V);
   const after = await deep();
   ok(hidden(await deep({ airline: A_PEND, position: 'fo', fleet: 'a320' })),
-     '★預かりと口コミは区分の頭数に入らない（会員1人のまま＝出ない）');
+     '★預かりと、持ち主に当たらない口コミは区分の頭数に入らない（会員1人のまま＝出ない）');
+  ok(hidden(await deep({ airline: A_PEND, position: 'fo' }))
+     && hidden(await deep({ airline: A_PEND })),
+     '★機材で絞らない区分（会社×職位・会社だけ）でも同じ ── 預かりも、当たらない口コミも数えない');
   ok(JSON.stringify(after.head) === JSON.stringify(before.head)
      && JSON.stringify(after.comp) === JSON.stringify(before.comp),
      '★呼び手自身の区分の数字も1つも動かない');
@@ -1989,15 +2055,28 @@ console.log('\n▼ 19. 画面の数字どうしが矛盾しないか（同じ区
      `${d.head.per_block_usd} vs ${Number(raw.a) / 12 / BH}`);
 
   /* ★年収カードの「月換算（賞与ぬき）」と、給与構成の月額が同じ土俵に乗っているか。
-     deep-pay.js の moneyMonth は 年収 ×(1−賞与割合)÷12 で出している。 */
+     2026-10-12 まで、画面（deep-pay.js の moneyMonth）が 年収 ×(1−賞与割合)÷12 で作っていた。
+     いまはサーバが head.month_usd で出す（年収は全員・賞与の平均込み、賞与の割合は内訳を
+     書いた人だけ ── 母集団の違う2つを画面で掛けさせないため）。
+     この見本は4人とも同じで、全員が内訳も賞与も書いている ＝ どの道で出しても同じ額になる。 */
   const bp = Number(d.comp.bonus.pct_of_annual);
   ok(bp === Math.round(BON / Number(raw.a) * 100),
      '★賞与の割合＝年間賞与 ÷ 年収', `${bp} vs ${BON}/${raw.a}`);
   const monthly = Number(d.head.annual_usd) * (1 - bp / 100) / 12;
-  const amt = d.comp.segs.reduce((a, x) => a + Number(x.med_usd || 0), 0);
+  const amt = d.comp.segs.reduce((a, x) => a + Number(x.avg_usd || 0), 0);
   ok(Math.abs(amt - monthly) / monthly <= 0.08,
      '★給与構成の月額の合計＝年収 ×(1−賞与割合)÷12（丸めのぶんだけずれる）',
      `${Math.round(amt)} vs ${Math.round(monthly)}`);
+  // （228,000 − 24,000）÷ 12 ＝ 17,000。内訳の合計（17,000）とちょうど同じ
+  ok(Number(d.head.month_usd) === 17000 && amt === 17000,
+     '★月換算（head.month_usd）＝（年収 − 年間賞与）÷ 12 ＝ 給与構成の月額の合計（17,000）',
+     `${d.head.month_usd} / ${amt}`);
+  /* ★賞与の目印。4人とも同じ額を申告している ＝ 平均は 24,000 で、割り振っても1人も動かない
+       （228,000 − 24,000 ＋ 24,000）。それでも「平均で作った」ので bonus_est は true。
+       全員が答えているので bonus_gap は false。 */
+  ok(d.head.bonus_est === true && d.head.bonus_gap === false,
+     '★全員が同じ賞与を申告した区分：平均で作った印は立ち、賞与が無い人の印は立たない',
+     JSON.stringify(d.head));
   /* ⚠️ 賞与を引かないと合わない。引かずに 年収÷12 と比べると 11% ずれる
         ＝これが 2026-09-01 まで画面に「月額が2つある」状態だったもの。 */
   ok(Math.abs(amt - Number(d.head.annual_usd) / 12) / (Number(d.head.annual_usd) / 12) > 0.08,
@@ -2136,15 +2215,23 @@ ok(EX.length >= 13, '境界テスト用の会社が足りている', String(EX.l
   ok(d.comp.bonus === null,
      '★その月の賞与は「年収に対する賞与の割合」に出さない（総支給の中に既にある）',
      JSON.stringify(d.comp.bonus));
-  const amt = d.comp.segs.reduce((a, x) => a + Number(x.med_usd || 0), 0);
+  const amt = d.comp.segs.reduce((a, x) => a + Number(x.avg_usd || 0), 0);
   ok(Math.abs(amt - 17000) / 17000 <= 0.02,
      '★給与構成の月額の合計＝総支給 − その月の賞与（二重に引かれていない）',
      `${Math.round(amt)} vs 17000`);
+  ok(Number(d.head.month_usd) === 17000,
+     '★月換算（head.month_usd）も、その月の賞与を引いた 17,000（年収が既に引いている）',
+     String(d.head.month_usd));
 }
 
-// ── (f) 賞与の中央値 0 は「誰も貰っていない」ではない ────────────
-/* Codex ⑥は再現しなかった（中央値は0の人も含めた全員に掛かっている）。
-   直さないと決めたので、そのかわり**この読み違いが起きる形**を固定しておく。 */
+// ── (f) 賞与の割合は「申告した人だけ」の数字ではない ──────────────
+/* 2026-10-12 まで、ここは「7人中3人が貰っていても、割合の中央値は 0」を固定していた
+   （Codex ⑥。直さないと決めた読み違いの形）。割合を平均の比に替えたので、その形は消えた ──
+     分子 … 内訳を書いた7人の、申告されていた年額の平均 ＝ 24,000 × 3 ÷ 7 ＝ 10,285.7
+     分母 … 同じ7人の、保存してある年収の平均 ＝（228,000 × 3 ＋ 204,000 × 4）÷ 7 ＝ 214,285.7
+     割合 ＝ 4.8% → 5%（中央値なら 0%・申告した人だけなら 10.5% → 11%）
+   ★賞与を答えていない4人は、分子に 0・分母に賞与抜きの年収で入る（保存してあるまま）。
+     「5%」＝「全員が 5% 貰っている」ではない ── 見出しの年収の側は、下のとおり全員に平均を割り振る。 */
 {
   const A = EX[8];
   for (let i = 0; i < 3; i++) await person(A, 'cap', 'b787', [{ month: 4 }], { bonus_annual: 24000 });
@@ -2152,12 +2239,24 @@ ok(EX.length >= 13, '境界テスト用の会社が足りている', String(EX.l
   await asUser(V);
   const d = await deep({ airline: A, position: 'cap', fleet: 'b787' });
   /* ★前はここで「貰った人は3人」という人数も確かめていた。人数は返らなくなったので、
-       行が出ている（＝受給者が壁に届いている）ことと、割合が 0 であることを見る。 */
-  ok(d.comp.bonus && Number(d.comp.bonus.pct_of_annual) === 0,
-     '★7人中3人が貰っていても中央値は 0（「0%」＝「誰も貰っていない」ではない）',
+       行が出ている（＝受給者が壁に届いている）ことと、割合を見る。 */
+  ok(d.comp.bonus && Number(d.comp.bonus.pct_of_annual) === 5,
+     '★7人中3人が申告：賞与の割合は平均の比で 5%（中央値の 0% でも、申告した人だけの 11% でもない）',
      JSON.stringify(d.comp.bonus));
   ok(Object.keys(d.comp.bonus).join(',') === 'pct_of_annual',
      '★賞与の行は割合だけ（貰った人数は返さない）', JSON.stringify(d.comp.bonus));
+  /* ★見出しの年収（2026-10-12）。申告した3人の平均は 24,000。全員に割り振るので、
+       申告した人 228,000 − 24,000 ＋ 24,000 ＝ 228,000 ／ 答えていない人 204,000 ＋ 24,000 ＝ 228,000。
+       7人とも 228,000（保存してあるままの中央値なら 204,000）。 */
+  ok(Number(d.head.annual_usd) === 228000,
+     '★★年収は、賞与の平均を全員に割り振った 228,000（保存してあるままなら 204,000）',
+     String(d.head.annual_usd));
+  ok(d.head.bonus_est === true && d.head.bonus_gap === false,
+     '★平均で作った印（bonus_est）が立ち、賞与が無い人の印（bonus_gap）は立たない',
+     JSON.stringify(d.head));
+  ok(Number(d.head.month_usd) === 17000,
+     '★月換算は賞与の平均に左右されない（7人とも 17,000。申告した人は自分の賞与を引いた額）',
+     String(d.head.month_usd));
 }
 {
   const A = EX[9];
@@ -2179,6 +2278,13 @@ ok(EX.length >= 13, '境界テスト用の会社が足りている', String(EX.l
   ok(shown(d) && d.comp && d.comp.bonus === null,
      '★受給者が1人なら賞与の行ごと出さない（区分そのものは2人で出ている）',
      JSON.stringify({ level: d.cohort.level, bonus: d.comp && d.comp.bonus }));
+  /* ★見出しの側も同じ壁（2026-10-12）。申告した人が1人では平均を作らない ── 作ると、
+       答えていない人の年収が「204,000 ＋ その1人の賞与」になって、賞与が割り戻せる。
+       年収は保存してあるまま：(228,000 ＋ 204,000) ÷ 2 ＝ 216,000。 */
+  ok(Number(d.head.annual_usd) === 216000 && d.head.bonus_est === false
+     && d.head.bonus_gap === true,
+     '★申告した人が1人：年収は保存してあるまま（216,000）・平均の印は立たず、賞与が無い人の印が立つ',
+     JSON.stringify(d.head));
 }
 
 // ── (g) 人の対応表 ── 正常な行は落ちず、当たらない行は壁を押し上げない ──
@@ -2302,7 +2408,7 @@ console.log('\n▼ 21. オーナー確定の6件（2026-09-01・Codex 再監査�
      先に置くと上の節の「壁に届いている／いない」が全部ずれる。
 
    見ているのは4つ。どれも **画面は普通に動いたまま静かに違う数字を出す** 形：
-     ・内訳を書いていない月が「0%」として給与構成の中央値に混ざる
+     ・内訳を書いていない月が「0%」として給与構成に混ざる
      ・人数の壁に満たないのに、関数を直接叩けば集計値が取れてしまう
      ・「◯人」に登録前の預かり（端末×日）が混ざる
      ・正式公開フラグが、消し残した自動記録のトリガで勝手に立つ
@@ -2442,8 +2548,7 @@ ok(EX2.length >= 7, '▼21 用の会社が足りている', String(EX2.length));
   }
   await asUser(V);
   const d = await deep({ airline: C, position: 'cap', fleet: 'b777' });
-  ok(shown(d), '2人そろっている（総支給だけの月を持つ人も、内訳の月が1つ在れば頭数に入る）',
-     JSON.stringify(d.cohort));
+  ok(shown(d), '2人そろっている', JSON.stringify(d.cohort));
   const seg = (d.comp.segs || []).find(s => s.k === 'base');
   ok(seg && Number(seg.pct) === 100,
      '★★内訳を書いた月だけで割合を出す（3か月のうち1か月しか書いていなくても固定給100%）',
@@ -2453,11 +2558,13 @@ ok(EX2.length >= 7, '▼21 用の会社が足りている', String(EX2.length));
      String(d.head.annual_usd));
 }
 
-/* ── (c)(c') 内訳を書いた人が1人 → 関数が集計値を1つも返さない ────
+/* ── (c)(c') 数えられる人が1人 → 関数が集計値を1つも返さない ────
    ★オーナー必須修正2。画面で隠すのではなく**返り値に入れない。**
      ここは画面を通さず関数を直接呼んでいる＝API を叩いた人と同じ見え方。
    ★2026-10-11、壁は 3人 → 2人。「2人では出ない／3人で出る」だったここを、
-     「1人では出ない／2人で出る」に置き換えた。 */
+     「1人では出ない／2人で出る」に置き換えた。
+   ★2026-10-12、数えるのは「有効な年収を出した人」になった（前は「内訳を書いた人」）。
+     この見本は内訳つき（DET）なので、どちらの数え方でも1人。 */
 {
   const B = EX2[0];
   const u1 = await person(B, 'cap', 'b787', [{ month: 5 }]);
@@ -2470,8 +2577,9 @@ ok(EX2.length >= 7, '▼21 用の会社が足りている', String(EX2.length));
      '★★壁に届かなければ head / comp / work / var を1つも返さない',
      JSON.stringify({ head: d.head, comp: d.comp, work: d.work, var: d.var }));
   const s = JSON.stringify(d);
-  for (const k of ['annual_usd', 'per_block_usd', 'fixed_pct',
-                   'pct_of_annual', 'block_h', 'duty_h', 'stay_nights', 'med_usd'])
+  for (const k of ['annual_usd', 'per_block_usd', 'month_usd', 'fixed_pct',
+                   'bonus_est', 'bonus_gap',
+                   'pct_of_annual', 'block_h', 'duty_h', 'stay_nights', 'avg_usd', 'med_usd'])
     ok(!s.includes(k), `★返ってきた JSON に ${k} が1文字も無い`);
   ok(countKeys(d).length === 0, '★人数のキーも1つも無い', countKeys(d).join(' '));
   ok(d.ok === true && d.state === 'open' && d.gate && d.give
@@ -2586,10 +2694,13 @@ await asUser(V);
    選択肢が大半になる。だから中身のある組み合わせだけをサーバから配る。
 
    ★数え方は区分の壁（lvl）と**同じでなければならない**
-     ＝「内訳を書いた月を持つ**実人物**が2人以上」（2026-10-11 から。前は3人）。
+     ＝「有効な年収を出した**実人物**が2人以上」（人数は 2026-10-11 から2人。数える相手は
+       2026-10-12 から ── その前は「内訳を書いた月を持つ人」だけを数えていた）。
      ズレると「選択肢に出ているのに選ぶと空」が、**画面は普通に動いたまま**起きる。
-     行で数えていないか／1人の複数月で増えないか／総支給だけの人を
-     頭数に入れていないかを、4社を並べて確かめる。
+     行で数えていないか／1人の複数月で増えないか／**総支給だけの人も頭数に入っているか**を、
+     4社を並べて確かめる。
+   ★「選べる ＝ **年収が**必ず返る」。給与構成は別の壁（内訳を書いた人が2人）なので、
+     選べる区分でも comp が null のことがある（下の Z）。
 
    ★最後に**配った選択肢を全部たどって、本当に数字が返るかを確かめる**。
      ここが約束そのもの。閾値を片方だけ直した日に、必ずここが落ちる。 */
@@ -2616,7 +2727,10 @@ await asUser(V);
   await person(X, 'cap', 'a320', [{ month: 6 }]);
   // Y … 内訳つきで1人 → 出ない
   await person(Y, 'cap', 'b777', [{ month: 6 }]);
-  // Z … 2人いるが内訳を書いたのは1人（2人目は総支給だけ）→ 出ない
+  /* Z … 2人いて、内訳を書いたのは1人（2人目は総支給だけ・年 120,000）。
+       ★2026-10-12 から**出る**（前は、総支給だけの人を頭数に入れず「出ない」だった）。
+         年収は2人の中央値 (204,000 ＋ 120,000) ÷ 2 ＝ 162,000。
+         給与構成は、内訳を書いた人が1人なので返さない（その1人の内訳を平均と名乗らない）。 */
   await person(Z, 'cap', 'b777', [{ month: 6 }]);
   {
     const u = ++seat;
@@ -2641,8 +2755,8 @@ await asUser(V);
   ok(pk.air.includes(X), '★内訳つきで2人そろった会社は一覧に出る');
   ok(!pk.air.includes(Y),
      '★★1人しか居ない会社は一覧に出ない（選んでも空になる選択肢を並べない）');
-  ok(!pk.air.includes(Z),
-     '★★内訳を書いた人が1人の会社は出ない（総支給だけの人を頭数に入れない）');
+  ok(pk.air.includes(Z),
+     '★★内訳を書いたのが1人でも、年収を出した人が2人いる会社は一覧に出る（総支給だけの人も頭数に入る・2026-10-12）');
   ok(!pk.air.includes(Q),
      '★★1人が3か月ぶん出しただけの会社は出ない（行ではなく人を数えている）');
   ok(!pk.air.includes('other'),
@@ -2657,8 +2771,11 @@ await asUser(V);
   // ── 会社ごとの職位 ──────────────────────────────────────
   ok((pk.pos[X] || []).includes('cap') && (pk.pos[X] || []).includes('fo'),
      '★その会社で数字が返る職位が並ぶ', JSON.stringify(pk.pos[X]));
-  ok(!pk.pos[Y] && !pk.pos[Z] && !pk.pos[Q],
+  ok(!pk.pos[Y] && !pk.pos[Q],
      '★★数字が返らない会社は職位の鍵ごと無い（会社を選べないので職位も要らない）');
+  ok((pk.pos[Z] || []).includes('cap') && (pk.flt[Z + '|cap'] || []).includes('b777'),
+     '★総支給だけの人が居る会社も、職位・機材まで選べる（2人とも機長・B777）',
+     JSON.stringify({ pos: pk.pos[Z], flt: pk.flt[Z + '|cap'] }));
   ok(Array.isArray(pk.pos['']),
      '★会社を選ばないときの職位も入っている（空文字＝絞っていない）',
      JSON.stringify(pk.pos['']));
@@ -2710,8 +2827,22 @@ await asUser(V);
        （壁が緩んだのに一覧だけ古い、の逆パターンを止める）。 */
   ok(hidden(await deep({ airline: Y })),
      '★一覧に無い会社を手で指定しても数字は出ない');
-  ok(hidden(await deep({ airline: Z })),
-     '★内訳を書いた人が1人の会社も、手で指定して数字は出ない（総支給だけの人は頭数に入らない）');
+  {
+    /* ★★ここが 2026-10-12 に変わった所。総支給だけの人も年収の母集団に入る。 */
+    const z = await deep({ airline: Z, position: 'cap', fleet: 'b777' });
+    ok(shown(z) && Number(z.head.annual_usd) === 162000,
+       '★★総支給だけの人も数える：年収は2人の中央値 162,000（内訳を書いた1人だけなら、そもそも出ない）',
+       JSON.stringify({ cohort: z.cohort, head: z.head }));
+    ok(z.comp === null && z.var === null && z.head.fixed_pct === null,
+       '★★内訳を書いた人が1人なので、給与構成・変動給の中身・固定・保証給比率は返さない（年収は出たまま）',
+       JSON.stringify({ comp: z.comp, var: z.var, fixed: z.head.fixed_pct }));
+    ok(z.work !== null && Number(z.head.month_usd) === 14000,
+       '　働き方の塊と月換算は出る（月換算＝(17,000 ＋ 10,000) ÷ 2 ＝ 13,500 → 有効数字2桁で 14,000）',
+       JSON.stringify({ work: z.work, month: z.head.month_usd }));
+    const s = JSON.stringify(z);
+    ok(!s.includes('avg_usd') && !s.includes('pct_of_annual') && countKeys(z).length === 0,
+       '　返ってきた JSON に、内訳の金額も賞与の割合も人数も1文字も無い');
+  }
   ok(hidden(await deep({ airline: X, position: 'cap', fleet: 'a320' })),
      '★★一覧に無い機材を手で指定しても数字は出ない（一覧と壁が同じ場所を見ている）');
 
@@ -2855,8 +2986,9 @@ console.log('\n▼ 22. 信頼度の段（cohort.trust）── 人数のかわ�
 console.log('\n▼ 23. 見る線と数える線は別（内訳だけの人は、数えられるが、自分では見られない）');
 // ════════════════════════════════════════════════════════════
 /* 2026-10-11（オーナー判断）で上がったのは**見る**側だけ。**数えられる**側（区分の頭数）は
-   今までどおり「内訳を書いた月を持つ人」（db/deep-pay.sql の det）。
-   ★見る線を数える側へ持ち込むと、内訳だけの人が頭数から消え、区分がいっせいに壁を割る
+   別の線 ── 2026-10-12 からは「有効な年収を出した人ぜんぶ」（db/deep-pay.sql の pop。
+   その前は「内訳を書いた月を持つ人」）。この節の2人は内訳つきなので、どちらの線でも数えられる。
+   ★見る線を数える側へ持ち込むと、答えきっていない人が頭数から消え、区分がいっせいに壁を割る
      （画面は「まだ出せません」と出るだけ）。逆に、見る側を内訳だけに戻すと、線を上げた
      意味が無くなる。**両側を同じ2人で見る。**
    ★この節は区分に入る行（常識の幅の中）を足すので、最後に置く。
@@ -2917,7 +3049,7 @@ console.log('\n▼ 24. 公開より前から居た人 ── 変わるのは本�
 // ════════════════════════════════════════════════════════════
 /* db/deep-pay.sql の v_old（オーナー判断 2026-10-11「3つとも答えている人はそのまま開く」）。
    門の側は ▼2-d。ここは**数えられる側に触れていないこと**を見る ──
-   この決まりが広げるのは「見る」だけで、区分の頭数（det）は1文字も動かしていない。
+   この決まりが広げるのは「見る」だけで、区分の頭数（年収の母集団）には触れていない。
    ★同じ1行の出した時刻だけを、公開の境目の前と後ろへ置き直して、**同じ問い合わせ**
      （別の人が、その会社・役職・機材を手で選ぶ）の答えを比べる。区分・見出し・給与構成・
      働き方・変動給・選べる組み合わせが1文字も違わないこと。変わるのは本人の門だけ。
@@ -2993,9 +3125,996 @@ ok(EX5.length >= 1, '▼24 用の会社が足りている', String(EX5.length));
   ok(pic(await deep(sel)) === pic(after), '★そのあいだも区分の数字は同じ');
 }
 
+/* ════════════════════════════════════════════════════════════
+   ここから下（▼25〜▼29）は 2026-10-12 に足した。誰を数えるか・賞与・給与構成の平均・
+   変動給の中身・口コミ由来。どれも区分に入る行を足すので、いちばん最後に置く。
+   入口の状態は「正式公開フラグが立っている・抜け道は外れている」。画面を見る役は V
+   （鍵が在って答えきっている）。V は A_HOME の副操縦士で、下の会社には1行も持たない
+   ＝ どの区分も**手で選んで**見る。
+   ★見本は**手で計算できる額**だけで組む。期待値は式ごとコメントに書いてある。
+   ★人数は返ってこないので、「誰が入ったか」は中央値で見る（額をわざと変えてある）。 */
+const EX6 = (await rows(
+  `select code from pv_airlines
+    where code <> 'other' and active
+      and code <> all(string_to_array($1, ','))
+    order by code limit 48`, [AIR.concat(EX, EX2).join(',')])).map(r => r.code).slice(8);
+ok(EX6.length >= 38, '▼25〜▼29 用の会社が足りている', String(EX6.length));
+let ex6 = 0;
+const fresh = () => {
+  const c = EX6[ex6++];
+  if (!c) throw new Error('▼25〜▼29 用の会社を使い切った（EX6 の limit を増やす）');
+  return c;
+};
+/* 1行出す。cols に書いた欄だけが入る（既定は何も足さない ＝ 総支給だけの行も作れる）。
+   u を省くと新しい人。返すのは { u, id }。 */
+const put = async (u, air, pos, fleet, month, cols) => {
+  const who = u || ++seat;
+  await asUser(who);
+  const r = await submit({ ...BASE, airline: air, position: pos, fleet,
+                           period_year: YEAR, period_month: month, ...cols });
+  return { u: who, id: r.r.id };
+};
+// $50 刻み・$0.5 刻み（SQL の pv_deep_step と同じ丸め。期待値を手で作るため）
+const step50  = (v) => Math.round(v / 50) * 50;
+const stepHalf = (v) => Math.round(v * 2) / 2;
+const median = (a) => {
+  const s = a.slice().sort((x, y) => x - y), n = s.length;
+  return n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2;
+};
+const seg = (d, k) => ((d.comp && d.comp.segs) || []).find((s) => s.k === k);
+const vk  = (d, k) => (d.var || []).find((s) => s.k === k);
+// 保存してある行ぜんぶの指紋（呼ぶ前と後で1バイトも違わないことを見る）
+const fingerprint = async () => (await one(
+  `select md5(coalesce((select string_agg(t::text, '|' order by t.id) from pay_reports t), ''))
+       || md5(coalesce((select string_agg(t::text, '|' order by t.id) from reviews_v2 t), ''))
+       || md5(coalesce((select string_agg(t::text, '|' order by t.review_id) from pv_review_person t), ''))
+       || md5(coalesce((select string_agg(t::text, '|' order by t.id) from profiles t), '')) f`)).f;
+const FP0 = await fingerprint();
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 25. 誰を数えるか ── 有効な年収を出した人ぜんぶ（内訳を書いたかは見ない）');
+// ════════════════════════════════════════════════════════════
+/* オーナーの言葉「これってみんなの年収入ってるの？」。前は内訳を書いた人だけが区分に入り、
+   総支給だけを出した人は、選べる組み合わせにも・人数の壁にも・年収の中央値にも居なかった。
+   同じ会社・機長・B777 に1人ずつ足しながら、年収の側と給与構成の側を別々に見る。 */
+{
+  const A = fresh();
+  const sel = { airline: A, position: 'cap', fleet: 'b777' };
+  // ① 総支給だけの2人（乗務時間は書いている）
+  await put(0, A, 'cap', 'b777', 2, { gross_monthly: 10000, block_hours: 80 });   // 年 120,000
+  await put(0, A, 'cap', 'b777', 2, { gross_monthly: 14000, block_hours: 70 });   // 年 168,000
+  await asUser(V);
+  {
+    const d = await deep(sel);
+    ok(shown(d) && d.cohort.trust === 'low',
+       '★★総支給だけの2人で区分が出る（前は「内訳を書いた人が居ない」で出なかった）',
+       JSON.stringify(d.cohort));
+    ok(Number(d.head.annual_usd) === 144000,
+       '★年収は2人の中央値 (120,000 ＋ 168,000) ÷ 2 ＝ 144,000', String(d.head.annual_usd));
+    // 時間あたり：120,000 ÷ 12 ÷ 80 ＝ 125.00 ／ 168,000 ÷ 12 ÷ 70 ＝ 200.00 → 中央値 162.5
+    ok(Number(d.head.per_block_usd) === 162.5 && Number(d.work.block_h) === 75,
+       '★書いてある所（乗務時間・Pay / Block Hour）は、内訳が無くても出る（162.5・75時間）',
+       JSON.stringify({ head: d.head, work: d.work }));
+    ok(Number(d.head.month_usd) === 12000,
+       '★月換算も出る（10,000 と 14,000 の中央値 12,000）', String(d.head.month_usd));
+    ok(d.comp === null && d.var === null && d.head.fixed_pct === null,
+       '★★給与構成・変動給の中身・固定・保証給比率は null（内訳を書いた人が居ない。0 で埋めない）',
+       JSON.stringify({ comp: d.comp, var: d.var, fixed: d.head.fixed_pct }));
+    ok(d.head.bonus_est === false && d.head.bonus_gap === true,
+       '　2人とも年間賞与を答えていない ＝ 平均の印は立たず、賞与が無い人の印が立つ',
+       JSON.stringify(d.head));
+    const pk = d.picks;
+    ok(pk.air.includes(A) && (pk.pos[A] || []).includes('cap')
+       && (pk.flt[A + '|cap'] || []).includes('b777'),
+       '★★選べる組み合わせにも出る（会社・職位・機材。選べる ＝ 年収が返る）',
+       JSON.stringify({ pos: pk.pos[A], flt: pk.flt[A + '|cap'] }));
+    ok(countKeys(d).length === 0, '　人数のキーは今も1つも無い', countKeys(d).join(' '));
+  }
+  // ② 内訳を書いた人が1人だけ加わる（総支給 11,000・基本給 6,600）
+  await put(0, A, 'cap', 'b777', 2, { gross_monthly: 11000, base_pay: 6600 });    // 年 132,000
+  await asUser(V);
+  {
+    const d = await deep(sel);
+    ok(Number(d.head.annual_usd) === 132000,
+       '★3人の年収の中央値 132,000（内訳を書いた人も、書いていない人も同じ1票）',
+       String(d.head.annual_usd));
+    ok(d.comp === null && d.var === null && d.head.fixed_pct === null,
+       '★★内訳を書いたのが1人（壁の下）では、給与構成はまだ null（その1人の内訳を平均と名乗らない）',
+       JSON.stringify({ comp: d.comp, fixed: d.head.fixed_pct }));
+  }
+  // ③ 内訳を書いた人が2人になる（総支給 12,000・基本給 9,600）
+  await put(0, A, 'cap', 'b777', 2, { gross_monthly: 12000, base_pay: 9600 });    // 年 144,000
+  await asUser(V);
+  let compAt4;
+  {
+    const d = await deep(sel);
+    // 120,000・132,000・144,000・168,000 → 中央値 138,000
+    ok(Number(d.head.annual_usd) === 138000,
+       '★4人の年収の中央値 138,000', String(d.head.annual_usd));
+    /* 給与構成は内訳を書いた2人だけ。基本給の平均 (6,600 ＋ 9,600) ÷ 2 ＝ 8,100、
+       未分類の平均 (4,400 ＋ 2,400) ÷ 2 ＝ 3,400。合計 11,500 → 70.4% / 29.6%。 */
+    ok(d.comp !== null && seg(d, 'base') && seg(d, 'base').pct === 70
+       && seg(d, 'rest') && seg(d, 'rest').pct === 30,
+       '★★内訳を書いた人が2人になった瞬間に給与構成が出る（基本給 70%・未分類 30%）',
+       JSON.stringify(d.comp));
+    ok(Number(seg(d, 'base').avg_usd) === 8100 && Number(seg(d, 'rest').avg_usd) === 3400,
+       '★月額は内訳を書いた2人の平均（基本給 8,100・未分類 3,400）。総支給だけの2人は入っていない',
+       JSON.stringify(d.comp.segs));
+    ok(d.head.fixed_pct === 70, '　固定・保証給比率も出る（70）', String(d.head.fixed_pct));
+    ok(Array.isArray(d.var) && d.var.length === 0,
+       '　変動給の中身は空の配列（変動給の行を書いた人が居ない。null は給与構成が無いとき）',
+       JSON.stringify(d.var));
+    compAt4 = JSON.stringify(d.comp);
+  }
+  /* ④ 総支給は有効だが、内訳がそれをはみ出している人（総支給 30,000・基本給 40,000）。
+       前は**行ごと落ちて**年収からも消えていた。いまは年収には入り、給与構成には入らない。 */
+  await put(0, A, 'cap', 'b777', 2, { gross_monthly: 30000, base_pay: 40000 });   // 年 360,000
+  await asUser(V);
+  {
+    const d = await deep(sel);
+    // 120,000・132,000・144,000・168,000・360,000 → 中央値 144,000
+    ok(Number(d.head.annual_usd) === 144000,
+       '★★内訳が総支給をはみ出した人も、年収には数える（中央値が 138,000 → 144,000 に動く）',
+       String(d.head.annual_usd));
+    ok(JSON.stringify(d.comp) === compAt4,
+       '★★その人は給与構成には入らない（1文字も動かない。入れば基本給が 133% の人が混ざる）',
+       JSON.stringify(d.comp));
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 26. 賞与 ── 会社×職位で申告した人の平均を、全員の年収と Pay / Block Hour に割り振る');
+// ════════════════════════════════════════════════════════════
+/* オーナーの言葉「基本的に同じ役職の人は賞与同じだから。賞与出してる人の平均をみんなに
+   割り振って年収だして」。決まりは db/deep-pay.sql 3章「賞与の決まり」。
+     1行ごと、区分（会社×職位）に平均 M が在るとき：
+       年収 ＝ 保存してある年収 − その行が申告した賞与（空なら 0）＋ M
+       Pay / Block Hour ＝ 保存してある値 ＋（M − その行が申告した賞与）÷ 12 ÷ Block Hours
+   ★関数は1人ぶんの額を返さない。だから**2人ずつの区分を3つ**作って（機材を1人2つずつ）、
+     3つの中央値（＝2人の平均）から3人の額を解く：
+       x ＝ A ＋ B − C ／ y ＝ A ＋ C − B ／ z ＝ B ＋ C − A */
+// ── (a) 申告した人がちょうど壁（2人）── 全員が「賞与ぬきの額 ＋ 平均」に乗る ──
+{
+  const A = fresh();
+  const sA = { airline: A, position: 'cap', fleet: 'b777' };   // 高い人 ＋ 0 の人
+  const sB = { airline: A, position: 'cap', fleet: 'b787' };   // 高い人 ＋ 答えていない人
+  const sC = { airline: A, position: 'cap', fleet: 'a350' };   // 0 の人 ＋ 答えていない人
+  // 高い賞与を申告した人：総支給 10,000・賞与 40,000 → 年 160,000（賞与ぬき 120,000）
+  const hi = await put(0, A, 'cap', 'b777', 2,
+    { gross_monthly: 10000, bonus_annual: 40000, block_hours: 80 });
+  await put(hi.u, A, 'cap', 'b787', 3,
+    { gross_monthly: 10000, bonus_annual: 40000, block_hours: 80 });
+  // 0 と申告した人：総支給 12,000・賞与 0 → 年 144,000
+  const zero = await put(0, A, 'cap', 'b777', 2,
+    { gross_monthly: 12000, bonus_annual: 0, block_hours: 60 });
+  await put(zero.u, A, 'cap', 'a350', 3,
+    { gross_monthly: 12000, bonus_annual: 0, block_hours: 60 });
+  // 答えていない人：総支給 15,000 → 年 180,000
+  const non = await put(0, A, 'cap', 'b787', 2, { gross_monthly: 15000, block_hours: 75 });
+  await put(non.u, A, 'cap', 'a350', 3, { gross_monthly: 15000, block_hours: 75 });
+
+  const st = async (id) => await one(
+    `select annual_total_usd a, usd_per_block_hour p, bonus_annual b from pay_reports where id = $1`, [id]);
+  const sHi = await st(hi.id), sZero = await st(zero.id), sNon = await st(non.id);
+  ok(Number(sHi.a) === 160000 && Number(sZero.a) === 144000 && Number(sNon.a) === 180000
+     && Number(sZero.b) === 0 && sNon.b === null,
+     '（前提）保存してある年収は 160,000・144,000・180,000。0 は 0 のまま・空欄は null のまま',
+     JSON.stringify([sHi, sZero, sNon]));
+  ok(Number(sHi.p) === 166.67 && Number(sZero.p) === 200 && Number(sNon.p) === 200,
+     '（前提）保存してある Pay / Block Hour は 166.67・200.00・200.00',
+     JSON.stringify([sHi.p, sZero.p, sNon.p]));
+
+  await asUser(V);
+  const before = await fingerprint();
+  const dA = await deep(sA), dB = await deep(sB), dC = await deep(sC);
+  const dAll = await deep({ airline: A, position: 'cap' });
+  /* 平均 M ＝ (40,000 ＋ 0) ÷ 2 ＝ 20,000。
+       高い人 120,000 ＋ 20,000 ＝ 140,000 ／ 0 の人 144,000 ＋ 20,000 ＝ 164,000 ／
+       答えていない人 180,000 ＋ 20,000 ＝ 200,000 */
+  const a = Number(dA.head.annual_usd), b = Number(dB.head.annual_usd), c = Number(dC.head.annual_usd);
+  ok(a === 152000 && b === 170000 && c === 182000,
+     '★2人ずつの区分の年収：152,000・170,000・182,000', `${a} / ${b} / ${c}`);
+  ok(a + b - c === 140000,
+     '★★高い賞与を申告した人 ＝ 160,000 − 40,000 ＋ 20,000 ＝ 140,000（自分の賞与を引いてから平均）',
+     String(a + b - c));
+  ok(a + c - b === 164000,
+     '★★0 と申告した人 ＝ 144,000 − 0 ＋ 20,000 ＝ 164,000（0 は1票。その人にも平均が乗る）',
+     String(a + c - b));
+  ok(b + c - a === 200000,
+     '★★答えていない人 ＝ 180,000 ＋ 20,000 ＝ 200,000', String(b + c - a));
+  ok(Number(dAll.head.annual_usd) === 164000,
+     '★会社×機長の3人の中央値は 164,000（保存してあるままなら 160,000）',
+     String(dAll.head.annual_usd));
+  ok([dA, dB, dC, dAll].every((d) => d.head.bonus_est === true && d.head.bonus_gap === false),
+     '★どの区分も：平均で作った印（bonus_est）が立ち、賞与が無い人の印（bonus_gap）は立たない',
+     JSON.stringify([dA.head, dB.head, dC.head]));
+
+  /* Pay / Block Hour ── 保存してある値に、同じ差し替えを差として足す。
+       高い人     166.67 ＋ (20,000 − 40,000) ÷ 12 ÷ 80 ＝ 166.67 − 20.83 ＝ 145.84（下がる）
+       0 の人     200.00 ＋ 20,000 ÷ 12 ÷ 60 ＝ 227.78（上がる）
+       答えてない 200.00 ＋ 20,000 ÷ 12 ÷ 75 ＝ 222.22（上がる）
+     2人ずつの中央値：(145.84 ＋ 227.78) ÷ 2 ＝ 186.81 → 187.0 ／ (145.84 ＋ 222.22) ÷ 2 ＝ 184.03 → 184.0 ／
+                      (227.78 ＋ 222.22) ÷ 2 ＝ 225.0
+     保存してあるままなら 183.5・183.5・200.0。 */
+  const pa = Number(dA.head.per_block_usd), pb = Number(dB.head.per_block_usd),
+        pc = Number(dC.head.per_block_usd);
+  ok(pa === 187 && pb === 184 && pc === 225,
+     '★★Pay / Block Hour も同じ差し替えを受ける（187.0・184.0・225.0。保存してあるままなら 183.5・183.5・200.0）',
+     `${pa} / ${pb} / ${pc}`);
+  ok(pa + pb - pc === 146 && pa + pc - pb === 228 && pb + pc - pa === 222,
+     '★3人ぶんに解くと 146・228・222（＝ 145.84 下がる・227.78 上がる・222.22 上がる。刻みのぶんだけ丸い）',
+     `${pa + pb - pc} / ${pa + pc - pb} / ${pb + pc - pa}`);
+  ok(Number(dA.work.block_h) === 70 && Number(dB.work.block_h) === 77.5,
+     '★働き方（Block Hours）は保存してあるまま（70・77.5）',
+     `${dA.work.block_h} / ${dB.work.block_h}`);
+
+  /* 月換算（賞与ぬき）── 保存してある・申告された値だけ。平均は入らない。
+       高い人 (160,000 − 40,000) ÷ 12 ＝ 10,000 ／ 0 の人 12,000 ／ 答えていない人 15,000
+       A (10,000 ＋ 12,000) ÷ 2 ＝ 11,000 ／ B 12,500 → 13,000 ／ C 13,500 → 14,000 */
+  ok(Number(dA.head.month_usd) === 11000 && Number(dB.head.month_usd) === 13000
+     && Number(dC.head.month_usd) === 14000,
+     '★月換算は申告した人と答えていない人を同じ区分で扱える（11,000・13,000・14,000。平均は入らない）',
+     `${dA.head.month_usd} / ${dB.head.month_usd} / ${dC.head.month_usd}`);
+  ok(dA.comp === null && dA.head.fixed_pct === null,
+     '　総支給だけの人たちなので給与構成は無い（見積もりは給与構成に触れない）');
+  ok((await fingerprint()) === before,
+     '★★呼ぶ前と後で、保存してある行は1バイトも違わない（給与・口コミ・対応表・名簿）');
+  ok(before !== FP0, '（検査の道具）指紋は、行を足せば変わる');
+}
+
+// ── (b) 何か月も出した人も1票（その人が申告した行の平均）──────────────
+{
+  const A = fresh();
+  // 3か月ぶん申告した人：賞与 20,000・40,000・30,000 → その人の1票は平均の 30,000
+  const p1 = await put(0, A, 'fo', 'a320', 2, { gross_monthly: 10000, bonus_annual: 20000 });
+  await put(p1.u, A, 'fo', 'a320', 3, { gross_monthly: 10000, bonus_annual: 40000 });
+  await put(p1.u, A, 'fo', 'a320', 4, { gross_monthly: 10000, bonus_annual: 30000 });
+  await put(0, A, 'fo', 'a320', 2, { gross_monthly: 10000, bonus_annual: 0 });   // 0 と申告
+  await put(0, A, 'fo', 'a320', 2, { gross_monthly: 10000 });                    // 答えていない
+  await asUser(V);
+  const d = await deep({ airline: A, position: 'fo', fleet: 'a320' });
+  /* 1人1票：M ＝ (30,000 ＋ 0) ÷ 2 ＝ 15,000。どの行も 120,000 ＋ 15,000 ＝ 135,000。
+     行で数えると M ＝ (20,000 ＋ 40,000 ＋ 30,000 ＋ 0) ÷ 4 ＝ 22,500 → 142,500 になる。 */
+  ok(Number(d.head.annual_usd) === 135000,
+     '★★3か月ぶん申告した人も1票（年収 135,000。行で数えれば 142,500）',
+     String(d.head.annual_usd));
+  ok(d.head.bonus_est === true && d.head.bonus_gap === false, '　目印は est だけ',
+     JSON.stringify(d.head));
+}
+
+// ── (c) 通貨が違う申告は、その行が自分で持っている比で USD に直す ─────────
+{
+  const A = fresh();
+  await put(0, A, 'fo', 'a320', 2, { gross_monthly: 10000, bonus_annual: 20000 });   // 年 140,000
+  const jp = await put(0, A, 'fo', 'a320', 2,
+    { currency: 'JPY', gross_monthly: 2000000, bonus_annual: 3000000 });
+  await put(0, A, 'fo', 'a320', 2, { gross_monthly: 10000 });                        // 年 120,000
+  const j = await one(
+    `select annual_total_usd u, annual_total_orig o, currency c from pay_reports where id = $1`, [jp.id]);
+  const k = Number(j.u) / Number(j.o);            // その行が投稿の瞬間に確定した比
+  ok(j.c === 'JPY' && Number(j.o) === 27000000 && k > 0 && k < 0.5,
+     '（前提）円の行：原通貨の年収は 27,000,000・USD への比は 1 ではない', JSON.stringify(j));
+  const bJ = 3000000 * k;                          // 円の賞与を USD に
+  const M = (20000 + bJ) / 2;
+  const want = step50(median([120000 + M, Number(j.u) - bJ + M, 120000 + M]));
+  await asUser(V);
+  const sel = { airline: A, position: 'fo', fleet: 'a320' };
+  const d = await deep(sel);
+  ok(Number(d.head.annual_usd) === want,
+     '★★円で申告した賞与は、その行の比で USD に直してから平均に入る',
+     `${d.head.annual_usd} vs ${want}`);
+  ok(Number(d.head.annual_usd) !== step50(120000 + (20000 + 3000000) / 2),
+     '　直さずに足していない（3,000,000 をそのまま USD と読めば、桁が違う額になる）');
+  /* ★いまの為替表は引かない。表の円のレートを2倍にしても、数字は1つも動かない
+       （動くなら、為替表を貼り直すたびに過去の賞与の額が変わる）。 */
+  const rate = (await one(`select to_usd from fx_rates where code = 'JPY'`)).to_usd;
+  await db.query(`update fx_rates set to_usd = to_usd * 2 where code = 'JPY'`);
+  const d2 = await deep(sel);
+  await db.query(`update fx_rates set to_usd = $1 where code = 'JPY'`, [rate]);
+  ok(JSON.stringify(d2.head) === JSON.stringify(d.head),
+     '★★為替表の円のレートを2倍にしても、見出しは1文字も動かない（投稿の瞬間の比を使っている）',
+     JSON.stringify(d2.head));
+}
+
+// ── (d) 申告した人が壁の1人手前 ── 何も変わらない ───────────────────
+let B4 = null;
+{
+  const A = B4 = fresh();
+  // 申告した人は1人だけ（総支給 10,000・賞与 40,000 → 年 160,000）
+  const dec = await put(0, A, 'cap', 'b777', 2, { gross_monthly: 10000, bonus_annual: 40000 });
+  await put(dec.u, A, 'cap', 'b787', 3, { gross_monthly: 10000, bonus_annual: 40000 });
+  await put(dec.u, A, 'cap', 'bizjet', 4, { gross_monthly: 10000, bonus_annual: 40000 });
+  const n1 = await put(0, A, 'cap', 'b777', 2, { gross_monthly: 15000 });            // 年 180,000
+  await put(n1.u, A, 'cap', 'b787', 3, { gross_monthly: 15000 });
+  await put(0, A, 'cap', 'b777', 2, { gross_monthly: 12000 });                       // 年 144,000
+  await asUser(V);
+  const d = await deep({ airline: A, position: 'cap', fleet: 'b777' });
+  /* 保存してあるまま：160,000・180,000・144,000 の中央値 ＝ 160,000。
+     1人の申告を平均と名乗って配ると 160,000・220,000・184,000 → 184,000 になり、
+     答えていない人の年収からその1人の賞与（40,000）が割り戻せる。 */
+  ok(Number(d.head.annual_usd) === 160000,
+     '★★申告した人が1人では平均を作らない（年収は保存してあるまま 160,000）',
+     String(d.head.annual_usd));
+  ok(d.head.bonus_est === false && d.head.bonus_gap === true,
+     '★平均の印は立たず、答えていない人が数えられているので、賞与が無い人の印が立つ',
+     JSON.stringify(d.head));
+  ok(Number(d.head.month_usd) === 12000,
+     '　月換算は 10,000・15,000・12,000 の中央値 12,000', String(d.head.month_usd));
+  /* 月換算は平均の有無に左右されない ── (a) の「高い人＋答えていない人」（平均あり）と、
+     同じ保存値のこの2人（平均なし）で、同じ 13,000。 */
+  const dB = await deep({ airline: A, position: 'cap', fleet: 'b787' });
+  ok(Number(dB.head.month_usd) === 13000 && dB.head.bonus_est === false,
+     '★月換算は、賞与の平均が在っても無くても同じ（(10,000 ＋ 15,000) ÷ 2 ＝ 12,500 → 13,000）',
+     JSON.stringify(dB.head));
+
+  /* 全員が申告していて、どの区分にも平均が無い ── 目印は2つとも立たない。
+     別の会社の、申告した人が1人だけの区分と、機材（ビジネスジェット）だけで束ねる。 */
+  const B = fresh();
+  await put(0, B, 'cap', 'bizjet', 2, { gross_monthly: 10000, bonus_annual: 10000 });  // 年 130,000
+  await asUser(V);
+  const dx = await deep({ fleet: 'bizjet' });
+  ok(shown(dx) && Number(dx.head.annual_usd) === 145000,
+     '（前提）機材だけで束ねた2人（2社）の中央値は (160,000 ＋ 130,000) ÷ 2 ＝ 145,000',
+     JSON.stringify(dx.head));
+  ok(dx.head.bonus_est === false && dx.head.bonus_gap === false,
+     '★★2人とも申告していて、平均はどちらの区分にも無い → 目印は2つとも立たない',
+     JSON.stringify(dx.head));
+}
+
+// ── (e) よその会社・よその職位の申告は、平均に入らない ─────────────────
+{
+  const A = fresh(), B = fresh();
+  // A 社・機長：申告した人は1人だけ
+  await put(0, A, 'cap', 'b777', 2, { gross_monthly: 10000, bonus_annual: 40000 });  // 年 160,000
+  await put(0, A, 'cap', 'b777', 2, { gross_monthly: 15000 });                       // 年 180,000
+  // A 社・副操縦士：申告した人が2人（10,000 と 30,000）＋ 答えていない人
+  await put(0, A, 'fo', 'a320', 2, { gross_monthly: 8000, bonus_annual: 10000 });    // 年 106,000
+  await put(0, A, 'fo', 'a320', 2, { gross_monthly: 9000, bonus_annual: 30000 });    // 年 138,000
+  await put(0, A, 'fo', 'a320', 2, { gross_monthly: 9500 });                         // 年 114,000
+  // B 社・機長：申告した人が2人（50,000 ずつ）
+  await put(0, B, 'cap', 'b777', 2, { gross_monthly: 10000, bonus_annual: 50000 });
+  await put(0, B, 'cap', 'b777', 2, { gross_monthly: 10000, bonus_annual: 50000 });
+  await asUser(V);
+  const cap = await deep({ airline: A, position: 'cap' });
+  /* A 社の機長は申告が1人 ＝ 平均なし。同じ会社の副操縦士（2人）や、よその会社の機長（2人）の
+     申告を借りない。借りれば 170,000 ではなくなる（職位を混ぜると 176,650）。 */
+  ok(Number(cap.head.annual_usd) === 170000 && cap.head.bonus_est === false
+     && cap.head.bonus_gap === true,
+     '★★同じ会社の別の職位・別の会社の同じ職位の申告は、平均に入らない（年収 170,000 のまま）',
+     JSON.stringify(cap.head));
+  const fo = await deep({ airline: A, position: 'fo' });
+  /* 副操縦士の平均 ＝ (10,000 ＋ 30,000) ÷ 2 ＝ 20,000。
+     96,000 ＋ 20,000 ＝ 116,000 ／ 108,000 ＋ 20,000 ＝ 128,000 ／ 114,000 ＋ 20,000 ＝ 134,000 */
+  ok(Number(fo.head.annual_usd) === 128000 && fo.head.bonus_est === true
+     && fo.head.bonus_gap === false,
+     '★副操縦士は自分たちの平均（20,000）で 128,000（保存してあるままなら 114,000）',
+     JSON.stringify(fo.head));
+  /* ★会社だけで選んだ区分でも、1人ずつ**自分の会社×職位**の平均を使う。
+       機長 160,000・180,000（平均なし）／副操縦士 116,000・128,000・134,000 → 中央値 134,000。
+       会社ぜんぶで1つの平均（26,666.67）を作ると 140,650、保存してあるままなら 138,000。 */
+  const all = await deep({ airline: A });
+  ok(Number(all.head.annual_usd) === 134000,
+     '★★会社だけの区分でも、賞与の平均は1人ずつ自分の会社×職位のもの（134,000）',
+     String(all.head.annual_usd));
+  ok(all.head.bonus_est === true && all.head.bonus_gap === true,
+     '　平均で作った人（副操縦士）と、賞与が無いままの人（機長の1人）が両方居る ＝ 目印は2つとも立つ',
+     JSON.stringify(all.head));
+  const other = await deep({ airline: B, position: 'cap' });
+  ok(Number(other.head.annual_usd) === 170000 && other.head.bonus_est === true,
+     '　B 社の機長は自分たちの平均（50,000）── 170,000 − 50,000 ＋ 50,000 ＝ 170,000',
+     JSON.stringify(other.head));
+}
+
+// ── (f) プロフィットシェアは平均に入れない・引かない（保存してあるまま）──────
+{
+  const A = fresh();
+  const sA = { airline: A, position: 'cap', fleet: 'b777' };
+  const sB = { airline: A, position: 'cap', fleet: 'b787' };
+  const sC = { airline: A, position: 'cap', fleet: 'a350' };
+  // 賞与 20,000 ＋ プロフィットシェア 6,000 → 年 146,000
+  const d1 = await put(0, A, 'cap', 'b777', 2,
+    { gross_monthly: 10000, bonus_annual: 20000, profit_share_annual: 6000 });
+  await put(d1.u, A, 'cap', 'b787', 3,
+    { gross_monthly: 10000, bonus_annual: 20000, profit_share_annual: 6000 });
+  // 賞与 0（プロフィットシェアは空）→ 年 120,000
+  const d2 = await put(0, A, 'cap', 'b777', 2, { gross_monthly: 10000, bonus_annual: 0 });
+  await put(d2.u, A, 'cap', 'a350', 3, { gross_monthly: 10000, bonus_annual: 0 });
+  // 賞与は空・プロフィットシェア 12,000 → 年 132,000
+  const n = await put(0, A, 'cap', 'b787', 2, { gross_monthly: 10000, profit_share_annual: 12000 });
+  await put(n.u, A, 'cap', 'a350', 3, { gross_monthly: 10000, profit_share_annual: 12000 });
+  ok(Number((await one(`select annual_total_usd a from pay_reports where id = $1`, [d1.id])).a) === 146000
+     && Number((await one(`select annual_total_usd a from pay_reports where id = $1`, [n.id])).a) === 132000,
+     '（前提）保存してある年収は、申告したプロフィットシェア込み（146,000・132,000）');
+  await asUser(V);
+  const dA = await deep(sA), dB = await deep(sB), dC = await deep(sC);
+  /* 平均は**賞与だけ** ＝ (20,000 ＋ 0) ÷ 2 ＝ 10,000（プロフィットシェアを混ぜれば 13,000）。
+       1人目 146,000 − 20,000 ＋ 10,000 ＝ 136,000（6,000 は残る）
+       2人目 120,000 − 0 ＋ 10,000 ＝ 130,000
+       3人目 132,000 ＋ 10,000 ＝ 142,000（自分の 12,000 は残る・二重に足さない） */
+  const a = Number(dA.head.annual_usd), b = Number(dB.head.annual_usd), c = Number(dC.head.annual_usd);
+  ok(a === 133000 && b === 139000 && c === 136000,
+     '★2人ずつの区分の年収：133,000・139,000・136,000', `${a} / ${b} / ${c}`);
+  ok(a + b - c === 136000 && a + c - b === 130000 && b + c - a === 142000,
+     '★★3人ぶんに解くと 136,000・130,000・142,000 ＝ プロフィットシェアは平均に入らず、引かれもしない',
+     `${a + b - c} / ${a + c - b} / ${b + c - a}`);
+  /* 月換算は賞与もプロフィットシェアも引く：3人とも (年収 − 申告の年額) ÷ 12 ＝ 10,000。
+     プロフィットシェアを引き忘れると 10,500・11,000、2回引くと 9,500・9,000 になる。 */
+  ok(Number(dA.head.month_usd) === 10000 && Number(dB.head.month_usd) === 10000
+     && Number(dC.head.month_usd) === 10000,
+     '★★月換算は、申告したプロフィットシェアをちょうど1回だけ引いている（3区分とも 10,000）',
+     `${dA.head.month_usd} / ${dB.head.month_usd} / ${dC.head.month_usd}`);
+}
+
+// ── (g) 申告した賞与が年収より大きい行（壊れた行）── 引かない・1票にもしない ──
+{
+  const A = fresh();
+  const sB = { airline: A, position: 'cap', fleet: 'b787' };
+  const d1 = await put(0, A, 'cap', 'b777', 2, { gross_monthly: 10000, bonus_annual: 20000 });  // 年 140,000
+  await put(d1.u, A, 'cap', 'b787', 3, { gross_monthly: 10000, bonus_annual: 20000 });
+  await put(0, A, 'cap', 'b777', 2, { gross_monthly: 10000, bonus_annual: 0 });                // 年 120,000
+  const x = await put(0, A, 'cap', 'b787', 2, { gross_monthly: 15000, bonus_annual: 30000 });  // 年 210,000
+  await asUser(V);
+  {
+    /* まだ壊していない：平均 ＝ (20,000 ＋ 0 ＋ 30,000) ÷ 3 ＝ 16,666.67
+       B787 の2人 ＝ 136,666.67 と 196,666.67 → 中央値 166,666.67 → 166,650 */
+    const d = await deep(sB);
+    ok(Number(d.head.annual_usd) === 166650, '（前提）壊す前は3人の平均で 166,650',
+       String(d.head.annual_usd));
+  }
+  /* 保存の道を通った行では起きない（年収は賞与を足して作る）。あとから片方だけ書き換わった
+     行を作る ── 賞与の欄だけが年収（210,000）より大きい。 */
+  await db.query(`update pay_reports set bonus_annual = 999999 where id = $1`, [x.id]);
+  await asUser(V);
+  const d = await deep(sB);
+  /* 壊れた行は1票にしない ＝ 平均は (20,000 ＋ 0) ÷ 2 ＝ 10,000。
+     1人目 140,000 − 20,000 ＋ 10,000 ＝ 130,000。壊れた行は**保存してあるまま** 210,000
+     （引くと 210,000 − 999,999 で負になる）。中央値 170,000。 */
+  ok(Number(d.head.annual_usd) === 170000,
+     '★★賞与が年収より大きい行は、引かずに保存してある年収を使い、平均の1票にもしない（170,000）',
+     String(d.head.annual_usd));
+  ok(d.head.bonus_est === true && d.head.bonus_gap === false,
+     '　目印：もう1人は平均で作った（est）。壊れた行の人は「答えていない」ではない（gap は立たない）',
+     JSON.stringify(d.head));
+  ok(d.head.month_usd === null,
+     '★月換算は、値を持つ人が1人（壊れた行は入れない）＝ 列ごとの壁で null',
+     String(d.head.month_usd));
+}
+
+// ── (h) 組合が総支給の外で払った分は、Pay / Block Hour の分子から抜いたまま ────
+{
+  /* 保存してある Pay / Block Hour は、組合が直接払った分を分子から抜いてある（乗務の対価では
+     ないため。db/pay-reports.sql の pv_block_hour_usd）。賞与の差し替えは**差として足すだけ**で、
+     年収 ÷ 12 ÷ 時間 を作り直さない ── 作り直すと、抜いた分が黙って戻る。 */
+  const mk = (extra) => ({ gross_monthly: 10000, base_pay: 6000, union_pay: 9000, block_hours: 80,
+                           job_roles: ['line', 'union'],
+                           pay_items: { v: 1, union: { days: 10, extra: 'yes',
+                                                       source: 'union', amount: 9000 } },
+                           ...extra });
+  // 平均が無い区分：2人とも賞与を答えていない
+  const A = fresh();
+  const u1 = await put(0, A, 'fo', 'b737', 2, mk({}));
+  await put(0, A, 'fo', 'b737', 2, mk({}));
+  const s1 = await one(
+    `select annual_total_usd a, usd_per_block_hour p from pay_reports where id = $1`, [u1.id]);
+  ok(Number(s1.a) === 228000 && Number(s1.p) === 125,
+     '（前提）年収は組合の分込みで 228,000・時間あたりは組合の分を抜いた 125.00（年収 ÷ 12 ÷ 80 ＝ 237.5 ではない）',
+     JSON.stringify(s1));
+  await asUser(V);
+  const dA = await deep({ airline: A, position: 'fo', fleet: 'b737' });
+  ok(Number(dA.head.per_block_usd) === 125 && Number(dA.head.annual_usd) === 228000
+     && dA.head.bonus_est === false,
+     '★★平均が無い区分の Pay / Block Hour は、保存してある値のまま（125.0）',
+     JSON.stringify(dA.head));
+
+  // 平均が在る区分：賞与 12,000 と 0 を申告した2人 ＋ 答えていない1人
+  const B = fresh();
+  const b1 = await put(0, B, 'fo', 'b737', 2, mk({ bonus_annual: 12000 }));
+  await put(0, B, 'fo', 'b737', 2, mk({ bonus_annual: 0 }));
+  await put(0, B, 'fo', 'b737', 2, mk({}));
+  const s2 = await one(
+    `select annual_total_usd a, usd_per_block_hour p from pay_reports where id = $1`, [b1.id]);
+  ok(Number(s2.a) === 240000 && Number(s2.p) === 137.5,
+     '（前提）賞与 12,000 の人：年収 240,000・保存してある時間あたり 137.50', JSON.stringify(s2));
+  await asUser(V);
+  const dB = await deep({ airline: B, position: 'fo', fleet: 'b737' });
+  /* 平均 ＝ (12,000 ＋ 0) ÷ 2 ＝ 6,000。
+       137.50 ＋ (6,000 − 12,000) ÷ 960 ＝ 131.25 ／ 125.00 ＋ 6,000 ÷ 960 ＝ 131.25（2人とも）
+       3人とも 131.25 → $0.5 刻みで 131.5。
+     保存してあるままなら 125.0、年収から作り直すと 234,000 ÷ 960 ＝ 243.75 → 244.0。 */
+  ok(Number(dB.head.per_block_usd) === 131.5,
+     '★★平均が在る区分：保存してある値に差だけを足す（131.5。作り直せば 244.0・足さなければ 125.0）',
+     String(dB.head.per_block_usd));
+  ok(Number(dB.head.annual_usd) === 234000 && dB.head.bonus_est === true,
+     '　年収は3人とも 228,000 ＋ 6,000 ＝ 234,000', JSON.stringify(dB.head));
+}
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 27. 給与構成 ── 内訳を書いた人だけの平均（金額を先に平均し、割合はその平均から）');
+// ════════════════════════════════════════════════════════════
+/* オーナーの言葉「内訳提出してる人の中で内訳の集計、平均を出せばいいじゃん」。
+   ★「割合の平均 × 現金の平均」は、金額の平均ではない。金額を先に平均する。
+     使うのは**使える内訳の月**だけ（検品を通り・内訳を書いて・一部未回答でない月）。
+     総支給だけの月は、金額にもその分母にも入らない。 */
+// ── (a) 内訳の月と、総支給だけの月を持つ人 ──────────────────────────
+{
+  const A = fresh();
+  const sel = { airline: A, position: 'fo', fleet: 'a320' };
+  const p = await put(0, A, 'fo', 'a320', 2, { gross_monthly: 1000, base_pay: 1000 });
+  await put(0, A, 'fo', 'a320', 2, { gross_monthly: 1000, base_pay: 1000 });
+  await asUser(V);
+  const d0 = await deep(sel);
+  ok(seg(d0, 'base') && seg(d0, 'base').pct === 100 && Number(seg(d0, 'base').avg_usd) === 1000,
+     '（出発点）2人とも 現金 1,000・基本給 1,000 → 基本給 100%・月額 1,000',
+     JSON.stringify(d0.comp));
+  // 1人目に、総支給だけの月（現金 9,000）を足す
+  await put(p.u, A, 'fo', 'a320', 3, { gross_monthly: 9000 });
+  await asUser(V);
+  const d1 = await deep(sel);
+  /* 「割合 100% × 現金の平均 5,000」なら、この人の基本給は 5,000 になり、2人の平均は 3,000。
+     本当に書いてあるのは 1,000。 */
+  ok(Number(seg(d1, 'base').avg_usd) === 1000,
+     '★★総支給だけの月は金額の分母に入らない（基本給の月額は 1,000 のまま。割合×現金の平均なら 3,000）',
+     JSON.stringify(d1.comp));
+  ok(JSON.stringify(d1.comp) === JSON.stringify(d0.comp),
+     '★★総支給だけの月を足しても、給与構成は1文字も動かない');
+  // 年収の側は動く：その人は 12,000 と 108,000 の中央値 60,000 → 2人の中央値 36,000
+  ok(Number(d0.head.annual_usd) === 12000 && Number(d1.head.annual_usd) === 36000,
+     '　年収の側は、総支給だけの月も使う（12,000 → 36,000）',
+     `${d0.head.annual_usd} → ${d1.head.annual_usd}`);
+}
+// ── (b) 内訳の月が2つ（現金 1,000・基本給 1,000 ／ 現金 2,000・基本給 0）──────
+{
+  const A = fresh();
+  for (let i = 0; i < 2; i++) {
+    const p = await put(0, A, 'fo', 'a320', 2, { gross_monthly: 1000, base_pay: 1000 });
+    await put(p.u, A, 'fo', 'a320', 3, { gross_monthly: 2000, base_pay: 0 });
+  }
+  await asUser(V);
+  const d = await deep({ airline: A, position: 'fo', fleet: 'a320' });
+  /* 1人ぶん：基本給 (1,000 ＋ 0) ÷ 2 ＝ 500 ／ 未分類 (0 ＋ 2,000) ÷ 2 ＝ 1,000。合計 1,500。
+     「割合の平均 50% × 現金の平均 1,500」なら基本給は 750 になる。 */
+  ok(Number(seg(d, 'base').avg_usd) === 500 && Number(seg(d, 'rest').avg_usd) === 1000,
+     '★★金額を先に平均する（基本給 500・未分類 1,000。割合の平均×現金の平均なら 750）',
+     JSON.stringify(d.comp));
+  ok(seg(d, 'base').pct === 33 && seg(d, 'rest').pct === 67,
+     '★割合はその平均の比（500 : 1,000 ＝ 33% : 67%。割合の平均なら 50% : 50%）',
+     JSON.stringify(d.comp));
+}
+// ── (c) 3人・平均 ≠ 中央値 ── 割合 × 合計 ＝ 金額 ────────────────────
+{
+  const A = fresh();
+  await put(0, A, 'fo', 'a320', 2, { gross_monthly: 10000, base_pay: 6000 });
+  await put(0, A, 'fo', 'a320', 2, { gross_monthly: 10000, base_pay: 6000 });
+  await put(0, A, 'fo', 'a320', 2, { gross_monthly: 10000, base_pay: 9000 });
+  await asUser(V);
+  const d = await deep({ airline: A, position: 'fo', fleet: 'a320' });
+  // 平均：基本給 (6,000 ＋ 6,000 ＋ 9,000) ÷ 3 ＝ 7,000 ／ 未分類 3,000。中央値なら 6,000 / 4,000
+  ok(seg(d, 'base').pct === 70 && seg(d, 'rest').pct === 30,
+     '★★3人の平均で 70% / 30%（中央値なら 60% / 40%）', JSON.stringify(d.comp));
+  ok(Number(seg(d, 'base').avg_usd) === 7000 && Number(seg(d, 'rest').avg_usd) === 3000,
+     '★月額も平均（基本給 7,000・未分類 3,000）', JSON.stringify(d.comp));
+  const total = d.comp.segs.reduce((a, s) => a + Number(s.avg_usd || 0), 0);
+  ok(total === 10000 && d.comp.segs.every((s) => Number(s.avg_usd) === total * s.pct / 100),
+     '★★割合 × 合計 ＝ 金額（画面の割合と金額が食い違わない。合計は現金の平均 10,000）',
+     JSON.stringify(d.comp.segs));
+  ok(d.head.fixed_pct === 70, '　固定・保証給比率も同じ割合から（70）', String(d.head.fixed_pct));
+  ok(d.comp.segs.reduce((a, s) => a + s.pct, 0) === 100, '　割合の合計はちょうど100');
+}
+// ── (d) 壁に届かない項目は未分類へ畳む ── 合計は変わらない ─────────────
+{
+  const A = fresh();
+  // 住宅手当（現金）を持つのは1人だけ
+  await put(0, A, 'fo', 'a320', 2,
+    { gross_monthly: 10000, base_pay: 6000, housing_type: 'allowance', housing_amount: 1000 });
+  await put(0, A, 'fo', 'a320', 2, { gross_monthly: 10000, base_pay: 6000 });
+  await asUser(V);
+  const d = await deep({ airline: A, position: 'fo', fleet: 'a320' });
+  /* 平均：基本給 6,000 ／ 住宅 (1,000 ＋ 0) ÷ 2 ＝ 500（持つのは1人 → 畳む）／
+           未分類 (3,000 ＋ 4,000) ÷ 2 ＝ 3,500。畳んだあとの未分類 ＝ 4,000。合計 10,000。 */
+  ok(!seg(d, 'housing'), '★1人しか持たない住宅手当は、単独の区分としては並ばない',
+     JSON.stringify(d.comp.segs));
+  ok(seg(d, 'base').pct === 60 && seg(d, 'rest').pct === 40,
+     '★畳んだぶんは未分類へ（60% / 40%。落とせば 63% / 37% になり、合計の意味が変わる）',
+     JSON.stringify(d.comp.segs));
+  ok(Number(seg(d, 'base').avg_usd) === 6000 && Number(seg(d, 'rest').avg_usd) === 4000,
+     '★★金額も同じ：未分類 3,500 ＋ 畳んだ 500 ＝ 4,000。合計は現金の平均 10,000 のまま',
+     JSON.stringify(d.comp.segs));
+}
+// ── (e) 通貨が違う人の内訳は、その行の比で USD に直してから平均する ─────────
+{
+  const A = fresh();
+  await put(0, A, 'fo', 'a320', 2, { gross_monthly: 10000, base_pay: 6000 });
+  const jp = await put(0, A, 'fo', 'a320', 2,
+    { currency: 'JPY', gross_monthly: 2000000, base_pay: 1000000 });
+  const j = await one(
+    `select annual_total_usd u, annual_total_orig o from pay_reports where id = $1`, [jp.id]);
+  const k = Number(j.u) / Number(j.o);
+  const sig2 = async (v) => Number((await one(`select pv_sig2($1::numeric) v`, [v])).v);
+  const mBase = (6000 + 1000000 * k) / 2, mRest = (4000 + 1000000 * k) / 2;
+  await asUser(V);
+  const sel = { airline: A, position: 'fo', fleet: 'a320' };
+  const d = await deep(sel);
+  ok(Number(seg(d, 'base').avg_usd) === await sig2(mBase)
+     && Number(seg(d, 'rest').avg_usd) === await sig2(mRest),
+     '★★円の人の内訳は、その行の比で USD に直してから平均（基本給・未分類とも）',
+     `${JSON.stringify(d.comp.segs)} vs ${mBase} / ${mRest}`);
+  ok(seg(d, 'base').pct === Math.round(mBase / (mBase + mRest) * 100),
+     '　割合もその平均の比', `${seg(d, 'base').pct} vs ${mBase / (mBase + mRest) * 100}`);
+  const rate = (await one(`select to_usd from fx_rates where code = 'JPY'`)).to_usd;
+  await db.query(`update fx_rates set to_usd = to_usd * 2 where code = 'JPY'`);
+  const d2 = await deep(sel);
+  await db.query(`update fx_rates set to_usd = $1 where code = 'JPY'`, [rate]);
+  ok(JSON.stringify(d2.comp) === JSON.stringify(d.comp),
+     '★★為替表の円のレートを2倍にしても、給与構成は1文字も動かない（いまのレートを引いていない）');
+}
+// ── (f) 賞与の割合 ── 分子と分母は、同じ人・同じ月 ────────────────────
+{
+  const A = fresh();
+  // 内訳を書いた2人：賞与 24,000 と 12,000。内訳の無い（総支給だけ）3人目は賞与 60,000
+  await put(0, A, 'fo', 'a320', 2, { gross_monthly: 10000, base_pay: 6000, bonus_annual: 24000 });  // 年 144,000
+  await put(0, A, 'fo', 'a320', 2, { gross_monthly: 10000, base_pay: 6000, bonus_annual: 12000 });  // 年 132,000
+  await put(0, A, 'fo', 'a320', 2, { gross_monthly: 10000, bonus_annual: 60000 });                  // 年 180,000
+  await asUser(V);
+  const d = await deep({ airline: A, position: 'fo', fleet: 'a320' });
+  /* 内訳を書いた2人だけ：分子 (24,000 ＋ 12,000) ÷ 2 ＝ 18,000 ／ 分母 (144,000 ＋ 132,000) ÷ 2 ＝ 138,000
+     → 13.04% → 13%。総支給だけの3人目を混ぜると (96,000 ÷ 3) ÷ (456,000 ÷ 3) ＝ 21%。 */
+  ok(d.comp.bonus && Number(d.comp.bonus.pct_of_annual) === 13,
+     '★★賞与の割合は、内訳を書いた人たちの「申告の年額の平均 ÷ 保存してある年収の平均」（13%。全員で割れば 21%）',
+     JSON.stringify(d.comp.bonus));
+  /* 見出しの年収は**全員**・賞与の平均込み：平均 (24,000 ＋ 12,000 ＋ 60,000) ÷ 3 ＝ 32,000。
+     3人とも 120,000 ＋ 32,000 ＝ 152,000。月換算は3人とも 10,000。
+     ⚠️ 152,000 ×(1 − 13%)÷ 12 ＝ 11,020 は月換算ではない（母集団の違う2つを掛けている）。 */
+  ok(Number(d.head.annual_usd) === 152000 && Number(d.head.month_usd) === 10000,
+     '★見出しの年収は全員ぶん（152,000）。月換算はサーバが出す 10,000（年収 × 賞与の割合で作らない）',
+     JSON.stringify(d.head));
+}
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 28. 変動給の中身 ── 母集団は1つ（変動給の内訳が揃っている人ぜんぶ）');
+// ════════════════════════════════════════════════════════════
+/* 連動先ごとに「それを書いた人だけ」で平均すると嘘になる ── 20人のうち18人が block だけ・
+   2人が duty だけなら、書いた人だけの平均は 100% と 100% ＝ 並べて 50 / 50。
+   1人1票の本当の答えは 90 / 10。**全員**で割る（持たない人は 0）。 */
+const vrow = (rows) => {
+  const tot = rows.reduce((a, r) => a + (r.amount || 0), 0);
+  return { base_pay: 8000, flight_variable_pay: tot, other_allowance: tot,
+           pay_items: { v: 1, variable: rows } };
+};
+{
+  const A = fresh();
+  for (let i = 0; i < 18; i++)
+    await put(0, A, 'fo', 'a320', 2, vrow([{ amount: 1000, basis: 'block', label: 'Flight' }]));
+  for (let i = 0; i < 2; i++)
+    await put(0, A, 'fo', 'a320', 2, vrow([{ amount: 1000, basis: 'duty', label: 'Duty' }]));
+  await asUser(V);
+  const d = await deep({ airline: A, position: 'fo', fleet: 'a320' });
+  ok(vk(d, 'block') && vk(d, 'block').pct === 90 && vk(d, 'duty') && vk(d, 'duty').pct === 10,
+     '★★18人が block だけ・2人が duty だけ → 90 / 10（書いた人だけで平均すると 50 / 50）',
+     JSON.stringify(d.var));
+  ok(d.var.length === 2 && d.var.reduce((a, x) => a + x.pct, 0) === 100,
+     '　棒は2本・合計はちょうど100', JSON.stringify(d.var));
+}
+{
+  // 壁に届かない連動先は畳む：3人のうち night を書いたのは1人
+  const A = fresh();
+  await put(0, A, 'fo', 'a320', 2, vrow([{ amount: 1000, basis: 'block', label: 'Flight' }]));
+  await put(0, A, 'fo', 'a320', 2, vrow([{ amount: 1000, basis: 'block', label: 'Flight' }]));
+  await put(0, A, 'fo', 'a320', 2, vrow([{ amount: 400, basis: 'block', label: 'Flight' },
+                                         { amount: 600, basis: 'night', label: 'Night' }]));
+  await asUser(V);
+  const d = await deep({ airline: A, position: 'fo', fleet: 'a320' });
+  // 平均：block (1,000 ＋ 1,000 ＋ 400) ÷ 3 ＝ 800 ／ night 600 ÷ 3 ＝ 200（1人 → 畳む）
+  ok(vk(d, 'block').pct === 80 && vk(d, 'rest') && vk(d, 'rest').pct === 20 && !vk(d, 'night'),
+     '★★1人しか書いていない night は rest へ畳む（80 / 20・合計100。落とせば block 100% になる）',
+     JSON.stringify(d.var));
+}
+{
+  /* 連動先を答えていない行を持つ人は、母集団に入れない（0 と読まない）。
+     3人目は「duty 1,000」と「連動先が空の 3,000」。この月は変動給の内訳が揃っていない。 */
+  const A = fresh();
+  await put(0, A, 'fo', 'a320', 2, vrow([{ amount: 1000, basis: 'block', label: 'Flight' }]));
+  await put(0, A, 'fo', 'a320', 2, vrow([{ amount: 1000, basis: 'block', label: 'Flight' }]));
+  await put(0, A, 'fo', 'a320', 2, vrow([{ amount: 1000, basis: 'duty', label: 'Duty' },
+                                         { amount: 3000, label: 'Mystery' }]));
+  await asUser(V);
+  const d = await deep({ airline: A, position: 'fo', fleet: 'a320' });
+  /* 揃っている2人だけ：block 100%。3人目を「block 0」と数えれば block 67% / rest 33% になる。 */
+  ok(d.var.length === 1 && vk(d, 'block') && vk(d, 'block').pct === 100,
+     '★★連動先が空の行を持つ人は母集団から外す（block 100%。0 と数えれば 67% / 33%）',
+     JSON.stringify(d.var));
+  ok(shown(d) && d.comp !== null,
+     '　その人は年収にも給与構成にも居る（外れるのは変動給の円だけ）');
+}
+{
+  // 変動給の内訳が揃っている人が壁の下（1人）→ 空の配列。給与構成は出たまま
+  const A = fresh();
+  await put(0, A, 'fo', 'a320', 2, vrow([{ amount: 1000, basis: 'block', label: 'Flight' }]));
+  await put(0, A, 'fo', 'a320', 2, { gross_monthly: 9000, base_pay: 8000 });
+  await asUser(V);
+  const d = await deep({ airline: A, position: 'fo', fleet: 'a320' });
+  ok(d.comp !== null && Array.isArray(d.var) && d.var.length === 0,
+     '★変動給の行を書いたのが1人では、円は出さない（空の配列。その1人の内訳を平均と名乗らない）',
+     JSON.stringify(d.var));
+}
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 29. 口コミ由来の年収と賞与（REAL PAY の一覧に出ている人たち）');
+// ════════════════════════════════════════════════════════════
+/* 給与の仕組みができる前、口コミのフォームが年収と賞与も聞いていた（万円）。その人たちは
+   REAL PAY の一覧に1行ずつ出ている。2026-10-12 から、この画面の**年収の母集団**にも入る
+   （db/deep-pay.sql 3章「口コミ由来の給与」）。読み方は REAL PAY と同じ ──
+     同じ人かどうか＝対応表（pv_review_person）／会社＝pv_airline_resolve／
+     職位＝古いコードを寄せる（captain → cap ほか。寄せられなければ落とす）／
+     USD ＝ 万円 × 10000 × いまの円のレート／同じ人がその会社の給与を本棚に出していたら使わない。
+   ★機材・勤務・内訳は持っていない ＝ 機材を条件にする区分・Pay / Block Hour・働き方・
+     給与構成には1人も入らない。
+   ★口コミの総額は**賞与込みの合計**。賞与の平均を割り振るときは3通りに分かれる ──
+       賞与を書いている            … 書いた賞与を引いて、平均を足す
+       賞与は空・部品から組み立てた … 賞与は入っていない。平均を足す
+       賞与は空・総額に直に入っている … 何も引かず、何も足さない（総額の中に賞与が居る）
+   ★対応表は db/pay-rows.sql を流したときに埋まる。口コミを足すたびに流し直す（link）。 */
+const SR = read('submit-review.html');
+const SALT = SR.match(/encode\(\s*userId \+ '([^']+)' \+ airline \+ '([^']+)'\s*\)/);
+ok(!!SALT, '口コミの持ち主キーの作り方を submit-review.html から読み取れた');
+const { createHash } = await import('node:crypto');
+const revHash = (u, air) =>
+  createHash('sha256').update(uid(u) + SALT[1] + air + SALT[2]).digest('hex');
+/* 口コミを1件置く。金額は万円（ann＝総額／base・fa＝基本給・乗務手当／mon＝月給／bon＝賞与）。
+   u を省くと新しい人。 */
+const review = async (u, air, pos, cols) => {
+  const who = u || ++seat;
+  await db.query(`insert into profiles(id,email) values($1,$2) on conflict do nothing`,
+    [uid(who), `p${who}@example.com`]);
+  await db.query(
+    `insert into reviews_v2(proof_hash, airline, "position", annual_salary, base_annual,
+                            flight_allowance_annual, monthly_salary, bonus)
+     values($1,$2,$3,$4,$5,$6,$7,$8)`,
+    [revHash(who, air), air, pos, cols.ann ?? null, cols.base ?? null, cols.fa ?? null,
+     cols.mon ?? null, cols.bon ?? null]);
+  return who;
+};
+const link = async () => { await db.exec(read('db/pay-rows.sql')); await asUser(V); };
+const JPY = Number((await one(`select to_usd from fx_rates where code = 'JPY'`)).to_usd);
+// 万円 → USD。REAL PAY と同じ直し方（× 10000 × いまの円のレート）
+const man = (m) => Math.round(m * 10000 * JPY * 100) / 100;
+const sig2 = async (v) => Number((await one(`select pv_sig2($1::numeric) v`, [v])).v);
+// REAL PAY の一覧（V は鍵を持っている）から、その会社の行だけ
+const realPay = async (air) =>
+  ((await one(`select pv_pay_rows() r`)).r.rows || []).filter((x) => x.airline === air);
+
+// ── (a) 口コミだけの区分 ── 年収の母集団に入り、賞与の申告も1票になる ─────────
+{
+  const A = fresh();
+  const sel = { airline: A, position: 'cap' };
+  await review(0, A, 'captain', { ann: 3000, bon: 600 });     // 総額 3,000万（賞与 600万込み）
+  await review(0, A, 'captain', { mon: 200 });                // 月給 200万 × 12 ＝ 2,400万（賞与は空）
+  // 職位を語彙に寄せられない口コミ（賞与 900万を書いている）
+  await review(0, A, 'dispatcher', { ann: 5000, bon: 900 });
+  await link();
+  const d1 = await deep(sel);
+  /* 申告した人は1人（壁の下）＝ 平均なし。年収は保存してあるまま (3,000 ＋ 2,400) ÷ 2 ＝ 2,700万。
+     寄せられない口コミの 900万 は、どの区分の1票にもならない（なれば平均ができて額が動く）。 */
+  ok(shown(d1) && Number(d1.head.annual_usd) === step50((man(3000) + man(2400)) / 2),
+     '★★口コミだけの2人で区分が出る（年収 ＝ 2,700万を REAL PAY と同じレートで USD に）',
+     `${JSON.stringify(d1.head)} vs ${step50((man(3000) + man(2400)) / 2)}`);
+  ok(d1.head.bonus_est === false && d1.head.bonus_gap === true,
+     '★申告が1人では平均を作らない。部品から組み立てた合計で賞与が空の人 ＝ 賞与が無い人の印',
+     JSON.stringify(d1.head));
+  ok(Number((await deep({ airline: A })).head.annual_usd) === Number(d1.head.annual_usd),
+     '★★職位を寄せられない口コミは、会社だけの区分にも入らない（REAL PAY が行ごと落とすのと同じ）');
+  ok(hidden(await deep({ airline: A, position: 'cap', fleet: 'b777' })),
+     '★★機材まで絞った区分には、口コミ由来の人は1人も入らない（機材を持っていない）');
+  ok(d1.head.per_block_usd === null && d1.work.block_h === null && d1.work.duty_h === null
+     && d1.comp === null && d1.var === null && d1.head.fixed_pct === null,
+     '★★Pay / Block Hour・働き方・給与構成・変動給の中身には1人も入らない（null。0 で埋めない）',
+     JSON.stringify({ head: d1.head, work: d1.work, comp: d1.comp, var: d1.var }));
+  ok(d1.picks.air.includes(A) && (d1.picks.pos[A] || []).includes('cap')
+     && !Object.keys(d1.picks.flt).some((k) => k.startsWith(A + '|')),
+     '★選べる組み合わせ：会社と職位には出る・機材の選択肢には出ない',
+     JSON.stringify({ pos: d1.picks.pos[A] }));
+  {
+    const rp = await realPay(A);
+    const got = rp.map((x) => Number(x.annual_usd)).sort((x, y) => x - y);
+    ok(rp.length === 2 && got[0] === await sig2(man(2400)) && got[1] === await sig2(man(3000)),
+       '★★REAL PAY の一覧も同じ2人・同じ換算（寄せられない職位は、あちらでも落ちている）',
+       JSON.stringify(got));
+  }
+  // 申告する人をもう1人（総額 2,600万・賞与 200万）→ 壁に届いて平均ができる
+  await review(0, A, 'captain', { ann: 2600, bon: 200 });
+  await link();
+  const d2 = await deep(sel);
+  /* 平均 ＝ (600 ＋ 200) ÷ 2 ＝ 400万。
+       3,000 − 600 ＋ 400 ＝ 2,800 ／ 2,600 − 200 ＋ 400 ＝ 2,800 ／ 2,400 ＋ 400 ＝ 2,800（万円）
+     3人とも 2,800万。保存してあるままなら中央値は 2,600万。
+     ★総額は賞与込みなので、書いた賞与を引いてから足している（引かなければ 3,400 と 3,000）。 */
+  ok(Number(d2.head.annual_usd) === step50(man(2800)),
+     '★★口コミの申告だけで平均ができ（申告2人）、総額から自分の賞与を引いて平均を足す（3人とも 2,800万）',
+     `${d2.head.annual_usd} vs ${step50(man(2800))}`);
+  ok(d2.head.bonus_est === true && d2.head.bonus_gap === false,
+     '　平均で作った印が立ち、賞与が無い人の印は消える', JSON.stringify(d2.head));
+  // 月換算：(3,000 − 600) ÷ 12 ＝ 200 ／ (2,600 − 200) ÷ 12 ＝ 200 ／ 2,400 ÷ 12 ＝ 200（万円）
+  ok(Number(d2.head.month_usd) === await sig2(man(200)),
+     '★月換算は、書いた賞与を引いた額（3人とも月 200万）', String(d2.head.month_usd));
+}
+
+// ── (b) 総額だけ・賞与は空 ── 何も引かず、何も足さない。換算は REAL PAY と同じ ─────
+{
+  const A = fresh();
+  await review(0, A, 'fo', { ann: 3000 });
+  await review(0, A, 'fo', { ann: 3000 });
+  await link();
+  const d = await deep({ airline: A, position: 'fo' });
+  const rp = await realPay(A);
+  ok(Number(d.head.annual_usd) === step50(man(3000)),
+     '★万円 → USD は「× 10000 × いまの円のレート」（3,000万）', String(d.head.annual_usd));
+  ok(rp.length === 2 && rp.every((x) => Number(x.annual_usd) === Number(rp[0].annual_usd))
+     && await sig2(Number(d.head.annual_usd)) === Number(rp[0].annual_usd),
+     '★★同じ口コミについて、REAL PAY の1行と同じ額（有効数字2桁にそろえて比べる）',
+     `${d.head.annual_usd} / ${JSON.stringify(rp.map((x) => x.annual_usd))}`);
+  ok(d.head.bonus_est === false && d.head.bonus_gap === false,
+     '★★総額に直に入っている人は、見積もりの印も、賞与が無い印も立てない（総額の中に賞与が居る）',
+     JSON.stringify(d.head));
+  ok(d.head.month_usd === null,
+     '★月換算には入れない（賞与ぬきの額が言い切れない ＝ 列ごと null）', String(d.head.month_usd));
+}
+
+// ── (c) 平均が在る区分でも、総額に直に入っている人は動かさない ────────────
+{
+  const A = fresh();
+  const sel = { airline: A, position: 'fo' };
+  await review(0, A, 'fo', { ann: 3000 });
+  await review(0, A, 'fo', { ann: 3400 });
+  /* 平均を作る2人。本棚にも同じ会社の給与を出している（年 4,800 ＝ 常識の幅の下）ので、
+     口コミは年収の母集団に入らず（本棚が勝つ）、本棚の行は幅の外で入らない ──
+     **区分には居ないが、口コミに書いた賞与は1票になる**（本棚に賞与の申告が無いため）。 */
+  for (const [ann, bon] of [[3000, 600], [2600, 200]]) {
+    const u = await review(0, A, 'fo', { ann, bon });
+    await put(u, A, 'fo', 'a320', 2, { gross_monthly: 400 });
+  }
+  await link();
+  const d1 = await deep(sel);
+  // 区分に居るのは総額だけの2人：(3,000 ＋ 3,400) ÷ 2 ＝ 3,200万。平均（400万）は足さない
+  ok(Number(d1.head.annual_usd) === step50(man(3200)),
+     '★★総額に直に入っている人には、区分に平均が在っても足さない（3,200万。足せば 3,600万）',
+     `${d1.head.annual_usd} vs ${step50(man(3200))}`);
+  ok(d1.head.bonus_est === false && d1.head.bonus_gap === false,
+     '★★その人たちは目印を2つとも立てない', JSON.stringify(d1.head));
+  // 部品から組み立てた人（月給 200万・賞与は空）を足す → この人には平均が乗る
+  await review(0, A, 'fo', { mon: 200 });
+  await link();
+  const d2 = await deep(sel);
+  /* 3,000（そのまま）・3,400（そのまま）・2,400 ＋ 400 ＝ 2,800 → 中央値 3,000万。
+     総額の人にも足していれば 3,400・3,800・2,800 → 3,400万。 */
+  ok(Number(d2.head.annual_usd) === step50(man(3000)),
+     '★★同じ区分で：総額の人はそのまま・組み立てた人には平均が乗る（中央値 3,000万）',
+     `${d2.head.annual_usd} vs ${step50(man(3000))}`);
+  ok(d2.head.bonus_est === true && d2.head.bonus_gap === false,
+     '★区分に平均が在ることの証拠：組み立てた人が est を立て、賞与が無い印は立たない',
+     JSON.stringify(d2.head));
+}
+
+// ── (d) 3通りが1つの区分に居る ── 中央値で確かめる ─────────────────────
+{
+  const A = fresh();
+  await review(0, A, 'fo', { ann: 3050 });               // 総額だけ      → 3,050 のまま
+  await review(0, A, 'fo', { mon: 200 });                // 組み立て 2,400 → ＋600 ＝ 3,000
+  await review(0, A, 'fo', { ann: 2800, bon: 400 });     // 賞与を書いた  → 2,800 − 400 ＋ 600 ＝ 3,000
+  await review(0, A, 'fo', { ann: 3300, bon: 800 });     // 賞与を書いた  → 3,300 − 800 ＋ 600 ＝ 3,100
+  await review(0, A, 'fo', { mon: 210 });                // 組み立て 2,520 → ＋600 ＝ 3,120
+  await link();
+  const d = await deep({ airline: A, position: 'fo' });
+  /* 平均 ＝ (400 ＋ 800) ÷ 2 ＝ 600万。並べると 3,000・3,000・3,050・3,100・3,120 → 中央値 3,050万。
+       総額の人にも足せば 3,650 → 中央値 3,100／賞与を引かなければ 3,400・3,900 → 中央値 3,120／
+       組み立てた人に足さなければ 2,400・2,520 → 中央値 3,000。 */
+  ok(Number(d.head.annual_usd) === step50(man(3050)),
+     '★★3通りが混ざった区分の中央値は 3,050万（どれか1つでも取り違えると別の額になる）',
+     `${d.head.annual_usd} vs ${step50(man(3050))}`);
+  ok(d.head.bonus_est === true && d.head.bonus_gap === false, '　目印は est だけ',
+     JSON.stringify(d.head));
+  /* 月換算：総額だけの人は入らない。残り4人 ＝ 200・200・(3,300 − 800) ÷ 12 ＝ 208.33・210（万円）
+     → 中央値 204.17万。 */
+  ok(Number(d.head.month_usd) === await sig2(median(
+       [man(2400) / 12, (man(2800) - man(400)) / 12, (man(3300) - man(800)) / 12, man(2520) / 12])),
+     '★月換算は、賞与ぬきの額が言い切れる4人だけの中央値', String(d.head.month_usd));
+}
+
+// ── (e) 本棚の申告と口コミの申告は、1人1票ずつで一緒に平均する ────────────
+{
+  const A = fresh();
+  await put(0, A, 'cap', 'b777', 2, { gross_monthly: 10000, bonus_annual: 30000 });   // 年 150,000
+  await put(0, A, 'cap', 'b777', 2, { gross_monthly: 10000 });                        // 年 120,000
+  await review(0, A, 'captain', { ann: 3000, bon: 500 });                             // 賞与 500万
+  await link();
+  const M = (30000 + man(500)) / 2;
+  const dP = await deep({ airline: A, position: 'cap' });
+  // 本棚の2人は 120,000 ＋ M。口コミの人は 3,000万 − 500万 ＋ M（いちばん高い）→ 中央値 120,000 ＋ M
+  ok(Number(dP.head.annual_usd) === step50(120000 + M),
+     '★★本棚の申告（30,000）と口コミの申告（500万）が、1票ずつで1つの平均になる',
+     `${dP.head.annual_usd} vs ${step50(120000 + M)}`);
+  /* 機材まで絞った区分には口コミの人は居ないが、**その人の申告は平均に入っている**。
+     入っていなければ申告は1人 ＝ 平均なしで (150,000 ＋ 120,000) ÷ 2 ＝ 135,000。 */
+  const dF = await deep({ airline: A, position: 'cap', fleet: 'b777' });
+  ok(Number(dF.head.annual_usd) === step50(120000 + M) && dF.head.bonus_est === true,
+     '★★機材まで絞った区分（本棚の2人だけ）にも、口コミの申告を含めた平均が乗る（135,000 ではない）',
+     JSON.stringify(dF.head));
+}
+
+// ── (f) 本棚と口コミの両方に居る人 ── 数えるのは1回・賞与の1票も1回 ─────────
+{
+  /* 本棚に給与は出したが年間賞与は空、口コミには賞与を書いていた人。
+       年収の母集団 … 本棚の行だけ（口コミの年収は使わない。同じ人が2行にならない）
+       賞与の1票   … 口コミに書いた賞与（本棚に申告が無いので。蓄積された申告を捨てない） */
+  const A = fresh();
+  const x = await put(0, A, 'cap', 'b777', 2, { gross_monthly: 10000 });              // 年 120,000
+  await review(x.u, A, 'captain', { ann: 3000, bon: 600 });
+  await put(0, A, 'cap', 'b777', 2, { gross_monthly: 12000, bonus_annual: 20000 });   // 年 164,000
+  await link();
+  const M = (man(600) + 20000) / 2;
+  const want = step50(((120000 + M) + (144000 + M)) / 2);
+  const d = await deep({ airline: A, position: 'cap' });
+  ok(Number(d.head.annual_usd) === want,
+     '★★本棚の賞与が空の人は、口コミの賞与を1票として出す。本人の年収は 120,000 ＋ 平均（口コミの賞与を引かない）',
+     `${d.head.annual_usd} vs ${want}`);
+  ok(Number((await deep({ airline: A })).head.annual_usd) === want,
+     '★★その人は年収の母集団に1回だけ（口コミの 3,000万 を2行目として数えていない）');
+  ok((await realPay(A)).length === 2,
+     '　REAL PAY の一覧でも2人（同じ人の口コミ側は落ちている ＝ 同じ決まり）');
+
+  // 本棚にも口コミにも賞与を書いた人 ── 1票は本棚のぶんだけ
+  const B = fresh();
+  const y = await put(0, B, 'cap', 'b777', 2, { gross_monthly: 10000, bonus_annual: 10000 });  // 年 130,000
+  await review(y.u, B, 'captain', { ann: 3000, bon: 900 });
+  await put(0, B, 'cap', 'b777', 2, { gross_monthly: 12000, bonus_annual: 30000 });            // 年 174,000
+  await put(0, B, 'cap', 'b777', 2, { gross_monthly: 11000 });                                 // 年 132,000
+  await link();
+  const d2 = await deep({ airline: B, position: 'cap' });
+  /* 平均 ＝ (10,000 ＋ 30,000) ÷ 2 ＝ 20,000（口コミの 900万は使わない）。
+     140,000・164,000・152,000 → 中央値 152,000。口コミの賞与を足したり差し替えたりすれば動く。 */
+  ok(Number(d2.head.annual_usd) === 152000,
+     '★★両方に賞与を書いた人の1票は、本棚の申告だけ（中央値 152,000）',
+     String(d2.head.annual_usd));
+}
+
+// ── (g) はしごの側 ── 口コミ由来は「機材区分」の段にも入らない ──────────────
+{
+  /* 呼び手の機材が「その他」（機材区分が空）のとき、2段（会社×役職×機材区分）は
+     「区分が同じ」を null どうしでも真と読む。口コミ由来も機材区分が null なので、
+     名指しで外していないと**機材区分の段に口コミの人が入る**（持っていない機材区分で数える）。
+     正しくは：1段・2段は呼び手1人だけで壁の下 → 3段（会社×役職）で口コミの人と2人になる。 */
+  const A = fresh();
+  const me = await put(0, A, 'fo', 'b777', 6, { gross_monthly: 10000 });    // 年 120,000
+  await review(0, A, 'fo', { ann: 3000 });
+  await link();
+  await ready(me.u);
+  await openKey(me.u);
+  /* いまの保存の道は機材「その他」を受け付けない（機材区分が引けないので弾く）。機材区分が空の
+     行は、その検品より前の古い行にだけ在りうる ── 保存済みの行を直に書き換えて作る
+     （見る資格の1行は、書き換える**前**に出してある）。 */
+  await db.query(`update pay_reports set fleet = 'other', fleet_cat = null where id = $1`, [me.id]);
+  await asUser(me.u);
+  const d = await deep();
+  ok(d.state === 'open' && d.cohort.level === 'airline_pos',
+     '★★口コミ由来の人は機材区分の段（2段）に入らない ── 会社×役職（3段）で初めて一緒に数える',
+     `${d.state} / ${JSON.stringify(d.cohort)}`);
+  ok(Number(d.head.annual_usd) === step50((120000 + man(3000)) / 2),
+     '　3段の年収は、呼び手と口コミの人の中央値', String(d.head.annual_usd));
+  await asUser(V);
+}
+ok((await fingerprint()) !== FP0,
+   '（検査の道具）口コミと対応表を足したので、指紋は変わっている');
+{
+  // 最後にもう一度：どれだけ呼んでも、保存してある行は書き換わらない
+  const before = await fingerprint();
+  await asUser(V);
+  await deep(); await deep({ position: 'cap' }); await deep({ position: 'fo' });
+  await deep({ fleet: 'b777' });
+  ok((await fingerprint()) === before,
+     '★★区分を変えて何度呼んでも、給与・口コミ・対応表・名簿は1バイトも違わない（読むだけ）');
+}
+
 // ════════════════════════════════════════════════════════════
 /* ★ここが一番効く。deep-pay.sql の末尾には、貼れたかどうかをオーナーが
-     自分で確かめるための30行の表が付いている。**あの表自体が間違っている**と、
+     自分で確かめるための37行の表が付いている。**あの表自体が間違っている**と、
      オーナーは正しく貼れているのに ❌ を見て貼り直す（実際に13番の署名を
      1つ写し間違えていた）。手元で同じ表を出して、全部 ✅ を確かめる。 */
 {
@@ -3009,13 +4128,14 @@ ok(EX5.length >= 1, '▼24 用の会社が足りている', String(EX5.length));
   const sql = src.slice(cut);
   const r = await rows(sql);
   /* ★行数は固定で見る（2026-10-11 に 21 → 24、同じ日に見る資格の5行で 24 → 29、
-       公開より前から居た人の1行で 29 → 30）。
+       公開より前から居た人の1行で 29 → 30。2026-10-12 に、誰を数えるか・賞与の扱いの
+       7行で 30 → 37）。
        「以上」で見ると、union all を1行消しても緑のまま ── 消えた1行が、
        いちばん守りたい約束かもしれない。 */
-  ok(r.length === 30, `自己点検は ${r.length} 行ある（30行）`, String(r.length));
+  ok(r.length === 37, `自己点検は ${r.length} 行ある（37行）`, String(r.length));
   ok(r.map(x => Number(x['#'])).join(',') ===
-       Array.from({ length: 30 }, (_, i) => i + 1).join(','),
-     '番号は 1〜30 が1つずつ（重複も欠番も無い）', r.map(x => x['#']).join(','));
+       Array.from({ length: 37 }, (_, i) => i + 1).join(','),
+     '番号は 1〜37 が1つずつ（重複も欠番も無い）', r.map(x => x['#']).join(','));
   for (const x of r)
     ok(x['答え'] === '✅', `${x['#']}. ${x['見るもの']}`, x['答え']);
 }
