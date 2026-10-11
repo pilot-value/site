@@ -40,6 +40,16 @@
             どの月でも・窓の中・本人の行・運営）・▼23（見る線と数える線は別）。
           ⚠️ 検査を通すために DET を答えきった形にしないこと。勤務の列が全員に入り、
              ▼8 の「1人しか書いていない列は出さない」が測れなくなる。
+       ⑤ 同じ日、**公開より前から居た人**の決まりが1つ入った（オーナー判断「3つとも答えて
+          いる人はそのまま開く」。db/deep-pay.sql の v_old・境目は定数 v_launch）。
+          DEEP PAY の公開より前に、基本給／保証手当・職務手当／変動給の3つに答えて出して
+          いた人は、残りが空でも開く。公開から先に出す行は、④の線のまま。
+          ・このファイルの見本は**既定で「公開から先に出した行」**（道具の節の submit()）。
+            だから ▼2-b・▼2-c・▼23 は今までどおり④の線を測っている。
+          ・公開より前の行は stamp() で名指しで作る。検査は ▼2-d（門）と ▼24（区分の数字が
+            動かないこと）。
+          ⚠️ submit() の時刻送りを外さないこと。外しても、v_launch を過ぎた日に流せば緑の
+             まま ── **v_launch がまだ先の日にだけ**、▼2-b と ▼2-c が「欠けても閉じない」で落ちる。
 
    ★db/pay-rows.sql 側の検査（db/test-pay-rows.mjs）に deep-pay.sql を足さないこと。
      足すと DEEP PAY のバグで REAL PAY の検査が赤くなり、どちらが壊れたのか
@@ -134,11 +144,50 @@ const asUser = async (n) => {
 };
 const asAnon = () => db.query(`select set_config('pv.uid', '', false)`);
 
+/* ── 公開の瞬間と、見本の行を「出した時刻」（2026-10-11）──────────────
+   db/deep-pay.sql の門は、その行を出したのが DEEP PAY の公開（定数 v_launch）より前か
+   どうかで線が違う ── 公開より前に内訳の3つ（基本給／保証手当・職務手当／変動給）に
+   答えていた人は、残りを埋めなくても開く（オーナー判断「3つとも答えている人はそのまま開く」。
+   線の検査は ▼2-d と ▼24）。
+   このファイルの見本は「いま」入る。v_launch がまだ先の日（この検査を書いた日がそう）だと、
+   放っておけば**3つに答えた見本がぜんぶ「公開より前の行」になり**、▼2-b の項目ごとの表と
+   ▼2-c が赤くなる（3つ以外は、欠けても閉じない ── 実際に外して流すと、この2節で34本落ちた）。
+   ⚠️ そのとき検査のほうを「開く」に合わせて直さないこと。「ぜんぶ答える」線を測る検査が
+      1本も残らなくなる（公開から先の人には、その線が今も本物）。
+   だから**既定を「公開から先に出した行」にする** ── 下の submit() が、入れた行の時刻を
+   公開の先へ送る。公開より前の行は、stamp() で**名指しで**作る（▼2-d・▼24 だけ）。
+   ★SQL の側に、検査のための切り替え（合言葉・設定値・引数）は1つも足していない。
+     動かすのは見本の行の時刻だけ ＝ 試験の準備。
+   ★境目は SQL の宣言から読む。ここに日付を写して持たない ── オーナーが貼る前に
+     公開の日時を直しても、検査は1文字も直さなくてよい。
+   ★送る幅は**どの行も同じ**（ここで1回だけ決める）。行どうしの前後を崩さないため ──
+     門の todo と、区分を決める「いちばん新しい1行」は、同じ月なら出した時刻の新しい順
+     （▼2-c の④）。v_launch を1日より多く過ぎた日に流すと、幅は 0
+     ＝ いま入れた行が、そのまま「公開から先に出した行」。 */
+const LAUNCH = (read('db/deep-pay.sql')
+  .match(/\n  v_launch constant timestamptz := timestamptz '([^'\n]+)';/) || [])[1];
+if (!LAUNCH) {
+  console.log('  ❌ db/deep-pay.sql から公開の瞬間（v_launch の宣言）が読めない');
+  process.exit(1);
+}
+const SHIFT = (await one(
+  `select greatest($1::timestamptz - now() + interval '1 day', interval '0')::text s`,
+  [LAUNCH])).s;
+
 const submit = async (payload) => {
   const r = await one(`select submit_pay_report($1::jsonb) r`, [JSON.stringify(payload)]);
   await db.query(`update profiles set pay_reports_today = 0`);
+  /* ★既定は「公開から先に出した行」（上の注）。保存の道は、出し直すたびに出した時刻を
+       「いま」へ戻すので、出すたびにその1行だけを送り直す。 */
+  await db.query(`update pay_reports set created_at = created_at + $2::interval where id = $1`,
+                 [r.r.id, SHIFT]);
   return r;
 };
+/* その1行の「出した時刻」を、公開の瞬間からの差で**名指しで**置く。
+     '-1 day' … 公開の1日前（＝公開より前の行）  '0' … ちょうど  '1 day' … 1日あと */
+const stamp = (id, delta) => db.query(
+  `update pay_reports set created_at = $2::timestamptz + $3::interval where id = $1`,
+  [id, LAUNCH, delta]);
 
 const YEAR = new Date().getFullYear() - 1;
 const BASE = { currency: 'USD', lang: 'en', tax_rate_pct: 0 };
@@ -804,6 +853,230 @@ console.log('\n▼ 2-c. 見る資格 ── どの行で決まるか（どの月
   await db.exec(`drop table if exists public.pv_admins`);
   await asUser(uOp);
   ok((await deep()).state === 'locked', '　名簿が無くなれば、元どおり閉じる');
+}
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 2-d. 公開より前から居た人（内訳の3つに答えていれば、残りを埋めなくても開く）');
+// ════════════════════════════════════════════════════════════
+/* db/deep-pay.sql の v_old ── オーナー判断 2026-10-11「3つとも答えている人はそのまま開く」。
+   DEEP PAY を公開する（定数 v_launch）**より前に**、基本給／保証手当・職務手当／変動給
+   （何に連動する支給かまで）の3つに答えて出していた人は、残りが空でも開いたまま。
+   それ以外の人と、公開から先に出す行（出し直しも）は、▼2-b の線 ── ぜんぶ答えること。
+     ① 3つに答えた行を、公開より前に出していれば開く（何も頼まない ＝ todo は null）
+     ② 同じ行でも、公開から先に出していれば閉じる（境目ちょうどは「前」ではない）
+     ③ 3つのうち1つでも空なら閉じる（読み方は ▼2-b と同じ ── 0・「該当なし」・
+        「わからない」は答え。変動給は合計の列だけでは答えにならない）
+     ④ 窓・本人の行・鍵・みんなの側の条件は、この人たちにも同じに掛かる
+     ⑤ 公開から先に同じ月を出し直すと「前の行」ではなくなる（保存の道が時刻を新しくする）
+   ★見るのは門そのもの（pv_deep_pay の state / gate）。「閉じる」と「開く」を必ず対で見る ──
+     閉じる側だけ見ていると、この決まりが丸ごと抜けていても緑のまま。
+   ★行の時刻は stamp() で**公開の瞬間からの差**として置く（道具の節の注）。
+     このファイルの見本は既定で「公開から先に出した行」なので、ここだけが名指しで前へ置く。
+   ★ここの行も常識の幅の下（年 $1万未満）＝どの区分の集計にも入らない。
+     区分の数字が動かないこと（数えられる側に触れていないこと）は、いちばん最後の ▼24。 */
+{
+  const CELL = { airline: A_FILL2, position: 'cap', fleet: 'b777' };
+  /* 3つ（基本給・保証手当・変動給の行＝金額と連動先）は答えてあり、残りのうち5つが空。
+     ★空にしたうちの3つ（職位手当・プロフィットシェア・乗務日数）は、給与フォームでは
+       任意の「＋」を押した先に在る欄 ── この決まりが出来た理由そのもの。 */
+  const CORE = { ...FULL, command_pay: null, bonus_annual: null, profit_share_annual: null,
+                 duty_hours: null, duty_days: null };
+  const REST = ['command', 'bonus', 'profit', 'duty_h', 'duty_days'];
+  const BEFORE = '-1 day', AFTER = '1 day';
+  /* いまの利用者の1行を出し（同じ会社・同じ月＝上書き）、出した時刻を when に置く。
+     when = null なら置かない ＝ submit() の既定（公開から先に出した行）のまま。 */
+  const put = async (when, patch = {}, items = {}, y = YEAR, m = 1) => {
+    const p = { ...BASE, ...CELL, period_year: y, period_month: m, ...CORE, ...patch };
+    p.pay_items = items === null ? null : { ...FULL.pay_items, ...items };
+    const id = (await submit(p)).r.id;
+    if (when !== null) await stamp(id, when);
+    return id;
+  };
+  const at = async (id) => await one(
+    `select r.created_at <  $2::timestamptz as early,
+            r.created_at =  $2::timestamptz as exact,
+            pv_deep_missing(r)             as miss,
+            r.annual_total_usd             as usd
+       from pay_reports r where r.id = $1`, [id, LAUNCH]);
+
+  // ── ① 公開より前に3つ答えた行 → 開く ／ ② 公開から先なら閉じる ────────────
+  const uA = ++seat; await asUser(uA);
+  const idA = await put(null);
+  {
+    const r = await at(idA);
+    ok(r.early === false && JSON.stringify(r.miss) === JSON.stringify(REST)
+       && Number(r.usd) < 10000,
+       '（前提）見本の既定は「公開から先に出した行」。残りは5つ・常識の幅の下（区分に入らない）',
+       JSON.stringify(r));
+  }
+  {
+    const d = await deep();
+    ok(d.state === 'locked' && d.gate.key === true && d.gate.ready === false
+       && todoIs(d.gate.todo, YEAR, 1, REST),
+       '★★公開から先に出した行は、3つに答えていても locked ── 残りの5つを返す（▼2-b の線のまま）',
+       `${d.state} / ${JSON.stringify(d.gate)}`);
+  }
+  await stamp(idA, BEFORE);
+  ok((await at(idA)).early === true, '（前提）同じ行の出した時刻を、公開の1日前に置いた');
+  {
+    const d = await deep();
+    ok(d.state === 'open' && d.gate.key === true && d.gate.ready === true && d.gate.todo === null,
+       '★★同じ行を公開より前に出していれば open ── ready は true・何も頼まない（todo は null）',
+       `${d.state} / ${JSON.stringify(d.gate)}`);
+    ok(Object.keys(d.gate).sort().join(',') === 'contributors,crowd,goal,key,ready,todo',
+       '★門が返す鍵は6つのまま（どの道で通ったかは返さない）', Object.keys(d.gate).join(','));
+    ok(d.cohort !== null && d.picks !== null,
+       '　開いた人には、ほかの開いた人と同じものを渡す（区分と、選べる組み合わせ）');
+  }
+  ok(JSON.stringify((await at(idA)).miss) === JSON.stringify(REST),
+     '　その行の残りは5つのまま（答えを足して開けたのではない）');
+
+  // 境目 ── ちょうどは「前」ではない。1マイクロ秒でも前なら「前」
+  await stamp(idA, '0');
+  ok((await at(idA)).exact === true, '（前提）出した時刻が、公開の瞬間とちょうど同じ');
+  await lacks('★★境目ちょうど（出した時刻 ＝ v_launch）は「前」ではない → locked', REST);
+  await stamp(idA, '-1 microsecond');
+  ok((await at(idA)).early === true && (await at(idA)).exact === false,
+     '（前提）公開の瞬間の1マイクロ秒前');
+  await opens('★★1マイクロ秒でも前なら「前」→ open');
+  await stamp(idA, '1 microsecond');
+  await lacks('　1マイクロ秒あと → locked', REST);
+  await stamp(idA, AFTER);
+  await lacks('　1日あと → locked', REST);
+  await stamp(idA, BEFORE);
+  await opens('　前へ戻す → open');
+
+  // ── ③ 3つのうち1つでも空なら閉じる（戻せば開く）────────────────────────
+  /* 変動給は「行が無い」形で空にする。合計の列（flight_variable_pay）は 100 のまま ──
+     pv_my_give の full（REAL PAY の内訳の鍵）はこれで通すが、こちらは通さない。別の線。 */
+  for (const [code, patch, items] of [
+    ['base',      { base_pay: null }],
+    ['guarantee', { guarantee_pay: null }],
+    ['variable',  {}, { variable: [] }],
+  ]) {
+    await put(BEFORE, patch, items || {});
+    await lacks(`★★公開より前でも ${code} が空なら locked（3つのうち2つでは足りない）`,
+                [code, ...REST]);
+    await put(BEFORE);
+    await opens(`　${code} を戻す → open`);
+  }
+  await put(BEFORE, {}, { variable: [{ amount: 100, label: 'Flight Pay', basis: null }] });
+  await lacks('★変動給の金額だけで「何に連動する支給か」が無い行 → locked', ['variable', ...REST]);
+  await put(BEFORE, {}, { variable: [{ amount: null, label: 'Flight Pay', basis: 'block' }] });
+  await lacks('★連動先だけで金額の無い行 → locked', ['variable', ...REST]);
+  await put(BEFORE, {}, { partial: true, variable: [
+    { amount: 100, label: 'Flight Pay', basis: 'block' },
+    { amount: null, label: 'Night', basis: 'night' }] });
+  await lacks('★2行のうち1行でも金額が空 → locked', ['variable', ...REST]);
+  await put(BEFORE, {}, null);
+  {
+    const s = await one(`select r.flight_variable_pay v, r.pay_items is null as bare
+                           from pay_reports r where r.id = $1`, [idA]);
+    ok(Number(s.v) === 100 && s.bare === true,
+       '（前提）変動給の合計の列は 100・内訳の行（pay_items）は無い ＝ 古い形の行');
+  }
+  await lacks('★★変動給の合計の列だけの古い行は、公開より前でも locked（連動先に答えていない）',
+              ['variable', ...REST]);
+  await put(BEFORE);
+  await opens('　3つとも答えた形へ戻す → open');
+
+  // 「該当なし」・0・「わからない」は答え（▼2-b と同じ読み方 ── 写しではなく同じ判定）
+  const NONE3 = { gross_monthly: 500, base_pay: null, guarantee_pay: null,
+                  flight_variable_pay: null, other_allowance: null };
+  const none3 = { fixed_none: true, guarantee_none: true, variable_none: true, variable: [] };
+  await put(BEFORE, NONE3, none3);
+  await opens('★★「該当なし」3つ（基本給・保証手当・変動給）も答え → open');
+  for (const [flag, code] of [['fixed_none', 'base'], ['guarantee_none', 'guarantee'],
+                              ['variable_none', 'variable']]) {
+    await put(BEFORE, NONE3, { ...none3, [flag]: false });
+    await lacks(`　${flag} を外す → locked（${code} が残る）`, [code, ...REST]);
+  }
+  await put(BEFORE, { gross_monthly: 500, base_pay: 0, guarantee_pay: 0,
+                      flight_variable_pay: 0, other_allowance: 0 },
+            { variable: [{ amount: 0, label: 'Flight Pay', basis: 'unknown' }] });
+  await opens('★0 と「わからない」（basis = unknown）も答え → open');
+  await put(BEFORE);
+
+  // ── ⑤ 公開から先に同じ月を出し直すと、「前の行」ではなくなる ───────────────
+  /* 保存の道（db/pay-reports.sql ── 同じ会社・同じ月は上書き）は、出し直しのたびに
+     出した時刻を「いま」にする。公開から先の「いま」は公開より後なので、出し直した行は
+     ぜんぶ答える側の線へ移る。ここは保存の道を**そのまま**呼ぶ（submit() の時刻送りを
+     通さない）── 時刻が本当に新しくなることを見る。 */
+  {
+    await opens('（前提）公開の1日前に出した行で開いている');
+    const p = { ...BASE, ...CELL, period_year: YEAR, period_month: 1, ...CORE,
+                pay_items: FULL.pay_items };
+    const r = (await one(`select submit_pay_report($1::jsonb) r`, [JSON.stringify(p)])).r;
+    await db.query(`update profiles set pay_reports_today = 0`);
+    const s = await one(
+      `select r.created_at = $2::timestamptz + interval '-1 day'              as kept,
+              r.created_at between now() - interval '5 minutes' and now()     as fresh
+         from pay_reports r where r.id = $1`, [idA, LAUNCH]);
+    ok(r.id === idA && s.kept === false && s.fresh === true,
+       '★★同じ月を出し直すと、同じ行の出した時刻が「いま」に替わる（前の時刻は残らない）',
+       JSON.stringify({ same: r.id === idA, ...s }));
+    await stamp(idA, AFTER);          // 公開から先の「いま」＝ 公開より後
+    await lacks('★★公開から先に出し直した行は「前の行」ではない → locked（残りを答える）', REST);
+  }
+  // 出し直さずに、別の月を新しく出すぶんには閉め直さない（前の行はそのまま残る）
+  await put(BEFORE);
+  await put(null, { block_hours: null }, {}, YEAR, 5);
+  await opens('★公開から先に別の月を書きかけで出しても、前の行が残っているかぎり閉め直さない');
+  // ぜんぶ答えた人は、もちろん出した時刻に関係なく開く
+  {
+    const uFull = ++seat; await asUser(uFull);
+    const id = await put(null, FULL);
+    await opens('　ぜんぶ答えた行は、公開から先に出していても open（v_own の道）');
+    await stamp(id, BEFORE);
+    await opens('　公開より前でも open');
+  }
+
+  // ── ④ 窓・本人の行・鍵・みんなの側 ────────────────────────────────────
+  // 窓 ── 25か月前は外・24か月前（いちばん古い月）は中（答えきった行と同じ境目）
+  const out = await ago(24), old = await ago(23);
+  const uW = ++seat; await asUser(uW);
+  await put(BEFORE, {}, {}, out.y, out.m);
+  {
+    const d = await deep();
+    ok(d.state === 'locked' && d.gate.ready === false && d.gate.todo === null,
+       `★★公開より前に3つ答えていても、窓の外（${out.y}年${out.m}月＝25か月前）の行では開かない`,
+       `${d.state} / ${JSON.stringify(d.gate)}`);
+  }
+  await put(BEFORE, {}, {}, old.y, old.m);
+  await opens(`★窓のいちばん古い月（${old.y}年${old.m}月＝24か月前）なら開く（答えきった行と同じ窓）`);
+
+  // 本人の行だけ ── 他人の「前の行」は自分の資格にならない（同じ会社・役職・機材・同じ月）
+  const uO = ++seat; await asUser(uO);
+  await put(null);
+  await asUser(uA);
+  await opens('（前提）uA は公開より前の行で開いている');
+  await asUser(uO);
+  await lacks('★★同じ区分・同じ月に他人の「前の行」が在っても、自分の行が公開から先なら locked', REST);
+
+  // 鍵 ── この道で通る人にも、生きた鍵が要る
+  await asUser(uA);
+  await db.query(`update profiles set access_until = now() - interval '1 day' where id = $1`,
+                 [uid(uA)]);
+  {
+    const d = await deep();
+    ok(d.state === 'locked' && d.gate.key === false && d.gate.ready === true
+       && d.gate.todo === null && d.cohort === null && d.head === null && d.picks === null,
+       '★★公開より前から居た人でも、鍵が切れていれば locked（中身は渡さない・止めているのは鍵だけ）',
+       `${d.state} / ${JSON.stringify(d.gate)}`);
+  }
+  await openKey(uA); await asUser(uA);
+  await opens('　鍵が戻れば open');
+  // みんなの側 ── 100人 or 正式公開フラグ（ここまでは試験の抜け道で開けてある）
+  await db.query(`select set_config('pv.deep_bypass', '', false)`);
+  {
+    const d = await deep();
+    ok(d.state === 'locked' && d.gate.crowd === false && d.gate.key === true
+       && d.gate.ready === true && d.gate.todo === null && d.cohort === null,
+       '★★公開より前から居た人でも、みんなの側の条件（100人 or 正式公開）が無ければ locked',
+       `${d.state} / ${JSON.stringify(d.gate)}`);
+  }
+  await db.query(`select set_config('pv.deep_bypass', 'on', false)`);
+  await opens('　条件が戻れば open');
 }
 
 // ════════════════════════════════════════════════════════════
@@ -2640,8 +2913,89 @@ ok(EX4.length >= 1, '▼23 用の会社が足りている', String(EX4.length));
 }
 
 // ════════════════════════════════════════════════════════════
+console.log('\n▼ 24. 公開より前から居た人 ── 変わるのは本人が見られるかだけ（区分の数字は1つも動かない）');
+// ════════════════════════════════════════════════════════════
+/* db/deep-pay.sql の v_old（オーナー判断 2026-10-11「3つとも答えている人はそのまま開く」）。
+   門の側は ▼2-d。ここは**数えられる側に触れていないこと**を見る ──
+   この決まりが広げるのは「見る」だけで、区分の頭数（det）は1文字も動かしていない。
+   ★同じ1行の出した時刻だけを、公開の境目の前と後ろへ置き直して、**同じ問い合わせ**
+     （別の人が、その会社・役職・機材を手で選ぶ）の答えを比べる。区分・見出し・給与構成・
+     働き方・変動給・選べる組み合わせが1文字も違わないこと。変わるのは本人の門だけ。
+     ⚠️ stats は比べない（サイト全体の「この30日の件数」は、出した時刻で数えている）。
+   ★▼23 と同じく、区分に入る行（常識の幅の中）を足すので最後に置く。
+     入口の状態は「正式公開フラグが立っている・抜け道は外れている」。 */
+const EX5 = (await rows(
+  `select code from pv_airlines
+    where code <> 'other' and active
+      and code <> all(string_to_array($1, ','))
+    order by code limit 8`, [AIR.concat(EX, EX2).join(',')])).map(r => r.code).slice(7);
+ok(EX5.length >= 1, '▼24 用の会社が足りている', String(EX5.length));
+{
+  const H = EX5[0];
+  const sel = { airline: H, position: 'cap', fleet: 'b777' };
+  /* 公開より前から居た人の役。見本（DET）に、保証手当（0 ＝ 無い）と内訳の行を足した形
+     （変動給の行＝金額と連動先。other_allowance 4,400 ＝ 変動給 4,000 ＋ その他 400 の
+     ままなので、年収は見本と同じ 204,000 ＝ 区分に入る）。3つに答えてあり、残りはこの7つ。 */
+  const OLD = { ...DET, guarantee_pay: 0,
+                pay_items: { v: 2, fixed_none: false, guarantee_none: false, variable_none: false,
+                             variable: [{ amount: 4000, label: 'Flight Pay', basis: 'block' }],
+                             other: [{ amount: 400, label: 'Misc' }] } };
+  const LEFT = ['bonus', 'profit', 'block', 'duty_h', 'duty_days', 'stay', 'roles'];
+  const pic = (d) => JSON.stringify({ cohort: d.cohort, head: d.head, comp: d.comp,
+                                      work: d.work, var: d.var, picks: d.picks });
+
+  const h1 = ++seat; await asUser(h1);
+  const id1 = (await submit({ ...BASE, ...sel, period_year: YEAR, period_month: 6, ...OLD })).r.id;
+  await person(H, 'cap', 'b777', [{ month: 6 }], DET2);     // 2人目（見本の倍額・内訳だけ）
+
+  // 公開から先に出した行のとき
+  await asUser(h1);
+  {
+    const d = await deep();
+    ok(d.state === 'locked' && d.gate.ready === false && todoIs(d.gate.todo, YEAR, 6, LEFT),
+       '（出発点）3つに答えた行でも、公開から先に出していれば本人は locked（残りは7つ）',
+       `${d.state} / ${JSON.stringify(d.gate)}`);
+  }
+  await asUser(V);
+  const after = await deep(sel);
+  ok(shown(after) && Number(after.head.annual_usd) === 306000 && after.comp !== null,
+     '（前提）その2人の区分は出ている（中央値は2人の 306,000）── 本人が見られなくても数えられている',
+     JSON.stringify({ cohort: after.cohort, head: after.head }));
+
+  // 同じ行を、公開より前に出していたことにする
+  await stamp(id1, '-1 day');
+  await asUser(h1);
+  let mine;
+  {
+    mine = await deep();
+    ok(mine.state === 'open' && mine.gate.ready === true && mine.gate.todo === null,
+       '★★同じ行を公開より前に出していれば、本人は open ── 残りが7つ在っても何も頼まない（todo は null）',
+       `${mine.state} / ${JSON.stringify(mine.gate)}`);
+  }
+  await asUser(V);
+  const before = await deep(sel);
+  ok(pic(before) === pic(after),
+     '★★区分の数字は1文字も動かない（区分・見出し・給与構成・働き方・変動給・選べる組み合わせ）',
+     `前 ${pic(before).slice(0, 200)} / 後 ${pic(after).slice(0, 200)}`);
+  ok(mine.cohort.level === 'airline_pos_fleet'
+     && JSON.stringify(mine.head) === JSON.stringify(before.head)
+     && JSON.stringify(mine.comp) === JSON.stringify(before.comp)
+     && JSON.stringify(mine.work) === JSON.stringify(before.work)
+     && JSON.stringify(mine.var)  === JSON.stringify(before.var),
+     '★本人に見えるのも同じ2人の数字（この道で通った人だけの別の集計は無い）',
+     JSON.stringify({ cohort: mine.cohort, head: mine.head }));
+
+  // 境目の上へ戻す → 本人だけが閉じ、区分はそのまま
+  await stamp(id1, '0');
+  await asUser(h1);
+  await lacks('★境目ちょうどへ戻すと、本人はまた locked', LEFT);
+  await asUser(V);
+  ok(pic(await deep(sel)) === pic(after), '★そのあいだも区分の数字は同じ');
+}
+
+// ════════════════════════════════════════════════════════════
 /* ★ここが一番効く。deep-pay.sql の末尾には、貼れたかどうかをオーナーが
-     自分で確かめるための29行の表が付いている。**あの表自体が間違っている**と、
+     自分で確かめるための30行の表が付いている。**あの表自体が間違っている**と、
      オーナーは正しく貼れているのに ❌ を見て貼り直す（実際に13番の署名を
      1つ写し間違えていた）。手元で同じ表を出して、全部 ✅ を確かめる。 */
 {
@@ -2654,13 +3008,14 @@ ok(EX4.length >= 1, '▼23 用の会社が足りている', String(EX4.length));
   await db.exec(`create table if not exists auth.users (id uuid primary key)`);
   const sql = src.slice(cut);
   const r = await rows(sql);
-  /* ★行数は固定で見る（2026-10-11 に 21 → 24、同じ日に見る資格の5行で 24 → 29）。
+  /* ★行数は固定で見る（2026-10-11 に 21 → 24、同じ日に見る資格の5行で 24 → 29、
+       公開より前から居た人の1行で 29 → 30）。
        「以上」で見ると、union all を1行消しても緑のまま ── 消えた1行が、
        いちばん守りたい約束かもしれない。 */
-  ok(r.length === 29, `自己点検は ${r.length} 行ある（29行）`, String(r.length));
+  ok(r.length === 30, `自己点検は ${r.length} 行ある（30行）`, String(r.length));
   ok(r.map(x => Number(x['#'])).join(',') ===
-       Array.from({ length: 29 }, (_, i) => i + 1).join(','),
-     '番号は 1〜29 が1つずつ（重複も欠番も無い）', r.map(x => x['#']).join(','));
+       Array.from({ length: 30 }, (_, i) => i + 1).join(','),
+     '番号は 1〜30 が1つずつ（重複も欠番も無い）', r.map(x => x['#']).join(','));
   for (const x of r)
     ok(x['答え'] === '✅', `${x['#']}. ${x['見るもの']}`, x['答え']);
 }
