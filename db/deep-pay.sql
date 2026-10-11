@@ -592,7 +592,7 @@ declare
      ⚠️ この関数の中で、出した時刻の列名を**引用符でくくって**書かないこと。自己点検 10 が
         「日付を鍵として返していない」をその字で見ている（列として読むぶんには当たらない）。
      ⚠️ 下の宣言は字面のまま検査が見ている（空白を足して桁をそろえない）。 */
-  v_launch constant timestamptz := timestamptz '2026-10-15 00:00:00+09';
+  v_launch constant timestamptz := timestamptz '2026-10-12 00:00:00+09';
   v_air   text := nullif(btrim(coalesce(p ->> 'airline',  '')), '');
   v_pos   text := nullif(btrim(coalesce(p ->> 'position', '')), '');
   v_flt   text := nullif(btrim(coalesce(p ->> 'fleet',    '')), '');
