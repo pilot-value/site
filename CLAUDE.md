@@ -269,9 +269,12 @@ baland_ass/                            ブランド資産（※ brand_assets の
 
 見るもの: `node assert-give-first.mjs`（日英で82項目）。
 
-## DEEP PAY（[deep-pay.html](deep-pay.html) と会社比較 [deep-pay-compare.html](deep-pay-compare.html)・2026-10-11 公開）
+## DEEP PAY（[deep-pay.html](deep-pay.html)・2026-10-11 公開／会社比較 [deep-pay-compare.html](deep-pay-compare.html) は閉じている）
 
 ★2026-10-11 オーナー判断で公開した。2026-08-29 に作ってから、入口を1本も置かずにいた2枚。
+⚠️ **会社比較はまだ出さない**（2026-10-12 オーナー判断）。公開しているのは DEEP PAY の1枚だけ ── 会社比較は、日英の住所を直に開いても
+「準備中」の板1枚。閉じているのは**2つの JS の定数 `COMPARE_OPEN`**（[deep-pay-compare.js](deep-pay-compare.js) の頭＝画面そのもの／
+[deep-pay.js](deep-pay.js)＝「会社比較を見る」のカード）。**出す日は2つを一緒に true にして、2本の検査の「閉じている」の節を書き換える。**
 給与の中身を**区分（会社 × 役職 × 機材）ごとに束ねて**出す。**1人の行は1つも返さない**（1行＝1人は REAL PAY）。
 サーバは [db/deep-pay.sql](db/deep-pay.sql) の `pv_deep_pay()` 1本で、**門もそこにしか無い**。検索に出さない・左メニューは7項目のまま。
 
@@ -306,13 +309,16 @@ baland_ass/                            ブランド資産（※ brand_assets の
   1回だけ飛ばす。**見られるかどうかを決めるものに読ませない。** 音も乱数も使わない・「動きを減らす」設定では出さない。
 - **入口は3本ちょうど** ── REAL PAY の見出しのタブ（日英）と、行を押すと出る面のボタン（`actual-pay.js`）。
   `assert-deep-pay.mjs` の ① が集合を固定している＝ほかの画面や JS に `deep-pay.html` の字を書いた時点で落ちる。
+  ★会社比較へ繋がる線は、いま**1本も描かれない**（DEEP PAY の中の「会社比較を見る」は、定数が false のあいだ眠っている）。
   タブの CSS（`PV-PAYTABS`）は `actual-pay.css` と `deep-pay.css` に**同じ塊**で在る。[pv-gates.js](pv-gates.js) は DEEP PAY への
   住所も条件も持たず、通信もしない（`PVGates.setProgress` と `open('deep')` は、呼ぶ側のために名前だけ残した空の口）。
 - **オーナーが貼るのは `db/deep-pay.sql` の1本だけ**（末尾の自己点検30行が全部 ✅）。`db/pay-reports.sql` と `db/pay-rows.sql` は触っていない。
 
 見るもの: `node db/test-deep-pay.mjs`／`node assert-deep-pay.mjs`／`node assert-deep-pay-compare.mjs`／`node assert-pay-rows.mjs`。
-絵は `node shot-deep.mjs`（`full` / `day1` / `fold` / `ask` / `pos` / `pick` / `thin` / `nolist` / `lock` / `det` / `det0` / `goal` / `err` / `party`）・
-`node shot-compare.mjs`（`full` / `thin` / `drop` / `same` / `ask` / `dup` / `few` / `lock` / `det` / `det0` / `goal` / `err`）・
+絵は `node shot-deep.mjs`（`full` / `day1` / `fold` / `ask` / `pos` / `pick` / `thin` / `nolist` / `lock` / `det` / `det0` / `goal` / `err` / `party`。
+`cmp` を足すと、会社比較へのカードを手元でだけ出した絵）・
+`node shot-compare.mjs`（**`closed` ＝ いま本番で出る板**。ほかの `full` / `thin` / `drop` / `same` / `ask` / `dup` / `few` / `lock` / `det` / `det0` / `goal` / `err` は、
+出した日の絵を手元でだけ動かして撮る）・
 `node shot-actual-pay.mjs`（タブはどの場面でもいちばん上に写る）。**円だけで確かめない**（通貨を名指しして1枚撮る）。
 理由と経緯は [workflows/deploy-checklist.md](workflows/deploy-checklist.md) の 20 番と「DEEP PAY の解放条件」。
 
@@ -369,8 +375,8 @@ baland_ass/                            ブランド資産（※ brand_assets の
 | `assert-pay-rows.mjs` | REAL PAY の7つの約束（Give → Get・準識別子は粗い段だけ・有効数字2桁・1行＝1人…）＋**行を押すと出る面**（帯の両端が刻みの倍数・％も生の額も出ない・押してもサーバへ投げない）＋**行に出る年数の札が段の出どころと合っている**（昇格後が空の古い行は「在籍◯年」と出る・在籍年数を「昇格後」と名乗らせない）＋**開いたらすぐ一覧**（一覧が橙の案内パネルより上・数字カード3枚が一覧より下。2026-10-05）＋**出し直しのお願い**（「手取り ＞ 総支給 × 1.05」の線が4か所で同じ字・板に金額が1文字も出ない・未ログインは通信ゼロ・本人の明細を引くのはお願い用の1回まで）|
 | `assert-pay-report-sync.mjs` | 給与レポートの**日英が片方だけ直されていない**か（骨格だけ照合・文言は見ない）＋共有 `pay-wizard.js` が日英とも読まれているか＋**段の通過を知らせる名前が日英で1文字も違わない**（違うと「どこで離脱したか」の階段が2本に割れる）|
 | `db/test-pay-preview.mjs` | 確認画面の「公開イメージ」が **SQL と同じ答え**を返すか（`pv_sig2` / `pv_band_grid` / `pv_band` と9区分の切り分けを JS へ写しているため。写しが腐ったことに気づく仕掛けはこれ1本だけ）|
-| `assert-deep-pay.mjs` | DEEP PAY（2026-10-11 に公開）── **入口が決めた所にだけ在る**（対の外から繋がる線は REAL PAY のタブの日英と行の面のボタンの**3本ちょうど**・左メニューにも3段の表にも sitemap にも無い）・タブの CSS が `actual-pay.css` と1文字も違わない・**ぼかしてよいのは字も数字も持たない影絵（`.dp-ghost`）の規則1つだけ**・**その区分の人数を画面のどこにも出さない**（古いサーバを装った毒入りの答えでも1文字も変わらない）・見出しの2つは刻みで出す・錠前の板の行と行き先が閉じている理由どおり・**まだ答えていない項目の名前が給与フォームの見出しと同じ字**・クラッカーの印が門に触らない・「時給」と呼ばない・順位を書かない・0 で埋めない・**選んだ区分が人数の壁に届かなければ広い区分の数字で埋めない**・**選ぶまで何も出さない** |
-| `assert-deep-pay-compare.mjs` | 会社比較 ── **片側が人数の壁に届かなくてももう片側は普通に出る**・勝ち負けの語を書かない・賞与を月々の棒に入れない・人数を JS で数えない・読まない（壁は SQL の `v_min` の1か所）・**`deep-pay.js` と同じ本体で置いた関数が1文字もずれていない**（丸める道具・錠前の板・影絵の部品・クラッカー）・**オーナー指定の板の字（題・ボタン・答えの行）がそのまま**で、外した2つの文が戻っていない・この画面の CSS・JS・HTML にぼかしが1つも無い |
+| `assert-deep-pay.mjs` | DEEP PAY（2026-10-11 に公開）── **入口が決めた所にだけ在る**（対の外から繋がる線は REAL PAY のタブの日英と行の面のボタンの**3本ちょうど**・左メニューにも3段の表にも sitemap にも無い）・**会社比較へのリンクが1本も出ない**（2026-10-12 から閉じている。定数 `COMPARE_OPEN` が false・カードは枠ごと出ず、下の段に空の列が残らない）・タブの CSS が `actual-pay.css` と1文字も違わない・**ぼかしてよいのは字も数字も持たない影絵（`.dp-ghost`）の規則1つだけ**・**その区分の人数を画面のどこにも出さない**（古いサーバを装った毒入りの答えでも1文字も変わらない）・見出しの2つは刻みで出す・錠前の板の行と行き先が閉じている理由どおり・**まだ答えていない項目の名前が給与フォームの見出しと同じ字**・クラッカーの印が門に触らない・「時給」と呼ばない・順位を書かない・0 で埋めない・**選んだ区分が人数の壁に届かなければ広い区分の数字で埋めない**・**選ぶまで何も出さない** |
+| `assert-deep-pay-compare.mjs` | 会社比較（**2026-10-12 から閉じている**）── **配っているファイルのままなら、誰が来ても「準備中」の板1枚**（字は題とリンクの2つだけ・rpc を1本も呼ばない・保存領域が1文字も変わらない・選ぶ欄も表も棒も DOM に無い・定数 `COMPARE_OPEN` が false）・**開ける口は手元の住所でしか効かない**（手元でない住所から開くと、印を置いても閉じたまま）。そのうえで、出した日に動く本体の約束を手元でだけ動かして見続ける ── **片側が人数の壁に届かなくてももう片側は普通に出る**・勝ち負けの語を書かない・賞与を月々の棒に入れない・人数を JS で数えない・読まない（壁は SQL の `v_min` の1か所）・**`deep-pay.js` と同じ本体で置いた関数が1文字もずれていない**（丸める道具・錠前の板・影絵の部品・クラッカー）・**オーナー指定の板の字（題・ボタン・答えの行）がそのまま**で、外した2つの文が戻っていない・この画面の CSS・JS・HTML にぼかしが1つも無い |
 | `assert-roadmap.mjs` | ROADMAP & REQUESTS ── **匿名が解けない**（一覧の SQL が `author_hash` に触れない）・要望の本文が `textContent` で入る・**日英の文言の鍵が完全に同じ**・区分と状態の白リストが SQL と画面で一致・取れないときに 0 で埋めない・hex と `prefers-color-scheme` の直書きが無い |
 | `db/test-requests.mjs` | 要望と ♡ の SQL ── ハッシュが外へ出ない・**1人1票**・管理者しか状態を変えられない・隠した行が一般ユーザーの `total` にも出ない・文字数と連投の制限がサーバ側で効く |
 | `assert-claims.mjs` | サイトが**本当のことだけ**を言っているか ── A)「画像は送らない」と書かない（**本当は送っている。**端末を出ないのは*枠の外*と*塗った部分*だけ）・正しい説明が送る直前の確認画面と `personal-data.html` に在る／B) 画面に出る数を HTML に直書きしない（JS が書き換える欄は「—」で出荷・日英で欄の集合が同じ・掲載社数は `SALARY` と一致）|
@@ -420,7 +426,7 @@ baland_ass/                            ブランド資産（※ brand_assets の
    **同じ線が4か所に在る。1つだけ動かさない** ── フォーム日英の `netOver()`／
    サーバの `pv_validate_pay_payload()`／[pv-pay-fix.js](pv-pay-fix.js) の `isBad()`／`db/usage.mjs`。
    こちらは提出側とサーバにも網がある。**すでに入った行は書き換えず**、本人の画面
-   （REAL PAY・DEEP PAY・会社比較・MY PAGE）に出し直しのお願いを出す。⚠️ **会員を名指しで書き足さない。**
+   （REAL PAY・DEEP PAY・会社比較・MY PAGE。★会社比較は 2026-10-12 から閉じているあいだ出ない）に出し直しのお願いを出す。⚠️ **会員を名指しで書き足さない。**
    詳細は [workflows/pay-form.md](workflows/pay-form.md) の「手取りが総支給より多いときも」と
    [workflows/deploy-checklist.md](workflows/deploy-checklist.md) の「出し直しのお願い」
    年換算は昔から総支給が正（[db/pay-reports.sql](db/pay-reports.sql) の `pv_annual_total` の

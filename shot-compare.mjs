@@ -11,8 +11,19 @@
       「開く → 選択肢が生えるのを待つ → 2社選ぶ → 描き終わるのを待つ」まで
       やってから撮る。選ばずに撮ると、どの scene も同じ「2社選んでください」が写る。
 
+   ★★2026-10-12（オーナー判断「会社比較はまだ出さないでよ」）── 会社比較は閉じている。
+     **本番で出るのは scene: closed の1枚だけ**（「会社比較は準備中です」の板）。
+     それ以外の scene は、閉じているあいだも**手元でだけ**本体を動かして撮る ── ページの
+     どの script よりも先に window.__PV_COMPARE_OPEN = true を置く（deep-pay-compare.js の
+     compareOpen() が、localhost で開いたときだけこの印を読む。本番の住所では効かない）。
+     ＝ full 以下の絵は「出した日にこう出る」の確認で、いま本番に出ている絵ではない。
+
    実行: node shot-compare.mjs <scene> <lang> <theme> <幅> [通貨] [h=高さ] [open]
-     scene: full … 両側そろった状態（モック2枚目と同じ配置。既定）
+     scene: closed … ★いま本番で出ている画面。印を置かずに開く（＝配っているファイルのまま）。
+                    誰が来ても板が1枚（題とリンクの2つの字だけ）。撮ったあとの「閉じている:」の
+                    行で、rpc を1本も呼ばなかったこと・選ぶ欄や表が DOM に無いことを字でも
+                    確かめられる。
+            full … 両側そろった状態（モック2枚目と同じ配置。既定）
                    ★JAL 側が年収も Block Hours も上回るので**トレードオフが出る**
             thin … 片側が人数の壁に届かなかった状態（右だけ「まだ出せません」・左は普通に出る）
             drop … 片側にパーディアムが無い状態（★その行だけ表から消える。0 と書かない）
@@ -119,6 +130,10 @@ page.on('pageerror', (e) => console.log('❌ page error:', e.message));
 /* ★ setRequestInterception は使わない（CDP デッドロック。shot-tracker.mjs 参照）。 */
 await page.evaluateOnNewDocument((scene, theme, lang, cur) => {
   localStorage.setItem('pv-theme', theme);
+  /* ★会社比較は閉じている（2026-10-12）。closed のほかの scene は、手元でだけ本体を動かす
+       印を置く（deep-pay-compare.js の compareOpen()。localhost でしか効かない）。
+     ⚠️ closed には置かない ── あの scene は「配っているファイルのまま」を撮る。 */
+  if (scene !== 'closed') window.__PV_COMPARE_OPEN = true;
   /* ★撮影で解析に足あとを残さない（2026-10-11）。ページは load のあと gtag を読むので、
      立てておかないと、撮るたびに localhost の閲覧が本物の GA4 に1件ずつ入る
      （検査の側 ── assert-*.mjs ── は前からこの1行を立てている）。 */
@@ -384,11 +399,18 @@ await page.evaluateOnNewDocument((scene, theme, lang, cur) => {
 
 await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
 /* ★時間で待たない（混んだ回に嘘の結果が出る）。「描き終わった」条件で待つ。
-   deep-pay-compare.js は必ず #dc-hd に <h1> を書き込んでから他を描く。 */
-await page.waitForFunction(
-  () => !!document.querySelector('#dc-hd h1'), { timeout: 15000 });
-await page.waitForFunction(
-  () => !document.querySelector('#dc-sides .mr-skel'), { timeout: 15000 });
+   deep-pay-compare.js は必ず #dc-hd に <h1> を書き込んでから他を描く。
+   ★closed（2026-10-12）は別 ── 器の中身が板1枚に置き換わる（見出しの器も骨組みも無い）。 */
+if (scene === 'closed') {
+  await page.waitForFunction(
+    () => !!document.querySelector('#dc-root .dc-closed') && !document.querySelector('#dc-root .mr-skel'),
+    { timeout: 15000 });
+} else {
+  await page.waitForFunction(
+    () => !!document.querySelector('#dc-hd h1'), { timeout: 15000 });
+  await page.waitForFunction(
+    () => !document.querySelector('#dc-sides .mr-skel'), { timeout: 15000 });
+}
 
 if (PICK) {
   const IDS = { a: 'dc-pk-a', b: 'dc-pk-b', pos: 'dc-pk-pos',
@@ -595,6 +617,28 @@ const ghost = await page.evaluate(() => {
       + `・ぼかしの効いた要素 ${ghost.blurred}` + (shut ? '' : '  ← 閉じていない scene に影絵が在る'));
   else if (shut) console.log('❌ 影絵が無い（閉じた scene なのに、板の後ろに何も出ていない）');
   else if (ghost.blurred) console.log(`❌ 開いた scene に、ぼかしの効いた要素が ${ghost.blurred} つ在る`);
+}
+
+/* ★closed（2026-10-12）だけ：板の字と行き先・聞きに行かなかったこと・比較の部品が DOM に
+   無いことを、絵と一緒に字でも出す。見本の会員は「開いている会員」── その人にも出ない。 */
+if (scene === 'closed') {
+  const c = await page.evaluate(() => {
+    const b = document.querySelector('#dc-root .dc-closed');
+    const a = b && b.querySelector('a');
+    return {
+      title: ((b && b.querySelector('h1')) || {}).textContent || '',
+      go: a ? a.textContent.trim() : '',
+      to: a ? new URL(a.getAttribute('href'), location.href).pathname : '',
+      kids: document.getElementById('dc-root').children.length,
+      parts: document.querySelectorAll('#dc-root select, #dc-root .dc-tbl, #dc-root .dc-bar, '
+        + '#dc-root .dc-to-li, #dc-root .dp-pick, .dp-ghost, .dp-stage, .dp-pop').length,
+      rpc: window.__shotRpc, api: typeof window.PVDeepPayCompare,
+      mark: localStorage.getItem('pv_deep_was_locked')
+    };
+  });
+  console.log(`${c.kids === 1 && c.parts === 0 && c.rpc === 0 && c.api === 'undefined' && c.mark === null ? '✓' : '❌'} 閉じている: `
+    + `「${c.title}」／「${c.go}」→ ${c.to}・器の中は ${c.kids} 枚・比較の部品 ${c.parts} 個・`
+    + `rpc ${c.rpc} 回・試験用の入口は${c.api === 'undefined' ? '無い' : '在る'}・クラッカーの印は${c.mark === null ? '無い' : '在る'}`);
 }
 
 /* ★anon（ログインしていない人）だけ：聞きに行かなかったこと・よそへ運ばれなかったこと・端末に

@@ -1,5 +1,29 @@
 /* assert-deep-pay-compare.mjs — 会社比較（deep-pay-compare.html / .js / .css）の約束。
 
+   ★★2026-10-12（オーナー判断「会社比較はまだ出さないでよ」）── 会社比較は**閉じている**。
+     入口を外すだけでなく、日英の住所を直に開いても比較は1つも出さない。出るのは
+     「会社比較は準備中です」の板1枚（題とリンクの2つの字だけ）で、誰が来ても同じ・
+     サーバに1本も聞かない・端末に何も書かない。決めているのは deep-pay-compare.js の
+     いちばん上の定数 COMPARE_OPEN（false）。DEEP PAY の側の入口（「会社比較を見る」の
+     カード）は deep-pay.js の同じ名前の定数で消してあり、あちらは assert-deep-pay.mjs が見る。
+
+     この検査は2つの姿を見る ──
+       ・**配っているファイルのまま**（いま本番で出る姿）… ⓪（字面）と §0（実物）。
+         ここが、この回に足した見張り。
+       ・**出した日に動く本体** … ① から下ぜんぶ（前からの約束。1つも緩めていない）。
+         本体は閉じているあいだも腐らせない ── 手元の確認用サーバでだけ効く試験用の口で
+         動かして、今までどおり全部を通す。
+     ★試験用の口 ── ページのどの script よりも先に `window.__PV_COMPARE_OPEN = true` を置く
+       （下の open()。渡さなければ必ず置く ＝ ① から下は1行も変えずに動く）。読むのは
+       deep-pay-compare.js / deep-pay.js の compareOpen() だけで、**location.hostname が
+       localhost か 127.0.0.1 のときにしか効かない**。本番の住所（pilot-value.com）では、
+       印を置いても閉じたまま ── ⓪ が関数を取り出して住所の表で確かめ、§0 が、手元でない
+       住所から同じページを開いて実物でも確かめる。住所の後ろの字・保存領域では開かない。
+     ⚠️ 出す日にやること ── 2つの JS の COMPARE_OPEN を true に／⓪ と §0 を「開いている」に
+        書き換える（「定数が false」「板の字」「聞かない」は、その日から嘘になる）／
+        assert-deep-pay.mjs の ① の辺の集合と §3 の入口／roadmap-config.js を done に／
+        open() の印を外す（置いたままでも動くが、要らなくなる）。
+
    assert-deep-pay.mjs（概要ページ）とは**別ファイル**にしてある。理由は2つ。
    1. この画面の偽サーバは**会社コードごとに違う答えを返す**必要がある。
       1つの payload を返す向こうの FAKE では左右が同じ数字になり、
@@ -10,7 +34,9 @@
      見出しのタブの日英と、行を押すと出る面のボタンの3本。2026-10-11 に公開するまでは
      「対の外から1本も生えていない」だった）は assert-deep-pay.mjs ① に置いてある。
      ここには書かない（2か所で同じことを見張ると、片方だけ緩めたときに気づけない）。
-     ★この画面（会社比較）へは、今も対の外から直に繋がない ── 入るのは DEEP PAY の概要から。
+     ★この画面（会社比較）へは、今も対の外から直に繋がない。出した日に入るのは DEEP PAY の
+       概要から ── ただし 2026-10-12 から閉じているあいだ、その入口も描かれない
+       （＝ いま会社比較へ繋がる線は1本も無い。assert-deep-pay.mjs の ①）。
        タブもこの画面には無い（DEEP PAY の中の1枚）。
 
    ⚠️ assert-header.mjs の FORM_PAGES にはこの2枚を**足さない**。あちらの偽セッションは
@@ -117,6 +143,142 @@ const JA  = read('deep-pay-compare.html');
 const EN  = read('en/deep-pay-compare.html');
 const jsC = decomment(JS);
 const cssC = decomment(CSS);
+
+// ════════════════════════════════════════════════════════════════
+// ⓪ 会社比較は、まだ出さない（字面。2026-10-12・オーナー判断）
+// ════════════════════════════════════════════════════════════════
+/* オーナーの言葉「会社比較はまだ出さないでよ」。入口を外すだけでなく、日英の住所を直に
+   開いても比較は出さない。ここは字面。実物は下のブラウザの §0。見るのは5つ：
+     a) 定数が false のまま ── 配っているファイルで、会社比較は閉じている。
+        ⚠️ 出す日は、この行を true に替える**前に**ここを書き換える（冒頭の「出す日にやること」）。
+     b) 閉じている枝が、本体の**どの行よりも前**で終わる ── 'use strict' のすぐ後ろに在るのは
+        定数・手元かどうかの見分け・板・「閉じていれば板を出して戻る」の4つだけ。
+        その手前に、セッション・サーバ・保存領域・通信に触る字が1つも無い。
+     c) 試験用の口（compareOpen）は、**手元の住所でしか効かない**。関数を取り出して、
+        住所と印の表で実行する ── 本番の住所・似せた住所では、印が在っても false。
+     d) 板は、題とリンクの2つの字だけ ── 関数を取り出して日英で実行し、組み上がった HTML を見る。
+     e) 見た目に足したのは幅と間だけ（色・影・ぼかしを書き足していない）。
+   ★定数と compareOpen は deep-pay.js にも在る（入口のカードの側）。あちらの定数は
+     assert-deep-pay.mjs の ①、本体が同じであることは下の ④「写した関数」。 */
+console.log('\n════ ⓪ 閉じている（字面）════');
+/* ★オーナー指定の字（2026-10-12）。題とリンクの2つだけ ── ほかの文は足さない。 */
+const CLOSED_T = {
+  ja: { title: '会社比較は準備中です', go: 'DEEP PAY に戻る' },
+  en: { title: 'Company comparison is coming soon', go: 'Back to DEEP PAY' }
+};
+/* 手元かどうかの見分けの、決まった字（空白を1つに畳んだ形）。1文字でも違えば落ちる ──
+   条件を足した・緩めた・別の読み口（住所の後ろの字・保存領域）を足した、のどれも通さない。 */
+const OPEN_FN = 'function compareOpen() { if (COMPARE_OPEN) return true; try { '
+  + 'return w.__PV_COMPARE_OPEN === true && /^(?:localhost|127\\.0\\.0\\.1)$/.test(w.location.hostname); '
+  + '} catch (e) { return false; } }';
+const OPEN_GUARD = 'if (!compareOpen()) { w.PV_SESSION = Promise.resolve(null); closedBoard(); return; }';
+/* compareOpen() を取り出して、作り物の window で実行する（定数は false のまま）。 */
+const runOpen = (src, win) => {
+  try { return new Function('w', 'var COMPARE_OPEN = false;\n' + src + '\nreturn compareOpen();')(win); }
+  catch (e) { return 'threw: ' + e.message; }
+};
+const HOSTS_NO = ['pilot-value.com', 'www.pilot-value.com', 'localhost.pilot-value.com',
+                  'pilot-value.com.localhost', 'notlocalhost', 'localhost.', 'LOCALHOST.example',
+                  '127.0.0.1.nip.io', '127.0.0.10', '0.0.0.0', '[::1]', 'localhost:3000', ''];
+{
+  const norm = (t) => decomment(t).replace(/\s+/g, ' ').trim();
+  const count = (re, s) => (s.match(re) || []).length;
+
+  // ── a) 定数 ──
+  ok(/^  var COMPARE_OPEN = false;$/m.test(JS) && count(/\bCOMPARE_OPEN\s*=(?!=)/g, jsC) === 1
+     && count(/\bCOMPARE_OPEN\b/g, jsC) === 2,
+     '★★deep-pay-compare.js の COMPARE_OPEN は false（配っているファイルで、会社比較は閉じている）。'
+     + '代入は1か所・読むのは compareOpen() の1か所',
+     `代入 ${count(/\bCOMPARE_OPEN\s*=(?!=)/g, jsC)} / 字 ${count(/\bCOMPARE_OPEN\b/g, jsC)}`);
+
+  // ── b) 閉じている枝は、本体のどの行よりも前で終わる ──
+  const i0 = jsC.indexOf("'use strict';"), i1 = jsC.indexOf('var V = w.PVViz;');
+  const head = (i0 >= 0 && i1 > i0) ? jsC.slice(i0, i1) : '';
+  const boardSrc = cutFn(JS, 'closedBoard');
+  ok(head.length > 0 && boardSrc.length > 0
+     && norm(head) === ["'use strict';", 'var COMPARE_OPEN = false;', OPEN_FN, norm(boardSrc), OPEN_GUARD].join(' '),
+     '★★本体より前に在るのは、定数・見分け・板・「閉じていれば板を出して戻る」の4つだけ（字ごと固定）',
+     norm(head).slice(-140));
+  ok(!/\.rpc\b|\bfetch\b|[sS]torage|\bsb0?\b|\.auth\b|\bawait\b|\.then\b|cookie|addEventListener|setTimeout|setInterval|PVDeepPayCompare|PVGates|PVClaimPending|PVViz|PVCurrency|\bparty\w*\(|\block\w*\(|\bghost\w*\(|\bboot\(|\bload\(|\brender\(/.test(head),
+     '★★その手前に、サーバ・通信・保存領域・セッションを待つ字・試験用の入口・本体の描き手が1つも無い',
+     (head.match(/[^\n]*(?:\.rpc\b|\bfetch\b|[sS]torage|\.auth\b|\bawait\b|\.then\b|cookie|addEventListener|PVDeepPayCompare)[^\n]*/) || [''])[0].trim().slice(0, 90));
+  ok(count(/\bcompareOpen\(/g, jsC) === 2 && count(/\bclosedBoard\(/g, jsC) === 2
+     && count(/\bPV_SESSION\s*=(?!=)/g, jsC) === 1 && count(/__PV_COMPARE_OPEN/g, jsC) === 1,
+     '★見分けと板を使うのは、その1か所だけ（本体の側からは呼ばない・印を読むのは見分けの中の1回だけ）',
+     `compareOpen ${count(/\bcompareOpen\(/g, jsC)} / closedBoard ${count(/\bclosedBoard\(/g, jsC)} / 印 ${count(/__PV_COMPARE_OPEN/g, jsC)}`);
+  ok(jsC.indexOf('w.PVDeepPayCompare =') > i1 && count(/w\.PVDeepPayCompare\s*=/g, jsC) === 1,
+     '★試験用の入口（PVDeepPayCompare）は本体の側に在る ＝ 閉じているあいだは生えない');
+
+  // ── c) 試験用の口は、手元の住所でしか効かない ──
+  const openSrc = cutFn(JS, 'compareOpen');
+  ok(norm(openSrc) === OPEN_FN, '★★compareOpen() が決まった字のまま（条件を足していない・緩めていない）',
+     norm(openSrc).slice(0, 160));
+  const at = (host, flag) => runOpen(openSrc, { __PV_COMPARE_OPEN: flag, location: { hostname: host } });
+  ok(at('localhost', true) === true && at('127.0.0.1', true) === true,
+     '★手元の住所（localhost / 127.0.0.1）で印を置けば、本体が動く（この検査と撮影の道具が使う口）',
+     `${at('localhost', true)} / ${at('127.0.0.1', true)}`);
+  {
+    const leak = HOSTS_NO.filter((h) => at(h, true) !== false);
+    ok(leak.length === 0,
+       `★★本番の住所・似せた住所（${HOSTS_NO.length} 通り）では、印が在っても必ず false`, leak.join(' '));
+    const loose = ['true', 1, 'yes', {}, [], null, undefined, 0, false].filter((v) => at('localhost', v) !== false);
+    ok(loose.length === 0, '★★手元の住所でも、印が true そのものでなければ false（字の "true" や 1 では開かない）',
+       JSON.stringify(loose));
+    ok(runOpen(openSrc, { __PV_COMPARE_OPEN: true }) === false && runOpen(openSrc, null) === false
+       && runOpen(openSrc, { __PV_COMPARE_OPEN: true, location: null }) === false,
+       '★住所が読めない窓では false（投げない・開く側へ倒さない）');
+  }
+  ok(!/\bsearch\b|\bhash\b|\bhref\b|URLSearchParams|\bcookie\b|[sS]torage|\breferrer\b|\bname\b/.test(norm(openSrc)),
+     '★見分けは、住所の後ろの字・保存領域・Cookie・リンク元を読まない（読むのは hostname と印の2つ）');
+
+  // ── d) 板は、題とリンクの2つの字だけ ──
+  const runBoard = (lang, has) => {
+    const root = { innerHTML: null }, ids = [];
+    const doc = { documentElement: { getAttribute: (k) => (k === 'lang' ? lang : null) },
+                  getElementById: (id) => { ids.push(id); return (has && id === 'dc-root') ? root : null; } };
+    let why = '';
+    try { new Function('d', boardSrc + '\nclosedBoard();')(doc); } catch (e) { why = String(e && e.message); }
+    return { html: root.innerHTML, ids, why };
+  };
+  for (const lang of ['ja', 'en']) {
+    const r = runBoard(lang, true), H = r.html || '', W = CLOSED_T[lang];
+    ok(typeof r.html === 'string' && !r.why && r.ids.join(',') === 'dc-root',
+       `${lang}: ★★closedBoard() は、外の値を1つも読まずに組み上がる（触る器は #dc-root の1つだけ）`,
+       r.why + ' ' + r.ids.join(','));
+    ok(H.replace(/<[^>]*>/g, '') === W.title + W.go,
+       `${lang}: ★★板の字は、題とリンクの2つだけ（「${W.title}」「${W.go}」。ほかの文が無い）`,
+       JSON.stringify(H.replace(/<[^>]*>/g, '')));
+    const tags = [...new Set([...H.matchAll(/<([a-z][\w-]*)/gi)].map((m) => m[1].toLowerCase()))].sort();
+    ok(tags.join(' ') === 'a div h1 path svg' && count(/<h1[\s>]/g, H) === 1 && count(/<a[\s>]/g, H) === 1,
+       `${lang}: ★板のタグは div / h1 / a と絵（svg・path）だけ（見出しは1つ・リンクは1本）`, tags.join(' '));
+    ok(new RegExp('<h1 class="dp-msg-t">' + W.title + '</h1>').test(H)
+       && /<a class="dp-more-b dp-more-b--on dc-closed-go" href="deep-pay\.html">/.test(H)
+       && /^<div class="dp-msg dc-closed">/.test(H),
+       `${lang}: ★★題は <h1>・リンクの行き先は相対の deep-pay.html（/en/ からはその言語へ解ける）`);
+    ok(!/\b(?:target|rel|id|style|tabindex|on\w+|data-[\w-]+|src)\s*=/i.test(H)
+       && !/dp-cta|dp-stage|dp-ghost|dp-msg--lock|dp-pop|pay-report|login|signup/.test(H),
+       `${lang}: ★板に、押したときの仕掛け・別の行き先・橙のボタン・影絵の器が無い`);
+  }
+  {
+    const none = runBoard('ja', false);
+    ok(none.html === null && !none.why, '★器が無いページでは何もしない（投げない）', none.why);
+  }
+  ok(!/\b[SVT]\s*[.\[]|\b(?:IC|COL|CN|SEGK|MET)\b|\besc\(|\bel\(|\bsvg\(|\bw\s*\./.test(decomment(boardSrc)),
+     '★closedBoard() は、後ろで代入される表や道具（T / IC / esc / el）に触らない（まだ空のうちに走る）');
+  for (const lang of ['ja', 'en']) {
+    ok(count(new RegExp(CLOSED_T[lang].title, 'g'), jsC) === 1,
+       `${lang}: ★題の字は、板の中の1か所だけ（本体の文言の表には無い）`);
+  }
+
+  // ── e) 見た目に足したのは幅と間だけ ──
+  const rules = [...cssC.matchAll(/([^{}]*\bdc-closed[\w-]*[^{}]*)\{([^{}]*)\}/g)]
+    .map((m) => [m[1].trim(), m[2].trim()]);
+  const props = rules.flatMap((r) => r[1].split(';').map((x) => x.split(':')[0].trim()).filter(Boolean));
+  ok(rules.length === 2 && props.sort().join(' ') === 'margin-top max-width'
+     && /\.dc-closed\{max-width:\d+px\}/.test(cssC),
+     '★板のための CSS は2行・書いてあるのは max-width と margin-top だけ（色・影・角丸・動きを書き直していない）',
+     JSON.stringify(rules));
+}
 
 // ════════════════════════════════════════════════════════════════
 // ① 隠さない・作らない
@@ -462,7 +624,12 @@ console.log('\n════ ④ 写した関数 ════');
                       'ghBar', 'ghBars', 'ghField', 'ghHead', 'ghostTint', 'lockStage',
                       'anonGate', 'authLost',
                       'partyKey', 'partyWho', 'partyMark', 'partyDue', 'partyBit', 'partySpec',
-                      'partyHtml', 'partyFire', 'partyPop']) {
+                      'partyHtml', 'partyFire', 'partyPop',
+                      /* ★2026-10-12 にもう1つ（会社比較を閉じた回）── compareOpen（手元の住所で
+                           だけ効く試験用の口）。ずれると、片方の JS でだけ口が緩む・片方でだけ
+                           効かない（入口のカードは出るのに、先の画面は閉じたまま）。
+                           字そのものと、住所の表での答えは ⓪ の c)。 */
+                      'compareOpen']) {
     ok(DC[name] && DP[name] && norm(DC[name]) === norm(DP[name]),
        `★${name}() が deep-pay.js の写しのまま（ずれていない）`);
   }
@@ -809,8 +976,20 @@ console.log('\n════ ④-c ログインしていない人（字面）═�
        `${name}: ログイン画面の住所は、左メニューの「ログイン」の1本だけ（足していない）`,
        String(count(/login\.html/g, bare)));
   }
-  ok(!/\blocation\b|history\s*\.|window\.open\s*\(/.test(jsC),
-     '★★deep-pay-compare.js は、人をよそへ運ばない（location・history・window.open という字が無い）');
+  /* ★2026-10-12、location という字が1つ入った ── compareOpen() が location.hostname を**読む**
+       （手元の確認用サーバかどうかの見分け。運ぶ字ではない）。その関数は ⓪ の c) が字ごと
+       固定しているので、ここでは**その関数だけを抜いて**から、今までどおり見る。
+       ⚠️ 「location.hostname なら可」のように字で緩めない（別の関数に書いた日に通ってしまう）。 */
+  {
+    const openC = decomment(cutFn(JS, 'compareOpen'));
+    const rest = openC ? jsC.replace(openC, () => ' ') : jsC;
+    ok(openC.length > 0 && (jsC.match(/\blocation\b/g) || []).length === 1
+       && (openC.match(/\blocation\b/g) || []).length === 1 && /w\.location\.hostname\b/.test(openC)
+       && !/\blocation\b|history\s*\.|window\.open\s*\(/.test(rest),
+       '★★deep-pay-compare.js は、人をよそへ運ばない（location・history・window.open という字が無い。'
+       + '在るのは compareOpen() が hostname を読む1つだけ）',
+       `location の字 ${(jsC.match(/\blocation\b/g) || []).length} 個`);
+  }
 
   // ── b) 聞く前に戻る ──
   const bootC = decomment(cutFn(JS, 'boot'));
@@ -1063,9 +1242,12 @@ const FAKE = function (payload) {
     then: (res) => res({ data: rows, error: null }) }; return o; }
   const CLIENT = {
     auth: {
+      /* ★__email ＝ 会員のメールを差し替える（2026-10-12。§0 の「運営」の見本）。画面の側に
+           運営を見分ける仕掛けは無い ── 運営が全部見えるのはサーバの答えが開いているから。
+           それでも「誰のセッションで来ても同じ板」を、名前の違う会員でも通しておく。 */
       getSession: async () => ({ data: { session: P.__anon
-        ? null : { user: { id: UID, email: 'pilot@example.com' } } } }),
-      getUser: async () => ({ data: { user: { id: UID, email: 'pilot@example.com' } } }),
+        ? null : { user: { id: UID, email: P.__email || 'pilot@example.com' } } } }),
+      getUser: async () => ({ data: { user: { id: UID, email: P.__email || 'pilot@example.com' } } }),
       signOut: async () => ({ error: null }),
       onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } })
     },
@@ -1305,7 +1487,15 @@ const SNAP = () => {
 const noGhost = (s) => s.ghost === 0 && s.stage === 0 && s.blurred.length === 0;
 const ghostWhy = (s) => `影絵 ${s.ghost} / 器 ${s.stage} / ぼかしの効いた要素 ${s.blurred.join(',') || 'なし'}`;
 
-const browser = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox'] });
+/* ★手元でない住所（2026-10-12。§0 が使う）。試験用の口（compareOpen）は location.hostname が
+     localhost / 127.0.0.1 のときにしか効かない ── それを実物で見るには、同じページを
+     **別の名前の住所**から開くしかない。ブラウザの中でだけ、作り物の名前 NOT_LOCAL を
+     この機械（確認用サーバ）へ向ける。外の網へは1バイトも出ない（.test は実在しない名前）。
+     ポートは BASE から取る（番号を2か所に書かない）。 */
+const NOT_LOCAL = 'pv-not-local.test';
+const ALT = BASE.replace('localhost', () => NOT_LOCAL);
+const browser = await puppeteer.launch({ headless: 'shell',
+  args: ['--no-sandbox', '--host-resolver-rules=MAP ' + NOT_LOCAL + ' 127.0.0.1'] });
 const jars = [];
 
 const PK = { a: 'dc-pk-a', b: 'dc-pk-b', pos: 'dc-pk-pos',
@@ -1366,7 +1556,15 @@ async function drawn(page) {
      file   … 開く画面（既定は deep-pay-compare.html。概要を同じ偽サーバで開くのに使う）。
      reduce … 「動きを減らす」設定を装う。
      first  … ページのどの script よりも先に流す関数と引数の組（[[fn, arg], …]）。
-     tail   … 住所の後ろに付ける字（'?x=1#y' のように。§2f が「付けて来た字が残る」を見る）。 */
+     tail   … 住所の後ろに付ける字（'?x=1#y' のように。§2f が「付けて来た字が残る」を見る）。
+   ★2026-10-12、会社比較を閉じた。**渡さなければ、試験用の口の印を置いてから開く**
+     （window.__PV_COMPARE_OPEN = true。手元の住所でだけ効く ── 冒頭の注）＝ ① から下の
+     節は、今までと1行も変えずに「出した日に動く本体」を見ている。閉じた姿を見る §0 だけが、
+     次の3つを使う ──
+     shipped … true なら印を置かない ＝ **配っているファイルのまま**開く。
+     flag    … 印に置く値を名指しする（true でない値では開かないことを見る）。
+     closed  … 閉じた板が出るのを待つ（shipped のときは言わなくても待つ）。
+     base    … 開く住所の頭（既定は BASE。手元でない住所 ALT から開くのに使う）。 */
 async function open(lang, payload, theme, sel, expect, width, opt) {
   const o = opt || {};
   const jar = o.jar || await browser.createBrowserContext();
@@ -1382,7 +1580,7 @@ async function open(lang, payload, theme, sel, expect, width, opt) {
   page.on('request', (r) => {
     const u = r.url();
     reqs.push(u);
-    if (u.startsWith(BASE)) return r.continue();
+    if (u.startsWith(BASE) || (o.base && u.startsWith(o.base))) return r.continue();
     if (/supabase-js|cdn\.jsdelivr/.test(u))
       return r.respond({ status: 200, contentType: 'application/javascript', body: '' });
     if (/fonts\.googleapis|fonts\.gstatic/.test(u))
@@ -1393,15 +1591,348 @@ async function open(lang, payload, theme, sel, expect, width, opt) {
     window['ga-disable-G-3XYF69VQ3X'] = true;
     localStorage.setItem('pv-theme', t);
   }, theme || 'light');
+  /* ★試験用の口の印（上の注）。shipped のときだけ置かない。 */
+  if (!o.shipped) {
+    await page.evaluateOnNewDocument((v) => { window.__PV_COMPARE_OPEN = v; },
+                                     ('flag' in o) ? o.flag : true);
+  }
   await page.evaluateOnNewDocument(FAKE, payload);
-  await page.goto(BASE + (lang === 'en' ? '/en/' : '/') + (o.file || 'deep-pay-compare.html') + (o.tail || ''),
+  await page.goto((o.base || BASE) + (lang === 'en' ? '/en/' : '/') + (o.file || 'deep-pay-compare.html') + (o.tail || ''),
                   { waitUntil: 'domcontentloaded', timeout: 30000 });
+  /* ★閉じた板を待つ回（§0）。見出しの器も骨組みも無い画面なので、drawn() では待てない。
+       ⚠️ 時間切れでも投げない ── 板が出なかった回は、このあとの検査が「何が出たか」を字で言う。 */
+  if (o.shipped || o.closed) {
+    await page.waitForFunction(() => document.readyState === 'complete'
+      && (!!document.querySelector('#dc-root .dc-closed') || !!document.querySelector('#dc-hd h1')),
+      { timeout: 20000 }).catch(() => {});
+    await page.waitForNetworkIdle({ idleTime: 400, timeout: 20000 }).catch(() => {});
+    return { page, errs, reqs, navs };
+  }
   /* ★__hold（答えを止めた見本）は待たない ── 骨組みが残っていることを見る筋書き。
      ★__anon（ログインしていない人）も待つ（2026-10-11）。前はログイン画面へ運ばれて
        この画面が消えるので待てなかった。いまはここに居たまま、板を描く。 */
   if (!(payload && payload.__hold)) await drawn(page);
   if (sel) await choose(page, sel, expect == null ? 2 : expect);
   return { page, errs, reqs, navs };
+}
+
+// ── 0. 会社比較は閉じている（2026-10-12・オーナー判断「会社比較はまだ出さないでよ」）──
+/* ★★いま本番で出る姿。**配っているファイルのまま**（試験用の口の印を置かずに）開く。
+   誰が来ても同じ ── ログインしていない人／まだ開いていない会員／開いている会員／運営。
+   見るのは：
+     板     … 器（#dc-root）の中は板1枚。字は題とリンクの2つだけ（オーナー指定。⓪ の CLOSED_T）。
+              題は <h1>。リンクは1本で、その言語の DEEP PAY に解ける（本物のマウスで押すと着く）。
+     出ない … 選ぶ欄・表・棒・トレードオフ・見出しの器・骨組み・錠前の板・影絵・紙吹雪・
+              出し直しのお願い・全ページの Give → Get の板。数字も金額も1文字も無い。
+              試験用の入口（PVDeepPayCompare）も生えていない。
+     聞かない … rpc を**1本も**呼ばない（pv_deep_pay も、ほかの名前も。表も引かない）。窓の中の数
+              （偽物が数えた呼び出し）と、窓の外の数（通信の住所に /rpc/ が無い）の両方で見る。
+              ★この画面の HTML は、すぐ後ろで pv-pay-fix.js（出し直しのお願い）を読む。あちらは
+                会員が居ると my_pay_reports を1回引く ── 閉じているあいだは、それも起こさない
+                （deep-pay-compare.js が PV_SESSION を「誰も居ない」に置き換えてから終わる）。
+     書かない … 保存領域が、ページの script が動く前と**1文字も変わらない**。書きに行った鍵は、
+              ページの部品が前から書くもの（テーマ・英語ページの言語の控え）だけ。
+     形     … 320 / 390 / 1440 × 明暗で、横スクロールが生えない・板が本文の中に収まる・
+              題もリンクも切れない・リンクが押せる（何かの下に隠れていない）・字と面の色が違う。
+   そのあと、試験用の口の実物（この検査の ① から下が、何を足場にしているか）：
+     ・手元の住所で印を置くと、本体が動く ── 同じ見本の会員で rpc が**実際に出る**ことも、
+       ここで確かめる（＝ 上の「聞かない」の網が空振りでない）
+     ・手元で**ない**住所（ALT）では、印を置いても閉じたまま
+     ・手元の住所でも、true でない印・住所の後ろの字・保存領域の字では開かない
+   ⚠️ 窓は見終わったらすぐ閉じる（溜めると、この Mac では混んで嘘の赤が出る）。 */
+/* 保存領域の見張り（assert-deep-pay.mjs の ANON_WATCH と同じ本体）。★ページのどの script よりも
+   先に流す。ページの部品が自分で書く鍵を、書くはずの値で先に置いてから、中身をまるごと控える
+   （__ls0）。書く・消すの呼び出しも、鍵の名前で全部控える（__writes）。 */
+const ANON_WATCH = function (seed) {
+  for (const k of Object.keys(seed)) localStorage.setItem(k, seed[k]);
+  const P = Storage.prototype, s = P.setItem, r = P.removeItem, c = P.clear;
+  const where = (x) => (x === window.sessionStorage ? 'session:' : 'local:');
+  window.__writes = [];
+  P.setItem = function (k) { window.__writes.push(where(this) + k); return s.apply(this, arguments); };
+  P.removeItem = function (k) { window.__writes.push(where(this) + k); return r.apply(this, arguments); };
+  P.clear = function () { window.__writes.push(where(this) + '*'); return c.apply(this, arguments); };
+  window.__dump = () => JSON.stringify([
+    Object.keys(localStorage).sort().map((k) => [k, localStorage.getItem(k)]),
+    Object.keys(sessionStorage).sort().map((k) => [k, sessionStorage.getItem(k)])]);
+  window.__ls0 = window.__dump();
+};
+const CHROME_KEYS = ['local:pv-theme', 'local:pv-lang'];
+const anonSeed = (lang, theme, more) =>
+  Object.assign({ 'pv-theme': theme }, lang === 'en' ? { 'pv-lang': 'en' } : {}, more || {});
+const wires = (reqs) => ({
+  rpc: reqs.filter((u) => /\/rpc\//.test(u)),
+  api: reqs.filter((u) => /supabase\.co|\/rest\/v1\/|\/auth\/v1\//.test(u)),
+  login: reqs.filter((u) => /login\.html|signup\.html|auth-callback/.test(u)),
+  give: reqs.filter((u) => /pv-give-first/.test(u)),
+  odd: reqs.filter((u) => !u.startsWith(BASE)
+    && !/^https:\/\/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js|^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/|^https:\/\/www\.googletagmanager\.com\/gtag\/js/.test(u))
+});
+/* 閉じた画面に**在ってはいけないもの**（比較の器と部品・閉じた会員の板の部品・飾り）。 */
+const CLOSED_PARTS = ['#dc-hd', '#dc-cond', '#dc-pick', '#dc-sides', '#dc-diff', '#dc-mix', '#dc-trade',
+  '#dc-cta', '.dc-top', '.dc-main', 'main select', 'main option', 'main button', 'main input',
+  '.dp-pick', '.dp-pick-s', '.dp-cond', '.dc-tbl', '.dc-tr', '.dc-bar', '.dc-bar-row', '.dc-seg',
+  '.dc-leg-i', '.dc-to-li', '.dc-side', '.dc-kv', '.dc-logo', 'main .mr-skel', 'main .mr-card',
+  '.dp-msg--lock', '.dp-msg--ask', '.dp-msg-s', '.dp-msg-w', '.dp-todo', '.dp-cta', '.pt-empty',
+  '.dp-ghost', '.dp-stage', '.dp-pop', '#pv-pay-fix', '#mr-gate', '#pvgf-back', '.pvgf-back'];
+/* 紙吹雪・影絵・器が**一瞬でも**出たかを、ページのどの script よりも先から数える。 */
+const CLOSED_POP = function () {
+  window.__flash = 0;
+  new MutationObserver(() => {
+    if (document.querySelector('.dp-pop, .dp-ghost, .dp-stage, #dc-root select, #dc-root .dc-tbl')) window.__flash++;
+  }).observe(document, { childList: true, subtree: true });
+};
+const CLOSED_READ = async (parts, key) => {
+  const root = document.getElementById('dc-root'), main = document.querySelector('main');
+  const b = root && root.querySelector('.dc-closed');
+  const h = b && b.querySelector('h1'), a = b && b.querySelector('a');
+  let sess = 'threw', fix = 'none';
+  try { sess = await window.PV_SESSION; } catch (e) {}
+  try { if (window.PVPayFix) fix = await window.PVPayFix.ready; } catch (e) { fix = 'threw'; }
+  return {
+    url: location.pathname + location.search + location.hash,
+    kids: root ? [...root.children].map((e) => e.className) : null,
+    lines: main ? main.innerText.split('\n').map((x) => x.trim()).filter(Boolean) : null,
+    title: h ? h.textContent : null, h1s: document.querySelectorAll('h1').length,
+    go: a ? a.textContent.trim() : null, href: a ? a.getAttribute('href') : null,
+    to: a ? (function () { const u = new URL(a.getAttribute('href'), location.href);
+                           return u.pathname + u.search + u.hash; })() : null,
+    extra: a ? [...a.attributes].map((x) => x.name).sort().join(' ') : null,
+    press: main ? main.querySelectorAll('a, button, input, select, textarea, [tabindex], [onclick]').length : -1,
+    parts: parts.filter((sel) => document.querySelectorAll(sel).length > 0),
+    blurred: main ? [...main.querySelectorAll('*')].filter((e) => {
+      const cs = getComputedStyle(e);
+      return (cs.filter && cs.filter !== 'none') || (cs.backdropFilter && cs.backdropFilter !== 'none');
+    }).length : -1,
+    api: typeof window.PVDeepPayCompare,
+    rpc: window.__rpc, args: window.__rpcArgs, from: window.__from,
+    sess: sess, fix: fix,
+    dump: window.__dump ? window.__dump() : null, ls0: window.__ls0 || null,
+    writes: (window.__writes || []).slice(),
+    mark: (function () { try { return localStorage.getItem(key); } catch (e) { return 'threw'; } })(),
+    flash: window.__flash
+  };
+};
+/* 形。★板・題・リンクの箱を測る。色は計算後の値（明暗でトークンが切り替わっていること）。 */
+const CLOSED_FIT = () => {
+  const de = document.documentElement;
+  const b = document.querySelector('#dc-root .dc-closed');
+  const h = b && b.querySelector('h1'), a = b && b.querySelector('a'), m = document.querySelector('main');
+  if (!b || !h || !a || !m) return null;
+  const rb = b.getBoundingClientRect(), rh = h.getBoundingClientRect(), ra = a.getBoundingClientRect();
+  const rm = m.getBoundingClientRect();
+  const top = document.elementFromPoint(ra.left + ra.width / 2, ra.top + ra.height / 2);
+  const cb = getComputedStyle(b), ch = getComputedStyle(h), ca = getComputedStyle(a);
+  return {
+    over: de.scrollWidth - de.clientWidth,
+    w: Math.round(rb.width * 10) / 10,
+    inMain: rb.left >= rm.left - 0.5 && rb.right <= rm.right + 0.5 && rb.left >= 0 && rb.right <= innerWidth + 0.5,
+    title: rh.left >= rb.left - 0.5 && rh.right <= rb.right + 0.5 && rh.top >= rb.top && h.scrollWidth <= h.clientWidth + 1,
+    go: ra.left >= rb.left - 0.5 && ra.right <= rb.right + 0.5 && ra.top >= rh.bottom && ra.bottom <= rb.bottom + 0.5
+      && a.scrollWidth <= a.clientWidth + 1,
+    goH: Math.round(ra.height), hit: !!top && (top === a || a.contains(top)),
+    seen: cb.visibility === 'visible' && cb.display !== 'none' && Number(cb.opacity) === 1 && rb.height > 40,
+    bg: cb.backgroundColor, ink: ch.color, goInk: ca.color, goBg: ca.backgroundColor,
+    px: [parseFloat(ch.fontSize), parseFloat(ca.fontSize)]
+  };
+};
+/* 来る人の4通り。★どれも __wire 付き ＝ もし rpc を呼べば、窓の外の記録にも1本掛かる。 */
+const CLOSED_WHO = [
+  ['ログインしていない人', { __anon: true, __wire: true, air: AIR }],
+  ['まだ開いていない会員', { __lock: true, __wire: true, air: AIR }],
+  ['開いている会員',       { __wire: true, air: AIR }],
+  ['運営',                 { __email: 'info@pilot-value.com', __wire: true, air: AIR }]
+];
+const CLOSED_MARK = 'pv_deep_was_locked';     // クラッカーの印の鍵（下の POP_KEY と同じ字）
+{
+  const bgOf = {};
+  for (const lang of ['ja', 'en']) {
+    const path = (lang === 'en' ? '/en/' : '/') + 'deep-pay-compare.html';
+    const home = (lang === 'en' ? '/en/' : '/') + 'deep-pay.html';
+    const W = CLOSED_T[lang];
+    for (const [who, payload] of CLOSED_WHO) {
+      for (const theme of ['light', 'dark']) {
+        const tag = `${lang}/${theme}/${who}`;
+        const { page, errs, reqs, navs } = await open(lang, payload, theme, null, null, null,
+          { shipped: true, first: [[ANON_WATCH, anonSeed(lang, theme)], [CLOSED_POP, null]] });
+        const r = await page.evaluate(CLOSED_READ, CLOSED_PARTS, CLOSED_MARK);
+        const w = wires(reqs);
+
+        // ── 板 ──
+        ok(r.url === path && navs.length === 1 && navs[0] === BASE + path && w.login.length === 0,
+           `${tag}: ★この住所に居たまま（よそへ運ばれない・ログイン画面へも送られない）`,
+           `${r.url} / ${JSON.stringify(navs)}`);
+        ok(Array.isArray(r.kids) && r.kids.join('|') === 'dp-msg dc-closed',
+           `${tag}: ★★器（#dc-root）の中は、板1枚だけ`, JSON.stringify(r.kids));
+        ok(r.title === W.title && r.go === W.go && Array.isArray(r.lines)
+           && r.lines.join(' | ') === [W.title, W.go].join(' | ') && r.h1s === 1,
+           `${tag}: ★★本文の字は、題とリンクの2つだけ（「${W.title}」／「${W.go}」。見出しは1つ）`,
+           JSON.stringify(r.lines) + ' / h1 ' + r.h1s);
+        ok(r.href === 'deep-pay.html' && r.to === home && r.press === 1 && r.extra === 'class href',
+           `${tag}: ★★押せるものはリンク1本・行き先はその言語の DEEP PAY（${home}）`,
+           `${r.href} → ${r.to} / 押せるもの ${r.press} / 属性 ${r.extra}`);
+
+        // ── 出ない ──
+        ok(r.parts.length === 0,
+           `${tag}: ★★比較の器も部品も DOM に無い（選ぶ欄・表・棒・トレードオフ・骨組み・錠前の板・影絵・お願いの板）`,
+           r.parts.join(' '));
+        ok(r.blurred === 0 && r.flash === 0 && r.api === 'undefined',
+           `${tag}: ★ぼかしの効いた要素が無い・影絵も紙吹雪も選ぶ欄も一瞬も出ていない・試験用の入口が生えていない`,
+           `ぼかし ${r.blurred} / 途中で出た ${r.flash} / 入口 ${r.api}`);
+        ok(!/[0-9０-９¥$€£]|万|%/.test((r.lines || ['0']).join(' ')) && !NOCOUNT.test((r.lines || []).join(' '))
+           && !/null|undefined|NaN|\[object/.test((r.lines || ['null']).join(' ')),
+           `${tag}: ★本文に数字も金額も人数も無い`, JSON.stringify(r.lines));
+
+        // ── 聞かない ──
+        ok(Object.keys(r.rpc || { x: 1 }).length === 0 && (r.args || [0]).length === 0 && r.from === 0,
+           `${tag}: ★★rpc を1本も呼ばない（pv_deep_pay も、ほかの名前も。表も引かない）`,
+           JSON.stringify(r.rpc) + ' / from ' + r.from);
+        ok(w.rpc.length === 0 && w.api.length === 0,
+           `${tag}: ★★窓の外から数えても、住所に /rpc/ の入った通信が0本（通信は全部で ${reqs.length} 本・サーバの API へも0本）`,
+           w.rpc.concat(w.api).join(' '));
+        ok(w.odd.length === 0 && w.give.length === 0
+           && !reqs.some((u) => /pv-vocab\.json|pv-airlines\.json|airline-logos\//.test(u)),
+           `${tag}: ★通信の行き先が増えていない・社名の辞書も語彙もロゴも取りに行かない`,
+           w.odd.concat(w.give).join(' ') + reqs.filter((u) => /pv-vocab|pv-airlines\.json/.test(u)).join(' '));
+        ok(r.sess === null && (r.fix === 0 || r.fix === 'none'),
+           `${tag}: ★後ろで読まれる部品（出し直しのお願い）にも本人を渡していない（お願いは引かずに決着）`,
+           `渡した値 ${JSON.stringify(r.sess)} / お願い ${r.fix}`);
+
+        // ── 書かない ──
+        ok(typeof r.ls0 === 'string' && r.dump === r.ls0,
+           `${tag}: ★★保存領域が、ページの script が動く前と1文字も変わらない（localStorage も sessionStorage も）`,
+           `前 ${r.ls0} / 後 ${r.dump}`);
+        ok(r.writes.every((k) => CHROME_KEYS.includes(k)) && r.mark === null,
+           `${tag}: ★★書きに行った鍵は、ページの部品が前から書くものだけ（クラッカーの印も、お願いの控えも、門の鍵も無い）`,
+           [...new Set(r.writes)].join(' '));
+
+        // ── 形 ──
+        for (const vw of [320, 390, 1440]) {
+          await sizeTo(page, vw, 900);
+          const f = (await page.evaluate(CLOSED_FIT)) || {};
+          ok(f.over <= 0, `${tag}/${vw}: ★★横スクロールが生えない`, `+${f.over}px`);
+          ok(f.seen === true && f.inMain === true && f.title === true && f.go === true,
+             `${tag}/${vw}: ★板が本文の中に収まる・題もリンクも板からはみ出さない・切れない`,
+             JSON.stringify({ seen: f.seen, inMain: f.inMain, title: f.title, go: f.go, w: f.w }));
+          ok(f.hit === true && f.goH >= 30 && f.goH <= 44,
+             `${tag}/${vw}: ★リンクが押せる（上に何も乗っていない・1行のまま）`, `当たり=${f.hit} 高さ ${f.goH}px`);
+          ok(f.ink !== f.bg && f.goInk !== f.goBg && f.px && f.px[0] >= 15 && f.px[1] >= 12,
+             `${tag}/${vw}: 字と面の色が違う・字が小さすぎない`, JSON.stringify([f.ink, f.bg, f.goInk, f.goBg, f.px]));
+          if (vw === 1440) {
+            ok(f.w <= 520.5 && f.w >= 400, `${tag}/1440: ★広い画面でも板は小さいまま（帯にならない）`, `${f.w}px`);
+            bgOf[lang + '/' + who + '/' + theme] = f.bg;
+          }
+        }
+        if (theme === 'dark') {
+          const a = bgOf[lang + '/' + who + '/light'], d = bgOf[lang + '/' + who + '/dark'];
+          ok(!!a && !!d && a !== d, `${lang}/${who}: ★明暗で板の面の色が切り替わる（色はトークンのまま）`, `${a} / ${d}`);
+        }
+
+        // ── 何をしても変わらない ──
+        if (theme === 'light') {
+          const again = await page.evaluate(() => {
+            const b = document.querySelector('#dc-root .dc-closed'), a = b && b.querySelector('a');
+            if (a) a.focus();
+            window.dispatchEvent(new Event('pv-currency-change'));
+            window.dispatchEvent(new Event('pv-currency-change'));
+            return { same: !!b && document.querySelector('#dc-root .dc-closed') === b
+                       && document.getElementById('dc-root').children.length === 1,
+                     focus: !!a && document.activeElement === a,
+                     rpc: Object.keys(window.__rpc).length, kept: window.__dump() === window.__ls0 };
+          });
+          ok(again.same && again.focus && again.rpc === 0 && again.kept,
+             `${tag}: ★通貨を切り替えても、板は同じ要素のまま・リンクに焦点が当たる・聞きに行かない・書かない`,
+             JSON.stringify(again));
+        }
+        ok(errs.length === 0, `${tag}: JS のエラーが出ない`, errs.join(' / '));
+
+        // ── 押すと着く（本物のマウスで。言語ごとに1回）──
+        if (theme === 'light' && who === '開いている会員') {
+          await sizeTo(page, 1360, 900);
+          await Promise.all([
+            page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 30000 }).catch(() => {}),
+            page.click('#dc-root .dc-closed a')
+          ]);
+          const landed = await page.evaluate(() => location.pathname);
+          ok(landed === home, `${tag}: ★★リンクを押すと、その言語の DEEP PAY に着く`, landed);
+        }
+        await jars.pop().close().catch(() => {});
+      }
+    }
+  }
+
+  // ── 端末に前の印・前の控えが残っている人（日本語だけ）──
+  {
+    const tag = 'ja/前の印と控えが残っている会員';
+    const seed = anonSeed('ja', 'light', { [CLOSED_MARK]: 'abc123', pv_pay_fix: '{"u":"x","t":1}' });
+    const { page, errs, reqs } = await open('ja', { __wire: true, air: AIR }, 'light', null, null, null,
+      { shipped: true, first: [[ANON_WATCH, seed], [CLOSED_POP, null]] });
+    const r = await page.evaluate(CLOSED_READ, CLOSED_PARTS, CLOSED_MARK);
+    ok(r.kids && r.kids.join('|') === 'dp-msg dc-closed' && r.mark === 'abc123' && r.dump === r.ls0
+       && r.flash === 0 && !r.writes.some((k) => /was_locked|pv_pay_fix/.test(k)),
+       `${tag}: ★★同じ板・クラッカーの印もお願いの控えも消さない・書き換えない・鳴らさない`,
+       `印 ${JSON.stringify(r.mark)} / 触った鍵 ${[...new Set(r.writes)].join(' ')}`);
+    ok(wires(reqs).rpc.length === 0 && Object.keys(r.rpc).length === 0 && errs.length === 0,
+       `${tag}: 聞きに行かない・JS のエラーが出ない`, wires(reqs).rpc.join(' ') + errs.join(' / '));
+    await jars.pop().close().catch(() => {});
+  }
+
+  // ── 試験用の口の実物 ──
+  /* a) 手元の住所 ＋ 印（open() の既定）→ 本体が動く。同じ見本の会員で、rpc が実際に出る。 */
+  {
+    const tag = '試験用の口/手元の住所＋印';
+    const { page, errs, reqs } = await open('ja', { __wire: true, air: AIR }, 'light');
+    await page.waitForFunction(() => !!(window.PVPayFix && window.PVPayFix.ready), { timeout: 20000 }).catch(() => {});
+    await page.evaluate(() => window.PVPayFix && window.PVPayFix.ready).catch(() => {});
+    await page.waitForNetworkIdle({ idleTime: 400, timeout: 20000 }).catch(() => {});
+    const s = await page.evaluate(() => ({
+      closed: document.querySelectorAll('.dc-closed').length, hd: !!document.querySelector('#dc-hd h1'),
+      api: typeof window.PVDeepPayCompare, rpc: window.__rpc }));
+    const w = wires(reqs);
+    ok(s.closed === 0 && s.hd && s.api === 'object' && s.rpc.pv_deep_pay === 1,
+       `${tag}: ★★本体が動く（板は出ない・見出しが入る・入口の1回を引く）＝ ① から下は本体を見ている`,
+       JSON.stringify(s));
+    ok(w.rpc.some((u) => /\/rpc\/pv_deep_pay$/.test(u)) && s.rpc.my_pay_reports === 1
+       && w.rpc.some((u) => /\/rpc\/my_pay_reports$/.test(u)),
+       `${tag}: ★（網の自己点検）開いた本体では、同じ見本の会員で pv_deep_pay と my_pay_reports が窓の外の記録に掛かる`,
+       w.rpc.join(' ') || '（1本も掛かっていない）');
+    ok(errs.length === 0, `${tag}: JS のエラーが出ない`, errs.join(' / '));
+    await jars.pop().close().catch(() => {});
+  }
+  /* b) 手元でない住所 ＋ 印 → 閉じたまま（本番の住所では、印が在っても開かない、の実物）。 */
+  for (const lang of ['ja', 'en']) {
+    const tag = `試験用の口/${lang}/手元でない住所（${NOT_LOCAL}）＋印`;
+    const { page, errs, reqs } = await open(lang, { __wire: true, air: AIR }, 'light', null, null, null,
+      { base: ALT, closed: true, first: [[ANON_WATCH, anonSeed(lang, 'light')], [CLOSED_POP, null]] });
+    const r = await page.evaluate(CLOSED_READ, CLOSED_PARTS, CLOSED_MARK);
+    const host = await page.evaluate(() => [location.hostname, window.__PV_COMPARE_OPEN]);
+    ok(host[0] === NOT_LOCAL && host[1] === true,
+       `${tag}: （前置き）手元でない住所から開けている・印は置いてある`, JSON.stringify(host));
+    ok(r.kids && r.kids.join('|') === 'dp-msg dc-closed' && r.title === CLOSED_T[lang].title
+       && r.parts.length === 0 && r.api === 'undefined' && r.flash === 0,
+       `${tag}: ★★印を置いても、閉じた板のまま（比較の部品も試験用の入口も無い）`,
+       JSON.stringify(r.kids) + ' ' + r.parts.join(' ') + ' ' + r.api);
+    ok(Object.keys(r.rpc || { x: 1 }).length === 0 && reqs.filter((u) => /\/rpc\//.test(u)).length === 0
+       && r.dump === r.ls0 && errs.length === 0,
+       `${tag}: ★★rpc を1本も呼ばない・保存領域が変わらない・JS のエラーが出ない`,
+       JSON.stringify(r.rpc) + errs.join(' / '));
+    await jars.pop().close().catch(() => {});
+  }
+  /* c) 手元の住所でも、true でない印・住所の後ろの字・保存領域の字では開かない。 */
+  for (const [name, flag] of [['字の "true"', 'true'], ['数の 1', 1]]) {
+    const tag = `試験用の口/手元の住所＋${name}＋住所の後ろの字＋保存領域の字`;
+    const tail = '?__PV_COMPARE_OPEN=true&open=1&compare=open#open';
+    const seed = anonSeed('ja', 'light', { __PV_COMPARE_OPEN: 'true', COMPARE_OPEN: 'true' });
+    const { page, errs, reqs } = await open('ja', { __wire: true, air: AIR }, 'light', null, null, null,
+      { flag, closed: true, tail, first: [[ANON_WATCH, seed], [CLOSED_POP, null]] });
+    const r = await page.evaluate(CLOSED_READ, CLOSED_PARTS, CLOSED_MARK);
+    ok(r.url === '/deep-pay-compare.html' + tail && r.kids && r.kids.join('|') === 'dp-msg dc-closed'
+       && r.parts.length === 0 && r.api === 'undefined'
+       && Object.keys(r.rpc || { x: 1 }).length === 0 && reqs.filter((u) => /\/rpc\//.test(u)).length === 0
+       && r.dump === r.ls0 && errs.length === 0,
+       `${tag}: ★★閉じた板のまま（開く口は「手元の住所で、印が true そのもの」の1つだけ）`,
+       r.url + ' ' + JSON.stringify(r.kids) + ' ' + JSON.stringify(r.rpc) + errs.join(' / '));
+    await jars.pop().close().catch(() => {});
+  }
 }
 
 // ── 1. （欠番）ログインしていない人 → §2f ───────────────────────────
@@ -2588,25 +3119,8 @@ const NET    = { error: { message: 'TypeError: Failed to fetch', details: '', hi
                  status: 0, statusText: '' };
 const ERR_TEXT = { ja: '読み込めませんでした。少し待ってから開き直してください。',
                    en: 'Could not load. Please try again in a moment.' };
-/* 保存領域の見張り（assert-deep-pay.mjs の ANON_WATCH と同じ本体）。★ページのどの script よりも
-   先に流す。ページの部品が自分で書く鍵を、書くはずの値で先に置いてから、中身をまるごと控える
-   （__ls0）。書く・消すの呼び出しも、鍵の名前で全部控える（__writes）。 */
-const ANON_WATCH = function (seed) {
-  for (const k of Object.keys(seed)) localStorage.setItem(k, seed[k]);
-  const P = Storage.prototype, s = P.setItem, r = P.removeItem, c = P.clear;
-  const where = (x) => (x === window.sessionStorage ? 'session:' : 'local:');
-  window.__writes = [];
-  P.setItem = function (k) { window.__writes.push(where(this) + k); return s.apply(this, arguments); };
-  P.removeItem = function (k) { window.__writes.push(where(this) + k); return r.apply(this, arguments); };
-  P.clear = function () { window.__writes.push(where(this) + '*'); return c.apply(this, arguments); };
-  window.__dump = () => JSON.stringify([
-    Object.keys(localStorage).sort().map((k) => [k, localStorage.getItem(k)]),
-    Object.keys(sessionStorage).sort().map((k) => [k, sessionStorage.getItem(k)])]);
-  window.__ls0 = window.__dump();
-};
-const CHROME_KEYS = ['local:pv-theme', 'local:pv-lang'];
-const anonSeed = (lang, theme, more) =>
-  Object.assign({ 'pv-theme': theme }, lang === 'en' ? { 'pv-lang': 'en' } : {}, more || {});
+/* ★保存領域の見張り（ANON_WATCH）・ページの部品が前から書く鍵（CHROME_KEYS）・その種
+   （anonSeed）は、§0 の前へ移した（2026-10-12。閉じた画面の節も同じ道具を使う）。 */
 /* 落ち着くまで待つ ── 読み込みが終わり・器が出て・社名の辞書が着き・通信が静まるまで
    （時間では待たない。assert-deep-pay.mjs の anonSettled と同じ本体）。 */
 async function anonSettled(page) {
@@ -2637,14 +3151,7 @@ const ANON_READ = (key) => ({
   pop: document.querySelectorAll('.dp-pop').length, popSeen: (window.__pop || {}).seen,
   gf: document.querySelectorAll('#pvgf-back, .pvgf-back').length
 });
-const wires = (reqs) => ({
-  rpc: reqs.filter((u) => /\/rpc\//.test(u)),
-  api: reqs.filter((u) => /supabase\.co|\/rest\/v1\/|\/auth\/v1\//.test(u)),
-  login: reqs.filter((u) => /login\.html|signup\.html|auth-callback/.test(u)),
-  give: reqs.filter((u) => /pv-give-first/.test(u)),
-  odd: reqs.filter((u) => !u.startsWith(BASE)
-    && !/^https:\/\/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js|^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/|^https:\/\/www\.googletagmanager\.com\/gtag\/js/.test(u))
-});
+/* ★通信の住所の振り分け（wires）も、§0 の前へ移した（2026-10-12）。 */
 const anonOpen = (lang, payload, theme, more) => open(lang, payload, theme, null, null, null,
   Object.assign({ first: [[ANON_WATCH, anonSeed(lang, theme)], [POP_WATCH, POP_KEY]] }, more || {}));
 for (const lang of ['ja', 'en']) {

@@ -29,6 +29,23 @@
          （pv-give-first.js）にも出るので、住所を1つ書くと入口が約400枚に生える。
        ・VERIFIED PAY は準備中のまま
 
+   ★★2026-10-12（オーナー判断「会社比較はまだ出さないでよ」）── 会社比較は**閉じている**。
+     DEEP PAY そのものは公開のまま・1つも変えていない。変わったのは2つ ──
+       ・この画面から会社比較へ行く入口（開いた画面のいちばん下の「もっと深く見る／
+         会社比較を見る」のカード）を、**枠ごと出さない**。決めているのは deep-pay.js の
+         定数 COMPARE_OPEN（false）。下の段は「何をすると給与が増えるか」が幅いっぱいになる。
+       ・会社比較の画面そのものは、deep-pay-compare.js の同じ名前の定数で閉じてある
+         （直に開いても「準備中」の板だけ）。あちらは assert-deep-pay-compare.mjs が見る。
+     ここで見るのは ── ① 会社比較へ繋がる**生きた線が1本も無い**（字面）／§3・§7 開いた画面の
+     どこにも会社比較へのリンクが無い・カードの器が畳まれている／§3h 幅 320 / 390 / 1440 で
+     下の段が崩れていない（空の列が残らない）。
+     ★カードの描き手は消していない（出す日に1行で戻る）。腐らせないために、手元の住所で
+       だけ効く試験用の口（compareOpen。注は assert-deep-pay-compare.mjs の冒頭）で動かして、
+       前からの約束（リンクは1本・相対のまま・「準備中」のボタンを置かない）を §3h で見続ける。
+       クラッカーの「2つの画面で印は1つ」（§2f の f）も、同じ口で会社比較の本体を動かして見る。
+     ⚠️ 出す日は、2つの JS の定数を**一緒に** true にして、① の辺の集合・§3・§7・§3h を
+        「開いている」に書き換える（手順は assert-deep-pay-compare.mjs の冒頭）。
+
    ★左メニューに段を足す日にやること（この検査を書き換える前に、この順で）──
      1. patch-side-nav.mjs の一覧に deep を **href:'deep-pay.html' で**足す
         （前の形 ── href が空・soon:true ── で足さない。押しても何も起きない段になる）。
@@ -314,12 +331,52 @@ console.log('\n════ ① 入口（決めた所にだけ在る・黙って
      '★★対の外から DEEP PAY へ繋がる線は、ちょうど3本（REAL PAY のタブの日英・行の面のボタン）',
      outside.slice().sort().join(' / ') || '（1本も無い）');
   ok(!outside.some((e) => /deep-pay-compare\.html$/.test(e)),
-     '★会社比較へは、対の外から直に繋がない（入るのは DEEP PAY の概要から）');
-  const EDGES = ['deep-pay-compare.js → deep-pay.html',
-                 'deep-pay.js → deep-pay-compare.html'].join(' / ');
-  /* 日英で同じ JS を共有しているので、2往復ぶんの実体はこの2本。 */
-  ok([...new Set(inside)].sort().join(' / ') === EDGES,
-     '★対の中の行き来はこの2本だけ（日英が共有）', inside.sort().join(' / '));
+     '★会社比較へは、対の外から直に繋がない');
+  /* ── 対の中の線 ── 2026-10-12（オーナー判断「会社比較はまだ出さないでよ」）から、
+       **会社比較へ繋がる生きた線は1本も無い**。字として残っているのは2本 ──
+         deep-pay-compare.js → deep-pay.html         … 生きている（「準備中」の板の「DEEP PAY に戻る」。
+                                                        出した日の、下の入口の同じリンクも同じ字）
+         deep-pay.js → deep-pay-compare.html         … **眠っている**（「会社比較を見る」のカード）
+       2本めは、定数 COMPARE_OPEN が false のあいだ描かれない。消していないのは、出す日に
+       1行で戻すため。「眠っている」と言えるのは、下の4つがそろっているときだけ：
+         a) 定数が false（代入は1か所）
+         b) 会社比較の住所の字は deep-pay.js に1つきりで、more() の中に在る
+         c) more() は、その字より**前**で「閉じていれば器を空にして畳んで戻る」
+         d) 開ける口（compareOpen）は手元の住所でしか効かない（字は assert-deep-pay-compare.mjs
+            の ⓪ が固定し、2つの JS で同じ本体であることを ④ が見る。ここは在ることだけ）
+       ⚠️ a)〜c) のどれかを緩めると、会社比較への入口が黙って戻る。実物は §3・§7・§3h。 */
+  const DORMANT = 'deep-pay.js → deep-pay-compare.html';
+  const LIVE = 'deep-pay-compare.js → deep-pay.html';
+  /* 日英で同じ JS を共有しているので、実体はこの2本。 */
+  ok([...new Set(inside)].sort().join(' / ') === [LIVE, DORMANT].join(' / '),
+     '★対の中に字として在る線は2本（会社比較 → DEEP PAY に戻る／眠っている「会社比較を見る」）',
+     inside.sort().join(' / '));
+  {
+    const cnt = (re, t) => (t.match(re) || []).length;
+    const moreC = decomment(cutFn(JS, 'more'));
+    const guard = moreC.indexOf("if (!compareOpen()) { box.innerHTML = ''; box.hidden = true; return; }");
+    const addr = moreC.indexOf("'deep-pay-compare.html'");
+    ok(/^  var COMPARE_OPEN = false;$/m.test(JS) && cnt(/\bCOMPARE_OPEN\s*=(?!=)/g, jsC) === 1
+       && cnt(/\bCOMPARE_OPEN\b/g, jsC) === 2,
+       '★★deep-pay.js の COMPARE_OPEN は false（会社比較への入口は出さない）。代入は1か所・読むのは compareOpen() の1か所',
+       `代入 ${cnt(/\bCOMPARE_OPEN\s*=(?!=)/g, jsC)} / 字 ${cnt(/\bCOMPARE_OPEN\b/g, jsC)}`);
+    ok(cnt(/deep-pay-compare\.html/g, jsC) === 1 && addr > 0,
+       '★★会社比較の住所の字は deep-pay.js に1つきりで、more() の中に在る（ほかの描き手から繋がない）',
+       `字 ${cnt(/deep-pay-compare\.html/g, jsC)} 個 / more() の中 ${addr}`);
+    ok(guard > 0 && guard < addr && guard < moreC.indexOf('innerHTML = \'<section')
+       && moreC.indexOf('var box = el(\'dp-more\');') < guard,
+       '★★more() は、閉じていれば**何も組まずに**器を空にして畳んで戻る（その行は、住所の字よりも板の HTML よりも前）',
+       `戻る行 ${guard} / 住所 ${addr}`);
+    ok(cnt(/\bmore\(\)/g, jsC) === 2 && /kpis\(\); comp\(\); work\(\); vari\(\); more\(\);/.test(decomment(cutFn(JS, 'render'))),
+       '★more() を呼ぶのは render() の「開いている」枝の1か所だけ');
+    ok(cnt(/\bcompareOpen\(/g, jsC) === 2 && cutFn(JS, 'compareOpen').length > 0
+       && cnt(/__PV_COMPARE_OPEN/g, jsC) === 1,
+       '★開ける口（compareOpen）を使うのは more() の1か所だけ（印を読むのは、その関数の中の1回）',
+       `compareOpen ${cnt(/\bcompareOpen\(/g, jsC)} / 印 ${cnt(/__PV_COMPARE_OPEN/g, jsC)}`);
+    /* ★カードの字（題・説明・リンクの名前）も、more() のほかでは使っていない。 */
+    ok(cnt(/\bT\.more[TS1]\b/g, jsC) === 3 && cnt(/\bT\.more[TS1]\b/g, moreC) === 3,
+       '★カードの字（moreT / moreS / more1）を使うのは more() の中だけ', String(cnt(/\bT\.more[TS1]\b/g, jsC)));
+  }
 
   ok(!/deep-pay/.test(read('sitemap.xml')), '★sitemap.xml に出ない（noindex。公開しても検索には出さない）');
   ok(/name="robots"\s+content="noindex/.test(nohtmlcomment(JA)), 'ja: noindex を宣言している');
@@ -1291,8 +1348,21 @@ console.log('\n════ ⑭ ログインしていない人（字面）══
        `${name}: ログイン画面の住所は、左メニューの「ログイン」の1本だけ（足していない）`,
        String(count(/login\.html/g, bare)));
   }
-  ok(!/\blocation\b|history\s*\.|window\.open\s*\(/.test(jsC),
-     '★★deep-pay.js は、人をよそへ運ばない（location・history・window.open という字が無い）');
+  /* ★2026-10-12、location という字が1つ入った ── compareOpen() が location.hostname を**読む**
+       （手元の確認用サーバかどうかの見分け。運ぶ字ではない）。その関数の字は
+       assert-deep-pay-compare.mjs の ⓪ が固定しているので、ここでは**その関数だけを抜いて**
+       から、今までどおり見る。
+       ⚠️ 「location.hostname なら可」のように字で緩めない（別の関数に書いた日に通ってしまう）。 */
+  {
+    const openC = decomment(cutFn(JS, 'compareOpen'));
+    const rest = openC ? jsC.replace(openC, () => ' ') : jsC;
+    ok(openC.length > 0 && count(/\blocation\b/g, jsC) === 1 && count(/\blocation\b/g, openC) === 1
+       && /w\.location\.hostname\b/.test(openC)
+       && !/\blocation\b|history\s*\.|window\.open\s*\(/.test(rest),
+       '★★deep-pay.js は、人をよそへ運ばない（location・history・window.open という字が無い。'
+       + '在るのは compareOpen() が hostname を読む1つだけ）',
+       `location の字 ${count(/\blocation\b/g, jsC)} 個`);
+  }
 
   // ── b) 聞く前に戻る ──
   const bootC = decomment(cutFn(JS, 'boot'));
@@ -1685,7 +1755,11 @@ async function drawn(page) {
      file   … 開く画面（既定は deep-pay.html。会社比較を同じ偽サーバで開くのに使う）。
      reduce … 「動きを減らす」設定を装う。
      first  … ページのどの script よりも先に流す関数と引数の組（[[fn, arg], …]）。
-     tail   … 住所の後ろに付ける字（'?x=1#y' のように。§2g が「付けて来た字が残る」を見る）。 */
+     tail   … 住所の後ろに付ける字（'?x=1#y' のように。§2g が「付けて来た字が残る」を見る）。
+     cmp    … true なら、会社比較を動かす試験用の口の印を置いてから開く（2026-10-12。
+              window.__PV_COMPARE_OPEN = true。手元の住所でだけ効く ── 冒頭の注）。
+              ★**渡さなければ置かない** ＝ この検査は、配っているファイルのままの DEEP PAY を見る
+                （会社比較へのカードは出ない）。使うのは §2f の f と §3h だけ。 */
 async function open(lang, payload, theme, pick, opt) {
   const o = opt || {};
   const jar = o.jar || await browser.createBrowserContext();
@@ -1717,6 +1791,7 @@ async function open(lang, payload, theme, pick, opt) {
     window['ga-disable-G-3XYF69VQ3X'] = true;
     localStorage.setItem('pv-theme', t);
   }, theme || 'light');
+  if (o.cmp) await page.evaluateOnNewDocument(() => { window.__PV_COMPARE_OPEN = true; });
   await page.evaluateOnNewDocument(FAKE, payload);
   await page.goto(BASE + (lang === 'en' ? '/en/' : '/') + (o.file || 'deep-pay.html') + (o.tail || ''),
                   { waitUntil: 'domcontentloaded', timeout: 30000 });
@@ -1798,6 +1873,16 @@ const SNAP = () => {
     moreBtns: q('#dp-more button').map((e) => ({ dis: e.disabled, tag: e.tagName })),
     moreLinks: q('#dp-more a').length,
     moreHrefs: q('#dp-more a').map((e) => e.getAttribute('href')),
+    /* ★会社比較へ繋がるリンク（2026-10-12）。器を名指しせず、**文書ぜんたい**で数える ──
+         閉じているあいだは 0 本（ヘッダーにも左メニューにも本文にも無い）。
+         moreKids ＝ カードの器（#dp-more）の中身の数、moreShown ＝ その器が描かれているか
+         （hidden 属性ではなく、計算後の display で見る）。 */
+    cmpLinks: q('a[href*="deep-pay-compare"], [onclick*="deep-pay-compare"]').length,
+    moreKids: (document.getElementById('dp-more') || { children: [] }).children.length,
+    moreShown: (function () {
+      const e = document.getElementById('dp-more');
+      return !!(e && getComputedStyle(e).display !== 'none');
+    })(),
     /* ★注記（.dp-foot）は「どのカードの中に居るか」まで見る。2026-09-01 に
        給与構成のカードから KPI の下（全幅）へ移した ── あのカードは段の高さを
        決めている側で、狭いぶん1文が2〜3行に折れ、折れたぶんだけ画面が下へ伸びた。 */
@@ -3260,8 +3345,12 @@ for (const lang of ['ja', 'en']) {
   await R.close();
 
   // ── f) 2つの画面で印は1つ ──
+  /* ★2026-10-12、会社比較は閉じている（配っているファイルのままなら、あちらの画面は板を
+       出して終わる ── 鳴らさない・印にも触らない。それは assert-deep-pay-compare.mjs の §0 が見る）。
+       ここで見ているのは「出した日に、2つの画面が同じ印を使う」ことなので、あちらの本体を
+       試験用の口（cmp）で動かす。 */
   await popLock(B);
-  const O = await at(POP_OPEN, { file: POP_OTHER });
+  const O = await at(POP_OPEN, { file: POP_OTHER, cmp: true });
   await O.waitForFunction(() => window.__pop.seen >= 1, { timeout: 20000 }).catch(() => {});
   s = await popState(O);
   ok(s.seen === 1 && (s.snap || {}).one === 1 && (s.snap || {}).pe === 'none'
@@ -3710,10 +3799,16 @@ for (const lang of ['ja', 'en']) {
      ⚠️ ここを 0 に固定しているので、次に「準備中」を足そうとすると赤くなる。
         足したくなったら、まずこの行と assert-deep-pay-compare.mjs の
         「下の入口」を見ること（あちらも同じ日に 0 にした）。 */
-  ok(s.moreLinks === 1 && s.moreHrefs[0] === 'deep-pay-compare.html'
-     && s.moreBtns.length === 0,
-     '★「もっと深く見る」は 会社比較へのリンク1本だけ（準備中は置かない）',
-     JSON.stringify(s.moreHrefs) + ' / ' + JSON.stringify(s.moreBtns));
+  /* ★★2026-10-12（オーナー判断「会社比較はまだ出さないでよ」）── いまは、その「在る道1本」も
+       出さない。入口が会社比較しか無いので、カードは**枠ごと**出ない（題と説明だけの箱も、
+       押せないボタンも置かない）。前の約束（リンクは1本・準備中は置かない）は、試験用の口で
+       カードを出して §3h が見続けている。 */
+  ok(s.more.hidden && s.moreShown === false && s.moreKids === 0 && s.moreLinks === 0 && s.moreBtns.length === 0,
+     '★★「もっと深く見る」のカードは枠ごと出ない（器は畳んだまま・中は空・リンクもボタンも無い）',
+     `hidden=${s.more.hidden} 描かれている=${s.moreShown} 中身 ${s.moreKids} / ${JSON.stringify(s.moreHrefs)}`);
+  ok(s.cmpLinks === 0 && !/会社比較|もっと深く見る/.test(s.text),
+     '★★開いた画面のどこにも、会社比較へのリンクが無い（文書ぜんたいで0本。カードの字も本文に無い）',
+     `リンク ${s.cmpLinks} 本`);
   /* ★変動給比率は「100 − 固定・保証給比率」ではない。db/deep-pay.sql の fixed_pct は
      固定＋職位＋役割で、残りにはパーディアム・住宅・その他・未分類も入っている。
      見本は 固定 62% ／ segs の variable 24%。引き算だと 38% になる。
@@ -3968,6 +4063,97 @@ for (const lang of ['ja', 'en']) {
      '★英語＋ドルも同じ額（$120K・$103）', JSON.stringify(eu.kpiV));
 }
 
+// ── 3h. 会社比較を閉じているあいだの、下の段（2026-10-12・オーナー判断）──────────
+/* 「会社比較はまだ出さないでよ」。開いた画面のいちばん下の段は、前は
+   「何をすると給与が増えるか｜もっと深く見る」の2枚だった。右のカードを枠ごと出さなくなった
+   ので、見るのは ──
+     形 … 320 / 390 / 1440 のどの幅でも、左のカードが**段の幅いっぱい**（右に空の列も、
+          その手前の間も残っていない）・横スクロールが生えない・器（#dp-more）は場所を取らない。
+          ★前の CSS は列を2本とも名指ししていたので、右を hidden にすると 256px の空の列が
+            残った（deep-pay.css の .dp-row--var の注）。ここが、その後戻りの見張り。
+     無い … 日英のどの幅でも、会社比較へのリンクが文書ぜんたいで0本。
+   続けて、**眠っているカード**を試験用の口（cmp）で出す ── 出す日に戻る姿が腐っていないこと：
+     リンクは1本・行き先は相対の deep-pay-compare.html（/en/ からは /en/ に解ける）・
+     「準備中」の押せないボタンを置かない・広い画面では右に 256px の列で並ぶ（前と同じ寸法）。 */
+const ROW_FIT = () => {
+  const row = document.querySelector('.dp-row--var');
+  const v = document.getElementById('dp-var'), m = document.getElementById('dp-more');
+  const de = document.documentElement;
+  if (!row || !v || !m) return null;
+  const rr = row.getBoundingClientRect(), rv = v.getBoundingClientRect(), rm = m.getBoundingClientRect();
+  const a = m.querySelector('a');
+  return {
+    over: de.scrollWidth - de.clientWidth,
+    row: [Math.round(rr.left * 10) / 10, Math.round(rr.right * 10) / 10],
+    vari: [Math.round(rv.left * 10) / 10, Math.round(rv.right * 10) / 10, Math.round(rv.width * 10) / 10],
+    more: [Math.round(rm.left * 10) / 10, Math.round(rm.right * 10) / 10, Math.round(rm.width * 10) / 10,
+           Math.round(rm.top - rv.top)],
+    moreShown: getComputedStyle(m).display !== 'none', moreKids: m.children.length,
+    cols: getComputedStyle(row).gridTemplateColumns.split(' ').length,
+    links: document.querySelectorAll('a[href*="deep-pay-compare"]').length,
+    href: a ? a.getAttribute('href') : null,
+    to: a ? new URL(a.getAttribute('href'), location.href).pathname : null,
+    btns: m.querySelectorAll('button').length,
+    cut: [...document.querySelectorAll('#dp-var .dp-li, #dp-more a')]
+      .filter((e) => e.scrollWidth > e.clientWidth + 1).length
+  };
+};
+for (const lang of ['ja', 'en']) {
+  // ── 配っているファイルのまま（カードは出ない）──
+  {
+    const { page, errs } = await open(lang, FULL, 'light', MINE);
+    for (const vw of [320, 390, 1440]) {
+      await page.setViewport({ width: vw, height: 1000 });
+      await page.waitForFunction((x) => innerWidth === x, { timeout: 10000 }, vw);
+      await navStill(page);
+      const f = (await page.evaluate(ROW_FIT)) || { row: [], vari: [], more: [] };
+      ok(f.over <= 0, `${lang}/${vw}: ★★横スクロールが生えない（カードを出さない姿）`, `+${f.over}px`);
+      ok(f.moreShown === false && f.moreKids === 0 && f.more[2] === 0 && f.links === 0,
+         `${lang}/${vw}: ★★カードの器は場所を取らない・中は空・会社比較へのリンクは文書ぜんたいで0本`,
+         `描かれている=${f.moreShown} 中身 ${f.moreKids} 幅 ${f.more[2]} リンク ${f.links}`);
+      ok(Math.abs(f.vari[0] - f.row[0]) <= 0.6 && Math.abs(f.vari[1] - f.row[1]) <= 0.6 && f.cols === 1 && f.vari[2] > 200,
+         `${lang}/${vw}: ★★「何をすると給与が増えるか」が段の幅いっぱい（右に空の列が残っていない）`,
+         `段 ${f.row.join('..')} / カード ${f.vari.join('..')} / 列 ${f.cols}`);
+      ok(f.cut === 0, `${lang}/${vw}: 変動給の行が切れていない`, `切れた行 ${f.cut}`);
+    }
+    ok(errs.length === 0, `${lang}: JS のエラーが出ない（カードを出さない姿）`, errs.join(' / '));
+    await jars.pop().close().catch(() => {});
+  }
+  // ── 眠っているカード（試験用の口で出す ＝ 出す日に戻る姿）──
+  {
+    const { page, errs } = await open(lang, FULL, 'light', MINE, { cmp: true });
+    const s = await page.evaluate(SNAP);
+    /* ★「準備中」の押せないボタンは置かない（2026-08-31・オーナー確定）。出来た先へリンクを
+         足すのはそのときで、それまでは在る道1本だけを出す。⚠️ 0 に固定してある。 */
+    ok(s.moreShown === true && s.moreLinks === 1 && s.moreHrefs[0] === 'deep-pay-compare.html'
+       && s.moreBtns.length === 0 && s.cmpLinks === 1,
+       `${lang}: ★（出す日の姿）「もっと深く見る」は 会社比較へのリンク1本だけ（準備中は置かない）`,
+       JSON.stringify(s.moreHrefs) + ' / ' + JSON.stringify(s.moreBtns) + ' / 文書ぜんたい ' + s.cmpLinks);
+    for (const vw of [390, 1440]) {
+      await page.setViewport({ width: vw, height: 1000 });
+      await page.waitForFunction((x) => innerWidth === x, { timeout: 10000 }, vw);
+      await navStill(page);
+      const f = (await page.evaluate(ROW_FIT)) || { row: [], vari: [], more: [] };
+      /* ★相対のまま。'/deep-pay-compare.html' に直すと /en/ から日本語版へ飛ぶ。 */
+      ok(f.href === 'deep-pay-compare.html' && f.to === (lang === 'en' ? '/en/' : '/') + 'deep-pay-compare.html',
+         `${lang}/${vw}: ★（出す日の姿）会社比較の行き先は相対のまま（/en/ からは /en/ に解ける）`, `${f.href} → ${f.to}`);
+      ok(f.over <= 0 && f.cut === 0 && f.btns === 0,
+         `${lang}/${vw}: （出す日の姿）横スクロールが生えない・字が切れない`, `+${f.over}px / 切れた ${f.cut}`);
+      if (vw === 1440)
+        ok(Math.abs(f.more[2] - 256) <= 0.6 && Math.abs(f.more[1] - f.row[1]) <= 0.6 && f.more[3] === 0
+           && f.vari[1] < f.more[0] && Math.abs(f.vari[0] - f.row[0]) <= 0.6,
+           `${lang}/1440: ★（出す日の姿）右に 256px の列で並ぶ・頭がそろう（前と同じ寸法）`,
+           `段 ${f.row.join('..')} / 左 ${f.vari.join('..')} / 右 ${f.more.join('..')}`);
+      else
+        ok(Math.abs(f.more[0] - f.row[0]) <= 0.6 && Math.abs(f.more[1] - f.row[1]) <= 0.6 && f.more[3] > 0,
+           `${lang}/390: （出す日の姿）狭い画面では下に積む（幅いっぱい）`,
+           `段 ${f.row.join('..')} / 右 ${f.more.join('..')}`);
+    }
+    ok(errs.length === 0, `${lang}: JS のエラーが出ない（出す日の姿）`, errs.join(' / '));
+    await jars.pop().close().catch(() => {});
+  }
+}
+
 // ── 3b. variable が人数の壁に届かないと「変動給比率」の行ごと消える ──
 /* ★0% と書けば「変動給の無い会社」に見えるが、実際は「人数の壁に届かず出せない」だけ。
    ここが緑のままだと、比較ページで同じ嘘が左右2つ並ぶ。 */
@@ -4047,10 +4233,12 @@ for (const lang of ['ja', 'en']) {
     ok(/Pay \/ Block Hour/.test(s.text), `${lang}/${theme}: Pay / Block Hour が出ている`);
     ok(!/上位|percentile/i.test(s.text), `${lang}/${theme}: ★順位を書いていない`);
     ok(s.kpi === 3, `${lang}/${theme}: KPI は3枚`, `今 ${s.kpi} 枚`);
-    /* ★相対のまま。'/deep-pay-compare.html' に直すと /en/ から日本語版へ飛ぶ。 */
-    ok(s.moreHrefs.length === 1 && s.moreHrefs[0] === 'deep-pay-compare.html',
-       `${lang}/${theme}: ★会社比較の行き先は相対のまま（/en/ からは /en/ に解ける）`,
-       JSON.stringify(s.moreHrefs));
+    /* ★会社比較は閉じている（2026-10-12）。日英・明暗のどれでも、入口は1本も出ない。
+         （「行き先は相対のまま」は、試験用の口でカードを出して §3h が見る。） */
+    ok(s.cmpLinks === 0 && s.moreHrefs.length === 0 && s.moreShown === false
+       && !/会社比較|Compare airlines|もっと深く見る|Go deeper/.test(s.text),
+       `${lang}/${theme}: ★★会社比較へのリンクが無い・カードが出ていない（字も本文に無い）`,
+       `リンク ${s.cmpLinks} 本 / ${JSON.stringify(s.moreHrefs)}`);
     ok(errs.length === 0, `${lang}/${theme}: JS のエラーが出ない`, errs.join(' / '));
   }
 }

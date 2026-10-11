@@ -6,7 +6,12 @@
 <link rel="apple-touch-icon" href="../assets/favicon-180.png"/>
   <script>(function(){var t=localStorage.getItem('pv-theme')||'light';document.documentElement.setAttribute('data-theme',t);}());</script>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <!-- 給与の項目をぜんぶ答えた人だけが読める画面（2026-10-11 から。前は「内訳を1件でも出した人」）。
+  <!-- ★★いまは閉じている（2026-10-12・オーナー判断「会社比較はまだ出さないでよ」）。
+       この住所を直に開いても、出るのは「会社比較は準備中です」の板1枚だけ ── 誰が来ても同じで、
+       サーバにも聞かない。決めているのは deep-pay-compare.js のいちばん上の COMPARE_OPEN。
+       この HTML は**出す日のまま**置いてある（下の器も、読み込む部品も変えていない）。
+       以下の注は、出した日に動く画面の話。
+       給与の項目をぜんぶ答えた人だけが読める画面（2026-10-11 から。前は「内訳を1件でも出した人」）。
        ★ログインしていない人にも画面は開く（2026-10-11・オーナー判断。前はログイン画面へ
          送っていた）。出るのは、まだ開いていない会員と同じ「ぼかした影絵＋板」だけで、
          数字は1つも渡さない（サーバにも聞かない）。
@@ -58,10 +63,10 @@
   <link rel="stylesheet" href="../app-nav.css">
   <!-- ★DEEP PAY 本体の見た目をそのまま借りる。ピッカー（.dp-pick-*）・条件バー（.dp-cond）・
        案内カード（.dp-msg）・段組み（.dp-row）は写さずここから使う。写すとドリフトする。 -->
-  <link rel="stylesheet" href="../deep-pay.css?v=827e0889">
+  <link rel="stylesheet" href="../deep-pay.css?v=22d8aaf3">
   <!-- この画面だけの見た目（.dc-*）。
        ★.pt-* / .mv-* / .mr-* をトップレベルで書き直さない（db/test-form-contract.mjs が見ている）。 -->
-  <link rel="stylesheet" href="../deep-pay-compare.css?v=c3a6da03">
+  <link rel="stylesheet" href="../deep-pay-compare.css?v=3cfb7d8d">
 
   <style>
     /* ここに置くのは「CSS が届く前に見えてしまう部分」だけ。
@@ -263,12 +268,16 @@
        deep-pay.css / deep-pay-compare.css / deep-pay-compare.js).
      Change one → copy the value assert-links.mjs prints to every page that loads it
      (deep-pay.css: all 4 pages, 2 screens × ja/en; the others: the ja/en pair). -->
-<script src="../deep-pay-compare.js?v=237360ac"></script>
+<script src="../deep-pay-compare.js?v=007e7d27"></script>
 <!-- "Please resubmit" notice. Shown **only to the member themselves** when one of
      their own pay reports has net pay above gross pay.
      ★Nothing is shown to signed-out visitors or to members with nothing to fix
        (the rule, and how it avoids extra requests, is at the top of pv-pay-fix.js).
      ★Reads this page's PV_SESSION and sb, so it must load **after** them.
+     ★While the comparison is closed (since 2026-10-12) the notice does not appear on this
+       page either: deep-pay-compare.js, just above, replaces PV_SESSION with "nobody" before
+       it stops, so this script requests nothing and stores nothing. Keep the tag — it comes
+       back by itself on the day the comparison opens.
      ★?v= is a fingerprint of the file. Change the file → copy it to all 8 pages
        (4 screens × ja/en; assert-links.mjs checks). -->
 <script src="../pv-pay-fix.js?v=c3f06489"></script>

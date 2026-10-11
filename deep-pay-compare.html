@@ -6,7 +6,12 @@
 <link rel="apple-touch-icon" href="assets/favicon-180.png"/>
   <script>(function(){var t=localStorage.getItem('pv-theme')||'light';document.documentElement.setAttribute('data-theme',t);}());</script>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <!-- 給与の項目をぜんぶ答えた人だけが読める画面（2026-10-11 から。前は「内訳を1件でも出した人」）。
+  <!-- ★★いまは閉じている（2026-10-12・オーナー判断「会社比較はまだ出さないでよ」）。
+       この住所を直に開いても、出るのは「会社比較は準備中です」の板1枚だけ ── 誰が来ても同じで、
+       サーバにも聞かない。決めているのは deep-pay-compare.js のいちばん上の COMPARE_OPEN。
+       この HTML は**出す日のまま**置いてある（下の器も、読み込む部品も変えていない）。
+       以下の注は、出した日に動く画面の話。
+       給与の項目をぜんぶ答えた人だけが読める画面（2026-10-11 から。前は「内訳を1件でも出した人」）。
        ★ログインしていない人にも画面は開く（2026-10-11・オーナー判断。前はログイン画面へ
          送っていた）。出るのは、まだ開いていない会員と同じ「ぼかした影絵＋板」だけで、
          数字は1つも渡さない（サーバにも聞かない）。
@@ -58,10 +63,10 @@
   <link rel="stylesheet" href="app-nav.css">
   <!-- ★DEEP PAY 本体の見た目をそのまま借りる。ピッカー（.dp-pick-*）・条件バー（.dp-cond）・
        案内カード（.dp-msg）・段組み（.dp-row）は写さずここから使う。写すとドリフトする。 -->
-  <link rel="stylesheet" href="deep-pay.css?v=827e0889">
+  <link rel="stylesheet" href="deep-pay.css?v=22d8aaf3">
   <!-- この画面だけの見た目（.dc-*）。
        ★.pt-* / .mv-* / .mr-* をトップレベルで書き直さない（db/test-form-contract.mjs が見ている）。 -->
-  <link rel="stylesheet" href="deep-pay-compare.css?v=c3a6da03">
+  <link rel="stylesheet" href="deep-pay-compare.css?v=3cfb7d8d">
 
   <style>
     /* ここに置くのは「CSS が届く前に見えてしまう部分」だけ。
@@ -263,10 +268,13 @@
        deep-pay.css / deep-pay-compare.css / deep-pay-compare.js）。
      直したら assert-links.mjs が出す値を、読んでいるページ全部に写す
      （deep-pay.css は2画面 × 日英の4枚・ほかは日英の2枚）。 -->
-<script src="deep-pay-compare.js?v=237360ac"></script>
+<script src="deep-pay-compare.js?v=007e7d27"></script>
 <!-- 出し直しのお願い。提出した給与に「手取り ＞ 総支給」の月がある**本人にだけ**出る。
      ★未ログインの人・問題の無い人には何も出さない（線と、通信を増やさない工夫は pv-pay-fix.js の冒頭）。
      ★この画面の PV_SESSION と sb を借りるので、それより**後**に読む。
+     ★会社比較が閉じているあいだ（2026-10-12〜）、この画面ではお願いも出ない ── すぐ上の
+       deep-pay-compare.js が PV_SESSION を「誰も居ない」に置き換えてから終わるので、ここは
+       何も引かず・何も書かない。読み込みの行は消さない（出す日にそのまま戻る）。
      ★?v= は中身の指紋。直したら4画面 × 日英の8枚に写す（assert-links.mjs が見ている）。 -->
 <script src="pv-pay-fix.js?v=c3f06489"></script>
 <!-- PV-NAV: ナビの開け閉め。★search.js より**後**に読む ──

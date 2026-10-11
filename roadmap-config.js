@@ -136,6 +136,18 @@ window.PVRoadmap = {
       en: { t: 'Where your pay sits',
             d: 'Your position within published ranges. No leaderboards.' } },
 
+    /* ★2026-10-12 オーナー判断「会社比較はまだ出さないでよ」。ここは 2026-09-01 の日付で
+       done に並んでいたが、その日に会員が辿れる入口は1本も無く（作っただけで、入口を
+       置いていなかった）、いまは画面そのものを閉じてある（deep-pay-compare.js の COMPARE_OPEN）。
+       **出していないものを done に書かない**（上の①）。予定の札までにする・月を書かない（上の⑥）。
+       字は前のまま（1文字も変えていない）。
+       ⚠️ 出した日に done へ戻す。日付はその日（git log と揃える）── 2026-09-01 に戻さない。 */
+    { id: 'deep-pay-compare', state: 'planned',
+      ja: { t: 'DEEP PAY に会社比較',
+            d: '2社を並べて、支給の構成まで比べられる。' },
+      en: { t: 'Company comparison in DEEP PAY',
+            d: 'Two airlines side by side, down to composition.' } },
+
     { id: 'apple-login', state: 'considering',
       ja: { t: 'Apple でログイン',
             d: '海外からの要望が増えたら着手する。' },
@@ -182,12 +194,6 @@ window.PVRoadmap = {
             d: '明細に載らないお金も、年収に数える。' },
       en: { t: 'Pay routed through a union now counts',
             d: 'Money paid outside the company payslip now counts.' } },
-
-    { id: 'deep-pay-compare', state: 'done', date: '2026-09-01',
-      ja: { t: 'DEEP PAY に会社比較',
-            d: '2社を並べて、支給の構成まで比べられる。' },
-      en: { t: 'Company comparison in DEEP PAY',
-            d: 'Two airlines side by side, down to composition.' } },
 
     { id: 'real-pay', state: 'done', date: '2026-08-24',
       ja: { t: 'REAL PAY — 実際の給与を1行ずつ読む',

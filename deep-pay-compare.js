@@ -4,6 +4,13 @@
    db/deep-pay.sql の pv_deep_pay(jsonb) を、会社を入れ替えて2回呼ぶだけ。
    ＝ 人数の壁（v_min）・金額の丸め・準識別子の抑制が SQL の1か所に残ったまま再利用される。
 
+   ★★いまは閉じている（2026-10-12・オーナー判断「会社比較はまだ出さないでよ」）。
+     本体のいちばん上の COMPARE_OPEN が false のあいだ、この画面は誰に対しても
+     「会社比較は準備中です」の板を1枚出して終わる（サーバにも聞かない）。DEEP PAY の側の
+     入口（「会社比較を見る」のカード）も、deep-pay.js の同じ名前の定数で消してある。
+     この下に書いてあるのは、**出した日に動く本体**の約束 ── 閉じているあいだも検査が
+     手元で動かし続けている（開け方は、定数のすぐ下の compareOpen() の注）。
+
    ⚠️ 守る約束（deep-pay.js と同じ。破ると匿名性か信用のどちらかが落ちる）
    1. **JS で人数を数えない・比べない。** 人数の壁は db/deep-pay.sql の1か所だけ
       （定数 v_min。2026-10-11 から2人）。薄い区分の合図は `cohort.level === 'none'` ただ1つ。
@@ -57,6 +64,73 @@
 */
 (function (w, d) {
   'use strict';
+
+  /* ══ ★★会社比較は、まだ出さない（2026-10-12・オーナー判断「会社比較はまだ出さないでよ」）══
+     この画面は 2026-10-11 に DEEP PAY と一緒に本番へ出た。入口を外すだけでは足りない ──
+     **日英の住所を直に開いても、比較は1つも出さない**。
+     ・COMPARE_OPEN が false のあいだ、このファイルは下の closedBoard() を1回呼んで**そこで終わる**。
+       セッションを待たない・pv_deep_pay() を1回も呼ばない・保存領域を読まない／書かない・
+       社名の辞書も語彙も取りに行かない・試験用の入口（PVDeepPayCompare）も生やさない。
+       ログインしていない人・まだ開いていない会員・開いている会員・運営 ── 誰が来ても、
+       同じ板が1枚出るだけ（選ぶ欄・表・棒・トレードオフは DOM に無い）。
+     ・比較の本体（この下ぜんぶ）には1文字も手を入れていない。
+       **出す日にこのファイルで替えるのは、この1行だけ**（true にする）。同じ日に ──
+       deep-pay.js の同じ名前の定数（「会社比較を見る」のカード）も true に／
+       roadmap-config.js の 'deep-pay-compare' を done と出した日に／
+       2本の検査（assert-deep-pay*.mjs）の「閉じている」の節と ① の辺の集合を書き換える。
+     ⚠️ これは門ではない。数字を守っているのは今までどおりサーバ（db/deep-pay.sql）だけ。
+        ここは「まだ見せない画面を描かない」だけ ── 見られるかどうかを、この定数に読ませない。 */
+  var COMPARE_OPEN = false;
+  /* ★試験用の口。**手元の確認用サーバ（localhost / 127.0.0.1）で開いたときだけ**、検査と
+       撮影の道具（assert-deep-pay*.mjs / shot-*.mjs）が先に置いた印で、比較の本体を動かせる。
+       閉じているあいだも本体を検査し続けるため（腐らせない）と、出す前にオーナーが手元で
+       見られるようにするため。
+     ⚠️ 本番の住所（pilot-value.com）では、印が在っても**必ず false** ── 見るのは
+        location.hostname で、ページの側からは書き換えられない。住所の後ろの字（?…・#…）・
+        保存領域・Cookie では開かない（どれも読まない）。条件を足さない・緩めない。
+     ★deep-pay.js にも**同じ本体**で在る（ずれは assert-deep-pay-compare.mjs の
+       「写した関数」が見張る。答えそのものは同じ検査の「⓪ 閉じている」が取り出して確かめる）。 */
+  function compareOpen() {
+    if (COMPARE_OPEN) return true;
+    try {
+      return w.__PV_COMPARE_OPEN === true &&
+        /^(?:localhost|127\.0\.0\.1)$/.test(w.location.hostname);
+    } catch (e) { return false; }
+  }
+  /* 閉じているあいだの板。題とリンクの2つの字だけ（オーナー指定。**文を足さない**）。
+     ★器（#dc-root）の中身を、この板1枚に置き換える ── HTML に置いてある骨組み・選ぶ欄の器・
+       表と棒の器ごと無くなる（「あとから何かが描く」余地を残さない）。
+     ★見た目は今ある部品だけ ── 板は .dp-msg、リンクは開いた画面の「DEEP PAY に戻る」と同じ
+       白い丸ボタン（.dp-more-b--on）。橙の .dp-cta にしない（あれは「出す」の色）。
+       足したのは幅と間だけ（deep-pay-compare.css の .dc-closed*）。
+     ★影絵（ぼかし）は置かない・クラッカーも鳴らさない・保存領域に触らない。
+     ★行き先は相対のまま（/en/ から踏めば /en/deep-pay.html に解ける）。
+     ⚠️ ここは下の T / IC / esc より**前**に走る（まだ代入されていない）。だから字も絵も
+        この関数の中に直に持つ。外から来た字は1文字も入れない。 */
+  function closedBoard() {
+    var en = d.documentElement.getAttribute('lang') === 'en';
+    var root = d.getElementById('dc-root');
+    if (!root) return;
+    root.innerHTML = '<div class="dp-msg dc-closed">' +
+      '<h1 class="dp-msg-t">' +
+        (en ? 'Company comparison is coming soon' : '会社比較は準備中です') + '</h1>' +
+      '<a class="dp-more-b dp-more-b--on dc-closed-go" href="deep-pay.html">' +
+        '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" ' +
+        'stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+        '<path d="M15 5 8 12l7 7"/></svg>' +
+        (en ? 'Back to DEEP PAY' : 'DEEP PAY に戻る') + '</a>' +
+      '</div>';
+  }
+  if (!compareOpen()) {
+    /* ★後ろで読まれる部品にも、本人を渡さない。この画面の HTML はこのあと pv-pay-fix.js
+         （出し直しのお願い）を読み、あちらは PV_SESSION が会員を返すと my_pay_reports を
+         1回引いて、控えを端末に書く。閉じているあいだ、この画面は誰に対しても同じ1枚 ──
+         会員向けの通信も控えも、ここでは起こさない（お願いは REAL PAY・DEEP PAY・MY PAGE に出る）。
+         読むのではなく、渡す値を「誰も居ない」に置き換えるだけ（このファイルは待たない）。 */
+    w.PV_SESSION = Promise.resolve(null);
+    closedBoard();
+    return;
+  }
 
   var V = w.PVViz;
   if (!V) return;                       // pay-viz.js が先に要る（HTML の順序）
@@ -1253,6 +1327,8 @@
        もので、ログアウトしても印は残る ── 同じ会員が次に開いた日に鳴り、別の会員なら消える。
      ★2つの画面（DEEP PAY・会社比較）で同じ印を使う ── 先に開いたほうで鳴り、もう片方は
        印が無いので鳴らない。同じ表示の中でも1回まで（S.popped）。
+       （★2026-10-12 から、この画面は閉じている ── いちばん上で板を出して終わるので、
+         ここまで来ない ＝ 印を読みも消しもしない。決まりは出す日のためにそのまま。）
      ★鳴らないもの：板を1度も見ていない会員（印が無い）／閉じた画面・読み込めなかった
        画面・読み込み中（partyPop は render() の「開いている」枝からしか呼ばれない）。
      ⚠️ この印は**飾り**。門ではない。見られるかどうかを決めるのはサーバ（gate）だけで、

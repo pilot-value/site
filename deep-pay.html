@@ -60,7 +60,7 @@
   <link rel="stylesheet" href="app-nav.css">
   <!-- この画面だけの見た目（.dp-*）。
        ★.pt-* / .mv-* をトップレベルで書き直さない（db/test-form-contract.mjs が見ている）。 -->
-  <link rel="stylesheet" href="deep-pay.css?v=827e0889">
+  <link rel="stylesheet" href="deep-pay.css?v=22d8aaf3">
 
   <style>
     /* ここに置くのは「CSS が届く前に見えてしまう部分」だけ。
@@ -203,7 +203,12 @@
                 空いた右半分に下の入口を上げて、段を1つまるごと減らしている。
              ★この段だけ .dp-row--var で右の幅を固定する。左（変動給）は中で
                 2列に組むので、上の段と同じ伸び縮みにすると列が痩せて
-                ラベル・棒・数字が1行に入らなくなる。 -->
+                ラベル・棒・数字が1行に入らなくなる。
+             ★★2026-10-12（オーナー判断「会社比較はまだ出さないでよ」）── いま右（#dp-more）は
+                **出ない**。入口が会社比較の1本だけなので、deep-pay.js の more() がカードを
+                枠ごと出さない（COMPARE_OPEN）。左が段の幅いっぱいになる（右の列は、在るときだけ
+                生える ── deep-pay.css の .dp-row--var）。
+                ⚠️ 器（#dp-more）は消さない。出す日に、そのままここへ戻る。 -->
         <div class="dp-row dp-row--var">
           <div id="dp-var" hidden></div>
           <div id="dp-more" hidden></div>
@@ -256,7 +261,7 @@
        deep-pay.css / deep-pay.js）。
      直したら assert-links.mjs が出す値を、読んでいるページ全部に写す
      （deep-pay.css は2画面 × 日英の4枚・ほかは日英の2枚）。 -->
-<script src="deep-pay.js?v=87c79ffe"></script>
+<script src="deep-pay.js?v=527a9a76"></script>
 <!-- 出し直しのお願い。提出した給与に「手取り ＞ 総支給」の月がある**本人にだけ**出る。
      ★未ログインの人・問題の無い人には何も出さない（線と、通信を増やさない工夫は pv-pay-fix.js の冒頭）。
      ★この画面の PV_SESSION と sb を借りるので、それより**後**に読む。

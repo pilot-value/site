@@ -30,10 +30,18 @@
    行が2倍の高さになり、2列にした意味が消える。右は入口2つ入れば足りる。
    ⚠️ 右を狭くしすぎると今度は右のカードのほうが高くなって段が伸びる。
       256px は `node shot-deep.mjs full ja light 1512 measure` で両側の高さを
-      見比べて決めた値。動かすときは必ず測り直す。 */
-.dp-row--var{display:grid;grid-template-columns:minmax(0,1fr) 256px;
-  align-items:start}
-@media (max-width:1100px){.dp-row--var{grid-template-columns:minmax(0,1fr)}}
+      見比べて決めた値。動かすときは必ず測り直す。
+   ★2026-10-12、右の列を「在るときだけ生える列」に替えた（会社比較を閉じた回。右の
+     「もっと深く見る」のカードを枠ごと出さなくなった ── deep-pay.js の more()）。
+     前は列を2本とも名指ししていた（minmax(0,1fr) 256px）ので、右が hidden でも
+     **256px の空の列と、その手前の間が残り**、左のカードの右が白く空いた。
+     いまは名指しするのは左の1本だけで、2つめの子が出ているときだけ 256px の列が
+     横に足される（grid-auto-flow:column ＋ grid-auto-columns）。子が1つなら、
+     その子が幅いっぱい。2つ並ぶときの寸法は前と1px も変わらない。
+     ⚠️ 2列めを grid-template-columns へ書き戻さない（空の列が戻る）。 */
+.dp-row--var{display:grid;grid-template-columns:minmax(0,1fr);
+  grid-auto-flow:column;grid-auto-columns:256px;align-items:start}
+@media (max-width:1100px){.dp-row--var{grid-auto-flow:row}}
 
 /* ── 区分を選ぶ（会社 / 役職 / 機材）─────────────────────────────
    ★ここに「隠す」系の宣言（blur / filter / mask / clip-path / user-select:none）を置かない。

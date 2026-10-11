@@ -10,7 +10,15 @@
       「開く → 選択肢が生えるのを待つ → 選ぶ → 描き終わるのを待つ」まで
       やってから撮る。選ばずに撮ると、どの scene も同じ空の板が写る。
 
-   実行: node shot-deep.mjs <scene> <lang> <theme> <幅> [通貨] [h=高さ] [open]
+   ★★2026-10-12（オーナー判断「会社比較はまだ出さないでよ」）── 会社比較は閉じている。
+     開いた画面のいちばん下の段に在った「もっと深く見る／会社比較を見る」のカードは、
+     **いまは出ない**（下の段は「何をすると給与が増えるか」が幅いっぱい）。ここで撮れるのは
+     その姿 ＝ 本番で出ている絵。
+     引数に cmp を足すと、**手元でだけ**カードを出して撮る（出した日の絵の確認用）──
+     ページのどの script よりも先に window.__PV_COMPARE_OPEN = true を置く。deep-pay.js の
+     compareOpen() が localhost で開いたときだけ読む印で、本番の住所では効かない。
+
+   実行: node shot-deep.mjs <scene> <lang> <theme> <幅> [通貨] [h=高さ] [cmp] [open]
      scene: full  … 全部そろった状態（モックと同じ配置。既定）
             day1  … 現実の初日。KPI は3枚中1枚・給与構成は出ない・
                     働き方は1行しか無いので節ごと消える・変動給も出ない
@@ -85,6 +93,9 @@ const theme = process.argv[4] || 'light';
 const vw    = Number(process.argv[5]) || 1440;
 const open  = process.argv.includes('open');
 const measure = process.argv.includes('measure');
+/* ★cmp（省略可・2026-10-12）。会社比較を開けた日の絵を、手元でだけ撮る（冒頭の注）。
+   付けなければ、配っているファイルのまま ＝ 会社比較へのカードは出ない。 */
+const cmp = process.argv.includes('cmp');
 /* ★表示通貨（省略可）。通貨コードの形をした引数を、位置を問わず1つ拾う
    ＝ 今までの呼び方（scene lang theme 幅 [open|measure]）は1つも変わらない。
    効かせ方は「その言語の保存先に、選んだ通貨として書いておく」── currency.js が
@@ -104,7 +115,7 @@ const winH = Number(((process.argv.slice(2).find((a) => /^h=\d+$/.test(a)) || ''
 const dir = path.join(__dirname, 'temporary screenshots');
 if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 const label = `deep-${scene}-${lang}-${theme}` + (vw !== 1440 ? `-${vw}` : '')
-  + (winH !== 1000 ? `-h${winH}` : '') + (cur ? `-${cur}` : '');
+  + (winH !== 1000 ? `-h${winH}` : '') + (cur ? `-${cur}` : '') + (cmp ? '-cmp' : '');
 let n = 1;
 while (fs.existsSync(path.join(dir, `screenshot-${n}-${label}.png`))) n++;
 const outPath = path.join(dir, `screenshot-${n}-${label}.png`);
@@ -140,8 +151,10 @@ page.on('pageerror', (e) => console.log('❌ page error:', e.message));
 
 /* ★ setRequestInterception は使わない（CDP デッドロック。shot-tracker.mjs 参照）。
    CDN の supabase-js に上書きさせない目的は defineProperty で達成する。 */
-await page.evaluateOnNewDocument((scene, theme, lang, cur) => {
+await page.evaluateOnNewDocument((scene, theme, lang, cur, cmp) => {
   localStorage.setItem('pv-theme', theme);
+  /* ★cmp を付けた回だけ、会社比較へのカードを手元で出す印を置く（2026-10-12）。 */
+  if (cmp) window.__PV_COMPARE_OPEN = true;
   /* ★撮影で解析に足あとを残さない（2026-10-11）。ページは load のあと gtag を読むので、
      立てておかないと、撮るたびに localhost の閲覧が本物の GA4 に1件ずつ入る
      （検査の側 ── assert-*.mjs ── は前からこの1行を立てている）。 */
@@ -426,7 +439,7 @@ await page.evaluateOnNewDocument((scene, theme, lang, cur) => {
   Object.defineProperty(window, 'supabase', {
     value: { createClient: () => FAKE }, writable: false, configurable: false
   });
-}, scene, theme, lang, cur);
+}, scene, theme, lang, cur, cmp);
 
 await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
 /* ★時間で待たない（混んだ回に嘘の結果が出る）。「描き終わった」条件で待つ。
@@ -631,6 +644,13 @@ const said = await page.evaluate(() => ({
   cta: [...document.querySelectorAll('.dp-msg--lock a.dp-cta')].map((e) => e.getAttribute('href')).join(','),
 }));
 console.log(`通貨: ${said.cur}` + (cur && said.cur !== cur ? `  ❌ 頼んだのは ${cur}（currency.js に無い通貨）` : ''));
+/* ★会社比較への入口（2026-10-12）。閉じているあいだは 0 本が正しい（cmp を付けた回だけ1本）。
+   絵では「カードが無い」ことしか分からないので、文書ぜんたいのリンクを字でも数える。 */
+{
+  const links = await page.evaluate(() => document.querySelectorAll('a[href*="deep-pay-compare"]').length);
+  console.log(`${links === (cmp ? 1 : 0) || (cmp && links === 0) ? '✓' : '❌'} 会社比較への入口: ${links} 本`
+    + (cmp ? '（cmp ＝ 手元でだけ出した絵。カードは開いた画面にしか出ない）' : '（閉じている ＝ 0 本が正しい）'));
+}
 if (said.cond) console.log('条件バー: ' + said.cond);
 if (said.kpi.length) console.log('見出し: ' + said.kpi.join(' ｜ '));
 if (said.lock.length) console.log('板の行: ' + said.lock.join(' ／ '));   // 錠前の板と「まだ出せません」の板は同じ器
