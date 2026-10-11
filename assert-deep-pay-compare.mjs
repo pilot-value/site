@@ -414,7 +414,20 @@ console.log('\n════ ④ 写した関数 ════');
     const dpC = decomment(read('deep-pay.js'));
     const vals = (src, key) => [...src.matchAll(new RegExp('\\b' + key + ":\\s*'((?:[^'\\\\]|\\\\.)*)'", 'g'))]
       .map((m) => m[1]);
-    for (const key of ['lockReady', 'lockTodoH', 'lockWarn']) {
+    /* ★2026-10-11 オーナーが決めた字（題・ボタン・答えの行）。作文で戻せないよう、字そのものを縛る。
+         題は「まだ開いていません」ではなく何をすれば開くか。ボタンは「匿名で給与を出す」ではない。
+         答えの行の後ろ半分（該当なしか 0）と、ボタンの下の注記（集計にしか使いません）は外した。 */
+    ok(vals(dpC, 'lockT')[0] === '給与詳細提出で開きます' && vals(jsC, 'lockT')[0] === '給与詳細提出で開きます',
+       '★★板の題は「給与詳細提出で開きます」（オーナー指定の字のまま）', vals(dpC, 'lockT')[0]);
+    ok(vals(dpC, 'lockGo')[0] === 'Give & Get 詳細を入力して開放する' && vals(jsC, 'lockGo')[0] === 'Give & Get 詳細を入力して開放する',
+       '★★板のボタンは「Give & Get 詳細を入力して開放する」（オーナー指定の字のまま・「匿名で」を足さない）', vals(dpC, 'lockGo')[0]);
+    ok(vals(dpC, 'lockReady')[0] === '給与の項目をすべて答えると開きます。',
+       '★★答えの行は「給与の項目をすべて答えると開きます。」の1文だけ', vals(dpC, 'lockReady')[0]);
+    ok(!/支給が無い項目は|Where nothing is paid|集計にしか使いません|only (ever )?used in aggregate|\blockN\b/.test(jsC + dpC),
+       '★★外した2つの文（該当なしか 0／集計にしか使いません）が、どちらの JS にも戻っていない');
+    ok(/esc\(give \? T\.lockT : T\.lockTWait\)/.test(dpC) && /esc\(give \? T\.lockGo : T\.lockCta\)/.test(dpC),
+       '★人数の条件だけで止まっている人には、前の題とボタンを出す（「提出で開きます」と嘘を言わない）');
+    for (const key of ['lockReady', 'lockTodoH', 'lockWarn', 'lockT', 'lockTWait', 'lockGo']) {
       const a = vals(jsC, key), b = vals(dpC, key);
       ok(a.length === 2 && b.length === 2 && a.join('\n') === b.join('\n'),
          `★${key} は日英の2つずつ・deep-pay.js と同じ字`,
@@ -990,12 +1003,12 @@ async function open(lang, payload, theme, sel, expect, width) {
       窓は見終わったらすぐ閉じる（溜めると、この Mac では混んで嘘の赤が出る）。 */
 const LK = {
   ja: { key:   '給与を1件出すと、90日ぶん開きます。',
-        ready: '給与の項目をすべて答えると開きます。支給が無い項目は「該当なし」か 0 で答えます。',
+        ready: '給与の項目をすべて答えると開きます。',
         goal:  '給与を出したパイロットが100人に達すること（いま37人）。',
         warn:  '虚偽の情報や不正確な情報を提出した場合、利用規約に基づきアカウントを停止することがあります。',
         head:  'まだ答えていない項目（2026年9月分）' },
   en: { key:   'Share one pay report and it opens for 90 days.',
-        ready: 'It opens once every item on your pay report is answered. Where nothing is paid, answer “None of this applies” or 0.',
+        ready: 'It opens once every item on your pay report is answered.',
         goal:  'It opens once 100 pilots have shared their pay (currently 37).',
         warn:  'Submitting false or inaccurate information may result in suspension of your account under our Terms of Service.',
         head:  'Still unanswered (September 2026)' }
@@ -1155,7 +1168,7 @@ const LOCK_FIT = () => {
            chips: chips.length, rows: new Set(chips.map((r) => Math.round(r.top))).size,
            h: Math.round(mb.height),
            con: { line: one('.dp-msg-s'), head: one('.dp-todo-h'), chip: one('.dp-todo-i'),
-                  warn: one('.dp-msg-w'), note: one('.dp-cta-n') } };
+                  warn: one('.dp-msg-w'), title: one('.dp-msg-t') } };
 };
 for (const lang of ['ja', 'en']) {
   for (const theme of ['light', 'dark']) {
@@ -1174,8 +1187,8 @@ for (const lang of ['ja', 'en']) {
          `${tag}: ★★HTML の形をしたコードがタグとして入らない・字としても出ない`, b.tags.join(' '));
       ok(b.lines.join(' | ') === [LK[lang].ready, LK[lang].goal].join(' | ') && b.todoPrev === LK[lang].ready
          && b.warn.join('|') === LK[lang].warn && b.warnAtCta
-         && b.kids.join(' ') === 'dp-msg-t dp-msg-s dp-todo dp-msg-s dp-msg-w dp-cta dp-cta-n',
-         `${tag}: ★板の並びは 見出し → 答えの行 → 一覧 → 100人の行 → 断り → ボタン → 注記`,
+         && b.kids.join(' ') === 'dp-msg-t dp-msg-s dp-todo dp-msg-s dp-msg-w dp-cta',
+         `${tag}: ★板の並びは 見出し → 答えの行 → 一覧 → 100人の行 → 断り → ボタン（下に注記は置かない）`,
          b.kids.join(' > '));
     }
     /* 幅は明るいほうで3つ・暗いほうは色だけ見ればよいので1つ（窓を増やさない）。 */
@@ -1193,7 +1206,7 @@ for (const lang of ['ja', 'en']) {
         ok(!!f && f.rows <= 6, `${tag}/${w}: 広い画面では札が横に並んで折り返す（18枚が ${f && f.rows} 段）`);
     }
     const c = (await page.evaluate(LOCK_FIT) || { con: {} }).con;
-    ok(['line', 'head', 'chip', 'warn', 'note'].every((k) => c[k] != null && c[k] >= 4.5),
+    ok(['line', 'head', 'chip', 'warn', 'title'].every((k) => c[k] != null && c[k] >= 4.5),
        `${tag}: ★行・見出し・札・断りの字が、下の面から読める（コントラスト比 4.5 以上）`,
        JSON.stringify(c));
     ok(errs.length === 0, `${tag}: 一覧つきの板で JS のエラーが出ない`, errs.join(' / '));
@@ -1365,7 +1378,7 @@ const ghostBad = (f, c, w) => {
         && f.stageH <= Math.max(780, f.boardH + 230)))
     bad.fit = `文書 +${f.over}px 外 ${c.out.slice(0, 2).join(' ')} 切れ ${c.cut.slice(0, 2).join(' ')} 器 ${f.stageH} 板 ${f.boardH}`;
   const con = c.con || {};
-  if (!(con.note != null && Object.keys(con).every((k) => con[k] == null || con[k] >= 4.5)))
+  if (!(con.title != null && Object.keys(con).every((k) => con[k] == null || con[k] >= 4.5)))
     bad.con = JSON.stringify(con);
   return bad;
 };

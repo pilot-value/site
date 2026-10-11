@@ -180,7 +180,11 @@
       moreS: '別の切り口で見る。',
       more1: '会社比較を見る',
 
-      lockT: 'DEEP PAY はまだ開いていません',
+      /* ★2026-10-11 オーナー指示で題を替えた（「まだ開いていません」ではなく、何をすれば開くか）。
+           lockTWait は、本人の条件はそろっていて人数の条件だけで止まっているときの題。
+           そこで「提出で開きます」と言うと嘘になるので、前の題を残してある。 */
+      lockT: '給与詳細提出で開きます',
+      lockTWait: 'DEEP PAY はまだ開いていません',
       lockKey: '給与を1件出すと、90日ぶん開きます。',
       /* ★本人の側の門（2026-10-11・オーナー判断）。「内訳を1件出すと開く」をやめて、
            自分に当てはまる項目を**ぜんぶ**答えた人にだけ開く（線は db/deep-pay.sql の
@@ -190,7 +194,7 @@
            **だけ**ボタンの上に添える断り（出す・出さないは lockHtml() が決める）。
          ⚠️ この3つは deep-pay-compare.js にも同じ字で在る。片方だけ直さない
             （2つの画面の §2b が、同じ表で字そのものを見ている）。 */
-      lockReady: '給与の項目をすべて答えると開きます。支給が無い項目は「該当なし」か 0 で答えます。',
+      lockReady: '給与の項目をすべて答えると開きます。',
       lockTodoH: 'まだ答えていない項目（{ym}）',
       lockWarn: '虚偽の情報や不正確な情報を提出した場合、利用規約に基づきアカウントを停止することがあります。',
       /* ★人数が足りなくて閉じているときの3行目（2026-09-01）。
@@ -199,7 +203,9 @@
            区分の人数ではない）。出すかどうかは lockLines() が決める。 */
       lockGoal: '給与を出したパイロットが{goal}人に達すること（いま{n}人）。',
       lockCta: '匿名で給与を出す',
-      lockN: '出した内容は集計にしか使いません。個人の明細は誰にも表示されません。',
+      /* ★2026-10-11 オーナー指定の文言（板のボタンだけ）。1文字も変えない・「匿名で」を足さない
+           （トップの「Give & Get 全ての待遇データを解放する」と同じ扱い）。 */
+      lockGo: 'Give & Get 詳細を入力して開放する',
 
       thinT: 'この区分は、まだ人数が足りません',
       thinS: 'データがそろった区分から順に出ます。',
@@ -260,14 +266,15 @@
       moreS: 'More detailed cuts of the same data.',
       more1: 'Compare airlines',
 
-      lockT: 'DEEP PAY is not open yet',
+      lockT: 'Opens when you submit your pay details',
+      lockTWait: 'DEEP PAY is not open yet',
       lockKey: 'Share one pay report and it opens for 90 days.',
-      lockReady: 'It opens once every item on your pay report is answered. Where nothing is paid, answer “None of this applies” or 0.',
+      lockReady: 'It opens once every item on your pay report is answered.',
       lockTodoH: 'Still unanswered ({ym})',
       lockWarn: 'Submitting false or inaccurate information may result in suspension of your account under our Terms of Service.',
       lockGoal: 'It opens once {goal} pilots have shared their pay (currently {n}).',
       lockCta: 'Share your pay anonymously',
-      lockN: 'What you share is only ever used in aggregate. No individual payslip is shown to anyone.',
+      lockGo: 'Give & Get / Enter your details to unlock',
 
       thinT: 'Not enough pilots in this group yet',
       thinS: 'Groups appear once enough pilots have reported.',
@@ -1078,15 +1085,17 @@
   function lockHtml(gate) {
     var lines = lockLines(gate), todo = lockTodo(gate);
     var warn = lines.indexOf(T.lockReady) >= 0;
+    // 本人が出せば開く（鍵が無い／答えきっていない）ときだけ、題とボタンを「出せば開く」の言い方にする
+    var give = warn || lines.indexOf(T.lockKey) >= 0;
     return '<div class="dp-msg dp-msg--lock">' +
       '<div class="dp-msg-t">' + IC.lock.replace('24" height="24', '18" height="18') +
-        esc(T.lockT) + '</div>' +
+        esc(give ? T.lockT : T.lockTWait) + '</div>' +
       lines.map(function (t) {
         return '<p class="dp-msg-s">' + esc(t) + '</p>' + (t === T.lockReady ? todo : '');
       }).join('') +
       (warn ? '<p class="dp-msg-w">' + esc(T.lockWarn) + '</p>' : '') +
-      '<a class="dp-cta" href="' + lockHref(gate) + '">' + esc(T.lockCta) + '</a>' +
-      '<p class="dp-cta-n">' + esc(T.lockN) + '</p></div>';
+      '<a class="dp-cta" href="' + lockHref(gate) + '">' + esc(give ? T.lockGo : T.lockCta) + '</a>' +
+      '</div>';
   }
   /* ── 板の後ろに置く、ぼかした影絵（2026-10-11・オーナー判断）──────────────
      「DEEP PAY でまだ開かない人には給与詳細を提出させる。背景にはぼかした DEEP PAY を

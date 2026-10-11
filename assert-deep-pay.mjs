@@ -812,11 +812,8 @@ console.log('\n════ ⑫ まだ答えていない項目の名前 ⇄ 給�
     }
     ok(typeof T2.sfx === 'string' && T2.sfx === (lang === 'ja' ? 'の手当' : ' allowance'),
        `${lang}: 役割の名前に足す語は「${lang === 'ja' ? 'の手当' : ' allowance'}」`, JSON.stringify(T2.sfx));
-    /* 板の1行目が言う「該当なし」も、フォームの札と同じ字。 */
-    const none = lang === 'ja' ? '該当なし' : 'None of this applies';
-    ok(new RegExp('id="f-variable-none"><span>' + none + '</span>').test(form)
-       && jsC.includes(lang === 'ja' ? '「' + none + '」' : '“' + none + '”'),
-       `${lang}: ★板が言う「${none}」は、フォームの札と同じ字`);
+    /* ★2026-10-11、板の1行目から「支給が無い項目は「該当なし」か 0 で答えます。」を外した
+         （オーナー指示「文言不要」）。板はもうフォームの「該当なし」の札の字を引いていない。 */
   }
 }
 
@@ -1318,12 +1315,12 @@ const ghostWhy = (s) => `影絵 ${s.ghost} / 器 ${s.stage} / ぼかしの効い
         入口）は §2 が見ている。 */
 const LK = {
   ja: { key:   '給与を1件出すと、90日ぶん開きます。',
-        ready: '給与の項目をすべて答えると開きます。支給が無い項目は「該当なし」か 0 で答えます。',
+        ready: '給与の項目をすべて答えると開きます。',
         goal:  '給与を出したパイロットが100人に達すること（いま37人）。',
         warn:  '虚偽の情報や不正確な情報を提出した場合、利用規約に基づきアカウントを停止することがあります。',
         head:  'まだ答えていない項目（2026年9月分）' },
   en: { key:   'Share one pay report and it opens for 90 days.',
-        ready: 'It opens once every item on your pay report is answered. Where nothing is paid, answer “None of this applies” or 0.',
+        ready: 'It opens once every item on your pay report is answered.',
         goal:  'It opens once 100 pilots have shared their pay (currently 37).',
         warn:  'Submitting false or inaccurate information may result in suspension of your account under our Terms of Service.',
         head:  'Still unanswered (September 2026)' }
@@ -1606,7 +1603,7 @@ const LOCK_FIT = () => {
            chips: chips.length, rows: new Set(chips.map((r) => Math.round(r.top))).size,
            h: Math.round(mb.height),
            con: { line: one('.dp-msg-s'), head: one('.dp-todo-h'), chip: one('.dp-todo-i'),
-                  warn: one('.dp-msg-w'), note: one('.dp-cta-n') } };
+                  warn: one('.dp-msg-w'), title: one('.dp-msg-t') } };
 };
 for (const lang of ['ja', 'en']) {
   for (const theme of ['light', 'dark']) {
@@ -1629,7 +1626,7 @@ for (const lang of ['ja', 'en']) {
         ok(!!f && f.rows <= 6, `${lang}/${theme}/${w}: 広い画面では札が横に並んで折り返す（18枚が ${f && f.rows} 段）`);
     }
     const c = (await page.evaluate(LOCK_FIT) || { con: {} }).con;
-    ok(['line', 'head', 'chip', 'warn', 'note'].every((k) => c[k] != null && c[k] >= 4.5),
+    ok(['line', 'head', 'chip', 'warn', 'title'].every((k) => c[k] != null && c[k] >= 4.5),
        `${lang}/${theme}: ★行・見出し・札・断りの字が、下の面から読める（コントラスト比 4.5 以上）`,
        JSON.stringify(c));
     ok(errs.length === 0, `${lang}/${theme}: 幅を変えても JS のエラーが出ない`, errs.join(' / '));
@@ -1809,7 +1806,7 @@ const ghostBad = (f, c, w) => {
         && f.stageH <= Math.max(780, f.boardH + 230)))
     bad.fit = `文書 +${f.over}px 外 ${c.out.slice(0, 2).join(' ')} 切れ ${c.cut.slice(0, 2).join(' ')} 器 ${f.stageH} 板 ${f.boardH}`;
   const con = c.con || {};
-  if (!(con.note != null && Object.keys(con).every((k) => con[k] == null || con[k] >= 4.5)))
+  if (!(con.title != null && Object.keys(con).every((k) => con[k] == null || con[k] >= 4.5)))
     bad.con = JSON.stringify(con);
   return bad;
 };
