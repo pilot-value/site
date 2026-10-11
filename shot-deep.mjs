@@ -36,6 +36,17 @@
               開いた scene（full / ask / thin …）と err には出ない。撮ったあとの「影絵:」の
               行で、ぼかしの強さと「字が0文字」を字でも確かめられる。
             err   … サーバが返らなかった
+            party … 開いた瞬間のクラッカー（2026-10-11・オーナー指示）。full と同じ画面を
+                    開いて区分を選んだあと、**本物の道**で鳴らす ── 試験用の入口で
+                    いったん閉じた板を描かせ（＝製品のコードが端末に印を置く）、続けて
+                    開いた画面を描かせる（＝印を見つけて紙吹雪が出る）。印を手で書かない。
+                    ★撮るときは、飛んでいる途中（既定は出だしから 750ms）で**止めて**撮る。
+                      時間で待って撮ると、混んだ回に絵が変わる。止める時刻は at=900 の
+                      ように名指しできる（位置は問わない）。
+                    ★open を付けると止めない ── 窓が出て 1.5 秒後に、本物の速さで1回鳴る
+                      （同じ表示の中では1回まで。もう一度見るときは流し直す）。
+                    撮ったあとの「クラッカー:」の行で、器が出たか・紙の枚数・印が消えたかを
+                    字でも確かめられる。
      lang : ja | en
      theme: light | dark
      通貨 : JPY | USD | EUR | GBP | AUD | SGD | AED（省くと、その言語の既定のまま）
@@ -70,6 +81,9 @@ const measure = process.argv.includes('measure');
    ⚠️ 通る通貨は currency.js の RATES に在るものだけ。無い通貨を渡すと既定のまま
       描かれるので、撮ったあとに実際の通貨を突き合わせて知らせる（下の「通貨」の行）。 */
 const cur = process.argv.slice(2).find((a) => /^[A-Z]{3}$/.test(a)) || '';
+/* ★party の scene だけが使う。紙吹雪を止めて撮る時刻（出だしからの ms）。
+   at=900 のように書く。省くと 750（扇が開ききって、落ち始めたところ）。 */
+const partyAt = Number(((process.argv.slice(2).find((a) => /^at=\d+$/.test(a)) || '').split('=')[1])) || 750;
 
 const dir = path.join(__dirname, 'temporary screenshots');
 if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
@@ -91,7 +105,9 @@ const PICK = {
   fold: { airline: 'ana', position: 'cap' },
   pos:  { position: 'cap' },
   pick: { airline: 'jal', position: 'cap', fleet: 'b787' },
-  thin: { airline: 'sas' }
+  thin: { airline: 'sas' },
+  /* party は full と同じ区分を選ぶ（数字の出ている画面の上で鳴らす）。 */
+  party: { airline: 'ana', position: 'cap', fleet: 'b787' }
   /* lock / det / det0 / goal は錠前の板。**何も選ばない**（鍵が閉じている画面では
      picker() が欄ごと隠す ── 隠れた欄へ値を入れても、写る板は変わらない）。 */
 }[scene] || null;
@@ -242,6 +258,10 @@ await page.evaluateOnNewDocument((scene, theme, lang, cur) => {
                    pick: PICK, thin: THIN, lock: LOCK, det: DET, det0: DET0,
                    goal: GOAL, nolist: NOLIST };
   const DEEP = SCENES[scene] || FULL;
+  /* ★party（クラッカー）だけ：閉じた板の答えを窓に置いておく。鳴らす手順（下の
+     「party」の節）が、試験用の入口でいったん閉じた板を描かせるのに使う。
+     ほかの scene では置かない。 */
+  if (scene === 'party') window.__shotLock = DET;
 
   /* ★選べる組み合わせ（2026-09-01）。画面はこれで選択肢を絞る。形は
      db/deep-pay.sql の avail と同じ ── 会社 / 会社ごとの職位 /「会社|職位」ごとの機材。
@@ -420,6 +440,42 @@ if (PICK) {
    が出る（実測で 570px→920 / 580px→938 / 610px→950 と単調でない並びになった）。
    ⚠️ sleep で待たない。混んだ回に足りなくなって、また同じ揺れが戻る。 */
 await page.evaluate(() => document.fonts.ready);
+
+/* ── party：クラッカーを鳴らす（2026-10-11）────────────────────────────
+   ★印は**製品のコードに置かせる**。試験用の入口で閉じた板を描く → deep-pay.js が
+     端末に印を置く → 続けて開いた画面を描く → 印を見つけて紙吹雪が出る。
+     ここで印を手で書くと、指紋の作り方をもう1つ持つことになる（pv-session.js の1本だけ）。
+   ★撮るときは、紙吹雪を**途中で止める**（Web Animations API の pause と currentTime）。
+     時間で待って撮ると、混んだ回に絵が変わる。
+   ⚠️ 止めて撮るあいだだけ、片づけのタイマー（約 2.8 秒で器を外す）を効かせない ──
+      窓の setTimeout を、開いた画面を描く1行のあいだだけ空の関数に差し替える。
+      製品の動きを変えているのは**この撮影の中だけ**（open のときは差し替えない）。
+   ★開いた画面の答えは、窓の中の偽サーバに、選んだ区分で聞き直す（画面と同じ答え）。 */
+let party = null;
+if (scene === 'party') {
+  if (open) await new Promise((r) => setTimeout(r, 1500));   // 窓を見る人の目が追いつくまで
+  party = await page.evaluate(async (pick, at, freeze) => {
+    const KEY = 'pv_deep_was_locked';
+    const res = await window.supabase.createClient().rpc('pv_deep_pay', { p: pick });
+    window.PVDeepPay.render(window.__shotLock);
+    const mark = localStorage.getItem(KEY);
+    const st = window.setTimeout;
+    if (freeze) window.setTimeout = () => 0;
+    try { window.PVDeepPay.render(res.data); } finally { window.setTimeout = st; }
+    const lay = document.querySelector('.dp-pop');
+    const an = lay ? lay.getAnimations({ subtree: true }) : [];
+    if (freeze) an.forEach((a) => { a.pause(); a.currentTime = at; });
+    return { marked: !!mark, layer: !!lay, anims: an.length,
+             papers: lay ? lay.querySelectorAll('.dp-pop-p').length : 0,
+             chars: lay ? lay.textContent.length : 0,
+             pe: lay ? getComputedStyle(lay).pointerEvents : '',
+             left: localStorage.getItem(KEY) };
+  }, PICK, partyAt, !open);
+  console.log(`${party.marked && party.layer && party.left === null && party.chars === 0 && party.pe === 'none' ? '✓' : '❌'} クラッカー: `
+    + `閉じた板で印が置かれた=${party.marked}・器が出た=${party.layer}・紙 ${party.papers} 枚・動き ${party.anims} 本`
+    + `・字 ${party.chars} 文字・pointer-events=${party.pe}・印は${party.left === null ? '消えた' : '残っている'}`
+    + (open ? '' : `（出だしから ${partyAt}ms で止めて撮る）`));
+}
 /* ── 実測（`measure` を付けたとき）────────────────────────────────
    ★<select> は中身が入り切らなくても黙って端で切る（省略記号すら出ない）。
      選択肢の実幅を canvas で測り、欄の内寸と突き合わせる。 */
@@ -506,7 +562,9 @@ if (open) {
   await new Promise((r) => browser.on('disconnected', r));
   process.exit(0);
 }
-await page.screenshot({ path: outPath, fullPage: true });
+/* ★party だけは窓のぶんだけ撮る。紙吹雪の器は窓に貼り付いた1枚（position:fixed）で、
+     ページ全体を撮ると、スマホの幅では絵の上の端に小さく写るだけになる。 */
+await page.screenshot({ path: outPath, fullPage: scene !== 'party' });
 
 /* ★横スクロールはスクショに写らない。幅を指定して撮ったら必ず数えて出す。 */
 const over = await page.evaluate(() => {

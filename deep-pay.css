@@ -442,6 +442,38 @@
 .dp-ghost .dp-li:nth-child(5) .dp-li-f{width:16%}
 .dp-ghost .dp-li:nth-child(6) .dp-li-f{width:10%}
 
+/* ── 開いた瞬間のクラッカー（2026-10-11・オーナー指示）──────────────
+   閉じた板を見ていた会員が給与の詳細を出して、この画面が開いたとき、紙吹雪を1回だけ
+   飛ばす。いつ・だれに・どう飛ばすかは deep-pay.js の「開いた瞬間のクラッカー」の節
+   （会社比較も同じ本体）。ここに在るのは**置き場所と紙の形だけ**。
+   ★動きはこのファイルに書かない。JS が Web Animations API で transform と opacity だけを
+     動かす（@keyframes・transition をここへ足さない ── 足すと動きの出どころが2つになる）。
+   ★器 .dp-pop ── 画面いっぱいの fixed。**押せない**（pointer-events:none。子の紙にも
+     そのまま効く）ので、下のボタン・欄・ヘッダーは今までどおり押せる。はみ出した紙は
+     器が切る（overflow:hidden ＝ 横スクロールを作らない）。重なりはヘッダー（200）より上・
+     ナビの引き出し（240〜）より下。
+   ★角 .dp-pop-o ── 飛び出す点（幅も高さも 0）。場所は JS が本文の箱から決める。
+     その中に1枚ぶんの3重の入れ子 ── .dp-pop-f（落ちる）＞ .dp-pop-a（飛ぶ）＞ .dp-pop-p（紙）。
+     外の2つは大きさを持たない点で、色と形を持つのは紙だけ。
+   ★色はここに書かない。紙の色は JS が var(--gh-*)（給与構成の色）と --pv-accent を
+     名前で渡す。
+   ⚠️ ぼかし・filter を付けない（このファイルでぼかしてよいのは上の影絵だけ）。
+   ⚠️ 字も数字も入れない ── 紙は空の <i>。 */
+.dp-pop{position:fixed;inset:0;z-index:230;overflow:hidden;pointer-events:none;contain:strict}
+.dp-pop-o,.dp-pop-f,.dp-pop-a{position:absolute;display:block;width:0;height:0}
+.dp-pop-f,.dp-pop-a{left:0;top:0}
+/* 紙。★左上を半分ずらして、点の真ん中に置く（回るときの軸が紙の中心になる）。 */
+.dp-pop-p{position:absolute;display:block;left:-4px;top:-6px;width:8px;height:12px;
+  border-radius:2px}
+.dp-pop-p--b{left:-2px;top:-8px;width:5px;height:16px}                    /* 細長い紙 */
+.dp-pop-p--c{left:-4px;top:-4px;width:9px;height:9px;border-radius:50%}   /* 丸 */
+.dp-pop-p--d{left:-5px;top:-5px;width:10px;height:10px}                   /* 四角 */
+/* 「動きを減らす」設定。★JS はこの設定の人に器を作らない。ここは念のための重ね掛け
+   （作ってしまっても出さない）。 */
+@media (prefers-reduced-motion:reduce){
+  .dp-pop{display:none}
+}
+
 /* ── 給与構成 ────────────────────────────────────────────────
    ★絵は pay-viz.js の donutFromSegs をそのまま借りる（実体は1か所だけ）。
      ここでするのは「モックの3列の表に見えるように並べ替える」ことだけで、

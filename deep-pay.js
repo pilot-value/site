@@ -204,8 +204,10 @@
       lockGoal: '給与を出したパイロットが{goal}人に達すること（いま{n}人）。',
       lockCta: '匿名で給与を出す',
       /* ★2026-10-11 オーナー指定の文言（板のボタンだけ）。1文字も変えない・「匿名で」を足さない
-           （トップの「Give & Get 全ての待遇データを解放する」と同じ扱い）。 */
-      lockGo: 'Give & Get 詳細を入力して開放する',
+           （トップの「Give & Get 全ての待遇データを解放する」と同じ扱い）。
+         ★同じ日にオーナーが字を1つ直した ── 末尾の語を、トップと同じ「解放」に
+           そろえた（前は別の字だった）。英語の字は変えていない。 */
+      lockGo: 'Give & Get 詳細を入力して解放する',
 
       thinT: 'この区分は、まだ人数が足りません',
       thinS: 'データがそろった区分から順に出ます。',
@@ -488,7 +490,11 @@
                pkv は「中身が変わった回数」＝ picker() の組み直しの合図。 */
             picks: null, pkj: '', pkv: 0,
             sel: { airline: '', position: '', fleet: '' },
-            client: null, busy: false };
+            client: null, busy: false,
+            /* クラッカー用（2026-10-11。下の「開いた瞬間のクラッカー」の節）。
+               who ＝ いまの会員の指紋（uid そのものではない）／popped ＝ この表示で
+               もう鳴らしたか。⚠️ どちらも飾りにしか使わない。門はこれを読まない。 */
+            who: '', popped: false };
   function el(id) { return d.getElementById(id); }
   /* 別の <script> が宣言した const sb を読む（actual-pay.js:662）。
      宣言前に呼ばれると ReferenceError になるので、必ず try で包んだ側から呼ぶ。 */
@@ -1217,6 +1223,9 @@
          影絵は字も数字も持たない固定の絵で、S.data からは gate しか使わない
          （鍵の無い人の答えに head / comp が紛れて来ても、ここからは描かれない）。 */
     lockBoard(box, lockStage((S.data && S.data.gate) || {}));
+    /* ★「この会員は閉じた板を見た」と端末に控える（開いた日のクラッカー用。下の節）。
+         書くだけで、ここでは何も読まない ── 板の中身にも門にも関係しない。 */
+    partyMark();
   }
 
   /* ★選んだ区分が人数の壁に届かなかったとき。**広い区分の数字で埋めない。**
@@ -1262,6 +1271,172 @@
     box.hidden = false;
   }
 
+  // ── 開いた瞬間のクラッカー（2026-10-11・オーナー指示）──────────────
+  /* オーナーの頼み ── 閉じた板を見ていた会員が給与の詳細を出して、この画面が開いたら
+     「クラッカーならしてね」。紙吹雪を**1回だけ**飛ばす。
+
+     ── いつ鳴らすか（partyMark / partyDue）──
+     ★閉じた板を描いたとき、端末に印を1つ置く（localStorage の partyKey()）。中身は
+       会員の**指紋**（PVPayLocal.fp ＝ pv-session.js に1本だけ在る畳み方。給与フォームの
+       下書きの押印と同じもの）で、uid そのものは置かない。指紋が取れない回は置かない。
+     ★開いた画面を描くとき、その印が在って自分のものなら鳴らす。印は**鳴らす前に**消す
+       （再読み込みで2度鳴らない。消せなかった回は鳴らさない）。別の会員の印・自分の
+       指紋が取れない回の印は、消すだけ。
+     ★指紋は秘密ではない（短く畳んだだけ）。「この端末の中で同じ人か」を見分けるための
+       もので、ログアウトしても印は残る ── 同じ会員が次に開いた日に鳴り、別の会員なら消える。
+     ★2つの画面（DEEP PAY・会社比較）で同じ印を使う ── 先に開いたほうで鳴り、もう片方は
+       印が無いので鳴らない。同じ表示の中でも1回まで（S.popped）。
+     ★鳴らないもの：板を1度も見ていない会員（印が無い）／閉じた画面・読み込めなかった
+       画面・読み込み中（partyPop は render() の「開いている」枝からしか呼ばれない）。
+     ⚠️ この印は**飾り**。門ではない。見られるかどうかを決めるのはサーバ（gate）だけで、
+        板の行・ボタンの行き先・左メニューの錠前のどれも、この印を読まない。
+        ここから門の鍵（pv-gates.js / pv-session.js が読む鍵）へは**1つも書かない**
+        ── 書くのは partyKey() の1つだけ。印を手で書き足しても、紙吹雪が出るだけで
+        数字は1つも開かない。
+     ⚠️ 保存領域は投げることがある（プライベートモード・容量切れ）。読む・書く・消すは
+        必ず try の中。投げた回は「印が無い」と同じ ＝ 鳴らさないだけで、画面は描ける。
+
+     ── どう鳴らすか（partyPop / partyFire / partySpec / partyHtml）──
+     ★音は出さない。ブラウザは、操作なしで始まる音を止める（鳴ったり鳴らなかったりする）。
+       出すのは絵だけ。
+     ★本文の上の左右の角から、紙吹雪を内向きに1発ずつ（左右 42 枚ずつ。狭い画面は
+       30 枚ずつ）。約 2.2〜2.8 秒で落ちながら消え、終わったら器ごと DOM から外す。
+     ★扇の形は画面に合わせる ── 横へは本文の幅の6割まで・下へは画面の高さの4割ほどまで。
+       横長の画面では浅く広く、縦長のスマホでは深く開く（幅だけで決めると、スマホでは
+       見出しの上に固まった帯になる）。
+     ★動かすのは transform と opacity **だけ**（Web Animations API）。1枚は3重の入れ子で、
+       外から 落ちる（下へ・だんだん速く）／飛ぶ（向きを回して前へ・だんだん遅く）／
+       舞う（紙の回転）。向きは rotate に任せるので、三角関数も円周率も持たない。
+     ★乱数を使わない。向き・距離・落ち幅・長さ・出だしのずれ・回転・大きさは、**何枚目か**
+       だけから決める（partyBit ＝ 番号 × 定数の小数部分。むらなく散って、毎回同じ絵）。
+       形と色は番号の余りで回す。
+     ★色はこの画面の色だけ ── 給与構成の色（COL ＝ PVViz.SEG。影絵と同じ --gh-*）と
+       --pv-accent。灰色（rest）は使わない。色の値をここに書かない。
+     ★器（.dp-pop）は position:fixed・pointer-events:none・aria-hidden。字も数字も入れない。
+       下のボタンや欄は、紙吹雪が重なっていても今までどおり押せる。画面の外へ出た紙は
+       器が切る（横スクロールを作らない）。
+     ★寸法を読むのは、器を置く前の1か所だけ（本文の箱と窓の大きさ）。置いたあとは
+       書くだけ ── 読み書きを交互にしない。
+     ★「動きを減らす」設定の人には器ごと作らない（印は消す）。Web Animations API の無い
+       ブラウザでも作らない。裏のタブで開いた回は、表に出たときに鳴らす。
+     ⚠️ ぼかし・filter は使わない（この画面でぼかしてよいのは影絵だけ）。値をここで
+        描かない ── 紙吹雪はサーバの答えを1つも読まない。
+     ★この節の9つ（partyKey / partyWho / partyMark / partyDue / partyBit / partySpec /
+       partyHtml / partyFire / partyPop）は、2つの JS（deep-pay.js / deep-pay-compare.js）に
+       **同じ本体**で置いてある（ずれは assert-deep-pay-compare.mjs の「写した関数」が見張る）。 */
+  function partyKey() { return 'pv_deep_was_locked'; }
+  /* 会員の指紋。★畳み方は pv-session.js の1本を借りる（2つ目を作らない）。 */
+  function partyWho(session) {
+    var id = session && session.user && session.user.id, P = w.PVPayLocal;
+    try { return (id && P && typeof P.fp === 'function') ? String(P.fp(id) || '') : ''; }
+    catch (e) { return ''; }
+  }
+  /* 閉じた板を描いたときに呼ぶ。書くだけ（何も返さない・何も読まない）。 */
+  function partyMark() {
+    if (!S.who) return;
+    try { w.localStorage.setItem(partyKey(), S.who); } catch (e) {}
+  }
+  /* 鳴らしてよいか。★印は、答えを出す前にここで消す（在れば必ず）。 */
+  function partyDue() {
+    var k = partyKey(), v = null;
+    try {
+      v = w.localStorage.getItem(k);
+      if (v == null) return false;
+      w.localStorage.removeItem(k);
+    } catch (e) { return false; }
+    if (!S.who || v !== S.who || S.popped) return false;
+    S.popped = true;
+    return true;
+  }
+  /* 0〜1 の、番号だけで決まる値。k を変えると別の並びになる。 */
+  function partyBit(n, k) { var x = (n + 1) * k; return x - Math.floor(x); }
+  /* n 枚目の飛び方。half より前は左の角・後ろは右の角。rx / ry ＝ 横・下へ飛ぶ距離の
+     上限、drop ＝ 落ちる幅の上限（どれも px）。★同じ引数には、いつも同じ答え。
+     ★遠さは平方根で散らす（面でむらなく ── 素のままだと角の近くに固まる）。 */
+  function partySpec(n, half, rx, ry, drop) {
+    var right = n >= half;
+    var ang = -8 + 96 * partyBit(n, 0.7549);       // 0 ＝ 真横（内向き）・90 ＝ 真下
+    var lim = rx + (ry - rx) * Math.max(ang, 0) / 90;    // 横は rx・下は ry（あいだは均す）
+    return {
+      ang: Math.round(right ? 180 - ang : ang),
+      far: Math.round(lim * (0.18 + 0.82 * Math.sqrt(partyBit(n, 0.5698)))),
+      fall: Math.round(drop * (0.5 + 0.5 * partyBit(n, 0.618))),
+      dur: 2200 + Math.round(400 * partyBit(n, 0.4142)),
+      wait: Math.round(140 * partyBit(n, 0.3247)),
+      turn: Math.round((right ? -1 : 1) * (200 + 520 * partyBit(n, 0.2451))),
+      flip: 540 + Math.round(900 * partyBit(n, 0.8192)),
+      size: Math.round((0.8 + 0.65 * partyBit(n, 0.9346)) * 100) / 100
+    };
+  }
+  /* from〜to 枚目の紙。★空の <i> だけ（字・数字・押せるものを入れない）。 */
+  function partyHtml(from, to, hues) {
+    var kinds = 'a a b c d'.split(' '), out = '', n;
+    for (n = from; n < to; n++) {
+      out += '<i class="dp-pop-f"><i class="dp-pop-a"><i class="dp-pop-p dp-pop-p--' +
+        kinds[(n * 7 + 3) % kinds.length] + '" style="background:' +
+        hues[(n * 5 + 2) % hues.length] + '"></i></i></i>';
+    }
+    return out;
+  }
+  function partyFire() {
+    var main = d.querySelector('.mr-main');
+    /* ★寸法を読むのは、この2行だけ（器を置く前）。 */
+    var box = main ? main.getBoundingClientRect() : null;
+    var vw = d.documentElement.clientWidth, vh = w.innerHeight;
+    var x0 = Math.max(box ? box.left : 0, 0), x1 = Math.min(box ? box.right : vw, vw);
+    var y0 = Math.min(Math.max(box ? box.top : 0, 0), vh);
+    var wide = x1 - x0, drop = vh * 0.86;
+    var rx = Math.min(Math.max(wide * 0.6, 210), 700), ry = Math.min(vh * 0.42, 420);
+    var count = wide < 640 ? 60 : 84, half = count / 2, last = 0;
+    var hues = Object.keys(COL).filter(function (k) { return !!COL[k] && k !== 'rest'; })
+      .map(function (k) { return 'var(--gh-' + k + ')'; }).concat(['var(--pv-accent)']);
+    var at = function (x) {
+      return '<div class="dp-pop-o" style="left:' + Math.round(x) + 'px;top:' +
+        Math.round(y0 + 6) + 'px">';
+    };
+    var lay = d.createElement('div');
+    var gone = function () { if (lay.parentNode) lay.parentNode.removeChild(lay); };
+    lay.className = 'dp-pop';
+    lay.setAttribute('aria-hidden', 'true');
+    lay.setAttribute('style', ghostTint());
+    lay.innerHTML = at(x0 + 8) + partyHtml(0, half, hues) + '</div>' +
+      at(x1 - 8) + partyHtml(half, count, hues) + '</div>';
+    d.body.appendChild(lay);
+    try {
+      Array.prototype.forEach.call(lay.querySelectorAll('.dp-pop-f'), function (f, n) {
+        var s = partySpec(n, half, rx, ry, drop), a = f.firstChild, p = a.firstChild;
+        var t = { duration: s.dur, delay: s.wait, fill: 'both' };
+        f.animate([
+          { transform: 'translateY(0px)', opacity: 0, easing: 'cubic-bezier(.4,0,.8,.5)' },
+          { opacity: 1, offset: 0.04 }, { opacity: 1, offset: 0.7 },
+          { transform: 'translateY(' + s.fall + 'px)', opacity: 0 }], t);
+        a.animate([
+          { transform: 'rotate(' + s.ang + 'deg) translateX(0px)',
+            easing: 'cubic-bezier(.1,.76,.22,1)' },
+          { transform: 'rotate(' + s.ang + 'deg) translateX(' + s.far + 'px)' }], t);
+        p.animate([
+          { transform: 'rotate(0deg) rotateX(0deg) scale(' + s.size + ')' },
+          { transform: 'rotate(' + s.turn + 'deg) rotateX(' + s.flip + 'deg) scale(' +
+            s.size + ')' }], t);
+        last = Math.max(last, s.dur + s.wait);
+      });
+    } catch (e) { gone(); return; }    /* 途中で止まった紙を、角に残さない */
+    w.setTimeout(gone, last + 80);
+  }
+  function partyPop() {
+    if (!partyDue()) return;
+    var calm = true;
+    try { calm = !!w.matchMedia('(prefers-reduced-motion: reduce)').matches; }
+    catch (e) { calm = true; }
+    if (calm || !d.body || typeof d.body.animate !== 'function') return;
+    if (!d.hidden) { partyFire(); return; }
+    d.addEventListener('visibilitychange', function seen() {
+      if (d.hidden) return;
+      d.removeEventListener('visibilitychange', seen);
+      partyFire();
+    });
+  }
+
   // ── 描く ───────────────────────────────────────────────────────
   function render() {
     picker(); head();
@@ -1274,6 +1449,10 @@
          会社比較（deep-pay-compare.js）は前からこの形（load のあいだは骨組み）。 */
     if (S.mode === 'load')  return;
     if (S.mode !== 'open')  { shut('lock');  return; }
+    /* ★ここまで来た ＝ 開いている。閉じた板を見たことのある会員なら、1回だけ
+         クラッカーを鳴らす（鳴らすかどうかは partyPop() の中。返り値は使わない ──
+         この下の描き分けは、鳴っても鳴らなくても1文字も変わらない）。 */
+    partyPop();
     /* ★この3行の順番が効いている。錠前より前に置くと鍵の画面が出ず、
        level==='none' より後ろに置くとクリアした直後に
        「人数が足りません」（前の区分の答え）が出る。 */
@@ -1293,6 +1472,9 @@
       ? w.PV_SESSION : { then: function (f) { f(null); return { catch: function () {} }; } };
     ready.then(function (session) {
       if (!session) return;                     // ページ側がログインへ送っている
+      /* クラッカー用に、いまの会員の指紋を持っておく（uid そのものは持たない。
+         取れなければ空のまま ＝ 印も書かず、鳴らしもしない）。 */
+      S.who = partyWho(session);
       /* 匿名で出した給与の預かり証を拾う（actual-pay.js と同じ位置・同じ理由）。
          ★pv_deep_pay() より **前**。引き取りに成功すると解放が立つので、
            直後に引けば1回目から開いた画面になる。 */

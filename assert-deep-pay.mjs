@@ -102,6 +102,17 @@
        板の字・行・一覧・断り・ボタンの行き先は1つも変えていない（§2b〜§2d がそのまま見る）。
        ★最初の答えが来るまでは骨組みのまま待つ ── 前は、開いている人にも錠前の板が
          一瞬出ていた（§2e の「読み込み中」）。
+     ・**開いた瞬間のクラッカー**（同じ日のオーナー指示「クラッカーならしてね」）。閉じた板を
+       見ていた会員が給与の詳細を出して、この画面が開いたら、紙吹雪を**1回だけ**飛ばす。
+       ★②③ の約束はそのまま ── ぼかし・filter を足していない（紙吹雪の器にも無い）・
+         乱数を使わない（何枚目かだけで決まる動き）・字も数字も描かない・音も出さない。
+       ★端末に置く印（保存領域の鍵1つ）は**飾り**で、門ではない。板・門・左メニューの側は
+         印を読まず、クラッカーの側は門の鍵へ1つも書かない。印の中身は uid ではなく指紋。
+       見るのは ── 字面（⑬）／実物（§2f ── 出る相手と出ない相手・押せない器・下のボタンが
+       押せる・横スクロールが生えない・片づく・「動きを減らす」設定・2つの画面で1回・
+       裏のタブ・保存領域が投げる端末）。
+       ★§2e の「閉じた → 開いた で影絵が消える」は、紙吹雪の器が出ている最中に見ている
+         （あの筋書きは同じ窓で閉じた板を描いてから開くので、そこで1回鳴る）。
 
    ⚠️ 偽物 Supabase の rpc は本物と同じ「then だけを持つ箱」にしてある。
       async にすると本番に無い .catch が生えて、本番だけ真っ白になる穴が開く
@@ -818,6 +829,241 @@ console.log('\n════ ⑫ まだ答えていない項目の名前 ⇄ 給�
 }
 
 // ════════════════════════════════════════════════════════════════
+// ⑬ 開いた瞬間のクラッカー（字面）
+// ════════════════════════════════════════════════════════════════
+/* 2026-10-11・オーナー指示 ── 閉じた板を見ていた会員が給与の詳細を出して、画面が開いたら
+   「クラッカーならしてね」。紙吹雪を1回だけ飛ばす（deep-pay.js の「開いた瞬間のクラッカー」の節）。
+   ここは字面で見る。実際に出る・出ない・押せる・片づくは、下のブラウザの節（§2f）。
+   見るのは6つ：
+     a) 乱数も時刻も使わない（番号だけで決める ＝ ③ の「作り物を置かない」と同じ網の中）。
+        音を出さない。canvas も外のスクリプトも使わない。
+     b) 動かすのは transform と opacity だけ（Web Animations API）。ぼかし・filter・
+        transition を持たない。CSS には置き場所と紙の形しか無い（動きも色も書かない）。
+     c) 印（端末の保存領域の鍵1つ）は**飾り**。書くのは partyMark()・読んで消すのは
+        partyDue() の2か所だけで、板・門・左メニューの側は名前も知らない。
+        クラッカーの側から門の鍵へは1つも書かない。置くのは uid ではなく指紋。
+     d) 保存領域に触る行は、ぜんぶ try の中。
+     e) 鳴らす前に印を消す。「動きを減らす」設定は、消したあと・器を作る前に見る。
+     f) 紙は空の <i> だけ（字・数字・押せるものが無い）。色は COL と --pv-accent を名前で渡す。
+   ⚠️ a) の乱数の禁止を「クラッカーは飾りだから」と緩めない。緩めると、同じ道具が
+      影絵や数字の側へ持ち込まれた日に赤くならない。 */
+console.log('\n════ ⑬ 開いた瞬間のクラッカー（字面）════');
+{
+  const PARTY = ['partyKey', 'partyWho', 'partyMark', 'partyDue', 'partyBit', 'partySpec',
+                 'partyHtml', 'partyFire', 'partyPop'];
+  const KEY = 'pv_deep_was_locked';
+  const src = {};
+  for (const n of PARTY) src[n] = cutFn(JS, n);
+  ok(PARTY.every((n) => src[n].length > 0), 'クラッカーの関数が9つとも切り出せる',
+     PARTY.filter((n) => !src[n]).join(' '));
+  const bare = {};
+  for (const n of PARTY) bare[n] = decomment(src[n]);
+  const all = PARTY.map((n) => bare[n]).join('\n');
+  /* クラッカーの節を抜いた残り（板・門・描き手・起動）。 */
+  let rest = jsC;
+  for (const n of PARTY) rest = rest.split(bare[n]).join(' ');
+  const css = decomment(read('deep-pay.css'));
+  const count = (re, s) => (s.match(re) || []).length;
+
+  // ── a) 乱数・時刻・音・外の道具 ──
+  ok(!/Math\.random|\bcrypto\b|\bDate\b|performance\s*\./.test(all),
+     '★★クラッカーは乱数も時刻も使わない（番号だけで決める）');
+  const SOUND = /\bAudio\s*\(|<audio|AudioContext|speechSynthesis|\.play\s*\(\s*\)|\.(?:mp3|wav|ogg|m4a)\b/i;
+  ok(!SOUND.test(jsC) && !SOUND.test(css) && !SOUND.test(nohtmlcomment(JA)) && !SOUND.test(nohtmlcomment(EN)),
+     '★★音を出さない（JS・CSS・HTML のどこにも音の道具が無い）');
+  ok(!/canvas|getContext|\bfetch\b|\brpc\b|XMLHttpRequest|\bimport\b|\bsrc\b|\bhref\b|<script|<img|<svg/i.test(all)
+     && count(/createElement\(/g, all) === 1 && /d\.createElement\('div'\)/.test(all),
+     '★canvas も外のスクリプトも画像も使わない（作る要素は器の div 1つ）');
+
+  // ── b) 動かすのは transform と opacity だけ ──
+  ok(!/filter\s*[:=]|blur|backdrop|\bmask\b|clip-?path/i.test(all),
+     '★★クラッカーの字面に filter / blur / mask が無い（ぼかしてよいのは影絵だけ）');
+  ok(!/transition|@keyframes|animation\s*:/i.test(all) && !/\.style\b/.test(all),
+     '★クラッカーは transition も CSS の animation も style の直書きも使わない');
+  ok(!/transition\s*:\s*all|transition-all/.test(css) && !/transition\s*:\s*all|transition-all/.test(jsC),
+     '★transition:all を使っていない（CSS・JS）');
+  {
+    const fire = bare.partyFire;
+    const calls = [...fire.matchAll(/\.animate\(\[([\s\S]*?)\],\s*t\);/g)].map((m) => m[1]);
+    const keys = [...new Set(calls.join('\n').replace(/'[^']*'/g, "''").match(/\b[a-zA-Z]+(?=\s*:)/g) || [])].sort();
+    ok(calls.length === 3 && count(/\.animate\(/g, all) === 3,
+       '★紙1枚の動きは3本（落ちる・飛ぶ・舞う）。動かす道は Element.animate だけ', String(calls.length));
+    ok(keys.join(' ') === 'easing offset opacity transform',
+       '★★キーフレームに書くのは transform と opacity だけ（ほかは easing と offset）', keys.join(' '));
+    /* easing の字（'cubic-bezier(…)'）は落としてから、transform の関数名だけを拾う。 */
+    const fns = [...new Set((calls.join('\n').replace(/'cubic-bezier\([^']*\)'/g, "''")
+      .match(/\b[a-zA-Z]+(?=\()/g) || []))].sort();
+    ok(fns.join(' ') === 'rotate rotateX scale translateX translateY',
+       '★transform の中身は translate / rotate / scale だけ（位置や寸法の指定を動かさない）', fns.join(' '));
+    ok(/var t = \{ duration: s\.dur, delay: s\.wait, fill: 'both' \};/.test(fire),
+       '★長さと出だしは partySpec() の答えから（終わったあとも見えない状態で止まる ＝ fill:both）');
+    /* 寸法を読むのは、器を置くより前に1回だけ（読み書きを交互にしない）。 */
+    const READ = /getBoundingClientRect|getComputedStyle|\boffset(?:Width|Height|Top|Left)\b|\bscroll(?:Width|Height|Top|Left)\b|\bclient(?:Width|Height)\b|\binner(?:Width|Height)\b/g;
+    const reads = [...fire.matchAll(READ)].map((m) => m.index);
+    ok(count(/getBoundingClientRect/g, fire) === 1 && reads.length === 3
+       && Math.max(...reads) < fire.indexOf('lay.innerHTML') && fire.indexOf('lay.innerHTML') < fire.indexOf('appendChild'),
+       '★寸法を読むのは器を置く前だけ（本文の箱を1回・窓の幅と高さ）。置いたあとは読まない',
+       `読む行 ${reads.length}`);
+    ok(/d\.body\.appendChild\(lay\)/.test(fire) && /lay\.className = 'dp-pop';/.test(fire)
+       && /lay\.setAttribute\('aria-hidden', 'true'\);/.test(fire),
+       '★器は body の直下に置く（本文の器の外 ＝ 描き直しで消えない・本文の字を変えない）。aria-hidden を付ける');
+    ok(/catch \(e\) \{ gone\(\); return; \}/.test(fire) && /w\.setTimeout\(gone, last \+ \d+\);/.test(fire)
+       && count(/setTimeout/g, jsC) === 1,
+       '★器は終わったら外す（途中で投げた回もその場で外す）。タイマーはこの片づけの1本だけ');
+    const m = /var count = wide < \d+ \? (\d+) : (\d+), half = count \/ 2/.exec(fire);
+    ok(!!m && [m[1], m[2]].every((v) => Number(v) >= 60 && Number(v) <= 90 && Number(v) % 2 === 0),
+       '★紙は 60〜90 枚（左右で半分ずつ）', m ? m[1] + ' / ' + m[2] : '見つからない');
+  }
+  {
+    /* CSS ── 置き場所と紙の形だけ。 */
+    const rules = [...css.matchAll(/([^{}]*\.dp-pop[^{}]*)\{([^{}]*)\}/g)];
+    const lay = (css.match(/(?:^|\})\s*\.dp-pop\s*\{([^{}]*)\}/) || ['', ''])[1];
+    const body = rules.map((r) => r[2]).join(';');
+    ok(rules.length >= 5 && /position\s*:\s*fixed/.test(lay) && /inset\s*:\s*0/.test(lay)
+       && /overflow\s*:\s*hidden/.test(lay) && /pointer-events\s*:\s*none/.test(lay),
+       '★★器（.dp-pop）は fixed・画面いっぱい・はみ出しを切る・押せない', lay.trim().slice(0, 90));
+    const z = Number((/z-index\s*:\s*(\d+)/.exec(lay) || [])[1]);
+    ok(z > 200 && z < 240, '★器の重なりは、ヘッダー（200）より上・ナビの引き出し（240〜）より下', String(z));
+    ok(!/transition|animation|filter|blur|opacity|visibility|content\s*:|#[0-9a-f]{3,8}\b|rgba?\(|hsla?\(|background/i.test(body),
+       '★クラッカーの CSS に、動き・ぼかし・色・字（content）が無い（置き場所と形だけ）',
+       (body.match(/[^;]*(?:transition|animation|filter|blur|opacity|visibility|content\s*:|#[0-9a-f]{3,8}\b|rgba?\(|hsla?\(|background)[^;]*/i) || [''])[0].trim());
+    ok(/@media\s*\(prefers-reduced-motion\s*:\s*reduce\)\s*\{\s*\.dp-pop\s*\{\s*display\s*:\s*none\s*;?\s*\}\s*\}/.test(css),
+       '★「動きを減らす」設定では、器が在っても出さない（CSS の重ね掛け）');
+    ok(!/@keyframes/.test(css), '★deep-pay.css に @keyframes が無い（動きの出どころは JS の1か所）');
+  }
+
+  // ── c) 印は飾り ──
+  ok(count(new RegExp(KEY, 'g'), jsC) === 1 && bare.partyKey.includes("'" + KEY + "'"),
+     '★★印の鍵の名前を書くのは partyKey() の1か所だけ');
+  ok(PARTY.filter((n) => n !== 'partyKey' && /\bpartyKey\(\)/.test(bare[n])).join(' ') === 'partyMark partyDue'
+     && count(/\bpartyKey\(/g, jsC) === 3,
+     '★★印に触るのは partyMark()（書く）と partyDue()（読んで消す）の2つだけ');
+  ok(count(/[sS]torage/g, rest) === 0 && count(/localStorage/g, all) === 3
+     && count(/sessionStorage|indexedDB|document\.cookie/g, jsC) === 0,
+     '★保存領域に触る行は、クラッカーの2つの関数の中にしか無い（板・門・描き手は触らない）',
+     `外 ${count(/[sS]torage/g, rest)} / 中 ${count(/localStorage/g, all)}`);
+  ok(count(/\.setItem\(/g, jsC) === 1 && /w\.localStorage\.setItem\(partyKey\(\), S\.who\)/.test(bare.partyMark),
+     '★★書くのは印の1つだけ・中身は指紋（S.who）');
+  ok(!/pv_salary_unlock_expiry|pv_unlock_expiry|pv_user|pv_pay_|access_until|PVGates|PVUnlock|PVSession|\bgate\b|\bsb-/.test(all),
+     '★★クラッカーの側から、門の鍵にも門の道具にも触らない（書かない・読まない）');
+  ok(/session\.user\.id/.test(bare.partyWho) && /P\.fp\(id\)/.test(bare.partyWho) && /w\.PVPayLocal/.test(bare.partyWho)
+     && !/\buid\b|\bemail\b/.test(all) && count(/session/g, all) === count(/session/g, bare.partyWho),
+     '★置くのは uid ではなく指紋（pv-session.js の PVPayLocal.fp を借りる。2つ目の畳み方を作らない）');
+  ok(count(/\bS\.who\b/g, rest) === 1 && /S\.who = partyWho\(session\);/.test(rest)
+     && count(/\bS\.popped\b/g, rest) === 0 && count(/\bpartyWho\(/g, jsC) === 2,
+     '★指紋（S.who）を入れるのは起動の1行・読むのはクラッカーだけ。S.popped も外では読まない');
+  /* 板・門・描き手が、印もクラッカーの状態も読まない。 */
+  for (const n of ['lockLines', 'lockHref', 'todoNames', 'todoMonth', 'lockTodo', 'lockHtml', 'lockStage',
+                   'lockBoard', 'load', 'picker', 'head', 'kpis', 'comp', 'work', 'vari', 'more', 'ask',
+                   'thin', 'ghostShapes', 'ghostTint']) {
+    const c = decomment(cutFn(JS, n));
+    ok(c.length > 0 && !/\bparty[A-Z]\w*|\bS\.(?:who|popped)\b|[sS]torage/.test(c),
+       `★${n}() は印もクラッカーの状態も読まない`);
+  }
+  /* 呼ぶ場所。鳴らすのは「開いている」枝の1か所・印を置くのは閉じた板を置いた直後の1か所。
+     どちらも返り値を使わない（＝ 画面の描き分けに関わらない）。 */
+  ok(count(/\bpartyPop\(/g, jsC) === 2
+     && /if \(S\.mode !== 'open'\)\s+\{ shut\('lock'\);\s+return; \}\s+partyPop\(\);/.test(jsC),
+     '★★鳴らすのは render() の「開いている」枝だけ（閉じた画面・読み込めなかった画面・読み込み中は通らない）');
+  ok(count(/\bpartyMark\(/g, jsC) === 2
+     && /lockBoard\(box, lockStage\(\(S\.data && S\.data\.gate\) \|\| \{\}\)\);\s+partyMark\(\);\s+\}/.test(jsC),
+     '★印を置くのは、閉じた板を置いた直後だけ（読み込めなかった画面では置かない）');
+  ok(count(/\bpartyDue\(/g, jsC) === 2 && count(/\bpartyFire\(/g, jsC) === 3
+     && !/[=!(,?:&|]\s*party(?:Pop|Mark|Fire)\(/.test(jsC),
+     '★partyDue() を呼ぶのは partyPop() だけ。partyPop / partyMark / partyFire の返り値は使わない');
+
+  // ── d) e) 保存領域は try の中・消してから鳴らす・動きを減らす設定 ──
+  ok(/try \{ w\.localStorage\.setItem\(partyKey\(\), S\.who\); \} catch \(e\) \{\}/.test(bare.partyMark)
+     && /^  function partyMark\(\) \{\s+if \(!S\.who\) return;/.test(bare.partyMark),
+     '★印を書く行は try の中。指紋が無い回は書かない');
+  {
+    const due = bare.partyDue;
+    const t0 = due.indexOf('try {'), t1 = due.indexOf('} catch (e) { return false; }');
+    const g = due.indexOf('localStorage.getItem'), r = due.indexOf('localStorage.removeItem');
+    ok(t0 >= 0 && t0 < g && g < r && r < t1 && count(/localStorage/g, due) === 2,
+       '★印を読む・消す行は try の中（投げた回は鳴らさない）');
+    ok(r < due.indexOf('S.popped = true') && /if \(v == null\) return false;/.test(due)
+       && /if \(!S\.who \|\| v !== S\.who \|\| S\.popped\) return false;/.test(due),
+       '★★印は答えを出す前に消す。自分の指紋と違う印・指紋が無い回・もう鳴らした回は鳴らさない');
+  }
+  {
+    const pop = bare.partyPop;
+    const a = pop.indexOf('partyDue()'), b = pop.indexOf('prefers-reduced-motion: reduce'), c = pop.indexOf('partyFire(');
+    ok(/^  function partyPop\(\) \{\s+if \(!partyDue\(\)\) return;/.test(pop) && a < b && b < c,
+       '★★印を消す → 「動きを減らす」設定を見る → 器を作る、の順（設定の人も印は消える）');
+    ok(/var calm = true;/.test(pop) && /catch \(e\) \{ calm = true; \}/.test(pop)
+       && /if \(calm \|\| !d\.body \|\| typeof d\.body\.animate !== 'function'\) return;/.test(pop),
+       '★設定が読めない回・Web Animations API が無いブラウザでは、器を作らない');
+  }
+
+  // ── a) の続き：番号だけで決まる（取り出して実行する。外の値を読めば ReferenceError）──
+  {
+    const run = (n, rx, ry, drop) => new Function(src.partyBit + '\n' + src.partySpec
+      + '\nvar o = []; for (var i = 0; i < ' + n + '; i++) o.push(partySpec(i, ' + (n / 2) + ', '
+      + rx + ', ' + ry + ', ' + drop + ')); return o;')();
+    let A = null, B = null, why = '';
+    try { A = run(84, 700, 420, 860); B = run(84, 700, 420, 860); } catch (e) { why = String(e && e.message); }
+    ok(Array.isArray(A) && A.length === 84, '★★partySpec() は、番号と寸法のほかに何も読まずに答える', why);
+    const S0 = A || [];
+    ok(JSON.stringify(A) === JSON.stringify(B), '★★何度作っても同じ絵（同じ番号には同じ飛び方）');
+    ok(S0.every((s) => Object.keys(s).sort().join(' ') === 'ang dur fall far flip size turn wait'
+       && Object.values(s).every((v) => typeof v === 'number' && Number.isFinite(v))),
+       '★1枚ぶんの答えは8つの数（向き・距離・落ち幅・長さ・出だし・回転2つ・大きさ）');
+    ok(S0.every((s) => s.dur >= 2200 && s.dur + s.wait <= 2800 && s.wait >= 0),
+       '★1枚は 2.2〜2.8 秒で終わる（出だしのずれを足しても 2.8 秒まで）',
+       String(Math.max(0, ...S0.map((s) => s.dur + s.wait))));
+    ok(S0.slice(0, 42).every((s) => s.ang >= -8 && s.ang <= 88)
+       && S0.slice(42).every((s) => s.ang >= 92 && s.ang <= 188),
+       '★左の角の紙は右下へ・右の角の紙は左下へ（外へは飛ばさない）');
+    ok(S0.every((s) => s.far > 0 && s.far <= 700 && s.fall > 0 && s.fall <= 860),
+       '★飛ぶ距離と落ちる幅は、渡した上限まで');
+    const uniq = (k) => new Set(S0.map((s) => s[k])).size;
+    ok(uniq('ang') >= 50 && uniq('far') >= 60 && uniq('fall') >= 60 && uniq('dur') >= 40
+       && uniq('wait') >= 40 && uniq('turn') >= 60 && uniq('size') >= 30,
+       '★向き・距離・落ち幅・長さ・出だし・回転・大きさが、紙ごとに散っている（同じ動きの紙が並ばない）',
+       ['ang', 'far', 'fall', 'dur', 'wait', 'turn', 'size'].map((k) => k + ' ' + uniq(k)).join(' / '));
+    /* 寸法を変えれば、扇の形だけが変わる（縦長の画面では深く）。 */
+    let T = [];
+    try { T = run(60, 234, 420, 860); } catch (e) {}
+    ok(T.length === 60 && Math.max(...T.map((s) => s.far)) > 300
+       && T.filter((s) => s.ang <= 20).every((s) => s.far <= 234 + 42),
+       '★縦長の画面では、横へは幅なりに・下へは深く開く',
+       String(Math.max(0, ...T.map((s) => s.far))));
+
+    // ── f) 紙は空の <i> だけ ──
+    let H = '';
+    try { H = new Function(src.partyHtml + "\nreturn partyHtml(0, 84, ['var(--a)', 'var(--b)', 'var(--c)']);")(); }
+    catch (e) { why = String(e && e.message); }
+    ok(H.length > 400 && H.replace(/<[^>]*>/g, '') === '',
+       '★★紙の HTML に字が1文字も無い（タグの外が空）', why || JSON.stringify(H.replace(/<[^>]*>/g, '').slice(0, 40)));
+    ok(!/[0-9０-９¥$€£万%]/.test(H), '★紙の HTML に数字も通貨記号も無い（属性の中にも）',
+       (H.match(/[^<>]{0,20}[0-9０-９¥$€£万%][^<>]{0,20}/) || [''])[0]);
+    const tags = [...new Set([...H.matchAll(/<([a-z][\w-]*)/gi)].map((m) => m[1].toLowerCase()))].join(' ');
+    ok(tags === 'i' && count(/<i class="dp-pop-p /g, H) === 84 && count(/<i class="dp-pop-f">/g, H) === 84,
+       '★紙は3重の <i> だけ（押せるもの・読み込むものが無い）', tags);
+    ok(!/\b(?:href|src|tabindex|contenteditable|on\w+|data-[\w-]+|id|title|alt)\s*=/i.test(H)
+       && [...new Set((H.match(/\s([a-z-]+)=/g) || []).map((x) => x.trim()))].sort().join(' ') === 'class= style=',
+       '★紙の属性は class と style だけ');
+    ok([...new Set(H.match(/dp-pop-p--[a-z]/g) || [])].length === 4
+       && [...new Set(H.match(/var\(--[a-z]\)/g) || [])].length === 3,
+       '★形は4種類・色は渡した色を全部使う（番号の余りで回す）');
+    ok(/Object\.keys\(COL\)/.test(bare.partyFire) && /k !== 'rest'/.test(bare.partyFire)
+       && /'var\(--gh-' \+ k \+ '\)'/.test(bare.partyFire) && /'var\(--pv-accent\)'/.test(bare.partyFire)
+       && /lay\.setAttribute\('style', ghostTint\(\)\)/.test(bare.partyFire)
+       && !/#[0-9a-f]{3,8}\b|rgba?\(|hsla?\(/i.test(all),
+       '★色は給与構成の色（COL ＝ PVViz.SEG）と --pv-accent だけ。色の値を書かない・灰色（rest）は使わない');
+  }
+
+  /* ★2枚にまたがる見張り（会社比較の側には書かない ── 2か所で同じことを見ると、片方だけ
+       緩めたときに気づけない）。印の名前を知っているのは、この2つの JS だけ。
+       門の側（pv-gates.js・pv-session.js・pv-give-first.js …）は読みも書きもしない。 */
+  const knows = readdirSync(ROOT).filter((f) => f.endsWith('.js') && read(f).includes(KEY)).sort();
+  ok(knows.join(' ') === 'deep-pay-compare.js deep-pay.js',
+     '★★印の名前を知っている JS は deep-pay.js と deep-pay-compare.js だけ（門の側は名前も知らない）',
+     knows.join(' '));
+}
+
+// ════════════════════════════════════════════════════════════════
 // ブラウザ
 // ════════════════════════════════════════════════════════════════
 console.log('\n════ ブラウザ ════');
@@ -1052,11 +1298,29 @@ const countIn = (t) => ((t || '').match(new RegExp(NOCOUNT.source, 'gi')) || [])
 
 const browser = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox'] });
 const jars = [];
-async function open(lang, payload, theme, pick) {
-  const jar = await browser.createBrowserContext();
-  jars.push(jar);
+/* 描き終わるまで待つ（見出しが入り、骨組みが消える）。open() と、読み直したあとの両方で使う。
+   ★器の名前は画面で違う（概要 #dp-hd / #dp-kpi・会社比較 #dc-hd / #dc-sides）。
+     どちらの画面でも同じ待ち方ができるように、両方の名前で見る。 */
+async function drawn(page) {
+  await page.waitForFunction(() => !!document.querySelector('#dp-hd h1, #dc-hd h1'), { timeout: 20000 });
+  await page.waitForFunction(() => !document.querySelector('#dp-kpi .mr-skel, #dc-sides .mr-skel'),
+                             { timeout: 20000 });
+}
+/* ★5つ目の opt は、クラッカーの節（§2f）だけが使う。渡さなければ今までと1つも変わらない。
+     jar    … 同じ入れ物（＝同じ保存領域）で続けて開く。渡した入れ物は呼んだ側が閉じる
+              （jars には積まない）。印は端末の保存領域に在るので、「閉じた画面を見た人が
+              あとで開く」を作るには、同じ入れ物で2枚開くしかない。
+     file   … 開く画面（既定は deep-pay.html。会社比較を同じ偽サーバで開くのに使う）。
+     reduce … 「動きを減らす」設定を装う。
+     first  … ページのどの script よりも先に流す関数と引数の組（[[fn, arg], …]）。 */
+async function open(lang, payload, theme, pick, opt) {
+  const o = opt || {};
+  const jar = o.jar || await browser.createBrowserContext();
+  if (!o.jar) jars.push(jar);
   const page = await jar.newPage();
   await page.setViewport({ width: 1360, height: 1200 });
+  if (o.reduce) await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
+  for (const [fn, arg] of (o.first || [])) await page.evaluateOnNewDocument(fn, arg);
   const errs = [];
   page.on('pageerror', (e) => errs.push(String(e.message).slice(0, 140)));
   /* ★外の網を1本も引かない。CDN（supabase-js）は parser-blocking なので、
@@ -1079,15 +1343,12 @@ async function open(lang, payload, theme, pick) {
     localStorage.setItem('pv-theme', t);
   }, theme || 'light');
   await page.evaluateOnNewDocument(FAKE, payload);
-  await page.goto(BASE + (lang === 'en' ? '/en/' : '/') + 'deep-pay.html',
+  await page.goto(BASE + (lang === 'en' ? '/en/' : '/') + (o.file || 'deep-pay.html'),
                   { waitUntil: 'domcontentloaded', timeout: 30000 });
   /* ★時間で待たない。deep-pay.js は必ず #dp-hd に <h1> を書いてから他を描く。
      ★__hold（答えを止めた見本）は待たない ── 骨組みが残っていることを見る筋書きなので、
        ここで待つと必ず時間切れになる。 */
-  if (!(payload && (payload.__anon || payload.__hold))) {
-    await page.waitForFunction(() => !!document.querySelector('#dp-hd h1'), { timeout: 20000 });
-    await page.waitForFunction(() => !document.querySelector('#dp-kpi .mr-skel'), { timeout: 20000 });
-  }
+  if (!(payload && (payload.__anon || payload.__hold))) await drawn(page);
   /* ★選ぶまで何も出ない（2026-08-30）。配置を見る筋書きはここで区分を選ぶ。 */
   if (pick) await choose(page, pick);
   return { page, errs };
@@ -1910,11 +2171,29 @@ for (const lang of ['ja', 'en']) {
          leak.join(' '));
 
       /* ── 閉じた → 開いた。影絵は跡形もなく消える（描き直しの入口で切り替える）。 ── */
-      await page.evaluate((p) => window.PVDeepPay.render(p), FULL);
+      /* ★この窓は閉じた板を描いてきたので、開いた瞬間にクラッカーが1回鳴る（2026-10-11。
+           筋書きは §2f）。紙吹雪の器（.dp-pop）が**出ている最中にも**、影絵とぼかしの効いた
+           要素が無いことを見る ── 描き直しと同じ evaluate の中で数える（器は約 2.8 秒で
+           片づくので、あとから見に行くと、混んだ回にはもう無い）。 */
+      const popped = await page.evaluate((p) => {
+        window.PVDeepPay.render(p);
+        const blur = (root) => !root ? 0 : [...root.querySelectorAll('*')].filter((e) => {
+          const c = getComputedStyle(e);
+          return (c.filter && c.filter !== 'none') || (c.backdropFilter && c.backdropFilter !== 'none');
+        }).length;
+        const lay = document.querySelector('.dp-pop');
+        return { pop: document.querySelectorAll('.dp-pop').length,
+                 papers: lay ? lay.querySelectorAll('.dp-pop-p').length : 0,
+                 blur: blur(document.querySelector('main')) + blur(lay),
+                 ghost: document.querySelectorAll('.dp-ghost, .dp-stage').length };
+      }, FULL);
       const opened = await page.evaluate(SNAP);
       ok(noGhost(opened) && !opened.lock.on,
          `${tag}: ★★閉じた → 開いた で、影絵も器も DOM から消える（ぼかしの効いた要素が残らない）`,
          ghostWhy(opened));
+      ok(popped.pop === 1 && popped.papers >= 60 && popped.blur === 0 && popped.ghost === 0,
+         `${tag}: ★★その瞬間、紙吹雪の器が1つ出ている ── その最中にも、影絵とぼかしの効いた要素が無い（本文にも器にも）`,
+         `器 ${popped.pop} / 紙 ${popped.papers} / ぼかし ${popped.blur} / 影絵 ${popped.ghost}`);
       await page.evaluate((p) => window.PVDeepPay.render(p), lockWith(POISON_GATE));
       const shutAgain = await page.evaluate(SNAP);
       ok(shutAgain.ghost === 1 && shutAgain.stage === 1 && shutAgain.lock.on,
@@ -1974,6 +2253,375 @@ for (const lang of ['ja', 'en']) {
      ghostWhy(aft) + ' / 途中で出た回数 ' + (await page.evaluate(() => window.__sawGhost)));
   ok(errs.length === 0, `${lang}: 読み込み中の画面で JS のエラーが出ない`, errs.join(' / '));
   await jars.pop().close().catch(() => {});
+}
+
+// ── 2f. 開いた瞬間のクラッカー（2026-10-11・オーナー指示）──────────────────
+/* 閉じた板を見ていた会員が給与の詳細を出して、画面が開いたら「クラッカーならしてね」。
+   紙吹雪を**1回だけ**飛ばす。字面は上の ⑬。ここは実物で見る ── 日英で同じ筋書き：
+     a) 閉じた画面を描くと、端末に印が置かれる（中身は指紋。uid そのものではない）。
+        閉じた画面では鳴らない。読み直しても印は残る。印のほかには何も書かれない。
+     ・ 読み込めなかった画面では鳴らない・印も減らない（開いた日のために残る）。
+     b) 同じ会員で開いた画面になると、器がちょうど1つ出る。押せない（pointer-events:none）・
+        aria-hidden・字が無い・動くのは transform と opacity だけ・ぼかしが無い・
+        飛んでいるあいだも横スクロールが生えない・紙の真ん中を押しても紙に当たらない
+        （＝ 下のボタンや欄がそのまま押せる）・約 2.8 秒で DOM から外れる。印は飛ばす前に消える。
+     c) 同じ表示の中で描き直しても、読み直しても、もう鳴らない。
+     d) 印が無ければ鳴らない。別の会員の印・指紋でない字の印は、鳴らさずに消す。
+     e) 「動きを減らす」設定の人には器を作らない（印は消える）。
+     f) 2つの画面で印は1つ ── もう片方の画面で先に鳴ったら、こちらでは鳴らない。
+     ・ 裏のタブで開いた回は、その場では鳴らさず、表に出たときに1回鳴らす
+        （見えないところで飛び終わってしまわないように）。
+     g) 保存領域が投げても、閉じた画面も開いた画面も今までどおり描ける（鳴らないだけ）。
+   ★器の中身は、**DOM に入った瞬間に**窓の中で測る（POP_WATCH）。外から時間を置いて
+     見に行くと、混んだ回には器がもう片づいている。飛んでいる途中の絵は、動きを止めて
+     時刻を名指しして作る（300 / 900 / 1600 / 2500 / 2800ms）── 時間では待たない。
+   ⚠️ 窓は言語ごとに1つの入れ物（同じ保存領域）で続けて開く。印は端末に在るので、
+      入れ物を分けると「閉じた画面を見た人が、あとで開く」を作れない。 */
+const POP_KEY = 'pv_deep_was_locked';
+const POP_UID = '00000000-0000-4000-8000-00000000a001';     // FAKE の UID と同じ字
+const POP_TIMES = [0, 300, 900, 1600, 2500, 2800];
+const POP_WATCH = function (key) {
+  const P = window.__pop = { seen: 0, gone: 0, life: null, snap: null, t0: 0 };
+  const isPop = (n) => n.nodeType === 1 && n.classList && n.classList.contains('dp-pop');
+  const probe = (lay) => {
+    const cs = getComputedStyle(lay);
+    const an = lay.getAnimations({ subtree: true });
+    const papers = [...lay.querySelectorAll('.dp-pop-p')];
+    const kids = [...lay.querySelectorAll('*')];
+    const every = [lay].concat(kids);
+    const props = new Set();
+    for (const a of an) for (const k of a.effect.getKeyframes())
+      for (const name of Object.keys(k))
+        if (!/^(offset|computedOffset|easing|composite)$/.test(name)) props.add(name);
+    const ends = an.map((a) => a.effect.getComputedTiming().endTime);
+    const vw = document.documentElement.clientWidth, vh = window.innerHeight;
+    const lr = lay.getBoundingClientRect();
+    /* 画面に出ている「押せるもの」。ヘッダーのボタン・ロゴ・左メニュー・選ぶ欄。 */
+    const ctl = ['#theme-toggle', '.mr-brand', 'nav.mr-side a.mr-side-a', '.dp-pick-s', '#pv-ham-btn']
+      .map((s) => document.querySelector(s)).filter((e) => {
+        if (!e) return false;
+        const r = e.getBoundingClientRect();
+        return r.width > 0 && r.height > 0 && r.top >= 0 && r.bottom <= vh && r.left >= 0 && r.right <= vw;
+      });
+    const frame = (ms) => {
+      an.forEach((a) => { a.pause(); a.currentTime = ms; });
+      const rects = papers.map((p) => p.getBoundingClientRect());
+      const inView = rects.filter((r) => r.right > 0 && r.left < vw && r.bottom > 0 && r.top < vh);
+      /* 紙の真ん中を押しても、当たるのは紙ではない（下の要素）。 */
+      let hit = 0;
+      for (const r of inView) {
+        const t = document.elementFromPoint((r.left + r.right) / 2, (r.top + r.bottom) / 2);
+        if (t && lay.contains(t)) hit++;
+      }
+      const through = ctl.filter((e) => {
+        const r = e.getBoundingClientRect();
+        const t = document.elementFromPoint((r.left + r.right) / 2, (r.top + r.bottom) / 2);
+        return !!t && (t === e || e.contains(t));
+      }).length;
+      const xs = rects.map((r) => (r.left + r.right) / 2);
+      return { ms, over: document.documentElement.scrollWidth - vw,
+               high: document.documentElement.scrollHeight, n: inView.length, hit, through,
+               /* cols ＝ 紙の真ん中が在る場所の数（8px の升目で数える。出だしは左右の角の2つ）。
+                  mid ＝ 窓の幅のまんなか3分の1に居る紙の数（内へ広がったことの目印）。 */
+               cols: new Set(xs.map((x) => Math.round(x / 8))).size,
+               mid: xs.filter((x) => x > vw / 3 && x < vw * 2 / 3).length,
+               /* 見えている紙の数（落ちる入れ子の opacity。出だしの前と終わったあとは 0）。 */
+               vis: papers.filter((p) =>
+                 Number(getComputedStyle(p.parentNode.parentNode).opacity) > 0.5).length };
+    };
+    const high0 = document.documentElement.scrollHeight;
+    const frames = [0, 300, 900, 1600, 2500, 2800].map(frame);
+    an.forEach((a) => { a.currentTime = 0; a.play(); });      // 測り終えたら、頭から流し直す
+    return {
+      one: document.querySelectorAll('.dp-pop').length,
+      body: lay.parentNode === document.body, inMain: !!lay.closest('main'),
+      aria: lay.getAttribute('aria-hidden'), pe: cs.pointerEvents, pos: cs.position,
+      ov: cs.overflowX + ' ' + cs.overflowY,
+      cover: Math.abs(lr.left) <= 1 && Math.abs(lr.top) <= 1
+        && Math.abs(lr.right - vw) <= 1 && Math.abs(lr.bottom - vh) <= 1,
+      peKids: kids.filter((e) => getComputedStyle(e).pointerEvents !== 'none').length,
+      text: lay.textContent,
+      tags: [...new Set(kids.map((e) => e.tagName.toLowerCase()))].sort().join(' '),
+      attrs: every.reduce((n, e) => n + [...e.attributes]
+        .filter((t) => !/^(class|style|aria-hidden)$/.test(t.name)).length, 0),
+      focusable: lay.querySelectorAll(
+        'a,button,input,select,textarea,summary,iframe,[tabindex],[contenteditable]').length,
+      filt: every.filter((e) => {
+        const c = getComputedStyle(e);
+        return (c.filter && c.filter !== 'none') || (c.backdropFilter && c.backdropFilter !== 'none');
+      }).length,
+      props: [...props].sort().join(' '), anims: an.length, papers: papers.length,
+      endMax: Math.round(Math.max(...ends)), endMin: Math.round(Math.min(...ends)),
+      mark: (function () { try { return localStorage.getItem(key); } catch (e) { return 'threw'; } })(),
+      ctl: ctl.length, vw, high0, frames
+    };
+  };
+  new MutationObserver((list) => {
+    for (const m of list) {
+      for (const n of m.addedNodes) if (isPop(n)) {
+        P.seen++; P.t0 = performance.now();
+        try { P.snap = probe(n); } catch (e) { P.snap = { threw: String(e && e.message) }; }
+      }
+      for (const n of m.removedNodes) if (isPop(n)) {
+        P.gone++; P.life = Math.round(performance.now() - P.t0);
+      }
+    }
+  }).observe(document, { childList: true, subtree: true });
+};
+/* 保存領域が投げる端末を装う。★まず印の鍵**だけ**を投げさせる（ページのほかの部品 ──
+   テーマ・通貨・ログインの写し ── は今までどおり読める）。__denyAll() を呼ぶと、
+   どの鍵でも投げる。__rawGet は、検査が中身を確かめるための素の読み口。 */
+const POP_DENY = function (key) {
+  const P = Storage.prototype, g = P.getItem, s = P.setItem, r = P.removeItem;
+  window.__deny = 0;
+  window.__rawGet = (k) => g.call(window.localStorage, k);
+  const no = () => { window.__deny++; throw new DOMException('denied', 'SecurityError'); };
+  P.getItem = function (k) { return k === key ? no() : g.apply(this, arguments); };
+  P.setItem = function (k) { return k === key ? no() : s.apply(this, arguments); };
+  P.removeItem = function (k) { return k === key ? no() : r.apply(this, arguments); };
+  window.__denyAll = () => { P.getItem = P.setItem = P.removeItem = function () { return no(); }; };
+};
+/* 裏のタブを装う（document.hidden を true にしておき、__show() で表に出す）。 */
+const POP_HIDE = function () {
+  let hid = true;
+  Object.defineProperty(Document.prototype, 'hidden', { configurable: true, get: () => hid });
+  window.__show = () => { hid = false; document.dispatchEvent(new Event('visibilitychange')); };
+};
+const popState = (page) => page.evaluate((key, uid) => {
+  const get = (k) => (window.__rawGet ? window.__rawGet(k) : localStorage.getItem(k));
+  const P = window.__pop || {};
+  return {
+    seen: P.seen, gone: P.gone, life: P.life, snap: P.snap,
+    now: document.querySelectorAll('.dp-pop').length,
+    mark: get(key), fp: window.PVPayLocal.fp(uid),
+    calm: matchMedia('(prefers-reduced-motion: reduce)').matches,
+    stage: document.querySelectorAll('.dp-stage').length,
+    ghost: document.querySelectorAll('.dp-ghost').length,
+    msg: document.querySelectorAll('main .dp-msg').length,
+    skel: document.querySelectorAll('#dp-kpi .mr-skel, #dc-sides .mr-skel').length,
+    blurred: [...document.querySelectorAll('main *')].filter((e) => {
+      const c = getComputedStyle(e);
+      return (c.filter && c.filter !== 'none') || (c.backdropFilter && c.backdropFilter !== 'none');
+    }).length,
+    deny: window.__deny || 0, hidden: document.hidden
+  };
+}, POP_KEY, POP_UID);
+/* 保存領域の中身まるごと（印の鍵を除く）。クラッカーの前後で1文字も変わらないことを見る。 */
+const popDump = (page) => page.evaluate((key) => JSON.stringify(Object.keys(localStorage)
+  .filter((k) => k !== key).sort().map((k) => [k, localStorage.getItem(k)])), POP_KEY);
+const popReload = async (page) => {
+  await page.reload({ waitUntil: 'domcontentloaded', timeout: 30000 });
+  await drawn(page);
+};
+/* この画面の出し方。★閉じた板・開いた画面は、試験用の入口（PVDeepPay.render）で描き直す。
+   もう片方の画面（会社比較）も、同じ偽サーバのまま開ける ── 入口の1回は引数なしで、
+   開いた答え（FULL）がそのまま返る。 */
+const POP_LOCK = LOCK, POP_OPEN = FULL, POP_ERR = { __err: true };
+const POP_OTHER = 'deep-pay-compare.html';
+const popAt = (lang, payload, opt) => open(lang, payload, 'light', null, opt);
+const popLock = (page) => page.evaluate((x) => window.PVDeepPay.render(x),
+  lockWith({ key: true, ready: false, todo: null, crowd: true, contributors: 37, goal: 100 }));
+const popOpen = (page) => page.evaluate((x) => window.PVDeepPay.render(x), FULL);
+for (const lang of ['ja', 'en']) {
+  const jar = await browser.createBrowserContext();
+  const first = [[POP_WATCH, POP_KEY]];
+  const errs = [];
+  const at = async (payload, more) => {
+    const r = await popAt(lang, payload, Object.assign({ jar, first }, more || {}));
+    r.errs.forEach((e) => errs.push(e));
+    r.page.on('pageerror', (e) => errs.push(String(e.message).slice(0, 140)));
+    return r.page;
+  };
+  let s;
+
+  // ── a) 閉じた画面 → 印 ──
+  const A = await at(POP_LOCK);
+  s = await popState(A);
+  ok(s.stage === 1 && s.mark === s.fp && /^[0-9a-f]{1,8}$/.test(s.mark || ''),
+     `${lang}: ★★閉じた板を描くと、端末に印が置かれる（中身は会員の指紋）`,
+     `器 ${s.stage} / 印 ${JSON.stringify(s.mark)} / 指紋 ${s.fp}`);
+  ok(s.mark !== POP_UID && !/-/.test(s.mark || '-') && (s.mark || '').length < POP_UID.length / 3,
+     `${lang}: ★★印は uid そのものではない（短く畳んだ指紋だけ）`, JSON.stringify(s.mark));
+  ok(s.seen === 0 && s.now === 0, `${lang}: ★閉じた画面では鳴らない`, `出た回数 ${s.seen}`);
+  {
+    /* 印のほかには何も書かない ── 印を消して描き直すと、戻るのは印だけ。 */
+    const d0 = await popDump(A);
+    await A.evaluate((k) => localStorage.removeItem(k), POP_KEY);
+    await popLock(A);
+    const d1 = await popDump(A);
+    s = await popState(A);
+    ok(d0 === d1 && s.mark === s.fp,
+       `${lang}: ★★閉じた板の描き直しで書かれるのは印の1つだけ（門の鍵・ほかの鍵は1文字も変わらない）`,
+       `ほかの鍵が同じ=${d0 === d1} / 印 ${JSON.stringify(s.mark)}`);
+  }
+  await popReload(A);
+  s = await popState(A);
+  ok(s.stage === 1 && s.mark === s.fp && s.seen === 0,
+     `${lang}: 閉じたまま読み直しても、印は残り、鳴らない`, `印 ${JSON.stringify(s.mark)} / 出た ${s.seen}`);
+  await A.close();
+
+  // ── 読み込めなかった画面 ──
+  const E = await at(POP_ERR);
+  s = await popState(E);
+  ok(s.seen === 0 && s.now === 0 && s.stage === 0 && s.msg === 1 && s.mark === s.fp,
+     `${lang}: ★読み込めなかった画面では鳴らない・印も減らない（開いた日のために残る）`,
+     `出た ${s.seen} / 板 ${s.msg} / 印 ${JSON.stringify(s.mark)}`);
+  await E.close();
+
+  // ── b) 同じ会員で開いた → ちょうど1回 ──
+  const B = await at(POP_OPEN);
+  await B.waitForFunction(() => window.__pop.seen >= 1, { timeout: 20000 }).catch(() => {});
+  s = await popState(B);
+  const p = s.snap || {};
+  const fr = p.frames || [];
+  const f = (ms) => fr.find((x) => x.ms === ms) || {};
+  ok(s.seen === 1 && p.one === 1 && !p.threw,
+     `${lang}: ★★開いた画面で、紙吹雪の器がちょうど1つ出る`,
+     `出た ${s.seen} / 同時に ${p.one} / ${p.threw || ''} / 裏のタブ=${s.hidden}`);
+  ok(p.mark === null, `${lang}: ★★印は、飛ばす前に消えている（読み直しで2度鳴らない）`, JSON.stringify(p.mark));
+  ok(p.aria === 'true' && p.pe === 'none' && p.peKids === 0 && p.focusable === 0,
+     `${lang}: ★★器は aria-hidden・押せない（pointer-events:none が紙の1枚1枚まで）・焦点の当たるものが無い`,
+     `aria=${p.aria} pe=${p.pe} 押せる紙=${p.peKids} 焦点=${p.focusable}`);
+  ok(p.pos === 'fixed' && p.cover && p.ov === 'hidden hidden' && p.body && !p.inMain,
+     `${lang}: ★器は画面いっぱいの fixed・はみ出しを切る・body の直下（本文の器の外）`,
+     `${p.pos} 覆う=${p.cover} overflow=${p.ov} body=${p.body} 本文の中=${p.inMain}`);
+  ok(p.text === '' && p.tags === 'div i' && p.attrs === 0,
+     `${lang}: ★★器に字が1文字も無い（数字も絵文字も無い）・タグは div と i だけ・class と style のほかに属性が無い`,
+     `字 ${JSON.stringify(String(p.text).slice(0, 20))} タグ ${p.tags} 属性 ${p.attrs}`);
+  ok(p.props === 'opacity transform' && p.anims === p.papers * 3 && p.papers >= 60 && p.papers <= 90,
+     `${lang}: ★★動くのは transform と opacity だけ（紙 ${p.papers} 枚 × 3本）`,
+     `動かしている名前「${p.props}」/ 動き ${p.anims} 本 / 紙 ${p.papers} 枚`);
+  ok(p.filt === 0 && s.blurred === 0 && s.ghost === 0 && s.stage === 0,
+     `${lang}: ★★器にも本文にも、ぼかしの効いた要素が無い（開いた画面に影絵も残らない）`,
+     `器 ${p.filt} / 本文 ${s.blurred} / 影絵 ${s.ghost}`);
+  ok(p.endMin >= 2200 && p.endMax <= 2800,
+     `${lang}: ★紙は 2.2〜2.8 秒で終わる`, `${p.endMin}〜${p.endMax}ms`);
+  ok(fr.length === POP_TIMES.length && fr.every((x) => x.over <= 0 && x.high === p.high0),
+     `${lang}: ★★飛んでいるあいだ、横スクロールが生えない・ページの高さも変わらない（${POP_TIMES.join(' / ')}ms）`,
+     fr.map((x) => `${x.ms}:+${x.over}/${x.high - p.high0}`).join(' '));
+  ok(p.ctl >= 3 && fr.every((x) => x.through === p.ctl) && fr.every((x) => x.hit === 0),
+     `${lang}: ★★紙吹雪の下のボタンや欄は、そのまま押せる（${p.ctl} か所。紙の真ん中を押しても紙には当たらない）`,
+     fr.map((x) => `${x.ms}:${x.through}/${p.ctl} 紙に当たった ${x.hit}`).join(' ｜ '));
+  ok(f(0).vis === 0 && f(900).vis >= p.papers * 0.9 && f(2800).vis === 0,
+     `${lang}: ★出だしの前と終わったあとは紙が見えない（角に固まって残らない）・途中は見えている`,
+     fr.map((x) => `${x.ms}:${x.vis}`).join(' '));
+  ok(f(0).cols === 2 && f(0).mid === 0 && f(900).n >= p.papers * 0.6
+     && f(900).cols >= p.papers * 0.5 && f(900).mid >= p.papers * 0.1,
+     `${lang}: ★左右の2つの角から出て、内へ広がる（0.9 秒で、窓の中に ${f(900).n} 枚・まんなかに ${f(900).mid} 枚）`,
+     fr.map((x) => `${x.ms}:場所 ${x.cols} まんなか ${x.mid} 窓の中 ${x.n}`).join(' ｜ '));
+  await B.waitForFunction(() => window.__pop.gone >= 1 && !document.querySelector('.dp-pop'),
+                          { timeout: 20000 }).catch(() => {});
+  s = await popState(B);
+  ok(s.gone === 1 && s.now === 0 && s.life >= 2200 && s.life <= 4000,
+     `${lang}: ★★飛び終わったら、器ごと DOM から外れる（出てから ${s.life}ms）`,
+     `外れた ${s.gone} / 残り ${s.now} / ${s.life}ms`);
+  ok(s.mark === null && s.stage === 0 && s.skel === 0,
+     `${lang}: 鳴ったあと、印は無い・開いた画面のまま`, `印 ${JSON.stringify(s.mark)} / 器 ${s.stage}`);
+
+  // ── c) 同じ表示の中では1回まで・読み直しても鳴らない ──
+  await popOpen(B); await popOpen(B);
+  await B.evaluate(() => window.dispatchEvent(new Event('pv-currency-change')));
+  s = await popState(B);
+  ok(s.seen === 1 && s.now === 0, `${lang}: ★開いた画面を描き直しても（通貨の切替でも）、もう鳴らない`,
+     `出た ${s.seen}`);
+  {
+    await popLock(B);
+    const m1 = (await popState(B)).mark;
+    const x1 = await popDump(B);
+    await popOpen(B);
+    const x2 = await popDump(B);
+    s = await popState(B);
+    ok(m1 === s.fp && s.mark === null && s.seen === 1 && s.now === 0,
+       `${lang}: ★★同じ表示の中では1回まで（もう一度 閉じた → 開いた でも鳴らない。印は消える）`,
+       `印 ${JSON.stringify(m1)} → ${JSON.stringify(s.mark)} / 出た ${s.seen}`);
+    ok(x1 === x2, `${lang}: ★★開いた画面の側で消えるのは印の1つだけ（ほかの鍵は1文字も変わらない）`);
+  }
+  await popReload(B);
+  s = await popState(B);
+  ok(s.seen === 0 && s.now === 0 && s.mark === null && s.stage === 0,
+     `${lang}: ★★読み直しても鳴らない（印が無い ＝ 板を見ていない人には鳴らない）`, `出た ${s.seen}`);
+
+  // ── d) 別の会員の印・指紋でない字の印 ──
+  for (const [name, val] of [['別の会員の印', null], ['uid をそのまま置いた印', POP_UID]]) {
+    const put = await B.evaluate((k, v) => {
+      const x = v || window.PVPayLocal.fp('00000000-0000-4000-8000-00000000b002');
+      localStorage.setItem(k, x);
+      return x;
+    }, POP_KEY, val);
+    await popReload(B);
+    s = await popState(B);
+    ok(put !== s.fp && s.seen === 0 && s.now === 0 && s.mark === null && s.stage === 0,
+       `${lang}: ★★${name}では鳴らない・その印は消す`,
+       `置いた ${put} / 自分 ${s.fp} / 出た ${s.seen} / 残った印 ${JSON.stringify(s.mark)}`);
+  }
+
+  // ── e) 「動きを減らす」設定 ──
+  await popLock(B);
+  ok((await popState(B)).mark === s.fp, `${lang}: （e の前置き）印を置き直した`);
+  const R = await at(POP_OPEN, { reduce: true });
+  s = await popState(R);
+  ok(s.calm === true && s.seen === 0 && s.now === 0 && s.mark === null && s.stage === 0 && s.skel === 0,
+     `${lang}: ★★「動きを減らす」設定の人には器を作らない（印は消える・画面は開く）`,
+     `設定=${s.calm} / 出た ${s.seen} / 印 ${JSON.stringify(s.mark)}`);
+  await R.close();
+
+  // ── f) 2つの画面で印は1つ ──
+  await popLock(B);
+  const O = await at(POP_OPEN, { file: POP_OTHER });
+  await O.waitForFunction(() => window.__pop.seen >= 1, { timeout: 20000 }).catch(() => {});
+  s = await popState(O);
+  ok(s.seen === 1 && (s.snap || {}).one === 1 && (s.snap || {}).pe === 'none'
+     && (s.snap || {}).props === 'opacity transform' && s.mark === null,
+     `${lang}: ★★もう片方の画面（${POP_OTHER}）を先に開くと、そちらで鳴る（印は同じ1つ）`,
+     `出た ${s.seen} / 印 ${JSON.stringify(s.mark)} / 裏のタブ=${s.hidden}`);
+  await O.close();
+  const B2 = await at(POP_OPEN);
+  s = await popState(B2);
+  ok(s.seen === 0 && s.now === 0 && s.stage === 0,
+     `${lang}: ★★そのあとこの画面を開いても鳴らない（先に開いたほうで1回だけ）`, `出た ${s.seen}`);
+  await B2.close();
+
+  // ── 裏のタブで開いた回 ──
+  await popLock(B);
+  const H = await at(POP_OPEN, { first: first.concat([[POP_HIDE, null]]) });
+  s = await popState(H);
+  ok(s.hidden === true && s.seen === 0 && s.now === 0 && s.mark === null && s.stage === 0,
+     `${lang}: ★裏のタブで開いた回は、その場では鳴らさない（印は消えている・画面は開いている）`,
+     `裏=${s.hidden} / 出た ${s.seen} / 印 ${JSON.stringify(s.mark)}`);
+  await H.evaluate(() => window.__show());
+  await H.waitForFunction(() => window.__pop.seen >= 1, { timeout: 20000 }).catch(() => {});
+  await H.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+  s = await popState(H);
+  ok(s.seen === 1 && (s.snap || {}).one === 1 && (s.snap || {}).props === 'opacity transform',
+     `${lang}: ★表に出たときに1回だけ鳴る（そのあとタブを行き来しても増えない）`, `出た ${s.seen}`);
+  await H.close();
+  await B.close();
+
+  // ── g) 保存領域が投げる ──
+  const before = errs.length;
+  const G = await at(POP_LOCK, { first: first.concat([[POP_DENY, POP_KEY]]) });
+  s = await popState(G);
+  ok(s.stage === 1 && s.deny >= 1 && s.mark === null && s.seen === 0,
+     `${lang}: ★★印を書けない端末でも、閉じた板は今までどおり出る（書こうとして投げられた ${s.deny} 回）`,
+     `器 ${s.stage} / 印 ${JSON.stringify(s.mark)}`);
+  const n1 = s.deny;
+  await popOpen(G);
+  s = await popState(G);
+  ok(s.stage === 0 && s.skel === 0 && s.msg >= 1 && s.seen === 0 && s.deny > n1,
+     `${lang}: ★★印を読めない端末でも、開いた画面は今までどおり出る（鳴らないだけ）`,
+     `器 ${s.stage} / 板 ${s.msg} / 出た ${s.seen} / 投げられた ${s.deny} 回`);
+  await G.evaluate(() => window.__denyAll());
+  await popLock(G);
+  const g1 = await popState(G);
+  await popOpen(G);
+  const g2 = await popState(G);
+  ok(g1.stage === 1 && g2.stage === 0 && g2.msg >= 1 && g2.seen === 0 && g2.deny > g1.deny && g1.deny > s.deny,
+     `${lang}: ★★どの鍵でも投げる端末でも、閉じた → 開いた を描ける（鳴らないだけ）`,
+     `閉 ${g1.stage} / 開 ${g2.stage} / 出た ${g2.seen} / 投げられた ${g2.deny} 回`);
+  await G.close();
+  ok(errs.length === before, `${lang}: ★★保存領域が投げても JS のエラーが出ない`, errs.slice(before).join(' / '));
+  ok(before === 0, `${lang}: クラッカーの筋書きで JS のエラーが出ない`, errs.slice(0, before).join(' / '));
+  await jar.close().catch(() => {});
 }
 
 // ── 3. そろった状態（配置の骨格）─────────────────────────────
