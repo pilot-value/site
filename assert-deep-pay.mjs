@@ -33,10 +33,32 @@
         sitemap にも出ない）
      ② ぼかしで隠していない
         pv-gates.js の冒頭のとおり「隠すのではなく、最初から渡さない」。
-        blur / filter / mask / user-select:none をこの画面は1つも持たない。
-        ⚠️ 例外を1つでも作らない。区切りの「/」のような無害な用途で許すと、
+        ★2026-10-11（オーナー判断「DEEP PAY でまだ開かない人には給与詳細を提出させる。
+          背景にはぼかした DEEP PAY を表示させる。」）から、例外が**1つだけ**在る ──
+          閉じている画面で、板の後ろに置く影絵（.dp-ghost）。前の約束は「blur / filter /
+          mask / user-select:none をこの画面は1つも持たない」だった。
+        ぼかしてよいのは、その影絵の要素**だけ**。それで困らないのは、影絵が
+        **字も数字も持たない固定の絵**だから ── CSS のぼかしは開発者ツールで誰でも
+        外せるので、外されて困るものを最初から入れない（サーバの答え・保存領域・
+        計算した値のどれも入らない。鍵の無い人へは、サーバが数字を返していないまま）。
+        見るのは5つ：
+          a) blur / filter / clip-path / user-select:none は、deep-pay.css の `.dp-ghost`
+             の規則1つの中にだけ在る。backdrop-filter と mask はどこにも無い。
+             JS は style.filter を触らない。HTML にも無い。（下の ②）
+          b) 影絵を組む関数（ghostShapes ほか）の字面に、数字・通貨記号・サーバの答えや
+             保存領域や金額の道具への参照が無い。組み上がった HTML に字が1文字も無い。（下の ②）
+          c) 閉じた画面では影絵が在り、aria-hidden ＋ inert で、ぼかしが実際に効き、
+             キーボードでも入れず、押せない。板は手前に在って、面が透けていない。（§2e）
+          d) 開いた・選ぶ前・薄い・一覧が無い・読み込めなかった・読み込み中 の各画面には、
+             影絵も、ぼかしの効いた要素も1つも無い。（§2e・§3・§5・§8・§9・§11）
+          e) 閉じた答えに head / comp / work / var が紛れて来ても、画面は1文字も
+             変わらない。（§2e の毒入り）
+        ⚠️ 例外をこれ以上増やさない。値の入る要素へぼかしを付けると「隠しているように
+           見えるだけ」になる。区切りの「/」のような無害な用途でも許さない ── 許すと、
            次に**値そのもの**へ付いたときに赤くならない。
      ③ 作り物のデータを本番に置いていない（SAMPLE / DEMO / dummy / Math.random）
+        ★影絵は絵であってデータではない（字も数字も無い）。影絵に「それらしい数字」を
+          描いたら、それがこの③の作り物になる ── ② の b) が字面と HTML の両方で止める。
      ④ 「時給」と呼んでいない
         Block Hours から出した指標なので、名前は Pay / Block Hour のまま。
         「時給」と書いた瞬間に、待機や地上業務を含まない数字が
@@ -75,6 +97,11 @@
          その行が無い板には出ない。
      ・**月額と月換算の2桁は、表示通貨の中で寄せる**（ドルで $4,781 のような端数を
        出さない。円の表示は変わらない。§3g）。
+     ・**閉じた画面は、ぼかした影絵の手前に板を出す**（同じ日のオーナー判断）。影絵は
+       字も数字も持たない固定の絵で、ぼかしてよいのはその要素だけ（上の ②・§2e）。
+       板の字・行・一覧・断り・ボタンの行き先は1つも変えていない（§2b〜§2d がそのまま見る）。
+       ★最初の答えが来るまでは骨組みのまま待つ ── 前は、開いている人にも錠前の板が
+         一瞬出ていた（§2e の「読み込み中」）。
 
    ⚠️ 偽物 Supabase の rpc は本物と同じ「then だけを持つ箱」にしてある。
       async にすると本番に無い .catch が生えて、本番だけ真っ白になる穴が開く
@@ -100,6 +127,17 @@ const ok = (c, l, e = '') => { c ? (pass++, console.log('  ✅ ' + l)) : (fail++
      説明を書いた人が赤くなる（＝説明を消すのが直し方になってしまう）。 */
 const decomment = (s) => s.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|\s)\/\/[^\n]*/g, ' ');
 const nohtmlcomment = (s) => s.replace(/<!--[\s\S]*?-->/g, ' ');
+/* IIFE の直下（字下げ2つ）の関数を、名前で1つ切り出す。無ければ空文字。 */
+const cutFn = (src, name) => {
+  const m = new RegExp('^  function ' + name + '\\(([^)]*)\\) \\{', 'm').exec(src);
+  if (!m) return '';
+  let d = 0, j;
+  for (j = m.index + m[0].length - 1; j < src.length; j++) {
+    if (src[j] === '{') d++;
+    else if (src[j] === '}') { d--; if (d === 0) break; }
+  }
+  return src.slice(m.index, j + 1);
+};
 
 const JA   = read('deep-pay.html');
 const EN   = read('en/deep-pay.html');
@@ -201,16 +239,154 @@ console.log('\n════ ① 錠前（この決定を持続させるのはこ
 // ════════════════════════════════════════════════════════════════
 console.log('\n════ ②③ 隠さない・作らない ════');
 {
+  /* ── ②-a ぼかしてよいのは、影絵の規則1つだけ（2026-10-11・オーナー判断）──────
+     前はここで「blur / filter / mask / user-select:none が CSS にも JS にも1つも無い」を
+     見ていた。閉じた画面の後ろに、ぼかした影絵を置くことになったので、CSS の側にだけ
+     **狭い例外**を作った ── deep-pay.css の `.dp-ghost{…}` という規則1つ。
+     ★見方：その規則を抜いた残りに、隠す系の宣言が1つも無いこと。
+       ・例外になるのは、セレクタが `.dp-ghost` **だけ**の、いちばん外の規則。
+         `.dp-ghost .x{…}`・`.a,.dp-ghost{…}`・@media の中の `.dp-ghost{…}` は例外にしない
+         （影絵の中の部品や、条件つきの規則へ広げた時点で赤くなる）。
+       ・backdrop-filter と mask は、その規則の中でも許さない。
+       ・JS と HTML は今までどおり**1文字も**許さない（JS が style.filter を触る道も塞ぐ）。
+     ⚠️ ここを「.dp-ghost を含むセレクタなら可」に緩めない。`.dp-ghost .dp-kpi-v` のように
+        書けば、値の入る要素へぼかしを付けられてしまう。 */
   const hide = [
     [/blur\s*\(/i, 'blur()'],
     [/(^|[^-\w])filter\s*:/, 'filter:'],
     [/backdrop-filter/i, 'backdrop-filter'],
     [/\bmask(-image)?\s*:/i, 'mask:'],
+    [/clip-path\s*:/i, 'clip-path:'],
     [/user-select\s*:\s*none/i, 'user-select:none']
   ];
+  const GHOST_RULE = /(^|\})\s*\.dp-ghost\s*\{([^{}]*)\}/g;
+  const ghostRules = [...cssC.matchAll(GHOST_RULE)].map((m) => m[2]);
+  ok(ghostRules.length === 1, '★影絵の規則（.dp-ghost{…}）は deep-pay.css にちょうど1つ',
+     `今 ${ghostRules.length} 個`);
+  const ghostRule = ghostRules[0] || '';
+  const cssRest = cssC.replace(GHOST_RULE, (m, head) => head);   // ★関数形（$ を素通しする）
   for (const [re, name] of hide) {
-    ok(!re.test(cssC), `★deep-pay.css に ${name} が無い（隠すのではなく渡さない）`);
+    ok(!re.test(cssRest),
+       `★deep-pay.css の ${name} は、影絵の規則の外に1つも無い（値の入る要素をぼかさない）`,
+       (cssRest.match(new RegExp('[^{}]*\\{[^{}]*' + re.source + '[^{}]*\\}', 'i')) || [''])[0]
+         .trim().slice(0, 80));
     ok(!re.test(jsC),  `★deep-pay.js に ${name} が無い`);
+    ok(!re.test(nohtmlcomment(JA)) && !re.test(nohtmlcomment(EN)),
+       `★HTML（日英）に ${name} が無い`);
+  }
+  {
+    const b = /(^|[^-\w])filter\s*:\s*blur\(\s*([\d.]+)px\s*\)/.exec(ghostRule);
+    ok(!!b && Number(b[2]) >= 6 && Number(b[2]) <= 10,
+       '★影絵のぼかしは filter:blur(6〜10px) の1つ', b ? b[2] + 'px' : ghostRule.slice(0, 80));
+    ok(!/backdrop-filter/i.test(ghostRule) && !/\bmask(-image)?\s*:/i.test(ghostRule),
+       '★影絵の規則の中でも backdrop-filter と mask は使わない');
+    ok(/pointer-events\s*:\s*none/.test(ghostRule) && /user-select\s*:\s*none/.test(ghostRule),
+       '★影絵は押せない・選べない（inert を知らないブラウザのための重ね掛け）');
+    /* JS がぼかしを付けたり外したりしない（付ける場所は CSS の1規則だけ）。 */
+    ok(!/\.style\.(?:filter|backdropFilter|webkitFilter|webkitBackdropFilter|clipPath|mask\w*|webkitMask\w*)\b/.test(jsC)
+       && !/setProperty\(\s*['"](?:-webkit-)?(?:backdrop-)?filter/.test(jsC)
+       && !/\bcssText\b/.test(jsC),
+       '★deep-pay.js は style.filter を触らない（setProperty・cssText の道も無い）');
+  }
+
+  /* ── ②-b 影絵は、字も数字も持たない固定の絵（2026-10-11）────────────────
+     ぼかしは外せる。だから**外されて困るものを影絵に入れない**ことが、この例外の土台。
+     影絵を組むのは deep-pay.js の ghBar / ghBars / ghField / ghHead / ghostShapes
+     （形）と ghostTint（色）で、器に入れるのは lockStage。見るのは ──
+       ① 形を組む5つの字面に、数字・通貨記号が1文字も無い（コメントは落として見る）
+       ② 同じ5つが、サーバの答え・状態・保存領域・金額の道具・乱数・日付に触らない
+       ③ その5つ**だけ**を取り出して実行できる（外の値を1つでも読めば ReferenceError）
+       ④ 組み上がった HTML のタグの外が空（字が1文字も無い）・属性にも数字が無い・
+          押せるものも読み込むものも無い（div / span / i だけ）
+       ⑤ 色は COL（PVViz.SEG から引いた色の表）だけを読む
+       ⑥ lockStage は影絵を**引数なし**で呼び、gate は板（lockHtml）にだけ渡す。
+          aria-hidden と inert を付ける。影絵を置く道はこの1本だけ
+     ⚠️ ① を「タグの外に数字が無い」へ緩めない。属性（style・data-*）に値を入れてから
+        CSS で見せる道（content:attr(…)）が開く。字面ごと数字を禁じてある。 */
+  {
+    const SHAPE = ['ghBar', 'ghBars', 'ghField', 'ghHead', 'ghostShapes'];
+    const src = {};
+    for (const n of SHAPE.concat(['ghostTint', 'lockStage'])) src[n] = cutFn(JS, n);
+    ok(Object.keys(src).every((n) => src[n].length > 0), '影絵を組む関数が7つとも切り出せる',
+       Object.keys(src).filter((n) => !src[n]).join(' '));
+    const REFS = /\b[SVTwd]\s*[.\[]|\b(?:CN|VN|IC|COL|SEGCOL)\b|\bel\(|payload|\bstats\b|\bgate\b|\bdata\b|\bhead\b|\bcomp\b|\bwork\b|\bcohort\b|\bpicks\b|[sS]torage|\bMath\b|\bDate\b|\bfmt\b|\bmoney\w*|\bnum\(|\bexact\(|\bsig\w+\(|\bstepIn\(|PVCurrency|\bfetch\b|\brpc\b|\bsb\d?\b/;
+    for (const n of SHAPE) {
+      const c = decomment(src[n]);
+      ok(!/[0-9０-９]/.test(c), `★${n}() の字面に数字が1文字も無い`,
+         (c.match(/[^\n]*[0-9０-９][^\n]*/) || [''])[0].trim().slice(0, 80));
+      ok(!/[¥$€£]|万/.test(c), `★${n}() の字面に通貨記号が無い`);
+      /* ★字（'…'）は落としてから見る。クラス名の dp-list--work や 'a b c d' の d を、
+           答えの鍵や document だと読み違えない。字の中身そのものは ①④ が見ている。 */
+      const bare = c.replace(/'[^']*'/g, "''");
+      ok(!REFS.test(bare), `★${n}() がサーバの答え・状態・保存領域・金額の道具・乱数に触らない`,
+         (REFS.exec(bare) || [''])[0]);
+      ok(!/"/.test(bare) && !/`/.test(bare),
+         `★${n}() の字は全部 '…' で書いてある（上の見張りが字を落とし切れている）`);
+    }
+    ok(/^  function ghostShapes\(\) \{/.test(src.ghostShapes) && /^  function ghostTint\(\) \{/.test(src.ghostTint),
+       '★ghostShapes() と ghostTint() は引数を取らない（渡された値で絵を変えない）');
+
+    /* ③④ 5つだけを取り出して組み上げる。外の値に触っていれば、ここで落ちる。 */
+    let html = null, why = '';
+    try { html = new Function(SHAPE.map((n) => src[n]).join('\n') + '\nreturn ghostShapes();')(); }
+    catch (e) { why = String(e && e.message); }
+    ok(typeof html === 'string' && html.length > 400,
+       '★★ghostShapes() は、外の値を1つも読まずに組み上がる（固定の文字列）', why);
+    const H = html || '0';
+    ok(H.replace(/<[^>]*>/g, '') === '',
+       '★★組み上がった影絵に、字が1文字も無い（タグの外が空）',
+       JSON.stringify(H.replace(/<[^>]*>/g, '').slice(0, 40)));
+    ok(!/[0-9０-９¥$€£万%]/.test(H),
+       '★★組み上がった影絵の HTML に、数字も通貨記号も % も無い（属性の中にも）',
+       (H.match(/[^<>]{0,20}[0-9０-９¥$€£万%][^<>]{0,20}/) || [''])[0]);
+    const tags = [...new Set([...H.matchAll(/<([a-z][\w-]*)/gi)].map((m) => m[1].toLowerCase()))].sort();
+    ok(tags.join(' ') === 'div i span',
+       '★影絵のタグは div / i / span だけ（押せるもの・読み込むもの・スクリプトが無い）', tags.join(' '));
+    ok(!/\b(?:href|src|tabindex|contenteditable|on\w+|data-[\w-]+|id)\s*=/i.test(H),
+       '★影絵に href / src / tabindex / on* / data-* / id が無い');
+    ok(!/dp-kpi(?:["\s]|--)|dp-msg|dp-cta|dp-todo|dp-trust|dp-cond/.test(H),
+       '★影絵が、本物の KPI のカード（.dp-kpi）や板の部品のクラスを名乗らない（検査が数えている）');
+    /* 2回組んでも同じ（中で何も数えていない・乱数も時刻も無い）。 */
+    let again = null;
+    try { again = new Function(SHAPE.map((n) => src[n]).join('\n') + '\nreturn ghostShapes();')(); } catch (e) {}
+    ok(again === html, '★影絵は何度組んでも同じ字（乱数も時刻も無い）');
+
+    /* ⑤ 色。COL だけを読み、--gh-<区分>:<色> の並びだけを返す。値が無い区分は出さない。 */
+    const tintC = decomment(src.ghostTint);
+    ok(!/[0-9０-９]/.test(tintC) && !/\b[SVTwd]\s*[.\[]|payload|\bgate\b|\bdata\b|[sS]torage|\bMath\b|PVCurrency/.test(tintC),
+       '★ghostTint() の字面に数字が無く、COL のほかは読まない');
+    let tint = null;
+    try { tint = new Function('COL', src.ghostTint + '\nreturn ghostTint();')(
+      { base: 'red', variable: 'blue', rest: '', other: null }); } catch (e) {}
+    ok(tint === '--gh-base:red;--gh-variable:blue',
+       '★ghostTint() は COL の色を --gh-<区分> として渡すだけ（色の無い区分は出さない）', String(tint));
+
+    /* ⑥ 器。 */
+    const stageC = decomment(src.lockStage);
+    ok(/class="dp-ghost" aria-hidden="true" inert /.test(stageC),
+       '★lockStage は影絵に aria-hidden="true" と inert を付ける');
+    ok(/ghostShapes\(\)/.test(stageC) && /ghostTint\(\)/.test(stageC)
+       && !/ghost\w*\(\s*[^)\s]/.test(stageC),
+       '★lockStage は影絵を引数なしで呼ぶ（門も答えも渡さない）');
+    ok((stageC.match(/\bgate\b/g) || []).length === 2 && /lockHtml\(gate\)/.test(stageC),
+       '★lockStage が gate を渡すのは板（lockHtml）にだけ');
+    ok(!/\bS\s*\.|\bdata\b|\bhead\b|\bcomp\b|[sS]torage/.test(stageC),
+       '★lockStage が状態にも保存領域にも触らない');
+    ok((jsC.match(/\blockStage\(/g) || []).length === 2
+       && /lockBoard\(box, lockStage\(\(S\.data && S\.data\.gate\) \|\| \{\}\)\);/.test(jsC),
+       '★影絵を置く道は shut(\'lock\') の1本だけ（lockStage の呼び出しは1か所）',
+       String((jsC.match(/\blockStage\(/g) || []).length));
+    ok((jsC.match(/dp-ghost/g) || []).length === 1 && (jsC.match(/dp-stage/g) || []).length === 1,
+       '★影絵と器のクラス（dp-ghost / dp-stage）を書くのは lockStage の中だけ');
+    /* 開いた画面の描き手（KPI・給与構成・働き方・変動給）は、影絵の部品を使わない。 */
+    for (const n of ['kpis', 'comp', 'work', 'vari', 'more', 'ask', 'thin', 'head', 'picker']) {
+      const c = decomment(cutFn(JS, n));
+      ok(c.length > 0 && !/\bgh[A-Z]\w*\(|ghost\w*\(|lockStage\(|dp-gh-|dp-ghost|dp-stage/.test(c),
+         `★${n}() は影絵の部品を使わない（本物の値を影絵の形で描かない）`);
+    }
+    /* ★読み込みのあいだは骨組みのまま（錠前の板へ落とさない）。 */
+    ok(/if \(S\.mode === 'load'\)\s+return;\s*if \(S\.mode !== 'open'\)\s+\{ shut\('lock'\);/.test(jsC),
+       '★render() は、最初の答えが来るまで錠前の板（と影絵）を出さない');
   }
   /* ★「見えないところに置いてある」形も無い。opacity:0 / visibility:hidden で
        値を伏せると、DOM には出たまま＝検査は通るのに人には読めない。 */
@@ -313,7 +489,9 @@ console.log('\n════ ⑥ my-value.js から写した関数 ════')
        `★${name}() が my-value.js の写しのまま（ずれていない）`,
        !a ? 'my-value.js に無い' : !b ? 'deep-pay.js に無い' : '中身が違う');
   }
-  /* ★写してはいけないもの。ぼかしは仕様でも pv-gates.js の冒頭でも禁止。 */
+  /* ★写してはいけないもの。あの2つは「見本の値をぼかして見せる」道具で、仕様でも
+       pv-gates.js の冒頭でも禁止。閉じた画面の影絵（2026-10-11）は別物 ── 値をぼかして
+       いるのではなく、字も数字も無い形をぼかしている（② の b）。 */
   ok(!/maskSample|sampleBreakdown/.test(jsC), '★maskSample / sampleBreakdown は写していない');
 }
 
@@ -711,6 +889,11 @@ const FAKE = function (payload) {
       const res = (payload && payload.__err && name === 'pv_deep_pay')
         ? { data: null, error: { message: 'synthetic failure' } }
         : { data: RPC[name] ? RPC[name](args) : { ok: true }, error: null };
+      /* ★__hold を立てた見本は、pv_deep_pay の答えを**手で放すまで**返さない
+           （window.__release()）。読み込みのあいだの画面を、時間に頼らず見るため（§2e）。 */
+      if (payload && payload.__hold && name === 'pv_deep_pay')
+        return { then: (y, n) => new Promise((go) => { window.__release = go; })
+          .then(() => res).then(y, n) };
       return { then: (y, n) => Promise.resolve(res).then(y, n) };   // ★then だけ
     }
   };
@@ -901,8 +1084,10 @@ async function open(lang, payload, theme, pick) {
   await page.evaluateOnNewDocument(FAKE, payload);
   await page.goto(BASE + (lang === 'en' ? '/en/' : '/') + 'deep-pay.html',
                   { waitUntil: 'domcontentloaded', timeout: 30000 });
-  /* ★時間で待たない。deep-pay.js は必ず #dp-hd に <h1> を書いてから他を描く。 */
-  if (!(payload && payload.__anon)) {
+  /* ★時間で待たない。deep-pay.js は必ず #dp-hd に <h1> を書いてから他を描く。
+     ★__hold（答えを止めた見本）は待たない ── 骨組みが残っていることを見る筋書きなので、
+       ここで待つと必ず時間切れになる。 */
+  if (!(payload && (payload.__anon || payload.__hold))) {
     await page.waitForFunction(() => !!document.querySelector('#dp-hd h1'), { timeout: 20000 });
     await page.waitForFunction(() => !document.querySelector('#dp-kpi .mr-skel'), { timeout: 20000 });
   }
@@ -987,6 +1172,17 @@ const SNAP = () => {
     cond: (document.querySelector('.dp-cond') || {}).innerText || '',
     /* 信頼度の札（サーバの cohort.trust をそのまま出す。来なければ札ごと無い）。 */
     trust: q('#dp-root .dp-trust').map((e) => e.textContent.trim()),
+    /* ぼかした影絵とその器（2026-10-11）。**閉じた画面にだけ**在る。
+       blurred ＝ 本文（<main>）の中で、ぼかしが**実際に効いている**要素（計算後の値で見る。
+       クラス名ではなく効き目を見るので、別の名前でぼかしを足した回にも鳴る）。 */
+    ghost: q('.dp-ghost').length,
+    stage: q('.dp-stage').length,
+    skel: q('#dp-kpi .mr-skel').length,
+    blurred: q('main *').filter((e) => {
+      const cs = getComputedStyle(e);
+      return (cs.filter && cs.filter !== 'none')
+        || (cs.backdropFilter && cs.backdropFilter !== 'none');
+    }).map((e) => String(e.className || e.tagName).split(' ')[0]),
     /* 錠前の板。行は1行ずつ <p class="dp-msg-s">（2026-10-11。前は1つの <p> を <br> で
        割っていた）。cta ＝ 板の入口（ボタン）の行き先。どの板でも1本。
        todoH / todo ＝「まだ答えていない項目」の見出しと札（箱が無ければ todoH は null）。
@@ -1047,6 +1243,14 @@ const SNAP = () => {
   };
 };
 
+/* ── 影絵が無いこと（2026-10-11）─────────────────────────────────────
+   開いた・選ぶ前・薄い・一覧が無い・読み込めなかった・読み込み中 ── 閉じていない画面には、
+   影絵（.dp-ghost）もその器（.dp-stage）も**DOM に無く**、ぼかしの効いた要素も1つも無い。
+   ★本物の値が出る画面に、ぼかした要素が1つでも在れば、それは「値をぼかして見せる」
+     入口になる。影絵が在ってよいのは、数字が1つも来ていない閉じた画面だけ。 */
+const noGhost = (s) => s.ghost === 0 && s.stage === 0 && s.blurred.length === 0;
+const ghostWhy = (s) => `影絵 ${s.ghost} / 器 ${s.stage} / ぼかしの効いた要素 ${s.blurred.join(',') || 'なし'}`;
+
 // ── 1. 未ログインはログインへ送られる ───────────────────────────
 {
   const { page } = await open('ja', { __anon: true });
@@ -1072,6 +1276,10 @@ const SNAP = () => {
      `hidden=${s.pick.hidden} 見えている=${s.pick.shown}`);
   ok(/pay-report\.html/.test(await page.evaluate(() => document.getElementById('dp-root').innerHTML)),
      '鍵が無い人には「出す」入口を出している（Give → Get）');
+  /* ★板の後ろに、ぼかした影絵が在る（2026-10-11・オーナー判断）。本物の読み込みを通った
+       錠前で見る ── 描き直しの入口（PVDeepPay.render）を通る細かい筋書きは §2e。 */
+  ok(s.ghost === 1 && s.stage === 1 && s.blurred.join(',') === 'dp-ghost',
+     '★鍵が無い人の画面は、ぼかした影絵の手前に板（ぼかしが効いているのは影絵だけ）', ghostWhy(s));
   ok(errs.length === 0, '鍵が無い形で JS のエラーが出ない', errs.join(' / '));
 }
 
@@ -1429,6 +1637,348 @@ for (const lang of ['ja', 'en']) {
   }
 }
 
+// ── 2e. ぼかした影絵と、その手前の板（2026-10-11・オーナー判断）──────────────
+/* 「DEEP PAY でまだ開かない人には給与詳細を提出させる。背景にはぼかした DEEP PAY を
+     表示させる。」── 閉じた画面は、ぼかした影絵（.dp-ghost）の手前に、今までの板を出す。
+
+   ★★ぼかしは隠す道具ではない（開発者ツールで誰でも外せる）。だからここが見るのは
+     「ぼかしが強いか」ではなく、**ぼかしの下に、見られて困るものが何も無いこと**。
+     影絵が字を1文字も持たないこと・サーバの答えが影絵にも画面のどこにも出ないことを、
+     ぼかしを無視して（textContent と innerHTML で）見る。
+
+   見るのは、閉じている理由の12通り（§2b の LOCK_CASES）× 日英 × 明暗 × 320 / 390 / 1440：
+     在る    … 影絵が1つ・器が1つ・器の中は「影絵 → 板」の順・影絵が器いっぱいに敷いてある・
+               本文でぼかしが効いているのは影絵**だけ**
+     触れない … aria-hidden="true" と inert・中に焦点の当たるものが無い・pointer-events:none・
+               選べない・器の隅を押しても影絵の中の要素が返らない
+     ぼかし  … 計算後の filter が blur(6〜10px)
+     空      … textContent が空（字が1文字も無い＝数字も通貨記号も社名も無い）・
+               class と style のほかに属性が無い・タグは div / i / span だけ
+     板      … 面が透けていない（背景の α が 1）・画面の幅に収まる・器の左右の真ん中・
+               幅は 640px まで・上に寄せてある（縦の真ん中に置かない。スマホでは見出しの
+               すぐ下）・板の上に何も乗っていない・器からはみ出さない・影が重ねてある
+     押せる  … ボタンの真ん中を押すと、当たるのはボタン
+     収まる  … 横スクロールが生えない・板の中身が切れない・器が板に対して伸びすぎない
+     読める  … 板の字と、その下の面（板そのものの面）の差が 4.5 以上
+   ★1つの幅ぶんを1行にまとめて出す（12通りを1行ずつ出すと 1,000 行を超える）。
+     落ちたときは、どの理由の板で落ちたかを添える。
+   ⚠️ 窓は 日英 × 明暗 の4枚だけ。理由と幅は、同じ窓で描き直して回す（開き直すと、
+      この Mac では混んで嘘の赤が出る）。時間では待たない。 */
+const GHOST_FIT = () => {
+  const vw = document.documentElement.clientWidth, vh = window.innerHeight;
+  const gs = document.querySelectorAll('.dp-ghost'), st = document.querySelectorAll('.dp-stage');
+  const blurred = [...document.querySelectorAll('main *')].filter((e) => {
+    const cs = getComputedStyle(e);
+    return (cs.filter && cs.filter !== 'none') || (cs.backdropFilter && cs.backdropFilter !== 'none');
+  }).map((e) => String(e.className || e.tagName).split(' ')[0]);
+  const o = { vw, ghost: gs.length, stage: st.length, blurred,
+              over: document.documentElement.scrollWidth - vw };
+  if (gs.length !== 1 || st.length !== 1) return o;
+  const e = gs[0], stage = st[0], cs = getComputedStyle(e);
+  const m = stage.querySelector(':scope > .dp-msg');
+  const a = m && m.querySelector('a.dp-cta');
+  if (!m || !a) return o;
+  window.scrollTo(0, 0);
+  const r1 = (v) => Math.round(v * 10) / 10;
+  const gr = e.getBoundingClientRect(), sr = stage.getBoundingClientRect(), mb = m.getBoundingClientRect();
+  /* 見出しの塊（概要は #dp-hd ＝ .mr-hd・会社比較は見出しと添え書きを包む .dc-top）。 */
+  const hd = document.querySelector('.dc-top') || document.querySelector('.mr-hd');
+  const all = [...e.querySelectorAll('*')];
+  o.kids = [...stage.children].map((c) => String(c.className).split(' ')[0]).join(' ');
+  o.aria = e.getAttribute('aria-hidden');
+  o.inert = e.hasAttribute('inert') && e.inert === true;
+  o.blur = Number((/blur\(([\d.]+)px\)/.exec(cs.filter) || [])[1]);
+  o.pe = cs.pointerEvents;
+  o.us = cs.userSelect || cs.webkitUserSelect;
+  o.text = e.textContent;
+  o.shapes = all.length;
+  o.tags = [...new Set(all.map((x) => x.tagName.toLowerCase()))].sort().join(' ');
+  o.focusable = e.querySelectorAll(
+    'a,button,input,select,textarea,summary,iframe,[tabindex],[contenteditable]').length;
+  o.attrs = all.reduce((n, x) =>
+    n + [...x.attributes].filter((t) => !/^(class|style)$/.test(t.name)).length, 0);
+  o.cover = ['left', 'right', 'top', 'bottom'].every((k) => Math.abs(gr[k] - sr[k]) <= 1);
+  o.stageH = Math.round(sr.height); o.boardH = Math.round(mb.height); o.boardW = Math.round(mb.width);
+  o.left = r1(mb.left); o.right = r1(mb.right);
+  o.centre = r1((mb.left + mb.right) / 2 - (sr.left + sr.right) / 2);
+  o.topGap = Math.round(mb.top - sr.top);
+  o.underTitle = hd ? Math.round(mb.top - hd.getBoundingClientRect().bottom) : null;
+  o.inside = mb.bottom <= sr.bottom + 1;
+  const bg = (getComputedStyle(m).backgroundColor.match(/[\d.]+/g) || []).map(Number);
+  o.alpha = bg.length > 3 ? bg[3] : (bg.length === 3 ? 1 : 0);
+  o.shadows = (getComputedStyle(m).boxShadow.match(/rgba?\(|color\(/g) || []).length;
+  o.z = [Number(cs.zIndex), Number(getComputedStyle(m).zIndex)];
+  /* 板の上に何も乗っていない ── 板の9点（見えている範囲）で、当たるのが板の中の要素。
+     ★隅は 12px 内へ入れる。板の角は丸い（--pv-r-lg ＝ 20px）ので、6px だと丸みの外＝
+       器の面に当たる点ができる（実際に英語の 1440 で1点だけ外れた）。 */
+  const yb = Math.min(mb.bottom - 12, vh - 12);
+  const pts = [];
+  for (const px of [mb.left + 12, (mb.left + mb.right) / 2, mb.right - 12])
+    for (const py of [mb.top + 12, (mb.top + yb) / 2, yb]) pts.push([px, py]);
+  o.covered = pts.filter(([px, py]) => {
+    const t = document.elementFromPoint(px, py);
+    return !(t && m.contains(t));
+  }).length;
+  /* 影絵は押せない ── 器の左下の隅（板の外）を押しても、影絵の中の要素は返らない。 */
+  const t2 = document.elementFromPoint(sr.left + 4, Math.min(sr.bottom - 8, vh - 8));
+  o.hitGhost = !!(t2 && e.contains(t2));
+  /* ボタンの真ん中を押すと、当たるのはボタン。 */
+  a.scrollIntoView({ block: 'center' });
+  const ar = a.getBoundingClientRect();
+  const t3 = document.elementFromPoint((ar.left + ar.right) / 2, (ar.top + ar.bottom) / 2);
+  o.btn = !!(t3 && (t3 === a || a.contains(t3)));
+  o.btnIn = ar.left >= mb.left - 0.5 && ar.right <= mb.right + 0.5 && ar.right <= vw + 0.5;
+  window.scrollTo(0, 0);
+  return o;
+};
+/* Tab を押して回る。影絵の中に焦点が入らないこと・板のボタンには届くことを見る。
+   ★終わりは「同じ要素にもう一度来た」＝ページを一周した、で決める（時間では待たない）。
+     body に来たことでは決めない ── どこから回り始めるかは Chrome が持っていて
+     （直前に触った場所の次から始まる）、1回目の Tab が body に落ちる回も、いきなり
+     板のボタンに来る回もある（実際に両方踏んだ）。 */
+async function tabWalk(page) {
+  await page.evaluate(() => {
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    window.scrollTo(0, 0);
+    window.__tabSeen = new Set();
+  });
+  const seen = [];
+  for (let i = 0; i < 160; i++) {
+    await page.keyboard.press('Tab');
+    const s = await page.evaluate(() => {
+      const a = document.activeElement;
+      const body = !a || a === document.body || a === document.documentElement;
+      const again = !body && window.__tabSeen.has(a);
+      if (!body) window.__tabSeen.add(a);
+      return { body, again,
+               ghost: !!(a && a.closest && a.closest('.dp-ghost')),
+               cta: !!(a && a.matches && a.matches('.dp-stage a.dp-cta')) };
+    });
+    if (s.again) break;
+    seen.push(s);
+  }
+  return seen;
+}
+/* 幅を変えたあと、左メニューが落ち着くまで待つ。★狭い幅では右から出る引き出しになり、
+   閉じるのに 0.32 秒かけて画面の外へ滑る（app-nav.css の transform）。そのあいだは板の上に
+   居るので、すぐ elementFromPoint を呼ぶと「板の上に何か乗っている」と読み違える
+   （実際に 320 と 390 で踏んだ）。時間では待たない ── 居場所で待つ。 */
+async function navStill(page) {
+  await page.waitForFunction(() => {
+    const n = document.querySelector('nav.mr-side');
+    if (!n) return true;
+    const r = n.getBoundingClientRect();
+    if (innerWidth > 1000) return r.left >= -1 && r.right <= 200;
+    return getComputedStyle(n).visibility === 'hidden' || r.left >= innerWidth - 1 || r.right <= 1;
+  }, { timeout: 10000 });
+}
+/* 12通りを1つの幅で回して、落ちた理由の名前を種類ごとに集める。 */
+const GHOST_KINDS = [
+  ['exist', '★★どの理由でも、影絵が1つ・器が1つ・「影絵 → 板」の順（ぼかしが効くのは影絵だけ）'],
+  ['touch', '★★影絵は aria-hidden ＋ inert・焦点の当たるものが無い・押せない・選べない'],
+  ['blur',  '★影絵に、ぼかしが実際に効いている（計算後の filter が blur(6〜10px)）'],
+  ['empty', '★★影絵に字が1文字も無い（数字も通貨記号も無い）・class と style のほかに属性が無い'],
+  ['board', '★板は手前・面が透けていない・幅に収まり真ん中・上に寄せてある・何も乗っていない'],
+  ['click', '★板のボタンの真ん中を押すと、当たるのはボタン'],
+  ['fit',   '★横スクロールが生えない・板の中身が切れない・器が伸びすぎない'],
+  ['con',   '★板の字が、板の面から読める（コントラスト比 4.5 以上）']
+];
+const ghostBad = (f, c, w) => {
+  const bad = {};
+  if (!(f.ghost === 1 && f.stage === 1 && f.kids === 'dp-ghost dp-msg' && f.cover
+        && f.blurred.join(',') === 'dp-ghost'))
+    bad.exist = `影絵 ${f.ghost} 器 ${f.stage} 並び「${f.kids}」敷き ${f.cover} ぼかし ${f.blurred.join(',')}`;
+  if (f.ghost !== 1 || f.stage !== 1 || f.kids !== 'dp-ghost dp-msg') return bad;
+  if (!(f.aria === 'true' && f.inert && f.focusable === 0 && f.pe === 'none' && f.us === 'none'
+        && !f.hitGhost))
+    bad.touch = `aria=${f.aria} inert=${f.inert} 焦点 ${f.focusable} pe=${f.pe} us=${f.us} 隅で当たる=${f.hitGhost}`;
+  if (!(f.blur >= 6 && f.blur <= 10)) bad.blur = `blur ${f.blur}`;
+  if (!(f.text === '' && f.attrs === 0 && f.shapes >= 40 && f.tags === 'div i span'))
+    bad.empty = `字 ${JSON.stringify(String(f.text).slice(0, 30))} 属性 ${f.attrs} 形 ${f.shapes} タグ ${f.tags}`;
+  if (!(f.alpha >= 0.99 && f.left >= 0 && f.right <= f.vw + 0.5 && Math.abs(f.centre) <= 1
+        && f.boardW <= 640 && f.covered === 0 && f.inside && f.z[1] > f.z[0] && f.shadows >= 3
+        && f.topGap >= 0 && f.topGap <= 40 && f.underTitle != null
+        && f.underTitle <= (w <= 640 ? 32 : 60)))
+    bad.board = `α ${f.alpha} 左右 ${f.left}..${f.right}/${f.vw} ずれ ${f.centre} 幅 ${f.boardW} 乗っている点 ${f.covered}`
+      + ` はみ出し ${!f.inside} z ${f.z} 影 ${f.shadows} 器の上から ${f.topGap} 見出しの下から ${f.underTitle}`;
+  if (!(f.btn && f.btnIn)) bad.click = `当たる=${f.btn} 板の中=${f.btnIn}`;
+  /* ★器の高さは「760px まで」か「板＋上下の余白」の大きいほう。余白はいちばん広い
+       スマホで 14＋200px（下の 200px は、板の下に影絵を覗かせる場所）。それを超えて
+       伸びていたら、影絵の中身に器が引っぱられている（影絵は器の高さを決めない）。 */
+  if (!(f.over <= 1 && c.out.length === 0 && c.cut.length === 0
+        && f.stageH <= Math.max(780, f.boardH + 230)))
+    bad.fit = `文書 +${f.over}px 外 ${c.out.slice(0, 2).join(' ')} 切れ ${c.cut.slice(0, 2).join(' ')} 器 ${f.stageH} 板 ${f.boardH}`;
+  const con = c.con || {};
+  if (!(con.note != null && Object.keys(con).every((k) => con[k] == null || con[k] >= 4.5)))
+    bad.con = JSON.stringify(con);
+  return bad;
+};
+/* 毒入りの錠前（閉じているのに、本物らしい数字が紛れて来た答え）。本物のサーバは
+   鍵の無い人へ head / comp / work / var を null で返す。**来ても1文字も描かない**ことを見る。
+   ★門は「鍵は在るが答えきっていない・一覧なし・みんなの側は開いている」＝板に数字が
+     ほとんど出ない形（出るのは「…か 0 で答えます。」の 0 だけ）。紛れた数字が見つけやすい。 */
+const POISON_GATE = { key: true, ready: false, todo: null, crowd: true, contributors: 37, goal: 100 };
+const POISON_LOCK = Object.assign(lockWith(POISON_GATE), {
+  cohort: clone(FULL.cohort), head: clone(FULL.head), comp: clone(FULL.comp),
+  work: clone(FULL.work), var: clone(FULL.var)
+});
+for (const lang of ['ja', 'en']) {
+  for (const theme of ['light', 'dark']) {
+    const { page, errs } = await open(lang, LOCK, theme);
+    const tag = `${lang}/${theme}`;
+    for (const w of [320, 390, 1440]) {
+      await page.setViewport({ width: w, height: 1000 });
+      await page.waitForFunction((x) => innerWidth === x, { timeout: 10000 }, w);
+      await navStill(page);
+      const bad = {};
+      for (const [k] of GHOST_KINDS) bad[k] = [];
+      /* ★一覧つきのいちばん長い板（18項目＋100人の行）も一緒に回す ── 板が器より高くなる形。 */
+      const cases = LOCK_CASES.map(([name, gate]) => [name, gate])
+        .concat([['18項目ぜんぶ＋100人', { key: true, ready: false, crowd: false,
+                                            todo: { year: 2026, month: 9, items: ALL18 } }]]);
+      for (const [name, gate] of cases) {
+        const g = Object.assign({ contributors: 37, goal: 100 }, gate);
+        await page.evaluate((p) => window.PVDeepPay.render(p), lockWith(g));
+        const fit = await page.evaluate(GHOST_FIT);
+        const c = (await page.evaluate(LOCK_FIT)) || { out: ['板が無い'], cut: [], con: {} };
+        const b = ghostBad(fit, c, w);
+        for (const k of Object.keys(b)) bad[k].push(`「${name}」${b[k]}`);
+      }
+      for (const [k, label] of GHOST_KINDS)
+        ok(bad[k].length === 0, `${tag}/${w}: ${label}（${cases.length}通り）`,
+           bad[k].slice(0, 3).join(' ｜ '));
+    }
+
+    /* ── キーボード。Tab で回って、影絵の中に1度も焦点が入らない・板のボタンには届く。
+       幅は 1440 のまま（左メニューが出ていて、焦点の当たるものがいちばん多い）。 ── */
+    await page.evaluate((p) => window.PVDeepPay.render(p),
+      lockWith({ key: true, ready: false, todo: TODO6, crowd: false, contributors: 37, goal: 100 }));
+    const walk = await tabWalk(page);
+    ok(walk.filter((x) => !x.body).length >= 8 && walk.some((x) => x.cta) && !walk.some((x) => x.ghost),
+       `${tag}: ★★Tab で一周しても影絵には入らない・板のボタンには届く（焦点が当たったのは ${walk.filter((x) => !x.body).length} か所）`,
+       `ボタンに届いた=${walk.some((x) => x.cta)} 影絵に入った=${walk.some((x) => x.ghost)}`);
+
+    if (theme === 'light') {
+      const html = () => page.evaluate(() => document.getElementById('dp-root').innerHTML);
+      /* ── 焦点が外れない。同じ答えで描き直しても（通貨の切替でも）、器ごと作り直さない。 ── */
+      const G1 = lockWith({ key: true, ready: false, todo: TODO6, crowd: false, contributors: 37, goal: 100 });
+      await page.evaluate((p) => window.PVDeepPay.render(p), G1);
+      const kept = await page.evaluate((p) => {
+        const a = document.querySelector('.dp-stage a.dp-cta');
+        const st = document.querySelector('.dp-stage'), gh = document.querySelector('.dp-ghost');
+        a.focus();
+        window.PVDeepPay.render(p);
+        window.dispatchEvent(new Event('pv-currency-change'));
+        return { a: document.querySelector('.dp-stage a.dp-cta') === a,
+                 st: document.querySelector('.dp-stage') === st,
+                 gh: document.querySelector('.dp-ghost') === gh,
+                 focus: document.activeElement === a };
+      }, G1);
+      ok(kept.a && kept.st && kept.gh && kept.focus,
+         `${tag}: ★同じ答えで描き直しても、器（影絵＋板）を作り直さない・ボタンの焦点が外れない`,
+         JSON.stringify(kept));
+      /* 門が変われば板は組み直す（古い板のまま固まらない）。影絵の字は同じ。 */
+      const g0 = await page.evaluate(() => document.querySelector('.dp-ghost').outerHTML);
+      await page.evaluate((p) => window.PVDeepPay.render(p),
+        lockWith({ key: false, ready: true, todo: null, crowd: true, contributors: 37, goal: 100 }));
+      const swapped = await page.evaluate(SNAP);
+      const g1 = await page.evaluate(() => document.querySelector('.dp-ghost').outerHTML);
+      ok(swapped.lock.lines.join('|') === LK[lang].key && swapped.ghost === 1,
+         `${tag}: ★門が変われば板は組み直す（影絵は1つのまま）`, JSON.stringify(swapped.lock.lines));
+      ok(g0 === g1 && g0.length > 400,
+         `${tag}: ★★影絵は門が変わっても1文字も変わらない（答えから作っていない固定の絵）`,
+         `長さ ${g0.length} → ${g1.length}`);
+
+      /* ── 毒入り。閉じた答えに head / comp / work / var が紛れて来ても、1文字も描かない。 ── */
+      await page.evaluate((p) => window.PVDeepPay.render(p), lockWith(POISON_GATE));
+      const clean = { s: await page.evaluate(SNAP), h: await html() };
+      await page.evaluate((p) => window.PVDeepPay.render(p), POISON_LOCK);
+      const poi = { s: await page.evaluate(SNAP), h: await html() };
+      ok(poi.h === clean.h && poi.s.text === clean.s.text && poi.s.ghost === 1,
+         `${tag}: ★★閉じた答えに本物らしい数字が紛れて来ても、画面は1文字も変わらない（影絵にも板にも出ない）`,
+         `DOM が同じ=${poi.h === clean.h} / 本文が同じ=${poi.s.text === clean.s.text}`);
+      const ghostText = await page.evaluate(() => document.querySelector('.dp-ghost').textContent);
+      ok(ghostText === '' && poi.s.kpi === 0 && !/[¥$€£]|万|%/.test(poi.s.text)
+         && poi.s.comp.hidden && poi.s.work.hidden && poi.s.vari.hidden && !poi.s.pick.shown,
+         `${tag}: ★★毒入りでも、影絵は空のまま・金額も割合も出ない・節も選択欄も出ない`,
+         JSON.stringify(ghostText.slice(0, 30)) + ' / ' + (poi.s.text.match(/[^\n]*[¥$€£万%][^\n]*/) || [''])[0]);
+      /* 毒の値そのもの（見本の年収・単価・月額）が、HTML のどこにも字で入っていない
+         （属性の中にも）。★生の値と、画面が刷るはずだった形の両方を探す ── FULL の
+           119700 / 102.5 / 4800 / 2200 と、その円・ドルの字（§3g の期待値と同じ）。
+           通貨記号・「万」・% は、閉じた画面の HTML には1つも無いはず。 */
+      const marks = ['119700', '119,700', '1,903', '120K', '102.5', '16,300', '4800', '4,800',
+                     '760,000', '2200', '350,000', '%', '¥', '$', '€', '万'];
+      const leak = marks.filter((x) => poi.h.includes(x));
+      ok(leak.length === 0, `${tag}: ★★毒の値が HTML のどこにも入っていない（属性の中にも）`,
+         leak.join(' '));
+
+      /* ── 閉じた → 開いた。影絵は跡形もなく消える（描き直しの入口で切り替える）。 ── */
+      await page.evaluate((p) => window.PVDeepPay.render(p), FULL);
+      const opened = await page.evaluate(SNAP);
+      ok(noGhost(opened) && !opened.lock.on,
+         `${tag}: ★★閉じた → 開いた で、影絵も器も DOM から消える（ぼかしの効いた要素が残らない）`,
+         ghostWhy(opened));
+      await page.evaluate((p) => window.PVDeepPay.render(p), lockWith(POISON_GATE));
+      const shutAgain = await page.evaluate(SNAP);
+      ok(shutAgain.ghost === 1 && shutAgain.stage === 1 && shutAgain.lock.on,
+         `${tag}: 開いた → 閉じた で、影絵と板が戻る`, ghostWhy(shutAgain));
+    }
+    ok(errs.length === 0, `${tag}: 影絵の描き直しで JS のエラーが出ない`, errs.join(' / '));
+    await jars.pop().close().catch(() => {});
+  }
+}
+
+/* ── 毒入り（本物の読み込みで）──────────────────────────────────────
+   上は描き直しの入口。ここは**サーバの答えとして**毒が来た形を、ページを開くところから
+   通す（閉じているのに cohort / head / comp / work / var が入っている）。開いたあと、
+   毒の無い答えで描き直しても1文字も変わらないこと ＝ 読み込みの道でも、紛れて来た
+   数字をどこにも描いていない。 */
+for (const lang of ['ja', 'en']) {
+  const { page, errs } = await open(lang, POISON_LOCK);
+  const html = () => page.evaluate(() => document.getElementById('dp-root').innerHTML);
+  const poi = { s: await page.evaluate(SNAP), h: await html() };
+  await page.evaluate((p) => window.PVDeepPay.render(p), lockWith(POISON_GATE));
+  const clean = { s: await page.evaluate(SNAP), h: await html() };
+  ok(poi.s.lock.on && poi.s.ghost === 1 && poi.h === clean.h,
+     `${lang}: ★★サーバが閉じた答えに数字を混ぜて返しても、画面は毒の無い答えと1文字も違わない`,
+     `板 ${poi.s.lock.on} / 影絵 ${poi.s.ghost} / DOM が同じ=${poi.h === clean.h}`);
+  ok(poi.s.kpi === 0 && !/[¥$€£]|万|%/.test(poi.s.text) && errs.length === 0,
+     `${lang}: ★毒入りの錠前に金額も割合も出ない・JS のエラーが出ない`,
+     (poi.s.text.match(/[^\n]*[¥$€£万%][^\n]*/) || [''])[0] + errs.join(' / '));
+  await jars.pop().close().catch(() => {});
+}
+
+/* ── 読み込み中（最初の答えがまだ来ていない）──────────────────────────
+   ★前は、社名の辞書が RPC より先に届くと、**開いている人にも**「DEEP PAY はまだ
+     開いていません」の板が一瞬出ていた（deep-pay.js の render() の注）。板の後ろに影絵を
+     置いたいま、同じことが起きると画面まるごとが霞んでから開く。
+   見るのは ── 答えを止めているあいだ：骨組みのまま・板も影絵も無い ／ 放したあと：
+   開いた画面（選ぶ前の板）になり、影絵は1度も出ていない。
+   ⚠️ 時間で待たない。辞書が着いたことは #dp-pick の data-sig（2つ目＝会社の数）で分かる。 */
+for (const lang of ['ja', 'en']) {
+  const { page, errs } = await open(lang, Object.assign(clone(FULL), { __hold: true }));
+  await page.evaluate(() => { window.__sawGhost = 0;
+    new MutationObserver(() => { if (document.querySelector('.dp-ghost, .dp-stage')) window.__sawGhost++; })
+      .observe(document.getElementById('dp-root'), { childList: true, subtree: true }); });
+  await page.waitForFunction(() => {
+    const g = (document.getElementById('dp-pick') || { getAttribute: () => '' }).getAttribute('data-sig');
+    return !!g && Number(g.split('|')[1]) > 0 && typeof window.__release === 'function';
+  }, { timeout: 20000 });
+  const mid = await page.evaluate(SNAP);
+  ok(mid.skel === 1 && !mid.lock.on && noGhost(mid) && mid.kpi === 0,
+     `${lang}: ★★読み込みのあいだは骨組みのまま（錠前の板も影絵も出さない）`,
+     `骨組み ${mid.skel} / 板 ${mid.lock.on} / ${ghostWhy(mid)}`);
+  await page.evaluate(() => window.__release());
+  await page.waitForFunction(() => !document.querySelector('#dp-kpi .mr-skel'), { timeout: 20000 });
+  const aft = await page.evaluate(SNAP);
+  ok(aft.skel === 0 && !aft.lock.on && noGhost(aft)
+     && (await page.evaluate(() => window.__sawGhost)) === 0,
+     `${lang}: ★★答えが来たら開いた画面になる（開いている人に、板も影絵も1度も出ていない）`,
+     ghostWhy(aft) + ' / 途中で出た回数 ' + (await page.evaluate(() => window.__sawGhost)));
+  ok(errs.length === 0, `${lang}: 読み込み中の画面で JS のエラーが出ない`, errs.join(' / '));
+  await jars.pop().close().catch(() => {});
+}
+
 // ── 3. そろった状態（配置の骨格）─────────────────────────────
 {
   const { page, errs } = await open('ja', FULL, 'light', MINE);
@@ -1487,6 +2037,9 @@ for (const lang of ['ja', 'en']) {
      '★変動給比率は segs の variable から出す（100 − 固定給 ではない）',
      JSON.stringify(s.kpiN));
   ok(!/undefined|NaN|\[object/.test(s.text), '本文に undefined / NaN が出ない');
+  /* ★開いた画面には影絵が無い（2026-10-11）。本物の値が並ぶ画面に、ぼかした要素を
+       1つも置かない ── 影絵が在ってよいのは、数字が1つも来ていない閉じた画面だけ。 */
+  ok(noGhost(s), '★★開いた画面に影絵が無い（ぼかしの効いた要素が1つも無い）', ghostWhy(s));
   ok(errs.length === 0, 'JS のエラーが出ない', errs.join(' / '));
 }
 
@@ -1767,6 +2320,8 @@ for (const lang of ['ja', 'en']) {
   ok(!s.comp.hidden && s.donut === 0 && s.compCta === 1,
      '★給与構成は空の円を描かず「出す」入口に置き換わる',
      `hidden=${s.comp.hidden} 円=${s.donut} 入口=${s.compCta}`);
+  /* ★数字が読めない区分の「まだ出せません」は、開いた画面の中の話。影絵は出さない。 */
+  ok(noGhost(s), '★読める数字が無い区分でも影絵は出さない（開いた画面）', ghostWhy(s));
 }
 
 // ── 6. 通貨を切り替えても引き直さない ───────────────────────────
@@ -1821,6 +2376,8 @@ for (const lang of ['ja', 'en']) {
   ok(s.kpi === 0 && s.empty >= 1, 'サーバが返らないと「読み込めませんでした」だけを出す',
      `カード ${s.kpi} / 板 ${s.empty}`);
   ok(!/[¥$€£]|万/.test(s.text), '★エラーのときに 0 や仮の金額を置かない');
+  /* ★読み込めなかった画面は「閉じている」ではない。影絵を出すと、鍵が無いように読める。 */
+  ok(noGhost(s) && !s.lock.on, '★読み込めなかった画面に影絵も錠前の板も出さない', ghostWhy(s));
 }
 
 // ── 9. 見たい区分を選ぶ（2026-08-30）──────────────────────────
@@ -1881,6 +2438,7 @@ for (const lang of ['ja', 'en']) {
   ok(a.comp.hidden && a.work.hidden && a.vari.hidden && a.more.hidden,
      '★選ぶまで節も出ない（空の器を残さない）');
   ok(!NOCOUNT.test(a.text), '★選ぶ前の画面にも人数を書かない', countIn(a.text));
+  ok(noGhost(a), '★選ぶ前の画面（開いている）に影絵が無い', ghostWhy(a));
 
   await choose(page, { airline: 'jal', position: 'cap', fleet: 'b787' });
   const b = await page.evaluate(SNAP);
@@ -1935,6 +2493,10 @@ for (const lang of ['ja', 'en']) {
      c.text.replace(/\n/g, ' ').slice(0, 80));
   ok(c.trust.length === 0, '★数字を出していない区分に信頼度の札を付けない',
      JSON.stringify(c.trust));
+  /* ★薄い区分の板は、錠前の板と同じ器（.dp-msg--lock）を使うが、**閉じてはいない**。
+       影絵は出さない ── 出すと「鍵が無いから見えない」と読める（足りないのは人数）。 */
+  ok(noGhost(c) && c.lock.on, '★★薄い区分の板の後ろには影絵を置かない（開いた画面の中の話）',
+     ghostWhy(c));
 
   await page.evaluate(() => document.getElementById('dp-pk-rst').click());
   /* ★クリアは引き直さない（捨てるだけの答えを取りに行かない）。だから
@@ -2110,6 +2672,7 @@ for (const lang of ['ja', 'en']) {
     ok(/給与が集まるとここに出ます/.test(b.text) && !/選んでください/.test(b.text),
        `★★${nm}ときは「選んでください」と書かない（押せるものが無い）`,
        b.text.replace(/\n/g, ' ').slice(0, 80));
+    ok(noGhost(b), `★${nm}ときの画面に影絵が無い（開いている）`, ghostWhy(b));
     /* ★何人そろえば出るかを書かない（2026-10-11。前は「3人以上そろった区分ができると…」）。 */
     ok(b.text.includes('データが十分にそろった区分ができると、会社・役職・機材で選べるようになります。')
        && !NOCOUNT.test(b.text),

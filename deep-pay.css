@@ -19,7 +19,8 @@
      なる（grid にすると空の列が残って、右半分が白いまま空く）。 */
 .dp-row{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start;margin-top:12px}
 .dp-row>*{flex:1 1 360px;min-width:0}
-.dp-row>.dp-w58{flex-grow:1.38}
+/* .dp-gh-wide は影絵（.dp-ghost）の中の左のカード。本物と同じ伸び方をさせる。 */
+.dp-row>.dp-w58,.dp-row>.dp-gh-wide{flex-grow:1.38}
 /* ★下の段（変動給｜もっと深く見る）だけは伸び縮みにしない。
    変動給は中で2列に組む（.dp-list--var）ので、左の器が痩せると
    「飛行・クレジット時間 / Flight / Block / Credit Hours」が折り返して
@@ -32,8 +33,11 @@
 @media (max-width:1100px){.dp-row--var{grid-template-columns:minmax(0,1fr)}}
 
 /* ── 区分を選ぶ（会社 / 役職 / 機材）─────────────────────────────
-   ★ここに「隠す」系の宣言（blur / filter / mask / user-select:none）を1つも置かない。
-     例外を1つ作ると、次に値そのものへ付いた日に assert-deep-pay.mjs が赤くならない。
+   ★ここに「隠す」系の宣言（blur / filter / mask / clip-path / user-select:none）を置かない。
+     ★2026-10-11（オーナー判断）から、このファイルでそれを書いてよいのは**1つの規則だけ**
+       ── 下のほうの `.dp-ghost`（まだ開いていない人の画面の、字も数字も持たない影絵）。
+       値の入る要素には今までどおり1つも付けない。assert-deep-pay.mjs の ② が
+       「その規則の外に1つも無い」ことを見ている（範囲を広げるときは、先にあちらを読む）。
    ★<select> は端末の見た目のまま使う（appearance を潰さない）。潰すと
      iOS で16px未満に縮んだときに拡大され、選ぶたびに画面が動く。 */
 .dp-pick{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;
@@ -107,9 +111,9 @@
   display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .dp-cond-k{color:var(--pv-ink-3);font-weight:500}
 .dp-cond-s{color:var(--pv-line)}   /* ★user-select:none を付けない。
-  区切りの「/」だけなら害は無いが、この画面では「隠す・選べなくする」系の宣言を
-  1つも置かないことを assert-deep-pay.mjs が例外なしで見ている（ぼかしの禁止）。
-  例外を1つ作ると、次に値そのものへ付いたときに赤くならない。 */
+  区切りの「/」だけなら害は無いが、この画面で「隠す・選べなくする」系の宣言を
+  書いてよいのは影絵（.dp-ghost）の規則1つだけで、assert-deep-pay.mjs がその外を
+  例外なしで見ている。ここで例外を増やすと、次に値そのものへ付いたときに赤くならない。 */
 /* 信頼度の札。★段（高・中・低）はサーバが決めて返す（cohort.trust）。低い段ほど淡い。
    人数は画面のどこにも出さない（2026-10-11）── この札が、人数のかわりに出るたった1つの印。 */
 .dp-trust{display:inline-flex;align-items:center;gap:5px;flex:none;
@@ -128,10 +132,14 @@
      初日は4枚中2枚しか出ない＝固定列だと左に寄って「読み込み失敗」に見える。 */
 .dp-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
   gap:14px;margin-top:14px}
-.dp-kpi{display:flex;align-items:center;gap:12px;min-height:0;
+/* ★.dp-gh-kpi は影絵（.dp-ghost）の中の、字の無いカード。**器の形だけ**をここで
+   一緒に書いてある ── 本物のカードの寸法を直したら、影絵も同じだけ動く。
+   クラスを分けてあるのは、検査が「KPI のカードが何枚出たか」を .dp-kpi で数えるから
+   （影絵のカードを数に入れない）。 */
+.dp-kpi,.dp-gh-kpi{display:flex;align-items:center;gap:12px;min-height:0;
   background:var(--pv-surface);border:1px solid var(--pv-line);
   border-radius:var(--pv-r);padding:13px 14px;box-shadow:var(--pv-shadow)}
-.dp-kpi--green{background:var(--pv-green-soft);border-color:var(--pv-green-line)}
+.dp-kpi--green,.dp-gh-kpi--green{background:var(--pv-green-soft);border-color:var(--pv-green-line)}
 .dp-kpi-ic{flex:none;width:40px;height:40px;border-radius:11px;
   display:grid;place-items:center;
   background:var(--pv-line-soft);color:var(--pv-ink-3)}
@@ -314,6 +322,126 @@
 .dp-cta:active{transform:translateY(0)}
 .dp-cta-n{margin-top:9px;font-size:.7rem;color:var(--pv-ink-3)}
 
+/* ── まだ開いていない人の画面 ── ぼかした影絵と、その手前の板（2026-10-11）──────
+   オーナー判断「DEEP PAY でまだ開かない人には給与詳細を提出させる。背景にはぼかした
+   DEEP PAY を表示させる。」 器は deep-pay.js / deep-pay-compare.js の lockStage() が書く。
+   重ね方は4段（下から）：
+     ① 画面の地（--pv-bg-sub）
+     ② 影絵 .dp-ghost ── この画面の**形だけ**（カードの枠・円・棒・灰色の線）をぼかす
+     ③ 薄い幕 .dp-stage::before ── 影絵を一歩さげて板を手前に見せる。下の端は地へ溶かす
+     ④ 板 .dp-stage>.dp-msg ── 今までの錠前の板（行・一覧・断り・ボタン。字は変えていない）
+   ★★ぼかしは**隠す道具ではない**。CSS のぼかしは開発者ツールで誰でも外せる。
+     だから影絵には、外されて困るものを最初から1つも入れていない ── 字も数字も社名も
+     無く、サーバ・保存領域・計算した値から来たものも無い（ghostShapes() が返す固定の
+     文字列。色だけが PVViz.SEG の実物）。棒の長さ・円の割り方は下に書いた飾りの寸法で、
+     誰の給与とも関係が無い。鍵の無い人へは、サーバが今までどおり数字を返していない。
+   ⚠️ このファイルで blur / filter / clip-path / user-select:none を書いてよいのは、
+      下の `.dp-ghost{…}` の**1つの規則だけ**。値の入る要素へ付けない・規則を増やさない
+      （assert-deep-pay.mjs の ② と assert-deep-pay-compare.mjs の ① が見ている）。
+   ⚠️ backdrop-filter と mask は影絵の規則の中でも使わない。後ろを霞ませたいだけなら
+      影絵そのものをぼかせば足りる。
+   ★影絵の骨組みは本物の画面と同じクラス（.dp-pick / .dp-kpis / .dp-row / .mr-card /
+     .dp-list / .pt-donut-wrap …）で組んである ── 幅で畳まれ方が変わるのも、暗い面の色も、
+     本物の規則にそのまま付いていく。ここに書くのは、字の代わりの線と、足りない寸法だけ。
+   ★この一式は会社比較（deep-pay-compare.html）も読む。あちらの影絵だけが持つ形は
+     deep-pay-compare.css の .dc-gh-*（ぼかしは向こうには1つも書かない）。 */
+/* 器。★板は上に寄せる（縦の真ん中に置かない ── 背の高い画面で板が下へ流れる）。
+   ★高さは「本物の画面とだいたい同じ」。ただし画面の高さで頭打ちにする（スマホの本物は
+     縦に 1,800px ほど在る。そのぶん全部を影絵で埋めると、板の下が延々と霞んだ形になる）。
+     板のほうが高いとき（項目の多い一覧・狭い画面）は、器が板に合わせて伸びる。 */
+.dp-stage{position:relative;isolation:isolate;display:flex;justify-content:center;
+  align-items:flex-start;padding:36px 24px 88px;
+  min-height:clamp(560px,calc(100vh - 170px),760px)}
+/* 薄い幕。★1行目は color-mix を知らないブラウザ用（順番を入れ替えない）。
+   幕が出なくても読めなくなるものは無い ── 板の面は透けていない。
+   ・上の重ね ＝ 板のまわりだけ地の色を少し足して、板のすぐ後ろの形を一歩さげる。
+   ・下の重ね ＝ 全体をごく薄く覆い、**下の 160px だけ**地の色へ溶かす（器の高さの割合で
+     溶かすと、板の高いスマホでは、板のすぐ下から消え始めて影絵がほとんど見えなくなる）。
+   ⚠️ 左右へはみ出すのは 12px まで。スマホの本文の余白は 16px で、それを超えると
+      画面に横スクロールが生える（絶対配置の箱は、はみ出したぶん幅を広げる）。 */
+.dp-stage::before{content:"";position:absolute;inset:0 -12px;z-index:1;pointer-events:none;
+  background:linear-gradient(to bottom,transparent calc(100% - 160px),var(--pv-bg-sub));
+  background:
+    radial-gradient(ellipse 56% 42% at 50% 18%,
+      color-mix(in srgb,var(--pv-bg-sub) 36%,transparent),transparent),
+    linear-gradient(to bottom,
+      color-mix(in srgb,var(--pv-bg-sub) 10%,transparent) 0,
+      color-mix(in srgb,var(--pv-bg-sub) 20%,transparent) calc(100% - 160px),
+      var(--pv-bg-sub) 100%)}
+/* 板。★面は透かさない（--pv-surface のまま）。後ろに何が在っても字の読みやすさが
+     変わらないようにするため ── 検査は板の面の不透明さと、字との差の両方を見る。
+   ★影は重ねる（--pv-shadow-lift の3枚 ＋ 遠くへ落ちる1枚）。1枚きりの平たい影にしない。
+   ★枠は実線。破線（.dp-msg--lock）は地の上に置く板の形で、浮いた板では縁がざらつく。
+     色は --pv-line より一段はっきり ── 暗い面では影がほとんど見えないので、板の縁を
+     決めるのはこの線になる（1行目は color-mix を知らないブラウザ用。順番を入れ替えない）。 */
+.dp-stage>.dp-msg{position:relative;z-index:2;flex:0 1 600px;min-width:0;border-style:solid;
+  border-color:var(--pv-line);
+  border-color:color-mix(in srgb,var(--pv-ink-3) 26%,var(--pv-line));
+  box-shadow:var(--pv-shadow-lift),
+    0 44px 88px -40px color-mix(in srgb,var(--pv-navy) 30%,transparent)}
+/* スマホ。板は見出しのすぐ下から。★左右の余白は幅に合わせて 0〜12px ── 320px で
+   余白を取ると、板の中のボタン（英語は「Share your pay anonymously」）が2行に折れる。
+   ★下は広めに空ける。板が画面の幅をほぼ使うので、影絵が見えるのは板の下だけ ──
+     ここが狭いと「後ろに画面が在る」ことが伝わらない（下の 160px は地へ溶けていく）。 */
+@media (max-width:640px){
+  .dp-stage{padding:14px clamp(0px,calc((100vw - 340px)/4),12px) 200px}
+}
+/* 影絵。★★「隠す」系の宣言を書いてよいのは、このファイルでこの規則だけ（上の注）。
+   ・aria-hidden と inert は lockStage() が付ける（読み上げ・キーボードには板だけ）。
+     pointer-events / user-select は、inert を知らない古いブラウザのための重ね掛け。
+   ・clip-path は、ぼかしのにじみを器の外（上の見出し・下の余白）へ出さないため。
+     filter のあとに効くので、にじんだ後の絵を器の形で切れる。左右だけ 12px ゆるめて、
+     端のカードが刃物で切ったような縁にならないようにしてある。 */
+.dp-ghost{position:absolute;inset:0;z-index:0;overflow:hidden;
+  filter:blur(7px);clip-path:inset(0 -12px);
+  pointer-events:none;user-select:none;-webkit-user-select:none}
+/* 字の代わりの線。細い＝ラベル、太い＝数字や見出しの在った場所。 */
+.dp-gh-ln{display:block;flex:none;max-width:100%;height:9px;border-radius:999px;
+  background:var(--pv-ink-3);opacity:.5}
+.dp-gh-ln--xs{width:34px}
+.dp-gh-ln--s{width:62px}
+.dp-gh-ln--m{width:104px}
+.dp-gh-ln--l{width:150px}
+.dp-gh-ln--w{width:74%}
+.dp-gh-ln--t{width:128px;height:13px;background:var(--pv-ink);opacity:.7}
+.dp-gh-ln--xl{width:136px;height:22px;margin:7px 0;background:var(--pv-ink);opacity:.72}
+.dp-gh-col{display:flex;flex-direction:column;gap:6px;min-width:0;flex:1 1 auto}
+.dp-gh-h{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  margin-bottom:14px}
+/* 選ぶ欄の形（ラベルの線 ＋ 欄の枠）。器は本物の .dp-pick をそのまま使う。 */
+.dp-gh-fld{flex:1 1 180px;min-width:0;display:flex;flex-direction:column;gap:6px}
+.dp-gh-box{display:block;height:34px;border-radius:var(--pv-r-sm);
+  background:var(--pv-surface);border:1px solid var(--pv-line)}
+/* 円。★割り方（%）は飾り。色は lockStage() が --gh-* に入れた PVViz.SEG の実物。
+   ⚠️ 輪にするのに mask を使わない（上の注）。真ん中に面の色の丸を重ねてある。 */
+.dp-gh-ring{position:absolute;inset:0;border-radius:50%;
+  background:conic-gradient(var(--gh-base) 0 42%,var(--gh-variable) 0 66%,
+    var(--gh-command) 0 78%,var(--gh-perdiem) 0 87%,var(--gh-housing) 0 94%,var(--gh-other) 0)}
+.dp-gh-ring::after{content:"";position:absolute;inset:22%;border-radius:50%;
+  background:var(--pv-surface)}
+.dp-gh-pill{display:block;height:36px;border-radius:999px;
+  background:var(--pv-surface);border:1px solid var(--pv-line)}
+/* カードの縁。★本物の縁（--pv-line の 1px）は、ぼかすと地の色に溶けて、白いカードが
+   どこに在るのか分からなくなる。影絵の中でだけ縁と影を一段濃くして、ぼかした後に
+   「カードが並んでいる」と読める濃さを残す。緑のカードは本物の緑の縁のまま。 */
+.dp-ghost .mr-card,.dp-ghost .dp-pick,.dp-ghost .dp-gh-kpi:not(.dp-gh-kpi--green){
+  border-color:color-mix(in srgb,var(--pv-ink-3) 42%,transparent)}
+.dp-ghost .mr-card,.dp-ghost .dp-gh-kpi{box-shadow:var(--pv-shadow-lift)}
+/* 本物の部品を影絵の中で使うときの足し前（字が無いぶん、間と高さを線に合わせる）。 */
+.dp-ghost .pt-legend{gap:12px}
+.dp-ghost .pt-leg .dp-gh-ln:first-of-type{margin-right:auto}
+.dp-ghost .dp-list{gap:14px}
+.dp-ghost .dp-li-l{gap:5px}
+.dp-ghost .dp-hint{margin-top:16px;padding:12px}
+/* 棒の伸び。★長さは飾り（どの区分の値でもない）。色は変動給の色1つ。 */
+.dp-ghost .dp-li-f{background:var(--gh-variable)}
+.dp-ghost .dp-li:nth-child(1) .dp-li-f{width:84%}
+.dp-ghost .dp-li:nth-child(2) .dp-li-f{width:46%}
+.dp-ghost .dp-li:nth-child(3) .dp-li-f{width:30%}
+.dp-ghost .dp-li:nth-child(4) .dp-li-f{width:26%}
+.dp-ghost .dp-li:nth-child(5) .dp-li-f{width:16%}
+.dp-ghost .dp-li:nth-child(6) .dp-li-f{width:10%}
+
 /* ── 給与構成 ────────────────────────────────────────────────
    ★絵は pay-viz.js の donutFromSegs をそのまま借りる（実体は1か所だけ）。
      ここでするのは「モックの3列の表に見えるように並べ替える」ことだけで、
@@ -364,7 +492,7 @@
   color:var(--pv-ink-3);font-weight:600;font-size:.66rem}
 
 @media (max-width:560px){
-  .dp-kpi{min-height:96px;padding:14px;gap:12px}
+  .dp-kpi,.dp-gh-kpi{min-height:96px;padding:14px;gap:12px}
   .dp-kpi-ic{width:40px;height:40px}
   .dp-kpi-v{font-size:1.5rem}
   #dp-comp .pt-donut{width:140px;height:140px}

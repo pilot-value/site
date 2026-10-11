@@ -31,6 +31,10 @@
             det0  … det と同じだが、残りの一覧が来ていない（窓の中に自分の行が無い人・
                     一覧を返さない古いサーバ）＝行と断りだけ・一覧の箱は出ない
             goal  … 鍵も答えもそろっていて、100人だけが未達＝板は1行（断りは出ない）
+            ★lock / det / det0 / goal は、板の後ろに**ぼかした影絵**が出る（2026-10-11・
+              オーナー判断）。影絵は字も数字も無い形だけで、ここの見本の数字とは関係が無い。
+              開いた scene（full / ask / thin …）と err には出ない。撮ったあとの「影絵:」の
+              行で、ぼかしの強さと「字が0文字」を字でも確かめられる。
             err   … サーバが返らなかった
      lang : ja | en
      theme: light | dark
@@ -106,6 +110,10 @@ page.on('pageerror', (e) => console.log('❌ page error:', e.message));
    CDN の supabase-js に上書きさせない目的は defineProperty で達成する。 */
 await page.evaluateOnNewDocument((scene, theme, lang, cur) => {
   localStorage.setItem('pv-theme', theme);
+  /* ★撮影で解析に足あとを残さない（2026-10-11）。ページは load のあと gtag を読むので、
+     立てておかないと、撮るたびに localhost の閲覧が本物の GA4 に1件ずつ入る
+     （検査の側 ── assert-*.mjs ── は前からこの1行を立てている）。 */
+  window['ga-disable-G-3XYF69VQ3X'] = true;
   if (cur) localStorage.setItem(lang === 'en' ? 'pv-currency-en' : 'pv-currency', cur);
   const UID = '00000000-0000-4000-8000-00000000a001';
 
@@ -545,6 +553,26 @@ if (said.lock.length) console.log('板の行: ' + said.lock.join(' ／ '));   //
 if (said.todoH) console.log('板の一覧: ' + said.todoH + ' ── ' + said.todo.join(' ｜ '));
 if (said.warn) console.log('板の断り: ' + said.warn);
 if (said.cta) console.log('板のボタンの先: ' + said.cta);
+
+/* ★板の後ろの影絵（2026-10-11）。閉じた scene にだけ出る・字は1文字も入っていない、を
+   絵と一緒に字でも出す（ぼかしの下に字が在っても、絵からは見分けられない）。 */
+const ghost = await page.evaluate(() => {
+  const g = document.querySelector('.dp-ghost');
+  const blurred = [...document.querySelectorAll('main *')]
+    .filter((e) => getComputedStyle(e).filter !== 'none').length;
+  if (!g) return { on: false, blurred };
+  return { on: true, blurred, blur: getComputedStyle(g).filter, chars: g.textContent.length,
+           inert: g.inert === true, hidden: g.getAttribute('aria-hidden') };
+});
+{
+  const shut = ['lock', 'det', 'det0', 'goal'].includes(scene);
+  if (ghost.on)
+    console.log(`${shut && ghost.chars === 0 && ghost.inert && ghost.hidden === 'true' && ghost.blurred === 1 ? '✓' : '❌'} 影絵: `
+      + `${ghost.blur}・字 ${ghost.chars} 文字・inert=${ghost.inert}・aria-hidden=${ghost.hidden}`
+      + `・ぼかしの効いた要素 ${ghost.blurred}` + (shut ? '' : '  ← 閉じていない scene に影絵が在る'));
+  else if (shut) console.log('❌ 影絵が無い（閉じた scene なのに、板の後ろに何も出ていない）');
+  else if (ghost.blurred) console.log(`❌ 開いた scene に、ぼかしの効いた要素が ${ghost.blurred} つ在る`);
+}
 
 await browser.close();
 console.log(outPath);

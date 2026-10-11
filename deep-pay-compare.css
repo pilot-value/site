@@ -13,9 +13,13 @@
       （db/test-form-contract.mjs が見張っている）。
       この画面だけ形を変えたいときは #dc-root .pt-empty のように器で囲む。
 
-   ★「隠す」系の宣言（blur / filter / mask / user-select:none /
-     opacity:0 / visibility:hidden）を1つも置かない。
-     DEEP PAY は「ぼかして見せる」画面ではない。出せない数字は最初から描かない。
+   ★「隠す」系の宣言（blur / filter / mask / clip-path / user-select:none /
+     opacity:0 / visibility:hidden）を、**このファイルには**1つも置かない。
+     出せない数字は最初から描かない ── 数字をぼかして見せる画面ではない。
+     ★2026-10-11（オーナー判断）から、まだ開いていない人の画面には、板の後ろに
+       ぼかした影絵が出る。ぼかしているのは**字も数字も持たない形だけ**で、その規則は
+       deep-pay.css の `.dp-ghost` の1つきり。この画面の影絵だけが持つ形（.dc-gh-*）は
+       下のほうに在るが、そこにもぼかしは書かない（assert-deep-pay-compare.mjs の ①）。
    ════════════════════════════════════════════════════════════════ */
 
 /* ── 節と節のあいだ（deep-pay.css の #dp-* と同じ刻み）────────── */
@@ -302,3 +306,35 @@
   .dc-kv-v{font-size:.95rem}
   .dc-leg{gap:6px 12px}
 }
+
+/* ── 影絵（まだ開いていない人の画面の、板の後ろ。2026-10-11・オーナー判断）──────
+   器・ぼかし・字の代わりの線は deep-pay.css（.dp-stage / .dp-ghost / .dp-gh-*）が持つ。
+   ここに在るのは、この画面の影絵だけが持つ形 ── 欄の並び・表の行の高さ・棒の割り方。
+   骨組みは本物と同じクラス（.dp-row.dc-main / .dc-col / .dc-tbl / .dc-tr / .dc-bar …）で
+   組んであるので、幅で畳まれ方が変わるのは上の本物の規則にそのまま付いていく。
+   ⚠️ ぼかし（filter / blur）をここに書かない。書いてよいのは deep-pay.css の1規則だけ。
+   ★棒の割り方は飾り（どの会社の値でもない）。影絵には字も数字も入っていない
+     （deep-pay-compare.js の ghostShapes()）。色は lockStage() が入れた --gh-*。 */
+/* 欄は5つ。本物と同じく、広い画面では 3つ＋2つ の2段に並ぶ。 */
+.dc-gh-pick .dp-gh-fld{flex:1 1 30%}
+@media (max-width:800px){
+  .dc-gh-pick .dp-gh-fld{flex-basis:100%}
+}
+/* 左の表は、本物（#dc-diff）と同じ基準幅。行は字が無いぶん上下の余白で高さを出す。
+   マスは .dc-gh-k（項目）と .dc-gh-v（2社の値）。列の割り方は本物の .dc-tr の grid が
+   そのまま決める。狭い画面の畳み方（項目が1段ぶん使う・見出し行の「項目」は出ない）だけ、
+   本物の3つのマスの規則と同じ形をここに書いてある。 */
+.dc-main>.dc-gh-diff{flex:1 1 565px}
+.dc-gh-diff .dc-tr{align-items:center;padding:10px 12px}
+.dc-gh-k,.dc-gh-v{display:flex;flex-direction:column;gap:5px;min-width:0}
+@media (max-width:640px){
+  .dc-gh-k{grid-column:1/-1}
+  .dc-th .dc-gh-k{display:none}
+}
+/* 棒。2本で割り方を変えてある（同じ形が2本並ぶと、棒ではなく模様に見える）。 */
+.dc-gh-bar .dc-seg{flex:1 1 0;min-width:0}
+.dc-gh-bar .dc-seg:nth-child(1){flex-grow:11}
+.dc-gh-bar .dc-seg:nth-child(2){flex-grow:5}
+.dc-gh-bar .dc-seg:nth-child(3),.dc-gh-bar .dc-seg:nth-child(4){flex-grow:2}
+.dc-bar-row+.dc-bar-row .dc-gh-bar .dc-seg:nth-child(1){flex-grow:9}
+.dc-bar-row+.dc-bar-row .dc-gh-bar .dc-seg:nth-child(2){flex-grow:7}

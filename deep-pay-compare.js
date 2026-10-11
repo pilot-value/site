@@ -33,6 +33,11 @@
      deep-pay.js と**同じ本体**が組む ── まだ答えていない項目（gate.todo）を給与
      フォームと同じ名前で並べ、フォームへ送る。入力はこの画面に置かない。
 
+   ★閉じているときの見た目（2026-10-11・オーナー判断）── 板の後ろに、この画面の
+     **形だけ**の影絵をぼかして置く（lockStage / ghostShapes）。
+     ⚠️ 影絵は字も数字も持たない固定の絵。本物の値を描いてからぼかす形にしない ──
+        ぼかしは開発者ツールで外せる。開いた画面には影絵そのものが無い。
+
    ★モックから意図的に外したもの（後から足されないよう理由を残す）
    - 国の絞り込み ── pv_deep_pay に国の facet が無い。無い絞り込みを出すのは嘘になる。
    - 「直近12か月」 ── db/deep-pay.sql の窓は24か月。
@@ -1047,10 +1052,78 @@
       '<a class="dp-cta" href="' + lockHref(gate) + '">' + esc(T.lockCta) + '</a>' +
       '<p class="dp-cta-n">' + esc(T.lockN) + '</p></div>';
   }
+  /* ── 板の後ろに置く、ぼかした影絵（2026-10-11・オーナー判断）──────────────
+     「まだ開かない人には給与詳細を提出させる。背景にはぼかした DEEP PAY を表示させる。」
+     閉じているときは、板の後ろにこの画面の**形だけ**を置いてぼかす。なぜそうするか・
+     何を入れてはいけないかの注は deep-pay.js に1回だけ書いてある。要点は3つ ──
+     ★★影絵は絵であって、データではない。**字も数字も1つも持たない**（空の要素だけ。
+       サーバの答え・S・保存領域・計算した値・乱数のどれにも触らない固定の文字列）。
+     ⚠️ ぼかしは隠す道具ではない（開発者ツールで外せる）。**本物の値を描いてから
+        ぼかす形にしない。** 鍵の無い人へは、サーバが今までどおり数字を返していない。
+     ⚠️ 開いた画面には影絵そのものが DOM に無い（lockStage を通るのは shut('lock') だけ）。
+     ★ghBar / ghBars / ghField / ghHead / ghostTint / lockStage の6つは deep-pay.js と
+       **同じ本体**（ずれは assert-deep-pay-compare.mjs の「写した関数」が見張る）。
+       ghostShapes() だけは画面ごとに別（写す画面の形が違う）。 */
+  function ghBar(mod) { return '<span class="dp-gh-ln dp-gh-ln--' + mod + '"></span>'; }
+  function ghBars(mods) { return mods.split(' ').map(ghBar).join(''); }
+  function ghField() {
+    return '<span class="dp-gh-fld">' + ghBar('xs') + '<span class="dp-gh-box"></span></span>';
+  }
+  function ghHead() { return '<div class="dp-gh-h">' + ghBar('t') + ghBar('s') + '</div>'; }
+  /* 影絵の色。PVViz.SEG から引いた COL（区分 → 色）を、CSS の変数として渡すだけ。 */
+  function ghostTint() {
+    return Object.keys(COL).filter(function (k) { return !!COL[k]; })
+      .map(function (k) { return '--gh-' + k + ':' + COL[k]; }).join(';');
+  }
+  /* この画面の形 ── 上から 選ぶ欄（5つ）／ 差がつくポイントの表（見出し＋9行・2社の列）｜
+     給与構成の棒2本 と トレードオフ。骨組みは本物と同じクラスで組んである
+     ＝ 幅で畳まれ方が変わるのも本物と同じ。足りない寸法は deep-pay-compare.css の .dc-gh-*。
+     ⚠️ .dc-side / .dc-side-n / .dc-kv-* は使わない。検査が「会社のカードや数字が
+        出たかどうか」をそのクラスで数えている。
+     ⚠️ 表のマスは本物のクラス（項目・左の会社・右の会社の3つ）を使わず、.dc-gh-k（項目）と
+        .dc-gh-v（値）にしてある ── 本物のクラスは名前に数字が入っていて、この一式の
+        「字面に数字が1文字も無い」（検査が見ている）と両立しない。
+     ⚠️ 行や欄を増やすときも、**数字を書かずに**並べる（'a b c' を割って数える）。 */
+  function ghostShapes() {
+    var cell = function (cls, mods) {
+      return '<span class="' + cls + '">' + ghBars(mods) + '</span>';
+    };
+    var rows = 'a b c d e f g h i'.split(' ').map(function () {
+      return '<div class="dc-tr">' + cell('dc-gh-k', 'l') + cell('dc-gh-v', 'm') +
+        cell('dc-gh-v', 'm') + '</div>';
+    }).join('');
+    var segs = ['base', 'variable', 'perdiem', 'housing', 'other'].map(function (k) {
+      return '<i class="dc-seg" style="background:var(--gh-' + k + ')"></i>';
+    }).join('');
+    var bar = '<div class="dc-bar-row"><div class="dc-bar-h">' +
+      '<span class="dc-logo dc-logo--mono"></span>' + ghBar('l') + '</div>' +
+      '<div class="dc-bar dc-gh-bar">' + segs + '</div></div>';
+    var tip = '<div class="dc-to-li"><span class="dp-gh-col">' + ghBars('w l') + '</span></div>';
+    return '<div class="dp-pick dc-gh-pick">' +
+        'a b c d e'.split(' ').map(ghField).join('') + '</div>' +
+      '<div class="dp-row dc-main">' +
+        '<div class="dp-gh-wide mr-card dc-gh-diff">' + ghHead() + '<div class="dc-tbl">' +
+          '<div class="dc-tr dc-th">' + cell('dc-gh-k', 's') + cell('dc-gh-v', 'l s') +
+            cell('dc-gh-v', 'l s') + '</div>' + rows + '</div></div>' +
+        '<div class="dc-col">' +
+          '<div class="mr-card">' + ghHead() + '<div class="dc-mix">' + bar + bar + '</div></div>' +
+          '<div class="mr-card">' + ghHead() + '<div class="dc-to">' + tip + tip + '</div></div>' +
+        '</div>' +
+      '</div>';
+  }
+  /* 閉じているときの画面まるごと ＝ 影絵（後ろ）＋ 板（手前）。
+     ★gate を渡すのは板（lockHtml）に**だけ**。影絵の側は引数なしで呼ぶ。 */
+  function lockStage(gate) {
+    return '<div class="dp-stage">' +
+      '<div class="dp-ghost" aria-hidden="true" inert style="' + esc(ghostTint()) + '">' +
+        ghostShapes() + '</div>' +
+      lockHtml(gate) + '</div>';
+  }
   /* 板を組むのは、中身が変わった回だけ。render() は何度も走る（社名の辞書があとから
      届く・通貨の切替）── 毎回組み直すと、Tab でボタンまで来た人の焦点が外れる。
-     ★印（pvSig）は板そのものに持たせる。ほかの描き手（only() を通る ask / dup / few /
-       骨組み）が器を書き替えれば板ごと消えるので、古い印で「同じ」と読み違えない。 */
+     ★印（pvSig）は器（.dp-stage ＝ 影絵＋板）に持たせる。ほかの描き手（only() を通る
+       ask / dup / few / 骨組み）が #dc-sides を書き替えれば器ごと消えるので、
+       古い印で「同じ」と読み違えない。 */
   function lockBoard(box, html) {
     var m = box.firstElementChild;
     if (!m || m.pvSig !== html || box.children.length !== 1) {
@@ -1066,11 +1139,14 @@
          ここで足したり埋めたりしない。置くのは lockBoard()（中身が変わった回だけ）。
        ⚠️ ここだけ only() を通さない。あちらは毎回 innerHTML を書き替えるので、
           焦点の在るボタンごと作り直してしまう（lockBoard の注）。
-          下の4枚を畳むところ（clearLow）までは only() と同じ。 */
+          下の4枚を畳むところ（clearLow）までは only() と同じ。
+       ★2026-10-11 から、板は「ぼかした影絵の手前」に出す（lockStage ＝ 影絵＋板）。
+         影絵は字も数字も持たない固定の絵で、S.boot からは gate しか使わない
+         （鍵の無い人の答えに head / comp が紛れて来ても、ここからは描かれない）。 */
     clearLow();
     var box = el('dc-sides');
     if (!box) return;
-    lockBoard(box, lockHtml((S.boot && S.boot.gate) || {}));
+    lockBoard(box, lockStage((S.boot && S.boot.gate) || {}));
   }
   function ask() {
     only('<div class="dp-msg dp-msg--ask">' +
@@ -1208,13 +1284,23 @@
   }
 
   /* ★試験用の入口（assert-deep-pay-compare.mjs が使う）。本番の画面はここを呼ばない。
-     **作り物のデータを既定で描かせない**ため、呼ばれたときだけ S を差し替えて描き直す。 */
+     **作り物のデータを既定で描かせない**ため、呼ばれたときだけ S を差し替えて描き直す。
+     ・render … 開いた画面を、渡した2社ぶんの答えで描き直す。
+     ・lock   … 閉じた画面を、渡した入口の答え（gate を持つ入れ物）で描き直す
+                （2026-10-11。影絵と板を、門の組み合わせ × 幅 × 明暗で測るため ──
+                  1通りごとにページを開き直すと、この Mac では混んで嘘の赤が出る）。
+                ★閉じる側にしか倒せない（mode は 'locked' 固定）。これで何かが開くことは無い。 */
   w.PVDeepPayCompare = {
     render: function (a, b, sel) {
       if (sel) S.sel = { a: sel.a || '', b: sel.b || '', pos: sel.pos || '',
                          fltA: sel.fltA || '', fltB: sel.fltB || '' };
       S.side = { a: a || null, b: b || null };
       S.mode = 'open';
+      render();
+    },
+    lock: function (boot) {
+      S.boot = boot || null;
+      S.mode = 'locked';
       render();
     }
   };

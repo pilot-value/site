@@ -45,6 +45,13 @@
    ⚠️ 前の門（内訳が1つでもあるか＝gate.detailed）は、サーバが名前ごと外した。
       読む行を足し戻さない（いちばん外の give.detailed は別物 ── 左メニューの札）。
 
+   ── 閉じているときの見た目（2026-10-11・オーナー判断）────────────
+   ★「まだ開かない人には給与詳細を提出させる。背景にはぼかした DEEP PAY を表示させる。」
+     板の後ろに、この画面の**形だけ**の影絵をぼかして置く（lockStage / ghostShapes）。
+   ⚠️ 影絵は字も数字も持たない固定の絵。本物の値を描いてからぼかす形にしない ──
+      ぼかしは開発者ツールで外せる。鍵の無い人へは、サーバが数字を返していないまま。
+      開いた画面には影絵そのものが無い。
+
    ── ここで守っている約束 ──────────────────────────────────────
    ★「時給」と書かない。出すのは Pay / Block Hour で、Block Hours から
      割った指標。時給と書いた瞬間に、待機も地上も含んだ拘束時間で割った
@@ -1081,10 +1088,98 @@
       '<a class="dp-cta" href="' + lockHref(gate) + '">' + esc(T.lockCta) + '</a>' +
       '<p class="dp-cta-n">' + esc(T.lockN) + '</p></div>';
   }
+  /* ── 板の後ろに置く、ぼかした影絵（2026-10-11・オーナー判断）──────────────
+     「DEEP PAY でまだ開かない人には給与詳細を提出させる。背景にはぼかした DEEP PAY を
+       表示させる。」── 閉じているときは、板の後ろにこの画面の**形だけ**を置いてぼかす。
+     ★★影絵は絵であって、データではない。**字も数字も1つも持たない。**
+       ・下の gh* と ghostShapes() は、引数も外の値も読まずに固定の文字列を返す
+         （サーバの答え・S・保存領域・計算した値・乱数のどれにも触らない）。
+       ・中身は空の要素だけ ── カードの枠・円・棒の地と伸び・灰色の線。金額・社名・
+         区分名はもちろん「それらしい数字」も置かない（置けば作り物のデータになる）。
+       ・色だけは PVViz.SEG の実物（ghostTint。円と棒が本物と同じ色に見えるように）。
+       ・棒の長さ・円の割り方は CSS に在る飾りの寸法（deep-pay.css の .dp-ghost の節）。
+         だからこの一式の字面には**数字が1文字も出てこない**（assert-deep-pay.mjs の ② が、
+         この一式の字面と、組み上がった HTML の両方を見ている）。
+     ⚠️ ぼかしは隠す道具ではない（開発者ツールで誰でも外せる）。だから、外されて困る
+        ものを影絵に入れない ── **本物の値を描いてからぼかす形にしない。**
+        鍵の無い人へは、サーバが今までどおり数字を返していない（picks / cohort / head /
+        comp / work / var は null）。影絵のために何かを足して引くこともしない。
+     ⚠️ 開いた画面には影絵そのものが DOM に無い（lockStage を通るのは shut('lock') だけ）。
+     ★aria-hidden と inert を必ず付ける（lockStage）。読み上げにもキーボードにも、
+       在るのは板だけ。
+     ★ghBar / ghBars / ghField / ghHead / ghostTint / lockStage の6つは
+       deep-pay-compare.js と**同じ本体**（ずれは assert-deep-pay-compare.mjs の
+       「写した関数」が見張る）。ghostShapes() だけは画面ごとに別（写す画面の形が違う）。 */
+  function ghBar(mod) { return '<span class="dp-gh-ln dp-gh-ln--' + mod + '"></span>'; }
+  function ghBars(mods) { return mods.split(' ').map(ghBar).join(''); }
+  function ghField() {
+    return '<span class="dp-gh-fld">' + ghBar('xs') + '<span class="dp-gh-box"></span></span>';
+  }
+  function ghHead() { return '<div class="dp-gh-h">' + ghBar('t') + ghBar('s') + '</div>'; }
+  /* 影絵の色。★PVViz.SEG から引いた COL（区分 → 色）を、CSS の変数として渡すだけ。
+     値は色で、数量ではない。CSS の側が var(--gh-base) のように名前で引く。 */
+  function ghostTint() {
+    return Object.keys(COL).filter(function (k) { return !!COL[k]; })
+      .map(function (k) { return '--gh-' + k + ':' + COL[k]; }).join(';');
+  }
+  /* この画面の形 ── 上から 選ぶ欄 ／ KPI のカード3枚 ／ 給与構成（円と凡例）｜働き方 ／
+     何をすると増えるか（棒）｜もっと深く見る。骨組みは本物と同じクラスで組んである
+     ＝ 幅で畳まれ方が変わるのも本物と同じ。
+     ⚠️ .dp-kpi は使わない（影絵のカードは .dp-gh-kpi）。検査も撮影の道具も、KPI の
+        カードが出たかどうかを .dp-kpi で数えている。
+     ⚠️ 行や枚数を増やすときも、**数字を書かずに**並べる（'a b c' を割って数える）。 */
+  function ghostShapes() {
+    var kpi = function (mod, ic) {
+      return '<div class="dp-gh-kpi' + mod + '"><span class="dp-kpi-ic' + ic + '"></span>' +
+        '<span class="dp-gh-col">' + ghBars('s xl m') + '</span></div>';
+    };
+    var row = function (inner) {
+      return '<div class="dp-li"><span class="dp-li-ic"></span>' + inner + '</div>';
+    };
+    var leg = ['base', 'variable', 'command', 'perdiem', 'housing', 'other'].map(function (k) {
+      return '<div class="pt-leg"><i style="background:var(--gh-' + k + ')"></i>' +
+        ghBars('m xs s') + '</div>';
+    }).join('');
+    var duty = 'a b c d'.split(' ').map(function () {
+      return row('<span class="dp-li-l">' + ghBars('m s') + '</span>' + ghBar('s'));
+    }).join('');
+    var vari = 'a b c d e f'.split(' ').map(function () {
+      return row('<span class="dp-li-l">' + ghBars('l m') + '</span>' +
+        '<span class="dp-li-b"><i class="dp-li-f"></i></span>' + ghBar('xs'));
+    }).join('');
+    return '<div class="dp-pick">' + ghField() + ghField() + ghField() + '</div>' +
+      '<div class="dp-kpis">' + kpi('', ' dp-kpi-ic--org') +
+        kpi(' dp-gh-kpi--green', ' dp-kpi-ic--grn') + kpi('', ' dp-kpi-ic--tea') + '</div>' +
+      '<div class="dp-row">' +
+        '<div class="dp-gh-wide mr-card">' + ghHead() +
+          '<div class="pt-donut-wrap"><div class="pt-donut"><span class="dp-gh-ring"></span></div>' +
+          '<div class="pt-legend">' + leg + '</div></div></div>' +
+        '<div class="mr-card">' + ghHead() +
+          '<div class="dp-list dp-list--work">' + duty + '</div>' +
+          '<div class="dp-hint"><span class="dp-gh-col">' + ghBars('l w') + '</span></div></div>' +
+      '</div>' +
+      '<div class="dp-row dp-row--var">' +
+        '<div class="mr-card">' + ghHead() + ghBar('w') +
+          '<div class="dp-list dp-list--var">' + vari + '</div></div>' +
+        '<div class="mr-card"><div class="dp-more"><div class="dp-more-l">' +
+          '<span class="dp-more-ic"></span><span class="dp-gh-col">' + ghBars('m l') + '</span></div>' +
+          '<span class="dp-gh-pill"></span></div></div>' +
+      '</div>';
+  }
+  /* 閉じているときの画面まるごと ＝ 影絵（後ろ）＋ 板（手前）。
+     ★gate を渡すのは板（lockHtml）に**だけ**。影絵の側は引数なしで呼ぶ。
+     ★器（.dp-stage）が1つの子として #dp-kpi に入る ── lockBoard の「中身が同じなら
+       組み直さない」は、この器ごとに効く（影絵は固定なので、変わるのは板だけ）。 */
+  function lockStage(gate) {
+    return '<div class="dp-stage">' +
+      '<div class="dp-ghost" aria-hidden="true" inert style="' + esc(ghostTint()) + '">' +
+        ghostShapes() + '</div>' +
+      lockHtml(gate) + '</div>';
+  }
   /* 板を組むのは、中身が変わった回だけ。render() は何度も走る（社名の辞書があとから
      届く・通貨の切替）── 毎回組み直すと、Tab でボタンまで来た人の焦点が外れる。
-     ★印（pvSig）は板そのものに持たせる。ほかの描き手（ask / thin / KPI）が器を
-       書き替えれば板ごと消えるので、古い印で「同じ」と読み違えない。 */
+     ★印（pvSig）は器（.dp-stage ＝ 影絵＋板）に持たせる。ほかの描き手（ask / thin / KPI）が
+       #dp-kpi を書き替えれば器ごと消えるので、古い印で「同じ」と読み違えない。 */
   function lockBoard(box, html) {
     var m = box.firstElementChild;
     if (!m || m.pvSig !== html || box.children.length !== 1) {
@@ -1108,8 +1203,11 @@
       return;
     }
     /* ★板の中身（行・残りの一覧・断り・ボタンの行き先）は lockHtml() が決める（上の注）。
-         ここで足したり埋めたりしない。置くのは lockBoard()（中身が変わった回だけ）。 */
-    lockBoard(box, lockHtml((S.data && S.data.gate) || {}));
+         ここで足したり埋めたりしない。置くのは lockBoard()（中身が変わった回だけ）。
+       ★2026-10-11 から、板は「ぼかした影絵の手前」に出す（lockStage ＝ 影絵＋板）。
+         影絵は字も数字も持たない固定の絵で、S.data からは gate しか使わない
+         （鍵の無い人の答えに head / comp が紛れて来ても、ここからは描かれない）。 */
+    lockBoard(box, lockStage((S.data && S.data.gate) || {}));
   }
 
   /* ★選んだ区分が人数の壁に届かなかったとき。**広い区分の数字で埋めない。**
@@ -1159,6 +1257,13 @@
   function render() {
     picker(); head();
     if (S.mode === 'error') { shut('error'); return; }
+    /* ★最初の答えが来るまでは、HTML に置いてある骨組みのまま待つ（2026-10-11）。
+         前はここを素通りして shut('lock') に落ちていた ── 社名の辞書が RPC より先に
+         届くと、**開いている人にも**「DEEP PAY はまだ開いていません」の板が一瞬出ていた
+         （実測：RPC を 2.5 秒遅らせると、そのあいだずっと出ている）。板の後ろに影絵を
+         置いたいま、同じことが起きると画面まるごとが霞んで見えてから開くことになる。
+         会社比較（deep-pay-compare.js）は前からこの形（load のあいだは骨組み）。 */
+    if (S.mode === 'load')  return;
     if (S.mode !== 'open')  { shut('lock');  return; }
     /* ★この3行の順番が効いている。錠前より前に置くと鍵の画面が出ず、
        level==='none' より後ろに置くとクリアした直後に
