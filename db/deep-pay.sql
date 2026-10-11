@@ -14,6 +14,14 @@
 --
 -- ★ REAL PAY（pv_pay_rows）は「1行＝1人」を返す。こちらは**1人も返さない。**
 --   返すのは区分（cohort）ごとに束ねた中央値と割合だけ。
+--   ★2026-10-11 から、**その区分に何人いるかも返さない**（オーナー判断）。
+--     隠すのではなく、最初から渡さない。画面に渡すのは信頼度の3段（cohort.trust）だけ。
+--
+-- ★2026-10-11、このファイルに関数を2つ足した。
+--     pv_deep_step      … 見出しの数字を刻みに寄せる小さな道具（2-b 章・誰にも開かない）
+--     pv_pay_breakdown  … 総支給だけ出した本人が、**その月に内訳だけ足す**口（4章）
+--   ⚠️ 下の約束①〜⑦は集計の関数（pv_deep_pay）のもの。pv_pay_breakdown は集計ではなく
+--      **呼んだ本人の1行**だけを扱うので、守るものは4章の頭に別に書いてある。
 --
 -- ════════════════════════════════════════════════════════════════════════
 -- 守っている約束（db/pay-rows.sql の①〜⑦をこの画面の形に写したもの）
@@ -22,7 +30,17 @@
 --                  両方が要る。REAL PAY より深い画面が、より弱い鍵で開いてはいけない。
 --   ② 割合で返す    内訳は**割合**が主。金額は「画面に出ている丸めた年収 × 割合」でしか
 --                  作れない形にする。1人ずつの実額を組み立てられないようにするため。
---   ③ 有効数字2桁   金額は pv_sig2 を通す。1円まで合う数字は個票の証拠になる。
+--   ③ 丸めて返す    1円まで合う数字は個票の証拠になる。**丸める前の中央値は1つも返さない。**
+--                  ★2026-10-11 から、丸め方は2通り（オーナー判断）──
+--                    ・見出しの2つだけは**刻み**に寄せる（pv_deep_step）。
+--                        年収の中央値       … $50 刻み （円でおよそ ¥8,000）
+--                        Pay / Block Hour  … $0.5 刻み（円でおよそ ¥80）
+--                      前はこの2つも有効数字2桁だった（$148,140 → $150,000）。
+--                      刻みにしたので、画面が 万円の位・¥100 の位まで出せる。
+--                    ・それ以外の金額（給与構成の月額）は今までどおり pv_sig2
+--                      ＝有効数字2桁。**こちらは細かくしていない。**
+--                  ⚠️ 刻みをこれ以上細かくしない。細かくするほど、少人数の区分で
+--                     「中央値からその人の実額を割り戻す」幅が狭くなる。
 --   ④ 1行＝1人      proof_hash で束ねてから中央値を取る。同じ人の6か月分は1人。
 --   ⑤ 語彙の中だけ  pv_deep_pay(p jsonb) は会社・役職・機材を受け取る。
 --                  ★2026-08-30 に引数ゼロから変えた。初めは「呼んだ本人の区分」しか
@@ -34,10 +52,10 @@
 --                        **在るものだけ**通す。無い値は空を返す。知らない値を
 --                        「広い区分」に読み替えない。読み替えると、打ち間違いに
 --                        別の区分の数字が出て、読み手はそれと気づけない。
---                    (b) 手で選んだ区分は**はしごを登らない**。3人に届かなければ
---                        そのまま「まだ出せません」。広い区分の数字を、狭い区分の
---                        見出しのまま出すことをしない。
---                  n ≧ 3 は誰が選んでも同じに掛かる。引数では緩められない。
+--                    (b) 手で選んだ区分は**はしごを登らない**。人数の壁（v_min。
+--                        3章の頭を読む）に届かなければそのまま「まだ出せません」。
+--                        広い区分の数字を、狭い区分の見出しのまま出すことをしない。
+--                  人数の壁は誰が選んでも同じに掛かる。引数では緩められない。
 --   ⑥ 準識別子ゼロ  投稿月・作成日時・proof_hash・自由入力の社名・年代・在籍年数は
 --                  返さない。返すのは会社・役職・機材（＝選んだ本人が渡した値、
 --                  または呼んだ本人が既に知っている自分の値）だけ。
@@ -199,6 +217,40 @@ comment on function public.pv_deep_pct(numeric[]) is
 
 
 -- ════════════════════════════════════════════════════════════════
+-- 2-b. pv_deep_step — 金額を「刻み」のいちばん近い倍数に寄せる（2026-10-11）
+--
+--   148140 を 50 刻みで → 148150      92.59 を 0.5 刻みで → 92.5
+--
+-- 使うのは pv_deep_pay の**見出しの2つだけ**（年収の中央値＝$50・
+-- Pay / Block Hour＝$0.5）。なぜこの2つだけ刻みなのかは、ファイル冒頭の約束③。
+-- ★pv_sig2（db/pay-rows.sql）は触っていない。あちらは REAL PAY の1行＝1人の額を
+--   丸めている道具で、桁を増やすと個票の証拠になる。**あちらに刻みを持ち込まない。**
+-- ★null と 0 以下は null（pv_sig2 と同じ。0 を置いて埋めない）。
+-- ★刻みは呼ぶ側が定数で渡す。利用者の入力から刻みを決める道を作らないこと
+--   （刻みを 0.01 にされれば、丸めていないのと同じになる）。
+-- ★誰にも grant しない。security definer の中からだけ呼ぶ。
+-- ════════════════════════════════════════════════════════════════
+drop function if exists public.pv_deep_step(numeric, numeric);
+
+create or replace function public.pv_deep_step(v numeric, p_step numeric)
+returns numeric
+language sql
+immutable
+as $fn$
+  select case when v is null or v <= 0 then null
+              else round(v / p_step) * p_step
+         end;
+$fn$;
+
+revoke all on function public.pv_deep_step(numeric, numeric) from public, anon, authenticated;
+
+comment on function public.pv_deep_step(numeric, numeric) is
+  '金額を刻み（p_step）のいちばん近い倍数に寄せる。null と 0 以下は null。'
+  'pv_deep_pay の見出しの2つ（年収の中央値＝$50・Pay / Block Hour＝$0.5）だけが使う。'
+  '★誰にも grant しない。pv_sig2 の代わりではない（あちらは触っていない）。';
+
+
+-- ════════════════════════════════════════════════════════════════
 -- 3. pv_deep_pay — 画面がこれ1つだけを呼ぶ
 --
 -- 引数ゼロ（約束⑤）。区分は**呼んだ本人の最新の1行**からサーバが決める。
@@ -209,7 +261,7 @@ comment on function public.pv_deep_pct(numeric[]) is
 --   3  会社 × 役職
 --   4  役職のみ（全社）
 --   5  全体
--- 別々の人が3人以上そろう**最初の段**を採る。
+-- 別々の人が v_min 人以上そろう**最初の段**を採る。
 --
 -- ★ cohort.level を必ず返して画面に出すこと。隠すと読み手は
 --   「自分の会社の数字だ」と思い込む。段4の数字を段1だと思って
@@ -217,12 +269,33 @@ comment on function public.pv_deep_pct(numeric[]) is
 -- ★ 返す会社・役職・機材は**呼んだ本人自身の値**。落ちてきた元の段の
 --   会社名は返さない（約束⑥）。
 --
--- ── なぜ n ≧ 3 か ────────────────────────────────────────
--- 待遇アンケート（db/airline-conditions.sql）と同じ閾値。
+-- ── 人数の壁（v_min）──────────────────────────────────────
+-- ★2026-10-11、壁を 3人 → **2人** に下げた（オーナー判断）。
+--   数字が在るのは関数の頭の定数 v_min の**1か所だけ**。本文のどこにも
+--   人数を直書きしない（片方だけ直すと「選べるのに選ぶと空」が黙って起きる）。
+--   ★数え方は変えていない ──「内訳を書いた月を持つ実人物」（下の lvl / avail）。
 -- 書いた人が1人のセルで percentile を取ると、「中央値」と名乗ったまま
 -- その1人の実数が公開される（db/pay-reports.sql の pay_benchmarks に
--- 同じ理由が書いてある）。
--- **区分ごと・列ごと・内訳の項目ごとに、それぞれ 3 を掛ける。**
+-- 同じ理由が書いてある）。**1人のセルは今も1つも出さない。**
+-- **区分ごと・列ごと・内訳の項目ごとに、それぞれ v_min を掛ける。**
+-- ⚠️ 2人のセルの中央値は、その2人の平均。自分がその1人なら、もう1人の額を
+--    割り戻せる。壁を下げたぶん、外側の守りは次の2つになった ──
+--      ・その区分に何人いるかを返さない（下の「人数は返さない」）
+--      ・金額は丸めてから返す（ファイル冒頭の約束③。刻みを細かくしないこと）
+-- ⚠️ 待遇アンケート（db/airline-conditions.sql）の壁は 3人のまま。前は
+--    「あちらと同じ閾値」だったが、いまは**別の数**。そろえ直すならオーナーに聞く。
+--
+-- ── 人数は返さない（2026-10-11・オーナー判断）────────────────
+-- 前は cohort / head / comp / 賞与の4か所で、その区分の人数を返していた。
+-- 全部やめた。**隠すのではなく、最初から渡さない**（画面で伏せるだけだと、
+-- 関数を直接叩けば取れる）。
+-- かわりに返すのは cohort.trust の3段（high / mid / low）だけ。
+--   式は、画面が人数から出していたもの（deep-pay.js の trustOf）をそのまま
+--   ここへ移した ── 人数の段（10人以上・5人以上・それ未満）と、区分の狭さ
+--   （会社×役職×機材まで絞れているか）の、**低いほう**を採る。
+--   区分が広いほど「自分の給与」から遠いので、人数が多くても「高」にしない。
+-- ⚠️ gate.contributors / gate.goal / stats.* は**サイト全体**の数で、区分の人数ではない。
+--    左メニューの札と Give の誘いが使っているので、これは返し続ける。
 --
 -- ── 預かりと口コミを混ぜない ──────────────────────────────
 -- 預かり（pay_reports_pending）は payload に機材も検証段階も無く、
@@ -261,9 +334,16 @@ declare
   -- ★ここが唯一の場所（2026-09-01）。前は pv_deep_goal() から取っていたが、
   --   数字を見る場所がこの1か所だけになったので直書きに戻した。
   v_goal  constant int := 100;
+  -- 区分ごとの人数の壁（内訳を書いた実人物が、この人数に届かない区分は出さない）。
+  -- ★ここが唯一の場所（2026-10-11・オーナー判断で 3 → 2）。本文の比較は全部
+  --   この名前で書いてある。**数字を本文に直書きしない**（自己点検 9 が見ている）。
+  -- ⚠️ 100人の門（v_goal）とは別物。あちらはサイト全体・こちらは区分ごと。
+  -- ⚠️ 下の宣言は字面のまま検査が見ている（空白を足して桁をそろえない）。
+  v_min constant int := 2;
   v_ctb   int;       -- 今までに給与を出したユニークな人数（今の実数）
   v_lch   boolean;   -- 正式公開の手動フラグが立っているか
   v_byp   boolean;   -- 試験だけの抜け道（本番では立たない。下の注を読む）
+  v_crd   boolean;   -- 「みんなの側」の条件が満たされているか（100人 or 手動フラグ）
   v_out   jsonb;
 begin
   if v_uid is null then
@@ -314,11 +394,19 @@ begin
      ⚠️ フラグを立てたあとは人数が減っても開いたまま ── でないと
         「100人を保つために消してほしい人のデータを残す」という
         やってはいけない動機が生まれる。**削除依頼が来た人のデータは普通に消す。**
-     ⚠️ 区分ごとの3人の壁はこれとは別物で、今のデータで毎回判定する
-        （3人 → 2人に落ちればその区分は消える。下の thin を見る）。
+     ⚠️ 区分ごとの人数の壁（v_min）はこれとは別物で、今のデータで毎回判定する
+        （壁を割ればその区分は消える。下の thin を見る）。
      ⚠️ gate.contributors は今の実数を出し続ける（99 と出たまま開いているのが正しい）。 */
   v_lch  := exists (select 1 from public.pv_deep_launch);
-  v_open := v_key and v_det and (v_lch or v_ctb >= v_goal or v_byp);
+  /* ★「みんなの側」の条件を1つの値にまとめ、gate.crowd としても返す（2026-10-11）。
+       閉じている理由は3つある（鍵が無い／本人の内訳が無い／まだ100人に届かない）。
+       前は3つめを、画面が contributors と goal を比べて自分で判定していた。
+       それだと手動フラグで開けたあと（99人のまま開いている日）にも、鍵の無い人へ
+       「100人に届いたら開く」の行が出る ── その人を止めているのは人数ではないのに。
+       **門と同じ式の答え**をそのまま渡し、本当にそれが理由のときだけ出せるようにする。
+     ⚠️ 式を2か所に書かない。v_open が読むのも、返すのも、この v_crd の1つ。 */
+  v_crd  := (v_lch or v_ctb >= v_goal or v_byp);
+  v_open := v_key and v_det and v_crd;
 
   -- ★選べるのは語彙に在るものだけ（約束⑤a）。
   --   'other'（自由入力の社名）は選ばせない。別々の会社が other という1社に
@@ -364,7 +452,9 @@ begin
            r.duty_days                      as duty_d,
            r.stay_nights                    as stay_n,
            r.pay_items                      as items,
-           (r.verify_level >= 1)            as vf,
+           /* ★2026-10-11、ここに在った「明細の裏付けがあるか」の列を外した。
+              使い道は「うち明細あり◯人」という**人数**を返すことだけで、
+              人数を返すのをやめたので読む場所が無くなった。 */
            -- 内訳を書いたか。pv_my_give の detailed と**同じ条件**にそろえる
            (r.base_pay is not null or r.guarantee_pay is not null
             or r.command_pay is not null or r.pay_items is not null) as det,
@@ -494,8 +584,8 @@ begin
      前は「人に潰す → 区分で絞る」だった。だから
        ・FO のときの給与が、今 CAP の人の CAP の数字に混ざっていた
          （人を1行にした時点で、月ごとの役職が消えていた）
-       ・3人の壁を proof_hash で数えていた＝**本人 × 会社**で1つなので、
-         2社に出した1人が2人になり、実は2人のセルで中央値が出ていた
+       ・人数の壁を proof_hash で数えていた＝**本人 × 会社**で1つなので、
+         2社に出した1人が2人になり、壁に届いていないセルで中央値が出ていた
      今は「月次で絞る → 人に潰す」。順番を入れ替えただけで両方直る。
 
      hum → ok → tag → lvl → pick → mrow → person → coh
@@ -504,7 +594,7 @@ begin
 
   -- ── 月次行に「同じ人」を貼る ────────────────────────────
   -- ★当たらない行は落とす（fail closed）。「たぶん別人」として数え上げると
-  --   2人しか居ないセルが3人に見えて中央値が出る＝匿名性が破れる方向。
+  --   壁に届いていないセルが届いたように見えて中央値が出る＝匿名性が破れる方向。
   --   落とすと数字が出ないだけで、誰の実額も漏れない。
   --   投稿のたびに profiles 行ができる（db/pay-reports.sql 6章）ので、
   --   正常に出した人がここで落ちることは無い。
@@ -540,7 +630,7 @@ begin
        count(distinct human) を数える。**同じことを別の書き方でしている**
        （どちらも「内訳の月を1つ以上持つ人」を1人と数える）。
        ⬆ ズレると「選択肢に出ているのに選ぶと空」が**画面は普通に動いたまま**起きる。
-       自己点検 21 が、この >= 3 と lvl 側の >= 3 の両方が在ることを見ている。
+       自己点検 21 が、ここと lvl 側の両方が同じ v_min で比べていることを見ている。
 
      ★0段（tag の lv=0）と**同じ絞り方**を8通りぜんぶ数える。0段は
        「渡された v_air / v_pos / v_flt のうち、null でないものだけで絞る」
@@ -567,7 +657,7 @@ begin
      where o.det
      group by grouping sets ((airline, pos, fleet), (airline, pos), (airline, fleet),
                              (airline), (pos, fleet), (pos), (fleet), ())
-    having count(distinct o.human) >= 3
+    having count(distinct o.human) >= v_min
        and (grouping(airline) = 1 or airline is not null)
        and (grouping(pos)     = 1 or pos     is not null)
        and (grouping(fleet)   = 1 or fleet   is not null)
@@ -604,7 +694,7 @@ begin
      ★me を left join にする。呼んだ本人がまだ1枚も出していないとき、
        cross join だと段5（全体）まで空になる。
      ★条件を書くのはここ1か所だけ。前は数える側（lvl）と集める側（coh）に
-       同じ条件が2つあり、ずれると「3人そろったと数えた段に2人しか居ない」が
+       同じ条件が2つあり、ずれると「壁に届いたと数えた段に、実際は届いていない」が
        起きる作りだった。**その写しが消えた。** */
   tag as (
     select o.*, l.lv
@@ -636,22 +726,22 @@ begin
   -- ── はしごを1段ずつ数える ────────────────────────────────
   /* ★数えるのは**実人物**（human）。proof_hash ではない。
        proof_hash は本人 × 会社で1つなので、2社に出した1人が2人になり、
-       実は2人しか居ないセルで中央値が出る＝匿名性が破れる。
+       実は1人しか居ないセルで中央値が出る＝その人の実額がそのまま出る。
      ★数えるのは「その段の中に、内訳を書いた月を持つ人」＝下の person と同じ条件。 */
   lvl as (
     select lv, count(*) as n
       from (select lv, human from tag group by lv, human having bool_or(det)) z
      group by lv
   ),
-  -- ★3人に届く段が1つも無ければ -1（空）。5段（全体）にも落とさない
+  -- ★壁（v_min）に届く段が1つも無ければ -1（空）。5段（全体）にも落とさない
   --   （約束⑤b）。落として広い区分の数字を狭い見出しのまま出すことはしない。
   -- ★2026-09-01、手で選んでいないときの落ち先も -1 にした（オーナー確定）。
-  --   前は 5（全体）へ落ちていたので、内訳を書いた人がサイト全体で2人しか
-  --   いなくても「全体の年収中央値」が出た＝ほぼその2人の年収そのもの。
-  pick as (select coalesce(min(lv), -1) as lv from lvl where n >= 3),
+  --   前は 5（全体）へ落ちていたので、壁に届く段が1つも無いほど人が少なくても
+  --   「全体の年収中央値」が出た＝ほぼその数人の年収そのもの。
+  pick as (select coalesce(min(lv), -1) as lv from lvl where n >= v_min),
 
   -- ── 採った段の月次行 ────────────────────────────────────
-  -- ★-1（選んだ区分が3人に届かなかった）のときは1行も残らない。
+  -- ★-1（選んだ区分が壁に届かなかった）のときは1行も残らない。
   --   pick.lv = -1 に当たる tag が無いので自然にそうなる。
   mrow as (
     select t.* from tag t cross join pick k where t.lv = k.lv
@@ -690,7 +780,6 @@ begin
                                      within group (order by b_share))::numeric, 0)
                      / 12
            end                                                             as ucm,
-           bool_or(vf)                                                     as vf,
            /* ── 給与構成の割合（8本）────────────────────────────
               ★ここだけ filter (where det and not part) を掛ける
                 （det は 2026-09-01・part は 2026-09-12）。
@@ -735,30 +824,72 @@ begin
   coh as (select * from person),
 
   -- ── 見出しの数字 ────────────────────────────────────────
+  /* ★この2つだけ pv_deep_step（刻み）を通す（2026-10-11・ファイル冒頭の約束③）。
+       年収の中央値      … $50 刻み
+       Pay / Block Hour … $0.5 刻み
+     前は2つとも pv_sig2（有効数字2桁）だった。**丸める前の中央値は今も返さない。**
+     ⚠️ 下の cnorm の月額（pv_sig2）まで刻みに替えない。あちらは項目ごとに
+        人数の壁を掛け直している細かい数で、細かくするほど割り戻しやすくなる。
+     ★n は**返さない**（2026-10-11）。使うのは下の thin（壁）と trust（信頼度の段）だけ。
+       前はここで「明細の裏付けがある人数」も数えて返していた。それもやめた。 */
   hagg as (
-    select public.pv_sig2((percentile_cont(0.5) within group (order by usd_y))::numeric) as annual,
-           case when count(ubh) >= 3
-                then public.pv_sig2((percentile_cont(0.5) within group (order by ubh))::numeric) end as ubh,
-           count(*) as n,
-           count(*) filter (where vf) as vfn
+    select public.pv_deep_step((percentile_cont(0.5) within group (order by usd_y))::numeric, 50) as annual,
+           case when count(ubh) >= v_min
+                then public.pv_deep_step((percentile_cont(0.5) within group (order by ubh))::numeric, 0.5) end as ubh,
+           count(*) as n
       from coh
   ),
 
   /* ── 人数の門（オーナー必須修正2・2026-09-01）──────────────
-     ★3人に満たないときは「画面で隠す」のではなく**返り値に入れない。**
-       関数を直接叩いても2人以下の集計値は1つも取れない。
+     ★v_min 人に満たないときは「画面で隠す」のではなく**返り値に入れない。**
+       関数を直接叩いても、壁に届かない区分の集計値は1つも取れない。
      ★伏せるのは head / comp / work / var の4つ。
        返してよいのは「非公開だと画面が判断するための材料」だけ ──
-       ok / state / gate / give / stats / cohort（level・n・本人が渡した区分）。
+       ok / state / gate / give / stats / cohort（level・本人が渡した区分。
+       信頼度の段 trust は、このとき null）。
      ★pick が -1 のときも人数が 0 でここが立つ。門が二重なのは意図的で、
        はしごの式を将来1行変えたときの最後の壁として残す。 */
-  thin as (select coalesce((select n from hagg), 0) < 3 as x),
+  thin as (select coalesce((select n from hagg), 0) < v_min as x),
+
+  /* ── 信頼度の段（2026-10-11）── 人数のかわりに返す、たった1つの値 ──
+     式は画面が持っていたもの（deep-pay.js の trustOf）を**そのまま**移した。
+       人数の段   … 10人以上＝3 ／ 5人以上＝2 ／ それ未満＝1
+       区分の上限 … 会社×役職×機材（段1）・会社×役職×機材区分（段2）＝3
+                     会社×役職（段3）＝2 ／ 役職のみ（段4）・全体（段5）＝1
+                     手で選んだ区分（段0）は、選んだ軸の数で同じに決める
+                     （3つ＝3 ／ 2つ＝2 ／ 1つ＝1）
+       低いほうを採って 3＝high ／ 2＝mid ／ 1＝low。
+     ★人数だけで決めない。段4に12人そろっても、それは全社の副操縦士12人であって
+       自分の会社の数字ではない（そうしないと、いちばんあてにならない状態が
+       「信頼度 高」と出る）。
+     ★壁に届かない区分・段が無いとき（none）は null。数字を1つも出していない
+       区分に「信頼度 低」と付けると、低いなりに数字が在るように読める。
+     ⚠️ ここの 10 と 5 は**段の境目**で、人数の壁（v_min）ではない。
+        境目を増やさないこと ── 段が細かくなるほど、段から人数が読める。 */
+  trust as (
+    select case when (select x from thin) or k.lv = -1 then null
+                else case least(
+                            case when h.n >= 10 then 3 when h.n >= 5 then 2 else 1 end,
+                            case k.lv
+                              when 0 then case (v_air is not null)::int
+                                               + (v_pos is not null)::int
+                                               + (v_flt is not null)::int
+                                            when 3 then 3 when 2 then 2 else 1 end
+                              when 1 then 3
+                              when 2 then 3
+                              when 3 then 2
+                              else 1 end)
+                       when 3 then 'high' when 2 then 'mid' else 'low' end
+           end as t
+      from hagg h cross join pick k
+  ),
 
   -- ── 給与構成 ────────────────────────────────────────────
   -- 生の中央値と「何人が書いたか」を並べて出しておき、門は次の CTE で掛ける。
+  -- ★区分ぜんたいの人数はここで数えない（2026-10-11。返すのをやめたので使い道が無い）。
+  --   下の b_n … u_an は**項目ごとの壁**に使う数で、どれも返り値には入らない。
   cagg as (
-    select count(*)                                                     as n,
-           (percentile_cont(0.5) within group (order by s_base))::numeric  as b_raw,
+    select (percentile_cont(0.5) within group (order by s_base))::numeric  as b_raw,
            (percentile_cont(0.5) within group (order by s_gtee))::numeric  as g_raw,
            (percentile_cont(0.5) within group (order by s_var))::numeric   as v_raw,
            (percentile_cont(0.5) within group (order by s_cmd))::numeric   as c_raw,
@@ -777,7 +908,7 @@ begin
            count(*) filter (where s_other > 0) as o_n,
            /* 金額（月額・USD）。割合と違って通貨をまたげないので ucm で数える。
               ★人数の門は割合とは別に掛ける。ucm を持つ人だけで数え直すと
-                3 を割ることがあり、そのとき「2人の中央値＝その人の実額」になる。 */
+                壁（v_min）を割ることがあり、そのとき「1人の中央値＝その人の実額」になる。 */
            count(*) filter (where s_base  > 0 and ucm is not null) as b_an,
            count(*) filter (where s_gtee  > 0 and ucm is not null) as g_an,
            count(*) filter (where s_var   > 0 and ucm is not null) as v_an,
@@ -807,51 +938,52 @@ begin
               filter (where ucm is not null))::numeric as u_amt
       from coh
   ),
-  /* ★項目ごとにも n ≧ 3。満たさない区分は **0 として並べず、未分類へ畳む。**
-     比例配分で他の区分へ配ると、たとえば「住宅手当を書いたのが2人」というだけで
+  /* ★項目ごとにも人数の壁（v_min）。満たさない区分は **0 として並べず、未分類へ畳む。**
+     比例配分で他の区分へ配ると、たとえば「住宅手当を書いたのが1人」というだけで
      固定給の割合が水増しされる。畳めば増えるのは灰色だけで、
      「まだ分けられていない」という正しい意味になる。
      ★畳んだぶん未分類の意味が変わるので、画面の凡例は
        「集計できなかった分を含む」と書くこと（書かないと灰色が嘘になる）。 */
   cnorm as (
-    select n,
-           public.pv_deep_pct(array[
-             case when b_n >= 3 then coalesce(b_raw, 0) else 0 end,
-             case when g_n >= 3 then coalesce(g_raw, 0) else 0 end,
-             case when v_n >= 3 then coalesce(v_raw, 0) else 0 end,
-             case when c_n >= 3 then coalesce(c_raw, 0) else 0 end,
-             case when r_n >= 3 then coalesce(r_raw, 0) else 0 end,
-             case when p_n >= 3 then coalesce(p_raw, 0) else 0 end,
-             case when h_n >= 3 then coalesce(h_raw, 0) else 0 end,
-             case when o_n >= 3 then coalesce(o_raw, 0) else 0 end,
+    select public.pv_deep_pct(array[
+             case when b_n >= v_min then coalesce(b_raw, 0) else 0 end,
+             case when g_n >= v_min then coalesce(g_raw, 0) else 0 end,
+             case when v_n >= v_min then coalesce(v_raw, 0) else 0 end,
+             case when c_n >= v_min then coalesce(c_raw, 0) else 0 end,
+             case when r_n >= v_min then coalesce(r_raw, 0) else 0 end,
+             case when p_n >= v_min then coalesce(p_raw, 0) else 0 end,
+             case when h_n >= v_min then coalesce(h_raw, 0) else 0 end,
+             case when o_n >= v_min then coalesce(o_raw, 0) else 0 end,
              coalesce(u_raw, 0)
-             + case when b_n >= 3 then 0 else coalesce(b_raw, 0) end
-             + case when g_n >= 3 then 0 else coalesce(g_raw, 0) end
-             + case when v_n >= 3 then 0 else coalesce(v_raw, 0) end
-             + case when c_n >= 3 then 0 else coalesce(c_raw, 0) end
-             + case when r_n >= 3 then 0 else coalesce(r_raw, 0) end
-             + case when p_n >= 3 then 0 else coalesce(p_raw, 0) end
-             + case when h_n >= 3 then 0 else coalesce(h_raw, 0) end
-             + case when o_n >= 3 then 0 else coalesce(o_raw, 0) end
+             + case when b_n >= v_min then 0 else coalesce(b_raw, 0) end
+             + case when g_n >= v_min then 0 else coalesce(g_raw, 0) end
+             + case when v_n >= v_min then 0 else coalesce(v_raw, 0) end
+             + case when c_n >= v_min then 0 else coalesce(c_raw, 0) end
+             + case when r_n >= v_min then 0 else coalesce(r_raw, 0) end
+             + case when p_n >= v_min then 0 else coalesce(p_raw, 0) end
+             + case when h_n >= v_min then 0 else coalesce(h_raw, 0) end
+             + case when o_n >= v_min then 0 else coalesce(o_raw, 0) end
            ]) as pc,
            /* 金額は割合の「おまけ」。出す条件は割合より1つ厳しく、
-              その区分に金額を書いた人が3人以上いるときだけ。
+              その区分に金額を書いた人が v_min 人以上いるときだけ。
               ★出ない区分は 0 ではなく null を返す（画面は「—」と出す）。
-                0 と書くと「その手当が無い」と読めてしまう。 */
-           case when b_n >= 3 and b_an >= 3 then public.pv_sig2(b_amt) end as b_usd,
-           case when g_n >= 3 and g_an >= 3 then public.pv_sig2(g_amt) end as g_usd,
-           case when v_n >= 3 and v_an >= 3 then public.pv_sig2(v_amt) end as v_usd,
-           case when c_n >= 3 and c_an >= 3 then public.pv_sig2(c_amt) end as c_usd,
-           case when r_n >= 3 and r_an >= 3 then public.pv_sig2(r_amt) end as r_usd,
-           case when p_n >= 3 and p_an >= 3 then public.pv_sig2(p_amt) end as p_usd,
-           case when h_n >= 3 and h_an >= 3 then public.pv_sig2(h_amt) end as h_usd,
-           case when o_n >= 3 and o_an >= 3 then public.pv_sig2(o_amt) end as o_usd,
+                0 と書くと「その手当が無い」と読めてしまう。
+              ★ここは今も pv_sig2（有効数字2桁）。2026-10-11 に刻みへ替えたのは
+                見出しの2つ（hagg）だけで、**月額は細かくしていない。** */
+           case when b_n >= v_min and b_an >= v_min then public.pv_sig2(b_amt) end as b_usd,
+           case when g_n >= v_min and g_an >= v_min then public.pv_sig2(g_amt) end as g_usd,
+           case when v_n >= v_min and v_an >= v_min then public.pv_sig2(v_amt) end as v_usd,
+           case when c_n >= v_min and c_an >= v_min then public.pv_sig2(c_amt) end as c_usd,
+           case when r_n >= v_min and r_an >= v_min then public.pv_sig2(r_amt) end as r_usd,
+           case when p_n >= v_min and p_an >= v_min then public.pv_sig2(p_amt) end as p_usd,
+           case when h_n >= v_min and h_an >= v_min then public.pv_sig2(h_amt) end as h_usd,
+           case when o_n >= v_min and o_an >= v_min then public.pv_sig2(o_amt) end as o_usd,
            /* ★未分類の金額は「1つも畳まれていない」ときしか出さない。
               畳んだ区分があるときの u_raw は畳むぶんを含んでいるが u_amt は
               含んでいない＝画面の割合と桁が合わない金額になる。 */
-           case when u_an >= 3
-                 and b_n >= 3 and g_n >= 3 and v_n >= 3 and c_n >= 3 and r_n >= 3
-                 and p_n >= 3 and h_n >= 3 and o_n >= 3
+           case when u_an >= v_min
+                 and b_n >= v_min and g_n >= v_min and v_n >= v_min and c_n >= v_min and r_n >= v_min
+                 and p_n >= v_min and h_n >= v_min and o_n >= v_min
                 then public.pv_sig2(u_amt) end as u_usd
       from cagg
   ),
@@ -890,23 +1022,23 @@ begin
       from cnorm
   ),
   -- 賞与（ドーナツの外・オーナー確定）
+  -- ★賞与を貰った人数は返さない（2026-10-11）。壁に使うだけ。
   bagg as (
-    select case when count(b_share) filter (where b_share > 0) >= 3
+    select case when count(b_share) filter (where b_share > 0) >= v_min
                 then round((percentile_cont(0.5)
-                            within group (order by b_share))::numeric * 100, 0) end as pct,
-           count(b_share) filter (where b_share > 0) as n
+                            within group (order by b_share))::numeric * 100, 0) end as pct
       from coh
   ),
 
-  -- ── 働き方（列ごとに n ≧ 3）───────────────────────────────
+  -- ── 働き方（列ごとに v_min 人）─────────────────────────────
   wagg as (
-    select case when count(block_h) >= 3
+    select case when count(block_h) >= v_min
                 then round((percentile_cont(0.5) within group (order by block_h))::numeric, 1) end as block_h,
-           case when count(duty_h) >= 3
+           case when count(duty_h) >= v_min
                 then round((percentile_cont(0.5) within group (order by duty_h))::numeric, 1) end as duty_h,
-           case when count(duty_d) >= 3
+           case when count(duty_d) >= v_min
                 then round((percentile_cont(0.5) within group (order by duty_d))::numeric, 0) end as duty_d,
-           case when count(stay_n) >= 3
+           case when count(stay_n) >= v_min
                 then round((percentile_cont(0.5) within group (order by stay_n))::numeric, 0) end as stay_n
       from coh
   ),
@@ -919,7 +1051,7 @@ begin
   -- ★許可リストに無い値は other へ寄せずに**捨てる**。
   --   打ち間違いを本物の答えに見せないため。
   -- ★★ night / weekend / holiday を1つにまとめないこと。★★
-  --   まとめれば n ≧ 3 を通りやすくなるので「整理」したくなるが、
+  --   まとめれば人数の壁を通りやすくなるので「整理」したくなるが、
   --   3つは別の働き方の対価で、混ぜると何が効いているのか分からなくなる。
   -- ★読むのは mrow（採った段の月次行）。sane 全体ではない（2026-09-01）。
   --   前は人のキーで sane を引き直していたので、CAP の人の FO だった月の
@@ -949,10 +1081,10 @@ begin
            (percentile_cont(0.5) within group (order by amt / tot))::numeric as sh
       from vper where tot > 0 group by basis
   ),
-  -- 3人未満の区分は**配列ごと落とす**（pct 0 で並べない）
+  -- v_min 人未満の区分は**配列ごと落とす**（pct 0 で並べない）
   vord as (
     select basis, sh, row_number() over (order by basis) as i
-      from vagg where n >= 3
+      from vagg where n >= v_min
   ),
   vpa as (
     select public.pv_deep_pct((select array_agg(sh order by i) from vord)) as a
@@ -980,9 +1112,16 @@ begin
   select jsonb_build_object(
     'ok',    true,
     'state', case when v_open then 'open' else 'locked' end,
+    /* ★gate は閉じているときも返す（画面が「何を出せば開くか」を言うための材料）。
+         crowd … 「みんなの側」の条件（100人以上 or 手動フラグ）が満たされているか。
+                  false のときだけ、画面は「100人に届いたら開く」の行を出してよい。
+                  ⚠️ 画面が contributors と goal を比べて自分で決めないこと
+                     （手動フラグで開けた日に食い違う。上の v_crd の注を読む）。
+         contributors / goal は**サイト全体**の数。区分の人数ではない。 */
     'gate',  jsonb_build_object(
                'key',          v_key,
                'detailed',     v_det,
+               'crowd',        v_crd,
                'contributors', (select contributors from st),
                'goal',         v_goal),
     'give',  v_give,
@@ -1020,9 +1159,13 @@ begin
                                else (select pos from me) end,
                'fleet',   case when v_man then (case when v_bad then null else v_flt end)
                                else (select fleet from me) end,
-               'n',       (select n from hagg)) end,
+               /* ★ここに在った人数を、信頼度の段に替えた（2026-10-11）。
+                    high / mid / low。壁に届かない区分・段が無いときは null。
+                  ⚠️ 人数のキーを足し戻さない（cohort にも head にも comp にも）。
+                     自己点検 22 が、この関数のどこにも人数のキーが無いことを見ている。 */
+               'trust',   (select t from trust)) end,
 
-    /* ★ここから下の4つは「人が3人に満たなければ1つも返さない」（thin）。
+    /* ★ここから下の4つは「人が v_min 人に満たなければ1つも返さない」（thin）。
          年収中央値・Pay per Block Hour・給与構成・賞与率・Block Hours まで、
          個人の推定につながる値は**返り値そのものに入れない。**
          画面で隠すだけでは、関数を直接叩けば取れてしまう。 */
@@ -1030,18 +1173,15 @@ begin
                  else jsonb_build_object(
                'annual_usd',    (select annual from hagg),
                'per_block_usd', (select ubh from hagg),
-               'detailed_n',    (select n from hagg),
-               'verified_n',    (select vfn from hagg),
                'fixed_pct',     (select pct from cfix)) end,
 
     'comp', case when not v_open or (select x from thin) then null else (
                select case when pc is null then null else jsonb_build_object(
                         'total_kind', 'monthly_cash',
-                        'n',          n,
                         'segs',       (select j from cseg),
                         'bonus',      (select case when pct is null then null
                                                    else jsonb_build_object(
-                                                     'pct_of_annual', pct, 'n', n) end
+                                                     'pct_of_annual', pct) end
                                          from bagg)
                       ) end from cnorm) end,
 
@@ -1067,9 +1207,317 @@ grant execute on function public.pv_deep_pay(jsonb) to authenticated;
 comment on function public.pv_deep_pay(jsonb) is
   'DEEP PAY の画面が呼ぶ唯一の関数。会社・役職・機材を選べる（語彙に在る値だけ）。'
   '区分（会社×役職×機材から順に落とすはしご）ごとの中央値と、給与構成の割合を返す。'
-  '個人の行は1件も返さない。金額は有効数字2桁。内訳は割合で返す。'
+  '個人の行は1件も返さない。その区分に何人いるかも返さない（返すのは信頼度の3段 cohort.trust だけ）。'
+  '人数の壁は定数 v_min（2026-10-11 から2人）で、区分・列・項目ごとに掛かる。'
+  '金額は丸めて返す ── 見出しの2つだけ刻み（年収の中央値＝$50・Pay / Block Hour＝$0.5。'
+  '円でおよそ ¥8,000・¥80）、それ以外の金額は有効数字2桁。丸める前の中央値は返さない。'
+  '内訳は割合で返す。'
   '鍵（access_until）と本人の内訳（pv_my_give の detailed）の両方が要る。'
-  '足りないときは例外にせず state = locked を返す（画面が「何を出せば開くか」を出せるように）。';
+  '足りないときは例外にせず state = locked を返す（画面が「何を出せば開くか」を出せるように）。'
+  'gate.crowd は「100人以上 or 正式公開フラグ」が満たされているか（門と同じ式の答え）。';
+
+
+-- ════════════════════════════════════════════════════════════════
+-- 4. pv_pay_breakdown — 総支給だけ出した月に、内訳だけを足す（2026-10-11）
+--
+-- なぜ要るか
+--   DEEP PAY の個人条件は「本人が内訳まで出していること」（pv_my_give の detailed）。
+--   総支給だけ出した人が内訳を足す道は、今まで給与フォームを最初から出し直す
+--   submit_pay_report しか無かった。あれは**行をまるごと置き換える**ので、
+--   総支給・勤務時間・年代…を全部打ち直させるうえ、投稿日まで今日に書き換わる。
+--   聞きたいのは3つだけ（基本給／保証手当・職務手当／変動給）なので、
+--   その3つだけを受け取って、**既に在る1行の内訳の列だけ**を埋める口を作った。
+--
+-- 使い方（引数は jsonb 1つ）
+--   読む … 何も渡さない。足せる月が在れば、その月の「会社・自由入力の社名・年・月・
+--          通貨・総支給」を返す（＝本人が自分で出した値だけ）。無ければ target は null。
+--   書く … 読んで受け取った月の鍵（airline / airline_other / year / month）をそのまま
+--          返し、3つの答えを添える。答えは**金額**か、はっきりした**「該当なし」**：
+--            base      | base_none        基本給
+--            guarantee | guarantee_none   保証手当・職務手当
+--            variable  | variable_none    変動給
+--          金額は文字列（'285000' / '1234.5'）。0 は「支給なし」という回答で、
+--          空は未回答（フォームと同じ区別）。金額と「該当なし」が両方来たら金額を採る
+--          （フォームの pdSync と同じ ── 古い「該当なし」を、いま入れた額に勝たせない）。
+--
+-- 足せる月（target）＝ 呼んだ本人の行のうち、次を全部満たす**いちばん新しい月**
+--   ・内訳が1つも無い（pv_deep_pay の det の裏返し ── 基本給・保証手当・職位手当・
+--     内訳の行が4つとも空）
+--   ・総支給が在る（0 でない）。総支給の無い行は、内訳を足すと年収が動く
+--   ・変動給の列が空
+--   ・明細の裏付けが付いていない行（付いた行は読み取りが内訳を埋めている。
+--     **裏付けのある行を手で書き換えさせない** ── Verified の意味が無くなる）
+--
+-- 断るときは例外にせず、理由を返す（画面がそのまま言葉にできるように）
+--   moved       返ってきた鍵が、いまの target ではない（別の端末で先に足した／
+--               その間に新しい月を出した）。画面は読み直す
+--   unanswered  3つのどれかが未回答。**3つとも**答えて初めて書く
+--   over        内訳の合計が総支給を超えている。比べた2つの額（sum / gross）も返す
+--   limit       1日の上限（給与フォームと**同じ数え**。下の注）
+--   ⚠️ 読めない金額（数字でない・マイナス・桁あふれ）だけは例外にする。画面が先に
+--      整えて送るので、ここへ届くのは壊れた呼び出しだけ（フォームの道も例外で落ちる）。
+--
+-- ★★ 書くのは内訳の列だけ。次のものには1バイトも触らない。★★
+--     投稿日 ／ 総支給 ／ 年収（原通貨・USD・円）／ 時間あたり ／ 手取りの推計 ／
+--     レートとその日付 ／ 明細の裏付け ／ 会員の鍵の期限
+--   ・年収が動かない根拠は pv_annual_total（db/pay-reports.sql 4章）── 総支給が在る
+--     行では、基本給・保証手当・変動給・その他手当を**1つも読まない**
+--     （coalesce の第1引数が総支給）。target は「総支給が在る」行だけなので、
+--     この関数が書く4列で年収は1円も動かない。時間あたりも年収とレートと
+--     乗務時間からしか出ないので動かない。＝**作り直す派生の列が無い。**
+--   ・投稿日を動かさないのは、REAL PAY の並びと「投稿時期」の段（db/pay-rows.sql）・
+--     週のまとめ（db/weekly-digest.sql）・経過措置の締切（pv_my_give の full）が
+--     全部その日付を見ているため。内訳を足しただけの人を「今週出した人」に数えない。
+--   ・鍵の期限を伸ばさないのは、**新しい月を出したわけではない**から。伸ばすと、
+--     昔に出した総支給だけの月が残っている人は、新しい月を1つも出さないまま
+--     その月の数だけ鍵を延ばせる（「毎月出すと90日ずつ開く」が崩れる）。
+--   ⚠️ 上の列の名前は、関数の**本文には1つも出てこない**（説明はこの頭にだけ書く）。
+--      自己点検 26 が本文を字として見ているので、注意書きのつもりで本文に書くと
+--      注意書きだけで赤くなる。
+--
+-- ★書いたあとの行は、「同じ月を給与フォームで、同じ3つの答えで出した行」と同じ形。
+--   フォーム（pay-report.html の buildPayload / pdSync）と submit_pay_report を
+--   突き合わせて写した。db/test-deep-pay.mjs が、フォームの道で作った行と
+--   **列ごとに一致する**ことを見ている。
+--     基本給・保証手当   → base_pay / guarantee_pay（「該当なし」なら空のまま）
+--     変動給             → flight_variable_pay **と** other_allowance の両方
+--                          （変動給はその他手当の内訳、という昔からの約束。
+--                           pv_deep_pay の a_other の「命綱の引き算」が前提にしている。
+--                           片方にしか書かないと、ドーナツで変動給が消えるか二重になる）
+--     「該当なし」の3つ  → pay_items の fixed_none / guarantee_none / variable_none
+--     変動給の行         → pay_items.variable に金額だけの1行
+--   ⚠️ フォームは変動給の行ごとに「何に連動する支給か」を必ず聞く。ここは聞いていない
+--      ので、行に**連動先を書かない**（「わからない」を勝手に選ばない ── 本人が
+--      答えていないことを答えたことにしない）。だから pv_deep_pay の「変動給の中身」
+--      （vraw）には数えられない。年収・給与構成の割合・月額には普通に入る。
+--
+-- ★1日の上限は submit_pay_report と**同じ数え**（profiles の同じ2列・同じ 10 件）。
+--   2つ目の数えを作らない ── 作ると、フォームで10件・ここで10件と倍になる。
+--   ⚠️ 10 は db/pay-reports.sql 5章の写し。あちらを変えたらここも直す。
+--   ★先に本人の profiles 行を掴む（for update）。submit_pay_report が最初に掴むのと
+--     同じ行なので、同じ人の2つの書き込みは必ず順番に並ぶ ── 掴んだあとで
+--     target を引くから、「読んだ直後に別の口が同じ行を書き換えた」が起きない。
+--
+-- ★誰の行かは pv_my_keys()（1章）で引く。pv_deep_pay の me と同じ引き方。
+--   行の鍵（ハッシュ）は受け取らないし、返さない。
+-- ★UPDATE では何も鳴らない。リポジトリの SQL が pay_reports に付けるトリガは2本で、
+--   どちらも**追加のときだけ**（db/founding.sql の称号の付与／
+--   db/notify-admin-webhooks.sql の管理者通知）。＝内訳を足しても運営にメールは飛ばない。
+--   ⚠️ ダッシュボードから手で作った Webhook はリポジトリからは見えない。
+--      db/notify-admin-webhooks.sql の末尾の確認クエリで、pay_reports の行が
+--      「Insert のみ」と出ていることを見る（「Insert 以外も含む」なら、内訳を
+--      足すたびに通知が飛ぶ）。
+-- ════════════════════════════════════════════════════════════════
+drop function if exists public.pv_pay_breakdown(jsonb);
+
+create or replace function public.pv_pay_breakdown(p jsonb default '{}'::jsonb)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $fn$
+declare
+  v_uid   uuid := auth.uid();
+  v_in    jsonb := case when jsonb_typeof(p) = 'object' then p else '{}'::jsonb end;
+  v_write boolean;
+  v_has   boolean;
+  v_row   public.pay_reports%rowtype;
+  v_prof  public.profiles%rowtype;
+  -- 3つの答え。並びは 基本給 / 保証手当・職務手当 / 変動給 で固定
+  v_k     constant text[] := array['base', 'guarantee', 'variable'];
+  v_amt   numeric[]  := array[null, null, null]::numeric[];
+  v_none  boolean[]  := array[false, false, false];
+  v_s     text;
+  v_i     int;
+  v_oth   numeric;   -- 書いたあとの「その他手当」（変動給を足したもの）
+  v_sum   numeric;   -- 書いたあとの内訳の合計（フォームの monthlyDetail と同じ顔ぶれ）
+begin
+  if v_uid is null then
+    raise exception 'ログインが必要です' using errcode = '42501';
+  end if;
+
+  /* ★鍵か答えが1つでも来ていれば「書く」。何も来ていなければ「読む」。
+       鍵だけ来て答えが無い呼び出しを「読む」に倒さない ── 画面が空のまま
+       送ったときに、成功の形（target）が返って「足せた」と読み違える。 */
+  v_write := v_in ?| array['airline', 'airline_other', 'year', 'month',
+                           'base', 'base_none', 'guarantee', 'guarantee_none',
+                           'variable', 'variable_none'];
+
+  -- ── 書くときは、先に本人の行を掴む（頭の「1日の上限」の注）────
+  if v_write then
+    select * into v_prof from public.profiles where id = v_uid for update;
+    if not found then
+      -- submit_pay_report と同じ救い方。取りこぼした人をここで詰まらせない。
+      begin
+        insert into public.profiles (id) values (v_uid);
+      exception when others then
+        raise exception 'プロフィールが作成されていません。一度ログインし直してください。'
+          using errcode = '23503';
+      end;
+      select * into v_prof from public.profiles where id = v_uid for update;
+    end if;
+  end if;
+
+  -- ── 足せる月を1つ引く ───────────────────────────────────
+  /* ★条件を書くのはここ1か所だけ（読むときも書くときも、この同じ1文を通る）。
+     ★内訳が無い ＝ pv_deep_pay の det・pv_my_give の detailed の**裏返し**。
+       あちらの4つを変えたら、ここも同じに直す。 */
+  select r.* into v_row
+    from public.pay_reports r
+   where r.proof_hash in (select h from public.pv_my_keys() h)
+     and r.base_pay is null and r.guarantee_pay is null
+     and r.command_pay is null and r.pay_items is null
+     and nullif(r.gross_monthly, 0) is not null
+     and r.flight_variable_pay is null
+     and r.verify_level = 0
+   order by r.period_year desc, r.period_month desc, r.created_at desc
+   limit 1;
+  v_has := found;
+
+  -- ── 読む ───────────────────────────────────────────────
+  -- ★返すのは本人が自分で出した6つだけ。行のほかの中身は何も返さない。
+  if not v_write then
+    return jsonb_build_object(
+      'ok', true,
+      'target', case when not v_has then null else jsonb_build_object(
+                  'airline',       v_row.airline,
+                  'airline_other', v_row.airline_other,
+                  'year',          v_row.period_year,
+                  'month',         v_row.period_month,
+                  'currency',      v_row.currency,
+                  'gross',         v_row.gross_monthly) end);
+  end if;
+
+  -- ── 書く：返ってきた鍵が、いまの target か ─────────────────
+  /* ★年と月は字のまま比べる。数に直してから比べると、数でない値が来たときに
+       例外になる（断る理由を返せなくなる）。読んだ値をそのまま返せば必ず一致する。 */
+  if not v_has
+     or v_row.airline            is distinct from nullif(btrim(v_in->>'airline'), '')
+     or v_row.airline_other      is distinct from nullif(btrim(v_in->>'airline_other'), '')
+     or v_row.period_year::text  is distinct from btrim(v_in->>'year')
+     or v_row.period_month::text is distinct from btrim(v_in->>'month') then
+    return jsonb_build_object('ok', false, 'code', 'moved');
+  end if;
+
+  -- ── 3つの答えを読む ─────────────────────────────────────
+  /* ★読み方は給与フォームの道（submit_pay_report）と同じ ── 空文字は「来ていない」、
+       それ以外は数として読む。その前に、このファイルの vraw が変動給の行の金額に
+       使っているのと同じ型（数字と小数点だけ）を通す。素の変換は指数表記や
+       「数でない」を表す特別な値まで通してしまうので、型で先に止める。
+     ★上限は列の型（整数12桁・小数2桁）そのもの。フォームの道も同じ所で落ちる。 */
+  for v_i in 1 .. 3 loop
+    v_s := nullif(btrim(v_in->>v_k[v_i]), '');
+    if v_s is not null then
+      if v_s !~ '^[0-9]+(\.[0-9]+)?$' then
+        raise exception '金額が読めません / The amount could not be read.'
+          using errcode = '22023';
+      end if;
+      begin
+        v_amt[v_i] := v_s::numeric(14,2);
+      exception when numeric_value_out_of_range then
+        raise exception '金額が大きすぎます / The amount is too large.'
+          using errcode = '22023';
+      end;
+    elsif jsonb_typeof(v_in->(v_k[v_i] || '_none')) = 'boolean'
+          and (v_in->>(v_k[v_i] || '_none'))::boolean then
+      v_none[v_i] := true;
+    else
+      -- 金額も「該当なし」も無い ＝ 未回答。1つでも在れば、どの列にも書かない
+      return jsonb_build_object('ok', false, 'code', 'unanswered');
+    end if;
+  end loop;
+
+  -- ── 内訳の合計が総支給を超えていないか ────────────────────
+  /* ★給与フォームの settleOver()（pay-report.html）をそのまま写した ──
+         総支給 > 0  かつ  内訳の合計 > 総支給 ＋ 不就労減額 ＋ 1
+       合計の顔ぶれは monthlyDetail() と同じ並びで、**保存済みの列**から作る。
+       画面の「その他」3欄（f-other / f-var-sum / f-oth-sum）は、保存すると
+       other_allowance の1列になる。変動給はその中に入っている（別に足さない）。
+     ★式を緩めも締めもしない。ここだけ違う線にすると、「フォームでは出せた内訳が
+       ここでは断られる」か、その逆になる。
+     ★組合の手当は、支給元が会社側（会社・両方・その他）のときだけ合計に入る
+       （画面の unionInGross）。支給元は内訳の行の中に在るので、target（内訳の行が
+       空）では必ず 0。不就労減額も同じ理由で必ず 0。**写しとして**残してある。 */
+  v_oth := case when v_amt[3] is not null
+                then coalesce(v_row.other_allowance, 0) + v_amt[3]
+                else v_row.other_allowance end;
+  v_sum := coalesce(v_amt[1], 0)
+         + coalesce(v_amt[2], 0)
+         + coalesce(v_row.hourly_rate, 0)
+           * greatest(coalesce(v_row.block_hours, 0), coalesce(v_row.guaranteed_hours, 0))
+         + coalesce(v_row.per_diem, 0)
+         + case when v_row.housing_type = 'allowance'
+                then coalesce(v_row.housing_amount, 0) else 0 end
+         + coalesce(v_row.transport, 0)
+         + coalesce(v_row.command_pay, 0)
+         + coalesce(v_oth, 0)
+         + coalesce(v_row.instructor_pay, 0)
+         + coalesce(v_row.examiner_pay, 0)
+         + case when (v_row.pay_items->'union'->>'extra') = 'yes'
+                 and (v_row.pay_items->'union'->>'source') in ('airline', 'both', 'other')
+                then coalesce(v_row.union_pay, 0) else 0 end
+         + coalesce(v_row.management_pay, 0)
+         + coalesce(v_row.nonline_pay, 0);
+  if v_sum > v_row.gross_monthly + public.pv_absence_total(v_row.pay_items) + 1 then
+    -- 比べた2つをそのまま返す（どちらも本人の値。画面が文の中に出す）
+    return jsonb_build_object('ok', false, 'code', 'over',
+                              'sum', v_sum, 'gross', v_row.gross_monthly);
+  end if;
+
+  -- ── 1日の上限（submit_pay_report と同じ数え・同じ件数）──────
+  if v_prof.pay_reports_day is distinct from current_date then
+    v_prof.pay_reports_day   := current_date;
+    v_prof.pay_reports_today := 0;
+  end if;
+  if v_prof.pay_reports_today >= 10 then
+    return jsonb_build_object('ok', false, 'code', 'limit');
+  end if;
+
+  -- ── 内訳の列だけを埋める ─────────────────────────────────
+  /* ★set に並べるのはこの5つだけ。**1つも増やさない**（頭の ★★ を読む）。
+     ★pay_items の形はフォームが送る物と同じ（v: 2・「該当なし」3つ・変動給の行・
+       空の「その他」の行）。false も書く ── フォームの道が false を残すので、
+       片方だけ鍵が無い行を作らない。
+     ★変動給の行の金額は、末尾の 0 を落として入れる（285000.00 → 285000）。
+       フォームの道は画面の数をそのまま入れるので、同じ見た目にそろえる。 */
+  update public.pay_reports set
+    base_pay            = v_amt[1],
+    guarantee_pay       = v_amt[2],
+    flight_variable_pay = v_amt[3],
+    other_allowance     = v_oth,
+    pay_items           = jsonb_build_object(
+                            'v',              2,
+                            'fixed_none',     v_none[1],
+                            'guarantee_none', v_none[2],
+                            'variable_none',  v_none[3],
+                            'variable',       case when v_amt[3] is null then '[]'::jsonb
+                                                   else jsonb_build_array(jsonb_build_object(
+                                                          'amount', trim_scale(v_amt[3]))) end,
+                            'other',          '[]'::jsonb)
+   where id = v_row.id;
+
+  -- ★数えを1つ進めるだけ。この行のほかの列には触らない。
+  update public.profiles set
+    pay_reports_day   = v_prof.pay_reports_day,
+    pay_reports_today = v_prof.pay_reports_today + 1
+   where id = v_uid;
+
+  return jsonb_build_object('ok', true, 'done', true);
+end;
+$fn$;
+
+-- ★順番を変えないこと。revoke してから grant する。
+revoke all on function public.pv_pay_breakdown(jsonb) from public, anon;
+grant execute on function public.pv_pay_breakdown(jsonb) to authenticated;
+
+comment on function public.pv_pay_breakdown(jsonb) is
+  '総支給だけ出した本人が、その月に内訳（基本給／保証手当・職務手当／変動給）だけを足す口。'
+  '何も渡さなければ、足せる月（本人のいちばん新しい・内訳なし・総支給あり・裏付けなしの月）を返す。'
+  '書くのは内訳の列だけ ── 投稿日・総支給・年収・時間あたり・レート・裏付け・鍵の期限には触らない'
+  '（総支給が在る行では、内訳で年収は1円も動かない）。'
+  '3つとも「金額」か「該当なし」で答えて初めて書く。断るときは例外にせず code を返す'
+  '（moved / unanswered / over / limit）。1日の上限は submit_pay_report と同じ数え。'
+  '行の鍵（ハッシュ）は受け取らないし、返さない。';
 
 
 -- ════════════════════════════════════════════════════════════════
@@ -1078,6 +1526,8 @@ comment on function public.pv_deep_pay(jsonb) is
 -- ★1つの select にまとめる（SQL Editor は最後の結果しか出さない）。
 -- ════════════════════════════════════════════════════════════════
 with d as (select pg_get_functiondef('public.pv_deep_pay(jsonb)'::regprocedure) as s),
+     -- 内訳を足す口の本文（2026-10-11。25・26 番が読む）
+     b as (select pg_get_functiondef('public.pv_pay_breakdown(jsonb)'::regprocedure) as s),
      -- ★db/pay-rows.sql:1240 の自己点検が使っている文字列と1字も違わないこと
      --   （numeric×6 → text → numeric×13）。写し間違えると、あちらを触っていないのに
      --   13番が ❌ になり、オーナーが「貼れていない」と誤解する。
@@ -1112,9 +1562,18 @@ select * from (
           case when (select s from d) like '%access_until%' then '✅' else '❌' end
   union all select  8, '本人が内訳を出したかを見ている',
           case when (select s from d) like '%pv_my_give%' then '✅' else '❌' end
-  union all select  9, 'n ≧ 3 の門が8か所以上ある',
-          case when (length((select s from d))
-                     - length(replace((select s from d), '>= 3', ''))) / 4 >= 8
+  union all select  9, '人数の壁は定数 v_min（＝2人）の1か所だけで、本文に人数の直書きが無い',
+          -- 静かに壊れる。1か所だけ数字のまま残ると、その列だけ別の壁で出る
+          -- （「選べるのに選ぶと空」か、壁に届かない列の実額が出るか）。見るのは3つ。
+          --   ① 宣言が字面どおり（2026-10-11 から 2）
+          --   ② 壁の比較が全部 v_min を見ている（「以上」が50か所・thin の「未満」が1か所）
+          --   ③ 2 や 3 という数と直に比べている所が、本文に1つも無い
+          --      （信頼度の段の境目 10 と 5 は壁ではないので当たらない）
+          case when (select s from d) like '%v_min constant int := 2;%'
+                and (length((select s from d))
+                     - length(replace((select s from d), '>= v_min', ''))) / 8 >= 50
+                and (select s from d) like '%< v_min as x%'
+                and (select s from d) !~ '(>=|<=|<|>) *[23]\M'
                then '✅' else '❌' end
   union all select 10, '投稿月・作成日時を返していない（約束⑥）',
           case when (select s from d) not like '%''period_month''%'
@@ -1128,8 +1587,12 @@ select * from (
                 and (select s from d) like '%pv_positions%'
                 and (select s from d) like '%pv_fleets%'
                then '✅' else '❌' end
-  union all select 13, '金額は有効数字2桁を通している（約束③）',
-          case when (select s from d) like '%pv_sig2%' then '✅' else '❌' end
+  union all select 13, '給与構成の月額は有効数字2桁を通している（約束③）',
+          -- ★見出しの2つ（年収の中央値・Pay / Block Hour）は 2026-10-11 から刻み。
+          --   そちらは 23 番が見ている。ここは「月額まで刻みに替えていない」の側。
+          case when (length((select s from d))
+                     - length(replace((select s from d), 'public.pv_sig2(', ''))) / 15 = 9
+               then '✅' else '❌' end
   union all select 14, '旧 pv_pay_comp は 20 引数のまま（触っていない）',
           case when to_regprocedure((select sig from c)) is not null
                then '✅' else '❌' end
@@ -1150,7 +1613,7 @@ select * from (
           -- 静かに壊れる。ここが抜けても100人以上の間は普通に開くので気づけず、
           -- 正式公開したあとに99人へ落ちた日、DEEP PAY が丸ごと消える。
           case when (select s from d) like '%pv_deep_launch%' then '✅' else '❌' end
-  union all select 20, '3人に満たない区分では集計値を返さない（返り値そのもので伏せる）',
+  union all select 20, '人数の壁（v_min）に満たない区分では集計値を返さない（返り値そのもので伏せる）',
           -- 画面で隠すだけでは、関数を直接叩けば取れてしまう。
           case when (select s from d) like '%thin%'
                 and (length((select s from d))
@@ -1162,12 +1625,58 @@ select * from (
           --   ① 鍵が閉じているときは一覧そのものを渡していない
           --   ② 8通りの絞り方を1回で数えている（grouping sets）＝0段と同じ絞り方
           --   ③ 数え上げが「内訳を書いた月を持つ実人物」（行数でも proof_hash でもない）
-          --   ④ 3人の壁が、選択肢の側（avail）と区分の側（lvl→pick）の
-          --      両方に在る。片方だけ書き換えると落ちる。
+          --   ④ 人数の壁が、選択肢の側（avail）と区分の側（lvl→pick）の
+          --      両方で**同じ v_min** を見ている。片方だけ書き換えると落ちる。
           case when (select s from d) like '%''picks'', case when not v_open then null%'
                 and (select s from d) like '%group by grouping sets%'
                 and (select s from d) like '%where o.det%'
-                and (select s from d) like '%count(distinct o.human) >= 3%'
-                and (select s from d) like '%where n >= 3%'
+                and (select s from d) like '%count(distinct o.human) >= v_min%'
+                and (select s from d) like '%where n >= v_min%'
+               then '✅' else '❌' end
+  -- ── 2026-10-11 に足した5つ ────────────────────────────────
+  union all select 22, '★その区分に何人いるかを返していない（隠すのではなく渡さない）',
+          -- 静かに戻る。画面は人数が来なくても動くので、キーを1つ足し戻しても
+          -- どこも赤くならない。見るのは返り値のキーの字 ── 人数を運んでいた
+          -- 3つの名前（区分・見出しの2つ）が、関数のどこにも無いこと。
+          case when (select s from d) not like '%''n'',%'
+                and (select s from d) not like '%''detailed_n''%'
+                and (select s from d) not like '%''verified_n''%'
+               then '✅' else '❌' end
+  union all select 23, '見出しの2つ（年収の中央値・Pay / Block Hour）は刻みを通している（約束③）',
+          -- $50 と $0.5。刻みの道具は誰にも開いていない。
+          case when (select s from d) like '%public.pv_deep_step((percentile_cont(0.5) within group (order by usd_y))::numeric, 50)%'
+                and (select s from d) like '%public.pv_deep_step((percentile_cont(0.5) within group (order by ubh))::numeric, 0.5)%'
+                and not has_function_privilege('authenticated', 'public.pv_deep_step(numeric,numeric)', 'execute')
+                and not has_function_privilege('anon', 'public.pv_deep_step(numeric,numeric)', 'execute')
+               then '✅' else '❌' end
+  union all select 24, '人数のかわりに信頼度の段（cohort.trust）と、門の理由（gate.crowd）を返している',
+          -- crowd は門と**同じ値**（v_crd）を返していること。式を写して返すと、
+          -- 門だけ直した日に「開いているのに 100人待ち と出る」が黙って起きる。
+          case when (select s from d) ~ '''trust'',\s+\(select t from trust\)'
+                and (select s from d) ~ '''crowd'',\s+v_crd,'
+                and (select s from d) like '%v_crd  := (v_lch or v_ctb >= v_goal or v_byp);%'
+                and (select s from d) like '%v_open := v_key and v_det and v_crd;%'
+               then '✅' else '❌' end
+  union all select 25, '内訳を足す口（pv_pay_breakdown）はログイン済みだけが呼べる',
+          case when has_function_privilege('authenticated', 'public.pv_pay_breakdown(jsonb)', 'execute')
+                and not has_function_privilege('anon',   'public.pv_pay_breakdown(jsonb)', 'execute')
+                and not has_function_privilege('public', 'public.pv_pay_breakdown(jsonb)', 'execute')
+                and (select prosecdef from pg_proc
+                      where oid = 'public.pv_pay_breakdown(jsonb)'::regprocedure)
+               then '✅' else '❌' end
+  union all select 26, '★内訳を足す口は、内訳の列しか書かない（投稿日・総支給・年収・レート・鍵の期限に触らない）',
+          -- 静かに壊れる。set に1列足しても画面は普通に動く。足した列が投稿日なら
+          -- 「今週出した人」が増え、鍵の期限なら新しい月を出さずに鍵が延びる。
+          --   ① pay_reports を書き換える文は1つだけ・足す文と消す文は無い
+          --   ② 触ってはいけない列の名前が、本文に1つも出てこない
+          --   ③ 投稿日・総支給・裏付けの段・行の鍵に代入していない（読むだけ）
+          --   ④ profiles に書くのは1日の数えの2列だけ
+          case when (length((select s from b))
+                     - length(replace((select s from b), 'update public.pay_reports', ''))) / 25 = 1
+                and (select s from b) not like '%insert into public.pay_reports%'
+                and (select s from b) not like '%delete from%'
+                and (select s from b) !~ '(access_until|annual_total|usd_per_block_hour|net_annual|fx_to|fx_at|verified_at|verify_method|last_pay_report_at|pay_report_count|pay_streak|badge)'
+                and (select s from b) !~ '(?n)(^|,|\mset\M)\s*(created_at|gross_monthly|verify_level|proof_hash)\s*='
+                and (select s from b) ~ 'update public\.profiles set\s+pay_reports_day\s+= v_prof\.pay_reports_day,\s+pay_reports_today = v_prof\.pay_reports_today \+ 1\s+where id = v_uid;'
                then '✅' else '❌' end
 ) t order by "#";

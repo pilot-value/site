@@ -13,11 +13,24 @@
      落ちたら画面を作ってはいけない本命は6本：
 
        ・区分のはしごが、人数を数えた段と実際に集めた段でずれないこと
-       ・列ごと・項目ごとにも n≧3 が掛かること（3人の区分で1人しか書いていない列）
+       ・列ごと・項目ごとにも人数の壁が掛かること（1人しか書いていない列）
        ・同じ人の複数月が1人に畳まれること
        ・変動給とその他手当を二重に数えないこと（両方の列に同じ額が写っている）
        ・返り値の文字列に準識別子が1語も無いこと
        ・pv_pay_comp が20引数のまま、誰にも開いていないこと
+
+   ★2026-10-11（オーナー判断）── この日から3つ変わった。検査の書き方もそれに合わせてある。
+       ① 人数の壁は 3人 → **2人**（db/deep-pay.sql の定数 v_min）。
+          「1人では出ない／2人そろえば出る」で見る。
+       ② **その区分に何人いるかを、関数は返さない。** だからこのファイルも人数では見ない。
+          見るのは cohort.level（none かどうか）・head が在るか・picks に載っているか・
+          中央値がどの人たちのものか、の4つ。
+          ⚠️ 「人数が返ってこないので確かめられない」と、検査のほうを緩めないこと。
+             どの人が集計に入ったかは、**わざと額を変えた人を1人混ぜれば中央値に出る**
+             （見本の倍額を出す X2 がその役）。
+       ③ 見出しの2つ（年収の中央値・Pay / Block Hour）は刻み（$50・$0.5）。
+          給与構成の月額は今までどおり有効数字2桁。
+     ＋ pv_pay_breakdown（総支給だけ出した月に内訳だけ足す口）の検査が ▼23。
 
    ★db/pay-rows.sql 側の検査（db/test-pay-rows.mjs）に deep-pay.sql を足さないこと。
      足すと DEEP PAY のバグで REAL PAY の検査が赤くなり、どちらが壊れたのか
@@ -151,6 +164,37 @@ const person = async (air, pos, fleet, months, extra = {}) => {
 const deep = async (sel) =>
   (await one(`select pv_deep_pay($1::jsonb) r`, [JSON.stringify(sel || {})])).r;
 const give = async () => (await one(`select pv_my_give() g`)).g;
+
+/* ── 人数を使わずに「出ている／出ていない」を見る道具（2026-10-11）──
+   関数は区分の人数を返さなくなった。壁に届いたかどうかは、返り値の形で分かる：
+     届いた     … cohort.level が none 以外・head が在る・信頼度の段（trust）が付く
+     届いていない … level = none・trust = null・head / comp / work / var が4つとも null */
+const shown  = (d) => !!(d && d.cohort && d.cohort.level !== 'none' && d.head
+                         && ['high', 'mid', 'low'].includes(d.cohort.trust));
+const hidden = (d) => !!(d && d.cohort && d.cohort.level === 'none' && d.cohort.trust === null
+                         && d.head === null && d.comp === null && d.work === null
+                         && d.var === null);
+/* 返り値のどこかに「人数のキー」が残っていないか。n という名前と、_n で終わる名前を
+   入れ子の奥まで探して、見つけた場所を返す（配列の中の要素も見る）。 */
+const countKeys = (d) => {
+  const bad = [];
+  const walk = (v, at) => {
+    if (Array.isArray(v)) { v.forEach((x, i) => walk(x, `${at}[${i}]`)); return; }
+    if (!v || typeof v !== 'object') return;
+    for (const [k, x] of Object.entries(v)) {
+      if (k === 'n' || /_n$/.test(k)) bad.push(`${at}.${k}`);
+      walk(x, `${at}.${k}`);
+    }
+  };
+  for (const k of ['cohort', 'head', 'comp', 'work', 'var']) walk(d[k], k);
+  return bad;
+};
+/* 見本（DET）の倍額。**割合は見本とまったく同じ**（どの項目も2倍）なので、
+   給与構成の検査を1つも動かさずに、年収だけを 204,000 → 408,000 にできる。
+   「この人が集計に入っているか」を、人数ではなく中央値で見分けるために混ぜる。 */
+const DET2 = { base_pay: 18000, flight_variable_pay: 8000, other_allowance: 8800,
+               command_pay: 4000, per_diem: 2000,
+               housing_type: 'allowance', housing_amount: 1200 };
 const openKey = (n) => db.query(
   `insert into profiles(id,email,access_until) values($1,$2, now() + interval '90 days')
      on conflict (id) do update set access_until = excluded.access_until`,
@@ -176,7 +220,8 @@ ok(!(await one(`select has_function_privilege('anon','public.pv_deep_pay(jsonb)'
    'anon に execute が渡っていない');
 ok((await one(`select has_function_privilege('authenticated','public.pv_deep_pay(jsonb)','execute') b`)).b,
    'ログインした人には execute が渡っている');
-for (const f of ['public.pv_my_keys()', 'public.pv_deep_pct(numeric[])']) {
+for (const f of ['public.pv_my_keys()', 'public.pv_deep_pct(numeric[])',
+                 'public.pv_deep_step(numeric,numeric)']) {
   const r = await one(
     `select has_function_privilege('anon',$1,'execute') a,
             has_function_privilege('authenticated',$1,'execute') u`, [f]);
@@ -254,9 +299,8 @@ await openKey(V);
 await asUser(V);
 ok((await deep()).state === 'open', '鍵と内訳がそろえば open');
 
-// 全体の頭数を3人以上にしておく（段5が成立する状態）
+// 全体の頭数を壁（2人）以上にしておく（段5が成立する状態）
 await person(A_FILL3, 'cap', 'b787', [{ month: 3 }]);
-await person(A_FILL3, 'cap', 'b787', [{ month: 4 }]);
 await asUser(V);
 {
   const d = await deep();
@@ -264,51 +308,53 @@ await asUser(V);
      '★自分だけの会社・役職では段が全部落ちて「全体」になる', d.cohort.level);
   ok(d.cohort.airline === A_HOME && d.cohort.pos === 'fo' && d.cohort.fleet === 'a320',
      '★落ちた段でも、返す会社・役職・機材は呼び手自身の値');
+  ok(d.cohort.trust === 'low',
+     '★「全体」まで落ちた数字の信頼度は low（区分が広いほど自分の給与から遠い）',
+     String(d.cohort.trust));
 }
 
-// 同じ会社・同じ役職・違う機材（a321 は無いので b737 = 同じ n 区分）を2人
+// 同じ会社・同じ役職・違う機材（a321 は無いので b737 = 同じ n 区分）を1人
 await person(A_HOME, 'fo', 'b737', [{ month: 3 }]);
-await person(A_HOME, 'fo', 'b737', [{ month: 4 }]);
 await asUser(V);
 ok((await deep()).cohort.level === 'airline_pos_cat',
-   '★同じ機材区分（narrowbody）で3人そろえば段2');
+   '★同じ機材区分（narrowbody）で2人そろえば段2');
 
-// 同じ会社・同じ役職・広胴を1人足すと、機材区分では届かないが会社×役職では届く
+// 同じ会社・同じ役職・広胴を1人足しても、段2が成立しているので動かない
 await person(A_HOME, 'fo', 'b777', [{ month: 5 }]);
 await asUser(V);
 ok((await deep()).cohort.level === 'airline_pos_cat',
    '段2が成立している間は、より広い段へ行かない');
 
-// 同じ機材（a320）を2人足すと段1
-await person(A_HOME, 'fo', 'a320', [{ month: 3 }]);
-await person(A_HOME, 'fo', 'a320', [{ month: 4 }]);
+/* 同じ機材（a320）を1人足すと段1。
+   ★この人だけ見本の倍額（DET2・年収 408,000）にしてある。割合は見本と同じなので
+     給与構成の検査は動かず、**誰が集計に入ったか**だけが年収の中央値に出る：
+       段1（a320 の2人）だけなら        (204,000 + 408,000) ÷ 2 ＝ 306,000
+       段2（narrowbody の3人）を集めたら  204,000
+       段3（会社×役職の4人）を集めたら    204,000 */
+const X2 = await person(A_HOME, 'fo', 'a320', [{ month: 3 }], DET2);
 await asUser(V);
 {
   const d = await deep();
-  ok(d.cohort.level === 'airline_pos_fleet', '★同じ機材で3人そろえば段1に戻る');
-  ok(d.cohort.n === 3, '★段1の人数はちょうど3（呼び手を含む）', String(d.cohort.n));
-  ok(d.head.detailed_n === 3, '詳細投稿数は区分の人数と同じ');
-}
-
-// ★数えた段と集めた段がずれないこと
-{
-  const d = await deep();
-  const lv = await one(`select count(*) n from (
-      select proof_hash from pay_reports
-       where airline = $1 and "position" = 'fo' and fleet = 'a320'
-       group by proof_hash) z`, [A_HOME]);
-  ok(Number(lv.n) === d.cohort.n,
-     '★はしごが数えた人数と、実際にその段に居る人数が一致する', `${lv.n} vs ${d.cohort.n}`);
+  ok(d.cohort.level === 'airline_pos_fleet', '★同じ機材で2人そろえば段1に戻る');
+  /* ★数えた段と集めた段がずれないこと。前は返ってきた人数を DB の人数と比べていた。
+     人数は返らなくなったので、**集めた人たちの中央値**で同じことを見る。 */
+  ok(Number(d.head.annual_usd) === 306000,
+     '★はしごが数えた段と、実際に集めた段が同じ（段1の2人だけの中央値＝306,000）',
+     String(d.head.annual_usd));
+  ok(d.cohort.trust === 'low', '2人の区分の信頼度は low', String(d.cohort.trust));
+  ok(!('n' in d.cohort) && !('detailed_n' in d.head) && !('verified_n' in d.head),
+     '★区分の人数も、詳細投稿の人数も、明細ありの人数も返ってこない（2026-10-11）',
+     JSON.stringify({ cohort: Object.keys(d.cohort), head: Object.keys(d.head) }));
 }
 
 // ════════════════════════════════════════════════════════════
 console.log('\n▼ 3-b. 手で選んだ区分（2026-08-30）');
 // ════════════════════════════════════════════════════════════
 /* いまの並び ── 呼び手 V は A_HOME / fo / a320。
-     A_HOME fo a320 … 3人（V を含む）
-     A_HOME fo b737 … 2人
+     A_HOME fo a320 … 2人（V と、倍額の X2）
+     A_HOME fo b737 … 1人
      A_HOME fo b777 … 1人
-     A_FILL3 cap b787 … 2人
+     A_FILL3 cap b787 … 1人
    ★ここで見たいのは「選べること」ではなく、**選んでも壁が動かないこと**。 */
 await asUser(V);
 {
@@ -317,14 +363,17 @@ await asUser(V);
   ok(d.cohort.manual === true, '手で選んだことが分かる（manual）');
   ok(d.cohort.airline === A_HOME && d.cohort.pos === 'fo' && d.cohort.fleet === 'a320',
      '選んだ値がそのまま返る');
-  ok(d.cohort.n === 3, '人数は選んだ区分の人数', String(d.cohort.n));
+  ok(Number(d.head.annual_usd) === 306000,
+     '選んだ区分の人たちの中央値が返る（a320 の2人＝306,000）', String(d.head.annual_usd));
 }
 {
-  /* ★本命。2人しか居ない区分を選んでも、広い区分に落として
+  /* ★本命。1人しか居ない区分を選んでも、広い区分に落として
      その見出しのまま数字を出さないこと。 */
   const d = await deep({ airline: A_HOME, position: 'fo', fleet: 'b737' });
-  ok(d.cohort.level === 'none', '★3人に届かない区分は none（はしごを登らない）', d.cohort.level);
-  ok(d.cohort.n === 0, '★人数は0（広い区分の人数を出さない）', String(d.cohort.n));
+  ok(d.cohort.level === 'none', '★壁（2人）に届かない区分は none（はしごを登らない）', d.cohort.level);
+  ok(d.cohort.trust === null && countKeys(d).length === 0,
+     '★信頼度の段も付かず、人数も返らない（広い区分の人数を出さない）',
+     JSON.stringify(d.cohort));
   /* ★2026-09-01、null を詰めた塊すら返さなくなった（オーナー必須修正2）。
      前は head の中の値が null。今は head という塊ごと返さない。 */
   ok(d.head === null, '★年収も出ない（頭の塊ごと返さない）', JSON.stringify(d.head));
@@ -351,21 +400,25 @@ await asUser(V);
   const d = await deep({ position: 'fo' });
   ok(d.cohort.level === 'selected', '役職だけでも選べる', d.cohort.level);
   ok(d.cohort.airline === null, '会社を選んでいないので会社は null');
-  const n = await one(`select count(*) n from (
-      select proof_hash from pay_reports where "position" = 'fo'
-       group by proof_hash) z`);
-  ok(Number(n.n) === d.cohort.n, '数えた人数と実際の人数が一致する',
-     `${n.n} vs ${d.cohort.n}`);
+  /* 副操縦士は全社で4人（204,000 が3人・倍額の X2 が1人）＝中央値 204,000。
+     a320 の2人だけを集めていれば 306,000 になるので、絞り方が効いていることが分かる。 */
+  ok(Number(d.head.annual_usd) === 204000,
+     '数えた区分と集めた区分が同じ（全社の副操縦士4人の中央値＝204,000）',
+     String(d.head.annual_usd));
+  ok(d.cohort.trust === 'low',
+     '★役職だけで選んだ数字の信頼度は low（選んだ軸が1つ）', String(d.cohort.trust));
 }
 {
   /* ★自分が居ない会社を選んでも、自分の区分の数字が出ないこと。 */
-  await person(A_FILL3, 'cap', 'b787', [{ month: 5 }]);   // 2人 → 3人
+  await person(A_FILL3, 'cap', 'b787', [{ month: 5 }]);   // 1人 → 2人
   await asUser(V);
   const mine = await deep();
   const other = await deep({ airline: A_FILL3, position: 'cap', fleet: 'b787' });
   ok(other.cohort.level === 'selected' && other.cohort.airline === A_FILL3,
-     '★自分が居ない会社の区分も、3人そろっていれば見られる');
-  ok(other.cohort.n === 3, '人数はその会社の人数', String(other.cohort.n));
+     '★自分が居ない会社の区分も、2人そろっていれば見られる');
+  ok(Number(other.head.annual_usd) === 204000 && Number(mine.head.annual_usd) === 306000,
+     '★出るのはその会社の数字（自分の区分の 306,000 ではない）',
+     `${other.head.annual_usd} / ${mine.head.annual_usd}`);
   ok(mine.cohort.airline === A_HOME && mine.cohort.manual === false,
      '★選ばずに呼べば、今までどおり自分の区分に戻る');
 }
@@ -378,14 +431,26 @@ await asUser(V);
 // ════════════════════════════════════════════════════════════
 console.log('\n▼ 4. 1行＝1人（約束④）');
 // ════════════════════════════════════════════════════════════
+/* 前は「6か月ぶん出した人を足すと、返ってくる人数が1だけ増える」で見ていた。
+   人数は返らなくなったので、同じことを2つに分けて見る ──
+     壁  … 1人が6か月ぶん出しても、その区分は1人のまま＝出ない
+     重み … 2人目が来たとき、6か月の人は**6票ではなく1票**で中央値に入る */
 {
-  const before = (await deep()).cohort.n;
-  const u = await person(A_HOME, 'fo', 'a320',
-    [{ month: 7 }, { month: 8 }, { month: 9 }, { month: 10 }, { month: 11 }, { month: 12 }]);
+  const SIX = [{ month: 7 }, { month: 8 }, { month: 9 }, { month: 10 }, { month: 11 }, { month: 12 }];
+  await person(A_DUP, 'fo', 'a320', SIX);
   await asUser(V);
-  const after = (await deep()).cohort.n;
-  ok(after === before + 1,
-     '★同じ人の6か月ぶんは1人としてしか数えない', `${before} → ${after}`);
+  const alone = await deep({ airline: A_DUP, position: 'fo', fleet: 'a320' });
+  ok(hidden(alone),
+     '★同じ人の6か月ぶんは1人としてしか数えない（6行あっても壁に届かない）',
+     JSON.stringify(alone.cohort));
+  // 2人目は倍額を1か月だけ。行で数えれば 204,000 が6票で中央値は 204,000 のまま
+  await person(A_DUP, 'fo', 'a320', [{ month: 7 }], DET2);
+  await asUser(V);
+  const two = await deep({ airline: A_DUP, position: 'fo', fleet: 'a320' });
+  ok(shown(two), '2人目が出せば、その区分は出る', JSON.stringify(two.cohort));
+  ok(Number(two.head.annual_usd) === 306000,
+     '★6か月の人は1票（2人の中央値＝306,000。行で数えると 204,000 になる）',
+     String(two.head.annual_usd));
 }
 
 // ════════════════════════════════════════════════════════════
@@ -443,19 +508,28 @@ console.log('\n▼ 5. 給与構成（割合・合計ちょうど100）');
      '★月額の合計が年収の月割りとかけ離れていない', `${Math.round(amt)} vs ${Math.round(d.head.annual_usd / 12)}`);
 }
 
-// ★項目ごとの n≧3。3人の区分のうち1人しか書いていない列は出さない。
+// ★項目ごとにも人数の壁（2人）。区分は出ていても、1人しか書いていない項目は出さない。
 {
   // 呼び手の区分（A_HOME/fo/a320）に、教官手当を1人だけ書いた人を入れても
-  // role は出ない（3人未満）
+  // role は出ない（壁に届かない）
   const segsBefore = (await deep()).comp.segs.map(s => s.k);
   ok(!segsBefore.includes('role'),
      '★役割手当を誰も書いていないので role の区分は無い', JSON.stringify(segsBefore));
   await person(A_HOME, 'fo', 'a320', [{ month: 5, instructor_pay: 3000 }]);
   await asUser(V);
-  const segsAfter = (await deep()).comp.segs.map(s => s.k);
+  const one1 = await deep();
+  const segsAfter = one1.comp.segs.map(s => s.k);
   ok(!segsAfter.includes('role'),
      '★1人だけが書いた役割手当は区分として出さない（0 でも並べない）',
      JSON.stringify(segsAfter));
+  ok(one1.comp.segs.reduce((a, s) => a + s.pct, 0) === 100,
+     '　出さなかった分は未分類へ畳まれ、合計は100のまま', JSON.stringify(one1.comp.segs));
+  // 2人目が書いた瞬間に出る（厳しすぎて永久に出ない、を防ぐ）
+  await person(A_HOME, 'fo', 'a320', [{ month: 6, instructor_pay: 3000 }]);
+  await asUser(V);
+  const segsTwo = (await deep()).comp.segs.map(s => s.k);
+  ok(segsTwo.includes('role'),
+     '★2人が書けば役割手当の区分が出る（項目ごとの壁も2人）', JSON.stringify(segsTwo));
 }
 
 // ════════════════════════════════════════════════════════════
@@ -486,8 +560,8 @@ console.log('\n▼ 6. 二重計上（変動給とその他手当）');
     pay_items: { v: 1, variable: [{ amount: 5000, basis: 'block', label: 'Flight' }] } });
   await openKey(uD); await asUser(uD);
   const d = await deep();
-  ok(d.cohort.level === 'airline_pos_fleet' && d.cohort.n === 3,
-     '二重計上の検査用に3人そろった', JSON.stringify(d.cohort));
+  ok(d.cohort.level === 'airline_pos_fleet' && shown(d),
+     '二重計上の検査用の区分が出ている（段1）', JSON.stringify(d.cohort));
   const f = d.comp.segs.find(s => s.k === 'base');
   const v = d.comp.segs.find(s => s.k === 'variable');
   const o = d.comp.segs.find(s => s.k === 'other');
@@ -540,9 +614,10 @@ console.log('\n▼ 7-b. ★組合が総支給の外で払われている行（20
   const u3 = ++seat; await asUser(u3); await submit(mk(4));
   await openKey(uU); await asUser(uU);
   const d = await deep();
-  /* ★段1（会社・職位・機材）に3人そろって残ること。落ちると段が下りて
-     よその会社の数字にすり替わる ── 画面は普通に出るので気づけない。 */
-  ok(d.cohort.level === 'airline_pos_fleet' && d.cohort.n === 3,
+  /* ★段1（会社・職位・機材）に残ること。落ちると段が下りて
+     よその会社の数字にすり替わる ── 画面は普通に出るので気づけない。
+     （3人とも同じ形なので、関所で落ちるなら3人とも落ちて段1ごと消える） */
+  ok(d.cohort.level === 'airline_pos_fleet' && shown(d),
      '★組合払いの行が関所で落ちない（落ちると段が下りて別の集団の数字になる）',
      JSON.stringify(d.cohort));
   const seg = (k) => (d.comp?.segs || []).find(s => s.k === k);
@@ -579,7 +654,7 @@ console.log('\n▼ 7-b2. ★不就労減額のあった月（2026-09-12）');
   const a3 = ++seat; await asUser(a3); await submit(mk(4));
   await openKey(uA); await asUser(uA);
   const d = await deep();
-  ok(d.cohort.level === 'airline_pos_fleet' && d.cohort.n === 3,
+  ok(d.cohort.level === 'airline_pos_fleet' && shown(d),
      '★減額のあった行が関所で落ちない（落ちると段が下りて別の集団の数字になる）',
      JSON.stringify(d.cohort));
   const seg = (k) => (d.comp?.segs || []).find(s => s.k === k);
@@ -622,16 +697,18 @@ console.log('\n▼ 7-c. ★内訳が一部未回答の月（partial・2026-09-12
                          pay_items: { v: 1, partial: true, variable: [
                            { amount: 1000, basis: 'block', label: 'Flight' },
                            { basis: 'day', label: 'Layover' }] } });
+  /* ★ちょうど2人（壁ぎりぎり）。一部未回答の月を理由に1人でも落とすと、
+       壁を割って区分ごと消える ── 人数を見なくても「落としていない」が分かる。 */
   const seats = [];
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 2; i++) {
     const u = ++seat; await asUser(u);
     await submit(full(2)); await submit(part(3));
     seats.push(u);
   }
   await openKey(seats[0]); await asUser(seats[0]);
   const d = await deep();
-  ok(d.cohort && d.cohort.n === 3,
-     '一部未回答の月があっても3人そろう（人を落としていない）', JSON.stringify(d.cohort));
+  ok(d.cohort.level === 'airline_pos_fleet' && shown(d),
+     '一部未回答の月があっても2人そろう（人を落としていない）', JSON.stringify(d.cohort));
   const seg = (k) => (d.comp?.segs || []).find(s => s.k === k);
   ok(seg('base') && seg('base').pct === 60,
      '基本給は60%（6,000 / 10,000）', String(seg('base')?.pct));
@@ -652,29 +729,50 @@ console.log('\n▼ 7-c. ★内訳が一部未回答の月（partial・2026-09-12
 }
 
 // ════════════════════════════════════════════════════════════
-console.log('\n▼ 8. 働き方（列ごとに n≧3）');
+console.log('\n▼ 8. 働き方（列ごとに人数の壁）');
 // ════════════════════════════════════════════════════════════
 {
-  // 3人。block_hours は3人とも、duty_days は1人だけ書く。
+  // 3人。block_hours は3人とも、stay_nights は2人、duty_days は1人だけ書く。
   const mk = (m, extra) => ({ ...BASE, airline: A_WORK, position: 'fo', fleet: 'b767',
                               period_year: YEAR, period_month: m, ...DET,
                               block_hours: 70, ...extra });
   const uW = ++seat; await asUser(uW); await submit(mk(2, { duty_days: 18 }));
-  const w2 = ++seat; await asUser(w2); await submit(mk(3, {}));
-  const w3 = ++seat; await asUser(w3); await submit(mk(4, {}));
+  const w2 = ++seat; await asUser(w2); await submit(mk(3, { stay_nights: 6 }));
+  const w3 = ++seat; await asUser(w3); await submit(mk(4, { stay_nights: 8 }));
   await openKey(uW); await asUser(uW);
   const d = await deep();
   ok(d.work.block_h !== null && Number(d.work.block_h) === 70,
      '★3人が書いた Block Hours は出る', String(d.work.block_h));
+  ok(Number(d.work.stay_nights) === 7,
+     '★2人が書いた列は出る（列ごとの壁も2人。6泊と8泊の中央値＝7）',
+     String(d.work.stay_nights));
   ok(d.work.duty_days === null,
      '★1人しか書いていない Duty Days は null（その1人の実数を「中央値」と名乗らない）',
      String(d.work.duty_days));
-  ok(d.work.duty_h === null && d.work.stay_nights === null,
+  ok(d.work.duty_h === null,
      '誰も書いていない列も null（0 にしない）');
+}
+// ★見出しの Pay / Block Hour にも同じ壁が掛かる（区分は出ていても、列は別に数える）
+{
+  const mk = (m, extra) => ({ ...BASE, airline: A_ROUND, position: 'fo', fleet: 'b767',
+                              period_year: YEAR, period_month: m, ...DET, ...extra });
+  const u1 = ++seat; await asUser(u1); await submit(mk(2, { block_hours: 80 }));
+  const u2 = ++seat; await asUser(u2); await submit(mk(2, {}));
+  await openKey(u1); await asUser(u1);
+  const d1 = await deep();
+  ok(shown(d1) && d1.head.per_block_usd === null && d1.work.block_h === null,
+     '★乗務時間を書いたのが1人なら Pay / Block Hour は null（区分は2人で出ていても、その1人の実数になるため）',
+     JSON.stringify({ head: d1.head, work: d1.work }));
+  await asUser(u2); await submit(mk(3, { block_hours: 80 }));
+  await asUser(u1);
+  const d2 = await deep();
+  // 204,000 ÷ 12 ÷ 80 ＝ 212.5
+  ok(Number(d2.head.per_block_usd) === 212.5 && Number(d2.work.block_h) === 80,
+     '★2人が書いた瞬間に出る（212.5）', JSON.stringify({ head: d2.head, work: d2.work }));
 }
 
 // ════════════════════════════════════════════════════════════
-console.log('\n▼ 9. 変動給の中身（区分ごとに n≧3・まとめない）');
+console.log('\n▼ 9. 変動給の中身（区分ごとに人数の壁・まとめない）');
 // ════════════════════════════════════════════════════════════
 {
   const items = (extra = []) => ({ v: 1, variable: [
@@ -686,15 +784,15 @@ console.log('\n▼ 9. 変動給の中身（区分ごとに n≧3・まとめな�
                               base_pay: 8000, flight_variable_pay: 4000 + (extra.add || 0),
                               other_allowance: 4000 + (extra.add || 0),
                               pay_items: items(extra.rows || []) });
+  /* ★ちょうど2人（壁ぎりぎり）。block と night は2人とも、weekend は1人だけ書く。 */
   const uN = ++seat; await asUser(uN);
   await submit(mk(2, { add: 500, rows: [{ amount: 500, basis: 'weekend', label: 'Weekend' }] }));
   const n2 = ++seat; await asUser(n2); await submit(mk(3, {}));
-  const n3 = ++seat; await asUser(n3); await submit(mk(4, {}));
   await openKey(uN); await asUser(uN);
   const d = await deep();
   const ks = d.var.map(x => x.k);
   ok(ks.includes('block') && ks.includes('night'),
-     '★3人が書いた区分は出る（block と night）', JSON.stringify(ks));
+     '★2人が書いた区分は出る（block と night）', JSON.stringify(ks));
   ok(!ks.includes('weekend'),
      '★1人しか書いていない weekend は配列ごと不在（pct 0 で置かない）', JSON.stringify(ks));
   ok(!ks.some(k => /premium|nwh/i.test(k)),
@@ -727,25 +825,56 @@ console.log('\n▼ 9. 変動給の中身（区分ごとに n≧3・まとめな�
 }
 
 // ════════════════════════════════════════════════════════════
-console.log('\n▼ 10. 有効数字2桁と常識の幅');
+console.log('\n▼ 10. 丸め（見出しは刻み・月額は有効数字2桁）と常識の幅');
 // ════════════════════════════════════════════════════════════
+/* ★2026-10-11（オーナー判断）── 見出しの2つだけ、有効数字2桁から**刻み**に替えた。
+       年収の中央値      … $50 刻み （148,140 → 148,150。前は 150,000）
+       Pay / Block Hour … $0.5 刻み（176.36 → 176.5。前は 180）
+     給与構成の月額は今までどおり有効数字2桁（12,345 → 12,000）。
+     どちらの道でも、丸める前の額そのものは返り値のどこにも出ない。 */
 {
   /* ★総支給と内訳を食い違わせない。DET（内訳17000）に gross_monthly 12345 を
      足すと「内訳が総支給をはみ出している行」になり、検品で正しく落ちる。
      落ちると区分が段5まで落ちて、この節が測りたい丸めではなく別のものを見てしまう。 */
   const mk = (m, g) => ({ ...BASE, airline: A_SIG, position: 'fo', fleet: 'a350',
                           period_year: YEAR, period_month: m,
-                          gross_monthly: g, base_pay: g });
+                          gross_monthly: g, base_pay: g, block_hours: 70 });
   const uS = ++seat; await asUser(uS); await submit(mk(2, 12345));
   const s2 = ++seat; await asUser(s2); await submit(mk(3, 12345));
   const s3 = ++seat; await asUser(s3); await submit(mk(4, 12345));
   await openKey(uS); await asUser(uS);
   const d = await deep();
-  // 12345 × 12 = 148140 → 有効数字2桁 = 150000
-  ok(Number(d.head.annual_usd) === 150000,
-     '★年収は有効数字2桁（148,140 → 150,000）', String(d.head.annual_usd));
-  ok(!/148140|12345/.test(JSON.stringify(d)),
+  // 12345 × 12 = 148140 → $50 刻み = 148150（有効数字2桁なら 150000）
+  ok(Number(d.head.annual_usd) === 148150,
+     '★年収は $50 刻み（148,140 → 148,150。有効数字2桁の 150,000 ではない）',
+     String(d.head.annual_usd));
+  // 148140 ÷ 12 ÷ 70 = 176.357… → 保存時に 176.36 → $0.5 刻み = 176.5
+  const rawP = await one(
+    `select usd_per_block_hour p from pay_reports where airline = $1 limit 1`, [A_SIG]);
+  ok(Number(rawP.p) === 176.36, '（前提）保存してある時間あたりは 176.36', String(rawP.p));
+  ok(Number(d.head.per_block_usd) === 176.5,
+     '★Pay / Block Hour は $0.5 刻み（176.36 → 176.5。有効数字2桁の 180 ではない）',
+     String(d.head.per_block_usd));
+  const base = d.comp.segs.find(s => s.k === 'base');
+  ok(base && Number(base.med_usd) === 12000,
+     '★給与構成の月額は有効数字2桁のまま（12,345 → 12,000。刻みに替えていない）',
+     JSON.stringify(base));
+  ok(!/148140|12345|176\.36/.test(JSON.stringify(d)),
      '★元の実額が返り値のどこにも出ていない');
+}
+// 刻みの道具そのもの（pv_deep_step）
+{
+  const st = async (v, s) => {
+    const r = (await one(`select pv_deep_step($1::numeric, $2::numeric) v`, [v, s])).v;
+    return r === null ? null : Number(r);
+  };
+  ok(await st(148140, 50) === 148150, 'pv_deep_step：148,140 を 50 刻みで → 148,150');
+  ok(await st(148124.99, 50) === 148100 && await st(148125, 50) === 148150,
+     'pv_deep_step：いちばん近い倍数に寄せる（境目の 148,125 は上へ）');
+  ok(await st(92.59, 0.5) === 92.5 && await st(92.76, 0.5) === 93,
+     'pv_deep_step：0.5 刻み（92.59 → 92.5 ／ 92.76 → 93）');
+  ok(await st(null, 50) === null && await st(0, 50) === null && await st(-5, 50) === null,
+     '★null と 0 以下は null（0 を置いて埋めない）');
 }
 {
   // 幅の外は数えない
@@ -758,7 +887,9 @@ console.log('\n▼ 10. 有効数字2桁と常識の幅');
   await openKey(uL); await asUser(uL);
   const d = await deep();
   ok(d.cohort.level !== 'airline_pos_fleet',
-     '★幅の外の2人は数えないので、この機材では3人に届かない', d.cohort.level);
+     '★幅の外の2人は数えないので、この機材では壁（2人）に届かない', d.cohort.level);
+  ok(hidden(await deep({ airline: A_BAND, position: 'fo', fleet: 'a380' })),
+     '　手で選んでも出ない（幅の中に居るのは1人だけ）');
 }
 
 // ════════════════════════════════════════════════════════════
@@ -775,8 +906,38 @@ await asUser(V);
   for (const w of banned)
     ok(!s.includes(w), `★返り値に ${w} が無い`);
   ok(!/[0-9a-f]{64}/.test(s), '★64桁の16進（ハッシュ）が1つも無い');
-  ok(Object.keys(d.cohort).sort().join(',') === 'airline,fleet,level,manual,n,pos',
-     '区分に入っているキーは6つだけ', Object.keys(d.cohort).join(','));
+  ok(Object.keys(d.cohort).sort().join(',') === 'airline,fleet,level,manual,pos,trust',
+     '区分に入っているキーは6つだけ（人数は無く、信頼度の段が在る）',
+     Object.keys(d.cohort).join(','));
+  ok(Object.keys(d.head).sort().join(',') === 'annual_usd,fixed_pct,per_block_usd',
+     '見出しに入っているキーは3つだけ（人数の2つは無い）', Object.keys(d.head).join(','));
+  ok(Object.keys(d.comp).sort().join(',') === 'bonus,segs,total_kind',
+     '給与構成に入っているキーは3つだけ（人数は無い）', Object.keys(d.comp).join(','));
+  ok(Object.keys(d.gate).sort().join(',') === 'contributors,crowd,detailed,goal,key',
+     '門に入っているキーは5つ（crowd が増えた）', Object.keys(d.gate).join(','));
+}
+
+/* ★人数のキーが、返り値の奥まで探しても1つも無い（2026-10-11・オーナー判断）。
+     「隠すのではなく、最初から渡さない」。画面で伏せるだけだと、関数を直接叩けば取れる。
+   見るのは cohort / head / comp / work / var の5つの塊ぜんぶ ── n という名前と、
+   _n で終わる名前を、配列の中の要素まで探す。
+   ★ここの見本は2つ：数字が出ている区分・壁に届かない区分。
+     賞与の行が出ている区分（前は賞与を貰った人数も返していた）は ▼16 で見る。
+   ⚠️ gate.contributors / stats.* は**サイト全体**の数なので、ここでは見ない。 */
+{
+  await asUser(V);
+  const open = await deep();
+  ok(shown(open) && open.comp && open.comp.segs.length > 0 && Array.isArray(open.var),
+     '（前提）数字が出ている区分で確かめる', JSON.stringify(open.cohort));
+  ok(countKeys(open).length === 0,
+     '★★数字が出ている区分の返り値に、人数のキーが1つも無い', countKeys(open).join(' '));
+  const thin = await deep({ airline: A_HOME, position: 'fo', fleet: 'b737' });
+  ok(hidden(thin) && countKeys(thin).length === 0,
+     '★★壁に届かない区分の返り値にも、人数のキーが1つも無い', countKeys(thin).join(' '));
+  // 道具そのものが空回りしていないこと（見つけるべき形を渡せば見つける）
+  ok(countKeys({ cohort: { n: 3 }, head: { detailed_n: 3 },
+                 comp: { bonus: { n: 2 }, segs: [{ k: 'base', n: 1 }] } }).length === 4,
+     '（検査の道具）人数のキーを渡せば、入れ子の奥・配列の中でも見つける');
 }
 
 // ★呼び手ごとに違う区分が返る
@@ -797,20 +958,31 @@ await asUser(V);
 // ════════════════════════════════════════════════════════════
 console.log('\n▼ 12. 預かり・口コミは集計に混ぜない');
 // ════════════════════════════════════════════════════════════
+/* 前は「預かりと口コミを足しても、返ってくる人数が変わらない」で見ていた。
+   人数は返らなくなったので、**会員が1人だけの区分**で見る ── 預かりや口コミが
+   頭数に入るなら、壁（2人）に届いてその1人の数字が出てしまう。 */
 {
+  await person(A_PEND, 'fo', 'a320', [{ month: 3 }]);      // 会員は1人だけ
   await asUser(V);
   const before = await deep();
+  ok(hidden(await deep({ airline: A_PEND, position: 'fo', fleet: 'a320' })),
+     '（前提）会員が1人だけの区分は出ていない');
   await asAnon();
-  await one(`select submit_pay_report_pending($1::jsonb) r`, [JSON.stringify({
-    ...BASE, airline: A_HOME, position: 'fo', fleet: 'a320',
-    period_year: YEAR, period_month: 2, gross_monthly: 20000 })]);
+  // ★預かりは内訳つき（DET）。「内訳が無いから数えない」ではなく、預かりだから数えない
+  const pend = (await one(`select submit_pay_report_pending($1::jsonb) r`, [JSON.stringify({
+    ...BASE, airline: A_PEND, position: 'fo', fleet: 'a320',
+    period_year: YEAR, period_month: 2, ...DET })])).r;
+  ok(pend && typeof pend.claim_token === 'string', '（前提）預かりが1件できた');
   await db.query(
     `insert into reviews_v2(proof_hash, airline, "position", annual_salary)
-     values ('zz-review-1', $1, 'fo', 3000)`, [A_HOME]);
+     values ('zz-review-1', $1, 'fo', 3000)`, [A_PEND]);
   await asUser(V);
   const after = await deep();
-  ok(after.cohort.n === before.cohort.n,
-     '★預かりと口コミは区分の人数に入らない', `${before.cohort.n} → ${after.cohort.n}`);
+  ok(hidden(await deep({ airline: A_PEND, position: 'fo', fleet: 'a320' })),
+     '★預かりと口コミは区分の頭数に入らない（会員1人のまま＝出ない）');
+  ok(JSON.stringify(after.head) === JSON.stringify(before.head)
+     && JSON.stringify(after.comp) === JSON.stringify(before.comp),
+     '★呼び手自身の区分の数字も1つも動かない');
   ok(after.stats.contributors >= before.stats.contributors,
      '人数表示（stats）は動いてよい');
 }
@@ -923,11 +1095,14 @@ console.log('\n▼ 16. 賞与はドーナツの外');
   // 現金 17000/月 = 204000/年 + 賞与 40000 = 244000。40000/244000 ≒ 16%
   ok(d.comp.bonus.pct_of_annual >= 14 && d.comp.bonus.pct_of_annual <= 18,
      '賞与は年収の約16%', String(d.comp.bonus.pct_of_annual));
+  ok(Object.keys(d.comp.bonus).join(',') === 'pct_of_annual' && countKeys(d).length === 0,
+     '★賞与の行に入っているのは割合だけ（貰った人数は返さない）',
+     JSON.stringify(d.comp.bonus));
 }
 // 賞与を誰も書いていない区分では別行そのものが無い
 await asUser(V);
 ok((await deep()).comp.bonus === null,
-   '★賞与を書いた人が3人未満なら、その行ごと出さない');
+   '★賞与を書いた人が壁（2人）に届かなければ、その行ごと出さない');
 
 // ════════════════════════════════════════════════════════════
 console.log('\n▼ 17. 「時給」と呼んでいない');
@@ -969,7 +1144,11 @@ console.log('\n▼ 19. 画面の数字どうしが矛盾しないか（同じ区
   const raw = await one(
     `select annual_total_usd a, usd_per_block_hour p from pay_reports
       where airline = $1 and position = 'cap' limit 1`, [A_SPARE]);
-  const sig2 = async (v) => Number((await one(`select pv_sig2($1::numeric) v`, [v])).v);
+  /* ★見出しの2つは 2026-10-11 から刻み（年収＝$50・Pay / Block Hour＝$0.5）。
+       この見本は 228,000 と 237.5 で、どちらも最初から刻みの倍数 ＝ 丸めても動かない。
+       だから「保存した値そのもの」と「＝」で結べる（丸めで動く例は ▼10 に在る）。 */
+  const step = async (v, s) =>
+    Number((await one(`select pv_deep_step($1::numeric, $2::numeric) v`, [v, s])).v);
 
   ok(Number(raw.a) === 12 * 17000 + BON,
      '★年収＝月々の現金×12 ＋ 年間賞与（内訳17000・賞与24000）', String(raw.a));
@@ -978,11 +1157,13 @@ console.log('\n▼ 19. 画面の数字どうしが矛盾しないか（同じ区
      `${raw.p} vs ${Number(raw.a) / (12 * BH)}`);
 
   ok(Number(d.work.block_h) === BH, '★Block Hours はそのまま出ている', String(d.work.block_h));
-  ok(Number(d.head.annual_usd) === await sig2(Number(raw.a)),
-     '★画面の年収＝保存した年収を有効数字2桁にしただけ',
+  ok(Number(d.head.annual_usd) === await step(Number(raw.a), 50)
+     && Number(d.head.annual_usd) === 228000,
+     '★画面の年収＝保存した年収を $50 刻みに寄せただけ（228,000）',
      `${d.head.annual_usd} vs ${raw.a}`);
-  ok(Number(d.head.per_block_usd) === await sig2(Number(raw.a) / 12 / BH),
-     '★画面の Pay / Block Hour ＝ 年収 ÷ 12 ÷ Block Hours（全員同じなら「＝」で結べる）',
+  ok(Number(d.head.per_block_usd) === await step(Number(raw.a) / 12 / BH, 0.5)
+     && Number(d.head.per_block_usd) === 237.5,
+     '★画面の Pay / Block Hour ＝ 年収 ÷ 12 ÷ Block Hours を $0.5 刻みに寄せただけ（237.5）',
      `${d.head.per_block_usd} vs ${Number(raw.a) / 12 / BH}`);
 
   /* ★年収カードの「月換算（賞与ぬき）」と、給与構成の月額が同じ土俵に乗っているか。
@@ -1024,7 +1205,10 @@ console.log('\n▼ 20. 境界（2026-09-01 の作り直しで効かせたもの�
      ここが赤くなったら検査を直す前に db/deep-pay.sql の並び（hum→…→coh）を読む。
 
    ★この節は**いちばん最後に置く**。中で会社を10社ぶん増やし、最後に人を99人
-     積むので、先に置くと上の節の「3人そろっている／いない」が全部ずれる。 */
+     積むので、先に置くと上の節の「壁に届いている／いない」が全部ずれる。
+   ★2026-10-11、どの見本も**ちょうど2人（壁ぎりぎり）**に組み直した。人数は返って
+     こないので、「2人とも集計に入っている」ことを「壁を割っていない＝出ている」で見る。
+     1人でも落ちれば none になる ── 3人で組むと、1人落ちても出たままで気づけない。 */
 
 // 上の節が使っていない会社を借りる（AIR は先頭20社）
 const EX = (await rows(
@@ -1044,18 +1228,20 @@ const ago = async (k) => await one(
 // ── (a) 昇進しても、FO だったころの給与は FO の統計に残る ──────
 {
   const A = EX[0];
-  for (let i = 0; i < 3; i++)
+  for (let i = 0; i < 2; i++)
     await person(A, 'fo', 'a320',
       [{ month: 2 }, { month: 3 },
        { month: 6, position: 'cap', fleet: 'b777', base_pay: 19000 }]);
   await asUser(V);
   const fo  = await deep({ airline: A, position: 'fo',  fleet: 'a320' });
   const cap = await deep({ airline: A, position: 'cap', fleet: 'b777' });
-  ok(fo.cohort.n === 3,  '★昇進した3人の「FO だった月」が FO の区分に残っている',
-     String(fo.cohort.n));
-  ok(cap.cohort.n === 3, '★同じ3人が CAP の区分にも居る（月ごとに分かれる）',
-     String(cap.cohort.n));
-  ok(Number(cap.head.annual_usd) > Number(fo.head.annual_usd) * 1.3,
+  ok(shown(fo),  '★昇進した2人の「FO だった月」が FO の区分に残っている（1人でも欠ければ出ない）',
+     JSON.stringify(fo.cohort));
+  ok(shown(cap), '★同じ2人が CAP の区分にも居る（月ごとに分かれる）',
+     JSON.stringify(cap.cohort));
+  /* FO の月は見本どおり 204,000。CAP の月は基本給だけ 19,000 に上げた 324,000。
+     混ざっていれば、どちらかがこの額からずれる。 */
+  ok(Number(fo.head.annual_usd) === 204000 && Number(cap.head.annual_usd) === 324000,
      '★CAP の年収に FO だった月が混ざっていない（前は人の代表値1つで分けていた）',
      `${fo.head.annual_usd} → ${cap.head.annual_usd}`);
 }
@@ -1063,15 +1249,16 @@ const ago = async (k) => await one(
 // ── (b) 機種を変えても、変える前の機種の統計が残る ──────────────
 {
   const A = EX[1];
-  for (let i = 0; i < 3; i++)
+  for (let i = 0; i < 2; i++)
     await person(A, 'cap', 'a320',
       [{ month: 2 }, { month: 6, fleet: 'b787', base_pay: 19000 }]);
   await asUser(V);
   const a = await deep({ airline: A, position: 'cap', fleet: 'a320' });
   const b = await deep({ airline: A, position: 'cap', fleet: 'b787' });
-  ok(a.cohort.n === 3 && b.cohort.n === 3,
-     '★機種を変えた3人が、前の機種にも今の機種にも居る', `${a.cohort.n} / ${b.cohort.n}`);
-  ok(Number(b.head.annual_usd) > Number(a.head.annual_usd),
+  ok(shown(a) && shown(b),
+     '★機種を変えた2人が、前の機種にも今の機種にも居る',
+     `${a.cohort.level} / ${b.cohort.level}`);
+  ok(Number(a.head.annual_usd) === 204000 && Number(b.head.annual_usd) === 324000,
      '★新しい機種の数字に前の機種の月が混ざっていない',
      `${a.head.annual_usd} → ${b.head.annual_usd}`);
 }
@@ -1084,13 +1271,13 @@ const ago = async (k) => await one(
   const old = await ago(23);   // いちばん古い、窓の中
   const now = await ago(0);    // 当月
 
-  for (let i = 0; i < 3; i++)
+  for (let i = 0; i < 2; i++)
     await person(EX[2], 'cap', 'b787',
       [{ period_year: out.y, period_month: out.m }]);
-  for (let i = 0; i < 3; i++)
+  for (let i = 0; i < 2; i++)
     await person(EX[3], 'cap', 'b787',
       [{ period_year: old.y, period_month: old.m }]);
-  for (let i = 0; i < 3; i++)
+  for (let i = 0; i < 2; i++)
     await person(EX[4], 'cap', 'b787',
       [{ period_year: now.y, period_month: now.m }]);
   await asUser(V);
@@ -1098,9 +1285,9 @@ const ago = async (k) => await one(
   const dOut = await deep({ airline: EX[2], position: 'cap', fleet: 'b787' });
   const dOld = await deep({ airline: EX[3], position: 'cap', fleet: 'b787' });
   const dNow = await deep({ airline: EX[4], position: 'cap', fleet: 'b787' });
-  ok(dOut.cohort.n === 0, `★${out.y}年${out.m}月（25か月前）は入らない`, String(dOut.cohort.n));
-  ok(dOld.cohort.n === 3, `★${old.y}年${old.m}月（24か月前）は入る`,   String(dOld.cohort.n));
-  ok(dNow.cohort.n === 3, `★${now.y}年${now.m}月（当月）は入る`,       String(dNow.cohort.n));
+  ok(hidden(dOut), `★${out.y}年${out.m}月（25か月前）は入らない`, JSON.stringify(dOut.cohort));
+  ok(shown(dOld),  `★${old.y}年${old.m}月（24か月前）は入る`,   JSON.stringify(dOld.cohort));
+  ok(shown(dNow),  `★${now.y}年${now.m}月（当月）は入る`,       JSON.stringify(dNow.cohort));
 }
 
 // ── (d) 未来の月は、投稿の時点で弾かれている ───────────────────
@@ -1122,12 +1309,12 @@ const ago = async (k) => await one(
    給与構成の月額が 15000 になって年収カードと食い違う。 */
 {
   const A = EX[7];
-  for (let i = 0; i < 3; i++)
+  for (let i = 0; i < 2; i++)
     await person(A, 'cap', 'b777', [{ month: 4 }],
                  { gross_monthly: 19000, bonus_month: 2000 });
   await asUser(V);
   const d = await deep({ airline: A, position: 'cap', fleet: 'b777' });
-  ok(d.cohort.n === 3, '3人そろっている', String(d.cohort.n));
+  ok(shown(d), '2人そろっている', JSON.stringify(d.cohort));
   ok(d.comp.bonus === null,
      '★その月の賞与は「年収に対する賞与の割合」に出さない（総支給の中に既にある）',
      JSON.stringify(d.comp.bonus));
@@ -1146,19 +1333,34 @@ const ago = async (k) => await one(
   for (let i = 0; i < 4; i++) await person(A, 'cap', 'b787', [{ month: 4 }]);
   await asUser(V);
   const d = await deep({ airline: A, position: 'cap', fleet: 'b787' });
-  ok(d.comp.bonus && Number(d.comp.bonus.pct_of_annual) === 0 && Number(d.comp.bonus.n) === 3,
+  /* ★前はここで「貰った人は3人」という人数も確かめていた。人数は返らなくなったので、
+       行が出ている（＝受給者が壁に届いている）ことと、割合が 0 であることを見る。 */
+  ok(d.comp.bonus && Number(d.comp.bonus.pct_of_annual) === 0,
      '★7人中3人が貰っていても中央値は 0（「0%」＝「誰も貰っていない」ではない）',
      JSON.stringify(d.comp.bonus));
+  ok(Object.keys(d.comp.bonus).join(',') === 'pct_of_annual',
+     '★賞与の行は割合だけ（貰った人数は返さない）', JSON.stringify(d.comp.bonus));
 }
 {
   const A = EX[9];
-  for (let i = 0; i < 3; i++) await person(A, 'cap', 'b787', [{ month: 4 }], { bonus_annual: 24000 });
-  for (let i = 0; i < 2; i++) await person(A, 'cap', 'b787', [{ month: 4 }]);
+  for (let i = 0; i < 2; i++) await person(A, 'cap', 'b787', [{ month: 4 }], { bonus_annual: 24000 });
+  await person(A, 'cap', 'b787', [{ month: 4 }]);
   await asUser(V);
   const d = await deep({ airline: A, position: 'cap', fleet: 'b787' });
   ok(d.comp.bonus && Number(d.comp.bonus.pct_of_annual) > 0,
-     '★5人中3人なら中央値は 0 でない（門は受給者3人で開く）',
+     '★3人中2人なら中央値は 0 でない（門は受給者2人で開く）',
      JSON.stringify(d.comp.bonus));
+}
+{
+  // 受給者が1人だけ → 区分は出るが、賞与の行は出ない（その1人の割合がそのまま出るため）
+  const A = EX[6];
+  await person(A, 'cap', 'b787', [{ month: 4 }], { bonus_annual: 24000 });
+  await person(A, 'cap', 'b787', [{ month: 4 }]);
+  await asUser(V);
+  const d = await deep({ airline: A, position: 'cap', fleet: 'b787' });
+  ok(shown(d) && d.comp && d.comp.bonus === null,
+     '★受給者が1人なら賞与の行ごと出さない（区分そのものは2人で出ている）',
+     JSON.stringify({ level: d.cohort.level, bonus: d.comp && d.comp.bonus }));
 }
 
 // ── (g) 人の対応表 ── 正常な行は落ちず、当たらない行は壁を押し上げない ──
@@ -1173,20 +1375,21 @@ const ago = async (k) => await one(
 
   const A = EX[10];
   const us = [];
-  for (let i = 0; i < 3; i++) us.push(await person(A, 'cap', 'b787', [{ month: 8 }]));
+  for (let i = 0; i < 2; i++) us.push(await person(A, 'cap', 'b787', [{ month: 8 }]));
   await asUser(V);
-  ok((await deep({ airline: A, position: 'cap', fleet: 'b787' })).cohort.n === 3,
-     '3人そろえば出る（このあと1人を名簿から消す）');
+  ok(shown(await deep({ airline: A, position: 'cap', fleet: 'b787' })),
+     '2人そろえば出る（このあと1人を名簿から消す）');
 
   const before = Number((await one(
     `select count(*) n from pay_reports where airline = $1`, [A])).n);
   await db.query(`delete from profiles where id = $1`, [uid(us[0])]);
   await asUser(V);
   const d = await deep({ airline: A, position: 'cap', fleet: 'b787' });
-  ok(Number((await one(`select count(*) n from pay_reports where airline = $1`, [A])).n) === before,
-     '★行そのものは消えていない（消したのは名簿だけ）');
-  ok(d.cohort.n === 0 && d.cohort.level === 'none',
-     '★名簿に当たらない行は3人の壁を押し上げない（2人のまま数字が出ない）',
+  ok(Number((await one(`select count(*) n from pay_reports where airline = $1`, [A])).n) === before
+     && before === 2,
+     '★行そのものは消えていない（消したのは名簿だけ・行は2件のまま）');
+  ok(hidden(d),
+     '★名簿に当たらない行は壁を押し上げない（数えられるのは1人＝数字が出ない）',
      JSON.stringify(d.cohort));
 }
 
@@ -1202,17 +1405,34 @@ const ago = async (k) => await one(
 let HUNDREDTH = null;
 // ── (i) 100人の門（★この節はいちばん最後。人を99人積む）──────────
 {
+  /* ★gate.crowd（2026-10-11）──「みんなの側」の条件（100人以上 or 手動フラグ）が
+       満たされているか。門が読んでいるのと**同じ値**で、画面はこれが false のときだけ
+       「100人に届いたら開く」の行を出す。ここまでは抜け道が立っていたので true。 */
+  await asUser(V);
+  ok((await deep()).gate.crowd === true,
+     '（前提）抜け道が立っているあいだ、crowd は true（門と同じ値）');
+
   await db.query(`select set_config('pv.deep_bypass', '', false)`);
   await asUser(V);
-  ok((await deep()).state === 'locked', '★抜け道を外すと、100人に届くまで locked');
+  {
+    const d = await deep();
+    ok(d.state === 'locked', '★抜け道を外すと、100人に届くまで locked');
+    ok(d.gate.crowd === false && d.gate.key === true && d.gate.detailed === true,
+       '★★鍵も内訳も在る人を止めているのは人数だけ ＝ crowd が false で返る',
+       JSON.stringify(d.gate));
+  }
 
   /* ★本番と同じ形（auth.users が在る）にすると、抜け道を立てても効かない。
      ＝「管理者だけ静かに迂回できる隠し例外」になっていないことの証拠。 */
   await db.exec(`create table auth.users (id uuid primary key)`);
   await db.query(`select set_config('pv.deep_bypass', 'on', false)`);
   await asUser(V);
-  ok((await deep()).state === 'locked',
-     '★本番の形では抜け道が効かない（隠し例外になっていない）');
+  {
+    const d = await deep();
+    ok(d.state === 'locked',
+       '★本番の形では抜け道が効かない（隠し例外になっていない）');
+    ok(d.gate.crowd === false, '　crowd も false のまま（門と食い違わない）');
+  }
   await db.exec(`drop table auth.users`);
   await db.query(`select set_config('pv.deep_bypass', '', false)`);
 
@@ -1237,6 +1457,7 @@ let HUNDREDTH = null;
   let d = await deep();
   ok(d.state === 'locked' && d.cohort === null && d.head === null,
      '★99人では開かない（中身のキーは渡さない）');
+  ok(d.gate.crowd === false, '★99人では crowd は false', JSON.stringify(d.gate));
   ok(Number(d.gate.contributors) === 99 && Number(d.gate.goal) === 100,
      '★錠前に出す人数と門が同じ数（「表示は100人なのに開かない」が起きない）',
      `${d.gate.contributors}/${d.gate.goal}`);
@@ -1252,6 +1473,7 @@ let HUNDREDTH = null;
   d = await deep();
   ok(Number(d.gate.contributors) === 100, '★100人になった', String(d.gate.contributors));
   ok(d.state === 'open' && d.cohort !== null, '★100人で開く');
+  ok(d.gate.crowd === true, '★100人で crowd は true', JSON.stringify(d.gate));
 }
 
 
@@ -1259,11 +1481,11 @@ let HUNDREDTH = null;
 console.log('\n▼ 21. オーナー確定の6件（2026-09-01・Codex 再監査分）');
 // ════════════════════════════════════════════════════════════
 /* ★この節も▼20と同じく**最後に置く**。中で人を足し引きするので、
-     先に置くと上の節の「3人そろっている／いない」が全部ずれる。
+     先に置くと上の節の「壁に届いている／いない」が全部ずれる。
 
    見ているのは4つ。どれも **画面は普通に動いたまま静かに違う数字を出す** 形：
      ・内訳を書いていない月が「0%」として給与構成の中央値に混ざる
-     ・3人に満たないのに、関数を直接叩けば集計値が取れてしまう
+     ・人数の壁に満たないのに、関数を直接叩けば集計値が取れてしまう
      ・「◯人」に登録前の預かり（端末×日）が混ざる
      ・正式公開フラグが、消し残した自動記録のトリガで勝手に立つ
 
@@ -1333,6 +1555,8 @@ ok(EX2.length >= 7, '▼21 用の会社が足りている', String(EX2.length));
   ok(d.state === 'locked' && Number(d.gate.contributors) === 99,
      '★★また99人になれば また閉じる（自動で永久記録する仕掛けは消えている）',
      `${d.state} / ${d.gate.contributors}`);
+  ok(d.gate.crowd === false, '　このとき crowd は false（止めているのは人数）',
+     JSON.stringify(d.gate));
 
   // ⑦ 管理者が手でフラグを立てる → 99人でも開く
   await db.query(`insert into pv_deep_launch (one) values (true) on conflict do nothing`);
@@ -1343,6 +1567,23 @@ ok(EX2.length >= 7, '▼21 用の会社が足りている', String(EX2.length));
   ok(Number(d.gate.contributors) === 99,
      '★人数は正直に99と出す（開いているのに99、が正しい状態）',
      String(d.gate.contributors));
+  /* ★★ここが gate.crowd を足した理由そのもの（2026-10-11）。
+       99 / 100 のまま開いている日に、画面が contributors と goal を比べて
+       「100人に届いたら開く」を出すと、鍵の無い人に嘘の理由を見せることになる。
+       その人を止めているのは人数ではなく、自分の鍵。 */
+  ok(d.gate.crowd === true && Number(d.gate.contributors) < Number(d.gate.goal),
+     '★★フラグで開いた日は、99 / 100 のままでも crowd は true（人数を比べて決めない）',
+     JSON.stringify(d.gate));
+  {
+    const uLk = ++seat;
+    await asUser(uLk);                       // 1枚も出していない人
+    const dl = await deep();
+    ok(dl.state === 'locked' && dl.gate.crowd === true
+       && dl.gate.key === false && dl.gate.detailed === false,
+       '★★鍵の無い人にも crowd は true で返る（「人数待ち」と言わせない）',
+       JSON.stringify(dl.gate));
+    await asUser(V);
+  }
 
   // ⑧ 通常ユーザーはフラグを読むことも書くこともできない
   const priv = (await one(
@@ -1366,13 +1607,13 @@ ok(EX2.length >= 7, '▼21 用の会社が足りている', String(EX2.length));
 }
 
 /* ── (a)(b) 給与構成は「内訳を書いた月」だけで出す【Release blocker】──
-   3人とも「総支給だけの月が2つ・内訳を書いた月が1つ（固定給100%）」。
+   2人とも「総支給だけの月が2つ・内訳を書いた月が1つ（固定給100%）」。
    ★直す前は、内訳を書いていない2か月が「固定給 0%」という観測として
      中央値に混ざり、固定給が 100% → 0% に化けていた。
    ★同時に、その2か月が**年収の統計からは消えていない**ことも見る。 */
 {
   const C = EX2[1];
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 2; i++) {
     const u = ++seat;
     await asUser(u);
     for (const m of [2, 3])       // 総支給だけ（内訳なし）
@@ -1383,7 +1624,8 @@ ok(EX2.length >= 7, '▼21 用の会社が足りている', String(EX2.length));
   }
   await asUser(V);
   const d = await deep({ airline: C, position: 'cap', fleet: 'b777' });
-  ok(d.cohort.n === 3, '3人そろっている', String(d.cohort.n));
+  ok(shown(d), '2人そろっている（総支給だけの月を持つ人も、内訳の月が1つ在れば頭数に入る）',
+     JSON.stringify(d.cohort));
   const seg = (d.comp.segs || []).find(s => s.k === 'base');
   ok(seg && Number(seg.pct) === 100,
      '★★内訳を書いた月だけで割合を出す（3か月のうち1か月しか書いていなくても固定給100%）',
@@ -1393,47 +1635,51 @@ ok(EX2.length >= 7, '▼21 用の会社が足りている', String(EX2.length));
      String(d.head.annual_usd));
 }
 
-/* ── (c)(c') 内訳を書いた人が2人 → 関数が集計値を1つも返さない ────
+/* ── (c)(c') 内訳を書いた人が1人 → 関数が集計値を1つも返さない ────
    ★オーナー必須修正2。画面で隠すのではなく**返り値に入れない。**
-     ここは画面を通さず関数を直接呼んでいる＝API を叩いた人と同じ見え方。 */
+     ここは画面を通さず関数を直接呼んでいる＝API を叩いた人と同じ見え方。
+   ★2026-10-11、壁は 3人 → 2人。「2人では出ない／3人で出る」だったここを、
+     「1人では出ない／2人で出る」に置き換えた。 */
 {
   const B = EX2[0];
   const u1 = await person(B, 'cap', 'b787', [{ month: 5 }]);
-  await person(B, 'cap', 'b787', [{ month: 5 }]);
   await asUser(V);
   const d = await deep({ airline: B, position: 'cap', fleet: 'b787' });
-  ok(d.cohort.level === 'none' && d.cohort.n === 0,
-     '★2人では区分そのものが空（広い区分の数字で埋めない）', JSON.stringify(d.cohort));
+  ok(d.cohort.level === 'none' && d.cohort.trust === null,
+     '★1人では区分そのものが空（広い区分の数字で埋めない・信頼度の段も付けない）',
+     JSON.stringify(d.cohort));
   ok(d.head === null && d.comp === null && d.work === null && d.var === null,
-     '★★2人以下では head / comp / work / var を1つも返さない',
+     '★★壁に届かなければ head / comp / work / var を1つも返さない',
      JSON.stringify({ head: d.head, comp: d.comp, work: d.work, var: d.var }));
   const s = JSON.stringify(d);
   for (const k of ['annual_usd', 'per_block_usd', 'fixed_pct',
                    'pct_of_annual', 'block_h', 'duty_h', 'stay_nights', 'med_usd'])
     ok(!s.includes(k), `★返ってきた JSON に ${k} が1文字も無い`);
+  ok(countKeys(d).length === 0, '★人数のキーも1つも無い', countKeys(d).join(' '));
   ok(d.ok === true && d.state === 'open' && d.gate && d.give
      && typeof d.stats.contributors === 'number',
      '★「非公開だと画面が判断するための材料」は返す（ok/state/gate/give/stats/cohort）');
 
-  // ── (d)(d') 3人目が出した瞬間に4つとも出る（厳しすぎて永久に出ない、を防ぐ）
+  // ── (d)(d') 2人目が出した瞬間に4つとも出る（厳しすぎて永久に出ない、を防ぐ）
   await person(B, 'cap', 'b787', [{ month: 5 }]);
   await asUser(V);
   const d3 = await deep({ airline: B, position: 'cap', fleet: 'b787' });
-  ok(d3.cohort.n === 3, '★3人になった', String(d3.cohort.n));
+  ok(d3.cohort.level === 'selected' && d3.cohort.trust === 'low',
+     '★2人になった（区分が出て、信頼度の段は low）', JSON.stringify(d3.cohort));
   ok(d3.head !== null && d3.comp !== null && d3.work !== null && d3.var !== null,
-     '★★3人になった瞬間に4つとも出る',
+     '★★2人になった瞬間に4つとも出る',
      JSON.stringify({ head: !!d3.head, comp: !!d3.comp,
                       work: !!d3.work, var: !!d3.var }));
   ok(Number(d3.head.annual_usd) > 0, '★年収の中央値が出る', String(d3.head.annual_usd));
 
-  // ── (g) 区分の3人の壁は「今のデータ」で毎回判定する（100人の門とは別物）
+  // ── (g) 区分の人数の壁は「今のデータ」で毎回判定する（100人の門とは別物）
   await db.query(`delete from profiles where id = $1`, [uid(u1)]);
   await asUser(V);
   const d2 = await deep({ airline: B, position: 'cap', fleet: 'b787' });
-  ok(d2.cohort.n === 0 && d2.head === null,
-     '★3人→2人に減れば、その区分はまた非表示になる', JSON.stringify(d2.cohort));
+  ok(hidden(d2),
+     '★2人→1人に減れば、その区分はまた非表示になる', JSON.stringify(d2.cohort));
   ok(d2.state === 'open',
-     '★★区分が消えてもサイト全体は開いたまま（3人の壁と100人の区切りは別物）', d2.state);
+     '★★区分が消えてもサイト全体は開いたまま（区分の壁と100人の区切りは別物）', d2.state);
 }
 
 /* ── (h) 1人1票 ── 給与差の大きい2社を経験した人 ──────────────
@@ -1458,11 +1704,27 @@ ok(EX2.length >= 7, '▼21 用の会社が足りている', String(EX2.length));
   }
   await asUser(V);
   const d = await deep({ fleet: F });
-  ok(d.cohort.n === 3,
-     '★★2社を経験した1人は1人（会社ごとに2人と数えない）', String(d.cohort.n));
   ok(Number(d.head.annual_usd) === 150000,
      '★その人の寄与は自分の12か月の中央値1つ（12票でも2票でもない。2票なら180000）',
      String(d.head.annual_usd));
+
+  /* ★★壁の側（2026-10-11）。壁が2人になったので、ここがいちばん危ない形になった ──
+       **2社に出した1人**を会社ごとに数えると、それだけで2人＝壁に届き、
+       その1人の年収がそのまま「中央値」として出る。
+     この機種（ATR）を出しているのは、2社を経験したこの1人だけ。 */
+  const F2 = 'atr';
+  const uOne = ++seat;
+  await asUser(uOne);
+  await submit({ ...BASE, airline: EX2[4], position: 'cap', fleet: F2,
+                 period_year: YEAR, period_month: 2, base_pay: 9000 });
+  await submit({ ...BASE, airline: EX2[5], position: 'cap', fleet: F2,
+                 period_year: YEAR, period_month: 8, base_pay: 21000 });
+  ok(Number((await one(`select count(distinct proof_hash) n from pay_reports
+                         where fleet = $1`, [F2])).n) === 2,
+     '（前提）この1人の行は、鍵（本人×会社）で数えると2つ在る');
+  await asUser(V);
+  ok(hidden(await deep({ fleet: F2 })),
+     '★★2社を経験した1人は1人（会社ごとに2人と数えない＝壁に届かず、何も出ない）');
 }
 
 /* ── (i) 3つのハッシュ式が同じ人を指している ────────────────────
@@ -1506,7 +1768,7 @@ await asUser(V);
    選択肢が大半になる。だから中身のある組み合わせだけをサーバから配る。
 
    ★数え方は区分の壁（lvl）と**同じでなければならない**
-     ＝「内訳を書いた月を持つ**実人物**が3人以上」。
+     ＝「内訳を書いた月を持つ**実人物**が2人以上」（2026-10-11 から。前は3人）。
      ズレると「選択肢に出ているのに選ぶと空」が、**画面は普通に動いたまま**起きる。
      行で数えていないか／1人の複数月で増えないか／総支給だけの人を
      頭数に入れていないかを、4社を並べて確かめる。
@@ -1522,24 +1784,21 @@ await asUser(V);
   ok(NEW.length === 4, '★(k) 用の会社を4社借りられた', String(NEW.length));
   const [X, Y, Z, Q] = NEW;
 
-  // X … 機長×B777 が3人（うち1人は2か月ぶん）→ 会社も、機長も、B777 も出る
+  /* ★どの見本も**壁ぎりぎり**で組む（出る側はちょうど2人・出ない側はちょうど1人）。
+       3人で組むと、数え方が1人ぶんずれても出たままで気づけない。 */
+  // X … 機長×B777 が2人（うち1人は2か月ぶん）→ 会社も、機長も、B777 も出る
   await person(X, 'cap', 'b777', [{ month: 6 }, { month: 7 }]);
   await person(X, 'cap', 'b777', [{ month: 6 }]);
-  await person(X, 'cap', 'b777', [{ month: 6 }]);
-  // X … 副操縦士×A320 も3人 → 同じ会社で職位が2つ、機材は職位ごとに違う
+  // X … 副操縦士×A320 も2人 → 同じ会社で職位が2つ、機材は職位ごとに違う
   await person(X, 'fo', 'a320', [{ month: 6 }]);
   await person(X, 'fo', 'a320', [{ month: 6 }]);
-  await person(X, 'fo', 'a320', [{ month: 6 }]);
-  /* X … 機長×A320 は2人だけ。会社ぜんぶで見れば A320 は5人（副操縦士3＋機長2）
+  /* X … 機長×A320 は1人だけ。会社ぜんぶで見れば A320 は3人（副操縦士2＋機長1）
        なので、**機材の一覧を会社だけで作ると A320 が機長の欄に出てしまう**。
        選ぶと空になる。会社×職位で数えている証拠にする。 */
   await person(X, 'cap', 'a320', [{ month: 6 }]);
-  await person(X, 'cap', 'a320', [{ month: 6 }]);
-  // Y … 内訳つきで2人 → 出ない
+  // Y … 内訳つきで1人 → 出ない
   await person(Y, 'cap', 'b777', [{ month: 6 }]);
-  await person(Y, 'cap', 'b777', [{ month: 6 }]);
-  // Z … 3人いるが内訳を書いたのは2人（3人目は総支給だけ）→ 出ない
-  await person(Z, 'cap', 'b777', [{ month: 6 }]);
+  // Z … 2人いるが内訳を書いたのは1人（2人目は総支給だけ）→ 出ない
   await person(Z, 'cap', 'b777', [{ month: 6 }]);
   {
     const u = ++seat;
@@ -1561,11 +1820,11 @@ await asUser(V);
      JSON.stringify(Object.keys(pk || {})));
 
   // ── 会社 ────────────────────────────────────────────────
-  ok(pk.air.includes(X), '★内訳つきで3人そろった会社は一覧に出る');
+  ok(pk.air.includes(X), '★内訳つきで2人そろった会社は一覧に出る');
   ok(!pk.air.includes(Y),
-     '★★2人しか居ない会社は一覧に出ない（選んでも空になる選択肢を並べない）');
+     '★★1人しか居ない会社は一覧に出ない（選んでも空になる選択肢を並べない）');
   ok(!pk.air.includes(Z),
-     '★★内訳を書いた人が2人の会社は出ない（総支給だけの人を頭数に入れない）');
+     '★★内訳を書いた人が1人の会社は出ない（総支給だけの人を頭数に入れない）');
   ok(!pk.air.includes(Q),
      '★★1人が3か月ぶん出しただけの会社は出ない（行ではなく人を数えている）');
   ok(!pk.air.includes('other'),
@@ -1588,15 +1847,15 @@ await asUser(V);
 
   // ── 会社×職位ごとの機材 ────────────────────────────────
   const fX = (a, b) => pk.flt[a + '|' + b] || [];
-  ok(fX(X, 'cap').includes('b777'), '★会社×職位で3人そろった機材は出る',
+  ok(fX(X, 'cap').includes('b777'), '★会社×職位で2人そろった機材は出る',
      JSON.stringify(fX(X, 'cap')));
   ok(!fX(X, 'cap').includes('a320'),
-     '★★機材の一覧は「会社×職位」で数える（会社ぜんぶでは5人でも、機長では2人なので出さない）',
+     '★★機材の一覧は「会社×職位」で数える（会社ぜんぶでは3人でも、機長では1人なので出さない）',
      JSON.stringify(fX(X, 'cap')));
   ok(fX(X, 'fo').includes('a320'), '★同じ会社でも職位が違えば機材の一覧が違う',
      JSON.stringify(fX(X, 'fo')));
   ok(fX(X, '').includes('a320') && fX(X, '').includes('b777'),
-     '★職位を選ばないときは会社ぜんぶで数える（A320 は5人なので出る）',
+     '★職位を選ばないときは会社ぜんぶで数える（A320 は3人なので出る）',
      JSON.stringify(fX(X, '')));
   ok(Array.isArray(pk.flt['|']), '★どちらも選ばないときの機材も入っている',
      JSON.stringify(pk.flt['|']));
@@ -1620,7 +1879,10 @@ await asUser(V);
     const bad = [];
     for (const c of combos) {
       const r = await deep(c);
-      if (!r.cohort || r.cohort.level !== 'selected' || !(r.cohort.n >= 3)) bad.push(c);
+      /* ★「数字が返る」＝区分が出ていて、年収の中央値が在り、信頼度の段が付いている。
+           前は返ってきた人数が壁以上かを見ていた。人数は返らなくなった。 */
+      if (!shown(r) || r.cohort.level !== 'selected'
+          || !(Number(r.head.annual_usd) > 0) || countKeys(r).length) bad.push(c);
     }
     ok(bad.length === 0,
        `★★配った選択肢 ${combos.length} 通りを全部たどって、全部で数字が返る`,
@@ -1628,9 +1890,11 @@ await asUser(V);
   }
   /* ★逆も見る。配っていない組み合わせは none で返り続ける
        （壁が緩んだのに一覧だけ古い、の逆パターンを止める）。 */
-  ok((await deep({ airline: Y })).cohort.level === 'none',
+  ok(hidden(await deep({ airline: Y })),
      '★一覧に無い会社を手で指定しても数字は出ない');
-  ok((await deep({ airline: X, position: 'cap', fleet: 'a320' })).cohort.level === 'none',
+  ok(hidden(await deep({ airline: Z })),
+     '★内訳を書いた人が1人の会社も、手で指定して数字は出ない（総支給だけの人は頭数に入らない）');
+  ok(hidden(await deep({ airline: X, position: 'cap', fleet: 'a320' })),
      '★★一覧に無い機材を手で指定しても数字は出ない（一覧と壁が同じ場所を見ている）');
 
   /* ★選んだ区分で一覧が入れ替わらないこと。入れ替わると、会社Aを選び直している
@@ -1652,9 +1916,602 @@ await asUser(V);
   await asUser(V);
 }
 
+// ▼22・▼23 用に、ここまでのどの節も使っていない会社を借りる（先頭4社は (k) が使った）
+const EX3 = (await rows(
+  `select code from pv_airlines
+    where code <> 'other' and active
+      and code <> all(string_to_array($1, ','))
+    order by code limit 12`, [AIR.concat(EX, EX2).join(',')])).map(r => r.code).slice(4);
+ok(EX3.length >= 7, '▼22・▼23 用の会社が足りている', String(EX3.length));
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 22. 信頼度の段（cohort.trust）── 人数のかわりに返す、たった1つの値');
+// ════════════════════════════════════════════════════════════
+/* 2026-10-11（オーナー判断）。区分の人数は返さず、3段だけを返す。
+   式は db/deep-pay.sql の trust ── 画面（deep-pay.js の trustOf）が人数から
+   出していたものを、そのままサーバへ移した：
+     人数の段   … 10人以上＝3 ／ 5人以上＝2 ／ それ未満＝1
+     区分の上限 … 段1（会社×役職×機材）・段2（会社×役職×機材区分）＝3
+                   段3（会社×役職）＝2 ／ 段4（役職のみ）・段5（全体）＝1
+                   手で選んだ区分は、選んだ軸の数（3つ＝3 ／ 2つ＝2 ／ 1つ＝1）
+     低いほうを採って 3＝high ／ 2＝mid ／ 1＝low。壁に届かない区分は null。
+   ★境目（4人→5人・9人→10人）を、人を1人ずつ足して両側から踏む。
+   ★この時点で正式公開フラグが立っているので、鍵と内訳が在れば開く。 */
+{
+  const [TR, TR2] = EX3;
+  const sel3 = { airline: TR, position: 'cap', fleet: 'b777' };   // 軸3つ
+  const sel2 = { airline: TR, position: 'cap' };                  // 軸2つ
+  const sel1 = { airline: TR };                                   // 軸1つ
+  const me = await person(TR, 'cap', 'b777', [{ month: 6 }]);     // 呼び手（この区分の1人目）
+  let have = 1;
+  const grow = async (to) => {
+    for (; have < to; have++) await person(TR, 'cap', 'b777', [{ month: 6 }]);
+    await asUser(me);
+  };
+  const tr = async (sel) => (await deep(sel)).cohort.trust;
+
+  await asUser(me);
+  ok(await tr(sel3) === null && hidden(await deep(sel3)),
+     '★1人（壁の下）… 段は付かない（null）');
+
+  await grow(2);
+  {
+    const d = await deep();
+    ok(d.cohort.level === 'airline_pos_fleet' && d.cohort.trust === 'low',
+       '★2人 … 段1でも low（人数の段が1）', JSON.stringify(d.cohort));
+    ok(await tr(sel3) === 'low', '　手で3つ選んでも low');
+  }
+  await grow(4);
+  ok(await tr() === 'low' && await tr(sel3) === 'low' && await tr(sel2) === 'low',
+     '★4人 … まだ low（境目の手前）');
+  await grow(5);
+  ok(await tr() === 'mid' && await tr(sel3) === 'mid',
+     '★5人 … mid に上がる（境目）', `${await tr()} / ${await tr(sel3)}`);
+  ok(await tr(sel2) === 'mid', '　軸2つ（会社×役職）でも 5人なら mid', String(await tr(sel2)));
+  ok(await tr(sel1) === 'low',
+     '★軸1つ（会社だけ）は、人数がそろっても low（区分が広い）', String(await tr(sel1)));
+  await grow(9);
+  ok(await tr() === 'mid' && await tr(sel3) === 'mid',
+     '★9人 … まだ mid（境目の手前）', `${await tr()} / ${await tr(sel3)}`);
+  await grow(10);
+  ok(await tr() === 'high' && await tr(sel3) === 'high',
+     '★10人 … high に上がる（境目。区分は会社×役職×機材まで絞れている）',
+     `${await tr()} / ${await tr(sel3)}`);
+  ok(await tr(sel2) === 'mid',
+     '★軸2つは 10人いても mid 止まり（上限が人数に勝つ）', String(await tr(sel2)));
+  ok(await tr(sel1) === 'low' && await tr({ fleet: 'b777' }) === 'low'
+     && await tr({ position: 'cap' }) === 'low',
+     '★軸1つは 10人いても low 止まり（「役職だけ・全社」に 高 と出さない）');
+  ok(await tr({ position: 'cap', fleet: 'b777' }) === 'mid',
+     '　会社を選ばない軸2つ（役職×機材）も mid 止まり');
+  ok(countKeys(await deep()).length === 0 && countKeys(await deep(sel3)).length === 0,
+     '★段が high でも、人数そのものは返り値のどこにも無い');
+
+  // ── はしごが落ちた段ごとの上限（呼び手の区分から自動で落ちるとき）──
+  // 段2：同じ会社・役職・機材区分（B787 も広胴）に落ちる → 上限3 ＝ high
+  const c2 = await person(TR, 'cap', 'b787', [{ month: 6 }]);
+  {
+    const d = await deep();
+    ok(d.cohort.level === 'airline_pos_cat' && d.cohort.trust === 'high',
+       '★段2（会社×役職×機材区分）に落ちても、10人以上なら high', JSON.stringify(d.cohort));
+  }
+  // 段3：機材区分も合わない（A320 は狭胴）→ 会社×役職 → 上限2 ＝ mid
+  const c3 = await person(TR, 'cap', 'a320', [{ month: 6 }]);
+  {
+    const d = await deep();
+    ok(d.cohort.level === 'airline_pos' && d.cohort.trust === 'mid',
+       '★段3（会社×役職）は 10人以上でも mid 止まり', JSON.stringify(d.cohort));
+  }
+  // 段4：会社に自分しか居ない → 役職のみ（全社の機長）→ 上限1 ＝ low
+  const c4 = await person(TR2, 'cap', 'a320', [{ month: 6 }]);
+  {
+    const d = await deep();
+    ok(d.cohort.level === 'pos' && d.cohort.trust === 'low',
+       '★段4（役職のみ・全社）は何人いても low', JSON.stringify(d.cohort));
+  }
+  /* 段5：役職にも自分しか居ない → 全体 → 上限1 ＝ low。
+     選択肢から外した職位（訓練生）の行は本番に実在する（過去の投稿は残してある）。
+     フォームからはもう出せないので、ここでは保存済みの行の職位を直に書き換えて作る。 */
+  const c5 = await person(TR2, 'cap', 'b737', [{ month: 6 }]);
+  await db.query(`update pay_reports set "position" = 'cadet'
+                   where proof_hash in (select pv_my_keys())`);
+  {
+    const d = await deep();
+    ok(d.cohort.level === 'all' && d.cohort.trust === 'low',
+       '★段5（全体）は何人いても low', JSON.stringify(d.cohort));
+  }
+  await asUser(V);
+}
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 23. pv_pay_breakdown（総支給だけ出した月に、内訳だけを足す）');
+// ════════════════════════════════════════════════════════════
+/* 2026-10-11。総支給だけ出した本人が、**その月に内訳の3つだけ**を足す口。
+   今までの書き口は submit_pay_report の1本で、あれは行をまるごと置き換えて
+   投稿日まで今日に書き換える。ここが見ているのは「足せるか」より先に
+   **「足したとき、内訳の列のほかを1バイトも動かさないか」**：
+
+     ・投稿日・総支給・年収・時間あたり・レート・裏付けの段 が前後で同じ
+     ・会員の鍵の期限（profiles.access_until）が伸びない
+     ・他人の行（同じ会社・同じ月の、別の人の行）に触らない
+     ・書いたあとの行が、同じ答えを給与フォームから出した行と**列ごとに同じ**
+
+   ★断る理由は例外にせず返す（moved / unanswered / over / limit）。断ったときは
+     行も、1日の数えも、1つも動いていないことまで見る。 */
+const brk = async (p) =>
+  (await one(`select pv_pay_breakdown($1::jsonb) r`, [JSON.stringify(p || {})])).r;
+// 呼び手自身の1行をまるごと（検査の器は何でも読める。関数が返すわけではない）
+const myRow = async (air, month, other = null) => {
+  const r = await one(
+    `select to_jsonb(r) j from pay_reports r
+      where r.proof_hash in (select pv_my_keys())
+        and r.airline = $1 and r.period_month = $2
+        and r.airline_other is not distinct from $3`, [air, month, other]);
+  return r ? r.j : null;
+};
+// 内訳の5列。この関数が書いてよいのはこれだけ
+const BRK = ['base_pay', 'guarantee_pay', 'flight_variable_pay', 'other_allowance', 'pay_items'];
+const sans = (j) => { const o = { ...j }; for (const k of BRK) delete o[k]; return JSON.stringify(o); };
+const only = (j) => JSON.stringify(BRK.map(k => j[k]));
+// 会員の側（鍵の期限・投稿の事実）。日時は字のまま比べる（JS の Date に通すと桁が落ちる）
+const prof = async (n) => one(
+  `select access_until::text as au, last_pay_report_at::text as lp, pay_report_count as pc,
+          pay_streak_months as ps, last_pay_period_ym as ym, badge, badge_state as bs,
+          pay_reports_today as today, pay_reports_day::text as dy
+     from profiles where id = $1`, [uid(n)]);
+const kept = (a, b) => ['au', 'lp', 'pc', 'ps', 'ym', 'badge', 'bs'].every(k => a[k] === b[k]);
+const G = (air, month, extra = {}) => ({
+  ...BASE, airline: air, position: 'cap', fleet: 'b777',
+  period_year: YEAR, period_month: month, gross_monthly: 10000, ...extra });
+const [, , BA, BB, BC, BD, BE] = EX3;
+
+// ── (a) 誰が呼べるか ───────────────────────────────────────
+{
+  const priv = async (role) => (await one(
+    `select has_function_privilege($1, 'public.pv_pay_breakdown(jsonb)', 'execute') b`, [role])).b;
+  ok(await priv('authenticated'), 'ログインした人には execute が渡っている');
+  ok(!(await priv('anon')) && !(await priv('public')),
+     '★anon にも public にも execute が渡っていない');
+  ok((await one(`select prosecdef b from pg_proc
+                  where oid = 'public.pv_pay_breakdown(jsonb)'::regprocedure`)).b,
+     'security definer で動く');
+  await asAnon();
+  ok(/ログイン/.test(await boom(`select pv_pay_breakdown()`) || ''),
+     '★ログインしていない人は読めない（例外）');
+  ok(/ログイン/.test(await boom(`select pv_pay_breakdown($1::jsonb)`,
+       [JSON.stringify({ airline: BA, year: YEAR, month: 2, base: '1',
+                         guarantee_none: true, variable_none: true })]) || ''),
+     '★ログインしていない人は書けない（例外）');
+}
+
+// ── (b) 1件も出していない人 ─────────────────────────────────
+{
+  const u = ++seat; await asUser(u);
+  const r = await brk();
+  ok(r.ok === true && r.target === null && Object.keys(r).sort().join(',') === 'ok,target',
+     '足せる月が無ければ target は null', JSON.stringify(r));
+  ok((await one(`select pv_pay_breakdown(null) r`)).r.target === null,
+     '　引数が null でも「読む」として動く');
+  const w = await brk({ airline: BA, year: YEAR, month: 2,
+                        base: '1', guarantee_none: true, variable_none: true });
+  ok(w.ok === false && w.code === 'moved', '★行が無い人が書こうとしても moved', JSON.stringify(w));
+}
+
+// ── (c) どの月が「足せる月」か ──────────────────────────────
+/* 1人に9つの月を持たせる。足せるのは「総支給だけ」の4つで、その中のいちばん新しい月。
+     other 12月  総支給だけ（一覧に無い会社・いちばん新しい）   ← 1番目
+     BB     6月  総支給だけ                                     ← 2番目
+     BA     5月  総支給だけ                                     ← 3番目
+     BA     2月  総支給だけ                                     ← 4番目
+     BA     7月  基本給つき                 … 内訳が在る
+     BA    11月  「該当なし」3つだけ        … 内訳が在る（金額が無くても回答済み）
+     BA    12月  職位手当だけ               … 内訳が在る
+     BA     8月  時給だけ                   … 総支給が無い（足すと年収が動く）
+     BA     9月  総支給だけ・明細の裏付けつき … 手で書き換えさせない
+     BA    10月  総支給＋変動給の列だけ     … 変動給が既に入っている */
+const M1 = ++seat;
+await asUser(M1);
+await submit(G(BA, 2));
+await submit(G(BA, 5, { gross_monthly: 12000 }));
+await submit(G(BB, 6, { gross_monthly: 9000 }));
+await submit(G(BA, 7, { base_pay: 6000 }));
+await submit(G(BA, 11, { pay_items: { v: 2, fixed_none: true, guarantee_none: true,
+                                      variable_none: true, variable: [], other: [] } }));
+await submit(G(BA, 12, { command_pay: 500 }));
+await submit({ ...BASE, airline: BA, position: 'cap', fleet: 'b777',
+               period_year: YEAR, period_month: 8, hourly_rate: 100, block_hours: 80 });
+await submit(G(BA, 9));
+await db.query(`update pay_reports set verify_level = 1
+                 where proof_hash in (select pv_my_keys()) and period_month = 9`);
+await submit(G(BA, 10, { flight_variable_pay: 2000, other_allowance: 2000 }));
+// ★総支給だけの行でも、全員に聞く欄（パーディアム・住宅手当・乗務時間）は入っている
+await submit(G('other', 12, { airline_other: 'Tiny Air', gross_monthly: 8000,
+                              block_hours: 75, per_diem: 300 }));
+const KEY1 = { airline: 'other', airline_other: 'Tiny Air', year: YEAR, month: 12 };
+{
+  ok(Number((await one(`select count(*) n from pay_reports
+                         where proof_hash in (select pv_my_keys())`)).n) === 10,
+     '（前提）この人の行は10件');
+  const r = await brk();
+  ok(r.ok === true && r.target && r.target.airline === 'other'
+     && r.target.airline_other === 'Tiny Air'
+     && r.target.year === YEAR && r.target.month === 12,
+     '★足せる月は「総支給だけ」の中でいちばん新しい月', JSON.stringify(r.target));
+  ok(r.target.currency === 'USD' && Number(r.target.gross) === 8000,
+     '　通貨と総支給が付いてくる（画面が「総支給 ◯◯ のうち」と出すため）',
+     JSON.stringify(r.target));
+  ok(Object.keys(r.target).sort().join(',') === 'airline,airline_other,currency,gross,month,year',
+     '★返すのはこの6つだけ（行のほかの中身は何も返さない）',
+     Object.keys(r.target).join(','));
+  ok(!/[0-9a-f]{64}/.test(JSON.stringify(r)), '★行の鍵（ハッシュ）は返さない');
+}
+
+// ── (d) 断る理由（どれも例外にしない・行も数えも動かさない）───────
+{
+  const row0 = JSON.stringify(await myRow('other', 12, 'Tiny Air'));
+  const p0 = await prof(M1);
+  const same = async () =>
+    JSON.stringify(await myRow('other', 12, 'Tiny Air')) === row0
+    && (await prof(M1)).today === p0.today;
+  const ans = { base: '5000', guarantee_none: true, variable_none: true };
+
+  // moved ── 返ってきた鍵が、いまの「足せる月」ではない
+  for (const [label, key] of [
+    ['月が違う',                        { ...KEY1, month: 11 }],
+    ['自由入力の社名が抜けている',      { airline: 'other', year: YEAR, month: 12 }],
+    ['自由入力の社名が違う',            { ...KEY1, airline_other: 'Other Air' }],
+    ['自分の別の月（まだ順番でない）',  { airline: BB, year: YEAR, month: 6 }],
+    ['年が違う',                        { ...KEY1, year: YEAR - 1 }],
+    ['年が数でない',                    { ...KEY1, year: 'abc' }],
+  ]) {
+    const r = await brk({ ...key, ...ans });
+    ok(r.ok === false && r.code === 'moved' && await same(), `★moved ── ${label}`,
+       JSON.stringify(r));
+  }
+
+  // unanswered ── 3つとも答えて初めて書く
+  for (const [label, a] of [
+    ['変動給が無い',                    { base: '5000', guarantee_none: true }],
+    ['3つとも空文字',                   { base: '', guarantee: '', variable: '' }],
+    ['「該当なし」が false',            { base_none: false, guarantee_none: true, variable_none: true }],
+    ['「該当なし」が真偽でない',        { base_none: 'yes', guarantee_none: true, variable_none: true }],
+    ['鍵だけで、答えが1つも無い',       {}],
+  ]) {
+    const r = await brk({ ...KEY1, ...a });
+    ok(r.ok === false && r.code === 'unanswered' && await same(), `★unanswered ── ${label}`,
+       JSON.stringify(r));
+  }
+
+  /* over ── フォームの settleOver と同じ線：内訳の合計 > 総支給 ＋ 1。
+     ★合計には、行に既に在る列も入る（この行はパーディアム 300）。
+       総支給 8,000 に対して 基本給 7,000 ＋ 保証 701.01 ＋ パーディアム 300 ＝ 8,001.01。 */
+  {
+    const r = await brk({ ...KEY1, base: '7000', guarantee: '701.01', variable_none: true });
+    ok(r.ok === false && r.code === 'over' && await same(),
+       '★over ── 内訳の合計が総支給を超えている', JSON.stringify(r));
+    ok(Number(r.sum) === 8001.01 && Number(r.gross) === 8000,
+       '★比べた2つの額を返す（合計 8,001.01・総支給 8,000。画面が文の中に出す）',
+       JSON.stringify(r));
+    const v = await brk({ ...KEY1, base: '7000', guarantee_none: true, variable: '701.01' });
+    ok(v.code === 'over' && Number(v.sum) === 8001.01,
+       '　変動給で超えても同じ（変動給を二重に数えていない）', JSON.stringify(v));
+  }
+
+  // 読めない金額だけは例外（フォームの道も例外で落ちる）
+  for (const [label, bad, re] of [
+    ['数字でない', 'abc', /読めません/], ['マイナス', '-5', /読めません/],
+    ['指数表記', '1e3', /読めません/],   ['数でない値', 'NaN', /読めません/],
+    ['桁あふれ（13桁）', '1000000000000', /大きすぎ/],
+  ]) {
+    const e = await boom(`select pv_pay_breakdown($1::jsonb)`,
+      [JSON.stringify({ ...KEY1, base: bad, guarantee_none: true, variable_none: true })]);
+    ok(re.test(e || '') && await same(), `★読めない金額は例外 ── ${label}`,
+       String(e).slice(0, 60));
+  }
+
+  /* limit ── 1日の上限は submit_pay_report と同じ数え（profiles の同じ2列・同じ 10 件）。 */
+  await db.query(`update profiles set pay_reports_day = current_date, pay_reports_today = 10
+                   where id = $1`, [uid(M1)]);
+  {
+    const r = await brk({ ...KEY1, ...ans });
+    ok(r.ok === false && r.code === 'limit', '★limit ── 今日ぶんを使い切っている',
+       JSON.stringify(r));
+    ok(JSON.stringify(await myRow('other', 12, 'Tiny Air')) === row0
+       && (await prof(M1)).today === 10,
+       '　断ったときは行も数えも動かない');
+    ok(/上限/.test(await boom(`select submit_pay_report($1::jsonb)`,
+         [JSON.stringify(G(BA, 1))]) || ''),
+       '★同じ数えなので、給与フォームの側も同じところで止まる');
+  }
+}
+
+// ── (e) 書く ── 内訳の列だけが変わる ─────────────────────────
+{
+  /* 数えを「きのうの10件」にしておく。日付が変わっていれば 0 から数え直す
+     （submit_pay_report と同じ）＝上の limit が翌日に持ち越されない。 */
+  await db.query(`update profiles set pay_reports_day = current_date - 1, pay_reports_today = 10
+                   where id = $1`, [uid(M1)]);
+  const before = await myRow('other', 12, 'Tiny Air');
+  const pb = await prof(M1);
+  const others0 = JSON.stringify(await rows(
+    `select to_jsonb(r) j from pay_reports r
+      where r.proof_hash in (select pv_my_keys())
+        and not (r.airline = 'other' and r.period_month = 12)
+      order by r.airline, r.period_month`));
+  /* ★総支給 8,000 に対して、内訳の合計がちょうど 8,001（＝総支給＋1）。
+       フォームの線は「超えたら止める」で、＋1 までは通す（丸めの遊び）。
+       ここが通ることで、線を1円ずらして写していないことが分かる。 */
+  const r = await brk({ ...KEY1, base: '7000', guarantee: '701', variable_none: true });
+  ok(r.ok === true && r.done === true && Object.keys(r).sort().join(',') === 'done,ok',
+     '★書けた（返るのは ok と done だけ）', JSON.stringify(r));
+
+  const after = await myRow('other', 12, 'Tiny Air');
+  const pa = await prof(M1);
+  ok(Number(after.base_pay) === 7000 && Number(after.guarantee_pay) === 701
+     && after.flight_variable_pay === null && after.other_allowance === null,
+     '★基本給と保証手当が入り、変動給は「該当なし」なので空のまま',
+     only(after));
+  ok(after.pay_items.v === 2 && after.pay_items.fixed_none === false
+     && after.pay_items.guarantee_none === false && after.pay_items.variable_none === true
+     && JSON.stringify(after.pay_items.variable) === '[]'
+     && JSON.stringify(after.pay_items.other) === '[]'
+     && Object.keys(after.pay_items).length === 6,
+     '★「該当なし」は pay_items に残る（v:2・3つの真偽・空の行2つ ── フォームと同じ形）',
+     JSON.stringify(after.pay_items));
+
+  // ── ここからが本命：内訳の5列のほかは、1バイトも動いていない ──
+  ok(sans(after) === sans(before),
+     '★★内訳の5列を除いた行ぜんたいが、前後で1文字も違わない');
+  ok(after.created_at === before.created_at && before.created_at != null,
+     '★投稿日（created_at）が動いていない', `${before.created_at} → ${after.created_at}`);
+  ok(Number(after.gross_monthly) === 8000 && after.gross_monthly === before.gross_monthly,
+     '★総支給が動いていない');
+  ok(after.annual_total_usd === before.annual_total_usd && Number(after.annual_total_usd) === 96000
+     && after.annual_total_orig === before.annual_total_orig
+     && after.annual_total_jpy === before.annual_total_jpy,
+     '★年収（USD・原通貨・円）が動いていない（8,000 × 12 ＝ 96,000 のまま）',
+     `${before.annual_total_usd} → ${after.annual_total_usd}`);
+  ok(after.usd_per_block_hour === before.usd_per_block_hour
+     && Number(after.usd_per_block_hour) > 0,
+     '★時間あたり（usd_per_block_hour）が動いていない',
+     `${before.usd_per_block_hour} → ${after.usd_per_block_hour}`);
+  ok(after.fx_to_usd === before.fx_to_usd && after.fx_to_jpy === before.fx_to_jpy
+     && after.fx_at === before.fx_at && before.fx_to_usd != null,
+     '★レートとその日付が動いていない');
+  ok(after.verify_level === 0 && after.verify_level === before.verify_level
+     && after.proof_hash === before.proof_hash && after.id === before.id,
+     '★裏付けの段・行の鍵・行の id が動いていない');
+  ok(kept(pa, pb) && pb.au != null,
+     '★★会員の鍵の期限（access_until）が伸びていない ── 投稿の事実の列もそのまま',
+     JSON.stringify({ before: pb, after: pa }));
+  ok(pa.today === 1 && pa.dy !== pb.dy,
+     '★動いたのは1日の数えだけ（きのうの10件は持ち越さず、今日の1件目になる）',
+     `${pb.dy}/${pb.today} → ${pa.dy}/${pa.today}`);
+  ok(JSON.stringify(await rows(
+       `select to_jsonb(r) j from pay_reports r
+         where r.proof_hash in (select pv_my_keys())
+           and not (r.airline = 'other' and r.period_month = 12)
+         order by r.airline, r.period_month`)) === others0,
+     '★この人のほかの9件は1文字も動いていない');
+
+  // 足せる月は、次に新しい「総支給だけ」の月へ移る
+  const nx = await brk();
+  ok(nx.target && nx.target.airline === BB && nx.target.month === 6
+     && nx.target.airline_other === null,
+     '★書いた月はもう対象ではない ── 次の月（BB 6月）へ移る', JSON.stringify(nx.target));
+  const again = await brk({ ...KEY1, base: '1', guarantee_none: true, variable_none: true });
+  ok(again.ok === false && again.code === 'moved'
+     && JSON.stringify(await myRow('other', 12, 'Tiny Air')) === JSON.stringify(after),
+     '★同じ月へ二度書こうとしても moved（上書きの口にはならない）', JSON.stringify(again));
+
+  // 順に埋めていくと、対象外の5つには一度も当たらずに尽きる
+  const walked = [];
+  for (let i = 0; i < 6; i++) {
+    const t = (await brk()).target;
+    if (!t) break;
+    walked.push(`${t.airline}/${t.month}`);
+    const w = await brk({ airline: t.airline, airline_other: t.airline_other,
+                          year: t.year, month: t.month,
+                          base_none: true, guarantee_none: true, variable: '0' });
+    if (!w.ok) { walked.push('✗' + w.code); break; }
+  }
+  ok(walked.join(' ') === `${BB}/6 ${BA}/5 ${BA}/2`,
+     '★新しい順に 総支給だけの月だけを辿って尽きる（内訳あり・総支給なし・裏付けつき・変動給つきには当たらない）',
+     walked.join(' '));
+  ok((await brk()).target === null, '　尽きたら target は null');
+  for (const [m, why] of [[7, '基本給つき'], [11, '「該当なし」だけ'], [12, '職位手当だけ'],
+                          [8, '時給だけ（総支給なし）'], [9, '明細の裏付けつき'],
+                          [10, '変動給の列だけ']]) {
+    const w = await brk({ airline: BA, year: YEAR, month: m,
+                          base: '1', guarantee_none: true, variable_none: true });
+    ok(w.ok === false && w.code === 'moved', `★${BA} ${m}月（${why}）は、名指ししても書けない`,
+       JSON.stringify(w));
+  }
+  const v9 = await myRow(BA, 9);
+  ok(v9.verify_level === 1 && v9.base_pay === null && v9.pay_items === null,
+     '★明細の裏付けが付いた行は、手で1列も書き換わっていない');
+}
+
+// ── (f) 内訳を出したことになる（pv_my_give）── DEEP PAY の個人条件が開く ──
+{
+  const u = ++seat; await asUser(u);
+  await submit(G(BC, 3));
+  const g0 = await give();
+  ok(g0.basic === true && g0.detailed === false && g0.full === false,
+     '（前提）総支給だけの人は detailed も full も false', JSON.stringify(g0));
+  ok((await deep()).gate.detailed === false && (await deep()).state === 'locked',
+     '（前提）DEEP PAY は「内訳が無い」で閉じている');
+  const t = (await brk()).target;
+  const r = await brk({ airline: t.airline, airline_other: t.airline_other,
+                        year: t.year, month: t.month,
+                        base: '6000', guarantee_none: true, variable: '2500' });
+  ok(r.ok === true && r.done === true, '内訳を足せた', JSON.stringify(r));
+  const g1 = await give();
+  ok(g1.detailed === true, '★★足したあと detailed が true になる', JSON.stringify(g1));
+  ok(g1.full === true,
+     '★★3つとも答えているので full も true（REAL PAY の内訳の鍵。判定の式は変えていない）',
+     JSON.stringify(g1));
+  const d = await deep();
+  ok(d.gate.detailed === true && d.state === 'open',
+     '★DEEP PAY の個人条件が満たされて開く', JSON.stringify(d.gate));
+  const row = await myRow(BC, 3);
+  ok(Number(row.flight_variable_pay) === 2500 && Number(row.other_allowance) === 2500,
+     '★変動給は flight_variable_pay と other_allowance の**両方**に入る（その他手当の内訳、という約束）',
+     only(row));
+  ok(JSON.stringify(row.pay_items.variable) === '[{"amount":2500}]',
+     '★変動給の行は金額だけ（連動先は聞いていないので書かない・末尾の 0 も付けない）',
+     JSON.stringify(row.pay_items.variable));
+
+  // 3つとも「該当なし」でも、回答済みとして開く
+  const u2 = ++seat; await asUser(u2);
+  await submit(G(BC, 4));
+  const t2 = (await brk()).target;
+  const r2 = await brk({ airline: t2.airline, year: t2.year, month: t2.month,
+                         base_none: true, guarantee_none: true, variable_none: true });
+  const g2 = await give();
+  ok(r2.ok === true && g2.detailed === true && g2.full === true,
+     '★3つとも「該当なし」でも detailed / full が開く（空欄とは別物）',
+     JSON.stringify({ r2, g2 }));
+  // 金額と「該当なし」が両方来たら金額を採る（フォームの pdSync と同じ）
+  const u3 = ++seat; await asUser(u3);
+  await submit(G(BC, 5));
+  const t3 = (await brk()).target;
+  await brk({ airline: t3.airline, year: t3.year, month: t3.month,
+              base: '4000', base_none: true, guarantee_none: true, variable_none: true });
+  const row3 = await myRow(BC, 5);
+  ok(Number(row3.base_pay) === 4000 && row3.pay_items.fixed_none === false,
+     '★金額と「該当なし」が両方来たら金額を採る（古い「該当なし」を金額に勝たせない）',
+     only(row3));
+}
+
+// ── (g) 他人の行に触らない ── 同じ会社・同じ月を、2人が総支給だけで出している ──
+{
+  const a = ++seat; await asUser(a); await submit(G(BD, 3, { gross_monthly: 15000 }));
+  const b = ++seat; await asUser(b); await submit(G(BD, 3, { gross_monthly: 15000 }));
+  const bRow0 = JSON.stringify(await myRow(BD, 3));
+  const bProf0 = JSON.stringify(await prof(b));
+  await asUser(a);
+  const t = (await brk()).target;
+  ok(t.airline === BD && t.month === 3, '（前提）2人とも、同じ鍵（会社・年・月）の月を持っている');
+  const r = await brk({ airline: t.airline, year: t.year, month: t.month,
+                        base: '9000', guarantee: '1000', variable: '3000' });
+  ok(r.ok === true, 'A が自分の月に内訳を足した', JSON.stringify(r));
+  ok(Number((await myRow(BD, 3)).base_pay) === 9000, '　A の行には入っている');
+  await asUser(b);
+  ok(JSON.stringify(await myRow(BD, 3)) === bRow0 && JSON.stringify(await prof(b)) === bProf0,
+     '★★B の行も、B の会員の列も、1文字も動いていない（鍵は同じでも持ち主が違う）');
+  const tb = (await brk()).target;
+  ok(tb && tb.airline === BD && tb.month === 3 && Number(tb.gross) === 15000,
+     '★B には B 自身の月が「足せる月」として残っている', JSON.stringify(tb));
+  ok((await give()).detailed === false, '★B の detailed は false のまま（A の内訳で開かない）');
+}
+
+// ── (h) 書いたあとの行は、給与フォームから同じ答えで出した行と同じ ──
+/* フォームが送る物の写し（pay-report.html の buildPayload / pdSync）:
+     base_pay / guarantee_pay   … 金額が在ればその額、無ければ null
+     flight_variable_pay        … sumField('f-flightvar', 'f-var-sum') ＝ 変動給の行の合計
+     other_allowance            … sumField('f-other', 'f-var-sum', 'f-oth-sum')
+                                   ＝ 既に在るその他手当 ＋ 変動給の行の合計
+     pay_items                  … { v: 2, fixed_none, guarantee_none, variable_none,
+                                    variable: [{ amount, label, basis }], other: [] }
+   ★違うのは1点だけ ── フォームは変動給の行ごとに「何に連動する支給か」を必ず聞く。
+     pv_pay_breakdown は聞いていないので、比べる相手の行も連動先を空（null）にしてある。
+   ⚠️ フォームの組み立てを変えたら、この写しも直す（直さないと、この検査は古いフォームと
+      同じであることを見続ける）。 */
+{
+  const twin = (row, a) => {
+    const num = (x) => (x == null ? null : String(Number(x)));
+    const sum = (...xs) => {
+      let t = 0, any = false;
+      for (const x of xs) if (x != null) { t += Number(x); any = true; }
+      return any ? String(+t.toFixed(2)) : null;
+    };
+    return { ...row,
+      base_pay: num(a.base), guarantee_pay: num(a.guarantee),
+      flight_variable_pay: sum(a.variable),
+      other_allowance: sum(row.other_allowance, a.variable),
+      pay_items: { v: 2, fixed_none: !!a.base_none, guarantee_none: !!a.guarantee_none,
+                   variable_none: !!a.variable_none,
+                   variable: a.variable != null
+                     ? [{ amount: Number(a.variable), label: null, basis: null }] : [],
+                   other: [] } };
+  };
+  // 比べる列：内訳の5列（pay_items は字面も）＋ 派生の列（どちらの道でも同じはず）
+  const cols = async (air, month) => (await one(
+    `select jsonb_build_object(
+              'base_pay', r.base_pay, 'guarantee_pay', r.guarantee_pay,
+              'flight_variable_pay', r.flight_variable_pay,
+              'other_allowance', r.other_allowance,
+              'pay_items', r.pay_items, 'pay_items_text', r.pay_items::text,
+              'gross_monthly', r.gross_monthly,
+              'annual_total_orig', r.annual_total_orig, 'annual_total_usd', r.annual_total_usd,
+              'usd_per_block_hour', r.usd_per_block_hour) j
+       from pay_reports r
+      where r.proof_hash in (select pv_my_keys())
+        and r.airline = $1 and r.period_month = $2`, [air, month])).j;
+  const CASES = [
+    ['金額・該当なし・金額', {}, { base: '6000', guarantee_none: true, variable: '2500' }],
+    ['3つとも該当なし',      {}, { base_none: true, guarantee_none: true, variable_none: true }],
+    ['0 と小数',             {}, { base: '0', guarantee: '1200.5', variable: '0' }],
+    ['3つとも金額',          {}, { base: '5000', guarantee: '800', variable: '1500.25' }],
+    ['その他手当が既に在る行（明細が入れた 300）',
+                             { other_allowance: 300 },
+                             { base: '5000', guarantee_none: true, variable: '1000' }],
+  ];
+  let month = 1;
+  for (const [label, extra, a] of CASES) {
+    month++;
+    const base = G(BE, month, { block_hours: 70, per_diem: 200, ...extra });
+    // 道1：総支給だけ出して、あとから内訳を足す
+    const u1 = ++seat; await asUser(u1);
+    await submit(base);
+    const t = (await brk()).target;
+    const w = await brk({ airline: t.airline, year: t.year, month: t.month, ...a });
+    const mine = await cols(BE, month);
+    // 道2：別の人が、同じ月を給与フォームから同じ答えで出す
+    const u2 = ++seat; await asUser(u2);
+    await submit(twin(base, a));
+    const form = await cols(BE, month);
+    ok(w.ok === true && JSON.stringify(mine) === JSON.stringify(form),
+       `★フォームの道と列ごとに同じ ── ${label}`,
+       `\n       足した道: ${JSON.stringify(mine)}\n       フォーム: ${JSON.stringify(form)}`);
+  }
+  // 最後の見本（その他手当 300 ＋ 変動給 1,000）を数字でも確かめておく
+  const last = await cols(BE, month);
+  ok(Number(last.other_allowance) === 1300 && Number(last.flight_variable_pay) === 1000,
+     '★既に在るその他手当に、変動給を**足す**（300 ＋ 1,000 ＝ 1,300。上書きしない）',
+     JSON.stringify(last));
+}
+
+// ── (i) 足した月が、DEEP PAY の頭数に入る ─────────────────────
+{
+  const SEL = { airline: BB, position: 'fo', fleet: 'b767' };
+  await person(BB, 'fo', 'b767', [{ month: 3 }]);                 // 内訳つきの1人
+  const u = ++seat; await asUser(u);
+  await submit({ ...G(BB, 3, { gross_monthly: 17000 }), position: 'fo', fleet: 'b767' });
+  await asUser(V);
+  ok(hidden(await deep(SEL)),
+     '（前提）内訳つき1人＋総支給だけ1人の区分は出ていない（総支給だけの人は頭数に入らない）');
+  await asUser(u);
+  const t = (await brk()).target;
+  const r = await brk({ airline: t.airline, year: t.year, month: t.month,
+                        base: '9000', guarantee_none: true, variable: '4000' });
+  ok(r.ok === true, '総支給だけだった人が内訳を足した', JSON.stringify(r));
+  await asUser(V);
+  const d = await deep(SEL);
+  ok(shown(d) && Number(d.head.annual_usd) === 204000,
+     '★★足した瞬間に2人そろって、その区分が出る（年収は総支給から出たまま＝204,000）',
+     JSON.stringify(d.cohort));
+  const seg = (k) => (d.comp.segs || []).find(s => s.k === k);
+  ok(seg('variable') && !seg('other'),
+     '★変動給を二重に数えていない（その他手当の区分は生えない）',
+     JSON.stringify(d.comp.segs));
+}
+await asUser(V);
+
 // ════════════════════════════════════════════════════════════
 /* ★ここが一番効く。deep-pay.sql の末尾には、貼れたかどうかをオーナーが
-     自分で確かめるための18行の表が付いている。**あの表自体が間違っている**と、
+     自分で確かめるための26行の表が付いている。**あの表自体が間違っている**と、
      オーナーは正しく貼れているのに ❌ を見て貼り直す（実際に13番の署名を
      1つ写し間違えていた）。手元で同じ表を出して、全部 ✅ を確かめる。 */
 {
@@ -1667,7 +2524,12 @@ await asUser(V);
   await db.exec(`create table if not exists auth.users (id uuid primary key)`);
   const sql = src.slice(cut);
   const r = await rows(sql);
-  ok(r.length >= 18, `自己点検は ${r.length} 行ある`, String(r.length));
+  /* ★行数は固定で見る（2026-10-11 に 21 → 26）。「以上」で見ると、union all を
+       1行消しても緑のまま ── 消えた1行が、いちばん守りたい約束かもしれない。 */
+  ok(r.length === 26, `自己点検は ${r.length} 行ある（26行）`, String(r.length));
+  ok(r.map(x => Number(x['#'])).join(',') ===
+       Array.from({ length: 26 }, (_, i) => i + 1).join(','),
+     '番号は 1〜26 が1つずつ（重複も欠番も無い）', r.map(x => x['#']).join(','));
   for (const x of r)
     ok(x['答え'] === '✅', `${x['#']}. ${x['見るもの']}`, x['答え']);
 }
