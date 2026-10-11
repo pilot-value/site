@@ -18,8 +18,10 @@
              masked-drawer ★伏せた行を押して開いた面
              locked   ★2026-09-13 より前の骨組み（ap-preview.js が読めないときの落ち先）
              locked-nostat ★サーバをまだ貼り替えていない＝数字カードが1枚も出ない
-             locked-panel ★Give → Get の DEEP PAY の札を押して説明を出したところ
-             locked-ready ★先に内訳を出してくれた人（✓ 準備は完了しています）
+             ★2026-10-11 に locked-panel と locked-ready を外した。どちらも、3段の表の
+               DEEP PAY の札を押して**公開前の説明**（あと◯人・✓ 準備は完了しています）を
+               出すだけの場面だった。DEEP PAY を公開した日に、札も説明も無くなった。
+               3段の表（DEEP PAY は名前だけ）は locked / locked-nostat で写る。
              empty    鍵はあるが1件も無い（正直な1枚）
              rows     SQL を貼る前（明細だけの13人・全員が手入力＝✓ は付かない）
              merged   ★SQL を貼った後（口コミ由来の7人が混ざって20人になる）
@@ -50,8 +52,9 @@
                         0=内訳も勤務もある人 / 1=内訳だけ / 2=勤務だけ /
                         7=昇格後年数の欄ができる前の投稿（札が「在籍◯年」になる）/
                         8=年収だけ（口コミ由来）── 空の面にならないことを見る
-                  gate  drawer のとき、面の主 CTA まで押す（面が閉じて
-                        左メニューと同じ DEEP PAY の説明パネルが出るところ）
+                  ★面の主 CTA（他社と比較する → DEEP PAY）は 2026-10-11 から DEEP PAY への
+                    ただのリンク。前に在った引数 gate（押して説明パネルを出す）は外した ──
+                    押した先は別の画面なので、絵は shot-deep.mjs で撮る。
 
    ★2026-08-24、この画面から図を全部外した。右の棒も「あなた」の破線も無い。
      だから actual-pay.js は本人の明細（my_pay_reports）を引いていない。
@@ -61,6 +64,8 @@
    ★2026-10-05、並びを変えた（オーナー指示「上にいきなり real pay の最初から始める」）。
      鍵が無い人 … 見出し → 絞り込み → 伏せた一覧 → 橙の案内 → 見えること → 数字カード
      鍵がある人 … 見出し → 絞り込み → 一覧 → ページ送り → 数字カード
+   ★2026-10-11、見出しがタブになった（REAL PAY ｜ DEEP PAY。DEEP PAY への入口）。
+     どの場面でもいちばん上に写る。狭い幅は w=390 / w=320、暗い面は dark で。
 
    ★行の中身はこのファイルが作った作り物。本番の数字ではない。
    ⚠️ localhost が要る（node serve.mjs）。本番の DB には触らない（Supabase ごと差し替える）。
@@ -96,9 +101,6 @@ const hArg = process.argv.slice(4).find((a) => /^h=\d+$/.test(a));
 const H = hArg ? Number(hArg.slice(2)) : 1100;
 /* drawer のとき、どの行を押すか。★1ページ目に載っている行しか押せない（10件で改頁）。 */
 const rArg = process.argv.slice(4).find((a) => /^row=\d+$/.test(a));
-/* drawer のとき、面の主 CTA まで押す。★飛び先は DEEP PAY ではなく、
-   左メニューと同じ「まだ開けていない」の説明パネル（#mr-gate）。 */
-const gate = process.argv.slice(4).includes('gate');
 
 const UID = '00000000-0000-4000-8000-00000000c001';
 
@@ -192,7 +194,8 @@ const ST = (reports, month) => ({ reports: reports, month: month });
 
 /* ★鍵が無い人にも来る数え上げ（2026-08-25 オーナー判断）。
    行が1件も返らないので、社数もサーバーが数えて渡す。
-   contributors ＝ 給与を出したユニークな人数（DEEP PAY の「N / 100人」の分子）。
+   contributors ＝ 給与を出したユニークな人数（サーバは今も返すが、この画面には出ない ──
+                   前は 3段の表の DEEP PAY の札「N / 100人」の分子だった。札は 2026-10-11 に外した）。
    ⚠️ ここは絵を見るための**見本**であって、本番の値そのものではない。
       2026-09-14 に `node db/usage.mjs --all` の「REAL PAY の画面に出る数」を写した
       （口コミに給与を書いただけの人も数えるようにした後の実測）。
@@ -414,16 +417,6 @@ const SCENES = {
   /* ★サーバ（db/pay-rows.sql）をまだ貼り替えていないとき。
      数が1つも読めないので、カードは1枚も出ない＝埋めるための 0 を置かない。 */
   'locked-nostat': { pay: { ok: true, state: 'locked', rows: [] } },
-  /* ★左メニューのロックを押したときの説明（2026-08-25）。
-     覆いではないので、下のページが残ったまま上に1枚差し込まれる。
-     DEEP PAY は条件が2つ（100人 ／ 本人の内訳）。まだ内訳を出していない人の絵。 */
-  'locked-panel': { pay: { ok: true, state: 'locked', rows: [], stats: ST_LOCK,
-                           give: { basic: false, detailed: false, payslip: false } },
-                    gate: 'deep' },
-  /* ★先に内訳を出してくれた人。「出し損」に見えないことを絵で確かめる。 */
-  'locked-ready': { pay: { ok: true, state: 'locked', rows: [], stats: ST_LOCK,
-                           give: { basic: true, detailed: true, payslip: false } },
-                    gate: 'deep' },
   empty:  { pay: { ok: true, state: 'open', rows: [], stats: ST(0, 0) } },
   rows:   { pay: { ok: true, state: 'open', rows: ROWS,   stats: ST(17, 13) } },
   /* ★口コミ由来の7人が混ざった状態。行が13→20に増える。
@@ -549,26 +542,6 @@ if (S.q) {
   await new Promise((r) => setTimeout(r, 500));
 }
 
-/* ⚠️ 2026-09-06、押す場所が変わった。左メニューの DEEP PAY / VERIFIED PAY の段は
-     ナビを7項目へ畳んだときに撤去したので、いまの入口は**本文の Give → Get の
-     DEEP PAY の札**（data-pv-give="deep"）。VERIFIED PAY の札は押せない
-     ＝ gate: 'verified' では撮れない。★押せなかったら止める ── 説明の出ていない絵を
-     撮って「出ている」と勘違いしないため。 */
-if (S.gate) {
-  const hit = await page.evaluate((k) => {
-    const b = document.querySelector('[data-pv-give="' + k + '"]');
-    if (!b) return 'no-pill';
-    b.click();
-    return 'ok';
-  }, S.gate);
-  if (hit !== 'ok') {
-    console.error('Give → Get の札（' + S.gate + '）が無い。鍵を持つ人の画面では出ない。');
-    process.exit(1);
-  }
-  await page.waitForFunction(() => !!document.querySelector('#mr-gate'), { timeout: 5000 });
-  await new Promise((r) => setTimeout(r, 400));
-}
-
 /* ★右から出るドロワーを開く（2026-09-06）。**1000px 未満でしか出ない。**
      広い幅では左レールが常に見えていて ≡ そのものが無いので、そこで呼ばれたら止める。
      ★待つのは時間ではなく「板が左端に着いたこと」。 */
@@ -619,19 +592,6 @@ if (S.open !== undefined) {
     () => { const d = document.querySelector('.ap-dw-back'); return !!(d && d.classList.contains('is-in')); },
     { timeout: 5000 });
   await new Promise((r) => setTimeout(r, 500));
-
-  /* gate ── 面の主 CTA を押す（2026-09-03）。面が閉じて、左メニューと同じ
-     DEEP PAY の説明パネルが本文の頭に出るところまで。
-     ★DEEP PAY へは飛ばない（あちらへの辺は2本だけと決めてある）。
-     ★待つのは時間ではなく **#mr-gate が出たこと**。 */
-  if (gate) {
-    await page.evaluate(() => {
-      const b = document.querySelector('.ap-dw-cta');
-      if (b) b.click();
-    });
-    await page.waitForFunction(() => !!document.querySelector('#mr-gate'), { timeout: 5000 });
-    await new Promise((r) => setTimeout(r, 400));
-  }
 }
 
 /* ★下から出る絞り込みを開く（2026-09-05）。

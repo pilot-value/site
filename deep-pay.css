@@ -6,6 +6,9 @@
      ・カードの器・見出し・スケルトンは my-value.css（.mr-*）
      ・ドーナツと凡例は pay-viz.css（.pt-*）
      足りているものを書き直さない。
+     ★例外は1つだけ ── いちばん下の PV-PAYTABS の塊（.pv-paytab*。REAL PAY ⇄ DEEP PAY の
+       タブ）。actual-pay.css と1文字も違わない同じ塊なので、どちらの接頭辞も付けられない。
+       ⚠️ このファイルは会社比較（deep-pay-compare.html）も読むが、あちらにタブは置いていない。
 
    ⚠️ .pt-* / .mv-* を**トップレベルで再定義しない**
       （db/test-form-contract.mjs が見張っている）。
@@ -487,7 +490,8 @@
    この gap なので、下で margin-top:0 に潰している（両方効くと二重に空く）。 */
 #dp-root .mr-hd{margin-bottom:10px;display:flex;align-items:center;
   justify-content:space-between;gap:12px 16px;flex-wrap:wrap}
-#dp-root .mr-hd-t{font-size:1.5rem;line-height:1.2;flex:none}
+/* ★見出しの字そのもの（前の #dp-root .mr-hd-t）は 2026-10-11 にタブへ替わった。
+     大きさ・行の高さ・縮まないこと（flex:none）は、いちばん下の PV-PAYTABS の塊が持つ。 */
 #dp-root .dp-cond{margin-top:0;flex:1 1 460px}
 #dp-root .mr-card{padding:14px 18px}
 #dp-root .mr-card-h{margin-bottom:10px}
@@ -541,3 +545,51 @@
   .dp-more-r{width:100%}
   .dp-more-b{flex:1 1 auto;justify-content:center}
 }
+
+/* ══ PV-PAYTABS:BEGIN ═══════════════════════════════════════════════
+   REAL PAY ⇄ DEEP PAY のタブ（2026-10-11 オーナー指示「上の REAL PAY の横に DEEP PAY の
+   入り口作って。タブみたいな形に」）。actual-pay.html と deep-pay.html（日英）の見出し。
+
+   ★この塊は actual-pay.css と deep-pay.css に**1文字も違わず同じもの**が在る。
+     2枚のタブが同じ形で同じ場所に出ないと、画面を替えたときにタブが動いて見える。
+     直すときは両方へ同じものを貼る（BEGIN〜END のあいだを assert-pay-rows.mjs と
+     assert-deep-pay.mjs が突き合わせている）。そのあと ?v= も付け替える
+     （node assert-links.mjs が出す値。deep-pay.css は会社比較の2枚も読んでいる）。
+   ★共有の CSS（my-value.css など）へ出さなかったのは、あちらは18枚が読むから。
+     タブを持つのは4枚だけ。
+   ★クラスは .pv-paytab*。.ap-* でも .dp-* でもないのは、この塊だけが2つのファイルに
+     またがるため（どちらのファイルの決まりにも、例外はこれ1つ）。
+   ★いま居る側は <h1 class="pv-paytab is-on" aria-current="page">、
+     もう片方は <a class="pv-paytab" href="…">（HTML に静的に在る。JS は書かない）。
+   ⚠️ 動かすのは transform と opacity だけ。色は切り替えるだけで、流さない。
+   ⚠️ 畳んだ下線を、透明にする・見えなくする宣言で隠さない（deep-pay.css はどちらも
+      禁じている）。押す前の下線は transform:scaleX(0) で畳んである。
+   ⚠️ 色は --pv-* だけ（明暗の切り替えがそのまま効く）。
+   ⚠️ 320px でも1行に入ること（字の大きさと間を vw で詰めている）。
+   ════════════════════════════════════════════════════════════════ */
+.pv-paytabs{display:inline-flex;align-items:flex-end;flex:none;max-width:100%;
+  gap:clamp(16px,5vw,26px);box-shadow:inset 0 -1px 0 var(--pv-line)}
+.pv-paytab{position:relative;display:block;margin:0;padding:2px 1px 9px;
+  font-size:clamp(1.25rem,6.4vw,1.5rem);font-weight:800;letter-spacing:-.03em;
+  line-height:1.2;white-space:nowrap;text-decoration:none;color:var(--pv-ink-3);
+  transition:transform .18s var(--pv-ease),opacity .18s var(--pv-ease)}
+/* 下線 ── いま居る側は橙の実線。もう片方は畳んであって、指を乗せると伸びる。 */
+.pv-paytab::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;
+  border-radius:3px 3px 0 0;background:var(--pv-orange);
+  transform:scaleX(0);transform-origin:0 50%;
+  transition:transform .22s var(--pv-ease),opacity .18s var(--pv-ease)}
+.pv-paytab.is-on{color:var(--pv-ink)}
+.pv-paytab.is-on::after{transform:none}
+/* ★押せる的は縦 46px（字の箱は 36〜40px。44px に届かない）。置き場所は動かさず、
+     的だけを字のまんなかから上下へ広げる ── 字が小さくなる幅（320px）でも同じ高さ。 */
+a.pv-paytab::before{content:"";position:absolute;left:-7px;right:-7px;top:50%;
+  height:46px;margin-top:-23px}
+a.pv-paytab:hover{color:var(--pv-ink)}
+a.pv-paytab:hover::after{transform:none;opacity:.45}
+a.pv-paytab:focus-visible{outline:2px solid var(--pv-orange);outline-offset:4px;border-radius:6px}
+a.pv-paytab:active{transform:translateY(1px);opacity:.78}
+@media (prefers-reduced-motion:reduce){
+  .pv-paytab,.pv-paytab::after{transition:none}
+  a.pv-paytab:active{transform:none}
+}
+/* ══ PV-PAYTABS:END ══ */

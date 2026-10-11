@@ -405,7 +405,8 @@ await page.evaluateOnNewDocument((scene, theme, lang, cur) => {
 
 await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
 /* ★時間で待たない（混んだ回に嘘の結果が出る）。「描き終わった」条件で待つ。
-   deep-pay.js は必ず #dp-hd に <h1> を書き込んでから他を描く。 */
+   ★<h1> は 2026-10-11 から HTML に静的に在る（REAL PAY ⇄ DEEP PAY のタブ）ので、
+     1つめはすぐ通る。描き終わりを捕まえているのは2つめ（骨組みが消える）。 */
 await page.waitForFunction(
   () => !!document.querySelector('#dp-hd h1'), { timeout: 15000 });
 await page.waitForFunction(

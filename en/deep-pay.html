@@ -6,7 +6,10 @@
 <link rel="apple-touch-icon" href="../assets/favicon-180.png"/>
   <script>(function(){var t=localStorage.getItem('pv-theme')||'light';document.documentElement.setAttribute('data-theme',t);}());</script>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <!-- 給与の項目をぜんぶ答えた人だけが読める画面（2026-10-11 から。前は「内訳を1件でも出した人」）。ログインが要るので検索に出してはいけない -->
+  <!-- 給与の項目をぜんぶ答えた人が読める画面（2026-10-11 から。前は「内訳を1件でも出した人」）。
+       ★公開より前に内訳の3つ（基本給・保証手当／職務手当・変動給）に答えていた人は、開いたまま
+         （同じ日のオーナー判断。線は db/deep-pay.sql の門 ── v_old）。
+       ログインが要るので検索に出してはいけない -->
   <title>DEEP PAY — What the Pay Is Made Of | PILOT VALUE</title>
 <!--PV-SEO-->
 <!--PV-SRC t="DEEP PAY — What the Pay Is Made Of" d="See how the same airline and rank actually get paid: fixed vs variable, and the flying behind it. No individual payslip is ever shown."-->
@@ -54,7 +57,7 @@
   <link rel="stylesheet" href="../app-nav.css">
   <!-- この画面だけの見た目（.dp-*）。
        ★.pt-* / .mv-* をトップレベルで書き直さない（db/test-form-contract.mjs が見ている）。 -->
-  <link rel="stylesheet" href="../deep-pay.css?v=65abf550">
+  <link rel="stylesheet" href="../deep-pay.css?v=74040e87">
 
   <style>
     /* ここに置くのは「CSS が届く前に見えてしまう部分」だけ。
@@ -158,9 +161,21 @@
            pv-currency-change で描き直す（RPC は引き直さない）。 -->
       <div class="pv-no-cur" id="dp-root">
 
-        <!-- 見出しと、いま見ている区分の1行。中身は deep-pay.js が入れる -->
+        <!-- 見出し（REAL PAY ⇄ DEEP PAY のタブ）と、いま見ている区分の1行。
+             ★タブは HTML に静的に在る（2026-10-11 オーナー指示「上の REAL PAY の横に
+               DEEP PAY の入り口作って。タブみたいな形に」）。JS が動く前から見えていて、
+               閉じている画面（ぼかした影絵＋板）でも、開いた画面でも、同じ場所に居る。
+             ★h1 はこの画面に1つだけ ── いま居る側（DEEP PAY）がそれ。REAL PAY はただのリンク。
+               actual-pay.html は逆。**並びは2枚で同じ**（REAL PAY が左）。
+             ★deep-pay.js が入れるのは、タブの後ろの「いま見ている区分」の1行（.dp-cond）だけ。
+               ⚠️ この器（#dp-hd）の innerHTML を丸ごと書き換えない ── タブごと消える。
+             ★見た目（.pv-paytabs / .pv-paytab）は deep-pay.css と actual-pay.css に**同じ塊**で在る。
+             ⚠️ 会社比較（deep-pay-compare.html）にはタブを置いていない（あちらは DEEP PAY の中の1枚）。 -->
         <div class="mr-hd" id="dp-hd">
-          <div class="mr-skel" style="height:30px;width:42%"></div>
+          <nav class="pv-paytabs" aria-label="Switch between REAL PAY and DEEP PAY">
+            <a class="pv-paytab" href="actual-pay.html">REAL PAY</a>
+            <h1 class="pv-paytab is-on" aria-current="page">DEEP PAY</h1>
+          </nav>
         </div>
 
         <!-- 区分を選ぶ（会社 / 役職 / 機材）。中身は deep-pay.js が入れる。
@@ -238,7 +253,7 @@
        deep-pay.css / deep-pay.js).
      Change one → copy the value assert-links.mjs prints to every page that loads it
      (deep-pay.css: all 4 pages, 2 screens × ja/en; the others: the ja/en pair). -->
-<script src="../deep-pay.js?v=03304ccd"></script>
+<script src="../deep-pay.js?v=1c6e8d97"></script>
 <!-- "Please resubmit" notice. Shown **only to the member themselves** when one of
      their own pay reports has net pay above gross pay.
      ★Nothing is shown to signed-out visitors or to members with nothing to fix

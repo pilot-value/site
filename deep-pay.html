@@ -6,7 +6,10 @@
 <link rel="apple-touch-icon" href="assets/favicon-180.png"/>
   <script>(function(){var t=localStorage.getItem('pv-theme')||'light';document.documentElement.setAttribute('data-theme',t);}());</script>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <!-- 給与の項目をぜんぶ答えた人だけが読める画面（2026-10-11 から。前は「内訳を1件でも出した人」）。ログインが要るので検索に出してはいけない -->
+  <!-- 給与の項目をぜんぶ答えた人が読める画面（2026-10-11 から。前は「内訳を1件でも出した人」）。
+       ★公開より前に内訳の3つ（基本給・保証手当／職務手当・変動給）に答えていた人は、開いたまま
+         （同じ日のオーナー判断。線は db/deep-pay.sql の門 ── v_old）。
+       ログインが要るので検索に出してはいけない -->
   <title>DEEP PAY｜給与の中身を見る | PILOT VALUE</title>
 <!--PV-SEO-->
 <!--PV-SRC t="DEEP PAY｜給与の中身を見る" d="同じ会社・同じ役職のパイロットの給与を、固定と変動の内訳、働き方の前提とセットで見ます。個人の明細は1件も表示しません。"-->
@@ -54,7 +57,7 @@
   <link rel="stylesheet" href="app-nav.css">
   <!-- この画面だけの見た目（.dp-*）。
        ★.pt-* / .mv-* をトップレベルで書き直さない（db/test-form-contract.mjs が見ている）。 -->
-  <link rel="stylesheet" href="deep-pay.css?v=65abf550">
+  <link rel="stylesheet" href="deep-pay.css?v=74040e87">
 
   <style>
     /* ここに置くのは「CSS が届く前に見えてしまう部分」だけ。
@@ -158,9 +161,21 @@
            pv-currency-change で描き直す（RPC は引き直さない）。 -->
       <div class="pv-no-cur" id="dp-root">
 
-        <!-- 見出しと、いま見ている区分の1行。中身は deep-pay.js が入れる -->
+        <!-- 見出し（REAL PAY ⇄ DEEP PAY のタブ）と、いま見ている区分の1行。
+             ★タブは HTML に静的に在る（2026-10-11 オーナー指示「上の REAL PAY の横に
+               DEEP PAY の入り口作って。タブみたいな形に」）。JS が動く前から見えていて、
+               閉じている画面（ぼかした影絵＋板）でも、開いた画面でも、同じ場所に居る。
+             ★h1 はこの画面に1つだけ ── いま居る側（DEEP PAY）がそれ。REAL PAY はただのリンク。
+               actual-pay.html は逆。**並びは2枚で同じ**（REAL PAY が左）。
+             ★deep-pay.js が入れるのは、タブの後ろの「いま見ている区分」の1行（.dp-cond）だけ。
+               ⚠️ この器（#dp-hd）の innerHTML を丸ごと書き換えない ── タブごと消える。
+             ★見た目（.pv-paytabs / .pv-paytab）は deep-pay.css と actual-pay.css に**同じ塊**で在る。
+             ⚠️ 会社比較（deep-pay-compare.html）にはタブを置いていない（あちらは DEEP PAY の中の1枚）。 -->
         <div class="mr-hd" id="dp-hd">
-          <div class="mr-skel" style="height:30px;width:42%"></div>
+          <nav class="pv-paytabs" aria-label="REAL PAY と DEEP PAY の切り替え">
+            <a class="pv-paytab" href="actual-pay.html">REAL PAY</a>
+            <h1 class="pv-paytab is-on" aria-current="page">DEEP PAY</h1>
+          </nav>
         </div>
 
         <!-- 区分を選ぶ（会社 / 役職 / 機材）。中身は deep-pay.js が入れる。
@@ -238,7 +253,7 @@
        deep-pay.css / deep-pay.js）。
      直したら assert-links.mjs が出す値を、読んでいるページ全部に写す
      （deep-pay.css は2画面 × 日英の4枚・ほかは日英の2枚）。 -->
-<script src="deep-pay.js?v=03304ccd"></script>
+<script src="deep-pay.js?v=1c6e8d97"></script>
 <!-- 出し直しのお願い。提出した給与に「手取り ＞ 総支給」の月がある**本人にだけ**出る。
      ★未ログインの人・問題の無い人には何も出さない（線と、通信を増やさない工夫は pv-pay-fix.js の冒頭）。
      ★この画面の PV_SESSION と sb を借りるので、それより**後**に読む。
