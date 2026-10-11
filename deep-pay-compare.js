@@ -2,24 +2,35 @@
    ─────────────────────────────────────────────────────────────────
    2社を横に並べる画面。**新しい SQL は無い。**
    db/deep-pay.sql の pv_deep_pay(jsonb) を、会社を入れ替えて2回呼ぶだけ。
-   ＝ n≧3 の壁・有効数字2桁・準識別子の抑制が SQL の1か所に残ったまま再利用される。
+   ＝ 人数の壁（v_min）・金額の丸め・準識別子の抑制が SQL の1か所に残ったまま再利用される。
 
    ⚠️ 守る約束（deep-pay.js と同じ。破ると匿名性か信用のどちらかが落ちる）
-   1. **JS に `n < 3` と書かない。** 人数の壁は db/deep-pay.sql の1か所だけ。
-      薄い区分の合図は `cohort.level === 'none'` ただ1つ。
+   1. **JS で人数を数えない・比べない。** 人数の壁は db/deep-pay.sql の1か所だけ
+      （定数 v_min。2026-10-11 から2人）。薄い区分の合図は `cohort.level === 'none'` ただ1つ。
+      ★2026-10-11 から、**人数は画面のどこにも出さない**（オーナー判断）── その区分に
+        何人いるかも、壁が何人かも。サーバも区分の人数を返さなくなり、代わりに
+        信頼度の段（cohort.trust）だけが来る。⚠️ 古いサーバが n を返しても読まない。
+        例外は錠前の板の「…100人に達すること（いま N人）」の1行だけ（サイト全体の数）。
    2. **無い数字を 0 と書かない。** 片側でも欠けている行は、表から行ごと落とす。
-      0% と書くと「その手当が無い会社」に見えるが、実際は「3人に届かず出せない」だけ。
+      0% と書くと「その手当が無い会社」に見えるが、実際は「人数の壁に届かず出せない」だけ。
    3. **変動給比率を「100 − 固定・保証給比率」で出さない。** db/deep-pay.sql の fixed_pct は
       固定＋職位＋役割で、残りにはパーディアム・住宅・その他・未分類も入っている。
-   4. **順位・パーセンタイル・勝ち負けを書かない。** 差の数値も書かない
-      （有効数字2桁の数どうしで「+18%」は嘘の精度）。▲▼も勝ち色も付けない。
+   4. **順位・パーセンタイル・勝ち負けを書かない。** 差を**割合**で書かない
+      （中央値どうしで「+18%」は嘘の精度）。書くのは画面に出ている2つの数の
+      引き算だけ（delta() の注）。▲▼も勝ち色も付けない。
    5. **「時給」と呼ばない。** Pay / Block Hour は Block Hours から出した指標。
    6. **個人の明細を出さない。** ここに出るのは中央値と割合だけ。
+
+   ★金額の細かさ（2026-10-11・オーナー判断）── deep-pay.js と同じ。
+     年収の中央値と Pay / Block Hour だけ、表示通貨の中で刻みに寄せる
+     （円なら 1万円・100円／それ以外は 1,000・1。stepIn）。パーディアム・住宅手当の
+     月額は今までどおり有効数字2桁（moneyExact）。丸める道具は deep-pay.js から
+     本体ごと写してある（ずれは assert が見張る）。
 
    ★モックから意図的に外したもの（後から足されないよう理由を残す）
    - 国の絞り込み ── pv_deep_pay に国の facet が無い。無い絞り込みを出すのは嘘になる。
    - 「直近12か月」 ── db/deep-pay.sql の窓は24か月。
-   - ピルの「件」 ── DEEP PAY は proof_hash で1行＝1人に束ねている。数えるのは人。
+   - ピルの「件」 ── 件数も人数も出さない（上の1）。ピルに出すのは信頼度の段。
    - 棒の中の「賞与」 ── 賞与は年額。月々の現金の100%に混ぜると分母が壊れる。
      表には行として残す。**モックの凡例のほうが誤り。**
 */
@@ -52,7 +63,11 @@
     ja: {
       hd: '会社を比べる',
       hdS: '2社を横に並べて、同じ物差しで読みます。順位は付けません。',
-      now: '表示中:', months: '直近24か月', people: '人', vs: 'vs',
+      now: '表示中:', months: '直近24か月',
+      /* ★「◯人 vs ◯人」の語（人・vs）は 2026-10-11 に消した。人数を出す場所が
+         無くなったので、単位の語ごと持たない。代わりは会社ごとの信頼度の札。
+         文言は deep-pay.js の trust / hi / mid / lo と同じ。 */
+      trust: '信頼度', hi: '高', mid: '中', lo: '低',
       pickA: '会社A', pickB: '会社B', pickPos: '役職（両社共通）',
       /* ★機材は左右で別（2026-09-01・オーナー確定）。会社が違えば飛ばす機材も
          違うので、両社共通にすると片方が必ず空振りする。役職は共通のまま
@@ -70,9 +85,9 @@
       dupT: '別の会社を選んでください',
       dupS: '会社Aと会社Bに同じ会社が入っています。',
       fewT: '比べられる会社が、まだ2社ありません',
-      fewS: '3人そろった会社から順に出ます。',
+      fewS: 'データがそろった会社から順に出ます。',
       thinT: 'まだ出せません',
-      thinS: '3人そろった区分から順に出ます。',
+      thinS: 'データがそろった区分から順に出ます。',
       mAnnual: '年収（中央値）', mPbh: 'Pay / Block Hour', mFixed: '固定・保証給比率',
       mVar: '変動給比率', mPer: 'パーディアム比率', mHou: '住宅手当比率',
       mPerA: 'パーディアム（月額）', mHouA: '住宅手当（月額）',
@@ -83,16 +98,18 @@
       thItem: '項目',
       mixT: '給与構成の比較', mixS: '月々の現金・賞与ぬき',
       mixNone: 'この2社では、給与構成をまだ並べられません。',
-      mixNote: '※ 3人に満たない項目は棒に入れていません。棒の合計が100%にならないことがあります。',
+      mixNote: '※ データが足りない項目は棒に入れていません。棒の合計が100%にならないことがあります。',
       tradeT: 'トレードオフ', tradeS: '同じ側が2つとも上回ったときだけ',
       tr1: '{n} ── 年収の中央値 {x}、Block Hours {y}。',
       tr2: '{n} ── 年収の中央値 {x}、ステイの泊数 {y}。',
       tr3: '{n} ── Pay / Block Hour {x}、Block Hours {y}。',
       trEnd: 'どちらが良いかではなく、何を重視するかで見方が変わります。',
       /* ★「データの見方」の板5枚はオーナー判断で削除（2026-08-31・じゃま）。
-         残したのはこの1行だけ ── 3人の壁は約束、時給と呼ばないのは仕様。
-         カードにせず、表の下に淡い1行で置く（賞与の扱いは mixS が言っている）。 */
-      foot: '※ 3人以上そろった区分だけを出しています。Pay / Block Hour は、1人ずつ「年収 ÷ 12 ÷ Block Hours」を出した中央値です。時給ではありません。',
+         残したのはこの1行だけ ── 人数の壁は約束、時給と呼ばないのは仕様。
+         カードにせず、表の下に淡い1行で置く（賞与の扱いは mixS が言っている）。
+         ★2026-10-11、壁が何人かを書くのをやめた（オーナー判断）。壁が在ること
+           だけを言う。「1人ずつ」は人数ではなく計算の仕方なので残す。 */
+      foot: '※ データが十分にそろった区分だけを出しています。Pay / Block Hour は、1人ずつ「年収 ÷ 12 ÷ Block Hours」を出した中央値です。時給ではありません。',
       /* ★年収が何を含むかは、これまで画面のどこにも書いていなかった（2026-09-01 に追加）。
          中身は db/pay-reports.sql の pv_annual_total と対。deep-pay.js の footA と同じ文。 */
       footA: '※ 年収＝住宅手当・パーディアム・交通費・賞与・利益分配を含む現金の年換算。現物の社宅は含みません。',
@@ -101,6 +118,11 @@
       lockT: 'DEEP PAY はまだ開いていません',
       lockKey: '給与を1件出すと、90日ぶん開きます。',
       lockDet: '内訳（基本給・手当）まで書いた明細を1件出すと開きます。',
+      /* ★人数が足りなくて閉じているときの行（2026-10-11 にこの画面へ足した）。
+         deep-pay.js の lockGoal と同じ文。前はこの画面だけ持っておらず、鍵も内訳も
+         そろった人に「内訳を出すと開きます」と出ていた。出すかどうかは lockLines()。
+         ★この画面で人数が出てよいのは**この1行だけ**（サイト全体の数）。 */
+      lockGoal: '給与を出したパイロットが{goal}人に達すること（いま{n}人）。',
       lockCta: '匿名で給与を出す',
       lockN: '出した内容は集計にしか使いません。個人の明細は誰にも表示されません。',
       err: '読み込めませんでした。少し待ってから開き直してください。'
@@ -108,7 +130,8 @@
     en: {
       hd: 'Compare airlines',
       hdS: 'Two airlines side by side, read on the same scale. No ranking.',
-      now: 'Showing:', months: 'last 24 months', people: ' pilots', vs: 'vs',
+      now: 'Showing:', months: 'last 24 months',
+      trust: 'Confidence', hi: 'High', mid: 'Medium', lo: 'Low',
       pickA: 'Airline A', pickB: 'Airline B',
       /* ★役職・機材は左右で共通。ラベルにそう書く ── 見出しを1段足すと
          1画面（1512×980）の約束を破るので、語だけで解く。 */
@@ -124,9 +147,9 @@
       dupT: 'Choose a different airline',
       dupS: 'Airline A and airline B are the same.',
       fewT: 'Not enough airlines to compare yet',
-      fewS: 'Airlines appear once 3 pilots have reported.',
+      fewS: 'Airlines appear once enough pilots have reported.',
       thinT: 'Not available yet',
-      thinS: 'Groups appear once 3 pilots have reported.',
+      thinS: 'Groups appear once enough pilots have reported.',
       mAnnual: 'Annual pay (median)', mPbh: 'Pay / Block Hour', mFixed: 'Fixed & guaranteed share',
       mVar: 'Variable pay share', mPer: 'Per diem share', mHou: 'Housing share',
       mPerA: 'Per diem (monthly)', mHouA: 'Housing allowance (monthly)',
@@ -137,19 +160,20 @@
       thItem: 'Item',
       mixT: 'Pay mix, side by side', mixS: 'Monthly cash, bonus excluded',
       mixNone: 'The pay mix cannot be lined up for these two yet.',
-      mixNote: 'Items reported by fewer than 3 pilots are left out of the bar, so a bar may not reach 100%.',
+      mixNote: 'Items without enough data are left out of the bar, so a bar may not reach 100%.',
       tradeT: 'Trade-offs', tradeS: 'Only when the same side leads both',
       tr1: '{n} — median annual pay {x}, block hours {y}.',
       tr2: '{n} — median annual pay {x}, layover nights {y}.',
       tr3: '{n} — pay per block hour {x}, block hours {y}.',
       trEnd: 'It is not about which is better, but about what you value.',
-      foot: 'Only groups of 3 or more pilots are shown. Pay / Block Hour is the median of each pilot’s annual pay ÷ 12 ÷ block hours. It is not an hourly wage.',
+      foot: 'Only groups with enough data are shown. Pay / Block Hour is the median of each pilot’s annual pay ÷ 12 ÷ block hours. It is not an hourly wage.',
       footA: 'Annual pay = cash incl. housing allowance, per diem, transport, bonus and profit share; housing in kind is not counted.',
       ctaT: 'Go deeper', ctaS: 'There are other ways to read this.',
       cta1: 'Compare other airlines', cta3: 'Back to DEEP PAY',
       lockT: 'DEEP PAY is not open yet',
       lockKey: 'Share one pay report and it opens for 90 days.',
       lockDet: 'Share one report with the breakdown (base pay and allowances) to open it.',
+      lockGoal: 'It opens once {goal} pilots have shared their pay (currently {n}).',
       lockCta: 'Share your pay anonymously',
       lockN: 'What you share is only used in aggregates. No individual payslip is ever shown.',
       err: 'Could not load. Please try again in a moment.'
@@ -215,12 +239,28 @@
     var p = Math.pow(10, Math.floor(Math.log(v) / Math.LN10) - 1);
     return Math.round(v / p) * p;
   }
-  function money(usd) {                     // USD → 表示通貨（2桁・K/M 圧縮あり）
+  /* ★見出しの2つ（年収・Pay / Block Hour）だけ、表示通貨の中で刻みに寄せる
+     （2026-10-11。なぜそうするか・1e-9 の理由は deep-pay.js の stepIn の注）。
+     ⚠️ 下の4つ（stepIn / money / moneyRate / moneyExact）と sig2 は deep-pay.js と
+        **1文字も違えない**。違うと、同じ会社の同じ数字が2つの画面で別の額になる。 */
+  function stepIn(jpy, yenStep, curStep) {
+    var C = w.PVCurrency;
+    var cur = (C && C.get) ? C.get() : 'JPY';
+    var rate = (C && C.rates && C.rates[cur]) || 1;
+    var st = (cur === 'JPY') ? yenStep : curStep;
+    return Math.round(jpy / rate / st + 1e-9) * st * rate;
+  }
+  function money(usd) {                     // 年収。USD → 表示通貨（刻み 1万円／1,000・K/M 圧縮あり）
     var n = num(usd);
     if (n == null) return null;
-    return fmt(sig2(usdToJpy(n)));
+    return fmt(stepIn(usdToJpy(n), 1e4, 1e3));
   }
-  function moneyExact(usd) {                // USD → 表示通貨（2桁・圧縮なし）
+  function moneyRate(usd) {                 // Pay / Block Hour。USD → 表示通貨（刻み 100円／1・圧縮なし）
+    var n = num(usd);
+    if (n == null) return null;
+    return exact(stepIn(usdToJpy(n), 100, 1));
+  }
+  function moneyExact(usd) {                // 給与構成の月額。USD → 表示通貨（2桁・圧縮なし）
     var n = num(usd);
     if (n == null) return null;
     return exact(sig2(usdToJpy(n)));
@@ -292,12 +332,12 @@
   function sideThin(x) { return !x || !x.cohort || x.cohort.level === 'none'; }
   function segsOf(x) { return (x && x.comp && x.comp.segs) || []; }
   /* ★無い区分は null を返す。0 を返さない ── 0% と書けば「その手当が無い会社」に見えるが、
-     実際は「3人に届かず出せない」だけのことがある。 */
+     実際は「人数の壁に届かず出せない」だけのことがある。 */
   function segPct(segs, k) {
     for (var i = 0; i < segs.length; i++) if (segs[i].k === k) return num(segs[i].pct);
     return null;
   }
-  /* 区分ごとの月額中央値（USD）。db/deep-pay.sql の cseg が 3人以上そろった区分にだけ
+  /* 区分ごとの月額中央値（USD）。db/deep-pay.sql の cseg が、人数の壁を越えた区分にだけ
      載せてくる。無ければ null ── 0 を返さない（segPct と同じ理由）。 */
   function segAmt(segs, k) {
     for (var i = 0; i < segs.length; i++) if (segs[i].k === k) return num(segs[i].med_usd);
@@ -314,7 +354,9 @@
   var MET = {
     annual:   { lab: T.mAnnual, f: money,
                 get: function (x) { return num(x.head && x.head.annual_usd); } },
-    pbh:      { lab: T.mPbh,    f: moneyExact,
+    /* ★Pay / Block Hour は moneyRate（刻み）。moneyExact（2桁）に戻すと、
+       同じ区分が DEEP PAY の画面と違う額になる（あちらも moneyRate）。 */
+    pbh:      { lab: T.mPbh,    f: moneyRate,
                 get: function (x) { return num(x.head && x.head.per_block_usd); } },
     fixed:    { lab: T.mFixed,  f: pct,
                 get: function (x) { return num(x.head && x.head.fixed_pct); } },
@@ -523,7 +565,21 @@
     box.innerHTML = '<h1 class="mr-hd-t">' + esc(T.hd) + '</h1>' +
       '<p class="mr-hd-s">' + esc(T.hdS) + '</p>';
   }
-  function nOf(x) { return sideThin(x) ? null : num(x.cohort && x.cohort.n); }
+  /* ── 信頼度の札（2026-10-11）── 人数のピルの代わり ────────────────
+     前は会社ごとに「◯人」のピルを出していた。人数は画面のどこにも出さないことに
+     なったので（オーナー判断）、同じ場所にサーバが返した信頼度の段を出す。
+     ★段はサーバが決める（cohort.trust ＝ high / mid / low。式は db/deep-pay.sql の
+       trust）。ここで作り直さない ── 作るには人数が要り、人数はもう来ない。
+     ★薄い側・段が来ない側（古いサーバ・null・知らない値）は**札ごと出さない**。
+       前は「—」を置いていたが、置くと「何かが欠けている」ことだけが読める。
+     ★色は付けない（.dc-side-c の淡い1色のまま）。左右で緑と灰色に分かれると、
+       それだけで勝ち負けに見える（この画面は順位を付けない）。 */
+  var TRUSTW = { high: T.hi, mid: T.mid, low: T.lo };
+  function trustChip(x) {
+    var t = sideThin(x) ? null : (x.cohort && x.cohort.trust);
+    if (typeof t !== 'string' || !TRUSTW.hasOwnProperty(t)) return '';
+    return '<span class="dc-side-c">' + esc(T.trust) + ' ' + esc(TRUSTW[t]) + '</span>';
+  }
   function cond() {
     var box = el('dc-cond');
     if (!box) return;
@@ -531,19 +587,19 @@
       box.innerHTML = '';
       return;
     }
-    var na = nOf(S.side.a), nb = nOf(S.side.b);
     var parts = [];
     if (S.sel.pos) parts.push(posName(S.sel.pos));
     /* ★機材はここに書かない（2026-09-01）。左右で別の機材を選べるようになった
        ので、1つにまとめると片方が嘘になる。**会社の見出しの側**に添える
        （sideCard の dc-side-f と diff の th）。 */
-    parts.push((na == null ? '—' : na + T.people) + ' ' + T.vs + ' ' +
-               (nb == null ? '—' : nb + T.people));
+    /* ★ここに在った「◯人 vs ◯人」は 2026-10-11 に外した（オーナー判断）。
+       ⚠️ 人数を足し戻さない。サーバが n を返してきても読まないこと。 */
     parts.push(T.months);
-    /* ★deep-pay.js:497 と同じ形。ラベルもピルも dp-cond-l の**中**に入れる。
+    /* ★deep-pay.js の head() と同じ形。ラベルもピルも dp-cond-l の**中**に入れる。
        外に出すと dp-cond-l の flex:1 1 auto が伸びて、
        「表示中:」だけ左端・中身が右端という離れた並びになる（実測で 363..847 と 859..1321）。
-       信頼度の札はこの画面には付けない ── n が左右で2つあり、1つに丸めると片方が嘘になる。 */
+       信頼度の札はこのバーには付けない ── 段が左右で2つあり、1つに丸めると片方が
+       嘘になる。会社ごとの見出しの側に1つずつ出す（trustChip）。 */
     box.innerHTML = '<div class="dp-cond"><span class="dp-cond-l">' +
       '<span class="dp-cond-k">' + esc(T.now) + '</span>' +
       parts.map(function (p, i) {
@@ -560,10 +616,9 @@
   }
   function sideCard(key) {
     var code = S.sel[key], x = S.side[key];
-    var n = nOf(x);
     var h = '<div class="dc-side-h">' + logoHtml(code) +
       '<span class="dc-side-n">' + esc(airName(code)) + '</span>' + fltTag(key) +
-      '<span class="dc-side-c">' + esc(n == null ? '—' : (n + T.people)) + '</span></div>';
+      trustChip(x) + '</div>';
     /* ★薄い側だけを差し替える。もう片側は普通に出る（オーナー確定）。 */
     if (sideThin(x)) {
       return '<section class="mr-card dc-side">' + h + empty(T.thinT) +
@@ -587,7 +642,7 @@
     /* ★両側とも読めるときはカードを出さない（2026-08-31・オーナー確定）。
        年収・Pay per BH・固定・保証給比率・Block Hours は**すぐ下の表にも同じ数字が並ぶ**。
        2度出すのをやめて 153px 減らし、1画面に収めている。
-       ロゴ・社名・人数は diff() の見出し行が受け持つ。
+       ロゴ・社名・信頼度の札は diff() の見出し行が受け持つ。
        ⚠️ この関数ごと消さないこと。**片側だけ薄いときは、読める側の数字がここに
           しか出ない**（rowsOf() が片側でも薄ければ [] を返し、表は丸ごと畳む）。
           「薄いのはその側だけ・もう片側は普通に出る」の約束はこの1枚が持っている。 */
@@ -613,8 +668,15 @@
     var sa = f(va), sb = f(vb);
     if (sa == null || sb == null) return null;
     /* ★「ほぼ同じ」は画面に出す文字列どうしで判定する。
-       有効数字2桁で丸めた後に同じ表示になる値を「違う」と書くと、
-       同じ数字が2つ並んでいるのに差が出ているように見える。 */
+       丸めた後に同じ表示になる値を「違う」と書くと、同じ数字が2つ並んでいるのに
+       差が出ているように見える。
+       ★2026-10-11 に年収と Pay / Block Hour の刻みが細かくなった（1万円・100円／
+         1,000・1）。同じ表示になる幅もそのぶん狭くなったが、**判定の仕方は変えて
+         いない** ── 同じ字なら同じ・違う字なら違う。丸める前の値では比べない。
+       ⚠️ 表示通貨で答えが変わることがある。それで正しい ── サーバの $119,700 と
+          $119,750 は、円ではどちらも ¥1,903万・ドルではどちらも $120K（＝同じ）、
+          ユーロでは €102K と €103K（＝違う）。刻みの境目をまたぐ組だけが入れ替わる。
+          どの通貨でも「画面の2つの字と、その差」は辻褄が合っている。 */
     return { m: m, lab: (useA && m.labA) ? m.labA : m.lab,
              va: va, vb: vb, sa: sa, sb: sb, same: sa === sb };
   }
@@ -628,10 +690,17 @@
     return out;
   }
   /* ★差は「画面に出ている2つの文字列の引き算そのもの」にする。生の値では引かない。
-     金額は有効数字2桁（db/deep-pay.sql の pv_sig2）、時間は小数1桁に丸めてから
-     画面に出ている。丸める前の値で引くと、読み手が自分で引き算した答えと合わない数が出る。
+     金額も時間も、丸めてから画面に出ている ── 年収と Pay / Block Hour は刻み
+     （円なら 1万円・100円／それ以外は 1,000・1。stepIn）、パーディアム・住宅手当の
+     月額は有効数字2桁、時間は小数1桁。丸める前の値で引くと、読み手が自分で
+     引き算した答えと合わない数が出る。
      文字列どうしで引けば、**画面の3つの数字はいつでも辻褄が合う**し、
-     2桁より細かい精度を主張しない。
+     差が**画面に出ている刻みより細かい精度を主張しない**
+     （¥1,903万 と ¥2,035万 の差は +¥132万。刻みの1つぶん＝¥1万 より細かい差は出ようがない）。
+     ★2026-10-11 に年収と Pay / Block Hour の刻みが細かくなったので、差も細かく出る
+       （前は ¥1,900万 と ¥2,000万 で +¥100万 だった）。差に下限は置いていない＝
+       刻み1つぶんの差（+¥1万）もそのまま出る。下限を置くと「同じ字でないのに
+       差が出ない行」ができ、上の「辻褄が合う」が崩れる。
      ★良い・悪い・どちらが勝ちは書かない。書くのは数値だけ（オーナー確定 2026-08-31）。 */
   var NUMRE = /[\d,]*\.?\d+/;
   function partsOf(str) {
@@ -669,15 +738,16 @@
       return;
     }
     /* ★見出しの2列が会社カードの代わりを務める（2026-08-31）。
-       ロゴ・社名・人数をここに入れたので、両方読めるときはカード2枚を出さない。
-       class は .dc-side-n / .dc-side-c のまま ── 場所が変わっただけで意味は同じ。 */
+       ロゴ・社名・信頼度の札をここに入れたので、両方読めるときはカード2枚を出さない。
+       class は .dc-side-n / .dc-side-c のまま ── 場所が変わっただけで意味は同じ
+       （.dc-side-c の中身は 2026-10-11 に人数から信頼度の段へ替わった。trustChip）。 */
     /* ⚠️ 機材をここに入れ忘れない。両側とも読めるときカード2枚は出ない
        （cards() の注記）ので、**この見出しに無いと機材がどこにも出ない画面**になる。 */
     var th = function (cls, key) {
-      var code = S.sel[key], n = nOf(S.side[key]);
+      var code = S.sel[key];
       return '<span class="' + cls + '">' + logoHtml(code) +
         '<span class="dc-side-n">' + esc(airName(code)) + '</span>' + fltTag(key) +
-        '<span class="dc-side-c">' + esc(n == null ? '—' : (n + T.people)) + '</span></span>';
+        trustChip(S.side[key]) + '</span>';
     };
     var head = '<div class="dc-tr dc-th"><span class="dc-c1">' + esc(T.thItem) + '</span>' +
       th('dc-c2', 'a') + th('dc-c3', 'b') + '</div>';
@@ -696,7 +766,7 @@
         '<span class="dc-c3"><small class="dc-c-a">' + nb + '</small>' + esc(r.sb) +
           (hi === 'b' ? dl : '') + '</span></div>';
     }).join('');
-    /* ★3人の壁・「時給ではない」・年収の中身の説明はここの2行だけ。板5枚（データの見方）は
+    /* ★人数の壁・「時給ではない」・年収の中身の説明はここの2行だけ。板5枚（データの見方）は
        消したが、これらは約束と仕様なので、Pay / Block Hour の行が在る表に残す。 */
     box.innerHTML = sec(T.diffT, '<div class="dc-tbl">' + head + body + '</div>' +
       '<p class="dp-foot">' + esc(T.foot) + '</p>' +
@@ -834,17 +904,41 @@
     box.hidden = false;
   }
   function skel() { only('<div class="mr-skel" style="height:150px"></div>'); }
+  /* ── 錠前の板に「どの行を出すか」（2026-10-11）──────────────────
+     ★決めるのは**この関数1つ**。deep-pay.js の lockLines() と**同じ本体**
+       （ずれは assert-deep-pay-compare.mjs の「写した関数」が見張る）。
+       閉じている理由は3つ（鍵が無い／本人の内訳が無い／みんなの側が未達）で、
+       当てはまるものを全部出す。3つめは gate.crowd が false のときだけ。
+       なぜ contributors と goal を比べないか・なぜ埋めないかは deep-pay.js の注。
+     ★ここに在った `if (!lines.length) lines.push(T.lockDet)` は**実際の不具合**だった。
+       この画面は「100人に届いていない」の行を持っていなかったので、鍵も内訳も
+       そろった人（止めているのは人数だけ）に「内訳を出すと開きます」と出ていた。
+       ⚠️ 当てはまる行が無いときに、別の行で埋めない。 */
+  function lockLines(gate) {
+    var g = gate || {}, out = [];
+    if (!g.key) out.push(T.lockKey);
+    if (!g.detailed) out.push(T.lockDet);
+    if (g.crowd === false && g.contributors != null && g.goal != null)
+      out.push(T.lockGoal.replace('{goal}', function () { return String(g.goal); })
+                         .replace('{n}',    function () { return String(g.contributors); }));
+    return out;
+  }
+  /* ★段階3の差し込み口（deep-pay.js と同じ本体）。「鍵は在るが内訳が無い」人の板に
+       だけ、空の器を1つ置く。**いまは器だけで、中身は無い。** */
+  function lockAddSlot(gate) {
+    var g = gate || {};
+    return !!g.key && !g.detailed;
+  }
   function shut(kind) {
     if (kind === 'error') { only('<div class="dp-msg">' + empty(T.err) + '</div>'); return; }
     var g = (S.boot && S.boot.gate) || {};
-    var lines = [];
-    if (!g.key) lines.push(T.lockKey);
-    if (!g.detailed) lines.push(T.lockDet);
-    if (!lines.length) lines.push(T.lockDet);
+    /* ★どの行を出すかは lockLines() が決める。ここで足したり埋めたりしない。 */
+    var lines = lockLines(g);
     only('<div class="dp-msg dp-msg--lock">' +
       '<div class="dp-msg-t">' + IC.lock.replace('24" height="24', '18" height="18') +
         esc(T.lockT) + '</div>' +
-      '<p class="dp-msg-s">' + lines.map(esc).join('<br>') + '</p>' +
+      (lines.length ? '<p class="dp-msg-s">' + lines.map(esc).join('<br>') + '</p>' : '') +
+      (lockAddSlot(g) ? '<div class="dp-lock-add" id="dc-lock-add" hidden></div>' : '') +
       '<a class="dp-cta" href="pay-report.html">' + esc(T.lockCta) + '</a>' +
       '<p class="dp-cta-n">' + esc(T.lockN) + '</p></div>');
   }

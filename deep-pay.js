@@ -19,12 +19,22 @@
    ── 区分を選べるようにした（2026-08-30・オーナー確定）────────────
    ★自分の区分しか見られないのは、REAL PAY（pv_pay_rows）が最初から全社の行を
      返しているのと食い違う。会社・役職・機材の3つとも選べる。
-   ★守りは「3人未満は出さない」だけ（待遇アンケート・REAL PAY と同じ線）。
+   ★守りは「人数の壁に届かない区分は出さない」だけ（壁は db/deep-pay.sql の
+     定数 v_min の1か所。2026-10-11 から2人）。
    ★選べる値は語彙（pv_airlines / pv_positions / pv_fleets）の中だけで、
-     **手で選んだ区分ははしごを登らない**。3人に届かなければ level:'none' が
+     **手で選んだ区分ははしごを登らない**。壁に届かなければ level:'none' が
      返るだけで、広い区分の数字がその見出しのまま出ることは無い。
    ⚠️ この壁は SQL にしか無い。画面側で人数を数えたり伏せたりしないこと
      ── 2か所に置くと、片方だけ直した日に静かに緩む。
+
+   ── 人数は画面のどこにも出さない（2026-10-11・オーナー判断）────
+   ★その区分に何人いるかも、壁が何人かも書かない。サーバも区分の人数を
+     返さなくなった（cohort.n / head.detailed_n / head.verified_n / comp.n は無い）。
+     代わりに来るのは信頼度の段（cohort.trust ＝ high / mid / low）だけ。
+   ⚠️ 古いサーバが n を返してきても**読まない**。このファイルに人数の鍵を
+     読む行を足し戻さないこと（assert-deep-pay.mjs が毒入りの答えで見ている）。
+   ★たった1つの例外は錠前の板の「…100人に達すること（いま N人）」。あれは
+     サイト全体の数（gate.contributors / gate.goal）で、区分の人数ではない。
 
    ── ここで守っている約束 ──────────────────────────────────────
    ★「時給」と書かない。出すのは Pay / Block Hour で、Block Hours から
@@ -33,10 +43,10 @@
    ★0 を印字しない。人数が足りない列・区分は**行ごと出さない**。
      0 と描くと「その会社は払っていない」という別の意味になる。
    ★「上位○%」を書かない。この画面は序列ではない。
-   ★根拠のない精度（「98% 正確」など）を作らない。出せるのは n と段だけ。
+   ★根拠のない精度（「98% 正確」など）を作らない。出せるのは信頼度の段だけ。
    ★賞与はドーナツに入れない（オーナー確定 2026-08-29）。月々の現金と
      年1回の賞与を同じ円に混ぜると、円の意味が「月」でも「年」でもなくなる。
-   ★Night / Weekend / Holiday を1行にまとめない。まとめれば n≧3 を
+   ★Night / Weekend / Holiday を1行にまとめない。まとめれば人数の壁を
      通りやすくなる＝将来「整理」したくなる場所なので、ここに禁止を書いておく。
 
    ── 絵は借りる（複製の禁止）────────────────────────────────────
@@ -48,9 +58,14 @@
      「再利用できそう」に見えるので、使わない理由をここに書いておく。
 
    ── 通貨 ──────────────────────────────────────────────────────
-   金額は USD で来る。表示通貨へ換算したあと**もう一度2桁に丸め直す**
-   （actual-pay.js:disp と同じ）。省くと、通貨を切り替えた瞬間だけ端数の
-   残った数字が出て「本当は1円単位まで持っているのでは」と読める。
+   金額は USD で来る。丸め方は2通り（2026-10-11・オーナー判断）──
+   ・見出しの2つ（年収の中央値・Pay / Block Hour）は、サーバが刻み
+     （$50・$0.5）で返す。画面は**表示通貨へ換算してから**もう一度刻みに寄せる
+     （stepIn。actual-pay.js:disp と同じ考え方）── 円なら 1万円・100円、
+     それ以外の通貨なら 1,000・1。省くと、通貨を切り替えた瞬間だけ端数の
+     残った数字が出て「本当は1円単位まで持っているのでは」と読める。
+   ・それ以外の金額（給与構成の月額）は今までどおり有効数字2桁（moneyExact）。
+     サーバも2桁のまま返している。**こちらは細かくしていない。**
    ★#dp-root に pv-no-cur が付いている（currency.js の自動走査を止める）。
      切替は 'pv-currency-change' を購読して**描き直すだけ**。
      ⚠️ 描き直しで pv_deep_pay() を引き直さない。データは S に持つ。
@@ -84,8 +99,8 @@
       hd: 'DEEP PAY',
       now: '表示中:',
       months: '直近24か月',
-      people: '人',
-      verif: 'うち明細あり ',
+      /* ★「◯人」「うち明細あり ◯人」の語はここから消した（2026-10-11）。
+         人数を出す場所が無くなったので、単位の語ごと持たない。 */
       allAir: '全社',
       allPos: '全体',
       cat: '同じ機材区分',
@@ -100,7 +115,7 @@
       askT: '見たい区分を選んでください',
       askS: '会社・役職・機材のどれか1つを選ぶと、その区分の数字が出ます。',
       askNoneT: '給与が集まるとここに出ます',
-      askNoneS: '3人以上そろった区分ができると、会社・役職・機材で選べるようになります。',
+      askNoneS: 'データが十分にそろった区分ができると、会社・役職・機材で選べるようになります。',
       rg: { japan: '日本', mideast: '中東', asia: 'アジア', europe: '欧州',
             us: '北米', latam: '中南米', oceania: 'オセアニア', africa: 'アフリカ' },
 
@@ -116,11 +131,11 @@
       center: '構成比\n（中央値）',
       thK: '構成要素', thP: '構成比', thA: '月額（中央値）',
       compNote: '※ 金額ではなく構成比を表示しています。',
-      restNote: '※「その他・未分類」には、3人に満たず個別に出せなかった項目を含みます。',
+      restNote: '※「その他・未分類」には、データが足りず個別に出せなかった項目を含みます。',
       bonusK: '賞与・利益分配',
       bonusS: '年収に占める割合',
       compNone: 'この区分では、給与構成をまだ出せません。',
-      compNoneS: '内訳まで書いた明細が3人ぶん集まると、ここに構成が出ます。',
+      compNoneS: '内訳まで書いた明細が集まると、ここに構成が出ます。',
 
       workT: '働き方と報酬',
       workS: '中央値 / 月',
@@ -133,9 +148,11 @@
       varLead: ['変動給の ', ' は「', '」に連動しています。'],
 
       /* ★「データの見方」の板5枚はオーナー判断で削除（2026-08-31・じゃま）。
-         残したのはこの1行だけ ── 3人の壁は約束、時給と呼ばないのは仕様。
-         カードにせず、給与構成の下に淡い1行で置く。 */
-      foot: '※ 3人以上そろった区分だけを出します。3人未満は 0 ではなく行ごと出しません。',
+         残したのはこの1行だけ ── 人数の壁は約束、時給と呼ばないのは仕様。
+         カードにせず、給与構成の下に淡い1行で置く。
+         ★2026-10-11、壁が何人かを書くのをやめた（オーナー判断）。壁が在ること
+           だけを言う。⚠️ ここに人数を足し戻さない。 */
+      foot: '※ データが十分にそろった区分だけを出します。足りない項目は 0 ではなく行ごと出しません。',
       /* ★年収が何を含むかは、これまで画面のどこにも書いていなかった（2026-09-01 に追加）。
          中身は db/pay-reports.sql の pv_annual_total と対。あちらを変えたらここも直す。 */
       footA: '※ 年収＝住宅手当・パーディアム・交通費・賞与・利益分配を含む現金の年換算。現物の社宅は含みません。',
@@ -148,21 +165,21 @@
       lockKey: '給与を1件出すと、90日ぶん開きます。',
       lockDet: '内訳（基本給・手当）まで書いた明細を1件出すと開きます。',
       /* ★人数が足りなくて閉じているときの3行目（2026-09-01）。
-         数字は返ってきた gate から入れる。ここで数え直さない。 */
+         数字は返ってきた gate から入れる。ここで数え直さない。
+         ★この画面で人数が出てよいのは**この1行だけ**（サイト全体の数で、
+           区分の人数ではない）。出すかどうかは lockLines() が決める。 */
       lockGoal: '給与を出したパイロットが{goal}人に達すること（いま{n}人）。',
       lockCta: '匿名で給与を出す',
       lockN: '出した内容は集計にしか使いません。個人の明細は誰にも表示されません。',
 
       thinT: 'この区分は、まだ人数が足りません',
-      thinS: '3人そろった区分から順に出ます。',
+      thinS: 'データがそろった区分から順に出ます。',
       err: '読み込めませんでした。少し待ってから開き直してください。'
     },
     en: {
       hd: 'DEEP PAY',
       now: 'Showing:',
       months: 'last 24 months',
-      people: ' pilots',
-      verif: 'payslip-backed ',
       allAir: 'all airlines',
       allPos: 'everyone',
       cat: 'same fleet category',
@@ -175,7 +192,7 @@
       askT: 'Choose a group to see',
       askS: 'Pick an airline, seat or fleet and the numbers for that group appear.',
       askNoneT: 'Numbers appear as pay reports come in',
-      askNoneS: 'Once at least 3 pilots report the same group, you can pick an airline, seat or fleet.',
+      askNoneS: 'Once a group has enough data, you can pick an airline, seat or fleet.',
       rg: { japan: 'Japan', mideast: 'Middle East', asia: 'Asia', europe: 'Europe',
             us: 'North America', latam: 'Latin America', oceania: 'Oceania', africa: 'Africa' },
 
@@ -191,11 +208,11 @@
       center: 'Share\n(median)',
       thK: 'Component', thP: 'Share', thA: 'Monthly (median)',
       compNote: 'Shares, not amounts, are what this chart shows.',
-      restNote: '“Other / unclassified” includes items held back because fewer than 3 pilots reported them.',
+      restNote: '“Other / unclassified” includes items held back because there was not enough data to show them separately.',
       bonusK: 'Bonus / profit share',
       bonusS: 'of annual pay',
       compNone: 'Not enough to show the pay mix for this group yet.',
-      compNoneS: 'It appears once 3 pilots have reported a full breakdown.',
+      compNoneS: 'It appears once enough pilots have reported a full breakdown.',
 
       workT: 'The flying behind the pay',
       workS: 'Median / month',
@@ -207,7 +224,7 @@
       varNote: 'Shares are rounded, so they may not add up to 100%.',
       varLead: ['', ' of variable pay moves with ', '.'],
 
-      foot: 'Groups of 3+ pilots only; fewer than 3 is left out, not zero.',
+      foot: 'Only groups with enough data are shown; anything short of that is left out, not shown as zero.',
       footA: 'Annual pay = cash incl. housing allowance, per diem, transport, bonus and profit share; housing in kind is not counted.',
 
       moreT: 'Go deeper',
@@ -222,7 +239,7 @@
       lockN: 'What you share is only ever used in aggregate. No individual payslip is shown to anyone.',
 
       thinT: 'Not enough pilots in this group yet',
-      thinS: 'Groups appear once 3 pilots have reported.',
+      thinS: 'Groups appear once enough pilots have reported.',
       err: 'Could not load. Please try again in a moment.'
     }
   }[L];
@@ -310,20 +327,49 @@
   }
 
   // ── 数字 ───────────────────────────────────────────────────────
-  /* 有効数字2桁（actual-pay.js:sig2）。サーバは USD で2桁に確定させているが、
-     表示通貨へ換算すると端数が戻るので、換算のあとにもう一度掛ける。 */
+  /* 有効数字2桁（actual-pay.js:sig2）。円に直した値に掛ける。
+     ★使うのは給与構成の月額（moneyExact）と月換算（moneyMonth）だけ。
+       見出しの2つ（年収・Pay / Block Hour）は 2026-10-11 から下の stepIn。 */
   function sig2(v) {
     v = Number(v);
     if (!isFinite(v) || v <= 0) return 0;
     var p = Math.pow(10, Math.floor(Math.log(v) / Math.LN10) - 1);
     return Math.round(v / p) * p;
   }
-  function money(usd) {                     // USD → 表示通貨（2桁・K/M 圧縮あり）
+  /* ── 見出しの2つだけ、表示通貨の中で「刻み」に寄せる（2026-10-11・オーナー判断）──
+     年収の中央値と Pay / Block Hour は、サーバが刻み（$50・$0.5）で返すように
+     なった（db/deep-pay.sql の pv_deep_step）。ここで有効数字2桁に丸め直すと、
+     その細かさを画面が捨てる（$119,700 が ¥1,900万 になる）。
+     だから**表示通貨の値**を刻みに寄せる ── 換算してから丸め、円に戻して整形へ渡す
+     （actual-pay.js:disp と同じ考え方。丸めてから換算すると、通貨を切り替えた
+       瞬間だけ端数の残った数字が出る）。
+       円のとき   … yenStep（年収 1万円 ／ Pay / Block Hour 100円）
+       それ以外   … curStep（年収 1,000 ／ Pay / Block Hour 1）
+     ★返すのは**円**。万・K/M・記号を付けるのは fmt / exact（整形は1か所のまま）。
+     ★1e-9 は「掛けて割り戻す」誤差の手当て。$102.5 を円にしてドルへ戻すと
+       102.4999… になる値があり、同じ半端が $102 と $103 に割れる。半端はいつも上へ。
+     ⚠️ 給与構成の月額には使わない。あちらは項目ごとに人数の壁を掛け直している
+        細かい数で、サーバも有効数字2桁のまま返している（moneyExact）。
+     ⚠️ 刻みをここで細かくしない。細かくできるのはサーバが返す細かさまでで、
+        それより細かく刷ると、持っていない精度を名乗ることになる。 */
+  function stepIn(jpy, yenStep, curStep) {
+    var C = w.PVCurrency;
+    var cur = (C && C.get) ? C.get() : 'JPY';
+    var rate = (C && C.rates && C.rates[cur]) || 1;
+    var st = (cur === 'JPY') ? yenStep : curStep;
+    return Math.round(jpy / rate / st + 1e-9) * st * rate;
+  }
+  function money(usd) {                     // 年収。USD → 表示通貨（刻み 1万円／1,000・K/M 圧縮あり）
     var n = num(usd);
     if (n == null) return null;
-    return fmt(sig2(usdToJpy(n)));
+    return fmt(stepIn(usdToJpy(n), 1e4, 1e3));
   }
-  function moneyExact(usd) {                // USD → 表示通貨（2桁・圧縮なし）
+  function moneyRate(usd) {                 // Pay / Block Hour。USD → 表示通貨（刻み 100円／1・圧縮なし）
+    var n = num(usd);
+    if (n == null) return null;
+    return exact(stepIn(usdToJpy(n), 100, 1));
+  }
+  function moneyExact(usd) {                // 給与構成の月額。USD → 表示通貨（2桁・圧縮なし）
     var n = num(usd);
     if (n == null) return null;
     return exact(sig2(usdToJpy(n)));
@@ -332,17 +378,19 @@
      ★2026-09-01、ここを**賞与ぬき**にした。同じ画面の「給与構成」の月額は
        db/deep-pay.sql の ucm ＝ 年収 ×(1−賞与割合)÷12 で出しているのに、
        ここだけ 年収 ÷ 12 だったので、賞与のぶん**同じ画面に月額が2つ**あった。
-     ★割り算の元は **sig2 済みの年収**（画面に出ている額そのもの）。賞与の割合も
-       すぐ下に出ているので、読み手が「1,600万 × 0.95 ÷ 12 ≒ 130万」と検算できる。
-     ⚠️ 賞与の割合が null のとき（賞与を書いた人が3人に満たず伏せている）は 0 として
+     ★割り算の元は **刻みに寄せた年収**（画面に出ている額そのもの＝ money() と同じ
+       stepIn）。賞与の割合もすぐ下に出ているので、読み手が
+       「1,903万 × 0.95 ÷ 12 ≒ 150万」と検算できる。
+     ★こちらは「約」なので有効数字2桁のまま（2026-10-11 に細かくしたのは年収だけ）。
+     ⚠️ 賞与の割合が null のとき（賞与を書いた人が人数の壁に満たず伏せている）は 0 として
         扱い、**ラベルにも「賞与ぬき」と書かない**（k1n のまま）。本当は賞与がある人が
-        1〜2人いる場合があり、そこで「賞与ぬき」と名乗ると嘘になる。 */
+        壁の手前の人数だけいる場合があり、そこで「賞与ぬき」と名乗ると嘘になる。 */
   function moneyMonth(usd, bPct) {
     var n = num(usd);
     if (n == null) return null;
     var b = num(bPct);
     var keep = b == null ? 1 : Math.max(1 - b / 100, 0);
-    return fmt(sig2(sig2(usdToJpy(n)) * keep / 12));
+    return fmt(sig2(stepIn(usdToJpy(n), 1e4, 1e3) * keep / 12));
   }
 
   // ── 図形（アイコンは1か所にまとめる）───────────────────────────
@@ -399,26 +447,19 @@
   function posName(code) { return S.pos[code] || code || ''; }
 
   // ── 見出しと条件バー ───────────────────────────────────────────
-  /* ★信頼度は人数だけでは決まらない。区分が広いほど「自分の給与」から遠い。
-     段4（役職のみ・全社）に12人そろっても、それは全社の副操縦士12人であって
-     自分の会社の数字ではない。人数の判定と段ごとの上限の、低いほうを採る
-     （そうしないと、初日の一番あてにならない状態が「信頼度 高」と出る）。 */
-  var TCAP = { airline_pos_fleet: 3, airline_pos_cat: 3, airline_pos: 2, pos: 1, all: 1 };
-  function trustOf(n, c) {
-    var level = c.level;
-    var by  = n >= 10 ? 3 : n >= 5 ? 2 : 1;
-    var cap = TCAP[level] != null ? TCAP[level] : 1;
-    /* 手で選んだ区分にも、**選んだ絞りの数**で同じ上限を掛ける。
-       「役職だけ・全社」を選んだ人に「信頼度 高」と出さないため
-       （自動で段4に落ちたときと同じ扱いになる）。 */
-    if (level === 'selected') {
-      var k = (c.airline ? 1 : 0) + (c.pos ? 1 : 0) + (c.fleet ? 1 : 0);
-      cap = k >= 3 ? 3 : k === 2 ? 2 : 1;
-    }
-    var r   = Math.min(by, cap);
-    if (r >= 3) return { k: T.hi,  m: '' };
-    if (r === 2) return { k: T.mid, m: ' dp-trust--mid' };
-    return { k: T.lo, m: ' dp-trust--low' };
+  /* ★信頼度の段は**サーバが決めて返す**（cohort.trust ＝ high / mid / low。2026-10-11）。
+     前はここに式が在った（人数の段と、区分の広さの上限の、低いほうを採る）。
+     人数を画面へ渡さなくなったので、式ごと db/deep-pay.sql の trust へ移した。
+     ⚠️ ここで段を作り直さない ── 作るには人数が要り、人数はもう来ない。
+     ★段が来ないとき（古いサーバ・壁に届かない区分＝null・知らない値）は
+       **札そのものを出さない**。「低」で埋めると、段が分からないだけの区分を
+       あてにならないと言ったことになる。 */
+  var TRUST = { high: { k: T.hi,  m: '' },
+                mid:  { k: T.mid, m: ' dp-trust--mid' },
+                low:  { k: T.lo,  m: ' dp-trust--low' } };
+  function trustTag(c) {
+    var t = c && c.trust;
+    return (typeof t === 'string' && TRUST.hasOwnProperty(t)) ? TRUST[t] : null;
   }
   /* ★区分が落ちた段では会社名を出さない。落ちた元の段の値をサーバも返していない。
      level を隠さないこと ── 隠すと読み手は「自分の会社の数字」だと誤解する。 */
@@ -436,7 +477,7 @@
   /* ── 区分を選ぶ（2026-08-30）────────────────────────────────────
      ★自分の区分しか見られないのは、REAL PAY（pv_pay_rows）が最初から
        全社の行を返しているのと食い違う。会社・役職・機材の3つを選べる。
-     ★守りは足さない。3人に満たない区分は db/deep-pay.sql が level:'none' を返し、
+     ★守りは足さない。人数の壁に満たない区分は db/deep-pay.sql が level:'none' を返し、
        広い区分に**登らない**（登ると、選んだ会社の見出しのまま全体の数字が出る）。
        だから画面側で人数を数えたり伏せたりしない ── 壁は1か所（SQL）にしか無い。
      ★3つとも空なら引数を渡さない。今までと1バイトも同じ呼び方に戻す。 */
@@ -584,25 +625,23 @@
        空のページの上に残り、「この数字はまだ出ている」と読まれる。 */
     if (S.mode === 'open' && picked() && c && c.level !== 'none') {
       var parts = cohortWords(c);
-      var n = num(c.n);
-      if (n != null) parts.push(n + T.people);
-      /* ★明細の裏付けがある人数（db/deep-pay.sql の hagg.vfn）。
-         こちらも**人数**で「件」ではない。0 人のときは足さない
-         （「うち明細あり 0人」と書くと、信じるなと言っているのと同じ）。 */
-      var vn = num(S.data && S.data.head && S.data.head.verified_n);
-      if (vn) parts.push(T.verif + vn + T.people);
+      /* ★ここに在った「◯人」「うち明細あり ◯人」は 2026-10-11 に外した（オーナー判断）。
+         区分の人数は画面のどこにも出さない。サーバも返さなくなったが、
+         ⚠️ 返ってきても読まないこと（鍵を読む行を足し戻さない）。
+         人数の代わりに出すのは、右端の信頼度の札だけ。 */
       /* ★「直近24か月」は db/deep-pay.sql の sane の写し。数えているのは
          **投稿した日ではなく、その報酬がいつの月のものか**（period_year /
          period_month）。当月を含めて暦で24か月ちょうど。あちらを変えたらここも直す。 */
       parts.push(T.months);
-      var t = trustOf(n || 0, c);
+      var t = trustTag(c);
       h += '<div class="dp-cond"><span class="dp-cond-l">' +
         '<span class="dp-cond-k">' + esc(T.now) + '</span>' +
         parts.map(function (x, i) {
           return (i ? '<span class="dp-cond-s">/</span>' : '') + '<span>' + esc(x) + '</span>';
         }).join('') + '</span>' +
-        '<span class="dp-trust' + t.m + '">' + IC.info.replace('24" height="24', '12" height="12') +
-        esc(T.trust) + ' ' + esc(t.k) + '</span></div>';
+        (t ? '<span class="dp-trust' + t.m + '">' +
+               IC.info.replace('24" height="24', '12" height="12') +
+               esc(T.trust) + ' ' + esc(t.k) + '</span>' : '') + '</div>';
     }
     box.innerHTML = h;
   }
@@ -628,9 +667,9 @@
   }
   /* ★3枚作って .filter(Boolean)。数字の無いカードは**落とす**（0 を置かない）。
      初日は年収の1枚しか出ない。それが正しい出力。
-     ★「詳細投稿数」の4枚目は 2026-08-31 に外した。中身は head.detailed_n ＝ **人数**
-       なのに単位が「件」で、しかもすぐ上の条件バーの「◯人」と同じ数だった
-       （db/deep-pay.sql の person が proof_hash で1行＝1人に潰している）。 */
+     ★「詳細投稿数」の4枚目は 2026-08-31 に外した。中身は**人数**なのに単位が
+       「件」だった（db/deep-pay.sql の person が proof_hash で1行＝1人に潰している）。
+       2026-10-11 からは人数そのものを出さない。⚠️ 4枚目を人数で足し戻さない。 */
   function kpis() {
     var box = el('dp-kpi');
     if (!box) return;
@@ -639,7 +678,9 @@
        ラベルを「月換算（賞与ぬき）約」にする。詳しくは moneyMonth のコメント。 */
     var bp = num(S.data && S.data.comp && S.data.comp.bonus && S.data.comp.bonus.pct_of_annual);
     var a = money(h.annual_usd), am = moneyMonth(h.annual_usd, bp);
-    var fx = num(h.fixed_pct), pb = moneyExact(h.per_block_usd);
+    /* ★Pay / Block Hour は moneyRate（刻み）。moneyExact（2桁）に戻すと、サーバが
+       $0.5 刻みで返している細かさを画面が捨てる（¥16,300 が ¥16,000 になる）。 */
+    var fx = num(h.fixed_pct), pb = moneyRate(h.per_block_usd);
     /* ★変動給比率は「100 − 固定・保証給比率」ではない。db/deep-pay.sql の fixed_pct は
        基本給＋保証手当＋職位＋役割で、残りにはパーディアム・住宅・その他・未分類も入っている。
        引き算だとそれを全部「変動給」と呼んでしまう。無い区分は行ごと出さない。 */
@@ -653,7 +694,7 @@
       pb == null ? null : kpi({ k: T.k3, v: pb, n: T.k3n, ic: 'tea', svg: IC.clock })
     ].filter(Boolean);
     /* ★注記は**この1行だけ**（2026-09-01 にここへ集めた）。
-       - 3人の壁（T.foot）── 給与構成のカードの中に置いていた。あの壁は円グラフだけの
+       - 人数の壁（T.foot）── 給与構成のカードの中に置いていた。あの壁は円グラフだけの
          話ではなく画面全体の約束なので、数字の真下のここが正しい。
        - 年収の中身（T.footA）── これまで画面のどこにも書いていなかった。
        ★1つの `<p>` にまとめている。ここは全幅（約1160px）なので2文でも1行に収まる。
@@ -698,7 +739,7 @@
       title: '', name: CN, amounts: false, center: T.center
     });
 
-    // 賞与は円の外（オーナー確定）。3人以上いるときだけ1行。
+    // 賞与は円の外（オーナー確定）。割合が返ってきたとき（＝人数の壁を越えたとき）だけ1行。
     var b = c.bonus, bp = b ? num(b.pct_of_annual) : null;
     if (bp != null) {
       body += '<div class="dp-bonus"><span class="dp-bonus-k">' + esc(T.bonusK) +
@@ -707,7 +748,7 @@
     }
     body += note(esc(T.compNote));
     if (segs.some(function (x) { return x.k === 'rest'; })) body += note(esc(T.restNote));
-    /* ⚠️ ここに `.dp-foot` を戻さない（3人の壁も年収の定義も kpis() の全幅の行に移した）。
+    /* ⚠️ ここに `.dp-foot` を戻さない（人数の壁も年収の定義も kpis() の全幅の行に移した）。
        このカードは上の段の高さを決めている側で、幅が狭いぶん1文が2〜3行に折れ、
        折れたぶんだけ画面全体が下へ伸びる（1512×980 の1画面に収まらなくなり、
        実際に assert-deep-pay.mjs の「★1画面に収まる」が落ちた）。 */
@@ -737,7 +778,7 @@
     return null;
   }
   /* ★無い区分は null を返す。0 を返さない ── 0% と書けば「その手当が無い会社」に見えるが、
-     実際は「3人に届かず出せない」だけのことがある。 */
+     実際は「人数の壁に届かず出せない」だけのことがある。 */
   function segPct(segs, k) {
     for (var i = 0; i < segs.length; i++) if (segs[i].k === k) return num(segs[i].pct);
     return null;
@@ -844,6 +885,42 @@
   }
 
   // ── 開いていないとき ──────────────────────────────────────────
+  /* ── 錠前の板に「どの行を出すか」（2026-10-11）──────────────────
+     ★決めるのは**この関数1つ**。deep-pay.js と deep-pay-compare.js に同じ本体を
+       置いてある（ビルドが無いので共有できない。ずれは assert-deep-pay-compare.mjs
+       の「写した関数」が見張る）。前は2つの画面が別々に組んでいて、比較の側だけ
+       「100人に届いていない」の行を持っていなかった ── 鍵も内訳もそろった人に
+       「内訳を出すと開きます」と出ていた（その人を止めているのは人数なのに）。
+     閉じている理由は3つで、**当てはまるものを全部**出す：
+       鍵が無い            → lockKey
+       本人の内訳が無い    → lockDet
+       みんなの側が未達    → lockGoal（gate.crowd が false のときだけ）
+     ★3つめは gate.crowd を読む。contributors と goal を比べて自分で決めない。
+       門は「100人以上 または 手動の公開フラグ」なので、フラグで開けた日
+       （99人のまま開いている）に比べると、鍵の無い人へ「100人に届いたら開く」が
+       出てしまう ── その人を止めているのは人数ではない。
+     ⚠️ 当てはまる行が無いときに、別の行で埋めない（crowd を返さない古いサーバで、
+        鍵も内訳もそろった人がここに来る）。理由を画面で推し量ると、間違った
+        頼みごとをすることになる。行は出さず、板の見出しだけにする。
+     ★{goal}・{n} はサイト全体の数。**区分の人数ではない**（この画面で人数が
+       出てよいのはこの1行だけ）。数が欠けていたら行ごと出さない（0 で埋めない）。 */
+  function lockLines(gate) {
+    var g = gate || {}, out = [];
+    if (!g.key) out.push(T.lockKey);
+    if (!g.detailed) out.push(T.lockDet);
+    if (g.crowd === false && g.contributors != null && g.goal != null)
+      out.push(T.lockGoal.replace('{goal}', function () { return String(g.goal); })
+                         .replace('{n}',    function () { return String(g.contributors); }));
+    return out;
+  }
+  /* ★段階3の差し込み口。「鍵は在るが内訳が無い」人の板にだけ、空の器を1つ置く。
+       そこへ「総支給だけ出した月に、内訳だけ足す」入力を入れる予定
+       （db/deep-pay.sql の pv_pay_breakdown）。**いまは器だけで、中身は無い。**
+     ⚠️ 器は hidden で出す。中身を入れる側が hidden を外すこと。 */
+  function lockAddSlot(gate) {
+    var g = gate || {};
+    return !!g.key && !g.detailed;
+  }
   function shut(kind) {
     ['dp-comp', 'dp-work', 'dp-var', 'dp-more'].forEach(function (id) {
       var b = el(id); if (b) { b.innerHTML = ''; b.hidden = true; }
@@ -858,28 +935,21 @@
       return;
     }
     var g = (S.data && S.data.gate) || {};
-    var lines = [];
-    if (!g.key) lines.push(T.lockKey);
-    if (!g.detailed) lines.push(T.lockDet);
-    /* ★100人に届いていないときは、そう書く（2026-09-01）。書かないと
-       「明細を1枚出せば開く」だけが出て、出しても開かない人が生まれる。
-       ★数字は返ってきた gate から読む。JS で数え直さない（門と同じ数）。 */
-    if (g.contributors != null && g.goal != null &&
-        Number(g.contributors) < Number(g.goal))
-      lines.push(T.lockGoal.replace('{goal}', function () { return String(g.goal); })
-                           .replace('{n}',    function () { return String(g.contributors); }));
-    if (!lines.length) lines.push(T.lockDet);
+    /* ★どの行を出すかは lockLines() が決める（上の注）。ここで足したり埋めたりしない。 */
+    var lines = lockLines(g);
     box.innerHTML = '<div class="dp-msg dp-msg--lock">' +
       '<div class="dp-msg-t">' + IC.lock.replace('24" height="24', '18" height="18') +
         esc(T.lockT) + '</div>' +
-      '<p class="dp-msg-s">' + lines.map(esc).join('<br>') + '</p>' +
+      (lines.length ? '<p class="dp-msg-s">' + lines.map(esc).join('<br>') + '</p>' : '') +
+      (lockAddSlot(g) ? '<div class="dp-lock-add" id="dp-lock-add" hidden></div>' : '') +
       '<a class="dp-cta" href="pay-report.html">' + esc(T.lockCta) + '</a>' +
       '<p class="dp-cta-n">' + esc(T.lockN) + '</p></div>';
     box.hidden = false;
   }
 
-  /* ★選んだ区分が3人に届かなかったとき。**広い区分の数字で埋めない。**
-     「あと1人」とも書かない ── 書いた瞬間、その区分の人数が1人単位で読める。 */
+  /* ★選んだ区分が人数の壁に届かなかったとき。**広い区分の数字で埋めない。**
+     「あと1人」とも、壁が何人かとも書かない ── 書いた瞬間、その区分の人数が
+     1人単位で読める。 */
   function thin() {
     ['dp-comp', 'dp-work', 'dp-var', 'dp-more'].forEach(function (id) {
       var b = el(id); if (b) { b.innerHTML = ''; b.hidden = true; }

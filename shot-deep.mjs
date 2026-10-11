@@ -10,28 +10,36 @@
       「開く → 選択肢が生えるのを待つ → 選ぶ → 描き終わるのを待つ」まで
       やってから撮る。選ばずに撮ると、どの scene も同じ空の板が写る。
 
-   実行: node shot-deep.mjs <scene> <lang> <theme> <幅> [open]
+   実行: node shot-deep.mjs <scene> <lang> <theme> <幅> [通貨] [open]
      scene: full  … 全部そろった状態（モックと同じ配置。既定）
-            day1  … 現実の初日。KPI は4枚中2枚・給与構成は出ない・
+            day1  … 現実の初日。KPI は3枚中1枚・給与構成は出ない・
                     働き方は1行しか無いので節ごと消える・変動給も出ない
-            fold  … 3人に満たない項目が「その他・未分類」に畳まれた状態
+            fold  … 人数の壁に満たない項目が「その他・未分類」に畳まれた状態
                     （灰色の意味が変わるので but 書きが1行増える）
             ask   … 開いた直後。まだ何も選んでいない（★これが入口の見た目）
             pos   … 役職だけ選んで会社を選ばなかった状態
             pick  … 自分の区分ではない区分を手で選んだ状態（JAL / 機長 / B787）
-            thin  … 手で選んだ区分が3人に届かなかった状態
+            thin  … 手で選んだ区分が人数の壁に届かなかった状態
                     （★広い区分の数字で埋めない。何も出ないのが正しい）
             nolist… 選べる組み合わせが1つも届いていない
                     （★選択欄ごと出ない。全社を並べる逃げ道は置かない）
-            lock  … 鍵がまだ無い（給与を1件も出していない）
-            det   … 鍵はあるが内訳を書いていない
+            lock  … 鍵がまだ無い（給与を1件も出していない）＝板は3行
+            det   … 鍵はあるが内訳を書いていない＝板は2行（内訳・100人）
+            goal  … 鍵も内訳もそろっていて、100人だけが未達＝板は1行
             err   … サーバが返らなかった
      lang : ja | en
      theme: light | dark
+     通貨 : JPY | USD | EUR | GBP | AUD | SGD | AED（省くと、その言語の既定のまま）
+            ★円のままでは見えない崩れがある ── 通貨を変えると字数が変わる
+              （¥1,903万 → AED 440K）。額の入る欄を触った回は、円以外でも1枚撮る。
+            ⚠️ 英語ページの既定は**この機械のタイムゾーン**で決まる。英語の絵を
+               人に見せるときは通貨を名指しする（省くと置き場所で絵が変わる）。
+            位置は問わない（open / measure と同じく、引数のどこに書いてもよい）。
    保存先は screenshot.mjs と同じ ./temporary screenshots/
 
    末尾に open を付けると、撮らずに**見える窓で開いたまま**にする。
      node shot-deep.mjs full ja light 1440 open
+     node shot-deep.mjs full en light 1440 USD
 */
 import puppeteer from 'puppeteer';
 import fs from 'fs';
@@ -45,10 +53,19 @@ const theme = process.argv[4] || 'light';
 const vw    = Number(process.argv[5]) || 1440;
 const open  = process.argv.includes('open');
 const measure = process.argv.includes('measure');
+/* ★表示通貨（省略可）。通貨コードの形をした引数を、位置を問わず1つ拾う
+   ＝ 今までの呼び方（scene lang theme 幅 [open|measure]）は1つも変わらない。
+   効かせ方は「その言語の保存先に、選んだ通貨として書いておく」── currency.js が
+   起動時に読む本物の道を通す（日本語＝pv-currency ／ 英語＝pv-currency-en）。
+   描いたあとに PVCurrency.set() で切り替えると、切り替えの描き直しが済む前を撮りうる。
+   ⚠️ 通る通貨は currency.js の RATES に在るものだけ。無い通貨を渡すと既定のまま
+      描かれるので、撮ったあとに実際の通貨を突き合わせて知らせる（下の「通貨」の行）。 */
+const cur = process.argv.slice(2).find((a) => /^[A-Z]{3}$/.test(a)) || '';
 
 const dir = path.join(__dirname, 'temporary screenshots');
 if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-const label = `deep-${scene}-${lang}-${theme}` + (vw !== 1440 ? `-${vw}` : '');
+const label = `deep-${scene}-${lang}-${theme}` + (vw !== 1440 ? `-${vw}` : '')
+  + (cur ? `-${cur}` : '');
 let n = 1;
 while (fs.existsSync(path.join(dir, `screenshot-${n}-${label}.png`))) n++;
 const outPath = path.join(dir, `screenshot-${n}-${label}.png`);
@@ -67,6 +84,8 @@ const PICK = {
   pick: { airline: 'jal', position: 'cap', fleet: 'b787' },
   thin: { airline: 'sas' },
   det:  { airline: 'ana' }
+  /* lock / det / goal は錠前の板。選択欄が出ないので、det の指定は使われない
+     （鍵が閉じている画面では picker() が欄ごと隠す）。 */
 }[scene] || null;
 
 /* ★ headless:'new' はこの環境で page.screenshot() が返ってこない
@@ -81,23 +100,31 @@ page.on('pageerror', (e) => console.log('❌ page error:', e.message));
 
 /* ★ setRequestInterception は使わない（CDP デッドロック。shot-tracker.mjs 参照）。
    CDN の supabase-js に上書きさせない目的は defineProperty で達成する。 */
-await page.evaluateOnNewDocument((scene, theme) => {
+await page.evaluateOnNewDocument((scene, theme, lang, cur) => {
   localStorage.setItem('pv-theme', theme);
+  if (cur) localStorage.setItem(lang === 'en' ? 'pv-currency-en' : 'pv-currency', cur);
   const UID = '00000000-0000-4000-8000-00000000a001';
 
   const STATS = { reports: 58, month: 12, airlines: 19, contributors: 37 };
 
+  /* ★見本の形は db/deep-pay.sql の返り値（2026-10-11）──
+       ・区分の人数は**どこにも入れない**（cohort.n / head.detailed_n / head.verified_n /
+         comp.n / comp.bonus.n はサーバが返さなくなった）。代わりは cohort.trust。
+       ・gate.crowd ＝「みんなの側」の門（100人以上 or 手動の公開フラグ）。
+         37 / 100 人のまま開いている見本は「手動フラグで開けた日」の形＝ crowd:true。
+       ・見出しの2つは刻み（annual_usd は $50・per_block_usd は $0.5）。
+         給与構成の med_usd は有効数字2桁のまま。 */
   /* 段1（会社×役職×機材）まで届いた状態。★合計はちょうど100。
      サーバ（db/deep-pay.sql の pv_deep_pct）が最大剰余法で揃えて返すため。 */
   const FULL = {
     ok: true, state: 'open',
-    gate: { key: true, detailed: true, contributors: 37, goal: 100 },
+    gate: { key: true, detailed: true, crowd: true, contributors: 37, goal: 100 },
     give: { detailed: true },
     stats: STATS,
-    cohort: { level: 'airline_pos_fleet', airline: 'ana', pos: 'fo', fleet: 'a320', n: 12 },
-    head: { annual_usd: 110000, per_block_usd: 93, detailed_n: 12, verified_n: 7, fixed_pct: 62 },
+    cohort: { level: 'airline_pos_fleet', airline: 'ana', pos: 'fo', fleet: 'a320', trust: 'high' },
+    head: { annual_usd: 119700, per_block_usd: 102.5, fixed_pct: 62 },
     comp: {
-      total_kind: 'monthly_cash', n: 12,
+      total_kind: 'monthly_cash',
       segs: [
         { k: 'base',     pct: 52, med_usd: 4800 },
         { k: 'variable', pct: 24, med_usd: 2200 },
@@ -106,7 +133,7 @@ await page.evaluateOnNewDocument((scene, theme) => {
         { k: 'housing',  pct: 5,  med_usd: 460 },
         { k: 'other',    pct: 4,  med_usd: 370 }
       ],
-      bonus: { pct_of_annual: 5, n: 9 }
+      bonus: { pct_of_annual: 5 }
     },
     work: { block_h: 74.0, duty_h: 141.0, duty_days: 18, stay_nights: 9 },
     /* ⚠️ night / weekend / holiday は3つのまま。1行にまとめない（仕様の明示的な禁止）。 */
@@ -120,20 +147,19 @@ await page.evaluateOnNewDocument((scene, theme) => {
   /* 現実の初日。10〜30人が30社×4役職に散っているので、届くのは段4だけ。
      ★ここで「出ない」ことが正しい出力。0 を並べた画面と見比べるために撮る。 */
   const DAY1 = Object.assign({}, FULL, {
-    cohort: { level: 'pos', airline: 'ana', pos: 'fo', fleet: 'a320', n: 12 },
-    head: { annual_usd: 110000, per_block_usd: null, detailed_n: 12,
-            verified_n: 3, fixed_pct: null },
+    cohort: { level: 'pos', airline: 'ana', pos: 'fo', fleet: 'a320', trust: 'low' },
+    head: { annual_usd: 119700, per_block_usd: null, fixed_pct: null },
     comp: null,
     work: { block_h: 74.0, duty_h: null, duty_days: null, stay_nights: null },
     var: []
   });
 
-  // 3人に満たない項目が未分類に畳まれた状態（灰色の意味が変わる）
+  // 人数の壁に満たない項目が未分類に畳まれた状態（灰色の意味が変わる）
   const FOLD = Object.assign({}, FULL, {
-    cohort: { level: 'airline_pos_cat', airline: 'ana', pos: 'fo', fleet: 'a320', n: 5 },
-    head: { annual_usd: 96000, per_block_usd: 78, detailed_n: 5, verified_n: 2, fixed_pct: 58 },
+    cohort: { level: 'airline_pos_cat', airline: 'ana', pos: 'fo', fleet: 'a320', trust: 'mid' },
+    head: { annual_usd: 96050, per_block_usd: 78.5, fixed_pct: 58 },
     comp: {
-      total_kind: 'monthly_cash', n: 5,
+      total_kind: 'monthly_cash',
       segs: [
         { k: 'base',     pct: 58, med_usd: 2900 },
         { k: 'variable', pct: 26, med_usd: 1300 },
@@ -147,38 +173,47 @@ await page.evaluateOnNewDocument((scene, theme) => {
   });
 
   const POS = Object.assign({}, FULL, {
-    cohort: { level: 'pos', airline: 'ana', pos: 'fo', fleet: 'a320', n: 22 }
+    cohort: { level: 'pos', airline: 'ana', pos: 'fo', fleet: 'a320', trust: 'low' }
   });
 
+  /* 錠前の板。閉じている理由は3つ（鍵／本人の内訳／みんなの側＝100人）で、
+     当てはまる行だけが出る（deep-pay.js の lockLines）。
+       lock … 3つとも当てはまる＝3行
+       det  … 鍵は在る＝2行（内訳・100人）。★段階3の差し込み口はこの板に付く
+       goal … 鍵も内訳もそろっている＝1行（100人だけ） */
   const LOCK = { ok: true, state: 'locked', stats: STATS, give: { detailed: false },
-                 gate: { key: false, detailed: false, contributors: 37, goal: 100 },
+                 gate: { key: false, detailed: false, crowd: false, contributors: 37, goal: 100 },
                  cohort: null, head: null, comp: null, work: null, var: null };
   const DET  = Object.assign({}, LOCK, { give: { detailed: false },
-                 gate: { key: true, detailed: false, contributors: 37, goal: 100 } });
+                 gate: { key: true, detailed: false, crowd: false, contributors: 37, goal: 100 } });
+  const GOAL = Object.assign({}, LOCK, { give: { detailed: true },
+                 gate: { key: true, detailed: true, crowd: false, contributors: 37, goal: 100 } });
 
   /* 手で選んだ区分（2026-08-30）。自分は ANA の FO なのに JAL の機長・787 を見ている。
-     ★n=5 なので信頼度は「中」。3つとも選んでいても人数で頭打ちになる。 */
+     ★信頼度は「中」で返す。3つとも選んでいても人数で頭打ちになる、という形
+       （段を決めるのはサーバ。画面は来た段をそのまま出す）。 */
   const PICK = Object.assign({}, FULL, {
-    cohort: { level: 'selected', manual: true, airline: 'jal', pos: 'cap', fleet: 'b787', n: 5 },
-    head: { annual_usd: 210000, per_block_usd: 180, detailed_n: 5, verified_n: 3, fixed_pct: 71 }
+    cohort: { level: 'selected', manual: true, airline: 'jal', pos: 'cap', fleet: 'b787',
+              trust: 'mid' },
+    head: { annual_usd: 211350, per_block_usd: 180.5, fixed_pct: 71 }
   });
-  /* 選んだ区分が3人に届かなかった状態。★広い区分に登らないので、出るものが何も無い。
-     「あと1人」とも書かない（書くと人数が1人単位で読める）。 */
+  /* 選んだ区分が人数の壁に届かなかった状態。★広い区分に登らないので、出るものが何も無い。
+     「あと1人」とも、壁が何人かとも書かない（書くと人数が1人単位で読める）。
+     本物も head / comp / work / var を返り値ごと null にする（trust も null）。 */
   const THIN = { ok: true, state: 'open', stats: STATS, give: { detailed: true },
-    gate: { key: true, detailed: true, contributors: 37, goal: 100 },
-    cohort: { level: 'none', manual: true, airline: 'sas', pos: null, fleet: null, n: 0 },
-    head: { annual_usd: null, per_block_usd: null, detailed_n: null, fixed_pct: null },
-    comp: null, work: null, var: [] };
+    gate: { key: true, detailed: true, crowd: true, contributors: 37, goal: 100 },
+    cohort: { level: 'none', manual: true, airline: 'sas', pos: null, fleet: null, trust: null },
+    head: null, comp: null, work: null, var: null };
 
   /* 選べる組み合わせが1つも届いていない状態（2026-09-01）。まだ誰も内訳を
      書いていない日か、SQL を貼る前がこれ。★**全社を並べる逃げ道は置かない**
      ので、選択欄ごと出ないのが正しい（選べるのに数字が出ない状態を作らない）。 */
   const NOLIST = { ok: true, state: 'open', stats: STATS, give: { detailed: true },
-    gate: { key: true, detailed: true, contributors: 37, goal: 100 },
+    gate: { key: true, detailed: true, crowd: true, contributors: 37, goal: 100 },
     cohort: null, head: null, comp: null, work: null, var: [] };
 
   const SCENES = { full: FULL, day1: DAY1, fold: FOLD, pos: POS,
-                   pick: PICK, thin: THIN, lock: LOCK, det: DET, nolist: NOLIST };
+                   pick: PICK, thin: THIN, lock: LOCK, det: DET, goal: GOAL, nolist: NOLIST };
   const DEEP = SCENES[scene] || FULL;
 
   /* ★選べる組み合わせ（2026-09-01）。画面はこれで選択肢を絞る。形は
@@ -201,7 +236,7 @@ await page.evaluateOnNewDocument((scene, theme) => {
        150px ほど短く出て、足りない幅を「足りている」と読み違える。 */
     swiss:                { cap: ['a320', 'a330'],         fo: ['a320'] },
     'shin-central':       { cap: ['dhc8'],                 fo: ['dhc8'] },
-    /* ★sas は「3人に届かなかった」側。**thin の絵を撮る回だけ**一覧に入れる ──
+    /* ★sas は「人数の壁に届かなかった」側。**thin の絵を撮る回だけ**一覧に入れる ──
        本来の約束（選べる＝必ず数字が返る）をわざと破って、空の板を窓の中で
        踏めるようにするための細工。他の scene では入れない。 */
     sas:                  { cap: ['a320'],                 fo: ['a320'] }
@@ -232,15 +267,17 @@ await page.evaluateOnNewDocument((scene, theme) => {
                  a330: 1.02, b767: 0.97, dhc8: 0.72, a320: 0.92, b737: 0.9 };
   /* 金額と時間だけ動かす。★割合（pct）は掛けない ── 合計 100 が崩れる。
      ★null は null のまま返す（day1 の「まだ出せない」欄を潰さないため）。 */
-  function scale(src, k, n) {
+  function scale(src, k) {
     const r1 = (v) => (v == null ? v : Math.round(v * k));
     const r2 = (v) => (v == null ? v : Math.round(v * k * 10) / 10);
+    /* ★見出しの2つは本物と同じ刻みで返す（db/deep-pay.sql の pv_deep_step）──
+         年収 $50・Pay / Block Hour $0.5。丸い数で返すと、画面が刻みで出していることが
+         絵から分からない。 */
+    const st = (v, p) => (v == null ? v : Math.round(v * k / p) * p);
     const o = Object.assign({}, src);
     if (src.head) o.head = Object.assign({}, src.head, {
-      annual_usd: r1(src.head.annual_usd), per_block_usd: r1(src.head.per_block_usd),
-      detailed_n: src.head.detailed_n == null ? null : n,
-      verified_n: src.head.verified_n == null ? null : Math.min(src.head.verified_n, n) });
-    if (src.comp) o.comp = Object.assign({}, src.comp, { n: n,
+      annual_usd: st(src.head.annual_usd, 50), per_block_usd: st(src.head.per_block_usd, 0.5) });
+    if (src.comp) o.comp = Object.assign({}, src.comp, {
       segs: src.comp.segs.map((g) => Object.assign({}, g, { med_usd: r1(g.med_usd) })) });
     if (src.work) o.work = { block_h: r2(src.work.block_h), duty_h: r2(src.work.duty_h),
                              duty_days: src.work.duty_days, stay_nights: src.work.stay_nights };
@@ -252,7 +289,7 @@ await page.evaluateOnNewDocument((scene, theme) => {
        窓の中でセレクタを動かしても**答えが1つも変わらない**＝
        「壊れている」ように見えて、配置の確認にならない。
        返す数字はでたらめだが、**選んだ値をそのまま映す**ところは本物と同じ。
-       ⚠️ sas（スカンジナビア航空）だけは「3人に届かなかった」を返す。
+       ⚠️ sas（スカンジナビア航空）だけは「人数の壁に届かなかった」を返す。
           空の状態を窓の中で実際に踏めるようにするための細工で、
           本番の人数とは何の関係も無い。 */
     pv_deep_pay: (a) => {
@@ -267,14 +304,17 @@ await page.evaluateOnNewDocument((scene, theme) => {
                      fleet: q.fleet || null };
       if (q.airline === 'sas')
         return Object.assign({}, THIN,
-          { cohort: Object.assign({ level: 'none', n: 0 }, echo) });
+          { cohort: Object.assign({ level: 'none', trust: null }, echo) });
       /* ★土台は**その scene の payload**。FULL に潰すと day1（薄い初日）や
          fold（畳まれた状態）が選んだ瞬間に満杯へ化けて、確かめたい配置が消える。 */
+      /* ★信頼度の段は、選んだ軸の数で変える（3つ＝高・2つ＝中・1つ＝低）。
+         本物は人数と区分の広さの低いほうで決めて段だけを返す（db/deep-pay.sql の trust）。
+         ここは3段とも窓の中で踏めるようにするための細工で、本物の式ではない。 */
       const k = (q.airline ? 1 : 0) + (q.position ? 1 : 0) + (q.fleet ? 1 : 0);
-      const n = k >= 3 ? 5 : k === 2 ? 9 : 14;
+      const trust = k >= 3 ? 'high' : k === 2 ? 'mid' : 'low';
       return Object.assign(
-        scale(DEEP, (POSK[q.position] || 1) * (FLTK[q.fleet] || 1), n),
-        { cohort: Object.assign({ level: 'selected', n: n }, echo) });
+        scale(DEEP, (POSK[q.position] || 1) * (FLTK[q.fleet] || 1)),
+        { cohort: Object.assign({ level: 'selected', trust: trust }, echo) });
     },
     pv_pay_rows: () => ({ ok: true, state: 'open', rows: [], stats: STATS,
                           give: { detailed: !!(DEEP.give && DEEP.give.detailed) } }),
@@ -314,7 +354,7 @@ await page.evaluateOnNewDocument((scene, theme) => {
   Object.defineProperty(window, 'supabase', {
     value: { createClient: () => FAKE }, writable: false, configurable: false
   });
-}, scene, theme);
+}, scene, theme, lang, cur);
 
 await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
 /* ★時間で待たない（混んだ回に嘘の結果が出る）。「描き終わった」条件で待つ。
@@ -459,6 +499,23 @@ const over = await page.evaluate(() => {
 console.log(over.doc > over.view + 1
   ? `❌ 横スクロールがある（文書 ${over.doc}px / 画面 ${over.view}px）\n   ${over.list.join('\n   ')}`
   : `✓ 横スクロールなし（${over.view}px）`);
+
+/* ★撮った画面の見出しの数字を、字でも出す（絵から読み取ると1桁を読み違える）。
+   通貨も一緒に出す ── 名指しした通貨が currency.js に無いと既定のまま描かれるので、
+   「頼んだ通貨」と「実際の通貨」が違えばここで分かる。 */
+const said = await page.evaluate(() => ({
+  cur: (window.PVCurrency && window.PVCurrency.get) ? window.PVCurrency.get() : '',
+  kpi: [...document.querySelectorAll('#dp-kpi .dp-kpi')].map((e) =>
+    ((e.querySelector('.dp-kpi-k') || {}).textContent || '') + ' ' +
+    ((e.querySelector('.dp-kpi-v') || {}).textContent || '')),
+  cond: ((document.querySelector('#dp-hd .dp-cond') || {}).innerText || '').replace(/\n/g, ' '),
+  lock: [...document.querySelectorAll('#dp-kpi .dp-msg--lock .dp-msg-s')]
+    .map((e) => e.innerText.replace(/\n/g, ' ／ '))
+}));
+console.log(`通貨: ${said.cur}` + (cur && said.cur !== cur ? `  ❌ 頼んだのは ${cur}（currency.js に無い通貨）` : ''));
+if (said.cond) console.log('条件バー: ' + said.cond);
+if (said.kpi.length) console.log('見出し: ' + said.kpi.join(' ｜ '));
+if (said.lock.length) console.log('板の行: ' + said.lock.join(''));   // 錠前の板と「まだ出せません」の板は同じ器
 
 await browser.close();
 console.log(outPath);

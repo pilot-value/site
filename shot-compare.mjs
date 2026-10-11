@@ -11,23 +11,34 @@
       「開く → 選択肢が生えるのを待つ → 2社選ぶ → 描き終わるのを待つ」まで
       やってから撮る。選ばずに撮ると、どの scene も同じ「2社選んでください」が写る。
 
-   実行: node shot-compare.mjs <scene> <lang> <theme> <幅> [open]
+   実行: node shot-compare.mjs <scene> <lang> <theme> <幅> [通貨] [open]
      scene: full … 両側そろった状態（モック2枚目と同じ配置。既定）
                    ★JAL 側が年収も Block Hours も上回るので**トレードオフが出る**
-            thin … 片側が3人に届かなかった状態（右だけ「まだ出せません」・左は普通に出る）
+            thin … 片側が人数の壁に届かなかった状態（右だけ「まだ出せません」・左は普通に出る）
             drop … 片側にパーディアムが無い状態（★その行だけ表から消える。0 と書かない）
-            same … 表示される文字列が同じになる状態（★「ほぼ同じ」・勝ち負けの語は出ない）
+            same … サーバの値は違うのに、円では同じ字になる行が在る状態
+                   （★年収・Pay / Block Hour・固定・保証給比率の3行に差が付かない。
+                     通貨を変えると、刻みの境目をまたぐ行だけ差が出る）
             ask  … まだ2社そろっていない（入口の板）
             dup  … 左右に同じ会社を選んだ
             few  … 比べられる会社が1社しか無い（★選択欄ごと出ない）
-            lock … 鍵がまだ無い（給与を1件も出していない）
+            lock … 鍵がまだ無い（給与を1件も出していない）＝板は3行
+            goal … 鍵も内訳もそろっていて、100人だけが未達＝板は1行
+                   （★前はここで「内訳を出すと開きます」と出ていた。直した不具合の絵）
             err  … サーバが返らなかった
      lang : ja | en
      theme: light | dark
+     通貨 : JPY | USD | EUR | GBP | AUD | SGD | AED（省くと、その言語の既定のまま）
+            ★円のままでは見えない崩れがある ── 通貨を変えると字数が変わる。
+              額の入る欄を触った回は、円以外でも1枚撮る。
+            ⚠️ 英語ページの既定は**この機械のタイムゾーン**で決まる。英語の絵を
+               人に見せるときは通貨を名指しする（省くと置き場所で絵が変わる）。
+            位置は問わない（open / measure と同じく、引数のどこに書いてもよい）。
    保存先は screenshot.mjs と同じ ./temporary screenshots/
 
    末尾に open を付けると、撮らずに**見える窓で開いたまま**にする。
      node shot-compare.mjs full ja light 1440 open
+     node shot-compare.mjs full en light 1440 EUR
 */
 import puppeteer from 'puppeteer';
 import fs from 'fs';
@@ -41,10 +52,19 @@ const theme = process.argv[4] || 'light';
 const vw    = Number(process.argv[5]) || 1440;
 const open  = process.argv.includes('open');
 const measure = process.argv.includes('measure');
+/* ★表示通貨（省略可）。通貨コードの形をした引数を、位置を問わず1つ拾う
+   ＝ 今までの呼び方（scene lang theme 幅 [open|measure]）は1つも変わらない。
+   効かせ方は shot-deep.mjs と同じ ──「その言語の保存先に、選んだ通貨として
+   書いておく」（日本語＝pv-currency ／ 英語＝pv-currency-en）。currency.js が
+   起動時に読む本物の道を通すので、切り替えの描き直しを待つ必要が無い。
+   ⚠️ 通る通貨は currency.js の RATES に在るものだけ。無い通貨を渡すと既定のまま
+      描かれるので、撮ったあとに実際の通貨を突き合わせて知らせる（下の「通貨」の行）。 */
+const cur = process.argv.slice(2).find((a) => /^[A-Z]{3}$/.test(a)) || '';
 
 const dir = path.join(__dirname, 'temporary screenshots');
 if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-const label = `cmp-${scene}-${lang}-${theme}` + (vw !== 1440 ? `-${vw}` : '');
+const label = `cmp-${scene}-${lang}-${theme}` + (vw !== 1440 ? `-${vw}` : '')
+  + (cur ? `-${cur}` : '');
 let n = 1;
 while (fs.existsSync(path.join(dir, `screenshot-${n}-${label}.png`))) n++;
 const outPath = path.join(dir, `screenshot-${n}-${label}.png`);
@@ -74,18 +94,24 @@ if (!open) await page.setViewport({ width: vw, height: 1000 });
 page.on('pageerror', (e) => console.log('❌ page error:', e.message));
 
 /* ★ setRequestInterception は使わない（CDP デッドロック。shot-tracker.mjs 参照）。 */
-await page.evaluateOnNewDocument((scene, theme) => {
+await page.evaluateOnNewDocument((scene, theme, lang, cur) => {
   localStorage.setItem('pv-theme', theme);
+  if (cur) localStorage.setItem(lang === 'en' ? 'pv-currency-en' : 'pv-currency', cur);
   const UID = '00000000-0000-4000-8000-00000000a001';
   const STATS = { reports: 58, month: 12, airlines: 19, contributors: 37 };
 
   /* 会社ごとの見本。★合計はちょうど100（本番は pv_deep_pct が最大剰余法で揃える）。
-     ⚠️ night / weekend / holiday は3つのまま。1行にまとめない（仕様の明示的な禁止）。 */
+     ⚠️ night / weekend / holiday は3つのまま。1行にまとめない（仕様の明示的な禁止）。
+     ★形は db/deep-pay.sql の返り値（2026-10-11）──
+       ・区分の人数は**入れない**（cohort.n / head.detailed_n / head.verified_n /
+         comp.n / comp.bonus.n はサーバが返さなくなった）。代わりは信頼度の段（trust）。
+       ・見出しの2つは刻み（annual_usd は $50・per_block_usd は $0.5）。
+         給与構成の med_usd は有効数字2桁のまま。 */
   const AIR = {
     ana: {
-      n: 12,
-      head: { annual_usd: 110000, per_block_usd: 93, detailed_n: 12, verified_n: 7, fixed_pct: 62 },
-      comp: { total_kind: 'monthly_cash', n: 12, bonus: { pct_of_annual: 5, n: 9 },
+      trust: 'high',
+      head: { annual_usd: 119700, per_block_usd: 103.5, fixed_pct: 62 },
+      comp: { total_kind: 'monthly_cash', bonus: { pct_of_annual: 5 },
         segs: [
           { k: 'base',     pct: 52, med_usd: 4800 },
           { k: 'variable', pct: 24, med_usd: 2200 },
@@ -99,9 +125,9 @@ await page.evaluateOnNewDocument((scene, theme) => {
     /* ★年収も Block Hours もステイも上回る＝**トレードオフの文が出る**側。
        「たくさん飛んでたくさんもらう」がひと目で分かる形にしてある。 */
     jal: {
-      n: 8,
-      head: { annual_usd: 128000, per_block_usd: 105, detailed_n: 8, verified_n: 5, fixed_pct: 55 },
-      comp: { total_kind: 'monthly_cash', n: 8, bonus: { pct_of_annual: 8, n: 6 },
+      trust: 'mid',
+      head: { annual_usd: 127950, per_block_usd: 105.5, fixed_pct: 55 },
+      comp: { total_kind: 'monthly_cash', bonus: { pct_of_annual: 8 },
         segs: [
           { k: 'base',     pct: 46, med_usd: 4900 },
           { k: 'variable', pct: 31, med_usd: 3300 },
@@ -115,9 +141,9 @@ await page.evaluateOnNewDocument((scene, theme) => {
     /* ★パーディアムの区分が無い会社。表の「パーディアム比率」の行が
        **まるごと消える**ことを見るための見本。0% と書いたら負け。 */
     lufthansa: {
-      n: 6,
-      head: { annual_usd: 96000, per_block_usd: 84, detailed_n: 6, verified_n: 3, fixed_pct: 71 },
-      comp: { total_kind: 'monthly_cash', n: 6, bonus: null,
+      trust: 'mid',
+      head: { annual_usd: 96050, per_block_usd: 84.5, fixed_pct: 71 },
+      comp: { total_kind: 'monthly_cash', bonus: null,
         segs: [
           { k: 'base',     pct: 68, med_usd: 5100 },
           { k: 'variable', pct: 19, med_usd: 1400 },
@@ -126,13 +152,16 @@ await page.evaluateOnNewDocument((scene, theme) => {
         ] },
       work: { block_h: 66.0, duty_h: 124.0, duty_days: 16, stay_nights: 6 }
     },
-    /* ★丸めた後の**表示文字列**が ANA と同じになる見本（年収・固定給比率・
-       Block Hours）。生の値では違うのに画面では同じ ── ここで
-       「ほぼ同じ」と出ずに勝ち負けを書いたら、それは嘘。 */
+    /* ★丸めた後の**表示文字列**が ANA と同じになる見本（年収・Pay / Block Hour・
+       固定・保証給比率の3行）。年収と Pay / Block Hour は、サーバの値は違うのに円では同じ字になる
+       （$119,700 と $119,750 → どちらも ¥1,903万／$103.5 と $104 → どちらも ¥16,500）。
+       ここで差の数値を書いたら、同じ数字が2つ並んでいるのに違うと言うことになる。
+       ★ユーロで撮ると年収だけ €102K と €103K に割れて差が出る（刻みの境目をまたぐ）。
+         それで正しい ── どの通貨でも、画面の2つの字と差は辻褄が合っている。 */
     emirates: {
-      n: 9,
-      head: { annual_usd: 112000, per_block_usd: 93, detailed_n: 9, verified_n: 4, fixed_pct: 62 },
-      comp: { total_kind: 'monthly_cash', n: 9, bonus: { pct_of_annual: 5, n: 7 },
+      trust: 'low',
+      head: { annual_usd: 119750, per_block_usd: 104, fixed_pct: 62 },
+      comp: { total_kind: 'monthly_cash', bonus: { pct_of_annual: 5 },
         segs: [
           { k: 'base',     pct: 49, med_usd: 5200 },
           { k: 'variable', pct: 21, med_usd: 2200 },
@@ -155,7 +184,7 @@ await page.evaluateOnNewDocument((scene, theme) => {
     jal:             { cap: ['b767', 'b777', 'b787'], fo: ['b737', 'b787'] },
     lufthansa:       { cap: ['a320', 'a350', 'b747'], fo: ['a320'] },
     emirates:        { cap: ['a380', 'b777'],         fo: ['b777'] },
-    /* ★sas は「3人に届かなかった」側の見本（AIR に見本を持たない）。
+    /* ★sas は「人数の壁に届かなかった」側の見本（AIR に見本を持たない）。
        **thin の絵を撮る回だけ**一覧に入れる ── 本来の約束（選べる＝必ず
        数字が返る）をわざと破って、空の板を窓の中で踏めるようにするための細工。
        他の scene では入れない＝窓の中の選択肢はどれを選んでも数字が返る。 */
@@ -193,23 +222,31 @@ await page.evaluateOnNewDocument((scene, theme) => {
     for (const k of pos['']) flt['|' + k] = uniq(air.flatMap((c) => FL[c][k] || []));
     return { air, pos, flt };
   })();
+  /* ★gate.crowd ＝「みんなの側」の門（100人以上 or 手動の公開フラグ）。
+       37 / 100 人のまま開いている見本は「手動フラグで開けた日」の形＝ crowd:true。 */
+  const OPEN = { key: true, detailed: true, crowd: true, contributors: 37, goal: 100 };
   const BOOT = { ok: true, state: 'open', stats: STATS, give: { detailed: true },
-                 gate: { key: true, detailed: true, contributors: 37, goal: 100 },
+                 gate: OPEN,
                  picks: PICKS,
                  cohort: null, head: null, comp: null, work: null, var: null };
-  const LOCK = Object.assign({}, BOOT, { state: 'locked', give: { detailed: false },
-                 gate: { key: false, detailed: false, contributors: 37, goal: 100 } });
+  /* 錠前の板。当てはまる行だけが出る（deep-pay-compare.js の lockLines）。
+       lock … 鍵も内訳も無く、100人も未達＝3行
+       goal … 鍵も内訳もそろっていて、100人だけが未達＝1行
+              （★前はこの人に「内訳を出すと開きます」と出ていた） */
+  const LOCK = Object.assign({}, BOOT, { state: 'locked', give: { detailed: false }, picks: null,
+                 gate: { key: false, detailed: false, crowd: false, contributors: 37, goal: 100 } });
+  const GOAL = Object.assign({}, BOOT, { state: 'locked', give: { detailed: true }, picks: null,
+                 gate: { key: true, detailed: true, crowd: false, contributors: 37, goal: 100 } });
 
-  /* 3人に届かなかった側。★広い区分に登らないので、出るものが何も無い。
-     「あと1人」とも書かない（書くと人数が1人単位で読める）。 */
+  /* 人数の壁に届かなかった側。★広い区分に登らないので、出るものが何も無い。
+     「あと1人」とも、壁が何人かとも書かない（書くと人数が1人単位で読める）。
+     本物も head / comp / work / var を返り値ごと null にする（trust も null）。 */
   function thin(code, q) {
     return { ok: true, state: 'open', stats: STATS, give: { detailed: true },
-      gate: { key: true, detailed: true, contributors: 37, goal: 100 },
+      gate: OPEN,
       cohort: { level: 'none', manual: true, airline: code,
-                pos: q.position || null, fleet: q.fleet || null, n: 0 },
-      head: { annual_usd: null, per_block_usd: null, detailed_n: null,
-              verified_n: null, fixed_pct: null },
-      comp: null, work: null, var: [] };
+                pos: q.position || null, fleet: q.fleet || null, trust: null },
+      head: null, comp: null, work: null, var: null };
   }
 
   /* ★職位・機材で数字が動く（2026-09-01）。前はここが会社しか見ておらず、
@@ -224,30 +261,34 @@ await page.evaluateOnNewDocument((scene, theme) => {
        会社を渡されたら**その会社の見本**に、職位・機材の係数を掛けて返す。
        ここを1つの payload に潰すと左右が同じ数字になり、確かめたい配置が
        全部消える。
-       ⚠️ 一覧に無い会社は「3人に届かなかった」を返す ── 空の状態を窓の中で
+       ⚠️ 一覧に無い会社は「人数の壁に届かなかった」を返す ── 空の状態を窓の中で
           実際に踏めるようにするための細工で、本番の人数とは何の関係も無い。 */
     pv_deep_pay: (a) => {
       const q = (a && a.p) || {};
-      if (!q.airline) return scene === 'lock' ? LOCK : BOOT;
+      if (!q.airline) return scene === 'lock' ? LOCK : scene === 'goal' ? GOAL : BOOT;
       const src = AIR[q.airline] || AIR[WIDE[q.airline]];
       if (!src) return thin(q.airline, q);
       const k = (POSK[q.position] || 1) * (FLTK[q.fleet] || 1);
       const r1 = (v) => (v == null ? v : Math.round(v * k));
       const r2 = (v) => (v == null ? v : Math.round(v * k * 10) / 10);
-      /* 絞るほど人数は減る。★3人は割らない（割ったら本番は none を返す）。 */
-      const n = Math.max(3, Math.round(src.n * (q.position ? 0.75 : 1) * (q.fleet ? 0.7 : 1)));
+      /* ★見出しの2つは本物と同じ刻みで返す（db/deep-pay.sql の pv_deep_step）──
+           年収 $50・Pay / Block Hour $0.5。丸い数で返すと、画面が刻みで出していることが
+           絵から分からない。 */
+      const st = (v, p) => (v == null ? v : Math.round(v * k / p) * p);
+      /* ★区分の人数は返さない。返すのは信頼度の段だけ（会社ごとの見本の trust）。
+         本物は人数と区分の広さの低いほうで段を決める（db/deep-pay.sql の trust）。
+         ここは絞っても段を動かさない ── 左右の札が違う絵を撮るための作り物。 */
       /* ★割合（pct）は係数を掛けない ── 合計 100 が崩れる。動かすのは金額と時間だけ。 */
-      const comp = src.comp && Object.assign({}, src.comp, { n,
+      const comp = src.comp && Object.assign({}, src.comp, {
         segs: src.comp.segs.map((g) => Object.assign({}, g, { med_usd: r1(g.med_usd) })) });
       const work = src.work && { block_h: r2(src.work.block_h), duty_h: r2(src.work.duty_h),
                                  duty_days: src.work.duty_days, stay_nights: src.work.stay_nights };
       return { ok: true, state: 'open', stats: STATS, give: { detailed: true },
-        gate: { key: true, detailed: true, contributors: 37, goal: 100 },
+        gate: OPEN,
         cohort: { level: 'selected', manual: true, airline: q.airline,
-                  pos: q.position || null, fleet: q.fleet || null, n },
-        head: Object.assign({}, src.head, { annual_usd: r1(src.head.annual_usd),
-                                            per_block_usd: r1(src.head.per_block_usd),
-                                            detailed_n: n }),
+                  pos: q.position || null, fleet: q.fleet || null, trust: src.trust },
+        head: Object.assign({}, src.head, { annual_usd: st(src.head.annual_usd, 50),
+                                            per_block_usd: st(src.head.per_block_usd, 0.5) }),
         comp: comp, work: work, var: [] };
     },
     pv_pay_rows: () => ({ ok: true, state: 'open', rows: [], stats: STATS,
@@ -288,7 +329,7 @@ await page.evaluateOnNewDocument((scene, theme) => {
   Object.defineProperty(window, 'supabase', {
     value: { createClient: () => FAKE }, writable: false, configurable: false
   });
-}, scene, theme);
+}, scene, theme, lang, cur);
 
 await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
 /* ★時間で待たない（混んだ回に嘘の結果が出る）。「描き終わった」条件で待つ。
@@ -443,6 +484,37 @@ const over = await page.evaluate(() => {
 console.log(over.doc > over.view + 1
   ? `❌ 横スクロールがある（文書 ${over.doc}px / 画面 ${over.view}px）\n   ${over.list.join('\n   ')}`
   : `✓ 横スクロールなし（${over.view}px）`);
+
+/* ★撮った画面の見出しの数字を、字でも出す（絵から読み取ると1桁を読み違える）。
+   通貨も一緒に出す ── 名指しした通貨が currency.js に無いと既定のまま描かれるので、
+   「頼んだ通貨」と「実際の通貨」が違えばここで分かる。 */
+const said = await page.evaluate(() => {
+  const cell = (e) => {
+    if (!e) return '';
+    const n = e.querySelector('.dc-c-a');
+    let x = e.textContent || '';
+    if (n) x = x.replace(n.textContent, '');
+    return x.replace(/\s+/g, ' ').trim();
+  };
+  return {
+    cur: (window.PVCurrency && window.PVCurrency.get) ? window.PVCurrency.get() : '',
+    cond: ((document.querySelector('#dc-cond .dp-cond') || {}).innerText || '').replace(/\n/g, ' '),
+    chips: [...document.querySelectorAll('#dc-root .dc-side-c')].map((e) => e.textContent.trim()),
+    rows: [...document.querySelectorAll('#dc-diff .dc-tr:not(.dc-th)')].slice(0, 2).map((r) =>
+      ((r.querySelector('.dc-c1') || {}).textContent || '') + ' ' +
+      cell(r.querySelector('.dc-c2')) + ' ／ ' + cell(r.querySelector('.dc-c3'))),
+    card: [...document.querySelectorAll('#dc-sides .dc-kv')].slice(0, 2)
+      .map((e) => e.textContent.replace(/\s+/g, ' ').trim()),
+    lock: [...document.querySelectorAll('#dc-sides .dp-msg--lock .dp-msg-s')]
+      .map((e) => e.innerText.replace(/\n/g, ' ／ '))
+  };
+});
+console.log(`通貨: ${said.cur}` + (cur && said.cur !== cur ? `  ❌ 頼んだのは ${cur}（currency.js に無い通貨）` : ''));
+if (said.cond) console.log('条件バー: ' + said.cond);
+if (said.chips.length) console.log('信頼度の札: ' + said.chips.join(' ｜ '));
+if (said.rows.length) console.log('見出し: ' + said.rows.join(' ｜ '));
+if (said.card.length) console.log('カード: ' + said.card.join(' ｜ '));
+if (said.lock.length) console.log('板の行: ' + said.lock.join(''));   // 錠前の板と「まだ出せません」の板は同じ器
 
 await browser.close();
 console.log(outPath);

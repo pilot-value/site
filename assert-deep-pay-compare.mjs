@@ -14,6 +14,16 @@
       rpc が null を返すので S.mode='error' → ピッカーが hidden → 欄が0個で
       **素通しで緑になる**。検査が無いより悪い。だから 390px の実測はここで自前にやる。
 
+   ★2026-10-11（オーナー判断）に足した見張り ──
+     ・**人数を画面のどこにも出さない**。「◯人 vs ◯人」も会社ごとの人数のピルも
+       外し、ピルはサーバが返す信頼度の段になった。本文に「◯人」「◯ pilots」の形の
+       字が無いこと（NOCOUNT）と、古いサーバを装って人数を混ぜても画面が1文字も
+       変わらないこと（§4b）を見る。例外は錠前の板の100人の行だけ（§2b）。
+     ・**錠前の板の行**が理由どおりに出る（§2b。この画面に実際に在った不具合 ──
+       100人だけが理由の人に「内訳を出すと開きます」と出ていた）。
+     ・**年収と Pay / Block Hour は刻みで出す**（円 1万円・100円／ほか 1,000・1）。
+       差は今までどおり画面の2つの字の引き算（§4・§7・§7b・§9b）。
+
    ⚠️ ここで使う金額・時間は**全部でたらめ**。本物の給与はこのリポジトリに1件も無い。
 
    使い方: node assert-deep-pay-compare.mjs   （serve.mjs が要る）
@@ -129,10 +139,25 @@ console.log('\n════ ② 言葉 ════');
 // ════════════════════════════════════════════════════════════════
 console.log('\n════ ③ 数え方・出し方 ════');
 {
-  /* ★人数の壁は db/deep-pay.sql の1か所だけ。JS が自分で数え始めると
-     SQL を直しても画面が古い壁のまま動き、しかも見た目は正しく見える。 */
-  ok(!/\.n\s*<\s*3/.test(jsC), '★JS が人数を自分で数えていない（\\.n < 3 が無い）');
+  /* ★人数の壁は db/deep-pay.sql の1か所だけ（定数 v_min。2026-10-11 から2人）。
+     JS が自分で数え始めると SQL を直しても画面が古い壁のまま動き、しかも見た目は
+     正しく見える。前は「\.n < 3 が無い」だけを見ていたが、壁の数字が変わった日に
+     素通しになる形だった ── **数字を名指しせず、人数を読む行そのもの**を禁じる。 */
+  ok(!/\.n\s*[<>]=?\s*\d/.test(jsC), '★JS が人数を自分で比べていない（.n と数の比較が無い）');
   ok(/level\s*===\s*'none'/.test(jsC), '★薄い区分の合図は cohort.level === \'none\' だけ');
+  /* ★人数の鍵を読まない（2026-10-11・オーナー判断「人数は出さない」）。
+       サーバは区分の人数を返さなくなったが、**古いサーバは返す**。読む行が1つでも
+       残っていると、SQL を貼る前の日だけ人数が画面に戻る。
+       実際に出ないことは、ブラウザの §4b が毒入りの答えで見ている。 */
+  for (const k of ['verified_n', 'detailed_n']) {
+    ok(!new RegExp('\\b' + k + '\\b').test(jsC), `★deep-pay-compare.js が人数の鍵 ${k} を読まない`);
+  }
+  const reads = jsC.match(/\b(?:cohort|c|comp|bonus|b|h|head|x)\.n\b/g) || [];
+  ok(reads.length === 0, '★deep-pay-compare.js が区分の人数（cohort.n / comp.n など）を読まない',
+     reads.join(' '));
+  ok(!/\bnOf\b/.test(jsC), '★人数を取り出す nOf() は残っていない');
+  ok(!/\bpeople\s*:|\bvs\s*:/.test(jsC), '★「◯人 vs ◯人」の語（people / vs）を文言に持たない');
+  ok(/cohort\.trust\b/.test(jsC), '人数の代わりにサーバの cohort.trust を読んでいる');
 
   /* ★変動給比率を「100 − 固定・保証給比率」で出さない（2社ぶん並ぶので嘘が倍になる）。
      fixed_pct は 固定＋職位＋役割＋住宅 なので、残りは変動給ではない。 */
@@ -169,12 +194,15 @@ console.log('\n════ ③ 数え方・出し方 ════');
   ok(/V\.SEG/.test(jsC), '★色は PVViz.SEG から引いている（自前の色表を持たない）');
   ok(!/#[0-9a-f]{6}/i.test(jsC), '★JS に生の色コードが無い', (jsC.match(/#[0-9a-f]{6}/ig) || []).join(' '));
 
-  /* ★「ほぼ同じ」は画面に出す文字列どうしで判定する（丸めた後に同じ表示になる値がある）。 */
+  /* ★「ほぼ同じ」は画面に出す文字列どうしで判定する（丸めた後に同じ表示になる値がある）。
+     2026-10-11 に年収と Pay / Block Hour の刻みが細かくなった（円なら 1万円・100円）。
+     同じ表示になる幅は狭くなったが、**判定の仕方は変えていない**（§7 が実物で見る）。 */
   ok(/same:\s*sa === sb/.test(jsC), '★「ほぼ同じ」は表示する文字列で判定している');
   /* ★差は 2026-08-31 から数値で出す（オーナー確定「語を書かず数値だけ」）。
-     許されるのは**画面に出ている2つの文字列の引き算**だけ。生の値で引くと、
-     金額は有効数字2桁（pv_sig2）に丸めてから画面に出ているので、
-     読み手が自分で引き算した答えと合わない数が出る＝2桁より細かい精度の主張になる。 */
+     許されるのは**画面に出ている2つの文字列の引き算**だけ。金額も時間も丸めてから
+     画面に出ている（年収と Pay / Block Hour は刻み・手当の月額は有効数字2桁・
+     時間は小数1桁）。生の値で引くと、読み手が自分で引き算した答えと合わない数が
+     出る＝画面に出ている刻みより細かい精度の主張になる。 */
   const deltaFn = (decomment(JS).match(/function delta\([\s\S]*?\n  \}/) || [''])[0];
   ok(deltaFn.length > 0, '★差を出す delta() が在る');
   ok(!/va\s*[-−]\s*vb|vb\s*[-−]\s*va|va\s*\/\s*vb|vb\s*\/\s*va/.test(deltaFn),
@@ -215,10 +243,24 @@ console.log('\n════ ④ 写した関数 ════');
     ok(DC[name] && MV[name] && norm(DC[name]) === norm(MV[name]),
        `★${name}() が my-value.js の写しのまま（ずれていない）`);
   }
-  for (const name of ['sig2', 'money', 'moneyExact', 'segPct', 'airName']) {
+  /* ★丸める道具は5つとも1文字も違えない（2026-10-11 に stepIn と moneyRate が増えた）。
+       違うと、同じ会社の同じ数字が DEEP PAY と会社比較で別の額になる
+       ── どちらの画面も普通に動いたまま。
+     ★lockLines / lockAddSlot は錠前の板の行を決める関数。画面ごとに別々に組んで
+       いた頃、比較の側だけ「100人に届いていない」の行が抜けていた。 */
+  for (const name of ['sig2', 'stepIn', 'money', 'moneyRate', 'moneyExact',
+                      'segPct', 'airName', 'lockLines', 'lockAddSlot']) {
     ok(DC[name] && DP[name] && norm(DC[name]) === norm(DP[name]),
        `★${name}() が deep-pay.js の写しのまま（ずれていない）`);
   }
+  /* ★見出しの2つは刻みの道具を通っている（2桁の道具に戻っていない）。 */
+  ok(/annual:\s*\{\s*lab:\s*T\.mAnnual,\s*f:\s*money,/.test(jsC),
+     '★年収は money()（刻み）で出している');
+  ok(/pbh:\s*\{\s*lab:\s*T\.mPbh,\s*f:\s*moneyRate,/.test(jsC),
+     '★Pay / Block Hour は moneyRate()（刻み）で出している（moneyExact に戻っていない）');
+  /* ★錠前の板に、行を足したり埋めたりする道が残っていない（実際に在った不具合の形）。 */
+  ok(!/lines\.push\(/.test(jsC) && !/lines\.push\(/.test(decomment(read('deep-pay.js'))),
+     '★錠前の板の行を lockLines() の外で足していない（別の行で埋めない）');
   /* ★logoHtml() の出どころは actual-pay.js（色を持たない版）。deep-pay.js には無い。
      salary-leveling.js のほうはブランド色が要り、salary-data.json はそれを持たない。
      違うのは CSS の接頭辞（ap- → dc-）だけなので、そこだけ揃えて突き合わせる。 */
@@ -296,10 +338,18 @@ const FAKE = function (payload) {
   const UID = '00000000-0000-4000-8000-00000000a001';
   const STATS = { reports: 58, month: 12, airlines: 19, contributors: 37 };
   const P = payload || {};
-  const GATE = P.__lock ? { key: false, detailed: false } : { key: true, detailed: true };
+  /* ★gate の形は db/deep-pay.sql の返り値（2026-10-11）。crowd ＝「みんなの側」の門
+       （100人以上 or 手動の公開フラグ）。ここの作り物は 37 / 100 人のまま開いている
+       ＝手動フラグで開けた日の形なので、開いているときは crowd:true。
+     ★__gate を渡すと、その門のまま閉じた答えを返す（錠前の板の行を見る §2b 用）。
+       crowd を**書かない** __gate は、古いサーバの形になる。 */
+  const GATE = P.__gate ? P.__gate
+    : P.__lock ? { key: false, detailed: false, crowd: false, contributors: 37, goal: 100 }
+               : { key: true, detailed: true, crowd: true, contributors: 37, goal: 100 };
+  const SHUT = !!(P.__lock || P.__gate);
   const BOOT = {
-    state: P.__lock ? 'locked' : 'open',
-    gate: GATE, stats: STATS, give: { detailed: !P.__lock }
+    state: SHUT ? 'locked' : 'open',
+    gate: GATE, stats: STATS, give: { detailed: !!GATE.detailed }
   };
   /* ★選べる組み合わせ（2026-09-01・オーナー確定「選択できる ＝ 実際に数字が返る」）。
      サーバが「数字が返る組み合わせ」を全部返し、**画面はそれを引くだけ**。
@@ -339,11 +389,19 @@ const FAKE = function (payload) {
   if (!P.__nopicks) BOOT.picks = P.__picks || DEF_PICKS;
   /* ★入口の1回は state と鍵だけ。cohort / head / comp を混ぜない
      ── 混ぜると「選ぶ前に数字が出ていない」ことを見張れなくなる。 */
-  const THIN = { state: 'open', gate: GATE, stats: STATS, cohort: { level: 'none' } };
+  /* ★薄い側。本物は head / comp / work / var を**返り値ごと** null にし、
+       信頼度の段（trust）も null で返す。 */
+  const THIN = { state: 'open', gate: GATE, stats: STATS,
+                 cohort: { level: 'none', manual: true, trust: null },
+                 head: null, comp: null, work: null, var: null };
   function side(f) {
-    return {
+    /* ★区分の人数は**入れない**（サーバが返さなくなった）。代わりは cohort.trust。
+       f.trust を書いていない見本は、段が来ない形（古いサーバ）になる。
+       ★f.poison は「古いサーバが人数を付けてきた」形。**来ても読まない**ことを
+         §4b が見るためだけの細工で、本物の新しい答えには無い。 */
+    const o = {
       state: 'open', gate: GATE, stats: STATS,
-      cohort: { level: 'airline', n: f.n },
+      cohort: { level: 'selected', manual: true },
       head: { annual_usd: f.annual, per_block_usd: f.pbh, fixed_pct: f.fixed },
       comp: {
         segs: f.segs,
@@ -351,13 +409,19 @@ const FAKE = function (payload) {
       },
       work: { block_h: f.block, stay_nights: f.stay }
     };
+    if (f.trust !== undefined) o.cohort.trust = f.trust;
+    if (f.poison) {
+      o.cohort.n = f.poison; o.head.detailed_n = f.poison; o.head.verified_n = f.poison - 5;
+      o.comp.n = f.poison; if (o.comp.bonus) o.comp.bonus.n = f.poison - 3;
+    }
+    return o;
   }
   const RPC = {
     pv_deep_pay: (args) => {
       const q = (args && args.p) || null;
       if (!q || !q.airline) return BOOT;          // 入口の1回（引数なし）
       const f = (P.air || {})[q.airline];
-      return f ? side(f) : THIN;                  // 表に無い会社＝3人に届かない区分
+      return f ? side(f) : THIN;                  // 表に無い会社＝人数の壁に届かない区分
     },
     pv_pay_rows: () => ({ ok: true, state: 'open', rows: [], stats: STATS }),
     pv_give_progress: () => ({ ok: true, contributors: 37, give: { detailed: true } })
@@ -396,29 +460,56 @@ const FAKE = function (payload) {
 /* 見本。**実在の給与ではない。**
    ana ↔ jal   … 9項目とも両側にある（jal が7項目で上・ana が2項目で上）
    lufthansa   … パーディアムの区分が無く賞与も null →**その2行だけ**落ちる
-   emirates    … 丸めたら ana と同じ表示になる（fixed 61.8 vs 62.2 → どちらも 62%）
+   emirates    … サーバの値は ana と違うのに、**円では同じ字になる**
+                 （年収 $119,700 と $119,750 → どちらも ¥1,903万／Pay/BH $103.5 と $104 →
+                   どちらも ¥16,500／fixed 62.2 と 61.8 → どちらも 62%）
+   singapore-… … ana と**年収だけ刻み1つぶん違う**（$119,800 → ¥1,904万）。ほかは同じ
    qatar-…     … 年収と Pay/BH は上・Block と ステイは下 → 対が割れてトレードオフは出ない
-   sas         … air に無い＝薄い側 */
+   sas         … air に無い＝薄い側
+
+   ★形は db/deep-pay.sql の返り値（2026-10-11）──
+     ・区分の人数は**入れていない**（サーバが返さなくなった）。代わりは trust
+       （high / mid / low）。ana は high・jal は mid とわざと違えてある ── 左右の札が
+       入れ替わっていないことを見るため。
+     ・年収は $50 刻み・Pay/BH は $0.5 刻み（前は有効数字2桁の丸い数だった）。
+   ★円で刷られる字（レートは currency.js の RATES。USD 158.95）──
+       ana   119700 → ¥1,903万   103.5 → ¥16,500
+       jal   127950 → ¥2,034万   105.5 → ¥16,800      差 +¥131万 / +¥300
+     値を変えるなら §4 の期待値も一緒に直す。 */
 const SEG5 = (fx, va, pd, ho, ot) => [
   { k: 'base', pct: fx }, { k: 'variable', pct: va }, { k: 'perdiem', pct: pd },
   { k: 'housing', pct: ho }, { k: 'other', pct: ot }
 ];
-const ANA = { n: 21, annual: 110000, pbh: 93, fixed: 62.2, block: 74.0, stay: 9,
+const ANA = { trust: 'high', annual: 119700, pbh: 103.5, fixed: 62.2, block: 74.0, stay: 9,
               bonus: 5, segs: SEG5(62, 18, 7, 8, 5) };
 const AIR = {
   ana: ANA,
-  jal: { n: 17, annual: 128000, pbh: 105, fixed: 55, block: 79.5, stay: 12,
+  jal: { trust: 'mid', annual: 127950, pbh: 105.5, fixed: 55, block: 79.5, stay: 12,
          bonus: 8, segs: SEG5(55, 24, 9, 7, 5) },
-  lufthansa: { n: 12, annual: 96000, pbh: 84, fixed: 71, block: 66.0, stay: 6,
+  lufthansa: { trust: 'mid', annual: 96050, pbh: 84.5, fixed: 71, block: 66.0, stay: 6,
                bonus: null, segs: [{ k: 'base', pct: 71 }, { k: 'variable', pct: 14 },
                                    { k: 'housing', pct: 10 }, { k: 'other', pct: 5 }] },
-  emirates: { n: 14, annual: 110000, pbh: 93, fixed: 61.8, block: 74.04, stay: 9,
+  emirates: { trust: 'high', annual: 119750, pbh: 104, fixed: 61.8, block: 74.04, stay: 9,
               bonus: 5, segs: SEG5(62, 18, 7, 8, 5) },
-  'qatar-airways': { n: 15, annual: 140000, pbh: 105, fixed: 66, block: 60.0, stay: 5,
+  'singapore-airlines': { trust: 'low', annual: 119800, pbh: 103.5, fixed: 62.2, block: 74.0,
+                          stay: 9, bonus: 5, segs: SEG5(62, 18, 7, 8, 5) },
+  'qatar-airways': { trust: 'mid', annual: 139800, pbh: 110, fixed: 66, block: 60.0, stay: 5,
                      bonus: 6, segs: SEG5(66, 15, 6, 9, 4) }
 };
 const OK   = { air: AIR };
 const LOCK = { __lock: true, air: AIR };
+const clone = (o) => JSON.parse(JSON.stringify(o));
+
+/* ── 人数を画面に出さない（2026-10-11・オーナー判断）──────────────────
+   「◯人」（日）・「◯ pilots」（英）の形の字が、本文（#dc-root）に1つも無いこと。
+   その区分に何人いるかも、壁が何人かも出さない。
+   ★「1人ずつ」は人数ではなく計算の仕方（Pay / Block Hour の但し書き）なので除く。
+   ★例外はたった1つ ── 錠前の板の「…100人に達すること（いま N人）」。それも
+     gate.crowd が false のときだけ（§2b が行ごとに見る）。
+   ★「2社」は人数ではない（比べるには2社要る、という動かない壁）。
+   ⚠️ この物差しは assert-deep-pay.mjs の NOCOUNT と同じ本体。片方だけ緩めない。 */
+const NOCOUNT = /[0-9０-９]+\s*(?:人(?!ずつ)|名)|\b[0-9]+\s+pilots?\b/i;
+const countIn = (t) => ((t || '').match(new RegExp(NOCOUNT.source, 'gi')) || []).join(' / ');
 
 const SNAP = () => {
   const t = (s) => ((document.querySelector(s) || {}).textContent || '').trim();
@@ -507,6 +598,20 @@ const SNAP = () => {
     })(),
     lowHidden: ['dc-diff', 'dc-mix', 'dc-trade', 'dc-cta']
       .filter((id) => !!(document.getElementById(id) || {}).hidden).length,
+    /* 錠前の板。行は <br> で区切ってあるので innerText の改行で割る。
+       add ＝ 段階3の差し込み口（空の器）が置かれているか。 */
+    lockBox: (function () {
+      const m = document.querySelector('#dc-sides .dp-msg--lock');
+      const p = m && m.querySelector('.dp-msg-s');
+      return { on: !!m,
+               lines: p ? p.innerText.split('\n').map((x) => x.trim()).filter(Boolean) : [],
+               add: m ? m.querySelectorAll('.dp-lock-add').length : 0,
+               cta: m ? [...m.querySelectorAll('a.dp-cta')].map((e) => e.getAttribute('href')) : [] };
+    })(),
+    /* ★本文だけ（#dc-root）。人数の形の字を探すのはこちら ── body 全体には
+       左メニューの札（「37 / 100人」）が入っていて、あれはこの画面の本文ではない。 */
+    main: document.getElementById('dc-root').innerText,
+    mainHtml: document.getElementById('dc-root').innerHTML,
     text: document.body.innerText
   };
 };
@@ -613,6 +718,68 @@ async function open(lang, payload, theme, sel, expect, width) {
   ok(errs.length === 0, '鍵の画面で JS のエラーが出ない', errs.join(' / '));
 }
 
+// ── 2b. 錠前の板の行は、閉じている理由どおりに出る（2026-10-11）──────
+/* ★★ここはこの画面で**実際に在った不具合**の見張り。
+   閉じている理由は3つ（鍵が無い／本人の内訳が無い／みんなの側＝100人が未達）。
+   この画面は3つめの行を持っておらず、しかも「行が1つも無ければ内訳の行で埋める」
+   になっていた ── 鍵も内訳もそろった人（止めているのは人数だけ）に
+   「内訳（基本給・手当）まで書いた明細を1件出すと開きます」と出ていた。
+   もう出している人に、もう一度出せと言っていたことになる。
+
+   いまは deep-pay.js と同じ本体の lockLines() が決める（④ が写しのずれを見ている）。
+   表は assert-deep-pay.mjs の §2b と同じ ── **2つの画面で同じ表が通ること**が要。
+   ★全部 37 / 100 人のまま。crowd:true の行で3行目が出たら、「contributors < goal」
+     で出す形に戻っている（手動フラグで開けた日に、人数が理由でない人へ出てしまう）。
+   ⚠️ 1通りずつ開き直す。この画面の試験用の入口（PVDeepPayCompare.render）は
+      開いた画面しか描けないので、錠前は本物の読み込みを通すしかない。
+      窓は見終わったらすぐ閉じる（溜めると、この Mac では混んで嘘の赤が出る）。 */
+const LK = {
+  ja: { key:  '給与を1件出すと、90日ぶん開きます。',
+        det:  '内訳（基本給・手当）まで書いた明細を1件出すと開きます。',
+        goal: '給与を出したパイロットが100人に達すること（いま37人）。' },
+  en: { key:  'Share one pay report and it opens for 90 days.',
+        det:  'Share one report with the breakdown (base pay and allowances) to open it.',
+        goal: 'It opens once 100 pilots have shared their pay (currently 37).' }
+};
+const LOCK_CASES = [
+  ['鍵だけ無い',       { key: false, detailed: true,  crowd: true  }, ['key']],
+  ['内訳だけ無い',     { key: true,  detailed: false, crowd: true  }, ['det']],
+  ['100人だけ未達',    { key: true,  detailed: true,  crowd: false }, ['goal']],
+  ['鍵と内訳',         { key: false, detailed: false, crowd: true  }, ['key', 'det']],
+  ['鍵と100人',        { key: false, detailed: true,  crowd: false }, ['key', 'goal']],
+  ['内訳と100人',      { key: true,  detailed: false, crowd: false }, ['det', 'goal']],
+  ['3つとも',          { key: false, detailed: false, crowd: false }, ['key', 'det', 'goal']],
+  /* 古いサーバ（crowd を返さない）で、鍵も内訳もそろっている人。理由が分からない
+     ので行を出さない。**「内訳を出すと開きます」で埋めない**（直した不具合そのもの）。 */
+  ['理由が分からない（crowd が来ない）', { key: true, detailed: true }, []]
+];
+for (const lang of ['ja', 'en']) {
+  /* 英語は文言が別物なので見るが、全部は開かない（3通り ── 1行・3行・行なし）。 */
+  const cases = lang === 'ja' ? LOCK_CASES
+    : LOCK_CASES.filter((c) => ['100人だけ未達', '3つとも', '理由が分からない（crowd が来ない）']
+        .includes(c[0]));
+  for (const [name, gate, want] of cases) {
+    const g = Object.assign({ contributors: 37, goal: 100 }, gate);
+    const { page, errs } = await open(lang, { __gate: g, air: AIR });
+    const s = await page.evaluate(SNAP);
+    const exp = want.map((k) => LK[lang][k]);
+    ok(s.lockBox.on && s.lockBox.lines.join(' | ') === exp.join(' | '),
+       `${lang}: ★★錠前の行 ──「${name}」は ${want.length ? want.join('＋') : '行なし'}`,
+       `今 ${JSON.stringify(s.lockBox.lines)}`);
+    const rest = s.main.split(LK[lang].goal).join('');
+    ok(!NOCOUNT.test(rest), `${lang}: ★「${name}」── 100人の行のほかに人数が出ない`, countIn(rest));
+    ok(s.lockBox.add === ((g.key && !g.detailed) ? 1 : 0),
+       `${lang}: ★「${name}」── 差し込み口は「鍵は在るが内訳が無い」板にだけ在る`,
+       `今 ${s.lockBox.add} 個`);
+    ok(s.lockBox.cta.join(',') === 'pay-report.html' && s.pickShown === false
+       && !/[¥$€£]\s?\d|万/.test(s.main),
+       `${lang}: 「${name}」── 入口は今までどおり1本・選択欄も金額も出ない`,
+       s.lockBox.cta.join(','));
+    ok(errs.length === 0, `${lang}: 「${name}」── JS のエラーが出ない`, errs.join(' / '));
+    await jars.pop().close().catch(() => {});
+  }
+}
+
 // ── 3. 選ぶまで何も出さない ─────────────────────────────────────
 {
   const { page, errs } = await open('ja', OK);
@@ -682,18 +849,37 @@ async function open(lang, payload, theme, sel, expect, width) {
      JSON.stringify(s.args.map((a) => a && a.p && a.p.airline)));
   ok(s.sideN.length === 2 && /ANA|全日/.test(s.sideN[0]) && /JAL|日本航空/.test(s.sideN[1]),
      '2社の名前が左右に並ぶ', s.sideN.join(' / '));
-  ok(s.sideC.join(',') === '21人,17人', '人数のピルが左右それぞれ出る', s.sideC.join(','));
+  /* ★人数のピルは 2026-10-11 に信頼度の札へ替わった（オーナー判断「人数は出さない」）。
+     前は '21人,17人'。段はサーバが会社ごとに返す（cohort.trust）── 見本は
+     ana＝high・jal＝mid。**左右が入れ替わっていない**ことまで見る。 */
+  ok(s.sideC.join(',') === '信頼度 高,信頼度 中',
+     '★会社ごとの札は信頼度の段（サーバの答えのまま・左右それぞれ）', s.sideC.join(','));
   /* ★両方読めるときはカード2枚を出さない（2026-08-31・オーナー確定「1画面に収める」）。
      年収・Pay per BH・固定・保証給比率・Block Hours は**すぐ下の表に同じ数字が並ぶ**ので、
-     カードは同じ数字の2度書きだった。やめて 153px 減らし、ロゴ・社名・人数は
+     カードは同じ数字の2度書きだった。やめて 153px 減らし、ロゴ・社名・信頼度の札は
      表の見出し行が受け持つ（上の2本がその見出しを見ている）。
      ⚠️ 戻すときは §5 の「薄いのは片側だけ」も一緒に見ること。あちらはカードが要る。 */
   ok(s.cardsShown === false, '★両方読めるならカードは出さない（表の見出しが受け持つ）',
      String(s.cardsShown));
-  ok(s.condK.join(' / ') === '21人 vs 17人 / 直近24か月',
-     '★条件バーは「◯人 vs ◯人」と「直近24か月」（件ではない・12か月ではない）',
+  /* ★条件バーから「◯人 vs ◯人」を外した（2026-10-11）。残るのは対象期間だけ
+     （役職を選んでいれば役職も。§13d が見ている）。 */
+  ok(s.condK.join(' / ') === '直近24か月',
+     '★★条件バーに人数を出さない（残るのは「直近24か月」。12か月ではない）',
      s.condK.join(' / '));
+  ok(!NOCOUNT.test(s.main), '★★2社そろった画面の本文に人数の形の字が1つも無い', countIn(s.main));
   ok(s.rows.length === 9, '★9項目とも両側にあるので9行出る', String(s.rows.length));
+  /* ── 見出しの2つは刻みで出す（2026-10-11・オーナー判断）────────────
+     年収は 1万円刻み・Pay / Block Hour は 100円刻み（前は有効数字2桁で
+     ¥1,900万・¥16,000 のような丸い額だった）。差は**画面の2つの字の引き算**なので、
+     細かくなったぶん差も細かく出る。3つの数字はいつでも辻褄が合う。 */
+  ok(s.rows[0].a === '¥1,903万' && s.rows[0].b === '¥2,034万'
+     && s.rows[0].d === '+¥131万' && s.rows[0].side === 'b',
+     '★年収は 1万円刻み（¥1,903万 と ¥2,034万）・差はその引き算（+¥131万）',
+     JSON.stringify(s.rows[0]));
+  ok(s.rows[1].a === '¥16,500' && s.rows[1].b === '¥16,800'
+     && s.rows[1].d === '+¥300' && s.rows[1].side === 'b',
+     '★Pay / Block Hour は 100円刻み（¥16,500 と ¥16,800）・差は +¥300',
+     JSON.stringify(s.rows[1]));
   ok(s.rows.every((r) => r.a.trim() && r.b.trim()), '空のセルが無い');
   /* ★差は**値が違う行にだけ**付く。同じ表示の行に付けると、
      「+0」や「+¥0万」が並んで、丸めた後の同じ数字を違うように見せてしまう。 */
@@ -743,6 +929,42 @@ async function open(lang, payload, theme, sel, expect, width) {
   ok(errs.length === 0, '2社そろった画面で JS のエラーが出ない', errs.join(' / '));
 }
 
+// ── 4b. 人数が来ても出さない／信頼度が来なければ札を出さない（2026-10-11）──
+/* ★db/*.sql は push では本番に入らない。**貼る前の本番は古い形で返してくる** ──
+   区分の人数（cohort.n・head.verified_n …）が付いていて、信頼度の段が無い。
+   ⚠️ 「21人が出ていない」だけを見ない。毒の無い見本と**1文字も違わない**ことを
+      見る ── 人数を別の言い方（「21件」「21 reports」）で刷る後戻りも一緒に捕まる。 */
+for (const lang of ['ja', 'en']) {
+  const { page: p0 } = await open(lang, OK, 'light', { a: 'ana', b: 'jal' });
+  const clean = await p0.evaluate(SNAP);
+  const bad = clone(AIR);
+  bad.ana.poison = 21; bad.jal.poison = 17;
+  const { page: p1, errs } = await open(lang, { air: bad }, 'light', { a: 'ana', b: 'jal' });
+  const s = await p1.evaluate(SNAP);
+  ok(s.rows.length === 9 && s.main === clean.main && s.mainHtml === clean.mainHtml,
+     `${lang}: ★★サーバが人数を返してきても、画面は1文字も変わらない（読まない）`,
+     `本文が同じ=${s.main === clean.main} / DOM が同じ=${s.mainHtml === clean.mainHtml}`);
+  ok(!NOCOUNT.test(s.main) && !/(?:21|17|16|12)\s*(?:人|名|件)|\b(?:21|17|16|12) pilots\b/i.test(s.main),
+     `${lang}: ★★毒入りの人数（21・17 ほか）が本文に出ない`, countIn(s.main));
+  ok(errs.length === 0, `${lang}: 毒入りの答えで JS のエラーが出ない`, errs.join(' / '));
+
+  /* 信頼度の段が来ない形（古いサーバ）。札ごと出ない ──「—」でも「低」でも埋めない。 */
+  const old = clone(AIR);
+  delete old.ana.trust; delete old.jal.trust;
+  const { page: p2 } = await open(lang, { air: old }, 'light', { a: 'ana', b: 'jal' });
+  const o = await p2.evaluate(SNAP);
+  ok(o.rows.length === 9 && o.sideC.length === 0 && !/信頼度|Confidence/.test(o.main),
+     `${lang}: ★信頼度の段が来なければ札ごと出さない（「—」でも「低」でも埋めない）`,
+     JSON.stringify(o.sideC));
+  /* 片側だけ来ない形。来た側だけに札が付く（来ない側へ相手の段を写さない）。 */
+  const half = clone(AIR);
+  delete half.jal.trust;
+  const { page: p3 } = await open(lang, { air: half }, 'light', { a: 'ana', b: 'jal' });
+  const h = await p3.evaluate(SNAP);
+  ok(h.sideC.length === 1 && /高|High/.test(h.sideC[0]),
+     `${lang}: ★段が片側だけ来たら、来た側だけに札が付く`, JSON.stringify(h.sideC));
+}
+
 // ── 5. 片側だけ薄い ─────────────────────────────────────────────
 {
   const { page, errs } = await open('ja', OK, 'light', { a: 'ana', b: 'sas' });
@@ -756,8 +978,19 @@ async function open(lang, payload, theme, sel, expect, width) {
      約束を持っているのはこの1枚。§4 で消したからといってここまで消さないこと。 */
   ok(s.cardsShown === true, '★★片側が薄いときはカードを出す（読める側の数字はここにしか出ない）',
      String(s.cardsShown));
-  ok(s.sideC.join(',') === '21人,—', '★人数のピルは薄い側だけ —', s.sideC.join(','));
-  ok(s.condK[0] === '21人 vs —', '条件バーも片側だけ —', s.condK.join(' / '));
+  /* ★薄い側には札を付けない（2026-10-11。前は人数のピルに「—」を置いていた）。
+     数字を1つも出していない側に「信頼度 低」と付けると、低いなりに数字が在るように
+     読める。「—」も置かない ── 置くと「何かが欠けている」ことだけが読める。 */
+  ok(s.sideC.join(',') === '信頼度 高', '★信頼度の札は読める側だけ（薄い側には付けない）',
+     s.sideC.join(','));
+  ok(s.condK.join(' / ') === '直近24か月', '★条件バーにも人数を出さない（「◯人 vs —」は無い）',
+     s.condK.join(' / '));
+  ok(s.kvV[0] === '¥1,903万' && s.kvV[1] === '¥16,500',
+     '★読める側のカードも刻みで出す（年収 ¥1,903万・Pay / Block Hour ¥16,500）',
+     JSON.stringify(s.kvV));
+  /* ★薄い側の板。壁が何人かを書かない（前は「3人そろった区分から順に出ます。」）。 */
+  ok(s.main.includes('データがそろった区分から順に出ます。') && !NOCOUNT.test(s.main),
+     '★★片側が薄い画面の本文に人数の形の字が1つも無い', countIn(s.main));
   ok(s.rows.length === 0 && /並べられる項目がまだありません/.test(s.diffEmpty),
      '★空の表ではなく一言のカードにする', s.diffEmpty);
   ok(s.bars.length === 2 && s.barNone === 1,
@@ -785,15 +1018,64 @@ async function open(lang, payload, theme, sel, expect, width) {
 }
 
 // ── 7. 丸めたら同じ表示になる値 ─────────────────────────────────
+/* ★2026-10-11 に年収と Pay / Block Hour の刻みが細かくなった（円なら 1万円・100円。
+   前は有効数字2桁）。「同じ表示になる幅」は狭くなったが、決め方は同じ ──
+   **画面の字が同じなら差を書かない・違えば書く。** 丸める前の値では比べない。
+   見本は3つとも、サーバの値が ana と違う。
+     emirates  … 年収 $119,750（ana は $119,700）・Pay/BH $104（ana は $103.5）。
+                 円ではどちらも ¥1,903万・¥16,500 ＝**同じ字**になる
+     singapore … 年収 $119,800。円では ¥1,904万 ＝**刻み1つぶん違う字**になる
+   ⚠️ 前の版の見本は年収も Pay/BH も ana と同じ値だった＝「丸めたら同じ」を
+      見ているつもりで、その2行は最初から同じだった。値を違えてある。 */
 {
   const { page } = await open('ja', OK, 'light', { a: 'ana', b: 'emirates' });
   const s = await page.evaluate(SNAP);
   ok(s.rows.length === 9 && s.rows.every((r) => r.a === r.b && !r.d),
      '★★同じ数字が並んでいるのに差の数値を書かない（表示文字列で判定）',
      s.rows.map((r) => `${r.a}|${r.b}|${r.d}`).join(' / '));
+  ok(s.rows[0].a === '¥1,903万' && s.rows[1].a === '¥16,500',
+     '★同じ字になっているのは刻みで出した額（¥1,903万・¥16,500）', JSON.stringify(s.rows.slice(0, 2)));
   ok(!/の方が|より高い|より長い/.test(s.text), '勝ち負けを言う語が1つも出ない');
   ok(s.to.length === 0,
      '★全部同じならトレードオフは出ない（締めの1行だけ）', s.to.join(' / '));
+
+  /* ★表示通貨を変えると、刻みの境目をまたぐ組だけ「同じ」と「違う」が入れ替わる。
+     それで正しい ── どの通貨でも、画面の2つの字と差は辻褄が合っている。
+     ユーロでは年収が €102K と €103K（差 +€1K）・Pay/BH は €89 と €89（同じ）。 */
+  await page.evaluate(() => window.PVCurrency.set('EUR'));
+  await page.waitForFunction(
+    () => /€/.test((document.querySelector('#dc-diff .dc-tr:not(.dc-th) .dc-c2') || {})
+      .textContent || ''), { timeout: 10000 });
+  const e = await page.evaluate(SNAP);
+  ok(e.rows[0].a === '€102K' && e.rows[0].b === '€103K' && e.rows[0].d === '+€1K'
+     && e.rows[0].side === 'b',
+     '★ユーロでは年収の字が違うので差が出る（€102K と €103K → +€1K）', JSON.stringify(e.rows[0]));
+  ok(e.rows[1].a === '€89' && e.rows[1].b === '€89' && !e.rows[1].d,
+     '★ユーロでも Pay / Block Hour は同じ字なので差を書かない（€89 と €89）',
+     JSON.stringify(e.rows[1]));
+  ok(e.rows.every((r) => (r.a !== r.b) === !!r.d),
+     '★通貨を変えても「字が違う行にだけ差が付く」は崩れない',
+     e.rows.map((r) => `${r.a}|${r.b}|${r.d}`).join(' / '));
+}
+// ── 7b. 刻み1つぶんの差は、そのまま出る ───────────────────────────
+/* ★差に下限は置いていない。¥1,903万 と ¥1,904万 は違う字なので +¥1万 と出る。
+   「小さいから書かない」を画面が決め始めると、同じ字でないのに差が出ない行ができ、
+   読み手が自分で引き算した答え（1万）と画面（空欄）が合わなくなる。
+   ⚠️ ここは**いまの決め方を固定している**だけ。下限を置くと決めたら、この節と
+      deep-pay-compare.js の delta() の注を一緒に直す。 */
+{
+  const { page } = await open('ja', OK, 'light', { a: 'ana', b: 'singapore-airlines' });
+  const s = await page.evaluate(SNAP);
+  ok(s.rows.length === 9 && s.rows[0].a === '¥1,903万' && s.rows[0].b === '¥1,904万'
+     && s.rows[0].d === '+¥1万' && s.rows[0].side === 'b',
+     '★刻み1つぶんの差もそのまま出る（¥1,903万 と ¥1,904万 → +¥1万）', JSON.stringify(s.rows[0]));
+  ok(s.rows.slice(1).every((r) => r.a === r.b && !r.d),
+     '★ほかの8行は同じ字なので差を書かない',
+     s.rows.slice(1).map((r) => `${r.a}|${r.b}|${r.d}`).join(' / '));
+  /* 年収だけ上・Block Hours は同じ ＝ 同じ側が2つとも上回っていないので出ない。 */
+  ok(s.to.length === 0, '★差が年収の1行だけならトレードオフは出ない', s.to.join(' / '));
+  ok(s.sideC.join(',') === '信頼度 高,信頼度 低', '信頼度の札は3段とも出せる（高・低）',
+     s.sideC.join(','));
 }
 
 // ── 8. トレードオフの発火条件 ───────────────────────────────────
@@ -846,6 +1128,46 @@ async function open(lang, payload, theme, sel, expect, width) {
   ok(errs.length === 0, '切替と選び直しで JS のエラーが出ない', errs.join(' / '));
 }
 
+// ── 9b. 刻みは表示通貨の中で掛ける（2026-10-11）─────────────────
+/* 年収と Pay / Block Hour は、**換算してから**刻みに寄せる（円 1万円・100円／
+   ほかの通貨 1,000・1）。円で丸めてから換算すると、ドルに切り替えた瞬間だけ
+   端数の残った額（$119,723 のような）が出て、1ドル単位まで持っているように読める。
+   ★刷られる字そのものを固定する。レートは currency.js の RATES（USD 158.95）。
+   ⚠️ 英語ページの既定の通貨は**この機械のタイムゾーン**で決まる。必ず
+      PVCurrency.set() で名指ししてから読む。 */
+{
+  const setCur = async (pg, cur, sym) => {
+    await pg.evaluate((c) => window.PVCurrency.set(c), cur);
+    await pg.waitForFunction((c, y) => window.PVCurrency.get() === c
+      && ((document.querySelector('#dc-diff .dc-tr:not(.dc-th) .dc-c2') || {}).textContent || '')
+           .indexOf(y) >= 0, { timeout: 10000 }, cur, sym);
+    return pg.evaluate(SNAP);
+  };
+  const { page } = await open('en', OK, 'light', { a: 'ana', b: 'jal' });
+  /* 既定がどの通貨でも通るように、円のときはいったん別の通貨を挟む
+     （同じ通貨を set しても何も起きないので、待ちが時間切れになる）。 */
+  if (await page.evaluate(() => window.PVCurrency.get()) === 'JPY') await setCur(page, 'USD', '$');
+  const y = await setCur(page, 'JPY', '¥');
+  ok(y.rows[0].a === '¥19,030,000' && y.rows[0].b === '¥20,340,000' && y.rows[0].d === '+¥1,310,000',
+     '★英語＋円 ──「万」に畳まず全部の桁で出す（¥19,030,000 と ¥20,340,000 → +¥1,310,000）',
+     JSON.stringify(y.rows[0]));
+  ok(y.rows[1].a === '¥16,500' && y.rows[1].b === '¥16,800' && y.rows[1].d === '+¥300',
+     '★英語＋円 ── Pay / Block Hour は 100円刻み（¥16,500 と ¥16,800 → +¥300）',
+     JSON.stringify(y.rows[1]));
+  const u = await setCur(page, 'USD', '$');
+  ok(u.rows[0].a === '$120K' && u.rows[0].b === '$128K' && u.rows[0].d === '+$8K',
+     '★ドル ── 年収は 1,000 刻み（$120K と $128K → +$8K）', JSON.stringify(u.rows[0]));
+  ok(u.rows[1].a === '$104' && u.rows[1].b === '$106' && u.rows[1].d === '+$2',
+     '★ドル ── Pay / Block Hour は 1 刻み（$104 と $106 → +$2）', JSON.stringify(u.rows[1]));
+  ok(u.rows.every((r) => (r.a !== r.b) === !!r.d),
+     '★どの通貨でも「字が違う行にだけ差が付く」',
+     u.rows.map((r) => `${r.a}|${r.b}|${r.d}`).join(' / '));
+  /* 値のセルが折れていない・切れていない（細かくなったぶん字が増えていないこと）。 */
+  const cut = await page.evaluate(() => [...document.querySelectorAll('#dc-diff .dc-c2, #dc-diff .dc-c3')]
+    .filter((e) => e.scrollWidth > e.clientWidth + 1).map((e) => e.textContent));
+  ok(cut.length === 0, '★表の値が枠から切れていない', cut.join(' '));
+}
+
 // ── 10. 引けなかったとき ────────────────────────────────────────
 {
   const { page, errs } = await open('ja', { __err: true, air: AIR });
@@ -867,6 +1189,18 @@ for (const [lang, theme] of [['ja', 'dark'], ['en', 'light'], ['en', 'dark']]) {
   ok(s.rows.length === 9 && s.bars.join(',') === '5,5', `${tag}: 表も棒も同じだけ出る`,
      `${s.rows.length} / ${s.bars.join(',')}`);
   ok(s.to.length === 2 && s.toEnd.length > 0, `${tag}: トレードオフと締めの1行が出る`);
+  /* ★人数を出さないのは日英・明暗とも同じ（2026-10-11）。注記の2つの文も、
+     壁が在ることだけを言う（前は「3人以上」「3人に満たない」「3 or more pilots」）。 */
+  ok(!NOCOUNT.test(s.main), `${tag}: ★★本文に人数の形の字が1つも無い`, countIn(s.main));
+  ok(lang === 'ja'
+       ? s.main.includes('※ データが十分にそろった区分だけを出しています。Pay / Block Hour は、1人ずつ')
+         && s.main.includes('※ データが足りない項目は棒に入れていません。')
+       : s.main.includes('Only groups with enough data are shown. Pay / Block Hour is')
+         && s.main.includes('Items without enough data are left out of the bar,'),
+     `${tag}: ★注記は壁が在ることだけを言う（何人かは書かない）`);
+  ok(lang === 'ja' ? s.sideC.join(',') === '信頼度 高,信頼度 中'
+                   : s.sideC.join(',') === 'Confidence High,Confidence Medium',
+     `${tag}: 信頼度の札が左右それぞれ出る`, s.sideC.join(','));
   ok(s.ctaA.join(',') === 'deep-pay.html',
      `${tag}: 戻り先は相対のまま（/en/ からは /en/deep-pay.html に解ける）`, s.ctaA.join(','));
   if (lang === 'en') {
@@ -917,6 +1251,9 @@ for (const [lang, theme] of [['ja', 'dark'], ['en', 'light'], ['en', 'dark']]) {
       `node shot-compare.mjs full ja light 1512 measure`。
       しきい値 980 はオーナーの画面の高さそのもの。40px ほどの余裕しか無いので、
       段を1つ足せば（100〜300px）必ず赤くなる。
+      ★2026-10-11 に測り直した値（人数を外し、文言を替えた回）── ja 912.9 / en 898.2
+        （本物のフォント）／ja 915.9 / en 915.9（ここ）。余裕は 64px ほど。
+        どこで縮んだかは切り分けていない（上の 931 / 938.1 は 2026-08-31 の値）。
 
    ★<select> は溢れても省略記号すら出さない ── 「Boeing 787 Dreamli」と読める形で
      止まるので、**切れたことが画面から分からない**。だから毎回測る。 */
@@ -955,7 +1292,7 @@ for (const lang of ['ja', 'en']) {
 // ── 13. 選べる ＝ 必ず数字が返る（2026-09-01）───────────────────
 /* 110社 × 3役職 × 19機種を全部並べても、中身があるのはごく一部。選んで初めて
    「まだ出せません」と分かるのをやめる ── サーバが「数字が返る組み合わせ」を
-   全部返し、**画面はそれを引くだけ**（3人の壁は SQL の1か所にしかない）。
+   全部返し、**画面はそれを引くだけ**（人数の壁は SQL の1か所にしかない）。
    ⚠️ 見るのは6つ。**(b) が命綱**（db/*.sql は push では本番に入らない。
       貼る前に push すると選択欄が空になる ── それが**正しい**ことを見張る）。 */
 {
@@ -966,7 +1303,7 @@ for (const lang of ['ja', 'en']) {
                                { timeout: 20000 });
     const s = await page.evaluate(SNAP);
     /* ★並び順は語彙（pv-airlines.json）の順で、一覧の順ではない。集合で見る。 */
-    const want = 'ana,emirates,jal,lufthansa,qatar-airways,sas';
+    const want = 'ana,emirates,jal,lufthansa,qatar-airways,sas,singapore-airlines';
     const set = (l) => (l || []).slice().sort().join(',');
     ok(set(s.opt.a) === want && set(s.opt.b) === want,
        '★★選べる会社だけが選択肢に残る（110社は並べない・左右とも同じ一覧）',
@@ -1057,12 +1394,15 @@ for (const lang of ['ja', 'en']) {
     ok(s.ctaA.length > 0 || /pay-report\.html/.test(await page.evaluate(
          () => document.querySelector('#dc-sides a.dp-cta')?.getAttribute('href') || '')),
        '投稿の入口が出ている');
-    /* ★出していいのは**動かない壁**（比べるには2社・区分は3人）だけ。
+    /* ★出していいのは**動かない壁**のうち「比べるには2社」だけ（2026-10-11 から、
+         区分の壁が何人かも書かない。前は「3人そろった会社から順に出ます。」）。
          いま何社あるか・あと何人かを書かない ── 書いた瞬間、その会社の人数が
          1人単位で読める（招待の画面と同じ約束）。 */
-    const bare = s.msg.replace(/まだ2社/g, '').replace(/3人そろった/g, '');
+    const bare = s.msg.replace(/まだ2社/g, '');
     ok(!/[0-9０-９]/.test(bare) && !/あと/.test(s.msg),
-       '★★いま何社・何人いるかを書かない（「あと1人」も書かない）', s.msg);
+       '★★いま何社・何人いるかを書かない（壁の人数も「あと1人」も書かない）', s.msg);
+    ok(s.msg.includes('データがそろった会社から順に出ます。') && !NOCOUNT.test(s.main),
+       '★比べられる会社が足りないときの案内に人数を書かない', s.msg);
     ok(errs.length === 0, '（13f）JS エラーが出ていない', errs.join(' | '));
 
     // (f-en) 英語側も同じ（片方だけ直した、を捕まえる）
@@ -1073,8 +1413,10 @@ for (const lang of ['ja', 'en']) {
     const e = await p2.evaluate(SNAP);
     ok(e.pickShown === false && /Not enough airlines/.test(e.msg),
        '★英語側も同じ（日本語だけ直した、にしない）', e.msg.slice(0, 60));
-    ok(!/[0-9]/.test(e.msg.replace(/3 pilots/g, '')),
-       '★英語側も人数を書かない', e.msg.slice(0, 80));
+    ok(!/[0-9]/.test(e.msg) && e.msg.includes('Airlines appear once enough pilots have reported.')
+       && !NOCOUNT.test(e.main),
+       '★英語側も人数を書かない（数字が1文字も無い。前は「once 3 pilots have reported」）',
+       e.msg.slice(0, 80));
   }
 
   // (g) 鍵が掛かっている人には一覧が無い＝今までどおり選択欄ごと出ない
