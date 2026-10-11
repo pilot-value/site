@@ -30,7 +30,12 @@
             det0 … det と同じだが、残りの一覧が来ていない＝行と断りだけ・一覧の箱は出ない
             goal … 鍵も答えもそろっていて、100人だけが未達＝板は1行（断りは出ない）
                    （★前はここで「内訳を出すと開きます」と出ていた。直した不具合の絵）
-            ★lock / det / det0 / goal は、板の後ろに**ぼかした影絵**が出る（2026-10-11・
+            anon … ログインしていない人（2026-10-11・オーナー判断）。前はログイン画面へ
+                   送っていた。いまは、会員の閉じた画面と**同じ**「ぼかした影絵＋板」が出る
+                   ── 板は2行（鍵・答え）＋断り。一覧も100人の行も無い。
+                   ★この scene だけ、偽のクライアントが「セッションなし」を返す。撮ったあとの
+                     「未ログイン:」の行で、rpc を1本も呼ばなかったことを字でも確かめられる。
+            ★lock / det / det0 / goal / anon は、板の後ろに**ぼかした影絵**が出る（2026-10-11・
               オーナー判断）。影絵は字も数字も無い形だけで、ここの見本の数字とは関係が無い。
               開いた scene（full / thin / ask / few …）と err には出ない。撮ったあとの
               「影絵:」の行で、ぼかしの強さと「字が0文字」を字でも確かめられる。
@@ -81,7 +86,7 @@ const outPath = path.join(dir, `screenshot-${n}-${label}.png`);
 const url = `http://localhost:3000/${lang === 'en' ? 'en/' : ''}deep-pay-compare.html`;
 
 /* scene ごとに「窓の中で何を選ぶか」。★2社そろうまで何も出ないので、
-   これが無いと撮れるのは入口の板だけになる。ask / lock / det / det0 / goal / err は選ばない。 */
+   これが無いと撮れるのは入口の板だけになる。ask / lock / det / det0 / goal / anon / err は選ばない。 */
 /* ★機材は左右**別々**（2026-09-01）。会社が違えば飛ばす機材も違うので、
    full は左右で違う機材を選ぶ ── 「それぞれの会社で選べる」がそのまま絵になる。 */
 const PICK = {
@@ -239,7 +244,8 @@ await page.evaluateOnNewDocument((scene, theme, lang, cur) => {
        37 / 100 人のまま開いている見本は「手動フラグで開けた日」の形＝ crowd:true。
      ★gate.ready / gate.todo ＝本人の側の門（2026-10-11）。ready ＝自分に当てはまる項目を
        ぜんぶ答えた月を持っているか。todo ＝足りない人にだけ { year, month, items:[コード…] }。
-       **前の鍵 detailed は gate に無い**（外の give.detailed は別物 ── 左メニューの札が読む）。 */
+       **前の鍵 detailed は gate に無い**（外の give.detailed は別物 ── pv_my_give の答え。
+       読んでいた3段の表の DEEP PAY の札は 2026-10-11 に外したので、いま画面でこれを使う所は無い）。 */
   const OPEN = { key: true, ready: true, todo: null, crowd: true, contributors: 37, goal: 100 };
   const BOOT = { ok: true, state: 'open', stats: STATS, give: { detailed: true },
                  gate: OPEN,
@@ -337,9 +343,14 @@ await page.evaluateOnNewDocument((scene, theme, lang, cur) => {
     };
     return o;
   }
+  /* ★anon だけ「セッションなし」を返す（2026-10-11）。画面はログイン画面へ送らず、
+       会員の閉じた画面と同じ器を、サーバに聞かずに描く。rpc を呼んだ回数を数えておく
+       （__shotRpc。anon で 0 のままなら、聞きに行っていない）。 */
+  window.__shotRpc = 0;
   const FAKE = {
     auth: {
-      getSession: async () => ({ data: { session: { user: { id: UID, email: 'pilot@example.com' } } } }),
+      getSession: async () => ({ data: { session: scene === 'anon' ? null
+        : { user: { id: UID, email: 'pilot@example.com' } } } }),
       getUser:    async () => ({ data: { user: { id: UID, email: 'pilot@example.com' } } }),
       signOut:    async () => ({ error: null })
     },
@@ -350,9 +361,12 @@ await page.evaluateOnNewDocument((scene, theme, lang, cur) => {
     },
     /* err のときだけ error を返す。★画面が「読み込めませんでした」を出すか、
        それとも 0 を並べるかは、ここでしか見分けられない。 */
-    rpc: async (name, a) => (scene === 'err' && name === 'pv_deep_pay')
-      ? { data: null, error: { message: 'synthetic failure' } }
-      : { data: RPC[name] ? RPC[name](a) : { ok: true }, error: null }
+    rpc: async (name, a) => {
+      window.__shotRpc++;
+      return (scene === 'err' && name === 'pv_deep_pay')
+        ? { data: null, error: { message: 'synthetic failure' } }
+        : { data: RPC[name] ? RPC[name](a) : { ok: true }, error: null };
+    }
   };
   Object.defineProperty(window, 'supabase', {
     value: { createClient: () => FAKE }, writable: false, configurable: false
@@ -565,13 +579,25 @@ const ghost = await page.evaluate(() => {
            inert: g.inert === true, hidden: g.getAttribute('aria-hidden') };
 });
 {
-  const shut = ['lock', 'det', 'det0', 'goal'].includes(scene);
+  const shut = ['lock', 'det', 'det0', 'goal', 'anon'].includes(scene);
   if (ghost.on)
     console.log(`${shut && ghost.chars === 0 && ghost.inert && ghost.hidden === 'true' && ghost.blurred === 1 ? '✓' : '❌'} 影絵: `
       + `${ghost.blur}・字 ${ghost.chars} 文字・inert=${ghost.inert}・aria-hidden=${ghost.hidden}`
       + `・ぼかしの効いた要素 ${ghost.blurred}` + (shut ? '' : '  ← 閉じていない scene に影絵が在る'));
   else if (shut) console.log('❌ 影絵が無い（閉じた scene なのに、板の後ろに何も出ていない）');
   else if (ghost.blurred) console.log(`❌ 開いた scene に、ぼかしの効いた要素が ${ghost.blurred} つ在る`);
+}
+
+/* ★anon（ログインしていない人）だけ：聞きに行かなかったこと・よそへ運ばれなかったこと・端末に
+   印を置かなかったことを、絵と一緒に字でも出す（どれもスクショには写らない）。 */
+if (scene === 'anon') {
+  const a = await page.evaluate(() => ({
+    rpc: window.__shotRpc, at: location.pathname,
+    mark: localStorage.getItem('pv_deep_was_locked'),
+    stage: document.querySelectorAll('#dc-sides .dp-stage').length
+  }));
+  console.log(`${a.rpc === 0 && a.stage === 1 && a.mark === null && a.at.endsWith('/' + url.split('/').pop()) ? '✓' : '❌'} 未ログイン: `
+    + `rpc ${a.rpc} 回・住所 ${a.at}・器 ${a.stage}・クラッカーの印は${a.mark === null ? '無い' : '在る'}`);
 }
 
 await browser.close();

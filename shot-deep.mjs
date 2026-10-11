@@ -31,7 +31,14 @@
             det0  … det と同じだが、残りの一覧が来ていない（窓の中に自分の行が無い人・
                     一覧を返さない古いサーバ）＝行と断りだけ・一覧の箱は出ない
             goal  … 鍵も答えもそろっていて、100人だけが未達＝板は1行（断りは出ない）
-            ★lock / det / det0 / goal は、板の後ろに**ぼかした影絵**が出る（2026-10-11・
+            anon  … ログインしていない人（2026-10-11・オーナー判断）。前はログイン画面へ
+                    送っていた。いまは、会員の閉じた画面と**同じ**「ぼかした影絵＋板」が出る
+                    ── 板は2行（鍵・答え）＋断り。一覧も100人の行も無い（会員が居ない・
+                    サーバに聞いていない）。ボタンは給与フォームの頭（ログインなしで出せる）。
+                    ★この scene だけ、偽のクライアントが「セッションなし」を返す。
+                      撮ったあとの「未ログイン:」の行で、rpc を1本も呼ばなかったこと・
+                      住所が変わっていないことを字でも確かめられる。
+            ★lock / det / det0 / goal / anon は、板の後ろに**ぼかした影絵**が出る（2026-10-11・
               オーナー判断）。影絵は字も数字も無い形だけで、ここの見本の数字とは関係が無い。
               開いた scene（full / ask / thin …）と err には出ない。撮ったあとの「影絵:」の
               行で、ぼかしの強さと「字が0文字」を字でも確かめられる。
@@ -97,7 +104,7 @@ const url = `http://localhost:3000/${lang === 'en' ? 'en/' : ''}deep-pay.html`;
 
 /* scene ごとに「窓の中で何を選ぶか」。★画面は選ぶまで何も出さないので、
    これが無いと撮れるのは「区分を選んでください」の板だけになる。
-   lock / err / 未登録の scene は選ばない（選べる欄がそもそも出ない）。 */
+   lock / anon / err / 未登録の scene は選ばない（選べる欄がそもそも出ない）。 */
 const PICK = {
   /* ★ask は載せない（＝何も選ばない）。それが開いた直後の見た目そのもの。 */
   full: { airline: 'ana', position: 'cap', fleet: 'b787' },
@@ -145,7 +152,8 @@ await page.evaluateOnNewDocument((scene, theme, lang, cur) => {
        ・gate は { key, ready, todo, crowd, contributors, goal }。ready ＝本人が、自分に
          当てはまる項目をぜんぶ答えた月を持っているか。todo ＝足りない人にだけ
          { year, month, items:[コード…] }。**前の鍵 detailed は gate に無い**
-         （外の give.detailed は別物 ── 左メニューの札が読む）。 */
+         （外の give.detailed は別物 ── pv_my_give の答え。読んでいた3段の表の DEEP PAY の
+           札は 2026-10-11 に外したので、いま画面でこれを使う所は無い）。 */
   /* 段1（会社×役職×機材）まで届いた状態。★合計はちょうど100。
      サーバ（db/deep-pay.sql の pv_deep_pct）が最大剰余法で揃えて返すため。 */
   const FULL = {
@@ -381,9 +389,14 @@ await page.evaluateOnNewDocument((scene, theme, lang, cur) => {
     };
     return o;
   }
+  /* ★anon だけ「セッションなし」を返す（2026-10-11）。画面はログイン画面へ送らず、
+       会員の閉じた画面と同じ器を、サーバに聞かずに描く。rpc を呼んだ回数を数えておく
+       （__shotRpc。anon で 0 のままなら、聞きに行っていない）。 */
+  window.__shotRpc = 0;
   const FAKE = {
     auth: {
-      getSession: async () => ({ data: { session: { user: { id: UID, email: 'pilot@example.com' } } } }),
+      getSession: async () => ({ data: { session: scene === 'anon' ? null
+        : { user: { id: UID, email: 'pilot@example.com' } } } }),
       getUser:    async () => ({ data: { user: { id: UID, email: 'pilot@example.com' } } }),
       signOut:    async () => ({ error: null })
     },
@@ -394,9 +407,12 @@ await page.evaluateOnNewDocument((scene, theme, lang, cur) => {
     },
     /* err のときだけ error を返す。★画面が「読み込めませんでした」を出すか、
        それとも 0 を並べるかは、ここでしか見分けられない。 */
-    rpc: async (name, a) => (scene === 'err' && name === 'pv_deep_pay')
-      ? { data: null, error: { message: 'synthetic failure' } }
-      : { data: RPC[name] ? RPC[name](a) : { ok: true }, error: null }
+    rpc: async (name, a) => {
+      window.__shotRpc++;
+      return (scene === 'err' && name === 'pv_deep_pay')
+        ? { data: null, error: { message: 'synthetic failure' } }
+        : { data: RPC[name] ? RPC[name](a) : { ok: true }, error: null };
+    }
   };
   Object.defineProperty(window, 'supabase', {
     value: { createClient: () => FAKE }, writable: false, configurable: false
@@ -624,13 +640,25 @@ const ghost = await page.evaluate(() => {
            inert: g.inert === true, hidden: g.getAttribute('aria-hidden') };
 });
 {
-  const shut = ['lock', 'det', 'det0', 'goal'].includes(scene);
+  const shut = ['lock', 'det', 'det0', 'goal', 'anon'].includes(scene);
   if (ghost.on)
     console.log(`${shut && ghost.chars === 0 && ghost.inert && ghost.hidden === 'true' && ghost.blurred === 1 ? '✓' : '❌'} 影絵: `
       + `${ghost.blur}・字 ${ghost.chars} 文字・inert=${ghost.inert}・aria-hidden=${ghost.hidden}`
       + `・ぼかしの効いた要素 ${ghost.blurred}` + (shut ? '' : '  ← 閉じていない scene に影絵が在る'));
   else if (shut) console.log('❌ 影絵が無い（閉じた scene なのに、板の後ろに何も出ていない）');
   else if (ghost.blurred) console.log(`❌ 開いた scene に、ぼかしの効いた要素が ${ghost.blurred} つ在る`);
+}
+
+/* ★anon（ログインしていない人）だけ：聞きに行かなかったこと・よそへ運ばれなかったこと・端末に
+   印を置かなかったことを、絵と一緒に字でも出す（どれもスクショには写らない）。 */
+if (scene === 'anon') {
+  const a = await page.evaluate(() => ({
+    rpc: window.__shotRpc, at: location.pathname,
+    mark: localStorage.getItem('pv_deep_was_locked'),
+    stage: document.querySelectorAll('#dp-kpi .dp-stage').length
+  }));
+  console.log(`${a.rpc === 0 && a.stage === 1 && a.mark === null && a.at.endsWith('/' + url.split('/').pop()) ? '✓' : '❌'} 未ログイン: `
+    + `rpc ${a.rpc} 回・住所 ${a.at}・器 ${a.stage}・クラッカーの印は${a.mark === null ? '無い' : '在る'}`);
 }
 
 await browser.close();

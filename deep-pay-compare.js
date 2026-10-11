@@ -38,6 +38,16 @@
      ⚠️ 影絵は字も数字も持たない固定の絵。本物の値を描いてからぼかす形にしない ──
         ぼかしは開発者ツールで外せる。開いた画面には影絵そのものが無い。
 
+   ★ログインしていない人（2026-10-11・オーナー判断）── deep-pay.js と同じ。前はログイン
+     画面へ送っていたが、いまは送らない。**会員で、まだ開いていない人と同じ画面**
+     （影絵＋板）を出す。板は「鍵が無く、答えきってもいない」会員の門と同じ形の入れ物
+     （anonGate）を同じ lockStage へ通すだけで、字も行き先も新しく書いていない。
+     ⚠️ ログインしていない人のために**サーバへ1本も聞かない**（pv_deep_pay() は未ログイン
+        だと必ず落ちる）。端末にも何も書かない（クラッカーの印・門の鍵のどちらも）。
+     ★セッションは端末に残っているのに、サーバが「ログインしていない」と答えた回
+       （authLost ＝ 42501 か HTTP 401。入口の1回でも、2社を引く回でも）も同じ板。
+       ほかの失敗は今までどおり「読み込めませんでした」。
+
    ★モックから意図的に外したもの（後から足されないよう理由を残す）
    - 国の絞り込み ── pv_deep_pay に国の facet が無い。無い絞り込みを出すのは嘘になる。
    - 「直近12か月」 ── db/deep-pay.sql の窓は24か月。
@@ -322,7 +332,11 @@
   };
 
   // ── 状態 ───────────────────────────────────────────────────────
-  /* boot は入口の1回ぶん（state / gate / give / stats だけ使う）。
+  /* mode は5つ ── load（入口の答えを待っている）／open（開いている）／locked（会員で、
+     まだ開いていない）／error（読み込めなかった）／anon（ログインしていない。2026-10-11）。
+     ★anon だけは**サーバに聞かずに**決まる（boot）。聞いたあとで anon になるのは、
+       サーバが「ログインしていない」と答えた回だけ（load / pair の authLost）。
+     boot は入口の1回ぶん（state / gate / give / stats だけ使う）。
      side は左右それぞれの答え。★役職は左右共通・機材は左右別（fltA / fltB）。
      picks は選べる組み合わせ。形は db/deep-pay.sql の avail と同じ
      { air:[…], pos:{ '会社': […] }, flt:{ '会社|役職': […] } }。
@@ -596,6 +610,7 @@
       });
     /* 鍵が掛かっている画面・読み込めなかった画面では選ばせない
        （どの区分を選んでも答えは同じなので、押せる欄を出すのは嘘になる）。
+       ログインしていない人の画面（anon）も同じ ── 選んでも聞く先が無い。
        ★比べられる会社が1社以下のときも同じ理由で出さない（2026-09-01）。 */
     box.hidden = !(S.mode === 'open' || S.mode === 'load') || fewAir();
   }
@@ -975,7 +990,10 @@
        鍵が無く、答えきってもいない  → フォームの頭（1件まるごと出してもらう）
        鍵だけ切れた（答えきっている）→ #ps（明細からの入口。新しい月を出せば鍵が戻る）
        鍵は在るが答えきっていない    → #pay-detail（フォームに前から在る「内訳の節を
-                                        開いて出す」住所。pv-gates.js の DETAIL_URL と同じ）
+                                        開いて出す」住所。actual-pay.js の DETAIL_URL と同じ。
+                                        ★前は pv-gates.js が同じ住所を持っていた ── 公開前の
+                                          説明の「給与内訳を追加する」。2026-10-11 に、3段の表の
+                                          DEEP PAY の札と一緒に説明ごと外したので、あちらにはもう無い）
        鍵も答えもそろっている        → フォームの頭（止めているのは人数。今までどおり）
      ★足りない項目はこの画面では聞かない。給与フォームで足してもらう
        （2026-10-11 オーナー判断。板の中に入力は置かない ── 板の入口はこのボタン1本）。
@@ -1075,7 +1093,9 @@
        サーバの答え・S・保存領域・計算した値・乱数のどれにも触らない固定の文字列）。
      ⚠️ ぼかしは隠す道具ではない（開発者ツールで外せる）。**本物の値を描いてから
         ぼかす形にしない。** 鍵の無い人へは、サーバが今までどおり数字を返していない。
-     ⚠️ 開いた画面には影絵そのものが DOM に無い（lockStage を通るのは shut('lock') だけ）。
+     ⚠️ 開いた画面には影絵そのものが DOM に無い（lockStage を通るのは shut() の2本だけ ──
+        会員の閉じた板 'lock' と、ログインしていない人の板 'anon'。どちらも数字が
+        1つも来ていない画面）。
      ★ghBar / ghBars / ghField / ghHead / ghostTint / lockStage の6つは deep-pay.js と
        **同じ本体**（ずれは assert-deep-pay-compare.mjs の「写した関数」が見張る）。
        ghostShapes() だけは画面ごとに別（写す画面の形が違う）。 */
@@ -1148,6 +1168,27 @@
     }
     box.hidden = false;
   }
+  /* ── ログインしていない人の板（2026-10-11・オーナー判断）────────────────
+     前は、ログインしていない人がここへ来るとログイン画面へ送っていた。いまは
+     **会員で、まだ開いていない人と同じ画面**を出す ── ぼかした影絵の手前に板。
+     なぜそうするか・何を足してはいけないかの注は deep-pay.js に1回だけ書いてある。要点 ──
+     ★板は新しく書かない。「鍵が無く、答えきってもいない」会員の門と**同じ形の入れ物**を
+       同じ lockStage へ通す（todo:null ＝ 残りの一覧は出ない／crowd:true ＝ 100人の行を
+       出さない ── サーバに聞いていないので数を知らない）。字も文もリンクも足さない。
+     ⚠️ サーバには**聞かない**（pv_deep_pay() は未ログインだと必ず落ちる）。この入れ物は
+        答えではなく、聞かずに描くための固定の値。これで開くものは無い。
+     ★anonGate / authLost の2つは deep-pay.js と**同じ本体**
+       （ずれは assert-deep-pay-compare.mjs の「写した関数」が見張る）。 */
+  function anonGate() { return { key: false, ready: false, todo: null, crowd: true }; }
+  /* サーバが「ログインしていない」と答えたか（端末にはセッションが残っているのに、
+     サーバの側では切れていた回）。見分けるのは2つだけ ── pv_deep_pay() が未ログインの
+     ときに投げる 42501 と、HTTP 401。supabase-js の答えは { error:{ code }, status }。
+     ⚠️ ほかの失敗（通信が切れた・サーバが落ちた）は false のまま ＝ 今までどおり
+        「読み込めませんでした」。端末のログインの控えには触らない。 */
+  function authLost(res) {
+    var e = res && res.error;
+    return !!e && (String(e.code) === '42501' || Number(res.status) === 401);
+  }
   function shut(kind) {
     if (kind === 'error') { only('<div class="dp-msg">' + empty(T.err) + '</div>'); return; }
     /* ★板の中身（行・残りの一覧・断り・ボタンの行き先）は lockHtml() が決める。
@@ -1161,6 +1202,13 @@
     clearLow();
     var box = el('dc-sides');
     if (!box) return;
+    /* ★ログインしていない人（kind === 'anon'。2026-10-11）。同じ器（影絵＋板）を、
+         作り物の門 anonGate() で組む ── サーバの答え（S.boot）は読まない（聞いていない）。
+       ⚠️ ここで戻る ＝ 下の partyMark() を**通らない**。印は「閉じた板を見た会員」の
+          控えで、この板は会員の門を見て出したものではない（ログインが切れただけの会員には
+          指紋が在る ── 印を置くと、前から開いていた人がログインし直した日に鳴ってしまう）。
+          端末には何も書かない。 */
+    if (kind === 'anon') { lockBoard(box, lockStage(anonGate())); return; }
     lockBoard(box, lockStage((S.boot && S.boot.gate) || {}));
     /* ★「この会員は閉じた板を見た」と端末に控える（開いた日のクラッカー用。下の節）。
          書くだけで、ここでは何も読まない ── 板の中身にも門にも関係しない。 */
@@ -1360,6 +1408,9 @@
   function render() {
     picker(); hdr(); cond();
     if (S.mode === 'error') { shut('error'); return; }
+    /* ★ログインしていない人（2026-10-11）。会員の閉じた板と同じ器を、サーバに聞かずに出す。
+         ⚠️ この行は「開いている」枝より前 ＝ partyPop() を通らない（鳴らさない）。 */
+    if (S.mode === 'anon')  { shut('anon');  return; }
     if (S.mode === 'load')  { skel();        return; }
     if (S.mode !== 'open')  { shut('lock');  return; }
     /* ★ここまで来た ＝ 開いている。閉じた板を見たことのある会員なら、1回だけ
@@ -1378,12 +1429,16 @@
   }
 
   // ── 読み込み ───────────────────────────────────────────────────
-  /* 会社を入れて1社ぶん引く。★役職は左右共通・**機材は左右別**（2026-09-01）。 */
+  /* 会社を入れて1社ぶん引く。★役職は左右共通・**機材は左右別**（2026-09-01）。
+     ★返すのは3通り（2026-10-11）── その会社の答え／null（引けなかった）／LOST
+       （サーバが「ログインしていない」と答えた。authLost の注）。LOST は中身の無い
+       目印で、pair() が「読み込めませんでした」と見分けるためだけに在る。 */
+  var LOST = {};
   function one(client, code, flt) {
     return Promise.resolve(client.rpc('pv_deep_pay', {
       p: { airline: code, position: S.sel.pos || null, fleet: flt || null }
     })).then(function (res) {
-      if (!res || res.error) return null;
+      if (!res || res.error) return authLost(res) ? LOST : null;
       return res.data || null;
     });
   }
@@ -1398,6 +1453,10 @@
                  one(client, S.sel.b, S.sel.fltB)]).then(function (r) {
       if (seq !== S.seq) return;      /* ★古い対の答えは捨てる（選び直しの追い越し） */
       S.busy = false;
+      /* ★見ている途中でログインが切れた回（片方でも LOST）は、ログインしていない人と
+           同じ板。⚠️ 下の「引けなかった」より**前**に見る（LOST は空でない値なので、
+           後ろに置くと、中身の無い答えのまま開いた画面を描きに行く）。 */
+      if (r[0] === LOST || r[1] === LOST) { S.mode = 'anon'; render(); return; }
       if (!r[0] || !r[1]) { S.mode = 'error'; render(); return; }
       S.side = { a: r[0], b: r[1] };
       render();
@@ -1416,13 +1475,21 @@
        鍵の掛かった人に、押しても答えの変わらないピッカーを出さないためにこの1回が要る。 */
     Promise.resolve(client.rpc('pv_deep_pay')).then(function (res) {
       S.busy = false;
-      if (res && res.error) { S.mode = 'error'; render(); return; }
+      /* ★失敗は2つに分ける（2026-10-11）。サーバが「ログインしていない」と答えた回
+           （authLost）は、ログインしていない人と同じ板。それ以外は今までどおり
+           「読み込めませんでした」。
+         ⚠️ どちらもここで戻る ＝ 下の PVGates.mark() を通らない（答えが無いのに、
+            左メニューの錠前の控えを書き換えない）。 */
+      if (res && res.error) { S.mode = authLost(res) ? 'anon' : 'error'; render(); return; }
       var v = res && res.data;
       S.boot = v || null;
       S.mode = (v && v.state === 'open') ? 'open' : (v ? 'locked' : 'error');
       /* ★選べる組み合わせ。**無いときは null のまま**＝選ばせない（few）。
            db/deep-pay.sql を貼る前の本番はこの形で返ってくる。 */
       setPicks(v && v.picks);
+      /* 左メニューの錠前（REAL PAY の段）を、サーバの答えで上書きする（deep-pay.js と同じ）。
+         ★その下の setProgress は、2026-10-11 から受け取るだけで何もしない（pv-gates.js が
+           3段の表の DEEP PAY の札を外したため。呼ぶ側が残っているので名前だけ在る）。 */
       if (w.PVGates && w.PVGates.mark) w.PVGates.mark(!!(v && v.gate && v.gate.key));
       if (w.PVGates && w.PVGates.setProgress) {
         w.PVGates.setProgress({
@@ -1443,7 +1510,13 @@
     var ready = w.PV_SESSION && typeof w.PV_SESSION.then === 'function'
       ? w.PV_SESSION : { then: function (f) { f(null); return { catch: function () {} }; } };
     ready.then(function (session) {
-      if (!session) return;                     // ページ側がログインへ送っている
+      /* ★ログインしていない人（2026-10-11・オーナー判断）。前はページ側がログイン画面へ
+           送っていて、ここは何もせずに戻るだけだった。いまは送らない ── 閉じた画面
+           （影絵＋板）を描いて終わる。板の出どころは anonGate() の注。
+         ⚠️ この先へ進めない ── pv_deep_pay() も、預かり証の引き取り（sweep）も
+            **呼ばない**（どちらも未ログインでは必ず落ちる通信）。指紋も取らない
+            （会員が居ない ＝ クラッカーの印も置かれない）。 */
+      if (!session) { S.mode = 'anon'; render(); return; }
       /* クラッカー用に、いまの会員の指紋を持っておく（uid そのものは持たない。
          取れなければ空のまま ＝ 印も書かず、鳴らしもしない）。 */
       S.who = partyWho(session);

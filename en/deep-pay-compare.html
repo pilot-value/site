@@ -6,7 +6,11 @@
 <link rel="apple-touch-icon" href="../assets/favicon-180.png"/>
   <script>(function(){var t=localStorage.getItem('pv-theme')||'light';document.documentElement.setAttribute('data-theme',t);}());</script>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <!-- 給与の項目をぜんぶ答えた人だけが読める画面（2026-10-11 から。前は「内訳を1件でも出した人」）。ログインが要るので検索に出してはいけない -->
+  <!-- 給与の項目をぜんぶ答えた人だけが読める画面（2026-10-11 から。前は「内訳を1件でも出した人」）。
+       ★ログインしていない人にも画面は開く（2026-10-11・オーナー判断。前はログイン画面へ
+         送っていた）。出るのは、まだ開いていない会員と同じ「ぼかした影絵＋板」だけで、
+         数字は1つも渡さない（サーバにも聞かない）。
+       数字が出るのはログインして条件を満たした人だけなので、検索に出してはいけない（noindex のまま） -->
   <title>Compare Airlines — DEEP PAY | PILOT VALUE</title>
 <!--PV-SEO-->
 <!--PV-SRC t="Compare Airlines — DEEP PAY" d="Pick two airlines and read median pay, the pay mix and the flying behind it side by side. No ranking, and no individual payslip is ever shown."-->
@@ -186,7 +190,8 @@
         <!-- 案内の置き場（読み込み中の骨・鍵・「区分を選んでください」・「別の会社を」）
              と、2社のカード。
              ★カードが出るのは**片側が薄いときだけ**（2026-08-31）。両方読めるときは
-                ロゴ・社名・人数を表の見出し行が受け持ち、ここは空で隠れる。
+                ロゴ・社名・信頼度の札を表の見出し行が受け持ち、ここは空で隠れる
+                （人数は 2026-10-11 から画面のどこにも出さない）。
                 同じ数字を表の上にもう一度並べていたのをやめて 153px 減らした。
              ⚠️ 消し切らないこと。**片側だけ薄いとき、読める側の数字はここにしか出ない**
                 （表は片側が薄いと丸ごと畳む）。「その側だけ出せません」の約束はこの1枚。 -->
@@ -223,17 +228,17 @@
     applyTheme(localStorage.getItem('pv-theme')||'light');
     document.getElementById('theme-toggle').addEventListener('click',function(){applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');});
 
-    /* ★ pv_deep_pay() は未ログインだと 42501 で落ちる。エラー文言を出すのではなく
-         ログインへ送る（login.html の safePath() は pathname + search + hash を返す）。
+    /* ★ログインしていない人を、ログイン画面へ**送らない**（2026-10-11・オーナー判断）。
+         DEEP PAY には公開の入口が在る（REAL PAY の見出しのタブ ── あちらは未ログインの人にも
+         見える）。前はここで login.html?redirect=… へ送っていた。いまは null を返すだけで、
+         deep-pay-compare.js が「会員で、まだ開いていない人」と同じ画面（ぼかした影絵＋板）を出す。
+       ⚠️ pv_deep_pay() は未ログインだと 42501 で落ちる。だから deep-pay-compare.js は、ここが
+          null を返した人のために**サーバへ1本も聞かない**（板は聞かずに描ける）。
+       ⚠️ ここに行き先を書き足さない（ログインしたい人には、左メニューの「ログイン」が在る）。
        deep-pay-compare.js はこの Promise を待ってから RPC を撃つ＝二重に走らない。 */
     window.PV_SESSION = (async function () {
       const { data: { session } } = await sb.auth.getSession();
-      if (!session) {
-        window.location.href = 'login.html?redirect='
-          + encodeURIComponent('deep-pay-compare.html' + (window.location.search || '') + (window.location.hash || ''));
-        return null;
-      }
-      return session;
+      return session || null;
     }());
   </script>
 
@@ -258,7 +263,7 @@
        deep-pay.css / deep-pay-compare.css / deep-pay-compare.js).
      Change one → copy the value assert-links.mjs prints to every page that loads it
      (deep-pay.css: all 4 pages, 2 screens × ja/en; the others: the ja/en pair). -->
-<script src="../deep-pay-compare.js?v=13a7cef8"></script>
+<script src="../deep-pay-compare.js?v=237360ac"></script>
 <!-- "Please resubmit" notice. Shown **only to the member themselves** when one of
      their own pay reports has net pay above gross pay.
      ★Nothing is shown to signed-out visitors or to members with nothing to fix

@@ -6,9 +6,12 @@
       「差がつくポイント」も「トレードオフ」も出ない＝素通しで緑になる。
    2. あちらは既に700行を超えている。
 
-   ★2枚にまたがる不変条件（DEEP PAY への入口が対の外から生えていないこと）は
-     assert-deep-pay.mjs ① に置いてある。ここには書かない（2か所で同じことを
-     見張ると、片方だけ緩めたときに気づけない）。
+   ★2枚にまたがる不変条件（DEEP PAY への入口が**決めた所にだけ在る**こと ── REAL PAY の
+     見出しのタブの日英と、行を押すと出る面のボタンの3本。2026-10-11 に公開するまでは
+     「対の外から1本も生えていない」だった）は assert-deep-pay.mjs ① に置いてある。
+     ここには書かない（2か所で同じことを見張ると、片方だけ緩めたときに気づけない）。
+     ★この画面（会社比較）へは、今も対の外から直に繋がない ── 入るのは DEEP PAY の概要から。
+       タブもこの画面には無い（DEEP PAY の中の1枚）。
 
    ⚠️ assert-header.mjs の FORM_PAGES にはこの2枚を**足さない**。あちらの偽セッションは
       rpc が null を返すので S.mode='error' → ピッカーが hidden → 欄が0個で
@@ -56,6 +59,18 @@
        見るのは ── 字面（④-b）／実物（§2e ── assert-deep-pay.mjs の §2f と同じ筋書きを、
        この画面の器と試験用の入口で通す）。印の名前を知っている JS が2つだけであることは
        assert-deep-pay.mjs の ⑬（2枚にまたがる見張りは向こうに1つだけ置く）。
+     ・**ログインしていない人を、ログイン画面へ送らない**（同じ日のオーナー判断）。来た人には
+       「会員で、まだ開いていない人」と**同じ画面**（ぼかした影絵＋板）を出す。前の §1 は
+       「ログインへ送られる・戻り先を取り違えない」を見ていた。
+       ★板は新しく書いていない ── deep-pay.js と**同じ本体**の anonGate()（「鍵が無く、
+         答えきってもいない」会員の門と同じ形の入れ物）を、同じ lockStage へ通すだけ（④）。
+       ★ログインしていない人のために、サーバへ**1本も聞かない**。端末にも何も書かない。
+       ★端末にセッションが残っているのにサーバが「ログインしていない」と答えた回
+         （42501 か HTTP 401。入口の1回でも、2社を引く回でも）も同じ板。ほかの失敗は
+         今までどおり「読み込めませんでした」。
+       見るのは ── 字面（④-c）／実物（§2f ── assert-deep-pay.mjs の §2g と同じ筋書き）。
+       作り物の門を本物の道具に通した答えと、見分けの表（authLost）は、向こうの ⑭ が
+       取り出して見ている ── こちらは「同じ本体」であること（④）で足りる。
 
    ⚠️ ここで使う金額・時間は**全部でたらめ**。本物の給与はこのリポジトリに1件も無い。
 
@@ -198,10 +213,17 @@ console.log('\n════ ① 隠さない・作らない ════');
        '★lockStage は影絵を引数なしで呼ぶ（門も答えも渡さない）');
     ok((stageC.match(/\bgate\b/g) || []).length === 2 && /lockHtml\(gate\)/.test(stageC),
        '★lockStage が gate を渡すのは板（lockHtml）にだけ');
-    ok((jsC.match(/\blockStage\(/g) || []).length === 2
-       && /lockBoard\(box, lockStage\(\(S\.boot && S\.boot\.gate\) \|\| \{\}\)\);/.test(jsC),
-       '★影絵を置く道は shut(\'lock\') の1本だけ（lockStage の呼び出しは1か所）',
-       String((jsC.match(/\blockStage\(/g) || []).length));
+    /* ★2026-10-11、呼び出しが1か所から2か所になった（ログインしていない人の板）。
+         どちらも shut() の中で、渡すのは「会員の門」か「作り物の門 anonGate()」だけ ──
+         答えの入れ物（S.boot）を丸ごと渡す道や、shut() の外から器を置く道は無いまま。
+         （定義の1つ ＋ 呼び出しの2つ ＝ 字としては3つ。assert-deep-pay.mjs の ②-b と同じ見方。） */
+    const shutC = decomment(cutFn(JS, 'shut'));
+    ok((jsC.match(/\blockStage\(/g) || []).length === 3
+       && (shutC.match(/\blockStage\(/g) || []).length === 2
+       && /lockBoard\(box, lockStage\(\(S\.boot && S\.boot\.gate\) \|\| \{\}\)\);/.test(shutC)
+       && /if \(kind === 'anon'\) \{ lockBoard\(box, lockStage\(anonGate\(\)\)\); return; \}/.test(shutC),
+       '★影絵を置く道は shut() の中の2本だけ（会員の門／ログインしていない人の作り物の門）',
+       `全体 ${(jsC.match(/\blockStage\(/g) || []).length} / shut の中 ${(shutC.match(/\blockStage\(/g) || []).length}`);
     ok((jsC.match(/dp-ghost/g) || []).length === 1 && (jsC.match(/dp-stage/g) || []).length === 1,
        '★影絵と器のクラス（dp-ghost / dp-stage）を書くのは lockStage の中だけ');
     /* 開いた画面の描き手は、影絵の部品を使わない（本物の値を影絵の形で描かない）。 */
@@ -227,10 +249,16 @@ console.log('\n════ ① 隠さない・作らない ════');
     ok(!re.test(nohtmlcomment(JA)) && !re.test(nohtmlcomment(EN)),
        `★HTML に作り物のデータが無い（${re.source}）`);
   }
-  /* 見本の金額が消し忘れで残っていないか。桁の大きい裸の数字は全部それ。 */
-  const nums = (jsC.match(/\b\d{5,}\b/g) || []);
+  /* 見本の金額が消し忘れで残っていないか。桁の大きい裸の数字は全部それ。
+     ★2026-10-11、5桁の字が1つ入った ── '42501'。金額ではなく Postgres の符丁
+       （権限が無い ＝ pv_deep_pay() が未ログインのときに投げる）で、authLost() が
+       サーバの答えと突き合わせる。通すのは**その関数の中の1つだけ**（数を数えている）。 */
+  const nums = (jsC.match(/\b\d{5,}\b/g) || []).filter((n) => n !== '42501');
   ok(nums.length === 0, '★deep-pay-compare.js に5桁以上の裸の数字が無い（見本の金額の残り）',
      nums.join(' '));
+  ok((jsC.match(/\b42501\b/g) || []).length === 1 && /=== '42501'/.test(decomment(cutFn(JS, 'authLost'))),
+     '★5桁の字で通してよいのは、authLost() の中の符丁 42501 の1つだけ',
+     String((jsC.match(/\b42501\b/g) || []).length));
 
   /* 公開リポジトリ。ログイン名が入る絶対パスを書かない。 */
   for (const [name, src] of [['js', JS], ['css', CSS], ['ja', JA], ['en', EN]]) {
@@ -415,10 +443,16 @@ console.log('\n════ ④ 写した関数 ════');
        飛び方）／partyHtml（紙）／partyFire（器と動き）／partyPop（入口）。
        ずれると、2つの画面で印の名前や持ち主の見方が食い違う ── 先に開いた画面で鳴って、
        もう片方では鳴らない、が成り立たなくなる（同じ人に2回鳴る・1回も鳴らない）。 */
+  /* ★同じ日にもう2つ増えた（ログインしていない人を、ログイン画面へ送らなくなった回）──
+       anonGate（その人に出す板の、作り物の門）／authLost（サーバが「ログインしていない」と
+       答えたかの見分け）。ずれると、同じ人が DEEP PAY と会社比較で違う板を見る ── 片方では
+       「読み込めませんでした」・もう片方では「給与詳細提出で開きます」。
+       本体の中身（門の形・見分けの表）は assert-deep-pay.mjs の ⑭ が取り出して見ている。 */
   for (const name of ['sig2', 'sigIn', 'stepIn', 'money', 'moneyRate', 'moneyExact',
                       'segPct', 'airName', 'lockLines', 'lockHref', 'lockBoard',
                       'todoNames', 'todoMonth', 'lockTodo', 'lockHtml',
                       'ghBar', 'ghBars', 'ghField', 'ghHead', 'ghostTint', 'lockStage',
+                      'anonGate', 'authLost',
                       'partyKey', 'partyWho', 'partyMark', 'partyDue', 'partyBit', 'partySpec',
                       'partyHtml', 'partyFire', 'partyPop']) {
     ok(DC[name] && DP[name] && norm(DC[name]) === norm(DP[name]),
@@ -458,8 +492,10 @@ console.log('\n════ ④ 写した関数 ════');
     ok(!/\blockDet\b/.test(jsC) && !/\blockDet\b/.test(dpC)
        && !/\bg\.detailed\b|\bgate\.detailed\b/.test(jsC),
        '★前の行（lockDet）と前の鍵（gate.detailed）が、どちらの JS にも残っていない');
+    /* ★受け手（PVGates.setProgress）は 2026-10-11 から受け取るだけで何もしない ── 読んでいた
+         DEEP PAY の札を、3段の表から外したため（assert-deep-pay.mjs の ⑪ と同じ見方）。 */
     ok(/detailed:\s*\(v && v\.give\) \? v\.give\.detailed : null/.test(jsC),
-       '左メニューの札へ渡すのは今までどおり give.detailed（門の値ではない）');
+       'PVGates.setProgress へ渡すのは今までどおり give.detailed（門の値ではない。受け手はもう何もしない）');
     /* 板を組む道は lockHtml() の1本。shut() が自前で組み直していない。 */
     ok((jsC.match(/dp-msg--lock/g) || []).length === 1 && (dpC.match(/dp-msg--lock/g) || []).length === 2,
        '★錠前の板（.dp-msg--lock）を組むのは lockHtml() だけ（DEEP PAY の側のもう1つは「人数が足りません」の板）',
@@ -615,7 +651,7 @@ console.log('\n════ ④-b 開いた瞬間のクラッカー（字面）�
      '★指紋（S.who）を入れるのは起動の1行・読むのはクラッカーだけ。S.popped も外では読まない');
   /* 板・門・描き手が、印もクラッカーの状態も読まない。 */
   for (const n of ['lockLines', 'lockHref', 'todoNames', 'todoMonth', 'lockTodo', 'lockHtml', 'lockStage',
-                   'lockBoard', 'load', 'pair', 'one', 'picker', 'hdr', 'cond', 'cards', 'sideCard', 'diff',
+                   'lockBoard', 'anonGate', 'authLost', 'load', 'pair', 'one', 'picker', 'hdr', 'cond', 'cards', 'sideCard', 'diff',
                    'mix', 'barOf', 'trade', 'cta', 'ask', 'dup', 'few', 'only', 'ghostShapes', 'ghostTint']) {
     const c = decomment(cutFn(JS, n));
     ok(c.length > 0 && !/\bparty[A-Z]\w*|\bS\.(?:who|popped)\b|[sS]torage/.test(c),
@@ -629,6 +665,18 @@ console.log('\n════ ④-b 開いた瞬間のクラッカー（字面）�
   ok(count(/\bpartyMark\(/g, jsC) === 2
      && /lockBoard\(box, lockStage\(\(S\.boot && S\.boot\.gate\) \|\| \{\}\)\);\s+partyMark\(\);\s+\}/.test(jsC),
      '★印を置くのは、閉じた板を置いた直後だけ（読み込めなかった画面では置かない）');
+  /* ★ログインしていない人の板（2026-10-11）は、印を置く行より**前で戻る**。印は「閉じた板を
+       見た会員」の控えで、あの板は会員の門を見て出したものではない ── ログインが切れた
+       だけの会員には指紋が在るので、通すと、前から開いていた人がログインし直した日に鳴る。 */
+  {
+    const sh = decomment(cutFn(JS, 'shut'));
+    const e = sh.indexOf("if (kind === 'error')"), a = sh.indexOf("if (kind === 'anon')");
+    const m = sh.indexOf('partyMark()');
+    ok(e >= 0 && a > e && m > a
+       && /if \(kind === 'anon'\) \{ lockBoard\(box, lockStage\(anonGate\(\)\)\); return; \}/.test(sh)
+       && count(/\breturn;/g, sh.slice(a, m)) === 1,
+       '★★ログインしていない人の板は、印を置く行の手前で戻る（端末に何も書かない）');
+  }
   ok(count(/\bpartyDue\(/g, jsC) === 2 && count(/\bpartyFire\(/g, jsC) === 3
      && !/[=!(,?:&|]\s*party(?:Pop|Mark|Fire)\(/.test(jsC),
      '★partyDue() を呼ぶのは partyPop() だけ。partyPop / partyMark / partyFire の返り値は使わない');
@@ -717,6 +765,114 @@ console.log('\n════ ④-b 開いた瞬間のクラッカー（字面）�
 }
 
 // ════════════════════════════════════════════════════════════════
+// ④-c ログインしていない人を、ログイン画面へ送らない（字面。2026-10-11）
+// ════════════════════════════════════════════════════════════════
+/* オーナー判断 ── ログインしていない人を、ログイン画面へ送らない。「会員で、まだ開いて
+   いない人」と**同じ画面**（ぼかした影絵＋板）を出す（経緯は assert-deep-pay.mjs の ⑭）。
+   ここは字面。実物は下のブラウザの §2f。見るのは4つ：
+     a) 送り先が消えた ── この画面（日英）の HTML に、人をよそへ運ぶ字が1つも無い。
+        セッションの見張りは「在ればそれ・無ければ null」を返すだけ。
+     b) 聞く前に戻る ── boot() は、セッションが無ければ板を描いて戻る。その行は、指紋を取る行・
+        預かり証の引き取り・pv_deep_pay() の**どれよりも前**。
+     c) サーバが「ログインしていない」と答えた回も同じ板 ── 入口の1回（load）と、2社を引く回
+        （one → pair）の両方。pair は LOST を「引けなかった」より**前**に見る。
+     d) 触らないもの ── 端末のログインの控え・門の鍵・解析。板に文もリンクも足していない。
+   ★板の中身（作り物の門を本物の道具に通した答え）と、見分けの表（authLost）は、
+     assert-deep-pay.mjs の ⑭ が取り出して実行している。こちらは、その2つが deep-pay.js と
+     **同じ本体**であること（④）で足りる ── 同じ表を2か所に置かない。 */
+console.log('\n════ ④-c ログインしていない人（字面）════');
+{
+  const count = (re, s) => (s.match(re) || []).length;
+
+  // ── a) 送り先が消えた ──
+  /* ★HTML のコメントと、inline の JS のコメントの両方を落としてから見る（「前は
+       login.html?redirect=… へ送っていた」という説明を、わざと残してある）。 */
+  for (const [name, raw] of [['ja', JA], ['en', EN]]) {
+    const bare = decomment(nohtmlcomment(raw));
+    ok(!/login\.html\?redirect|encodeURIComponent/.test(bare),
+       `${name}: ★★ログイン画面へ送る行（login.html?redirect=…）が、HTML から消えている`);
+    ok(!/\blocation\b|history\s*\.\s*(?:pushState|replaceState|back|go)\b|window\.open\s*\(|http-equiv\s*=\s*["']?refresh/i.test(bare),
+       `${name}: ★★HTML に、人をよそへ運ぶ字（location・history・window.open・meta refresh）が1つも無い`,
+       (bare.match(/[^\n]*(?:\blocation\b|history\s*\.|window\.open|http-equiv)[^\n]*/i) || [''])[0].trim().slice(0, 90));
+    ok(/window\.PV_SESSION = \(async function \(\) \{\s*const \{ data: \{ session \} \} = await sb\.auth\.getSession\(\);\s*return session \|\| null;\s*\}\(\)\);/.test(bare),
+       `${name}: ★セッションの見張りは「在ればそれ・無ければ null」を返すだけ（分かれ道を持たない）`);
+    ok(count(/login\.html/g, bare) === 1
+       && /<a class="mr-side-sub" id="pv-anav-login" data-pv-auth="out" href="login\.html">/.test(bare),
+       `${name}: ログイン画面の住所は、左メニューの「ログイン」の1本だけ（足していない）`,
+       String(count(/login\.html/g, bare)));
+  }
+  ok(!/\blocation\b|history\s*\.|window\.open\s*\(/.test(jsC),
+     '★★deep-pay-compare.js は、人をよそへ運ばない（location・history・window.open という字が無い）');
+
+  // ── b) 聞く前に戻る ──
+  const bootC = decomment(cutFn(JS, 'boot'));
+  const at = (s) => bootC.indexOf(s);
+  const gone = at("if (!session) { S.mode = 'anon'; render(); return; }");
+  ok(gone > at('ready.then(function (session) {') && at('ready.then(function (session) {') >= 0,
+     '★★boot() は、セッションが無ければ板を描いて戻る（S.mode を anon にして render）', String(gone));
+  ok(gone >= 0 && gone < at('S.who = partyWho(session);') && gone < at('PVClaimPending')
+     && gone < at('load(client)') && at('load(client)') > 0 && at('PVClaimPending') > 0,
+     '★★その行は、指紋を取る行・預かり証の引き取り・pv_deep_pay() のどれよりも前（聞く前に戻る）');
+  ok(count(/\bload\(client\)/g, bootC) === 1 && count(/\.rpc\b/g, bootC) === 1 && /if \(!client \|\| !client\.rpc\)/.test(bootC),
+     '★boot() の中で pv_deep_pay() へ行く道は load(client) の1本だけ（その手前に、戻る行が在る）');
+  /* ★2社を引く道（pair）は、選ぶ欄からしか通らない。欄を触れるのは S.client が入ってから
+       （onPick の頭で見ている）で、S.client を入れるのは load() だけ ＝ ログインしていない人の
+       画面から pair() へは届かない。 */
+  ok(count(/\bS\.client = /g, jsC) === 1 && /S\.client = client;/.test(decomment(cutFn(JS, 'load')))
+     && /if \(!S\.client\) return;/.test(decomment(cutFn(JS, 'onPick')))
+     && /if \(!client \|\| !pairReady\(\)\) return;/.test(decomment(cutFn(JS, 'pair'))),
+     '★2社を引く道（pair）は、入口の1回（load）を通った窓からしか届かない');
+
+  // ── c) サーバが「ログインしていない」と答えた回 ──
+  const loadC = decomment(cutFn(JS, 'load'));
+  const oneC  = decomment(cutFn(JS, 'one'));
+  const pairC = decomment(cutFn(JS, 'pair'));
+  const rendC = decomment(cutFn(JS, 'render'));
+  ok(count(/'anon'/g, jsC) === 6 && count(/S\.mode = 'anon'/g, bootC) === 1
+     && /if \(res && res\.error\) \{ S\.mode = authLost\(res\) \? 'anon' : 'error'; render\(\); return; \}/.test(loadC)
+     && count(/S\.mode = 'anon'/g, pairC) === 1,
+     '★anon になる道は3つだけ（boot ＝ 聞かずに決まる／load・pair ＝ サーバが「ログインしていない」と答えた）',
+     `'anon' の字 ${count(/'anon'/g, jsC)} 個`);
+  ok(/if \(S\.mode === 'anon'\)\s+\{ shut\('anon'\);\s+return; \}/.test(rendC)
+     && rendC.indexOf("shut('anon')") < rendC.indexOf('partyPop()') && count(/shut\('anon'\)/g, jsC) === 1,
+     '★描くのは render() の1行（shut(\'anon\')）で、「開いている」枝より前 ＝ クラッカーを通らない');
+  ok(loadC.indexOf('authLost(res)') > 0 && loadC.indexOf('authLost(res)') < loadC.indexOf('PVGates.mark'),
+     '★読み込めなかった回・ログインが切れていた回は、左メニューの錠前の控えを書き換える行より前で戻る');
+  ok(count(/\bauthLost\(/g, jsC) === 3
+     && /if \(!res \|\| res\.error\) return authLost\(res\) \? LOST : null;/.test(oneC),
+     '★authLost() を使うのは load() と one() の2か所（one は LOST か null を返す）', String(count(/\bauthLost\(/g, jsC)));
+  {
+    const lost = pairC.indexOf("if (r[0] === LOST || r[1] === LOST) { S.mode = 'anon'; render(); return; }");
+    const miss = pairC.indexOf("if (!r[0] || !r[1]) { S.mode = 'error'; render(); return; }");
+    ok(lost > 0 && miss > lost && count(/\bLOST\b/g, jsC) === 4 && /var LOST = \{\};/.test(jsC),
+       '★★pair() は LOST を「引けなかった」より前に見る（後ろに置くと、中身の無い目印を答えとして描きに行く）',
+       `LOST ${lost} / 引けなかった ${miss} / 字 ${count(/\bLOST\b/g, jsC)} 個`);
+  }
+  ok(count(/\banonGate\(/g, jsC) === 2 && /lockStage\(anonGate\(\)\)/.test(decomment(cutFn(JS, 'shut'))),
+     '★anonGate() を使うのは shut() の1か所だけ（会員の板の道には混ぜない）', String(count(/\banonGate\(/g, jsC)));
+
+  // ── d) 触らないもの ──
+  ok(!/log\s?in|sign\s?in|ログイン|サインイン|会員登録|sign\s?up/i.test(jsC),
+     '★★deep-pay-compare.js に「ログイン」「Log in」「会員登録」の字が1つも無い（板に文もリンクも足していない）',
+     (jsC.match(/[^\n]*(?:log\s?in|sign\s?in|ログイン|サインイン|会員登録|sign\s?up)[^\n]*/i) || [''])[0].trim().slice(0, 90));
+  {
+    const keys = (lang) => {
+      const m = new RegExp('\\n    ' + lang + ': \\{([\\s\\S]*?)\\n    \\}').exec(jsC);
+      return m ? [...m[1].matchAll(/(?:^|[\s,{])(lock\w+):/g)].map((x) => x[1]).sort().join(' ') : '';
+    };
+    const WANT = 'lockCta lockGo lockGoal lockKey lockReady lockT lockTWait lockTodoH lockWarn';
+    ok(keys('ja') === WANT && keys('en') === WANT,
+       '★板の文言の鍵は今までの9つのまま（日英とも。ログインしていない人のための鍵を足していない）',
+       keys('ja') + ' ／ ' + keys('en'));
+  }
+  ok(!/\.auth\b|signOut|refreshSession|setSession/.test(jsC),
+     '★★deep-pay-compare.js は、端末のログインの控えに触らない（サインアウトしない・auth を呼ばない）');
+  ok(!/pv_salary_unlock_expiry|pv_unlock_expiry|pv_session_start|pv_last_active|pv_give_seen/.test(jsC),
+     '★deep-pay-compare.js は、門とログインの鍵の名前を1つも知らない（読まない・書かない）');
+  ok(!/\bgtag\s*\(|dataLayer/.test(jsC), '★解析のイベントを足していない（gtag / dataLayer を呼ばない）');
+}
+
+// ════════════════════════════════════════════════════════════════
 // ⑤ 器（読み込む順・通貨・他所の CSS を書き換えない）
 // ════════════════════════════════════════════════════════════════
 console.log('\n════ ⑤ 器 ════');
@@ -780,6 +936,7 @@ console.log('\n════ ⑥ ブラウザ ════');
       組み立ては必ず FAKE の**中**に置く。 */
 const FAKE = function (payload) {
   window.__rpc = {};
+  window.__from = 0;
   window.__rpcArgs = [];
   const UID = '00000000-0000-4000-8000-00000000a001';
   const STATS = { reports: 58, month: 12, airlines: 19, contributors: 37 };
@@ -799,7 +956,9 @@ const FAKE = function (payload) {
   const SHUT = !!(P.__lock || P.__gate);
   const BOOT = {
     state: SHUT ? 'locked' : 'open',
-    /* give.detailed は門とは別の値（左メニューの札が読む）。板には効かない。 */
+    /* give.detailed は門とは別の値（pv_my_give の答え）。板には効かない。
+       ★読んでいたのは3段の表の DEEP PAY の札で、2026-10-11 に外した ── いま画面でこれを
+         使う所は無い（deep-pay-compare.js は PVGates.setProgress へ渡すが、受け手は何もしない）。 */
     gate: GATE, stats: STATS, give: { detailed: !SHUT }
   };
   /* ★選べる組み合わせ（2026-09-01・オーナー確定「選択できる ＝ 実際に数字が返る」）。
@@ -902,11 +1061,27 @@ const FAKE = function (payload) {
       signOut: async () => ({ error: null }),
       onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } })
     },
-    from: () => q([]),
+    from: () => { window.__from++; return q([]); },
     rpc: (name, args) => {
       window.__rpc[name] = (window.__rpc[name] || 0) + 1;
       if (name === 'pv_deep_pay') window.__rpcArgs.push(args === undefined ? null : args);
-      const res = (P.__err && name === 'pv_deep_pay')
+      /* ★__wire を立てた見本は、rpc を呼ぶたびに**本物の通信を1本**出す（2026-10-11。§2f）。
+           この偽物は窓の中で答えるので、素のままでは「通信に /rpc/ が無い」を見ても
+           何も証明しない。呼ばれたら必ず、住所に /rpc/<名前> の入った通信が出るようにして、
+           ブラウザの外（puppeteer が記録する通信の一覧）から数えられるようにする。
+           行き先は確認用サーバ自身（404 が返るだけ。本番へは1バイトも出ない）。 */
+      if (P.__wire) { try { fetch('/rest/v1/rpc/' + name).catch(() => {}); } catch (e) {} }
+      /* ★__fail ＝ pv_deep_pay の答えを、渡した形のエラーに差し替える（2026-10-11。§2f）。
+           supabase-js の答えは { data, error:{ code, message … }, status }。「ログインして
+           いない」（42501・HTTP 401）と、ほかの失敗を画面が見分けることを見るため。
+           __failAfter: n は「はじめの n 回は普通に答える」（入口の1回は通って、2社を引く回に
+           切れた形）。__reject は、答えの箱そのものが投げる形。
+           ⚠️ __err（符丁も番号も無い失敗）は今までどおり ── §10 と §2e が使っている。 */
+      if (P.__reject && name === 'pv_deep_pay')
+        return { then: (y, n) => Promise.reject(new TypeError('Failed to fetch')).then(y, n) };
+      const res = (P.__fail && name === 'pv_deep_pay' && window.__rpc[name] > (P.__failAfter || 0))
+        ? Object.assign({ data: null }, P.__fail)
+        : (P.__err && name === 'pv_deep_pay')
         ? { data: null, error: { message: 'synthetic failure' } }
         : { data: RPC[name] ? RPC[name](args) : { ok: true }, error: null };
       /* ★__hold を立てた見本は、pv_deep_pay の答えを**手で放すまで**返さない
@@ -990,8 +1165,9 @@ const SNAP = () => {
        ここを .dp-cond-k のままにすると、拾えるのは「表示中:」の4文字だけになる。 */
     condK: all('#dc-cond .dp-cond-l > span:not(.dp-cond-k):not(.dp-cond-s)'),
     /* ★#dc-sides に限定しない。2026-08-31 から、両方読めるときは
-       ロゴ・社名・人数が**表の見出し行**に出る（カードは出ない）。
-       器を問わず「2社の名前と人数が1つずつ出ている」ことを見る。 */
+       ロゴ・社名・信頼度の札が**表の見出し行**に出る（カードは出ない）。
+       器を問わず「2社の名前が1つずつ出ている」ことを見る（札は下の sideC）。
+       （前はここに「人数」と書いていた。人数は 2026-10-11 から画面のどこにも出さない。） */
     sideN: all('#dc-root .dc-side-n'),
     /* ★選んだ機材の札。**社名のすぐ隣**に出ていることを見る ── 両側読めるとき
        カードは出ないので、表の見出しに添えていないと機材がどこにも出ない。 */
@@ -1103,8 +1279,10 @@ const SNAP = () => {
       return (cs.filter && cs.filter !== 'none')
         || (cs.backdropFilter && cs.backdropFilter !== 'none');
     }).map((e) => String(e.className || e.tagName).split(' ')[0]),
-    /* ★本文だけ（#dc-root）。人数の形の字を探すのはこちら ── body 全体には
-       左メニューの札（「37 / 100人」）が入っていて、あれはこの画面の本文ではない。 */
+    /* ★本文だけ（#dc-root）。人数の形の字を探すのはこちら ── body 全体には左メニューや
+       ヘッダーの字も入っていて、あれはこの画面の本文ではない。
+       （前はここに、左メニューの札「37 / 100人」を名指しで書いていた。あの札は
+         2026-10-11 に外したので、いまは body にも無い ── それでも見るのは本文だけ。） */
     main: document.getElementById('dc-root').innerText,
     mainHtml: document.getElementById('dc-root').innerHTML,
     text: document.body.innerText
@@ -1170,13 +1348,17 @@ async function drawn(page) {
   await page.waitForFunction(() => !document.querySelector('#dp-kpi .mr-skel, #dc-sides .mr-skel'),
                              { timeout: 20000 });
 }
-/* ★7つ目の opt は、クラッカーの節（§2e）だけが使う。渡さなければ今までと1つも変わらない。
+/* ★返すのは { page, errs, reqs, navs }。reqs ＝ この窓が出そうとした通信の住所（止めたものも
+     含めて全部）・navs ＝ いちばん外の枠が着いた住所（2026-10-11。§2f が「/rpc/ を1本も
+     投げない」「よそへ運ばれない」を、窓の外から数えるのに使う。ほかの節は読まない）。
+   ★7つ目の opt は、クラッカーの節（§2e）と §2f が使う。渡さなければ今までと1つも変わらない。
      jar    … 同じ入れ物（＝同じ保存領域）で続けて開く。渡した入れ物は呼んだ側が閉じる
               （jars には積まない）。印は端末の保存領域に在るので、「閉じた画面を見た人が
               あとで開く」を作るには、同じ入れ物で2枚開くしかない。
      file   … 開く画面（既定は deep-pay-compare.html。概要を同じ偽サーバで開くのに使う）。
      reduce … 「動きを減らす」設定を装う。
-     first  … ページのどの script よりも先に流す関数と引数の組（[[fn, arg], …]）。 */
+     first  … ページのどの script よりも先に流す関数と引数の組（[[fn, arg], …]）。
+     tail   … 住所の後ろに付ける字（'?x=1#y' のように。§2f が「付けて来た字が残る」を見る）。 */
 async function open(lang, payload, theme, sel, expect, width, opt) {
   const o = opt || {};
   const jar = o.jar || await browser.createBrowserContext();
@@ -1185,11 +1367,13 @@ async function open(lang, payload, theme, sel, expect, width, opt) {
   await page.setViewport({ width: width || 1360, height: 1200 });
   if (o.reduce) await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
   for (const [fn, arg] of (o.first || [])) await page.evaluateOnNewDocument(fn, arg);
-  const errs = [];
+  const errs = [], reqs = [], navs = [];
   page.on('pageerror', (e) => errs.push(String(e.message).slice(0, 140)));
+  page.on('framenavigated', (fr) => { if (fr === page.mainFrame()) navs.push(fr.url()); });
   await page.setRequestInterception(true);
   page.on('request', (r) => {
     const u = r.url();
+    reqs.push(u);
     if (u.startsWith(BASE)) return r.continue();
     if (/supabase-js|cdn\.jsdelivr/.test(u))
       return r.respond({ status: 200, contentType: 'application/javascript', body: '' });
@@ -1202,24 +1386,21 @@ async function open(lang, payload, theme, sel, expect, width, opt) {
     localStorage.setItem('pv-theme', t);
   }, theme || 'light');
   await page.evaluateOnNewDocument(FAKE, payload);
-  await page.goto(BASE + (lang === 'en' ? '/en/' : '/') + (o.file || 'deep-pay-compare.html'),
+  await page.goto(BASE + (lang === 'en' ? '/en/' : '/') + (o.file || 'deep-pay-compare.html') + (o.tail || ''),
                   { waitUntil: 'domcontentloaded', timeout: 30000 });
-  /* ★__hold（答えを止めた見本）は待たない ── 骨組みが残っていることを見る筋書き。 */
-  if (!(payload && (payload.__anon || payload.__hold))) await drawn(page);
+  /* ★__hold（答えを止めた見本）は待たない ── 骨組みが残っていることを見る筋書き。
+     ★__anon（ログインしていない人）も待つ（2026-10-11）。前はログイン画面へ運ばれて
+       この画面が消えるので待てなかった。いまはここに居たまま、板を描く。 */
+  if (!(payload && payload.__hold)) await drawn(page);
   if (sel) await choose(page, sel, expect == null ? 2 : expect);
-  return { page, errs };
+  return { page, errs, reqs, navs };
 }
 
-// ── 1. 未ログインはログインへ送る ───────────────────────────────
-{
-  const { page } = await open('ja', { __anon: true, air: AIR });
-  await page.waitForFunction(() => /login\.html/.test(location.href), { timeout: 20000 });
-  const u = new URL(page.url());
-  ok(/\/login\.html$/.test(u.pathname), '未ログインはログイン画面へ送られる', u.pathname);
-  ok(u.searchParams.get('redirect') === 'deep-pay-compare.html',
-     '★戻り先が deep-pay-compare.html（deep-pay.html に取り違えない）',
-     String(u.searchParams.get('redirect')));
-}
+// ── 1. （欠番）ログインしていない人 → §2f ───────────────────────────
+/* 2026-10-11 まで、ここは「未ログインはログイン画面へ送られる・戻り先が deep-pay-compare.html」を
+   見ていた。オーナー判断で、送るのをやめた ── ログインしていない人にも、会員の閉じた画面と
+   同じ「ぼかした影絵＋板」を出す。見張りは §2f（板・影絵・幅の物差しが §2b〜§2e に在るので、
+   それより後ろに置いてある）。字面は ④-c。 */
 
 // ── 2. 鍵が掛かっているとき ─────────────────────────────────────
 {
@@ -2198,6 +2379,321 @@ for (const lang of ['ja', 'en']) {
   ok(errs.length === before, `${lang}: ★★保存領域が投げても JS のエラーが出ない`, errs.slice(before).join(' / '));
   ok(before === 0, `${lang}: クラッカーの筋書きで JS のエラーが出ない`, errs.slice(0, before).join(' / '));
   await jar.close().catch(() => {});
+}
+
+// ── 2f. ログインしていない人（2026-10-11・オーナー判断）──────────────────────
+/* 前は、ログインしていない人がここへ来るとログイン画面へ送っていた（前の §1）。いまは
+   送らない ── 「会員で、まだ開いていない人」と**同じ画面**（ぼかした影絵＋板）を出す。
+   字面は ④-c。筋書きは assert-deep-pay.mjs の §2g と同じ（物差しの ANON_WATCH / ANON_READ /
+   wires / anonSettled はあちらと**同じ本体**。片方だけ緩めない）── この画面の器（#dc-sides）で：
+
+     居る   … 住所が変わらない（付けて来た ?… と #… も残る）・着いたのは1回だけ
+     同じ板 … 「鍵が無く、答えきってもいない」会員の閉じた画面（§2b の表の1行目）と、
+              器ごと**1文字も違わない**。題・行・断り・ボタンはオーナー指定の字そのもの。
+              行き先はその言語の給与フォームの頭。残りの一覧も、100人の行も人数も無い
+     聞かない … rpc を**1本も**呼ばない。窓の中の数（偽物が数えた呼び出し）と、窓の外の数
+              （puppeteer が記録した通信の住所に /rpc/ が無い）の両方で見る。偽物は __wire で、
+              呼ばれたら必ず /rpc/<名前> への通信を1本出す ── 網が空振りでないことは、
+              下の「ログインが切れていた」の筋書きで同じ網に掛かることで確かめる
+     書かない … 保存領域が、ページの script が動く前と**1文字も変わらない**。書きに行った
+              鍵は、ページの部品が前から書くもの（テーマ・英語ページの言語の控え）だけ
+     出ない … 紙吹雪の器・全ページの Give → Get の板・選ぶ欄・JS のエラー
+     形     … §2d と同じ物差しを 320 / 390 / 1440 × 明暗で
+   ── ログインが切れていた（端末にはセッションが在るのに、サーバが「ログインしていない」と
+      答えた）── 入口の1回でも、2社を引く回でも、**同じ板**。クラッカーの印を置かない。
+   ── ほかの失敗 ── 今までどおり「読み込めませんでした」（§10 と同じ）。
+   ⚠️ 窓は見終わったらすぐ閉じる（溜めると、この Mac では混んで嘘の赤が出る）。 */
+const ANON = { __anon: true, __wire: true, air: AIR };
+/* 会員の「鍵が無く、答えきってもいない」門（§2b の LOCK_CASES の1行目と同じ）。 */
+const ANON_TWIN = { __gate: { key: false, ready: false, todo: null, crowd: true, contributors: 37, goal: 100 },
+                    air: AIR };
+/* ★オーナー指定の字（2026-10-11）。会員の板との突き合わせだけだと、2つが一緒にずれた日に
+     通ってしまうので、字そのものも置いておく（行と断りは §2b の LK）。 */
+const ANON_T = {
+  ja: { title: '給与詳細提出で開きます', go: 'Give & Get 詳細を入力して解放する' },
+  en: { title: 'Opens when you submit your pay details', go: 'Give & Get / Enter your details to unlock' }
+};
+/* サーバが「ログインしていない」と答えた形（supabase-js の答えの形）と、ほかの失敗。 */
+const LOST   = { error: { code: '42501', message: 'ログインが必要です', details: null, hint: null },
+                 status: 401, statusText: 'Unauthorized' };
+const LOST_J = { error: { code: 'PGRST301', message: 'JWT expired', details: null, hint: null },
+                 status: 401, statusText: 'Unauthorized' };
+const NET    = { error: { message: 'TypeError: Failed to fetch', details: '', hint: '', code: '' },
+                 status: 0, statusText: '' };
+const ERR_TEXT = { ja: '読み込めませんでした。少し待ってから開き直してください。',
+                   en: 'Could not load. Please try again in a moment.' };
+/* 保存領域の見張り（assert-deep-pay.mjs の ANON_WATCH と同じ本体）。★ページのどの script よりも
+   先に流す。ページの部品が自分で書く鍵を、書くはずの値で先に置いてから、中身をまるごと控える
+   （__ls0）。書く・消すの呼び出しも、鍵の名前で全部控える（__writes）。 */
+const ANON_WATCH = function (seed) {
+  for (const k of Object.keys(seed)) localStorage.setItem(k, seed[k]);
+  const P = Storage.prototype, s = P.setItem, r = P.removeItem, c = P.clear;
+  const where = (x) => (x === window.sessionStorage ? 'session:' : 'local:');
+  window.__writes = [];
+  P.setItem = function (k) { window.__writes.push(where(this) + k); return s.apply(this, arguments); };
+  P.removeItem = function (k) { window.__writes.push(where(this) + k); return r.apply(this, arguments); };
+  P.clear = function () { window.__writes.push(where(this) + '*'); return c.apply(this, arguments); };
+  window.__dump = () => JSON.stringify([
+    Object.keys(localStorage).sort().map((k) => [k, localStorage.getItem(k)]),
+    Object.keys(sessionStorage).sort().map((k) => [k, sessionStorage.getItem(k)])]);
+  window.__ls0 = window.__dump();
+};
+const CHROME_KEYS = ['local:pv-theme', 'local:pv-lang'];
+const anonSeed = (lang, theme, more) =>
+  Object.assign({ 'pv-theme': theme }, lang === 'en' ? { 'pv-lang': 'en' } : {}, more || {});
+/* 落ち着くまで待つ ── 読み込みが終わり・器が出て・社名の辞書が着き・通信が静まるまで
+   （時間では待たない。assert-deep-pay.mjs の anonSettled と同じ本体）。 */
+async function anonSettled(page) {
+  await page.waitForFunction(() => {
+    const g = document.getElementById('dp-pick') || document.getElementById('dc-pick');
+    const sig = g && g.getAttribute('data-sig');
+    return document.readyState === 'complete' && !!document.querySelector('.dp-stage')
+      && !!sig && Number(sig.split('|')[1]) > 0;
+  }, { timeout: 20000 }).catch(() => {});
+  /* ★時間切れでも投げない。器が出なかった回は、このあとの検査が「何が出ていないか」を
+       字で言う（ここで投げると、理由を言わないまま検査ごと止まる ── 実際に、わざと壊して
+       確かめた回にそうなった）。 */
+  await page.waitForNetworkIdle({ idleTime: 400, timeout: 20000 }).catch(() => {});
+}
+const ANON_READ = (key) => ({
+  url: location.pathname + location.search + location.hash,
+  stage: (document.querySelector('.dp-stage') || {}).outerHTML || '',
+  title: ((document.querySelector('.dp-stage .dp-msg-t') || {}).textContent || '').trim(),
+  go: [...document.querySelectorAll('.dp-stage a.dp-cta')].map((a) => a.textContent.trim()),
+  to: [...document.querySelectorAll('.dp-stage a.dp-cta')].map((a) => {
+    const u = new URL(a.getAttribute('href'), location.href);
+    return u.pathname + u.search + u.hash;
+  }),
+  links: document.querySelectorAll('.dp-stage a, .dp-stage button, .dp-stage input, .dp-stage select').length,
+  from: window.__from, dump: window.__dump ? window.__dump() : null, ls0: window.__ls0 || null,
+  writes: (window.__writes || []).slice(),
+  mark: (function () { try { return localStorage.getItem(key); } catch (e) { return 'threw'; } })(),
+  pop: document.querySelectorAll('.dp-pop').length, popSeen: (window.__pop || {}).seen,
+  gf: document.querySelectorAll('#pvgf-back, .pvgf-back').length
+});
+const wires = (reqs) => ({
+  rpc: reqs.filter((u) => /\/rpc\//.test(u)),
+  api: reqs.filter((u) => /supabase\.co|\/rest\/v1\/|\/auth\/v1\//.test(u)),
+  login: reqs.filter((u) => /login\.html|signup\.html|auth-callback/.test(u)),
+  give: reqs.filter((u) => /pv-give-first/.test(u)),
+  odd: reqs.filter((u) => !u.startsWith(BASE)
+    && !/^https:\/\/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js|^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/|^https:\/\/www\.googletagmanager\.com\/gtag\/js/.test(u))
+});
+const anonOpen = (lang, payload, theme, more) => open(lang, payload, theme, null, null, null,
+  Object.assign({ first: [[ANON_WATCH, anonSeed(lang, theme)], [POP_WATCH, POP_KEY]] }, more || {}));
+for (const lang of ['ja', 'en']) {
+  const path = (lang === 'en' ? '/en/' : '/') + 'deep-pay-compare.html';
+  const form = (lang === 'en' ? '/en/' : '/') + 'pay-report.html';
+  let anonStage = '';
+
+  /* 会員の側（同じ門）を先に開いて、器の字を控える。 */
+  let twin = '';
+  {
+    const { page } = await open(lang, ANON_TWIN);
+    twin = (await page.evaluate(ANON_READ, POP_KEY)).stage;
+    await jars.pop().close().catch(() => {});
+  }
+
+  for (const theme of ['light', 'dark']) {
+    const tag = `${lang}/${theme}/未ログイン`;
+    const tail = theme === 'light' ? '?from=deep#top' : '';
+    const { page, errs, reqs, navs } = await anonOpen(lang, ANON, theme, { tail });
+    await anonSettled(page);
+    const s = await page.evaluate(SNAP);
+    const r = await page.evaluate(ANON_READ, POP_KEY);
+    const b = s.lockBox, w = wires(reqs);
+    if (theme === 'light') anonStage = r.stage;
+
+    // ── 居る ──
+    ok(r.url === path + tail && navs.length === 1 && navs[0] === BASE + path + tail,
+       `${tag}: ★★ログイン画面へ送られない ── 住所は来たときのまま（${path + tail}）・着いたのは1回だけ`,
+       `${r.url} / ${JSON.stringify(navs)}`);
+    ok(w.login.length === 0, `${tag}: ★ログイン・登録の画面へ向かう通信が無い`, w.login.join(' '));
+
+    // ── 同じ板 ──
+    ok(s.lock === 1 && s.ask === 0 && s.ghost === 1 && s.stage === 1 && s.blurred.join(',') === 'dp-ghost'
+       && s.skel === 0 && s.lowHidden === 4,
+       `${tag}: ★★閉じた画面が出る ── ぼかした影絵の手前に板（骨組みは残っていない・下の4枚は畳んだまま）`,
+       ghostWhy(s) + ' / 畳んだ数 ' + s.lowHidden);
+    ok(r.stage.length > 400 && r.stage === twin,
+       `${tag}: ★★器（影絵＋板）が、「鍵が無く、答えきってもいない」会員の閉じた画面と1文字も違わない`,
+       `長さ ${r.stage.length} / 会員 ${twin.length}`);
+    ok(r.title === ANON_T[lang].title && r.go.join('|') === ANON_T[lang].go,
+       `${tag}: ★★題とボタンは、オーナー指定の字のまま（「${ANON_T[lang].title}」／「${ANON_T[lang].go}」）`,
+       `${r.title} ／ ${r.go.join('|')}`);
+    ok(b.lines.join(' | ') === [LK[lang].key, LK[lang].ready].join(' | ')
+       && b.warn.join('|') === LK[lang].warn && b.warnAtCta,
+       `${tag}: ★★行は「鍵＋答え」の2つ・断りはボタンのすぐ上に1つ（会員の板と同じ字）`,
+       JSON.stringify(b.lines) + ' / ' + JSON.stringify(b.warn));
+    ok(b.cta.join(',') === 'pay-report.html' && r.to.join(',') === form && r.links === 1,
+       `${tag}: ★★板の入口はボタン1本・行き先はその言語の給与フォームの頭（${form}。#ps でも #pay-detail でもない）`,
+       `${b.cta.join(',')} → ${r.to.join(',')} / 押せるもの ${r.links}`);
+    ok(b.todoH === null && b.todo.length === 0,
+       `${tag}: ★★「まだ答えていない項目」の一覧は無い（会員が居ない）`, JSON.stringify([b.todoH, b.todo]));
+    ok(!NOCOUNT.test(s.main) && !s.main.includes(LK[lang].goal) && !/[¥$€£]|万|%/.test(s.main),
+       `${tag}: ★★人数も 100人の行も金額も出ない（サーバに聞いていないので、数を1つも知らない）`,
+       countIn(s.main) + (s.main.match(/[^\n]*[¥$€£万%][^\n]*/) || [''])[0]);
+    ok(s.pickHidden === true && s.pickShown === false && s.rows.length === 0 && s.bars.length === 0
+       && s.kvV.length === 0 && s.condK.length === 0 && s.hd.length > 0,
+       `${tag}: ★選ぶ欄・表・棒・条件の1行のどれも出ない（見出しは出ている）`,
+       `欄 ${s.pickShown} / 行 ${s.rows.length} / 見出し「${s.hd}」`);
+    ok(b.tags.every((t) => LOCK_TAGS.includes(t)) && !/null|undefined|NaN|\[object/.test(s.main),
+       `${tag}: 板に余計なタグも null / undefined も無い`, b.tags.join(' '));
+
+    // ── 聞かない ──
+    ok(Object.keys(s.rpc).length === 0 && s.args.length === 0 && r.from === 0,
+       `${tag}: ★★rpc を1本も呼ばない（pv_deep_pay も、ほかの名前も。表も引かない）`,
+       JSON.stringify(s.rpc) + ' / from ' + r.from);
+    ok(w.rpc.length === 0 && w.api.length === 0,
+       `${tag}: ★★窓の外から数えても、住所に /rpc/ の入った通信が0本（通信は全部で ${reqs.length} 本・サーバの API へも0本）`,
+       w.rpc.concat(w.api).join(' '));
+    ok(w.odd.length === 0 && w.give.length === 0,
+       `${tag}: ★通信の行き先が増えていない（確認用サーバと、前から読む CDN・書体・解析のタグだけ。全ページの板の部品も読まない）`,
+       w.odd.concat(w.give).join(' '));
+
+    // ── 書かない ──
+    ok(typeof r.ls0 === 'string' && r.dump === r.ls0,
+       `${tag}: ★★保存領域が、ページの script が動く前と1文字も変わらない（localStorage も sessionStorage も）`,
+       `前 ${r.ls0} / 後 ${r.dump}`);
+    ok(r.writes.every((k) => CHROME_KEYS.includes(k)) && r.mark === null
+       && !r.writes.some((k) => /was_locked|unlock|expiry|pv_user|pv_pay|pv_give|session_start|last_active|sb-/.test(k)),
+       `${tag}: ★★書きに行った鍵は、ページの部品が前から書くものだけ（クラッカーの印も、門の鍵も無い）`,
+       [...new Set(r.writes)].join(' '));
+
+    // ── 出ない ──
+    ok(r.pop === 0 && r.popSeen === 0, `${tag}: ★紙吹雪の器は1度も出ない`, `いま ${r.pop} / 出た回数 ${r.popSeen}`);
+    ok(r.gf === 0, `${tag}: ★全ページの Give → Get の板は出ない（同じ3段を本文で出す画面のまま）`, String(r.gf));
+
+    // ── 形（§2d と同じ物差し）──
+    for (const vw of [320, 390, 1440]) {
+      await page.setViewport({ width: vw, height: 1000 });
+      await page.waitForFunction((x) => innerWidth === x, { timeout: 10000 }, vw);
+      await navStill(page);
+      const fit = await page.evaluate(GHOST_FIT);
+      const c = (await page.evaluate(LOCK_FIT)) || { out: ['板が無い'], cut: [], con: {} };
+      const bad = ghostBad(fit, c, vw);
+      for (const [k, label] of GHOST_KINDS)
+        ok(!bad[k], `${tag}/${vw}: ${label}`, bad[k] || '');
+      ok(fit.over <= 0, `${tag}/${vw}: ★★横スクロールが生えない`, `+${fit.over}px`);
+    }
+
+    if (theme === 'light') {
+      /* 描き直しても（通貨の切替でも）、器を作り直さない・聞きに行かない・書かない。 */
+      const again = await page.evaluate(() => {
+        const st = document.querySelector('.dp-stage'), a = document.querySelector('.dp-stage a.dp-cta');
+        if (a) a.focus();
+        window.dispatchEvent(new Event('pv-currency-change'));
+        window.dispatchEvent(new Event('pv-currency-change'));
+        return { st: !!st && document.querySelector('.dp-stage') === st,
+                 focus: !!a && document.activeElement === a,
+                 rpc: Object.keys(window.__rpc).length, same: window.__dump() === window.__ls0 };
+      });
+      ok(again.st && again.focus && again.rpc === 0 && again.same,
+         `${tag}: ★描き直しても、器は同じ要素のまま・ボタンの焦点が外れない・聞きに行かない・書かない`,
+         JSON.stringify(again));
+      const walk = await tabWalk(page);
+      ok(walk.filter((x) => !x.body).length >= 8 && walk.some((x) => x.cta) && !walk.some((x) => x.ghost),
+         `${tag}: ★★Tab で一周しても影絵には入らない・板のボタンには届く`,
+         `ボタンに届いた=${walk.some((x) => x.cta)} 影絵に入った=${walk.some((x) => x.ghost)}`);
+    }
+    ok(errs.length === 0, `${tag}: JS のエラーが出ない`, errs.join(' / '));
+    await jars.pop().close().catch(() => {});
+  }
+
+  // ── 前のログインの印が端末に残っている人（日本語だけ）──
+  if (lang === 'ja') {
+    const tag = `${lang}/未ログイン/前の印が残っている`;
+    const { page, errs, reqs } = await open(lang, ANON, 'light', null, null, null,
+      { first: [[ANON_WATCH, anonSeed(lang, 'light', { [POP_KEY]: 'abc123' })], [POP_WATCH, POP_KEY]] });
+    await anonSettled(page);
+    const r = await page.evaluate(ANON_READ, POP_KEY);
+    ok(r.stage === anonStage && r.mark === 'abc123' && r.dump === r.ls0
+       && !r.writes.some((k) => k.includes(POP_KEY)) && r.pop === 0 && r.popSeen === 0,
+       `${tag}: ★★同じ板が出る・印は消さない・書き換えない・鳴らさない`,
+       `印 ${JSON.stringify(r.mark)} / 触った鍵 ${[...new Set(r.writes)].join(' ')} / 出た ${r.popSeen}`);
+    ok(wires(reqs).rpc.length === 0 && errs.length === 0,
+       `${tag}: 聞きに行かない・JS のエラーが出ない`, wires(reqs).rpc.join(' ') + errs.join(' / '));
+    await jars.pop().close().catch(() => {});
+  }
+
+  // ── ログインが切れていた（入口の1回で）──
+  for (const [name, fail] of (lang === 'ja' ? [['42501・HTTP 401', LOST], ['鍵の期限切れ・HTTP 401', LOST_J]]
+                                             : [['42501・HTTP 401', LOST]])) {
+    const tag = `${lang}/ログインが切れていた（${name}）`;
+    const { page, errs, reqs, navs } = await anonOpen(lang, { __fail: fail, __wire: true, air: AIR }, 'light');
+    await anonSettled(page);
+    const s = await page.evaluate(SNAP);
+    const r = await page.evaluate(ANON_READ, POP_KEY);
+    const w = wires(reqs);
+    ok(r.stage === anonStage && s.lock === 1 && !s.main.includes(ERR_TEXT[lang]) && s.pickShown === false,
+       `${tag}: ★★ログインしていない人と同じ板（器ごと1文字も違わない）。「読み込めませんでした」は出さない`,
+       `同じ=${r.stage === anonStage} / 板 ${s.lock}`);
+    ok(s.rpc.pv_deep_pay === 1 && s.args.length === 1 && s.args[0] === null,
+       `${tag}: ★聞いたのは入口の1回だけ（聞き直さない）`, JSON.stringify(s.rpc));
+    /* ★網の自己点検。この筋書きは実際に聞いているので、窓の外の記録に1本掛かるはず。 */
+    ok(w.rpc.filter((u) => /\/rpc\/pv_deep_pay$/.test(u)).length === 1,
+       `${tag}: ★（網の自己点検）聞いた1本は、窓の外の記録に /rpc/pv_deep_pay として掛かっている`,
+       w.rpc.join(' ') || '（1本も掛かっていない）');
+    ok(r.mark === null && !r.writes.some((k) => k.includes(POP_KEY))
+       && !r.writes.some((k) => /unlock|expiry/.test(k)) && r.pop === 0 && r.popSeen === 0,
+       `${tag}: ★★クラッカーの印を置かない（この人には指紋が在る）・門の鍵を書き換えない・鳴らさない`,
+       `印 ${JSON.stringify(r.mark)} / 触った鍵 ${[...new Set(r.writes)].join(' ')}`);
+    ok(navs.length === 1 && w.login.length === 0 && errs.length === 0,
+       `${tag}: よそへ運ばない・JS のエラーが出ない`, JSON.stringify(navs) + errs.join(' / '));
+    await jars.pop().close().catch(() => {});
+  }
+
+  // ── ログインが切れていた（開いた画面で、2社を引く回に）──
+  /* ★__failAfter: 1 ＝ 入口の1回は普通に答え、そのあとの pv_deep_pay（左右の2本）が
+       「ログインしていない」で返る。pair() が LOST を「引けなかった」より前に見ていること。 */
+  {
+    const tag = `${lang}/ログインが切れていた（2社を引く回）`;
+    const { page, errs } = await anonOpen(lang, { __fail: LOST, __failAfter: 1, air: AIR }, 'light');
+    const before = await page.evaluate(SNAP);
+    await choose(page, { a: 'ana', b: 'jal' }, 2);
+    await page.waitForFunction(() => !!document.querySelector('.dp-stage'), { timeout: 20000 }).catch(() => {});
+    const s = await page.evaluate(SNAP);
+    const r = await page.evaluate(ANON_READ, POP_KEY);
+    ok(before.ask === 1 && before.lock === 0 && noGhost(before) && before.pickShown === true,
+       `${tag}: （前置き）入口の1回は通って、開いた画面（選ぶ前）が出ている`, ghostWhy(before));
+    ok(r.stage === anonStage && s.lock === 1 && !s.main.includes(ERR_TEXT[lang]) && s.rows.length === 0
+       && s.kvV.length === 0 && s.pickShown === false && s.condK.length === 0 && s.lowHidden === 4
+       && !/[¥$€£]\s?\d|万|%/.test(s.main),
+       `${tag}: ★★2社を引く回に切れていても、同じ板（表・数字・選ぶ欄は出ない。エラーの板でもない）`,
+       `同じ=${r.stage === anonStage} / 行 ${s.rows.length} / 欄 ${s.pickShown}`);
+    ok(s.rpc.pv_deep_pay === 3 && r.mark === null && r.pop === 0 && errs.length === 0,
+       `${tag}: ★聞き直さない（入口＋左右の2本）・印を置かない・JS のエラーが出ない`,
+       JSON.stringify(s.rpc) + ' / 印 ' + JSON.stringify(r.mark) + ' ' + errs.join(' / '));
+    await jars.pop().close().catch(() => {});
+  }
+
+  // ── ほかの失敗は、今までどおり「読み込めませんでした」──
+  for (const [name, payload] of (lang === 'ja'
+    ? [['通信が切れた（番号 0）', { __fail: NET, air: AIR }], ['答えの箱が投げた', { __reject: true, air: AIR }]]
+    : [['通信が切れた（番号 0）', { __fail: NET, air: AIR }]])) {
+    const tag = `${lang}/ほかの失敗（${name}）`;
+    const { page, errs } = await open(lang, payload);
+    const s = await page.evaluate(SNAP);
+    const msg = await page.evaluate(() => [...document.querySelectorAll('#dc-sides .pt-empty')].map((e) => e.textContent));
+    ok(msg.join('|') === ERR_TEXT[lang] && noGhost(s) && s.lock === 0 && s.rows.length === 0,
+       `${tag}: ★★今までどおり「読み込めませんでした」だけ（板も影絵も出さない ── 給与を出してとは頼まない）`,
+       JSON.stringify(msg) + ' / ' + ghostWhy(s));
+    ok(s.rpc.pv_deep_pay === 1 && errs.length === 0,
+       `${tag}: 聞いたのは1回・JS のエラーが出ない`, JSON.stringify(s.rpc) + errs.join(' / '));
+    await jars.pop().close().catch(() => {});
+  }
+  /* 2社を引く回の「ほかの失敗」も、今までどおりエラーの板（LOST と取り違えない）。 */
+  if (lang === 'ja') {
+    const tag = `${lang}/ほかの失敗（2社を引く回に通信が切れた）`;
+    const { page, errs } = await open(lang, { __fail: NET, __failAfter: 1, air: AIR });
+    await choose(page, { a: 'ana', b: 'jal' }, 2);
+    await page.waitForFunction(() => !!document.querySelector('#dc-sides .pt-empty'), { timeout: 20000 }).catch(() => {});
+    const s = await page.evaluate(SNAP);
+    const msg = await page.evaluate(() => [...document.querySelectorAll('#dc-sides .pt-empty')].map((e) => e.textContent));
+    ok(msg.join('|') === ERR_TEXT[lang] && noGhost(s) && s.lock === 0 && errs.length === 0,
+       `${tag}: ★★「読み込めませんでした」のまま（板も影絵も出さない）`, JSON.stringify(msg) + ' / ' + ghostWhy(s));
+    await jars.pop().close().catch(() => {});
+  }
 }
 
 // ── 3. 選ぶまで何も出さない ─────────────────────────────────────
